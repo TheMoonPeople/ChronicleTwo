@@ -25,3 +25,8 @@ int main();
  * @size 0x24
  */
 extern "C" void mwInit();
+
+/**
+ * VU1 microprogram that draws water surfaces.
+ */
+extern u_long128 Vu_prog_wtr[];

@@ -45,6 +45,15 @@ enum sndSE_TYPE {
 };
 
 /**
+ * Centre value for sound-effect pitch bend.
+ */
+// clang-format off
+enum sndSE_CENTER {
+    SND_SE_PITCH_CENTER = 0x2000, /**< Centre pitch bend. */
+};
+// clang-format on
+
+/**
  * Playback state of the sequence of a sound port.
  */
 enum sndSQ_STATE {

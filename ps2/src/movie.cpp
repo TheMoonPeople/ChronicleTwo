@@ -32,20 +32,6 @@ int sceCdStStop();
 int sceCdStRead(unsigned int sectors, void *buffer, unsigned int mode, unsigned int *error);
 }
 
-struct SemaParam {
-    int currentCount;
-    int maxCount;
-    int initCount;
-    int numWaitThreads;
-    int attr;
-    int option;
-};
-
-extern "C" int CreateSema(SemaParam *param);
-extern "C" void DeleteSema(int sema);
-extern "C" int WaitSema(int sema);
-extern "C" int SignalSema(int sema);
-
 extern u8 isStarted;
 extern int writerest;
 extern u8 isFrameEnd;

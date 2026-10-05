@@ -1,5 +1,12 @@
 # gameutil: reverse-engineering notes
 
+## C++ draft status
+All 37 functions have C++ in `ps2/src/gameutil.cpp`. 13 are exact and compiled
+by the matching build. 1 more compiles to retail's bytes in isolation but stays
+under `NONMATCHING`. 23 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Header: `ps2/include/gameutil.hpp`. No class in `class_units.tsv` is owned by gameutil; the header
 declares the plain structs and enums the unit's code uses.
 

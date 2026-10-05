@@ -1,5 +1,12 @@
 # effect: reverse-engineering notes
 
+## C++ draft status
+All 75 functions have C++ in `ps2/src/effect.cpp`. 16 are exact and compiled by
+the matching build. 37 more compile to retail's bytes in isolation but stay
+under `NONMATCHING`. 22 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Scripted particle effects. An effect file is a script (tags in `effm_tag`, run through
 `CScriptInterpreter`) that declares buffer sizes, an image archive, wait frames, and one or more
 `EFFECT_START ... EFFECT_END` emitter blocks. `CEffectManager` owns one effect; `CEffectCtrl` is

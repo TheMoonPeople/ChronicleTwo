@@ -996,6 +996,11 @@ public:
 STATIC_ASSERT(sizeof(CAfterWire) == 0x120);
 
 /**
+ * Dungeon trail slots used by weapon experience pickups.
+ */
+extern CAfterWire afterWire[16];
+
+/**
  *
  * Burst of sparks thrown from the point of a hit or a guard.
  *

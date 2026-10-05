@@ -41,6 +41,30 @@ enum ITEM_ATTRIBUTE {
 
 /**
  *
+ * Bits of CDataItem::use_flags and USEITEM_EFFECT::use_flags.
+ *
+ */
+// clang-format off
+enum ITEM_USE_FLAG {
+    ITEM_USE_FLAG_ADD_STATUS_UNK_8 = 0x4000,       /**< Adds CHARA_STATUS_UNK_8. */
+    ITEM_USE_FLAG_CURE_STATUS_UNK_8 = 0x8000,      /**< Cures CHARA_STATUS_UNK_8. */
+    ITEM_USE_FLAG_ADD_POISON = 0x10000,            /**< Adds poison. */
+    ITEM_USE_FLAG_CURE_POISON = 0x20000,           /**< Cures poison. */
+    ITEM_USE_FLAG_ADD_STATUS_UNK_4 = 0x40000,      /**< Adds CHARA_STATUS_UNK_4. */
+    ITEM_USE_FLAG_CURE_STATUS_UNK_4 = 0x80000,     /**< Cures CHARA_STATUS_UNK_4. */
+    ITEM_USE_FLAG_ADD_STATUS_UNK_2 = 0x100000,     /**< Adds CHARA_STATUS_UNK_2. */
+    ITEM_USE_FLAG_CURE_STATUS_UNK_2 = 0x200000,    /**< Cures CHARA_STATUS_UNK_2. */
+    ITEM_USE_FLAG_ADD_POWER = 0x400000,            /**< Adds the power status. */
+    ITEM_USE_FLAG_CURE_ALL = 0x800000,             /**< Expands to the individual status cure effects when loaded. */
+    ITEM_USE_FLAG_ADD_STATUS_UNK_20 = 0x02000000,  /**< Adds CHARA_STATUS_UNK_20. */
+    ITEM_USE_FLAG_CURE_STATUS_UNK_20 = 0x04000000, /**< Cures CHARA_STATUS_UNK_20. */
+    ITEM_USE_FLAG_ADD_STATUS_UNK_40 = 0x08000000,  /**< Adds CHARA_STATUS_UNK_40. */
+    ITEM_USE_FLAG_CURE_STATUS_UNK_40 = 0x10000000, /**< Cures CHARA_STATUS_UNK_40. */
+};
+// clang-format on
+
+/**
+ *
  * Identifies what a CItemUseTarget points at.
  *
  */

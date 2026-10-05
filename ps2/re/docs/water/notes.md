@@ -1,5 +1,12 @@
 # water: reverse-engineering notes
 
+## C++ draft status
+All 25 functions have C++ in `ps2/src/water.cpp`. 13 are exact and compiled by
+the matching build. 2 more compile to retail's bytes in isolation but stay under
+`NONMATCHING`. 10 differ from retail and keep the `INCLUDE_ASM` fallback. Each
+function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Header: `ps2/include/water.hpp`. Types: `FireRasterParticle` (neutral name, no retail symbol),
 `CFireRaster`, `CThunderEffect`, `CWater`, `CWaterFrame`. One free function `CreateWaterFrame`
 (global). No plain-named globals: `.data` holds only `prog_vif_351` / `progf_vif_352` (local,

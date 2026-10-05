@@ -1,5 +1,12 @@
 # mglib notes
 
+## C++ draft status
+All 101 functions have C++ in `ps2/src/mglib.cpp`. 43 are exact and compiled by
+the matching build. 31 more compile to retail's bytes in isolation but stay
+under `NONMATCHING`. 27 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Header: `ps2/include/mglib.hpp`. No class is owned by mglib (`class_units.tsv`). Declared here:
 structs `mgFOG_PARAM` (retail name, from `mgSetFogParam__FP11mgFOG_PARAM`) and `MG_PICKZ`
 (name taken from the first game's mglib.hpp; no retail symbol names it in this game); enums

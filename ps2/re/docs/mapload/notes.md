@@ -1,5 +1,12 @@
 # mapload: header notes
 
+## C++ draft status
+All 118 functions have C++ in `ps2/src/mapload.cpp`. 19 are exact and compiled
+by the matching build. 68 more compile to retail's bytes in isolation but stay
+under `NONMATCHING`. 31 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Header: `ps2/include/mapload.hpp`. Includes `mg_drawenv.hpp` (mgPOINT_LIGHT, mgFOG_PARAM, mgVu0FBOX
 by value) and `mg_frame.hpp` (mgCFrame by value). It must not include `map.hpp` or `funcpoint.hpp`:
 `mapinfo.hpp` includes `mapload.hpp` and `map.hpp` includes `mapinfo.hpp` (cycle). Note

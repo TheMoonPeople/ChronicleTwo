@@ -831,8 +831,163 @@ int ItemCmdMsgSet(int item_no, int *messages) {
     messages[i] = -1;
     return count;
 }
+#ifdef NONMATCHING
+int GetMenuCommandMsg(int item_no, int *message_list) {
+    int count;
+    int type;
+
+    count = 0;
+    type = GetItemDataType(item_no);
+    switch (type) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+            count = ItemCmdMsgSet(0, message_list);
+            if (item_no == 0x12E || item_no == 0x12F) {
+                count = ItemCmdMsgSet(14, message_list);
+            }
+            break;
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+            count = ItemCmdMsgSet(8, message_list);
+            break;
+        case 16:
+        case 18:
+        case 34:
+            count = ItemCmdMsgSet(1, message_list);
+            break;
+        case 19:
+            count = ItemCmdMsgSet(24, message_list);
+            break;
+        case 17:
+            count = ItemCmdMsgSet(5, message_list);
+            break;
+        case 11:
+            count = ItemCmdMsgSet(7, message_list);
+            break;
+        case 12:
+        case 14:
+            count = ItemCmdMsgSet(2, message_list);
+            break;
+        case 13:
+            count = ItemCmdMsgSet(22, message_list);
+            break;
+        case 15:
+            count = ItemCmdMsgSet(16, message_list);
+            break;
+        case 22:
+            count = ItemCmdMsgSet(3, message_list);
+            break;
+        case 20:
+        case 23:
+        case 24:
+        case 25:
+        case 26:
+        case 27:
+        case 33:
+            switch (item_no) {
+                case 0x126:
+                    count = ItemCmdMsgSet(13, message_list);
+                    break;
+                case 0x12A:
+                case 0x160:
+                    count = ItemCmdMsgSet(17, message_list);
+                    break;
+                case 0x17D:
+                    count = ItemCmdMsgSet(23, message_list);
+                    break;
+                case 0x128:
+                    count = ItemCmdMsgSet(20, message_list);
+                    break;
+                case 0x184:
+                    count = ItemCmdMsgSet(18, message_list);
+                    break;
+                case 0x185:
+                    count = ItemCmdMsgSet(19, message_list);
+                    break;
+                case 0x182:
+                    count = ItemCmdMsgSet(21, message_list);
+                    break;
+                case 0x124:
+                case 0x111:
+                case 0x11F:
+                    count = ItemCmdMsgSet(3, message_list);
+                    break;
+                case 0x163:
+                    count = ItemCmdMsgSet(26, message_list);
+                    break;
+                case 0x1A7:
+                    count = ItemCmdMsgSet(25, message_list);
+                    break;
+                case 0x125:
+                    count = ItemCmdMsgSet(27, message_list);
+                    break;
+                case 0xAE:
+                    count = ItemCmdMsgSet(28, message_list);
+                    break;
+                case 0xAC:
+                    count = ItemCmdMsgSet(30, message_list);
+                    break;
+                case 0x127:
+                    count = ItemCmdMsgSet(31, message_list);
+                    break;
+                default:
+                    count = ItemCmdMsgSet(4, message_list);
+                    break;
+            }
+            break;
+        case 29:
+            count = ItemCmdMsgSet(9, message_list);
+            break;
+        case 21:
+            count = ItemCmdMsgSet(10, message_list);
+            break;
+        case 28:
+            count = ItemCmdMsgSet(11, message_list);
+            break;
+        case 30:
+            count = ItemCmdMsgSet(12, message_list);
+            break;
+        case 32:
+            count = ItemCmdMsgSet(15, message_list);
+            break;
+        case 35:
+            count = ItemCmdMsgSet(29, message_list);
+            break;
+    }
+    return count;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetMenuCommandMsg__FiPi);
+#endif
+#ifdef NONMATCHING
+int CheckItemEquip(int chara, int item_no) {
+    if (GetItemInfoData(item_no) == NULL) {
+        return 0;
+    }
+    switch (item_no) {
+        case 0x12A:
+        case 0x171:
+            if (chara != 0) {
+                return 0;
+            }
+            break;
+        case 0x160:
+            if (chara != 1) {
+                return 0;
+            }
+            break;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", CheckItemEquip__Fii);
+#endif
 int SearchItemByName(char *name) {
     int item_no;
     CDataCommon *record;
@@ -848,7 +1003,18 @@ int SearchItemByName(char *name) {
     }
     return -1;
 }
+#ifdef NONMATCHING
+s16 GetRidePodCore(int index) {
+    static s16 table[8] = { 246, 247, 248, 249, 250, 251, 252, -1 }; 
+
+    if (index < 0 || index >= 7) {
+        return 0;
+    }
+    return table[index];
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetRidePodCore__Fi);
+#endif
 void Init_USEITEM_EFFECT(USEITEM_EFFECT *effect) {
     effect->target_flags = 0;
     effect->use_flags = 0;
@@ -858,7 +1024,26 @@ void Init_USEITEM_EFFECT(USEITEM_EFFECT *effect) {
     effect->value[1] = 0;
     effect->value[0] = 0;
 }
+#ifdef NONMATCHING
+int GetUsedItemAfterEffect(int item_no, USEITEM_EFFECT *effect) {
+    CDataItem *data;
+
+    Init_USEITEM_EFFECT(effect);
+    data = GetItemInfoData(item_no);
+    if (data == NULL || effect == NULL) {
+        return 0;
+    }
+    effect->status_flags = data->status_flags;
+    effect->use_flags = data->use_flags;
+    effect->target_flags = data->target_flags;
+    effect->value[0] = data->value[0];
+    effect->value[1] = data->value[1];
+    effect->value[2] = data->value[2];
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetUsedItemAfterEffect__FiP14USEITEM_EFFECT);
+#endif
 void CItemUseTarget::SetPtr(int new_kind, void *new_ptr) {
     type = new_kind;
 

@@ -1,5 +1,12 @@
 # gamedata: reverse-engineering notes
 
+## C++ draft status
+All 67 functions have C++ in `ps2/src/gamedata.cpp`. 20 are exact and compiled
+by the matching build. 25 more compile to retail's bytes in isolation but stay
+under `NONMATCHING`. 22 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Master item tables, filled by running `CScriptInterpreter` over `menu/cfg7/*.cfg` with the tag
 table `gamedata_tag`. No counterpart in the first game (its `itemdata` is a different system).
 

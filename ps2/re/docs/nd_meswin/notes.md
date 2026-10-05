@@ -1,5 +1,12 @@
 # nd_meswin: reverse-engineering notes
 
+## C++ draft status
+All 98 functions have C++ in `ps2/src/nd_meswin.cpp`. 41 are exact and compiled
+by the matching build. 1 more compiles to retail's bytes in isolation but stays
+under `NONMATCHING`. 56 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 The migrated message setters write the window mode, background opacity, packed colours,
 message buffers and line widths through `ClsMes` members. `GetNextLineTop` scans until the
 next line-feed byte and leaves the pointer just after it; its loop branch layout is sensitive

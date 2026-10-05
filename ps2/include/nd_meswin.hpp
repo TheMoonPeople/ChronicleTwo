@@ -111,9 +111,9 @@ enum MesCode {
     MES_CODE_COLOR_HIGHLIGHT = 0xFC01, /**< Switches to the highlight text colour. */
     MES_CODE_GAIJI = 0xFD00,           /**< First of the external characters, up to 0xFD31. */
     MES_CODE_WAIT = 0xFE00,            /**< Waits the low byte of frames after the previous character. */
-    MES_CODE_END = 0xFF00,             /**< Ends the message. */
-    MES_CODE_END_ALT = 0xFF01,         /**< Ends the message; revealing reports it apart from MES_CODE_END. */
-    MES_CODE_NEWLINE = 0xFF02,         /**< Starts a new line. */
+    MES_CODE_NEWLINE = 0xFF00,         /**< Starts a new line. */
+    MES_CODE_END = 0xFF01,             /**< Ends the message. */
+    MES_CODE_SPACE = 0xFF02,           /**< Inserts a space. */
     MES_CODE_PAGE = 0xFF03,            /**< Waits for the next page. */
     MES_CODE_VOICE_1 = 0xFF04,         /**< Reveals with the first alternative voice sound. */
     MES_CODE_VOICE_0 = 0xFF05,         /**< Reveals with the default voice sound. */
@@ -607,7 +607,7 @@ public:
     /**
      *
      * Reveals the next character and acts on the code it holds; gives back 1
-     * at a page break, 2 at MES_CODE_END_ALT and 0 otherwise.
+     * at a page break, 2 at MES_CODE_END and 0 otherwise.
      *
      * @mangled MyTextureMake_sub__6ClsMesFv
      * @address 0x154550
@@ -1296,7 +1296,7 @@ void DrawYesNo(mgCDrawPrim *prim, int yes_x, int yes_y, int no_x, int no_y, RGBA
 /**
  *
  * Gives back where something of @p width by @p height goes when placed at
- * one of the nine anchor points of a rectangle.
+ * one of the nineteen anchor points of a rectangle, numbered from 1.
  *
  * @mangled GetPos_AbsPosSet__F4RECTiiiPiPi
  * @address 0x15A070

@@ -1,5 +1,12 @@
 # runscript_opcodes: notes
 
+## C++ draft status
+All 183 functions have C++ in `ps2/src/runscript_opcodes.cpp`. 12 are exact and
+compiled by the matching build. 95 more compile to retail's bytes in isolation
+but stay under `NONMATCHING`. 76 differ from retail and keep the `INCLUDE_ASM`
+fallback. Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Monster-script external functions (`_XXX(RS_STACKDATA *, int)`), their argument helpers, the
 monster external-function table, and `CMonsterMan::RunScript`. First-game counterpart:
 `chronicle/ps2/include/runscript_opcodes.hpp` / `src/runscript_opcodes.cpp` (there the setup pair is

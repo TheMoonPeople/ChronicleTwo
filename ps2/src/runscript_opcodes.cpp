@@ -1,5 +1,12 @@
 #include "common.h"
 #include "runscript_opcodes.hpp"
+#ifdef NONMATCHING
+#include "dng_object.hpp"
+#include "gameutil.hpp"
+#include "mdslist.hpp"
+#include "mg_camera.hpp"
+#include "mg_drawenv.hpp"
+#endif
 #include "nd_meswin.hpp"
 #include "savedata.hpp"
 #include "monster.hpp"
@@ -947,8 +954,94 @@ extern "C" int _SET_CAMERA_SPEED__FP12RS_STACKDATAi(RS_STACKDATA *stack, int arg
     camera->SetSpeed(GetStackFloat__FP12RS_STACKDATA(stack), -1.0f);
     return 1;
 }
+#ifdef NONMATCHING
+static int _SET_CAMERA_CTRL_PARAM1(RS_STACKDATA *args, int argc) {
+    CameraCtrlParam *param;
+    float            value;
+
+    if (argc > 0 && argc < 5) {
+        return 0;
+    }
+    param = ((CCameraControl *)nowScene->GetCamera(nowScene->active_camera))->GetActiveParam();
+    if (argc >= 1) {
+        value = GetStackFloat__FP12RS_STACKDATA(args + 0);
+    }
+    if (value != -99999.9 && argc >= 1) {
+        param->min_dist = value;
+    }
+    if (argc >= 2) {
+        value = GetStackFloat__FP12RS_STACKDATA(args + 1);
+    }
+    if (value != -99999.9 && argc >= 2) {
+        param->max_dist = value;
+    }
+    if (argc >= 3) {
+        value = GetStackFloat__FP12RS_STACKDATA(args + 2);
+    }
+    if (value != -99999.9 && argc >= 3) {
+        param->near_height = value;
+    }
+    if (argc >= 4) {
+        value = GetStackFloat__FP12RS_STACKDATA(args + 3);
+    }
+    if (value != -99999.9 && argc >= 4) {
+        param->far_height = value;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SET_CAMERA_CTRL_PARAM1__FP12RS_STACKDATAi);
+#endif
+#ifdef NONMATCHING
+static int _SET_CAMERA_CTRL_PARAM2(RS_STACKDATA *args, int argc) {
+    CameraCtrlParam *param;
+    float            value;
+
+    if (argc > 0 && argc < 7) {
+        return 0;
+    }
+    param = ((CCameraControl *)nowScene->GetCamera(nowScene->active_camera))->GetActiveParam();
+    if (argc >= 1) {
+        value = GetStackFloat__FP12RS_STACKDATA(args + 0);
+    }
+    if (value != -99999.9 && argc >= 1) {
+        param->height = value;
+    }
+    if (argc >= 2) {
+        value = GetStackFloat__FP12RS_STACKDATA(args + 1);
+    }
+    if (value != -99999.9 && argc >= 2) {
+        param->max_height = value;
+    }
+    if (argc >= 3) {
+        value = GetStackFloat__FP12RS_STACKDATA(args + 2);
+    }
+    if (value != -99999.9 && argc >= 3) {
+        param->min_height = value;
+    }
+    if (argc >= 4) {
+        value = GetStackFloat__FP12RS_STACKDATA(args + 3);
+    }
+    if (value != -99999.9 && argc >= 4) {
+        param->rest_max_height = value;
+    }
+    if (argc >= 5) {
+        value = GetStackFloat__FP12RS_STACKDATA(args + 4);
+    }
+    if (value != -99999.9 && argc >= 5) {
+        param->rest_min_height = value;
+    }
+    if (argc >= 6) {
+        value = GetStackFloat__FP12RS_STACKDATA(args + 5);
+    }
+    if (value != -99999.9 && argc >= 6) {
+        param->ground_space = value;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SET_CAMERA_CTRL_PARAM2__FP12RS_STACKDATAi);
+#endif
 int _RESET_CAMERA_CTRL_PARAM(RS_STACKDATA *stack, int argc) {
 
     CameraCtrlParam *param;
@@ -1658,7 +1751,55 @@ int _GET_TARGET_REF_POS(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAf(stack, pos[2]);
     return 1;
 }
+#ifdef NONMATCHING
+static int _GET_REF_DIR(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR target_position;
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR front;
+    float         distance;
+    float         front_angle;
+    float         angle;
+    int           direction;
+
+    if (argc < 4 || argc > 5) {
+        return 0;
+    }
+    target_position[0] = GetStackFloat__FP12RS_STACKDATA(args++);
+    target_position[1] = GetStackFloat__FP12RS_STACKDATA(args++);
+    target_position[2] = GetStackFloat__FP12RS_STACKDATA(args++);
+    target_position[3] = 1.0f;
+    distance = GetStackFloat__FP12RS_STACKDATA(args++);
+    nowMonster->GetPosition(position);
+    if (mgDistVector(position, target_position) < distance) {
+        SetStack__FP12RS_STACKDATAi(args++, 0);
+    }
+    sceVu0SubVector(target_position, target_position, position);
+    sceVu0Normalize(target_position, target_position);
+    sceVu0CopyVector(front, nowMonster->front_vec);
+    front_angle = atan2f(front[0], front[2]);
+    angle = atan2f(target_position[0], target_position[2]) - front_angle;
+    if (angle < -3.1415927f) {
+        angle += 6.2831855f;
+    }
+    direction = 0;
+    if (angle > -0.8f && angle < 0.8f) {
+        direction = 1;
+    }
+    if (angle < -2.2f || angle > 2.2f) {
+        direction = 2;
+    }
+    if (angle < -0.8f && angle > -3.0f) {
+        direction = 3;
+    }
+    if (angle > 0.8f && angle < 3.0f) {
+        direction = 4;
+    }
+    SetStack__FP12RS_STACKDATAi(args, direction);
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _GET_REF_DIR__FP12RS_STACKDATAi);
+#endif
 int _GET_REFANGLE_POS(RS_STACKDATA *stack, int argc) {
     float matrix[4][4];
     float pos[4];
@@ -1839,7 +1980,50 @@ int _FLYING_SEARCH_AREA(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAf(stack, SearchArea(nowScene, pos, dir.f, distance));
     return 1;
 }
+#ifdef NONMATCHING
+static int _GET_HIGH2(RS_STACKDATA *args, int argc) {
+    CCPoly        polygons[128];
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR hit;
+    mgVu0FBOX     box;
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR to;
+    CMap         *map;
+    int           count;
+    float         height;
+
+    if (argc != 4) {
+        return 0;
+    }
+    GetStackVector__FPfPP12RS_STACKDATA(position, &args);
+    map = nowScene->GetMap(nowScene->active_map);
+    if (map == NULL) {
+        return 0;
+    }
+    box.max[0] = 40.0f + position[0];
+    box.min[0] = position[0] - 40.0f;
+    box.max[2] = 40.0f + position[2];
+    box.min[2] = position[2] - 40.0f;
+    box.max[1] = 300.0f + position[1];
+    box.min[1] = position[1] - 300.0f;
+    box.max[3] = 1.0f;
+    box.min[3] = 1.0f;
+    count = map->GetColPoly(polygons, box, 128);
+    sceVu0CopyVector(from, position);
+    sceVu0CopyVector(to, position);
+    from[1] += 1.0f;
+    to[1] -= 300.0f;
+    if (CheckHit(polygons, count, from, to, hit, 1, 2) >= 0) {
+        height = position[1] - hit[1];
+    } else {
+        height = -3.4028235e38f;
+    }
+    SetStack__FP12RS_STACKDATAf(args++, height);
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _GET_HIGH2__FP12RS_STACKDATAi);
+#endif
 int _GET_RANGE_MONS_ID(RS_STACKDATA *stack, int argc) {
     RangeEntry entries[24];
     float self_pos[4];
@@ -1935,8 +2119,239 @@ int _SET_INT_FLAG(RS_STACKDATA *stack, int argc) {
     ((CActionChara *)nowMonster)->SetMaskFlag(flag, GetStackInt__FP12RS_STACKDATA(stack));
     return 1;
 }
+#ifdef NONMATCHING
+static int _SET_DEAD_START(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR     position;
+    sceVu0FVECTOR     velocity;
+    CBattleCharaInfo *battle;
+    CPalletAnime     *pallet;
+    CPullItem        *item;
+    BASE_MONSTER_TBL *table;
+    float             money_rate;
+    int               total;
+    int               large_coin;
+    int               small_coin;
+    int               roll;
+    int               drop_index;
+    int               drop_second;
+    int               i;
+
+    if (argc != 0) {
+        return 0;
+    }
+    nowMonster->state = ACTIVE_MONSTER_DEAD;
+    pallet = &nowMonster->unk_67c;
+    pallet->duration = 0;
+    pallet->elapsed = 0;
+    if (nowMonster->reward_money <= 0) {
+        return 1;
+    }
+    nowMonster->GetEntryObjectPos(0, position);
+    money_rate = 1.0f;
+    total = nowMonster->reward_money;
+    battle = GetBattleCharaInfo();
+    if (battle->GetNowNPC() == 17) {
+        money_rate += 0.3f;
+    }
+    if (nowMonster->last_hit_attr & 0x1) {
+        money_rate += 0.3f;
+    }
+    if (nowMonster->last_hit_attr & 0x2) {
+        money_rate -= 0.3f;
+    }
+    total = (int)(total * money_rate);
+    large_coin = (int)(0.7f * total);
+    large_coin += (total - large_coin) % 5;
+    if (large_coin > 0) {
+        item = PullItemMan.GetList(2);
+        if (item != NULL) {
+            velocity[0] = 0.0f;
+            velocity[1] = 4.0f;
+            velocity[2] = 0.0f;
+            velocity[3] = 1.0f;
+            item->SetItem(position, velocity, PULL_ITEM_MONEY_LARGE);
+            item->item_no = large_coin;
+        }
+    }
+    printf("total = %d (%d)\n", total, large_coin);
+    small_coin = (total - large_coin) / 5;
+    printf("num = %d (%d)\n", 5, small_coin);
+    for (i = 0; i < 5; i++) {
+        item = PullItemMan.GetList(2);
+        if (item != NULL) {
+            velocity[0] = 0.3f + fRand(0.6f);
+            velocity[1] = 2.0f + fRand(3.0f);
+            velocity[2] = 0.3f + fRand(0.6f);
+            if (iRand(100) < 50) {
+                velocity[0] *= -1.0f;
+            }
+            if (iRand(100) < 50) {
+                velocity[2] *= -1.0f;
+            }
+            velocity[3] = 1.0f;
+            item->SetItem(position, velocity, PULL_ITEM_MONEY);
+            item->item_no = small_coin;
+        }
+    }
+    if (nowMonster->drop_badge != 0) {
+        item = PullItemMan.GetList(1);
+        if (item != NULL) {
+            velocity[0] = fRand(0.5f) - 0.25f;
+            velocity[2] = fRand(0.5f) - 0.25f;
+            velocity[1] = 4.0f;
+            velocity[3] = 1.0f;
+            item->SetItem(position, velocity, PULL_ITEM_BADGE);
+            item->item_no = nowMonster->tbl->user_mons_id;
+        }
+    }
+    roll = iRand(100);
+    if (roll % 6 == 0) {
+        table = nowMonster->tbl;
+        if (table->drop_item[0] > 0 || table->drop_item[1] > 0) {
+            drop_index = 0;
+            if (roll < 20 && table->drop_item[1] > 0) {
+                drop_index = 1;
+            }
+            if (table->drop_item[0] <= 0) {
+                drop_index = 1;
+            }
+            item = PullItemMan.GetList(2);
+            if (item != NULL) {
+                velocity[0] = fRand(0.5f) - 0.25f;
+                velocity[2] = fRand(0.5f) - 0.25f;
+                velocity[1] = 4.0f;
+                velocity[3] = 1.0f;
+                item->SetItem(position, velocity, PULL_ITEM_ITEM);
+                item->item_no = nowMonster->tbl->drop_item[drop_index];
+            }
+        }
+    }
+    drop_second = 0;
+    if (iRand(100) % 4 == 0) {
+        drop_second = 1;
+    }
+    if (battle->GetNowNPC() == 2) {
+        drop_second = 1;
+    }
+    if (drop_second != 0 && nowMonster->tbl->drop_item[2] > 0) {
+        item = PullItemMan.GetList(2);
+        if (item != NULL) {
+            velocity[0] = fRand(1.0f) - 0.5f;
+            velocity[2] = fRand(1.0f) - 0.5f;
+            velocity[1] = 5.0f;
+            velocity[3] = 1.0f;
+            item->SetItem(position, velocity, PULL_ITEM_ITEM2);
+            item->item_no = nowMonster->tbl->drop_item[2];
+        }
+    }
+    sndSePlay(nowScene->se_battle_id, 1, 0);
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SET_DEAD_START__FP12RS_STACKDATAi);
+#endif
+#ifdef NONMATCHING
+static int _SET_DEAD_OFF(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR velocity;
+    CDeadEffect  *effect;
+    CPullItem    *item;
+    float         radius;
+    float         height;
+    float         size;
+    float         growth;
+    int           last_chara;
+    int           last_source;
+    int           experience;
+    int           pickup_count;
+    int           i;
+
+    if (argc != 0) {
+        return 0;
+    }
+    nowMonster->dead_alpha = 128;
+    height = 2.0f * nowMonster->body_height;
+    radius = 3.0f * nowMonster->body_width;
+    if (height >= 60.0f) {
+        height = 60.0f;
+    }
+    size = height / 32.0f;
+    nowMonster->GetEntryObjectPos(0, position);
+    if ((nowMonster->attrib & MONSTER_ATTRIB_UNK_2) == 0) {
+        if (BattleFX.dead == NULL) {
+            effect = NULL;
+        } else {
+            effect = &BattleFX.dead[BattleFX.dead_next++];
+            if (BattleFX.dead_next >= BattleFX.dead_num) {
+                BattleFX.dead_next = 0;
+            }
+        }
+        if (effect != NULL) {
+            effect->SetDeadEffect(position, radius, height, size, 35);
+        }
+        if (BattleFX.dead == NULL) {
+            effect = NULL;
+        } else {
+            effect = &BattleFX.dead[BattleFX.dead_next++];
+            if (BattleFX.dead_next >= BattleFX.dead_num) {
+                BattleFX.dead_next = 0;
+            }
+        }
+        if (effect != NULL) {
+            effect->SetDeadEffect(position, 0.5f * radius, 0.5f * height, size, 35);
+        }
+    }
+    last_chara = nowMonster->last_hit_chara;
+    last_source = nowMonster->last_hit_source;
+    experience = nowMonster->reward_exp;
+    pickup_count = 0;
+    if (nowMonster->last_hit_attr & 0x800) {
+        experience = (int)(experience * 1.2f);
+    }
+    if (experience < 6 && experience > 0) {
+        pickup_count = 6;
+    }
+    if (experience >= 6) {
+        pickup_count = 8;
+    }
+    if (experience >= 50) {
+        pickup_count = 10;
+    }
+    if (experience >= 200) {
+        pickup_count = 12;
+    }
+    if (experience >= 500) {
+        pickup_count = 16;
+    }
+    growth = (float)experience / (float)pickup_count;
+    for (i = 0; i < pickup_count; i++) {
+        item = PullItemMan.GetList(2);
+        if (item != NULL) {
+            velocity[0] = 0.3f + fRand(0.6f);
+            velocity[1] = 2.0f + fRand(3.0f);
+            velocity[2] = 0.3f + fRand(0.6f);
+            if (iRand(100) < 50) {
+                velocity[0] *= -1.0f;
+            }
+            if (iRand(100) < 50) {
+                velocity[2] *= -1.0f;
+            }
+            velocity[3] = 1.0f;
+            item->SetItem(position, velocity, PULL_ITEM_WEAPON_EXP);
+            item->exp = growth;
+            item->exp_param = last_chara;
+            item->item_no = last_source;
+        }
+    }
+    if (pickup_count > 0) {
+        sndSePlay(nowScene->se_battle_id, 2, 0);
+    }
+    sndSePlay(nowScene->se_battle_id, 20, 0);
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SET_DEAD_OFF__FP12RS_STACKDATAi);
+#endif
 int _SET_SHROW_END(RS_STACKDATA *stack, int argument_count) {
     if (argument_count != 0) return 0;
     nowMonster->catch_state = 0;
@@ -2052,7 +2467,42 @@ int _GET_PRIORITY(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAi(stack, nowMonster->priority);
     return 1;
 }
+#ifdef NONMATCHING
+static int _CREATE_MONSTER(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR   position;
+    sceVu0FVECTOR   rotation;
+    CActiveMonster *monster;
+    int             id;
+    int             index;
+
+    mgZeroVector(position);
+    position[3] = 1.0f;
+    mgZeroVector(rotation);
+    rotation[3] = 1.0f;
+    id = GetStackInt__FP12RS_STACKDATA(args++);
+    if (argc >= 2) {
+        position[0] = GetStackFloat__FP12RS_STACKDATA(args++);
+        position[1] = GetStackFloat__FP12RS_STACKDATA(args++);
+        position[2] = GetStackFloat__FP12RS_STACKDATA(args++);
+    }
+    if (argc == 5) {
+        rotation[1] = GetStackFloat__FP12RS_STACKDATA(args);
+    } else if (argc == 7) {
+        rotation[0] = GetStackFloat__FP12RS_STACKDATA(args++);
+        rotation[1] = GetStackFloat__FP12RS_STACKDATA(args++);
+        rotation[2] = GetStackFloat__FP12RS_STACKDATA(args);
+    }
+    index = ActiveMonster->SearchBaseIndex(id);
+    if (index < 0) {
+        return 0;
+    }
+    monster = ActiveMonster->SetActiveMonster(index, position, rotation, -1);
+    printf("mons_index = %d\n", index);
+    return monster != NULL;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _CREATE_MONSTER__FP12RS_STACKDATAi);
+#endif
 int _SET_CLIP_DIST(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
         return 0;
@@ -2122,14 +2572,129 @@ extern "C" void _ESM_DELETE__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
     int effect_id = nowMonster->chara_type;
     ActiveMonster->effect_man->DeleteEffSpt(effect_id, GetStackInt__FP12RS_STACKDATA(stack));
 }
+#ifdef NONMATCHING
+static int _ESM_SET_VECT1(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR vector;
+    int           slot;
+
+    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    vector[0] = GetStackFloat__FP12RS_STACKDATA(args++);
+    vector[1] = GetStackFloat__FP12RS_STACKDATA(args++);
+    vector[2] = GetStackFloat__FP12RS_STACKDATA(args);
+    vector[3] = 1.0f;
+    return ActiveMonster->effect_man->SetScriptVect1(vector, nowMonster->chara_type, slot);
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_SET_VECT1__FP12RS_STACKDATAi);
+#endif
+#ifdef NONMATCHING
+static int _ESM_GET_VECT1(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR vector;
+    int           slot;
+    int           result;
+
+    if (argc != 4) {
+        return 0;
+    }
+    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    result = ActiveMonster->effect_man->GetScriptVect1(vector, nowMonster->chara_type, slot);
+    SetStack__FP12RS_STACKDATAf(args++, vector[0]);
+    SetStack__FP12RS_STACKDATAf(args++, vector[1]);
+    SetStack__FP12RS_STACKDATAf(args, vector[2]);
+    return result;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_GET_VECT1__FP12RS_STACKDATAi);
+#endif
+#ifdef NONMATCHING
+static int _ESM_SET_VECT2(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR vector;
+    int           slot;
+
+    if (argc != 4) {
+        return 0;
+    }
+    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    vector[0] = GetStackFloat__FP12RS_STACKDATA(args++);
+    vector[1] = GetStackFloat__FP12RS_STACKDATA(args++);
+    vector[2] = GetStackFloat__FP12RS_STACKDATA(args);
+    vector[3] = 1.0f;
+    return ActiveMonster->effect_man->SetScriptVect2(vector, nowMonster->chara_type, slot);
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_SET_VECT2__FP12RS_STACKDATAi);
+#endif
+#ifdef NONMATCHING
+static int _ESM_GET_VECT2(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR vector;
+    int           slot;
+    int           result;
+
+    if (argc != 4) {
+        return 0;
+    }
+    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    result = ActiveMonster->effect_man->GetScriptVect2(vector, nowMonster->chara_type, slot);
+    SetStack__FP12RS_STACKDATAf(args++, vector[0]);
+    SetStack__FP12RS_STACKDATAf(args++, vector[1]);
+    SetStack__FP12RS_STACKDATAf(args, vector[2]);
+    return result;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_GET_VECT2__FP12RS_STACKDATAi);
+#endif
+#ifdef NONMATCHING
+static int _ESM_SET_TARGET_ID(RS_STACKDATA *args, int argc) {
+    int slot;
+    int id;
+
+    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    id = GetStackInt__FP12RS_STACKDATA(args);
+    return ActiveMonster->effect_man->SetScriptTargetId(id, nowMonster->chara_type, slot);
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_SET_TARGET_ID__FP12RS_STACKDATAi);
+#endif
+#ifdef NONMATCHING
+static int _ESM_GET_TARGET_ID(RS_STACKDATA *args, int argc) {
+    int slot;
+    int id;
+    int result;
+
+    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    result = ActiveMonster->effect_man->GetScriptTargetId(id, nowMonster->chara_type, slot);
+    SetStack__FP12RS_STACKDATAi(args, id);
+    return result;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_GET_TARGET_ID__FP12RS_STACKDATAi);
+#endif
+#ifdef NONMATCHING
+static int _ESM_SET_USER_ID(RS_STACKDATA *args, int argc) {
+    int slot;
+    int id;
+
+    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    id = GetStackInt__FP12RS_STACKDATA(args);
+    return ActiveMonster->effect_man->SetScriptUserId(id, nowMonster->chara_type, slot);
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_SET_USER_ID__FP12RS_STACKDATAi);
+#endif
+#ifdef NONMATCHING
+static int _ESM_GET_USER_ID(RS_STACKDATA *args, int argc) {
+    int slot;
+    int id;
+    int result;
+
+    slot = GetStackInt__FP12RS_STACKDATA(args++);
+    result = ActiveMonster->effect_man->GetScriptUserId(id, nowMonster->chara_type, slot);
+    SetStack__FP12RS_STACKDATAi(args, id);
+    return result;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _ESM_GET_USER_ID__FP12RS_STACKDATAi);
+#endif
 extern "C" int _ESM_SET_VALUE__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
     int slot;
     int index;
@@ -2236,7 +2801,62 @@ int _ESM_ADD_TEXB(RS_STACKDATA *stack, int argc) {
     ActiveMonster->effect_man->AddTexb();
     return 1;
 }
+#ifdef NONMATCHING
+static int _SHOT_ROCKET_LAUNCHER(RS_STACKDATA *args, int argc) {
+    sceVu0FVECTOR    position;
+    sceVu0FVECTOR    target;
+    sceVu0FVECTOR    direction;
+    CRocketLauncher *rocket;
+    CColPrim        *primitive;
+    float            speed;
+    int              homing_delay;
+    int              homing_time;
+    int              damage;
+    int              primitive_id;
+
+    if (argc != 6 && argc != 10) {
+        return 0;
+    }
+    GetStackVector__FPfPP12RS_STACKDATA(position, &args);
+    GetStackVector__FPfPP12RS_STACKDATA(direction, &args);
+    if (argc == 10) {
+        speed = GetStackFloat__FP12RS_STACKDATA(args++);
+        homing_delay = GetStackInt__FP12RS_STACKDATA(args++);
+        homing_time = GetStackInt__FP12RS_STACKDATA(args++);
+        damage = GetStackInt__FP12RS_STACKDATA(args++);
+    } else {
+        speed = 12.0f;
+        homing_delay = 6;
+        homing_time = 45;
+        damage = nowMonster->attack;
+    }
+    sceVu0Normalize(direction, direction);
+    sceVu0ScaleVector(target, direction, 500.0f);
+    sceVu0AddVector(target, position, target);
+    direction[1] += 0.1f;
+    rocket = RocketLauncher.Get();
+    if (rocket == NULL) {
+        return 0;
+    }
+    rocket->SetPos(position, target, direction);
+    rocket->target_chara = 0;
+    rocket->speed = speed;
+    rocket->homing_delay = homing_delay;
+    rocket->homing_time = homing_time;
+    primitive = ColPrimMan.GetPrim();
+    primitive_id = -1;
+    if (primitive != NULL) {
+        primitive->SetDamage("\x83\x8d\x83\x7b\x83\x89\x83\x93\x83\x60\x83\x83", 2);
+        primitive->SetCoord(position, 5.0f);
+        primitive->damage = damage;
+        primitive_id = primitive->id;
+    }
+    rocket->col_prim_id = primitive_id;
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _SHOT_ROCKET_LAUNCHER__FP12RS_STACKDATAi);
+#endif
 int _RUN_EVENT_SCRIPT(RS_STACKDATA *stack, int argc) {
     if (argc != 1)
         return 0;
@@ -2514,7 +3134,34 @@ int SetMonsterScript(CRunScript *script, char *program, mgCMemory *memory) {
     script->ext_func(ext_func, 256);
     return 1;
 }
+#ifdef NONMATCHING
+void SetMonsterExtendTable() {
+    int index;
+    int earlier;
+    int number;
+
+    for (index = 0; index < 256; index++) {
+        ext_func[index] = NULL;
+    }
+    for (index = 0; ext_func_info[index].func != NULL; index++) {
+        for (earlier = 0; earlier < index; earlier++) {
+            if (ext_func_info[index].no == ext_func_info[earlier].no) {
+                printf("mscript same ext_func_no!!!\n");
+                for (;;) {
+                }
+            }
+        }
+        number = ext_func_info[index].no;
+        if (number < 0 || number >= 256) {
+            printf("ext func over!!");
+        } else {
+            ext_func[number] = ext_func_info[index].func;
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", SetMonsterExtendTable__Fv);
+#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1480__2__DATA);

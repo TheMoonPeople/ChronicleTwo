@@ -262,7 +262,7 @@ class CCharacter2 : public CObjectFrame {
 public:
     sceVu0FVECTOR         velocity;                                     /**< Distance that the character moves each step. */
     sceVu0FVECTOR         base_scale;                                   /**< Scale that the info file gives the model. */
-    float                 unk_A0;
+    float                 move_accel;
     sceVu0FMATRIX         entry_matrix;                                 /**< Matrix of the first entry frame as of the last step, used to reset the cloth after a jump. */
     char                  name[0x10];                                   /**< Name that scripts find the character by. */
     float                 alpha;                                        /**< Alpha that the character draws with. */

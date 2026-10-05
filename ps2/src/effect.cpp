@@ -169,7 +169,175 @@ void CEffect::SetEffect(EFFECT_PARAM *param) {
     tex_count = 0;
     memcpy(&this->param, param, sizeof(EFFECT_PARAM));
 }
+#ifdef NONMATCHING
+void CEffect::Step(int steps) {
+    sceVu0FVECTOR      gravity_step;
+    EFFECT_CHANGE_TYPE change;
+    float             *value;
+    float              amount;
+    float              timing;
+    float              distance;
+    float              life;
+    float              elapsed;
+    float              duration;
+    float              rate;
+    int                channel;
+    int                axis;
+
+    if (active == 0) {
+        return;
+    }
+
+    frame++;
+    if (frame > param.life) {
+        active = 0;
+        frame = 0;
+    }
+    if (param.texture == NULL) {
+        active = 0;
+        frame = 0;
+    }
+
+    sceVu0AddVector(param.pos, param.pos, param.velo);
+    sceVu0AddVector(param.velo, param.velo, param.acc);
+    sceVu0MulVector(param.velo, param.velo, param.velo_mul);
+    sceVu0MulVector(param.acc, param.acc, param.acc_mul);
+    if (param.gravity != 0) {
+        sceVu0SubVector(gravity_step, param.gravity_pos, param.pos);
+        distance = mgDistVector(gravity_step);
+        if (distance != 0.0f) {
+            sceVu0ScaleVector(gravity_step, gravity_step, (param.gravity_accel * param.gravity_mass) / (distance * distance));
+            for (axis = 0; axis < 3; axis++) {
+                if (gravity_step[axis] < 0.0f) {
+                    gravity_step[axis] = -gravity_step[axis];
+                }
+                if (param.pos[axis] < param.gravity_pos[axis]) {
+                    param.pos[axis] += gravity_step[axis];
+                    if (param.pos[axis] > param.gravity_pos[axis]) {
+                        param.pos[axis] = param.gravity_pos[axis];
+                    }
+                } else {
+                    param.pos[axis] -= gravity_step[axis];
+                    if (param.pos[axis] < param.gravity_pos[axis]) {
+                        param.pos[axis] = param.gravity_pos[axis];
+                    }
+                }
+            }
+        }
+    }
+
+    sceVu0CopyVector(pos, param.pos);
+    pos[3] = 1.0f;
+    sceVu0AddVector(param.scale, param.scale, param.svelo);
+    sceVu0CopyVector(scale, param.scale);
+    scale[3] = 1.0f;
+    alpha = param.alpha;
+
+    for (channel = 0; channel < 6; channel++) {
+        switch (channel) {
+        case 0:
+        case 1:
+        case 2:
+            change = param.move_type[channel];
+            amount = param.move_p1[channel];
+            timing = param.move_p2[channel];
+            value = &pos[channel];
+            break;
+        case 3:
+        case 4:
+            change = param.scale_type[channel - 3];
+            amount = param.scale_p1[channel - 3];
+            timing = param.scale_p2[channel - 3];
+            value = &scale[channel - 3];
+            break;
+        case 5:
+            change = param.alpha_type;
+            amount = param.alpha_p1;
+            timing = param.alpha_p2;
+            value = &alpha;
+            break;
+        }
+
+        life = param.life;
+        elapsed = frame;
+        switch (change) {
+        case EFFECT_CHANGE_ADD:
+            if (life > 0.0f) {
+                *value += timing * (amount / life) * elapsed;
+            }
+            break;
+        case EFFECT_CHANGE_SUB:
+            if (life > 0.0f) {
+                *value -= timing * (amount / life) * elapsed;
+            }
+            break;
+        case EFFECT_CHANGE_ADD_HEAD:
+            if (life > 0.0f) {
+                duration = life * timing;
+                rate = amount / duration;
+                if (elapsed < duration) {
+                    *value += rate * elapsed;
+                } else {
+                    *value += rate * duration;
+                }
+            }
+            break;
+        case EFFECT_CHANGE_SUB_TAIL:
+            if (life > 0.0f) {
+                duration = life * timing;
+                rate = amount / duration;
+                if (elapsed > duration) {
+                    *value -= rate * (elapsed - duration);
+                }
+            }
+            break;
+        case EFFECT_CHANGE_ADD_HEAD_TAIL:
+            duration = life * timing;
+            if (life > 0.0f) {
+                rate = amount / duration;
+                if (elapsed < duration) {
+                    *value += rate * elapsed;
+                } else if (elapsed > life - duration) {
+                    *value += rate * (param.life - frame);
+                } else {
+                    *value += rate * duration;
+                }
+            }
+            break;
+        case EFFECT_CHANGE_SINE:
+            if (life > 0.0f) {
+                *value += (float)(amount * sin((frame * (360.0f / (life * timing))) * 0.017453293005625408));
+            }
+            break;
+        }
+    }
+
+    if (alpha < 0.0f) {
+        alpha = 0.0f;
+    }
+    if (alpha > 1.0f) {
+        alpha = 1.0f;
+    }
+    if (param.tex_get_type == 0) {
+        tex_rect[0] = param.tex_rect[0][0];
+        tex_rect[1] = param.tex_rect[0][1];
+        tex_rect[2] = param.tex_rect[0][2];
+        tex_rect[3] = param.tex_rect[0][3];
+    } else {
+        tex_count++;
+        if (tex_count > param.tex_frame) {
+            tex_index++;
+            tex_count = 0;
+        }
+        tex_rect[0] = param.tex_rect[tex_index][0];
+        tex_rect[1] = param.tex_rect[tex_index][1];
+        tex_rect[2] = param.tex_rect[tex_index][2];
+        tex_rect[3] = param.tex_rect[tex_index][3];
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", Step__7CEffectFi);
+#endif
 void CEffect::Draw(void) {
     mgCDrawPrim prim;
     int corner_a[4];
@@ -781,7 +949,20 @@ int __EFFECT_END(SPI_STACK *args, int arg_count) {
     g_tmp_effc = NULL;
     return 1;
 }
+#ifdef NONMATCHING
+
+static int __WAIT_FRAME(SPI_STACK *stack, int argument_count) {
+    SPI_STACK *next;
+    int        index;
+
+    next = stack + 1;
+    index = spiGetStackInt(stack);
+    g_tmp_effm->wait_frame[index] = spiGetStackInt(next);
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __WAIT_FRAME__FP9SPI_STACKi);
+#endif
 int __IMG_NAME(SPI_STACK *args, int arg_count) {
     strcpy(g_tmp_effm->img_name, spiGetStackString(args));
     return 1;

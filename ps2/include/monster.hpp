@@ -170,7 +170,7 @@ struct BASE_MONSTER_TBL {
     u32   unk_98;
     s32   next_id;       /**< Monster kind that is loaded along with this one; -1 for none. */
     union {
-        s16 drop_item[2];
+        s16 drop_item[3];
         s16 drop_items[3];
     };
     u32   resist_attr;   /**< Hit attribute bits that cannot leave statuses on the monster. */
@@ -237,8 +237,8 @@ public:
     CMapPiece        *link_piece;     /**< Piece of link_parts that the monster rides on; NULL for none. */
     s16              link_type;       /**< How the monster is linked with link_parts, a MONSTER_LINK value. */
     s32              unk_1208;
-    s32              unk_120c;
-    s32              unk_1210;
+    s32              last_hit_chara;  /**< Battle character that dealt the killing hit, or -1. */
+    s32              last_hit_source; /**< Kind of attacker that dealt the killing hit. */
     u32              last_hit_attr;   /**< Attribute bits of the hit that killed the monster. */
     CEnemyLifeGage   life_gage;       /**< Life gauge drawn over the monster. */
     CPiyori          piyori;          /**< Stars that circle the monster while it is stunned. */
@@ -270,8 +270,8 @@ public:
     s16              unk_1322;
     u16              whp;             /**< Wear that a melee hit on the monster does to the main character's weapon. */
     u16              defense;         /**< Defence that is taken off the attack power of a hit. */
-    s32              unk_1328;
-    s32              unk_132c;
+    s32              reward_exp;      /**< Weapon experience scattered when the monster dies. */
+    s32              reward_money;    /**< Money scattered when the monster dies. */
     s32              state;           /**< Life state of the monster, an ACTIVE_MONSTER_STATE value. */
     s32              dead_alpha;      /**< Fade, from 128 down to 0, of a dead monster. */
     s16              piyori_mark;     /**< Steps left for which the stun stars are shown. */
@@ -282,7 +282,7 @@ public:
     s32              locate_param;    /**< Value given with the monster in the floor's list of monsters; -1 for none. */
     s16              gate_key;        /**< Gate key that the monster drops when it dies; 0 or less for none. */
     s16              no_damage_cnt;   /**< Hits that did the monster no damage. */
-    s8               unk_1358;
+    s8               drop_badge;      /**< Nonzero to drop the monster transformation badge on death. */
     MoveCheckInfo    mons_move_check; /**< Result of checking the monster's move against the map. */
     sceVu0FVECTOR    next_pos;        /**< Position that the monster walks towards. */
     float            move_speed;      /**< Speed of the walk towards next_pos; 0.0 for none. */

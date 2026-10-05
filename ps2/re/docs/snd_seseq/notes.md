@@ -1,5 +1,11 @@
 # snd_seseq: reverse-engineering notes
 
+## C++ draft status
+All 28 functions have C++ in `ps2/src/snd_seseq.cpp`. 23 are exact and compiled
+by the matching build. 5 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Sound-effect sequencer: SMF (format 0) data converted to a 6-byte event list (`sndCSeSeqData`),
 played by `sndCSeSeq` (32 instances in `SeSequencer`, owned by snd_mngr), one `sndTrack` per
 MIDI channel. No first-game counterpart (the first game's `snd.hpp` has no sequencer classes).

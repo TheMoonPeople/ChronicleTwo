@@ -50,6 +50,31 @@ enum mgVU_PROG_ID {
 };
 
 /**
+ * Initial DMA chain that prepares VU1 for the graphics microprograms.
+ */
+extern u_long128 My_dma_start0[];
+
+/**
+ * Shared entry microprogram for VU1 drawing.
+ */
+extern u_long128 Vu_progmain[];
+
+/**
+ * Main geometry microprogram's DMA upload packet.
+ */
+extern u_long128 Vu_prog0[];
+
+/**
+ * Shadow microprogram's DMA upload packet.
+ */
+extern u_long128 Vu_prog_sdw[];
+
+/**
+ * Sprite microprogram's DMA upload packet.
+ */
+extern u_long128 Vu_prog_3dsp[];
+
+/**
  * One deferred depth-buffer sample: a screen position read back at the end
  * of the frame and the nearest depth found around it.
  */
@@ -443,7 +468,7 @@ void mgPreEndDraw(mgCDrawManager *manager);
 
 /**
  * Has a draw manager reload the textures of one texture block into the
- * frame's packet.
+ * frame's packet, returning zero when that block is not drawn.
  *
  * @mangled mgEndDrawReloadTexture__FiP14mgCDrawManager
  * @address 0x142BD0
@@ -975,7 +1000,7 @@ void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int 
 void mgSetPkClearScreen(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
 /**
- * Reads a texture back from video memory, giving its size in bytes, or 0
+ * Reads a texture back from video memory, giving width * height * bits per pixel, or 0
  * when either argument is NULL.
  *
  * @mangled mgStoreImage__FP10mgCTextureP1

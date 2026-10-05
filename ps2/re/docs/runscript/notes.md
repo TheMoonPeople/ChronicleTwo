@@ -1,5 +1,11 @@
 # runscript: reverse-engineering notes
 
+## C++ draft status
+All 28 functions have C++ in `ps2/src/runscript.cpp`. 25 are exact and compiled
+by the matching build. 3 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Script stack VM. Same design as the first game's `runscript` (`/home/adubbz/development/chronicle/ps2/include/runscript.hpp`,
 `ps2/src/runscript.cpp`, fully matched there); use it as the model for bodies. Differences are listed below.
 

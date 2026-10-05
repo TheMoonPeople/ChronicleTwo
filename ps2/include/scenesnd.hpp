@@ -191,6 +191,13 @@ class CScene {
 public:
     /**
      *
+     * Creates a scene with all data slots and playback state reset.
+     *
+     */
+    CScene() { InitAllData(); }
+
+    /**
+     *
      * Music bank loaded into one music port, with the volume and fade it is played at.
      *
      */

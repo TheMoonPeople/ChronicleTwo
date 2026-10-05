@@ -109,6 +109,13 @@ STATIC_ASSERT(sizeof(CEffectList) == 0x18);
  */
 class CFadeInOut {
 public:
+    /**
+     *
+     * Creates an inactive screen fade.
+     *
+     */
+    CFadeInOut() { Initialize(); }
+
     float r;                     /**< Red of the cover colour, 0 to 128. */
     float g;                     /**< Green of the cover colour, 0 to 128. */
     float b;                     /**< Blue of the cover colour, 0 to 128. */

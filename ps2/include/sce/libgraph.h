@@ -13,6 +13,7 @@
 #define SCE_GS_PSMCT32 0
 #define SCE_GS_PSMCT24 1
 #define SCE_GS_PSMCT16 2
+#define SCE_GS_PSMCT16S 10
 #define SCE_GS_PSMT8 19
 #define SCE_GS_PSMT4 20
 #define SCE_GS_PSMT8H 27
@@ -30,9 +31,11 @@
 #define SCE_GS_TEX0_1 6
 #define SCE_GS_CLAMP_1 8
 #define SCE_GS_XYZF3 12
+#define SCE_GS_XYOFFSET_1 24
 #define SCE_GS_PRMODECONT 26
 #define SCE_GS_PRMODE 27
 #define SCE_GS_TEX1_1 20
+#define SCE_GS_SCANMSK 34
 #define SCE_GS_TEXA 59
 #define SCE_GS_FOGCOL 61
 #define SCE_GS_TEXFLUSH 63
@@ -434,6 +437,85 @@ typedef struct sceGsDisplay {
     u_int DH : 11;  /**< Display height. */
     u_int p1 : 9;   /**< Reserved bits. */
 } sceGsDisplay;
+
+/**
+ * GS dither matrix register.
+ */
+typedef struct {
+    union {
+        u_long value;
+
+        struct {
+            u_long DM00 : 3; /**< Dither adjustment for row 0, column 0. */
+            u_long pad00 : 1;
+            u_long DM01 : 3; /**< Dither adjustment for row 0, column 1. */
+            u_long pad01 : 1;
+            u_long DM02 : 3; /**< Dither adjustment for row 0, column 2. */
+            u_long pad02 : 1;
+            u_long DM03 : 3; /**< Dither adjustment for row 0, column 3. */
+            u_long pad03 : 1;
+            u_long DM10 : 3; /**< Dither adjustment for row 1, column 0. */
+            u_long pad10 : 1;
+            u_long DM11 : 3; /**< Dither adjustment for row 1, column 1. */
+            u_long pad11 : 1;
+            u_long DM12 : 3; /**< Dither adjustment for row 1, column 2. */
+            u_long pad12 : 1;
+            u_long DM13 : 3; /**< Dither adjustment for row 1, column 3. */
+            u_long pad13 : 1;
+            u_long DM20 : 3; /**< Dither adjustment for row 2, column 0. */
+            u_long pad20 : 1;
+            u_long DM21 : 3; /**< Dither adjustment for row 2, column 1. */
+            u_long pad21 : 1;
+            u_long DM22 : 3; /**< Dither adjustment for row 2, column 2. */
+            u_long pad22 : 1;
+            u_long DM23 : 3; /**< Dither adjustment for row 2, column 3. */
+            u_long pad23 : 1;
+            u_long DM30 : 3; /**< Dither adjustment for row 3, column 0. */
+            u_long pad30 : 1;
+            u_long DM31 : 3; /**< Dither adjustment for row 3, column 1. */
+            u_long pad31 : 1;
+            u_long DM32 : 3; /**< Dither adjustment for row 3, column 2. */
+            u_long pad32 : 1;
+            u_long DM33 : 3; /**< Dither adjustment for row 3, column 3. */
+            u_long pad33 : 1;
+        };
+
+        struct {
+            u_long dm00 : 3; /**< Dither adjustment for row 0, column 0. */
+            u_long pad00_ : 1;
+            u_long dm01 : 3; /**< Dither adjustment for row 0, column 1. */
+            u_long pad01_ : 1;
+            u_long dm02 : 3; /**< Dither adjustment for row 0, column 2. */
+            u_long pad02_ : 1;
+            u_long dm03 : 3; /**< Dither adjustment for row 0, column 3. */
+            u_long pad03_ : 1;
+            u_long dm10 : 3; /**< Dither adjustment for row 1, column 0. */
+            u_long pad10_ : 1;
+            u_long dm11 : 3; /**< Dither adjustment for row 1, column 1. */
+            u_long pad11_ : 1;
+            u_long dm12 : 3; /**< Dither adjustment for row 1, column 2. */
+            u_long pad12_ : 1;
+            u_long dm13 : 3; /**< Dither adjustment for row 1, column 3. */
+            u_long pad13_ : 1;
+            u_long dm20 : 3; /**< Dither adjustment for row 2, column 0. */
+            u_long pad20_ : 1;
+            u_long dm21 : 3; /**< Dither adjustment for row 2, column 1. */
+            u_long pad21_ : 1;
+            u_long dm22 : 3; /**< Dither adjustment for row 2, column 2. */
+            u_long pad22_ : 1;
+            u_long dm23 : 3; /**< Dither adjustment for row 2, column 3. */
+            u_long pad23_ : 1;
+            u_long dm30 : 3; /**< Dither adjustment for row 3, column 0. */
+            u_long pad30_ : 1;
+            u_long dm31 : 3; /**< Dither adjustment for row 3, column 1. */
+            u_long pad31_ : 1;
+            u_long dm32 : 3; /**< Dither adjustment for row 3, column 2. */
+            u_long pad32_ : 1;
+            u_long dm33 : 3; /**< Dither adjustment for row 3, column 3. */
+            u_long pad33_ : 1;
+        } bits;
+    };
+} sceGsDimx;
 
 typedef struct {
     u_long pmode;

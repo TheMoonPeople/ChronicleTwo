@@ -5,6 +5,38 @@ extern "C" {
 #endif
 
 /**
+ * Describes an EE semaphore and its initial and maximum counts.
+ */
+struct SemaParam {
+    int          currentCount;    /**< Current semaphore count. */
+    int          maxCount;        /**< Maximum semaphore count. */
+    int          initCount;       /**< Initial semaphore count. */
+    int          numWaitThreads;  /**< Number of threads waiting on the semaphore. */
+    unsigned int attr;            /**< Semaphore attributes. */
+    unsigned int option;          /**< Semaphore options. */
+};
+
+/**
+ * Creates a semaphore and returns its identifier.
+ */
+int CreateSema(struct SemaParam *param);
+
+/**
+ * Deletes a semaphore.
+ */
+int DeleteSema(int sema_id);
+
+/**
+ * Waits until a semaphore can be acquired.
+ */
+int WaitSema(int sema_id);
+
+/**
+ * Releases a semaphore.
+ */
+int SignalSema(int sema_id);
+
+/**
  * Describes a thread for CreateThread.
  */
 struct ThreadParam {
@@ -77,6 +109,11 @@ int ChangeThreadPriority(int thread_id, int priority);
  * Terminates the current EE process with the supplied status.
  */
 void Exit(int status);
+
+/**
+ * Terminates the current EE process with the supplied status.
+ */
+void Exit__2(int status);
 
 #ifdef __cplusplus
 }

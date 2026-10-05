@@ -119,6 +119,13 @@ STATIC_ASSERT(sizeof(QUEST_PLAY_DATA) == 0x10);
  */
 class CQuestData {
 public:
+    /**
+     *
+     * Creates request progress with no request taken on.
+     *
+     */
+    CQuestData() { Initialize(); }
+
     QUEST_PLAY_DATA play[QUEST_PLAY_DATA_MAX]; /**< Progress of each request, by request number. */
     u8              unk_400[0x80];
 

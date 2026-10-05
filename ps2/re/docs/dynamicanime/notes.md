@@ -1,5 +1,12 @@
 # dynamicanime: reverse-engineering notes
 
+## C++ draft status
+All 67 functions have C++ in `ps2/src/dynamicanime.cpp`. 24 are exact and
+compiled by the matching build. 19 more compile to retail's bytes in isolation
+but stay under `NONMATCHING`. 24 differ from retail and keep the `INCLUDE_ASM`
+fallback. Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Cloth/hair simulation ("dynamic anime") driven by a tag script. Owned by `CCharacter2` as an array
 of `CDynamicAnime` (character `+0x130`, count at `+0x12C`, stride 0x90), loaded by `_CLOTH` in
 character.cpp, stepped by `CCharacter2::StepDA`, drawn by `CCharacter2::Draw` via `DrawSub(0)` and

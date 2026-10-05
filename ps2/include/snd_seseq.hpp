@@ -234,7 +234,7 @@ public:
     int wait;                  /**< Ticks elapsed since the previous event was processed. */
     int vol;                   /**< Volume applied to every track, 0 to 127. */
     int loop_tick;             /**< Value of tick at the loop start marker. */
-    sndSeSeqEvent *loop_event; /**< Event after the loop start marker. */
+    sndSeSeqEvent *loop_event; /**< Loop start controller event to revisit. */
     int loop;                  /**< Non-zero once the loop end marker has been reached during a step. */
     int pause;                 /**< Non-zero keeps Step from advancing the sequence. */
     int track_num;             /**< Number of tracks in use. */

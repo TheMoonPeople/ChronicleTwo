@@ -37,6 +37,11 @@ STATIC_ASSERT(sizeof(ACTION_INFO) == 0x10);
 extern CScene *nowScene__2;
 
 /**
+ * Scene used by character action scripts; nowScene is the separate scene used by runscript_opcodes.
+ */
+extern CScene *nowScene__2;
+
+/**
  * Character, camera and items that the action script's external functions
  * work with, set each time a character runs its action script.
  */

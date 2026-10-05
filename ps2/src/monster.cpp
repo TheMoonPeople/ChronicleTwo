@@ -204,8 +204,8 @@ void CActiveMonster::Initialize(void) {
     scoop.ok = -1;
     gekirin = 0;
     gekirin_time = 0;
-    unk_1328 = 0;
-    unk_132c = 0;
+    reward_exp = 0;
+    reward_money = 0;
     unk_1322 = 0;
     whp = 0;
     defense = 0;
@@ -215,7 +215,7 @@ void CActiveMonster::Initialize(void) {
     no_damage_cnt = 0;
     height = 0;
     status.attr = 0;
-    unk_1358 = 0;
+    drop_badge = 0;
     next_pos[2] = 0;
     next_pos[1] = 0;
     next_pos[0] = 0;

@@ -1,5 +1,12 @@
 # mg_visual: reverse-engineering notes
 
+## C++ draft status
+All 42 functions have C++ in `ps2/src/mg_visual.cpp`. 11 are exact and compiled
+by the matching build. 3 more compile to retail's bytes in isolation but stay
+under `NONMATCHING`. 28 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Header: `ps2/include/mg_visual.hpp` (includes `mg_dataset.hpp` for `mgCVisual`, `MDT_HEADER`,
 `MDT_MATERIAL_`, `FACES_ID`, `mgVisualKind`). Declares `mgFaceType`, `mgDestAlphaTest`, `mgMaterial`,
 `mgCFace`, `mgFACE_GROUP`, `mgCVisualAttr`, `mgCVisualMDT`, `mgCVisualFixMDT`, `mgCVisualPrim`.

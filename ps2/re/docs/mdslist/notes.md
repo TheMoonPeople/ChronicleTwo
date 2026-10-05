@@ -1,5 +1,12 @@
 # mdslist: reverse-engineering notes
 
+## C++ draft status
+All 31 functions have C++ in `ps2/src/mdslist.cpp`. 15 are exact and compiled by
+the matching build. 6 more compile to retail's bytes in isolation but stay under
+`NONMATCHING`. 10 differ from retail and keep the `INCLUDE_ASM` fallback. Each
+function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 The unit loads PCP pack files (lists of MDS model / collision / character data driven by an
 `info.cfg` script inside the pack), records IMG texture files, and implements `CMapPiece`, the
 per-piece object of a map part. There is no counterpart in the first game (no `CMdsList`,

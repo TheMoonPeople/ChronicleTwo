@@ -52,6 +52,224 @@ extern char at_1291__3[];
 extern float anim_1410;
 extern s8 init_1411;
 
+#ifdef NONMATCHING
+#include <libvu0.h>
+#include "dng_event.hpp"
+#include "gamedata.hpp"
+#include "mg_memory.hpp"
+#include "scene.hpp"
+#include "userdata.hpp"
+#endif
+
+#ifdef NONMATCHING
+/**
+ * Japanese names of monster badge families.
+ */
+static char *mons_attr_tbl[12] = {
+    "",
+    "\203P\203\202\203m",
+    "\203J\203\211\203N\203\212",
+    "\220\205\220\266\216\355",
+    "\220A\225\250",
+    "\226\202\226@\220\266\225\250",
+    "\226\202\220l",
+    "\227\263\221\260",
+    "\220\270\227\354",
+    "\225s\216\200",
+    "\203g\203\211\203\223\203v",
+    NULL,
+};
+
+/**
+ * English names of monster badge families.
+ */
+static char *mons_attr_tbl2[12] = {
+    "",
+    "Beast",
+    "Windup",
+    "Aquatic",
+    "Flora",
+    "Magical Creature",
+    "Darkling",
+    "Reptile Family",
+    "Spirit",
+    "Undead",
+    "Card",
+    NULL,
+};
+
+/**
+ * French names of monster badge families.
+ */
+static char *mons_attr_tbl3[12] = {
+    "",
+    "Beast",
+    "Animal",
+    "Robotis[UNI00e9]",
+    "Aquatique",
+    "V[UNI00e9]g[UNI00e9]tal",
+    "Cr[UNI00e9]ature magique",
+    "Cr[UNI00e9]ature obscure",
+    "Reptile",
+    "Esprit",
+    "Mort-vivant",
+    "Carte",
+};
+
+/**
+ * German names of monster badge families.
+ */
+static char *mons_attr_tbl4[12] = {
+    "",
+    "Tier",
+    "Aufzieh-Figur",
+    "Wassertier",
+    "Flora",
+    "Zauberwesen",
+    "D[UNI00fc]sterling",
+    "Reptil",
+    "Geist",
+    "Untoter",
+    "Karte",
+    NULL,
+};
+
+/**
+ * Italian names of monster badge families.
+ */
+static char *mons_attr_tbl5[12] = {
+    "",
+    "Bestia",
+    "Robot",
+    "Acquatico",
+    "Flora",
+    "Creatura magica",
+    "Oscuro",
+    "Rettile",
+    "Spirito",
+    "Nonmorto",
+    "Carta",
+    NULL,
+};
+
+/**
+ * Spanish names of monster badge families.
+ */
+static char *mons_attr_tbl6[12] = {
+    "",
+    "Bestia",
+    "Broma",
+    "Acu[UNI00e1]tico",
+    "Flora",
+    "Criatura m[UNI00e1]gica",
+    "Misterioso",
+    "Familia de reptiles",
+    "Esp[UNI00ed]ritu",
+    "Muerto Viviente",
+    "Carta",
+    NULL,
+};
+
+/**
+ * Messages displayed when a monster badge is already owned.
+ */
+static char *dung_progtxt_badge_already[8] = {
+    "\203\202\203\223\203X\203^\201[\202\326\202\361\202\260\203o\203b\203W\201i%s\201j\202\360\n\214\251\202\302\202\257\202\275\201A\202\265\202\251\202\265\202\267\202\305\202\311\223\374\216\350\202\265\202\304\202\242\202\351",
+    "You got a Monster Transformation\201i%s\201jBadge,\nbut you already have it.",
+    "Tu as re[UNI00e7]u un [UNI00e9]cusson de monstromorphisme (%s),\nmais tu l'as d[UNI00e9]j[UNI00e0].",
+    "%s-Monsterwandel-Marke erhalten ,\naber du hast schon einen.",
+    "Hai ottenuto uno Stemma Mutazione in (%s) Mostro,\nma ce l\201fhai gi[UNI00e0].",
+    "Has conseguido una Insignia de monstruomorfosis(%s),\npero ya la ten[UNI00ed]as.",
+    "You got a Monster Transformation (%s) Badge,\nbut you already have it.",
+    NULL,
+};
+
+/**
+ * Messages displayed when a monster badge is acquired.
+ */
+static char *dung_progtxt_badge_get[8] = {
+    "\203\202\203\223\203X\203^\201[\202\326\202\361\202\260\203o\203b\203W\201i%s\201j\202\360\n\216\350\202\311\223\374\202\352\202\275",
+    "You got a Monster Transformation\201i%s\201jBadge.",
+    "Tu as re[UNI00e7]u un [UNI00e9]cusson \nde monstromorphisme (%s).",
+    "Du hast eine neue \n%s-Monsterwandel-Marke.",
+    "Hai ottenuto uno Stemma Mutazione\nin (%s) Mostro.",
+    "Has conseguido una Insignia de monstruomorfosis (%s).",
+    "You got a Monster Transformation (%s)Badge.",
+    NULL,
+};
+
+/**
+ * Messages displayed when the gate key is acquired.
+ */
+static char *dung_progtxt_gkey_get[8] = {
+    "\203Q\201[\203g\203L\201[\201u%s\201v\202\360\216\350\202\311\223\374\202\352\202\275",
+    "You got the '%s'.",
+    "Tu as trouv[UNI00e9] '%s'.",
+    "'%s' erhalten.",
+    "Hai trovato '%s'.",
+    "Has conseguido '%s'.",
+    "You got the '%s'.",
+    NULL,
+};
+
+/**
+ * Messages displayed when a stolen item is recovered.
+ */
+static char *dung_progtxt_steal[8] = {
+    "\223G\202\251\202\347\201u%s\201v\202\360\223\220\202\335\216\346\202\301\202\275",
+    "Stolen '%s' from the enemy.",
+    "A d[UNI00e9]rob[UNI00e9] '%s' [UNI00e0] l'ennemi.",
+    "'%s' erhalten.",
+    "Hai rubato '%s' al nemico.",
+    "Has robado '%s' al enemigo.",
+    "Stolen '%s' from the enemy.",
+    NULL,
+};
+
+/**
+ * Singular and plural messages displayed when an item cannot fit.
+ */
+static char *dung_progtxt_getitem_overnum[8][2] = {
+    {"\201w%s\201x\202\252\223\374\202\301\202\304\202\242\202\351\201B\n\202\265\202\251\202\265\202\261\202\352\210\310\217\343\201A\202\261\202\314\203A\203C\203e\203\200\202\360\216\235\202\302\202\261\202\306\202\252\202\305\202\253\202\310\202\242\201B", "\201w%s\201x\202\252%d\214\302\201A\223\374\202\301\202\304\202\242\202\351\201B\n\202\265\202\251\202\265\202\261\202\352\210\310\217\343\201A\202\261\202\314\203A\203C\203e\203\200\202\360\216\235\202\302\202\261\202\306\202\252\202\305\202\253\202\310\202\242\201B"},
+    {"%s inside. \n But you can't carry any more items!", "%d %s inside. \n But you can't carry any more items!"},
+    {"Contient %s. \n Mais tu ne peux rien porter d'autre !", "Contient %d %s. \n Mais tu ne peux rien porter d'autre !"},
+    {"%s enthalten. \nAber du kannst nicht mehr davon tragen!", "%d %s enthalten. \nAber du kannst nicht mehr davon tragen!"},
+    {"%s caricato. \nMa non puoi portare con te altri oggetti!", "%d %s caricato. \nMa non puoi portare con te altri oggetti!"},
+    {"Hay %s. \n [UNI00a1]Pero no puedes llevar m[UNI00e1]s objetos!", "Hay %d %s. \n [UNI00a1]Pero no puedes llevar m[UNI00e1]s objetos!"},
+    {"%s inside. \n But you can't carry any more items!", "%d %s inside. \n But you can't carry any more items!"},
+    {NULL, NULL},
+};
+
+/**
+ * Singular and plural messages displayed when an item is acquired.
+ */
+static char *dung_progtxt_getitem[8][2] = {
+    {"\201w%s\201x\202\360%d\214\302\201A\216\350\202\311\223\374\202\352\202\275\201B", "\201w%s\201x\202\360%d\214\302\201A\216\350\202\311\223\374\202\352\202\275\201B"},
+    {"You found %s.", "You found %d %s."},
+    {"Tu as trouv[UNI00e9] %s.", "Tu as trouv[UNI00e9] %d %s."},
+    {"%s gefunden.", "%d %s gefunden."},
+    {"Hai trovato %s.", "Hai trovato %d %s."},
+    {"Has encontrado %s.", "Has encontrado %d %s."},
+    {"You found %s.", "You found %d %s."},
+    {NULL, NULL},
+};
+
+/**
+ * Monster badge family names selected by the current language.
+ */
+static char **mons_attr_list[8] = {
+    mons_attr_tbl,
+    mons_attr_tbl2,
+    mons_attr_tbl3,
+    mons_attr_tbl4,
+    mons_attr_tbl5,
+    mons_attr_tbl6,
+    mons_attr_tbl6,
+    mons_attr_tbl6,
+};
+#endif
+
+
 // Code (.text)
 void CRocketLauncher::SetPos(float *pos, float *muzzle_vec, float *direction_vec) {
     int i;
@@ -72,7 +290,126 @@ void CRocketLauncher::SetPos(float *pos, float *muzzle_vec, float *direction_vec
     life = 150;
     draw_flags = 3;
 }
+#ifdef NONMATCHING
+void CRocketLauncher::Step() {
+    sceVu0FVECTOR    movement;
+    sceVu0FVECTOR    old_pos;
+    sceVu0FVECTOR    to_target;
+    CCPoly          polys[128];
+    mgVu0FBOX       box;
+    sceVu0FVECTOR    hit_pos;
+    sceVu0FVECTOR    effect_pos;
+    CColPrim       *prim;
+    CCharacter2    *target;
+    mgCCamera      *camera;
+    CHitEffectImage *hit;
+    int             count;
+
+    if (state == SHOT_STATE_FREE) {
+        return;
+    }
+    if (state == SHOT_STATE_FIRED) {
+        state = SHOT_STATE_FLYING;
+    }
+    if (state == SHOT_STATE_FLYING) {
+        prim = ColPrimMan.GetID2Prim(col_prim_id);
+        if (homing_delay > 0) {
+            homing_delay--;
+        }
+        if (homing_time > 0) {
+            homing_time--;
+        }
+        life--;
+        if (homing_delay <= 0 && homing_time > 0) {
+            if (target_chara != -1) {
+                target = DngMainScene->GetCharacter(target_chara);
+                if (target != NULL) {
+                    target->GetEntryObjectPos(0, 0, target_pos);
+                }
+            }
+            sceVu0SubVector(to_target, target_pos, pos);
+            sceVu0Normalize(to_target, to_target);
+            mgVectorInterpolate(dir, dir, to_target, 0.05235988f, 0);
+        }
+        sceVu0CopyVector(old_pos, pos);
+        sceVu0ScaleVector(movement, dir, speed);
+        sceVu0AddVector(pos, pos, movement);
+        if (prim != NULL) {
+            prim->SetCoord(pos, 5.0f);
+        }
+        box.max[3] = 1.0f;
+        box.min[3] = 1.0f;
+        box.max[0] = 20.0f + (pos[0] + speed);
+        box.min[0] = (pos[0] - speed) - 20.0f;
+        box.max[1] = 20.0f + (pos[1] + speed);
+        box.min[1] = (pos[1] - speed) - 20.0f;
+        box.max[2] = 20.0f + (pos[2] + speed);
+        box.min[2] = (pos[2] - speed) - 20.0f;
+        count = DngMainMap->GetColPoly(polys, box, 128);
+        if (CheckHit(polys, count, pos, old_pos, hit_pos, 1, 4) >= 0) {
+            state = SHOT_STATE_BURST;
+            draw_flags &= ~SHOT_DRAW_MODEL;
+        }
+        if (prim != NULL && prim->hit_num > 0) {
+            state = SHOT_STATE_BURST;
+            draw_flags &= ~SHOT_DRAW_MODEL;
+        }
+        if (life <= 0) {
+            state = SHOT_STATE_BURST;
+            draw_flags &= ~SHOT_DRAW_MODEL;
+        }
+        if (state == SHOT_STATE_BURST) {
+            camera = DngMainScene->GetCamera(DngMainScene->active_camera);
+            if (camera != NULL) {
+                camera->GetPos(effect_pos);
+                sceVu0SubVector(effect_pos, effect_pos, pos);
+                sceVu0Normalize(effect_pos, effect_pos);
+                sceVu0ScaleVector(effect_pos, effect_pos, 20.0f);
+                sceVu0AddVector(effect_pos, pos, effect_pos);
+            }
+            FxScriptMan->CreateEffSpt("\x82\x78\x83\x4f\x83\x8c\x82\x67", 0, -1);
+            FxScriptMan->SetScriptVect1(effect_pos, -1, -1);
+            sndSePlay(DngMainScene->se_battle_id, 31, 0);
+            if (life > 0) {
+                sceVu0FVECTOR hit_dir = { 0.0f, 1.0f, 0.0f, 1.0f };
+
+                hit = NULL;
+                if (BattleFX.hit != NULL) {
+                    hit = &BattleFX.hit[BattleFX.hit_next++];
+                    if (BattleFX.hit_next >= BattleFX.hit_num) {
+                        BattleFX.hit_next = 0;
+                    }
+                }
+                if (hit != NULL) {
+                    hit->SethitEffect(effect_pos, hit_dir, 50.0f, 30.0f, 0.0f, 0.1f, 30, 32);
+                    hit->kind = HIT_EFFECT_SPARK_SHORT;
+                }
+            }
+            if (prim != NULL) {
+                prim->Delete(-1);
+            }
+        }
+        trail_timer++;
+        if (trail_timer >= 3) {
+            sceVu0CopyVector(trail[trail_index], pos);
+            trail_index++;
+            if (trail_index >= 16) {
+                trail_index = 0;
+            }
+            trail_timer = 0;
+            trail_len += 5;
+        }
+    }
+    if (state == SHOT_STATE_BURST) {
+        trail_len--;
+        if (trail_len < 3) {
+            state = SHOT_STATE_FREE;
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__15CRocketLauncherFv);
+#endif
 void CRocketLauncher::Draw(void) {
     union { CPreSprite sprite; };
     float smooth[128][4];
@@ -752,8 +1089,308 @@ void CPullItem::Draw(mgCTexture *texture) {
         sprite.End();
     }
 }
+#ifdef NONMATCHING
+void CPullItem::Step() {
+    CCharacter2  *player;
+    sceVu0FVECTOR player_pos;
+    sceVu0FVECTOR collect_pos;
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR to;
+    sceVu0FVECTOR hit_pos;
+    mgVu0FBOX     bounds;
+    CCPoly       *polys;
+    int           poly_count;
+    float         ground_dist;
+    sceVu0FVECTOR money_direction;
+    char          badge_message[256];
+    sceVu0FVECTOR badge_spark;
+    char         *badge_name;
+    sceVu0FVECTOR item_direction;
+    sceVu0FVECTOR item_spark;
+    char          item_message[256];
+    int           item_count;
+    sceVu0FVECTOR key_direction;
+    char          key_message[256];
+    sceVu0FVECTOR stolen_direction;
+    char          stolen_message[256];
+    sceVu0FVECTOR exp_direction;
+    float         distance;
+
+    if (state == PULL_ITEM_STATE_FREE) {
+        return;
+    }
+    player = DngMainScene->GetCharacter(0);
+    if (player == NULL) {
+        return;
+    }
+    player->GetPosition(player_pos);
+    player->GetPosition(collect_pos);
+    collect_pos[1] += player->body_height;
+    if (type == PULL_ITEM_MONEY || type == PULL_ITEM_WEAPON_EXP) {
+        anim_frame++;
+        if (anim_frame >= 16) {
+            anim_frame = 0;
+        }
+    }
+    if (can_get != 0 && get_delay > 0) {
+        get_delay--;
+    }
+    if (state == PULL_ITEM_STATE_FALL) {
+        bounds.max[0] = 60.0f + pos[0];
+        bounds.min[0] = pos[0] - 60.0f;
+        bounds.max[1] = 60.0f + pos[1];
+        bounds.min[1] = pos[1] - 60.0f;
+        bounds.max[2] = 60.0f + pos[2];
+        bounds.min[2] = pos[2] - 60.0f;
+        bounds.max[3] = 1.0f;
+        bounds.min[3] = 1.0f;
+        BuffWorkData__2.stack_used = 0;
+        BuffWorkData__2.lock = 0;
+        polys = (CCPoly *)BuffWorkData__2.stAlloc64(641);
+        poly_count = DngMainScene->GetColPoly(polys, bounds, 128);
+        sceVu0CopyVector(from, pos);
+        sceVu0AddVector(to, pos, velocity);
+        if (CheckHit(polys, poly_count, from, to, hit_pos, 1, 0x4) > 0) {
+            pos[0] = hit_pos[0];
+            pos[2] = hit_pos[2];
+            velocity[0] *= -0.6f;
+            velocity[2] *= -0.6f;
+        }
+        sceVu0AddVector(pos, pos, velocity);
+        if (velocity[1] > -3.0f) {
+            velocity[1] -= 0.3f;
+        }
+        sceVu0CopyVector(from, pos);
+        sceVu0CopyVector(to, pos);
+        from[1] += 5.0f;
+        to[1] -= 20.0f;
+        if (CheckHit(polys, poly_count, from, to, hit_pos, 1, 0x4) >= 0) {
+            ground_dist = pos[1] - hit_pos[1];
+            if (ground_dist <= 1.0f) {
+                can_get = 1;
+                velocity[1] *= -0.6f;
+                if (ground_dist <= 0.0f) {
+                    pos[1] = hit_pos[1];
+                }
+                if (velocity[1] < 1.0f) {
+                    state = PULL_ITEM_STATE_LAND;
+                }
+            }
+        }
+        fall_time--;
+        if (fall_time <= 0) {
+            state = PULL_ITEM_STATE_FADE;
+            wait_time = 30;
+        }
+    }
+    if (state == PULL_ITEM_STATE_LAND) {
+        if (wait_time > 0) {
+            wait_time--;
+        }
+        if (wait_time == 0) {
+            wait_time = 30;
+            state = PULL_ITEM_STATE_FADE;
+        }
+    }
+    if (state == PULL_ITEM_STATE_FADE) {
+        wait_time--;
+        alpha -= 4.266667f;
+        if (wait_time <= 0) {
+            state = PULL_ITEM_STATE_FREE;
+            if (wire_index >= 0) {
+                afterWire[wire_index].SetMode(0);
+                wire_index = -1;
+            }
+        }
+    }
+    if (state == PULL_ITEM_STATE_GOT) {
+        sceVu0CopyVector(pos, collect_pos);
+        get_delay--;
+        if (get_delay <= 0) {
+            state = PULL_ITEM_STATE_FREE;
+        }
+        if (angle < 2.3561945f) {
+            angle += 0.1308997f;
+        }
+    }
+    if (state == PULL_ITEM_STATE_FLOAT) {
+        if (get_delay > 0) {
+            get_delay--;
+            angle += 0.20943952f;
+            if (angle >= 3.1415927f) {
+                angle -= 6.2831855f;
+            }
+        } else {
+            can_get = 1;
+            angle = 0.0f;
+        }
+    }
+    if (state == PULL_ITEM_STATE_COLLECT) {
+        if (type == PULL_ITEM_MONEY || type == PULL_ITEM_MONEY_LARGE) {
+            angle += 0.15707964f;
+            sceVu0SubVector(money_direction, player_pos, pos);
+            sceVu0Normalize(money_direction, money_direction);
+            sceVu0ScaleVectorXYZ(money_direction, money_direction, 2.5f);
+            sceVu0AddVector(pos, pos, money_direction);
+            distance = mgDistVector(player_pos, pos);
+            if (angle >= 3.1415927f || distance <= 5.0f) {
+                DngUserData->AddMoney(item_no);
+                state = PULL_ITEM_STATE_FREE;
+                sndSePlay(DngMainScene->se_battle_id, 3, 0);
+            }
+        }
+        if (type == PULL_ITEM_BADGE) {
+            badge_name = mons_attr_list[LanguageCode][item_no];
+            if (DngUserData->monster_box.IsChange(item_no) != 0) {
+                sprintf(badge_message, dung_progtxt_badge_already[LanguageCode], badge_name);
+                MsgTaskMan.Print(badge_message, 90, 8, 0);
+                state = PULL_ITEM_STATE_FREE;
+            } else {
+                angle += 0.15707964f;
+                if (angle >= 3.1415927f) {
+                    sprintf(badge_message, dung_progtxt_badge_get[LanguageCode], badge_name);
+                    MsgTaskMan.Print(badge_message, 60, 8, 0);
+                    DngUserData->monster_box.EnableChange(item_no);
+                    state = PULL_ITEM_STATE_FREE;
+                }
+                sceVu0CopyVector(badge_spark, draw_pos);
+                badge_spark[0] += fRand(10.0f) - 5.0f;
+                badge_spark[1] -= fRand(3.0f);
+                badge_spark[2] += fRand(10.0f) - 5.0f;
+                MiniEffPrimMan.CreatPrim(badge_spark, 0);
+            }
+        }
+        if (type == PULL_ITEM_ITEM || type == PULL_ITEM_ITEM2) {
+            if (mgDistVector(collect_pos, pos) > 5.0f) {
+                angle += 0.15707964f;
+                sceVu0SubVector(item_direction, player_pos, pos);
+                sceVu0Normalize(item_direction, item_direction);
+                sceVu0ScaleVectorXYZ(item_direction, item_direction, 2.5f);
+                sceVu0AddVector(pos, pos, item_direction);
+            }
+            sceVu0CopyVector(item_spark, draw_pos);
+            item_spark[0] += fRand(10.0f) - 5.0f;
+            item_spark[1] -= fRand(3.0f);
+            item_spark[2] += fRand(10.0f) - 5.0f;
+            MiniEffPrimMan.CreatPrim(item_spark, 0);
+            if (angle >= 3.1415927f) {
+                angle = 0.0f;
+                num = 1;
+                if (CheckGetItemLimmitOver(item_no, num) < num) {
+                    item_count = num;
+                    if (LanguageCode == 0) {
+                        sprintf(item_message, dung_progtxt_getitem_overnum[0][1], GetItemMessage(item_no), item_count);
+                    } else if (item_count < 2) {
+                        sprintf(item_message, dung_progtxt_getitem_overnum[LanguageCode][0], GetItemMessage(item_no));
+                    } else {
+                        sprintf(item_message, dung_progtxt_getitem_overnum[LanguageCode][1], num, GetItemMessage(item_no));
+                    }
+                    MsgTaskMan.Print(item_message, 90, 8, 0);
+                    state = PULL_ITEM_STATE_LAND;
+                    can_get = 1;
+                    get_delay = 60;
+                    wait_time = 300;
+                } else {
+                    item_count = num;
+                    if (LanguageCode == 0) {
+                        sprintf(item_message, dung_progtxt_getitem[0][1], GetItemMessage(item_no), item_count);
+                    } else if (item_count < 2) {
+                        sprintf(item_message, dung_progtxt_getitem[LanguageCode][0], GetItemMessage(item_no));
+                    } else {
+                        sprintf(item_message, dung_progtxt_getitem[LanguageCode][1], num, GetItemMessage(item_no));
+                    }
+                    MsgTaskMan.Print(item_message, 45, 8, 0);
+                    DngUserData->GetItem(item_no, 1);
+                    state = PULL_ITEM_STATE_FREE;
+                }
+            }
+        }
+        if (type == PULL_ITEM_GATE_KEY) {
+            if (mgDistVector(collect_pos, pos) > 5.0f + pull_speed) {
+                pull_speed += pull_accel;
+                pull_speed += 0.2f;
+                sceVu0SubVector(key_direction, collect_pos, pos);
+                sceVu0Normalize(key_direction, key_direction);
+                sceVu0ScaleVectorXYZ(key_direction, key_direction, pull_speed);
+                key_direction[1] += 2.5f;
+                sceVu0AddVector(pos, pos, key_direction);
+            } else {
+                sprintf(key_message, dung_progtxt_gkey_get[LanguageCode], GetItemMessage(item_no));
+                MsgTaskMan.Print(key_message, 90, 8, 0);
+                DngUserData->GetItem(item_no, 1);
+                state = PULL_ITEM_STATE_GOT;
+                get_delay = 60;
+                bob_height = 30.0f;
+            }
+        }
+        if (type == PULL_ITEM_STOLEN) {
+            if (mgDistVector(collect_pos, pos) > 5.0f + pull_speed) {
+                pull_speed += pull_accel;
+                pull_speed += 0.2f;
+                sceVu0SubVector(stolen_direction, collect_pos, pos);
+                sceVu0Normalize(stolen_direction, stolen_direction);
+                sceVu0ScaleVectorXYZ(stolen_direction, stolen_direction, pull_speed);
+                stolen_direction[1] += 2.5f;
+                sceVu0AddVector(pos, pos, stolen_direction);
+            } else {
+                sprintf(stolen_message, dung_progtxt_steal[LanguageCode], GetItemMessage(item_no));
+                MsgTaskMan.Print(stolen_message, 90, 8, 0);
+                DngUserData->GetItem(item_no, 1);
+                state = PULL_ITEM_STATE_GOT;
+                get_delay = 60;
+                bob_height = 30.0f;
+            }
+        }
+        if (type == PULL_ITEM_WEAPON_EXP) {
+            if (mgDistVector(collect_pos, pos) > 5.0f + pull_speed) {
+                pull_speed += pull_accel;
+                pull_speed += 0.2f;
+                sceVu0SubVector(exp_direction, collect_pos, pos);
+                sceVu0Normalize(exp_direction, exp_direction);
+                sceVu0ScaleVectorXYZ(exp_direction, exp_direction, pull_speed);
+                exp_direction[1] += 2.5f;
+                sceVu0AddVector(pos, pos, exp_direction);
+            } else {
+                AddExpWeaponParam(exp, exp_param, item_no);
+                sndSePlay(DngMainScene->se_battle_id, 4, 0);
+                state = PULL_ITEM_STATE_FREE;
+                if (wire_index >= 0) {
+                    afterWire[wire_index].SetMode(0);
+                    wire_index = -1;
+                }
+            }
+        }
+    }
+    if (wire_index >= 0) {
+        afterWire[wire_index].SetPos(pos);
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__9CPullItemFv);
+#endif
+#ifdef NONMATCHING
+void CPullItem::IsGet(float *player_pos) {
+    if (state != PULL_ITEM_STATE_FREE && can_get != 0) {
+        if (get_delay > 0) {
+            return;
+        }
+        if (type == PULL_ITEM_GATE_KEY || type == PULL_ITEM_STOLEN) {
+            can_get = 0;
+            state = PULL_ITEM_STATE_COLLECT;
+            return;
+        }
+        if (mgDistVector(player_pos, pos) < 20.0f * get_range) {
+            state = PULL_ITEM_STATE_COLLECT;
+            can_get = 0;
+            if (type == PULL_ITEM_ITEM || type == PULL_ITEM_BADGE) {
+                sndSePlay(SystemSND_ID, 18, 0);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", IsGet__9CPullItemFPf);
+#endif
 void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
     sceVu0CopyVector(pos, position);
     sceVu0CopyVector(this->velocity, new_velocity);
@@ -949,7 +1586,127 @@ void CRoboVoiceSystem::StopVoice(int frames) {
     status = 0;
     pause_time = (s16)frames;
 }
+#ifdef NONMATCHING
+void CRoboVoiceSystem::Step() {
+    CBattleCharaInfo *battle_info;
+    int               max_hp;
+    int               now_hp;
+    int               now_whp;
+    float             hp_ratio;
+    int               monster_count;
+    int               healthy_voices[4] = {30, 40, 60, 160};
+    int               injured_voices[3] = {80, 90, 190};
+    int               low_hp_voices[5] = {100, 110, 120, 170, 220};
+    int               long_play_voices[3] = {70, 140, 150};
+    int               nearby_voices[2] = {50, 180};
+    int               crowded_voices[2] = {130, 200};
+    int               critical_voices[4] = {120, 120, 220, 170};
+    char              voice_file[64];
+
+    if (status == ROBO_VOICE_OFF) {
+        return;
+    }
+
+    if (pause_time > 0) {
+        pause_time--;
+        return;
+    }
+
+    battle_info = GetBattleCharaInfo();
+    max_hp = battle_info->GetMaxHp_i();
+    now_hp = battle_info->GetNowHp_i();
+    battle_info->GetNowWhp(0, &now_whp);
+    play_time++;
+    hp_ratio = (float)now_hp / (float)max_hp;
+
+    switch (status) {
+        case ROBO_VOICE_WAIT:
+            wait_time--;
+            if (wait_time < 0) {
+                wait_time = 0;
+                if (voice_no == -1) {
+                    if (hp_ratio > 0.8f) {
+                        SetStatus(healthy_voices[iRand(4)], 0);
+                    }
+
+                    if (hp_ratio <= 0.8f && hp_ratio > 0.4f) {
+                        SetStatus(injured_voices[iRand(3)], 0);
+                    }
+
+                    if (hp_ratio <= 0.4f) {
+                        SetStatus(low_hp_voices[iRand(5)], 0);
+                    }
+
+                    if (iRand(100) % 4 == 0 && play_time >= 3600) {
+                        SetStatus(long_play_voices[iRand(3)], 0);
+                    }
+
+                    if (iRand(100) % 2 != 0) {
+                        monster_count = ActiveMonster->GetMonsterNum(340.0f);
+                        if (monster_count > 0) {
+                            if (monster_count >= 4) {
+                                SetStatus(crowded_voices[iRand(2)], 0);
+                            } else {
+                                SetStatus(nearby_voices[iRand(2)], 0);
+                            }
+                        }
+                    }
+
+                    if (hp_ratio <= 0.2f) {
+                        SetStatus(critical_voices[iRand(4)], 0);
+                    }
+                } else {
+                    SetStatus(voice_no, 0);
+                }
+            }
+            break;
+
+        case ROBO_VOICE_OPEN:
+            if (voice_no < 100) {
+                sprintf(voice_file, "85200%d.wav", voice_no);
+            } else {
+                sprintf(voice_file, "8520%d.wav", voice_no);
+            }
+
+            CSnd.StreamOpenFast(1, voice_file);
+            status = ROBO_VOICE_OPENING;
+            stream_open = 1;
+            break;
+
+        case ROBO_VOICE_OPENING:
+            if (CSnd.StreamOpenState() == 0) {
+                CSnd.StreamStandBy(1);
+                status = ROBO_VOICE_STANDBY;
+            }
+            break;
+
+        case ROBO_VOICE_STANDBY:
+            if (CSnd.StreamOpenState() == 0) {
+                CSnd.StreamSetVol(1, 0x7FFF, 0x7FFF);
+                CSnd.StreamPlay(1);
+                status = ROBO_VOICE_PLAY;
+            }
+            break;
+
+        case ROBO_VOICE_PLAY:
+            if (CSnd.StreamGetState(1) == 0x8000) {
+                CSnd.StreamClose(1);
+                status = ROBO_VOICE_WAIT;
+                stream_open = 0;
+                wait_time = iRand(300) + 90;
+                if (voice_no == 200) {
+                    voice_no = 210;
+                    wait_time = 45;
+                } else {
+                    voice_no = -1;
+                }
+            }
+            break;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__16CRoboVoiceSystemFv);
+#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_923__2__DATA);

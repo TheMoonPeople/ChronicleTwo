@@ -427,16 +427,6 @@ STATIC_ASSERT(sizeof(CEditParts::WallInfo) == 0x40);
 STATIC_ASSERT(sizeof(CEditParts) == 0x330);
 
 /**
- * Snaps a coordinate to a whole unit, rounding towards zero after a small
- * allowance away from it.
- *
- * @mangled StandardPos__Ff
- * @address 0x1B6C20
- * @size 0x70
- */
-float StandardPos(float pos);
-
-/**
  * Gives back non-zero when two colours are near enough to count as the
  * same.
  *

@@ -1,5 +1,12 @@
 # editparts: reverse-engineering notes
 
+## C++ draft status
+All 28 functions have C++ in `ps2/src/editparts.cpp`. 21 are exact and compiled
+by the matching build. 2 more compile to retail's bytes in isolation but stay
+under `NONMATCHING`. 5 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Header: `ps2/include/editparts.hpp` (included by `ps2/src/editparts.cpp`). Classes owned: `CEditPartsInfo`,
 `CEditHouse`, `CEditParts` (+ nested `CEditParts::WallInfo`). Extra types: `EditPartsMaterial`,
 enums `EditPartsAtr`, `EditPartsType`, `EditPartsState`. No first-game counterpart: the first game's

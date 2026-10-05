@@ -108,7 +108,7 @@ void InitEvent(CScene *scene);
 void SetEventScript(char *program, char *unused, mgCMemory *memory);
 
 /**
- * Starts an entry of the loaded event script on a scene.
+ * Starts an entry of the loaded event script on a scene and returns the interpreter's start status.
  *
  * @mangled RunEvent__FiP6CScene
  * @address 0x257940

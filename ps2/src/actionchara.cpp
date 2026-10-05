@@ -36,6 +36,12 @@
 #include "scenesnd.hpp"
 #include "userdata.hpp"
 #include "actionchara.hpp"
+#include "sphida.hpp"
+#include <libvu0.h>
+#include "effect.hpp"
+#include "gameutil.hpp"
+#include "maintex.hpp"
+#include "menucommon.hpp"
 
 extern "C" void SethitEffect__15CHitEffectImageFPfPfffffii(CHitEffectImage *, float *, float *, float, float, float, float, int, int);
 extern char at_1325[];
@@ -56,6 +62,7 @@ extern char at_3389[];
 extern char at_2333[];
 extern char at_2334[];
 extern char at_2210[];
+extern float old_angle;
 extern float ang_3371;
 extern s8 init_3372;
 extern char at_2846[];
@@ -1117,7 +1124,67 @@ int Check_LockOn(CScene *scene, float range, int index) {
 
     return farther = farther ^ 1;
 }
+#ifdef NONMATCHING
+void CActionChara::CollisionCheck(float *pos, float *velocity, float *out_velocity) {
+    sceVu0FVECTOR      next_position;
+    sceVu0FVECTOR      flat_position;
+    sceVu0FVECTOR      body_position;
+    sceVu0FVECTOR      push_direction;
+    CActiveMonster    *monster;
+    CHARA_ENTRY_OBJECT *body;
+    float              distance;
+    float              separation;
+    int                index;
+    int                body_no;
+
+    sceVu0CopyVector(out_velocity, velocity);
+    next_position[0] = pos[0] + out_velocity[0];
+    next_position[1] = 20.0f + (pos[1] + out_velocity[1]);
+    next_position[2] = pos[2] + out_velocity[2];
+    next_position[3] = 1.0f;
+    sceVu0CopyVector(flat_position, next_position);
+    flat_position[1] = 0.0f;
+
+    for (index = 24; index < 48; index++) {
+        monster = (CActiveMonster *)nowScene__2->GetCharacter(index);
+        if (monster == NULL || monster->chara_kind != ACTION_KIND_SCRIPT ||
+            monster->state == ACTIVE_MONSTER_NONE ||
+            (monster->state == ACTIVE_MONSTER_DEAD && monster->alpha < 0.6f) ||
+            monster->catch_state == 1 || monster->no_hit_time > 0 ||
+            (monster->attrib & MONSTER_ATTRIB_NO_BODY_HIT) != 0) {
+            continue;
+        }
+        body_no = 0;
+        body = monster->GetEntryObjectPos(4, body_no, body_position);
+        while (body != NULL) {
+            if (body->enable != 0 &&
+                next_position[1] + body->unk_04 >= body_position[1] - body_height &&
+                next_position[1] - body->unk_04 <= body_position[1] + body_height) {
+                body_position[1] = 0.0f;
+                separation = 2.0f * body->unk_04 + 2.0f * body_width;
+                distance = mgDistVector(body_position, flat_position);
+                if (distance < separation) {
+                    separation -= distance;
+                    push_direction[0] = flat_position[0] - body_position[0];
+                    push_direction[1] = flat_position[1] - body_position[1];
+                    push_direction[2] = flat_position[2] - body_position[2];
+                    push_direction[3] = 1.0f;
+                    sceVu0Normalize(push_direction, push_direction);
+                    out_velocity[0] = (out_velocity[0] + push_direction[0] * separation) / 2.0f;
+                    out_velocity[1] = (out_velocity[1] + push_direction[1] * separation) / 2.0f;
+                    out_velocity[2] = (out_velocity[2] + push_direction[2] * separation) / 2.0f;
+                    out_velocity[3] = 1.0f;
+                    sceVu0ScaleVector(out_velocity, out_velocity, 1.5f);
+                }
+            }
+            body_no++;
+            body = monster->GetEntryObjectPos(4, body_no, body_position);
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CollisionCheck__12CActionCharaFPfPfPf);
+#endif
 void CActionChara::RockOn() {
     float own_pos[4];
     float target_pos[4];
@@ -1177,8 +1244,298 @@ void CActionChara::RockOn() {
         }
     }
 }
+#ifdef NONMATCHING
+int CActionChara::HumanMoveIF() {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR rotation;
+    sceVu0FVECTOR move_velocity;
+    sceVu0FVECTOR stick_vector = { 0.0f, 0.0f, 0.0f, 1.0f };
+    sceVu0FVECTOR target_position;
+    CActionChara *target;
+    float         camera_angle;
+    float         stick_x;
+    float         stick_y;
+    float         move_x;
+    float         move_z;
+    float         move_speed;
+    float         acceleration_step;
+    float         acceleration;
+    float         stick_direction;
+    float         angle_change;
+    float         turn_penalty;
+    float         relative_angle;
+    float         facing;
+    float         motion_speed;
+    float         abs_x;
+    float         abs_z;
+    s8            boss;
+
+    GetPosition(position);
+    GetRotation(rotation);
+    sceVu0CopyVector(move_velocity, velocity);
+    GetPosition(old_pos);
+    camera_angle = action_info.camera->GetAngle();
+    stick_x = GamePad__2.GetLXf();
+    stick_y = GamePad__2.GetLYf();
+    move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
+    move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
+    if (GetBattleCharaInfo()->GetAttr() & 0x2) {
+        move_x *= 0.5f;
+        move_z *= 0.5f;
+    }
+    stick_vector[0] = move_x;
+    stick_vector[2] = move_z;
+    move_speed = 3.0f;
+    if (lock_on != 0) {
+        move_speed = 1.8f;
+    }
+    acceleration_step = move_speed / 8.0f;
+    if (acceleration_step > 0.5f) {
+        acceleration_step = 0.5f;
+    }
+    acceleration = move_accel + acceleration_step;
+    if (acceleration > 1.0f) {
+        acceleration = 1.0f;
+    }
+    move_accel = acceleration;
+    stick_direction = atan2f(move_x, move_z);
+    angle_change = old_angle - stick_direction;
+    if (angle_change > 3.1415927f) {
+        angle_change -= 6.2831855f;
+    }
+    if (angle_change < -3.1415927f) {
+        angle_change += 6.2831855f;
+    }
+    if (angle_change < 0.0f) {
+        angle_change = -angle_change;
+    }
+    old_angle = stick_direction;
+    turn_penalty = 1.5f * (angle_change / 3.1415927f);
+    if (turn_penalty > 1.0f) {
+        turn_penalty = 1.0f;
+    }
+    acceleration -= turn_penalty;
+    if (acceleration < 0.0f) {
+        acceleration = 0.0f;
+    }
+    move_accel = acceleration;
+    move_velocity[0] = acceleration * ((float)mgFrameRate * (move_x * move_speed));
+    move_velocity[2] = acceleration * ((float)mgFrameRate * (move_z * move_speed));
+    relative_angle = atan2f(move_x, move_z) - rotation[1];
+    if (relative_angle > 3.1415927f) {
+        relative_angle -= 6.2831855f;
+    }
+    if (relative_angle < -3.1415927f) {
+        relative_angle += 6.2831855f;
+    }
+    angle_change = stick_angle - relative_angle;
+    if (angle_change > 3.1415927f) {
+        angle_change -= 6.2831855f;
+    }
+    if (angle_change < -3.1415927f) {
+        angle_change += 6.2831855f;
+    }
+    if (angle_change < 0.0f) {
+        angle_change = -angle_change;
+    }
+    if (angle_change / 3.1415927f < 0.3f) {
+        stick_time++;
+    } else {
+        stick_time = 0;
+        stick_angle = relative_angle;
+    }
+    if (GamePad__2.On(PAD_L2) != 0 && DebugInfo.chara_move > 0) {
+        move_velocity[0] *= 2.0f;
+        move_velocity[2] *= 2.0f;
+    }
+    target = NULL;
+    boss = 0;
+    if (lock_on != 0) {
+        target = (CActionChara *)nowScene__2->GetCharacter(target_no);
+        if (target != NULL) {
+            boss = ((CActiveMonster *)target)->tbl->boss;
+        }
+    }
+    if (move_x != 0.0f || move_z != 0.0f) {
+        stand_flag = 0;
+    } else {
+        stand_flag = 1;
+    }
+    if (lock_on != 0 && boss == 0) {
+        if (unk_75e != 0) {
+            SetMotion("\x83o\x83g\x83\x8B\x97\xA7\x82\xBF", 0, 1);
+        } else {
+            SetMotion("\x97\xA7\x82\xBF", 0, 1);
+        }
+        if (target != NULL && target->chara_kind == ACTION_KIND_SCRIPT) {
+            target->GetEntryObjectPos(0, 0, target_position);
+            facing = unitRotation(CObjectFrame::frame, atan2f(target_position[0] - position[0], target_position[2] - position[2]), 5.0f);
+            SetRotation(0.0f, facing, 0.0f);
+            if (move_x != 0.0f || move_z != 0.0f) {
+                relative_angle = facing - atan2f(move_x, move_z);
+                if (relative_angle < -3.1415927f) {
+                    relative_angle += 6.2831855f;
+                }
+                if (relative_angle > 3.1415927f) {
+                    relative_angle -= 6.2831855f;
+                }
+                abs_x = move_x;
+                if (abs_x < 0.0f) {
+                    abs_x = -abs_x;
+                }
+                abs_z = move_z;
+                if (abs_z < 0.0f) {
+                    abs_z = -abs_z;
+                }
+                motion_speed = abs_x;
+                if (abs_x <= abs_z) {
+                    motion_speed = abs_z;
+                }
+                if (relative_angle > -1.0f && relative_angle < 1.0f) {
+                    SetMotion("\x83o\x83g\x83\x8B\x95\xE0\x82\xAB\x81i\x91O\x81j", 0, 1);
+                }
+                if (relative_angle < -2.4f || relative_angle > 2.4f) {
+                    SetMotion("\x83o\x83g\x83\x8B\x95\xE0\x82\xAB\x81i\x8C\xE3\x81j", 0, 1);
+                }
+                if (relative_angle > 1.0f && relative_angle < 2.4f) {
+                    SetMotion("\x83o\x83g\x83\x8B\x95\xE0\x82\xAB\x81i\x89" "E\x81j", 0, 1);
+                }
+                if (relative_angle < -1.0f && relative_angle > -2.4f) {
+                    SetMotion("\x83o\x83g\x83\x8B\x95\xE0\x82\xAB\x81i\x8D\xB6\x81j", 0, 1);
+                }
+                if (motion_speed > 0.6f) {
+                    motion_speed = 0.6f;
+                }
+                SetStep(0.5f * motion_speed);
+            }
+        }
+    } else if (move_x != 0.0f || move_z != 0.0f) {
+        SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 5.0f), 0.0f);
+        motion_speed = mgDistVector(stick_vector);
+        if (motion_speed > 1.0f) {
+            motion_speed = 1.0f;
+        }
+        if (motion_speed >= 0.65f) {
+            SetMotion("\x91\x96\x82\xE8", 0, 1);
+        } else {
+            SetMotion("\x95\xE0\x82\xAB", 0, 1);
+            SetStep(motion_speed);
+        }
+    } else {
+        if (unk_75e != 0 || boss != 0) {
+            SetMotion("\x83o\x83g\x83\x8B\x97\xA7\x82\xBF", 0, 1);
+        } else {
+            SetMotion("\x97\xA7\x82\xBF", 0, 1);
+        }
+        if (target != NULL && boss != 0 && target->chara_kind == ACTION_KIND_SCRIPT) {
+            target->GetEntryObjectPos(0, 0, target_position);
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(target_position[0] - position[0], target_position[2] - position[2]), 5.0f), 0.0f);
+        }
+    }
+    menu_flag = 1;
+    if (GamePad__2.Down(PAD_RIGHT) != 0) {
+        sndSePlay(SystemSND_ID, 0, 0);
+        if (DngStatus.active_item == 2) {
+            DngStatus.active_item = 0;
+        } else {
+            DngStatus.active_item++;
+        }
+    }
+    if (GamePad__2.Down(PAD_LEFT) != 0) {
+        sndSePlay(SystemSND_ID, 0, 0);
+        if (DngStatus.active_item == 0) {
+            DngStatus.active_item = 2;
+        } else {
+            DngStatus.active_item--;
+        }
+    }
+    if (move_check.landed == 0) {
+        menu_flag = 0;
+        if (move_velocity[1] <= -3.5f) {
+            SetMotion("\x97\x8E\x89\xBA\x92\x86", 0, 1);
+        }
+    }
+    if (DebugInfo.chara_move >= 2) {
+        if (GamePad__2.Down(PAD_SQUARE) != 0) {
+            move_velocity[1] = 8.0f;
+        }
+    }
+    sceVu0CopyVector(velocity, move_velocity);
+    RockOn();
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanMoveIF__12CActionCharaFv);
+#endif
+#ifdef NONMATCHING
+int CActionChara::HumanShrowMoveIF() {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR move_velocity;
+    sceVu0FVECTOR target_position;
+    CActionChara *target;
+    float         camera_angle;
+    float         stick_x;
+    float         stick_y;
+    float         move_x;
+    float         move_z;
+    float         motion_speed;
+    float         abs_x;
+    float         abs_z;
+
+    GetPosition(position);
+    sceVu0CopyVector(move_velocity, velocity);
+    camera_angle = action_info.camera->GetAngle();
+    stick_x = GamePad__2.GetLXf();
+    stick_y = GamePad__2.GetLYf();
+    move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
+    move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
+    if (GetBattleCharaInfo()->GetAttr() & 0x2) {
+        move_x *= 0.5f;
+        move_z *= 0.5f;
+    }
+    move_x *= 0.8f;
+    move_z *= 0.8f;
+    move_velocity[0] = 2.0f * move_x * (float)mgFrameRate;
+    move_velocity[2] = 2.0f * move_z * (float)mgFrameRate;
+    if (move_x != 0.0f || move_z != 0.0f) {
+        stand_flag = 0;
+    } else {
+        stand_flag = 1;
+    }
+    SetMotion("\x8E\x9D\x82\xBF\x8F\xE3\x82\xB0\x92\xE2\x8E~", 0, 1);
+    if (move_x != 0.0f || move_z != 0.0f) {
+        SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 5.0f), 0.0f);
+        abs_x = move_x;
+        if (abs_x < 0.0f) {
+            abs_x = -abs_x;
+        }
+        abs_z = move_z;
+        if (abs_z < 0.0f) {
+            abs_z = -abs_z;
+        }
+        motion_speed = abs_x;
+        if (abs_x <= abs_z) {
+            motion_speed = abs_z;
+        }
+        if (motion_speed > 0.5f) {
+            motion_speed = 0.5f;
+        }
+        SetMotion("\x8E\x9D\x82\xBF\x8F\xE3\x82\xB0\x95\xE0\x82\xAB", 0, 1);
+        SetStep(0.5f * motion_speed);
+    } else if (lock_on != 0) {
+        target = (CActionChara *)nowScene__2->GetCharacter(target_no);
+        if (target->chara_kind == ACTION_KIND_SCRIPT) {
+            target->GetEntryObjectPos(0, 0, target_position);
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(target_position[0] - position[0], target_position[2] - position[2]), 5.0f), 0.0f);
+        }
+    }
+    sceVu0CopyVector(velocity, move_velocity);
+    RockOn();
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanShrowMoveIF__12CActionCharaFv);
+#endif
 int CActionChara::HumanTameMoveIF() {
     float position[4];
     float movement[4];
@@ -1213,12 +1570,766 @@ int CActionChara::HumanTameMoveIF() {
     return 1;
 }
 
+#ifdef NONMATCHING
+int CActionChara::HumanGunMoveIF(char *stand_motion, char *move_motion) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR move_velocity;
+    sceVu0FVECTOR target_position;
+    CActionChara *target;
+    float         camera_angle;
+    float         stick_x;
+    float         stick_y;
+    float         move_x;
+    float         move_z;
+
+    GetPosition(position);
+    sceVu0CopyVector(move_velocity, velocity);
+    camera_angle = action_info.camera->GetAngle();
+    stick_x = GamePad__2.GetLXf();
+    stick_y = GamePad__2.GetLYf();
+    move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
+    move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
+    move_x *= 0.2f;
+    move_z *= 0.2f;
+    move_velocity[0] = 2.0f * move_x * (float)mgFrameRate;
+    move_velocity[2] = 2.0f * move_z * (float)mgFrameRate;
+    SetMotion(stand_motion, 0, 1);
+    if (move_x != 0.0f || move_z != 0.0f) {
+        stand_flag = 0;
+    } else {
+        stand_flag = 1;
+    }
+    if (lock_on != 0) {
+        target = (CActionChara *)nowScene__2->GetCharacter(target_no);
+        if (target != NULL && target->chara_kind == ACTION_KIND_SCRIPT) {
+            target->GetEntryObjectPos(0, 0, target_position);
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(target_position[0] - position[0], target_position[2] - position[2]), 5.0f), 0.0f);
+            if (move_x != 0.0f || move_z != 0.0f) {
+                SetMotion(move_motion, 0, 1);
+            }
+        }
+    } else if (move_x != 0.0f || move_z != 0.0f) {
+        SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 5.0f), 0.0f);
+        SetMotion(move_motion, 0, 1);
+    }
+    sceVu0CopyVector(velocity, move_velocity);
+    RockOn();
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanGunMoveIF__12CActionCharaFPcPc);
+#endif
+#ifdef NONMATCHING
+int CActionChara::RoboWalkMoveIF(int mode) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR move_velocity;
+    sceVu0FVECTOR movement;
+    sceVu0FVECTOR target_position;
+    sceVu0FVECTOR rotation;
+    CActionChara *target;
+    CActionChara *arm;
+    float         camera_angle;
+    float         stick_x;
+    float         stick_y;
+    float         move_x;
+    float         move_z;
+    float         motion_speed;
+    float         target_angle;
+
+    GetPosition(position);
+    sceVu0CopyVector(move_velocity, velocity);
+    camera_angle = action_info.camera->GetAngle();
+    stick_x = GamePad__2.GetLXf();
+    stick_y = GamePad__2.GetLYf();
+    move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
+    move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
+    move_x *= 2.0f * (float)mgFrameRate;
+    move_z *= 2.0f * (float)mgFrameRate;
+    move_velocity[0] = move_x;
+    move_velocity[2] = move_z;
+    stand_flag = 0;
+    if (lock_on != 0) {
+        if (move_x != 0.0f || move_z != 0.0f) {
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 5.0f), 0.0f);
+            movement[0] = move_x;
+            movement[1] = 0.0f;
+            movement[2] = move_z;
+            motion_speed = mgDistVector(movement) / max_speed;
+            if (motion_speed > 1.0f) {
+                motion_speed = 1.0f;
+            }
+            if (motion_speed >= 0.8f) {
+                SetMotion("\x91\x96\x82\xE8-\x91\xAB", 0, mode);
+            } else {
+                SetMotion("\x95\xE0\x82\xAB-\x91\xAB", 0, mode);
+            }
+        } else {
+            SetMotion("\x97\xA7\x82\xBF-\x91\xAB", 0, mode);
+        }
+        target = (CActionChara *)nowScene__2->GetCharacter(target_no);
+        if (target != NULL && target->chara_kind == ACTION_KIND_SCRIPT) {
+            target->GetPosition(target_position);
+            target_angle = atan2f(target_position[0] - position[0], target_position[2] - position[2]);
+            GetRotation(rotation);
+            target_angle -= rotation[1];
+            if (target_angle < -3.1415927f) {
+                target_angle += 6.2831855f;
+            }
+            if (target_angle > 3.1415927f) {
+                target_angle -= 6.2831855f;
+            }
+            arm = SearchChara("arm");
+            if (arm != NULL) {
+                arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, target_angle, 3.0f), 0.0f);
+            }
+        }
+    } else {
+        arm = SearchChara("arm");
+        if (arm != NULL) {
+            arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, 0.0f, 16.0f), 0.0f);
+        }
+        if (move_x != 0.0f || move_z != 0.0f) {
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 10.0f), 0.0f);
+            movement[0] = move_x;
+            movement[1] = 0.0f;
+            movement[2] = move_z;
+            motion_speed = mgDistVector(movement) / max_speed;
+            if (motion_speed > 1.0f) {
+                motion_speed = 1.0f;
+            }
+            if (motion_speed >= 0.8f) {
+                SetMotion("\x91\x96\x82\xE8-\x91\xAB", 0, mode);
+            } else {
+                SetMotion("\x95\xE0\x82\xAB-\x91\xAB", 0, mode);
+            }
+        } else {
+            SetMotion("\x97\xA7\x82\xBF-\x91\xAB", 0, mode);
+        }
+    }
+    sceVu0CopyVector(velocity, move_velocity);
+    menu_flag = 1;
+    RockOn();
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboWalkMoveIF__12CActionCharaFi);
+#endif
+#ifdef NONMATCHING
+int CActionChara::RoboTankMoveIF(int mode) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR move_velocity;
+    sceVu0FVECTOR movement;
+    sceVu0FVECTOR target_position;
+    sceVu0FVECTOR rotation;
+    CActionChara *target;
+    CActionChara *arm;
+    float         camera_angle;
+    float         stick_x;
+    float         stick_y;
+    float         move_x;
+    float         move_z;
+    float         motion_speed;
+    float         target_angle;
+    sceVu0FVECTOR wheel_rotation;
+    mgCFrame     *wheel;
+    float         wheel_step;
+
+    GetPosition(position);
+    sceVu0CopyVector(move_velocity, velocity);
+    camera_angle = action_info.camera->GetAngle();
+    stick_x = GamePad__2.GetLXf();
+    stick_y = GamePad__2.GetLYf();
+    move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
+    move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
+    move_x *= 2.0f * (float)mgFrameRate;
+    move_z *= 2.0f * (float)mgFrameRate;
+    if (move_type == ACTION_MOVE_ROBO_TANK) {
+        loop_se->SeLoopPlayStop(se_bank, 14, 3, 12);
+        if (move_x != 0.0f || move_z != 0.0f) {
+            foot_effect_wait = 6;
+        }
+    }
+    if (move_type == ACTION_MOVE_ROBO_TANK2) {
+        move_x *= 1.3f;
+        move_z *= 1.3f;
+    }
+    move_velocity[0] = move_x;
+    move_velocity[2] = move_z;
+    stand_flag = 0;
+    if (lock_on != 0) {
+        if (move_x != 0.0f || move_z != 0.0f) {
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 5.0f), 0.0f);
+            movement[0] = move_x;
+            movement[1] = 0.0f;
+            movement[2] = move_z;
+            motion_speed = mgDistVector(movement) / max_speed;
+            if (motion_speed > 1.0f) {
+                motion_speed = 1.0f;
+            }
+            if (motion_speed >= 0.8f) {
+                SetMotion("\x91\x96\x82\xE8-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+            } else {
+                SetMotion("\x95\xE0\x82\xAB-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+            }
+        } else {
+            SetMotion("\x97\xA7\x82\xBF-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+        }
+        target = (CActionChara *)nowScene__2->GetCharacter(target_no);
+        if (target != NULL && target->chara_kind == ACTION_KIND_SCRIPT) {
+            target->GetPosition(target_position);
+            target_angle = atan2f(target_position[0] - position[0], target_position[2] - position[2]);
+            GetRotation(rotation);
+            target_angle -= rotation[1];
+            if (target_angle < -3.1415927f) {
+                target_angle += 6.2831855f;
+            }
+            if (target_angle > 3.1415927f) {
+                target_angle -= 6.2831855f;
+            }
+            arm = SearchChara("arm");
+            if (arm != NULL) {
+                arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, target_angle, 3.0f), 0.0f);
+            }
+        }
+    } else {
+        arm = SearchChara("arm");
+        if (arm != NULL) {
+            arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, 0.0f, 16.0f), 0.0f);
+        }
+        if (move_x != 0.0f || move_z != 0.0f) {
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 10.0f), 0.0f);
+            movement[0] = move_x;
+            movement[1] = 0.0f;
+            movement[2] = move_z;
+            motion_speed = mgDistVector(movement) / max_speed;
+            if (motion_speed > 1.0f) {
+                motion_speed = 1.0f;
+            }
+            if (motion_speed >= 0.8f) {
+                SetMotion("\x91\x96\x82\xE8-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+            } else {
+                SetMotion("\x95\xE0\x82\xAB-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+            }
+        } else {
+            SetMotion("\x97\xA7\x82\xBF-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+        }
+    }
+    if (move_type == ACTION_MOVE_ROBO_TANK2) {
+        wheel_step = 0.034906585f * -mgDistVector(move_velocity);
+        wheel = SearchObject("rf_tire");
+        if (wheel != NULL) {
+            wheel->SetRotType(2);
+            wheel->GetRotation(wheel_rotation);
+            wheel_rotation[2] += wheel_step;
+            wheel_rotation[2] = mgAngleLimit(wheel_rotation[2]);
+            wheel->SetRotation(wheel_rotation);
+        }
+        wheel = SearchObject("rb_tire");
+        if (wheel != NULL) {
+            wheel->SetRotType(2);
+            wheel->GetRotation(wheel_rotation);
+            wheel_rotation[2] += wheel_step;
+            wheel_rotation[2] = mgAngleLimit(wheel_rotation[2]);
+            wheel->SetRotation(wheel_rotation);
+        }
+        wheel = SearchObject("lf_tire");
+        if (wheel != NULL) {
+            wheel->SetRotType(2);
+            wheel->GetRotation(wheel_rotation);
+            wheel_rotation[2] += wheel_step;
+            wheel_rotation[2] = mgAngleLimit(wheel_rotation[2]);
+            wheel->SetRotation(wheel_rotation);
+        }
+        wheel = SearchObject("lb_tire");
+        if (wheel != NULL) {
+            wheel->SetRotType(2);
+            wheel->GetRotation(wheel_rotation);
+            wheel_rotation[2] += wheel_step;
+            wheel_rotation[2] = mgAngleLimit(wheel_rotation[2]);
+            wheel->SetRotation(wheel_rotation);
+        }
+    }
+    sceVu0CopyVector(velocity, move_velocity);
+    menu_flag = 1;
+    RockOn();
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboTankMoveIF__12CActionCharaFi);
+#endif
+#ifdef NONMATCHING
+int CActionChara::RoboBikeMoveIF(int mode) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR leg_rotation;
+    sceVu0FVECTOR rotation;
+    sceVu0FVECTOR movement;
+    sceVu0FVECTOR target_position;
+    sceVu0FVECTOR direction = { 0.0f, 0.0f, 1.0f, 1.0f };
+    sceVu0FMATRIX matrix;
+    CActionChara *leg;
+    CActionChara *arm;
+    CActionChara *target;
+    CMap         *map;
+    float         stick_x;
+    float         stick_y;
+    float         steering;
+    float         target_angle;
+    int           poly_count;
+    CCPoly        polys[128];
+    mgVu0FBOX     box;
+    sceVu0FVECTOR wheel_rotation;
+    sceVu0FVECTOR front_wheel_position;
+    sceVu0FVECTOR back_wheel_position;
+    sceVu0FVECTOR front_hit;
+    sceVu0FVECTOR back_hit;
+    sceVu0FVECTOR slope_rotation = { 0.0f, 0.0f, 0.0f, 1.0f };
+    sceVu0FVECTOR old_velocity;
+    mgCFrame     *wheel;
+    float         slope_angle;
+
+    leg = SearchChara("leg");
+    if (leg == NULL) {
+        return 0;
+    }
+    GetPosition(position);
+    leg->GetRotation(leg_rotation);
+    stick_x = GamePad__2.GetLXf();
+    stick_y = GamePad__2.GetLYf();
+    stand_flag = 0;
+    if (move_check.width_result & 0x8) {
+        if (accele.speed != 0.0f) {
+            if (accele.speed < 0.0f) {
+                accele.speed += 0.1f;
+                if (accele.speed > 0.0f) {
+                    accele.speed = 0.0f;
+                }
+            }
+            if (accele.speed > 0.0f) {
+                accele.speed -= 0.1f;
+                if (accele.speed < 0.0f) {
+                    accele.speed = 0.0f;
+                }
+            }
+        }
+    }
+    if (stick_y < 0.0f) {
+        accele.speed += -0.2f * stick_y;
+    }
+    if (stick_y > 0.0f) {
+        accele.speed += -0.15f * stick_y;
+    }
+    if (accele.speed > 12.0f) {
+        accele.speed = 12.0f;
+    }
+    if (accele.speed < -3.0f) {
+        accele.speed = -3.0f;
+    }
+    if (accele.speed > 0.2f) {
+        foot_effect_wait = 2;
+        loop_se->SeLoopPlayStop(se_bank, 16, 3, 12);
+    }
+    if (GamePad__2.On(0x4) != 0) {
+        steering = leg_rotation[1] + 0.8f * (0.034906585f * -stick_x * accele.speed);
+    } else {
+        steering = leg_rotation[1] + 0.2f * (0.034906585f * -stick_x * accele.speed);
+    }
+    leg_rotation[1] = steering;
+    leg_rotation[1] = mgAngleLimit(leg_rotation[1]);
+    leg->SetRotation(leg_rotation);
+    if (leg != NULL) {
+        leg->GetRotation(rotation);
+        sceVu0UnitMatrix(matrix);
+        sceVu0RotMatrixY(matrix, matrix, rotation[1]);
+        sceVu0ApplyMatrix(movement, matrix, direction);
+    } else {
+        sceVu0CopyVector(movement, front_vec);
+    }
+    sceVu0ScaleVector(movement, movement, accele.speed);
+    if (accele.speed != 0.0f) {
+        SetMotion("\x95\xE0\x82\xAB-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+        if (stick_x > 0.5f) {
+            SetMotion("\x89" "E\x90\xF9\x89\xF1", 0, mode);
+        }
+        if (stick_x < -0.5f) {
+            SetMotion("\x8D\xB6\x90\xF9\x89\xF1", 0, mode);
+        }
+    } else {
+        SetMotion("\x97\xA7\x82\xBF-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+    }
+    if (lock_on != 0) {
+        target = (CActionChara *)nowScene__2->GetCharacter(target_no);
+        if (target != NULL && target->chara_kind == ACTION_KIND_SCRIPT) {
+            target->GetPosition(target_position);
+            target_angle = atan2f(target_position[0] - position[0], target_position[2] - position[2]);
+            GetRotation(rotation);
+            target_angle -= rotation[1];
+            if (target_angle < -3.1415927f) {
+                target_angle += 6.2831855f;
+            }
+            if (target_angle > 3.1415927f) {
+                target_angle -= 6.2831855f;
+            }
+            arm = SearchChara("arm");
+            if (arm != NULL) {
+                arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, target_angle, 3.0f), 0.0f);
+            }
+        }
+    } else {
+        arm = SearchChara("arm");
+        if (arm != NULL) {
+            arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, 0.0f, 8.0f), 0.0f);
+        }
+    }
+    map = nowScene__2->GetMap(nowScene__2->active_map);
+
+    box.max[0] = 50.0f + position[0];
+    box.min[0] = position[0] - 50.0f;
+    box.max[1] = 50.0f + position[1];
+    box.min[1] = position[1] - 50.0f;
+    box.max[2] = 50.0f + position[2];
+    box.min[2] = position[2] - 50.0f;
+    box.max[3] = 1.0f;
+    box.min[3] = 1.0f;
+    poly_count = map->GetColPoly(polys, box, 128);
+    wheel = SearchObject("f_tire");
+    if (wheel != NULL) {
+        wheel->SetRotType(2);
+        wheel->GetRotation(wheel_rotation);
+        wheel_rotation[2] += 0.034906585f * -accele.speed;
+        wheel_rotation[2] = mgAngleLimit(wheel_rotation[2]);
+        wheel->SetRotation(wheel_rotation);
+        wheel->GetWorldPosition0(front_wheel_position);
+        front_wheel_position[1] = 50.0f + position[1];
+        if (CheckHitVertical(polys, poly_count, front_wheel_position, -100.0f, front_hit, 1) < 0) {
+            sceVu0CopyVector(front_hit, front_wheel_position);
+            front_hit[1] = position[1] - 10.0f;
+        }
+        if (position[1] - front_hit[1] > 20.0f) {
+            front_hit[1] = position[1] - 20.0f;
+        }
+    }
+    wheel = SearchObject("b_tire");
+    if (wheel != NULL) {
+        wheel->SetRotType(2);
+        wheel->GetRotation(wheel_rotation);
+        wheel_rotation[2] += 0.034906585f * -accele.speed;
+        wheel_rotation[2] = mgAngleLimit(wheel_rotation[2]);
+        wheel->SetRotation(wheel_rotation);
+        wheel->GetWorldPosition0(back_wheel_position);
+        back_wheel_position[1] = 50.0f + position[1];
+        if (CheckHitVertical(polys, poly_count, back_wheel_position, -100.0f, back_hit, 1) < 0) {
+            sceVu0CopyVector(back_hit, back_wheel_position);
+            back_hit[1] = position[1] - 10.0f;
+        }
+        if (position[1] - back_hit[1] > 20.0f) {
+            back_hit[1] = position[1] - 20.0f;
+        }
+    }
+    sceVu0SubVector(front_hit, back_hit, front_hit);
+    sceVu0CopyVector(back_hit, front_hit);
+    back_hit[3] = 1.0f;
+    back_hit[1] = 0.0f;
+    slope_angle = atan2f(front_hit[1], mgDistVector(back_hit));
+    wheel = SearchObject("katamuki");
+    if (wheel != NULL) {
+        slope_rotation[0] = slope_angle;
+        wheel->SetRotType(2);
+        wheel->SetRotation(slope_rotation);
+    }
+    sceVu0CopyVector(old_velocity, velocity);
+    movement[1] = old_velocity[1];
+    sceVu0CopyVector(velocity, movement);
+    menu_flag = 1;
+    RockOn();
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboBikeMoveIF__12CActionCharaFi);
+#endif
+#ifdef NONMATCHING
+int CActionChara::RoboAirMoveIF(int unk, int mode) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR move_velocity;
+    sceVu0FVECTOR movement;
+    sceVu0FVECTOR target_position;
+    sceVu0FVECTOR rotation;
+    CActionChara *target;
+    CActionChara *arm;
+    float         camera_angle;
+    float         stick_x;
+    float         stick_y;
+    float         move_x;
+    float         move_z;
+    float         motion_speed;
+    float         target_angle;
+    sceVu0FVECTOR propeller_rotation;
+    mgCFrame     *propeller;
+    float         turn_speed;
+    float         speed_limit;
+
+    GetPosition(position);
+    sceVu0CopyVector(move_velocity, velocity);
+    camera_angle = action_info.camera->GetAngle();
+    stick_x = GamePad__2.GetLXf();
+    stick_y = GamePad__2.GetLYf();
+    move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
+    move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
+    stand_flag = 0;
+    turn_speed = 8.0f;
+    speed_limit = 7.0f;
+    accele.accele[0] += move_x;
+    accele.accele[2] += move_z;
+    if (move_type == ACTION_MOVE_ROBO_AIR2) {
+        speed_limit = 8.0f;
+        turn_speed = 4.0f;
+    }
+    if (accele.accele[0] > speed_limit) {
+        accele.accele[0] = speed_limit;
+    }
+    if (accele.accele[0] < -speed_limit) {
+        accele.accele[0] = -speed_limit;
+    }
+    if (accele.accele[2] > speed_limit) {
+        accele.accele[2] = speed_limit;
+    }
+    if (accele.accele[2] < -speed_limit) {
+        accele.accele[2] = -speed_limit;
+    }
+    move_x = accele.accele[0];
+    move_z = accele.accele[2];
+    move_velocity[0] = move_x;
+    move_velocity[2] = move_z;
+    accele.accele[0] *= 0.96f;
+    accele.accele[2] *= 0.96f;
+    if (move_type == ACTION_MOVE_ROBO_AIR) {
+        foot_effect_wait = 2;
+        loop_se->SeLoopPlayStop(se_bank, 20, 3, 12);
+        propeller = SearchObject("prop1");
+        if (propeller != NULL) {
+            propeller->GetRotation(propeller_rotation);
+            propeller_rotation[1] -= 0.5067085f;
+            propeller_rotation[1] = mgAngleLimit(propeller_rotation[1]);
+            propeller->SetRotation(propeller_rotation);
+        }
+        propeller = SearchObject("prop2");
+        if (propeller != NULL) {
+            propeller->GetRotation(propeller_rotation);
+            propeller_rotation[1] += 0.49087387f;
+            propeller_rotation[1] = mgAngleLimit(propeller_rotation[1]);
+            propeller->SetRotation(propeller_rotation);
+        }
+    }
+    if (move_type == ACTION_MOVE_ROBO_AIR2) {
+        foot_effect_wait = 2;
+        loop_se->SeLoopPlayStop(se_bank, 21, 3, 12);
+    }
+    if (lock_on != 0) {
+        if (move_x != 0.0f || move_z != 0.0f) {
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), turn_speed), 0.0f);
+            movement[0] = move_x;
+            movement[1] = 0.0f;
+            movement[2] = move_z;
+            motion_speed = mgDistVector(movement) / max_speed;
+            if (motion_speed > 1.0f) {
+                motion_speed = 1.0f;
+            }
+            if (motion_speed >= 0.8f) {
+                SetMotion("\x91\x96\x82\xE8-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+            } else {
+                SetMotion("\x95\xE0\x82\xAB-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+            }
+        } else {
+            SetMotion("\x97\xA7\x82\xBF-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+        }
+        target = (CActionChara *)nowScene__2->GetCharacter(target_no);
+        if (target != NULL && target->chara_kind == ACTION_KIND_SCRIPT) {
+            target->GetPosition(target_position);
+            target_angle = atan2f(target_position[0] - position[0], target_position[2] - position[2]);
+            GetRotation(rotation);
+            target_angle -= rotation[1];
+            if (target_angle < -3.1415927f) {
+                target_angle += 6.2831855f;
+            }
+            if (target_angle > 3.1415927f) {
+                target_angle -= 6.2831855f;
+            }
+            arm = SearchChara("arm");
+            if (arm != NULL) {
+                arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, target_angle, 3.0f), 0.0f);
+            }
+        }
+    } else {
+        arm = SearchChara("arm");
+        if (arm != NULL) {
+            arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, 0.0f, 16.0f), 0.0f);
+        }
+        if (move_x != 0.0f || move_z != 0.0f) {
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), turn_speed), 0.0f);
+            movement[0] = move_x;
+            movement[1] = 0.0f;
+            movement[2] = move_z;
+            motion_speed = mgDistVector(movement) / max_speed;
+            if (motion_speed > 1.0f) {
+                motion_speed = 1.0f;
+            }
+            if (motion_speed >= 0.8f) {
+                SetMotion("\x91\x96\x82\xE8-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+            } else {
+                SetMotion("\x95\xE0\x82\xAB-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+            }
+        } else {
+            SetMotion("\x97\xA7\x82\xBF-\x83L\x83\x83\x83^\x83s\x83\x89", 0, mode);
+        }
+    }
+    sceVu0CopyVector(velocity, move_velocity);
+    menu_flag = 1;
+    RockOn();
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboAirMoveIF__12CActionCharaFii);
+#endif
+#ifdef NONMATCHING
+int CActionChara::MonsterMoveIF() {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR rotation;
+    sceVu0FVECTOR move_velocity;
+    sceVu0FVECTOR stick_vector = { 0.0f, 0.0f, 0.0f, 1.0f };
+    sceVu0FVECTOR target_position;
+    CActionChara *target;
+    float         camera_angle;
+    float         stick_x;
+    float         stick_y;
+    float         move_x;
+    float         move_z;
+    float         move_speed;
+    float         acceleration_step;
+    float         acceleration;
+    float         stick_direction;
+    float         angle_change;
+    float         turn_penalty;
+    float         relative_angle;
+    float         motion_speed;
+    float         abs_x;
+    float         abs_z;
+
+    GetPosition(position);
+    GetRotation(rotation);
+    sceVu0CopyVector(move_velocity, velocity);
+    GetPosition(old_pos);
+    stand_flag = 0;
+    camera_angle = action_info.camera->GetAngle();
+    stick_x = GamePad__2.GetLXf();
+    stick_y = GamePad__2.GetLYf();
+    move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
+    move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
+    if (GetBattleCharaInfo()->GetAttr() & 0x2) {
+        move_x *= 0.5f;
+        move_z *= 0.5f;
+    }
+    stick_vector[0] = move_x;
+    stick_vector[2] = move_z;
+    move_speed = accele.move_speed;
+    if (lock_on != 0) {
+        move_speed *= 0.6f;
+    }
+    acceleration_step = move_speed / 8.0f;
+    if (acceleration_step > 0.5f) {
+        acceleration_step = 0.5f;
+    }
+    acceleration = move_accel + acceleration_step;
+    if (acceleration > 1.0f) {
+        acceleration = 1.0f;
+    }
+    move_accel = acceleration;
+    stick_direction = atan2f(move_x, move_z);
+    angle_change = old_angle - stick_direction;
+    if (angle_change > 3.1415927f) {
+        angle_change -= 6.2831855f;
+    }
+    if (angle_change < -3.1415927f) {
+        angle_change += 6.2831855f;
+    }
+    if (angle_change < 0.0f) {
+        angle_change = -angle_change;
+    }
+    old_angle = stick_direction;
+    turn_penalty = 1.5f * (angle_change / 3.1415927f);
+    if (turn_penalty > 1.0f) {
+        turn_penalty = 1.0f;
+    }
+    acceleration -= turn_penalty;
+    if (acceleration < 0.0f) {
+        acceleration = 0.0f;
+    }
+    move_accel = acceleration;
+    move_velocity[0] = acceleration * ((float)mgFrameRate * (move_x * move_speed));
+    move_velocity[2] = acceleration * ((float)mgFrameRate * (move_z * move_speed));
+    relative_angle = atan2f(move_x, move_z) - rotation[1];
+    if (relative_angle > 3.1415927f) {
+        relative_angle -= 6.2831855f;
+    }
+    if (relative_angle < -3.1415927f) {
+        relative_angle += 6.2831855f;
+    }
+    angle_change = stick_angle - relative_angle;
+    if (angle_change > 3.1415927f) {
+        angle_change -= 6.2831855f;
+    }
+    if (angle_change < -3.1415927f) {
+        angle_change += 6.2831855f;
+    }
+    if (angle_change < 0.0f) {
+        angle_change = -angle_change;
+    }
+    if (angle_change / 3.1415927f < 0.3f) {
+        stick_time++;
+    } else {
+        stick_time = 0;
+        stick_angle = relative_angle;
+    }
+    if (GamePad__2.On(PAD_L2) != 0 && DebugInfo.chara_move > 0) {
+        move_velocity[0] *= 2.0f;
+        move_velocity[2] *= 2.0f;
+    }
+    if (move_x != 0.0f || move_z != 0.0f) {
+        SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), 5.0f), 0.0f);
+        motion_speed = mgDistVector(stick_vector);
+        if (motion_speed > 1.0f) {
+            motion_speed = 1.0f;
+        }
+        if (motion_speed < 0.45f) {
+            motion_speed = 0.45f;
+        }
+        if (motion_speed >= 0.65f) {
+            SetMotion("\x91\x96\x82\xE8", 0, 1);
+        } else {
+            SetMotion("\x95\xE0\x82\xAB", 0, 1);
+            SetStep(motion_speed);
+        }
+    } else if (lock_on != 0) {
+        SetMotion("\x97\xA7\x82\xBF", 0, 1);
+        target = (CActionChara *)nowScene__2->GetCharacter(target_no);
+        if (target != NULL && target->chara_kind == ACTION_KIND_SCRIPT) {
+            target->GetEntryObjectPos(0, 0, target_position);
+            SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(target_position[0] - position[0], target_position[2] - position[2]), 5.0f), 0.0f);
+        }
+    } else {
+        SetMotion("\x97\xA7\x82\xBF", 0, 1);
+    }
+    if (DebugInfo.chara_move >= 2) {
+        if (GamePad__2.Down(PAD_SQUARE) != 0) {
+            move_velocity[1] = 8.0f;
+        }
+    }
+    sceVu0CopyVector(velocity, move_velocity);
+    menu_flag = 1;
+    RockOn();
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", MonsterMoveIF__12CActionCharaFv);
+#endif
 
 void HitEffectSet(CScene *scene, float *point) {
     float pos[4];
@@ -1348,7 +2459,235 @@ int CheckEquipSetItem(int item_no) {
             return 0;
     }
 }
+#ifdef NONMATCHING
+int CActionChara::CheckDamage() {
+    sceVu0FVECTOR    position;
+    DNG_BATTLE_AREA *battle_area;
+    CBattleCharaInfo *battle;
+    CColPrim        *hit;
+    float            damage;
+    u32              battle_sound;
+    u32              chara_sound;
+    u32              attributes;
+    int              max_hp;
+    int              now_hp;
+    int              damage_points;
+    int              guarded;
+    int              immobilized;
+    int              reaction;
+    int              handled;
+    int              element;
+    int              index;
+    s16              strongest;
+
+    if (nowScene__2 == NULL) {
+        return 0;
+    }
+    battle_area = &nowScene__2->battle_area;
+    battle_sound = nowScene__2->se_battle_id;
+    chara_sound = se_bank;
+    battle = GetBattleCharaInfo();
+    GetPosition(position);
+    if (damage_time > 0) {
+        return 0;
+    }
+    if (muteki_time > 0) {
+        return 0;
+    }
+    handled = 0;
+    hit = ColPrimMan.CheckHit(0);
+    if (hit != NULL) {
+        immobilized = 0;
+        attributes = battle->GetAttr();
+        if ((attributes & (CHARA_STATUS_UNK_8 | CHARA_STATUS_UNK_20)) != 0) {
+            immobilized = 1;
+        }
+        max_hp = battle->GetMaxHp_i();
+        now_hp = battle->GetNowHp_i();
+        damage = hit->damage * (1.0f + fRand(0.15f));
+        damage -= battle->GetDefenceVol();
+        if (damage <= 0.0f) {
+            damage = 0.0f;
+        }
+        if (hit->param->hit_count >= 2) {
+            damage /= hit->param->hit_count;
+        }
+        damage += 1.0f + fRand(2.0f);
+        if ((hit->status & 0x1000) != 0) {
+            damage = (int)(max_hp * (0.01f * hit->damage));
+            if (now_hp - damage < 0.0f) {
+                damage = now_hp - 1.0f;
+            }
+        }
+        if ((hit->status & 0x2000) != 0) {
+            damage = now_hp / 2;
+            if (damage <= 1.0f) {
+                damage = 1.0f;
+            }
+        }
+        if ((int)damage <= 0) {
+            damage = 0.0f;
+        }
+        guarded = guard_flag;
+        if (guarded != 0) {
+            damage *= 0.01f * hit->param->critical_rate;
+        }
+        if (((s16)hit->param->hit_flags & 0x8) != 0) {
+            guard_flag = 0;
+            guarded = 0;
+        }
+        if (damage >= 0.0f) {
+            damage = GetDispVolumeForFloat(damage);
+        }
+        battle->AddHp_Point(-damage, 0.0f);
+        damage_points = (int)damage;
+        if (damage_points > 0) {
+            if ((hit->status & 0x4) != 0 && iRand(100) < 30 &&
+                (attributes & CHARA_STATUS_POISON) == 0 && CheckAmuletAvoid(0x101) == 0) {
+                battle->SetAttr(CHARA_STATUS_POISON, 0);
+                sndSePlay(battle_sound, 0x18, 0);
+            }
+            if ((hit->status & 0x10000) != 0 && battle_area->unk_8c != 2 && iRand(100) < 30 &&
+                (attributes & CHARA_STATUS_UNK_2) == 0 && CheckAmuletAvoid(0x100) == 0) {
+                battle->SetAttrVol(CHARA_STATUS_UNK_2, 3600);
+                sndSePlay(battle_sound, 0x52, 0);
+            }
+            if ((hit->status & 0x8000) != 0 && iRand(100) < 50 &&
+                (attributes & CHARA_STATUS_UNK_20) == 0 && CheckAmuletAvoid(0xFD) == 0) {
+                battle->SetAttrVol(CHARA_STATUS_UNK_20, 900);
+                immobilized = 1;
+                sndSePlay(battle_sound, 0x53, 0);
+            }
+            if ((hit->status & 0x8) != 0 && iRand(100) < 50 &&
+                (attributes & CHARA_STATUS_UNK_8) == 0 && CheckAmuletAvoid(0xFE) == 0) {
+                battle->SetAttrVol(CHARA_STATUS_UNK_8, 300);
+                immobilized = 1;
+                sndSePlay(battle_sound, 0x54, 0);
+            }
+            if ((hit->status & 0x20000) != 0 && iRand(100) < 50 &&
+                (attributes & CHARA_STATUS_UNK_4) == 0 && CheckAmuletAvoid(0xFF) == 0) {
+                battle->SetAttr(CHARA_STATUS_UNK_4, 0);
+                sndSePlay(battle_sound, 0x55, 0);
+            }
+            if ((hit->status & 0x100000) != 0 && iRand(100) < 50) {
+                battle->SetAttr(CHARA_STATUS_UNK_40, 0);
+                sndSePlay(battle_sound, 0x52, 0);
+            }
+        }
+        reaction = 2;
+        if (((s16)hit->param->hit_flags & 0x2) != 0) {
+            reaction = 4;
+        }
+        if (((s16)hit->param->hit_flags & 0x4) != 0) {
+            reaction = 1;
+        }
+        if (guarded != 0) {
+            reaction = 0;
+        }
+        if (immobilized != 0) {
+            reaction = 3;
+        }
+        if (battle->GetNowHp_i() <= 0) {
+            if (CheckEquipSetItem(0x111) == 0) {
+                reaction = 6;
+            } else {
+                battle->SetHpRate(0.5f);
+                pallet[0].SetAnim(96, 180, 255, 1, 45, 0);
+                effect_man->CreateEffSpt("\x92\xCA\x8F\xED\x89\xF1\x95\x9C", 0, 0);
+                effect_man->SetScriptTargetId(0, -1, -1);
+                effect_man->SetValue(0, 0, 0, -1);
+                sndSePlay(SystemSND_ID, 0xA, 0);
+            }
+        }
+        sceVu0CopyVector(blow_vec, hit->hit_vec);
+        blow_speed = 4.0f;
+        blow_rate = 1.0f;
+        blow_decel = 0.0f;
+        blow_time = 5;
+        if (guarded != 0) {
+            sndSePlay(battle_sound, 0x21, 0);
+            if (immobilized == 0) {
+                sndSePlay(chara_sound, 0x1D, 0);
+            }
+            GuardEffectSet(nowScene__2, hit->hit_pos);
+            if (battle->chr_no == USER_CHARA_MONICA) {
+                element = -1;
+                if (battle->equip->data.weapon.status[1] >= 31) {
+                    strongest = 0;
+                    for (index = 0; index < 4; index++) {
+                        if (strongest < hit->param->element[index]) {
+                            strongest = hit->param->element[index];
+                            element = index;
+                        }
+                    }
+                    if (element >= 0) {
+                        battle->SetMagicSwordPow(element, hit->damage);
+                    }
+                }
+            }
+            if (damage > 0.0f) {
+                HitEffectSet(nowScene__2, hit->hit_pos);
+                pallet[0].SetAnim(255, 128, 128, 1, 45, 0);
+                shake.time = 6;
+                DamageScore2.SetValue(0, damage_points, 0.0f);
+                damage_time = hit->param->stun_time * 2;
+                GamePad__2.SetVibration(0, 96, 6);
+            } else {
+                GamePad__2.SetVibration(0, 72, 6);
+            }
+        } else {
+            if (reaction == 4) {
+                damage_time = hit->param->stun_time * 7;
+                pallet[0].SetAnim(255, 128, 128, 1, 90, 0);
+                shake.time = 8;
+                GamePad__2.SetVibration(1, 180, 30);
+            } else {
+                damage_time = hit->param->stun_time * 3;
+                pallet[0].SetAnim(255, 128, 128, 1, 30, 0);
+                shake.time = 8;
+                GamePad__2.SetVibration(1, 128, 20);
+            }
+            if (immobilized == 0) {
+                sndSePlay(chara_sound, 0x24, 0);
+            }
+            sndSePlay(battle_sound, 0x16, 0);
+            HitEffectSet(nowScene__2, hit->hit_pos);
+            DamageScore2.SetValue(0, damage_points, body_height);
+        }
+        switch (reaction) {
+        case 0:
+        case 1:
+        case 5:
+            break;
+        case 3:
+            handled = 1;
+            damage_req = ACTION_DAMAGE_REQ_HOLD;
+            break;
+        case 2:
+            stagger += hit->param->stagger;
+            stagger_time = 60;
+            if (stagger >= 2 || (menu_flag != 0 && stand_flag != 0)) {
+                damage_req = ACTION_DAMAGE_REQ_SMALL;
+            }
+            handled = 1;
+            break;
+        case 4:
+            handled = 1;
+            damage_req = ACTION_DAMAGE_REQ_LARGE;
+            break;
+        case 6:
+            handled = 1;
+            break;
+        }
+    }
+    if (handled != 0) {
+        menu_flag = 0;
+    }
+    return handled;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", CheckDamage__12CActionCharaFv);
+#endif
 int CActionChara::LoadActionFile(char *script, int size, mgCMemory *memory) {
     SetActionExtendTable();
     chara_kind = 2;
@@ -1373,7 +2712,195 @@ void CActionChara::SetHold() {
         prog_no = -1;
     }
 }
+#ifdef NONMATCHING
+void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
+    sceVu0FVECTOR     adjusted_velocity = { 0.0f, 0.0f, 0.0f, 0.0f };
+    sceVu0FVECTOR     old_velocity;
+    sceVu0FVECTOR     position;
+    sceVu0FVECTOR     rotation;
+    sceVu0FVECTOR     new_position;
+    CCPoly            polys[128];
+    mgVu0FBOX         box;
+    CBattleCharaInfo *battle;
+    CTreasureBoxManager *treasure;
+    CSphida          *sphida;
+    CMap             *map;
+    ACTION_DAMAGE    *entry;
+    CColPrim         *reversed;
+    float             frame;
+    float             target_distance;
+    int               count;
+    int               foot;
+    int               index;
+    int               pallet_no;
+    int               target;
+
+    action_info.chara = this;
+    nowScene__2 = scene;
+    action_info.camera = (mgCCameraFollow *)scene->GetCamera(scene->GetCameraID("MainCam"));
+    action_info.env = env;
+    menu_flag = 0;
+    dir_gun = 0;
+    action_info.chara->pad_history |= PadCtrl.Btn(0x32);
+    if (PadCtrl.Btn(0x38) != 0) {
+        action_info.chara->acumu_pad++;
+    } else {
+        action_info.chara->acumu_pad = 0;
+    }
+    if (unk_bec != 0) {
+        prog_no = 700;
+        unk_bec = 0;
+    }
+    if (damage_req == ACTION_DAMAGE_REQ_DEAD) {
+        AllDeleteDamage();
+        prog_no = ACTION_PROG_DEAD;
+        damage_req = ACTION_DAMAGE_REQ_NONE;
+        scene->battle_area.script.event_no = 1200;
+    }
+    if (damage_req == ACTION_DAMAGE_REQ_HOLD) {
+        AllDeleteDamage();
+        prog_no = ACTION_PROG_HOLD;
+        damage_req = ACTION_DAMAGE_REQ_NONE;
+    }
+    if (damage_req == ACTION_DAMAGE_REQ_SMALL) {
+        AllDeleteDamage();
+        prog_no = ACTION_PROG_DAMAGE_SMALL;
+        damage_req = ACTION_DAMAGE_REQ_NONE;
+    }
+    if (damage_req == ACTION_DAMAGE_REQ_LARGE) {
+        AllDeleteDamage();
+        prog_no = ACTION_PROG_DAMAGE_LARGE;
+        damage_req = ACTION_DAMAGE_REQ_NONE;
+    }
+    if (prog_no != ACTION_PROG_RUNNING) {
+        if (script.check_program(prog_no) != 0) {
+            script.run(prog_no);
+            prog_no = ACTION_PROG_RUNNING;
+        }
+    } else {
+        script.resume();
+        if (script.end != 0) {
+            prog_no = ACTION_PROG_MAIN;
+        }
+    }
+    GetPosition(position);
+    GetRotation(rotation);
+    sceVu0CopyVector(old_velocity, velocity);
+    CollisionCheck(position, old_velocity, adjusted_velocity);
+    map = nowScene__2->GetMap(nowScene__2->active_map);
+    box.max[0] = 40.0f + position[0];
+    box.min[0] = position[0] - 40.0f;
+    box.max[1] = 40.0f + position[1];
+    box.min[1] = position[1] - 40.0f;
+    box.max[2] = 40.0f + position[2];
+    box.min[2] = position[2] - 40.0f;
+    box.max[3] = 1.0f;
+    box.min[3] = 1.0f;
+    count = map->GetColPoly(polys, box, 128);
+    treasure = scene->battle_area.treasure_box;
+    if (treasure != NULL) {
+        count += treasure->PickupCollision(position, &polys[count], box, 128 - count);
+    }
+    sphida = GetSphidaPtr();
+    if (sphida != NULL) {
+        count += sphida->PickupCollision(position, &polys[count], box, 128 - count);
+    }
+    move_check.radius = 4.0f + 2.0f * body_width;
+    MoveCheck(position, adjusted_velocity, new_position, &move_check, polys, count, 1);
+    adjusted_velocity[0] = new_position[0] - position[0];
+    adjusted_velocity[2] = new_position[2] - position[2];
+    battle = GetBattleCharaInfo();
+    if (move_check.landed != 0) {
+        foot = move_check.ground_poly.foot_sound;
+        if (foot == 0 && map != NULL) {
+            foot = map->def_foot;
+        }
+        foot_sound_id = foot;
+        adjusted_velocity[1] = 0.0f;
+    } else {
+        if (battle->chr_no == USER_CHARA_ROBO) {
+            adjusted_velocity[1] -= 3.0f;
+            if (adjusted_velocity[1] <= -5.0f) {
+                adjusted_velocity[1] = -5.0f;
+            }
+        } else {
+            adjusted_velocity[1] -= 0.5f;
+            if (adjusted_velocity[1] <= -3.5f) {
+                adjusted_velocity[1] = -3.5f;
+            }
+        }
+        foot_sound_id = -1;
+    }
+    if (new_position[1] < -500.0f) {
+        new_position[1] = 500.0f;
+    }
+    SetPosition(new_position);
+    sceVu0CopyVector(velocity, adjusted_velocity);
+    if (hold_type == ACTION_HOLD_NONE &&
+        (battle->chr_no == USER_CHARA_MAX || battle->chr_no == USER_CHARA_MONICA) &&
+        move_check.landed != 0 && old_velocity[1] <= -3.5f) {
+        SetMotion("\x92\x85\x92\x6E", 6, 1);
+        prog_no = ACTION_PROG_LAND;
+    }
+    if (move_check.landed == 0) {
+        menu_flag = 0;
+    }
+    for (index = 0; index < 11; index++) {
+        entry = &damage[index];
+        if (entry->use != 0) {
+            frame = GetNowFrame(entry->chara);
+            if (entry->prim == NULL) {
+                if (frame >= entry->start_frame && frame < entry->end_frame) {
+                    entry->prim = ColPrimMan.GetPrim();
+                    if (entry->prim != NULL) {
+                        entry->prim->SetDamage(entry->damage, 0);
+                        entry->prim->SetCoord(entry->frame0, entry->frame1, entry->radius);
+                        SetDamageParam(entry->prim, 0);
+                        entry->prim->damage = (int)(entry->prim->damage * entry->power_rate);
+                    }
+                }
+            } else if (frame < entry->start_frame || frame > entry->end_frame) {
+                entry->prim->Delete(-1);
+                entry->prim = NULL;
+            } else {
+                reversed = ColPrimMan.IsReversVec(entry->prim);
+                if (reversed != NULL) {
+                    reversed->reversed = 1;
+                    reversed->GetReversVec(reversed->revers_vec);
+                }
+            }
+        }
+    }
+    pallet_no = battle->GetPalletNo(0);
+    if (pallet_no >= 0) {
+        for (index = 0; index < 3; index++) {
+            if (sword_effect[index] != NULL) {
+                sword_effect[index]->SetTexture((pallet_no % 2) * 64, (pallet_no / 2) * 32, 64, 32);
+            }
+        }
+    }
+    if (scene->battle_area.unk_9e == 2) {
+        target_no = RockOn_TargetSel(scene, target_no);
+    }
+    if (scene->battle_area.unk_9e == 0) {
+        if (lock_on == 0) {
+            target_no = DistCheck_Action2(scene, 0.5f, 400.0f, &target_distance, 0, NULL);
+        } else {
+            lock_on = Check_LockOn(scene, 300.0f, target_no);
+            if (lock_on == 0) {
+                target = DistCheck_Action2(scene, 0.5f, 400.0f, &target_distance, 0, NULL);
+                target_no = target;
+                if (target != -1) {
+                    lock_on = 1;
+                    return;
+                }
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RunScript__12CActionCharaFP6CSceneP14RUN_SCRIPT_ENV);
+#endif
 int CActionChara::CheckReleaseTimming(int id) {
     if (id == -1) {
         return release_timing;
@@ -1649,8 +3176,19 @@ void CActionChara::Initialize(mgCMemory *memory) {
     }
     ResetScript();
 }
+#ifdef NONMATCHING
+void CActionChara::Copy(CActionChara &dest, mgCMemory *memory) {
+    dest = *this;
+    if (memory != NULL) {
+        CCharacter2::Copy(dest, memory);
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", Copy__12CActionCharaFR12CActionCharaP9mgCMemory);
+#endif
+#ifndef NONMATCHING
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", __as__11CCharacter2FRC11CCharacter2);
+#endif
 
 extern char at_2818[];
 extern char at_2840[];

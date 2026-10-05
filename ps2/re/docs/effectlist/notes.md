@@ -1,5 +1,12 @@
 # effectlist: reverse-engineering notes
 
+## C++ draft status
+All 23 functions have C++ in `ps2/src/effectlist.cpp`. 16 are exact and compiled
+by the matching build. 2 more compile to retail's bytes in isolation but stay
+under `NONMATCHING`. 5 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Header: `ps2/include/effectlist.hpp`. Owns `CEffectList` and `CFadeInOut` (no vtables, no
 constructors, no static members, no named globals). No first-game counterpart for either class
 (nothing in `/home/adubbz/development/chronicle` matches).

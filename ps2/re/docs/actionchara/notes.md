@@ -1,5 +1,12 @@
 # actionchara: reverse-engineering notes
 
+## C++ draft status
+All 73 functions have C++ in `ps2/src/actionchara.cpp`. 27 are exact and
+compiled by the matching build. 3 more compile to retail's bytes in isolation
+but stay under `NONMATCHING`. 43 differ from retail and keep the `INCLUDE_ASM`
+fallback. Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Header: `ps2/include/actionchara.hpp`. Owns `CActionChara` (derives `CCharacter2`, unit `character`),
 plus the parameter/table types `RUN_SCRIPT_ENV`, `ACTION_SW_EFFECT`, `ACTION_DAMAGE`, `ACTION_OBJECT`,
 `ACTION_BODY_COL`, `ACTION_SOUND`, `ACTION_ACCELE`, `ACTION_ACCUME`, `ACTION_SHAKE` and six enums.

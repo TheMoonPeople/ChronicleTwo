@@ -1,5 +1,13 @@
 # dng_object: reverse-engineering notes
 
+## C++ draft status
+All 33 functions have C++ in `ps2/src/dng_object.cpp`. The matching build compiles
+24 of them and verifies the retail image; `draft.sh` reports 24 matches and 9
+differences. The build's objdiff report counts 23, because it does not report
+`SetItem__9CPullItemFPfPfi` as perfect. The 9 differing drafts keep the
+`INCLUDE_ASM` fallback. Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Unit holds the dungeon's gun projectiles (rocket, laser, machine gun), the pickups dropped by monsters
 (`CPullItem`), and the robot voice commentary (`CRoboVoiceSystem`). None of these classes exist in the
 first game's headers (`/home/adubbz/development/chronicle`), so no layout was carried over.

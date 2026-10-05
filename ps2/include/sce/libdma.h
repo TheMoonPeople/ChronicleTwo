@@ -17,9 +17,6 @@ typedef struct {
     u_int TAG : 16;
 } sceDmaChcr;
 
-/* Only the control register is declared: it is the one field anything reconstructed so far
-   reaches, and the rest of the channel would be a claim about the SDK rather than a reading of
-   the game. */
 typedef struct {
     sceDmaChcr chcr;
     u_int reserved_04[3];

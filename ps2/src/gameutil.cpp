@@ -1740,7 +1740,85 @@ int MoveCheck(float *pos, float *vel, float *out, MoveCheckInfo *info, CCPoly *p
     GetCPolyAttr(info, pos, out, 34.0f, polys, count, mask);
     return 0;
 }
+#ifdef NONMATCHING
+int GetFootPoly(float *pos, float depth, CCPoly *found, float *ground, CCPoly *polys, int count, int ignore_mask) {
+    s16           ground_kind;
+    s16           foot_sound;
+    s16           area_kind;
+    s16           poly_ignore_mask;
+    u16           parts_no;
+    s16           attribute;
+    float         attribute_value;
+    int           hit_polys[32];
+    sceVu0FVECTOR from;
+    sceVu0FVECTOR to;
+    sceVu0FVECTOR hit_points[32];
+    sceVu0FVECTOR normal;
+    float         normal_y;
+    CCPoly       *poly;
+    int           hits;
+    int           found_ground;
+    int           i;
+
+    sceVu0CopyVector(from, pos);
+    sceVu0CopyVector(to, pos);
+    from[3] = 4.0f;
+    to[1] -= depth;
+    hits = CheckHitsPipeY(polys, count, from, -depth, 32, hit_polys, hit_points, 1, ignore_mask);
+    if (hits == 0) {
+        return 0;
+    }
+    ground_kind = 0;
+    foot_sound = 0;
+    area_kind = 0;
+    found_ground = 0;
+    for (i = 0; i < hits; i++) {
+        sceVu0Normalize(normal, polys[hit_polys[i]].normal);
+        normal_y = normal[1];
+        if (normal_y < 0.0f) {
+            normal_y = -normal_y;
+        }
+        if (normal_y < 0.05f) {
+            continue;
+        }
+        *found = polys[hit_polys[i]];
+        sceVu0CopyVector(ground, hit_points[i]);
+        found_ground = 1;
+        ground[0] = from[0];
+        ground[2] = from[2];
+        ground_kind = found->ground_kind;
+        foot_sound = found->foot_sound;
+        area_kind = found->area_kind;
+        poly_ignore_mask = found->ignore_mask;
+        parts_no = found->parts_no;
+        attribute = found->unk_4a;
+        attribute_value = found->unk_4c;
+        break;
+    }
+    for (i = 0; i < hits; i++) {
+        poly = &polys[hit_polys[i]];
+        if (ground_kind == 0) {
+            ground_kind = poly->ground_kind;
+        }
+        if (foot_sound == 0) {
+            foot_sound = poly->foot_sound;
+        }
+        if (area_kind == 0) {
+            area_kind = poly->area_kind;
+        }
+    }
+    found->ground_kind = ground_kind;
+    found->foot_sound = foot_sound;
+    found->area_kind = area_kind;
+    found->ignore_mask = poly_ignore_mask;
+    found->parts_no = parts_no;
+    found->unk_4a = attribute;
+    found->unk_4c = attribute_value;
+    return found_ground;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gameutil", GetFootPoly__FPffP6CCPolyPfP6CCPolyii);
+#endif
 void GetCPolyAttr(MoveCheckInfo *info, float *from, float *to, float dy, CCPoly *polys, int count,
                   int unused) {
     int hit_index[32];
@@ -2173,7 +2251,42 @@ s32 CheckPosInOutFor2P(float x0, float y0, float x1, float y1, float x, float y)
     }
     return outside ^ 1;
 }
+#ifdef NONMATCHING
+int CalcIntersectionPointLineAndLine(float ax0, float ay0, float ax1, float ay1, float bx0, float by0, float bx1, float by1, float *out_x, float *out_y) {
+    float slope_a;
+    float slope_b;
+    float relative_x;
+
+    if (ax0 == ax1 && bx0 == bx1) {
+        return 0;
+    }
+    if (ax0 != ax1) {
+        slope_a = (ay1 - ay0) / (ax1 - ax0);
+    }
+    if (bx0 != bx1) {
+        slope_b = (by1 - by0) / (bx1 - bx0);
+    }
+    if (slope_a == slope_b) {
+        return 0;
+    }
+    if (ax0 == ax1) {
+        *out_x = ax0;
+        *out_y = slope_b * (ax0 - bx0);
+        return 1;
+    } else if (bx0 == bx1) {
+        *out_x = bx0;
+        *out_y = slope_a * (bx0 - ax0);
+        return 1;
+    } else {
+        relative_x = ((by0 - ay0) - slope_b * (bx0 - ax0)) / (slope_a - slope_b);
+        *out_x = relative_x + ax0;
+        *out_y = (relative_x * slope_a) + ay0;
+        return 1;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gameutil", CalcIntersectionPointLineAndLine__FffffffffPfPf);
+#endif
 s32 CalcIntersectionPoint2PAnd2P(float ax0, float ay0, float ax1, float ay1, float bx0, float by0, float bx1, float by1, float *out_x, float *out_y) {
     if (CalcIntersectionPointLineAndLine(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, out_x, out_y) == 0) {
         return 0;

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "mg_memory.hpp"
+#include "mg_visual.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_texture.hpp"
 #include "mg_frame.hpp"
@@ -113,7 +114,49 @@ int CMapPiece::GetBoundBox(mgVu0FBOX *box) {
     UpDatePosition();
     return frame->GetWorldBBox(box);
 }
+#ifdef NONMATCHING
+int CMapPiece::DrawSub(int direct) {
+    sceVu0FVECTOR  saved_color[4];
+    PieceMaterial *piece_material;
+    int            result;
+    int            i;
+
+    if (draw_enable == 0) {
+        return 0;
+    }
+    if (type & 0x1) {
+        return 0;
+    }
+
+    piece_material = material;
+    if (piece_material != NULL) {
+        for (i = 0; i < material_num; i++, piece_material++) {
+            if (piece_material->material != NULL) {
+                *(u_long128 *)saved_color[i] = *(u_long128 *)piece_material->material->diffuse;
+                *(u_long128 *)piece_material->material->diffuse = *(u_long128 *)piece_material->color;
+            }
+        }
+    }
+
+    if (direct != 0) {
+        result = CObjectFrame::DrawDirect();
+    } else {
+        result = CObjectFrame::Draw();
+    }
+
+    piece_material = material;
+    if (piece_material != NULL) {
+        for (i = 0; i < material_num; i++, piece_material++) {
+            if (piece_material->material != NULL) {
+                *(u_long128 *)piece_material->material->diffuse = *(u_long128 *)saved_color[i];
+            }
+        }
+    }
+    return result;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", DrawSub__9CMapPieceFi);
+#endif
 void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
     int i;
     PieceMaterial *to;
@@ -323,7 +366,41 @@ CIMGList *CMdsListSet::SearchIMGList(char *name) {
     }
     return NULL;
 }
+#ifdef NONMATCHING
+int CMdsListSet::GetTextureBlockNo(int group, int *out_block, int max) {
+    mgCEnterIMGInfo *info;
+    int              count;
+    int              first_block;
+    int              block_count;
+    int              i;
+    int              block;
+
+    count = 0;
+    for (i = 0; i < img_list_num; i++) {
+        if (img_list[i].name != NULL) {
+            info = img_list[i].info;
+            if (info != NULL) {
+                first_block = -1;
+                if (group >= 0 && group < MG_TEXTURE_IMG_GROUP_MAX) {
+                    first_block = info->block[group];
+                }
+                if (first_block >= 0) {
+                    block_count = 0;
+                    if (group >= 0 && group < MG_TEXTURE_IMG_GROUP_MAX) {
+                        block_count = info->block_num[group];
+                    }
+                    for (block = 0; block < block_count && count < max; block++) {
+                        out_block[count++] = first_block + block;
+                    }
+                }
+            }
+        }
+    }
+    return count;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", GetTextureBlockNo__11CMdsListSetFiPii);
+#endif
 void CMdsListSet::Initialize() {
     int i;
     int j;

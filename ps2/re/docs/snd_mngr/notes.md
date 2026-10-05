@@ -1,5 +1,12 @@
 # snd_mngr: reverse-engineering notes
 
+## C++ draft status
+All 104 functions have C++ in `ps2/src/snd_mngr.cpp`. 31 are exact and compiled
+by the matching build. 24 more compile to retail's bytes in isolation but stay
+under `NONMATCHING`. 49 differ from retail and keep the `INCLUDE_ASM` fallback.
+Each function tried has its one promotion attempt recorded in
+`scripts/re/promotion_attempts.tsv`.
+
 Sound manager layered over `CSound` (unit `sound`, global `CSnd`, gp-0x7588). No first-game
 counterpart: the first game's sound wrapper (`snd.hpp`, `SndInitialize`/`SndBgm*`) is a different
 design. All driver calls are bracketed by `sndWaitSema()`/`sndSignalSema()`.

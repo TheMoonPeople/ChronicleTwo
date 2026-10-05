@@ -25,6 +25,7 @@
 #include "mg_dataset.hpp"
 #include "mg_frame.hpp"
 #include "mg_memory.hpp"
+#include "mg_sprite.hpp"
 #include "mg_texture.hpp"
 #include "object.hpp"
 #include "outline.hpp"
@@ -1908,9 +1909,7 @@ int _KEY_END(SPI_STACK *stack, int argc) {
 }
 
 #ifdef NONMATCHING
-/**
- * Starts a named motion sequence and links it after the previous sequence.
- */
+
 static int _SEQ_START(SPI_STACK *stack, int count) {
     CHRINFO_SEQ_HEADER *previous;
 
@@ -2483,16 +2482,16 @@ mgCFrame *CreateChangeFrame(mgLoadData *data, mgCFrame *target) {
 }
 
 #ifdef NONMATCHING
-/**
- * Loads a replacement skin and exchanges the matching model visuals and bounds.
- */
+
 static int _SKIN_MOTION(SPI_STACK *stack, int count) {
+    mgCMemory           work_memory;
     mgCreateVisualType  visual_type[64];
     mgIMG_HEADER        image_header;
     mgLoadData          load;
     u_long128           work_buffer[6400];
+    sceVu0FVECTOR       box_max;
+    sceVu0FVECTOR       box_min;
     mgCFrame           *root;
-    int                 frame_index;
     mgCFrame           *source_frame;
     mgCFrame           *dest_frame;
     mgCVisualMDT       *visual;
@@ -2501,17 +2500,12 @@ static int _SKIN_MOTION(SPI_STACK *stack, int count) {
     unsigned char      *weight_file;
     unsigned char      *matrix_file;
     unsigned char      *model_file;
-    mgCTextureManager  *textures;
-    char              **group_names;
-    int                 visual_count;
-    int                 image_count;
-    int                 image_index;
-    int                 index;
     unsigned char      *image;
+    char              **group_names;
+    int                 index;
+    int                 visual_count;
     int                 deform_index;
-    mgCFrame          **frame_list;
-    int                 frame_count;
-    CCharacter2        *chara;
+    int                 image_count;
 
     if (nowChr->CObjectFrame::frame == NULL) {
         return 0;
@@ -2523,18 +2517,17 @@ static int _SKIN_MOTION(SPI_STACK *stack, int count) {
     weight_file = (unsigned char *)GetPackFile(pack_file, weight_name, NULL);
     matrix_file = (unsigned char *)GetPackFile(pack_file, matrix_name, NULL);
     if (weight_file == NULL) {
-        printf(at_1395, weight_name);
+        printf("not found %s\n", weight_name);
         return 0;
     }
     if (nowChr->shape_anime == 0) {
         model_file = (unsigned char *)GetPackFile(pack_file, skin_mds_name, NULL);
-        chara = nowChr;
         visual_count = 0;
         deform_index = 0;
-        for (index = 0; index < chara->deform_frame_num; index++) {
-            if (chara->deform_frame[deform_index] != NULL) {
+        for (index = 0; index < nowChr->deform_frame_num; index++) {
+            if (nowChr->deform_frame[deform_index] != NULL) {
                 visual_type[visual_count].type = MG_VISUAL_CREATE_MOTION_MDT;
-                visual_type[visual_count].name = chara->deform_frame[deform_index]->name;
+                visual_type[visual_count].name = nowChr->deform_frame[deform_index]->name;
                 visual_count++;
                 deform_index++;
             }
@@ -2544,15 +2537,13 @@ static int _SKIN_MOTION(SPI_STACK *stack, int count) {
         if (load_img_ptr != NULL) {
             image = (unsigned char *)base_stack->stAlloc64(load_img_size / 16 + 1);
             memcpy(image, load_img_ptr, load_img_size);
-            textures = &mgTexManager;
             image_count = mgGetIMGHeaderNum((char *)image);
-            for (image_index = 0; image_index < image_count; image_index++) {
-                typedef long long ImageData[8];
-                *(ImageData *)&image_header = *(ImageData *)&mgGetIMGHeader((char *)image, image_index);
-                textures->DeleteTexture(image_header.name, set_imgblock);
+            for (index = 0; index < image_count; index++) {
+                image_header = mgGetIMGHeader((char *)image, index);
+                mgTexManager.DeleteTexture(image_header.name, set_imgblock);
             }
-            textures->EnterIMGFile(image, set_imgblock, base_stack, NULL);
-            group_names = textures->GetGroupNameList(set_imgblock, &nowChr->tex_anime_group_num);
+            mgTexManager.EnterIMGFile(image, set_imgblock, base_stack, NULL);
+            group_names = mgTexManager.GetGroupNameList(set_imgblock, &nowChr->tex_anime_group_num);
             if (group_names != NULL) {
                 nowChr->tex_anime_group_start = 0;
                 while (group_names[nowChr->tex_anime_group_start] != NULL) {
@@ -2562,13 +2553,10 @@ static int _SKIN_MOTION(SPI_STACK *stack, int count) {
         }
         memset(&load, 0, sizeof(load));
 
-        mgCMemory work_memory;
-        sceVu0FVECTOR box_max;
-        sceVu0FVECTOR box_min;
         work_memory.stSetBuffer(work_buffer, 6400);
         load.mds = (MDS_HEADER *)model_file;
-        load.work_memory = &work_memory;
         load.weight = (unsigned int *)weight_file;
+        load.work_memory = &work_memory;
         load.matrix = (float (*)[4][4])matrix_file;
         load.visual_type = visual_type;
         load.memory = base_stack;
@@ -2577,10 +2565,8 @@ static int _SKIN_MOTION(SPI_STACK *stack, int count) {
             return 0;
         }
         root = nowChr->CObjectFrame::frame;
-        frame_count = root_skin_frame->frame_num;
-        frame_list = root_skin_frame->frame_list;
-        for (frame_index = 0; frame_index < frame_count; frame_index++) {
-            source_frame = frame_list[frame_index];
+        for (index = 0; index < root_skin_frame->frame_num; index++) {
+            source_frame = root_skin_frame->frame_list[index];
             if (source_frame != NULL && source_frame->visual != NULL) {
                 source_frame->GetBBox(box_max, box_min);
                 dest_frame = root->SearchFrame(source_frame->name);
@@ -2594,8 +2580,8 @@ static int _SKIN_MOTION(SPI_STACK *stack, int count) {
         if (skin_frame != NULL) {
             root = nowChr->CObjectFrame::frame;
             if (root != NULL) {
-                int skin_id = root->SearchFrameID(skin_name_ptr);
-                ChangeWeight(nowChr->motion[0].skin_list, base_stack, weight_file, skin_id, nowChr->motion[0].frame_info, visual = (mgCVisualMDT *)skin_frame->visual, root, root_skin_frame);
+                visual = (mgCVisualMDT *)skin_frame->visual;
+                ChangeWeight(nowChr->motion[0].skin_list, base_stack, weight_file, root->SearchFrameID(skin_name_ptr), nowChr->motion[0].frame_info, visual, root, root_skin_frame);
                 dest_frame = root->SearchFrame(skin_name_ptr);
                 if (dest_frame != NULL) {
                     dest_frame->SetVisual(visual);
@@ -2794,23 +2780,31 @@ mgCFrame *CCharacter2::ChangeLOD(int index) {
 
 #ifdef NONMATCHING
 void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
-    int           free_space;
     COutLineDraw *source_outline;
     COutLineDraw *dest_outline;
     CHRINFO_SE   *sounds;
+    int           free_space;
     int           quadwords;
     int           index;
-    typedef float ShadowLinks[3];
-    typedef float SoundParams[10];
+    int           component;
+    int           row;
 
     free_space = memory->stack_size - memory->stack_used;
-    __as__7CObjectFRC7CObject(&dest, this);
+    (CObject &)dest = *this;
     dest.CObjectFrame::frame = CObjectFrame::frame;
-    dest.velocity = velocity;
-    dest.base_scale = base_scale;
-    dest.unk_A0 = unk_A0;
-    dest.entry_matrix = entry_matrix;
-    dest.name = name;
+    for (component = 0; component < 4; component++) {
+        dest.velocity[component] = velocity[component];
+        dest.base_scale[component] = base_scale[component];
+    }
+    dest.move_accel = move_accel;
+    for (row = 0; row < 4; row++) {
+        for (component = 0; component < 4; component++) {
+            dest.entry_matrix[row][component] = entry_matrix[row][component];
+        }
+    }
+    for (index = 0; index < 16; index++) {
+        dest.name[index] = name[index];
+    }
     dest.alpha = alpha;
     dest.poly_num[0] = poly_num[0];
     dest.poly_num[1] = poly_num[1];
@@ -2825,20 +2819,30 @@ void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
     dest.dynamic_anime_num = dynamic_anime_num;
     dest.dynamic_anime = dynamic_anime;
     dest.shape_anime = shape_anime;
-    dest.entry_frame = entry_frame;
-    dest.entry_object = entry_object;
+    for (index = 0; index < CHARA_ENTRY_FRAME_MAX; index++) {
+        dest.entry_frame[index] = entry_frame[index];
+    }
+    for (index = 0; index < CHARA_ENTRY_OBJECT_MAX; index++) {
+        dest.entry_object[index] = entry_object[index];
+    }
     dest.shadow_frame = shadow_frame;
-    dest.images = images;
+    for (index = 0; index < CHARA_IMAGE_MAX; index++) {
+        dest.images[index] = images[index];
+    }
     dest.tex_anime_group_num = tex_anime_group_num;
     dest.tex_anime_group_start = tex_anime_group_start;
     dest.texture_block = texture_block;
-    dest.deform_frame = deform_frame;
+    for (index = 0; index < CHARA_DEFORM_FRAME_MAX; index++) {
+        dest.deform_frame[index] = deform_frame[index];
+    }
     dest.deform_frame_num = deform_frame_num;
     dest.lod_num = lod_num;
     dest.lod = lod;
     dest.lod_no = lod_no;
     dest.motion_enable = motion_enable;
-    *(ShadowLinks *)&dest.shadow_link_num = *(ShadowLinks *)&shadow_link_num;
+    dest.shadow_link_num = shadow_link_num;
+    dest.shadow_link_model = shadow_link_model;
+    dest.shadow_link_shadow = shadow_link_shadow;
     dest.next_key = next_key;
     dest.next_flags = next_flags;
     dest.next_set = next_set;
@@ -2861,34 +2865,52 @@ void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
     dest.seq_loop = seq_loop;
     dest.seq_state = seq_state;
     dest.seq_advance = seq_advance;
-    dest.motion = motion;
-    dest.shadow_motion = shadow_motion;
+    for (index = 0; index < CHARA_MOTION_SET_MAX; index++) {
+        dest.motion[index] = motion[index];
+        dest.shadow_motion[index] = shadow_motion[index];
+    }
     dest.unk_500 = unk_500;
     dest.shadow_frame_info = shadow_frame_info;
     dest.blend = blend;
     dest.blend_speed = blend_speed;
-    dest.key_list = key_list;
-    dest.key_num = key_num;
-    dest.seq_list = seq_list;
-    dest.sword_effect = sword_effect;
-    *(SoundParams *)&dest.foot_se_bank = *(SoundParams *)&foot_se_bank;
-    dest.se_list = se_list;
-    dest.se_num = se_num;
+    for (index = 0; index < CHARA_MOTION_SET_MAX; index++) {
+        dest.key_list[index] = key_list[index];
+        dest.key_num[index] = key_num[index];
+        dest.seq_list[index] = seq_list[index];
+    }
+    for (index = 0; index < CHARA_SWORD_EFFECT_MAX; index++) {
+        dest.sword_effect[index] = sword_effect[index];
+    }
+    dest.foot_se_bank = foot_se_bank;
+    dest.foot_sound_id = foot_sound_id;
+    dest.foot_sound_enable = foot_sound_enable;
+    dest.se_bank = se_bank;
+    dest.se_bank_2 = se_bank_2;
+    dest.se_positional = se_positional;
+    dest.se_volume = se_volume;
+    dest.se_pan = se_pan;
+    dest.foot_effect_wait = foot_effect_wait;
+    dest.loop_se = loop_se;
+    for (index = 0; index < CHARA_MOTION_SET_MAX; index++) {
+        dest.se_list[index] = se_list[index];
+        dest.se_num[index] = se_num[index];
+    }
     dest.effect_image_load = effect_image_load;
     dest.effect_list = effect_list;
-    dest.entry_effect = entry_effect;
+    for (index = 0; index < CHARA_ENTRY_EFFECT_MAX; index++) {
+        dest.entry_effect[index] = entry_effect[index];
+    }
     dest.effect_image_list = effect_image_list;
     dest.effect_enable = effect_enable;
     if (memory != NULL) {
         dest.CObjectFrame::frame = mgCopyFrame(CObjectFrame::frame, memory, 1);
         if (dest.CObjectFrame::frame != NULL) {
             dest.shadow_frame = shadow_frame;
-            if (outline_tex_no > 0 && (source_outline = outline) != NULL) {
+            if (outline_tex_no > 0 && outline != NULL) {
                 dest.outline = NULL;
                 dest.outline_tex_no = 0;
-                for (; source_outline != NULL; source_outline = source_outline->next) {
-                    u_long128 *outline_memory = memory->Alloc(9);
-                    dest_outline = new (outline_memory) COutLineDraw;
+                for (source_outline = outline; source_outline != NULL; source_outline = source_outline->next) {
+                    dest_outline = new (memory->Alloc(9)) COutLineDraw;
                     if (dest_outline == NULL) {
                         break;
                     }
@@ -2900,7 +2922,7 @@ void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
                 }
             }
             if (dynamic_anime_num > 0 && dynamic_anime != NULL) {
-                quadwords = DynAnimeAlign16Blocks(dynamic_anime_num * sizeof(CDynamicAnime));
+                quadwords = (dynamic_anime_num * sizeof(CDynamicAnime) + 15) / 16;
                 dest.dynamic_anime = new (memory->Alloc(quadwords + 2)) CDynamicAnime[dynamic_anime_num];
                 for (index = 0; index < dynamic_anime_num; index++) {
                     dynamic_anime[index].Copy(dest.dynamic_anime[index], dest.CObjectFrame::frame, memory);
@@ -2931,7 +2953,7 @@ void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
                 }
             }
             if (lod_num > 0) {
-                quadwords = DynAnimeAlign16Blocks(lod_num * sizeof(CCharaLOD));
+                quadwords = (lod_num * sizeof(CCharaLOD) + 15) / 16;
                 dest.lod = new (memory->Alloc(quadwords + 2)) CCharaLOD[lod_num];
                 if (dest.lod == NULL) {
                     return;
@@ -2948,14 +2970,13 @@ void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
                 dest.se_list[0] = sounds;
                 dest.se_num[0] = se_num[0];
             }
-            for (int sword_index = 0; sword_index < CHARA_SWORD_EFFECT_MAX; sword_index++) {
-                if (sword_effect[sword_index] != NULL) {
-                    dest.sword_effect[sword_index] = new (memory->Alloc(12)) CSWordAfterEffect;
-                    sword_effect[sword_index]->Copy(*dest.sword_effect[sword_index], memory);
+            for (index = 0; index < CHARA_SWORD_EFFECT_MAX; index++) {
+                if (sword_effect[index] != NULL) {
+                    dest.sword_effect[index] = new (memory->Alloc(12)) CSWordAfterEffect;
+                    sword_effect[index]->Copy(*dest.sword_effect[index], memory);
                 }
             }
-            free_space -= memory->stack_size - memory->stack_used;
-            copy_size = free_space;
+            copy_size = free_space - (memory->stack_size - memory->stack_used);
         }
     }
 }
