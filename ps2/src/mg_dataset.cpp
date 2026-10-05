@@ -1,4 +1,5 @@
 #include "common.h"
+#include "mg_texture.hpp"
 #include "mg_dataset.hpp"
 #include <cstdio>
 #include <cstring>
@@ -14,13 +15,12 @@
 
 #include "mglib.hpp"
 
-// Code (.text)
-#ifdef NONMATCHING
 /**
  * Writes an object name with its "__" attribute marker turned into "--" and each attribute flag
  * after it in the form mgSetFrameAttr reads, and returns the length of the result with its end.
  */
-static int conv_new_text(char *dst, char *src) {
+// Code (.text)
+int conv_new_text(char *dst, char *src) {
     char *out;
     int has_attr;
 
@@ -114,14 +114,11 @@ static int conv_new_text(char *dst, char *src) {
     *out = '\0';
     return strlen(dst) + 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", conv_new_text__FPcPc);
-#endif
-#ifdef NONMATCHING
+
 /**
  * Reads a string of hexadecimal digits and returns its value; any other character counts as zero.
  */
-static int htoi(char *text) {
+int htoi(char *text) {
     char *cursor;
     int len;
     int value;
@@ -161,9 +158,7 @@ static int htoi(char *text) {
 
     return value;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", htoi__FPc);
-#endif
+
 #ifdef NONMATCHING
 void mgSetFrameAttr(mgCFrame *frame, int recursive) {
     if (frame != NULL) {
@@ -338,11 +333,11 @@ void mgSetFrameAttr(mgCFrame *frame, int recursive) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", mgSetFrameAttr__FP8mgCFramei);
 #endif
-#ifdef NONMATCHING
+
 /**
  * Finds the entry of a visual type table that applies to an object name, or NULL if none does.
  */
-static mgCreateVisualType *SearchVisualType(mgCreateVisualType *table, char *name) {
+mgCreateVisualType * SearchVisualType(mgCreateVisualType *table, char *name) {
     if (table == NULL) {
         return NULL;
     }
@@ -355,10 +350,9 @@ static mgCreateVisualType *SearchVisualType(mgCreateVisualType *table, char *nam
 
     return NULL;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", SearchVisualType__FP18mgCreateVisualTypePc);
-#endif
+
 #ifdef NONMATCHING
+
 /**
  * Sets up one frame from a scene object: its name, transform, parent and attributes, and the
  * visual of the given type built from its model. Returns non-zero if a visual was attached.
@@ -473,22 +467,26 @@ static int CreateFrameVisual(mgCFrame *frame, mgCMemory *memory, mgCMemory *work
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", CreateFrameVisual__FP8mgCFrameP9mgCMemoryP9mgCMemoryP8mgCFrameP13MDTOBJ_HEADERP10MDT_HEADERiP17mgCTextureManagerPUiiPP8mgCFramePA4_A4_f);
 #endif
-#ifdef NONMATCHING
+
+#pragma optimization_level reset
+#pragma optimization_level 1
 // Defined inline in mg_frame.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", SetVisual__8mgCFrameFP9mgCVisual);
-#endif
-#ifdef NONMATCHING
 // Defined inline in mg_visual.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", Initialize__15mgCVisualFixMDTFv);
-#endif
-#ifdef NONMATCHING
+void mgCVisualFixMDT::Initialize() {
+    mgCVisualMDT::Initialize();
+}
+#pragma optimization_level reset
+#pragma schedule off
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", Initialize__9mgCVisualFv);
-#endif
-#ifdef NONMATCHING
+void mgCVisual::Initialize() {
+    unk_00 = 0;
+    draw_env = 0;
+    texture_manager = 0;
+    vu1_offset = 0;
+    vu1_base = 0;
+}
+#pragma schedule reset
+#pragma schedule off
 mgCFrame *mgLoadMDSFile(MDS_HEADER *mds, mgCMemory *memory, mgCreateVisualType *visual_type, mgCTextureManager *texture_manager) {
     mgLoadData load;
 
@@ -499,9 +497,7 @@ mgCFrame *mgLoadMDSFile(MDS_HEADER *mds, mgCMemory *memory, mgCreateVisualType *
     load.texture_manager = texture_manager;
     return mgLoadMDSFile(&load);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", mgLoadMDSFile__FP10MDS_HEADERP9mgCMemoryP18mgCreateVisualTypeP17mgCTextureManager);
-#endif
+
 #ifdef NONMATCHING
 mgCFrame *mgLoadMDSFile(mgLoadData *load) {
     MDS_HEADER *mds;
@@ -601,7 +597,6 @@ mgCFrame *mgLoadMDSFile(mgLoadData *load) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", mgLoadMDSFile__FP10mgLoadData);
 #endif
-#ifdef NONMATCHING
 void mgCreateBBoxSphere(float *max, float *min, float *sphere, float (*vertex)[4], int vertex_num) {
     int i;
     float radius;
@@ -638,15 +633,12 @@ void mgCreateBBoxSphere(float *max, float *min, float *sphere, float (*vertex)[4
         sphere[3] = radius;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", mgCreateBBoxSphere__FPfPfPfPA4_fi);
-#endif
-#ifdef NONMATCHING
+
 /**
  * Copies one frame's contents, name, attributes and bound into another frame, with a copy of its
  * visual when asked; a copied motion model follows the given frame table.
  */
-static void CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table) {
+void CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table) {
     mgCVisual *visual;
     u_int size;
     char *name;
@@ -683,25 +675,24 @@ static void CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_
         dst->bound = bound;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", CopyFrame__FP8mgCFrameP8mgCFrameP9mgCMemoryiPP8mgCFrame);
-#endif
-#ifdef NONMATCHING
+
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", Iam__9mgCVisualFv);
-#endif
-#ifdef NONMATCHING
+int mgCVisual::Iam() {
+    return 0;
+}
+#pragma schedule reset
+#pragma schedule off
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", Copy__9mgCVisualFP9mgCMemory);
-#endif
-#ifdef NONMATCHING
+mgCVisual *mgCVisual::Copy(mgCMemory *memory) {
+    return this;
+}
+#pragma schedule reset
+
 /**
  * Copies a frame and its subtree into new frames allocated from memory, and returns the copy of
  * the frame, or NULL if memory ran out.
  */
-static mgCFrame *CopyFrameSub(mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table) {
+mgCFrame * CopyFrameSub(mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table) {
     mgCFrame *frame;
     mgCFrame *child;
     mgCFrame *copy;
@@ -722,10 +713,7 @@ static mgCFrame *CopyFrameSub(mgCFrame *src, mgCMemory *memory, int copy_visual,
 
     return frame;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", CopyFrameSub__FP8mgCFrameP9mgCMemoryiPP8mgCFrame);
-#endif
-#ifdef NONMATCHING
+
 mgCFrame *mgCopyFrame(mgCFrame *frame, mgCMemory *memory, int copy_visual) {
     int frame_num;
     mgCFrame **src_table;
@@ -773,10 +761,7 @@ mgCFrame *mgCopyFrame(mgCFrame *frame, mgCMemory *memory, int copy_visual) {
     frame_table[0]->frame_num = frame_num;
     return frame_table[0];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", mgCopyFrame__FP8mgCFrameP9mgCMemoryi);
-#endif
-#ifdef NONMATCHING
+
 void mgCMDTBuilder::Begin(mgCMemory *memory) {
     this->memory = memory;
     header = NULL;
@@ -794,18 +779,12 @@ void mgCMDTBuilder::Begin(mgCMemory *memory) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", Begin__13mgCMDTBuilderFP9mgCMemory);
-#endif
-#ifdef NONMATCHING
+
 MDT_HEADER *mgCMDTBuilder::End() {
     memory->Alloc((end - (char *)header) / 16);
     return header;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", End__13mgCMDTBuilderFv);
-#endif
-#ifdef NONMATCHING
+
 void mgCMDTBuilder::End(mgCFrame *frame, mgCVisualMDT *visual, mgLoadData *load) {
     sceVu0FVECTOR max;
     sceVu0FVECTOR min;
@@ -832,9 +811,7 @@ void mgCMDTBuilder::End(mgCFrame *frame, mgCVisualMDT *visual, mgLoadData *load)
         frame->attr = new (load->memory->Alloc(sizeof(mgCFrameAttr) / 16 + 2)) mgCFrameAttr;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", End__13mgCMDTBuilderFP8mgCFrameP12mgCVisualMDTP10mgLoadData);
-#endif
+
 void mgCMDTBuilder::BeginData(int type) {
     if (data_type == MG_MDT_DATA_NONE) {
         data = end;
@@ -842,7 +819,6 @@ void mgCMDTBuilder::BeginData(int type) {
         data_type = type;
     }
 }
-#ifdef NONMATCHING
 void mgCMDTBuilder::SetData(float *vector) {
     switch (data_type) {
         case MG_MDT_DATA_MATERIAL:
@@ -857,10 +833,7 @@ void mgCMDTBuilder::SetData(float *vector) {
             break;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", SetData__13mgCMDTBuilderFPf);
-#endif
-#ifdef NONMATCHING
+
 void mgCMDTBuilder::SetData(float x, float y, float z, float w) {
     sceVu0FVECTOR vector = {x, y, z, w};
 
@@ -870,10 +843,7 @@ void mgCMDTBuilder::SetData(float x, float y, float z, float w) {
 
     SetData(vector);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", SetData__13mgCMDTBuilderFffff);
-#endif
-#ifdef NONMATCHING
+
 void mgCMDTBuilder::SetMaterial(float *colour, char *texture) {
     if (data_type == MG_MDT_DATA_MATERIAL) {
         *(u_long128 *)material.diffuse = *(u_long128 *)colour;
@@ -883,10 +853,7 @@ void mgCMDTBuilder::SetMaterial(float *colour, char *texture) {
         data_num++;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", SetMaterial__13mgCMDTBuilderFPfPc);
-#endif
-#ifdef NONMATCHING
+
 void mgCMDTBuilder::EndData() {
     switch (data_type) {
         case MG_MDT_DATA_MATERIAL:
@@ -914,10 +881,7 @@ void mgCMDTBuilder::EndData() {
     end = data;
     data_type = MG_MDT_DATA_NONE;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", EndData__13mgCMDTBuilderFv);
-#endif
-#ifdef NONMATCHING
+
 void mgCMDTBuilder::BeginFaces() {
     header->faces_ofs = end - (char *)header;
     faces = (MDT_FACES *)end;
@@ -926,10 +890,7 @@ void mgCMDTBuilder::BeginFaces() {
     end += sizeof(MDT_FACES);
     index = (int *)end;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", BeginFaces__13mgCMDTBuilderFv);
-#endif
-#ifdef NONMATCHING
+
 void mgCMDTBuilder::EndFaces() {
     u_int misalign;
 
@@ -943,10 +904,7 @@ void mgCMDTBuilder::EndFaces() {
 
     end = (char *)index;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", EndFaces__13mgCMDTBuilderFv);
-#endif
-#ifdef NONMATCHING
+
 void mgCMDTBuilder::BeginPrim(int type, int material) {
     prim = (FACES_ID *)index;
     index += 2;
@@ -967,85 +925,90 @@ void mgCMDTBuilder::BeginPrim(int type, int material) {
     index_num = 0;
     *index++ = material;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", BeginPrim__13mgCMDTBuilderFii);
-#endif
-#ifdef NONMATCHING
+
 void mgCMDTBuilder::AddFace(int vertex) {
     *index++ = vertex;
     index_num++;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", AddFace__13mgCMDTBuilderFi);
-#endif
-#ifdef NONMATCHING
+
 void mgCMDTBuilder::EndPrim() {
     prim->face_num = index_num / face_index_num;
     faces->prim_num++;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", EndPrim__13mgCMDTBuilderFv);
-#endif
-#ifdef NONMATCHING
+
+#pragma optimization_level reset
+#pragma schedule off
 // Defined inline in mg_visual.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", Iam__12mgCVisualMDTFv);
-#endif
-#ifdef NONMATCHING
+int mgCVisualMDT::Iam() {
+    return MG_VISUAL_KIND_MDT;
+}
+#pragma schedule reset
+#pragma schedule off
 // Defined inline in mg_visual.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", GetMaterialNum__12mgCVisualMDTFv);
-#endif
-#ifdef NONMATCHING
+int mgCVisualMDT::GetMaterialNum() {
+    return material_num;
+}
+#pragma schedule reset
+#pragma schedule off
 // Defined inline in mg_visual.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", GetpMaterial__12mgCVisualMDTFv);
-#endif
-#ifdef NONMATCHING
+mgMaterial *mgCVisualMDT::GetpMaterial() {
+    return material;
+}
+#pragma schedule reset
+#pragma optimization_level 1
 // Defined inline in mg_visual.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", Draw__12mgCVisualMDTFPA4_fP14mgCDrawManager);
-#endif
-#ifdef NONMATCHING
+void mgCVisualMDT::Draw(float (*matrix)[4], mgCDrawManager *draw_manager) {
+    Draw(NULL, matrix, draw_manager);
+}
+#pragma optimization_level reset
+#pragma schedule off
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", CreatePacket__9mgCVisualFP9mgCMemoryP9mgCMemory);
-#endif
-#ifdef NONMATCHING
+int mgCVisual::CreatePacket(mgCMemory *memory, mgCMemory *scratch) {
+    return 0;
+}
+#pragma schedule reset
+#pragma schedule off
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", GetMaterialNum__9mgCVisualFv);
-#endif
-#ifdef NONMATCHING
+int mgCVisual::GetMaterialNum() {
+    return 0;
+}
+#pragma schedule reset
+#pragma schedule off
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", GetpMaterial__9mgCVisualFv);
-#endif
-#ifdef NONMATCHING
+mgMaterial *mgCVisual::GetpMaterial() {
+    return 0;
+}
+#pragma schedule reset
+#pragma schedule off
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", GetMaterial__9mgCVisualFi);
-#endif
-#ifdef NONMATCHING
+mgMaterial *mgCVisual::GetMaterial(int index) {
+    return 0;
+}
+#pragma schedule reset
+#pragma schedule off
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", CreateBBox__9mgCVisualFPfPfPA4_f);
-#endif
-#ifdef NONMATCHING
+int mgCVisual::CreateBBox(float *box_min, float *box_max, float (*matrix)[4]) {
+    return 0;
+}
+#pragma schedule reset
+#pragma schedule off
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", CreateRenderInfoPacket__9mgCVisualFPUiPA4_fP13mgRENDER_INFO);
-#endif
-#ifdef NONMATCHING
+int mgCVisual::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *info) {
+    return 0;
+}
+#pragma schedule reset
+#pragma schedule off
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", Draw__9mgCVisualFPUiPA4_fP14mgCDrawManager);
-#endif
-#ifdef NONMATCHING
+int mgCVisual::Draw(u_int *packet, float (*matrix)[4], mgCDrawManager *manager) {
+    return 0;
+}
+#pragma schedule reset
+#pragma optimization_level 1
 // Defined inline in mg_dataset.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", Draw__9mgCVisualFPA4_fP14mgCDrawManager);
-#endif
+void mgCVisual::Draw(float (*matrix)[4], mgCDrawManager *manager) {
+    Draw(0, matrix, manager);
+}
+#pragma optimization_level reset
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_387__DATA);

@@ -7,6 +7,7 @@
 #include "character.hpp"
 #include "collision.hpp"
 #include "colprim.hpp"
+#include "dng_effect.hpp"
 #include "dng_hud.hpp"
 #include "dng_object.hpp"
 #include "mg_memory.hpp"
@@ -139,7 +140,7 @@ STATIC_ASSERT(sizeof(ACCUME_EFFECT) == 0x330);
  * Stack from which the dungeon's long-lived objects are allocated.
  *
  */
-extern mgCMemory *MainBuffer;
+extern mgCMemory *MainBuffer__2;
 
 /**
  *
@@ -265,7 +266,7 @@ extern CTreasureBoxManager *TreasureBoxMan;
  * Character that the player controls.
  *
  */
-extern CActionChara *MainChara;
+extern CActionChara *MainChara__2;
 
 /**
  *
@@ -294,6 +295,8 @@ extern CPullItemManager PullItemMan;
  *
  */
 extern mgCFrame *TornadoModel;
+
+extern CAfterWire afterWire[16];
 
 /**
  *
@@ -524,7 +527,7 @@ extern CCameraControl MainCamera;
  * Camera that event scripts move.
  *
  */
-extern CCameraControl EventCamera;
+extern CCameraControl EventCamera__2;
 
 /**
  *
@@ -659,3 +662,7 @@ void FinishDungeonMain();
  * @size 0x690
  */
 int LoopDungeonMain();
+
+void EntryEventScript(int event_no);
+
+void ResetEyeView(CActionChara *chara);

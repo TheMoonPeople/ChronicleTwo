@@ -1,0 +1,82 @@
+diff --git a/mwccgap/elf.py b/mwccgap/elf.py
+index 30e56a2..e196fb0 100644
+--- a/mwccgap/elf.py
++++ b/mwccgap/elf.py
+@@ -197,13 +197,11 @@ class Elf:
+             symbol.name = self.strtab.get_symbol_by_index(symbol.st_name)
+ 
+         # To be refined
+-        function_names = [
+-            s.name
+-            for s in sorted(
+-                filter(lambda x: x.st_info in FUNCTION_ST_INFOS, self.symtab.symbols),
+-                key=lambda x: x.st_shndx,
+-            )
+-        ]
++        function_names = {
++            symbol.st_shndx: symbol.name
++            for symbol in self.symtab.symbols
++            if symbol.st_info in FUNCTION_ST_INFOS and symbol.st_shndx != 0
++        }
+ 
+         for i, section in enumerate(self.sections):
+             if isinstance(section, RelocationRecord):
+@@ -214,12 +212,7 @@ class Elf:
+                 if section.name == ".text":
+                     text_section = TextSection.from_section(section)
+                     self.sections[i] = text_section
+-                    if len(function_names) == 0:
+-                        # FIXME: without globl label, ASM has no functions
+-                        pass
+-                    else:
+-                        function_name = function_names[len(self.functions)]
+-                        text_section.function_name = function_name
++                    text_section.function_name = function_names.get(i, "")
+                     self.functions.append(text_section)
+                 elif section.name == ".rodata":
+                     self.rodata_sections.append(section)
+diff --git a/mwccgap/mwccgap.py b/mwccgap/mwccgap.py
+index 2d1ca2b..4755d7a 100755
+--- a/mwccgap/mwccgap.py
++++ b/mwccgap/mwccgap.py
+@@ -248,6 +248,11 @@ def process_c_file(
+ 
+         reloc_symbols = set()
+ 
++        relocation_symbols = {
++            id(relocation): compiled_elf.symtab.symbols[relocation.symbol_index]
++            for record in compiled_elf.get_relocations()
++            for relocation in record.relocations
++        }
+         initial_sh_info_value = compiled_elf.symtab.sh_info
+         local_syms_inserted = 0
+ 
+@@ -263,6 +268,8 @@ def process_c_file(
+ 
+             for relocation in relocation_record.relocations:
+                 symbol = assembled_elf.symtab.symbols[relocation.symbol_index]
++                if has_text and i == 0 and symbol.type == 3 and symbol.st_shndx == asm_text_index:
++                    symbol.name = function + '__asm_text'
+ 
+                 if symbol.bind == 0:
+                     local_syms_inserted += 1
+@@ -283,6 +290,7 @@ def process_c_file(
+                     force = True
+ 
+                 relocation.symbol_index = compiled_elf.add_symbol(symbol, force=force)
++                relocation_symbols[id(relocation)] = compiled_elf.symtab.symbols[relocation.symbol_index]
+                 reloc_symbols.add(symbol.name)
+ 
+                 if has_text and i == 1:
+@@ -352,6 +360,11 @@ def process_c_file(
+                 symbol.st_shndx = text_section_index
+                 compiled_elf.add_symbol(symbol)
+ 
++        symbol_indices = {id(symbol): index for index, symbol in enumerate(compiled_elf.symtab.symbols)}
++        for record in compiled_elf.get_relocations():
++            for relocation in record.relocations:
++                relocation.symbol_index = symbol_indices[id(relocation_symbols[id(relocation)])]
++
+     o_file.parent.mkdir(exist_ok=True, parents=True)
+     o_file.write_bytes(compiled_elf.pack())
+ 

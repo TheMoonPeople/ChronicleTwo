@@ -83,7 +83,7 @@ public:
      * @address 0x15DF40
      * @size 0xA0
      */
-    CMapParts() { Initialize(); }
+    CMapParts();
 
     /**
      * Draws every piece of the part through the drawing list, lit by the
@@ -93,7 +93,7 @@ public:
      * @address 0x15F7E0
      * @size 0x10
      */
-    virtual int Draw() { return DrawSub(0); }
+    virtual int Draw();
 
     /**
      * Draws every piece of the part straight away, lit by the part's light
@@ -103,7 +103,7 @@ public:
      * @address 0x15F7F0
      * @size 0x10
      */
-    virtual int DrawDirect() { return DrawSub(1); }
+    virtual int DrawDirect();
 
     /**
      * Empties the part: no pieces, no function points, no colours, and the
@@ -483,7 +483,7 @@ public:
      * @address 0x161970
      * @size 0xC0
      */
-    CMapTreasureBox() { Initialize(); }
+    CMapTreasureBox();
 
     /**
      * Clears the chest to one that no function point has placed.

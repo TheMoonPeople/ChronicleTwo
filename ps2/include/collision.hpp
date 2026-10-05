@@ -38,12 +38,12 @@ enum ColFrameFlag {
 struct CCPoly {
     sceVu0FVECTOR vertex[3];   /**< Corners of the triangle. */
     sceVu0FVECTOR normal;      /**< Normal of the triangle's plane. */
-    s16           ground_kind; /**< What the surface is made of. */
-    s16           foot_sound;  /**< Sound the character's feet play on it. */
-    s16           area_kind;   /**< Kind of area the surface marks. */
-    s16           ignore_mask; /**< Collision query modes that pass through the surface. */
-    u16           parts_no;    /**< Index of the map part the triangle was gathered from. */
-    s16           unk_4a;
+    short           ground_kind; /**< What the surface is made of. */
+    short           foot_sound; /**< Sound the character's feet play on it. */
+    short           area_kind; /**< Kind of area the surface marks. */
+    short           ignore_mask; /**< Collision query modes that pass through the surface. */
+    u_short           parts_no; /**< Index of the map part the triangle was gathered from. */
+    short           unk_4a;
     float         unk_4c;
 };
 
@@ -56,7 +56,7 @@ STATIC_ASSERT(sizeof(CCPoly) == 0x50);
  */
 class CCollision {
 public:
-    s32       unk_00;
+    int       unk_00;
     mgVu0FBOX bbox; /**< Bounds of the geometry, in the geometry's own space. */
 
     /**
@@ -123,7 +123,7 @@ public:
      * @address 0x148A40
      * @size 0x10
      */
-    virtual void Copy(CCollision &dest, mgCMemory *memory) { dest.bbox = bbox; }
+    virtual void Copy(CCollision &dest, mgCMemory *memory);
 
     /**
      * Clears the bounds.
@@ -147,7 +147,7 @@ STATIC_ASSERT(sizeof(CCollision) == 0x40);
 class CCollisionMDT : public CCollision {
 public:
     CCPoly *poly;       /**< Triangles the geometry is made of. */
-    s32     poly_count; /**< Number of triangles in poly. */
+    int     poly_count; /**< Number of triangles in poly. */
 
     /**
      * Creates geometry with no triangles and cleared bounds.
@@ -191,11 +191,7 @@ public:
      * @address 0x148A00
      * @size 0x3C
      */
-    virtual void Initialize() {
-        CCollision::Initialize();
-        poly = 0;
-        poly_count = 0;
-    }
+    virtual void Initialize();
 
     /**
      * Copies the bounds and triangles into other geometry; the triangles
@@ -216,7 +212,7 @@ STATIC_ASSERT(sizeof(CCollisionMDT) == 0x50);
  */
 class CColFrame : public mgCFrame {
 public:
-    u32         flags;     /**< Which geometry a query visits. @see ColFrameFlag. */
+    u_int         flags; /**< Which geometry a query visits. @see ColFrameFlag. */
     CCollision *collision; /**< Geometry held by this frame, or null. */
 
     /**

@@ -127,14 +127,7 @@ public:
      * @address 0x1616B0
      * @size 0x20
      */
-    CObjAnime() {
-        frame = 0;
-        piece = 0;
-        parts = 0;
-        func_point = 0;
-        back = 0;
-        stop = 0;
-    }
+    CObjAnime();
 
     /**
      *
@@ -178,6 +171,9 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CObjAnime) == 0x30);
+
+template <>
+void CList<CFuncPoint>::Initialize();
 
 /**
  *

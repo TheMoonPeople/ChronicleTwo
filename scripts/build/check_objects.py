@@ -126,6 +126,12 @@ def check_unit(ctx, unit, verbose):
 
     section_address = {}
     runs = ctx.layout.sections(unit)
+    function_alignment = FUNCTION_ALIGNMENT
+    gcc_config = ROOT / layout.CONFIG / 'gcc_units.txt'
+    if gcc_config.exists():
+        for row in gcc_config.read_text().splitlines():
+            if row.split() and row.split()[0] == unit:
+                function_alignment = 8
     expected_names = {s for s, _lo, _hi in runs}
     for name, indices in by_name.items():
         if name not in expected_names:
@@ -149,9 +155,9 @@ def check_unit(ctx, unit, verbose):
             if start != cursor:
                 errors.append(f"{section_name}: {name} starts at 0x{start:08X}, previous ends 0x{cursor:08X}")
             if section_name in disassemble.CODE_SECTIONS:
-                if section.sh_addralign != FUNCTION_ALIGNMENT or start % FUNCTION_ALIGNMENT:
+                if section.sh_addralign != function_alignment or start % function_alignment:
                     errors.append(f"{name}: alignment {section.sh_addralign} at 0x{start:08X}")
-                reach = start + -(-size // FUNCTION_ALIGNMENT) * FUNCTION_ALIGNMENT
+                reach = start + -(-size // function_alignment) * function_alignment
                 if not (start + size <= end <= reach):
                     errors.append(f"{name}: size 0x{size:X} does not reach 0x{end:08X}")
             else:

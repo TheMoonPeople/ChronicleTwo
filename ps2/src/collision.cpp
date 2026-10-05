@@ -1,4 +1,9 @@
 #include "common.h"
+#include "mg_drawprim.hpp"
+#include "mg_texture.hpp"
+#include "mg_frame.hpp"
+#include "mg_drawenv.hpp"
+#include "mglib.hpp"
 #include "collision.hpp"
 
 #include <cstring>
@@ -9,15 +14,10 @@
 #include "mg_memory.hpp"
 
 // Code (.text)
-#ifdef NONMATCHING
 int CCollision::InsidePoint(float *point) {
     return mgClipBoxVertex(point, bbox.max, bbox.min) != 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", InsidePoint__10CCollisionFPf);
-#endif
 
-#ifdef NONMATCHING
 void CCollisionMDT::Copy(CCollisionMDT &dest, mgCMemory *memory) {
     int i;
 
@@ -38,9 +38,6 @@ void CCollisionMDT::Copy(CCollisionMDT &dest, mgCMemory *memory) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", Copy__13CCollisionMDTFR13CCollisionMDTP9mgCMemory);
-#endif
 
 #ifdef NONMATCHING
 void CCollisionMDT::CreateBBox() {
@@ -236,7 +233,7 @@ int CColFrame::InsidePoint(float *point) {
  * Loads a matrix into the vector unit's registers vf10-vf13 for the
  * transforms trance_normal makes.
  */
-static void pre_trance_normal(float (*matrix)[4]) {
+void pre_trance_normal(float (*matrix)[4]) {
     asm {
         lqc2 $vf10, 0x0($4)
         lqc2 $vf11, 0x10($4)
@@ -249,7 +246,7 @@ static void pre_trance_normal(float (*matrix)[4]) {
  * Transforms a triangle's corners in place by the matrix pre_trance_normal
  * loaded, and writes the unnormalised normal of the transformed triangle.
  */
-static void trance_normal(float *v0, float *v1, float *v2, float *normal) {
+void trance_normal(float *v0, float *v1, float *v2, float *normal) {
     asm {
         lqc2 $vf16, 0x0($4)
         lqc2 $vf17, 0x10($4)
@@ -357,7 +354,6 @@ int CCollision::PickUpNearPoly(CCPoly *poly, const mgVu0FBOX &box, int max) {
     return 0;
 }
 
-#ifdef NONMATCHING
 int CColFrame::GetWorldBBox(mgVu0FBOX *box) {
     mgVu0FBOX     world_box;
     mgVu0FBOX     child_box;
@@ -386,9 +382,6 @@ int CColFrame::GetWorldBBox(mgVu0FBOX *box) {
     *box = world_box;
     return found;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", GetWorldBBox__9CColFrameFP9mgVu0FBOX);
-#endif
 
 #ifdef NONMATCHING
 CColFrame *LoadCollisionFile(MDS_HEADER *header, mgCMemory *memory) {
@@ -456,15 +449,11 @@ CColFrame *LoadCollisionFile(MDS_HEADER *header, mgCMemory *memory) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", LoadCollisionFile__FP10MDS_HEADERP9mgCMemory);
 #endif
 
-#ifdef NONMATCHING
 void CColFrame::Initialize() {
     flags = COL_FRAME_FLAG_SELF;
     collision = 0;
     mgCFrame::Initialize();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", Initialize__9CColFrameFv);
-#endif
 
 CColFrame::CColFrame() {
     Initialize();
@@ -558,49 +547,23 @@ CCollisionMDT *CreateCollisionMDT(u_int *model, mgCMemory *memory) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", CreateCollisionMDT__FPUiP9mgCMemory);
 #endif
 
-#ifdef NONMATCHING
 // Defined in collision.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", Draw__9CColFrameFPUiP14mgCDrawManager);
-#endif
-
-#ifdef NONMATCHING
 // Defined in collision.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", Draw__9CColFrameFP14mgCDrawManager);
-#endif
-
-#ifdef NONMATCHING
 // Defined in collision.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", Initialize__13CCollisionMDTFv);
-#endif
+void CCollisionMDT::Initialize() {
+    CCollision::Initialize();
+    poly = 0;
+    poly_count = 0;
+}
 
-#ifdef NONMATCHING
 // Defined in collision.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", Copy__10CCollisionFR10CCollisionP9mgCMemory);
-#endif
+void CCollision::Copy(CCollision &dest, mgCMemory *memory) {
+    dest.bbox = bbox;
+}
 
-#ifdef NONMATCHING
 // Defined in collision.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", CreateBBox__10CCollisionFv);
-#endif
-
-#ifdef NONMATCHING
 // Defined in collision.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", GetMaxY__10CCollisionFPf);
-#endif
-
-#ifdef NONMATCHING
 // Defined in collision.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", Initialize__10CCollisionFv);
-#endif
-
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/collision", __vt__9CColFrame__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/collision", __vt__13CCollisionMDT__DATA);

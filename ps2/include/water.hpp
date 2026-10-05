@@ -105,7 +105,7 @@ STATIC_ASSERT(sizeof(CFireRaster) == 0x2F0);
 class CThunderEffect {
 public:
     int unk_00;
-    u8  unk_04[0x8C];
+    u_char  unk_04[0x8C];
     int unk_90;
     int unk_94;
     int unk_98;

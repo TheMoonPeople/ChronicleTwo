@@ -35,6 +35,8 @@ if [ -z "${CHRONICLETWO_BUILD_LOCKED:-}" ]; then
 fi
 
 BUILD_DIR=${BUILD_DIR:-build/pal}
+python3 scripts/build/setup_gcc.py
+python3 scripts/build/setup_mwccgap.py
 
 # Whether the existing cache was generated for this source directory. A cache
 # that is absent or unreadable is not stale -- there is simply nothing to
@@ -43,9 +45,9 @@ cache_is_stale() {
     cache=$BUILD_DIR/CMakeCache.txt
     [ -f "$cache" ] || return 1
 
-    home=$(sed -n 's/^CMAKE_HOME_DIRECTORY:INTERNAL=//p' "$cache" | head -1)
-    [ -n "$home" ] || return 1
-    [ "$home" != "$(pwd)" ]
+    cache_source=$(sed -n 's/^CMAKE_HOME_DIRECTORY:INTERNAL=//p' "$cache" | head -1)
+    [ -n "$cache_source" ] || return 1
+    [ "$cache_source" != "$(pwd)" ]
 }
 
 configure() {

@@ -1,16 +1,87 @@
 #include "common.h"
+#include "mg_memory.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_texture.hpp"
+#include "mg_frame.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_math.hpp"
+#include "mglib.hpp"
+#include "actionchara.hpp"
+#include "scene.hpp"
+#include "object.hpp"
+#include "padcontrol.hpp"
+#include "cameracontrol.hpp"
 #include "gyorace.hpp"
+#include "subgame.hpp"
+#include "scenesnd.hpp"
+
+struct CHitEffectImage;
+extern int EffectTexb;
+extern u_char water_cam;
+extern CHitEffectImage *battle_effect;
+extern "C" void Step__15CHitEffectImageFv(CHitEffectImage *effect);
+extern "C" void Draw__15CHitEffectImageFv(CHitEffectImage *effect);
+extern "C" void DivSpriteScreen__FR11mgCDrawPrim__2(mgCDrawPrim *prim);
 
 // Code (.text)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", sgInitGyoRace__FP11SubGameInfo);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", sgLoopGyoRace__FP11SubGameInfo);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", AutoCam__FP11SubGameInfo);
-s32 sgMapDrawGyoRace(SubGameInfo *info) {
+int sgMapDrawGyoRace(SubGameInfo *info) {
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", sgCharaDrawGyoRace__FP11SubGameInfo);
+int sgCharaDrawGyoRace(SubGameInfo *info) {
+    CScene *scene;
+    int i;
+    int offset;
+    scene = info->scene;
+    i = 0;
+    offset = 0;
+    do {
+        scene->DrawChara(*(int *)((u_char *)fish_inf + offset + 4), 1);
+        i++;
+        offset += 0x2C;
+    } while (i < 6);
+    mgTexManager.ReloadTexture(EffectTexb, (sceVif1Packet *)NULL);
+    int j = 0;
+    offset = 0;
+    CHitEffectImage *effect;
+    do {
+        effect = (CHitEffectImage *)((u_char *)battle_effect + offset);
+        if (effect != 0) {
+            Step__15CHitEffectImageFv(effect);
+            Draw__15CHitEffectImageFv(effect);
+        }
+        j++;
+        offset += 0x60;
+    } while (j < 0x60);
+    return 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", DivSpriteScreen__FR11mgCDrawPrim__2);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", sgEffectDrawGyoRace__FP11SubGameInfo);
+int sgEffectDrawGyoRace(SubGameInfo *info) {
+    mgCDrawPrim prim;
+    if (water_cam == 0) {
+        return 0;
+    }
+    prim.Initialize(0, 0);
+    mgCTexture frame;
+    mgGetFrameBuffer(&frame);
+    frame.swizzled = 0;
+    prim.DepthTestEnable(0);
+    prim.AlphaTestEnable(0);
+    prim.AlphaBlendEnable(0);
+    prim.ZMask(-1);
+    prim.TextureMapEnable(1);
+    prim.Begin2();
+    prim.BeginPrim2(6);
+    prim.Texture(&frame);
+    prim.Direct(0x3B, 0x8080 | ((unsigned long)0x80 << 32));
+    prim.Color(0x80, 0x80, 0x80, 0x80);
+    prim.EndPrim2();
+    DivSpriteScreen__FR11mgCDrawPrim__2(&prim);
+    prim.End2();
+    return 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", sgSysDrawGyoRace__FP11SubGameInfo);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", Jikkyou__FP11SubGameInfo);
 

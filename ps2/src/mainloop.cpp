@@ -1,40 +1,295 @@
 #include "common.h"
+#include "savedata.hpp"
+#include "subgame.hpp"
+#include "scenesnd.hpp"
+#include "gamedata.hpp"
+#include "editdata.hpp"
+#include "gamepad.hpp"
+#include "mapselect.hpp"
+#include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "monster.hpp"
+#include "npccfg.hpp"
+#include "scriptinterpreter.hpp"
+#include "visualmotion.hpp"
+#include "vlgr_info.hpp"
+#include "water.hpp"
+#include "dataread.hpp"
+#include "font.hpp"
+#include "gaiji.hpp"
+#include "helpmes.hpp"
+#include "nowload.hpp"
+#include "snd_mngr.hpp"
+#include "sysmes.hpp"
+#include "userdata.hpp"
 #include "mainloop.hpp"
 #include <cstring>
 #include <cstdio>
 
+void LoadFilePictureName();
+s16 get_gajji_id_from_monster_progress_table(int monster_no, int *level);
+int GetMonsterProgressTableNo(int level, int monster_no);
+
+extern CFont Font;
+extern mgCMemory MainBuffer;
+extern int menu_mode;
+void InitEventSelect();
+
+extern INIT_LOOP_ARG SelectArg;
+
+extern CSaveData *ActiveSaveData;
+extern int CaptureMode;
+extern int LoopNo;
+extern int PlayTimeCountFlag;
+extern CSubGameData *SubGameSaveData;
+extern int event_view;
+extern int future_sel;
+extern int hdd_sel;
+extern CScene MainScene;
+extern INIT_LOOP_ARG InitArg;
+extern mgCMemory InfoStack;
+extern "C" int InitPadTable__Fi(int);
+
+extern mgCMemory MenuBuffer;
+extern mgCMemory buf0_1224;
+extern mgCMemory buf1_1227;
+extern mgCMemory dbuf0_1230;
+extern mgCMemory dbuf1_1233;
+extern s8 init_1225;
+extern s8 init_1228;
+extern s8 init_1231;
+extern s8 init_1234;
+extern mgCTexture *FontTex;
+extern u32 FontDataAdr;
+extern char at_1654[];
+extern char at_1655[];
+extern char at_1656[];
+extern u8 font_buff[];
+extern char at_1657[];
+extern char at_1296[];
+extern char at_1856[];
+
+extern SPI_TAG_PARAM tag__3[];
+extern char at_2082[];
+extern char at_2083[];
+extern char at_2084[];
+extern char at_2085[];
+
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetDebugFont__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetCaptureMode__Fv);
+CFont *GetDebugFont(void) {
+    return &Font;
+}
+int GetCaptureMode(void) {
+    return CaptureMode;
+}
 s32 GetSystemSndID(void) {
     return SystemSND_ID;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetMainScene__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetSaveData__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetSubGameSaveData__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", InitSaveData__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetVramTopAddress__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetMainStack__Fv);
+CScene *GetMainScene(void) {
+    return &MainScene;
+}
+CSaveData *GetSaveData(void) {
+    return ActiveSaveData;
+}
+CSubGameData *GetSubGameSaveData(void) {
+    return SubGameSaveData;
+}
+void InitSaveData(void) {
+    GetSaveData()->Initialize();
+}
+int GetVramTopAddress(void) {
+    return mgGetTopVRAMAddress() + 0x20;
+}
+mgCMemory *GetMainStack(void) {
+    return &MainBuffer;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", NextLoop__Fi13INIT_LOOP_ARG);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetNowLoopNo__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetNowInitArg__Fv);
+int GetNowLoopNo(void) {
+    return LoopNo;
+}
+INIT_LOOP_ARG *GetNowInitArg(void) {
+    return &InitArg;
+}
 void cat_start() {}
 void cat_end() {}
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", SetTextureTable__FiiP9mgCMemory);
+void SetTextureTable(int table_size, int table_count, mgCMemory *memory) {
+    mgTexManager.SetTableBuffer(table_count, table_size, memory);
+    mgTexManager.Initialize(GetVramTopAddress(), -1);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", InitPadTable__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", VSyncCallBack__Fi__3);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", PlayTimeCount__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetPlayTimeCountFlag__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", LanguageChange__FiP1);
+extern "C" void VSyncCallBack__Fi__3(int unused) {
+    if (PlayTimeCountFlag != 0) {
+        GetSaveData()->play_time += 1;
+    }
+}
+void PlayTimeCount(int value) {
+    PlayTimeCountFlag = value;
+}
+int GetPlayTimeCountFlag(void) {
+    return PlayTimeCountFlag;
+}
+void LanguageChange(int language, u_long128 *buffer) {
+    LanguageCode = language;
+    GameItemDataManage.LoadItemSystemMes(language);
+    LoadHelpMes(read_buffer);
+    LoadMapName(LanguageCode, read_buffer);
+    LanguageEquipChange();
+    LoadNPCCfg();
+    LoadSystemMes();
+    LoadFontTex2Img();
+    LoadGaijiImg();
+    LoadFontTexture();
+    LoadFontTblBin();
+    LoadEditAnalyzeData(LanguageCode, (u_long128 *)read_buffer);
+    LoadFilePictureName();
+    LoadMonsterLanguage(LanguageCode);
+    InfoStack.stack_used = 0;
+    InfoStack.lock = 0;
+    LoadGameInfo(&InfoStack);
+    InitPauseData();
+    InitPadTable__Fi(LanguageCode);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", MainLoop__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", MenuInit__F13INIT_LOOP_ARG);
+void MenuInit(INIT_LOOP_ARG arg) {
+    mgCMemory *main_stack;
+    u_long128 *packet_a;
+    u_long128 *packet_b;
+
+    sndSeAllStop(-1);
+    sndDeletePort(0);
+    MainScene.InitBGM();
+    MainScene.InitSeEnv();
+    MainScene.InitSeSrc();
+    menu_mode = 0;
+    mgInitFont();
+    main_stack = GetMainStack();
+    main_stack->stack_used = 0;
+    main_stack->lock = 0;
+    if (init_1225 == 0) {
+        buf0_1224.Init();
+        init_1225 = 1;
+    }
+    if (init_1228 == 0) {
+        buf1_1227.Init();
+        init_1228 = 1;
+    }
+    if (init_1231 == 0) {
+        dbuf0_1230.Init();
+        init_1231 = 1;
+    }
+    if (init_1234 == 0) {
+        dbuf1_1233.Init();
+        init_1234 = 1;
+    }
+    packet_a = main_stack->stAlloc64(0x2710);
+    packet_b = main_stack->stAlloc64(0x2710);
+    mgInitVif1Packet(packet_a, packet_b, 0x27100);
+    buf0_1224.stSetBuffer((u_long128 *)main_stack->stAlloc64(0x2710), 0x2710);
+    buf1_1227.stSetBuffer((u_long128 *)main_stack->stAlloc64(0x2710), 0x2710);
+    dbuf0_1230.stSetBuffer((u_long128 *)main_stack->stAlloc64(0xC350), 0xC350);
+    dbuf1_1233.stSetBuffer((u_long128 *)main_stack->stAlloc64(0xC350), 0xC350);
+    MenuBuffer.stSetBuffer((u_long128 *)main_stack->stAlloc64(0x7A120), 0x7A120);
+    read_buffer = (u_long128 *)main_stack->stAlloc64(0x186A0);
+    mgSetPacketBuffer(&buf0_1224, &buf1_1227);
+    mgSetDataBuffer(&dbuf0_1230, &dbuf1_1233, 1);
+    GamePad__2.SetAutoRepeat(0xF000, 0xF, 4);
+    mgSetBackGround(0.0f, 0.0f, 0.0f, 0.0f);
+    SetTextureTable(0x64, 0x14, &MenuBuffer);
+    if (DebugFlag == 0) {
+        InitEventSelect();
+    }
+    mgTexManager.DeleteBlock(1);
+    mgTexManager.EnterIMGFile(GetGaijiImgPtr(), 1, NULL, NULL);
+    ReLoadFontTexture(1);
+    mgTexManager.EnterIMGFile(GetFontTex2ImgPtr(), 1, NULL, NULL);
+    LoadEventViewData(read_buffer, &MenuBuffer);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", MenuLoop__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", MenuExit__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", InitEventSelect__Fv);
+void MenuExit(void) {
+    GamePad__2.AutoRepeatOff();
+    mgCloseFont();
+}
+void InitEventSelect(void) {
+    event_view = 0;
+    future_sel = 0;
+    menu_mode = 2;
+    hdd_sel = 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", EventSelect__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", GetFontTexture__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", LoadFontTexture__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", ReLoadFontTexture__Fi);
+mgCTexture *GetFontTexture(int page) {
+    if ((page < 0) || (page > 0)) {
+        return 0;
+    }
+    return *(&FontTex + page);
+}
+void LoadFontTexture(void) {
+    u8 scratch[0x35000];
+    char path[0x40];
+    char file_name[0x20];
+    int size;
+    u8 *buffer;
+    int page;
+    u32 misalign;
+
+    buffer = scratch;
+    FontTex = 0;
+    misalign = (u32)buffer & 3;
+    FontDataAdr = 0;
+    if (misalign != 0) {
+        buffer += (4 - misalign) * 0x10;
+    }
+    page = 0;
+    do {
+        if (LanguageCode == 0) {
+            sprintf(file_name, at_1654, page);
+        } else if (LanguageCode == 1) {
+            if (page == 0) {
+                sprintf(file_name, at_1655, page);
+            }
+        } else if (page == 0) {
+            sprintf(file_name, at_1656);
+        }
+        sprintf(path, at_1657, file_name);
+        if (LoadFile2(path, buffer, &size, 0) != 0) {
+            (&FontDataAdr)[page] = (u32)font_buff;
+            if ((&FontDataAdr)[page] == 0) {
+                return;
+            }
+            memcpy((void *)(&FontDataAdr)[page], buffer, size);
+        }
+        page += 1;
+    } while (page <= 0);
+}
+void ReLoadFontTexture(int texture_no) {
+    char file_name[0x20];
+    int page;
+    int offset;
+    TM2_head **font_data;
+
+    offset = 0;
+    page = 0;
+    do {
+        font_data = (TM2_head **)((u8 *)&FontDataAdr + offset);
+        if (*font_data != NULL) {
+            if (LanguageCode == 0) {
+                sprintf(file_name, at_1654, page);
+            } else if (LanguageCode == 1) {
+                if (page == 0) {
+                    sprintf(file_name, at_1655, page);
+                }
+            } else if (page == 0) {
+                sprintf(file_name, at_1656);
+            }
+            if (&mgTexManager == NULL) {
+                return;
+            }
+            *(mgCTexture **)((u8 *)&FontTex + offset) = mgTexManager.EnterTexture(texture_no, file_name, *font_data, 0, 0);
+        }
+        page += 1;
+        offset += 4;
+    } while (page <= 0);
+}
 void demQuit() {}
 void demoQuitTimeOut() {}
 void demoAttractInterrupted() {}
@@ -43,30 +298,288 @@ void FadeOutForE3() {}
 int TimeLimitCheck() { return 0; }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", InitPauseMenu__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", PauseMenu__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", LoadGameConfig__FPc);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcMAP_NO__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcPROGRESS__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcBIT_FLAG_ON__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcBIT_FLAG_OFF__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcSTART_EVENT__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcGEO_COMPLETE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcGEO_DEBUG__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcITEM_SET__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcGET_ITEM__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcGET_N_ITEM__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcEQUIP__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcDEFENSE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcHP__FP9SPI_STACKi);
+void LoadGameConfig(char *path) {
+    u8 script[0x4000];
+    CScriptInterpreter interpreter;
+    int size;
+
+    if (path == NULL) {
+        SetCurrentDir(at_1296);
+        if (LoadFile2(at_1856, script, &size, 0) == 0) {
+            SetCurrentDir(NULL);
+            return;
+        }
+        SetCurrentDir(NULL);
+        goto run;
+    }
+    if (LoadFile2(path, script, &size, 0) != 0) {
+    run:
+
+        interpreter.SetTag(tag__3);
+        interpreter.SetScript((char *)script, size);
+        interpreter.Run();
+    }
+}
+int gcMAP_NO(SPI_STACK *stack, int arg) {
+    int map_no;
+    if (stack->type == 0) {
+        map_no = SearchMapNo(spiGetStackString(stack));
+    } else {
+        map_no = spiGetStackInt(stack);
+    }
+    SelectArg.map_no = map_no;
+    return 1;
+}
+int gcPROGRESS(SPI_STACK *stack, int arg) {
+    int value = spiGetStackInt(stack);
+    CSaveData *save = GetSaveData();
+    save->game_progress = value;
+    return 0;
+}
+int gcBIT_FLAG_ON(SPI_STACK *stack, int count) {
+    CSaveData *save_data;
+    int i;
+
+    for (i = 0; i < count; i++) {
+        save_data = GetSaveData();
+        save_data->SetBitFlag(spiGetStackInt(stack++), 1);
+    }
+    return 0;
+}
+int gcBIT_FLAG_OFF(SPI_STACK *stack, int count) {
+    CSaveData *save_data;
+    int i;
+
+    for (i = 0; i < count; i++) {
+        save_data = GetSaveData();
+        save_data->SetBitFlag(spiGetStackInt(stack++), 0);
+    }
+    return 0;
+}
+int gcSTART_EVENT(SPI_STACK *stack, int arg_count) {
+    DefStartEventNo = spiGetStackInt(stack);
+    return 0;
+}
+int gcGEO_COMPLETE(SPI_STACK *stack, int count) {
+    int i;
+    int index;
+    void *edit_data;
+
+    DebugInfo.georama_debug = 1;
+    for (i = 0; i < count; i++) {
+        index = spiGetStackInt(stack++);
+        edit_data = GetSaveData()->GetEditData(index);
+        if (edit_data != 0) {
+            ((CEditData *)edit_data)->dbgSetAllContintionFlag(index, 1);
+        }
+    }
+    return 1;
+}
+int gcGEO_DEBUG(SPI_STACK *stack, int arg_count) {
+    DebugInfo.georama_debug = 1;
+    return 1;
+}
+int gcITEM_SET(SPI_STACK *stack, int arg_count) {
+    CUserDataManager *user_data;
+
+    user_data = &GetSaveData()->user_data;
+    DebugGetItem(user_data, spiGetStackInt(stack));
+    return 1;
+}
+int gcGET_ITEM(SPI_STACK *stack, int count) {
+    int i;
+    CUserDataManager *user_data;
+
+    for (i = 0; i < count; i++) {
+        user_data = &GetSaveData()->user_data;
+        user_data->GetItem(spiGetStackInt(stack++), 1);
+    }
+    return 1;
+}
+int gcGET_N_ITEM(SPI_STACK *stack, int count) {
+    int item_no;
+    int i;
+    CUserDataManager *user_data;
+
+    for (i = 0; i < count; i++) {
+        user_data = &GetSaveData()->user_data;
+        item_no = spiGetStackInt(stack++);
+        user_data->GetItem(item_no, spiGetStackInt(stack++));
+    }
+    return 1;
+}
+int gcEQUIP(SPI_STACK *stack, int arg_count) {
+    int chara_no;
+    int item_no;
+    CUserDataManager *user_data;
+    user_data = &GetSaveData()->user_data;
+    chara_no = spiGetStackInt(stack++);
+    item_no = spiGetStackInt(stack);
+    user_data->SetChrEquip(chara_no, item_no);
+    return 1;
+}
+int gcDEFENSE(SPI_STACK *stack, int arg_count) {
+    int chara_no;
+    int defence;
+    CHARA_DATA *chara;
+
+    chara_no = spiGetStackInt(stack++);
+    defence = spiGetStackInt(stack);
+    chara = GetSaveData()->user_data.GetCharaDataPtr(chara_no);
+    if (chara != NULL) {
+        chara->defence = defence;
+    }
+    return 1;
+}
+int gcHP(SPI_STACK *stack, int arg_count) {
+    int chara_no;
+    int hp;
+    CHARA_DATA *chara;
+
+    chara_no = spiGetStackInt(stack++);
+    hp = spiGetStackInt(stack);
+    chara = GetSaveData()->user_data.GetCharaDataPtr(chara_no);
+    if (chara != NULL) {
+        chara->hp.max = hp;
+        chara->hp.now = hp;
+    }
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcALL_GEO_PARTS__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcPARAM_DRAW__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcOPTION__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcMONICA__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcSTEVE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcMONSTER__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcPARTY__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcACTIVE_CHARA__FP9SPI_STACKi);
+int gcPARAM_DRAW(SPI_STACK *stack, int arg_count) {
+    DebugInfo.param_off = !spiGetStackInt(stack);
+    return 1;
+}
+int gcOPTION(SPI_STACK *stack, int arg) {
+    char *name;
+    SV_CONFIG_OPTION *options;
+    SPI_STACK *value;
+
+    value = stack + 1;
+    name = (char *)spiGetStackString(stack);
+    if (name == NULL) {
+        return 0;
+    }
+    options = &GetSaveData()->config;
+    if (strcmp(name, at_2082) == 0) {
+        options->monster_name = spiGetStackInt(value);
+    } else if (strcmp(name, at_2083) == 0) {
+        options->map = spiGetStackInt(value);
+    } else if (strcmp(name, at_2084) == 0) {
+        options->enemy_hp = spiGetStackInt(value);
+    } else if (strcmp(name, at_2085) == 0) {
+        options->anger_counter = spiGetStackInt(value);
+    }
+    return 1;
+}
+int gcMONICA(SPI_STACK *stack, int arg_count) {
+    CUserDataManager *manager;
+
+    manager = GetUserDataMan();
+    if (manager) {
+        manager->JoinPartyMember(1);
+    }
+    return 1;
+}
+int gcSTEVE(SPI_STACK *stack, int mode) {
+    CUserDataManager *manager;
+
+    manager = GetUserDataMan();
+    if (manager == NULL) {
+        return 0;
+    }
+    manager->JoinPartyMember(2);
+    manager->GetItemNotOver(0xF6, 1);
+    if (mode == 2) {
+        manager->DeleteItem(0xF6, 1);
+        manager->GetItemNotOver(GetRidePodCore(spiGetStackInt(stack)), 1);
+    }
+    return 1;
+}
+int gcMONSTER(SPI_STACK *stack, int arg_count) {
+    int sp7C;
+    CUserDataManager *manager;
+    int i;
+    int monster_id;
+    int badge_no;
+    MOS_CHANGE_PARAM *badge;
+
+    manager = GetUserDataMan();
+    if (manager == NULL) {
+        return 0;
+    }
+    manager->JoinPartyMember(3);
+    manager->GetItemNotOver(0x134, 1);
+    for (i = 0; i < arg_count; i++) {
+        monster_id = spiGetStackInt(stack++);
+        badge_no = get_gajji_id_from_monster_progress_table(monster_id, &sp7C) + 1;
+        manager->monster_box.EnableChange(badge_no);
+        badge = manager->monster_box.GetMonsterBajjiData(badge_no);
+        if (badge != NULL) {
+            badge->class_level = sp7C;
+            badge->monster_id = monster_id;
+            badge->progress = GetMonsterProgressTableNo(sp7C, monster_id);
+        }
+        manager->monster_id = monster_id;
+    }
+    return 1;
+}
+int gcPARTY(SPI_STACK *stack, int arg_count) {
+    int chara_no;
+    CUserDataManager *manager;
+
+    chara_no = spiGetStackInt(stack);
+    if (chara_no <= 0 || chara_no > 0x1A) {
+        return 0;
+    }
+    manager = GetUserDataMan();
+    if (manager != NULL) {
+        manager->JoinPartyChara(chara_no, 0x80, 1);
+        manager->SetPartyCharaStatus(chara_no, 1);
+    }
+    return 1;
+}
+int gcACTIVE_CHARA(SPI_STACK *stack, int arg_count) {
+    int chara_no;
+    CUserDataManager *manager;
+
+    chara_no = spiGetStackInt(stack);
+    if (chara_no < 0) {
+        chara_no = 0;
+    }
+    if (chara_no > 1) {
+        chara_no = 1;
+    }
+    manager = GetUserDataMan();
+    if (manager) {
+        manager->SetActiveChrNo(chara_no);
+    }
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", __ct__16CUserDataManagerFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", __ct__9CEditDataFv);
+CEditData::CEditData(void) {
+    char *entry;
+    char *cursor;
+    char *entry2;
+    char *cursor2;
+
+    cursor = (char *)parts;
+    entry = cursor;
+    do {
+        memset(entry, 0, 0x24);
+        cursor += 0x24;
+        entry = cursor;
+    } while ((u32)cursor < (u32)&house_max);
+    cursor2 = (char *)house;
+    entry2 = cursor2;
+    do {
+        memset(entry2, 0, 0x10);
+        cursor2 += 0x10;
+        entry2 = cursor2;
+    } while ((u32)cursor2 < (u32)place_log);
+    memset(&analyze, 0, sizeof(analyze));
+    Initialize();
+}
 
 // Static initialiser (.init)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", __sinit_mainloop_cpp);

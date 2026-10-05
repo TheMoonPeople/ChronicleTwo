@@ -1,9 +1,23 @@
 #include "common.h"
+#include <cstring>
+#include "sound.hpp"
+#include "mapparts.hpp"
+#include "mg_math.hpp"
+#include "mg_memory.hpp"
 #include "funcpoint.hpp"
 
+extern "C" void Initialize__10CFuncPointFv(void *point);
+extern "C" int Check__10CFuncPointFP15CFuncPointCheck(CFuncPoint *point, CFuncPointCheck *check);
+extern "C" int GetEnd__14CFuncPointMngrFv(void *);
+extern "C" int GetStart__14CFuncPointMngrFi(void *, int);
+extern "C" int GetLWMatrix__8mgCFrameFPA4_f(void *, float (*)[4]);
+extern "C" int mgMulMatrix__FPA4_fPA4_fPA4_f(float (*)[4], float (*)[4], float (*)[4]);
+int sndGetVolPan(float *, float *, float *, float *, float, float);
+int sndGetVolPan(float *, float *, float *, float, float);
+
 // Code (.text)
-s32 CheckTime(float time, float start, float end) {
-    s32 outside;
+int CheckTime(float time, float start, float end) {
+    int outside;
 
     if (!(end <= start)) {
         if (time < start) {
@@ -40,15 +54,29 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", SetParam__9CObjAnimeFPf);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", GetParam__9CObjAnimeFPf);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", AssignFuncAnime__9CObjAnimeFP10CFuncPointP9CMapParts);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Add__14CFuncPointMngrFiP9mgCMemory);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Initialize__19CList_10CFuncPoint_Fv);
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Add__14CFuncPointMngrFiP19CList_10CFuncPoint_);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Reserve__14CFuncPointMngrFiP9mgCMemory);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", __ct__19CList_10CFuncPoint_Fv);
+template <>
+void CList<CFuncPoint>::Initialize() {
+    prev = NULL;
+    next = NULL;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", GetReserve__14CFuncPointMngrFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", AddFromReserve__14CFuncPointMngrFi);
+CFuncPoint *CFuncPointMngr::AddFromReserve(int kind) {
+    CList<CFuncPoint> *node;
+
+    node = GetReserve();
+    if (node == NULL) {
+        return NULL;
+    }
+    node->data.Initialize();
+    return Add(kind, node);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", GetNum__14CFuncPointMngrFi);
-s32 CFuncPointMngr::GetEventNum(s32 event_flag) {
-    s32 count = 0;
+int CFuncPointMngr::GetEventNum(int event_flag) {
+    int count = 0;
     GetStart(FUNC_POINT_EVENT);
     CFuncPoint *point = Get();
     if (point != NULL) {
@@ -68,15 +96,39 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Get__14CFuncPointMngrFv);
 void CFuncPointMngr::GetEnd(void) {
     now = NULL;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Search__14CFuncPointMngrFPc);
+CFuncPoint *CFuncPointMngr::Search(char *name) {
+    CFuncPoint *first;
+    CFuncPoint *next;
+    int kind;
+    CFuncPoint *point;
+
+    kind = 1;
+    do {
+        GetStart(kind);
+        first = Get();
+        point = first;
+        if (first != NULL) {
+            do {
+                if (strcasecmp(*(char **)point, name) == 0) {
+                    return point;
+                }
+                next = Get();
+                point = next;
+            } while (next != NULL);
+        }
+        GetEnd();
+        kind += 1;
+    } while (kind < 0xA);
+    return NULL;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", GetLight__14CFuncPointMngrFPfP10CFuncPointiP15CFuncPointChecki);
-void CFuncPointMngr::Step(s32 i, CFuncPointCheck *c) { this->UpdateFlag(i, c); }
-s32 CFuncPointMngr::UpdateFlag(s32 type, CFuncPointCheck *check) {
+void CFuncPointMngr::Step(int i, CFuncPointCheck *c) { this->UpdateFlag(i, c); }
+int CFuncPointMngr::UpdateFlag(int type, CFuncPointCheck *check) {
     CFuncPoint *first;
     CFuncPoint *next;
     CFuncPoint *point;
-    s32 active;
-    s32 count;
+    int active;
+    int count;
 
     GetStart(type);
     count = 0;
@@ -101,7 +153,74 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Copy__14CFuncPointMngrFR14CFun
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", Initialize__14CFuncPointMngrFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", DrawFireEffect__FPA4_fP14CFuncPointMngrP15CFuncPointCheckfP10mgCTextureP10mgCTexture);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", DrawFireRaster__FPA4_fP14CFuncPointMngrP15CFuncPointCheckP11CFireRaster);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", GetSeSrcVolPan__FPA4_fP14CFuncPointMngrP15CFuncPointCheckPiPfPfi);
+int GetSeSrcVolPan(
+    float (*mat)[4], CFuncPointMngr *mgr, CFuncPointCheck *chk, int *kinds, float *vols, float *pans, int max) {
+    sceVu0FVECTOR q90;
+    float v_a0[4];
+    float m_b0[4][4];
+    CFuncPoint *p;
+    int n;
+
+    n = 0;
+    mgr->UpdateFlag(2, chk);
+    mgr->GetStart(2);
+    p = mgr->Get();
+    if (p != NULL) {
+        do {
+            if (p->active != 0) {
+                if (n >= max) {
+                    return n;
+                }
+                *(u_long128 *)q90 = *(u_long128 *)p->position;
+                q90[3] = 1.0f;
+                sceVu0ApplyMatrix(q90, mat, q90);
+                sndGetVolPan(vols, pans, q90, 10.0f, 1200.0f);
+                if (*vols > 0.01f) {
+                    vols++;
+                    *kinds = 2;
+                    pans++;
+                    n++;
+                    kinds++;
+                }
+            }
+            p = mgr->Get();
+        } while (p != NULL);
+    }
+    mgr->GetEnd();
+    if (mgr->UpdateFlag(8, chk) > 0) {
+        mgr->GetStart(8);
+        if ((p = mgr->Get()) != NULL) {
+            do {
+                if (p->active != 0) {
+                    if (n >= max) {
+                        return n;
+                    }
+                    if (p->sound.shape == 1) {
+                        p->frame.GetLWMatrix(m_b0);
+                        mgMulMatrix(m_b0, m_b0, mat);
+                        sceVu0ApplyMatrix(q90, m_b0, p->sound.start);
+                        sceVu0ApplyMatrix(v_a0, m_b0, p->sound.end);
+                        sndGetVolPan(vols, pans, q90, v_a0, p->sound.unk_24, p->sound.unk_28);
+                    } else {
+                        *(u_long128 *)q90 = *(u_long128 *)p->position;
+                        q90[3] = 1.0f;
+                        sceVu0ApplyMatrix(q90, mat, q90);
+                        sndGetVolPan(vols, pans, q90, p->sound.unk_24, p->sound.unk_28);
+                    }
+                    if (*vols > 0.01f) {
+                        vols++;
+                        pans++;
+                        n++;
+                        *kinds = p->sound.se_no;
+                        kinds++;
+                    }
+                }
+            } while ((p = mgr->Get()) != NULL);
+        }
+        mgr->GetEnd();
+    }
+    return n;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", GetLightAnimeWeight__FP10CFuncPointi);
 
 // Constants (.rodata)

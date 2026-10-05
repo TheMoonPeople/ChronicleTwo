@@ -1,13 +1,13 @@
 #pragma once
 
-#include "types.h"
+#include "common.h"
 #include <libipu.h>
 
 /**
  * State of one MPEG decoder, including the size and timing of the most
  * recently decoded picture.
  */
-struct sceMpeg {
+typedef struct sceMpeg {
     int width;       /**< Width of the stream's pictures, in pixels. */
     int height;      /**< Height of the stream's pictures, in pixels. */
     int frameCount;  /**< Number of pictures decoded since the stream began. */
@@ -18,12 +18,12 @@ struct sceMpeg {
     long dts2nd;     /**< Decoding time stamp of the second field. */
     u_long flags2nd; /**< Picture flags of the second field. */
     void *sys;       /**< Library-private decoder state. */
-};
+} sceMpeg;
 
 /**
  * Events a decoder reports to callbacks registered with sceMpegAddCallback.
  */
-enum sceMpegCbType {
+typedef enum sceMpegCbType {
     sceMpegCbError = 0,      /**< A decoding error occurred. */
     sceMpegCbNodata = 1,     /**< The decoder ran out of bit-stream data. */
     sceMpegCbStopDMA = 2,    /**< The decoder needs the IPU input DMA suspended. */
@@ -31,64 +31,66 @@ enum sceMpegCbType {
     sceMpegCbBackground = 4, /**< The decoder is idle while the IPU works. */
     sceMpegCbTimeStamp = 5,  /**< The decoder asks for the time stamp of the next picture. */
     sceMpegCbStr = 6,        /**< A demultiplexed elementary-stream packet is available. */
-};
+} sceMpegCbType;
 
 /**
  * Elementary-stream kinds a demultiplexer callback can be registered for.
  */
-enum sceMpegStrType {
+typedef enum sceMpegStrType {
     sceMpegStrM2V = 0,   /**< MPEG-2 video. */
     sceMpegStrIPU = 1,   /**< IPU stream. */
     sceMpegStrPCM = 2,   /**< Linear PCM audio. */
     sceMpegStrADPCM = 3, /**< ADPCM audio. */
     sceMpegStrDATA = 4,  /**< Private data. */
-};
+} sceMpegStrType;
 
 /**
  * Callback data for sceMpegCbError.
  */
-struct sceMpegCbDataError {
+typedef struct sceMpegCbDataError {
     sceMpegCbType type; /**< Event being reported. */
     char *errMessage;   /**< Description of the error. */
-};
+} sceMpegCbDataError;
 
 /**
  * Callback data for sceMpegCbTimeStamp, to be filled in by the callback.
  */
-struct sceMpegCbDataTimeStamp {
+typedef struct sceMpegCbDataTimeStamp {
     sceMpegCbType type; /**< Event being reported. */
     long pts;           /**< Presentation time stamp of the next picture. */
     long dts;           /**< Decoding time stamp of the next picture. */
-};
+} sceMpegCbDataTimeStamp;
 
 /**
  * Callback data for sceMpegCbStr: one demultiplexed packet.
  */
-struct sceMpegCbDataStr {
+typedef struct sceMpegCbDataStr {
     sceMpegCbType type; /**< Event being reported. */
     u_char *header;     /**< Packet header. */
     u_char *data;       /**< Packet payload. */
     u_int len;          /**< Payload length in bytes. */
     long pts;           /**< Presentation time stamp carried by the packet. */
     long dts;           /**< Decoding time stamp carried by the packet. */
-};
+} sceMpegCbDataStr;
 
 /**
  * Data passed to every decoder callback, interpreted by its type.
  */
-union sceMpegCbData {
+typedef union sceMpegCbData {
     sceMpegCbType type;        /**< Event being reported. */
     sceMpegCbDataError error;  /**< Data of sceMpegCbError. */
     sceMpegCbDataTimeStamp ts; /**< Data of sceMpegCbTimeStamp. */
     sceMpegCbDataStr str;      /**< Data of sceMpegCbStr. */
-};
+} sceMpegCbData;
 
 /**
  * Decoder callback; returns non-zero when it handled the event.
  */
 typedef int (*sceMpegCallback)(sceMpeg *mp, sceMpegCbData *cbdata, void *anyData);
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 /**
  * Initialises the MPEG library.
@@ -138,4 +140,6 @@ sceMpegCallback sceMpegAddStrCallback(sceMpeg *mp, sceMpegStrType strType, int c
  * number of bytes consumed.
  */
 int sceMpegDemuxPssRing(sceMpeg *mp, u_char *start, int size, u_char *buf_start, int buf_size);
+#ifdef __cplusplus
 }
+#endif

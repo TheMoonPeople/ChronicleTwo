@@ -112,7 +112,7 @@ public:
      * @address 0x301550
      * @size 0xA0
      */
-    CStarEffect() {}
+    CStarEffect();
 
     /**
      *
@@ -179,7 +179,7 @@ public:
      * @address 0x2FFC20
      * @size 0xA0
      */
-    CPaintEffect() {}
+    CPaintEffect();
 
     /**
      *

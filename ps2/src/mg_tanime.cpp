@@ -1,4 +1,6 @@
 #include "common.h"
+#include "mg_frame.hpp"
+#include "mg_math.hpp"
 #include "mg_tanime.hpp"
 
 #include <cmath>
@@ -12,76 +14,42 @@
 #include "mglib.hpp"
 #include "scriptinterpreter.hpp"
 
-#ifdef NONMATCHING
-static int texTEX_ANIME(SPI_STACK *stack, int argc);
-static int texTEX_ANIME_DATA(SPI_STACK *stack, int argc);
-static int texSRC_TEX(SPI_STACK *stack, int argc);
-static int texDEST_TEX(SPI_STACK *stack, int argc);
-static int texSCROLL(SPI_STACK *stack, int argc);
-static int texCLUT_COPY(SPI_STACK *stack, int argc);
-static int texCOLOR(SPI_STACK *stack, int argc);
-static int texALPHA_BLEND(SPI_STACK *stack, int argc);
-static int texALPHA_TEST(SPI_STACK *stack, int argc);
-static int texWAIT(SPI_STACK *stack, int argc);
-static int texTEX_ANIME_DATA_END(SPI_STACK *stack, int argc);
-static int texTEX_ANIME_END(SPI_STACK *stack, int argc);
-static int texBUG_PATCH(SPI_STACK *stack, int argc);
-
+extern "C" {
 /**
  *
  * Tags of the texture animation script and the handlers they call.
  *
  */
-static SPI_TAG_PARAM tex_tag[] = {
-    {"TEX_ANIME", texTEX_ANIME},
-    {"TEX_ANIME_DATA", texTEX_ANIME_DATA},
-    {"SRC_TEX", texSRC_TEX},
-    {"DEST_TEX", texDEST_TEX},
-    {"SCROLL", texSCROLL},
-    {"CLUT_COPY", texCLUT_COPY},
-    {"COLOR", texCOLOR},
-    {"ALPHA_BLEND", texALPHA_BLEND},
-    {"ALPHA_TEST", texALPHA_TEST},
-    {"WAIT", texWAIT},
-    {"TEX_ANIME_DATA_END", texTEX_ANIME_DATA_END},
-    {"TEX_ANIME_END", texTEX_ANIME_END},
-    {"BUG_PATCH", texBUG_PATCH},
-    {NULL, NULL},
-};
-
+extern SPI_TAG_PARAM tex_tag[];
 /** Default bug_patch of a newly initialised record. */
-static int mgBugPatch;
+extern int mgBugPatch;
 /** Texture animation of the texture block the script is entering records into. */
-static mgCTextureAnime *pTexAnime;
+extern mgCTextureAnime *pTexAnime;
 /** Texture animation the script enters every record into, or NULL to use each block's own. */
-static mgCTextureAnime *pLoadTexAnime;
+extern mgCTextureAnime *pLoadTexAnime;
 /** Group the script is entering records into, or -1 for none yet. */
-static int now_group;
+extern int now_group;
 /** Texture manager the script looks textures up in. */
-static mgCTextureManager *TexManager;
+extern mgCTextureManager *TexManager;
 /** Memory the script allocates records, players and names from. */
-static mgCMemory *TexAnimeStack;
+extern mgCMemory *TexAnimeStack;
 /** Name of the group the script is entering records into. */
-static char *group_name;
+extern char *group_name;
 /** Non-zero when the group the script is entering plays from the start. */
-static int ta_enable;
+extern int ta_enable;
 /** Texture block of the textures named by the current record, or -1 before the first. */
-static int now_texb;
+extern int now_texb;
 /** Non-zero once the script has asked for exact record timing. */
-static int texBugPatch;
+extern int texBugPatch;
 /** Record the script is building. */
-static mgCTexAnimeData nowTexData;
-#endif
+extern mgCTexAnimeData nowTexData;
+}
 
 // Code (.text)
-#ifdef NONMATCHING
 mgCTexAnimeData::mgCTexAnimeData() {
     Initialize();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", __ct__15mgCTexAnimeDataFv);
-#endif
-#ifdef NONMATCHING
+
 void mgCTexAnimeData::Initialize() {
     type = MG_TEX_ANIME_TYPE_NONE;
     group = 0;
@@ -113,9 +81,7 @@ void mgCTexAnimeData::Initialize() {
     g = 0x80;
     r = 0x80;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", Initialize__15mgCTexAnimeDataFv);
-#endif
+
 #ifdef NONMATCHING
 void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
     int i;
@@ -491,34 +457,24 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", TexAnime__15mgCTextureAnimeFiP13sceVif1Packet);
 #endif
-#ifdef NONMATCHING
 void mgCTextureAnime::Initialize() {
     group_num = MG_TEX_ANIME_GROUP_MAX;
     for (int i = 0; i < MG_TEX_ANIME_GROUP_MAX; i++) {
         DeleteGroup(i);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", Initialize__15mgCTextureAnimeFv);
-#endif
-#ifdef NONMATCHING
+
 mgCTextureAnime::mgCTextureAnime() {
     Initialize();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", __ct__15mgCTextureAnimeFv);
-#endif
-#ifdef NONMATCHING
+
 void mgCTextureAnime::SetGroupName(int group, char *group_name) {
     if (group < 0 || group >= group_num) {
         return;
     }
     name[group] = group_name;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", SetGroupName__15mgCTextureAnimeFiPc);
-#endif
-#ifdef NONMATCHING
+
 int mgCTextureAnime::GetEmptyGroup() {
     for (int i = 0; i < group_num; i++) {
         if (list[i] == NULL) {
@@ -527,10 +483,7 @@ int mgCTextureAnime::GetEmptyGroup() {
     }
     return -1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", GetEmptyGroup__15mgCTextureAnimeFv);
-#endif
-#ifdef NONMATCHING
+
 int mgCTextureAnime::SearchGroupName(char *group_name) {
     if (group_name == NULL) {
         return -1;
@@ -542,22 +495,12 @@ int mgCTextureAnime::SearchGroupName(char *group_name) {
     }
     return -1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", SearchGroupName__15mgCTextureAnimeFPc);
-#endif
-#ifdef NONMATCHING
+
 CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeData(mgCMemory *stack) {
     return new (stack->Alloc(6)) CList<mgCTexAnimeData>;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory);
-#endif
-#ifdef NONMATCHING
+
 // Defined in the class body in mg_tanime.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", Initialize__24CList_15mgCTexAnimeData_Fv);
-#endif
-#ifdef NONMATCHING
 CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeGroupData(int group, mgCMemory *stack) {
     if (group < 0 || group >= group_num) {
         return NULL;
@@ -587,10 +530,7 @@ CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeGroupData(int group, mgCMemo
     }
     return node;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", NewTexAnimeGroupData__15mgCTextureAnimeFiP9mgCMemory);
-#endif
-#ifdef NONMATCHING
+
 int mgCTextureAnime::EnterTexAnime(mgCTexAnimeData *data, mgCMemory *stack) {
     CList<mgCTexAnimeData> *node = NewTexAnimeGroupData(data->group, stack);
     if (node == NULL) {
@@ -609,10 +549,7 @@ int mgCTextureAnime::EnterTexAnime(mgCTexAnimeData *data, mgCMemory *stack) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", EnterTexAnime__15mgCTextureAnimeFP15mgCTexAnimeDataP9mgCMemory);
-#endif
-#ifdef NONMATCHING
+
 void mgCTextureAnime::DeleteGroup(int group) {
     if (group < 0 || group >= group_num) {
         return;
@@ -623,29 +560,20 @@ void mgCTextureAnime::DeleteGroup(int group) {
     name[group] = NULL;
     frame[group] = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", DeleteGroup__15mgCTextureAnimeFi);
-#endif
-#ifdef NONMATCHING
+
 void mgCTextureAnime::DisableAll() {
     for (int i = 0; i < group_num; i++) {
         Disable(i);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", DisableAll__15mgCTextureAnimeFv);
-#endif
-#ifdef NONMATCHING
+
 void mgCTextureAnime::Enable(int group) {
     if (group < 0 || group >= group_num) {
         return;
     }
     enable[group] = 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", Enable__15mgCTextureAnimeFi);
-#endif
-#ifdef NONMATCHING
+
 void mgCTextureAnime::Disable(int group) {
     if (group < 0 || group >= group_num) {
         return;
@@ -654,20 +582,14 @@ void mgCTextureAnime::Disable(int group) {
     now[group] = list[group];
     frame[group] = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", Disable__15mgCTextureAnimeFi);
-#endif
-#ifdef NONMATCHING
+
 CList<mgCTexAnimeData> *mgCTextureAnime::GetAnimeList(int group) {
     if (group < 0 || group >= group_num) {
         return NULL;
     }
     return list[group];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", GetAnimeList__15mgCTextureAnimeFi);
-#endif
-#ifdef NONMATCHING
+
 void mgCTextureManager::LoadCFGFile(char *script, int size, mgCMemory *stack, mgCTextureAnime *anime) {
     pTexAnime = NULL;
     pLoadTexAnime = anime;
@@ -684,16 +606,13 @@ void mgCTextureManager::LoadCFGFile(char *script, int size, mgCMemory *stack, mg
     interpreter.SetScript(script, size);
     interpreter.Run();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", LoadCFGFile__17mgCTextureManagerFPciP9mgCMemoryP15mgCTextureAnime);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * TEX_ANIME(name, enable): opens a named group of records and says whether it plays from the start.
  *
  */
-static int texTEX_ANIME(SPI_STACK *stack, int argc) {
+int texTEX_ANIME(SPI_STACK *stack, int argc) {
     char *name = spiGetStackString(&stack[0]);
     if (name != NULL) {
         char *copy = (char *) TexAnimeStack->Alloc((strlen(name) + 1) / MG_TEX_ANIME_NAME_ALLOC_UNIT + 1);
@@ -703,16 +622,13 @@ static int texTEX_ANIME(SPI_STACK *stack, int argc) {
     ta_enable = spiGetStackInt(&stack[1]);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texTEX_ANIME__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * TEX_ANIME_DATA(type, name): starts a new record of the given mgTEX_ANIME_TYPE; the name is ignored.
  *
  */
-static int texTEX_ANIME_DATA(SPI_STACK *stack, int argc) {
+int texTEX_ANIME_DATA(SPI_STACK *stack, int argc) {
     now_texb = -1;
     nowTexData.Initialize();
     nowTexData.type = spiGetStackInt(&stack[0]);
@@ -720,16 +636,13 @@ static int texTEX_ANIME_DATA(SPI_STACK *stack, int argc) {
     nowTexData.bug_patch = texBugPatch;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texTEX_ANIME_DATA__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * SRC_TEX(name, x, y, w, h): sets the record's source texture and rectangle, in texels.
  *
  */
-static int texSRC_TEX(SPI_STACK *stack, int argc) {
+int texSRC_TEX(SPI_STACK *stack, int argc) {
     char *name = spiGetStackString(&stack[0]);
     if (name == NULL) {
         return 0;
@@ -749,16 +662,13 @@ static int texSRC_TEX(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texSRC_TEX__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * DEST_TEX(name, x, y[, w, h[, bilinear]]): sets the record's destination texture and rectangle, in texels.
  *
  */
-static int texDEST_TEX(SPI_STACK *stack, int argc) {
+int texDEST_TEX(SPI_STACK *stack, int argc) {
     char *name = spiGetStackString(&stack[0]);
     if (name == NULL) {
         return 0;
@@ -786,16 +696,13 @@ static int texDEST_TEX(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texDEST_TEX__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * SCROLL(x, y): sets a scroll record's speeds in texels per frame, or a wave record's periods and amplitudes.
  *
  */
-static int texSCROLL(SPI_STACK *stack, int argc) {
+int texSCROLL(SPI_STACK *stack, int argc) {
     switch (nowTexData.type) {
     case MG_TEX_ANIME_TYPE_SCROLL: {
         float speed_x = 16.0f * spiGetStackFloat(&stack[0]);
@@ -833,29 +740,23 @@ static int texSCROLL(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texSCROLL__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * CLUT_COPY(flag): makes the record copy the source's palette even for a partial rectangle.
  *
  */
-static int texCLUT_COPY(SPI_STACK *stack, int argc) {
+int texCLUT_COPY(SPI_STACK *stack, int argc) {
     nowTexData.clut_copy = spiGetStackInt(&stack[0]);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texCLUT_COPY__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * COLOR(r[, g[, b[, a]]]): sets the colour a drawn record is tinted with.
  *
  */
-static int texCOLOR(SPI_STACK *stack, int argc) {
+int texCOLOR(SPI_STACK *stack, int argc) {
     if (argc > 0) {
         nowTexData.r = spiGetStackInt(&stack[0]);
     }
@@ -870,31 +771,25 @@ static int texCOLOR(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texCOLOR__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * ALPHA_BLEND(mode): sets the alpha blending mode a drawn record uses.
  *
  */
-static int texALPHA_BLEND(SPI_STACK *stack, int argc) {
+int texALPHA_BLEND(SPI_STACK *stack, int argc) {
     if (argc > 0) {
         nowTexData.alpha_blend = spiGetStackInt(&stack[0]);
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texALPHA_BLEND__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * ALPHA_TEST(method[, ref]): sets the alpha test a drawn record uses.
  *
  */
-static int texALPHA_TEST(SPI_STACK *stack, int argc) {
+int texALPHA_TEST(SPI_STACK *stack, int argc) {
     if (argc > 0) {
         nowTexData.alpha_test = spiGetStackInt(&stack[0]);
     }
@@ -903,16 +798,13 @@ static int texALPHA_TEST(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texALPHA_TEST__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * WAIT(frames, forever[, name]): sets how long the record plays; the name is ignored.
  *
  */
-static int texWAIT(SPI_STACK *stack, int argc) {
+int texWAIT(SPI_STACK *stack, int argc) {
     nowTexData.wait = spiGetStackInt(&stack[0]);
     if (spiGetStackInt(&stack[1]) != 0) {
         nowTexData.wait = MG_TEX_ANIME_WAIT_FOREVER;
@@ -922,16 +814,13 @@ static int texWAIT(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texWAIT__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * TEX_ANIME_DATA_END: enters the record built so far into the current group of its texture block's animation.
  *
  */
-static int texTEX_ANIME_DATA_END(SPI_STACK *stack, int argc) {
+int texTEX_ANIME_DATA_END(SPI_STACK *stack, int argc) {
     if (now_texb < 0) {
         return 0;
     }
@@ -969,48 +858,43 @@ static int texTEX_ANIME_DATA_END(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texTEX_ANIME_DATA_END__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * TEX_ANIME_END: closes the current group, so that the next records go into a new one.
  *
  */
-static int texTEX_ANIME_END(SPI_STACK *stack, int argc) {
+int texTEX_ANIME_END(SPI_STACK *stack, int argc) {
     now_group = -1;
     if (pTexAnime != NULL) {
         now_group = pTexAnime->GetEmptyGroup();
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texTEX_ANIME_END__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * BUG_PATCH: makes every following record end after exactly its wait frames.
  *
  */
-static int texBUG_PATCH(SPI_STACK *stack, int argc) {
+int texBUG_PATCH(SPI_STACK *stack, int argc) {
     texBugPatch = 1;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", texBUG_PATCH__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
+
+#pragma schedule off
 // Defined in the class body in mg_tanime.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", Set__9mgRect_i_Fiiii);
-#endif
+template <>
+void mgRect<int>::Set(int new_left, int new_top, int new_right, int new_bottom) {
+    left = new_left;
+    top = new_top;
+    right = new_right;
+    bottom = new_bottom;
+}
+#pragma schedule reset
 
 // Static initialiser (.init)
-#ifdef NONMATCHING
 // nowTexData, the one object constructed here, is defined with the file-local data at the top.
-#endif
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", __sinit_mg_tanime_cpp);
 
 // Initialised data (.data)

@@ -1,20 +1,218 @@
+#include "sound.hpp"
+#include "dataread.hpp"
+#include "prespr.hpp"
+#include "mg_drawprim.hpp"
+#include <cstdio>
+#include <cstring>
+#include "menusystemdata.hpp"
+#include "font.hpp"
+#include "sysmes.hpp"
+#include "scenesnd.hpp"
+#include "savedata.hpp"
+#include "userdata.hpp"
+#include "gamedata.hpp"
+#include "scriptinterpreter.hpp"
+#include "mg_math.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "mainloop.hpp"
+#include "menucls1.hpp"
+#include "menucommon.hpp"
+#include "menudraw.hpp"
+#include "menusys.hpp"
+#include "menumain.hpp"
 #include "common.h"
 #include "menushop.hpp"
 
+CInventUserData *GetInventUserDataPtr();
+
+extern "C" int fptosi(float value);
+extern "C" int AddYarikomiMedal__16CUserDataManagerFi(CUserDataManager *, int);
+extern "C" void *__ct__18CScriptInterpreterFv(void *);
+extern "C" void SetTag__18CScriptInterpreterFP13SPI_TAG_PARAM(void *, SPI_TAG_PARAM *);
+extern "C" void SetScript__18CScriptInterpreterFPci(void *, char *, int);
+extern "C" void Run__18CScriptInterpreterFv(void *);
+extern "C" void GetPutPosXY__16CMenuPosDataFormFPcRfRf(CMenuPosDataForm *, char *, float &, float &);
+extern "C" void KeyStep__9CShopMenuFv(void *);
+extern "C" void FormDraw__14CPosDataManageFv(void *);
+extern "C" void KeyStep__14CMenuQuestViewFv(void *);
+
+extern "C" CMenuSystemData *GetMenuSysData__Fv();
+extern "C" int CheckGetAlready__15CMenuSystemDataFi(CMenuSystemData *, int);
+extern "C" void *GetSaveData__Fv();
+extern "C" int GetQuestRequestStatus__Fi(int);
+extern short NowSellMode;
+extern "C" int GetItemDataType__Fi(int);
+extern "C" int CheckVoiceUnit__16CUserDataManagerFv(CUserDataManager *);
+extern SHOP_PRICE_INFO *Spi_PriceList;
+extern char at_1221__3[];
+extern char at_1222__3[];
+extern char at_1223__3[];
+extern char at_1224__3[];
+extern char at_1225__3[];
+extern char at_1226__3[];
+extern char at_1227__2[];
+extern char at_1228__2[];
+extern DONY_SHOP_ITEM dony_shoplist[];
+extern short Now_Shop_ID;
+extern int *Now_ShopDataReadPtr;
+extern short Now_ShopListNum;
+extern SPI_TAG_PARAM menu_shop_tag[];
+extern "C" void *CShopMenuPt;
+extern "C" void *MenuQuestView;
+
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", GetDonyShopLineUp__FPiPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", CheckSyojiHin__5CShopFv);
-void CheckRobotCore(void) {
-    (GetUserDataMan())->CheckRobotCore();
+int GetDonyShopLineUp(int *itemList, int *status) {
+    CInventUserData *inventData = GetInventUserDataPtr();
+    CMenuSystemData *systemData = GetMenuSysData__Fv();
+    if (systemData == NULL || inventData == NULL) {
+        return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", CheckEventItem__5CShopFv);
+    int level = inventData->GetLevel();
+    int alreadyOwned = 0;
+    int listed = 0;
+    int available = 0;
+    DONY_SHOP_ITEM *entry = dony_shoplist;
+    int offset = 0;
+    for (; 0 < entry->item_no; entry++) {
+        listed++;
+        if (CheckGetAlready__15CMenuSystemDataFi(systemData, entry->item_no) != 0) {
+            alreadyOwned++;
+        } else if (entry->level < level) {
+            if (itemList != NULL) {
+                *(int *)((u8 *)itemList + offset) = entry->item_no;
+            }
+            offset += 4;
+            available++;
+        }
+    }
+    if (status != NULL) {
+        if (listed == alreadyOwned) {
+            *status = 0;
+        } else {
+            if (available <= 0) {
+                *status = 1;
+            } else if (available == alreadyOwned) {
+                *status = 2;
+            }
+        }
+    }
+    return available;
+}
+void CShop::CheckSyojiHin() {
+    CUserDataManager *userData = GetUserDataMan();
+    for (int i = 0; i < item_num; i++) {
+        have_num[i] = 0;
+        if (item_no[i] > 0) {
+            have_num[i] = userData->GetNumSameItem(item_no[i]);
+        }
+    }
+}
+int CheckRobotCore(void) {
+    return (GetUserDataMan())->CheckRobotCore();
+}
+void CShop::CheckEventItem() {
+    CUserDataManager *userData = GetUserDataMan();
+    if (NowSellMode == 3) {
+        item_num = GetDonyShopLineUp(item_no, NULL);
+        return;
+    }
+    int cursor = 0;
+    while (cursor < item_num) {
+        if (item_no[cursor] == 0x173 && CheckBitFlagMenu(0x1B) != 0) {
+            local_sort1(cursor, &item_num, item_no);
+        }
+        if (item_no[cursor] == 0xAC && userData->GetNumSameItem(0xAC) > 0) {
+            local_sort1(cursor, &item_num, item_no);
+        }
+        if (item_no[cursor] == 0x1A6 && CheckVoiceUnit__16CUserDataManagerFv(userData) != 0) {
+            local_sort1(cursor, &item_num, item_no);
+            cursor -= 1;
+        }
+        if (item_no[cursor] == 0x1A7 && (once_item_chosen == 1 || userData->unk_44dc0 >= 0x15)) {
+            local_sort1(cursor, &item_num, item_no);
+        }
+        if (item_no[cursor] == 0x163 && userData->GetNumSameItem(0x163) > 0) {
+            local_sort1(cursor, &item_num, item_no);
+        }
+        if (item_no[cursor] == 0x12F && userData->GetNumSameItem(0x12F) > 0) {
+            local_sort1(cursor, &item_num, item_no);
+        }
+        if (item_no[cursor] == 0x166 && userData->GetNumSameItem(0x166) > 0) {
+            local_sort1(cursor, &item_num, item_no);
+        }
+        if (GetItemDataType__Fi(item_no[cursor]) == 0xB) {
+            int core = CheckRobotCore();
+            if (core >= 0xF6 && core < 0xFC) {
+                item_no[cursor] = core + 1;
+            } else {
+                local_sort1(cursor, &item_num, item_no);
+                cursor -= 1;
+            }
+        }
+        if (item_no[cursor] == 0x1A8 &&
+            *(u8 *)&userData->GetMonsterBajjiDataPtr(4)->enable != 0) {
+            local_sort1(cursor, &item_num, item_no);
+        }
+        if (GetQuestRequestStatus__Fi(2) == 2 &&
+            (item_no[cursor] == 0xC9 || item_no[cursor] == 0xCA)) {
+            local_sort1(cursor, &item_num, item_no);
+            cursor -= 1;
+        }
+        cursor += 1;
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", GetPrice__5CShopFP13CGameDataUsedPiPi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", CheckMoney__5CShopFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", AddMoney__5CShopFi);
+int CShop::AddMoney(int amount) {
+    if (NowSellMode == 0) {
+        return GetUserDataMan()->AddMoney(amount);
+    }
+    if (NowSellMode == 1) {
+        return fptosi(GetUserDataMan()->AddRoboAbs((float)amount));
+    }
+    if (NowSellMode == 2) {
+        return AddYarikomiMedal__16CUserDataManagerFi(GetUserDataMan(), amount);
+    }
+    if (NowSellMode == 3) {
+        return 0;
+    }
+    return 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", _SHOP_ANALYZE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", _PRICE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", AnalyzeShopList__5CShopFPci);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", AttachForm__9CShopMenuFv);
+int _PRICE(SPI_STACK *stack, int argc) {
+    int itemId = spiGetStackInt(stack++);
+    Spi_PriceList[itemId].buy = spiGetStackInt(stack++);
+    Spi_PriceList[itemId].sell = spiGetStackInt(stack++);
+    return 1;
+}
+void CShop::AnalyzeShopList(char *script, int length) {
+    CScriptInterpreter interpreter;
+    Now_Shop_ID = shop_id;
+    Now_ShopDataReadPtr = item_no;
+    Spi_PriceList = price;
+    NowSellMode = 0;
+    interpreter.SetTag(menu_shop_tag);
+    interpreter.SetScript(script, length);
+    interpreter.Run();
+    item_num = Now_ShopListNum;
+    CheckEventItem();
+    CheckSyojiHin();
+}
+void CShopMenu::AttachForm() {
+    money_brd = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1221__3);
+    trade_brd = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1222__3);
+    shop_name_brd = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1223__3);
+    item_brd = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1224__3);
+    item_list = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1225__3);
+    exp_brd = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1226__3);
+    medal_brd = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1227__2);
+    if (item_list != NULL) {
+        item_list->GetPutPosXY(NULL, list_x, list_y);
+        list_y += 48.0f;
+    }
+    GiftBoxViewForm = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1228__2);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", IsCancelNoneLoadItem__9CShopMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", UpdataScrlBar__9CShopMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", InitEnd__9CShopMenuFv);
@@ -24,14 +222,20 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", CalcCursorPosition__9CShopMenuF
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", SearchNowPosItemExist__9CShopMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", ShopSellListDraw__FRiPf);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuShopInit__FP9mgCMemoryPii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuShopKey__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuShopDraw__Fv);
+int MenuShopKey() {
+    return ((CShopMenu *)CShopMenuPt)->KeyStep();
+}
+void MenuShopDraw() {
+    MenuPosData->FormDraw();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", UnderMsg__14CMenuQuestViewFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", SelectMax__14CMenuQuestViewFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", InitEnd__14CMenuQuestViewFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", KeyStep__14CMenuQuestViewFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuNPCQuestViewInit__FP9mgCMemoryPii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuNPCQuestViewKey__Fv);
+int MenuNPCQuestViewKey() {
+    return ((CMenuQuestView *)MenuQuestView)->KeyStep();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuNPCQuestViewDraw__Fv);
 
 // Static initialiser (.init)

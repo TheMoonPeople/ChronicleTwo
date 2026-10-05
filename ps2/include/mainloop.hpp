@@ -37,8 +37,8 @@ enum MainLoopMode {
     LOOP_SV_CONV_VIEW  = 9,  /**< Save data conversion screen. */
     LOOP_MODE_NUM      = 10, /**< Number of modes; any other LoopNo ends the game. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Languages the game can run in, as LanguageCode holds them.
  */
@@ -53,8 +53,8 @@ enum LanguageCodeNo {
     LANG_CHINESE  = 6, /**< Chinese, named by the debug menu only. */
     LANG_KOREAN   = 7, /**< Korean, named by the debug menu only. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Controller input recording modes, as CaptureMode holds them.
  */
@@ -66,8 +66,8 @@ enum MainCaptureMode {
     CAPTURE_PLAY_SCREEN = 3, /**< The recorded input is replayed and the screen is captured. */
     CAPTURE_MODE_NUM    = 4, /**< Number of modes the debug menu cycles through. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Screens of the debug start menu, as menu_mode holds them.
  */
@@ -78,8 +78,8 @@ enum DebugMenuMode {
     DEBUG_MENU_EVENT_SELECT   = 2, /**< Chapter, event and extra selection, the only screen without DebugFlag. */
     DEBUG_MENU_SAVE_DATA_EDIT = 3, /**< Save data editor. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Steps of the pause menu, as PauseMenuMode holds them.
  */
@@ -90,8 +90,8 @@ enum PauseMenuStep {
     PAUSE_MENU_FADE_OUT = 2, /**< Fading the screen to black after quitting was chosen. */
     PAUSE_MENU_END      = 3, /**< Faded out; the mode is to be left. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Results of PauseMenu.
  */
@@ -101,8 +101,8 @@ enum PauseMenuResult {
     PAUSE_MENU_RESUME = 1, /**< The pause menu closes and play resumes. */
     PAUSE_MENU_QUIT   = 2, /**< The current mode is to be left. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Value MasterDebugCode takes when the four shoulder buttons are held at boot.
  */
@@ -110,8 +110,8 @@ enum PauseMenuResult {
 enum MasterDebugCodeValue {
     MASTER_DEBUG_CODE = 0x5D44, /**< Unlocks the debug options of the title screen. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * Parameters that the main loop hands to a mode when it enters it.
@@ -236,7 +236,7 @@ extern int MasterDebugCode;
 /**
  * Controller the whole game reads.
  */
-extern CGamePad GamePad;
+extern CGamePad GamePad__2;
 
 /**
  * Logical button and stick table built over GamePad.

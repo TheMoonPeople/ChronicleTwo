@@ -244,7 +244,15 @@ public:
     CSceneGameObj      gameobj[4];                /**< Game object slots. */
     s32                effect_num;                /**< Number of entries in effect. */
     CSceneEffect       effect[8];                 /**< Effect script slots. */
+#pragma cpp_extensions on
+    union {
     CFadeInOut         fade;                      /**< Screen fade. */
+        struct {
+            u8 unk_2c70[0x2C];
+            int motion_blur;
+        };
+    };
+#pragma cpp_extensions reset
     s32                bg_load_step;              /**< Next step of the map loaded in the background, plus one; 0 when none is. */
     u8                 unk_2ca4[0x4];
     SCN_LOADMAP_INFO2  bg_load_info;              /**< Map loaded in the background. */
@@ -264,7 +272,26 @@ public:
     s32                unk_2e84;
     s32                event_run;                 /**< Non-zero while an event runs. */
     s32                event_no;                  /**< Number of the running event. */
+#pragma cpp_extensions on
+    union {
     CSceneEventData    event_data;                /**< Description of the running event. */
+        struct {
+            u32 map_jump_flags;
+            u8 unk_2e94[8];
+            int door_place_no[2];
+            u8 unk_2ea4[4];
+            char map_jump_name[1];
+            u8 unk_2ea9[0x77];
+            float door_dir_x;
+            u8 unk_2f24[4];
+            float door_dir_z;
+            u8 unk_2f2c[4];
+            float door_vec[3];
+            u8 unk_2f3c[0x20];
+            int villager_id;
+        };
+    };
+#pragma cpp_extensions reset
     s32                map_event_no;              /**< Number of the event last reached on the map. */
     s32                exit_flag;                 /**< Exit flag set and read by event scripts. */
     s32                day;                       /**< Number of days passed. */
@@ -2047,7 +2074,7 @@ public:
      * @address 0x2CEDA0
      * @size 0x14
      */
-    void RegisterVillager(int no, int chara_no, CVillagerPlaceInfo *place);
+    int RegisterVillager(int no, int chara_no, CVillagerPlaceInfo *place);
 
     /**
      *

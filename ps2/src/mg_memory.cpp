@@ -31,11 +31,10 @@ void mgCMemory::Init() {
     lock = 0;
 }
 
-#ifdef NONMATCHING
 void mgCMemory::SetHeapMem(u_long128 *buffer, int size) {
     heap = buffer;
     heap_size = size;
-    if (buffer == NULL || heap_size < 16) {
+    if (buffer == 0 || heap_size < 0x10) {
         Init();
         return;
     }
@@ -43,16 +42,13 @@ void mgCMemory::SetHeapMem(u_long128 *buffer, int size) {
     // The first header owns no contents; the last quadword of the buffer
     // is the terminating header.
     heap_top = (mgMEMORY_BLOCK *)buffer;
-    heap_top->data = NULL;
+    heap_top->data = 0;
     heap_top->size = 1;
-    heap_top->next = (mgMEMORY_BLOCK *)&heap[heap_size - 1];
-    heap_top->next->data = NULL;
+    heap_top->next = (mgMEMORY_BLOCK *)(heap_size + heap) - 1;
+    heap_top->next->data = 0;
     heap_top->next->size = 0;
-    heap_top->next->next = NULL;
+    heap_top->next->next = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_memory", SetHeapMem__9mgCMemoryFP1i);
-#endif
 
 void mgCMemory::ClearHeapMem() {
     u_long128 *buffer = heap;
@@ -90,78 +86,64 @@ void mgCMemory::Free(u_long128 *data) {
     prev->next = found->next;
 }
 
-#ifdef NONMATCHING
 u_long128 *mgCMemory::StartStackMode(int mode, int size) {
-    mgMEMORY_BLOCK *block;
-    mgMEMORY_BLOCK *gap_start;
-    mgMEMORY_BLOCK *chosen;
-    mgMEMORY_BLOCK *chosen_prev;
-    u_int gap_size;
-    u_int largest;
-    int free_size;
-
-    stack_block = NULL;
-    if (heap_top == NULL) {
-        return NULL;
+    stack_block = 0;
+    mgMEMORY_BLOCK *block = heap_top;
+    if (block == 0) {
+        return 0;
     }
-
-    chosen = NULL;
-    chosen_prev = NULL;
-    free_size = 0;
-    largest = 0;
-    for (block = heap_top; block->next != NULL; block = block->next) {
-        gap_start = &block[block->size];
-        gap_size = block->next - gap_start;
+    mgMEMORY_BLOCK *chosen = 0;
+    mgMEMORY_BLOCK *chosen_previous = 0;
+    int spare = 0;
+    u_int best_count = 0;
+    mgMEMORY_BLOCK *gap;
+    u_int count;
+    mgMEMORY_BLOCK *next;
+    for (; (next = block->next) != 0; block = next) {
+        gap = block + block->size;
         // Taken from the last gap examined, not necessarily the chosen one.
-        free_size = gap_size - 1;
-
-        if (mode == MG_STACK_MODE_FIRST && gap_size > 1) {
-            chosen = gap_start;
-            chosen_prev = block;
+        count = next - gap;
+        spare = count - 1;
+        if (mode == 1 && count > 1) {
+            chosen = gap;
+            chosen_previous = block;
             break;
         }
-        if (mode == MG_STACK_MODE_LARGEST && largest < gap_size) {
-            chosen = gap_start;
-            chosen_prev = block;
-            largest = gap_size;
+        if (mode == 2 && best_count < count) {
+            chosen = gap;
+            chosen_previous = block;
+            best_count = count;
         }
-        if (mode == MG_STACK_MODE_FIT && gap_size > (u_int)(size + 1)) {
-            chosen = gap_start;
-            chosen_prev = block;
+        if (mode == 3 && (u_int)(size + 1) < count) {
+            chosen = gap;
+            chosen_previous = block;
             break;
         }
     }
-
-    if (chosen == NULL) {
-        return NULL;
-    }
-
+    if (chosen != 0) {
     stack_block = chosen;
-    stack_block->next = chosen_prev->next;
-    chosen_prev->next = stack_block;
+        stack_block->next = chosen_previous->next;
+        chosen_previous->next = stack_block;
     stack_block->size = 1;
-    stack_block->data = (u_long128 *)&stack_block[1];
+        stack_block->data = (u_long128 *)(stack_block + 1);
     stack = stack_block->data;
-    stack_size = free_size;
+        stack_size = spare;
     return stack_block->data;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_memory", StartStackMode__9mgCMemoryFii);
-#endif
+    }
+    return 0;
+    }
 
-#ifdef NONMATCHING
-void mgCMemory::EndStackMode() {
-    if (stack_block != NULL) {
-        stack_block->size += stack_used;
-        stack_block = NULL;
-        stack = NULL;
+void mgCMemory::EndStackMode(void) {
+    mgMEMORY_BLOCK *block = stack_block;
+    if (block != 0) {
+        u_int count = stack_used;
+        block->size += count;
+        stack_block = 0;
+        stack = 0;
         stack_size = 0;
         stack_used = 0;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_memory", EndStackMode__9mgCMemoryFv);
-#endif
 
 u_long128 *mgCMemory::stAlloc64(int size) {
     stAlign64();
@@ -179,51 +161,43 @@ u_long128 *mgCMemory::stAllocTest(int size) {
     return &stack[stack_used];
 }
 
-#ifdef NONMATCHING
 u_long128 *mgCMemory::stAlloc(int size) {
-    int used;
-
-    if (lock) {
-        return NULL;
+    if (lock != 0) {
+        return 0;
     }
     if (size <= 0) {
-        return NULL;
+        return 0;
+    }
+    int old_used = stack_used;
+    int old_capacity = stack_size;
+    int new_used = old_used + size;
+    if (new_used >= old_capacity) {
+        printf("stack over %d/%d at %s\n", new_used, old_capacity, this);
+        return 0;
+    }
+    u_long128 *data = &stack[old_used];
+    stack_used = new_used;
+    return data;
     }
 
-    used = stack_used;
-    if (used + size >= stack_size) {
-        printf("stack over %d/%d at %s\n", used + size, stack_size, name);
-        return NULL;
-    }
-    stack_used = used + size;
-    return &stack[used];
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_memory", stAlloc__9mgCMemoryFi);
-#endif
-
-#ifdef NONMATCHING
 u_long128 *mgCMemory::Alloc(int size) {
-    int used;
-
-    if (lock) {
-        return NULL;
+    if (lock != 0) {
+        return 0;
     }
     if (size <= 0) {
-        return NULL;
+        return 0;
     }
-
-    used = stack_used;
-    if (used + size >= stack_size) {
-        printf("stack over %d/%d at %s\n", used + size, stack_size, name);
-        return NULL;
+    int old_used = stack_used;
+    int old_capacity = stack_size;
+    int new_used = old_used + size;
+    if (new_used >= old_capacity) {
+        printf("stack over %d/%d at %s\n", new_used, old_capacity, this);
+        return 0;
     }
-    stack_used = used + size;
-    return &stack[used];
+    u_long128 *data = &stack[old_used];
+    stack_used = new_used;
+    return data;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_memory", Alloc__9mgCMemoryFi);
-#endif
 
 void mgCMemory::stAlign64() {
     u_int misalign;
@@ -263,32 +237,19 @@ void mgCMemory::stSetBuffer(u_long128 *buffer, int size) {
     stack_size = size;
 }
 
-#ifdef NONMATCHING
-char *mgCopyString(char *text, mgCMemory *memory) {
-    u_int length;
-    u_int quadwords;
-    char *copy;
-
-    if (text == NULL || memory == NULL) {
+char *mgCopyString(char *source, mgCMemory *memory) {
+    if (source == NULL || memory == NULL) {
         return NULL;
     }
-
-    length = strlen(text) + 1;
-    quadwords = length >> 4;
-    if (length & 0xF) {
-        quadwords = (length >> 4) + 1;
-    }
-
-    copy = (char *)memory->Alloc(quadwords);
+    u_int size = strlen(source) + 1;
+    u_int quadwords = (size & 0xF) ? (size >> 4) + 1 : size >> 4;
+    char *copy = (char *)memory->Alloc(quadwords);
     if (copy == NULL) {
         return NULL;
     }
-    strcpy(copy, text);
+    strcpy(copy, source);
     return copy;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_memory", mgCopyString__FPcP9mgCMemory);
-#endif
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_memory", at_166__DATA);

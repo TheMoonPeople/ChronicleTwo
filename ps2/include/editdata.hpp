@@ -113,9 +113,7 @@ public:
      * @address 0x2AEEE0
      * @size 0x30
      */
-    EditAnalyzeSrc() {
-        Init();
-    }
+    EditAnalyzeSrc();
 
     /**
      *
@@ -222,9 +220,7 @@ public:
      * @address 0x195960
      * @size 0xA0
      */
-    CEditData() {
-        Initialize();
-    }
+    CEditData();
 
     /**
      *

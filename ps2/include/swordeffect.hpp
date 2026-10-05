@@ -28,29 +28,29 @@ public:
     sceVu0FVECTOR *point1;      /**< Ring of recorded positions of the second frame. */
     sceVu0FVECTOR *smooth0;     /**< Smoothed curve built from the first ring. */
     sceVu0FVECTOR *smooth1;     /**< Smoothed curve built from the second ring. */
-    u8             unk_18[8];
+    u_char             unk_18[8];
     sceVu0IVECTOR  color0;      /**< Colour and peak alpha of the first edge; also of the second when textured. */
     sceVu0IVECTOR  color1;      /**< Colour and peak alpha of the second edge when untextured. */
     float          unk_40[4];
     float          unk_50[2];
-    s32            division;    /**< Smoothed points made between two recorded points. */
-    s32            smooth_num;  /**< Number of smoothed points last built. */
-    s32            tex_block;   /**< Texture block reloaded into VRAM before drawing. */
+    int            division; /**< Smoothed points made between two recorded points. */
+    int            smooth_num; /**< Number of smoothed points last built. */
+    int            tex_block; /**< Texture block reloaded into VRAM before drawing. */
     mgCTexture    *texture;     /**< Texture the strip is mapped with; NULL draws it untextured. */
-    s32            tex_u;       /**< Texel u the strip's texture starts at. */
-    s32            tex_v;       /**< Texel v of the first edge. */
-    s32            tex_w;       /**< Texel width the texture spans along the strip. */
-    s32            tex_h;       /**< Texel height from the first edge to the second. */
-    s32            point_max;   /**< Size of the rings. */
-    s32            point_num;   /**< Number of recorded points in the rings. */
-    s32            write_index; /**< Ring slot written next; the ring fills downward. */
-    s32            head_index;  /**< Ring slot written last. */
-    s32            active;      /**< Non-zero while the trail is recorded and drawn. */
-    s32            length;      /**< Smoothed points drawn while the trail is fully opaque. */
-    s32            hold_time;   /**< Steps left before the trail starts to fade. */
+    int            tex_u; /**< Texel u the strip's texture starts at. */
+    int            tex_v; /**< Texel v of the first edge. */
+    int            tex_w; /**< Texel width the texture spans along the strip. */
+    int            tex_h; /**< Texel height from the first edge to the second. */
+    int            point_max; /**< Size of the rings. */
+    int            point_num; /**< Number of recorded points in the rings. */
+    int            write_index; /**< Ring slot written next; the ring fills downward. */
+    int            head_index; /**< Ring slot written last. */
+    int            active; /**< Non-zero while the trail is recorded and drawn. */
+    int            length; /**< Smoothed points drawn while the trail is fully opaque. */
+    int            hold_time; /**< Steps left before the trail starts to fade. */
     float          alpha;       /**< Fade of the trail, from 1 down to 0. */
     float          fade_speed;  /**< Fade taken off the alpha each step once fading. */
-    u8             unk_9c[4];
+    u_char             unk_9c[4];
 
     /**
      *

@@ -1,6 +1,8 @@
 #include "common.h"
 #include "snd_seseq.hpp"
 
+extern "C" int fptosi(float value);
+
 // Code (.text)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", BigToLittle__FPvPvi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", GetDeltaTime__FPcPi);
@@ -13,7 +15,17 @@ void sndCSeSeqData::Initialize(void) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", LoadSMF__13sndCSeSeqDataFPciP9mgCMemory);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", Initialize__9sndCSeSeqFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", SetSeID__9sndCSeSeqFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", Count__9sndCSeSeqFf);
+void sndCSeSeq::Count(float frames) {
+    int ticks;
+    sndCSeSeqData *seqData;
+
+    seqData = data;
+    if (seqData != NULL) {
+        ticks = (int)(fptosi(((float)seqData->tick_rate * frames) / 60.0f));
+        tick += ticks;
+        wait += ticks;
+    }
+}
 void sndCSeSeq::Stop(void) {
     AllNoteOff();
     wait = 0;
@@ -35,8 +47,23 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", SendPan__9sndCSeSeqFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", SendPitch__9sndCSeSeqFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", SaerchVoice__8sndTrackFii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", GetEmptyVoice__8sndTrackFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", NoteOn__8sndTrackFii);
-s32 sndTrack::NoteOff(s32 key, s32 velocity) {
+int sndTrack::NoteOn(int note, int velocity) {
+    sndSeSeqVoice *voice;
+
+    if (SaerchVoice((int)prog, note) != 0) {
+        return 1;
+    }
+    voice = GetEmptyVoice();
+    if (voice == NULL) {
+        return 0;
+    }
+    voice->active = 1;
+    voice->key = (s8)note;
+    voice->prog = prog;
+    voice->se_id = se_id;
+    return 1;
+}
+int sndTrack::NoteOff(int key, int velocity) {
     sndSeSeqVoice *note = SaerchVoice(prog, key);
     if (note == NULL) {
         return 0;
@@ -45,11 +72,11 @@ s32 sndTrack::NoteOff(s32 key, s32 velocity) {
     return 1;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", CtrlChg__8sndTrackFii);
-s32 sndTrack::ProgChg(s32 program) {
+int sndTrack::ProgChg(int program) {
     prog = program;
     return 0;
 }
-s32 sndTrack::PitchBend(s32 msb, s32 lsb) {
+int sndTrack::PitchBend(int msb, int lsb) {
     bend_lsb = lsb;
     bend_msb = msb;
     return 1;

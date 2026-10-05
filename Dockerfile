@@ -34,6 +34,7 @@ RUN apt-get update \
         apt-transport-https \
         ca-certificates \
         coreutils \
+        libc6-i386 \
         git \
         gnupg \
         gpg-agent \

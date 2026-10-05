@@ -1397,3 +1397,15 @@ int CommandStreamOpen2(int port, char *name);
  * @size 0x190
  */
 void SetEventFunc(CRunScript *script);
+
+class CCameraControl;
+
+CCameraControl *GetCamera();
+CCharacter2 *GetChara(int no);
+CSceneObjSeq *GetObjSeq(int no);
+CEventSprite2 *GetEventSprite(int no);
+int GetArgInt(ARG_DATA *arg);
+float GetArgFloat(ARG_DATA *arg);
+char *GetArgString(ARG_DATA *arg);
+void GetArgVector(float *out, ARG_DATA *arg);
+void FileNameConvLanguage(char *name);

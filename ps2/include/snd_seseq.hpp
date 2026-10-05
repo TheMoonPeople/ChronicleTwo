@@ -97,7 +97,7 @@ public:
      * @address 0x18F4B0
      * @size 0x30
      */
-    sndCSeSeqData() { Initialize(); }
+    sndCSeSeqData();
 
     /**
      * Clears the event list and resets the tick rate.

@@ -81,6 +81,8 @@ int sceMcInit(void);
  * Reports how the library's last call finished, and reads back what it
  * returned. Returns zero while that call is still running.
  */
+int sceMcEnd(void);
+
 int sceMcSync(int mode, int *cmd, int *result);
 
 /**
@@ -111,7 +113,7 @@ int sceMcFlush(int fd);
 /**
  * Enters the named directory of the card, writes back the one it left, and returns a command id.
  */
-int sceMcChdir(int port, int slot, char *name, char *current);
+int sceMcChdir(int port, int slot, const char *name, void *current);
 
 /**
  * Creates the named directory on the card and returns a command id.

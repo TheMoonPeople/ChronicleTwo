@@ -1006,7 +1006,7 @@ int GetFishImgPath(char *path, int fish_no, BREEDFISH_USED *fish);
  * @address 0x213900
  * @size 0x70
  */
-int GetFishImageColor(int fish_no, int which);
+signed char GetFishImageColor(int fish_no, int which);
 
 /**
  * Replaces the images of a fish's model with those of its colouring.
@@ -1255,7 +1255,7 @@ CGameDataUsed *GetOmakeGyoracer2(int no);
  * @address 0x21C0A0
  * @size 0x40
  */
-int GetOmakeGyoracerTactics(int no);
+short GetOmakeGyoracerTactics(int no);
 
 /**
  * Sets the tactics of the racer listed in a slot.

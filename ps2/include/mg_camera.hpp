@@ -31,13 +31,13 @@ public:
     sceVu0FVECTOR next_pos;  /**< World position that the eye moves to. */
     sceVu0FVECTOR next_ref;  /**< World position that the look-at point moves to. */
     float roll;              /**< Angle, in radians, that turns the view about the view direction. */
-    s32 unk_44;
+    int unk_44;
     float pos_speed;         /**< Number of steps over which the eye closes the gap to its next position; 1.0 or less moves it at once. */
     float ref_speed;         /**< Number of steps over which the look-at point closes the gap to its next position. */
     float angle_h;           /**< Angle, in radians, of the view direction about the vertical axis. */
     float angle_v;           /**< Angle, in radians, of the view direction above the horizontal plane. */
     float snap_range;        /**< Distance at which the eye and the look-at point snap onto their next positions. */
-    s32 suspended;           /**< Non-zero while the camera does not move. */
+    int suspended; /**< Non-zero while the camera does not move. */
 
     /**
      * Holds every camera still while it is not zero.
@@ -46,7 +46,7 @@ public:
      * @address 0x37CD80
      * @size 0x4
      */
-    static s32 StopCamera;
+    static int StopCamera;
 
     /**
      * Moves the eye and the look-at point one or more steps towards their
@@ -285,7 +285,7 @@ public:
     float height;                /**< Height of the eye above the circled point. */
     float next_angle;            /**< Angle, in radians, that the eye turns to. */
     float angle;                 /**< Angle, in radians, of the eye about the circled point. */
-    s32 follow_on;               /**< Non-zero while the eye circles the point; zero leaves the eye where it is. */
+    int follow_on; /**< Non-zero while the eye circles the point; zero leaves the eye where it is. */
     sceVu0FVECTOR follow_next;   /**< Point that the eye circles and looks at: the followed position plus its offset. */
 
     /**

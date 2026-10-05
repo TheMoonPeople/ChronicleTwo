@@ -105,3 +105,11 @@ struct GAMEOBJ_INFO {
 };
 
 STATIC_ASSERT(sizeof(GAMEOBJ_INFO) == 0x50);
+
+class CCharacter2;
+class mgCFrame;
+
+int GetChrFileSize(unsigned int *pack, int file_size);
+int GetObjectNameList(char *names, CCharacter2 *chara, mgCFrame **frames, int max);
+int GetMotionID(char *name);
+void SetCharaMotion(CCharacter2 *chara, int motion_id, int mode);

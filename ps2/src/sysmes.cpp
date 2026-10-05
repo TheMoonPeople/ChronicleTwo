@@ -1,12 +1,55 @@
+#include "sound.hpp"
+#include "dataread.hpp"
+#include "prespr.hpp"
+#include "mg_drawprim.hpp"
+#include <cstdio>
+#include <cstring>
+#include "font.hpp"
+#include "scenesnd.hpp"
+#include "savedata.hpp"
+#include "userdata.hpp"
+#include "gamedata.hpp"
+#include "scriptinterpreter.hpp"
+#include "mg_math.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "mainloop.hpp"
+#include "menucls1.hpp"
+#include "menucommon.hpp"
+#include "menudraw.hpp"
+#include "menusys.hpp"
+#include "menumain.hpp"
 #include "common.h"
 #include "sysmes.hpp"
 
+extern "C" int CreateSystemMes__Fii(int, int);
+
+extern ClsMes SystemMessage;
+extern ClsMes SystemMessage2;
+extern ClsMes SystemMessage3;
+extern short SystemMesBuffer[];
+extern short SysMesBuffer[];
+
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sysmes", GetSystemMessage__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sysmes", GetSystemMessage__Fi);
+ClsMes *GetSystemMessage(void) {
+    return GetSystemMessage(0);
+}
+ClsMes *GetSystemMessage(int index) {
+    if (index == 2) {
+        return &SystemMessage3;
+    }
+    if (index == 1) {
+        return &SystemMessage2;
+    }
+    return &SystemMessage;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sysmes", LoadSystemMes__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sysmes", GetSystemMesBuffer__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sysmes", GetSysMesBuffer__Fv);
+short *GetSystemMesBuffer(void) {
+    return SystemMesBuffer;
+}
+short *GetSysMesBuffer(void) {
+    return SysMesBuffer;
+}
 void CreateSystemMes(void) {
     CreateSystemMes(0, 0);
     CreateSystemMes(1, 0);

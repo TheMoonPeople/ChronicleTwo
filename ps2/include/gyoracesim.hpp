@@ -60,9 +60,9 @@ struct grRACE_PROGRESS {
     float pos;           /**< Distance swum along the course; the goal is at 16. */
     int   lane;          /**< Lane that the fish swims in, from 0. */
     float lane_pos;      /**< Lane that the fish swims in, as a value that moves smoothly between lanes. */
-    u8    state;         /**< What the fish is doing. @see grRACE_STATE */
-    u8    battle;        /**< 1 while the fish pushes against another fish. */
-    u8    unk_e[2];
+    u_char    state; /**< What the fish is doing. @see grRACE_STATE */
+    u_char    battle; /**< 1 while the fish pushes against another fish. */
+    u_char    unk_e[2];
     int   battle_target; /**< Entrant that the fish pushes against. */
     int   battle_hits;   /**< Number of times the fish has gained the upper hand in its push. */
 };
@@ -74,7 +74,7 @@ STATIC_ASSERT(sizeof(grRACE_PROGRESS) == 0x18);
  *
  */
 struct grRACE_INFO {
-    u32              seed;            /**< Seed of the race's random numbers; 0 takes one made from the entrants. */
+    u_int              seed; /**< Seed of the race's random numbers; 0 takes one made from the entrants. */
     int              unk_4;
     int              fish_num;        /**< Number of entrants. */
     grFISH_PARAM     fish[6];         /**< Racing figures of each entrant. */
@@ -94,13 +94,13 @@ STATIC_ASSERT(sizeof(grRACE_INFO) == 0x1DC);
 struct RACE_FISH_PARAM {
     float            speed[5];      /**< Top speed of the fish over each division of the course. */
     float            accel[5];      /**< Acceleration of the fish over each division of the course. */
-    u8               unk_28[0x28];
+    u_char               unk_28[0x28];
     float            velocity;      /**< Distance that the fish swims in one step. */
     float            pos;           /**< Distance swum along the course; the goal is at 16. */
     int              lane;          /**< Lane that the fish swims in, from 0 to 5. */
-    u8               state;         /**< What the fish is doing. @see grRACE_STATE */
-    u8               battle;        /**< 1 while the fish pushes against another fish. */
-    u8               unk_5e[2];
+    u_char               state; /**< What the fish is doing. @see grRACE_STATE */
+    u_char               battle; /**< 1 while the fish pushes against another fish. */
+    u_char               unk_5e[2];
     int              battle_target; /**< Entrant that the fish pushes against. */
     int              battle_hits;   /**< Number of times the fish has gained the upper hand in its push. */
     float            power;         /**< Strength of the fish when it pushes against another fish. */

@@ -1,4 +1,10 @@
 #include "common.h"
+#include "mg_memory.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_texture.hpp"
+#include "mg_frame.hpp"
+#include "mg_drawenv.hpp"
+#include "mglib.hpp"
 #include "mg_camera.hpp"
 #include "mg_math.hpp"
 
@@ -7,7 +13,6 @@
 #include <cmath>
 
 // Code (.text)
-#ifdef NONMATCHING
 void mgCCamera::Step(int steps) {
     sceVu0FVECTOR dir;
     sceVu0FVECTOR flat;
@@ -88,9 +93,6 @@ void mgCCamera::Step(int steps) {
     angle_h = atan2f(-flat[0], -flat[2]);
     angle_v = -atan2f(dir[1], sqrtf(dir[0] * dir[0] + dir[2] * dir[2]));
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_camera", Step__9mgCCameraFi);
-#endif
 
 void mgCCamera::Stay() {
     sceVu0CopyVector(next_pos, pos);
@@ -151,7 +153,6 @@ void mgCCamera::GetDir(float *dir) {
     dir[2] = ref[2] - pos[2];
 }
 
-#ifdef NONMATCHING
 void mgCCamera::GetCameraMatrix(float (*matrix)[4]) {
     sceVu0FVECTOR dir;
     sceVu0FVECTOR up;
@@ -167,9 +168,6 @@ void mgCCamera::GetCameraMatrix(float (*matrix)[4]) {
     sceVu0Normalize(dir, dir);
     sceVu0CameraMatrix(matrix, pos, dir, up);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_camera", GetCameraMatrix__9mgCCameraFPA4_f);
-#endif
 
 void mgCCamera::SetSpeed(float pos_speed, float ref_speed) {
     this->pos_speed = pos_speed;
@@ -234,7 +232,6 @@ void mgCCameraFollow::GetFollowNext(float *pos) {
     mgAddVector(pos, follow_offset);
 }
 
-#ifdef NONMATCHING
 void mgCCameraFollow::Step(int steps) {
     sceVu0FVECTOR next_pos;
     int step;
@@ -299,9 +296,6 @@ void mgCCameraFollow::Step(int steps) {
         angle = angle_h;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_camera", Step__15mgCCameraFollowFi);
-#endif
 
 void mgCCameraFollow::Stay() {
     mgCCamera::Stay();
@@ -393,31 +387,10 @@ mgCCameraFollow::mgCCameraFollow(float distance, float height, float angle, floa
     mgZeroVector(follow_offset);
 }
 
-#ifdef NONMATCHING
     // Defined in mg_camera.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_camera", Iam__15mgCCameraFollowFv);
-#endif
-
-#ifdef NONMATCHING
     // Defined in mg_camera.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_camera", Suspend__9mgCCameraFv);
-#endif
-
-#ifdef NONMATCHING
     // Defined in mg_camera.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_camera", Resume__9mgCCameraFv);
-#endif
-
-#ifdef NONMATCHING
     // Defined in mg_camera.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_camera", Iam__9mgCCameraFv);
-#endif
-
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_camera", __vt__15mgCCameraFollow__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_camera", __vt__9mgCCamera__DATA);

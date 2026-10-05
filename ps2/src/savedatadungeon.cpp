@@ -4,48 +4,46 @@
 #include <cstring>
 
 extern short limmit_table[];
+// Code (.text)
 extern const char at_79[];
 
-// Code (.text)
-#ifdef NONMATCHING
-DNG_FLOOR_SAVE *CSaveDataDungeon::GetFloorInfoPtr(int stage, int floor) {
-    if (stage < 0 || stage >= SAVE_DUNGEON_NUM || floor < 0 || floor >= limmit_table[stage]) {
-        return 0;
+DNG_FLOOR_SAVE *CSaveDataDungeon::GetFloorInfoPtr(int dungeon, int floor) {
+    if (dungeon < 0 || dungeon >= 7) {
+        return NULL;
+    }
+    if (floor < 0 || floor >= limmit_table[dungeon]) {
+        return NULL;
+    }
+    int index = 0;
+    for (int i = 0; i < dungeon; i++) {
+        index += limmit_table[i];
+    }
+    index += floor;
+
+    return (DNG_FLOOR_SAVE *)((u8 *)this + index * sizeof(DNG_FLOOR_SAVE) + 0x3C);
     }
 
-    int offset = 0;
-    for (int i = 0; i < stage; i++) {
-        offset += limmit_table[i];
-    }
-    return &floor_info[offset + floor];
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/savedatadungeon", GetFloorInfoPtr__16CSaveDataDungeonFii);
-#endif
-
-#ifdef NONMATCHING
 void CSaveDataDungeon::Initialize() {
     memset(floor_info, 0, sizeof(floor_info));
-    for (int stage = 0; stage < SAVE_DUNGEON_NUM; stage++) {
-        DNG_FLOOR_SAVE *first = GetFloorInfoPtr(stage, 0);
-        if (first != 0) {
-            first->visit_count = 1;
-            first->flag = DNG_FLOOR_FLAG_OPEN | DNG_FLOOR_FLAG_UNK_2;
+    for (int i = 0; i < 7; i++) {
+        DNG_FLOOR_SAVE *info = GetFloorInfoPtr(i, 0);
+        if (info) {
+            info->visit_count = 1;
+            info->flag = 3;
         }
-        DNG_FLOOR_SAVE *second = GetFloorInfoPtr(stage, 1);
-        if (second != 0) {
-            second->flag = DNG_FLOOR_FLAG_OPEN;
+        info = GetFloorInfoPtr(i, 1);
+        if (info) {
+            info->flag = 1;
         }
     }
-    for (int stage = 0; stage < SAVE_DUNGEON_NUM; stage++) {
-        prev_floor_id[stage] = -1;
-        floor_id[stage] = 1;
+    for (int i = 0; i < 7; i++) {
+        prev_floor_id[i] = -1;
+    }
+    for (int i = 0; i < 7; i++) {
+        floor_id[i] = 1;
     }
     stage_id = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/savedatadungeon", Initialize__16CSaveDataDungeonFv);
-#endif
 
 void CSaveDataDungeon::SetFloorID(int floor) {
     prev_floor_id[stage_id] = floor_id[stage_id];

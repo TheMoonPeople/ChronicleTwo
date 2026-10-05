@@ -8,18 +8,59 @@
 #include "mg_math.hpp"
 #include "mglib.hpp"
 
-#ifdef NONMATCHING
+extern u_int prog_vif_291[4];
+extern u_int progf_vif_292[4];
+
+struct SpriteGifTag {
+    u_char unknown_00;
+    u_char unknown_01 : 7;
+    u_char eop : 1;
+    u_char unknown_02[3];
+    u_char unknown_05 : 6;
+    u_char pre : 1;
+    u_char unknown_05hi : 1;
+    u_char unknown_06;
+    u_char unknown_07 : 4;
+    u_char nreg : 4;
+    u_char regs0 : 4;
+    u_char regs1 : 4;
+    u_char regs2 : 4;
+    u_char regs3 : 4;
+    u_char regs4 : 4;
+    u_char regs5 : 4;
+    u_char regs6 : 4;
+    u_char regs7 : 4;
+    u_char regs8 : 4;
+    u_char regs9 : 4;
+};
+
+struct SpriteGifPrim {
+    unsigned long long unknown_low : 47;
+    unsigned long long prim : 11;
+    unsigned long long unknown_high : 6;
+};
+
+union VifQuad {
+    u_long128 q;
+    u_int w[4];
+};
+extern u_int at_298[4];
+extern u_int at_324__2[4];
+struct SpriteGifTagBuf {
+    u_int word0;
+    u_int unknown_04[3];
+};
 /**
  *
  * GIF tag of the GS register writes that draw an mgCSprite, in A+D mode, whose loop count CreatePacket sets.
  *
  */
-static sceGifTag sprite_giftag = {0, 1, 0, 0, 0, 0, 1, SCE_GIF_PACKED_AD};
-#endif
+extern SpriteGifTagBuf sprite_giftag;
 
 // Code (.text)
 #ifdef NONMATCHING
-int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4], mgRENDER_INFO *render_info) {
+int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4],
+                                        mgRENDER_INFO *render_info) {
     sceVu0FMATRIX local_screen;
     sceVu0IVECTOR zero = {0, 0, 0, 0};
     mg3DSpriteRenderInfo *info;
@@ -70,8 +111,8 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4], mgRENDE
     sceVu0ScaleVectorXYZ(info->view_screen[1], info->view_screen[1], scale_y);
     sceVu0ScaleVectorXYZ(info->view_screen[2], info->view_screen[2], scale_z);
 
-    info->vif_code[3] = MG_VIF_UNPACK_V4_32 |
-                        (((u_int *)info->program_call - info->vif_code) / 4 - 1) << MG_VIF_NUM_SHIFT;
+    info->vif_code[3] = MG_VIF_UNPACK_V4_32 | (((u_int *)info->program_call - info->vif_code) / 4 -
+                                               1) << MG_VIF_NUM_SHIFT;
     info->program_call[0] = 0;
     info->program_call[1] = 0;
     info->program_call[2] = 0;
@@ -120,7 +161,8 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4], mgRENDE
     info->prmodecont[2] = SCE_GS_PRMODECONT;
     info->prmodecont[3] = 0;
 
-    prmode = SCE_GS_SET_PRIM(0, 1, 1, render_info->attr->fog && render_info->fog_enable, 1, 0, 1, 0, 0);
+    prmode =
+        SCE_GS_SET_PRIM(0, 1, 1, render_info->attr->fog && render_info->fog_enable, 1, 0, 1, 0, 0);
     info->prmode[0] = prmode;
     info->prmode[1] = 0;
     info->prmode[2] = SCE_GS_PRMODE;
@@ -148,44 +190,33 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4], mgRENDE
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", CreateRenderInfoPacket__11mgC3DSpriteFPUiPA4_fP13mgRENDER_INFO);
 #endif
 
-#ifdef NONMATCHING
 int mgC3DSprite::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *manager) {
-    mgRENDER_INFO *render_info;
-    mgCMemory *data_memory;
-    u_long128 *render_packet;
-    u_int *p;
-
     if (manager == NULL) {
         manager = &mgDrawManager;
     }
-    render_info = manager->render_info;
+    mgRENDER_INFO *render_info = manager->render_info;
     texture_manager = manager->texture_manager;
-    if (packet == NULL) {
+    if (packet == 0) {
         return 0;
     }
-
-    data_memory = manager->data_memory;
-    render_packet = data_memory->stAllocTest(0x3C);
-    data_memory->Alloc(CreateRenderInfoPacket((u_int *)render_packet, matrix, render_info));
-    if (tag == NULL) {
-        return 0;
-    }
-
-    tag[0] = MG_DMA_CALL;
-    tag[1] = (u_int)render_packet;
+    mgCMemory *data_memory = (mgCMemory *)manager->data_memory;
+    int buffer = (int)data_memory->stAllocTest(0x3C);
+    data_memory->Alloc(CreateRenderInfoPacket((u_int *)buffer, matrix, render_info));
+    if (tag != NULL) {
+        u_int *cursor = tag + 4;
+        tag[0] = 0x50000000;
+        tag[1] = buffer;
     tag[2] = 0;
     tag[3] = 0;
-    p = &tag[4];
-    p = &p[mgSendVuProg(p, MG_VU_PROG_3DSPRITE)];
-    p[0] = MG_DMA_CALL;
-    p[1] = (u_int)packet;
-    p[2] = 0;
-    p[3] = 0;
-    return (&p[4] - tag) / 4;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", Draw__11mgC3DSpriteFPUiPA4_fP14mgCDrawManager);
-#endif
+        cursor += mgSendVuProg(cursor, 2);
+        cursor[0] = 0x50000000;
+        cursor[1] = (u_int)packet;
+        cursor[2] = 0;
+        cursor[3] = 0;
+        return (int)(cursor + 4 - tag) / 4;
+    }
+        return 0;
+    }
 
 void mgC3DSprite::BeginCreatePacket(int mode, mgCDrawManager *manager) {
     if (manager == NULL) {
@@ -199,154 +230,133 @@ void mgC3DSprite::BeginCreatePacket(int mode, mgCDrawManager *manager) {
     prog_started = 0;
 }
 
-#ifdef NONMATCHING
-void mgC3DSprite::CPSetDrawEnv(mgCDrawEnv *env) {
-    u_int *p;
-    int alpha;
-
-    if (env != NULL) {
-        p = (u_int *)packet_cur;
-        p[0] = MG_DMA_CNT | 4;
-        p[2] = 0;
-        p[1] = 0;
-        p[3] = MG_VIF_DIRECT | 4;
-        packet_cur++;
-        *(mgCDrawEnv *)packet_cur = *env;
-        packet_cur += sizeof(mgCDrawEnv) / sizeof(u_long128);
-
-        alpha = env->GetAlphaMacroID();
-        if (alpha == MG_ALPHA_MACRO_ADD || alpha == MG_ALPHA_MACRO_SUB) {
+void mgC3DSprite::CPSetDrawEnv(mgCDrawEnv *drawEnv) {
+    if (drawEnv != NULL) {
+        u_int *header = (u_int *)packet_cur;
+        header[0] = 0x10000004;
+        header[2] = 0;
+        header[1] = 0;
+        header[3] = 0x50000004;
+        packet_cur += 1;
+        *(mgCDrawEnv *)packet_cur = *drawEnv;
+        packet_cur += 4;
+        int macro = drawEnv->GetAlphaMacroID();
             // Additive and subtractive blends fog towards black so that fogged pixels fade out.
-            p = (u_int *)packet_cur;
-            p[0] = MG_DMA_CNT | 2;
-            p[1] = 0;
-            p[2] = 0;
-            p[3] = MG_VIF_DIRECT | 2;
-            p[4] = MG_GIFTAG_EOP | 1;
-            p[5] = 1 << MG_GIFTAG_NREG_SHIFT;
-            p[6] = SCE_GIF_PACKED_AD;
-            p[7] = 0;
-            p[8] = 0;
-            p[9] = 0;
-            p[10] = SCE_GS_FOGCOL;
-            p[11] = 0;
+        u_int *extra = (u_int *)packet_cur;
+        if (macro == 2 || macro == 3) {
+            extra[0] = 0x10000002;
+            extra[1] = 0;
+            extra[2] = 0;
+            extra[3] = 0x50000002;
+            extra[4] = 0x8001;
+            extra[5] = 0x10000000;
+            extra[6] = 0xE;
+            extra[7] = 0;
+            extra[8] = 0;
+            extra[9] = 0;
+            extra[10] = 0x3D;
+            extra[11] = 0;
             packet_cur += 3;
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", CPSetDrawEnv__11mgC3DSpriteFP10mgCDrawEnv);
-#endif
 
 void mgC3DSprite::CPSetTexture(mgCTexture *texture) {
     if (texture != NULL) {
         packet_cur += mgSetPkTexFlush_TagCnt((u_int *)packet_cur);
-        packet_cur += mgSetPkTEX0((u_int *)packet_cur, texture->tex0.value, *(u_long *)&texture->tex1);
+        packet_cur +=
+            mgSetPkTEX0((u_int *)packet_cur, texture->tex0.value, *(u_long *)&texture->tex1);
     }
 }
 
-#ifdef NONMATCHING
-void mgC3DSprite::BeginCPSprite() {
-    sceGifTag *giftag;
-
+void mgC3DSprite::BeginCPSprite(void) {
     batch_tag = (u_int *)packet_cur++;
     batch_giftag = (sceGifTag *)packet_cur++;
     batch_header = (u_int *)packet_cur++;
     sprite_num = 0;
-
-    giftag = batch_giftag;
-    *(u_long128 *)giftag = 0;
-    giftag->EOP = 1;
-    giftag->PRE = 1;
-    if (mode == MG_3DSPRITE_MODE_ROTATE) {
-        giftag->PRIM = SCE_GS_SET_PRIM(SCE_GS_PRIM_TRISTRIP, 1, 1, 0, 1, 0, 0, 0, 0);
-        giftag->NREG = 9;
-        giftag->REGS0 = SCE_GS_RGBAQ;
-        giftag->REGS1 = SCE_GS_UV;
-        giftag->REGS2 = SCE_GS_XYZF2;
-        giftag->REGS3 = SCE_GS_UV;
-        giftag->REGS4 = SCE_GS_XYZF2;
-        giftag->REGS5 = SCE_GS_UV;
-        giftag->REGS6 = SCE_GS_XYZF2;
-        giftag->REGS7 = SCE_GS_UV;
-        giftag->REGS8 = SCE_GS_XYZF2;
-    } else {
-        giftag->PRIM = SCE_GS_SET_PRIM(SCE_GS_PRIM_SPRITE, 1, 1, 0, 1, 0, 0, 0, 0);
-        giftag->NREG = 5;
-        giftag->REGS0 = SCE_GS_RGBAQ;
-        giftag->REGS1 = SCE_GS_UV;
-        giftag->REGS2 = SCE_GS_XYZF2;
-        giftag->REGS3 = SCE_GS_UV;
-        giftag->REGS4 = SCE_GS_XYZF2;
+    SpriteGifTag *tag = (SpriteGifTag *)batch_giftag;
+    SpriteGifPrim *primWord = (SpriteGifPrim *)batch_giftag;
+    *(u_long128 *)tag = 0;
+    tag->eop = 1;
+    tag->pre = 1;
+    switch (mode) {
+        case 1:
+            primWord->prim = 0x5C;
+            tag->nreg = 9;
+            tag->regs0 = 1;
+            tag->regs1 = 3;
+            tag->regs2 = 4;
+            tag->regs3 = 3;
+            tag->regs4 = 4;
+            tag->regs5 = 3;
+            tag->regs6 = 4;
+            tag->regs7 = 3;
+            tag->regs8 = 4;
+            break;
+        default:
+        case 0:
+            primWord->prim = 0x5E;
+            tag->nreg = 5;
+            tag->regs0 = 1;
+            tag->regs1 = 3;
+            tag->regs2 = 4;
+            tag->regs3 = 3;
+            tag->regs4 = 4;
+            break;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", BeginCPSprite__11mgC3DSpriteFv);
-#endif
 
-#ifdef NONMATCHING
-void mgC3DSprite::CPSetSprite(float *pos, float *size, float *color, float *uv0, float *uv1) {
-    *packet_cur++ = *(u_long128 *)pos;
-    if (mode == MG_3DSPRITE_MODE_ROTATE) {
-        float *rotated = (float *)packet_cur++;
-
-        *(u_long128 *)rotated = *(u_long128 *)size;
-        rotated[2] = sinf(size[2]);
-        rotated[3] = cosf(size[2]);
+void mgC3DSprite::CPSetSprite(float *first, float *second, float *third, float *fourth,
+                              float *fifth) {
+    *packet_cur++ = *(u_long128 *)first;
+    if (mode == 1) {
+        float *slot = (float *)packet_cur;
+        u_long128 secondVector = *(u_long128 *)second;
+        packet_cur++;
+        *(u_long128 *)slot = secondVector;
+        slot[2] = sinf(second[2]);
+        slot[3] = cosf(second[2]);
     } else {
-        *packet_cur++ = *(u_long128 *)size;
+        *packet_cur++ = *(u_long128 *)second;
     }
-    *packet_cur++ = *(u_long128 *)color;
-    *packet_cur++ = *(u_long128 *)uv0;
-    *packet_cur++ = *(u_long128 *)uv1;
-
-    sprite_num++;
-    if (sprite_num > MG_3DSPRITE_BATCH_MAX) {
+    *packet_cur++ = *(u_long128 *)third;
+    *packet_cur++ = *(u_long128 *)fourth;
+    *packet_cur++ = *(u_long128 *)fifth;
+    sprite_num += 1;
+    if (sprite_num > 32) {
         EndCPSprite();
         BeginCPSprite();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", CPSetSprite__11mgC3DSpriteFPfPfPfPfPf);
-#endif
 
-#ifdef NONMATCHING
-void mgC3DSprite::EndCPSprite() {
-    static u_int prog_vif[4] = {0, 0, 0, MG_VIF_MSCAL | 2};
-    static u_int progf_vif[4] = {0, 0, 0, MG_VIF_MSCNT};
-    u_int flush[4] = {MG_VIF_FLUSHA, 0, 0, 0};
-    u_int qwc;
-    u_int *p;
-
-    qwc = ((u_long128 *)packet_cur - (u_long128 *)batch_tag) - 1;
-    batch_tag[0] = qwc | MG_DMA_CNT;
+void mgC3DSprite::EndCPSprite(void) {
+    int quad_count = ((u_char *)packet_cur - (u_char *)batch_tag) / 16;
+    int data_count = quad_count - 1;
+    batch_tag[0] = data_count | 0x10000000;
     batch_tag[1] = 0;
     batch_tag[2] = 0;
-    batch_tag[3] = qwc << MG_VIF_NUM_SHIFT | MG_VIF_UNPACK_V4_32 | MG_VIF_UNPACK_FLG;
+    batch_tag[3] = (data_count << 16) | 0x6C008000;
     batch_header[0] = sprite_num;
     batch_header[1] = mode;
     batch_header[2] = 0;
     batch_header[3] = 6;
-
     if (sprite_num > 0) {
-        p = (u_int *)packet_cur++;
-        p[0] = MG_DMA_CNT | 2;
-        p[1] = 0;
-        p[2] = 0;
-        p[3] = 0;
+        u_int *header = (u_int *)packet_cur++;
+        header[0] = 0x10000002;
+        header[1] = 0;
+        header[2] = 0;
+        header[3] = 0;
         // The first batch starts the VU program; later batches continue it.
         if (prog_started == 0) {
-            *packet_cur++ = *(u_long128 *)prog_vif;
+            *packet_cur++ = *(u_long128 *)prog_vif_291;
             prog_started = 1;
         } else {
-            *packet_cur++ = *(u_long128 *)progf_vif;
+            *packet_cur++ = *(u_long128 *)progf_vif_292;
         }
-        *packet_cur++ = *(u_long128 *)flush;
+        VifQuad end = *(VifQuad *)at_298;
+        *packet_cur++ = *(u_long128 *)&end;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", EndCPSprite__11mgC3DSpriteFv);
-#endif
 
 void mgC3DSprite::EndCreatePacket() {
     u_int *p;
@@ -369,7 +379,12 @@ void mgC3DSprite::EndCreatePacket() {
 }
 
 void mgCSprite::Initialize() {
-    mgCVisualPrim::Initialize();
+    unk_00 = 0;
+    draw_env = NULL;
+    texture_manager = NULL;
+    vu1_offset = 0;
+    vu1_base = 0;
+    attr.Initialize();
     texture = NULL;
     depth = -1.0f;
     SetColor(0x80, 0x80, 0x80, 0x80);
@@ -385,132 +400,123 @@ void mgCSprite::SetColor(int r, int g, int b, int a) {
     color.bytes.q = 0;
 }
 
-#ifdef NONMATCHING
+#pragma optimization_level 4
 u_int mgCSprite::CreatePacket(mgCDrawManager *manager) {
+    u_char *cursor;
+    long long *data;
     mgCMemory *packet_memory;
+    u_char *start;
+    int screen_z;
     mgCMemory *data_memory;
-    u_int *start;
-    u_int *p;
-    u_long *ad;
-    u_long z;
-    int screen_z[4];
-    float view[4];
-
-    packet_memory = manager->packet_memory;
-    data_memory = manager->data_memory;
-    start = (u_int *)&packet_memory->stack[packet_memory->stack_used];
-    p = start;
-    if (texture != NULL) {
-        p = &p[mgSetPkTEX0(p, texture->tex0.value, *(u_long *)&texture->tex1) * 4];
+    packet_memory = (mgCMemory *)manager->packet_memory;
+    mgCTexture *texture_entry = (mgCTexture *)texture;
+    data_memory = (mgCMemory *)manager->data_memory;
+    start = (u_char *)&packet_memory->stack[packet_memory->stack_used];
+    cursor = start;
+    if (texture_entry != NULL) {
+        cursor += mgSetPkTEX0((u_int *)start, texture_entry->tex0.value,
+                              *(u_long *)&texture_entry->tex1) *
+                  16;
     }
-
-    p[0] = MG_DMA_CNT | 9;
-    p[1] = 0;
-    p[2] = 0;
-    p[3] = MG_VIF_DIRECT | 9;
-    sprite_giftag.NLOOP = 8;
-    *(sceGifTag *)&p[4] = sprite_giftag;
-
+    u_int tag[4];
+    *(u_long128 *)tag = 0;
+    tag[0] = 0x10000009;
+    tag[3] = 0x50000009;
+    *(u_long128 *)cursor = *(u_long128 *)tag;
+    sprite_giftag.word0 = 0x8008;
     // Drawn at depth zero unless a view depth is given and lands on the screen.
-    z = 0;
-    if (depth >= 1.0f) {
-        view[0] = 0.0f;
-        view[1] = 0.0f;
-        view[2] = depth;
-        view[3] = 1.0f;
-        if (mgTransViewPrim(screen_z, view)) {
-            z = screen_z[2];
+    *(u_long128 *)(cursor + 0x10) = *(u_long128 *)&sprite_giftag;
+    data = (long long *)(cursor + 0x20);
+    screen_z = 0;
+    if (!(depth < 1.0f)) {
+        float position[4];
+        int projected[4];
+        *(u_long128 *)position = *(u_long128 *)at_324__2;
+        position[2] = depth;
+        if (mgTransViewPrim(projected, position) != 0) {
+            screen_z = projected[2];
         }
     }
-
-    ad = (u_long *)&p[8];
-    ad[0] = 1;
-    ad[1] = SCE_GS_PRMODECONT;
-    ad[2] = SCE_GS_SET_PRIM(SCE_GS_PRIM_SPRITE, 0, texture != NULL, 0, 1, 0, 1, 0, 0);
-    ad[3] = SCE_GS_PRIM;
-    ad[4] = color.value;
-    ad[5] = SCE_GS_RGBAQ;
-    ad[6] = SCE_GS_SET_UV(uv.left, uv.top);
-    ad[7] = SCE_GS_UV;
-    ad[8] = (u_long)(screen.left + mgScreenOffx * 16) | (u_long)(screen.top + mgScreenOffy * 16) << 16 | z << 32;
-    ad[9] = SCE_GS_XYZ2;
-    ad[10] = SCE_GS_SET_UV(uv.right, uv.bottom);
-    ad[11] = SCE_GS_UV;
-    ad[12] = (u_long)(screen.right + mgScreenOffx * 16) | (u_long)(screen.bottom + mgScreenOffy * 16) << 16 | z << 32;
-    ad[13] = SCE_GS_XYZ2;
-    ad[14] = 0;
-    ad[15] = SCE_GS_TEXFLUSH;
-    p = (u_int *)&ad[16];
-    p[0] = MG_DMA_RET;
-    p[1] = 0;
-    p[2] = 0;
-    p[3] = 0;
-
-    packet_memory->Alloc((&p[4] - start) / 4);
+    long long z = (long long)screen_z << 32;
+    data[0] = 1;
+    data[1] = 0x1A;
+    data[2] = ((long long)(texture != 0) << 4) | 0x146;
+    data[3] = 0;
+    data[4] = *(long long *)&color;
+    data[5] = 1;
+    data[6] = uv.left | ((long long)uv.top << 16);
+    data[7] = 3;
+    long long corner_y = (long long)(int)(screen.top + mgScreenOffy * 16);
+    long long corner_x = (long long)(int)(screen.left + mgScreenOffx * 16);
+    data[8] = z | (corner_x | (corner_y << 16));
+    data[9] = 5;
+    data[10] = uv.right | ((long long)uv.bottom << 16);
+    data[11] = 3;
+    corner_y = (long long)(int)(screen.bottom + mgScreenOffy * 16);
+    corner_x = (long long)(int)(screen.right + mgScreenOffx * 16);
+    data[12] = z | (corner_x | (corner_y << 16));
+    data[13] = 5;
+    data[14] = 0;
+    data[15] = 0x3F;
+    u_int *end_tag = (u_int *)(data + 16);
+    end_tag[0] = 0x60000000;
+    end_tag[1] = 0;
+    end_tag[2] = 0;
+    end_tag[3] = 0;
+    packet_memory->Alloc(((int)(end_tag + 4) - (int)start) / 16);
     data_memory->Alloc(0);
-    return (u_int)start & 0x0FFFFFFF;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", CreatePacket__9mgCSpriteFP14mgCDrawManager);
-#endif
+    return (u_int)start & 0xFFFFFFF;
+    }
 
-#ifdef NONMATCHING
+#pragma optimization_level reset
 int mgCSprite::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *manager) {
-    mgRENDER_INFO *render_info;
-    mgCMemory *data_memory;
-    u_long128 *render_packet;
-    u_int sprite_packet;
-
     if (manager == NULL) {
         manager = &mgDrawManager;
     }
-    render_info = manager->render_info;
+    mgRENDER_INFO *render_info = manager->render_info;
     texture_manager = manager->texture_manager;
-    data_memory = manager->data_memory;
-    render_packet = data_memory->stAllocTest(0x3C);
-    data_memory->Alloc(CreateRenderInfoPacket((u_int *)render_packet, matrix, render_info));
-    sprite_packet = CreatePacket(manager);
-    if (tag == NULL) {
-        return 0;
-    }
-
-    tag[0] = MG_DMA_CALL;
-    tag[1] = (u_int)render_packet;
+    mgCMemory *memory = (mgCMemory *)manager->data_memory;
+    int buffer = (int)memory->stAllocTest(0x3C);
+    memory->Alloc(CreateRenderInfoPacket((u_int *)buffer, matrix, render_info));
+    int render_packet = CreatePacket(manager);
+    if (tag != NULL) {
+        tag[0] = 0x50000000;
+        tag[1] = buffer;
     tag[2] = 0;
     tag[3] = 0;
-    tag[4] = MG_DMA_CALL;
-    tag[5] = sprite_packet;
+        tag[4] = 0x50000000;
+        tag[5] = render_packet;
     tag[6] = 0;
     tag[7] = 0;
     return 2;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", Draw__9mgCSpriteFPUiPA4_fP14mgCDrawManager);
-#endif
+    return 0;
+}
 
-#ifdef NONMATCHING
 // Defined in mg_sprite.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", Draw__9mgCSpriteFPA4_fP14mgCDrawManager);
-#endif
+void mgCSprite::Draw(float (*matrix)[4], mgCDrawManager *manager) {
+    Draw(NULL, matrix, manager);
+}
 
-#ifdef NONMATCHING
 // Defined in mg_visual.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", Iam__13mgCVisualPrimFv);
-#endif
+int mgCVisualPrim::Iam() {
+    return MG_VISUAL_KIND_PRIM;
+}
 
-#ifdef NONMATCHING
 // Defined in mg_sprite.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", Draw__11mgC3DSpriteFPA4_fP14mgCDrawManager);
-#endif
+void mgC3DSprite::Draw(float (*matrix)[4], mgCDrawManager *manager) {
+    Draw(NULL, matrix, manager);
+}
 
-#ifdef NONMATCHING
 // Defined in mg_sprite.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_sprite", Initialize__11mgC3DSpriteFv);
-#endif
+void mgC3DSprite::Initialize(void) {
+    this->packet = 0;
+    this->unk_00 = 0;
+    this->draw_env = 0;
+    this->texture_manager = 0;
+    this->vu1_offset = 0;
+    this->vu1_base = 0;
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_sprite", sprite_giftag__DATA);

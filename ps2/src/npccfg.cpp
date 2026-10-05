@@ -22,28 +22,21 @@ extern signed char typetbl_853[16];
 extern char path_885[0x40];
 extern char infocfg_886[];
 extern const char at_847__3[];
+// Code (.text)
 extern SPI_TAG_PARAM npc_spitag[3];
 
-// Code (.text)
-#ifdef NONMATCHING
 /**
  * Records the number of party characters declared by the NPC script.
  */
-static int _NPC_NUM(SPI_STACK *stack, int argument_count) {
+int _NPC_NUM(SPI_STACK *stack, int argument_count) {
     NpcBaseDataTotalNum = spiGetStackInt(stack);
     return 1;
 }
-#else
-s32 _NPC_NUM(SPI_STACK *stack, s32 argument_count) {
-    NpcBaseDataTotalNum = spiGetStackInt(stack);
-    return 1;
-}
-#endif
-#ifdef NONMATCHING
+
 /**
  * Reads one party-character record from the NPC script's stack.
  */
-static int _NPC_INFO(SPI_STACK *stack, int argument_count) {
+int _NPC_INFO(SPI_STACK *stack, int argument_count) {
     NPC_BASE_DATA *data = &NpcBaseData[npc_spi_count_num++];
     data->chara_no = spiGetStackInt(&stack[0]);
     char *name = spiGetStackString(&stack[1]);
@@ -66,9 +59,6 @@ static int _NPC_INFO(SPI_STACK *stack, int argument_count) {
     data->debug_flag = spiGetStackInt(&stack[10]);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/npccfg", _NPC_INFO__FP9SPI_STACKi);
-#endif
 void LoadNPCCfg() {
     u_long128 work[2048];
     char path[32];
@@ -112,7 +102,6 @@ char *GetNPCName(int chara_no) {
     }
     return 0;
 }
-#ifdef NONMATCHING
 char *GetPartyCharaModelName(int chara_no, int type) {
     if (chara_no <= 0 || chara_no >= 33) {
         return 0;
@@ -139,9 +128,6 @@ char *GetPartyCharaModelName(int chara_no, int type) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/npccfg", GetPartyCharaModelName__Fii);
-#endif
 NPC_BASE_DATA *GetPartyNPCData(int chara_no) {
     for (int i = 0; i < NpcBaseDataTotalNum; i++) {
         if (NpcBaseData[i].chara_no == chara_no) {

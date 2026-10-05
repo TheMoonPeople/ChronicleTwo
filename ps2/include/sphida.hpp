@@ -68,7 +68,7 @@ enum SphidaEvent {
 struct GOLF_CLUB_DEF {
     float power; /**< Speed at which the club sends the ball off. */
     float unk_4;
-    s32   unk_8;
+    int   unk_8;
 };
 STATIC_ASSERT(sizeof(GOLF_CLUB_DEF) == 0xC);
 
@@ -83,11 +83,11 @@ public:
     float       pos_y;      /**< Screen position of the centre of the gauge down. */
     mgCTexture *texture;    /**< Texture that the gauge is drawn from; nothing is drawn while NULL. */
     float       power;      /**< Power of the shot, from 0 to 1. */
-    s32         safe_level; /**< Width, from 1 to 6, of the zone about the impact point in which a stop is accurate. */
-    s32         code;       /**< Result of the last swing (PowGageCode, or -3 to 3 for the stop's offset). */
-    s32         count;      /**< Position of the cursor, in steps from the impact point. */
-    s32         state;      /**< Stage of the swing (PowGageState). */
-    s32         reverse;    /**< Nonzero once the cursor has reached full power and runs back. */
+    int         safe_level; /**< Width, from 1 to 6, of the zone about the impact point in which a stop is accurate. */
+    int         code; /**< Result of the last swing (PowGageCode, or -3 to 3 for the stop's offset). */
+    int         count; /**< Position of the cursor, in steps from the impact point. */
+    int         state; /**< Stage of the swing (PowGageState). */
+    int         reverse; /**< Nonzero once the cursor has reached full power and runs back. */
 
     /**
      * Makes a gauge that waits for a swing.
@@ -135,34 +135,34 @@ STATIC_ASSERT(sizeof(CPowGage) == 0x24);
 class CSphida {
 public:
     CPowGage        pow_gage;        /**< Gauge on which the player swings. */
-    s32             tex_bank;        /**< Texture bank that the status panel and the par counter are drawn from. */
-    s32             play_flag;       /**< Nonzero while the game is played; nothing is stepped or drawn otherwise. */
-    s32             minimap_flag;    /**< 1 to let the player scroll the mini map while an event runs. */
-    s32             mm_line_flag;    /**< 1 to mark the points of mm_line_pos on the mini map. */
-    s32             status_flag;     /**< Nonzero to draw the status panel and the gauge. */
-    u8              unk_38[0x8];
+    int             tex_bank; /**< Texture bank that the status panel and the par counter are drawn from. */
+    int             play_flag; /**< Nonzero while the game is played; nothing is stepped or drawn otherwise. */
+    int             minimap_flag; /**< 1 to let the player scroll the mini map while an event runs. */
+    int             mm_line_flag; /**< 1 to mark the points of mm_line_pos on the mini map. */
+    int             status_flag; /**< Nonzero to draw the status panel and the gauge. */
+    u_char              unk_38[0x8];
     sceVu0FVECTOR   mm_line_pos[5];  /**< Points of the shot line that the mini map marks. */
     sceVu0FVECTOR   pin_pos;         /**< Position of the pin. */
     sceVu0FVECTOR   ball_pos;        /**< Position of the ball. */
-    s32             pin_col;         /**< Colour of the pin, 0 or 1, which picks its mini map marker. */
-    s32             ball_col;        /**< Colour of the ball, 0 or 1, which picks its mini map marker. */
-    s32             par_count;       /**< Shots of par for the hole, from 1 to 99. */
-    u8              unk_bc[0x4];
+    int             pin_col; /**< Colour of the pin, 0 or 1, which picks its mini map marker. */
+    int             ball_col; /**< Colour of the ball, 0 or 1, which picks its mini map marker. */
+    int             par_count; /**< Shots of par for the hole, from 1 to 99. */
+    u_char              unk_bc[0x4];
     CRedMarkModel   red_mark;        /**< Marker drawn over the ball while the player stands at it. */
-    u8              unk_150[0x48];
-    u8              unk_198[6];
-    u8              unk_19e[0x42];
+    u_char              unk_150[0x48];
+    u_char              unk_198[6];
+    u_char              unk_19e[0x42];
     sceVu0FVECTOR   map_view_pos;    /**< Centre of the mini map while the player scrolls it during an event. */
-    s32             mini_level;      /**< Scale of the mini map that the event scripts read. */
+    int             mini_level; /**< Scale of the mini map that the event scripts read. */
     float           spin_mark_pos_x; /**< Across position, from -1 to 1, of the spin mark on the ball panel. */
     float           spin_mark_pos_y; /**< Down position, from -1 to 1, of the spin mark on the ball panel. */
-    s32             club_no;         /**< Club that the player holds, as GetSphidaClubDef takes it. */
+    int             club_no; /**< Club that the player holds, as GetSphidaClubDef takes it. */
     float           carry;           /**< Angle, in radians, at which the ball is struck, which also lowers its speed. */
-    s32             last_challenge;  /**< Nonzero once the last challenge of the hole is under way. */
+    int             last_challenge; /**< Nonzero once the last challenge of the hole is under way. */
     CColFrame      *col_model;       /**< Collision of the pin; NULL while none is loaded. */
-    s32             omake_mode;      /**< 1 while one of the bonus courses is played. */
-    s32             unk_210[9];
-    u8              unk_234[0xC];
+    int             omake_mode; /**< 1 while one of the bonus courses is played. */
+    int             unk_210[9];
+    u_char              unk_234[0xC];
 
     /**
      * Makes a sphida game that is not played yet.

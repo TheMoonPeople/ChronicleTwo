@@ -4,21 +4,22 @@
 #include <cstdio>
 #include <cstring>
 
-#ifdef NONMATCHING
 /**
  * Holds the 58 characters a password digit can be, leaving out
  * the easily confused l, o, I and O.
  */
-static char txt_table[] = "0123456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+// Initialised data (.data)
+static char txt_table__2[] = "0123456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 
 /**
  * Holds the state of the scrambling generator.
  */
+// Small initialised data (.sdata)
 static unsigned int random_seed = 1;
-#endif
 
+#pragma optimization_level 0
 // Code (.text)
-#ifdef NONMATCHING
+#pragma unsigned_char off
 /**
  * Gives the digit value of a password character,
  * or -1 when the character is not a digit.
@@ -27,18 +28,17 @@ static int search_txt(char c)
 {
     for (int i = 0; i < 58; i++)
     {
-        if (c == txt_table[i])
+        if (c == txt_table__2[i])
         {
             return i;
         }
     }
     return -1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", search_txt__Fc);
-#endif
+#pragma unsigned_char reset
+#pragma optimization_level reset
 
-#ifdef NONMATCHING
+#pragma optimization_level 0
 /**
  * Writes a value as eleven base-58 password digits,
  * least significant first, without terminating the text.
@@ -49,21 +49,20 @@ static void ConvLongToTxt(unsigned long value, char* text)
 
     for (i = 0; i < 11; i++)
     {
-        text[i] = txt_table[0];
+        text[i] = txt_table__2[0];
     }
 
     i = 0;
     while (value != 0)
     {
-        text[i++] = txt_table[value % 58];
+        text[i++] = txt_table__2[value % 58];
         value /= 58;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", ConvLongToTxt__FUlPc);
-#endif
+#pragma optimization_level reset
 
-#ifdef NONMATCHING
+#pragma optimization_level 0
+#pragma unsigned_char off
 /**
  * Reads eleven base-58 password digits back into a value
  * and gives 1, or 0 when a character is not a digit.
@@ -87,11 +86,10 @@ static int ConvTxtToLong(char* text, unsigned long* value)
     *value = result;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", ConvTxtToLong__FPcPUl);
-#endif
+#pragma unsigned_char reset
+#pragma optimization_level reset
 
-#ifdef NONMATCHING
+#pragma optimization_level 0
 int ConvertBinToTxt(u8* data, int size, char* text)
 {
     text[0] = '\0';
@@ -127,11 +125,9 @@ int ConvertBinToTxt(u8* data, int size, char* text)
 
     return strlen(text);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", ConvertBinToTxt__FPUciPc);
-#endif
+#pragma optimization_level reset
 
-#ifdef NONMATCHING
+#pragma optimization_level 0
 int ConvertTxtToBin(char* text, u8* data)
 {
     int length = strlen(text);
@@ -161,11 +157,9 @@ int ConvertTxtToBin(char* text, u8* data)
 
     return count;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", ConvertTxtToBin__FPcPUc);
-#endif
+#pragma optimization_level reset
 
-#ifdef NONMATCHING
+#pragma optimization_level 0
 /**
  * Gives the inverted CRC-16/CCITT checksum
  * of a block of bytes.
@@ -192,11 +186,9 @@ static int GetCRC(u8* data, int size)
 
     return ~crc & 0xFFFF;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", GetCRC__FPUci);
-#endif
+#pragma optimization_level reset
 
-#ifdef NONMATCHING
+#pragma schedule off
 /**
  * Advances the scrambling generator
  * and gives its new state.
@@ -206,11 +198,10 @@ static unsigned int random()
     random_seed = random_seed * 0x21FC436 + 1;
     return random_seed;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", random__Fv);
-#endif
+#pragma schedule reset
 
-#ifdef NONMATCHING
+#pragma divbyzerocheck on
+#pragma optimization_level 0
 /**
  * Stores a checksum of the data and key in the block's last two bytes,
  * then scrambles the rest with it and hides the checksum's low byte among them.
@@ -233,11 +224,11 @@ static void EncodeBinData(u8* data, int size, u8* key, int key_size)
     data[size - 2] = data[swap];
     data[swap] = low;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", EncodeBinData__FPUciPUci);
-#endif
+#pragma optimization_level reset
+#pragma divbyzerocheck reset
 
-#ifdef NONMATCHING
+#pragma divbyzerocheck on
+#pragma optimization_level 0
 /**
  * Undoes EncodeBinData's scrambling and gives 1 when the stored
  * checksum agrees with the data and the key, otherwise 0.
@@ -263,11 +254,10 @@ static int DecodeBinData(u8* data, int size, u8* key, int key_size)
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", DecodeBinData__FPUciPUci);
-#endif
+#pragma optimization_level reset
+#pragma divbyzerocheck reset
 
-#ifdef NONMATCHING
+#pragma optimization_level 0
 int EncodePassword(u8* data, int size, u8* key, int key_size, char* text, int text_size)
 {
     if (size % 8 != 0)
@@ -286,11 +276,9 @@ int EncodePassword(u8* data, int size, u8* key, int key_size, char* text, int te
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", EncodePassword__FPUciPUciPci);
-#endif
+#pragma optimization_level reset
 
-#ifdef NONMATCHING
+#pragma optimization_level 0
 int DecodePassword(char* text, u8* data, int size, u8* key, int key_size)
 {
     int length = strlen(text);
@@ -313,15 +301,7 @@ int DecodePassword(char* text, u8* data, int size, u8* key, int key_size)
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/password", DecodePassword__FPcPUciPUci);
-#endif
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/password", txt_table__2__DATA);
+#pragma optimization_level reset
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/password", at_211__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/password", random_seed__DATA);

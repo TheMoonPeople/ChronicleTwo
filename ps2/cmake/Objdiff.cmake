@@ -40,12 +40,29 @@ foreach(row IN LISTS unit_rows)
     # `-lang` is given because the linked object's compile gives it too
     # (scripts/build/mwccgap.sh).
     set(base ${OBJDIFF_DIR}/base/${unit}.cpp.o)
+    set(base_compiler ${WIBO} ${MW_CC_DIR}/mwccps2.exe ${CC_FLAGS} -lang c++)
+    set(base_environment "MWCIncludes=${INCLUDE_DIR}/std\;${INCLUDE_DIR}/sce")
+    set(gcc_config ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/gcc_units.txt)
+    if(EXISTS ${gcc_config})
+        file(STRINGS ${gcc_config} gcc_rows)
+        foreach(gcc_row IN LISTS gcc_rows)
+            separate_arguments(gcc_parts UNIX_COMMAND "${gcc_row}")
+            list(GET gcc_parts 0 gcc_unit)
+            if(unit STREQUAL gcc_unit)
+                list(GET gcc_parts 1 version)
+                set(base_compiler ${PYTHON} ${SCRIPTS_DIR}/build/ee_gcc.py -O2 -G0 -c)
+                set(base_environment EE_GCC=${version} MIPS_TOOL_PREFIX=${MIPS_TOOL_PREFIX})
+            endif()
+        endforeach()
+    endif()
+    list(APPEND base_compiler -DMIGRATED_CPP)
     add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/${base}
-        COMMAND ${CMAKE_COMMAND} -E env "MWCIncludes=${INCLUDE_DIR}/std;${INCLUDE_DIR}/sce"
-                ${WIBO} ${MW_CC_DIR}/mwccps2.exe ${CC_FLAGS} -lang c++
+        COMMAND ${CMAKE_COMMAND} -E env ${base_environment}
+                ${base_compiler}
                 -o ${base} ${source}
         DEPENDS ${CMAKE_SOURCE_DIR}/${source} ${PROJECT_HEADERS}
+                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/ee_gcc.py
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "CC (objdiff base) ${source}"
         VERBATIM)

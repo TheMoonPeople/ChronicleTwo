@@ -12,18 +12,14 @@ void CPadControl::Initialize() {
     }
 }
 
-#ifdef NONMATCHING
-int CPadControl::RegisterBtn(int no, int button, int trigger) {
-    if (no < 0 || no >= PAD_CTRL_BTN_MAX) {
+int CPadControl::RegisterBtn(int index, int mask, int flags) {
+    if (index < 0 || index >= PAD_CTRL_BTN_MAX) {
         return 0;
     }
-    btn[no].value = 0;
-    btn[no].config = button | trigger;
+    btn[index].value = 0;
+    btn[index].config = flags | mask;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/padcontrol", RegisterBtn__11CPadControlFiii);
-#endif
 
 int CPadControl::RegisterAnalog(int no, int axis) {
     if (no < 0 || no >= PAD_CTRL_ANALOG_MAX) {
@@ -48,49 +44,49 @@ float CPadControl::Analog(int no) {
     return analog[no].value;
 }
 
-#ifdef NONMATCHING
 void CPadControl::Update(CGamePad *pad) {
+    int i;
+    int j;
+
     rx = pad->GetRXf();
     ry = pad->GetRYf();
     lx = pad->GetLXf();
     ly = pad->GetLYf();
-
-    for (int i = 0; i < PAD_CTRL_BTN_MAX; i++) {
-        int config = btn[i].config;
-        if (config == 0) {
-            continue;
-        }
-        int button = config & PAD_CTRL_BUTTON_MASK;
-        switch (config & PAD_CTRL_TRIGGER_MASK) {
+    for (i = 0; i < PAD_CTRL_BTN_MAX; i++) {
+        PAD_CTRL_BTN *entry = &btn[i];
+        int mask = entry->config;
+        if (mask != 0) {
+            int button = mask & 0xFFFF;
+            switch (mask & PAD_CTRL_TRIGGER_MASK) {
         case PAD_CTRL_TRIGGER_ON:
-            btn[i].value = pad->On(button);
+                    entry->value = pad->On(button);
             break;
         case PAD_CTRL_TRIGGER_DOWN:
-            btn[i].value = pad->Down(button);
+                    entry->value = pad->Down(button);
             break;
         case PAD_CTRL_TRIGGER_UP:
-            btn[i].value = pad->Up(button);
-            break;
-        }
-    }
-
-    for (int i = 0; i < PAD_CTRL_ANALOG_MAX; i++) {
-        switch (analog[i].axis) {
-        case PAD_CTRL_AXIS_LX:
-            analog[i].value = lx;
-            break;
-        case PAD_CTRL_AXIS_LY:
-            analog[i].value = ly;
-            break;
-        case PAD_CTRL_AXIS_RX:
-            analog[i].value = rx;
-            break;
-        case PAD_CTRL_AXIS_RY:
-            analog[i].value = ry;
+                    entry->value = pad->Up(button);
             break;
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/padcontrol", Update__11CPadControlFP8CGamePad);
-#endif
+    for (j = 0; j < PAD_CTRL_ANALOG_MAX; j++) {
+        PAD_CTRL_ANALOG *axis = &analog[j];
+        switch (axis->axis) {
+        case PAD_CTRL_AXIS_LX:
+                axis->value = lx;
+            break;
+        case PAD_CTRL_AXIS_LY:
+                axis->value = ly;
+            break;
+        case PAD_CTRL_AXIS_RX:
+                axis->value = rx;
+            break;
+        case PAD_CTRL_AXIS_RY:
+                axis->value = ry;
+                break;
+            case PAD_CTRL_AXIS_NONE:
+            break;
+        }
+    }
+}

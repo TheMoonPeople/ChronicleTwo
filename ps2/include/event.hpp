@@ -114,7 +114,7 @@ void SetEventScript(char *program, char *unused, mgCMemory *memory);
  * @address 0x257940
  * @size 0x20
  */
-void RunEvent(int entry, CScene *scene);
+int RunEvent(int entry, CScene *scene);
 
 /**
  * Plays one frame of the door-opening sequence: the character's motion, the door sound, the fade and the camera; returns 1 when it has finished.

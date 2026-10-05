@@ -45,8 +45,8 @@ enum MENU_ASK_MODE {
     MENU_ASK_MODE_GIFT_BOX     = 11, /**< Taking an item out of a gift box. */
     MENU_ASK_MODE_EXTEND       = 12, /**< A question of the derived menu; runs IsAskExtend. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * Bits of the direction keys, as CMenuKeyFunc::CheckSelectKey and CMenuKeyFunc::CheckLRKey return them.
@@ -63,8 +63,8 @@ enum MENU_SELECT_KEY {
     MENU_SELECT_KEY_L2    = 0x40, /**< The L2 button. */
     MENU_SELECT_KEY_R2    = 0x80, /**< The R2 button. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * Bits of the face and shoulder buttons, as MenuCheckPushButton returns them.
@@ -81,8 +81,8 @@ enum MENU_PUSH_BUTTON {
     MENU_PUSH_BUTTON_R3       = 0x40, /**< The right stick button. */
     MENU_PUSH_BUTTON_L3       = 0x80, /**< The left stick button. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * How the cursor of a key layout moves, as MENU_INPUTKEY_ARG::type holds it.
@@ -93,8 +93,8 @@ enum MENU_INPUTKEY_TYPE {
     MENU_INPUTKEY_TYPE_LINE = 0, /**< The cursor moves along one list. */
     MENU_INPUTKEY_TYPE_GLID = 1, /**< The cursor moves over a grid of rows and columns. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * Where an item that is being moved came from, so that it can be put back or swapped.
@@ -291,7 +291,7 @@ public:
      * @address 0x1F3D00
      * @size 0x10
      */
-    virtual int IsCreateObject(int select_key, int push_button) { return 1; }
+    virtual int IsCreateObject(int select_key, int push_button);
 
     /**
      *
@@ -301,7 +301,7 @@ public:
      * @address 0x1F3D10
      * @size 0x10
      */
-    virtual int IsMakeObject(int select_key, int push_button) { return 0; }
+    virtual int IsMakeObject(int select_key, int push_button);
 
     /**
      *
@@ -311,7 +311,7 @@ public:
      * @address 0x1F3D20
      * @size 0x10
      */
-    virtual int IsAskExtend(int select_key, int push_button) { return 0; }
+    virtual int IsAskExtend(int select_key, int push_button);
 
     /**
      *
@@ -321,7 +321,7 @@ public:
      * @address 0x1F3D30
      * @size 0x10
      */
-    virtual int ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) { return 0; }
+    virtual int ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret);
 
     /**
      *
@@ -331,7 +331,7 @@ public:
      * @address 0x1FF8D0
      * @size 0x10
      */
-    virtual void InitEnd() {}
+    virtual void InitEnd();
 
     /**
      *
@@ -341,7 +341,7 @@ public:
      * @address 0x1F3D40
      * @size 0x10
      */
-    virtual void ExitEnd() {}
+    virtual void ExitEnd();
 
     /**
      *
@@ -561,7 +561,7 @@ public:
      * @address 0x23C6E0
      * @size 0x10
      */
-    void FadeCheckMenu();
+    int FadeCheckMenu();
 
     /**
      *

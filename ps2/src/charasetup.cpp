@@ -1,17 +1,209 @@
 #include "common.h"
+#include "mainloop.hpp"
+#include "mapselect.hpp"
+#include "mglib.hpp"
+#include "dataread.hpp"
+#include "swordeffect.hpp"
+#include "snd_mngr.hpp"
+#include "dng_event.hpp"
+#include "effscript.hpp"
+#include "colprim.hpp"
+#include "mg_math.hpp"
+#include "mg_camera.hpp"
+#include "sceneload.hpp"
+#include "scene.hpp"
+#include "sound.hpp"
+#include "dng_main.hpp"
+#include "dng_status.hpp"
+#include "savedata.hpp"
+#include "actscript.hpp"
+#include "scriptinterpreter.hpp"
+#include <cstring>
+#include <cstdio>
+#include <cmath>
+#include "actionchara.hpp"
+#include "character.hpp"
+#include "scenesnd.hpp"
+#include "userdata.hpp"
 #include "charasetup.hpp"
 
+extern char at_868__3[];
+extern char at_869__3[];
+extern char at_870__2[];
+extern char at_871__3[];
+extern char at_872__3[];
+extern char at_1150[];
+extern int mem_table[4][7];
+extern char at_1149[];
+int SetupMints(CScene *scene, CUserDataManager *user_data);
+int SetupMonica(CScene *scene, CUserDataManager *user_data);
+int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA *robo);
+int SetupMonster(CScene *scene, CUserDataManager *user_data);
+extern char *at_1110[4];
+extern char *at_1113[3];
+extern char *at_1161[3];
+extern char *at_1162[3];
+void GetCharacterSnd(CUserDataManager *user_data, int unit, char *path);
+int GetCharaMemAllocSize();
+void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INFO_DATA *robo);
+int SetupMints(CScene *scene, CUserDataManager *user_data);
+int SetupMonica(CScene *scene, CUserDataManager *user_data);
+int SetupMonster(CScene *scene, CUserDataManager *user_data);
+
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/charasetup", GetCharacterSnd__FP16CUserDataManageriPc);
+void GetCharacterSnd(CUserDataManager *user_data, int unit, char *path) {
+    CHARA_DATA *chara = user_data->GetCharaDataPtr(unit);
+    CGameDataUsed *equip = chara->equip;
+    if (equip != 0) {
+        if (unit == 0) {
+            int item_no = equip[1].item_no;
+            if (item_no < 0x16 || item_no > 0x28) {
+                sprintf(path, at_868__3);
+                return;
+            }
+            if (item_no < 0x20)
+                sprintf(path, at_869__3, item_no - 0x16);
+            else
+                sprintf(path, at_870__2, item_no - 0x16);
+        }
+        if (unit == 1)
+            sprintf(path, at_871__3);
+        if (unit == 2) {
+            char name[0x40];
+            user_data->robo_data.parts[0].GetRoboSoundFileName(name);
+            sprintf(path, at_872__3, name);
+        }
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/charasetup", SetupMainUnit__FP1P9mgCMemoryP9mgCMemoryiP6CSceneP16CUserDataManagerii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/charasetup", GetCharaMemAllocSize__Fv);
+int GetCharaMemAllocSize() {
+    int maximum_size = 0;
+    for (int character = 0; character < 4; ++character) {
+        int resource_size = 0;
+        for (int resource = 0; resource < 7; ++resource) {
+            resource_size += mem_table[character][resource];
+        }
+        if (maximum_size < resource_size) {
+            maximum_size = resource_size;
+        }
+    }
+    return maximum_size + 0x10;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/charasetup", GetCharaMemAllocPtr__FP9mgCMemoryP9mgCMemoryii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/charasetup", SetupUnitMan__FP6CSceneP16CUserDataManageriP14ROBO_INFO_DATA);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/charasetup", SetupMints__FP6CSceneP16CUserDataManager);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/charasetup", SetupMonica__FP6CSceneP16CUserDataManager);
+void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INFO_DATA *robo) {
+    CCharacter2 *leader;
+    CCharacter2 *character;
+    int slot;
+
+    switch (unit) {
+        case ACTION_CHARA_MAX:
+            SetupMints(scene, user_data);
+            break;
+        case ACTION_CHARA_MONICA:
+            SetupMonica(scene, user_data);
+            break;
+        case ACTION_CHARA_ROBO:
+            SetupRobo(scene, user_data, robo);
+            break;
+        case ACTION_CHARA_MONSTER:
+            SetupMonster(scene, user_data);
+            break;
+    }
+    leader = scene->GetCharacter(0);
+    if (leader != NULL) {
+        leader->loop_se = &scene->loop_se;
+    }
+    slot = 0;
+    if (unit == ACTION_CHARA_ROBO) {
+        slot = 3;
+    }
+    character = scene->GetCharacter(slot);
+    if ((character != NULL) && (GetSaveData()->GetBitCtrl() & 8)) {
+        AtraMiriaOnOff(unit, character, 0);
+    }
+}
+int SetupMints(CScene *scene, CUserDataManager *user_data) {
+    CGameDataUsed *equip = user_data->GetCharaDataPtr(0)->equip;
+    CCharacter2 *characters[5];
+    for (int slot = 0; slot < 5; slot++) {
+        characters[slot] = scene->GetCharacter(slot);
+        if (characters[slot] != NULL)
+            ((CActionChara *)characters[slot])->ResetParent();
+    }
+    char **attach_names = at_1110;
+    char **part_names = at_1113;
+    int part = 0;
+    if (characters[0] != NULL) {
+        strcpy(characters[0]->name, at_1149);
+        part = 0;
+    }
+    for (part = 0; part < 3; part++, equip++) {
+        if (0 < equip->item_no) {
+            if (characters[part + 1] != NULL) {
+                char *attach_name = attach_names[part];
+                if (((CActionChara *)characters[0])
+                        ->SetRef((CActionChara *)characters[part + 1], attach_name) == 0) {
+                    printf(at_1150, attach_name);
+                } else {
+                    strcpy(characters[part + 1]->name, part_names[part]);
+                    characters[part + 1]->CopyOutLine(characters[0]);
+                }
+            }
+        }
+    }
+    ((CActionChara *)characters[0])->move_type = 0;
+    ((CActionChara *)characters[0])->attack_type = 0;
+    ((CActionChara *)characters[0])->chara_type = 0;
+    return 1;
+}
+int SetupMonica(CScene *scene, CUserDataManager *user_data) {
+    CGameDataUsed *equip = user_data->GetCharaDataPtr(1)->equip;
+    CCharacter2 *characters[5];
+    for (int slot = 0; slot < 5; slot++) {
+        characters[slot] = scene->GetCharacter(slot);
+        if (characters[slot] != NULL)
+            ((CActionChara *)characters[slot])->ResetParent();
+    }
+    char **attach_names = at_1161;
+    char **part_names = at_1162;
+    int part = 0;
+    if (characters[0] != NULL) {
+        strcpy(characters[0]->name, at_1149);
+        part = 0;
+    }
+    for (part = 0; part < 3; part++, equip++) {
+        if (0 < equip->item_no) {
+            if (characters[part + 1] != NULL) {
+                char *attach_name = attach_names[part];
+                if (((CActionChara *)characters[0])
+                        ->SetRef((CActionChara *)characters[part + 1], attach_name) == 0) {
+                    printf(at_1150, attach_name);
+                } else {
+                    strcpy(characters[part + 1]->name, part_names[part]);
+                    characters[part + 1]->CopyOutLine(characters[0]);
+                }
+            }
+        }
+    }
+    ((CActionChara *)characters[0])->move_type = 0;
+    ((CActionChara *)characters[0])->chara_type = ACTION_CHARA_MONICA;
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/charasetup", SetupRobo__FP6CSceneP16CUserDataManagerP14ROBO_INFO_DATA);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/charasetup", GetRoboPartsInfo__FP16CUserDataManager);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/charasetup", SetupMonster__FP6CSceneP16CUserDataManager);
+int SetupMonster(CScene *scene, CUserDataManager *user_data) {
+    CCharacter2 *characters[5];
+    for (int slot = 0; slot < 5; slot++) {
+        characters[slot] = scene->GetCharacter(slot);
+        if (characters[slot] != NULL)
+            ((CActionChara *)characters[slot])->ResetParent();
+    }
+    if (characters[0] != NULL)
+        strcpy(characters[0]->name, at_1149);
+    ((CActionChara *)characters[0])->move_type = 3;
+    ((CActionChara *)characters[0])->chara_type = ACTION_CHARA_MONSTER;
+    return 1;
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_919__3__DATA);

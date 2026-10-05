@@ -76,6 +76,8 @@ public:
 };
 STATIC_ASSERT(sizeof(CVillagerInfo) == 0x1C);
 
+int vpiGetMotionID(char *name);
+
 /**
  *
  * Returns a villager place by its number, or NULL for a number out of range.

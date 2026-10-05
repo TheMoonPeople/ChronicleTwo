@@ -146,7 +146,7 @@ public:
      * @address 0x138EA0
      * @size 0x10
      */
-    virtual void ChangeParam() { changed = 1; }
+    virtual void ChangeParam();
 
     /**
      * Marks the object's transform as changed so its matrix is rebuilt from
@@ -156,7 +156,7 @@ public:
      * @address 0x138EB0
      * @size 0x10
      */
-    virtual void UseParam() { changed = 1; }
+    virtual void UseParam();
 
     /**
      * Puts the object at a position, marking it changed if the position differs.
@@ -250,7 +250,7 @@ public:
      * @address 0x138ED0
      * @size 0x10
      */
-    virtual int Draw() { return 0; }
+    virtual int Draw();
 
     /**
      * Draws the object immediately. The base object draws nothing.
@@ -259,7 +259,7 @@ public:
      * @address 0x138EC0
      * @size 0x10
      */
-    virtual int DrawDirect() { return 0; }
+    virtual int DrawDirect();
 
     /**
      * Puts the object at the origin, unrotated, at a scale of one, with its
@@ -374,7 +374,7 @@ public:
      * @address 0x138E80
      * @size 0x20
      */
-    virtual int Draw() { return Draw((unsigned int *)0); }
+    virtual int Draw();
 
     /**
      * Unlinks the frame from every neighbour and clears its transform,

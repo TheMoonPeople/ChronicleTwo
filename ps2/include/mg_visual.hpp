@@ -153,7 +153,11 @@ public:
      *
      * @mangled __ct__12mgCVisualMDTFv
      */
-    mgCVisualMDT() { Initialize(); }
+    mgCVisualMDT() {
+        Initialize();
+    }
+
+    mgCVisualMDT &operator=(const mgCVisualMDT &source);
 
     /**
      * Returns the kind of this visual.
@@ -162,7 +166,7 @@ public:
      * @address 0x134900
      * @size 0xC
      */
-    virtual int Iam() { return MG_VISUAL_KIND_MDT; }
+    virtual int Iam();
 
     /**
      * Returns the number of materials the model has.
@@ -171,7 +175,7 @@ public:
      * @address 0x134910
      * @size 0xC
      */
-    virtual int GetMaterialNum() { return material_num; }
+    virtual int GetMaterialNum();
 
     /**
      * Returns the model's material table.
@@ -180,7 +184,7 @@ public:
      * @address 0x134920
      * @size 0xC
      */
-    virtual mgMaterial *GetpMaterial() { return material; }
+    virtual mgMaterial *GetpMaterial();
 
     /**
      * Returns one of the model's materials, or NULL when the model has no materials or the index
@@ -218,7 +222,7 @@ public:
      * @address 0x134930
      * @size 0x38
      */
-    virtual void Draw(float (*matrix)[4], mgCDrawManager *draw_manager) { Draw(NULL, matrix, draw_manager); }
+    virtual void Draw(float (*matrix)[4], mgCDrawManager *draw_manager);
 
     /**
      * Builds the model's packets in the draw manager's buffers, then either registers each material
@@ -268,7 +272,8 @@ public:
      * @address 0x13F680
      * @size 0x27C
      */
-    virtual FACES_ID *CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory *index_memory, mgCFace **face);
+    virtual FACES_ID *CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory *index_memory,
+                                 mgCFace **face);
 
     /**
      * Writes the model's own additions to the setup packet and returns their length in quadwords;
@@ -288,7 +293,8 @@ public:
      * @address 0x13F900
      * @size 0xC8
      */
-    virtual int DataAssignMDT(MDT_HEADER *header, mgCMemory *memory, mgCTextureManager *texture_manager);
+    virtual int DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
+                              mgCTextureManager *texture_manager);
 
     /**
      * Writes the VIF packet that loads a material's colours into VU1 memory, with its texture
@@ -353,7 +359,9 @@ public:
      *
      * @mangled __ct__15mgCVisualFixMDTFv
      */
-    mgCVisualFixMDT() { Initialize(); }
+    mgCVisualFixMDT() {
+        Initialize();
+    }
 
     /**
      * Returns the kind of this visual.
@@ -362,7 +370,7 @@ public:
      * @address 0x141840
      * @size 0x8
      */
-    virtual int Iam() { return MG_VISUAL_KIND_FIX_MDT; }
+    virtual int Iam();
 
     /**
      * Returns a copy of the model allocated from memory, sharing its vertex data and primitives
@@ -381,7 +389,7 @@ public:
      * @address 0x133420
      * @size 0x20
      */
-    virtual void Initialize() { mgCVisualMDT::Initialize(); }
+    virtual void Initialize();
 
     /**
      * Builds the model's packet in the draw manager's buffers from the prebuilt primitive packets,
@@ -401,7 +409,8 @@ public:
      * @address 0x13F9D0
      * @size 0x180
      */
-    virtual int DataAssignMDT(MDT_HEADER *header, mgCMemory *memory, mgCTextureManager *texture_manager);
+    virtual int DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
+                              mgCTextureManager *texture_manager);
 };
 STATIC_ASSERT(sizeof(mgCVisualFixMDT) == 0x50);
 
@@ -419,7 +428,9 @@ public:
      *
      * @mangled __ct__13mgCVisualPrimFv
      */
-    mgCVisualPrim() { Initialize(); }
+    mgCVisualPrim() {
+        Initialize();
+    }
 
     /**
      * Returns the kind of this visual.
@@ -428,7 +439,7 @@ public:
      * @address 0x13C2F0
      * @size 0x8
      */
-    virtual int Iam() { return MG_VISUAL_KIND_PRIM; }
+    virtual int Iam();
 
     /**
      * Writes and sends the packet that sets up drawing the primitives: the GS modes and the draw
@@ -447,10 +458,7 @@ public:
      * @address 0x141820
      * @size 0x1C
      */
-    virtual void Initialize() {
-        mgCVisual::Initialize();
-        attr.Initialize();
-    }
+    virtual void Initialize();
 };
 
 /**
@@ -529,7 +537,8 @@ void CopyMaterial(mgMaterial *material, MDT_MATERIAL_ *source, mgCTextureManager
  * @address 0x1401C0
  * @size 0x88
  */
-u_long128 *SetData0(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour);
+u_long128 *SetData0(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
+                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
 
 /**
  * Writes a batch of vertices with position, normal, texture coordinate and colour, and returns the
@@ -539,7 +548,8 @@ u_long128 *SetData0(int vertex_num, int type, int **index, u_long128 *packet, u_
  * @address 0x140250
  * @size 0xA8
  */
-u_long128 *SetData1(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour);
+u_long128 *SetData1(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
+                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
 
 /**
  * Writes a batch of vertices with position and normal, and returns the end of what it wrote.
@@ -548,7 +558,8 @@ u_long128 *SetData1(int vertex_num, int type, int **index, u_long128 *packet, u_
  * @address 0x140300
  * @size 0x70
  */
-u_long128 *SetData2(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour);
+u_long128 *SetData2(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
+                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
 
 /**
  * Writes a batch of vertices with position, normal and colour, and returns the end of what it
@@ -558,7 +569,8 @@ u_long128 *SetData2(int vertex_num, int type, int **index, u_long128 *packet, u_
  * @address 0x140370
  * @size 0x88
  */
-u_long128 *SetData3(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour);
+u_long128 *SetData3(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
+                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
 
 /**
  * Writes a batch of vertices with position and texture coordinate, and returns the end of what it
@@ -568,7 +580,8 @@ u_long128 *SetData3(int vertex_num, int type, int **index, u_long128 *packet, u_
  * @address 0x140400
  * @size 0x70
  */
-u_long128 *SetData4(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour);
+u_long128 *SetData4(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
+                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
 
 /**
  * Writes a batch of vertices with position, texture coordinate and colour, and returns the end of
@@ -578,7 +591,8 @@ u_long128 *SetData4(int vertex_num, int type, int **index, u_long128 *packet, u_
  * @address 0x140470
  * @size 0x88
  */
-u_long128 *SetData5(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour);
+u_long128 *SetData5(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
+                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
 
 /**
  * Writes a batch of vertices with position only, and returns the end of what it wrote.
@@ -587,7 +601,8 @@ u_long128 *SetData5(int vertex_num, int type, int **index, u_long128 *packet, u_
  * @address 0x140500
  * @size 0x5C
  */
-u_long128 *SetData6(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour);
+u_long128 *SetData6(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
+                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
 
 /**
  * Writes a batch of vertices with position and colour, and returns the end of what it wrote.
@@ -596,7 +611,8 @@ u_long128 *SetData6(int vertex_num, int type, int **index, u_long128 *packet, u_
  * @address 0x140560
  * @size 0x70
  */
-u_long128 *SetData7(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour);
+u_long128 *SetData7(int vertex_num, int type, int **index, u_long128 *packet, u_long128 *vertex,
+                    u_long128 *normal, u_long128 *uv, u_long128 *colour);
 
 /**
  * Writes a copy of a draw environment adjusted by a visual's GS settings.

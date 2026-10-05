@@ -31,8 +31,8 @@ enum MdsType {
     MDS_TYPE_CAMERA_COLLISION = 3, /**< Collision geometry that keeps the camera out. */
     MDS_TYPE_CHARA            = 4, /**< Character with its own motion. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * One entry of a PCP pack file: the data it was loaded as and the far-clip settings it gives the pieces that use it.
@@ -41,11 +41,11 @@ enum MdsType {
 class CMdsInfo {
 public:
     char        *name;     /**< Name the entry is found by. */
-    s32          type;     /**< Kind of data the entry holds, an MdsType. */
+    int          type; /**< Kind of data the entry holds, an MdsType. */
     mgCFrame    *frame;    /**< Frame built from the entry's data, or NULL. */
     CCharacter2 *chara;    /**< Character built from the entry's data when it is an MDS_TYPE_CHARA, or NULL. */
     float        far_dist; /**< Distance beyond which a piece using the entry is not drawn, or a negative value for none. */
-    s32          far_fade; /**< Non-zero fades a piece using the entry in and out at the far distance instead of cutting it. */
+    int          far_fade; /**< Non-zero fades a piece using the entry in and out at the far distance instead of cutting it. */
 
     /**
      *
@@ -55,7 +55,7 @@ public:
      * @address 0x16AC90
      * @size 0x3C
      */
-    CMdsInfo() { Initialize(); }
+    CMdsInfo();
 
     /**
      *
@@ -67,7 +67,7 @@ public:
      */
     virtual void Initialize();
 
-    s32 unk_1c;
+    int unk_1c;
 };
 
 STATIC_ASSERT(sizeof(CMdsInfo) == 0x20);
@@ -80,9 +80,9 @@ STATIC_ASSERT(sizeof(CMdsInfo) == 0x20);
 class CMdsList {
 public:
     char     *name; /**< Name of the pack file the entries were loaded from, or NULL while the slot is free. */
-    s32       num;  /**< Number of entries. */
+    int       num; /**< Number of entries. */
     CMdsInfo *list; /**< Entries, num long. */
-    s32       unk_c;
+    int       unk_c;
 
     /**
      *
@@ -157,10 +157,10 @@ STATIC_ASSERT(sizeof(CIMGList) == 0x8);
  */
 class CMdsListSet {
 public:
-    s32      mds_list_num; /**< Number of slots in mds_list. */
-    u8       unk_4[0xC];
+    int      mds_list_num; /**< Number of slots in mds_list. */
+    u_char       unk_4[0xC];
     CMdsList mds_list[8];  /**< Loaded pack files. */
-    s32      img_list_num; /**< Number of slots in img_list. */
+    int      img_list_num; /**< Number of slots in img_list. */
     CIMGList img_list[16]; /**< Loaded IMG files. */
 
     /**
@@ -272,15 +272,15 @@ public:
 class CMapPiece : public CObjectFrame {
 public:
     char          *name;         /**< Name of the entry of model data the piece uses. */
-    s32            type;         /**< Kind of data the piece uses, an MdsType. */
-    s32            draw_enable;  /**< Non-zero lets the piece be drawn. */
-    s32            material_num; /**< Number of materials in material. */
+    int            type; /**< Kind of data the piece uses, an MdsType. */
+    int            draw_enable; /**< Non-zero lets the piece be drawn. */
+    int            material_num; /**< Number of materials in material. */
     PieceMaterial *material;     /**< Materials whose colour the piece sets while it is drawn, material_num long. */
     float          time_start;   /**< Start of the time of day the piece shows in. */
     float          time_end;     /**< End of the time of day the piece shows in. */
     CCharacter2   *chara;        /**< Character the piece moves when its data is an MDS_TYPE_CHARA, or NULL. */
-    s16            col_type;     /**< Collision type the map script gives the piece; only pieces of type 0 give collision triangles. */
-    s16            col_param;    /**< Second value the map script gives with the collision type. */
+    short            col_type; /**< Collision type the map script gives the piece; only pieces of type 0 give collision triangles. */
+    short            col_param; /**< Second value the map script gives with the collision type. */
 
     /**
      *

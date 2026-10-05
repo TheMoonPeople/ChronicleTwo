@@ -43,6 +43,8 @@ struct MENU_SPI_ANALYZE_STRUCT1 {
 
 STATIC_ASSERT(sizeof(MENU_SPI_ANALYZE_STRUCT1) == 0x8);
 
+int menu_spi_analyze_func_strcut1(MENU_SPI_ANALYZE_STRUCT1 *table, char *name);
+
 /**
  *
  * Holds the command that MenuCommandAnalyze runs and the message buffers its commands may hand to message windows.

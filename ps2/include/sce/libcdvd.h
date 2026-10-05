@@ -24,6 +24,7 @@ struct sceCdRMode {
 
 extern "C" {
 int sceCdInit(int mode);
+int sceCdSeek(u_int lsn);
 int sceCdMmode(int media);
 int sceCdSearchFile(sceCdlFILE *file, const char *name);
 int sceCdRead(u_int lsn, u_int sectors, void *buffer, sceCdRMode *mode);

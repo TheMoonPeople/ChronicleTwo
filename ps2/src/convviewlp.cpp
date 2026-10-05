@@ -1,11 +1,42 @@
 #include "common.h"
+#include "snd_mngr.hpp"
+#include "mglib.hpp"
 #include "convviewlp.hpp"
+#include "memcard.hpp"
+#include <libmc.h>
+
+extern CGamePad GamePad__2;
+
+extern int FileListNum;
+extern int ConvertPhase;
+extern int ConvertFileNum;
+extern int ConvertResult;
+extern int ConvertResultDispTime;
+extern MC_DIR_ENTRY *SaveFileInfoTablePtr;
+extern int SaveFileInfoTableSizeConvert[32];
 
 // Code (.text)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/convviewlp", SVConvViewInit__F13INIT_LOOP_ARG);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/convviewlp", SVConvViewExit__Fv);
+void SVConvViewExit(void) {
+    sceMcEnd();
+    GamePad__2.AutoRepeatOff();
+    GamePad__2.MenuModeOff();
+    sndSeAllStop(-1);
+    mgCloseFont();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/convviewlp", SVConvViewLoop__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/convviewlp", InitSaveFileInfoTablePtr__Fv);
+void InitSaveFileInfoTablePtr(void) {
+    int i;
+    FileListNum = 0;
+    ConvertPhase = 0;
+    ConvertFileNum = 0;
+    ConvertResult = 0;
+    ConvertResultDispTime = 0;
+    for (i = 0; i < 32; i++) {
+        SaveFileInfoTablePtr[i].name[0] = 0;
+        SaveFileInfoTableSizeConvert[i] = 0;
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/convviewlp", SaveDataConvertLoop__Fv);
 
 // Static initialiser (.init)

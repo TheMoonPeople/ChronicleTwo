@@ -60,7 +60,7 @@ STATIC_ASSERT(sizeof(FISH_BIND) == 0x10);
 struct FISH_FLOAT {
     FISH_POINT *point0; /**< Point that is slowed and lifted while the pair is in the water. */
     FISH_POINT *point1; /**< Point whose height with the first's sets how much of the pair is under water. */
-    s32 unk_8;
+    int unk_8;
     float buoyancy;     /**< Upward velocity added to the first point when the pair is fully submerged. */
 };
 
@@ -73,12 +73,12 @@ STATIC_ASSERT(sizeof(FISH_FLOAT) == 0x10);
  */
 class CFishObj {
 public:
-    s32 point_num;          /**< Number of entries of point in use. */
+    int point_num; /**< Number of entries of point in use. */
     FISH_POINT point[8];    /**< Point masses making up the object's shape. */
-    s32 bind_num;           /**< Number of entries of bind in use. */
+    int bind_num; /**< Number of entries of bind in use. */
     FISH_BIND bind[18];     /**< Constraints holding the points in shape. */
-    u8 unk_2b4[0xC];
-    s32 float_num;          /**< Number of entries of float_info in use. */
+    u_char unk_2b4[0xC];
+    int float_num; /**< Number of entries of float_info in use. */
     FISH_FLOAT float_info[16]; /**< Point pairs that float the object at the water surface. */
 
     /**

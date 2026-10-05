@@ -55,7 +55,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "mwccgap"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from mwccgap.elf import Elf, RelocationRecord, SHT_NOBITS  # noqa: E402
+from mwccgap.elf import Elf, RelocationRecord, SHT_NOBITS, BssSection  # noqa: E402
 
 import layout  # noqa: E402
 
@@ -120,6 +120,9 @@ def drop_placeholder_aliases(elf):
     suffix = layout.PLACEHOLDER_SUFFIX
     sections = set()
     for symbol in elf.symtab.symbols:
+        if re.fullmatch(r'jtbl_[0-9A-Fa-f]{8}', symbol.name):
+            symbol.name = 'D_' + symbol.name[5:].upper()
+            symbol.st_name = elf.strtab.add_symbol(symbol.name)
         if symbol.name.endswith(suffix):
             symbol.name = symbol.name[:-len(suffix)]
             symbol.st_name = elf.strtab.add_symbol(symbol.name)
@@ -239,6 +242,24 @@ def bind_local_data(elf, unit, placeholder_sections):
         start, index = held[k]
         return (start, index) if address < start + max(section_size(sections[index]), 1) else None
 
+    for symbol in symbols:
+        if symbol.st_shndx != 0:
+            continue
+        name = project_name(symbol.name)
+        match = INVENTED.fullmatch(name)
+        address = int(match.group(1), 16) if match else names.get(name)
+        if address is None:
+            continue
+        found = placeholder_at(address)
+        if found is None:
+            found = next(((start, index) for index, start in address_of_section.items()
+                          if sections[index].sh_flags & SHF_EXECINSTR
+                          and start <= address < start + section_size(sections[index])), None)
+        if found is not None:
+            start, index = found
+            symbol.st_shndx = index
+            symbol.st_value = address - start
+
     retail = layout.Retail(ROOT / layout.ELF_PATH)
     bound = {}
     for record in elf.relocations:
@@ -332,6 +353,88 @@ def bind_local_data(elf, unit, placeholder_sections):
     return dropped
 
 
+def discard_external_vtables(elf, unit, placeholder_sections):
+    lay = layout.Layout(ROOT / layout.YAML)
+    ranges = [(lo, hi) for section, lo, hi in lay.sections(unit)]
+    addresses = retail_addresses()
+    retail = layout.Retail(ROOT / layout.ELF_PATH)
+    symbols = elf.symtab.symbols
+    for symbol in symbols:
+        index = symbol.st_shndx
+        if not symbol.name.startswith('__vt__') or not 0 < index < len(elf.sections):
+            continue
+        if index in placeholder_sections:
+            continue
+        start = address_of(project_name(symbol.name), addresses)
+        if start is None or any(lo <= start < hi for lo, hi in ranges):
+            continue
+        data = bytearray(elf.sections[index].data)
+        for record in elf.relocations:
+            if record.sh_info != index:
+                continue
+            for relocation in record.relocations:
+                target = address_of(project_name(symbols[relocation.symbol_index].name), addresses)
+                if relocation.reloc_type != 2 or target is None:
+                    raise ValueError(f'{symbol.name}: unresolved external vtable slot')
+                offset = relocation.r_offset
+                value = struct.unpack_from('<I', data, offset)[0]
+                struct.pack_into('<I', data, offset, (value + target) & 0xFFFFFFFF)
+        if data != retail.bytes(start, start + len(data)):
+            raise ValueError(f'{symbol.name}: external vtable differs from retail')
+        elf.sections[index].sh_name = elf.add_sh_symbol(DEAD)
+        elf.sections[index].name = DEAD
+        symbol.st_shndx = 0
+        symbol.st_value = 0
+        for record in elf.relocations:
+            if record.sh_info == index:
+                record.sh_name = elf.add_sh_symbol('.rel' + DEAD)
+                record.name = '.rel' + DEAD
+
+
+def discard_shadow_vtables(elf, placeholder_sections):
+    symbols = elf.symtab.symbols
+    held = {}
+    for index, symbol in enumerate(symbols):
+        if symbol.st_shndx in placeholder_sections and symbol.name.startswith('__vt__'):
+            held[project_name(symbol.name)] = index
+    for index, symbol in enumerate(symbols):
+        target_index = held.get(project_name(symbol.name))
+        if target_index is None or symbol.st_shndx in placeholder_sections:
+            continue
+        section_index = symbol.st_shndx
+        if not 0 < section_index < len(elf.sections):
+            continue
+        section = elf.sections[section_index]
+        target = symbols[target_index]
+        original = bytearray(section.data)
+        expected = bytearray(elf.sections[target.st_shndx].data)
+        if len(original) > len(expected) or any(expected[len(original):]):
+            raise ValueError(f'{symbol.name}: vtable extent differs from retail')
+        actual_relocations = {}
+        expected_relocations = {}
+        for record in elf.relocations:
+            if record.sh_info not in (section_index, target.st_shndx):
+                continue
+            destination = actual_relocations if record.sh_info == section_index else expected_relocations
+            data = original if record.sh_info == section_index else expected
+            for relocation in record.relocations:
+                offset = relocation.r_offset
+                name = project_name(symbols[relocation.symbol_index].name)
+                destination[offset] = (relocation.reloc_type, name, struct.unpack_from('<I', data, offset)[0])
+                struct.pack_into('<I', data, offset, 0)
+        if original != expected[:len(original)] or actual_relocations != expected_relocations:
+            raise ValueError(f'{symbol.name}: compiled vtable differs from retail')
+        for record in elf.relocations:
+            for relocation in record.relocations:
+                if relocation.symbol_index == index:
+                    relocation.symbol_index = target_index
+            if record.sh_info == section_index:
+                record.sh_name = elf.add_sh_symbol('.rel' + DEAD)
+                record.name = '.rel' + DEAD
+        section.sh_name = elf.add_sh_symbol(DEAD)
+        section.name = DEAD
+
+
 def fold_duplicates(elf):
     """Keep one symbol per global name; repoint relocations at it."""
     symbols = elf.symtab.symbols
@@ -340,7 +443,16 @@ def fold_duplicates(elf):
         if index == 0 or symbol.bind == STB_LOCAL or not symbol.name:
             continue
         held = keep.get(symbol.name)
-        if held is None or (symbols[held].st_shndx == 0 and symbol.st_shndx != 0):
+        if held is None:
+            keep[symbol.name] = index
+            continue
+        previous = symbols[held]
+        if previous.st_shndx == 0 and symbol.st_shndx != 0:
+            keep[symbol.name] = index
+        elif (0 < previous.st_shndx < len(elf.sections)
+              and elf.sections[previous.st_shndx].name == DEAD
+              and 0 < symbol.st_shndx < len(elf.sections)
+              and elf.sections[symbol.st_shndx].name != DEAD):
             keep[symbol.name] = index
     remap = {}
     kept = []
@@ -362,9 +474,10 @@ def fold_duplicates(elf):
             relocation.symbol_index = remap[relocation.symbol_index]
 
 
-def retail_sections(elf, addresses):
+def retail_sections(elf, addresses, unit=None):
     """{section index: retail section name} for every section retail names."""
     out = {}
+    ranges = layout.Layout(ROOT / layout.YAML).sections(unit) if unit else []
     for symbol in elf.symtab.symbols:
         index = symbol.st_shndx
         if not symbol.name or symbol.type == STT_SECTION or not (0 < index < len(elf.sections)):
@@ -376,6 +489,9 @@ def retail_sections(elf, addresses):
             continue
         address = address_of(symbol.name, addresses)
         if address is None:
+            continue
+        if (symbol.bind == STB_LOCAL and symbol.name.startswith("at_") and ranges
+                and not any(lo <= address < hi for section_name, lo, hi in ranges)):
             continue
         name = layout.section_of(address)
         if name is None:
@@ -394,15 +510,36 @@ def main():
     elf = Elf(args.object.read_bytes())
     name_sections(elf)
     placeholder_sections = drop_placeholder_aliases(elf)
+    for symbol in elf.symtab.symbols:
+        if symbol.type != STT_SECTION and not symbol.name.startswith('.'):
+            symbol.name = project_name(symbol.name)
+            symbol.st_name = elf.strtab.add_symbol(symbol.name)
     name = args.object.name
+    unit = None
     if name.endswith(".cpp.o"):
-        bind_local_data(elf, name[:-len(".cpp.o")], placeholder_sections)
+        object_path = args.object.resolve()
+        parts = object_path.parts
+        if 'obj' in parts:
+            unit = '/'.join(parts[parts.index('obj') + 1:])[:-len('.cpp.o')]
+        else:
+            unit = name[:-len('.cpp.o')]
+        bind_local_data(elf, unit, placeholder_sections)
+        discard_external_vtables(elf, unit, placeholder_sections)
+    discard_shadow_vtables(elf, placeholder_sections)
     fold_duplicates(elf)
-    renamed = retail_sections(elf, retail_addresses())
+    renamed = retail_sections(elf, retail_addresses(), unit)
 
     for index, name in renamed.items():
         section = elf.sections[index]
         nobits = name in layout.NOBITS
+        if nobits and section.sh_type == SHT_PROGBITS and index in placeholder_sections and not any(section.data):
+            section.sh_size = len(section.data)
+            section.sh_type = SHT_NOBITS
+            section = BssSection(section.sh_name, section.sh_type, section.sh_flags,
+                                 section.sh_addr, section.sh_offset, section.sh_size,
+                                 section.sh_link, section.sh_info, section.sh_addralign,
+                                 section.sh_entsize, b'')
+            elf.sections[index] = section
         if nobits != (section.sh_type == SHT_NOBITS):
             raise ValueError(f"section {index} ({section.name}) cannot become {name}")
         section.sh_name = elf.add_sh_symbol(name)

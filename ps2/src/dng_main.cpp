@@ -1,15 +1,78 @@
 #include "common.h"
+#include "mg_drawprim.hpp"
+#include "automap.hpp"
+#include "effscript.hpp"
+#include "maintex.hpp"
+#include "monster.hpp"
+#include "font.hpp"
+#include "cameracontrol.hpp"
+#include "event_func.hpp"
+#include "menucommon.hpp"
+#include "water.hpp"
+#include "photo.hpp"
+#include "event.hpp"
+#include "mglib.hpp"
+#include "quest.hpp"
+#include "mapload.hpp"
+#include "mainloop.hpp"
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include "savedatadungeon.hpp"
+#include "sceneevent.hpp"
+#include "snd_seseq.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_texture.hpp"
+#include "mg_math.hpp"
+#include "dng_status.hpp"
+#include "dng_debug.hpp"
+#include "actionchara.hpp"
+#include "character.hpp"
+#include "dng_effect.hpp"
+#include "dng_event.hpp"
+#include "dng_hud.hpp"
+#include "mg_camera.hpp"
+#include "mg_memory.hpp"
+#include "savedata.hpp"
+#include "scenesnd.hpp"
+#include "userdata.hpp"
 #include "dng_main.hpp"
 #include <cstring>
 
+extern int wep_effect_cnt;
+extern char at_3602[];
+extern char at_1940[];
+extern "C" float backup_pos[4];
+extern "C" int init_camera;
+extern "C" float viewAngleH__2;
+extern "C" float viewAngleV__2;
+extern char at_3589[];
+extern char at_3496[];
+extern CWeaponElement wep_effect[8];
+extern char at_1994[];
+extern char at_2001[];
+extern char at_941__2[];
+extern "C" int fptosi(float value);
+
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", GetWeaponEffect__Fv);
+CWeaponElement *GetWeaponEffect(void) {
+    CWeaponElement *slot = &wep_effect[wep_effect_cnt];
+    wep_effect_cnt += 1;
+    if (wep_effect_cnt >= 8) {
+        wep_effect_cnt = 0;
+    }
+    return slot;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", memoryInit__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", InitDungeonMain__F13INIT_LOOP_ARG);
 void MoveCheckInfo::Initialize(void) {
     memset(this, 0, sizeof(*this));
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", Initialize__13CRedMarkModelFv);
+void CRedMarkModel::Initialize(void) {
+    this->draw_request = 0;
+    this->angle = 0;
+    this->frame = 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", __as__9mgCCameraFRC9mgCCamera);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", __ct__14CActiveMonsterFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", CommonStageClassInit__Fv);
@@ -20,24 +83,285 @@ void FinishDungeonMain(void) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", LoopDungeonMain__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", DngMainDraw__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", DngStep__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", RunMainEvent__Fv);
+int RunMainEvent(void) {
+    switch (EventLoop()) {
+        case 1:
+            DngStatus.mode = 0;
+            BattleAreaScene->script.running = 0;
+            DngMainScene->active_camera = 0;
+            BattleAreaScene->pause_flag &= ~0x400;
+            LoopSoundManager(1);
+            break;
+        case 2:
+            DngStatus.mode = 4;
+            break;
+        case 3:
+            DngStatus.mode = 5;
+            break;
+    }
+    return DngStatus.mode;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", DngMainKey__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", IsEventRun__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", EventScriptSetup__FP18SYSTEM_SCRIPT_INFO);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", IsRunDeadEvent__FP12CActionChara);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", ChangeSetUnit__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", CheckStatusError__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", InitEyeCamera__FP12CActionChara);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", CheckWeaponEnable__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", ResetEyeView__FP12CActionChara);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", EyeCamera__FP9mgCCameraP11CCharacter2i__2);
+int EventScriptSetup(SYSTEM_SCRIPT_INFO *info) {
+    InitEvent(DngMainScene);
+    VoiceUnit.StopVoice(10);
+    DngMainScene->fade.ResetFade();
+    if (RunEvent(info->event_no, DngMainScene) != 0) {
+        info->running = 1;
+        printf(at_3496, info->event_no);
+        DngStatus.mode = 2;
+        DngMainScene->before_camera = 0;
+        ResetEyeView(MainChara__2);
+        memcpy(&EventCamera__2, &MainCamera, sizeof(MainCamera));
+        DngMainScene->active_camera = 1;
+        MainChara__2->foot_sound_id = -1;
+        LoopSoundManager(0);
+        BattleAreaScene->pause_flag |= 0x400;
+        MainChara__2->RemoveThrowItem();
+        MsgTaskMan.Clear();
+        BattleAreaScene->script.event_no = -1;
+        return 1;
+    }
+    return 0;
+}
+int IsRunDeadEvent(CActionChara *chara) {
+    if (DngStatus.mode != 0) {
+        return 0;
+    }
+    CBattleCharaInfo *info = GetBattleCharaInfo();
+    if (info->chr_no == 3 && info->GetWhpNowVol(0) <= 0) {
+        chara->damage_req = 4;
+        return 1;
+    }
+    if (info->GetNowHp_i() <= 0) {
+        chara->damage_req = 4;
+        return 1;
+    }
+    return 0;
+}
+int ChangeSetUnit(int direction) {
+    int next;
+    int current = GetUserDataMan()->active_chr_no;
+    next = -1;
+    if (direction == 0) {
+        if (current == 0) {
+            if (DngUserData->CheckQuickChange(1, 0) != 0) {
+                next = 1;
+            }
+        }
+        if (current == 1) {
+            if (DngUserData->CheckQuickChange(0, 0) != 0) {
+                next = 0;
+            }
+        }
+    }
+    if (direction == 1) {
+        if (current == 0) {
+            if (DngUserData->CheckQuickChange(2, 0) != 0) {
+                next = 2;
+            }
+        }
+        if (current == 1) {
+            if (DngUserData->CheckQuickChange(3, 0) != 0) {
+                next = 3;
+            }
+        }
+        if (current == 2) {
+            if (DngUserData->CheckQuickChange(0, 0) != 0) {
+                next = 0;
+            }
+        }
+        if (current == 3 && DngUserData->CheckQuickChange(1, 0) != 0) {
+            next = 1;
+        }
+    }
+    return next;
+}
+void CheckStatusError(void) {
+    int damage;
+    float pos[4];
+    float entry_pos[4];
+    if (MainChara__2 != 0) {
+        ((CCharacter2 *)MainChara__2)->GetEntryObjectPos(0, 0, pos);
+        CBattleCharaInfo *info = GetBattleCharaInfo();
+        int step_flags = info->StatusParamStep(&damage);
+        int attr = info->GetAttr();
+        if (info->GetNowHp_i() > 0) {
+            ((CCharacter2 *)MainChara__2)->GetEntryObjectPos(0, 0, entry_pos);
+            entry_pos[1] += MainChara__2->body_height;
+            if (step_flags & 1) {
+                DamageScore2.SetValue(0, damage, MainChara__2->body_height);
+                ((CPalletAnime *)&MainChara__2->pallet[0])
+                    ->SetAnim(0x60, 0x20, 0x60, 1, 30, 0);
+            }
+            DngStatus.status_count++;
+            if (DngStatus.status_count >= 45) {
+                DngStatus.status_count = 0;
+                if (attr & 0x10) {
+                    ((CPalletAnime *)&MainChara__2->pallet[0])
+                        ->SetAnim(0x100, 0xDC, 0x40, 1, 45, 0);
+                }
+                if (attr & 2) {
+                    ((CPalletAnime *)&MainChara__2->pallet[0])
+                        ->SetAnim(0xA0, 0x40, 0xA0, 1, 45, 0);
+                }
+                if (attr & 8) {
+                    ((CPalletAnime *)&MainChara__2->pallet[0])
+                        ->SetAnim(0x80, 0x40, 0, 1, 45, 0);
+                }
+                if (attr & 0x20) {
+                    ((CPalletAnime *)&MainChara__2->pallet[0])
+                        ->SetAnim(0x20, 0x20, 0x20, 1, 45, 0);
+                }
+            }
+            if (info->GetNowHp_i() <= 0) {
+                MainChara__2->damage_req = 4;
+            }
+        }
+    }
+}
+void InitEyeCamera(CActionChara *chara) {
+    CBattleCharaInfo *info = GetBattleCharaInfo();
+    float rotation[4];
+    float partner_rotation[4];
+    chara->GetRotation(rotation);
+    if (info->chr_no == 2) {
+        CActionChara *partner = MainChara__2->SearchChara(at_3589);
+        if (partner != 0) {
+            partner->GetRotation(partner_rotation);
+            rotation[1] = mgAngleLimit(rotation[1] + partner_rotation[1]);
+        }
+    }
+    viewAngleV__2 = 0;
+    viewAngleH__2 = rotation[1];
+    mgCCameraFollow *camera = (mgCCameraFollow *)DngMainScene->GetCamera(DngMainScene->active_camera);
+    if (camera != 0) {
+        (camera)->GetPos(backup_pos);
+        camera->FollowOff();
+        init_camera = 1;
+    }
+    DngStatus.eye_view = 1;
+    MainChara__2->Show(0, 1);
+    mgSetAllScissorFlag(1);
+}
+void CheckWeaponEnable(void) {
+    if (BattleAreaScene->pause_flag & 0x2000) {
+        CActionChara *first = MainChara__2->SearchChara(at_3602);
+        if (first != 0) {
+            first->Show(0, 0);
+        }
+        CActionChara *second = MainChara__2->SearchChara(at_1940);
+        if (second != 0) {
+            second->Show(0, 0);
+        }
+    } else {
+        MainChara__2->Show(1, 1);
+    }
+}
+void ResetEyeView(CActionChara *chara) {
+    if (DngStatus.eye_view != 0) {
+        mgCCameraFollow *camera =
+            (mgCCameraFollow *)DngMainScene->GetCamera(DngMainScene->active_camera);
+        if (camera != 0) {
+            if (init_camera != 0) {
+                (camera)->SetPos(backup_pos);
+            }
+            camera->FollowOn();
+        }
+        DngStatus.eye_view = 0;
+        chara->Show(1, 1);
+        CheckWeaponEnable();
+        mgSetAllScissorFlag(0);
+        init_camera = 0;
+        if (NowTakePhoto() != 0) {
+            EndTakePhoto();
+        }
+    }
+}
+extern "C" void EyeCamera__FP9mgCCameraP11CCharacter2i__2(mgCCamera *camera,
+                                                                CCharacter2 *chara,
+                                                                int right_stick) {
+    float look_speed = 0.04f;
+    float stick_x;
+    float stick_y;
+    if (right_stick != 0) {
+        stick_x = 0.0f;
+        stick_y = -GamePad__2.GetRYf();
+    } else {
+        stick_x = GamePad__2.GetLXf();
+        stick_y = -GamePad__2.GetLYf();
+        SV_CONFIG_OPTION *settings = &GetSaveData()->config;
+        if (settings->eye_reverse != 0) {
+            stick_y = -stick_y;
+        }
+    }
+    if (stick_x > 0.0f) {
+        viewAngleH__2 = viewAngleH__2 - stick_x * look_speed;
+        if (viewAngleH__2 < -3.1415927f) {
+            viewAngleH__2 += 6.2831855f;
+        }
+    }
+    if (stick_x < 0.0f) {
+        viewAngleH__2 = viewAngleH__2 - stick_x * look_speed;
+        if (viewAngleH__2 > 3.1415927f) {
+            viewAngleH__2 -= 6.2831855f;
+        }
+    }
+    if (stick_y > 0.0f && viewAngleV__2 < 0.65f) {
+        viewAngleV__2 = viewAngleV__2 + stick_y * look_speed;
+    }
+    if (stick_y < 0.0f && viewAngleV__2 > -1.0f) {
+        viewAngleV__2 = viewAngleV__2 + stick_y * look_speed;
+    }
+    float pos[4];
+    float ref[4];
+    float matrix[4][4];
+    float base[4][4];
+    ref[0] = 0.0f;
+    ref[1] = 0.0f;
+    ref[2] = 10.0f;
+    ref[3] = 0.0f;
+    sceVu0UnitMatrix(base);
+    sceVu0RotMatrixX(matrix, base, viewAngleV__2);
+    sceVu0RotMatrixY(matrix, matrix, viewAngleH__2);
+    sceVu0ApplyMatrix(ref, matrix, ref);
+    chara->GetPosition(pos);
+    pos[1] += 28.0f;
+    ref[0] += pos[0];
+    ref[1] += pos[1];
+    ref[2] += pos[2];
+    (camera)->SetPos(pos);
+    (camera)->SetRef(ref);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", DebugMainDraw__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", DBGCMD_RunScript__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", __ct__13CFireAfterHitFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", __ct__14CChillAfterHitFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", __ct__8CThunderFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", __ct__10CAfterWireFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", __ct__12CDamageScoreFv);
+void DBGCMD_RunScript(int event_no) {
+    EntryEventScript(DngStatus.dungeon_no);
+    mgCMemory *stack = GetMainStack();
+    BuffEventData[0].stSetBuffer(stack->stack + stack->stack_used, stack->stack_size - stack->stack_used);
+    memcpy(&EventCamera__2, &MainCamera, sizeof(MainCamera));
+    DngMainScene->active_camera = 1;
+    InitEvent(DngMainScene);
+    if (RunEvent(event_no, DngMainScene) != 0) {
+        DngStatus.debug_window = 0;
+        DngStatus.mode = 2;
+        DngMainScene->before_camera = 0;
+    }
+}
+CFireAfterHit::CFireAfterHit() {
+    Initialize();
+}
+CChillAfterHit::CChillAfterHit() {
+    Initialize();
+}
+CThunder::CThunder() {
+}
+CAfterWire::CAfterWire(void) {
+    this->mode = 0;
+}
+CDamageScore::CDamageScore() {
+    memset(color, 0x80, 6);
+}
 
 // Static initialiser (.init)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", __sinit_dng_main_cpp);

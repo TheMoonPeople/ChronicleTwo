@@ -1,21 +1,59 @@
 #include "common.h"
+#include "mg_memory.hpp"
+#include "scriptinterpreter.hpp"
+#include <cstring>
+#include "editmap.hpp"
+#include "dbg_font.hpp"
+#include "menucommon.hpp"
+#include "menudraw.hpp"
+#include "gamepad.hpp"
+#include "scene.hpp"
 #include "editdebug.hpp"
 #include <cstdio>
 
+extern char at_1028__2[];
+extern char at_1029__2[];
+
+extern int EditDebugFlag;
+extern int EditDebugTexb;
+extern int Select;
+extern int LEditFlag;
+
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", EditDebugInit__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", EditDebugMode__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", EditDebugStart__FiP9mgCMemory);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", PrintCursor__FPci);
+void EditDebugInit(void) {
+    EditDebugFlag = 0;
+    Select = 0;
+    EditDebugTexb = -1;
+}
+int EditDebugMode(void) {
+    return EditDebugFlag;
+}
+void EditDebugStart(int texb, mgCMemory *memory) {
+    memory->stack_used = 0;
+    memory->lock = 0;
+    EditDebugFlag = 1;
+    EditDebugTexb = texb;
+}
+void PrintCursor(char *buffer, int row) {
+    if (row == Select) {
+        sprintf(buffer, at_1028__2);
+        return;
+    }
+    sprintf(buffer, at_1029__2);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", EditDebugLoop__FP6CSceneP13EditDebugInfo);
 void EditDebugEnd(void) {
     EditDebugInit();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", InitLightingEdit__Fv);
+void InitLightingEdit(void) {
+    LEditFlag = 0;
+}
 void EndLightingEdit(void) {
     InitLightingEdit();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", IsLightingEditMode__Fv);
+int IsLightingEditMode(void) {
+    return LEditFlag;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", LightingEdit__FP6CScene);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", tagGyoFish__FP9SPI_STACKi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", LoadGyorace__Fv);

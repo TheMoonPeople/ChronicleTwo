@@ -20,8 +20,8 @@ enum MidiPortLimit {
     MIDI_PORT_SEQ_MAX    = 10, /**< Number of sequence slots one port holds. */
     MIDI_MSIN_PORT_COUNT = 9,  /**< Number of ports fed through the MIDI stream input module. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Directions a port's banks are laid out in sound processor memory.
  */
@@ -30,8 +30,8 @@ enum SpuAllocDirection {
     SPU_ALLOC_UPWARD   = 0, /**< Each bank body goes at the port's next address, which then moves past it. */
     SPU_ALLOC_DOWNWARD = 1, /**< Each bank body goes just below the port's next address, which then moves down to it. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * One volume fade the sequencer advances once a frame.
  */
@@ -349,7 +349,7 @@ public:
      * @address 0x18C570
      * @size 0x10
      */
-    void StreamPlay(int channel);
+    int StreamPlay(int channel);
 
     /**
      * Halts a stream channel where it is, by the same request as
@@ -486,3 +486,5 @@ int TransHdBd(int hd, int hd_size, int bd, int bd_size);
  * @size 0x4
  */
 extern void *iop_bd_addr;
+
+extern CSound CSnd;

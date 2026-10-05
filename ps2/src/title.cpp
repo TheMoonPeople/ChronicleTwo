@@ -1,17 +1,66 @@
 #include "common.h"
+#include "savedata.hpp"
+#include "mg_memory.hpp"
+#include "nd_meswin.hpp"
+#include "gamepad.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "mainloop.hpp"
+#include "snd_mngr.hpp"
+#include "sound.hpp"
+#include "title.hpp"
+#include "dataread.hpp"
+#include "hddinstall.hpp"
 #include <cstdio>
 #include <cstdlib>
 
+extern int TitleOmakeFlag;
+
+extern char at_1267[];
+extern ClsMes *TitleMCCheckMes;
+extern mgCTexture *lang_tex;
+extern u32 title_lang_cursor_cnt;
+extern int title_lang_fadealpha;
+extern int title_lang_phase;
+extern int title_lang_select;
+extern char at_2723[];
+extern char at_2724[];
+extern float title_lang_curxy[2];
+
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", title_init_rand__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", SetSoundMode__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", InitTitleOmakeFlag__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleOmakeOn__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", CheckOmakeFlag__Fv);
+void title_init_rand() {
+    srand(mgGetVSyncCount());
+}
+void SetSoundMode() {
+    CSaveData *save = GetSaveData();
+    if (save != NULL) {
+        CSnd.SetStereoMode(save->config.sound_mode == 0 ? 1 : 0);
+    }
+}
+void InitTitleOmakeFlag(void) {
+    TitleOmakeFlag = 0;
+    OmakeFlag = 0;
+}
+void TitleOmakeOn(void) {
+    TitleOmakeFlag = 1;
+}
+int CheckOmakeFlag(void) {
+    return TitleOmakeFlag;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", InitOmakeEnv__FiP13INIT_LOOP_ARGPi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleInit__F13INIT_LOOP_ARG);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleBootInit__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleExit__Fv);
+void TitleExit() {
+    if (CheckOmakeFlag() != 0) {
+        OmakeFlag = 1;
+    }
+    printf(at_1267, OmakeFlag);
+    sndSeAllStop(-1);
+    GamePad__2.AutoRepeatOff();
+    GamePad__2.MenuModeOff();
+    mgFrameRate = 2;
+    mgCloseFont();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleLoop__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleDraw__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", InitRushMovie__Fi);
@@ -24,7 +73,13 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleMapDraw__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", CalcPushAlpha__FiPf);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleMCCheckInit__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleMCCheckKey__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleMCCheckDraw__Fv);
+void TitleMCCheckDraw(void) {
+    if (TitleMCCheckMes != NULL) {
+        mgTexManager.ReloadTexture(0x46, (sceVif1Packet *)NULL);
+        TitleMCCheckMes->Step();
+        TitleMCCheckMes->DrawMesWin();
+    }
+}
 s32 DCTitleStep(s32 phase) {
     return 0;
 }
@@ -35,11 +90,76 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleHDDInstallInit__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleHDDInstallKey__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", DrawMenuDl__Fiiiif);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleHDDInstallDraw__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", CheckAppInstallForTitle__Fv);
+int CheckAppInstallForTitle(void) {
+    if (GetMainFileDev() == 3) {
+        return 1;
+    }
+    return CheckAppInstall();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", CheckHDDInstall__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleLangSelInit__FP9mgCMemory);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleLangSelKey__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", GetSelectLanguageNo__Fv);
+void TitleLangSelInit(mgCMemory *memory) {
+    int file_size;
+    u8 *buffer;
+
+    GamePad__2.SetAutoRepeat(0x5000, 0xF, 4);
+    GamePad__2.MenuModeOn(0x78);
+    title_lang_select = 0;
+    mgFrameRate = 1;
+    buffer = (u8 *)(memory->stack + memory->stack_used);
+    LoadFile2(at_2723, buffer, &file_size, 0);
+    memory->Alloc(file_size / 16 + 1);
+    mgTexManager.EnterIMGFile(buffer, 1, NULL, NULL);
+    lang_tex = mgTexManager.GetTexture(at_2724, -1);
+    title_lang_phase = 0;
+    title_lang_curxy[0] = 100.0f;
+    title_lang_fadealpha = 0x80;
+    title_lang_curxy[1] = 100.0f;
+    title_lang_cursor_cnt = 0;
+}
+int TitleLangSelKey(void) {
+    switch (title_lang_phase) {
+        case 0:
+            title_lang_fadealpha -= 6;
+            if (title_lang_fadealpha <= 0) {
+                title_lang_fadealpha = 0;
+                title_lang_phase += 1;
+            }
+            break;
+        case 1:
+            if (GamePad__2.Down(PAD_UP) != 0) {
+                title_lang_select -= 1;
+            }
+            if (GamePad__2.Down(PAD_DOWN) != 0) {
+                title_lang_select += 1;
+            }
+            if (title_lang_select < 0) {
+                title_lang_select = 4;
+            }
+            if (title_lang_select > 4) {
+                title_lang_select = 0;
+            }
+            if (GamePad__2.Down(0x40) != 0) {
+                title_lang_phase += 1;
+            }
+            break;
+        case 2:
+            title_lang_fadealpha += 6;
+            if (title_lang_fadealpha >= 0x80) {
+                title_lang_fadealpha = 0x80;
+                mgTexManager.DeleteBlock(0);
+                mgFrameRate = 2;
+                lang_tex = 0;
+                GamePad__2.AutoRepeatOff();
+                GamePad__2.MenuModeOff();
+                return title_lang_select + 1;
+            }
+            break;
+    }
+    return 0;
+}
+int GetSelectLanguageNo(void) {
+    return title_lang_select + 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleLangSelDraw__Fv);
 
 // Static initialiser (.init)

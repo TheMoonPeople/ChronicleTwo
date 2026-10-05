@@ -35,8 +35,8 @@ enum CameraRotCancel {
     CAMERA_ROT_CANCEL_ROT_BACK  = 0x40, /**< The button that swings the camera behind the player does nothing. */
     CAMERA_ROT_CANCEL_AUTO_MOVE = 0x80, /**< The camera does not swing round walls that hide the player. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * Limits on the distance and the height of a controlled camera from the point that it looks at.
@@ -54,7 +54,7 @@ public:
     float rest_max_height; /**< Greatest height that the eye drifts back below while the controller does not move it. */
     float rest_min_height; /**< Least height that the eye drifts back above while the controller does not move it. */
     float ground_space;    /**< Height that the eye keeps above the ground. */
-    s32 no_check;          /**< Non-zero when the eye goes through the ground and walls. */
+    int no_check; /**< Non-zero when the eye goes through the ground and walls. */
 
     /**
      *
@@ -109,20 +109,20 @@ public:
     struct Control {
         float rot;      /**< Angle, in radians, that the eye turns about the look-at point. */
         float height;   /**< Height that the eye rises by. */
-        s32 rot_back;   /**< Non-zero to swing the eye round behind the player. */
+        int rot_back; /**< Non-zero to swing the eye round behind the player. */
     };
 
-    s32 control_on;                 /**< Non-zero while the player steers the camera; zero leaves it circling as its base camera. */
-    s32 rot_cancel;                 /**< CameraRotCancel bits that stop ways the camera moves. */
-    s32 rot_back;                   /**< Non-zero while the eye swings round to the angle that it swings back to. */
+    int control_on; /**< Non-zero while the player steers the camera; zero leaves it circling as its base camera. */
+    int rot_cancel; /**< CameraRotCancel bits that stop ways the camera moves. */
+    int rot_back; /**< Non-zero while the eye swings round to the angle that it swings back to. */
     float rot_back_angle;           /**< Angle, in radians, that the eye swings back to. */
-    s32 rot_reverse;                /**< Non-zero to turn the camera the opposite way to the controller. */
+    int rot_reverse; /**< Non-zero to turn the camera the opposite way to the controller. */
     sceVu0FVECTOR dir_offset;       /**< Offset added to the view direction when the camera matrix is made. */
-    s32 active_param;               /**< Index into param of the limits in use. */
+    int active_param; /**< Index into param of the limits in use. */
     CameraCtrlParam param[4];       /**< Sets of limits on the distance and the height of the eye. */
     CameraCtrlParam default_param;  /**< Limits that the camera starts with. */
     sceVu0FVECTOR check_ref;        /**< Point that walls and the ground are checked against, in place of the look-at point. */
-    s32 check_ref_on;               /**< Non-zero when walls and the ground are checked against check_ref. */
+    int check_ref_on; /**< Non-zero when walls and the ground are checked against check_ref. */
 
     /**
      * Makes the camera circle a point at the default distance, height and
@@ -367,6 +367,6 @@ public:
      * @address 0x2F23D0
      * @size 0x10
      */
-    virtual int Iam() { return CAMERA_KIND_CONTROL; }
+    virtual int Iam();
 };
 STATIC_ASSERT(sizeof(CCameraControl) == 0x1F0);

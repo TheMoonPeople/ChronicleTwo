@@ -1,16 +1,30 @@
 #include "common.h"
 #include "snd_mngr.hpp"
+#include "sound.hpp"
+#include "snd_seseq.hpp"
+
+extern CSound CSnd;
+sndPortInfo *GetPortInfo(int port);
+sndSeInfo *GetSeInfo(u32 snd_id, int index);
+sndCSeSeq *GetSeSeq(int seq_id);
+void CSndStep();
 
 // Code (.text)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", Create__11CLoopSeMngrFiP9mgCMemory);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", __ct__15SND_LOOP_SE_SEQFv);
+SND_LOOP_SE_SEQ::SND_LOOP_SE_SEQ() {
+    se_id = -1;
+    vol = -1.0f;
+    pan = 0.0f;
+}
 void CLoopSeMngr::Initialize(void) {
     loop_se_num = 0;
     loop_se = NULL;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", Clear__11CLoopSeMngrFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetLoopSe__11CLoopSeMngrFPiUii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", SeLoopPlayStop__11CLoopSeMngrFUiiii);
+int CLoopSeMngr::SeLoopPlayStop(u32 handle, int sound, int flags, int loop) {
+    return SeLoopPlayStop(handle, sound, flags, -1.0f, 0.0f, loop);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", SeLoopPlayStop__11CLoopSeMngrFUiiiffi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", Step__11CLoopSeMngrFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", AllSeStop__11CLoopSeMngrFv);
@@ -18,7 +32,9 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetReverbDepth__Fi);
 u32 sndCreateID(u32 snd_id, s32 se_no) {
     return (snd_id & 0xFFFF0000) | (se_no & 0xFFFF);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetSeNo__FUi);
+int sndGetSeNo(u32 se_id) {
+    return se_id & 0xFFFF;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetPortInfo__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetSeSeq__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetEmptySeSeq__FPi);
@@ -44,19 +60,35 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetMasterVol__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndMasterVolFadeInOut__Fiiff);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetPortVol__Fif);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetPortVol__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndTransBdState__Fv);
+int sndTransBdState(void) {
+    return CSnd.TransBdState(1);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndWaitTransBd__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", CSndStep__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", CSndStepWait__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStep__Ff);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndFlush__Fv);
+void sndFlush(void) {
+    sndWaitSema();
+    CSndStep();
+    sndSignalSema();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", SeAllStop_Sub__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSeAllStop__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetSeDefVol__FUii);
+s8 sndGetSeDefVol(u32 se_id, int index) {
+    sndSeInfo *info;
+
+    info = GetSeInfo(se_id, index);
+    if (info != NULL) {
+        return info->def_vol;
+    }
+    return 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", IsBgmPort__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetCSndPortNo__FiPiPiPi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndLoadSound__FiPUiP9mgCMemory);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", __ct__13sndCSeSeqDataFv);
+sndCSeSeqData::sndCSeSeqData() {
+    Initialize();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndDeletePort__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetPortBankNo__FUiPiPi);
 void sndSePlay(u32 snd_id, s32 se_no, s32 voice) {
@@ -72,8 +104,25 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSePlayVPf__FUiiffi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSePlayVf__FUiifi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSePause__FUii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetSeStatus__FUii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndPortSqPause__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndPortSqReplay__Fi);
+void sndPortSqPause(int port) {
+    sndPortInfo *info;
+
+    info = GetPortInfo(port);
+    if ((info != NULL) && (info->sq_state == 1)) {
+        sndSqStop(info->sq_port, info->sq_no);
+        info->sq_state = 3;
+    }
+}
+void sndPortSqReplay(int port) {
+    sndPortInfo *info;
+
+    info = GetPortInfo(port);
+    if ((info != NULL) && (info->sq_state == 3)) {
+        sndSqRePlay(info->sq_port, info->sq_no);
+        sndSetSqVol(info->sq_port, info->sq_no, info->sq_vol);
+        info->sq_state = 1;
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSeCheck__FUii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSePlaySeID__FUiiiiiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSeStop__FUiii);
@@ -92,31 +141,91 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSeVolPrKr__FUiiiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSePanPrKr__FUiiiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSePitchPrKr__FUiiiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSePlayPBPrKr__Fiiiiiiiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSeStopPBPrKr__Fiiiii);
+void sndSeStopPBPrKr(int a, int b, int c, int d, int e) {
+    sndWaitSema();
+    CSnd.SE_Stop(a, b, c, d, e);
+    sndSignalSema();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSeVolPBPrKr__Fiiiiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSePanPBPrKr__Fiiiiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSePitchPBPrKr__Fiiiiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSqPlay__Fiii);
+void sndSetSePanPBPrKr(int a, int b, int c, int d, int e, int f) {
+    sndWaitSema();
+    CSnd.SE_SetPan(a, b, c, d, e, f);
+    sndSignalSema();
+}
+void sndSetSePitchPBPrKr(int a, int b, int c, int d, int e, int f) {
+    sndWaitSema();
+    CSnd.SE_SetPitch(a, b, c, d, e, f);
+    sndSignalSema();
+}
+void sndSqPlay(int a, int b, int c) {
+    sndWaitSema();
+    CSnd.SQ_Play(a, b, c);
+    sndSignalSema();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSqStop__Fii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSqVol__Fiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSqRePlay__Fii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetLine__FPPcPcPc);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", SearchSeq__11sndBankInfoFPcPi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", LoadSeInfoTxt__11sndPortInfoFiPciP9mgCMemory);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", __ct__9sndSeInfoFv);
+sndSeInfo::sndSeInfo(void) {
+    this->unk_0 = 0;
+    this->type = 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", LoadVolInfoTxt__11sndPortInfoFiPci);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStopSeSeq__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", PlaySeSeq__FUiP13sndCSeSeqDatai);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", StopSeSeq__Fi);
+void StopSeSeq(int seq_id) {
+    sndCSeSeq *seq;
+
+    seq = GetSeSeq(seq_id);
+    if (seq != NULL) {
+        seq->Stop();
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", SetVolSeSeq__Fii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStreamOpenFast__FPc);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStreamOpenState__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStreamStandBy__Fv);
+void sndStreamOpenFast(char *name) {
+    sndWaitSema();
+    CSnd.StreamOpenFast(1, name);
+    sndSignalSema();
+}
+int sndStreamOpenState(void) {
+    int state;
+
+    sndWaitSema();
+    state = CSnd.StreamOpenState();
+    sndSignalSema();
+    return state;
+}
+void sndStreamStandBy(void) {
+    sndWaitSema();
+    CSnd.StreamStandBy(1);
+    sndSignalSema();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStreamSetVol__Fff);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStreamPlay__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStreamPause__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStreamRePlay__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStreamGetState__Fv);
+void sndStreamPlay(void) {
+    sndWaitSema();
+    CSnd.StreamPlay(1);
+    sndSignalSema();
+}
+void sndStreamPause(void) {
+    sndWaitSema();
+    CSnd.StreamPause(1);
+    sndSignalSema();
+}
+void sndStreamRePlay(void) {
+    sndWaitSema();
+    CSnd.StreamRePlay(1);
+    sndSignalSema();
+}
+int sndStreamGetState(void) {
+    int state;
+
+    sndWaitSema();
+    state = CSnd.StreamGetState(1);
+    sndSignalSema();
+    return state;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStreamClose__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", __ct__9sndCSeSeqFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", __ct__11sndPortInfoFv);

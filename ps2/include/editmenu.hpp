@@ -138,11 +138,7 @@ public:
      * @address 0x1FF8A0
      * @size 0x10
      */
-    void Initialize() {
-        num       = 0;
-        dst_frame = NULL;
-        src_frame = NULL;
-    }
+    void Initialize();
 };
 
 STATIC_ASSERT(sizeof(CCharaFrameMatching) == 0xC);

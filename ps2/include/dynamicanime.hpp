@@ -205,7 +205,7 @@ public:
      * @address 0x178300
      * @size 0x30
      */
-    CDynamicAnime() { Initialize(); }
+    CDynamicAnime();
 
     /**
      * Puts every vertex back on its loaded position, moved by the root

@@ -54,10 +54,10 @@ enum mgVU_PROG_ID {
  * of the frame and the nearest depth found around it.
  */
 struct MG_PICKZ {
-    s32 enable; /**< Non-zero to sample this position when the frame ends. */
-    s32 x;      /**< Horizontal screen coordinate to sample. */
-    s32 y;      /**< Vertical screen coordinate to sample. */
-    s32 z;      /**< Nearest depth in the 8 by 8 block around the position, or -1 when it lies outside the screen. */
+    int enable; /**< Non-zero to sample this position when the frame ends. */
+    int x; /**< Horizontal screen coordinate to sample. */
+    int y; /**< Vertical screen coordinate to sample. */
+    int z; /**< Nearest depth in the 8 by 8 block around the position, or -1 when it lies outside the screen. */
 };
 STATIC_ASSERT(sizeof(MG_PICKZ) == 0x10);
 
@@ -821,7 +821,8 @@ int mgGetPlightEnable();
  * @address 0x144150
  * @size 0x20
  */
-void mgSetFogParam(float near_z, float far_z, unsigned char r, unsigned char g, unsigned char b, float far_fog, float near_fog);
+void mgSetFogParam(float near_z, float far_z, unsigned char r, unsigned char g, unsigned char b,
+                   float far_fog, float near_fog);
 
 /**
  * Sets the fog from a fog parameter block.
@@ -931,7 +932,8 @@ mgCDrawEnv *mgGetpDrawEnv(int index);
  * @address 0x144D90
  * @size 0x40
  */
-void mgSetPkMoveImage(mgCTexture *src, mgRect<int> src_rect, mgCTexture *dst, int dst_x, int dst_y, int direction);
+void mgSetPkMoveImage(mgCTexture *src, mgRect<int> src_rect, mgCTexture *dst, int dst_x, int dst_y,
+                      int direction);
 
 /**
  * Copies a rectangle of video memory to a position with a GS local transfer.
@@ -940,7 +942,8 @@ void mgSetPkMoveImage(mgCTexture *src, mgRect<int> src_rect, mgCTexture *dst, in
  * @address 0x144DD0
  * @size 0x370
  */
-void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int dst_x, int dst_y, int direction);
+void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int dst_x, int dst_y,
+                      int direction);
 
 /**
  * Draws a rectangle of one texture into a rectangle of another.
@@ -949,7 +952,8 @@ void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int 
  * @address 0x145140
  * @size 0x60
  */
-void mgSetPkMoveImage(mgCTexture *src, mgRect<int> src_rect, mgCTexture *dst, mgRect<int> dst_rect, mgCDrawEnv *env);
+void mgSetPkMoveImage(mgCTexture *src, mgRect<int> src_rect, mgCTexture *dst, mgRect<int> dst_rect,
+                      mgCDrawEnv *env);
 
 /**
  * Draws a rectangle of a texture into a rectangle of a frame buffer, with
@@ -959,7 +963,8 @@ void mgSetPkMoveImage(mgCTexture *src, mgRect<int> src_rect, mgCTexture *dst, mg
  * @address 0x1451A0
  * @size 0x400
  */
-void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int dst_height, mgRect<int> dst_rect, mgCDrawEnv *env);
+void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int dst_height,
+                      mgRect<int> dst_rect, mgCDrawEnv *env);
 
 /**
  * Clears the whole screen to one colour, in strips 32 pixels wide.
@@ -1101,7 +1106,8 @@ void mgGetCameraPose(float (*pose)[4]);
  * @address 0x145FF0
  * @size 0x1D0
  */
-int mgTransWorldPrim3DSprite(int *top_left, int *bottom_right, float *position, float width, float height, int unused);
+int mgTransWorldPrim3DSprite(int *top_left, int *bottom_right, float *position, float width,
+                             float height, int unused);
 
 /**
  * Gives the DMA packet that loads a microprogram, or NULL for an unknown

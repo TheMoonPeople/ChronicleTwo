@@ -122,9 +122,15 @@ STATIC_ASSERT(sizeof(MDT_FACES) == 0x10);
  *
  */
 struct FACES_ID {
+    union {
     int type;     /**< Primitive flags, which set how many indices make one face. */
+        u_short type_low;
+    };
     int face_num; /**< Number of faces in the primitive. */
+    union {
     int material; /**< Index of the material the primitive is drawn with. */
+        u_short material_low;
+    };
     int index[1]; /**< Vertex indices, as many as the faces need. */
 };
 
@@ -213,7 +219,7 @@ public:
      * @address 0x133DC0
      * @size 0x10
      */
-    virtual int Iam() { return MG_VISUAL_KIND_VISUAL; }
+    virtual int Iam() ;
 
     /**
      * Returns the number of materials the visual has.
@@ -222,7 +228,7 @@ public:
      * @address 0x134980
      * @size 0x10
      */
-    virtual int GetMaterialNum() { return 0; }
+    virtual int GetMaterialNum() ;
 
     /**
      * Returns the visual's material table, or NULL if it has none.
@@ -231,7 +237,7 @@ public:
      * @address 0x134990
      * @size 0x10
      */
-    virtual mgMaterial *GetpMaterial() { return NULL; }
+    virtual mgMaterial *GetpMaterial() ;
 
     /**
      * Returns one of the visual's materials, or NULL if the index is out of range.
@@ -240,7 +246,7 @@ public:
      * @address 0x1349A0
      * @size 0x10
      */
-    virtual mgMaterial *GetMaterial(int index) { return NULL; }
+    virtual mgMaterial *GetMaterial(int index) ;
 
     /**
      * Returns a copy of the visual allocated from memory; a visual with nothing to copy returns itself.
@@ -249,7 +255,7 @@ public:
      * @address 0x133DD0
      * @size 0x10
      */
-    virtual mgCVisual *Copy(mgCMemory *memory) { return this; }
+    virtual mgCVisual *Copy(mgCMemory *memory) ;
 
     /**
      * Writes the visual's bounding box and returns non-zero if it has one.
@@ -258,7 +264,7 @@ public:
      * @address 0x1349B0
      * @size 0x10
      */
-    virtual int CreateBBox(float *max, float *min, float (*matrix)[4]) { return 0; }
+    virtual int CreateBBox(float *max, float *min, float (*matrix)[4]) ;
 
     /**
      * Writes the packet that sets up drawing the visual and returns its length in quadwords.
@@ -267,7 +273,7 @@ public:
      * @address 0x1349C0
      * @size 0x10
      */
-    virtual int CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *info) { return 0; }
+    virtual int CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *info) ;
 
     /**
      * Builds the visual's draw packet ahead of time and returns its size.
@@ -276,7 +282,7 @@ public:
      * @address 0x134970
      * @size 0x10
      */
-    virtual int CreatePacket(mgCMemory *memory, mgCMemory *work_memory) { return 0; }
+    virtual int CreatePacket(mgCMemory *memory, mgCMemory *work_memory) ;
 
     /**
      * Draws the visual through the draw manager with no packet of the caller's.
@@ -285,7 +291,7 @@ public:
      * @address 0x1349E0
      * @size 0x40
      */
-    virtual void Draw(float (*matrix)[4], mgCDrawManager *draw_manager) { Draw(NULL, matrix, draw_manager); }
+    virtual void Draw(float (*matrix)[4], mgCDrawManager *draw_manager) ;
 
     /**
      * Writes the visual into a packet and returns the number of quadwords written.
@@ -294,7 +300,7 @@ public:
      * @address 0x1349D0
      * @size 0x10
      */
-    virtual int Draw(u_int *packet, float (*matrix)[4], mgCDrawManager *draw_manager) { return 0; }
+    virtual int Draw(u_int *packet, float (*matrix)[4], mgCDrawManager *draw_manager) ;
 
     /**
      * Clears the visual's draw settings.
@@ -303,13 +309,7 @@ public:
      * @address 0x133440
      * @size 0x20
      */
-    virtual void Initialize() {
-        unk_00 = 0;
-        draw_env = NULL;
-        texture_manager = NULL;
-        vu1_offset = 0;
-        vu1_base = 0;
-    }
+    virtual void Initialize() ;
 
     /**
      * Returns the visual's texture manager, or the global one if it has none.

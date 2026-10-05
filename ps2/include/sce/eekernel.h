@@ -37,6 +37,9 @@ int StartThread(int thread_id, void *arg);
 /**
  * Moves the running thread to the back of a priority's ready queue.
  */
+int TerminateThread(int thread_id);
+int DeleteThread(int thread_id);
+
 int RotateThreadReadyQueue(int priority);
 
 /**

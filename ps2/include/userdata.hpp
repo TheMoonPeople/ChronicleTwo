@@ -329,7 +329,7 @@ public:
      * @address 0x1986E0
      * @size 0x30
      */
-    s16 GetLevel();
+int GetLevel();
 
     /**
      * Gives the colour palette of a weapon's model, or 0.
@@ -338,7 +338,7 @@ public:
      * @address 0x198710
      * @size 0x50
      */
-    u8 GetPalletColor();
+int GetPalletColor();
 
     /**
      * Gives the item number a spectrumised attachment came from, or 0.
@@ -347,7 +347,7 @@ public:
      * @address 0x198760
      * @size 0x20
      */
-    s16 GetSpectolNo();
+int GetSpectolNo();
 
     /**
      * Gives how many more of the item the place can hold.
@@ -365,7 +365,7 @@ public:
      * @address 0x1987F0
      * @size 0x7C
      */
-    s16 GetNum();
+int GetNum();
 
     /**
      * Gives whether the item can be set as an active item.
@@ -393,7 +393,7 @@ public:
      * @address 0x198990
      * @size 0x38
      */
-    s16 GetUseCapacity();
+int GetUseCapacity();
 
     /**
      * Adds to a fish's health, keeping it between 0 and 100, and gives the new health.
@@ -474,7 +474,7 @@ public:
      * @address 0x1992E0
      * @size 0x20
      */
-    s16 RemainFusion();
+int RemainFusion();
 
     /**
      * Adds to a weapon's synthesis points and gives the new total.
@@ -483,7 +483,7 @@ public:
      * @address 0x199300
      * @size 0x88
      */
-    s16 AddFusionPoint(int point);
+int AddFusionPoint(int point);
 
     /**
      * Gives the effect names and strength of a weapon's element, and the element itself.
@@ -556,7 +556,7 @@ public:
      * @address 0x1998B0
      * @size 0x64
      */
-    s16 GetRoboInfoType();
+int GetRoboInfoType();
 
     /**
      * Builds the joint file name of a ridepod body or arm.
@@ -684,7 +684,7 @@ public:
      * @address 0x19A860
      * @size 0x64
      */
-    char GetAttackType();
+int GetAttackType();
 
     /**
      * Gives the model number of a weapon, or -1.
@@ -738,7 +738,7 @@ public:
      * @address 0x19AE40
      * @size 0x3C
      */
-    s16 GetGiftBoxItemNo(int index);
+    int GetGiftBoxItemNo(int index);
 
     /**
      * Gives how many of an item number a gift box holds.
@@ -1013,7 +1013,7 @@ public:
      * @address 0x19C250
      * @size 0x30
      */
-    u8 IsChange(int no);
+    int IsChange(int no);
 
     /**
      * Restores the health of every badge's monster.
@@ -1165,7 +1165,7 @@ public:
      * @address 0x19C3A0
      * @size 0xAC
      */
-    u8 CheckRecordFish(int item_no, float size, float weight);
+    int CheckRecordFish(int item_no, float size, float weight);
 };
 STATIC_ASSERT(sizeof(CFishingRecord) == 0x340);
 
@@ -1224,7 +1224,7 @@ public:
      * @address 0x19C470
      * @size 0x48
      */
-    void EntryFish(int item_no, int size, int weight);
+    int EntryFish(int item_no, int size, int weight);
 
     /**
      * Gives how many places are still free.
@@ -1502,7 +1502,7 @@ public:
      * @address 0x2003B0
      * @size 0x40
      */
-    short GetNetaID(int index);
+    int GetNetaID(int index);
 
     /**
      *
@@ -1622,7 +1622,7 @@ public:
      * @address 0x200890
      * @size 0x40
      */
-    short GetCreateItemID(int index);
+    int GetCreateItemID(int index);
 
     /**
      *
@@ -1837,7 +1837,7 @@ public:
      * @address 0x19CF60
      * @size 0x44
      */
-    u16 GetNowPartyMember();
+    int GetNowPartyMember();
 
     /**
      * Lets the player change to a character.
@@ -1873,7 +1873,7 @@ public:
      * @address 0x19D230
      * @size 0x1D4
      */
-    u8 CheckQuickChange(int chara, int *reason);
+    int CheckQuickChange(int chara, int *reason);
 
     /**
      * Unmasks changing to a character.
@@ -1927,7 +1927,7 @@ public:
      * @address 0x19D5D0
      * @size 0xD0
      */
-    u16 SetCharaStatusAttirbute(int chara, unsigned int attr, int clear);
+    int SetCharaStatusAttirbute(int chara, unsigned int attr, int clear);
 
     /**
      * Sets status attribute bits of a character together with how long they last.
@@ -1936,7 +1936,7 @@ public:
      * @address 0x19D6A0
      * @size 0x124
      */
-    u16 SetCharaStatusAttirbuteVol(int chara, unsigned int attr, int time);
+    int SetCharaStatusAttirbuteVol(int chara, unsigned int attr, int time);
 
     /**
      * Gives the status attribute of a character, or 0.
@@ -1945,7 +1945,7 @@ public:
      * @address 0x19D7D0
      * @size 0x30
      */
-    u16 GetCharaStatusAttirbute(int chara);
+    int GetCharaStatusAttirbute(int chara);
 
     /**
      * Gives a monster badge by its number from 1, or null.
@@ -2080,7 +2080,7 @@ public:
      * @address 0x19DA60
      * @size 0x78
      */
-    s16 CheckCapacity();
+    int CheckCapacity();
 
     /**
      * Gives the item number of the owned ridepod core, or -1.
@@ -2125,7 +2125,7 @@ public:
      * @address 0x19DDE0
      * @size 0x40
      */
-    u16 GetPartyCharaStatus(int chara_no);
+    int GetPartyCharaStatus(int chara_no);
 
     /**
      * Gives the number of the townsperson in the party, or -1.
@@ -2188,7 +2188,7 @@ public:
      * @address 0x19E390
      * @size 0x8
      */
-    s16 GetFishingRodNo();
+    int GetFishingRodNo();
 
     /**
      * Gives whether Max has a fishing rod equipped.
@@ -2224,7 +2224,7 @@ public:
      * @address 0x19E430
      * @size 0x48
      */
-    s16 GetFishBait();
+    int GetFishBait();
 
     /**
      * Uses up one of the equipped fishing rod's bait.
@@ -2252,7 +2252,7 @@ public:
      * @address 0x19E6B0
      * @size 0x38
      */
-    u8 CheckFishRecordUpdate(int item_no, float size, float weight);
+    int CheckFishRecordUpdate(int item_no, float size, float weight);
 
     /**
      * Gives the record size and weight of a fish.
@@ -2279,7 +2279,7 @@ public:
      * @address 0x19E7D0
      * @size 0x48
      */
-    s16 AddFp(int point);
+    int AddFp(int point);
 
     /**
      * Equips an owned item on a character, swapping it with what was in its slot.
@@ -2333,7 +2333,7 @@ public:
      * @address 0x19ECC0
      * @size 0x70
      */
-    s16 AddFusionPoint(int chara, int weapon, int point);
+    int AddFusionPoint(int chara, int weapon, int point);
 
     /**
      * Gives the first empty item board place, or -1.
@@ -2451,7 +2451,7 @@ public:
      * @address 0x19F4D0
      * @size 0x10
      */
-    s16 GetYarikomiMedal();
+    int GetYarikomiMedal();
 
     /**
      * Gives the player a count of an item number, the rest going to overflow places.
@@ -2640,7 +2640,7 @@ public:
      * @address 0x1A05F0
      * @size 0x34
      */
-    s16 GetMonsterID();
+    int GetMonsterID();
 
     /**
      * Gives the townsperson in the party.
@@ -2901,7 +2901,7 @@ public:
      * @address 0x1A1800
      * @size 0x70
      */
-    u16 SetAttr(int attr, int clear);
+    int SetAttr(int attr, int clear);
 
     /**
      * Sets status attribute bits of the character with how long they last.
@@ -2910,7 +2910,7 @@ public:
      * @address 0x1A1870
      * @size 0x70
      */
-    u16 SetAttrVol(int attr, int time);
+    int SetAttrVol(int attr, int time);
 
     /**
      * Gives the character's status attribute.
@@ -2919,7 +2919,7 @@ public:
      * @address 0x1A18E0
      * @size 0x44
      */
-    u16 GetAttr();
+    int GetAttr();
 
     /**
      * Makes the shown health jump to the real health.

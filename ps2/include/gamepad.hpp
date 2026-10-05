@@ -21,8 +21,8 @@ enum PadSetupPhase {
     PAD_PHASE_ACTUATOR_WAIT  = 71, /**< Waiting for the actuators. */
     PAD_PHASE_READY          = 99, /**< Reading buttons. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Controller types that scePadInfoMode and the controller's data report.
  */
@@ -37,8 +37,8 @@ enum PadTerminalId {
     PAD_TERMINAL_EX_TSURICON     = 0x100, /**< Fishing controller. */
     PAD_TERMINAL_EX_JOGCON       = 0x300, /**< Jog controller. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Bits of a controller's button word, one per button.
  */
@@ -61,8 +61,8 @@ enum PadButton {
     PAD_DOWN     = 0x4000, /**< Down on the directional pad. */
     PAD_LEFT     = 0x8000, /**< Left on the directional pad. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Vibration actuators of a DualShock, as CGamePad::SetVibration selects them.
  */
@@ -71,8 +71,8 @@ enum PadMotor {
     PAD_MOTOR_SMALL = 0, /**< Small actuator, either on or off. */
     PAD_MOTOR_LARGE = 1, /**< Large actuator, with a strength from 0 to 255. */
 };
-// clang-format on
 
+// clang-format on
 /**
  * Input recording modes, as CGamePad::capture_mode holds them.
  */
@@ -82,8 +82,10 @@ enum PadCaptureMode {
     PAD_CAPTURE_RECORD = 1, /**< First-controller input is recorded each frame. */
     PAD_CAPTURE_PLAY   = 2, /**< First-controller input is replaced by the recording. */
 };
-// clang-format on
 
+#pragma push
+#pragma cpp_extensions on
+// clang-format on
 /**
  * Defines the state of one controller: its buttons, sticks, setup
  * progress and vibration.
@@ -101,13 +103,19 @@ struct PAD_STATUS {
     int previous_pad_mode;   /**< Controller type of the previous successful read. @see PadTerminalId */
     u8  vibration[6];        /**< Actuator values sent to the controller. @see PadMotor */
     u8  actuator[6];         /**< Actuator alignment sent to the controller. */
+    union {
+        int vibration_words[6];
+        struct {
     int vibration_timer[2];  /**< Remaining time of each actuator, in vertical blanks. @see PadMotor */
     int unk_3C;
     int unk_40;
     int unk_44;
     int unk_48;
 };
+    };
+};
 STATIC_ASSERT(sizeof(PAD_STATUS) == 0x4C);
+#pragma pop
 
 /**
  * Defines the automatic button repeat state of one controller.

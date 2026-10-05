@@ -1,25 +1,198 @@
-#include "common.h"
 #include "menumap.hpp"
+#include "dngmenu.hpp"
+#include "mapselect.hpp"
+#include "menucommon.hpp"
+#include "menumain.hpp"
+#include "scriptinterpreter.hpp"
+#include <cstring>
+
+extern CDC2Mes *MenuDCMsg[9];
+extern signed char WorldMapMenuType;
+extern CWorldMapMenu *WorldMapPtr;
+extern short Sfida_NowPlayHorlBlink;
+extern short WorldMap_NextLoopNo;
+extern short WorldMap_MapNo;
+extern short spi_wmappos_tblnum;
+extern void *spi_wmappos_tbl;
+extern short spi_wmaparea_tblnum;
+extern void *spi_wmaparea_tbl;
+extern mgCMemory *spi_wmapstack;
+extern short MapEnableNum;
+extern SPI_TAG_PARAM menu_wmap_analyze_tag[];
+extern "C" int fptosi(float value);
 
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", _WMAP_POSNUM__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", _WMAP_POS__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", _WMAP_AREANUM__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", _WMAP_AREA__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", worldmap_analyze__FP9mgCMemoryPci);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SetMsgBuffer__13CWorldMapMenuFv);
+int _WMAP_POSNUM(SPI_STACK *stack, int) {
+    unsigned int bytes;
+    unsigned int blocks;
+    spi_wmappos_tblnum = spiGetStackInt(stack);
+    bytes = spi_wmappos_tblnum * sizeof(WMAP_POS_DATA);
+    if (bytes & 0xF) {
+        blocks = (bytes >> 4) + 1;
+    } else {
+        blocks = bytes >> 4;
+    }
+    spi_wmappos_tbl = spi_wmapstack->Alloc(blocks);
+    return 1;
+}
+int _WMAP_POS(SPI_STACK *stack, int) {
+    char converted_title[0x100];
+    WMAP_POS_DATA *pos = (WMAP_POS_DATA *)spi_wmappos_tbl + spiGetStackInt(stack++);
+    pos->map_no = spiGetStackInt(stack++);
+    pos->loop_no = spiGetStackInt(stack++);
+    pos->area_no = spiGetStackInt(stack++);
+    pos->dng_no = spiGetStackInt(stack++);
+    pos->floor = spiGetStackInt(stack++);
+    ConvertFontCode(GetMapTitle(pos->map_no), converted_title);
+    pos->name = mgCopyString(converted_title, spi_wmapstack);
+    pos->flag_no = spiGetStackInt(stack++);
+    int unlocked = CheckBitFlagMenu(pos->flag_no);
+    pos->enable = 0;
+    if (unlocked != 0) {
+        pos->enable = 1;
+    }
+    pos->type = spiGetStackInt(stack);
+    if (pos->type == 4 && CheckBitFlagMenu(0x2E0) != 0) {
+        pos->enable = 0;
+    }
+    return 1;
+}
+int _WMAP_AREANUM(SPI_STACK *stack, int) {
+    unsigned int bytes;
+    unsigned int blocks;
+    spi_wmaparea_tblnum = spiGetStackInt(stack);
+    bytes = spi_wmaparea_tblnum * sizeof(WMAP_AREA_DATA);
+    if (bytes & 0xF) {
+        blocks = (bytes >> 4) + 1;
+    } else {
+        blocks = bytes >> 4;
+    }
+    spi_wmaparea_tbl = spi_wmapstack->Alloc(blocks);
+    return 1;
+}
+int _WMAP_AREA(SPI_STACK *stack, int) {
+    char converted_title[0x100];
+    int area_no = spiGetStackInt(stack++);
+    int map_no = spiGetStackInt(stack++);
+    WMAP_AREA_DATA *area = (WMAP_AREA_DATA *)spi_wmaparea_tbl + area_no;
+    area->area_no = area_no;
+    area->unk_24 = map_no;
+    area->x = spiGetStackInt(stack++);
+    area->y = spiGetStackInt(stack++);
+    area->name_x = spiGetStackInt(stack++);
+    area->name_y = spiGetStackInt(stack++);
+    area->name_side = spiGetStackInt(stack++);
+    area->y = fptosi(1.15f * (float)area->y);
+    area->name_y = fptosi(1.15f * (float)area->name_y);
+    char *title = spiGetStackString(stack);
+    memset(converted_title, 0, 0x100);
+    ConvertFontCode(title, converted_title);
+    area->name = mgCopyString(converted_title, spi_wmapstack);
+    int position_count = 0;
+    area->enable = 0;
+    for (int i = 0; i < spi_wmappos_tblnum; i++) {
+        if (area_no == ((WMAP_POS_DATA *)spi_wmappos_tbl)[i].area_no) {
+            WMAP_POS_DATA *pos = (WMAP_POS_DATA *)spi_wmappos_tbl + i;
+            area->pos[position_count] = pos;
+            if (area->pos[position_count]->enable != 0) {
+                area->enable = 1;
+            }
+            position_count++;
+        }
+    }
+    if (area->area_no == 8) {
+        if (CheckBitFlagMenu(0x268) != 0) {
+            area->enable = 0;
+        }
+    }
+    if (CheckBitFlagMenu(0x320) != 0 && (area->area_no == 6 || area->area_no == 7)) {
+        area->enable = 0;
+    }
+    if (area->enable != 0) {
+        MapEnableNum++;
+    }
+    for (int slot = position_count; slot < 8; slot++) {
+        area->pos[slot] = 0;
+    }
+    return 1;
+}
+void worldmap_analyze(mgCMemory *stack, char *script, int size) {
+    spi_wmapstack = stack;
+    spi_wmappos_tbl = 0;
+    MapEnableNum = 0;
+    CScriptInterpreter interpreter;
+    interpreter.SetTag(menu_wmap_analyze_tag);
+    interpreter.SetScript(script, size);
+    interpreter.Run();
+}
+void CWorldMapMenu::SetMsgBuffer() {
+    MenuDCMsg[4]->SetMessData(menu_mes_data, menu_mes_data);
+    MenuDCMsg[4]->MsgPreset(15);
+    ((ClsMes *)MenuDCMsg[4])->fuchi = 5;
+    MenuDCMsg[2]->SetMessData(mes_data, menu_mes_data);
+    MenuDCMsg[3]->SetMessData(mes_data, menu_mes_data);
+    ((ClsMes *)MenuDCMsg[3])->push_button = 0;
+    ((ClsMes *)MenuDCMsg[3])->fade_speed = 1.0f;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", KeyStep__13CWorldMapMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", Draw__13CWorldMapMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", WorldMoveInit__FP9mgCMemoryPii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", WorldMoveKey__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", WorldMoveDraw__Fv);
+int WorldMoveKey() {
+    if (WorldMapMenuType == 0) {
+        return WorldMapPtr->KeyStep();
+    }
+    if (WorldMapMenuType == 1) {
+        int result = DngTreeMapKey();
+        if (result == 1) {
+            MenuArg.end_code = 0;
+            MenuArg.result[0] = 0;
+            TreeMapCalledWorldMap = 0;
+            MenuArg.result[1] = 0;
+            WorldMapMenuType = 0;
+            WorldMapPtr->step = 0;
+            WorldMapPtr->cursor_view = 1;
+            WorldMapPtr->FadeInMenu(40, 0.0f);
+            WorldMapPtr->SetMsgBuffer();
+            return 0;
+        }
+        if (result == 2) {
+            MenuArg.end_code = 6;
+            TreeMapCalledWorldMap = 0;
+            MenuArg.result[0] = WorldMap_NextLoopNo;
+            MenuArg.result[1] = WorldMap_MapNo;
+            MakeDngTreeMapJumpNo(WorldMap_MapNo, MenuArg.result[2], &MenuArg.result[0],
+                                 &MenuArg.result[1]);
+            MenuArg.result[3] = 0;
+            return 2;
+        }
+    }
+    return 0;
+}
+void WorldMoveDraw() {
+    if (WorldMapMenuType == 0) {
+        WorldMapPtr->Draw();
+    }
+    if (WorldMapMenuType == 1) {
+        DngTreeMapDraw();
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaScreListUpdate__FP7CDC2Mesi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaMenuInit__FP9mgCMemoryPii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", OmakeSfidaSelect__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaMenuKey__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaMenuDraw__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaScoreViewInit__FP9mgCMemoryPii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaScoreViewKey__Fv);
+int SphidaScoreViewKey() {
+    if (MenuCommonInfo->CheckPushButton()) {
+        MenuSePlay(1);
+        return 1;
+    }
+    Sfida_NowPlayHorlBlink = Sfida_NowPlayHorlBlink + 1;
+    if (Sfida_NowPlayHorlBlink > 0x32) {
+        Sfida_NowPlayHorlBlink = 0;
+    }
+    return 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaScoreViewDraw__Fv);
 
 // Static initialiser (.init)

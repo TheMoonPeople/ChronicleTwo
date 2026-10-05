@@ -9,26 +9,28 @@
 #include <cstdio>
 #include <cstring>
 
+// Initialised data (.data)
 static char TopDir[256] = "";
-static char CurrentDir[256] = "";
+static char CurrentDir__2[256] = "";
+// Small initialised data (.sdata)
 static int  DefaultFileDev = FILE_DEV_CDROM;
 
+// Small uninitialised data (.sbss)
 static int header_num;
 static int data_sector;
 static int (*error_cb)(int);
 static int old_vsync;
 static int start_vsync;
 
-static u_char       header_buff[0x50000];
+// Uninitialised data (.bss)
+u_char header_buff[0x50000];
 static BG_READ_INFO bg_read_info[32];
 static FILE_CACHE   FileCache[16];
 
-#ifdef NONMATCHING
 static u_int     *packfile_buff;
 static u_long128 *CacheAddress;
 static u_long128 *NowCacheAddress;
 static int        FileCacheType;
-#endif
 
 static DATA_HEADER *SearchFile(char *name);
 static int          GetDevType(char *path, char *out_name);
@@ -72,7 +74,7 @@ int ChangeHddFile() {
 
     DefaultFileDev = FILE_DEV_HDD;
     strcpy(TopDir, "/");
-    strcpy(CurrentDir, "/");
+    strcpy(CurrentDir__2, "/");
     return 1;
 }
 
@@ -84,7 +86,7 @@ int ChangeDefaultFile() {
     UmountHDDFileSystem();
     DefaultFileDev = FILE_DEV_CDROM;
     strcpy(TopDir, "");
-    strcpy(CurrentDir, "");
+    strcpy(CurrentDir__2, "");
     return 1;
 }
 
@@ -98,26 +100,26 @@ void SetCurrentDir(char *dir) {
             dir++;
         }
 
-        strcpy(CurrentDir, dir);
+        strcpy(CurrentDir__2, dir);
         return;
     }
 
-    strcpy(CurrentDir, TopDir);
+    strcpy(CurrentDir__2, TopDir);
 }
 
 void GetCurrentDir(char *out_dir) {
-    strcpy(out_dir, CurrentDir);
+    strcpy(out_dir, CurrentDir__2);
 }
 
 void ChangeDir(char *dir) {
-    strcpy(CurrentDir, TopDir);
+    strcpy(CurrentDir__2, TopDir);
 
     if (dir) {
         if (*dir == '/') {
             dir++;
         }
 
-        strcat(CurrentDir, dir);
+        strcat(CurrentDir__2, dir);
     }
 }
 
@@ -151,7 +153,6 @@ void InitReadBG() {
     old_vsync = -1;
 }
 
-#ifdef NONMATCHING
 int LoadFileBG(char *name, u_long128 *buffer, int *out_size) {
     BG_READ_INFO *info;
     DATA_HEADER  *header;
@@ -174,7 +175,7 @@ int LoadFileBG(char *name, u_long128 *buffer, int *out_size) {
 
     char path[256] = "";
 
-    strcpy(path, CurrentDir);
+    strcpy(path, CurrentDir__2);
     strcat(path, name);
     dev = GetDevType(name, file_name);
 
@@ -279,11 +280,7 @@ int LoadFileBG(char *name, u_long128 *buffer, int *out_size) {
 
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", LoadFileBG__FPcP1Pi);
-#endif
 
-#ifdef NONMATCHING
 BG_READ_INFO *GetReadBGFile(char *name) {
     BG_READ_INFO *info;
     int           i;
@@ -298,9 +295,6 @@ BG_READ_INFO *GetReadBGFile(char *name) {
 
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", GetReadBGFile__FPc);
-#endif
 
 BG_READ_INFO *GetReadBGFile(int index) {
     if (index < 0 || index >= 32) {
@@ -314,7 +308,6 @@ void StartReadBG() {
     InitReadBG();
 }
 
-#ifdef NONMATCHING
 void ReadBG() {
     BG_READ_INFO *info;
     sceCdRMode    mode;
@@ -384,11 +377,7 @@ void ReadBG() {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", ReadBG__Fv);
-#endif
 
-#ifdef NONMATCHING
 int ReadBGSync() {
     BG_READ_INFO *info;
     int           i;
@@ -410,9 +399,6 @@ int ReadBGSync() {
 
     return i != 32;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", ReadBGSync__Fv);
-#endif
 
 void BreakReadBG() {
     BG_READ_INFO *info;
@@ -435,7 +421,6 @@ void BreakReadBG() {
     InitReadBG();
 }
 
-#ifdef NONMATCHING
 void InitCDFile() {
     sceCdlFILE   file;
     int          fd;
@@ -485,11 +470,7 @@ void InitCDFile() {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", InitCDFile__Fv);
-#endif
 
-#ifdef NONMATCHING
 /**
  * Identifies the device a path names with its prefix and copies the path
  * without the prefix; a single-letter drive is left to the default device.
@@ -548,9 +529,6 @@ static int GetDevType(char *path, char *out_name) {
 
     return FILE_DEV_DEFAULT;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", GetDevType__FPcPc);
-#endif
 
 /**
  * Converts the upper-case letters of a string
@@ -599,7 +577,7 @@ static int GetFullPath(char *path, char *out_path) {
     strcpy(out_path, prefix);
 
     if (!has_device) {
-        strcat(out_path, CurrentDir);
+        strcat(out_path, CurrentDir__2);
     }
 
     strcat(out_path, name);
@@ -620,7 +598,6 @@ int LoadFile(char *path, void *buffer, int *out_size) {
     return 1;
 }
 
-#ifdef NONMATCHING
 int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
     FILE_CACHE     *cache;
     DATA_HEADER    *header;
@@ -784,9 +761,6 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
     sceClose(fd);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", LoadFile2__FPcPvPii);
-#endif
 
 /**
  * Reads a file inside DATA.DAT from the disc, retrying
@@ -825,7 +799,6 @@ static int CDRead(char *path, u_int *buffer, int *out_size) {
     return 1;
 }
 
-#ifdef NONMATCHING
 /**
  * Rounds a size up to the next
  * multiple of an alignment.
@@ -837,9 +810,6 @@ static u_int align_size(u_int size, u_int alignment) {
 
     return size;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", align_size__FUiUi);
-#endif
 
 /**
  * Gives a free file cache entry,
@@ -857,7 +827,6 @@ static FILE_CACHE *GetNewFileCache() {
     return 0;
 }
 
-#ifdef NONMATCHING
 void InitFileCache(u_long128 *address, int type) {
     int i;
 
@@ -878,9 +847,6 @@ void InitFileCache(u_long128 *address, int type) {
         FileCacheType = type;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", InitFileCache__FP1i);
-#endif
 
 void DeleteFileCache() {
     InitFileCache(0, FILE_CACHE_NONE);
@@ -906,7 +872,6 @@ static int EntryFileCache(char *path, u_long128 *address, int size) {
     return 1;
 }
 
-#ifdef NONMATCHING
 int LoadFileCacheBG(char *path) {
     FILE_CACHE *entry;
     int         size;
@@ -949,11 +914,7 @@ int LoadFileCacheBG(char *path) {
 
     return EntryFileCache(path, NowCacheAddress, size);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", LoadFileCacheBG__FPc);
-#endif
 
-#ifdef NONMATCHING
 /**
  * Finds the file cache entry held under a path,
  * or null when the file is not cached.
@@ -976,9 +937,6 @@ static FILE_CACHE *SearchFileCache(char *path) {
 
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", SearchFileCache__FPc);
-#endif
 
 u_long128 *SearchFileCache(char *path, int *out_size) {
     FILE_CACHE *entry;
@@ -1022,7 +980,6 @@ int WriteFile(char *path, void *buffer, int size) {
     return 1;
 }
 
-#ifdef NONMATCHING
 u_int *GetPackFile(u_int *pack, char *name, int *out_size) {
     char       *base_name;
     PACK_ENTRY *entry;
@@ -1069,11 +1026,7 @@ u_int *GetPackFile(u_int *pack, char *name, int *out_size) {
 
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", GetPackFile__FPUiPcPi);
-#endif
 
-#ifdef NONMATCHING
 u_int *GetPackFile(u_int *pack, int index, char **out_name, int *out_size) {
     PACK_ENTRY *entry;
     int         i;
@@ -1101,9 +1054,6 @@ u_int *GetPackFile(u_int *pack, int index, char **out_name, int *out_size) {
 
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", GetPackFile__FPUiiPPcPi);
-#endif
 
 int GetPackFileExt(u_int *pack, char *extension, u_int **files, int max_files, int *sizes, char **names) {
     int    found_count;
@@ -1159,7 +1109,6 @@ int GetPackFileExt(u_int *pack, char *extension, u_int **files, int max_files, i
     return found_count;
 }
 
-#ifdef NONMATCHING
 int GetPackFileNum(u_int *pack) {
     int   count;
     char *name;
@@ -1173,23 +1122,7 @@ int GetPackFileNum(u_int *pack) {
 
     return count;
 }
-#else
-s32 GetPackFileNum(u32 *pack) {
-    s32 file_size;
-    s8 *file_name;
-    s32 count;
 
-    count = 0;
-loop_1:
-    if (GetPackFile(pack, count, &file_name, &file_size) != 0) {
-        count += 1;
-        goto loop_1;
-    }
-    return count;
-}
-#endif
-
-#ifdef NONMATCHING
 void DivPathName(char *path, char *out_dir, char *out_name) {
     int slash;
     int i;
@@ -1213,11 +1146,7 @@ void DivPathName(char *path, char *out_dir, char *out_name) {
     out_dir[i] = 0;
     strcpy(out_name, &path[slash + 1]);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", DivPathName__FPcPcPc);
-#endif
 
-#ifdef NONMATCHING
 void DivPathNameExt(char *path, char *out_dir, char *out_name, char *out_ext) {
     char *ext;
 
@@ -1236,13 +1165,6 @@ void DivPathNameExt(char *path, char *out_dir, char *out_name, char *out_ext) {
 
     strcpy(out_ext, ext);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dataread", DivPathNameExt__FPcPcPcPc);
-#endif
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", TopDir__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", CurrentDir__2__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_183__DATA);
@@ -1265,25 +1187,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_660__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_713__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", at_714__DATA);
 
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dataread", DefaultFileDev__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(header_num, 0x4);
-INCLUDE_BSS(packfile_buff, 0x4);
-INCLUDE_BSS(data_sector, 0x4);
-INCLUDE_BSS(error_cb, 0x4);
-INCLUDE_BSS(old_vsync, 0x4);
-INCLUDE_BSS(start_vsync, 0x4);
-INCLUDE_BSS(CacheAddress, 0x4);
-INCLUDE_BSS(NowCacheAddress, 0x4);
-INCLUDE_BSS(FileCacheType, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(header_buff, 0x50000);
-INCLUDE_BSS(bg_read_info, 0x2400);
 INCLUDE_BSS(at_259, 0x100);
 INCLUDE_BSS(at_554, 0x10);
 INCLUDE_BSS(at_583, 0x100);
-INCLUDE_BSS(FileCache, 0x400);
 INCLUDE_BSS(at_845, 0x130);

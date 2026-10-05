@@ -607,3 +607,5 @@ s16 GetRidePodCore(int index);
  * @size 0x80
  */
 int GetUsedItemAfterEffect(int item_no, USEITEM_EFFECT *effect);
+
+int ItemCmdMsgSet(int item_no, int *messages);

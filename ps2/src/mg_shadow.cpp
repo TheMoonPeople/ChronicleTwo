@@ -11,7 +11,7 @@
 #include "mg_visual.hpp"
 
 // Code (.text)
-#ifdef NONMATCHING
+#pragma schedule off
 /**
  * Writes the packet that loads the shadow projection matrix into VU1 memory, followed by the GS
  * packets the shadow microprogram sends, and returns its length in quadwords.
@@ -22,31 +22,30 @@ static int SetShadowData(u_int *packet, float (*matrix)[4]) {
     packet[1] = 0;
     packet[2] = 0;
     packet[3] = 0x6C080028;
-    ((u_long128 *)packet)[1] = ((u_long128 *)matrix)[0];
-    ((u_long128 *)packet)[2] = ((u_long128 *)matrix)[1];
-    ((u_long128 *)packet)[3] = ((u_long128 *)matrix)[2];
-    ((u_long128 *)packet)[4] = ((u_long128 *)matrix)[3];
-    packet[20] = 0x8001;
-    packet[21] = 0x102E8000;
-    packet[22] = SCE_GIF_PACKED_AD;
-    packet[23] = 0;
-    packet[24] = 0x68;
-    packet[25] = 0x80;
-    packet[26] = 0x42;
-    packet[27] = 0;
-    packet[28] = 0x8001;
-    packet[29] = 0x102E8000;
-    packet[30] = SCE_GIF_PACKED_AD;
-    packet[31] = 0;
-    packet[32] = 0x62;
-    packet[33] = 0x80;
-    packet[34] = 0x42;
-    packet[35] = 0;
+    u_long128 *dst = (u_long128 *)(packet + 4);
+    dst[0] = *(u_long128 *)matrix[0];
+    dst[1] = *(u_long128 *)matrix[1];
+    dst[2] = *(u_long128 *)matrix[2];
+    dst[3] = *(u_long128 *)matrix[3];
+    packet[0x14] = 0x8001;
+    packet[0x15] = 0x102E8000;
+    packet[0x16] = 0xE;
+    packet[0x17] = 0;
+    packet[0x18] = 0x68;
+    packet[0x19] = 0x80;
+    packet[0x1A] = 0x42;
+    packet[0x1B] = 0;
+    packet[0x1C] = 0x8001;
+    packet[0x1D] = 0x102E8000;
+    packet[0x1E] = 0xE;
+    packet[0x1F] = 0;
+    packet[0x20] = 0x62;
+    packet[0x21] = 0x80;
+    packet[0x22] = 0x42;
+    packet[0x23] = 0;
     return 9;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_shadow", SetShadowData__FPUiPA4_f);
-#endif
+#pragma schedule reset
 
 #ifdef NONMATCHING
 int mgCShadowMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
@@ -138,124 +137,127 @@ int mgCShadowMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_shadow", CreateFacePacket__12mgCShadowMDTFPUiP7mgCFace);
 #endif
 
-#ifdef NONMATCHING
-FACES_ID *mgCShadowMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory *index_memory, mgCFace **face_out) {
-    mgCFace *face = new (memory->Alloc(5)) mgCFace;
-    face->vertex_num = faces->face_num / 3;
-    face->type = faces->type;
+#pragma schedule off
+#pragma global_optimizer off
+FACES_ID *mgCShadowMDT::CreateFace(FACES_ID *source, mgCMemory *face_memory, mgCMemory *index_memory,
+                               mgCFace **result) {
+    mgCFace *face = new ((u_long128 *)face_memory->Alloc(5)) mgCFace;
+    face->vertex_num = source->face_num / 3;
+    face->type = source->type_low;
     face->index_stride = 3;
     face->index_num = face->vertex_num * face->index_stride;
-    face->material = faces->material;
-
     // Only the position index of each of a triangle's three vertices is kept.
-    int *source = faces->index;
-    int *index = (int *)index_memory->Alloc(face->index_num * 4 / 16 + 16);
+    face->material = source->material_low;
+    u_char *vertex;
+    source = (FACES_ID *)(vertex = (u_char *)source->index);
+    int *index = (int *)index_memory->Alloc(face->index_num * 4 / 16 + 0x10);
     face->index = index;
     for (int i = 0; i < face->vertex_num; i++) {
-        index[0] = source[0];
-        index[1] = source[3];
-        index[2] = source[6];
+        index[0] = *(int *)(vertex + 0x0);
+        index[1] = *(int *)(vertex + 0xC);
+        index[2] = *(int *)(vertex + 0x18);
         index += 3;
-        source += 9;
+        vertex += 0x24;
     }
     face->next = NULL;
-
     mgFACE_GROUP *group = face_group;
     if (group == NULL) {
-        group = (mgFACE_GROUP *)memory->Alloc(0x12);
-        group->next = NULL;
+        group = (mgFACE_GROUP *)face_memory->Alloc(0x12);
+        group->next = 0;
         group->face = NULL;
-        group->material = face->material;
+        group->material = (short)face->material;
         group->vu_program = 1; // MG_VU_PROG_SHADOW
         face_group = group;
     }
-
-    if (group->face == NULL) {
+    mgCFace *last = group->face;
+    if (last == NULL) {
         group->face = face;
     } else {
-        mgCFace *last = group->face;
-        while (last->next != NULL) {
-            last = last->next;
+        mgCFace *following;
+        while ((following = last->next) != NULL) {
+            last = following;
         }
         last->next = face;
     }
-
-    if (face_out != NULL) {
-        *face_out = face;
+    if (result != NULL) {
+        *result = face;
     }
-    return (FACES_ID *)source;
+    return (FACES_ID *)vertex;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_shadow", CreateFace__12mgCShadowMDTFP8FACES_IDP9mgCMemoryP9mgCMemoryPP7mgCFace);
-#endif
+#pragma global_optimizer reset
+#pragma schedule reset
 
-#ifdef NONMATCHING
+int mgSetPkTexFlush_TagCnt(u_int *);
+#pragma schedule off
+#pragma global_optimizer off
 u_int mgCShadowMDT::CreatePacket(mgCDrawManager *draw_manager) {
+
     GetTextureManager();
-
-    mgCMemory *packet_memory = draw_manager->packet_memory;
-    mgCMemory *data_memory = draw_manager->data_memory;
-    u_long128 *packet_start = &packet_memory->stack[packet_memory->stack_used];
-    u_long128 *data_start = &data_memory->stack[data_memory->stack_used];
-    u_int *packet = (u_int *)packet_start;
-    u_long128 *data = data_start;
-
-    for (mgFACE_GROUP *group = face_group; group != NULL; group = group->next) {
-        group->packet = (u_long128 *)packet;
-        for (mgCFace *face = group->face; face != NULL; face = face->next) {
+    mgFACE_GROUP *node = face_group;
+    mgCMemory *packet_memory = (mgCMemory *)draw_manager->packet_memory;
+    mgCMemory *face_memory = (mgCMemory *)draw_manager->data_memory;
+    u_int *packet_start = (u_int *)&packet_memory->stack[packet_memory->stack_used];
+    int face_start = (int)&face_memory->stack[face_memory->stack_used];
+    int face_cursor = face_start;
+    u_int *cursor = packet_start;
+    u_int *tag;
+    while (node != NULL) {
+        node->packet = (u_long128 *)cursor;
+        mgCFace *group = node->face;
             // DMA REF to the face's packet, built through the uncached mirror of the data memory.
-            packet[0] = 0x30000000;
-            packet[1] = (u_int)data;
-            packet[2] = 0;
-            packet[3] = 0;
-            int size = CreateFacePacket((u_int *)((u_int)data | 0x20000000), face);
-            data += size;
-            packet[0] |= size;
-            packet += 4;
-        }
-        packet += mgSetPkTexFlush_TagCnt(packet) * 4;
-
-        // DMA RET.
-        packet[0] = 0x60000000;
-        packet[1] = 0;
-        packet[2] = 0;
-        packet[3] = 0;
-        packet += 4;
-        group->packet_size = (u_long128 *)packet - group->packet;
+        while (group != NULL) {
+            tag = cursor;
+            cursor += 4;
+            tag[0] = 0x30000000;
+            tag[1] = face_cursor;
+            tag[2] = 0;
+            tag[3] = 0;
+            int count = CreateFacePacket((u_int *)(face_cursor | 0x20000000), group);
+            face_cursor += count * 16;
+            group = group->next;
+            tag[0] |= count;
     }
-
-    packet_memory->Alloc((u_long128 *)packet - packet_start);
-    data_memory->Alloc(data - data_start);
-    return (u_int)packet_start & 0x0FFFFFFF;
+        cursor += mgSetPkTexFlush_TagCnt(cursor) * 4;
+        u_int *flush = cursor;
+        cursor += 4;
+        // DMA RET.
+        flush[0] = 0x60000000;
+        flush[1] = 0;
+        flush[2] = 0;
+        flush[3] = 0;
+        node->packet_size = (int)((u_char *)cursor - (u_char *)node->packet) / 16;
+        node = node->next;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_shadow", CreatePacket__12mgCShadowMDTFP14mgCDrawManager);
-#endif
+    packet_memory->Alloc((int)((u_char *)cursor - (u_char *)packet_start) / 16);
+    face_memory->Alloc((face_cursor - face_start) / 16);
+    return (int)packet_start & 0x0FFFFFFF;
+}
+#pragma global_optimizer reset
+#pragma schedule reset
 
-#ifdef NONMATCHING
-int mgCShadowMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory, mgCTextureManager *texture_manager) {
+#pragma schedule off
+#pragma global_optimizer off
+int mgCShadowMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
+                                mgCTextureManager *textures) {
     if (header == NULL) {
         return 0;
     }
-
-    this->texture_manager = texture_manager;
+    texture_manager = textures;
     // A shadow needs neither normals nor texture coordinates.
     header->uv_num = 0;
     header->normal_num = 0;
-    CopyMDTData(header, memory);
-    face_group = NULL;
-
-    MDT_FACES *section = (MDT_FACES *)((char *)header + header->faces_ofs);
-    FACES_ID *faces = (FACES_ID *)(section + 1);
-    int prim_num = section->prim_num;
-    for (int i = 0; i < prim_num; i++) {
-        faces = CreateFace(faces, memory, memory, NULL);
+    ((mgCVisualMDT *)this)->CopyMDTData(header, memory);
+    face_group = 0;
+    u_char *table = (u_char *)header + header->faces_ofs;
+    FACES_ID *cursor = (FACES_ID *)(table + 0x10);
+    int count = *(int *)(table + 8);
+    for (int i = 0; i < count; i++) {
+        cursor = CreateFace(cursor, memory, memory, 0);
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_shadow", DataAssignMDT__12mgCShadowMDTFP10MDT_HEADERP9mgCMemoryP17mgCTextureManager);
-#endif
+#pragma global_optimizer reset
+#pragma schedule reset
 
 #ifdef NONMATCHING
 int mgCShadowMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *info) {

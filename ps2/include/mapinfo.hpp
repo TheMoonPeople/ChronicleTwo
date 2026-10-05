@@ -39,7 +39,7 @@ public:
      * @address 0x1642C0
      * @size 0x60
      */
-    CCameraInfo() { Initialize(); }
+    CCameraInfo();
 
     /**
      * Clears every position, collision shape and part group of the area.

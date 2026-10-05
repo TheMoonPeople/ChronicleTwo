@@ -69,43 +69,43 @@ segments:
     bss_size: 0x1be7c80
     subsegments:
       - {start: 0x80, type: asmtu, name: crt0}
-      - {start: 0x150, type: asmtu, name: lib/mwcc/fpcmp}
+      - {start: 0x150, type: cpp, name: lib/mwcc/fpcmp}
       - {start: 0x210, type: asmtu, name: lib/mwcc/mwinit}
-      - {start: 0x240, type: asmtu, name: lib/mwcc/CPlusLib}
-      - {start: 0x570, type: asmtu, name: lib/mwcc/New}
+      - {start: 0x240, type: cpp, name: lib/mwcc/CPlusLib}
+      - {start: 0x570, type: cpp, name: lib/mwcc/New}
       - {start: 0x650, type: asmtu, name: lib/mwcc/NMWException}
       - {start: 0xa20, type: asmtu, name: lib/mwcc/global_destructor_chain}
-      - {start: 0xab0, type: asmtu, name: lib/mwcc/MWException}
-      - {start: 0x2210, type: asmtu, name: lib/mwcc/ExceptionPS2}
-      - {start: 0x26b0, type: asmtu, name: lib/sce/libgraph}
-      - {start: 0x4308, type: asmtu, name: lib/sce/libdma}
-      - {start: 0x4dd8, type: asmtu, name: lib/sce/libdev}
-      - {start: 0x66b0, type: asmtu, name: lib/sce/pkt/libgifpk}
-      - {start: 0x69d8, type: asmtu, name: lib/sce/pkt/libvifpk}
-      - {start: 0x6d80, type: asmtu, name: lib/sce/libvu0}
-      - {start: 0x7ad0, type: asmtu, name: lib/sce/libmpeg}
+      - {start: 0xab0, type: cpp, name: lib/mwcc/MWException}
+      - {start: 0x2210, type: cpp, name: lib/mwcc/ExceptionPS2}
+      - {start: 0x26b0, type: cpp, name: lib/sce/libgraph}
+      - {start: 0x4308, type: cpp, name: lib/sce/libdma}
+      - {start: 0x4dd8, type: cpp, name: lib/sce/libdev}
+      - {start: 0x66b0, type: cpp, name: lib/sce/pkt/libgifpk}
+      - {start: 0x69d8, type: cpp, name: lib/sce/pkt/libvifpk}
+      - {start: 0x6d80, type: cpp, name: lib/sce/libvu0}
+      - {start: 0x7ad0, type: cpp, name: lib/sce/libmpeg}
       - {start: 0xf560, type: asmtu, name: lib/sce/libipu}
       - {start: 0xfb80, type: asmtu, name: lib/sce/kernl/klib}
-      - {start: 0x10420, type: asmtu, name: lib/sce/kernl/glue}
-      - {start: 0x107f0, type: asmtu, name: lib/sce/kernl/cache}
-      - {start: 0x10a70, type: asmtu, name: lib/sce/kernl/intr}
+      - {start: 0x10420, type: cpp, name: lib/sce/kernl/glue}
+      - {start: 0x107f0, type: cpp, name: lib/sce/kernl/cache}
+      - {start: 0x10a70, type: cpp, name: lib/sce/kernl/intr}
       - {start: 0x10de0, type: asmtu, name: lib/sce/kernl/thread}
       - {start: 0x11140, type: asmtu, name: lib/sce/kernl/deci2}
       - {start: 0x11320, type: asmtu, name: lib/sce/kernl/tty}
       - {start: 0x11840, type: asmtu, name: lib/sce/kernl/kprintf}
-      - {start: 0x121b8, type: asmtu, name: lib/sce/kernl/sifcmd}
-      - {start: 0x12900, type: asmtu, name: lib/sce/kernl/sifrpc}
-      - {start: 0x13860, type: asmtu, name: lib/sce/kernl/filestub}
-      - {start: 0x16ef8, type: asmtu, name: lib/sce/kernl/iopheap}
-      - {start: 0x171f8, type: asmtu, name: lib/sce/kernl/eeloadfile}
+      - {start: 0x121b8, type: cpp, name: lib/sce/kernl/sifcmd}
+      - {start: 0x12900, type: cpp, name: lib/sce/kernl/sifrpc}
+      - {start: 0x13860, type: cpp, name: lib/sce/kernl/filestub}
+      - {start: 0x16ef8, type: cpp, name: lib/sce/kernl/iopheap}
+      - {start: 0x171f8, type: cpp, name: lib/sce/kernl/eeloadfile}
       - {start: 0x17f58, type: asmtu, name: lib/sce/kernl/iopreset}
       - {start: 0x18208, type: asmtu, name: lib/sce/kernl/tlbfunc}
       - {start: 0x18740, type: asmtu, name: lib/sce/kernl/tlbtrap}
-      - {start: 0x18aa0, type: asmtu, name: lib/sce/kernl/diei}
+      - {start: 0x18aa0, type: cpp, name: lib/sce/kernl/diei}
       - {start: 0x18b00, type: asmtu, name: lib/sce/kernl/initsys}
       - {start: 0x18c40, type: asmtu, name: lib/sce/kernl/libosd}
-      - {start: 0x18dc0, type: asmtu, name: lib/sce/kernl/exit}
-      - {start: 0x18ed0, type: asmtu, name: lib/sce/sdr_main}
+      - {start: 0x18dc0, type: cpp, name: lib/sce/kernl/exit}
+      - {start: 0x18ed0, type: cpp, name: lib/sce/sdr_main}
       - {start: 0x19200, type: asmtu, name: lib/libm/math/e_atan2}
       - {start: 0x19538, type: asmtu, name: lib/libm/math/e_pow}
       - {start: 0x1a260, type: asmtu, name: lib/libm/math/e_rem_pio2}
@@ -122,7 +122,7 @@ segments:
       - {start: 0x1d0f0, type: asmtu, name: lib/libm/math/kf_sin}
       - {start: 0x1d1f8, type: asmtu, name: lib/libm/math/kf_tan}
       - {start: 0x1d490, type: asmtu, name: lib/libm/math/s_atan}
-      - {start: 0x1d8a0, type: asmtu, name: lib/libm/common/s_copysign}
+      - {start: 0x1d8a0, type: cpp, name: lib/libm/common/s_copysign}
       - {start: 0x1d8e8, type: asmtu, name: lib/libm/math/s_cos}
       - {start: 0x1d9f0, type: asmtu, name: lib/libm/math/s_fabs}
       - {start: 0x1da28, type: asmtu, name: lib/libm/common/s_finite}
@@ -134,9 +134,9 @@ segments:
       - {start: 0x1dec8, type: asmtu, name: lib/libm/common/s_scalbn}
       - {start: 0x1e080, type: asmtu, name: lib/libm/math/s_sin}
       - {start: 0x1e178, type: asmtu, name: lib/libm/math/sf_atan}
-      - {start: 0x1e420, type: asmtu, name: lib/libm/common/sf_copysign}
+      - {start: 0x1e420, type: cpp, name: lib/libm/common/sf_copysign}
       - {start: 0x1e450, type: asmtu, name: lib/libm/math/sf_cos}
-      - {start: 0x1e538, type: asmtu, name: lib/libm/math/sf_fabs}
+      - {start: 0x1e538, type: cpp, name: lib/libm/math/sf_fabs}
       - {start: 0x1e558, type: asmtu, name: lib/libm/math/sf_floor}
       - {start: 0x1e640, type: asmtu, name: lib/libm/math/sf_isnan}
       - {start: 0x1e668, type: asmtu, name: lib/libm/common/sf_scalbn}
@@ -151,28 +151,28 @@ segments:
       - {start: 0x1f2d8, type: asmtu, name: lib/sce/eecdvd}
       - {start: 0x20ed0, type: asmtu, name: lib/sce/libpad}
       - {start: 0x22268, type: asmtu, name: lib/sce/libmc}
-      - {start: 0x23ad0, type: asmtu, name: lib/sce/msinput}
+      - {start: 0x23ad0, type: cpp, name: lib/sce/msinput}
       - {start: 0x23d68, type: asmtu, name: lib/libc/stdlib/abort}
-      - {start: 0x23d88, type: asmtu, name: lib/libc/stdlib/abs}
-      - {start: 0x23da0, type: asmtu, name: lib/libc/stdlib/atof}
+      - {start: 0x23d88, type: cpp, name: lib/libc/stdlib/abs}
+      - {start: 0x23da0, type: cpp, name: lib/libc/stdlib/atof}
       - {start: 0x23dc0, type: asmtu, name: lib/libc/stdlib/atoi}
       - {start: 0x23de8, type: asmtu, name: lib/libc/callocr}
       - {start: 0x23ea8, type: asmtu, name: lib/libc/reent/closer}
       - {start: 0x23f00, type: asmtu, name: lib/libc/stdlib/dtoa}
-      - {start: 0x252e8, type: asmtu, name: lib/libc/errno/errno}
+      - {start: 0x252e8, type: cpp, name: lib/libc/errno/errno}
       - {start: 0x252f8, type: asmtu, name: lib/libc/stdlib/exit}
       - {start: 0x253a8, type: asmtu, name: lib/libc/stdio/fflush}
-      - {start: 0x254b0, type: asmtu, name: lib/libc/stdio/findfp}
+      - {start: 0x254b0, type: cpp, name: lib/libc/stdio/findfp}
       - {start: 0x25708, type: asmtu, name: lib/libc/stdio/fprintf}
       - {start: 0x25740, type: asmtu, name: lib/libc/freer}
       - {start: 0x25bd0, type: asmtu, name: lib/libc/reent/fstatr}
       - {start: 0x25c30, type: asmtu, name: lib/libc/stdio/fvwrite}
       - {start: 0x26008, type: asmtu, name: lib/libc/stdio/fwalk}
-      - {start: 0x260a0, type: asmtu, name: lib/libc/string/index}
-      - {start: 0x260c0, type: asmtu, name: lib/libc/locale/locale}
+      - {start: 0x260a0, type: cpp, name: lib/libc/string/index}
+      - {start: 0x260c0, type: cpp, name: lib/libc/locale/locale}
       - {start: 0x261b0, type: asmtu, name: lib/libc/reent/lseekr}
       - {start: 0x26210, type: asmtu, name: lib/libc/stdio/makebuf}
-      - {start: 0x26360, type: asmtu, name: lib/libc/stdlib/malloc}
+      - {start: 0x26360, type: cpp, name: lib/libc/stdlib/malloc}
       - {start: 0x26398, type: asmtu, name: lib/libc/stdlib/mallocr}
       - {start: 0x26d68, type: asmtu, name: lib/libc/stdlib/mbtowc_r}
       - {start: 0x26da8, type: asmtu, name: lib/libc/machine/r5900/memchr}
@@ -180,14 +180,14 @@ segments:
       - {start: 0x26f20, type: asmtu, name: lib/libc/machine/r5900/memcpy}
       - {start: 0x26fd0, type: asmtu, name: lib/libc/machine/r5900/memmove}
       - {start: 0x270d8, type: asmtu, name: lib/libc/machine/r5900/memset}
-      - {start: 0x27198, type: asmtu, name: lib/libc/stdlib/mlock}
-      - {start: 0x271a8, type: asmtu, name: lib/libc/stdlib/mprec}
+      - {start: 0x27198, type: cpp, name: lib/libc/stdlib/mlock}
+      - {start: 0x271a8, type: cpp, name: lib/libc/stdlib/mprec}
       - {start: 0x281c8, type: asmtu, name: lib/libc/stdio/printf}
-      - {start: 0x28258, type: asmtu, name: lib/libc/stdlib/rand}
+      - {start: 0x28258, type: cpp, name: lib/libc/stdlib/rand}
       - {start: 0x28298, type: asmtu, name: lib/libc/reent/readr}
       - {start: 0x282f8, type: asmtu, name: lib/libc/reent/sbrkr}
       - {start: 0x28358, type: asmtu, name: lib/libc/signal/signal}
-      - {start: 0x286a8, type: asmtu, name: lib/libc/reent/signalr}
+      - {start: 0x286a8, type: cpp, name: lib/libc/reent/signalr}
       - {start: 0x28728, type: asmtu, name: lib/libc/stdio/sprintf}
       - {start: 0x28800, type: asmtu, name: lib/libc/stdio/stdio}
       - {start: 0x28970, type: asmtu, name: lib/libc/string/strcasecmp}

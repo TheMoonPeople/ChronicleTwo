@@ -277,45 +277,37 @@ float mgDistPlanePoint(float *normal, float *on_plane, float *point) {
     sceVu0SubVector(offset, point, on_plane);
     return sceVu0InnerProduct(normal, offset);
 }
-#ifdef NONMATCHING
 float mgDistLinePoint(float *point, float *start, float *end, float *nearest) {
-    sceVu0FVECTOR to_start;
-    sceVu0FVECTOR to_end;
-    sceVu0FVECTOR along;
-    sceVu0FVECTOR segment;
-    float         length;
+    float to_start[4];
+    float to_end[4];
+    float offset[4];
+    float foot[4];
+    float along[4];
+    float line_length;
     float         t;
-    float         start_distance;
-    float         end_distance;
-
+    float dist_start;
+    float dist_end;
     sceVu0SubVector(to_start, start, point);
     sceVu0SubVector(to_end, end, point);
-    sceVu0SubVector(segment, to_end, to_start);
-    length = mgDistVector(segment);
-    length = length * length;
-    t = -sceVu0InnerProduct(to_start, segment) / length;
-
+    sceVu0SubVector(along, to_end, to_start);
+    line_length = mgDistVector(along);
+    line_length = line_length * line_length;
+    t = -sceVu0InnerProduct(to_start, along) / line_length;
     if (t < 0.0f || !(t <= 1.0f)) {
-        start_distance = mgDistVector(point, start);
-        end_distance = mgDistVector(point, end);
-
-        if (start_distance < end_distance) {
+        dist_start = mgDistVector(point, start);
+        dist_end = mgDistVector(point, end);
+        if (dist_start < dist_end) {
             sceVu0CopyVector(nearest, start);
-            return start_distance;
+            return dist_start;
         }
-
         sceVu0CopyVector(nearest, end);
-        return end_distance;
+        return dist_end;
     }
-
-    sceVu0ScaleVector(along, segment, t);
-    sceVu0AddVector(along, along, to_start);
-    sceVu0AddVector(nearest, along, point);
-    return mgDistVector(along);
+    sceVu0ScaleVector(foot, along, t);
+    sceVu0AddVector(foot, to_start, foot);
+    sceVu0AddVector(nearest, foot, point);
+    return mgDistVector(foot);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgDistLinePoint__FPfPfPfPf);
-#endif
 float mgReflectionPlane(float *normal, float *on_plane, float *point, float *reflection) {
     sceVu0FVECTOR step;
     float         distance;
@@ -326,55 +318,49 @@ float mgReflectionPlane(float *normal, float *on_plane, float *point, float *ref
     sceVu0SubVector(reflection, reflection, step);
     return distance;
 }
-#ifdef NONMATCHING
 int mgIntersectionSphereLine0(float radius, float *from, float *to, float (*hits)[4]) {
-    sceVu0FVECTOR line;
-    sceVu0FVECTOR offset;
+    float delta[4];
+    float scaled[4];
     float         a;
     float         b;
+    float c;
     float         discriminant;
     float         root;
-    float         near_t;
-    float         far_t;
+    float t1;
+    float t2;
     int           count;
 
     // Solves |from + line * t|^2 = radius^2 for t within the segment.
-    sceVu0SubVector(line, to, from);
-    a = mgDistVector2(line);
-    b = sceVu0InnerProduct(line, from);
-    discriminant = b * b - a * (mgDistVector2(from) - radius * radius);
-
+    sceVu0SubVector(delta, to, from);
+    a = mgDistVector2(delta);
+    b = sceVu0InnerProduct(delta, from);
+    c = mgDistVector2(from) - radius * radius;
+    discriminant = b * b - a * c;
     if (discriminant < 0.0f) {
         return 0;
     }
-
     root = sqrtf(discriminant);
     count = 0;
-    near_t = (-b - root) / a;
-    far_t = (-b + root) / a;
-
-    if (!(near_t < 0.0f) && near_t <= 1.0f) {
-        sceVu0ScaleVector(offset, line, near_t);
-        sceVu0AddVector(hits[0], from, offset);
+    t1 = (-b - root) / a;
+    t2 = (-b + root) / a;
+    if (!(t1 < 0.0f) && t1 <= 1.0f) {
+        sceVu0ScaleVector(scaled, delta, t1);
+        sceVu0AddVector(hits[0], from, scaled);
         count++;
     }
-
     // A grazing line touches the sphere once.
     if (discriminant == 0.0f) {
         return 1;
     }
-
-    if (!(far_t < 0.0f) && far_t <= 1.0f) {
-        sceVu0ScaleVector(offset, line, far_t);
-        sceVu0AddVector(hits[count], from, offset);
+    if (!(t2 < 0.0f)) {
+        if (t2 <= 1.0f) {
+            sceVu0ScaleVector(scaled, delta, t2);
+            sceVu0AddVector(hits[count], from, scaled);
         count++;
     }
-
+    }
     return count;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgIntersectionSphereLine0__FfPfPfPA4_f);
-#endif
 int mgIntersectionSphereLine(float *sphere, float *from, float *to, float (*hits)[4]) {
     sceVu0FVECTOR local_from;
     sceVu0FVECTOR local_to;
@@ -456,59 +442,10 @@ int mgCheckPointPoly3_XYZ(float *point, float *v0, float *v1, float *v2, float *
 int mgCheckPointPoly3_XZ(float *point, float *v0, float *v1, float *v2) {
     return Check_Point_Poly3(point[0], point[2], v0[0], v0[2], v1[0], v1[2], v2[0], v2[2]);
 }
-#ifdef NONMATCHING
 /**
  * Returns where a 2D point lies relative to a 2D triangle, as an mgPointPoly3Result.
  */
-static int Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2) {
-    float cross0;
-    float cross1;
-    float cross2;
-
-    if (x < (x0 < x1 ? (x0 < x2 ? x0 : x2) : (x1 < x2 ? x1 : x2))) {
-        return MG_POINT_POLY3_OUTSIDE;
-    }
-
-    if (x > (x0 > x1 ? (x0 > x2 ? x0 : x2) : (x1 > x2 ? x1 : x2))) {
-        return MG_POINT_POLY3_OUTSIDE;
-    }
-
-    if (y < (y0 < y1 ? (y0 < y2 ? y0 : y2) : (y1 < y2 ? y1 : y2))) {
-        return MG_POINT_POLY3_OUTSIDE;
-    }
-
-    if (y > (y0 > y1 ? (y0 > y2 ? y0 : y2) : (y1 > y2 ? y1 : y2))) {
-        return MG_POINT_POLY3_OUTSIDE;
-    }
-
-    cross0 = (x1 - x0) * (y - y0) - (y1 - y0) * (x - x0);
-    cross1 = (x2 - x1) * (y - y1) - (y2 - y1) * (x - x1);
-    cross2 = (x0 - x2) * (y - y2) - (y0 - y2) * (x - x2);
-
-    if (cross0 == 0.0f) {
-        return MG_POINT_POLY3_EDGE_01;
-    }
-
-    if (cross1 == 0.0f) {
-        return MG_POINT_POLY3_EDGE_12;
-    }
-
-    if (cross2 == 0.0f) {
-        return MG_POINT_POLY3_EDGE_20;
-    }
-
-    if (cross0 > 0.0f && cross1 > 0.0f && cross2 > 0.0f) {
-        return MG_POINT_POLY3_INSIDE;
-    }
-
-    if (cross0 < 0.0f && cross1 < 0.0f && cross2 < 0.0f) {
-        return MG_POINT_POLY3_INSIDE;
-    }
-
-    return MG_POINT_POLY3_OUTSIDE;
-}
-#else
-s32 Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2) {
+int Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2) {
     float edge_20;
     float edge_12;
     float edge_01;
@@ -557,7 +494,7 @@ s32 Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, 
     }
     return MG_POINT_POLY3_OUTSIDE;
 }
-#endif
+
 float mgDistVector(float *vector) {
     asm {
         lqc2 $vf4, 0x0($4)
@@ -859,18 +796,12 @@ void mgRotMatrixXYZ(float (*matrix)[4], float *rotation) {
     mgRotMatrixZ(matrix, rotation[2]);
     MulMatrix3(matrix, rotate_y, rotate_x);
 }
-#ifdef NONMATCHING
 void mgCreateMatrixPY(float (*matrix)[4], float *position, float angle_y) {
     mgUnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, angle_y);
-    matrix[3][0] = position[0];
-    matrix[3][1] = position[1];
-    matrix[3][2] = position[2];
+    *(u_long128 *)matrix[3] = *(u_long128 *)position;
     matrix[3][3] = 1.0f;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgCreateMatrixPY__FPA4_fPff);
-#endif
 void mgLookAtMatrixZ(float (*matrix)[4], float *direction) {
     sceVu0FMATRIX pitch;
     sceVu0FMATRIX yaw;
@@ -905,166 +836,167 @@ void mgLookAtMatrixZ(float (*matrix)[4], float *direction) {
     pitch[1][2] = -unit[1];
     mgMulMatrix(matrix, yaw, pitch);
 }
-#ifdef NONMATCHING
+#pragma optimization_level 3
 void mgShadowMatrix(float (*matrix)[4], float *light_direction, float *on_plane, float *plane_normal) {
-    sceVu0FVECTOR light;
-    sceVu0FVECTOR point;
-    sceVu0FVECTOR normal;
-    float         height;
-    float         scale;
+    float light_dir[4];
+    float plane_point[4];
+    float normal_copy[4];
+    float dot;
+    float facing;
     float         nx;
+    float inv_dot;
+    float ly;
     float         ny;
+    float lx;
+    float lz;
+    float         scale;
     float         nz;
-    float         along;
-    float         factor;
-
-    light[0] = light_direction[0];
-    light[1] = light_direction[1];
-    light[2] = light_direction[2];
-    light[3] = 0.0f;
-    sceVu0CopyVector(point, on_plane);
-    sceVu0CopyVector(normal, plane_normal);
-    height = sceVu0InnerProduct(normal, point);
-
+    light_dir[0] = light_direction[0];
+    light_dir[1] = light_direction[1];
+    light_dir[2] = light_direction[2];
+    light_dir[3] = 0.0f;
+    sceVu0CopyVector(plane_point, on_plane);
+    sceVu0CopyVector(normal_copy, plane_normal);
+    dot = sceVu0InnerProduct(normal_copy, plane_point);
     // A plane through the origin cannot be scaled to n.x = 1, so it is moved slightly first.
-    if (height == 0.0f) {
-        point[0] = point[0] - 0.1f * normal[0];
-        point[1] = point[1] - 0.1f * normal[1];
-        point[2] = point[2] - 0.1f * normal[2];
-        height = sceVu0InnerProduct(normal, point);
+    if (dot == 0.0f) {
+        plane_point[0] -= 0.1f * normal_copy[0];
+        plane_point[1] -= 0.1f * normal_copy[1];
+        plane_point[2] -= 0.1f * normal_copy[2];
+        dot = sceVu0InnerProduct(normal_copy, plane_point);
     }
-
-    scale = 1.0f / height;
-    nx = normal[0] * scale;
-    ny = normal[1] * scale;
-    nz = normal[2] * scale;
-    sceVu0Normalize(light, light);
-    along = nx * light[0] + ny * light[1] + nz * light[2];
-    factor = -1.0f / along;
-
-    matrix[0][0] = factor * (nx * light[0] - along);
-    matrix[1][0] = factor * (ny * light[0]);
-    matrix[2][0] = factor * (nz * light[0]);
-    matrix[3][0] = factor * -light[0];
-    matrix[0][1] = factor * (nx * light[1]);
-    matrix[1][1] = factor * (ny * light[1] - along);
-    matrix[2][1] = factor * (nz * light[1]);
-    matrix[3][1] = factor * -light[1];
-    matrix[0][2] = factor * (nx * light[2]);
-    matrix[1][2] = factor * (ny * light[2]);
-    matrix[2][2] = factor * (nz * light[2] - along);
-    matrix[3][2] = factor * -light[2];
+    inv_dot = 1.0f / dot;
+    nx = normal_copy[0] * inv_dot;
+    ny = normal_copy[1] * inv_dot;
+    nz = normal_copy[2] * inv_dot;
+    sceVu0Normalize(light_dir, light_dir);
+    lx = light_dir[0];
+    ly = light_dir[1];
+    lz = light_dir[2];
+    facing = nx * lx + ny * ly + nz * lz;
+    scale = -1.0f / facing;
+    matrix[0][0] = scale * (nx * lx - facing);
+    matrix[1][0] = scale * (ny * lx);
+    matrix[2][0] = scale * (nz * lx);
+    matrix[3][0] = scale * -lx;
+    matrix[0][1] = scale * (nx * ly);
+    matrix[1][1] = scale * (ny * ly - facing);
+    matrix[2][1] = scale * (nz * ly);
+    matrix[3][1] = scale * -ly;
+    matrix[0][2] = scale * (nx * lz);
+    matrix[1][2] = scale * (ny * lz);
+    matrix[2][2] = scale * (nz * lz - facing);
+    matrix[3][2] = scale * -lz;
     matrix[0][3] = 0.0f;
     matrix[1][3] = 0.0f;
     matrix[2][3] = 0.0f;
-    matrix[3][3] = factor * -along;
+    matrix[3][3] = scale * -facing;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgShadowMatrix__FPA4_fPfPfPf);
-#endif
-#ifdef NONMATCHING
+#pragma optimization_level reset
+#pragma schedule off
+#pragma global_optimizer off
 void mgApplyMatrixN(float (*out)[4], float (*matrix)[4], float (*in)[4], int count) {
     // The next input is loaded ahead of each store, so one vector past the run is read.
     asm {
-        addi $7, $7, -1
-        lqc2 $vf16, 0x0($6)
-        lqc2 $vf10, 0x0($5)
-        lqc2 $vf11, 0x10($5)
-        lqc2 $vf12, 0x20($5)
-        lqc2 $vf13, 0x30($5)
-    }
-row:
-    asm {
-        vmulax.xyzw $ACC, $vf10, $vf16x
-        vmadday.xyzw $ACC, $vf11, $vf16y
-        vmaddaz.xyzw $ACC, $vf12, $vf16z
-        vmaddw.xyzw $vf17, $vf13, $vf16w
-        addi $7, $7, -1
-        addi $4, $4, 0x10
-        addi $6, $6, 0x10
-        sqc2 $vf17, -0x10($4)
-        lqc2 $vf16, 0x0($6)
-        bgez $7, row
+        .set noreorder
+        addi count, count, -1
+        lqc2 vf16, 0(in)
+        lqc2 vf10, 0(matrix)
+        lqc2 vf11, 0x10(matrix)
+        lqc2 vf12, 0x20(matrix)
+        lqc2 vf13, 0x30(matrix)
+        nop
+    loop:
+        vmulax.xyzw ACC, vf10, vf16x
+        vmadday.xyzw ACC, vf11, vf16y
+        vmaddaz.xyzw ACC, vf12, vf16z
+        vmaddw.xyzw vf17, vf13, vf16w
+        addi count, count, -1
+        addi out, out, 0x10
+        addi in, in, 0x10
+        sqc2 vf17, -0x10(out)
+        lqc2 vf16, 0(in)
+        bgez count, loop
         vnop
+        .set reorder
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgApplyMatrixN__FPA4_fPA4_fPA4_fi);
-#endif
-#ifdef NONMATCHING
-void mgApplyMatrixN_MaxMin(float (*out)[4], float (*matrix)[4], float (*in)[4], int count, float *max, float *min) {
+#pragma global_optimizer reset
+#pragma schedule reset
+#pragma global_optimizer off
+void mgApplyMatrixN_MaxMin(float (*out)[4], float (*matrix)[4], float (*in)[4], int count, float *max,
+                           float *min) {
     // The first vector seeds both bounds; the next input is loaded ahead of each store.
     asm {
-        addi $7, $7, -1
-        lqc2 $vf16, 0x0($6)
-        lqc2 $vf10, 0x0($5)
-        lqc2 $vf11, 0x10($5)
-        lqc2 $vf12, 0x20($5)
-        lqc2 $vf13, 0x30($5)
-        vmulax.xyzw $ACC, $vf10, $vf16x
-        vmadday.xyzw $ACC, $vf11, $vf16y
-        vmaddaz.xyzw $ACC, $vf12, $vf16z
-        vmaddw.xyzw $vf17, $vf13, $vf16w
-        addi $7, $7, -1
-        addi $4, $4, 0x10
-        addi $6, $6, 0x10
-        sqc2 $vf17, -0x10($4)
-        lqc2 $vf16, 0x0($6)
-        vaddx.xyzw $vf20, $vf17, $vf0x
-        vaddx.xyzw $vf21, $vf17, $vf0x
-    }
-row:
-    asm {
-        vmulax.xyzw $ACC, $vf10, $vf16x
-        vmadday.xyzw $ACC, $vf11, $vf16y
-        vmaddaz.xyzw $ACC, $vf12, $vf16z
-        vmaddw.xyzw $vf17, $vf13, $vf16w
-        addi $7, $7, -1
-        addi $4, $4, 0x10
-        addi $6, $6, 0x10
-        sqc2 $vf17, -0x10($4)
-        lqc2 $vf16, 0x0($6)
-        vmax.xyzw $vf20, $vf20, $vf17
-        bgez $7, row
-        vmini.xyzw $vf21, $vf21, $vf17
-        sqc2 $vf20, 0x0($8)
-        sqc2 $vf21, 0x0($9)
+        .set noreorder
+        addi count, count, -1
+        lqc2 vf16, 0(in)
+        lqc2 vf10, 0(matrix)
+        lqc2 vf11, 0x10(matrix)
+        lqc2 vf12, 0x20(matrix)
+        lqc2 vf13, 0x30(matrix)
+        vmulax.xyzw ACC, vf10, vf16x
+        vmadday.xyzw ACC, vf11, vf16y
+        vmaddaz.xyzw ACC, vf12, vf16z
+        vmaddw.xyzw vf17, vf13, vf16w
+        addi count, count, -1
+        addi out, out, 0x10
+        addi in, in, 0x10
+        sqc2 vf17, -0x10(out)
+        lqc2 vf16, 0(in)
+        vaddx.xyzw vf20, vf17, vf0x
+        vaddx.xyzw vf21, vf17, vf0x
+    loop:
+        vmulax.xyzw ACC, vf10, vf16x
+        vmadday.xyzw ACC, vf11, vf16y
+        vmaddaz.xyzw ACC, vf12, vf16z
+        vmaddw.xyzw vf17, vf13, vf16w
+        addi count, count, -1
+        addi out, out, 0x10
+        addi in, in, 0x10
+        sqc2 vf17, -0x10(out)
+        lqc2 vf16, 0(in)
+        vmax.xyzw vf20, vf20, vf17
+        bgez count, loop
+        vmini.xyzw vf21, vf21, vf17
+        nop
+        .set reorder
+        sqc2 vf20, 0(max)
+        sqc2 vf21, 0(min)
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgApplyMatrixN_MaxMin__FPA4_fPA4_fPA4_fiPfPf);
-#endif
-#ifdef NONMATCHING
+#pragma global_optimizer reset
+#pragma global_optimizer off
 void mgVectorMinMaxN(float *max, float *min, float (*vectors)[4], int count) {
     // The first vector seeds both bounds and the count following it are folded in.
     asm {
-        addi $7, $7, -1
-        lqc2 $vf10, 0x0($6)
-        vmove.xyzw $vf11, $vf10
-        lqc2 $vf16, 0x10($6)
+        .set noreorder
+        addi count, count, -1
+        lqc2 vf10, 0(vectors)
+        vmove.xyzw vf11, vf10
+        lqc2 vf16, 0x10(vectors)
         vnop
         vnop
         vnop
-    }
-row:
-    asm {
-        vmax.xyzw $vf10, $vf10, $vf16
-        vmini.xyzw $vf11, $vf11, $vf16
-        addi $7, $7, -1
-        addi $6, $6, 0x10
-        lqc2 $vf16, 0x0($6)
+    loop:
+        vmax.xyzw vf10, vf10, vf16
+        vmini.xyzw vf11, vf11, vf16
+        addi count, count, -1
+        addi vectors, vectors, 0x10
+        lqc2 vf16, 0(vectors)
         vnop
-        bgez $7, row
+        bgez count, loop
+        nop
+        nop
         vnop
         vnop
         vnop
-        sqc2 $vf10, 0x0($4)
-        sqc2 $vf11, 0x0($5)
+        .set reorder
+        sqc2 vf10, 0(max)
+        sqc2 vf11, 0(min)
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgVectorMinMaxN__FPfPfPA4_fi);
-#endif
+#pragma global_optimizer reset
 void mgApplyMatrix(float *max, float *min, float (*matrix)[4], float *box_max, float *box_min) {
     sceVu0FVECTOR corners[8];
 

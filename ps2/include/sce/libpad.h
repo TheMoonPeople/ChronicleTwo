@@ -27,7 +27,7 @@ int scePadEnd(void);
 /**
  * Opens one controller port and slot.
  */
-int scePadPortOpen(int port, int slot, void *buffer);
+int scePadPortOpen(int port, int slot, unsigned char *buffer);
 
 /**
  * Closes one controller port and slot.

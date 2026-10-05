@@ -333,12 +333,7 @@ public:
      * @address 0x1C6C80
      * @size 0xA0
      */
-    CCharacter2() {
-        shadow_link_num = 0;
-        shadow_link_shadow = NULL;
-        shadow_link_model = NULL;
-        Initialize();
-    }
+    CCharacter2();
 
     /**
      * Moves the character to a position, marking its transform changed when it moves.

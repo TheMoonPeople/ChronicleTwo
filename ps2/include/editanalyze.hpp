@@ -2,6 +2,7 @@
 
 #include "common.h"
 
+class CEditData;
 /**
  * @file
  * Declares the town analysis of the Georama maps: the checks that turn the
@@ -94,3 +95,15 @@ int CheckLiveChara(int map_no, CEditMap *edit_map, int no, int chara);
  * @size 0xC0
  */
 void EditMapInitEvent(int map_no, CEditMap *edit_map);
+
+void AnalyzeSharlot(CEditData *data, CEditMap *map);
+
+void AnalyzeStera(CEditData *data, CEditMap *map);
+
+void AnalyzeBenietio(CEditData *data, CEditMap *map);
+
+void AnalyzeHeim(CEditData *data, CEditMap *map);
+
+void AnalyzeMoonFlower(CEditData *data, CEditMap *map);
+
+int GetColorType(CEditParts *parts, int no);

@@ -204,6 +204,7 @@ public:
      * @size 0x50
      */
     CObject();
+    CObject &operator=(const CObject &other);
 
     /**
      *
@@ -263,7 +264,7 @@ public:
      * @address 0x16AED0
      * @size 0x150
      */
-    virtual bool FarClip(float dist, float *out_alpha);
+    virtual int FarClip(float dist, float *out_alpha);
 
     /**
      *

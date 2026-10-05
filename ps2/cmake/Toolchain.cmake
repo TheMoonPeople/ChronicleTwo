@@ -13,6 +13,7 @@ set(MW_CC_DIR ${TOOLS_DIR}/compilers/mw/3.0-011126
     CACHE STRING "Directory holding mwccps2.exe")
 set(CC_FLAGS -O3,p -strings readonly -c -Cpp_exceptions off -RTTI off -i ${INCLUDE_DIR})
 set(CC_DEP_FLAGS -MD)
+option(MIGRATED_CPP "Compile migrated C++ whose instructions or layout differ from retail" OFF)
 
 # MWLD, run under wibo, links the executable from every object in
 # <build>/main_o_files, placed by the linker script.

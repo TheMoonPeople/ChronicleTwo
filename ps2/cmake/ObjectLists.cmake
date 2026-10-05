@@ -63,16 +63,63 @@ endfunction()
 # source has an INCLUDE_ASM or INCLUDE_RODATA marker, reading the per-symbol
 # files the split wrote, so every object depends on the split.
 function(add_cpp_object obj src)
+    set(compiler_source ${src})
+    set(migrated_config ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/migrated_units.txt)
+    if(EXISTS ${migrated_config} AND NOT MIGRATED_CPP)
+        file(STRINGS ${migrated_config} migrated_units)
+        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${migrated_config})
+        foreach(unit IN LISTS migrated_units)
+            if(src STREQUAL "${SRC_DIR}/${unit}.cpp")
+                set(compiler_source ${BUILD_DIR}/retail/${unit}.cpp)
+                add_custom_command(
+                    OUTPUT ${CMAKE_SOURCE_DIR}/${compiler_source}
+                    COMMAND ${PYTHON} ${SCRIPTS_DIR}/build/retail_source.py
+                            --unit ${unit} --output ${compiler_source}
+                    DEPENDS ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/retail_source.py
+                            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/disassemble.py
+                            ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/main.yaml
+                            ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/main.symbols.txt
+                            ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
+                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                    VERBATIM)
+            endif()
+        endforeach()
+    endif()
+    set(compiler_script mwccgap.sh)
+    set(compiler_flags ${CC_FLAGS} ${CC_DEP_FLAGS})
+    set(compiler_environment MW_DIR=${MW_CC_DIR})
+    set(gcc_config ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/gcc_units.txt)
+    if(EXISTS ${gcc_config})
+        file(STRINGS ${gcc_config} gcc_rows)
+        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${gcc_config})
+        foreach(row IN LISTS gcc_rows)
+            separate_arguments(parts UNIX_COMMAND "${row}")
+            list(GET parts 0 unit)
+            if(src STREQUAL "${SRC_DIR}/${unit}.cpp")
+                list(GET parts 1 version)
+                set(compiler_script gccgap.sh)
+                set(compiler_flags -O2 -G0)
+                set(compiler_environment EE_GCC=${version})
+            endif()
+        endforeach()
+    endif()
+    file(GLOB gcc_headers ${CMAKE_SOURCE_DIR}/${INCLUDE_DIR}/gcc/*.h)
+    if(MIGRATED_CPP)
+        list(APPEND compiler_flags -DMIGRATED_CPP)
+    endif()
     add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/${obj}
         COMMAND ${CMAKE_COMMAND} -E env
-                MW_DIR=${MW_CC_DIR} MIPS_TOOL_PREFIX=${MIPS_TOOL_PREFIX}
-                sh ${SCRIPTS_DIR}/build/mwccgap.sh ${obj} ${obj}.d ${src}
-                ${CC_FLAGS} ${CC_DEP_FLAGS}
+                ${compiler_environment} MIPS_TOOL_PREFIX=${MIPS_TOOL_PREFIX}
+                sh ${SCRIPTS_DIR}/build/${compiler_script} ${obj} ${obj}.d ${compiler_source}
+                ${compiler_flags}
         COMMAND sh ${SCRIPTS_DIR}/build/fixup_sections.sh ${obj}
         DEPENDS ${CMAKE_SOURCE_DIR}/${src}
+                ${CMAKE_SOURCE_DIR}/${compiler_source}
                 ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
-                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/mwccgap.sh
+                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/${compiler_script}
+                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/ee_gcc.py
+                ${gcc_headers}
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/postprocess_object.py
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/fixup_sections.sh
                 ${MWCCGAP_SOURCES}

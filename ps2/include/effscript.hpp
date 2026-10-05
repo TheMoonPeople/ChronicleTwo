@@ -65,7 +65,7 @@ enum EffSptState {
  */
 struct EFF_SPT_BASE_DEF {
     char name[0x20];   /**< Name that effects are started by; empty in the end row. */
-    s32  type;         /**< EffSptBaseType of the resource. */
+    int  type; /**< EffSptBaseType of the resource. */
     char file[0x20];   /**< File name, without extension, of the model or texture image. */
     char script[0x20]; /**< File name, without extension, of the compiled script. */
 };
@@ -76,13 +76,13 @@ STATIC_ASSERT(sizeof(EFF_SPT_BASE_DEF) == 0x64);
  * Loaded effect base: the model or texture and the script that running effects are started from.
  */
 struct EFF_SPT_BASE {
-    s32          base_no;    /**< Row of the effect definition table. */
+    int          base_no; /**< Row of the effect definition table. */
     CCharacter2 *chara;      /**< Model that running effects copy, or NULL for a texture base. */
-    s32          texb;       /**< Texture block that the base's textures are entered in. */
-    s32          texb_owned; /**< Nonzero when the texture block was taken from the manager's pool. */
+    int          texb; /**< Texture block that the base's textures are entered in. */
+    int          texb_owned; /**< Nonzero when the texture block was taken from the manager's pool. */
     char        *script;     /**< Compiled script. */
-    s32          level;      /**< Load level the base belongs to. */
-    s32          work_size;  /**< Quadwords of work memory that one running effect needs. */
+    int          level; /**< Load level the base belongs to. */
+    int          work_size; /**< Quadwords of work memory that one running effect needs. */
 };
 
 STATIC_ASSERT(sizeof(EFF_SPT_BASE) == 0x1C);
@@ -91,16 +91,16 @@ STATIC_ASSERT(sizeof(EFF_SPT_BASE) == 0x1C);
  * Billboard sprite of a running effect, with the velocities and accelerations that move it.
  */
 struct _ES_SPRITE {
-    s32           draw_flag;          /**< Nonzero to draw the sprite. */
-    s32           alpha;              /**< Alpha blending mode that the sprite is drawn with. */
-    u8            unk_08[0x8];
+    int           draw_flag; /**< Nonzero to draw the sprite. */
+    int           alpha; /**< Alpha blending mode that the sprite is drawn with. */
+    u_char            unk_08[0x8];
     sceVu0FVECTOR pos;                /**< Position, relative to the effect's origin. */
     float         uv[4];              /**< Texture rectangle: left, top, width and height. */
     sceVu0FVECTOR color;              /**< Colour and alpha, each from 0 to 255. */
     float         scale[2];           /**< Horizontal and vertical scale of the drawn size. */
     float         put_size[2];        /**< Drawn width and height before scaling. */
     float         rotz;               /**< Angle, in radians, of the sprite about the view direction. */
-    u8            unk_54[0xC];
+    u_char            unk_54[0xC];
     sceVu0FVECTOR velo_pos;           /**< Change of the position in each step. */
     sceVu0FVECTOR acc_pos;            /**< Change of the position velocity in each step. */
     sceVu0FVECTOR velo_col;           /**< Change of the colour in each step. */
@@ -111,14 +111,14 @@ struct _ES_SPRITE {
     float         acc_scl[2];         /**< Change of the scale velocity in each step. */
     float         scale_target[2];    /**< Scale that the sprite eases towards. */
     float         scale_conv_div;     /**< Divisor of the scale's remaining distance moved in each step; easing stops at zero or below. */
-    u8            unk_c4[0xC];
+    u_char            unk_c4[0xC];
     sceVu0FVECTOR color_target;       /**< Colour that the sprite eases towards. */
     float         color_conv_div;     /**< Divisor of the colour's remaining distance moved in each step; easing stops at zero or below. */
-    u8            unk_e4[0xC];
+    u_char            unk_e4[0xC];
     sceVu0FVECTOR blink_amp;          /**< Amount that blinking adds to each colour component at the peak of its wave. */
     float         blink_speed;        /**< Change of the blink phase in each drawn frame; zero for no blinking. */
     float         blink_phase;        /**< Angle, in radians, of the blink wave. */
-    u8            unk_108[0x8];
+    u_char            unk_108[0x8];
 };
 
 STATIC_ASSERT(sizeof(_ES_SPRITE) == 0x110);
@@ -127,7 +127,7 @@ STATIC_ASSERT(sizeof(_ES_SPRITE) == 0x110);
  * Value slot that a running effect's script and its starter share, holding an integer or a float.
  */
 union EFF_SPT_VALUE {
-    s32   i; /**< Value as an integer. */
+    int   i; /**< Value as an integer. */
     float f; /**< Value as a float. */
 };
 
@@ -141,29 +141,29 @@ struct _EFF_SCRIPT {
     CCharacter2  *chara;                             /**< Copy of the base's model that the effect moves, or NULL. */
     u_long128    *sub_chara_work;                    /**< Work memory block of the extra character copies, or NULL. */
     CCharacter2  *sub_chara[EFF_SPT_SUB_CHARA_MAX];  /**< Extra copies of the model, or NULL. */
-    s32           texb;                              /**< Texture block that the effect's textures are taken from. */
-    s32           level;                             /**< Load level of the base the effect was started from. */
+    int           texb; /**< Texture block that the effect's textures are taken from. */
+    int           level; /**< Load level of the base the effect was started from. */
     _ES_SPRITE   *sprite;                            /**< Billboard sprites, or NULL when none are assigned. */
-    s32           sprite_num;                        /**< Number of billboard sprites. */
+    int           sprite_num; /**< Number of billboard sprites. */
     char          tex_name[0x20];                    /**< Name of the texture that the sprites are drawn with. */
     CRunScript    run;                               /**< Interpreter of the effect's script. */
-    s32           prog_no;                           /**< Script program to start in the next step, or -1 to resume the running one. */
-    s32           user_id;                           /**< Owner of the effect: its row in the slot table and the identifier its attacks carry. */
-    s32           slot;                              /**< Column of the owner's slot table holding the effect, or -1. */
+    int           prog_no; /**< Script program to start in the next step, or -1 to resume the running one. */
+    int           user_id; /**< Owner of the effect: its row in the slot table and the identifier its attacks carry. */
+    int           slot; /**< Column of the owner's slot table holding the effect, or -1. */
     sceVu0FVECTOR origin;                            /**< Position that the effect's model and sprites are placed relative to. */
-    s32           auto_offset;                       /**< Nonzero to add the target character's position, or its named frame's, to the origin. */
+    int           auto_offset; /**< Nonzero to add the target character's position, or its named frame's, to the origin. */
     char          offset_frame[0x20];                /**< Name of the target character's frame that the origin follows; empty for the character itself. */
-    u8            unk_e4[0xC];
+    u_char            unk_e4[0xC];
     sceVu0FVECTOR work_vect1;                        /**< First vector that the starter passes the script. */
     sceVu0FVECTOR work_vect2;                        /**< Second vector that the starter passes the script. */
-    s32           target_id;                         /**< Scene character that the effect aims at or follows, or -1. */
+    int           target_id; /**< Scene character that the effect aims at or follows, or -1. */
     EFF_SPT_VALUE value[EFF_SPT_VALUE_MAX];          /**< Values that the starter and the script share. */
     CColPrim     *colprim;                           /**< Collision primitive carrying the effect's attack, or NULL. */
-    s32           light_flag;                        /**< Nonzero to colour the sprites with the scene lighting instead of their own colour. */
-    s32           state;                             /**< EffSptState that the effect is paused in. */
+    int           light_flag; /**< Nonzero to colour the sprites with the scene lighting instead of their own colour. */
+    int           state; /**< EffSptState that the effect is paused in. */
     _EFF_SCRIPT  *prev;                              /**< Previous effect in the manager's list, which is ordered by texture block. */
     _EFF_SCRIPT  *next;                              /**< Next effect in the manager's list. */
-    u8            unk_148[0x8];
+    u_char            unk_148[0x8];
 };
 
 STATIC_ASSERT(sizeof(_EFF_SCRIPT) == 0x150);
@@ -177,15 +177,15 @@ public:
     mgCMemory     *memory;                                        /**< Memory that effect bases are built in when no other is given. */
     mgCMemory     *work_memory;                                   /**< Memory that running effects, their characters and sprites are allocated from. */
     u_long128     *load_buffer;                                   /**< Buffer that base files are read into before they are built. */
-    s32            level;                                         /**< Load level that bases built now belong to. */
-    s32            texb_start;                                    /**< First texture block of the manager's pool. */
-    s32            texb_num;                                      /**< Number of texture blocks in the pool. */
-    s32            texb_used;                                     /**< Number of texture blocks of the pool in use. */
-    s32            level_texb_used[EFF_SPT_LEVEL_MAX];            /**< Number of pool texture blocks taken by each load level. */
-    s32            unk_2c;
+    int            level; /**< Load level that bases built now belong to. */
+    int            texb_start; /**< First texture block of the manager's pool. */
+    int            texb_num; /**< Number of texture blocks in the pool. */
+    int            texb_used; /**< Number of texture blocks of the pool in use. */
+    int            level_texb_used[EFF_SPT_LEVEL_MAX]; /**< Number of pool texture blocks taken by each load level. */
+    int            unk_2c;
     mgC3DSprite    sprite;                                        /**< Builds the packet that the running effects' billboards are drawn with. */
     EFF_SPT_BASE  *base[EFF_SPT_BASE_MAX];                        /**< Loaded effect bases, or NULL for free entries. */
-    s32            base_num;                                      /**< Number of effect bases built. */
+    int            base_num; /**< Number of effect bases built. */
     _EFF_SCRIPT   *slot[EFF_SPT_OWNER_MAX][EFF_SPT_OWNER_SLOT_MAX]; /**< Running effects by owner and slot, or NULL. */
     _EFF_SCRIPT   *now;                                           /**< Effect started last, which calls given a negative slot act on. */
     _EFF_SCRIPT   *head;                                          /**< First running effect. */
@@ -658,9 +658,9 @@ extern EFF_SPT_BASE_DEF eff_spt_base_def[EFF_SPT_BASE_DEF_NUM];
 /**
  * Scene that the effect scripts act on, taken when a manager is initialised.
  */
-extern CScene *now_scene;
+extern "C" CScene *now_scene;
 
 /**
  * Manager whose effects are being stepped, which the script functions act on.
  */
-extern CEffectScriptMan *EffScriptMan;
+extern "C" CEffectScriptMan *EffScriptMan;

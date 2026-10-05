@@ -127,14 +127,14 @@ public:
     int disabled;                 /**< Non-zero when the last Begin found no memory, packet or render info to build with. */
     u_long128 *packet_start;      /**< Uncached address where the current packet starts. */
     u_long128 *packet_top;        /**< Start of the first packet built, kept once set. */
-    u_long128 *write;             /**< Next quadword of the packet to write. */
-    u_long128 *dma_start;         /**< DMA tag that opens the current primitive run. */
-    u_long128 *direct_start;      /**< Quadword the VIF direct transfer of the current run counts from. */
+    union { u_long128 *write; u_int *write_words; u_long *command_write; }; /**< Next quadword of the packet to write. */
+    union { u_long128 *dma_start; u_int *dma_start_words; }; /**< DMA tag that opens the current primitive run. */
+    union { u_long128 *direct_start; u_int *direct_start_words; }; /**< Quadword the VIF direct transfer of the current run counts from. */
     u_int *giftag;                /**< GIF tag of the current primitive run, completed with its loop count at the end. */
-    u_int *dma_tag;               /**< DMA tag word completed with the run's quadword count at the end. */
-    u_int *direct_code;           /**< VIF direct code word completed with the run's quadword count at the end. */
+    union { u_int *dma_tag; int *dma_tag_words; }; /**< DMA tag word completed with the run's quadword count at the end. */
+    union { u_int *direct_code; int *direct_code_words; }; /**< VIF direct code word completed with the run's quadword count at the end. */
     int unk_f4;
-    float q;                      /**< Q value written with every colour. */
+    union { float q; u_int q_bits; }; /**< Q value written with every colour. */
     int coord;                    /**< Zero to place vertices relative to the screen offset; non-zero to use raw GS coordinates. */
     int packed;                   /**< Non-zero while the current run uses a packed GIF tag with its own register list. */
     int nreg;                     /**< Registers per loop of the packed GIF tag. */
@@ -298,7 +298,7 @@ public:
      * @address 0x135180
      * @size 0x20
      */
-    void DirectData(int count);
+    u_char *DirectData(int count);
 
     /**
      * Writes a vertex given in whole pixels.

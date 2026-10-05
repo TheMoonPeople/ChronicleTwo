@@ -271,11 +271,7 @@ public:
      * @address 0x1CF560
      * @size 0x10
      */
-    virtual void Initialize() {
-        draw_request = 0;
-        angle = 0.0f;
-        frame = NULL;
-    }
+    virtual void Initialize();
 
     /**
      * Draws the marker raised by its bob when a draw was requested.
@@ -488,11 +484,7 @@ public:
      * @address 0x1BC6F0
      * @size 0x20
      */
-    virtual void Initialize() {
-        state = TREASURE_BOX_STATE_NONE;
-        lid_open = 0.0f;
-        flags = 1;
-    }
+    virtual void Initialize();
 
     /**
      * Draws the box with its lid opened, when the camera is within 1000 units.
@@ -839,3 +831,15 @@ void LoadMonsterFile();
  * @size 0x130
  */
 void LoadMonsterFile(int monster_no, int reset);
+
+void StatusWarningSnd();
+
+void BattleAreaBGMCtrl();
+
+void PickupRandomItemCheckMax(TRESURE_BOX_FLOOR_INFO *table, int floor_index);
+
+TRESURE_BOX_ITEM *PickupRandomItem(TRESURE_BOX_FLOOR_INFO *table, int floor_index, int rank);
+
+int CheckObjectPutArea(float *pos);
+
+void CreatMonsterFloorInfo(char *script, int size);

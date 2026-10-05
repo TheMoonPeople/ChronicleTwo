@@ -1,43 +1,961 @@
+const int kMenuAskParamOffset = 0x58;
+const int kBaseMenuWord0xF8Offset = 0xF8;
+const int kBagSlotCount = 0x96;
+#include "dng_main.hpp"
+#include "charasetup.hpp"
+#include "dynamicanime.hpp"
+#include "sound.hpp"
+#include "dataread.hpp"
+#include "prespr.hpp"
+#include "mg_drawprim.hpp"
+#include <cstdio>
+#include "map.hpp"
+#include "inventmn.hpp"
+#include "menuchr.hpp"
+#include "font.hpp"
+#include "sysmes.hpp"
+#include "scenesnd.hpp"
+#include "savedata.hpp"
+#include "userdata.hpp"
+#include "gamedata.hpp"
+#include "scriptinterpreter.hpp"
+#include "mg_math.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "mainloop.hpp"
+#include "menucls1.hpp"
+#include "menucommon.hpp"
+#include "menumain.hpp"
 #include "common.h"
 #include "menusys.hpp"
 #include "menudraw.hpp"
 #include <cstring>
 
+inline unsigned int QuadwordsFor(int bytes) {
+    return ((unsigned int)bytes & 0xF) ? ((unsigned int)bytes >> 4) + 1 : ((unsigned int)bytes >> 4);
+}
+
+enum { kPadUp = 1, kPadDown = 2, kPadLeft = 4, kPadRight = 8 };
+
+enum ItemArea {
+    kAreaHand = 0,
+    kAreaEquip = 1,
+    kAreaRobo = 2,
+    kAreaBag = 3,
+    kAreaSelected = 7,
+    kAreaBait = 0xA
+};
+
+enum ItemMenuState {
+    kStateBrowse = 0,
+    kStateClosing = 2,
+    kStateSpectolBreak = 7,
+    kStateSpectolFusion = 8,
+    kStateExtended9 = 9,
+    kStateOverLimit = 0xD,
+    kStateTuneBuildUp = 0xF
+};
+
+enum TuneBuildUpStep { kTuneAdjust = 0, kTuneConfirmSave = 1, kTuneConfirmDiscard = 2 };
+
+enum BuildUpTuning {
+    kStatWord = 11,
+    kSpareWord = 22,
+    kPointsPerStep = 100,
+    kStatMax = 100
+};
+
+enum { kBlinkPeriod = 0x3C, kBlinkLastOn = 0x19 };
+
+enum FusionColors {
+    kColorNormal = 0x80,
+    kColorRaisedR = 0x54,
+    kColorRaisedG = 0x54,
+    kColorRaisedB = 0xA4
+};
+
+enum ItemMenuCommand {
+    kCmdNone = 0,
+    kCmdDenied = 5,
+    kCmdOpenCommandMenu = 10,
+    kCmdPlaceItem = 0x14,
+    kCmdTakeAll = 0x1E,
+    kCmdSortBag = 0x28,
+    kCmdCancel = 0x32,
+    kCmdUseOnChara = 0x3C,
+    kCmdFuseSelected = 0x46,
+    kCmdUseOnRobo = 0x50,
+    kCmdUseOnMonster = 0x5A,
+    kCmdCancelNoLoad = 100,
+    kCmdUnused = 0x6E,
+    kCmdBuildUpInfo = 0x78
+};
+
+extern "C" void Func_MenuItemIconSetEffectOne__FP18MENUFORMPARTS_TYPE(MENUFORMPARTS_TYPE *);
+extern "C" void GetWorldPosition__8mgCFrameFPfPf(mgCFrame *frame, float *position, float *offset);
+extern "C" void sceVu0AddVector(float *result, float *a, float *b);
+extern "C" void __ct__13CGameDataUsedFv(void *);
+extern "C" void ToSpectolTrans__13CGameDataUsedFP13CGameDataUsedi(CGameDataUsed *item,
+                                                                  CGameDataUsed *out, int count);
+extern "C" MENU_ASKMODE_PARA *__ct__17MENU_ASKMODE_PARAFv(MENU_ASKMODE_PARA *param);
+extern "C" int GetItemDataType__Fi(int itemNo);
+void MenuAquaInit(mgCMemory *memory, int *data, int arg);
+void NameRegistInit(mgCMemory *memory, int *data, int arg);
+void MenuNPCQuestViewInit(mgCMemory *memory, int *data, int arg);
+int GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *param, int slot, int arg);
+int GetItemCommandMsg(CGameDataUsed *item, int *slots, u32 *flags, short *values, short *extra,
+                      int slot, int arg);
+void MenuFormUpdataAttachInfo(CMenuPosDataForm *form, CGameDataUsed *item, int itemNo, int a,
+                              short *b);
+void SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int charaNo);
+void SetupUnitMan(CScene *scene, CUserDataManager *userData, int unit, ROBO_INFO_DATA *robo);
+extern "C" void MenuBGReadInfo2Malloc__FP9mgCMemoryPi(mgCMemory *, int *);
+void InitSpectol(void);
+void MenuItemDebugKey();
+
+struct NameList {
+    char *name;
+};
+struct NamePair {
+    char *a;
+    char *b;
+};
+struct KeyPairTable {
+    int v[2][2];
+};
+struct SpectolBreakTable {
+    int v[4];
+};
+
+extern u_long128 *MainCharaReadBuffer[3];
+extern CGameDataUsed *NewViewWep;
+extern CGameDataUsed *OldViewWep;
+extern u8 view_weapon_flag;
+extern CDC2Mes *MenuDCMsg[9];
+extern CGameDataUsed SpectolTransBefore;
+extern CGameDataUsed SpectolInfoStay;
+extern NamePair at_1685;
+extern KeyPairTable at_2328;
+extern KeyPairTable at_2333__3;
+extern SpectolBreakTable at_1557;
+extern char at_1493__2[];
+extern int MenuHowHaveMuchNum;
+extern short MenuTrushNum;
+extern short SpectolBreakNum;
+extern short SpectolBreakNum_Limit;
+extern short SpectolBreakSpPoint;
+extern short MenuItemCommand_RoboPackBreakFlag;
+extern short save_spectol_fusion_param[10];
+extern int save_spectol_fusion_spstatus;
+extern signed char sndflag_1665;
+extern signed char init_1666;
+extern u8 MenuItemCmdRet[];
+extern CDC2Mes *TrushMesCls[4];
+extern CMenuPosDataForm *MenuSpectolSatusCheckForm;
+extern CMenuPosDataForm *MenuSpectolSatusCheckBGFadeForm;
+extern CItemSelect *ItemSelectPtr;
+extern "C" int GetSpectolNo__13CGameDataUsedFv(CGameDataUsed *self);
+extern "C" u8 __vt__14CBaseMenuClass[];
+extern "C" float sinf(float);
+extern float MenuWeaponBasePos[3];
+extern float SpectolFramePosValue;
+extern float SpectolFrameFadeAlpha;
+extern float SpectolFrameScaleAngle;
+extern CActionChara *SpectolFrame;
+extern NameList at_1545;
+extern signed char MenuRoboEquipTable[8];
+extern char at_5757[];
+extern char at_7342[];
+extern char at_7343[];
+extern char at_7344[];
+extern char at_7345[];
+extern char at_7346[];
+extern char at_7347[];
+extern float at_7021;
+extern MENU_INPUTKEY_ARG item_menu_argtbl[];
+extern float ActiveMenuWeaponCharaRange;
+extern mgCMemory MainCharaReadStack;
+extern u8 *MainCharaReadStackReadAdr;
+extern CMenuItemInfo *CMenuItemInfoPt;
+extern short MenuItem_ItemBoardTopLine;
+extern short MenuItem_ItemBoardTopSelect;
+extern u32 *MenuItemSpectolTransSoundBuffer;
+extern void *Save_AskParamInfo_7099;
+extern short SpectolFusion_LeftOrRight;
+extern signed char diffent_weapon_dispflag_7125;
+extern signed char fusion_blinkcnt_7120;
+extern signed char init_7121;
+extern signed char init_7126;
+extern MENUFORMPARTS_TYPE *BuildUpFormInfoIndex[10];
+extern MENUFORMPARTS_TYPE *BuildUpFormInfoStatusVol[10];
+extern "C" float at_3407[4];
+extern "C" u8 padtbl_3359[16];
+extern "C" char at_2545__2[];
+extern "C" char at_2546__2[];
+extern "C" char at_2651[];
+extern "C" char at_2547[];
+extern "C" char at_2548[];
+extern "C" char at_2549[];
+extern "C" char at_2550[];
+extern "C" char *n_2667[4];
+extern "C" int CheckBuildUp__FP13CGameDataUsedPiPiPi(CGameDataUsed *, int *, int *, int *);
+extern "C" int MenuCheckKey[4];
+extern "C" char *focusnametbl[21];
+extern "C" float at_3771[4];
+extern "C" float at_3772[4];
+extern "C" char at_3774__2[];
+extern "C" char at_3775__2[];
+extern "C" mgCFrame *SearchObject__12CActionCharaFPc(CActionChara *chara, char *name);
+extern "C" char at_3924[];
+extern "C" char at_3829[];
+extern CGamePad GamePad__2;
+extern "C" char at_5022[];
+extern "C" char at_4985[];
+extern char *tbl_4981[3];
+extern char *plist_4982[3];
+extern char *local_over_flow_baseposname[3];
+extern char *OverFlowFormName;
+extern "C" char at_5130[];
+extern "C" char at_5131[];
+extern "C" char at_5132[];
+extern "C" char at_5133[];
+extern "C" char at_5134[];
+extern CLevelUpEffectManager MenuLevelUpMan;
+extern "C" char at_4954[];
+extern "C" char at_3751[];
+extern "C" char at_5210[];
+extern "C" char at_5211[];
+extern int Robo_Sound_ID_Save;
+extern "C" char at_4672[];
+extern int tbl_5293[];
+extern mgCMemory MenuItemMemory;
+extern mgCMemory MenuItemMemory2;
+extern mgCMemory MenuItemMainMemory;
+extern mgCMemory MenuItemBGDataMemory;
+extern int old_viewmode_8715;
+extern signed char init_8716;
+extern int old_chrid_8718;
+extern signed char init_8719;
+extern char at_8819[];
+extern char at_8820[];
+extern char at_8821[];
+extern char at_8822[];
+extern char at_8823[];
+extern char at_5281[];
+int ReadBGSync(void);
+
+int AfterSpectolFusion(CGameDataUsed *item, CGameDataUsed *part);
+void local_item_infoview_set(MENUFORMPARTS_TYPE *part, CGameDataUsed *item);
+int MenuAquaKey(void);
+int NameRegistKey(void);
+int MenuNPCQuestViewKey(void);
+
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", DrawTrushMenuMessage__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", __ct__14CBaseMenuClassFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetTexBlock__14CBaseMenuClassFPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", DeleteTexBlock__14CBaseMenuClassFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemCommnadSelectPrepare__14CBaseMenuClassFP13CGameDataUsedii);
+void DrawTrushMenuMessage() {
+    int i;
+    mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *)0);
+    for (i = 0; i < 4; i++) {
+        if (TrushMesCls[i]) {
+            TrushMesCls[i]->StepMsg();
+            TrushMesCls[i]->DrawMsg();
+        }
+    }
+}
+CBaseMenuClass::CBaseMenuClass() {
+    u8 *raw = (u8 *)this;
+    int i;
+    *(u8 **)(raw + 0x10C) = __vt__14CBaseMenuClass;
+    __ct__17MENU_ASKMODE_PARAFv((MENU_ASKMODE_PARA *)(raw + kMenuAskParamOffset));
+    (&swap_info)->Set(-1, 0, -1, 0);
+    memset(this, 0, 0x110);
+    *(signed char *)(raw + 4) = 0;
+    mode = 1;
+    step = 0;
+    *(short *)(raw + 6) = 0;
+    script = NULL;
+    script_size = 0;
+    unk_10 = 0x80;
+    key_arg_no = 0;
+    for (i = 0; i < 16; i++) {
+        *(int *)(raw + 0x18 + i * 4) = -1;
+    }
+    cmd_arg_pos = -1;
+    *(int *)(raw + 0xF8) = 0;
+    step = 0;
+    SetAskParam(NULL);
+    memset(raw + 0xFC, 0, 0x10);
+}
+void CBaseMenuClass::SetTexBlock(int *block) {
+
+    int *dst = (int *)this;
+    int i;
+    for (i = 0; i < 16; i++) {
+        dst[6 + i] = block[i];
+        if (dst[6 + i] <= 0) {
+            dst[6 + i] = -1;
+            break;
+        }
+    }
+    DeleteTexBlock();
+}
+void CBaseMenuClass::DeleteTexBlock() {
+    MenuDeleteTextureBlock((int *)((u8 *)this + 0x18));
+}
+int CBaseMenuClass::MenuItemCommnadSelectPrepare(CGameDataUsed *item, int slot, int arg) {
+
+    u8 param[sizeof(MENU_ASKMODE_PARA)];
+    if (item == NULL) {
+        return 0;
+    }
+    if (item->used_type > 0) {
+        cmd_arg_pos = slot;
+        __ct__17MENU_ASKMODE_PARAFv((MENU_ASKMODE_PARA *)param);
+        return (GetItemCommandMsg(item, (MENU_ASKMODE_PARA *)param, cmd_arg_pos, arg) <= 0) ^ 1;
+    }
+    return 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemMoveItemCommand__14CBaseMenuClassFP13CGameDataUsediiP16CMenuPosDataFormi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemCommandSelect__14CBaseMenuClassFii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetItemCmdMsgPos__14CBaseMenuClassFPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuHowMuchNumSelect__FiP13CGameDataUsedi);
+int MenuHowMuchNumSelect(int key, CGameDataUsed *item, int limit) {
+    short step = 0;
+    int max_num;
+    int before;
+    int changed;
+    if (key & 1) {
+        step += 1;
+    } else if (key & 2) {
+        step -= 1;
+    }
+    if ((key & 0x10) || (key & 0x40)) {
+        step -= 5;
+    } else if ((key & 0x20) || (key & 0x80)) {
+        step += 5;
+    }
+    max_num = 1;
+    if (item != NULL) {
+        max_num = item->GetNum();
+    }
+    if (limit > 0) {
+        max_num = limit;
+    }
+    before = MenuHowHaveMuchNum;
+    MenuHowHaveMuchNum += step;
+    if (MenuHowHaveMuchNum <= 0) {
+        MenuHowHaveMuchNum = 1;
+    }
+    if (max_num < MenuHowHaveMuchNum) {
+        MenuHowHaveMuchNum = max_num;
+    }
+    changed = 0;
+    if (before != MenuHowHaveMuchNum) {
+        MenuSePlay(0x1D);
+        MenuCommonInfo->down_arrow_cnt = 0;
+        MenuCommonInfo->up_arrow_cnt = 0;
+        if (0 < step) {
+            MenuCommonInfo->up_arrow_cnt = 8;
+        } else {
+            MenuCommonInfo->down_arrow_cnt = 8;
+        }
+        changed = 1;
+    }
+    MenuCommonInfo->how_much_form->SetNumber(at_1493__2, MenuHowHaveMuchNum);
+    return changed;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemAskMode_HowMuch__14CBaseMenuClassFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckTrushWeapon__FP13CGameDataUsed);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckSpectolFusion__14CBaseMenuClassFP13CGameDataUsediP16CMenuPosDataForm);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", UpdataInfoSpectolBreakItem__FP7CDC2MesP13CGameDataUsedi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckEquipFishRod__FP13CGameDataUsed);
+CGameDataUsed *CheckTrushWeapon(CGameDataUsed *item) {
+    CGameDataUsed *slot = GetUserDataMan()->GetUsedDataPtr(0);
+    int bag_max = GetNowBagMax(1);
+    int i;
+    for (i = 0; i < bag_max; i++, slot++) {
+        if (slot != item && slot->item_type == 1 && !slot->IsFishingRod()) {
+            return slot;
+        }
+    }
+    return NULL;
+}
+int CBaseMenuClass::CheckSpectolFusion(CGameDataUsed *item, int panel, CMenuPosDataForm *form) {
+    CDC2Mes *message;
+    int held_type;
+    CGameDataUsed *held = (CGameDataUsed *)(&MenuCommonInfo->have_item);
+    held_type = GetItemDataType__Fi(MenuCommonInfo->have_item.item_no);
+    GetItemDataType__Fi(item->item_no);
+    int kind = item->used_type;
+    if (kind == 0) {
+        return 0;
+    }
+    if (held_type == 0x11) {
+        mode = 8;
+        form->draw_flag = 1;
+        message = MenuDCMsg[panel];
+        MENU_ASKMODE_PARA param;
+        param.mes_no = panel;
+        int abs_pos = 5;
+        param.form = form;
+        if (kind == 3 && !item->IsFishingRod()) {
+            if (item->RemainFusion() >= held->data.attach.spectol_value) {
+                SetSpectolInfo(item, held);
+                param.item = held;
+                param.item2 = item;
+                CGameDataUsed before;
+                CGameDataUsed after;
+                __ct__13CGameDataUsedFv(&before);
+                __ct__13CGameDataUsedFv(&after);
+                before.CopyGameData(item);
+                after.CopyGameData(held);
+                SepectolFusionBeforeAfterCheck.Init();
+                SepectolFusionBeforeAfterCheck.CopyGameData(item);
+                int raised = AfterSpectolFusion(&SepectolFusionBeforeAfterCheck, held);
+                message->MsgPreset(0xB);
+                if (0 < raised) {
+                    message->MakeMsg(0xAC);
+                } else if (save_spectol_fusion_spstatus == 0) {
+                    message->MakeMsg(0xC0);
+                } else {
+                    message->MakeMsg(0xCE);
+                }
+                abs_pos = 0x12;
+                message->SetMsgCursor(1);
+                MenuFormUpdataAttachInfo(MenuSpectolSatusCheckForm, &SepectolFusionBeforeAfterCheck,
+                                         0, 1, save_spectol_fusion_param);
+            } else {
+                message->MsgPreset(0xA);
+                message->MakeMsg(0xBA);
+                step = 3;
+            }
+        } else {
+            message->MsgPreset(0xA);
+            message->MakeMsg(0xBB);
+            step = 3;
+        }
+        NameList names = at_1545;
+        names.name = item->GetName(1);
+        message->SetMsgItemNo(&names.name, 1);
+        SetAskParam(&param);
+        message->SetAbsPos(abs_pos);
+        return 1;
+    }
+    return 0;
+}
+void UpdataInfoSpectolBreakItem(CDC2Mes *mes, CGameDataUsed *item, int count) {
+    SpectolBreakTable volume = at_1557;
+    volume.v[0] = count;
+    volume.v[1] = SpectolBreakSpPoint * count;
+    mes->SetMsgVolumeNo(volume.v, 2);
+    mes->fade_speed = 1.0f;
+    CGameDataUsed result;
+    __ct__13CGameDataUsedFv(&result);
+    ToSpectolTrans__13CGameDataUsedFP13CGameDataUsedi(item, &result, count);
+    MenuFormUpdataAttachInfo(MenuSpectolSatusCheckForm, &result, item->item_no, 1, 0);
+    if (MenuSpectolSatusCheckBGFadeForm) {
+        MenuSpectolSatusCheckBGFadeForm->draw_flag = 1;
+    }
+}
+int CheckEquipFishRod(CGameDataUsed *item) {
+    int result = 0;
+    if (CheckFishingWeapon(item) == 1) {
+        CGameDataUsed *weapon = CheckTrushWeapon(item);
+        if (weapon) {
+            SetFishingGamePreEquip(weapon);
+            result = 2;
+        } else {
+            MenuSePlay(5);
+            result = 1;
+        }
+    }
+    return result;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsSpectolTrans__14CBaseMenuClassFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsSpectolFusion__14CBaseMenuClassFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsDispTrushCommand__FP13CGameDataUsed);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsTrush__14CBaseMenuClassFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsItemUseNum__14CBaseMenuClassFiiiP13CGameDataUsedP14CItemUseTarget);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SelectInGiftBox__14CBaseMenuClassFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetConditionHowMuchBoard__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetAskHowMuchItemNum__14CBaseMenuClassFP18MENU_SWAPITEM_INFOP13CGameDataUsed);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetAskParam__14CBaseMenuClassFP17MENU_ASKMODE_PARA);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ExeScript__14CBaseMenuClassFPc);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ExtendCommand__14CBaseMenuClassFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SelectMakeObject__14CBaseMenuClassFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsAskEnd__14CBaseMenuClassFiP16CMenuPosDataForm);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", FadeInMenu__14CBaseMenuClassFif);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", FadeOutMenu__14CBaseMenuClassFif);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", FadeCheckMenu__14CBaseMenuClassFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetPreCmdTrush__FP14CBaseMenuClassiP13CGameDataUsedP16CMenuPosDataForm);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetPreCmdSpectolBreak__FP14CBaseMenuClassiP16CMenuPosDataFormP13CGameDataUsedP13CGameDataUsed);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetPreCmdGiftBoxSelect__FP14CBaseMenuClassP13CGameDataUsed);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckFishCondition__Fv);
+int CBaseMenuClass::IsSpectolFusion(int key, int command) {
+    CDC2Mes *message;
+    CMenuPosDataForm *form;
+    if (!init_1666) {
+        sndflag_1665 = 0;
+        init_1666 = 1;
+    }
+    message = MenuDCMsg[ask_para.mes_no];
+    form = MenuMesForm[ask_para.mes_no];
+    switch (step) {
+        case 0:
+            int choice = message->YesNoCursor();
+            switch (command) {
+                case 1:
+                case 4:
+                case 8:
+                    if (choice == 0) {
+                        step = 1;
+                        form->draw_flag = 0;
+                        MenuSePlay(1);
+                        if (MenuCommonInfo->how_much_form != NULL) {
+                            MenuCommonInfo->how_much_form->draw_flag = 0;
+                        }
+                        SpectolInfoStay.CopyGameData(SpectolInfo[1]);
+                        MenuCommonInfo->InitHaveData();
+                        InitSpectol();
+                        sndflag_1665 = 0;
+                        return 2;
+                    }
+                case 2:
+                    form->draw_flag = 0;
+                    if (MenuCommonInfo->how_much_form != NULL) {
+                        MenuCommonInfo->how_much_form->draw_flag = 1;
+                    }
+                    mode = 0;
+                    step = 0;
+                    itemmenu_chr_rotflag = 1;
+                    MenuSePlay(5);
+                    return 1;
+            }
+            break;
+        case 1: {
+            if (!sndflag_1665 && ReadBGSync() == 0) {
+                sndflag_1665 = 1;
+                void *file = GetReadBGFile(0);
+                if (file != NULL) {
+                    MenuSePlay(0, *(unsigned int **)((u8 *)file + 0x110), &MenuSoundBuffer);
+                }
+            }
+            if (*(u8 *)&MenuEffect[0]->run == 0) {
+                MenuEffect[0]->run = 0;
+                MenuEffect[1]->run = 0;
+                int raised = AfterSpectolFusion(SpectolInfo[0], &SpectolInfoStay);
+                message->MsgPreset(10);
+                message->SetAbsPos(0x12);
+                NamePair names = at_1685;
+                names.a = SpectolInfo[0]->GetName(1);
+                message->SetMsgItemNo(&names.a, 1);
+                if (0 < raised) {
+                    message->MakeMsg(0xAD);
+                } else {
+                    message->MakeMsg(0xCA);
+                    if (save_spectol_fusion_spstatus == 1) {
+                        message->MakeMsg(0xCB);
+                    }
+                }
+                form->draw_flag = 1;
+                step += 1;
+                itemmenu_chr_rotflag = 1;
+                trans_spectol_pos = -1;
+                MenuCommonInfo->FadeInMenuBGMVol(9);
+                return 3;
+            }
+            break;
+        }
+        case 2:
+        case 3:
+            if (command != 0) {
+                IsAskEnd(1, form);
+                itemmenu_chr_rotflag = 1;
+                return 1;
+            }
+            break;
+        case 4:
+            break;
+    }
+    return 0;
+}
+int IsDispTrushCommand(CGameDataUsed *item) {
+    int show = 1;
+    if (item->item_type == 1) {
+        CUserDataManager *user_data = GetUserDataMan();
+        CGameDataUsed *slot = user_data->GetUsedDataPtr(0);
+        int weapon_count = 0;
+        int bag_max = GetNowBagMax(1);
+        int i;
+        for (i = 0; i < bag_max; i++, slot++) {
+            if (slot->item_type == 1 && !slot->IsFishingRod()) {
+                weapon_count++;
+            }
+        }
+        if (weapon_count < 2 && user_data->chara_data[0].equip[0].IsFishingRod()) {
+            show = 0;
+        }
+    }
+    return show;
+}
+int CBaseMenuClass::IsTrush(int key, int command) {
+    CMenuPosDataForm *form = MenuMesForm[ask_para.mes_no];
+    CDC2Mes *message = MenuDCMsg[ask_para.mes_no];
+    if (step == 0) {
+        message->YesNoCursor();
+        switch (command) {
+            case 1:
+                if (message->GetMsgCursor() == 0) {
+                    if (CheckEquipFishRod(ask_para.item) == 1) {
+                        MenuSePlay(5);
+                        break;
+                    }
+                    form->draw_flag = 0;
+                    if (MenuCommonInfo->how_much_form != NULL) {
+                        MenuCommonInfo->how_much_form->draw_flag = 1;
+                    }
+                    MenuCommonInfo->InitHaveData();
+                    ask_para.item->DeleteNum(MenuTrushNum);
+                    MenuSePlay(7);
+                    CheckEnableHaveItemNum();
+                    step += 1;
+                    return 2;
+                }
+            case 2:
+                IsAskEnd(5, form);
+                return 0;
+        }
+    } else if (step == 1) {
+        IsAskEnd(-1, form);
+        return 0;
+    } else if (step == 3) {
+        MenuHowMuchNumSelect(key, ask_para.item, -1);
+        switch (command) {
+            case 1:
+                MenuTrushNum = MenuHowHaveMuchNum;
+                step = 0;
+                MenuCommonInfo->how_much_form->draw_flag = 0;
+                form->draw_flag = 1;
+                message->MakeMsg(0xB0);
+                message->values[0] = MenuHowHaveMuchNum;
+                message->value_width[0] = 0;
+                message->SetMsgCursor(1);
+                MenuSePlay(1);
+                break;
+            case 2:
+                MenuCommonInfo->how_much_form->draw_flag = 0;
+                IsAskEnd(5, form);
+                return 0;
+        }
+    }
+    return 0;
+}
+int CBaseMenuClass::IsItemUseNum(int panel, int key, int command, CGameDataUsed *item,
+                                 CItemUseTarget *target) {
+    if (step == 0) {
+        MenuItemUse.UseItem(item, target);
+        if (item->GetNum() <= 0) {
+            MenuCommonInfo->SetHaveItemInfo(0, 1);
+        } else {
+            MenuCommonInfo->SetHaveItemInfo(1, 1);
+        }
+        step += 1;
+        step = 0;
+        mode = 0;
+    } else {
+        step = 0;
+        mode = 0;
+    }
+    return 0;
+}
+int CBaseMenuClass::SelectInGiftBox(int key, int command) {
+    int before;
+    CGameDataUsed *gift_box;
+    int item_no;
+    CGameDataUsed *slot;
+    before = NowGiftBoxSelect;
+    if (key & 8) {
+        NowGiftBoxSelect += 1;
+    }
+    if (key & 4) {
+        NowGiftBoxSelect -= 1;
+    }
+    if (NowGiftBoxSelect < 0) {
+        NowGiftBoxSelect = 0;
+    }
+    if (NowGiftBoxSelect >= 3) {
+        NowGiftBoxSelect = 2;
+    }
+    if (before != NowGiftBoxSelect) {
+        MenuSePlay(0);
+    }
+    gift_box = ask_para.item;
+    switch (command) {
+        case 4:
+        case 8:
+        case 1:
+            item_no = gift_box->GetGiftBoxItemNo(NowGiftBoxSelect);
+            if (0 < item_no) {
+                slot = MenuUserDataManPtr->SearchSpaceUsedDataPtr(item_no);
+                if (slot != NULL) {
+                    MenuUserDataManPtr->CopyGameData(slot, item_no);
+                    gift_box->SetGiftBoxItem(0, NowGiftBoxSelect);
+                    MenuSePlay(1);
+                } else {
+                    slot = MenuUserDataManPtr->SearchSpaceUsedDataPtr();
+                    if (slot != NULL) {
+                        MenuUserDataManPtr->CopyGameData(slot, item_no);
+                        gift_box->SetGiftBoxItem(0, NowGiftBoxSelect);
+                        MenuSePlay(1);
+                    } else {
+                        MenuSePlay(5);
+                    }
+                }
+            } else {
+                MenuSePlay(5);
+            }
+            break;
+        case 2:
+            NowGiftBoxSelect = 1;
+            SetAskParam(NULL);
+            mode = 0;
+            GiftBoxViewFlag = 0;
+            MenuSePlay(5);
+            break;
+    }
+    return 0;
+}
+void SetConditionHowMuchBoard() {
+    CMenuPosDataForm *board = MenuCommonInfo->how_much_form;
+    int cursor_pos[2];
+    if (board) {
+        board->draw_flag = 1;
+        MenuCommonInfo->down_arrow_cnt = 0;
+        MenuCommonInfo->up_arrow_cnt = 0;
+        MenuCommonInfo->GetCursorPos(cursor_pos);
+        board->parts[0].y = -8.0f;
+        board->parts[1].y = 2.0f;
+        board->parts[2].y = 32.0f;
+        board->parts[3].y = 10.0f;
+        if (cursor_pos[1] > 0x140) {
+            board->parts[0].y = -98.0f;
+            board->parts[1].y = -88.0f;
+            board->parts[2].y = -58.0f;
+            board->parts[3].y = -80.0f;
+        }
+    }
+}
+void CBaseMenuClass::SetAskHowMuchItemNum(MENU_SWAPITEM_INFO *info, CGameDataUsed *item) {
+    mode = 3;
+    SetConditionHowMuchBoard();
+    if (item != NULL) {
+        if (info != NULL) {
+            MenuHowHaveMuchNum = item->GetNum();
+        }
+    }
+    MENU_ASKMODE_PARA param;
+    param.item = item;
+    SetAskParam(&param);
+    MenuCommonInfo->MenuPosStop();
+    if (info != NULL) {
+        swap_info.flag = info->flag;
+        swap_info.type = info->type;
+        swap_info.no = info->no;
+        swap_info.chara = info->chara;
+    }
+}
+void CBaseMenuClass::SetAskParam(MENU_ASKMODE_PARA *param) {
+    if (param == NULL) {
+        ((MENU_ASKMODE_PARA *)((u8 *)this + kMenuAskParamOffset))->Initialize();
+        return;
+    }
+    u8 *dst = (u8 *)this;
+    u8 *src = (u8 *)param;
+    int i;
+    *(short *)(dst + 0x58) = *(short *)(src + 0x0);
+    *(short *)(dst + 0x5A) = *(short *)(src + 0x2);
+    *(short *)(dst + 0x5C) = *(short *)(src + 0x4);
+    for (i = 0; i < 16; i++) {
+        *(int *)(dst + 0x60 + i * 4) = *(int *)(src + 0x8 + i * 4);
+        *(int *)(dst + 0x80 + i * 4) = *(int *)(src + 0x28 + i * 4);
+        *(short *)(dst + 0xA0 + i * 2) = *(short *)(src + 0x48 + i * 2);
+    }
+    *(int *)(dst + 0xCC) = *(int *)(src + 0x74);
+    *(int *)(dst + 0xD0) = *(int *)(src + 0x78);
+    *(short *)(dst + 0xC8) = *(short *)(src + 0x70);
+    *(short *)(dst + 0xC0) = *(short *)(src + 0x68);
+    *(int *)(dst + 0xD4) = *(int *)(src + 0x7C);
+    *(short *)(dst + 0xC2) = *(short *)(src + 0x6A);
+    *(int *)(dst + 0xD8) = *(int *)(src + 0x80);
+    *(short *)(dst + 0xC4) = *(short *)(src + 0x6C);
+    *(int *)(dst + 0xDC) = *(int *)(src + 0x84);
+    *(short *)(dst + 0xC6) = *(short *)(src + 0x6E);
+    *(int *)(dst + 0xE0) = *(int *)(src + 0x88);
+}
+void CBaseMenuClass::ExeScript(char *script) {
+    MenuCommandAnalyze((char *)this->script, script_size, script);
+}
+int CBaseMenuClass::ExtendCommand(int key, int command) {
+    int result = 0;
+    CBaseMenuClass *menu = this;
+    short ask_mode = mode;
+    MENU_ASKMODE_PARA *param = (MENU_ASKMODE_PARA *)((u8 *)menu + kMenuAskParamOffset);
+    if (ask_mode == 4) {
+        result = MenuItemCommandSelect(key, command);
+        menu->ItemCmdAfter(result, (ITEMCMD_RET_PARA *)MenuItemCmdRet);
+    } else if (ask_mode == 7) {
+        result = IsSpectolTrans(key, command);
+    } else if (ask_mode == 3) {
+        MenuItemAskMode_HowMuch(key, command);
+    } else if (ask_mode == 8) {
+        result = IsSpectolFusion(key, command);
+    } else if (ask_mode == 9) {
+        result = IsTrush(key, command);
+    } else if (ask_mode == 10) {
+        result = IsItemUseNum(param->mes_no, key, command, (CGameDataUsed *)(&MenuCommonInfo->have_item),
+                              &MenuItemUseTarget);
+    } else if (ask_mode == 11) {
+        result = SelectInGiftBox(key, command);
+    } else if (ask_mode == 5) {
+        result = menu->IsCreateObject(key, command);
+    } else if (ask_mode == 6) {
+        result = menu->IsMakeObject(key, command);
+    } else if (ask_mode == 12) {
+        result = menu->IsAskExtend(key, command);
+    }
+    return result;
+}
+int CBaseMenuClass::SelectMakeObject(int keys) {
+    int old_column = make_cursor;
+    int direction;
+    if (keys & 2) {
+        make_cursor = 1;
+    }
+    if (keys & 1) {
+        make_cursor = 0;
+    }
+    if (old_column != make_cursor) {
+        MenuSePlay(0);
+    }
+    direction = 0;
+    if (make_cursor == 0) {
+        int old_row = make_num;
+        int mode = 0;
+        if (keys & 8) {
+            mode += 1;
+        }
+        if (keys & 4) {
+            mode -= 1;
+        }
+        if (keys & 0x20) {
+            mode += 5;
+        }
+        if (keys & 0x10) {
+            mode -= 5;
+        }
+        if (mode < 0) {
+            direction = -1;
+        }
+        if (0 < mode) {
+            direction = 1;
+        }
+        make_num += mode;
+        if (make_num <= 0) {
+            make_num = 1;
+        }
+        if (make_num_max <= make_num) {
+            make_num = make_num_max;
+        }
+        if (old_row != make_num) {
+            MenuSePlay(29);
+        }
+    }
+    return direction;
+}
+void CBaseMenuClass::IsAskEnd(int se, CMenuPosDataForm *form) {
+    if (form) {
+        form->draw_flag = 0;
+    }
+    MenuCommonInfo->key_enable = 1;
+    if (MenuCommonInfo->how_much_form) {
+        MenuCommonInfo->how_much_form->draw_flag = 1;
+    }
+    mode = 0;
+    step = 0;
+    MenuSePlay(se);
+}
+void CBaseMenuClass::FadeInMenu(int frames, float rate) {
+    (&MenuMainScene->fade)->FadeIn(frames);
+    (&MenuMainScene->fade)->FadeStep();
+}
+void CBaseMenuClass::FadeOutMenu(int frames, float rate) {
+    (&MenuMainScene->fade)->FadeOut(frames, 0.0f, 0.0f, 0.0f);
+    (&MenuMainScene->fade)->FadeStep();
+}
+int CBaseMenuClass::FadeCheckMenu() {
+    return (&MenuMainScene->fade)->FadeCheck();
+}
+void SetPreCmdTrush(CBaseMenuClass *menu, int panel, CGameDataUsed *item, CMenuPosDataForm *form) {
+    menu->step = 9;
+    MENU_ASKMODE_PARA param;
+    param.mes_no = panel;
+    param.form = form;
+    param.item = item;
+    menu->SetAskParam(&param);
+    CDC2Mes *message = MenuDCMsg[panel];
+    menu->step = 3;
+    message->MsgPreset(0xB);
+    message->SetAbsPos(5);
+    char *name = item->GetName(1);
+    if (name != NULL) {
+        strcpy(message->name[0], name);
+    }
+    MenuTrushNum = item->GetNum();
+    if (MenuTrushNum == 1) {
+        menu->step = 0;
+        message->MakeMsg(0xB6);
+        message->values[0] = 1;
+        message->value_width[0] = 0;
+        message->SetMsgCursor(1);
+        form->draw_flag = 1;
+        if (MenuCommonInfo->how_much_form != NULL) {
+            MenuCommonInfo->how_much_form->draw_flag = 0;
+        }
+    } else {
+        MenuHowHaveMuchNum = MenuTrushNum;
+        SetConditionHowMuchBoard();
+    }
+}
+void SetPreCmdSpectolBreak(CBaseMenuClass *menu, int panel, CMenuPosDataForm *form,
+                           CGameDataUsed *item, CGameDataUsed *target) {
+    menu->step = 7;
+    menu->step = 0;
+    MENU_ASKMODE_PARA param;
+    param.mes_no = panel;
+    param.form = form;
+    param.arg0 = GetSameAdrressUserData(item, 0);
+    param.item2 = target;
+    param.item = item;
+    param.arg1 = GetSameAdrressUserData(target, 0);
+    menu->SetAskParam(&param);
+    SpectolBreakNum = 1;
+    SpectolBreakNum_Limit = item->GetNum();
+    if (SpectolBreakNum_Limit > 100) {
+        SpectolBreakNum_Limit = 100;
+    }
+    if (item->item_type == 0x13) {
+        SpectolBreakNum_Limit = 1;
+    }
+}
+void SetPreCmdGiftBoxSelect(CBaseMenuClass *menu, CGameDataUsed *item) {
+    menu->step = 11;
+    menu->step = 0;
+    GiftBoxViewFlag = 1;
+    MENU_ASKMODE_PARA param;
+    param.item = item;
+    menu->SetAskParam(&param);
+}
+int CheckFishCondition(void) {
+    CScene *scene;
+    DNG_BATTLE_AREA *battle_scene;
+    int map_no;
+    int enabled;
+    int result;
+
+    scene = GetMainScene();
+    battle_scene = (DNG_BATTLE_AREA*)menu_GetBattleAreaScene();
+    map_no = scene->now_map_no;
+    enabled = 1;
+    if (map_no == 0x7D) {
+        enabled = 0;
+    }
+    if ((map_no == 0x63) || (map_no == 0x5F)) {
+        enabled = 0;
+    }
+    result = enabled;
+    if (GetMenuLoopType() == 1) {
+        if (battle_scene->unk_5c == 0) {
+            enabled = 0;
+        }
+        result = enabled;
+    }
+    return result;
+}
 void CMENU_USERPARAM::Initialize(void) {
     chara[1] = NULL;
     chara[0] = NULL;
@@ -46,36 +964,452 @@ void CMENU_USERPARAM::Initialize(void) {
     used_data = NULL;
     monster1 = NULL;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", AttachInfo__15CMENU_USERPARAMFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", Initialize__17MENU_ASKMODE_PARAFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", __ct__17MENU_ASKMODE_PARAFv);
+void CMENU_USERPARAM::AttachInfo(void) {
+    Initialize();
+    chara[0] = MenuUserDataManPtr->GetCharaDataPtr(0);
+    chara[1] = MenuUserDataManPtr->GetCharaDataPtr(1);
+    robo = &MenuUserDataManPtr->robo_data;
+    used_data = MenuUserDataManPtr->GetUsedDataPtr(0);
+    monster = MenuUserDataManPtr->GetMonsterBajjiDataPtr(1);
+    monster1 = MenuUserDataManPtr->GetMonsterBajjiDataPtrMosId(MenuUserDataManPtr->monster_id);
+}
+void MENU_ASKMODE_PARA::Initialize() {
+    memset(this, 0, 0x94);
+}
+MENU_ASKMODE_PARA::MENU_ASKMODE_PARA() {
+    unk_8C = -1;
+    Initialize();
+}
 void MENU_SWAPITEM_INFO::Set(int type, int no, int chara, int flag) {
     this->type = type;
     this->no = no;
     this->chara = chara;
     this->flag = flag;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsEnableChangeRoboParts__FP13CGameDataUsed);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetSpectolInfo__FP13CGameDataUsedP13CGameDataUsed);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", InitSpectol__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", AfterSpectolFusion__FP13CGameDataUsedP13CGameDataUsed);
+int IsEnableChangeRoboParts(CGameDataUsed *part) {
+    int enabled = 0;
+    if (part->used_type == 5) {
+        int capacity = 0;
+        int used;
+        int slot;
+        int type;
+        int offset;
+        short *cost;
+        used = CheckNowRoboUseCapacity(MenuUserParam.robo, &capacity);
+        type = part->item_type;
+        cost = (short *)GameItemDataManage.GetRoboData(part->item_no);
+        slot = 0;
+        offset = 0;
+        for (; slot < 4; slot++, offset += sizeof(CGameDataUsed)) {
+
+            u8 *equipped = (u8 *)MenuUserParam.robo + offset;
+            if (type == *(signed char *)(equipped + 0x34)) {
+                short *equipped_cost =
+                    (short *)GameItemDataManage.GetRoboData(*(short *)(equipped + 0x32));
+                if (equipped_cost != NULL) {
+                    used -= *equipped_cost;
+                }
+            }
+        }
+        MenuItemCommand_RoboPackBreakFlag = 1;
+        if (capacity - used >= *cost) {
+            enabled = 1;
+            MenuItemCommand_RoboPackBreakFlag = 0;
+        }
+        if (part->item_type == 0xF) {
+            if (part->IsBroken() != 0) {
+                enabled = 0;
+                MenuItemCommand_RoboPackBreakFlag = 2;
+            }
+        }
+    }
+    return enabled;
+}
+void SetSpectolInfo(CGameDataUsed *item, CGameDataUsed *part) {
+    SpectolInfo[0] = item;
+    SpectolInfo[1] = part;
+}
+void InitSpectol(void) {
+    if (SpectolInfo[1] != NULL) {
+        SpectolInfo[1]->Init();
+    }
+}
+int AfterSpectolFusion(CGameDataUsed *item, CGameDataUsed *part) {
+    WEAPON_USED *target;
+    ATTACH_USED *spectol;
+    int first;
+    int lowest;
+    unsigned int attribute;
+    int raised;
+    int i;
+    if (item == NULL) {
+        return 0;
+    }
+
+    target = &item->data.weapon;
+    spectol = &part->data.attach;
+    item->GetStatusParam(save_spectol_fusion_param);
+    if (spectol->spectol_type == 1) {
+        lowest = target->status[0];
+        first = lowest;
+        if (lowest < spectol->status[0]) {
+            first = spectol->status[0];
+        } else {
+            lowest = spectol->status[0];
+        }
+        target->status[0] = first + lowest / 4;
+    } else {
+        target->status[0] = target->status[0] + spectol->status[0];
+    }
+    target->status[1] += spectol->status[1];
+    target->attribute[0] += spectol->attribute[0];
+    target->attribute[1] += spectol->attribute[1];
+    target->attribute[2] += spectol->attribute[2];
+    target->attribute[3] += spectol->attribute[3];
+    target->attribute[4] += spectol->attribute[4];
+    target->attribute[5] += spectol->attribute[5];
+    target->attribute[6] += spectol->attribute[6];
+    target->attribute[7] += spectol->attribute[7];
+    attribute = target->special;
+    target->special = CheckWeaponAttribute(target->special, spectol->special);
+    save_spectol_fusion_spstatus = 0;
+    if (target->special != attribute) {
+        save_spectol_fusion_spstatus = 1;
+    }
+    item->AddFusionPoint(-spectol->spectol_value);
+    item->CheckParamLimmit();
+    raised = 0;
+    save_spectol_fusion_param[0] = target->status[0] - save_spectol_fusion_param[0];
+    save_spectol_fusion_param[1] = target->status[1] - save_spectol_fusion_param[1];
+    save_spectol_fusion_param[2] = target->attribute[0] - save_spectol_fusion_param[2];
+    save_spectol_fusion_param[3] = target->attribute[1] - save_spectol_fusion_param[3];
+    save_spectol_fusion_param[4] = target->attribute[2] - save_spectol_fusion_param[4];
+    save_spectol_fusion_param[5] = target->attribute[3] - save_spectol_fusion_param[5];
+    save_spectol_fusion_param[6] = target->attribute[4] - save_spectol_fusion_param[6];
+    save_spectol_fusion_param[7] = target->attribute[5] - save_spectol_fusion_param[7];
+    save_spectol_fusion_param[8] = target->attribute[6] - save_spectol_fusion_param[8];
+    save_spectol_fusion_param[9] = target->attribute[7] - save_spectol_fusion_param[9];
+    for (i = 0; i < 10; i++) {
+        if (0 < save_spectol_fusion_param[i]) {
+            raised += 1;
+        }
+    }
+    return raised;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", FusionColor__FiiPf);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SpectolFrameCalc__FP12CActionCharai);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", TransSpectolDataSave__FP13CGameDataUsedi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckNowRoboUseCapacity__FPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ExchangeItemInfoMake__FP18MENU_SWAPITEM_INFOPA4_iii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuCheckLine__FPiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuKeySelectCheck__FiPiPiiiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuListKeyCheck__FiPiPiiiii);
+void SpectolFrameCalc(CActionChara *chara, int active) {
+    float scale[4];
+    float rot[4];
+    float pos[3];
+    if (chara != NULL) {
+        if (active == 0) {
+            chara->SetPosition(MenuWeaponBasePos);
+            SpectolFramePosValue = 1.8f;
+            SpectolFrameFadeAlpha = 0.8f;
+            return;
+        }
+        chara->GetScale(scale);
+        chara->GetRotation(rot);
+        float jitter = 0.25f * SpectolFramePosValue;
+        pos[0] = MenuWeaponBasePos[0] + jitter * sinf(GetRandF(6.2831855f));
+        pos[1] = MenuWeaponBasePos[1] + jitter * sinf(GetRandF(6.2831855f));
+        pos[2] = MenuWeaponBasePos[2] + jitter * sinf(GetRandF(6.2831855f));
+        chara->SetPosition(pos);
+        pos[0] = MenuWeaponBasePos[0] + SpectolFramePosValue * sinf(GetRandF(6.2831855f));
+        pos[1] = MenuWeaponBasePos[1] + SpectolFramePosValue * sinf(GetRandF(6.2831855f));
+        pos[2] = MenuWeaponBasePos[2] + SpectolFramePosValue * sinf(GetRandF(6.2831855f));
+        SpectolFrame->SetPosition(pos);
+        SpectolFramePosValue *= 0.98f;
+        SpectolFrame->SetScale(scale[0], scale[0], scale[0]);
+        SpectolFrame->SetRotation(rot);
+        SpectolFrame->SetFadeFlag(1);
+        SpectolFrame->fade_alpha = SpectolFrameFadeAlpha;
+        SpectolFrameFadeAlpha *= 0.98f;
+        SpectolFrameScaleAngle += 0.31415927f;
+    }
+}
+void TransSpectolDataSave(CGameDataUsed *item, int count) {
+    memcpy(&SpectolTransBefore, item, sizeof(CGameDataUsed));
+    if (SpectolTransBefore.used_type == 1) {
+        SpectolTransBefore.data.item.num = count;
+    } else if (SpectolTransBefore.used_type == 2) {
+        SpectolTransBefore.data.attach.num = count;
+    }
+    item->DeleteNum(count);
+}
+int CheckNowRoboUseCapacity(int *capacity) {
+    int used;
+    short *item_info;
+
+    used = CheckNowRoboUseCapacity(MenuUserParam.robo, capacity);
+    if (*capacity == 0) {
+        item_info = (short *)GetItemInfoData(MenuCommonInfo->have_item.item_no);
+        if (item_info != NULL) {
+            *capacity = item_info[5];
+        }
+    }
+    return used;
+}
+int ExchangeItemInfoMake(MENU_SWAPITEM_INFO *info, int (*row)[4], int mode, int is_equip) {
+    int made = 0;
+    row[1][0] = 2;
+    row[1][3] = 0;
+    row[1][2] = 0;
+    row[1][1] = 0;
+    if (mode == 0) {
+        short kind = info->type;
+        if (kind == 0 || kind == 1 || kind == 2) {
+            if (is_equip != 0) {
+                row[0][0] = 0;
+                made = 1;
+                row[0][1] = info->chara;
+                row[0][2] = made;
+                if (info->type == 0) {
+                    row[0][2] = 0;
+                }
+                row[0][3] = info->no;
+                if (info->type == 2) {
+                    row[0][3] = MenuRoboEquipTable[info->no];
+                }
+                return made;
+            }
+        }
+        if (kind == 3 || kind == 9) {
+            made = 1;
+            row[0][0] = made;
+            row[0][3] = info->no;
+        } else if (kind == 10) {
+            made = 1;
+            row[0][0] = 5;
+        }
+    } else if (mode == 1) {
+        if (info->type == 4) {
+            row[0][0] = 1;
+            made = 1;
+            row[0][3] = info->no;
+        }
+    }
+    return made;
+}
+void MenuCheckLine(int *top_line, int cursor, int visible_rows) {
+    if (top_line) {
+        if (cursor - *top_line < 0) {
+            *top_line = cursor;
+        }
+        while (!(cursor < *top_line + visible_rows)) {
+            *top_line += 1;
+        }
+    }
+}
+int MenuKeySelectCheck(int step, int *cursor, int *scroll, int min, int max, int visible,
+                       int mode) {
+    int before = *cursor;
+    int result = 0;
+    *cursor = before + step;
+    if (mode == 0) {
+        if (*cursor < min) {
+            *cursor = min;
+        }
+        if (max <= *cursor) {
+            *cursor = max - 1;
+        }
+        if (before != *cursor) {
+            result = 1;
+        }
+    } else if (mode == 1) {
+        if (*cursor < min) {
+            *cursor = max - 1;
+        }
+        if (max <= *cursor) {
+            *cursor = min;
+        }
+        if (before != *cursor) {
+            result = 1;
+        }
+    } else if (mode == 2) {
+        if (before != *cursor) {
+            result = 1;
+        }
+        if (*cursor < min) {
+            *cursor = min;
+            result = 3;
+        }
+        if (*cursor >= max) {
+            result = 3;
+            *cursor = max - 1;
+        }
+    } else if (mode == 3) {
+        if (before != *cursor) {
+            result = 1;
+        }
+        if (*cursor < min) {
+            result = 4;
+        }
+        if (*cursor >= max) {
+            result = 4;
+        }
+        if (result == 4) {
+            *cursor -= step;
+        }
+    }
+    if (scroll != NULL) {
+        if (*cursor - *scroll < 0) {
+            *scroll = *cursor;
+        }
+        while (*scroll + visible <= *cursor) {
+            *scroll += 1;
+        }
+    }
+    return result;
+}
+int MenuListKeyCheck(int keys, int *cursor, int *top_line, int count, int visible_rows, int key_pair,
+                     int wrap_kind) {
+    int before = *cursor;
+    KeyPairTable key_mask = at_2328;
+    int *key_ptr = key_mask.v[key_pair];
+    if (keys & key_ptr[0]) {
+        *cursor -= 1;
+    }
+    if (keys & key_ptr[1]) {
+        *cursor += 1;
+    }
+    KeyPairTable wrap = at_2333__3;
+    int *wrap_ptr = wrap.v[wrap_kind];
+    wrap.v[0][1] = count - 1;
+    wrap.v[1][0] = count - 1;
+    if (*cursor < 0) {
+        *cursor = wrap_ptr[0];
+    }
+    if (*cursor > count - 1) {
+        *cursor = wrap_ptr[1];
+    }
+    MenuCheckLine(top_line, *cursor, visible_rows);
+    int moved = 0;
+    if (before != *cursor) {
+        moved = 1;
+    }
+    return moved;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuGlidKeyCheck__FiPiPiPiPiPii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuListSelectKeyCheck__Fii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemBrdKey__FiPiPii);
+int MenuListSelectKeyCheck(int keys, int page_size) {
+    int step = 0;
+    if (keys & 1) {
+        step -= 1;
+    } else if (keys & 2) {
+        step += 1;
+    }
+    if (keys & 0x10) {
+        step -= page_size - 1;
+    } else if (keys & 0x20) {
+        step += page_size - 1;
+    }
+    return step;
+}
+int MenuItemBrdKey(int keys, int *cursor, int *scroll, int board) {
+    int before;
+    int row;
+    int result;
+    int dy;
+    int bag_max;
+    int dx;
+
+    before = *cursor;
+    dx = 0;
+    if (keys & 1) {
+        dx -= 1;
+    }
+    if (keys & 2) {
+        dx += 1;
+    }
+    bag_max = GetNowBagMax(board);
+    if (dx < 0) {
+        CalcMenuAdd2(cursor, -6, 0);
+    }
+    if (dx > 0) {
+        CalcMenuAdd2(cursor, 6, bag_max - 1);
+    }
+    row = *cursor / 6;
+    if (row - *scroll < 0) {
+        *scroll = row;
+    }
+    while (!(row < *scroll + 5)) {
+        *scroll += 1;
+    }
+    dy = 0;
+    if (keys & 4) {
+        dy -= 1;
+    }
+    result = 0;
+    if (keys & 8) {
+        dy += 1;
+    }
+    if (dy < 0) {
+        result = CalcMenuAdd2(cursor, dy, row * 6);
+    }
+    if (dy > 0) {
+        CalcMenuAdd2(cursor, dy, (row + 1) * 6 - 1);
+    }
+    if (before != *cursor) {
+        MenuSePlay(0);
+    }
+    return result;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuDataSwap__FP13CGameDataUsedP13CGameDataUsedi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", Initialize__12CMenuKeyFuncFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", AttachFuncData__12CMenuKeyFuncFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetActiveCharaNo__12CMenuKeyFuncFv);
+void CMenuKeyFunc::Initialize() {
+    int i;
+
+    memset(this, 0, sizeof(CMenuKeyFunc));
+    key_enable = 1;
+    key_input = 0;
+    open_type = -1;
+    now_mode = -1;
+    next_mode = -1;
+    pack = 0;
+    pack_size = 0;
+    waku_type = 0;
+    unk_0 = 0;
+    ((CGameDataUsed *)(&have_item))->Init();
+    how_much_form = NULL;
+    waku_form = NULL;
+    how_much_form = NULL;
+    have_icon = 0;
+    have_shadow = 0;
+    have_num = 0;
+    up_arrow_cnt = 0;
+    down_arrow_cnt = 0;
+    bgm_vol = 0;
+    bgm_step = 0;
+    bgm_target = 0;
+    bgm_fading = 0;
+    for (i = 0; i < 16; i++) {
+        tex_block[i] = -1;
+    }
+}
+void CMenuKeyFunc::AttachFuncData() {
+    how_much_form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_2545__2);
+    if (how_much_form != NULL) {
+        have_icon = how_much_form->GetPartInfo(at_2546__2);
+        have_shadow = how_much_form->GetPartInfo(at_2547);
+        have_num = how_much_form->GetPartInfo(at_2548);
+        *(int *)((u8 *)have_num + 0x38) = 1;
+    }
+    waku_form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_2549);
+    how_much_form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_2550);
+}
+int CMenuKeyFunc::GetActiveCharaNo() {
+    return MenuArg.active_chara_no;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuPosStep__12CMenuKeyFuncFPiPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuSetPos__12CMenuKeyFuncFii);
+void CMenuKeyFunc::MenuSetPos(int x, int y) {
+    CMenuPosDataForm *form = how_much_form;
+    float fx = (float)x;
+    float fy = (float)y;
+    form->x = fx;
+    form->y = fy;
+    form = waku_form;
+    form->x = fx;
+    form->y = fy;
+}
 void CMenuKeyFunc::MenuPosStop(void) {
     cursor_form->step_stop = 1;
     waku_form->step_stop = 1;
@@ -91,17 +1425,100 @@ void CMenuKeyFunc::SetMoveMethod(int method) {
 void CMenuKeyFunc::SetWakuMoveMethod(int method) {
     waku_form->mtype = method;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetItemPos__12CMenuKeyFuncFPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetWakuType__12CMenuKeyFuncFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetWakuWH__12CMenuKeyFuncFiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetVibeCnt__12CMenuKeyFuncFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetVibeR__12CMenuKeyFuncFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetCursorPos__12CMenuKeyFuncFPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CursorFadeIn__12CMenuKeyFuncFfi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CursorFadeOut__12CMenuKeyFuncFfi);
+void CMenuKeyFunc::GetItemPos(int *pos) {
+    how_much_form->GetPutPosXY(at_2546__2, pos[0], pos[1]);
+}
+void CMenuKeyFunc::SetWakuType(int type) {
+    char name[0x20];
+    int i;
+    MENUFORMPARTS_TYPE *part;
+
+    waku_type = type;
+    if (waku_form != NULL) {
+        i = 0;
+        do {
+            sprintf(name, at_2651, i);
+            part = waku_form->GetPartInfo(name);
+            if (part != NULL) {
+                part->draw_flag = 0;
+                if (i == waku_type) {
+                    part->draw_flag = 1;
+                }
+            }
+            i += 1;
+        } while (i < 3);
+        waku_form->draw_flag = 1;
+        if (waku_type < 0) {
+            waku_form->draw_flag = 0;
+        }
+    }
+}
+void CMenuKeyFunc::SetWakuWH(int part, int width, int height) {
+    char name[0x20];
+    MENUFORMPARTS_TYPE *info;
+
+    sprintf(name, at_2651, part);
+    info = waku_form->GetPartInfo(name);
+    if (info != NULL) {
+        info->w = (float)width;
+        info->h = (float)height;
+    }
+}
+void CMenuKeyFunc::SetVibeCnt(int count, int rate) {
+    MENUFORMPARTS_TYPE *part = how_much_form->GetPartInfo(at_2545__2);
+    part->vibe_cnt[0] = count;
+    part->vibe_cnt[1] = rate;
+}
+void CMenuKeyFunc::SetVibeR(int strength, int speed) {
+    int i;
+    MENUFORMPARTS_TYPE *part;
+
+    if (how_much_form != NULL) {
+        i = 0;
+        do {
+            part = how_much_form->GetPartInfo(n_2667[i]);
+            if (part == NULL) {
+                break;
+            }
+            i += 1;
+            part->viber[0] = strength;
+            part->viber[1] = speed;
+        } while (i < 4);
+    }
+}
+void CMenuKeyFunc::GetCursorPos(int *pos) {
+    how_much_form->GetPutPosXY(at_2545__2, pos[0], pos[1]);
+}
+void CMenuKeyFunc::CursorFadeIn(float speed, int steps) {
+    if (how_much_form != NULL) {
+        how_much_form->FormFadeIn((int)speed, steps);
+    }
+    if (waku_form != NULL) {
+        waku_form->FormFadeIn((int)speed, steps);
+    }
+}
+void CMenuKeyFunc::CursorFadeOut(float speed, int steps) {
+    if (how_much_form != NULL) {
+        how_much_form->FormFadeOut((int)speed, steps);
+    }
+    if (waku_form != NULL) {
+        waku_form->FormFadeOut((int)speed, steps);
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", EnableSwapNowPos__12CMenuKeyFuncFP18MENU_SWAPITEM_INFO);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetItemAll__12CMenuKeyFuncFP13CGameDataUsedP18MENU_SWAPITEM_INFO);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetItemCommandMsg__FP13CGameDataUsedP17MENU_ASKMODE_PARAii);
+int CMenuKeyFunc::GetItemAll(CGameDataUsed *item, MENU_SWAPITEM_INFO *info) {
+    int slot;
+    if (item == NULL || info == NULL) {
+        return 0;
+    }
+    slot = MenuSwapItem(item, info, item->GetNum(), 1);
+    MenuSePlay(menu_item_swap_sndtbl[slot]);
+    return 1;
+}
+int GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *param, int slot, int arg) {
+    return GetItemCommandMsg(item, (int *)param + 2, (unsigned int *)param + 10, (short *)param + 0x24,
+                             (short *)param + 0x2c, slot, arg);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetItemCommandMsg__FP13CGameDataUsedPiPUiPsPsii);
 void CMenuKeyFunc::SelDataInit(void) {
     select_key = 0;
@@ -110,11 +1527,79 @@ void CMenuKeyFunc::SelDataInit(void) {
     save_top_line = top_line;
     key_input = 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckSelectKey__12CMenuKeyFuncFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckLRKey__12CMenuKeyFuncFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuCheckPushButton__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ConvertCheckPushButton__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckPushButton__12CMenuKeyFuncFv);
+int CMenuKeyFunc::CheckSelectKey() {
+    if (GamePad__2.Down(0x1000) != 0) {
+        select_key |= 1;
+    } else if (GamePad__2.Down(0x4000) != 0) {
+        select_key |= 2;
+    }
+    if (GamePad__2.Down(0x8000) != 0) {
+        select_key |= 4;
+    } else if (GamePad__2.Down(0x2000) != 0) {
+        select_key |= 8;
+    }
+    if (key_enable == 0) {
+        select_key = 0;
+    }
+    return select_key;
+}
+int CMenuKeyFunc::CheckLRKey() {
+    if (GamePad__2.Down(4) != 0) {
+        select_key = 0x10;
+    } else if (GamePad__2.Down(8) != 0) {
+        select_key = 0x20;
+    } else if (GamePad__2.Down(1) != 0) {
+        select_key = 0x40;
+    } else if (GamePad__2.Down(2) != 0) {
+        select_key = 0x80;
+    }
+    if (key_enable == 0) {
+        select_key = 0;
+    }
+    return select_key;
+}
+int MenuCheckPushButton() {
+    int pushed;
+    int *table;
+
+    pushed = 0;
+    table = (int *)padtbl_3359;
+    if (LanguageCode > 0) {
+        table = (int *)(padtbl_3359 + 8);
+    }
+    if (GamePad__2.Down(0x20) != 0) {
+        pushed = table[0];
+    } else if (GamePad__2.Down(0x40) != 0) {
+        pushed = table[1];
+    } else if (GamePad__2.Down(0x10) != 0) {
+        pushed = 4;
+    } else if (GamePad__2.Down(0x80) != 0) {
+        pushed = 8;
+    } else if (GamePad__2.Down(0x100) != 0) {
+        pushed = 0x20;
+    } else if (GamePad__2.Down(0x800) != 0) {
+        pushed = 0x10;
+    } else if (GamePad__2.Down(0x200) != 0) {
+        pushed = 0x80;
+    } else if (GamePad__2.Down(0x400) != 0) {
+        pushed = 0x40;
+    }
+    return pushed;
+}
+int ConvertCheckPushButton(int buttons) {
+    if (LanguageCode != 0 && LanguageCode > 0 && (buttons & 4)) {
+        buttons &= ~4;
+        buttons |= 2;
+    }
+    return buttons;
+}
+int CMenuKeyFunc::CheckPushButton() {
+    push_button = MenuCheckPushButton();
+    if (key_enable == 0) {
+        push_button = 0;
+    }
+    return push_button;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckAnalogKey__12CMenuKeyFuncFiPf);
 u8 CMenuKeyFunc::CheckKeyInput(void) {
     if (key_enable == 0) {
@@ -126,63 +1611,1446 @@ u8 CMenuKeyFunc::CheckKeyInput(void) {
     }
     return key_input;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetDebugInputKey__12CMenuKeyFuncFRiRi);
+int CMenuKeyFunc::GetDebugInputKey(int &held, int &pressed) {
+    held = 0;
+    pressed = 0;
+    if (GamePad__2.On2(0x1000) != 0) {
+        held |= 1;
+    }
+    if (GamePad__2.On2(0x4000) != 0) {
+        held |= 2;
+    }
+    if (GamePad__2.On2(0x8000) != 0) {
+        held |= 4;
+    }
+    if (GamePad__2.On2(0x2000) != 0) {
+        held |= 8;
+    }
+    if (GamePad__2.On2(4) != 0) {
+        held |= 0x10;
+    } else if (GamePad__2.On2(8) != 0) {
+        held |= 0x20;
+    } else if (GamePad__2.On2(1) != 0) {
+        held |= 0x40;
+    } else if (GamePad__2.On2(2) != 0) {
+        held |= 0x80;
+    }
+    if (GamePad__2.Down2(0x20) != 0) {
+        pressed = 1;
+    } else if (GamePad__2.Down2(0x40) != 0) {
+        pressed = 2;
+    } else if (GamePad__2.Down2(0x10) != 0) {
+        pressed = 4;
+    } else if (GamePad__2.Down2(0x80) != 0) {
+        pressed = 8;
+    } else if (GamePad__2.Down2(0x100) != 0) {
+        pressed = 0x20;
+    } else if (GamePad__2.Down2(0x800) != 0) {
+        pressed = 0x10;
+    }
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuSwapItem__12CMenuKeyFuncFP13CGameDataUsedP18MENU_SWAPITEM_INFOib);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetGameDataUsedForSWAPINFO__FP18MENU_SWAPITEM_INFO);
+CGameDataUsed *GetGameDataUsedForSWAPINFO(MENU_SWAPITEM_INFO *info) {
+    CGameDataUsed *item = NULL;
+    short owner = info->chara;
+    if (0 <= owner) {
+        u8 *base = (u8 *)((void**)&MenuUserParam)[owner];
+        short kind = info->type;
+        u8 *robo = (u8 *)MenuUserParam.robo;
+        if (kind == 0) {
+            item = (CGameDataUsed *)(base + info->no * 0x6C + 0x2C);
+        }
+        if (kind == 1) {
+            item = (CGameDataUsed *)(base + info->no * 0x6C + 0x170);
+        }
+        if (kind == 2) {
+            item = (CGameDataUsed *)(robo + info->no * 0x6C + 0x30);
+        }
+        if (kind == 10) {
+            return MenuUserDataManPtr->GetActiveEsa();
+        }
+        return item;
+    }
+    return (CGameDataUsed *)((u8 *)MenuUserParam.used_data + info->no * 0x6C);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ReturnItemMenu__12CMenuKeyFuncFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", InitHaveData__12CMenuKeyFuncFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetHaveItemInfo__12CMenuKeyFuncFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", menu_inputkey_limmit_check_line__12CMenuKeyFuncFi);
+void CMenuKeyFunc::InitHaveData() {
+    ((CGameDataUsed *)(&have_item))->Init();
+    ((MENU_SWAPITEM_INFO *)(&have_swap))->Set(-1, 0, -1, 0);
+    SetHaveItemInfo(0, 1);
+}
+void CMenuKeyFunc::SetHaveItemInfo(int visible, int detail) {
+    u8 shown = (visible != 0);
+    have_shadow->draw_flag = shown;
+    have_icon->draw_flag = shown;
+    have_num->draw_flag = shown;
+    have_shadow->etc_info[0] = 0;
+    have_icon->etc_info[0] = 0;
+    int held_item_no = have_item.item_no;
+    have_icon->etc_info[1] = held_item_no;
+    have_shadow->etc_info[1] = held_item_no;
+    have_icon->rgba[0] = 0x80;
+    have_icon->rgba[1] = 0x80;
+    have_icon->rgba[2] = 0x80;
+    if (detail) {
+        if (have_shadow->etc_info[1] == 0xB9) {
+            *(int *)&have_icon->etc_info[2] = ((CGameDataUsed *)(&have_item))->GetSpectolNo();
+            Func_MenuItemIconSetEffectOne__FP18MENUFORMPARTS_TYPE(have_icon);
+        } else if (have_shadow->etc_info[1] == 0x1AA) {
+            *(int *)&have_icon->etc_info[2] = *(short *)((u8 *)this + 0xD0);
+        }
+    }
+    have_icon->item_flag = 0;
+    if (CheckBuildUp__FP13CGameDataUsedPiPiPi((CGameDataUsed *)(&have_item), NULL, NULL, NULL)) {
+        have_icon->item_flag |= 2;
+    }
+    have_num->etc_info[2] = 1;
+    if (((CGameDataUsed *)(&have_item))->CheckTypeEnableStack()) {
+        have_num->etc_info[1] = ((CGameDataUsed *)(&have_item))->GetNum();
+        have_num->rgba[0] = 0x80;
+        have_num->rgba[1] = 0x80;
+        have_num->rgba[2] = 0x80;
+        if (have_icon->etc_info[1] == 0x137) {
+            have_num->etc_info[1] = GetUserDataMan()->yarikomi_medal;
+            have_num->etc_info[2] = 0;
+            have_num->rgba[0] = 0xA4;
+            have_num->rgba[1] = 0xA4;
+            have_num->rgba[2] = 0x40;
+        }
+    } else {
+        have_num->etc_info[1] = 0;
+    }
+}
+short CMenuKeyFunc::menu_inputkey_limmit_check_line(int keys) {
+    int result;
+    int *cursor = &this->cursor;
+    MENU_INPUTKEY_ARG *limit = *(MENU_INPUTKEY_ARG **)((u8 *)this + 0x134);
+    int i;
+
+    result = -1;
+    i = 0;
+    while (i < 4 && result < 0) {
+        if ((keys & MenuCheckKey[i]) &&
+            MenuKeySelectCheck(limit->step[i], cursor, cursor + 1, limit->min, limit->max,
+                               limit->disp_lines, limit->limit[i]) == 3) {
+            result = limit->exit_no[i];
+        }
+        i += 1;
+    }
+    return result;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", menu_inputkey_limmit_check_glid__12CMenuKeyFuncFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckMoveSelect__12CMenuKeyFuncFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", FadeOutMenuBGMVol__12CMenuKeyFuncFii);
+int CMenuKeyFunc::CheckMoveSelect(int arg) {
+    int result = -1;
+    if (key_enable != 0) {
+        switch (*(int *)(*(u8 **)((u8 *)this + 0x134) + 8)) {
+            case 0:
+                result = menu_inputkey_limmit_check_line(arg);
+                break;
+            case 1:
+                result = menu_inputkey_limmit_check_glid(arg);
+                break;
+        }
+    }
+    return result;
+}
+void CMenuKeyFunc::FadeOutMenuBGMVol(int arg, int value) {
+    if (bgm_fading == 0) {
+        bgm_vol = MenuMainScene->GetVolBGM();
+    }
+    bgm_step = arg;
+    bgm_target = (short)value;
+    if (bgm_target < 0) {
+        bgm_target = 0;
+    }
+    bgm_fading = 1;
+}
 void CMenuKeyFunc::FadeInMenuBGMVol(int step) {
     bgm_step = step;
     bgm_target = bgm_vol;
     bgm_fading = 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", StepMenuBGM__12CMenuKeyFuncFv);
+short CMenuKeyFunc::StepMenuBGM() {
+    int volume;
+
+    if (bgm_fading == 1) {
+        volume = MenuMainScene->GetVolBGM();
+        volume += bgm_step;
+        if (volume < bgm_target && bgm_step < 0) {
+            volume = bgm_target;
+        }
+        if (bgm_vol < volume && bgm_step > 0) {
+            volume = bgm_vol;
+        }
+        MenuMainScene->SetVolBGM(volume);
+        if (volume == bgm_target) {
+            bgm_fading = 0;
+        }
+    }
+    return bgm_fading;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckEnableHaveItemNum__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuEquipCameraSetEnv__FP12CActionCharaP9mgCCameraii);
+void MenuEquipCameraSetEnv(CActionChara *chara, mgCCamera *camera, int type, int index) {
+    float position[4];
+    float offset[4];
+    char name[0x20];
+    float table[4];
+    mgCFrame *frame;
+    char *focus_name;
+    bool is_special;
+
+    if (camera == NULL || chara == NULL) {
+        return;
+    }
+    is_special = false;
+    if (index == 10) {
+        is_special = true;
+    }
+    if (type < 0 || type >= 3 || index < 0 || index > 3) {
+        type = 3;
+        index = 0;
+    }
+    focus_name = focusnametbl[type * 4 + index];
+    if (is_special) {
+        focus_name = focusnametbl[type * 4 + 3];
+    }
+    frame = NULL;
+    if (*(signed char *)focus_name != 0) {
+        frame = SearchObject__12CActionCharaFPc(chara, focus_name);
+    }
+    if (frame == NULL) {
+        MenuCamInit(5.0f);
+        return;
+    }
+    *(u_long128 *)position = *(u_long128 *)at_3771;
+    *(u_long128 *)offset = *(u_long128 *)at_3772;
+    GetWorldPosition__8mgCFrameFPfPf(frame, position, offset);
+    sprintf(name, at_3774__2, type, index);
+    MenuPosData->GetEtcTbl2Value(name, table, 3);
+    sceVu0AddVector(position, position, table);
+    *(u_long128 *)(MenuDrawEnv + 0x80) = *(u_long128 *)position;
+    sprintf(name, at_3775__2, type, index);
+    MenuPosData->GetEtcTbl2Value(name, table, 3);
+    sceVu0AddVector(position, position, table);
+    *(u_long128 *)(MenuDrawEnv + 0x90) = *(u_long128 *)position;
+    *(float *)(MenuDrawEnv + 0xA0) = 7.0f;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuPosFormValueSetWeapon__FP13CGameDataUsed);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuFormUpdataAttachInfo__FP16CMenuPosDataFormP13CGameDataUsediiPs);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuPosFormValueSetFishingRod__FP13CGameDataUsed);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", Initialize__13CMenuItemInfoFv);
+void MenuPosFormValueSetFishingRod(CGameDataUsed *item) {
+    int values[8];
+    char name[0x20];
+    CMenuPosDataForm *form;
+    int i;
+    u8 *rod;
+
+    if (item != NULL && item->IsFishingRod() != 0) {
+        rod = (u8 *)item + 0x10;
+        i = 0;
+        form = CMenuItemInfoPt->view_form[5];
+        values[0] = item->data.weapon.attribute[0];
+        values[1] = item->data.weapon.attribute[1];
+        values[2] = item->data.weapon.attribute[2];
+        values[3] = item->data.weapon.attribute[3];
+        values[4] = item->data.weapon.attribute[4];
+        do {
+            sprintf(name, at_3924, i);
+            form->SetNumber(name, values[i]);
+            i += 1;
+        } while (i < 5);
+        form->SetNumber(at_3829, *(short *)(rod + 0x2C));
+    }
+}
+void CMenuItemInfo::Initialize(void) {
+    int i;
+
+    view_mode = 0;
+    unk_112 = 0;
+    sub_view = 0;
+    view_chara = 0;
+    load_item_no = 0;
+    load_item_no = 2;
+    mos_id = MenuUserDataManPtr->monster_id;
+    view_weapon = NULL;
+    *(int *)((u8 *)this + kBaseMenuWord0xF8Offset) = 0;
+    SetEquipListNo(4);
+    load_weapon_no = 0;
+    unk_16C = 0;
+    effect_pos = 0;
+    unk_176 = -1;
+    unk_178 = -1;
+    model_tex_block = 0;
+    unk_2F8 = 0;
+    unk_13A = 0;
+    sound_load = 0;
+    opened = 0;
+    mode = 1;
+    step = 0;
+    unk_170 = 0;
+    unk_172 = -1;
+    unk_174 = 0;
+    sound_loaded = 0;
+    for (i = 0; i < 8; i++) {
+        equip_flag[i] = 0;
+        equip_list[i] = 0;
+    }
+    unk_160 = 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetEquipListNo__13CMenuItemInfoFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckEquipListNo__13CMenuItemInfoFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckSoundLoad__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SearchNowPosItemExist__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsCancelNoneLoadItem__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsCancelLoadItem__13CMenuItemInfoFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SaveViewWeaponStatus__13CMenuItemInfoFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckViewWeaponStatus__13CMenuItemInfoFi);
+void CMenuItemInfo::SaveViewWeaponStatus(void) {
+    int mode_now;
+    CGameDataUsed *cursor_item;
+
+    view_weapon_flag = 0;
+    mode_now = view_mode;
+    if ((mode_now == 2) || (mode_now == 5)) {
+        cursor_item = SearchNowPosItemExist();
+        if (cursor_item == view_weapon) {
+            OldViewWep = cursor_item;
+            NewViewWep = (&MenuCommonInfo->have_item);
+            if (key_arg_no == 4) {
+                NewViewWep = view_weapon;
+            }
+            view_weapon_flag = 1;
+        }
+        CGameDataUsed *have_data = (&MenuCommonInfo->have_item);
+        if (have_data == view_weapon) {
+            OldViewWep = have_data;
+            view_weapon_flag = 1;
+            NewViewWep = cursor_item;
+        }
+    }
+}
+void CMenuItemInfo::CheckViewWeaponStatus(int revert) {
+    if (view_weapon_flag != 0) {
+        if (revert == 0) {
+            view_weapon = NewViewWep;
+            return;
+        }
+        if ((&MenuCommonInfo->have_item) == view_weapon) {
+            view_weapon = GetGameDataUsedForSWAPINFO((&MenuCommonInfo->have_swap));
+        }
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ReturnActiveCharaViewMode__13CMenuItemInfoFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", NextModeBuildUpInfo__13CMenuItemInfoFP13CGameDataUsed);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", EquipDirect__13CMenuItemInfoFiP13CGameDataUsedRi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckLoadInfo__13CMenuItemInfoFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ItemCmdAfter__13CMenuItemInfoFiP16ITEMCMD_RET_PARA);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsAskExtend__13CMenuItemInfoFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuMoveItemPos__FPiPii);
+void MenuMoveItemPos(int *item, int *pos, int phase) {
+    char part_name[0x20];
+    if (phase == 0) {
+        int kind = item[0];
+        if (kind == 0) {
+            if (item[2] == 0 || item[2] == 1 || item[2] == 2) {
+                sprintf(part_name, plist_4982[item[2]], item[3]);
+            } else {
+                strcpy(part_name, at_5022);
+            }
+            ((CMenuPosDataForm *)MenuPosData->GetFormInfo(tbl_4981[item[1]]))
+                ->GetPutPosXY(part_name, pos[0], pos[1]);
+        } else if (kind == 1) {
+            ((CMenuPosDataManage *)MenuPosData)->GetPosMenuItemOnItemBrd(pos, item[3], 0);
+        } else if (kind == 2) {
+            MenuCommonInfo->GetItemPos(pos);
+        } else if (kind == 4) {
+            ((CMenuPosDataForm *)MenuPosData->GetFormInfo(OverFlowFormName))
+                ->GetPutPosXY(local_over_flow_baseposname[item[3]], pos[0], pos[1]);
+        } else if (kind == 5) {
+            ((CMenuPosDataForm *)MenuPosData->GetFormInfo(tbl_4981[0]))
+                ->GetPutPosXY(at_4985, pos[0], pos[1]);
+        }
+    }
+    if (phase == 1) {
+        int kind = item[0];
+        if (kind == 1) {
+            ((CMenuPosDataManage *)MenuPosData)->GetPosMenuItemOnItemBrd(pos, item[3], 0);
+        } else if (kind == 2) {
+            MenuCommonInfo->GetItemPos(pos);
+        }
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CommonSetMoveItemClass__FPA4_i);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", EnterDataMenu__13CMenuItemInfoFPUi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetActiveCharaIDForItemCmd__13CMenuItemInfoFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetActiveCharaNo__13CMenuItemInfoFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ExitEnd__13CMenuItemInfoFv);
+void CMenuItemInfo::EnterDataMenu(unsigned int *pack) {
+    int sound_size;
+    mgCTextureManager *textures;
+    u8 *item_image = (u8*)GetPackFile(pack, at_5130, NULL);
+    int block = tex_block[4];
+    textures = &mgTexManager;
+    textures->DeleteBlock(block);
+    textures->EnterIMGFile(item_image, block, NULL, NULL);
+    MenuPosData->ResetTextureInfoAll();
+    money_form->SetNumber(at_1493__2, MenuUserDataManPtr->money);
+    Tex_BuildUpBoard = textures->GetTexture(at_2546__2, -1);
+    MenuItemSpectolTransSoundBuffer = GetPackFile(pack, at_5131, &sound_size);
+    if (MenuDCMsg[3] != NULL) {
+        int i = 0;
+        do {
+            strcpy(MenuDCMsg[3]->name[0], at_5132);
+            i += 1;
+            MenuDCMsg[3]->item_mes[0] = 1;
+        } while (i < 4);
+        MenuDCMsg[3]->MakeMsg(-1);
+    }
+    MenuStatusMode = 0;
+    MenuStatusTex = textures->GetTexture(at_5133, -1);
+    MenuLevelUpMan.label_tex = textures->GetTexture(at_5134, -1);
+}
+short CMenuItemInfo::GetActiveCharaIDForItemCmd() {
+    short current = view_mode;
+    if (current == 0) {
+        return 0;
+    }
+    if (current == 1) {
+        return 1;
+    }
+    if (current == 2 || current == 5) {
+        return MenuUserDataManPtr->active_chr_no;
+    }
+    if (current == 3) {
+        return 2;
+    }
+    if (current == 4) {
+        return 3;
+    }
+    return 0;
+}
+int CMenuItemInfo::GetActiveCharaNo() {
+    int var_v0;
+
+    var_v0 = MenuCommonInfo->GetActiveCharaNo();
+    if ((var_v0 == 3) && (sub_view == 1)) {
+        sub_view = 0;
+        var_v0 = 3;
+    }
+    return var_v0;
+}
+void CMenuItemInfo::ExitEnd() {
+    CActionChara *field_chara;
+    int chara_no;
+    CActionChara *chara;
+    int equip_list_no;
+    mgCMemory *stack;
+
+    field_chara = (CActionChara *)MenuMainScene->GetCharacter(0);
+    if (sound_loaded != 0) {
+        MenuCharaSoundEnter(MenuMainScene, field_chara, 1);
+    }
+    if (unk_174 != 0) {
+        chara_no = GetActiveCharaNo();
+        chara = (CActionChara *)MenuMainScene->GetCharacter(0);
+        DeleteOutLineMenu(chara, 0);
+        ((CCharacter2 *)chara)->DeleteImage();
+        stack = MorattaStack;
+        stack->stack_used = 0;
+        stack->lock = 0;
+        chara->AllDeleteDamage();
+        chara->Initialize(MorattaStack);
+        AccumulateEffect.frame = 0;
+        *(int*)((u8*)&AccumulateEffect + 0x320) = 0;
+        AccumulateEffect.mode = 0;
+        chara->accume_effect = &AccumulateEffect;
+        chara->LoadPack((u_int*)MainCharaReadBuffer[0], at_4954, MorattaStack, MorattaStack, MorattaStack,
+                         MenuArg.chara_tex_block, 0);
+        SwordEffectStack.stack_used = 0;
+        SwordEffectStack.lock = 0;
+        SetSwordBlurEffect((CCharacter2 *)chara, &SwordEffectStack, chara_no);
+        stack = MorattaStack;
+        stack[1].stack_used = 0;
+        stack[1].lock = 0;
+        mgCTextureManager *textures = &mgTexManager;
+        textures->DeleteTexAnime(MenuArg.chara_tex_block);
+        ((CCharacter2 *)chara)
+            ->LoadSkin((u_int *)MainCharaReadBuffer[1], at_4954, at_3751, MorattaStack + 1,
+                       MenuArg.chara_tex_block);
+        stack = MorattaStack;
+        stack[5].stack_used = 0;
+        stack[5].lock = 0;
+        ((CCharacter2 *)chara)
+            ->LoadSkin((u_int *)MainCharaReadBuffer[2], at_4954, at_5210, MorattaStack + 5,
+                       MenuArg.chara_tex_block);
+        SetupUnitMan(MenuMainScene, (CUserDataManager *)GetUserDataMan(), chara_no, NULL);
+        chara->effect_man = FxScriptMan;
+    }
+    equip_list_no = CheckEquipListNo(0);
+    if ((equip_list_no != 0 || GetActiveCharaNo() == 2) && MenuMainScene != NULL &&
+        GetMenuLoopType() == 1) {
+        if (field_chara != NULL) {
+            if (equip_list_no != 0) {
+                field_chara->InitScript();
+            }
+        }
+        if (GetActiveCharaNo() == 2) {
+            CharaSndBuffer = NULL;
+            MenuCharaSoundEnter(MenuMainScene, field_chara, 0);
+            field_chara->se_bank = Robo_Sound_ID_Save;
+            field_chara->effect_man = FxScriptMan;
+        }
+    }
+    MenuSystemDataPtr->item_board_select = MenuItem_ItemBoardTopSelect;
+    MenuSystemDataPtr->item_board_top = MenuItem_ItemBoardTopLine;
+    MenuSystemDataPtr->unk_6 = 0;
+    MenuSystemDataPtr->unk_4 = 0;
+    MenuSystemDataPtr->item_key_arg_no = key_arg_no;
+    MenuSystemDataPtr->item_cursor = MenuCommonInfo->cursor;
+    CopyActiveItemAndWeapon(MenuArg.active_chara_no, -1);
+    ExeScript(at_5211);
+    MenuPosData->TexGetInfoClear(0x5A, 0x100);
+    MenuPosData->EtcTblClear(0x1E, 0x60);
+    ((CGameDataUsed *)(&MenuCommonInfo->have_item))->Init();
+    MenuMainFrameModeSet(0, 0);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", AttachFormInfo__13CMenuItemInfoFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuModeMalloc__13CMenuItemInfoFP9mgCMemory);
+void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
+    int i;
+    CMenuMoveItem *move_item;
+    u8 *slot;
+    CMenuEffect *effect;
+    CRepairManager *repair;
+    u8 *buffer;
+
+    int free_blocks = stack->stack_size - stack->stack_used;
+    MenuItemMemory2.stSetBuffer((u_long128 *)(stack->stack + stack->stack_used),
+                                free_blocks);
+    for (i = 0; i < 7; i++) {
+        MenuActionChara[i] = new ((u_long128*)MenuItemMemory2.Alloc(0x105)) CActionChara;
+        MenuActionChara[i]->Initialize(NULL);
+    }
+    MenuBGReadInfo2Malloc__FP9mgCMemoryPi(&MenuItemMemory2, tbl_5293);
+    if ((move_item = (CMenuMoveItem *)operator new(0x104, (u_long128*)MenuItemMemory2.Alloc(0x13))) != NULL) {
+        slot = (u8 *)move_item + 0xC;
+        do {
+            __ct__13CGameDataUsedFv(slot + 8);
+            slot += 0x7C;
+        } while (slot < (u8 *)move_item + 0x104);
+        move_item->Initialize();
+    }
+    MenuMoveItemPtr = move_item;
+    MenuMoveItemPtr->AttachForm();
+    SpectolFrame = new ((u_long128*)MenuItemMemory2.Alloc(0x105)) CActionChara;
+    if ((effect = (CMenuEffect *)operator new(0x38, (u_long128*)MenuItemMemory2.Alloc(6))) != NULL) {
+        effect->Initialize();
+    }
+    MenuEffect[0] = effect;
+    if ((effect = (CMenuEffect *)operator new(0x38, (u_long128*)MenuItemMemory2.Alloc(6))) != NULL) {
+        effect->Initialize();
+    }
+    MenuEffect[1] = effect;
+    if ((repair = (CRepairManager *)operator new(0x1EC, (u_long128*)MenuItemMemory2.Alloc(0x21))) != NULL) {
+        buffer = (u8*)&repair->effect_stack[0];
+        do {
+            ((mgCMemory *)buffer)->Init();
+            buffer += 0x30;
+        } while (buffer < (u8 *)repair + 0x1A4);
+        (&repair->model_stack)->Init();
+    }
+    MenuRepairMan = repair;
+    repair->Initialize();
+    MenuLevelUpMan.Initialize();
+    InitBuildUpInfoEffect(&MenuItemMemory2, (mgCTexture *)mgTexManager.GetTexture(at_4672, -1), 8,
+                          20.0f);
+    free_blocks = MenuItemMemory2.stack_size - MenuItemMemory2.stack_used;
+    MenuItemMemory.stSetBuffer(
+        (u_long128 *)(MenuItemMemory2.stack + MenuItemMemory2.stack_used * 0x10), free_blocks);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CalcTex__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CalcCursorPosition__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", EffectDrawCheck__14CBaseMenuClassFP16CMenuPosDataForm);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemInit__FP9mgCMemoryPii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugKey__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugDraw__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", PushKey__13CMenuItemInfoFii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", local_item_infoview_set__FP18MENUFORMPARTS_TYPEP13CGameDataUsed);
+int CMenuItemInfo::PushKey(int pad, int trigger) {
+    int leaving = 0;
+    CHARA_DATA *chara;
+    short held_item_no;
+    int area;
+    int command;
+    CGameDataUsed *target;
+    CGameDataUsed *held_item;
+    int cursor;
+    int item_type;
+    int fusion_target;
+    CMenuPosDataForm *message_form;
+    CGameDataUsed saved_item;
+    char path[0x40];
+    char full_path[0x60];
+    MENU_SWAPITEM_INFO swap;
+    int equip_slot;
+    int robo_equip_slot;
+    char *item_name;
+    int file_size;
+    int fusion_file_size;
+    if (MenuCommonInfo->key_enable == 0) {
+        return 0;
+    }
+    short state = this->mode;
+    switch (state) {
+        case kStateBrowse: {
+            held_item_no = ((CGameDataUsed *)(&MenuCommonInfo->have_item))->item_no;
+            cursor = (&MenuCommonInfo->cursor)[0];
+            command = kCmdNone;
+            target = NULL;
+            area = -1;
+            chara = MenuUserParam.chara[this->sub_view];
+            item_type = ConvertUsedItemType(GetItemDataType(held_item_no));
+            fusion_target = 0;
+            if (pad != 0 || trigger != 0) {
+                if (MenuSpectolSatusCheckForm != NULL && this->unk_198 != 0) {
+                    MenuSpectolSatusCheckForm->SetAction(at_5757);
+                    this->unk_198 = 0;
+                    goto done;
+                }
+            }
+            swap.Set(-1, 0, -1, 0);
+            switch (this->key_arg_no) {
+                case 0:
+                    target = &chara->active_item[cursor];
+                    swap.Set(kAreaHand, cursor, this->sub_view, 0);
+                    area = kAreaHand;
+                    switch (trigger) {
+                        case 4:
+                            command = kCmdPlaceItem;
+                            break;
+                        case 8:
+                            command = kCmdTakeAll;
+                            break;
+                        case 1:
+                            command = kCmdOpenCommandMenu;
+                            if (held_item_no > 0) {
+                                command = kCmdPlaceItem;
+                            }
+                            break;
+                        case 2:
+                            command = kCmdCancel;
+                            break;
+                    }
+                    break;
+                case 1:
+                    fusion_target = 1;
+                    target = &chara->equip[cursor];
+                    swap.Set(fusion_target, cursor, this->sub_view, 0);
+                    area = kAreaEquip;
+                    switch (trigger) {
+                        case 4:
+                        case 8:
+                            command = kCmdPlaceItem;
+                            break;
+                        case 1:
+                            command = kCmdOpenCommandMenu;
+                            if (held_item_no > 0) {
+                                command = kCmdPlaceItem;
+                            }
+                            break;
+                        case 2:
+                            command = kCmdCancel;
+                            break;
+                    }
+                    break;
+                case 2:
+                    fusion_target = 1;
+                    target = &MenuUserParam.used_data[cursor];
+                    swap.Set(kAreaBag, cursor, -1, 0);
+                    area = kAreaBag;
+                    switch (trigger) {
+                        case 4:
+                            command = kCmdPlaceItem;
+                            break;
+                        case 8:
+                            command = kCmdTakeAll;
+                            break;
+                        case 1:
+                            command = kCmdOpenCommandMenu;
+                            if (held_item_no > 0) {
+                                command = kCmdPlaceItem;
+                            }
+                            break;
+                        case 2:
+                            command = kCmdCancel;
+                            break;
+                        case 32:
+                            command = kCmdSortBag;
+                            break;
+                    }
+                    break;
+                case 3:
+                    switch (trigger) {
+                        case 4:
+                        case 8:
+                        case 1:
+                            command = kCmdUseOnChara;
+                            break;
+                        case 2:
+                            command = kCmdCancel;
+                            break;
+                    }
+                    break;
+                case 4:
+                case 9:
+                    fusion_target = 1;
+                    target = this->view_weapon;
+                    swap.Set(kAreaSelected, -1, -1, 0);
+                    area = kAreaSelected;
+                    if (trigger != 2) {
+                        switch (trigger) {
+                            case 4:
+                            case 8:
+                            case 1:
+                                command = kCmdOpenCommandMenu;
+                                if (0 < held_item_no) {
+                                    command = kCmdFuseSelected;
+                                }
+                                break;
+                        }
+                    } else {
+                        command = kCmdCancel;
+                    }
+                    break;
+                case 5:
+                    switch (trigger) {
+                        case 4:
+                        case 8:
+                        case 1:
+                            command = kCmdDenied;
+                            break;
+                        case 2:
+                            command = kCmdCancelNoLoad;
+                            break;
+                    }
+                    break;
+                case 10:
+                    switch (trigger) {
+                        case 4:
+                        case 8:
+                        case 1:
+                            command = kCmdDenied;
+                            break;
+                        case 2:
+                            command = kCmdCancelNoLoad;
+                            break;
+                    }
+                    break;
+                case 6:
+                    switch (trigger) {
+                        case 4:
+                        case 8:
+                        case 1:
+                            command = kCmdUseOnRobo;
+                            break;
+                        case 2:
+                            command = kCmdCancel;
+                            break;
+                    }
+                    break;
+                case 7: {
+                    signed char robo_slot = MenuRoboEquipTable[cursor];
+                    target = &MenuUserParam.robo->parts[0] + robo_slot;
+                    swap.Set(kAreaRobo, robo_slot, 2, 0);
+                    area = kAreaRobo;
+                    switch (trigger) {
+                        case 4:
+                        case 8:
+                            command = kCmdPlaceItem;
+                            break;
+                        case 1:
+                            command = kCmdOpenCommandMenu;
+                            if (0 < held_item_no) {
+                                command = kCmdPlaceItem;
+                            }
+                            break;
+                        case 2:
+                            command = kCmdCancel;
+                            break;
+                    }
+                    break;
+                }
+                case 8:
+                    switch (trigger) {
+                        case 4:
+                        case 8:
+                        case 1:
+                            command = kCmdUseOnMonster;
+                            break;
+                        case 2:
+                            command = kCmdCancel;
+                            break;
+                    }
+                    break;
+                case 11:
+                    target = GetUserDataMan()->GetActiveEsa();
+                    swap.Set(kAreaBait, cursor, this->sub_view, 0);
+                    area = kAreaBait;
+                    switch (trigger) {
+                        case 4:
+                            command = kCmdPlaceItem;
+                            break;
+                        case 8:
+                            command = kCmdTakeAll;
+                            break;
+                        case 1:
+                            command = kCmdOpenCommandMenu;
+                            if (held_item_no > 0) {
+                                command = kCmdPlaceItem;
+                            }
+                            break;
+                        case 2:
+                            command = kCmdCancel;
+                            break;
+                    }
+                    break;
+            }
+            if (menu_debug_flag != 0) {
+                MenuItemDebugKey();
+                return 0;
+            }
+            int item_used = 0;
+            message_form = MenuMesForm[4];
+            held_item = (CGameDataUsed *)(&MenuCommonInfo->have_item);
+            this->SaveViewWeaponStatus();
+            switch (command) {
+                case kCmdDenied:
+                    MenuSePlay(5);
+                    break;
+                case kCmdOpenCommandMenu:
+                    if (MenuItemMoveItemCommand(target, area, 5, MenuMesForm[5],
+                                                GetActiveCharaIDForItemCmd()) != 0) {
+                        CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                        if (form != NULL) {
+                            form->draw_flag = 0;
+                        }
+                    }
+                    break;
+                case kCmdPlaceItem:
+                    if (fusion_target != 0 &&
+                        this->CheckSpectolFusion(target, 4, message_form) != 0) {
+                        CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                        if (form != NULL) {
+                            form->draw_flag = 0;
+                        }
+                        MenuSePlay(1);
+                        if (target == this->view_weapon) {
+                            itemmenu_chr_rotflag = 0;
+                        }
+                    } else {
+                        unsigned int swap_state = MenuCommonInfo->EnableSwapNowPos(&swap);
+                        switch (swap_state) {
+                            case 0: {
+                                int moved = MenuCommonInfo->MenuSwapItem(target, &swap, 1, true);
+                                MenuSePlay(menu_item_swap_sndtbl[moved]);
+                                this->CheckViewWeaponStatus(0);
+                                if (moved > 0) {
+                                    switch (area) {
+                                        case kAreaEquip:
+                                            this->CheckLoadInfo(this->sub_view);
+                                            ((signed char *)&MenuLoadInfo)[4] =
+                                                ConvertCharaLoadDataPhase(this->sub_view, cursor);
+                                            ((signed char *)&MenuLoadInfo)[5] = ((signed char *)&MenuLoadInfo)[4];
+                                            ((signed char *)&MenuLoadInfo)[2] = 0;
+                                            this->ModelReadStart(this->view_mode, 1, 1);
+                                            break;
+                                        case kAreaRobo:
+                                            this->CheckLoadInfo(2);
+                                            ((signed char *)&MenuLoadInfo)[4] = ConvertCharaLoadDataPhase(
+                                                2, MenuRoboEquipTable[cursor]);
+                                            ((signed char *)&MenuLoadInfo)[2] = 0;
+                                            this->ModelReadStart(this->view_mode, 1, 1);
+                                            break;
+                                    }
+                                }
+                                break;
+                            }
+                            case 1:
+                            case 2:
+                            case 8:
+                            case 9:
+                                MenuSePlay(5);
+                                break;
+                            case 4:
+                                this->SetAskHowMuchItemNum(&swap, target);
+                                MenuSePlay(1);
+                                break;
+                            case 3:
+                                MenuSePlay(0x1C);
+                                break;
+                            case 5:
+                                if (MenuItemUse.CheckItemUseEnable(held_item, 1, target) != 0) {
+                                    item_used = MenuItemUse.UseItem(held_item, 1, target);
+                                    MenuCommonInfo->SetHaveItemInfo(1, 1);
+                                    if (held_item->GetNum() <= 0) {
+                                        MenuCommonInfo->SetHaveItemInfo(0, 1);
+                                    }
+                                } else {
+                                    MenuSePlay(5);
+                                }
+                                break;
+                        }
+                    }
+                    break;
+                case kCmdTakeAll:
+                    if (MenuCommonInfo->EnableSwapNowPos(&swap) == 0 ||
+                        ((CGameDataUsed *)(&MenuCommonInfo->have_item))->item_no <= 0) {
+                        MenuCommonInfo->GetItemAll(target, &swap);
+                        this->CheckViewWeaponStatus(0);
+                    }
+                    break;
+                case kCmdSortBag: {
+                    int found = 0;
+                    __ct__13CGameDataUsedFv(&saved_item);
+                    short view_mode = this->view_mode;
+                    if ((view_mode == 2 || view_mode == 5) &&
+                        0 <= GetSameAdrressUserData(this->view_weapon, 0)) {
+                        found = 1;
+                        saved_item.CopyGameData(this->view_weapon);
+                    }
+                    MenuSeiton(MenuUserParam.used_data, 0x96);
+                    if (found != 0) {
+                        int i = 0;
+                        do {
+                            if (memcmp(&saved_item, &MenuUserParam.used_data[i], sizeof(CGameDataUsed)) ==
+                                0) {
+                                this->view_weapon = &MenuUserParam.used_data[i];
+                                break;
+                            }
+                            i += 1;
+                        } while (i < 0x96);
+                    }
+                    CheckEnableHaveItemNum();
+                    MenuSePlay(1);
+                    break;
+                }
+                case kCmdUseOnChara:
+                    switch (item_type) {
+                        case 3:
+                        case 4:
+                        case 5: {
+                            equip_slot = -1;
+                            if (this->EquipDirect(this->sub_view, held_item, equip_slot) == 0) {
+                                MenuSePlay(0x1C);
+                            } else {
+                                MenuSePlay(8);
+                                this->CheckLoadInfo(this->sub_view);
+                                ((signed char *)&MenuLoadInfo)[4] =
+                                    ConvertCharaLoadDataPhase(this->sub_view, equip_slot);
+                                ((signed char *)&MenuLoadInfo)[5] = ((signed char *)&MenuLoadInfo)[4];
+                                ((signed char *)&MenuLoadInfo)[2] = 0;
+                                this->ModelReadStart(this->view_mode, 1, 1);
+                            }
+                            break;
+                        }
+                        default: {
+                            CHARA_DATA *chr = MenuUserParam.chara[this->sub_view];
+                            if (held_item_no == 0x126) {
+                                if (MenuItemUse.UseItem(held_item, 1, &chr->equip[0]) == 0 &&
+                                    MenuItemUse.UseItem(held_item, 1, &chr->equip[1]) == 0) {
+                                    MenuSePlay(5);
+                                }
+                            } else if (MenuItemUse.CheckItemUseEnable(held_item, 0, chr) != 0) {
+                                item_used = MenuItemUse.UseItem(held_item, 0, chr);
+                                if (held_item->GetNum() <= 0) {
+                                    MenuCommonInfo->SetHaveItemInfo(0, 1);
+                                } else {
+                                    MenuCommonInfo->SetHaveItemInfo(1, 1);
+                                }
+                            } else {
+                                MenuSePlay(5);
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                case kCmdFuseSelected:
+                    if (this->CheckSpectolFusion(this->view_weapon, 4, message_form) != 0) {
+                        CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                        if (form != NULL) {
+                            form->draw_flag = 0;
+                        }
+                        MenuSePlay(1);
+                        itemmenu_chr_rotflag = 0;
+                    } else {
+                        item_used = MenuItemUse.UseItem(held_item, 1, this->view_weapon);
+                        MenuCommonInfo->SetHaveItemInfo(1, 1);
+                        if (held_item->GetNum() <= 0) {
+                            MenuCommonInfo->SetHaveItemInfo(0, 1);
+                        }
+                        if (item_used == 0) {
+                            MenuSePlay(5);
+                        }
+                    }
+                    break;
+                case kCmdUseOnRobo:
+                    switch (item_type) {
+                        case 3:
+                        case 4:
+                        case 5: {
+                            robo_equip_slot = -1;
+                            if (this->EquipDirect(2, held_item, robo_equip_slot) == 0) {
+                                MenuSePlay(0x1C);
+                            } else {
+                                this->CheckLoadInfo(2);
+                                MenuSePlay(8);
+                                ((signed char *)&MenuLoadInfo)[4] =
+                                    ConvertCharaLoadDataPhase(this->load_item_no, robo_equip_slot);
+                                ((signed char *)&MenuLoadInfo)[2] = 0;
+                                this->ModelReadStart(this->view_mode, 1, 1);
+                            }
+                            break;
+                        }
+                        default:
+                            item_used = MenuItemUse.UseItem(held_item, 2, MenuUserParam.robo);
+                            if (held_item->GetNum() <= 0) {
+                                MenuCommonInfo->SetHaveItemInfo(0, 1);
+                            } else {
+                                MenuCommonInfo->SetHaveItemInfo(1, 1);
+                            }
+                            if (item_used == 0) {
+                                MenuSePlay(5);
+                            }
+                            break;
+                    }
+                    break;
+                case kCmdUseOnMonster:
+                    item_used = MenuItemUse.UseItem(held_item, 3, MenuUserParam.monster1);
+                    MenuCommonInfo->SetHaveItemInfo(1, 1);
+                    if (held_item->GetNum() <= 0) {
+                        MenuCommonInfo->SetHaveItemInfo(0, 1);
+                    }
+                    if (item_used == 0) {
+                        MenuSePlay(5);
+                    }
+                    break;
+                case kCmdCancel:
+                    if (this->IsCancelLoadItem() == 2) {
+                        int over_item_no;
+                        leaving = 1;
+                        over_item_no = CheckItemLimmitOver();
+                        if (CheckItemOver() != 0 || over_item_no != 0) {
+                            CDC2Mes *msg;
+                            leaving = 0;
+                            this->mode = kStateOverLimit;
+                            MenuMesForm[7]->draw_flag = 1;
+                            msg = MenuDCMsg[7];
+                            msg->MsgPreset(0xA);
+                            msg->SetAbsPos(5);
+                            msg->MakeMsg(0x96);
+                            if (over_item_no != 0) {
+                                msg->MakeMsg(0x99);
+
+                                *(float *)&item_name = at_7021;
+                                item_name = (char *)GetItemMessage(over_item_no);
+                                CDataCommon *data = GetCommonItemData(over_item_no);
+                                msg->SetMsgItemNo(&item_name, 1);
+                                msg->SetMsgVolumeNoOne(data->max_num);
+                            }
+                            CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                            if (form != NULL) {
+                                form->draw_flag = 0;
+                            }
+                        }
+                    }
+                    break;
+                case kCmdCancelNoLoad:
+                    this->IsCancelNoneLoadItem();
+                    break;
+                case kCmdUnused:
+                    break;
+                case kCmdBuildUpInfo:
+                    this->NextModeBuildUpInfo(this->view_weapon);
+                    break;
+            }
+            if (item_used != 0) {
+                this->SetItemEffect();
+            }
+            if (leaving == 1) {
+                this->mode = kStateClosing;
+                MenuCommonInfo->key_enable = 0;
+                MenuRepairMan->Clear();
+                if (MenuSpectolSatusCheckForm != NULL) {
+                    MenuSpectolSatusCheckForm->SetAction(at_5757);
+                    this->unk_198 = 0;
+                }
+                if (CheckTrushMenu() != 0 && ItemOverFlowCheckFlag == 1) {
+                    MenuCommonInfo->open_type -= 0x10;
+                }
+                StartReadBG();
+                this->unk_174 = 0;
+                if (0 <= this->unk_172) {
+                    int chara_no;
+                    CHARA_DATA **chr_ptr =
+                        &MenuUserParam.chara[chara_no = this->GetActiveCharaNo()];
+                    int model_no = (*chr_ptr)->equip[0].GetModelNo();
+                    if (this->unk_172 != model_no) {
+                        SetMenuEtcFlag(1);
+                        MainCharaReadStackReadAdr =
+                            (u8*)(MainCharaReadStack.stack + MainCharaReadStack.stack_used);
+                        GetMainCharaModelName(chara_no, path, 0);
+                        MainCharaReadBuffer[0] = (u_long128 *)MainCharaReadStackReadAdr;
+                        sprintf(full_path, at_7342, path);
+                        LoadFileBG(full_path, MainCharaReadBuffer[0], &file_size);
+                        unsigned int blocks = QuadwordsFor(file_size);
+                        MainCharaReadStack.Alloc(blocks);
+                        MainCharaReadStack.Align64();
+                        MainCharaReadBuffer[1] =
+                            (MainCharaReadStack.stack + MainCharaReadStack.stack_used);
+
+                        char *file = (char *)(*chr_ptr)->equip[4].GetDataPath();
+                        if (file != NULL) {
+                            LoadFileBG(file, MainCharaReadBuffer[1], &file_size);
+                            blocks = QuadwordsFor(file_size);
+                            MainCharaReadStack.Alloc(blocks);
+                        }
+                        MainCharaReadStack.Align64();
+                        MainCharaReadBuffer[2] =
+                            (MainCharaReadStack.stack + MainCharaReadStack.stack_used);
+                        file = (char *)(*chr_ptr)->equip[3].GetDataPath();
+                        if (file != NULL) {
+                            LoadFileBG(file, MainCharaReadBuffer[2], &file_size);
+                            blocks = QuadwordsFor(file_size);
+                            MainCharaReadStack.Alloc(blocks);
+                        }
+                        this->unk_174 = 1;
+                    }
+                }
+                InitFishBoiledEffect(NULL, NULL);
+                this->CheckSoundLoad();
+                if (CheckTrushMenu() != 0) {
+                    this->FadeOutMenu(0x28, 0.0f);
+                } else {
+                    this->ExeScript(at_7343);
+                    MenuMainFrameModeSet(3, 1);
+                    ReturnMenuIntern(0);
+                    if (MenuActionChara[0] != NULL) {
+                        MenuActionChara[0]->SetFadeFlag(1);
+                        MenuActionChara[0]->Show(0, 1);
+                    }
+                }
+            }
+            break;
+        }
+        case kStateOverLimit:
+            if (trigger != 0) {
+                this->mode = kStateBrowse;
+                MenuMesForm[7]->draw_flag = 0;
+                CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                if (form != NULL) {
+                    form->draw_flag = 1;
+                }
+                MenuSePlay(1);
+            }
+            break;
+        case kStateTuneBuildUp: {
+            switch (this->step) {
+                case kTuneAdjust: {
+                    int previous = (&MenuCommonInfo->cursor)[0];
+                    if (pad & kPadUp) {
+                        (&MenuCommonInfo->cursor)[0] = previous - 1;
+                    }
+                    if (pad & kPadDown) {
+                        (&MenuCommonInfo->cursor)[0] += 1;
+                    }
+                    if ((&MenuCommonInfo->cursor)[0] < 0) {
+                        (&MenuCommonInfo->cursor)[0] = 0;
+                    }
+                    if ((&MenuCommonInfo->cursor)[0] > 4) {
+                        (&MenuCommonInfo->cursor)[0] = 4;
+                    }
+                    if (previous != (&MenuCommonInfo->cursor)[0]) {
+                        MenuSePlay(0);
+                    }
+                    CGameDataUsed *item = this->view_weapon;
+                    int selected = (&MenuCommonInfo->cursor)[0];
+
+                    short *saved_words = (short *)&SpectolInfoStay.data.weapon.whp;
+                    short *words = (short *)&item->data.weapon.whp;
+                    int spare_points = item->data.weapon.fusion_point / kPointsPerStep;
+                    short *entry = (short *)((selected << 1) + (int)words);
+                    short *stat_slot = &entry[kStatWord];
+                    short value = entry[kStatWord];
+                    if (0 < value - saved_words[selected + kStatWord]) {
+                        if (0 < value) {
+                            if (pad & kPadLeft) {
+                                *stat_slot = value - 1;
+                                words[kSpareWord] += kPointsPerStep;
+                                MenuSePlay(0);
+                            }
+                        }
+                    }
+                    if (0 < spare_points) {
+                        if (words[(&MenuCommonInfo->cursor)[0] + kStatWord] < kStatMax &&
+                            (pad & kPadRight)) {
+                            words[kSpareWord] -= kPointsPerStep;
+                            words[(&MenuCommonInfo->cursor)[0] + kStatWord] += 1;
+                            if (words[kSpareWord] < 0) {
+                                words[kSpareWord] = 0;
+                            }
+                            MenuSePlay(0);
+                        }
+                    }
+                    if (trigger & 1) {
+                        int changed = 0;
+                        int i = 0;
+                        int offset = 0;
+                        do {
+                            if (*(short *)((u8 *)saved_words + offset + 0x16) <
+                                *(short *)((u8 *)words + offset + 0x16)) {
+                                changed = 1;
+                            }
+                            i += 1;
+                            offset += 2;
+                        } while (i < 5);
+                        if (changed != 0) {
+                            this->step = kTuneConfirmSave;
+                            this->ExeScript(at_7344);
+                            MenuSePlay(1);
+                        } else {
+                            MenuSePlay(5);
+                        }
+                    } else if (trigger & 2) {
+                        this->step = kTuneConfirmDiscard;
+                        this->ExeScript(at_7345);
+                    }
+                    break;
+                }
+                case kTuneConfirmSave: {
+                    int answer = MenuDCMsg[7]->YesNoCursor2(0);
+                    if (answer == 1) {
+                        MenuSePlay(0x1E);
+                        this->unk_160 = 0;
+                        this->mode = kStateBrowse;
+                        this->ExeScript(at_7346);
+                    }
+                    if (answer == 2) {
+                        this->step = kTuneAdjust;
+                        this->ExeScript(at_7346);
+                        MenuSePlay(5);
+                    }
+                    break;
+                }
+                case kTuneConfirmDiscard: {
+                    int answer = MenuDCMsg[7]->YesNoCursor2(0);
+                    if (answer == 1) {
+                        this->view_weapon->CopyGameData(&SpectolInfoStay);
+                        this->unk_160 = 0;
+                        this->mode = kStateBrowse;
+                        this->step = kTuneAdjust;
+                        this->ExeScript(at_7346);
+                        MenuSePlay(1);
+                    }
+                    if (answer == 2) {
+                        this->step = kTuneAdjust;
+                        this->ExeScript(at_7346);
+                        MenuSePlay(5);
+                    }
+                    break;
+                }
+            }
+            break;
+        }
+        default: {
+            mgCMemory *load_stack = &MenuCharaLoadStack;
+            int extend_result = this->ExtendCommand(pad, trigger);
+            switch (this->mode) {
+                case kStateSpectolBreak:
+                    if (extend_result == 2) {
+                        SetEffectSpectolBreak(load_stack, MenuEffect[0], (this->ask_para.item)->item_no);
+                        MenuCommonInfo->FadeOutMenuBGMVol(-6, 0x18);
+                        MenuSePlay(0, MenuItemSpectolTransSoundBuffer, load_stack);
+                        Save_AskParamInfo_7099 = (void *)this->ask_para.item;
+                    }
+                    if (extend_result == 3) {
+                        int index = GetSameAdrressUserData(this->ask_para.item2, 0);
+                        int line = index / 6;
+                        if (line < MenuItem_ItemBoardTopLine) {
+                            while (line < MenuItem_ItemBoardTopLine) {
+                                MenuItem_ItemBoardTopLine -= 1;
+                            }
+                        } else if (MenuItem_ItemBoardTopLine + 5 <= line) {
+                            while (MenuItem_ItemBoardTopLine + 5 <= line) {
+                                MenuItem_ItemBoardTopLine += 1;
+                            }
+                        }
+                        (&MenuCommonInfo->cursor)[1] = MenuItem_ItemBoardTopLine;
+                        MenuItem_ItemBoardTopSelect = index;
+                        (&MenuCommonInfo->cursor)[0] = (short)index;
+                    }
+                    break;
+                case kStateSpectolFusion:
+                    if (init_7121 == 0) {
+                        fusion_blinkcnt_7120 = 0;
+                        init_7121 = 1;
+                    }
+                    fusion_blinkcnt_7120 += 1;
+                    if (fusion_blinkcnt_7120 >= kBlinkPeriod) {
+                        fusion_blinkcnt_7120 = 0;
+                    }
+                    if (init_7126 == 0) {
+                        diffent_weapon_dispflag_7125 = 0;
+                        init_7126 = 1;
+                    }
+                    if (extend_result == 2) {
+                        diffent_weapon_dispflag_7125 = 0;
+                        SetEffectSpectolFusion(load_stack, MenuEffect, SpectolInfo[0],
+                                               this->key_arg_no == 4);
+                        int top_line = MenuItem_ItemBoardTopLine;
+                        if (trans_spectol_pos < top_line || top_line + 5 < trans_spectol_pos) {
+                            MenuEffect[1]->SetTexInfo(NULL, NULL);
+                        }
+                        if (this->key_arg_no == 4) {
+                            MenuEffect[1]->SetTexInfo(NULL, NULL);
+                        }
+                        load_stack->Alloc(0x100);
+                        MenuCommonInfo->FadeOutMenuBGMVol(-6, 0x18);
+                        StartReadBG();
+                        LoadFileBG(at_7347,
+                                   (u_long128 *)(load_stack->stack + load_stack->stack_used * 0x10),
+                                   &fusion_file_size);
+                        unsigned int blocks = QuadwordsFor(fusion_file_size);
+                        load_stack->Alloc(blocks);
+                        SpectolFusionTargetChara = NULL;
+                        SpectolFusion_LeftOrRight = 0;
+                        if (this->view_mode == 2) {
+                            SpectolFusionTargetChara = MenuActionChara[0];
+                            if (this->view_weapon != SpectolInfo[0]) {
+                                diffent_weapon_dispflag_7125 = 1;
+                            }
+                        }
+                        int weapon_kind = SpectolInfo[0]->item_type;
+                        if (this->key_arg_no == 1) {
+                            if (weapon_kind == 2 || weapon_kind == 4) {
+                                SpectolFusion_LeftOrRight = 1;
+                            }
+                        }
+                    }
+                    if (extend_result == 3) {
+                        if (this->view_mode == 2) {
+                            CActionChara *chara = NULL;
+                            if (0 < this->view_weapon->IsBuildUp(NULL, NULL, NULL)) {
+                                chara = MenuActionChara[0];
+                            }
+                            SetBuildUpInfoChara((CCharacter2 *)chara, ActiveMenuWeaponCharaRange);
+                        }
+                        if (this->view_mode != 2 || diffent_weapon_dispflag_7125 == 1) {
+                            this->key_arg_no = 4;
+                            this->view_mode = 2;
+                            MenuCommonInfo->key_arg = &item_menu_argtbl[this->key_arg_no];
+                            this->view_weapon = SpectolInfo[0];
+                            CMenuItemInfoPt->load_item_no = this->view_weapon->item_no;
+                            this->ModelReadStart(this->view_mode, 1, 1);
+                            SetSpectolInfo(NULL, NULL);
+                        }
+                    }
+                    if (this->step == 0) {
+                        MenuFormUpdataAttachInfo(MenuSpectolSatusCheckForm,
+                                                 &SepectolFusionBeforeAfterCheck, 0, 0,
+                                                 save_spectol_fusion_param);
+                    }
+                    if (this->step == 2) {
+
+                        MENUFORMPARTS_TYPE *index_part;
+                        int i;
+                        int blink_on;
+                        MENUFORMPARTS_TYPE *volume_part;
+                        blink_on = 1;
+                        if (fusion_blinkcnt_7120 > kBlinkLastOn) {
+                            blink_on = 0;
+                        }
+                        i = 0;
+                        do {
+                            index_part = BuildUpFormInfoIndex[i];
+                            volume_part = BuildUpFormInfoStatusVol[i];
+                            if (index_part != NULL && volume_part != NULL) {
+                                index_part->rgba[0] = kColorNormal;
+                                index_part->rgba[1] = kColorNormal;
+                                index_part->rgba[2] = kColorNormal;
+                                volume_part->rgba[0] = kColorNormal;
+                                volume_part->rgba[1] = kColorNormal;
+                                volume_part->rgba[2] = kColorNormal;
+                                if (0 < save_spectol_fusion_param[i] && blink_on != 0) {
+                                    index_part->rgba[0] = kColorRaisedR;
+                                    index_part->rgba[1] = kColorRaisedG;
+                                    index_part->rgba[2] = kColorRaisedB;
+                                    volume_part->rgba[0] = kColorRaisedR;
+                                    volume_part->rgba[1] = kColorRaisedG;
+                                    volume_part->rgba[2] = kColorRaisedB;
+                                }
+                            }
+                            i += 1;
+                        } while (i < 10);
+                    }
+                    break;
+                case kStateExtended9:
+                    if (extend_result == 2 && this->view_mode == 2) {
+                        if (this->view_weapon == this->ask_para.item && (this->ask_para.item)->item_no <= 0) {
+                            this->ReturnActiveCharaViewMode(0);
+                        }
+                    }
+                    break;
+            }
+            if (state == kStateSpectolFusion) {
+                if (extend_result != 0 && MenuSpectolSatusCheckForm != NULL) {
+                    MenuSpectolSatusCheckForm->SetAction(at_5757);
+                }
+            }
+            if (state == kStateSpectolBreak && extend_result != 0) {
+                if (MenuSpectolSatusCheckForm != NULL) {
+                    MenuSpectolSatusCheckForm->SetAction(at_5757);
+                }
+                if (MenuSpectolSatusCheckBGFadeForm != NULL) {
+                    MenuSpectolSatusCheckBGFadeForm->draw_flag = 0;
+                }
+                MenuDCMsg[4]->put_centering = 0;
+            }
+            if (this->mode == 0) {
+                CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                if (form != NULL) {
+                    form->draw_flag = 1;
+                }
+                if (state == kStateSpectolBreak) {
+                    if (extend_result == 4 && this->view_mode == 2 &&
+                        (void *)this->view_weapon == Save_AskParamInfo_7099) {
+                        this->ReturnActiveCharaViewMode(0);
+                    }
+                }
+                if (state == kStateSpectolFusion) {
+                    int i = 0;
+                    do {
+                        MENUFORMPARTS_TYPE *index = BuildUpFormInfoIndex[i];
+                        MENUFORMPARTS_TYPE *volume = BuildUpFormInfoStatusVol[i];
+                        if (index != NULL && volume != NULL) {
+                            index->rgba[0] = kColorNormal;
+                            index->rgba[1] = kColorNormal;
+                            index->rgba[2] = kColorNormal;
+                            volume->rgba[0] = kColorNormal;
+                            volume->rgba[1] = kColorNormal;
+                            volume->rgba[2] = kColorNormal;
+                        }
+                        i += 1;
+                    } while (i < 10);
+                }
+            }
+            break;
+        }
+    }
+done:
+    return 1;
+}
+void local_item_infoview_set(MENUFORMPARTS_TYPE *part, CGameDataUsed *item) {
+    if (part != NULL) {
+        part->etc_info[0] = 0;
+        part->etc_info[1] = item->item_no;
+        part->draw_flag = 1;
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemCharaActWepInfoDraw__FP16CMenuPosDataFormP13CGameDataUsedii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemCharaViewCheck__FP10CHARA_DATAii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuPosFormValueSetCharaRobo__FP9ROBO_DATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuPosFormValueSetMonster__FP16MOS_CHANGE_PARAMP10CHARA_DATA);
-s32 CheckBuildUp(CGameDataUsed *weapon, int *result0, int *result1, int *result2) {
+int CheckBuildUp(CGameDataUsed *weapon, int *result0, int *result1, int *result2) {
     if (weapon != NULL) {
         return weapon->IsBuildUp(result0, result1, result2);
     }
@@ -205,16 +3073,265 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuCharaStatusDraw__FRi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemInfoCursorDraw__FRi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", KeyStepLocal__13CMenuItemInfoFiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", KeyStep__13CMenuItemInfoFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemKey__Fv);
+int MenuItemKey(void) {
+    int ret;
+
+    if (!init_8716) {
+        old_viewmode_8715 = 0;
+        init_8716 = 1;
+    }
+    if (!init_8719) {
+        old_chrid_8718 = 0;
+        init_8719 = 1;
+    }
+
+    switch (CMenuItemInfoPt->unk_176) {
+        case -1: {
+            int faded;
+
+            ret = 0;
+            faded = CMenuItemInfoPt->FadeCheckMenu();
+            switch (CMenuItemInfoPt->unk_178) {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5: {
+                    int i;
+
+                    if (!faded) {
+                        break;
+                    }
+                    CMenuItemInfoPt->DeleteTexBlock();
+                    MenuItemMemory.stack_used = 0;
+                    MenuItemMemory.lock = 0;
+                    for (i = 0; i < 3; i++) {
+                        CMenuItemInfoPt->chara_poly_form[i]->SetActionCharaPtr(NULL, -1, -1);
+                    }
+
+                    old_viewmode_8715 = CMenuItemInfoPt->view_mode;
+                    old_chrid_8718 = CMenuItemInfoPt->sub_view;
+                    if (CMenuItemInfoPt->unk_178 == 1) {
+                        MenuCommonInfo->SetWakuType(-1);
+                        MenuMonsterBoxInit(&MenuItemMemory, (int *)&CMenuItemInfoPt->tex_block[0], 0);
+                    }
+                    if (CMenuItemInfoPt->unk_178 == 0) {
+                        SetMenuFrameRate(2);
+                        MenuAquaInit(&MenuItemMemory, (int *)&CMenuItemInfoPt->tex_block[0], 0);
+                    }
+                    if (CMenuItemInfoPt->unk_178 == 2) {
+                        NameRegistInit(&MenuItemMemory, (int *)&CMenuItemInfoPt->tex_block[0], 0);
+                    }
+                    if (CMenuItemInfoPt->unk_178 == 3) {
+                        MenuNPCQuestViewInit(&MenuItemMemory, (int *)&CMenuItemInfoPt->tex_block[0],
+                                             0);
+                    }
+                    if (CMenuItemInfoPt->unk_178 == 4) {
+                        MenuNPCQuestViewInit(&MenuItemMemory, (int *)&CMenuItemInfoPt->tex_block[0],
+                                             1);
+                    }
+                    if (CMenuItemInfoPt->unk_178 == 5) {
+                        MonsterBookInit(&MenuItemMemory, (int *)&CMenuItemInfoPt->tex_block[0], 0);
+                    }
+                    CMenuItemInfoPt->unk_176 = CMenuItemInfoPt->unk_178;
+                    break;
+                }
+                case -1:
+                    if (faded) {
+                        ret = CMenuItemInfoPt->KeyStep();
+                    } else {
+                        MenuPosData->FormStep();
+                        CMenuItemInfoPt->CalcTex();
+                        CMenuItemInfoPt->CalcCursorPosition();
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return ret;
+        }
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            ret = 0;
+            if (CMenuItemInfoPt->unk_176 == 0) {
+                ret = MenuAquaKey();
+            }
+            if (CMenuItemInfoPt->unk_176 == 1) {
+                ret = MenuMonsterBoxKey();
+            }
+            if (CMenuItemInfoPt->unk_176 == 2) {
+                ret = NameRegistKey();
+            }
+            if (CMenuItemInfoPt->unk_176 == 3 || CMenuItemInfoPt->unk_176 == 4) {
+                ret = MenuNPCQuestViewKey();
+            }
+            if (CMenuItemInfoPt->unk_176 == 5) {
+                ret = MonsterBookKey();
+            }
+            if (ret == 1) {
+                SetMenuFrameRate(1);
+                MenuItemMemory.stack_used = 0;
+                MenuItemMemory.lock = 0;
+                MenuItemMemory2.stack_used = 0;
+                MenuItemMemory2.lock = 0;
+                CMenuItemInfoPt->MenuModeMalloc(&MenuItemMainMemory);
+                {
+                    u8 *buffer = (u8*)MenuItemBGDataMemory.stack;
+                    LoadFileMenu(at_8819, (u_long128 *)buffer, 1);
+                    CMenuItemInfoPt->EnterDataMenu((unsigned int *)buffer);
+                }
+                if (CMenuItemInfoPt->unk_176 == 1) {
+                    MenuPosData->InitDrawList();
+                    MenuPosData->FormReLink(at_8820, at_5281);
+                    MenuPosData->FormReLink(at_8821, at_8822);
+                }
+                LoadFileMenu(at_8823, MenuMainTextureReadBuf.stack, 1);
+                MenuBaseTextureReEnter();
+                {
+                    short *system = GetSystemMesBuffer();
+                    MenuDCMsg[0]->SetMessData(system, GetMenuMainMessageBuffer());
+                }
+                MenuDCMsg[0]->cursor_on = 1;
+                MenuMoveItemPtr->AttachForm();
+                AttachMessageForm();
+                MenuMainFrameModeSet(2, 0);
+                MenuLoadInfo.mode = 0;
+                MenuLoadInfo.unk_2 = 0;
+                MenuLoadInfo.unk_5 = 0;
+                MenuLoadInfo.unk_4 = -1;
+                MenuLoadInfo.unk_1 = 0;
+                if (!GetMenuLoopType()) {
+                    MenuLoadInfo.unk_1 = 1;
+                }
+                {
+                    int chara = CMenuItemInfoPt->GetActiveCharaNo();
+                    MenuLoadInfo.unk_3 = chara;
+                    if (MenuLoadInfo.unk_3 == 0 || MenuLoadInfo.unk_3 == 1) {
+                        MenuLoadInfo.unk_2 = 1;
+                    }
+                    CMenuItemInfoPt->view_mode = CMenuItemInfoPt->unk_112;
+                    if (CMenuItemInfoPt->view_mode == 0) {
+                        CMenuItemInfoPt->sub_view = 0;
+                    }
+                    if (CMenuItemInfoPt->view_mode == 1) {
+                        CMenuItemInfoPt->sub_view = 1;
+                    }
+                    CheckEnableHaveItemNum();
+                    MenuMemoryAdjust(&MenuItemMemory, &MenuCharaLoadStack, MenuActionCharaBuffer,
+                                     chara);
+                }
+                CMenuItemInfoPt->ModelReadStart(CMenuItemInfoPt->view_mode, 1, 1);
+                if (ReadBGSync()) {
+                    do {
+                        ReadBG();
+                        MenuPosData->FormStep();
+                        CMenuItemInfoPt->CalcTex();
+                    } while (ReadBGSync());
+                }
+                CMenuItemInfoPt->ModelReadEndCheck();
+                BuildUpWeaponInfo.mode = 0;
+                CMenuItemInfoPt->mode = 0;
+                CMenuItemInfoPt->unk_178 = -1;
+                CMenuItemInfoPt->unk_176 = -1;
+                CMenuItemInfoPt->FadeInMenu(0x28, 0.0f);
+                CMenuItemInfoPt->unk_13A = 1;
+            }
+            return 0;
+        default:
+            return 0;
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDraw__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetPtrList__11CItemSelectFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", GetExistThisPosData__11CItemSelectFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckUse__11CItemSelectFP13CGameDataUsed);
+void CItemSelect::SetPtrList() {
+    CGameDataUsed *entries;
+    int i;
+
+    item_num = 0;
+    entries = MenuUserParam.used_data;
+    for (i = 0; i < kBagSlotCount; i++) {
+        if (entries[i].item_no > 0 && !(0 < GetSpectolNo__13CGameDataUsedFv(&entries[i])) &&
+            entries[i].used_type != 8) {
+            item_list[item_num] = &entries[i];
+            limit_disp[item_num] = 0;
+            if (menu_limmit_displayflag[i] == 1) {
+                limit_disp[item_num] = 1;
+            }
+            item_num++;
+        }
+    }
+    for (i = item_num; i < kBagSlotCount; i++) {
+        item_list[i] = NULL;
+    }
+    line_num = (float)(item_num / 5 + 1);
+}
+CGameDataUsed *CItemSelect::GetExistThisPosData(int pos) {
+    if (pos < 0 || item_num < pos) {
+        return NULL;
+    }
+    return item_list[pos];
+}
+void CItemSelect::CheckUse(CGameDataUsed *item) {
+    int i;
+    int *use_nos;
+    int offset;
+    int use_no;
+
+    if (item != NULL) {
+        use_nos = &MenuArg.param[1];
+        if (MenuArg.param[0] != 0 && MenuArg.param[0] == 1) {
+
+            for (i = 0, offset = 0; i < 10; i++, offset += 4) {
+                use_no = *(int *)((u8 *)use_nos + offset);
+                if (use_no <= 0) {
+                    break;
+                }
+                if (use_no == item->item_no) {
+                    item->DeleteNum(1);
+                    break;
+                }
+            }
+        }
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", KeyStep__11CItemSelectFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", Draw__11CItemSelectFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemSelectInit__FP9mgCMemoryPii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemSelectKey__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemSelectDraw__Fv);
+int MenuItemSelectKey(void) {
+    int result;
+
+    result = 1;
+    if (ItemSelectPtr != NULL) {
+        result = ItemSelectPtr->KeyStep();
+    }
+    return result;
+}
+void MenuItemSelectDraw(void) {
+    int loaded_tex_no = -1;
+
+    u8 *prim = (u8 *)GetMenuPrim();
+    *(int *)(prim + 0x110) = 0;
+    *(int *)(prim + 0x114) = 0;
+    mgRect<int> dest;
+    mgRect<int> source;
+    source.Set(0, 0, mgScreenWidth / 2, mgScreenHeight / 2);
+    dest.Set(0, 0, mgScreenWidth, mgScreenHeight);
+    DrawMenuMainFrmImg(loaded_tex_no, dest, source, 128, 128, 128, 128, 1);
+    mgRect<int> dest2;
+    mgRect<int> source2;
+    source2.Set(0, 0, mgScreenWidth / 2, mgScreenHeight / 2);
+    dest2.Set(-1, -1, mgScreenWidth + 1, mgScreenHeight + 1);
+    DrawMenuMainFrmImg(loaded_tex_no, dest2, source2, 128, 128, 128, ItemSelectPtr->alpha, 0);
+    *(int *)(prim + 0x110) = 0;
+    *(int *)(prim + 0x114) = 0;
+    if (ItemSelectPtr != NULL) {
+        ItemSelectPtr->Draw();
+    }
+}
 
 // Static initialiser (.init)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", __sinit_menusys_cpp);

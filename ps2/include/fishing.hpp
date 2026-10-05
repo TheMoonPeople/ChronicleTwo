@@ -65,8 +65,8 @@ struct FISH_PARAM {
     float weight_rate;            /**< Weight of the fish per unit of size. */
     float fishing_point_rate;     /**< Fishing points awarded per unit of size. */
     float pull_rate;              /**< Strength with which the fish pulls on the line, per 80 units of size. */
-    s16   bait_affinity[18];      /**< FISH_AFFINITY of the fish for each bait. */
-    s16   time_band_affinity[4];  /**< FISH_AFFINITY of the fish for each band of the time of day. */
+    short   bait_affinity[18]; /**< FISH_AFFINITY of the fish for each bait. */
+    short   time_band_affinity[4]; /**< FISH_AFFINITY of the fish for each band of the time of day. */
 };
 STATIC_ASSERT(sizeof(FISH_PARAM) == 0x54);
 

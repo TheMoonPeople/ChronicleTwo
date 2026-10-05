@@ -40,7 +40,7 @@ struct GYORACE_FISH_INF {
     int chara_no;      /**< Scene character slot that shows the fish. */
     int fish_no;       /**< Race fish of CGyoraceFishData that races; -1 for a fish not taken from it. */
     int rank;          /**< Place of the fish in the race, from 1. */
-    u32 lap;           /**< Lap that the fish swims, from 0. */
+    u_int lap; /**< Lap that the fish swims, from 0. */
     int unk_14;
     float lap_start;   /**< Value of race_cnt at which the fish started its second lap. */
     int unk_1c;

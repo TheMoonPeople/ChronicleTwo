@@ -37,3 +37,7 @@ ctx.c
 
 # AI
 AGENTS.md
+
+# EE GCC toolchain and newlib headers, installed by scripts/build/setup_gcc.py
+/tools/compilers/ee-gcc*/
+/tools/newlib/

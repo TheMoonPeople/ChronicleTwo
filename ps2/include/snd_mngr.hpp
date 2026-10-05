@@ -91,11 +91,7 @@ struct SND_LOOP_SE_SEQ {
      * @address 0x18DAE0
      * @size 0x20
      */
-    SND_LOOP_SE_SEQ() {
-        se_id = -1;
-        vol = -1.0f;
-        pan = 0.0f;
-    }
+    SND_LOOP_SE_SEQ();
 };
 STATIC_ASSERT(sizeof(SND_LOOP_SE_SEQ) == 0x14);
 
@@ -214,10 +210,7 @@ struct sndSeInfo {
      * @address 0x191520
      * @size 0x10
      */
-    sndSeInfo() {
-        unk_0 = 0;
-        type = SND_SE_TYPE_NONE;
-    }
+    sndSeInfo();
 };
 STATIC_ASSERT(sizeof(sndSeInfo) == 0xC);
 

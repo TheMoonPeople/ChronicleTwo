@@ -607,13 +607,6 @@ extern mgCMemory *MorattaStack;
 
 /**
  *
- * State of the menus' background model loading.
- *
- */
-extern s8 MenuLoadInfo[8];
-
-/**
- *
  * Texture of the party change ring.
  *
  */
@@ -1203,3 +1196,20 @@ int MonsterBookKey();
  * @size 0xA0
  */
 void MonsterBookDraw();
+
+struct MENU_LOAD_INFO {
+    signed char mode;
+    signed char unk_1;
+    signed char unk_2;
+    signed char unk_3;
+    signed char unk_4;
+    signed char unk_5;
+    signed char unk_6[2];
+};
+STATIC_ASSERT(sizeof(MENU_LOAD_INFO) == 8);
+/**
+ *
+ * State of the menus' background model loading.
+ *
+ */
+extern MENU_LOAD_INFO MenuLoadInfo;

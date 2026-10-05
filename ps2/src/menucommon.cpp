@@ -1,41 +1,749 @@
-#include "common.h"
+extern int sort_table[0x24];
+#include "effectlist.hpp"
+#include "menusys.hpp"
+#include "menuaqua.hpp"
+#include "snd_mngr.hpp"
+#include "scenesnd.hpp"
+#include "sysmes.hpp"
 #include "menucommon.hpp"
-#include <cstring>
+#include "mainloop.hpp"
+#include "mg_math.hpp"
+#include "mg_frame.hpp"
+#include "mg_camera.hpp"
+#include "mg_texture.hpp"
+#include "mg_memory.hpp"
+#include "character.hpp"
+#include "gamedata.hpp"
+#include "userdata.hpp"
+#include "savedata.hpp"
+#include "menumain.hpp"
+#include "menudraw.hpp"
+#include "nd_meswin.hpp"
+#include "menucls1.hpp"
+#include "scriptinterpreter.hpp"
+#include "dataread.hpp"
+#include "sceneseq.hpp"
+#include "scene.hpp"
+#include "sound.hpp"
+#include "mglib.hpp"
 #include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
 
+extern "C" u16 MenuTexPosNo;
+
+extern "C" u16 MenuTexPosNo_local;
+
+extern "C" u8 MenuSpiTextureName[];
+
+extern "C" CMenuPosDataForm *menu_formPt;
+
+extern "C" MENU_FORM_ACTION
+    *menu_spi_form_action_info;
+
+extern "C" MENU_PARTS_EFFECT_STRUCT1 *menu_parts_effect_ptr;
+
+extern "C" MENUFORMPARTS_TYPE *menu_form_part;
+
+extern "C" int menu_form_partsno;
+
+extern "C" u8 SpiMenuExeCommandFlag;
+
+extern "C" short menu_analyze_texblock;
+
+extern "C" short menu_analyze_formno;
+
+extern "C" short menu_analyze_formno_offset;
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_1728[];
+
+extern "C" char *tbl_1759[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2060[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2074[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2144[];
+
+extern "C" SPI_TAG_PARAM menu_analyze_tag[];
+
+extern "C" u8 at_2253__2[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_1994[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2369[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2422[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2516[];
+
+extern "C" u8 at_2538[];
+
+extern "C" SPI_TAG_PARAM menu_execommand_analyze_tag[];
+
+static const int sort_type_count = 0x24;
+
+static const int default_etc_count = 0x60;
+
+extern short sort_top_type;
+
+extern u16 Menu_Target_No;
+
+extern u16 Menu_Target_No_local;
+
+extern float SndPortVol_Ob;
+
+extern float SndPortVol_Base;
+
+extern float SndPortVol_Event;
+
+extern float SndPortVol_Env;
+
+extern int SndPortCheck_EventPort;
+
+extern char at_1173[];
+
+extern char *langdirpathTable_1161[7];
+
+static inline unsigned int align16_blocks(unsigned int n);
+
+extern "C" u16 MenuTexPosNo;
+
+extern "C" u16 MenuTexPosNo_local;
+
+extern "C" u8 MenuSpiTextureName[];
+
+extern "C" CMenuPosDataForm *menu_formPt;
+
+int menu_spi_analyze_func_strcut1(MENU_SPI_ANALYZE_STRUCT1 *table, char *name);
+
+int menu_dtype_init(CMenuPosDataForm *form, SPI_STACK *stack, int argc);
+
+extern "C" MENU_FORM_ACTION
+    *menu_spi_form_action_info;
+
+extern "C" MENU_PARTS_EFFECT_STRUCT1 *menu_parts_effect_ptr;
+
+extern "C" MENUFORMPARTS_TYPE *menu_form_part;
+
+extern "C" int menu_form_partsno;
+
+extern "C" u8 SpiMenuExeCommandFlag;
+
+extern "C" short menu_analyze_texblock;
+
+extern "C" short menu_analyze_formno;
+
+extern "C" short menu_analyze_formno_offset;
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_1728[];
+
+extern "C" char *tbl_1759[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2060[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2074[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2144[];
+
+extern "C" SPI_TAG_PARAM menu_analyze_tag[];
+
+extern "C" u8 at_2253__2[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_1994[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2369[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2422[];
+
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2516[];
+
+extern "C" u8 at_2538[];
+
+extern "C" SPI_TAG_PARAM menu_execommand_analyze_tag[];
+
+extern short sort_top_type;
+
+extern u16 Menu_Target_No;
+
+extern u16 Menu_Target_No_local;
+
+extern float SndPortVol_Ob;
+
+extern float SndPortVol_Base;
+
+extern float SndPortVol_Event;
+
+extern float SndPortVol_Env;
+
+extern int SndPortCheck_EventPort;
+
+extern char at_1173[];
+
+extern char *langdirpathTable_1161[7];
+
+extern "C" int fptosi(float value);
+
+extern "C" int CheckTypeEnableStack__13CGameDataUsedFv(CGameDataUsed *self);
+
+extern "C" int GetNum__13CGameDataUsedFv(CGameDataUsed *self);
+
+extern "C" int AddNum__13CGameDataUsedFii(CGameDataUsed *self, int count, int flag);
+
+extern "C" int EnterTexture__17mgCTextureManagerFiPcPP1iiiP1Uli(...);
+
+int CompGameData(int itemA, int itemB);
+
+int SeitonItemBoardSub(CGameDataUsed *items, int count);
+
+int _ETCINFO_MALLOC(SPI_STACK *stack, int argCount);
+
+int _MENU_ETCINFO_OFFSET(SPI_STACK *stack, int argCount);
+
+int _MENU_ETCINFO(SPI_STACK *stack, int argCount);
+
+int _MENU_ETCINFO_CLEAR(SPI_STACK *stack, int argCount);
+
+int _ETCINFO2_MALLOC(SPI_STACK *stack, int argCount);
+
+int _MENU_ETCINFO2_OFFSET(SPI_STACK *stack, int argCount);
+
+int _MENU_ETCINFO2(SPI_STACK *stack, int argCount);
+
+int _MENU_ETCINFO2_CLEAR(SPI_STACK *stack, int argCount);
+
+int _MENU_RESET_TEXINFO(SPI_STACK *stack, int argCount);
+
+int _MENU_INIT_DRAWLIST(SPI_STACK *stack, int argCount);
+
+int _MENU_TEXDATA_CLEAR(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_CLEAR(SPI_STACK *stack, int argc);
+
+int _MENU_TEXDATA_MALLOC(SPI_STACK *stack, int argc);
+
+int _MENU_TEXNAME(SPI_STACK *stack, int argc);
+
+int _MENU_TEXDATA_OFFSET(SPI_STACK *stack, int argc);
+
+int _MENU_TEXDATA(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_MALLOC(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_OFFSET_NO(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_SET(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_PARTNUM(SPI_STACK *stack, int argc);
+
+void menu_texdata_to_formpart_copy(MENUFORMPARTS_TYPE *part);
+
+int _MENU_FORM_DTYPE(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_MTYPE(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_DRAWFLG(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_VIBECNT(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_SETEND(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_MOVERATE(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_PUTXY(SPI_STACK *stack, int argc);
+
+int _MENU_FORM_RGBA(SPI_STACK *stack, int argc);
+
+int _MENU_ACTION_TABLE_NUM(SPI_STACK *stack, int argc);
+
+int _MENU_ACTION_DEF(SPI_STACK *stack, int argc);
+
+int _MENU_ACTION_SETACTION(SPI_STACK *stack, int argc);
+
+int _MENU_PARTVIBECNT(SPI_STACK *stack, int argc);
+
+int _MENU_PARTVIBER(SPI_STACK *stack, int argc);
+
+int _MENU_SHADOW_ONOFF(SPI_STACK *stack, int argc);
+
+int _CLIP_WH(SPI_STACK *stack, int argc);
+
+int _MENU_PARTRGBA(SPI_STACK *stack, int argc);
+
+int _MENU_PART_ALPHA_BLEND(SPI_STACK *stack, int argc);
+
+int _MENU_PART_ETCINFO(SPI_STACK *stack, int argc);
+
+int _MENU_PART_BILINEAR(SPI_STACK *stack, int argc);
+
+void MakePartsName(SPI_STACK *stack, MENUFORMPARTS_TYPE *part);
+
+int _MENU_PART_DTYPE(SPI_STACK *stack, int argc);
+
+int _MENU_NORMAL(SPI_STACK *stack, int argc);
+
+int _MENU_NORMAL2(SPI_STACK *stack, int argc);
+
+int _MENU_CURSOR(SPI_STACK *stack, int argc);
+
+int _MENU_FUNCINFO(SPI_STACK *stack, int argc);
+
+int _MENU_NUMBER1(SPI_STACK *stack, int argc);
+
+int _MENU_NUMBER2(SPI_STACK *stack, int argc);
+
+int _MENU_FRMIMG(SPI_STACK *stack, int argc);
+
+int _MENU_FORM(SPI_STACK *stack, int argc);
+
+int _MENU_ITEM(SPI_STACK *stack, int argc);
+
+int _MENU_ITEM_CHECKMARK(SPI_STACK *stack, int argc);
+
+int _MENU_FILLBOXINFO(SPI_STACK *stack, int argc);
+
+int _MENU_WAKU_RECT(SPI_STACK *stack, int argc);
+
+int _MENU_WAKU_CIRCLE(SPI_STACK *stack, int argc);
+
+int _MENU_PARTS_EFF_NUM(SPI_STACK *stack, int argc);
+
+int _MENU_PARTS_EFFECT(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_COMMAND_NAME(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_FORM_DRAWFLAG(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_FORM_RGBA(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_FORM_CALCRGBAPARAM(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_FORM_FADE(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_FORM_SETACTION(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_FORM_PARTSONOFF(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_FORM_PARTSONOFF_GRP(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_FORM_SWAP(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_FORM_GROUP_SWAP(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_MSGENV(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_MAKEMSG(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_SETABSPOS(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_MSGSETSYSTEMBUFF(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_MSGSETFUCHI(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_MSGSETCURSOR(SPI_STACK *stack, int argc);
+
+int _MENU_SET_QUESTIONGYOU(SPI_STACK *stack, int argc);
+
+int _MENU_SET_OPENSPEED(SPI_STACK *stack, int argc);
+
+int _MENU_INPUT_KEY(SPI_STACK *stack, int argc);
+
+int _MENU_CURSOR_ONOFF(SPI_STACK *stack, int argc);
+
+int _MENU_CURSOR_FADE(SPI_STACK *stack, int argc);
+
+int _MENU_WAKUTYPE(SPI_STACK *stack, int argc);
+
+int _MENU_SCENE_FADE(SPI_STACK *stack, int argc);
+
+int _MENU_SE_PLAY(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_INIT_DRAWLIST(SPI_STACK *stack, int argc);
+
+int _MENU_EXE_RESET_TEXINFO(SPI_STACK *stack, int argc);
+
+int _MENU_DEBUG_PRINTF(SPI_STACK *stack, int argc);
+
+static inline unsigned int align16_blocks(unsigned int n) {
+    if (n & 0xF) {
+        return (n >> 4) + 1;
+    }
+    return n >> 4;
+}
+
+#include "common.h"
+
+#pragma divbyzerocheck on
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", GetRandI__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", GetRandF__Ff);
+int GetRandI(int range) {
+    return rand() % range;
+}
+#pragma divbyzerocheck reset
+float GetRandF(float range) {
+    return range * mgRnd();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", ReCalcBox__FP9mgVu0FBOX9mgVu0FBOX);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuAdjustPolygonScale__FP8mgCFramef);
+float MenuAdjustPolygonScale(mgCFrame *frame, float size) {
+    mgVu0FBOX box;
+    if (frame == NULL) {
+        return 1.0f;
+    }
+    ((mgCFrame *)frame)->GetWorldBBox(&box);
+    return MenuAdjustPolygonScale(box, size);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuAdjustPolygonScale__F9mgVu0FBOXf);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuAdjustPolygonScale__FP11CCharacter2f);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", AddRotationCharaY__FP11CCharacter2f);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuSePlay__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuSePlay__FUii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuSePlay__FiPUiP9mgCMemory);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", StopEnvSoundMenu__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", ReStartEnvSoundMenu__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", CompGameData__Fii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", SeitonItemBoardSub__FP13CGameDataUsedi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuSeiton__FP13CGameDataUsedi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", GetSameAdrressUserData__FP13CGameDataUsedi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", local_sort1__FRiPiPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", GetNowChapter__FP9CSaveData);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuCalcBufAlignment__FP1);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", LoadFileMenu__FPcP1i);
+void MenuAdjustPolygonScale(CCharacter2 *chara, float size) {
+    if (chara != NULL) {
+        float magnitude;
+        float height = chara->body_height;
+        float scale = 1.0f;
+        magnitude = height;
+        if (height < 0.0f) {
+            magnitude = -height;
+        }
+        if (!(magnitude <= 1.0f)) {
+            scale = size / height;
+        }
+        chara->SetScale(scale, scale, scale);
+    }
+}
+void AddRotationCharaY(CCharacter2 *chara, float angle) {
+    float rotation[4];
+    if (chara != NULL) {
+        chara->GetRotation(rotation);
+        float *rotation_y = &rotation[1];
+        *rotation_y += angle;
+        *rotation_y = mgAngleLimit(*rotation_y);
+        chara->SetRotation(rotation);
+    }
+}
+void MenuSePlay(int sound_no) {
+    if (sound_no >= 0) {
+        MenuSePlay(SystemSND_ID, sound_no);
+    }
+}
+void MenuSePlay(unsigned int handle, int sound_no) {
+    if (sound_no >= 0) {
+        sndSePlay(handle, sound_no, 0);
+    }
+}
+void MenuSePlay(int sound_no, unsigned int *bank, mgCMemory *memory) {
+    if (bank == NULL || memory == NULL) {
+        return;
+    }
+    memory->stack_used = 0;
+    memory->lock = 0;
+    sndInitPort(8);
+    sndSePlay(sndLoadSound(8, bank, memory), sound_no, 0);
+    MenuSePlayUsedFlag = 1;
+}
+void StopEnvSoundMenu(int event_port) {
+    SndPortVol_Ob = sndGetPortVol(1);
+    SndPortVol_Base = sndGetPortVol(3);
+    sndSetPortVol(1, 0.0f);
+    sndSetPortVol(3, 0.0f);
+    SndPortCheck_EventPort = event_port;
+    if (event_port != 0) {
+        SndPortVol_Event = sndGetPortVol(4);
+        sndSetPortVol(4, 0.0f);
+    }
+    SndPortCheck_EventPort = event_port;
+    SndPortVol_Env = GetMainScene()->GetEnvBGMVol();
+    GetMainScene()->SetEnvBGMVol(0.0f);
+}
+void ReStartEnvSoundMenu() {
+    sndSetPortVol(1, SndPortVol_Ob);
+    sndSetPortVol(3, SndPortVol_Base);
+    if (SndPortCheck_EventPort != 0) {
+        sndSetPortVol(4, SndPortVol_Event);
+    }
+    GetMainScene()->SetEnvBGMVol(SndPortVol_Env);
+}
+int CompGameData(int item_a, int item_b) {
+    CGameData *game_data;
+    CDataCommon *record_a;
+    CDataCommon *record_b;
+    int rank_a;
+    int rank_b;
+
+    game_data = (CGameData *)GetGameDataPt();
+    record_a = (CDataCommon *)game_data->GetCommonData(item_a);
+    record_b = (CDataCommon *)game_data->GetCommonData(item_b);
+    rank_b = 0;
+    rank_a = 0;
+    if (record_a != NULL) {
+        rank_a = sort_table[record_a->type];
+    }
+    if (record_b != NULL) {
+        rank_b = sort_table[record_b->type];
+    }
+    if (item_a <= 0) {
+        rank_a = sort_type_count;
+    }
+    if (item_b <= 0) {
+        rank_b = sort_type_count;
+    }
+    if (rank_b < rank_a) {
+        return 1;
+    }
+    if (rank_a < rank_b) {
+        return -1;
+    }
+    if (item_b < item_a) {
+        return 1;
+    }
+    if (item_a < item_b) {
+        return -1;
+    }
+    return 0;
+}
+int SeitonItemBoardSub(CGameDataUsed *items, int count) {
+    CGameDataUsed *board;
+    int i;
+    int sort_type;
+    int j;
+    u8 swapped;
+
+    board = (CGameDataUsed *)items;
+    sort_type = sort_top_type;
+    for (i = 0; i < sort_type_count; i++) {
+        sort_table[sort_type] = i;
+        sort_type++;
+        if (sort_type >= sort_type_count) {
+            sort_type = 0;
+        }
+    }
+    sort_table[0] = sort_type_count;
+    swapped = 0;
+    for (i = 0; i < count - 1; i++) {
+        for (j = i + 1; j < count; j++) {
+            if (CompGameData(board[i].item_no, board[j].item_no) > 0) {
+                GameDataSwap(&board[i], &board[j], 1);
+                swapped = 1;
+            }
+        }
+    }
+    return (u8)swapped;
+}
+int MenuSeiton(CGameDataUsed *items, int count) {
+    CGameDataUsed *board = (CGameDataUsed *)items;
+    int i;
+    int j;
+    int attempt;
+    CGameDataUsed *second;
+    int room;
+    int moved;
+    CGameDataUsed *first;
+
+    if (board == NULL) {
+        return 0;
+    }
+    for (i = 0; i < count; i++) {
+        first = &board[i];
+        if (CheckTypeEnableStack__13CGameDataUsedFv(first) != 0) {
+            for (j = i + 1; j < count; j++) {
+                second = &board[j];
+                if (first->item_no == second->item_no) {
+                    room = first->CheckStackRemain();
+                    if (room <= 0) {
+                        break;
+                    }
+                    moved = GetNum__13CGameDataUsedFv(second);
+                    if (room < moved) {
+                        moved = room;
+                    }
+                    AddNum__13CGameDataUsedFii(first, moved, 1);
+                    second->DeleteNum(moved);
+                }
+            }
+        }
+    }
+    for (attempt = 0; attempt < sort_type_count; attempt++) {
+        if (SeitonItemBoardSub(board, count) != 0) {
+            break;
+        }
+        sort_top_type += 1;
+        if (sort_top_type >= sort_type_count) {
+            sort_top_type = 1;
+        }
+    }
+        return 1;
+}
+int GetSameAdrressUserData(CGameDataUsed *item, int kind) {
+    CGameDataUsed *entry;
+    int bag_max;
+    int i;
+
+    if (kind == 0) {
+        entry = MenuUserParam.used_data;
+        bag_max = GetNowBagMax(1);
+        for (i = 0; i < bag_max; i++, entry++) {
+            if (entry == item) {
+                return i;
+    }
+        }
+    }
+    return -1;
+}
+void local_sort1(int &cursor, int *count, int *list) {
+    int i;
+
+    for (i = cursor; i < *count; i++) {
+        list[i] = list[i + 1];
+    }
+    *count -= 1;
+    if (cursor > 0) {
+        cursor -= 1;
+    }
+}
+int GetNowChapter(CSaveData *save) {
+    int progress;
+
+    if (save == NULL) {
+        return -1;
+    }
+    progress = save->game_progress;
+    if (progress < 2) {
+    return 0;
+    }
+    if (progress == 2 || progress == 3) {
+        return 1;
+    }
+    if (progress >= 4) {
+        return progress - 2;
+    }
+
+    if (progress >= 100) {
+        return 1;
+    }
+    return 1;
+}
+u_long128 *MenuCalcBufAlignment(u_long128 *buffer) {
+    int aligned;
+    int blocks;
+    int size = (int)buffer;
+
+    aligned = size;
+    if ((size % 64) != 0) {
+        blocks = size >> 6;
+        if (size < 0) {
+            blocks = (int)(size + 0x3F) >> 6;
+        }
+        aligned = (blocks + 1) << 6;
+    }
+    return (u_long128 *)aligned;
+}
+int LoadFileMenu(char *name, u_long128 *buffer, int mode) {
+    char path[0x8C];
+    int size;
+
+    if (name == NULL || buffer == NULL) {
+        return -1;
+    }
+    strcpy(path, at_1173);
+    strcat(path, langdirpathTable_1161[LanguageCode]);
+    strcat(path, name);
+    if (mode == 0) {
+        LoadFileBG(path, (u_long128 *)buffer, &size);
+    }
+    if (mode == 1) {
+        LoadFile2(path, buffer, &size, 0);
+    }
+    return size;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", ConvertFontCode__FPcPc);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", CheckNowEurope__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuCommonReadData__FP9mgCMemoryPPci);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuDeleteTextureBlock__FPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuWorkTextureEnter__FiPciii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuEnterIMG__FiPUcPc);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", GetReadBGInfo__FPc);
+int CheckNowEurope() {
+    if (LanguageCode > 0 && LanguageCode < 6) {
+        return 1;
+    }
+    return 0;
+}
+int MenuCommonReadData(mgCMemory *memory, char **names, int mode) {
+    int total;
+    int i;
+    unsigned int size;
+
+    StartReadBG();
+    total = 0;
+    memory->Align64();
+
+    i = 0;
+    while (*(char **)((u8 *)names + i) != NULL) {
+        size = LoadFileMenu(*(char **)((u8 *)names + i),
+                            (u_long128 *)((int)memory->stack + memory->stack_used * 16), mode);
+        memory->Alloc(align16_blocks(size));
+        total += size;
+        i += 4;
+        memory->Align64();
+    }
+    return total;
+}
+void MenuDeleteTextureBlock(int *blocks) {
+    mgCTextureManager *manager = &mgTexManager;
+    int i = 0;
+    int block;
+
+    while ((block = blocks[i]) >= 0 && i < 16) {
+        manager->DeleteBlock(block);
+        i++;
+    }
+}
+void MenuWorkTextureEnter(int id, char *name, int width, int height, int format) {
+    mgCTextureManager *manager = &mgTexManager;
+    int width_rest = width % 64;
+    if (width_rest != 0) {
+        width += 64 - width_rest;
+    }
+    int height_rest = height % 64;
+    if (height_rest != 0) {
+        height += 64 - height_rest;
+    }
+    EnterTexture__17mgCTextureManagerFiPcPP1iiiP1Uli(manager, id, name, NULL, width, height, format,
+                                                     0, 0, 0);
+}
+void MenuEnterIMG(int size, u8 *data, char *name) {
+    mgCTextureManager *manager = &mgTexManager;
+
+    if (name == NULL) {
+        manager->name_suffix[0] = 0;
+    } else {
+        strcpy(manager->name_suffix, name);
+    }
+    manager->EnterIMGFile(data, size, NULL, NULL);
+    manager->name_suffix[0] = 0;
+}
+BG_READ_INFO *GetReadBGInfo(char *name) {
+    char path[0x80];
+    GetCurrentDir(path);
+    strcat(path, name);
+    return GetReadBGFile(path);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", CalcMenu1__FfPfffi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", CalcMenu1__FiPiiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", CalcMenuAdd__FPiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", CalcMenuAdd__FPfff);
-s32 CalcMenuAdd2(s32 *value, s32 delta, s32 limit) {
+int CalcMenuAdd(int *cursor, int step, int limit) {
+    if (cursor == NULL) {
+        return -1;
+    }
+    *cursor += step;
+    if ((step < 0 && *cursor < limit) || (step > 0 && *cursor > limit)) {
+        *cursor = limit;
+        return 1;
+    }
+    return 0;
+}
+int CalcMenuAdd(float *cursor, float step, float limit) {
+    if (cursor == NULL) {
+        return -1;
+    }
+    *cursor += step;
+    if ((step < 0.0f && *cursor < limit) || (step > 0.0f && *cursor > limit)) {
+        *cursor = limit;
+        return 1;
+    }
+    return 0;
+}
+int CalcMenuAdd2(int *value, int delta, int limit) {
     if (value == NULL) {
         return -1;
     }
@@ -49,102 +757,1278 @@ s32 CalcMenuAdd2(s32 *value, s32 delta, s32 limit) {
     return 0;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", GetNumberKeta__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", GetDispVolumeForFloat__Ff);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", GetFloatCommaValue__Ff);
+int GetDispVolumeForFloat(float volume) {
+    int whole;
+
+    whole = fptosi(volume);
+    if ((volume - (float)whole) < 0.00005f) {
+        return whole;
+    }
+    return whole + 1;
+}
+float GetFloatCommaValue(float value) {
+    return value - (float)fptosi(value);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", CalcScrlBarPutPos__Fifif);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", Trans3DPosTo2DPos__FP9mgCCameraP8mgCFramePi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _ETCINFO_MALLOC__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ETCINFO_OFFSET__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ETCINFO__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ETCINFO_CLEAR__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _ETCINFO2_MALLOC__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ETCINFO2_OFFSET__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ETCINFO2__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ETCINFO2_CLEAR__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_RESET_TEXINFO__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_INIT_DRAWLIST__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_TEXDATA_CLEAR__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_CLEAR__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_TEXDATA_MALLOC__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_TEXNAME__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_TEXDATA_OFFSET__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_TEXDATA__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_MALLOC__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_OFFSET_NO__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_SET__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_PARTNUM__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", menu_texdata_to_formpart_copy__FP18MENUFORMPARTS_TYPE);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", menu_spi_analyze_func_strcut1__FP24MENU_SPI_ANALYZE_STRUCT1Pc);
+void Trans3DPosTo2DPos(mgCCamera *camera, mgCFrame *frame, int *out) {
+    float view[4][4];
+    float camera_pos[4];
+    float frame_pos[4];
+    if (camera == NULL || frame == NULL) {
+        return;
+    }
+    camera->GetCameraMatrix(view);
+    camera->GetPos(camera_pos);
+    mgSetViewMatrix(view, camera_pos);
+    frame->GetPosition(frame_pos);
+    mgTransWorldScreen(out, frame_pos);
+}
+int _ETCINFO_MALLOC(SPI_STACK *stack, int arg_count) {
+    int count;
+    CPosDataManage *data;
+    MENU_ETCINFO *table;
+
+    count = default_etc_count;
+    if (arg_count > 0) {
+        count = spiGetStackInt(stack);
+    }
+    table = (MENU_ETCINFO *)MenuSpiStack->Alloc(
+        align16_blocks(count * sizeof(MENU_ETCINFO)));
+    data = MenuPosData;
+    data->etc_tbl = table;
+    data->etc_tbl_num = count;
+    MenuPosData->EtcTblClear(0, count);
+    return 1;
+}
+int _MENU_ETCINFO_OFFSET(SPI_STACK *stack, int arg_count) {
+    Menu_Target_No = spiGetStackInt(stack);
+    Menu_Target_No_local = 0;
+    return 1;
+}
+int _MENU_ETCINFO(SPI_STACK *stack, int arg_count) {
+    int index;
+    char *name;
+    int i;
+    MENU_ETCINFO *entry;
+
+    index = (short)Menu_Target_No + (short)Menu_Target_No_local;
+    if (index >= MenuPosData->etc_tbl_num) {
+        return 1;
+    }
+    entry = MenuPosData->etc_tbl + index;
+    name = spiGetStackString(stack++);
+    if (entry->name != NULL) {
+
+        for (i = 0; i < index; i++) {
+            if (strcmp(entry->name, name) == 0) {
+                return 1;
+            }
+        }
+        return 1;
+    }
+    entry->name = mgCopyString(name, MenuSpiStack);
+    entry->value[0] = spiGetStackInt(stack++);
+    entry->value[1] = spiGetStackInt(stack);
+    Menu_Target_No_local = (short)Menu_Target_No_local + 1;
+    return 1;
+}
+int _MENU_ETCINFO_CLEAR(SPI_STACK *stack, int arg_count) {
+    int from;
+    int to;
+
+    from = spiGetStackInt(stack++);
+    to = 1000;
+    if (arg_count > 1) {
+        to = spiGetStackInt(stack);
+    }
+    if (arg_count <= 1 || MenuPosData->etc_tbl_num < to) {
+        to = MenuPosData->etc_tbl_num;
+    }
+    MenuPosData->EtcTblClear(from, to);
+    return 1;
+}
+int _ETCINFO2_MALLOC(SPI_STACK *stack, int arg_count) {
+    int count;
+    CPosDataManage *data;
+    MENU_ETCINFO2 *table;
+
+    count = default_etc_count;
+    if (arg_count > 0) {
+        count = spiGetStackInt(stack);
+    }
+    table = (MENU_ETCINFO2 *)MenuSpiStack->Alloc(
+        align16_blocks(count * sizeof(MENU_ETCINFO2)));
+    data = MenuPosData;
+    data->etc_tbl2 = table;
+    data->etc_tbl2_num = count;
+    MenuPosData->EtcTbl2Clear(0, count);
+    return 1;
+}
+int _MENU_ETCINFO2_OFFSET(SPI_STACK *stack, int arg_count) {
+    Menu_Target_No = spiGetStackInt(stack);
+    Menu_Target_No_local = 0;
+    return 1;
+}
+int _MENU_ETCINFO2(SPI_STACK *stack, int arg_count) {
+    int index;
+    char *name;
+    int i;
+    int j;
+    MENU_ETCINFO2 *entry;
+
+    index = (short)Menu_Target_No + (short)Menu_Target_No_local;
+    if (index >= MenuPosData->etc_tbl2_num) {
+        return 1;
+    }
+    entry = MenuPosData->etc_tbl2 + index;
+    name = spiGetStackString(stack++);
+    if (entry->name != NULL) {
+        for (i = 0; i < index; i++) {
+            if (strcmp(entry->name, name) == 0) {
+                return 1;
+            }
+        }
+    }
+    entry->name = mgCopyString(name, MenuSpiStack);
+    for (j = 0; j < arg_count - 1; j++) {
+        entry->value[j] = spiGetStackFloat(stack++);
+    }
+    Menu_Target_No_local = (short)Menu_Target_No_local + 1;
+    return 1;
+}
+int _MENU_ETCINFO2_CLEAR(SPI_STACK *stack, int arg_count) {
+    CPosDataManage *data;
+    int from;
+    int to;
+    int count;
+
+    from = spiGetStackInt(stack++);
+    to = 1000;
+    if (arg_count > 1) {
+        to = spiGetStackInt(stack);
+    }
+    data = MenuPosData;
+    count = data->etc_tbl2_num;
+    if (arg_count <= 1 || count < to) {
+        to = count;
+    }
+    data->EtcTbl2Clear(from, to);
+    return 1;
+}
+int _MENU_RESET_TEXINFO(SPI_STACK *stack, int arg_count) {
+    MenuPosData->ResetTextureInfoAll();
+    return 1;
+}
+int _MENU_INIT_DRAWLIST(SPI_STACK *stack, int arg_count) {
+    MenuPosData->InitDrawList();
+    return 1;
+}
+int _MENU_TEXDATA_CLEAR(SPI_STACK *stack, int argc) {
+    int from = spiGetStackInt(stack++);
+    int to = 500;
+    if (argc > 1) {
+        to = spiGetStackInt(stack);
+    }
+    CPosDataManage *pos_data = MenuPosData;
+    int count = pos_data->tex_info_num;
+    if (!(argc > 1) || count < to) {
+        to = count;
+    }
+    pos_data->TexGetInfoClear(from, to);
+    return 1;
+}
+int _MENU_FORM_CLEAR(SPI_STACK *stack, int argc) {
+    int from = 0;
+    int to = 100;
+    if (argc == 2) {
+        from = spiGetStackInt(stack++);
+        to = spiGetStackInt(stack);
+    }
+    MenuPosData->FormInfoClear(from, to);
+    MenuPosData->InitDrawList();
+    return 1;
+}
+int _MENU_TEXDATA_MALLOC(SPI_STACK *stack, int argc) {
+    int count = 256;
+    unsigned int bytes;
+    unsigned int blocks;
+    if (argc > 0) {
+        count = spiGetStackInt(stack);
+    }
+    bytes = count * 0x20;
+    if (bytes & 0xF) {
+        blocks = (bytes >> 4) + 1;
+    } else {
+        blocks = bytes >> 4;
+    }
+    MENU_BASETEXINFO *table = (MENU_BASETEXINFO *)MenuSpiStack->Alloc(blocks);
+    CPosDataManage *pos_data = MenuPosData;
+    pos_data->tex_info = table;
+    pos_data->tex_info_num = count;
+    return 1;
+}
+int _MENU_TEXNAME(SPI_STACK *stack, int argc) {
+    SPI_STACK *block_arg = stack + 1;
+    char *name = spiGetStackString(stack);
+    if (name != NULL) {
+        strcpy((char *)MenuSpiTextureName, name);
+    }
+    int index = spiGetStackInt(block_arg);
+    CMenuKeyFunc *common = MenuCommonInfo;
+    menu_analyze_texblock = *(short *)&common->tex_block[index];
+    return 1;
+}
+int _MENU_TEXDATA_OFFSET(SPI_STACK *stack, int argc) {
+    MenuTexPosNo = spiGetStackInt(stack);
+    MenuTexPosNo_local = 0;
+    return 1;
+}
+int _MENU_TEXDATA(SPI_STACK *stack, int argc) {
+    char *name;
+    int x;
+    int y;
+    int w;
+    int h;
+    int no;
+    MENU_BASETEXINFO *slot;
+
+    name = spiGetStackString(stack++);
+    x = spiGetStackInt(stack++);
+    y = spiGetStackInt(stack++);
+    w = spiGetStackInt(stack++);
+    h = spiGetStackInt(stack);
+    no = MenuTexPosNo + MenuTexPosNo_local;
+    slot = MenuPosData->GetTexGetInfo(no);
+    if (slot == NULL) {
+        return 0;
+    }
+    if (MenuPosData->GetTexGetInfo(name) != 0) {
+        return 0;
+    }
+    slot->tex_name = mgCopyString((char *)MenuSpiTextureName, MenuSpiStack);
+    slot->tex_block = (signed char)menu_analyze_texblock;
+    slot->tbl_no = no;
+    slot->name = mgCopyString(name, MenuSpiStack);
+    slot->rect.Set(x, y, w, h);
+    MenuTexPosNo_local += 1;
+    return 1;
+}
+int _MENU_FORM_MALLOC(SPI_STACK *stack, int argc) {
+    int count = spiGetStackInt(stack);
+    unsigned int bytes = count << 7;
+    unsigned int blocks;
+    if (bytes & 0xF) {
+        blocks = (bytes >> 4) + 1;
+    } else {
+        blocks = bytes >> 4;
+    }
+    u_long128 *block = (u_long128 *)MenuSpiStack->Alloc(blocks + 2);
+    CMenuPosDataForm *table = (CMenuPosDataForm *)operator new[](bytes, block);
+    CPosDataManage *pos_data = MenuPosData;
+    pos_data->form = table;
+    pos_data->form_num = count;
+    MenuPosData->FormInfoClear(0, count);
+    return 1;
+}
+int _MENU_FORM_OFFSET_NO(SPI_STACK *stack, int argc) {
+    menu_analyze_formno = spiGetStackInt(stack);
+    menu_analyze_formno_offset = 0;
+    return 1;
+}
+int _MENU_FORM_SET(SPI_STACK *stack, int argc) {
+    char *name = spiGetStackString(stack++);
+    int form_no;
+    SPI_STACK *next_slot = stack;
+    form_no = menu_analyze_formno + menu_analyze_formno_offset;
+    if (argc > 2) {
+        form_no = menu_analyze_formno + spiGetStackInt(next_slot);
+    }
+    menu_formPt = NULL;
+    if (MenuPosData->GetFormInfo(name) != 0) {
+        return 0;
+    }
+    menu_formPt = (CMenuPosDataForm *)MenuPosData->GetFormInfo(form_no);
+    if (menu_formPt != NULL) {
+        menu_formPt->Initialize();
+        menu_formPt->name = mgCopyString(name, MenuSpiStack);
+    }
+    menu_formPt->active = 1;
+    menu_formPt->draw_flag = 1;
+    menu_form_partsno = 0;
+    menu_analyze_formno_offset += 1;
+    return 1;
+}
+int _MENU_FORM_PARTNUM(SPI_STACK *stack, int argc) {
+    int i;
+    int offset;
+    unsigned int bytes;
+    unsigned int blocks;
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    menu_formPt->parts_num = spiGetStackInt(stack);
+    bytes = menu_formPt->parts_num * sizeof(MENUFORMPARTS_TYPE);
+    if (bytes & 0xF) {
+        blocks = (bytes >> 4) + 1;
+    } else {
+        blocks = bytes >> 4;
+    }
+    menu_formPt->parts = (MENUFORMPARTS_TYPE *)MenuSpiStack->Alloc(blocks);
+    i = 0;
+    offset = 0;
+    for (; i < menu_formPt->parts_num; i++) {
+        MenuPosDataTypeInit((MENUFORMPARTS_TYPE *)((unsigned int)menu_formPt->parts + offset));
+        offset += sizeof(MENUFORMPARTS_TYPE);
+    }
+    return 1;
+}
+void menu_texdata_to_formpart_copy(MENUFORMPARTS_TYPE *part) {
+    MENU_BASETEXINFO *tex = MenuPosData->GetTexGetInfo(part->tex_info_no);
+    part->w = 0;
+    part->h = 0;
+    if (tex != NULL) {
+        part->w = tex->rect.right;
+        part->h = tex->rect.bottom;
+    }
+}
+int menu_spi_analyze_func_strcut1(MENU_SPI_ANALYZE_STRUCT1 *table, char *name) {
+    int i = 0;
+    while (1) {
+        char *entry_name = table[i].name;
+        if (entry_name == NULL) {
+            break;
+        }
+        if (strcmp(entry_name, name) == 0) {
+
+            return ((MENU_SPI_ANALYZE_STRUCT1 *)((i << 3) + (int)table))->value;
+        }
+        i++;
+    }
+    return -1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", menu_dtype_init__FP16CMenuPosDataFormP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_DTYPE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_MTYPE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_DRAWFLG__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_VIBECNT__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_SETEND__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_MOVERATE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_PUTXY__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_RGBA__FP9SPI_STACKi);
+int _MENU_FORM_DTYPE(SPI_STACK *stack, int argc) {
+    char *name;
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    name = spiGetStackString(stack++);
+    if (name == NULL) {
+        return 0;
+    }
+    menu_formPt->dtype = menu_spi_analyze_func_strcut1(tbl_1728, name);
+    menu_dtype_init(menu_formPt, stack, argc);
+    return 1;
+}
+int _MENU_FORM_MTYPE(SPI_STACK *stack, int argc) {
+    char *name = spiGetStackString(stack);
+    int type = -1;
+    int i = 0;
+    char *entry;
+    while ((entry = tbl_1759[i]) != 0) {
+        if (strcmp(name, entry) == 0) {
+            type = i - 1;
+            break;
+        }
+        i++;
+    }
+    if (type < -1) {
+        type = -1;
+    }
+    menu_formPt->mtype = type;
+    return 1;
+}
+int _MENU_FORM_DRAWFLG(SPI_STACK *stack, int argc) {
+    CMenuPosDataForm *form;
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    if (argc == 1) {
+        menu_formPt->draw_flag = (spiGetStackInt(stack++) != 0);
+    }
+    if (argc == 2) {
+        form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(spiGetStackString(stack++));
+        int value = spiGetStackInt(stack);
+        if (form != NULL) {
+            form->draw_flag = (value != 0);
+        }
+    }
+    return 1;
+}
+int _MENU_FORM_VIBECNT(SPI_STACK *stack, int argc) {
+    char *next_slot;
+
+    next_slot = (char *)(stack + 1);
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    menu_formPt->vibe_cnt[0] = spiGetStackInt(stack);
+    menu_formPt->vibe_cnt[1] = spiGetStackInt((SPI_STACK *)next_slot);
+    return 1;
+}
+int _MENU_FORM_SETEND(SPI_STACK *stack, int argc) {
+    return 1;
+}
+int _MENU_FORM_MOVERATE(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+
+    if (menu_formPt == 0) {
+        return 0;
+    }
+    menu_formPt->rate_x = spiGetStackFloat(stack);
+    menu_formPt->rate_y = spiGetStackFloat(next_slot);
+    return 1;
+}
+int _MENU_FORM_PUTXY(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+
+    if (menu_formPt == 0) {
+        return 0;
+    }
+    menu_formPt->x = (float)spiGetStackInt(stack);
+    menu_formPt->y = (float)spiGetStackInt(next_slot);
+    return 1;
+}
+int _MENU_FORM_RGBA(SPI_STACK *stack, int argc) {
+    int values[4];
+    int i;
+    int step;
+    CMenuPosDataForm *form;
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    for (i = 0; i < argc; i++) {
+        values[i] = spiGetStackInt(stack++);
+    }
+    if (argc == 3) {
+        form = menu_formPt;
+        form->rgba[0] = (signed char)values[0];
+        form->rgba[1] = (signed char)values[1];
+        form->rgba[2] = (signed char)values[2];
+        form->rgba[3] = 0x80;
+        for (step = 0; step < 4; step++) {
+            form->SetRGBACalcParam(step, 0, 0x80);
+        }
+    }
+    if (argc == 4) {
+        form = menu_formPt;
+        form->rgba[0] = (signed char)values[0];
+        form->rgba[1] = (signed char)values[1];
+        form->rgba[2] = (signed char)values[2];
+        form->rgba[3] = (signed char)values[3];
+        for (i = 0; i < 4; i++) {
+            form->SetRGBACalcParam(i, 0, 0x80);
+        }
+    }
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_RGBA_BIT__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ACTION_TABLE_NUM__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ACTION_DEF__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ACTION_SETACTION__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_PARTVIBECNT__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_PARTVIBER__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_SHADOW_ONOFF__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _CLIP_WH__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_PARTRGBA__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_PART_ALPHA_BLEND__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_PART_ETCINFO__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_PART_BILINEAR__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MakePartsName__FP9SPI_STACKP18MENUFORMPARTS_TYPE);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_PART_DTYPE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_NORMAL__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_NORMAL2__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_CURSOR__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FUNCINFO__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_NUMBER1__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_NUMBER2__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FRMIMG__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ITEM__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_ITEM_CHECKMARK__FP9SPI_STACKi);
+int _MENU_ACTION_TABLE_NUM(SPI_STACK *stack, int argc) {
+    int count;
+    MENU_FORM_ACTION *table;
+    unsigned int bytes;
+    unsigned int blocks;
+
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    count = spiGetStackInt(stack);
+    bytes = count * 0x14;
+    if (bytes & 0xF) {
+        blocks = (bytes >> 4) + 1;
+    } else {
+        blocks = bytes >> 4;
+    }
+    table = (MENU_FORM_ACTION *)MenuSpiStack->Alloc(blocks);
+    menu_formPt->action = table;
+    menu_formPt->action_num = count;
+    menu_spi_form_action_info = table;
+    return 1;
+}
+int _MENU_ACTION_DEF(SPI_STACK *stack, int argc) {
+    MENU_FORM_ACTION_MOVE *action;
+    strcpy(menu_spi_form_action_info->name, spiGetStackString(stack++));
+    menu_spi_form_action_info->move = (MENU_FORM_ACTION_MOVE *)MenuSpiStack->Alloc(2);
+    action = menu_spi_form_action_info->move;
+    action->mtype = spiGetStackInt(stack++);
+    action->x = spiGetStackFloat(stack++);
+    action->y = spiGetStackFloat(stack++);
+    action->rate_x = spiGetStackFloat(stack++);
+    action->rate_y = spiGetStackFloat(stack);
+    menu_spi_form_action_info++;
+    return 1;
+}
+int _MENU_ACTION_SETACTION(SPI_STACK *stack, int argc) {
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    menu_formPt->SetAction(spiGetStackString(stack));
+    return 1;
+}
+int _MENU_PARTVIBECNT(SPI_STACK *stack, int argc) {
+    menu_form_part->vibe_cnt[0] = spiGetStackInt(stack++);
+    menu_form_part->vibe_cnt[1] = spiGetStackInt(stack);
+    return 1;
+}
+int _MENU_PARTVIBER(SPI_STACK *stack, int argc) {
+    menu_form_part->viber[0] = spiGetStackInt(stack++);
+    menu_form_part->viber[1] = spiGetStackInt(stack);
+    return 1;
+}
+int _MENU_SHADOW_ONOFF(SPI_STACK *stack, int argc) {
+    menu_form_part->shadow = 1;
+    menu_form_part->shadow_offset = 4;
+    if (argc > 0) {
+        menu_form_part->shadow = (spiGetStackInt(stack++) != 0);
+    }
+    if (argc == 2) {
+        menu_form_part->shadow_offset = spiGetStackInt(stack);
+    }
+    return 1;
+}
+int _CLIP_WH(SPI_STACK *stack, int argc) {
+    int width;
+    int height;
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    width = mgScreenWidth - 1;
+    height = mgScreenHeight - 1;
+    if (argc == 2) {
+        width = spiGetStackInt(stack++);
+        height = spiGetStackInt(stack);
+    }
+    menu_formPt->clip_w = width;
+    menu_formPt->clip_h = height;
+    return 1;
+}
+int _MENU_PARTRGBA(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part;
+    int i;
+
+    part = menu_form_part;
+    if (part == NULL) {
+        return 0;
+    }
+    if (argc == 1) {
+        part->rgba[3] = spiGetStackInt(stack);
+        part->rgba[2] = 0x80;
+        part->rgba[1] = 0x80;
+        part->rgba[0] = 0x80;
+    } else if (argc == 3) {
+        part->rgba[0] = spiGetStackInt(stack++);
+        part->rgba[1] = spiGetStackInt(stack++);
+        part->rgba[2] = spiGetStackInt(stack);
+        part->rgba[3] = 0x80;
+    } else if (argc == 4) {
+        for (i = 0; i < 4; i++) {
+            part->rgba[i] = spiGetStackInt(stack++);
+        }
+    }
+    return 1;
+}
+int _MENU_PART_ALPHA_BLEND(SPI_STACK *stack, int argc) {
+    if (menu_form_part == NULL) {
+        return 0;
+    }
+    menu_form_part->alpha_blend = spiGetStackInt(stack);
+    return 1;
+}
+int _MENU_PART_ETCINFO(SPI_STACK *stack, int argc) {
+    int pairs;
+    int i;
+    int index;
+    if (menu_form_part == 0) {
+        return 0;
+    }
+    pairs = argc / 2;
+    for (i = 0; i < pairs; i++) {
+        index = spiGetStackInt(stack++);
+
+        (&menu_form_part->etc_info[0])[index] = spiGetStackInt(stack++);
+    }
+    return 1;
+}
+int _MENU_PART_BILINEAR(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_form_part;
+    u8 *field = &part->bilinear;
+
+    if (part == NULL) {
+        return 0;
+    }
+    {
+        u8 value = part->bilinear;
+        if (value == 0) {
+            *field = 1;
+        } else {
+            *field = value | 1;
+        }
+    }
+    return 1;
+}
+void MakePartsName(SPI_STACK *stack, MENUFORMPARTS_TYPE *part) {
+    part->name = mgCopyString(spiGetStackString(stack), MenuSpiStack);
+}
+int _MENU_PART_DTYPE(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part;
+    int i;
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->dtype = menu_spi_analyze_func_strcut1(tbl_1994, spiGetStackString(stack++));
+    MakePartsName(stack++, part);
+    if (part->dtype == 'O') {
+        for (i = 0; i < argc - 2; i++) {
+            (&part->etc_info[0])[i] = spiGetStackInt(stack++);
+        }
+    } else if (part->dtype == 'L') {
+        part->x = spiGetStackInt(stack++);
+        part->y = spiGetStackInt(stack++);
+        part->w = spiGetStackInt(stack++);
+        part->h = spiGetStackInt(stack);
+    }
+    part->draw_flag = 1;
+    part->active = 1;
+    return 1;
+}
+int _MENU_NORMAL(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part;
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->tex_info_no = MenuPosData->GetTexGetInfoTblNo((char *)spiGetStackString(stack++));
+    MakePartsName(stack++, part);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack++);
+    if (argc > 4) {
+        part->w = spiGetStackInt(stack++);
+        part->h = spiGetStackInt(stack);
+    } else {
+        menu_texdata_to_formpart_copy(part);
+    }
+    part->dtype = 0;
+    part->active = 1;
+    return 1;
+}
+int _MENU_NORMAL2(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->tex_info_no = MenuPosData->GetTexGetInfoTblNo((char *)spiGetStackString(stack++));
+    MakePartsName(stack++, part);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack++);
+    if (argc > 4) {
+        part->w = spiGetStackInt(stack++);
+        part->h = spiGetStackInt(stack);
+    } else {
+        menu_texdata_to_formpart_copy(part);
+    }
+    part->dtype = 1;
+    part->active = 1;
+    return 1;
+}
+int _MENU_CURSOR(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    MakePartsName(stack++, part);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack);
+    part->dtype = 2;
+    part->active = 1;
+    part->draw_flag = 1;
+    return 1;
+}
+int _MENU_FUNCINFO(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    MakePartsName(stack++, part);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack);
+    part->dtype = 3;
+    part->active = 1;
+    part->draw_flag = 0;
+    return 1;
+}
+int _MENU_NUMBER1(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->tex_info_no = MenuPosData->GetTexGetInfoTblNo((char *)spiGetStackString(stack++));
+    MakePartsName(stack++, part);
+    part->etc_info[0] = spiGetStackInt(stack++);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack++);
+    if (argc > 5) {
+        part->w = spiGetStackInt(stack++);
+        part->h = spiGetStackInt(stack);
+    }
+    part->dtype = 5;
+    part->active = 1;
+    return 1;
+}
+int _MENU_NUMBER2(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->tex_info_no = MenuPosData->GetTexGetInfoTblNo((char *)spiGetStackString(stack++));
+    MakePartsName(stack++, part);
+    part->etc_info[0] = spiGetStackInt(stack++);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack++);
+    if (argc > 5) {
+        part->w = spiGetStackInt(stack++);
+        part->h = spiGetStackInt(stack);
+    }
+    part->etc_info[1] = 0;
+    part->dtype = 6;
+    part->active = 1;
+    return 1;
+}
+int _MENU_FRMIMG(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->dtype = menu_spi_analyze_func_strcut1(tbl_2060, spiGetStackString(stack++));
+    part->tex_info_no = MenuPosData->GetTexGetInfoTblNo((char *)spiGetStackString(stack++));
+    MakePartsName(stack++, part);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack++);
+    part->w = spiGetStackInt(stack++);
+    part->h = spiGetStackInt(stack);
+    if (part->bilinear != 0) {
+        part->bilinear |= 1;
+    } else {
+        part->bilinear = 1;
+    }
+    part->active = 1;
+    return 1;
+}
+int _MENU_FORM(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->tex_info_no = spiGetStackInt(stack++);
+    MakePartsName(stack++, part);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack);
+    part->dtype = 0x19;
+    part->active = 1;
+    return 1;
+}
+int _MENU_ITEM(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->dtype = menu_spi_analyze_func_strcut1(tbl_2074, spiGetStackString(stack++));
+    part->etc_info[1] = 0;
+    MakePartsName(stack++, part);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack++);
+    part->w = 32.0f;
+    part->h = 40.0f;
+    if (argc > 4) {
+        part->w = spiGetStackInt(stack++);
+        part->h = spiGetStackInt(stack);
+    }
+    part->active = 1;
+    part->draw_flag = 1;
+    return 1;
+}
+int _MENU_ITEM_CHECKMARK(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->dtype = 0x39;
+    part->tex_info_no = *(signed char *)&MenuCommonInfo->tex_block[0];
+    MakePartsName(stack++, part);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack++);
+    if (argc > 3) {
+        part->w = spiGetStackInt(stack++);
+        part->h = spiGetStackInt(stack);
+    } else {
+        menu_texdata_to_formpart_copy(part);
+    }
+    part->active = 1;
+    part->draw_flag = 1;
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FILLBOX__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FILLBOXINFO__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_WAKU_RECT__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_WAKU_CIRCLE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_PARTS_EFF_NUM__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_PARTS_EFFECT__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuDataAnalyze__FPciP9mgCMemory);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_COMMAND_NAME__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_DRAWFLAG__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_RGBA__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_CALCRGBAPARAM__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_FADE__FP9SPI_STACKi);
+int _MENU_FILLBOXINFO(SPI_STACK *stack, int argc) {
+    menu_parts_effect_ptr->type = 1;
+    for (int i = 0; i < 4; i++) {
+        menu_parts_effect_ptr->param[i] = spiGetStackInt(stack++);
+    }
+    menu_parts_effect_ptr++;
+    return 1;
+}
+int _MENU_WAKU_RECT(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->tex_info_no = MenuPosData->GetTexGetInfoTblNo((char *)spiGetStackString(stack++));
+    MakePartsName(stack++, part);
+    part->dtype = 0xD;
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack++);
+    part->w = spiGetStackInt(stack++);
+    part->h = spiGetStackInt(stack);
+    part->active = 1;
+    part->draw_flag = 1;
+    return 1;
+}
+int _MENU_WAKU_CIRCLE(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->tex_info_no = MenuPosData->GetTexGetInfoTblNo((char *)spiGetStackString(stack++));
+    MakePartsName(stack++, part);
+    part->dtype = 0xE;
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack++);
+    part->w = spiGetStackInt(stack++);
+    part->h = spiGetStackInt(stack);
+    part->active = 1;
+    part->draw_flag = 1;
+    return 1;
+}
+int _MENU_PARTS_EFF_NUM(SPI_STACK *stack, int argc) {
+    int count = spiGetStackInt(stack);
+    unsigned int bytes;
+    unsigned int blocks;
+    if (menu_form_part == 0 || count <= 0) {
+        return 0;
+    }
+    menu_form_part->effect_num = count;
+    bytes = count * 0x24;
+    if (bytes & 0xF) {
+        blocks = (bytes >> 4) + 1;
+    } else {
+        blocks = bytes >> 4;
+    }
+    menu_form_part->effect = (MENU_PARTS_EFFECT_STRUCT1 *)MenuSpiStack->Alloc(blocks);
+    menu_parts_effect_ptr = menu_form_part->effect;
+    return 1;
+}
+int _MENU_PARTS_EFFECT(SPI_STACK *stack, int argc) {
+    MENU_PARTS_EFFECT_STRUCT1 *effect;
+    char *name;
+    int i;
+    name = spiGetStackString(stack++);
+    effect = menu_parts_effect_ptr;
+    if (effect == NULL || name == 0) {
+        return 0;
+    }
+    effect->type = menu_spi_analyze_func_strcut1(tbl_2144, name);
+    effect->active = 1;
+    effect->repeat = 1;
+    for (i = 0; i < argc - 1; i++) {
+        effect->param[i] = spiGetStackInt(stack++);
+    }
+    menu_parts_effect_ptr++;
+    return 1;
+}
+int MenuDataAnalyze(char *script, int size, mgCMemory *memory) {
+    if (script == NULL) {
+        return 0;
+    }
+    MenuSpiStack = memory;
+    CScriptInterpreter interpreter;
+    interpreter.SetTag(menu_analyze_tag);
+    interpreter.SetScript(script, size);
+    interpreter.Run();
+    return 1;
+}
+int _MENU_EXE_COMMAND_NAME(SPI_STACK *stack, int argc) {
+    char *name;
+
+    name = spiGetStackString(stack);
+    SpiMenuExeCommandFlag = 0;
+    if (strcmp(MenuCommandAnalyzeInfo.command_name, name) == 0) {
+        SpiMenuExeCommandFlag = 1;
+    }
+    return 1;
+}
+int _MENU_EXE_FORM_DRAWFLAG(SPI_STACK *stack, int argc) {
+    int draw;
+    int count;
+    int i;
+    char *name;
+    CMenuPosDataForm *form;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    draw = spiGetStackInt(stack++);
+    count = argc - 1;
+    for (i = 0; i < count; i++) {
+        name = spiGetStackString(stack++);
+        form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(name);
+        if (form != NULL) {
+            form->draw_flag = (draw != 0);
+        } else {
+            printf((char *)at_2253__2, name);
+        }
+    }
+    return 1;
+}
+int _MENU_EXE_FORM_RGBA(SPI_STACK *stack, int argc) {
+    CMenuPosDataForm *form;
+    int i;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(spiGetStackString(stack++));
+    if (form == NULL) {
+        return 1;
+    }
+    if (argc == 1) {
+        form->rgba[0] = 0x80;
+        form->rgba[1] = 0x80;
+        form->rgba[2] = 0x80;
+        form->rgba[3] = 0x80;
+        for (i = 0; i < 4; i++) {
+            form->SetRGBACalcParam(i, 0, 0x80);
+        }
+    } else {
+        int r = spiGetStackInt(stack++);
+        int g = spiGetStackInt(stack++);
+        int b = spiGetStackInt(stack++);
+        int a = spiGetStackInt(stack);
+        form->rgba[0] = r;
+        form->rgba[1] = g;
+        form->rgba[2] = b;
+        form->rgba[3] = a;
+        for (i = 0; i < 4; i++) {
+            form->SetRGBACalcParam(i, 0, 0x80);
+        }
+    }
+    return 1;
+}
+int _MENU_EXE_FORM_CALCRGBAPARAM(SPI_STACK *stack, int argc) {
+    CMenuPosDataForm *form;
+    int mode;
+    int param1;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(spiGetStackString(stack++));
+    if (form == 0) {
+        return 1;
+    }
+    mode = spiGetStackInt(stack++);
+    param1 = spiGetStackInt(stack++);
+    form->SetRGBACalcParam(mode, param1, spiGetStackInt(stack));
+    return 1;
+}
+int _MENU_EXE_FORM_FADE(SPI_STACK *stack, int argc) {
+    CMenuPosDataForm *form;
+    int mode;
+    int frames;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(spiGetStackString(stack++));
+    if (form == 0) {
+        return 1;
+    }
+    mode = spiGetStackInt(stack++);
+    frames = spiGetStackInt(stack);
+    if (mode == 0) {
+        form->FormFadeIn(frames, 1);
+    }
+    if (mode == 1) {
+        form->FormFadeOut(frames, 1);
+    }
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_SETPOS__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_SETACTION__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_PARTSONOFF__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_PARTSONOFF_GRP__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_SWAP__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_GROUP_SWAP__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_MSGENV__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_MAKEMSG__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_SETABSPOS__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_MSGSETSYSTEMBUFF__FP9SPI_STACKi);
+int _MENU_EXE_FORM_SETACTION(SPI_STACK *stack, int argc) {
+    CMenuPosDataForm *form;
+    SPI_STACK *next_slot = stack + 1;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(spiGetStackString(stack));
+    if (form == 0) {
+        return 1;
+    }
+    form->SetAction(spiGetStackString(next_slot));
+    return 1;
+}
+int _MENU_EXE_FORM_PARTSONOFF(SPI_STACK *stack, int argc) {
+    CMenuPosDataForm *form;
+    MENUFORMPARTS_TYPE *part;
+
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(spiGetStackString(stack++));
+    if (form == 0) {
+        return 0;
+    }
+    part = form->GetPartInfo(spiGetStackString(stack++));
+    if (part == NULL) {
+        return 0;
+    }
+    part->draw_flag = (spiGetStackInt(stack) != 0);
+    return 1;
+}
+int _MENU_EXE_FORM_PARTSONOFF_GRP(SPI_STACK *stack, int argc) {
+    CMenuPosDataForm *form;
+    int on;
+    int count;
+    int i;
+    MENUFORMPARTS_TYPE *part;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(spiGetStackString(stack++));
+    if (form == 0) {
+        return 0;
+    }
+    on = spiGetStackInt(stack++);
+    count = argc - 2;
+    for (i = 0; i < count; i++) {
+        part = form->GetPartInfo(spiGetStackString(stack++));
+        if (part != NULL) {
+            part->draw_flag = (on != 0);
+        }
+    }
+    return 1;
+}
+int _MENU_EXE_FORM_SWAP(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+    char *form;
+
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    form = spiGetStackString(stack);
+    MenuPosData->FormReLink(form, spiGetStackString(next_slot));
+    return 1;
+}
+int _MENU_EXE_FORM_GROUP_SWAP(SPI_STACK *stack, int argc) {
+    char *form;
+    char *target;
+    char *third;
+    char *fourth;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    form = (char *)spiGetStackString(stack++);
+    target = (char *)spiGetStackString(stack++);
+    third = (char *)spiGetStackString(stack++);
+    fourth = (char *)spiGetStackString(stack);
+    MenuPosData->FormReLink2(form, target, third, fourth);
+    return 1;
+}
+int _MENU_EXE_MSGENV(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+    int msg_no;
+    int preset;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    msg_no = spiGetStackInt(stack);
+    preset = menu_spi_analyze_func_strcut1(tbl_2369, spiGetStackString(next_slot));
+    MenuDCMsg[msg_no]->MsgPreset(preset, LanguageCode);
+    return 1;
+}
+int _MENU_EXE_MAKEMSG(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+    int message;
+    int id;
+
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    message = spiGetStackInt(stack);
+    id = spiGetStackInt(next_slot);
+    MenuDCMsg[message]->MakeMsg(id);
+    return 1;
+}
+int _MENU_EXE_SETABSPOS(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+    int index;
+    int value;
+
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    index = spiGetStackInt(stack);
+    value = spiGetStackInt(next_slot);
+    MenuDCMsg[index]->SetAbsPos(value);
+    return 1;
+}
+int _MENU_EXE_MSGSETSYSTEMBUFF(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+    int message;
+    short *buffer;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    message = spiGetStackInt(stack);
+    buffer = ((short **)&MenuCommandAnalyzeInfo.system_mes_buff)[spiGetStackInt(next_slot)];
+    if (buffer == NULL) {
+        buffer = GetSystemMesBuffer();
+    }
+    ((ClsMes *)MenuDCMsg[message])->SetBuff_system(buffer);
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_MSGSETBUFF__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_MSGSETFUCHI__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_MSGSETCURSOR__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_SET_QUESTIONGYOU__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_SET_OPENSPEED__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_INPUT_KEY__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_CURSOR_ONOFF__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_CURSOR_FADE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_WAKUTYPE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_SCENE_FADE__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_SE_PLAY__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_INIT_DRAWLIST__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_RESET_TEXINFO__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_DEBUG_PRINTF__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuCommandAnalyze__FPciPc);
+int _MENU_EXE_MSGSETFUCHI(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+    int message;
+    char *text;
+    int type;
+
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    message = spiGetStackInt(stack);
+    text = spiGetStackString(next_slot);
+    type = menu_spi_analyze_func_strcut1(tbl_2422, text);
+    ((ClsMes *)MenuDCMsg[message])->fuchi = type;
+    return 1;
+}
+int _MENU_EXE_MSGSETCURSOR(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+    int index;
+    int cursor;
+
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    index = spiGetStackInt(stack);
+    cursor = spiGetStackInt(next_slot);
+    MenuDCMsg[index]->SetMsgCursor(cursor);
+    return 1;
+}
+int _MENU_SET_QUESTIONGYOU(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+    int msg_no;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    msg_no = spiGetStackInt(stack);
+    ((ClsMes *)MenuDCMsg[msg_no])->select_top = spiGetStackInt(next_slot);
+    return 1;
+}
+int _MENU_SET_OPENSPEED(SPI_STACK *stack, int argc) {
+    int message;
+    SPI_STACK *next_slot = stack + 1;
+
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    message = spiGetStackInt(stack);
+    ((ClsMes *)MenuDCMsg[message])->fade_speed = spiGetStackFloat(next_slot);
+    return 1;
+}
+int _MENU_INPUT_KEY(SPI_STACK *stack, int argc) {
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    MenuCommonInfo->key_enable = spiGetStackInt(stack);
+    return 1;
+}
+int _MENU_CURSOR_ONOFF(SPI_STACK *stack, int argc) {
+    int value;
+    CMenuPosDataForm *cursor;
+
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    value = spiGetStackInt(stack);
+    cursor = MenuCommonInfo->how_much_form;
+    if (cursor != NULL) {
+        cursor->draw_flag = (value != 0);
+    }
+    return 1;
+}
+int _MENU_CURSOR_FADE(SPI_STACK *stack, int argc) {
+    int fade_in;
+    int speed;
+    int steps;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    fade_in = spiGetStackInt(stack++);
+    speed = 10;
+    if (argc == 2) {
+        speed = spiGetStackInt(stack++);
+    }
+    steps = 1;
+    if (argc == 3) {
+        steps = spiGetStackInt(stack);
+    }
+    if (fade_in != 0) {
+        MenuCommonInfo->CursorFadeIn(speed, steps);
+    } else {
+        MenuCommonInfo->CursorFadeOut(speed, steps);
+    }
+    return 1;
+}
+int _MENU_WAKUTYPE(SPI_STACK *stack, int argc) {
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    MenuCommonInfo->SetWakuType(spiGetStackInt(stack));
+    return 1;
+}
+int _MENU_SCENE_FADE(SPI_STACK *stack, int argc) {
+    int fade_in;
+    int frames;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    fade_in = spiGetStackInt(stack++);
+    frames = 40;
+    if (argc == 2) {
+        frames = spiGetStackInt(stack);
+    }
+    if (fade_in != 0) {
+        ((CFadeInOut *)((u8 *)MenuMainScene + 0x2C70))->FadeIn(frames);
+    } else {
+        ((CFadeInOut *)((u8 *)MenuMainScene + 0x2C70))->FadeOut(frames, 0.0f, 0.0f, 0.0f);
+    }
+    ((CFadeInOut *)((u8 *)MenuMainScene + 0x2C70))->FadeStep();
+    return 1;
+}
+int _MENU_SE_PLAY(SPI_STACK *stack, int argc) {
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    MenuSePlay(menu_spi_analyze_func_strcut1(tbl_2516, spiGetStackString(stack)));
+    return 1;
+}
+int _MENU_EXE_INIT_DRAWLIST(SPI_STACK *stack, int argc) {
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    MenuPosData->InitDrawList();
+    return 1;
+}
+int _MENU_EXE_RESET_TEXINFO(SPI_STACK *stack, int argc) {
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    MenuPosData->ResetTextureInfoAll();
+    return 1;
+}
+int _MENU_DEBUG_PRINTF(SPI_STACK *stack, int argc) {
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    printf(spiGetStackString(stack));
+    printf((char *)at_2538);
+    return 1;
+}
+void MenuCommandAnalyze(char *script, int size, char *command_name) {
+    if ((script != NULL) && (command_name != NULL)) {
+        strcpy(MenuCommandAnalyzeInfo.command_name, command_name);
+        CScriptInterpreter interpreter;
+        interpreter.SetTag(menu_execommand_analyze_tag);
+        interpreter.SetScript(script, size);
+        interpreter.Run();
+    }
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucommon", sort_table__DATA);

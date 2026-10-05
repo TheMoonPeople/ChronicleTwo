@@ -6,6 +6,13 @@
 #include "mg_memory.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
+#include "memcard.hpp"
+
+struct SaveIconSet {
+    MC_ICON_DATA file[3];
+};
+
+STATIC_ASSERT(sizeof(SaveIconSet) == 0x78);
 
 /**
  * @file
@@ -41,8 +48,8 @@ enum ManualMenuStep {
     MANUAL_STEP_CLOSE    = 3, /**< The movie or pictures fade out. */
     MANUAL_STEP_END      = 4, /**< The menu's own data is put back and the list returns. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * What the save menu was opened to do, as CSaveMenuClass::mode holds it.
@@ -54,8 +61,8 @@ enum SaveMenuMode {
     SAVE_MENU_MODE_LOAD         = 1, /**< Load a game from the title screen. */
     SAVE_MENU_MODE_GYORACE_LOAD = 2, /**< Load the fish of a saved game for the fish race. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * Pages of the save menu, as CSaveMenuClass::page holds them.
@@ -71,8 +78,8 @@ enum SaveMenuPage {
     SAVE_MENU_PAGE_UNK_5       = 5,
     SAVE_MENU_PAGE_ERROR       = 6, /**< A card error or lack of space is reported. */
 };
-// clang-format on
 
+// clang-format on
 /**
  *
  * The manual menu: a list of explanations that each play a movie, or show a

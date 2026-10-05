@@ -108,6 +108,7 @@ public:
      * @size 0x30
      */
     CMapLightingInfo() { memset(this, 0, sizeof(CMapLightingInfo)); }
+    CMapLightingInfo &operator=(const CMapLightingInfo &other);
 };
 STATIC_ASSERT(sizeof(CMapLightingInfo) == 0x1D0);
 
@@ -251,7 +252,7 @@ public:
      * @address 0x15F5D0
      * @size 0x30
      */
-    CFuncPoint() {}
+    CFuncPoint();
 
     /**
      *
@@ -326,7 +327,7 @@ public:
      * @address 0x163B70
      * @size 0x30
      */
-    PieceMaterial() { Initialize(); }
+    PieceMaterial();
 
     /**
      *
@@ -336,7 +337,7 @@ public:
      * @address 0x163BA0
      * @size 0x10
      */
-    void Initialize() { memset(this, 0, sizeof(PieceMaterial)); }
+    void Initialize();
 };
 STATIC_ASSERT(sizeof(PieceMaterial) == 0x20);
 
@@ -358,7 +359,7 @@ public:
      * @address 0x164320
      * @size 0x30
      */
-    CCameraDrawInfo() { Initialize(); }
+    CCameraDrawInfo();
 
     /**
      *
@@ -368,10 +369,7 @@ public:
      * @address 0x164350
      * @size 0x10
      */
-    void Initialize() {
-        unk_4 = 0;
-        group_no = -1;
-    }
+    void Initialize();
 };
 STATIC_ASSERT(sizeof(CCameraDrawInfo) == 0x8);
 
@@ -448,10 +446,4 @@ inline float mgAbs(float value) {
  * @address 0x163240
  * @size 0x20
  */
-inline unsigned int algn16_size(unsigned int size) {
-    unsigned int units = size >> 4;
-    if (size & 0xF) {
-        units = (size >> 4) + 1;
-    }
-    return units;
-}
+unsigned int algn16_size(unsigned int size);

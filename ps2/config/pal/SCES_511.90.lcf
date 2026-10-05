@@ -32,43 +32,55 @@ SECTIONS
 
         # text
         crt0.s.o                            (.text)     // 0x00100000
-        fpcmp.s.o                           (.text)     // 0x001000d0
+        fpcmp.cpp.o                         (.text)     // 0x001000d0
+        . = ALIGN(0x10);                                // 0x00100190
         mwinit.s.o                          (.text)     // 0x00100190
-        CPlusLib.s.o                        (.text)     // 0x001001c0
-        New.s.o                             (.text)     // 0x001004f0
+        CPlusLib.cpp.o                      (.text)     // 0x001001c0
+        . = ALIGN(0x8);                                 // 0x001004f0
+        New.cpp.o                           (.text)     // 0x001004f0
+        . = ALIGN(0x8);                                 // 0x001005d0
         NMWException.s.o                    (.text)     // 0x001005d0
         global_destructor_chain.s.o         (.text)     // 0x001009a0
-        MWException.s.o                     (.text)     // 0x00100a30
-        ExceptionPS2.s.o                    (.text)     // 0x00102190
-        libgraph.s.o                        (.text)     // 0x00102630
-        libdma.s.o                          (.text)     // 0x00104288
-        libdev.s.o                          (.text)     // 0x00104d58
-        libgifpk.s.o                        (.text)     // 0x00106630
-        libvifpk.s.o                        (.text)     // 0x00106958
-        libvu0.s.o                          (.text)     // 0x00106d00
-        libmpeg.s.o                         (.text)     // 0x00107a50
+        MWException.cpp.o                   (.text)     // 0x00100a30
+        . = ALIGN(0x8);                                 // 0x00102190
+        ExceptionPS2.cpp.o                  (.text)     // 0x00102190
+        libgraph.cpp.o                      (.text)     // 0x00102630
+        libdma.cpp.o                        (.text)     // 0x00104288
+        . = ALIGN(0x8);                                 // 0x00104d58
+        libdev.cpp.o                        (.text)     // 0x00104d58
+        . = ALIGN(0x8);                                 // 0x00106630
+        libgifpk.cpp.o                      (.text)     // 0x00106630
+        . = ALIGN(0x8);                                 // 0x00106958
+        libvifpk.cpp.o                      (.text)     // 0x00106958
+        libvu0.cpp.o                        (.text)     // 0x00106d00
+        . = ALIGN(0x10);                                // 0x00107a50
+        libmpeg.cpp.o                       (.text)     // 0x00107a50
+        . = ALIGN(0x8);                                 // 0x0010f4e0
         libipu.s.o                          (.text)     // 0x0010f4e0
         klib.s.o                            (.text)     // 0x0010fb00
-        glue.s.o                            (.text)     // 0x001103a0
-        cache.s.o                           (.text)     // 0x00110770
-        intr.s.o                            (.text)     // 0x001109f0
+        glue.cpp.o                          (.text)     // 0x001103a0
+        cache.cpp.o                         (.text)     // 0x00110770
+        . = ALIGN(0x8);                                 // 0x001109f0
+        intr.cpp.o                          (.text)     // 0x001109f0
+        . = ALIGN(0x8);                                 // 0x00110d60
         thread.s.o                          (.text)     // 0x00110d60
         deci2.s.o                           (.text)     // 0x001110c0
         tty.s.o                             (.text)     // 0x001112a0
         kprintf.s.o                         (.text)     // 0x001117c0
-        sifcmd.s.o                          (.text)     // 0x00112138
-        sifrpc.s.o                          (.text)     // 0x00112880
-        filestub.s.o                        (.text)     // 0x001137e0
-        iopheap.s.o                         (.text)     // 0x00116e78
-        eeloadfile.s.o                      (.text)     // 0x00117178
+        sifcmd.cpp.o                        (.text)     // 0x00112138
+        sifrpc.cpp.o                        (.text)     // 0x00112880
+        filestub.cpp.o                      (.text)     // 0x001137e0
+        iopheap.cpp.o                       (.text)     // 0x00116e78
+        eeloadfile.cpp.o                    (.text)     // 0x00117178
+        . = ALIGN(0x8);                                 // 0x00117ed8
         iopreset.s.o                        (.text)     // 0x00117ed8
         tlbfunc.s.o                         (.text)     // 0x00118188
         tlbtrap.s.o                         (.text)     // 0x001186c0
-        diei.s.o                            (.text)     // 0x00118a20
+        diei.cpp.o                          (.text)     // 0x00118a20
         initsys.s.o                         (.text)     // 0x00118a80
         libosd.s.o                          (.text)     // 0x00118bc0
-        kernl_exit.s.o                      (.text)     // 0x00118d40
-        sdr_main.s.o                        (.text)     // 0x00118e50
+        exit.cpp.o                          (.text)     // 0x00118d40
+        sdr_main.cpp.o                      (.text)     // 0x00118e50
         e_atan2.s.o                         (.text)     // 0x00119180
         e_pow.s.o                           (.text)     // 0x001194b8
         e_rem_pio2.s.o                      (.text)     // 0x0011a1e0
@@ -85,7 +97,8 @@ SECTIONS
         kf_sin.s.o                          (.text)     // 0x0011d070
         kf_tan.s.o                          (.text)     // 0x0011d178
         s_atan.s.o                          (.text)     // 0x0011d410
-        s_copysign.s.o                      (.text)     // 0x0011d820
+        s_copysign.cpp.o                    (.text)     // 0x0011d820
+        . = ALIGN(0x8);                                 // 0x0011d868
         s_cos.s.o                           (.text)     // 0x0011d868
         s_fabs.s.o                          (.text)     // 0x0011d970
         s_finite.s.o                        (.text)     // 0x0011d9a8
@@ -97,9 +110,10 @@ SECTIONS
         s_scalbn.s.o                        (.text)     // 0x0011de48
         s_sin.s.o                           (.text)     // 0x0011e000
         sf_atan.s.o                         (.text)     // 0x0011e0f8
-        sf_copysign.s.o                     (.text)     // 0x0011e3a0
+        sf_copysign.cpp.o                   (.text)     // 0x0011e3a0
         sf_cos.s.o                          (.text)     // 0x0011e3d0
-        sf_fabs.s.o                         (.text)     // 0x0011e4b8
+        sf_fabs.cpp.o                       (.text)     // 0x0011e4b8
+        . = ALIGN(0x8);                                 // 0x0011e4d8
         sf_floor.s.o                        (.text)     // 0x0011e4d8
         sf_isnan.s.o                        (.text)     // 0x0011e5c0
         sf_scalbn.s.o                       (.text)     // 0x0011e5e8
@@ -114,28 +128,34 @@ SECTIONS
         eecdvd.s.o                          (.text)     // 0x0011f258
         libpad.s.o                          (.text)     // 0x00120e50
         libmc.s.o                           (.text)     // 0x001221e8
-        msinput.s.o                         (.text)     // 0x00123a50
+        msinput.cpp.o                       (.text)     // 0x00123a50
         abort.s.o                           (.text)     // 0x00123ce8
-        abs.s.o                             (.text)     // 0x00123d08
-        atof.s.o                            (.text)     // 0x00123d20
+        abs.cpp.o                           (.text)     // 0x00123d08
+        . = ALIGN(0x8);                                 // 0x00123d20
+        atof.cpp.o                          (.text)     // 0x00123d20
+        . = ALIGN(0x8);                                 // 0x00123d40
         atoi.s.o                            (.text)     // 0x00123d40
         callocr.s.o                         (.text)     // 0x00123d68
         closer.s.o                          (.text)     // 0x00123e28
         dtoa.s.o                            (.text)     // 0x00123e80
-        errno.s.o                           (.text)     // 0x00125268
+        errno.cpp.o                         (.text)     // 0x00125268
+        . = ALIGN(0x8);                                 // 0x00125278
         stdlib_exit.s.o                     (.text)     // 0x00125278
         fflush.s.o                          (.text)     // 0x00125328
-        findfp.s.o                          (.text)     // 0x00125430
+        findfp.cpp.o                        (.text)     // 0x00125430
+        . = ALIGN(0x8);                                 // 0x00125688
         fprintf.s.o                         (.text)     // 0x00125688
         freer.s.o                           (.text)     // 0x001256c0
         fstatr.s.o                          (.text)     // 0x00125b50
         fvwrite.s.o                         (.text)     // 0x00125bb0
         fwalk.s.o                           (.text)     // 0x00125f88
-        index.s.o                           (.text)     // 0x00126020
-        locale.s.o                          (.text)     // 0x00126040
+        index.cpp.o                         (.text)     // 0x00126020
+        . = ALIGN(0x8);                                 // 0x00126040
+        locale.cpp.o                        (.text)     // 0x00126040
+        . = ALIGN(0x8);                                 // 0x00126130
         lseekr.s.o                          (.text)     // 0x00126130
         makebuf.s.o                         (.text)     // 0x00126190
-        malloc.s.o                          (.text)     // 0x001262e0
+        malloc.cpp.o                        (.text)     // 0x001262e0
         mallocr.s.o                         (.text)     // 0x00126318
         mbtowc_r.s.o                        (.text)     // 0x00126ce8
         memchr.s.o                          (.text)     // 0x00126d28
@@ -143,14 +163,16 @@ SECTIONS
         memcpy.s.o                          (.text)     // 0x00126ea0
         memmove.s.o                         (.text)     // 0x00126f50
         memset.s.o                          (.text)     // 0x00127058
-        mlock.s.o                           (.text)     // 0x00127118
-        mprec.s.o                           (.text)     // 0x00127128
+        mlock.cpp.o                         (.text)     // 0x00127118
+        mprec.cpp.o                         (.text)     // 0x00127128
+        . = ALIGN(0x8);                                 // 0x00128148
         printf.s.o                          (.text)     // 0x00128148
-        rand.s.o                            (.text)     // 0x001281d8
+        rand.cpp.o                          (.text)     // 0x001281d8
         readr.s.o                           (.text)     // 0x00128218
         sbrkr.s.o                           (.text)     // 0x00128278
         signal.s.o                          (.text)     // 0x001282d8
-        signalr.s.o                         (.text)     // 0x00128628
+        signalr.cpp.o                       (.text)     // 0x00128628
+        . = ALIGN(0x8);                                 // 0x001286a8
         sprintf.s.o                         (.text)     // 0x001286a8
         stdio.s.o                           (.text)     // 0x00128780
         strcasecmp.s.o                      (.text)     // 0x001288f0
@@ -456,33 +478,40 @@ SECTIONS
         # data
         __data_start = .;                               // 0x0032a320
         crt0.s.o                            (.data)     // 0x0032a320
-        New.s.o                             (.data)     // 0x0032a380
+        New.cpp.o                           (.data)     // 0x0032a380
+        . = ALIGN(0x8);                                 // 0x0032a390
         NMWException.s.o                    (.data)     // 0x0032a390
-        libgraph.s.o                        (.data)     // 0x0032a3a0
-        libdma.s.o                          (.data)     // 0x0032a3f0
-        libdev.s.o                          (.data)     // 0x0032a4a0
-        libvu0.s.o                          (.data)     // 0x003344a0
-        libmpeg.s.o                         (.data)     // 0x003344d0
+        libgraph.cpp.o                      (.data)     // 0x0032a3a0
+        libdma.cpp.o                        (.data)     // 0x0032a3f0
+        . = ALIGN(0x8);                                 // 0x0032a4a0
+        libdev.cpp.o                        (.data)     // 0x0032a4a0
+        libvu0.cpp.o                        (.data)     // 0x003344a0
+        libmpeg.cpp.o                       (.data)     // 0x003344d0
         libipu.s.o                          (.data)     // 0x003346c0
         klib.s.o                            (.data)     // 0x00334740
-        glue.s.o                            (.data)     // 0x00334750
-        intr.s.o                            (.data)     // 0x00334758
+        glue.cpp.o                          (.data)     // 0x00334750
+        intr.cpp.o                          (.data)     // 0x00334758
         thread.s.o                          (.data)     // 0x00334f00
         kprintf.s.o                         (.data)     // 0x00334f08
-        sifcmd.s.o                          (.data)     // 0x00334f10
-        sifrpc.s.o                          (.data)     // 0x00334f18
-        filestub.s.o                        (.data)     // 0x00334f20
-        iopheap.s.o                         (.data)     // 0x00334fb8
-        eeloadfile.s.o                      (.data)     // 0x00334fc0
+        sifcmd.cpp.o                        (.data)     // 0x00334f10
+        . = ALIGN(0x8);                                 // 0x00334f18
+        sifrpc.cpp.o                        (.data)     // 0x00334f18
+        . = ALIGN(0x8);                                 // 0x00334f20
+        filestub.cpp.o                      (.data)     // 0x00334f20
+        . = ALIGN(0x8);                                 // 0x00334fb8
+        iopheap.cpp.o                       (.data)     // 0x00334fb8
+        . = ALIGN(0x8);                                 // 0x00334fc0
+        eeloadfile.cpp.o                    (.data)     // 0x00334fc0
         tlbfunc.s.o                         (.data)     // 0x00334fc8
         initsys.s.o                         (.data)     // 0x00335608
         libosd.s.o                          (.data)     // 0x00335620
-        sdr_main.s.o                        (.data)     // 0x00335de0
+        sdr_main.cpp.o                      (.data)     // 0x00335de0
+        . = ALIGN(0x40);                                // 0x00335e40
         eecdvd.s.o                          (.data)     // 0x00335e40
         libpad.s.o                          (.data)     // 0x003378b8
         libmc.s.o                           (.data)     // 0x00337900
         impure.data.s.o                     (.data)     // 0x00337918
-        locale.s.o                          (.data)     // 0x00337c08
+        locale.cpp.o                        (.data)     // 0x00337c08
         mallocr.s.o                         (.data)     // 0x00337c20
         mg_texture.cpp.o                    (.data)     // 0x00338080
         mg_frame.cpp.o                      (.data)     // 0x00338230
@@ -627,22 +656,25 @@ SECTIONS
         *(.vudata)
 
         # rodata
-        CPlusLib.s.o                        (.rodata)   // 0x00363580
-        New.s.o                             (.rodata)   // 0x003635b0
+        CPlusLib.cpp.o                      (.rodata)   // 0x00363580
+        . = ALIGN(0x10);                                // 0x003635b0
+        New.cpp.o                           (.rodata)   // 0x003635b0
+        . = ALIGN(0x10);                                // 0x00363630
         NMWException.s.o                    (.rodata)   // 0x00363630
-        MWException.s.o                     (.rodata)   // 0x00363660
-        libgraph.s.o                        (.rodata)   // 0x00363808
-        libdma.s.o                          (.rodata)   // 0x00363d30
-        libdev.s.o                          (.rodata)   // 0x00363d48
-        libmpeg.s.o                         (.rodata)   // 0x00364d58
+        MWException.cpp.o                   (.rodata)   // 0x00363660
+        . = ALIGN(0x4);                                 // 0x00363808
+        libgraph.cpp.o                      (.rodata)   // 0x00363808
+        libdma.cpp.o                        (.rodata)   // 0x00363d30
+        libdev.cpp.o                        (.rodata)   // 0x00363d48
+        libmpeg.cpp.o                       (.rodata)   // 0x00364d58
         thread.s.o                          (.rodata)   // 0x00365270
         tty.s.o                             (.rodata)   // 0x00365298
         kprintf.s.o                         (.rodata)   // 0x00365310
-        filestub.s.o                        (.rodata)   // 0x00365470
-        eeloadfile.s.o                      (.rodata)   // 0x003654e0
+        filestub.cpp.o                      (.rodata)   // 0x00365470
+        eeloadfile.cpp.o                    (.rodata)   // 0x003654e0
         iopreset.s.o                        (.rodata)   // 0x003654f0
         tlbfunc.s.o                         (.rodata)   // 0x00365520
-        sdr_main.s.o                        (.rodata)   // 0x003655a0
+        sdr_main.cpp.o                      (.rodata)   // 0x003655a0
         e_atan2.s.o                         (.rodata)   // 0x003655c8
         e_pow.s.o                           (.rodata)   // 0x00365678
         e_rem_pio2.s.o                      (.rodata)   // 0x00365848
@@ -672,8 +704,9 @@ SECTIONS
         ctype_.rodata.s.o                   (.rodata)   // 0x003666f0
         dtoa.s.o                            (.rodata)   // 0x00366800
         impure.rodata.s.o                   (.rodata)   // 0x00366858
-        locale.s.o                          (.rodata)   // 0x00366860
-        mprec.s.o                           (.rodata)   // 0x003668a8
+        locale.cpp.o                        (.rodata)   // 0x00366860
+        . = 0x003668a8;                                 // 0x003668a8
+        mprec.cpp.o                         (.rodata)   // 0x003668a8
         strtod.s.o                          (.rodata)   // 0x003669d0
         vfprintf.s.o                        (.rodata)   // 0x00366aa0
         mg_texture.cpp.o                    (.rodata)   // 0x00366cb0
@@ -1041,9 +1074,9 @@ SECTIONS
 
         # vtables
         . = ALIGN(0x10);                                // 0x0037b0b0
-        CPlusLib.s.o                        (.vtables)  // 0x0037b0b0
-        New.s.o                             (.vtables)  // 0x0037b0c0
-        MWException.s.o                     (.vtables)  // 0x0037b0d0
+        CPlusLib.cpp.o                      (.vtables)  // 0x0037b0b0
+        New.cpp.o                           (.vtables)  // 0x0037b0c0
+        MWException.cpp.o                   (.vtables)  // 0x0037b0d0
         mg_camera.cpp.o                     (.vtables)  // 0x0037b0e0
         mg_dataset.cpp.o                    (.vtables)  // 0x0037b130
         . = ALIGN(0x10);                                // 0x0037b1c0
@@ -1305,20 +1338,20 @@ SECTIONS
         __bss_start = .;                                // 0x0037ead5
         crt0.s.o                            (.bss)      // 0x0037ead5
         global_destructor_chain.s.o         (.bss)      // 0x0037ec48
-        libdev.s.o                          (.bss)      // 0x0037ec50
-        libmpeg.s.o                         (.bss)      // 0x0037edc0
+        libdev.cpp.o                        (.bss)      // 0x0037ec50
+        libmpeg.cpp.o                       (.bss)      // 0x0037edc0
         thread.s.o                          (.bss)      // 0x0037efc0
         deci2.s.o                           (.bss)      // 0x0037f7d0
         tty.s.o                             (.bss)      // 0x0037f800
         kprintf.s.o                         (.bss)      // 0x0037fbc0
-        sifcmd.s.o                          (.bss)      // 0x0037fc40
-        sifrpc.s.o                          (.bss)      // 0x0037fec0
-        filestub.s.o                        (.bss)      // 0x00381700
-        iopheap.s.o                         (.bss)      // 0x00382ac0
-        eeloadfile.s.o                      (.bss)      // 0x00382c80
+        sifcmd.cpp.o                        (.bss)      // 0x0037fc40
+        sifrpc.cpp.o                        (.bss)      // 0x0037fec0
+        filestub.cpp.o                      (.bss)      // 0x00381700
+        iopheap.cpp.o                       (.bss)      // 0x00382ac0
+        eeloadfile.cpp.o                    (.bss)      // 0x00382c80
         iopreset.s.o                        (.bss)      // 0x00382ec0
         tlbtrap.s.o                         (.bss)      // 0x00382f40
-        sdr_main.s.o                        (.bss)      // 0x00384180
+        sdr_main.cpp.o                      (.bss)      // 0x00384180
         eecdvd.s.o                          (.bss)      // 0x00384340
         libpad.s.o                          (.bss)      // 0x00384600
         libmc.s.o                           (.bss)      // 0x003848c0
@@ -1442,8 +1475,9 @@ SECTIONS
         mainloop3.cpp.o                     (.bss)      // 0x01f644e0
         gyoracesim.cpp.o                    (.bss)      // 0x01f645d0
         convviewlp.cpp.o                    (.bss)      // 0x01f646b0
-        errno.s.o                           (.bss)      // 0x01f649d0
+        errno.cpp.o                         (.bss)      // 0x01f649d0
         *(.bss)
+        . = ALIGN(0x40);                                // 0x01f64a00 the end of main
         __bss_end = .;                                  // 0x01f64a00
 
         # the sizes crt0 clears and copies by, and the run-time's memory
@@ -1471,6 +1505,7 @@ SECTIONS
         _L31__4 = 0x00129390;
         _L39__2 = 0x001293f8;
         _L20__7 = 0x001294f8;
+        D_003532DF = 0x003532df;
         CHA_DEV_FONT_PIECE_R = 0x00364549;
         CHA_DEV_FONT_PIECE_U = 0x0036454a;
         CHA_DEV_FONT_PIECE_D = 0x0036454b;

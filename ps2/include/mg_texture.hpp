@@ -66,9 +66,32 @@ enum TIM2_IMAGE_TYPE {
  * A TIM2 image as the texture manager reads it: the file header followed
  * directly by the first picture's header and its mip-map header.
  */
+struct TM2_PICTURE {
+    u_int total_size;         /**< Bytes of the first picture; its header starts here. */
+    u_int clut_size; /**< GS blocks the palette occupies, or 0 for a true-colour texture. */
+    u_int image_size;         /**< Bytes of pixels of the first picture, every mip level included. */
+    u_short header_size;      /**< Bytes from the picture header to the picture's pixels. */
+    u_short clut_colors;
+    u_char picture_format;
+    u_char mipmap_count;
+    u_char clut_type;
+    u_char image_type; /**< Pixel format of the picture. @see TIM2_IMAGE_TYPE */
+    u_short width; /**< Width of the base level, in pixels. */
+    u_short height; /**< Height of the base level, in pixels. */
+    unsigned long long tex0; /**< GS TEX0 value the texture is drawn with. */
+    unsigned long long tex1; /**< GS TEX1 value the picture asks to be sampled with. */
+    u_int gs_regs;
+    u_int gs_tex_clut;
+    long long mip_tbp1;
+    long long mip_tbp2;
+    int mip_sizes[1];
+};
+#pragma cpp_extensions on
 struct TM2_head {
     char tag[4];              /**< File signature. */
     char unk_04[0xC];
+    union {
+        struct {
     u_int total_size;         /**< Bytes of the first picture; its header starts here. */
     u_int unk_14;
     u_int image_size;         /**< Bytes of pixels of the first picture, every mip level included. */
@@ -85,6 +108,10 @@ struct TM2_head {
     char unk_38[0x18];
     u_int mipmap_size[4];     /**< Bytes of pixels of each mip level, in order from the base level. */
 };
+        TM2_PICTURE picture;
+    };
+};
+#pragma cpp_extensions reset
 
 /**
  * Leading header of an IMG texture archive; the entries follow at offset
@@ -112,8 +139,15 @@ STATIC_ASSERT(sizeof(mgIMG1_HEADER) == 0x30);
  * One entry of an IM3 texture archive, which is also the form
  * mgGetIMGHeader gives the entries of every IMG version in.
  */
+struct IMG_HEADER_NAME {
+    char bytes[0x20];
+};
+
 struct mgIMG_HEADER {
+    union {
     char name[0x20]; /**< Name the picture is registered under; a leading '#' marks a texture animation script. */
+        IMG_HEADER_NAME name_copy;
+    };
     int unk_20;
     int offset;      /**< Byte offset of the picture's TIM2 image, or of the script, from the start of the archive. */
     int swizzled;    /**< Non-zero when the 8-bit pixels are stored in 32-bit page order. */
@@ -121,7 +155,10 @@ struct mgIMG_HEADER {
     short no_image;  /**< Non-zero to register the picture and reserve its VRAM without its pixels. */
     short unk_32;
     int size;        /**< Byte size of a texture animation script entry. */
+    union {
     sceGsClamp clamp; /**< GS CLAMP value the texture is sampled with. */
+        long long clamp_bits;
+    };
 };
 STATIC_ASSERT(sizeof(mgIMG_HEADER) == 0x40);
 
@@ -402,8 +439,8 @@ public:
      * @address 0x12D0D0
      * @size 0x760
      */
-    mgCTexture *EnterTexture(int block, char *name, u_long128 **image, int width, int height, int bpp,
-                             u_long128 *clut, u_long tex1, int swizzled);
+    mgCTexture *EnterTexture(int block, char *name, u_long128 **image, int width, int height,
+                             int bpp, u_long128 *clut, u_long tex1, int swizzled);
 
     /**
      * Registers the first picture of a TIM2 image into a texture block,
@@ -609,5 +646,5 @@ mgIMG_HEADER mgGetIMGHeader(char *img, int index);
  * @address 0x12E600
  * @size 0x200
  */
-int mgLoadImage(u_int *packet, int dbp, int dpsm, int dbw, u_long128 *image, int qwc, int x, int y, int w,
-                int h);
+int mgLoadImage(u_int *packet, int dbp, int dpsm, int dbw, u_long128 *image, int qwc, int x, int y,
+                int w, int h);

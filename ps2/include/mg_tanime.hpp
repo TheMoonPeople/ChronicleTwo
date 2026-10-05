@@ -106,6 +106,12 @@ void mgRect<T>::Set(T new_left, T new_top, T new_right, T new_bottom) {
     bottom = new_bottom;
 }
 
+template <>
+inline mgRect<int>::mgRect() {}
+
+template <>
+void mgRect<int>::Set(int new_left, int new_top, int new_right, int new_bottom);
+
 STATIC_ASSERT(sizeof(mgRect<int>) == 0x10);
 
 /**
@@ -142,8 +148,13 @@ public:
      * @address 0x13DAC0
      * @size 0x10
      */
-    virtual void Initialize() { next = prev = 0; }
+    virtual void Initialize();
 };
+
+template <class T>
+void CList<T>::Initialize() {
+    next = prev = 0;
+}
 
 /**
  *
@@ -152,36 +163,36 @@ public:
  */
 class mgCTexAnimeData {
 public:
-    s8 type;                  /**< How the rectangle is moved, an mgTEX_ANIME_TYPE. */
-    s8 group;                 /**< Animation group the record is entered into. */
-    s8 link_group;            /**< Group enabled while this record plays, or -1 for none. */
-    u8 clut_copy;             /**< Non-zero copies the source's palette to the destination even when the rectangle is not the whole texture. */
+    signed char type; /**< How the rectangle is moved, an mgTEX_ANIME_TYPE. */
+    signed char group; /**< Animation group the record is entered into. */
+    signed char link_group; /**< Group enabled while this record plays, or -1 for none. */
+    u_char clut_copy; /**< Non-zero copies the source's palette to the destination even when the rectangle is not the whole texture. */
     mgCTexture *src_tex;      /**< Texture the rectangle is taken from. */
     mgCTexture *dest_tex;     /**< Texture the rectangle is drawn into. */
-    s16 src_x;                /**< Left edge of the source rectangle, in sixteenths of a texel. */
-    s16 src_y;                /**< Top edge of the source rectangle, in sixteenths of a texel. */
-    s16 src_w;                /**< Width of the source rectangle, in sixteenths of a texel. */
-    s16 src_h;                /**< Height of the source rectangle, in sixteenths of a texel. */
-    s16 dest_x;               /**< Left edge of the destination rectangle, in sixteenths of a texel. */
-    s16 dest_y;               /**< Top edge of the destination rectangle, in sixteenths of a texel. */
-    s16 dest_w;               /**< Width of the destination rectangle, in sixteenths of a texel. */
-    s16 dest_h;               /**< Height of the destination rectangle, in sixteenths of a texel. */
-    s16 period_x;             /**< Frames one horizontal cycle lasts; the sign gives the scroll direction and zero stops it. */
-    s16 period_y;             /**< Frames one vertical cycle lasts; the sign gives the scroll direction and zero stops it. */
-    s16 phase_x;              /**< Frame reached in the current horizontal cycle. */
-    s16 phase_y;              /**< Frame reached in the current vertical cycle. */
-    s16 amplitude_x;          /**< Horizontal sway of a wave record, in ten-thousandths of the destination width. */
-    s16 amplitude_y;          /**< Vertical sway of a wave record, in ten-thousandths of the destination height. */
-    s16 wait;                 /**< Frames the record plays before the group moves on; zero also plays the next record, -1 holds forever. */
-    s16 bug_patch;            /**< Non-zero ends the record after exactly wait frames rather than one frame later. */
-    u8 bilinear;              /**< Non-zero filters a drawn rectangle bilinearly. */
-    u8 alpha_blend;           /**< Alpha blending mode a drawn rectangle uses, or 4 for none. */
-    s8 alpha_test;            /**< Alpha test method a drawn rectangle uses, or -1 for none. */
-    u8 alpha_ref;             /**< Reference value of the alpha test. */
-    u8 r;                     /**< Red the drawn rectangle is tinted with, 0x80 for unchanged. */
-    u8 g;                     /**< Green the drawn rectangle is tinted with, 0x80 for unchanged. */
-    u8 b;                     /**< Blue the drawn rectangle is tinted with, 0x80 for unchanged. */
-    u8 a;                     /**< Alpha the drawn rectangle is drawn with, 0x80 for opaque. */
+    short src_x; /**< Left edge of the source rectangle, in sixteenths of a texel. */
+    short src_y; /**< Top edge of the source rectangle, in sixteenths of a texel. */
+    short src_w; /**< Width of the source rectangle, in sixteenths of a texel. */
+    short src_h; /**< Height of the source rectangle, in sixteenths of a texel. */
+    short dest_x; /**< Left edge of the destination rectangle, in sixteenths of a texel. */
+    short dest_y; /**< Top edge of the destination rectangle, in sixteenths of a texel. */
+    short dest_w; /**< Width of the destination rectangle, in sixteenths of a texel. */
+    short dest_h; /**< Height of the destination rectangle, in sixteenths of a texel. */
+    short period_x; /**< Frames one horizontal cycle lasts; the sign gives the scroll direction and zero stops it. */
+    short period_y; /**< Frames one vertical cycle lasts; the sign gives the scroll direction and zero stops it. */
+    short phase_x; /**< Frame reached in the current horizontal cycle. */
+    short phase_y; /**< Frame reached in the current vertical cycle. */
+    short amplitude_x; /**< Horizontal sway of a wave record, in ten-thousandths of the destination width. */
+    short amplitude_y; /**< Vertical sway of a wave record, in ten-thousandths of the destination height. */
+    short wait; /**< Frames the record plays before the group moves on; zero also plays the next record, -1 holds forever. */
+    short bug_patch; /**< Non-zero ends the record after exactly wait frames rather than one frame later. */
+    u_char bilinear; /**< Non-zero filters a drawn rectangle bilinearly. */
+    u_char alpha_blend; /**< Alpha blending mode a drawn rectangle uses, or 4 for none. */
+    signed char alpha_test; /**< Alpha test method a drawn rectangle uses, or -1 for none. */
+    u_char alpha_ref; /**< Reference value of the alpha test. */
+    u_char r; /**< Red the drawn rectangle is tinted with, 0x80 for unchanged. */
+    u_char g; /**< Green the drawn rectangle is tinted with, 0x80 for unchanged. */
+    u_char b; /**< Blue the drawn rectangle is tinted with, 0x80 for unchanged. */
+    u_char a; /**< Alpha the drawn rectangle is drawn with, 0x80 for opaque. */
 
     /**
      *
@@ -222,14 +233,14 @@ public:
      * @address 0x37CD98
      * @size 0x4
      */
-    static s32 stop_anime;
+    static int stop_anime;
 
-    s32 group_num;                                        /**< Number of groups in use by the arrays below. */
-    s32 enable[MG_TEX_ANIME_GROUP_MAX];                   /**< Non-zero for each group that plays. */
+    int group_num; /**< Number of groups in use by the arrays below. */
+    int enable[MG_TEX_ANIME_GROUP_MAX]; /**< Non-zero for each group that plays. */
     CList<mgCTexAnimeData> *list[MG_TEX_ANIME_GROUP_MAX]; /**< First record of each group. */
     CList<mgCTexAnimeData> *now[MG_TEX_ANIME_GROUP_MAX];  /**< Record each group is playing. */
     char *name[MG_TEX_ANIME_GROUP_MAX];                   /**< Name each group is looked up by, or NULL. */
-    s32 frame[MG_TEX_ANIME_GROUP_MAX];                    /**< Frames each group's current record has played. */
+    int frame[MG_TEX_ANIME_GROUP_MAX]; /**< Frames each group's current record has played. */
 
     /**
      *

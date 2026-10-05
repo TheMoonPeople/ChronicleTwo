@@ -168,6 +168,9 @@ class Pieces:
             return self._cache[key]
         hi = next((mark for mark in self.linker_marks if lo < mark < hi), hi)
         names = dict(self.listed(lo, hi))
+        if section in CODE_SECTIONS:
+            names = {address: name for address, name, size, function in self.symbols.within(lo, hi)
+                     if function and name not in layout.LINKER_SYMBOLS}
         if section not in CODE_SECTIONS:
             names.setdefault(lo, invented_name(lo))
             for address in self.references:
@@ -350,6 +353,26 @@ def run_splat():
         os.chdir(cwd)
 
 
+def restore_asm_markers(lay, pieces):
+    migrated_config = ROOT / layout.CONFIG / 'migrated_units.txt'
+    migrated_units = set(migrated_config.read_text().split()) if migrated_config.exists() else set()
+    for unit in lay.units('cpp'):
+        source = ROOT / layout.SRC / (unit + '.cpp')
+        if not source.exists():
+            continue
+        markers = re.findall(r'INCLUDE_ASM\("([^\"]+)",\s*([^\s,)]+)\)', source.read_text())
+        if unit in migrated_units:
+            for section, run in pieces.unit(unit):
+                if section in CODE_SECTIONS:
+                    markers.extend((str(NONMATCHINGS / unit), name) for name, start, end in run)
+        for folder, symbol in markers:
+            target = ROOT / folder / (symbol + '.s')
+            candidate = ROOT / MATCHINGS / unit / (symbol + '.s')
+            if not target.exists() and candidate.exists():
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(candidate, target)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--no-splat", action="store_true",
@@ -370,6 +393,7 @@ def main():
     total = 0
     for unit in units:
         total += write_unit_files(pieces, retail, resolve, unit)
+    restore_asm_markers(lay, pieces)
     print(f"wrote {total} files for {len(units)} units")
     return 0
 

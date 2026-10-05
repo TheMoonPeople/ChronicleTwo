@@ -229,3 +229,5 @@ void QuestRequestClear(int id, int unused);
  * @size 0x68
  */
 int GetQuestRequestStatus(int id);
+
+CQuestData *GetQuestData();

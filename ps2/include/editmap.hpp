@@ -428,7 +428,7 @@ public:
      * @address 0x1B2190
      * @size 0x70
      */
-    void GetePlaceIDList(int *out_no, int max);
+    int GetePlaceIDList(int *out_no, int max);
 
     /**
      *

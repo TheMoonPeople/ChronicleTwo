@@ -22,7 +22,11 @@ void COutLineDraw::Initialize() {
 void COutLineDraw::SetFrame(mgCFrame *new_frame) {
     frame = new_frame;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/outline", Draw__12COutLineDrawFPfff);
+int COutLineDraw::Draw(float *pos, float scale, float alpha) {
+
+    *(u_long128 *)this->pos = *(u_long128 *)pos;
+    return Draw(scale, alpha);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/outline", Draw__12COutLineDrawFff);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/outline", DrawDivSprite__FP11mgCDrawPrim9mgRect_i_P10mgCTexturePiiiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/outline", DrawDivSprite4__FP11mgCDrawPrim9mgRect_i_P10mgCTexturePiii);
