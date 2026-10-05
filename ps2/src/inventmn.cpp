@@ -2301,7 +2301,39 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", IsCreateObject__11CMenuInventFii);
 #endif
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", CalcMakeBrd__11CMenuInventFi);
+void CMenuInvent::CalcMakeBrd(int message_index) {
+    if (makebrd_form != NULL && makebrd_form->draw_flag) {
+        make_board.unk_1c = make_num;
+        make_board.material_num = 4;
+        MakeItemNeeds needs;
+        InventManagePt->HowMuchZairyouMakeItem(unk_FC, make_num, (int *)&needs);
+        int index = 0;
+        for (; index < needs.num; index++) {
+            make_board.line[index].kind = 1;
+            int owned = GetUserItemHaveNum(needs.need[index].item_id);
+            if (owned >= needs.need[index].amount) {
+                make_board.line[index].button = 1;
+            } else {
+                make_board.line[index].button = 0;
+            }
+            make_board.line[index].sub_num = (short)needs.need[index].amount - owned;
+            if (make_board.line[index].sub_num < 0) {
+                make_board.line[index].sub_num = 0;
+            }
+            make_board.line[index].num = (short)needs.need[index].amount;
+        }
+        for (; index < 4; index++) {
+            make_board.line[index].kind = 0;
+            make_board.line[index].button = 0;
+            make_board.line[index].num = 0;
+            make_board.line[index].sub_num = 0;
+        }
+        make_board.unk_20 = make_cursor;
+        CalcMenuAdd(&make_board.unk_24, -1, 0);
+        CalcMenuAdd(&make_board.unk_28, -1, 0);
+        CalcCommonBrdDrawInfo(&makebrd_form->x, &make_board, MenuDCMsg[message_index]);
+    }
+}
 extern "C" int EnableSelectMaxCardList__11CMenuInventFv(CMenuInvent *objet) {
     int var_v0;
 
@@ -2311,6 +2343,7 @@ extern "C" int EnableSelectMaxCardList__11CMenuInventFv(CMenuInvent *objet) {
     }
     return var_v0;
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", CalcCursorPosition__11CMenuInventFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", IsMakeObject__11CMenuInventFii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", CalcTex__11CMenuInventFv);
@@ -2399,6 +2432,7 @@ void CMenuInvent::UpdataNetaMemoStr() {
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", MakeMsgNetaName__FP7CDC2MesP16CMenuPosDataFormP17USER_PICTURE_INFOPii);
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", MenuInventCreateCardDraw__FRiPf);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", PictureDraw__FP10mgCTextureP17USER_PICTURE_INFOfffiiii);
 void PictureMemoOne(float x, float y, int alpha) {
@@ -2416,7 +2450,37 @@ void PictureMemoOne(float x, float y, int alpha) {
     prim->Vertex(34.0f + x, 34.0f + y, 0.0f);
     prim->End();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", PictureDraw__FRi9mgRect_f_ifPUc);
+void PictureDraw(int &tex_block, mgRect<float> rect, int picture_no, float scale, unsigned char *rgba) {
+    mgCTexture *texture = NULL;
+    USER_PICTURE_INFO *photo = NULL;
+    if (picture_no < 0) {
+        return;
+    }
+    if (picture_no == 1000) {
+        if (Tex_Hatsumei != 0) {
+            MenuReloadTexture(tex_block, ((mgCTexture *)Tex_Hatsumei)->block);
+            PictureMemoOne(rect.left, rect.top, rgba[3]);
+        }
+    } else {
+        if (0 <= picture_no && picture_no < 30) {
+            texture = CMenuInventPt->photo_tex[picture_no];
+            photo = InventUserDataPtr->GetPhotoInfo(picture_no);
+        } else if (picture_no >= 50 && picture_no < 100) {
+            picture_no -= 50;
+            texture = CMenuInventPt->album_tex[picture_no];
+            photo = InventAlbumPtr->GetAlbumPhotoInfo(picture_no);
+        }
+        if (texture == NULL || photo == NULL) {
+            return;
+        }
+        int alpha = 0x80;
+        if (rgba != NULL) {
+            alpha = rgba[3];
+        }
+        MenuReloadTexture(tex_block, texture->block);
+        PictureDraw(texture, photo, rect.left, rect.top, scale, alpha, rgba[0], rgba[1], rgba[2]);
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", MenuInventPictureBoardDraw__FPfRii);
 void MenuInventAlbumPictureDraw(float *origin, int &loadedTex) {
     mgRect<int> unusedRect;

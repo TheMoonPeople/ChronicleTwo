@@ -280,15 +280,14 @@ void CopyMaterial(mgMaterial *dst, MDT_MATERIAL_ *src, mgCTextureManager *textur
     *(mgMaterialVector *)dst->unk_10 = *(mgMaterialVector *)src->unk_10;
     dst->texture = textures->GetTexture(src->texture, -1);
 }
-#ifdef NONMATCHING
 void mgCVisualMDT::CopyMDTData(MDT_HEADER *header, mgCMemory *memory) {
+    int index;
     mgCTextureManager *textures;
-    sceVu0FVECTOR     *source_vertex;
-    sceVu0FVECTOR     *source_normal;
-    sceVu0FVECTOR     *source_colour;
-    sceVu0FVECTOR     *source_uv;
-    MDT_MATERIAL_     *source_material;
-    int                i;
+    sceVu0FVECTOR *source_vertex;
+    sceVu0FVECTOR *source_normal;
+    sceVu0FVECTOR *source_colour;
+    sceVu0FVECTOR *source_uv;
+    MDT_MATERIAL_ *source_material;
 
     textures = GetTextureManager();
     source_vertex = (sceVu0FVECTOR *)((u_char *)header + header->vertex_ofs);
@@ -307,34 +306,31 @@ void mgCVisualMDT::CopyMDTData(MDT_HEADER *header, mgCMemory *memory) {
     colour = (sceVu0FVECTOR *)memory->Alloc(colour_num);
     material = (mgMaterial *)memory->Alloc(material_num * (int)sizeof(mgMaterial) / 16);
     if (vertex != NULL) {
-        for (i = 0; i < vertex_num; i++) {
-            sceVu0CopyVector(vertex[i], source_vertex[i]);
+        for (index = 0; index < vertex_num; index++) {
+            sceVu0CopyVector(vertex[index], source_vertex[index]);
         }
     }
     if (normal != NULL) {
-        for (i = 0; i < normal_num; i++) {
-            sceVu0CopyVector(normal[i], source_normal[i]);
+        for (index = 0; index < normal_num; index++) {
+            sceVu0CopyVector(normal[index], source_normal[index]);
         }
     }
     if (colour != NULL) {
-        for (i = 0; i < colour_num; i++) {
-            sceVu0CopyVector(colour[i], source_colour[i]);
+        for (index = 0; index < colour_num; index++) {
+            sceVu0CopyVector(colour[index], source_colour[index]);
         }
     }
     if (uv != NULL) {
-        for (i = 0; i < uv_num; i++) {
-            sceVu0CopyVector(uv[i], source_uv[i]);
+        for (index = 0; index < uv_num; index++) {
+            sceVu0CopyVector(uv[index], source_uv[index]);
         }
     }
     if (material != NULL) {
-        for (i = 0; i < material_num; i++) {
-            CopyMaterial(&material[i], &source_material[i], textures);
+        for (index = 0; index < material_num; index++) {
+            CopyMaterial(&material[index], &source_material[index], textures);
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", CopyMDTData__12mgCVisualMDTFP10MDT_HEADERP9mgCMemory);
-#endif
 void mgCVisualMDT::CopyMDTDataPointer(MDT_HEADER *header, mgCMemory *memory) {
     mgCTextureManager *textures = ((mgCVisual *)this)->GetTextureManager();
     int vertex_address = (int)header + header->vertex_ofs;
@@ -1358,7 +1354,7 @@ int mgCVisualPrim::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgR
     start = GetScrPad();
     *(u_long128 *)start = *(u_long128 *)tag;
     *(u_int *)&giftag = 0x8002;
-    *(u_long128 *)&start[4] = giftag;
+    *(u_long128 *)&start[4] = *(u_long128 *)&giftag;
     *(u_long *)&start[8] = 1;
     *(u_long *)&start[10] = MG_GS_PRMODECONT;
     *(u_long *)&start[12] = 0;

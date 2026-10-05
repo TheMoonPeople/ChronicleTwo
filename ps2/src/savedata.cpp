@@ -210,8 +210,8 @@ void CSaveData::CheckTourBoot(int day) {
 short CSaveData::CheckNowTourEvent() {
     return tour.now_event;
 }
-s8 CSaveData::CheckNowTourType() {
-    return tour.type;
+int CSaveData::CheckNowTourType() {
+    return (s8)tour.type;
 }
 s8 CSaveData::AddTourCountEtc(int delta) {
     tour.count += delta;

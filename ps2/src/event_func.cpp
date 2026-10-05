@@ -3038,16 +3038,16 @@ int _GET_ITEM_SPACE(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAi__2(stack, argc);
     return 1;
 }
-s8 GetConfigCaptionOff(void) {
-    s8 captionOff = 0;
+int GetConfigCaptionOff(void) {
+    int caption_off = 0;
     CSaveData *save = GetSaveData();
     if (save != NULL) {
         SV_CONFIG_OPTION *config = &save->config;
         if (config != NULL) {
-            captionOff = config->caption_off;
+            caption_off = (s8)config->caption_off;
         }
     }
-    return captionOff;
+    return caption_off;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", LoadMovie__FPcP9mgCMemoryb);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_MOVIE__FP12RS_STACKDATAi);
@@ -4356,12 +4356,96 @@ int _SET_SAVEDATA_ETC(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_SAVEDATA_ETC__FP12RS_STACKDATAi);
+int _GET_SAVEDATA_ETC(RS_STACKDATA *stack, int argc) {
+    CSaveData *save = GetSaveData();
+    if (save == NULL) {
+        return 0;
+    }
+    int command = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    switch (command) {
+        case 0:
+            SetStack__FP12RS_STACKDATAi__2(stack, save->game_progress);
+            break;
+        case 1: {
+            CUserDataManager *user_data = &save->user_data;
+            if (user_data == NULL) {
+                return 0;
+            }
+            int monster_id = GetStackInt__FP12RS_STACKDATA__2(stack++);
+            MOS_CHANGE_PARAM *badge = user_data->GetMonsterBajjiDataPtrMosId(monster_id);
+            if (badge == NULL) {
+                return 0;
+            }
+            SetStack__FP12RS_STACKDATAi__2(stack, badge->enable);
+            break;
+        }
+        case 2: {
+            CUserDataManager *user_data = &save->user_data;
+            if (user_data == NULL) {
+                return 0;
+            }
+            SetStack__FP12RS_STACKDATAi__2(stack, user_data->CheckElectricFish());
+            break;
+        }
+        case 3: {
+            int rod_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
+            CUserDataManager *user_data = &save->user_data;
+            if (user_data == NULL) {
+                return 0;
+            }
+            CGameDataUsed *bait = user_data->GetActiveEsa(rod_no);
+            if (bait == NULL) {
+                return 0;
+            }
+            SetStack__FP12RS_STACKDATAi__2(stack, bait->item_no);
+            break;
+        }
+        case 4:
+            PlayTimeCount(1);
+            SetStack__FP12RS_STACKDATAi__2(stack, (int)save->play_time);
+            break;
+        case 5:
+            SetStack__FP12RS_STACKDATAi__2(stack, GetConfigCaptionOff());
+            break;
+        case 6:
+            SetStack__FP12RS_STACKDATAi__2(stack, save->CheckNowTourType());
+            break;
+        default:
+            return 0;
+    }
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _DEL_MONSTER__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MENU_ETC__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_MENU_ETC__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_ANALYZE__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_DIORAMA_PERCENT__FP12RS_STACKDATAi);
+int _GET_ANALYZE(RS_STACKDATA *stack, int argc) {
+    int analyze_id = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    int map_no = analyze_id / 100 - 1;
+    int condition_no = analyze_id % 100;
+    CSaveData *save = GetSaveData();
+    if (save == NULL) {
+        return 0;
+    }
+    CEditData *edit_data = save->GetEditData(map_no);
+    if (edit_data == NULL) {
+        return 0;
+    }
+    SetStack__FP12RS_STACKDATAi__2(stack, edit_data->GetAnalyzeFlag(map_no, condition_no));
+    return 1;
+}
+int _GET_DIORAMA_PERCENT(RS_STACKDATA *stack, int argc) {
+    int map_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    CSaveData *save = GetSaveData();
+    if (save == NULL) {
+        return 0;
+    }
+    CEditData *edit_data = save->GetEditData(map_no);
+    if (edit_data == NULL) {
+        return 0;
+    }
+    SetStack__FP12RS_STACKDATAi__2(stack, edit_data->GetAnalyzePercent(map_no));
+    return 1;
+}
 void _GEORAMA_FUNC(RS_STACKDATA *stack, int argc) {
     GeoFuncParam param;
 
@@ -4389,7 +4473,22 @@ int _EYE_VIEW_DRAW_ON_OFF(RS_STACKDATA *stack, int argc) {
     ((CScene *)EventScene)->EyeViewDrawOnOff(GetStackInt__FP12RS_STACKDATA__2(stack));
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_QUEST_ETC__FP12RS_STACKDATAi);
+int _SET_QUEST_ETC(RS_STACKDATA *stack, int argc) {
+    int command = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    int quest_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    int flag = GetStackInt__FP12RS_STACKDATA__2(stack);
+    switch (command) {
+        case 0:
+            QuestRequestSetFlag(quest_no, flag);
+            break;
+        case 1:
+            QuestRequestClear(quest_no, flag);
+            break;
+        default:
+            return 0;
+    }
+    return 1;
+}
 int _GET_QUEST_ETC(RS_STACKDATA *stack, int argc) {
     int command = GetStackInt__FP12RS_STACKDATA__2(stack++);
     int quest_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
@@ -4693,8 +4792,45 @@ int _GET_CHARA_WEIGHT(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAf__2(nextSlot, chara->body_depth);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CHARA_SHOW__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_CHARA_SHOW__FP12RS_STACKDATAi);
+int _SET_CHARA_SHOW(RS_STACKDATA *stack, int argc) {
+    CCharacter2 *character;
+    int show;
+    int fade;
+    float fade_speed;
+
+    if ((character = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack++))) == NULL) {
+        return 0;
+    }
+    fade_speed = 0.1f;
+    fade = 0;
+    show = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    if (argc >= 3) {
+        fade = GetStackInt__FP12RS_STACKDATA__2(stack++);
+        if (argc == 4) {
+            fade_speed = GetStackFloat__FP12RS_STACKDATA__2(stack);
+        }
+    }
+    character->Show(show);
+    character->fade = fade;
+    character->fade_speed = fade_speed;
+    if (fade == 1 && show == 1) {
+        character->fade_alpha = 0.0001f;
+    } else if (fade == 1 && show == 0) {
+        character->fade_alpha = 1.0f;
+    }
+    return 1;
+}
+int _GET_CHARA_SHOW(RS_STACKDATA *stack, int argc) {
+    CCharacter2 *character;
+    if ((character = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack++))) == NULL) {
+        return 0;
+    }
+    SetStack__FP12RS_STACKDATAi__2(stack++, character->GetShow());
+    if (argc == 2) {
+        SetStack__FP12RS_STACKDATAi__2(stack, character->fade);
+    }
+    return 1;
+}
 int _CHARA_DA_ENABLE(RS_STACKDATA *stack, int argc) {
     CCharacter2 *chara;
     RS_STACKDATA *nextSlot;
@@ -4706,8 +4842,28 @@ int _CHARA_DA_ENABLE(RS_STACKDATA *stack, int argc) {
     chara->SetDAnimeEnable(GetStackInt__FP12RS_STACKDATA__2(nextSlot));
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_MOT_NOW_WAIT__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CHECK_MOTION_END__FP12RS_STACKDATAi);
+int _GET_MOT_NOW_WAIT(RS_STACKDATA *stack, int argc) {
+    if (argc != 2) {
+        return 0;
+    }
+    CCharacter2 *character = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack++));
+    if (character == NULL) {
+        return 0;
+    }
+    SetStack__FP12RS_STACKDATAf__2(stack, character->GetNowFrameWait());
+    return 1;
+}
+int _CHECK_MOTION_END(RS_STACKDATA *stack, int argc) {
+    if (argc != 2) {
+        return 0;
+    }
+    CCharacter2 *character = GetChara(GetStackInt__FP12RS_STACKDATA__2(stack++));
+    if (character == NULL) {
+        return 0;
+    }
+    SetStack__FP12RS_STACKDATAi__2(stack, character->CheckMotionEnd());
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ACTCHR_SET_MOTION__FP12RS_STACKDATAi);
 int _SET_CHARA_EX_SOUNDID(RS_STACKDATA *stack, int argc) {
     CActionChara *chara;

@@ -46,8 +46,6 @@ static char *GetDeltaTime(char *p, int *delta) {
 }
 
 void sndTrack::Initialize() {
-    int i;
-
     vol = 127;
     expression = 127;
     prog = 0;
@@ -56,8 +54,8 @@ void sndTrack::Initialize() {
     bend_msb = 64;
     se_id = 0;
     voice_num = 1;
-    for (i = 0; i < voice_num; i++) {
-        voice[i].active = 0;
+    for (int index = 0; index < voice_num; index++) {
+        voice[index].active = 0;
     }
 }
 
@@ -163,8 +161,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", LoadSMF__13sndCSeSeqDataFPciP9
 #endif
 
 void sndCSeSeq::Initialize() {
-    int i;
-
     tick = 0;
     wait = 0;
     data = NULL;
@@ -172,17 +168,15 @@ void sndCSeSeq::Initialize() {
     vol = 127;
     pause = 0;
     track_num = 8;
-    for (i = 0; i < track_num; i++) {
-        track[i].Initialize();
-        track[i].se_id = 64 + i;
+    for (int index = 0; index < track_num; index++) {
+        track[index].Initialize();
+        track[index].se_id = index + 64;
     }
 }
 
 void sndCSeSeq::SetSeID(int id) {
-    int i;
-
-    for (i = 0; i < track_num; i++) {
-        track[i].se_id = id + i;
+    for (int index = 0; index < track_num; index++) {
+        track[index].se_id = id + index;
     }
 }
 
@@ -205,7 +199,6 @@ void sndCSeSeq::Stop(void) {
     data = NULL;
     event = NULL;
 }
-#ifdef NONMATCHING
 int sndCSeSeq::Step(float frames) {
     int channel;
 
@@ -225,7 +218,7 @@ int sndCSeSeq::Step(float frames) {
             Stop();
             return 1;
         }
-        if (wait < event->delta) {
+        if (event->delta > wait) {
             break;
         }
         wait -= event->delta;
@@ -263,9 +256,6 @@ int sndCSeSeq::Step(float frames) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", Step__9sndCSeSeqFf);
-#endif
 
 #ifdef NONMATCHING
 int sndCSeSeq::chk_trk(int trk) {
@@ -400,13 +390,10 @@ void sndCSeSeq::SendPitch(int trk) {
     }
 }
 
-sndSeSeqVoice *sndTrack::SaerchVoice(int prog, int key) {
-    sndSeSeqVoice *note;
-    int            i;
-
-    note = voice;
-    for (i = 0; i < voice_num; i++, note++) {
-        if (note->active != 0 && note->prog == prog && note->key == key) {
+sndSeSeqVoice *sndTrack::SaerchVoice(int program, int key) {
+    sndSeSeqVoice *note = voice;
+    for (int index = 0; index < voice_num; index++, note++) {
+        if (note->active != 0 && note->prog == program && note->key == key) {
             return note;
         }
     }
@@ -414,11 +401,8 @@ sndSeSeqVoice *sndTrack::SaerchVoice(int prog, int key) {
 }
 
 sndSeSeqVoice *sndTrack::GetEmptyVoice() {
-    sndSeSeqVoice *note;
-    int            i;
-
-    note = voice;
-    for (i = 0; i < voice_num; i++, note++) {
+    sndSeSeqVoice *note = voice;
+    for (int index = 0; index < voice_num; index++, note++) {
         if (note->active == 0) {
             return note;
         }

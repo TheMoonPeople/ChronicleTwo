@@ -29,7 +29,7 @@ extern char at_2863[];
     }
 
 // Code (.text)
-void InitSplineKey(SPLINE_KEY * key) {
+static void InitSplineKey(SPLINE_KEY *key) {
     key->frame = 0;
     key->length = 0;
     key->a[0] = 0;
@@ -48,10 +48,79 @@ void InitSplineKey(SPLINE_KEY * key) {
 C3DSpline::C3DSpline() {
     Initialize();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", Initialize__9C3DSplineFv);
+void C3DSpline::Initialize() {
+    for (int index = 0; index < 16; index++) {
+        InitSplineKey(key + index);
+    }
+    key_num = 0;
+    now_key = 0;
+    now_frame = 0;
+    speed = 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", SetUpSpline__9C3DSplineFPA4_fPiif);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", StepS__9C3DSplineFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", Step__9C3DSplineFv);
+int C3DSpline::StepS() {
+    float previous[4];
+    float next[4];
+    if (key_num < 2) {
+        return 1;
+    }
+    if (speed <= 0.0f) {
+        return 1;
+    }
+    do {
+        now_frame += 0.001f;
+        if (!(now_frame < key[now_key].frame + key[now_key].length)) {
+            now_key++;
+            if (now_key >= key_num) {
+                now_pos[0] = key[key_num - 1].d[0];
+                now_pos[1] = key[key_num - 1].d[1];
+                now_pos[2] = key[key_num - 1].d[2];
+                now_key = key_num - 1;
+                now_frame = key[now_key].frame + key[now_key].length + 100.0f;
+                return 1;
+            }
+        }
+        float time = (now_frame - key[now_key].frame) / key[now_key].length;
+        float square = time * time;
+        float cube = square * time;
+        for (int index = 0; index < 3; index++) {
+            previous[index] = now_pos[index];
+            next[index] = cube * key[now_key].a[index] + square * key[now_key].b[index]
+                        + time * key[now_key].c[index] + key[now_key].d[index];
+        }
+        previous[3] = 1.0f;
+        next[3] = 1.0f;
+    } while (mgDistVector(previous, next) < speed);
+    now_pos[0] = next[0];
+    now_pos[1] = next[1];
+    now_pos[2] = next[2];
+    return 0;
+}
+int C3DSpline::Step() {
+    if (key_num < 2) {
+        return 1;
+    }
+    now_frame += 1.0f;
+    if (!(now_frame < key[now_key].frame + key[now_key].length)) {
+        now_key++;
+        if (now_key >= key_num) {
+            now_pos[0] = key[key_num - 1].d[0];
+            now_pos[1] = key[key_num - 1].d[1];
+            now_pos[2] = key[key_num - 1].d[2];
+            now_key = key_num - 1;
+            now_frame = key[now_key].frame + key[now_key].length + 100.0f;
+            return 1;
+        }
+    }
+    float time = (now_frame - key[now_key].frame) / key[now_key].length;
+    float square = time * time;
+    float cube = square * time;
+    for (int index = 0; index < 3; index++) {
+        now_pos[index] = cube * key[now_key].a[index] + square * key[now_key].b[index]
+                       + time * key[now_key].c[index] + key[now_key].d[index];
+    }
+    return 0;
+}
 void C3DSpline::GetNowXYZ(float *out) {
     out[0] = now_pos[0];
     out[1] = now_pos[1];
@@ -1787,8 +1856,35 @@ int scsMotionDelay(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
     owner->mot_cnt = elapsed + 1;
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", scsSetMotion__FP12_SEN_OBJ_SEQP12CSceneObjSeq);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sceneseq", scsNextMotion__FP12_SEN_OBJ_SEQP12CSceneObjSeq);
+int scsSetMotion(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+    if (seq->started == 0) {
+        EventObjHandleMother.SetMotion(owner->eoh_no, seq->name, seq->no, seq->step);
+        if (seq->next != NULL) {
+            if (seq->next->cmd == SCENE_OBJ_CMD_SET_MOT_CHANGE_STEP ||
+                seq->next->cmd == SCENE_OBJ_CMD_NORMAL_DRIVE) {
+                return 0;
+            }
+        }
+        seq->started = 1;
+        return 1;
+    }
+    return 0;
+}
+int scsNextMotion(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
+    if (seq->started == 0) {
+        if (EventObjHandleMother.CheckMotionEnd(owner->eoh_no) != 0) {
+            EventObjHandleMother.SetMotion(owner->eoh_no, seq->name, seq->no, seq->step);
+            if (seq->next != NULL && seq->next->cmd == SCENE_OBJ_CMD_SET_MOT_CHANGE_STEP) {
+                return 0;
+            }
+            seq->started = 1;
+            return 1;
+        } else {
+            return 1;
+        }
+    }
+    return 0;
+}
 int scsMotionWait(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
     return (EventObjHandleMother.CheckMotionEnd(owner->eoh_no) != 0) ^ 1;
 }

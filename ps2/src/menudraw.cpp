@@ -149,6 +149,8 @@ extern float DrawItemCounter;
 extern signed char DrawItemDefCounter;
 
 extern float MenuItemBrdScrlBarY;
+extern char at_4453[];
+extern float MenuItemBrdUnderBrdPosY_Next;
 
 extern mgCTexture *MenuVerticalLineTex;
 
@@ -227,7 +229,9 @@ void PushPrimRepeat(mgCDrawPrim *prim, float *positions, int *texCoords, int cou
 void MenuWindowHelp(mgCDrawPrim *prim, mgCTexture *texture, float x, float y, float width, float height,
                     short *table);
 
-void SetMenuDrawNumberKeta(char value);
+static void SetMenuDrawNumberKeta(char value);
+void DrawMenuNumber(mgCDrawPrim *prim, int number, int digit_count,
+                    mgRect<int> rect, mgRect<int> texture_rect, int spacing, int mode);
 
 void DrawRandamLine(mgCDrawPrim *prim, int *points, int smoothing, int count, u8 *color);
 
@@ -294,7 +298,16 @@ void ConvMGIRECTtoINTtbl(mgRect<int> rect, int *corners) {
     corners[6] = corners[2];
     corners[7] = corners[5];
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", ConvMGFRECTtoFLOATtbl__F9mgRect_f_Pf);
+void ConvMGFRECTtoFLOATtbl(mgRect<float> rect, float *corners) {
+    corners[0] = rect.left;
+    corners[1] = rect.top;
+    corners[2] = rect.left + rect.right;
+    corners[3] = rect.top;
+    corners[4] = rect.left;
+    corners[5] = rect.top + rect.bottom;
+    corners[6] = corners[2];
+    corners[7] = corners[5];
+}
 void SetPartEffectInfoRandFunc(MENU_PARTS_EFFECT_STRUCT1 *effect) {
     if (effect != 0) {
         int rand_a = rand();
@@ -534,12 +547,22 @@ void MenuWindowHelp(mgCDrawPrim *prim, mgCTexture *texture, float x, float y, fl
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", MenuPresentBoxView__FiiRiP10mgCTextureP10mgCTexture);
-void SetMenuDrawNumberKeta(char value) {
+static void SetMenuDrawNumberKeta(char value) {
     MenuDrawNumberKeta = value;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", DrawMenuNumber__FP11mgCDrawPrimii9mgRect_i_9mgRect_i_ii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", PrimDrawNumber__FP11mgCDrawPrimiiii9mgRect_i_ii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", PrimDrawNumber2__FP11mgCDrawPrimiiii9mgRect_i_ii);
+void PrimDrawNumber(mgCDrawPrim *prim, int number, int digit_count, int x, int y,
+                    mgRect<int> texture_rect, int spacing, int mode) {
+    SetMenuDrawNumberKeta(-1);
+    mgRect<int> rect(x, y, texture_rect.right, texture_rect.bottom);
+    DrawMenuNumber(prim, number, digit_count, rect, texture_rect, texture_rect.right + spacing, mode);
+}
+void PrimDrawNumber2(mgCDrawPrim *prim, int number, int digit_count, int x, int y,
+                    mgRect<int> texture_rect, int spacing, int mode) {
+    SetMenuDrawNumberKeta((char)digit_count);
+    mgRect<int> rect(x, y, texture_rect.right, texture_rect.bottom);
+    DrawMenuNumber(prim, number, 0, rect, texture_rect, texture_rect.right + spacing, mode);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", PrimFillRect4__FP11mgCDrawPrim9mgRect_f_PfPfPfPf);
 void MenuReloadTexture(int &loaded_tex, int tex_no) {
     void *manager = &mgTexManager;
@@ -1819,7 +1842,24 @@ void MenuItemBrdScrlBarStep(int line, int height, int mode) {
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", Func_MenuItemBrdPosStep__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", GetPosMenuItemBrdKoma__18CMenuPosDataManageFPiii);
+void CMenuPosDataManage::GetPosMenuItemBrdKoma(int *position, int item_index, int clip) {
+    CMenuPosDataForm *form = GetFormInfo(at_4453);
+    if (form != NULL) {
+        form->GetNextMovePos(position);
+        position[0] += (item_index % 6) * 40 + 16;
+        int minimum_y = position[1] + 20;
+        int maximum_y = position[1] + 270;
+        position[1] = (int)(MenuItemBrdUnderBrdPosY_Next + (float)((item_index / 6) * 50));
+        if (clip != 0) {
+            if (position[1] < minimum_y) {
+                position[1] = minimum_y;
+            }
+            if (maximum_y < position[1]) {
+                position[1] = maximum_y;
+            }
+        }
+    }
+}
 void CMenuPosDataManage::GetPosMenuItemOnItemBrd(int *pos, int item_no, int clip) {
     this->GetPosMenuItemBrdKoma(pos, item_no, clip);
     pos[0] += 4;
@@ -2133,7 +2173,17 @@ int CRepairManager::IsRun(void) {
     return running;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", Step__14CRepairManagerFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", Draw__14CRepairManagerFv);
+void CRepairManager::Draw() {
+    mgTexManager.ReloadTexture(tex_block, (sceVif1Packet *)NULL);
+    if (model != NULL) {
+        model->DrawDirect();
+    }
+    for (int index = 0; index < 8; index++) {
+        if (effect[index] != NULL) {
+            effect[index]->Draw();
+        }
+    }
+}
 void CLevelUpEffect::Initialize(void) {
     active = 0;
     chara = NULL;

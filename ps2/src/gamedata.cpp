@@ -831,7 +831,6 @@ int ItemCmdMsgSet(int item_no, int *messages) {
     messages[i] = -1;
     return count;
 }
-#ifdef NONMATCHING
 int GetMenuCommandMsg(int item_no, int *message_list) {
     int count;
     int type;
@@ -890,55 +889,36 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
         case 26:
         case 27:
         case 33:
-            switch (item_no) {
-                case 0x126:
-                    count = ItemCmdMsgSet(13, message_list);
-                    break;
-                case 0x12A:
-                case 0x160:
-                    count = ItemCmdMsgSet(17, message_list);
-                    break;
-                case 0x17D:
-                    count = ItemCmdMsgSet(23, message_list);
-                    break;
-                case 0x128:
-                    count = ItemCmdMsgSet(20, message_list);
-                    break;
-                case 0x184:
-                    count = ItemCmdMsgSet(18, message_list);
-                    break;
-                case 0x185:
-                    count = ItemCmdMsgSet(19, message_list);
-                    break;
-                case 0x182:
-                    count = ItemCmdMsgSet(21, message_list);
-                    break;
-                case 0x124:
-                case 0x111:
-                case 0x11F:
-                    count = ItemCmdMsgSet(3, message_list);
-                    break;
-                case 0x163:
-                    count = ItemCmdMsgSet(26, message_list);
-                    break;
-                case 0x1A7:
-                    count = ItemCmdMsgSet(25, message_list);
-                    break;
-                case 0x125:
-                    count = ItemCmdMsgSet(27, message_list);
-                    break;
-                case 0xAE:
-                    count = ItemCmdMsgSet(28, message_list);
-                    break;
-                case 0xAC:
-                    count = ItemCmdMsgSet(30, message_list);
-                    break;
-                case 0x127:
-                    count = ItemCmdMsgSet(31, message_list);
-                    break;
-                default:
-                    count = ItemCmdMsgSet(4, message_list);
-                    break;
+            if (item_no == 0x126) {
+                count = ItemCmdMsgSet(13, message_list);
+            } else if (item_no == 0x12A || item_no == 0x160) {
+                count = ItemCmdMsgSet(17, message_list);
+            } else if (item_no == 0x17D) {
+                count = ItemCmdMsgSet(23, message_list);
+            } else if (item_no == 0x128) {
+                count = ItemCmdMsgSet(20, message_list);
+            } else if (item_no == 0x184) {
+                count = ItemCmdMsgSet(18, message_list);
+            } else if (item_no == 0x185) {
+                count = ItemCmdMsgSet(19, message_list);
+            } else if (item_no == 0x182) {
+                count = ItemCmdMsgSet(21, message_list);
+            } else if (item_no == 0x11F || item_no == 0x124 || item_no == 0x111) {
+                count = ItemCmdMsgSet(3, message_list);
+            } else if (item_no == 0x163) {
+                count = ItemCmdMsgSet(26, message_list);
+            } else if (item_no == 0x1A7) {
+                count = ItemCmdMsgSet(25, message_list);
+            } else if (item_no == 0x125) {
+                count = ItemCmdMsgSet(27, message_list);
+            } else if (item_no == 0xAE) {
+                count = ItemCmdMsgSet(28, message_list);
+            } else if (item_no == 0xAC) {
+                count = ItemCmdMsgSet(30, message_list);
+            } else if (item_no == 0x127) {
+                count = ItemCmdMsgSet(31, message_list);
+            } else {
+                count = ItemCmdMsgSet(4, message_list);
             }
             break;
         case 29:
@@ -962,32 +942,25 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
     }
     return count;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetMenuCommandMsg__FiPi);
-#endif
-#ifdef NONMATCHING
 int CheckItemEquip(int chara, int item_no) {
     if (GetItemInfoData(item_no) == NULL) {
         return 0;
     }
-    switch (item_no) {
-        case 0x12A:
-        case 0x171:
-            if (chara != 0) {
-                return 0;
-            }
-            break;
-        case 0x160:
-            if (chara != 1) {
-                return 0;
-            }
-            break;
+    if (item_no == 0x12A) {
+        if (chara != 0) {
+            return 0;
+        }
+    } else if (item_no == 0x160) {
+        if (chara != 1) {
+            return 0;
+        }
+    } else if (item_no == 0x171) {
+        if (chara != 0) {
+            return 0;
+        }
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", CheckItemEquip__Fii);
-#endif
 int SearchItemByName(char *name) {
     int item_no;
     CDataCommon *record;
@@ -1003,19 +976,15 @@ int SearchItemByName(char *name) {
     }
     return -1;
 }
-#ifdef NONMATCHING
-s16 GetRidePodCore(int index) {
-    static s16 table[8] = { 246, 247, 248, 249, 250, 251, 252, -1 }; 
+extern s16 table_1553[7];
 
-    if (index < 0 || index >= 7) {
+int GetRidePodCore(int index) {
+    if (index < 0 || index > 6) {
         return 0;
     }
-    return table[index];
+    return table_1553[index];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetRidePodCore__Fi);
-#endif
-void Init_USEITEM_EFFECT(USEITEM_EFFECT *effect) {
+static void Init_USEITEM_EFFECT(USEITEM_EFFECT *effect) {
     effect->target_flags = 0;
     effect->use_flags = 0;
     effect->status_flags = 0;
@@ -1024,7 +993,6 @@ void Init_USEITEM_EFFECT(USEITEM_EFFECT *effect) {
     effect->value[1] = 0;
     effect->value[0] = 0;
 }
-#ifdef NONMATCHING
 int GetUsedItemAfterEffect(int item_no, USEITEM_EFFECT *effect) {
     CDataItem *data;
 
@@ -1041,9 +1009,6 @@ int GetUsedItemAfterEffect(int item_no, USEITEM_EFFECT *effect) {
     effect->value[2] = data->value[2];
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", GetUsedItemAfterEffect__FiP14USEITEM_EFFECT);
-#endif
 void CItemUseTarget::SetPtr(int new_kind, void *new_ptr) {
     type = new_kind;
 
@@ -1060,9 +1025,6 @@ void CItemUseTarget::SetPtr(int new_kind, void *new_ptr) {
         target.data = new_ptr;
     }
 }
-
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamedata", __sinit_gamedata_cpp);
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", etcitem_spectol_table__DATA);
@@ -1113,9 +1075,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1310__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1311__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1501__DATA);
 
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", D_0037AFFC__DATA);
-
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", msg_offsettbl_1363__DATA);
 
@@ -1132,11 +1091,11 @@ INCLUDE_BSS(SpiFish, 0x4);
 // Uninitialised data (.bss)
 INCLUDE_BSS(GameItemDataManage, 0x30);
 INCLUDE_BSS(local_com_itemdata, 0x4A40);
-INCLUDE_BSS(local_itemdata, 0xA20);
-INCLUDE_BSS(local_weapondata, 0x2270);
-INCLUDE_BSS(local_attachdata, 0x390);
+CDataItem local_itemdata[162];
+CDataWeapon local_weapondata[116];
+CDataAttach local_attachdata[38];
 INCLUDE_BSS(local_robodata, 0x990);
-INCLUDE_BSS(local_fishdata, 0x190);
+CDataBreedFish local_fishdata[20];
 INCLUDE_BSS(local_guarddata, 0x50);
 INCLUDE_BSS(local_itemdatano_converttable, 0x400);
 INCLUDE_BSS(gamedata_sysword_buffer_1073, 0x2800);

@@ -8,11 +8,13 @@
 #include "mglib.hpp"
 #include "actionchara.hpp"
 #include "scene.hpp"
+#include "map.hpp"
 #include "scenesnd.hpp"
 #include "object.hpp"
 #include "padcontrol.hpp"
 #include "cameracontrol.hpp"
 #include "effscript.hpp"
+#include "runscript_opcodes.hpp"
 #include <cstring>
 
 extern "C" int fptosi(float value);
@@ -41,6 +43,10 @@ extern CColPrimMan ColPrimMan;
 EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index);
 int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory);
 void SetEffectScriptFunc();
+void DrawEffSptSprite(_EFF_SCRIPT *, mgCTexture *, float *, mgC3DSprite *, CMapLightingInfo *);
+extern RS_EXTFUNC_INFO ext_func_info__4[];
+extern char at_3644[];
+extern char at_3645[];
 
 #define GetStackInt GetStackInt__FP12RS_STACKDATA__4
 #define GetStackFloat GetStackFloat__FP12RS_STACKDATA__4
@@ -563,8 +569,218 @@ void CEffectScriptMan::AllClearEffSpt() {
         now = 0;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", Step__16CEffectScriptManFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", Draw__16CEffectScriptManFv);
+void CEffectScriptMan::Step() {
+    _EFF_SCRIPT *script = head;
+    EffScriptMan = this;
+    if (script != NULL) {
+        do {
+            now_script = script;
+            if (script->state == EFF_SPT_STATE_HIDE_STOP || script->state == EFF_SPT_STATE_STOP) {
+                script = script->next;
+                continue;
+            }
+            if (script->state != EFF_SPT_STATE_SCRIPT_PAUSE) {
+                if (script->prog_no != -1) {
+                    if (script->run.check_program(script->prog_no)) {
+                        if (script->run.run(script->prog_no) == 0) {
+                            if (script->next == NULL) {
+                                DeleteEffSpt(script);
+                                script = NULL;
+                            } else {
+                                script = script->next;
+                                DeleteEffSpt(script->prev);
+                            }
+                            continue;
+                        }
+                        script->prog_no = -1;
+                    }
+                } else {
+                    script->run.resume();
+                }
+            }
+            if (script->chara != NULL) {
+                script->chara->Step();
+                for (int character_index = 0; character_index < EFF_SPT_SUB_CHARA_MAX; character_index++) {
+                    if (script->sub_chara[character_index] != NULL) {
+                        script->sub_chara[character_index]->Step();
+                    }
+                }
+            }
+            if (script->sprite != NULL) {
+                for (int sprite_index = 0; sprite_index < script->sprite_num; sprite_index++) {
+                    _ES_SPRITE *sprite = &script->sprite[sprite_index];
+                    sceVu0AddVector(sprite->pos, sprite->pos, sprite->velo_pos);
+                    sceVu0AddVector(sprite->velo_pos, sprite->velo_pos, sprite->acc_pos);
+                    sprite->rotz += sprite->velo_rotz;
+                    sprite->rotz = mgAngleLimit(sprite->rotz);
+                    sprite->velo_rotz += sprite->acc_rotz;
+                    if (!(sprite->velo_rotz <= 6.2831855f)) {
+                        sprite->velo_rotz = 6.2831855f;
+                    }
+                    sceVu0AddVector(sprite->color, sprite->color, sprite->velo_col);
+                    sceVu0AddVector(sprite->velo_col, sprite->velo_col, sprite->acc_col);
+                    if (sprite->color_conv_div > 0.0) {
+                        sprite->color[0] += (sprite->color_target[0] - sprite->color[0]) / sprite->color_conv_div;
+                        sprite->color[1] += (sprite->color_target[1] - sprite->color[1]) / sprite->color_conv_div;
+                        sprite->color[2] += (sprite->color_target[2] - sprite->color[2]) / sprite->color_conv_div;
+                        sprite->color[3] += (sprite->color_target[3] - sprite->color[3]) / sprite->color_conv_div;
+                    }
+                    sprite->scale[0] += sprite->velo_scl[0];
+                    sprite->scale[1] += sprite->velo_scl[1];
+                    sprite->velo_scl[0] += sprite->acc_scl[0];
+                    sprite->velo_scl[1] += sprite->acc_scl[1];
+                    if (sprite->scale_conv_div > 0.0) {
+                        sprite->scale[0] += (sprite->scale_target[0] - sprite->scale[0]) / sprite->scale_conv_div;
+                        sprite->scale[1] += (sprite->scale_target[1] - sprite->scale[1]) / sprite->scale_conv_div;
+                    }
+                }
+            }
+            if (script->run.end) {
+                if (script->next == NULL) {
+                    DeleteEffSpt(script);
+                    script = NULL;
+                } else {
+                    script = script->next;
+                    DeleteEffSpt(script->prev);
+                }
+            } else {
+                script = script->next;
+            }
+        } while (script != NULL);
+    }
+    now_script = NULL;
+    now = NULL;
+}
+void CEffectScriptMan::Draw() {
+    _EFF_SCRIPT *script = head;
+    mgCTextureManager *textures = &mgTexManager;
+    CMap *map = now_scene->GetMap(now_scene->active_map);
+    CMapLightingInfo lighting;
+    if (map != NULL) {
+        map->GetLightInfo(&lighting);
+    }
+    if (script != NULL) {
+        do {
+            if (script->state == EFF_SPT_STATE_HIDE_STOP || script->state == EFF_SPT_STATE_HIDE) {
+                script = script->next;
+                continue;
+            }
+            if (script->chara != NULL) {
+                sceVu0FVECTOR offset;
+                if (script->auto_offset && (script->target_id >= 0 || script->target_id < 128)) {
+                    CCharacter2 *character = now_scene->GetCharacter(script->target_id);
+                    if (character != NULL) {
+                        sceVu0FVECTOR character_position;
+                        character->GetPosition(character_position);
+                        if (strcmp(script->offset_frame, at_1341__2) != 0) {
+                            mgCFrame *frame = character->CObjectFrame::frame;
+                            if (frame != NULL) {
+                                frame = frame->SearchFrame(script->offset_frame);
+                                if (frame != NULL) {
+                                    sceVu0FVECTOR frame_position;
+                                    frame->GetWorldPosition0(frame_position);
+                                    *(u_long128 *)character_position = *(u_long128 *)frame_position;
+                                }
+                            }
+                        }
+                        *(u_long128 *)offset = *(u_long128 *)character_position;
+                    } else {
+                        offset[0] = 0.0f;
+                        offset[1] = 0.0f;
+                        offset[2] = 0.0f;
+                        offset[3] = 0.0f;
+                    }
+                } else {
+                    offset[0] = 0.0f;
+                    offset[1] = 0.0f;
+                    offset[2] = 0.0f;
+                    offset[3] = 0.0f;
+                }
+                sceVu0AddVector(offset, offset, script->origin);
+                offset[3] = 0.0f;
+                textures->ReloadTexture(script->texb, (sceVif1Packet *)NULL);
+                sceVu0FVECTOR position;
+                script->chara->GetPosition(position);
+                sceVu0AddVector(position, position, offset);
+                position[3] = 1.0f;
+                script->chara->SetPosition(position);
+                script->chara->DrawDirect();
+                sceVu0SubVector(position, position, offset);
+                position[3] = 1.0f;
+                script->chara->SetPosition(position);
+                for (int character_index = 0; character_index < EFF_SPT_SUB_CHARA_MAX; character_index++) {
+                    if (script->sub_chara[character_index] != NULL) {
+                        sceVu0FVECTOR sub_position;
+                        script->sub_chara[character_index]->GetPosition(sub_position);
+                        sceVu0AddVector(sub_position, sub_position, offset);
+                        sub_position[3] = 1.0f;
+                        script->sub_chara[character_index]->SetPosition(sub_position);
+                        script->sub_chara[character_index]->DrawDirect();
+                        sceVu0SubVector(sub_position, sub_position, offset);
+                        sub_position[3] = 1.0f;
+                        script->sub_chara[character_index]->SetPosition(sub_position);
+                    }
+                }
+            }
+            script = script->next;
+        } while (script != NULL);
+    }
+    script = head;
+    if (script != NULL) {
+        do {
+            if (script->state == EFF_SPT_STATE_HIDE_STOP || script->state == EFF_SPT_STATE_HIDE) {
+                script = script->next;
+                continue;
+            }
+            if (script->sprite != NULL) {
+                sceVu0FVECTOR offset;
+                if (script->auto_offset && (script->target_id >= 0 || script->target_id < 128)) {
+                    CCharacter2 *character = now_scene->GetCharacter(script->target_id);
+                    if (character != NULL) {
+                        sceVu0FVECTOR character_position;
+                        character->GetPosition(character_position);
+                        if (strcmp(script->offset_frame, at_1341__2) != 0) {
+                            mgCFrame *frame = character->CObjectFrame::frame;
+                            if (frame != NULL) {
+                                frame = frame->SearchFrame(script->offset_frame);
+                                if (frame != NULL) {
+                                    sceVu0FVECTOR frame_position;
+                                    frame->GetWorldPosition0(frame_position);
+                                    *(u_long128 *)character_position = *(u_long128 *)frame_position;
+                                }
+                            }
+                        }
+                        *(u_long128 *)offset = *(u_long128 *)character_position;
+                    } else {
+                        offset[0] = 0.0f;
+                        offset[1] = 0.0f;
+                        offset[2] = 0.0f;
+                        offset[3] = 0.0f;
+                    }
+                } else {
+                    offset[0] = 0.0f;
+                    offset[1] = 0.0f;
+                    offset[2] = 0.0f;
+                    offset[3] = 0.0f;
+                }
+                sceVu0AddVector(offset, offset, script->origin);
+                offset[3] = 0.0f;
+                textures->ReloadTexture(script->texb, (sceVif1Packet *)NULL);
+                mgCTexture *texture = textures->GetTexture(script->tex_name, script->texb);
+                if (texture != NULL) {
+                    sprite.Initialize();
+                    sprite.BeginCreatePacket(1, NULL);
+                    DrawEffSptSprite(script, texture, offset, &sprite, &lighting);
+                    sprite.EndCreatePacket();
+                    sceVu0FMATRIX matrix;
+                    mgUnitMatrix(matrix);
+                    mgDrawDirect(&sprite, matrix);
+                }
+            }
+            script = script->next;
+        } while (script != NULL);
+    }
+}
 _ES_SPRITE *CEffectScriptMan::AssignSprite(int count) {
     if (work_memory == 0) {
         return 0;
@@ -2201,11 +2417,163 @@ int _SPT_GET_COLOR(RS_STACKDATA *stack, int argument_count) {
     SetStackFloat(stack, sprite->color[3]);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_VAN_SET_POS__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_VAN_SET_ROT__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_VAN_SET_COL__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_VAN_SET_SCL__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_ADD_POS__FP12RS_STACKDATAi);
+int _SPT_VAN_SET_POS(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float position[4];
+    float velocity[4];
+    float acceleration[4];
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    GetStackVector(position, stack);
+    GetStackVector(velocity, stack + 3);
+    GetStackVector(acceleration, stack + 6);
+    stack = (RS_STACKDATA *)((u8 *)stack + 9 * sizeof(*stack));
+    if (argc >= 11) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < first_sprite + sprite_count; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        *(u_long128 *)sprite->pos = *(u_long128 *)position;
+        sceVu0AddVector(position, position, velocity);
+        position[3] = 1.0f;
+        sceVu0AddVector(velocity, velocity, acceleration);
+        velocity[3] = 1.0f;
+    }
+    return 1;
+}
+int _SPT_VAN_SET_ROT(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float angle;
+    float velocity;
+    float acceleration;
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    angle = GetStackFloat(stack++);
+    velocity = GetStackFloat(stack++);
+    acceleration = GetStackFloat(stack++);
+    if (argc >= 5) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < first_sprite + sprite_count; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        angle = mgAngleLimit(angle);
+        sprite->rotz = angle;
+        angle += velocity;
+        velocity += acceleration;
+    }
+    return 1;
+}
+int _SPT_VAN_SET_COL(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float color[4];
+    float velocity[4];
+    float acceleration[4];
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    color[0] = GetStackFloat(stack++);
+    color[1] = GetStackFloat(stack++);
+    color[2] = GetStackFloat(stack++);
+    color[3] = GetStackFloat(stack++);
+    velocity[0] = GetStackFloat(stack++);
+    velocity[1] = GetStackFloat(stack++);
+    velocity[2] = GetStackFloat(stack++);
+    velocity[3] = GetStackFloat(stack++);
+    acceleration[0] = GetStackFloat(stack++);
+    acceleration[1] = GetStackFloat(stack++);
+    acceleration[2] = GetStackFloat(stack++);
+    acceleration[3] = GetStackFloat(stack++);
+    if (argc >= 11) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < first_sprite + sprite_count; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        *(u_long128 *)sprite->color = *(u_long128 *)color;
+        sceVu0AddVector(color, color, velocity);
+        sceVu0AddVector(velocity, velocity, acceleration);
+    }
+    return 1;
+}
+int _SPT_VAN_SET_SCL(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float x;
+    float y;
+    float velocity_x;
+    float velocity_y;
+    float acceleration_x;
+    float acceleration_y;
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    x = GetStackFloat(stack++);
+    y = GetStackFloat(stack++);
+    velocity_x = GetStackFloat(stack++);
+    velocity_y = GetStackFloat(stack++);
+    acceleration_x = GetStackFloat(stack++);
+    acceleration_y = GetStackFloat(stack++);
+    if (argc >= 8) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < first_sprite + sprite_count; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        sprite->scale[0] = x;
+        sprite->scale[1] = y;
+        x += velocity_x;
+        y += velocity_y;
+        velocity_x += acceleration_x;
+        velocity_y += acceleration_y;
+    }
+    return 1;
+}
+int _SPT_ADD_POS(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float offset[4];
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    GetStackVector(offset, stack);
+    stack = (RS_STACKDATA *)((u8 *)stack + 3 * sizeof(*stack));
+    if (argc >= 5) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < sprite_count + first_sprite; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        sceVu0AddVector(sprite->pos, sprite->pos, offset);
+    }
+    return 1;
+}
 int _SPT_ADD_ROTZ(RS_STACKDATA *stack, int argc) {
     int first;
     float angle;
@@ -2229,7 +2597,51 @@ int _SPT_ADD_ROTZ(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_ADD_COLOR__FP12RS_STACKDATAi);
+int _SPT_ADD_COLOR(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float color_delta[4];
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    color_delta[0] = GetStackFloat(stack++);
+    color_delta[1] = GetStackFloat(stack++);
+    color_delta[2] = GetStackFloat(stack++);
+    color_delta[3] = GetStackFloat(stack++);
+    if (argc >= 6) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < sprite_count + first_sprite; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        sceVu0AddVector(sprite->color, sprite->color, color_delta);
+        if (sprite->color[0] <= 0.0f) {
+            sprite->color[0] = 0.0f;
+        } else if (!(sprite->color[0] < 255.0f)) {
+            sprite->color[0] = 255.0f;
+        }
+        if (sprite->color[1] <= 0.0f) {
+            sprite->color[1] = 0.0f;
+        } else if (!(sprite->color[1] < 255.0f)) {
+            sprite->color[1] = 255.0f;
+        }
+        if (sprite->color[2] <= 0.0f) {
+            sprite->color[2] = 0.0f;
+        } else if (!(sprite->color[2] < 255.0f)) {
+            sprite->color[2] = 255.0f;
+        }
+        if (sprite->color[3] <= 0.0f) {
+            sprite->color[3] = 0.0f;
+        } else if (!(sprite->color[3] < 255.0f)) {
+            sprite->color[3] = 255.0f;
+        }
+    }
+    return 1;
+}
 int _SPT_WORLD_ROT(RS_STACKDATA *stack, int argc) {
     int first;
     float angle;
@@ -2258,8 +2670,54 @@ int _SPT_WORLD_ROT(RS_STACKDATA *stack, int argc) {
 int _SPT_SET_LIFE(RS_STACKDATA *stack, int argument_count) {
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_SET_VELO_POS__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_SET_ACC_POS__FP12RS_STACKDATAi);
+int _SPT_SET_VELO_POS(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float velocity[4];
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    GetStackVector(velocity, stack);
+    velocity[3] = 0.0f;
+    stack = (RS_STACKDATA *)((u8 *)stack + 3 * sizeof(*stack));
+    if (argc >= 5) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < first_sprite + sprite_count; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        *(u_long128 *)sprite->velo_pos = *(u_long128 *)velocity;
+    }
+    return 1;
+}
+int _SPT_SET_ACC_POS(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float acceleration[4];
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    GetStackVector(acceleration, stack);
+    acceleration[3] = 0.0f;
+    stack = (RS_STACKDATA *)((u8 *)stack + 3 * sizeof(*stack));
+    if (argc >= 5) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < first_sprite + sprite_count; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        *(u_long128 *)sprite->acc_pos = *(u_long128 *)acceleration;
+    }
+    return 1;
+}
 int _SPT_SET_VELO_ROTZ(RS_STACKDATA *stack, int argc) {
     int first;
     float value;
@@ -2304,9 +2762,85 @@ int _SPT_SET_ACC_ROTZ(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_SET_VELO_COL__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_SET_ACC_COL__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_SET_BLINKING__FP12RS_STACKDATAi);
+int _SPT_SET_VELO_COL(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float color_velocity[4];
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    color_velocity[0] = GetStackFloat(stack++);
+    color_velocity[1] = GetStackFloat(stack++);
+    color_velocity[2] = GetStackFloat(stack++);
+    color_velocity[3] = GetStackFloat(stack++);
+    if (argc >= 6) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < first_sprite + sprite_count; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        *(u_long128 *)sprite->velo_col = *(u_long128 *)color_velocity;
+    }
+    return 1;
+}
+int _SPT_SET_ACC_COL(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float color_acceleration[4];
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    color_acceleration[0] = GetStackFloat(stack++);
+    color_acceleration[1] = GetStackFloat(stack++);
+    color_acceleration[2] = GetStackFloat(stack++);
+    color_acceleration[3] = GetStackFloat(stack++);
+    if (argc >= 6) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < first_sprite + sprite_count; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        *(u_long128 *)sprite->acc_col = *(u_long128 *)color_acceleration;
+    }
+    return 1;
+}
+int _SPT_SET_BLINKING(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float color[4];
+    float speed;
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    color[0] = GetStackFloat(stack++);
+    color[1] = GetStackFloat(stack++);
+    color[2] = GetStackFloat(stack++);
+    color[3] = GetStackFloat(stack++);
+    speed = GetStackFloat(stack++);
+    if (argc >= 7) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < first_sprite + sprite_count; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        *(u_long128 *)sprite->blink_amp = *(u_long128 *)color;
+        sprite->blink_speed = speed;
+        sprite->blink_phase = 0;
+    }
+    return 1;
+}
 int _SPT_SET_VELO_SCL(RS_STACKDATA *stack, int argc) {
     int first;
     float x;
@@ -2385,7 +2919,34 @@ int _SPT_SCALE_CONV(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SPT_COLOR_CONV__FP12RS_STACKDATAi);
+int _SPT_COLOR_CONV(RS_STACKDATA *stack, int argc) {
+    int first_sprite;
+    float color[4];
+    float divisor;
+    int sprite_count;
+    int sprite_index;
+    _ES_SPRITE *sprite;
+
+    sprite_count = 1;
+    first_sprite = GetStackInt(stack++);
+    color[0] = GetStackFloat(stack++);
+    color[1] = GetStackFloat(stack++);
+    color[2] = GetStackFloat(stack++);
+    color[3] = GetStackFloat(stack++);
+    divisor = GetStackFloat(stack++);
+    if (argc >= 7) {
+        sprite_count = GetStackInt(stack);
+    }
+    for (sprite_index = first_sprite; sprite_index < first_sprite + sprite_count; sprite_index++) {
+        sprite = GetSpritePtr(now_script, sprite_index);
+        if (sprite == NULL) {
+            return 0;
+        }
+        *(u_long128 *)sprite->color_target = *(u_long128 *)color;
+        sprite->color_conv_div = divisor;
+    }
+    return 1;
+}
 int _SCN_GET_CHR_POS(RS_STACKDATA *stack, int argc) {
     float pos[3];
     CCharacter2 *chara;
@@ -2456,8 +3017,76 @@ int _SCN_GET_CHR_FRM_POS(RS_STACKDATA *stack, int argc) {
     SetStackFloat(stack, pos[2]);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SCN_GET_CHR_FRM_DIR__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _SCN_GET_CHR_FRM_ROT__FP12RS_STACKDATAi);
+int _SCN_GET_CHR_FRM_DIR(RS_STACKDATA *stack, int argc) {
+    float direction[4];
+    int chara_slot;
+    char *frame_name;
+    CCharacter2 *character;
+    mgCFrame *frame;
+
+    chara_slot = GetStackInt(stack++);
+    frame_name = (char *)GetStackString(stack++);
+    character = now_scene->GetCharacter(chara_slot);
+    if (character == NULL) {
+        return 0;
+    }
+    if (character->CObjectFrame::frame == NULL) {
+        return 0;
+    }
+    frame = character->CObjectFrame::frame->SearchFrame(frame_name);
+    if (frame == NULL) {
+        return 0;
+    }
+    direction[0] = 0.0f;
+    direction[1] = 0.0f;
+    direction[2] = 1.0f;
+    direction[3] = 0.0f;
+    frame->GetWorldDir(direction, direction);
+    SetStackFloat(stack++, direction[0]);
+    SetStackFloat(stack++, direction[1]);
+    SetStackFloat(stack, direction[2]);
+    return 1;
+}
+int _SCN_GET_CHR_FRM_ROT(RS_STACKDATA *stack, int argc) {
+    float direction[4];
+    float origin[4];
+    float yaw;
+    int chara_slot;
+    char *frame_name;
+    CCharacter2 *character;
+    mgCFrame *frame;
+
+    chara_slot = GetStackInt(stack++);
+    frame_name = (char *)GetStackString(stack++);
+    character = now_scene->GetCharacter(chara_slot);
+    if (character == NULL) {
+        return 0;
+    }
+    if (character->CObjectFrame::frame == NULL) {
+        return 0;
+    }
+    frame = character->CObjectFrame::frame->SearchFrame(frame_name);
+    if (frame == NULL) {
+        return 0;
+    }
+    direction[0] = 0.0f;
+    direction[1] = 0.0f;
+    direction[2] = 1.0f;
+    direction[3] = 0.0f;
+    origin[0] = 0.0f;
+    origin[1] = 0.0f;
+    origin[2] = 0.0f;
+    origin[3] = 1.0f;
+    frame->GetWorldDir(direction, direction);
+    sceVu0SubVector(direction, direction, origin);
+    sceVu0Normalize(direction, direction);
+    yaw = atan2f(direction[0], direction[2]);
+    SetStackFloat(stack++, -atan2f(direction[1],
+        sqrtf(direction[0] * direction[0] + direction[2] * direction[2])));
+    SetStackFloat(stack++, yaw);
+    SetStackFloat(stack, 0.0f);
+    return 1;
+}
 int _SCN_GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc) {
     float pos[3];
     int chara_slot;
@@ -2966,7 +3595,34 @@ int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory) {
     script->ext_func(ext_func__4, 0x100);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", SetEffectScriptFunc__Fv);
+void SetEffectScriptFunc() {
+    int function_index;
+    int previous_index;
+    for (function_index = 0; function_index < 256; function_index++) {
+        ext_func__4[function_index] = NULL;
+    }
+    for (function_index = 0;; function_index++) {
+        if (ext_func_info__4[function_index].func == NULL) {
+            break;
+        }
+        if (0 < function_index) {
+            previous_index = 0;
+            do {
+                if (ext_func_info__4[function_index].no == ext_func_info__4[previous_index].no) {
+                    printf(at_3644, ext_func_info__4[previous_index].no);
+                    while (1) {
+                    }
+                }
+                previous_index++;
+            } while (previous_index < function_index);
+        }
+        if (ext_func_info__4[function_index].no < 0 || ext_func_info__4[function_index].no >= 256) {
+            printf(at_3645);
+        } else {
+            ext_func__4[ext_func_info__4[function_index].no] = ext_func_info__4[function_index].func;
+        }
+    }
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", eff_spt_base_def__DATA);

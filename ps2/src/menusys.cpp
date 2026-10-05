@@ -168,6 +168,8 @@ extern float SpectolFrameScaleAngle;
 extern CActionChara *SpectolFrame;
 extern NameList at_1545;
 extern signed char MenuRoboEquipTable[8];
+extern signed char tbl_4094[2];
+extern signed char menuitem_initmenumode[4];
 extern char at_5757[];
 extern char at_7342[];
 extern char at_7343[];
@@ -182,6 +184,10 @@ extern mgCMemory MainCharaReadStack;
 extern u8 *MainCharaReadStackReadAdr;
 extern CMenuItemInfo *CMenuItemInfoPt;
 extern short MenuItem_ItemBoardTopLine;
+extern int MenuRepairTargetWeaponPos[2];
+extern char at_5265[];
+extern char at_5271[];
+extern char at_7540[];
 extern short MenuItem_ItemBoardTopSelect;
 extern u32 *MenuItemSpectolTransSoundBuffer;
 extern void *Save_AskParamInfo_7099;
@@ -1673,7 +1679,30 @@ int CMenuKeyFunc::GetDebugInputKey(int &held, int &pressed) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuSwapItem__12CMenuKeyFuncFP13CGameDataUsedP18MENU_SWAPITEM_INFOib);
+int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity);
+int CMenuKeyFunc::MenuSwapItem(CGameDataUsed *item, MENU_SWAPITEM_INFO *swap, int quantity, bool flag) {
+    if (item == NULL) {
+        return 0;
+    }
+    int result = MenuDataSwap(item, &have_item, quantity);
+    if (have_swap.flag == 0) {
+        have_swap.flag = swap->flag;
+        have_swap.type = swap->type;
+        have_swap.no = swap->no;
+        have_swap.chara = swap->chara;
+        have_swap.flag = 1;
+    }
+    if (have_item.item_no <= 0) {
+        SetHaveItemInfo(0, 1);
+        have_swap.flag = 0;
+    } else {
+        SetHaveItemInfo(1, 1);
+    }
+    if (item->item_no <= 0) {
+        item->Init();
+    }
+    return result;
+}
 CGameDataUsed *GetGameDataUsedForSWAPINFO(MENU_SWAPITEM_INFO *info) {
     CGameDataUsed *item = NULL;
     short owner = info->chara;
@@ -1697,7 +1726,43 @@ CGameDataUsed *GetGameDataUsedForSWAPINFO(MENU_SWAPITEM_INFO *info) {
     }
     return (CGameDataUsed *)((u8 *)MenuUserParam.used_data + info->no * 0x6C);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ReturnItemMenu__12CMenuKeyFuncFi);
+int CMenuKeyFunc::ReturnItemMenu(int hide) {
+    if (have_item.item_no <= 0) {
+        return 0;
+    }
+    CGameDataUsed *target = GetGameDataUsedForSWAPINFO(&have_swap);
+    if (target == NULL) {
+        return 0;
+    }
+    CUserDataManager *manager = GetUserDataMan();
+    if (have_swap.type == 0) {
+        CDataCommon *common = GameItemDataManage.GetCommonData(have_item.item_no);
+        if (common != NULL && common->active_set == 0) {
+            have_swap.type = 3;
+            have_swap.no = manager->SearchSpaceUsedData();
+            if (have_swap.no < 0) {
+                return 0;
+            }
+            target = GetGameDataUsedForSWAPINFO(&have_swap);
+        }
+    }
+    int result = MenuDataSwap(target, &have_item, have_item.GetNum());
+    if (have_item.item_no <= 0 || have_item.used_type == 0) {
+        InitHaveData();
+    }
+    if (have_item.item_no <= 0) {
+        SetHaveItemInfo(0, 1);
+    } else {
+        SetHaveItemInfo(1, 1);
+    }
+    if (hide != 0) {
+        SetHaveItemInfo(0, 1);
+        if (have_item.item_no > 0) {
+            return_item = 1;
+        }
+    }
+    return result;
+}
 void CMenuKeyFunc::InitHaveData() {
     ((CGameDataUsed *)(&have_item))->Init();
     ((MENU_SWAPITEM_INFO *)(&have_swap))->Set(-1, 0, -1, 0);
@@ -1953,9 +2018,126 @@ int CMenuItemInfo::CheckSoundLoad() {
     }
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SearchNowPosItemExist__13CMenuItemInfoFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsCancelNoneLoadItem__13CMenuItemInfoFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsCancelLoadItem__13CMenuItemInfoFv);
+CGameDataUsed *CMenuItemInfo::SearchNowPosItemExist() {
+    int cursor = MenuCommonInfo->cursor;
+    CHARA_DATA *chara = MenuUserParam.chara[sub_view];
+    CGameDataUsed *item = NULL;
+    if (key_arg_no == 2) {
+        item = &MenuUserParam.used_data[cursor];
+        if (menu_debug_flag != 0) {
+            debug_item.Init();
+            MenuUserDataManPtr->CopyGameData(&debug_item, debug_item_no);
+            item = &debug_item;
+        }
+    } else if (key_arg_no == 0) {
+        item = &chara->active_item[cursor];
+    } else if (key_arg_no == 1) {
+        item = &chara->equip[cursor];
+    } else if (key_arg_no == 7) {
+        item = &MenuUserParam.robo->parts[tbl_4094[cursor]];
+    } else if (key_arg_no == 4) {
+        item = view_weapon;
+    } else if (key_arg_no == 9) {
+        item = view_weapon;
+    } else if (key_arg_no == 11) {
+        item = MenuUserDataManPtr->GetActiveEsa();
+    }
+    return item;
+}
+void CMenuItemInfo::IsCancelNoneLoadItem() {
+    MENU_SWAPITEM_INFO swap;
+    swap.Set(-1, 0, -1, 0);
+    memcpy(&swap, &MenuCommonInfo->have_swap, sizeof(swap));
+    swap.flag = 0;
+    CGameDataUsed *target = GetGameDataUsedForSWAPINFO(&swap);
+    CGameDataUsed previous_item;
+    CGameDataUsed carried_item;
+    previous_item.CopyGameData(target);
+    carried_item.CopyGameData(&MenuCommonInfo->have_item);
+    CheckViewWeaponStatus(1);
+    int result = MenuCommonInfo->ReturnItemMenu(1);
+    if (0 < result) {
+        target->CopyGameData(&previous_item);
+        MenuCommonInfo->have_item.CopyGameData(&carried_item);
+        int equipped = 0;
+        if ((view_mode == 0 && swap.chara == 0) ||
+            (view_mode == 1 && swap.chara == 1) ||
+            (view_mode == 3 && load_item_no == swap.chara)) {
+            equipped = 1;
+        }
+        int movement[2][4];
+        if (ExchangeItemInfoMake(&swap, movement, 0, equipped) != 0) {
+            CommonSetMoveItemClass(movement);
+        }
+        MenuSePlay(menu_item_swap_sndtbl[result]);
+    } else {
+        ReturnActiveCharaViewMode(0);
+        MenuSePlay(5);
+    }
+}
+int CMenuItemInfo::IsCancelLoadItem() {
+    int result = 1;
+    if (GetItemDataType(MenuCommonInfo->have_item.item_no) == 0) {
+        if (ReturnActiveCharaViewMode(0) == 0) {
+            result = 2;
+        }
+        MenuSePlay(5);
+    } else {
+        MENU_SWAPITEM_INFO *source = &MenuCommonInfo->have_swap;
+        int needs_load = 0;
+        int ridepod = 0;
+        if (source->type == 1 || source->type == 2) {
+            needs_load = 1;
+        }
+        int slot = source->no;
+        if (source->type == 2) {
+            ridepod = 1;
+        }
+        MENU_SWAPITEM_INFO swap;
+        swap.Set(-1, 0, -1, 0);
+        memcpy(&swap, &MenuCommonInfo->have_swap, sizeof(swap));
+        swap.flag = 0;
+        CGameDataUsed *target = GetGameDataUsedForSWAPINFO(&swap);
+        CGameDataUsed previous_item;
+        CGameDataUsed carried_item;
+        previous_item.CopyGameData(target);
+        carried_item.CopyGameData(&MenuCommonInfo->have_item);
+        CheckViewWeaponStatus(1);
+        if (0 < MenuCommonInfo->ReturnItemMenu(1)) {
+            CheckLoadItemNo();
+            MenuCommonInfo->SetHaveItemInfo(0, 1);
+            target->CopyGameData(&previous_item);
+            MenuCommonInfo->have_item.CopyGameData(&carried_item);
+            if (needs_load != 0) {
+                MenuLoadInfo.unk_2 = 0;
+                if (ridepod == 0) {
+                    CheckLoadInfo(sub_view);
+                    MenuLoadInfo.unk_4 = ConvertCharaLoadDataPhase(sub_view, slot);
+                    MenuLoadInfo.unk_5 = MenuLoadInfo.unk_4;
+                } else if (ridepod == 1) {
+                    CheckLoadInfo(2);
+                    MenuLoadInfo.unk_4 = ConvertCharaLoadDataPhase(2, slot);
+                }
+                ModelReadStart(view_mode, 0, 1);
+                MenuSePlay(8);
+            } else {
+                MenuSePlay(4);
+            }
+            int equipped = 0;
+            if ((view_mode == 0 && swap.chara == 0) ||
+                (view_mode == 1 && swap.chara == 1) ||
+                (view_mode == 3 && load_item_no == swap.chara)) {
+                equipped = 1;
+            }
+            int movement[2][4];
+            if (ExchangeItemInfoMake(&swap, movement, 0, equipped) != 0) {
+                CommonSetMoveItemClass(movement);
+            }
+            result = 3;
+        }
+    }
+    return result;
+}
 void CMenuItemInfo::SaveViewWeaponStatus(void) {
     int mode_now;
     CGameDataUsed *cursor_item;
@@ -1991,7 +2173,32 @@ void CMenuItemInfo::CheckViewWeaponStatus(int revert) {
         }
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ReturnActiveCharaViewMode__13CMenuItemInfoFi);
+int CMenuItemInfo::ReturnActiveCharaViewMode(int mode) {
+    int active_character = GetActiveCharaNo();
+    if ((view_mode == 0 && active_character == 0) ||
+        (view_mode == 1 && active_character == 1) ||
+        (view_mode != 0 && view_mode == unk_112)) {
+        return 0;
+    }
+    if (unk_112 == 0 || unk_112 == 1) {
+        sub_view = active_character;
+    }
+    if (unk_112 == 3) {
+        MenuActionChara[5]->Initialize(NULL);
+    }
+    MenuCommonInfo->cursor = 0;
+    key_arg_no = menuitem_initmenumode[active_character];
+    view_mode = unk_112;
+    MenuCommonInfo->key_arg = &item_menu_argtbl[key_arg_no];
+    MenuLoadInfo.unk_2 = 1;
+    MenuLoadInfo.unk_5 = 0;
+    MenuLoadInfo.unk_4 = -1;
+    CheckLoadInfo(active_character);
+    MenuLoadInfo.unk_6[1] = 1;
+    MenuMemoryAdjust(&MenuItemMemory, &MenuCharaLoadStack, MenuActionCharaBuffer, active_character);
+    ModelReadStart(view_mode, 1, 1);
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", NextModeBuildUpInfo__13CMenuItemInfoFP13CGameDataUsed);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", EquipDirect__13CMenuItemInfoFiP13CGameDataUsedRi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckLoadInfo__13CMenuItemInfoFi);
@@ -3759,7 +3966,36 @@ void CMenuItemInfo::CheckLoadItemNo() {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ModelReadStart__13CMenuItemInfoFiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", WeaponBuildCheck__13CMenuItemInfoFP12CActionCharaii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ModelReadEndCheck__13CMenuItemInfoFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SearchEffectDisplayPosition__13CMenuItemInfoFPiP13CGameDataUsed);
+void CMenuItemInfo::SearchEffectDisplayPosition(int *position, CGameDataUsed *item) {
+    int item_index = GetSameAdrressUserData(item, 0);
+    if (0 <= item_index) {
+        MenuPosData->GetPosMenuItemBrdKoma(MenuRepairTargetWeaponPos, item_index, 0);
+        int item_line = item_index / 6;
+        if (item_line < MenuItem_ItemBoardTopLine || MenuItem_ItemBoardTopLine + 5 < item_line) {
+            effect_pos = 0;
+        }
+    } else {
+        if (view_mode == 0 || view_mode == 1) {
+            CMenuPosDataForm *form = view_form[sub_view];
+            CHARA_DATA *character = MenuUserParam.chara[sub_view];
+            if (&character->equip[0] == item) {
+                form->GetPutPosXY(at_5265, MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
+            } else if (&character->equip[1] == item) {
+                form->GetPutPosXY(at_5271, MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
+            }
+            position[0] -= 7;
+        }
+        if (view_mode == 3) {
+            ROBO_DATA *ridepod = MenuUserParam.robo;
+            if (&ridepod->parts[2] == item) {
+                view_form[3]->GetPutPosXY(at_7540, MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
+            } else if (&ridepod->parts[0] == item) {
+                view_form[3]->GetPutPosXY(at_5265, MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
+            }
+            position[0] -= 7;
+        }
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetItemEffect__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", LRCheck__13CMenuItemInfoFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemInfoCursorSet__Fi);

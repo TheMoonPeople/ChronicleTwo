@@ -1324,7 +1324,7 @@ int _LOAD_MOTION_sub(int stack_no, char *name, int scene_no, unsigned int *data)
  * @address 0x268110
  * @size 0x50
  */
-char GetConfigCaptionOff();
+int GetConfigCaptionOff();
 
 /**
  * Plays a movie file, drawing the event's captions over it; returns non-zero once it has played.

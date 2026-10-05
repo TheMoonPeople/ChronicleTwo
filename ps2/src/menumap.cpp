@@ -4,7 +4,26 @@
 #include "menucommon.hpp"
 #include "menumain.hpp"
 #include "scriptinterpreter.hpp"
+#include "menusys.hpp"
+#include <cstdlib>
+#include "menudraw.hpp"
+#include "mainloop.hpp"
+#include "savedata.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "dataread.hpp"
 #include <cstring>
+
+extern signed char SfidaMoveInitFlag;
+extern mgCMemory SphidaStack;
+extern int SphidaMenuTexbk[8];
+extern CSubGameData *SubSaveData__2;
+extern CSphidaData *SubSphidaData;
+extern mgCTexture *SphidaTex;
+extern mgCTexture *SphidaTex_Sys;
+extern char at_1674[];
+extern char at_1675[];
+extern char at_1677[];
 
 extern CDC2Mes *MenuDCMsg[9];
 extern signed char WorldMapMenuType;
@@ -178,10 +197,54 @@ void WorldMoveDraw() {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaScreListUpdate__FP7CDC2Mesi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaMenuInit__FP9mgCMemoryPii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", OmakeSfidaSelect__Fi);
+int OmakeSfidaSelect(int key) {
+    int movement = MenuListSelectKeyCheck(key, 8);
+    int distance = abs(movement);
+    if (distance > 2) {
+        SfidaMoveInitFlag = 1;
+    }
+    return movement;
+}
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaMenuKey__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaMenuDraw__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumap", SphidaScoreViewInit__FP9mgCMemoryPii);
+void SphidaScoreViewInit(mgCMemory *memory, int *tex_block, int) {
+    int available = memory->stGetRest();
+    u_long128 *top = memory->stGetTop();
+    SphidaStack.stSetBuffer(top, available);
+    SphidaMenuTexbk[0] = tex_block[0];
+    SphidaMenuTexbk[1] = tex_block[1];
+    SphidaMenuTexbk[2] = tex_block[2];
+    SphidaMenuTexbk[3] = tex_block[3];
+    SphidaMenuTexbk[4] = tex_block[4];
+    SphidaMenuTexbk[5] = tex_block[5];
+    SphidaMenuTexbk[6] = tex_block[6];
+    SphidaMenuTexbk[7] = tex_block[7];
+    MenuBGTextureBlock = SphidaMenuTexbk[0];
+    MenuCapture(MenuBGTextureBlock, &SphidaStack, 1);
+    MenuPosData->AttachCommonTexInfo();
+    SubSaveData__2 = GetSubGameSaveData();
+    SubSphidaData = NULL;
+    if (SubSaveData__2 != NULL) {
+        SubSphidaData = SubSaveData__2->GetSphidaData();
+        SphidaStack.Align64();
+        u_long128 *buffer = SphidaStack.stGetTop();
+        unsigned int size = LoadFileMenu(at_1674, buffer, 1);
+        unsigned int blocks;
+        if (size & 15) {
+            blocks = (size >> 4) + 1;
+        } else {
+            blocks = size >> 4;
+        }
+        SphidaStack.Alloc(blocks);
+        mgTexManager.EnterIMGFile((u8 *)buffer, SphidaMenuTexbk[1], NULL, NULL);
+        SphidaTex = mgTexManager.GetTexture(at_1675, -1);
+        SphidaTex_Sys = mgTexManager.GetTexture(at_1677, -1);
+        MenuCommonInfo->key_enable = 1;
+        Sfida_NowPlayHorlBlink = 0;
+    }
+}
+
 int SphidaScoreViewKey() {
     if (MenuCommonInfo->CheckPushButton()) {
         MenuSePlay(1);

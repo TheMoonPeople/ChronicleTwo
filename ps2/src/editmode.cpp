@@ -18,10 +18,12 @@
 #include "savedata.hpp"
 #include "padcontrol.hpp"
 #include "scene.hpp"
+#include "effscript.hpp"
 #include "editmode.hpp"
 
 extern "C" int GetBuildPartsNum__9CSaveDataFi(CSaveData *save, int parts_no);
 void InitBalanceDraw(CScene *scene);
+int CheckFocusBalanceParts(CEditMap *map, int index, float *cursor);
 void GetBalanceHeight(CScene *scene, float *balance);
 int GetGeoCheckCol(CMap *map, mgVu0FBOX &box, CCPoly *polys, int max);
 
@@ -32,6 +34,14 @@ extern mgRect<int> data[];
 extern "C" char at_1254__2[];
 extern "C" char at_1284__5[];
 
+extern CFont Font__2;
+extern int PutSideMode;
+extern int NowSelectWallParts;
+extern int PuuSideRotCameraFlag;
+extern int PlacePartsNo;
+extern float PartsHeight;
+extern int MagnetPartsFlag;
+extern int SelectWallGroup;
 extern int CtrlLockFlag;
 extern int PartsInfoID;
 extern int PreMenuCount;
@@ -62,6 +72,9 @@ extern "C" int __as__9mgVu0FBOXFR9mgVu0FBOX(...);
 extern "C" int GroundBalance__8CEditMapFi(CEditMap *, int);
 extern "C" int UpdateHouse__8CEditMapFv(CEditMap *);
 extern "C" float PlaceRiverPos[4];
+extern char at_1367[];
+extern CCharacter2 *PaintCurChr;
+extern char at_1377__3[];
 extern CCharacter2 *ShovelCurChr;
 extern "C" u8 at_1268__3[16];
 extern "C" float RemoveMtnPos[4];
@@ -197,7 +210,7 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", LoadEditCursor__FP9mgCMemoryi);
 int GetSelPartsInfoID(void) {
     return PartsInfoID;
 }
-void ClearEditStepCnt(void) {
+static void ClearEditStepCnt(void) {
     PlaceRiverCnt = 0;
     CursorLockCnt = 0;
     RemoveMtnCnt = 0;
@@ -206,7 +219,23 @@ void ClearUndoFlag(void) {
     UndoData.info_id = -1;
     UndoData.parts_no = -1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", ClearEditFlag__Fv);
+void ClearEditFlag(void) {
+    PlacePartsNo = -1;
+    PartsInfoID = -1;
+    NowSelectWallParts = -1;
+    SelectWallGroup = -1;
+    RemainPartsNum = 0;
+    PutSideMode = 0;
+    PuuSideRotCameraFlag = 0;
+    PlacePartsFlag = 0;
+    PartsHeight = 0.0f;
+    MagnetPartsFlag = 0;
+    PreMenuCount = 0;
+    PreMenuMaxCount = 0;
+    ClearUndoFlag();
+    EditHelpMesNo = -1;
+    ClearEditStepCnt();
+}
 void InitEditFlag(void) {
     eCameraDist = 0x44160000;
     EditModeNo = 0;
@@ -484,9 +513,103 @@ int RemoveEditParts(CScene *scene, int parts_index, float *pos) {
     }
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", DeleteKanketuParts__FP6CSceneP8CEditMapPfi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", PaintEditParts__FP8CEditMapiiPf);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", CheckPlaceAlt__FiP8CEditMapPfiPf);
+int DeleteKanketuParts(CScene *scene, CEditMap *map, float *position, int parts_no) {
+    float removed_position[4];
+    if (map->GetePlaceParts(PartsInfoID) == NULL) {
+        return 0;
+    }
+    map->GetePlaceParts(parts_no);
+    *(u_long128 *)removed_position = *(u_long128 *)position;
+    int removed = map->RemoveEditParts(parts_no, eCurPos, NULL);
+    if (removed != 0) {
+        sndSePlay(GetSystemSndID(), 20, 0);
+        CEffectScriptMan *effects = scene->GetEffect(0);
+        if (effects != NULL) {
+            float effect_vector[4] = {8.0f, 8.0f, 8.0f, 0.0f};
+            float effect_position[4];
+            *(u_long128 *)effect_position = *(u_long128 *)removed_position;
+            effects->CreateEffSpt(at_1367, -1, -1);
+            effects->SetScriptVect1(effect_position, -1, -1);
+            effects->SetScriptVect2(effect_vector, -1, -1);
+            *(u_long128 *)effect_position = *(u_long128 *)removed_position;
+            effect_position[0] += 50.0f;
+            effects->CreateEffSpt(at_1367, -1, -1);
+            effects->SetScriptVect1(effect_position, -1, -1);
+            effects->SetScriptVect2(effect_vector, -1, -1);
+            *(u_long128 *)effect_position = *(u_long128 *)removed_position;
+            effect_position[0] -= 24.0f;
+            effect_position[2] -= 30.0f;
+            effects->CreateEffSpt(at_1367, -1, -1);
+            effects->SetScriptVect1(effect_position, -1, -1);
+            effects->SetScriptVect2(effect_vector, -1, -1);
+            *(u_long128 *)effect_position = *(u_long128 *)removed_position;
+            effect_position[0] -= 36.0f;
+            effect_position[2] += 40.0f;
+            effects->CreateEffSpt(at_1367, -1, -1);
+            effects->SetScriptVect1(effect_position, -1, -1);
+            effects->SetScriptVect2(effect_vector, -1, -1);
+        }
+        RemainPartsNum--;
+        GetSaveData()->AddBuildPartsNum(PartsInfoID, -1);
+        if (RemainPartsNum <= 0) {
+            RemainPartsNum = 0;
+            PartsInfoID = -1;
+        }
+    }
+    PlacePartsFlag = 0;
+    return removed;
+}
+int PaintEditParts(CEditMap *map, int parts_no, int color_no, float *color) {
+    float position[4];
+    float effect_color[4];
+    CEditParts *part = map->GetePlaceParts(parts_no);
+    if (PaintCurChr != NULL) {
+        sceVu0ScaleVector(effect_color, color, 128.0f);
+        PaintCurChr->GetPosition(position);
+        PaintCurChr->SetMotion(at_1377__3, 6);
+        EditPaintEffect(part, position, effect_color, 0);
+    }
+    sndSePlay(GetSystemSndID(), 22, 0);
+    color[3] = 128.0f;
+    if (color_no == 99) {
+        map->PaintFence(parts_no, color, 999);
+    } else {
+        part->SetColor(color_no, color);
+        part->UpdateColor();
+    }
+    return 1;
+}
+int CheckPlaceAlt(int map_no, CEditMap *map, float *position, int parts_no, float *altitude) {
+    float height = position[1];
+    float ground_position[4];
+    CMapParts *ground;
+    int index;
+    if (map_no == 1) {
+        ground = NULL;
+        for (index = 0; index < EDIT_MAP_BALANCE_MAX; index++) {
+            if (CheckFocusBalanceParts(map, index, position)) {
+                ground = map->balance_parts[index];
+                break;
+            }
+        }
+        if (ground != NULL) {
+            ground->GetPosition(ground_position);
+            height -= ground_position[1];
+        }
+    }
+    if (parts_no == 75 || parts_no == 79) {
+        if (!(height <= 30.0f)) {
+            return 0;
+        }
+    }
+    if (altitude != NULL) {
+        *altitude = height;
+    }
+    if (!(height <= 200.0f)) {
+        return 0;
+    }
+    return 1;
+}
 float GetGeoMapLimitHeight(int map_kind) {
     if (map_kind == 0)
         return 700.0f;
@@ -580,8 +703,32 @@ int GetGeoCheckPts(CMap *map) {
     }
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", GetGeoCheckCol__FP4CMapR9mgVu0FBOXP6CCPolyi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", GetGeoCheckCamCol__FP4CMapR9mgVu0FBOXP6CCPolyi);
+int GetGeoCheckCol(CMap *map, mgVu0FBOX &box, CCPoly *polys, int max) {
+    if (map == NULL) {
+        return 0;
+    }
+    CMapParts *part = (CMapParts *)GetGeoCheckPts(map);
+    if (part == NULL) {
+        return 0;
+    }
+    part->Show(1);
+    int count = part->GetColPoly(polys, box, max);
+    part->Show(0);
+    return count;
+}
+int GetGeoCheckCamCol(CMap *map, mgVu0FBOX &box, CCPoly *polys, int max) {
+    if (map == NULL) {
+        return 0;
+    }
+    CMapParts *part = (CMapParts *)GetGeoCheckPts(map);
+    if (part == NULL) {
+        return 0;
+    }
+    part->Show(1);
+    int count = part->GetCameraPoly(polys, box, max);
+    part->Show(0);
+    return count;
+}
 int CheckWalkToEdit(CScene *scene, float *position) {
     float pos[4];
     float hit[4];
@@ -628,10 +775,62 @@ int CheckWalkToEdit(CScene *scene, float *position) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", CheckEditToWalk__FP6CScenePf);
+int CheckEditToWalk(CScene *scene, float *position) {
+    float cursor[4];
+    float ground_hit[4];
+    mgVu0FBOX box;
+    CCPoly polys[512];
+    float hit_positions[64][4];
+    int hit_indices[64];
+    *(u_long128 *)cursor = *(u_long128 *)eCurPos;
+    *(u_long128 *)position = *(u_long128 *)eCurPos;
+    CEditMap *map = (CEditMap *)scene->GetMap(scene->active_map);
+    if (map == NULL) {
+        return 1;
+    }
+    if (GetGeoCheckPts(map) == 0) {
+        return 1;
+    }
+    cursor[3] = 1.0f;
+    if (map->IsRiverGrid(cursor)) {
+        return 0;
+    }
+    *(u_long128 *)box.max = *(u_long128 *)eCurPos;
+    *(u_long128 *)box.min = *(u_long128 *)eCurPos;
+    cursor[1] = 1000.0f;
+    box.max[0] += 20.0f;
+    box.max[1] = 10000.0f;
+    box.max[2] += 20.0f;
+    box.min[0] -= 20.0f;
+    box.min[1] = -10000.0f;
+    box.min[2] -= 20.0f;
+    box.max[3] = 1.0f;
+    box.min[3] = 1.0f;
+    int poly_count = scene->GetColPoly(polys, box, 512);
+    int ground_index = CheckHitVertical(polys, poly_count, cursor, -2000.0f, ground_hit, 1);
+    if (ground_index < 0) {
+        return 0;
+    }
+    *(u_long128 *)position = *(u_long128 *)ground_hit;
+    if (polys[ground_index].area_kind != 9) {
+        return 0;
+    }
+    cursor[3] = 10.0f;
+    int hit_count = CheckHitsPipeY(polys, poly_count, cursor,
+                                  -(5.0f + (cursor[1] - ground_hit[1])), 64,
+                                  hit_indices, hit_positions, 0, 1);
+    int index;
+    for (index = 0; index < hit_count; index++) {
+        if (!(hit_positions[index][1] <= 5.0f + ground_hit[1])) {
+            return 0;
+        }
+    }
+    return 1;
+}
 
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", __sinit_editmode_cpp);
+extern "C" void __sinit_editmode_cpp(void) {
+    Font__2.Init();
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1268__3__DATA);

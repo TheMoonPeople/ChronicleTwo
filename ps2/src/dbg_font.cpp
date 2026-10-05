@@ -305,22 +305,10 @@ void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dbg_font", PrintDirect__11dbgCJISFontFiiPce);
 #endif
 
-// Static initialiser (.init)
-#ifdef NONMATCHING
-extern "C" void __sinit_dbg_font_cpp() {
-    new ((u_long128 *)&JisFont) dbgCJISFont;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dbg_font", __sinit_dbg_font_cpp);
-#endif
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dbg_font", at_288__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dbg_font", at_419__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dbg_font", at_420__DATA);
 
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dbg_font", D_0037AFF0__DATA);
-
 // Uninitialised data (.bss)
-INCLUDE_BSS(JisFont, 0x8B0);
+dbgCJISFont JisFont __attribute__((aligned(16)));

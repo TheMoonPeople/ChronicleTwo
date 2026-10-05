@@ -90,7 +90,7 @@ extern char at_2005__3[];
 struct AccumeSlot { mgCFrame *effect; char pad_4[0x28C]; int clear[32]; int mode; int unk_314; int unk_318; float scale; int unk_320; int unk_324; };
 extern "C" int fptosi(float);
 extern "C" int fptoui(float);
-void ParabolicInitialVector(float *result, float *from, float *to, float height, float gravity);
+void ParabolicInitialVector(float *result, float *from, float *to, float gravity, float flight_time);
 
 union ScriptVector {
     float value[4];
@@ -101,7 +101,7 @@ extern "C" void RemoveThrowItem__12CActionCharaFv(void *chara);
 extern "C" int GetModelNo__13CGameDataUsedFv(void *data);
 
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", ParabolicInitialVector__FPfPfPfff);
+
 extern "C" {
 static int GetStackInt__FP12RS_STACKDATA__3(RS_STACKDATA *slot) {
     if (slot->type == 1) {
@@ -169,10 +169,46 @@ int _GET_MOVE_TYPE(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAi__3(stack, action_info.chara->move_type);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _SET_MOVE_SPEED__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _SET_PALLET__FP12RS_STACKDATAi);
+int _SET_MOVE_SPEED(RS_STACKDATA *stack, int argc) {
+    if (argc != 1) {
+        return 0;
+    }
+    float speed = GetStackFloat__FP12RS_STACKDATA__3(stack);
+    if (speed <= 0.0f) {
+        speed = 3.0f;
+    }
+    action_info.chara->accele.move_speed = speed;
+    return 1;
+}
+int _SET_PALLET(RS_STACKDATA *stack, int argc) {
+    if (argc < 5 || argc > 6) {
+        return 0;
+    }
+    int red = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    int green = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    int blue = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    int pulses = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    int duration = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    int repeats = 0;
+    if (argc == 6) {
+        repeats = GetStackInt__FP12RS_STACKDATA__3(stack);
+    }
+    action_info.chara->pallet[0].SetAnim(red, green, blue, pulses, duration, repeats);
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _CHECK_EQUIP__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _CAMERA_QUAKE__FP12RS_STACKDATAi__2);
+extern "C" int _CAMERA_QUAKE__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
+    DNG_BATTLE_AREA *area = &nowScene__2->battle_area;
+    if (area == NULL) {
+        return 0;
+    }
+    float power = GetStackFloat__FP12RS_STACKDATA__3(stack++);
+    int duration = GetStackInt__FP12RS_STACKDATA__3(stack);
+    area->quake_power = power;
+    area->quake_step = area->quake_power / (float)duration;
+    area->quake_count = duration;
+    return 1;
+}
 extern "C" int _CHECK_PAUSE__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *pause;
 
@@ -186,10 +222,58 @@ extern "C" int _CHECK_PAUSE__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc)
     SetStack__FP12RS_STACKDATAi__3(stack, pause->pause_flag & GetStackInt__FP12RS_STACKDATA__3(stack++));
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _GET_STATUS_ATTR__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _SE_PLAY__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _SE_LOOP_PLAY__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _GET_SHOT_TYPE__FP12RS_STACKDATAi);
+int _GET_STATUS_ATTR(RS_STACKDATA *stack, int argc) {
+    if (argc != 1) {
+        return 0;
+    }
+    int attributes = GetBattleCharaInfo()->GetAttr();
+    SetStack__FP12RS_STACKDATAi__3(stack, attributes);
+    return 1;
+}
+int _SE_PLAY(RS_STACKDATA *stack, int argc) {
+    if (argc != 2) {
+        return 0;
+    }
+    int requested_bank = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    int sound = GetStackInt__FP12RS_STACKDATA__3(stack);
+    int bank = -1;
+    if (requested_bank == -1) {
+        bank = action_info.chara->se_bank;
+    }
+    if (bank == -1) {
+        return 0;
+    }
+    sndSePlay(bank, sound, 0);
+    return 1;
+}
+int _SE_LOOP_PLAY(RS_STACKDATA *stack, int argc) {
+    if (argc != 3) {
+        return 0;
+    }
+    int requested_bank = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    int sound = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    int loop = GetStackInt__FP12RS_STACKDATA__3(stack);
+    int bank = -1;
+    if (requested_bank == -1) {
+        bank = action_info.chara->se_bank;
+    }
+    if (bank == -1) {
+        return 0;
+    }
+    CLoopSeMngr *sounds = action_info.chara->loop_se;
+    if (sounds != NULL) {
+        sounds->SeLoopPlayStop(bank, sound, loop, 13);
+    }
+    return 1;
+}
+int _GET_SHOT_TYPE(RS_STACKDATA *stack, int argc) {
+    if (argc != 1) {
+        return 0;
+    }
+    int attack_type = GetBattleCharaInfo()->equip[1].GetAttackType();
+    SetStack__FP12RS_STACKDATAi__3(stack, attack_type);
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _GET_MONS_ID__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _GET_FRONT_VEC__FP12RS_STACKDATAi);
 extern "C" int _GET_PADON__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
@@ -613,7 +697,37 @@ int _GET_TRG_DISTANCE(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAf__3(stack, action_info.chara->GetTargetDist(nowScene__2));
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _SET_TRG_ANGLE__FP12RS_STACKDATAi);
+
+int _SET_TRG_ANGLE(RS_STACKDATA *stack, int argc) {
+    float target_position[4];
+    float position[4];
+    float rotation_divisor;
+    float radius;
+    if (argc != 2) {
+        return 0;
+    }
+    radius = GetStackFloat__FP12RS_STACKDATA__3(stack++);
+    rotation_divisor = GetStackFloat__FP12RS_STACKDATA__3(stack);
+    int target_no = action_info.chara->target_no;
+    if (target_no == -1) {
+        return 1;
+    }
+    CActiveMonster *target = (CActiveMonster *)nowScene__2->GetCharacter(target_no);
+    if (target != NULL) {
+        if (target->target_dist < (radius + radius) + target->GetBodyWidth()) {
+            target->GetEntryObjectPos(0, 0, target_position);
+            action_info.chara->GetPosition(position);
+            target_position[0] -= position[0];
+            target_position[1] = 0.0f;
+            target_position[2] -= position[2];
+            mgCFrame *frame = action_info.chara->CObjectFrame::frame;
+            float angle = atan2f(target_position[0], target_position[2]);
+            float rotation = unitRotation(frame, angle, rotation_divisor);
+            action_info.chara->SetRotation(0.0f, rotation, 0.0f);
+        }
+    }
+    return 1;
+}
 int _SET_GUARD_FLAG(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
         return 0;
@@ -873,6 +987,7 @@ void ShotLaserGun(float *position, float *direction, int type) {
     action_info.chara->effect_man->SetValue(4, color_d, 0, -1);
     sndSePlay(action_info.chara->se_bank, 5, 0);
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _SET_SHOT__FP12RS_STACKDATAi);
 int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc) {
     float facing[4];
@@ -1252,6 +1367,17 @@ void SetActionExtendTable(void) {
         }
     }
 }
+
+void ParabolicInitialVector(float *result, float *from, float *to, float gravity, float flight_time) {
+    float fall_distance = gravity * flight_time;
+    result[0] = (to[0] - from[0]) / flight_time;
+    result[1] = (2.0f * (to[1] - from[1]) - flight_time * fall_distance) / (2.0f * flight_time);
+    result[2] = (to[2] - from[2]) / flight_time;
+    result[3] = 1.0f;
+    result[1] *= -1.0f;
+}
+
+
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1181__3__DATA);

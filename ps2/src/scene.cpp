@@ -11,6 +11,7 @@
 #include "savedata.hpp"
 #include "scenesnd.hpp"
 #include "scene.hpp"
+#include "gcc/stddef.h"
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
@@ -319,7 +320,25 @@ void CRain::SetCharNo(int chara_no) {
         }
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", ParticleBirth__5CRainFPfi);
+void CRain::ParticleBirth(float *position, int from_character) {
+    sceVu0FVECTOR velocity;
+    if (from_character == 1) {
+        velocity[0] = 0.0f;
+        velocity[1] = f_rand(0.0f, 1.0f);
+        velocity[2] = 0.0f;
+    } else {
+        velocity[0] = f_rand(-1.0f, 1.0f);
+        float minimum = 0.0f;
+        float maximum = 2.0f;
+        velocity[1] = f_rand(minimum, maximum);
+        velocity[2] = f_rand(-1.0f, 1.0f);
+    }
+    for (int index = 0; index < RAIN_PARTICLE_NUM; index++) {
+        if (particle[index].Birth(position, velocity) != 0) {
+            return;
+        }
+    }
+}
 void CRain::Stop(void) {
     active = 0;
 }
@@ -521,7 +540,131 @@ void CScene::InitAllData() {
     skip_load_villager = 0;
     skip_load_sub_villager = 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", Initialize__6CSceneFv);
+void CScene::Initialize(void) {
+    stack_num = 12;
+    stack_no = 0;
+    for (int index = 0; index < stack_num; index++) {
+        stack[index] = NULL;
+    }
+    work_stack = NULL;
+    read_buff = NULL;
+    chara_num = 128;
+    {
+        int byte_offset;
+        int index = 0;
+        byte_offset = 0;
+        for (; index < chara_num; index++) {
+            CSceneCharacter *character = (CSceneCharacter *)((char *)this + byte_offset +
+                offsetof(CScene, chara));
+            character->Initialize();
+            byte_offset += sizeof(CSceneCharacter);
+        }
+    }
+    camera_num = 8;
+    {
+        int byte_offset;
+        int index = 0;
+        byte_offset = 0;
+        for (; index < camera_num; index++) {
+            CSceneCamera *camera = (CSceneCamera *)((char *)this + byte_offset +
+                offsetof(CScene, camera));
+            camera->Initialize();
+            byte_offset += sizeof(CSceneCamera);
+        }
+    }
+    message_num = 8;
+    {
+        int byte_offset;
+        int index = 0;
+        byte_offset = 0;
+        for (; index < message_num; index++) {
+            CSceneMessage *message = (CSceneMessage *)((char *)this + byte_offset +
+                offsetof(CScene, message));
+            message->Initialize();
+            byte_offset += sizeof(CSceneMessage);
+        }
+    }
+    map_num = 4;
+    {
+        int byte_offset;
+        int index = 0;
+        byte_offset = 0;
+        for (; index < map_num; index++) {
+            CSceneMap *map = (CSceneMap *)((char *)this + byte_offset +
+                offsetof(CScene, map));
+            map->Initialize();
+            byte_offset += sizeof(CSceneMap);
+        }
+    }
+    sky_num = 4;
+    {
+        int byte_offset;
+        int index = 0;
+        byte_offset = 0;
+        for (; index < sky_num; index++) {
+            CSceneSky *sky = (CSceneSky *)((char *)this + byte_offset +
+                offsetof(CScene, sky));
+            sky->Initialize();
+            byte_offset += sizeof(CSceneSky);
+        }
+    }
+    gameobj_num = 4;
+    {
+        int byte_offset;
+        int index = 0;
+        byte_offset = 0;
+        for (; index < sky_num; index++) {
+            CSceneGameObj *object = (CSceneGameObj *)((char *)this + byte_offset +
+                offsetof(CScene, gameobj));
+            object->Initialize();
+            byte_offset += sizeof(CSceneGameObj);
+        }
+    }
+    effect_num = 8;
+    {
+        int byte_offset;
+        int index = 0;
+        byte_offset = 0;
+        for (; index < effect_num; index++) {
+            CSceneEffect *effect = (CSceneEffect *)((char *)this + byte_offset +
+                offsetof(CScene, effect));
+            effect->Initialize();
+            byte_offset += sizeof(CSceneEffect);
+        }
+    }
+    bg_load_step = 0;
+    mds_list_set.Initialize();
+    fade.Initialize();
+    player_chara = -1;
+    active_camera = -1;
+    before_camera = -1;
+    active_map = -1;
+    villager_texb_num = 0;
+    villager_texb = 0;
+    chara_texb = 0;
+    event_texb = 0;
+    event_texb_num = 0;
+    unk_2e84 = -1;
+    time_speed = 0.00088f;
+    time_step = 0;
+    fire_raster.Initialize();
+    thunder.Init();
+    exit_flag = 0;
+    battle_area.floor_manager.Initialize();
+    battle_area.unk_0 = 0;
+    battle_area.unk_4 = 0;
+    battle_area.bright_rate = 1.0f;
+    battle_area.unk_4 = 0;
+    battle_area.quake_count = 0;
+    battle_area.treasure_box = NULL;
+    battle_area.battle_effect = NULL;
+    battle_area.map_name[0] = 0;
+    battle_area.script.event_no = -1;
+    wind_power = 0.0f;
+    mgZeroVector(wind_dir);
+    villager_time = -1;
+    sub_villager_time = -1;
+}
 void CScene::SetStack(int index, mgCMemory *stack) {
     if (index < 0 || index >= stack_num) {
         return;
@@ -594,8 +737,52 @@ CSceneEffect *CScene::GetSceneEffect(int index) {
     }
     return &effect[index];
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", CheckIMGName__6CSceneFiPc);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", CheckMDSName__6CSceneFiPc);
+int CScene::CheckIMGName(int excluded_map, char *filename) {
+    for (int map_index = 0; map_index < map_num; map_index++) {
+        if (map_index != excluded_map) {
+            int name_index;
+            CMapInfo *map_info;
+            CMap *loaded_map = GetMap(map_index);
+            if ((map_info = loaded_map) != NULL && loaded_map != NULL) {
+                name_index = 0;
+                for (;;) {
+                    char *name = map_info->GetImgName(name_index);
+                    if (name == NULL) {
+                        break;
+                    }
+                    if (strcmp(name, filename) == 0) {
+                        return 1;
+                    }
+                    name_index++;
+                }
+            }
+        }
+    }
+    return 0;
+}
+int CScene::CheckMDSName(int excluded_map, char *filename) {
+    for (int map_index = 0; map_index < map_num; map_index++) {
+        if (map_index != excluded_map) {
+            int name_index;
+            CMapInfo *map_info;
+            CMap *loaded_map = GetMap(map_index);
+            if ((map_info = loaded_map) != NULL && loaded_map != NULL) {
+                name_index = 0;
+                for (;;) {
+                    char *name = map_info->GetPCPName(name_index);
+                    if (name == NULL) {
+                        break;
+                    }
+                    if (strcmp(name, filename) == 0) {
+                        return 1;
+                    }
+                    name_index++;
+                }
+            }
+        }
+    }
+    return 0;
+}
 CSceneData *CScene::GetData(int kind, int index) {
     switch (kind) {
         case 1:

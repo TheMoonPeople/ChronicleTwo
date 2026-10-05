@@ -377,7 +377,7 @@ public:
      * @address 0x2FBB90
      * @size 0x10
      */
-    s8 CheckNowTourType();
+    int CheckNowTourType();
 
     /**
      *

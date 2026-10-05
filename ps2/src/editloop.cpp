@@ -193,25 +193,18 @@ void InitLockCharaCtrl(void) {
 void LockCharaCtrl(void) {
     LockChara++;
 }
-void UnLockCharaCtrl(void) {
+static void UnLockCharaCtrl(void) {
     LockChara -= 1;
     if (LockChara < 0) {
         LockChara = 0;
     }
 }
-#ifdef NONMATCHING
-int IsEditMode() {
-    if (LoopMode == EDIT_LOOP_EDIT) {
-        return 1;
-    }
-    if (LoopMode == EDIT_LOOP_EDIT_PRE_MENU) {
+int IsEditMode(void) {
+    if (LoopMode == EDIT_LOOP_EDIT || LoopMode == EDIT_LOOP_EDIT_PRE_MENU) {
         return 1;
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", IsEditMode__Fv);
-#endif
 void InitEditModeChg(void) {
     EditModeChgFlag = 0;
     EditModeChgCnt = 0;
@@ -236,10 +229,6 @@ void EditModeChg(int event) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditModeChg__Fi);
 #endif
-#ifdef NONMATCHING
-/**
- * Finishes the transition delay and starts its event when the scene is idle.
- */
 void EditModeChgStep(CScene *scene) {
     if (EditModeChgFlag != 0) {
         EditModeChgCnt--;
@@ -253,9 +242,6 @@ void EditModeChgStep(CScene *scene) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditModeChgStep__FP6CScene);
-#endif
 #ifdef NONMATCHING
 void SetDataPacket(int mode) {
     u_long128 *buffer;
@@ -705,7 +691,11 @@ void EditInit(INIT_LOOP_ARG arg) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditInit__F13INIT_LOOP_ARG);
 #endif
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __as__15CameraCtrlParamFRC15CameraCtrlParam);
+extern "C" CameraCtrlParam &__as__15CameraCtrlParamFRC15CameraCtrlParam(
+    CameraCtrlParam *destination, const CameraCtrlParam *source) {
+    *destination = *source;
+    return *destination;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __ct__12CActionCharaFv);
 void EditExit(void) {
     sndSeAllStop(1);

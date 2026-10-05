@@ -51,8 +51,8 @@ extern char at_1518__2[];
 extern char at_1519__2[];
 extern void *ManualMovie;
 extern int ManualMovieTex;
-extern mgCMemory StaticMenuLocalStack;
-extern mgCMemory StaticMenuLocalStack2;
+mgCMemory StaticMenuLocalStack;
+mgCMemory StaticMenuLocalStack2;
 extern short Movie_BossFlag;
 extern short Movie_DungeonFlag;
 extern short MovieBgmBattleCheckStopFlag;
@@ -79,7 +79,7 @@ extern CGamePad GamePad__2;
 extern "C" void *__ct__18CMemoryCardManagerFv(void *);
 extern "C" void *__ct__7CDC2MesFv(void *);
 extern "C" void *__vt__14CSaveMenuClass[];
-extern mgCMemory SaveMenuStack;
+mgCMemory SaveMenuStack;
 extern CDC2Mes *SaveFileList[13];
 extern char *b_2715[3];
 extern char at_2764[];
@@ -988,9 +988,6 @@ void SubGameSaveDraw(void) {
     MenuDCMsg[0]->DrawMsg();
 }
 
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuop", __sinit_menuop_cpp);
-
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", manual_boot_event_no__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", submap_table_1022__DATA);
@@ -1138,9 +1135,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3205__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3206__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_3207__DATA);
 
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", D_0037B060__DATA);
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__14CSaveMenuClass__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__11CMenuOption__DATA);
@@ -1214,9 +1208,6 @@ INCLUDE_BSS(at_3091, 0x8);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(MnOnePictTex, 0x20);
-INCLUDE_BSS(StaticMenuLocalStack, 0x30);
-INCLUDE_BSS(StaticMenuLocalStack2, 0x30);
-INCLUDE_BSS(SaveMenuStack, 0x30);
 INCLUDE_BSS(SaveFileList, 0x38);
 INCLUDE_BSS(MenuMapInfoSave, 0x18);
 INCLUDE_BSS(SubGameDataBgm, 0x20);

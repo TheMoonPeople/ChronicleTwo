@@ -330,7 +330,13 @@ u16 GetFontNoFromFontGaijiCode(u16 code) {
     }
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/font", GetFontGaijiHankaku__FUs);
+int GetFontGaijiHankaku(u16 code) {
+    if (code == 0xFDF3 || code == 0xFDF4 || code == 0xFDF5 ||
+        code == 0xFDF6 || code == 0xFDF7) {
+        return 1;
+    }
+    return 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/font", GetFontNo__FPc);
 extern "C" int GetHalfFontNo__Fc(int ch) {
     char buf[8];
@@ -387,8 +393,136 @@ void set2DSpriteEasyFont(mgCDrawPrim *prim, mgRect<int> dst, mgRect<int> uv, RGB
     prim->TextureCrd(uv.right, uv.bottom);
     prim->Vertex(dst.right, dst.bottom, 0);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/font", set2DSprite_Fuchi__FP11mgCDrawPrim4RECT4RECTii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/font", DrawChar__5CFontFP11mgCDrawPrimiiii10RGBAQ_TYPEUc);
+void set2DSprite_Fuchi(mgCDrawPrim *prim, RECT destination, RECT texture, int style, int alpha) {
+    RGBAQ_TYPE color;
+    switch (style) {
+        case FUCHI_NONE:
+            break;
+        case FUCHI_SHADOW_WHITE:
+            color.r = color.g = color.b = 255;
+            color.a = alpha * 64 / 128;
+            set2DSpriteEasyFont(prim,
+                mgRect<int>(destination.x + 1, destination.y + 1, destination.width, destination.height),
+                mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            break;
+        case FUCHI_SHADOW_BLACK:
+            color.r = color.g = color.b = 0;
+            color.a = alpha * 64 / 128;
+            set2DSpriteEasyFont(prim,
+                mgRect<int>(destination.x + 1, destination.y + 1, destination.width, destination.height),
+                mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            break;
+        case FUCHI_OUTLINE: {
+            int offsets[4][2] = {{0, -1}, {0, 1}, {1, 0}, {-1, 0}};
+            for (int point = 0; point < 4; point++) {
+                color.r = color.g = color.b = 0;
+                color.a = alpha * 128 / 128;
+                set2DSpriteEasyFont(prim,
+                    mgRect<int>(destination.x + offsets[point][0], destination.y + offsets[point][1],
+                                destination.width, destination.height),
+                    mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            }
+            break;
+        }
+        case FUCHI_SHADOW_DOUBLE:
+            color.r = color.g = color.b = 64;
+            color.a = alpha * 128 / 128;
+            set2DSpriteEasyFont(prim,
+                mgRect<int>(destination.x + 1, destination.y + 1, destination.width, destination.height),
+                mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            color.r = color.g = color.b = 0;
+            color.a = alpha * 128 / 128;
+            set2DSpriteEasyFont(prim,
+                mgRect<int>(destination.x + 2, destination.y + 2, destination.width, destination.height),
+                mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            break;
+        case FUCHI_SHADOW_BLACK_WIDE:
+            color.r = color.g = color.b = 0;
+            color.a = alpha * 128 / 128;
+            set2DSpriteEasyFont(prim,
+                mgRect<int>(destination.x + 2, destination.y + 2, destination.width, destination.height),
+                mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            break;
+        case FUCHI_OUTLINE_WIDE: {
+            int offsets[4][2] = {{0, -2}, {0, 2}, {2, 0}, {-2, 0}};
+            color.r = color.g = color.b = 0;
+            color.a = alpha * 32 / 128;
+            for (int point = 0; point < 4; point++) {
+                set2DSpriteEasyFont(prim,
+                    mgRect<int>(destination.x + offsets[point][0], destination.y + offsets[point][1],
+                                destination.width, destination.height),
+                    mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            }
+            break;
+        }
+        case FUCHI_SHADOW_WHITE_BLUE:
+            color.r = 255;
+            color.g = 255;
+            color.b = 255;
+            color.a = alpha * 255 / 128;
+            set2DSpriteEasyFont(prim,
+                mgRect<int>(destination.x + 1, destination.y + 1, destination.width, destination.height),
+                mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            color.r = 42;
+            color.g = 43;
+            color.b = 49;
+            color.a = alpha * 128 / 128;
+            set2DSpriteEasyFont(prim,
+                mgRect<int>(destination.x - 1, destination.y - 1, destination.width, destination.height),
+                mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            set2DSpriteEasyFont(prim,
+                mgRect<int>(destination.x - 2, destination.y - 2, destination.width, destination.height),
+                mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            break;
+        case FUCHI_OUTLINE_THICK: {
+            int offsets[12][2] = {
+                {0, -1}, {0, 1}, {1, 0}, {-1, 0},
+                {-1, -1}, {-1, 1}, {1, -1}, {1, 1},
+                {0, -2}, {0, 2}, {2, 0}, {-2, 0}
+            };
+            for (int point = 0; point < 12; point++) {
+                color.r = color.g = color.b = 0;
+                color.a = alpha * 128 / 128;
+                set2DSpriteEasyFont(prim,
+                    mgRect<int>(destination.x + offsets[point][0], destination.y + offsets[point][1],
+                                destination.width, destination.height),
+                    mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+            }
+            break;
+        }
+    }
+}
+
+void CFont::DrawChar(mgCDrawPrim *prim, int font_no, int x, int y, int outline, RGBAQ_TYPE glyph_color, u8 alpha) {
+    RECT texture;
+    int page;
+    if (font_no < 0) {
+        return;
+    }
+    if (mini != 0) {
+        texture = GetRectFontTexMini(font_no, &page);
+        MySetTexMini(page, prim);
+    } else {
+        texture = GetRectFontTex(font_no, &page);
+        MySetTex(page, prim);
+    }
+    RECT destination = {0, 0, 0, 0};
+    destination.x = x;
+    destination.y = y;
+    destination.width = draw_w;
+    destination.height = draw_h;
+    if (CheckHalfFont(font_no) != 0) {
+        texture.width /= 2;
+        destination.width /= 2;
+    }
+    if (outline != 0) {
+        set2DSprite_Fuchi(prim, destination, texture, fuchi, alpha);
+    }
+    glyph_color.a = alpha * glyph_color.a / 128;
+    set2DSpriteEasyFont(prim,
+        mgRect<int>(destination.x, destination.y, destination.width, destination.height),
+        mgRect<int>(texture.x, texture.y, texture.width, texture.height), &glyph_color);
+}
 void CFont::DrawChar(mgCDrawPrim *prim, char *text, int x, int y) {
 
     DrawChar(prim, GetFontNo(text), x, y, 1, color, (int)alpha);

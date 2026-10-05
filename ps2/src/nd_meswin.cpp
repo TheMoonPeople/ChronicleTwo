@@ -520,31 +520,44 @@ void ClsMes::CalcMesWinXYFromFukidashiXY(void) {
     text_x = fukidashi_x + mes_win_inset_x;
     text_y = fukidashi_y + mes_win_inset_y;
 }
-#ifdef NONMATCHING
 void ClsMes::CalcFukidashiXY(int *pos) {
-    RECT  slots[3][3];
-    int   occupied[3][3];
+    RECT slots[3][3];
+    int occupied[3][3];
     float distance[3][3];
+    int row;
+    int column;
+    int first_x;
+    int first_y;
+    int second_x;
+    int second_y;
     float nearest;
     float farthest;
-    int   width;
-    int   height;
-    int   chosen_x;
-    int   chosen_y;
-    int   row;
-    int   column;
+    int width;
+    int height;
+    int selected_column;
+    int selected_row;
 
-    width = fukidashi_w > 160 ? fukidashi_w : 160;
-    height = fukidashi_h > 149 ? fukidashi_h : 149;
+    width = 160;
+    height = 149;
+    if (fukidashi_w > width) {
+        width = fukidashi_w;
+    }
+    if (fukidashi_h > height) {
+        height = fukidashi_h;
+    }
     CalcAutoPosSetData(480, 448, width, height, &slots[0][0]);
-    chosen_x = 0;
-    chosen_y = 0;
+    first_x = pos[0];
+    first_y = pos[1];
+    second_x = pos[2];
+    second_y = pos[3];
+    selected_column = 0;
+    selected_row = 0;
     if (fukidashi_pos == 0) {
         for (row = 0; row < 3; row++) {
             for (column = 0; column < 3; column++) {
-                occupied[row][column] = CheckPosInOutForRect(&slots[row][column], pos[0], pos[1]);
+                occupied[row][column] = CheckPosInOutForRect(&slots[row][column], first_x, first_y);
                 if (occupied[row][column] == 0) {
-                    occupied[row][column] = CheckPosInOutForRect(&slots[row][column], pos[2], pos[3]);
+                    occupied[row][column] = CheckPosInOutForRect(&slots[row][column], second_x, second_y);
                 }
             }
         }
@@ -553,8 +566,8 @@ void ClsMes::CalcFukidashiXY(int *pos) {
                 if (occupied[row][column] != 0) {
                     distance[row][column] = -1.0f;
                 }
-                distance[row][column] = GetDisPosToRect(&slots[row][column], pos[0], pos[1]);
-                nearest = GetDisPosToRect(&slots[row][column], pos[2], pos[3]);
+                distance[row][column] = GetDisPosToRect(&slots[row][column], first_x, first_y);
+                nearest = GetDisPosToRect(&slots[row][column], second_x, second_y);
                 if (nearest < distance[row][column]) {
                     distance[row][column] = nearest;
                 }
@@ -563,35 +576,32 @@ void ClsMes::CalcFukidashiXY(int *pos) {
         farthest = 0.0f;
         for (row = 0; row < 3; row++) {
             for (column = 0; column < 3; column++) {
-                if (distance[row][column] >= 0.0f && farthest < distance[row][column]) {
+                if (!(distance[row][column] < 0.0f) && farthest < distance[row][column]) {
                     farthest = distance[row][column];
-                    chosen_x = column;
-                    chosen_y = row;
+                    selected_column = column;
+                    selected_row = row;
                 }
             }
         }
     } else {
-        chosen_x = (fukidashi_pos - 1) % 3;
-        chosen_y = (fukidashi_pos - 1) / 3;
+        selected_column = (fukidashi_pos - 1) % 3;
+        selected_row = (fukidashi_pos - 1) / 3;
     }
-    fukidashi_x = slots[chosen_y][chosen_x].x;
-    fukidashi_y = slots[chosen_y][chosen_x].y;
+    fukidashi_x = slots[selected_row][selected_column].x;
+    fukidashi_y = slots[selected_row][selected_column].y;
     if (fukidashi_w < 160) {
         fukidashi_x += (160 - fukidashi_w) / 2;
     }
     if (fukidashi_h < 149) {
         fukidashi_y += (149 - fukidashi_h) / 2;
     }
-    if (chosen_x == 0) {
+    if (selected_column == 0) {
         fukidashi_x += 16;
     }
-    if (chosen_y == 0) {
+    if (selected_row == 0) {
         fukidashi_y += 16;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", CalcFukidashiXY__6ClsMesFPi);
-#endif
 void ClsMes::AutoSet(int *screen_pos) {
     CalcFukidashiXY(screen_pos);
     fukidashi_centre_x = fukidashi_x + fukidashi_w / 2;
@@ -641,10 +651,7 @@ void ClsMes::SetHalfFontWPercent(float percent) {
     }
     half_font_w_percent = percent;
 }
-#ifdef NONMATCHING
 ClsMes::ClsMes() {
-    int i;
-
     CFont::Init();
     npc_name_mode = 0;
     text_x = 100;
@@ -660,8 +667,8 @@ ClsMes::ClsMes() {
     text_h = 0;
     page = 0;
     page_num = 0;
-    for (i = 0; i < MES_PAGE_MAX; i++) {
-        page_chars[i] = 0;
+    for (int page_index = 0; page_index < MES_PAGE_MAX; page_index++) {
+        page_chars[page_index] = 0;
     }
     last_x = 0;
     last_y = 0;
@@ -722,15 +729,15 @@ ClsMes::ClsMes() {
     centering = 0;
     line_indent_on = 0;
     alpha = 0x80;
-    for (i = 0; i < MES_NAME_MAX; i++) {
-        memset(name[i], 0, MES_NAME_LEN);
+    for (int name_index = 0; name_index < MES_NAME_MAX; name_index++) {
+        memset(name[name_index], 0, MES_NAME_LEN);
     }
-    for (i = 0; i < MES_ITEM_MAX; i++) {
-        item_mes[i] = -1;
+    for (int item_index = 0; item_index < MES_ITEM_MAX; item_index++) {
+        item_mes[item_index] = -1;
     }
-    for (i = 0; i < MES_VALUE_MAX; i++) {
-        values[i] = 0;
-        value_width[i] = 0;
+    for (int value_index = 0; value_index < MES_VALUE_MAX; value_index++) {
+        values[value_index] = 0;
+        value_width[value_index] = 0;
     }
     value = 0;
     value_sign = 0;
@@ -764,35 +771,32 @@ ClsMes::ClsMes() {
     scissor.width = 0;
     scissor.y = 0;
     scissor.height = 0;
-    for (i = 0; i < MES_LINE_MAX; i++) {
-        line_indent[i] = 0;
-        line_pos[i][0] = 0;
-        line_pos[i][1] = 0;
-        line_pos_on[i] = 0;
-        line_shade[i] = MES_SHADE_AUTO;
-        line_color[i] = 0;
-        equip_on[i] = 0;
-        equip_x[i] = 0;
-        equip_y[i] = 0;
-        line_w[i] = 0;
-        line_alpha[i] = -1;
-        cross_on[i] = 0;
-        cross_x[i] = 0;
-        cross_y[i] = 0;
-        unk_271c[i] = -1;
-        unk_276c[i] = -1;
-        unk_27bc[i] = 0;
-        unk_280c[i] = 0;
-        delta_on[i] = 0;
-        delta_x[i] = 0;
-        delta_y[i] = 0;
+    for (int line_index = 0; line_index < MES_LINE_MAX; line_index++) {
+        line_indent[line_index] = 0;
+        line_pos[line_index][0] = 0;
+        line_pos[line_index][1] = 0;
+        line_pos_on[line_index] = 0;
+        line_shade[line_index] = MES_SHADE_AUTO;
+        line_color[line_index] = 0;
+        equip_on[line_index] = 0;
+        equip_x[line_index] = 0;
+        equip_y[line_index] = 0;
+        line_w[line_index] = 0;
+        line_alpha[line_index] = -1;
+        cross_on[line_index] = 0;
+        cross_x[line_index] = 0;
+        cross_y[line_index] = 0;
+        unk_271c[line_index] = -1;
+        unk_276c[line_index] = -1;
+        unk_27bc[line_index] = 0;
+        unk_280c[line_index] = 0;
+        delta_on[line_index] = 0;
+        delta_x[line_index] = 0;
+        delta_y[line_index] = 0;
     }
     buff = NULL;
     buff_system = NULL;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", __ct__6ClsMesFv);
-#endif
 void ClsMes::SetBuff(short *buffer) {
     buff = buffer;
 }

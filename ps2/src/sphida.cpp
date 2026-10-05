@@ -426,7 +426,64 @@ void CSphida::InitStatusSprite() {
     pow_gage.texture = texture;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sphida", DrawStatusSprite__7CSphidaFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sphida", DrawParCounter__7CSphidaFv);
+#pragma divbyzerocheck on
+void CSphida::DrawParCounter() {
+    mgTexManager.ReloadTexture(tex_bank, (sceVif1Packet *)NULL);
+    mgCTexture *texture = mgTexManager.GetTexture(at_1221__5, -1);
+    int digits[5];
+    int digit;
+    int divisor = 10000;
+    int remaining = par_count;
+    int digit_count = 0;
+    for (int index = 4; index >= 0; index--) {
+        digit = remaining / divisor;
+        if (index == 0 || digit > 0 || digit_count > 0) {
+            digits[index] = digit;
+            digit_count++;
+            remaining -= digit * divisor;
+        } else {
+            digits[index] = -1;
+        }
+        divisor /= 10;
+    }
+    mgCDrawPrim prim;
+    prim.Initialize(NULL, NULL);
+    prim.AlphaBlendEnable(1);
+    prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
+    prim.AlphaTestEnable(1);
+    prim.AlphaTest(1, 0);
+    prim.DepthTestEnable(1);
+    prim.DepthTest(MG_DEPTH_TEST_GEQUAL);
+    prim.ZMask(MG_Z_MASK_MASKED);
+    prim.Bilinear(0);
+    prim.TextureMapEnable(1);
+    prim.Coord(1);
+    prim.Begin(MG_PRIM_SPRITE);
+    prim.Texture(texture);
+    prim.Color(128, 128, 128, 128);
+    float position[4];
+    int top_left[4];
+    int bottom_right[4];
+    ball_pos[3] = 1.0f;
+    sceVu0CopyVector(position, ball_pos);
+    position[1] += 6.0f;
+    for (int index = 4; index >= 0; index--) {
+        digit = digits[index];
+        if (digit != -1 && mgTransWorldPrim3DSprite(top_left, bottom_right, position, 3.6f, 5.0f, 1)) {
+            int width = (bottom_right[0] - top_left[0]) >> 4;
+            top_left[0] -= (width * index) << 4;
+            bottom_right[0] -= (width * index) << 4;
+            top_left[0] += (width / 2 * (digit_count - 1)) << 4;
+            bottom_right[0] += (width / 2 * (digit_count - 1)) << 4;
+            prim.TextureCrd(digit * 18 + 332, 212);
+            prim.Vertex4(top_left);
+            prim.TextureCrd(digit * 18 + 350, 232);
+            prim.Vertex4(bottom_right);
+        }
+    }
+    prim.End();
+}
+#pragma divbyzerocheck reset
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sphida", Draw__7CSphidaFv);
 int CSphida::SetCollisionModel(MDS_HEADER *header, mgCMemory *memory) {
     col_model = LoadCollisionFile(header, memory);

@@ -11,6 +11,7 @@
 #include "visualmotion.hpp"
 
 #include <cstring>
+#include <cstdio>
 
 // Code (.text)
 void mgCVisualMotionMDT::Initialize(void) {
@@ -41,7 +42,118 @@ void mgCVisualMotionMDT::Initialize(void) {
     base_matrix = 0;
     frame_id = 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", CreateVertexWeight__18mgCVisualMotionMDTFPUiiP9mgCMemory);
+extern const char at_357[];
+extern const char at_358[];
+
+struct VertexWeightBlock {
+    u_int frame_id;
+    int bone_id;
+    u_int unk_08[2];
+    u_int count;
+    u_int next;
+    u_int unk_18[2];
+};
+
+struct VertexWeightEntry {
+    u_int vertex_id;
+    u_int unk_04[3];
+    float weight;
+    u_int unk_14[3];
+};
+
+void mgCVisualMotionMDT::CreateVertexWeight(u_int *data, int selected_frame, mgCMemory *memory) {
+    VertexWeightBlock *block = (VertexWeightBlock *)data;
+    u_int entry_index;
+    weight_num = vertex_num;
+    int vertex_count = weight_num;
+    VertexWeightEntry *entry = (VertexWeightEntry *)block;
+    u_int bytes = vertex_count * sizeof(mgVertexWeight);
+    u_int blocks;
+    if ((bytes & 15) != 0) {
+        blocks = bytes / 16 + 1;
+    } else {
+        blocks = bytes / 16;
+    }
+    weight = new ((u_long128 *)memory->Alloc(blocks + 2)) mgVertexWeight[vertex_count];
+    if (weight == NULL) {
+        weight_num = 0;
+        return;
+    }
+    for (int bone_index = 0; bone_index < 32; bone_index++) {
+        bone[bone_index] = -1;
+    }
+    while (true) {
+        entry++;
+        if (block->frame_id != selected_frame || block->count == 0) {
+            entry += block->count;
+            if (block->next == 0) {
+                break;
+            }
+            block = (VertexWeightBlock *)entry;
+            continue;
+        }
+        {
+            for (entry_index = 0; entry_index < block->count; entry++, entry_index++) {
+                int bone_index;
+                for (bone_index = 0; bone_index < 32; bone_index++) {
+                    if (bone[bone_index] == -1) {
+                        bone[bone_index] = block->bone_id;
+                        break;
+                    }
+                    if (bone[bone_index] == block->bone_id) {
+                        break;
+                    }
+                }
+                if (bone_index == 32) {
+                    printf(at_357);
+                    weight = NULL;
+                    weight_num = 0;
+                    return;
+                }
+                mgVertexWeight *vertex_weight = &weight[entry->vertex_id];
+                int influence;
+                for (influence = 0; influence < 4; influence++) {
+                    if (vertex_weight->weight[influence] == 0.0f) {
+                        vertex_weight->matrix[influence] = bone_index * 4;
+                        vertex_weight->weight[influence] = entry->weight / 100.0f;
+                        break;
+                    }
+                }
+                if (influence == 4) {
+                    float total = 0.0f;
+                    total += vertex_weight->weight[0];
+                    total += vertex_weight->weight[1];
+                    total += vertex_weight->weight[2];
+                    total += vertex_weight->weight[3];
+                    vertex_weight->weight[0] /= total;
+                    vertex_weight->weight[1] /= total;
+                    vertex_weight->weight[2] /= total;
+                    vertex_weight->weight[3] /= total;
+                    printf(at_358, frame[selected_frame]->name, entry->vertex_id);
+                }
+            }
+        }
+        if (block->next == 0) {
+            break;
+        }
+        block = (VertexWeightBlock *)entry;
+    }
+    for (int vertex_index = 0; vertex_index < weight_num; vertex_index++) {
+        mgVertexWeight *vertex_weight = &weight[vertex_index];
+        float total = vertex_weight->weight[0] + vertex_weight->weight[1];
+        total = vertex_weight->weight[2] + total;
+        total = vertex_weight->weight[3] + total;
+        if (total < 1.0f && !(total <= 0.0f)) {
+            vertex_weight->weight[0] /= total;
+            vertex_weight->weight[1] /= total;
+            vertex_weight->weight[2] /= total;
+            vertex_weight->weight[3] /= total;
+        }
+        if (total == 0.0f) {
+            vertex_weight->weight[0] = 1.0f;
+        }
+    }
+}
 mgVertexWeight::mgVertexWeight() {
     memset(this, 0, 0x20);
 }

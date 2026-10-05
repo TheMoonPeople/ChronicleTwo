@@ -65,6 +65,7 @@ extern MENU_SPI_ANALYZE_STRUCT1 tbl_2060[];
 extern MENU_SPI_ANALYZE_STRUCT1 tbl_2074[];
 
 extern MENU_SPI_ANALYZE_STRUCT1 tbl_2144[];
+extern MENU_SPI_ANALYZE_STRUCT1 tbl_2090[];
 
 extern "C" SPI_TAG_PARAM menu_analyze_tag[];
 
@@ -105,6 +106,7 @@ extern int SndPortCheck_EventPort;
 extern char at_1173[];
 
 extern char *langdirpathTable_1161[7];
+extern s8 mes_cord_conv_1193[16][2];
 
 static inline unsigned int align16_blocks(unsigned int n);
 
@@ -383,7 +385,19 @@ int GetRandI(int range) {
 float GetRandF(float range) {
     return range * mgRnd();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", ReCalcBox__FP9mgVu0FBOX9mgVu0FBOX);
+static void ReCalcBox(mgVu0FBOX *out, mgVu0FBOX box) {
+    float center_x = (box.max[0] + box.min[0]) / 2.0f;
+    float center_y = (box.max[1] + box.min[1]) / 2.0f;
+    float center_z = (box.max[2] + box.min[2]) / 2.0f;
+    out->max[0] = box.max[0] - center_x;
+    out->max[1] = box.max[1] - center_y;
+    out->max[2] = box.max[2] - center_z;
+    out->min[0] = box.min[0] - center_x;
+    out->min[1] = box.min[1] - center_y;
+    out->min[2] = box.min[2] - center_z;
+    out->min[3] = 1.0f;
+    out->max[3] = 1.0f;
+}
 float MenuAdjustPolygonScale(mgCFrame *frame, float size) {
     mgVu0FBOX box;
     if (frame == NULL) {
@@ -392,7 +406,25 @@ float MenuAdjustPolygonScale(mgCFrame *frame, float size) {
     ((mgCFrame *)frame)->GetWorldBBox(&box);
     return MenuAdjustPolygonScale(box, size);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", MenuAdjustPolygonScale__F9mgVu0FBOXf);
+float MenuAdjustPolygonScale(mgVu0FBOX box, float size) {
+    mgVu0FBOX centered_box;
+    ReCalcBox(&centered_box, box);
+    mgVu0FBOX target_box;
+    target_box.max[0] = size;
+    target_box.max[1] = size;
+    target_box.max[2] = size;
+    target_box.max[3] = 1.0f;
+    float size_distance = mgDistVector(target_box.max);
+    float box_distance = mgDistVector(centered_box.max);
+    float scale = 1.0f;
+    if (box_distance != 0.0f) {
+        scale = size_distance / box_distance;
+        if (scale <= 0.0f) {
+            scale = -scale;
+        }
+    }
+    return scale;
+}
 void MenuAdjustPolygonScale(CCharacter2 *chara, float size) {
     if (chara != NULL) {
         float magnitude;
@@ -652,7 +684,68 @@ int LoadFileMenu(char *name, u_long128 *buffer, int mode) {
     }
     return size;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", ConvertFontCode__FPcPc);
+void ConvertFontCode(char *source, char *destination) {
+    if (source != NULL) {
+        if (destination == NULL) {
+            return;
+        }
+    } else {
+        return;
+    }
+    if (CheckNowEurope()) {
+        while ((s8)*source != 0) {
+            if ((s8)*source == '[') {
+                if ((s8)source[5] == '0') {
+                    s8 character_code = 0;
+                    for (int index = 0; index < 16; index++) {
+                        if ((s8)source[6] == mes_cord_conv_1193[index][0]) {
+                            character_code = mes_cord_conv_1193[index][1] << 4;
+                            break;
+                        }
+                    }
+                    for (int index = 0; index < 16; index++) {
+                        if ((s8)source[7] == mes_cord_conv_1193[index][0]) {
+                            character_code += mes_cord_conv_1193[index][1];
+                            break;
+                        }
+                    }
+                    *destination++ = character_code;
+                    source += 9;
+                } else if ((s8)source[5] == '1') {
+                    s8 character_code = 0;
+                    for (int index = 0; index < 16; index++) {
+                        if ((s8)source[6] == mes_cord_conv_1193[index][0]) {
+                            character_code = mes_cord_conv_1193[index][1] << 4;
+                            break;
+                        }
+                    }
+                    for (int index = 0; index < 16; index++) {
+                        if ((s8)source[7] == mes_cord_conv_1193[index][0]) {
+                            character_code += mes_cord_conv_1193[index][1];
+                            break;
+                        }
+                    }
+                    if (character_code == 0x52) {
+                        *destination = (s8)0xBD;
+                    } else if (character_code == 0x53) {
+                        *destination = (s8)0xBE;
+                    } else {
+                        *destination = character_code;
+                    }
+                    destination++;
+                    source += 9;
+                }
+            } else {
+                *destination = *source;
+                destination++;
+                source++;
+            }
+        }
+        *destination = 0;
+    } else {
+        strcpy(destination, source);
+    }
+}
 int CheckNowEurope() {
     if (LanguageCode > 0 && LanguageCode < 6) {
         return 1;
@@ -768,7 +861,15 @@ int CalcMenuAdd2(int *value, int delta, int limit) {
     *value += delta;
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", GetNumberKeta__Fi);
+int GetNumberKeta(int value) {
+    int digits = 1;
+    int number = abs(value);
+    while (9 < number) {
+        number /= 10;
+        digits++;
+    }
+    return digits;
+}
 int GetDispVolumeForFloat(float volume) {
     int whole;
 
@@ -1121,7 +1222,36 @@ int menu_spi_analyze_func_strcut1(MENU_SPI_ANALYZE_STRUCT1 *table, char *name) {
     }
     return -1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", menu_dtype_init__FP16CMenuPosDataFormP9SPI_STACKi);
+int menu_dtype_init(CMenuPosDataForm *form, SPI_STACK *stack, int argc) {
+    if (menu_formPt == NULL) {
+        return 0;
+    }
+    if (form->dtype == MENUFORM_DTYPE_POLY) {
+        menu_formPt->ambient[0] = 64.0f;
+        menu_formPt->ambient[1] = 64.0f;
+        menu_formPt->ambient[2] = 64.0f;
+        menu_formPt->ambient[3] = 128.0f;
+        if (argc == 5) {
+            menu_formPt->ambient[0] = spiGetStackFloat(stack++);
+            menu_formPt->ambient[1] = spiGetStackFloat(stack++);
+            menu_formPt->ambient[2] = spiGetStackFloat(stack++);
+            menu_formPt->ambient[3] = spiGetStackFloat(stack);
+        }
+    } else if (form->dtype == MENUFORM_DTYPE_ITEMBRD) {
+        menu_formPt->parts_num = 150;
+        menu_formPt->parts = (MENUFORMPARTS_TYPE *)MenuSpiStack->Alloc(
+            align16_blocks(menu_formPt->parts_num * sizeof(MENUFORMPARTS_TYPE)));
+        MenuItemBrdItemIconEffectMalloc(MenuSpiStack, menu_formPt->parts, menu_formPt->parts_num);
+    } else if (form->dtype == MENUFORM_DTYPE_GEOLIST) {
+        form->sub_no = spiGetStackInt(stack);
+    } else if (form->dtype == MENUFORM_DTYPE_MSGFORM) {
+        char message_slot_text[8];
+        message_slot_text[0] = menu_formPt->name[3];
+        message_slot_text[1] = 0;
+        form->sub_no = atoi(message_slot_text);
+    }
+    return 1;
+}
 int _MENU_FORM_DTYPE(SPI_STACK *stack, int argc) {
     char *name;
     if (menu_formPt == NULL) {
@@ -1237,7 +1367,36 @@ int _MENU_FORM_RGBA(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FORM_RGBA_BIT__FP9SPI_STACKi);
+int _MENU_FORM_RGBA_BIT(SPI_STACK *stack, int argc) {
+    u8 mask;
+    char *text = spiGetStackString(stack);
+    char *channels = text;
+    mask = 0;
+    int length = strlen(text);
+    for (int index = 0; index < length; index++, channels++) {
+        s8 channel = *channels;
+        u8 bit = 0;
+        if (channel == 'r') {
+            bit = 1;
+        }
+        if (channel == 'g') {
+            bit = 2;
+        }
+        if (channel == 'b') {
+            bit = 4;
+        }
+        if (channel == 'a') {
+            bit = 8;
+        }
+        if (mask != 0) {
+            mask |= bit;
+        } else {
+            mask = bit;
+        }
+    }
+    menu_formPt->rgba_bit = mask;
+    return 1;
+}
 int _MENU_ACTION_TABLE_NUM(SPI_STACK *stack, int argc) {
     int count;
     MENU_FORM_ACTION *table;
@@ -1566,7 +1725,24 @@ int _MENU_ITEM_CHECKMARK(SPI_STACK *stack, int argc) {
     part->draw_flag = 1;
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_FILLBOX__FP9SPI_STACKi);
+int _MENU_FILLBOX(SPI_STACK *stack, int argc) {
+    MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
+    menu_form_part = part;
+    part->dtype = menu_spi_analyze_func_strcut1(tbl_2090, spiGetStackString(stack++));
+    MakePartsName(stack++, part);
+    part->x = spiGetStackInt(stack++);
+    part->y = spiGetStackInt(stack++);
+    part->w = spiGetStackInt(stack++);
+    part->h = spiGetStackInt(stack++);
+    part->etc_info[0] = spiGetStackInt(stack);
+    part->active = 1;
+    part->draw_flag = 1;
+    u8 effect_counts[4] = {1, 2, 2, 4};
+    part->effect = (MENU_PARTS_EFFECT_STRUCT1 *)MenuSpiStack->Alloc(
+        align16_blocks(effect_counts[part->etc_info[0]] * sizeof(MENU_PARTS_EFFECT_STRUCT1)));
+    menu_parts_effect_ptr = part->effect;
+    return 1;
+}
 int _MENU_FILLBOXINFO(SPI_STACK *stack, int argc) {
     menu_parts_effect_ptr->type = 1;
     for (int i = 0; i < 4; i++) {

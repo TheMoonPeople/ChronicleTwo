@@ -17,6 +17,15 @@
 
 extern CSound CSnd;
 extern int snd_sema_id;
+extern float MasterVol[2];
+extern int MasterVolFade[2];
+extern int ReverbType[2];
+extern int ReverbDepthe[2];
+extern int init_snd;
+extern float feMasterVol[2];
+extern float fnowMasterVol[2];
+extern float fstpMasterVol[2];
+extern int snd_old_vsync;
 extern float PortVolf[SND_PORT_NUM];
 extern sndPortInfo PortInfo[SND_PORT_NUM];
 extern sndCSeSeq SeSequencer[32];
@@ -30,25 +39,17 @@ sndCSeSeq *GetSeSeq(int seq_id);
 int CSndStep();
 int IsBgmPort(int port);
 int mgGetVSyncCount();
+void StopSeSeq(int seq_id);
+static int GetCSndPortNo(int port_no, int *port, int *sq_port, int *vol);
+static void FadeMasterVol();
+static void SetMasterVol(int core, float vol);
+static void SeAllStop_Sub(int port_no);
 
 #ifdef NONMATCHING
 static int         EnableSndMngr = 1;                      /**< Enables loading sound banks. */
-static float       MasterVol[2] = { 1.0f, 1.0f };          /**< Target master volumes. */
-static int         MasterVolFade[2] = { 0, 0 };            /**< Active master volume fades. */
-static int         snd_old_vsync = -1;                     /**< Last frame stepped by the driver. */
-static int         ReverbType[2];                          /**< Reverb type of each core. */
-static int         ReverbDepthe[2];                        /**< Reverb depth of each core. */
-static int         init_snd;                               /**< Whether the sound driver is initialized. */
-static float       feMasterVol[2];                         /**< End volumes of active fades. */
-static float       fnowMasterVol[2];                       /**< Current volumes of active fades. */
-static float       fstpMasterVol[2];                       /**< Volume change per frame. */
 
 static sndBankInfo *GetBankInfo(unsigned int snd_id);
-static void SetMasterVol(int core, float vol);
-static void FadeMasterVol();
 static void CSndStepWait();
-static void SeAllStop_Sub(int port_no);
-static int GetCSndPortNo(int port_no, int *port, int *sq_port, int *vol);
 static int GetPortBankNo(unsigned int snd_id, int *port, int *bank);
 static char *GetLine(char **col, char *text, char *end);
 static int PlaySeSeq(unsigned int snd_id, sndCSeSeqData *data, int vol);
@@ -56,29 +57,26 @@ static void SetVolSeSeq(int index, int vol);
 #endif
 
 // Code (.text)
-#ifdef NONMATCHING
-int CLoopSeMngr::Create(int num, mgCMemory *memory) {
-    unsigned int size;
+int CLoopSeMngr::Create(int sequence_count, mgCMemory *memory) {
+    unsigned int byte_count;
     unsigned int quadwords;
 
     if (memory == NULL) {
         return 0;
     }
-    size = num * sizeof(SND_LOOP_SE_SEQ);
-    quadwords = size >> 4;
-    if (size & 0xF) {
-        quadwords++;
+    byte_count = sequence_count * sizeof(SND_LOOP_SE_SEQ);
+    if (byte_count & 0xF) {
+        quadwords = (byte_count >> 4) + 1;
+    } else {
+        quadwords = byte_count >> 4;
     }
-    loop_se = new (memory->Alloc(quadwords + 2)) SND_LOOP_SE_SEQ[num];
+    loop_se = new (memory->Alloc(quadwords + 2)) SND_LOOP_SE_SEQ[sequence_count];
     if (loop_se == NULL) {
         return 0;
     }
-    loop_se_num = num;
+    loop_se_num = sequence_count;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", Create__11CLoopSeMngrFiP9mgCMemory);
-#endif
 
 SND_LOOP_SE_SEQ::SND_LOOP_SE_SEQ() {
     se_id = -1;
@@ -224,16 +222,12 @@ void CLoopSeMngr::AllSeStop() {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", AllSeStop__11CLoopSeMngrFv);
 #endif
 
-#ifdef NONMATCHING
 int sndGetReverbDepth(int core) {
-    if (core < 0 || core >= 2) {
+    if (core < 0 || core > 1) {
         return 0;
     }
     return ReverbDepthe[core];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetReverbDepth__Fi);
-#endif
 
 u32 sndCreateID(u32 snd_id, s32 se_no) {
     return (snd_id & 0xFFFF0000) | (se_no & 0xFFFF);
@@ -317,10 +311,9 @@ sndSeInfo *GetSeInfo(unsigned int snd_id, int se_no) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetSeInfo__FUii);
 #endif
 
-#ifdef NONMATCHING
 void sndInitMngr() {
-    SemaParam sema;
-    int       i;
+    SemaParam semaphore;
+    int       port;
 
     if (init_snd != 0) {
         CSnd.Exit();
@@ -328,21 +321,18 @@ void sndInitMngr() {
         DeleteSema(snd_sema_id);
         snd_sema_id = -1;
     }
-    sema.initCount = 1;
-    sema.maxCount = 1;
-    snd_sema_id = CreateSema(&sema);
+    semaphore.initCount = 1;
+    semaphore.maxCount = 1;
+    snd_sema_id = CreateSema(&semaphore);
     CSnd.Init(4, 0, 40, 0);
     sndSetMasterVol(0, 1.0f);
     sndSetMasterVol(1, 1.0f);
     init_snd = 1;
-    for (i = 0; i < 16; i++) {
-        sndInitPort(i);
-        PortVolf[i] = 0.0f;
+    for (port = 0; port < 16; port++) {
+        sndInitPort(port);
+        PortVolf[port] = 0.0f;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndInitMngr__Fv);
-#endif
 
 void sndWaitSema() {
     if (snd_sema_id >= 0) {
@@ -393,25 +383,20 @@ void sndInitPort(int port_no) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndInitPort__Fi);
 #endif
 
-#ifdef NONMATCHING
 void sndInitSeSeq(int port_no) {
-    sndPortInfo *info;
-    int          i;
+    sndPortInfo *port_info;
+    int          index;
 
-    info = GetPortInfo(port_no);
-    if (info != NULL) {
-        for (i = 0; i < 16; i++) {
-            info->seseq[i].seseq_no = -1;
+    port_info = GetPortInfo(port_no);
+    if (port_info != NULL) {
+        for (index = 0; index < 16; index++) {
+            port_info->seseq[index].seseq_no = -1;
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndInitSeSeq__Fi);
-#endif
 
-#ifdef NONMATCHING
 void sndSetReverb(int core, int type, int depth) {
-    if (core < 0 || core >= 2) {
+    if (core < 0 || core > 1) {
         return;
     }
     sndWaitSema();
@@ -420,29 +405,18 @@ void sndSetReverb(int core, int type, int depth) {
     ReverbDepthe[core] = depth;
     sndSignalSema();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetReverb__Fiii);
-#endif
 
-#ifdef NONMATCHING
 void sndStopVoice(int voice) {
-    if (voice < 0 || voice >= 2) {
+    if (voice < 0 || voice > 1) {
         return;
     }
     sndWaitSema();
     CSnd.StopVoice(voice);
     sndSignalSema();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStopVoice__Fi);
-#endif
 
-#ifdef NONMATCHING
-/**
- * Applies a clamped master volume to one sound processor core.
- */
 static void SetMasterVol(int core, float vol) {
-    if (core < 0 || core >= 2) {
+    if (core < 0 || core > 1) {
         return;
     }
     if (vol < 0.0f) {
@@ -455,14 +429,7 @@ static void SetMasterVol(int core, float vol) {
     CSnd.SetMasterVol(core, (int)(16383.0f * vol));
     sndSignalSema();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", SetMasterVol__Fif);
-#endif
 
-#ifdef NONMATCHING
-/**
- * Advances active master volume fades by one frame.
- */
 static void FadeMasterVol() {
     int core;
 
@@ -482,13 +449,9 @@ static void FadeMasterVol() {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", FadeMasterVol__Fv);
-#endif
 
-#ifdef NONMATCHING
 void sndSetMasterVol(int core, float vol) {
-    if (core < 0 || core >= 2) {
+    if (core < 0 || core > 1) {
         return;
     }
     if (vol < 0.0f) {
@@ -501,26 +464,18 @@ void sndSetMasterVol(int core, float vol) {
     SetMasterVol(core, vol);
     MasterVolFade[core] = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetMasterVol__Fif);
-#endif
 
-#ifdef NONMATCHING
 float sndGetMasterVol(int core) {
-    if (core < 0 || core >= 2) {
+    if (core < 0 || core > 1) {
         return 0.0f;
     }
     return MasterVol[core];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetMasterVol__Fi);
-#endif
 
-#ifdef NONMATCHING
 void sndMasterVolFadeInOut(int core, int frames, float target, float start) {
     float change;
 
-    if (frames < 2 || core < 0 || core >= 2) {
+    if (frames <= 1 || core < 0 || core > 1) {
         return;
     }
     if (target < 0.0f) {
@@ -549,9 +504,6 @@ void sndMasterVolFadeInOut(int core, int frames, float target, float start) {
         MasterVol[core] = target;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndMasterVolFadeInOut__Fiiff);
-#endif
 
 #ifdef NONMATCHING
 void sndSetPortVol(int port_no, float vol) {
@@ -603,26 +555,18 @@ void sndWaitTransBd() {
     }
 }
 
-#ifdef NONMATCHING
-/**
- * Steps the driver at most once per vertical sync.
- */
 int CSndStep() {
-    int vsync;
+    int frame = mgGetVSyncCount();
     int stepped;
-
-    vsync = mgGetVSyncCount();
-    stepped = 0;
-    if (vsync != snd_old_vsync) {
+    if (frame != snd_old_vsync) {
         CSnd.Step();
-        snd_old_vsync = vsync;
+        snd_old_vsync = frame;
         stepped = 1;
+    } else {
+        stepped = 0;
     }
     return stepped;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", CSndStep__Fv);
-#endif
 
 /**
  * Delays briefly before stepping the sound driver.
@@ -668,10 +612,6 @@ void sndFlush(void) {
     sndSignalSema();
 }
 
-#ifdef NONMATCHING
-/**
- * Stops both driver ports assigned to a game sound port.
- */
 static void SeAllStop_Sub(int port_no) {
     sndPortInfo  *info;
 
@@ -681,27 +621,23 @@ static void SeAllStop_Sub(int port_no) {
             if (info->port >= 0) {
                 CSnd.Stop(info->port);
             }
-            if (info->sq_port >= 0 && info->sq_port != info->port) {
+            if (info->sq_port >= 0 && info->port != info->sq_port) {
                 CSnd.Stop(info->sq_port);
             }
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", SeAllStop_Sub__Fi);
-#endif
 
-#ifdef NONMATCHING
 void sndSeAllStop(int port_no) {
-    int i;
+    int port;
 
     if (port_no < 0) {
-        for (i = 0; i < 12; i++) {
-            if (i != SND_PORT_BGM && i != SND_PORT_BGM2) {
+        for (port = 0; port <= 11; port++) {
+            if (port != SND_PORT_BGM && port != SND_PORT_BGM2) {
                 sndStopSeSeq(port_no);
                 sndInitSeSeq(port_no);
                 sndWaitSema();
-                SeAllStop_Sub(i);
+                SeAllStop_Sub(port);
                 sndSignalSema();
             }
         }
@@ -717,9 +653,6 @@ void sndSeAllStop(int port_no) {
     CSndStep();
     sndSignalSema();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSeAllStop__Fi);
-#endif
 
 int sndGetSeDefVol(u32 se_id, int index) {
     sndSeInfo *info;
@@ -741,10 +674,6 @@ int IsBgmPort(int port) {
     return 0;
 }
 
-#ifdef NONMATCHING
-/**
- * Maps a game port to its driver ports and initial volume.
- */
 static int GetCSndPortNo(int port_no, int *port, int *sq_port, int *vol) {
     *vol = -1;
     switch (port_no) {
@@ -810,9 +739,6 @@ static int GetCSndPortNo(int port_no, int *port, int *sq_port, int *vol) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetCSndPortNo__FiPiPiPi);
-#endif
 
 #ifdef NONMATCHING
 unsigned int sndLoadSound(int port_no, unsigned int *pack, mgCMemory *memory) {
@@ -935,28 +861,24 @@ sndCSeSeqData::sndCSeSeqData() {
     Initialize();
 }
 
-#ifdef NONMATCHING
 void sndDeletePort(int port_no) {
-    int port;
-    int sq_port;
-    int vol;
+    int volume;
+    int driver_port;
+    int sequence_port;
 
-    vol = -1;
-    if (GetCSndPortNo(port_no, &port, &sq_port, &vol) != 0) {
+    volume = -1;
+    if (GetCSndPortNo(port_no, &driver_port, &sequence_port, &volume) != 0) {
         sndWaitSema();
-        if (port >= 0) {
-            CSnd.DEL_PORT(port);
+        if (driver_port >= 0) {
+            CSnd.DEL_PORT(driver_port);
         }
-        if (sq_port >= 0 && sq_port != port) {
-            CSnd.DEL_PORT(sq_port);
+        if (sequence_port >= 0 && sequence_port != driver_port) {
+            CSnd.DEL_PORT(sequence_port);
         }
         sndSignalSema();
     }
     sndInitPort(port_no);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndDeletePort__Fi);
-#endif
 
 #ifdef NONMATCHING
 /**
@@ -998,41 +920,33 @@ void sndSePlayV(u32 snd_id, s32 se_no, s32 vol, s32 voice) {
 void sndSePlayVP(u32 snd_id, s32 se_no, s32 vol, s32 pan, s32 voice) {
     sndSePlaySeID(snd_id, se_no, -1, vol, pan, 0x2000, voice);
 }
-#ifdef NONMATCHING
 void sndSePlayVPf(unsigned int snd_id, int se_no, float vol, float pan, int voice) {
     int volume;
     int driver_pan;
 
     volume = (int)(vol * sndGetSeDefVol(snd_id, se_no));
-    if (volume >= 128) {
+    if (volume > 127) {
         volume = 127;
     }
     driver_pan = (int)(64.0f * pan) + 64;
     if (driver_pan < 0) {
         driver_pan = 0;
     }
-    if (driver_pan >= 128) {
+    if (driver_pan > 127) {
         driver_pan = 127;
     }
     sndSePlaySeID(snd_id, se_no, -1, volume, driver_pan, SND_SE_PITCH_CENTER, voice);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSePlayVPf__FUiiffi);
-#endif
 
-#ifdef NONMATCHING
 void sndSePlayVf(unsigned int snd_id, int se_no, float vol, int voice) {
     int volume;
 
     volume = (int)(vol * sndGetSeDefVol(snd_id, se_no));
-    if (volume >= 128) {
+    if (volume > 127) {
         volume = 127;
     }
     sndSePlayV(snd_id, se_no, volume, voice);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSePlayVf__FUiifi);
-#endif
 
 #ifdef NONMATCHING
 void sndSePause(unsigned int snd_id, int se_no) {
@@ -1410,19 +1324,15 @@ void sndSetSePan(unsigned int snd_id, int se_no, int pan, int voice) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSePan__FUiiii);
 #endif
 
-#ifdef NONMATCHING
 void sndSetSeVolf(unsigned int snd_id, int se_no, float vol, int voice) {
     int volume;
 
     volume = (int)(vol * sndGetSeDefVol(snd_id, se_no));
-    if (volume >= 128) {
+    if (volume > 127) {
         volume = 127;
     }
     sndSetSeVol(snd_id, se_no, volume, voice);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSeVolf__FUiifi);
-#endif
 
 #ifdef NONMATCHING
 void sndSetSePanf(unsigned int snd_id, int se_no, float pan, int voice) {
@@ -1535,30 +1445,19 @@ void sndGetVolPan(float *vol, float *pan, float *pos, float near_dist, float far
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetVolPan__FPfPfPfff);
 #endif
 
-#ifdef NONMATCHING
 void sndGetVolPan(float *vol, float *pan, float *start, float *end, float near_dist, float far_dist) {
     sceVu0FVECTOR nearest;
 
     mgDistLinePoint(MicPos, start, end, nearest);
     sndGetVolPan(vol, pan, nearest, near_dist, far_dist);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetVolPan__FPfPfPfPfff);
-#endif
 
-#ifdef NONMATCHING
 int sndVolLimit(int vol) {
     if (vol < 0) {
-        vol = 0;
+        return 0;
     }
-    if (vol >= 128) {
-        vol = 127;
-    }
-    return vol;
+    return vol > 127 ? 127 : vol;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndVolLimit__Fi);
-#endif
 
 #ifdef NONMATCHING
 void sndSePlayPrKr(unsigned int snd_id, int prog, int key, int velocity, int vol, int pan, int pitch, int voice) {
@@ -1974,27 +1873,23 @@ void sndPortInfo::LoadVolInfoTxt(int bank_no, char *text, int size) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", LoadVolInfoTxt__11sndPortInfoFiPci);
 #endif
 
-#ifdef NONMATCHING
 void sndStopSeSeq(int port_no) {
     sndPortInfo *info;
-    sndCSeSeq   *player;
-    int          port;
-    int          i;
+    sndCSeSeq *player;
+    int port;
+    int player_index;
 
     info = GetPortInfo(port_no);
     if (info != NULL) {
         port = info->port;
-        for (i = 0; i < 32; i++) {
-            player = &SeSequencer[i];
-            if (player->data != NULL && player->port == port) {
+        for (player_index = 0; player_index < 32; player_index++) {
+            player = &SeSequencer[player_index];
+            if (player->data != NULL && port == player->port) {
                 player->Stop();
             }
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStopSeSeq__Fi);
-#endif
 
 #ifdef NONMATCHING
 /**

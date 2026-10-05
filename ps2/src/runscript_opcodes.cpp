@@ -1980,17 +1980,16 @@ int _FLYING_SEARCH_AREA(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAf(stack, SearchArea(nowScene, pos, dir.f, distance));
     return 1;
 }
-#ifdef NONMATCHING
 static int _GET_HIGH2(RS_STACKDATA *args, int argc) {
-    CCPoly        polygons[128];
+    CCPoly polygons[128];
     sceVu0FVECTOR position;
-    sceVu0FVECTOR hit;
-    mgVu0FBOX     box;
-    sceVu0FVECTOR from;
-    sceVu0FVECTOR to;
-    CMap         *map;
-    int           count;
-    float         height;
+    sceVu0FVECTOR hit_position;
+    mgVu0FBOX box;
+    sceVu0FVECTOR ray_start;
+    sceVu0FVECTOR ray_end;
+    CMap *map;
+    int count;
+    float height_difference;
 
     if (argc != 4) {
         return 0;
@@ -2009,21 +2008,18 @@ static int _GET_HIGH2(RS_STACKDATA *args, int argc) {
     box.max[3] = 1.0f;
     box.min[3] = 1.0f;
     count = map->GetColPoly(polygons, box, 128);
-    sceVu0CopyVector(from, position);
-    sceVu0CopyVector(to, position);
-    from[1] += 1.0f;
-    to[1] -= 300.0f;
-    if (CheckHit(polygons, count, from, to, hit, 1, 2) >= 0) {
-        height = position[1] - hit[1];
+    sceVu0CopyVector(ray_start, position);
+    sceVu0CopyVector(ray_end, position);
+    ray_start[1] += 1.0f;
+    ray_end[1] -= 300.0f;
+    if (CheckHit(polygons, count, ray_start, ray_end, hit_position, 1, 2) >= 0) {
+        height_difference = position[1] - hit_position[1];
     } else {
-        height = -3.4028235e38f;
+        height_difference = -3.4028235e38f;
     }
-    SetStack__FP12RS_STACKDATAf(args++, height);
+    SetStack__FP12RS_STACKDATAf(args++, height_difference);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _GET_HIGH2__FP12RS_STACKDATAi);
-#endif
 int _GET_RANGE_MONS_ID(RS_STACKDATA *stack, int argc) {
     RangeEntry entries[24];
     float self_pos[4];
@@ -3134,34 +3130,34 @@ int SetMonsterScript(CRunScript *script, char *program, mgCMemory *memory) {
     script->ext_func(ext_func, 256);
     return 1;
 }
-#ifdef NONMATCHING
 void SetMonsterExtendTable() {
     int index;
     int earlier;
-    int number;
-
     for (index = 0; index < 256; index++) {
         ext_func[index] = NULL;
     }
-    for (index = 0; ext_func_info[index].func != NULL; index++) {
-        for (earlier = 0; earlier < index; earlier++) {
-            if (ext_func_info[index].no == ext_func_info[earlier].no) {
-                printf("mscript same ext_func_no!!!\n");
-                for (;;) {
-                }
-            }
+    for (index = 0;; index++) {
+        if (ext_func_info[index].func == NULL) {
+            break;
         }
-        number = ext_func_info[index].no;
-        if (number < 0 || number >= 256) {
-            printf("ext func over!!");
+        if (0 < index) {
+            earlier = 0;
+            do {
+                if (ext_func_info[index].no == ext_func_info[earlier].no) {
+                    printf(at_3078);
+                    while (1) {
+                    }
+                }
+                earlier++;
+            } while (earlier < index);
+        }
+        if (ext_func_info[index].no < 0 || ext_func_info[index].no >= 256) {
+            printf(at_3079);
         } else {
-            ext_func[number] = ext_func_info[index].func;
+            ext_func[ext_func_info[index].no] = ext_func_info[index].func;
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", SetMonsterExtendTable__Fv);
-#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1480__2__DATA);

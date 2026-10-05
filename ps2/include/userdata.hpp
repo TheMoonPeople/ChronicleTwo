@@ -693,7 +693,7 @@ int GetAttackType();
      * @address 0x19A8D0
      * @size 0x40
      */
-    char GetModelNo();
+    int GetModelNo();
 
     /**
      * Keeps the item's parameters within their limits.

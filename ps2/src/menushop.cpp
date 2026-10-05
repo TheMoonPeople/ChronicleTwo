@@ -23,6 +23,10 @@
 #include "menumain.hpp"
 #include "common.h"
 #include "menushop.hpp"
+#include "quest.hpp"
+#include "inventmn.hpp"
+
+mgCMemory MenuLocalStack;
 
 CInventUserData *GetInventUserDataPtr();
 
@@ -164,7 +168,21 @@ void CShop::CheckEventItem() {
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", GetPrice__5CShopFP13CGameDataUsedPiPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", CheckMoney__5CShopFv);
+int CShop::CheckMoney() {
+    int money;
+    if (NowSellMode == SHOP_SELL_MODE_MONEY) {
+        money = GetUserDataMan()->money;
+    } else if (NowSellMode == SHOP_SELL_MODE_ROBO_ABS) {
+        money = fptosi(GetUserDataMan()->robo_data.abs.now);
+    } else if (NowSellMode == SHOP_SELL_MODE_MEDAL) {
+        money = GetUserDataMan()->GetYarikomiMedal();
+    } else if (NowSellMode == SHOP_SELL_MODE_DONY) {
+        money = GetUserDataMan()->money;
+    } else {
+        money = 0;
+    }
+    return money;
+}
 int CShop::AddMoney(int amount) {
     if (NowSellMode == 0) {
         return GetUserDataMan()->AddMoney(amount);
@@ -180,7 +198,61 @@ int CShop::AddMoney(int amount) {
     }
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", _SHOP_ANALYZE__FP9SPI_STACKi);
+int _SHOP_ANALYZE(SPI_STACK *stack, int argc) {
+    int remaining;
+    int shop_id = spiGetStackInt(stack++);
+    remaining = argc - 1;
+    int selected = 0;
+    if (shop_id == Now_Shop_ID) {
+        Now_ShopListNum = remaining;
+        selected = 1;
+    }
+    if (selected == 0) {
+        return 0;
+    }
+    GetUserDataMan();
+    if (Now_Shop_ID == 0x17 || Now_Shop_ID == 0x1C) {
+        NowSellMode = SHOP_SELL_MODE_ROBO_ABS;
+        for (int index = 0; index < Now_ShopListNum; index++) {
+            Now_ShopDataReadPtr[index] = spiGetStackInt(stack++);
+        }
+    } else if (Now_Shop_ID == 0x20) {
+        NowSellMode = SHOP_SELL_MODE_MEDAL;
+        int byte_offset;
+        int index = 0;
+        byte_offset = 0;
+        for (; index < Now_ShopListNum; index++) {
+            int item_number = spiGetStackInt(stack++);
+            *(int *)((u8 *)Now_ShopDataReadPtr + byte_offset) = item_number;
+            byte_offset += sizeof(int);
+        }
+    } else if (Now_Shop_ID == 0x21) {
+        NowSellMode = SHOP_SELL_MODE_DONY;
+        int byte_offset;
+        int index = 0;
+        byte_offset = 0;
+        for (; index < Now_ShopListNum; index++) {
+            int item_number = spiGetStackInt(stack++);
+            *(int *)((u8 *)Now_ShopDataReadPtr + byte_offset) = item_number;
+            byte_offset += sizeof(int);
+        }
+    } else {
+        int byte_offset;
+        int index;
+        if (0 < remaining) {
+            index = 0;
+            byte_offset = 0;
+            do {
+                int item_number = spiGetStackInt(stack++);
+                *(int *)((u8 *)Now_ShopDataReadPtr + byte_offset) = item_number;
+                index++;
+                byte_offset += sizeof(int);
+            } while (index < remaining);
+        }
+    }
+    return 1;
+}
+
 int _PRICE(SPI_STACK *stack, int argc) {
     int itemId = spiGetStackInt(stack++);
     Spi_PriceList[itemId].buy = spiGetStackInt(stack++);
@@ -215,13 +287,86 @@ void CShopMenu::AttachForm() {
     }
     GiftBoxViewForm = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1228__2);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", IsCancelNoneLoadItem__9CShopMenuFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", UpdataScrlBar__9CShopMenuFv);
+int CShopMenu::IsCancelNoneLoadItem() {
+    MENU_SWAPITEM_INFO origin;
+    origin.Set(-1, 0, -1, 0);
+    memcpy(&origin, &MenuCommonInfo->have_swap, sizeof(origin));
+    origin.flag = 0;
+    CGameDataUsed *destination = GetGameDataUsedForSWAPINFO(&origin);
+    CGameDataUsed previous_item;
+    CGameDataUsed carried_item;
+    previous_item.CopyGameData(destination);
+    carried_item.CopyGameData(&MenuCommonInfo->have_item);
+    int result = MenuCommonInfo->ReturnItemMenu(1);
+    if (0 < result) {
+        destination->CopyGameData(&previous_item);
+        MenuCommonInfo->have_item.CopyGameData(&carried_item);
+        int exchange[2][4];
+        if (ExchangeItemInfoMake(&origin, exchange, 0, 0) != 0) {
+            CommonSetMoveItemClass(exchange);
+        }
+        MenuSePlay(menu_item_swap_sndtbl[result]);
+        return 0;
+    }
+    MenuSePlay(5);
+    return 1;
+}
+extern char at_1252[];
+extern char at_1253[];
+extern char at_1254[];
+extern CShop *CShopPtr;
+void CShopMenu::UpdataScrlBar() {
+    if (item_brd != NULL) {
+        scrl_bar_top = item_brd->GetPartInfo(at_1252);
+        scrl_bar_body = item_brd->GetPartInfo(at_1253);
+        scrl_bar_bottom = item_brd->GetPartInfo(at_1254);
+        float line_count = (float)CShopPtr->item_num;
+        if (line_count < 6.0f) {
+            line_count = 6.0f;
+        }
+        scrl_bar_step = 0.0f;
+        float visible_ratio = 6.0f / line_count;
+        float height = 270.0f * visible_ratio;
+        float scroll_count = line_count - 6.0f;
+        if (1.0f <= scroll_count) {
+            scrl_bar_step = (270.0f - height) / scroll_count;
+        }
+        scrl_bar_body->h = height - scrl_bar_top->h - scrl_bar_bottom->h;
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", InitEnd__9CShopMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", KeyStep__9CShopMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", CalcTex__9CShopMenuFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", CalcCursorPosition__9CShopMenuFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", SearchNowPosItemExist__9CShopMenuFv);
+CGameDataUsed *CShopMenu::SearchNowPosItemExist() {
+    switch (key_arg_no) {
+    case SHOP_MENU_MODE_BUY_LIST:
+    case SHOP_MENU_MODE_BUY_NUM:
+    case SHOP_MENU_MODE_BUY_ASK:
+    case SHOP_MENU_MODE_BUY_ERROR: {
+        int item_no;
+        CShop *shop = CShopPtr;
+        int position = list_pos;
+        if (position < 0 || shop->item_num <= position) {
+            item_no = 0;
+        } else {
+            item_no = shop->item_no[position];
+        }
+        shop_item.Init();
+        GetUserDataMan()->CopyGameData(&shop_item, item_no);
+        if (shop_item.used_type == USED_ITEM_TYPE_WEAPON) {
+            shop_item.data.weapon.fusion_point = 0;
+        }
+        return &shop_item;
+    }
+    case SHOP_MENU_MODE_BAG:
+    case SHOP_MENU_MODE_SELL_NUM:
+    case SHOP_MENU_MODE_SELL_ASK:
+    case SHOP_MENU_MODE_SELL_ERROR:
+        return GetUserDataMan()->GetUsedDataPtr(bag_pos);
+    }
+    return NULL;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", ShopSellListDraw__FRiPf);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuShopInit__FP9mgCMemoryPii);
 int MenuShopKey() {
@@ -230,18 +375,128 @@ int MenuShopKey() {
 void MenuShopDraw() {
     MenuPosData->FormDraw();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", UnderMsg__14CMenuQuestViewFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", SelectMax__14CMenuQuestViewFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", InitEnd__14CMenuQuestViewFv);
+extern CDC2Mes *QuestMenuMes;
+void CMenuQuestView::UnderMsg(int type) {
+    int position[2];
+    QuestMenuMes->MsgPreset(2);
+    QuestMenuMes->push_button = 0;
+    if (type == 0) {
+        QuestMenuMes->MakeMsg(0xDAC);
+    }
+    if (type == 1) {
+        QuestMenuMes->MakeMsg(0xDAD);
+    }
+    QuestMenuMes->StepMsg();
+    position[0] = ((mgScreenWidth - QuestMenuMes->line_w[0]) >> 1) - 14;
+    position[1] = mgScreenHeight - 96;
+    QuestMenuMes->SetPutPos(position);
+    QuestMenuMes->SetWindowMode(4);
+}
+extern s8 Menu_Memo_ViewMode;
+extern CQuestManager *QuestMan;
+int CMenuQuestView::SelectMax() {
+    if (Menu_Memo_ViewMode == 0) {
+        return QuestMan->num;
+    }
+    if (Menu_Memo_ViewMode == 1) {
+        return 0x35;
+    }
+    return 1;
+}
+extern char *packname_2171[2];
+extern char at_2219__2[];
+extern char at_2220[];
+extern char at_2221[];
+extern char at_2222[];
+extern CDC2Mes *QuestCommentMes[3];
+extern mgCTexture *Tex_QuestMemo;
+extern float QuestTilePatternXY[2];
+extern float QuestCursorPos[2];
+extern float QuestScrlBarY;
+extern float QuestScrlBarH;
+extern float QuestMoveRate;
+extern u8 QuestViewCommentFlag;
+extern CQuestData *ActiveQuestInfo;
+extern int ScmFlagCtrl;
+#pragma divbyzerocheck on
+void CMenuQuestView::InitEnd() {
+    select = 0;
+    top = 0;
+    int line;
+    CInventUserData *invent = GetInventUserDataPtr();
+    for (int slot = 0; slot < QUEST_VIEW_PHOTO_MAX; slot++) {
+        photo_no[slot] = -1;
+        if (invent != NULL) {
+            USER_PICTURE_INFO *photo = invent->GetPhotoInfo(slot);
+            if (photo != NULL && (s8)photo->used != 0) {
+                photo_no[slot] = photo->neta_id;
+            }
+        }
+    }
+    MenuLocalStack.Align64();
+    u_int *pack = (u_int *)MenuLocalStack.stGetTop();
+    int size = LoadFileMenu(packname_2171[Menu_Memo_ViewMode], (u_long128 *)pack, 1);
+    if (0 < size) {
+        unsigned int quadwords;
+        if ((size & 15) != 0) {
+            quadwords = ((unsigned int)size >> 4) + 1;
+        } else {
+            quadwords = (unsigned int)size >> 4;
+        }
+        MenuLocalStack.Alloc(quadwords);
+        if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_QUEST) {
+            char name[64];
+            sprintf(name, at_2219__2, LanguageCode);
+            char *script = (char *)GetPackFile(pack, name, &size);
+            if (script != NULL) {
+                QuestMan->LoadCfg(&MenuLocalStack, script, size);
+            }
+        }
+        if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_SCOOP) {
+            InitScoopString();
+            char *script = (char *)GetPackFile(pack, at_2220, &size);
+            if (script != NULL) {
+                AnalyzeScoopString(&MenuLocalStack, script, size);
+            }
+        }
+        QuestMenuMes = new (MenuLocalStack.Alloc(sizeof(CDC2Mes) / sizeof(u_long128) + 2)) CDC2Mes;
+        short *system_mes = GetSystemMesBuffer();
+        QuestMenuMes->SetMessData(system_mes, GetMenuMainMessageBuffer());
+        UnderMsg(0);
+        for (line = 0; line < 3; line++) {
+            QuestCommentMes[line] = new (MenuLocalStack.Alloc(sizeof(CDC2Mes) / sizeof(u_long128) + 2)) CDC2Mes;
+            short *system_mes = GetSystemMesBuffer();
+            QuestCommentMes[line]->SetMessData(system_mes, GetMenuMainMessageBuffer());
+            QuestCommentMes[line]->MsgPreset(16);
+            QuestCommentMes[line]->push_button = 0;
+        }
+        u_char *image = (u_char *)GetPackFile(pack, at_2221, NULL);
+        mgTexManager.EnterIMGFile(image, tex_block[0], NULL, NULL);
+        Tex_QuestMemo = mgTexManager.GetTexture(at_2222, -1);
+        QuestTilePatternXY[0] = 0.0f;
+    }
+    QuestScrlBarH = 10.0f;
+    QuestScrlBarY = 90.0f;
+    QuestCursorPos[0] = 82.0f;
+    QuestCursorPos[1] = 90.0f;
+    if (SelectMax() != 0) {
+        QuestScrlBarH = 7.0f * (float)(248 / SelectMax());
+    }
+    QuestMoveRate = 1.0f;
+    QuestViewCommentFlag = 0;
+    ActiveQuestInfo = NULL;
+    ScmFlagCtrl = 0;
+    FadeInMenu(40, 0.0f);
+}
+
+#pragma divbyzerocheck reset
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", KeyStep__14CMenuQuestViewFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuNPCQuestViewInit__FP9mgCMemoryPii);
 int MenuNPCQuestViewKey() {
     return ((CMenuQuestView *)MenuQuestView)->KeyStep();
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuNPCQuestViewDraw__Fv);
-
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", __sinit_menushop_cpp);
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", dony_shoplist__DATA);
@@ -341,9 +596,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", at_2221__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", at_2222__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", at_2629__2__DATA);
 
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", D_0037B048__DATA);
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", __vt__14CMenuQuestView__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", __vt__9CShopMenu__DATA);
@@ -393,5 +645,4 @@ INCLUDE_BSS(Menu_Memo_ViewMode, 0x4);
 INCLUDE_BSS(MenuQuestView, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(MenuLocalStack, 0x30);
 INCLUDE_BSS(QuestCommentMes, 0x10);

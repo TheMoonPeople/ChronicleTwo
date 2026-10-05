@@ -9,15 +9,47 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "title.hpp"
+#include "menumain.hpp"
 #include "dataread.hpp"
 #include "hddinstall.hpp"
+#include "movie.hpp"
+#include "memcard.hpp"
+#include "sysmes.hpp"
+#include "prespr.hpp"
+#include <cstring>
 #include <cstdio>
 #include <cstdlib>
 
 extern s16 TitleOmakeFlag;
+extern TITLE_INFO *TitleInfo;
+extern float TitleProjection;
+void TitleMCCheckDraw();
+void TitleCopyRightDraw();
+void RushMovieDraw();
+void TitleModeDraw();
+void TitleHDDInstallDraw();
+extern CScene *TitleScene;
+extern mgCMemory Stack_ReadBuff;
+extern CMovie *RushMovie;
+extern mgCTexture *RushWork;
+extern RUSH_INFO RushInfo;
+extern s8 debug_start_drawflag;
+extern char at_1517__2[];
+extern char at_1234[];
+extern s8 TitleCopyRightDispPhase;
+extern s16 TitleCopyRightDispCounter;
+extern s16 TitlePushStart_AlphaPlus;
+extern s8 cnttbl_2026[2];
 
 extern char at_1267[];
 extern ClsMes *TitleMCCheckMes;
+extern CMemoryCardManager *TitleMCCheck;
+extern s8 TitleMCCheckBootMode;
+extern s16 TitleMCCheckPort;
+extern s16 TitleMCCheckPhase;
+extern s32 OmakePlayEnableAttr;
+extern s16 TitleMCCheckFileFind[2];
+extern s8 TitleMCCheckInport[2];
 extern mgCTexture *lang_tex;
 extern u32 title_lang_cursor_cnt;
 extern int title_lang_fadealpha;
@@ -70,16 +102,136 @@ void TitleExit() {
     mgCloseFont();
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleLoop__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleDraw__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", InitRushMovie__Fi);
+void TitleDraw() {
+    mgSetRenderInfo(TitleProjection, 3.0f, 30000.0f);
+    switch (TitleInfo->mode) {
+        case TITLE_MODE_LANG_SELECT:
+            TitleLangSelDraw();
+            break;
+        case TITLE_MODE_MC_CHECK:
+            TitleMCCheckDraw();
+            break;
+        case TITLE_MODE_COPYRIGHT:
+            TitleCopyRightDraw();
+            break;
+        case TITLE_MODE_RUSH_MOVIE:
+            RushMovieDraw();
+            break;
+        case TITLE_MODE_TITLE:
+            TitleModeDraw();
+            break;
+        case TITLE_MODE_MENU:
+        case TITLE_MODE_SUBGAME_MENU:
+            MenuMainDraw();
+            break;
+        case TITLE_MODE_HDD_INSTALL:
+            TitleHDDInstallDraw();
+            break;
+    }
+}
+void InitRushMovie(int movie_no) {
+    mgFrameRate = 2;
+    TitleScene->StopEnvBGM();
+    Stack_ReadBuff.stReset();
+    mgTexManager.ReloadTexture(0x43, (sceVif1Packet *)NULL);
+    mgCMemory memory;
+    int remaining = Stack_ReadBuff.stGetRest();
+    u_long128 *buffer = Stack_ReadBuff.stGetTop();
+    memory.stSetBuffer(buffer, remaining);
+    RushMovie->Load(at_1517__2, &memory, 512, 416, true, false);
+    RushMovie->Play(at_1234);
+    RushMovie->SwitchThread();
+    while (RushMovie->IsStarted() == 0) {
+        RushMovie->SwitchThread();
+    }
+    RushInfo.count = 0;
+    RushInfo.unk_10 = 0x3FFF;
+    RushInfo.skipped = 0;
+    RushInfo.unk_c = 0;
+    TitleScene->fade.Initialize();
+    RushInfo.push_alpha = 0.0f;
+    TitlePushStart_AlphaPlus = 1;
+    debug_start_drawflag = 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", RushMovieKey__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", RushMovieDraw__Fv);
+void RushMovieDraw() {
+    mgTexManager.ReloadTexture(0x43, (sceVif1Packet *)NULL);
+    RushMovie->SwitchThread();
+    switch (RushInfo.phase) {
+        case RUSH_PHASE_INIT:
+            RushInfo.phase = RUSH_PHASE_PLAY;
+            break;
+        case RUSH_PHASE_FADE_OUT:
+        case RUSH_PHASE_PLAY:
+        case RUSH_PHASE_END: {
+            CPreSprite sprite;
+            sprite.Initialize(NULL, NULL);
+            sprite.Preset2D();
+            sprite.AlphaBlendEnable(0);
+            sprite.TextureMapEnable(1);
+            sprite.Begin(MG_PRIM_SPRITE);
+            sprite.Color(0, 0, 0, 128);
+            sprite.SetIRect(0, 0, mgScreenWidth, mgScreenHeight, 0, 0);
+            sprite.Texture(RushWork);
+            sprite.Color(128, 128, 128, 128);
+            sprite.SetIStretch(0, 0, mgScreenWidth, mgScreenHeight, 0, 0, mgScreenWidth, 416);
+            sprite.End();
+            break;
+        }
+    }
+    if (RushInfo.phase == RUSH_PHASE_END) {
+        RushInfo.phase = RUSH_PHASE_INIT;
+        RushMovie->Term();
+        RushMovie->SwitchThread();
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleModeInit__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleModeKey__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleModeDraw__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleMapDraw__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", CalcPushAlpha__FiPf);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleMCCheckInit__Fi);
+void CalcPushAlpha(int index, float *alpha) {
+    if (TitlePushStart_AlphaPlus != 0) {
+        *alpha += cnttbl_2026[index];
+        if (128.0f <= *alpha) {
+            *alpha = 128.0f;
+            TitlePushStart_AlphaPlus = 0;
+        }
+    } else {
+        *alpha -= cnttbl_2026[index] + 2;
+        if (*alpha < 0.0f) {
+            *alpha = 0.0f;
+            TitlePushStart_AlphaPlus = 1;
+        }
+    }
+}
+void TitleMCCheckInit(int boot_mode) {
+    TitleMCCheckBootMode = boot_mode != 0;
+    OmakePlayEnableAttr = 0;
+    CostumeOptionEnv = 0;
+    if (&TitleMCCheck->card[0] != NULL) {
+        memset(&TitleMCCheck->card[0], 0, sizeof(MC_CARD_INFO));
+    }
+    if (&TitleMCCheck->card[1] != NULL) {
+        memset(&TitleMCCheck->card[1], 0, sizeof(MC_CARD_INFO));
+    }
+    TitleMCCheckPort = 0;
+    TitleMCCheck->port = 0;
+    TitleMCCheck->SetFuncNo(MC_FUNC_SEARCH_TYPE);
+    TitleMCCheckFileFind[0] = 0;
+    TitleMCCheckInport[0] = 0;
+    TitleMCCheckPhase = TITLE_MC_PHASE_CARD_1;
+    TitleMCCheckFileFind[1] = 0;
+    TitleMCCheckInport[1] = 0;
+    TitleMCCheckMes = GetSystemMessage(0);
+    TitleMCCheckMes->texture_block = 0x46;
+    TitleMCCheckMes->Preset(MES_PRESET_WINDOW);
+    TitleMCCheckMes->SetWindowMode(4);
+    TitleMCCheckMes->fukidashi_pos = 8;
+    TitleMCCheckMes->mes_no = -1;
+    if (TitleMCCheckMes != NULL) {
+        TitleMCCheckMes->MakeMesWin(0x66);
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleMCCheckKey__Fv);
 void TitleMCCheckDraw(void) {
     if (TitleMCCheckMes != NULL) {
@@ -91,7 +243,13 @@ void TitleMCCheckDraw(void) {
 s32 DCTitleStep(s32 phase) {
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleCopyRightInit__Fv);
+void TitleCopyRightInit() {
+    TitleCopyRightDispPhase = 0;
+    TitleCopyRightDispCounter = 0;
+    TitleScene->fade.Initialize();
+    TitleCopyRightDispPhase = COPYRIGHT_PHASE_FADE_OUT;
+    TitleScene->fade.FadeOut(1, 0.0f, 0.0f, 0.0f);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleCopyRightStep__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleCopyRightDraw__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleHDDInstallInit__Fv);
@@ -104,7 +262,14 @@ int CheckAppInstallForTitle(void) {
     }
     return CheckAppInstall();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", CheckHDDInstall__Fv);
+int CheckHDDInstall() {
+    if (0 < HddConectCheck(NULL)) {
+        if (0 < CheckAppInstallForTitle()) {
+            return 1;
+        }
+    }
+    return 0;
+}
 void TitleLangSelInit(mgCMemory *memory) {
     int file_size;
     u8 *buffer;

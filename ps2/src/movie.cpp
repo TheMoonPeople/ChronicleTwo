@@ -987,13 +987,75 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", setImageTag__FPUiPviii);
 void videoDecBeginPut(VideoDec *dec, u8 **area1, int *size1, u8 **area2, int *size2) {
     viBufBeginPut(&dec->vibuf, area1, size1, area2, size2);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", videoDecPutTs__FP8VideoDecllPUci);
+int videoDecPutTs(VideoDec *dec, long pts, long dts, u8 *area, int size) {
+    TimeStamp stamp;
+    stamp.pts = pts;
+    stamp.dts = dts;
+    stamp.pos = area - (u8 *)dec->vibuf.data;
+    stamp.len = size;
+    return viBufPutTs(&videoDec.vibuf, &stamp);
+}
 void videoDecEndPut(VideoDec *dec, int count) {
     viBufEndPut(&dec->vibuf, count);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", cpy2area__FPUciPUciPUciPUci);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", audioDecBeginPut__FP8AudioDecPPUcPiPPUcPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", audioDecEndPut__FP8AudioDeci);
+int cpy2area(u8 *destination1, int capacity1, u8 *destination2, int capacity2,
+             u8 *source1, int size1, u8 *source2, int size2) {
+    int total = size1 + size2;
+    if (capacity1 + capacity2 < total) {
+        return 0;
+    }
+    int remaining = capacity1 - size1;
+    if (size1 >= capacity1) {
+        memcpy(destination1, source1, capacity1);
+        memcpy(destination2, source1 + capacity1, size1 - capacity1);
+        memcpy(destination2 + size1 - capacity1, source2, size2);
+    } else if (size2 >= remaining) {
+        memcpy(destination1, source1, size1);
+        memcpy(destination1 + size1, source2, remaining);
+        memcpy(destination2, source2 + capacity1 - size1, size2 - remaining);
+    } else {
+        memcpy(destination1, source1, size1);
+        memcpy(destination1 + size1, source2, size2);
+    }
+    return total;
+}
+void audioDecBeginPut(AudioDec *dec, u8 **area1, int *size1, u8 **area2, int *size2) {
+    if (dec->state == 0) {
+        *area1 = (u8 *)((int)dec->hdr + dec->hdr_count);
+        *size1 = sizeof(dec->hdr) - dec->hdr_count;
+        *area2 = dec->data;
+        *size2 = dec->size;
+    } else {
+        int available = dec->size - dec->count;
+        if (dec->size - dec->put >= available) {
+            *area1 = dec->data + dec->put;
+            *size1 = available;
+            *area2 = NULL;
+            *size2 = 0;
+        } else {
+            *area1 = dec->data + dec->put;
+            *size1 = dec->size - dec->put;
+            *area2 = dec->data;
+            *size2 = available - (dec->size - dec->put);
+        }
+    }
+}
+#pragma divbyzerocheck on
+void audioDecEndPut(AudioDec *dec, int count) {
+    if (dec->state == 0) {
+        int header_bytes = sizeof(dec->hdr) - dec->hdr_count;
+        header_bytes = (unsigned int)header_bytes < (unsigned int)count ? header_bytes : count;
+        dec->hdr_count += header_bytes;
+        if ((unsigned int)dec->hdr_count >= sizeof(dec->hdr)) {
+            dec->state = 1;
+        }
+        count -= header_bytes;
+    }
+    dec->put = (dec->put + count) % dec->size;
+    dec->count += count;
+    dec->total_bytes += count;
+}
+#pragma divbyzerocheck reset
 int isAudioOK(void) {
     return isWithAudio != 0 ? audioDecIsPreset(&audioDec) : 1;
 }

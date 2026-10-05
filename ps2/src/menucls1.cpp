@@ -21,6 +21,8 @@
 #include "mainloop.hpp"
 #include "menucommon.hpp"
 #include "mglib.hpp"
+#include "mapload.hpp"
+#include "gamepad.hpp"
 
 extern "C" int GetNumberKeta__Fi(int);
 extern "C" double pow(double, double);
@@ -34,6 +36,11 @@ extern char at_906__4[];
 extern char *MenuBigNum[];
 extern signed char *sn_944[];
 extern CItemUseTarget MenuUsedTarget;
+extern char at_1328[];
+extern char at_1512__3[];
+extern char at_1513__3[];
+extern char at_1514__3[];
+extern char at_1623__3[];
 extern "C" int GetShiledKitLimmit__Fi(int);
 
 // Code (.text)
@@ -283,7 +290,117 @@ void CDC2Mes::SetMessData(short *buff_system, short *buff) {
     SetBuff_system(buff_system);
     SetBuff(buff);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", MsgPreset__7CDC2MesFi);
+void CDC2Mes::MsgPreset(int preset) {
+    MenuMesInit(this);
+    SetMsgCursor(-1);
+    mes_no = 0;
+    str[0] = 0;
+    cursor_on = 1;
+    put_centering = 0;
+    scissor_on = 0;
+    scissor.Set(0, 0, mgScreenWidth - 1, mgScreenHeight - 1);
+    switch (preset) {
+    case 0:
+        SetWindowMode(MES_WIN_HELP);
+        break;
+    case 1:
+        SetWindowMode(MES_WIN_HELP);
+        fuchi = FUCHI_OUTLINE_WIDE;
+        break;
+    case 2:
+        SetWindowMode(MES_WIN_NONE);
+        break;
+    case 3:
+        SetWindowMode(MES_WIN_VERSATILE_4);
+        abs_win.width = 272;
+        abs_win.height = 102;
+        text_off_x = 16;
+        text_off_y = 16;
+        value_sign = 1;
+        centering = 0;
+        break;
+    case 4:
+    case 5:
+        SetWindowMode(MES_WIN_NONE);
+        rows = 1;
+        value_sign = 1;
+        if (preset == 5) {
+            fuchi = FUCHI_SHADOW_BLACK_WIDE;
+        }
+        break;
+    case 7:
+        SetWindowMode(MES_WIN_NONE);
+        rows = 1;
+        value_zero = 1;
+        fuchi = FUCHI_NONE;
+        SetDefColor(0x80141414);
+        break;
+    case 9:
+        SetWindowMode(MES_WIN_NONE);
+        fuchi = FUCHI_NONE;
+        SetFontColor(6, 6, 6, 128);
+        rows = 1;
+        value_zero = 1;
+        break;
+    case 6:
+        point_x = 40;
+        point_y = -60;
+        SetWindowMode(MES_WIN_FLOATING);
+        select_shade = MES_SELECT_SHADE_BRIGHT;
+        break;
+    case 10:
+    case 18:
+        SetWindowMode(MES_WIN_VERSATILE_1);
+        fuchi = FUCHI_NONE;
+        push_button = 1;
+        fade_speed = 0.1f;
+        if (preset == 18) {
+            push_button = 0;
+        }
+        break;
+    case 11:
+        SetWindowMode(MES_WIN_YESNO);
+        fuchi = FUCHI_NONE;
+        fade_speed = 0.1f;
+        break;
+    case 12:
+        SetWindowMode(MES_WIN_VERSATILE_3);
+        fade_speed = 0.1f;
+        break;
+    case 8:
+    case 13:
+        SetWindowMode(MES_WIN_VERSATILE_4);
+        if (preset == 8) {
+            text_off_x = 16;
+            text_off_y = 16;
+            abs_win.width = 236;
+            abs_win.height = 100;
+        }
+        break;
+    case 14:
+        SetWindowMode(MES_WIN_NONE);
+        break;
+    case 15:
+    case 16:
+        SetWindowMode(MES_WIN_NONE);
+        if (preset == 16) {
+            fuchi = FUCHI_SHADOW_BLACK_WIDE;
+        }
+        break;
+    case 17:
+        SetWindowMode(MES_WIN_NONE);
+        value_zero = 1;
+        font_h -= 2;
+        break;
+    case 19:
+        Preset(0);
+        fade_speed = 0.1f;
+        break;
+    }
+    if (CheckNowEurope()) {
+        value_half = 1;
+    }
+}
 void CDC2Mes::MsgPreset(int preset, int unused) {
     MsgPreset(preset);
     if (LanguageCode == 1) {
@@ -293,11 +410,97 @@ void CDC2Mes::MsgPreset(int preset, int unused) {
 void CDC2Mes::SetMsgCursor(int choice) {
     cursor = choice;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", AddMsgCursor2__7CDC2MesFiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", AddMsgCursor__7CDC2MesFiiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", CommandMsgCursor__7CDC2MesFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", YesNoCursor__7CDC2MesFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", YesNoCursor2__7CDC2MesFi);
+char CDC2Mes::AddMsgCursor2(int min, int max, int loop) {
+    int step = 0;
+    if (GamePad__2.Down(PAD_UP)) {
+        step--;
+    }
+    if (GamePad__2.Down(PAD_DOWN)) {
+        step++;
+    }
+    if (AddMsgCursor(step, min, max, loop)) {
+        MenuSePlay(0);
+    }
+    return cursor;
+}
+int CDC2Mes::AddMsgCursor(int step, int min, int max, int loop) {
+    int previous = cursor;
+    cursor += step;
+    if (loop == 1) {
+        if (cursor < min) {
+            cursor = max;
+        } else if (cursor > max) {
+            cursor = min;
+        }
+    } else {
+        if (cursor < min) {
+            cursor = min;
+        } else if (cursor > max) {
+            cursor = max;
+        }
+    }
+    return previous != cursor;
+}
+char CDC2Mes::CommandMsgCursor() {
+    int step = 0;
+    if (GamePad__2.Down(PAD_UP)) {
+        step--;
+    }
+    if (GamePad__2.Down(PAD_DOWN)) {
+        step++;
+    }
+    int choices = 0;
+    for (int index = 0; index < MES_ITEM_MAX; index++) {
+        if (0 < item_mes[index]) {
+            choices++;
+        } else {
+            break;
+        }
+    }
+    if (choices <= 0) {
+        choices = 1;
+    }
+    if (AddMsgCursor(step, 0, choices - 1, 1)) {
+        MenuSePlay(0);
+    }
+    return cursor;
+}
+int CDC2Mes::YesNoCursor() {
+    int step = 0;
+    if (GamePad__2.Down(PAD_LEFT)) {
+        step--;
+    }
+    if (GamePad__2.Down(PAD_RIGHT)) {
+        step++;
+    }
+    if (AddMsgCursor(step, 0, 1, 0)) {
+        MenuSePlay(0);
+    }
+    return cursor;
+}
+int CDC2Mes::YesNoCursor2(int alt_button) {
+    int step = 0;
+    if (GamePad__2.Down(PAD_LEFT)) {
+        step--;
+    }
+    if (GamePad__2.Down(PAD_RIGHT)) {
+        step++;
+    }
+    if (AddMsgCursor(step, 0, 1, 0)) {
+        MenuSePlay(0);
+    }
+    int buttons = MenuCheckPushButton();
+    if (buttons & 1) {
+        return cursor == 0 ? 1 : 2;
+    }
+    if (alt_button == 1 && (buttons & 4)) {
+        return cursor == 0 ? 1 : 2;
+    }
+    if (buttons & 2) {
+        return 2;
+    }
+    return 0;
+}
 int CDC2Mes::GetMsgCursor() {
     return cursor;
 }
@@ -316,7 +519,21 @@ void CDC2Mes::SetPutPos(int x, int y, int w, int h) {
         abs_win.x = (int)((unsigned int)mgScreenWidth - text_w) >> 1;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", SetPutPos__7CDC2MesFPi);
+void CDC2Mes::SetPutPos(int *pos) {
+    abs_win.x = pos[0];
+    abs_win.y = pos[1];
+    if ((s8)put_centering != 0) {
+        abs_win.x = (int)((unsigned int)mgScreenWidth - text_w) >> 1;
+    }
+    if (0 < abs_win.width) {
+        abs_text_off_x = text_off_x;
+        abs_text_off_y = text_off_y;
+    }
+    if (0 < fukidashi_pos) {
+        abs_win.y = -1;
+        abs_win.x = -1;
+    }
+}
 void CDC2Mes::SetAbsPos(int pos) {
     fukidashi_pos = pos;
 }
@@ -327,13 +544,102 @@ int CDC2Mes::GetStringDrawWidthDC(char *str) {
     }
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", SetMovePosCenteringGyou__7CDC2MesFiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", SetMsgItemNo__7CDC2MesFPii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", SetMsgItemNo__7CDC2MesFPPci);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", SetMsgVolumeNo__7CDC2MesFPii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", SetMsgVolumeNo__7CDC2MesFPiPii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", SetMsgVolumeNoOne__7CDC2MesFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", SetMsgItemPos__7CDC2MesFPii);
+void CDC2Mes::SetMovePosCenteringGyou(int line, int centre_x, int y) {
+    centre_x -= line_w[line] >> 1;
+    if (line >= 0 && line < MES_LINE_MAX) {
+        line_pos[line][0] = centre_x;
+        line_pos[line][1] = y;
+        line_pos_on[line] = 1;
+    }
+}
+void CDC2Mes::SetMsgItemNo(int *messages, int count) {
+    int previous[MES_ITEM_MAX];
+    for (int index = 0; index < count && index < MES_ITEM_MAX; index++) {
+        previous[index] = item_mes[index];
+        if (previous[index] != messages[index]) {
+            msg_change = 1;
+        }
+        int message = messages[index];
+        if (index >= 0 && index < MES_ITEM_MAX) {
+            item_mes[index] = message;
+        }
+        if (messages[index] <= -1) {
+            for (; index < MES_ITEM_MAX; index++) {
+                if (index >= 0 && index < MES_ITEM_MAX) {
+                    item_mes[index] = -1;
+                }
+            }
+            break;
+        }
+    }
+}
+void CDC2Mes::SetMsgItemNo(char **strings, int count) {
+    char *previous[MES_ITEM_MAX];
+    for (int index = 0; index < count && index < MES_ITEM_MAX; index++) {
+        previous[index] = name[index];
+        if (strings[index] == NULL) {
+            if (strcmp(name[index], at_1328) != 0) {
+                msg_change = 1;
+            }
+            strcpy(name[index], at_1328);
+        } else {
+            if (strcmp(previous[index], strings[index]) != 0) {
+                msg_change = 1;
+            }
+            if (strings[index] != NULL) {
+                strcpy(name[index], strings[index]);
+            }
+        }
+        if (strings[index] == NULL) {
+            for (; index < MES_ITEM_MAX; index++) {
+                strcpy(name[index], at_1328);
+            }
+            break;
+        }
+    }
+}
+void CDC2Mes::SetMsgVolumeNo(int *numbers, int count) {
+    int previous[MES_VALUE_MAX];
+    for (int index = 0; index < count && index < MES_VALUE_MAX; index++) {
+        previous[index] = values[index];
+        if (previous[index] != numbers[index]) {
+            msg_change = 1;
+        }
+        values[index] = numbers[index];
+        value_width[index] = 0;
+    }
+}
+void CDC2Mes::SetMsgVolumeNo(int *numbers, int *digit_widths, int count) {
+    int previous[MES_VALUE_MAX];
+    for (int index = 0; index < count && index < MES_VALUE_MAX; index++) {
+        previous[index] = values[index];
+        if (previous[index] != numbers[index]) {
+            msg_change = 1;
+        }
+        int next = numbers[index];
+        int digits = digit_widths[index];
+        values[index] = next;
+        value_width[index] = digits;
+    }
+}
+void CDC2Mes::SetMsgVolumeNoOne(int value) {
+    int numbers[2] = {0, -1};
+    numbers[0] = value;
+    SetMsgVolumeNo(numbers, 1);
+}
+void CDC2Mes::SetMsgItemPos(int *pos, int count) {
+    for (int index = 0; index < count && index < MES_VALUE_MAX; index++) {
+        int x;
+        int y;
+        y = pos[index * 2 + 1];
+        x = pos[index * 2];
+        if (index >= 0 && index < MES_LINE_MAX) {
+            line_pos[index][0] = x;
+            line_pos[index][1] = y;
+            line_pos_on[index] = 1;
+        }
+    }
+}
 void CDC2Mes::MakeMsg(int message_no) {
     mes_no = message_no;
     str[0] = 0;
@@ -345,10 +651,115 @@ void CDC2Mes::MakeMsg(char *text) {
         strcpy(str, text);
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", MakeMsg__7CDC2MesFP13CGameDataUsed);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", MakeMsg__7CDC2MesFP13CGameDataUsedP13CGameDataUsed);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", StepMsg__7CDC2MesFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", DrawMsg__7CDC2MesFv);
+void CDC2Mes::MakeMsg(CGameDataUsed *item) {
+    if (item != NULL) {
+        int numbers[3] = {0, 0, 0};
+        char *names[2];
+        int message_no;
+        int item_no = item->item_no;
+        message_no = 0;
+        if (0 < item_no) {
+            message_no = GetItemMessageNo(item_no, 1);
+            if (item_no == 0x38) {
+                if (GetTimeBand(MenuNowTime) == MAP_TIME_BAND_NIGHT) {
+                    message_no = 0xA2;
+                }
+            }
+            item->GetMsgAddInfo(&names[0], &names[1], numbers);
+            SetMsgItemNo(names, 2);
+            SetMsgVolumeNo(numbers, 2);
+        } else {
+            int messages[4] = {-1, -1, -1, -1};
+            SetMsgItemNo(messages, 4);
+        }
+        value_sign = 1;
+        value_zero = 0;
+        if (item_no == 0xB9) {
+            value_sign = 0;
+        } else if (item_no == 0x137) {
+            value_zero = 1;
+            value_sign = 0;
+        }
+        MakeMsg(message_no);
+    } else {
+        MakeMsg(0);
+    }
+}
+void CDC2Mes::MakeMsg(CGameDataUsed *attachment, CGameDataUsed *weapon) {
+    if (attachment != NULL) {
+        if (weapon == NULL) {
+            return;
+        }
+    } else {
+        return;
+    }
+    if (weapon->used_type != USED_ITEM_TYPE_WEAPON || weapon->IsFishingRod()) {
+        char *names[1] = {NULL};
+        names[0] = weapon->GetName(1);
+        SetMsgItemNo(names, 1);
+        MakeMsg(0xBD);
+    } else {
+        if (weapon->RemainFusion() < attachment->data.attach.spectol_value) {
+            MakeMsg(0xBA);
+        } else {
+            int numbers[3] = {0, 0, 0};
+            numbers[0] = attachment->data.attach.spectol_value;
+            numbers[1] = weapon->RemainFusion();
+            numbers[2] = weapon->RemainFusion() - attachment->data.attach.spectol_value;
+            value_zero = 1;
+            value_sign = 0;
+            SetMsgVolumeNo(numbers, 3);
+            MakeMsg(0xBC);
+        }
+    }
+}
+void CDC2Mes::StepMsg() {
+    if (buff != NULL) {
+        int message_no = mes_no;
+        if ((s8)msg_change != 0) {
+            ClsMes::mes_no = -1;
+            msg_change = 0;
+        }
+        int choice = cursor;
+        if (select < 0) {
+            cursor_time = 0;
+        }
+        select = choice;
+        if ((s8)str[0] == 0) {
+            MakeMesWin(message_no);
+            Step();
+        } else {
+            MakeMesWin(str, 1, 1);
+            if (abs_win.width > 0 || abs_win.height > 0) {
+                open = 1;
+            }
+            Step();
+        }
+    }
+}
+void CDC2Mes::DrawMsg() {
+    int saved_x;
+    int saved_y;
+    if (buff != NULL) {
+        if (cursor_on == 0) {
+            saved_x = cursor_x;
+            saved_y = cursor_y;
+            cursor_x = -1000;
+            cursor_y = -1000;
+        }
+        if (scissor_on != 0) {
+            SetMenuScissor(scissor);
+        }
+        DrawMesWin();
+        if (scissor_on != 0) {
+            ResetMenuScissor();
+        }
+        if (cursor_on == 0) {
+            cursor_x = saved_x;
+            cursor_y = saved_y;
+        }
+    }
+}
 void CDC2Mes::SetMsgAlpha(int value) {
     alpha = value;
     if (value < 0)
@@ -356,10 +767,98 @@ void CDC2Mes::SetMsgAlpha(int value) {
     if (0x80 < value)
         alpha = 0x80;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", Initialize__13CMenuMoveItemFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", AttachForm__13CMenuMoveItemFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", CheckMove__13CMenuMoveItemFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", SetMoveItemInfo__13CMenuMoveItemFP19MENU_ITEM_MOVE_INFOPiPi);
+void CMenuMoveItem::Initialize() {
+    move_on = 0;
+    for (int index = 0; index < 2; index++) {
+        form[index] = NULL;
+        memset(&info[index], 0, sizeof(MENU_ITEM_MOVE_INFO));
+    }
+}
+void CMenuMoveItem::AttachForm() {
+    form[0] = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1512__3);
+    form[1] = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_1513__3);
+    if (form[0] != NULL) {
+        form[0]->draw_flag = 0;
+        form[0]->SetNumber(at_1514__3, 0);
+    }
+    if (form[1] != NULL) {
+        form[1]->draw_flag = 0;
+        form[1]->SetNumber(at_1514__3, 0);
+    }
+}
+char CMenuMoveItem::CheckMove() {
+    int moving = 0;
+    if (move_on != 0) {
+        for (int index = 0; index < 2; index++) {
+            MENU_ITEM_MOVE_INFO *entry = &info[index];
+            if (entry->active != 0) {
+                if (form[index]->CheckMoveEnd()) {
+                    if (entry->mode == 0 || entry->mode == 2) {
+                        entry->dest->CopyGameData(&entry->item);
+                    } else if (entry->mode == 1) {
+                        entry->dest->CopyDataItem(&entry->item);
+                    }
+                    entry->active = 0;
+                    entry->item.Init();
+                    entry->dest = NULL;
+                    form[index]->draw_flag = 0;
+                    CheckEnableHaveItemNum();
+                } else {
+                    int x;
+                    int y;
+                    int &y_pos = y;
+                    moving++;
+                    form[index]->GetPutPosXY(NULL, x, y_pos);
+                    if (286 < x && 302 < y_pos) {
+                        form[index]->draw_flag = 0;
+                    }
+                }
+            }
+        }
+    }
+    if (moving == 0) {
+        move_on = 0;
+    }
+    return move_on;
+}
+void CMenuMoveItem::SetMoveItemInfo(MENU_ITEM_MOVE_INFO *request, int *start, int *goal) {
+    if (request == NULL) {
+        return;
+    }
+    for (int index = 0; index < 2; index++) {
+        MENU_ITEM_MOVE_INFO *entry = &info[index];
+        if (entry->active == 0) {
+            CMenuPosDataForm *moving_form = form[index];
+            memcpy(entry, request, sizeof(MENU_ITEM_MOVE_INFO));
+            moving_form->draw_flag = 1;
+            if (entry->item.item_no <= 0) {
+                moving_form->draw_flag = 0;
+            }
+            if (entry->mode == 2) {
+                entry->item.DeleteNum(entry->item.GetNum() - 1);
+            }
+            moving_form->x = start[0];
+            moving_form->y = start[1];
+            moving_form->SetNextMovePos(goal, 2);
+            MENUFORMPARTS_TYPE *part = moving_form->GetPartInfo(at_1623__3);
+            part->etc_info[1] = entry->item.item_no;
+            part->etc_info[2] = 0;
+            if (part->etc_info[1] == 0xB9) {
+                part->etc_info[2] = entry->item.GetSpectolNo();
+            }
+            if (part->etc_info[1] == 0x1AA) {
+                part->etc_info[2] = entry->item.data.item.num;
+            }
+            part = moving_form->GetPartInfo(at_1514__3);
+            part->etc_info[0] = 0;
+            part->etc_info[1] = entry->item.GetNum();
+            part->etc_info[2] = 1;
+            move_on = 1;
+            entry->active = 1;
+            break;
+        }
+    }
+}
 int CheckRoboShieldKit(CUserDataManager *manager, CGameDataUsed *item, int apply, int *kit_count,
                        int *applied_count) {
     if (item->item_type == 0xB) {
@@ -418,7 +917,9 @@ int CheckNowStateUseThisItem(CGameDataUsed *item, CItemUseTarget *target) {
 }
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", __sinit_menucls1_cpp);
+extern "C" void __sinit_menucls1_cpp() {
+    MenuUsedTarget.type = ITEM_USE_TARGET_NONE;
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", MenuBigNum__DATA);

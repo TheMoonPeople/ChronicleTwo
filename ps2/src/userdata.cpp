@@ -68,6 +68,8 @@ extern char at_1623[];
 extern char at_1624[];
 extern char at_1637[];
 extern char at_2061[];
+extern char at_2018[];
+extern char at_2019[];
 extern char at_5773[];
 
 // Code (.text)
@@ -1104,17 +1106,43 @@ int CGameDataUsed::GetAttackType() {
     }
     return this->used_type == 5 ? this->GetRoboInfoType() : -1;
 }
-char CGameDataUsed::GetModelNo(void) {
+int CGameDataUsed::GetModelNo(void) {
     if (used_type == USED_ITEM_TYPE_WEAPON) {
         CDataWeapon *weapon = GetWeaponInfoData(item_no);
         if (weapon != NULL) {
-            return weapon->model_no;
+            return (signed char)weapon->model_no;
         }
         return -1;
     }
     return -1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", GetMainCharaModelName__FiPci);
+int GetMainCharaModelName(int character_index, char *model_name, int alternate) {
+    CUserDataManager *user_data = GetUserDataMan();
+    if (user_data == NULL || model_name == NULL) {
+        return 0;
+    }
+    CHARA_DATA *character_data = user_data->GetCharaDataPtr(character_index);
+    if (character_data == NULL) {
+        return 0;
+    }
+    int model_number = character_data->equip[0].GetModelNo();
+    if (model_number < 0) {
+        model_number = 0;
+    }
+    if (model_number > 3) {
+        model_number = 3;
+    }
+    if (character_index == 0) {
+        model_number += 2;
+    }
+    if (alternate != 0) {
+        sprintf(model_name, at_2018, f_2005[character_index]);
+        return 1;
+    } else {
+        sprintf(model_name, at_2019, f_2005[character_index], model_number);
+        return 1;
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", CheckParamLimmit__13CGameDataUsedFv);
 void CGameDataUsed::TimeCheck(int elapsed) {
     int time_left;
@@ -1514,6 +1542,7 @@ int CFishAquarium::CheckHaigouTankSex(CGameDataUsed *fish) {
     return 1;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", RefreshParam__13CFishAquariumFv);
+
 int GetShiledKitLimmit(int item_no) {
     int index = item_no - 0xF6;
     if (index < 0) {
@@ -1762,6 +1791,7 @@ int CFishingTournament::CalcTopWeight(void) {
     return entry[2].weight + (entry[0].weight + entry[1].weight);
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", Initialize__16CUserDataManagerFv);
+
 void CUserDataManager::RefreshParam() {
     RefreshNPCStatus(0);
     int now = (int)GetSaveData()->play_time;
@@ -2308,7 +2338,50 @@ void CUserDataManager::JoinPartyChara(int chara_no, int status, int unused) {
         slot->point = npc->max_npc_point;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", SetPartyCharaStatus__16CUserDataManagerFii);
+void CUserDataManager::SetPartyCharaStatus(int chara_no, int status) {
+    int index = chara_no - 1;
+    if (index < 0 || index >= 32) {
+        return;
+    }
+    if (status == 0x80) {
+        JoinPartyChara(chara_no, 2, index);
+        return;
+    }
+    if (status == 0) {
+        party_chara[index].status = status;
+        return;
+    }
+    if (status & 1) {
+        int previous_status = party_chara[index].status;
+        for (int other = 0; other < 32; other++) {
+            u16 other_status = party_chara[other].status;
+            if (other_status != 0 && other != index && (other_status & 1)) {
+                if (other_status & 4) {
+                    party_chara[other].status = 4;
+                } else {
+                    party_chara[other].status = 2;
+                }
+            }
+        }
+        if (previous_status & 4) {
+            party_chara[index].status |= (u16)status;
+        } else {
+            party_chara[index].status = status;
+        }
+        return;
+    }
+    if ((status & 2) || (status & 4)) {
+        if (status & 2) {
+            index = chara_no - 1;
+            party_chara[index].status = status;
+        }
+        if (status & 4) {
+            index = chara_no - 1;
+            party_chara[index].status &= 0xFFFD;
+            party_chara[index].status |= (u16)status;
+        }
+    }
+}
 int CUserDataManager::GetPartyCharaStatus(int chara_no) {
     int index = chara_no - 1;
     if (index < 0 || index >= 32) {
@@ -2647,6 +2720,7 @@ int CUserDataManager::SearchSpaceUsedData() {
     return -1;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", SearchSpaceUsedData__16CUserDataManagerFi);
+
 CGameDataUsed *CUserDataManager::SearchSpaceUsedDataPtr() {
     int index = SearchSpaceUsedData();
     if (index < 0) {
@@ -2897,6 +2971,7 @@ int CUserDataManager::GetOverItem(int item_no, int count) {
     return 0;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", CheckItemLimmitOver__16CUserDataManagerFv);
+
 int DeleteItem_Local(CGameDataUsed *item, int item_no, int count) {
     int removed;
     if (item_no <= 0) {
@@ -3630,7 +3705,61 @@ int SetRandamCircleStatus(int kind, float &amountOut) {
     return applied;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", StatusParamStep__16CBattleCharaInfoFPi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", Step__16CBattleCharaInfoFv);
+void CBattleCharaInfo::Step() {
+    if (hp != NULL) {
+        if (disp_hp < 0.0f) {
+            return;
+        }
+        switch (chr_no) {
+            case 1:
+                if (equip->item_no == 0x38) {
+                    CScene *scene = GetMainScene();
+                    if (scene != NULL && BattleParamater_TimeBand != GetTimeBand(scene->time)) {
+                        RefreshParamater();
+                    }
+                }
+                break;
+            case 2:
+                hp->now -= robo_hp_drain;
+                disp_hp -= robo_hp_drain;
+                if (hp->now <= 0.0f) {
+                    hp->now = 0.0f;
+                    disp_hp = 0.0f;
+                }
+                break;
+            case 3:
+                ((MOS_CHANGE_PARAM *)chara_data)->hp.now -= monster_hp_drain;
+                if (((MOS_CHANGE_PARAM *)chara_data)->hp.now <= 0.0f) {
+                    ((MOS_CHANGE_PARAM *)chara_data)->hp.now = 0.0f;
+                }
+                break;
+        }
+        if (disp_hp == hp->now) {
+            hp_change_step = 0.0f;
+            prev_hp = hp->now;
+        } else if (hp_change_step == 0.0f) {
+            disp_hp = hp->now;
+        } else {
+            int step = (int)hp_change_step;
+            if (step == 0) {
+                if (hp_change_step < 0.0f) {
+                    step--;
+                } else {
+                    step++;
+                }
+            }
+            disp_hp += step;
+            if (disp_hp < 0.0f) {
+                disp_hp = 0.0f;
+            } else if (disp_hp > hp->max) {
+                disp_hp = hp->max;
+            }
+        }
+        if (hp->now <= 0.0f) {
+            SetAttr(CHARA_STATUS_ALL, 1);
+        }
+    }
+}
 CBattleCharaInfo *GetBattleCharaInfo(void) {
     return &BattleParamater;
 }

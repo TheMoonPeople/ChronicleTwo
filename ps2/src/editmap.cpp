@@ -283,7 +283,24 @@ int CEditMap::GetPoly(int mode, CCPoly *polys, mgVu0FBOX &box, int max) {
     }
     return total;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", CreateTable__8CEditMapFP9mgCMemoryii);
+extern "C" void *__ct__10CEditPartsFv(void *part);
+extern "C" void *__construct_new_array(void *array, void *(*constructor)(void *),
+                                     void *destructor, u_int element_size, int count);
+void CEditMap::CreateTable(mgCMemory *memory, int parts_max, int heap_size) {
+    parts_heap.SetHeapMem(memory->Alloc(heap_size), heap_size);
+    edit_parts_max = parts_max;
+    u_int byte_count = sizeof(CEditParts) * edit_parts_max;
+    int parts_count = edit_parts_max;
+    u_int quadwords = (byte_count & 15) ? (byte_count >> 4) + 1 : byte_count >> 4;
+    u_long128 *storage = (u_long128 *)memory->Alloc(quadwords + 2);
+    edit_parts = (CEditParts *)__construct_new_array(
+        operator new[](sizeof(CEditParts) * parts_count + 16, storage),
+        __ct__10CEditPartsFv, NULL, sizeof(CEditParts), parts_count);
+    place_log_max = parts_max * 4;
+    byte_count = sizeof(EditPlaceLog) * place_log_max;
+    quadwords = (byte_count & 15) ? (byte_count >> 4) + 1 : byte_count >> 4;
+    place_log = new ((u_long128 *)memory->Alloc(quadwords + 2)) EditPlaceLog[place_log_max];
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", __ct__10CEditPartsFv);
 CEditPartsInfo *CEditMap::GetePartsInfo(int index) {
     return info_mngr.GetePartsInfo(index);
@@ -582,7 +599,49 @@ int CEditMap::GetTotalPolyn(int *vertex_total, int *texture_total) {
     }
     return poly_total;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", BuildEditParts__8CEditMapFPc);
+int CEditMap::BuildEditParts(char *name) {
+    CEditPartsInfo *info = GetePartsInfo(name);
+    if (info == NULL) {
+        return EDIT_BUILD_NO_INFO;
+    }
+    int index = eNewPlaceParts();
+    CEditParts *part = GetePlaceParts(index);
+    if (part == NULL) {
+        return EDIT_BUILD_NO_SLOT;
+    }
+    CEditHouse *house = NULL;
+    if (info->attr & EDIT_PARTS_ATR_TYPE_ONE) {
+        house = eNewHouseInfo();
+        if (house == NULL) {
+            part->Initialize();
+            return EDIT_BUILD_NO_HOUSE;
+        }
+    }
+    CMapParts *model = GetParts(info->parts_name);
+    if (model == NULL) {
+        return EDIT_BUILD_NO_INFO;
+    }
+    u_long128 *memory = parts_heap.StartStackMode(MG_STACK_MODE_LARGEST, 0);
+    if (memory == NULL || parts_heap.stGetRest() < 1000) {
+        part->Initialize();
+        parts_heap.EndStackMode();
+        return EDIT_BUILD_NO_INFO;
+    }
+    model->Copy(*part, &parts_heap);
+    parts_heap.EndStackMode();
+    part->unk_320 = (int)memory;
+    part->info = info;
+    part->SetPosition(0.0f, 0.0f, 0.0f);
+    part->SetRotation(0.0f, 0.0f, 0.0f);
+    part->SetScale(1.0f, 1.0f, 1.0f);
+    part->CheckColorUpdate();
+    if (house != NULL) {
+        memset(house, 0, sizeof(CEditHouse));
+        house->active = 1;
+    }
+    part->house = house;
+    return index;
+}
 int CEditMap::DeleteEditParts(int index) {
     CEditParts *edit_parts = GetePlaceParts(index);
     if (edit_parts == 0) {
@@ -1014,7 +1073,11 @@ int CEditMap::CheckEditParts(CEditPartsInfo *info, float *pos, float radius, EP_
     count = GetNearParts(info, pos, radius, near_parts, 512);
     return CheckEditParts(info, pos, radius, place, near_parts, count);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", GetEditPartsAlt__8CEditMapFP14CEditPartsInfoPff);
+float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, float *position, float angle) {
+    CEditParts *near_parts[512];
+    int count = GetNearParts(info, position, angle, near_parts, 512);
+    return GetEditPartsAlt(info, position, angle, near_parts, count);
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", MagnetParts__8CEditMapFP14CEditPartsInfoPfPfPP10CEditPartsi);
 int CEditMap::MagnetParts(CEditPartsInfo *info, float *pos, float *magnet) {
     CEditParts *near_parts[512];

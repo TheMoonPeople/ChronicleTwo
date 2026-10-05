@@ -532,7 +532,19 @@ void PlayBuggyLoopSe(CScene *scene, int state) {
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/pbuggy", BuggyControl__FP6CScene);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/pbuggy", InitBomb__FP6CScene);
+extern float StarbullPos[4];
+extern char at_1316__3[];
+void InitBomb(CScene *scene) {
+    BombStatus = 3;
+    scene->SetActive(1, 67);
+    BombChara->SetPosition(-0.8f, 136.5f, -320.0f);
+    StarbullPos[0] = 0.0f;
+    StarbullPos[1] = 113.0f;
+    StarbullPos[2] = -300.0f;
+    StarbullChara->SetPosition(StarbullPos);
+    StarbullChara->SetRotation(0.0f, 3.1415927f, 0.0f);
+    StarbullChara->SetMotion(at_1316__3, 0);
+}
 int TakeBombCheck(void) {
 
     return (BombStatus != 3) ^ 1;
@@ -571,10 +583,35 @@ int NowPutBomb(void) {
     return BombStatus == 3;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/pbuggy", BombControl__FP6CScene);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/pbuggy", BombCheck__FP6CScene);
-
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/pbuggy", __sinit_pbuggy_cpp);
+extern int BombImpact;
+void BombCheck(CScene *scene) {
+    sceVu0FVECTOR bomb_position;
+    sceVu0FVECTOR buggy_position;
+    sceVu0FVECTOR next_position;
+    sceVu0FVECTOR nearest;
+    sceVu0FVECTOR upper_position;
+    BuggyChara->GetPosition(buggy_position);
+    *(u_long128 *)upper_position = *(u_long128 *)buggy_position;
+    upper_position[1] += 40.0f;
+    BombChara->GetPosition(bomb_position);
+    sceVu0AddVector(next_position, bomb_position, BombVelo);
+    float lower_distance = mgDistLinePoint(buggy_position, bomb_position, next_position, nearest);
+    float upper_distance = mgDistLinePoint(upper_position, bomb_position, next_position, nearest);
+    if (lower_distance < 40.0f || upper_distance < 30.0f) {
+        BombBomb();
+    }
+    int impact = BombImpact;
+    if (impact > 0 && impact < 8) {
+        if (mgDistVector(bomb_position, buggy_position) < 150.0f) {
+            int damage_motion = 0;
+            if (bomb_position[0] < buggy_position[0]) {
+                damage_motion = 1;
+            }
+            BuggyDamage(damage_motion);
+            BombImpact = 0;
+        }
+    }
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_1047__3__DATA);
@@ -624,9 +661,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_1433__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_1434__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_1435__3__DATA);
 
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", D_0037B090__DATA);
-
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", BuggyHP__DATA);
 
@@ -674,7 +708,7 @@ INCLUDE_BSS(reload_cnt_1350, 0x4);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(StarbullPos, 0x10);
-INCLUDE_BSS(EffectBuff, 0x30);
+mgCMemory EffectBuff;
 INCLUDE_BSS(BuggyVelo, 0x10);
 INCLUDE_BSS(BombVelo, 0x10);
-INCLUDE_BSS(PolVoice, 0x20);
+sgCPlayVoice PolVoice __attribute__((aligned(16)));
