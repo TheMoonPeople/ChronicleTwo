@@ -22,7 +22,6 @@
 #include "scene.hpp"
 #include "editctrl.hpp"
 
-void LadderControl(CScene *scene, CPadControl *pad);
 void CameraControl(CScene *scene, CPadControl *pad);
 
 const int kFirstEventChara = 8;
@@ -71,16 +70,6 @@ extern u32 FixCameraChgCnt;
 extern int ViewMode;
 extern CGamePad GamePad__2;
 
-// Code (.text)
-extern "C" CUserDataManager *GetUserData__Fv(void) {
-    CSaveData *save;
-
-    save = GetSaveData();
-    if (save != 0) {
-        return &save->user_data;
-    }
-    return 0;
-}
 #include <cmath>
 #include <cstring>
 #include <libvu0.h>
@@ -141,13 +130,12 @@ static sceVu0FVECTOR  LdrTopWalk;           /**< Walk-off position at the top of
 static sceVu0FVECTOR  LdrCamPos;            /**< Camera eye position for ladder climbing. */
 
 static void CharaControl(CScene *scene, CPadControl *pad);
-static void CameraControl(CScene *scene, CPadControl *pad);
-static void InitEyeCamera(CCharacter2 *character, CCameraControl *camera);
 static void EyeCamera(mgCCamera *camera, CCharacter2 *character, int right_stick);
 static void InitLadder(int mode, CScene *scene, CSceneEventData *event);
-static void EndLadder();
 static void LadderControl(CScene *scene, CPadControl *pad);
 #endif
+
+static void LadderControl(CScene *scene, CPadControl *pad);
 
 // Code (.text)
 /**
@@ -888,9 +876,9 @@ void CameraControl(CScene *scene, CPadControl *pad) {
                                 EyeCamera__FP9mgCCameraP11CCharacter2i(
                                     (mgCCameraFollow *)camera, chara, 0);
                                 user_data = NULL;
-                                if (GetUserData__Fv() != 0) {
+                                if (GetUserData() != 0) {
                                     user_data =
-                                        (CInventUserData *)((u8 *)GetUserData__Fv() +
+                                        (CInventUserData *)((u8 *)GetUserData() +
                                                             0x7F30);
                                 }
                                 LoopTakePhoto(pad, user_data);

@@ -46,7 +46,6 @@ extern char at_1037__5[];
 extern MOVIE_LIST_ENTRY *MovieList;
 extern int MovieListNum;
 extern mgCMemory *spi_MovieStack;
-extern u32 performance_meter_flag;
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "gaiji.hpp"
@@ -76,7 +75,6 @@ extern short MovieSpecialModeInfo[3];
 extern int MovieMode;
 extern SPI_TAG_PARAM tag_movie[];
 extern mgCMemory buf0_791, buf1_794, dbuf0_797, dbuf1_800;
-extern char init_792, init_795, init_798, init_801;
 extern mgCMemory *spi_MovieStack;
 extern int performance_meter_flag;
 extern mgCMemory DataBuffer__2;

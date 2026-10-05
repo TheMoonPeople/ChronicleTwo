@@ -376,7 +376,7 @@ void CDngFreeMap::Draw() {
             }
             if (menu_debug_flag != 0) {
                 loaded_texture = -1;
-                MenuReloadTexture(loaded_texture, MenuDCMsg[2]->unk_22a4);
+                MenuReloadTexture(loaded_texture, MenuDCMsg[2]->texture_block);
                 int next_floor2;
                 int next_floor1;
                 int next_floor0;

@@ -36,7 +36,6 @@
 
 int LoadIntNPC(GeoFuncParam *param, RS_STACKDATA *stack, int mode);
 int LoadGeoNPC(GeoFuncParam *param, int mode);
-int CheckPlaceBurnParts(GeoFuncParam *param, RS_STACKDATA *stack, int mode);
 
 const int kEventNumberF9 = 0xF9;
 const int kEventFlagTypeAB = 0x8;
@@ -57,8 +56,6 @@ extern mgCTextureManager mgTexManager;
 #include <cmath>
 
 static int CheckPlaceBurnParts(GeoFuncParam *param, RS_STACKDATA *args, int argc);
-static int LoadIntNPC(GeoFuncParam *param, RS_STACKDATA *args, int argc);
-static int LoadGeoNPC(GeoFuncParam *param, int check_only);
 
 // Code (.text)
 void CEditEvent::Reset() {

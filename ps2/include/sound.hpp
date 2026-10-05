@@ -359,7 +359,7 @@ public:
      * @address 0x18C570
      * @size 0x10
      */
-    int StreamPlay(int channel);
+    void StreamPlay(int channel);
 
     /**
      * Halts a stream channel where it is, by the same request as

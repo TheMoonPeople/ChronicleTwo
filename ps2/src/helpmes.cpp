@@ -8,8 +8,6 @@
 
 extern int ShowOffOnce;
 extern int WindowMode;
-extern u8 HelpMesBuff[4096];
-extern u32 InitFlag__2;
 extern HELP_MES_INFO HelpMesInfo;
 extern ClsMes HelpMes;
 extern char at_799__6[15];
@@ -148,7 +146,7 @@ void CreateHelpMes(int message_id) {
         HelpMes.Preset(4);
         HelpMes.SetWindowMode(0);
         HelpMes.SetBuff((short *)HelpMesBuff);
-        HelpMes.unk_22a4 = message_id;
+        HelpMes.texture_block = message_id;
         ShowOffOnce = 0;
         HelpMesInfo.time = 0;
         HelpMesInfo.mes_no = -1;

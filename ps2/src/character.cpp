@@ -170,45 +170,10 @@ static char               alloc_vertex[25][16]; /**< Names of model frames with 
 static mgIMG_FILE_HEADER *img_ptr[CHARA_IMAGE_MAX]; /**< Copied image archives awaiting entry. */
 
 static void ScanInfoFile(CCharacter2 *character, unsigned int *pack, char *name, mgCMemory *model_stack, mgCMemory *motion_stack, mgCMemory *image_stack, int image_block, CCharacter2 *parent, int outline);
-static int _V2(SPI_STACK *stack, int count);
-static int _NAME(SPI_STACK *stack, int count);
-static int _BODY_SIZE(SPI_STACK *stack, int count);
-static int _SCALE(SPI_STACK *stack, int count);
-static int _MATERIAL_ANIME(SPI_STACK *stack, int count);
-static int _POLY_NUM(SPI_STACK *stack, int count);
-static int _IMG(SPI_STACK *stack, int count);
-static int _IMG_END(SPI_STACK *stack, int count);
-static int _OUTLINE(SPI_STACK *stack, int count);
 static int _MODEL(SPI_STACK *stack, int count);
-static int _SHADOW_MODEL(SPI_STACK *stack, int count);
-static int _OBJECT_NAME(SPI_STACK *stack, int count);
-static int _OBJECT_NAME2(SPI_STACK *stack, int count);
-static int _MOTION(SPI_STACK *stack, int count);
-static int _SHADOW_MOTION(SPI_STACK *stack, int count);
-static int _VERTEX_ANIME(SPI_STACK *stack, int count);
-static int _SHAPE_ANIME(SPI_STACK *stack, int count);
-static int _KEY_START(SPI_STACK *stack, int count);
-static int _KEY(SPI_STACK *stack, int count);
-static int _KEY_END(SPI_STACK *stack, int count);
 static int _SEQ_START(SPI_STACK *stack, int count);
-static int _SEQ(SPI_STACK *stack, int count);
-static int _SEQ_END(SPI_STACK *stack, int count);
-static int _CLOTH_START(SPI_STACK *stack, int count);
-static int _CLOTH(SPI_STACK *stack, int count);
-static int _CLOTH_END(SPI_STACK *stack, int count);
-static int _POSITION(SPI_STACK *stack, int count);
-static int _ROTATION(SPI_STACK *stack, int count);
-static int _SE_START(SPI_STACK *stack, int count);
-static int _SE(SPI_STACK *stack, int count);
-static int _SELP(SPI_STACK *stack, int count);
-static int _SE_END(SPI_STACK *stack, int count);
-static int _MOTION_END(SPI_STACK *stack, int count);
-static int _EFFECT_START(SPI_STACK *stack, int count);
 static int _EFFECT(SPI_STACK *stack, int count);
-static int _EFFECT_END(SPI_STACK *stack, int count);
-static int _LOD_MODEL_START(SPI_STACK *stack, int count);
 static int _LOD_MODEL(SPI_STACK *stack, int count);
-static int _LOD_MODEL_END(SPI_STACK *stack, int count);
 
 static SPI_TAG_PARAM tag[] = { /**< Tags that build the character from its info file. */
     { "V2", _V2 },
@@ -263,10 +228,6 @@ static int            load_img_size; /**< Size in bytes of the skin texture arch
 static char           skin_mds_name[64]; /**< Replacement model file named by the skin script. */
 
 static void ScanInfoSkinFile(CCharacter2 *character, unsigned int *pack, char *name, char *skin_name, mgCMemory *memory, int image_block);
-static int _SKIN_IMG(SPI_STACK *stack, int count);
-static int _SKIN_IMG_END(SPI_STACK *stack, int count);
-static int _SKIN_MODEL(SPI_STACK *stack, int count);
-static mgCFrame *CreateChangeFrame(mgLoadData *load, mgCFrame *root);
 static int _SKIN_MOTION(SPI_STACK *stack, int count);
 
 static SPI_TAG_PARAM skin_tag[] = { /**< Tags that exchange the character's skin. */
@@ -1309,9 +1270,9 @@ float CCharacter2::GetWaitToFrame(char *name, float wait) {
     }
     return frame;
 }
-int CCharacter2::LoadSkin(u32 *pack_file, char *info_name, char *skin_name, mgCMemory *memory,
-                           int texture_block) {
-    return ScanInfoSkinFile(this, pack_file, info_name, skin_name, memory, texture_block);
+void CCharacter2::LoadSkin(u32 *pack_file, char *info_name, char *skin_name, mgCMemory *memory,
+                            int texture_block) {
+    ScanInfoSkinFile(this, pack_file, info_name, skin_name, memory, texture_block);
 }
 
 void CCharacter2::LoadPack(unsigned int *pack, char *name, mgCMemory *model_stack, mgCMemory *motion_stack, mgCMemory *image_stack, int image_block, CCharacter2 *parent) {

@@ -156,20 +156,7 @@ void PreExitLoop(CScene *scene) {
     EdEventTermination();
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditInit__F13INIT_LOOP_ARG);
-CameraCtrlParam &CameraCtrlParam::operator=(const CameraCtrlParam &src) {
-    min_dist = src.min_dist;
-    max_dist = src.max_dist;
-    near_height = src.near_height;
-    far_height = src.far_height;
-    height = src.height;
-    max_height = src.max_height;
-    min_height = src.min_height;
-    rest_max_height = src.rest_max_height;
-    rest_min_height = src.rest_min_height;
-    ground_space = src.ground_space;
-    no_check = src.no_check;
-    return *this;
-}
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __as__15CameraCtrlParamFRC15CameraCtrlParam);
 CActionChara::CActionChara() {
     memset(&move_check, 0, sizeof(move_check));
 }

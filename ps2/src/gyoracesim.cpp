@@ -33,7 +33,6 @@ extern int jrand;
 
 int GetRaceDivision(float distance);
 float GetCourseR(float position, float lane);
-float GetRaceDivisionLength(int division);
 static float GetRandomNumber(float mean, float range);
 void init_rnd(unsigned int seed);
 void RndFishParam(RACE_FISH_PARAM *fish);
@@ -46,7 +45,6 @@ void CollisionFish(RACE_FISH_PARAM *fish, int count);
 void LaneBattleStep(RACE_FISH_PARAM *fish, int count);
 grFISH_DATA *GetFishData(int fish_no);
 static float nrnd();
-int irnd();
 
 // Code (.text)
 int grGyoRaceSimulate(grRACE_INFO *race) {
@@ -668,7 +666,6 @@ static int irnd(void) {
     }
     return ia[jrand];
 }
-int irnd();
 static float rnd() {
     return (float)irnd() / 1000000000.0f;
 }

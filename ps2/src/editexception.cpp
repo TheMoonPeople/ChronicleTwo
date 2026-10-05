@@ -36,7 +36,6 @@ extern int sound_flag;
 extern int start_thunder;
 extern int thunder_count;
 extern CGeyserEffect *GeyserEffect;
-extern u32 GeyserEffectFlag;
 extern int FirePowderFlag;
 extern FirePowder *fire_powder;
 extern mgCTextureManager mgTexManager;

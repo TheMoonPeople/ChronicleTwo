@@ -243,7 +243,7 @@ extern int MasterDebugCode;
 /**
  * Controller the whole game reads.
  */
-extern CGamePad GamePad__2;
+extern CGamePad GamePad;
 
 /** Controller instance used by the game's main loop and pause screen. */
 extern CGamePad GamePad__2;

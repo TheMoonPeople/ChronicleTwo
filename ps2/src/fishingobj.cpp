@@ -60,7 +60,6 @@ extern u_int ActionChanceDir;
 extern int NowFishSpeed;
 extern float NowFishRot;
 extern "C" int fptosi(float value);
-void GetTriPose(float (*matrix)[4], float (*tri)[4], int *order);
 #include <libvu0.h>
 #include "mg_math.hpp"
 #include "gameutil.hpp"
@@ -103,11 +102,7 @@ static CFishObj UkiObj;
 static CFishObj HariObj;
 static sceVu0FVECTOR ChanceBarPos;
 
-static CFishObj *GetActiveHariObj();
-static CFishObj *GetActiveUkiObj();
-static int GetNextChanceCnt();
 static void BindPosition(float *point0, float *point1, float length, float rate);
-static void ParaBlend(float *out, float time, sceVu0FVECTOR *samples, int count);
 
 static void SetObjectPoint(FISH_POINT &point, float x, float y, float z) {
     point.pos[0] = x;

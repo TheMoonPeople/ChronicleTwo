@@ -37,7 +37,6 @@ extern int mem_table[4][7];
 extern char at_1149[];
 int SetupMints(CScene *scene, CUserDataManager *user_data);
 int SetupMonica(CScene *scene, CUserDataManager *user_data);
-int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA *robo);
 int SetupMonster(CScene *scene, CUserDataManager *user_data);
 extern char *at_1110[4];
 extern char *at_1113[3];
@@ -70,10 +69,7 @@ extern int mem_table[4][7];
 extern char r_robo_pname_1282[4][16];
 extern char fname_1290[64];
 
-static int SetupMints(CScene *scene, CUserDataManager *user_data);
-static void SetupMonica(CScene *scene, CUserDataManager *user_data);
 static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA *robo_info);
-static int SetupMonster(CScene *scene, CUserDataManager *user_data);
 
 // Code (.text)
 void GetCharacterSnd(CUserDataManager *user_data, int unit, char *path) {

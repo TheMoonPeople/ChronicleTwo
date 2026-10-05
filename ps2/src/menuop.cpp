@@ -136,7 +136,7 @@ void InitMenuReturnMsg(mgCMemory *stack) {
     if (LanguageCode > 0) {
         window = new (stack->Alloc(0x2A7)) CDC2Mes;
         MenuReturnMsg = window;
-        MenuReturnMsg->unk_22a4 = MenuArg.mes_tex_block;
+        MenuReturnMsg->texture_block = MenuArg.mes_tex_block;
         MenuReturnMsg->buff = NULL;
         system_mes = GetSystemMesBuffer();
         MenuReturnMsg->SetMessData(system_mes, GetMenuMainMessageBuffer());

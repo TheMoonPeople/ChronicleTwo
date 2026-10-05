@@ -1260,7 +1260,7 @@ int mapFUNC_ANIME_DATA(SPI_STACK *stack, int argc) {
         return 0;
     }
     anime = &mapNowFuncPoint->anime;
-    anime->unk_20 = mgCopyString(spiGetStackString(stack++), mapStack);
+    anime->parts_name = mgCopyString(spiGetStackString(stack++), mapStack);
     anime->piece_name = mgCopyString(spiGetStackString(stack++), mapStack);
     anime->frame_name = mgCopyString(spiGetStackString(stack++), mapStack);
     anime->unk_2c = spiGetStackInt(stack++);
@@ -1306,7 +1306,7 @@ int mapFUNC_EVENT_DATA(SPI_STACK *stack, int argc) {
     kind = 0;
     event = &mapNowFuncPoint->event;
     event->event_no = spiGetStackInt(stack++);
-    event->unk_28 = spiGetStackInt(stack++);
+    event->point_no = spiGetStackInt(stack++);
     event->unk_2c = spiGetStackInt(stack++);
     event->unk_30 = spiGetStackInt(stack++);
     event->unk_34 = spiGetStackInt(stack++);
@@ -1393,7 +1393,7 @@ int mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc) {
     if (copy != NULL) {
         strcpy(copy, name);
     }
-    mapNowFuncPoint->anime.unk_20 = copy;
+    mapNowFuncPoint->anime.parts_name = copy;
     effectIndex = mapMap->SaerchEffectIndex(copy);
     if (effectIndex >= 0) {
         *(int *)&mapNowFuncPoint->anime.piece_name = effectIndex;
@@ -1569,7 +1569,7 @@ int cfgFUNC_EVENT_DATA(SPI_STACK *stack, int argc) {
     if (mapNowFuncPoint == 0) {
         return 0;
     }
-    mapNowFuncPoint->event.unk_28 = spiGetStackInt(stack++);
+    mapNowFuncPoint->event.point_no = spiGetStackInt(stack++);
     if (argc > 1) {
         modeName = spiGetStackString(stack);
         mapNowFuncPoint->event.event_no = 0;

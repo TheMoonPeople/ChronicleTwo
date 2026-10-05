@@ -37,10 +37,8 @@ extern int PauseTexb;
 extern char at_920__7[];
 extern int wave_status;
 extern int play_time_count;
-extern CScene::BGM_STATUS bgm_status;
 extern NowLoadingInfo LoadInfo;
 extern float ProgBarWidthStep;
-#include "sce/eekernel.h"
 #include "mglib.hpp"
 #include "mg_texture.hpp"
 #include "mainloop.hpp"
@@ -77,7 +75,6 @@ extern PAUSE_INFO PauseInfo;
 extern NowLoadingInfo LoadInfo;
 extern int TheadID__3;
 extern int EndFlag;
-extern NowLoadingStep LoopStep;
 extern int play_time_count;
 extern int wave_status;
 extern int bgm_status[7];

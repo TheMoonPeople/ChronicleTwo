@@ -4356,7 +4356,7 @@ int _SET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
             eventData->event.event_no = GetStackInt__FP12RS_STACKDATA__2(value);
             break;
         case 2:
-            eventData->event.unk_28 = GetStackInt__FP12RS_STACKDATA__2(value);
+            eventData->event.point_no = GetStackInt__FP12RS_STACKDATA__2(value);
             break;
         case 3:
             eventData->event.unk_2c = GetStackInt__FP12RS_STACKDATA__2(value);
@@ -7586,7 +7586,7 @@ int _GET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
             SetStack__FP12RS_STACKDATAi__2(stack, eventData->event.event_no);
             break;
         case 2:
-            SetStack__FP12RS_STACKDATAi__2(stack, eventData->event.unk_28);
+            SetStack__FP12RS_STACKDATAi__2(stack, eventData->event.point_no);
             break;
         case 3:
             SetStack__FP12RS_STACKDATAi__2(stack, eventData->event.unk_2c);

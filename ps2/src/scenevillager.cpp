@@ -461,7 +461,7 @@ int CScene::GetTalkEvent(float *position, CSceneEventData *event) {
                         memset(&cleared_event, 0, sizeof(cleared_event));
                         event->chara_slot = slot;
                         event->chara_no = GetCharaNo(slot);
-                        event->event.unk_28 = slot - SCENE_VILLAGER_SLOT_TOP;
+                        event->event.point_no = slot - SCENE_VILLAGER_SLOT_TOP;
                         return 1;
                     }
                 }

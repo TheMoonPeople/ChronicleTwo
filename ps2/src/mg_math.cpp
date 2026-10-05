@@ -6,7 +6,6 @@
 #include <cmath>
 #include <cstdlib>
 
-static int Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2);
 
 // Code (.text)
 void mgFotI4(int *out, float *in) {

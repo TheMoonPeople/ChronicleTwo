@@ -978,7 +978,6 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", DrawWater__4CMapFP9mgCCameraP10mgCTextureP10mgCTexture);
 #endif
 void CMap::DrawTrBox() { if (tr_box_num == 0 || tr_box == NULL) return; mgTexManager.ReloadTexture(tr_box_texture, (sceVif1Packet *)NULL); int plight_enable = mgGetPlightEnable(); int lighting = mgActiveLighting(2, 1); CFuncPointCheck check; CreateFuncCheck(&check); GetNowTime(); for (int i = 0; i < tr_box_num; i++) { CMapTreasureBox *box = &tr_box[i]; if (!box->active) continue; if (box->parts != NULL && !box->parts->GetShow()) continue; int light_count = 0; if (func_point.flag & FUNC_POINT_MNGR_LIGHT) { float position[4]; box->GetPosition(position); position[3] = 40.0f; light_count = SetFuncPLight(position, &check); } if (light_count > 0) mgPlightEnable(1); box->DrawDirect(); ResetFuncPLight(light_count); } mgPlightEnable(plight_enable); if (lighting >= 0) mgActiveLighting(lighting, 0); }
-int CObject::GetShow() { return show; }
 int CMap::GetPoly(int kind, CCPoly *polys, mgVu0FBOX &box, int max) {
     CMapParts *found[128];
     int foundCount = GetPlaceColParts(&box, found, 128);
@@ -1602,26 +1601,8 @@ int CheckFuncEvent(CFuncPoint *point, float *pos, int check_type, MapEventInfo *
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/map", CheckFuncEvent__FP10CFuncPointPfiP12MapEventInfoPf);
 #endif
-int CMap::Draw() { return DrawSub(0); }
-int CMap::DrawDirect() { return DrawSub(1); }
 int CObject::Draw() { return 0; }
 int CObject::DrawDirect() { return 0; }
-void CObject::Show(int showFlag) {
-    this->show = showFlag;
-}
-void CObject::SetFarDist(float dist) {
-    this->far_dist = dist;
-}
-float CObject::GetFarDist(void) {
-    return this->far_dist;
-}
-void CObject::SetNearDist(float dist) {
-    this->near_dist = dist;
-}
-float CObject::GetNearDist(void) {
-    return this->near_dist;
-}
-void CObject::Copy(CObject &dest, mgCMemory *memory) { memcpy(dest.position, position, sizeof(position)); memcpy(dest.rotation, rotation, sizeof(rotation)); memcpy(dest.scale, scale, sizeof(scale)); dest.changed = changed; dest.use_srt = use_srt; dest.far_dist = far_dist; dest.fade = fade; dest.fade_alpha = fade_alpha; dest.fade_speed = fade_speed; dest.near_dist = near_dist; dest.show = show; dest.draw_off = draw_off; }
 
 
 // Constants (.rodata)

@@ -230,4 +230,3 @@ void QuestRequestClear(int id, int unused);
  */
 int GetQuestRequestStatus(int id);
 
-CQuestData *GetQuestData();

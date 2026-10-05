@@ -288,10 +288,10 @@ void mgPreEndDraw(mgCDrawManager *manager) {
     }
     manager->PreEndDraw();
 }
-void mgEndDrawReloadTexture(int texture, mgCDrawManager *manager) {
+int mgEndDrawReloadTexture(int texture, mgCDrawManager *manager) {
     if (manager == NULL)
         manager = &mgDrawManager;
-    manager->ReloadTexture(texture, mgVif1Packet);
+    return manager->ReloadTexture(texture, mgVif1Packet);
 }
 void mgEndDraw(int mode, mgCDrawManager *manager) {
     if (manager == NULL)

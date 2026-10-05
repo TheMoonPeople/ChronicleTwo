@@ -18,7 +18,6 @@ extern "C" u_char at_844[];
 static mgCFrameAttr dmy_attr; /**< Attributes GetDrawRect reads for a frame that has none of its own. */
 #endif
 
-#ifdef NONMATCHING
 /**
  *
  * Scales the first three rows of a matrix component-wise by a vector and copies its last row.

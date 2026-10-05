@@ -51,7 +51,6 @@ extern char at_972[];
 extern char at_973__2[];
 extern char at_974__2[];
 extern char at_975[];
-extern int command_int[12][2];
 extern CFont dbFont;
 extern "C" int fptosi(float value);
 #include "dng_debug.hpp"
@@ -89,15 +88,12 @@ static void dngDebugExit();
 /**
  * Loads a chosen monster kind beside the player, refreshing monster memory on the first load.
  */
-static void DBGCMD_ReloadEnemy(int monster_id, int clear_first);
 /**
  * Draws the first dungeon system-parameter panel.
  */
-static void DrawSystemParamInfo();
 /**
  * Draws the second dungeon system-parameter panel.
  */
-static void DrawSystemParamInfo2();
 
 // Code (.text)
 DNG_DEBUG_INFO *dngGetDebugInfo() { return &dbinfo; }
@@ -168,7 +164,7 @@ void dngDebugDraw(void) {
         }
         if (dbinfo.cursor == 1) {
             cursor += sprintf(cursor, at_972);
-            int selected = command_int[1][0];
+            int selected = command_int[1 * 2];
             int k = 0;
             int found = -1;
             while (base_monster_define[k].id != -1) {
@@ -183,7 +179,7 @@ void dngDebugDraw(void) {
                 k++;
             }
             if (found == -1) {
-                sprintf(cursor, at_974__2, command_int[1][0]);
+                sprintf(cursor, at_974__2, command_int[1 * 2]);
             } else {
                 if (base_monster_define[found].grade > 0) {
                     int m;

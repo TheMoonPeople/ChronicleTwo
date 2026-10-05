@@ -19,10 +19,6 @@ static CQuestManager *spi_questman; /**< Request list currently being read from 
 static mgCMemory *spi_queststack; /**< Heap used for the request list. */
 static QUEST_INFO *spi_quest_info; /**< Request currently being filled. */
 
-static int quest_NUM(SPI_STACK *arguments, int argument_count);
-static int quest_NEW(SPI_STACK *arguments, int argument_count);
-static int quest_COMMENT(SPI_STACK *arguments, int argument_count);
-static int quest_END(SPI_STACK *arguments, int argument_count);
 
 static SPI_TAG_PARAM quest_cmd_tag[] = {
     {"NUM", quest_NUM},

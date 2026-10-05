@@ -131,7 +131,7 @@ int CScene::GetMapEvent(float *position, int map_no, CSceneEventData *event) {
                 *(u_long128 *)event->scale = *(u_long128 *)point->scale;
                 event->event.flag = point->event.flag;
                 event->event.event_no = point->event.event_no;
-                event->event.unk_28 = point->event.unk_28;
+                event->event.point_no = point->event.point_no;
                 event->event.unk_2c = point->event.unk_2c;
                 event->event.unk_30 = point->event.unk_30;
                 event->event.unk_34 = point->event.unk_34;
@@ -155,9 +155,9 @@ int CScene::GetMapEvent(float *position, int map_no, CSceneEventData *event) {
         return 0;
     }
     if (object_chara == 0x78) {
-        event->event.unk_28 = 300;
+        event->event.point_no = 300;
     } else if (object_chara == 0x7A) {
-        event->event.unk_28 = 400;
+        event->event.point_no = 400;
     }
     return 1;
 }

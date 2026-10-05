@@ -104,5 +104,4 @@ public:
 STATIC_ASSERT(sizeof(CMapSky::AnimeFrame) == 0x8);
 STATIC_ASSERT(sizeof(CMapSky) == 0x108);
 
-void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size);
 int CheckSkyID(int sky_id);
