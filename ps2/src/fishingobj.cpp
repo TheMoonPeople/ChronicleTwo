@@ -119,6 +119,10 @@ static void SetObjectBind(FISH_BIND &bind, FISH_POINT &first, FISH_POINT &second
 }
 #endif
 
+#ifndef NONMATCHING
+void GetTriPose(float (*matrix)[4], float (*tri)[4], int *order);
+#endif
+
 // Code (.text)
 void SetFishingMode(int value) {
     NowMode = value;

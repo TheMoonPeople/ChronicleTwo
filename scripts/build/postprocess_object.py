@@ -15,10 +15,8 @@ given the section retail holds that address in:
 - NOBITS for `.sbss` and `.bss`, PROGBITS otherwise;
 - the flags of that kind of section, `.sdata` and `.sbss` carrying the MIPS
   gp-relative flag as MWCC sets it, `.init` being code;
-- for a placeholder, the alignment its retail address allows (up to 16), which
-  adds no padding after a placeholder whose extent already runs to it and
-  restores the compiler's after a compiled datum; a function or a compiled
-  datum keeps the compiler's.
+- alignment 1 for a datum, whose extent already runs to the next symbol, so
+  no padding is added between pieces; a function keeps the compiler's.
 
 A section whose symbol retail does not name -- a compiler-generated one, in a
 decompiled function's future -- is left as the compiler emitted it, but for
@@ -587,15 +585,6 @@ def fold_duplicates(elf):
             relocation.symbol_index = remap[relocation.symbol_index]
 
 
-def placeholder_alignment(elf, index, addresses):
-    for symbol in elf.symtab.symbols:
-        if symbol.st_shndx == index and symbol.name and symbol.type != STT_SECTION:
-            address = address_of(symbol.name, addresses)
-            if address is not None:
-                return min(16, address & -address) if address else 16
-    return 1
-
-
 def retail_sections(elf, addresses, unit=None, shadowed=frozenset()):
     """{section index: retail section name} for every section retail names."""
     out = {}
@@ -672,8 +661,8 @@ def main():
         section.sh_name = elf.add_sh_symbol(name)
         section.name = name
         section.sh_flags = FLAGS[name]
-        if name not in CODE and index in placeholder_sections:
-            section.sh_addralign = placeholder_alignment(elf, index, addresses)
+        if name not in CODE:
+            section.sh_addralign = 1
 
     for index, section in enumerate(elf.sections):
         if (index not in renamed and section.name == ".rodata" and section.sh_flags & SHF_ALLOC

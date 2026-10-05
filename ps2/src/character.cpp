@@ -3158,18 +3158,3 @@ INCLUDE_BSS(alloc_vertex, 0x190);
 INCLUDE_BSS(img_ptr, 0x20);
 INCLUDE_BSS(skin_mds_name, 0x40);
 
-CObject &CObject::operator=(const CObject &other) {
-    *(u_long128 *)position = *(const u_long128 *)other.position;
-    *(u_long128 *)rotation = *(const u_long128 *)other.rotation;
-    *(u_long128 *)scale = *(const u_long128 *)other.scale;
-    changed = other.changed;
-    use_srt = other.use_srt;
-    far_dist = other.far_dist;
-    fade = other.fade;
-    fade_alpha = other.fade_alpha;
-    fade_speed = other.fade_speed;
-    near_dist = other.near_dist;
-    show = other.show;
-    draw_off = other.draw_off;
-    return *this;
-}

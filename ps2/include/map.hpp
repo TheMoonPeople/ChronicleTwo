@@ -204,7 +204,6 @@ public:
      * @size 0x50
      */
     CObject() { Initialize(); }
-    CObject &operator=(const CObject &other);
 
     /**
      *
