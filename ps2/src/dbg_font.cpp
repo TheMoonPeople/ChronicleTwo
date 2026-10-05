@@ -10,9 +10,6 @@
 #include <cstdio>
 #include <cstring>
 
-static unsigned long SjisToJis(unsigned long sjis);
-static unsigned long SjisToSerno(unsigned long sjis);
-static unsigned long ascii2serno(unsigned char character);
 
 // Code (.text)
 unsigned long SjisToJis(unsigned long sjis) {
