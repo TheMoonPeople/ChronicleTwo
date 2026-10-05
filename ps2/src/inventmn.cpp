@@ -21,6 +21,11 @@
 #include <cstdio>
 #include "menuop.hpp"
 #include "menusys.hpp"
+#include "mg_dataset.hpp"
+#include "sound.hpp"
+#include "snd_mngr.hpp"
+#include "gamepad.hpp"
+#include <cmath>
 
 struct GridOverCode { int value[4]; };
 struct ModelTriple { CActionChara *model[3]; };
@@ -143,7 +148,8 @@ extern char at_2734__2[];
 extern char at_2735__2[];
 extern char at_2736[];
 extern char at_2737[];
-extern char at_2776[];
+struct FoundSlots { int v[3]; };
+extern FoundSlots at_2776;
 extern char at_3202[];
 extern char at_3317[];
 extern char at_3363[];
@@ -416,7 +422,12 @@ void CInventUserData::Initialize() {
     }
     ResetAddress();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", ResetAddress__15CInventUserDataFv);
+void CInventUserData::ResetAddress() {
+    for (int index = 0; index < 30; index++) {
+        photo[index].image = (char *)photo_work + index * (int)sizeof(photo_work[0]);
+    }
+}
+
 void CInventUserData::PhotoCheckEnd() {
     int i;
     for (i = 0; i < 30; i++) {
@@ -1068,7 +1079,19 @@ int CInventDataManage::DeleteUserUsedItem(int item_id, int count) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", CheckMakeItem__17CInventDataManageFiiP13CGameDataUsed);
+int CInventDataManage::CheckMakeItem(int item_id, int count, CGameDataUsed *item) {
+    MakeItemNeeds needs;
+    HowMuchZairyouMakeItem(item_id, count, (int *)&needs);
+    int available = 0;
+    for (int index = 0; index < needs.num; index++) {
+        int owned = GetUserItemHaveNum(needs.need[index].item_id);
+        if (needs.need[index].amount > owned) {
+            continue;
+        }
+        available++;
+    }
+    return available >= needs.num;
+}
 int _INVENT_DATATABLESET(SPI_STACK *stack, int unused) {
     int num;
     int i;
@@ -1091,7 +1114,40 @@ int _INVENT_DATATABLESET(SPI_STACK *stack, int unused) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", _INVENT_DATASET__FP9SPI_STACKi);
+int _INVENT_DATASET(SPI_STACK *stack, int argument_count) {
+    if (InventManagePt->num <= invent_num_counter) {
+        return 0;
+    }
+    inventSpiDataTblTop->item_id = spiGetStackInt(stack++);
+    short *ideas = inventSpiDataTblTop->neta_id;
+    ideas[0] = spiGetStackInt(stack++);
+    ideas[1] = spiGetStackInt(stack++);
+    ideas[2] = spiGetStackInt(stack++);
+    int index;
+    INVENT_MATERIAL_LIST *materials = &inventSpiDataTblTop->materials;
+    materials->num = (argument_count - 9) / 2;
+    if (materials->num <= 0) {
+        return 0;
+    }
+    unsigned int bytes = materials->num * sizeof(INVENT_MATERIAL);
+    unsigned int blocks = (bytes & 15) != 0 ? (bytes >> 4) + 1 : bytes >> 4;
+    materials->material = (INVENT_MATERIAL *)InventTeigiStack.Alloc(blocks);
+    for (index = 0; index < materials->num; index++) {
+        INVENT_MATERIAL *material = &materials->material[index];
+        if (material != NULL) {
+            material->item_id = spiGetStackInt(stack++);
+            material->num = spiGetStackInt(stack++);
+        }
+    }
+    inventSpiDataTblTop->unk_10 = spiGetStackInt(stack++);
+    inventSpiDataTblTop->model_scale = spiGetStackFloat(stack++);
+    inventSpiDataTblTop->model_pos[0] = spiGetStackFloat(stack++);
+    inventSpiDataTblTop->model_pos[1] = spiGetStackFloat(stack++);
+    inventSpiDataTblTop->model_pos[2] = spiGetStackFloat(stack);
+    inventSpiDataTblTop++;
+    invent_num_counter++;
+    return 1;
+}
 int CInventDataManage::LoadAnalyzeInventFile(char *script, int size) {
     if (script == NULL) {
         return 0;
@@ -1663,7 +1719,588 @@ int CMenuInvent::ItemCmdAfter(int command, ITEMCMD_RET_PARA *para) {
     }
     return 1;
 }
+enum {
+    kCreateAsk = 0,
+    kCreateWaitStart = 1,
+    kCreateShowReady = 2,
+    kCreateShow = 3,
+    kCreateAfter = 4,
+    kCreateKeyConfirm = 1,
+    kCreateKeyCancel = 2,
+    kLoadSoundMsg = -1,
+    kLoadModel = 0,
+    kLoadModelDone = 1,
+    kLoadItemModel = 2,
+    kLoadSoundBank = 3,
+    kLoadSoundPort = 4,
+    kLoadJingleOpen = 5,
+    kLoadJinglePlay = 6,
+    kItemModelBlocks = 0x1020,
+    kPhotoModelBlocks = 0x2000,
+    kMsgItemCreated = 0x25F,
+    kMsgNothingNew = 0x260,
+    kMsgPhotoNamed = 0x265,
+    kBlinkDark = 0x80303030,
+    kBlinkLight = 0x8022227F,
+    kLineColorNormal = 0x80686A6B,
+    kSceneAttrFlags = 0x18000
+};
+
+
+extern CGamePad GamePad__2;
+struct PathPrefix { u_long128 chunk[4]; };
+extern PathPrefix at_2913;
+extern char at_3113[];
+extern char at_3114[];
+extern char at_3115[];
+extern char at_3116[];
+extern char at_3117[];
+extern char at_3118[];
+extern char at_3119[];
+extern char at_3120[];
+extern char at_3121[];
+extern char at_3122[];
+extern char at_3123[];
+extern char at_3124[];
+extern char at_3125[];
+extern char at_3126[];
+extern char at_3127[];
+extern char at_3128[];
+extern char at_3129[];
+extern char at_3130[];
+extern char at_3131[];
+extern char at_3132[];
+extern char at_3133[];
+extern char at_3134[];
+extern char at_3135[];
+extern char at_2820[];
+extern char at_2249[];
+extern char *Tb_2819[7];
+extern char *gobitbl_2847[2];
+extern char *getfilename_2928[2];
+extern char *sndfileName_2951[2];
+extern char *wavname_2960[3];
+extern short sndtimetbl_2868[2];
+extern signed char D_003532DF[];
+extern float eff_light_2927[4];
+
+#ifdef NONMATCHING
+#pragma inline_depth(5)
+int CMenuInvent::IsCreateObject(int mode, int keys) {
+    CActionChara *action_chara = MenuActionChara[0];
+    CDC2Mes *message_window = MenuDCMsg[4];
+    mgCMemory *load_stack = &MenuCharaLoadStack;
+    mgCTextureManager *texture_manager = &mgTexManager;
+    s16 state = this->step;
+
+    switch (state) {
+    case kCreateAsk: {
+        s32 answer = -1;
+        if (state <= 0) {
+            answer = message_window->YesNoCursor();
+        }
+        switch (keys) {
+        case kCreateKeyConfirm:
+            if (answer == 0) {
+                this->key_arg_no = 0;
+                this->create_chara = NULL;
+                this->create_step = 0;
+                if (0 < this->create_item_id) {
+                    this->create_step = 1;
+                    InventUserDataPtr->SetCreateItemFlag(this->card_cursor, this->create_item_id);
+                } else {
+                    s32 recipe_index;
+                    s32 recipe_offset;
+                    this->unk_584 = 0;
+                    InventUserDataPtr->GetPhotoInfo(0);
+                    recipe_index = 0;
+                    recipe_offset = 0;
+                    while (InventManagePt->num != 0) {
+                        INVENT_DATA_INFO *recipe;
+                        CInventDataManage *table = InventManagePt;
+                        if (recipe_index < 0 || table->num <= recipe_index) {
+                            recipe = NULL;
+                        } else {
+                            recipe = (INVENT_DATA_INFO *)((u8 *)table->table + recipe_offset);
+                        }
+                        if (recipe == NULL) {
+                            break;
+                        }
+                        if (!(0 < InventUserDataPtr->IsAlreadyCreatedItem(recipe->item_id))) {
+                            s32 matched = 0;
+                            s32 index;
+                            s32 need;
+                            FoundSlots found = at_2776;
+                            for (index = 0; index < 3; index++) {
+                                need = recipe->neta_id[index];
+                                s32 slot;
+                                this->create_photo_neta[index] = need;
+                                for (slot = 0; slot < 3; slot++) {
+                                    s32 id = this->GetNowSelectNetaID(slot);
+                                    if (id == need) {
+                                        this->create_photo_neta[index] = 0;
+                                        found.v[slot] = 1;
+                                        matched++;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (matched == 2) {
+                                s32 slot_index;
+                                this->unk_584 = 1;
+                                for (slot_index = 0; slot_index < 3; slot_index++) {
+                                    if (found.v[slot_index] == 0) {
+                                        this->unk_594 = slot_index;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                        recipe_offset += sizeof(INVENT_DATA_INFO);
+                        recipe_index++;
+                    }
+                }
+                this->unk_60a = 0x7C;
+                this->ExeScript(at_3113);
+                this->GradationSet(1);
+                this->step = kCreateWaitStart;
+                load_stack->stack_used = 0;
+                load_stack->lock = 0;
+                StartReadBG();
+                s32 sound_message_size;
+                LoadFileBG(at_3114, load_stack->stGetTop(), &sound_message_size);
+                this->unk_5fc = kLoadSoundMsg;
+                break;
+            }
+        case kCreateKeyCancel:
+            this->ExeScript(at_3115);
+            this->mode = 0;
+            break;
+        }
+        break;
+    }
+    case kCreateWaitStart:
+        this->unk_60a--;
+        if (this->unk_60a <= 0 && this->unk_5fc > 1) {
+            this->step++;
+        }
+        break;
+    case kCreateShowReady:
+        action_chara->GetNowMotionName();
+        s32 motion = action_chara->seq_state;
+        if (this->unk_5fc >= 5 && motion == 3) {
+            this->step++;
+            action_chara->seq_advance = 1;
+            action_chara->SetMotion(at_3116, 4, 1);
+            this->unk_604 = 1;
+            this->unk_606 = 1;
+            this->unk_608 = 0;
+            this->poly_chr_form[1]->SetActionCharaPtr(this->create_chara, this->tex_block[2], -1);
+            this->GradationSet(3);
+            MenuCommonInfo->MenuPosPlay();
+            this->unk_5e4 = 0.0f;
+            this->unk_5f0 = 0.0f;
+            this->unk_5f4 = 0;
+            this->unk_5f8 = 0.0f;
+            if (this->create_step != 0) {
+                this->ExeScript(at_3117);
+                if (this->create_chara != NULL) {
+                    INVENT_DATA_INFO *recipe;
+                    mgCFrame *frame = this->create_chara->CObjectFrame::frame;
+                    recipe = InventManagePt->GetInventDataInfoByItemID(this->create_item_id);
+                    this->create_scale = MenuAdjustPolygonScale(frame, 7.0f);
+                    this->create_chara->SetScale(0.0f, 0.0f, 0.0f);
+                    this->create_chara->SetPosition(-10.0f, 3.4f, 0.0f);
+                    if (recipe != NULL) {
+                        this->create_scale = recipe->model_scale;
+                        this->create_chara->SetPosition(recipe->model_pos[0], recipe->model_pos[1],
+                                                       recipe->model_pos[2]);
+                    }
+                    this->create_chara->Step();
+                    if (this->create_item_id == 0x88) {
+                        this->create_scale = 0.45f;
+                        this->create_chara->SetPosition(-10.0f, 0.4f, 0.0f);
+                    }
+                    MenuRoboPartsLightOff(frame);
+                }
+            } else if (this->unk_584 != 0) {
+                s32 index;
+                this->ExeScript(at_3118);
+                for (index = 0; index < 3; index++) {
+                    if (this->create_photo_neta[index] > 0) {
+                        USER_PICTURE_INFO info;
+                        char *name;
+                        s32 length;
+                        info.neta_id = this->create_photo_neta[index];
+                        info.used = 1;
+                        name = GetPhotoName(&info);
+                        if (name != NULL) {
+                            strcpy((char *)this->create_photo_name, name);
+                        } else {
+                            strcpy((char *)this->create_photo_name, Tb_2819[LanguageCode]);
+                        }
+                        length = strlen((char *)this->create_photo_name);
+                        if (length > 2) {
+                            s32 half_length = length >> 1;
+                            if (LanguageCode == 0) {
+                                s8 cut = D_003532DF[half_length];
+                                this->create_photo_name[cut] = -0x7F;
+                                this->create_photo_name[cut + 1] = -0x66;
+                            } else if (LanguageCode > 0) {
+                                s32 character_index = length / 4;
+                                if (character_index <= 0) {
+                                    character_index = 1;
+                                }
+                                for (; character_index < length; character_index++) {
+                                    this->create_photo_name[character_index] = '.';
+                                }
+                            }
+                        } else if (name != NULL) {
+                            sprintf((char *)this->create_photo_name, at_3119, name, gobitbl_2847[GetRandI(2)]);
+                        } else {
+                            strcpy((char *)this->create_photo_name, at_2820);
+                        }
+                        break;
+                    }
+                }
+                this->unk_5bc = 1;
+            } else {
+                this->ExeScript(at_3120);
+            }
+            MenuSePlay(0, this->unk_394, &MenuSoundBuffer);
+        }
+        break;
+    case kCreateShow: {
+        if (this->create_step != 0) {
+            if (this->create_chara != NULL) {
+                float scale[4];
+                this->create_chara->GetScale(scale);
+                switch (this->unk_5f4) {
+                case 0:
+                    if (CalcMenuAdd(&this->unk_5f8, 0.4f, this->unk_5f8) != 0) {
+                        this->unk_5f4 = 1;
+                        this->unk_5e4 = 0.0f;
+                        this->unk_5ec = 0.4f * this->create_scale;
+                    }
+                    scale[0] = this->unk_5f8;
+                    break;
+                case 1:
+                    scale[0] = this->create_scale + this->unk_5ec * sinf(0.10471976f * this->unk_5f0);
+                    CalcMenuAdd(&this->unk_5ec, -0.02f, 0.0f);
+                    CalcMenuAdd(&this->unk_5e4, 0.15707964f, 15.707964f);
+                    CalcMenuAdd(&this->unk_5f0, 1.0f, 600.0f);
+                    if (menu_debug_flag != 0) {
+                        float move[4];
+                        float scale_step = -GamePad__2.GetRYf() / 8.0f;
+                        float move_x;
+                        float move_y;
+                        this->create_scale += scale_step;
+                        scale[0] += scale_step;
+                        if (scale[0] <= 0.0f) {
+                            scale[0] = 0.0f;
+                        }
+                        move_x = GamePad__2.GetLXf() / 10.0f;
+                        move_y = -GamePad__2.GetLYf() / 10.0f;
+                        this->create_chara->GetPosition(move);
+                        move[0] += move_x;
+                        move[1] += move_y;
+                        this->create_chara->SetPosition(move);
+                    }
+                    break;
+                }
+                this->create_chara->SetScale(scale[0], scale[0], scale[0]);
+                AddRotationCharaY((CCharacter2 *)this->create_chara, 0.01308997f);
+                this->create_chara->Step();
+            }
+        }
+        switch (this->unk_604) {
+        case 0:
+            break;
+        case 1:
+            if (this->unk_606 != 0) {
+                s16 jingle_length = sndtimetbl_2868[this->create_step];
+                if (this->unk_608 > jingle_length / 2) {
+                    this->unk_606 = 0;
+                    this->ExeScript(at_3121);
+                    if (this->create_step != 0) {
+                        char *message = GetItemMessage(this->create_item_id);
+                        if (message != NULL) {
+                            strcpy(message_window->name[0], message);
+                        }
+                        message_window->MakeMsg(kMsgItemCreated);
+                    } else if (this->unk_584 != 0) {
+                        char *name;
+                        message_window->MakeMsg(kMsgPhotoNamed);
+                        name = (char *)this->create_photo_name;
+                        if (name != NULL) {
+                            strcpy(message_window->name[0], name);
+                        }
+                    } else {
+                        message_window->MakeMsg(kMsgNothingNew);
+                    }
+                }
+            }
+            this->unk_608++;
+            if (this->unk_608 > sndtimetbl_2868[this->create_step]) {
+                MenuCommonInfo->FadeInMenuBGMVol(6);
+                this->unk_604 = 0;
+            }
+            break;
+        }
+        if (this->unk_584 != 0) {
+            u32 color;
+            this->unk_5b8++;
+            if (this->unk_5b8 >= 0x32) {
+                this->unk_5b8 = 0;
+            }
+            color = kBlinkDark;
+            if (this->unk_5b8 >= 0x19) {
+                color = kBlinkLight;
+            }
+            CDC2Mes *color_window = MenuDCMsg[7];
+            if (this->unk_594 >= 0 && this->unk_594 < 0x14) {
+                color_window->line_color[this->unk_594] = color;
+            }
+        }
+        if (this->unk_604 == 0 && ((keys & kCreateKeyConfirm) || (keys & kCreateKeyCancel))) {
+            s32 cursor[2];
+            this->step = 0;
+            this->mode = 0;
+            if (this->unk_5fc == kLoadJingleOpen || this->unk_5fc == kLoadJinglePlay) {
+                CSnd.StreamClose(1);
+                this->unk_5fc = -2;
+            }
+            action_chara->DeleteExtMotion();
+            MenuCommonInfo->FadeInMenuBGMVol(6);
+            this->unk_63c = NULL;
+            if (this->create_step != 0 ||
+                ((s16)this->create_step == 0 && this->unk_584 == 0)) {
+                this->InitNetaCircle(0);
+            } else {
+                this->InitNetaCircle(1);
+            }
+            this->ExeScript(at_3122);
+            this->create_step = 0;
+            CDC2Mes *color_window = MenuDCMsg[7];
+            if (this->unk_594 >= 0 && this->unk_594 < 0x14) {
+                color_window->line_color[this->unk_594] = kLineColorNormal;
+            }
+            this->GradationSet(0);
+            this->poly_chr_form[1]->SetActionCharaPtr(NULL, this->tex_block[2], -1);
+            this->GetNetaBoardCursorPosition(this->photo_cursor, cursor);
+            MenuCommonInfo->MenuSetPos(cursor[0], cursor[1]);
+        }
+        break;
+    }
+    case kCreateAfter:
+        if (keys != 0) {
+            this->ExeScript(at_3115);
+            this->step = 0;
+            this->mode = 0;
+        }
+        break;
+    default:
+        this->step = 0;
+        this->mode = 0;
+        break;
+    }
+
+    s32 read_done = ReadBGSync();
+    switch (this->unk_5fc) {
+    case -2:
+        break;
+    case kLoadSoundMsg:
+        if (read_done == 0) {
+            BG_READ_INFO *file = GetReadBGFile(0);
+            if (file != NULL) {
+                MenuSePlay(0, (u32 *)file->buffer, &MenuSoundBuffer);
+                MenuCommonInfo->FadeOutMenuBGMVol(-3, 0x18);
+            }
+            this->unk_5fc = kLoadModel;
+        }
+        break;
+    case kLoadModel: {
+        PathPrefix path;
+        s32 model_blocks;
+        s32 motion_size;
+        action_chara->SetMotion(at_3123, 0, 1);
+        load_stack->stack_used = 0;
+        load_stack->lock = 0;
+        load_stack->Align64();
+        path = at_2913;
+        model_blocks = kItemModelBlocks;
+        if (this->create_step != 0) {
+            strcat((char *)&path, at_3124);
+        } else {
+            if (this->unk_584 != 0) {
+                strcat((char *)&path, at_3125);
+            } else {
+                strcat((char *)&path, at_3126);
+            }
+            model_blocks = kPhotoModelBlocks;
+        }
+        this->chara_stack.stSetBuffer(load_stack->stGetTop(), model_blocks);
+        load_stack->Alloc((model_blocks * 16 & 15) != 0 ?
+                          ((unsigned int)(model_blocks * 16) >> 4) + 1 :
+                          (unsigned int)(model_blocks * 16) >> 4);
+        this->create_model_file = (u8 *)load_stack->stGetTop();
+        StartReadBG();
+        LoadFileBG((char *)&path, (u_long128 *)this->create_model_file, &motion_size);
+        this->create_motion_file = this->create_model_file + motion_size / 16 * 16;
+        LoadFileBG(at_3127, (u_long128 *)this->create_motion_file, &motion_size);
+        this->unk_5fc = kLoadModelDone;
+        break;
+    }
+    case kLoadModelDone:
+        if (this->unk_60a <= 0 && read_done == 0) {
+            float pos[4];
+            float rot[4];
+            BG_READ_INFO *pack_bg;
+            MDS_HEADER *pack_file;
+            mgCFrame *frame;
+            CMenuPosDataForm *form;
+            GetReadBGFile(0);
+            action_chara->GetPosition(pos);
+            action_chara->GetRotation(rot);
+            strcpy(texture_manager->name_suffix, at_3128);
+            action_chara->LoadPack((unsigned int *)this->create_model_file, at_2249, &this->chara_stack,
+                                   &this->chara_stack, &this->chara_stack, this->tex_block[1], 0);
+            texture_manager->name_suffix[0] = 0;
+            action_chara->SetPosition(pos);
+            action_chara->SetRotation(rot);
+            if (this->create_step != 0) {
+                texture_manager->TexAnimeOn(this->tex_block[1], at_3129);
+                texture_manager->TexAnimeOn(this->tex_block[1], at_3130);
+            } else {
+                texture_manager->TexAnimeOn(this->tex_block[1], at_3131);
+                texture_manager->TexAnimeOn(this->tex_block[1], at_3132);
+            }
+            pack_bg = GetReadBGFile(1);
+            pack_file = NULL;
+            if (pack_bg != NULL) {
+                pack_file = (MDS_HEADER *)GetPackFile((u32 *)pack_bg->buffer, getfilename_2928[this->create_step], NULL);
+            }
+            this->unk_63c = new (load_stack->Alloc(0x105)) CActionChara;
+            this->unk_63c->Initialize(0);
+            frame = mgLoadMDSFile(pack_file, load_stack, NULL, NULL);
+            this->unk_63c->CObjectFrame::frame = frame;
+            if (frame != NULL) {
+                mgCFrameAttr *attr = (mgCFrameAttr *)frame->attr;
+                attr->no_light = 1;
+                attr->color[0] = eff_light_2927[0];
+                attr->color[1] = eff_light_2927[1];
+                attr->color[2] = eff_light_2927[2];
+                attr->color[3] = eff_light_2927[3];
+                float one = 1.0f;
+                float x = 18.0f * one;
+                float z = 20.0f * one;
+                this->unk_63c->SetPosition(x, -20.0f, z);
+                this->unk_63c->SetRotation(0.0f, 0.15707964f, 0.0f);
+                frame->SetAttrParam(*attr, 1, kSceneAttrFlags);
+            }
+            form = MenuPosData->GetFormInfo(at_3133);
+            if (form != NULL) {
+                form->SetActionCharaPtr(this->unk_63c, -1, -1);
+                form->counter = 0;
+                form->ambient[0] = -1.0f;
+            }
+            this->unk_5fc = kLoadSoundBank;
+            load_stack->Align64();
+            this->unk_600 = 100;
+            if (this->create_step != 0) {
+                u8 *item_file;
+                char *item_path;
+                s32 item_size;
+                this->unk_600 = 200;
+                this->create_chara = new (load_stack->Alloc(0x105)) CActionChara;
+                this->create_chara->Initialize(0);
+                this->unk_d48.stSetBuffer(load_stack->stGetTop(), 0x35C0);
+                this->unk_d48.stack_used = 0;
+                this->unk_d48.lock = 0;
+                load_stack->Alloc(0x35C0);
+                load_stack->Align64();
+                item_file = (u8 *)load_stack->stGetTop();
+                item_path = GetItemFilePath(this->create_item_id, 1);
+                if (item_path != NULL) {
+                    if (*item_path != 0) {
+                        StartReadBG();
+                        LoadFileBG((char *)item_path, (u_long128 *)item_file, &item_size);
+                    }
+                }
+                this->unk_5fc = kLoadItemModel;
+            }
+        }
+        break;
+    case kLoadItemModel:
+        if (read_done == 0) {
+            BG_READ_INFO *item_bg = GetReadBGFile(0);
+            if (item_bg != NULL && this->create_chara != NULL) {
+                texture_manager->DeleteBlock(this->tex_block[2]);
+                strcpy(texture_manager->name_suffix, at_3134);
+                this->create_chara->Initialize(0);
+                this->create_chara->LoadPack((unsigned int *)item_bg->buffer, at_2249, &this->unk_d48,
+                                           &this->unk_d48, &this->unk_d48, this->tex_block[2], 0);
+                texture_manager->name_suffix[0] = 0;
+            }
+            this->unk_5fc++;
+        }
+        break;
+    case kLoadSoundBank: {
+        s32 sound_size;
+        load_stack->Align64();
+        StartReadBG();
+        this->unk_394 = (u32 *)load_stack->stGetTop();
+        LoadFileBG(sndfileName_2951[this->create_step], (u_long128 *)this->unk_394, &sound_size);
+        load_stack->Alloc((sound_size & 15) != 0 ? ((unsigned int)sound_size >> 4) + 1 :
+                                                (unsigned int)sound_size >> 4);
+        this->unk_5fc++;
+        break;
+    }
+    case kLoadSoundPort:
+        if (read_done == 0) {
+            sndInitPort(8);
+            this->unk_5fc++;
+        }
+        break;
+    case kLoadJingleOpen:
+        this->unk_600--;
+        if (this->unk_600 == 0x28) {
+            s32 wave = this->create_step;
+            char wave_name[0x88];
+            if (wave == 1) {
+                wave = GetRandI(2) + 1;
+            }
+            sprintf(wave_name, at_3135, wavname_2960[wave]);
+            CSnd.StreamOpenFast(1, wave_name);
+        }
+        if (this->unk_600 <= 0) {
+            while (CSnd.StreamOpenState() != 0) {
+            }
+            CSnd.StreamStandBy(1);
+            while (CSnd.StreamOpenState() != 0) {
+            }
+            CSnd.StreamSetVol(1, 0x7FFF, 0x7FFF);
+            CSnd.StreamPlay(1);
+            this->unk_600 = 0x50;
+            this->unk_5fc++;
+        }
+        break;
+    case kLoadJinglePlay:
+        s32 play_state = CSnd.StreamGetState(1);
+        this->unk_600--;
+        if ((play_state & 0x8000) && this->unk_600 <= 0) {
+            CSnd.StreamClose(1);
+            this->unk_5fc++;
+        }
+        break;
+    }
+    return 1;
+}
+
+#pragma inline_depth reset
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", IsCreateObject__11CMenuInventFii);
+#endif
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", CalcMakeBrd__11CMenuInventFi);
 extern "C" int EnableSelectMaxCardList__11CMenuInventFv(CMenuInvent *objet) {
     int var_v0;

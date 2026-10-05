@@ -1297,7 +1297,11 @@ void EditDrawEffectChara(CScene *scene) {
 }
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editctrl", __sinit_editctrl_cpp);
+extern "C" void __sinit_editctrl_cpp() {
+    memset(&MoveInfo, 0, sizeof(MoveInfo));
+    memset(&LadderData, 0, sizeof(LadderData));
+}
+
 
 
 // Initialised data (.data)

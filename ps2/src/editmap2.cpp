@@ -324,7 +324,88 @@ void CEditMap::UpdateHouse() {
         }
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap2", GroundBalance__8CEditMapFi);
+void CEditMap::GroundBalance(int animate) {
+    if (area_no != 1) {
+        return;
+    }
+    int weights[4] = {0, 0, 0, 0};
+    balance_parts[0] = GetPlaceParts("p09_g0201");
+    balance_parts[1] = GetPlaceParts("p09_g0201-1");
+    balance_parts[2] = GetPlaceParts("p08_g0201");
+    balance_parts[3] = GetPlaceParts("p08_g0201-1");
+    if (balance_parts[0] == NULL || balance_parts[1] == NULL ||
+        balance_parts[2] == NULL || balance_parts[3] == NULL) {
+        return;
+    }
+    int ground_index;
+    CEditParts *part = edit_parts;
+    for (int index = 0; index < edit_parts_max; ++index, ++part) {
+        if (CheckNormalPlaceParts(part)) {
+            CMapParts *ground = part->ground;
+            if (ground == NULL) {
+                continue;
+            }
+            for (ground_index = 0; ground_index < 4; ++ground_index) {
+                if (ground == balance_parts[ground_index]) {
+                    if (part->info != NULL) {
+                        weights[ground_index] += part->info->weight;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    int first_difference = weights[1] - weights[0];
+    if (first_difference < 4 && first_difference > 0) {
+        first_difference = 0;
+    }
+    if (first_difference > -4 && first_difference < 0) {
+        first_difference = 0;
+    }
+    int second_difference = weights[3] - weights[2];
+    if (second_difference < 4 && second_difference > 0) {
+        second_difference = 0;
+    }
+    if (second_difference > -4 && second_difference < 0) {
+        second_difference = 0;
+    }
+    if (first_difference > 30) {
+        first_difference = 30;
+    }
+    if (first_difference < -30) {
+        first_difference = -30;
+    }
+    if (second_difference > 30) {
+        second_difference = 30;
+    }
+    if (second_difference < -30) {
+        second_difference = -30;
+    }
+    if (balance_moved == 0) {
+        for (int index = 0; index < 4; ++index) {
+            balance_parts[index]->GetPosition(balance_base_pos[index]);
+        }
+        balance_moved = 1;
+    }
+    balance_parts[0]->GetPosition(balance_pos[0]);
+    balance_pos[0][1] = 4.0f * first_difference;
+    balance_parts[1]->GetPosition(balance_pos[1]);
+    balance_pos[1][1] = 4.0f * -first_difference;
+    balance_parts[2]->GetPosition(balance_pos[2]);
+    balance_pos[2][1] = 4.0f * second_difference;
+    balance_parts[3]->GetPosition(balance_pos[3]);
+    balance_pos[3][1] = 4.0f * -second_difference;
+    if (animate == 0) {
+        balance_moved = 0;
+    }
+    for (int index = 0; index < 4; ++index) {
+        balance_parts[index]->SetPosition(balance_pos[index]);
+    }
+    balance_weight[0] = weights[0];
+    balance_weight[1] = weights[1];
+    balance_weight[2] = weights[2];
+    balance_weight[3] = weights[3];
+}
 int CEditMap::BalanceCheck() {
     float side_diff = (float)(balance_weight[0] - balance_weight[1]);
     if (side_diff < 0.0f) {

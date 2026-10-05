@@ -37,6 +37,7 @@ extern "C" void *__ct__11mgCDrawPrimFv(void *);
 #include "scenesnd.hpp"
 #include "dng_hud.hpp"
 #include "character.hpp"
+#include "nd_meswin.hpp"
 
 extern "C" int fptosi(float);
 extern int gekirin_anim[16];
@@ -497,10 +498,90 @@ void CDamageScore2::SetValue(int slot, int value, float height) {
     sprintf(text, at_1221__2, this->value);
     length = strlen(text);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__13CDamageScore2FP6CScene);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Step__13CDamageScore2Fv);
+void CDamageScore2::Draw(CScene *scene) {
+    if (phase != DAMAGE_SCORE2_PHASE_NONE && length > 0) {
+        CCharacter2 *character = scene->GetCharacter(chara_no);
+        if (character != NULL) {
+            mgCFrame *frame = character->GetFrame();
+            if (frame != NULL) {
+                CPreSprite sprite;
+                int screen[4];
+                sceVu0FVECTOR position;
+                sprite.Initialize(NULL, NULL);
+                sprite.Preset2D();
+                sprite.Coord(1);
+                sprite.Begin(6);
+                sprite.Texture(TEX_SystenFrame);
+                sprite.AlphaTestEnable(1);
+                frame->GetWorldPosition0(position);
+                position[1] += height;
+                position[3] = 1.0f;
+                for (int index = 0; text[index] > 0; index++) {
+                    if (mgTransWorldPrim(screen, position)) {
+                        screen[0] -= (length * 14 / 2) << 4;
+                        screen[0] += (index * 14) << 4;
+                        screen[1] += (int)offset_y << 4;
+                        int digit = text[index] - '0';
+                        sprite.Color(220, 96, 96, (int)(128.0f * alpha));
+                        sprite.TextureCrd(digit * 12 + 78, 162);
+                        sprite.Vertex4(screen[0], screen[1], 0);
+                        sprite.TextureCrd(digit * 12 + 90, 179);
+                        sprite.Vertex4(screen[0] + 224, screen[1] + 304, 0);
+                    }
+                }
+                sprite.End();
+            }
+        }
+    }
+}
+void CDamageScore2::Step() {
+    if (phase != DAMAGE_SCORE2_PHASE_NONE) {
+        if (phase == DAMAGE_SCORE2_PHASE_JUMP) {
+            progress += 0.1f;
+            alpha += 0.1f;
+            offset_y = (int)(64.0f * sinf(-2.3561945f * progress));
+            if (progress > 1.0f) {
+                phase = DAMAGE_SCORE2_PHASE_HOLD;
+                progress = 0.0f;
+                alpha = 1.0f;
+            }
+        }
+        if (phase == DAMAGE_SCORE2_PHASE_HOLD) {
+            progress += 0.05f;
+            if (progress > 1.0f) {
+                phase = DAMAGE_SCORE2_PHASE_FADE;
+                progress = 0.0f;
+            }
+        }
+        if (phase == DAMAGE_SCORE2_PHASE_FADE) {
+            progress += 0.125f;
+            alpha -= 0.125f;
+            offset_y += (int)(8.0f * progress);
+            if (progress > 1.0f) {
+                phase = DAMAGE_SCORE2_PHASE_NONE;
+                alpha = 0.0f;
+            }
+        }
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__12CLockOnModelFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", DrawMess__12CLockOnModelFi);
+void CLockOnModel::DrawMess(int tex_block) {
+    if (name != NULL) {
+        if (mes->MakeAnd3DPosSet(name, pos, 0, -48) == 0) {
+            ClsMes *message = mes;
+            message->draw_speed = message->GetDrawSpeedDef();
+            message->mes_no = -1;
+            message->unk_1e40 = 0;
+            message->open = 0;
+            message->fade = 0.0f;
+            message->fukidashi_centre_x = -1;
+            message->fukidashi_centre_y = -1;
+        }
+        mes->Step();
+        mgTexManager.ReloadTexture(tex_block, (sceVif1Packet *)NULL);
+        mes->DrawMesWin();
+    }
+}
 void CLockOnModel::Step() {
     angle += 0.06981317f;
     if (angle > 3.1415927f) {

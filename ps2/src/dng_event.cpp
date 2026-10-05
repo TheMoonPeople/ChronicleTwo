@@ -69,6 +69,7 @@ extern "C" char at_1965__2[];
 extern SPI_TAG_PARAM tag__5[];
 extern SPI_TAG_PARAM tag2[];
 extern char at_1348[];
+extern char at_2529[];
 
 // Code (.text)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_event", DrawEpisode__20CStartupEpisodeTitleFii);
@@ -1337,7 +1338,47 @@ void MinimapDoorEnable(float *pos) {
     AutoMapGen.MinimapDoorOpen(pos);
     AutoMapGen.UpdateNaviMap(pos, 4);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_event", LoadMonsterFile__Fv);
+void LoadMonsterFile() {
+    CScene *scene = DngMainScene;
+    if (ActiveMonster != NULL) {
+        ActiveMonster->Initialize(scene);
+        DngMainScene->AssignStack(3);
+        DngMainScene->ClearStack(3);
+        mgCMemory *memory = DngMainScene->GetStack(3);
+        int slot_index;
+        CMonsterMan *manager = ActiveMonster;
+        for (slot_index = 0; slot_index < MONSTER_ACTIVE_MAX; slot_index++) {
+            u_long128 *buffer = memory->stAlloc64(4000);
+            mgCMemory *slot = &manager->memory[slot_index];
+            slot->stSetBuffer(buffer, 4000);
+            slot->stack_used = 0;
+            slot->lock = 0;
+        }
+        sndInitPort(5);
+        int locate_index;
+        int stage_id = DngSaveDataDungeon->stage_id;
+        CMonsterLocateInfo *locate = &ActiveMonster->locate;
+        locate->num = 0;
+        locate->put_num = 0;
+        locate->put_flag = 0;
+        for (locate_index = 0; locate_index < MONSTER_LOCATE_MAX; locate_index++) {
+            locate->param[locate_index] = -1;
+            locate->monster_id[locate_index] = -1;
+        }
+        char path[76];
+        int size;
+        sprintf(path, at_2529, stage_id);
+        LoadFile(path, BuffReadData, &size);
+        CreatMonsterFloorInfo((char *)BuffReadData, size);
+        int monster_count = ActiveMonster->locate.num;
+        for (int entry = 0; entry < monster_count; entry++) {
+            int monster_id = ActiveMonster->locate.monster_id[entry];
+            if (ActiveMonster->SearchBaseIndex(monster_id) < 0) {
+                ActiveMonster->EntryRefer(monster_id, memory);
+            }
+        }
+    }
+}
 void LoadMonsterFile(int monster_id, int initialize) {
     mgCMemory *memory;
     CScene *scene = DngMainScene;

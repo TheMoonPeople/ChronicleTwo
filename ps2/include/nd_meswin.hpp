@@ -386,7 +386,7 @@ public:
      * @address 0x152590
      * @size 0x50
      */
-    u8 GetCaptionOff();
+    int GetCaptionOff();
 
     /**
      *

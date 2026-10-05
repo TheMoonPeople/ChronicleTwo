@@ -8,7 +8,6 @@
 #include "mglib.hpp"
 
 // Code (.text)
-#ifdef NONMATCHING
 void CEditMap::DrawFireEffect(int tex_block) {
     CMap::DrawFireEffect(tex_block);
     CFuncPointCheck check;
@@ -18,70 +17,64 @@ void CEditMap::DrawFireEffect(int tex_block) {
     mgCTexture *light_texture = mgTexManager.GetTexture("lightling", tex_block);
     sceVu0FMATRIX matrix;
     mgUnitMatrix(matrix);
+    CEditParts *part = edit_parts;
     mgDrawDirectStart();
-    for (int index = 0; index < edit_parts_max; ++index) {
-        CEditParts &part = edit_parts[index];
-        if ((part.func_point_mngr.flag & FUNC_POINT_MNGR_BURN) && part.name[0] != '\0' && part.state != 0) {
-            part.GetLWMatrix(matrix);
-            ::DrawFireEffect(matrix, &part.func_point_mngr, &check, 1.0f, fire_texture, light_texture);
+    for (int index = 0; index < edit_parts_max; ++index, ++part) {
+        if (part->func_point_mngr.flag & FUNC_POINT_MNGR_BURN) {
+            int unnamed = part->name[0] == 0;
+            if (unnamed == 0 && part->state != 0) {
+                part->GetLWMatrix(matrix);
+                ::DrawFireEffect(matrix, &part->func_point_mngr, &check, 1.0f, fire_texture, light_texture);
+            }
         }
     }
     mgDrawDirectEnd();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmapeffect", DrawFireEffect__8CEditMapFi);
-#endif
-#ifdef NONMATCHING
 void CEditMap::DrawFireRaster() {
     CMap::DrawFireRaster();
     CFuncPointCheck check;
     CreateFuncCheck(&check);
     sceVu0FMATRIX matrix;
     mgUnitMatrix(matrix);
-    for (int index = 0; index < edit_parts_max; ++index) {
-        CEditParts &part = edit_parts[index];
-        if (part.name[0] != '\0' && part.state != 0) {
-            part.GetLWMatrix(matrix);
-            ::DrawFireRaster(matrix, &part.func_point_mngr, &check, fire_raster);
+    CEditParts *part = edit_parts;
+    for (int index = 0; index < edit_parts_max; ++index, ++part) {
+        int unnamed = part->name[0] == 0;
+        if (unnamed == 0 && part->state != 0) {
+            part->GetLWMatrix(matrix);
+            ::DrawFireRaster(matrix, &part->func_point_mngr, &check, fire_raster);
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmapeffect", DrawFireRaster__8CEditMapFv);
-#endif
-#ifdef NONMATCHING
 void CEditMap::DrawEffect() {
     GetNowTime();
     CMap::DrawEffect();
     CFuncPointCheck check;
     CreateFuncCheck(&check);
-    static mgCFrameAttr effect_attr;
-    effect_attr.no_light = 1;
-    effect_attr.fog = 3;
-    effect_attr.depth_bias = 1.015f;
-    effect_attr.no_cull = 2;
+    static mgCFrameAttr attr;
+    attr.no_cull = 1;
+    attr.draw = 3;
+    attr.depth_bias = 1.015f;
+    attr.fog = 2;
 
-    for (int index = 0; index < edit_parts_max; ++index) {
-        CEditParts &part = edit_parts[index];
-        if (part.name[0] == '\0' || part.state == 0) {
+    CEditParts *part = edit_parts;
+    for (int index = 0; index < edit_parts_max; ++index, ++part) {
+        int unnamed = part->name[0] == 0;
+        if (unnamed != 0 || part->state == 0) {
             continue;
         }
-        part.func_point_mngr.GetStart(FUNC_POINT_EFFECT);
-        for (CFuncPoint *point = part.func_point_mngr.Get(); point != NULL; point = part.func_point_mngr.Get()) {
+        part->func_point_mngr.GetStart(FUNC_POINT_EFFECT);
+        CFuncPoint *point;
+        while ((point = part->func_point_mngr.Get()) != NULL) {
             if (point->Check(&check) != 0) {
-                point->frame.SetReference(&part.frame);
+                point->frame.SetReference(&part->frame);
                 point->frame.SetVisual(effect_list.GetEffectVisual(point->effect.index));
-                point->frame.attr = &effect_attr;
+                point->frame.attr = &attr;
                 mgDrawDirect(&point->frame);
                 point->frame.DeleteReference();
             }
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmapeffect", DrawEffect__8CEditMapFv);
-#endif
-#ifdef NONMATCHING
 void CEditMap::AnimeStep(CObjAnimeEnv *env) {
     CMap::AnimeStep(env);
     CFuncPointCheck check;
@@ -96,7 +89,7 @@ void CEditMap::AnimeStep(CObjAnimeEnv *env) {
         }
     }
     if (balance_moved != 0) {
-        bool settled = true;
+        int settled = 1;
         for (int index = 0; index < EDIT_MAP_BALANCE_MAX; ++index) {
             float difference = balance_pos[index][1] - balance_base_pos[index][1];
             balance_base_pos[index][1] += difference / 4.0f;
@@ -104,7 +97,7 @@ void CEditMap::AnimeStep(CObjAnimeEnv *env) {
                 difference = -difference;
             }
             if (difference > 0.1f) {
-                settled = false;
+                settled = 0;
             }
         }
         if (settled) {
@@ -112,9 +105,6 @@ void CEditMap::AnimeStep(CObjAnimeEnv *env) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmapeffect", AnimeStep__8CEditMapFP12CObjAnimeEnv);
-#endif
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmapeffect", at_358__2__DATA);

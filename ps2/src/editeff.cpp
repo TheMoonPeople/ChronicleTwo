@@ -5,6 +5,9 @@
 #include "mg_memory.hpp"
 #include "mapparts.hpp"
 #include "editeff.hpp"
+#include "editparts.hpp"
+#include "mg_drawenv.hpp"
+#include "mglib.hpp"
 
 extern void *__vt__9mgCObject[];
 extern void *__vt__7CObject[];
@@ -27,6 +30,7 @@ const int paint_particle_count = 24;
 const int place_anime_count = 3;
 
 extern char at_821__5[];
+extern sceVu0FVECTOR at_1112__3;
 
 extern u32 EffectFlag;
 extern u32 EffectState;
@@ -81,7 +85,49 @@ void EditInitPlaceEffect(void) {
         paint->shape = 0;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editeff", EditPlaceEffect__FP10CEditPartsPf);
+int EditPlaceEffect(CEditParts *parts, float *position) {
+    CStarEffect *effect = NULL;
+    int oldest_frame = 0;
+    int index = 0;
+    int byte_offset = 0;
+    for (; index < star_effect_count; ++index, byte_offset += sizeof(CStarEffect)) {
+        CStarEffect *candidate = (CStarEffect *)((u8 *)_StarEffect + byte_offset);
+        if (candidate->state == effect_idle) {
+            effect = &_StarEffect[index];
+            break;
+        }
+        if (candidate->frame > oldest_frame) {
+            oldest_frame = candidate->frame;
+            effect = candidate;
+        }
+    }
+    if (effect == NULL) {
+        return 0;
+    }
+    EffectFlag = 1;
+    mgVu0FBOX bounds;
+    float spread[4];
+    if (parts == NULL || !parts->GetBBox(&bounds)) {
+        return 0;
+    }
+    sceVu0SubVector(spread, bounds.max, bounds.min);
+    spread[0] = 0.5f * spread[0];
+    for (int axis = 1; axis < 3; ++axis) {
+        spread[axis] = 0.5f * spread[axis];
+    }
+    float radius = mgDistVectorXZ(spread);
+    if (!(radius <= 300.0f)) {
+        radius = 300.0f;
+    }
+    int particle_count = 10;
+    particle_count += radius / (300.0f / 54.0f);
+    spread[0] = radius;
+    spread[2] = radius;
+    effect->ParamInit(spread, particle_count);
+    effect->SetPosition(position);
+    effect->size = 1.0f + radius / 300.0f;
+    return 1;
+}
 int EditPaintEffect(CEditParts *parts, float *position, float *color, int shape) {
     CPaintEffect *paint;
     CPaintEffect *candidate;
@@ -236,7 +282,51 @@ void CStarEffect::Step() {
         frame += 1;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editeff", Draw__11CStarEffectFv);
+int CStarEffect::Draw() {
+    if (state == effect_idle || state == effect_finished) {
+        return 0;
+    }
+    sprite.Initialize();
+    mgC3DSprite *billboard = &sprite;
+    mgCDrawEnv draw_env = *mgGetpDrawEnv(0);
+    sceGsTest *test = &draw_env.test;
+    test->bits.zte = 1;
+    test->bits.ztst = 2;
+    draw_env.SetZBuf(MG_ZBUF_NO_WRITE);
+    draw_env.SetAlpha(MG_ALPHA_MACRO_ADD);
+    billboard->BeginCreatePacket(MG_3DSPRITE_MODE_ROTATE, NULL);
+    billboard->CPSetDrawEnv(&draw_env);
+    billboard->CPSetTexture(texture);
+    billboard->BeginCPSprite();
+    float star_size[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}};
+    star_size[0][0] = 25.0f * size;
+    star_size[0][1] = 25.0f * size;
+    star_size[0][2] = star_angle;
+    star_size[1][0] = 15.0f * size;
+    star_size[1][1] = 15.0f * size;
+    star_size[1][2] = 0.5f * star_angle;
+    float uv_start[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {32.0f, 5.0f, 0.0f, 0.0f}};
+    float uv_end[2][4] = {{32.0f, 31.0f, 0.0f, 0.0f}, {48.0f, 15.0f, 0.0f, 0.0f}};
+    float star_color[4] = {128.0f, 128.0f, 128.0f, 0.0f};
+    star_color[3] = 128.0f * alpha;
+    for (int index = 0; index < particle_num; ++index) {
+        EditStarParticle *star = &particle[index];
+        float star_position[4];
+        sceVu0MulVector(star_position, star->position, scale);
+        star_position[3] = 1.0f;
+        billboard->CPSetSprite(star_position, star_size[star->shape], star_color,
+                               uv_start[star->shape], uv_end[star->shape]);
+    }
+    billboard->EndCPSprite();
+    billboard->EndCreatePacket();
+    float matrix[4][4];
+    mgCreateMatrixPY(matrix, position, rotation[1]);
+    int fog_enabled = mgGetFogEnable();
+    mgFogEnable(0);
+    int result = mgDrawDirect(billboard, matrix);
+    mgFogEnable(fog_enabled);
+    return result;
+}
 void CPaintEffect::ParamInit(float size) {
     int i;
 
@@ -273,7 +363,48 @@ void CPaintEffect::Step() {
         state = effect_idle;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editeff", Draw__12CPaintEffectFv);
+int CPaintEffect::Draw() {
+    if (state == effect_idle || state == effect_finished || state == effect_started) {
+        return 0;
+    }
+    sprite.Initialize();
+    mgC3DSprite *billboard = &sprite;
+    mgCDrawEnv draw_env = *mgGetpDrawEnv(0);
+    sceGsTest *test = &draw_env.test;
+    test->bits.zte = 1;
+    test->bits.ztst = 2;
+    draw_env.SetZBuf(MG_ZBUF_NO_WRITE);
+    draw_env.SetAlpha(MG_ALPHA_MACRO_BLEND);
+    billboard->BeginCreatePacket(MG_3DSPRITE_MODE_UPRIGHT, NULL);
+    billboard->CPSetDrawEnv(&draw_env);
+    billboard->CPSetTexture(texture);
+    billboard->BeginCPSprite();
+    float uv_start[2][4] = {{0.0f, 32.0f, 0.0f, 0.0f}, {32.0f, 32.0f, 0.0f, 0.0f}};
+    float uv_end[2][4] = {{32.0f, 63.0f, 0.0f, 0.0f}, {63.0f, 63.0f, 0.0f, 0.0f}};
+    float drop_color[4];
+    *(u_long128 *)drop_color = *(u_long128 *)color;
+    drop_color[3] = 128.0f * alpha;
+    for (int index = 0; index < paint_particle_count; ++index) {
+        float drop_position[4];
+        float drop_size[4];
+        float drop_scale = drop[index][3];
+        *(u_long128 *)drop_position = *(u_long128 *)drop[index];
+        drop_position[3] = 1.0f;
+        *(u_long128 *)drop_size = *(u_long128 *)at_1112__3;
+        drop_size[0] = 10.0f * drop_scale;
+        drop_size[1] = drop_size[0];
+        billboard->CPSetSprite(drop_position, drop_size, drop_color, uv_start[shape], uv_end[shape]);
+    }
+    billboard->EndCPSprite();
+    billboard->EndCreatePacket();
+    float matrix[4][4];
+    mgCreateMatrixPY(matrix, position, rotation[1]);
+    int fog_enabled = mgGetFogEnable();
+    mgFogEnable(0);
+    int result = mgDrawDirect(billboard, matrix);
+    mgFogEnable(fog_enabled);
+    return result;
+}
 void EditInitPlaceAnime(void) {
     int i;
 
@@ -511,7 +642,13 @@ int EditPlaceAnimeEndCheck(void) {
 CStarEffect::CStarEffect() {}
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editeff", __sinit_editeff_cpp);
+extern "C" void *__construct_array(void *array, void *(*constructor)(void *),
+                                  void *destructor, unsigned int element_size, unsigned int count);
+extern "C" void *__ct__11CStarEffectFv(void *effect);
+extern "C" void __sinit_editeff_cpp() {
+    __construct_array(_StarEffect, __ct__11CStarEffectFv, NULL, sizeof(CStarEffect), star_effect_count);
+    CurPartsBuff.Init();
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1038__6__DATA);

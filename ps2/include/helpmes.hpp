@@ -36,15 +36,6 @@ STATIC_ASSERT(sizeof(HELP_MES_INFO) == 0x1C);
  */
 void LoadHelpMes(u_long128 *buffer);
 
-/**
- *
- * Returns the request for the help message window.
- *
- * @mangled GetHepMesInfo__Fv
- * @address 0x31E3A0
- * @size 0x10
- */
-HELP_MES_INFO *GetHepMesInfo();
 
 /**
  *

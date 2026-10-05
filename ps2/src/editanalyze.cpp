@@ -6,6 +6,7 @@
 #include "editdata.hpp"
 #include "editmap.hpp"
 #include "editanalyze.hpp"
+#include "editmenu.hpp"
 
 const int info_tree_a = 0x28;
 const int info_tree_b = 0x29;
@@ -248,7 +249,37 @@ void AnalyzeSharlot(CEditData *data, CEditMap *map) {
     condition[17] = data->culture_point >= 0x32;
     data->Analize(0, condition, target);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editanalyze", AnalyzeStera__FP9CEditDataP8CEditMap);
+void AnalyzeStera(CEditData *data, CEditMap *map) {
+    int condition[analyze_slots];
+    int target[analyze_slots];
+    for (int i = 0; i < analyze_slots; ++i) {
+        condition[i] = 0;
+        target[i] = -1;
+    }
+    map->GroundBalance(0);
+    condition[0] = map->BalanceCheck();
+    condition[1] = data->culture_point >= 20;
+    target[2] = 0;
+    condition[3] = GetTreeNum(map) >= 15;
+    condition[4] = data->culture_point >= 30;
+    target[5] = 2;
+    condition[6] = map->GetePlacePartsAtInfoID(4, NULL, 0) >= 4;
+    condition[7] = map->CheckLiveNPC(18, -1);
+    condition[8] = map->CheckLiveNPC(10, -1);
+    condition[9] = data->culture_point >= 40;
+    condition[10] = map->CheckLiveNPC(7, 73);
+    condition[11] = GetSaveData()->GetBitFlag(0x14A);
+    condition[12] = map->CheckLiveNPC(5, -1);
+    condition[13] = GetSaveData()->GetBitFlag(0x164);
+    target[14] = 1;
+    condition[15] = map->CheckLiveNPC(-1, -1) >= 2;
+    condition[16] = map->GetePlacePartsAtInfoID(74, NULL, 0) > 0;
+    condition[17] = map->CheckLiveNPC(14, -1);
+    condition[18] = data->culture_point >= 50;
+    target[19] = 4;
+    data->Analize(EDIT_ANALYZE_MAP_STERA, condition, target);
+}
+
 void AnalyzeBenietio(CEditData *data, CEditMap *map) {
     int condition[analyze_slots];
     int target[analyze_slots];
@@ -340,7 +371,39 @@ void AnalyzeBenietio(CEditData *data, CEditMap *map) {
     target[15] = 5;
     data->Analize(2, condition, target);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editanalyze", GetColorType__FP10CEditPartsi);
+int GetColorType(CEditParts *parts, int color_no) {
+    float color[4];
+    float default_color[4];
+    float paint_color[4];
+    if (parts == NULL) {
+        return -1;
+    }
+    if (!parts->GetColor(color_no, color)) {
+        return -1;
+    }
+    CEditPartsInfo *info = parts->info;
+    if (info == NULL) {
+        return -1;
+    }
+    if (!info->GetDefColor(color_no, default_color)) {
+        return -1;
+    }
+    if (EditPartsCmpColor(color, default_color)) {
+        return -1;
+    }
+    sceVu0ScaleVector(color, color, 128.0f);
+    int closest = -1;
+    float closest_distance;
+    for (int index = 0; index < 8; ++index) {
+        GetPenkiColor(index, paint_color);
+        float distance = mgDistVector(paint_color, color);
+        if (distance <= 2.0f && (closest < 0 || distance < closest_distance)) {
+            closest = index;
+            closest_distance = distance;
+        }
+    }
+    return closest < 0 ? -1 : closest;
+}
 void AnalyzeHeim(CEditData *data, CEditMap *map) {
     int condition[analyze_slots];
     int target[analyze_slots];

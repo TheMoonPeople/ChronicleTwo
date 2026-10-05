@@ -40,11 +40,13 @@
 #include "nd_meswin.hpp"
 #include "padcontrol.hpp"
 #include "pot.hpp"
+#include "quest.hpp"
 #include "savedata.hpp"
 #include "sphida.hpp"
 #include "sound.hpp"
 #include "swordeffect.hpp"
 #include "sysmes.hpp"
+#include "subgame.hpp"
 #include "userdata.hpp"
 #include "editmenu.hpp"
 #include "gamedata.hpp"
@@ -4222,14 +4224,45 @@ extern "C" int _CHECK_INVENT_ITEM__FP12RS_STACKDATAi(RS_STACKDATA *arg0, int arg
     SetStack__FP12RS_STACKDATAi__2(arg0, value);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_AI__FP12RS_STACKDATAi);
+int _SET_AI(RS_STACKDATA *stack, int argc) {
+    int enabled = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    int chara_no = GetStackInt__FP12RS_STACKDATA__2(stack);
+    if (enabled != 0) {
+        EventScene->CancelStayVillager(chara_no);
+    } else {
+        EventScene->StayVillager(chara_no);
+    }
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _CHECK_INVENT_PHOTO__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_PHOTO_NUM__FP12RS_STACKDATAi);
+int _GET_PHOTO_NUM(RS_STACKDATA *stack, int argc) {
+    CSaveData *save = GetSaveData();
+    if (save == NULL) {
+        return 0;
+    }
+    CUserDataManager *user_data = &save->user_data;
+    CInventUserData *invent_data = &user_data->invent_data;
+    if (user_data == NULL) {
+        return 0;
+    }
+    if (invent_data == NULL) {
+        return 0;
+    }
+    SetStack__FP12RS_STACKDATAi__2(stack, invent_data->GetNowHavePictureNum());
+    return 1;
+}
 int _SET_CONTENTS_ETC(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_STATUS__FP12RS_STACKDATAi__2);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GOTO_SUBGAME__FP12RS_STACKDATAi);
+int _GOTO_SUBGAME(RS_STACKDATA *stack, int argc) {
+    int type = GetStackInt__FP12RS_STACKDATA__2(stack);
+    SubGameInfo info;
+    info.scene = EventScene;
+    info.texb = EventScene->unk_3e68;
+    info.texb_num = EventScene->unk_3e6c;
+    return sgInitSubGame(type, &info) != 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_GYORACE_ETC__FP12RS_STACKDATAi);
 int _GET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
     FISH_PRIZE_INFO info;
@@ -4357,7 +4390,18 @@ int _EYE_VIEW_DRAW_ON_OFF(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_QUEST_ETC__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_QUEST_ETC__FP12RS_STACKDATAi);
+int _GET_QUEST_ETC(RS_STACKDATA *stack, int argc) {
+    int command = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    int quest_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    switch (command) {
+        case 0:
+            SetStack__FP12RS_STACKDATAi__2(stack, GetQuestRequestStatus(quest_no));
+            break;
+        default:
+            return 0;
+    }
+    return 1;
+}
 int _GET_OLD_INTERIOR_MAP_NO(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAi__2(stack, GetOldInteriorMapNo());
     return 1;
@@ -5103,7 +5147,17 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_MES__FP12RS_STACKDATAi)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_MES_MONS_TALK__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _MES_SE_PLAY__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MES_STR__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_MES_OKURI__FP12RS_STACKDATAi);
+int _GET_MES_OKURI(RS_STACKDATA *stack, int argc) {
+    if (argc != 1) {
+        return 0;
+    }
+    ClsMes *mes = GetMes(GetStackInt__FP12RS_STACKDATA__2(stack++));
+    if (mes == NULL) {
+        return 0;
+    }
+    SetStack__FP12RS_STACKDATAi__2(stack, mes->push_button);
+    return 1;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_FISHINGTOURNAMENT_ETC__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_CHARA_FAR_DIST__FP12RS_STACKDATAi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_MODEL_LIGHT_SWITCH__FP12RS_STACKDATAi__2);

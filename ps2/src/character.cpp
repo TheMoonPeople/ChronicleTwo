@@ -810,15 +810,14 @@ void CCharacter2::Step() {
     CtrlEffect();
 }
 
-#ifdef NONMATCHING
 void CCharacter2::StepDA(int count) {
-    int  index;
-    int  iteration;
+    int index;
+    int iteration;
 
-    if ((dynamic_anime_flags & CHARA_DYNAMIC_ANIME_DISABLE) != 0 || dynamic_anime_num == 0) {
+    if ((dynamic_anime_flags & CHARA_DYNAMIC_ANIME_DISABLE) != 0) {
         return;
     }
-    if (dynamic_anime == NULL) {
+    if (dynamic_anime_num == 0 || dynamic_anime == NULL) {
         return;
     }
     for (index = 0; index < dynamic_anime_num; index++) {
@@ -831,9 +830,6 @@ void CCharacter2::StepDA(int count) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", StepDA__11CCharacter2Fi);
-#endif
 
 void CCharacter2::SetWind(float power, float *dir) {
     int  index;
@@ -2634,10 +2630,6 @@ CCharaLOD::CCharaLOD() {
     motion = 0;
 }
 
-#ifdef NONMATCHING
-/**
- * Builds a level-of-detail model and the frame links used to exchange its visuals.
- */
 static int _LOD_MODEL(SPI_STACK *stack, int count) {
     mgCreateVisualType  visual_type[64];
     mgLoadData          load;
@@ -2650,15 +2642,15 @@ static int _LOD_MODEL(SPI_STACK *stack, int count) {
     unsigned int       *weight_file;
     int               (*link)[2];
     float             (*matrix_file)[4][4];
+    int                 frame_index;
+    int                 frame_count;
+    int                 visual_count;
     mgCFrame           *root;
     mgCFrame          **frame_list;
     char               *weight_name;
     char               *matrix_name;
-    int                 frame_index;
     int                 level_index;
     int                 deform_index;
-    int                 visual_count;
-    int                 frame_count;
     int                 quadwords;
 
     level_index = spiGetStackInt(stack++);
@@ -2740,9 +2732,6 @@ static int _LOD_MODEL(SPI_STACK *stack, int count) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", _LOD_MODEL__FP9SPI_STACKi);
-#endif
 int _LOD_MODEL_END(SPI_STACK *stack, int argc) {
     nowChr->lod_no = -1;
     return 1;
@@ -2975,7 +2964,10 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", Copy__11CCharacter2FR11CCharac
 #endif
 
 
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", __as__7CObjectFRC7CObject);
+extern "C" CObject &__as__7CObjectFRC7CObject(CObject *destination, const CObject *source) {
+    *destination = *source;
+    return *destination;
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/character", tag__DATA);
@@ -3065,4 +3057,3 @@ INCLUDE_BSS(load_img_size, 0x4);
 INCLUDE_BSS(alloc_vertex, 0x190);
 INCLUDE_BSS(img_ptr, 0x20);
 INCLUDE_BSS(skin_mds_name, 0x40);
-

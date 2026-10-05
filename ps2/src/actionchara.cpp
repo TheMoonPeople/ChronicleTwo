@@ -53,6 +53,8 @@ extern float at_3289[4];
 extern float at_3291[4];
 extern char at_2423[];
 extern char at_3389[];
+extern char at_2333[];
+extern char at_2334[];
 extern char at_2210[];
 extern float ang_3371;
 extern s8 init_3372;
@@ -1177,14 +1179,47 @@ void CActionChara::RockOn() {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanMoveIF__12CActionCharaFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanShrowMoveIF__12CActionCharaFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanTameMoveIF__12CActionCharaFv);
+int CActionChara::HumanTameMoveIF() {
+    float position[4];
+    float movement[4];
+    float camera_angle;
+    float stick_x;
+    float stick_y;
+    float world_x;
+    float world_z;
+
+    GetPosition(position);
+    sceVu0CopyVector(movement, velocity);
+    camera_angle = action_info.camera->GetAngle();
+    stick_x = GamePad__2.GetLXf();
+    stick_y = GamePad__2.GetLYf();
+    world_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
+    world_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
+    world_x *= 0.4f;
+    world_z *= 0.4f;
+    movement[0] = 2.0f * world_x * (float)mgFrameRate;
+    movement[2] = 2.0f * world_z * (float)mgFrameRate;
+    if (world_x != 0.0f || world_z != 0.0f) {
+        stand_flag = 0;
+    } else {
+        stand_flag = 1;
+    }
+    SetMotion(at_2333, 0, 1);
+    if (world_x != 0.0f || world_z != 0.0f) {
+        SetMotion(at_2334, 0, 1);
+    }
+    sceVu0CopyVector(velocity, movement);
+    RockOn();
+    return 1;
+}
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", HumanGunMoveIF__12CActionCharaFPcPc);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboWalkMoveIF__12CActionCharaFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboTankMoveIF__12CActionCharaFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboBikeMoveIF__12CActionCharaFi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboAirMoveIF__12CActionCharaFii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", MonsterMoveIF__12CActionCharaFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", GuardEffectSet__FP6CScenePf);
+
 void HitEffectSet(CScene *scene, float *point) {
     float pos[4];
     float to_camera[4];
@@ -1616,6 +1651,70 @@ void CActionChara::Initialize(mgCMemory *memory) {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", Copy__12CActionCharaFR12CActionCharaP9mgCMemory);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", __as__11CCharacter2FRC11CCharacter2);
+
+extern char at_2818[];
+extern char at_2840[];
+
+void GuardEffectSet(CScene *scene, float *point) {
+    float to_camera[4];
+    float position[4];
+    ActionVector direction;
+    CCameraControl *camera;
+    CHitEffectImage *hit;
+    CFlushEffect *flush;
+
+    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
+    if (camera == NULL) {
+        return;
+    }
+    sceVu0CopyVector(position, point);
+    camera->GetPos(to_camera);
+    sceVu0SubVector(to_camera, to_camera, position);
+    sceVu0Normalize(to_camera, to_camera);
+    sceVu0ScaleVector(to_camera, to_camera, 20.0f);
+    sceVu0AddVector(position, position, to_camera);
+    direction = *(ActionVector *)at_2818;
+    if (BattleFX.hit == NULL) {
+        hit = NULL;
+    } else {
+        hit = BattleFX.hit + BattleFX.hit_next;
+        BattleFX.hit_next++;
+        if (BattleFX.hit_next >= BattleFX.hit_num) {
+            BattleFX.hit_next = 0;
+        }
+    }
+    float spread = 50.0f;
+    SethitEffect__15CHitEffectImageFPfPfffffii(hit, position, direction.f,
+                                          spread, 30.0f, 0.0f, 0.1f, 30, 32);
+    hit->kind = 1;
+    if (BattleFX.flush == NULL) {
+        flush = NULL;
+    } else {
+        flush = BattleFX.flush + BattleFX.flush_next;
+        BattleFX.flush_next++;
+        if (BattleFX.flush_next >= BattleFX.flush_num) {
+            BattleFX.flush_next = 0;
+        }
+    }
+    if (flush != NULL) {
+        sceVu0CopyVector(flush->pos, position);
+        flush->fade_speed = 16.0f;
+        flush->alpha = 160;
+        flush->active = 1;
+        flush->size = 10.0f;
+        flush->grow = 3.0f;
+        flush->tex_u = 65;
+        flush->tex_v = 193;
+        flush->tex_size = 62;
+        flush->follow = NULL;
+    }
+    if (FxScriptMan != NULL) {
+        FxScriptMan->CreateEffSpt(at_2840, 0, 0);
+        FxScriptMan->SetScriptVect1(position, 0, -1);
+    }
+}
+
+
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_1398__DATA);

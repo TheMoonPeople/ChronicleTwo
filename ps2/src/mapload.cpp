@@ -1131,7 +1131,30 @@ int mapFIX_CAMERA_POS2(SPI_STACK *stack, int argc) {
     info->pos_num = (index + 1 < info->pos_num) ? info->pos_num : index + 1;
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapload", mapFIX_CAMERA_OFF_GROUP__FP9SPI_STACKi);
+int mapFIX_CAMERA_OFF_GROUP(SPI_STACK *stack, int argument_count) {
+    if (IsAddMode()) {
+        return 1;
+    }
+    int draw_index = spiGetStackInt(stack++);
+    CCameraInfo *camera = mapMap->GetCameraInfo(mapCameraInfoIdx);
+    if (camera == NULL) {
+        return 0;
+    }
+    CCameraDrawInfo *draw_info = camera->GetDrawInfo(draw_index);
+    if (draw_info == NULL) {
+        return 0;
+    }
+    char *group_name = spiGetStackString(stack++);
+    if (group_name == NULL) {
+        return 0;
+    }
+    if (group_name[0] == 0) {
+        return 1;
+    }
+    draw_info->unk_4 = spiGetStackInt(stack);
+    draw_info->group_no = mapMap->SearchPartsGroupNo(group_name);
+    return 1;
+}
 #pragma inline_depth(0)
 int mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc) {
     CCameraInfo *info;
@@ -1769,7 +1792,24 @@ int cfgWATER_SURFACE_END(SPI_STACK *stack, int argc) {
     WaterIndex++;
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapload", cfgWATER_DRAW_NUM__FP9SPI_STACKi);
+int cfgWATER_DRAW_NUM(SPI_STACK *stack, int argument_count) {
+    mapMap->water_num = spiGetStackInt(stack);
+    int water_count = mapMap->water_num;
+    if (water_count < 0) {
+        return 0;
+    }
+    mapMap->water = new (
+        mapStack->Alloc(algn16_size(water_count * sizeof(CMapWater)) + 2)) CMapWater[water_count];
+    for (int index = 0; index < mapMap->water_num; index++) {
+        mapMap->water[index].Initialize();
+        mapMap->water[index].parts_max = 16;
+        mapMap->water[index].parts = new (
+            mapStack->Alloc(algn16_size(mapMap->water[index].parts_max * sizeof(CMapParts *)) + 2))
+            CMapParts *[mapMap->water[index].parts_max];
+        mapMap->water[index].Clear();
+    }
+    return 1;
+}
 CMapWater::CMapWater() {}
 int cfgWATER_DRAW(SPI_STACK *stack, int argc) {
     CMapWater *slot;

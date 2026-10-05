@@ -88,6 +88,40 @@ static const int mes_win_inset_x = 0x1E;
 static const int mes_win_inset_y = 0x18;
 
 extern char at_2718[];
+extern char at_1317[];
+extern char at_2366[];
+extern char at_2367[];
+extern char at_2368[];
+extern char at_2369[];
+extern char at_2370[];
+extern char at_2371[];
+extern char at_2372[];
+extern char at_2373[];
+extern char at_2374[];
+extern char at_2375[];
+extern char at_2376[];
+extern char at_2377[];
+extern char at_2378[];
+extern char at_2379[];
+extern char at_2380[];
+extern char at_2381[];
+extern char at_2382[];
+extern char at_2383[];
+extern char at_2384[];
+extern char at_2385[];
+extern char at_2386[];
+extern char at_2387[];
+extern char at_2388[];
+extern char at_2389[];
+extern char at_2390[];
+extern char at_2391[];
+extern char at_2392[];
+extern char at_2393[];
+extern char at_2394[];
+extern char at_2395[];
+extern char at_2396[];
+extern char at_2397[];
+
 
 const int mes_newline = 0xFF00;
 
@@ -132,6 +166,8 @@ extern char at_2123[];
 extern char at_2124[];
 
 extern char at_2567[];
+
+extern char at_1124[];
 
 char *GetTopAddress(char *text, int size, int id);
 
@@ -185,9 +221,31 @@ void MySetPrim(mgCDrawPrim *prim, int mode, int bilinear) {
             break;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", set2DSpriteEasy__FP11mgCDrawPrim9mgRect_i_9mgRect_i_P10RGBAQ_TYPE);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", _set2DSprite__FPcP11mgCDrawPrim9mgRect_i_9mgRect_i_P10RGBAQ_TYPE);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", set2DSprite__FP11mgCDrawPrim9mgRect_i_9mgRect_i_P10RGBAQ_TYPE);
+void set2DSpriteEasy(mgCDrawPrim *primitive, mgRect<int> destination,
+                     mgRect<int> texture, RGBAQ_TYPE *color) {
+    texture.right += texture.left;
+    texture.bottom += texture.top;
+    destination.right += destination.left;
+    destination.bottom += destination.top;
+    primitive->Color(color->r, color->g, color->b, color->a);
+    primitive->TextureCrd(texture.left, texture.top);
+    primitive->Vertex(destination.left, destination.top, 0);
+    primitive->TextureCrd(texture.right, texture.bottom);
+    primitive->Vertex(destination.right, destination.bottom, 0);
+}
+void _set2DSprite(char *texture_name, mgCDrawPrim *primitive, mgRect<int> destination,
+                  mgRect<int> texture, RGBAQ_TYPE *color) {
+    if (MesAbsDrawOff == 0) {
+        primitive->Begin(6);
+        MySetTex(texture_name, primitive);
+        set2DSpriteEasy(primitive, destination, texture, color);
+        primitive->End();
+    }
+}
+void set2DSprite(mgCDrawPrim *primitive, mgRect<int> destination,
+                 mgRect<int> texture, RGBAQ_TYPE *color) {
+    _set2DSprite(at_1124, primitive, destination, texture, color);
+}
 void FillRect(int x, int y, int w, int h, int r, int g, int b, int a) {
     message_draw_prim drawer;
     drawer.prim.Initialize(NULL, NULL);
@@ -222,7 +280,16 @@ void ClsMes::DrawFukidashi(int a, int b, int c) {
     drawer.prim.AntiAliasing(0);
     DrawFukidashi_sub(&drawer.prim, a, b, c);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", SetDrawSpeed__6ClsMesFv);
+void ClsMes::SetDrawSpeed() {
+    if (LanguageCode == 1 || LanguageCode == 2 || LanguageCode == 3 ||
+        LanguageCode == 4 || LanguageCode == 5) {
+        draw_speed = 1.2f;
+        draw_speed_def = 1.2f;
+    } else {
+        draw_speed = 0.6f;
+        draw_speed_def = 0.6f;
+    }
+}
 float ClsMes::GetDrawSpeedDef(void) {
     CSaveData *save = GetSaveData();
     if (save != NULL) {
@@ -233,18 +300,125 @@ float ClsMes::GetDrawSpeedDef(void) {
     }
     return draw_speed_def;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", GetCaptionOff__6ClsMesFv);
+int ClsMes::GetCaptionOff() {
+    int caption_off = 0;
+    CSaveData *save = GetSaveData();
+    if (save != NULL) {
+        SV_CONFIG_OPTION *options = &save->config;
+        if (options != NULL) {
+            caption_off = (s8)options->caption_off;
+        }
+    }
+    return caption_off;
+}
 int ClsMes::GetPageAutoFlg(void) {
     return page_auto;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", GetScrPosFromChar__FP11CCharacter2Pi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", GetStrWidth__6ClsMesFPc);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", GetStrWidth__6ClsMesFi);
+void GetScrPosFromChar(CCharacter2 *character, int *screen_position) {
+    float world_position[4];
+    int projected_position[4];
+    character->GetPosition(world_position);
+    world_position[1] += 0.85f * character->body_height;
+    world_position[3] = 1.0f;
+    mgTransWorldScreen(projected_position, world_position);
+    screen_position[0] = projected_position[0] / 16;
+    screen_position[1] = projected_position[1] / 16;
+}
+int ClsMes::GetStrWidth(char *text) {
+    if (text == NULL) {
+        return -1;
+    }
+    int width = 0;
+    int length = strlen(text);
+    int index = 0;
+    int font_number;
+    char *cursor;
+    while (index < length) {
+        cursor = text + index;
+        if (strncmp(cursor, at_1317, 5) == 0) {
+            width += fptosi((float)font_w * half_font_w_percent);
+            index += 9;
+        } else {
+            unsigned short gaiji = GetFontGaijiFontNo(cursor);
+            if (gaiji != 0) {
+                if (GetFontGaijiHankaku(gaiji)) {
+                    width += fptosi((float)font_w * half_font_w_percent);
+                } else {
+                    width += fptosi(2.0f * ((float)font_w * half_font_w_percent));
+                }
+                index += 2;
+            } else {
+                font_number = GetHalfFontNo__Fc((s8)*cursor);
+                if (font_number == -2) {
+                    index++;
+                } else if (0 <= font_number) {
+                    if (font_number == GetHalfFontNo__Fc(' ')) {
+                        width += font_w / 2;
+                    } else {
+                        width += fptosi((float)font_w * half_font_w_percent);
+                    }
+                    index++;
+                } else {
+                    font_number = GetFontNo(cursor);
+                    if (font_number <= 0) {
+                        index++;
+                    } else {
+                        if (CheckKanjiFont(font_number)) {
+                            width += font_w;
+                        } else if (CheckKanjiFont(GetFontNo(cursor + 2))) {
+                            width += font_w;
+                        } else {
+                            width += font_w;
+                        }
+                        index += 2;
+                    }
+                }
+            }
+        }
+    }
+    return width;
+}
+int ClsMes::GetStrWidth(int name_index) {
+    if (name_index < 0) {
+        return -1;
+    }
+    if (name_index >= MES_NAME_MAX) {
+        return -1;
+    }
+    return GetStrWidth(name[name_index]);
+}
 void ClsMes::AutoSetSub(CCharacter2 *first, CCharacter2 *second, int *screen_pos) {
     GetScrPosFromChar(first, screen_pos);
     GetScrPosFromChar(second, screen_pos + 2);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", CalcAutoPosSetData__FiiiiP4RECT);
+void CalcAutoPosSetData(int screen_width, int screen_height, int width, int height, RECT *slots) {
+    for (int row = 0; row < 3; row++) {
+        for (int column = 0; column < 3; column++, slots++) {
+            if (column == 0) {
+                slots->x = 0;
+            } else {
+                slots->x = column * (screen_width - width) / 2;
+                slots->x += 16;
+            }
+            if (row == 0) {
+                slots->y = 0;
+            } else {
+                slots->y = row * (screen_height - height) / 2;
+                slots->y += 16;
+            }
+            if (column == 0 || column == 2) {
+                slots->width = width + 16;
+            } else {
+                slots->width = width;
+            }
+            if (row == 0 || row == 2) {
+                slots->height = height + 16;
+            } else {
+                slots->height = height;
+            }
+        }
+    }
+}
 void ClsMes::CalcMesWinXYFromFukidashiXY(void) {
     text_x = fukidashi_x + mes_win_inset_x;
     text_y = fukidashi_y + mes_win_inset_y;
@@ -276,7 +450,22 @@ void ClsMes::AutoSet(int *screen_pos) {
     }
     CalcMesWinXYFromFukidashiXY();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", GetBuffMesIdPtr__FPcii);
+char *GetBuffMesIdPtr(char *buffer, int size, int message_id) {
+    char *cursor = buffer;
+    while (cursor < buffer + size) {
+        if (*cursor == '@' && atoi(cursor + 1) == message_id) {
+            while (cursor < buffer + size) {
+                if (*cursor == '\n') {
+                    return cursor + 1;
+                }
+                cursor++;
+            }
+            return NULL;
+        }
+        cursor++;
+    }
+    return NULL;
+}
 void ClsMes::SetHalfFontWPercent(float percent) {
     if (percent < 0.0f) {
         half_font_w_percent = 0.55f;
@@ -790,7 +979,18 @@ void ClsMes::MyTextureMake() {
         }
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", SetAndGetNameRegistTbl__Fi);
+short *SetAndGetNameRegistTbl(int name_index) {
+    if (name_index < 0) {
+        return NULL;
+    }
+    if (name_index >= NAME_REGIST_USED) {
+        return NULL;
+    }
+    for (int character = 0; character < NAME_REGIST_LEN; character++) {
+        NameRegistTbl[name_index][character] = mes_newline;
+    }
+    return NameRegistTbl[name_index];
+}
 void ClsMes::MakeMesWinTbl_value(int *x, int *y) {
     char text[0x80];
     int font_no;
@@ -1178,7 +1378,18 @@ int ClsMes::SetMesWinTbl(int code, short x, short y) {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", CalcSpaceW__6ClsMesFiiPUs);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", MakeMesWinTbl__6ClsMesFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", MakeMesWinTbl__6ClsMesFPc);
+int ClsMes::MakeMesWinTbl(char *text) {
+    if (text == NULL) {
+        return 0;
+    }
+    InitMesWinTbl();
+    draw_speed = GetDrawSpeedDef();
+    int cursor_x = 0;
+    int cursor_y = 0;
+    MakeMesWinTbl_str(text, &cursor_x, &cursor_y);
+    SetMesWinTbl(mes_end, (short)cursor_x, (short)cursor_y);
+    return 1;
+}
 int GetItemNoFromFontNo(int font_code) {
     int symbol;
     int item_no;
@@ -1244,8 +1455,393 @@ void ClsMes::AddPage(int end, int page) {
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", NeedMesWinWH__6ClsMesFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", NeedMesWinWH__6ClsMesFPc);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", MakeMesWin_init__6ClsMesFi);
+void ClsMes::NeedMesWinWH(char *text) {
+    char message[mes_buffer_size];
+    char value_text[0x80];
+    char number_text[0x80];
+    int length;
+    int height;
+    int line;
+    int page;
+    int position;
+    int width_index;
+    int indent_index;
+    int index;
+    int code;
+    int width;
+    int item;
+    int message_id;
+    int half_font;
+    int font_number;
+    u16 gaiji_number;
+    int digits;
+    char *cursor;
+    char *tag_text;
+    strcpy(message, text);
+    text_h = 0;
+    height = 0;
+    line = 0;
+    page = 0;
+    length = strlen(message);
+    position = 0;
+    if (0 < length) {
+        do {
+            cursor = message + position;
+            if (strncmp(cursor, at_2366, 2) == 0) {
+                position += 2;
+                while (1) {
+                    if ((s8)message[position] == '\n') {
+                        position++;
+                        break;
+                    }
+                    position++;
+                }
+                continue;
+            }
+            if (strncmp(message + position, at_2367, 5) == 0) {
+                position += 5;
+                tag_text = message + position;
+                index = -1;
+                if (strncmp(tag_text, at_2368, 3) == 0) {
+                    position += 3;
+                    index = 0;
+                } else if (strncmp(tag_text, at_2369, 3) == 0) {
+                    position += 3;
+                    index = 1;
+                } else if (strncmp(tag_text, at_2370, 3) == 0) {
+                    position += 3;
+                    index = 2;
+                } else if (strncmp(tag_text, at_2371, 3) == 0) {
+                    position += 3;
+                    index = 3;
+                } else if (strncmp(tag_text, at_2372, 3) == 0) {
+                    position += 3;
+                    index = 4;
+                } else if (strncmp(tag_text, at_2373, 3) == 0) {
+                    position += 3;
+                    index = 5;
+                } else if (strncmp(tag_text, at_2374, 3) == 0) {
+                    position += 3;
+                    index = 6;
+                } else if (strncmp(tag_text, at_2375, 3) == 0) {
+                    position += 3;
+                    index = 7;
+                } else if (strncmp(tag_text, at_2376, 3) == 0) {
+                    position += 3;
+                    index = 8;
+                } else if (strncmp(tag_text, at_2377, 5) == 0) {
+                    position += 5;
+                    index = 9;
+                }
+                if (index != -1) {
+                    if (value_zero != 0 || values[index] != 0) {
+                        if (value_sign != 0 && values[index] > 0) {
+                            sprintf(value_text, at_2109, values[index]);
+                        } else {
+                            sprintf(value_text, at_2110, values[index]);
+                        }
+                        digits = strlen(value_text) - 1;
+                        if (value_half != 0) {
+                            AddYokoHaba(line, digits * font_w / 2);
+                        } else {
+                            AddYokoHaba(line, digits * font_w);
+                        }
+                    }
+                    continue;
+                }
+            }
+            if (strncmp(message + position, at_2378, 7) == 0) {
+                position += 7;
+                int value_index = -1;
+                char *number_tag = message + position;
+                if (strncmp(number_tag, at_2379, 2) == 0) {
+                    position += 2;
+                    value_index = 0;
+                } else if (strncmp(number_tag, at_2380, 2) == 0) {
+                    position += 2;
+                    value_index = 1;
+                } else if (strncmp(number_tag, at_2381, 2) == 0) {
+                    position += 2;
+                    value_index = 2;
+                } else if (strncmp(number_tag, at_2382, 2) == 0) {
+                    position += 2;
+                    value_index = 3;
+                } else if (strncmp(number_tag, at_2383, 2) == 0) {
+                    position += 2;
+                    value_index = 4;
+                } else if (strncmp(number_tag, at_2384, 2) == 0) {
+                    position += 2;
+                    value_index = 5;
+                } else if (strncmp(number_tag, at_2385, 2) == 0) {
+                    position += 2;
+                    value_index = 6;
+                } else if (strncmp(number_tag, at_2386, 2) == 0) {
+                    position += 2;
+                    value_index = 7;
+                } else if (strncmp(number_tag, at_2387, 2) == 0) {
+                    position += 2;
+                    value_index = 8;
+                } else if (strncmp(number_tag, at_2388, 3) == 0) {
+                    position += 3;
+                    value_index = 9;
+                }
+                if (value_index != -1) {
+                    if (value_zero != 0 || values[value_index] != 0) {
+                        if (value_sign != 0 && values[value_index] > 0) {
+                            sprintf(number_text, at_2109, values[value_index]);
+                        } else {
+                            sprintf(number_text, at_2110, values[value_index]);
+                        }
+                        digits = strlen(number_text) - 1;
+                        if (value_half != 0) {
+                            AddYokoHaba(line, digits * font_w / 2);
+                        } else {
+                            AddYokoHaba(line, digits * font_w);
+                        }
+                    }
+                    continue;
+                }
+            }
+            if (strncmp(message + position, at_2389, 9) == 0) {
+                position += 9;
+                tag_text = message + position;
+                code = -1;
+                if (strncmp(tag_text, at_2368, 3) == 0) {
+                    position += 3;
+                    code = 0xfbfe;
+                } else if (strncmp(tag_text, at_2369, 3) == 0) {
+                    position += 3;
+                    code = 0xfbfd;
+                } else if (strncmp(tag_text, at_2370, 3) == 0) {
+                    position += 3;
+                    code = 0xfbfc;
+                } else if (strncmp(tag_text, at_2371, 3) == 0) {
+                    position += 3;
+                    code = 0xfbfb;
+                } else if (strncmp(tag_text, at_2372, 3) == 0) {
+                    position += 3;
+                    code = 0xfbf2;
+                } else if (strncmp(tag_text, at_2373, 3) == 0) {
+                    position += 3;
+                    code = 0xfbf1;
+                } else if (strncmp(tag_text, at_2374, 3) == 0) {
+                    position += 3;
+                    code = 0xfbf0;
+                } else if (strncmp(tag_text, at_2375, 3) == 0) {
+                    position += 3;
+                    code = 0xfbef;
+                } else if (strncmp(tag_text, at_2376, 3) == 0) {
+                    position += 3;
+                    code = 0xfbee;
+                } else if (strncmp(tag_text, at_2377, 5) == 0) {
+                    position += 5;
+                    code = 0xfbed;
+                } else if (strncmp(tag_text, at_2390, 5) == 0) {
+                    position += 5;
+                    code = 0xfbec;
+                } else if (strncmp(tag_text, at_2391, 5) == 0) {
+                    position += 5;
+                    code = 0xfbeb;
+                } else if (strncmp(tag_text, at_2392, 5) == 0) {
+                    position += 5;
+                    code = 0xfbea;
+                } else if (strncmp(tag_text, at_2393, 5) == 0) {
+                    position += 5;
+                    code = 0xfbe9;
+                } else if (strncmp(tag_text, at_2394, 5) == 0) {
+                    position += 5;
+                    code = 0xfbe8;
+                } else if (strncmp(tag_text, at_2395, 5) == 0) {
+                    position += 5;
+                    code = 0xfbe7;
+                }
+                if (code != -1) {
+                    item = GetItemNoFromFontNo(code);
+                    if (item <= 0) {
+                        message_id = -1;
+                    } else if (item > 0x10) {
+                        message_id = -1;
+                    } else {
+                        message_id = item_mes[item - 1];
+                    }
+                    width = GetMesWidth_system(message_id);
+                    if (width != -1) {
+                        AddYokoHaba(line, width);
+                    }
+                    continue;
+                }
+            }
+            if (strncmp(message + position, at_2396, 7) == 0) {
+                position += 7;
+                index = 0;
+                if (strncmp(message + position, at_2368, 3) == 0) {
+                    index = 1;
+                    position += 3;
+                }
+                if (strncmp(message + position, at_2369, 3) == 0) {
+                    index = 2;
+                    position += 3;
+                }
+                if (strncmp(message + position, at_2370, 3) == 0) {
+                    index = 3;
+                    position += 3;
+                }
+                if (strncmp(message + position, at_2371, 3) == 0) {
+                    index = 4;
+                    position += 3;
+                }
+                if (strncmp(message + position, at_2372, 3) == 0) {
+                    index = 5;
+                    position += 3;
+                }
+                if (strncmp(message + position, at_2373, 3) == 0) {
+                    index = 6;
+                    position += 3;
+                }
+                if (strncmp(message + position, at_2374, 3) == 0) {
+                    index = 7;
+                    position += 3;
+                }
+                if (strncmp(message + position, at_2375, 3) == 0) {
+                    index = 8;
+                    position += 3;
+                }
+                if (strncmp(message + position, at_2376, 3) == 0) {
+                    index = 9;
+                    position += 3;
+                }
+                if (strncmp(message + position, at_2377, 5) == 0) {
+                    index = 10;
+                    position += 5;
+                }
+                if (strncmp(message + position, at_2390, 5) == 0) {
+                    index = 11;
+                    position += 5;
+                }
+                if (strncmp(message + position, at_2391, 5) == 0) {
+                    index = 12;
+                    position += 5;
+                }
+                if (strncmp(message + position, at_2392, 5) == 0) {
+                    index = 13;
+                    position += 5;
+                }
+                if (strncmp(message + position, at_2393, 5) == 0) {
+                    index = 14;
+                    position += 5;
+                }
+                if (strncmp(message + position, at_2394, 5) == 0) {
+                    index = 15;
+                    position += 5;
+                }
+                if (strncmp(message + position, at_2395, 5) == 0) {
+                    index = 16;
+                    position += 5;
+                }
+                if (index != 0) {
+                    AddYokoHaba(line, GetStrWidth(name[index - 1]));
+                    continue;
+                }
+            }
+            cursor = message + position;
+            if (0 < (u16)GetAlphabeticalFontNo_cp(cursor)) {
+                AddYokoHaba(line, fptosi((float)font_w * half_font_w_percent));
+                position += 9;
+            } else {
+                if ((GetFontGaijiFontNo(cursor) & 0xFFFF) != 0) {
+                    AddYokoHaba(line, font_w);
+                    position += 2;
+                    continue;
+                }
+                gaiji_number = GetGaijiFontNo(cursor);
+                if (0 < gaiji_number) {
+                    AddYokoHaba(line, GetGaijiW(gaiji_number));
+                    position += GetGaijiLen(gaiji_number);
+                } else if ((s8)*cursor == '\n') {
+                    line++;
+                    SetYokoHaba(line, 0);
+                    height += font_h;
+                    if (text_h < height) {
+                        text_h = height;
+                    }
+                    position++;
+                } else if (strncmp(cursor, at_2397, 6) == 0) {
+                    AddPage(line, page);
+                    line++;
+                    SetYokoHaba(line, 0);
+                    height = 0;
+                    position += 6;
+                    page++;
+                } else {
+                    half_font = GetHalfFontNo__Fc((s8)*cursor);
+                    if (CheckHalfFont(half_font) != 0) {
+                        if (half_font == GetHalfFontNo__Fc(' ')) {
+                            AddYokoHaba(line, font_w / 2);
+                        } else {
+                            AddYokoHaba(line, fptosi((float)font_w * half_font_w_percent));
+                        }
+                        position++;
+                    } else {
+                        font_number = GetFontNo(cursor);
+                        if (0 <= font_number) {
+                            if (CheckKanjiFont(font_number) != 0) {
+                                AddYokoHaba(line, font_w);
+                            } else if (CheckKanjiFont(GetFontNo(cursor + 2)) != 0) {
+                                AddYokoHaba(line, font_w);
+                            } else {
+                                AddYokoHaba(line, font_w);
+                            }
+                            position += 2;
+                        } else {
+                            AddYokoHaba(line, font_w);
+                            position += 2;
+                        }
+                    }
+                }
+            }
+        } while (position < length);
+    }
+    AddPage(line, page);
+    text_h += font_h;
+    text_w = 0;
+    for (width_index = 0; width_index < mes_line_count; width_index++) {
+        if (line_w[width_index] >= 0 && text_w < line_w[width_index]) {
+            text_w = line_w[width_index];
+        }
+    }
+    for (indent_index = 0; indent_index < mes_line_count; indent_index++) {
+        line_indent[indent_index] = (text_w - line_w[indent_index]) / 2;
+    }
+    page_num = page + 1;
+}
+
+void ClsMes::MakeMesWin_init(int reset_fade) {
+    reveal_num = 0;
+    page_top = 0;
+    unk_1f4 = 0;
+    scroll_wait = 0;
+    reveal = 0.0f;
+    voice_type = 0;
+    voice_cnt = 0;
+    close_time = 0;
+    if (reset_fade != 0) {
+        fade = 0.0f;
+    }
+    open = 1;
+    page_wait = 0;
+    page_time = 0;
+    page = 0;
+    page_num = 0;
+    for (int index = 0; index < MES_PAGE_MAX; index++) {
+        page_chars[index] = 0;
+    }
+    last_x = 0;
+    last_y = 0;
+    for (int index = 0; index < MES_LINE_MAX; index++) {
+        line_w[index] = 0;
+        line_alpha[index] = -1;
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", MakeMesWin__6ClsMesFi);
 void PreMesMake(char *source, char *buffer) {
     signed char *src = (signed char *)source;
@@ -1285,7 +1881,39 @@ void PreMesMake(char *source, char *buffer) {
     } while (length < mes_buffer_size);
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", MakeMesWin__6ClsMesFPcii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", MakeAnd3DPosSet__6ClsMesFPcPfii);
+int ClsMes::MakeAnd3DPosSet(char *text, float *world_position, int offset_x, int offset_y) {
+    int screen_position[4];
+    if (text == NULL) {
+        return 0;
+    }
+    if (mgTransWorldScreen(screen_position, world_position) == 0) {
+        return 0;
+    }
+    MakeMesWin(text, 1, 0);
+    int centre_x = screen_position[0] >> 4;
+    int centre_y = screen_position[1] >> 4;
+    int width = text_w;
+    int height = text_h;
+    centre_x += offset_x;
+    centre_y += offset_y;
+    int left = centre_x - width / 2;
+    if (left < 0) {
+        return 0;
+    }
+    if (mgScreenWidth < centre_x + width / 2) {
+        return 0;
+    }
+    int top = centre_y - height / 2;
+    if (top < 0) {
+        return 0;
+    }
+    if (mgScreenHeight < centre_y + height / 2) {
+        return 0;
+    }
+    abs_win.x = left;
+    abs_win.y = top;
+    return 1;
+}
 void ClsMes::DrawFukidashiShadow() {
     u8 drawer_storage[0x110];
 
@@ -1492,7 +2120,76 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", DrawEquipment__6ClsMesFP11mgCD
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", DrawCross__6ClsMesFP11mgCDrawPrim);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", DrawRightDelta__6ClsMesFP11mgCDrawPrim);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", DrawDigit__6ClsMesFP11mgCDrawPrimiiiiP10RGBAQ_TYPE);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", DrawPushButton__6ClsMesFP11mgCDrawPrimii);
+extern RECT data_4206[];
+void ClsMes::DrawPushButton(mgCDrawPrim *prim, int right, int bottom) {
+    mgRect<int> destination;
+    mgRect<int> texture;
+    RGBAQ_TYPE color;
+    int x;
+    int y;
+    int frame;
+    if (push_button == 0) {
+        return;
+    }
+    if (fade < 1.0) {
+        return;
+    }
+    if (window_mode == MES_WIN_DQ_FUKIDASHI || window_mode == MES_WIN_DQ_FUKIDASHI_2) {
+        if (page + 1 >= page_num) {
+            return;
+        }
+    }
+    if (window_mode == MES_WIN_BOTTOM || window_mode == MES_WIN_CENTRE) {
+        if (CSnd.StreamGetState(1) != 0) {
+            return;
+        }
+    }
+    if (reveal_num < char_num || select >= 0) {
+        if (page_wait == 0) {
+            return;
+        }
+    }
+    frame = (page_time / 8) % 4;
+    x = last_x;
+    y = last_y;
+    switch (window_mode) {
+        case MES_WIN_FUKIDASHI:
+            frame += 4;
+            break;
+        case MES_WIN_NONE:
+        case MES_WIN_BOTTOM:
+        case MES_WIN_DQ_FUKIDASHI:
+        case MES_WIN_DQ_FUKIDASHI_2:
+        case MES_WIN_CENTRE:
+            if ((page_time / 16) % 2 != 0) {
+                return;
+            }
+            y += font_h / 2 - 4;
+            if (fuchi == 3 || fuchi == 6 || fuchi == 8) {
+                frame = 8;
+            } else {
+                frame = 9;
+            }
+            break;
+        case MES_WIN_HELP:
+            y += font_h;
+            break;
+        case MES_WIN_VERSATILE_1:
+        case MES_WIN_VERSATILE_4:
+            x = right - data_4206[frame].width - 16;
+            y = bottom - data_4206[frame].height - 12;
+            break;
+        default:
+            return;
+    }
+    color.r = color.g = color.b = 128;
+    color.a = (alpha * 128) / 128;
+    texture.Set(data_4206[frame].x, data_4206[frame].y, data_4206[frame].width, data_4206[frame].height);
+    x = fptosi((float)x + draw_off_x);
+    y = fptosi((float)y + draw_off_y);
+    destination.Set(x, y, data_4206[frame].width, data_4206[frame].height);
+    set2DSprite(prim, destination, texture, &color);
+}
 void ClsMes::CalcCenteringXY(int *x, int *y) {
     int margin;
     int spare;
@@ -1768,9 +2465,6 @@ void MovieCCInit(char *text, int size, int id) {
     }
 }
 
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", __sinit_nd_meswin_cpp);
-
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", p__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_3748__DATA);
@@ -1846,9 +2540,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4635__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4636__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4637__DATA);
 
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", D_0037AFEC__DATA);
-
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(MesAbsDrawOff, 0x4);
 INCLUDE_BSS(MovieCCCnt, 0x4);
@@ -1857,7 +2548,7 @@ INCLUDE_BSS(MovieCCH, 0x4);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(NameRegistTbl, 0xB0);
-INCLUDE_BSS(MovieCCFont, 0xC0);
+CFont MovieCCFont;
 INCLUDE_BSS(MovieCCStart, 0x50);
 INCLUDE_BSS(MovieCCClear, 0x50);
 INCLUDE_BSS(MovieCCStr, 0x1B60);

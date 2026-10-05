@@ -471,32 +471,21 @@ int MapSelect(void) {
     }
     return 0;
 }
-#ifdef NONMATCHING
-#pragma opt_common_subs off
 int MapSelectLoop() {
-    int mode = SelectMode;
-    int result = 2;
-    if (mode == 2) goto done;
-    result = 1;
-    if (mode == 1) goto select_map;
-    if (mode == 0) goto select_type;
-    if (mode == -1) goto done;
-    result = 0;
-    goto done;
-select_type:
-    MapTypeSelect();
-    goto finish;
-select_map:
-    MapSelect();
-finish:
-    result = 0;
-done:
-    return result;
+    switch (SelectMode) {
+    case -1:
+        return 1;
+    case 0:
+        MapTypeSelect();
+        break;
+    case 1:
+        MapSelect();
+        break;
+    case 2:
+        return 2;
+    }
+    return 0;
 }
-#pragma opt_common_subs reset
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapselect", MapSelectLoop__Fv);
-#endif
 void InitSaveDataEdit(mgCMemory *stack) {
 }
 int SaveDataEditLoop() {

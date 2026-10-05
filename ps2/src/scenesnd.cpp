@@ -508,10 +508,65 @@ int CScene::LoadBGMPack(int load_no, u32 *buff) {
     info->load_no = load_no;
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenesnd", LoadSeSrcPack__6CSceneFiPUi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenesnd", LoadSeEnvPack__6CSceneFiPUi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenesnd", LoadSeBattlePack__6CSceneFiPUi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenesnd", LoadSeBasePack__6CSceneFiPUi);
+int CScene::LoadSeSrcPack(int pack_no, u32 *buffer) {
+    if (CheckLoadSeSrc(pack_no) == 0) {
+        return 0;
+    }
+    int slot;
+    int index;
+    for (index = 0; index < 16; index++) {
+        if (se_src_no[index] < 0) {
+            slot = index;
+            goto slot_found;
+        }
+    }
+    slot = -1;
+slot_found:
+    if (slot < 0) {
+        return 0;
+    }
+    se_src_id[slot] = sndLoadSound(1, buffer, &se_src_stack);
+    se_src_no[slot] = pack_no;
+    return 1;
+}
+int CScene::LoadSeEnvPack(int pack_no, u32 *buffer) {
+    if (CheckLoadSeEnv(pack_no) == 0) {
+        return 0;
+    }
+    se_env_stack.stack_used = 0;
+    se_env_stack.lock = 0;
+    InitSeEnv();
+    se_env_id = sndLoadSound(2, buffer, &se_env_stack);
+    if (se_env_id < 0) {
+        return 0;
+    }
+    se_env_no = pack_no;
+    return 1;
+}
+int CScene::LoadSeBattlePack(int pack_no, u32 *buffer) {
+    if (CheckLoadSeBattle(pack_no) == 0) {
+        return 0;
+    }
+    InitSeBattle();
+    se_battle_id = sndLoadSound(9, buffer, &se_battle_stack);
+    if (se_battle_id < 0) {
+        return 0;
+    }
+    se_battle_no = pack_no;
+    return 1;
+}
+int CScene::LoadSeBasePack(int pack_no, u32 *buffer) {
+    if (CheckLoadSeBase(pack_no) == 0) {
+        return 0;
+    }
+    InitSeBas();
+    se_base_id = sndLoadSound(3, buffer, &se_base_stack);
+    if (se_base_id < 0) {
+        return 0;
+    }
+    se_base_no = pack_no;
+    return 1;
+}
 void CScene::PrePlaySeSrc() {
     se_src_play[0].se_no = -1;
     se_src_play[0].num = 0;
@@ -629,7 +684,14 @@ void CScene::SePlayCloseDoor(int door_type, float *pos) {
     door_type = door_type * 2 + 0x3D;
     sndSePlay(se_base_id, door_type, 0);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenesnd", SePlayFoot__6CSceneFiiPf);
+void CScene::SePlayFoot(int ground, int foot, float *position) {
+    float volume;
+    float pan;
+    float far_distance = 1200.0f;
+    float near_distance = 160.0f;
+    sndGetVolPan(&volume, &pan, position, near_distance, far_distance);
+    sndSePlayVPf(se_base_id, foot + ground * 2, volume, pan, 0);
+}
 extern "C" char *GetLine__FPPcPcPc__2(char **lines, char *cursor, char *end) {
     LineBreakPair line_break = at_1615__2;
     int line_index;

@@ -719,8 +719,20 @@ BG_READ_INFO *GetReadBGInfo(char *name) {
     strcat(path, name);
     return GetReadBGFile(path);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", CalcMenu1__FfPfffi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", CalcMenu1__FiPiiii);
+void CalcMenu1(float target, float *value, float divisor, float snap_range, int snap) {
+    *value += (target - *value) / divisor;
+    if (snap != 0 || (float)abs(fptosi(target - *value)) < snap_range) {
+        *value = target;
+    }
+}
+#pragma divbyzerocheck on
+void CalcMenu1(int target, int *value, int divisor, int snap_range, int snap) {
+    *value += (target - *value) / divisor;
+    if (snap != 0 || abs(target - *value) < snap_range) {
+        *value = target;
+    }
+}
+#pragma divbyzerocheck reset
 int CalcMenuAdd(int *cursor, int step, int limit) {
     if (cursor == NULL) {
         return -1;
@@ -1740,7 +1752,28 @@ int _MENU_EXE_FORM_FADE(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_FORM_SETPOS__FP9SPI_STACKi);
+int _MENU_EXE_FORM_SETPOS(SPI_STACK *stack, int argc) {
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    CMenuPosDataForm *form = MenuPosData->GetFormInfo(
+        spiGetStackString(stack++));
+    if (form == NULL) {
+        return 1;
+    }
+    int x = spiGetStackInt(stack++);
+    int y = spiGetStackInt(stack++);
+    int language = LanguageCode;
+    if (argc >= 4) {
+        language = spiGetStackInt(stack);
+    }
+    if (language != LanguageCode) {
+        return 0;
+    }
+    form->x = x;
+    form->y = y;
+    return 1;
+}
 int _MENU_EXE_FORM_SETACTION(SPI_STACK *stack, int argc) {
     CMenuPosDataForm *form;
     SPI_STACK *next_slot = stack + 1;
@@ -1874,7 +1907,16 @@ int _MENU_EXE_MSGSETSYSTEMBUFF(SPI_STACK *stack, int argc) {
     ((ClsMes *)MenuDCMsg[message])->SetBuff_system(buffer);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", _MENU_EXE_MSGSETBUFF__FP9SPI_STACKi);
+int _MENU_EXE_MSGSETBUFF(SPI_STACK *stack, int argc) {
+    SPI_STACK *next_slot = stack + 1;
+    if (SpiMenuExeCommandFlag == 0) {
+        return 1;
+    }
+    int message_index = spiGetStackInt(stack);
+    int buffer_index = spiGetStackInt(next_slot);
+    MenuDCMsg[message_index]->SetBuff(MenuCommandAnalyzeInfo.mes_buff[buffer_index]);
+    return 1;
+}
 int _MENU_EXE_MSGSETFUCHI(SPI_STACK *stack, int argc) {
     SPI_STACK *next_slot = stack + 1;
     int message;

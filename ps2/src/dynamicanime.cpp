@@ -282,7 +282,46 @@ int CDynamicAnime::DrawSub(int direct) {
     }
     return sum;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dynamicanime", Copy__13CDynamicAnimeFR13CDynamicAnimeP8mgCFrameP9mgCMemory);
+void CDynamicAnime::Copy(CDynamicAnime &destination, mgCFrame *root, mgCMemory *memory) {
+    int index;
+    destination = *this;
+    destination.top_frame = root;
+    if (root == NULL) {
+        return;
+    }
+    if (frame_num > 0 && frame != NULL) {
+        destination.frame = new ((u_long128 *)memory->Alloc(
+            align16_blocks(frame_num * sizeof(mgCFrame *)) + 2)) mgCFrame *[frame_num];
+        if (destination.frame == NULL) {
+            return;
+        }
+        for (index = 0; index < frame_num; index++) {
+            destination.frame[index] = NULL;
+            if (frame[index] != NULL) {
+                destination.frame[index] = root->GetFrame(root->SearchFrameID(frame[index]->name));
+            }
+        }
+    }
+    if (vertex_num > 0) {
+        destination.init_vertex = new ((u_long128 *)memory->Alloc(
+            align16_blocks(vertex_num * sizeof(sceVu0FVECTOR)) + 2)) sceVu0FVECTOR[vertex_num];
+        destination.now_vertex = new ((u_long128 *)memory->Alloc(
+            align16_blocks(vertex_num * sizeof(sceVu0FVECTOR)) + 2)) sceVu0FVECTOR[vertex_num];
+        destination.old_vertex = new ((u_long128 *)memory->Alloc(
+            align16_blocks(vertex_num * sizeof(sceVu0FVECTOR)) + 2)) sceVu0FVECTOR[vertex_num];
+        destination.velocity = new ((u_long128 *)memory->Alloc(
+            align16_blocks(vertex_num * sizeof(sceVu0FVECTOR)) + 2)) sceVu0FVECTOR[vertex_num];
+        destination.world_init_vertex = new ((u_long128 *)memory->Alloc(
+            align16_blocks(vertex_num * sizeof(sceVu0FVECTOR)) + 2)) sceVu0FVECTOR[vertex_num];
+        for (index = 0; index < vertex_num; index++) {
+            *(u_long128 *)destination.init_vertex[index] = *(u_long128 *)init_vertex[index];
+            *(u_long128 *)destination.now_vertex[index] = *(u_long128 *)now_vertex[index];
+            *(u_long128 *)destination.old_vertex[index] = *(u_long128 *)old_vertex[index];
+            *(u_long128 *)destination.velocity[index] = *(u_long128 *)velocity[index];
+            *(u_long128 *)destination.world_init_vertex[index] = *(u_long128 *)world_init_vertex[index];
+        }
+    }
+}
 int dynFRAME_START(SPI_STACK *stack, int argc) {
     dynNowDA->NewFrameTable(spiGetStackInt(stack), dynStack);
     return 1;

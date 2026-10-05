@@ -64,12 +64,11 @@ void CCollisionMDT::Copy(CCollisionMDT &dest, mgCMemory *memory) {
     }
 }
 
-#ifdef NONMATCHING
 void CCollisionMDT::CreateBBox() {
-    float max[4];
-    float min[4];
-    int i;
-    CCPoly *p;
+    float polygon_max[4];
+    float polygon_min[4];
+    int index;
+    CCPoly *polygon;
 
     bbox.min[0] = 0.0f;
     bbox.max[0] = 0.0f;
@@ -80,23 +79,17 @@ void CCollisionMDT::CreateBBox() {
     bbox.min[3] = 1.0f;
     bbox.max[3] = 1.0f;
 
-    p = poly;
-    if (p == 0) {
+    polygon = poly;
+    if (polygon == NULL || poly_count <= 0) {
         return;
     }
-    if (poly_count <= 0) {
-        return;
-    }
-    mgVectorMaxMin(bbox.max, bbox.min, p->vertex[0], p->vertex[1], p->vertex[2]);
+    mgVectorMaxMin(bbox.max, bbox.min, polygon->vertex[0], polygon->vertex[1], polygon->vertex[2]);
 
-    for (i = 0; i < poly_count; i++, p++) {
-        mgVectorMaxMin(max, min, p->vertex[0], p->vertex[1], p->vertex[2]);
-        mgVectorMaxMin(bbox.max, bbox.min, bbox.max, bbox.min, max, min);
+    for (index = 0; index < poly_count; index++, polygon++) {
+        mgVectorMaxMin(polygon_max, polygon_min, polygon->vertex[0], polygon->vertex[1], polygon->vertex[2]);
+        mgVectorMaxMin(bbox.max, bbox.min, bbox.max, bbox.min, polygon_max, polygon_min);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/collision", CreateBBox__13CCollisionMDTFv);
-#endif
 
 int CCollisionMDT::GetMaxY(float *position) {
     float from[4];

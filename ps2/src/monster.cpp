@@ -43,6 +43,8 @@ extern char *dung_progtxt_notlift_mons[];
 union EffectVector { float f[4]; u_long128 qw; };
 struct HitRectangle { int left; int top; int right; int bottom; } __attribute__((aligned(16)));
 extern EffectVector at_2031;
+extern EffectVector at_1707;
+extern EffectVector at_1724__2;
 extern EffectVector at_2079__2;
 extern char at_1999[];
 extern char at_2100[];
@@ -248,7 +250,9 @@ void CMonsterLocateInfo::SetPutFlag(int slot, int put) {
         put_num -= 1;
     }
 }
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", Initialize__11CMonsterManFP6CScene);
+
 void CMonsterMan::DrawEffectScript() {
     int i;
 
@@ -290,7 +294,12 @@ float CMonsterMan::IsBattleStyleDist() {
     }
     return nearest;
 }
+
+
+
+
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", CheckMonsterTolk__11CMonsterManFPf);
+
 CActiveMonster *CMonsterMan::CheckThrowTarget(mgCFrame *frame) {
     float frame_pos[4];
     float monster_pos[4];
@@ -505,8 +514,31 @@ void CMonsterMan::DrawActMonster() {
         }
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", DrawInvisibleMonster__11CMonsterManFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", DrawShadowActMonster__11CMonsterManFv);
+void CMonsterMan::DrawInvisibleMonster() {
+    mgCTextureManager *textures = &mgTexManager;
+    int index;
+    CActiveMonster *monster;
+    float saved_alpha;
+
+    for (index = 0; index < MONSTER_ACTIVE_MAX; index++) {
+        monster = active[index];
+        if (monster != NULL && monster->chara_kind == 2) {
+            float &alpha = monster->alpha;
+            saved_alpha = alpha;
+            if ((saved_alpha < 1.0f || monster->view_alpha < 1.0f || monster->camera_alpha < 1.0f) &&
+                !(monster->view_alpha <= 0.0f) && !(monster->camera_alpha <= 0.0f)) {
+                if (!(saved_alpha < 1.0f)) {
+                    alpha = monster->view_alpha;
+                }
+                active[index]->alpha *= active[index]->camera_alpha;
+                textures->ReloadTexture(active[index]->refer_no + 0x28, (sceVif1Packet *)NULL);
+                active[index]->DrawDirect();
+                active[index]->alpha = saved_alpha;
+            }
+        }
+    }
+}
+
 void CMonsterMan::PriorityLevelCheck() {
     int order[MONSTER_ACTIVE_MAX];
     int count = 0;
@@ -551,7 +583,7 @@ CActiveMonster *CMonsterMan::GetPriorityLevelIndex(int level, int *slot) {
     }
     return NULL;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", CheckPhoto__11CMonsterManFPQ26CScene17InScreenCharaInfo);
+
 void CMonsterMan::SetNearAreaPiyori(float limit) {
     CActiveMonster *monster;
     int i;
@@ -938,6 +970,105 @@ void LoadMonsterLanguage(int language) {
         interpreter.Run();
     }
 }
+
+void CMonsterMan::DrawShadowActMonster() {
+    float light_direction[4][4];
+    float light_color[4][4];
+    int index;
+    CActiveMonster *monster;
+
+    if (scene->GetMap(scene->active_map) == NULL) {
+        return;
+    }
+    mgGetLight(light_direction, light_color);
+    float shadow_direction[4] = {light_direction[0][0], light_direction[1][0], light_direction[2][0]};
+    shadow_direction[1] = shadow_direction[1] < 0.0f ? -shadow_direction[1] : shadow_direction[1];
+    if (shadow_direction[1] < 0.8f) {
+        shadow_direction[1] = 0.8f;
+    }
+    float shadow_normal[4];
+    float shadow_position[4];
+    *(EffectVector *)shadow_normal = at_1707;
+    for (index = 0; index < MONSTER_ACTIVE_MAX; index++) {
+        monster = active[index];
+        if (monster != NULL && monster->chara_kind == 2 && monster->catch_state != 1 &&
+            monster->target_dist <= 0.6f * monster->clip_dist && monster->priority < priority_limit &&
+            !(monster->alpha < 0.6f)) {
+            *(EffectVector *)shadow_position = at_1724__2;
+            active[index]->GetEntryObjectPos(1, shadow_position);
+            shadow_position[1] -= 20.0f;
+            mgSetDropShadowMatrix(shadow_direction, shadow_position, shadow_normal);
+            active[index]->ShadowStep();
+            active[index]->DrawShadowDirect();
+        }
+    }
+}
+
+int CMonsterMan::CheckPhoto(CScene::InScreenCharaInfo *info) {
+    float position[4];
+    float rotation[4];
+    float direction[4];
+    float object_matrix[4][4];
+    float photo_matrix[4][4];
+    mgVu0FBOX box;
+    float screen_max[4];
+    float screen_min[4];
+    int selected_index = -1;
+    float nearest_distance = 0.0f;
+    float distance;
+    float radius;
+
+    info->chara_no = -1;
+    for (int index = 0; index < MONSTER_ACTIVE_MAX; index++) {
+        if (active[index] == NULL || active[index]->chara_kind != 2 || active[index]->alpha < 1.0f) {
+            continue;
+        }
+        active[index]->GetRotation(rotation);
+        CHARA_ENTRY_OBJECT *entry = active[index]->GetEntryObjectPos(0, 0, position);
+        radius = 5.0f * entry->unk_04;
+        mgGetDirFromCamera(direction, position);
+        distance = mgDistVector(direction);
+        if (!(distance <= 300.0f) && active[index]->tbl->boss == 0) {
+            continue;
+        }
+        sceVu0Normalize(direction, direction);
+        mgUnitMatrix(object_matrix);
+        mgUnitMatrix(photo_matrix);
+        sceVu0RotMatrixY(object_matrix, object_matrix, rotation[1]);
+        ((EffectVector *)object_matrix[3])->qw = ((EffectVector *)position)->qw;
+        object_matrix[3][3] = 1.0f;
+        ((EffectVector *)photo_matrix[3])->qw = ((EffectVector *)position)->qw;
+        photo_matrix[3][3] = 1.0f;
+        sceVu0InnerProduct(direction, object_matrix[2]);
+        mgZeroVectorW(box.max);
+        mgZeroVectorW(box.min);
+        box.max[1] = radius;
+        box.min[1] = -radius;
+        box.max[0] = radius;
+        box.min[0] = -radius;
+        box.min[2] = -radius;
+        box.max[2] = radius;
+        if (mgInsideScreen(&box, photo_matrix, screen_max, screen_min) &&
+            !(screen_max[0] < -50.0f) && screen_min[0] <= 50.0f &&
+            !(screen_max[1] < -50.0f) && screen_min[1] <= 50.0f &&
+            (selected_index < 0 || !(nearest_distance <= distance))) {
+            selected_index = index;
+            nearest_distance = distance;
+        }
+    }
+    if (selected_index < 0) {
+        return -1;
+    }
+    info->chara_no = active[selected_index]->tbl->id;
+    info->dist = nearest_distance - 10.0f;
+    if (active[selected_index]->scoop.ok != 0) {
+        return active[selected_index]->scoop.no;
+    }
+    return -1;
+}
+
+
+
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/monster", base_monster_define__DATA);

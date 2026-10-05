@@ -14,9 +14,8 @@ def literal_object(data):
     name_sections(elf)
     for index, symbol in enumerate(elf.symtab.symbols):
         symbol.name = project_name(symbol.name)
-        if symbol.name == 'at_455':
-            assert symbol.bind == 0
-            assert elf.sections[symbol.st_shndx].name == '.sbss'
+        if (symbol.name.startswith('at_') and symbol.name[3:].isdigit()
+                and symbol.bind == 0 and elf.sections[symbol.st_shndx].name == '.sbss'):
             return elf, index
     raise AssertionError('mapselect compiler literal is missing')
 

@@ -309,20 +309,17 @@ public:
     s8                    album_flag[50];           /**< State of each album photo, -1 for an empty slot. */
     u8                    unk_53a[2];
     mgCMemory             chara_stack;              /**< Memory the menu characters are built in. */
-    void                 *unk_56c;
-    void                 *unk_570;
+    u8                   *create_model_file;
+    u8                   *create_motion_file;
     CActionChara         *create_chara;             /**< Model of the item being built. */
     void                 *unk_578;
     INVENT_MATERIAL_LIST *make_material; /**< Materials of the recipe being built. */
     short                 create_step;              /**< Stage of the building sequence. */
     short                 create_item_id;           /**< Item being built. */
     int                   unk_584;
-    int                   unk_588;
-    int                   unk_58c;
-    int                   unk_590;
+    int                   create_photo_neta[3];
     int                   unk_594;
-    s8                    unk_598;
-    u8                    unk_599[0x1F];
+    s8                    create_photo_name[32];
     s8                    unk_5b8;
     u8                    unk_5b9[3];
     int                   unk_5bc;

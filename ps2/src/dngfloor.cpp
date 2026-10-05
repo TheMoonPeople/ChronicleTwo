@@ -66,6 +66,7 @@ union RoomDirections {
 extern RoomOptions at_886__4;
 extern RoomDirections at_1395__4;
 extern SPI_TAG_PARAM tree_map_tag[];
+extern int D_0036178C[];
 
 // Code (.text)
 void CDngFloorManager::Initialize(void) {
@@ -168,7 +169,16 @@ int _ROOM_KEYROOM(SPI_STACK *stack, int argc) {
     tree_spi_roominfo->key_room[3] = spiGetStackInt(stack);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngfloor", _ROOM_TEXNO__FP9SPI_STACKi);
+int _ROOM_TEXNO(SPI_STACK *stack, int argc) {
+    int texture_no = spiGetStackInt(stack);
+    if (texture_no < 0) {
+        int texture_group = abs(texture_no);
+        texture_no = GetRandI(4);
+        texture_no += D_0036178C[texture_group];
+    }
+    tree_spi_roominfo->tex_no = texture_no;
+    return 1;
+}
 int _ROOM_FLOOR_INFO(SPI_STACK *stack, int argc) {
     DNGMAP_ROOM_INFO *info = tree_dngmap->GetDngMapFloorInfo(spiGetStackInt(stack++));
     if (info == 0) {

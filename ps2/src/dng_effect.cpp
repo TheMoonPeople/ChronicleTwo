@@ -1114,7 +1114,38 @@ void CSWordAfterImage::Step(void) {
         }
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_effect", Initialize__16CSWordAfterImageFP9mgCMemoryii);
+#pragma opt_propagation off
+void CSWordAfterImage::Initialize(mgCMemory *memory, int capacity, int divisions) {
+    int smooth_bytes;
+    int smooth_capacity;
+    int point_bytes;
+    point_bytes = capacity << 4;
+    smooth_capacity = capacity * (divisions + 2);
+    smooth_bytes = smooth_capacity << 4;
+    edge_point = (sceVu0FVECTOR *)memory->Alloc(point_bytes / 16 + 1);
+    back_point = (sceVu0FVECTOR *)memory->Alloc(point_bytes / 16 + 1);
+    int smooth_blocks = smooth_bytes / 16 + 1;
+    smooth_edge = (sceVu0FVECTOR *)memory->Alloc(smooth_blocks);
+    smooth_back = (sceVu0FVECTOR *)memory->Alloc(smooth_blocks);
+    life = (float *)memory->Alloc(capacity * 4 / 16 + 1);
+    smooth_life = (float *)memory->Alloc(smooth_capacity * 4 / 16 + 1);
+    edge_color[0] = 96;
+    edge_color[1] = 64;
+    edge_color[2] = 48;
+    edge_color[3] = 180;
+    back_color[0] = 64;
+    back_color[1] = 48;
+    back_color[2] = 32;
+    back_color[3] = 96;
+    point_max = capacity;
+    division = divisions;
+    smooth_num = 0;
+    point_num = 0;
+    write_index = capacity - 1;
+    head_index = capacity - 1;
+    active = 0;
+}
+#pragma opt_propagation reset
 void CAfterWire::SetMode(int mode) {
     this->mode = mode;
     write_index = 0;
@@ -1167,7 +1198,11 @@ void CAfterWire::DrawWire(float (*smooth)[4]) {
         prim.End();
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_effect", StepWire__10CAfterWireFv);
+void CAfterWire::StepWire() {
+    if (mode != 0 && point_num < 2) {
+        return;
+    }
+}
 void CHitEffectImage::SethitEffect(float *hit_pos, float *hit_dir, float hit_spread, float hit_speed,
                                    float hit_power, float hit_gravity, int spark_life, int count) {
     float center[4];
@@ -1647,7 +1682,47 @@ void CMapEffectsManeger::Step(mgCCamera *camera) {
         }
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_effect", Draw__18CMapEffectsManegerFP9mgCCamera);
+#pragma opt_propagation off
+void CMapEffectsManeger::Draw(mgCCamera *camera) {
+    int byte_offset;
+    mgCCamera *draw_camera = camera;
+    CMapEffectsManeger *manager = this;
+    CPreSprite primitive;
+    if (manager->type < 0 || manager->type >= 3) {
+        return;
+    }
+    primitive.Initialize(NULL, NULL);
+    primitive.Preset2D();
+    if (manager->type == 0) {
+        primitive.DepthTestEnable(0);
+    }
+    if (manager->type == 1) {
+        primitive.DepthTestEnable(1);
+        primitive.DepthTest(1);
+    }
+    if (manager->type == 2) {
+        primitive.DepthTestEnable(1);
+        primitive.DepthTest(1);
+    }
+    primitive.Bilinear(1);
+    primitive.Coord(1);
+    primitive.AlphaBlend(2);
+    primitive.AlphaTestEnable(1);
+    primitive.Begin(3);
+    primitive.Texture(TEX_SystemEffect1);
+    int index;
+    index = 0;
+    byte_offset = 0;
+    for (; index < manager->sprite_num; index++) {
+        CMapEffect_Sprite *entry = (CMapEffect_Sprite *)((u8 *)manager->sprite + byte_offset);
+        if (entry->life > 0) {
+            entry->Draw(draw_camera, &primitive);
+        }
+        byte_offset += sizeof(CMapEffect_Sprite);
+    }
+    primitive.End();
+}
+#pragma opt_propagation reset
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_effect", AllocEffect__15BattleEffectManFiP9mgCMemoryi);
 CPowerLine::CPowerLine(void) {
     tex_rect.Set(0, 0, 0, 0);

@@ -387,31 +387,29 @@ void LightingEdit(CScene *scene) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", LightingEdit__FP6CScene);
 #endif
-#ifdef NONMATCHING
 int tagGyoFish(SPI_STACK *stack, int argument_count) {
     CGameDataUsed *racer = GetOmakeGyoracer2(fish_num);
-    if (!racer) return 0;
-    char *name = spiGetStackString(&stack[0]);
-    if (name) strcpy(racer->data.fish.name, name);
-    racer->item_no = spiGetStackInt(&stack[1]);
-    racer->data.fish.unk_3a = spiGetStackInt(&stack[2]);
-    int pattern = spiGetStackInt(&stack[3]);
-    racer->data.fish.unk_16 = pattern;
-    racer->data.fish.unk_17 = pattern >> 8;
-    int tactics = spiGetStackInt(&stack[4]);
-    racer->data.fish.param[4] = spiGetStackInt(&stack[5]);
-    racer->data.fish.param[3] = spiGetStackInt(&stack[6]);
-    racer->data.fish.param[0] = spiGetStackInt(&stack[7]);
-    racer->data.fish.param[1] = spiGetStackInt(&stack[8]);
-    racer->data.fish.param[2] = spiGetStackInt(&stack[9]);
+    if (racer == NULL) {
+        return 0;
+    }
+    BREEDFISH_USED *fish = &racer->data.fish;
+    char *name = spiGetStackString(stack++);
+    if (name != NULL) {
+        strcpy(fish->name, name);
+    }
+    racer->item_no = spiGetStackInt(stack++);
+    fish->unk_3a = spiGetStackInt(stack++);
+    fish->unk_16 = spiGetStackInt(stack++);
+    int tactics = spiGetStackInt(stack++);
+    fish->param[4] = spiGetStackInt(stack++);
+    fish->param[3] = spiGetStackInt(stack++);
+    fish->param[0] = spiGetStackInt(stack++);
+    fish->param[1] = spiGetStackInt(stack++);
+    fish->param[2] = spiGetStackInt(stack);
     SetOmakeGyoracerTactics(fish_num, tactics);
     ++fish_num;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", tagGyoFish__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
 static void LoadGyorace() {
     char script[0x4000];
     int size;
@@ -420,13 +418,10 @@ static void LoadGyorace() {
         SPI_TAG_PARAM tags[2] = {{"GYOFISH", tagGyoFish}, {NULL, NULL}};
         CScriptInterpreter interpreter;
         interpreter.SetTag(tags);
-        interpreter.SetScript(script, size);
+        interpreter.SetScript((char *)&script, size);
         interpreter.Run();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", LoadGyorace__Fv);
-#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", SelMax__DATA);

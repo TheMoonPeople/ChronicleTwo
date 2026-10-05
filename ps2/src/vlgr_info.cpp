@@ -3,6 +3,7 @@
 #include "scriptinterpreter.hpp"
 #include "villagermngr.hpp"
 #include "vlgr_info.hpp"
+#include "dataread.hpp"
 #include <cstring>
 #include <cstdio>
 
@@ -12,7 +13,7 @@ extern int VlgrInfoNum;
 extern CVillagerInfo *VlgrInfo;
 extern CVillagerPlace VlgrPlace[VLGR_PLACE_MAX];
 extern mgCMemory *niStack;
-extern int niVlgr;
+extern CVillagerPlace *niVlgr;
 extern int niProgNum;
 extern int niProgTime;
 extern int niProgDupliID;
@@ -61,6 +62,8 @@ extern char at_556[];
 extern char at_557[];
 extern int ProgressNum;
 extern GAME_PROGRESS_INFO ProgressInfo[GAME_PROGRESS_MAX];
+extern GAME_PROGRESS_INFO *giGamePI;
+extern mgCMemory *giStack;
 
 // Code (.text)
 CVillagerPlaceInfo *GetVlgrPlaceInfo(int index) {
@@ -110,13 +113,74 @@ int GetVillagerModelName(int villager_no, char *path) {
     sprintf(path, at_214, info->model_name);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/vlgr_info", niNPC__FP9SPI_STACKi);
+int niNPC(SPI_STACK *stack, int argument_count) {
+    niVlgr = NULL;
+    int villager_no = spiGetStackInt(stack);
+    if (villager_no < 0 || villager_no >= VLGR_PLACE_MAX) {
+        return 0;
+    }
+    niVlgr = VlgrPlace + villager_no;
+    memset(niVlgr, 0, sizeof(CVillagerPlace));
+    niProgNum = 0;
+    niProgTime = 0;
+    niProgDupliID = 0;
+    return 1;
+}
 int niNPC_END(SPI_STACK *stack, int argc) {
     niVlgr = 0;
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/vlgr_info", niPROGRESS__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/vlgr_info", niPROGRESS_END__FP9SPI_STACKi);
+int niPROGRESS(SPI_STACK *stack, int argument_count) {
+    int progress = spiGetStackInt(stack++);
+    niNowProgInfo = NULL;
+    for (int index = 0; index < niProgNum; index++) {
+        if (progress == niProgInfo[index].progress) {
+            niNowProgInfo = niProgInfo + index;
+            break;
+        }
+    }
+    if (niNowProgInfo == NULL) {
+        if (niProgNum >= GAME_PROGRESS_MAX) {
+            return 0;
+        }
+        niNowProgInfo = niProgInfo + niProgNum++;
+        niNowProgInfo->Init();
+    }
+    niNowProgInfo->progress = progress;
+    niProgDupliID = spiGetStackInt(stack++);
+    niProgCon = 0;
+    char *condition = spiGetStackString(stack);
+    if (condition != NULL && strcmp(condition, at_250) == 0) {
+        niProgCon = 1;
+    }
+    niNowProgInfo->after = niProgCon;
+    return 1;
+}
+int niPROGRESS_END(SPI_STACK *stack, int argument_count) {
+    if (niVlgr == NULL) {
+        return 0;
+    }
+    if (niProgNum <= 0) {
+        return 1;
+    }
+    u32 size = niProgNum * sizeof(CVillagerPlace::ProgressInfo);
+    u32 blocks;
+    if (size & 0xF) {
+        blocks = (size >> 4) + 1;
+    } else {
+        blocks = size >> 4;
+    }
+    niVlgr->prog_info = new (niStack->Alloc(blocks + 2)) CVillagerPlace::ProgressInfo[niProgNum];
+    niVlgr->prog_num = 0;
+    if (niVlgr->prog_info == NULL) {
+        return 0;
+    }
+    niVlgr->prog_num = niProgNum;
+    for (int index = 0; index < niProgNum; index++) {
+        niVlgr->prog_info[index] = niProgInfo[index];
+    }
+    return 1;
+}
 int niPLACE(SPI_STACK *stack, int argc) {
     return 1;
 }
@@ -136,7 +200,23 @@ int niNIGHT_PLACE(SPI_STACK *stack, int argc) {
     niNowProgInfo->place[niProgDupliID][1] = niPlaceInfo + place_no;
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/vlgr_info", niNPC_INFO_NUM__FP9SPI_STACKi);
+int niNPC_INFO_NUM(SPI_STACK *stack, int argument_count) {
+    VlgrInfoNum = spiGetStackInt(stack);
+    int count = VlgrInfoNum;
+    u32 size = count * sizeof(CVillagerInfo);
+    u32 blocks;
+    if (size & 0xF) {
+        blocks = (size >> 4) + 1;
+    } else {
+        blocks = size >> 4;
+    }
+    VlgrInfo = (CVillagerInfo *)(int)new (niStack->Alloc(blocks + 2)) CVillagerInfo[count];
+    if (VlgrInfo == NULL) {
+        VlgrInfoNum = 0;
+    }
+    niVlgrInfoIdx = 0;
+    return 1;
+}
 CVillagerInfo::CVillagerInfo(void) {
     vlgr_id = -1;
     model_name = NULL;
@@ -146,7 +226,38 @@ CVillagerInfo::CVillagerInfo(void) {
     unk_18 = -1;
     unk_14 = -1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/vlgr_info", niNPC_INFO__FP9SPI_STACKi);
+int niNPC_INFO(SPI_STACK *stack, int argument_count) {
+    if (niVlgrInfoIdx >= VlgrInfoNum) {
+        return 0;
+    }
+    CVillagerInfo *info = VlgrInfo + niVlgrInfoIdx;
+    info->vlgr_id = spiGetStackInt(stack++);
+    char *name = spiGetStackString(stack++);
+    if (name != NULL) {
+        info->model_name = mgCopyString(name, niStack);
+    }
+    if (argument_count >= 3) {
+        info->house_type = spiGetStackInt(stack++);
+    }
+    if (argument_count >= 4) {
+        char *show_frames = spiGetStackString(stack++);
+        if (show_frames != NULL) {
+            info->show_frames = mgCopyString(show_frames, niStack);
+        }
+    }
+    if (argument_count >= 5) {
+        char *hide_frames = spiGetStackString(stack++);
+        if (hide_frames != NULL) {
+            info->hide_frames = mgCopyString(hide_frames, niStack);
+        }
+    }
+    if (argument_count >= 7) {
+        info->unk_14 = spiGetStackInt(stack++);
+        info->unk_18 = spiGetStackInt(stack);
+    }
+    niVlgrInfoIdx++;
+    return 1;
+}
 void LoadNPCInfo(char *script, int length, mgCMemory *memory) {
     CVillagerPlace::ProgressInfo progressTable[GAME_PROGRESS_MAX];
 
@@ -321,8 +432,46 @@ int vpiGetMotionID(char *name) {
     }
     return (strcmp(name, at_498) == 0) ? 2 : -1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/vlgr_info", giPROG_INFO__FP9SPI_STACKi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/vlgr_info", LoadGameInfo__FP9mgCMemory);
+int giPROG_INFO(SPI_STACK *stack, int argument_count) {
+    int progress = spiGetStackInt(stack++);
+    if (progress < 0 || progress >= GAME_PROGRESS_MAX) {
+        return 0;
+    }
+    giGamePI[progress].chapter = spiGetStackInt(stack++);
+    giGamePI[progress].section = spiGetStackInt(stack++);
+    giGamePI[progress].order = spiGetStackInt(stack++);
+    char *name = spiGetStackString(stack);
+    if (name != NULL) {
+        giGamePI[progress].name = mgCopyString(name, giStack);
+    }
+    return 1;
+}
+void LoadGameInfo(mgCMemory *memory) {
+    int script_size;
+    char script[0x19000];
+    if (LoadFile2(at_555, script, &script_size, 0) == 0) {
+        return;
+    }
+    LoadPlaceInfo(script, script_size, memory);
+    for (int progress = 0; progress < GAME_PROGRESS_MAX; progress++) {
+        ProgressInfo[progress].section = 0;
+        ProgressInfo[progress].chapter = 0;
+        ProgressInfo[progress].name = NULL;
+        ProgressInfo[progress].order = 0;
+    }
+    if (LoadFile2(at_556, script, &script_size, 0) == 0) {
+        return;
+    }
+    giGamePI = ProgressInfo;
+    giStack = memory;
+    ProgressNum = GAME_PROGRESS_MAX;
+    CScriptInterpreter interpreter;
+    interpreter.SetTag(gi_tag);
+    interpreter.SetScript(script, script_size);
+    interpreter.Run();
+    LoadNPCInfo(script, script_size, memory);
+    printf(at_557, memory->stack_size - memory->stack_used);
+}
 GAME_PROGRESS_INFO *GetGameProgressInfo(int index) {
     if (index < 0 || index >= ProgressNum) {
         return NULL;
@@ -344,8 +493,13 @@ CVillagerPlace::CVillagerPlace() {
     memset(this, 0, sizeof(CVillagerPlace));
 }
 
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/vlgr_info", __sinit_vlgr_info_cpp);
+extern "C" void *__construct_array(void *array, void *(*constructor)(void *),
+                                    void *destructor, unsigned int size, unsigned int count);
+extern "C" void *__ct__14CVillagerPlaceFv(void *place);
+extern "C" void __sinit_vlgr_info_cpp() {
+    __construct_array(VlgrPlace, __ct__14CVillagerPlaceFv, NULL,
+                      sizeof(CVillagerPlace), VLGR_PLACE_MAX);
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", ni_tag__DATA);

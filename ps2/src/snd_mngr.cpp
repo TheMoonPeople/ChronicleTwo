@@ -4,10 +4,20 @@
 #include "snd_seseq.hpp"
 
 extern CSound CSnd;
+extern int snd_sema_id;
+extern float PortVolf[SND_PORT_NUM];
+extern sndPortInfo PortInfo[SND_PORT_NUM];
+extern sndCSeSeq SeSequencer[32];
+extern float MicPos[4];
+extern float MicDir[4];
+extern "C" int WaitSema(int id);
+extern "C" int SignalSema(int id);
 sndPortInfo *GetPortInfo(int port);
 sndSeInfo *GetSeInfo(u32 snd_id, int index);
 sndCSeSeq *GetSeSeq(int seq_id);
 void CSndStep();
+int IsBgmPort(int port);
+int mgGetVSyncCount();
 
 // Code (.text)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", Create__11CLoopSeMngrFiP9mgCMemory);
@@ -20,7 +30,16 @@ void CLoopSeMngr::Initialize(void) {
     loop_se_num = 0;
     loop_se = NULL;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", Clear__11CLoopSeMngrFv);
+void CLoopSeMngr::Clear() {
+    if (loop_se != NULL) {
+        for (int index = 0; index < loop_se_num; index++) {
+            SND_LOOP_SE_SEQ *entry = &loop_se[index];
+            entry->se_id = -1;
+            entry->vol = -1.0f;
+            entry->pan = 0.0f;
+        }
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetLoopSe__11CLoopSeMngrFPiUii);
 int CLoopSeMngr::SeLoopPlayStop(u32 handle, int sound, int flags, int loop) {
     return SeLoopPlayStop(handle, sound, flags, -1.0f, 0.0f, loop);
@@ -35,9 +54,28 @@ u32 sndCreateID(u32 snd_id, s32 se_no) {
 int sndGetSeNo(u32 se_id) {
     return se_id & 0xFFFF;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetPortInfo__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetSeSeq__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetEmptySeSeq__FPi);
+sndPortInfo *GetPortInfo(int port) {
+    if (port < 0 || port > SND_PORT_NUM) {
+        return NULL;
+    }
+    return &PortInfo[port];
+}
+sndCSeSeq *GetSeSeq(int seq_id) {
+    if (seq_id < 0 || seq_id >= 32) {
+        return NULL;
+    }
+    return &SeSequencer[seq_id];
+}
+sndCSeSeq *GetEmptySeSeq(int *seq_id) {
+    for (int index = 0; index < 32; index++) {
+        sndCSeSeq *sequencer = &SeSequencer[index];
+        if (sequencer->data == NULL) {
+            *seq_id = index;
+            return sequencer;
+        }
+    }
+    return NULL;
+}
 u32 GetPortNo(u32 sound_id) {
     return (sound_id >> 24) & 0xFF;
 }
@@ -47,8 +85,16 @@ u32 GetBankNo(u32 sound_id) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetBankInfo__FUi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetSeInfo__FUii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndInitMngr__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndWaitSema__Fv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSignalSema__Fv);
+void sndWaitSema() {
+    if (snd_sema_id >= 0) {
+        WaitSema(snd_sema_id);
+    }
+}
+void sndSignalSema() {
+    if (snd_sema_id >= 0) {
+        SignalSema(snd_sema_id);
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndInitPort__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndInitSeSeq__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetReverb__Fiii);
@@ -59,11 +105,25 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetMasterVol__Fif);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetMasterVol__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndMasterVolFadeInOut__Fiiff);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetPortVol__Fif);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetPortVol__Fi);
+float sndGetPortVol(int port) {
+    if (port < 0 || port >= SND_PORT_NUM) {
+        return 0.0f;
+    }
+    return PortVolf[port];
+}
 int sndTransBdState(void) {
     return CSnd.TransBdState(1);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndWaitTransBd__Fv);
+void sndWaitTransBd() {
+    int previous_frame = -1;
+    while (1) {
+        int frame = mgGetVSyncCount();
+        if (frame != previous_frame && sndTransBdState()) {
+            return;
+        }
+        previous_frame = frame;
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", CSndStep__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", CSndStepWait__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStep__Ff);
@@ -131,7 +191,10 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSePan__FUiiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSeVolf__FUiifi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSePanf__FUiifi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSePitch__FUiiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetMicPos__FPfPf);
+void sndSetMicPos(float *position, float *direction) {
+    *(u_long128 *)MicPos = *(u_long128 *)position;
+    *(u_long128 *)MicDir = *(u_long128 *)direction;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetVolPan__FPfPfPfff);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndGetVolPan__FPfPfPfPfff);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndVolLimit__Fi);
@@ -146,7 +209,14 @@ void sndSeStopPBPrKr(int a, int b, int c, int d, int e) {
     CSnd.SE_Stop(a, b, c, d, e);
     sndSignalSema();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSeVolPBPrKr__Fiiiiii);
+void sndSetSeVolPBPrKr(int port, int bank, int prog, int key, int vol, int voice) {
+    if (vol < 0) {
+        vol = 127;
+    }
+    sndWaitSema();
+    CSnd.SE_SetVol(port, bank, prog, key, vol, voice);
+    sndSignalSema();
+}
 void sndSetSePanPBPrKr(int a, int b, int c, int d, int e, int f) {
     sndWaitSema();
     CSnd.SE_SetPan(a, b, c, d, e, f);
@@ -162,9 +232,29 @@ void sndSqPlay(int a, int b, int c) {
     CSnd.SQ_Play(a, b, c);
     sndSignalSema();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSqStop__Fii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSetSqVol__Fiii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSqRePlay__Fii);
+void sndSqStop(int port, int sq_no) {
+    sndWaitSema();
+    CSnd.SetVol(port, 0);
+    if (IsBgmPort(port)) {
+        CSnd.StopVoice(0);
+    }
+    CSnd.Stop(port);
+    if (IsBgmPort(port)) {
+        CSnd.StopVoice(0);
+    }
+    CSndStep();
+    sndSignalSema();
+}
+void sndSetSqVol(int port, int sq_no, int vol) {
+    sndWaitSema();
+    CSnd.SetVol(port, vol);
+    sndSignalSema();
+}
+void sndSqRePlay(int port, int sq_no) {
+    sndWaitSema();
+    CSnd.SQ_RePlay(port);
+    sndSignalSema();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", GetLine__FPPcPcPc);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", SearchSeq__11sndBankInfoFPcPi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", LoadSeInfoTxt__11sndPortInfoFiPciP9mgCMemory);
@@ -226,7 +316,11 @@ int sndStreamGetState(void) {
     sndSignalSema();
     return state;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndStreamClose__Fv);
+void sndStreamClose() {
+    sndWaitSema();
+    CSnd.StreamClose(1);
+    sndSignalSema();
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", __ct__9sndCSeSeqFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", __ct__11sndPortInfoFv);
 

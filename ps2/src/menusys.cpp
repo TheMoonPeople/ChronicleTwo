@@ -1605,7 +1605,25 @@ int CMenuKeyFunc::CheckPushButton() {
     }
     return push_button;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckAnalogKey__12CMenuKeyFuncFiPf);
+float CMenuKeyFunc::CheckAnalogKey(int stick, float *dir) {
+    float input[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    if (stick == 0 || stick == 2) {
+        input[0] = GamePad__2.GetRXf();
+        input[1] = GamePad__2.GetRYf();
+    }
+    if (stick == 1 || stick == 2) {
+        input[2] = GamePad__2.GetLXf();
+        input[3] = GamePad__2.GetLYf();
+    }
+    if (stick == 2) {
+        dir[0] = 0.5f * (input[0] + input[2]);
+        dir[1] = 0.5f * (input[1] + input[3]);
+    } else {
+        dir[0] = input[0] + input[2];
+        dir[1] = input[1] + input[3];
+    }
+    return 1.0f;
+}
 u8 CMenuKeyFunc::CheckKeyInput(void) {
     if (key_enable == 0) {
         select_key = 0;
@@ -1902,9 +1920,39 @@ void CMenuItemInfo::Initialize(void) {
     }
     unk_160 = 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SetEquipListNo__13CMenuItemInfoFi);
+void CMenuItemInfo::SetEquipListNo(int list_no) {
+    if (list_no < 2) {
+        CHARA_DATA *chara = MenuUserParam.chara[list_no];
+        equip_list[0] = chara->equip[0].item_no;
+        equip_list[1] = chara->equip[1].item_no;
+        equip_list[2] = chara->equip[2].item_no;
+        equip_list[3] = chara->equip[3].item_no;
+        equip_list[4] = chara->equip[4].item_no;
+    } else if (list_no == 2) {
+        equip_list[0] = MenuUserParam.robo->parts[0].item_no;
+        equip_list[1] = MenuUserParam.robo->parts[1].item_no;
+        equip_list[2] = MenuUserParam.robo->parts[2].item_no;
+        equip_list[3] = MenuUserParam.robo->parts[3].item_no;
+        equip_list[4] = MenuUserParam.chara[0]->equip[4].item_no;
+        equip_list[5] = MenuUserParam.chara[0]->equip[2].item_no;
+    } else {
+        equip_list[0] = equip_list[1] = equip_list[2] = equip_list[3] = 0;
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckEquipListNo__13CMenuItemInfoFi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckSoundLoad__13CMenuItemInfoFv);
+int CMenuItemInfo::CheckSoundLoad() {
+    sound_loaded = 0;
+    int chara_no = GetActiveCharaNo();
+    if (GetMenuLoopType() == 0) {
+        return 0;
+    }
+    if (sound_load != 0) {
+        MenuCharaSoundLoad(&MenuCharaLoadStack, chara_no, 1);
+        sound_loaded = 1;
+        return 1;
+    }
+    return 0;
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", SearchNowPosItemExist__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsCancelNoneLoadItem__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsCancelLoadItem__13CMenuItemInfoFv);
@@ -2195,7 +2243,607 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CalcTex__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CalcCursorPosition__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", EffectDrawCheck__14CBaseMenuClassFP16CMenuPosDataForm);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemInit__FP9mgCMemoryPii);
+extern mgCMemory MenuDebugStack;
+extern int MenuDebugSize;
+extern mgCCamera *MenuDebugCamera;
+extern CActionChara *MenuDebugItemModel;
+extern s8 MenuDebugModelDrawFlag;
+extern s8 MenuDebugModel_AdjustFlag;
+extern CDataCommon *debug_common_data;
+extern short MenuItemBoardTotalNum;
+extern short MenuItemBoardTotalLine;
+extern int cnt_6161;
+extern s8 init_6162;
+extern int testcnt_6298;
+extern s8 init_6299;
+extern u32 table_6164[7];
+extern char dbox_path_6083[];
+extern u64 at_6133;
+extern u64 at_6176;
+extern u64 at_6220;
+extern u64 at_6234;
+extern u64 at_6256;
+extern u64 at_6265;
+#ifdef NONMATCHING
+void MenuItemDebugKey(void) {
+    float rotation[4];
+    float health_input[2];
+    float gauge_input[2];
+    float weapon_status_input[2];
+    float ridepod_status_input[2];
+    float ridepod_gauge_input[2];
+    float rod_status_input[2];
+    s32 file_size;
+    s32 buttons;
+    CGameDataUsed *item;
+
+    buttons = MenuCommonInfo->CheckPushButton();
+    item = CMenuItemInfoPt->view_weapon;
+
+    switch (CMenuItemInfoPt->key_arg_no) {
+    case 2:
+        if (MenuDebugModelDrawFlag == 0) {
+            s32 direction;
+            mgCCameraFollow *camera;
+            CActionChara *model;
+            s32 count_step;
+            s32 item_no;
+            s32 model_loaded;
+            void *buffer;
+            s32 stack_used_before_load;
+            char *model_path;
+
+            direction = MenuCommonInfo->CheckSelectKey();
+            if (direction & 0x20) {
+                CMenuItemInfoPt->debug_item_no += 0x40;
+            }
+            if (direction & 0x10) {
+                CMenuItemInfoPt->debug_item_no -= 0x40;
+            }
+            if (direction & 1) {
+                CMenuItemInfoPt->debug_item_no -= 8;
+            }
+            if (direction & 2) {
+                CMenuItemInfoPt->debug_item_no += 8;
+            }
+            if (direction & 8) {
+                CMenuItemInfoPt->debug_item_no += 1;
+            }
+            if (direction & 4) {
+                CMenuItemInfoPt->debug_item_no -= 1;
+            }
+
+            count_step = 1;
+            if (GamePad__2.On(PAD_CROSS)) {
+                count_step = 5;
+            }
+            if (direction & 0x80) {
+                CMenuItemInfoPt->unk_300 += count_step;
+            }
+            if (direction & 0x40) {
+                CMenuItemInfoPt->unk_300 -= count_step;
+            }
+            if (CMenuItemInfoPt->unk_300 <= 0) {
+                CMenuItemInfoPt->unk_300 = 1;
+            }
+            if (CMenuItemInfoPt->unk_300 > 0x64) {
+                CMenuItemInfoPt->unk_300 = 0x64;
+            }
+            if (CMenuItemInfoPt->debug_item_no <= 0) {
+                CMenuItemInfoPt->debug_item_no = 1;
+            }
+            item_no = CMenuItemInfoPt->debug_item_no;
+            if (GetGameDataPt()->max_item_no < item_no) {
+                CMenuItemInfoPt->debug_item_no = GetGameDataPt()->max_item_no;
+            }
+            debug_common_data = GetCommonItemData(CMenuItemInfoPt->debug_item_no);
+
+            if (GamePad__2.Down(PAD_TRIANGLE)) {
+                MenuSePlay(1);
+                DebugGetItem(NULL, 0);
+                CheckEnableHaveItemNum();
+            }
+
+            if (buttons & 1) {
+                if (debug_common_data != NULL) {
+                    MenuUserDataManPtr->GetItemNotOver(
+                        CMenuItemInfoPt->debug_item_no,
+                        CMenuItemInfoPt->unk_300);
+                    if (CheckItemOver() &&
+                        (MenuCommonInfo->open_type == 0 ||
+                         MenuCommonInfo->open_type == 1)) {
+                        MenuCommonInfo->open_type += 0x10;
+                        ItemOverFlowCheckFlag = 1;
+                    }
+                    if (CheckTrushMenu()) {
+                        MenuItemBoardTotalNum = GetNowBagMax(1);
+                        MenuItem_ItemBoardTopLine = MenuItemBoardTotalNum / 6 - 5;
+                        MenuItem_ItemBoardTopSelect = GetNowBagMax(0);
+                    }
+                    item_menu_argtbl[2].max = MenuItemBoardTotalNum;
+                    MenuItemBoardTotalLine = MenuItemBoardTotalNum / 6;
+                    item_menu_argtbl[2].rows = MenuItemBoardTotalLine;
+                    CheckEnableHaveItemNum();
+                }
+            } else if (buttons & 0x80) {
+                GameItemDataManage.LoadData();
+                GameItemDataManage.LoadItemSystemMes(LanguageCode);
+            } else if (buttons & 8) {
+                MenuDebugStack.stack_used = 0;
+                MenuDebugStack.lock = 0;
+                MenuDebugCamera = NULL;
+                MenuDebugItemModel = NULL;
+                MenuDebugModelDrawFlag = 1;
+
+                camera = new ((u_long128 *)MenuDebugStack.Alloc(sizeof(mgCCameraFollow) / 16 + 2))
+                    mgCCameraFollow(40.0f, 30.0f, 0.0f, 8.0f);
+                MenuDebugCamera = camera;
+
+                model = new ((u_long128 *)MenuDebugStack.Alloc(sizeof(CActionChara) / 16 + 2)) CActionChara;
+                MenuDebugItemModel = model;
+
+                model->Initialize(NULL);
+                MenuDebugStack.Align64();
+
+                buffer = MenuDebugStack.stack + MenuDebugStack.stack_used;
+                model_loaded = 0;
+                if (debug_common_data != NULL) {
+                    model_path = GetItemFilePath(CMenuItemInfoPt->debug_item_no, 0);
+                    if (model_path != NULL && LoadFile2(model_path, buffer, &file_size, 0)) {
+                        MenuDebugStack.Alloc(file_size / 16 + 1);
+                        stack_used_before_load = MenuDebugStack.stack_used;
+                        mgTexManager.DeleteBlock(CMenuItemInfoPt->tex_block[4]);
+                        MenuDebugItemModel->LoadPack((u_int *)buffer, at_4954, &MenuDebugStack,
+                            &MenuDebugStack, &MenuDebugStack,
+                            CMenuItemInfoPt->tex_block[4], 0);
+                        MenuDebugItemModel->SetPosition(0.0f, 0.0f, 0.0f);
+                        MenuDebugItemModel->SetScale(1.0f, 1.0f, 1.0f);
+                        MenuDebugCamera->SetRef(0.0f, 0.0f, 0.0f);
+                        MenuDebugCamera->SetPos(0.0f, 0.0f, 100.0f);
+                        MenuDebugSize = MenuDebugStack.stack_used - stack_used_before_load;
+                        MenuDebugSize = MenuDebugSize * 16 / 1024;
+                        model_loaded = 1;
+                    }
+                }
+                if (model_loaded == 0) {
+                    buffer = (u8 *)MenuDebugStack.stack +
+                             MenuDebugStack.stack_used * 0x10;
+                    LoadFile2(dbox_path_6083, buffer, &file_size, 0);
+                    MenuDebugStack.Alloc(file_size / 16 + 1);
+                    stack_used_before_load = MenuDebugStack.stack_used;
+                    mgTexManager.DeleteBlock(CMenuItemInfoPt->tex_block[4]);
+                    MenuDebugItemModel->LoadPack((u_int *)buffer, at_4954, &MenuDebugStack,
+                        &MenuDebugStack, &MenuDebugStack,
+                        CMenuItemInfoPt->tex_block[4], 0);
+                    MenuDebugItemModel->SetPosition(0.0f, 0.0f, 0.0f);
+                    MenuDebugItemModel->SetScale(1.0f, 1.0f, 1.0f);
+                    MenuDebugItemModel->Step();
+                    MenuDebugCamera->SetRef(0.0f, 0.0f, 0.0f);
+                    MenuDebugCamera->SetPos(0.0f, 0.0f, 100.0f);
+                    MenuDebugSize = MenuDebugStack.stack_used - stack_used_before_load;
+                    MenuDebugSize = MenuDebugSize * 16 / 1024;
+                }
+                if (MenuDebugModel_AdjustFlag != 0 && MenuDebugItemModel != NULL) {
+                    float scale =
+                        MenuAdjustPolygonScale(MenuDebugItemModel->CObjectFrame::frame, 7.0f);
+                    MenuDebugItemModel->SetScale(scale, scale, scale);
+                }
+                GamePad__2.MenuModeOff();
+            }
+        } else if (MenuDebugModelDrawFlag == 1) {
+            if (MenuDebugItemModel != NULL) {
+                float x;
+                float y;
+                s32 camera_control;
+
+                MenuDebugItemModel->GetRotation(rotation);
+                x = GamePad__2.GetLXf() / 10.0f;
+                y = GamePad__2.GetLYf() / 10.0f;
+                camera_control = 0;
+                if (GamePad__2.On(PAD_L2)) {
+                    camera_control = 1;
+                }
+                if (camera_control) {
+                    ((mgCCameraFollow *)MenuDebugCamera)->GetAngle();
+                } else {
+                    rotation[1] += x;
+                    rotation[0] += y;
+                }
+                if (rotation[0] > 3.1415927f) {
+                    rotation[0] -= 6.2831855f;
+                } else if (rotation[0] < -3.1415927f) {
+                    rotation[0] += 6.2831855f;
+                }
+                if (rotation[1] > 3.1415927f) {
+                    rotation[1] -= 6.2831855f;
+                } else if (rotation[1] < -3.1415927f) {
+                    rotation[1] += 6.2831855f;
+                }
+                if (rotation[2] > 3.1415927f) {
+                    rotation[2] -= 6.2831855f;
+                } else if (rotation[2] < -3.1415927f) {
+                    rotation[2] += 6.2831855f;
+                }
+                MenuDebugItemModel->SetRotation(rotation);
+                MenuDebugItemModel->GetScale(rotation);
+                rotation[0] += GamePad__2.GetRYf() / 10.0f;
+                if (rotation[0] <= 0.1f) {
+                    rotation[0] = 0.1f;
+                }
+                if (rotation[0] >= 100.0f) {
+                    rotation[0] = 100.0f;
+                }
+                MenuDebugItemModel->SetScale(rotation[0], rotation[0], rotation[0]);
+            }
+            MenuDebugCamera->Step(1);
+            if (buttons & 4) {
+                MenuDebugItemModel->SetScale(1.0f, 1.0f, 1.0f);
+                MenuDebugItemModel->SetRotation(0.0f, 0.0f, 0.0f);
+                MenuDebugModel_AdjustFlag = 0;
+            } else if (buttons & 8) {
+                if (MenuDebugItemModel != NULL) {
+                    MenuDebugModel_AdjustFlag ^= 1;
+                    if (MenuDebugModel_AdjustFlag != 0) {
+                        float scale = MenuAdjustPolygonScale(
+                            MenuDebugItemModel->CObjectFrame::frame, 7.0f);
+                        MenuDebugItemModel->SetScale(scale, scale, scale);
+                    } else {
+                        MenuDebugItemModel->SetScale(1.0f, 1.0f, 1.0f);
+                    }
+                }
+            } else if (buttons & 2) {
+                MenuDebugModelDrawFlag = 0;
+                MenuDebugItemModel = NULL;
+                MenuDebugCamera = NULL;
+                GamePad__2.MenuModeOn(0x78);
+            }
+        }
+        break;
+
+    case 3: {
+        CHARA_DATA *chara;
+        s32 change_maximum;
+
+        chara = MenuUserParam.chara[CMenuItemInfoPt->sub_view];
+        if (chara != NULL) {
+            *(u64 *)health_input = at_6133;
+            MenuCommonInfo->CheckAnalogKey(0, health_input);
+            change_maximum = 0;
+            if (GamePad__2.On(PAD_L2)) {
+                change_maximum = 1;
+            }
+            if (change_maximum == 0) {
+                chara->hp.now = chara->hp.now + (float)(s32)health_input[0];
+            }
+            if (change_maximum == 1) {
+                chara->hp.max = chara->hp.max + (float)(s32)health_input[0];
+            }
+            chara->hp.max = GetDispVolumeForFloat(chara->hp.max);
+            if (chara->hp.now >= chara->hp.max) {
+                chara->hp.now = chara->hp.max;
+            }
+            if (chara->hp.now <= 0.0f) {
+                chara->hp.now = 0.0f;
+            }
+            if (chara->hp.max > 255.0f) {
+                chara->hp.max = 255.0f;
+            }
+            if (chara->hp.max <= 0.0f) {
+                chara->hp.max = 0.0f;
+            }
+        }
+        if (GamePad__2.On(PAD_CIRCLE)) {
+            (u16 &)chara->defence += 1;
+            if ((u16)chara->defence > 0x80) {
+                chara->defence = 0x80;
+            }
+        } else if (GamePad__2.On(PAD_CROSS)) {
+            s32 count = (u16)chara->defence;
+
+            if (0 < count) {
+                chara->defence = count - 1;
+            }
+        }
+        if (buttons & 4) {
+            MenuUserDataManPtr->AddMoney(1000);
+            CMenuItemInfoPt->money_form->SetNumber(
+                at_1493__2, MenuUserDataManPtr->AddMoney(0));
+        }
+        if (buttons & 8) {
+            if (init_6162 == 0) {
+                cnt_6161 = 0;
+                init_6162 = 1;
+            }
+            MenuUserDataManPtr->SetCharaStatusAttirbuteVol(
+                CMenuItemInfoPt->sub_view, table_6164[cnt_6161], 0x78);
+            cnt_6161 += 1;
+            if (cnt_6161 > 6) {
+                cnt_6161 = 0;
+            }
+        }
+        return;
+    }
+
+    case 4: {
+        s32 change_maximum;
+        s32 change_durability;
+        s32 change_experience;
+
+        if (item == NULL) {
+            break;
+        }
+        change_maximum = 0;
+        change_durability = 0;
+        change_experience = 0;
+        if (GamePad__2.On(PAD_L2 | PAD_R2)) {
+            change_durability = 1;
+        }
+        if (GamePad__2.On(PAD_L1 | PAD_R1)) {
+            change_experience = 1;
+        }
+        if (GamePad__2.On(PAD_L2 | PAD_L1)) {
+            change_maximum = 1;
+        }
+        *(u64 *)gauge_input = at_6176;
+        MenuCommonInfo->CheckAnalogKey(0, gauge_input);
+        if (item->used_type == USED_ITEM_TYPE_WEAPON) {
+            if (change_durability) {
+                if (change_maximum == 0) {
+                    item->data.weapon.whp.now += gauge_input[0];
+                }
+                if (change_maximum == 1) {
+                    item->data.weapon.whp.max += gauge_input[0];
+                }
+                if (item->data.weapon.whp.max < 1.0f) {
+                    item->data.weapon.whp.max = 1.0f;
+                }
+                if (255.0f < item->data.weapon.whp.max) {
+                    item->data.weapon.whp.max = 255.0f;
+                }
+                item->data.weapon.whp.max = GetDispVolumeForFloat(item->data.weapon.whp.max);
+                if (item->data.weapon.whp.now < 0.0f) {
+                    item->data.weapon.whp.now = 0.0f;
+                }
+                if (item->data.weapon.whp.max < item->data.weapon.whp.now) {
+                    item->data.weapon.whp.now = item->data.weapon.whp.max;
+                }
+            }
+            if (change_experience) {
+                if (change_maximum == 0) {
+                    item->data.weapon.abs.now += gauge_input[0];
+                }
+                if (change_maximum == 1) {
+                    item->data.weapon.abs.max += gauge_input[0];
+                }
+                if (item->data.weapon.abs.max < 1.0f) {
+                    item->data.weapon.abs.max = 1.0f;
+                }
+                if (99999.0f < item->data.weapon.abs.max) {
+                    item->data.weapon.abs.max = 99999.0f;
+                }
+                item->data.weapon.abs.max = GetDispVolumeForFloat(item->data.weapon.abs.max);
+                if (item->data.weapon.abs.now < 0.0f) {
+                    item->data.weapon.abs.now = 0.0f;
+                }
+                if (item->data.weapon.abs.max < item->data.weapon.abs.now) {
+                    item->data.weapon.abs.now = item->data.weapon.abs.max;
+                }
+            }
+            if (buttons & 1) {
+                item->AddFusionPoint(1);
+            }
+            if (buttons & 2) {
+                item->AddFusionPoint(-1);
+            }
+            if (buttons & 8) {
+                item->AddFusionPoint(500);
+            }
+            if (buttons & 4) {
+                item->LevelUp();
+                MenuSePlay(1);
+            }
+        }
+        return;
+    }
+
+    case 5: {
+        s32 status_index;
+        CDataWeapon *info;
+
+        if (item == NULL) {
+            break;
+        }
+        if (item->used_type == USED_ITEM_TYPE_WEAPON) {
+            info = GetWeaponInfoData(item->item_no);
+            MenuCommonInfo->CheckSelectKey();
+            CMenuKeyFunc *common = MenuCommonInfo;
+
+            status_index = common->cursor;
+            *(u64 *)weapon_status_input = at_6220;
+            common->CheckAnalogKey(0, weapon_status_input);
+            if (status_index < 2) {
+
+                s16 *field = &item->data.weapon.status[status_index];
+
+                *field += (s16)(s32)weapon_status_input[0];
+                if (*field < 0) {
+                    *field = 0;
+                }
+                if (info->status_max[status_index] < *field) {
+                    *field = info->status_max[status_index];
+                }
+            } else {
+                s16 *field = &item->data.weapon.attribute[status_index - 2];
+
+                *field += (s16)(s32)weapon_status_input[0];
+                if (*field < 0) {
+                    *field = 0;
+                }
+                if (info->attribute_max[status_index - 2] < *field) {
+                    *field = info->attribute_max[status_index - 2];
+                }
+            }
+        }
+        if (item->used_type == USED_ITEM_TYPE_ROBO_PART) {
+            s16 *field;
+
+            MenuCommonInfo->CheckSelectKey();
+            CMenuKeyFunc *common = MenuCommonInfo;
+
+            status_index = common->cursor;
+            *(u64 *)ridepod_status_input = at_6234;
+            common->CheckAnalogKey(0, ridepod_status_input);
+            if (status_index < 2) {
+                field = &item->data.robopart.status[status_index];
+                *field += (s16)(s32)ridepod_status_input[0];
+                if (*field < 0) {
+                    *field = 0;
+                }
+                if (item->data.robopart.status[status_index + 1] > 255) {
+                    item->data.robopart.status[status_index + 1] = 255;
+                }
+            } else {
+                field = &item->data.robopart.status[status_index];
+                *field += (s16)(s32)ridepod_status_input[0];
+                if (*field < 0) {
+                    *field = 0;
+                }
+                if (*field > 0xFF) {
+                    *field = 0xFF;
+                }
+            }
+        }
+        break;
+    }
+
+    case 6: {
+        float amount;
+
+        amount = 1.0f;
+        if (GamePad__2.On(PAD_L1 | PAD_R1)) {
+            amount = 100.0f;
+        }
+        if (GamePad__2.On(PAD_CIRCLE)) {
+            MenuUserDataManPtr->AddRoboAbs(amount);
+        }
+        if (GamePad__2.On(PAD_CROSS)) {
+            MenuUserDataManPtr->AddRoboAbs(-amount);
+        }
+        if (GamePad__2.Down(PAD_TRIANGLE)) {
+            MenuUserParam.robo->voice_unit ^= 1;
+        }
+        return;
+    }
+
+    case 7: {
+        s32 status_index;
+
+        CMenuKeyFunc *common = MenuCommonInfo;
+
+        status_index = common->cursor;
+        *(u64 *)ridepod_gauge_input = at_6256;
+        common->CheckAnalogKey(0, ridepod_gauge_input);
+        if (status_index == 0) {
+            MenuUserParam.robo->AddPoint(ridepod_gauge_input[0]);
+        } else if (status_index == 1) {
+            MenuUserDataManPtr->AddWhp(2, 0, (s32)ridepod_gauge_input[0]);
+        }
+        break;
+    }
+
+    case 10: {
+        s32 status_index;
+        CDataWeapon *info;
+        s16 *field;
+
+        if (item->IsFishingRod()) {
+            info = GetWeaponInfoData(item->item_no);
+            MenuCommonInfo->CheckSelectKey();
+            CMenuKeyFunc *common = MenuCommonInfo;
+
+            status_index = common->cursor;
+            *(u64 *)rod_status_input = at_6265;
+            common->CheckAnalogKey(0, rod_status_input);
+            field = &item->data.weapon.attribute[status_index];
+            *field += (s16)(s32)rod_status_input[0];
+            if (*field < 0) {
+                *field = 0;
+            }
+            if (info->attribute_max[status_index] < *field) {
+                *field = info->attribute_max[status_index];
+            }
+            if (GamePad__2.On(PAD_CIRCLE)) {
+                item->AddFusionPoint(1);
+            }
+            if (GamePad__2.On(PAD_CROSS)) {
+                item->AddFusionPoint(-1);
+            }
+            if (GamePad__2.On(PAD_TRIANGLE)) {
+                item->AddFusionPoint(-500);
+            }
+            if (GamePad__2.On(PAD_SQUARE)) {
+                item->AddFusionPoint(500);
+            }
+        }
+        break;
+    }
+
+    case 11:
+        break;
+    }
+
+    switch (CMenuItemInfoPt->key_arg_no) {
+    case 5:
+        if (item != NULL) {
+            CDataWeapon *info = GetWeaponInfoData(item->item_no);
+
+            if (buttons & 4) {
+                item->data.weapon.status[0] = info->status_max[0];
+                item->data.weapon.status[1] = info->status_max[1];
+                item->data.weapon.attribute[0] = info->attribute_max[0];
+                item->data.weapon.attribute[1] = info->attribute_max[1];
+                item->data.weapon.attribute[2] = info->attribute_max[2];
+                item->data.weapon.attribute[3] = info->attribute_max[3];
+                item->data.weapon.attribute[4] = info->attribute_max[4];
+                item->data.weapon.attribute[5] = info->attribute_max[5];
+                item->data.weapon.attribute[6] = info->attribute_max[6];
+                item->data.weapon.attribute[7] = info->attribute_max[7];
+            }
+            if (buttons & 8) {
+                item->data.weapon.status[0] = info->status[0];
+                item->data.weapon.status[1] = info->status[1];
+                item->data.weapon.attribute[0] = info->attribute[0];
+                item->data.weapon.attribute[1] = info->attribute[1];
+                item->data.weapon.attribute[2] = info->attribute[2];
+                item->data.weapon.attribute[3] = info->attribute[3];
+                item->data.weapon.attribute[4] = info->attribute[4];
+                item->data.weapon.attribute[5] = info->attribute[5];
+                item->data.weapon.attribute[6] = info->attribute[6];
+                item->data.weapon.attribute[7] = info->attribute[7];
+            }
+            if (GamePad__2.Down(PAD_R1)) {
+                if (init_6299 == 0) {
+                    testcnt_6298 = 0;
+                    init_6299 = 1;
+                }
+
+                u32 mask = 0;
+
+                mask |= 1 << testcnt_6298;
+                item->data.weapon.special = CheckWeaponAttribute(item->data.weapon.special, mask);
+                testcnt_6298 += 1;
+                if (testcnt_6298 >= 0xC) {
+                    testcnt_6298 = 0;
+                }
+            }
+        }
+        break;
+    }
+}
+
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugKey__Fv);
+#endif
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugDraw__Fv);
 extern "C" int GetActiveCharaIDForItemCmd__13CMenuItemInfoFv(CMenuItemInfo *);
 extern "C" int GetModelNo__13CGameDataUsedFv(CGameDataUsed *);
@@ -3093,7 +3741,21 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", BuildUpWeaponNameBoardDraw__FP11
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuWeaponBuildUpDraw__FRi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuWeaponStatusInfoFormSet__FP13CGameDataUsedP11CDataWeapon);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemSelectDiffer__Fi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CheckLoadItemNo__13CMenuItemInfoFv);
+void CMenuItemInfo::CheckLoadItemNo() {
+    if (view_mode == 0) {
+        SetMenuLoadItemNo(0);
+    } else if (view_mode == 1) {
+        SetMenuLoadItemNo(1);
+    } else if (view_mode == 3) {
+        load_item_no = 2;
+        if (MenuLoadInfo.unk_4 < 0) {
+            MenuLoadInfo.unk_5 = 0;
+        } else {
+            MenuLoadInfo.unk_5 = MenuLoadInfo.unk_4;
+        }
+        SetMenuLoadItemNo(load_item_no);
+    }
+}
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ModelReadStart__13CMenuItemInfoFiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", WeaponBuildCheck__13CMenuItemInfoFP12CActionCharaii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", ModelReadEndCheck__13CMenuItemInfoFv);
