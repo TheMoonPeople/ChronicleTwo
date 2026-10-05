@@ -30,23 +30,51 @@
 #include "common.h"
 #include "menuchr.hpp"
 
+extern void *__vt__9mgCObject[];
+extern void *__vt__7CObject[];
+extern void *__vt__12CObjectFrame[];
+extern void *__vt__11CCharacter2[];
+extern void *__vt__12CActionChara[];
+extern "C" void *__ct__10CRunScriptFv(void *);
+
+static inline CActionChara *NewMenuActionChara(mgCMemory *stack) {
+    CActionChara *chara;
+    if ((chara = (CActionChara *)operator new(sizeof(CActionChara), (u_long128 *)stack->Alloc(0x105))) != NULL) {
+        *(void **)chara = __vt__9mgCObject;
+        ((mgCObject *)chara)->Initialize();
+        *(void **)chara = __vt__7CObject;
+        ((mgCObject *)chara)->Initialize();
+        *(void **)chara = __vt__12CObjectFrame;
+        ((mgCObject *)chara)->Initialize();
+        *(void **)chara = __vt__11CCharacter2;
+        chara->shadow_link_num = 0;
+        chara->shadow_link_shadow = 0;
+        chara->shadow_link_model = 0;
+        ((mgCObject *)chara)->Initialize();
+        *(void **)chara = __vt__12CActionChara;
+        __ct__10CRunScriptFv(&chara->script);
+        memset(&chara->move_check, 0, sizeof(chara->move_check));
+    }
+    return chara;
+}
+
 union WornCostumes {
     int id[4];
     u_long128 qw;
 };
-static int stack_free_size(mgCMemory *memory) {
+static inline int stack_free_size(mgCMemory *memory) {
     return memory->stack_size - memory->stack_used;
 }
-static u8 *stack_free_top(mgCMemory *memory) {
+static inline u8 *stack_free_top(mgCMemory *memory) {
     return (u8*)(memory->stack + memory->stack_used);
 }
-static int memory_free_size(mgCMemory *memory) {
+static inline int memory_free_size(mgCMemory *memory) {
     return memory->stack_size - memory->stack_used;
 }
-static u8 *memory_free_top(mgCMemory *memory) {
+static inline u8 *memory_free_top(mgCMemory *memory) {
     return (u8*)(memory->stack + memory->stack_used);
 }
-static unsigned int blocks_for(unsigned int size) {
+static inline unsigned int blocks_for(unsigned int size) {
     return (size & 0xF) != 0 ? (size >> 4) + 1 : size >> 4;
 }
 const int kMonsterMemoCount = 0x119;
@@ -131,6 +159,7 @@ extern "C" void *MenuMosSelectPtr;
 extern "C" char at_3779[];
 extern "C" char at_3780[];
 extern "C" int GetTimeBand__Ff(float hour);
+extern "C" int GetMenuMainFrameEndFlag__Fv();
 extern "C" char at_3790[];
 extern int MenuSoundCharaNo;
 extern float at_4158;
@@ -213,7 +242,11 @@ extern "C" char at_2915[];
 extern "C" char at_2916[];
 extern "C" char at_2917[];
 extern "C" char at_2918[];
-extern "C" float at_1372__2[4];
+union MenuPositionVector {
+    float f[4];
+    u_long128 qw;
+};
+extern "C" MenuPositionVector at_1372__2;
 extern "C" char at_1402__3[];
 extern CMenuChrCngMenu *ChrChangMenuPt;
 extern void *__vt__15CMenuChrCngMenu[];
@@ -452,7 +485,7 @@ int CMenuChrCngMenu::CheckBGNPCModel() {
     } else {
         npc_y = npc_y + ((-16.6f - npc_y) / 6.0f);
     }
-    *(u_long128 *)position = *(u_long128 *)at_1372__2;
+    *(MenuPositionVector *)position = at_1372__2;
     position[1] = npc_y;
     if (loadResult == 1) {
         npc_loaded = 1;
@@ -549,7 +582,7 @@ int CMenuChrCngMenu::CheckChrChange() {
                 if (GetMenuLoopType() == 1) {
                     chara->effect_man = FxScriptMan;
                 }
-                if (chara != NULL && ((signed char *)&MenuLoadInfo)[1] == 0) {
+                if (chara != NULL && MenuLoadInfo.unk_1 == 0) {
                     chara->InitScript();
                 }
                 MenuCharaSoundEnter(MenuMainScene, chara, 1);
@@ -607,7 +640,7 @@ int CMenuChrCngMenu::MenuLocalLoop() {
     if (MenuCommonInfo->open_type == 4 || close_on_end == 1 || MenuCommonInfo->open_type == 0xE) {
         fadeDone = FadeCheckMenu();
     }
-    frameEnd = GetMenuMainFrameEndFlag();
+    frameEnd = GetMenuMainFrameEndFlag__Fv();
     result = CheckChrChange();
     switch (mode) {
         case 1:
@@ -875,15 +908,15 @@ int MenuCharaChangeInit(mgCMemory *memory, int *texBlock, int bootMode) {
     MenuChangeNpcMemory.Align64();
     size = stack_free_size(&MenuChangeNpcMemory);
     MenuCharaLoadStack.stSetBuffer((u_long128 *)stack_free_top(&MenuChangeNpcMemory), size);
-    ((signed char *)&MenuLoadInfo)[1] = 0;
+    MenuLoadInfo.unk_1 = 0;
     MenuCharaLoadStack.stack_used = 0;
     MenuCharaLoadStack.lock = 0;
     switch (bootMode) {
         case 0:
-            ((signed char *)&MenuLoadInfo)[1] = 1;
+            MenuLoadInfo.unk_1 = 1;
             break;
     }
-    ((signed char *)&MenuLoadInfo)[0] = 2;
+    MenuLoadInfo.mode = 2;
     if (ChrChangMenuPt->key_arg_no == 2 || bootMode == 0xE) {
         while (GetMenuMainFrameEndFlag() == 0) {
             MenuMainFrameStep__Fv();
@@ -925,7 +958,7 @@ int MenuCharaChangeKey(void) {
                     ChrChangMenuPt->sub_menu = ChrChangMenuPt->sub_menu_next;
                     MenuCharaLoadStack.stack_used = 0;
                     MenuCharaLoadStack.lock = 0;
-                    if (((signed char *)&MenuLoadInfo)[1] == 1) {
+                    if (MenuLoadInfo.unk_1 == 1) {
                         mode = 0;
                     }
                     MenuMonsterBoxInit(&MenuCharaLoadStack, ChrChangMenuPt->tex_block, mode);
@@ -971,7 +1004,7 @@ int MenuCharaChangeKey(void) {
                         ChrChangMenuPt->star_fade = 0;
                         ChrChangMenuPt->set_cursor = 1;
                         ChrChangMenuPt->form->GetPutPosXY(at_2662__2, pos[0], pos[1]);
-                        MenuCommonInfo->MenuSetPos(pos[0], pos[1]);
+                        MenuSetPos__12CMenuKeyFuncFii(MenuCommonInfo, pos[0], pos[1]);
                         ChrChangMenuPt->form->GetPutPosXY(at_2197__2, pos[0], pos[1]);
                         cursorForm = MenuFormMI2;
                         cursorForm->x = (float)pos[0];
@@ -997,7 +1030,7 @@ char *GetMonsterName(int monsterNo) {
     }
     return NULL;
 }
-short get_gajji_id_from_monster_progress_table(int progressNo, int *columnOut) {
+int get_gajji_id_from_monster_progress_table(int progressNo, int *columnOut) {
     int row;
     int column;
     int columnOffset;
@@ -1008,7 +1041,7 @@ short get_gajji_id_from_monster_progress_table(int progressNo, int *columnOut) {
                 if (columnOut) {
                     *columnOut = column - 1;
                 }
-                return ((short*)monster_progress_tbl)[row * 5];
+                return monster_progress_tbl[row * 5];
             }
         }
     }
@@ -1039,9 +1072,9 @@ int get_monster_tbl_bajjilevel(int *list, int monsterId, int value, int column) 
     row = 0;
     for (; row < 19; row++) {
         if (value < 0 ||
-            (0 <= value && column > 0 && value == ((short*)monster_progress_tbl + column)[row * 5])) {
+            (0 <= value && column > 0 && value == (monster_progress_tbl + column)[row * 5])) {
             if (monsterId == *(short *)((u8 *)monster_progress_tbl + row * 10)) {
-                list[count] = ((short*)monster_progress_tbl + column)[row * 5 + 1];
+                list[count] = (monster_progress_tbl + column)[row * 5 + 1];
                 count++;
             }
         }
@@ -1060,7 +1093,7 @@ int get_monster_tbl_bajjilevel(int *list, int monsterId, int value, int column) 
 int get_default_monster_progresstbl(int id) {
     int row;
     for (row = 0; row < 19; row++) {
-        if (id == ((short*)monster_progress_tbl)[row * 5]) {
+        if (id == monster_progress_tbl[row * 5]) {
             return row;
         }
     }
@@ -1081,7 +1114,7 @@ int GetMonsterModelFile(int monsterId, int kind, char *fileName) {
     if (monster == NULL) {
         return 0;
     }
-    if (strlen(baseName) <= 0) {
+    if ((int)strlen(baseName) <= 0) {
         return 0;
     }
     strcpy(fileName, baseName);
@@ -1360,7 +1393,7 @@ void MenuCharaSoundEnter(CScene *scene, CActionChara *chara, int openPort) {
             chara->se_bank =
                 sndLoadSound__FiPUiP9mgCMemory(7, buffer, MorattaStack + charaIds[index]);
         }
-        chara->se_bank = scene->se_battle_id;
+        chara->se_bank_2 = scene->se_battle_id;
         chara->SetSoundInfoCopy();
     }
 }
@@ -1600,7 +1633,7 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *texBlock) {
 
     ((CBaseMenuClass *)this)->SetTexBlock(texBlock);
     for (i = 0; i < 7; i++) {
-        MenuActionChara[i] = new ((u_long128*)stack->Alloc(0x105)) CActionChara;
+        MenuActionChara[i] = NewMenuActionChara(stack);
         MenuActionChara[i]->Initialize(0);
     }
     texManager = &mgTexManager;
@@ -1726,8 +1759,8 @@ void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
         this->kill_num = KillMonsterCount(monster->id, 0);
         itemCount = 0;
         for (i = 0; i < 3; i++) {
-            if (0 < ((short*)monster->drop_item)[i]) {
-                message = GetItemMessage(((short*)monster->drop_item)[i]);
+            if (0 < monster->drop_items[i]) {
+                message = GetItemMessage(monster->drop_items[i]);
                 if (message != NULL) {
                     strcpy(this->drop_item[itemCount], message);
                     itemCount++;
@@ -1761,7 +1794,6 @@ void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
     }
 }
 void CMosBookMenu::InitEnd(void) {
-    mgCMemory scratch;
     u8 *buffer;
     unsigned int size;
     int freeSize;
@@ -1777,7 +1809,7 @@ void CMosBookMenu::InitEnd(void) {
     Tex_MBook = (int)mgTexManager.GetTexture(at_5560__2, -1);
     Tex_MBg = (int)mgTexManager.GetTexture(at_5561, -1);
     this->tex_block_no = this->tex_block[4];
-    scratch.Init();
+    mgCMemory scratch;
     freeSize = memory_free_size(&MosBookStack);
     scratch.stSetBuffer((u_long128 *)memory_free_top(&MosBookStack), freeSize);
     MenuMemoryAdjust(&scratch, &this->stack, MenuActionCharaBuffer, 3);
@@ -1907,17 +1939,23 @@ int CMosBookMenu::KeyStep(void) {
             if (ReadBGSync__Fv() == 0) {
                 this->load_phase += 1;
                 this->show_wait = 0;
-                this->monster = new ((u_long128*)this->stack.Alloc(0x105)) CActionChara;
+                this->monster = NewMenuActionChara(&this->stack);
                 this->monster->Initialize(0);
                 MenuMonsterLoadBGCheck(MenuCharaBuild2, &this->monster, this->tex_block_no, -1);
-                this->monster->SetPosition(-12.8f, -6.6f, 0.0f);
+                float x = -12.8f;
+                float y = -6.6f;
+                float z = 0.0f;
+                x = x;
+                y = y;
+                z = z;
+                this->monster->SetPosition(x, y, z);
                 this->monster->SetMotion(at_5839, 0, 1);
                 MonsterScaleCheck((CCharacter2 *)this->monster);
             }
             break;
         case 4:
             this->skip_draw ^= 1;
-            if (this->skip_draw != 0) {
+            if ((s8)this->skip_draw != 0) {
                 this->monster->Step();
             }
             this->show_wait += 1;

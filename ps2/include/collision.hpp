@@ -66,7 +66,7 @@ public:
      * @address 0x1647D0
      * @size 0x34
      */
-    CCollision() { Initialize(); }
+    CCollision() { CCollision::Initialize(); }
 
     /**
      * Recomputes the bounds from the geometry; the empty box has none.
@@ -152,7 +152,11 @@ public:
     /**
      * Creates geometry with no triangles and cleared bounds.
      */
-    CCollisionMDT() { Initialize(); }
+    CCollisionMDT() {
+        CCollision::Initialize();
+        poly = 0;
+        poly_count = 0;
+    }
 
     /**
      * Recomputes the bounds so that they enclose every triangle.

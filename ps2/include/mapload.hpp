@@ -252,7 +252,7 @@ public:
      * @address 0x15F5D0
      * @size 0x30
      */
-    CFuncPoint();
+    CFuncPoint() {}
 
     /**
      *
@@ -433,7 +433,7 @@ MAP_TIME_BAND GetTimeBand(float time);
  */
 inline float mgAbs(float value) {
     if (value < 0.0f) {
-        value = -value;
+        return -value;
     }
     return value;
 }

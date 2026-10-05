@@ -16,6 +16,15 @@
 #include <cstring>
 
 extern "C" int fptosi(float value);
+extern "C" void __ct__10CRunScriptFv(void *);
+extern "C" void *Alloc__9mgCMemoryFi(mgCMemory *, int);
+extern "C" void Delete__8CColPrimFi(void *, int);
+extern "C" void Free__9mgCMemoryFP1(void *, void *);
+extern void *__vt__9mgCObject[];
+extern void *__vt__7CObject[];
+extern void *__vt__12CObjectFrame[];
+extern void *__vt__11CCharacter2[];
+union EffectVector { u_long128 quad; float values[4]; };
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
@@ -82,8 +91,11 @@ extern char at_3495[];
 
 extern char at_3536[];
 
-static u_int align16_blocks(u_int size) {
-    return (size + 15) >> 4;
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+    return size >> 4;
 }
 
 // Code (.text)
@@ -218,7 +230,7 @@ CCharacter2 *CEffectScriptMan::GetBaseChara(int base_no) {
             if (wanted == 0) {
                 return 0;
             }
-            if (current->type == 0 && strcmp(current->name, wanted->name) == 0) {
+            if (current->type == 0 && strcmp(current->file, wanted->file) == 0) {
                 return base[i]->chara;
             }
         }
@@ -258,10 +270,10 @@ int CEffectScriptMan::BuildPack(int base_no, u_int *pack, mgCMemory *memory, int
     }
     switch (base->type) {
         case 0:
-            sprintf(path, at_1127__2, base->name);
+            sprintf(path, at_1127__2, base->file);
             break;
         case 1:
-            sprintf(path, at_1128__3, base->name);
+            sprintf(path, at_1128__3, base->file);
             break;
     }
     sprintf(pack_path, at_1129__2, base->script);
@@ -279,10 +291,10 @@ int CEffectScriptMan::GetNeedFilePath(int base_no, char *path, char *pack) {
     }
     switch (base->type) {
         case 0:
-            sprintf(path, at_1143, base->name);
+            sprintf(path, at_1143, base->file);
             break;
         case 1:
-            sprintf(path, at_1144, base->name);
+            sprintf(path, at_1144, base->file);
             break;
     }
     sprintf(pack, at_1145, base->script);
@@ -343,7 +355,7 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
     if ((script = (_EFF_SCRIPT *)operator new(
              sizeof(_EFF_SCRIPT), (u_long128 *)work_memory->Alloc(0x17))) !=
         NULL) {
-        new ((u_long128 *)&script->run) CRunScript;
+        __ct__10CRunScriptFv(&script->run);
     }
     script->work = token;
     script->texb = base->texb;
@@ -354,7 +366,20 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
     script->chara_work = NULL;
     if (base->chara != NULL) {
         CCharacter2 *chara;
-        chara = new (work_memory->Alloc(0x68)) CCharacter2;
+        if ((chara = (CCharacter2 *)operator new(
+                sizeof(CCharacter2), work_memory->Alloc(0x68))) != 0) {
+            *(void **)chara = __vt__9mgCObject;
+            chara->Initialize();
+            *(void **)chara = __vt__7CObject;
+            chara->Initialize();
+            *(void **)chara = __vt__12CObjectFrame;
+            chara->Initialize();
+            *(void **)chara = __vt__11CCharacter2;
+            chara->shadow_link_num = 0;
+            chara->shadow_link_shadow = 0;
+            chara->shadow_link_model = 0;
+            chara->Initialize();
+        }
         script->chara = chara;
         script->chara->Initialize();
         base->chara->Copy(*script->chara, work_memory);
@@ -501,16 +526,16 @@ void CEffectScriptMan::DeleteEffSpt(_EFF_SCRIPT *script) {
         slot[script->user_id][script->slot] = 0;
     }
     if (script->colprim != 0) {
-        script->colprim->Delete(script->user_id);
+        Delete__8CColPrimFi((void *)script->colprim, script->user_id);
     }
     DeleteSprite(script->sprite);
     if (script->sub_chara_work != 0) {
-        work_memory->Free((u_long128 *)script->sub_chara_work);
+        Free__9mgCMemoryFP1(work_memory, script->sub_chara_work);
     }
     if (script->chara_work != 0) {
-        work_memory->Free((u_long128 *)script->chara_work);
+        Free__9mgCMemoryFP1(work_memory, script->chara_work);
     }
-    work_memory->Free((u_long128 *)script->work);
+    Free__9mgCMemoryFP1(work_memory, script->work);
 }
 int CEffectScriptMan::DeleteEffSpt(int group, int slot) {
     if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot < 0 || slot >= EFF_SPT_OWNER_SLOT_MAX) {
@@ -552,7 +577,7 @@ _ES_SPRITE *CEffectScriptMan::AssignSprite(int count) {
     }
 
     _ES_SPRITE *sprite = (_ES_SPRITE *)operator new[](
-        size, (u_long128 *)work_memory->Alloc(align16_blocks(size) + 2));
+        size, (u_long128 *)Alloc__9mgCMemoryFi(work_memory, align16_blocks(size) + 2));
 
     memset(sprite, 0, blocks);
     work_memory->stAlign64();
@@ -578,7 +603,20 @@ int CEffectScriptMan::AssignCharacter(_EFF_SCRIPT *script, int count) {
     }
     for (int i = 0; i < count; i++) {
         CCharacter2 *chara;
-        chara = new (work_memory->Alloc(0x68)) CCharacter2;
+        if ((chara = (CCharacter2 *)operator new(
+                sizeof(CCharacter2), work_memory->Alloc(0x68))) != 0) {
+            *(void **)chara = __vt__9mgCObject;
+            chara->Initialize();
+            *(void **)chara = __vt__7CObject;
+            chara->Initialize();
+            *(void **)chara = __vt__12CObjectFrame;
+            chara->Initialize();
+            *(void **)chara = __vt__11CCharacter2;
+            chara->shadow_link_num = 0;
+            chara->shadow_link_shadow = 0;
+            chara->shadow_link_model = 0;
+            chara->Initialize();
+        }
         script->sub_chara[i] = chara;
         script->chara->Copy(*script->sub_chara[i], work_memory);
     }
@@ -884,17 +922,43 @@ int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
             return 0;
         }
 
-        _EFF_SCRIPT **entry = &this->slot[group][slot];
+        _EFF_SCRIPT **entry = (_EFF_SCRIPT **)((slot << 2) + ((group << 5) + (int)this) + 0x184);
         if (*entry == 0) {
             return 0;
         }
-        chara = new (work_memory->Alloc(0x68)) CCharacter2;
+        if ((chara = (CCharacter2 *)operator new(
+                sizeof(CCharacter2), work_memory->Alloc(0x68))) != 0) {
+            *(void **)chara = __vt__9mgCObject;
+            chara->Initialize();
+            *(void **)chara = __vt__7CObject;
+            chara->Initialize();
+            *(void **)chara = __vt__12CObjectFrame;
+            chara->Initialize();
+            *(void **)chara = __vt__11CCharacter2;
+            chara->shadow_link_num = 0;
+            chara->shadow_link_shadow = 0;
+            chara->shadow_link_model = 0;
+            chara->Initialize();
+        }
         (*entry)->chara = chara;
         source->Copy(*(*entry)->chara, work_memory);
         (*entry)->chara_work = token;
     } else {
         if (now != 0) {
-            chara = new (work_memory->Alloc(0x68)) CCharacter2;
+            if ((chara = (CCharacter2 *)operator new(
+                sizeof(CCharacter2), work_memory->Alloc(0x68))) != 0) {
+            *(void **)chara = __vt__9mgCObject;
+            chara->Initialize();
+            *(void **)chara = __vt__7CObject;
+            chara->Initialize();
+            *(void **)chara = __vt__12CObjectFrame;
+            chara->Initialize();
+            *(void **)chara = __vt__11CCharacter2;
+            chara->shadow_link_num = 0;
+            chara->shadow_link_shadow = 0;
+            chara->shadow_link_model = 0;
+            chara->Initialize();
+        }
             now->chara = chara;
             source->Copy(*now->chara, work_memory);
             now->chara_work = token;
@@ -939,36 +1003,38 @@ static _ES_SPRITE *GetSpritePtr(_EFF_SCRIPT *script, int index) {
     }
     return script->sprite + index;
 }
-extern "C" int GetStackInt(RS_STACKDATA *slot) {
+extern "C" {
+static int GetStackInt(RS_STACKDATA *slot) {
     if (slot->type == 1) {
         return fptosi(*(float *)&slot->i);
     }
     return slot->i;
 }
-extern "C" float GetStackFloat(RS_STACKDATA *slot) {
+static float GetStackFloat(RS_STACKDATA *slot) {
     if (slot->type == 0) {
         return (float)slot->i;
     }
     return *(float *)&slot->i;
 }
-extern "C" void GetStackVector(float *vector, RS_STACKDATA *slot) {
+static void GetStackVector(float *vector, RS_STACKDATA *slot) {
     vector[0] = GetStackFloat(slot++);
     vector[1] = GetStackFloat(slot++);
     vector[2] = GetStackFloat(slot);
     vector[3] = 1.0f;
 }
-extern "C" int GetStackString(RS_STACKDATA *slot) {
+static int GetStackString(RS_STACKDATA *slot) {
     return slot->i;
 }
-extern "C" void SetStackInt(RS_STACKDATA *slot, int value) {
+static void SetStackInt(RS_STACKDATA *slot, int value) {
     if (slot->type == 3) {
         slot->p->i = value;
     }
 }
-extern "C" void SetStackFloat(RS_STACKDATA *slot, float value) {
+static void SetStackFloat(RS_STACKDATA *slot, float value) {
     if (slot->type == 3) {
         slot->p->f = value;
     }
+}
 }
 extern "C" int _ZERO_VECTOR__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argument_count) {
     if (argument_count != 3) {
@@ -1172,7 +1238,7 @@ int _GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count) {
     float matrix[4][4];
     float rot[4];
     float dir[4];
-    *(u_long128 *)dir = *(u_long128 *)at_2311;
+    *(EffectVector *)dir = *(EffectVector *)at_2311;
     GetStackVector(rot, stack);
     stack += 3;
     rot[0] = mgAngleLimit(rot[0]);
@@ -1474,7 +1540,7 @@ int _CHR_GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count) {
     float matrix[4][4];
     float rot[4];
     float dir[4];
-    *(u_long128 *)dir = *(u_long128 *)at_2498__2;
+    *(EffectVector *)dir = *(EffectVector *)at_2498__2;
     sceVu0UnitMatrix(matrix);
     now_script->chara->GetRotation(rot);
     sceVu0RotMatrixX(matrix, matrix, rot[0]);

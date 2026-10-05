@@ -394,7 +394,7 @@ public:
      * @address 0x2FF630
      * @size 0x130
      */
-    s8 GetDngMapNextFloorID(int floor_id, int root_type);
+    int GetDngMapNextFloorID(int floor_id, int root_type);
 
     /**
      *

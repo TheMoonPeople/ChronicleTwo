@@ -46,10 +46,10 @@ extern FormatA at_838__5;
 extern FormatB at_839__5;
 extern const char *MCBrowsetName[3][4];
 extern u16 MCBrowserName_Offset[3][4];
-extern int DngTreeSaveFlag;
+extern short DngTreeSaveFlag;
 
 // Code (.text)
-char *CopyMCBrowserName(int index, char *name, u16 *offset) {
+void CopyMCBrowserName(int index, char *name, u16 *offset) {
     int region = 0;
     if (CheckNowEurope() != 0) {
         region = 2;
@@ -60,7 +60,6 @@ char *CopyMCBrowserName(int index, char *name, u16 *offset) {
     if (offset != NULL) {
         *offset = MCBrowserName_Offset[region][index];
     }
-    return name;
 }
 void SetDngTreeFlag(int flag) {
     DngTreeSaveFlag = flag;
@@ -192,9 +191,8 @@ int CMemoryCardManager::InitForMC() {
     }
     return result;
 }
-int CMemoryCardManager::FinishForMC() {
+void CMemoryCardManager::FinishForMC() {
     sceMcEnd();
-    return 1;
 }
 void CMemoryCardManager::SetBuff_Album(char *buf) {
     album_buffer = buf;
@@ -540,7 +538,7 @@ int CMemoryCardManager::Write() {
     result = 0;
     sceMcChdir(port, 1, at_843__5, 0);
     sceMcSync(0, &command, &result);
-    sceMcOpen(port, 1, (char *)at_1315__3, 0x202);
+    sceMcOpen(port, 1, at_1315__3, 0x202);
     sceMcSync(0, &command, &result);
     fd = result;
     remaining = 0x758000;
@@ -610,7 +608,7 @@ int CMemoryCardManager::SaveAlbum() {
                 album->trailer = MakeCheckDigit(0, album->digit_data, sizeof(album->digit_data));
                 write_buffer = album_buffer;
                 MakeMemoryCardAlbumName((char *)album_name, 1);
-                int opened = sceMcOpen(port, 1, (char *)album_name, 0x202);
+                int opened = sceMcOpen(port, 1, album_name, 0x202);
                 step++;
                 if (opened != 0) {
                     return -1;
@@ -707,7 +705,7 @@ int CMemoryCardManager::LoadAlbum() {
                 total_transferred = 0;
                 read_buffer = album_buffer;
                 MakeMemoryCardAlbumName(album_name, 1);
-                int opened = sceMcOpen(port, 1, (char *)album_name, 1);
+                int opened = sceMcOpen(port, 1, (const unsigned char *)album_name, 1);
                 step++;
                 if (opened != 0) {
                     return -1;
@@ -875,7 +873,7 @@ int CMemoryCardManager::LoadOmakeFile() {
                 transferred = 0;
                 total_transferred = 0;
                 read_buffer = (char *)sub_game;
-                int opened = sceMcOpen(port, 1, (char *)at_1954, 1);
+                int opened = sceMcOpen(port, 1, at_1954, 1);
                 step++;
                 if (opened != 0 && opened != -0xC8) {
                     error.code = 0xB;
@@ -976,7 +974,7 @@ int CMemoryCardManager::CheckOmakeFile() {
                         strlen(dir_table[i].name);
                     }
                     step = 2;
-                    sceMcOpen(port, 1, (char *)at_1954, 1);
+                    sceMcOpen(port, 1, at_1954, 1);
                     break;
                 }
                 if (result < 0) {
@@ -1194,7 +1192,7 @@ int CMemoryCardManager::GetSaveFileInfoFromMc(int index, int *step) {
                     return -1;
                 }
                 MakeMemoryCardFileName(index, file_name);
-                if (sceMcOpen(port, 1, (char *)file_name, 1) == 0) {
+                if (sceMcOpen(port, 1, (const unsigned char *)file_name, 1) == 0) {
                     *step += 1;
                     break;
                 }
@@ -1274,7 +1272,7 @@ int CMemoryCardManager::GetSaveFileInfoFromMc(int index, int *step) {
                 if (broken != 0) {
                     printf(at_2285);
                 }
-                if (((SAVEDATA_FORMAT *)save_buffer)->incomplete != 0) {
+                if ((s8)((SAVEDATA_FORMAT *)save_buffer)->incomplete != 0) {
                     broken = 1;
                 }
                 if (slot != NULL) {

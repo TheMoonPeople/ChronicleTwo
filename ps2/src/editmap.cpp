@@ -14,6 +14,11 @@
 #include "editmap.hpp"
 #include <cstring>
 
+union EditVector {
+    float values[4];
+    u_long128 quad;
+};
+
 extern "C" int fptosi(float value);
 
 const int kPartsInfoColorCountOffset = 0x1C;
@@ -38,7 +43,13 @@ extern "C" int GetPlaceParts__4CMapFPc(void *map, char *name);
 extern "C" void Free__9mgCMemoryFP1(void *memory, void *block);
 extern "C" void Step__4CMapFv(...);
 extern "C" void PreDraw__4CMapFPf(void *self, float *pos);
-extern "C" void CreateFuncCheck__4CMapFP15CFuncPointCheck(void *self, CFuncPointCheck *check);
+struct EditFuncCheck {
+    float time;
+    int anime_frame;
+};
+extern "C" void CreateFuncCheck__4CMapFP15CFuncPointCheck(void *self, EditFuncCheck *check);
+extern "C" void StepFuncPoint__9CMapPartsFR15CFuncPointCheck(CMapParts *self, EditFuncCheck &check);
+extern "C" void CopyFuncPointCheck__9CMapPartsFR15CFuncPointCheck(CMapParts *self, EditFuncCheck &check);
 extern "C" void DrawSub__4CMapFi(void *map, int mode);
 extern char *CEditMapName;
 extern int emapInit;
@@ -49,15 +60,15 @@ extern CEditInfoMngr *emapInfo;
 extern int emapFixNum;
 extern int emapFix;
 extern int emapFixIdx;
-extern u_long128 at_426;
+extern EditVector at_426;
 extern "C" int GetPoly__4CMapFiP6CCPolyR9mgVu0FBOXi(void *map, int kind, CCPoly *polys,
                                                     mgVu0FBOX &box, int max);
 extern "C" int GetRiverPoly__9CEditGridFP6CCPolyRC9mgVu0FBOXif(CEditGrid *grid, CCPoly *polys,
                                                                const mgVu0FBOX &box, int max,
                                                                float height);
-extern u_long128 at_830__3;
+extern EditVector at_830__3;
 extern "C" int RePaintNum__8CEditMapFi(void *self, int count);
-extern u_long128 at_988;
+extern EditVector at_988;
 extern "C" void mgCreateMatrixPY__FPA4_fPff(float (*matrix)[4], float *pos, float angle);
 extern "C" void mgApplyMatrix__FPfPfPA4_fPfPf(float *outA, float *outB, float (*matrix)[4], float *inA,
                                               float *inB);
@@ -161,7 +172,7 @@ void CEditMap::ClearAllParts() {
     initial_offset = 0;
     for (; k < info_mngr.fix_parts_num; k++) {
         initial = (ePlaceData *)((u8 *)info_mngr.fix_parts + initial_offset);
-        *(u_long128 *)rotation = at_426;
+        *(EditVector *)rotation = at_426;
         rotation[1] = GetEditAngle(initial->angle);
         info = info_mngr.GetePartsInfoAtID(initial->id);
         placed = 0;
@@ -235,7 +246,7 @@ int CEditMap::GetPoly(int mode, CCPoly *polys, mgVu0FBOX &box, int max) {
     max -= total;
     polys += total;
     for (i = 0; i < edit_parts_max; i++, part++) {
-        int is_free = part->show == 0;
+        int is_free = *(signed char *)((u_char *)part + 0x70) == 0;
         if (is_free) {
             continue;
         }
@@ -298,7 +309,7 @@ CEditPartsInfo *CEditMap::GetePartsInfoAtPlaceID(int index) {
 int CEditMap::eNewPlaceParts() {
     int i;
     for (i = 0; i < edit_parts_max; i++) {
-        int is_free = edit_parts[i].show == 0;
+        int is_free = *(signed char *)((u_char *)&edit_parts[i] + 0x70) == 0;
         if (is_free) {
             return i;
         }
@@ -333,7 +344,7 @@ CEditParts *CEditMap::GetePlaceParts(char *name) {
     i = 0;
     for (; i < edit_parts_max; i++) {
         slot = (CEditParts *)((char *)edit_parts + offset);
-        int is_free = slot->show == 0;
+        int is_free = *(signed char *)((u_char *)slot + 0x70) == 0;
         if (!is_free) {
             if (slot->state != 0) {
                 if (slot->info != 0) {
@@ -510,7 +521,7 @@ int CEditMap::GetSameParts(int index) {
     offset = 0;
     for (; i < edit_parts_max; i++) {
         CEditParts *slot = (CEditParts *)((char *)edit_parts + offset);
-        int is_free = slot->show == 0;
+        int is_free = *(signed char *)((u_char *)slot + 0x70) == 0;
         if (!is_free) {
             if (slot->state == 0) {
                 if (slot->info == info) {
@@ -555,7 +566,7 @@ int CEditMap::GetTotalPolyn(int *vertex_total, int *texture_total) {
             }
         }
     }
-    *(u_long128 *)river_pos = at_830__3;
+    *(EditVector *)river_pos = at_830__3;
     river_count = GetRiverNum(river_pos);
     info = GetePartsInfoAtType(0xB);
     if (info != 0) {
@@ -716,7 +727,7 @@ int CEditMap::BurnEditParts(RemoveInfo *remove_info) {
     int replacement_id;
     int *placed_count;
     CEditParts *part2;
-    *(u_long128 *)remove_pos = at_988;
+    *(EditVector *)remove_pos = at_988;
     high_info = info_mngr.GetePartsInfoAtID(0x57);
     low_info = info_mngr.GetePartsInfoAtID(0x56);
     if (high_info == 0 || low_info == 0) {
@@ -903,7 +914,7 @@ int CEditMap::GetNearParts(CEditPartsInfo *info, float *pos, float angle, CEditP
     i = 0;
     out_offset = 0;
     for (; i < edit_parts_max; i++, part++) {
-        int is_free = part->show == 0;
+        int is_free = *(signed char *)((u_char *)part + 0x70) == 0;
         if (is_free) {
             continue;
         }
@@ -943,7 +954,7 @@ int CEditMap::GetNearParts(mgVu0FBOX &box, CEditParts **out, int max) {
     out_offset = 0;
     part = edit_parts;
     for (i = 0; i < edit_parts_max; i++, part++) {
-        int is_free = part->show == 0;
+        int is_free = *(signed char *)((u_char *)part + 0x70) == 0;
         if (is_free) {
             continue;
         }
@@ -1016,7 +1027,7 @@ void CEditMap::Step() {
     Step__4CMapFv(this);
 }
 int CEditMap::PreDraw(float *pos) {
-    CFuncPointCheck check;
+    EditFuncCheck check;
     CEditParts *part;
     int i;
     PreDraw__4CMapFPf(this, pos);
@@ -1024,9 +1035,9 @@ int CEditMap::PreDraw(float *pos) {
     CreateFuncCheck__4CMapFP15CFuncPointCheck(this, &check);
     part = edit_parts;
     for (i = 0; i < edit_parts_max; i++, part++) {
-        int is_free = part->show == 0;
+        int is_free = *(signed char *)((u_char *)part + 0x70) == 0;
         if (!is_free) {
-            ((CMapParts *)part)->StepFuncPoint(check);
+            StepFuncPoint__9CMapPartsFR15CFuncPointCheck((CMapParts *)part, check);
         }
     }
     return 1;
@@ -1034,7 +1045,7 @@ int CEditMap::PreDraw(float *pos) {
 int CEditMap::DrawSub(int mode) {
     float ambient[4];
     float pulsed[4];
-    CFuncPointCheck check;
+    EditFuncCheck check;
     CEditParts *part;
     int total;
     int light_b;
@@ -1054,9 +1065,9 @@ int CEditMap::DrawSub(int mode) {
     total = 0;
     i = 0;
     for (; i < edit_parts_max; i++, part++) {
-        int is_free = part->show == 0;
+        int is_free = *(signed char *)((u_char *)part + 0x70) == 0;
         if (!is_free && part->state == 1) {
-            ((CMapParts *)part)->CopyFuncPointCheck(check);
+            CopyFuncPointCheck__9CMapPartsFR15CFuncPointCheck((CMapParts *)part, check);
             if (i == focus_parts) {
                 float boost;
                 mgGetAmbient(ambient);

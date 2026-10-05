@@ -112,8 +112,10 @@ void SetMenuBigNum(char *out, int number) {
                 if (digits == 1) {
                     glyph = (signed char *)GetMenuBigNum(rest);
                 } else {
+                    double base = 10.0;
+                    const double &reference = base;
                     double e = (double)(digits - 1);
-                    int divisor = (int)pow(10.0, e);
+                    int divisor = (int)pow(reference, e);
                     glyph = (signed char *)GetMenuBigNum(rest / divisor);
                     rest = rest % divisor;
                 }
@@ -296,7 +298,7 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", AddMsgCursor__7CDC2MesFiiii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", CommandMsgCursor__7CDC2MesFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", YesNoCursor__7CDC2MesFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucls1", YesNoCursor2__7CDC2MesFi);
-char CDC2Mes::GetMsgCursor() {
+int CDC2Mes::GetMsgCursor() {
     return cursor;
 }
 int CDC2Mes::GetMsgItemNo(int index) {

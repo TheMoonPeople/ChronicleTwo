@@ -104,15 +104,20 @@ void mgCDrawPrim::End() {
     }
 }
 
-#ifdef NONMATCHING
 void mgCDrawPrim::Begin2() {
     mgRENDER_INFO *render_info;
     u_int *tag;
     u_long *data;
 
     disabled = 1;
-    if (memory != NULL && vif_packet != NULL && draw_manager != NULL &&
-        (render_info = draw_manager->render_info) != NULL) {
+    if (memory == NULL || vif_packet == NULL || draw_manager == NULL) {
+        return;
+    }
+    render_info = draw_manager->render_info;
+    if (render_info == NULL) {
+        return;
+    }
+    {
         disabled = 0;
         packet_start = memory->stAllocTest(1);
         if (detached == 0) {
@@ -123,7 +128,8 @@ void mgCDrawPrim::Begin2() {
             packet_top = packet_start;
         }
         write = packet_start;
-        draw_env.zbuf = render_info->draw_env[0].zbuf;
+        sceGsZbuf zbuf __attribute__((aligned(4))) = sceGsZbuf(render_info->draw_env[0].zbuf);
+        draw_env.zbuf = zbuf;
         draw_env.SetZBuf(z_mask);
 
         // DMA tag and VIF code for the seven quadwords of drawing state below.
@@ -134,11 +140,12 @@ void mgCDrawPrim::Begin2() {
         tag[3] = MG_VIF_DIRECT | 7;
         write++;
 
-        giftag = (u_int *)write;
-        giftag[0] = MG_GIFTAG_EOP | 2;
-        giftag[1] = 1 << MG_GIFTAG_NREG_SHIFT;
-        giftag[2] = SCE_GIF_PACKED_AD;
-        giftag[3] = 0;
+        u_int *gif = (u_int *)write;
+        giftag = gif;
+        gif[0] = MG_GIFTAG_EOP | 2;
+        gif[1] = 1 << MG_GIFTAG_NREG_SHIFT;
+        gif[2] = SCE_GIF_PACKED_AD;
+        gif[3] = 0;
         write++;
 
         data = (u_long *)write;
@@ -146,15 +153,12 @@ void mgCDrawPrim::Begin2() {
         data[1] = SCE_GS_TEXFLUSH;
         data[2] = 1;
         data[3] = MG_GS_PRMODECONT;
-        write += 2;
+        write = (u_long128 *)(data + 4);
 
         *(mgCDrawEnv *)write = draw_env;
         write += sizeof(mgCDrawEnv) / sizeof(u_long128);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Begin2__11mgCDrawPrimFv);
-#endif
 
 void mgCDrawPrim::BeginPrim2(int type) {
     packed = 0;
@@ -260,8 +264,13 @@ void mgCDrawPrim::Vertex(int x, int y, int z) {
     Vertex4(x << 4, y << 4, z);
 }
 
+extern char at_369[16];
 void mgCDrawPrim::Vertex(float x, float y, float z) {
-    sceVu0FVECTOR pos = {x, y, z, 0.0f};
+    float pos[4];
+    *(u_long128 *)pos = *(u_long128 *)at_369;
+    pos[0] = x;
+    pos[1] = y;
+    pos[2] = z;
     Vertex(pos);
 }
 
@@ -332,21 +341,45 @@ void mgCDrawPrim::Direct(unsigned long reg, unsigned long data) {
     write++;
 }
 
+struct mgCTextureFields {
+    short word0;
+    short word1;
+    short word2;
+    short word3;
+    char name[32];
+    int field28;
+    int field2C;
+    int field30;
+    u_long field38;
+    u_long field40;
+    u_long field48;
+    float floats[4];
+    int field60;
+    int field64;
+    int field68;
+};
+struct mgCDrawPrimTexture {
+    u_char pad0[0x58];
+    mgCTextureFields texture;
+    int bilinear;
+    u_char padCC[0x10];
+    u_long *commandWrite;
+};
 void mgCDrawPrim::Texture(mgCTexture *source) {
+    mgCDrawPrimTexture *self = (mgCDrawPrimTexture *)this;
     if (source != 0) {
-        texture = *source;
-        texture.Bilinear(bilinear);
-        u_long *packet = command_write;
+        self->texture = *(mgCTextureFields *)source;
+        ((mgCTexture *)&self->texture)->Bilinear(self->bilinear);
+        u_long *packet = self->commandWrite;
         packet[0] = 0;
         packet[1] = 0x3F;
-        packet[2] = *(u_long *)&texture.tex1;
+        packet[2] = self->texture.field40;
         packet[3] = 0x14;
-        packet[4] = *(u_long *)&texture.tex0;
+        packet[4] = self->texture.field38;
         packet[5] = 6;
-        command_write = packet + 6;
+        self->commandWrite = packet + 6;
     }
 }
-
 void mgCDrawPrim::AlphaBlendEnable(int enable) {
     prim.ABE = enable;
 }
@@ -369,30 +402,38 @@ void mgCDrawPrim::DAlphaTest(int enable, int mode) {
     draw_env.test.bits.datm = mode;
 }
 
+struct mgCDrawPrimDepthState {
+    u_char pad0[2];
+    u_char enable : 1;
+    u_char mode : 2;
+    u_char rest : 5;
+};
 void mgCDrawPrim::DepthTestEnable(int enable) {
+    mgCDrawPrimDepthState *state = (mgCDrawPrimDepthState *)((u_char *)this + 0x20);
     if (enable == 0) {
-        draw_env.test.bits.zte = 1;
-        draw_env.test.bits.ztst = 1;
+        state->enable = 1;
+        state->mode = 1;
     } else {
         DepthTest(1);
     }
 }
 
+
 void mgCDrawPrim::DepthTest(int mode) {
-    draw_env.test.bits.zte = 1;
+    mgCDrawPrimDepthState *state = (mgCDrawPrimDepthState *)((u_char *)this + 0x20);
+    state->enable = 1;
     switch (mode) {
         case -1:
-            draw_env.test.bits.ztst = 1;
+            state->mode = 1;
             break;
         case 1:
-            draw_env.test.bits.ztst = 2;
+            state->mode = 2;
             break;
         case 2:
-            draw_env.test.bits.ztst = 3;
+            state->mode = 3;
             break;
     }
 }
-
 void mgCDrawPrim::ZMask(int mask) {
     z_mask = mask;
 }
@@ -574,13 +615,15 @@ int mgCDrawManager::ReloadTexture(int group, sceVif1Packet *vif_packet) {
 }
 #pragma schedule reset
 
-#ifdef NONMATCHING
+#pragma schedule off
+#pragma global_optimizer off
 int mgCDrawManager::Draw(int group, sceVif1Packet *vif_packet) {
-    u_int *start;
-    u_int *tag;
     mgSORT_PACKET **entry;
+    u_int *tag;
+    u_int *start;
     u_long128 *common;
     int i;
+    int offset;
 
     if (group < 0 || group >= texture_manager->block_max) {
         return 0;
@@ -591,16 +634,17 @@ int mgCDrawManager::Draw(int group, sceVif1Packet *vif_packet) {
     if (group < 0) {
         return 0;
     }
-    if (packet_list[group] == NULL) {
+    offset = group << 2;
+    if ((entry = *(mgSORT_PACKET ***)((u_char *)packet_list + offset)) == NULL) {
         return 1;
     }
     sceVif1PkTerminate(vif_packet);
-    start = (u_int *)vif_packet->p_current;
-    entry = &packet_list[group][packet_num[group] - 1];
+    tag = (u_int *)vif_packet->pCurrent;
+    start = tag;
+    entry = &(*(mgSORT_PACKET ***)((u_char *)packet_list + offset))[*(int *)((u_char *)packet_num + offset) - 1];
     common = NULL;
-    tag = start;
     // Packets are called in the reverse of their registration order.
-    for (i = 0; i < packet_num[group]; i++) {
+    for (i = 0; i < *(int *)((u_char *)packet_num + offset); i++) {
         if (*entry != NULL) {
             tag += mgSendVuProg(tag, (*entry)->vu_program);
             if (common != (*entry)->common) {
@@ -622,9 +666,8 @@ int mgCDrawManager::Draw(int group, sceVif1Packet *vif_packet) {
     sceVif1PkReserve(vif_packet, tag - start);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_drawprim", Draw__14mgCDrawManagerFiP13sceVif1Packet);
-#endif
+#pragma global_optimizer reset
+#pragma schedule reset
 
 #pragma schedule off
 #pragma global_optimizer off

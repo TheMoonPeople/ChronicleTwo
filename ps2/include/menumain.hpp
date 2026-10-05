@@ -351,7 +351,7 @@ int CheckBitFlagMenu(int flag_no);
  * @address 0x234DC0
  * @size 0x50
  */
-short CheckShortFlagMenu(int flag_no);
+int CheckShortFlagMenu(int flag_no);
 
 /**
  *
@@ -571,7 +571,7 @@ int *GetCommonMenuModeID();
  * @address 0x236B20
  * @size 0x50
  */
-bool CursorSaveOptionState();
+u8 CursorSaveOptionState();
 
 /**
  *

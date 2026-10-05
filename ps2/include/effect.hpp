@@ -54,6 +54,23 @@ enum EFFECT_ALPHA_BLEND {
  * Everything that describes one particle when an emitter spawns it: its life, size, motion, scale, alpha and texture.
  *
  */
+struct EffectTypeTriple {
+    EFFECT_CHANGE_TYPE first;
+    EFFECT_CHANGE_TYPE second;
+    EFFECT_CHANGE_TYPE third;
+
+    EffectTypeTriple() {}
+    EffectTypeTriple(const EffectTypeTriple &other)
+        : first(other.first), second(other.second), third(other.third) {}
+};
+
+struct EffectRect {
+    int left;
+    int top;
+    int right;
+    int bottom;
+};
+
 struct EFFECT_PARAM {
     int                life;             /**< Frames the particle lives for. */
     float              width;            /**< Unscaled width of the particle's sprite. */
@@ -80,7 +97,10 @@ struct EFFECT_PARAM {
     float              alpha_p1;         /**< Amount of the alpha curve. */
     float              alpha_p2;         /**< Timing of the alpha curve. */
     mgCTexture        *texture;          /**< Texture the particle is drawn with; a particle without one dies. */
-    int                tex_rect[8][4];   /**< Texture rectangles (x, y, width, height) the particle shows, the first used alone when not animated. */
+    union {
+        int tex_rect[8][4];
+        EffectRect tex_rect_copy[8];
+    };   /**< Texture rectangles (x, y, width, height) the particle shows, the first used alone when not animated. */
     int                tex_get_type;     /**< Zero to show the first rectangle only, otherwise to step through the rectangles over the life. */
     int                tex_frame;        /**< Frames each rectangle is shown for when the rectangles are stepped through. */
     int                gravity;          /**< Non-zero to pull the particle towards the gravity point. */
@@ -207,16 +227,11 @@ public:
     int                rep_rand_count;         /**< Samples averaged when the frames between batches are randomised by regularity. */
     int                repeat_num;             /**< Batches spawned before the emitter stops, or -1 to never stop. */
     int                repeat_cnt;             /**< Batches spawned so far. */
-    u_int                unk_68;
-    u_int                unk_6c;
     sceVu0FVECTOR      pos;                    /**< Spawn position, relative to the origin. */
     EFFECT_RAND_TYPE   pos_rand_type;          /**< How the spawn position is randomised. */
-    u_int                unk_84;
-    u_int                unk_88;
-    u_int                unk_8c;
     sceVu0FVECTOR      pos_rand;               /**< Per-axis range the spawn position is randomised over. */
     int                pos_rand_count;         /**< Samples averaged when the spawn position is randomised by regularity. */
-    EFFECT_CHANGE_TYPE move_type[3];           /**< Curve applied to each axis of the particles' position. */
+    EffectTypeTriple move_type;           /**< Curve applied to each axis of the particles' position. */
     sceVu0FVECTOR      velo;                   /**< Velocity of the particles spawned. */
     sceVu0FVECTOR      acc;                    /**< Acceleration of the particles spawned. */
     sceVu0FVECTOR      velo_mul;               /**< Per-axis factor the particles' velocity is multiplied by every frame. */
@@ -235,8 +250,7 @@ public:
     int                acc_rand_count;         /**< Samples averaged when the acceleration is randomised by regularity. */
     int                move_p1_rand_count;     /**< Samples averaged when the position curve amounts are randomised by regularity. */
     int                move_p2_rand_count;     /**< Samples averaged when the position curve timings are randomised by regularity. */
-    EFFECT_CHANGE_TYPE scale_type[3];          /**< Curve applied to the particles' width and height scales. */
-    u_int                unk_17c;
+    EffectTypeTriple scale_type;          /**< Curve applied to the particles' width and height scales. */
     sceVu0FVECTOR      scale;                  /**< Width and height scale of the particles spawned. */
     sceVu0FVECTOR      svelo;                  /**< Scale added to the particles every frame. */
     sceVu0FVECTOR      scale_p1;               /**< Amount of the scale curves. */
@@ -268,17 +282,16 @@ public:
     int                alpha_p1_rand_count;    /**< Samples averaged when the alpha curve amount is randomised by regularity. */
     int                alpha_p2_rand_count;    /**< Samples averaged when the alpha curve timing is randomised by regularity. */
     int                tex_rect_num;           /**< Texture rectangles in use. */
-    int                tex_rect[8][4];         /**< Texture rectangles (x, y, width, height) the particles show. */
+    union {
+        int tex_rect[8][4];
+        EffectRect tex_rect_copy[8];
+    };         /**< Texture rectangles (x, y, width, height) the particles show. */
     mgCTexture        *texture;                /**< Texture the particles are drawn with. */
     int                tex_get_type;           /**< Zero to give each particle one random rectangle, otherwise to step every particle through all of them over its life. */
     int                gravity;                /**< Non-zero to pull the particles towards the gravity point. */
-    u_int                unk_2e8;
-    u_int                unk_2ec;
     sceVu0FVECTOR      gravity_pos;            /**< Point the particles are pulled towards, relative to the origin. */
     float              gravity_accel;          /**< Strength of the pull, multiplied by gravity_mass and divided by the squared distance. */
     float              gravity_mass;           /**< Second factor of the pull's strength. */
-    u_int                unk_308;
-    u_int                unk_30c;
 
     /**
      *

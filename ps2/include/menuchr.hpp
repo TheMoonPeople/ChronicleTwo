@@ -90,7 +90,7 @@ enum MOS_SELECT_RESULT {
 struct MENU_BGREAD_INFO2 {
     char name[0x20];      /**< Name of the model, which also names its textures. */
     char path[0x50];      /**< Path of the file being read. */
-    u8 reading;           /**< Non-zero while the file is being read. */
+    s8 reading;           /**< Non-zero while the file is being read. */
     CActionChara *chara;  /**< Character the model was put into, or NULL. */
 };
 
@@ -340,7 +340,7 @@ public:
     int pick_monster;                            /**< Monster picked to show. */
     int load_monster;                            /**< Monster whose model is loaded, or -1 for none. */
     int level_max;                               /**< Non-zero when the badge is at its highest form. */
-    u8 skip_draw;                                /**< Toggled each frame to step the shown model every other frame. */
+    s8 skip_draw;                                /**< Toggled each frame to step the shown model every other frame. */
     CMenuPosDataForm *badge_form;                /**< Form of the badges. */
     CMenuPosDataForm *info_form;                 /**< Form of the badge description. */
     CMenuPosDataForm *model_form;                /**< Form that shows the monster's model. */
@@ -521,7 +521,7 @@ public:
     int load_phase;                              /**< Step of loading the monster's model. */
     int load_wait;                               /**< Frames counted before the monster's model is loaded. */
     int show_wait;                               /**< Frames the monster's model has been built, up to 20. */
-    u8 skip_draw;                                /**< Toggled each frame to step the model every other frame. */
+    s8 skip_draw;                                /**< Toggled each frame to step the model every other frame. */
     int select;                                  /**< Entry of list the cursor is on. */
     BASE_MONSTER_TBL *monster_info;              /**< Definition of the monster shown. */
     int list[MOS_BOOK_LIST_MAX];                 /**< Monster numbers of the monsters defeated, then -1. */
@@ -596,7 +596,7 @@ STATIC_ASSERT(sizeof(mgRect<short>) == 0x8);
  * Monster forms of each badge: a badge number, then the monster of each of its four forms.
  *
  */
-extern s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM];
+extern s16 monster_progress_tbl[MONSTER_PROGRESS_NUM * (1 + MONSTER_PROGRESS_LEVEL_NUM)];
 
 /**
  *
@@ -823,7 +823,7 @@ char *GetMonsterName(int monster_no);
  * @address 0x2BA120
  * @size 0x90
  */
-s16 get_gajji_id_from_monster_progress_table(int monster_no, int *level);
+int get_gajji_id_from_monster_progress_table(int monster_no, int *level);
 
 /**
  *

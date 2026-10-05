@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-extern int TitleOmakeFlag;
+extern s16 TitleOmakeFlag;
 
 extern char at_1267[];
 extern ClsMes *TitleMCCheckMes;
@@ -34,9 +34,17 @@ void title_init_rand() {
 void SetSoundMode() {
     CSaveData *save = GetSaveData();
     if (save != NULL) {
-        CSnd.SetStereoMode(save->config.sound_mode == 0 ? 1 : 0);
+        SV_CONFIG_OPTION *config = &save->config;
+        if (config != NULL) {
+            if (config->sound_mode == 0) {
+                CSnd.SetStereoMode(1);
+                return;
+            }
+        }
+        CSnd.SetStereoMode(0);
     }
 }
+
 void InitTitleOmakeFlag(void) {
     TitleOmakeFlag = 0;
     OmakeFlag = 0;

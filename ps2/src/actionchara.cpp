@@ -37,6 +37,7 @@
 #include "userdata.hpp"
 #include "actionchara.hpp"
 
+extern "C" void SethitEffect__15CHitEffectImageFPfPfffffii(CHitEffectImage *, float *, float *, float, float, float, float, int, int);
 extern char at_1325[];
 extern char at_1357[];
 extern char at_1358[];
@@ -44,7 +45,9 @@ extern char at_1394[];
 extern char at_1427[];
 extern char at_1428[];
 extern CScene *nowScene__2;
-extern int at_1398[19];
+union ActionVector { float f[4]; int i[4]; u_long128 qw; };
+struct ThrowItemTable { int item_no[19]; };
+extern ThrowItemTable at_1398;
 extern CMonsterMan *ActiveMonster;
 extern float at_3289[4];
 extern float at_3291[4];
@@ -155,7 +158,7 @@ ACTION_OBJECT *CActionChara::EntryObject(char *name, int index) {
     i = 0;
     if (index != -1) {
 
-        slot = &this->object[index];
+        slot = (ACTION_OBJECT *)((index << 5) + (int)this + 0xC00);
         slot->frame = object;
         slot->pos[2] = 0.0f;
         slot->pos[1] = 0.0f;
@@ -164,7 +167,7 @@ ACTION_OBJECT *CActionChara::EntryObject(char *name, int index) {
     }
     for (; i < 8; i++) {
         if (this->object[i].frame == 0) {
-            slot = &this->object[i];
+            slot = (ACTION_OBJECT *)((i << 5) + (int)this + 0xC00);
             slot->frame = object;
             slot->pos[2] = 0.0f;
             slot->pos[1] = 0.0f;
@@ -540,7 +543,7 @@ int CActionChara::UsedItemAction() {
     return 0;
 }
 void CActionChara::EntryThrowItem() {
-    int table[19];
+    ThrowItemTable table;
     CGameDataUsed *item;
     int index;
     int item_no;
@@ -549,15 +552,15 @@ void CActionChara::EntryThrowItem() {
     battle_info = GetBattleCharaInfo();
     item = (CGameDataUsed *)battle_info->GetActiveItemInfo(0) + DngStatus.active_item;
     item_no = item->item_no;
-    memcpy(table, at_1398, sizeof(table));
+    table = at_1398;
     index = 0;
-    while (table[index] != -1) {
-        if (item_no == table[index]) {
+    while (table.item_no[index] != -1) {
+        if (item_no == table.item_no[index]) {
             break;
         }
         index++;
     }
-    if (table[index] == -1) {
+    if (table.item_no[index] == -1) {
         index = 0;
     }
     throw_effect = effect_man->CreateEffSpt(at_1427, 0, 1);
@@ -799,17 +802,16 @@ int CActionChara::DrawDirect() {
 }
 int CActionChara::DrawShadowDirect() {
     CActionChara *current;
-    int result = 0;
 
     current = this;
     if (this != NULL) {
         do {
-            result = current->CCharacter2::DrawShadowDirect();
+            current->CCharacter2::DrawShadowDirect();
             current = current->next;
         } while (current != NULL);
     }
-    return result;
 }
+
 void CActionChara::DrawEffect() {
     CEffectScriptMan *effect_man;
 
@@ -832,7 +834,7 @@ void CActionChara::StepEffect() {
     offset = 0;
     for (; i < sw_effect_num; i++) {
 
-        slot = &sw_effect[i];
+        slot = (ACTION_SW_EFFECT *)((u8 *)this + 0x7E4 + offset);
         if (slot->motion != NULL) {
             if (slot->wait > 0) {
                 slot->wait--;
@@ -841,8 +843,8 @@ void CActionChara::StepEffect() {
                 if (slot->chara != NULL) {
                     watched = SearchChara(slot->chara);
                 }
-                if (watched != NULL && watched->CCharacter2::GetNowMotionName() != NULL &&
-                    strcmp(watched->CCharacter2::GetNowMotionName(), slot->motion) == 0) {
+                if (watched != NULL && watched->GetNowMotionName() != NULL &&
+                    strcmp(watched->GetNowMotionName(), slot->motion) == 0) {
                     frame = watched->GetNowFrameWait(NULL);
                     if (!(frame < slot->start) && frame < slot->end) {
                         start_frame = watched->SearchObject(slot->frame0);
@@ -1188,7 +1190,7 @@ void HitEffectSet(CScene *scene, float *point) {
     float to_camera[4];
     float origin[4];
     float dir[4];
-    mgRect<int> rect;
+    ActionVector rect;
     CCameraControl *camera;
     CHitEffectImage *hit;
     CFlushEffect *flush;
@@ -1204,7 +1206,7 @@ void HitEffectSet(CScene *scene, float *point) {
     sceVu0Normalize(to_camera, to_camera);
     sceVu0ScaleVector(to_camera, to_camera, 20.0f);
     sceVu0AddVector(pos, origin, to_camera);
-    *(u_long128 *)dir = *(u_long128 *)at_2846;
+    *(ActionVector *)dir = *(ActionVector *)at_2846;
     if (BattleFX.hit == NULL) {
         hit = NULL;
     } else {
@@ -1215,7 +1217,7 @@ void HitEffectSet(CScene *scene, float *point) {
         }
     }
     if (hit != NULL) {
-        hit->SethitEffect( pos, dir, 30.0f, speed, 0.4f, 0.1f, 30, 32);
+        SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir, 30.0f, speed, 0.4f, 0.1f, 30, 32);
         hit->kind = 0;
     }
     if (BattleFX.flush == NULL) {
@@ -1249,12 +1251,15 @@ void HitEffectSet(CScene *scene, float *point) {
         }
     }
     if (hit != NULL) {
-        hit->SethitEffect( pos, dir, 40.0f, 40.0f, 0.0f, 0.05f, 32,
+        SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir, 40.0f, 40.0f, 0.0f, 0.05f, 32,
                                                    32);
         hit->kind = 0;
-        rect.Set(0, 80, 16, 16);
-        mgRect<int> copy = rect;
-        hit->tex_rect = copy;
+        ((mgRect<int> *)&rect)->Set(0, 80, 16, 16);
+        ActionVector copy = rect;
+        hit->tex_rect.left = copy.i[0];
+        hit->tex_rect.top = copy.i[1];
+        hit->tex_rect.right = copy.i[2];
+        hit->tex_rect.bottom = copy.i[3];
         hit->sprite_size = 2.0f;
     }
 }
@@ -1373,14 +1378,14 @@ void CActionChara::StepParam() {
             if (self_rot[1] < -3.1415927f) {
                 self_rot[1] += 6.2831855f;
             }
-            *(u_long128 *)forward = *(u_long128 *)at_3289;
+            *(ActionVector *)forward = *(ActionVector *)at_3289;
             sceVu0UnitMatrix(matrix);
             sceVu0RotMatrixY(matrix, matrix, self_rot[1]);
             sceVu0ApplyMatrix(front_vec, matrix, forward);
         }
     } else {
         GetRotation(self_rot2);
-        *(u_long128 *)forward2 = *(u_long128 *)at_3291;
+        *(ActionVector *)forward2 = *(ActionVector *)at_3291;
         sceVu0UnitMatrix(matrix2);
         sceVu0RotMatrixY(matrix2, matrix2, self_rot2[1]);
         sceVu0ApplyMatrix(front_vec, matrix2, forward2);
@@ -1494,8 +1499,8 @@ void CActionChara::Step() {
         ((mgCFrame *)hold_frame)->GetWorldPosition0(held_pos);
         held_pos[3] = 1.0f;
         held_pos[1] -= 1.0f;
-        hold_parts->SetPosition(held_pos);
-        hold_parts->SetRotation(rotation);
+        ((CActionChara *)hold_parts)->SetPosition(held_pos);
+        ((CActionChara *)hold_parts)->SetRotation(rotation);
     }
     gun = SearchObject(at_3389);
     if (gun != NULL) {
@@ -1506,7 +1511,7 @@ void CActionChara::Step() {
         gun->GetWorldPosition0(gun_pos);
         if (lock_on != 0 && (s8)dir_gun != 0) {
 
-            ActiveMonster->active[target_no - MONSTER_ACTIVE_MAX]->GetEntryObjectPos(0, target_pos);
+            (*(CCharacter2 **)(((target_no - 24) << 2) + (int)ActiveMonster + 0x484))->GetEntryObjectPos(0, target_pos);
             sceVu0SubVector(gun_pos, target_pos, gun_pos);
             sceVu0CopyVector(target_pos, gun_pos);
             target_pos[3] = 1.0f;
@@ -1515,7 +1520,7 @@ void CActionChara::Step() {
         } else {
             ang_3371 = 0.0f;
         }
-        sceVu0CopyMatrix(matrix, gun->lw_matrix);
+        sceVu0CopyMatrix(matrix, gun->trans_matrix);
         sceVu0UnitMatrix(pitch_matrix);
         sceVu0RotMatrixZ(pitch_matrix, pitch_matrix, ang_3371);
         sceVu0MulMatrix(matrix, matrix, pitch_matrix);

@@ -23,6 +23,7 @@ struct BoardTable {
 struct PositionTable {
     s8 index[3][5][12];
 };
+extern "C" void *__ct__11mgCDrawPrimFv(void *);
 extern char NameRegiTopic[0x40];
 extern s8 NameRegiCode;
 extern s8 NameStrSelectModeTable[7][6];
@@ -300,13 +301,13 @@ int CNameRegiMenu::CheckKanjiPosition(int position, s16 *keys, int key_mode) {
     int result = 0;
     char cell[4];
     cell[2] = 0;
-    int kind = GetNameRegistFontKanjiList(select.pos + kanji_line * 0x13, cell);
+    int kind = GetNameRegistFontKanjiList(select.pos + select.row * 0x13, cell);
     while (kind != 0 && kind != 1) {
         result = nameregist_local_key(param, position, keys, key_mode);
         if (result == -1) {
             break;
         }
-        kind = GetNameRegistFontKanjiList(param->pos + kanji_line * 0x13, cell);
+        kind = GetNameRegistFontKanjiList(param->pos + param->row * 0x13, cell);
         if (kind < 0) {
             position = 1;
             while (kind != 0 && kind != 1) {
@@ -314,7 +315,7 @@ int CNameRegiMenu::CheckKanjiPosition(int position, s16 *keys, int key_mode) {
                 if (result == -1) {
                     break;
                 }
-                kind = GetNameRegistFontKanjiList(param->pos + kanji_line * 0x13, cell);
+                kind = GetNameRegistFontKanjiList(param->pos + param->row * 0x13, cell);
             }
             break;
         }
@@ -347,7 +348,7 @@ void CNameRegiMenu::ChangeFontSelectMode(int mode) {
     grid_font[0].unk_b0 = 0.0f;
     grid_font[0].unk_b4 = 0.0f;
 }
-int ConvertNameRegiBaseBoardTable(int index) {
+s8 ConvertNameRegiBaseBoardTable(int index) {
     s8 result = convtbl_1792.slot[index];
     if (LanguageCode > 0) {
         BoardTable alternate = at_1795;
@@ -411,11 +412,12 @@ void CNameRegiMenu::DrawSelectedWord() {
 }
 void CNameRegiMenu::DrawMessage() {
     RGBAQ_TYPE color;
-    mgCDrawPrim prim;
+    u8 prim[0x128];
     MenuReloadTexture(OldReloadTexNumber, *(int *)((u8 *)MenuDCMsg[6] + 0x22A4));
-    SetSpriteEnv(&prim, 0);
+    __ct__11mgCDrawPrimFv(prim);
+    SetSpriteEnv((mgCDrawPrim *)prim, 0);
     *(s64 *)&color = at_2031__3;
-    DrawVersatileWin_1(&prim, waku, &color, 0x80);
+    DrawVersatileWin_1((mgCDrawPrim *)prim, waku, &color, 0x80);
     (MenuDCMsg[6])->DrawMsg();
     if (message_open != 0) {
         DrawMenuFillBox(0.0f, 0.0f, (float)mgScreenWidth, (float)mgScreenHeight, 0x40, 0, 0,

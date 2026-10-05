@@ -28,7 +28,8 @@
 #include <cstdio>
 
 void LoadFilePictureName();
-s16 get_gajji_id_from_monster_progress_table(int monster_no, int *level);
+extern "C" void LoadEditAnalyzeData__FiP1(...);
+int get_gajji_id_from_monster_progress_table(int monster_no, int *level);
 int GetMonsterProgressTableNo(int level, int monster_no);
 
 extern CFont Font;
@@ -120,7 +121,9 @@ void SetTextureTable(int table_size, int table_count, mgCMemory *memory) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", InitPadTable__Fi);
 extern "C" void VSyncCallBack__Fi__3(int unused) {
     if (PlayTimeCountFlag != 0) {
-        GetSaveData()->play_time += 1;
+        s64 ticks = GetSaveData()->play_time;
+        CSaveData *save = GetSaveData();
+        save->play_time = ticks + 1;
     }
 }
 void PlayTimeCount(int value) {
@@ -129,7 +132,7 @@ void PlayTimeCount(int value) {
 int GetPlayTimeCountFlag(void) {
     return PlayTimeCountFlag;
 }
-void LanguageChange(int language, u_long128 *buffer) {
+extern "C" void LanguageChange__FiP1(int language) {
     LanguageCode = language;
     GameItemDataManage.LoadItemSystemMes(language);
     LoadHelpMes(read_buffer);
@@ -141,7 +144,7 @@ void LanguageChange(int language, u_long128 *buffer) {
     LoadGaijiImg();
     LoadFontTexture();
     LoadFontTblBin();
-    LoadEditAnalyzeData(LanguageCode, (u_long128 *)read_buffer);
+    LoadEditAnalyzeData__FiP1((u32)LanguageCode, (u_long128 *)read_buffer);
     LoadFilePictureName();
     LoadMonsterLanguage(LanguageCode);
     InfoStack.stack_used = 0;
@@ -298,9 +301,11 @@ void FadeOutForE3() {}
 int TimeLimitCheck() { return 0; }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", InitPauseMenu__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", PauseMenu__Fv);
+extern "C" void *__ct__18CScriptInterpreterFv(void *);
+extern "C" int SetScript__18CScriptInterpreterFPci(...);
 void LoadGameConfig(char *path) {
     u8 script[0x4000];
-    CScriptInterpreter interpreter;
+    u8 interpreter[sizeof(CScriptInterpreter)];
     int size;
 
     if (path == NULL) {
@@ -315,9 +320,10 @@ void LoadGameConfig(char *path) {
     if (LoadFile2(path, script, &size, 0) != 0) {
     run:
 
-        interpreter.SetTag(tag__3);
-        interpreter.SetScript((char *)script, size);
-        interpreter.Run();
+        __ct__18CScriptInterpreterFv(interpreter);
+        ((CScriptInterpreter *)interpreter)->SetTag(tag__3);
+        SetScript__18CScriptInterpreterFPci(interpreter, (char *)script, size);
+        ((CScriptInterpreter *)interpreter)->Run();
     }
 }
 int gcMAP_NO(SPI_STACK *stack, int arg) {
@@ -327,7 +333,7 @@ int gcMAP_NO(SPI_STACK *stack, int arg) {
     } else {
         map_no = spiGetStackInt(stack);
     }
-    SelectArg.map_no = map_no;
+    SelectArg.selected_map_no = map_no;
     return 1;
 }
 int gcPROGRESS(SPI_STACK *stack, int arg) {
@@ -557,28 +563,29 @@ int gcACTIVE_CHARA(SPI_STACK *stack, int arg_count) {
     return 1;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", __ct__16CUserDataManagerFv);
-CEditData::CEditData(void) {
+extern "C" CEditData *__ct__9CEditDataFv(CEditData *self) {
     char *entry;
     char *cursor;
     char *entry2;
     char *cursor2;
 
-    cursor = (char *)parts;
+    cursor = (char *)self->parts;
     entry = cursor;
     do {
         memset(entry, 0, 0x24);
         cursor += 0x24;
         entry = cursor;
-    } while ((u32)cursor < (u32)&house_max);
-    cursor2 = (char *)house;
+    } while ((u32)cursor < (u32)&self->house_max);
+    cursor2 = (char *)self->house;
     entry2 = cursor2;
     do {
         memset(entry2, 0, 0x10);
         cursor2 += 0x10;
         entry2 = cursor2;
-    } while ((u32)cursor2 < (u32)place_log);
-    memset(&analyze, 0, sizeof(analyze));
-    Initialize();
+    } while ((u32)cursor2 < (u32)self->place_log);
+    memset(&self->analyze, 0, sizeof(self->analyze));
+    self->Initialize();
+    return self;
 }
 
 // Static initialiser (.init)

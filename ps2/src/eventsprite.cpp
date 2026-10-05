@@ -111,10 +111,12 @@ void CEventSprite::Step() {
             break;
     }
 }
+extern "C" void __ct__11mgCDrawPrimFv(void *);
 void CEventSprite::Draw() {
-    mgCDrawPrim drawer;
+    u8 drawer[0x120];
     if (draw != 0) {
-        mgCDrawPrim *prim = &drawer;
+        __ct__11mgCDrawPrimFv(drawer);
+        mgCDrawPrim *prim = (mgCDrawPrim *)drawer;
         mgTexManager.ReloadTexture(tex_block, (sceVif1Packet *)NULL);
         mgCTexture *texture = mgTexManager.GetTexture(name, -1);
         if (texture != NULL) {

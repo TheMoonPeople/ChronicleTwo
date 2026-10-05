@@ -56,32 +56,23 @@ extern "C" int fptosi(float value);
 #include <cstdio>
 #include <cstring>
 
-#ifdef NONMATCHING
-static int MenuChapterMode;
-static MENU_CHAPTER_INFO *MenuChapterInfo;
-static mgCTexture *MenuChapterBG;
-static mgCTexture *MenuChapter_Logo;
-static unsigned int MenuChapterSnd_ID;
-static int menu_snd_counter;
-static int menu_chap_error_check_cnt;
-static int wait_cnt_918;
-static int init_919;
-static int voiceflag_921;
-static int init_922;
-static mgCMemory MenuChapterStack;
-static char *chap_voice_851[8] = {
-    (char *)"0060600.wav", (char *)"0270310.wav", (char *)"0360260.wav", (char *)"0420120.wav",
-    (char *)"0500010.wav", (char *)"0600360.wav", (char *)"0700010.wav", (char *)"0800140.wav"
-};
-#endif
+extern mgCMemory MenuChapterStack;
+extern char *chap_voice_851[8];
+extern const unsigned char at_902__3__DATA[];
+extern const unsigned char at_903__3__DATA[];
+extern const unsigned char at_904__5__DATA[];
+extern const unsigned char at_905__5__DATA[];
+extern const unsigned char at_906__5__DATA[];
 
 // Code (.text)
-#ifdef NONMATCHING
 void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapter) {
     char image_path[96];
+    union { mgCMemory sound_memory; };
     char voice_path[140];
-    int file_size;
-    MenuChapterStack.stSetBuffer(stack->stack + stack->stack_used, stack->stack_size - stack->stack_used);
+    u_int file_size;
+    int remaining = stack->stGetRest();
+    u_long128 *buffer = stack->stGetTop();
+    MenuChapterStack.stSetBuffer(buffer, remaining);
     MenuChapterInfo = (MENU_CHAPTER_INFO *)MenuChapterStack.Alloc(2);
     MenuChapterInfo->tex_block[0] = tex_block[0];
     MenuChapterInfo->tex_block[1] = tex_block[1];
@@ -90,35 +81,48 @@ void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapte
     MenuChapterStack.Align64();
     u_long128 *image_buffer = MenuChapterStack.stack + MenuChapterStack.stack_used;
     file_size = LoadFileMenu(image_path, image_buffer, 1);
-    if (file_size <= 0) {
-        file_size = LoadFileMenu((char *)"chap0.img", image_buffer, 1);
+    if ((int)file_size <= 0) {
+        file_size = LoadFileMenu("chap0.img", image_buffer, 1);
     }
-    MenuChapterStack.Alloc((file_size + 15) >> 4);
+    u_int blocks;
+    if (file_size & 0xF) {
+        blocks = (file_size >> 4) + 1;
+    } else {
+        blocks = file_size >> 4;
+    }
+    MenuChapterStack.Alloc(blocks);
     mgTexManager.EnterIMGFile((unsigned char *)image_buffer, MenuChapterInfo->tex_block[0], 0, 0);
-    MenuChapterBG = mgTexManager.GetTexture((char *)"chapbg", -1);
-    MenuChapter_Logo = mgTexManager.GetTexture((char *)"chaplogo", -1);
+    MenuChapterBG = mgTexManager.GetTexture("chapbg", -1);
+    MenuChapter_Logo = mgTexManager.GetTexture("chaplogo", -1);
 
-    mgCMemory sound_memory;
+    sound_memory.Init();
     sound_memory.stSetBuffer(MenuChapterStack.stack + MenuChapterStack.stack_used, 0x280);
     MenuChapterStack.Alloc(0x280);
     MenuChapterStack.Align64();
     menu_snd_counter = 0;
     unsigned int *sound_buffer = (unsigned int *)(MenuChapterStack.stack + MenuChapterStack.stack_used);
-    LoadFile2((char *)"snd2/sp/SP_007.snd", sound_buffer, &file_size, 0);
-    MenuChapterStack.Alloc((file_size + 15) >> 4);
+    LoadFile2((char *)at_906__5__DATA, sound_buffer, (int *)&file_size, 0);
+    if (file_size & 0xF) {
+        blocks = (file_size >> 4) + 1;
+    } else {
+        blocks = file_size >> 4;
+    }
+    MenuChapterStack.Alloc(blocks);
     sndInitPort(8);
     MenuChapterSnd_ID = sndLoadSound(8, sound_buffer, &sound_memory);
     strcpy(voice_path, chap_voice_851[chapter]);
     CSnd.StreamOpenFast(1, voice_path);
-    while (CSnd.StreamOpenState() != 0) {}
+    if (CSnd.StreamOpenState() != 0) {
+        while (CSnd.StreamOpenState() != 0) {}
+    }
     CSnd.StreamStandBy(1);
-    while (CSnd.StreamOpenState() != 0) {}
+    if (CSnd.StreamOpenState() != 0) {
+        while (CSnd.StreamOpenState() != 0) {}
+    }
     MenuChapterMode = MENU_CHAPTER_MODE_FADE_IN;
     MenuMainScene->fade.FadeIn(30);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucapt", MenuChapterInit__FP9mgCMemoryPiii);
-#endif
+
 int MenuChapterKey(void) {
     int fadeDone;
     int voiceState;
@@ -134,7 +138,7 @@ int MenuChapterKey(void) {
         voiceflag_921 = 0;
         init_922 = 1;
     }
-    fade = &MenuMainScene->fade;
+    fade = (CFadeInOut *)((u8 *)MenuMainScene + 0x2C70);
     fadeDone = fade->FadeCheck();
     switch (MenuChapterMode) {
         case MENU_CHAPTER_MODE_FADE_IN:
@@ -146,7 +150,7 @@ int MenuChapterKey(void) {
                     wait_cnt_918 = 0;
                 }
 
-                if (CalcMenuAdd((float *)((unsigned int)MenuChapterInfo + 0x1C), 3.0f, 128.0f) != 0) {
+                if (CalcMenuAdd((float *)((u8 *)MenuChapterInfo + 0x1C), 3.0f, 128.0f) != 0) {
                     MenuChapterMode = MENU_CHAPTER_MODE_SHOW;
                     MenuChapterInfo->show_cnt = 0;
                     menu_snd_counter = 0;
@@ -174,7 +178,7 @@ int MenuChapterKey(void) {
             }
             if ((MenuChapterInfo->show_cnt > 0x12C) &&
                 (menu_snd_counter >= 0x15A)) {
-                (&MenuMainScene->fade)->FadeOut(0x3C, 0.0f, 0.0f, 0.0f);
+                ((CFadeInOut *)((u8 *)MenuMainScene + 0x2C70))->FadeOut(0x3C, 0.0f, 0.0f, 0.0f);
                 MenuChapterMode = MENU_CHAPTER_MODE_FADE_OUT;
             }
             break;
@@ -187,10 +191,7 @@ int MenuChapterKey(void) {
     return finished;
 }
 void MenuChapterDraw(void) {
-    struct {
-        mgCDrawPrim prim;
-        u8 pad[0x10];
-    } block;
+    u_long128 prim_storage[0x11];
     volatile mgRect<int> origin;
     mgRect<int> screenRect;
     mgRect<int> texRect;
@@ -200,34 +201,36 @@ void MenuChapterDraw(void) {
     (&mgTexManager)
         ->ReloadTexture(MenuChapterInfo->tex_block[0], (sceVif1Packet *)0);
     DrawMenuFillBox(0x80, 0, 0, 0);
-    __ct__11mgCDrawPrimFv(&block.prim);
+    __ct__11mgCDrawPrimFv((mgCDrawPrim *)prim_storage);
     origin.left = 0;
     origin.top = 0;
-    SetSpriteEnv(&block.prim, 0);
-    block.prim.Begin(6);
+    SetSpriteEnv((mgCDrawPrim *)prim_storage, 0);
+    ((mgCDrawPrim *)prim_storage)->Begin(6);
     if (MenuChapterBG != 0) {
-        block.prim.Texture(MenuChapterBG);
-        block.prim.Color(0x80, 0x80, 0x80, 0x80);
+        ((mgCDrawPrim *)prim_storage)->Texture(MenuChapterBG);
+        ((mgCDrawPrim *)prim_storage)->Color(0x80, 0x80, 0x80, 0x80);
         texRect.Set(0, 0, 0x200, 0x1C0);
         screenRect.Set(0, 0, 0x200, mgScreenHeight);
-        PrimQuad(&block.prim, screenRect, texRect);
+        PrimQuad((mgCDrawPrim *)prim_storage, screenRect, texRect);
     }
     if (MenuChapter_Logo != 0) {
-        block.prim.Texture(MenuChapter_Logo);
-        block.prim.Color(0x80, 0x80, 0x80, fptosi(MenuChapterInfo->logo_alpha));
+        ((mgCDrawPrim *)prim_storage)->Texture(MenuChapter_Logo);
+        ((mgCDrawPrim *)prim_storage)->Color(0x80, 0x80, 0x80, fptosi(MenuChapterInfo->logo_alpha));
         logoRect.Set(0, 0, 0x200, 0x40);
-        PrimQuad(&block.prim, 0.0f, ((float)mgScreenHeight / 2.0f - 32.0f) - 12.0f, logoRect);
-        block.prim.Color(0x80, 0x80, 0x80, 0x80);
+        float height = (float)mgScreenHeight;
+        float half_height = height / 2.0f;
+        float top = half_height - 32.0f;
+        PrimQuad((mgCDrawPrim *)prim_storage, 0.0f, top - 12.0f, logoRect);
+        ((mgCDrawPrim *)prim_storage)->Color(0x80, 0x80, 0x80, 0x80);
         shadeRect.Set(0, 0x40, 0x200, 0x40);
-        PrimQuad(&block.prim, 0.0f, 0.0f, shadeRect);
+        PrimQuad((mgCDrawPrim *)prim_storage, 0.0f, 0.0f, shadeRect);
     }
-    block.prim.End();
+    ((mgCDrawPrim *)prim_storage)->End();
 }
 
+
 // Static initialiser (.init)
-#ifndef NONMATCHING
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucapt", __sinit_menucapt_cpp);
-#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", chap_voice_851__DATA);
@@ -251,7 +254,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_906__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", D_0037B054__DATA);
 
 // Small uninitialised data (.sbss)
-#ifndef NONMATCHING
 INCLUDE_BSS(MenuChapterMode, 0x4);
 INCLUDE_BSS(MenuChapterInfo, 0x4);
 INCLUDE_BSS(MenuChapterBG, 0x4);
@@ -263,9 +265,6 @@ INCLUDE_BSS(wait_cnt_918, 0x4);
 INCLUDE_BSS(init_919, 0x4);
 INCLUDE_BSS(voiceflag_921, 0x4);
 INCLUDE_BSS(init_922, 0x4);
-#endif
 
 // Uninitialised data (.bss)
-#ifndef NONMATCHING
 INCLUDE_BSS(MenuChapterStack, 0x30);
-#endif

@@ -5,7 +5,10 @@
 #include "mg_frame.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_math.hpp"
+#define mgDBuff mgDBuffDeclaration
 #include "mglib.hpp"
+#undef mgDBuff
+extern u_char mgDBuff[];
 #include "mg_visual.hpp"
 #include "mg_tanime.hpp"
 
@@ -57,7 +60,24 @@ extern u_long128 **user_prog_adr;
 extern int user_prog_num;
 extern int font_cons;
 extern int font_draw_flag;
-extern mgCTexture frame_tex;
+struct mgFrameTextureCopy {
+    short block;
+    short width;
+    short height;
+    short bpp;
+    char name[0x20];
+    u_int vram_size;
+    u_int image_blocks;
+    u_int clut_size;
+    u_long tex0;
+    u_long tex1;
+    u_long clamp;
+    float image[4];
+    u_int clut;
+    u_int swizzled;
+    u_int next;
+};
+extern mgFrameTextureCopy frame_tex;
 extern mgCTexture fixz_tex[2];
 extern float at_863[4];
 extern float at_1389[4];
@@ -215,17 +235,17 @@ void mgBeginFrame(mgCDrawManager *manager) {
     h_count = *(int *)timer0_count;
 
     int red = fptosi(mgBackColor[0]);
-    ((u_char *)&mgDBuff)[dbuff_clear_a + 0] = red;
+    mgDBuff[dbuff_clear_a + 0] = red;
     int green = fptosi(mgBackColor[1]);
-    ((u_char *)&mgDBuff)[dbuff_clear_a + 1] = green;
+    mgDBuff[dbuff_clear_a + 1] = green;
     int blue = fptosi(mgBackColor[2]);
-    ((u_char *)&mgDBuff)[dbuff_clear_a + 2] = blue;
+    mgDBuff[dbuff_clear_a + 2] = blue;
     int alpha = fptosi(mgBackColor[3]);
-    ((u_char *)&mgDBuff)[dbuff_clear_b + 0] = red;
-    ((u_char *)&mgDBuff)[dbuff_clear_b + 1] = green;
-    ((u_char *)&mgDBuff)[dbuff_clear_b + 2] = blue;
-    ((u_char *)&mgDBuff)[dbuff_clear_a + 3] = alpha;
-    ((u_char *)&mgDBuff)[dbuff_clear_b + 3] = alpha;
+    mgDBuff[dbuff_clear_b + 0] = red;
+    mgDBuff[dbuff_clear_b + 1] = green;
+    mgDBuff[dbuff_clear_b + 2] = blue;
+    mgDBuff[dbuff_clear_a + 3] = alpha;
+    mgDBuff[dbuff_clear_b + 3] = alpha;
     mgBeginPacket(manager);
     *(u_long128 *)&mgGiftagAD = 0;
     mgGiftagAD.EOP = 1;
@@ -241,15 +261,15 @@ void mgBeginFrame(mgCDrawManager *manager) {
     mgSetPkTextureRepeat(1);
     long long *draw_env;
     if (mgDBuffID != 0) {
-        draw_env = (long long *)((u_char *)&mgDBuff + dbuff_draw_env_a);
+        draw_env = (long long *)(mgDBuff + dbuff_draw_env_a);
     } else {
-        draw_env = (long long *)((u_char *)&mgDBuff + dbuff_draw_env_b);
+        draw_env = (long long *)(mgDBuff + dbuff_draw_env_b);
     }
     mgFRAME_1.value = *draw_env;
     mgSetPkFrameBuffer(-1, -1, -1, -1);
     mgSetPkClearScreen(
-        ((u_char *)&mgDBuff)[dbuff_clear_a + 0], ((u_char *)&mgDBuff)[dbuff_clear_a + 1],
-        ((u_char *)&mgDBuff)[dbuff_clear_a + 2], ((u_char *)&mgDBuff)[dbuff_clear_a + 3]);
+        mgDBuff[dbuff_clear_a + 0], mgDBuff[dbuff_clear_a + 1],
+        mgDBuff[dbuff_clear_a + 2], mgDBuff[dbuff_clear_a + 3]);
     mgFlushRenderInfo();
 }
 void mgBeginPacket(mgCDrawManager *manager) {
@@ -352,7 +372,7 @@ int mgDrawDirect2(mgCFrame *frame) {
         return 0;
     }
     int offset = ddraw_size << 4;
-    int size = frame->Draw((u_int *)((u_char *)mgVif1Packet->pCurrent + offset));
+    int size = frame->Draw((u_int *)(*(int *)mgVif1Packet + offset));
     ddraw_size += size;
     return size;
 }
@@ -492,18 +512,21 @@ void mgSetFogParam(mgFOG_PARAM *fog) {
     mgRenderInfo.SetFogParam(fog->near_dist, fog->far_dist, fog->r, fog->g, fog->b, fog->far_value,
                              fog->near_value);
 }
+struct mgFogColor {
+    u_char values[4];
+};
+struct mgFogVector {
+    float values[4];
+};
 void mgGetFogParam(mgFOG_PARAM *param) {
     param->near_dist = mgRenderInfo.fog.near_dist;
     param->far_dist = mgRenderInfo.fog.far_dist;
-    param->r = mgRenderInfo.fog.r;
-    param->g = mgRenderInfo.fog.g;
-    param->b = mgRenderInfo.fog.b;
-    param->unk_b = mgRenderInfo.fog.unk_b;
+    *(mgFogColor *)&param->r = *(mgFogColor *)&mgRenderInfo.fog.r;
     param->offset = mgRenderInfo.fog.offset;
     param->far_value = mgRenderInfo.fog.far_value;
     param->near_value = mgRenderInfo.fog.near_value;
     param->scale = mgRenderInfo.fog.scale;
-    *(u_long128 *)param->coef = *(u_long128 *)mgRenderInfo.fog.coef;
+    *(mgFogVector *)param->coef = *(mgFogVector *)mgRenderInfo.fog.coef;
 }
 void mgSetAllScissorFlag(int flag) {
     mgRenderInfo.all_scissor = flag;
@@ -558,16 +581,16 @@ void mgSetPkFrameBuffer(mgCTexture *texture) {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkFrameBuffer__Fiiii);
 void mgGetFrameBuffer(mgCTexture *texture) {
-    *texture = frame_tex;
+    *(mgFrameTextureCopy *)texture = frame_tex;
 }
 void mgGetFrameBackBuffer(mgCTexture *texture) {
     u_char *draw_env;
     if (mgDBuffID != 0) {
-        draw_env = (u_char *)&mgDBuff + dbuff_draw_env_b;
+        draw_env = mgDBuff + dbuff_draw_env_b;
     } else {
-        draw_env = (u_char *)&mgDBuff + dbuff_draw_env_a;
+        draw_env = mgDBuff + dbuff_draw_env_a;
     }
-    *texture = frame_tex;
+    *(mgFrameTextureCopy *)texture = frame_tex;
     texture->tex0.TBP0 = (*(u_short *)draw_env & 0x1FF) * 32;
 }
 mgCDrawEnv *mgGetpDrawEnv(int which) {

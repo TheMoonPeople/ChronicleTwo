@@ -20,6 +20,7 @@
 #include "scene.hpp"
 #include "editmode.hpp"
 
+extern "C" int GetBuildPartsNum__9CSaveDataFi(CSaveData *save, int parts_no);
 void InitBalanceDraw(CScene *scene);
 void GetBalanceHeight(CScene *scene, float *balance);
 int GetGeoCheckCol(CMap *map, mgVu0FBOX &box, CCPoly *polys, int max);
@@ -155,7 +156,7 @@ void SystemMesClose(CScene *scene) {
         message->mes_no = -1;
         message->unk_1e40 = 0;
         message->open = 0;
-        message->reveal = 0;
+        message->fade = 0;
         message->fukidashi_centre_x = -1;
         message->fukidashi_centre_y = -1;
         message->fukidashi_pos = 0;
@@ -292,7 +293,7 @@ void UndoPlaceParts(CScene *scene) {
             if (info != NULL) {
                 remaining = info->max_num;
                 remaining -= map->GetePlacePartsAtInfoID(PartsInfoID, NULL, 0);
-                built = GetSaveData()->GetBuildPartsNum(PartsInfoID);
+                built = GetBuildPartsNum__9CSaveDataFi(GetSaveData(), PartsInfoID);
                 if (built < remaining) {
                     remaining = built;
                 }
@@ -310,13 +311,13 @@ void UndoPlaceParts(CScene *scene) {
 void StackUndoData(UNDO_DATA *data) {
     UndoData.info_id = data->info_id;
     UndoData.parts_no = data->parts_no;
-    *(u_long128 *)UndoData.pos = *(u_long128 *)data->pos;
-    *(u_long128 *)UndoData.rot = *(u_long128 *)data->rot;
+    *(mgVec4 *)UndoData.pos = *(mgVec4 *)data->pos;
+    *(mgVec4 *)UndoData.rot = *(mgVec4 *)data->rot;
 }
 extern "C" void StartEditPutWall__FPQ210CEditParts8WallInfo(CEditParts::WallInfo *wall) {
     mgZeroVector(WallPutPos);
-    *(u_long128 *)WallInfo.plane = *(u_long128 *)wall->plane;
-    *(u_long128 *)WallInfo.center = *(u_long128 *)wall->center;
+    *(mgVec4 *)WallInfo.plane = *(mgVec4 *)wall->plane;
+    *(mgVec4 *)WallInfo.center = *(mgVec4 *)wall->center;
     WallInfo.box = wall->box;
 }
 int PlaceEditParts(CEditMap *map, float *pos, float *rot, EP_PLACE_INFO *place_info) {

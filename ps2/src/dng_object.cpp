@@ -42,7 +42,10 @@
 #include "prespr.hpp"
 #include "dng_object.hpp"
 
+union CopyVector { float f[4]; u_long128 word; };
 extern "C" int fptosi(float value);
+extern "C" void *__ct__11mgCDrawPrimFv(void *);
+extern "C" void *__ct__12mgCFrameAttrFv(void *);
 extern float at_1112[4];
 extern float at_1240__3[4];
 extern char at_1291__3[];
@@ -61,7 +64,7 @@ void CRocketLauncher::SetPos(float *pos, float *muzzle_vec, float *direction_vec
     state = SHOT_STATE_FIRED;
     trail_timer = 0;
     for (i = 0; i < 16; i++) {
-        sceVu0CopyVector(trail[i], pos);
+        sceVu0CopyVector(trail[i], this->pos);
     }
     trail_len = 0;
     homing_delay = 15;
@@ -71,7 +74,7 @@ void CRocketLauncher::SetPos(float *pos, float *muzzle_vec, float *direction_vec
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__15CRocketLauncherFv);
 void CRocketLauncher::Draw(void) {
-    CPreSprite sprite;
+    union { CPreSprite sprite; };
     float smooth[128][4];
     int corner_a[4];
     int corner_b[4];
@@ -84,6 +87,7 @@ void CRocketLauncher::Draw(void) {
         return;
     }
 
+    __ct__11mgCDrawPrimFv(&sprite);
     if (draw_flags & 2) {
         points = CreatSmoothPass(smooth, trail, 0x10, 6, trail_index, 0x10);
         if (points < trail_len) {
@@ -149,10 +153,12 @@ CRocketLauncher *CRocketLauncherMan::Get(void) {
 void CRocketLauncherMan::Draw(void) {
     mgCTextureManager *manager = &mgTexManager;
     int i;
+    int offset = 0;
     for (i = 0; i < 24; i++) {
-        CRocketLauncher *entry = &rocket[i];
-        (manager)->ReloadTexture(entry->tex_block, (u_int *)NULL);
+        CRocketLauncher *entry = (CRocketLauncher *)((u8 *)this + offset);
+        (manager)->ReloadTexture(entry->tex_block, (sceVif1Packet *)NULL);
         entry->Draw();
+        offset += 0x190;
     }
 }
 void CRocketLauncherMan::Step(void) {
@@ -167,11 +173,13 @@ void CRocketLauncherMan::Clear(void) {
 }
 void CRocketLauncherMan::Initialize(mgCFrame *frame, int texture_id, mgCTexture *texture) {
     int i;
+    int offset = 0;
     for (i = 0; i < 24; i++) {
-        CRocketLauncher *entry = &rocket[i];
+        CRocketLauncher *entry = (CRocketLauncher *)((u8 *)this + offset);
         entry->Initialize();
         entry->model = frame;
         entry->tex_block = texture_id;
+        offset += 0x190;
         entry->trail_texture = texture;
     }
 }
@@ -232,8 +240,8 @@ void CMachineGun::Step(void) {
                 if (col_prim != NULL) {
                     col_prim->Delete(-1);
                 }
-                float dir[4];
-                *(u_long128 *)dir = *(u_long128 *)at_1112;
+                CopyVector dir;
+                dir = *(CopyVector *)at_1112;
                 CHitEffectImage *image;
                 if (BattleFX.hit == NULL) {
                     image = NULL;
@@ -247,7 +255,10 @@ void CMachineGun::Step(void) {
                 }
                 if (image != NULL) {
                     float power = 0.0f;
-                    image->SethitEffect(previous_pos, dir, 50.0f, 30.0f, power, 0.1f, 16, 8);
+                    float spread = 50.0f;
+                    float speed = 30.0f;
+                    float gravity = 0.1f;
+                    image->SethitEffect(previous_pos, dir.f, spread, speed, power, gravity, 16, 8);
                     image->kind = 1;
                 }
             } else if (col_prim != NULL && col_prim->hit_num > 0) {
@@ -470,7 +481,7 @@ void CLaserGun::Step(void) {
             }
             if (state == 3) {
                 if (life > 0) {
-                    *(u_long128 *)hit_effect_dir = *(u_long128 *)at_1240__3;
+                    *(CopyVector *)hit_effect_dir = *(CopyVector *)at_1240__3;
                     CHitEffectImage *image;
                     if (BattleFX.hit == NULL) {
                         image = NULL;
@@ -517,18 +528,19 @@ void CLaserGun::Draw(void) {
     float glow;
     int count;
     float t;
-    CPreSprite sprite;
+    union { CPreSprite sprite; };
     float smooth[256][4];
     int corner_a[4];
     int corner_b[4];
     float previous[4];
     float segment[4];
     float step[4];
-    mgCFrameAttr attr;
+    union { mgCFrameAttr attr; };
     float matrix[4][4];
     if (state != 0) {
+        __ct__11mgCDrawPrimFv(&sprite);
 
-        (mgTexManager).ReloadTexture(tex_block, (u_int *)NULL);
+        (mgTexManager).ReloadTexture(tex_block, (sceVif1Packet *)NULL);
         if (draw_flags & 2) {
             count = CreatSmoothPass(smooth, trail, 8, 6, trail_index, 8);
             if (count < trail_len) {
@@ -612,6 +624,7 @@ void CLaserGun::Draw(void) {
         }
         if (draw_flags & 1) {
 
+            __ct__12mgCFrameAttrFv(&attr);
             attr.no_light = 1;
             attr.color[0] = color[0];
             attr.color[1] = color[1];
@@ -646,10 +659,12 @@ CLaserGun *CLaserGunMan::Get(void) {
 void CLaserGunMan::Draw(void) {
     mgCTextureManager *manager = &mgTexManager;
     int i;
+    int offset = 0;
     for (i = 0; i < 16; i++) {
-        CLaserGun *entry = &laser[i];
-        (manager)->ReloadTexture(entry->tex_block, (u_int *)NULL);
+        CLaserGun *entry = (CLaserGun *)((u8 *)this + offset);
+        (manager)->ReloadTexture(entry->tex_block, (sceVif1Packet *)NULL);
         entry->Draw();
+        offset += 0x130;
     }
 }
 void CLaserGunMan::Step(void) {
@@ -664,20 +679,23 @@ void CLaserGunMan::Clear(void) {
 }
 void CLaserGunMan::Initialize(mgCFrame *frame, int texture_id, mgCTexture *texture) {
     int i;
+    int offset = 0;
     for (i = 0; i < 16; i++) {
-        CLaserGun *entry = &laser[i];
+        CLaserGun *entry = (CLaserGun *)((u8 *)this + offset);
         entry->Initialize();
         entry->model = frame;
         entry->tex_block = texture_id;
+        offset += 0x130;
         entry->trail_texture = texture;
     }
 }
 void CPullItem::Draw(mgCTexture *texture) {
-    CPreSprite sprite;
+    union { CPreSprite sprite; };
     int quad_a[4];
     int quad_b[4];
     float center[4];
     if (state != 0) {
+        __ct__11mgCDrawPrimFv(&sprite);
 
         sprite.Initialize(0, 0);
         if (glow != 0) {

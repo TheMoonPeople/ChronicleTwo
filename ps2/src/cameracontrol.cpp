@@ -13,7 +13,12 @@
 
 #include <cmath>
 
-extern "C" u_char at_373__3[];
+union camera_control_vector {
+    float values[4];
+    u_long128 quadword;
+};
+
+extern "C" camera_control_vector at_373__3;
 extern "C" u_char at_396__3[];
 
 // Code (.text)
@@ -91,9 +96,9 @@ void CCameraControl::Step(int frames) {
     sceVu0SubVector(offset, next_ref, next_pos);
     distance = mgDistVector(offset);
     height = -offset[1];
-    angle = atan2f(-offset[0], -offset[2]);
-    sceVu0SubVector(offset, ref, pos);
     next_angle = atan2f(-offset[0], -offset[2]);
+    sceVu0SubVector(offset, ref, pos);
+    angle = atan2f(-offset[0], -offset[2]);
 }
 void CCameraControl::MoveCamera(CPadControl *pad, float *target, CCPoly *polys, int poly_count) {
     Control control;
@@ -232,7 +237,8 @@ void CCameraControl::Rotate(float angle) {
     sceVu0AddVector(next_pos, next_ref, offset);
 }
 void CCameraControl::SetRotate(float angle) {
-    float offset[4];
+    camera_control_vector vector;
+    float *offset = vector.values;
     float matrix[4][4];
     float distance;
     float height;
@@ -240,7 +246,7 @@ void CCameraControl::SetRotate(float angle) {
     distance = mgDistVectorXZ(next_ref, next_pos);
 
     height = next_pos[1] - next_ref[1];
-    *(u_long128 *)offset = *(u_long128 *)at_373__3;
+    vector = at_373__3;
     offset[1] = height;
     offset[2] = distance;
     mgUnitMatrix(matrix);
@@ -504,6 +510,9 @@ void CCameraControl::GetCameraMatrix(float (*matrix)[4]) {
     float up[4];
     sceVu0SubVector(dir, ref, pos);
     mgAddVector(dir, dir_offset);
+    dir[0] = dir[0];
+    dir[1] = dir[1];
+    dir[2] = dir[2];
     up[0] = dir[0] * dir[1];
     up[1] = -(dir[0] * dir[0] + dir[2] * dir[2]);
     up[2] = dir[1] * dir[2];

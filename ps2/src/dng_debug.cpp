@@ -1,4 +1,5 @@
 #include "common.h"
+extern "C" void __ct__11mgCDrawPrimFv(void *);
 #define DNG_DEBUG_SOURCE
 #include "mg_drawprim.hpp"
 #include "automap.hpp"
@@ -128,23 +129,24 @@ void dngDebugStart() {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_debug", dngDebugStart__Fv);
 #endif
 void dngDebugDraw(void) {
-    CPreSprite sprite;
+    u8 sprite_storage[0x130];
     char text[0x800];
     char *cursor;
     int i;
     int string_offset;
     int value_offset;
     if (dbinfo.active != 0) {
-        (mgTexManager).ReloadTexture(0x6C, (u_int *)NULL);
+        (mgTexManager).ReloadTexture(0x6C, (sceVif1Packet *)NULL);
 
-        sprite.Initialize(0, 0);
-        sprite.Preset2D();
-        sprite.TextureMapEnable(0);
-        sprite.Begin(6);
-        sprite.Color(0x10, 0x10, 0x10, 0x48);
-        sprite.Vertex(0xE, 0x46, 0);
-        sprite.Vertex(0x104, 0x14C, 0);
-        sprite.End();
+        __ct__11mgCDrawPrimFv((CPreSprite *)sprite_storage);
+    ((CPreSprite *)sprite_storage)->Initialize(0, 0);
+        ((CPreSprite *)sprite_storage)->Preset2D();
+        ((CPreSprite *)sprite_storage)->TextureMapEnable(0);
+        ((CPreSprite *)sprite_storage)->Begin(6);
+        ((CPreSprite *)sprite_storage)->Color(0x10, 0x10, 0x10, 0x48);
+        ((CPreSprite *)sprite_storage)->Vertex(0xE, 0x46, 0);
+        ((CPreSprite *)sprite_storage)->Vertex(0x104, 0x14C, 0);
+        ((CPreSprite *)sprite_storage)->End();
         cursor = text;
         cursor += sprintf(cursor, at_968);
         i = 0;
@@ -164,33 +166,40 @@ void dngDebugDraw(void) {
         }
         if (dbinfo.cursor == 1) {
             cursor += sprintf(cursor, at_972);
-            int selected = command_int[1 * 2];
+            int selected = command_int[2];
             int k = 0;
             int found = -1;
-            while (base_monster_define[k].id != -1) {
-                if (selected == base_monster_define[k].id) {
+            int entryOffset = 0;
+            while (*(s16 *)((u8 *)base_monster_define + entryOffset) != -1) {
+                if (selected == *(s16 *)((u8 *)base_monster_define + entryOffset)) {
+                    int byteOffset = k * 0xB8;
                     cursor +=
                         sprintf(cursor, at_973__2,
-                                base_monster_define[k].grade,
-                                base_monster_define[k].name);
+                                *(s16 *)((u8 *)&base_monster_define[0].grade + byteOffset),
+                                (char *)((u8 *)base_monster_define + byteOffset) + 4);
                     found = k;
                     break;
                 }
+                entryOffset += 0xB8;
                 k++;
             }
             if (found == -1) {
-                sprintf(cursor, at_974__2, command_int[1 * 2]);
+                sprintf(cursor, at_974__2, command_int[2]);
             } else {
-                if (base_monster_define[found].grade > 0) {
+                int foundOffset = found * 0xB8;
+                if (*(s16 *)((u8 *)&base_monster_define[0].grade + foundOffset) > 0) {
+                    int mOffset;
                     int m;
                     m = 0;
-                    while (base_monster_define[m].id != -1) {
-                        if (base_monster_define[m].gift_type ==
-                            base_monster_define[found].gift_type) {
+                    mOffset = 0;
+                    while (*(s16 *)((u8 *)base_monster_define + mOffset) != -1) {
+                        if (*(s16 *)((u8 *)base_monster_define + mOffset + 0x44) ==
+                            *(s16 *)((u8 *)base_monster_define + foundOffset + 0x44)) {
                             sprintf(cursor, at_975,
-                                    base_monster_define[m].name);
+                                    (char *)((u8 *)base_monster_define + m * 0xB8) + 4);
                             break;
                         }
+                        mOffset += 0xB8;
                         m++;
                     }
                 }
@@ -211,7 +220,6 @@ static void dngDebugExit() {
     dbinfo.effect_id = command_int[DNG_DEBUG_CMD_EFFECT_ID * 2];
     dbinfo.effect_vol = (float)command_int[DNG_DEBUG_CMD_EFFECT_VOL * 2];
 }
-#ifdef NONMATCHING
 int dngDebugKey() {
     if (!dbinfo.active) return 0;
     if (GamePad__2.Down(PAD_DOWN) && dbinfo.cursor < DNG_DEBUG_CMD_NUM - 1) ++dbinfo.cursor;
@@ -224,49 +232,60 @@ int dngDebugKey() {
     if (GamePad__2.Down(PAD_L1)) value -= step;
     if (GamePad__2.Down(PAD_R2)) value += 100;
     if (GamePad__2.Down(PAD_L2)) value -= 100;
-    int minimum = command_int[dbinfo.cursor * 2 + 1];
-    if (value <= minimum) value = minimum;
+    if (value <= command_int[dbinfo.cursor * 2 + 1]) {
+        value = command_int[dbinfo.cursor * 2 + 1];
+    }
     if (GamePad__2.Down(PAD_CIRCLE)) {
-        switch (dbinfo.cursor) {
-        case DNG_DEBUG_CMD_RUN_EVENT:
+        if (dbinfo.cursor == DNG_DEBUG_CMD_RUN_EVENT) {
             dbinfo.command = dbinfo.cursor;
-            dbinfo.event_no = value;
+            dbinfo.event_no = command_int[dbinfo.cursor * 2];
             dngDebugExit();
             return 1;
-        case DNG_DEBUG_CMD_ENEMY_LOADER:
-            DBGCMD_ReloadEnemy(value, dbinfo.first_enemy_load);
+        }
+        if (dbinfo.cursor == DNG_DEBUG_CMD_ENEMY_LOADER) {
+            DBGCMD_ReloadEnemy(command_int[2], dbinfo.first_enemy_load);
             dbinfo.first_enemy_load = 0;
-            break;
-        case DNG_DEBUG_CMD_ENEMY_RESET:
-            if (DngMainScene->battle_area.treasure_box)
-                for (int i = 0; i < 24; ++i)
-                    DngMainScene->battle_area.treasure_box->box[i].Initialize();
+        }
+        if (dbinfo.cursor == DNG_DEBUG_CMD_ENEMY_RESET) {
+            int index;
+            CTreasureBoxManager *boxes;
+            int offset;
+            boxes = DngMainScene->battle_area.treasure_box;
+            if (boxes != NULL) {
+                index = 0;
+                offset = 0;
+                do {
+                    ((CTreasureBox *)((u8 *)boxes + offset + 0x10))->Initialize();
+                    index++;
+                    offset += 0x70;
+                } while (index < 24);
+            }
             ActiveMonster->Initialize(DngMainScene);
             DngSaveData->SetBitFlag(0x13D, 1);
             dngDebugExit();
             return 1;
-        case DNG_DEBUG_CMD_SKIP_FLOOR: {
-            int dungeon = DngSaveDataDungeon->stage_id;
-            int floor = DngSaveDataDungeon->floor_id[dungeon];
+        } else if (dbinfo.cursor == DNG_DEBUG_CMD_SKIP_FLOOR) {
+            int floor;
+            int dungeon;
+            dungeon = DngSaveDataDungeon->stage_id;
+            floor = DngSaveDataDungeon->floor_id[dungeon];
             DngUserData->GetItem(GetGateKeyIndex(dungeon, floor), 1);
             DngUserData->GetItem(GetKeyDoorIndex(dungeon, floor), 1);
             DngUserData->GetItem(0x132, 1);
             DngUserData->GetItem(0x131, 1);
             dngDebugExit();
             return 1;
-        }
-        case DNG_DEBUG_CMD_SOUND_FLAG:
-            if (value == 0) DngMainScene->PauseBGM();
-            else DngMainScene->RePlayBGM();
-            break;
+        } else if (dbinfo.cursor == DNG_DEBUG_CMD_SOUND_FLAG) {
+            if (command_int[dbinfo.cursor * 2] == 0) {
+                DngMainScene->PauseBGM();
+            } else {
+                DngMainScene->RePlayBGM();
+            }
         }
     }
-    if (GamePad__2.Down(PAD_L3)) dngDebugExit();
+    if (GamePad__2.Down(PAD_R3)) dngDebugExit();
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_debug", dngDebugKey__Fv);
-#endif
 void CTreasureBox::Initialize(void) {
     state = 0;
     lid_open = 0;
@@ -349,22 +368,23 @@ void DrawSystemParamInfo(void) {
     dbFont.DrawDirect(text, 0x10, 0x118);
 }
 void DrawSystemParamInfo2(void) {
-    CPreSprite sprite;
+    u8 sprite_storage[0x130];
     char text[0x800];
     float position[4];
-    float monster_position[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-    float monster_height = 0.0f;
-    float monster_width = 0.0f;
+    float monster_position[4];
+    float monster_height;
+    float monster_width;
     char *cursor;
 
-    sprite.Initialize(0, 0);
-    sprite.Preset2D();
-    sprite.TextureMapEnable(0);
-    sprite.Begin(6);
-    sprite.Color(0x10, 0x10, 0x10, 0x48);
-    sprite.Vertex(0xE, 0xB2, 0);
-    sprite.Vertex(0x144, 0x198, 0);
-    sprite.End();
+    __ct__11mgCDrawPrimFv((CPreSprite *)sprite_storage);
+    ((CPreSprite *)sprite_storage)->Initialize(0, 0);
+    ((CPreSprite *)sprite_storage)->Preset2D();
+    ((CPreSprite *)sprite_storage)->TextureMapEnable(0);
+    ((CPreSprite *)sprite_storage)->Begin(6);
+    ((CPreSprite *)sprite_storage)->Color(0x10, 0x10, 0x10, 0x48);
+    ((CPreSprite *)sprite_storage)->Vertex(0xE, 0xB2, 0);
+    ((CPreSprite *)sprite_storage)->Vertex(0x144, 0x198, 0);
+    ((CPreSprite *)sprite_storage)->End();
     cursor = text;
     CActionChara *chara = (CActionChara *)DngMainScene->GetCharacter(0);
     ((CCharacter2 *)chara)->GetPosition(position);
@@ -373,8 +393,8 @@ void DrawSystemParamInfo2(void) {
         CActiveMonster *monster = ActiveMonster->active[slot];
         if (monster != 0) {
             ((CCharacter2 *)monster)->GetPosition(monster_position);
-            monster_height = monster->body_height;
-            monster_width = monster->body_width;
+            monster_height = monster->height;
+            monster_width = monster->mons_move_check.radius;
         }
     }
     cursor += sprintf(cursor, at_1103, position[0], position[1], position[2]);
@@ -401,11 +421,7 @@ void DrawDebugWindow() {
 }
 
 // Static initialiser (.init)
-#ifdef NONMATCHING
-void __sinit_dng_debug_cpp() { dbFont.Init(); }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_debug", __sinit_dng_debug_cpp);
-#endif
+extern "C" void __sinit_dng_debug_cpp() { dbFont.Init(); }
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", command_str__DATA);

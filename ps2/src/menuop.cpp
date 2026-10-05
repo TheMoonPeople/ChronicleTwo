@@ -651,12 +651,12 @@ void CMenuOption::UpdateOptionForm(void) {
             row = this->button[12];
             if (row != NULL) {
                 DefaultButton(row);
-                EnableButton(row[config->caption_off]);
+                EnableButton(row[(signed char)config->caption_off]);
             }
             row = this->button[13];
             if (row != NULL) {
                 DefaultButton(row);
-                EnableButton(row[config->unk_35]);
+                EnableButton(row[(signed char)config->unk_35]);
             }
             row = this->button[14];
             if ((int)LanguageCode > 0) {
@@ -781,8 +781,8 @@ void MenuSaveInit(mgCMemory *memory, int *texBlock, int mode) {
     int dataSize;
     int freeSize;
 
-    freeSize = (memory->stack_size - memory->stack_used);
-    SaveMenuStack.stSetBuffer((u_long128 *)(memory->stack + memory->stack_used), freeSize);
+    freeSize = memory->stGetRest();
+    SaveMenuStack.stSetBuffer(memory->stGetTop(), freeSize);
     if ((menu = (CSaveMenuClass *)operator new(sizeof(CSaveMenuClass),
                                                (u_long128 *)SaveMenuStack.Alloc(0x1D))) != NULL) {
         __ct__14CBaseMenuClassFv(menu);
@@ -843,9 +843,9 @@ void MenuSaveInit(mgCMemory *memory, int *texBlock, int mode) {
         script_size = LoadFileMenu(at_2764, (u_long128 *)pack, 1);
         blocks = (script_size & 0xF) != 0 ? (script_size >> 4) + 1 : script_size >> 4;
         SaveMenuStack.Alloc(blocks);
-        mgTexManager.EnterIMGFile((u_char *)GetPackFile((unsigned int *)pack, at_2765, NULL), SaveMenuPtr->tex_block[0],
+        mgTexManager.EnterIMGFile((u_char *)GetPackFile((unsigned int *)pack, at_2765, NULL), SaveMenuPtr->tex_block[1],
                                   NULL, NULL);
-        mgTexManager.EnterIMGFile((u_char *)GetPackFile((unsigned int *)pack, at_2766, NULL), SaveMenuPtr->tex_block[0],
+        mgTexManager.EnterIMGFile((u_char *)GetPackFile((unsigned int *)pack, at_2766, NULL), SaveMenuPtr->tex_block[1],
                                   NULL, NULL);
         Tex_SaveFile = mgTexManager.GetTexture(at_2767, -1);
         SaveMenuPtr->dl_tex = GetMenuDlTexture();
@@ -888,14 +888,14 @@ void MenuSaveInit(mgCMemory *memory, int *texBlock, int mode) {
             SaveFileList[i]->SetMessData(mainMessages, mainMessages);
             SaveFileList[i]->MsgPreset(0x10);
             SaveFileList[i]->value_zero = 1;
-            SaveFileList[i]->space_w = mesLayout;
+            SaveFileList[i]->value_space = mesLayout;
         }
         SetMCIconData((unsigned int *)pack, 2);
         char *data = (char *)GetPackFile((unsigned int *)pack, at_2768, &dataSize);
         MenuDataAnalyze(data, dataSize, &SaveMenuStack);
         SaveMenuPtr->script = (char *)GetPackFile((unsigned int *)pack, at_2769, &SaveMenuPtr->script_size);
         ((CMenuPosDataManage *)MenuPosData)->AttachCommonTexInfo();
-        MenuPosData->ResetTextureBlockNo(at_2767, SaveMenuPtr->tex_block[0]);
+        MenuPosData->ResetTextureBlockNo(at_2767, SaveMenuPtr->tex_block[1]);
         MenuPosData->ResetTextureInfoAll();
         SaveMenuPtr->title_form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_2770__2);
         SaveMenuPtr->slot_form[0] = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_2771__2);
@@ -927,10 +927,10 @@ int MenuSaveKey() {
 }
 void MenuSaveDraw(void) {
     char text[0x200];
-    CMenuFont menuFont;
     MenuPosData->FormDraw();
     DrawMenuReturnMsg();
     if (DebugFlag != 0 && menu_debug_flag != 0) {
+        CMenuFont menuFont;
         int mode = SaveMenuPtr->mode;
         if (mode == 1 || mode == 2) {
             menuFont.SetStr(at_2821__2);

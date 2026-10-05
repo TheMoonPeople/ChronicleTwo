@@ -44,6 +44,24 @@
 
 extern int wep_effect_cnt;
 extern char at_3602[];
+extern char at_1063__3[];
+extern char at_1064__3[];
+extern char at_1065__2[];
+extern char at_1066__2[];
+extern char at_1067__2[];
+extern char at_1068__2[];
+extern char at_1069__3[];
+extern char at_1070__2[];
+extern char at_1071__2[];
+extern char at_1072[];
+extern char at_1073__2[];
+extern char at_1074__2[];
+extern char at_1075[];
+extern char at_1076[];
+extern char at_1077__2[];
+extern char at_1078[];
+extern char at_1079__2[];
+extern char at_1080__2[];
 extern char at_1940[];
 extern "C" float backup_pos[4];
 extern "C" int init_camera;
@@ -113,8 +131,8 @@ extern "C" int fptosi(float value);
 mgCMemory            *MainBuffer;
 u_long128            *BuffReadData;
 static int            debag_param;
-static float          viewAngleH;
-static float          viewAngleV;
+float                 viewAngleH__2;
+float                 viewAngleV__2;
 static int            init_camera;
 DNG_FLOOR_SAVE       *NowFloorInfoPtr;
 RUN_SCRIPT_ENV        ActionScriptEnv;
@@ -134,7 +152,7 @@ ClsMes               *MonsterMess;
 CRedMarkModel        *RedMarkModel;
 CCharacter2          *TreasureBoxModel;
 CTreasureBoxManager  *TreasureBoxMan;
-CActionChara         *MainChara;
+CActionChara         *MainChara__2;
 CEffectScriptMan     *FxScriptMan;
 CColPrim             *BTsuboCol;
 CPullItemManager      PullItemMan;
@@ -158,6 +176,7 @@ int  EventScriptSetup(SYSTEM_SCRIPT_INFO *script);
 int  ChangeSetUnit(int dir);
 void InitEyeCamera(CActionChara *chara);
 int  IsRunDeadEvent(CActionChara *chara);
+extern CGamePad GamePad__2;
 extern int debug_no[7];
 extern int debug_cursor;
 extern int debug_mons_no;
@@ -281,6 +300,12 @@ void memoryInit() {
     }
     BuffReadData = MainBuffer->stAlloc64(200000);
 }
+static inline unsigned int DngAlign16Size(unsigned int size) {
+    if (size & 15) {
+        return (size >> 4) + 1;
+    }
+    return size >> 4;
+}
 void InitDungeonMain(INIT_LOOP_ARG arg) {
     SetCurrentDir(NULL);
     memoryInit();
@@ -344,16 +369,16 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     area->unk_9e = 0;
     BattleAreaScene->map_name[0] = '\0';
     for (int i = 0; i < 8; i++) {
-        CActionChara *chara = new (MainBuffer->Alloc(algn16_size(sizeof(CActionChara)) + 2)) CActionChara;
+        CActionChara *chara = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CActionChara)) + 2)) CActionChara;
 
         DngMainScene->AssignChara(i, chara, NULL);
         DngMainScene->SetType(1, i, 1);
     }
-    MainChara = (CActionChara *) DngMainScene->GetCharacter(0);
+    MainChara__2 = (CActionChara *) DngMainScene->GetCharacter(0);
     DngMainScene->SetActive(1, 0);
     DngMainScene->player_chara = 0;
     for (int i = 0; i < 16; i++) {
-        CCharacter2 *chara = new (MainBuffer->Alloc(algn16_size(sizeof(CCharacter2)) + 2)) CCharacter2;
+        CCharacter2 *chara = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CCharacter2)) + 2)) CCharacter2;
 
         chara->Initialize();
         DngMainScene->AssignChara(i + 8, chara, NULL);
@@ -361,7 +386,7 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
         DngMainScene->SetType(1, i + 8, 2);
     }
     memset(&MainBuffer->stack[MainBuffer->stack_used], 0xFF, 0x1EF00);
-    CActiveMonster *mons = new (MainBuffer->Alloc(algn16_size(sizeof(CActiveMonster) * 24) + 2)) CActiveMonster[24];
+    CActiveMonster *mons = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CActiveMonster) * 24) + 2)) CActiveMonster[24];
 
     for (int i = 0; i < 24; i++) {
         mons[i].Initialize();
@@ -428,7 +453,7 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
         DngMainScene->skip_load_bgm = 1;
     }
     NowLoadingBarStep();
-    DngMess = new (MainBuffer->Alloc(algn16_size(sizeof(ClsMes)) + 2)) ClsMes;
+    DngMess = new (MainBuffer->Alloc(DngAlign16Size(sizeof(ClsMes)) + 2)) ClsMes;
     DngMess->Preset(4);
     DngMess->SetWindowMode(7);
     DngMess->push_button = 0;
@@ -440,7 +465,7 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     }
     MsgTaskMan.Initialize();
     MsgTaskMan.mes = DngMess;
-    DngMess2 = new (MainBuffer->Alloc(algn16_size(sizeof(ClsMes)) + 2)) ClsMes;
+    DngMess2 = new (MainBuffer->Alloc(DngAlign16Size(sizeof(ClsMes)) + 2)) ClsMes;
     DngMess2->Preset(4);
     DngMess2->SetWindowMode(0);
     DngMess2->font_w = 16;
@@ -449,7 +474,7 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     DngMess2->texture_block = 0x58;
     StartupEpisodeTitle.Initialize();
     StartupEpisodeTitle.mes = DngMess2;
-    EventMess = new (MainBuffer->Alloc(algn16_size(sizeof(ClsMes)) + 2)) ClsMes;
+    EventMess = new (MainBuffer->Alloc(DngAlign16Size(sizeof(ClsMes)) + 2)) ClsMes;
     EventMess->Preset(0);
     EventMess->SetBuff_system(GetSystemMesBuffer());
     EventMess->texture_block = 0x58;
@@ -465,7 +490,7 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     DngMainScene->AssignMessage(0, EventMess, NULL);
     GetSystemMessage()->texture_block = 0x58;
     DngMainScene->AssignMessage(1, GetSystemMessage(), NULL);
-    MonsterMess = new (MainBuffer->Alloc(algn16_size(sizeof(ClsMes)) + 2)) ClsMes;
+    MonsterMess = new (MainBuffer->Alloc(DngAlign16Size(sizeof(ClsMes)) + 2)) ClsMes;
     MonsterMess->Preset(2);
     MonsterMess->texture_block = 0x58;
     NowLoadingBarStep();
@@ -495,7 +520,7 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     LockOnModel.frame->SetAttrParam(*lock_attr, 1, 0x18000);
     LockOnModel.name = NULL;
     LockOnModel.mes = MonsterMess;
-    RedMarkModel = new (MainBuffer->Alloc(algn16_size(sizeof(CRedMarkModel)) + 2)) CRedMarkModel;
+    RedMarkModel = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CRedMarkModel)) + 2)) CRedMarkModel;
     RedMarkModel->Initialize();
     RedMarkModel->frame = mgLoadMDSFile(
         (MDS_HEADER *) GetPackFile((u32 *) BuffReadData, "bikkuri_aka.mds", &pack_size), MainBuffer, NULL, NULL);
@@ -526,10 +551,7 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
                                  MainBuffer, NULL, NULL);
     NowLoadingBarStep();
     LoadFile("dungeon/articles/item01b.chr", BuffReadData, NULL);
-    char *item_file[20] = {"seisui.chr",      "bom.chr",       "isi.chr",       "maseki_hi.chr", "maseki_rei.chr",
-                           "maseki_rai.chr",  "maseki_kaze.chr", "maseki_sei.chr", "tokimeki.chr", "isi_berry.chr",
-                           "neba_momo.chr",   "bom_nattu.chr", "dokuring.chr",  "m_banana.chr",  "gift_cp.chr",
-                           "bom_kai.chr",     "f_bom.chr",     "denkou.chr"};
+    char *item_file[20] = {at_1063__3, at_1064__3, at_1065__2, at_1066__2, at_1067__2, at_1068__2, at_1069__3, at_1070__2, at_1071__2, at_1072, at_1073__2, at_1074__2, at_1075, at_1076, at_1077__2, at_1078, at_1079__2, at_1080__2};
 
     for (int i = 0; i < 18; i++) {
         if (item_file[i] != NULL) {
@@ -543,8 +565,8 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     }
     ActionScriptEnv.item_chara = ItemBaseData;
     ActionScriptEnv.texb = 0x68;
-    TreasureBoxModel = new (MainBuffer->Alloc(algn16_size(sizeof(CCharacter2)) + 2)) CCharacter2;
-    TreasureBoxMan = new (MainBuffer->Alloc(algn16_size(sizeof(CTreasureBoxManager)) + 2)) CTreasureBoxManager;
+    TreasureBoxModel = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CCharacter2)) + 2)) CCharacter2;
+    TreasureBoxMan = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CTreasureBoxManager)) + 2)) CTreasureBoxManager;
     TreasureBoxModel->Initialize();
     TreasureBoxMan->Initialize();
     char tbox_path[64];
@@ -573,7 +595,7 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     LoadFile("dungeon/articles/eff01.chr", BuffReadData, &size);
     u32 *eff_pack = (u32 *) BuffReadData;
 
-    FxScriptMan = new (MainBuffer->Alloc(algn16_size(sizeof(CEffectScriptMan)) + 2)) CEffectScriptMan;
+    FxScriptMan = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CEffectScriptMan)) + 2)) CEffectScriptMan;
     FxScriptMan->Initialize(MainBuffer, 0x8C, 32);
     FxScriptMan->load_buffer = BuffReadData + size / 16 + 1;
     FxScriptMan->SetWorkBuffer(&BuffEffectScriptData);
@@ -621,7 +643,7 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     LaserGunModel.LoadPackNoLine((u32 *) BuffReadData, "info.cfg", MainBuffer, MainBuffer, MainBuffer, 0x4A, NULL);
     LaserGun.Initialize(LaserGunModel.GetFrame(), 0x4A, mgTexManager.GetTexture("potbeam", -1));
     BattleAreaScene->free_texb = FxScriptMan->GetNotUsedTexb();
-    ActiveMonster = new (MainBuffer->Alloc(algn16_size(sizeof(CMonsterMan)) + 2)) CMonsterMan;
+    ActiveMonster = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CMonsterMan)) + 2)) CMonsterMan;
     ActiveMonster->Initialize(DngMainScene);
     CommonClassInit();
     AutoMapGen.grid = NULL;
@@ -641,14 +663,14 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     AutoMapGen.navi_enable = 0;
     AutoMapGen.cell_d = 320.0f;
     AutoMapGen.cell_w = 320.0f;
-    AutoMapGen.grid = new (MainBuffer->Alloc(algn16_size(sizeof(CAutoMapParts) * 900) + 2)) CAutoMapParts[900];
+    AutoMapGen.grid = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CAutoMapParts) * 900) + 2)) CAutoMapParts[900];
     for (int i = 0; i < 900; i++) {
         AutoMapGen.grid[i].Initialize();
     }
     AutoMapGen.grid_w = 30;
     AutoMapGen.grid_h = 30;
-    MainChara->foot_se_bank = DngMainScene->se_base_id;
-    MainChara->foot_sound_id = -1;
+    MainChara__2->foot_se_bank = DngMainScene->se_base_id;
+    MainChara__2->foot_sound_id = -1;
     sndInitPort(7);
     char snd_path[64];
 
@@ -662,10 +684,10 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
         if (DngUserData->active_chr_no == 3) {
             base = 0;
         }
-        MainChara->se_bank = sndLoadSound(7, (u32 *) BuffReadData, &BaseCharacter[base]);
+        MainChara__2->se_bank = sndLoadSound(7, (u32 *) BuffReadData, &BaseCharacter[base]);
     }
-    MainChara->se_bank_2 = DngMainScene->se_battle_id;
-    MainChara->effect_man = FxScriptMan;
+    MainChara__2->se_bank_2 = DngMainScene->se_battle_id;
+    MainChara__2->effect_man = FxScriptMan;
     NowLoadingBarStep();
     BuffStageMain.stSetBuffer(MainBuffer->stGetTop(), MainBuffer->stGetRest());
     BuffStageMain.stReset();
@@ -720,6 +742,11 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     BattleAreaScene->SetStatusBarNow(1);
     NowLoadingBarSteEnd();
     DeleteNowLoading();
+}
+void CRedMarkModel::Initialize() {
+    draw_request = 0;
+    angle = 0.0f;
+    frame = NULL;
 }
 void CommonStageClassInit() {
     int i;
@@ -948,9 +975,9 @@ int LoopDungeonMain() {
                 } else {
                     sgRestartSubGame(&info);
                 }
-                MainChara->SearchChara("shot")->Show(0, 0);
+                MainChara__2->SearchChara(at_1940)->Show(0, 0);
             }
-            ResetEyeView(MainChara);
+            ResetEyeView(MainChara__2);
         }
         break;
     }
@@ -962,11 +989,11 @@ int LoopDungeonMain() {
         if (DngStatus.mode == DNG_STATUS_EVENT && CheckEventSkip()) {
             pause.event_skip = 1;
         }
-        if (PadCtrl.Btn(0x15) || !GamePad.Connect()) {
+        if (PadCtrl.Btn(0x15) || !GamePad__2.Connect()) {
             PauseStart(&pause);
         }
     }
-    if (DebugFlag && !(BattleAreaScene->pause_flag & 0x8000) && GamePad.On(0x800) && GamePad.On(0x100)) {
+    if (DebugFlag && !(BattleAreaScene->pause_flag & 0x8000) && GamePad__2.On(0x800) && GamePad__2.On(0x100)) {
         DngStatus.mode = DNG_STATUS_EXIT;
     }
     if (DngMainScene->exit_flag) {
@@ -1071,7 +1098,7 @@ void DngMainDraw() {
         }
         list[15] = -1;
         mgBeginDraw(&BuffWorkData, list, NULL);
-        MainChara->GetPosition(view);
+        MainChara__2->GetPosition(view);
         DngMainMap->PreDraw(view);
         DngMainMap->Draw();
         mgCTexture *water = tex_man->GetTexture("water", -1);
@@ -1120,12 +1147,12 @@ void DngMainDraw() {
         sceVu0FVECTOR pos = {0.0f, -10.0f, 0.0f, 0.0f};
         sceVu0FVECTOR normal = {0.0f, 1.0f, 0.0f, 0.0f};
 
-        MainChara->GetEntryObjectPos(1, 0, pos);
+        MainChara__2->GetEntryObjectPos(1, 0, pos);
         pos[1] -= 20.0f;
         mgSetDropShadowMatrix(dir, pos, normal);
         if (DngMainScene->CheckDrawCharaShadow(0)) {
-            MainChara->ShadowStep();
-            MainChara->DrawShadowDirect();
+            MainChara__2->ShadowStep();
+            MainChara__2->DrawShadowDirect();
         }
     }
     {
@@ -1184,14 +1211,14 @@ void DngMainDraw() {
                 CFuncPoint points[2];
 
                 for (int m = 0; m < 1; m++) {
-                    num += DngMainMap->GetCharaLight(MainChara, &points[num], 2 - num, 1);
+                    num += DngMainMap->GetCharaLight(MainChara__2, &points[num], 2 - num, 1);
                     if (num >= 3) {
                         break;
                     }
                 }
             }
             tex_man->ReloadTexture(16, (sceVif1Packet *) NULL);
-            MainChara->DrawDirect();
+            MainChara__2->DrawDirect();
         }
         for (int c = 0; c < 16; c++) {
             if (DngMainScene->CheckDrawChara(c + 8) && DngMainScene->GetType(1, c + 8) != 4) {
@@ -1227,7 +1254,7 @@ void DngMainDraw() {
     tex_man->ReloadTexture(0xAD, (sceVif1Packet *) NULL);
     sceVu0FVECTOR chara_pos;
 
-    MainChara->GetPosition(chara_pos);
+    MainChara__2->GetPosition(chara_pos);
     RandomCircle.Draw(chara_pos);
     tex_man->ReloadTexture(0xAD, (sceVif1Packet *) NULL);
     GeoStone.GeoDraw(chara_pos);
@@ -1319,7 +1346,7 @@ void DngMainDraw() {
     }
     tex_man->ReloadTexture(0x4A, (sceVif1Packet *) NULL);
     if (DngMainScene->CheckDrawChara(0)) {
-        MainChara->DrawEffect();
+        MainChara__2->DrawEffect();
     }
     for (int c = 0; c < 16; c++) {
         if (DngMainScene->CheckDrawChara(c + 8) && DngMainScene->GetType(1, c + 8) != 4) {
@@ -1404,7 +1431,7 @@ void DngMainDraw() {
             tex_man->ReloadTexture(0x66, (sceVif1Packet *) NULL);
             sceVu0FVECTOR pos;
 
-            MainChara->GetPosition(pos);
+            MainChara__2->GetPosition(pos);
             if (config->map == 1) {
                 AutoMapGen.mini_map.large = 0;
                 AutoMapGen.mini_map.x = 436;
@@ -1432,7 +1459,7 @@ void DngMainDraw() {
                 sphida2->DrawMiniMapSymbol(&AutoMapGen.mini_map);
             }
             AutoMapGen.mini_map.DrawSymbolClose();
-            AutoMapGen.mini_map.DrawSymbol_Chara(MainChara);
+            AutoMapGen.mini_map.DrawSymbol_Chara(MainChara__2);
         }
     }
     for (int c = 0; c < 64; c++) {
@@ -1552,12 +1579,12 @@ void DngStep() {
     if (!(BattleAreaScene->pause_flag & 2)) {
         sceVu0FVECTOR foot;
 
-        MainChara->SetWind(power, wind);
-        if (MainChara->GetEntryObjectPos(1, foot)) {
-            MainChara->SetFloor(foot[1]);
+        MainChara__2->SetWind(power, wind);
+        if (MainChara__2->GetEntryObjectPos(1, foot)) {
+            MainChara__2->SetFloor(foot[1]);
         }
-        MainChara->Step();
-        if (MainChara->move_check.in_water) {
+        MainChara__2->Step();
+        if (MainChara__2->move_check.in_water) {
             static int water_cnt = 0;
 
             water_cnt++;
@@ -1565,7 +1592,7 @@ void DngStep() {
                 sceVu0FVECTOR pos;
 
                 water_cnt = 0;
-                sceVu0CopyVector(pos, MainChara->move_check.water_surface);
+                sceVu0CopyVector(pos, MainChara__2->move_check.water_surface);
                 pos[1] += 0.1f;
                 FxScriptMan->CreateEffSpt("\x91\xab\x94g\x96\xe4", 0, -1);
                 FxScriptMan->SetScriptVect1(pos, -1, -1);
@@ -1573,11 +1600,11 @@ void DngStep() {
                 FxScriptMan->SetScriptVect2(scale, -1, -1);
             }
         }
-        if (MainChara->move_check.landed && MainChara->CheckFootEffect() >= 0) {
+        if (MainChara__2->move_check.landed && MainChara__2->CheckFootEffect() >= 0) {
             sceVu0FVECTOR pos;
 
-            MainChara->GetPosition(pos);
-            int foot_no = MainChara->CheckFootEffect();
+            MainChara__2->GetPosition(pos);
+            int foot_no = MainChara__2->CheckFootEffect();
             int effect[35] = {-1, 1,  -1, -1, -1, -1, -1, 0,  0,  -1, -1, 2,  -1, -1, 0,  -1, 0, -1,
                               2,  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
             if (foot_no >= 0) {
@@ -1600,7 +1627,7 @@ void DngStep() {
             }
         }
     }
-    MainChara->StepEffect();
+    MainChara__2->StepEffect();
     if (DngUserData->active_chr_no == USER_CHARA_ROBO) {
         VoiceUnit.Step();
     }
@@ -1680,7 +1707,7 @@ void DngStep() {
     }
     BTsubo2.Step();
     sceVu0FVECTOR player;
-    MainChara->GetPosition(player);
+    MainChara__2->GetPosition(player);
     AutoMapGen.UpdateNaviMap(player, 4);
     if (!(BattleAreaScene->pause_flag & 1)) {
         ActiveMonster->ThinkHost();
@@ -1742,8 +1769,8 @@ void DngStep() {
     ColPrimMan.Step();
     if (!(BattleAreaScene->pause_flag & 0x400)) {
         CheckStatusError();
-        if (MainChara->CheckDamage()) {
-            ResetEyeView(MainChara);
+        if (MainChara__2->CheckDamage()) {
+            ResetEyeView(MainChara__2);
         }
     }
     ActiveMonster->CheckDamage();
@@ -1784,7 +1811,7 @@ void DngStep() {
     if (DngMainMap != NULL) {
         CObjAnimeEnv env;
 
-        *(u_long128 *) env.chara_pos = *(u_long128 *) MainChara->position;
+        *(u_long128 *) env.chara_pos = *(u_long128 *) MainChara__2->position;
         env.time = DngMainScene->time;
         DngMainMap->EffectStep();
         DngMainMap->AnimeStep(&env);
@@ -1845,39 +1872,40 @@ int DngMainKey() {
                 return 0;
             }
         }
-        if (GamePad.Down(0x400)) {
+        if (GamePad__2.Down(0x400)) {
             dngDebugStart();
             return 0;
         }
-        if (GamePad.Down2(8)) {
+        if (GamePad__2.Down2(8)) {
             debag_param ^= 1;
         }
-        if (GamePad.Down2(0x40)) {
+        if (GamePad__2.Down2(0x40)) {
             static float         erate = 1.0f;
             static sceVu0FVECTOR chk_pos;
 
-            MainChara->GetEntryObjectPos(0, 0, chk_pos);
+            MainChara__2->GetEntryObjectPos(0, 0, chk_pos);
             wep_effect->Set((sceVu0FVECTOR *) chk_pos, chk_pos, erate, 2, 10.0f);
             erate += 32.0f;
             if (erate > 300.0f) {
                 erate = 1.0f;
             }
         }
-        if (GamePad.Down2(0x10)) {
+        if (GamePad__2.Down2(0x10)) {
             sceVu0FVECTOR pos;
-            float         size = 20.0f;
+            float size = 20.0f;
+            const float &size_reference = size;
 
-            MainChara->GetPosition(pos);
-            tornado[0].SetPos(pos, size, fRand(255.0f));
+            MainChara__2->GetPosition(pos);
+            tornado[0].SetPos(pos, size_reference, fRand(255.0f));
         }
-        if (GamePad.On2(2)) {
+        if (GamePad__2.On2(2)) {
             BattleAreaScene->SetStatusBar(1, 0.02f);
         }
-        if (GamePad.On2(1)) {
+        if (GamePad__2.On2(1)) {
             BattleAreaScene->SetStatusBar(0, 0.02f);
         }
     }
-    if (GamePad.Down(0x100)) {
+    if (GamePad__2.Down(0x100)) {
         SV_CONFIG_OPTION *config = DngSaveData->GetConfig();
 
         if (config != NULL) {
@@ -1895,7 +1923,7 @@ int DngMainKey() {
     }
     if (SubGameRunning()) {
         sgLoopSubGame();
-        if (GamePad.Down(0x10) && sgMenuOpenEnable()) {
+        if (GamePad__2.Down(0x10) && sgMenuOpenEnable()) {
             VoiceUnit.StopVoice(10);
             MenuArg.open_type = 1;
             DngStatus.mode = DNG_STATUS_MENU;
@@ -1910,25 +1938,27 @@ int DngMainKey() {
         return 0;
     }
     if (DngStatus.eye_view && NowTakePhoto()) {
-        EyeCamera(DngMainScene->GetCamera(DngMainScene->active_camera), MainChara, 0);
+        EyeCamera(DngMainScene->GetCamera(DngMainScene->active_camera), MainChara__2, 0);
         LoopTakePhoto(&PadCtrl, &DngUserData->invent_data);
     }
     IsEventRun();
     sceVu0FVECTOR mark;
 
-    MainChara->GetPosition(mark);
-    mark[1] += 1.3f * MainChara->GetBodyHeight();
+    MainChara__2->GetPosition(mark);
+    mark[1] += 1.3f * MainChara__2->GetBodyHeight();
     RedMarkModel->SetPosition(mark);
     int *run = &DngMainScene->event_run;
 
     if (*run) {
         *run = 0;
-        BattleAreaScene->script.event_no = DngMainScene->event_no;
+        int event_no = DngMainScene->event_no;
+        const int &event_reference = event_no;
+        BattleAreaScene->script.event_no = event_reference;
     }
     CSphida *sphida = GetSphidaPtr();
 
     if (sphida != NULL) {
-        if (OmakeFlag && (PadCtrl.Btn(0x15) || !GamePad.Connect())) {
+        if (OmakeFlag && (PadCtrl.Btn(0x15) || !GamePad__2.Connect())) {
             MenuArg.open_type = 28;
             VoiceUnit.StopVoice(10);
             DngStatus.mode = DNG_STATUS_MENU;
@@ -1949,13 +1979,13 @@ int DngMainKey() {
         script->event_no = -1;
         return 0;
     }
-    if (GamePad.Down(0x200)) {
+    if (GamePad__2.Down(0x200)) {
         unit = 0;
     }
-    if (GamePad.Down(0x400)) {
+    if (GamePad__2.Down(0x400)) {
         unit = 1;
     }
-    if (MainChara->CheckRunEvent() && unit >= 0 && !dead) {
+    if (MainChara__2->CheckRunEvent() && unit >= 0 && !dead) {
         unit = ChangeSetUnit(unit);
         if (unit >= 0) {
             VoiceUnit.StopVoice(10);
@@ -1964,7 +1994,7 @@ int DngMainKey() {
             DngStatus.mode = DNG_STATUS_MENU;
             DngMainScene->fade.ResetFade();
             BattleAreaScene->SetStatusBarNow(0);
-            MainChara->RemoveThrowItem();
+            MainChara__2->RemoveThrowItem();
             WarningGage2.warning[0] = 0;
             WarningGage2.warning[1] = 0;
             WarningGage2.warning[2] = 0;
@@ -1972,7 +2002,7 @@ int DngMainKey() {
             return 0;
         }
     }
-    if (GamePad.On(0x10) && MainChara->CheckRunEvent() && !dead) {
+    if (GamePad__2.On(0x10) && MainChara__2->CheckRunEvent() && !dead) {
         if (NowTakePhoto()) {
             MenuArg.open_type = 10;
         } else {
@@ -1982,27 +2012,27 @@ int DngMainKey() {
         DngStatus.mode = DNG_STATUS_MENU;
         DngMainScene->fade.ResetFade();
         BattleAreaScene->SetStatusBarNow(0);
-        MainChara->RemoveThrowItem();
+        MainChara__2->RemoveThrowItem();
         WarningGage2.warning[0] = 0;
         WarningGage2.warning[1] = 0;
         WarningGage2.warning[2] = 0;
         LockOnModel.pos[3] = 0.0f;
         return 0;
     }
-    CActionChara   *chara = MainChara;
+    CActionChara   *chara = MainChara__2;
     CCameraControl *camera = (CCameraControl *) DngMainScene->GetCamera(DngMainScene->active_camera);
 
     if (DngStatus.eye_view) {
-        if (GamePad.Down(2) || PadCtrl.Btn(1)) {
-            ResetEyeView(MainChara);
+        if (GamePad__2.Down(2) || PadCtrl.Btn(1)) {
+            ResetEyeView(MainChara__2);
             return 0;
         }
-    } else if (GamePad.Down(2) && !SubGameRunning() && MainChara->CheckRunEvent()) {
-        InitEyeCamera(MainChara);
+    } else if (GamePad__2.Down(2) && !SubGameRunning() && MainChara__2->CheckRunEvent()) {
+        InitEyeCamera(MainChara__2);
         return 0;
     }
-    if (!DngStatus.eye_view && GamePad.Down(0x80) && !(BattleAreaScene->pause_flag & 4) && chara_info->chr_no == 0 &&
-        MainChara->CheckRunEvent()) {
+    if (!DngStatus.eye_view && GamePad__2.Down(0x80) && !(BattleAreaScene->pause_flag & 4) && chara_info->chr_no == 0 &&
+        MainChara__2->CheckRunEvent()) {
         int            found = 0;
         CGameDataUsed *items = GetBattleCharaInfo()->GetActiveItemInfo(0);
 
@@ -2021,26 +2051,26 @@ int DngMainKey() {
         }
         if (found) {
             StartTakePhoto();
-            InitEyeCamera(MainChara);
+            InitEyeCamera(MainChara__2);
             return 0;
         }
     }
     if (BattleAreaScene->pause_flag & 4) {
-        ResetEyeView(MainChara);
+        ResetEyeView(MainChara__2);
     }
     if (DngUserData->active_chr_no == USER_CHARA_ROBO && DngUserData->CheckRoboVoiceFlag() && VoiceUnit.status == 0) {
         VoiceUnit.StartVoiceSystem();
     }
-    if (IsRunDeadEvent(MainChara)) {
-        ResetEyeView(MainChara);
+    if (IsRunDeadEvent(MainChara__2)) {
+        ResetEyeView(MainChara__2);
     }
     if (!DngStatus.eye_view) {
         if (!DebugPause && !(BattleAreaScene->pause_flag & 4)) {
-            MainChara->RunScript(DngMainScene, &ActionScriptEnv);
+            MainChara__2->RunScript(DngMainScene, &ActionScriptEnv);
         }
-        if (MainChara->CheckReleaseTimming(-1)) {
-            if (MainChara->CheckReleaseTimming(-1) == 5) {
-                BTsubo.Hold(MainChara->hold_parts);
+        if (MainChara__2->CheckReleaseTimming(-1)) {
+            if (MainChara__2->CheckReleaseTimming(-1) == 5) {
+                BTsubo.Hold(MainChara__2->hold_parts);
                 BTsubo2.SetObject2(DngStatus.dungeon_no, AutoMapGen.pot_parts);
                 BTsubo.Throw();
                 BTsuboCol = ColPrimMan.GetPrim();
@@ -2048,12 +2078,12 @@ int DngMainKey() {
                     BTsuboCol->SetDamage("\x92\xd9", 0);
                 }
             }
-            if (MainChara->CheckReleaseTimming(4) == 1) {
-                BTsubo.Hold(MainChara->hold_parts);
+            if (MainChara__2->CheckReleaseTimming(4) == 1) {
+                BTsubo.Hold(MainChara__2->hold_parts);
                 BTsubo2.SetObject2(DngStatus.dungeon_no, AutoMapGen.pot_parts);
             }
-            if (MainChara->CheckReleaseTimming(-1) == 3) {
-                MainChara->GetNowFrame(0);
+            if (MainChara__2->CheckReleaseTimming(-1) == 3) {
+                MainChara__2->GetNowFrame(0);
                 BTsubo.Throw();
                 BTsuboCol = ColPrimMan.GetPrim();
                 if (BTsuboCol != NULL) {
@@ -2065,7 +2095,7 @@ int DngMainKey() {
         static int camera_default_dist = 1;
         float      dist_table[3] = {100.0f, 160.0f, 500.0f};
 
-        if (GamePad.Down2(0x100)) {
+        if (GamePad__2.Down2(0x100)) {
             if (camera_default_dist >= 2) {
                 camera_default_dist = 0;
             } else {
@@ -2136,7 +2166,7 @@ int DngMainKey() {
                     sceVu0FVECTOR chara_pos;
                     sceVu0FVECTOR target;
 
-                    MainChara->GetPosition(chara_pos);
+                    MainChara__2->GetPosition(chara_pos);
                     mons->GetPosition(target);
                     sceVu0SubVector(diff, target, chara_pos);
                     float now = MainCamera.GetAngle();
@@ -2162,14 +2192,14 @@ int DngMainKey() {
                 sceVu0FVECTOR rot;
 
                 camera->ControlOn();
-                MainChara->GetRotation(rot);
+                MainChara__2->GetRotation(rot);
                 float     dist = camera->GetDistance();
                 CMap     *map = DngMainScene->GetMap(DngMainScene->active_map);
                 CCPoly    poly[512];
                 mgVu0FBOX box;
                 sceVu0FVECTOR pos;
 
-                MainChara->GetPosition(pos);
+                MainChara__2->GetPosition(pos);
                 box.max[0] = pos[0] + dist + 10.0;
                 box.min[0] = pos[0] - dist - 10.0;
                 box.max[1] = pos[1] + dist + 10.0;
@@ -2188,23 +2218,23 @@ int DngMainKey() {
             }
             if (DebugInfo.debug_camera == 1) {
                 camera->ControlOff();
-                camera->AddAngle(0.06f * -GamePad.GetRXf());
-                if (GamePad.On(0x200)) {
-                    camera->AddDistance(3.0f * GamePad.GetRYf());
+                camera->AddAngle(0.06f * -GamePad__2.GetRXf());
+                if (GamePad__2.On(0x200)) {
+                    camera->AddDistance(3.0f * GamePad__2.GetRYf());
                 } else {
-                    camera->AddHeight(3.0f * -GamePad.GetRYf());
+                    camera->AddHeight(3.0f * -GamePad__2.GetRYf());
                 }
-                if (GamePad.On(1)) {
-                    reference += 3.0f * -GamePad.GetRYf();
+                if (GamePad__2.On(1)) {
+                    reference += 3.0f * -GamePad__2.GetRYf();
                 }
             }
             if (PadCtrl.Btn(0x34)) {
                 sceVu0FVECTOR rot;
 
-                MainChara->GetRotation(rot);
+                MainChara__2->GetRotation(rot);
                 float angle = rot[1];
 
-                if (MainChara->lock_on && chara->target_no >= 0) {
+                if (MainChara__2->lock_on && chara->target_no >= 0) {
                     int             no = chara->target_no - 24;
                     CActiveMonster *mons = ActiveMonster->active[no];
 
@@ -2213,7 +2243,7 @@ int DngMainKey() {
                         sceVu0FVECTOR target;
 
                         mons->GetPosition(target);
-                        MainChara->GetPosition(chara_pos);
+                        MainChara__2->GetPosition(chara_pos);
                         sceVu0SubVector(target, target, chara_pos);
                         angle = atan2f(target[0], target[2]);
                     }
@@ -2230,8 +2260,8 @@ int DngMainKey() {
             CCharacter2  *boss = DngMainScene->GetCharacter(24);
             sceVu0FVECTOR chara_pos;
 
-            MainChara->GetPosition(chara_pos);
-            chara_pos[1] += 2.0f * MainChara->GetBodyHeight();
+            MainChara__2->GetPosition(chara_pos);
+            chara_pos[1] += 2.0f * MainChara__2->GetBodyHeight();
             sceVu0FVECTOR boss_pos;
 
             boss->GetEntryObjectPos(0, 0, boss_pos);
@@ -2263,7 +2293,7 @@ int DngMainKey() {
             MainCamera.FollowOff();
             sceVu0FVECTOR pos;
 
-            MainChara->GetPosition(pos);
+            MainChara__2->GetPosition(pos);
             float         angle = atan2f(pos[0] - 268.8, pos[2] - -322.4);
             sceVu0FVECTOR from;
             sceVu0FVECTOR to;
@@ -2297,14 +2327,14 @@ int DngMainKey() {
             sceVu0FVECTOR rot;
 
             camera->ControlOn();
-            MainChara->GetRotation(rot);
+            MainChara__2->GetRotation(rot);
             float     dist = camera->GetDistance();
             CMap     *map = DngMainScene->GetMap(DngMainScene->active_map);
             CCPoly    poly[512];
             mgVu0FBOX box;
             sceVu0FVECTOR pos;
 
-            MainChara->GetPosition(pos);
+            MainChara__2->GetPosition(pos);
             box.max[0] = pos[0] + dist + 10.0;
             box.min[0] = pos[0] - dist - 10.0;
             box.max[1] = pos[1] + dist + 10.0;
@@ -2325,10 +2355,10 @@ int DngMainKey() {
             if (PadCtrl.Btn(0x34)) {
                 sceVu0FVECTOR rot2;
 
-                MainChara->GetRotation(rot2);
+                MainChara__2->GetRotation(rot2);
                 float angle = rot2[1];
 
-                if (MainChara->lock_on && chara->target_no >= 0) {
+                if (MainChara__2->lock_on && chara->target_no >= 0) {
                     int             no = chara->target_no - 24;
                     CActiveMonster *mons = ActiveMonster->active[no];
 
@@ -2337,7 +2367,7 @@ int DngMainKey() {
                         sceVu0FVECTOR target;
 
                         mons->GetPosition(target);
-                        MainChara->GetPosition(chara_pos);
+                        MainChara__2->GetPosition(chara_pos);
                         sceVu0SubVector(target, target, chara_pos);
                         angle = atan2f(target[0], target[2]);
                     }
@@ -2354,20 +2384,20 @@ int DngMainKey() {
     }
     sceVu0FVECTOR pos;
 
-    MainChara->GetPosition(pos);
+    MainChara__2->GetPosition(pos);
     AutoMapGen.MinimapVisTest(pos);
     static int time_step = 0;
 
-    if (GamePad.On2(0x2000)) {
+    if (GamePad__2.On2(0x2000)) {
         DngMainScene->AddTime(0.1f);
     }
-    if (GamePad.On2(0x8000)) {
+    if (GamePad__2.On2(0x8000)) {
         DngMainScene->AddTime(-0.1f);
     }
-    if (GamePad.Down2(0x1000)) {
+    if (GamePad__2.Down2(0x1000)) {
         DngMainScene->SetTime((int) DngMainScene->time / 2 * 2 + 2);
     }
-    if (GamePad.Down2(0x4000)) {
+    if (GamePad__2.Down2(0x4000)) {
         time_step = !time_step;
     }
     if (time_step) {
@@ -2386,10 +2416,10 @@ void IsEventRun() {
     int               near;
     s16              *event_no;
 
-    if (MainChara == NULL) {
+    if (MainChara__2 == NULL) {
         return;
     }
-    MainChara->GetPosition(pos);
+    MainChara__2->GetPosition(pos);
     event_no = &BattleAreaScene->script.event_no;
     info = GetBattleCharaInfo();
     if (info == NULL) {
@@ -2398,7 +2428,7 @@ void IsEventRun() {
     if (info->GetNowHp_i() <= 0) {
         return;
     }
-    if (!MainChara->move_check.landed) {
+    if (!MainChara__2->move_check.landed) {
         return;
     }
     static int npc_heal_cnt = 0;
@@ -2409,7 +2439,7 @@ void IsEventRun() {
             npc_heal_cnt = 0;
         }
     }
-    if (MainChara->move_check.ground_poly.area_kind == 8 && info->chr_no != USER_CHARA_ROBO) {
+    if (MainChara__2->move_check.ground_poly.area_kind == 8 && info->chr_no != USER_CHARA_ROBO) {
         int max;
         int attr;
 
@@ -2421,7 +2451,7 @@ void IsEventRun() {
             info->SetAttr(0x6F, 1);
             FxScriptMan->CreateEffSpt("\x92\xca\x8f\xed\x89\xf1\x95\x9c", 0, 0);
             FxScriptMan->SetScriptTargetId(0, -1, -1);
-            CPalletAnime *pallet = &MainChara->unk_67c;
+            CPalletAnime *pallet = &MainChara__2->unk_67c;
             pallet->red = 0x60;
             pallet->green = 0xB4;
             pallet->blue = 0xFF;
@@ -2459,12 +2489,12 @@ void IsEventRun() {
         DngSaveData->SetBitFlag(0x3B, 1);
         return;
     }
-    if (!MainChara->CheckRunEvent()) {
+    if (!MainChara__2->CheckRunEvent()) {
         return;
     }
     if (RandomCircle.CheckEvent(pos) != -1) {
         *event_no = 1120;
-        MainChara->ResetAccele();
+        MainChara__2->ResetAccele();
         return;
     }
     button = 0;
@@ -2487,7 +2517,7 @@ void IsEventRun() {
     if (DngMainScene->map_event_no) {
         RedMarkModel->draw_request = 1;
     }
-    if (!DngSaveData->GetBitFlag(0x35) && info->chr_no == USER_CHARA_ROBO && MainChara->move_type == 3) {
+    if (!DngSaveData->GetBitFlag(0x35) && info->chr_no == USER_CHARA_ROBO && MainChara__2->move_type == 3) {
         *event_no = 2530;
         DngSaveData->SetBitFlag(0x35, 1);
     }
@@ -2544,13 +2574,13 @@ int EventScriptSetup(SYSTEM_SCRIPT_INFO *script) {
         printf("RUN SYS_SCRIPT %d\n", script->event_no);
         DngStatus.mode = DNG_STATUS_EVENT;
         DngMainScene->before_camera = 0;
-        ResetEyeView(MainChara);
+        ResetEyeView(MainChara__2);
         memcpy(&EventCamera, &MainCamera, sizeof(CCameraControl));
         DngMainScene->active_camera = 1;
-        MainChara->foot_sound_id = -1;
+        MainChara__2->foot_sound_id = -1;
         LoopSoundManager(0);
         BattleAreaScene->pause_flag |= 0x400;
-        MainChara->RemoveThrowItem();
+        MainChara__2->RemoveThrowItem();
         MsgTaskMan.Clear();
         BattleAreaScene->script.event_no = -1;
         return 1;
@@ -2613,40 +2643,40 @@ void CheckStatusError() {
     int               step;
     int               attr;
 
-    if (MainChara == NULL) {
+    if (MainChara__2 == NULL) {
         return;
     }
-    MainChara->GetEntryObjectPos(0, 0, pos);
+    MainChara__2->GetEntryObjectPos(0, 0, pos);
     info = GetBattleCharaInfo();
     step = info->StatusParamStep(&damage);
     attr = info->GetAttr();
     if (info->GetNowHp_i() <= 0) {
         return;
     }
-    MainChara->GetEntryObjectPos(0, 0, top);
-    top[1] += MainChara->body_height;
+    MainChara__2->GetEntryObjectPos(0, 0, top);
+    top[1] += MainChara__2->body_height;
     if (step & 1) {
-        DamageScore2.SetValue(0, damage, MainChara->body_height);
-        MainChara->pallet[0].SetAnim(0x60, 0x20, 0x60, 1, 30, 0);
+        DamageScore2.SetValue(0, damage, MainChara__2->body_height);
+        MainChara__2->pallet[0].SetAnim(0x60, 0x20, 0x60, 1, 30, 0);
     }
     DngStatus.status_count++;
     if (DngStatus.status_count >= 45) {
         DngStatus.status_count = 0;
         if (attr & 0x10) {
-            MainChara->pallet[0].SetAnim(0x100, 0xDC, 0x40, 1, 45, 0);
+            MainChara__2->pallet[0].SetAnim(0x100, 0xDC, 0x40, 1, 45, 0);
         }
         if (attr & 0x2) {
-            MainChara->pallet[0].SetAnim(0xA0, 0x40, 0xA0, 1, 45, 0);
+            MainChara__2->pallet[0].SetAnim(0xA0, 0x40, 0xA0, 1, 45, 0);
         }
         if (attr & 0x8) {
-            MainChara->pallet[0].SetAnim(0x80, 0x40, 0, 1, 45, 0);
+            MainChara__2->pallet[0].SetAnim(0x80, 0x40, 0, 1, 45, 0);
         }
         if (attr & 0x20) {
-            MainChara->pallet[0].SetAnim(0x20, 0x20, 0x20, 1, 45, 0);
+            MainChara__2->pallet[0].SetAnim(0x20, 0x20, 0x20, 1, 45, 0);
         }
     }
     if (info->GetNowHp_i() <= 0) {
-        MainChara->damage_req = ACTION_DAMAGE_REQ_DEAD;
+        MainChara__2->damage_req = ACTION_DAMAGE_REQ_DEAD;
     }
 }
 void InitEyeCamera(CActionChara *chara) {
@@ -2658,14 +2688,14 @@ void InitEyeCamera(CActionChara *chara) {
 
     chara->GetRotation(rot);
     if (info->chr_no == USER_CHARA_ROBO) {
-        arm = MainChara->SearchChara("arm");
+        arm = MainChara__2->SearchChara(at_3589);
         if (arm != NULL) {
             arm->GetRotation(arm_rot);
             rot[1] = mgAngleLimit(rot[1] + arm_rot[1]);
         }
     }
-    viewAngleV = 0.0f;
-    viewAngleH = rot[1];
+    viewAngleV__2 = 0.0f;
+    viewAngleH__2 = rot[1];
     camera = DngMainScene->GetCamera(DngMainScene->active_camera);
     if (camera != NULL) {
         camera->GetPos(backup_pos);
@@ -2673,23 +2703,23 @@ void InitEyeCamera(CActionChara *chara) {
         init_camera = 1;
     }
     DngStatus.eye_view = 1;
-    MainChara->Show(0, 1);
+    MainChara__2->Show(0, 1);
     mgSetAllScissorFlag(1);
 }
 void CheckWeaponEnable() {
     CActionChara *weapon;
 
     if (BattleAreaScene->pause_flag & 0x2000) {
-        weapon = MainChara->SearchChara("sword");
+        weapon = MainChara__2->SearchChara(at_3602);
         if (weapon != NULL) {
             weapon->Show(0, 0);
         }
-        weapon = MainChara->SearchChara("shot");
+        weapon = MainChara__2->SearchChara(at_1940);
         if (weapon != NULL) {
             weapon->Show(0, 0);
         }
     } else {
-        MainChara->Show(1, 1);
+        MainChara__2->Show(1, 1);
     }
 }
 void ResetEyeView(CActionChara *chara) {
@@ -2726,40 +2756,40 @@ static void EyeCamera(mgCCamera *camera, CCharacter2 *chara, int mode) {
 
     if (mode) {
         lx = 0.0f;
-        ly = -GamePad.GetRYf();
+        ly = -GamePad__2.GetRYf();
     } else {
-        lx = GamePad.GetLXf();
-        ly = -GamePad.GetLYf();
+        lx = GamePad__2.GetLXf();
+        ly = -GamePad__2.GetLYf();
         config = &GetSaveData()->config;
         if (config->eye_reverse) {
             ly = -ly;
         }
     }
     if (lx > 0.0f) {
-        viewAngleH -= lx * speed;
-        if (viewAngleH < -3.1415927f) {
-            viewAngleH += 6.2831855f;
+        viewAngleH__2 -= lx * speed;
+        if (viewAngleH__2 < -3.1415927f) {
+            viewAngleH__2 += 6.2831855f;
         }
     }
     if (lx < 0.0f) {
-        viewAngleH -= lx * speed;
-        if (viewAngleH > 3.1415927f) {
-            viewAngleH -= 6.2831855f;
+        viewAngleH__2 -= lx * speed;
+        if (viewAngleH__2 > 3.1415927f) {
+            viewAngleH__2 -= 6.2831855f;
         }
     }
-    if (ly > 0.0f && viewAngleV < 0.65f) {
-        viewAngleV += ly * speed;
+    if (ly > 0.0f && viewAngleV__2 < 0.65f) {
+        viewAngleV__2 += ly * speed;
     }
-    if (ly < 0.0f && viewAngleV > -1.0f) {
-        viewAngleV += ly * speed;
+    if (ly < 0.0f && viewAngleV__2 > -1.0f) {
+        viewAngleV__2 += ly * speed;
     }
     ref[0] = 0.0f;
     ref[1] = 0.0f;
     ref[2] = 10.0f;
     ref[3] = 0.0f;
     sceVu0UnitMatrix(unit);
-    sceVu0RotMatrixX(rot, unit, viewAngleV);
-    sceVu0RotMatrixY(rot, rot, viewAngleH);
+    sceVu0RotMatrixX(rot, unit, viewAngleV__2);
+    sceVu0RotMatrixY(rot, rot, viewAngleH__2);
     sceVu0ApplyMatrix(ref, rot, ref);
     chara->GetPosition(pos);
     pos[1] += 28.0f;
@@ -2863,6 +2893,25 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", debug_no__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3734__DATA);
 
 // Constants (.rodata)
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1063__3__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1064__3__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1065__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1066__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1067__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1068__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1069__3__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1070__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1071__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1072__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1073__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1074__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1075__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1076__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1077__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1078__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1079__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1080__2__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1940__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3336__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3337__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3496__DATA);

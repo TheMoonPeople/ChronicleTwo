@@ -158,7 +158,7 @@ public:
     s32                    town_no;                                               /**< Town the menu edits, from 0 to 9. */
     s32                    start_wait;                                            /**< Frames counted while the menu fades in. */
     s32                    view_mode;                                             /**< Page the cursor is on. @see GeoramaViewMode. */
-    u8                     view_loaded;                                           /**< Non-zero once a part has been shown on entering the menu. */
+    s8                     view_loaded;                                           /**< Non-zero once a part has been shown on entering the menu. */
     s32                    top;                                                   /**< First line shown of the open page's list. */
     s32                    select;                                                /**< Line the cursor is on in the open page's list. */
     s32                    polygon_left;                                          /**< Polygons the town can still place. */
@@ -625,7 +625,7 @@ int CheckGekkaViewMode(int town_no);
  * @address 0x1FA220
  * @size 0x40
  */
-short GetPenkiItemNo(int no);
+int GetPenkiItemNo(int no);
 
 /**
  * Writes the name of a part and of the materials it needs into a message,

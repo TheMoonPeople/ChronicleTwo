@@ -1,4 +1,4 @@
-extern int sort_table[0x24];
+extern signed char sort_table[0x24];
 #include "effectlist.hpp"
 #include "menusys.hpp"
 #include "menuaqua.hpp"
@@ -671,7 +671,7 @@ int MenuCommonReadData(mgCMemory *memory, char **names, int mode) {
     i = 0;
     while (*(char **)((u8 *)names + i) != NULL) {
         size = LoadFileMenu(*(char **)((u8 *)names + i),
-                            (u_long128 *)((int)memory->stack + memory->stack_used * 16), mode);
+                            (u_long128 *)(memory->stack_bytes + memory->stack_used * 16), mode);
         memory->Alloc(align16_blocks(size));
         total += size;
         i += 4;
@@ -974,8 +974,11 @@ int _MENU_TEXNAME(SPI_STACK *stack, int argc) {
         strcpy((char *)MenuSpiTextureName, name);
     }
     int index = spiGetStackInt(block_arg);
-    CMenuKeyFunc *common = MenuCommonInfo;
-    menu_analyze_texblock = *(short *)&common->tex_block[index];
+    struct {
+        u8 prefix[0xC];
+        struct { short block; short tail; } entries[16];
+    } *common = (typeof(common))MenuCommonInfo;
+    menu_analyze_texblock = common->entries[index].block;
     return 1;
 }
 int _MENU_TEXDATA_OFFSET(SPI_STACK *stack, int argc) {
@@ -1936,7 +1939,7 @@ int _MENU_CURSOR_ONOFF(SPI_STACK *stack, int argc) {
         return 1;
     }
     value = spiGetStackInt(stack);
-    cursor = MenuCommonInfo->how_much_form;
+    cursor = MenuCommonInfo->cursor_form;
     if (cursor != NULL) {
         cursor->draw_flag = (value != 0);
     }

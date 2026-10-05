@@ -293,9 +293,9 @@ void CEffectCtrl::Ctrl(CEffect *effects, int effect_num) {
                 break;
         }
         sceVu0AddVector(param.pos, param.pos, origin);
-        param.move_type[0] = move_type[0];
-        param.move_type[1] = move_type[1];
-        param.move_type[2] = move_type[2];
+        param.move_type[0] = move_type.first;
+        param.move_type[1] = move_type.second;
+        param.move_type[2] = move_type.third;
         sceVu0CopyVector(param.velo_mul, velo_mul);
         sceVu0CopyVector(param.acc_mul, acc_mul);
         switch (velo_rand_type) {
@@ -358,9 +358,9 @@ void CEffectCtrl::Ctrl(CEffect *effects, int effect_num) {
                 param.move_p2[2] = RegularityRand(move_p2[2], move_p2_rand[2], move_p2_rand_count);
                 break;
         }
-        param.scale_type[0] = scale_type[0];
-        param.scale_type[1] = scale_type[1];
-        param.scale_type[2] = scale_type[2];
+        param.scale_type[0] = scale_type.first;
+        param.scale_type[1] = scale_type.second;
+        param.scale_type[2] = scale_type.third;
         switch (scale_rand_type) {
             case EFFECT_RAND_NONE:
                 sceVu0CopyVector(param.scale, scale);
@@ -466,16 +466,16 @@ void CEffectCtrl::Ctrl(CEffect *effects, int effect_num) {
             if (tex_rect_num <= 0) {
                 tex_rect_num = 1;
             }
-            memcpy(param.tex_rect[0], tex_rect[rand() % tex_rect_num], sizeof(param.tex_rect[0]));
+            param.tex_rect_copy[0] = tex_rect_copy[rand() % tex_rect_num];
         } else {
-            memcpy(param.tex_rect[0], tex_rect[0], sizeof(param.tex_rect[0]));
-            memcpy(param.tex_rect[1], tex_rect[1], sizeof(param.tex_rect[1]));
-            memcpy(param.tex_rect[2], tex_rect[2], sizeof(param.tex_rect[2]));
-            memcpy(param.tex_rect[3], tex_rect[3], sizeof(param.tex_rect[3]));
-            memcpy(param.tex_rect[4], tex_rect[4], sizeof(param.tex_rect[4]));
-            memcpy(param.tex_rect[5], tex_rect[5], sizeof(param.tex_rect[5]));
-            memcpy(param.tex_rect[6], tex_rect[6], sizeof(param.tex_rect[6]));
-            memcpy(param.tex_rect[7], tex_rect[7], sizeof(param.tex_rect[7]));
+            param.tex_rect_copy[0] = tex_rect_copy[0];
+            param.tex_rect_copy[1] = tex_rect_copy[1];
+            param.tex_rect_copy[2] = tex_rect_copy[2];
+            param.tex_rect_copy[3] = tex_rect_copy[3];
+            param.tex_rect_copy[4] = tex_rect_copy[4];
+            param.tex_rect_copy[5] = tex_rect_copy[5];
+            param.tex_rect_copy[6] = tex_rect_copy[6];
+            param.tex_rect_copy[7] = tex_rect_copy[7];
             param.tex_frame = param.life / tex_rect_num;
         }
         param.gravity = gravity;
@@ -521,9 +521,9 @@ void CEffectCtrl::Initialize(void) {
     rep_rand_count = 1;
     repeat_cnt = 0;
     repeat_num = -1;
-    move_type[0] = EFFECT_CHANGE_NONE;
-    move_type[1] = EFFECT_CHANGE_NONE;
-    move_type[2] = EFFECT_CHANGE_NONE;
+    move_type.first = EFFECT_CHANGE_NONE;
+    move_type.second = EFFECT_CHANGE_NONE;
+    move_type.third = EFFECT_CHANGE_NONE;
     pos[0] = 0;
     pos[1] = 0;
     pos[2] = 0;
@@ -582,9 +582,9 @@ void CEffectCtrl::Initialize(void) {
     move_p2_rand[2] = 0;
     move_p2_rand[3] = 1.0f;
     move_p2_rand_count = 1;
-    scale_type[0] = EFFECT_CHANGE_NONE;
-    scale_type[1] = EFFECT_CHANGE_NONE;
-    scale_type[2] = EFFECT_CHANGE_NONE;
+    scale_type.first = EFFECT_CHANGE_NONE;
+    scale_type.second = EFFECT_CHANGE_NONE;
+    scale_type.third = EFFECT_CHANGE_NONE;
     scale[0] = 1.0f;
     scale[1] = 1.0f;
     scale[2] = 1.0f;
@@ -672,7 +672,7 @@ void CEffectCtrl::SetOrigin(float *origin) {
     sceVu0CopyVector(this->origin, origin);
 }
 CEffectCtrl &CEffectCtrl::operator=(const CEffectCtrl &other) {
-    sceVu0CopyVector(origin, (float *)other.origin);
+    sceVu0CopyVector((float *)origin, (float *)other.origin);
     run = other.run;
     entry = other.entry;
     repeat = other.repeat;
@@ -695,46 +695,46 @@ CEffectCtrl &CEffectCtrl::operator=(const CEffectCtrl &other) {
     width = other.width;
     height = other.height;
     dir = other.dir;
-    sceVu0CopyVector(pos, (float *)other.pos);
+    sceVu0CopyVector((float *)pos, (float *)other.pos);
     pos_rand_type = other.pos_rand_type;
-    sceVu0CopyVector(pos_rand, (float *)other.pos_rand);
+    sceVu0CopyVector((float *)pos_rand, (float *)other.pos_rand);
     pos_rand_count = other.pos_rand_count;
-    move_type[0] = other.move_type[0];
-    move_type[1] = other.move_type[1];
-    move_type[2] = other.move_type[2];
-    sceVu0CopyVector(velo, (float *)other.velo);
-    sceVu0CopyVector(acc, (float *)other.acc);
-    sceVu0CopyVector(velo_mul, (float *)other.velo_mul);
-    sceVu0CopyVector(acc_mul, (float *)other.acc_mul);
-    sceVu0CopyVector(move_p1, (float *)other.move_p1);
-    sceVu0CopyVector(move_p2, (float *)other.move_p2);
+    this->move_type.first = other.move_type.first;
+    this->move_type.second = other.move_type.second;
+    this->move_type.third = other.move_type.third;
+    sceVu0CopyVector((float *)velo, (float *)other.velo);
+    sceVu0CopyVector((float *)acc, (float *)other.acc);
+    sceVu0CopyVector((float *)velo_mul, (float *)other.velo_mul);
+    sceVu0CopyVector((float *)acc_mul, (float *)other.acc_mul);
+    sceVu0CopyVector((float *)move_p1, (float *)other.move_p1);
+    sceVu0CopyVector((float *)move_p2, (float *)other.move_p2);
     velo_rand_type = other.velo_rand_type;
     acc_rand_type = other.acc_rand_type;
     move_p1_rand_type = other.move_p1_rand_type;
     move_p2_rand_type = other.move_p2_rand_type;
-    sceVu0CopyVector(velo_rand, (float *)other.velo_rand);
-    sceVu0CopyVector(acc_rand, (float *)other.acc_rand);
-    sceVu0CopyVector(move_p1_rand, (float *)other.move_p1_rand);
-    sceVu0CopyVector(move_p2_rand, (float *)other.move_p2_rand);
+    sceVu0CopyVector((float *)velo_rand, (float *)other.velo_rand);
+    sceVu0CopyVector((float *)acc_rand, (float *)other.acc_rand);
+    sceVu0CopyVector((float *)move_p1_rand, (float *)other.move_p1_rand);
+    sceVu0CopyVector((float *)move_p2_rand, (float *)other.move_p2_rand);
     velo_rand_count = other.velo_rand_count;
     acc_rand_count = other.acc_rand_count;
     move_p1_rand_count = other.move_p1_rand_count;
     move_p2_rand_count = other.move_p2_rand_count;
-    scale_type[0] = other.scale_type[0];
-    scale_type[1] = other.scale_type[1];
-    scale_type[2] = other.scale_type[2];
-    sceVu0CopyVector(scale, (float *)other.scale);
-    sceVu0CopyVector(svelo, (float *)other.svelo);
-    sceVu0CopyVector(scale_p1, (float *)other.scale_p1);
-    sceVu0CopyVector(scale_p2, (float *)other.scale_p2);
+    this->scale_type.first = other.scale_type.first;
+    this->scale_type.second = other.scale_type.second;
+    this->scale_type.third = other.scale_type.third;
+    sceVu0CopyVector((float *)scale, (float *)other.scale);
+    sceVu0CopyVector((float *)svelo, (float *)other.svelo);
+    sceVu0CopyVector((float *)scale_p1, (float *)other.scale_p1);
+    sceVu0CopyVector((float *)scale_p2, (float *)other.scale_p2);
     scale_rand_type = other.scale_rand_type;
     svelo_rand_type = other.svelo_rand_type;
     scale_p1_rand_type = other.scale_p1_rand_type;
     scale_p2_rand_type = other.scale_p2_rand_type;
-    sceVu0CopyVector(scale_rand, (float *)other.scale_rand);
-    sceVu0CopyVector(svelo_rand, (float *)other.svelo_rand);
-    sceVu0CopyVector(scale_p1_rand, (float *)other.scale_p1_rand);
-    sceVu0CopyVector(scale_p2_rand, (float *)other.scale_p2_rand);
+    sceVu0CopyVector((float *)scale_rand, (float *)other.scale_rand);
+    sceVu0CopyVector((float *)svelo_rand, (float *)other.svelo_rand);
+    sceVu0CopyVector((float *)scale_p1_rand, (float *)other.scale_p1_rand);
+    sceVu0CopyVector((float *)scale_p2_rand, (float *)other.scale_p2_rand);
     scale_rand_count = other.scale_rand_count;
     svelo_rand_count = other.svelo_rand_count;
     scale_p1_rand_count = other.scale_p1_rand_count;
@@ -758,7 +758,7 @@ CEffectCtrl &CEffectCtrl::operator=(const CEffectCtrl &other) {
     texture = other.texture;
     tex_get_type = other.tex_get_type;
     gravity = other.gravity;
-    sceVu0CopyVector(gravity_pos, (float *)other.gravity_pos);
+    sceVu0CopyVector((float *)gravity_pos, (float *)other.gravity_pos);
     gravity_accel = other.gravity_accel;
     gravity_mass = other.gravity_mass;
     return *this;
@@ -884,9 +884,9 @@ int __ACC_MUL(SPI_STACK *args, int arg_count) {
     return 1;
 }
 int __MOVE_TYPE(SPI_STACK *args, int arg_count) {
-    g_tmp_effc->move_type[0] = (EFFECT_CHANGE_TYPE)spiGetStackInt(args++);
-    g_tmp_effc->move_type[1] = (EFFECT_CHANGE_TYPE)spiGetStackInt(args++);
-    g_tmp_effc->move_type[2] = (EFFECT_CHANGE_TYPE)spiGetStackInt(args);
+    g_tmp_effc->move_type.first = (EFFECT_CHANGE_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->move_type.second = (EFFECT_CHANGE_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->move_type.third = (EFFECT_CHANGE_TYPE)spiGetStackInt(args);
     return 1;
 }
 int __MOVE_P1(SPI_STACK *args, int arg_count) {
@@ -918,8 +918,8 @@ int __MOVE_P2_RAND(SPI_STACK *args, int arg_count) {
     return 1;
 }
 int __SCALE_TYPE(SPI_STACK *args, int arg_count) {
-    g_tmp_effc->scale_type[0] = (EFFECT_CHANGE_TYPE)spiGetStackInt(args++);
-    g_tmp_effc->scale_type[1] = (EFFECT_CHANGE_TYPE)spiGetStackInt(args);
+    g_tmp_effc->scale_type.first = (EFFECT_CHANGE_TYPE)spiGetStackInt(args++);
+    g_tmp_effc->scale_type.second = (EFFECT_CHANGE_TYPE)spiGetStackInt(args);
     return 1;
 }
 int __SCALE(SPI_STACK *args, int arg_count) {

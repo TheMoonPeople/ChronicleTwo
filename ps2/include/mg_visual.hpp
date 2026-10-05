@@ -630,7 +630,12 @@ void SetDrawEnv(mgCDrawEnv *env, mgCVisualAttr *attr, mgCDrawEnv *base);
  * @address 0x338320
  * @size 0x10
  */
-extern u_long128 giftag;
+struct mgVisualGifTag {
+    u_int word0;
+    u_int words[3];
+};
+STATIC_ASSERT(sizeof(mgVisualGifTag) == 0x10);
+extern mgVisualGifTag giftag;
 
 /**
  * DMA tag that sends the three quadwords of the TEX1 and TEX0 packet.

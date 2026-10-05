@@ -20,7 +20,10 @@ extern char at_1132__4[];
 extern char at_1194[];
 extern char at_1195[];
 extern char at_1766__2[];
-extern char at_1615__2[];
+struct LineBreakPair {
+    s8 chars[2];
+};
+extern LineBreakPair at_1615__2;
 
 // Code (.text)
 void CScene::BGM_INFO::Init() {
@@ -619,35 +622,36 @@ void CScene::PlayMapSeSrc() {
     }
 }
 void CScene::SePlayOpenDoor(int door_type, float *pos) {
-    sndSePlay(se_base_id, door_type * 2 + 0x3C, 0);
+    door_type = door_type * 2 + 0x3C;
+    sndSePlay(se_base_id, door_type, 0);
 }
 void CScene::SePlayCloseDoor(int door_type, float *pos) {
-    sndSePlay(se_base_id, door_type * 2 + 0x3D, 0);
+    door_type = door_type * 2 + 0x3D;
+    sndSePlay(se_base_id, door_type, 0);
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenesnd", SePlayFoot__6CSceneFiiPf);
 extern "C" char *GetLine__FPPcPcPc__2(char **lines, char *cursor, char *end) {
-    char line_break[2];
-    memcpy(line_break, at_1615__2, sizeof(line_break));
+    LineBreakPair line_break = at_1615__2;
     int line_index;
     int length;
     if (cursor < end) {
         line_index = 0;
         do {
-            if (memcmp(cursor, &line_break[0], 2) == 0) {
+            if (memcmp(cursor, &line_break.chars[0], 2) == 0) {
                 cursor += 2;
                 break;
-            } else if (memcmp(cursor, &line_break[0], 1) == 0) {
+            } else if (memcmp(cursor, &line_break.chars[0], 1) == 0) {
                 cursor += 1;
                 break;
-            } else if (memcmp(cursor, &line_break[1], 1) == 0) {
+            } else if (memcmp(cursor, &line_break.chars[1], 1) == 0) {
                 cursor += 1;
                 break;
             } else {
                 length = 0;
                 while (cursor < end) {
-                    if (memcmp(cursor, &line_break[0], 2) == 0 ||
-                        memcmp(cursor, &line_break[0], 1) == 0 ||
-                        memcmp(cursor, &line_break[1], 1) == 0) {
+                    if (memcmp(cursor, &line_break.chars[0], 2) == 0 ||
+                        memcmp(cursor, &line_break.chars[0], 1) == 0 ||
+                        memcmp(cursor, &line_break.chars[1], 1) == 0) {
                         break;
                     }
                     s8 ch = *cursor;

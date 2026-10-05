@@ -143,7 +143,9 @@ public:
      * @address 0x138EE0
      * @size 0x30
      */
+#ifndef MG_DRAWPRIM_MANUAL_CTOR
     mgCDrawEnv();
+#endif
 
     mgCDrawEnv &operator=(mgCDrawEnv &other);
 

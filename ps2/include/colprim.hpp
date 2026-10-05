@@ -84,7 +84,8 @@ enum ColPrimCoordType {
  */
 struct DAMAGE_PARAM {
     char name[0x10];                       /**< Name by which attacks and scripts look up the row. */
-    u_int  shape; /**< DamageShape flags. */
+    s8 shape;
+    u8 unk_11[3];
     u_int  target; /**< DamageTarget flags. */
     signed char   kind; /**< DamageKind of the attack. */
     u_char   unk_19[0x3];

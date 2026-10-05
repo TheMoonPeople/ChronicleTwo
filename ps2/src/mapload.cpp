@@ -21,6 +21,22 @@ extern "C" int fptosi(float value);
 #include "object.hpp"
 #include "scriptinterpreter.hpp"
 
+struct map_light_vector {
+    float v[4];
+};
+struct map_light_rows {
+    float v[4][4];
+};
+struct map_light_points {
+    u_long128 quad[12];
+};
+struct map_light_fog {
+    u_long128 quad[3];
+};
+extern "C" void __ct__18CScriptInterpreterFv(void *);
+extern "C" CColFrame *__ct__9CColFrameFv(CColFrame *);
+extern "C" CCollision *__ct__10CCollisionFv(CCollision *);
+
 extern CFuncPoint * mapNowFuncPoint;
 extern int mapCameraInfoIdx;
 extern int mapCameraRectIdx;
@@ -206,53 +222,63 @@ int CMap::GetNowTimeBand() {
     return GetTimeBand(GetNowTime());
 }
 
-int CMap::GetNowTimeLightBand() {
-    int num = time_light_num;
-    if (num < 2) {
+#pragma divbyzerocheck on
+int CMap::GetNowTimeLightBand(void) {
+    int bandCount = time_light_num;
+    if (bandCount < 2) {
         return 0;
     }
-    if (num == MAP_TIME_BAND_NUM) {
+    if (bandCount == 4) {
         return GetNowTimeBand();
     }
-
-    // The light sets divide the day evenly, the first starting at 9:00.
-    float time = GetNowTime() - 9.0f;
-    if (time < 0.0f) {
-        time += 24.0f;
+    float hour = GetNowTime();
+    hour -= 9.0f;
+    if (hour < 0.0f) {
+        hour += 24.0f;
     }
-    return (int)(time / (24.0f / num)) % num;
+    return fptosi(hour / (24.0f / (float)bandCount)) % bandCount;
 }
+#pragma divbyzerocheck reset
 
-void CMap::GetLightingRatio(float *out_ratio) {
+void CMap::GetLightingRatio(float *ratio) {
     float time = GetNowTime();
-    out_ratio[MAP_TIME_BAND_DAY] = 0.0f;
-    out_ratio[MAP_TIME_BAND_EVENING] = 0.0f;
-    out_ratio[MAP_TIME_BAND_NIGHT] = 0.0f;
-    out_ratio[MAP_TIME_BAND_MORNING] = 0.0f;
+    float blend;
+    int band;
+    int next;
 
-    // In the last hour of each band the light fades into the next band's.
-    float blend = 0.0f;
-    int band = GetNowTimeBand();
-    int next = (band + 1) % MAP_TIME_BAND_NUM;
-    if (band == MAP_TIME_BAND_NIGHT) {
-        if (time < 6.0f && time > 5.0f) {
-            blend = time - 5.0f;
-        }
-    } else if (band == MAP_TIME_BAND_EVENING) {
-        if (time > 20.0f) {
-            blend = time - 20.0f;
-        }
-    } else if (band == MAP_TIME_BAND_DAY) {
-        if (time > 16.0f) {
-            blend = time - 16.0f;
-        }
-    } else if (band == MAP_TIME_BAND_MORNING) {
-        if (time > 8.0f) {
-            blend = time - 8.0f;
-        }
+    ratio[0] = 0.0f;
+    ratio[1] = 0.0f;
+    ratio[2] = 0.0f;
+    blend = 0.0f;
+    ratio[3] = 0.0f;
+    band = GetNowTimeBand();
+    next = (band + 1) % 4;
+    switch (band) {
+        case 3:
+            if (time > 8.0f) {
+                blend = time - 8.0f;
+            }
+            break;
+        case 0:
+            if (time > 16.0f) {
+                blend = time - 16.0f;
+            }
+            break;
+        case 1:
+            if (time > 20.0f) {
+                blend = time - 20.0f;
+            }
+            break;
+        case 2:
+            if (time < 6.0f) {
+                if (time > 5.0f) {
+                    blend = time - 5.0f;
+                }
+            }
+            break;
     }
-    out_ratio[band] = 1.0f - blend;
-    out_ratio[next] = blend;
+    ratio[band] = 1.0f - blend;
+    ratio[next] = blend;
 }
 
 void CMap::GetLightingFlareRatio(float *out_ratio) {
@@ -277,34 +303,46 @@ void CMap::GetLightingSunRatio(float *out_ratio) {
     }
 }
 
-int CMap::GetTimeLightingRatio(float *out_ratio) {
-    int num = time_light_num;
-    if (num == MAP_TIME_BAND_NUM) {
-        GetLightingRatio(out_ratio);
-    } else {
-        float time = GetNowTime();
-        for (int i = 0; i < num; i++) {
-            out_ratio[i] = 0.0f;
-        }
-        if (num < 2) {
-            out_ratio[0] = 1.0f;
-        } else {
-            // The light set in use fades into the next over the last hour before the next starts.
-            int band = GetNowTimeLightBand();
-            float start = band * (24.0f / num) + 9.0f;
-            if (start >= 24.0f) {
-                start -= 24.0f;
-            }
-            float ratio = (start + 24.0f / num) - time;
-            if (ratio >= 1.0f) {
-                ratio = 1.0f;
-            }
-            out_ratio[band] = ratio;
-            out_ratio[(band + 1) % num] = 1.0f - ratio;
-        }
+#pragma divbyzerocheck on
+int CMap::GetTimeLightingRatio(float *ratio) {
+    int bandCount = time_light_num;
+    int i;
+    float hour;
+    float blend;
+    float bandLength;
+    float bandStart;
+    int band;
+    int nextBand;
+
+    if (bandCount == 4) {
+        GetLightingRatio(ratio);
+        return bandCount;
     }
-    return num;
+    hour = GetNowTime();
+    for (i = 0; i < bandCount; i++) {
+        ratio[i] = 0.0f;
+    }
+    if (bandCount < 2) {
+        ratio[0] = 1.0f;
+        return bandCount;
+    }
+    blend = 1.0f;
+    band = GetNowTimeLightBand();
+    nextBand = (band + 1) % bandCount;
+    bandLength = 24.0f / (float)bandCount;
+    bandStart = 9.0f + (float)band * bandLength;
+    if (!(bandStart < 24.0f)) {
+        bandStart -= 24.0f;
+    }
+    bandStart = bandStart + bandLength - hour;
+    if (bandStart < 1.0f) {
+        blend = bandStart;
+    }
+    ratio[band] = blend;
+    ratio[nextBand] = 1.0f - blend;
+    return bandCount;
 }
+#pragma divbyzerocheck reset
 
 void CMap::GetSunPoint(float *out_pos) {
     sceVu0FVECTOR sun = {0.0f, -1900.0f, 700.0f, 1.0f};
@@ -316,30 +354,32 @@ void CMap::GetSunPoint(float *out_pos) {
     sceVu0ApplyMatrix(out_pos, matrix, sun);
 }
 
-float CMap::GetLightNoTime(int light_no) {
-    int num = time_light_num;
-    if (light_no < num && GetTimeEnable()) {
-        if (num == MAP_TIME_BAND_NUM) {
-            switch (light_no) {
-            case MAP_TIME_BAND_MORNING:
-                return 6.5f;
-            case MAP_TIME_BAND_DAY:
-                return 9.5f;
-            case MAP_TIME_BAND_EVENING:
-                return 17.5f;
-            case MAP_TIME_BAND_NIGHT:
-                return 21.5f;
-            default:
-                return -1.0f;
-            }
-        }
-        float time = (24.0f * light_no) / num + 9.5f;
-        if (time < 0.0f) {
-            time += 24.0f;
-        }
-        return time;
+float CMap::GetLightNoTime(int index) {
+    int bandCount = time_light_num;
+    float hour;
+
+    if (index >= bandCount || GetTimeEnable() == 0) {
+        return -1.0f;
     }
-    return -1.0f;
+    if (bandCount == 4) {
+        switch (index) {
+            case 3:
+                return 6.5f;
+            case 0:
+                return 9.5f;
+            case 1:
+                return 17.5f;
+            case 2:
+                return 21.5f;
+        }
+        return -1.0f;
+    }
+    hour = 24.0f * index / bandCount;
+    hour += 9.5f;
+    if (hour < 0.0f) {
+        hour += 24.0f;
+    }
+    return hour;
 }
 
 int CMap::GetTimeEnable() {
@@ -392,15 +432,15 @@ void CMap::GetLightInfo(CMapLightingInfo *out_info) {
 // Generated by the compiler from CMapLightingInfo in mapload.hpp.
 CMapLightingInfo &CMapLightingInfo::operator=(const CMapLightingInfo &other) {
     projection = other.projection;
-    memcpy(bg_color, other.bg_color, sizeof(bg_color));
-    memcpy(bg_color2, other.bg_color2, sizeof(bg_color2));
-    memcpy(light_dir, other.light_dir, sizeof(light_dir));
-    memcpy(light_color, other.light_color, sizeof(light_color));
+    *(map_light_vector *)bg_color = *(map_light_vector *)other.bg_color;
+    *(map_light_vector *)bg_color2 = *(map_light_vector *)other.bg_color2;
+    *(map_light_rows *)light_dir = *(map_light_rows *)other.light_dir;
+    *(map_light_rows *)light_color = *(map_light_rows *)other.light_color;
     plight_enable = other.plight_enable;
-    memcpy(point_light, other.point_light, sizeof(point_light));
-    memcpy(ambient, other.ambient, sizeof(ambient));
+    *(map_light_points *)point_light = *(map_light_points *)other.point_light;
+    *(map_light_vector *)ambient = *(map_light_vector *)other.ambient;
     fog_enable = other.fog_enable;
-    memcpy(&fog, &other.fog, sizeof(fog));
+    *(map_light_fog *)&fog = *(map_light_fog *)&other.fog;
     return *this;
 }
 mgMaterial *mgCFrame::GetMaterial(int index) { if (visual != NULL) return visual->GetMaterial(index); return NULL; }
@@ -409,11 +449,14 @@ CMapLightingInfo *CMap::GetLightingInfo(int no) {
     return CMapInfo::GetLightingInfo(no);
 }
 
+#pragma inline_depth(0)
 int CMap::GetActiveLightNo() {
     return CMapInfo::GetActiveLightNo();
 }
+#pragma inline_depth reset
 
 // Defined in mapinfo.hpp.
+#pragma inline_depth(0)
 void CMap::GetLightInfo(CMapLightingInfo *out_info, float *ratio, int num) {
     sceVu0FMATRIX light_dir;
     sceVu0FMATRIX light_color;
@@ -427,8 +470,9 @@ void CMap::GetLightInfo(CMapLightingInfo *out_info, float *ratio, int num) {
     int fog_num = 0;
     int i;
     int j;
+    int lighting_num = time_light_num;
 
-    for (i = 0; i < time_light_num; i++) {
+    for (i = 0; i < lighting_num; i++) {
         list[i] = CMapInfo::GetLightingInfo(i);
         if (list[i] == NULL) {
             return;
@@ -444,36 +488,36 @@ void CMap::GetLightInfo(CMapLightingInfo *out_info, float *ratio, int num) {
     mgZeroMatrix(light_color);
 
     for (i = 0; i < num; i++) {
-        if (ratio[i] > 0.0f) {
-            CMapLightingInfo *info = list[i];
-            sceVu0ScaleVector(work, info->ambient, ratio[i]);
+        if (!(ratio[i] <= 0.0f)) {
+            
+            sceVu0ScaleVector(work, list[i]->ambient, ratio[i]);
             mgAddVector(ambient, work);
-            sceVu0ScaleVector(work, info->bg_color, ratio[i]);
+            sceVu0ScaleVector(work, list[i]->bg_color, ratio[i]);
             mgAddVector(bg_color, work);
-            sceVu0ScaleVector(work, info->bg_color2, ratio[i]);
+            sceVu0ScaleVector(work, list[i]->bg_color2, ratio[i]);
             mgAddVector(bg_color2, work);
 
             // Only the sets that draw fog weigh in its colour and distances.
-            if (info->fog_enable) {
-                work[0] = info->fog.r;
-                work[1] = info->fog.g;
-                work[2] = info->fog.b;
-                work[3] = info->fog.unk_b;
+            if (list[i]->fog_enable) {
+                work[0] = list[i]->fog.r;
+                work[1] = list[i]->fog.g;
+                work[2] = list[i]->fog.b;
+                work[3] = list[i]->fog.unk_b;
                 sceVu0ScaleVector(work, work, ratio[i]);
                 mgAddVector(fog_color, work);
-                work[0] = info->fog.near_dist;
-                work[1] = info->fog.far_dist;
-                work[2] = info->fog.far_value;
-                work[3] = info->fog.near_value;
+                work[0] = list[i]->fog.near_dist;
+                work[1] = list[i]->fog.far_dist;
+                work[2] = list[i]->fog.far_value;
+                work[3] = list[i]->fog.near_value;
                 sceVu0ScaleVector(work, work, ratio[i]);
                 mgAddVector(fog, work);
                 fog_num++;
             }
 
             for (j = 0; j < 4; j++) {
-                sceVu0ScaleVector(work, info->light_dir[j], ratio[i]);
+                sceVu0ScaleVector(work, list[i]->light_dir[j], ratio[i]);
                 mgAddVector(light_dir[j], work);
-                sceVu0ScaleVector(work, info->light_color[j], ratio[i]);
+                sceVu0ScaleVector(work, list[i]->light_color[j], ratio[i]);
                 mgAddVector(light_color[j], work);
             }
         }
@@ -482,7 +526,7 @@ void CMap::GetLightInfo(CMapLightingInfo *out_info, float *ratio, int num) {
     // Each row now holds one light's direction, normalised unless the blend cancelled it out.
     sceVu0TransposeMatrix(light_dir, light_dir);
     for (i = 0; i < 4; i++) {
-        if (mgDistVector(light_dir[i]) > 0.0f) {
+        if (!(mgDistVector(light_dir[i]) <= 0.0f)) {
             sceVu0Normalize(light_dir[i], light_dir[i]);
         }
     }
@@ -491,14 +535,15 @@ void CMap::GetLightInfo(CMapLightingInfo *out_info, float *ratio, int num) {
         ambient[3] = 128.0f;
     }
 
-    sceVu0CopyVector(out_info->ambient, ambient);
-    sceVu0CopyVector(out_info->bg_color, bg_color);
-    sceVu0CopyVector(out_info->bg_color2, bg_color2);
+    *(u_long128 *)out_info->ambient = *(u_long128 *)ambient;
+    *(u_long128 *)out_info->bg_color = *(u_long128 *)bg_color;
+    *(u_long128 *)out_info->bg_color2 = *(u_long128 *)bg_color2;
+    *(u_long128 *)out_info->light_color[0] = *(u_long128 *)light_color[0];
     for (i = 0; i < 4; i++) {
-        out_info->light_dir[0][i] = light_dir[i][0];
-        out_info->light_dir[1][i] = light_dir[i][1];
-        out_info->light_dir[2][i] = light_dir[i][2];
-        sceVu0CopyVector(out_info->light_color[i], light_color[i]);
+        for (j = 0; j < 3; j++) {
+            out_info->light_dir[j][i] = light_dir[i][j];
+        }
+        *(u_long128 *)out_info->light_color[i] = *(u_long128 *)light_color[i];
     }
     out_info->fog.r = fog_color[0];
     out_info->fog.g = fog_color[1];
@@ -510,6 +555,7 @@ void CMap::GetLightInfo(CMapLightingInfo *out_info, float *ratio, int num) {
     out_info->fog.near_value = fog[3];
     out_info->fog_enable = fog_num > 0;
 }
+#pragma inline_depth reset
 
 /**
  *
@@ -535,6 +581,7 @@ static int IsAddMode() {
  * Starts a map part of the name of the first argument, which the tags up to PARTS_END build.
  *
  */
+#pragma inline_depth(0)
 int mapPARTS(SPI_STACK *stack, int argument_count) {
     mapNowMapParts = new (mapStack->Alloc(algn16_size(sizeof(CList<CMapParts>)) + 2)) CList<CMapParts>;
     CMapParts *parts = mapNowMapParts->pGetData();
@@ -545,24 +592,20 @@ int mapPARTS(SPI_STACK *stack, int argument_count) {
     mapPtsFunc = 1;
     return 1;
 }
+#pragma inline_depth reset
 
 // Defined in mg_tanime.hpp.
 // Defined in mg_tanime.hpp.
 // Defined in mg_tanime.hpp.
-#ifdef NONMATCHING
-// Defined in map.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapload", __ct__7CObjectFv);
-#endif
+
 
 // Defined in mg_frame.hpp.
 // Defined in mapload.hpp.
 unsigned int algn16_size(unsigned int size) {
-    unsigned int units = size >> 4;
-    if (size & 0xF) {
-        units = (size >> 4) + 1;
+    if ((size & 0xF) != 0) {
+        return (size >> 4) + 1;
     }
-    return units;
+    return size >> 4;
 }
 
 /**
@@ -570,66 +613,78 @@ unsigned int algn16_size(unsigned int size) {
  * Gives the current map part its far clip distance and whether it fades out there.
  *
  */
-int mapFAR_CLIP(SPI_STACK *stack, int argument_count) {
+#pragma inline_depth(0)
+int mapFAR_CLIP(SPI_STACK *stack, int argc) {
+    SPI_STACK *alphaArg = stack + 1;
     if (mapNowMapParts == NULL) {
         return 0;
     }
-    mapNowMapParts->pGetData()->far_dist = spiGetStackFloat(&stack[0]);
-    mapNowMapParts->pGetData()->fade = spiGetStackInt(&stack[1]);
+    (mapNowMapParts->pGetData())->far_dist = spiGetStackFloat(stack);
+    (mapNowMapParts->pGetData())->fade = spiGetStackInt(alphaArg);
     return 1;
 }
+#pragma inline_depth reset
 
 /**
  *
  * Sets whether the current map part is drawn without the scene's lights and without point lights.
  *
  */
-int mapLIGHT_FLAG(SPI_STACK *stack, int argument_count) {
+#pragma inline_depth(0)
+int mapLIGHT_FLAG(SPI_STACK *stack, int argc) {
+    SPI_STACK *secondArg = stack + 1;
     if (mapNowMapParts == NULL) {
         return 0;
     }
-    mapNowMapParts->pGetData()->no_light = spiGetStackInt(&stack[0]);
-    mapNowMapParts->pGetData()->no_plight = spiGetStackInt(&stack[1]);
+    (mapNowMapParts->pGetData())->no_light = spiGetStackInt(stack);
+    (mapNowMapParts->pGetData())->no_plight = spiGetStackInt(secondArg);
     return 1;
 }
+#pragma inline_depth reset
 
 /**
  *
  * Sets the four move flags of the current map part, one per argument.
  *
  */
-int mapMOVE_FLAG(SPI_STACK *stack, int argument_count) {
+#pragma inline_depth(0)
+int mapMOVE_FLAG(SPI_STACK *stack, int argc) {
     if (mapNowMapParts == NULL) {
         return 0;
     }
     CMapParts *parts = mapNowMapParts->pGetData();
     parts->move_flag = 0;
-    if (spiGetStackInt(&stack[0])) {
+    if (spiGetStackInt(stack++)) {
         parts->move_flag |= 1;
     }
-    if (spiGetStackInt(&stack[1])) {
+    if (spiGetStackInt(stack++)) {
         parts->move_flag |= 2;
     }
-    if (spiGetStackInt(&stack[2])) {
+    if (spiGetStackInt(stack++)) {
         parts->move_flag |= 4;
     }
-    if (spiGetStackInt(&stack[3])) {
+    if (spiGetStackInt(stack)) {
         parts->move_flag |= 8;
     }
     return 1;
 }
+#pragma inline_depth reset
 
 /**
  *
  * Gives the current map part four levels of detail at the standard distances.
  *
  */
-int mapLOD_START(SPI_STACK *stack, int argument_count) {
+#pragma inline_depth(0)
+int mapLOD_START(SPI_STACK *stack, int argc) {
+    CMapParts *parts;
+    float *dist;
+
     if (mapNowMapParts == NULL) {
         return 0;
     }
-    float *dist = (float *)mapStack->Alloc(1);
-    CMapParts *parts = mapNowMapParts->pGetData();
+    dist = (float *)mapStack->Alloc(1);
+    parts = mapNowMapParts->pGetData();
     dist[0] = 600.0f;
     dist[1] = 1000.0f;
     dist[2] = 1400.0f;
@@ -637,6 +692,7 @@ int mapLOD_START(SPI_STACK *stack, int argument_count) {
     parts->SetLODDist(dist, 4);
     return 1;
 }
+#pragma inline_depth reset
 
 // Defined in mapparts.hpp.
 /**
@@ -644,13 +700,16 @@ int mapLOD_START(SPI_STACK *stack, int argument_count) {
  * Sets whether the current map part blends between its levels of detail.
  *
  */
-int mapLOD_BLEND(SPI_STACK *stack, int argument_count) {
+#pragma inline_depth(0)
+int mapLOD_BLEND(SPI_STACK *stack, int argc) {
     if (mapNowMapParts == NULL) {
         return 0;
     }
-    mapNowMapParts->pGetData()->SetLODBlend(spiGetStackInt(stack));
+    CMapParts *parts = mapNowMapParts->pGetData();
+    parts->SetLODBlend(spiGetStackInt(stack));
     return 1;
 }
+#pragma inline_depth reset
 
 // Defined in mapparts.hpp.
 /**
@@ -658,24 +717,26 @@ int mapLOD_BLEND(SPI_STACK *stack, int argument_count) {
  * Puts a piece of the current map part into a level of detail, hiding it until that level is reached.
  *
  */
-int mapLOD_PIECE(SPI_STACK *stack, int argument_count) {
+#pragma inline_depth(0)
+int mapLOD_PIECE(SPI_STACK *stack, int argc) {
     if (mapNowMapParts == NULL) {
         return 0;
     }
     CMapParts *parts = mapNowMapParts->pGetData();
-    int level = spiGetStackInt(&stack[0]);
-    CMapPiece *piece = parts->SearchPiece(spiGetStackString(&stack[1]));
+    int resetFlag = spiGetStackInt(stack++);
+    CMapPiece *piece = parts->SearchPiece(spiGetStackString(stack));
     if (piece != NULL) {
-        if (level > 0) {
+        if (resetFlag > 0) {
             piece->show = 0;
-            piece->fade_alpha = 0.0f;
+            *(int *)&piece->fade_alpha = 0;
         }
-        if (parts->GetLODBlend()) {
+        if (parts->GetLODBlend() != 0) {
             piece->fade = 1;
         }
     }
     return 1;
 }
+#pragma inline_depth reset
 
 // Defined in mapparts.hpp.
 /**
@@ -693,33 +754,49 @@ int mapLOD_END(SPI_STACK *stack, int argument_count) {
  * Starts a piece of the current map part that uses the model data of the first argument, shown unless the second argument is zero.
  *
  */
+#pragma inline_depth(0)
 int mapPIECE(SPI_STACK *stack, int argument_count) {
+    char *name;
+    int show;
+    SPI_STACK *show_arg;
+    CMapPiece *piece;
+    int size;
+    char *copy;
+    CMdsInfo *mds;
     if (mapNowMapParts == NULL) {
         return 0;
     }
-    char *name = spiGetStackString(stack);
+    show_arg = stack + 1;
+    name = spiGetStackString(stack);
     if (name == NULL) {
         return 0;
     }
-    int show = 1;
-    if (argument_count > 1) {
-        show = spiGetStackInt(&stack[1]);
+    show = 1;
+    if (!(argument_count < 2)) {
+        show = spiGetStackInt(show_arg);
     }
-    if (!(mapMap->piece_load_skip & 1)) {
-        mapNowMapPiece = new (mapStack->Alloc(algn16_size(sizeof(CList<CMapPiece>)) + 2)) CList<CMapPiece>;
-        CMapPiece *piece = mapNowMapPiece->pGetData();
-        int size = strlen(name) + 1;
-        char *copy = (char *)mapStack->Alloc(size / 16 + (size % 16 != 0));
-        strcpy(copy, name);
-        piece->SetName(copy);
-        piece->show = show;
-        CMdsInfo *mds = mapMap->SearchMDS(copy);
-        if (mds != NULL) {
-            piece->AssignMds(mds);
-        }
+    if (mapMap->piece_load_skip & 1) {
+        return 1;
+    }
+    mapNowMapPiece = new (mapStack->Alloc(algn16_size(sizeof(CList<CMapPiece>)) + 2)) CList<CMapPiece>;
+    piece = mapNowMapPiece->pGetData();
+    size = strlen(name) + 1;
+    if (size % 16 != 0) {
+        size = size / 16 + 1;
+    } else {
+        size = size / 16;
+    }
+    copy = (char *)mapStack->Alloc(size);
+    strcpy(copy, name);
+    piece->SetName(copy);
+    piece->show = show;
+    mds = mapMap->SearchMDS(copy);
+    if (mds != NULL) {
+        piece->AssignMds(mds);
     }
     return 1;
 }
+#pragma inline_depth reset
 
 // Defined in mdslist.hpp.
 // Defined in mg_tanime.hpp.
@@ -727,34 +804,38 @@ int mapPIECE(SPI_STACK *stack, int argument_count) {
 // Defined in mg_tanime.hpp.
 // Defined in mdslist.hpp.
 // Defined in object.hpp.
-CObjectFrame::CObjectFrame() {
-    Initialize();
-}
 
 /**
  *
  * Renames the model data that the current piece uses.
  *
  */
-int mapPIECE_NAME(SPI_STACK *stack, int argument_count) {
+#pragma inline_depth(0)
+int mapPIECE_NAME(SPI_STACK *stack, int argc) {
+    CMapPiece *piece;
+    char *name;
+    char *copy;
+
     if (mapNowMapPiece == NULL) {
         return 0;
     }
-    CMapPiece *piece = mapNowMapPiece->pGetData();
-    char *name = spiGetStackString(stack);
+    piece = mapNowMapPiece->pGetData();
+    name = spiGetStackString(stack);
     if (name != NULL) {
-        char *copy = (char *)mapStack->Alloc(algn16_size(strlen(name) + 1));
+        copy = (char *)mapStack->Alloc(algn16_size(strlen(name) + 1));
         strcpy(copy, name);
         piece->SetName(copy);
     }
     return 1;
 }
+#pragma inline_depth reset
 
 /**
  *
  * Moves the current piece to the position of the three arguments.
  *
  */
+#pragma inline_depth(0)
 int mapPIECE_POS(SPI_STACK *stack, int argument_count) {
     if (mapNowMapPiece == NULL) {
         return 0;
@@ -768,12 +849,14 @@ int mapPIECE_POS(SPI_STACK *stack, int argument_count) {
     piece->SetPosition(position);
     return 1;
 }
+#pragma inline_depth reset
 
 /**
  *
  * Turns the current piece to the angles of the three arguments.
  *
  */
+#pragma inline_depth(0)
 int mapPIECE_ROT(SPI_STACK *stack, int argument_count) {
     if (mapNowMapPiece == NULL) {
         return 0;
@@ -787,12 +870,14 @@ int mapPIECE_ROT(SPI_STACK *stack, int argument_count) {
     piece->SetRotation(rotation);
     return 1;
 }
+#pragma inline_depth reset
 
 /**
  *
  * Scales the current piece by the three arguments.
  *
  */
+#pragma inline_depth(0)
 int mapPIECE_SCALE(SPI_STACK *stack, int argument_count) {
     if (mapNowMapPiece == NULL) {
         return 0;
@@ -806,30 +891,35 @@ int mapPIECE_SCALE(SPI_STACK *stack, int argument_count) {
     piece->SetScale(scale);
     return 1;
 }
+#pragma inline_depth reset
 
 /**
  *
  * Gives the current piece as many material colour entries as the first argument, filled in by the PIECE_MATERIAL tags that follow.
  *
  */
+#pragma inline_depth(0)
 int mapPIECE_MATERIAL_START(SPI_STACK *stack, int argument_count) {
     if (mapNowMapPiece == NULL) {
         return 0;
     }
     mapMatIdx = 0;
     int num = spiGetStackInt(stack);
-    if (num > 0) {
-        PieceMaterial *material = new (mapStack->Alloc(algn16_size(num * sizeof(PieceMaterial)) + 2)) PieceMaterial[num];
-        if (material != NULL) {
-            mapNowMapPiece->pGetData()->SetMaterial(material, num);
-        }
+    if (num <= 0) {
+        return 1;
+    }
+    PieceMaterial *material = new (mapStack->Alloc(algn16_size(num * sizeof(PieceMaterial)) + 2)) PieceMaterial[num];
+    if (material != NULL) {
+        mapNowMapPiece->pGetData()->SetMaterial(material, num);
     }
     return 1;
 }
+#pragma inline_depth reset
 
 // Defined in mdslist.hpp.
 PieceMaterial::PieceMaterial() { Initialize(); }
 void PieceMaterial::Initialize() { memset(this, 0, sizeof(PieceMaterial)); }
+#pragma inline_depth(0)
 int mapPIECE_MATERIAL(SPI_STACK *stack, int argc) {
     CMapPiece *piece;
     PieceMaterial *slot;
@@ -865,10 +955,12 @@ int mapPIECE_MATERIAL(SPI_STACK *stack, int argc) {
     slot->unk_c = spiGetStackInt(stack);
     return 1;
 }
+#pragma inline_depth reset
 
 s32 mapPIECE_MATERIAL_END(SPI_STACK *stack, int argc) {
     return 1;
 }
+#pragma inline_depth(0)
 int mapPIECE_COL_TYPE(SPI_STACK *stack, int argc) {
     if (mapNowMapPiece == NULL) {
         return 0;
@@ -880,6 +972,8 @@ int mapPIECE_COL_TYPE(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
+#pragma inline_depth reset
+#pragma inline_depth(0)
 int mapPIECE_TIME(SPI_STACK *stack, int argc) {
     if (mapNowMapPiece == NULL) {
         return 0;
@@ -889,6 +983,8 @@ int mapPIECE_TIME(SPI_STACK *stack, int argc) {
     piece->SetTimeBand(start, spiGetStackFloat(stack));
     return 1;
 }
+#pragma inline_depth reset
+#pragma inline_depth(0)
 int mapPIECE_END(SPI_STACK *stack, int argc) {
     if (mapNowMapParts == NULL || mapNowMapPiece == NULL) {
         return 0;
@@ -900,6 +996,8 @@ int mapPIECE_END(SPI_STACK *stack, int argc) {
     parts->AddPiece(mapNowMapPiece);
     return 1;
 }
+#pragma inline_depth reset
+#pragma inline_depth(0)
 int mapPARTS_END(SPI_STACK *stack, int argc) {
     if (mapNowMapParts == NULL) {
         return 0;
@@ -909,6 +1007,7 @@ int mapPARTS_END(SPI_STACK *stack, int argc) {
     mapNowMapParts->pGetData()->CreateBoundBox();
     return 1;
 }
+#pragma inline_depth reset
 int mapMAP_PARTS(SPI_STACK *stack, int argc) {
     char *name;
 
@@ -1033,6 +1132,7 @@ int mapFIX_CAMERA_POS2(SPI_STACK *stack, int argc) {
     return 1;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapload", mapFIX_CAMERA_OFF_GROUP__FP9SPI_STACKi);
+#pragma inline_depth(0)
 int mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc) {
     CCameraInfo *info;
     char *name;
@@ -1054,14 +1154,14 @@ int mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc) {
     frame = (CColFrame *)operator new(sizeof(CColFrame),
                                       (u_long128 *)mapStack->Alloc(algn16_size(sizeof(CColFrame)) + 2));
     if (frame != NULL) {
-        new ((u_long128 *)frame) CColFrame;
+        frame = __ct__9CColFrameFv(frame);
     }
     collision = NULL;
     if (strcmp(name, at_1064) == 0) {
         collision = (CCollision *)operator new(
             sizeof(CCollision), (u_long128 *)mapStack->Alloc(algn16_size(sizeof(CCollision)) + 2));
         if (collision != NULL) {
-            new ((u_long128 *)collision) CCollision;
+            collision = __ct__10CCollisionFv(collision);
         }
         spiGetStackVector(collision->bbox.min, stack);
         collision->bbox.min[3] = 1.0f;
@@ -1094,6 +1194,8 @@ int mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
+#pragma inline_depth reset
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapload", __ct__10CCollisionFv);
 
 int mapFIX_CAMERA_END(SPI_STACK *stack, int argc) {
     if (IsAddMode() != 0) {
@@ -1113,6 +1215,7 @@ int mapFUNC_POINT(SPI_STACK *stack, int argc) {
     mapFuncPointIdx = 0;
     return 1;
 }
+#pragma inline_depth(0)
 int mapFUNC_DATA(SPI_STACK *stack, int argc) {
     char *name;
     int kind;
@@ -1159,6 +1262,7 @@ int mapFUNC_DATA(SPI_STACK *stack, int argc) {
     mapNowFuncPoint->enable = spiGetStackInt(stack);
     return 1;
 }
+#pragma inline_depth reset
 int mapFUNC_NAME(SPI_STACK *stack, int argc) {
     if (mapNowFuncPoint == 0) {
         return 0;
@@ -1377,6 +1481,7 @@ int mapFUNC_SOUND_DATA(SPI_STACK *stack, int argc) {
     sound->start[3] = 1.0f;
     return 1;
 }
+#pragma inline_depth(0)
 int mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc) {
     char *name;
     char *copy;
@@ -1405,6 +1510,7 @@ int mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
+#pragma inline_depth reset
 
 int mapFUNC_POS(SPI_STACK *stack, int argc) {
     float pos[4];
@@ -1487,6 +1593,7 @@ int mapFUNC_DATA_END(SPI_STACK *stack, int argc) {
     mapFuncPointIdx++;
     return 1;
 }
+#pragma inline_depth(0)
 int mapFUNC_POINT_END(SPI_STACK *stack, int argc) {
     CFuncPointMngr *mngr;
 
@@ -1502,9 +1609,10 @@ update:
     mngr->UpdateStatus();
     return 1;
 }
+#pragma inline_depth reset
 void CMap::LoadMapFile(char *script, int length, mgCMemory *memory, int addMode) {
 
-    CScriptInterpreter interpreter;
+    u8 interpreter[0xED0];
     mapStack = memory;
     mapAddMode = addMode;
     mapMap = this;
@@ -1516,9 +1624,10 @@ void CMap::LoadMapFile(char *script, int length, mgCMemory *memory, int addMode)
     mapNowFuncPoint = 0;
     mapPtsFunc = 0;
     SetPieceLoadSkip(0);
-    interpreter.SetTag(map_tag);
-    interpreter.SetScript(script, length);
-    interpreter.Run();
+    __ct__18CScriptInterpreterFv(interpreter);
+    ((CScriptInterpreter *)interpreter)->SetTag(map_tag);
+    ((CScriptInterpreter *)interpreter)->SetScript(script, length);
+    ((CScriptInterpreter *)interpreter)->Run();
 }
 void CMap::SetPieceLoadSkip(s32 skip) {
     piece_load_skip = skip;
@@ -1704,15 +1813,16 @@ int cfgWATER_DRAW(SPI_STACK *stack, int argc) {
 }
 void CMap::LoadCfgFile(char *script, int length, mgCMemory *memory) {
 
-    CScriptInterpreter interpreter;
+    u8 interpreter[0xED0];
     mapMap = this;
     mapStack = memory;
     ReserveFuncFlag = 0;
     WaterIndex = 0;
     cfgWater = NULL;
-    interpreter.SetTag(cfg_tag);
-    interpreter.SetScript(script, length);
-    interpreter.Run();
+    __ct__18CScriptInterpreterFv(interpreter);
+    ((CScriptInterpreter *)interpreter)->SetTag(cfg_tag);
+    ((CScriptInterpreter *)interpreter)->SetScript(script, length);
+    ((CScriptInterpreter *)interpreter)->Run();
 }
 
 // Initialised data (.data)

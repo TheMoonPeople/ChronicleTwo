@@ -13,6 +13,8 @@
 #include <cstring>
 
 extern "C" SPI_TAG_PARAM tag_movie[];
+extern "C" void *__ct__18CScriptInterpreterFv(void *);
+extern "C" void *__ct__11mgCDrawPrimFv(void *);
 extern CMovie *MovieView;
 extern int MovieMode;
 extern short MovieSelect;
@@ -80,6 +82,14 @@ extern int performance_meter_flag;
 extern mgCMemory DataBuffer__2;
 extern mgCMemory Stack_ReadBuff__2;
 
+static inline int movieFreeBlocks(mgCMemory *memory) {
+    return memory->stack_size - memory->stack_used;
+}
+
+static inline u_char *movieFreeTop(mgCMemory *memory) {
+    return memory->stack_bytes + memory->stack_used * 16;
+}
+
 // Code (.text)
 int _MOVIE(SPI_STACK *stack, int argument_count) {
     MOVIE_LIST_ENTRY *entry = MovieList + MovieListNum;
@@ -109,6 +119,7 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     int script_size;
     int read_size;
     char *script_ptr;
+    u_char interpreter[0xED0];
     short *special_info;
 
     MovieScene = GetMainScene();
@@ -158,14 +169,14 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     spi_MovieStack = main_stack;
     script_ptr = script;
     if (LoadFile2(at_843__4, script_ptr, &script_size, 0) != 0) {
-        CScriptInterpreter interpreter;
-        interpreter.SetTag(tag_movie);
-        interpreter.SetScript(script_ptr, script_size);
-        interpreter.Run();
+        __ct__18CScriptInterpreterFv(interpreter);
+        ((CScriptInterpreter *)interpreter)->SetTag(tag_movie);
+        ((CScriptInterpreter *)interpreter)->SetScript(script_ptr, script_size);
+        ((CScriptInterpreter *)interpreter)->Run();
     }
     main_stack->Align64();
-    read_size = (main_stack->stack_size - main_stack->stack_used);
-    Stack_ReadBuff__2.stSetBuffer((u_long128 *)(main_stack->stack + main_stack->stack_used), read_size);
+    read_size = movieFreeBlocks(main_stack);
+    Stack_ReadBuff__2.stSetBuffer((u_long128 *)movieFreeTop(main_stack), read_size);
     Stack_ReadBuff__2.stack_used = 0;
     Stack_ReadBuff__2.lock = 0;
     Stack_ReadBuff__2.Align64();
@@ -187,8 +198,14 @@ void MovieViewExit() {
 }
 int MovieViewLoop(void) {
     mgCTextureManager *textures = &mgTexManager;
-    CFont menu_font;
+    struct {
+        u_char font[0x94];
+        int draw_x;
+        int draw_y;
+        u_char rest[0xB8 - 0x9C];
+    } menu_font;
     char row_text[0x100];
+    u_char prim[sizeof(CPreSprite)];
     char part_path[0x40];
     MOVIE_LIST_ENTRY *entry;
     int row_y;
@@ -235,7 +252,7 @@ int MovieViewLoop(void) {
                 MovieScene->StopBGM(0);
                 MovieScene->LoadBGM(
                     entry->bgm_no,
-                    (u_long128 *)(Stack_ReadBuff__2.stack + Stack_ReadBuff__2.stack_used));
+                    (u_long128 *)movieFreeTop(&Stack_ReadBuff__2));
                 MovieScene->PlayBGM(0, -1, 1.0f);
             }
             MovieSpecialMode = 0;
@@ -268,11 +285,11 @@ int MovieViewLoop(void) {
             MovieMode = 1;
         }
         textures->ReloadTexture(0, (sceVif1Packet *)0);
-        menu_font.Init();
-        menu_font.Init();
-        menu_font.SetClearance(0x10, 0x14);
-        menu_font.SetFuchi(5);
-        menu_font.SetColor(0x80686A6BU);
+        ((CFont *)menu_font.font)->Init();
+        ((CFont *)menu_font.font)->Init();
+        ((CFont *)menu_font.font)->SetClearance(0x10, 0x14);
+        ((CFont *)menu_font.font)->SetFuchi(5);
+        ((CFont *)menu_font.font)->SetColor(0x80686A6BU);
         sprintf(row_text, at_1032__6, at_1033__7, at_1034__5);
         i = MovieLine;
         row_y = 0x28;
@@ -282,9 +299,9 @@ int MovieViewLoop(void) {
             if (i == MovieSelect) {
                 row_text[1] = '>';
             }
-            menu_font.SetStr(row_text);
-            menu_font.SetPos(0x28, row_y);
-            menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
+            ((CFont *)menu_font.font)->SetStr(row_text);
+            ((CFont *)menu_font.font)->SetPos(0x28, row_y);
+            ((CFont *)menu_font.font)->DrawDirect((char *)&menu_font, menu_font.draw_x, menu_font.draw_y);
             row_y += 0x14;
             if (row_y >= 0xC9) {
                 break;
@@ -298,18 +315,18 @@ int MovieViewLoop(void) {
         mgPerformanceMeter(0);
         textures->ReloadTexture(0xA, (sceVif1Packet *)0);
         MovieView->SwitchThread();
-        CPreSprite prim;
-        prim.Initialize(NULL, NULL);
-        prim.Preset2D();
-        prim.AlphaBlendEnable(0);
-        prim.TextureMapEnable(1);
-        prim.Begin(6);
-        prim.Color(0, 0, 0, 0x80);
-        prim.SetIRect(0, 0, 0x200, 0x1A0, 0, 0);
-        prim.Texture(RushWork__2);
-        prim.Color(0x80, 0x80, 0x80, 0x80);
-        prim.SetIRect(0, 0, 0x200, mgScreenHeight, 0, 0);
-        prim.End();
+        __ct__11mgCDrawPrimFv(&prim);
+        ((CPreSprite *)prim)->Initialize(NULL, NULL);
+        ((CPreSprite *)prim)->Preset2D();
+        ((CPreSprite *)prim)->AlphaBlendEnable(0);
+        ((CPreSprite *)prim)->TextureMapEnable(1);
+        ((CPreSprite *)prim)->Begin(6);
+        ((CPreSprite *)prim)->Color(0, 0, 0, 0x80);
+        ((CPreSprite *)prim)->SetIRect(0, 0, 0x200, 0x1A0, 0, 0);
+        ((CPreSprite *)prim)->Texture(RushWork__2);
+        ((CPreSprite *)prim)->Color(0x80, 0x80, 0x80, 0x80);
+        ((CPreSprite *)prim)->SetIRect(0, 0, 0x200, mgScreenHeight, 0, 0);
+        ((CPreSprite *)prim)->End();
         if (GamePad__2.Down(8) != 0 || GamePad__2.Down(2) != 0 ||
             GamePad__2.Down(4) != 0 || GamePad__2.Down(1) != 0) {
             mgPerformanceMeter(mgGetPerformanceMeterFlag() ^ 1);

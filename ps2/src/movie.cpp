@@ -69,12 +69,16 @@ extern int stepMainExitFlag;
 extern VoBuf voBuf;
 extern AudioDec audioDec;
 extern u8 _0_buf[2048];
-extern mgCMemory *at_344[6];
-extern mgCMemory *at_349[6];
+struct MoviePools {
+    mgCMemory *pool[6];
+};
+extern MoviePools at_344;
+extern MoviePools at_349;
 extern u8 isStrFileInit;
 
 static int voBufIsFull(VoBuf *buf);
 
+extern "C" char *index(const char *, int);
 extern char at_810__3[];
 extern char at_1028__5[];
 extern char at_1029__4[];
@@ -93,27 +97,25 @@ extern char at_1270__3[];
 
 // Code (.text)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", Load__6CMovieFPcPP9mgCMemoryiibbb);
-void CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop) {
-    mgCMemory *pools[6];
-    memcpy(pools, at_344, sizeof(pools));
-    pools[0] = memory;
-    pools[1] = memory;
-    pools[2] = memory;
-    pools[3] = memory;
-    pools[4] = memory;
-    pools[5] = memory;
-    Load(name, pools, width, height, with_audio, loop, true);
+int CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop) {
+    MoviePools pools = at_344;
+    pools.pool[0] = memory;
+    pools.pool[1] = memory;
+    pools.pool[2] = memory;
+    pools.pool[3] = memory;
+    pools.pool[4] = memory;
+    pools.pool[5] = memory;
+    return Load(name, pools.pool, width, height, with_audio, loop, true);
 }
-void CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop, bool init_sound) {
-    mgCMemory *pools[6];
-    memcpy(pools, at_349, sizeof(pools));
-    pools[0] = memory;
-    pools[1] = memory;
-    pools[2] = memory;
-    pools[3] = memory;
-    pools[4] = memory;
-    pools[5] = memory;
-    Load(name, pools, width, height, with_audio, loop, init_sound);
+int CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop, bool init_sound) {
+    MoviePools pools = at_349;
+    pools.pool[0] = memory;
+    pools.pool[1] = memory;
+    pools.pool[2] = memory;
+    pools.pool[3] = memory;
+    pools.pool[4] = memory;
+    pools.pool[5] = memory;
+    return Load(name, pools.pool, width, height, with_audio, loop, init_sound);
 }
 void CMovie::Play(char *path) {
     ThreadParam param;
@@ -192,7 +194,7 @@ int CMovie::EndCheck() {
     }
     return 1;
 }
-bool CMovie::IsStarted(void) {
+int CMovie::IsStarted(void) {
     return isStarted;
 }
 int CMovie::GetVoBufDataSize() { return 0x1C0000; }
@@ -273,7 +275,10 @@ void videoDecMain(void *arg) {
     videoDecSetState(dec, 3);
 }
 void stepMain(void *arg) {
-    u8 *put_area;
+    struct {
+        u8 *put;
+        u8 gap[0x38];
+    } areas;
     u8 *get_area;
     VideoDec *dec = &videoDec;
     ReadBuf *ring = readBuf;
@@ -288,9 +293,9 @@ void stepMain(void *arg) {
             strFileSeek(file);
             readrest = infile.size;
         }
-        int room = readBufBeginPut(ring, &put_area);
+        int room = readBufBeginPut(ring, &areas.put);
         if (readrest > 0 && room >= 0x10000) {
-            int bytes_read = strFileRead(file, put_area, 0x10000);
+            int bytes_read = strFileRead(file, areas.put, 0x10000);
             readBufEndPut(ring, bytes_read);
             readrest -= bytes_read;
         }
@@ -567,6 +572,7 @@ int viBufAddDMA(ViBuf *buf) {
     return 1;
 }
 #pragma divbyzerocheck reset
+#pragma optimization_level 4
 int viBufStopDMA(ViBuf *buf) {
     WaitSema(buf->sema);
     buf->is_active = 0;
@@ -587,6 +593,7 @@ int viBufStopDMA(ViBuf *buf) {
     SignalSema(buf->sema);
     return 1;
 }
+#pragma optimization_level reset
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", viBufRestartDMA__FP5ViBuf);
 int viBufDelete(ViBuf *buf) {
     setD4_CHCR(5U);
@@ -628,7 +635,7 @@ int strFileOpen(StrFile *file, char *path) {
     char device[0x4C];
     sceCdRMode cd_mode;
     int leftover;
-    s8 *colon = (s8 *)strchr(path, ':');
+    s8 *colon = (s8 *)index(path, ':');
     if (colon != NULL) {
         int device_len = colon - (s8 *)path;
         strncpy(device, path, device_len);

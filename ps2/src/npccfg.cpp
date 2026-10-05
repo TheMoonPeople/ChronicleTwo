@@ -38,25 +38,27 @@ int _NPC_NUM(SPI_STACK *stack, int argument_count) {
  */
 int _NPC_INFO(SPI_STACK *stack, int argument_count) {
     NPC_BASE_DATA *data = &NpcBaseData[npc_spi_count_num++];
-    data->chara_no = spiGetStackInt(&stack[0]);
-    char *name = spiGetStackString(&stack[1]);
-    char *model = spiGetStackString(&stack[2]);
+    int id = spiGetStackInt(stack++);
+    char *name = spiGetStackString(stack++);
+    char *model = spiGetStackString(stack++);
+    data->chara_no = id;
     if (name != 0) {
         strcpy(data->name, name);
-        if (strlen(name) >= sizeof(data->name)) {
+        if (strlen(name) > 0x1B) {
             printf(at_838__4, name);
         }
     }
     if (model != 0) {
         strcpy(data->model, model);
     }
-    data->unk_31 = spiGetStackInt(&stack[3]);
-    data->ability_num = spiGetStackInt(&stack[4]);
-    data->max_npc_point = spiGetStackInt(&stack[5]);
-    for (int i = 0; i < 4; i++) {
-        data->ability_cost[i] = spiGetStackInt(&stack[6 + i]);
-    }
-    data->debug_flag = spiGetStackInt(&stack[10]);
+    data->unk_31 = spiGetStackInt(stack++);
+    data->ability_num = spiGetStackInt(stack++);
+    data->max_npc_point = spiGetStackInt(stack++);
+    data->ability_cost[0] = spiGetStackInt(stack++);
+    data->ability_cost[1] = spiGetStackInt(stack++);
+    data->ability_cost[2] = spiGetStackInt(stack++);
+    data->ability_cost[3] = spiGetStackInt(stack++);
+    data->debug_flag = spiGetStackInt(stack);
     return 1;
 }
 void LoadNPCCfg() {
@@ -103,28 +105,30 @@ char *GetNPCName(int chara_no) {
     return 0;
 }
 char *GetPartyCharaModelName(int chara_no, int type) {
-    if (chara_no <= 0 || chara_no >= 33) {
+    char *model;
+    if (chara_no <= 0 || chara_no > 0x20) {
         return 0;
     }
-    path_885[0] = '\0';
-    char *model = GetNPCModelName(chara_no);
-    if (model == 0) {
-        return 0;
-    }
-    switch (type) {
-    case NPC_MODEL_PATH_CHARA:
-        strcpy(path_885, at_898__4);
-        strcat(path_885, model);
-        strcat(path_885, at_899__4);
-        return path_885;
-    case NPC_MODEL_PATH_INFO:
-        return infocfg_886;
-    case NPC_MODEL_PATH_EVENT_TRAIN:
-        sprintf(path_885, at_900__5, model);
-        return path_885;
-    case NPC_MODEL_PATH_MENU:
-        sprintf(path_885, at_901__3, model);
-        return path_885;
+    path_885[0] = 0;
+    model = GetNPCModelName(chara_no);
+    if (model != 0) {
+        if (type == 0) {
+            strcpy(path_885, at_898__4);
+            strcat(path_885, model);
+            strcat(path_885, at_899__4);
+            return path_885;
+        }
+        if (type == 1) {
+            return infocfg_886;
+        }
+        if (type == 2) {
+            sprintf(path_885, at_900__5, model);
+            return path_885;
+        }
+        if (type == 3) {
+            sprintf(path_885, at_901__3, model);
+            return path_885;
+        }
     }
     return 0;
 }

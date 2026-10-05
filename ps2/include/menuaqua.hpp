@@ -115,8 +115,8 @@ STATIC_ASSERT(sizeof(AQUA_BUBBLE) == 0x30);
  */
 class CBubble {
 public:
-    u8            one_shot;    /**< Nonzero to let finished bubbles end the emitter instead of rising again. */
-    u8            active;      /**< Nonzero while the emitter moves and draws its bubbles. */
+    s8            one_shot;    /**< Nonzero to let finished bubbles end the emitter instead of rising again. */
+    s8            active;      /**< Nonzero while the emitter moves and draws its bubbles. */
     u32           generated;   /**< Bubbles made since the emitter was last started. */
     u8            unk_08[0x8];
     sceVu0FVECTOR origin;      /**< Point that the bubbles rise from. */
@@ -456,7 +456,7 @@ class CAquaFishEff {
 public:
     CAquaFish  *fish;     /**< Fish that the icon floats above; NULL for none. */
     mgCTexture *texture;  /**< Texture of the icons. */
-    s16         type;     /**< Icon shown, 1 to 5; 0 for none. */
+    u16         type;     /**< Icon shown, 1 to 5; 0 for none. */
     s32         timer;    /**< Steps left to show the icon. */
 
     /**
@@ -1255,7 +1255,7 @@ CGameDataUsed *GetOmakeGyoracer2(int no);
  * @address 0x21C0A0
  * @size 0x40
  */
-short GetOmakeGyoracerTactics(int no);
+int GetOmakeGyoracerTactics(int no);
 
 /**
  * Sets the tactics of the racer listed in a slot.

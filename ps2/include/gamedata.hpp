@@ -405,7 +405,7 @@ public:
 STATIC_ASSERT(sizeof(CGameData) == 0x30);
 
 /** Spectrumising table: for each item number from 1, the attachment parameter it raises and by how much. */
-extern s8 etcitem_spectol_table[425][2];
+extern s8 etcitem_spectol_table[0x352];
 
 /** Weapon entry the weapon data script is filling. */
 extern CDataWeapon *SpiWeaponPt;
@@ -506,7 +506,7 @@ char *GetItemFilePath(int item_no, int alternate);
  * @address 0x1972F0
  * @size 0x10
  */
-u8 GetItemDataType(int item_no);
+int GetItemDataType(int item_no);
 
 /**
  * Gives the ITEM_ATTRIBUTE bits of an item number, or 0 for a number without common data.
@@ -597,7 +597,7 @@ int SearchItemByName(char *name);
  * @address 0x197A60
  * @size 0x3C
  */
-s16 GetRidePodCore(int index);
+int GetRidePodCore(int index);
 
 /**
  * Copies the effect data of a usable item; gives 0 when it has none.

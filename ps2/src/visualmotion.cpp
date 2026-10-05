@@ -70,7 +70,7 @@ void mgCVisualMotionMDT::ChangeWeight(mgCFrame **new_frames, float (*matrix)[4][
 int mgCVisualMotionMDT::DataAssignMotionMDT(MDT_HEADER *header, mgCVMotionData *data,
                                             mgCMemory *memory, mgCMemory *work,
                                             mgCTextureManager *textures) {
-    mgCMemory scratch;
+
     mgCFace *packet;
     int count;
     int part_count;
@@ -103,7 +103,7 @@ int mgCVisualMotionMDT::DataAssignMotionMDT(MDT_HEADER *header, mgCVMotionData *
     } while (count < 0x20);
     vu1_base = count * 4 + 0x3C;
     vu1_offset = 0xB4 - (count * 4) / 2;
-    scratch.Init();
+    mgCMemory scratch;
     size = work->stack_size - work->stack_used;
     scratch.stSetBuffer((u_long128 *)(work->stack + work->stack_used), size);
     face_group = 0;
@@ -116,11 +116,10 @@ int mgCVisualMotionMDT::DataAssignMotionMDT(MDT_HEADER *header, mgCVMotionData *
         source = (u_char *)CreateFace((FACES_ID *)source, memory, &scratch, &packet);
         address = (int)(memory->stack + memory->stack_used);
         size = CreateFaceMotionPacket((u_int *)address, packet, data);
-        u_int *tag = (u_int *)&packet->packet_tag;
-        tag[0] = size | 0x30000000;
-        tag[1] = address;
-        tag[2] = 0;
-        tag[3] = 0;
+        ((u_int *)&packet->packet_tag)[0] = size | 0x30000000;
+        ((u_int *)&packet->packet_tag)[1] = address;
+        ((u_int *)&packet->packet_tag)[2] = 0;
+        ((u_int *)&packet->packet_tag)[3] = 0;
         memory->Alloc(size);
     }
     return 1;
@@ -281,19 +280,68 @@ int mgCVisualMotionMDT::CreateBBox(float *box_max, float *box_min, float (*matri
     box_min[3] = 1.0f;
     return 1;
 }
+extern "C" void *__vt__9mgCVisual[];
+extern "C" void *__vt__12mgCVisualMDT[];
+extern "C" void *__vt__15mgCVisualFixMDT[];
+extern "C" void *__vt__18mgCVisualMotionMDT[];
+extern "C" void *__nw__FUiP1(u_int, void *);
+struct MotionCopyFields {
+    u_char pad[0x1C];
+    void **vptr;
+    u_char model_data[0x30];
+    mgCFrame **frame;
+    int frame_id;
+    float (*base_matrix)[4][4];
+    u_char pad_5C[4];
+    mgVu0FBOX base_box;
+    int bone[32];
+    int weight_num;
+    mgVertexWeight *weight;
+};
+struct MotionMDTBase {
+    u_char pad[0x1C];
+};
+struct MotionMDTVirtual : MotionMDTBase {
+    virtual void v0();
+    virtual void v1();
+    virtual void v2();
+    virtual void v3();
+    virtual void v4();
+    virtual void v5();
+    virtual void v6();
+    virtual void v7();
+    virtual void v8();
+    virtual void v9();
+    virtual void Initialize();
+};
+struct MotionColor {
+    float value[4];
+};
+struct MotionWeightSlots {
+    int slot[4][8];
+};
 mgCVisual *mgCVisualMotionMDT::Copy(mgCMemory *memory) {
-    mgCVisualMotionMDT *copy;
-    copy = new (memory->Alloc(0x13)) mgCVisualMotionMDT;
+    MotionCopyFields *copy;
+    if ((copy = (MotionCopyFields *)__nw__FUiP1(0x110, memory->Alloc(0x13))) != NULL) {
+        copy->vptr = __vt__9mgCVisual;
+        ((MotionMDTVirtual *)copy)->Initialize();
+        copy->vptr = __vt__12mgCVisualMDT;
+        ((MotionMDTVirtual *)copy)->Initialize();
+        copy->vptr = __vt__15mgCVisualFixMDT;
+        ((MotionMDTVirtual *)copy)->Initialize();
+        copy->vptr = __vt__18mgCVisualMotionMDT;
+        ((MotionMDTVirtual *)copy)->Initialize();
+    }
     if (copy == NULL) {
         return NULL;
     }
-    copy->mgCVisualMDT::operator=(*this);
+    ((mgCVisualMDT *)copy)->operator=(*this);
     copy->frame = frame;
     copy->frame_id = frame_id;
     copy->base_matrix = base_matrix;
     copy->base_box = base_box;
     int i;
-    memcpy(copy->bone, bone, sizeof(bone));
+    *(MotionWeightSlots *)copy->bone = *(MotionWeightSlots *)bone;
     copy->weight_num = weight_num;
     copy->weight = weight;
     int count = material_num;
@@ -301,7 +349,7 @@ mgCVisual *mgCVisualMotionMDT::Copy(mgCMemory *memory) {
     if (count > 0) {
         u_int bytes = count * 0x30;
         u_int quads = (bytes & 0xF) ? (bytes >> 4) + 1 : bytes >> 4;
-        copy->material = new ((u_long128 *)memory->Alloc(quads + 2)) mgMaterial[material_num];
+        ((mgCVisualMDT *)copy)->material = new ((u_long128 *)memory->Alloc(quads + 2)) mgMaterial[material_num];
         i = 0;
     }
     mgMaterial *dst;
@@ -310,13 +358,13 @@ mgCVisual *mgCVisualMotionMDT::Copy(mgCMemory *memory) {
     while (i < material_num) {
         i++;
         src = (mgMaterial *)((u_char *)material + offset);
-        dst = (mgMaterial *)((u_char *)copy->material + offset);
+        dst = (mgMaterial *)((u_char *)((mgCVisualMDT *)copy)->material + offset);
         offset += 0x30;
-        *(u_long128 *)dst->diffuse = *(u_long128 *)src->diffuse;
-        *(u_long128 *)dst->unk_10 = *(u_long128 *)src->unk_10;
+        *(MotionColor *)dst->diffuse = *(MotionColor *)src->diffuse;
+        *(MotionColor *)dst->unk_10 = *(MotionColor *)src->unk_10;
         dst->texture = src->texture;
     }
-    return copy;
+    return (mgCVisual *)copy;
 }
 int mgCVisualMotionMDT::Iam(void) {
     return 3;

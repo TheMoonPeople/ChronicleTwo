@@ -21,10 +21,11 @@ extern int pMapNameBuff;
 extern int pCharBuff;
 extern char * CharBuff;
 extern int now_no;
+extern mgCMemory *MenuStack;
 extern int SelectMode;
 extern int SelectMapType;
 extern int select_1009;
-extern int init_1010;
+extern signed char init_1010;
 extern EVENT_VIEW_INFO * EventInfo;
 extern int EventInfoNum;
 extern int BossEventTop;
@@ -62,8 +63,9 @@ extern char at_860__2[];
 int mlMAP_NAME_NUM(SPI_STACK *stack, int argc);
 int mlMAP_NAME(SPI_STACK *stack, int argc);
 void LoadMapName(int language, u_long128 *buffer);
+extern "C" void __ct__18CScriptInterpreterFv(void *interpreter);
 static MAP_NAME_INFO *GetMapNameInfo(int map_no);
-char *GetMapPath(char *path, char *name);
+void GetMapPath(char *path, char *name);
 int GetMapType(int map_no);
 int GetMapAreaNo(int map_no);
 int GetMapSelType(int map_no);
@@ -101,12 +103,12 @@ static int pMapNameBuff;
 static int pCharBuff;
 static char *CharBuff;
 static int now_no;
-static u_long128 MapNameBuff[MAP_NAME_BUFF_SIZE];
+static char MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
 static mgCMemory *MenuStack;
 static int SelectMode;
 static int SelectMapType;
 static int select_1009;
-static int init_1010;
+static signed char init_1010;
 static int SedSel;
 static int EventInfoNum;
 static int BossEventTop;
@@ -119,8 +121,8 @@ int BossBattleSelFlag;
 extern SPI_TAG_PARAM tag__7[3];
 extern char *map_sel_type[MAP_SEL_TYPE_NUM];
 extern char SelectMapName[0x100];
-extern int select__1049[16];
-extern int top__1050[16];
+extern int select__1049[8];
+extern int top__1050[8];
 extern int SedSelData[SED_ITEM_NUM];
 extern char *config_str[1];
 static char *GetLine(char **columns, char *position, char *end);
@@ -176,14 +178,15 @@ int mlMAP_NAME(SPI_STACK *stack, int argc) {
 }
 void LoadMapName(int language, u_long128 *buffer) {
     char path[0x80];
-    CScriptInterpreter interpreter;
+    u_char interpreter[0xED0];
     int size;
     MapNameNum = 0;
     sprintf(path, at_842__4, language);
     if (LoadFile2(path, buffer, &size, 0)) {
-        interpreter.SetTag(tag__7);
-        interpreter.SetScript((char *)buffer, size);
-        interpreter.Run();
+        __ct__18CScriptInterpreterFv(interpreter);
+        ((CScriptInterpreter *)interpreter)->SetTag(tag__7);
+        ((CScriptInterpreter *)interpreter)->SetScript((char *)buffer, size);
+        ((CScriptInterpreter *)interpreter)->Run();
         pMapNameBuff += pCharBuff / 16 + 1;
     }
 }
@@ -194,7 +197,7 @@ static MAP_NAME_INFO *GetMapNameInfo(int map_no) {
     }
     return &map_name[map_no];
 }
-char *GetMapPath(char *path, char *name) {
+void GetMapPath(char *path, char *name) {
     int length = strlen(name);
     char *rest = name;
     strcpy(path, at_859__3);
@@ -210,7 +213,6 @@ char *GetMapPath(char *path, char *name) {
         strcat(path, at_860__2);
     }
     strcat(path, name);
-    return path;
 }
 int GetMapType(int map_no) {
     MAP_NAME_INFO *info = GetMapNameInfo(map_no);
@@ -254,17 +256,22 @@ char *GetMapName(int map_no, char **title) {
     return info->name;
 }
 int SearchMapNo(char *name) {
-    if (name == NULL) {
+    struct { int no; int offset; char *name; } search;
+    search.name = name;
+    if (search.name == NULL) {
         return -1;
     }
-    for (int map_no = 0; map_no < MapNameNum; map_no++) {
-        MAP_NAME_INFO *info = &map_name[map_no];
-        if (info->name != NULL && strcmp(info->name, name) == 0) {
-            return map_no;
+    search.no = 0;
+    search.offset = 0;
+    for (; search.no < MapNameNum; search.offset += sizeof(MAP_NAME_INFO), search.no++) {
+        MAP_NAME_INFO *info = (MAP_NAME_INFO *)((u_char *)map_name + search.offset);
+        if (info->name != NULL && strcmp(info->name, search.name) == 0) {
+            return search.no;
         }
     }
     return -1;
 }
+
 char *GetMapTitle(int map_no) {
     MAP_NAME_INFO *info = GetMapNameInfo(map_no);
     if (info != NULL) {
@@ -279,44 +286,46 @@ char *GetAddMapPath(int map_no) {
     }
     return NULL;
 }
-#ifdef NONMATCHING
 void InitMapSelect(mgCMemory *stack) {
     MenuStack = stack;
     SetCurrentDir(NULL);
     int list_size;
     LoadFile((char *)"map/map.lst", read_buffer, &list_size);
-    for (int type = 0; type < MAP_SEL_TYPE_NUM; ++type) {
-        SelectMapNum[type] = 0;
-        SelectMapList[type] = (char **)stack->Alloc(0x22);
-        for (int index = 0; index < SELECT_MAP_MAX; ++index) SelectMapList[type][index] = NULL;
-    }
-    SelectMode = MAP_SELECT_MODE_TYPE;
     input_str lines;
     lines.buffer = (char *)read_buffer;
     lines.size = list_size;
+    for (int type = 0; type < MAP_SEL_TYPE_NUM; ++type) {
+        SelectMapNum[type] = 0;
+        SelectMapList[type] = new ((u_long128 *)MenuStack->Alloc(0x22)) char *[SELECT_MAP_MAX];
+        for (int index = 0; index < SELECT_MAP_MAX; ++index) SelectMapList[type][index] = NULL;
+    }
+    SelectMode = MAP_SELECT_MODE_TYPE;
     char line[0x100];
-    if (lines.GetLine(line, sizeof(line), NULL) && lines.GetLine(line, sizeof(line), NULL)) {
+    if (!lines.GetLine(line, sizeof(line), NULL)) return;
+    int path_length = strlen(line) + 1;
+    if (lines.GetLine(line, sizeof(line), NULL)) {
         do {
-            for (char *letter = line; *letter != 0; ++letter) {
-                if (*letter == '\\') *letter = '/';
-            }
-            bool shared_map = false;
-            for (char *letter = line; *letter != 0; ++letter) {
-                if (strncmp(letter, "cmn", 3) == 0) { shared_map = true; break; }
-            }
-            if (line[0] == 0 || shared_map) continue;
-            char directory[0x80], name[0x80], extension[0x80];
-            DivPathNameExt(line, directory, name, extension);
-            int type = GetMapSelType(SearchMapNo(name));
-            if (type >= 0 && type < MAP_SEL_TYPE_NUM && SelectMapNum[type] < SELECT_MAP_MAX) {
-                SelectMapList[type][SelectMapNum[type]++] = mgCopyString(name, stack);
+            if (line[0] != 0) {
+                char *letter = line;
+                for (; *letter != 0; letter++) {
+                    char c = *letter;
+                    if (c == 0) break;
+                    if (c == '\\') *letter = '/';
+                    if (strncmp(letter, "cmn", 3) == 0) {
+                        letter = NULL;
+                        break;
+                    }
+                }
+                if (letter != NULL) {
+                    char directory[0x80], name[0x80], extension[0x80];
+                    DivPathNameExt(line + path_length, directory, name, extension);
+                    int type = GetMapSelType(SearchMapNo(name));
+                    SelectMapList[type][SelectMapNum[type]++] = mgCopyString(name, MenuStack);
+                }
             }
         } while (lines.GetLine(line, sizeof(line), NULL));
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapselect", InitMapSelect__FP9mgCMemory);
-#endif
 int MapTypeSelect(void) {
     char text[0x800];
     char *cursor = text;
@@ -452,15 +461,28 @@ int MapSelect(void) {
     return 0;
 }
 #ifdef NONMATCHING
+#pragma opt_common_subs off
 int MapSelectLoop() {
-    switch (SelectMode) {
-    case MAP_SELECT_MODE_CANCEL: return MAP_SELECT_CANCEL;
-    case MAP_SELECT_MODE_DECIDE: return MAP_SELECT_DECIDE;
-    case MAP_SELECT_MODE_TYPE: MapTypeSelect(); return MAP_SELECT_CONTINUE;
-    case MAP_SELECT_MODE_MAP: MapSelect(); return MAP_SELECT_CONTINUE;
-    default: return MAP_SELECT_CONTINUE;
-    }
+    int mode = SelectMode;
+    int result = 2;
+    if (mode == 2) goto done;
+    result = 1;
+    if (mode == 1) goto select_map;
+    if (mode == 0) goto select_type;
+    if (mode == -1) goto done;
+    result = 0;
+    goto done;
+select_type:
+    MapTypeSelect();
+    goto finish;
+select_map:
+    MapSelect();
+finish:
+    result = 0;
+done:
+    return result;
 }
+#pragma opt_common_subs reset
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapselect", MapSelectLoop__Fv);
 #endif
@@ -618,31 +640,42 @@ int EventViewLoop(void) {
 #ifdef NONMATCHING
 void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
     int file_size;
-    if (!LoadFile2((char *)"event/view_pal.txt", buffer, &file_size, 0)) return;
-    EventInfo = (EVENT_VIEW_INFO *)stack->Alloc(0x382);
-    for (int index = 0; index < EVENT_VIEW_MAX; ++index) memset(&EventInfo[index], 0, sizeof(EVENT_VIEW_INFO));
-    EventInfoNum = 0;
-    BossEventTop = 0;
     char fields[16][0x80];
     char *columns[16];
+    EVENT_VIEW_INFO *entry;
+    char *end;
+    char *next;
+    int map_no;
+    int floor_no;
+    int dungeon;
+    if (!LoadFile2((char *)"event/view_pal.txt", buffer, &file_size, 0)) return;
+    EventInfo = new ((u_long128 *)stack->Alloc(0x382)) EVENT_VIEW_INFO[EVENT_VIEW_MAX];
+    for (int index = 0; index < EVENT_VIEW_MAX; ++index) memset(&EventInfo[index], 0, sizeof(EVENT_VIEW_INFO));
+    end = (char *)buffer + file_size;
     for (int index = 0; index < 16; ++index) columns[index] = fields[index];
-    char *end = (char *)buffer + file_size;
-    char *next = GetLine(columns, (char *)buffer, end);
-    while (next < end && EventInfoNum < EVENT_VIEW_MAX) {
+    entry = EventInfo;
+    EventInfoNum = 0;
+    BossEventTop = 0;
+    next = GetLine(columns, (char *)buffer, end);
+    while (next < end) {
         next = GetLine(columns, next, end);
-        EVENT_VIEW_INFO &entry = EventInfo[EventInfoNum++];
-        entry.map_no = SearchMapNo(columns[0]);
-        entry.floor_no = 0;
-        entry.dungeon = 0;
+        map_no = SearchMapNo(columns[0]);
+        floor_no = 0;
+        dungeon = 0;
         if (columns[1][0] != 0) {
-            entry.map_no = atoi(columns[1]) - 1;
-            entry.floor_no = atoi(columns[2]);
-            entry.dungeon = 1;
+            map_no = atoi(columns[1]) - 1;
+            floor_no = atoi(columns[2]);
+            dungeon = 1;
         }
-        entry.event_no = atoi(columns[3]);
-        entry.name = mgCopyString(columns[6], stack);
-        entry.detail = mgCopyString(columns[7], stack);
+        entry->map_no = map_no;
+        entry->floor_no = floor_no;
+        entry->dungeon = dungeon;
+        entry->event_no = atoi(columns[3]);
+        entry->name = mgCopyString(columns[6], stack);
+        entry->detail = mgCopyString(columns[7], stack);
+        EventInfoNum++;
         if (strcmp(columns[8], "B") != 0) ++BossEventTop;
+        entry++;
     }
 }
 #else

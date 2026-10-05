@@ -28,6 +28,13 @@ void BuggyControl(CScene *scene);
 void BombControl(CScene *scene);
 void BombCheck(CScene *scene);
 extern "C" int fptosi(float value);
+struct EffectScriptSpriteState {
+    u_char padding[0x30];
+    u_char sprite[0x1C];
+    void *sprite_vtable;
+};
+extern void *__vt__9mgCVisual[];
+extern void *__vt__11mgC3DSprite[];
 
 extern int BuggyTexb;
 extern int PorcussTexb;
@@ -53,7 +60,7 @@ extern "C" void CharaControl__FP6CSceneP11CPadControl__3(CScene *scene, CPadCont
 extern u32 BombHitObj;
 extern u32 BuggyActCount;
 extern u32 BuggyDamageMotion;
-extern u32 BuggyHP;
+extern int BuggyHP;
 extern u32 BuggyStatus;
 extern u32 BuggyStatusStep;
 extern u32 BombStatus;
@@ -233,7 +240,11 @@ int sgInitBuggy(SubGameInfo *info) {
     void *memory = operator new(sizeof(CEffectScriptMan), stack->Alloc(0x11B));
     effects = (CEffectScriptMan *)memory;
     if (memory != NULL) {
-        new ((u_long128 *)memory) CEffectScriptMan;
+        EffectScriptSpriteState *sprite = (EffectScriptSpriteState *)effects;
+        sprite->sprite_vtable = __vt__9mgCVisual;
+        ((mgC3DSprite *)sprite->sprite)->Initialize();
+        sprite->sprite_vtable = __vt__11mgC3DSprite;
+        ((mgC3DSprite *)sprite->sprite)->Initialize();
         effects->Initialize(NULL, -1, -1);
     }
     effects->Initialize(stack, EffectTexb__2, EffectTexbNum);
@@ -394,13 +405,13 @@ int sgDrawShadowBuggy(SubGameInfo *info) {
 }
 int sgSystemDrawBuggy(SubGameInfo *info) {
 
-    mgCDrawPrim prim;
     int buggy_bar_x = 0x4F;
     float gauge_width = 173.0f;
 
     mgTexManager.ReloadTexture(SysTexb, (sceVif1Packet *)NULL);
     mgCTexture *gauge_texture = mgTexManager.GetTexture(at_1056, -1);
 
+    mgCDrawPrim prim;
     prim.Initialize(NULL, NULL);
     prim.AlphaBlendEnable(1);
     prim.DepthTestEnable(0);

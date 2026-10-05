@@ -85,7 +85,7 @@ void CFragment::Step(CCPoly *polys, int poly_count) {
                                  hit_points, moved, 0);
             if (hit_count != 0) {
                 for (i = 0; i < hit_count; i++) {
-                    s16 kind = polys[hit_indices[i]].ground_kind;
+                    s16 kind = polys[hit_indices[i]].area_kind;
                     switch (kind) {
                         case 1:
                         case 7: {
@@ -188,7 +188,7 @@ void CBPot::Clash(float *hit_position, float *unused, float *normal) {
         shard_velocity[3] = 1.0f;
         sceVu0AddVector(shard_position, hit_position, (float *)((u8 *)offset + direction_offset));
         shard_position[3] = 1.0f;
-        fragment[i].Set(shard_position, shard_velocity);
+        ((CFragment *)((u8 *)this + fragment_offset + 0x40))->Set(shard_position, shard_velocity);
         direction_offset += 0x10;
         fragment_offset += 0x60;
     }

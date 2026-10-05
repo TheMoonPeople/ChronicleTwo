@@ -2035,7 +2035,7 @@ public:
      * @address 0x19D9B0
      * @size 0x8
      */
-    u8 CheckVoiceUnit();
+    s8 CheckVoiceUnit();
 
     /**
      * Turns the ridepod's voice on or off.
@@ -2649,7 +2649,7 @@ public:
      * @address 0x1A0630
      * @size 0x8
      */
-    s16 GetNowNPC();
+    int GetNowNPC();
 
     /**
      * Has the townsperson in the party heal the character when they can.
@@ -2766,7 +2766,7 @@ public:
      * @address 0x1A0F40
      * @size 0x20
      */
-    s16 GetMagicSwordElem();
+    int GetMagicSwordElem();
 
     /**
      * Gives the total strength of Monica's magic sword charges.
@@ -3074,7 +3074,7 @@ int GetMainCharaModelName(int chara, char *name, int alternate);
  * @address 0x19BD20
  * @size 0x2C
  */
-char GetShiledKitLimmit(int item_no);
+int GetShiledKitLimmit(int item_no);
 
 /**
  * Gives the base data of a monster, or null.
@@ -3192,7 +3192,7 @@ int KillMonsterCount(int monster_id, int mode);
  * @address 0x1A2560
  * @size 0x70
  */
-u8 SearchEquipType(int chara, int slot);
+int SearchEquipType(int chara, int slot);
 
 /**
  * Gives which character can equip an item number, and in which slot.

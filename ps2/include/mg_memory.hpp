@@ -43,7 +43,10 @@ public:
     u_long128 *heap;             /**< Heap buffer. */
     mgMEMORY_BLOCK *heap_top;    /**< First block header of the heap, at the start of the heap buffer. */
     int lock;                    /**< Non-zero refuses every stack allocation and alignment. */
-    u_long128 *stack;            /**< Stack region allocations are taken from. */
+    union {
+        u_long128 *stack;
+        u8 *stack_bytes;
+    };                          /**< Stack region allocations are taken from. */
     int stack_used;              /**< Quadwords of the stack region in use. */
     int stack_size;              /**< Quadwords available in the stack region. */
     mgMEMORY_BLOCK *stack_block; /**< Heap block holding the stack region while stack mode is active. */

@@ -11,6 +11,10 @@
 #include <cstdio>
 #include <cstdlib>
 
+extern "C" void __ct__18CScriptInterpreterFv(void *);
+extern "C" u8 *GetCommonData__9CGameDataFi(CGameData *, int);
+extern "C" int GetDataType__9CGameDataFi(CGameData *, int);
+
 extern CDataCommon *comdatapt;
 extern int comdatapt_num;
 extern mgCMemory *gamedata_build_stack;
@@ -26,7 +30,7 @@ extern char gamedata_sysword_buffer_1073[0x2800];
 extern char filename_1267[0x20];
 extern char item_file_path_1288[0x80];
 extern SPI_TAG_PARAM gamedata_tag[];
-extern short msg_offsettbl_1363[];
+extern short msg_offsettbl_1363[3];
 extern signed char ItemCmdMsgTbl[33][8];
 extern "C" unsigned int fptoui(float);
 extern char at_1018[];
@@ -416,7 +420,7 @@ int LoadGameDataAnalyze(char *name) {
     int size;
     u8 buffer[0x7800];
     char path[0x40];
-    CScriptInterpreter interpreter;
+    u8 interpreter_storage[0xED0];
     char *script;
 
     script = (char *)MenuCalcBufAlignment((u_long128 *)buffer);
@@ -426,9 +430,10 @@ int LoadGameDataAnalyze(char *name) {
         return 0;
     }
 
-    interpreter.SetTag(gamedata_tag);
-    interpreter.SetScript(script, size);
-    interpreter.Run();
+    __ct__18CScriptInterpreterFv(interpreter_storage);
+    ((CScriptInterpreter *)interpreter_storage)->SetTag(gamedata_tag);
+    ((CScriptInterpreter *)interpreter_storage)->SetScript(script, size);
+    ((CScriptInterpreter *)interpreter_storage)->Run();
     return 1;
 }
 extern "C" int LoadData__9CGameDataFv(CGameData *self) {
@@ -462,22 +467,24 @@ extern "C" int LoadData__9CGameDataFv(CGameData *self) {
 extern "C" int LoadItemSystemMes__9CGameDataFi(CGameData *self, int language) {
     int size;
     u8 buffer[0x7800];
-    mgCMemory memory;
+    u8 memory_storage[0x30];
     char path[0x40];
-    CScriptInterpreter interpreter;
+    u8 interpreter_storage[0xED0];
     char *script;
 
     script = (char *)MenuCalcBufAlignment((u_long128 *)buffer);
     memset(gamedata_sysword_buffer_1073, 0, 0x2800);
 
-    memory.stSetBuffer((u_long128 *)gamedata_sysword_buffer_1073, 0x280);
-    gamedata_build_stack = &memory;
+    ((mgCMemory *)memory_storage)->Init();
+    ((mgCMemory *)memory_storage)->stSetBuffer((u_long128 *)gamedata_sysword_buffer_1073, 0x280);
+    gamedata_build_stack = (mgCMemory *)memory_storage;
     sprintf(path, at_1079, language);
     if (LoadFile2(path, script, &size, 0) != 0) {
 
-        interpreter.SetTag(gamedata_tag);
-        interpreter.SetScript(script, size);
-        interpreter.Run();
+        __ct__18CScriptInterpreterFv(interpreter_storage);
+    ((CScriptInterpreter *)interpreter_storage)->SetTag(gamedata_tag);
+        ((CScriptInterpreter *)interpreter_storage)->SetScript(script, size);
+        ((CScriptInterpreter *)interpreter_storage)->Run();
     }
     return 1;
 }
@@ -617,23 +624,25 @@ CDataBreedFish *CGameData::GetFishData(int item_no) {
     }
     return fish_data + record->list_no;
 }
-short *CGameData::GetGuardData(int item_no) {
+#pragma optimization_level 4
+extern "C" u8 *GetGuardData__9CGameDataFi(CGameData *self, int item_no) {
     CDataCommon *record;
     short list_no;
 
-    record = (CDataCommon *)GetCommonData(item_no);
+    record = (CDataCommon *)GetCommonData__9CGameDataFi(self, item_no);
     if (record == NULL) {
         return 0;
     }
     list_no = record->list_no;
-    if ((int)guard_num <= list_no) {
+    if ((int)self->guard_num <= list_no) {
         return 0;
     }
-    if (guard_data != 0) {
-        return guard_data + list_no;
+    if (self->guard_data != 0) {
+        return (u8 *)(self->guard_data + list_no);
     }
     return 0;
 }
+#pragma optimization_level reset
 u8 CGameData::GetDataType(int item_no) {
     CDataCommon *common = GetCommonData(item_no);
     if (common != NULL) {
@@ -729,8 +738,8 @@ char *GetItemFilePath(int item_no, int variant) {
     }
     return item_file_path_1288;
 }
-u8 GetItemDataType(int item_no) {
-    return GameItemDataManage.GetDataType(item_no);
+int GetItemDataType(int item_no) {
+    return GetDataType__9CGameDataFi(&GameItemDataManage, item_no);
 }
 unsigned int GetItemDataAttribute(int item_no) {
     CDataCommon *record;
@@ -796,9 +805,9 @@ void SetItemSpectolPoint(int item_no, ATTACH_USED *used, int multiplier) {
     int points;
 
     if (item_no > 0 && used != NULL) {
-        index = item_no - 1;
-        list_no = etcitem_spectol_table[index][0];
-        points = etcitem_spectol_table[item_no - 1][1];
+        index = (item_no - 1) * 2;
+        list_no = etcitem_spectol_table[index];
+        points = etcitem_spectol_table[index + 1];
         if (list_no < 8) {
             used->attribute[list_no] = points * multiplier;
         }

@@ -17,7 +17,12 @@ const int parts_list_max = 0x200;
 
 extern float at_964__4[4];
 extern float at_1297__4[4];
-extern "C" u_long128 at_913__6;
+union HouseInfoIds {
+    int id[4];
+    u_long128 qw;
+};
+
+extern "C" HouseInfoIds at_913__6;
 
 // Code (.text)
 void AnalyzeEditMap(int chara_no, CEditMap *map) {
@@ -102,11 +107,10 @@ int GetTreeNum(CEditMap *map) {
     return n;
 }
 int GetHouseParts(CEditMap *map, int *out, int max) {
-    int ids[4];
-    *(u_long128 *)ids = at_913__6;
+    HouseInfoIds ids = at_913__6;
     int total = 0;
     for (int i = 0; i < 4; i++) {
-        int found = map->GetePlacePartsAtInfoID(ids[i], out, max);
+        int found = map->GetePlacePartsAtInfoID(ids.id[i], out, max);
         out += found;
         total += found;
         max -= found;

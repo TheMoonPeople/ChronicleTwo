@@ -14,6 +14,9 @@
 #include <cstdio>
 #include <cstring>
 
+union CopyVector { float f[4]; u_long128 word; };
+struct CopyEventName { char text[16]; };
+struct CopyEventWords { int value[16]; };
 extern float col_1003[4][4];
 extern float at_1013__4[4];
 extern char at_858__3[];
@@ -100,17 +103,25 @@ int CScene::GetCameraPoly(CCPoly *polys, mgVu0FBOX &box, int max) {
     return total;
 }
 void CScene::RunEvent(int requested_event_no, CSceneEventData *data) {
-    if (event_run) {
-        printf("start event running!!\n");
-        if (event_no == 100) {
-            return;
+    u8 *scene = (u8 *)this;
+    if (event_run == 0 || (printf(at_858__3), event_no != 100)) {
+        event_no = requested_event_no;
+        if (data != NULL) {
+            ((CSceneEventData *)(scene + 0x2E90))->head = data->head;
+            ((CSceneEventData *)(scene + 0x2E90))->group_1 = data->group_1;
+            ((CSceneEventData *)(scene + 0x2E90))->group_2 = data->group_2;
+            ((CSceneEventData *)(scene + 0x2E90))->group_3 = data->group_3;
+            ((CSceneEventData *)(scene + 0x2E90))->group_4 = data->group_4;
+            ((CSceneEventData *)(scene + 0x2E90))->group_5 = data->group_5;
+            ((CSceneEventData *)(scene + 0x2E90))->vectors_a = data->vectors_a;
+            ((CSceneEventData *)(scene + 0x2E90))->vectors_b = data->vectors_b;
+            ((CSceneEventData *)(scene + 0x2E90))->chara_no = data->chara_no;
+            ((CSceneEventData *)(scene + 0x2E90))->chara_slot = data->chara_slot;
+            ((CSceneEventData *)(scene + 0x2E90))->gameobj_no = data->gameobj_no;
+            event_data.unk_cc = data->unk_cc;
         }
+        event_run = 1;
     }
-    event_no = requested_event_no;
-    if (data != NULL) {
-        event_data = *data;
-    }
-    event_run = 1;
 }
 int CScene::GetMapEvent(float *position, int map_no, CSceneEventData *event) {
     CMap *maps[4];
@@ -126,19 +137,19 @@ int CScene::GetMapEvent(float *position, int map_no, CSceneEventData *event) {
         }
         if (point != NULL) {
             if (event != NULL) {
-                *(u_long128 *)event->position = *(u_long128 *)point->position;
-                *(u_long128 *)event->rotation = *(u_long128 *)point->rotation;
-                *(u_long128 *)event->scale = *(u_long128 *)point->scale;
+                *(CopyVector *)event->position = *(CopyVector *)point->position;
+                *(CopyVector *)event->rotation = *(CopyVector *)point->rotation;
+                *(CopyVector *)event->scale = *(CopyVector *)point->scale;
                 event->event.flag = point->event.flag;
                 event->event.event_no = point->event.event_no;
                 event->event.point_no = point->event.point_no;
                 event->event.unk_2c = point->event.unk_2c;
                 event->event.unk_30 = point->event.unk_30;
                 event->event.unk_34 = point->event.unk_34;
-                memcpy(event->event.unk_38, point->event.unk_38, sizeof(event->event.unk_38));
+                *(CopyEventName *)event->event.unk_38 = *(CopyEventName *)point->event.unk_38;
                 event->map_event.check_type = result.check_type;
                 event->map_event.event_no = result.event_no;
-                memcpy(event->map_event.matrix, result.matrix, sizeof(event->map_event.matrix));
+                *(CopyEventWords *)event->map_event.matrix = *(CopyEventWords *)result.matrix;
                 event->map_event.parts_no = result.parts_no;
                 event->map_event.point_no = result.point_no;
             }
@@ -187,9 +198,9 @@ void CScene::EyeViewDrawOnOff(int on) {
     CMap *maps[4];
     int count = GetActiveMap(maps, 4);
     for (int index = 0; index < count; ++index) {
-        CPartsGroup *shown = maps[index]->SearchPartsGroup("eyeview_on");
-        CPartsGroup *hidden = maps[index]->SearchPartsGroup("eyeview_off");
-        if (shown != NULL) shown->off = !on;
+        CPartsGroup *shown = maps[index]->SearchPartsGroup(at_958__3);
+        CPartsGroup *hidden = maps[index]->SearchPartsGroup(at_959__3);
+        if (shown != NULL) shown->off = (u8)((on != 0) ^ 1);
         if (hidden != NULL) hidden->off = on;
     }
 }
@@ -217,7 +228,7 @@ void CScene::DrawSky(int sky_index) {
     float moon_position[4];
     float lighting_ratio[8];
     float sun_ratio[8];
-    CMapLightingInfo lighting;
+    union { CMapLightingInfo lighting; };
     float sky_color_a[4];
     float sky_color_b[4];
     CMapSky *sky;
@@ -241,15 +252,16 @@ void CScene::DrawSky(int sky_index) {
         map = GetMap(active_map);
         if (map != NULL && map->sky_info != 0) {
             camera_info[1] = map->unk_dc;
+            memset(&lighting, 0, sizeof(lighting));
             map->GetLightInfo(&lighting);
             map->GetLightingRatio(lighting_ratio);
             map->GetLightingSunRatio(sun_ratio);
             GetSunPosition(sun_position);
             GetMoonPosition(moon_position);
-            sceVu0CopyVector(sky_color_a, lighting.bg_color);
+            *(CopyVector *)sky_color_a = *(CopyVector *)lighting.bg_color;
             sceVu0ScaleVector(sky_color_a, sky_color_a, 0.0078125f);
             sky_color_a[3] = 1.0f;
-            sceVu0CopyVector(sky_color_b, lighting.bg_color2);
+            *(CopyVector *)sky_color_b = *(CopyVector *)lighting.bg_color2;
             sceVu0ScaleVector(sky_color_b, sky_color_b, 0.0078125f);
             sky_color_b[3] = 1.0f;
             sky->DrawSkyBack(camera_info, sky_color_a, sky_color_b);
@@ -273,7 +285,7 @@ void CScene::DrawLensFlare(int flare_type, char *texture, char *alpha_texture) {
     }
     map->GetLightingFlareRatio(ratio);
     if (ratio[0] != 0.0f || ratio[1] != 0.0f || ratio[3] != 0.0f) {
-        sceVu0CopyVector(color, at_1013__4);
+        *(CopyVector *)color = *(CopyVector *)at_1013__4;
         color[0] += col_1003[0][0] * ratio[0];
         color[1] += col_1003[0][1] * ratio[0];
         color[2] += col_1003[0][2] * ratio[0];

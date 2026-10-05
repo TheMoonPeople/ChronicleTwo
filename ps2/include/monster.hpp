@@ -169,8 +169,10 @@ struct BASE_MONSTER_TBL {
     u32   unk_94;
     u32   unk_98;
     s32   next_id;       /**< Monster kind that is loaded along with this one; -1 for none. */
-    s16   drop_item[2];  /**< Items that the monster can drop; 0 for none. */
-    s16   unk_a4;
+    union {
+        s16 drop_item[2];
+        s16 drop_items[3];
+    };
     u32   resist_attr;   /**< Hit attribute bits that cannot leave statuses on the monster. */
     s16   unk_ac;
     s16   unk_ae;
@@ -216,6 +218,8 @@ STATIC_ASSERT(sizeof(MONSTER_STATUS) == 0xC);
  * A monster out on the dungeon floor, run by its own script on top of an action character.
  *
  */
+union ScriptVariable { int i; float f; };
+
 class CActiveMonster : public CActionChara {
 public:
     sceVu0FVECTOR    place_pos;       /**< Position at which the monster was placed, which its script can move. */
@@ -227,8 +231,8 @@ public:
     s16              monster_id;      /**< Number of the monster's kind. */
     s16              req_prog;        /**< Program for the script to run next, a MONSTER_PROG value. */
     s16              now_prog;        /**< Program that the script last started. */
-    s32              var[MONSTER_VAR_MAX];   /**< Integer or float variables of the monster's script. */
-    s32              var2[MONSTER_VAR2_MAX]; /**< Second set of integer or float variables of the monster's script. */
+    ScriptVariable   var[MONSTER_VAR_MAX];   /**< Integer or float variables of the monster's script. */
+    ScriptVariable   var2[MONSTER_VAR2_MAX]; /**< Second set of integer or float variables of the monster's script. */
     CMapParts        *link_parts;     /**< Map part that the monster is linked with; NULL for none. */
     CMapPiece        *link_piece;     /**< Piece of link_parts that the monster rides on; NULL for none. */
     s16              link_type;       /**< How the monster is linked with link_parts, a MONSTER_LINK value. */
@@ -405,7 +409,7 @@ public:
     mgCMemory          memory[MONSTER_ACTIVE_MAX];        /**< Memory for the script stacks of each monster slot. */
     CActiveMonster     *active[MONSTER_ACTIVE_MAX];       /**< Monster of each slot, which is the scene character 24 slots on. */
     MONSTER_REFER      refer[MONSTER_REFER_MAX];          /**< Loaded monster kinds. */
-    s32                share_var[MONSTER_SHARE_MAX];      /**< Integer or float variables that every monster's script shares; scripts number them from 8. */
+    ScriptVariable     share_var[MONSTER_SHARE_MAX];      /**< Integer or float variables that every monster's script shares; scripts number them from 8. */
     CEffectScriptMan   *effect_man;                       /**< Effect scripts that the monsters start. */
     CMonsterLocateInfo locate;                            /**< The floor's list of monsters to place. */
     s16                priority_limit;                    /**< Number of nearest monsters that are let come into sight. */

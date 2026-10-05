@@ -35,6 +35,7 @@ extern "C" void
 __ct__11mgCDrawPrimFv(void *self);
 
 extern "C" int fptosi(float value);
+extern "C" int sndSePlay__FUiii(unsigned int, int, int);
 
 extern "C" u8 at_4574[];
 
@@ -189,7 +190,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", _set2DSprite__FPcP11mgCDrawPri
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", set2DSprite__FP11mgCDrawPrim9mgRect_i_9mgRect_i_P10RGBAQ_TYPE);
 void FillRect(int x, int y, int w, int h, int r, int g, int b, int a) {
     message_draw_prim drawer;
-    __ct__11mgCDrawPrimFv(&drawer.prim);
     drawer.prim.Initialize(NULL, NULL);
     drawer.prim.AlphaBlendEnable(1);
     drawer.prim.AlphaBlend(1);
@@ -208,7 +208,6 @@ void FillRect(int x, int y, int w, int h, int r, int g, int b, int a) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", DrawFukidashi_sub__6ClsMesFP11mgCDrawPrimiii);
 void ClsMes::DrawFukidashi(int a, int b, int c) {
     message_draw_prim drawer;
-    __ct__11mgCDrawPrimFv(&drawer.prim);
     drawer.prim.Initialize(NULL, NULL);
     drawer.prim.ZMask(-1);
     drawer.prim.AlphaTestEnable(0);
@@ -715,11 +714,11 @@ int ClsMes::MyTextureMake_sub() {
     if (voice_on != 0 && draw_speed > 0.0f) {
         if (reveal_num % 3 == 0) {
             if (voice_type == 1) {
-                sndSePlay(SystemSND_ID, 7, voice_cnt % 2);
+                sndSePlay__FUiii(SystemSND_ID, 7, voice_cnt % 2);
             } else if (voice_type == 2) {
-                sndSePlay(SystemSND_ID, 6, voice_cnt % 2);
+                sndSePlay__FUiii(SystemSND_ID, 6, voice_cnt % 2);
             } else {
-                sndSePlay(SystemSND_ID, 5, voice_cnt % 2);
+                sndSePlay__FUiii(SystemSND_ID, 5, voice_cnt % 2);
             }
             voice_cnt += 1;
         }

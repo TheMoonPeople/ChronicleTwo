@@ -21,9 +21,6 @@
 #    of ps2/config/pal/SCES_511.90.lcf), so an object must never ask for more
 #    than its retail address has.
 #
-# This runs once per object, so it stays at two processes: one readelf, one
-# objcopy, and the objcopy only when there is something to do.
-
 # The binutils-mips-ps2-decompals tools. Override MIPS_TOOL_PREFIX in the
 # environment for a differently-named build of them.
 : "${MIPS_TOOL_PREFIX:=mips-ps2-decompals-}"
@@ -52,3 +49,7 @@ if [ -n "$remove" ] || [ -n "$coal" ] || [ "$#" -gt 0 ]; then
   "${MIPS_TOOL_PREFIX}objcopy" -I elf32-littlemips -O elf32-littlemips \
     $remove $coal "$@" "$obj"
 fi
+
+case "$obj" in
+  *.cpp.o) python3 scripts/build/postprocess_object.py --order-only "$obj" ;;
+esac

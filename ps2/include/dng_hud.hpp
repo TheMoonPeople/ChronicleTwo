@@ -403,7 +403,7 @@ public:
      * @address 0x1D5D20
      * @size 0x40
      */
-    CDamageScore();
+    CDamageScore() { memset(color, 0x80, sizeof(color)); }
 
     /**
      * Pops up a number over a world position.

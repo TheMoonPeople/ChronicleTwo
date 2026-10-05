@@ -1,3 +1,4 @@
+extern "C" void *__ct__11mgCDrawPrimFv(void *);
 #include "common.h"
 #include "mg_drawprim.hpp"
 #include "automap.hpp"
@@ -59,11 +60,11 @@ void CLevelupInfo::SetLevelUpInfo(int screen_x, int screen_y, int source, int va
     unk_34 = value;
 }
 void CLevelupInfo::Draw(void) {
-    CPreSprite sprite;
     int i;
 
     if (phase != LEVELUP_INFO_PHASE_NONE) {
 
+        CPreSprite sprite;
         sprite.Initialize(NULL, NULL);
         sprite.Preset2D();
         sprite.Begin(6);
@@ -165,7 +166,7 @@ void CPiyori::Draw(void) {
         float v[3];
         int w;
     } pos;
-    CPreSprite prim;
+    union { CPreSprite prim; };
     int quad_a[4];
     int quad_b[4];
     int i;
@@ -187,6 +188,7 @@ void CPiyori::Draw(void) {
             draw_radius = this->radius / 24.0 * draw_time;
         }
 
+        __ct__11mgCDrawPrimFv(&prim);
         prim.Initialize(NULL, NULL);
         prim.Preset2D();
         prim.Coord(1);
@@ -262,7 +264,7 @@ void CGiftMark::Draw(void) {
         float v[3];
         int w;
     } pos;
-    CPreSprite prim;
+    union { CPreSprite prim; };
     int quad_a[4];
     int quad_b[4];
     int i;
@@ -273,7 +275,8 @@ void CGiftMark::Draw(void) {
             pos.v[1] += 10.0f + 2.0f * height;
             pos.v[1] += 5.0f * sinf(angle);
 
-            prim.Initialize(NULL, NULL);
+            __ct__11mgCDrawPrimFv(&prim);
+        prim.Initialize(NULL, NULL);
             prim.Preset2D();
             prim.Coord(1);
             prim.DepthTestEnable(1);
@@ -489,7 +492,7 @@ void CDamageScore2::SetValue(int slot, int value, float height) {
     this->value = value;
     phase = 1;
     offset_y = 0;
-    height = 2.0f * height;
+    this->height = 2.0f * height;
     progress = 0;
     sprintf(text, at_1221__2, this->value);
     length = strlen(text);

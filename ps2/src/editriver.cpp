@@ -29,7 +29,7 @@ int CEditMap::RemoveRiver(float *pos) {
     return 0;
 }
 void CEditMap::CreateGrid(float *upper, float *lower, mgCMemory *mem, float *offset) {
-    sceVu0FMATRIX matrix;
+    float matrix[16];
     float origin_x = lower[0];
     float origin_z = lower[2];
     origin_x += offset[0];
@@ -55,24 +55,24 @@ void CEditMap::CreateGrid(float *upper, float *lower, mgCMemory *mem, float *off
                 }
             }
             for (int turn = 0; turn < 4; turn++) {
-                mgUnitMatrix(matrix);
+                mgUnitMatrix((float (*)[4])matrix);
                 if (turn == 3) {
-                    matrix[2][2] = 0.0f;
-                    matrix[0][2] = -1.0f;
-                    matrix[0][0] = 0.0f;
-                    matrix[2][0] = 1.0f;
+                    matrix[10] = 0.0f;
+                    matrix[2] = -1.0f;
+                    matrix[0] = 0.0f;
+                    matrix[8] = 1.0f;
                 }
                 if (turn == 2) {
-                    matrix[2][2] = -1.0f;
-                    matrix[0][0] = -1.0f;
+                    matrix[10] = -1.0f;
+                    matrix[0] = -1.0f;
                 }
                 if (turn == 1) {
-                    matrix[2][2] = 0.0f;
-                    matrix[0][2] = 1.0f;
-                    matrix[0][0] = 0.0f;
-                    matrix[2][0] = -1.0f;
+                    matrix[10] = 0.0f;
+                    matrix[2] = 1.0f;
+                    matrix[0] = 0.0f;
+                    matrix[8] = -1.0f;
                 }
-                sceVu0CopyMatrix(grid->rot[turn], matrix);
+                sceVu0CopyMatrix(this->grid[i]->rot[turn], (float (*)[4])matrix);
             }
             return;
         }

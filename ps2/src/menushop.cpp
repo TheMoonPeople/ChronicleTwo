@@ -26,6 +26,7 @@
 
 CInventUserData *GetInventUserDataPtr();
 
+extern "C" int CheckRobotCore__16CUserDataManagerFv(CUserDataManager *);
 extern "C" int fptosi(float value);
 extern "C" int AddYarikomiMedal__16CUserDataManagerFi(CUserDataManager *, int);
 extern "C" void *__ct__18CScriptInterpreterFv(void *);
@@ -109,10 +110,10 @@ void CShop::CheckSyojiHin() {
     }
 }
 int CheckRobotCore(void) {
-    return (GetUserDataMan())->CheckRobotCore();
+    return CheckRobotCore__16CUserDataManagerFv(GetUserDataMan());
 }
 void CShop::CheckEventItem() {
-    CUserDataManager *userData = GetUserDataMan();
+    CUserDataManager *userData = (CUserDataManager *)((u8 *)GetSaveData__Fv() + 0x1D2A0);
     if (NowSellMode == 3) {
         item_num = GetDonyShopLineUp(item_no, NULL);
         return;
@@ -187,14 +188,15 @@ int _PRICE(SPI_STACK *stack, int argc) {
     return 1;
 }
 void CShop::AnalyzeShopList(char *script, int length) {
-    CScriptInterpreter interpreter;
+    char interpreter[0xED0];
     Now_Shop_ID = shop_id;
     Now_ShopDataReadPtr = item_no;
     Spi_PriceList = price;
     NowSellMode = 0;
-    interpreter.SetTag(menu_shop_tag);
-    interpreter.SetScript(script, length);
-    interpreter.Run();
+    __ct__18CScriptInterpreterFv(interpreter);
+    SetTag__18CScriptInterpreterFP13SPI_TAG_PARAM(interpreter, menu_shop_tag);
+    SetScript__18CScriptInterpreterFPci(interpreter, script, length);
+    Run__18CScriptInterpreterFv(interpreter);
     item_num = Now_ShopListNum;
     CheckEventItem();
     CheckSyojiHin();

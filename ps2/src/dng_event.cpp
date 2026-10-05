@@ -76,17 +76,17 @@ void CStartupEpisodeTitle::Switch(int on) {
     char *title;
     ClsMes *current;
     int title_width;
-    CDngFloorManager *floor_manager;
+    u8 *floor_manager;
     int floor_id;
 
-    floor_manager = &DngMainScene->battle_area.floor_manager;
+    floor_manager = (u8 *)&DngMainScene->battle_area + 0x14;
     floor_id = DngSaveDataDungeon->floor_id[DngSaveDataDungeon->stage_id];
 
     if (on != 0) {
         mes->abs_win.x = 0x22;
         mes->abs_win.y = 0x154;
         mes->font_w = 0x12;
-        title = (floor_manager)->GetFloorTitle(floor_id);
+        title = ((CDngFloorManager *)floor_manager)->GetFloorTitle(floor_id);
         mes->MakeMesWin(title, 1, 1);
         title_width = (s16)mes->GetStrWidth(title);
         width = title_width - 2;
@@ -344,7 +344,7 @@ void CRedMarkModel::Draw(void) {
         ((CObjectFrame *)this)->GetPosition(saved_position);
         position[1] += 2.0f * sinf(angle);
         ((CObjectFrame *)this)->SetPosition(position);
-        ((CObjectFrame *)this)->DrawDirect();
+        ((CObjectFrame *)this)->CObjectFrame::DrawDirect();
         ((CObjectFrame *)this)->SetPosition(saved_position);
         draw_request = 0;
     }
@@ -370,7 +370,7 @@ void CGeoStone::GeoDraw(float *view_pos) {
                 draw_position[1] += 3.0f * sinf(this->angle);
             }
             ((CObjectFrame *)this)->SetPosition(draw_position);
-            ((CCharacter2 *)this)->DrawDirect();
+            ((CCharacter2 *)this)->CCharacter2::DrawDirect();
         }
         ((CObjectFrame *)this)->SetPosition(home_position);
     }
@@ -397,7 +397,7 @@ void CGeoStone::GeoStep(void) {
     float next;
 
     if (this->flag != 0) {
-        ((CCharacter2 *)this)->Step();
+        ((CCharacter2 *)this)->CCharacter2::Step();
         this->angle += 0.05235988f;
         next = this->angle;
         if (!(next <= 3.1415927f)) {
@@ -435,7 +435,7 @@ void CRandomCircle::Draw(float *view_pos) {
             mgDistVector(view_pos, (float *)((u8 *)this + pos_offset)) < 1000.0f) {
             ((CCharacter2 *)&this->model)->SetPosition((float *)((u8 *)this + pos_offset));
             ((CCharacter2 *)&this->model)->SetRotation(0.0f, 0.0f, 0.0f);
-            ((CCharacter2 *)&this->model)->Draw();
+            ((CCharacter2 *)&this->model)->DrawDirect();
         }
         id += 1;
         flag_offset += 4;
@@ -559,7 +559,7 @@ void CTreasureBox::Draw(float *view_pos) {
     float position[4];
     float rotation[4];
 
-    if (this->lid_frame != NULL) {
+    if (this->frame != NULL) {
         this->GetPosition(position);
         this->GetRotation(rotation);
         this->lid_frame->SetRotation(45.0f * (-3.1415927f * this->lid_open / 180.0f), 0.0f, 0.0f);
@@ -567,7 +567,7 @@ void CTreasureBox::Draw(float *view_pos) {
         if (mgDistVector(view_pos, position) < 1000.0f) {
             this->model->SetPosition(position);
             this->model->SetRotation(rotation);
-            this->model->Draw();
+            this->model->DrawDirect();
         }
     }
 }
@@ -578,7 +578,7 @@ void CTreasureBox::DrawShadow(float *view_pos, float *light_direction) {
     float up[4];
 
     if (this->model != NULL) {
-        *(u_long128 *)up = *(u_long128 *)at_1248;
+        *(DngEventVector *)up = *(DngEventVector *)at_1248;
         this->GetPosition(shadow_position);
         shadow_position[1] -= 20.0f;
         mgSetDropShadowMatrix(light_direction, shadow_position, up);
@@ -913,8 +913,8 @@ void BattleAreaBGMCtrl(void) {
                     DngMainScene->PauseBGM();
                 }
                 scene = DngMainScene;
-                DngMainScene->GetActiveBgmInfo()->volf = 1.0f - fade;
-                scene->SetVolfBGM(scene->GetActiveBgmInfo()->fade_volf);
+                DngMainScene->GetActiveBgmInfo()->unk_c = 1.0f - fade;
+                scene->SetVolfBGM(scene->GetActiveBgmInfo()->volf);
                 state->battle_bgm_vol = fade;
                 return;
             case 3:
@@ -925,23 +925,23 @@ void BattleAreaBGMCtrl(void) {
                     sndSeStop(EdEventInfo.snd_id[4], 0, 0);
                     DngMainScene->RePlayBGM();
                     scene = DngMainScene;
-                    DngMainScene->GetActiveBgmInfo()->volf = 0.0f;
-                    scene->SetVolfBGM(scene->GetActiveBgmInfo()->fade_volf);
+                    DngMainScene->GetActiveBgmInfo()->unk_c = 0.0f;
+                    scene->SetVolfBGM(scene->GetActiveBgmInfo()->volf);
                 } else {
                     sndSetSeVolf(EdEventInfo.snd_id[4], 0, fade, 0);
                 }
                 state->battle_bgm_vol = fade;
                 return;
             case 4:
-                rate = DngMainScene->GetActiveBgmInfo()->volf;
+                rate = DngMainScene->GetActiveBgmInfo()->unk_c;
                 rate += 0.033333335f;
                 if (!(rate < 1.0f)) {
                     state->battle_bgm_state = 0;
                     rate = 1.0f;
                 }
                 scene = DngMainScene;
-                DngMainScene->GetActiveBgmInfo()->volf = rate;
-                scene->SetVolfBGM(scene->GetActiveBgmInfo()->fade_volf);
+                DngMainScene->GetActiveBgmInfo()->unk_c = rate;
+                scene->SetVolfBGM(scene->GetActiveBgmInfo()->volf);
                 break;
         }
     }
@@ -1082,12 +1082,12 @@ int _FLOOR(SPI_STACK *stack, int argc) {
     return 1;
 }
 void CreatTresuarBoxInfo(TRESURE_BOX_FLOOR_INFO *table, char *script, int length) {
-    CScriptInterpreter interpreter;
     table->group_num = 0;
     table->floor_start = 0;
     table->rank_max = 0;
     table->rank_min = 100;
     nowTbFloor = table;
+    CScriptInterpreter interpreter;
 
     (interpreter).SetTag(tag__5);
     (interpreter).SetScript(script, length);
@@ -1124,7 +1124,6 @@ void PickupRandomItemCheckMax(TRESURE_BOX_FLOOR_INFO *table, int floor_index) {
 }
 TRESURE_BOX_ITEM *PickupRandomItem(TRESURE_BOX_FLOOR_INFO *table, int floor_index, int value) {
     int want_higher;
-    TRESURE_BOX_FLOOR *floor;
     TRESURE_BOX_GROUP *group;
     TRESURE_BOX_ITEM *entry;
     int i;
@@ -1142,8 +1141,7 @@ TRESURE_BOX_ITEM *PickupRandomItem(TRESURE_BOX_FLOOR_INFO *table, int floor_inde
         value = table->rank_min;
     }
     while (1) {
-        floor = &table->floor[floor_index];
-        id = floor->group_id[iRand(floor->group_num)];
+        id = table->floor[floor_index].group_id[iRand(table->floor[floor_index].group_num)];
         group = table->group;
         i = 0;
         do {
@@ -1167,11 +1165,13 @@ TRESURE_BOX_ITEM *PickupRandomItem(TRESURE_BOX_FLOOR_INFO *table, int floor_inde
         }
     }
 }
+extern "C" int CheckArea__19CTreasureBoxManagerFPff(CTreasureBoxManager *manager, float *pos, float radius);
+
 int CheckObjectPutArea(float *pos) {
     float position[4];
     CMapParts *object;
 
-    if (!DngMainScene->battle_area.treasure_box->CheckArea(pos, 40.0f)) {
+    if (!CheckArea__19CTreasureBoxManagerFPff(*(CTreasureBoxManager **)&DngMainScene->battle_area.treasure_box, pos, 40.0f)) {
         return 0;
     }
     if (!RandomCircle.CheckArea(pos, 40.0f)) {
@@ -1218,7 +1218,7 @@ float ScanEyePoint(float *eye_pos) {
     box.max[2] = 200.0f + z;
     box.min[2] = z - 200.0f;
     poly_count = map->GetColPoly(polys, box, 0x80);
-    *(u_long128 *)direction = *(u_long128 *)at_1936__2;
+    *(DngEventVector *)direction = *(DngEventVector *)at_1936__2;
     sceVu0UnitMatrix(identity);
     i = 0;
     while (1) {
@@ -1249,8 +1249,8 @@ int _FLE(SPI_STACK *stack, int argc) {
     return 1;
 }
 void CreatMonsterFloorInfo(char *script, int length) {
-    CScriptInterpreter interpreter;
     FLS_FLOOR_ID = -1;
+    CScriptInterpreter interpreter;
 
     (interpreter).SetTag(tag2);
     (interpreter).SetScript(script, length);

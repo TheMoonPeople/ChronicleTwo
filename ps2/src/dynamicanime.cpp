@@ -28,8 +28,11 @@ extern char at_978[];
 extern char at_979[];
 extern char at_1025[];
 
-static u_int align16_blocks(u_int size) {
-    return (size + 15) >> 4;
+static inline u_int align16_blocks(u_int size) {
+    if (size & 15) {
+        return (size >> 4) + 1;
+    }
+    return size >> 4;
 }
 
 // Code (.text)

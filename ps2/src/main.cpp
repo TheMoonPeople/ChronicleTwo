@@ -14,13 +14,25 @@
 // Small uninitialised data (.sbss)
 static volatile int vcount__2;
 extern int MainThreadPriority;
+extern const unsigned char at_846__DATA[];
+extern const unsigned char at_847__DATA[];
+extern const unsigned char at_848__DATA[];
+extern const unsigned char at_849__DATA[];
+extern const unsigned char at_850__DATA[];
+extern const unsigned char at_851__DATA[];
+extern const unsigned char at_852__DATA[];
+extern const unsigned char at_853__DATA[];
+extern const unsigned char at_854__DATA[];
+extern const unsigned char at_855__DATA[];
+extern const unsigned char at_856__DATA[];
+extern const unsigned char at_857__DATA[];
 
 // Code (.text)
 /**
  * Vertical-blank interrupt handler: counts the frame and re-enables
  * interrupts before returning.
  */
-static int VSyncCallBack(int) {
+extern "C" int VSyncCallBack__Fi__2(int) {
     vcount__2++;
     if (vcount__2 < 0) {
         vcount__2 = 0;
@@ -67,14 +79,14 @@ static void init() {
     sceDmaReset(1);
     sceGsResetPath();
     sceGsResetGraph(0, SCE_GS_INTERLACE, SCE_GS_PAL, 0);
-    sceGsSyncVCallback(VSyncCallBack);
+    sceGsSyncVCallback(VSyncCallBack__Fi__2);
     ClearScreen(0, 0, 0);
     mwInit();
 
     sceSifInitRpc(0);
     sceCdInit(0);
     sceCdMmode(2);
-    while (!sceSifRebootIop("cdrom0:\\MODULES\\IOPRP243.IMG;1")) {
+    while (!sceSifRebootIop((const char *)at_846__DATA)) {
     }
     while (!sceSifSyncIop()) {
     }
@@ -82,27 +94,27 @@ static void init() {
     sceCdInit(0);
     sceCdMmode(2);
     sceFsReset();
-    printf("######################%d\n", vcount__2);
+    printf((const char *)at_847__DATA, vcount__2);
 
-    while (sceSifLoadModule("cdrom0:\\MODULES\\SIO2MAN.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_848__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\PADMAN.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_849__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\MCMAN.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_850__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\MCSERV.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_851__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\LIBSD.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_852__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\SDRDRV.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_853__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\MODMIDI.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_854__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\MODHSYN.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_855__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\EZMIDI.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_856__DATA, 0, NULL) < 0) {
     }
-    while (sceSifLoadModule("cdrom0:\\MODULES\\EZBGM.IRX;1", 0, NULL) < 0) {
+    while (sceSifLoadModule((const char *)at_857__DATA, 0, NULL) < 0) {
     }
 
     InitCDFile();
@@ -113,7 +125,7 @@ int main() {
     MainThreadPriority = 10;
     ChangeThreadPriority(GetThreadId(), MainThreadPriority);
     init();
-    printf("######################%d\n", vcount__2);
+    printf((const char *)at_847__DATA, vcount__2);
     MainLoop();
 
     sceGsSyncPath(0, 0);

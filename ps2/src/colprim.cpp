@@ -96,82 +96,90 @@ void CColPrim::SetCoord(mgCFrame *start, mgCFrame *end, float new_radius) {
     coord_type = COLPRIM_COORD_FRAME;
     if (step_count == 0 && start) start->GetWorldPosition0(origin);
 }
-#ifdef NONMATCHING
 int CColPrim::IsHit(CScene *scene, int chara_id) {
-    if (!active || !param) return 0;
+    CColPrim *self = this;
+    if (self->active == 0) return 0;
+    if (self->param == 0) return 0;
     CCharacter2 *chara = scene->GetCharacter(chara_id);
-    if (!chara) return 0;
+    if (chara == 0) return 0;
     int chara_type = scene->GetType(1, chara_id);
-    if (chara_type == 1 && !(target & DAMAGE_TARGET_PLAYER)) return 0;
-    if (chara_type == 3 && !(target & DAMAGE_TARGET_MONSTER)) return 0;
-    if (chara_id != -1 && (hit_mask & (1ULL << (chara_id & 31)))) return 0;
-
-    sceVu0FVECTOR starts[4], ends[4], displacement;
-    int segment_count = 0;
-    if (param->shape & DAMAGE_SHAPE_POINT) {
-        sceVu0CopyVector(starts[segment_count++], pos[0]);
-        if ((param->shape & DAMAGE_SHAPE_TRAIL) && step_count > 0) {
-            sceVu0SubVector(displacement, old_pos[0], pos[0]);
+    if (chara_type == 1 && !(self->target & DAMAGE_TARGET_PLAYER)) return 0;
+    if (chara_type == 3 && !(self->target & DAMAGE_TARGET_MONSTER)) return 0;
+    if (chara_id != -1 && (self->hit_mask & (1 << chara_id))) return 0;
+    int count = 0;
+    int entry_no = 0;
+    int hit = 0;
+    float entry_position[4];
+    float displacement[4];
+    float starts[8][4];
+    float ends[8][4];
+    if (self->param->shape & DAMAGE_SHAPE_POINT) {
+        sceVu0CopyVector(starts[count], self->pos[0]);
+        count++;
+        if ((self->param->shape & DAMAGE_SHAPE_TRAIL) && self->step_count > 0) {
+            sceVu0SubVector(displacement, self->old_pos[0], self->pos[0]);
             sceVu0ScaleVector(displacement, displacement, 0.5f);
-            sceVu0AddVector(starts[segment_count++], displacement, pos[0]);
+            sceVu0AddVector(starts[count], displacement, self->pos[0]);
+            count++;
         }
     }
-    if (param->shape & DAMAGE_SHAPE_LINE) {
-        sceVu0CopyVector(starts[segment_count], pos[0]);
-        sceVu0CopyVector(ends[segment_count++], pos[1]);
-        if ((param->shape & DAMAGE_SHAPE_TRAIL) && step_count > 0) {
-            sceVu0CopyVector(starts[segment_count], pos[0]);
-            sceVu0CopyVector(ends[segment_count++], old_pos[0]);
-            sceVu0SubVector(displacement, pos[0], pos[1]);
+    if (self->param->shape & DAMAGE_SHAPE_LINE) {
+        sceVu0CopyVector(starts[count], self->pos[0]);
+        sceVu0CopyVector(ends[count], self->pos[1]);
+        count++;
+        if ((self->param->shape & DAMAGE_SHAPE_TRAIL) && self->step_count > 0) {
+            sceVu0CopyVector(starts[count], self->pos[0]);
+            sceVu0CopyVector(ends[count], self->old_pos[0]);
+            sceVu0SubVector(displacement, self->pos[0], self->pos[1]);
             sceVu0ScaleVector(displacement, displacement, 0.5f);
-            sceVu0AddVector(starts[segment_count], pos[1], displacement);
-            sceVu0SubVector(displacement, old_pos[0], old_pos[1]);
+            sceVu0AddVector(starts[count + 1], self->pos[1], displacement);
+            sceVu0SubVector(displacement, self->old_pos[0], self->old_pos[1]);
             sceVu0ScaleVector(displacement, displacement, 0.5f);
-            sceVu0AddVector(ends[segment_count++], old_pos[1], displacement);
+            sceVu0AddVector(ends[count + 1], self->old_pos[1], displacement);
+            count += 2;
         }
     }
-
-    sceVu0FVECTOR entry_position;
-    for (int entry_no = 0;; ++entry_no) {
-        CHARA_ENTRY_OBJECT *entry = chara->GetEntryObjectPos(2, entry_no, entry_position);
-        if (!entry) break;
-        if (!entry->enable) continue;
-        bool hit = false;
-        float hit_radius = 2.0f * (radius + entry->unk_04);
-        if (param->shape & DAMAGE_SHAPE_POINT) {
-            for (int i = 0; i < segment_count; ++i) {
-                if (mgDistVector(starts[i], entry_position) <= hit_radius) {
-                    sceVu0CopyVector(hit_pos, entry_position);
-                    if (param->shape & DAMAGE_SHAPE_TRAIL)
-                        sceVu0SubVector(hit_vec, pos[0], old_pos[0]);
-                    else sceVu0SubVector(hit_vec, entry_position, starts[i]);
-                    hit_vec[1] = 0.0f;
-                    sceVu0Normalize(hit_vec, hit_vec);
-                    hit = true;
+    CHARA_ENTRY_OBJECT *entry;
+    while ((entry = chara->GetEntryObjectPos(2, entry_no, entry_position)) != 0) {
+        if (entry->enable == 0) {
+            ++entry_no;
+            continue;
+        }
+        if (self->param->shape & DAMAGE_SHAPE_POINT) {
+            for (int i = 0; i < count; i++) {
+                if (mgDistVector(starts[i], entry_position) <= 2.0f * (self->radius + entry->unk_04)) {
+                    entry_position[3] = 1.0f;
+                    sceVu0CopyVector(self->hit_pos, entry_position);
+                    if (self->param->shape & DAMAGE_SHAPE_TRAIL) {
+                        sceVu0SubVector(self->hit_vec, self->pos[0], self->old_pos[0]);
+                    } else {
+                        sceVu0SubVector(self->hit_vec, entry_position, starts[i]);
+                    }
+                    self->hit_vec[1] = 0.0f;
+                    sceVu0Normalize(self->hit_vec, self->hit_vec);
+                    hit = 1;
                     break;
                 }
             }
         }
-        if (param->shape & DAMAGE_SHAPE_LINE) {
-            for (int i = 0; i < segment_count; ++i) {
-                if (mgDistLinePoint(entry_position, starts[i], ends[i], hit_pos) <= hit_radius) {
-                    sceVu0SubVector(hit_vec, pos[1], old_pos[1]);
-                    hit = true;
+        if (self->param->shape & DAMAGE_SHAPE_LINE) {
+            for (int j = 0; j < count; j++) {
+                if (mgDistLinePoint(entry_position, starts[j], ends[j], self->hit_pos) <= 2.0f * (self->radius + entry->unk_04)) {
+                    sceVu0SubVector(self->hit_vec, self->pos[1], self->old_pos[1]);
+                    hit = 1;
                     break;
                 }
             }
         }
-        if (hit) {
-            if (chara_id != -1 && !param->multi_hit) hit_mask |= 1ULL << (chara_id & 31);
-            ++hit_num;
+        if (hit != 0) {
+            if (chara_id != -1 && self->param->multi_hit == 0) self->hit_mask |= 1 << chara_id;
+            self->hit_num++;
             return 1;
         }
+        ++entry_no;
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/colprim", IsHit__8CColPrimFP6CScenei);
-#endif
 int CColPrim::IsReversVec(CColPrim *other) {
     if (active == 0) {
         return 0;
@@ -198,17 +206,37 @@ int CColPrim::Step(void) {
         return 0;
     }
 
-    if (coord_type & COLPRIM_COORD_FRAME) {
-        for (int i = 0; i < 2; i++) {
-            if (step_count != 0) {
-                sceVu0CopyVector(old_pos[i], pos[i]);
-            }
-            if (frame[i] != 0) {
-                frame[i]->GetWorldPosition0(pos[i]);
-            }
-            if (step_count == 0) {
-                sceVu0CopyVector(old_pos[i], pos[i]);
-            }
+    if (coord_type & 2) {
+        if (step_count == 0) {
+            int j = 0;
+            int frameOffset = 0;
+            int vecOffset = 0;
+            do {
+                mgCFrame *frame = *(mgCFrame **)((u8 *)this + frameOffset + 0x38);
+                if (frame != 0) {
+                    frame->GetWorldPosition0((float *)((u8 *)this + vecOffset + 0x40));
+                }
+                sceVu0CopyVector((float *)((u8 *)this + vecOffset + 0x60),
+                                 (float *)((u8 *)this + vecOffset + 0x40));
+                j++;
+                frameOffset += 4;
+                vecOffset += 0x10;
+            } while (j < 2);
+        } else {
+            int i = 0;
+            int vecOffset = 0;
+            int frameOffset = 0;
+            do {
+                float *cur = (float *)((u8 *)this + vecOffset + 0x40);
+                sceVu0CopyVector((float *)((u8 *)this + vecOffset + 0x60), cur);
+                mgCFrame *frame = *(mgCFrame **)((u8 *)this + frameOffset + 0x38);
+                if (frame != 0) {
+                    frame->GetWorldPosition0(cur);
+                }
+                i++;
+                vecOffset += 0x10;
+                frameOffset += 4;
+            } while (i < 2);
         }
     }
     step_count++;

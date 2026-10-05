@@ -56,8 +56,15 @@ extern char at_978__4[];
 extern s8 diff_conditiontable_1102[2][7];
 extern u16 check_bittable_1123[3][6];
 extern u16 cbit_1158[4][5];
-extern MENU_SPI_ANALYZE_STRUCT1 at_886__4[5];
-extern int at_1395__4[4][2];
+struct RoomOptions {
+    MENU_SPI_ANALYZE_STRUCT1 entries[5];
+};
+union RoomDirections {
+    int v[4][3];
+    u_long128 q[3];
+};
+extern RoomOptions at_886__4;
+extern RoomDirections at_1395__4;
 extern SPI_TAG_PARAM tree_map_tag[];
 
 // Code (.text)
@@ -138,11 +145,10 @@ int _ROOM_LINK(SPI_STACK *stack, int count) {
     return 1;
 }
 int _ROOM_OPTION(SPI_STACK *stack, int argc) {
-    MENU_SPI_ANALYZE_STRUCT1 options[5];
-    memcpy(options, at_886__4, sizeof(options));
+    RoomOptions options = at_886__4;
     int flags = 1;
     for (int i = 0; i < argc; i++) {
-        flags |= menu_spi_analyze_func_strcut1(options, spiGetStackString(stack++));
+        flags |= menu_spi_analyze_func_strcut1(options.entries, spiGetStackString(stack++));
     }
     tree_spi_roominfo->flag |= flags;
     if ((tree_spi_roominfo->flag & 0x10) || (tree_spi_roominfo->flag & 8)) {
@@ -352,7 +358,7 @@ int CDngFloorManager::IsClearMostFastDestroy() {
         return 0;
     }
 
-    int elapsed = (save->play_time - scene->subject_counter) * 6 / 5;
+    int elapsed = (*(int *)&save->play_time - *(int *)&scene->subject_counter) * 6 / 5;
     int result = 0;
     if (saved->fast_destroy_time == 0) {
         if (elapsed < info->fast_destroy_time) {
@@ -565,7 +571,7 @@ GLID_INFO *CDngFloorManager::GetNextGlid(GLID_INFO *glid, int *index) {
 }
 GLID_INFO *CDngFloorManager::GetNextRoom(int floor, int dir, GLID_INFO *glid, int unused,
                                          int *out_dir) {
-    int dirs[4][2];
+    RoomDirections dirs;
     GLID_INFO *room;
     int *row;
     int i;
@@ -580,8 +586,8 @@ GLID_INFO *CDngFloorManager::GetNextRoom(int floor, int dir, GLID_INFO *glid, in
     if (room->type != 1) {
         return NULL;
     }
-    memcpy(dirs, at_1395__4, sizeof(dirs));
-    row = dirs[dir];
+    dirs = at_1395__4;
+    row = dirs.v[dir];
     info = &room->room;
 
     i = 0;
@@ -609,7 +615,7 @@ GLID_INFO *CDngFloorManager::GetKeyNextRoom(int floor, int dir, GLID_INFO *glid)
     }
     return GetDngMapFloorGlidInfo(room->room.key_room[dir]);
 }
-s8 CDngFloorManager::GetDngMapNextFloorID(int floor, int root) {
+int CDngFloorManager::GetDngMapNextFloorID(int floor, int root) {
     GLID_INFO *room;
     GLID_INFO *other;
     GLID_INFO *next;

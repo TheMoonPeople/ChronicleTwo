@@ -35,6 +35,11 @@ struct aqua_grid_cell {
     float *y;
 };
 
+union aqua_quad {
+    float v[4];
+    u_long128 quad;
+};
+
 struct aqua_vector {
     float v[4];
 };
@@ -448,10 +453,7 @@ void CBubble::Step() {
     }
 }
 void CBubble::Draw() {
-    struct {
-        mgCDrawPrim base;
-        u8 tail[0x20];
-    } prim;
+    u8 storage[0x120];
     int left[4];
     int right[4];
     unsigned int index;
@@ -460,26 +462,26 @@ void CBubble::Draw() {
     if (active == 0) {
         return;
     }
-    __ct__11mgCDrawPrimFv(&prim.base);
-    SetSpriteEnv(&prim.base, 4);
-    prim.base.Coord(1);
-    prim.base.DepthTestEnable(1);
-    prim.base.Begin(6);
-    prim.base.Texture(texture);
+    __ct__11mgCDrawPrimFv((mgCDrawPrim *)storage);
+    SetSpriteEnv((mgCDrawPrim *)storage, 4);
+    ((mgCDrawPrim *)storage)->Coord(1);
+    ((mgCDrawPrim *)storage)->DepthTestEnable(1);
+    ((mgCDrawPrim *)storage)->Begin(6);
+    ((mgCDrawPrim *)storage)->Texture(texture);
     index = 0;
     for (; index < bubble_num; index++) {
         particle = &bubble[index];
 
         if (particle->state != 2 &&
             mgTransWorldPrim3DSprite(left, right, particle->pos, 0.4f, 0.4f, 0) != 0) {
-            prim.base.Color(0x80, 0x80, 0x80, fptosi(particle->alpha));
-            prim.base.TextureCrd(tex_u, tex_v);
-            prim.base.Vertex4(left);
-            prim.base.TextureCrd(tex_u + 0x10, tex_v + 0x10);
-            prim.base.Vertex4(right);
+            ((mgCDrawPrim *)storage)->Color(0x80, 0x80, 0x80, fptosi(particle->alpha));
+            ((mgCDrawPrim *)storage)->TextureCrd(tex_u, tex_v);
+            ((mgCDrawPrim *)storage)->Vertex4(left);
+            ((mgCDrawPrim *)storage)->TextureCrd(tex_u + 0x10, tex_v + 0x10);
+            ((mgCDrawPrim *)storage)->Vertex4(right);
         }
     }
-    prim.base.End();
+    ((mgCDrawPrim *)storage)->End();
 }
 void CBubble::Initialize(mgCMemory *memory, float *start_pos, int count, float top) {
     unsigned int bytes;
@@ -742,6 +744,7 @@ void CAquaFish::NextRootNormal() {
     sceVu0Normalize(dir, dir);
     target_rot[1] = mgAngleLimit(atan2f(dir[0], dir[2]));
 }
+#pragma optimization_level 4
 void CAquaFish::MoveActionRound() {
     float pos[4];
     float dir[4];
@@ -749,7 +752,7 @@ void CAquaFish::MoveActionRound() {
     float yaw;
 
     GetPosition(pos);
-    *(u_long128 *)dir = *(u_long128 *)&at_1241__3;
+    *(aqua_quad *)dir = *(aqua_quad *)&at_1241__3;
     yaw = target_rot[1];
     turn = &dirtbl_1242[round.dir * 4];
     if (pos[0] < -31.0f * round.width) {
@@ -791,8 +794,9 @@ void CAquaFish::MoveActionRound() {
         dir[1] += 0.2f;
     }
     sceVu0ScaleVectorXYZ(dir, dir, action.speed);
-    *(u_long128 *)move = *(u_long128 *)dir;
+    *(aqua_quad *)move = *(aqua_quad *)dir;
 }
+#pragma optimization_level reset
 void CAquaFish::MoveActionBattle() {
     CAquaFish *foe;
     CAquaFishEff *eff;
@@ -879,7 +883,7 @@ void CAquaFish::FishDraw() {
             bright.v[0] = 172.0f;
             mgSetAmbient__FPf(bright.v);
         }
-        Draw();
+        DrawDirect();
         mgSetAmbient__FPf(saved);
     }
 }
@@ -906,7 +910,7 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", Draw__12CAquaFishEffFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", __ct__9CFishFoodFv);
 void CFishFood::SetDropPosition(float *pos) {
     *(u_long128 *)this->pos = *(u_long128 *)pos;
-    SetPosition(pos);
+    SetPosition(this->pos);
 }
 void CFishFood::Drop() {
     state = 1;
@@ -1200,24 +1204,25 @@ int FishIMGReplace(u_long128 *data, CCharacter2 *character, int item_no, BREEDFI
     return 0;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", DrawFishParam__FiiP10mgCTextureP13CGameDataUsed);
-CAquarium::CAquarium() {
+extern "C" CAquarium *__ct__9CAquariumFv(CAquarium *self) {
     mgCMemory *pool;
     int i;
-    ((mgCMemory *)((u8 *)this + 0x8))->Init();
-    ((mgCMemory *)((u8 *)this + 0x70))->Init();
-    ((mgCMemory *)((u8 *)this + 0xC8))->Init();
-    __ct__8CAquaMesFv((CAquaMes *)((u8 *)this + 0xFC));
-    ((mgCMemory *)((u8 *)this + 0x160))->Init();
-    pool = (mgCMemory *)fish_stack;
+    ((mgCMemory *)((u8 *)self + 0x8))->Init();
+    ((mgCMemory *)((u8 *)self + 0x70))->Init();
+    ((mgCMemory *)((u8 *)self + 0xC8))->Init();
+    __ct__8CAquaMesFv((CAquaMes *)((u8 *)self + 0xFC));
+    ((mgCMemory *)((u8 *)self + 0x160))->Init();
+    pool = (mgCMemory *)self->fish_stack;
     do {
         pool->Init();
         pool++;
-    } while ((u8 *)pool < (u8 *)fish);
-    ((mgCMemory *)((u8 *)this + 0x394))->Init();
+    } while ((u8 *)pool < (u8 *)self->fish);
+    ((mgCMemory *)((u8 *)self + 0x394))->Init();
     for (i = 0; i < 13; i++) {
-        tex_block[i] = -1;
+        self->tex_block[i] = -1;
     }
-    Clear();
+    self->Clear();
+    return self;
 }
 void CAquarium::Clear() {
     int i;
@@ -1596,15 +1601,16 @@ void InitFishPrize(void) {
     FishTournamentGoodsNum = 0;
     spi_fish_prize_info = 0;
 }
+#pragma optimization_level 4
 int LoadFishPrize(int goods_type) {
     u8 buffer[0x2800];
     mgCMemory memory;
-    memory.Init();
     memory.stSetBuffer((u_long128 *)buffer, 0x280);
     memory.Align64();
     LoadFishPrize(goods_type, &memory);
     return 0;
 }
+#pragma optimization_level reset
 int LoadFishPrize(int goods_type, mgCMemory *pool) {
     u8 buffer[0x2800];
     u8 interpreter[0xEDC];
@@ -1714,7 +1720,7 @@ CGameDataUsed *GetOmakeGyoracer2(int slot) {
     }
     return NULL;
 }
-short GetOmakeGyoracerTactics(int slot) {
+int GetOmakeGyoracerTactics(int slot) {
     if (slot < 0 || slot > 5) {
         return -1;
     }

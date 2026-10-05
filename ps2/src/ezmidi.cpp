@@ -7,7 +7,9 @@
 
 #include <cstdio>
 
-static s32              sbuff[16]; /**< Shared argument and response buffer for EZMIDI RPC calls. */
+extern char at_33[];
+
+static s32              sbuff__2[16]; /**< Shared argument and response buffer for EZMIDI RPC calls. */
 
 /**
  * Holds the RPC client and the alignment gap before the DMA descriptor.
@@ -26,7 +28,7 @@ int ezMidiInit() {
     sceSifInitRpc(0);
     while (1) {
         if (sceSifBindRpc(&gCd.client, 0x12346, 0) < 0) {
-            printf("error: sceSifBindRpc \n");
+            printf(at_33);
             for (;;) {
             }
         }
@@ -54,12 +56,12 @@ int ezMidi(int command, int argument) {
         receive_size = 64;
     }
     if ((command & EZMIDI_ARGUMENT_BLOCK) != 0) {
-        sceSifCallRpc(&gCd.client, command, 0, (void *) argument, 64, sbuff, receive_size, 0, 0);
+        sceSifCallRpc(&gCd.client, command, 0, (void *) argument, 64, sbuff__2, receive_size, 0, 0);
     } else {
-        sbuff[0] = argument;
-        sceSifCallRpc(&gCd.client, command, 0, sbuff, 16, sbuff, receive_size, 0, 0);
+        sbuff__2[0] = argument;
+        sceSifCallRpc(&gCd.client, command, 0, sbuff__2, 16, sbuff__2, receive_size, 0, 0);
     }
-    return sbuff[0];
+    return sbuff__2[0];
 }
 
 int ezTransToIOP2(void *iop_address, void *ee_address, int size) {
@@ -80,3 +82,5 @@ int ezTransToIOP2(void *iop_address, void *ee_address, int size) {
     transData.data = (void *) source;
     return 0;
 }
+
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/ezmidi", at_33__DATA);

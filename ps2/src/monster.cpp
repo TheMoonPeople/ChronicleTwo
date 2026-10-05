@@ -40,8 +40,10 @@ extern short gift_item_tbl[][3];
 extern int LanguageCode;
 extern "C" int fptosi(float value);
 extern char *dung_progtxt_notlift_mons[];
-extern float at_2031[4];
-extern float at_2079__2[4];
+union EffectVector { float f[4]; u_long128 qw; };
+struct HitRectangle { int left; int top; int right; int bottom; } __attribute__((aligned(16)));
+extern EffectVector at_2031;
+extern EffectVector at_2079__2;
 extern char at_1999[];
 extern char at_2100[];
 extern char at_2809[];
@@ -53,6 +55,9 @@ extern s8 init_2105;
 extern SPI_TAG_PARAM mos_data_anlyze_tag[];
 extern CUserDataManager *DngUserData;
 extern CEffectScriptMan *FxScriptMan;
+extern "C" int DrawSymbol__14CMiniMapSymbolFPfi(CMiniMapSymbol *, float *, int);
+extern "C" CCameraControl *GetCamera__6CSceneFi(CScene *, int);
+extern "C" void SethitEffect__15CHitEffectImageFPfPfffffii(CHitEffectImage *, float *, float *, float, float, float, float, int, int);
 float SearchArea(CScene *scene, float *from, float *to, float range);
 void HitEffectSet(CScene *scene, float *point, int flags);
 void GuardEffectSet(CScene *scene, float *point, int play_script);
@@ -179,10 +184,10 @@ void CActiveMonster::Initialize(void) {
     reserv_img[1] = NULL;
     reserv_img[0] = NULL;
     for (i = 0; i < 8; i++) {
-        var[i] = 0;
+        var[i].i = 0;
     }
     for (i = 0; i < 32; i++) {
-        var2[i] = 0;
+        var2[i].i = 0;
     }
     max_life = 0;
     life = 0;
@@ -417,7 +422,7 @@ void CMonsterMan::DrawMiniMapSymbol(CMiniMapSymbol *symbol) {
                     symbol_no = 8;
                 }
                 active[i]->GetPosition(pos);
-                symbol->DrawSymbol(pos, symbol_no);
+                DrawSymbol__14CMiniMapSymbolFPfi(symbol, pos, symbol_no);
             }
         }
     }
@@ -563,7 +568,7 @@ void CMonsterMan::SetNearAreaPiyori(float limit) {
 int CMonsterMan::IsRunEvent() {
     int i;
     CActiveMonster *monster;
-    s16 event;
+    int event;
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
         monster = active[i];
@@ -688,13 +693,13 @@ float SearchArea(CScene *scene, float *from, float *to, float range) {
 void HitEffectSet(CScene *scene, float *point, int flags) {
     float to_camera[4];
     float pos[4];
-    float dir[4];
+    EffectVector dir;
     mgRect<int> rect;
     CCameraControl *camera;
     CHitEffectImage *hit;
     CFlushEffect *flush;
 
-    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
+    camera = GetCamera__6CSceneFi(scene, scene->active_camera);
     if (camera == NULL) {
         return;
     }
@@ -704,7 +709,7 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
     sceVu0Normalize(to_camera, to_camera);
     sceVu0ScaleVector(to_camera, to_camera, 20.0f);
     sceVu0AddVector(pos, pos, to_camera);
-    *(u_long128 *)dir = *(u_long128 *)at_2031;
+    dir = at_2031;
 
     if (BattleFX.hit == NULL) {
         hit = NULL;
@@ -716,15 +721,18 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
         }
     }
     if (hit != NULL) {
-        float speed = 60.0f;
+        const float speed = 60.0f;
+        float gravity = 0.1f;
         float spread = 30.0f;
         float power = 0.2f;
-        float gravity = 0.1f;
-        hit->SethitEffect(pos, dir, spread, speed, power, gravity, 30, 32);
+        SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir.f, spread, speed, power, gravity, 30, 32);
         hit->kind = 0;
         rect.Set(32, 0, 32, 32);
-        mgRect<int> copy = rect;
-        hit->tex_rect = copy;
+        HitRectangle copy = *(HitRectangle *)&rect;
+        hit->tex_rect.left = copy.left;
+        hit->tex_rect.top = copy.top;
+        hit->tex_rect.right = copy.right;
+        hit->tex_rect.bottom = copy.bottom;
     }
 
     if (BattleFX.flush == NULL) {
@@ -771,23 +779,19 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
         }
     }
     if (hit != NULL) {
-        hit->SethitEffect(pos, dir, 60.0f, 45.0f, 0.0f, 0.0f, 15, 16);
+        hit->SethitEffect(pos, dir.f, 60.0f, 45.0f, 0.0f, 0.0f, 15, 16);
         hit->kind = 2;
     }
 }
 void GuardEffectSet(CScene *scene, float *point, int play_script) {
     float to_camera[4];
     float pos[4];
-    float dir[4];
+    EffectVector dir;
     CCameraControl *camera;
     CHitEffectImage *hit;
-    float spread = 50.0f;
-    float speed = 30.0f;
-    float power = 0.0f;
-    float gravity = 0.1f;
     CFlushEffect *flush;
 
-    camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
+    camera = GetCamera__6CSceneFi(scene, scene->active_camera);
     if (camera == NULL) {
         return;
     }
@@ -797,7 +801,7 @@ void GuardEffectSet(CScene *scene, float *point, int play_script) {
     sceVu0Normalize(to_camera, to_camera);
     sceVu0ScaleVector(to_camera, to_camera, 20.0f);
     sceVu0AddVector(pos, pos, to_camera);
-    *(u_long128 *)dir = *(u_long128 *)at_2079__2;
+    dir = at_2079__2;
 
     if (BattleFX.hit == NULL) {
         hit = NULL;
@@ -808,7 +812,12 @@ void GuardEffectSet(CScene *scene, float *point, int play_script) {
             BattleFX.hit_next = 0;
         }
     }
-    hit->SethitEffect(pos, dir, spread, speed, power, gravity, 30, 32);
+    float spread = 50.0f;
+    float power_value = 0.0f;
+    const float &power = power_value;
+    const float speed = 30.0f;
+    float gravity = 0.1f;
+    SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir.f, spread, speed, power, gravity, 30, 32);
     hit->kind = 1;
 
     if (BattleFX.flush == NULL) {

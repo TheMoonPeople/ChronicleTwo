@@ -121,7 +121,8 @@ enum MasterDebugCodeValue {
  */
 struct INIT_LOOP_ARG {
     int map_no;       /**< Map or dungeon the mode starts in, or -1 for none. */
-    u8  unk_4[0x40];
+    int selected_map_no;
+    u8 unk_8[0x3C];
     int floor_no;     /**< Dungeon floor to start on, or -1 for the saved one. */
     int event_no;     /**< Event to run on entry, or -1 for none. */
     int unk_4c;
@@ -208,7 +209,7 @@ extern u_long128 *read_buffer;
 /**
  * Sound bank number of the system sound effects, or -1 when they failed to load.
  */
-extern int SystemSND_ID;
+extern u32 SystemSND_ID;
 
 /**
  * Sound controller shared by the game loops and chapter menu.

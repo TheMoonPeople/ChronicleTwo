@@ -39,7 +39,7 @@ enum grCHARA_BONUS_TYPE {
  *
  */
 struct grFISH_PARAM {
-    char name[0x18]; /**< Name of the fish. */
+    union { char name[0x18]; int name_words[6]; };
     int  fish_no;    /**< Item number of the kind of fish. */
     int  affinity;   /**< Value that, matching the affinity of the fish's kind, raises every figure by a tenth. */
     int  bonus_type; /**< How the place in the race changes the speed of the fish. @see grCHARA_BONUS_TYPE */
@@ -60,8 +60,8 @@ struct grRACE_PROGRESS {
     float pos;           /**< Distance swum along the course; the goal is at 16. */
     int   lane;          /**< Lane that the fish swims in, from 0. */
     float lane_pos;      /**< Lane that the fish swims in, as a value that moves smoothly between lanes. */
-    u_char    state; /**< What the fish is doing. @see grRACE_STATE */
-    u_char    battle; /**< 1 while the fish pushes against another fish. */
+    s8    state; /**< What the fish is doing. @see grRACE_STATE */
+    s8    battle; /**< 1 while the fish pushes against another fish. */
     u_char    unk_e[2];
     int   battle_target; /**< Entrant that the fish pushes against. */
     int   battle_hits;   /**< Number of times the fish has gained the upper hand in its push. */
@@ -98,8 +98,8 @@ struct RACE_FISH_PARAM {
     float            velocity;      /**< Distance that the fish swims in one step. */
     float            pos;           /**< Distance swum along the course; the goal is at 16. */
     int              lane;          /**< Lane that the fish swims in, from 0 to 5. */
-    u_char               state; /**< What the fish is doing. @see grRACE_STATE */
-    u_char               battle; /**< 1 while the fish pushes against another fish. */
+    s8               state; /**< What the fish is doing. @see grRACE_STATE */
+    s8               battle; /**< 1 while the fish pushes against another fish. */
     u_char               unk_5e[2];
     int              battle_target; /**< Entrant that the fish pushes against. */
     int              battle_hits;   /**< Number of times the fish has gained the upper hand in its push. */

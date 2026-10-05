@@ -13,6 +13,7 @@
 #include "editmap2.hpp"
 
 extern "C" int fptosi(float value);
+extern "C" int sndGetVolPan__FPfPfPfff(float *, float *, float *, float, float);
 
 static const float kFenceChainDistance = 5.0f;
 static const int kBalanceLimit = 4;
@@ -24,7 +25,10 @@ static const int kChildIdMax = 0x200;
 extern "C" char at_1042__4[];
 extern "C" char at_1043__4[];
 
-extern "C" char at_983__3[10];
+struct NpcLiveName {
+    char text[10];
+};
+extern "C" NpcLiveName at_983__3;
 extern int LanguageCode;
 extern u_long128 at_796__4;
 
@@ -54,7 +58,7 @@ int CEditMap::CheckNormalPlaceParts(int place_no) {
 int CEditMap::CheckNormalPlaceParts(CEditParts *edit_parts) {
     if (edit_parts == NULL)
         return 0;
-    if ((edit_parts->show == 0) != 0 || edit_parts->state != 1)
+    if ((edit_parts->name[0] == 0) != 0 || edit_parts->state != 1)
         return 0;
     return 1;
 }
@@ -99,7 +103,8 @@ int CEditMap::GetePlacePartsAtInfoID(int id, int *out, int max) {
         return 0;
     }
     if (info->GetPartsType() == kPartsTypeRiver) {
-        u_long128 position = at_796__4;
+        union RiverPosition { u_long128 quad; float values[4]; };
+        RiverPosition position = *(RiverPosition *)&at_796__4;
         int river_count = GetRiverNum((float *)&position);
         limit = river_count < limit ? river_count : limit;
         for (i = 0; i < limit; i++) {
@@ -281,7 +286,7 @@ void CEditMap::UpdateHouse() {
     int child_num;
     int i;
     CEditParts *child;
-    char live_name[10];
+    NpcLiveName live_name;
     char suffix[10];
     part = edit_parts;
     for (index = 0; index < edit_parts_max; index++, part++) {
@@ -296,15 +301,15 @@ void CEditMap::UpdateHouse() {
             for (node = part->piece_list; node != NULL; node = node->next) {
                 node_name = node->data.name;
                 model = &node->data;
-                memcpy(live_name, at_983__3, 10);
+                live_name = at_983__3;
                 live_length = kNpcLiveLength;
                 if (LanguageCode > 0) {
                     live_length += sprintf(suffix, at_1042__4, LanguageCode);
-                    strcat(live_name, suffix);
+                    strcat(live_name.text, suffix);
                 }
                 if (node_name != NULL && strncmp(node_name, at_1043__4, kNpcLiveLength) == 0) {
                     model->Show(0);
-                    if (strncmp(node_name, live_name, live_length) == 0) {
+                    if (strncmp(node_name, live_name.text, live_length) == 0) {
                         model->Show(visible);
                     }
                 }
@@ -336,7 +341,7 @@ int CEditMap::BalanceCheck() {
 CFuncPoint *CEditMap::InScreenFunc(InScreenFuncInfo *info) {
     CFuncPoint *result;
     CEditParts *part;
-    int best_near;
+    float best_near;
     float best_distance;
     int i;
 
@@ -356,7 +361,7 @@ CFuncPoint *CEditMap::InScreenFunc(InScreenFuncInfo *info) {
     }
 
     info->unk_04 = best_near;
-    info->dist = best_distance;
+    info->unk_04 = best_distance;
     return result;
 }
 void CEditMap::DrawScreenFunc(mgCFrame *frame) {
@@ -407,8 +412,8 @@ int CEditMap::GetSeSrcVolPan(int *ids, float *vols, float *pans, int max) {
     if (max <= 0) {
         return count;
     }
-    const float kNear = 10.0f;
-    const float kFar = 2000.0f;
+    float near_dist = 10.0f;
+    float far_dist = 2000.0f;
     float max_vol = 0.0f;
     int data = 0;
     float pan_sum = 0.0f;
@@ -426,7 +431,7 @@ int CEditMap::GetSeSrcVolPan(int *ids, float *vols, float *pans, int max) {
                         float vol;
                         float pan;
                         grid->GetWPos(pos, x, y);
-                        sndGetVolPan(&vol, &pan, pos, kNear, kFar);
+                        sndGetVolPan__FPfPfPfff(&vol, &pan, pos, near_dist, far_dist);
                         if (!(vol <= 0.0f)) {
                             data++;
                             if (max_vol < vol) {

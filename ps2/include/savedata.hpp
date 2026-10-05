@@ -317,7 +317,7 @@ public:
      * @address 0x2FB8B0
      * @size 0x10
      */
-    u8 GetBitCtrl();
+    int GetBitCtrl();
 
     /**
      *
@@ -397,7 +397,7 @@ public:
      * @address 0x2FBC10
      * @size 0x10
      */
-    s8 GetTourCountEtc();
+    int GetTourCountEtc();
 
     /**
      *

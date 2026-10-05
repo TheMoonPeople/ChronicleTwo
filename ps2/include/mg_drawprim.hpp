@@ -153,7 +153,9 @@ public:
      * @address 0x134A20
      * @size 0x70
      */
+#ifndef MG_DRAWPRIM_MANUAL_CTOR
     mgCDrawPrim();
+#endif
 
     /**
      * Attaches the memory and VIF1 packet to build in, defaulting to the

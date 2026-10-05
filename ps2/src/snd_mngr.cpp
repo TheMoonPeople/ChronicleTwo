@@ -74,7 +74,7 @@ void sndFlush(void) {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", SeAllStop_Sub__Fi);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", sndSeAllStop__Fi);
-s8 sndGetSeDefVol(u32 se_id, int index) {
+int sndGetSeDefVol(u32 se_id, int index) {
     sndSeInfo *info;
 
     info = GetSeInfo(se_id, index);

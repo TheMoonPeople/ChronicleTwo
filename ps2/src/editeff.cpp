@@ -6,6 +6,12 @@
 #include "mapparts.hpp"
 #include "editeff.hpp"
 
+extern void *__vt__9mgCObject[];
+extern void *__vt__7CObject[];
+extern void *__vt__9CMapParts[];
+extern void *__vt__14CFuncPointMngr[];
+extern "C" void *__ct__8mgCFrameFv(void *);
+
 static const float paint_color_max = 255.0f;
 const int color_channels = 3;
 const int star_particle_max = 0x40;
@@ -315,7 +321,18 @@ int EditSetPlaceAnime(int kind, CMapParts *parts) {
             slot->parts = NULL;
             CurPartsBuff.stack_used = 0;
             CurPartsBuff.lock = 0;
-            target = new ((u_long128 *)CurPartsBuff.Alloc(0x33)) CMapParts;
+            if ((target = (CMapParts *)operator new(sizeof(CMapParts), (u_long128 *)CurPartsBuff.Alloc(0x33))) != NULL) {
+                *(void **)target = __vt__9mgCObject;
+                ((mgCObject *)target)->Initialize();
+                *(void **)target = __vt__7CObject;
+                ((mgCObject *)target)->Initialize();
+                *(void **)target = __vt__9CMapParts;
+                __ct__8mgCFrameFv(&target->frame);
+                *(void **)((u8 *)&target->func_point_mngr + 0x30) = __vt__14CFuncPointMngr;
+                target->func_point_mngr.Initialize();
+                *(int *)&target->func_check.time = 0;
+                ((mgCObject *)target)->Initialize();
+            }
             if (target == NULL) {
                 return 0;
             }

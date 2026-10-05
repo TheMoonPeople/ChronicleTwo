@@ -1,3 +1,4 @@
+#define MenuEffect MenuEffectUnbounded
 const int kMenuAskParamOffset = 0x58;
 const int kBaseMenuWord0xF8Offset = 0xF8;
 const int kBagSlotCount = 0x96;
@@ -30,6 +31,7 @@ const int kBagSlotCount = 0x96;
 #include "menusys.hpp"
 #include "menudraw.hpp"
 #include <cstring>
+#undef MenuEffect
 
 inline unsigned int QuadwordsFor(int bytes) {
     return ((unsigned int)bytes & 0xF) ? ((unsigned int)bytes >> 4) + 1 : ((unsigned int)bytes >> 4);
@@ -127,12 +129,14 @@ struct SpectolBreakTable {
     int v[4];
 };
 
-extern u_long128 *MainCharaReadBuffer[3];
+struct MenuCharaReadBuffers { u_int *model; u_int *skin; u_int *outline; };
+extern MenuCharaReadBuffers MainCharaReadBuffer;
 extern CGameDataUsed *NewViewWep;
 extern CGameDataUsed *OldViewWep;
 extern u8 view_weapon_flag;
 extern CDC2Mes *MenuDCMsg[9];
 extern CGameDataUsed SpectolTransBefore;
+extern CMenuEffect *MenuEffect[2];
 extern CGameDataUsed SpectolInfoStay;
 extern NamePair at_1685;
 extern KeyPairTable at_2328;
@@ -149,7 +153,7 @@ extern short save_spectol_fusion_param[10];
 extern int save_spectol_fusion_spstatus;
 extern signed char sndflag_1665;
 extern signed char init_1666;
-extern u8 MenuItemCmdRet[];
+extern ITEMCMD_RET_PARA MenuItemCmdRet[];
 extern CDC2Mes *TrushMesCls[4];
 extern CMenuPosDataForm *MenuSpectolSatusCheckForm;
 extern CMenuPosDataForm *MenuSpectolSatusCheckBGFadeForm;
@@ -261,29 +265,30 @@ void DrawTrushMenuMessage() {
         }
     }
 }
-CBaseMenuClass::CBaseMenuClass() {
-    u8 *raw = (u8 *)this;
+extern "C" CBaseMenuClass *__ct__14CBaseMenuClassFv(CBaseMenuClass *self) {
+    u8 *raw = (u8 *)self;
     int i;
     *(u8 **)(raw + 0x10C) = __vt__14CBaseMenuClass;
     __ct__17MENU_ASKMODE_PARAFv((MENU_ASKMODE_PARA *)(raw + kMenuAskParamOffset));
-    (&swap_info)->Set(-1, 0, -1, 0);
-    memset(this, 0, 0x110);
+    (&self->swap_info)->Set(-1, 0, -1, 0);
+    memset(self, 0, 0x110);
     *(signed char *)(raw + 4) = 0;
-    mode = 1;
-    step = 0;
+    self->mode = 1;
+    self->step = 0;
     *(short *)(raw + 6) = 0;
-    script = NULL;
-    script_size = 0;
-    unk_10 = 0x80;
-    key_arg_no = 0;
+    self->script = NULL;
+    self->script_size = 0;
+    self->unk_10 = 0x80;
+    self->key_arg_no = 0;
     for (i = 0; i < 16; i++) {
         *(int *)(raw + 0x18 + i * 4) = -1;
     }
-    cmd_arg_pos = -1;
+    self->cmd_arg_pos = -1;
     *(int *)(raw + 0xF8) = 0;
-    step = 0;
-    SetAskParam(NULL);
+    self->step = 0;
+    self->SetAskParam(NULL);
     memset(raw + 0xFC, 0, 0x10);
+    return self;
 }
 void CBaseMenuClass::SetTexBlock(int *block) {
 
@@ -397,8 +402,8 @@ int CBaseMenuClass::CheckSpectolFusion(CGameDataUsed *item, int panel, CMenuPosD
                 SetSpectolInfo(item, held);
                 param.item = held;
                 param.item2 = item;
-                CGameDataUsed before;
-                CGameDataUsed after;
+                union { CGameDataUsed before; };
+                union { CGameDataUsed after; };
                 __ct__13CGameDataUsedFv(&before);
                 __ct__13CGameDataUsedFv(&after);
                 before.CopyGameData(item);
@@ -443,7 +448,7 @@ void UpdataInfoSpectolBreakItem(CDC2Mes *mes, CGameDataUsed *item, int count) {
     volume.v[1] = SpectolBreakSpPoint * count;
     mes->SetMsgVolumeNo(volume.v, 2);
     mes->fade_speed = 1.0f;
-    CGameDataUsed result;
+    union { CGameDataUsed result; };
     __ct__13CGameDataUsedFv(&result);
     ToSpectolTrans__13CGameDataUsedFP13CGameDataUsedi(item, &result, count);
     MenuFormUpdataAttachInfo(MenuSpectolSatusCheckForm, &result, item->item_no, 1, 0);
@@ -486,8 +491,8 @@ int CBaseMenuClass::IsSpectolFusion(int key, int command) {
                         step = 1;
                         form->draw_flag = 0;
                         MenuSePlay(1);
-                        if (MenuCommonInfo->how_much_form != NULL) {
-                            MenuCommonInfo->how_much_form->draw_flag = 0;
+                        if (MenuCommonInfo->cursor_form != NULL) {
+                            MenuCommonInfo->cursor_form->draw_flag = 0;
                         }
                         SpectolInfoStay.CopyGameData(SpectolInfo[1]);
                         MenuCommonInfo->InitHaveData();
@@ -497,8 +502,8 @@ int CBaseMenuClass::IsSpectolFusion(int key, int command) {
                     }
                 case 2:
                     form->draw_flag = 0;
-                    if (MenuCommonInfo->how_much_form != NULL) {
-                        MenuCommonInfo->how_much_form->draw_flag = 1;
+                    if (MenuCommonInfo->cursor_form != NULL) {
+                        MenuCommonInfo->cursor_form->draw_flag = 1;
                     }
                     mode = 0;
                     step = 0;
@@ -586,8 +591,8 @@ int CBaseMenuClass::IsTrush(int key, int command) {
                         break;
                     }
                     form->draw_flag = 0;
-                    if (MenuCommonInfo->how_much_form != NULL) {
-                        MenuCommonInfo->how_much_form->draw_flag = 1;
+                    if (MenuCommonInfo->cursor_form != NULL) {
+                        MenuCommonInfo->cursor_form->draw_flag = 1;
                     }
                     MenuCommonInfo->InitHaveData();
                     ask_para.item->DeleteNum(MenuTrushNum);
@@ -777,7 +782,7 @@ int CBaseMenuClass::ExtendCommand(int key, int command) {
     MENU_ASKMODE_PARA *param = (MENU_ASKMODE_PARA *)((u8 *)menu + kMenuAskParamOffset);
     if (ask_mode == 4) {
         result = MenuItemCommandSelect(key, command);
-        menu->ItemCmdAfter(result, (ITEMCMD_RET_PARA *)MenuItemCmdRet);
+        menu->ItemCmdAfter(result, MenuItemCmdRet);
     } else if (ask_mode == 7) {
         result = IsSpectolTrans(key, command);
     } else if (ask_mode == 3) {
@@ -852,8 +857,8 @@ void CBaseMenuClass::IsAskEnd(int se, CMenuPosDataForm *form) {
         form->draw_flag = 0;
     }
     MenuCommonInfo->key_enable = 1;
-    if (MenuCommonInfo->how_much_form) {
-        MenuCommonInfo->how_much_form->draw_flag = 1;
+    if (MenuCommonInfo->cursor_form) {
+        MenuCommonInfo->cursor_form->draw_flag = 1;
     }
     mode = 0;
     step = 0;
@@ -871,7 +876,7 @@ int CBaseMenuClass::FadeCheckMenu() {
     return (&MenuMainScene->fade)->FadeCheck();
 }
 void SetPreCmdTrush(CBaseMenuClass *menu, int panel, CGameDataUsed *item, CMenuPosDataForm *form) {
-    menu->step = 9;
+    menu->mode = 9;
     MENU_ASKMODE_PARA param;
     param.mes_no = panel;
     param.form = form;
@@ -893,8 +898,8 @@ void SetPreCmdTrush(CBaseMenuClass *menu, int panel, CGameDataUsed *item, CMenuP
         message->value_width[0] = 0;
         message->SetMsgCursor(1);
         form->draw_flag = 1;
-        if (MenuCommonInfo->how_much_form != NULL) {
-            MenuCommonInfo->how_much_form->draw_flag = 0;
+        if (MenuCommonInfo->cursor_form != NULL) {
+            MenuCommonInfo->cursor_form->draw_flag = 0;
         }
     } else {
         MenuHowHaveMuchNum = MenuTrushNum;
@@ -903,7 +908,7 @@ void SetPreCmdTrush(CBaseMenuClass *menu, int panel, CGameDataUsed *item, CMenuP
 }
 void SetPreCmdSpectolBreak(CBaseMenuClass *menu, int panel, CMenuPosDataForm *form,
                            CGameDataUsed *item, CGameDataUsed *target) {
-    menu->step = 7;
+    menu->mode = 7;
     menu->step = 0;
     MENU_ASKMODE_PARA param;
     param.mes_no = panel;
@@ -923,7 +928,7 @@ void SetPreCmdSpectolBreak(CBaseMenuClass *menu, int panel, CMenuPosDataForm *fo
     }
 }
 void SetPreCmdGiftBoxSelect(CBaseMenuClass *menu, CGameDataUsed *item) {
-    menu->step = 11;
+    menu->mode = 11;
     menu->step = 0;
     GiftBoxViewFlag = 1;
     MENU_ASKMODE_PARA param;
@@ -970,8 +975,8 @@ void CMENU_USERPARAM::AttachInfo(void) {
     chara[1] = MenuUserDataManPtr->GetCharaDataPtr(1);
     robo = &MenuUserDataManPtr->robo_data;
     used_data = MenuUserDataManPtr->GetUsedDataPtr(0);
-    monster = MenuUserDataManPtr->GetMonsterBajjiDataPtr(1);
-    monster1 = MenuUserDataManPtr->GetMonsterBajjiDataPtrMosId(MenuUserDataManPtr->monster_id);
+    monster1 = MenuUserDataManPtr->GetMonsterBajjiDataPtr(1);
+    monster = MenuUserDataManPtr->GetMonsterBajjiDataPtrMosId(MenuUserDataManPtr->monster_id);
 }
 void MENU_ASKMODE_PARA::Initialize() {
     memset(this, 0, 0x94);
@@ -1049,7 +1054,7 @@ int AfterSpectolFusion(CGameDataUsed *item, CGameDataUsed *part) {
     target = &item->data.weapon;
     spectol = &part->data.attach;
     item->GetStatusParam(save_spectol_fusion_param);
-    if (spectol->spectol_type == 1) {
+    if (*(s8 *)&spectol->spectol_type == 1) {
         lowest = target->status[0];
         first = lowest;
         if (lowest < spectol->status[0]) {
@@ -1369,7 +1374,7 @@ void CMenuKeyFunc::Initialize() {
     waku_type = 0;
     unk_0 = 0;
     ((CGameDataUsed *)(&have_item))->Init();
-    how_much_form = NULL;
+    cursor_form = NULL;
     waku_form = NULL;
     how_much_form = NULL;
     have_icon = 0;
@@ -1386,11 +1391,11 @@ void CMenuKeyFunc::Initialize() {
     }
 }
 void CMenuKeyFunc::AttachFuncData() {
-    how_much_form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_2545__2);
-    if (how_much_form != NULL) {
-        have_icon = how_much_form->GetPartInfo(at_2546__2);
-        have_shadow = how_much_form->GetPartInfo(at_2547);
-        have_num = how_much_form->GetPartInfo(at_2548);
+    cursor_form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_2545__2);
+    if (cursor_form != NULL) {
+        have_icon = cursor_form->GetPartInfo(at_2546__2);
+        have_shadow = cursor_form->GetPartInfo(at_2547);
+        have_num = cursor_form->GetPartInfo(at_2548);
         *(int *)((u8 *)have_num + 0x38) = 1;
     }
     waku_form = (CMenuPosDataForm *)MenuPosData->GetFormInfo(at_2549);
@@ -1401,7 +1406,7 @@ int CMenuKeyFunc::GetActiveCharaNo() {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuPosStep__12CMenuKeyFuncFPiPi);
 void CMenuKeyFunc::MenuSetPos(int x, int y) {
-    CMenuPosDataForm *form = how_much_form;
+    CMenuPosDataForm *form = cursor_form;
     float fx = (float)x;
     float fy = (float)y;
     form->x = fx;
@@ -1426,7 +1431,7 @@ void CMenuKeyFunc::SetWakuMoveMethod(int method) {
     waku_form->mtype = method;
 }
 void CMenuKeyFunc::GetItemPos(int *pos) {
-    how_much_form->GetPutPosXY(at_2546__2, pos[0], pos[1]);
+    cursor_form->GetPutPosXY(at_2546__2, pos[0], pos[1]);
 }
 void CMenuKeyFunc::SetWakuType(int type) {
     char name[0x20];
@@ -1465,7 +1470,7 @@ void CMenuKeyFunc::SetWakuWH(int part, int width, int height) {
     }
 }
 void CMenuKeyFunc::SetVibeCnt(int count, int rate) {
-    MENUFORMPARTS_TYPE *part = how_much_form->GetPartInfo(at_2545__2);
+    MENUFORMPARTS_TYPE *part = cursor_form->GetPartInfo(at_2545__2);
     part->vibe_cnt[0] = count;
     part->vibe_cnt[1] = rate;
 }
@@ -1473,10 +1478,10 @@ void CMenuKeyFunc::SetVibeR(int strength, int speed) {
     int i;
     MENUFORMPARTS_TYPE *part;
 
-    if (how_much_form != NULL) {
+    if (cursor_form != NULL) {
         i = 0;
         do {
-            part = how_much_form->GetPartInfo(n_2667[i]);
+            part = cursor_form->GetPartInfo(n_2667[i]);
             if (part == NULL) {
                 break;
             }
@@ -1487,19 +1492,19 @@ void CMenuKeyFunc::SetVibeR(int strength, int speed) {
     }
 }
 void CMenuKeyFunc::GetCursorPos(int *pos) {
-    how_much_form->GetPutPosXY(at_2545__2, pos[0], pos[1]);
+    cursor_form->GetPutPosXY(at_2545__2, pos[0], pos[1]);
 }
 void CMenuKeyFunc::CursorFadeIn(float speed, int steps) {
-    if (how_much_form != NULL) {
-        how_much_form->FormFadeIn((int)speed, steps);
+    if (cursor_form != NULL) {
+        cursor_form->FormFadeIn((int)speed, steps);
     }
     if (waku_form != NULL) {
         waku_form->FormFadeIn((int)speed, steps);
     }
 }
 void CMenuKeyFunc::CursorFadeOut(float speed, int steps) {
-    if (how_much_form != NULL) {
-        how_much_form->FormFadeOut((int)speed, steps);
+    if (cursor_form != NULL) {
+        cursor_form->FormFadeOut((int)speed, steps);
     }
     if (waku_form != NULL) {
         waku_form->FormFadeOut((int)speed, steps);
@@ -1655,9 +1660,9 @@ CGameDataUsed *GetGameDataUsedForSWAPINFO(MENU_SWAPITEM_INFO *info) {
     CGameDataUsed *item = NULL;
     short owner = info->chara;
     if (0 <= owner) {
-        u8 *base = (u8 *)((void**)&MenuUserParam)[owner];
-        short kind = info->type;
+        u8 *base = (u8 *)MenuUserParam.chara[owner];
         u8 *robo = (u8 *)MenuUserParam.robo;
+        short kind = info->type;
         if (kind == 0) {
             item = (CGameDataUsed *)(base + info->no * 0x6C + 0x2C);
         }
@@ -1722,7 +1727,7 @@ void CMenuKeyFunc::SetHaveItemInfo(int visible, int detail) {
         have_num->etc_info[1] = 0;
     }
 }
-short CMenuKeyFunc::menu_inputkey_limmit_check_line(int keys) {
+int CMenuKeyFunc::menu_inputkey_limmit_check_line(int keys) {
     int result;
     int *cursor = &this->cursor;
     MENU_INPUTKEY_ARG *limit = *(MENU_INPUTKEY_ARG **)((u8 *)this + 0x134);
@@ -1829,12 +1834,12 @@ void MenuEquipCameraSetEnv(CActionChara *chara, mgCCamera *camera, int type, int
     sprintf(name, at_3774__2, type, index);
     MenuPosData->GetEtcTbl2Value(name, table, 3);
     sceVu0AddVector(position, position, table);
-    *(u_long128 *)(MenuDrawEnv + 0x80) = *(u_long128 *)position;
+    *(u_long128 *)((u8 *)MenuDrawEnv + 0x80) = *(u_long128 *)position;
     sprintf(name, at_3775__2, type, index);
     MenuPosData->GetEtcTbl2Value(name, table, 3);
     sceVu0AddVector(position, position, table);
-    *(u_long128 *)(MenuDrawEnv + 0x90) = *(u_long128 *)position;
-    *(float *)(MenuDrawEnv + 0xA0) = 7.0f;
+    *(u_long128 *)((u8 *)MenuDrawEnv + 0x90) = *(u_long128 *)position;
+    *(float *)((u8 *)MenuDrawEnv + 0xA0) = 7.0f;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuPosFormValueSetWeapon__FP13CGameDataUsed);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuFormUpdataAttachInfo__FP16CMenuPosDataFormP13CGameDataUsediiPs);
@@ -1982,7 +1987,7 @@ void CMenuItemInfo::EnterDataMenu(unsigned int *pack) {
     int sound_size;
     mgCTextureManager *textures;
     u8 *item_image = (u8*)GetPackFile(pack, at_5130, NULL);
-    int block = tex_block[4];
+    int block = tex_block[0];
     textures = &mgTexManager;
     textures->DeleteBlock(block);
     textures->EnterIMGFile(item_image, block, NULL, NULL);
@@ -2054,10 +2059,10 @@ void CMenuItemInfo::ExitEnd() {
         chara->AllDeleteDamage();
         chara->Initialize(MorattaStack);
         AccumulateEffect.frame = 0;
-        *(int*)((u8*)&AccumulateEffect + 0x320) = 0;
+        AccumulateEffect.unk_320 = 0;
         AccumulateEffect.mode = 0;
         chara->accume_effect = &AccumulateEffect;
-        chara->LoadPack((u_int*)MainCharaReadBuffer[0], at_4954, MorattaStack, MorattaStack, MorattaStack,
+        chara->LoadPack(MainCharaReadBuffer.model, at_4954, MorattaStack, MorattaStack, MorattaStack,
                          MenuArg.chara_tex_block, 0);
         SwordEffectStack.stack_used = 0;
         SwordEffectStack.lock = 0;
@@ -2068,13 +2073,13 @@ void CMenuItemInfo::ExitEnd() {
         mgCTextureManager *textures = &mgTexManager;
         textures->DeleteTexAnime(MenuArg.chara_tex_block);
         ((CCharacter2 *)chara)
-            ->LoadSkin((u_int *)MainCharaReadBuffer[1], at_4954, at_3751, MorattaStack + 1,
+            ->LoadSkin(MainCharaReadBuffer.skin, at_4954, at_3751, MorattaStack + 1,
                        MenuArg.chara_tex_block);
         stack = MorattaStack;
         stack[5].stack_used = 0;
         stack[5].lock = 0;
         ((CCharacter2 *)chara)
-            ->LoadSkin((u_int *)MainCharaReadBuffer[2], at_4954, at_5210, MorattaStack + 5,
+            ->LoadSkin(MainCharaReadBuffer.outline, at_4954, at_5210, MorattaStack + 5,
                        MenuArg.chara_tex_block);
         SetupUnitMan(MenuMainScene, (CUserDataManager *)GetUserDataMan(), chara_no, NULL);
         chara->effect_man = FxScriptMan;
@@ -2099,7 +2104,7 @@ void CMenuItemInfo::ExitEnd() {
     MenuSystemDataPtr->unk_6 = 0;
     MenuSystemDataPtr->unk_4 = 0;
     MenuSystemDataPtr->item_key_arg_no = key_arg_no;
-    MenuSystemDataPtr->item_cursor = MenuCommonInfo->cursor;
+    MenuSystemDataPtr->item_cursor = (int)*(void **)((u8 *)MenuCommonInfo + 0x70);
     CopyActiveItemAndWeapon(MenuArg.active_chara_no, -1);
     ExeScript(at_5211);
     MenuPosData->TexGetInfoClear(0x5A, 0x100);
@@ -2108,6 +2113,32 @@ void CMenuItemInfo::ExitEnd() {
     MenuMainFrameModeSet(0, 0);
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", AttachFormInfo__13CMenuItemInfoFv);
+extern "C" u8 __vt__9mgCObject[];
+extern "C" u8 __vt__7CObject[];
+extern "C" u8 __vt__12CObjectFrame[];
+extern "C" u8 __vt__11CCharacter2[];
+extern "C" u8 __vt__12CActionChara[];
+extern "C" void *__ct__10CRunScriptFv(void *);
+static inline CActionChara *NewMenuActionChara(mgCMemory *stack) {
+    CActionChara *chara;
+    if ((chara = (CActionChara *)operator new(sizeof(CActionChara), (u_long128 *)stack->Alloc(0x105))) != NULL) {
+        *(void **)chara = __vt__9mgCObject;
+        ((mgCObject *)chara)->Initialize();
+        *(void **)chara = __vt__7CObject;
+        ((mgCObject *)chara)->Initialize();
+        *(void **)chara = __vt__12CObjectFrame;
+        ((mgCObject *)chara)->Initialize();
+        *(void **)chara = __vt__11CCharacter2;
+        chara->shadow_link_num = 0;
+        chara->shadow_link_shadow = 0;
+        chara->shadow_link_model = 0;
+        ((mgCObject *)chara)->Initialize();
+        *(void **)chara = __vt__12CActionChara;
+        __ct__10CRunScriptFv(&chara->script);
+        memset(&chara->move_check, 0, sizeof(chara->move_check));
+    }
+    return chara;
+}
 void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
     int i;
     CMenuMoveItem *move_item;
@@ -2120,7 +2151,7 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
     MenuItemMemory2.stSetBuffer((u_long128 *)(stack->stack + stack->stack_used),
                                 free_blocks);
     for (i = 0; i < 7; i++) {
-        MenuActionChara[i] = new ((u_long128*)MenuItemMemory2.Alloc(0x105)) CActionChara;
+        MenuActionChara[i] = NewMenuActionChara(&MenuItemMemory2);
         MenuActionChara[i]->Initialize(NULL);
     }
     MenuBGReadInfo2Malloc__FP9mgCMemoryPi(&MenuItemMemory2, tbl_5293);
@@ -2134,7 +2165,7 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
     }
     MenuMoveItemPtr = move_item;
     MenuMoveItemPtr->AttachForm();
-    SpectolFrame = new ((u_long128*)MenuItemMemory2.Alloc(0x105)) CActionChara;
+    SpectolFrame = NewMenuActionChara(&MenuItemMemory2);
     if ((effect = (CMenuEffect *)operator new(0x38, (u_long128*)MenuItemMemory2.Alloc(6))) != NULL) {
         effect->Initialize();
     }
@@ -2158,7 +2189,7 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
                           20.0f);
     free_blocks = MenuItemMemory2.stack_size - MenuItemMemory2.stack_used;
     MenuItemMemory.stSetBuffer(
-        (u_long128 *)(MenuItemMemory2.stack + MenuItemMemory2.stack_used * 0x10), free_blocks);
+        (u_long128 *)(MenuItemMemory2.stack + MenuItemMemory2.stack_used), free_blocks);
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CalcTex__13CMenuItemInfoFv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", CalcCursorPosition__13CMenuItemInfoFv);
@@ -2166,6 +2197,8 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", EffectDrawCheck__14CBaseMenuClas
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemInit__FP9mgCMemoryPii);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugKey__Fv);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemDebugDraw__Fv);
+extern "C" int GetActiveCharaIDForItemCmd__13CMenuItemInfoFv(CMenuItemInfo *);
+extern "C" int GetModelNo__13CGameDataUsedFv(CGameDataUsed *);
 int CMenuItemInfo::PushKey(int pad, int trigger) {
     int leaving = 0;
     CHARA_DATA *chara;
@@ -2178,7 +2211,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
     int item_type;
     int fusion_target;
     CMenuPosDataForm *message_form;
-    CGameDataUsed saved_item;
+    union { CGameDataUsed saved_item; };
     char path[0x40];
     char full_path[0x60];
     MENU_SWAPITEM_INFO swap;
@@ -2194,7 +2227,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
     switch (state) {
         case kStateBrowse: {
             held_item_no = ((CGameDataUsed *)(&MenuCommonInfo->have_item))->item_no;
-            cursor = (&MenuCommonInfo->cursor)[0];
+            cursor = MenuCommonInfo->select_pos[0];
             command = kCmdNone;
             target = NULL;
             area = -1;
@@ -2419,8 +2452,8 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                     break;
                 case kCmdOpenCommandMenu:
                     if (MenuItemMoveItemCommand(target, area, 5, MenuMesForm[5],
-                                                GetActiveCharaIDForItemCmd()) != 0) {
-                        CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                                                GetActiveCharaIDForItemCmd__13CMenuItemInfoFv(this)) != 0) {
+                        CMenuPosDataForm *form = MenuCommonInfo->cursor_form;
                         if (form != NULL) {
                             form->draw_flag = 0;
                         }
@@ -2429,7 +2462,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                 case kCmdPlaceItem:
                     if (fusion_target != 0 &&
                         this->CheckSpectolFusion(target, 4, message_form) != 0) {
-                        CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                        CMenuPosDataForm *form = MenuCommonInfo->cursor_form;
                         if (form != NULL) {
                             form->draw_flag = 0;
                         }
@@ -2448,17 +2481,17 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                                     switch (area) {
                                         case kAreaEquip:
                                             this->CheckLoadInfo(this->sub_view);
-                                            ((signed char *)&MenuLoadInfo)[4] =
+                                            MenuLoadInfo.unk_4 =
                                                 ConvertCharaLoadDataPhase(this->sub_view, cursor);
-                                            ((signed char *)&MenuLoadInfo)[5] = ((signed char *)&MenuLoadInfo)[4];
-                                            ((signed char *)&MenuLoadInfo)[2] = 0;
+                                            MenuLoadInfo.unk_5 = MenuLoadInfo.unk_4;
+                                            MenuLoadInfo.unk_2 = 0;
                                             this->ModelReadStart(this->view_mode, 1, 1);
                                             break;
                                         case kAreaRobo:
                                             this->CheckLoadInfo(2);
-                                            ((signed char *)&MenuLoadInfo)[4] = ConvertCharaLoadDataPhase(
+                                            MenuLoadInfo.unk_4 = ConvertCharaLoadDataPhase(
                                                 2, MenuRoboEquipTable[cursor]);
-                                            ((signed char *)&MenuLoadInfo)[2] = 0;
+                                            MenuLoadInfo.unk_2 = 0;
                                             this->ModelReadStart(this->view_mode, 1, 1);
                                             break;
                                     }
@@ -2535,10 +2568,10 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                             } else {
                                 MenuSePlay(8);
                                 this->CheckLoadInfo(this->sub_view);
-                                ((signed char *)&MenuLoadInfo)[4] =
+                                MenuLoadInfo.unk_4 =
                                     ConvertCharaLoadDataPhase(this->sub_view, equip_slot);
-                                ((signed char *)&MenuLoadInfo)[5] = ((signed char *)&MenuLoadInfo)[4];
-                                ((signed char *)&MenuLoadInfo)[2] = 0;
+                                MenuLoadInfo.unk_5 = MenuLoadInfo.unk_4;
+                                MenuLoadInfo.unk_2 = 0;
                                 this->ModelReadStart(this->view_mode, 1, 1);
                             }
                             break;
@@ -2566,7 +2599,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                     break;
                 case kCmdFuseSelected:
                     if (this->CheckSpectolFusion(this->view_weapon, 4, message_form) != 0) {
-                        CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                        CMenuPosDataForm *form = MenuCommonInfo->cursor_form;
                         if (form != NULL) {
                             form->draw_flag = 0;
                         }
@@ -2594,9 +2627,9 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                             } else {
                                 this->CheckLoadInfo(2);
                                 MenuSePlay(8);
-                                ((signed char *)&MenuLoadInfo)[4] =
+                                MenuLoadInfo.unk_4 =
                                     ConvertCharaLoadDataPhase(this->load_item_no, robo_equip_slot);
-                                ((signed char *)&MenuLoadInfo)[2] = 0;
+                                MenuLoadInfo.unk_2 = 0;
                                 this->ModelReadStart(this->view_mode, 1, 1);
                             }
                             break;
@@ -2615,7 +2648,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                     }
                     break;
                 case kCmdUseOnMonster:
-                    item_used = MenuItemUse.UseItem(held_item, 3, MenuUserParam.monster1);
+                    item_used = MenuItemUse.UseItem(held_item, 3, MenuUserParam.monster);
                     MenuCommonInfo->SetHaveItemInfo(1, 1);
                     if (held_item->GetNum() <= 0) {
                         MenuCommonInfo->SetHaveItemInfo(0, 1);
@@ -2647,7 +2680,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                                 msg->SetMsgItemNo(&item_name, 1);
                                 msg->SetMsgVolumeNoOne(data->max_num);
                             }
-                            CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                            CMenuPosDataForm *form = MenuCommonInfo->cursor_form;
                             if (form != NULL) {
                                 form->draw_flag = 0;
                             }
@@ -2683,33 +2716,33 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                     int chara_no;
                     CHARA_DATA **chr_ptr =
                         &MenuUserParam.chara[chara_no = this->GetActiveCharaNo()];
-                    int model_no = (*chr_ptr)->equip[0].GetModelNo();
+                    int model_no = GetModelNo__13CGameDataUsedFv(&(*chr_ptr)->equip[0]);
                     if (this->unk_172 != model_no) {
                         SetMenuEtcFlag(1);
                         MainCharaReadStackReadAdr =
                             (u8*)(MainCharaReadStack.stack + MainCharaReadStack.stack_used);
                         GetMainCharaModelName(chara_no, path, 0);
-                        MainCharaReadBuffer[0] = (u_long128 *)MainCharaReadStackReadAdr;
+                        MainCharaReadBuffer.model = (u_int *)MainCharaReadStackReadAdr;
                         sprintf(full_path, at_7342, path);
-                        LoadFileBG(full_path, MainCharaReadBuffer[0], &file_size);
+                        LoadFileBG(full_path, (u_long128 *)MainCharaReadBuffer.model, &file_size);
                         unsigned int blocks = QuadwordsFor(file_size);
                         MainCharaReadStack.Alloc(blocks);
                         MainCharaReadStack.Align64();
-                        MainCharaReadBuffer[1] =
-                            (MainCharaReadStack.stack + MainCharaReadStack.stack_used);
+                        MainCharaReadBuffer.skin =
+                            (u_int *)(MainCharaReadStack.stack + MainCharaReadStack.stack_used);
 
                         char *file = (char *)(*chr_ptr)->equip[4].GetDataPath();
                         if (file != NULL) {
-                            LoadFileBG(file, MainCharaReadBuffer[1], &file_size);
+                            LoadFileBG(file, (u_long128 *)MainCharaReadBuffer.skin, &file_size);
                             blocks = QuadwordsFor(file_size);
                             MainCharaReadStack.Alloc(blocks);
                         }
                         MainCharaReadStack.Align64();
-                        MainCharaReadBuffer[2] =
-                            (MainCharaReadStack.stack + MainCharaReadStack.stack_used);
+                        MainCharaReadBuffer.outline =
+                            (u_int *)(MainCharaReadStack.stack + MainCharaReadStack.stack_used);
                         file = (char *)(*chr_ptr)->equip[3].GetDataPath();
                         if (file != NULL) {
-                            LoadFileBG(file, MainCharaReadBuffer[2], &file_size);
+                            LoadFileBG(file, (u_long128 *)MainCharaReadBuffer.outline, &file_size);
                             blocks = QuadwordsFor(file_size);
                             MainCharaReadStack.Alloc(blocks);
                         }
@@ -2736,7 +2769,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
             if (trigger != 0) {
                 this->mode = kStateBrowse;
                 MenuMesForm[7]->draw_flag = 0;
-                CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                CMenuPosDataForm *form = MenuCommonInfo->cursor_form;
                 if (form != NULL) {
                     form->draw_flag = 1;
                 }
@@ -2746,28 +2779,27 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
         case kStateTuneBuildUp: {
             switch (this->step) {
                 case kTuneAdjust: {
-                    int previous = (&MenuCommonInfo->cursor)[0];
+                    int previous = MenuCommonInfo->select_pos[0];
                     if (pad & kPadUp) {
-                        (&MenuCommonInfo->cursor)[0] = previous - 1;
+                        MenuCommonInfo->select_pos[0] = previous - 1;
                     }
                     if (pad & kPadDown) {
-                        (&MenuCommonInfo->cursor)[0] += 1;
+                        MenuCommonInfo->select_pos[0] += 1;
                     }
-                    if ((&MenuCommonInfo->cursor)[0] < 0) {
-                        (&MenuCommonInfo->cursor)[0] = 0;
+                    if (MenuCommonInfo->select_pos[0] < 0) {
+                        MenuCommonInfo->select_pos[0] = 0;
                     }
-                    if ((&MenuCommonInfo->cursor)[0] > 4) {
-                        (&MenuCommonInfo->cursor)[0] = 4;
+                    if (MenuCommonInfo->select_pos[0] > 4) {
+                        MenuCommonInfo->select_pos[0] = 4;
                     }
-                    if (previous != (&MenuCommonInfo->cursor)[0]) {
+                    if (previous != MenuCommonInfo->select_pos[0]) {
                         MenuSePlay(0);
                     }
                     CGameDataUsed *item = this->view_weapon;
-                    int selected = (&MenuCommonInfo->cursor)[0];
-
                     short *saved_words = (short *)&SpectolInfoStay.data.weapon.whp;
                     short *words = (short *)&item->data.weapon.whp;
-                    int spare_points = item->data.weapon.fusion_point / kPointsPerStep;
+                    int spare_points = *(short *)((u8 *)item + 0x3C) / kPointsPerStep;
+                    int selected = MenuCommonInfo->select_pos[0];
                     short *entry = (short *)((selected << 1) + (int)words);
                     short *stat_slot = &entry[kStatWord];
                     short value = entry[kStatWord];
@@ -2781,10 +2813,10 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         }
                     }
                     if (0 < spare_points) {
-                        if (words[(&MenuCommonInfo->cursor)[0] + kStatWord] < kStatMax &&
+                        if (words[MenuCommonInfo->select_pos[0] + kStatWord] < kStatMax &&
                             (pad & kPadRight)) {
                             words[kSpareWord] -= kPointsPerStep;
-                            words[(&MenuCommonInfo->cursor)[0] + kStatWord] += 1;
+                            words[MenuCommonInfo->select_pos[0] + kStatWord] += 1;
                             if (words[kSpareWord] < 0) {
                                 words[kSpareWord] = 0;
                             }
@@ -2876,7 +2908,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         }
                         (&MenuCommonInfo->cursor)[1] = MenuItem_ItemBoardTopLine;
                         MenuItem_ItemBoardTopSelect = index;
-                        (&MenuCommonInfo->cursor)[0] = (short)index;
+                        MenuCommonInfo->select_pos[0] = (short)index;
                     }
                     break;
                 case kStateSpectolFusion:
@@ -2907,7 +2939,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         MenuCommonInfo->FadeOutMenuBGMVol(-6, 0x18);
                         StartReadBG();
                         LoadFileBG(at_7347,
-                                   (u_long128 *)(load_stack->stack + load_stack->stack_used * 0x10),
+                                   (u_long128 *)(load_stack->stack + load_stack->stack_used),
                                    &fusion_file_size);
                         unsigned int blocks = QuadwordsFor(fusion_file_size);
                         load_stack->Alloc(blocks);
@@ -2939,7 +2971,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                             this->view_mode = 2;
                             MenuCommonInfo->key_arg = &item_menu_argtbl[this->key_arg_no];
                             this->view_weapon = SpectolInfo[0];
-                            CMenuItemInfoPt->load_item_no = this->view_weapon->item_no;
+                            CMenuItemInfoPt->view_chara = this->view_weapon->item_no;
                             this->ModelReadStart(this->view_mode, 1, 1);
                             SetSpectolInfo(NULL, NULL);
                         }
@@ -3006,7 +3038,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                 MenuDCMsg[4]->put_centering = 0;
             }
             if (this->mode == 0) {
-                CMenuPosDataForm *form = MenuCommonInfo->how_much_form;
+                CMenuPosDataForm *form = MenuCommonInfo->cursor_form;
                 if (form != NULL) {
                     form->draw_flag = 1;
                 }
@@ -3196,7 +3228,7 @@ int MenuItemKey(void) {
                     short *system = GetSystemMesBuffer();
                     MenuDCMsg[0]->SetMessData(system, GetMenuMainMessageBuffer());
                 }
-                MenuDCMsg[0]->cursor_on = 1;
+                MenuDCMsg[0]->msg_change = 1;
                 MenuMoveItemPtr->AttachForm();
                 AttachMessageForm();
                 MenuMainFrameModeSet(2, 0);
@@ -3234,7 +3266,7 @@ int MenuItemKey(void) {
                     } while (ReadBGSync());
                 }
                 CMenuItemInfoPt->ModelReadEndCheck();
-                BuildUpWeaponInfo.mode = 0;
+                BuildUpWeaponInfo.unk_0 = 0;
                 CMenuItemInfoPt->mode = 0;
                 CMenuItemInfoPt->unk_178 = -1;
                 CMenuItemInfoPt->unk_176 = -1;
@@ -3258,7 +3290,7 @@ void CItemSelect::SetPtrList() {
             entries[i].used_type != 8) {
             item_list[item_num] = &entries[i];
             limit_disp[item_num] = 0;
-            if (menu_limmit_displayflag[i] == 1) {
+            if (((s8 *)menu_limmit_displayflag)[i] == 1) {
                 limit_disp[item_num] = 1;
             }
             item_num++;
@@ -3325,7 +3357,7 @@ void MenuItemSelectDraw(void) {
     mgRect<int> source2;
     source2.Set(0, 0, mgScreenWidth / 2, mgScreenHeight / 2);
     dest2.Set(-1, -1, mgScreenWidth + 1, mgScreenHeight + 1);
-    DrawMenuMainFrmImg(loaded_tex_no, dest2, source2, 128, 128, 128, ItemSelectPtr->alpha, 0);
+    DrawMenuMainFrmImg(loaded_tex_no, dest2, source2, 128, 128, 128, ItemSelectPtr->bg_alpha, 0);
     *(int *)(prim + 0x110) = 0;
     *(int *)(prim + 0x114) = 0;
     if (ItemSelectPtr != NULL) {

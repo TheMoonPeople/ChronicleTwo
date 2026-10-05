@@ -13,6 +13,7 @@
 #include <cstring>
 
 extern "C" int fptosi(float value);
+extern "C" void __ct__11mgCDrawPrimFv(void *);
 
 void DivSpriteScreen(mgCDrawPrim &prim);
 void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int mode);
@@ -170,56 +171,57 @@ void CFadeInOut::CaptureScreen(void) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", DivSpriteScreen__FR11mgCDrawPrim);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", DivSpriteScreen__FR11mgCDrawPrimiii);
 void CFadeInOut::Draw(void) {
-    mgCDrawPrim prim;
-    mgCDrawPrim prim2;
+    u_char prim[0x120];
+    u_char prim2[0x120];
 
     if (alpha > 0.0f) {
-        prim.Initialize(NULL, NULL);
-        prim.DepthTestEnable(0);
-        prim.AlphaTestEnable(0);
-        prim.AlphaBlendEnable(1);
-        prim.AlphaBlend(1);
-        prim.ZMask(-1);
+        __ct__11mgCDrawPrimFv(prim);
+        ((mgCDrawPrim *)prim)->Initialize(NULL, NULL);
+        ((mgCDrawPrim *)prim)->DepthTestEnable(0);
+        ((mgCDrawPrim *)prim)->AlphaTestEnable(0);
+        ((mgCDrawPrim *)prim)->AlphaBlendEnable(1);
+        ((mgCDrawPrim *)prim)->AlphaBlend(1);
+        ((mgCDrawPrim *)prim)->ZMask(-1);
         if (cross != 0) {
             if (cross_texture != NULL) {
-                cross_texture->swizzled = 0;
+                cross_texture->tex0.bits.tcc = 0;
                 mgTexManager.ReloadTexture(cross_texture->block, (sceVif1Packet *)NULL);
-                prim.TextureMapEnable(1);
+                ((mgCDrawPrim *)prim)->TextureMapEnable(1);
                 if (cross_type == CROSS_FADE_WIPE) {
-                    prim.Begin2();
-                    prim.BeginPrim2(6);
-                    prim.Texture(cross_texture);
+                    ((mgCDrawPrim *)prim)->Begin2();
+                    ((mgCDrawPrim *)prim)->BeginPrim2(6);
+                    ((mgCDrawPrim *)prim)->Texture(cross_texture);
 
-                    prim.Direct(0x3B, 0x8080 | ((u_long)0x80 << 32));
-                    prim.Color(0x80, 0x80, 0x80, 0x80);
-                    prim.EndPrim2();
+                    ((mgCDrawPrim *)prim)->Direct(0x3B, 0x8080 | ((u_long)0x80 << 32));
+                    ((mgCDrawPrim *)prim)->Color(0x80, 0x80, 0x80, 0x80);
+                    ((mgCDrawPrim *)prim)->EndPrim2();
                     if (mode > 0) {
-                        DivSpriteScreen(prim, 0,
+                        DivSpriteScreen(*(mgCDrawPrim *)prim, 0,
                                         fptosi((alpha / 128.0f) * (float)mgScreenWidth), 0);
                     } else {
                         int width = mgScreenWidth;
 
-                        DivSpriteScreen(prim, fptosi((alpha / 128.0f) * (float)width),
+                        DivSpriteScreen(*(mgCDrawPrim *)prim, fptosi((alpha / 128.0f) * (float)width),
                                         width, 1);
                     }
-                    prim.End2();
+                    ((mgCDrawPrim *)prim)->End2();
                 } else {
                     int b;
                     int g;
                     int r;
 
-                    prim.Begin2();
-                    prim.BeginPrim2(6);
-                    prim.Texture(cross_texture);
+                    ((mgCDrawPrim *)prim)->Begin2();
+                    ((mgCDrawPrim *)prim)->BeginPrim2(6);
+                    ((mgCDrawPrim *)prim)->Texture(cross_texture);
 
-                    prim.Direct(0x3B, 0x8080 | ((u_long)0x80 << 32));
+                    ((mgCDrawPrim *)prim)->Direct(0x3B, 0x8080 | ((u_long)0x80 << 32));
                     r = fptosi(this->r);
                     g = fptosi(this->g);
                     b = fptosi(this->b);
-                    prim.Color(r, g, b, fptosi(alpha * cross_alpha_rate));
-                    prim.EndPrim2();
-                    DivSpriteScreen(prim);
-                    prim.End2();
+                    ((mgCDrawPrim *)prim)->Color(r, g, b, fptosi(alpha * cross_alpha_rate));
+                    ((mgCDrawPrim *)prim)->EndPrim2();
+                    DivSpriteScreen(*(mgCDrawPrim *)prim);
+                    ((mgCDrawPrim *)prim)->End2();
                 }
             }
         } else {
@@ -227,39 +229,40 @@ void CFadeInOut::Draw(void) {
             int g;
             int r;
 
-            prim.TextureMapEnable(0);
-            prim.Begin2();
-            prim.BeginPrim2(6);
+            ((mgCDrawPrim *)prim)->TextureMapEnable(0);
+            ((mgCDrawPrim *)prim)->Begin2();
+            ((mgCDrawPrim *)prim)->BeginPrim2(6);
             r = fptosi(this->r);
             g = fptosi(this->g);
             b = fptosi(this->b);
-            prim.Color(r, g, b, fptosi(alpha));
-            prim.EndPrim2();
-            DivSpriteScreen(prim);
-            prim.End2();
+            ((mgCDrawPrim *)prim)->Color(r, g, b, fptosi(alpha));
+            ((mgCDrawPrim *)prim)->EndPrim2();
+            DivSpriteScreen(*(mgCDrawPrim *)prim);
+            ((mgCDrawPrim *)prim)->End2();
         }
     }
     if (blur_alpha != 0) {
-        prim2.Initialize(NULL, NULL);
+        __ct__11mgCDrawPrimFv(prim2);
+        ((mgCDrawPrim *)prim2)->Initialize(NULL, NULL);
         mgCTexture back_tex;
 
         mgGetFrameBackBuffer(&back_tex);
-        back_tex.swizzled = 0;
-        prim2.TextureMapEnable(1);
-        prim2.AlphaBlendEnable(1);
-        prim2.AlphaBlend(1);
-        prim2.DepthTestEnable(0);
-        prim2.ZMask(-1);
-        prim2.Begin(6);
+        back_tex.tex0.bits.tcc = 0;
+        ((mgCDrawPrim *)prim2)->TextureMapEnable(1);
+        ((mgCDrawPrim *)prim2)->AlphaBlendEnable(1);
+        ((mgCDrawPrim *)prim2)->AlphaBlend(1);
+        ((mgCDrawPrim *)prim2)->DepthTestEnable(0);
+        ((mgCDrawPrim *)prim2)->ZMask(-1);
+        ((mgCDrawPrim *)prim2)->Begin(6);
 
-        prim2.Direct( 0x3B, 0x80 | ((u_long)0x80 << 32));
-        prim2.Texture(&back_tex);
-        prim2.Color(0x80, 0x80, 0x80, blur_alpha);
-        prim2.TextureCrd(0, 0);
-        prim2.Vertex(0, 0, 0);
-        prim2.TextureCrd(back_tex.width, back_tex.height);
-        prim2.Vertex(back_tex.width, back_tex.height, 0);
-        prim2.End();
+        ((mgCDrawPrim *)prim2)->Direct( 0x3B, 0x80 | ((u_long)0x80 << 32));
+        ((mgCDrawPrim *)prim2)->Texture(&back_tex);
+        ((mgCDrawPrim *)prim2)->Color(0x80, 0x80, 0x80, blur_alpha);
+        ((mgCDrawPrim *)prim2)->TextureCrd(0, 0);
+        ((mgCDrawPrim *)prim2)->Vertex(0, 0, 0);
+        ((mgCDrawPrim *)prim2)->TextureCrd(back_tex.width, back_tex.height);
+        ((mgCDrawPrim *)prim2)->Vertex(back_tex.width, back_tex.height, 0);
+        ((mgCDrawPrim *)prim2)->End();
     }
 }
 

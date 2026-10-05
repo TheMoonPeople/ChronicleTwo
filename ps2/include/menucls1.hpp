@@ -169,7 +169,7 @@ public:
      * @address 0x21F7F0
      * @size 0x90
      */
-    char YesNoCursor();
+    int YesNoCursor();
 
     /**
      *
@@ -190,7 +190,7 @@ public:
      * @address 0x21F970
      * @size 0x10
      */
-    char GetMsgCursor();
+    int GetMsgCursor();
 
     /**
      *

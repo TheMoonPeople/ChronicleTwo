@@ -195,7 +195,7 @@ int CheckBitFlagMenu(int flag) {
     }
     return 0;
 }
-short CheckShortFlagMenu(int flag) {
+int CheckShortFlagMenu(int flag) {
     CSaveData *saveData;
 
     saveData = GetSaveData();
@@ -391,8 +391,8 @@ int MenuMainKey(void) {
                         pageTable = at_1514__4;
                         MenuCommonInfo->now_mode = pageTable.next[page];
                         MenuCommonInfo->key_enable = 1;
-                        if (MenuCommonInfo->how_much_form != NULL) {
-                            MenuCommonInfo->how_much_form->draw_flag = 1;
+                        if (MenuCommonInfo->cursor_form != NULL) {
+                            MenuCommonInfo->cursor_form->draw_flag = 1;
                         }
                         MenuCommonInfo->CursorFadeIn(10.0f, 1);
                         MenuCommonInfo->SetVibeCnt(60, 30);
@@ -526,7 +526,7 @@ void MenuCamInit(float roll) {
     *(u_long128 *)MenuDrawEnv->ref = *(u_long128 *)menu_basedgRef;
     *(u_long128 *)MenuDrawEnv->pos = *(u_long128 *)menu_basedgCamPos;
     MenuDrawEnv->speed = roll;
-    MenuDrawEnv->camera.Stay();
+    MenuDrawEnv->camera.Resume();
 }
 void MenuWorldTrans(void) {
     mgCCamera *camera;
@@ -574,13 +574,14 @@ u_int *GetMenuMainIMGPtr(void) {
 u_int *GetMenuMainPosCfgBuffer(int *size) {
     return GetPackFile(MenuArg.pack, at_1640, size);
 }
+extern "C" int GetBitCtrl__9CSaveDataFv(CSaveData *);
 void SetCommonMenuModeID(void) {
     int table;
     int bitCtrl;
     int i;
 
     table = MenuCommonInfo->open_type;
-    bitCtrl = GetSaveData()->GetBitCtrl();
+    bitCtrl = GetBitCtrl__9CSaveDataFv(GetSaveData());
     if (table == 0x10) {
         table = 0;
     }
@@ -600,7 +601,7 @@ void SetCommonMenuModeID(void) {
 int *GetCommonMenuModeID(void) {
     return CommonMenuModeID2;
 }
-bool CursorSaveOptionState(void) {
+u8 CursorSaveOptionState(void) {
     CSaveData *saveData = GetSaveData();
     u8 r = 0;
     if (saveData != NULL)
@@ -801,15 +802,17 @@ void MenuDebugModeDraw() {
 
     float margin = 6.0f, width = 110.0f, height = 24.0f;
     struct {
-        CFont font;
-        u8 tail[0xB8 - sizeof(CFont)];
+        u8 prefix[0x94];
+        int x;
+        int y;
+        u8 tail[0x1C];
     } menuFont;
     mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *)0);
     DrawMenuFillBox(margin, margin, width, height, 0x5C, 0, 0, 0);
     __ct__9CMenuFontFv(&menuFont);
-    menuFont.font.SetStr(at_2450);
-    menuFont.font.SetPos(6, 6);
-    DrawDirect__5CFontFPcii(&menuFont, (char *)&menuFont, menuFont.font.pos_x, menuFont.font.pos_y);
+    ((CFont *)&menuFont)->SetStr(at_2450);
+    ((CFont *)&menuFont)->SetPos(6, 6);
+    DrawDirect__5CFontFPcii(&menuFont, (char *)&menuFont, menuFont.x, menuFont.y);
 }
 void BookshelfMessageMake(ClsMes *message, int baseWindow, int itemNo, int monsterNo) {
 

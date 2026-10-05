@@ -204,7 +204,9 @@ public:
      * @address 0x12C390
      * @size 0x30
      */
+#ifndef MG_DRAWPRIM_MANUAL_CTOR
     mgCTexture();
+#endif
 
     /**
      * Returns the texture to the free state: no block, no name, no pixels

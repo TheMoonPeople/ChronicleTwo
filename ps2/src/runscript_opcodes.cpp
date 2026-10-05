@@ -39,10 +39,11 @@ extern CScene *nowScene;
 extern CActiveMonster *nowMonster;
 extern ACTION_DAMAGE *LastCInfo2;
 extern int (*ext_func[256])(RS_STACKDATA *, int);
-extern sceVu0FVECTOR at_1480__2;
-extern sceVu0FVECTOR at_1481__2;
-extern sceVu0FVECTOR at_1864;
-extern sceVu0FVECTOR at_2160;
+union ScriptVector { float f[4]; u_long128 qw; };
+extern ScriptVector at_1480__2;
+extern ScriptVector at_1481__2;
+extern ScriptVector at_1864;
+extern ScriptVector at_2160;
 extern RS_EXTFUNC_INFO ext_func_info[];
 extern char at_1728[23];
 extern char at_1733[22];
@@ -156,7 +157,7 @@ int _GET_TARGET_ROT(RS_STACKDATA *stack, int argument_count) {
     if (target == NULL) {
         return 0;
     }
-    target->GetPosition(pos);
+    target->GetRotation(pos);
     SetStack__FP12RS_STACKDATAf(stack++, pos[0]);
     SetStack__FP12RS_STACKDATAf(stack++, pos[1]);
     SetStack__FP12RS_STACKDATAf(stack, pos[2]);
@@ -750,10 +751,10 @@ int _SET_ESCAPE_RATE(RS_STACKDATA *stack, int argc) {
     float scale = GetStackFloat__FP12RS_STACKDATA(stack);
     monster->tbl->escape_rate[0] = fptosi((float)monster->base_tbl->escape_rate[0] * scale);
     monster->tbl->escape_rate[1] = fptosi((float)monster->base_tbl->escape_rate[1] * scale);
-    if (monster->tbl->escape_rate[0] > 100) {
+    if ((u8)monster->tbl->escape_rate[0] > 100) {
         monster->tbl->escape_rate[0] = 100;
     }
-    if (monster->tbl->escape_rate[1] > 100) {
+    if ((u8)monster->tbl->escape_rate[1] > 100) {
         monster->tbl->escape_rate[1] = 100;
     }
     return 1;
@@ -775,7 +776,7 @@ int _SET_GUARD_RATE(RS_STACKDATA *stack, int argc) {
     }
     float scale = GetStackFloat__FP12RS_STACKDATA(stack);
     monster->tbl->guard_rate = fptosi((float)monster->base_tbl->guard_rate * scale);
-    if (monster->tbl->guard_rate > 100) {
+    if ((u8)monster->tbl->guard_rate > 100) {
         monster->tbl->guard_rate = 100;
     }
     return 1;
@@ -892,8 +893,8 @@ int _ESM_ALL_CLEAR(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 int _GET_ANGLE_INNER(RS_STACKDATA *stack, int argc) {
-    sceVu0FVECTOR first;
-    sceVu0FVECTOR second;
+    ScriptVector first;
+    ScriptVector second;
     float matrix[4][4];
     float rotated[4][4];
     if (argc != 3) {
@@ -901,14 +902,14 @@ int _GET_ANGLE_INNER(RS_STACKDATA *stack, int argc) {
     }
     float angle_a = GetStackFloat__FP12RS_STACKDATA(stack++);
     float angle_b = GetStackFloat__FP12RS_STACKDATA(stack++);
-    sceVu0CopyVector(first, at_1480__2);
-    sceVu0CopyVector(second, at_1481__2);
+    first = at_1480__2;
+    second = at_1481__2;
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(rotated, matrix, angle_a);
-    sceVu0ApplyMatrix(first, rotated, first);
+    sceVu0ApplyMatrix(first.f, rotated, first.f);
     sceVu0RotMatrixY(rotated, matrix, angle_b);
-    sceVu0ApplyMatrix(second, rotated, second);
-    SetStack__FP12RS_STACKDATAf(stack, sceVu0InnerProduct(first, second));
+    sceVu0ApplyMatrix(second.f, rotated, second.f);
+    SetStack__FP12RS_STACKDATAf(stack, sceVu0InnerProduct(first.f, second.f));
     return 1;
 }
 extern "C" int _CAMERA_QUAKE__FP12RS_STACKDATAi(RS_STACKDATA *stack, int argc) {
@@ -994,26 +995,26 @@ int _V_PUSH(RS_STACKDATA *stack, int argc) {
     if (stack->type == 0) {
         if (index < MONSTER_VAR_MAX) {
             int value = GetStackInt__FP12RS_STACKDATA(stack);
-            int *vars = nowMonster->var;
-            vars[index] = value;
+            ScriptVariable *vars = nowMonster->var;
+            vars[index].i = value;
         }
         if (index >= MONSTER_VAR_MAX && index < 0x88) {
             int value = GetStackInt__FP12RS_STACKDATA(stack);
-            int *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
-            vars[index] = value;
+            ScriptVariable *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
+            vars[index].i = value;
         }
         return 1;
     }
     if (stack->type == 1) {
         if (index < MONSTER_VAR_MAX) {
             float value = GetStackFloat__FP12RS_STACKDATA(stack);
-            int *vars = nowMonster->var;
-            ((float *)vars)[index] = value;
+            ScriptVariable *vars = nowMonster->var;
+            vars[index].f = value;
         }
         if (index >= MONSTER_VAR_MAX && index < 0x88) {
             float value = GetStackFloat__FP12RS_STACKDATA(stack);
-            int *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
-            ((float *)vars)[index] = value;
+            ScriptVariable *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
+            vars[index].f = value;
         }
         return 1;
     }
@@ -1033,22 +1034,22 @@ int _V_POP(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *slot = (RS_STACKDATA *)stack->i;
     if (slot->type == 0) {
         if (index < MONSTER_VAR_MAX) {
-            int *vars = nowMonster->var;
-            SetStack__FP12RS_STACKDATAi(stack, vars[index]);
+            ScriptVariable *vars = nowMonster->var;
+            SetStack__FP12RS_STACKDATAi(stack, vars[index].i);
         }
         if (index >= MONSTER_VAR_MAX && index < 0x88) {
-            int *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
-            SetStack__FP12RS_STACKDATAi(stack, vars[index]);
+            ScriptVariable *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
+            SetStack__FP12RS_STACKDATAi(stack, vars[index].i);
         }
         return 1;
     } else if (slot->type == 1) {
         if (index < MONSTER_VAR_MAX) {
-            int *vars = nowMonster->var;
-            SetStack__FP12RS_STACKDATAf(stack, ((float *)vars)[index]);
+            ScriptVariable *vars = nowMonster->var;
+            SetStack__FP12RS_STACKDATAf(stack, vars[index].f);
         }
         if (index >= MONSTER_VAR_MAX && index < 0x88) {
-            int *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
-            SetStack__FP12RS_STACKDATAf(stack, ((float *)vars)[index]);
+            ScriptVariable *vars = ActiveMonster->share_var - MONSTER_VAR_MAX;
+            SetStack__FP12RS_STACKDATAf(stack, vars[index].f);
         }
         return 1;
     }
@@ -1065,8 +1066,8 @@ int _V_PUSH2(RS_STACKDATA *stack, int argc) {
     if (stack->type == 0) {
         if (index < MONSTER_VAR2_MAX) {
             int value = GetStackInt__FP12RS_STACKDATA(stack);
-            int *vars = nowMonster->var2;
-            vars[index] = value;
+            ScriptVariable *vars = nowMonster->var2;
+            vars[index].i = value;
         } else {
             return 0;
         }
@@ -1074,8 +1075,8 @@ int _V_PUSH2(RS_STACKDATA *stack, int argc) {
     } else if (stack->type == 1) {
         if (index < MONSTER_VAR2_MAX) {
             float value = GetStackFloat__FP12RS_STACKDATA(stack);
-            int *vars = nowMonster->var2;
-            ((float *)vars)[index] = value;
+            ScriptVariable *vars = nowMonster->var2;
+            vars[index].f = value;
         } else {
             return 0;
         }
@@ -1097,16 +1098,16 @@ int _V_POP2(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *slot = (RS_STACKDATA *)stack->i;
     if (slot->type == 0) {
         if (index < MONSTER_VAR2_MAX) {
-            int *vars = nowMonster->var2;
-            SetStack__FP12RS_STACKDATAi(stack, vars[index]);
+            ScriptVariable *vars = nowMonster->var2;
+            SetStack__FP12RS_STACKDATAi(stack, vars[index].i);
         } else {
             return 0;
         }
         return 1;
     } else if (slot->type == 1) {
         if (index < MONSTER_VAR2_MAX) {
-            int *vars = nowMonster->var2;
-            SetStack__FP12RS_STACKDATAf(stack, ((float *)vars)[index]);
+            ScriptVariable *vars = nowMonster->var2;
+            SetStack__FP12RS_STACKDATAf(stack, vars[index].f);
         } else {
             return 0;
         }
@@ -1361,7 +1362,7 @@ int _SET_PLACE_POS(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 int _SEARCH_AREA(RS_STACKDATA *stack, int argc) {
-    sceVu0FVECTOR dir;
+    ScriptVector dir;
     float pos[4];
     float rot[4];
     float matrix[4][4];
@@ -1370,18 +1371,18 @@ int _SEARCH_AREA(RS_STACKDATA *stack, int argc) {
     }
     float distance = GetStackFloat__FP12RS_STACKDATA(stack++);
     float angle = GetStackFloat__FP12RS_STACKDATA(stack++);
-    sceVu0CopyVector(dir, at_1864);
+    dir = at_1864;
     ((CActionChara *)nowMonster)->GetPosition(pos);
     ((CActionChara *)nowMonster)->GetRotation(rot);
     rot[1] = mgAngleLimit(rot[1] + angle);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, rot[1]);
-    sceVu0ApplyMatrix(dir, matrix, dir);
-    sceVu0ScaleVector(dir, dir, distance);
-    sceVu0AddVector(dir, dir, pos);
+    sceVu0ApplyMatrix(dir.f, matrix, dir.f);
+    sceVu0ScaleVector(dir.f, dir.f, distance);
+    sceVu0AddVector(dir.f, dir.f, pos);
     pos[1] += 100.0f;
-    dir[1] += 100.0f;
-    SetStack__FP12RS_STACKDATAf(stack, SearchArea(nowScene, pos, dir, distance));
+    dir.f[1] += 100.0f;
+    SetStack__FP12RS_STACKDATAf(stack, SearchArea(nowScene, pos, dir.f, distance));
     return 1;
 }
 int _SEARCH_AREA2(RS_STACKDATA *stack, int argc) {
@@ -1548,14 +1549,14 @@ int _SET_NEXT_POS(RS_STACKDATA *stack, int argc) {
     nowMonster->next_pos[0] = target[0];
     nowMonster->next_pos[1] = target[1];
     nowMonster->next_pos[2] = target[2];
-    nowMonster->accele.move_speed = GetStackFloat__FP12RS_STACKDATA(stack++);
+    nowMonster->move_speed = GetStackFloat__FP12RS_STACKDATA(stack++);
     nowMonster->arrive_dist = 20.0f;
     if (argc >= 5) {
         nowMonster->arrive_dist = GetStackFloat__FP12RS_STACKDATA(stack);
     }
     ((CActionChara *)nowMonster)->GetPosition(pos);
     if (mgDistVector(target, pos) < nowMonster->arrive_dist) {
-        nowMonster->accele.move_speed = 0.0f;
+        nowMonster->move_speed = 0.0f;
     }
     return 1;
 }
@@ -1817,7 +1818,7 @@ int _GET_REF_ROT2(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 int _FLYING_SEARCH_AREA(RS_STACKDATA *stack, int argc) {
-    sceVu0FVECTOR dir;
+    ScriptVector dir;
     float pos[4];
     float rot[4];
     float matrix[4][4];
@@ -1826,16 +1827,16 @@ int _FLYING_SEARCH_AREA(RS_STACKDATA *stack, int argc) {
     }
     float distance = GetStackFloat__FP12RS_STACKDATA(stack++);
     float angle = GetStackFloat__FP12RS_STACKDATA(stack++);
-    sceVu0CopyVector(dir, at_2160);
+    dir = at_2160;
     ((CActionChara *)nowMonster)->GetPosition(pos);
     ((CActionChara *)nowMonster)->GetRotation(rot);
     rot[1] = mgAngleLimit(angle);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, rot[1]);
-    sceVu0ApplyMatrix(dir, matrix, dir);
-    sceVu0ScaleVector(dir, dir, distance);
-    sceVu0AddVector(dir, dir, pos);
-    SetStack__FP12RS_STACKDATAf(stack, SearchArea(nowScene, pos, dir, distance));
+    sceVu0ApplyMatrix(dir.f, matrix, dir.f);
+    sceVu0ScaleVector(dir.f, dir.f, distance);
+    sceVu0AddVector(dir.f, dir.f, pos);
+    SetStack__FP12RS_STACKDATAf(stack, SearchArea(nowScene, pos, dir.f, distance));
     return 1;
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript_opcodes", _GET_HIGH2__FP12RS_STACKDATAi);
@@ -2305,7 +2306,7 @@ int _SET_BIT_FLAG(RS_STACKDATA *stack, int argument_count) {
 int _GET_ATT_TYPE(RS_STACKDATA *stack, int argument_count) {
     if (argument_count != 1)
         return 0;
-    SetStack__FP12RS_STACKDATAi(stack, nowMonster->attack_type);
+    SetStack__FP12RS_STACKDATAi(stack, nowMonster->att_type);
     return 1;
 }
 int _GET_USER_ATTR(RS_STACKDATA *stack, int argument_count) {
@@ -2372,7 +2373,7 @@ int _GET_NEAR_MONS_POS(RS_STACKDATA *stack, int argument_count) {
                     *(u_long128 *)nearest_pos = *(u_long128 *)other_pos;
                 }
             } else {
-                *(sceVu0FVECTOR *)nearest_pos = *(sceVu0FVECTOR *)other_pos;
+                *(u_long128 *)nearest_pos = *(u_long128 *)other_pos;
                 nearest_dist = mgDistVector(pos, nearest_pos);
             }
         }
@@ -2465,7 +2466,7 @@ int _MONS_SE_LOOP(RS_STACKDATA *stack, int argument_count) {
 int _MONS_VOL_CTRL(RS_STACKDATA *stack, int argument_count) {
     if (argument_count != 1)
         return 0;
-    nowMonster->se_volume = GetStackInt__FP12RS_STACKDATA(stack);
+    nowMonster->se_positional = GetStackInt__FP12RS_STACKDATA(stack);
     return 1;
 }
 int _SET_MAPOBJ_SHOW(RS_STACKDATA *stack, int argument_count) {

@@ -96,6 +96,26 @@ public:
      * @size 0x20
      */
     void Set(T new_left, T new_top, T new_right, T new_bottom);
+} __attribute__((aligned(16)));
+
+template <>
+class mgRect<short> {
+public:
+    short left;
+    short top;
+    short right;
+    short bottom;
+
+    mgRect() { Set(0, 0, 0, 0); }
+    mgRect(short new_left, short new_top, short new_right, short new_bottom) {
+        Set(new_left, new_top, new_right, new_bottom);
+    }
+    void Set(short new_left, short new_top, short new_right, short new_bottom) {
+        left = new_left;
+        top = new_top;
+        right = new_right;
+        bottom = new_bottom;
+    }
 };
 
 template <class T>
@@ -153,7 +173,8 @@ public:
 
 template <class T>
 void CList<T>::Initialize() {
-    next = prev = 0;
+    prev = 0;
+    next = 0;
 }
 
 /**

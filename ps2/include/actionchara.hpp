@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include <cstring>
 
 #include <cstring>
 #include <libvu0.h>
@@ -332,7 +333,9 @@ public:
      * @address 0x1ACF40
      * @size 0xC0
      */
-    CActionChara();
+    CActionChara() {
+        memset(&move_check, 0, sizeof(move_check));
+    }
 
     /**
      * Stops the character speeding up.

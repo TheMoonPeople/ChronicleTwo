@@ -15,7 +15,11 @@ const int kTerritoryRadiusOffset = 0x270;
 const int kTerritoryHeightOffset = 0x274;
 const int kNoTerritoryFlags = 0xAC2;
 
-extern u_long128 at_418;
+union EditPartsPosition {
+    float f[4];
+    u_long128 qw;
+};
+extern EditPartsPosition at_418;
 
 // Code (.text)
 void CEditPartsInfo::Initialize() {
@@ -116,7 +120,7 @@ int CEditHouse::LiveChara() {
 }
 void CEditParts::Initialize() {
     piece_list = 0;
-    move_flag = 0;
+    anime_list = 0;
     info = 0;
     state = 0;
     house = 0;
@@ -144,11 +148,11 @@ void CEditParts::SetPosition(float *pos) {
 }
 void CEditParts::SetPosition(float x, float y, float z) {
     float pos[4];
-    *(u_long128 *)pos = at_418;
+    *(EditPartsPosition *)pos = at_418;
     pos[0] = x;
     pos[1] = y;
     pos[2] = z;
-    SetPosition(pos);
+    ((mgCObject *)this)->SetPosition(pos);
 }
 void CEditParts::GetPosition(float *pos) {
     GetLocalPos(pos);

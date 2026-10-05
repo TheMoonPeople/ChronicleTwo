@@ -157,9 +157,7 @@ void PreExitLoop(CScene *scene) {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditInit__F13INIT_LOOP_ARG);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __as__15CameraCtrlParamFRC15CameraCtrlParam);
-CActionChara::CActionChara() {
-    memset(&move_check, 0, sizeof(move_check));
-}
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __ct__12CActionCharaFv);
 void EditExit(void) {
     sndSeAllStop(1);
     MainScene__2->InitSeSrc();

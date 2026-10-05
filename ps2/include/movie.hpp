@@ -212,7 +212,7 @@ public:
      * @address 0x29C470
      * @size 0x480
      */
-    void Load(char *name, mgCMemory **memory, int width, int height, bool with_audio, bool loop,
+    int Load(char *name, mgCMemory **memory, int width, int height, bool with_audio, bool loop,
               bool init_sound);
 
     /**
@@ -223,7 +223,7 @@ public:
      * @address 0x29C8F0
      * @size 0x60
      */
-    void Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop);
+    int Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop);
 
     /**
      * Allocates every work buffer from one memory manager and loads the
@@ -233,7 +233,7 @@ public:
      * @address 0x29C950
      * @size 0x50
      */
-    void Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop,
+    int Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop,
               bool init_sound);
 
     /**
@@ -282,7 +282,7 @@ public:
      * @address 0x29CD90
      * @size 0x10
      */
-    bool IsStarted();
+    int IsStarted();
 
     /**
      * Returns the size in bytes of the decoded frame buffers.

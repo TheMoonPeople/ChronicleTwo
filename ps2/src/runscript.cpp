@@ -107,7 +107,7 @@ void CRunScript::push(RS_STACKDATA data) {
     RS_STACKDATA *slot = sp;
     sp++;
     slot->type = data.type;
-    slot->i = data.i;
+    *(float *)&slot->i = *(float *)&data.i;
 }
 void CRunScript::push_int(int value) {
     check_stack();
@@ -175,7 +175,7 @@ void CRunScript::load(RS_PROG_HEADER *program, RS_STACKDATA *values, int value_c
     stack_end = stack + value_count;
     call_end = call + call_count;
     prog = program;
-    code = (char *)prog + prog->code;
+    code = (char *)program + program->code;
     if (strncmp((char *)prog, at_300__3, 3) == 0) {
         version = RS_VERSION_2;
         global = stack;
@@ -197,12 +197,24 @@ void CRunScript::resume() {
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript", run__10CRunScriptFi);
-int CRunScript::check_program(int no) {
-    RS_PROGDATA *entries = (RS_PROGDATA *)((u8 *)prog + prog->prog);
-    for (int i = 0; i < prog->prog_num; i++) {
-        if (entries[i].no == no) {
-            return 1;
-        }
+extern "C" int check_program__10CRunScriptFi(CRunScript *self, int no) {
+    int count;
+    int offset;
+    int i = 0;
+    self = (CRunScript *)self->prog;
+    offset = ((RS_PROG_HEADER *)self)->prog;
+    int *entry = (int *)((u8 *)self + offset);
+    count = ((RS_PROG_HEADER *)self)->prog_num;
+    goto test;
+next:
+    if (*entry == no) {
+        return 1;
+    }
+    i++;
+    entry += 2;
+test:
+    if (i < count) {
+        goto next;
     }
     return 0;
 }

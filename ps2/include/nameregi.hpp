@@ -80,6 +80,7 @@ STATIC_ASSERT(sizeof(NAMEREGI_TARGET_INFO) == 0x48);
  */
 struct MENU_SELECT_PARAM {
     int pos; /**< Cell the cursor is on, counted row by row. */
+    int row;
 };
 
 /**
@@ -88,7 +89,7 @@ struct MENU_SELECT_PARAM {
  *
  */
 struct NAMEREGI_KANJI_NODE {
-    char code[2];              /**< Shift-JIS code of the kanji. */
+    u8 code[2];              /**< Shift-JIS code of the kanji. */
     u8 unk_2[2];
     NAMEREGI_KANJI_NODE *next; /**< Next kanji of the reading, or NULL. */
 };
@@ -99,7 +100,7 @@ struct NAMEREGI_KANJI_NODE {
  *
  */
 struct NAMEREGI_KANJI_INDEX {
-    char code[2];              /**< Shift-JIS code the reading starts at. */
+    u8 code[2];              /**< Shift-JIS code the reading starts at. */
     u8 unk_2[2];
     s16 num;                   /**< Number of kanji in the list. */
     u8 unk_6[2];
@@ -118,7 +119,6 @@ class CNameRegiMenu : public CBaseMenuClass {
 public:
     int select_mode;            /**< Row of NameStrSelectModeTable for the character set shown. */
     MENU_SELECT_PARAM select;   /**< Cursor on the character grid. */
-    int kanji_line;             /**< First row of the kanji grid shown. */
     int command_pos;            /**< Button the cursor is on in the row below the grid. */
     s32 unk_120;
     int kanji_cell_num;         /**< Number of cells of the kanji grid, readings included. */
@@ -396,7 +396,7 @@ void NameRegistDraw();
  * @address 0x312700
  * @size 0x40
  */
-int ConvertNameRegiBaseBoardTable(int font_mode);
+s8 ConvertNameRegiBaseBoardTable(int font_mode);
 
 /**
  * What the name entry screen is to name.

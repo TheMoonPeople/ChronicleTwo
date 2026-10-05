@@ -17,7 +17,7 @@
 #include "menuchr.hpp"
 #include "dataread.hpp"
 #include "mglib.hpp"
-#include <cstdio>
+extern "C" int sprintf(...);
 #include <cstdlib>
 #include <cmath>
 #include <cstring>
@@ -86,6 +86,7 @@ extern "C" int MenuDl_ProcessSize;
 extern "C" void *__ct__9CMenuFontFv(void *font);
 
 extern "C" void SetStr__5CFontFPc(void *font, char *text);
+extern "C" void SetPos__5CFontFii(void *font, int x, int y);
 
 extern "C" void DrawDirect__5CFontFPcii(void *font, char *text, int x, int y);
 
@@ -234,7 +235,7 @@ mgCTexture *GetMenuDlTexture(void);
 
 float *GetMenuMainFrameLeftTopPos(int frame);
 
-char *GetMenuMainIconChar(int iconNo);
+void *GetMenuMainIconChar(int iconNo);
 
 CStarDust *CheckNotRunStarDust(CStarDust *dusts, int count);
 
@@ -411,12 +412,7 @@ void PrimQuad(mgCDrawPrim *prim, float x, float y, mgRect<int> cell) {
 void PrimQuad(mgCTexture *texture, float x, float y, mgRect<int> cell, int alpha, int red, int green,
               int blue) {
 
-    struct {
-        mgCDrawPrim prim;
-        u8 padding[0x20];
-    } local;
-    mgCDrawPrim &prim = local.prim;
-    __ct__11mgCDrawPrimFv(&prim);
+    mgCDrawPrim prim;
     SetSpriteEnv(&prim, 0);
     prim.Begin(6);
     prim.Texture(texture);
@@ -438,12 +434,7 @@ void PrimQuad(mgCDrawPrim *prim, mgCTexture *texture, float x, float y, mgRect<i
 void PrimQuad(mgCTexture *texture, mgRect<int> dest, mgRect<int> source, int alpha, int red, int green,
               int blue) {
 
-    struct {
-        mgCDrawPrim prim;
-        u8 padding[0x20];
-    } local;
-    mgCDrawPrim &prim = local.prim;
-    __ct__11mgCDrawPrimFv(&prim);
+    mgCDrawPrim prim;
     SetSpriteEnv(&prim, 0);
     prim.Begin(6);
     prim.Texture(texture);
@@ -655,14 +646,11 @@ void DrawMenuDl(int alpha) {
     char text[0x80];
 
     struct {
-        union {
-            CFont font;
-            struct {
-                u8 padding[0x90];
-                int alpha;
-            } view;
-        };
-        u8 tail[0xB8 - sizeof(CFont)];
+        u8 padding[0x90];
+        int alpha;
+        int pos_x;
+        int pos_y;
+        u8 tail[0x1C];
     } menuFont;
     int loaded_tex_no;
     int caption_height;
@@ -685,12 +673,12 @@ void DrawMenuDl(int alpha) {
             memset(text, 0, 0x80);
             ConvertFontCode__FPcPc(tbl_1689[language][step], text);
             __ct__9CMenuFontFv(&menuFont);
-            menuFont.view.alpha = alpha;
+            menuFont.alpha = alpha;
             SetStr__5CFontFPc(&menuFont, text);
             CalcDrawWH__5CFontFPcPiPi(&menuFont, (char *)&menuFont, &caption_width, &caption_height);
-            menuFont.font.SetPos((0x200 - caption_width) >> 1, 0x86);
-            DrawDirect__5CFontFPcii(&menuFont, (char *)&menuFont, menuFont.font.pos_x,
-                                    menuFont.font.pos_y);
+            SetPos__5CFontFii(&menuFont, (0x200 - caption_width) >> 1, 0x86);
+            DrawDirect__5CFontFPcii(&menuFont, (char *)&menuFont, menuFont.pos_x,
+                                    menuFont.pos_y);
         }
     }
 }
@@ -715,7 +703,7 @@ void DrawMenuMainFrmImg(int &loaded_tex_no, mgRect<int> dest, mgRect<int> source
         prim->End();
     }
 }
-u8 GetMenuMainFrameEndFlag(void) {
+int GetMenuMainFrameEndFlag(void) {
     return MenuMainFrame_ActionEndFlag;
 }
 float *GetMenuMainFrameLeftTopPos(int frame) {
@@ -867,7 +855,7 @@ void MenuFormPartsPresetItem(MENUFORMPARTS_TYPE *part, int visible, int value34,
         part->etc_info[0] = 0;
         part->etc_info[1] = value34;
 
-        *(int *)part->etc_info[2] = value38;
+        part->etc_info[2] = value38;
         Func_MenuItemIconSetEffectOne(part);
     }
 }
@@ -984,6 +972,7 @@ void CMenuPosDataForm::FormFadeIn(int frames, int reset) {
     SetRGBACalcParam(3, 0x80 / frames, 0x80);
 }
 #pragma divbyzerocheck reset
+#pragma divbyzerocheck on
 void CMenuPosDataForm::FormFadeOut(int frames, int reset) {
     int i;
     if (reset != 0) {
@@ -999,6 +988,7 @@ void CMenuPosDataForm::FormFadeOut(int frames, int reset) {
     }
     SetRGBACalcParam(3, -0x80 / frames, 0);
 }
+#pragma divbyzerocheck reset
 void CMenuPosDataForm::SetNumber(char *part_name, int number) {
     MENUFORMPARTS_TYPE *part = GetPartInfo(part_name);
     if (part != NULL) {
@@ -1130,7 +1120,7 @@ void CMenuPosDataForm::SetAction(char *action) {
     int i = 0;
     int offset = 0;
     while (i < action_num) {
-        if (strcmp(action, (char *)action + offset) == 0) {
+        if (strcmp(action, (char *)this->action + offset) == 0) {
             *(short *)((u8 *)this + 0x5E) = i;
             *(short *)((u8 *)this + 0x60) = 1;
             return;
@@ -1343,9 +1333,9 @@ void CPosDataManage::EtcTbl2Clear(int from, int to) {
         } while (i < count);
     }
 }
-char *GetMenuMainIconChar(int icon_no) {
-    sprintf((char *)temp_3925, (char *)at_3927, icon_no - 2);
-    return (char *)temp_3925;
+void *GetMenuMainIconChar(int icon_no) {
+    sprintf(&temp_3925, &at_3927, icon_no - 2);
+    return &temp_3925;
 }
 CMenuPosDataForm *CPosDataManage::GetFormInfo(char *name) {
     CMenuPosDataForm *form;
@@ -1396,7 +1386,7 @@ void CPosDataManage::SetFormPos(char *name, int *pos) {
     }
 }
 void CPosDataManage::InitDrawList() {
-    CMenuPosDataForm *form = form;
+    CMenuPosDataForm *form = this->form;
     CMenuPosDataForm *prev = NULL;
     CMenuPosDataForm *next;
     int i = 0;
@@ -1601,13 +1591,12 @@ int CheckItemUseVariable(CGameDataUsed *item, CItemUseTarget *target) {
 }
 void Func_MenuItemBrdPrepare(MENUFORMPARTS_TYPE *parts, CGameDataUsed *items, CGameDataUsed *used,
                              int target_kind) {
-    CItemUseTarget target;
     CGameDataUsed *item;
     int count;
     int i;
 
     if (parts != NULL) {
-        target.type = -1;
+        CItemUseTarget target;
         count = GetNowBagMax(1);
         i = 0;
         if (0 < count) {
@@ -1624,7 +1613,6 @@ void Func_MenuItemBrdPrepare(MENUFORMPARTS_TYPE *parts, CGameDataUsed *items, CG
 }
 void Func_MenuItemBrdPrepare2(MENUFORMPARTS_TYPE *parts, CGameDataUsed *items,
                               CGameDataUsed *used) {
-    CItemUseTarget target;
     int count;
     int i;
     int offset;
@@ -1646,7 +1634,7 @@ void Func_MenuItemBrdPrepare2(MENUFORMPARTS_TYPE *parts, CGameDataUsed *items,
             if (item_no == 0x17D) {
                 parts->item_flag = 0;
             } else {
-                target.type = -1;
+                CItemUseTarget target;
                 target.SetPtr(1, (u8 *)items + offset);
                 parts->item_flag = CheckItemUseVariable(used, &target);
             }
@@ -1733,7 +1721,7 @@ int NowUseNeedItemCheck(CUserDataManager *manager) {
         }
     } else if (active_chara == 2) {
 
-        if (manager->robo_data.parts[0].GetWHp(NULL) < 0.2f) {
+        if (((CGameDataUsed *)&((ROBO_DATA *)&manager->robo_data)->parts[0])->GetWHp(NULL) < 0.2f) {
             needs |= 0x8000;
         }
     } else if (active_chara == 3) {
@@ -2024,7 +2012,7 @@ void CRepairManager::SetStack(mgCMemory *memory, int mode) {
     int top;
     int used = memory->stack_used;
     int end = memory->stack_size;
-    int base = (int)memory->stack;
+    int base = *(int *)&memory->stack;
 
     i = 0;
     top = base + (used << 4) + ((end - used) << 4);
@@ -2034,7 +2022,7 @@ void CRepairManager::SetStack(mgCMemory *memory, int mode) {
             effect_stack[i].stSetBuffer((u_long128 *)(top - 0x5000), 0x500);
         }
         if (mode == 1) {
-            top = (int)memory->stack + (memory->stack_used << 4);
+            top = *(int *)&memory->stack + (memory->stack_used << 4);
             effect_stack[i].stSetBuffer((u_long128 *)top, 0x500);
             memory->Alloc(0x501);
         }
@@ -2057,7 +2045,7 @@ void CRepairManager::LoadDataBG(mgCMemory *memory) {
         memory->lock = 0;
         memory->Align64();
         size = 0;
-        data = (unsigned int *)((int)memory->stack + (memory->stack_used << 4));
+        data = (unsigned int *)(*(int *)&memory->stack + (memory->stack_used << 4));
         StartReadBG();
         LoadFileBG((char *)at_4877, (u_long128 *)data, &size);
         if (((unsigned int)size & 0xF) != 0) {
@@ -2179,7 +2167,7 @@ void CLevelUpEffect::Generate(mgCTexture *spark_texture, int param, CCharacter2 
         l_levelup_generate_counter[i] = GetRandI(3) + 2;
     }
 }
-u8 CLevelUpEffect::IsRun(void) {
+int CLevelUpEffect::IsRun(void) {
     return active;
 }
 void CLevelUpEffect::Step() {
@@ -2395,29 +2383,25 @@ extern "C" void Draw__16CEffVerticalLineFv(CEffVerticalLine *line) {
     int screen_a[4];
     int screen_b[4];
 
-    struct {
-        mgCDrawPrim base;
-        u8 tail[0x20];
-    } primWithTail;
+    mgCDrawPrim prim;
     float alpha;
 
-    __ct__11mgCDrawPrimFv(&primWithTail.base);
-    SetSpriteEnv(&primWithTail.base, 4);
-    primWithTail.base.Coord(1);
-    primWithTail.base.DepthTestEnable(1);
-    primWithTail.base.Begin(6);
-    primWithTail.base.Texture(MenuVerticalLineTex);
+    SetSpriteEnv(&prim, 4);
+    prim.Coord(1);
+    prim.DepthTestEnable(1);
+    prim.Begin(6);
+    prim.Texture(MenuVerticalLineTex);
     if (mgTransWorldPrim3DSprite(screen_a, screen_b, &line->pos[0], line->w, line->h, 0) != 0) {
         alpha = line->alpha * sinf(line->angle);
         if (alpha <= 0.0f) {
             alpha = 0.0f;
         }
-        primWithTail.base.Color(fptosi(line->r), fptosi(line->g), fptosi(line->b),
+        prim.Color(fptosi(line->r), fptosi(line->g), fptosi(line->b),
                                 fptosi(alpha));
-        primWithTail.base.TextureCrd(0, 0x62);
-        primWithTail.base.Vertex4(screen_a);
-        primWithTail.base.TextureCrd(0xA, 0x80);
-        primWithTail.base.Vertex4(screen_b);
+        prim.TextureCrd(0, 0x62);
+        prim.Vertex4(screen_a);
+        prim.TextureCrd(0xA, 0x80);
+        prim.Vertex4(screen_b);
     }
     if (mgTransWorldPrim3DSprite(screen_a, screen_b, &line->pos[0], 3.6f * line->w, 1.5f * line->h,
                                  0) != 0) {
@@ -2426,14 +2410,14 @@ extern "C" void Draw__16CEffVerticalLineFv(CEffVerticalLine *line) {
             alpha = 0.0f;
         }
         alpha *= 0.2f;
-        primWithTail.base.Color(fptosi(line->r), fptosi(line->g), fptosi(line->b),
+        prim.Color(fptosi(line->r), fptosi(line->g), fptosi(line->b),
                                 fptosi(alpha));
-        primWithTail.base.TextureCrd(0, 0x62);
-        primWithTail.base.Vertex4(screen_a);
-        primWithTail.base.TextureCrd(0xA, 0x80);
-        primWithTail.base.Vertex4(screen_b);
+        prim.TextureCrd(0, 0x62);
+        prim.Vertex4(screen_a);
+        prim.TextureCrd(0xA, 0x80);
+        prim.Vertex4(screen_b);
     }
-    primWithTail.base.End();
+    prim.End();
 }
 void InitInitBuildUpInfoEffectPos() {
     int i;
@@ -2540,7 +2524,7 @@ int StepFishBoiledEffect() {
     for (i = 0; i < 8; i++) {
         fish_boiled_positin[i][1] -= 0.5f;
         fish_boiled_amp_count[i] = mgAngleLimit(0.052359879f + fish_boiled_amp_count[i]);
-        if (CalcMenuAdd(&fish_boiled_alpha[i], -2.0f, 0.0f) != 0) {
+        if (CalcMenuAdd(&(&fish_boiled_alpha)[0][i], -2.0f, 0.0f) != 0) {
             finished++;
         }
     }

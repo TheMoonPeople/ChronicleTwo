@@ -31,6 +31,10 @@ extern u_int *pcp_file;
 extern int pcpAllScissor;
 extern SPI_TAG_PARAM pcp_tag[];
 CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory);
+extern "C" void *__vt__9mgCObject[];
+extern "C" void *__vt__7CObject[];
+extern "C" void *__vt__12CObjectFrame[];
+extern "C" void *__vt__11CCharacter2[];
 
 extern char at_754[];
 
@@ -42,8 +46,11 @@ extern char at_829[];
 
 extern char at_830[];
 
-static u_int align16_blocks(u_int size) {
-    return (size + 15) >> 4;
+static inline u_int align16_blocks(u_int size) {
+    if (size & 15) {
+        return (size >> 4) + 1;
+    }
+    return size >> 4;
 }
 
 // Code (.text)
@@ -116,7 +123,7 @@ void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
     CCharacter2 *model;
 
     dest.Initialize();
-    ((CObjectFrame *)this)->Copy((CObjectFrame &)dest, memory);
+    CObjectFrame::Copy((CObjectFrame &)dest, memory);
     dest.name = name;
     dest.type = type;
     dest.draw_enable = draw_enable;
@@ -142,11 +149,24 @@ void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
             to->material_no = from->material_no;
             to->material = from->material;
             to->unk_c = from->unk_c;
-            sceVu0CopyVector(to->color, from->color);
+            struct Color { float v[4]; };
+            *(Color *)to->color = *(Color *)from->color;
         }
     }
     if (chara != NULL && memory != NULL) {
-        model = new (memory->Alloc(0x68)) CCharacter2;
+        if ((model = (CCharacter2 *)operator new(sizeof(CCharacter2), memory->Alloc(0x68))) != NULL) {
+            *(void ***)model = __vt__9mgCObject;
+            model->Initialize();
+            *(void ***)model = __vt__7CObject;
+            model->Initialize();
+            *(void ***)model = __vt__12CObjectFrame;
+            model->Initialize();
+            *(void ***)model = __vt__11CCharacter2;
+            model->shadow_link_num = 0;
+            model->shadow_link_shadow = 0;
+            model->shadow_link_model = 0;
+            model->Initialize();
+        }
         dest.chara = (CCharacter2 *)model;
         if (dest.chara != NULL) {
             chara->Copy(*dest.chara, memory);
@@ -160,7 +180,7 @@ void CMapPiece::Initialize() {
     int i;
     int offset;
 
-    ((CObjectFrame *)this)->Initialize();
+    CObjectFrame::Initialize();
     type = 0;
     chara = NULL;
     i = 0;
@@ -373,8 +393,9 @@ int CIMGList::LoadIMGFile(char *name, mgCEnterIMGInfo *info, mgCMemory *memory) 
         slot->info =
             (mgCEnterIMGInfo *)operator new(sizeof(mgCEnterIMGInfo), (u_long128 *)memory->Alloc(0x12));
         copy = slot->info;
-        memcpy(copy->block, info->block, sizeof(copy->block));
-        memcpy(copy->block_num, info->block_num, sizeof(copy->block_num));
+        struct Blocks { int v[32]; };
+        *(Blocks *)copy->block = *(Blocks *)info->block;
+        *(Blocks *)copy->block_num = *(Blocks *)info->block_num;
     }
     return 1;
 }
@@ -442,7 +463,6 @@ int pcpFAR_CLIP(SPI_STACK *stack, int argc) {
     return 1;
 }
 int pcpMDS_END(SPI_STACK *stack, int argc) {
-    mgCFrameAttr attr;
     int size;
     u_int *file;
     mgCFrame *frame;
@@ -475,6 +495,7 @@ int pcpMDS_END(SPI_STACK *stack, int argc) {
     }
     if (pcpAllScissor != 0 && frame != NULL) {
 
+        mgCFrameAttr attr;
         attr.clip_enable = 1;
         frame->SetAttrParam(attr, 1, 0x20);
     }
@@ -525,7 +546,19 @@ CMdsInfo::CMdsInfo() {
 CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory) {
     CCharacter2 *chara;
 
-    chara = new (memory->Alloc(0x68)) CCharacter2;
+    if ((chara = (CCharacter2 *)operator new(sizeof(CCharacter2), memory->Alloc(0x68))) != NULL) {
+        *(void ***)chara = __vt__9mgCObject;
+        chara->Initialize();
+        *(void ***)chara = __vt__7CObject;
+        chara->Initialize();
+        *(void ***)chara = __vt__12CObjectFrame;
+        chara->Initialize();
+        *(void ***)chara = __vt__11CCharacter2;
+        chara->shadow_link_num = 0;
+        chara->shadow_link_shadow = 0;
+        chara->shadow_link_model = 0;
+        chara->Initialize();
+    }
     if (chara == NULL) {
         return NULL;
     }

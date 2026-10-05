@@ -49,7 +49,10 @@ extern float at_1181__3[4];
 extern float at_1417__3[4];
 extern int at_1597__2[4];
 extern char at_1645__2[];
-extern int at_1774[4][3];
+struct RingColors {
+    int rgb[4][3];
+};
+extern RingColors at_1774;
 extern RS_EXTFUNC_INFO ext_func_info__3[];
 extern char at_1118__4[];
 extern char at_1202__2[];
@@ -88,6 +91,14 @@ struct AccumeSlot { mgCFrame *effect; char pad_4[0x28C]; int clear[32]; int mode
 extern "C" int fptosi(float);
 extern "C" int fptoui(float);
 void ParabolicInitialVector(float *result, float *from, float *to, float height, float gravity);
+
+union ScriptVector {
+    float value[4];
+    u_long128 quadword;
+};
+
+extern "C" void RemoveThrowItem__12CActionCharaFv(void *chara);
+extern "C" int GetModelNo__13CGameDataUsedFv(void *data);
 
 // Code (.text)
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", ParabolicInitialVector__FPfPfPfff);
@@ -386,7 +397,7 @@ int _SET_BLOW_MOVE(RS_STACKDATA *stack, int argc) {
     if (yaw < -3.1415927f) {
         yaw += 6.2831855f;
     }
-    *(sceVu0FVECTOR *)dir = *(sceVu0FVECTOR *)at_1181__3;
+    *(ScriptVector *)dir = *(ScriptVector *)at_1181__3;
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, yaw);
     sceVu0ApplyMatrix(dir, matrix, dir);
@@ -656,7 +667,7 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
         action_info.chara->Show(1, 1);
     }
     if (action_info.chara->hold_type == 1 && throw_it == 0) {
-        action_info.chara->RemoveThrowItem();
+        RemoveThrowItem__12CActionCharaFv(action_info.chara);
     }
     int chara_no = 0x18;
     if (action_info.chara->hold_type == 3) {
@@ -699,7 +710,7 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
                     held->catch_state = 2;
                     held->no_hit_time = 5;
                     held->damage_req = 6;
-                    *(sceVu0FVECTOR *)offset = *(sceVu0FVECTOR *)at_1417__3;
+                    *(ScriptVector *)offset = *(ScriptVector *)at_1417__3;
                     sceVu0CopyVector(held->velocity, offset);
                     action_info.chara->release_timing = 2;
                 }
@@ -887,7 +898,7 @@ int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc) {
     sceVu0CopyVector(facing, action_info.chara->front_vec);
     object->GetWorldPosition0(position);
     sceVu0CopyVector(direction, action_info.chara->front_vec);
-    *(sceVu0FVECTOR *)effects = *(sceVu0FVECTOR *)at_1597__2;
+    *(ScriptVector *)effects = *(ScriptVector *)at_1597__2;
     action_info.chara->effect_man->CreateEffSpt((char *)effects[info->GetMagicSwordElem()], 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
     action_info.chara->effect_man->SetScriptVect2(direction, 0, -1);
@@ -945,7 +956,7 @@ int _GET_ACTION_CODE(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
         return 0;
     }
-    argc = ((CGameDataUsed *)GetBattleCharaInfo()->GetEquipTablePtr(0))->GetModelNo();
+    argc = GetModelNo__13CGameDataUsedFv(GetBattleCharaInfo()->GetEquipTablePtr(0));
     SetStack__FP12RS_STACKDATAi__3(stack, argc);
     return 1;
 }
@@ -970,10 +981,10 @@ int _GET_RING_COLOR(RS_STACKDATA *stack, int argc) {
     if (type < 0 || type > 3) {
         return 0;
     }
-    int (*colors)[3] = at_1774;
-    SetStack__FP12RS_STACKDATAi__3(stack++, colors[type][0]);
-    SetStack__FP12RS_STACKDATAi__3(stack++, colors[type][1]);
-    SetStack__FP12RS_STACKDATAi__3(stack, colors[type][2]);
+    RingColors colors = at_1774;
+    SetStack__FP12RS_STACKDATAi__3(stack++, colors.rgb[type][0]);
+    SetStack__FP12RS_STACKDATAi__3(stack++, colors.rgb[type][1]);
+    SetStack__FP12RS_STACKDATAi__3(stack, colors.rgb[type][2]);
     return 1;
 }
 extern "C" int _SET_MOS__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {

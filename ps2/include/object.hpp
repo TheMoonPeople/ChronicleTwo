@@ -28,7 +28,7 @@ public:
      * @address 0x163830
      * @size 0x50
      */
-    CObjectFrame();
+    CObjectFrame() { Initialize(); }
 
     /**
      * Gets the frame that draws the object.

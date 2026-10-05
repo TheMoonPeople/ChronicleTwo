@@ -120,8 +120,14 @@ void CSphida::SetUp(int arg) {
     this->pin_col = (int)(2.0f * (float)rand() / 2147483648.0f);
     this->ball_col = (int)(2.0f * (float)rand() / 2147483648.0f);
 
+    dng_no = -1;
     save = GetSaveData();
-    dng_no = save == NULL ? -1 : save->save_dungeon.stage_id;
+    if (save != NULL) {
+        int *number = &save->save_dungeon.stage_id;
+        if (number != NULL) {
+            dng_no = *number;
+        }
+    }
 
     switch (dng_no) {
         case 0:

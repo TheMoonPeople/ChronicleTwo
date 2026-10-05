@@ -74,7 +74,7 @@ int _WMAP_AREA(SPI_STACK *stack, int) {
     char converted_title[0x100];
     int area_no = spiGetStackInt(stack++);
     int map_no = spiGetStackInt(stack++);
-    WMAP_AREA_DATA *area = (WMAP_AREA_DATA *)spi_wmaparea_tbl + area_no;
+    WMAP_AREA_DATA *area = (WMAP_AREA_DATA *)((int)spi_wmaparea_tbl + (int)(area_no * sizeof(WMAP_AREA_DATA)));
     area->area_no = area_no;
     area->unk_24 = map_no;
     area->x = spiGetStackInt(stack++);
@@ -94,7 +94,7 @@ int _WMAP_AREA(SPI_STACK *stack, int) {
         if (area_no == ((WMAP_POS_DATA *)spi_wmappos_tbl)[i].area_no) {
             WMAP_POS_DATA *pos = (WMAP_POS_DATA *)spi_wmappos_tbl + i;
             area->pos[position_count] = pos;
-            if (area->pos[position_count]->enable != 0) {
+            if ((signed char)area->pos[position_count]->enable != 0) {
                 area->enable = 1;
             }
             position_count++;

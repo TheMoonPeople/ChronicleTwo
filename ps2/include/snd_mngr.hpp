@@ -540,7 +540,7 @@ void sndSeAllStop(int port_no);
  * @address 0x18EE40
  * @size 0x30
  */
-s8 sndGetSeDefVol(unsigned int snd_id, int se_no);
+int sndGetSeDefVol(unsigned int snd_id, int se_no);
 
 /**
  * Loads a sound pack into a port as a new bank: its wave data, driver

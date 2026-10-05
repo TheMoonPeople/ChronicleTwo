@@ -138,7 +138,7 @@ u8 CSaveData::SetBitCtrl(int bits) {
 void CSaveData::ResetBitCtrl(int bits) {
     bit_ctrl &= ~bits & 0xFF;
 }
-u8 CSaveData::GetBitCtrl() { return this->bit_ctrl; }
+int CSaveData::GetBitCtrl() { return this->bit_ctrl; }
 int CSaveData::GetItem(int a, int b) {
     return user_data.GetItem(a, b);
 }
@@ -223,7 +223,7 @@ s8 CSaveData::AddTourCountEtc(int delta) {
     }
     return tour.count;
 }
-s8 CSaveData::GetTourCountEtc() {
+int CSaveData::GetTourCountEtc() {
     return tour.count;
 }
 void CSaveData::FinishTour() {

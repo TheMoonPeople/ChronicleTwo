@@ -9,6 +9,8 @@
 #include <cstdio>
 #include <cstring>
 
+extern "C" void __ct__11mgCDrawPrimFv(void *);
+
 struct GaijiCodeTable {
     u16 code[24];
 };
@@ -71,14 +73,19 @@ int GetGaijiH(int code) {
     }
     return 0;
 }
-RECT GetRectFontTex(int code, int *page) {
+extern "C" RECT GetRectFontTex__FiPi(int code, int *page) {
     int font = code;
     if (code >= 0xFDE0 && code < 0xFDF8) {
         if ((LanguageCode == 2 || LanguageCode == 3 || LanguageCode == 4) || LanguageCode == 5) {
             font = (u16)GetFontNoFromFontGaijiCode((u16)code);
         }
     }
-    mgRect<int> rect = at_784__2;
+    struct {
+        int left;
+        int top;
+        int right;
+        int bottom;
+    } __attribute__((aligned(16))) rect = *(typeof(rect) *)&at_784__2;
     if (font < 0) {
         return *(RECT *)&rect;
     }
@@ -325,7 +332,7 @@ u16 GetFontNoFromFontGaijiCode(u16 code) {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/font", GetFontGaijiHankaku__FUs);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/font", GetFontNo__FPc);
-int GetHalfFontNo(char ch) {
+extern "C" int GetHalfFontNo__Fc(int ch) {
     char buf[8];
     u16 no = GetAlphabeticalFontNo_uc(ch & 0xFF);
     if (no != 0)
@@ -467,7 +474,7 @@ void CFont::CalcDrawWH(char *text, int *width, int *height) {
                         pos += GetGaijiLen(gaiji_no);
                         UpDateWH(&max_width, &max_height, pen_x, pen_y + GetGaijiH(gaiji_no));
                     } else {
-                        half = GetHalfFontNo(*cursor);
+                        half = GetHalfFontNo__Fc(*cursor);
                         if (half == -2) {
                             pen_x = 0;
                             pos += 1;
@@ -495,22 +502,24 @@ void CFont::CalcDrawWH(char *text, int *width, int *height) {
     *width = max_width;
     *height_out = max_height;
 }
+#pragma optimization_level 4
 void CFont::DrawDirect(char *text, int x, int y) {
-    struct {
-        mgCDrawPrim prim;
-
-        u8 unknown_100[0x10];
-        int size_x;
-        int size_y;
-        u8 unknown_118[8];
-    } local;
     SetPos(x, y);
+    union {
+        mgCDrawPrim prim;
+        struct {
+            u8 padding[0x110];
+            int size_x;
+            int size_y;
+            u8 tail[8];
+        } sizes;
+    } local;
     MySetPrim(&local.prim, 1, 0);
 
     int height = fptosi(*(float *)((u8 *)this + 0xB4));
-    local.size_x = fptosi(*(float *)((u8 *)this + 0xB0)) * 16;
-    local.size_y = height * 16;
-    local.prim.Begin(6);
+    local.sizes.size_x = fptosi(*(float *)((u8 *)this + 0xB0)) * 16;
+    local.sizes.size_y = height * 16;
+    (&local.prim)->Begin(6);
     int len = strlen(text);
     int pen_x = 0;
     int pen_y = 0;
@@ -546,7 +555,7 @@ void CFont::DrawDirect(char *text, int x, int y) {
                         pen_x += GetGaijiW(gaiji_no);
                         pos += GetGaijiLen(gaiji_no);
                     } else {
-                        half = GetHalfFontNo(*cursor);
+                        half = GetHalfFontNo__Fc(*cursor);
                         if (half == -2) {
                             pen_x = 0;
                             pos += 1;
@@ -572,8 +581,9 @@ void CFont::DrawDirect(char *text, int x, int y) {
             }
         } while (pos < len);
     }
-    local.prim.End();
+    (&local.prim)->End();
 }
+#pragma optimization_level reset
 void CFont::Preset(s32 preset) {
     switch (preset) {
     case 0:

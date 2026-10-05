@@ -58,6 +58,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from mwccgap.elf import Elf, Symbol, RelocationRecord, SHT_NOBITS, BssSection  # noqa: E402
 
 import layout  # noqa: E402
+import disassemble
 
 SHT_PROGBITS = 1
 SHF_WRITE = 0x1
@@ -452,6 +453,178 @@ def discard_external_vtables(elf, unit, placeholder_sections):
                 record.name = '.rel' + DEAD
 
 
+def discard_external_functions(elf, unit):
+    ranges = layout.Layout(ROOT / layout.YAML).sections(unit)
+    addresses = retail_addresses()
+    for symbol in elf.symtab.symbols:
+        index = symbol.st_shndx
+        address = addresses.get(symbol.name)
+        if (symbol.type != STT_FUNC or symbol.bind not in (STB_WEAK, STB_MWCC_COALESCED)
+                or not 0 < index < len(elf.sections) or address is None
+                or any(lo <= address < hi for section, lo, hi in ranges)):
+            continue
+        elf.sections[index].sh_name = elf.add_sh_symbol(DEAD)
+        elf.sections[index].name = DEAD
+        for record in elf.relocations:
+            if record.sh_info == index:
+                record.sh_name = elf.add_sh_symbol('.rel' + DEAD)
+                record.name = '.rel' + DEAD
+        for entry in elf.symtab.symbols:
+            if entry.st_shndx == index:
+                entry.st_shndx = 0
+                entry.st_value = 0
+
+
+def name_literal_data(elf, unit, placeholders):
+    retail = layout.Retail()
+    pieces = disassemble.Pieces(references=[])
+    addresses = retail_addresses()
+    regions = [(lo, retail.bytes(lo, hi)) for name, lo, hi in pieces.layout.sections(unit)
+               if name in ('.rodata', '.sdata', '.data', '.ctor')]
+    cuts = {start: (name, end) for section, run in pieces.unit(unit)
+            if section in ('.rodata', '.sdata', '.data', '.ctor') for name, start, end in run}
+    positions = sorted(retail.relocations)
+    code_addresses = {name: start for section, run in pieces.unit(unit)
+                      if section in CODE for name, start, end in run}
+    code_starts = {symbol.st_shndx: code_addresses[symbol.name]
+                   for symbol in elf.symtab.symbols if symbol.name in code_addresses}
+    for symbol in elf.symtab.symbols:
+        index = symbol.st_shndx
+        if (index in placeholders or not re.fullmatch(r'(?:at_\d+|\.p__sinit_.+)', symbol.name)
+                or symbol.type != STT_OBJECT or symbol.st_value != 0
+                or not 0 < index < len(elf.sections)):
+            continue
+        section = elf.sections[index]
+        if section.name not in ('.rodata', '.sdata', '.data', '.ctor') or not section.data:
+            continue
+        data = bytearray(section.data)
+        entries = {}
+        unresolved = False
+        for record in elf.relocations:
+            if record.sh_info != index:
+                continue
+            for entry in record.relocations:
+                target = addresses.get(elf.symtab.symbols[entry.symbol_index].name)
+                if entry.reloc_type != R_MIPS_32 or target is None:
+                    unresolved = True
+                    break
+                value = struct.unpack_from('<I', data, entry.r_offset)[0]
+                struct.pack_into('<I', data, entry.r_offset, (target + value) & 0xFFFFFFFF)
+                entries[entry.r_offset] = entry.reloc_type
+        if unresolved:
+            continue
+        found = []
+        for lo, contents in regions:
+            offset = contents.find(data)
+            while offset >= 0:
+                start = lo + offset
+                first = bisect.bisect_left(positions, start)
+                last = bisect.bisect_left(positions, start + len(data))
+                actual = {place - start: retail.relocations[place] for place in positions[first:last]}
+                if actual == entries and start in cuts:
+                    found.append(start)
+                offset = contents.find(data, offset + 1)
+        if len(found) != 1:
+            targets = set()
+            for record in elf.relocations:
+                base = code_starts.get(record.sh_info)
+                if base is None:
+                    continue
+                contents = elf.sections[record.sh_info].data
+                for position, entry in enumerate(record.relocations):
+                    target = elf.symtab.symbols[entry.symbol_index]
+                    offset = entry.r_offset
+                    kind = entry.reloc_type
+                    if (target.st_shndx != index or kind not in (R_MIPS_HI16, R_MIPS_GPREL16)
+                            or retail.relocations.get(base + offset) != kind):
+                        continue
+                    value = struct.unpack_from('<I', contents, offset)[0]
+                    expected = retail.word(base + offset)
+                    if (value ^ expected) & 0xFFFF0000:
+                        continue
+                    if kind == R_MIPS_GPREL16:
+                        destination = addresses['_gp'] + sext16(expected) - sext16(value)
+                    else:
+                        partner = next((other for other in record.relocations[position + 1:]
+                                        if other.reloc_type == R_MIPS_LO16
+                                        and other.symbol_index == entry.symbol_index), None)
+                        if partner is None or retail.relocations.get(base + partner.r_offset) != R_MIPS_LO16:
+                            continue
+                        low = struct.unpack_from('<I', contents, partner.r_offset)[0]
+                        expected_low = retail.word(base + partner.r_offset)
+                        if (low ^ expected_low) & 0xFFFF0000:
+                            continue
+                        destination = ((expected & 0xFFFF) << 16) + sext16(expected_low)
+                        destination -= ((value & 0xFFFF) << 16) + sext16(low)
+                    destination -= target.st_value
+                    if destination in found:
+                        targets.add(destination)
+            if len(targets) != 1:
+                continue
+            found = list(targets)
+        start = found[0]
+        name, end = cuts[start]
+        if start + len(data) > end:
+            continue
+        padding = retail.bytes(start + len(data), end)
+        if any(padding):
+            continue
+        section.data += bytes(len(padding))
+        symbol.st_size = len(section.data)
+        symbol.name = name
+        symbol.st_name = elf.strtab.add_symbol(name)
+
+
+def pad_data(elf, unit, placeholders):
+    retail = layout.Retail()
+    pieces = disassemble.Pieces(references=[])
+    cuts = {name: (start, end) for section, run in pieces.unit(unit)
+            if section in ('.data', '.sdata', '.rodata', '.bss', '.sbss') for name, start, end in run}
+    for symbol in elf.symtab.symbols:
+        index = symbol.st_shndx
+        if (symbol.type != STT_OBJECT or symbol.st_value or index in placeholders
+                or not 0 < index < len(elf.sections) or symbol.name not in cuts):
+            continue
+        start, end = cuts[symbol.name]
+        section = elf.sections[index]
+        size = section_size(section)
+        if (section.sh_type == SHT_NOBITS and size and 0 < end - start - size < 16):
+            section.sh_size = end - start
+            symbol.st_size = section.sh_size
+            continue
+        if (section.name in ('.data', '.sdata', '.rodata') and size
+                and 0 < end - start - size < 16 and not any(retail.bytes(start + size, end))):
+            section.data += bytes(end - start - size)
+            symbol.st_size = len(section.data)
+
+
+def order_sections(elf):
+    addresses = retail_addresses()
+    starts = {}
+    for symbol in elf.symtab.symbols:
+        if (symbol.name in addresses and symbol.type != STT_SECTION
+                and 0 < symbol.st_shndx < len(elf.sections)):
+            starts[symbol.st_shndx] = addresses[symbol.name] - symbol.st_value
+    order = list(range(len(elf.sections)))
+    for name in FLAGS:
+        indices = [index for index, section in enumerate(elf.sections)
+                   if section.name == name and index in starts]
+        ordered = sorted((starts[index], index) for index in indices)
+        for position, (address, index) in zip(indices, ordered):
+            order[position] = index
+    remap = {old: new for new, old in enumerate(order)}
+    elf.sections = [elf.sections[index] for index in order]
+    elf.e_shstrndx = remap[elf.e_shstrndx]
+    for symbol in elf.symtab.symbols:
+        if symbol.st_shndx in remap:
+            symbol.st_shndx = remap[symbol.st_shndx]
+    for section in elf.sections:
+        if section.sh_link in remap:
+            section.sh_link = remap[section.sh_link]
+    for record in elf.relocations:
+        record.sh_info = remap[record.sh_info]
+
+
 def discard_shadow_vtables(elf, placeholder_sections):
     symbols = elf.symtab.symbols
     held = {}
@@ -501,8 +674,9 @@ def bind_suffixed_references(elf, unit):
     if lay.kinds.get(unit) != "cpp":
         return set()
     ranges = [(lo, hi) for _s, lo, hi in lay.sections(unit)]
-    own = {name for address, name, _size, _func in layout.read_symbols(ROOT / layout.SYMBOLS)
-           if re.fullmatch(r".+__\d+", name) and any(lo <= address < hi for lo, hi in ranges)}
+    names = {name for address, name, _size, _func in layout.read_symbols(ROOT / layout.SYMBOLS)
+             if any(lo <= address < hi for lo, hi in ranges)}
+    own = {name for name in names if re.fullmatch(r".+__\d+", name)}
     symbols = elf.symtab.symbols
     defined = {}
     for index, symbol in enumerate(symbols):
@@ -515,18 +689,14 @@ def bind_suffixed_references(elf, unit):
         plain = re.sub(r"__\d+$", "", name)
         if plain not in defined:
             continue
-        definition = symbols[defined[plain]]
-        if definition.bind == STB_LOCAL:
-            for index, symbol in enumerate(symbols):
-                if symbol.st_shndx == 0 and symbol.name == name:
-                    remap[index] = defined[plain]
+        if plain in names or sum(re.sub(r"__\d+$", "", candidate) == plain for candidate in own) != 1:
             continue
-        alias = Symbol(0, definition.st_value, definition.st_size,
-                       (definition.bind << 4) | definition.type, definition.st_other,
-                       definition.st_shndx)
-        alias.name = name
-        elf.add_symbol(alias, force=True)
-        shadowed.add(plain)
+        definition = symbols[defined[plain]]
+        for index, symbol in enumerate(symbols):
+            if symbol.st_shndx == 0 and symbol.name == name:
+                remap[index] = defined[plain]
+        definition.name = name
+        definition.st_name = elf.strtab.add_symbol(name)
     for record in elf.relocations:
         for relocation in record.relocations:
             if relocation.symbol_index in remap:
@@ -618,10 +788,15 @@ def retail_sections(elf, addresses, unit=None, shadowed=frozenset()):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("object", type=Path)
+    ap.add_argument("--order-only", action="store_true")
     args = ap.parse_args()
 
     elf = Elf(args.object.read_bytes())
     name_sections(elf)
+    if args.order_only:
+        order_sections(elf)
+        args.object.write_bytes(elf.pack())
+        return 0
     placeholder_sections = drop_placeholder_aliases(elf)
     for symbol in elf.symtab.symbols:
         if symbol.type != STT_SECTION and not symbol.name.startswith('.'):
@@ -638,8 +813,12 @@ def main():
         else:
             unit = name[:-len('.cpp.o')]
         bind_local_data(elf, unit, placeholder_sections)
+        name_literal_data(elf, unit, placeholder_sections)
+        pad_data(elf, unit, placeholder_sections)
         shadowed = bind_suffixed_references(elf, unit)
+        pad_data(elf, unit, placeholder_sections)
         discard_external_vtables(elf, unit, placeholder_sections)
+        discard_external_functions(elf, unit)
     discard_shadow_vtables(elf, placeholder_sections)
     fold_duplicates(elf)
     addresses = retail_addresses()
@@ -682,6 +861,8 @@ def main():
     for symbol in elf.symtab.symbols:
         if symbol.bind == STB_MWCC_COALESCED and symbol.type in (STT_FUNC, STT_OBJECT):
             symbol.bind = STB_WEAK
+
+    order_sections(elf)
 
     args.object.write_bytes(elf.pack())
     return 0

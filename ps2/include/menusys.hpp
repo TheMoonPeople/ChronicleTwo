@@ -270,7 +270,7 @@ public:
     s32 unk_FC;
     int make_num;                 /**< Number of objects chosen to make. */
     s32 unk_104;
-    u8 make_cursor;               /**< Row the cursor is on in the make question; 0 is the number. */
+    s8 make_cursor;               /**< Row the cursor is on in the make question; 0 is the number. */
     s16 make_num_max;             /**< Number of objects that can be made at most. */
 
     /**
@@ -581,6 +581,8 @@ STATIC_ASSERT(sizeof(CBaseMenuClass) == 0x110);
  * background music volume.
  *
  */
+#pragma push
+#pragma cpp_extensions on
 class CMenuKeyFunc {
 public:
     u8 unk_0;
@@ -599,8 +601,10 @@ public:
     int pack_size;                     /**< Size of the pack file in bytes. */
     s16 waku_type;                     /**< Frame drawn around the cursor, or negative for none. */
     s32 unk_6C;
-    int cursor;                        /**< Cursor position within the current layout. */
-    int top_line;                      /**< First row shown of the current layout. */
+    union {
+        struct { int cursor; int top_line; };
+        int select_pos[2];
+    };
     int save_cursor;                   /**< Cursor position saved by SelDataInit. */
     int save_top_line;                 /**< First row shown saved by SelDataInit. */
     u8 return_item;                    /**< Set once the held item has been put back. */
@@ -941,7 +945,7 @@ public:
      * @address 0x2411A0
      * @size 0xF0
      */
-    s16 menu_inputkey_limmit_check_line(int select_key);
+    int menu_inputkey_limmit_check_line(int select_key);
 
     /**
      *
@@ -951,7 +955,7 @@ public:
      * @address 0x241290
      * @size 0x180
      */
-    s16 menu_inputkey_limmit_check_glid(int select_key);
+    int menu_inputkey_limmit_check_glid(int select_key);
 
     /**
      *
@@ -994,6 +998,7 @@ public:
     s16 StepMenuBGM();
 };
 STATIC_ASSERT(sizeof(CMenuKeyFunc) == 0x160);
+#pragma pop
 
 /**
  *
@@ -1479,9 +1484,9 @@ STATIC_ASSERT(sizeof(MENU_ITEM_CURSOR_INFO) == 0xC);
  *
  */
 struct BUILDUP_WEAPON_INFO {
-    s16 mode;       /**< Step of the build-up view; 0 when it is closed. */
-    s8 select;      /**< Non-zero while a build-up is being chosen. */
-    s8 select_no;   /**< Build-up the cursor is on. */
+    s16 unk_0;
+    union { s8 mode; s8 select; };
+    s8 select_no;
     s32 unk_4;
     int select_num; /**< Number of build-ups that can be chosen. */
     u8 unk_C[0x38];
@@ -1842,7 +1847,7 @@ extern mgCTexture *MenuStatusTex;
 extern CItemUseTarget MenuItemUseTarget;
 
 /** Effects of a spectrumise or fusion in progress. */
-extern CMenuEffect *MenuEffect[2];
+extern CMenuEffect *MenuEffect[];
 
 /** Attachment and weapon of a fusion in progress. */
 extern CGameDataUsed *SpectolInfo[2];

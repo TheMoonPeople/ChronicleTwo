@@ -43,8 +43,7 @@ struct CSceneEventData {
             EventFloat4 head;
             EventFloat4 group_1;
             EventFloat2 group_2;
-            unsigned char copy_padding[8];
-            EventFloat4 group_3;
+            EventFloat4 group_3 __attribute__((aligned(16)));
             EventFloat4 group_4;
             EventFloat4 group_5;
             EventVector4 vectors_a;

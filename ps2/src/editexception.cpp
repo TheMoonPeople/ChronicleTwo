@@ -20,6 +20,19 @@
 #include "editexception.hpp"
 
 extern "C" int fptosi(float value);
+extern char at_917__5[];
+extern char at_918__4[];
+extern char at_919__6[];
+extern char at_920__5[];
+extern char at_921__4[];
+extern char at_1143__2[];
+extern char at_1259[];
+extern void *__vt__9mgCVisual[];
+extern void *__vt__11mgC3DSprite[];
+extern mgVec4 at_1327;
+extern mgVec4 at_1328__2;
+extern mgVec4 at_1329;
+extern mgVec4 at_1330;
 
 extern char at_1084__2[];
 extern char at_1085[];
@@ -42,6 +55,19 @@ extern mgCTextureManager mgTexManager;
 extern int GeyserEffectTexb;
 extern mgCFrame *GeyserFrame;
 extern int GeyserRndSeed;
+
+struct EditGsTest {
+    u_long ATE : 1;
+    u_long ATST : 3;
+    u_long AREF : 8;
+    u_long AFAIL : 2;
+    u_long DATE : 1;
+    u_long DATM : 1;
+    u_long ZTE : 1;
+    u_long ZTST : 2;
+    u_long rest : 45;
+};
+STATIC_ASSERT(sizeof(EditGsTest) == 8);
 
 static inline u32 align16_blocks(u32 bytes) {
     if (bytes & 0xF) {
@@ -94,41 +120,53 @@ extern mgCFrame *GeyserFrame;
 extern s32 GeyserRndSeed;
 
 // Code (.text)
-#ifdef NONMATCHING
 void EditExceptionStep(int map_no, CScene *scene) {
+    int quarter;
+    int frame;
     if (scene == NULL) return;
+    mgCTextureManager *textures = &mgTexManager;
     CMap *map = scene->GetMap(scene->active_map);
+    if (map == NULL) return;
     mgCCamera *camera = scene->GetCamera(scene->active_camera);
-    if (map == NULL || camera == NULL) return;
+    if (camera == NULL) return;
     float camera_pos[4];
     camera->GetPos(camera_pos);
-    if (map_no != 2 && map_no != 9) return;
-    CMapParts *parts = map->GetPlaceParts("p07_g0301");
-    if (parts == NULL) return;
-    CMapPiece *piece07 = parts->SearchPiece("g0301_07-m");
-    CMapPiece *piece08 = parts->SearchPiece("g0301_08-m");
-    if (piece07 == NULL || piece08 == NULL || piece07->frame == NULL || piece08->frame == NULL) return;
-    mgCFrame *fade_frame = piece07->frame->SearchFrame("na");
-    if (fade_frame == NULL || fade_frame->attr == NULL) return;
-    mgCTexture *texture = mgTexManager.GetTexture("g0301_21", -1);
-    if (texture == NULL) return;
-    mgCTextureAnime *anime = mgTexManager.GetTexAnime(texture->block);
-    if (anime == NULL) return;
-    CList<mgCTexAnimeData> *list = anime->GetAnimeList(anime->SearchGroupName("na"));
-    if (list == NULL) return;
-    int length = list->data.dest_h;
-    int frame = list->data.period_y - 20;
-    if (frame < 0) frame = 0;
-    int quarter = length / 4;
-    float alpha = 0.0f;
-    if (frame < quarter) alpha = (float)frame / (float)quarter;
-    else if (frame < quarter * 3) alpha = 1.0f - (float)(frame - quarter) / (float)(quarter * 2);
-    fade_frame->attr->obj_alpha = alpha;
-    piece08->frame->SetAttrParamObjAlpha((1.0f + sinf(6.2831855f * (float)list->data.period_y / (float)length)) / 0.5f, 1);
+    switch (map_no) {
+    case 2:
+    case 9: {
+        CMapParts *parts = map->GetPlaceParts(at_917__5);
+        if (parts == NULL) return;
+        CMapPiece *piece07 = parts->SearchPiece(at_918__4);
+        CMapPiece *piece08 = parts->SearchPiece(at_919__6);
+        if (piece07 == NULL) return;
+        if (piece08 == NULL) return;
+        mgCFrame *frame07 = piece07->frame;
+        mgCFrame *frame08 = piece08->frame;
+        if (frame07 == NULL) return;
+        if (frame08 == NULL) return;
+        mgCFrame *fade_frame = frame07->SearchFrame(at_920__5);
+        if (fade_frame == NULL) return;
+        mgCFrameAttr *attr = fade_frame->attr;
+        if (attr == NULL) return;
+        mgCTexture *texture = textures->GetTexture(at_921__4, -1);
+        if (texture == NULL) return;
+        mgCTextureAnime *anime = textures->GetTexAnime(texture->block);
+        if (anime == NULL) return;
+        CList<mgCTexAnimeData> *list = anime->GetAnimeList(anime->SearchGroupName(at_920__5));
+        if (list == NULL) return;
+        mgCTexAnimeData *data = &list->data;
+        quarter = data->period_y / 4;
+        frame = data->phase_y - 20;
+        if (frame < 0) frame = 0;
+        float alpha = 0.0f;
+        if (frame < quarter) alpha = (float)frame / (float)quarter;
+        else if (frame < quarter * 3) alpha = 1.0f - (float)(frame - quarter) / (float)(quarter * 2);
+        attr->obj_alpha = alpha;
+        frame08->SetAttrParamObjAlpha((1.0f + sinf(6.2831855f * ((float)data->phase_y / (float)data->period_y))) / 0.5f, 1);
+        break;
+    }
+    }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editexception", EditExceptionStep__FiP6CScene);
-#endif
 void InitNpcCameraReaction() {
     rea_mtn_step = 0;
     rea_chara_id = -1;
@@ -143,7 +181,7 @@ void InitS51Thunder() {
 }
 void S51Thunder(CScene *scene) {
     float ratio[2];
-    CMapLightingInfo info;
+
     char *map_name = scene->GetMapName(scene->active_map);
     if (map_name != NULL) {
         switch (strcmp(map_name, at_1084__2)) {
@@ -181,7 +219,7 @@ void S51Thunder(CScene *scene) {
         if (map != NULL && map->GetTimeLightingRatio(ratio) >= 2) {
             ratio[0] = 1.0f - fade;
             ratio[1] = fade;
-            memset(&info, 0, sizeof(CMapLightingInfo));
+            CMapLightingInfo info;
             map->GetLightInfo(&info, ratio, 2);
             mgSetLight(info.light_dir, info.light_color);
             mgSetAmbient(info.ambient);
@@ -207,40 +245,49 @@ void S51Thunder(CScene *scene) {
         }
     }
 }
-#ifdef NONMATCHING
 void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
-    FirePowderFlag = 0;
-    if ((map_no != 3 && map_no != 0x57 && map_no != 0x55) || GetSaveData()->GetBitFlag(0x208)) return;
+    int i;
+    FirePowder *particle;
+    mgC3DSprite *created;
     int size;
-    if (!LoadFile2("effect/firerain.img", scene->read_buff, &size, 0)) return;
-    u_char *image = (u_char *)memory->Alloc((size + 15) / 16);
-    memcpy(image, scene->read_buff, size);
+    u_char *image;
+    FirePowderFlag = 0;
+    if (map_no != 3 && map_no != 0x57 && map_no != 0x55) return;
+    if (GetSaveData()->GetBitFlag(0x208) != 0) return;
+    u_char *buffer = (u_char *)scene->read_buff;
+    if (LoadFile2(at_1143__2, buffer, &size, 0) == 0) return;
+    image = (u_char *)memory->Alloc(align16_blocks(size));
+    memcpy(image, buffer, size);
     FirePowderFlag = 1;
     FirePowderTexb = texb;
     mgTexManager.DeleteBlock(texb);
-    mgTexManager.EnterIMGFile(image, texb, NULL, NULL);
-    SpriteVis = new (memory->Alloc(7)) mgC3DSprite;
-    fire_powder = new (memory->Alloc(0x202)) FirePowder[FIRE_POWDER_NUM];
-    FirePowFrame = new (memory->Alloc(0x13)) mgCFrame;
-    FirePowFrame->attr = new (memory->Alloc(0xB)) mgCFrameAttr;
-    FirePowFrame->attr->draw = 2;
-    FirePowFrame->attr->clip_enable = -1;
+    mgTexManager.EnterIMGFile(image, FirePowderTexb, NULL, NULL);
+    if ((created = (mgC3DSprite *)operator new(sizeof(mgC3DSprite), memory->Alloc(7))) != NULL) {
+        ((void ***)created)[7] = __vt__9mgCVisual;
+        created->Initialize();
+        *(void ***)((u_int)created + 0x1C) = __vt__11mgC3DSprite;
+        created->Initialize();
+    }
+    SpriteVis = created;
+    fire_powder = new ((u_long128 *)memory->Alloc(0x202)) FirePowder[FIRE_POWDER_NUM];
+    FirePowFrame = new ((u_long128 *)memory->Alloc(0x13)) mgCFrame;
+    mgCFrameAttr *attr = new ((u_long128 *)memory->Alloc(0xB)) mgCFrameAttr;
+    FirePowFrame->attr = attr;
+    attr->fog = 2;
+    attr->z_write = -1;
     FirePowFrame->SetVisual(SpriteVis);
-    for (int i = 0; i < FIRE_POWDER_NUM; ++i) {
-        FirePowder &particle = fire_powder[i];
-        particle.pos[0] = 2.0f * (200.0f * (mgRnd() - 0.5f));
-        particle.pos[1] = 2.0f * (300.0f * (mgRnd() - 0.5f));
-        particle.pos[2] = 2.0f * (200.0f * (mgRnd() - 0.5f));
-        particle.pos[3] = 0.0f;
-        particle.phase_speed = 0.1f + 0.1f * mgRnd();
-        particle.sway_x = 2.0f * (2.0f * (mgRnd() - 0.5f));
-        particle.sway_z = 2.0f * (2.0f * (mgRnd() - 0.5f));
-        particle.fall_speed = -(0.1f + 0.5f * mgRnd());
+    for (i = 0; i < FIRE_POWDER_NUM; ++i) {
+        particle = &fire_powder[i];
+        particle->pos[0] = 2.0f * (200.0f * (mgRnd() - 0.5f));
+        particle->pos[1] = 2.0f * (300.0f * (mgRnd() - 0.5f));
+        particle->pos[2] = 2.0f * (200.0f * (mgRnd() - 0.5f));
+        particle->pos[3] = 0.0f;
+        particle->phase_speed = 0.1f + 0.1f * mgRnd();
+        particle->sway_x = 2.0f * (2.0f * (mgRnd() - 0.5f));
+        particle->sway_z = 2.0f * (2.0f * (mgRnd() - 0.5f));
+        particle->fall_speed = -(0.1f + 0.5f * mgRnd());
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editexception", InitFirePowder__FiP6CSceneiP9mgCMemory);
-#endif
 void StepFirePowder(CScene *scene) {
     if (!FirePowderFlag) return;
     for (int particle_index = 0; particle_index < FIRE_POWDER_NUM; ++particle_index) {
@@ -251,73 +298,85 @@ void StepFirePowder(CScene *scene) {
         if (particle.pos[3] > 3.1415927f) particle.pos[3] -= 6.2831855f;
     }
 }
-#ifdef NONMATCHING
 void DrawFirePowder(CScene *scene) {
+    int i;
     if (!FirePowderFlag) return;
     mgTexManager.ReloadTexture(FirePowderTexb, (sceVif1Packet *)NULL);
     SpriteVis->Initialize();
+    mgC3DSprite *draw_sprite = SpriteVis;
     mgCDrawEnv draw_env = *mgGetpDrawEnv(0);
+    ((EditGsTest *)&draw_env.test)->ZTE = 1;
+    ((EditGsTest *)&draw_env.test)->ZTST = 2;
     draw_env.SetZBuf(-1);
     draw_env.SetAlpha(2);
-    SpriteVis->BeginCreatePacket(0, NULL);
-    SpriteVis->CPSetDrawEnv(&draw_env);
-    SpriteVis->CPSetTexture(mgTexManager.GetTexture("firerain", -1));
-    SpriteVis->BeginCPSprite();
-    float size[4] = {15.0f, 15.0f, 0.0f, 0.0f};
-    float color[4] = {128.0f, 128.0f, 128.0f, 64.0f};
-    float uv0[4][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {0.5f, 0.0f, 0.0f, 0.0f},
-                       {0.0f, 0.5f, 0.0f, 0.0f}, {0.5f, 0.5f, 0.0f, 0.0f}};
-    float uv1[4][4] = {{0.5f, 0.5f, 0.0f, 0.0f}, {1.0f, 0.5f, 0.0f, 0.0f},
-                       {0.5f, 1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f, 0.0f}};
-    for (int i = 0; i < FIRE_POWDER_NUM; ++i) {
+    draw_sprite->BeginCreatePacket(0, NULL);
+    draw_sprite->CPSetDrawEnv(&draw_env);
+    draw_sprite->CPSetTexture(mgTexManager.GetTexture(at_1259, -1));
+    draw_sprite->BeginCPSprite();
+    sceVu0FVECTOR size = {5.0f, 5.0f, 0.0f, 0.0f};
+    sceVu0FMATRIX uv0 = {{0.0f, 0.0f, 0.0f, 0.0f}, {32.0f, 0.0f, 0.0f, 0.0f},
+                          {0.0f, 32.0f, 0.0f, 0.0f}, {32.0f, 32.0f, 0.0f, 0.0f}};
+    sceVu0FMATRIX uv1 = {{32.0f, 32.0f, 0.0f, 0.0f}, {64.0f, 32.0f, 0.0f, 0.0f},
+                          {32.0f, 64.0f, 0.0f, 0.0f}, {64.0f, 64.0f, 0.0f, 0.0f}};
+    sceVu0FVECTOR color = {128.0f, 128.0f, 128.0f, 50.0f};
+    for (i = 0; i < FIRE_POWDER_NUM; ++i) {
         FirePowder &particle = fire_powder[i];
-        float sway = particle.sway_x * sinf(particle.pos[3]);
-        float pos[4] = {particle.pos[0] + sway, particle.pos[1], particle.pos[2] + sway, 1.0f};
-        SpriteVis->CPSetSprite(pos, size, color, uv0[i & 3], uv1[i & 3]);
+        sceVu0FVECTOR pos;
+        pos[0] = particle.pos[0] + particle.sway_x * sinf(particle.pos[3]);
+        pos[1] = particle.pos[1];
+        pos[2] = particle.pos[2] + particle.sway_x * sinf(particle.pos[3]);
+        pos[3] = 1.0f;
+        int uv_id = i % 4;
+        draw_sprite->CPSetSprite(pos, size, color, uv0[uv_id], uv1[uv_id]);
     }
-    SpriteVis->EndCPSprite();
-    SpriteVis->EndCreatePacket();
+    draw_sprite->EndCPSprite();
+    draw_sprite->EndCreatePacket();
     mgCCamera *camera = scene->GetCamera(scene->active_camera);
-    float camera_pos[4], camera_dir[4];
+    sceVu0FVECTOR camera_pos, camera_dir;
+    sceVu0FMATRIX camera_matrix;
+    mgUnitMatrix(camera_matrix);
     camera->GetPos(camera_pos);
     camera->GetDir(camera_dir);
     mgNormalizeVector(camera_dir, camera_dir, 200.0f);
     mgAddVector(camera_pos, camera_dir);
+    *(u_long128 *)camera_matrix[3] = *(u_long128 *)camera_pos;
+    camera_matrix[3][3] = 1.0f;
     int old_fog = mgGetFogEnable();
     mgFOG_PARAM old_fog_param;
     mgGetFogParam(&old_fog_param);
-    float old_scale = mgRenderInfo.fog.scale;
-    mgRenderInfo.fog.scale = 600.0f;
+    sceVu0FVECTOR old_guard;
+    *(u_long128 *)old_guard = *(u_long128 *)mgRenderInfo.guard_max;
+    mgRenderInfo.guard_max[3] = 600.0f;
     mgFogEnable(1);
     mgSetFogParam(50.0f, 400.0f, 100, 0, 0, 255.0f, 0.0f);
     mgFlushRenderInfo();
-    const float half_extent[3] = {200.0f, 300.0f, 200.0f};
-    float centre[4];
+    sceVu0FVECTOR centre;
+    sceVu0FVECTOR half_extent = {200.0f, 300.0f, 200.0f, 0.0f};
     for (int axis = 0; axis < 3; ++axis) {
         int cell = (int)(camera_pos[axis] / half_extent[axis]);
-        cell += cell >= 0 ? 1 : -1;
-        centre[axis] = (float)(cell / 2) * (2.0f * half_extent[axis]);
+        if (cell >= 0) cell++;
+        else cell--;
+        centre[axis] = (float)(cell / 2) * half_extent[axis] * 2.0f;
     }
-    centre[3] = 1.0f;
-    for (int x = -1; x < 2; ++x) {
-        for (int z = -1; z < 2; ++z) {
-            for (int y = -1; y < 2; ++y) {
-                float pos[4] = {centre[0] + 2.0f * x * half_extent[0],
-                                centre[1] + 2.0f * y * half_extent[1],
-                                centre[2] + 2.0f * z * half_extent[2], 1.0f};
+    int x, z, y;
+    for (x = -1; x <= 1; ++x) {
+        for (z = -1; z <= 1; ++z) {
+            for (y = -1; y <= 1; ++y) {
+                sceVu0FVECTOR pos;
+                *(u_long128 *)pos = *(u_long128 *)centre;
+                pos[0] += (float)x * half_extent[0] * 2.0f;
+                pos[1] += (float)y * half_extent[1] * 2.0f;
+                pos[2] += (float)z * half_extent[2] * 2.0f;
                 FirePowFrame->SetPosition(pos);
                 mgDrawDirect(FirePowFrame);
             }
         }
     }
     mgFogEnable(old_fog);
-    mgRenderInfo.fog.scale = old_scale;
+    *(u_long128 *)mgRenderInfo.guard_max = *(u_long128 *)old_guard;
     mgSetFogParam(&old_fog_param);
     mgFlushRenderInfo();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editexception", DrawFirePowder__FP6CScene);
-#endif
 void CGeyserEffect::Create() {
     if (wait <= 0) {
         if (wait == 0) erupting = 1;
@@ -368,41 +427,39 @@ void CGeyserEffect::CreatePoint() {
     effect_point->phase_speed = 0.1f + 0.1f * mgRnd();
     mgZeroVectorW(effect_point->pos);
 }
-#ifdef NONMATCHING
 void CGeyserEffect::CreatePacket() {
+    int i;
     if (point_num == 0 || point == NULL) return;
     sprite.Initialize();
+    mgC3DSprite *draw_sprite = &sprite;
     mgCDrawEnv draw_env = *mgGetpDrawEnv(0);
+    ((EditGsTest *)&draw_env.test)->ZTE = 1;
+    ((EditGsTest *)&draw_env.test)->ZTST = 2;
     draw_env.SetZBuf(-1);
     draw_env.SetAlpha(2);
-    sprite.BeginCreatePacket(0, NULL);
-    sprite.CPSetDrawEnv(&draw_env);
-    sprite.CPSetTexture(texture);
-    sprite.BeginCPSprite();
-    float size[4] = {15.0f, 15.0f, 0.0f, 0.0f};
-    float color[4] = {128.0f, 128.0f, 128.0f, 64.0f};
-    float uv0[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    float uv1[4] = {1.0f, 1.0f, 0.0f, 0.0f};
-    for (int i = 0; i < point_num; ++i) {
+    draw_sprite->BeginCreatePacket(0, NULL);
+    draw_sprite->CPSetDrawEnv(&draw_env);
+    draw_sprite->CPSetTexture(texture);
+    draw_sprite->BeginCPSprite();
+    mgVec4 size = at_1327;
+    mgVec4 uv0 = at_1328__2;
+    mgVec4 uv1 = at_1329;
+    mgVec4 color = at_1330;
+    for (i = 0; i < point_num; ++i) {
         CGeyserEffectPoint &particle = point[i];
         if (!particle.active) continue;
-        float phase = sinf(particle.pos[3]);
-        float pos[4] = {
-            particle.pos[0] + particle.scale * particle.sway_x * phase,
-            particle.pos[1],
-            particle.pos[2] + particle.scale * particle.sway_z * phase,
-            1.0f
-        };
-        color[3] = 64.0f * particle.alpha;
-        size[0] = size[1] = 15.0f * particle.scale;
-        sprite.CPSetSprite(pos, size, color, uv0, uv1);
+        float pos[4];
+        pos[0] = particle.pos[0] + particle.scale * particle.sway_x * sinf(particle.pos[3]);
+        pos[1] = particle.pos[1];
+        pos[2] = particle.pos[2] + particle.scale * particle.sway_z * sinf(particle.pos[3]);
+        pos[3] = 1.0f;
+        color.v[3] = 64.0f * particle.alpha;
+        size.v[1] = size.v[0] = 15.0f * particle.scale;
+        draw_sprite->CPSetSprite(pos, size.v, color.v, uv0.v, uv1.v);
     }
-    sprite.EndCPSprite();
-    sprite.EndCreatePacket();
+    draw_sprite->EndCPSprite();
+    draw_sprite->EndCreatePacket();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editexception", CreatePacket__13CGeyserEffectFv);
-#endif
 void InitGeyserEffect(int scene_no, CScene *scene, int texb, mgCMemory *memory) {
     int size;
     u8 *copy;
@@ -450,31 +507,30 @@ void StepGeyserEffect(CScene *scene) {
         GeyserEffect[emitter_index].Step();
     }
 }
-#ifdef NONMATCHING
 void DrawGeyserEffect(CScene *scene) {
+    int count;
+    int i;
+    CEditMap *map;
     if (!GeyserEffectFlag) return;
-    CEditMap *map = (CEditMap *)scene->GetMap(scene->active_map);
+    map = (CEditMap *)scene->GetMap(scene->active_map);
     if (map == NULL) return;
     int ids[20];
-    int count = map->GetePlacePartsAtInfoID(0x4C, ids, 20);
+    count = map->GetePlacePartsAtInfoID(0x4C, ids, 20);
     if (count <= 0) return;
     mgGetDataBuffer();
     mgTexManager.ReloadTexture(GeyserEffectTexb, (sceVif1Packet *)NULL);
-    for (int i = 0; i < GEYSER_EFFECT_NUM; ++i) GeyserEffect[i].CreatePacket();
-    for (int i = 0; i < count; ++i) {
+    for (i = 0; i < GEYSER_EFFECT_NUM; ++i) GeyserEffect[i].CreatePacket();
+    for (i = 0; i < count; ++i) {
         CEditParts *parts = map->GetePlaceParts(ids[i]);
         if (parts == NULL) continue;
         int emitter = ((ids[i] * 0x10DE8 + 1) >> 16) % GEYSER_EFFECT_NUM;
         float pos[4];
         parts->GetPosition(pos);
-        GeyserFrame->SetVisual(&GeyserEffect[emitter].sprite);
+        GeyserFrame->SetVisual(&GeyserEffect[emitter % GEYSER_EFFECT_NUM].sprite);
         GeyserFrame->SetPosition(pos);
         mgDrawDirect(GeyserFrame);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editexception", DrawGeyserEffect__FP6CScene);
-#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1175__3__DATA);

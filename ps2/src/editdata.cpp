@@ -124,7 +124,7 @@ int CEditData::GetPartsNumID(int parts_id) {
     }
     return number;
 }
-int CEditData::Analyze(int entry, int area, int *pending, int depth) {
+s8 CEditData::Analyze(int entry, int area, int *pending, int depth) {
     EditAnalyzeDataSrc *src;
     s8 result;
     int i;
@@ -283,7 +283,7 @@ void LoadEditAnalyzeData(int area_no, u_long128 *dest) {
         Stack_1272.Init();
         init_1273 = 1;
     }
-    Stack_1272.stSetBuffer((u_long128 *)&buff_1271, 0x300);
+    stSetBuffer__9mgCMemoryFP1i(&Stack_1272, (u_long128 *)&buff_1271, 0x300);
     sprintf(path, at_1281__4, area_no);
     if (LoadFile2(path, dest, &size, 0) != 0) {
         LoadEditAnalyzeData((char *)dest, size, &Stack_1272);

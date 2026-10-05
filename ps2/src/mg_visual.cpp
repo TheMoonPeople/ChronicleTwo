@@ -12,6 +12,31 @@
 #include <cstring>
 
 extern u_char texflush_dma__2[0x30];
+extern "C" void *__vt__9mgCVisual[];
+extern "C" void *__vt__12mgCVisualMDT[];
+extern "C" void *__vt__15mgCVisualFixMDT[];
+
+struct VisualScratchMemory {
+    u_char pad_00[0x1C];
+    int lock;
+    int stack;
+    int stack_used;
+    int stack_size;
+    int stack_block;
+};
+
+struct FixMDTCopy {
+    u_char pad_00[0x1C];
+    void **vptr;
+    u_char pad_20[0x20];
+    int material_num;
+    mgMaterial *material;
+    u_char pad_48[8];
+};
+
+struct mgMaterialVector {
+    float values[4];
+};
 
 // Code (.text)
 u_int *GetScrPad(void) {
@@ -97,7 +122,7 @@ int mgCVisualMDT::SetPModeRef(u_long128 *packet, int flags) {
         prim_mode &= ~8;
     }
     packet[0] = *(u_long128 *)&mat_vif_d;
-    *(u_int *)&giftag = 0x8001;
+    giftag.word0 = 0x8001;
     packet[1] = *(u_long128 *)&giftag;
     ((long long *)packet)[4] = prim_mode;
     ((long long *)packet)[5] = 0x1B;
@@ -182,8 +207,8 @@ void mgCVisualMDT::Initialize(void) {
     vu1_offset = 180;
 }
 void CopyMaterial(mgMaterial *dst, MDT_MATERIAL_ *src, mgCTextureManager *textures) {
-    *(u_long128 *)dst->diffuse = *(u_long128 *)src->diffuse;
-    *(u_long128 *)dst->unk_10 = *(u_long128 *)src->unk_10;
+    *(mgMaterialVector *)dst->diffuse = *(mgMaterialVector *)src->diffuse;
+    *(mgMaterialVector *)dst->unk_10 = *(mgMaterialVector *)src->unk_10;
     dst->texture = textures->GetTexture(src->texture, -1);
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", CopyMDTData__12mgCVisualMDTFP10MDT_HEADERP9mgCMemory);
@@ -259,9 +284,9 @@ int mgCVisualFixMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
     mgCVisualMDT *self = this;
     mgCFace *part;
     int scratch_buffer[0x12C00];
-    mgCMemory scratch;
-    scratch.Init();
-    scratch.stSetBuffer((u_long128 *)scratch_buffer, 0x4B00);
+    VisualScratchMemory scratch;
+    ((mgCMemory *)&scratch)->Init();
+    ((mgCMemory *)&scratch)->stSetBuffer((u_long128 *)scratch_buffer, 0x4B00);
     if (textures == NULL) {
         textures = &mgTexManager;
     }
@@ -274,8 +299,8 @@ int mgCVisualFixMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
     for (int i = 0; i < count; i++) {
         scratch.stack_used = 0;
         scratch.lock = 0;
-        cursor = self->CreateFace(cursor, memory, &scratch, &part);
-        int address = (u_int)(memory->stack + memory->stack_used);
+        cursor = self->CreateFace(cursor, memory, (mgCMemory *)&scratch, &part);
+        int address = ((VisualScratchMemory *)memory)->stack + ((VisualScratchMemory *)memory)->stack_used * 16;
         int size = self->CreateFacePacket((u_int *)address, part);
         ((int *)part)[8] = size | 0x30000000;
         ((int *)part)[9] = address;
@@ -468,13 +493,20 @@ int mgCVisualMDT::CreateExtRenderInfoPacket(u_int *packet, float (*matrix)[4],
     return 0;
 }
 mgCVisual *mgCVisualFixMDT::Copy(mgCMemory *memory) {
-    mgCVisualFixMDT *copy;
+    FixMDTCopy *copy;
 
-    copy = new (memory->Alloc(7)) mgCVisualFixMDT;
+    if ((copy = (FixMDTCopy *)operator new(0x50, (u_long128 *)memory->Alloc(7))) != NULL) {
+        copy->vptr = __vt__9mgCVisual;
+        ((mgCVisual *)copy)->Initialize();
+        copy->vptr = __vt__12mgCVisualMDT;
+        ((mgCVisual *)copy)->Initialize();
+        copy->vptr = __vt__15mgCVisualFixMDT;
+        ((mgCVisual *)copy)->Initialize();
+    }
     if (copy == NULL) {
         return NULL;
     }
-    copy->mgCVisualMDT::operator=(*this);
+    ((mgCVisualMDT *)copy)->operator=(*this);
     int count = material_num;
     int i = 0;
     if (count > 0) {
@@ -492,11 +524,11 @@ mgCVisual *mgCVisualFixMDT::Copy(mgCMemory *memory) {
         src = (mgMaterial *)((u_char *)material + offset);
         dst = (mgMaterial *)((u_char *)copy->material + offset);
         offset += 0x30;
-        *(u_long128 *)dst->diffuse = *(u_long128 *)src->diffuse;
-        *(u_long128 *)dst->unk_10 = *(u_long128 *)src->unk_10;
+        *(mgMaterialVector *)dst->diffuse = *(mgMaterialVector *)src->diffuse;
+        *(mgMaterialVector *)dst->unk_10 = *(mgMaterialVector *)src->unk_10;
         dst->texture = src->texture;
     }
-    return copy;
+    return (mgCVisualFixMDT *)copy;
 }
 mgCVisualMDT &mgCVisualMDT::operator=(const mgCVisualMDT &source) {
     unk_00 = source.unk_00;

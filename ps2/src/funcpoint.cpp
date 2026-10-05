@@ -155,7 +155,10 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", DrawFireEffect__FPA4_fP14CFunc
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/funcpoint", DrawFireRaster__FPA4_fP14CFuncPointMngrP15CFuncPointCheckP11CFireRaster);
 int GetSeSrcVolPan(
     float (*mat)[4], CFuncPointMngr *mgr, CFuncPointCheck *chk, int *kinds, float *vols, float *pans, int max) {
-    sceVu0FVECTOR q90;
+    struct {
+        float v[3];
+        unsigned int w;
+    } q90;
     float v_a0[4];
     float m_b0[4][4];
     CFuncPoint *p;
@@ -171,10 +174,10 @@ int GetSeSrcVolPan(
                 if (n >= max) {
                     return n;
                 }
-                *(u_long128 *)q90 = *(u_long128 *)p->position;
-                q90[3] = 1.0f;
-                sceVu0ApplyMatrix(q90, mat, q90);
-                sndGetVolPan(vols, pans, q90, 10.0f, 1200.0f);
+                *(u_long128 *)q90.v = *(u_long128 *)p->position;
+                q90.w = 0x3F800000;
+                sceVu0ApplyMatrix(q90.v, mat, q90.v);
+                sndGetVolPan(vols, pans, q90.v, 10.0f, 1200.0f);
                 if (*vols > 0.01f) {
                     vols++;
                     *kinds = 2;
@@ -198,14 +201,14 @@ int GetSeSrcVolPan(
                     if (p->sound.shape == 1) {
                         p->frame.GetLWMatrix(m_b0);
                         mgMulMatrix(m_b0, m_b0, mat);
-                        sceVu0ApplyMatrix(q90, m_b0, p->sound.start);
+                        sceVu0ApplyMatrix(q90.v, m_b0, p->sound.start);
                         sceVu0ApplyMatrix(v_a0, m_b0, p->sound.end);
-                        sndGetVolPan(vols, pans, q90, v_a0, p->sound.unk_24, p->sound.unk_28);
+                        sndGetVolPan(vols, pans, q90.v, v_a0, p->sound.unk_24, p->sound.unk_28);
                     } else {
-                        *(u_long128 *)q90 = *(u_long128 *)p->position;
-                        q90[3] = 1.0f;
-                        sceVu0ApplyMatrix(q90, mat, q90);
-                        sndGetVolPan(vols, pans, q90, p->sound.unk_24, p->sound.unk_28);
+                        *(u_long128 *)q90.v = *(u_long128 *)p->position;
+                        q90.w = 0x3F800000;
+                        sceVu0ApplyMatrix(q90.v, mat, q90.v);
+                        sndGetVolPan(vols, pans, q90.v, p->sound.unk_24, p->sound.unk_28);
                     }
                     if (*vols > 0.01f) {
                         vols++;

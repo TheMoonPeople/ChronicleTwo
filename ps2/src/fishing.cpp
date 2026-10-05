@@ -256,13 +256,21 @@ int fpFISH_PLACE(SPI_STACK *args, int argCount);
 int fpFISH(SPI_STACK *args, int argCount);
 int fpFISH_MAP_END(SPI_STACK *args, int argCount);
 
-static int FreeSize(mgCMemory *memory) {
+static inline int FreeSize(mgCMemory *memory) {
     return memory->stack_size - memory->stack_used;
 }
 
-static u_char *FreeTop(mgCMemory *memory) {
+static inline u_char *FreeTop(mgCMemory *memory) {
     return (u_char *)(memory->stack + memory->stack_used);
 }
+
+extern "C" void *__vt__9mgCObject[];
+extern "C" void *__vt__7CObject[];
+extern "C" void *__vt__12CObjectFrame[];
+extern "C" void *__vt__11CCharacter2[];
+
+extern "C" void RodStep__FP6CSceneP1(CScene *scene, u8 *state);
+extern "C" void __ct__11mgCDrawPrimFv(mgCDrawPrim *prim);
 
 // Code (.text)
 FISH_PARAM *GetFishParam(int index) {
@@ -462,7 +470,7 @@ int sgLoopFishing2(SubGameInfo *info) {
     scene = info->scene;
     MainChara->UpdatePosition();
     UkiRod->frame->SetReference(RodHand);
-    RodStep(scene, (u_long128 *)rod_state);
+    RodStep__FP6CSceneP1(scene, rod_state);
     if (CharaMode == kCharaModeReel || CharaMode == kCharaModeReel2) {
         chara = scene->GetCharacter(scene->player_chara);
         if (chara != NULL) {
@@ -491,10 +499,12 @@ void DrawNumber(mgCDrawPrim *prim, int digit, int x, int y) {
     prim->Vertex(x + 12, y + 14, 0);
 }
 int sgSystemDrawFishing(SubGameInfo *info) {
+    union {
+        mgCDrawPrim prim;
+    };
     CScene *scene;
     mgCTexture *system_texture;
     mgCTexture *banner_texture;
-    mgCDrawPrim prim;
     float tension_end[4];
     float tension_color[4];
     int top;
@@ -521,6 +531,8 @@ int sgSystemDrawFishing(SubGameInfo *info) {
                                                                       SystemTexb);
     banner_texture = (mgCTexture *)mgTexManager.GetTexture(at_1509__3,
                                                                       SystemTexb);
+
+    __ct__11mgCDrawPrimFv(&prim);
     prim.Initialize(NULL, NULL);
     prim.AlphaBlendEnable(1);
     prim.DepthTestEnable(0);
@@ -765,7 +777,7 @@ extern "C" void CharaControl__FP6CSceneP11CPadControl__2(CScene *scene, CPadCont
                     scene->RunEvent(eventData.fields.event_no, &eventData.data);
                     ExitFishing(scene);
                 }
-                scene->event_run = 0;
+                scene->map_event_no = 0;
             }
         }
     }
@@ -1380,7 +1392,7 @@ int InitBattle(CScene *scene) {
     param->near_height = 12.0f;
     param->far_height = 12.0f;
     ((CCameraControl *)camera)->RotBack(mgAngleLimit(3.1415927f + chara_rot[1] - 0.2f));
-    camera->Stay();
+    camera->Step(-1);
     InitFishBattle();
     LineTension = 0;
     addLineTension = 0;
@@ -1658,7 +1670,7 @@ void FalseLoop(CScene *scene, CPadControl *pad) {
     ((CCameraControl *)camera)->SetRef(ref_pos);
     ((CCameraControl *)camera)->SetPos(cam_pos);
     ((CCameraControl *)camera)->SetRotate(mgAngleLimit(chara_rot[1] - 0.2f));
-    camera->Stay();
+    camera->Step(-1);
     FalseMotionCount -= 1;
     if (FalseStep == 0 && (FalseMotionCount <= 0 || chara->CheckMotionEnd() != 0)) {
         chara->SetMotion(at_2127__3, 4);
@@ -1702,7 +1714,19 @@ int InitSuccess(CScene *scene) {
         FishStack.stack_used = 0;
         FishStack.lock = 0;
 
-        fish_chara = new (FishStack.Alloc(0x68)) CCharacter2;
+        if ((fish_chara = (CCharacter2 *)operator new(sizeof(CCharacter2), FishStack.Alloc(0x68))) != NULL) {
+            *(void ***)fish_chara = __vt__9mgCObject;
+            fish_chara->Initialize();
+            *(void ***)fish_chara = __vt__7CObject;
+            fish_chara->Initialize();
+            *(void ***)fish_chara = __vt__12CObjectFrame;
+            fish_chara->Initialize();
+            *(void ***)fish_chara = __vt__11CCharacter2;
+            fish_chara->shadow_link_num = 0;
+            fish_chara->shadow_link_shadow = 0;
+            fish_chara->shadow_link_model = 0;
+            fish_chara->Initialize();
+        }
         FishChara = fish_chara;
         fish_chara->Initialize();
         tex_manager->DeleteBlock(FishTexb);
@@ -1801,7 +1825,7 @@ void SuccessLoop(CScene *scene, CPadControl *pad) {
     ((CCameraControl *)camera)->SetRef(ref_pos);
     ((CCameraControl *)camera)->SetPos(cam_pos);
     ((CCameraControl *)camera)->SetRotate(mgAngleLimit(chara_rot[1] - 0.2f));
-    camera->Stay();
+    camera->Step(-1);
     FalseMotionCount -= 1;
     if (FalseStep == 0 && (FalseMotionCount <= 0 || chara->CheckMotionEnd() != 0)) {
         chara->SetMotion(at_2272, 4);

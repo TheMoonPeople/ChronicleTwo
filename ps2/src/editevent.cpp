@@ -79,7 +79,18 @@ int CEditEvent::StartEvent(CSceneEventData *event_data) {
     count = 0;
     step = 0;
     type = -1;
-    data = *event_data;
+    data.head = event_data->head;
+    data.group_1 = event_data->group_1;
+    data.group_2 = event_data->group_2;
+    data.group_3 = event_data->group_3;
+    data.group_4 = event_data->group_4;
+    data.group_5 = event_data->group_5;
+    data.vectors_a = event_data->vectors_a;
+    data.vectors_b = event_data->vectors_b;
+    data.chara_no = event_data->chara_no;
+    data.chara_slot = event_data->chara_slot;
+    data.gameobj_no = event_data->gameobj_no;
+    data.unk_cc = event_data->unk_cc;
     if (*(int *)&data.head.v[0] & kEventFlagTypeAB) {
         if (*(int *)&data.head.v[0] & kEventFlagTypeA) {
             type = 0;
@@ -102,169 +113,238 @@ int CEditEvent::StartEvent(CSceneEventData *event_data) {
     projection = mgGetProjection__Fv();
     return 1;
 }
-#ifdef NONMATCHING
+extern "C" char at_1133__5[], at_1134__4[], at_1135__4[], at_1136__3[], at_1137__3[], at_1138__3[], at_1139[], at_916__4[];
+extern "C" u_long128 at_920__4;
+extern "C" MENU_INIT_ARG *MenuInfo__2;
+union EditEventNames { char *name[4]; u_long128 qw; };
+extern "C" int PreLoadSync__Fv();
+
+static inline void close_message(ClsMes *message) {
+    if (message->select < 0) message->cursor_time = 0;
+    message->select = -1;
+    message->draw_speed = message->GetDrawSpeedDef();
+    message->mes_no = -1;
+    message->unk_1e40 = 0;
+    message->open = 0;
+    message->fade = 0.0f;
+    message->fukidashi_centre_x = -1;
+    message->fukidashi_centre_y = -1;
+    message->fukidashi_pos = 0;
+}
+
 int CEditEvent::Step(CScene *scene) {
+    ClsMes *message;
+    int result;
+    CMapTreasureBox *box;
+    CCharacter2 *character;
+    mgCCamera *camera;
+    CPadControl *pad;
+    CEditMap *map;
+    int show;
+    CMapFlagData *map_flags;
+    int flags;
+    int argument_3;
+    int se_base;
+    int argument_1;
+    int argument_2;
     if (state != EDIT_EVENT_STATE_RUNNING) return EDIT_EVENT_RESULT_IDLE;
     ++count;
-    CEditMap *map = (CEditMap *)scene->GetMap(scene->active_map);
+    map = (CEditMap *)scene->GetMap(scene->active_map);
     CSaveData *save = GetSaveData();
-    CMapFlagData *map_flags = save->GetMapFlag(scene->GetMainMapNo());
-    CCharacter2 *character = scene->GetCharacter(scene->player_chara);
-    mgCCamera *camera = scene->GetCamera(scene->active_camera);
+    map_flags = save->GetMapFlag(scene->GetMainMapNo());
+    character = scene->GetCharacter(scene->player_chara);
+    camera = scene->GetCamera(scene->active_camera);
     if (character == NULL || camera == NULL || map == NULL) return EDIT_EVENT_RESULT_END;
-    ClsMes *message = scene->GetMessage(1);
-    int result = EDIT_EVENT_RESULT_CONTINUE;
     float camera_pos[4], chara_pos[4], chara_rot[4];
+    float rotation[4], position[4];
     camera->GetPos(camera_pos);
-    character->GetPosition(chara_pos);
     character->GetRotation(chara_rot);
-
-    if (type == EDIT_EVENT_TYPE_HOUSE_DOOR) {
+    character->GetPosition(chara_pos);
+    float camera_angle = atan2f(camera_pos[0] - chara_pos[0], camera_pos[2] - chara_pos[2]);
+    se_base = scene->se_base_id;
+    message = scene->GetMessage(1);
+    GeoFuncParam param;
+    param.scene = scene;
+    pad = &PadCtrl;
+    show = character->CheckDraw();
+    show &= scene->CheckDrawChara(scene->player_chara);
+    argument_1 = data.event.unk_2c;
+    argument_2 = data.event.unk_30;
+    flags = data.event.flag;
+    argument_3 = data.event.unk_34;
+    result = EDIT_EVENT_RESULT_CONTINUE;
+    if (type == EDIT_EVENT_TYPE_DOOR) {
+        if (character != NULL) {
+            float scale_y;
+            float scale;
+            scale = mgDistVector(data.map_event.matrix[0]);
+            scale_y = mgDistVector(data.map_event.matrix[1]);
+            float scale_z = mgDistVector(data.map_event.matrix[2]);
+            scale = scale > scale_y ? (scale > scale_z ? scale : scale_z) : (scale_y > scale_z ? scale_y : scale_z);
+            switch (step) {
+            case EDIT_DOOR_STEP_START:
+                if (strcmp(data.event.unk_38, at_1133__5) != 0) {
+                    strcpy(map_name, data.event.unk_38);
+                    if (data.event.flag & FUNC_EVENT_ED_DOOR) {
+                        int villager = -1;
+                        CEditParts *parts = map->GetePlaceParts(data.map_event.parts_no);
+                        if (parts != NULL) villager = parts->GetLiveNPC();
+                        CVillagerInfo *info = GetVillagerInfo(villager);
+                        data.unk_cc = villager;
+                        if (strlen(map_name) < 4) {
+                            if (info != NULL) {
+                                EditEventNames suffix = *(EditEventNames *)&at_920__4;
+                                strcat(map_name, suffix.name[info->house_type % 4]);
+                            } else strcat(map_name, at_916__4);
+                        }
+                    }
+                    ((CCameraControl *)camera)->RotBack(mgAngleLimit(3.1415927f + atan2f(data.map_event.matrix[2][0], data.map_event.matrix[2][2])));
+                }
+                door_se = -1;
+                character->GetPosition(return_pos);
+                character->GetRotation(return_rot);
+                step = EDIT_DOOR_STEP_APPROACH;
+                break;
+            case EDIT_DOOR_STEP_APPROACH: {
+                character->SetMotion(at_1134__4, 0);
+                mgZeroVector(rotation);
+                float target_angle = atan2f(data.map_event.matrix[2][0], data.map_event.matrix[2][2]);
+                mgVectorInterpolate(position, chara_pos, data.map_event.matrix[3], 1.0f, 0);
+                rotation[1] = mgAngleInterpolate(chara_rot[1], target_angle, 0.3f, 0);
+                float distance = 0.0f;
+                if (scale < 20.0f) {
+                    character->SetPosition(position);
+                    distance = mgDistVectorXZ(position, data.map_event.matrix[3]);
+                }
+                character->SetRotation(rotation);
+                if ((!mgAngleCmp(rotation[1], target_angle, 0.1f) && distance < 1.0f) || !((float)count <= 200.0f)) {
+                    step = EDIT_DOOR_STEP_OPEN;
+                    if (argument_1 >= 0) {
+                        if (flags & FUNC_EVENT_CLOSE_DOOR) character->SetMotion(at_1135__4, 2);
+                        else character->SetMotion(at_1136__3, 2);
+                    } else count = 0xE;
+                    count = 0;
+                }
+                break;
+            }
+            case EDIT_DOOR_STEP_OPEN:
+                if (flags & FUNC_EVENT_CLOSE_DOOR) {
+                    if (character->CheckMotionEnd() || count >= 0x3D || show == 0) step = EDIT_DOOR_STEP_RETURN;
+                    if (count == 0x1E) scene->SePlayOpenDoor(0x18, data.map_event.matrix[3]);
+                } else {
+                    if (count == 0xF && (data.event.flag & FUNC_EVENT_UNK_100)) scene->fade.FadeOut(0x1E, 0.0f, 0.0f, 0.0f);
+                    if (count == 0x14) {
+                        scene->SePlayOpenDoor(argument_2, data.map_event.matrix[3]);
+                        door_se = argument_2;
+                    }
+                    if (count > 0xF && scene->fade.FadeCheck()) step = EDIT_DOOR_STEP_LEAVE;
+                }
+                break;
+            case EDIT_DOOR_STEP_LEAVE:
+                ((CCameraControl *)camera)->CancelRotBack();
+                if (data.event.point_no > 0) {
+                    scene->RunEvent(data.event.point_no, &data);
+                    result = EDIT_EVENT_RESULT_END;
+                } else if (strcmp(data.event.unk_38, at_1133__5) != 0) {
+                    if (scene->fade.FadeCheck() && PreLoadSync__Fv() == 0) {
+                        scene->fade.FadeIn(0x1E);
+                        if (data.event.flag & FUNC_EVENT_ED_DOOR) result = EDIT_EVENT_RESULT_ENTER_HOUSE;
+                        else result = EDIT_EVENT_RESULT_ENTER;
+                    }
+                } else if (scene->fade.FadeCheck()) {
+                    scene->fade.FadeIn(0x1E);
+                    result = EDIT_EVENT_RESULT_EXIT;
+                }
+                break;
+            case EDIT_DOOR_STEP_RETURN: {
+                chara_rot[1] = mgAngleInterpolate(chara_rot[1], camera_angle, 0.2f, 0);
+                mgVectorInterpolate(chara_pos, chara_pos, return_pos, 1.0f, 0);
+                int angle = mgAngleCmp(chara_rot[1], camera_angle, 0.1f);
+                float distance = mgDistVector(chara_pos, return_pos);
+                if (angle == 0 && distance < 1.0f) {
+                    step = EDIT_DOOR_STEP_WAIT;
+                    character->SetMotion(at_1137__3, 2);
+                } else character->SetMotion(at_1134__4, 0);
+                character->SetRotation(chara_rot);
+                character->SetPosition(chara_pos);
+                break;
+            }
+            case EDIT_DOOR_STEP_WAIT:
+                if (character->CheckMotionEnd() || count >= 301 || show == 0) result = EDIT_EVENT_RESULT_END;
+                break;
+            }
+        }
+    } else if (type == EDIT_EVENT_TYPE_HOUSE_DOOR) {
         switch (step) {
         case EDIT_HOUSE_DOOR_STEP_OPEN_MENU:
-            MenuArg.open_type = 0xC;
-            MenuArg.scene = scene;
-            MenuArg.param[0] = data.chara_no;
+            MenuInfo__2->open_type = 0xC;
+            MenuInfo__2->scene = scene;
+            MenuInfo__2->param[0] = data.map_event.parts_no;
             ((CCameraControl *)camera)->CancelRotBack();
-            KeepEditAnalyze();
-            ++step;
             result = EDIT_EVENT_RESULT_MENU;
+            ++step;
+            KeepEditAnalyze();
             break;
-        case EDIT_HOUSE_DOOR_STEP_MENU_END:
+        case EDIT_HOUSE_DOOR_STEP_MENU_END: {
             mgSetProjection(projection);
-            if (MenuArg.end_code == 9) {
+            if (MenuInfo__2->end_code == 9) {
                 type = EDIT_EVENT_TYPE_DOOR;
-                count = step = 0;
-            } else {
-                ++step;
-                EditDataSave();
-                CEditParts *parts = map->GetePlaceParts(data.chara_no);
-                if (MenuArg.end_code == 0xD && parts != NULL && parts->GetInfoID() == 0x49) {
-                    scene->fade.FadeOut(0x12, 0.0f, 0.0f, 0.0f);
-                    reload_geo_npc = 1;
-                } else {
-                    count = 0x14;
-                    reload_geo_npc = 0;
-                }
+                count = 0;
+                step = 0;
+                break;
             }
-            break;
+            ++step;
+            EditDataSave();
+            CEditParts *parts = map->GetePlaceParts(data.map_event.parts_no);
+            int info = -1;
+            if (parts != NULL) info = parts->GetInfoID();
+            if (MenuInfo__2->end_code == 0xD && info == 0x49) {
+                scene->fade.FadeOut(0x12, 0.0f, 0.0f, 0.0f);
+                reload_geo_npc = 1;
+            } else {
+                count = 0x14;
+                reload_geo_npc = 0;
+            }
+        }
         case EDIT_HOUSE_DOOR_STEP_WAIT:
             if (count >= 0x14 || scene->fade.FadeCheck()) {
+                result = EDIT_EVENT_RESULT_END;
                 if (reload_geo_npc) {
                     scene->fade.FadeIn(0x14);
-                    GeoFuncParam param = {scene};
                     LoadGeoNPC(&param, 0);
                 }
                 if (EditAnalyzeChanged()) scene->RunEvent(0x136, NULL);
-                result = EDIT_EVENT_RESULT_END;
             }
-            break;
-        }
-    } else if (type == EDIT_EVENT_TYPE_DOOR) {
-        float *door_pos = data.map_event.matrix[3];
-        float target_angle = atan2f(data.map_event.matrix[2][0], data.map_event.matrix[2][2]);
-        switch (step) {
-        case EDIT_DOOR_STEP_START:
-            if (strcmp(data.event.unk_38, "exit") != 0) {
-                strcpy(map_name, data.event.unk_38);
-                if (data.event.flag & FUNC_EVENT_ED_DOOR) {
-                    CEditParts *parts = map->GetePlaceParts(data.chara_no);
-                    int villager = parts != NULL ? parts->GetLiveNPC() : -1;
-                    CVillagerInfo *info = GetVillagerInfo(villager);
-                    reload_geo_npc = villager;
-                    if (strlen(map_name) < 4) {
-                        static const char *suffix[4] = {"ia", "ib", "ic", "id"};
-                        strcat(map_name, info != NULL ? suffix[info->house_type % 4] : "ia");
-                    }
-                }
-                ((CCameraControl *)camera)->RotBack(mgAngleLimit(3.1415927f + target_angle));
-            }
-            door_se = -1;
-            memcpy(return_pos, chara_pos, sizeof(return_pos));
-            memcpy(return_rot, chara_rot, sizeof(return_rot));
-            step = EDIT_DOOR_STEP_APPROACH;
-            break;
-        case EDIT_DOOR_STEP_APPROACH: {
-            character->SetMotion("\225\340\202\253", 0);
-            float rotation[4] = {0.0f, mgAngleInterpolate(chara_rot[1], target_angle, 0.3f, 0), 0.0f, 1.0f};
-            float position[4];
-            mgVectorInterpolate(position, chara_pos, door_pos, 1.0f, 0);
-            if (mgDistVector(data.map_event.matrix[0]) < 20.0f) character->SetPosition(position);
-            character->SetRotation(rotation);
-            if ((!mgAngleCmp(rotation[1], target_angle, 0.1f) && mgDistVectorXZ(position, door_pos) < 1.0f) || count > 200) {
-                step = EDIT_DOOR_STEP_OPEN;
-                count = data.event.unk_2c < 0 ? 0xE : 0;
-                if (data.event.unk_2c >= 0)
-                    character->SetMotion((char *)(data.event.flag & FUNC_EVENT_CLOSE_DOOR ? "\203h\203A\212J\202\251\202\310\202\242" : "\203h\203A\212J\202\257"), 2);
-            }
-            break;
-        }
-        case EDIT_DOOR_STEP_OPEN:
-            if (data.event.flag & FUNC_EVENT_CLOSE_DOOR) {
-                if (character->CheckMotionEnd() || count >= 0x3D || !scene->CheckDrawChara(scene->player_chara)) step = EDIT_DOOR_STEP_RETURN;
-                if (count == 0x1E) scene->SePlayOpenDoor(0x18, door_pos);
-            } else {
-                if (count == 0xF && (data.event.flag & FUNC_EVENT_UNK_100)) scene->fade.FadeOut(0x1E, 0.0f, 0.0f, 0.0f);
-                if (count == 0x14) {
-                    scene->SePlayOpenDoor(data.event.unk_30, door_pos);
-                    door_se = data.event.unk_30;
-                }
-                if (count >= 0x10 && scene->fade.FadeCheck()) step = EDIT_DOOR_STEP_LEAVE;
-            }
-            break;
-        case EDIT_DOOR_STEP_LEAVE:
-            ((CCameraControl *)camera)->CancelRotBack();
-            if (data.event.point_no > 0) {
-                scene->RunEvent(data.event.point_no, &data);
-                result = EDIT_EVENT_RESULT_END;
-            } else if (scene->fade.FadeCheck()) {
-                if (!strcmp(data.event.unk_38, "exit")) {
-                    scene->fade.FadeIn(0x1E);
-                    result = EDIT_EVENT_RESULT_EXIT;
-                } else {
-                    PreLoadSync();
-                    scene->fade.FadeIn(0x1E);
-                    result = data.event.flag & FUNC_EVENT_ED_DOOR ? EDIT_EVENT_RESULT_ENTER_HOUSE : EDIT_EVENT_RESULT_ENTER;
-                }
-            }
-            break;
-        case EDIT_DOOR_STEP_RETURN: {
-            float position[4];
-            mgVectorInterpolate(position, chara_pos, return_pos, 1.0f, 0);
-            float rotation[4] = {0.0f, mgAngleInterpolate(chara_rot[1], atan2f(camera_pos[0] - chara_pos[0], camera_pos[2] - chara_pos[2]), 0.2f, 0), 0.0f, 1.0f};
-            if (mgDistVector(position, return_pos) < 1.0f) {
-                step = EDIT_DOOR_STEP_WAIT;
-                character->SetMotion("\202\276\202\337\202\276\202\337", 2);
-            } else character->SetMotion("\225\340\202\253", 0);
-            character->SetPosition(position);
-            character->SetRotation(rotation);
-            break;
-        }
-        case EDIT_DOOR_STEP_WAIT:
-            if (character->CheckMotionEnd() || count >= 301 || !scene->CheckDrawChara(scene->player_chara)) result = EDIT_EVENT_RESULT_END;
             break;
         }
     } else if (type == EDIT_EVENT_TYPE_TREASURE_BOX) {
-        CMapTreasureBox *box = map->GetTrBox(data.chara_slot);
-        mgCFrame *lid = box != NULL && box->CObjectFrame::frame != NULL ? box->CObjectFrame::frame->SearchFrame("top") : NULL;
-        if (lid == NULL) { step = EDIT_TREASURE_BOX_STEP_DELETE; result = EDIT_EVENT_RESULT_END; }
-        else switch (step) {
+        box = map->GetTrBox(data.map_event.point_no);
+        mgCFrame *lid = NULL;
+        if (box != NULL && box->CObjectFrame::frame != NULL) lid = box->CObjectFrame::frame->SearchFrame(at_1138__3);
+        if (lid == NULL) {
+            result = EDIT_EVENT_RESULT_END;
+            step = EDIT_TREASURE_BOX_STEP_DELETE;
+        }
+        switch (step) {
         case EDIT_TREASURE_BOX_STEP_START:
-            character->SetMotion("\227\247\202\277", 0);
+            character->SetMotion(at_1139, 0);
             count = 0;
             if (CheckGetItemLimmitOver(box->item_no, box->item_num) < box->item_num) {
                 message->Preset(4);
                 message->SetWindowMode(4);
                 message->MakeMesWin(0xC);
+                message->fukidashi_pos = 8;
                 step = EDIT_TREASURE_BOX_STEP_FULL_MESSAGE;
+                count = 0;
             } else {
-                step = EDIT_TREASURE_BOX_STEP_OPEN;
+                ++step;
                 lid->SetRotation(0.0f, 0.0f, 0.0f);
-                sndSePlay(scene->se_base_id, 0x3C, 0);
+                sndSePlay(se_base, 0x3C, 0);
             }
             break;
         case EDIT_TREASURE_BOX_STEP_OPEN:
-            if (++count >= 3) step = EDIT_TREASURE_BOX_STEP_LIFT;
+            if (count > 2) ++step;
+            ++count;
             break;
         case EDIT_TREASURE_BOX_STEP_LIFT: {
             float rotation[4];
@@ -272,31 +352,47 @@ int CEditEvent::Step(CScene *scene) {
             rotation[0] -= 0.05f;
             lid->SetRotation(rotation);
             if (rotation[0] < -1.0f) {
-                step = EDIT_TREASURE_BOX_STEP_WAIT;
-                box->active = 0;
+                ++step;
+                box->show = 0;
                 message->Preset(4);
                 message->SetWindowMode(4);
-                message->MakeMesWin(box->item_num < 2 ? 0xA : 0xB);
+                int message_no = 0xA;
+                if (box->item_num < 2) message->item_mes[0] = GetItemMessageNo(box->item_no, 1);
+                else {
+                    message_no = 0xB;
+                    message->item_mes[0] = GetItemMessageNo(box->item_no, 1);
+                    message->values[1] = box->item_num;
+                    message->value_width[1] = 0;
+                }
+                message->MakeMesWin(message_no);
+                message->fukidashi_pos = 8;
                 sndSePlay(GetSystemSndID(), 0x12, 0);
-                save->GetItem(box->item_no, box->item_num);
+                GetSaveData()->GetItem(box->item_no, box->item_num);
             }
             count = 0;
             break;
         }
         case EDIT_TREASURE_BOX_STEP_WAIT:
-            if (++count >= 0x15) step = EDIT_TREASURE_BOX_STEP_MESSAGE;
+            ++count;
+            if (count > 0x14) ++step;
             break;
         case EDIT_TREASURE_BOX_STEP_MESSAGE:
-        case EDIT_TREASURE_BOX_STEP_FULL_MESSAGE:
-            if (PadCtrl.Btn(0) || PadCtrl.Btn(1)) {
-                message->Preset(0);
+            if (pad->Btn(0) || pad->Btn(1)) {
+                close_message(message);
                 sndSePlay(GetSystemSndID(), 0x19, 0);
                 ++step;
             }
             break;
         case EDIT_TREASURE_BOX_STEP_DELETE:
-            map->DeleteTrBox(data.chara_slot, map_flags);
+            map->DeleteTrBox(data.map_event.point_no, map_flags);
             result = EDIT_EVENT_RESULT_END;
+            break;
+        case EDIT_TREASURE_BOX_STEP_FULL_MESSAGE:
+            if (pad->Btn(0) || pad->Btn(1)) {
+                close_message(message);
+                sndSePlay(GetSystemSndID(), 0x19, 0);
+                ++step;
+            }
             break;
         case EDIT_TREASURE_BOX_STEP_END:
             result = EDIT_EVENT_RESULT_END;
@@ -305,37 +401,57 @@ int CEditEvent::Step(CScene *scene) {
     } else if (type == EDIT_EVENT_TYPE_BOOK) {
         switch (step) {
         case EDIT_BOOK_STEP_START:
-            character->SetMotion("\227\247\202\277", 0);
+            character->SetMotion(at_1139, 0);
             message->Preset(4);
             message->SetWindowMode(4);
-            BookshelfMessageMake(message, data.event.unk_2c, data.event.unk_30, data.event.unk_34);
+            BookshelfMessageMake(message, argument_1, argument_2, argument_3);
+            message->fukidashi_pos = 8;
             step = EDIT_BOOK_STEP_READ;
             count = 0x1E;
             break;
-        case EDIT_BOOK_STEP_READ:
-            if (message->State() == 0) step = EDIT_BOOK_STEP_DONE;
-            else if (PadCtrl.Btn(0) || PadCtrl.Btn(1)) {
-                if (message->State() == 5) message->GoNextPage();
-                else if (message->State() == 3) { step = EDIT_BOOK_STEP_DONE; count = 5; }
-                sndSePlay(GetSystemSndID(), 0x19, 0);
+        case EDIT_BOOK_STEP_READ: {
+            int message_state = message->State();
+            int button = ((bool)pad->Btn(0)) || ((bool)pad->Btn(1));
+            switch (message_state) {
+            case 5:
+                if (button) {
+                    message->GoNextPage();
+                    sndSePlay(GetSystemSndID(), 0x19, 0);
+                }
+                break;
+            case 3:
+                if (button) {
+                    step = EDIT_BOOK_STEP_DONE;
+                    count = 5;
+                    sndSePlay(GetSystemSndID(), 0x19, 0);
+                }
+                break;
+            case 0:
+                step = EDIT_BOOK_STEP_DONE;
+                break;
             }
-            if (--count < 0) step = EDIT_BOOK_STEP_CLOSE;
+            --count;
+            if (count < 0) step = EDIT_BOOK_STEP_CLOSE;
             break;
+        }
         case EDIT_BOOK_STEP_DONE:
             step = EDIT_BOOK_STEP_CLOSE;
             break;
         case EDIT_BOOK_STEP_CLOSE:
-            message->Preset(0);
+            close_message(message);
             result = EDIT_EVENT_RESULT_END;
             break;
         }
     } else result = EDIT_EVENT_RESULT_END;
-    if (result != EDIT_EVENT_RESULT_CONTINUE && result != EDIT_EVENT_RESULT_MENU) state = EDIT_EVENT_STATE_END;
+    if (result != EDIT_EVENT_RESULT_CONTINUE) {
+        if (result != EDIT_EVENT_RESULT_MENU) {
+            state = EDIT_EVENT_STATE_END;
+            return result;
+        }
+    }
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editevent", Step__10CEditEventFP6CScene);
-#endif
+
 int CEditEvent::Draw(CScene *scene) {
     if (state != 1) {
         return 0;

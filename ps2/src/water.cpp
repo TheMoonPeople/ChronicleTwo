@@ -16,9 +16,10 @@ void CFireRaster::Step(void) {
     FireRasterParticle *free_slot = 0;
     int i = 0;
     FireRasterParticle *particle_slot;
+    int offset = 0;
     int phase = 0;
-    for (; i < 20; i++, phase += 2) {
-        particle_slot = &particle[i];
+    for (; i < 20; i++, offset += sizeof(FireRasterParticle), phase += 2) {
+        particle_slot = (FireRasterParticle *)((u8 *)this + offset + 0x70);
         if (particle_slot->life <= 0) {
             free_slot = particle_slot;
         } else if (particle_slot->time >= particle_slot->life) {
@@ -193,7 +194,7 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", CreateWaterFrame__FiiPfPfP9mgCMemo
 void CWaterFrame::Initialize(void) {
     unk_110 = 0;
     stop = 0;
-    ((mgCFrame *)this)->Initialize();
+    mgCFrame::Initialize();
 }
 
 // Initialised data (.data)

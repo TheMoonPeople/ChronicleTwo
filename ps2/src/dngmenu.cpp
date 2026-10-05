@@ -93,25 +93,23 @@ void CDngFreeMap::CalcGlidPutPos(GLID_INFO *glid, float &x, float &y, int ignore
         }
     }
 }
-void CDngFreeMap::CheckIsViewMove(int x, int y, float &move_x, float &move_y) {
-    int clamped_x = x;
-    int clamped_y = y;
+void CDngFreeMap::CheckIsViewMove(int x, int y, float &moveX, float &moveY) {
+    int clampedX = x;
+    int clampedY = y;
 
-    if ((float)x < view_rect.left) {
-        clamped_x = (int)view_rect.left;
+    if ((float)clampedX < view_rect.left) {
+        clampedX = (int)view_rect.left;
     }
-    if (-10.0f + view_rect.right < (float)clamped_x) {
-        clamped_x = (int)(-10.0f + view_rect.right);
+    if (-10.0f + view_rect.right < (float)clampedX) {
+        clampedX = (int)(-10.0f + view_rect.right);
     }
-    if ((float)y < view_rect.top) {
-        clamped_y = (int)view_rect.top;
+    if ((float)clampedY < view_rect.top) {
+        clampedY = (int)view_rect.top;
     }
 
-    if (view_rect.bottom < (float)(clamped_y - 10)) {
-        clamped_y = (int)(-10.0f + view_rect.bottom);
-    }
-    move_x = (float)(clamped_x - x);
-    move_y = (float)(clamped_y - y);
+    clampedY = view_rect.bottom < (float)(clampedY - 10) ? (int)(-10.0f + view_rect.bottom) : clampedY;
+    moveX = (float)(clampedX - x);
+    moveY = (float)(clampedY - y);
 }
 void CDngFreeMap::SetNextRoomPos(GLID_INFO *room) {
     float room_x;
@@ -325,7 +323,7 @@ void CDngFreeMap::DrawPlayer(int alpha) {
     dng_player_blink_cnt++;
     if (dng_player_blink_cnt >= 50)
         dng_player_blink_cnt = 0;
-    float tint = 16.0f + alpha + 16.0f * sinf(0.06283186f * (float)dng_player_blink_cnt);
+    float tint = 16.0f + this->alpha + 16.0f * sinf(0.06283186f * (float)dng_player_blink_cnt);
     if (tint < 0.0f)
         tint = 0.0f;
     mgCDrawPrim *prim = GetMenuPrim();
@@ -340,13 +338,14 @@ void CDngFreeMap::DrawPlayer(int alpha) {
     prim->End();
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Step__11CDngFreeMapFv);
+extern "C" void *__ct__9CMenuFontFv(void *);
 void CDngFreeMap::Draw() {
-    CMenuFont font;
+    union { CMenuFont font; char font_storage[sizeof(CMenuFont)]; };
     char line[0x100];
     char text[0x20];
     mgRect<int> plateUv;
     int loaded_texture;
-    if (active != 0 && alpha > 0.0f) {
+    if (active != 0 && !(alpha <= 0.0f)) {
         mgCTextureManager *texture_manager = &mgTexManager;
 
         mgCTexture *dt_texture = (mgCTexture *)map_tex;
@@ -377,19 +376,24 @@ void CDngFreeMap::Draw() {
             if (menu_debug_flag != 0) {
                 loaded_texture = -1;
                 MenuReloadTexture(loaded_texture, MenuDCMsg[2]->texture_block);
+                __ct__9CMenuFontFv(&font);
                 int next_floor2;
                 int next_floor1;
                 int next_floor0;
                 CMenuFont *menu_font = &font;
                 int row_y = 0x6E;
                 int panel_top = 0x32;
-                DrawMenuFillBox(0.0f, panel_top, 160.0f, 60.0f, 0x40, 0, 0, 0);
+                float box_x = 0.0f;
+                float box_y = (float)panel_top;
+                float box_h = 60.0f;
+                float box_w = 160.0f;
+                DrawMenuFillBox((float)box_x, box_y, (float)box_w, box_h, 0x40, 0, 0, 0);
                 menu_font->SetStr(at_2176);
                 menu_font->SetPos(0, 0x32);
                 menu_font->DrawDirect(menu_font->str, font.pos_x,
                                           font.pos_y);
                 int screen_height = mgScreenHeight;
-                DrawMenuFillBox(0.0f, (float)row_y, 160.0f, (float)(screen_height - row_y), 0x40, 0, 0, 0);
+                DrawMenuFillBox(0.0f, 110.0f, 160.0f, (float)(screen_height - 0x6E), 0x40, 0, 0, 0);
                 GLID_INFO *glid = select_glid;
                 if (glid != NULL && glid->type == kGlidRoom) {
                     DNG_FLOOR_SAVE *record =

@@ -36,6 +36,8 @@
 #include <cstdlib>
 
 extern "C" int fptosi(float);
+extern "C" void *__ct__11mgCDrawPrimFv(void *);
+extern "C" void *__ct__12mgCFrameAttrFv(void *);
 extern char at_2882[];
 extern char at_1107__2[];
 extern int chill_tex_rect_910[6][3];
@@ -43,6 +45,7 @@ extern "C" void *__construct_new_array(void *buffer, void *(*constructor)(void *
 extern char at_1051[];
 extern char at_1214__2[];
 
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_effect", __ct__11CCharacter2Fv);
 // Code (.text)
 float trans_effect_rate(int rate) {
     float f = (float)rate / 255.0f;
@@ -175,7 +178,7 @@ void CChillAfterHit::Draw() {
     float vec[4];
     int sprite0[4];
     int sprite1[4];
-    CPreSprite prim;
+    union { CPreSprite prim; };
     int quad[4][4];
     int trail_quad[4][4];
     int j;
@@ -188,6 +191,7 @@ void CChillAfterHit::Draw() {
     int side;
     if (TEX_ExFx_ICE != 0 && active != 0) {
 
+        __ct__11mgCDrawPrimFv(&prim);
         prim.Initialize(0, 0);
         prim.Preset2D();
         prim.Coord(1);
@@ -415,10 +419,10 @@ void CTornado::SetPos(float *pos, float size, float strength) {
     }
 }
 void CTornado::Draw() {
-    mgCFrameAttr attr;
     TORNADO_PIECE *p;
     int i;
     if (active != 0 && model != 0) {
+    mgCFrameAttr attr;
 
         attr.no_light = 1;
         attr.z_write = -1;
@@ -561,10 +565,11 @@ void CThunder::Initialize(void) {
     frame.attr = &attr;
 }
 void CSparcEffect::Draw(void) {
-    mgCFrameAttr attr;
+    union { mgCFrameAttr attr; };
     float sx = 2.0f;
     float sz = 1.0f;
     if (state != 0 && model[0] != 0) {
+        __ct__12mgCFrameAttrFv(&attr);
 
         attr.no_light = 1;
         switch ((s64)color) {
@@ -596,12 +601,12 @@ void CSparcEffect::Draw(void) {
         model[0]->SetAttrParam(attr, 1, MG_FRAME_ATTR_COLOR);
         model[1]->SetAttrParam(attr, 1, MG_FRAME_ATTR_COLOR);
         model[2]->SetAttrParam(attr, 1, MG_FRAME_ATTR_COLOR);
-        ((mgCFrame *)model[0])->SetPosition(pos);
-        ((mgCFrame *)model[0])->SetScale(sx, sx, sz);
-        ((mgCFrame *)model[1])->SetPosition(pos);
-        ((mgCFrame *)model[1])->SetScale(sx, sx, sz);
-        ((mgCFrame *)model[2])->SetPosition(pos);
-        ((mgCFrame *)model[2])->SetScale(sx, sx, sz);
+        model[0]->SetPosition(pos);
+        model[0]->SetScale(sx, sx, sz);
+        model[1]->SetPosition(pos);
+        model[1]->SetScale(sx, sx, sz);
+        model[2]->SetPosition(pos);
+        model[2]->SetScale(sx, sx, sz);
         switch ((s64)pattern) {
             case 0:
                 mgDrawDirect(model[0]);
@@ -618,6 +623,7 @@ void CSparcEffect::Draw(void) {
         }
     }
 }
+
 void CSparcEffect::Step(void) {
     if (state != 0) {
         switch ((s64)state) {
@@ -790,7 +796,7 @@ void CHealingEffectMan::Draw(mgCCamera *camera) {
     int corner1[4];
     float identity[4][4];
     float rotation[4][4];
-    CPreSprite prim;
+    union { CPreSprite prim; };
     int glow_alpha;
     int halo_alpha;
     if (active != 0) {
@@ -827,7 +833,8 @@ void CHealingEffectMan::Draw(mgCCamera *camera) {
             glow_alpha = fptosi((float)glow_alpha * distance_fade);
             halo_alpha = fptosi((float)halo_alpha * distance_fade);
 
-            prim.Initialize(0, 0);
+            __ct__11mgCDrawPrimFv(&prim);
+        prim.Initialize(0, 0);
             prim.Preset2D();
             prim.Coord(1);
             prim.DepthTestEnable(1);
@@ -935,7 +942,7 @@ void CSwordLuminous::Draw(void) {
     float hilt_pos[4];
     float tip_pos[4];
     float step[4];
-    CPreSprite prim;
+    union { CPreSprite prim; };
     int corner0[4];
     int corner1[4];
     if (mode == 0 || tip_frame == 0 || root_frame == 0) {
@@ -948,6 +955,7 @@ void CSwordLuminous::Draw(void) {
     sceVu0Normalize(step, step);
     sceVu0ScaleVector(step, step, length / 16.0f);
 
+    __ct__11mgCDrawPrimFv(&prim);
     prim.Initialize(0, 0);
     prim.Preset2D();
     prim.Coord(1);
@@ -1000,11 +1008,12 @@ void CSwordLuminous::Step(void) {
 }
 void CSWordAfterImage::Draw(void) {
     int screen[4];
-    CPreSprite prim;
+    union { CPreSprite prim; };
     float edge[4];
     float edge_end[4];
     if (smooth_num > 0) {
 
+        __ct__11mgCDrawPrimFv(&prim);
         prim.Initialize(0, 0);
         prim.Preset2D();
         prim.TextureMapEnable(0);
@@ -1133,10 +1142,11 @@ void CAfterWire::SetPos(float *pos) {
 }
 void CAfterWire::DrawWire(float (*smooth)[4]) {
     int vertex[4];
-    CPreSprite prim;
+    union { CPreSprite prim; };
     if (mode != 0 && point_num >= 2) {
         smooth_num = CreatSmoothPass(smooth, point, point_num, 4, oldest, AFTER_WIRE_POINT_MAX);
 
+        __ct__11mgCDrawPrimFv(&prim);
         prim.Initialize(0, 0);
         prim.Preset2D();
         prim.TextureMapEnable(0);
@@ -1289,13 +1299,14 @@ void CHitEffectImage::DrawSpark(float size) {
     prim.End();
 }
 void CFlushEffect::Draw(void) {
-    CPreSprite prim;
+    union { CPreSprite prim; };
     int corner0[4];
     int corner_b_r[4];
     int corner_t_l[4];
     int corner1[4];
     if (active != 0) {
 
+        __ct__11mgCDrawPrimFv(&prim);
         prim.Initialize(0, 0);
         prim.Preset2D();
         prim.DepthTestEnable(1);
@@ -1374,7 +1385,7 @@ void CPowerLine::Step(void) {
     }
 }
 void CPowerLine::Draw(void) {
-    CPreSprite sprite;
+    union { CPreSprite sprite; };
     float center[4];
     int corner0[4];
     int corner_b_r[4];
@@ -1382,6 +1393,7 @@ void CPowerLine::Draw(void) {
     int corner1[4];
     if (duration > 0 || live_num > 0) {
 
+        __ct__11mgCDrawPrimFv(&sprite);
         sprite.Initialize(0, 0);
         sprite.Preset2D();
         sprite.DepthTestEnable(1);
@@ -1456,14 +1468,14 @@ void CDeadEffect::CreatPrim(int kind) {
             particle->life = fptosi(10.0f * mgRnd()) + 20;
             particle->life_max = particle->life;
             particle->speed = 0.2f;
-            particle->alpha = 1.5f + size * mgRnd();
+            particle->size = 1.5f + size * mgRnd();
             particle->rate = 32.0f + 8.0f * mgRnd();
         }
         if (kind == 1) {
             particle->life = fptosi(10.0f * mgRnd()) + 20;
             particle->life_max = particle->life;
             particle->speed = 0.2f;
-            particle->alpha = 0.1f + size * (0.8f * mgRnd());
+            particle->size = 0.1f + size * (0.8f * mgRnd());
             particle->rate = 32.0f + 64.0f * mgRnd();
         }
         next += 1;
@@ -1484,7 +1496,7 @@ void CDeadEffect::Step(void) {
                 spark->velocity[0] = spark->velocity[0] - 0.2f * spark->velocity[0];
                 spark->velocity[2] = spark->velocity[2] - 0.2f * spark->velocity[2];
                 if (spark->kind == 1) {
-                    spark->alpha = spark->alpha - 0.01f;
+                    spark->size = spark->size - 0.01f;
                 }
                 spark->life = spark->life - 1;
                 if (spark->life <= 0) {
@@ -1637,12 +1649,6 @@ void CMapEffectsManeger::Step(mgCCamera *camera) {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_effect", Draw__18CMapEffectsManegerFP9mgCCamera);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_effect", AllocEffect__15BattleEffectManFiP9mgCMemoryi);
-CCharacter2::CCharacter2() {
-    shadow_link_num = 0;
-    shadow_link_shadow = 0;
-    shadow_link_model = 0;
-    Initialize();
-}
 CPowerLine::CPowerLine(void) {
     tex_rect.Set(0, 0, 0, 0);
     color[0] = 0x80;
@@ -1872,7 +1878,7 @@ void CWeaponElement::Draw_Cold(void) {
         float v[3];
         int w;
     } pos;
-    CPreSprite prim;
+    union { CPreSprite prim; };
     int quad_a[4];
     int quad_b[4];
     mgCTexture *tex;
@@ -1882,6 +1888,7 @@ void CWeaponElement::Draw_Cold(void) {
     sceVu0CopyVector(base, *origin);
     pos.w = 0x3F800000;
 
+    __ct__11mgCDrawPrimFv(&prim);
     prim.Initialize(NULL, NULL);
     prim.Preset2D();
     prim.Coord(1);
@@ -1988,7 +1995,7 @@ void CWeaponElement::Draw_Wind(void) {
         float v[3];
         int w;
     } pos;
-    CPreSprite prim;
+    union { CPreSprite prim; };
     float identity[4][4];
     float rotation[4][4];
     int quad_a[4];
@@ -2000,6 +2007,7 @@ void CWeaponElement::Draw_Wind(void) {
     sceVu0CopyVector(base, *origin);
     pos.w = 0x3F800000;
 
+    __ct__11mgCDrawPrimFv(&prim);
     prim.Initialize(NULL, NULL);
     prim.Preset2D();
     prim.Coord(1);
@@ -2102,7 +2110,7 @@ void CWeaponElement::Draw_Fire(void) {
         float v[3];
         int w;
     } pos;
-    CPreSprite prim;
+    union { CPreSprite prim; };
     int quad_a[4];
     int quad_b[4];
     mgCTexture *tex;
@@ -2112,6 +2120,7 @@ void CWeaponElement::Draw_Fire(void) {
     sceVu0CopyVector(base, fire_pos);
     pos.w = 0x3F800000;
 
+    __ct__11mgCDrawPrimFv(&prim);
     prim.Initialize(NULL, NULL);
     prim.Preset2D();
     prim.Coord(1);

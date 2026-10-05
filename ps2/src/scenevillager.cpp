@@ -114,7 +114,10 @@ void CScene::GetCharaLighting(float (*lights)[4], float *ambient) {
         float light_scale = 0.3f;
         float ambient_scale = 1.8f;
         float ambient_floor = 56.0f;
-        float limit[4];
+        union {
+            float f[4];
+            u_long128 word;
+        } limit;
         int i;
         float lowest;
         float next;
@@ -124,10 +127,10 @@ void CScene::GetCharaLighting(float (*lights)[4], float *ambient) {
             ambient_scale = map->chara_light_adjust_value[1];
             ambient_floor = 128.0f * map->chara_light_adjust_value[2];
         }
-        sceVu0CopyVector(limit, at_868__4);
+        limit = *(typeof(limit) *)at_868__4;
         for (i = 0; i < 4; i++) {
             sceVu0ScaleVectorXYZ(lights[i], lights[i], light_scale);
-            mgVectorMin(lights[i], lights[i], limit);
+            mgVectorMin(lights[i], lights[i], limit.f);
         }
         sceVu0ScaleVectorXYZ(ambient, ambient, ambient_scale);
         lowest = ambient[0] < ambient[1] ? (ambient[0] < ambient[2] ? ambient[0] : ambient[2])
@@ -355,6 +358,7 @@ int GetObjectNameList(char *names, CCharacter2 *chara, mgCFrame **frames, int ma
     }
     return count;
 }
+extern "C" mgCFrameAttr *__ct__12mgCFrameAttrFv(mgCFrameAttr *);
 void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
     mgCFrame *frames[16];
     CVillagerInfo *info;
@@ -378,7 +382,9 @@ void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
         if (frames[i] != NULL) {
             mgCFrameAttr *attr = frames[i]->attr;
             if (attr == NULL && memory != NULL) {
-                attr = new (memory->Alloc(0xB)) mgCFrameAttr;
+                if ((attr = (mgCFrameAttr *)operator new(0x90, (u_long128 *)memory->Alloc(0xB))) != NULL) {
+                    attr = __ct__12mgCFrameAttrFv(attr);
+                }
                 frames[i]->attr = attr;
             }
             if (attr != NULL) {
@@ -391,7 +397,9 @@ void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
         if (frames[j] != NULL) {
             mgCFrameAttr *attr = frames[j]->attr;
             if (attr == NULL && memory != NULL) {
-                attr = new (memory->Alloc(0xB)) mgCFrameAttr;
+                if ((attr = (mgCFrameAttr *)operator new(0x90, (u_long128 *)memory->Alloc(0xB))) != NULL) {
+                    attr = __ct__12mgCFrameAttrFv(attr);
+                }
                 frames[j]->attr = attr;
             }
             if (attr != NULL) {
@@ -470,7 +478,7 @@ int CScene::GetTalkEvent(float *position, CSceneEventData *event) {
     }
     return 0;
 }
-char *GetMotionName(int motion_id) {
+static char *GetMotionName(int motion_id) {
     switch (motion_id) {
         case 1:
             return motion_name[1];
@@ -707,10 +715,10 @@ int CScene::GetGameObjectEvent(float *position, CSceneEventData *event) {
         }
         if (entry->map_no == now_map_no) {
             for (i = 0; i < entry->place_num; i++) {
-                sceVu0CopyVector(point, entry->place[i].pos);
+                *(u_long128 *)point = *(u_long128 *)entry->place[i].pos;
                 point[3] = 1.0f;
                 if (mgDistVector(point, position) < 20.0f) {
-                    sceVu0CopyVector(event->position, point);
+                    *(u_long128 *)event->position = *(u_long128 *)point;
                     mgZeroVector(event->rotation);
                     switch (entry->type) {
                         case 3:
@@ -783,12 +791,12 @@ void CScene::DrawGameObject(int now_map_no) {
                 if (second != NULL) {
                     second->SetPosition(second_point);
                     second->SetRotation(0.0f, *(float *)(base + 0x1C), 0.0f);
-                    second->Initialize();
+                    second->DrawDirect();
                 }
                 if (first != NULL) {
                     first->SetPosition(first_point);
                     first->SetRotation(0.0f, *(float *)(base + 0x1C), 0.0f);
-                    first->Initialize();
+                    first->DrawDirect();
                 }
             }
         }

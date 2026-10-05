@@ -16,6 +16,7 @@ static char txt_table__2[] = "0123456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQR
  */
 // Small initialised data (.sdata)
 static unsigned int random_seed = 1;
+extern const unsigned char at_211__DATA[];
 
 #pragma optimization_level 0
 // Code (.text)
@@ -45,18 +46,16 @@ static int search_txt(char c)
  */
 static void ConvLongToTxt(unsigned long value, char* text)
 {
-    int i;
-
-    for (i = 0; i < 11; i++)
-    {
+    s32 i;
+    s32 digit;
+    for (i = 0; i < 11; i++) {
         text[i] = txt_table__2[0];
     }
-
     i = 0;
-    while (value != 0)
-    {
-        text[i++] = txt_table__2[value % 58];
-        value /= 58;
+    while (value != 0) {
+        digit = value % 58;
+        text[i++] = txt_table__2[digit];
+        value = value / 58;
     }
 }
 #pragma optimization_level reset
@@ -69,20 +68,17 @@ static void ConvLongToTxt(unsigned long value, char* text)
  */
 static int ConvTxtToLong(char* text, unsigned long* value)
 {
-    unsigned long result = 0;
-    unsigned long place = 1;
-
-    for (int i = 0; i < 11; i++)
-    {
-        int digit = search_txt(text[i]);
+    long result = 0;
+    s32 digit;
+    long weight = 1;
+    s32 i;
+    for (i = 0; i < 11; i++) {
+        digit = search_txt(text[i]);
         if (digit < 0)
-        {
             return 0;
-        }
-        result += digit * place;
-        place *= 58;
+        result += (s32)digit * weight;
+        weight = weight * 58;
     }
-
     *value = result;
     return 1;
 }
@@ -92,37 +88,35 @@ static int ConvTxtToLong(char* text, unsigned long* value)
 #pragma optimization_level 0
 int ConvertBinToTxt(u8* data, int size, char* text)
 {
-    text[0] = '\0';
-
-    for (int remaining = size; remaining > 0;)
-    {
-        unsigned long value = 0;
-        char group[12];
-        unsigned long check;
-
-        int count = remaining;
-        if (count > 8)
-        {
+    s32 remaining = size;
+    u8 *cursor = data;
+    union {
+        unsigned long value;
+        u8 bytes[8];
+    } packed;
+    char group[12];
+    unsigned long decoded;
+    s32 count;
+    s32 i;
+    *text = 0;
+    while (remaining > 0) {
+        packed.value = 0;
+        count = remaining;
+        if (count > 8) {
             count = 8;
         }
-        for (int i = 0; i < count; i++)
-        {
-            ((u8*)&value)[i] = *data++;
+        for (i = 0; i < count; i++) {
+            packed.bytes[i] = *cursor++;
         }
-
-        ConvLongToTxt(value, group);
-        group[11] = '\0';
-
-        if (ConvTxtToLong(group, &check) == 0 || value != check)
-        {
-            printf("err %lu\n", value);
+        ConvLongToTxt(packed.value, group);
+        group[11] = 0;
+        if (ConvTxtToLong(group, &decoded) == 0 || packed.value != decoded) {
+            printf((const char *)at_211__DATA, packed.value);
             return -1;
         }
-
         strcat(text, group);
         remaining -= count;
     }
-
     return strlen(text);
 }
 #pragma optimization_level reset
@@ -130,32 +124,32 @@ int ConvertBinToTxt(u8* data, int size, char* text)
 #pragma optimization_level 0
 int ConvertTxtToBin(char* text, u8* data)
 {
-    int length = strlen(text);
-    int count = 0;
-
-    if (length % 11 != 0)
-    {
+    char *in = text;
+    u8 *out = data;
+    s32 length;
+    s32 written;
+    s32 pos;
+    s32 i;
+    union {
+        unsigned long value;
+        u8 bytes[8];
+    } decoded;
+    length = strlen(text);
+    written = 0;
+    if (length % 11 != 0) {
         return -1;
     }
-
-    for (int pos = 0; pos < length; pos += 11)
-    {
-        unsigned long value;
-
-        if (ConvTxtToLong(text, &value) == 0)
-        {
+    for (pos = 0; pos < length; pos += 11) {
+        if (ConvTxtToLong(in, &decoded.value) == 0) {
             return -1;
         }
-        text += 11;
-        count += 8;
-
-        for (int i = 0; i < 8; i++)
-        {
-            *data++ = ((u8*)&value)[i];
+        in += 11;
+        written += 8;
+        for (i = 0; i < 8; i++) {
+            *out++ = decoded.bytes[i];
         }
     }
-
-    return count;
+    return written;
 }
 #pragma optimization_level reset
 
@@ -208,21 +202,28 @@ static unsigned int random()
  */
 static void EncodeBinData(u8* data, int size, u8* key, int key_size)
 {
-    unsigned int crc = GetCRC(data, size - 2) ^ 0x62D3 ^ GetCRC(key, key_size);
-    data[size - 2] = crc;
-    data[size - 1] = crc >> 8;
-
-    random_seed = crc + 0x5888F27;
-    for (int i = 0; i < size - 2; i++)
-    {
-        data[i] ^= (u8)(random() >> 24);
+    s32 i;
+    u8 mask;
+    u32 check;
+    u32 swap;
+    u32 keyCheck;
+    u8 saved;
+    check = GetCRC(data, size - 2);
+    keyCheck = GetCRC(key, key_size);
+    check ^= 0x62D3;
+    check ^= keyCheck;
+    data[size - 2] = check & 0xFF;
+    data[size - 1] = (check >> 8) & 0xFF;
+    random_seed = check + 0x5888F27;
+    for (i = 0; i < size - 2; i++) {
+        mask = (u32)random() >> 24;
+        data[i] = (s8)mask ^ (s8)data[i];
     }
-
     random_seed = 0x14A76E0;
-    u8 low = data[size - 2];
-    unsigned int swap = random() % (size - 2);
+    saved = data[size - 2];
+    swap = (u32)random() % (u32)(size - 2);
     data[size - 2] = data[swap];
-    data[swap] = low;
+    data[swap] = saved;
 }
 #pragma optimization_level reset
 #pragma divbyzerocheck reset
@@ -235,21 +236,30 @@ static void EncodeBinData(u8* data, int size, u8* key, int key_size)
  */
 static int DecodeBinData(u8* data, int size, u8* key, int key_size)
 {
+    s32 i;
+    u8 mask;
+    u32 check;
+    u32 swap;
+    u8 saved;
+    u32 keyCheck;
+    u32 crc;
     random_seed = 0x14A76E0;
-    u8 low = data[size - 2];
-    unsigned int swap = random() % (size - 2);
+    saved = data[size - 2];
+    swap = (u32)random() % (u32)(size - 2);
     data[size - 2] = data[swap];
-    data[swap] = low;
-
-    int crc = data[size - 2] | (data[size - 1] << 8);
-    random_seed = crc + 0x5888F27;
-    for (int i = 0; i < size - 2; i++)
-    {
-        data[i] ^= (u8)(random() >> 24);
+    data[swap] = saved;
+    check = data[size - 2];
+    check |= data[size - 1] << 8;
+    random_seed = check + 0x5888F27;
+    for (i = 0; i < size - 2; i++) {
+        mask = (u32)random() >> 24;
+        data[i] = (s8)mask ^ (s8)data[i];
     }
-
-    if ((crc ^ GetCRC(key, key_size) ^ 0x62D3) != GetCRC(data, size - 2))
-    {
+    keyCheck = GetCRC(key, key_size);
+    check ^= keyCheck;
+    check ^= 0x62D3;
+    crc = GetCRC(data, size - 2);
+    if (check != crc) {
         return 0;
     }
     return 1;
@@ -260,18 +270,15 @@ static int DecodeBinData(u8* data, int size, u8* key, int key_size)
 #pragma optimization_level 0
 int EncodePassword(u8* data, int size, u8* key, int key_size, char* text, int text_size)
 {
-    if (size % 8 != 0)
-    {
+    if (size % 8 != 0) {
         return 0;
     }
-    if (text_size < size / 8 * 11 + 1)
-    {
+    if (text_size < size / 8 * 11 + 1) {
         return 0;
     }
-
     EncodeBinData(data, size, key, key_size);
-    if (ConvertBinToTxt(data, size, text) <= 0)
-    {
+    s32 length = ConvertBinToTxt(data, size, text);
+    if (length <= 0) {
         return 0;
     }
     return 1;
@@ -281,22 +288,18 @@ int EncodePassword(u8* data, int size, u8* key, int key_size, char* text, int te
 #pragma optimization_level 0
 int DecodePassword(char* text, u8* data, int size, u8* key, int key_size)
 {
-    int length = strlen(text);
-
-    if (length % 11 != 0)
-    {
+    s32 length = strlen(text);
+    if (length % 11 != 0) {
         return 0;
     }
-    if (size < length / 11 * 8)
-    {
+    if (size < length / 11 * 8) {
         return 0;
     }
-    if (ConvertTxtToBin(text, data) <= 0)
-    {
+    s32 converted = ConvertTxtToBin(text, data);
+    if (converted <= 0) {
         return 0;
     }
-    if (DecodeBinData(data, size, key, key_size) == 0)
-    {
+    if (DecodeBinData(data, size, key, key_size) == 0) {
         return 0;
     }
     return 1;

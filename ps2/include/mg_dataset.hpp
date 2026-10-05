@@ -98,8 +98,7 @@ struct MDT_MATERIAL_ {
     float unk_30;
     char texture[32];      /**< Name of the texture the material draws with. */
     int unk_54;
-    float unk_58;
-    float unk_5c;
+    float extra[2];
 };
 STATIC_ASSERT(sizeof(MDT_MATERIAL_) == 0x60);
 
@@ -340,14 +339,14 @@ class mgCMDTBuilder {
 public:
     mgCMemory *memory;      /**< Memory the model is written into. */
     MDT_HEADER *header;     /**< Header of the model being written. */
-    char *end;              /**< End of the model written so far. */
-    char *data;             /**< Write position inside the open data section. */
+    union { char *end; int cursor; };              /**< End of the model written so far. */
+    union { char *data; int sectionStart; u_long128 *dataCursor; MDT_MATERIAL_ *materialCursor; };             /**< Write position inside the open data section. */
     int data_num;           /**< Number of entries written to the open data section. */
-    MDT_FACES *faces;       /**< Header of the face section. */
+    union { MDT_FACES *faces; int *faceBlock; int faceBlockAddr; };       /**< Header of the face section. */
     FACES_ID *prim;         /**< Primitive being written. */
     int index_num;          /**< Number of indices added to the primitive. */
     int face_index_num;     /**< Number of indices that make one face of the primitive. */
-    int *index;             /**< Write position for the next index of the face section. */
+    union { int *index; int *faceCursor; int faceEnd; };             /**< Write position for the next index of the face section. */
     int data_type;          /**< Section open for writing, from mgMDTDataType. */
     int unk_2c;
     MDT_MATERIAL_ material; /**< Material record written by SetMaterial. */

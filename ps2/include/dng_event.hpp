@@ -2,6 +2,11 @@
 
 #include "common.h"
 
+union DngEventVector {
+    float f[4];
+    u_long128 qw;
+};
+
 #include <libvu0.h>
 
 #include "character.hpp"

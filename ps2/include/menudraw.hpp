@@ -156,7 +156,7 @@ STATIC_ASSERT(sizeof(MENU_BASETEXINFO) == 0x20);
 struct MENU_PARTS_EFFECT_STRUCT1 {
     u8 active;       /**< Non-zero while the effect runs. */
     u8 repeat;       /**< Non-zero to keep the effect running when a cycle ends. */
-    s16 type;        /**< Kind of effect, a MENU_PARTS_EFFECT_TYPE. */
+    u16 type;        /**< Kind of effect, a MENU_PARTS_EFFECT_TYPE. */
     float param[8];  /**< Counter, limit and per-kind parameters. */
 };
 STATIC_ASSERT(sizeof(MENU_PARTS_EFFECT_STRUCT1) == 0x24);
@@ -1230,7 +1230,7 @@ public:
      * @address 0x230670
      * @size 0x10
      */
-    u8 IsRun();
+    int IsRun();
 
     /**
      *
@@ -1952,7 +1952,7 @@ void DrawMenuMainFrmImg(int &tex_block, mgRect<int> put_rect, mgRect<int> tex_re
  * @address 0x2262B0
  * @size 0x10
  */
-u8 GetMenuMainFrameEndFlag();
+int GetMenuMainFrameEndFlag();
 
 /**
  *
@@ -2132,7 +2132,7 @@ void Menu3DivideTextureDraw(mgCDrawPrim *prim, mgRect<int> rect, short *tex_tbl,
  * @address 0x22D060
  * @size 0x40
  */
-char *GetMenuMainIconChar(int no);
+void *GetMenuMainIconChar(int no);
 
 /**
  *
@@ -2487,7 +2487,7 @@ extern int *menu_randam_line_draw_postbl;
  * Non-zero to draw the menu cursor reversed.
  *
  */
-extern u8 MenuCursorReverseFlag;
+extern int MenuCursorReverseFlag;
 
 /**
  *
