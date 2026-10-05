@@ -4,34 +4,51 @@
 #include "mainloop.hpp"
 #include "scriptinterpreter.hpp"
 #include "quest.hpp"
+#include "mainloop.hpp"
+#include "savedata.hpp"
+#include "scriptinterpreter.hpp"
+#include "mg_memory.hpp"
 #include <cstring>
 
 extern CQuestManager *spi_questman;
 extern mgCMemory *spi_queststack;
 extern QUEST_INFO *spi_quest_info;
 extern SPI_TAG_PARAM quest_cmd_tag[];
+#ifdef NONMATCHING
+static CQuestManager *spi_questman; /**< Request list currently being read from a script. */
+static mgCMemory *spi_queststack; /**< Heap used for the request list. */
+static QUEST_INFO *spi_quest_info; /**< Request currently being filled. */
+
+static int quest_NUM(SPI_STACK *arguments, int argument_count);
+static int quest_NEW(SPI_STACK *arguments, int argument_count);
+static int quest_COMMENT(SPI_STACK *arguments, int argument_count);
+static int quest_END(SPI_STACK *arguments, int argument_count);
+
+static SPI_TAG_PARAM quest_cmd_tag[] = {
+    {"NUM", quest_NUM},
+    {"NEW", quest_NEW},
+    {"COMMENT", quest_COMMENT},
+    {"END", quest_END},
+    {NULL, NULL},
+};
+#endif
 
 // Code (.text)
-CQuestData *GetQuestData(void) {
-    CSaveData *save;
-
-    save = GetSaveData();
-    if (save != 0) {
-        return &save->quest_data;
-    }
-    return 0;
+static CQuestData *GetQuestData() {
+    CSaveData *save_data = GetSaveData();
+    return save_data != NULL ? &save_data->quest_data : NULL;
 }
 void CQuestManager::Initialize(void) {
     num = 0;
     info = NULL;
 }
 QUEST_INFO *CQuestManager::GetQuestInfo(int id) {
-    for (int i = 0; i < num; i++) {
-        if (info[i].id == id) {
-            return &info[i];
+    for (int index = 0; index < num; ++index) {
+        if (info[index].id == id) {
+            return &info[index];
         }
     }
-    return 0;
+    return NULL;
 }
 int quest_NUM(SPI_STACK *stack, int arg_count) {
     int num;
@@ -81,8 +98,8 @@ void CQuestManager::LoadCfg(mgCMemory *memory, char *script, int length) {
     interpreter.SetScript(script, length);
     interpreter.Run();
 }
-void CQuestData::Initialize(void) {
-    memset(this, 0, sizeof(CQuestData));
+void CQuestData::Initialize() {
+    memset(this, 0, sizeof(*this));
 }
 void CQuestData::SetQuestFlag(int index, int value) {
     if (index < 0 || index >= QUEST_PLAY_DATA_MAX)
@@ -99,38 +116,31 @@ QUEST_PLAY_DATA *CQuestData::GetPlayQuestData(int index) {
         return 0;
     return &play[index];
 }
-void QuestRequestSetFlag(int quest_no, int value) {
-    CQuestData *info;
-
-    info = GetQuestData();
-    if (info != NULL) {
-        info->SetQuestFlag(quest_no, value);
+void QuestRequestSetFlag(int id, int flag) {
+    CQuestData *quest_data = GetQuestData();
+    if (quest_data != NULL) {
+        quest_data->SetQuestFlag(id, flag);
     }
 }
-void QuestRequestClear(int quest_no, int unused) {
-    CQuestData *info;
-
-    info = GetQuestData();
-    if (info != NULL) {
-        info->QuestClear(quest_no);
+void QuestRequestClear(int id, int unused) {
+    CQuestData *quest_data = GetQuestData();
+    if (quest_data != NULL) {
+        quest_data->QuestClear(id);
     }
 }
-int GetQuestRequestStatus(int quest_no) {
-    CQuestData *info;
-    QUEST_PLAY_DATA *entry;
-
-    info = GetQuestData();
-    if (info == NULL) {
-        return -1;
+int GetQuestRequestStatus(int id) {
+    CQuestData *quest_data = GetQuestData();
+    if (quest_data == NULL) {
+        return QUEST_REQUEST_STATUS_INVALID;
     }
-    entry = info->GetPlayQuestData(quest_no);
-    if (entry == NULL) {
-        return -1;
+    QUEST_PLAY_DATA *progress = quest_data->GetPlayQuestData(id);
+    if (progress == NULL) {
+        return QUEST_REQUEST_STATUS_INVALID;
     }
-    if (entry->cleared != 0) {
-        return 2;
+    if (progress->cleared != 0) {
+        return QUEST_REQUEST_STATUS_CLEARED;
     }
-    return entry->accepted != 0;
+    return progress->accepted != 0;
 }
 int CMonsterBook::CountKill(int monster, int amount) {
     if (monster < 0)

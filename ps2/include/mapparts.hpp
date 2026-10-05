@@ -36,7 +36,7 @@ class mgCMemory;
  */
 struct InScreenFuncInfo {
     float range;  /**< Distance from the camera within which a function point counts. */
-    s32   unk_04;
+    float unk_04;
     float dist;   /**< Distance from the camera to the function point found. */
 };
 

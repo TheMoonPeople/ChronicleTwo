@@ -4,6 +4,7 @@
 
 #include <libvu0.h>
 
+#include "effect.hpp"
 #include "gameutil.hpp"
 #include "object.hpp"
 
@@ -132,7 +133,7 @@ STATIC_ASSERT(sizeof(CHRINFO_KEY_SET) == 0x30);
  */
 struct CHRINFO_SEQ {
     char  name[0x22];   /**< Name of the motion that the step plays; empty in the entry that ends the sequence. */
-    s8    type;         /**< How the step ends. @see ChrInfoSeqType. */
+    u8    type;         /**< How the step ends. @see ChrInfoSeqType. */
     u8    unk_23;
     s32   loop_count;   /**< Number of times that a looping step plays its motion. */
     float blend_speed;  /**< Blend weight gained each step while blending into the motion; -1.0 for the default. */
@@ -167,12 +168,30 @@ struct CHRINFO_SE {
 STATIC_ASSERT(sizeof(CHRINFO_SE) == 0x10);
 
 /**
+ * Effect playback data with the character frame and motion that attach it to the model.
+ */
+struct CHARA_EFFECT_MANAGER : public CEffectManager {
+    CEffectCtrl  *emitter_pool;    /**< Emitter pool allocated with the character. */
+    u32           unk_188;
+    CEffect      *particle_pool;   /**< Particle pool allocated with the character. */
+    u32           unk_190;
+    u32           unk_194;
+    s32           local_draw;      /**< Nonzero to transform the effect sprite packet by its attachment matrix. */
+    char          frame_name[32];  /**< Model frame the effect follows; empty for the origin. */
+    char          motion_name[32]; /**< Motion that starts the effect. */
+    float         start_ratio;     /**< Part of the motion after which the effect starts. */
+    sceVu0FVECTOR offset;          /**< Position relative to the attachment frame. */
+};
+
+STATIC_ASSERT(sizeof(CHARA_EFFECT_MANAGER) == 0x1F0);
+
+/**
  * One effect that a character's info file loads, with the motion that starts it.
  */
 struct CHRINFO_EFFECT {
-    char            name[0x20]; /**< Name of the effect. */
-    CEffectManager *effect;     /**< Effect that plays. */
-    CHRINFO_EFFECT *next;       /**< Next effect of the character, or NULL. */
+    char            name[0x20];   /**< Name of the effect. */
+    CHARA_EFFECT_MANAGER *effect; /**< Effect that plays. */
+    CHRINFO_EFFECT *next;         /**< Next effect of the character, or NULL. */
 };
 
 STATIC_ASSERT(sizeof(CHRINFO_EFFECT) == 0x28);
@@ -204,9 +223,9 @@ STATIC_ASSERT(sizeof(CHARA_ENTRY_OBJECT) == 0x10);
  * An effect that the motion playing started, with whether it runs yet.
  */
 struct CHARA_ENTRY_EFFECT {
-    CEffectManager *effect;  /**< Effect to run. */
-    s32             active;  /**< Nonzero while the slot holds an effect of the motion. */
-    s32             running; /**< Nonzero once the motion reached the point that runs the effect. */
+    CHARA_EFFECT_MANAGER *effect; /**< Effect to run. */
+    s32             active;       /**< Nonzero while the slot holds an effect of the motion. */
+    s32             running;      /**< Nonzero once the motion reached the point that runs the effect. */
 };
 
 STATIC_ASSERT(sizeof(CHARA_ENTRY_EFFECT) == 0xC);
@@ -251,10 +270,18 @@ public:
     s32                   poly_num[2];                                  /**< Polygon counts that the info file gives. */
     float                 body_width;                                   /**< Width of the body. */
     float                 body_height;                                  /**< Height of the body, used for framing and scaling. */
+
+    float GetBodyWidth() {
+        return body_width;
+    }
+
+    float GetBodyHeight() {
+        return body_height;
+    }
     float                 body_depth;                                   /**< Depth of the body. */
-    s32                   load_size;                                    /**< Bytes of the model memory that loading the character took. */
-    s32                   copy_size;                                    /**< Bytes that a copy of the character takes; zero or below to take load_size. */
-    u16                   dynamic_anime_flags;                          /**< Flags of the cloth and hair animations. @see CharaDynamicAnimeFlag. */
+    s32                   load_size;                                    /**< Quadwords of the model memory that loading the character took. */
+    s32                   copy_size;                                    /**< Quadwords that a copy of the character takes; zero or below to take load_size. */
+    s16                   dynamic_anime_flags;                          /**< Flags of the cloth and hair animations. @see CharaDynamicAnimeFlag. */
     COutLineDraw         *outline;                                      /**< Outlines drawn around the character, linked through COutLineDraw::next. */
     s32                   outline_tex_no;                               /**< Number of the screen texture that the outlines draw into. */
     s32                   dynamic_anime_num;                            /**< Number of entries in dynamic_anime. */
@@ -679,7 +706,7 @@ public:
     virtual void Copy(CCharacter2 &dest, mgCMemory *memory);
 
     /**
-     * Gets the bytes that a copy of the character takes.
+     * Gets the quadwords that a copy of the character takes.
      *
      * @mangled GetCopySize__11CCharacter2Fv
      * @address 0x1698B0
@@ -879,7 +906,7 @@ public:
      * @address 0x176600
      * @size 0x10
      */
-    int LoadSkin(unsigned int *pack, char *name, char *skin_name, mgCMemory *stack, int image_block);
+    void LoadSkin(unsigned int *pack, char *name, char *skin_name, mgCMemory *stack, int image_block);
 
     /**
      * Clears the effects of the character.

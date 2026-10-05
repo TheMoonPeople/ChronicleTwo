@@ -769,7 +769,7 @@ INCLUDE_BSS(InitArg, 0x50);
 INCLUDE_BSS(NextInitArg, 0x50);
 INCLUDE_BSS(PrevInitArg, 0x50);
 INCLUDE_BSS(main_buffer, 0x1A00000);
-INCLUDE_BSS(MainBuffer, 0x30);
+static INCLUDE_BSS(MainBuffer, 0x30);
 INCLUDE_BSS(MainScene, 0x10550);
 INCLUDE_BSS(SystemSeBuff, 0x1900);
 INCLUDE_BSS(SystemSeStack, 0x30);

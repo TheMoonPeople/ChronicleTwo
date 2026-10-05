@@ -1,5 +1,23 @@
 # editexception: reverse-engineering notes
 
+## Draft and matching status
+Named, typed C++ definitions for `InitNpcCameraReaction`, `InitS51Thunder`,
+`StepFirePowder`, `CGeyserEffect::Create`, `Step`, `GetEmpty`, `CreatePoint`, and
+`StepGeyserEffect` reproduce the retail image and are promoted. The
+`CGeyserEffect` constructor also compiles to matching instructions, but its
+single linked-image promotion attempt produced duplicate `mgCVisual` and
+`mgC3DSprite` definitions from the header's inline virtual functions; it
+remains guarded by `NONMATCHING` with the original assembly in the game build.
+The other seven functions now have named, typed C++ drafts behind `NONMATCHING`.
+All 17 functions compile in the draft comparison: ten compare equal and seven
+differ. Each of the seven new drafts received one isolated promotion attempt;
+none promoted, so the default game build still selects their `INCLUDE_ASM`
+branches. Three promotion attempts reached image comparison and differed;
+`DrawGeyserEffect`, `DrawFirePowder`, and `InitFirePowder` encountered duplicate
+inline `mgCVisual`/`mgC3DSprite`/`mgCFrame::SetVisual` definitions while linking,
+and `CreatePacket` failed the local-data postprocessor comparison. Those are
+promotion tooling or emitted-data blockers in addition to the function diffs.
+
 Special-case effects for edit (Georama) maps and the S51 dungeon floor. No first-game
 counterpart was found in `/home/adubbz/development/chronicle`.
 
@@ -94,3 +112,12 @@ after their first use or ordinary out-of-line definitions -- the header declares
 - Retail name of the fire rain particle struct (`FirePowder` is neutral).
 - Meaning of `start_thunder`, `GeyserRndSeed` (written only), CGeyserEffect 0x18/0x74 gaps,
   CGeyserEffectPoint 0x2C.
+- The texture-anime record offsets used by `EditExceptionStep` do not align
+  cleanly with the current `CList<mgCTexAnimeData>` layout; the draft uses
+  named record fields as a provisional interpretation. Its fade timing needs
+  a type-layout check before matching work continues.
+- The `DrawFirePowder` and `CreatePacket` drafts use provisional UV, size and
+  colour arrays. Retail keeps their exact values in local assembly data; those
+  values and the associated local-data layout still need migration.
+- `S51Thunder` writes two fields of each map-piece list node in retail; the
+  current named-field interpretation for those node writes needs verification.

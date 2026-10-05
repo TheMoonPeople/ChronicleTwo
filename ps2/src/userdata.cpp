@@ -3308,7 +3308,7 @@ int CBattleCharaInfo::GetMagicSwordPow(void) {
     }
     return 0;
 }
-short CBattleCharaInfo::GetMagicSwordCounterNow(void) {
+int CBattleCharaInfo::GetMagicSwordCounterNow(void) {
     if (chr_no != USER_CHARA_MONICA) {
         return 0;
     }

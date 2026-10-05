@@ -8,11 +8,17 @@
 #include <libvu0.h>
 
 #include "mg_drawenv.hpp"
+#include "mg_drawprim.hpp"
 #include "mg_math.hpp"
 #include "mglib.hpp"
 
 extern "C" u_char at_844[];
 
+#ifdef NONMATCHING
+static mgCFrameAttr dmy_attr; /**< Attributes GetDrawRect reads for a frame that has none of its own. */
+#endif
+
+#ifdef NONMATCHING
 /**
  *
  * Scales the first three rows of a matrix component-wise by a vector and copies its last row.
@@ -1008,35 +1014,40 @@ void mgCFrame::GetWorldPosition(float *out_position, float *local_position) {
     GetLWMatrix(lw);
     sceVu0ApplyMatrix(out_position, lw, local_position);
 }
-void mgCFrame::GetWorldPosition0(float *pos) {
-    float lw_matrix[4][4];
-    GetLWMatrix(lw_matrix);
-    *(u_long128 *)pos = *(u_long128 *)&lw_matrix[3][0];
+
+void mgCFrame::GetWorldPosition0(float *out_position) {
+    sceVu0FMATRIX lw;
+
+    GetLWMatrix(lw);
+    *(u_long128 *)out_position = *(u_long128 *)lw[3];
 }
-void mgCFrame::GetWorldDir(float *dir, float *out) {
-    float lw_matrix[4][4];
-    float w = out[3];
-    out[3] = 0;
-    GetLWMatrix(lw_matrix);
-    sceVu0ApplyMatrix(dir, lw_matrix, out);
-    out[3] = w;
+
+void mgCFrame::GetWorldDir(float *out_dir, float *local_dir) {
+    sceVu0FMATRIX lw;
+    float         w;
+
+    // A w of zero leaves the translation out of the transform.
+    w = local_dir[3];
+    local_dir[3] = 0.0f;
+    GetLWMatrix(lw);
+    sceVu0ApplyMatrix(out_dir, lw, local_dir);
+    local_dir[3] = w;
 }
 void mgCFrame::SetRotation(float *rot) {
     rot_type |= 1;
     mgCObject::SetRotation(rot);
 }
+
 void mgCFrame::SetRotation(float x, float y, float z) {
-    float vector[4];
-    *(u_long128 *)vector = *(u_long128 *)at_844;
-    vector[0] = x;
-    vector[1] = y;
-    vector[2] = z;
-    SetRotation(vector);
+    sceVu0FVECTOR rotation = {x, y, z, 0.0f};
+
+    SetRotation(rotation);
 }
+
 void mgCFrame::SetRotType(int type) {
     rot_type = type;
-    if (type & 2) {
-        rot_type |= 1;
+    if (type & MG_FRAME_ROT_LOCAL_ORIGIN) {
+        rot_type |= MG_FRAME_ROT_APPLY;
     }
 }
 void mgCFrame::SetAttrParam(mgCFrameAttr &attr, int recurse, int mask) {
@@ -1185,15 +1196,338 @@ void mgCFrame::SetAttrParamDraw(int value, int recurse) {
         node->SetAttrParamDraw(value, 1);
     }
 }
+
+#ifdef NONMATCHING
+int mgCFrame::Draw(unsigned int *packet) {
+    sceVu0FMATRIX  lw;
+    sceVu0FVECTOR  box_max;
+    sceVu0FVECTOR  box_min;
+    sceVu0FMATRIX  axes;
+    sceVu0FVECTOR  center;
+    mgRENDER_INFO *info;
+    mgLIGHT_INFO  *light_info;
+    mgCFrame      *frame;
+    float          scale_x;
+    float          scale_y;
+    float          scale_z;
+    float          radius;
+    int            count;
+    int            visible;
+    int            draw_child;
+    int            i;
+
+    count = 0;
+    info = &mgRenderInfo;
+    if (attr == NULL) {
+        GetLWMatrixTopBottom(lw);
+    } else {
+        if (attr->billboard != MG_FRAME_BILLBOARD_NONE) {
+            GetBBoardMatrix(attr->billboard, lw, info);
+        } else {
+            GetLWMatrixTopBottom(lw);
+        }
+
+        if (attr != NULL && (attr->draw & MG_FRAME_DRAW_VISIBLE) && visual != NULL) {
+            visible = 1;
+            if (!attr->no_cull && bound != NULL) {
+                // The frame is skipped when its box lies behind the near plane or off screen, and
+                // drawn with clipping when the box leaves the GS drawing range.
+                visible = 0;
+                test1(bound->corner, info->world_screen_rel, lw, box_max, box_min);
+                if (box_max[3] >= info->clip_min[2]) {
+                    test2(box_max, box_min);
+                    if (mgClipBoxW(box_max, box_min, info->screen_box_max, info->screen_box_min)) {
+                        visible = 1;
+                        if (mgClipInBoxW(box_max, box_min, info->gs_box_max, info->gs_box_min)) {
+                            info->clip = 0;
+                            info->scissor = 0;
+                        } else {
+                            info->clip = 1;
+                            if (attr->program_mode & 2) {
+                                info->scissor = attr->clip_enable != 0;
+                            } else {
+                                info->scissor = (attr->clip_enable != 0) | info->all_scissor;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (visible) {
+                info->attr = attr;
+                sceVu0CopyVector(info->object_color, attr->color);
+                info->plight_hit = 0;
+                if (info->plight_enable && attr->point_light && !attr->no_light && bound != NULL) {
+                    // The bounding sphere is moved into the world, its radius scaled by the
+                    // longest of the matrix's first three columns, and tested against each
+                    // point light's reach.
+                    sceVu0TransposeMatrix(axes, lw);
+                    scale_x = mgDistVector(axes[0]);
+                    scale_y = mgDistVector(axes[1]);
+                    scale_z = mgDistVector(axes[2]);
+                    if (scale_x <= scale_y) {
+                        if (scale_y <= scale_z) {
+                            scale_y = scale_z;
+                        }
+                        scale_x = scale_y;
+                    } else if (scale_x <= scale_z) {
+                        scale_x = scale_z;
+                    }
+                    radius = bound->radius * scale_x;
+                    sceVu0CopyVector(center, bound->center);
+                    center[3] = 1.0f;
+                    sceVu0ApplyMatrix(center, lw, center);
+                    light_info = info->GetpLightInfo();
+                    for (i = 0; i < 4; i++) {
+                        if (light_info->point_light[i].power > 0.0f &&
+                            radius + light_info->point_light[i].range >
+                                mgDistVector(light_info->point_light[i].pos, center)) {
+                            info->plight_hit = 1;
+                            break;
+                        }
+                    }
+                }
+                count += visual->Draw(packet, lw, NULL);
+            }
+        }
+
+        if (attr->draw & MG_FRAME_DRAW_SKIP_CHILDREN) {
+            return count;
+        }
+    }
+
+    for (frame = child; frame != NULL; frame = frame->brother) {
+        draw_child = 1;
+        if (frame->attr != NULL && (frame->attr->draw & MG_FRAME_DRAW_SKIP_BY_PARENT)) {
+            draw_child = 0;
+        }
+        if (draw_child) {
+            count += frame->Draw(&packet[count * 4]);
+        }
+    }
+    return count;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_frame", Draw__8mgCFrameFPUi);
+#endif
+
+#ifdef NONMATCHING
+int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
+    sceVu0FMATRIX   lw;
+    sceVu0FVECTOR   rect_max = {0.0f, 0.0f, 0.0f, 0.0f};
+    sceVu0FVECTOR   rect_min = {0.0f, 0.0f, 0.0f, 0.0f};
+    sceVu0FMATRIX   screen_matrix;
+    mgVu0FBOX       child_rect;
+    mgRENDER_INFO  *info;
+    mgCFrameAttr   *draw_attr;
+    mgCFrame       *frame;
+    register float *corners;
+    register float *matrix;
+    register float *hi;
+    register float *lo;
+    float           left;
+    float           top;
+    int             billboard;
+    int             visible;
+    int             draw_child;
+
+    if (manager == NULL) {
+        manager = &mgDrawManager;
+    }
+    info = manager->render_info;
+
+    draw_attr = attr;
+    if (draw_attr == NULL) {
+        draw_attr = &dmy_attr;
+    }
+
+    billboard = MG_FRAME_BILLBOARD_NONE;
+    if (attr != NULL) {
+        billboard = attr->billboard;
+    }
+    if (billboard != MG_FRAME_BILLBOARD_NONE) {
+        GetBBoardMatrix(billboard, lw, info);
+    } else {
+        GetLWMatrixTopBottom(lw);
+    }
+
+    visible = 0;
+    if (draw_attr->draw & MG_FRAME_DRAW_VISIBLE) {
+        visible = 1;
+    }
+    if (visual == NULL || bound == NULL) {
+        visible = 0;
+    }
+
+    if (visible) {
+        mgMulMatrix(screen_matrix, info->world_screen_rel, lw);
+        corners = &bound->corner[0][0];
+        matrix = &screen_matrix[0][0];
+        hi = rect_max;
+        lo = rect_min;
+
+        // Each corner goes through the screen transform and is divided through by the magnitude
+        // of its w, and the box around the results is kept.
+        asm {
+            lqc2    vf10, 0(corners)
+            lqc2    vf11, 16(corners)
+            lqc2    vf12, 32(corners)
+            lqc2    vf13, 48(corners)
+            lqc2    vf14, 64(corners)
+            lqc2    vf15, 80(corners)
+            lqc2    vf16, 96(corners)
+            lqc2    vf17, 112(corners)
+            lqc2    vf1, 0(matrix)
+            lqc2    vf2, 16(matrix)
+            lqc2    vf3, 32(matrix)
+            lqc2    vf4, 48(matrix)
+            vmulax  ACC, vf1, vf10
+            vmadday ACC, vf2, vf10
+            vmaddaz ACC, vf3, vf10
+            vmaddw  vf10, vf4, vf10
+            vmulax  ACC, vf1, vf11
+            vmadday ACC, vf2, vf11
+            vmaddaz ACC, vf3, vf11
+            vabs.w  vf20, vf10
+            vnop
+            vnop
+            vmaddw  vf11, vf4, vf11
+            vdiv    Q, vf0w, vf20w
+            vnop
+            vnop
+            vabs.w  vf21, vf11
+            vnop
+            vnop
+            vwaitq
+            vmulq.xy vf10, vf10, Q
+            vdiv    Q, vf0w, vf21w
+            vmulax  ACC, vf1, vf12
+            vmadday ACC, vf2, vf12
+            vmaddaz ACC, vf3, vf12
+            vmaddw  vf12, vf4, vf12
+            vmulax  ACC, vf1, vf13
+            vwaitq
+            vmulq.xy vf11, vf11, Q
+            vabs.w  vf22, vf12
+            vmadday ACC, vf2, vf13
+            vmaddaz ACC, vf3, vf13
+            vmaddw  vf13, vf4, vf13
+            vdiv    Q, vf0w, vf22w
+            vmulax  ACC, vf1, vf14
+            vmadday ACC, vf2, vf14
+            vabs.w  vf23, vf13
+            vmaddaz ACC, vf3, vf14
+            vmaddw  vf14, vf4, vf14
+            vmax    vf30, vf10, vf11
+            vmini   vf31, vf10, vf11
+            vwaitq
+            vmulq.xy vf12, vf12, Q
+            vdiv    Q, vf0w, vf23w
+            vabs.w  vf24, vf14
+            vmulax  ACC, vf1, vf15
+            vmadday ACC, vf2, vf15
+            vmaddaz ACC, vf3, vf15
+            vmaddw  vf15, vf4, vf15
+            vmax    vf30, vf30, vf12
+            vmini   vf31, vf31, vf12
+            vwaitq
+            vmulq.xy vf13, vf13, Q
+            vdiv    Q, vf0w, vf24w
+            vabs.w  vf25, vf15
+            vmulax  ACC, vf1, vf16
+            vmadday ACC, vf2, vf16
+            vmaddaz ACC, vf3, vf16
+            vmaddw  vf16, vf4, vf16
+            vmax    vf30, vf30, vf13
+            vmini   vf31, vf31, vf13
+            vwaitq
+            vmulq.xy vf14, vf14, Q
+            vdiv    Q, vf0w, vf25w
+            vabs.w  vf26, vf16
+            vmulax  ACC, vf1, vf17
+            vmadday ACC, vf2, vf17
+            vmaddaz ACC, vf3, vf17
+            vmaddw  vf17, vf4, vf17
+            vmax    vf30, vf30, vf14
+            vmini   vf31, vf31, vf14
+            vwaitq
+            vmulq.xy vf15, vf15, Q
+            vdiv    Q, vf0w, vf26w
+            vabs.w  vf27, vf17
+            vnop
+            vmax    vf30, vf30, vf15
+            vmini   vf31, vf31, vf15
+            vnop
+            vwaitq
+            vmulq.xy vf16, vf16, Q
+            vdiv    Q, vf0w, vf27w
+            vnop
+            vmax    vf30, vf30, vf16
+            vmini   vf31, vf31, vf16
+            vnop
+            vnop
+            vwaitq
+            vmulq.xy vf17, vf17, Q
+            vmax    vf30, vf30, vf17
+            vmini   vf31, vf31, vf17
+            sqc2    vf30, 0(hi)
+            sqc2    vf31, 0(lo)
+        }
+
+        // The box counts only when it overlaps the screen, whose coordinates are relative to its
+        // centre, and does not lie behind the near plane; it is then moved to screen coordinates.
+        left = 0.5f * -mgScreenWidth;
+        top = 0.5f * -mgScreenHeight;
+        visible = 0;
+        if (rect_min[0] <= left + mgScreenWidth && rect_max[0] >= left &&
+            rect_min[1] <= top + mgScreenHeight && rect_max[1] >= top && rect_max[3] >= info->clip_min[2]) {
+            visible = 1;
+            rect_min[0] += mgScreenWidth / 2;
+            rect_max[0] += mgScreenWidth / 2;
+            rect_min[1] += mgScreenHeight / 2;
+            rect_max[1] += mgScreenHeight / 2;
+        }
+    }
+
+    if (visible) {
+        sceVu0CopyVector(rect->max, rect_max);
+        sceVu0CopyVector(rect->min, rect_min);
+    }
+    if (draw_attr->draw & MG_FRAME_DRAW_SKIP_CHILDREN) {
+        return visible;
+    }
+
+    for (frame = child; frame != NULL; frame = frame->brother) {
+        draw_child = 1;
+        if (frame->attr != NULL && (frame->attr->draw & MG_FRAME_DRAW_SKIP_BY_PARENT)) {
+            draw_child = 0;
+        }
+        if (draw_child && frame->GetDrawRect(&child_rect, NULL)) {
+            if (!visible) {
+                sceVu0CopyVector(rect_max, child_rect.max);
+                sceVu0CopyVector(rect_min, child_rect.min);
+            } else {
+                mgVectorMaxMin(rect_max, rect_min, rect_max, rect_min, child_rect.max, child_rect.min);
+            }
+            visible = 1;
+        }
+    }
+
+    sceVu0CopyVector(rect->max, rect_max);
+    sceVu0CopyVector(rect->min, rect_min);
+    return visible;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_frame", GetDrawRect__8mgCFrameFP9mgVu0FBOXP14mgCDrawManager);
-mgCFrame &mgCFrame::operator=(mgCFrame &source) {
-    memcpy(this, &source, 0x110);
-    brother = 0;
-    child = 0;
-    parent = 0;
+#endif
+
+mgCFrame &mgCFrame::operator=(mgCFrame &other) {
+    memcpy(this, &other, sizeof(mgCFrame));
+    parent = child = brother = NULL;
     changed = 1;
     reference = 0;
+
+    // The copy builds its matrix from its parts unless they are all at their defaults.
     use_srt = 0;
     if (position[0] != 0.0f || position[1] != 0.0f || position[2] != 0.0f) {
         use_srt = 1;
@@ -1223,7 +1557,11 @@ int mgCObject::Draw() {
 }
 
 // Static initialiser (.init)
+#ifdef NONMATCHING
+// Constructs dmy_attr, from its definition at the top of the file.
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_frame", __sinit_mg_frame_cpp);
+#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_frame", at_307__DATA);

@@ -63,14 +63,6 @@ public:
      */
     CameraCtrlParam() { no_check = 0; }
 
-    /**
-     * Copies the limits of another set, field by field.
-     *
-     * @mangled __as__15CameraCtrlParamFRC15CameraCtrlParam
-     * @address 0x1ACEE0
-     * @size 0x60
-     */
-    CameraCtrlParam &operator=(const CameraCtrlParam &src);
 
     /**
      * Gives every height limit, and the height of the eye, one value,

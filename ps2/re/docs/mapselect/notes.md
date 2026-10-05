@@ -100,3 +100,22 @@ also CScene::SetTime), +0x1C5A8 config caption byte (toggled by CIRCLE). `DAT_00
 "atoramiria" 5 (VISIBLE|SKIP_BY_PARENT), "himo" 1; type 1: "atoramiria" 1; type 2: "atora" 5.
 Called by charasetup `SetupUnitMan(scene, user, chara_type, ...)` with chara_type when save bit 8
 is set; so `type` is that chara_type.
+
+## Complete C++ draft pass
+All 22 assembly-backed functions in the unit have typed, named C++ drafts.
+The map script handlers populate `MAP_NAME_INFO` records in `MapNameBuff` and
+copy their strings into the adjacent character buffer. The map selector builds
+per-category lists from `map/map.lst`, while the save editor changes story
+progress, time, flags, Georama completion, play time, and caption settings.
+The event viewer reads `event/view_pal.txt` as tab-separated records and
+passes a selected town or dungeon event to `NextLoop`. `AtraMiriaOnOff`
+changes the draw flags of three named model frames according to character
+type.
+
+The draft comparison covers 23 of 23 functions, including the preexisting
+`InitSaveDataEdit`: five match and 18 differ. The four matching new drafts are
+`LoadMapName`, `GetMapNameInfo`, `GetMapName`, and `SearchMapNo`. Each of the
+22 guarded functions received one isolated promotion trial. Those isolated
+trials could not compile without the unit's guarded typed state and includes,
+so every new function keeps its retail `INCLUDE_ASM` fallback. The normal
+full build remained byte-identical after the draft pass.

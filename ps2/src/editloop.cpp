@@ -800,7 +800,7 @@ INCLUDE_BSS(BlueBicMark, 0x4);
 INCLUDE_BSS(TreasureBox, 0x4);
 INCLUDE_BSS(MapNo, 0x4);
 INCLUDE_BSS(Camera, 0x4);
-INCLUDE_BSS(EventCamera, 0x4);
+static INCLUDE_BSS(EventCamera, 0x4);
 INCLUDE_BSS(FixCamera, 0x4);
 INCLUDE_BSS(EditCamera, 0x4);
 INCLUDE_BSS(ActiveCharaNo, 0x4);

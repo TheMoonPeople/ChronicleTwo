@@ -192,6 +192,18 @@ public:
     CMapParts *parts;  /**< Part placed in the cell. */
     u32 wall;          /**< Sides a wall closes, an AUTOMAP_WALL combination. */
     s8 navi;           /**< Steps left to the navigation target, 0 if unreached, or -1 for an empty cell. */
+
+    void Initialize() {
+        parts_no = -1;
+        attr = 0;
+        kind = 0;
+        room_no = -1;
+        road_link = 0;
+        link = 0;
+        visible = 0;
+        wall = -1;
+        parts = NULL;
+    }
 };
 STATIC_ASSERT(sizeof(CAutoMapParts) == 0x1C);
 
@@ -221,7 +233,8 @@ public:
     s16 w;                      /**< Screen width of the mini map. */
     s16 h;                      /**< Screen height of the mini map. */
     s32 blink_cnt;              /**< Frame counter that blinks symbols, from 0 to 30. */
-    s32 large;                  /**< Non-zero while the mini map is shown at its large size. */
+    s16 large;                  /**< Non-zero while the mini map is shown at its large size. */
+    u8  unk_17e[0x2];
 
     /**
      *

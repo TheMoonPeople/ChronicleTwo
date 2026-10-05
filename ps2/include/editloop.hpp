@@ -186,3 +186,6 @@ extern ClsMes EventMes1;
 
 /** Memory block holding the loaded event script. */
 extern mgCMemory ScriptBuffer;
+
+/** Memory block used when a town event loads another script. */
+extern mgCMemory ScriptBuffer__2;

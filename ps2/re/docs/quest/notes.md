@@ -67,3 +67,19 @@ mode 1 -> QuestRequestClear(id, v). QuestRequestClear ignores its second argumen
   (userdata, returns int) passes the value through unmasked; `u16` would be equally consistent.
 - MONSTER_BOOK_ENTRY: +2 `kill_count` u16 (lhu/sh); +0 and +4..0xC never accessed in code seen
   (MonsterBookPtr in menuchr is only assigned, never read, in the decompiled output).
+
+## C++ draft and promotion status
+
+The C++ drafts in `quest.cpp` use the types and fields documented above. A single
+grouped promotion attempt was made for the quest data operations. These matched
+exactly and remain enabled: `GetQuestData`, `CQuestManager::GetQuestInfo`,
+`CQuestData::Initialize`, `QuestRequestSetFlag`, `QuestRequestClear`, and
+`GetQuestRequestStatus`. `CQuestManager::Initialize` already matched.
+
+The same attempt produced nonzero object differences for
+`CQuestData::SetQuestFlag`, `CQuestData::QuestClear`,
+`CQuestData::GetPlayQuestData`, and `CMonsterBook::CountKill`; their C++ drafts
+remain behind `NONMATCHING`. The script parser drafts (`quest_NUM`, `quest_NEW`,
+`quest_COMMENT`, `quest_END`, and `CQuestManager::LoadCfg`) compiled in their
+single grouped attempt but failed to link: the assembly-owned tag table still
+references the original handler symbols. They also remain behind `NONMATCHING`.

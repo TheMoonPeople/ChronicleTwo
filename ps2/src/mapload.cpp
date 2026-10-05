@@ -549,9 +549,11 @@ int mapPARTS(SPI_STACK *stack, int argument_count) {
 // Defined in mg_tanime.hpp.
 // Defined in mg_tanime.hpp.
 // Defined in mg_tanime.hpp.
-CObject::CObject() {
-    Initialize();
-}
+#ifdef NONMATCHING
+// Defined in map.hpp.
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapload", __ct__7CObjectFv);
+#endif
 
 // Defined in mg_frame.hpp.
 // Defined in mapload.hpp.

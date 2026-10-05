@@ -1,4 +1,5 @@
 #include "common.h"
+#define DNG_DEBUG_SOURCE
 #include "mg_drawprim.hpp"
 #include "automap.hpp"
 #include "effscript.hpp"
@@ -53,22 +54,83 @@ extern char at_975[];
 extern int command_int[12][2];
 extern CFont dbFont;
 extern "C" int fptosi(float value);
+#include "dng_debug.hpp"
+#include "colprim.hpp"
+#include "actionchara.hpp"
+#include "dng_event.hpp"
+#include "dng_main.hpp"
+#include "effscript.hpp"
+#include "font.hpp"
+#include "gamepad.hpp"
+#include "mainloop.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "monster.hpp"
+#include "prespr.hpp"
+#include "savedata.hpp"
+#include "savedatadungeon.hpp"
+#include "scenesnd.hpp"
+#include "snd_mngr.hpp"
+#include "userdata.hpp"
+#include <cstdio>
+#include <cstdlib>
+
+extern CGamePad GamePad__2;
+extern CFont dbFont;
+extern int command_int[];
+extern char *command_str[];
+
+/**
+ * Closes the dungeon debug menu and applies its edited settings.
+ */
+static void dngDebugExit();
+/**
+ * Loads a chosen monster kind beside the player, refreshing monster memory on the first load.
+ */
+static void DBGCMD_ReloadEnemy(int monster_id, int clear_first);
+/**
+ * Draws the first dungeon system-parameter panel.
+ */
+static void DrawSystemParamInfo();
+/**
+ * Draws the second dungeon system-parameter panel.
+ */
+static void DrawSystemParamInfo2();
 
 // Code (.text)
-DNG_DEBUG_INFO *dngGetDebugInfo(void) {
-    return &dbinfo;
-}
-void dngDebugInit(void) {
+DNG_DEBUG_INFO *dngGetDebugInfo() { return &dbinfo; }
+void dngDebugInit() {
     dbinfo.active = 0;
     dbinfo.cursor = 0;
     dbinfo.sound_flag = 1;
     dbinfo.monster_talk = 0;
     dbinfo.effect_id = 0;
-    dbinfo.effect_vol = 0;
+    dbinfo.effect_vol = 0.0f;
     dbFont.Init();
-    dbFont.SetClearance(0x14, 0x14);
+    dbFont.SetClearance(20, 20);
 }
+#ifdef NONMATCHING
+void dngDebugStart() {
+    dbinfo.active = 1;
+    dbinfo.command = -1;
+    dbinfo.first_enemy_load = 1;
+    command_int[DNG_DEBUG_CMD_DEBUG_CAMERA * 2] = DebugInfo.debug_camera;
+    command_int[DNG_DEBUG_CMD_CHARA_MOVE * 2] = DebugInfo.chara_move;
+    command_int[DNG_DEBUG_CMD_LOCK_ON_MODE * 2] = BattleAreaScene->unk_9e;
+    command_int[DNG_DEBUG_CMD_SOUND_FLAG * 2] = dbinfo.sound_flag;
+    command_int[DNG_DEBUG_CMD_MONSTER_TALK * 2] = dbinfo.monster_talk;
+    command_int[DNG_DEBUG_CMD_EFFECT_ID * 2] = dbinfo.effect_id;
+    command_int[DNG_DEBUG_CMD_EFFECT_VOL * 2] = (int)dbinfo.effect_vol;
+    GamePad__2.SetAutoRepeat(0xF000, 15, 4);
+    GamePad__2.SetAutoRepeat(PAD_UP | PAD_DOWN, 8, 1);
+    dbinfo.saved_battle_area_unk_8 = BattleAreaScene->pause_flag;
+    BattleAreaScene->pause_flag = 15;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_debug", dngDebugStart__Fv);
+#endif
 void dngDebugDraw(void) {
     CPreSprite sprite;
     char text[0x800];
@@ -141,19 +203,74 @@ void dngDebugDraw(void) {
         dbFont.DrawDirect(text, 0x10, 0x48);
     }
 }
-void dngDebugExit(void) {
+static void dngDebugExit() {
     dbinfo.active = 0;
     GamePad__2.AutoRepeatOff();
     BattleAreaScene->pause_flag = dbinfo.saved_battle_area_unk_8;
-    DebugInfo.debug_camera = command_int[2][0];
-    DebugInfo.chara_move = command_int[3][0];
-    BattleAreaScene->unk_9e = (s16)command_int[5][0];
-    dbinfo.sound_flag = command_int[8][0];
-    dbinfo.monster_talk = command_int[9][0];
-    dbinfo.effect_id = command_int[10][0];
-    dbinfo.effect_vol = (float)command_int[11][0];
+    DebugInfo.debug_camera = command_int[DNG_DEBUG_CMD_DEBUG_CAMERA * 2];
+    DebugInfo.chara_move = command_int[DNG_DEBUG_CMD_CHARA_MOVE * 2];
+    BattleAreaScene->unk_9e = command_int[DNG_DEBUG_CMD_LOCK_ON_MODE * 2];
+    dbinfo.sound_flag = command_int[DNG_DEBUG_CMD_SOUND_FLAG * 2];
+    dbinfo.monster_talk = command_int[DNG_DEBUG_CMD_MONSTER_TALK * 2];
+    dbinfo.effect_id = command_int[DNG_DEBUG_CMD_EFFECT_ID * 2];
+    dbinfo.effect_vol = (float)command_int[DNG_DEBUG_CMD_EFFECT_VOL * 2];
 }
+#ifdef NONMATCHING
+int dngDebugKey() {
+    if (!dbinfo.active) return 0;
+    if (GamePad__2.Down(PAD_DOWN) && dbinfo.cursor < DNG_DEBUG_CMD_NUM - 1) ++dbinfo.cursor;
+    if (GamePad__2.Down(PAD_UP) && dbinfo.cursor > 0) --dbinfo.cursor;
+    int &value = command_int[dbinfo.cursor * 2];
+    if (GamePad__2.Down(PAD_RIGHT)) ++value;
+    if (GamePad__2.Down(PAD_LEFT)) --value;
+    int step = dbinfo.cursor == DNG_DEBUG_CMD_ENEMY_LOADER ? 4 : 10;
+    if (GamePad__2.Down(PAD_R1)) value += step;
+    if (GamePad__2.Down(PAD_L1)) value -= step;
+    if (GamePad__2.Down(PAD_R2)) value += 100;
+    if (GamePad__2.Down(PAD_L2)) value -= 100;
+    int minimum = command_int[dbinfo.cursor * 2 + 1];
+    if (value <= minimum) value = minimum;
+    if (GamePad__2.Down(PAD_CIRCLE)) {
+        switch (dbinfo.cursor) {
+        case DNG_DEBUG_CMD_RUN_EVENT:
+            dbinfo.command = dbinfo.cursor;
+            dbinfo.event_no = value;
+            dngDebugExit();
+            return 1;
+        case DNG_DEBUG_CMD_ENEMY_LOADER:
+            DBGCMD_ReloadEnemy(value, dbinfo.first_enemy_load);
+            dbinfo.first_enemy_load = 0;
+            break;
+        case DNG_DEBUG_CMD_ENEMY_RESET:
+            if (DngMainScene->battle_area.treasure_box)
+                for (int i = 0; i < 24; ++i)
+                    DngMainScene->battle_area.treasure_box->box[i].Initialize();
+            ActiveMonster->Initialize(DngMainScene);
+            DngSaveData->SetBitFlag(0x13D, 1);
+            dngDebugExit();
+            return 1;
+        case DNG_DEBUG_CMD_SKIP_FLOOR: {
+            int dungeon = DngSaveDataDungeon->stage_id;
+            int floor = DngSaveDataDungeon->floor_id[dungeon];
+            DngUserData->GetItem(GetGateKeyIndex(dungeon, floor), 1);
+            DngUserData->GetItem(GetKeyDoorIndex(dungeon, floor), 1);
+            DngUserData->GetItem(0x132, 1);
+            DngUserData->GetItem(0x131, 1);
+            dngDebugExit();
+            return 1;
+        }
+        case DNG_DEBUG_CMD_SOUND_FLAG:
+            if (value == 0) DngMainScene->PauseBGM();
+            else DngMainScene->RePlayBGM();
+            break;
+        }
+    }
+    if (GamePad__2.Down(PAD_L3)) dngDebugExit();
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_debug", dngDebugKey__Fv);
+#endif
 void CTreasureBox::Initialize(void) {
     state = 0;
     lid_open = 0;
@@ -282,17 +399,17 @@ void DrawSystemParamInfo2(void) {
             ((int)event_stack->stack_size << 4) / 1024);
     dbFont.DrawDirect(text, 0x10, 0xB4);
 }
-void DrawDebugWindow(void) {
-    if (command_int[6][0] == 2) {
-        DrawSystemParamInfo();
-    }
-    if (command_int[6][0] == 3) {
-        DrawSystemParamInfo2();
-    }
+void DrawDebugWindow() {
+    if (command_int[DNG_DEBUG_CMD_INFORMATION * 2] == 2) DrawSystemParamInfo();
+    if (command_int[DNG_DEBUG_CMD_INFORMATION * 2] == 3) DrawSystemParamInfo2();
 }
 
 // Static initialiser (.init)
+#ifdef NONMATCHING
+void __sinit_dng_debug_cpp() { dbFont.Init(); }
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_debug", __sinit_dng_debug_cpp);
+#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", command_str__DATA);

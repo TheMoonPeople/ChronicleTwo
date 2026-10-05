@@ -41,11 +41,6 @@ def field(name, measures, units):
 
 
 def payload(report):
-    categories = {category["id"]: category for category in report["categories"]}
-    game_units = [
-        unit for unit in report["units"]
-        if "game" in unit.get("metadata", {}).get("progress_categories", ())
-    ]
     return {
         "username": "ChronicleTwo",
         "allowed_mentions": {"parse": []},
@@ -54,7 +49,6 @@ def payload(report):
             "color": 0x5865F2,
             "fields": [
                 field("Overall", report["measures"], report["units"]),
-                field("Game", categories["game"]["measures"], game_units),
             ],
         }],
     }

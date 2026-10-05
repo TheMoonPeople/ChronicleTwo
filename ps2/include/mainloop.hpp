@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "gamepad.hpp"
+#include "sound.hpp"
 
 /**
  * @file
@@ -18,6 +19,7 @@ class CSubGameData;
 class CPadControl;
 class mgCMemory;
 class mgCTexture;
+
 
 /**
  * Modes the main loop can run, as LoopNo holds them and as they index
@@ -209,6 +211,11 @@ extern u_long128 *read_buffer;
 extern int SystemSND_ID;
 
 /**
+ * Sound controller shared by the game loops and chapter menu.
+ */
+extern CSound CSnd;
+
+/**
  * Non-zero while the debug features are on.
  */
 extern int DebugFlag;
@@ -238,8 +245,11 @@ extern int MasterDebugCode;
  */
 extern CGamePad GamePad__2;
 
+/** Controller instance used by the game's main loop and pause screen. */
+extern CGamePad GamePad__2;
+
 /**
- * Logical button and stick table built over GamePad.
+ * Logical button and stick table built over GamePad__2.
  */
 extern CPadControl PadCtrl;
 

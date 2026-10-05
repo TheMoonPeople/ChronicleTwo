@@ -166,7 +166,7 @@ public:
      *
      */
     struct AnimeData {
-        char         *unk_20;
+        char         *parts_name; /**< Placed part that the animation controls. */
         char         *piece_name; /**< Name of the map piece animated. */
         char         *frame_name; /**< Name of the frame of that piece animated. */
         int           unk_2c;
@@ -186,7 +186,7 @@ public:
     struct EventData {
         u32  flag;     /**< FUNC_EVENT_FLAG bits. */
         int  event_no; /**< Event the point starts, used when above zero. */
-        int  unk_28;
+        int  point_no; /**< Event point number, or treasure-box index for a box point. */
         int  unk_2c;
         int  unk_30;
         int  unk_34;

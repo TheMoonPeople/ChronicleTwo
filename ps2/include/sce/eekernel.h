@@ -42,6 +42,12 @@ int DeleteThread(int thread_id);
 
 int RotateThreadReadyQueue(int priority);
 
+/** Terminates a thread without deleting its thread control block. */
+int TerminateThread(int thread_id);
+
+/** Deletes a terminated thread's control block. */
+int DeleteThread(int thread_id);
+
 /**
  * Flushes or invalidates the EE caches selected by an SDK operation code.
  */

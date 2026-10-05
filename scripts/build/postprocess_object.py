@@ -15,8 +15,10 @@ given the section retail holds that address in:
 - NOBITS for `.sbss` and `.bss`, PROGBITS otherwise;
 - the flags of that kind of section, `.sdata` and `.sbss` carrying the MIPS
   gp-relative flag as MWCC sets it, `.init` being code;
-- alignment 1 for a datum, whose extent already runs to the next symbol, so
-  no padding is added between pieces; a function keeps the compiler's.
+- for a placeholder, the alignment its retail address allows (up to 16), which
+  adds no padding after a placeholder whose extent already runs to it and
+  restores the compiler's after a compiled datum; a function or a compiled
+  datum keeps the compiler's.
 
 A section whose symbol retail does not name -- a compiler-generated one, in a
 decompiled function's future -- is left as the compiler emitted it, but for
@@ -55,7 +57,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "mwccgap"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from mwccgap.elf import Elf, RelocationRecord, SHT_NOBITS, BssSection  # noqa: E402
+from mwccgap.elf import Elf, Symbol, RelocationRecord, SHT_NOBITS, BssSection  # noqa: E402
 
 import layout  # noqa: E402
 
@@ -66,8 +68,13 @@ SHF_EXECINSTR = 0x4
 SHF_MIPS_GPREL = 0x10000000
 
 STT_SECTION = 3
+STT_OBJECT = 1
+STT_FUNC = 2
+STB_MWCC_COALESCED = 13
 STB_LOCAL = 0
+STB_WEAK = 2
 
+R_MIPS_32 = 2
 R_MIPS_HI16 = 5
 R_MIPS_LO16 = 6
 R_MIPS_GPREL16 = 7
@@ -154,19 +161,23 @@ def rename_shared_names(elf, rows, address_of_section, retail, gp):
     them a reference means is read off the address retail's instruction has
     at the same place.
     """
-    known = {name for _a, name, _s, _f in rows}
+    plain = {name: address for address, name, _s, _f in rows}
     candidates = {}
     for address, name, _size, _func in rows:
         m = re.fullmatch(r"(.+)__\d+", name)
-        if m and m.group(1) not in known:
+        if m:
             candidates.setdefault(m.group(1), []).append((address, name))
+    for name, options in candidates.items():
+        if name in plain:
+            options.append((plain[name], name))
     symbols = elf.symtab.symbols
     for record in elf.relocations:
         base = address_of_section.get(record.sh_info)
         section = elf.sections[record.sh_info]
         if base is None or not section.sh_flags & SHF_EXECINSTR:
             continue
-        for k, relocation in enumerate(record.relocations):
+        relocations = record.relocations
+        for k, relocation in enumerate(relocations):
             symbol = symbols[relocation.symbol_index]
             options = candidates.get(project_name(symbol.name))
             if symbol.st_shndx != 0 or not options:
@@ -177,6 +188,17 @@ def rename_shared_names(elf, rows, address_of_section, retail, gp):
                 target = ((base + offset) & 0xF0000000) | ((word & 0x03FFFFFF) << 2)
             elif relocation.reloc_type == R_MIPS_GPREL16:
                 target = gp + sext16(word)
+            elif relocation.reloc_type in (R_MIPS_HI16, R_MIPS_LO16):
+                kind = R_MIPS_LO16 if relocation.reloc_type == R_MIPS_HI16 else R_MIPS_HI16
+                order = list(range(k + 1, len(relocations))) + list(range(k - 1, -1, -1))
+                other = next((relocations[j] for j in order
+                              if relocations[j].reloc_type == kind
+                              and relocations[j].symbol_index == relocation.symbol_index), None)
+                if other is None:
+                    continue
+                hi, lo = ((offset, other.r_offset) if relocation.reloc_type == R_MIPS_HI16
+                          else (other.r_offset, offset))
+                target = ((retail.word(base + hi) & 0xFFFF) << 16) + sext16(retail.word(base + lo))
             else:
                 continue
             chosen = [name for address, name in options if address == target]
@@ -350,6 +372,47 @@ def bind_local_data(elf, unit, placeholder_sections):
                 record.sh_name = elf.add_sh_symbol(".rel" + DEAD)
                 record.name = ".rel" + DEAD
         dropped.append(label)
+
+    starts = {index: start for index, start in bound.items() if sections[index].name == DEAD}
+    while True:
+        live = {symbols[r.symbol_index].st_shndx for record in elf.relocations
+                if sections[record.sh_info].name != DEAD for r in record.relocations}
+        found = {}
+        for record in elf.relocations:
+            base = starts.get(record.sh_info)
+            if base is None:
+                continue
+            data = sections[record.sh_info].data
+            for relocation in record.relocations:
+                target = symbols[relocation.symbol_index]
+                to = target.st_shndx
+                if (relocation.reloc_type != R_MIPS_32 or not 0 < to < len(sections)
+                        or to in live or to in starts or to in found or to in placeholder_sections
+                        or not sections[to].sh_flags & SHF_ALLOC
+                        or sections[to].sh_flags & SHF_EXECINSTR):
+                    continue
+                ours = struct.unpack_from("<I", data, relocation.r_offset)[0]
+                found[to] = retail.word(base + relocation.r_offset) - ours - target.st_value
+        if not found:
+            break
+        for index, start in found.items():
+            section = sections[index]
+            label = next((s.name for s in symbols if s.st_shndx == index and s.name
+                          and s.type != STT_SECTION), f"section {index}")
+            has_relocations = any(r.sh_info == index and r.relocations for r in elf.relocations)
+            if section.sh_type != SHT_NOBITS and not has_relocations:
+                size = len(section.data)
+                if bytes(section.data) != retail.bytes(start, start + size):
+                    raise ValueError(f"{label}: the compiled datum differs from retail's at "
+                                     f"0x{start:08X}")
+            section.sh_name = elf.add_sh_symbol(DEAD)
+            section.name = DEAD
+            for record in elf.relocations:
+                if record.sh_info == index:
+                    record.sh_name = elf.add_sh_symbol(".rel" + DEAD)
+                    record.name = ".rel" + DEAD
+            starts[index] = start
+            dropped.append(label)
     return dropped
 
 
@@ -435,9 +498,59 @@ def discard_shadow_vtables(elf, placeholder_sections):
         section.name = DEAD
 
 
+def bind_suffixed_references(elf, unit):
+    lay = layout.Layout(ROOT / layout.YAML)
+    if lay.kinds.get(unit) != "cpp":
+        return set()
+    ranges = [(lo, hi) for _s, lo, hi in lay.sections(unit)]
+    own = {name for address, name, _size, _func in layout.read_symbols(ROOT / layout.SYMBOLS)
+           if re.fullmatch(r".+__\d+", name) and any(lo <= address < hi for lo, hi in ranges)}
+    symbols = elf.symtab.symbols
+    defined = {}
+    for index, symbol in enumerate(symbols):
+        if (symbol.name and symbol.type != STT_SECTION and 0 < symbol.st_shndx < len(elf.sections)
+                and elf.sections[symbol.st_shndx].name != DEAD):
+            defined.setdefault(symbol.name, index)
+    remap = {}
+    shadowed = set()
+    for name in sorted(own - set(defined)):
+        plain = re.sub(r"__\d+$", "", name)
+        if plain not in defined:
+            continue
+        definition = symbols[defined[plain]]
+        if definition.bind == STB_LOCAL:
+            for index, symbol in enumerate(symbols):
+                if symbol.st_shndx == 0 and symbol.name == name:
+                    remap[index] = defined[plain]
+            continue
+        alias = Symbol(0, definition.st_value, definition.st_size,
+                       (definition.bind << 4) | definition.type, definition.st_other,
+                       definition.st_shndx)
+        alias.name = name
+        elf.add_symbol(alias, force=True)
+        shadowed.add(plain)
+    for record in elf.relocations:
+        for relocation in record.relocations:
+            if relocation.symbol_index in remap:
+                relocation.symbol_index = remap[relocation.symbol_index]
+    return shadowed
+
+
 def fold_duplicates(elf):
     """Keep one symbol per global name; repoint relocations at it."""
     symbols = elf.symtab.symbols
+    local = {}
+    for index, symbol in enumerate(symbols):
+        if (index and symbol.bind == STB_LOCAL and symbol.name and symbol.type != STT_SECTION
+                and 0 < symbol.st_shndx < len(elf.sections)):
+            local.setdefault(symbol.name, index)
+    own = {index: local[symbol.name] for index, symbol in enumerate(symbols)
+           if index and symbol.st_shndx == 0 and symbol.bind != STB_LOCAL
+           and symbol.name in local}
+    if own:
+        for record in elf.relocations:
+            for relocation in record.relocations:
+                relocation.symbol_index = own.get(relocation.symbol_index, relocation.symbol_index)
     keep = {}
     for index, symbol in enumerate(symbols):
         if index == 0 or symbol.bind == STB_LOCAL or not symbol.name:
@@ -474,11 +587,22 @@ def fold_duplicates(elf):
             relocation.symbol_index = remap[relocation.symbol_index]
 
 
-def retail_sections(elf, addresses, unit=None):
+def placeholder_alignment(elf, index, addresses):
+    for symbol in elf.symtab.symbols:
+        if symbol.st_shndx == index and symbol.name and symbol.type != STT_SECTION:
+            address = address_of(symbol.name, addresses)
+            if address is not None:
+                return min(16, address & -address) if address else 16
+    return 1
+
+
+def retail_sections(elf, addresses, unit=None, shadowed=frozenset()):
     """{section index: retail section name} for every section retail names."""
     out = {}
     ranges = layout.Layout(ROOT / layout.YAML).sections(unit) if unit else []
     for symbol in elf.symtab.symbols:
+        if symbol.name in shadowed and symbol.bind != STB_LOCAL:
+            continue
         index = symbol.st_shndx
         if not symbol.name or symbol.type == STT_SECTION or not (0 < index < len(elf.sections)):
             continue
@@ -514,6 +638,7 @@ def main():
         if symbol.type != STT_SECTION and not symbol.name.startswith('.'):
             symbol.name = project_name(symbol.name)
             symbol.st_name = elf.strtab.add_symbol(symbol.name)
+    shadowed = set()
     name = args.object.name
     unit = None
     if name.endswith(".cpp.o"):
@@ -524,10 +649,12 @@ def main():
         else:
             unit = name[:-len('.cpp.o')]
         bind_local_data(elf, unit, placeholder_sections)
+        shadowed = bind_suffixed_references(elf, unit)
         discard_external_vtables(elf, unit, placeholder_sections)
     discard_shadow_vtables(elf, placeholder_sections)
     fold_duplicates(elf)
-    renamed = retail_sections(elf, retail_addresses(), unit)
+    addresses = retail_addresses()
+    renamed = retail_sections(elf, addresses, unit, shadowed)
 
     for index, name in renamed.items():
         section = elf.sections[index]
@@ -545,8 +672,8 @@ def main():
         section.sh_name = elf.add_sh_symbol(name)
         section.name = name
         section.sh_flags = FLAGS[name]
-        if name not in CODE:
-            section.sh_addralign = 1
+        if name not in CODE and index in placeholder_sections:
+            section.sh_addralign = placeholder_alignment(elf, index, addresses)
 
     for index, section in enumerate(elf.sections):
         if (index not in renamed and section.name == ".rodata" and section.sh_flags & SHF_ALLOC
@@ -562,6 +689,10 @@ def main():
              and (s.sh_size if s.sh_type == SHT_NOBITS else len(s.data)) == 0]
     if empty:
         raise ValueError(f"zero-sized sections, which MWLD rejects: {empty}")
+
+    for symbol in elf.symtab.symbols:
+        if symbol.bind == STB_MWCC_COALESCED and symbol.type in (STT_FUNC, STT_OBJECT):
+            symbol.bind = STB_WEAK
 
     args.object.write_bytes(elf.pack())
     return 0

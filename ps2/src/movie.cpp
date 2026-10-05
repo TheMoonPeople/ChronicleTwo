@@ -195,12 +195,8 @@ int CMovie::EndCheck() {
 bool CMovie::IsStarted(void) {
     return isStarted;
 }
-int CMovie::GetVoBufDataSize() {
-    return 0x1C0000;
-}
-int CMovie::GetViBufDataSize() {
-    return 0x80000;
-}
+int CMovie::GetVoBufDataSize() { return 0x1C0000; }
+int CMovie::GetViBufDataSize() { return 0x80000; }
 s32 CMovie::GetViBufTagSize(void) {
     return 0x1010;
 }
@@ -215,9 +211,7 @@ s32 CMovie::GetMpegWorkSize(s32 width, s32 height) {
     }
     return half_work_units + 0x1768;
 }
-int CMovie::GetReadBufSize() {
-    return 0x50050;
-}
+int CMovie::GetReadBufSize() { return 0x50050; }
 s32 CMovie::GetTagProgSize(s32 width, s32 height) {
     s32 macroblocks;
     s32 tag_pages;

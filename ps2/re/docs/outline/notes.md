@@ -47,3 +47,8 @@ declared in the header as `COutLineDraw() { next = NULL; Initialize(); }`. `_OUT
   - `DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *tex, int *color, int offset, int z)`:
     32x32px tiles (rounded to 0x200 boundaries), four sprites per tile shifted by +x, -x, +y, -y
     `offset`; constant qword halves come from `at_395/396/398/399` (bss, zero). `DirectData(0x10)`.
+
+## Draft coverage and isolated checks
+All four remaining functions now have named, typed C++ drafts guarded by `NONMATCHING`; the normal game build still selects retail assembly. `Draw(float*,float,float)` copies the world position before delegating. `Draw(float,float)` handles the empty/disabled cases, clears the frame's projected rectangle in the off-screen texture, draws the frame, then composites a four-direction edge and the unshifted body. The two local helpers divide the source rectangle into sprites so the drawing primitive does not cross their tile boundaries.
+
+All four drafts compiled under MWCC. `draft_check.py` could not compare their combined object because `Elf.__init__` indexed past its function-name list when a weak template section was emitted. The one isolated promotion attempt for `Draw(float,float)` hit the same parser error. The two local helper attempts failed `mwccgap`'s source-symbol lookup after their static definitions were selected. `Draw(float*,float,float)` compiled and linked in its isolated trial but the image differed from retail. No outline function was promoted; all four retain assembly fallbacks.

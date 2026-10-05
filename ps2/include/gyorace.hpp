@@ -5,6 +5,7 @@
 #include <libvu0.h>
 
 #include "mg_camera.hpp"
+#include "gyoracesim.hpp"
 
 /**
  * @file
@@ -14,7 +15,6 @@
 
 class ClsMes;
 struct SubGameInfo;
-struct grRACE_INFO;
 
 /**
  *
@@ -243,6 +243,15 @@ extern GYORACE_RESULT fish_game_data[6];
  * @size 0x1DC
  */
 extern grRACE_INFO RaceInfo;
+
+/**
+ *
+ * Progress records from the previous displayed race frame, used to detect changes in place.
+ *
+ * @address 0x1F59670
+ * @size 0x90
+ */
+extern grRACE_PROGRESS old_prog[6];
 
 /**
  *

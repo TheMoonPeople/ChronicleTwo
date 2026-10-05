@@ -100,6 +100,7 @@ class CObjAnimeEnv {
 public:
     sceVu0FVECTOR chara_pos; /**< Position of the player, that looking animations turn towards. */
     float time;              /**< Time of day, in hours, that clock and time animations follow. */
+    u8    unk_14[0x4C];
 };
 
 /**

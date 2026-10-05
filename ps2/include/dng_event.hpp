@@ -484,7 +484,16 @@ public:
      * @address 0x1BC6F0
      * @size 0x20
      */
-    virtual void Initialize();
+    virtual void Initialize()
+#ifndef DNG_DEBUG_SOURCE
+    {
+        state = TREASURE_BOX_STATE_NONE;
+        lid_open = 0.0f;
+        flags = 1;
+    }
+#else
+    ;
+#endif
 
     /**
      * Draws the box with its lid opened, when the camera is within 1000 units.
@@ -520,6 +529,16 @@ public:
     CCharacter2 *model;     /**< Box model. */
     CColFrame *col_frame;   /**< Collision model of a box ("tbox_a.mds"). */
     s32 near_box;           /**< Box that the player last stood at, or -1 for none. */
+
+    void Initialize() {
+        for (int i = 0; i < 24; i++) {
+            box[i].Initialize();
+        }
+        unk_A90 = 0;
+        model = NULL;
+        col_frame = NULL;
+        near_box = -1;
+    }
 
     /**
      * Gives every box the box model and its lid.

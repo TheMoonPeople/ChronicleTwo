@@ -78,6 +78,53 @@ void InitSaveDataEdit(mgCMemory *stack);
 int EventViewLoop(void);
 extern "C" char *GetLine__FPPcPcPc__3(char **fields, char *cursor, char *end);
 void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable);
+#ifdef NONMATCHING
+#include "character.hpp"
+#include "dataread.hpp"
+#include "editdata.hpp"
+#include "font.hpp"
+#include "gamepad.hpp"
+#include "mainloop.hpp"
+#include "mg_frame.hpp"
+#include "mg_memory.hpp"
+#include "savedata.hpp"
+#include "scenesnd.hpp"
+#include "scriptinterpreter.hpp"
+#include "vlgr_info.hpp"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+static int MapNameNum;
+static MAP_NAME_INFO *map_name;
+static int pMapNameBuff;
+static int pCharBuff;
+static char *CharBuff;
+static int now_no;
+static u_long128 MapNameBuff[MAP_NAME_BUFF_SIZE];
+static mgCMemory *MenuStack;
+static int SelectMode;
+static int SelectMapType;
+static int select_1009;
+static int init_1010;
+static int SedSel;
+static int EventInfoNum;
+static int BossEventTop;
+static int sel_event;
+static int top_event;
+static char **SelectMapList[MAP_SEL_TYPE_NUM];
+static int SelectMapNum[MAP_SEL_TYPE_NUM];
+EVENT_VIEW_INFO *EventInfo;
+int BossBattleSelFlag;
+extern SPI_TAG_PARAM tag__7[3];
+extern char *map_sel_type[MAP_SEL_TYPE_NUM];
+extern char SelectMapName[0x100];
+extern int select__1049[16];
+extern int top__1050[16];
+extern int SedSelData[SED_ITEM_NUM];
+extern char *config_str[1];
+static char *GetLine(char **columns, char *position, char *end);
+#endif
 
 // Code (.text)
 int mlMAP_NAME_NUM(SPI_STACK *stack, int argc) {
@@ -232,7 +279,44 @@ char *GetAddMapPath(int map_no) {
     }
     return NULL;
 }
+#ifdef NONMATCHING
+void InitMapSelect(mgCMemory *stack) {
+    MenuStack = stack;
+    SetCurrentDir(NULL);
+    int list_size;
+    LoadFile((char *)"map/map.lst", read_buffer, &list_size);
+    for (int type = 0; type < MAP_SEL_TYPE_NUM; ++type) {
+        SelectMapNum[type] = 0;
+        SelectMapList[type] = (char **)stack->Alloc(0x22);
+        for (int index = 0; index < SELECT_MAP_MAX; ++index) SelectMapList[type][index] = NULL;
+    }
+    SelectMode = MAP_SELECT_MODE_TYPE;
+    input_str lines;
+    lines.buffer = (char *)read_buffer;
+    lines.size = list_size;
+    char line[0x100];
+    if (lines.GetLine(line, sizeof(line), NULL) && lines.GetLine(line, sizeof(line), NULL)) {
+        do {
+            for (char *letter = line; *letter != 0; ++letter) {
+                if (*letter == '\\') *letter = '/';
+            }
+            bool shared_map = false;
+            for (char *letter = line; *letter != 0; ++letter) {
+                if (strncmp(letter, "cmn", 3) == 0) { shared_map = true; break; }
+            }
+            if (line[0] == 0 || shared_map) continue;
+            char directory[0x80], name[0x80], extension[0x80];
+            DivPathNameExt(line, directory, name, extension);
+            int type = GetMapSelType(SearchMapNo(name));
+            if (type >= 0 && type < MAP_SEL_TYPE_NUM && SelectMapNum[type] < SELECT_MAP_MAX) {
+                SelectMapList[type][SelectMapNum[type]++] = mgCopyString(name, stack);
+            }
+        } while (lines.GetLine(line, sizeof(line), NULL));
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapselect", InitMapSelect__FP9mgCMemory);
+#endif
 int MapTypeSelect(void) {
     char text[0x800];
     char *cursor = text;
@@ -367,10 +451,97 @@ int MapSelect(void) {
     }
     return 0;
 }
+#ifdef NONMATCHING
+int MapSelectLoop() {
+    switch (SelectMode) {
+    case MAP_SELECT_MODE_CANCEL: return MAP_SELECT_CANCEL;
+    case MAP_SELECT_MODE_DECIDE: return MAP_SELECT_DECIDE;
+    case MAP_SELECT_MODE_TYPE: MapTypeSelect(); return MAP_SELECT_CONTINUE;
+    case MAP_SELECT_MODE_MAP: MapSelect(); return MAP_SELECT_CONTINUE;
+    default: return MAP_SELECT_CONTINUE;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapselect", MapSelectLoop__Fv);
+#endif
 void InitSaveDataEdit(mgCMemory *stack) {
 }
+#ifdef NONMATCHING
+int SaveDataEditLoop() {
+    CScene *scene = GetMainScene();
+    CSaveData *save = GetSaveData();
+    SedSelData[SED_PLAY_TIME] = GetPlayTimeCountFlag();
+    GAME_PROGRESS_INFO *progress = GetGameProgressInfo(SedSelData[SED_PROGRESS]);
+    char *progress_name = progress == NULL ? NULL : progress->name;
+    const char *marker[2] = {"  ", ">>"};
+    const char *on_off[2] = {"OFF", "ON"};
+    char display[0x800];
+    char *cursor = display;
+    cursor += sprintf(cursor, "Save Data Editer\n\n");
+    cursor += sprintf(cursor, "%sPROGRESS  %d(%s)\n", marker[SedSel == SED_PROGRESS], SedSelData[SED_PROGRESS], progress_name == NULL ? "" : progress_name);
+    cursor += sprintf(cursor, "%sTIME      %5.1f\n", marker[SedSel == SED_TIME], save->now_time);
+    cursor += sprintf(cursor, "%sFLAG      %4d = %s\n", marker[SedSel == SED_FLAG], SedSelData[SED_FLAG], on_off[save->GetBitFlag(SedSelData[SED_FLAG]) != 0]);
+    cursor += sprintf(cursor, "%sGEO COMP  %d\n", marker[SedSel == SED_GEO_COMP], SedSelData[SED_GEO_COMP]);
+    cursor += sprintf(cursor, "%sPLAY TIME %d\n", marker[SedSel == SED_PLAY_TIME], SedSelData[SED_PLAY_TIME]);
+    cursor += sprintf(cursor, "%sCONFIG    %s = %d\n", marker[SedSel == SED_CONFIG], config_str[0], save->config.caption_off);
+    SedSelData[SED_PROGRESS] = save->game_progress;
+    if (SedSel == SED_PROGRESS) {
+        if (GamePad__2.Down(PAD_RIGHT)) ++SedSelData[SED_PROGRESS];
+        if (GamePad__2.Down(PAD_LEFT)) --SedSelData[SED_PROGRESS];
+        if (SedSelData[SED_PROGRESS] <= 0) SedSelData[SED_PROGRESS] = 1;
+        if (SedSelData[SED_PROGRESS] >= GetGameProgressNum()) SedSelData[SED_PROGRESS] = GetGameProgressNum() - 1;
+        save->game_progress = SedSelData[SED_PROGRESS];
+    }
+    if (SedSel == SED_TIME) {
+        int hour = (int)save->now_time;
+        if (GamePad__2.Down(PAD_RIGHT)) ++hour;
+        if (GamePad__2.Down(PAD_LEFT)) --hour;
+        hour %= 24;
+        if (GamePad__2.Down(PAD_TRIANGLE)) hour = 0;
+        scene->SetTime((float)hour);
+        save->now_time = (float)hour;
+    }
+    if (SedSel == SED_FLAG) {
+        if (GamePad__2.Down(PAD_RIGHT)) ++SedSelData[SED_FLAG];
+        if (GamePad__2.Down(PAD_LEFT)) --SedSelData[SED_FLAG];
+        if (GamePad__2.Down(PAD_R1)) SedSelData[SED_FLAG] += 10;
+        if (GamePad__2.Down(PAD_L1)) SedSelData[SED_FLAG] -= 10;
+        if (GamePad__2.Down(PAD_R2)) SedSelData[SED_FLAG] += 100;
+        if (GamePad__2.Down(PAD_L2)) SedSelData[SED_FLAG] -= 100;
+        if (SedSelData[SED_FLAG] < 0) SedSelData[SED_FLAG] = 0;
+        if (GamePad__2.Down(PAD_CIRCLE)) save->SetBitFlag(SedSelData[SED_FLAG], !save->GetBitFlag(SedSelData[SED_FLAG]));
+    }
+    if (SedSel == SED_GEO_COMP) {
+        if (GamePad__2.Down(PAD_RIGHT)) ++SedSelData[SED_GEO_COMP];
+        if (GamePad__2.Down(PAD_LEFT)) --SedSelData[SED_GEO_COMP];
+        if (SedSelData[SED_GEO_COMP] < 0) SedSelData[SED_GEO_COMP] = 0;
+        if (GamePad__2.Down(PAD_CIRCLE) || GamePad__2.Down(PAD_TRIANGLE)) {
+            DebugInfo.georama_debug = 1;
+            CEditData *edit = save->GetEditData(SedSelData[SED_GEO_COMP]);
+            if (edit != NULL) edit->dbgSetAllContintionFlag(SedSelData[SED_GEO_COMP], GamePad__2.Down(PAD_CIRCLE));
+        }
+    }
+    if (SedSel == SED_PLAY_TIME) {
+        if (GamePad__2.Down(PAD_RIGHT)) SedSelData[SED_PLAY_TIME] = 1;
+        if (GamePad__2.Down(PAD_LEFT)) SedSelData[SED_PLAY_TIME] = 0;
+        PlayTimeCount(SedSelData[SED_PLAY_TIME]);
+    }
+    if (SedSel == SED_CONFIG) {
+        if (GamePad__2.Down(PAD_RIGHT)) ++SedSelData[SED_CONFIG];
+        if (GamePad__2.Down(PAD_LEFT)) --SedSelData[SED_CONFIG];
+        SedSelData[SED_CONFIG] = 0;
+        if (GamePad__2.Down(PAD_CIRCLE)) save->config.caption_off = !save->config.caption_off;
+    }
+    if (GamePad__2.Down(PAD_DOWN)) ++SedSel;
+    if (GamePad__2.Down(PAD_UP)) --SedSel;
+    if (SedSel < 0) SedSel = SED_ITEM_NUM - 1;
+    if (SedSel >= SED_ITEM_NUM) SedSel = 0;
+    GetDebugFont()->DrawDirect(display, 10, 10);
+    return GamePad__2.Down(PAD_CROSS) != 0;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapselect", SaveDataEditLoop__Fv);
+#endif
 int EventViewLoop(void) {
     char text[0x400];
     EventListColors colors;
@@ -444,7 +615,39 @@ int EventViewLoop(void) {
     }
     return 0;
 }
+#ifdef NONMATCHING
+void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
+    int file_size;
+    if (!LoadFile2((char *)"event/view_pal.txt", buffer, &file_size, 0)) return;
+    EventInfo = (EVENT_VIEW_INFO *)stack->Alloc(0x382);
+    for (int index = 0; index < EVENT_VIEW_MAX; ++index) memset(&EventInfo[index], 0, sizeof(EVENT_VIEW_INFO));
+    EventInfoNum = 0;
+    BossEventTop = 0;
+    char fields[16][0x80];
+    char *columns[16];
+    for (int index = 0; index < 16; ++index) columns[index] = fields[index];
+    char *end = (char *)buffer + file_size;
+    char *next = GetLine(columns, (char *)buffer, end);
+    while (next < end && EventInfoNum < EVENT_VIEW_MAX) {
+        next = GetLine(columns, next, end);
+        EVENT_VIEW_INFO &entry = EventInfo[EventInfoNum++];
+        entry.map_no = SearchMapNo(columns[0]);
+        entry.floor_no = 0;
+        entry.dungeon = 0;
+        if (columns[1][0] != 0) {
+            entry.map_no = atoi(columns[1]) - 1;
+            entry.floor_no = atoi(columns[2]);
+            entry.dungeon = 1;
+        }
+        entry.event_no = atoi(columns[3]);
+        entry.name = mgCopyString(columns[6], stack);
+        entry.detail = mgCopyString(columns[7], stack);
+        if (strcmp(columns[8], "B") != 0) ++BossEventTop;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapselect", LoadEventViewData__FP1P9mgCMemory);
+#endif
 extern "C" char *GetLine__FPPcPcPc__3(char **fields, char *cursor, char *end) {
     LineBreakPair lineBreakPair;
     int field;
@@ -611,26 +814,68 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1270__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1377__2__DATA);
 
 // Small uninitialised data (.sbss)
+#ifndef NONMATCHING
 INCLUDE_BSS(MapNameNum, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(map_name, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(pMapNameBuff, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(pCharBuff, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(CharBuff, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(now_no, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(MenuStack, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(SelectMode, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(SelectMapType, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(select_1009, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(init_1010, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(SedSel, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(EventInfo, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(EventInfoNum, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(BossEventTop, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(sel_event, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(top_event, 0x4);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(BossBattleSelFlag, 0x4);
+#endif
 
 // Uninitialised data (.bss)
+#ifndef NONMATCHING
 INCLUDE_BSS(MapNameBuff, 0x8000);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(SelectMapList, 0x20);
+#endif
+#ifndef NONMATCHING
 INCLUDE_BSS(SelectMapNum, 0x20);
+#endif

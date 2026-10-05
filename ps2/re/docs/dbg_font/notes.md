@@ -3,6 +3,26 @@
 Header: `ps2/include/dbg_font.hpp`. One class (`dbgCJISFont`), one global (`JisFont`), three
 file-local functions, two enums (`DbgFontSerno`, `DbgFontSheet`).
 
+## Draft status
+All seven remaining assembly functions, including the static initializer, now
+have named, typed C++ drafts guarded by `NONMATCHING`. The three existing
+promoted functions remain unchanged. The half-width glyph lookup was decoded
+from all 64 entries of the retail `at_288__3` jump table. The normal build
+continues to use the assembly for every draft that does not match.
+The draft comparison compiles all ten functions: the existing three functions
+and the constructor match individually; the other six differ. Each new draft
+received one isolated promotion attempt, but none promoted. The checker had no
+complete `build/pal` image to link for five attempts; the two dependent
+functions failed compilation because their guarded file-local helpers lacked
+forward declarations at the time of the check. Those declarations have since
+been added; no second promotion attempt was made.
+
+`PrintDirect` currently copies the format string without expanding variadic
+arguments. The local MWCC headers provide neither `<cstdarg>` nor `<stdarg.h>`;
+the runtime's variadic argument-list type and forwarding convention still need
+typework before this draft can reproduce formatted output. The glyph drawing
+draft also differs in packet details from retail and remains guarded.
+
 ## dbgCJISFont (size 0x8B0)
 Size from the `JisFont` .bss symbol (0x8B0) constructed by `__sinit_dbg_font_cpp`. No vtable,
 no base class. Users: `dng_main` `DebugMainDraw`, `eventedit` `evLoadDebugFont`/`DrawEventEdit`

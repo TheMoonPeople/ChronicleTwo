@@ -9,6 +9,7 @@
 #include "dng_main.hpp"
 #include "mg_memory.hpp"
 #include "runscript.hpp"
+#include "scenesnd.hpp"
 
 /**
  * @file
@@ -295,7 +296,7 @@ public:
      * @size 0xB4
      */
     CActiveMonster() {
-        mons_move_check.Initialize();
+        mons_move_check.Clear();
     }
 
     /**
@@ -428,6 +429,8 @@ public:
      * @size 0x68
      */
     void DrawEffectScript();
+
+    int CheckPhoto(CScene::InScreenCharaInfo *info);
 
     /**
      * Steps the effects of every monster.

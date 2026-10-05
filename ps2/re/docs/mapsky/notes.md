@@ -3,6 +3,14 @@
 Unit at 0x1846F0-0x185710. One class (`CMapSky`, no vtable, no constructor) and one script-filled
 struct (`MAP_SKY_INFO`). No first-game counterpart (Dark Cloud has no `CMapSky`).
 
+## Draft and matching status
+All eleven previously assembly-only functions have named, typed C++ drafts.
+`DrawSkyBack`, `LoadSkyPack`, and `_SKY_BG` passed their first isolated
+promotion checks and now compile in the matching build. The other eight
+compiled but differed from retail; they remain guarded by `NONMATCHING` with
+their original `INCLUDE_ASM` branches selected by default. Every function in
+the unit has a C++ body, and the full default build remains byte identical.
+
 ## CMapSky (0x108)
 Size: `CScene::LoadMapFromMemory` (sceneload) does `__nw__FUiP1(0x108, mem)`, then calls
 `Initialize` and `LoadPack` directly (no constructor exists), then `CScene::AssignSky(0, sky, NULL)`.
@@ -74,8 +82,11 @@ success, 0 on an invalid id / full table; they read int, string (stack+8), float
 - LoadSkyPack builds a `CScriptInterpreter` on the stack (0xED0 bytes), `SetTag`, `SetScript`, `Run`.
 
 ## Unresolved
-- Meaning of the bg frame's attr fields +0x08/+0x1C/+0x30 and SetAttrParam ids 10 / 0x40000.
-- `mgCVisualMDT::GetColor` return type (pointer to colour vectors) belongs to mg_visual (no header yet).
+- The bg frame's attr fields are `z_write`, `clip_enable`, and `fog` in the
+  existing `mgCFrameAttr` header. The masks 10 and 0x40000 are the named
+  `MG_FRAME_ATTR_ALPHA_REF | MG_FRAME_ATTR_Z_WRITE` and
+  `MG_FRAME_ATTR_OBJ_ALPHA` bits. `mgCVisualMDT::GetColor` returns
+  `sceVu0FVECTOR *` in the existing `mg_visual.hpp` header.
 - Field names `AnimeFrame`, `color0/color1` are neutral, not retail.
 
 ## Matched initialization

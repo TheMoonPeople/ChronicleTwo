@@ -99,7 +99,13 @@ struct MoveCheckInfo {
      * @address 0x1CF550
      * @size 0x10
      */
-    void Initialize();
+    void Initialize() {
+        memset(this, 0, sizeof(MoveCheckInfo));
+    }
+
+    void Clear() {
+        Initialize();
+    }
 };
 
 STATIC_ASSERT(sizeof(MoveCheckInfo) == 0x110);
@@ -130,7 +136,9 @@ struct ACCUME_EFFECT {
     mgCFrame *frame;          /**< Frame that the effect gathers on. */
     u8        unk_4[0x30C];
     int       mode;           /**< Stage of the effect that the action script set. */
-    u8        unk_314[0x1C];
+    u8        unk_314[0xC];
+    s32       unk_320;
+    u8        unk_324[0xC];
 };
 
 STATIC_ASSERT(sizeof(ACCUME_EFFECT) == 0x330);

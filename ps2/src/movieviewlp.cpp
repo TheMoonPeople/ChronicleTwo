@@ -47,6 +47,40 @@ extern MOVIE_LIST_ENTRY *MovieList;
 extern int MovieListNum;
 extern mgCMemory *spi_MovieStack;
 extern u32 performance_meter_flag;
+#include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "gaiji.hpp"
+#include "dataread.hpp"
+#include "movie.hpp"
+#include "scenesnd.hpp"
+#include "gamepad.hpp"
+#include "prespr.hpp"
+#include "font.hpp"
+#include <cstdio>
+#include <cstring>
+#include "mglib.hpp"
+#include "scriptinterpreter.hpp"
+#include "snd_mngr.hpp"
+
+// File-local data supplied by the retail assembly while data migration is pending.
+extern CGamePad GamePad__2;
+extern CScene *MovieScene;
+extern CMovie *MovieView;
+extern mgCTexture *RushWork__2;
+extern MOVIE_LIST_ENTRY *MovieList;
+extern int MovieListNum;
+extern short MovieLine;
+extern short MovieSelect;
+extern short MovieSpecialMode;
+extern short MovieSpecialModeInfo[3];
+extern int MovieMode;
+extern SPI_TAG_PARAM tag_movie[];
+extern mgCMemory buf0_791, buf1_794, dbuf0_797, dbuf1_800;
+extern char init_792, init_795, init_798, init_801;
+extern mgCMemory *spi_MovieStack;
+extern int performance_meter_flag;
+extern mgCMemory DataBuffer__2;
+extern mgCMemory Stack_ReadBuff__2;
 
 // Code (.text)
 int _MOVIE(SPI_STACK *stack, int argument_count) {
@@ -148,7 +182,7 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     performance_meter_flag = mgGetPerformanceMeterFlag();
     mgPerformanceMeter(0);
 }
-void MovieViewExit(void) {
+void MovieViewExit() {
     sndSeAllStop(-1);
     mgCloseFont();
     mgPerformanceMeter(performance_meter_flag);
@@ -317,7 +351,10 @@ int MovieViewLoop(void) {
 }
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/movieviewlp", __sinit_movieviewlp_cpp);
+extern "C" void __sinit_movieviewlp_cpp() {
+    DataBuffer__2.Init();
+    Stack_ReadBuff__2.Init();
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", tag_movie__DATA);

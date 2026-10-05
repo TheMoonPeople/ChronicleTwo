@@ -138,9 +138,7 @@ u8 CSaveData::SetBitCtrl(int bits) {
 void CSaveData::ResetBitCtrl(int bits) {
     bit_ctrl &= ~bits & 0xFF;
 }
-u8 CSaveData::GetBitCtrl() {
-    return bit_ctrl;
-}
+u8 CSaveData::GetBitCtrl() { return this->bit_ctrl; }
 int CSaveData::GetItem(int a, int b) {
     return user_data.GetItem(a, b);
 }

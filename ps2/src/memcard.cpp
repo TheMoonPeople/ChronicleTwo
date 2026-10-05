@@ -276,9 +276,7 @@ void CMemoryCardManager::SetFuncNo(int operation) {
         search_wait = 11;
     }
 }
-int CMemoryCardManager::GetFuncNo() {
-    return func_no;
-}
+int CMemoryCardManager::GetFuncNo() { return this->func_no; }
 u_long CMemoryCardManager::CheckMaxUniqueCounter() {
     u64 max = 0;
     for (int i = 0; i < 13; i++) {

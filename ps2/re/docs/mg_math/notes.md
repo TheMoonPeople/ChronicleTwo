@@ -113,3 +113,7 @@ helpers in `chronicle/ps2/include/mathutil.hpp` / `src/mathutil.cpp` (`VectorMax
 - mgCosf is `mgSinf(1.5707964f + angle)` (tail jump). `sin_table_unit_1 = 162.97466f` gives
   retail's 0x4322F983.
 - Job mg_math.1 result corrected: its 30 VU0 `asm { }` functions are recorded as `asm`.
+
+## Current guarded drafts
+
+The seven remaining `INCLUDE_ASM` functions all have C++ drafts behind `NONMATCHING`. `mgApplyMatrixN`, `mgApplyMatrixN_MaxMin`, and `mgVectorMinMaxN` now use typed C++ loops instead of inline assembly in their guarded branches. The loops apply matrices to each vector and update four-component bounds; the default build continues to use retail assembly. Prior isolated promotion attempts for all seven functions are recorded in `scripts/re/promotion_attempts.tsv`, so a later source refinement does not create a second promotion attempt under the one-attempt rule.

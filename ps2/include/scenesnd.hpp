@@ -105,6 +105,30 @@ struct DNG_BATTLE_AREA {
     s16                 unk_9e;
     s32                 free_texb;           /**< First texture block left free after the dungeon's own textures. */
     u8                  unk_a4[0x4];
+
+    void SetStatusBar(int show, float speed) {
+        statusbar_show_old = statusbar_show;
+        statusbar_show = show;
+        statusbar_rate = show ? 0.0f : 1.0f;
+        statusbar_speed = speed;
+    }
+
+    void ApplyQuake(float *value) {
+        float *power = &quake_power;
+
+        if (quake_count > 0) {
+            if (quake_count % 2) {
+                *value += *power;
+            } else {
+                *value -= *power;
+            }
+        }
+    }
+
+    void SetStatusBarNow(int show) {
+        SetStatusBar(show, 1.0f);
+        statusbar_rate = show ? 1.0f : 0.0f;
+    }
 };
 
 STATIC_ASSERT(sizeof(DNG_BATTLE_AREA) == 0xA8);
@@ -1895,6 +1919,20 @@ public:
      * @size 0x210
      */
     void GetCharaLighting(float (*light)[4], float *pos);
+
+    void SetVillagerTexb(int texb, int num) {
+        villager_texb = texb;
+        villager_texb_num = num;
+    }
+
+    void SetEventTexb(int texb, int num) {
+        event_texb = texb;
+        event_texb_num = num;
+    }
+
+    int GetTextureBlockNo(int group, int *out_block, int max) {
+        return mds_list_set.GetTextureBlockNo(group, out_block, max);
+    }
 
     /**
      *

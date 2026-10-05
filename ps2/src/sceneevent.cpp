@@ -20,6 +20,17 @@ extern char at_858__3[];
 extern char at_958__3[];
 extern char at_959__3[];
 extern char at_1093[];
+#include "collision.hpp"
+#include "mapsky.hpp"
+#include "mg_camera.hpp"
+#include "mg_math.hpp"
+#include "mglib.hpp"
+#include "mg_texture.hpp"
+#include "mg_tanime.hpp"
+#include "screeneffect.hpp"
+#include <cstring>
+
+#include <cstdio>
 
 // Code (.text)
 void CScene::UpDateMapInfo() {
@@ -88,25 +99,18 @@ int CScene::GetCameraPoly(CCPoly *polys, mgVu0FBOX &box, int max) {
     }
     return total;
 }
-void CScene::RunEvent(int event_number, CSceneEventData *data) {
-    if (event_run == 0 || (printf(at_858__3), event_no != 100)) {
-        event_no = event_number;
-        if (data != NULL) {
-            event_data.head = data->head;
-            event_data.group_1 = data->group_1;
-            event_data.group_2 = data->group_2;
-            event_data.group_3 = data->group_3;
-            event_data.group_4 = data->group_4;
-            event_data.group_5 = data->group_5;
-            event_data.vectors_a = data->vectors_a;
-            event_data.vectors_b = data->vectors_b;
-            event_data.chara_no = data->chara_no;
-            event_data.chara_slot = data->chara_slot;
-            event_data.gameobj_no = data->gameobj_no;
-            event_data.unk_cc = data->unk_cc;
+void CScene::RunEvent(int requested_event_no, CSceneEventData *data) {
+    if (event_run) {
+        printf("start event running!!\n");
+        if (event_no == 100) {
+            return;
         }
-        event_run = 1;
     }
+    event_no = requested_event_no;
+    if (data != NULL) {
+        event_data = *data;
+    }
+    event_run = 1;
 }
 int CScene::GetMapEvent(float *position, int map_no, CSceneEventData *event) {
     CMap *maps[4];
@@ -172,52 +176,40 @@ int CScene::GetFixCameraPos(float *position, float *out_camera) {
     }
     return 0;
 }
-void CScene::FixCameraPartsOnOff(float *position) {
+void CScene::FixCameraPartsOnOff(float *pos) {
     CMap *maps[4];
     int count = GetActiveMap(maps, 4);
-    int i;
-    for (i = 0; i < count; i++) {
-        maps[i]->FixCameraPartsOnOff(position);
+    for (int index = 0; index < count; ++index) {
+        maps[index]->FixCameraPartsOnOff(pos);
     }
 }
 void CScene::EyeViewDrawOnOff(int on) {
     CMap *maps[4];
-    int count;
-    int i;
-    count = GetActiveMap(maps, 4);
-    for (i = 0; i < count; i++) {
-        CPartsGroup *hidden = maps[i]->SearchPartsGroup(at_958__3);
-        CPartsGroup *shown = maps[i]->SearchPartsGroup(at_959__3);
-        if (hidden != NULL) {
-            hidden->off = (unsigned char)((on != 0) ^ 1);
-        }
-        if (shown != NULL) {
-            shown->off = on;
-        }
+    int count = GetActiveMap(maps, 4);
+    for (int index = 0; index < count; ++index) {
+        CPartsGroup *shown = maps[index]->SearchPartsGroup("eyeview_on");
+        CPartsGroup *hidden = maps[index]->SearchPartsGroup("eyeview_off");
+        if (shown != NULL) shown->off = !on;
+        if (hidden != NULL) hidden->off = on;
     }
 }
-void CScene::GetSunPosition(float *sun_position) {
-    float camera_position[4];
-    mgCCamera *camera;
-    CMap *map;
-    mgZeroVector(camera_position);
-    camera = GetCamera(active_camera);
-    if (camera != NULL) {
-        camera->GetPos(camera_position);
-    }
-    map = GetMap(active_map);
-    if (map != NULL) {
-        map->GetSunPoint(sun_position);
-        sceVu0Normalize(sun_position, sun_position);
-        sceVu0ScaleVector(sun_position, sun_position, 5000.0f);
-        sun_position[0] += camera_position[0];
-        sun_position[1] += map->unk_dc;
-        sun_position[2] += camera_position[2];
-    }
+void CScene::GetSunPosition(float *pos) {
+    sceVu0FVECTOR camera_pos;
+    mgZeroVector(camera_pos);
+    mgCCamera *camera = GetCamera(active_camera);
+    if (camera != NULL) camera->GetPos(camera_pos);
+    CMap *map = GetMap(active_map);
+    if (map == NULL) return;
+    map->GetSunPoint(pos);
+    sceVu0Normalize(pos, pos);
+    sceVu0ScaleVector(pos, pos, 5000.0f);
+    pos[0] += camera_pos[0];
+    pos[1] += map->unk_dc;
+    pos[2] += camera_pos[2];
 }
-void CScene::GetMoonPosition(float *position) {
-    GetSunPosition(position);
-    position[1] *= -1.0f;
+void CScene::GetMoonPosition(float *pos) {
+    GetSunPosition(pos);
+    pos[1] *= -1.0f;
 }
 void CScene::DrawSky(int sky_index) {
     float camera_info[4];
@@ -305,9 +297,8 @@ void CScene::DrawLensFlare(int flare_type, char *texture, char *alpha_texture) {
 void CScene::EffectStep() {
     CMap *maps[4];
     int count = GetActiveMap(maps, 4);
-    int i;
-    for (i = 0; i < count; i++) {
-        maps[i]->EffectStep();
+    for (int index = 0; index < count; ++index) {
+        maps[index]->EffectStep();
     }
     fire_raster.Step();
 }

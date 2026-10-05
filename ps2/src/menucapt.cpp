@@ -39,9 +39,86 @@ extern mgCTexture *MenuChapterBG;
 extern mgCTexture *MenuChapter_Logo;
 extern CSound CSnd;
 extern "C" int fptosi(float value);
+#include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_tanime.hpp"
+#include "mglib.hpp"
+#include "menucommon.hpp"
+#include "menudraw.hpp"
+#include "menumain.hpp"
+#include "mainloop.hpp"
+#include "scenesnd.hpp"
+#include "sound.hpp"
+#include "snd_mngr.hpp"
+#include "dataread.hpp"
+
+#include <cstdio>
+#include <cstring>
+
+#ifdef NONMATCHING
+static int MenuChapterMode;
+static MENU_CHAPTER_INFO *MenuChapterInfo;
+static mgCTexture *MenuChapterBG;
+static mgCTexture *MenuChapter_Logo;
+static unsigned int MenuChapterSnd_ID;
+static int menu_snd_counter;
+static int menu_chap_error_check_cnt;
+static int wait_cnt_918;
+static int init_919;
+static int voiceflag_921;
+static int init_922;
+static mgCMemory MenuChapterStack;
+static char *chap_voice_851[8] = {
+    (char *)"0060600.wav", (char *)"0270310.wav", (char *)"0360260.wav", (char *)"0420120.wav",
+    (char *)"0500010.wav", (char *)"0600360.wav", (char *)"0700010.wav", (char *)"0800140.wav"
+};
+#endif
 
 // Code (.text)
+#ifdef NONMATCHING
+void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapter) {
+    char image_path[96];
+    char voice_path[140];
+    int file_size;
+    MenuChapterStack.stSetBuffer(stack->stack + stack->stack_used, stack->stack_size - stack->stack_used);
+    MenuChapterInfo = (MENU_CHAPTER_INFO *)MenuChapterStack.Alloc(2);
+    MenuChapterInfo->tex_block[0] = tex_block[0];
+    MenuChapterInfo->tex_block[1] = tex_block[1];
+    MenuChapterInfo->logo_alpha = 0.0f;
+    sprintf(image_path, "chap%d.img", chapter);
+    MenuChapterStack.Align64();
+    u_long128 *image_buffer = MenuChapterStack.stack + MenuChapterStack.stack_used;
+    file_size = LoadFileMenu(image_path, image_buffer, 1);
+    if (file_size <= 0) {
+        file_size = LoadFileMenu((char *)"chap0.img", image_buffer, 1);
+    }
+    MenuChapterStack.Alloc((file_size + 15) >> 4);
+    mgTexManager.EnterIMGFile((unsigned char *)image_buffer, MenuChapterInfo->tex_block[0], 0, 0);
+    MenuChapterBG = mgTexManager.GetTexture((char *)"chapbg", -1);
+    MenuChapter_Logo = mgTexManager.GetTexture((char *)"chaplogo", -1);
+
+    mgCMemory sound_memory;
+    sound_memory.stSetBuffer(MenuChapterStack.stack + MenuChapterStack.stack_used, 0x280);
+    MenuChapterStack.Alloc(0x280);
+    MenuChapterStack.Align64();
+    menu_snd_counter = 0;
+    unsigned int *sound_buffer = (unsigned int *)(MenuChapterStack.stack + MenuChapterStack.stack_used);
+    LoadFile2((char *)"snd2/sp/SP_007.snd", sound_buffer, &file_size, 0);
+    MenuChapterStack.Alloc((file_size + 15) >> 4);
+    sndInitPort(8);
+    MenuChapterSnd_ID = sndLoadSound(8, sound_buffer, &sound_memory);
+    strcpy(voice_path, chap_voice_851[chapter]);
+    CSnd.StreamOpenFast(1, voice_path);
+    while (CSnd.StreamOpenState() != 0) {}
+    CSnd.StreamStandBy(1);
+    while (CSnd.StreamOpenState() != 0) {}
+    MenuChapterMode = MENU_CHAPTER_MODE_FADE_IN;
+    MenuMainScene->fade.FadeIn(30);
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucapt", MenuChapterInit__FP9mgCMemoryPiii);
+#endif
 int MenuChapterKey(void) {
     int fadeDone;
     int voiceState;
@@ -148,7 +225,9 @@ void MenuChapterDraw(void) {
 }
 
 // Static initialiser (.init)
+#ifndef NONMATCHING
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucapt", __sinit_menucapt_cpp);
+#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", chap_voice_851__DATA);
@@ -172,6 +251,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", at_906__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", D_0037B054__DATA);
 
 // Small uninitialised data (.sbss)
+#ifndef NONMATCHING
 INCLUDE_BSS(MenuChapterMode, 0x4);
 INCLUDE_BSS(MenuChapterInfo, 0x4);
 INCLUDE_BSS(MenuChapterBG, 0x4);
@@ -183,6 +263,9 @@ INCLUDE_BSS(wait_cnt_918, 0x4);
 INCLUDE_BSS(init_919, 0x4);
 INCLUDE_BSS(voiceflag_921, 0x4);
 INCLUDE_BSS(init_922, 0x4);
+#endif
 
 // Uninitialised data (.bss)
+#ifndef NONMATCHING
 INCLUDE_BSS(MenuChapterStack, 0x30);
+#endif

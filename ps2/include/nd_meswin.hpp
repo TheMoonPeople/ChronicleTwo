@@ -308,7 +308,7 @@ public:
     s32 voice_type;                          /**< Voice sound to play, set by the voice codes. */
     s32 voice_cnt;                           /**< Voice sounds played so far. */
     s32 close_time;                          /**< Frames left before the window closes by itself; zero for none. */
-    s32 unk_22a4;
+    s32 texture_block;                       /**< Texture block reloaded before the message window is drawn. */
     s32 scissor_on;                          /**< Non-zero to clip the text to scissor. */
     RECT scissor;                            /**< Screen rectangle the text is clipped to. */
     s32 line_indent[MES_LINE_MAX];           /**< Horizontal offset of each line. */

@@ -99,8 +99,13 @@ def candidate(unit, symbol, header):
         mine_value, their_value = ret[7:-1], theirs.group(1)
         if result == "int" and ("." in mine_value or "." in their_value or int(mine_value, 0) != int(their_value, 0)):
             return None
-        if result == "float" and float(mine_value.rstrip("f")) != float(their_value.rstrip("f")):
-            return None
+        if result == "float":
+            try:
+                same_value = float(mine_value.rstrip("f")) == float(their_value.rstrip("f"))
+            except ValueError:
+                return None
+            if not same_value:
+                return None
     definition = prototype.removeprefix("virtual ").replace(name + "(", scope + name + "(", 1)
     return definition + " {" + (f" {ret} " if ret else "") + "}"
 
@@ -126,6 +131,8 @@ def main():
             continue
         marker = f'INCLUDE_ASM("ps2/asm/pal/nonmatchings/{unit}", {symbol});'
         if text.count(marker) != 1:
+            continue
+        if re.search(r"#ifdef NONMATCHING\b(?:(?!#endif).)*#else\s*" + re.escape(marker), text, re.S):
             continue
         replacement = f"#ifdef NONMATCHING\n{definition}\n#else\n{marker}\n#endif"
         text = text.replace(marker, replacement)

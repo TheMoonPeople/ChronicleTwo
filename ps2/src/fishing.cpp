@@ -2242,7 +2242,7 @@ INCLUDE_BSS(FishingTexb, 0x4);
 INCLUDE_BSS(FishTexb, 0x4);
 INCLUDE_BSS(SystemTexb, 0x4);
 INCLUDE_BSS(EsaTexb, 0x4);
-INCLUDE_BSS(MainChara, 0x4);
+static INCLUDE_BSS(MainChara, 0x4);
 INCLUDE_BSS(FishChara, 0x4);
 INCLUDE_BSS(EsaChara, 0x4);
 INCLUDE_BSS(CursorChara, 0x8);

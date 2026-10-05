@@ -68,6 +68,20 @@ STATIC_ASSERT(sizeof(FISH_FLOAT) == 0x10);
 
 /**
  *
+ * Distance and motion weights for a segment of the fishing rod.
+ *
+ */
+struct FISH_ROD_SEGMENT {
+    float length;        /**< Rest length from the preceding rod point. */
+    float stiffness;     /**< Strength of the segment's distance correction. */
+    float damping;       /**< Share of motion retained during correction. */
+    float unk_c;
+};
+
+STATIC_ASSERT(sizeof(FISH_ROD_SEGMENT) == 0x10);
+
+/**
+ *
  * Piece of fishing tackle (lure, float or hook) simulated as point masses held by constraints.
  *
  */

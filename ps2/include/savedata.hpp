@@ -99,8 +99,8 @@ struct SV_CONFIG_OPTION {
     s32 dof_off;       /**< Non-zero to turn off the depth of field blur. */
     u8  caption_off;   /**< Non-zero to hide the event captions. */
     u8  unk_35;
-    u8  eye_reverse;   /**< Zero to invert the vertical axis of the first-person camera. */
-    u8  unk_37;
+    s8  eye_reverse;   /**< Zero to invert the vertical axis of the first-person camera. */
+    s8  unk_37;
     u8  unk_38[8];
 };
 
@@ -408,6 +408,10 @@ public:
      * @size 0x40
      */
     void FinishTour();
+
+    SV_CONFIG_OPTION *GetConfig() {
+        return &config;
+    }
 };
 
 STATIC_ASSERT(sizeof(CSaveData) == 0x65930);

@@ -11,16 +11,27 @@ MAX_CONTENT = 2000
 MAX_COMMITS = 12
 SAFE_REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SAFE_SHA = re.compile(r"^[0-9a-fA-F]{7,64}$")
+URL = re.compile(r"https?://[^\s<>]+")
+MARKDOWN = re.compile(r"([\\`*_~|>\[\]()])")
 
 
 def discord_length(value):
     return len(value.encode("utf-16-le")) // 2
 
 
-def plain(value):
-    """Keep one display line and prevent source text from changing Markdown."""
+def subject_text(value):
+    """Suppress previews for links written in a commit subject."""
     line = " ".join(str(value or "").split())
-    return re.sub(r"([\\`*_~|>\[\]()])", r"\\\1", line)
+    parts = []
+    previous = 0
+    for match in URL.finditer(line):
+        parts.append(MARKDOWN.sub(r"\\\1", line[previous:match.start()]))
+        url = match.group().rstrip(".,;!?)]")
+        parts.append(f"<{url}>")
+        parts.append(MARKDOWN.sub(r"\\\1", match.group()[len(url):]))
+        previous = match.end()
+    parts.append(MARKDOWN.sub(r"\\\1", line[previous:]))
+    return "".join(parts)
 
 
 def clipped(value, limit):
@@ -29,33 +40,31 @@ def clipped(value, limit):
 
 def commit_line(commit, repository):
     sha = str(commit.get("id", ""))
-    subject = clipped(plain(str(commit.get("message", "")).split("\n", 1)[0]) or "(no message)", 110)
-    author = clipped(plain((commit.get("author") or {}).get("name", "")), 50)
-    detail = f"{subject} — {author}" if author else subject
-    if SAFE_REPOSITORY.fullmatch(repository) and SAFE_SHA.fullmatch(sha):
-        return f"• [`{sha[:7]}`](https://github.com/{repository}/commit/{sha}) {detail}"
-    return f"• {detail}"
+    raw_subject = clipped(str(commit.get("message", "")).split("\n", 1)[0], 110)
+    subject = subject_text(raw_subject) or "(no message)"
+    author_name = str((commit.get("author") or {}).get("name") or "")
+    author = subject_text(clipped(author_name, 50))
+    prefix = (f"[`{sha[:7]}`](<https://github.com/{repository}/commit/{sha}>) "
+              if SAFE_SHA.fullmatch(sha) and SAFE_REPOSITORY.fullmatch(repository)
+              else f"`{sha[:7]}` " if SAFE_SHA.fullmatch(sha) else "")
+    suffix = f" — {author}" if author else ""
+    return f"• {prefix}{subject}{suffix}"
 
 
 def payload(event):
-    repository = str(event.get("repository", {}).get("full_name", "ChronicleTwo"))
+    repository = str(event.get("repository", {}).get("full_name", ""))
     commits = event.get("commits") or []
-    branch = str(event.get("ref", "")).removeprefix("refs/heads/")
-    header = f"**{clipped(plain(repository), 80)}** · {len(commits)} commit{'s' if len(commits) != 1 else ''}"
-    if branch:
-        header += f" to {clipped(plain(branch), 80)}"
-
-    lines = [clipped(header, MAX_CONTENT)]
+    lines = []
     for commit in commits[:MAX_COMMITS]:
         line = commit_line(commit, repository)
         if discord_length("\n".join((*lines, line))) > MAX_CONTENT:
             break
         lines.append(line)
 
-    omitted = len(commits) - (len(lines) - 1)
+    omitted = len(commits) - len(lines)
     if omitted:
         suffix = f"… and {omitted:,} more commit{'s' if omitted != 1 else ''}."
-        while discord_length("\n".join((*lines, suffix))) > MAX_CONTENT and len(lines) > 1:
+        while discord_length("\n".join((*lines, suffix))) > MAX_CONTENT and lines:
             lines.pop()
             omitted += 1
             suffix = f"… and {omitted:,} more commit{'s' if omitted != 1 else ''}."

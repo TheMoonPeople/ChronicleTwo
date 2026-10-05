@@ -100,3 +100,19 @@ whose first name byte is 0, which is the 8 bytes of zero padding after the table
 ## Debug drawing
 `CColPrim::DebugDraw` returns immediately without drawing. Its empty C++ body
 matches the retail code and links into a byte-identical game image.
+
+## C++ draft pass
+All 18 previously ASM-only game functions received typed C++ drafts, initially
+guarded by `NONMATCHING`.
+The existing matching `DebugDraw` and `Initialize` implementations remain
+unguarded. `IsHit` builds sphere sample points and line segments from the current
+and previous positions according to `DamageShape`, then checks enabled character
+entry objects; on a hit it records hit position and direction, marks the character
+unless the parameter allows multiple hits, and increments `hit_num`.
+
+Each of the 18 drafts received one isolated promotion attempt. Thirteen matched
+the linked retail image and are now compiled by default: the four `SetCoord`
+overloads, `GetReversVec`, and all eight `CColPrimMan` methods. `SetDamage`,
+`IsHit`, `IsReversVec`, `Step`, and `Delete` remain under `NONMATCHING` with
+their original `INCLUDE_ASM` fallbacks. The default full build verifies every
+section as byte-identical to SCES_511.90.

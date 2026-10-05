@@ -96,7 +96,7 @@ public:
     int           program_option;  /**< Sets bit 2 of the microprogram's draw flags; set by the 'S' name flag. */
     int           fog;             /**< Fog mode: 0 off, 1 the scene's fog colour, 2 black fog, 3 white fog; set by the 'F' name flag. */
     int           unk_34;
-    int           unk_38;
+    float         unk_38;
     int           unk_3c;
     int           program_mode;    /**< Microprogram mode bits; nonzero also sends the eye position in model space; set by the 'M' name flag. */
     float         obj_alpha;       /**< Factor applied to the alpha of the frame's ambient and material colours. */

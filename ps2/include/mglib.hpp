@@ -448,9 +448,8 @@ void mgPreEndDraw(mgCDrawManager *manager);
  * @mangled mgEndDrawReloadTexture__FiP14mgCDrawManager
  * @address 0x142BD0
  * @size 0x20
- * @unknownret
  */
-void mgEndDrawReloadTexture(int block, mgCDrawManager *manager);
+int mgEndDrawReloadTexture(int block, mgCDrawManager *manager);
 
 /**
  * Writes the draw requests a draw manager collected for one texture block

@@ -10,6 +10,7 @@ source compiled without tools/mwccgap; ps2/cmake/Objdiff.cmake builds both.
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -17,16 +18,24 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import layout  # noqa: E402
 
 
+def suffixed_names(lay, unit, rows):
+    ranges = [(lo, hi) for _s, lo, hi in lay.sections(unit)]
+    return {name: re.sub(r"__\d+$", "", name) for address, name, _size, _func in rows
+            if re.fullmatch(r".+__\d+", name) and any(lo <= address < hi for lo, hi in ranges)}
+
+
 def config(build_dir):
     lay = layout.Layout()
+    rows = layout.read_symbols(layout.SYMBOLS)
     units = []
     for unit in lay.units("cpp"):
         units.append({
             "name": unit,
             "target_path": f"{build_dir}/objdiff/target/{unit}.s.o",
             "base_path": f"{build_dir}/objdiff/base/{unit}.cpp.o",
+            "symbol_mappings": {f"__sinit_{unit}_cpp": f"__sinit_{unit}.cpp",
+                                **suffixed_names(lay, unit, rows)},
             "metadata": {
-                "progress_categories": ["game"],
                 "source_path": lay.source(unit),
             },
         })
@@ -42,7 +51,6 @@ def config(build_dir):
             "ps2/asm/**/*.s",
             "ps2/config/*/*.{yaml,txt}",
         ],
-        "progress_categories": [{"id": "game", "name": "Game"}],
         "options": {"demangler": "codewarrior", "functionRelocDiffs": "none"},
         "name": "chronicletwo",
         "units": units,

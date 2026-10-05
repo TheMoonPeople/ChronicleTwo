@@ -109,3 +109,12 @@ Fields are declared `s32`, not the enum types (MWCC may size enums below int).
 - `GetTalkRect(chara_id, float *rect)`: rect[3] = 0, then copy of place->talk_offset; returns
   `mgDistVector(rect) != 0`. Declared `int` (Ghidra shows bool; either mangles the same).
 - `Register` returns 0/1; `CheckStay` returns 0, 1 or `stay`.
+
+## Draft behavior
+`ProgressInfo::Init` clears the progress number and eight scheduled place pointers, leaving `after` untouched. `CVillagerData::Initialize` frees the slot and zeroes movement and pose state. `CVillagerMngr::Initialize` resets 32 slots. `GetData` checks the slot number against `data_num`; `NewData` chooses the first slot without a villager ID. `CVillagerPlaceInfo::Add` allocates a 0x20-byte route node from its memory stack, clears the link and kind, and appends it.
+
+`Stay` and `CancelStay` count hold requests, with cancellation clamped at zero. `ExMode` starts the camera pose only on entry and restarts its timer on every call. `SearchDataIDatCharaID`, `Register`, and `DeleteCharaID` manage slots by scene character number. `GetTalkRect` returns whether the selected villager has a nonzero talk offset.
+
+`Step` takes the route branch while a villager is not in camera pose and neither its hold count nor the manager stop flag is set. A place without a route turns the villager toward the place heading. A move node turns and advances toward its point, switching to its successor within ten units. A wait node advances after its frame count or motion end. The camera pose branch runs six steps, changes motion and model part modes, and faces the camera on the first pose frame. The source draft uses typed vectors and route nodes; exact code generation still needs a promotion check.
+
+`GetAppearVlgr` scans the 0x200-entry place table. It searches each villager's progress entries from newest to oldest, selects entries that apply to the current story order, and returns every place for the requested time and map. A progress-one entry provides the fallback when no later entry supplies a place. Progress below two forces daytime and progress one.

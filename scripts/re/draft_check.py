@@ -57,6 +57,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "mwccgap"))
 sys.path.insert(0, str(ROOT / "scripts" / "build"))
 
+import mwccgap.elf  # noqa: E402
 from mwccgap.elf import Elf  # noqa: E402
 
 import check_objects  # noqa: E402
@@ -69,6 +70,12 @@ DRAFT_DIR = Path("build/re/draft")
 CHECK_DIR = Path("build/re/check")
 ATTEMPT_LEDGER = ROOT / "scripts/re/promotion_attempts.tsv"
 STT_FUNC = 2
+
+# A draft that instantiates a member of a class template emits it as a weak
+# function; the object reader has to count those among the functions too.
+STB_WEAK_FUNC = 0x22
+if STB_WEAK_FUNC not in mwccgap.elf.FUNCTION_ST_INFOS:
+    mwccgap.elf.FUNCTION_ST_INFOS = mwccgap.elf.FUNCTION_ST_INFOS + (STB_WEAK_FUNC,)
 
 
 def project_name(name):

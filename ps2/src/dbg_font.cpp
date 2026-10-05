@@ -4,7 +4,15 @@
 #include "mg_texture.hpp"
 #include "mg_memory.hpp"
 #include "dbg_font.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include <cstdio>
 #include <cstring>
+
+static unsigned long SjisToJis(unsigned long sjis);
+static unsigned long SjisToSerno(unsigned long sjis);
+static unsigned long ascii2serno(unsigned char character);
 
 // Code (.text)
 unsigned long SjisToJis(unsigned long sjis) {
@@ -194,11 +202,120 @@ void dbgCJISFont::InitTexture(int full0_id, char *full0_name, int full1_id, char
 void dbgCJISFont::Clear(void) {
     buffer[0] = 0;
 }
+#ifdef NONMATCHING
+void dbgCJISFont::__putc(unsigned long serno) {
+    if (serno >= DBG_FONT_SERNO_END) return;
+    int sheet = DBG_FONT_SHEET_FULL_WIDTH_0;
+    int glyph_width = 16;
+    if (serno >= DBG_FONT_SERNO_HALF_WIDTH) {
+        sheet = DBG_FONT_SHEET_HALF_WIDTH;
+        serno -= DBG_FONT_SERNO_HALF_WIDTH;
+        glyph_width = 9;
+    } else if (serno >= DBG_FONT_SERNO_SHEET_1) {
+        sheet = DBG_FONT_SHEET_FULL_WIDTH_1;
+        serno -= DBG_FONT_SERNO_SHEET_1;
+    }
+    if (loaded_texture_id != texture_id[sheet]) mgTexManager.ReloadTexture(texture_id[sheet], (sceVif1Packet *)NULL);
+    mgCTexture *texture = mgTexManager.GetTexture(texture_name[sheet], -1);
+    loaded_texture_id = texture_id[sheet];
+    mgCDrawPrim prim;
+    prim.Initialize(NULL, NULL);
+    prim.DepthTestEnable(0);
+    prim.AlphaTestEnable(0);
+    prim.AlphaBlendEnable(1);
+    int advance = char_width - (16 - (glyph_width - 1));
+    if (back_enable) {
+        prim.Begin(6);
+        prim.Color(back_color[0], back_color[1], back_color[2], back_color[3]);
+        prim.Vertex(x - 1, y - 1, 0);
+        prim.Vertex(x + advance, y + char_height + 1, 0);
+        prim.End();
+    }
+    prim.TextureMapEnable(1);
+    int tex_x = (serno & 63) * 16;
+    int tex_y = (serno >> 6) * 16;
+    if (shadow_enable) {
+        prim.Begin(6);
+        prim.Texture(texture);
+        prim.Color(0, 0, 0, 128);
+        prim.TextureCrd(tex_x + 1, tex_y + 1);
+        prim.Vertex(x - 1, y - 1, 0);
+        prim.TextureCrd(tex_x + glyph_width - 1, tex_y + 15);
+        prim.Vertex(x + advance, y + char_height + 1, 0);
+        prim.End();
+    }
+    prim.Begin(6);
+    prim.Texture(texture);
+    prim.Color(color[0], color[1], color[2], color[3]);
+    prim.TextureCrd(tex_x + 1, tex_y + 1);
+    prim.Vertex(x, y, 0);
+    prim.TextureCrd(tex_x + glyph_width - ((serno & 63) == 63), tex_y + 16 - ((serno >> 6) == 63));
+    prim.Vertex(x + advance, y + char_height, 0);
+    prim.End();
+    x += advance + 2;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dbg_font", __putc__11dbgCJISFontFUl);
+#endif
+#ifdef NONMATCHING
+void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
+    char text[0x408];
+    // The runtime's varargs forwarding needs a target-specific argument-list type.
+    sprintf(text, "%s", format);
+    x = start_x;
+    y = start_y;
+    prev_serno = 0;
+    for (char *cursor = text; *cursor != 0;) {
+        unsigned char first = (unsigned char)*cursor;
+        if (first & 0x80) {
+            if (first >= 0xA1 && first < 0xE0) {
+                unsigned long serno = ascii2serno(first);
+                if ((serno == DBG_FONT_SERNO_DAKUTEN || serno == DBG_FONT_SERNO_HANDAKUTEN) && prev_serno != 0) {
+                    serno = prev_serno + (serno == DBG_FONT_SERNO_DAKUTEN ? 1 : 2);
+                    prev_serno = 0;
+                    x -= char_width - 8;
+                } else {
+                    prev_serno = serno;
+                }
+                __putc(serno);
+                ++cursor;
+            } else {
+                unsigned long sjis = ((unsigned long)first << 8) | (unsigned char)cursor[1];
+                __putc(SjisToSerno(sjis));
+                cursor += 2;
+            }
+        } else if (first == '\n') {
+            y += char_height;
+            x = 0;
+            ++cursor;
+        } else if (first == '\t') {
+            x += char_width * 2;
+            ++cursor;
+        } else if (strncmp(cursor, "ESC[$", 5) == 0) {
+            back_enable = ~back_enable;
+            cursor += 5;
+        } else if (strncmp(cursor, "ESC[#", 5) == 0) {
+            shadow_enable = ~shadow_enable;
+            cursor += 5;
+        } else {
+            __putc(first + 0x204D);
+            ++cursor;
+        }
+    }
+    loaded_texture_id = -1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dbg_font", PrintDirect__11dbgCJISFontFiiPce);
+#endif
 
 // Static initialiser (.init)
+#ifdef NONMATCHING
+extern "C" void __sinit_dbg_font_cpp() {
+    new ((u_long128 *)&JisFont) dbgCJISFont;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dbg_font", __sinit_dbg_font_cpp);
+#endif
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dbg_font", at_288__3__DATA);

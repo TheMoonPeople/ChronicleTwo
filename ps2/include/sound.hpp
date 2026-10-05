@@ -51,7 +51,7 @@ STATIC_ASSERT(sizeof(MIDI_FADE) == 0x10);
  */
 struct MIDI_PORT {
     s32       unk_00;
-    s8        spu_direction;                     /**< Direction the port's banks are laid out in, a SpuAllocDirection. */
+    u8        spu_direction;                     /**< Direction the port's banks are laid out in, a SpuAllocDirection. */
     s32       linked_port;                       /**< Port that is given every bank this port loads, or -1. */
     s32       dependent_port[MIDI_PORT_BANK_MAX]; /**< Ports placed at this port's sound processor address, reset when it loads or is deleted. */
     s32       dependent_port_count;              /**< Number of entries in dependent_port. */
@@ -108,6 +108,16 @@ struct MSIN_BUFFER {
 };
 
 STATIC_ASSERT(sizeof(MSIN_BUFFER) == 0x200);
+
+/**
+ * Names sent to the stream server when opening an audio file in a pack.
+ */
+struct STREAM_PACK_REQUEST {
+    char name[52];      /**< Name of the audio file within the pack. */
+    char pack_name[12]; /**< Name of the pack holding the audio file. */
+};
+
+STATIC_ASSERT(sizeof(STREAM_PACK_REQUEST) == 0x40);
 
 /**
  * The sound driver the whole game plays through. It holds nothing of its

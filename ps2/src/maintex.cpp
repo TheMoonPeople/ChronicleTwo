@@ -46,100 +46,152 @@ extern char at_830__5[];
 extern char at_831__4[];
 extern char at_832__4[];
 
+#include <cstdio>
+
+#include "character.hpp"
+#include "colprim.hpp"
+#include "dataread.hpp"
+#include "dng_effect.hpp"
+#include "dng_main.hpp"
+#include "dng_hud.hpp"
+#include "effectlist.hpp"
+#include "gaiji.hpp"
+#include "mainloop.hpp"
+#include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "monster.hpp"
+#include "photo.hpp"
+#include "scenesnd.hpp"
+#include "snd_mngr.hpp"
+#include "swordeffect.hpp"
+#include "userdata.hpp"
+
+#ifdef NONMATCHING
+mgCTexture *TEX_ShadowTexture;
+mgCTexture *TEX_SystenFrame;
+mgCTexture *TEX_SystenFrame2;
+mgCTexture *TEX_StatusIcon;
+mgCTexture *TEX_DummyIcon1;
+mgCTexture *TEX_DummyIcon2;
+mgCTexture *TEX_SystemEffect1;
+mgCTexture *TEX_SystemEffect2;
+mgCTexture *TEX_SystemEffect3;
+mgCTexture *TEX_SystemEffectSw;
+mgCTexture *TEX_ExFx_FIRE;
+mgCTexture *TEX_ExFx_ICE;
+mgCTexture *TEX_ExFx_THUN;
+#endif
+
 // Code (.text)
 void GetTextureInfo(CScene *scene) {
-    TEX_ShadowTexture = mgTexManager.GetTexture(at_792__2, -1);
-    TEX_SystenFrame = mgTexManager.GetTexture(at_793__2, -1);
-    TEX_SystenFrame2 = mgTexManager.GetTexture(at_794__2, -1);
-    TEX_StatusIcon = mgTexManager.GetTexture(at_795__2, -1);
-    TEX_DummyIcon1 = mgTexManager.GetTexture(at_796__2, -1);
-    TEX_DummyIcon2 = mgTexManager.GetTexture(at_797__2, -1);
-    TEX_SystemEffect1 = mgTexManager.GetTexture(at_798__2, -1);
-    TEX_SystemEffect2 = mgTexManager.GetTexture(at_799__2, -1);
-    TEX_SystemEffect3 = mgTexManager.GetTexture(at_800__2, -1);
-    TEX_SystemEffectSw = mgTexManager.GetTexture(at_801__2, -1);
-    TEX_ExFx_FIRE = mgTexManager.GetTexture(at_802__2, -1);
-    TEX_ExFx_ICE = mgTexManager.GetTexture(at_803__2, -1);
-    TEX_ExFx_THUN = mgTexManager.GetTexture(at_804__2, -1);
+    TEX_ShadowTexture = mgTexManager.GetTexture("work", -1);
+    TEX_SystenFrame = mgTexManager.GetTexture("frame", -1);
+    TEX_SystenFrame2 = mgTexManager.GetTexture("frame2", -1);
+    TEX_StatusIcon = mgTexManager.GetTexture("status_icon", -1);
+    TEX_DummyIcon1 = mgTexManager.GetTexture("icon_dmy1", -1);
+    TEX_DummyIcon2 = mgTexManager.GetTexture("icon_dmy2", -1);
+    TEX_SystemEffect1 = mgTexManager.GetTexture("effect00", -1);
+    TEX_SystemEffect2 = mgTexManager.GetTexture("effect01", -1);
+    TEX_SystemEffect3 = mgTexManager.GetTexture("effect02", -1);
+    TEX_SystemEffectSw = mgTexManager.GetTexture("sweff", -1);
+    TEX_ExFx_FIRE = mgTexManager.GetTexture("bteffe_fla", -1);
+    TEX_ExFx_ICE = mgTexManager.GetTexture("bteffe_chi", -1);
+    TEX_ExFx_THUN = mgTexManager.GetTexture("bteffe_lig", -1);
 }
-void MainTextureInterface(mgCMemory *memory, CScene *scene) {
-    char path[0x48];
-    int size;
-    int pack_size;
 
-    mgTexManager.EnterIMGFile((u8 *)GetGaijiImgPtr(), 0x58, NULL, NULL);
+void MainTextureInterface(mgCMemory *stack, CScene *scene) {
+    char       path[64];
+    int        file_size;
+    int        member_size;
+    u_long128 *buffer;
+
+    mgTexManager.EnterIMGFile(GetGaijiImgPtr(), 0x58, NULL, NULL);
     ReLoadFontTexture(0x58);
-    mgTexManager.EnterIMGFile((u8 *)GetFontTex2ImgPtr(), 0x58, NULL, NULL);
-
-    memory->Align64();
-    u8 *buffer = (u8 *)memory->stAllocTest(1);
-    sprintf(path, at_819__3, LanguageCode);
-    LoadFile(path, buffer, &size);
-    mgTexManager.EnterIMGFile(buffer, 0x67, memory, NULL);
-    memory->Alloc(size / 16 + 1);
-    LoadTakePhoto(0x67, memory, (u_long128 *)buffer);
-
-    memory->Align64();
-    buffer = (u8 *)memory->stAllocTest(1);
-    sprintf(path, at_820__3, LanguageCode);
-    LoadFile(path, buffer, &size);
-    memory->Alloc(size / 16 + 1);
-
-    mgTexManager.EnterIMGFile((u8 *)GetPackFile((u32 *)buffer, at_821__3, &pack_size), 0x48, memory, NULL);
-    mgTexManager.EnterIMGFile((u8 *)GetPackFile((u32 *)buffer, at_822__3, &pack_size), 0x49, memory, NULL);
-    mgTexManager.EnterIMGFile((u8 *)GetPackFile((u32 *)buffer, at_823__3, &pack_size), 0x4A, memory, NULL);
-    mgTexManager.EnterIMGFile((u8 *)GetPackFile((u32 *)buffer, at_824__3, &pack_size), 0x4A, memory, NULL);
-    mgTexManager.EnterIMGFile((u8 *)GetPackFile((u32 *)buffer, at_825__3, &pack_size), 0x59, NULL, NULL);
-    mgTexManager.EnterIMGFile((u8 *)GetPackFile((u32 *)buffer, at_826__3, &pack_size), 0x4B, memory, NULL);
-    mgTexManager.EnterIMGFile((u8 *)GetPackFile((u32 *)buffer, at_827__3, &pack_size), 0x6B, memory, NULL);
-
-    printf(at_828__4, 0xAE);
-    mgTexManager.EnterTexture(0x64, at_792__2, NULL, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
-    mgTexManager.EnterTexture(0x64, at_829__4, NULL, mgScreenWidth / 3, mgScreenHeight / 3, 0x20, 0, 0, 0);
-    mgTexManager.EnterTexture(0x4B, at_830__5, NULL, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
-    mgTexManager.EnterTexture(0x65, at_831__4, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
-    mgTexManager.EnterTexture(0x59, at_832__4, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
-    scene->fade.SetCrossTexture(mgTexManager.GetTexture(at_831__4, -1),
-                                 (u_long128 *)((u8 *)BuffReadData + 0x200000));
+    mgTexManager.EnterIMGFile(GetFontTex2ImgPtr(), 0x58, NULL, NULL);
+    stack->Align64();
+    buffer = stack->stAllocTest(1);
+    sprintf(path, "img/esystem%d.img", LanguageCode);
+    LoadFile(path, buffer, &file_size);
+    mgTexManager.EnterIMGFile((u_char *)buffer, 0x67, stack, NULL);
+    stack->Alloc(file_size / 16 + 1);
+    LoadTakePhoto(0x67, stack, buffer);
+    stack->Align64();
+    buffer = stack->stAllocTest(1);
+    sprintf(path, "dungeon/articles/tex01_%d.chr", LanguageCode);
+    LoadFile(path, buffer, &file_size);
+    stack->Alloc(file_size / 16 + 1);
+    mgTexManager.EnterIMGFile((u_char *)GetPackFile((u_int *)buffer, "frame_basic.img", &member_size), 0x48, stack, NULL);
+    mgTexManager.EnterIMGFile((u_char *)GetPackFile((u_int *)buffer, "effect00.img", &member_size), 0x49, stack, NULL);
+    mgTexManager.EnterIMGFile((u_char *)GetPackFile((u_int *)buffer, "beffect_00.img", &member_size), 0x4A, stack, NULL);
+    mgTexManager.EnterIMGFile((u_char *)GetPackFile((u_int *)buffer, "potbeam.img", &member_size), 0x4A, stack, NULL);
+    mgTexManager.EnterIMGFile((u_char *)GetPackFile((u_int *)buffer, "water_ref.img", &member_size), 0x59, NULL, NULL);
+    mgTexManager.EnterIMGFile((u_char *)GetPackFile((u_int *)buffer, "fire.img", &member_size), 0x4B, stack, NULL);
+    mgTexManager.EnterIMGFile((u_char *)GetPackFile((u_int *)buffer, "bteffe_4ex.img", &member_size), 0x6B, stack, NULL);
+    printf("TEXBLK_LAST = %d\n", 0xAE);
+    mgTexManager.EnterTexture(0x64, "work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
+    mgTexManager.EnterTexture(0x64, "work2", NULL, mgScreenWidth / 3, mgScreenHeight / 3, 32, NULL, 0, 0);
+    mgTexManager.EnterTexture(0x4B, "fire_work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
+    mgTexManager.EnterTexture(0x65, "capture", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, NULL, 0, 0);
+    mgTexManager.EnterTexture(0x59, "water_work", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, NULL, 0, 0);
+    scene->fade.SetCrossTexture(mgTexManager.GetTexture("capture", -1), BuffReadData + 0x20000);
     GetTextureInfo(scene);
 }
-void calcWeaponParamWhp(CActiveMonster *monster, CColPrim *prim) {
-    CBattleCharaInfo *info = GetBattleCharaInfo();
-    int attack_kind = ((DAMAGE_PARAM *)prim->param)->kind;
 
-    s16 *slot_words = (s16 *)info->weapon_param;
-    if (attack_kind == 4 || attack_kind == 0 || attack_kind == 11 || attack_kind == 12) {
-        float attack = (float)info->GetWhpNowVol(0);
-        float power = (float)monster->whp;
-        power *= 0.5f;
-        float wear = power;
-        wear -= (float)(power * (0.005 * slot_words[1]));
-        int status = prim->status;
-        if (status & 0x20)
+void calcWeaponParamWhp(CActiveMonster *monster, CColPrim *col_prim) {
+    CBattleCharaInfo    *battle;
+    BATTLE_WEAPON_PARAM *weapon_param;
+    int                 kind;
+    float               old_whp;
+    float               wear;
+    u32                 status;
+
+    battle = GetBattleCharaInfo();
+    weapon_param = battle->weapon_param;
+    kind = col_prim->param->kind;
+    if (kind == DAMAGE_KIND_MONICA_MELEE || kind == DAMAGE_KIND_MAX_MELEE ||
+        kind == DAMAGE_KIND_RIDEPOD_PUNCH || kind == DAMAGE_KIND_RIDEPOD_SWORD) {
+        old_whp = (float)battle->GetWhpNowVol(0);
+        wear = (float)(u_int)monster->whp;
+        wear *= 0.5f;
+        wear -= (float)(wear * (0.005 * weapon_param[0].status[1]));
+        status = col_prim->status;
+        if (status & 0x20) {
             wear *= 1.3f;
-        if (status & 0x40)
+        }
+        if (status & 0x40) {
             wear *= 0.8f;
-        if (info->AddWhp(0, -wear) <= 0.0f && !(attack <= 0.0f))
-            info->AddAbsRate(0, -0.1f, NULL);
+        }
+        if (battle->AddWhp(0, -wear) <= 0.0f && old_whp > 0.0f) {
+            battle->AddAbsRate(0, -0.1f, NULL);
+        }
     }
 }
-void calcWeaponParam2(int hit_type, int divisor) {
-    CBattleCharaInfo *info = GetBattleCharaInfo();
 
-    s16 *slot_words = (s16 *)info->weapon_param;
-    int status = info->GetSpecialStatus(1);
-    if (hit_type == 1 || hit_type == 5) {
-        float attack = (float)info->GetWhpNowVol(1);
-        float wear = 1.0f;
-        float scale = 1.0f;
-        wear -= scale * (0.002 * slot_words[15]);
-        if (status & 0x20)
+void calcWeaponParam2(int type, int divisor) {
+    CBattleCharaInfo    *battle;
+    BATTLE_WEAPON_PARAM *weapon_param;
+    u32                 status;
+    float               old_whp;
+    float               wear;
+
+    battle = GetBattleCharaInfo();
+    weapon_param = battle->weapon_param;
+    status = battle->GetSpecialStatus(1);
+    if (type == DAMAGE_KIND_MAX_GUN || type == DAMAGE_KIND_MONICA_MAGIC) {
+        old_whp = (float)battle->GetWhpNowVol(1);
+        wear = 1.0f;
+        wear -= (float)(wear * (0.002 * weapon_param[1].status[1]));
+        if (status & 0x20) {
             wear *= 1.3f;
-        if (status & 0x40)
+        }
+        if (status & 0x40) {
             wear *= 0.8f;
+        }
         wear /= (float)divisor;
-        if (info->AddWhp(1, -wear) <= 0.0f && !(attack <= 0.0f))
-            info->AddAbsRate(1, -0.1f, NULL);
+        if (battle->AddWhp(1, -wear) <= 0.0f && old_whp > 0.0f) {
+            battle->AddAbsRate(1, -0.1f, NULL);
+        }
     }
 }
 void SetDamageParam(CColPrim *prim, int slot_no) {
@@ -237,32 +289,23 @@ void AddExpWeaponParam(float amount, int weapon_owner, int kind) {
         sndSePlay(SystemSND_ID, 30, 0);
     }
 }
-void SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *memory, int sword) {
-    CSWordAfterEffect *effect =
-        (CSWordAfterEffect *)operator new(sizeof(CSWordAfterEffect), memory->Alloc(12));
-    if (effect != NULL) {
-        effect->color0[0] = 0x80;
-        effect->color0[1] = 0x80;
-        effect->color0[2] = 0x80;
-        effect->color0[3] = 0x80;
-        effect->color1[0] = 0x80;
-        effect->color1[1] = 0x80;
-        effect->color1[2] = 0x80;
-        effect->color1[3] = 0x80;
-    }
-    chara->sword_effect[0] = effect;
-    chara->sword_effect[0]->Initialize(memory, 12, 8);
-    int u = 0;
-    int v = 32;
-    if (sword == 0) {
+void SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int blur_type) {
+    int u;
+    int v;
+
+    chara->sword_effect[0] = new (stack->Alloc(12)) CSWordAfterEffect;
+    chara->sword_effect[0]->Initialize(stack, 12, 8);
+    u = 0;
+    v = 32;
+    if (blur_type == 0) {
         u = 64;
         v = 0;
     }
-    if (sword == 1) {
+    if (blur_type == 1) {
         u = 0;
         v = 0;
     }
-    chara->sword_effect[0]->SetTexture(74, TEX_SystemEffectSw, u, v, 64, 32);
+    chara->sword_effect[0]->SetTexture(0x4A, TEX_SystemEffectSw, u, v, 64, 32);
 }
 
 // Constants (.rodata)

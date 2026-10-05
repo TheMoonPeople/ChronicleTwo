@@ -80,5 +80,23 @@ grRACE_PROGRESS (0x18): `+0` float course position (0..16, 8 per lap), `+8` floa
 
 ## Unresolved
 - Retail names of the two structs (neutral names chosen).
-- `old_prog` extern pending gyoracesim.hpp.
 - Enum names for `GYORACE_MODE` are neutral.
+
+## C++ draft and promotion status (2026-10-06)
+
+All eight ASM-backed runtime functions have typed C++ drafts guarded by `NONMATCHING`.
+`sgMapDrawGyoRace` is already matched. The compiler-generated initializer matches when the
+guarded globals are compiled, but default promotion is blocked: the object compiler emits
+`__sinit_gyorace.cpp`, whereas the retail constructor table references
+`__sinit_gyorace_cpp`. The retail initializer remains the default assembly implementation.
+
+The eight runtime drafts all differ from retail. Each received one isolated promotion
+attempt; each trial failed to compile because the trial deliberately enabled only that
+function while its dependent includes and locally owned globals remained guarded.
+The guarded unit itself compiles, and the default full build verifies byte-identical.
+
+The initializer, race loop and race display drafts currently model their principal
+state transitions and typed data flow. They do not yet cover every resource load,
+animation update, screen primitive or commentary branch in retail. In particular,
+`sgInitGyoRace` and `sgSysDrawGyoRace` are substantially shorter than the retail code.
+These remain analysis and matching gaps, not promoted functions.

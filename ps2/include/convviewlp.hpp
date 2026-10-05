@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "mainloop.hpp"
+#include "savedata.hpp"
 
 /**
  * @file
@@ -55,6 +56,29 @@ enum SAVEDATA_CONVERT_TYPE {
     SAVEDATA_CONVERT_TYPE_ALBUM = 1,  /**< Photo album save, suffixed "dc2album". */
     SAVEDATA_CONVERT_TYPE_OMAKE = 2,  /**< Bonus data save, suffixed "dc2omake". */
 };
+
+/**
+ *
+ * One memory card directory entry copied while searching for save files.
+ *
+ */
+struct SAVE_CONVERT_FILE_INFO {
+    char unk_0[0x20];
+    char entry_name[0x20]; /**< Directory name returned by the memory card library. */
+};
+STATIC_ASSERT(sizeof(SAVE_CONVERT_FILE_INFO) == 0x40);
+
+/**
+ *
+ * Work allocation holding one save image during directory conversion.
+ *
+ */
+struct SAVE_CONVERT_WORK {
+    u8 unk_0[0x80];
+    CSaveData save_data; /**< Save image whose embedded objects are constructed for conversion. */
+    u8 unk_659b0[0x10];
+};
+STATIC_ASSERT(sizeof(SAVE_CONVERT_WORK) == 0x659C0);
 
 /**
  * Prepares the conversion screen when the main loop enters it: sets up the drawing buffers,

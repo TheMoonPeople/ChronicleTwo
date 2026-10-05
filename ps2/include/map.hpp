@@ -203,7 +203,7 @@ public:
      * @address 0x1631B0
      * @size 0x50
      */
-    CObject();
+    CObject() { Initialize(); }
     CObject &operator=(const CObject &other);
 
     /**
@@ -294,7 +294,7 @@ public:
      * @address 0x161F80
      * @size 0x10
      */
-    virtual void Show(int on);
+    virtual void Show(int on) { show = on; }
 
     /**
      *
@@ -304,7 +304,7 @@ public:
      * @address 0x160520
      * @size 0x10
      */
-    virtual int GetShow();
+    virtual int GetShow() { return show; }
 
     /**
      *
@@ -314,7 +314,7 @@ public:
      * @address 0x161F90
      * @size 0x10
      */
-    virtual void SetFarDist(float dist);
+    virtual void SetFarDist(float dist) { far_dist = dist; }
 
     /**
      *
@@ -324,7 +324,7 @@ public:
      * @address 0x161FA0
      * @size 0x10
      */
-    virtual float GetFarDist();
+    virtual float GetFarDist() { return far_dist; }
 
     /**
      *
@@ -334,7 +334,7 @@ public:
      * @address 0x161FB0
      * @size 0x10
      */
-    virtual void SetNearDist(float dist);
+    virtual void SetNearDist(float dist) { near_dist = dist; }
 
     /**
      *
@@ -344,7 +344,7 @@ public:
      * @address 0x161FC0
      * @size 0x10
      */
-    virtual float GetNearDist();
+    virtual float GetNearDist() { return near_dist; }
 
     /**
      *
@@ -364,7 +364,7 @@ public:
      * @address 0x161FD0
      * @size 0xB0
      */
-    virtual void Copy(CObject &dest, mgCMemory *stack);
+    virtual void Copy(CObject &dest, mgCMemory *stack) { dest = *this; }
 
     /**
      *
@@ -488,9 +488,8 @@ public:
      * @mangled Draw__4CMapFv
      * @address 0x161F20
      * @size 0x20
-     * @unknownret
      */
-    virtual int Draw();
+    virtual int Draw() { return DrawSub(0); }
 
     /**
      *
@@ -499,9 +498,8 @@ public:
      * @mangled DrawDirect__4CMapFv
      * @address 0x161F40
      * @size 0x20
-     * @unknownret
      */
-    virtual int DrawDirect();
+    virtual int DrawDirect() { return DrawSub(1); }
 
     /**
      *
@@ -885,7 +883,7 @@ public:
 
     /**
      *
-     * Returns the placed parts of a number, or NULL for a number out of range.
+     * Returns the placed parts of a number, or NULL for a negative number or one beyond the parts count.
      *
      * @mangled GetPlaceParts__4CMapFi
      * @address 0x15E8D0
@@ -1055,7 +1053,7 @@ public:
 
     /**
      *
-     * Returns a treasure box by number, or NULL for a number out of range.
+     * Returns a treasure box by number, or NULL for a negative number or one beyond the box count.
      *
      * @mangled GetTrBox__4CMapFi
      * @address 0x161A30

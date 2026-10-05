@@ -221,7 +221,7 @@ public:
      * @address 0x1D5CB0
      * @size 0x30
      */
-    CChillAfterHit();
+    CChillAfterHit() { Initialize(); }
 
     /**
      *
@@ -319,7 +319,7 @@ public:
      * @address 0x1D5C80
      * @size 0x30
      */
-    CFireAfterHit();
+    CFireAfterHit() { Initialize(); }
 
     /**
      *
@@ -468,16 +468,6 @@ public:
     s8            active;   /**< Non-zero while any spark is still drawn. */
     s8            live_num; /**< Number of sparks still alive. */
     float         rate;     /**< Strength of the hit, from nothing to one, which sets the count and size. */
-
-    /**
-     *
-     * Constructs the frame and its attributes.
-     *
-     * @mangled __ct__8CThunderFv
-     * @address 0x1D5CE0
-     * @size 0x30
-     */
-    CThunder();
 
     /**
      *
@@ -960,7 +950,7 @@ public:
      * @address 0x1D5D10
      * @size 0x10
      */
-    CAfterWire();
+    CAfterWire() { mode = 0; }
 
     /**
      *

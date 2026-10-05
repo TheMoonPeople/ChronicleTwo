@@ -9,6 +9,10 @@
 
 #include "colprim.hpp"
 
+#include "character.hpp"
+#include "mg_frame.hpp"
+#include "mg_math.hpp"
+#include "scenesnd.hpp"
 #include <cstring>
 
 // Code (.text)
@@ -47,56 +51,127 @@ int CColPrim::SetDamage(char *name, int owner_id) {
         param++;
     }
 }
-void CColPrim::SetCoord(float *new_point, float new_radius) {
-    new_point[3] = 1.0f;
+void CColPrim::SetCoord(float *position, float new_radius) {
+    position[3] = 1.0f;
     if (step_count == 0) {
-        sceVu0CopyVector(pos[0], new_point);
-        sceVu0CopyVector(old_pos[0], new_point);
-        sceVu0CopyVector(origin, new_point);
+        sceVu0CopyVector(pos[0], position);
+        sceVu0CopyVector(old_pos[0], position);
+        sceVu0CopyVector(origin, position);
     } else {
         sceVu0CopyVector(old_pos[0], pos[0]);
-        sceVu0CopyVector(pos[0], new_point);
+        sceVu0CopyVector(pos[0], position);
     }
     radius = new_radius;
-    coord_type = 1;
+    coord_type = COLPRIM_COORD_VECTOR;
 }
-void CColPrim::SetCoord(float *new_start, float *new_end, float new_radius) {
-    new_start[3] = 1.0f;
-    new_end[3] = 1.0f;
+void CColPrim::SetCoord(float *start, float *end, float new_radius) {
+    start[3] = 1.0f;
+    end[3] = 1.0f;
     if (step_count == 0) {
-        sceVu0CopyVector(pos[0], new_start);
-        sceVu0CopyVector(pos[1], new_end);
-        sceVu0CopyVector(old_pos[0], new_start);
-        sceVu0CopyVector(old_pos[1], new_end);
-        sceVu0CopyVector(origin, new_start);
+        sceVu0CopyVector(pos[0], start);
+        sceVu0CopyVector(pos[1], end);
+        sceVu0CopyVector(old_pos[0], start);
+        sceVu0CopyVector(old_pos[1], end);
+        sceVu0CopyVector(origin, start);
     } else {
         sceVu0CopyVector(old_pos[0], pos[0]);
         sceVu0CopyVector(old_pos[1], pos[1]);
-        sceVu0CopyVector(pos[0], new_start);
-        sceVu0CopyVector(pos[1], new_end);
+        sceVu0CopyVector(pos[0], start);
+        sceVu0CopyVector(pos[1], end);
     }
     radius = new_radius;
-    coord_type = 1;
+    coord_type = COLPRIM_COORD_VECTOR;
 }
-void CColPrim::SetCoord(mgCFrame *frame, float new_radius) {
-    this->frame[0] = frame;
-    this->frame[1] = 0;
+void CColPrim::SetCoord(mgCFrame *start, float new_radius) {
+    frame[0] = start;
+    frame[1] = NULL;
     radius = new_radius;
-    coord_type = 2;
-    if ((step_count == 0) && (frame != NULL)) {
-        frame->GetWorldPosition0(origin);
-    }
+    coord_type = COLPRIM_COORD_FRAME;
+    if (step_count == 0 && start) start->GetWorldPosition0(origin);
 }
-void CColPrim::SetCoord(mgCFrame *new_start_frame, mgCFrame *new_end_frame, float new_radius) {
-    frame[0] = new_start_frame;
-    frame[1] = new_end_frame;
+void CColPrim::SetCoord(mgCFrame *start, mgCFrame *end, float new_radius) {
+    frame[0] = start;
+    frame[1] = end;
     radius = new_radius;
-    coord_type = 2;
-    if ((step_count == 0) && (new_start_frame != NULL)) {
-        new_start_frame->GetWorldPosition0(origin);
-    }
+    coord_type = COLPRIM_COORD_FRAME;
+    if (step_count == 0 && start) start->GetWorldPosition0(origin);
 }
+#ifdef NONMATCHING
+int CColPrim::IsHit(CScene *scene, int chara_id) {
+    if (!active || !param) return 0;
+    CCharacter2 *chara = scene->GetCharacter(chara_id);
+    if (!chara) return 0;
+    int chara_type = scene->GetType(1, chara_id);
+    if (chara_type == 1 && !(target & DAMAGE_TARGET_PLAYER)) return 0;
+    if (chara_type == 3 && !(target & DAMAGE_TARGET_MONSTER)) return 0;
+    if (chara_id != -1 && (hit_mask & (1ULL << (chara_id & 31)))) return 0;
+
+    sceVu0FVECTOR starts[4], ends[4], displacement;
+    int segment_count = 0;
+    if (param->shape & DAMAGE_SHAPE_POINT) {
+        sceVu0CopyVector(starts[segment_count++], pos[0]);
+        if ((param->shape & DAMAGE_SHAPE_TRAIL) && step_count > 0) {
+            sceVu0SubVector(displacement, old_pos[0], pos[0]);
+            sceVu0ScaleVector(displacement, displacement, 0.5f);
+            sceVu0AddVector(starts[segment_count++], displacement, pos[0]);
+        }
+    }
+    if (param->shape & DAMAGE_SHAPE_LINE) {
+        sceVu0CopyVector(starts[segment_count], pos[0]);
+        sceVu0CopyVector(ends[segment_count++], pos[1]);
+        if ((param->shape & DAMAGE_SHAPE_TRAIL) && step_count > 0) {
+            sceVu0CopyVector(starts[segment_count], pos[0]);
+            sceVu0CopyVector(ends[segment_count++], old_pos[0]);
+            sceVu0SubVector(displacement, pos[0], pos[1]);
+            sceVu0ScaleVector(displacement, displacement, 0.5f);
+            sceVu0AddVector(starts[segment_count], pos[1], displacement);
+            sceVu0SubVector(displacement, old_pos[0], old_pos[1]);
+            sceVu0ScaleVector(displacement, displacement, 0.5f);
+            sceVu0AddVector(ends[segment_count++], old_pos[1], displacement);
+        }
+    }
+
+    sceVu0FVECTOR entry_position;
+    for (int entry_no = 0;; ++entry_no) {
+        CHARA_ENTRY_OBJECT *entry = chara->GetEntryObjectPos(2, entry_no, entry_position);
+        if (!entry) break;
+        if (!entry->enable) continue;
+        bool hit = false;
+        float hit_radius = 2.0f * (radius + entry->unk_04);
+        if (param->shape & DAMAGE_SHAPE_POINT) {
+            for (int i = 0; i < segment_count; ++i) {
+                if (mgDistVector(starts[i], entry_position) <= hit_radius) {
+                    sceVu0CopyVector(hit_pos, entry_position);
+                    if (param->shape & DAMAGE_SHAPE_TRAIL)
+                        sceVu0SubVector(hit_vec, pos[0], old_pos[0]);
+                    else sceVu0SubVector(hit_vec, entry_position, starts[i]);
+                    hit_vec[1] = 0.0f;
+                    sceVu0Normalize(hit_vec, hit_vec);
+                    hit = true;
+                    break;
+                }
+            }
+        }
+        if (param->shape & DAMAGE_SHAPE_LINE) {
+            for (int i = 0; i < segment_count; ++i) {
+                if (mgDistLinePoint(entry_position, starts[i], ends[i], hit_pos) <= hit_radius) {
+                    sceVu0SubVector(hit_vec, pos[1], old_pos[1]);
+                    hit = true;
+                    break;
+                }
+            }
+        }
+        if (hit) {
+            if (chara_id != -1 && !param->multi_hit) hit_mask |= 1ULL << (chara_id & 31);
+            ++hit_num;
+            return 1;
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/colprim", IsHit__8CColPrimFP6CScenei);
+#endif
 int CColPrim::IsReversVec(CColPrim *other) {
     if (active == 0) {
         return 0;
@@ -114,9 +189,8 @@ int CColPrim::IsReversVec(CColPrim *other) {
     }
     return 0;
 }
-void CColPrim::GetReversVec(float *result) {
-    if ((active != 0) && (param != 0))
-        sceVu0SubVector(result, old_pos[0], pos[0]);
+void CColPrim::GetReversVec(float *out_vector) {
+    if (active && param) sceVu0SubVector(out_vector, old_pos[0], pos[0]);
 }
 void CColPrim::DebugDraw() {}
 int CColPrim::Step(void) {
@@ -171,69 +245,39 @@ void CColPrim::Initialize(void) {
     unk_8c = -1;
 }
 CColPrim *CColPrimMan::GetPrim() {
-    for (int i = 0; i < COLPRIM_MAX; i++) {
-        if (prim[i].active == 0) {
-            prim[i].id = i;
-            return &prim[i];
-        }
-    }
-    return 0;
+    for (int i = 0; i < COLPRIM_MAX; ++i)
+        if (!prim[i].active) { prim[i].id = i; return &prim[i]; }
+    return NULL;
 }
-
 CColPrim *CColPrimMan::GetID2Prim(int id) {
-    if (id < 0 || id >= COLPRIM_MAX) {
-        return 0;
-    }
+    if (id < 0 || id >= COLPRIM_MAX) return NULL;
     prim[id].id = id;
     return &prim[id];
 }
-
 int CColPrimMan::ActivePrimNum() {
     int count = 0;
-    for (int i = 0; i < COLPRIM_MAX; i++) {
-        if (prim[i].active != 0) {
-            count++;
-        }
-    }
+    for (int i = 0; i < COLPRIM_MAX; ++i) if (prim[i].active) ++count;
     return count;
 }
-
-void CColPrimMan::Delete(int id) {
-    for (int i = 0; i < COLPRIM_MAX; i++) {
-        prim[i].Delete(id);
-    }
+void CColPrimMan::Delete(int owner) {
+    for (int i = 0; i < COLPRIM_MAX; ++i) prim[i].Delete(owner);
 }
-
-CColPrim *CColPrimMan::CheckHit(int type) {
-    for (int i = 0; i < COLPRIM_MAX; i++) {
-        if (prim[i].IsHit(scene, type) != 0) {
-            return &prim[i];
-        }
-    }
-    return 0;
+CColPrim *CColPrimMan::CheckHit(int chara_id) {
+    for (int i = 0; i < COLPRIM_MAX; ++i)
+        if (prim[i].IsHit(scene, chara_id)) return &prim[i];
+    return NULL;
 }
-
-CColPrim *CColPrimMan::IsReversVec(CColPrim *other) {
-    for (int i = 0; i < COLPRIM_MAX; i++) {
-        if (other->id != i && prim[i].IsReversVec(other) != 0) {
-            return &prim[i];
-        }
-    }
-    return 0;
+CColPrim *CColPrimMan::IsReversVec(CColPrim *attack) {
+    for (int i = 0; i < COLPRIM_MAX; ++i)
+        if (attack->id != i && prim[i].IsReversVec(attack)) return &prim[i];
+    return NULL;
 }
-
 void CColPrimMan::Step() {
-    for (int i = 0; i < COLPRIM_MAX; i++) {
-        prim[i].Step();
-    }
+    for (int i = 0; i < COLPRIM_MAX; ++i) prim[i].Step();
 }
-
 void CColPrimMan::Initialize(CScene *new_scene) {
     scene = new_scene;
-    for (int i = 0; i < COLPRIM_MAX; i++) {
-        prim[i].Initialize();
-        prim[i].id = i;
-    }
+    for (int i = 0; i < COLPRIM_MAX; ++i) { prim[i].Initialize(); prim[i].id = i; }
 }
 
 // Initialised data (.data)

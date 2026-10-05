@@ -1,0 +1,70 @@
+# helpmes: reverse-engineering notes
+
+No class is owned by this unit (`class_units.tsv` has none). The unit drives one `ClsMes`
+(`nd_meswin.hpp`) as a help/error message window.
+
+## Globals (all `static` in retail: listed in `local_symbols.tsv`, so no `extern` in the header)
+| Symbol | Addr | Size | Type / meaning |
+|---|---|---|---|
+| `HelpMesBuff` | 0x1F5EF60 | 0x1000 | `u8[0x1000]` (used as `short *` text): copy of `etc/help%d.mes` (`%d` = `LanguageCode`). `LoadHelpMes` rejects files > 0x1000 with printf "HMes Buffer Over!!(%d/%dbyte)". |
+| `HelpMes` | 0x1F5FF60 | 0x2958 | `ClsMes`. Constructed in `__sinit_helpmes_cpp`. BSS slot 0x295C includes `D_01F628BC` (4 bytes alignment padding before `HelpMesInfo`). |
+| `HelpMesInfo` | 0x1F628C0 | 0x1C | `HELP_MES_INFO` (header). Reset in `__sinit`, `CreateHelpMes`, and inline in Step/Show*. |
+| `WindowMode` | 0x37E9D0 | 4 | `int`, a `MesWindowMode`: `ShowHelpMes` stores 0 (`MES_WIN_NONE`), `ShowErrorHelpMes` 4 (`MES_WIN_VERSATILE_1`); `StepHelpMes` passes it to `ClsMes::SetWindowMode`. |
+| `ShowOffOnce` | 0x37E9D4 | 4 | `int` flag: `ShowOffOnceHelpMes` sets 1; `DrawHelpMes` skips one draw and clears it; `CreateHelpMes` clears. |
+| `InitFlag__2` | 0x37E9CC | 4 | Retail name `InitFlag`, LOCAL (local_symbols.tsv); `__2` only disambiguates it from another unit's static `InitFlag` at 0x37E868. File-scope `static int InitFlag`: written 1 in `LoadHelpMes` after a successful copy, read in `CreateHelpMes` (whole body is gated on it). |
+
+## HELP_MES_INFO (0x1C, name chosen; no retail name)
+Size from the symbol extent 0x1C and `__sinit` / reset code writing offsets 0x0..0x18.
+- 0x00 `show`: set 1 by Show*; Step/Draw do nothing when 0.
+- 0x04 `created`: Step does Preset(4)/SetWindowMode(WindowMode)/MakeMesWin(mes_no) when 0, then sets 1.
+- 0x08 `time`: Show* store `time > 0 ? time + 1 : time`; Step decrements when > 0 and resets the whole
+  struct when it hits 0. Callers pass 1 every frame (fishing, pbuggy, editctrl), error uses (200, 0x28).
+- 0x0C `mes_no`: Show* reset the struct first only when the new number differs (so a repeated
+  request keeps the built window). Reset value -1.
+- 0x10 `x`, 0x14 `y`: copied by Step into `HelpMes.abs_win.x/.y` (ClsMes+0x19C/+0x1A0) when
+  `fukidashi_pos < 0`. `ShowHelpMes` sets x = 0x12, y = `mgScreenHeight - 0x1F`.
+- 0x18 `fukidashi_pos`: when >= 0 Step stores it to `HelpMes.fukidashi_pos` (ClsMes+0x158).
+  `ShowHelpMes` sets -1, `ShowErrorHelpMes` 8. Reset value -1.
+Step also writes `HelpMes.fade_speed` (+0x190) = 1.0f.
+
+## Functions
+- `LoadHelpMes(u_long128 *buffer)`: `P1` mangles `u_long128` (as `LanguageChange__FiP1`,
+  `InitFileCache__FP1i`). Return void (m2c; Ghidra's return of memcpy/printf is spurious; callers
+  in mainloop ignore it). Loads with `LoadFile2(path, buffer, &size, 0)`, then memcpy to HelpMesBuff.
+- `GetHepMesInfo()` (retail typo "Hep") is global; returns `&HelpMesInfo`. Callers null-check it.
+- `CreateHelpMes(int tex_no)`: callers pass 0x58 (InitDungeonMain) and 0x9A (EditInit). The body
+  re-initialises most of `HelpMes` field by field (looks like an inlined ClsMes init/ctor body:
+  zeroes, `draw_speed_def = GetDrawSpeedDef()`, `InitMesWinTbl()`, 16x memset of `name[i]` 0x32,
+  `item_mes[]` = -1, per-line arrays for 20 lines, etc.), then Preset(4), SetWindowMode(0),
+  SetBuff((short*)HelpMesBuff), resets ShowOffOnce and HelpMesInfo, and stores `tex_no` into
+  ClsMes+0x22A4 (`unk_22a4` in nd_meswin.hpp). `DrawHelpMes` passes that same field to
+  `mgTexManager.ReloadTexture(tex, NULL)` before `DrawMesWin`, so ClsMes::unk_22a4 is a texture
+  number (the nd_meswin header owner may wish to name it). Compare against nd_meswin's ctor to see
+  whether the inline sequence is a single inline member.
+- `DrawHelpMes()`: returns early when a global at 0x3FAF3C (sdata/sbss of another unit; not
+  identified here) is non-zero.
+- `ShowErrorHelpMes`: also `sndSePlay(GetSystemSndID(), 0x1C, 0)`.
+- `__sinit_helpmes_cpp`: `ClsMes::ClsMes(&HelpMes)` then resets HelpMesInfo (implies
+  HelpMesInfo has no ctor; the reset is a dynamic initialiser of a file-scope object, or an inline
+  helper -- same 7 stores appear in Step, Show*, Create).
+
+## First game
+No corresponding unit/class in `/home/adubbz/development/chronicle` (only `EdSetHelpMes` etc. in
+edit.hpp, unrelated).
+
+## C++ draft status
+- `GetHepMesInfo` and `ShowOffOnceHelpMes` compile with byte-identical MWCC output.
+- `StepHelpMes`, `DrawHelpMes`, `ShowHelpMes`, and `ShowErrorHelpMes` have typed
+  C++ drafts under `NONMATCHING`. Their first promotion attempts did not match,
+  so the default build keeps their retail assembly.
+- The `ClsMes` field at offset `0x22A4` is named `texture_block` in the header;
+  `DrawHelpMes` reloads it before drawing the window.
+- `LoadHelpMes`, `CreateHelpMes`, and `__sinit_helpmes_cpp` now have typed drafts
+  behind `NONMATCHING`. The first isolated promotions of `LoadHelpMes` and
+  `CreateHelpMes` differed from retail. The `__sinit` draft compiles under
+  `NONMATCHING`, but the isolated promotion cannot locate the unmangled
+  initializer in the C++ source, so its retail assembly remains selected.
+- `CreateHelpMes` can express the bulk of its reset with `ClsMes::Init()`,
+  which is defined inline in the class header. Its first promotion differed
+  by 0x68 bytes in `.text`, so the exact inline setup and ordering still need
+  further matching work.

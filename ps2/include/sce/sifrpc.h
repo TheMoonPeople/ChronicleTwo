@@ -74,6 +74,16 @@ void *sceSifAllocIopHeap(unsigned int size);
  */
 int sceSifFreeIopHeap(void *address);
 
+/**
+ * Allocates IOP system memory with the requested allocation mode and address.
+ */
+void *sceSifAllocSysMemory(int mode, unsigned int size, void *address);
+
+/**
+ * Releases an IOP system memory allocation.
+ */
+int sceSifFreeSysMemory(void *address);
+
 #ifdef __cplusplus
 }
 #endif

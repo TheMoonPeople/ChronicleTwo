@@ -121,6 +121,162 @@ int _SKIN_IMG_END(SPI_STACK *stack, int argc);
 int _SKIN_MODEL(SPI_STACK *stack, int argc);
 int _LOD_MODEL_START(SPI_STACK *stack, int argc);
 int _LOD_MODEL_END(SPI_STACK *stack, int argc);
+#include "character.hpp"
+
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <libvu0.h>
+
+#include "dataread.hpp"
+#include "dynamicanime.hpp"
+#include "effect.hpp"
+#include "gameutil.hpp"
+#include "mg_dataset.hpp"
+#include "mg_frame.hpp"
+#include "mg_math.hpp"
+#include "mg_memory.hpp"
+#include "mg_sprite.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "outline.hpp"
+#include "scriptinterpreter.hpp"
+#include "snd_mngr.hpp"
+#include "swordeffect.hpp"
+#include "visualmotion.hpp"
+
+#ifdef NONMATCHING
+static CCharacter2       *nowChr; /**< Character whose info file is being read. */
+static CCharacter2       *parent_chr; /**< Character whose outline texture is shared. */
+static int                outline_flag; /**< Enables outlines while loading the info file. */
+static int                now_motion_id; /**< Motion set receiving the current script entries. */
+static CHRINFO_KEY_SET    *now_key_ptr; /**< Next key record in the motion list. */
+static CHRINFO_SEQ_HEADER *now_seqhd_ptr; /**< Sequence header being filled. */
+static CHRINFO_SEQ        *now_seq_ptr; /**< Next step record in the sequence. */
+static int                now_cloth_id; /**< Dynamic animation receiving the cloth script. */
+static int                outline_start; /**< Records whether the shared outline texture is ready. */
+static mgCTexture        *outline_start_tex; /**< Texture shared by the character outlines. */
+static int                outline_tex_id; /**< Texture identifier returned when entering an archive. */
+static int                alloc_vertex_num; /**< Number of model frames whose vertices are allocated. */
+static int                alloc_shadow_vertex_num; /**< Number of shadow frames whose vertices are allocated. */
+static mgCMemory         *base_stack; /**< Memory for the base character model. */
+static mgCMemory         *ext_stack; /**< Memory for extension motion sets. */
+static mgCMemory         *img_stack; /**< Memory for character image archives. */
+static mgCMemory         *now_stack; /**< Memory receiving the current script records. */
+static int                set_imgblock; /**< Texture block receiving character images. */
+static unsigned int      *pack_file; /**< Pack containing the current info file assets. */
+static CHRINFO_SE        *now_se_header; /**< Next sound record in the motion sound list. */
+static char               alloc_vertex[25][16]; /**< Names of model frames with allocated vertices. */
+static mgIMG_FILE_HEADER *img_ptr[CHARA_IMAGE_MAX]; /**< Copied image archives awaiting entry. */
+
+static void ScanInfoFile(CCharacter2 *character, unsigned int *pack, char *name, mgCMemory *model_stack, mgCMemory *motion_stack, mgCMemory *image_stack, int image_block, CCharacter2 *parent, int outline);
+static int _V2(SPI_STACK *stack, int count);
+static int _NAME(SPI_STACK *stack, int count);
+static int _BODY_SIZE(SPI_STACK *stack, int count);
+static int _SCALE(SPI_STACK *stack, int count);
+static int _MATERIAL_ANIME(SPI_STACK *stack, int count);
+static int _POLY_NUM(SPI_STACK *stack, int count);
+static int _IMG(SPI_STACK *stack, int count);
+static int _IMG_END(SPI_STACK *stack, int count);
+static int _OUTLINE(SPI_STACK *stack, int count);
+static int _MODEL(SPI_STACK *stack, int count);
+static int _SHADOW_MODEL(SPI_STACK *stack, int count);
+static int _OBJECT_NAME(SPI_STACK *stack, int count);
+static int _OBJECT_NAME2(SPI_STACK *stack, int count);
+static int _MOTION(SPI_STACK *stack, int count);
+static int _SHADOW_MOTION(SPI_STACK *stack, int count);
+static int _VERTEX_ANIME(SPI_STACK *stack, int count);
+static int _SHAPE_ANIME(SPI_STACK *stack, int count);
+static int _KEY_START(SPI_STACK *stack, int count);
+static int _KEY(SPI_STACK *stack, int count);
+static int _KEY_END(SPI_STACK *stack, int count);
+static int _SEQ_START(SPI_STACK *stack, int count);
+static int _SEQ(SPI_STACK *stack, int count);
+static int _SEQ_END(SPI_STACK *stack, int count);
+static int _CLOTH_START(SPI_STACK *stack, int count);
+static int _CLOTH(SPI_STACK *stack, int count);
+static int _CLOTH_END(SPI_STACK *stack, int count);
+static int _POSITION(SPI_STACK *stack, int count);
+static int _ROTATION(SPI_STACK *stack, int count);
+static int _SE_START(SPI_STACK *stack, int count);
+static int _SE(SPI_STACK *stack, int count);
+static int _SELP(SPI_STACK *stack, int count);
+static int _SE_END(SPI_STACK *stack, int count);
+static int _MOTION_END(SPI_STACK *stack, int count);
+static int _EFFECT_START(SPI_STACK *stack, int count);
+static int _EFFECT(SPI_STACK *stack, int count);
+static int _EFFECT_END(SPI_STACK *stack, int count);
+static int _LOD_MODEL_START(SPI_STACK *stack, int count);
+static int _LOD_MODEL(SPI_STACK *stack, int count);
+static int _LOD_MODEL_END(SPI_STACK *stack, int count);
+
+static SPI_TAG_PARAM tag[] = { /**< Tags that build the character from its info file. */
+    { "V2", _V2 },
+    { "NAME", _NAME },
+    { "IMG", _IMG },
+    { "IMG_END", _IMG_END },
+    { "BODY_SIZE", _BODY_SIZE },
+    { "SCALE", _SCALE },
+    { "MATERIAL_ANIME", _MATERIAL_ANIME },
+    { "POLY_NUM", _POLY_NUM },
+    { "MODEL", _MODEL },
+    { "SHADOW_MODEL", _SHADOW_MODEL },
+    { "OBJECT_NAME", _OBJECT_NAME },
+    { "OBJECT_NAME2", _OBJECT_NAME2 },
+    { "MOTION", _MOTION },
+    { "SHADOW_MOTION", _SHADOW_MOTION },
+    { "OUTLINE", _OUTLINE },
+    { "VERTEX_ANIME", _VERTEX_ANIME },
+    { "SHAPE_ANIME", _SHAPE_ANIME },
+    { "KEY_START", _KEY_START },
+    { "KEY", _KEY },
+    { "KEY_END", _KEY_END },
+    { "SEQ_START", _SEQ_START },
+    { "SEQ", _SEQ },
+    { "SEQ_END", _SEQ_END },
+    { "CLOTH_START", _CLOTH_START },
+    { "CLOTH", _CLOTH },
+    { "CLOTH_END", _CLOTH_END },
+    { "POSITION", _POSITION },
+    { "ROTATION", _ROTATION },
+    { "SE_START", _SE_START },
+    { "SE", _SE },
+    { "SELP", _SELP },
+    { "SE_END", _SE_END },
+    { "MOTION_END", _MOTION_END },
+    { "EFFECT_START", _EFFECT_START },
+    { "EFFECT", _EFFECT },
+    { "EFFECT_END", _EFFECT_END },
+    { "LOD_MODEL_START", _LOD_MODEL_START },
+    { "LOD_MODEL", _LOD_MODEL },
+    { "LOD_MODEL_END", _LOD_MODEL_END },
+    { NULL, NULL }
+};
+
+static mgCFrame      *root_skin_frame; /**< Replacement hierarchy used to rebind the skin. */
+static mgCFrame      *skin_frame; /**< Replacement visual frame used by shape animation. */
+static char          *skin_name_ptr; /**< Main-model frame selected for replacement. */
+static unsigned int  *eff_pack_ptr; /**< Pack containing the current effect definitions. */
+static int            eff_pack_size; /**< Size in bytes of the current effect pack. */
+static unsigned char *load_img_ptr; /**< Skin texture archive awaiting entry. */
+static int            load_img_size; /**< Size in bytes of the skin texture archive. */
+static char           skin_mds_name[64]; /**< Replacement model file named by the skin script. */
+
+static void ScanInfoSkinFile(CCharacter2 *character, unsigned int *pack, char *name, char *skin_name, mgCMemory *memory, int image_block);
+static int _SKIN_IMG(SPI_STACK *stack, int count);
+static int _SKIN_IMG_END(SPI_STACK *stack, int count);
+static int _SKIN_MODEL(SPI_STACK *stack, int count);
+static mgCFrame *CreateChangeFrame(mgLoadData *load, mgCFrame *root);
+static int _SKIN_MOTION(SPI_STACK *stack, int count);
+
+static SPI_TAG_PARAM skin_tag[] = { /**< Tags that exchange the character's skin. */
+    { "IMG", _SKIN_IMG },
+    { "IMG_END", _SKIN_IMG_END },
+    { "MODEL", _SKIN_MODEL },
+    { "MOTION", _SKIN_MOTION },
+    { NULL, NULL },
+};
+#endif
 
 // Code (.text)
 void CCharacter2::SetPosition(float *pos) {
@@ -188,31 +344,32 @@ void CCharacter2::CopyOutLine(CCharacter2 *other) {
         line->texture = other->outline->texture;
     }
 }
-int CCharacter2::Draw() {
-    float step_alpha;
-    float world_pos[4];
-    float alpha;
-    int count;
-    int i;
 
-    if (CheckDraw() == 0) {
+int CCharacter2::Draw() {
+    sceVu0FVECTOR  world_position;
+    float          draw_alpha;
+    float          clip_alpha;
+    int            count;
+    int            i;
+
+    if (!CheckDraw()) {
         return 0;
     }
-    alpha = this->alpha;
-    if (FarClip(mgGetDistFromCamera(position), &step_alpha) == 0) {
+    draw_alpha = alpha;
+    if (!FarClip(mgGetDistFromCamera(position), &clip_alpha)) {
         return 0;
     }
-    alpha *= step_alpha;
+    draw_alpha *= clip_alpha;
     if (CObjectFrame::frame != NULL) {
         CObjectFrame::frame->SetPosition(position);
         CObjectFrame::frame->SetRotation(rotation);
         CObjectFrame::frame->SetScale(scale);
-        CObjectFrame::frame->GetWorldPosition0(world_pos);
+        CObjectFrame::frame->GetWorldPosition0(world_position);
     }
     SetDeformMesh();
     count = 0;
     if (CObjectFrame::frame != NULL) {
-        CObjectFrame::frame->SetAttrParamObjAlpha(alpha, 1);
+        CObjectFrame::frame->SetAttrParamObjAlpha(draw_alpha, 1);
     }
     count += mgDraw(CObjectFrame::frame);
     for (i = 0; i < dynamic_anime_num; i++) {
@@ -220,37 +377,39 @@ int CCharacter2::Draw() {
     }
     return count;
 }
+
 void CCharacter2::SetDeformMesh() {
-    float box_min[4];
-    float box_max[4];
-    int i;
+    sceVu0FVECTOR  max;
+    sceVu0FVECTOR  min;
+    int            i;
 
     for (i = 0; i < deform_frame_num; i++) {
         if (deform_frame[i] != NULL) {
-            deform_frame[i]->RemakeBBox(box_min, box_max);
+            deform_frame[i]->RemakeBBox(max, min);
         }
     }
 }
-void CCharacter2::DrawStep() {
-    float step_alpha;
 
-    FarClip(GetCameraDist(), &step_alpha);
+void CCharacter2::DrawStep() {
+    float  clip_alpha;
+
+    FarClip(GetCameraDist(), &clip_alpha);
 }
+
 float CCharacter2::GetCameraDist() {
-    float height;
-    float top[4];
-    float camera[4];
-    float nearest[4];
+    sceVu0FVECTOR  head_position;
+    sceVu0FVECTOR  camera_position;
+    sceVu0FVECTOR  closest_position;
+    float          height;
 
     height = body_height;
     if (height < 1.0f) {
         height = 34.0f;
     }
-    u_long128 q = *(u_long128 *)position;
-    *(u_long128 *)top = q;
-    top[1] += height;
-    mgGetCameraPos(camera);
-    return mgDistLinePoint(camera, position, top, nearest);
+    *(u_long128 *)head_position = *(u_long128 *)position;
+    head_position[1] += height;
+    mgGetCameraPos(camera_position);
+    return mgDistLinePoint(camera_position, position, head_position, closest_position);
 }
 int CCharacter2::DrawDirect() {
     float world_pos[4];
@@ -360,28 +519,27 @@ int CCharacter2::DrawDirect() {
     }
     return count;
 }
-int CCharacter2::DrawShadowDirect() {
-    int list_no;
 
-    if (show == 0) {
+int CCharacter2::DrawShadowDirect() {
+    if (!show) {
         return 0;
     }
-    if (CheckDraw() == 0) {
+    if (!CheckDraw()) {
         return 0;
     }
     if (shadow_frame == NULL) {
         return 0;
     }
-    ShadowStep();
+    CCharacter2::ShadowStep();
     shadow_frame->SetPosition(position);
     shadow_frame->SetRotation(rotation);
     shadow_frame->SetScale(scale);
-    list_no = now_set;
-    if (list_no >= 0 && list_no < 8) {
-        DeformMesh(shadow_frame, &shadow_motion[list_no], shadow_frame_info, false);
+    if (now_set >= 0 && now_set < CHARA_MOTION_SET_MAX) {
+        DeformMesh(shadow_frame, &shadow_motion[now_set], shadow_frame_info, false);
     }
     return mgDrawDirect(shadow_frame);
 }
+
 void CCharacter2::UpdatePosition() {
     if (CObjectFrame::frame != NULL) {
         CObjectFrame::frame->SetPosition(position);
@@ -394,24 +552,39 @@ void CCharacter2::UpdatePosition() {
         shadow_frame->SetScale(scale);
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", ResetDAPosition__11CCharacter2Fv);
+
+void CCharacter2::ResetDAPosition() {
+    int  i;
+
+    UpdatePosition();
+    if (dynamic_anime_num == 0 || dynamic_anime == NULL) {
+        return;
+    }
+    for (i = 0; i < dynamic_anime_num; i++) {
+        dynamic_anime[i].ResetPosition();
+    }
+}
+
 float CCharacter2::GetDefaultStep() {
-    CHRINFO_KEY_SET *motion = now_key;
-    if (motion != NULL)
-        return motion->step;
+    if (now_key != NULL) {
+        return now_key->step;
+    }
     return 0.0f;
 }
-void CCharacter2::SetStep(float new_step) {
-    step = new_step;
+
+void CCharacter2::SetStep(float frame_step) {
+    step = frame_step;
 }
+
 void CCharacter2::ResetMotion() {
     now_key = NULL;
     next_key = NULL;
-    now_seq = 0;
-    next_seq = 0;
+    now_seq = NULL;
+    next_seq = NULL;
 }
+
 float CCharacter2::GetChgStepWait() {
-    if (motion_status != 3) {
+    if (motion_status != CHARA_MOTION_STATUS_BLEND) {
         return -1.0f;
     }
     return blend;
@@ -426,23 +599,25 @@ int CCharacter2::CheckMotionEnd() {
     }
     return 0;
 }
-void CCharacter2::SetMotion(int motion_no, int param) {
-    int index;
-    CHRINFO_KEY_SET *motion;
 
-    motion = GetKeyListIndexPtr(motion_no, &index);
-    if (motion != NULL) {
-        next_key = motion;
-        next_flags = param;
-        next_set = index;
-        *(int *)&blend_speed = 0x3E4CCCCD;
+void CCharacter2::SetMotion(int no, int flags) {
+    CHRINFO_KEY_SET *key;
+    int              set;
+
+    key = GetKeyListIndexPtr(no, &set);
+    if (key != NULL) {
+        next_key = key;
+        next_flags = flags;
+        next_set = set;
+        blend_speed = 0.2f;
         seq_mode = 0;
-        now_seq = 0;
-        seq_state = 0;
+        now_seq = NULL;
+        seq_state = CHARA_SEQ_STATE_NONE;
     }
 }
-void CCharacter2::SetMotion(char *name, int param) {
-    SetMotionPara(name, param, -1);
+
+void CCharacter2::SetMotion(char *name, int flags) {
+    SetMotionPara(name, flags, -1);
 }
 void CCharacter2::SetNowFrameWeight(float weight) {
     float range;
@@ -458,12 +633,43 @@ void CCharacter2::SetNowFrameWeight(float weight) {
         SetNowFrame((float)now_key->start_frame + range * weight);
     }
 }
+
+#ifdef NONMATCHING
+void CCharacter2::SetMotionPara(char *name, int flags, int keep_seq) {
+    CHRINFO_KEY_SET    *key;
+    CHRINFO_SEQ_HEADER *sequence;
+    int                 set;
+
+    key = GetKeyListPtr(name, &set);
+    if (key != NULL) {
+        next_key = key;
+        next_flags = flags;
+        next_set = set;
+        blend_speed = 0.2f;
+        if (keep_seq == -1 || keep_seq == 0) {
+            seq_mode = 0;
+            now_seq = NULL;
+            seq_state = CHARA_SEQ_STATE_NONE;
+        }
+    } else {
+        sequence = GetSeqHeaderPtr(name, &set);
+        if (sequence != NULL) {
+            next_seq = sequence;
+            seq_mode = 1;
+            seq_flags = flags;
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", SetMotionPara__11CCharacter2FPcii);
+#endif
+
 void CCharacter2::SetDAnimeEnable(int enable) {
-    if (enable != 0)
-        dynamic_anime_flags = dynamic_anime_flags & ~1;
-    else
-        dynamic_anime_flags = dynamic_anime_flags | 1;
+    if (enable != 0) {
+        dynamic_anime_flags &= ~CHARA_DYNAMIC_ANIME_DISABLE;
+    } else {
+        dynamic_anime_flags |= CHARA_DYNAMIC_ANIME_DISABLE;
+    }
 }
 CHRINFO_SE *CCharacter2::GetSoundInfoCopy(mgCMemory *memory) {
     u32 bytes;
@@ -485,6 +691,7 @@ CHRINFO_SE *CCharacter2::GetSoundInfoCopy(mgCMemory *memory) {
     memcpy(copy, se_list[0], se_num[0] * (int)sizeof(CHRINFO_SE));
     return (CHRINFO_SE *)copy;
 }
+
 int CCharacter2::CheckFootEffect() {
     if (foot_effect_wait <= 0) {
         return -1;
@@ -713,36 +920,145 @@ void CCharacter2::Step() {
     StepDA(1);
     CtrlEffect();
 }
+
+#ifdef NONMATCHING
+void CCharacter2::StepDA(int count) {
+    int  index;
+    int  iteration;
+
+    if ((dynamic_anime_flags & CHARA_DYNAMIC_ANIME_DISABLE) != 0 || dynamic_anime_num == 0) {
+        return;
+    }
+    if (dynamic_anime == NULL) {
+        return;
+    }
+    for (index = 0; index < dynamic_anime_num; index++) {
+        if (count < 0) {
+            dynamic_anime[index].ResetPosition();
+        } else {
+            for (iteration = 0; iteration < count; iteration++) {
+                dynamic_anime[index].Step();
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", StepDA__11CCharacter2Fi);
+#endif
+
 void CCharacter2::SetWind(float power, float *dir) {
-    int i;
+    int  index;
 
-    for (i = 0; i < dynamic_anime_num; i++) {
-        dynamic_anime[i].SetWind(power, dir);
+    for (index = 0; index < dynamic_anime_num; index++) {
+        dynamic_anime[index].SetWind(power, dir);
     }
 }
+
 void CCharacter2::ResetWind() {
-    int i;
+    int  index;
 
-    for (i = 0; i < dynamic_anime_num; i++) {
-        dynamic_anime[i].ResetWind();
+    for (index = 0; index < dynamic_anime_num; index++) {
+        dynamic_anime[index].ResetWind();
     }
 }
-void CCharacter2::SetFloor(float height) {
-    int i;
 
-    for (i = 0; i < dynamic_anime_num; i++) {
-        dynamic_anime[i].SetFloor(height);
+void CCharacter2::SetFloor(float y) {
+    int  index;
+
+    for (index = 0; index < dynamic_anime_num; index++) {
+        dynamic_anime[index].SetFloor(y);
     }
 }
+
 void CCharacter2::ResetFloor() {
-    int i;
+    int  index;
 
-    for (i = 0; i < dynamic_anime_num; i++) {
-        dynamic_anime[i].ResetFloor();
+    for (index = 0; index < dynamic_anime_num; index++) {
+        dynamic_anime[index].ResetFloor();
     }
 }
+
+#ifdef NONMATCHING
+void CCharacter2::NormalDrive() {
+    float  frame_step;
+
+    if (next_key != now_key && next_key != NULL) {
+        posed_key = now_key;
+        prev_flags = now_flags;
+        prev_set = now_set;
+        prev_frame = frame;
+        now_key = next_key;
+        step = now_key->step;
+        now_set = next_set;
+        now_flags = next_flags;
+        blend = 0.1f;
+        motion_status = CHARA_MOTION_STATUS_START;
+        if ((next_flags & CHARA_MOTION_RESTART) != 0) {
+            posed_key = next_key;
+            frame = now_key->start_frame;
+        }
+        ExecEntryEffect(now_key);
+    } else if (now_flags != next_flags && next_key != NULL) {
+        now_flags = next_flags;
+        if ((next_flags & CHARA_MOTION_RESTART) != 0) {
+            motion_status = CHARA_MOTION_STATUS_START;
+            posed_key = next_key;
+            frame = now_key->start_frame;
+        }
+    }
+    if (now_key == NULL) {
+        return;
+    }
+    if (posed_key == now_key) {
+        frame_step = step * 1.2f;
+        if ((now_flags & CHARA_MOTION_PAUSE) != 0) {
+            frame_step = 0.0f;
+        }
+        frame += frame_step;
+        if (!(frame_step <= 0.0f)) {
+            motion_status = CHARA_MOTION_STATUS_PLAY;
+        }
+        if (frame < now_key->start_frame + step * 1.2f && !(frame < now_key->start_frame)) {
+            frame = now_key->start_frame;
+            motion_status = CHARA_MOTION_STATUS_START;
+        }
+        if (!(frame + step * 1.2f <= now_key->end_frame)) {
+            if ((now_flags & CHARA_MOTION_HOLD) != 0) {
+                frame = now_key->end_frame;
+                motion_status = CHARA_MOTION_STATUS_END;
+                step = 0.0f;
+            } else {
+                frame = now_key->start_frame;
+                motion_status = CHARA_MOTION_STATUS_END;
+                ExecEntryEffect(now_key);
+            }
+        }
+    }
+    if (posed_key == now_key) {
+        frame_ratio = now_key->end_frame - now_key->start_frame;
+        frame_ratio = (frame - now_key->start_frame) / frame_ratio;
+        SetMotionTime(CObjectFrame::frame, &motion[now_set], frame, NULL);
+        return;
+    }
+    if (!(blend < 1.0f)) {
+        posed_key = now_key;
+        frame = now_key->start_frame;
+        motion_status = CHARA_MOTION_STATUS_START;
+        return;
+    }
+    frame_ratio = 0.0f;
+    motion_status = CHARA_MOTION_STATUS_BLEND;
+    ChangeMotion(CObjectFrame::frame, &motion[now_set], (int)(0.9f + frame), now_key->start_frame, blend, NULL);
+    blend += blend_speed;
+    if (!(blend < 1.0f)) {
+        posed_key = now_key;
+        frame = now_key->start_frame;
+        motion_status = CHARA_MOTION_STATUS_START;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", NormalDrive__11CCharacter2Fv);
+#endif
 void CCharacter2::ShadowStep() {
     int i;
     mgCFrame *source;
@@ -997,13 +1313,13 @@ int CCharacter2::LoadSkin(u32 *pack_file, char *info_name, char *skin_name, mgCM
                            int texture_block) {
     return ScanInfoSkinFile(this, pack_file, info_name, skin_name, memory, texture_block);
 }
-void CCharacter2::LoadPack(u32 *pack_file, char *name, mgCMemory *a, mgCMemory *b, mgCMemory *c,
-                           int d, CCharacter2 *e) {
-    LoadChrFile(pack_file, name, a, b, c, d, e, 1);
+
+void CCharacter2::LoadPack(unsigned int *pack, char *name, mgCMemory *model_stack, mgCMemory *motion_stack, mgCMemory *image_stack, int image_block, CCharacter2 *parent) {
+    LoadChrFile(pack, name, model_stack, motion_stack, image_stack, image_block, parent, 1);
 }
-void CCharacter2::LoadPackNoLine(u32 *pack_file, char *name, mgCMemory *a, mgCMemory *b,
-                                 mgCMemory *c, int d, CCharacter2 *e) {
-    LoadChrFile(pack_file, name, a, b, c, d, e, 0);
+
+void CCharacter2::LoadPackNoLine(unsigned int *pack, char *name, mgCMemory *model_stack, mgCMemory *motion_stack, mgCMemory *image_stack, int image_block, CCharacter2 *parent) {
+    LoadChrFile(pack, name, model_stack, motion_stack, image_stack, image_block, parent, 0);
 }
 void CCharacter2::LoadChrFile(u32 *pack_file, char *name, mgCMemory *a, mgCMemory *b, mgCMemory *c,
                               int d, CCharacter2 *e, int with_line) {
@@ -1297,7 +1613,72 @@ int _OUTLINE(SPI_STACK *stack, int argc) {
     nowChr->AddOutLine(name, outline);
     return 1;
 }
+
+#ifdef NONMATCHING
+/**
+ * Loads the model with the visual classes needed by its animated vertices.
+ */
+static int _MODEL(SPI_STACK *stack, int count) {
+    mgCMemory           work_memory;
+    char                weight_name[64];
+    char               *model_name;
+    MDS_HEADER         *model;
+    u_int              *weight;
+    mgCreateVisualType  visual_type[26];
+    mgLoadData          load;
+    u_long128           work_buffer[6400];
+    mgCFrame           *deform_frame;
+    int                 index;
+
+    model_name = spiGetStackString(stack);
+    model = (MDS_HEADER *)GetPackFile(pack_file, model_name, NULL);
+    if (model == NULL) {
+        printf("not found %s\n", model_name);
+        return 0;
+    }
+    for (index = 0; model_name[index] != '\0' && model_name[index] != '.'; index++) {
+        weight_name[index] = model_name[index];
+    }
+    weight_name[index] = '\0';
+    strcat(weight_name, ".wgt");
+    weight = GetPackFile(pack_file, weight_name, NULL);
+    if (alloc_vertex_num > 0) {
+        for (index = 0; index < alloc_vertex_num; index++) {
+            if (nowChr->shape_anime == 0) {
+                visual_type[index].type = MG_VISUAL_CREATE_MOTION_MDT;
+            } else {
+                visual_type[index].type = MG_VISUAL_CREATE_MDT;
+            }
+            visual_type[index].name = alloc_vertex[index];
+        }
+        visual_type[index].type = MG_VISUAL_CREATE_END;
+        visual_type[index].name = "";
+        memset(&load, 0, sizeof(load));
+        work_memory.stSetBuffer(work_buffer, 6400);
+        load.mds = model;
+        load.weight = weight;
+        load.work_memory = &work_memory;
+        load.visual_type = visual_type;
+        load.memory = base_stack;
+        nowChr->CObjectFrame::frame = mgLoadMDSFile(&load);
+    } else {
+        nowChr->CObjectFrame::frame = mgLoadMDSFile(model, base_stack, NULL, NULL);
+    }
+    nowChr->deform_frame_num = 0;
+    for (index = 0; index < alloc_vertex_num; index++) {
+        if (nowChr->CObjectFrame::frame != NULL) {
+            deform_frame = nowChr->CObjectFrame::frame->SearchFrame(alloc_vertex[index]);
+            if (deform_frame != NULL) {
+                nowChr->deform_frame[nowChr->deform_frame_num] = deform_frame;
+                nowChr->deform_frame_num++;
+            }
+        }
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", _MODEL__FP9SPI_STACKi);
+#endif
 int _SHADOW_MODEL(SPI_STACK *stack, int argc) {
     mgCreateVisualType visual_type[2];
     char *name;
@@ -1635,7 +2016,37 @@ int _KEY_END(SPI_STACK *stack, int argc) {
     now_stack->stAlloc64((nowChr->key_num[now_motion_id] * sizeof(CHRINFO_KEY_SET) >> 4) + 1);
     return 1;
 }
+
+#ifdef NONMATCHING
+/**
+ * Starts a named motion sequence and links it after the previous sequence.
+ */
+static int _SEQ_START(SPI_STACK *stack, int count) {
+    CHRINFO_SEQ_HEADER *previous;
+
+    if (count <= 0) {
+        return 0;
+    }
+    if (now_stack == NULL) {
+        return 0;
+    }
+    previous = now_seqhd_ptr;
+    now_seqhd_ptr = (CHRINFO_SEQ_HEADER *)now_stack->stAlloc64(4);
+    now_seq_ptr = (CHRINFO_SEQ *)&now_stack->stack[now_stack->stack_used];
+    if (previous == NULL) {
+        nowChr->seq_list[now_motion_id] = now_seqhd_ptr;
+    } else {
+        previous->next = now_seqhd_ptr;
+    }
+    strcpy(now_seqhd_ptr->name, spiGetStackString(stack));
+    now_seqhd_ptr->next = NULL;
+    now_seqhd_ptr->seq = now_seq_ptr;
+    now_seqhd_ptr->seq_num = 0;
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", _SEQ_START__FP9SPI_STACKi);
+#endif
 int _SEQ(SPI_STACK *stack, int argc) {
     if (now_seq_ptr == 0 || now_seqhd_ptr == 0) {
         return 0;
@@ -1854,7 +2265,119 @@ int _EFFECT_START(SPI_STACK *stack, int argc) {
     eff_pack_ptr = (char *)GetPackFile(pack_file, spiGetStackString(stack), &eff_pack_size);
     return eff_pack_ptr != 0;
 }
+
+#ifdef NONMATCHING
+/**
+ * Loads an effect, its particle and emitter pools, and its motion attachment.
+ */
+static int _EFFECT(SPI_STACK *stack, int count) {
+    CHRINFO_EFFECT         *entry;
+    CHRINFO_EFFECT         *last;
+    CHARA_EFFECT_MANAGER   *manager;
+    CHRINFO_EFFECT_IMAGE  **image_entry;
+    char                   *file_name;
+    char                   *effect_name;
+    char                   *frame_name;
+    char                   *motion_name;
+    char                   *script;
+    unsigned char          *image;
+    sceVu0FVECTOR           offset;
+    float                   start_ratio;
+    int                     local_draw;
+    int                     script_size;
+    int                     particle_count;
+    int                     emitter_count;
+    int                     image_size;
+    int                     enter_image;
+    int                     index;
+
+    if (eff_pack_ptr == NULL) {
+        return 0;
+    }
+    file_name = spiGetStackString(stack++);
+    effect_name = spiGetStackString(stack++);
+    local_draw = spiGetStackInt(stack++);
+    frame_name = spiGetStackString(stack++);
+    offset[0] = spiGetStackFloat(stack++);
+    offset[1] = spiGetStackFloat(stack++);
+    offset[2] = spiGetStackFloat(stack++);
+    offset[3] = 1.0f;
+    motion_name = NULL;
+    start_ratio = 0.0f;
+    if (count >= 8) {
+        motion_name = spiGetStackString(stack++);
+        start_ratio = spiGetStackFloat(stack++);
+    }
+    script = (char *)GetPackFile(eff_pack_ptr, file_name, &script_size);
+    if (script == NULL) {
+        return 0;
+    }
+    entry = (CHRINFO_EFFECT *)now_stack->stAlloc64(3);
+    manager = (CHARA_EFFECT_MANAGER *)now_stack->stAlloc64(32);
+    manager->Initialize();
+    manager->GetBufferNums(script, script_size, &particle_count, &emitter_count);
+    manager->particle_pool = (CEffect *)now_stack->Alloc(particle_count * sizeof(CEffect) / 16 + 1);
+    for (index = 0; index < particle_count; index++) {
+        manager->particle_pool[index].Initialize();
+    }
+    manager->emitter_pool = (CEffectCtrl *)now_stack->Alloc(emitter_count * sizeof(CEffectCtrl) / 16 + 1);
+    for (index = 0; index < emitter_count; index++) {
+        manager->emitter_pool[index].Initialize();
+    }
+    manager->EntryEffCtrls(manager->particle_pool, particle_count, manager->emitter_pool, emitter_count);
+    manager->Load(script, script_size);
+    if (nowChr->effect_image_load != 0) {
+        image = (unsigned char *)GetPackFile(eff_pack_ptr, manager->img_name, &image_size);
+        if (image != NULL) {
+            image_entry = &nowChr->effect_image_list;
+            enter_image = 1;
+            while (*image_entry != NULL) {
+                if (strcmp((*image_entry)->name, manager->img_name) == 0) {
+                    enter_image = 0;
+                    break;
+                }
+                image_entry = &(*image_entry)->next;
+            }
+            if (enter_image != 0) {
+                *image_entry = (CHRINFO_EFFECT_IMAGE *)now_stack->stAlloc64(40);
+                (*image_entry)->next = NULL;
+                strcpy((*image_entry)->name, manager->img_name);
+                (*image_entry)->data = (unsigned char *)img_stack->Alloc(image_size / 16 + 1);
+                memcpy((*image_entry)->data, image, image_size);
+                mgTexManager.EnterIMGFile(image, set_imgblock, img_stack, NULL);
+            }
+        }
+    }
+    manager->local_draw = local_draw;
+    sceVu0CopyVector(manager->offset, offset);
+    manager->start_ratio = start_ratio;
+    if (frame_name != NULL) {
+        strcpy(manager->frame_name, frame_name);
+    } else {
+        strcpy(manager->frame_name, "");
+    }
+    if (motion_name != NULL) {
+        strcpy(manager->motion_name, motion_name);
+    } else {
+        strcpy(manager->motion_name, "");
+    }
+    entry->effect = manager;
+    strcpy(entry->name, effect_name);
+    entry->next = NULL;
+    last = nowChr->effect_list;
+    if (last != NULL) {
+        while (last->next != NULL) {
+            last = last->next;
+        }
+        last->next = entry;
+    } else {
+        nowChr->effect_list = entry;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", _EFFECT__FP9SPI_STACKi);
+#endif
 int _EFFECT_END(SPI_STACK *stack, int argc) {
     if (eff_pack_ptr == 0) {
         return 0;
@@ -1863,15 +2386,18 @@ int _EFFECT_END(SPI_STACK *stack, int argc) {
     eff_pack_size = 0;
     return 1;
 }
+
 void CCharacter2::InitEffect() {
-    for (int i = 0; i < 8; i++) {
-        entry_effect[i].effect = 0;
-        entry_effect[i].active = 0;
-        entry_effect[i].running = 0;
+    int  index;
+
+    for (index = 0; index < CHARA_ENTRY_EFFECT_MAX; index++) {
+        entry_effect[index].effect = NULL;
+        entry_effect[index].active = 0;
+        entry_effect[index].running = 0;
     }
-    effect_list = 0;
+    effect_list = NULL;
     effect_enable = 1;
-    effect_image_list = 0;
+    effect_image_list = NULL;
     effect_image_load = 1;
 }
 void CCharacter2::ExecEntryEffect(CHRINFO_KEY_SET *key_set) {
@@ -1922,21 +2448,64 @@ void CCharacter2::CtrlEffect() {
         }
     }
 }
+
 void CCharacter2::StepEffect() {
-    for (int i = 0; i < 3; i++) {
-        if (sword_effect[i] != NULL) {
-            sword_effect[i]->Step();
-            sword_effect[i]->CreatPointList();
+    CHRINFO_EFFECT *effect;
+    int             index;
+
+    for (index = 0; index < CHARA_SWORD_EFFECT_MAX; index++) {
+        if (sword_effect[index] != NULL) {
+            sword_effect[index]->Step();
+            sword_effect[index]->CreatPointList();
         }
     }
-    CHRINFO_EFFECT *node = effect_list;
-    while (node != NULL) {
-        node->effect->Ctrl();
-        node->effect->Step(1);
-        node = node->next;
+    for (effect = effect_list; effect != NULL; effect = effect->next) {
+        effect->effect->Ctrl();
+        effect->effect->Step(1);
     }
 }
+
+#ifdef NONMATCHING
+void CCharacter2::DrawEffect() {
+    mgC3DSprite      sprite;
+    CHRINFO_EFFECT  *effect;
+    mgCFrame        *effect_frame;
+    sceVu0FMATRIX    world_matrix;
+    sceVu0FVECTOR    world_position;
+    int              index;
+
+    for (index = 0; index < CHARA_SWORD_EFFECT_MAX; index++) {
+        if (sword_effect[index] != NULL) {
+            sword_effect[index]->Draw();
+        }
+    }
+    for (effect = effect_list; effect != NULL; effect = effect->next) {
+        mgUnitMatrix(world_matrix);
+        world_position[0] = 0.0f;
+        world_position[1] = 0.0f;
+        world_position[2] = 0.0f;
+        world_position[3] = 0.0f;
+        if (strcmp(effect->effect->frame_name, "") != 0) {
+            effect_frame = CObjectFrame::frame->SearchFrame(effect->effect->frame_name);
+            if (effect_frame != NULL) {
+                effect_frame->GetWorldPosition0(world_position);
+                sceVu0TransMatrix(world_matrix, world_matrix, effect->effect->offset);
+                sceVu0RotMatrix(world_matrix, world_matrix, rotation);
+                sceVu0TransMatrix(world_matrix, world_matrix, world_position);
+            }
+        }
+        if (effect->effect->local_draw != 0) {
+            effect->effect->CreatePacket(&sprite);
+            mgDrawDirect(&sprite, world_matrix);
+        } else {
+            effect->effect->SetOrigin(world_matrix[3]);
+            effect->effect->Draw();
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", DrawEffect__11CCharacter2Fv);
+#endif
 int ScanInfoSkinFile(CCharacter2 *chara, u32 *pack_file, char *info_name, char *skin_name,
                       mgCMemory *memory, int texture_block) {
     CScriptInterpreter interp;
@@ -2031,7 +2600,122 @@ mgCFrame *CreateChangeFrame(mgLoadData *data, mgCFrame *target) {
     }
     return source;
 }
+
+#ifdef NONMATCHING
+/**
+ * Loads a replacement skin and exchanges the matching model visuals and bounds.
+ */
+static int _SKIN_MOTION(SPI_STACK *stack, int count) {
+    mgCMemory           work_memory;
+    mgCreateVisualType  visual_type[64];
+    mgIMG_HEADER        image_header;
+    mgLoadData          load;
+    u_long128           work_buffer[6400];
+    sceVu0FVECTOR       box_max;
+    sceVu0FVECTOR       box_min;
+    mgCFrame           *root;
+    mgCFrame           *source_frame;
+    mgCFrame           *dest_frame;
+    mgCVisualMDT       *visual;
+    char               *matrix_name;
+    char               *weight_name;
+    unsigned char      *weight_file;
+    unsigned char      *matrix_file;
+    unsigned char      *model_file;
+    unsigned char      *image;
+    char              **group_names;
+    int                 index;
+    int                 visual_count;
+    int                 deform_index;
+    int                 image_count;
+
+    if (nowChr->CObjectFrame::frame == NULL) {
+        return 0;
+    }
+    now_motion_id = spiGetStackInt(stack++);
+    spiGetStackString(stack++);
+    matrix_name = spiGetStackString(stack++);
+    weight_name = spiGetStackString(stack++);
+    weight_file = (unsigned char *)GetPackFile(pack_file, weight_name, NULL);
+    matrix_file = (unsigned char *)GetPackFile(pack_file, matrix_name, NULL);
+    if (weight_file == NULL) {
+        printf("not found %s\n", weight_name);
+        return 0;
+    }
+    if (nowChr->shape_anime == 0) {
+        model_file = (unsigned char *)GetPackFile(pack_file, skin_mds_name, NULL);
+        visual_count = 0;
+        deform_index = 0;
+        for (index = 0; index < nowChr->deform_frame_num; index++) {
+            if (nowChr->deform_frame[deform_index] != NULL) {
+                visual_type[visual_count].type = MG_VISUAL_CREATE_MOTION_MDT;
+                visual_type[visual_count].name = nowChr->deform_frame[deform_index]->name;
+                visual_count++;
+                deform_index++;
+            }
+        }
+        visual_type[visual_count].type = MG_VISUAL_CREATE_END;
+        visual_type[visual_count].name = NULL;
+        if (load_img_ptr != NULL) {
+            image = (unsigned char *)base_stack->stAlloc64(load_img_size / 16 + 1);
+            memcpy(image, load_img_ptr, load_img_size);
+            image_count = mgGetIMGHeaderNum((char *)image);
+            for (index = 0; index < image_count; index++) {
+                image_header = mgGetIMGHeader((char *)image, index);
+                mgTexManager.DeleteTexture(image_header.name, set_imgblock);
+            }
+            mgTexManager.EnterIMGFile(image, set_imgblock, base_stack, NULL);
+            group_names = mgTexManager.GetGroupNameList(set_imgblock, &nowChr->tex_anime_group_num);
+            if (group_names != NULL) {
+                nowChr->tex_anime_group_start = 0;
+                while (group_names[nowChr->tex_anime_group_start] != NULL) {
+                    nowChr->tex_anime_group_start++;
+                }
+            }
+        }
+        memset(&load, 0, sizeof(load));
+
+        work_memory.stSetBuffer(work_buffer, 6400);
+        load.mds = (MDS_HEADER *)model_file;
+        load.weight = (unsigned int *)weight_file;
+        load.work_memory = &work_memory;
+        load.matrix = (float (*)[4][4])matrix_file;
+        load.visual_type = visual_type;
+        load.memory = base_stack;
+        root_skin_frame = CreateChangeFrame(&load, nowChr->CObjectFrame::frame);
+        if (root_skin_frame == NULL) {
+            return 0;
+        }
+        root = nowChr->CObjectFrame::frame;
+        for (index = 0; index < root_skin_frame->frame_num; index++) {
+            source_frame = root_skin_frame->frame_list[index];
+            if (source_frame != NULL && source_frame->visual != NULL) {
+                source_frame->GetBBox(box_max, box_min);
+                dest_frame = root->SearchFrame(source_frame->name);
+                if (dest_frame != NULL) {
+                    dest_frame->SetVisual(source_frame->visual);
+                    dest_frame->SetBBox(box_max, box_min);
+                }
+            }
+        }
+    } else {
+        if (skin_frame != NULL) {
+            root = nowChr->CObjectFrame::frame;
+            if (root != NULL) {
+                visual = (mgCVisualMDT *)skin_frame->visual;
+                ChangeWeight(nowChr->motion[0].skin_list, base_stack, weight_file, root->SearchFrameID(skin_name_ptr), nowChr->motion[0].frame_info, visual, root, root_skin_frame);
+                dest_frame = root->SearchFrame(skin_name_ptr);
+                if (dest_frame != NULL) {
+                    dest_frame->SetVisual(visual);
+                }
+            }
+        }
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", _SKIN_MOTION__FP9SPI_STACKi);
+#endif
 int _LOD_MODEL_START(SPI_STACK *stack, int argc) {
     int count = spiGetStackInt(stack);
     if (count <= 0) {
@@ -2044,15 +2728,119 @@ int _LOD_MODEL_START(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-CCharaLOD::CCharaLOD(void) {
+
+CCharaLOD::CCharaLOD() {
     link_num = 0;
-    link = 0;
-    frame = 0;
-    distance = 0;
+    link = NULL;
+    frame = NULL;
+    distance = 0.0f;
     standalone = 0;
     motion = 0;
 }
+
+#ifdef NONMATCHING
+/**
+ * Builds a level-of-detail model and the frame links used to exchange its visuals.
+ */
+static int _LOD_MODEL(SPI_STACK *stack, int count) {
+    mgCMemory           work_memory;
+    mgCreateVisualType  visual_type[64];
+    mgLoadData          load;
+    u_long128           work_buffer[6400];
+    CCharaLOD          *level;
+    mgCFrame           *root;
+    mgCFrame           *source_frame;
+    char               *model_name;
+    char               *weight_name;
+    char               *matrix_name;
+    MDS_HEADER         *model_file;
+    unsigned int       *weight_file;
+    float             (*matrix_file)[4][4];
+    int                 level_index;
+    int                 index;
+    int                 deform_index;
+    int                 visual_count;
+    int                 frame_count;
+    int                 quadwords;
+
+    level_index = spiGetStackInt(stack++);
+    if (level_index < 0 || level_index >= nowChr->lod_num) {
+        return 0;
+    }
+    level = &nowChr->lod[level_index];
+    model_name = spiGetStackString(stack++);
+    weight_name = spiGetStackString(stack++);
+    matrix_name = spiGetStackString(stack++);
+    level->distance = spiGetStackFloat(stack++);
+    model_file = (MDS_HEADER *)GetPackFile(pack_file, model_name, NULL);
+    weight_file = (unsigned int *)GetPackFile(pack_file, weight_name, NULL);
+    matrix_file = (float (*)[4][4])GetPackFile(pack_file, matrix_name, NULL);
+    if (model_file == NULL) {
+        return 0;
+    }
+    root = nowChr->CObjectFrame::frame;
+    if (root == NULL) {
+        return 0;
+    }
+    visual_count = 0;
+    memset(&load, 0, sizeof(load));
+
+    work_memory.stSetBuffer(work_buffer, 6400);
+    load.mds = model_file;
+    load.work_memory = &work_memory;
+    load.visual_type = visual_type;
+    load.memory = base_stack;
+    if (weight_file == NULL || matrix_file == NULL) {
+        visual_type[0].name = NULL;
+        visual_type[0].type = MG_VISUAL_CREATE_END;
+        level->motion = 0;
+        level->standalone = 1;
+        level->frame = mgLoadMDSFile(&load);
+        if (level->frame == NULL) {
+            return 0;
+        }
+        return 1;
+    }
+    level->motion = 1;
+    deform_index = 0;
+    for (index = 0; index < nowChr->deform_frame_num; index++) {
+        if (nowChr->deform_frame[deform_index] != NULL) {
+            visual_type[visual_count].type = MG_VISUAL_CREATE_MOTION_MDT;
+            visual_type[visual_count].name = nowChr->deform_frame[deform_index]->name;
+            visual_count++;
+            deform_index++;
+        }
+    }
+    visual_type[visual_count].type = MG_VISUAL_CREATE_END;
+    visual_type[visual_count].name = NULL;
+    load.weight = weight_file;
+    load.matrix = matrix_file;
+    level->frame = CreateChangeFrame(&load, root);
+    if (level->frame == NULL) {
+        return 0;
+    }
+    frame_count = level->frame->frame_num;
+    quadwords = (frame_count * sizeof(*level->link) + 15) / 16;
+    level->link = new (base_stack->Alloc(quadwords + 2)) int[frame_count][2];
+    level->link_num = 0;
+    if (level->frame->frame_list == NULL) {
+        return 0;
+    }
+    for (index = 0; index < frame_count; index++) {
+        source_frame = level->frame->frame_list[index];
+        if (source_frame != NULL) {
+            level->link[level->link_num][1] = index;
+            level->link[level->link_num][0] = root->SearchFrameID(source_frame->name);
+            if (level->link[level->link_num][0] >= 0) {
+                level->link_num++;
+            }
+        }
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", _LOD_MODEL__FP9SPI_STACKi);
+#endif
 int _LOD_MODEL_END(SPI_STACK *stack, int argc) {
     nowChr->lod_no = -1;
     return 1;
@@ -2112,7 +2900,213 @@ mgCFrame *CCharacter2::ChangeLOD(int index) {
     }
     return 0;
 }
+
+#ifdef NONMATCHING
+void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
+    COutLineDraw *source_outline;
+    COutLineDraw *dest_outline;
+    CHRINFO_SE   *sounds;
+    int           free_space;
+    int           quadwords;
+    int           index;
+    int           component;
+    int           row;
+
+    free_space = memory->stack_size - memory->stack_used;
+    (CObject &)dest = *this;
+    dest.CObjectFrame::frame = CObjectFrame::frame;
+    for (component = 0; component < 4; component++) {
+        dest.velocity[component] = velocity[component];
+        dest.base_scale[component] = base_scale[component];
+    }
+    dest.unk_A0 = unk_A0;
+    for (row = 0; row < 4; row++) {
+        for (component = 0; component < 4; component++) {
+            dest.entry_matrix[row][component] = entry_matrix[row][component];
+        }
+    }
+    for (index = 0; index < 16; index++) {
+        dest.name[index] = name[index];
+    }
+    dest.alpha = alpha;
+    dest.poly_num[0] = poly_num[0];
+    dest.poly_num[1] = poly_num[1];
+    dest.body_width = body_width;
+    dest.body_height = body_height;
+    dest.body_depth = body_depth;
+    dest.load_size = load_size;
+    dest.copy_size = copy_size;
+    dest.dynamic_anime_flags = dynamic_anime_flags;
+    dest.outline = outline;
+    dest.outline_tex_no = outline_tex_no;
+    dest.dynamic_anime_num = dynamic_anime_num;
+    dest.dynamic_anime = dynamic_anime;
+    dest.shape_anime = shape_anime;
+    for (index = 0; index < CHARA_ENTRY_FRAME_MAX; index++) {
+        dest.entry_frame[index] = entry_frame[index];
+    }
+    for (index = 0; index < CHARA_ENTRY_OBJECT_MAX; index++) {
+        dest.entry_object[index] = entry_object[index];
+    }
+    dest.shadow_frame = shadow_frame;
+    for (index = 0; index < CHARA_IMAGE_MAX; index++) {
+        dest.images[index] = images[index];
+    }
+    dest.tex_anime_group_num = tex_anime_group_num;
+    dest.tex_anime_group_start = tex_anime_group_start;
+    dest.texture_block = texture_block;
+    for (index = 0; index < CHARA_DEFORM_FRAME_MAX; index++) {
+        dest.deform_frame[index] = deform_frame[index];
+    }
+    dest.deform_frame_num = deform_frame_num;
+    dest.lod_num = lod_num;
+    dest.lod = lod;
+    dest.lod_no = lod_no;
+    dest.motion_enable = motion_enable;
+    dest.shadow_link_num = shadow_link_num;
+    dest.shadow_link_model = shadow_link_model;
+    dest.shadow_link_shadow = shadow_link_shadow;
+    dest.next_key = next_key;
+    dest.next_flags = next_flags;
+    dest.next_set = next_set;
+    dest.now_key = now_key;
+    dest.seq_mode = seq_mode;
+    dest.now_flags = now_flags;
+    dest.now_set = now_set;
+    dest.motion_status = motion_status;
+    dest.frame = frame;
+    dest.frame_ratio = frame_ratio;
+    dest.step = step;
+    dest.posed_key = posed_key;
+    dest.prev_flags = prev_flags;
+    dest.prev_set = prev_set;
+    dest.prev_frame = prev_frame;
+    dest.next_seq = next_seq;
+    dest.now_seq = now_seq;
+    dest.seq_step = seq_step;
+    dest.seq_flags = seq_flags;
+    dest.seq_loop = seq_loop;
+    dest.seq_state = seq_state;
+    dest.seq_advance = seq_advance;
+    for (index = 0; index < CHARA_MOTION_SET_MAX; index++) {
+        dest.motion[index] = motion[index];
+        dest.shadow_motion[index] = shadow_motion[index];
+    }
+    dest.unk_500 = unk_500;
+    dest.shadow_frame_info = shadow_frame_info;
+    dest.blend = blend;
+    dest.blend_speed = blend_speed;
+    for (index = 0; index < CHARA_MOTION_SET_MAX; index++) {
+        dest.key_list[index] = key_list[index];
+        dest.key_num[index] = key_num[index];
+        dest.seq_list[index] = seq_list[index];
+    }
+    for (index = 0; index < CHARA_SWORD_EFFECT_MAX; index++) {
+        dest.sword_effect[index] = sword_effect[index];
+    }
+    dest.foot_se_bank = foot_se_bank;
+    dest.foot_sound_id = foot_sound_id;
+    dest.foot_sound_enable = foot_sound_enable;
+    dest.se_bank = se_bank;
+    dest.se_bank_2 = se_bank_2;
+    dest.se_positional = se_positional;
+    dest.se_volume = se_volume;
+    dest.se_pan = se_pan;
+    dest.foot_effect_wait = foot_effect_wait;
+    dest.loop_se = loop_se;
+    for (index = 0; index < CHARA_MOTION_SET_MAX; index++) {
+        dest.se_list[index] = se_list[index];
+        dest.se_num[index] = se_num[index];
+    }
+    dest.effect_image_load = effect_image_load;
+    dest.effect_list = effect_list;
+    for (index = 0; index < CHARA_ENTRY_EFFECT_MAX; index++) {
+        dest.entry_effect[index] = entry_effect[index];
+    }
+    dest.effect_image_list = effect_image_list;
+    dest.effect_enable = effect_enable;
+    if (memory != NULL) {
+        dest.CObjectFrame::frame = mgCopyFrame(CObjectFrame::frame, memory, 1);
+        if (dest.CObjectFrame::frame != NULL) {
+            dest.shadow_frame = shadow_frame;
+            if (outline_tex_no > 0 && outline != NULL) {
+                dest.outline = NULL;
+                dest.outline_tex_no = 0;
+                for (source_outline = outline; source_outline != NULL; source_outline = source_outline->next) {
+                    dest_outline = new (memory->Alloc(9)) COutLineDraw;
+                    if (dest_outline == NULL) {
+                        break;
+                    }
+                    *dest_outline = *source_outline;
+                    dest_outline->next = NULL;
+                    if (source_outline->frame != NULL) {
+                        dest.AddOutLine(source_outline->frame->name, dest_outline);
+                    }
+                }
+            }
+            if (dynamic_anime_num > 0 && dynamic_anime != NULL) {
+                quadwords = (dynamic_anime_num * sizeof(CDynamicAnime) + 15) / 16;
+                dest.dynamic_anime = new (memory->Alloc(quadwords + 2)) CDynamicAnime[dynamic_anime_num];
+                for (index = 0; index < dynamic_anime_num; index++) {
+                    dynamic_anime[index].Copy(dest.dynamic_anime[index], dest.CObjectFrame::frame, memory);
+                }
+            }
+            for (index = 0; index < CHARA_ENTRY_FRAME_MAX; index++) {
+                if (entry_frame[index] == NULL) {
+                    dest.entry_frame[index] = NULL;
+                } else {
+                    dest.entry_frame[index] = dest.CObjectFrame::frame->SearchFrame(entry_frame[index]->name);
+                }
+            }
+            for (index = 0; index < CHARA_ENTRY_OBJECT_MAX; index++) {
+                if (entry_object[index].frame == NULL) {
+                    dest.entry_object[index].frame = NULL;
+                } else {
+                    dest.entry_object[index].frame = dest.CObjectFrame::frame->SearchFrame(entry_object[index].frame->name);
+                    dest.entry_object[index].unk_04 = entry_object[index].unk_04;
+                    dest.entry_object[index].group = entry_object[index].group;
+                    dest.entry_object[index].enable = entry_object[index].enable;
+                }
+            }
+            for (index = 0; index < deform_frame_num; index++) {
+                if (deform_frame[index] == NULL) {
+                    dest.deform_frame[index] = NULL;
+                } else {
+                    dest.deform_frame[index] = dest.CObjectFrame::frame->SearchFrame(deform_frame[index]->name);
+                }
+            }
+            if (lod_num > 0) {
+                quadwords = (lod_num * sizeof(CCharaLOD) + 15) / 16;
+                dest.lod = new (memory->Alloc(quadwords + 2)) CCharaLOD[lod_num];
+                if (dest.lod == NULL) {
+                    return;
+                }
+                dest.lod_num = lod_num;
+                for (index = 0; index < lod_num; index++) {
+                    dest.lod[index] = lod[index];
+                    dest.lod[index].frame = mgCopyFrame(lod[index].frame, memory, 1);
+                }
+            }
+            lod_no = -1;
+            sounds = GetSoundInfoCopy(memory);
+            if (sounds != NULL) {
+                dest.se_list[0] = sounds;
+                dest.se_num[0] = se_num[0];
+            }
+            for (index = 0; index < CHARA_SWORD_EFFECT_MAX; index++) {
+                if (sword_effect[index] != NULL) {
+                    dest.sword_effect[index] = new (memory->Alloc(12)) CSWordAfterEffect;
+                    sword_effect[index]->Copy(*dest.sword_effect[index], memory);
+                }
+            }
+            copy_size = free_space - (memory->stack_size - memory->stack_used);
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", Copy__11CCharacter2FR11CCharacter2P9mgCMemory);
+#endif
+
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/character", tag__DATA);

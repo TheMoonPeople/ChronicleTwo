@@ -57,6 +57,27 @@ public:
      */
     mgCMemory() { Init(); }
 
+    int stGetUsed() {
+        return stack_used;
+    }
+
+    int stGetSize() {
+        return stack_size;
+    }
+
+    int stGetRest() {
+        return stack_size - stack_used;
+    }
+
+    u_long128 *stGetTop() {
+        return &stack[stack_used];
+    }
+
+    void stReset() {
+        stack_used = 0;
+        lock = 0;
+    }
+
     /**
      * Detaches the heap and stack buffers and clears the name, leaving
      * nothing to allocate from.

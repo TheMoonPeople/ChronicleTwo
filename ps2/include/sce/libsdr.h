@@ -6,6 +6,8 @@
 #define rSdSetSwitch 0x8030
 #define rSdSetAddr 0x8050
 #define rSdSetCoreAttr 0x8070
+#define rSdVoiceTrans 0x80D0
+#define rSdVoiceTransStatus 0x80F0
 #define rSdSetEffectAttr 0x8130
 
 /* Voice switch, parameter and address registers, combined with a core number. */
@@ -23,6 +25,11 @@
 /* Values of the attributes above. */
 #define SD_SPDIF_COPY_PROHIBIT 0x80
 #define SD_REV_MODE_CLEAR_WA 0x100
+
+/* Direction of a voice transfer, and whether its status call waits for the end. */
+#define SD_TRANS_MODE_WRITE 0
+#define SD_TRANS_STATUS_CHECK 0
+#define SD_TRANS_STATUS_WAIT 1
 
 /**
  * Describes the reverberation of one core.
