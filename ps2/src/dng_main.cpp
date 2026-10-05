@@ -225,6 +225,7 @@ CLaserGunMan           LaserGun;
 CCharacter2            LaserGunModel;
 CPullItem              PullItem[72];
 static NowLoadingInfo  nowload;
+INCLUDE_BSS(at_941__2, 0x10);
 static CWaveTable      WaveTable;
 mgCFrame              *SparcModel[3];
 static CSwordLuminous  SwordLuminous;
@@ -234,6 +235,12 @@ CThunder         thunder[6];
 CTornado         tornado[6];
 CChillAfterHit   chillAfterHit[6];
 CFireAfterHit    fireAfterHit[6];
+
+INCLUDE_BSS(debug_event_stack_1106, 0x30);
+INCLUDE_BSS(stack_1823, 0x30);
+INCLUDE_BSS(at_1994, 0x10);
+INCLUDE_BSS(at_2001, 0x10);
+INCLUDE_BSS(chk_pos_2870, 0x10);
 
 // Code (.text)
 CWeaponElement *GetWeaponEffect() {
@@ -2880,6 +2887,8 @@ void DBGCMD_RunScript(int no) {
 }
 
 // Initialised data (.data)
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", cam_table_3000__DATA);
+INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", cam_table_dist_3001__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1063__3__DATA);
@@ -2909,6 +2918,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3602__DATA);
 // Small initialised data (.sdata)
 
 // Small uninitialised data (.sbss)
+INCLUDE_BSS(init_1107, 0x4);
 INCLUDE_BSS(init_1824, 0x4);
 INCLUDE_BSS(water_cnt_2619, 0x4);
 INCLUDE_BSS(init_2620, 0x4);

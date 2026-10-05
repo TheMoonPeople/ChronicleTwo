@@ -147,3 +147,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/wavetable", at_256__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/wavetable", __vt__10CWaveTable__DATA);
+
+INCLUDE_BSS(cnt_302, 0x4);
+INCLUDE_BSS(init_303, 0x4);

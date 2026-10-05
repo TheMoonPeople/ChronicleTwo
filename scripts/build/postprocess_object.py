@@ -755,6 +755,26 @@ def fold_duplicates(elf):
             relocation.symbol_index = remap[relocation.symbol_index]
 
 
+def discard_unused_literals(elf):
+    referenced = {elf.symtab.symbols[relocation.symbol_index].st_shndx
+                  for record in elf.relocations for relocation in record.relocations}
+    for symbol in elf.symtab.symbols:
+        index = symbol.st_shndx
+        if (symbol.type != STT_OBJECT or symbol.bind != STB_LOCAL
+                or not re.fullmatch(r'at_\d+', symbol.name)
+                or not 0 < index < len(elf.sections) or index in referenced):
+            continue
+        section = elf.sections[index]
+        if section.name not in ('.rodata', '.sdata', '.sbss', '.bss'):
+            continue
+        section.sh_name = elf.add_sh_symbol(DEAD)
+        section.name = DEAD
+        for record in elf.relocations:
+            if record.sh_info == index:
+                record.sh_name = elf.add_sh_symbol('.rel' + DEAD)
+                record.name = '.rel' + DEAD
+
+
 def retail_sections(elf, addresses, unit=None, shadowed=frozenset()):
     """{section index: retail section name} for every section retail names."""
     out = {}
@@ -821,6 +841,7 @@ def main():
         discard_external_functions(elf, unit)
     discard_shadow_vtables(elf, placeholder_sections)
     fold_duplicates(elf)
+    discard_unused_literals(elf)
     addresses = retail_addresses()
     renamed = retail_sections(elf, addresses, unit, shadowed)
 

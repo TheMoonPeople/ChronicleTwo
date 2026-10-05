@@ -811,6 +811,63 @@ void CCharacter2::Step() {
 }
 
 #ifdef NONMATCHING
+void CCharacter2::StepDA(int count) {
+    int  index;
+    int  iteration;
+
+    if ((dynamic_anime_flags & CHARA_DYNAMIC_ANIME_DISABLE) != 0 || dynamic_anime_num == 0) {
+        return;
+    }
+    if (dynamic_anime == NULL) {
+        return;
+    }
+    for (index = 0; index < dynamic_anime_num; index++) {
+        if (count < 0) {
+            dynamic_anime[index].ResetPosition();
+        } else {
+            for (iteration = 0; iteration < count; iteration++) {
+                dynamic_anime[index].Step();
+            }
+        }
+    }
+}
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", StepDA__11CCharacter2Fi);
+#endif
+
+void CCharacter2::SetWind(float power, float *dir) {
+    int  index;
+
+    for (index = 0; index < dynamic_anime_num; index++) {
+        dynamic_anime[index].SetWind(power, dir);
+    }
+}
+
+void CCharacter2::ResetWind() {
+    int  index;
+
+    for (index = 0; index < dynamic_anime_num; index++) {
+        dynamic_anime[index].ResetWind();
+    }
+}
+
+void CCharacter2::SetFloor(float y) {
+    int  index;
+
+    for (index = 0; index < dynamic_anime_num; index++) {
+        dynamic_anime[index].SetFloor(y);
+    }
+}
+
+void CCharacter2::ResetFloor() {
+    int  index;
+
+    for (index = 0; index < dynamic_anime_num; index++) {
+        dynamic_anime[index].ResetFloor();
+    }
+}
+
+#ifdef NONMATCHING
 void CCharacter2::NormalDrive() {
     float  frame_step;
 
