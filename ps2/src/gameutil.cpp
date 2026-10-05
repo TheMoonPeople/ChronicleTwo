@@ -310,9 +310,11 @@ Mot_List *MotionProc(mgCFrame *root, unsigned int from_frame, unsigned int to_fr
     float from[4];
     float to[4];
     {
-        int high=list->key_count;int low=0;int middle;
+        int high = list->key_count;
+        int low = 0;
+        int middle;
         while(low<high) {
-            key=(middle=(low+high)>>1);
+            key = (middle = (low + high) >> 1);
             if(list->key_frames[key]<=from_frame) low=key+1; else high=key;
         }
         key=low-1;

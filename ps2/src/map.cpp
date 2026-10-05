@@ -1234,8 +1234,7 @@ int CMap::GetFixCameraPos(sceVu0FVECTOR pos, sceVu0FVECTOR out_camera_pos) {
         projection_num = 0;
         nearest_projection = -1;
         for (segment_no = 0; segment_no < selected->pos_num - 1; segment_no++) {
-            float *segment_value = selected->pos[segment_no];
-            float *const &segment = segment_value;
+            float *segment = selected->pos[segment_no];
             sceVu0SubVector(direction, selected->pos[segment_no + 1], segment);
             sceVu0SubVector(offset, pos, segment);
             segment_length2 = mgDistVector2(direction);

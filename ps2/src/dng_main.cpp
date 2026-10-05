@@ -68,11 +68,7 @@ extern "C" int init_camera;
 extern "C" float viewAngleH__2;
 extern "C" float viewAngleV__2;
 extern char at_3589[];
-extern char at_3496[];
 extern CWeaponElement wep_effect[8];
-extern char at_1994[];
-extern char at_2001[];
-extern char at_941__2[];
 extern "C" int fptosi(float value);
 #include "actionchara.hpp"
 #include "automap.hpp"
@@ -177,7 +173,6 @@ int  ChangeSetUnit(int dir);
 void InitEyeCamera(CActionChara *chara);
 int  IsRunDeadEvent(CActionChara *chara);
 extern CGamePad GamePad__2;
-extern int debug_no[7];
 extern int debug_cursor;
 extern int debug_mons_no;
 extern int debug_mons_cur;
@@ -230,7 +225,6 @@ CLaserGunMan           LaserGun;
 CCharacter2            LaserGunModel;
 CPullItem              PullItem[72];
 static NowLoadingInfo  nowload;
-INCLUDE_BSS(at_941__2, 0x10);
 static CWaveTable      WaveTable;
 mgCFrame              *SparcModel[3];
 static CSwordLuminous  SwordLuminous;
@@ -240,12 +234,6 @@ CThunder         thunder[6];
 CTornado         tornado[6];
 CChillAfterHit   chillAfterHit[6];
 CFireAfterHit    fireAfterHit[6];
-INCLUDE_BSS(debug_event_stack_1106, 0x30);
-INCLUDE_BSS(stack_1823, 0x30);
-INCLUDE_BSS(at_1994, 0x10);
-INCLUDE_BSS(at_2001, 0x10);
-INCLUDE_BSS(chk_pos_2870, 0x10);
-static sceVu0FVECTOR   backup_pos;
 
 // Code (.text)
 CWeaponElement *GetWeaponEffect() {
@@ -1850,7 +1838,6 @@ int RunMainEvent() {
     }
     return DngStatus.mode;
 }
-#ifdef NONMATCHING
 int DngMainKey() {
     DngMainScene->GetCamera(DngMainScene->active_camera);
     if (DebugPause && !DebugFlag) {
@@ -1891,12 +1878,12 @@ int DngMainKey() {
             }
         }
         if (GamePad__2.Down2(0x10)) {
+            float         size = 20.0f;
             sceVu0FVECTOR pos;
-            float size = 20.0f;
-            const float &size_reference = size;
 
             MainChara__2->GetPosition(pos);
-            tornado[0].SetPos(pos, size_reference, fRand(255.0f));
+            tornado[0].SetPos(pos, size, fRand(255.0f));
+            size = 1.0f;
         }
         if (GamePad__2.On2(2)) {
             BattleAreaScene->SetStatusBar(1, 0.02f);
@@ -1947,13 +1934,14 @@ int DngMainKey() {
     MainChara__2->GetPosition(mark);
     mark[1] += 1.3f * MainChara__2->GetBodyHeight();
     RedMarkModel->SetPosition(mark);
-    int *run = &DngMainScene->event_run;
+    SYSTEM_SCRIPT_INFO *script;
 
-    if (*run) {
-        *run = 0;
-        int event_no = DngMainScene->event_no;
-        const int &event_reference = event_no;
-        BattleAreaScene->script.event_no = event_reference;
+    if (DngMainScene->event_run) {
+        int no;
+
+        DngMainScene->event_run = 0;
+        script = &BattleAreaScene->script;
+        script->event_no = no = DngMainScene->event_no;
     }
     CSphida *sphida = GetSphidaPtr();
 
@@ -1970,8 +1958,9 @@ int DngMainKey() {
             return 0;
         }
     }
-    int                 unit = -1;
-    SYSTEM_SCRIPT_INFO *script = &BattleAreaScene->script;
+    int unit = -1;
+
+    script = &BattleAreaScene->script;
 
     if (script->event_no != -1) {
         StartupEpisodeTitle.Switch(0);
@@ -2109,7 +2098,7 @@ int DngMainKey() {
         int          n;
 
         for (n = 0;; n++) {
-            if (cam_table[n] == DngUserData->active_chr_no) {
+            if (cam_table[n] == DngUserData->GetActiveChrNo()) {
                 camera->GetActiveParam()->min_dist = cam_table_dist[n][0];
                 camera->GetActiveParam()->max_dist = cam_table_dist[n][1];
                 break;
@@ -2159,7 +2148,10 @@ int DngMainKey() {
                         MainCamera.Rotate(-(0.1308997f * rate));
                     }
                     if (screen[0] < 32) {
-                        MainCamera.Rotate(-(0.1308997f * (((float) screen[0] - 32.0f) / 128.0f)));
+                        float rate = (float) screen[0] - 32.0f;
+
+                        rate /= 128.0f;
+                        MainCamera.Rotate(-(0.1308997f * rate));
                     }
                 } else {
                     sceVu0FVECTOR diff;
@@ -2405,9 +2397,6 @@ int DngMainKey() {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_main", DngMainKey__Fv);
-#endif
 void IsEventRun() {
     sceVu0FVECTOR     pos;
     CSceneEventData   data;
@@ -2679,6 +2668,9 @@ void CheckStatusError() {
         MainChara__2->damage_req = ACTION_DAMAGE_REQ_DEAD;
     }
 }
+
+static sceVu0FVECTOR backup_pos;
+
 void InitEyeCamera(CActionChara *chara) {
     CBattleCharaInfo *info = GetBattleCharaInfo();
     sceVu0FVECTOR     rot;
@@ -2799,6 +2791,8 @@ static void EyeCamera(mgCCamera *camera, CCharacter2 *chara, int mode) {
     camera->SetPos(pos);
     camera->SetRef(ref);
 }
+int debug_no[7] = {100, 0, 1, 0, 0, 0, 0};
+
 void DebugMainDraw() {
     if (DngStatus.debug_window) {
         mgTexManager.ReloadTexture(0x6C, (sceVif1Packet *) NULL);
@@ -2886,11 +2880,6 @@ void DBGCMD_RunScript(int no) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_2994__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", cam_table_3000__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", cam_table_dist_3001__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", debug_no__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3734__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1063__3__DATA);
@@ -2912,38 +2901,14 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1078__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1079__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1080__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1940__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3336__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3337__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3496__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3589__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3602__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3727__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3728__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3729__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3730__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3731__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3732__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3733__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3791__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3792__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3793__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3794__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3795__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3796__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3797__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3798__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3799__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3800__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3801__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3802__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3803__DATA);
 
 // Virtual tables (.vtables)
 
 // Small initialised data (.sdata)
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(init_1107, 0x4);
 INCLUDE_BSS(init_1824, 0x4);
 INCLUDE_BSS(water_cnt_2619, 0x4);
 INCLUDE_BSS(init_2620, 0x4);

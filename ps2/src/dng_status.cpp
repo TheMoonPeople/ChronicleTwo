@@ -389,10 +389,7 @@ void DrawMainUnitStatusBord(float rate) {
         }
         sprite.End();
     }
-    {
-        int &bar_width = width;
-        width = (bar_width = (int)(171.0f * hp_rate));
-    }
+    width = (int)(171.0f * hp_rate);
     red = 0x80;
     green = 0x80;
     blue = 0x80;

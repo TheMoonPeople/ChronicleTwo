@@ -981,3 +981,4 @@ editevent	Draw__10CEditEventFP6CScene	checker
 editevent	Step__10CEditEventFP6CScene	checker
 editevent	StartEvent__10CEditEventFP15CSceneEventData	checker
 editevent	Reset__10CEditEventFv	checker
+dng_main	DngMainKey__Fv	checker

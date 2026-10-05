@@ -1,4 +1,5 @@
 #include <cstring>
+#include <cstdlib>
 extern "C" char *strncat(char *destination, const char *source, size_t count);
 #include <cstdio>
 #include "font.hpp"
@@ -12,15 +13,25 @@ extern "C" char *strncat(char *destination, const char *source, size_t count);
 #include "mg_memory.hpp"
 #include "scriptinterpreter.hpp"
 #include "mapselect.hpp"
+#include "savedata.hpp"
+#include "editdata.hpp"
+#include "vlgr_info.hpp"
+#include "scenesnd.hpp"
 
 struct EventListColors { u32 color[2]; };
 struct LineBreakPair { char chars[2]; };
+struct SaveEditLabels { const char *text[2]; };
+extern SaveEditLabels at_1125;
+extern SaveEditLabels at_1128__2;
 extern int MapNameNum;
 extern MAP_NAME_INFO * map_name;
 extern int pMapNameBuff;
 extern int pCharBuff;
 extern char * CharBuff;
 extern int now_no;
+extern int SedSel;
+extern int SedSelData[SED_ITEM_NUM];
+extern char *config_str[1];
 extern mgCMemory *MenuStack;
 extern int SelectMode;
 extern int SelectMapType;
@@ -488,24 +499,30 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapselect", MapSelectLoop__Fv);
 #endif
 void InitSaveDataEdit(mgCMemory *stack) {
 }
-#ifdef NONMATCHING
 int SaveDataEditLoop() {
     CScene *scene = GetMainScene();
     CSaveData *save = GetSaveData();
-    SedSelData[SED_PLAY_TIME] = GetPlayTimeCountFlag();
-    GAME_PROGRESS_INFO *progress = GetGameProgressInfo(SedSelData[SED_PROGRESS]);
-    char *progress_name = progress == NULL ? NULL : progress->name;
-    const char *marker[2] = {"  ", ">>"};
-    const char *on_off[2] = {"OFF", "ON"};
     char display[0x800];
     char *cursor = display;
+    GAME_PROGRESS_INFO *progress;
+    const char *progress_name;
+    SV_CONFIG_OPTION *config = save->GetConfig();
+    SaveEditLabels marker = at_1125;
+    SaveEditLabels on_off = at_1128__2;
+    progress = GetGameProgressInfo(SedSelData[SED_PROGRESS]);
+    SedSelData[SED_PLAY_TIME] = GetPlayTimeCountFlag();
+    char *caption[1] = {(char *)&config->caption_off};
+    progress_name = marker.text[0];
+    if (progress != NULL) progress_name = progress->name;
     cursor += sprintf(cursor, "Save Data Editer\n\n");
-    cursor += sprintf(cursor, "%sPROGRESS  %d(%s)\n", marker[SedSel == SED_PROGRESS], SedSelData[SED_PROGRESS], progress_name == NULL ? "" : progress_name);
-    cursor += sprintf(cursor, "%sTIME      %5.1f\n", marker[SedSel == SED_TIME], save->now_time);
-    cursor += sprintf(cursor, "%sFLAG      %4d = %s\n", marker[SedSel == SED_FLAG], SedSelData[SED_FLAG], on_off[save->GetBitFlag(SedSelData[SED_FLAG]) != 0]);
-    cursor += sprintf(cursor, "%sGEO COMP  %d\n", marker[SedSel == SED_GEO_COMP], SedSelData[SED_GEO_COMP]);
-    cursor += sprintf(cursor, "%sPLAY TIME %d\n", marker[SedSel == SED_PLAY_TIME], SedSelData[SED_PLAY_TIME]);
-    cursor += sprintf(cursor, "%sCONFIG    %s = %d\n", marker[SedSel == SED_CONFIG], config_str[0], save->config.caption_off);
+    cursor += sprintf(cursor, "%sPROGRESS  %d(%s)\n", marker.text[SedSel == SED_PROGRESS], SedSelData[SED_PROGRESS], progress_name);
+    cursor += sprintf(cursor, "%sTIME      %5.1f\n", marker.text[SedSel == SED_TIME], save->now_time);
+    cursor += sprintf(cursor, "%sFLAG      %4d = %s\n", marker.text[SedSel == SED_FLAG], SedSelData[SED_FLAG], on_off.text[save->GetBitFlag(SedSelData[SED_FLAG]) != 0]);
+    cursor += sprintf(cursor, "%sGEO COMP  %d\n", marker.text[SedSel == SED_GEO_COMP], SedSelData[SED_GEO_COMP]);
+    cursor += sprintf(cursor, "%sPLAY TIME %d\n", marker.text[SedSel == SED_PLAY_TIME], SedSelData[SED_PLAY_TIME]);
+    int config_value = *caption[0];
+    const int &config_reference = config_value;
+    cursor += sprintf(cursor, "%sCONFIG    %s = %d\n", marker.text[SedSel == SED_CONFIG], config_str[0], config_reference);
     SedSelData[SED_PROGRESS] = save->game_progress;
     if (SedSel == SED_PROGRESS) {
         if (GamePad__2.Down(PAD_RIGHT)) ++SedSelData[SED_PROGRESS];
@@ -519,7 +536,10 @@ int SaveDataEditLoop() {
         if (GamePad__2.Down(PAD_RIGHT)) ++hour;
         if (GamePad__2.Down(PAD_LEFT)) --hour;
         hour %= 24;
-        if (GamePad__2.Down(PAD_TRIANGLE)) hour = 0;
+        if (GamePad__2.Down(PAD_TRIANGLE)) {
+            if (hour == 12) hour = 0;
+            else hour = 12;
+        }
         scene->SetTime((float)hour);
         save->now_time = (float)hour;
     }
@@ -552,18 +572,19 @@ int SaveDataEditLoop() {
         if (GamePad__2.Down(PAD_RIGHT)) ++SedSelData[SED_CONFIG];
         if (GamePad__2.Down(PAD_LEFT)) --SedSelData[SED_CONFIG];
         SedSelData[SED_CONFIG] = 0;
-        if (GamePad__2.Down(PAD_CIRCLE)) save->config.caption_off = !save->config.caption_off;
+        if (GamePad__2.Down(PAD_CIRCLE)) {
+            if (*caption[0] != 0) *caption[0] = 0;
+            else *caption[0] = 1;
+        }
     }
     if (GamePad__2.Down(PAD_DOWN)) ++SedSel;
     if (GamePad__2.Down(PAD_UP)) --SedSel;
     if (SedSel < 0) SedSel = SED_ITEM_NUM - 1;
     if (SedSel >= SED_ITEM_NUM) SedSel = 0;
     GetDebugFont()->DrawDirect(display, 10, 10);
-    return GamePad__2.Down(PAD_CROSS) != 0;
+    if (GamePad__2.Down(PAD_CROSS)) return 1;
+    return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapselect", SaveDataEditLoop__Fv);
-#endif
 int EventViewLoop(void) {
     char text[0x400];
     EventListColors colors;
@@ -637,28 +658,28 @@ int EventViewLoop(void) {
     }
     return 0;
 }
-#ifdef NONMATCHING
 void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
     int file_size;
     char fields[16][0x80];
     char *columns[16];
-    EVENT_VIEW_INFO *entry;
+    int index;
     char *end;
-    char *next;
+    EVENT_VIEW_INFO *entry;
     int map_no;
+    char *next;
     int floor_no;
     int dungeon;
     if (!LoadFile2((char *)"event/view_pal.txt", buffer, &file_size, 0)) return;
     EventInfo = new ((u_long128 *)stack->Alloc(0x382)) EVENT_VIEW_INFO[EVENT_VIEW_MAX];
-    for (int index = 0; index < EVENT_VIEW_MAX; ++index) memset(&EventInfo[index], 0, sizeof(EVENT_VIEW_INFO));
+    for (index = 0; index < EVENT_VIEW_MAX; ++index) memset(&EventInfo[index], 0, sizeof(EVENT_VIEW_INFO));
     end = (char *)buffer + file_size;
-    for (int index = 0; index < 16; ++index) columns[index] = fields[index];
+    for (index = 0; index < 16; ++index) columns[index] = fields[index];
     entry = EventInfo;
     EventInfoNum = 0;
     BossEventTop = 0;
-    next = GetLine(columns, (char *)buffer, end);
+    next = GetLine__FPPcPcPc__3(columns, (char *)buffer, end);
     while (next < end) {
-        next = GetLine(columns, next, end);
+        next = GetLine__FPPcPcPc__3(columns, next, end);
         map_no = SearchMapNo(columns[0]);
         floor_no = 0;
         dungeon = 0;
@@ -678,9 +699,6 @@ void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
         entry++;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapselect", LoadEventViewData__FP1P9mgCMemory);
-#endif
 extern "C" char *GetLine__FPPcPcPc__3(char **fields, char *cursor, char *end) {
     LineBreakPair lineBreakPair;
     int field;

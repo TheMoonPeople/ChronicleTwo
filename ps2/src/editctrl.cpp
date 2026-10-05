@@ -237,7 +237,6 @@ char *GetFootEffName(int index) {
     return name_978[name_id_982[index]];
 }
 
-#ifdef NONMATCHING
 void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *info) {
     CCharacter2      *character;
     CEffectScriptMan *effects;
@@ -245,6 +244,7 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
     CEditMap         *edit_map;
     CEditParts       *parts;
     CSphida          *sphida;
+    int               remaining;
     CCPoly           *next_poly;
     sceVu0FVECTOR     position;
     sceVu0FVECTOR     next_position;
@@ -260,7 +260,6 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
     float             width;
     int               map_count;
     int               poly_count;
-    int               remaining;
     int               added;
     int               ignore_mask;
     int               hard_landing;
@@ -276,8 +275,9 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
     }
     effects = scene->GetEffect(0);
     {
+    CCameraControl *control_camera;
     CCameraControl *camera = (CCameraControl *)scene->GetCamera(scene->active_camera);
-    CCameraControl *control_camera = NULL;
+    control_camera = NULL;
     if (camera != NULL) {
         if (camera->Iam() == CAMERA_KIND_CONTROL) {
             control_camera = camera;
@@ -304,9 +304,9 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
     poly_count = scene->GetColPoly(next_poly, bounds, remaining);
     remaining -= poly_count;
     next_poly += poly_count;
-    for (i = 0; i < 56; i++) {
-        if (scene->CheckDrawChara(i + 8)) {
-            CCharacter2 *other = scene->GetCharacter(i + 8);
+    for (int chara_index = 0; chara_index < 56; chara_index++) {
+        if (scene->CheckDrawChara(chara_index + 8)) {
+            CCharacter2 *other = scene->GetCharacter(chara_index + 8);
             if (other != NULL && other->CheckDraw()) {
                 other->GetPosition(other_position);
                 width = other->body_width;
@@ -323,8 +323,8 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
             }
         }
     }
-    for (i = 0; i < map_count; i++) {
-        added = maps[i]->GetTrBoxColPoly(next_poly, position, remaining);
+    for (int map_index = 0; map_index < map_count; map_index++) {
+        added = maps[map_index]->GetTrBoxColPoly(next_poly, position, remaining);
         next_poly += added;
         poly_count += added;
         remaining -= added;
@@ -373,9 +373,9 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
             }
         }
     }
+    hard_landing = 0;
     character->foot_sound_id = -1;
     MoveInfo.radius = 13.0f;
-    hard_landing = 0;
     MoveCheck(position, velocity, next_position, &MoveInfo, polys, poly_count, ignore_mask);
     if (MoveInfo.landed) {
         if (velocity[1] < -5.0f) {
@@ -446,9 +446,6 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editctrl", EditMoveChara__FP6CScenePfP17EditMoveCharaInfo);
-#endif
 
 void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
     static float    reference = 30.0f;
@@ -564,7 +561,9 @@ void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
             return;
         }
         camera->ControlOn();
-        camera->SetSpeed(4.0f, 3.0f);
+        float speed = 4.0f;
+        float damping = 3.0f;
+        camera->SetSpeed(speed, damping);
         camera->GetPos(eye);
         camera->GetRef(target);
         mgVectorMaxMin(bounds.max, bounds.min, eye, target);

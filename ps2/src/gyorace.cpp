@@ -1044,6 +1044,7 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
     int var_17;
     int var_17_2;
     int var_18;
+    int var_19;
     int *lap;
     int *lane;
 
@@ -1138,7 +1139,6 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
         sp240.Set(0x160, 0x54, 0x10, 0xE);
         PrimQuad(wind_tex, sp230, sp240, 0x80, 0x80, 0x80, 0x80);
     } else {
-        int var_19;
         temp_f20 = fish_inf[hero_no].lap_time[var_19 = (int)fish_inf[hero_no].lap];
         var_16 = (int)(temp_f20 / 3600.0f);
         float minute_frames = 3600.0f; temp_f20_2 = temp_f20 - minute_frames * (float)var_16;

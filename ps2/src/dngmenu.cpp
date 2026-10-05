@@ -94,11 +94,12 @@ void CDngFreeMap::CalcGlidPutPos(GLID_INFO *glid, float &x, float &y, int ignore
     }
 }
 void CDngFreeMap::CheckIsViewMove(int x, int y, float &moveX, float &moveY) {
+    float left = *(volatile float *)&view_rect.left;
     int clampedX = x;
     int clampedY = y;
 
-    if ((float)clampedX < view_rect.left) {
-        clampedX = (int)view_rect.left;
+    if ((float)clampedX < left) {
+        clampedX = (int)left;
     }
     if (-10.0f + view_rect.right < (float)clampedX) {
         clampedX = (int)(-10.0f + view_rect.right);

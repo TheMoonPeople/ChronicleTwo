@@ -45,7 +45,7 @@ int ClipBoxXZ(float *max_a, float *min_a, float *max_b, float *min_b) {
 #pragma global_optimizer reset
 
 #ifdef NONMATCHING
-float OverlapPoly3AreaXZ(float (*clipped)[4], float (*clipper)[4], mgVu0FBOX *box) {
+float OverlapPoly3AreaXZ(sceVu0FVECTOR *clipped, sceVu0FVECTOR *clipper, mgVu0FBOX *box) {
     union Vector {
         float value[4];
         u_long128 quadword;
@@ -53,7 +53,6 @@ float OverlapPoly3AreaXZ(float (*clipped)[4], float (*clipper)[4], mgVu0FBOX *bo
     int count = 3;
     int source = 0;
     int edge;
-    int edge_offset = 0;
     int output_count;
     int index;
     int first_inside;
@@ -86,6 +85,7 @@ float OverlapPoly3AreaXZ(float (*clipped)[4], float (*clipper)[4], mgVu0FBOX *bo
     boundary[2][1] = 0.0f;
     *(Vector *)boundary[3] = *(Vector *)clipper[0];
     boundary[3][1] = 0.0f;
+    int edge_offset = 0;
     for (edge = 0; edge < 3; edge++, edge_offset += 16) {
         float *edge_start = (float *)((char *)boundary + edge_offset);
         sceVu0SubVector(edge_delta, boundary[edge + 1], edge_start);

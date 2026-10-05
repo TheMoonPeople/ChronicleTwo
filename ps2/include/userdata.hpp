@@ -1992,6 +1992,10 @@ public:
      */
     void SetActiveChrNo(int chara);
 
+    s16 GetActiveChrNo() {
+        return active_chr_no;
+    }
+
     /**
      * Renames the ridepod.
      *

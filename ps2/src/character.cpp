@@ -811,63 +811,6 @@ void CCharacter2::Step() {
 }
 
 #ifdef NONMATCHING
-void CCharacter2::StepDA(int count) {
-    int  index;
-    int  iteration;
-
-    if ((dynamic_anime_flags & CHARA_DYNAMIC_ANIME_DISABLE) != 0 || dynamic_anime_num == 0) {
-        return;
-    }
-    if (dynamic_anime == NULL) {
-        return;
-    }
-    for (index = 0; index < dynamic_anime_num; index++) {
-        if (count < 0) {
-            dynamic_anime[index].ResetPosition();
-        } else {
-            for (iteration = 0; iteration < count; iteration++) {
-                dynamic_anime[index].Step();
-            }
-        }
-    }
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", StepDA__11CCharacter2Fi);
-#endif
-
-void CCharacter2::SetWind(float power, float *dir) {
-    int  index;
-
-    for (index = 0; index < dynamic_anime_num; index++) {
-        dynamic_anime[index].SetWind(power, dir);
-    }
-}
-
-void CCharacter2::ResetWind() {
-    int  index;
-
-    for (index = 0; index < dynamic_anime_num; index++) {
-        dynamic_anime[index].ResetWind();
-    }
-}
-
-void CCharacter2::SetFloor(float y) {
-    int  index;
-
-    for (index = 0; index < dynamic_anime_num; index++) {
-        dynamic_anime[index].SetFloor(y);
-    }
-}
-
-void CCharacter2::ResetFloor() {
-    int  index;
-
-    for (index = 0; index < dynamic_anime_num; index++) {
-        dynamic_anime[index].ResetFloor();
-    }
-}
-
-#ifdef NONMATCHING
 void CCharacter2::NormalDrive() {
     float  frame_step;
 
@@ -2643,18 +2586,19 @@ static int _LOD_MODEL(SPI_STACK *stack, int count) {
     mgLoadData          load;
     u_long128           work_buffer[6400];
     CCharaLOD          *level;
-    unsigned int       *weight_file;
-    float             (*matrix_file)[4][4];
-    char               *model_name;
-    char               *weight_name;
-    MDS_HEADER         *model_file;
-    mgCFrame           *root;
-    mgCFrame           *source_frame;
-    char               *matrix_name;
-    int               (*link)[2];
-    mgCFrame          **frame_list;
-    int                 level_index;
     int                 index;
+    mgCFrame           *source_frame;
+    char               *model_name;
+    MDS_HEADER         *model_file;
+    unsigned int       *weight_file;
+    int               (*link)[2];
+    float             (*matrix_file)[4][4];
+    mgCFrame           *root;
+    mgCFrame          **frame_list;
+    char               *weight_name;
+    char               *matrix_name;
+    int                 frame_index;
+    int                 level_index;
     int                 deform_index;
     int                 visual_count;
     int                 frame_count;
@@ -2705,8 +2649,8 @@ static int _LOD_MODEL(SPI_STACK *stack, int count) {
         if (nowChr->deform_frame[deform_index] != NULL) {
             visual_type[visual_count].type = MG_VISUAL_CREATE_MOTION_MDT;
             visual_type[visual_count].name = nowChr->deform_frame[deform_index]->name;
-            visual_count++;
             deform_index++;
+            visual_count++;
         }
     }
     visual_type[visual_count].type = MG_VISUAL_CREATE_END;
@@ -2726,10 +2670,10 @@ static int _LOD_MODEL(SPI_STACK *stack, int count) {
         return 0;
     }
     link = level->link;
-    for (index = 0; index < frame_count; index++) {
-        source_frame = frame_list[index];
+    for (frame_index = 0; frame_index < frame_count; frame_index++) {
+        source_frame = frame_list[frame_index];
         if (source_frame != NULL) {
-            link[0][1] = index;
+            link[0][1] = frame_index;
             link[0][0] = root->SearchFrameID(source_frame->name);
             if (link[0][0] >= 0) {
                 link++;
