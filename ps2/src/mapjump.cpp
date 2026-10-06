@@ -10,6 +10,7 @@
 #include "common.h"
 #include "editmap.hpp"
 #include "mg_memory.hpp"
+#include "mg_camera.hpp"
 #include "savedata.hpp"
 #include "sceneload.hpp"
 #include "scenesnd.hpp"
@@ -23,13 +24,19 @@ extern int NowInteriorMapNo;
 extern int OldInteriorMapNo;
 extern mgCMemory * ScriptBuffer;
 extern int InteriorFlag;
-extern MapJumpMapInfo MainMapInfo__2;
-extern MapJumpMapInfo SubMapInfo;
+static MapJumpMapInfo MainMapInfo__2;
+static MapJumpMapInfo SubMapInfo;
 extern ScriptPathBuffer at_912__4;
 extern char now_script_file[0x40];
 extern char old_mapname[0x40];
 extern char PrevInterior[0x40];
 extern char NowInterior[0x40];
+extern int old_bgm_no;
+extern sceVu0FVECTOR OldPos;
+extern sceVu0FVECTOR OldRot;
+extern sceVu0FVECTOR OldCamPos;
+extern sceVu0FVECTOR OldCamRef;
+extern CScene::BGM_STATUS OldBgmStatus;
 extern char at_1047__2[];
 extern char at_863__3[];
 extern char at_890__4[];
@@ -39,6 +46,7 @@ extern char at_893__2[];
 extern char at_894__2[];
 extern char at_914__4[];
 extern char at_950__4[];
+extern char at_1091__2[];
 int GetMainMapNo(void);
 int GetSubMapNo(void);
 void ClearSubMapNo(void);
@@ -318,8 +326,57 @@ void InitInterior(void) {
 int InInterior(void) {
     return InteriorFlag;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapjump", SaveBeforeInterior__FP6CScene);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapjump", SetInteriorDoorPos__FP6CScene);
+void SaveBeforeInterior(CScene *scene) {
+    char *map_name = scene->GetMapName(SubMapInfo.map_no);
+    if (map_name != NULL) {
+        strcpy(old_mapname, map_name);
+    }
+    CCharacter2 *chara = scene->GetCharacter(scene->player_chara);
+    if (chara != NULL) {
+        chara->GetPosition(OldPos);
+        chara->GetRotation(OldRot);
+    }
+    old_bgm_no = scene->GetActiveBgmInfo()->load_no;
+    scene->GetActiveBgmStatus(&OldBgmStatus);
+    mgCCamera *camera = scene->GetCamera(scene->active_camera);
+    if (camera != NULL) {
+        camera->GetPos(OldCamPos);
+        camera->GetRef(OldCamRef);
+    }
+}
+void SetInteriorDoorPos(CScene *scene) {
+    CFuncPoint *point;
+    CMap *map = scene->GetMap(scene->active_map);
+    CCharacter2 *chara = scene->GetCharacter(scene->player_chara);
+    if (map == NULL || chara == NULL) {
+        return;
+    }
+    char door_name[0x40] = "exit";
+    if (PrevInterior[0] != 0) {
+        strcpy(door_name, PrevInterior);
+    }
+    chara->SetPosition(0.0f, 0.0f, 0.0f);
+    chara->SetRotation(0.0f, 0.0f, 0.0f);
+    map->func_point.GetStart(FUNC_POINT_EVENT);
+    while ((point = map->func_point.Get()) != NULL) {
+        if ((point->event.flag & FUNC_EVENT_DOOR) && strcmp(door_name, point->event.unk_38) == 0) {
+            sceVu0FVECTOR position;
+            sceVu0FVECTOR rotation;
+            *(u_long128 *)position = *(u_long128 *)point->position;
+            *(u_long128 *)rotation = *(u_long128 *)point->rotation;
+            rotation[2] = 0.0f;
+            rotation[0] = 0.0f;
+            rotation[1] = mgAngleLimit(3.1415927f + rotation[1]);
+            chara->SetPosition(position);
+            chara->SetRotation(rotation);
+            mgCCamera *camera = scene->GetCamera(scene->active_camera);
+            if (camera != NULL) {
+                camera->Step(-1);
+            }
+            return;
+        }
+    }
+}
 void GotoInterior(CScene *scene, int interiorNo) {
     char *mapName = GetMapName(interiorNo, NULL);
     if (mapName != NULL && InInterior() == 0) {
@@ -359,7 +416,57 @@ void DeleteInterior(CScene *scene) {
         *p = -1;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapjump", ExitInterior__FP6CScenePi);
+void ExitInterior(CScene *scene, int *map_no) {
+    if (!InInterior()) {
+        return;
+    }
+    DeleteInterior(scene);
+    CCharacter2 *chara = scene->GetCharacter(scene->player_chara);
+    if (chara != NULL) {
+        chara->SetMotion(at_1091__2, 4);
+        chara->SetPosition(OldPos);
+        chara->SetRotation(0.0f, mgAngleLimit(3.1415927f + OldRot[1]), 0.0f);
+        chara->ResetDAPosition();
+        chara->Step();
+        chara->StepDA(10);
+    }
+    mgCCamera *camera = scene->GetCamera(scene->active_camera);
+    if (camera != NULL) {
+        camera->SetPos(OldCamPos);
+        camera->SetRef(OldCamRef);
+    }
+    ClearSubMapNo();
+    if (map_no != NULL) {
+        *map_no = -1;
+    }
+    if (old_mapname[0] != 0) {
+        int old_map_no = SearchMapNo(old_mapname);
+        if (map_no != NULL) {
+            *map_no = old_map_no;
+        }
+        if (old_map_no >= 0 && LoadSubMap(scene, old_map_no, 0) != 0) {
+            scene->SetActive(2, SubMapInfo.map_no);
+        }
+    } else {
+        scene->SetNowSubMapNo(-1);
+    }
+    scene->SetActive(2, MainMapInfo__2.map_no);
+    scene->active_map = MainMapInfo__2.map_no;
+    OldInteriorMapNo = NowInteriorMapNo;
+    NowInteriorMapNo = -1;
+    CMap *map = scene->GetMap(scene->active_map);
+    if (map != NULL) {
+        map->now_time = scene->time;
+    }
+    LoadMapScript(scene->GetMapName(MainMapInfo__2.map_no));
+    PrevInterior[0] = 0;
+    NowInterior[0] = 0;
+    InitInterior();
+    if (old_bgm_no >= 0) {
+        scene->LoadBGM(old_bgm_no, read_buffer);
+        scene->SetActiveBgmStatus(&OldBgmStatus);
+    }
+}
 int InteriorMapJump(CScene *scene, int interiorNo) {
     if (LoadSubMap(scene, interiorNo, 0) != 0) {
         scene->SetActive(2, SubMapInfo.map_no);
@@ -381,9 +488,6 @@ int InteriorMapJump(CScene *scene, int interiorNo) {
     return 0;
 }
 
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapjump", __sinit_mapjump_cpp);
-
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_997__4__DATA);
 
@@ -399,9 +503,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_950__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_1047__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_1091__2__DATA);
 
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", D_0037B06C__DATA);
-
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(NowMainMapNo, 0x4);
 INCLUDE_BSS(NowSubMapNo, 0x4);
@@ -413,8 +514,6 @@ INCLUDE_BSS(old_bgm_no, 0x4);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(now_script_file, 0x40);
-INCLUDE_BSS(MainMapInfo__2, 0x20);
-INCLUDE_BSS(SubMapInfo, 0x20);
 INCLUDE_BSS(at_912__4, 0x80);
 INCLUDE_BSS(old_mapname, 0x40);
 INCLUDE_BSS(OldPos, 0x10);

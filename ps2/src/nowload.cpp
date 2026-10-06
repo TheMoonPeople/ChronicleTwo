@@ -18,10 +18,17 @@
 #include <cstring>
 #include <cstdio>
 
+struct PauseState : PAUSE_INFO {
+    PauseState() {
+        scene = NULL;
+        event_skip = 0;
+    }
+};
+
 extern int PauseFlag__2;
 extern int cancel_now_loading;
 extern int InitFlag;
-extern PAUSE_INFO PauseInfo;
+extern PauseState PauseInfo;
 extern float SeCoreVol;
 extern int PauseEnableFlag;
 extern int PauseCancelCnt;
@@ -35,7 +42,6 @@ extern char at_863__5[];
 extern char at_864__3[];
 extern float ProgBarWidth;
 extern u8 ThreadStack__3[0x1000];
-extern "C" void NowLoadingLoop__FPv(void *);
 extern int load_skip_img;
 extern char at_912__6[];
 extern char at_913__5[];
@@ -45,7 +51,7 @@ extern int PauseTexb;
 extern char at_920__7[];
 extern int wave_status;
 extern int play_time_count;
-extern NowLoadingInfo LoadInfo;
+NowLoadingInfo LoadInfo;
 extern float ProgBarWidthStep;
 #include "mglib.hpp"
 #include "mg_texture.hpp"
@@ -66,24 +72,7 @@ extern float ProgBarWidthStep;
 
 #endif
 
-extern int cancel_now_loading;
-extern int PauseEnableFlag;
-extern int PauseFlag__2;
-extern int PauseCancelCnt;
-extern int ProgBarCnt;
-extern float ProgBarWidthStep;
-extern float NextProgBarWidth;
-extern int InitFlag;
-extern float SeCoreVol;
-extern PAUSE_INFO PauseInfo;
-extern NowLoadingInfo LoadInfo;
-extern int TheadID__3;
-extern int EndFlag;
-extern int play_time_count;
-extern int wave_status;
 extern int bgm_status[7];
-extern int load_skip_img;
-extern int PauseTexb;
 extern unsigned char SkipImage[0x2800];
 
 
@@ -209,7 +198,7 @@ void CreateNowLoading(NowLoadingInfo *info) {
         ProgBarCnt = 0;
         NextProgBarWidth = 0;
         LoopStep = 0;
-        thread.param.entry = (void (*)(void *))NowLoadingLoop__FPv;
+        thread.param.entry = NowLoadingLoop;
         EndFlag = 0;
         thread.param.stack = ThreadStack__3;
         thread.param.option = 0;
@@ -307,7 +296,7 @@ int PauseStart(PAUSE_INFO *info) {
     InitFlag = 0;
     PauseFlag__2 = result;
     PauseCancelCnt = 10;
-    PauseInfo = *info;
+    static_cast<PAUSE_INFO &>(PauseInfo) = *info;
     SeCoreVol = -1.0f;
     return result;
 }
@@ -497,7 +486,6 @@ void SCElogoFade(int fade_out, mgCMemory *memory) {
 #pragma opt_strength_reduction reset
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nowload", __sinit_nowload_cpp);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_832__7__DATA);
@@ -511,7 +499,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1068__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1069__6__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", D_0037B080__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", LoopStep__DATA);
@@ -529,7 +516,7 @@ INCLUDE_BSS(PauseFlag__2, 0x4);
 INCLUDE_BSS(PauseEnableFlag, 0x4);
 INCLUDE_BSS(PauseCancelCnt, 0x4);
 INCLUDE_BSS(PauseTexb, 0x4);
-INCLUDE_BSS(PauseInfo, 0x8);
+PauseState PauseInfo;
 INCLUDE_BSS(InitFlag, 0x4);
 INCLUDE_BSS(SeCoreVol, 0x4);
 INCLUDE_BSS(play_time_count, 0x4);
@@ -538,6 +525,5 @@ INCLUDE_BSS(start_vcount, 0x4);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(ThreadStack__3, 0x1000);
-INCLUDE_BSS(LoadInfo, 0x40);
 INCLUDE_BSS(SkipImage, 0x2800);
 INCLUDE_BSS(bgm_status, 0x20);

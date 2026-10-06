@@ -78,7 +78,7 @@ void CMapParts::Initialize(void) {
     frame.Initialize();
     in_screen = 1;
     lod_num = 0;
-    unk_1dc = 0;
+    minimap_tile = 0;
     lod_dist = NULL;
     lod_blend = 0;
     color_num = 4;
@@ -367,8 +367,8 @@ int CMapParts::DrawSub(int direct) {
                 weight = 1.0f;
                 weight *= GetLightAnimeWeight(point, func_check.anime_frame);
 
-                switch (point->plight.unk_38) {
-                case 0:
+                switch (point->plight.light_type) {
+                case FUNC_PLIGHT_DIRECTIONAL:
                     if (light_no >= 0) {
                         frame.GetWorldDir(light_position, point->position);
                         sceVu0Normalize(light_position, light_position);
@@ -379,7 +379,7 @@ int CMapParts::DrawSub(int direct) {
                     }
                     break;
 
-                case 1:
+                case FUNC_PLIGHT_AMBIENT:
                     mgGetAmbient(ambient);
                     ambient[0] = point->plight.color[0] * weight;
                     ambient[1] = point->plight.color[1] * weight;
@@ -387,9 +387,9 @@ int CMapParts::DrawSub(int direct) {
                     mgSetAmbient(ambient);
                     break;
 
-                case 2:
+                case FUNC_PLIGHT_POINT:
                     mgPlightEnable(1);
-                    if (plight_no >= 0 && point->plight.unk_48 == 0) {
+                    if (plight_no >= 0 && point->plight.no_map_light == 0) {
                         frame.GetWorldPosition(light_position, point->position);
                         float plight_weight = GetLightAnimeWeight(point, 0);
                         sceVu0ScaleVector(plight_color, point->plight.color, plight_weight * weight);
@@ -679,7 +679,7 @@ CFuncPoint *CMapParts::InScreenFunc(InScreenFuncInfo *info) {
             point->frame.SetReference(parts_frame);
             point->frame.GetLWMatrix(point_matrix);
 
-            range = point->invent.unk_28;
+            range = point->invent.range;
             if (range == 0.0f) {
                 range = 400.0f;
             }
@@ -773,7 +773,7 @@ void CMapParts::DrawScreenFunc(mgCFrame *marker) {
                 box_matrix[2][2] = *extent_z = point->invent.box.max[2] - point->invent.box.min[2];
                 box_matrix[3][2] = *origin_z = point->invent.box.min[2];
 
-                range = point->invent.unk_28;
+                range = point->invent.range;
                 if (range == 0.0f) {
                     range = 400.0f;
                 }

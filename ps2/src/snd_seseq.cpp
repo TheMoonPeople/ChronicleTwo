@@ -257,19 +257,12 @@ int sndCSeSeq::Step(float frames) {
     return 0;
 }
 
-#ifdef NONMATCHING
 int sndCSeSeq::chk_trk(int trk) {
-    int valid;
-
-    valid = 0;
-    if (trk >= 0) {
-        valid = trk < track_num;
+    if (trk < 0 || trk >= track_num) {
+        return 0;
     }
-    return valid;
+    return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", chk_trk__9sndCSeSeqFi);
-#endif
 
 #ifdef NONMATCHING
 void sndCSeSeq::NoteOn(int trk, int key, int velocity) {

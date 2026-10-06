@@ -887,12 +887,14 @@ int MonsterEffectRead(mgCMemory *stack, int monster_no, int background);
 
 /**
  *
- * Builds the effects of a monster transformation once read; returns non-zero on success.
+ * Builds the effects of a monster transformation once read into a texture block; returns non-zero on success.
+ * The two-argument form has no definition; it is kept for an older caller.
  *
  * @mangled MonsterEffectEnter__FP6CSceneP1i
  * @address 0x2BA8F0
  * @size 0x120
  */
+int MonsterEffectEnter(CScene *scene, u_long128 *buffer, int tex_block);
 int MonsterEffectEnter(CScene *scene, u_long128 *buffer);
 
 /**
@@ -964,7 +966,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
  * @size 0x650
  */
 int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CActionChara **chara, int chara_no,
-                                  int item_no, int tex_block);
+                                  int tex_block, int scene_tex_block);
 
 /**
  *
@@ -1034,8 +1036,8 @@ void DeleteOutLineMenu(CActionChara *chara, int sub);
  * @address 0x2BEC10
  * @size 0x840
  */
-int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CActionChara **chara, int item_no,
-                                 int tex_block);
+int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CActionChara **chara, int tex_block,
+                                 int scene_tex_block);
 
 /**
  *
@@ -1065,7 +1067,7 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
  * @address 0x2BF680
  * @size 0x340
  */
-int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int tex_block, int item_no);
+int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int tex_block, int scene_tex_block);
 
 /**
  *

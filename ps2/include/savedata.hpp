@@ -93,7 +93,7 @@ struct SV_CONFIG_OPTION {
     u8  unk_18[4];
     s32 enemy_hp;      /**< How the dungeon shows the enemies' life gauges. */
     s32 damage_off;    /**< Non-zero to hide the damage numbers in battle. */
-    u8  unk_24[4];
+    s32 unk_24;
     s32 monster_name;  /**< How the dungeon shows the enemies' names. */
     s32 anger_counter; /**< How the dungeon shows the enemies' anger counters. */
     s32 dof_off;       /**< Non-zero to turn off the depth of field blur. */
@@ -367,7 +367,7 @@ public:
      * @address 0x2FBB80
      * @size 0x10
      */
-    s16 CheckNowTourEvent();
+    int CheckNowTourEvent();
 
     /**
      *
@@ -411,6 +411,10 @@ public:
 
     SV_CONFIG_OPTION *GetConfig() {
         return &config;
+    }
+
+    CUserDataManager *GetUserDataManager() {
+        return &user_data;
     }
 };
 
@@ -498,7 +502,7 @@ public:
      * @address 0x2FBCD0
      * @size 0x10
      */
-    s16 GetNowHorl();
+    int GetNowHorl();
 
     /**
      *
@@ -655,7 +659,8 @@ STATIC_ASSERT(sizeof(CGyoRaceData) == 0x2C28);
  */
 class CSubGameData {
 public:
-    u8           unk_0[8];
+    u8           incomplete;  /**< One while the bonus data file is being written. */
+    u8           unk_1[7];
     u32          play_enable; /**< One bit for each sub-game the player has unlocked. */
     u8           unk_C[0xF4];
     CSphidaData  sphida;      /**< Spheda scores. */

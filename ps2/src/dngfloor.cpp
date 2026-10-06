@@ -277,7 +277,7 @@ GLID_INFO *CDngFloorManager::GetDngMapFloorGlidInfo(int floor) {
     }
     return NULL;
 }
-s8 CDngFloorManager::IsGeoStone(int floor) {
+int CDngFloorManager::IsGeoStone(int floor) {
     DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor);
     if (info != NULL) {
         return info->geostone;
@@ -324,7 +324,7 @@ int CDngFloorManager::IsPlaySubGame() {
     }
     return games;
 }
-s8 CDngFloorManager::IsSealFloor(int floor) {
+int CDngFloorManager::IsSealFloor(int floor) {
     CSaveDataDungeon *dungeon = menu_GetSaveDataDungeon();
     if (dungeon == NULL) {
         return 0;
@@ -547,7 +547,94 @@ void CDngFloorManager::RelationGlid() {
         }
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngfloor", CheckDrawGlidInfo__16CDngFloorManagerFv);
+void CDngFloorManager::CheckDrawGlidInfo() {
+    CSaveDataDungeon *save;
+    GLID_INFO *next;
+    GLID_INFO *root;
+    DNGMAP_ROOM_INFO *floor_room;
+    DNGMAP_ROOM_INFO *next_room;
+    DNG_FLOOR_SAVE *floor;
+    DNG_FLOOR_SAVE *next_floor;
+    int i;
+    int dir;
+    int search_dir;
+    int open;
+    int opened;
+
+    save = menu_GetSaveDataDungeon();
+    if (save == NULL) {
+        return;
+    }
+    int floor_num[7] = {9, 16, 25, 21, 23, 29, 39};
+    for (int floor_no = 0; floor_no < floor_num[dng_no]; floor_no++) {
+        floor = save->GetFloorInfoPtr(dng_no, floor_no);
+        floor_room = GetDngMapFloorInfo(floor_no);
+        if (floor != NULL && floor_room != NULL) {
+            floor_room->visited = 0;
+            if (floor != NULL && floor->visit_count > 0) {
+                floor_room->visited = 1;
+            }
+        }
+    }
+    for (int n = 0; n < glid_num; n++) {
+        GLID_INFO *glid = &glid_info[n];
+        if (glid != NULL) {
+            glid->blink = 0;
+        }
+    }
+    for (i = 0; i < glid_num; i++) {
+        GLID_INFO *glid = &glid_info[i];
+        if (glid->type == GLID_TYPE_ROOM) {
+            DNGMAP_ROOM_INFO *room = &glid->room;
+            for (dir = 0; dir < GLID_DIR_NUM; dir++) {
+                next = GetNextRoom(room->floor_id, dir, NULL, -1, NULL);
+                if (next != NULL && next != glid && next->type == GLID_TYPE_ROOM) {
+                    save->GetFloorInfoPtr(dng_no, next->room.floor_id);
+                }
+            }
+            room->unk_44 = 1;
+            floor = save->GetFloorInfoPtr(dng_no, room->floor_id);
+            room->mark = 0;
+            if (floor != NULL && (floor->flag & DNG_FLOOR_FLAG_OPEN) && !(floor->flag & DNG_FLOOR_FLAG_UNK_2)) {
+                room->mark = 1;
+            }
+        }
+    }
+    for (i = 0; i < glid_num; i++) {
+        GLID_INFO *glid = &glid_info[i];
+        if (glid->type == GLID_TYPE_ROOM) {
+            DNGMAP_ROOM_INFO *room = &glid->room;
+            floor = save->GetFloorInfoPtr(dng_no, glid->room.floor_id);
+            for (dir = 0; dir < GLID_DIR_NUM; dir++) {
+                search_dir = dir;
+                next = GetNextRoom(room->floor_id, dir, NULL, -1, NULL);
+                if (next == NULL || next == glid || search_dir != dir) {
+                    continue;
+                }
+                open = 0;
+                opened = 0;
+                next_room = &next->room;
+                next_floor = NULL;
+                if (next_room != NULL) {
+                    next_floor = save->GetFloorInfoPtr(dng_no, next_room->floor_id);
+                }
+                if (next_floor != NULL && floor != NULL && (floor->flag & DNG_FLOOR_FLAG_OPEN) && (next_floor->flag & DNG_FLOOR_FLAG_OPEN)) {
+                    open = 1;
+                    opened = open;
+                }
+                root = GetNextGlid(glid, &search_dir);
+                while (root != next && root != NULL && next != NULL) {
+                    if (root->type != GLID_TYPE_ROOT) {
+                        break;
+                    }
+                    root->root.open = open != 0;
+                    root->root.opened |= opened;
+                    root = GetNextGlid(root, &search_dir);
+                }
+            }
+        }
+    }
+}
 GLID_INFO *CDngFloorManager::GetNextGlid(GLID_INFO *glid, int *index) {
     int k;
     int *row;

@@ -209,7 +209,7 @@ public:
      * @address 0x195AA0
      * @size 0x8
      */
-    u8 GetOffsetNo();
+    int GetOffsetNo();
 };
 STATIC_ASSERT(sizeof(CDataRoboPart) == 0x24);
 
@@ -415,7 +415,7 @@ public:
      * @address 0x196FB0
      * @size 0x30
      */
-    u8 GetDataType(int item_no);
+    int GetDataType(int item_no);
 
     /**
      * Gives the first item number, in common data order, whose item type is the one given, or 0.
@@ -575,7 +575,7 @@ char *GetItemMessage(int item_no);
  * @address 0x1974B0
  * @size 0x38
  */
-s16 GetItemIconNo(int item_no);
+int GetItemIconNo(int item_no);
 
 /**
  * Sets the attachment parameter that spectrumising an item raises, scaled by the item count.

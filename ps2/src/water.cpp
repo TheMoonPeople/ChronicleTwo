@@ -116,10 +116,10 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", SetTexture__11CFireRasterFP10mgCTe
 #ifdef NONMATCHING
 void CFireRaster::Draw(float *position, float *scale) {
     mgCDrawPrim         prim;
-    sceVu0FVECTOR       world_position;
     FireRasterParticle *wisp;
     int                 top_left[4];
     int                 bottom_right[4];
+    sceVu0FVECTOR       world_position;
     int                 uv0[2];
     int                 uv1[2];
     int                 left;
@@ -235,34 +235,37 @@ void CThunderEffect::Init(void) {
 }
 #ifdef NONMATCHING
 void CWater::Hamon() {
-    float *current;
     float *next;
+    float *current;
+    float *cell;
     float  coefficient;
     float  center_coefficient;
+    float  friction;
     float  old_height;
     float  new_height;
     int    row;
     int    column;
     int    index;
 
-    current = height_a;
-    next = height_a;
     if (height == height_a) {
+        current = height_a;
         next = height_b;
     } else {
         current = height_b;
+        next = height_a;
     }
     height = next;
     coefficient = speed * speed;
+    friction = damping;
     center_coefficient = 2.0f * (1.0f - 2.0f * coefficient);
     for (row = 1; row < rows - 1; row++) {
         for (column = 1; column < columns - 1; column++) {
             index = row * columns + column;
+            cell = &current[index];
             old_height = next[index];
-            new_height = (current[index - columns] + (current[index - 1] + current[index + 1] +
-                          current[index + columns])) * coefficient +
-                         (center_coefficient * current[index] - old_height);
-            next[index] = new_height - damping * (new_height - old_height);
+            new_height = coefficient * (*(cell - columns) + (cell[-1] + cell[1] + cell[columns])) +
+                         (center_coefficient * cell[0] - old_height);
+            next[index] = new_height - friction * (new_height - old_height);
         }
     }
 }
@@ -298,13 +301,12 @@ void CWater::Shake(int x, int z, float amount) {
     *height += amount;
 }
 #pragma divbyzerocheck reset
-#ifdef NONMATCHING
 void CWaterFrame::Shake(float x, float z, float height_change) {
     CWater       *water;
-    sceVu0FVECTOR position;
-    sceVu0FVECTOR local_position;
     sceVu0FMATRIX world_matrix;
     sceVu0FMATRIX inverse_matrix;
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR local_position;
     int           row;
     int           column;
 
@@ -316,23 +318,18 @@ void CWaterFrame::Shake(float x, float z, float height_change) {
     GetLWMatrix(world_matrix);
     mgInversMatrix(inverse_matrix, world_matrix);
     sceVu0ApplyMatrix(local_position, inverse_matrix, position);
-    if (local_position[0] < water->min[0]) {
+    x = local_position[0];
+    z = local_position[2];
+    if (x < water->min[0] || x > water->max[0]) {
         return;
     }
-    if (local_position[0] <= water->max[0]) {
-        if (local_position[2] < water->min[2]) {
-            return;
-        }
-        if (local_position[2] <= water->max[2]) {
-            row = (int)(water->rows * (local_position[0] - water->min[0]) / (water->max[0] - water->min[0]));
-            column = (int)(water->columns * (local_position[2] - water->min[2]) / (water->max[2] - water->min[2]));
-            Shake(row, column, height_change);
-        }
+    if (z < water->min[2] || z > water->max[2]) {
+        return;
     }
+    row = (int)(water->rows * (x - water->min[0]) / (water->max[0] - water->min[0]));
+    column = (int)(water->columns * (z - water->min[2]) / (water->max[2] - water->min[2]));
+    Shake(row, column, height_change);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", Shake__11CWaterFrameFfff);
-#endif
 CWater *CWaterFrame::GetWater(void) {
     return (CWater *)visual;
 }
@@ -345,8 +342,8 @@ void CWater::SetSize(int x, int z, mgCMemory *memory) {
     rows = x;
     columns = z;
     for (i = 0; i < rows * columns; i++) {
-        *(int *)&height_b[i] = 0;
-        *(int *)&height_a[i] = 0;
+        height_b[i] = 0.0f;
+        height_a[i] = 0.0f;
     }
     height = height_a;
     unk_50 = 0;
@@ -705,13 +702,20 @@ void CWaterFrame::Shake(int x, int z, float amount) {
 void CWaterFrame::CreatePacket(void) {
     GetWater()->CreatePacket(&mgDrawManager);
 }
-#ifdef NONMATCHING
+extern "C" void *__vt__11CWaterFrame[];
+extern "C" void __ct__8mgCFrameFv(mgCFrame *frame);
+extern "C" CWater *__ct__6CWaterFv(CWater *water);
+
 CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgCMemory *memory) {
     CWaterFrame  *frame;
     CWater       *water;
     mgCFrameAttr *attr;
 
-    frame = new (memory->Alloc(sizeof(CWaterFrame) / 16 + 2)) CWaterFrame;
+    if ((frame = (CWaterFrame *)operator new(sizeof(CWaterFrame), memory->Alloc(sizeof(CWaterFrame) / 16 + 2))) != NULL) {
+        __ct__8mgCFrameFv(frame);
+        *(void ***)frame = __vt__11CWaterFrame;
+        frame->Initialize();
+    }
     if (frame == NULL) {
         return NULL;
     }
@@ -723,7 +727,9 @@ CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgC
         attr->alpha_test = -1;
         attr->alpha_blend = MG_ALPHA_MACRO_BLEND;
     }
-    water = new (memory->Alloc(sizeof(CWater) / 16 + 2)) CWater;
+    if ((water = (CWater *)operator new(sizeof(CWater), memory->Alloc(sizeof(CWater) / 16 + 2))) != NULL) {
+        water = __ct__6CWaterFv(water);
+    }
     if (water == NULL) {
         return NULL;
     }
@@ -734,9 +740,6 @@ CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgC
     frame->SetBBox(max, min);
     return frame;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", CreateWaterFrame__FiiPfPfP9mgCMemory);
-#endif
 void CWaterFrame::Initialize(void) {
     unk_110 = 0;
     stop = 0;

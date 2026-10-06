@@ -52,14 +52,12 @@ extern char at_1291__3[];
 extern float anim_1410;
 extern s8 init_1411;
 
-#ifdef NONMATCHING
 #include <libvu0.h>
 #include "dng_event.hpp"
 #include "gamedata.hpp"
 #include "mg_memory.hpp"
 #include "scene.hpp"
 #include "userdata.hpp"
-#endif
 
 #ifdef NONMATCHING
 /**
@@ -290,7 +288,6 @@ void CRocketLauncher::SetPos(float *pos, float *muzzle_vec, float *direction_vec
     life = 150;
     draw_flags = 3;
 }
-#ifdef NONMATCHING
 void CRocketLauncher::Step() {
     sceVu0FVECTOR    movement;
     sceVu0FVECTOR    old_pos;
@@ -373,9 +370,11 @@ void CRocketLauncher::Step() {
             if (life > 0) {
                 sceVu0FVECTOR hit_dir = { 0.0f, 1.0f, 0.0f, 1.0f };
 
-                hit = NULL;
-                if (BattleFX.hit != NULL) {
-                    hit = &BattleFX.hit[BattleFX.hit_next++];
+                if (BattleFX.hit == NULL) {
+                    hit = NULL;
+                } else {
+                    hit = BattleFX.hit + BattleFX.hit_next;
+                    BattleFX.hit_next++;
                     if (BattleFX.hit_next >= BattleFX.hit_num) {
                         BattleFX.hit_next = 0;
                     }
@@ -407,9 +406,6 @@ void CRocketLauncher::Step() {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__15CRocketLauncherFv);
-#endif
 void CRocketLauncher::Draw(void) {
     union { CPreSprite sprite; };
     float smooth[128][4];
@@ -1092,8 +1088,8 @@ void CPullItem::Draw(mgCTexture *texture) {
 #ifdef NONMATCHING
 void CPullItem::Step() {
     CCharacter2  *player;
-    sceVu0FVECTOR player_pos;
     sceVu0FVECTOR collect_pos;
+    sceVu0FVECTOR player_pos;
     sceVu0FVECTOR from;
     sceVu0FVECTOR to;
     sceVu0FVECTOR hit_pos;
@@ -1104,7 +1100,6 @@ void CPullItem::Step() {
     sceVu0FVECTOR money_direction;
     char          badge_message[256];
     sceVu0FVECTOR badge_spark;
-    char         *badge_name;
     sceVu0FVECTOR item_direction;
     sceVu0FVECTOR item_spark;
     char          item_message[256];
@@ -1240,7 +1235,7 @@ void CPullItem::Step() {
             }
         }
         if (type == PULL_ITEM_BADGE) {
-            badge_name = mons_attr_list[LanguageCode][item_no];
+            char *&badge_name = mons_attr_list[LanguageCode][item_no];
             if (DngUserData->monster_box.IsChange(item_no) != 0) {
                 sprintf(badge_message, dung_progtxt_badge_already[LanguageCode], badge_name);
                 MsgTaskMan.Print(badge_message, 90, 8, 0);
@@ -1368,29 +1363,23 @@ void CPullItem::Step() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__9CPullItemFv);
 #endif
-#ifdef NONMATCHING
 void CPullItem::IsGet(float *player_pos) {
-    if (state != PULL_ITEM_STATE_FREE && can_get != 0) {
-        if (get_delay > 0) {
-            return;
-        }
-        if (type == PULL_ITEM_GATE_KEY || type == PULL_ITEM_STOLEN) {
-            can_get = 0;
-            state = PULL_ITEM_STATE_COLLECT;
-            return;
-        }
-        if (mgDistVector(player_pos, pos) < 20.0f * get_range) {
-            state = PULL_ITEM_STATE_COLLECT;
-            can_get = 0;
-            if (type == PULL_ITEM_ITEM || type == PULL_ITEM_BADGE) {
-                sndSePlay(SystemSND_ID, 18, 0);
-            }
+    if (state == PULL_ITEM_STATE_FREE || can_get == 0 || get_delay > 0) {
+        return;
+    }
+    if (type == PULL_ITEM_GATE_KEY || type == PULL_ITEM_STOLEN) {
+        can_get = 0;
+        state = PULL_ITEM_STATE_COLLECT;
+        return;
+    }
+    if (mgDistVector(player_pos, pos) < 20.0f * get_range) {
+        state = PULL_ITEM_STATE_COLLECT;
+        can_get = 0;
+        if (type == PULL_ITEM_ITEM || type == PULL_ITEM_BADGE) {
+            sndSePlay(SystemSND_ID, 18, 0);
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", IsGet__9CPullItemFPf);
-#endif
 void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
     sceVu0CopyVector(pos, position);
     sceVu0CopyVector(this->velocity, new_velocity);
@@ -1586,22 +1575,13 @@ void CRoboVoiceSystem::StopVoice(int frames) {
     status = 0;
     pause_time = (s16)frames;
 }
-#ifdef NONMATCHING
 void CRoboVoiceSystem::Step() {
     CBattleCharaInfo *battle_info;
     int               max_hp;
     int               now_hp;
-    int               now_whp;
+    int               now_whp[2];
     float             hp_ratio;
     int               monster_count;
-    int               healthy_voices[4] = {30, 40, 60, 160};
-    int               injured_voices[3] = {80, 90, 190};
-    int               low_hp_voices[5] = {100, 110, 120, 170, 220};
-    int               long_play_voices[3] = {70, 140, 150};
-    int               nearby_voices[2] = {50, 180};
-    int               crowded_voices[2] = {130, 200};
-    int               critical_voices[4] = {120, 120, 220, 170};
-    char              voice_file[64];
 
     if (status == ROBO_VOICE_OFF) {
         return;
@@ -1615,9 +1595,17 @@ void CRoboVoiceSystem::Step() {
     battle_info = GetBattleCharaInfo();
     max_hp = battle_info->GetMaxHp_i();
     now_hp = battle_info->GetNowHp_i();
-    battle_info->GetNowWhp(0, &now_whp);
-    play_time++;
+    battle_info->GetNowWhp(0, now_whp);
     hp_ratio = (float)now_hp / (float)max_hp;
+    int               healthy_voices[4] = {30, 40, 60, 160};
+    int               injured_voices[3] = {80, 90, 190};
+    int               low_hp_voices[5] = {100, 110, 120, 170, 220};
+    int               long_play_voices[3] = {70, 140, 150};
+    int               nearby_voices[2] = {50, 180};
+    int               crowded_voices[2] = {130, 200};
+    int               critical_voices[4] = {120, 120, 220, 170};
+    char              voice_file[64];
+    play_time++;
 
     switch (status) {
         case ROBO_VOICE_WAIT:
@@ -1704,9 +1692,6 @@ void CRoboVoiceSystem::Step() {
             break;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_object", Step__16CRoboVoiceSystemFv);
-#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_923__2__DATA);

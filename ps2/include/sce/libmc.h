@@ -118,7 +118,7 @@ int sceMcFlush(int fd);
 /**
  * Enters the named directory of the card, writes back the one it left, and returns a command id.
  */
-int sceMcChdir(int port, int slot, const char *name, void *current);
+int sceMcChdir(int port, int slot, const char *name, char *current);
 
 /**
  * Renames a file or directory on the selected memory card.
@@ -128,7 +128,7 @@ int sceMcRename(int port, int slot, char *old_name, char *new_name);
 /**
  * Creates the named directory on the card and returns a command id.
  */
-int sceMcMkdir(int port, int slot, char *name);
+int sceMcMkdir(int port, int slot, const unsigned char *name);
 
 /**
  * Deletes the named file of the card and returns a command id.

@@ -114,12 +114,11 @@ int CMapPiece::GetBoundBox(mgVu0FBOX *box) {
     UpDatePosition();
     return frame->GetWorldBBox(box);
 }
-#ifdef NONMATCHING
 int CMapPiece::DrawSub(int direct) {
     sceVu0FVECTOR  saved_color[4];
-    PieceMaterial *piece_material;
     int            result;
     int            i;
+    PieceMaterial *piece_material;
 
     if (draw_enable == 0) {
         return 0;
@@ -154,9 +153,6 @@ int CMapPiece::DrawSub(int direct) {
     }
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", DrawSub__9CMapPieceFi);
-#endif
 void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
     int i;
     PieceMaterial *to;
@@ -205,9 +201,9 @@ void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
             *(void ***)model = __vt__12CObjectFrame;
             model->Initialize();
             *(void ***)model = __vt__11CCharacter2;
-            model->shadow_link_num = 0;
-            model->shadow_link_shadow = 0;
-            model->shadow_link_model = 0;
+            model->shadow_link.num = 0;
+            model->shadow_link.dst_frame = 0;
+            model->shadow_link.src_frame = 0;
             model->Initialize();
         }
         dest.chara = (CCharacter2 *)model;
@@ -366,41 +362,54 @@ CIMGList *CMdsListSet::SearchIMGList(char *name) {
     }
     return NULL;
 }
-#ifdef NONMATCHING
+static inline u_char IsImgGroup(int group) {
+    return group >= 0 && group < MG_TEXTURE_IMG_GROUP_MAX;
+}
+static inline int GetImgBlock(mgCEnterIMGInfo *info, int group) {
+    if (IsImgGroup(group) != 0) {
+        return info->block[group];
+    }
+    return -1;
+}
+static inline int GetImgBlockNum(mgCEnterIMGInfo *info, int group) {
+    if (IsImgGroup(group) != 0) {
+        return info->block_num[group];
+    }
+    return 0;
+}
 int CMdsListSet::GetTextureBlockNo(int group, int *out_block, int max) {
-    mgCEnterIMGInfo *info;
-    int              count;
-    int              first_block;
-    int              block_count;
-    int              i;
-    int              block;
+    int count = 0;
+    int i;
 
-    count = 0;
     for (i = 0; i < img_list_num; i++) {
-        if (img_list[i].name != NULL) {
-            info = img_list[i].info;
-            if (info != NULL) {
-                first_block = -1;
-                if (group >= 0 && group < MG_TEXTURE_IMG_GROUP_MAX) {
-                    first_block = info->block[group];
+        mgCEnterIMGInfo *info;
+        int first_block;
+        int block_count;
+        int block;
+
+        if ((u_char)(!img_list[i].name) != 0) {
+            continue;
+        }
+        info = img_list[i].info;
+        if (info == NULL) {
+            continue;
+        }
+        first_block = GetImgBlock(info, group);
+        if (first_block < 0) {
+            continue;
+        }
+        block_count = GetImgBlockNum(info, group);
+        if (block_count > 0) {
+            for (block = 0; block < block_count; block++) {
+                if (count >= max) {
+                    break;
                 }
-                if (first_block >= 0) {
-                    block_count = 0;
-                    if (group >= 0 && group < MG_TEXTURE_IMG_GROUP_MAX) {
-                        block_count = info->block_num[group];
-                    }
-                    for (block = 0; block < block_count && count < max; block++) {
-                        out_block[count++] = first_block + block;
-                    }
-                }
+                out_block[count++] = first_block + block;
             }
         }
     }
     return count;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", GetTextureBlockNo__11CMdsListSetFiPii);
-#endif
 void CMdsListSet::Initialize() {
     int i;
     int j;
@@ -631,9 +640,9 @@ CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory) {
         *(void ***)chara = __vt__12CObjectFrame;
         chara->Initialize();
         *(void ***)chara = __vt__11CCharacter2;
-        chara->shadow_link_num = 0;
-        chara->shadow_link_shadow = 0;
-        chara->shadow_link_model = 0;
+        chara->shadow_link.num = 0;
+        chara->shadow_link.dst_frame = 0;
+        chara->shadow_link.src_frame = 0;
         chara->Initialize();
     }
     if (chara == NULL) {

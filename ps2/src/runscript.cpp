@@ -146,7 +146,6 @@ RS_STACKDATA CRunScript::pop() {
     sp = top;
     return *top;
 }
-#ifdef NONMATCHING
 vmcode_t *CRunScript::call_func(funcdata *callee, vmcode_t *return_pc) {
     if (call_sp >= call_end) {
         printf("\202\261\202\352\210\310\217\343\212\326\220\224\214\304\202\321\217\157\202\265"
@@ -165,9 +164,6 @@ vmcode_t *CRunScript::call_func(funcdata *callee, vmcode_t *return_pc) {
     check_stack();
     return (vmcode_t *) (code + (int) callee->addr);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript", call_func__10CRunScriptFP8funcdataP8vmcode_t);
-#endif
 vmcode_t *CRunScript::ret_func() {
     call_sp--;
     frame = call_sp->frame;
@@ -220,7 +216,6 @@ void CRunScript::resume() {
         exe(point);
     }
 }
-#ifdef NONMATCHING
 int CRunScript::run(int no) {
     RS_PROGDATA    *entry;
     int             i;
@@ -263,29 +258,20 @@ int CRunScript::run(int no) {
     skip_wait = 0;
     skip_end_count = 0;
     exe(start);
-    return !end;
-}
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/runscript", run__10CRunScriptFi);
-#endif
-extern "C" int check_program__10CRunScriptFi(CRunScript *self, int no) {
-    int count;
-    int offset;
-    int i = 0;
-    self = (CRunScript *)self->prog;
-    offset = ((RS_PROG_HEADER *)self)->prog;
-    int *entry = (int *)((u8 *)self + offset);
-    count = ((RS_PROG_HEADER *)self)->prog_num;
-    goto test;
-next:
-    if (*entry == no) {
-        return 1;
+    if (end != 0) {
+        return 0;
     }
-    i++;
-    entry += 2;
-test:
-    if (i < count) {
-        goto next;
+    return 1;
+}
+int CRunScript::check_program(int no) {
+    RS_PROG_HEADER *header = prog;
+    RS_PROGDATA    *entry = (RS_PROGDATA *)((char *)header + header->prog);
+    int             i;
+
+    for (i = 0; i < header->prog_num; i++, entry++) {
+        if (entry->no == no) {
+            return 1;
+        }
     }
     return 0;
 }

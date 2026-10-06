@@ -949,20 +949,11 @@ int __EFFECT_END(SPI_STACK *args, int arg_count) {
     g_tmp_effc = NULL;
     return 1;
 }
-#ifdef NONMATCHING
-
 static int __WAIT_FRAME(SPI_STACK *stack, int argument_count) {
-    SPI_STACK *next;
-    int        index;
-
-    next = stack + 1;
-    index = spiGetStackInt(stack);
-    g_tmp_effm->wait_frame[index] = spiGetStackInt(next);
+    int index = spiGetStackInt(stack++);
+    g_tmp_effm->wait_frame[index] = spiGetStackInt(stack);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effect", __WAIT_FRAME__FP9SPI_STACKi);
-#endif
 int __IMG_NAME(SPI_STACK *args, int arg_count) {
     strcpy(g_tmp_effm->img_name, spiGetStackString(args));
     return 1;

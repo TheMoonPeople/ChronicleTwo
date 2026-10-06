@@ -40,7 +40,7 @@ struct DNG_DEBUG_INFO {
     s16   cursor;           /**< Line of the menu that the cursor is on, a DNG_DEBUG_COMMAND. */
     s16   command;          /**< Command that the dungeon runs after the menu closes, or -1 for none. */
     s16   event_no;         /**< Event script that the dungeon runs for DNG_DEBUG_CMD_RUN_EVENT. */
-    s32   saved_battle_area_unk_8; /**< Value of the battle area scene's field at 0x8 from before the menu opened. */
+    s32   saved_pause_flag; /**< Battle area pause_flag from before the menu opened. */
     s32   first_enemy_load; /**< Non-zero until the menu has loaded one enemy, which clears the monster heap first. */
     s32   sound_flag;       /**< Zero to keep the dungeon music and battle sounds stopped. */
     s32   monster_talk;     /**< Monster talk setting. */

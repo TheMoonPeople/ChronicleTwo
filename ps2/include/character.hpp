@@ -231,6 +231,49 @@ struct CHARA_ENTRY_EFFECT {
 STATIC_ASSERT(sizeof(CHARA_ENTRY_EFFECT) == 0xC);
 
 /**
+ * Index of each frame of one model that matches a frame of another model,
+ * pairing the frames that are posed together.
+ */
+class CCharaFrameMatching {
+public:
+    s32  num;       /**< Number of entries in src_frame and dst_frame. */
+    s32 *src_frame; /**< Index of each frame of the first model. */
+    s32 *dst_frame; /**< Index of the frame of the second model that matches each entry of src_frame. */
+
+    CCharaFrameMatching() {}
+
+    /**
+     * Empties the matching.
+     *
+     * @mangled Initialize__19CCharaFrameMatchingFv
+     * @address 0x1FF8A0
+     * @size 0x10
+     */
+    void Initialize() {
+        num = 0;
+        dst_frame = 0;
+        src_frame = 0;
+    }
+};
+
+STATIC_ASSERT(sizeof(CCharaFrameMatching) == 0xC);
+
+struct CHARA_SOUND_INFO {
+    u32          foot_se_bank;       /**< Sound bank of the footstep sounds. */
+    s32          foot_sound_id;      /**< Footstep set of the ground; below zero for none. */
+    s32          foot_sound_enable;  /**< Nonzero while the feet play sounds. */
+    u32          se_bank;            /**< Sound bank of the character's sounds. */
+    u32          se_bank_2;          /**< Second sound bank of the character's sounds. */
+    s32          se_positional;      /**< Nonzero to take the volume and pan of the sounds from the character's position. */
+    float        se_volume;          /**< Volume that the sounds play at. */
+    float        se_pan;             /**< Pan that the sounds play at. */
+    s32          foot_effect_wait;   /**< Steps left in which a foot touched the ground. */
+    CLoopSeMngr *loop_se;            /**< Manager of the sounds that loop over a range of frames. */
+};
+
+STATIC_ASSERT(sizeof(CHARA_SOUND_INFO) == 0x28);
+
+/**
  * One level of detail of a character: the model drawn beyond a distance.
  */
 class CCharaLOD {
@@ -266,7 +309,8 @@ public:
     sceVu0FMATRIX         entry_matrix;                                 /**< Matrix of the first entry frame as of the last step, used to reset the cloth after a jump. */
     char                  name[0x10];                                   /**< Name that scripts find the character by. */
     float                 alpha;                                        /**< Alpha that the character draws with. */
-    s32                   poly_num[2];                                  /**< Polygon counts that the info file gives. */
+    s32                   poly_num;                                     /**< Polygon count of the model that the info file gives. */
+    s32                   shadow_poly_num;                              /**< Polygon count of the shadow that the info file gives. */
     float                 body_width;                                   /**< Width of the body. */
     float                 body_height;                                  /**< Height of the body, used for framing and scaling. */
 
@@ -299,9 +343,7 @@ public:
     CCharaLOD            *lod;                                          /**< Levels of detail of the character. */
     s32                   lod_no;                                       /**< Level of detail drawn; below zero before the first change. */
     s32                   motion_enable;                                /**< Nonzero while the character's motion plays. */
-    s32                   shadow_link_num;                              /**< Number of entries in shadow_link_model and shadow_link_shadow. */
-    s32                  *shadow_link_model;                            /**< Index of each frame of the model that poses a frame of the shadow. */
-    s32                  *shadow_link_shadow;                           /**< Index of each frame of the shadow that a frame of the model poses. */
+    CCharaFrameMatching   shadow_link;                                  /**< Frames of the model that pose the frames of the shadow. */
     CHRINFO_KEY_SET      *next_key;                                     /**< Motion set to play from the next step. */
     s32                   next_flags;                                   /**< Playback flags of next_key. @see CharaMotionFlag. */
     s32                   next_set;                                     /**< Motion set of next_key. */
@@ -334,16 +376,7 @@ public:
     s32                   key_num[CHARA_MOTION_SET_MAX];                /**< Number of motions of each motion set, counting the one that ends the list. */
     CHRINFO_SEQ_HEADER   *seq_list[CHARA_MOTION_SET_MAX];               /**< Motion sequences of each motion set. */
     CSWordAfterEffect    *sword_effect[CHARA_SWORD_EFFECT_MAX];         /**< Sword trails that the character draws. */
-    u32                   foot_se_bank;                                 /**< Sound bank of the footstep sounds. */
-    s32                   foot_sound_id;                                /**< Footstep set of the ground; below zero for none. */
-    s32                   foot_sound_enable;                            /**< Nonzero while the feet play sounds. */
-    u32                   se_bank;                                      /**< Sound bank of the character's sounds. */
-    u32                   se_bank_2;                                    /**< Second sound bank of the character's sounds. */
-    s32                   se_positional;                                /**< Nonzero to take the volume and pan of the sounds from the character's position. */
-    float                 se_volume;                                    /**< Volume that the sounds play at. */
-    float                 se_pan;                                       /**< Pan that the sounds play at. */
-    s32                   foot_effect_wait;                             /**< Steps left in which a foot touched the ground. */
-    CLoopSeMngr          *loop_se;                                      /**< Manager of the sounds that loop over a range of frames. */
+    CHARA_SOUND_INFO      sound_info;                                   /**< Sound banks and settings that linked characters share. */
     CHRINFO_SE           *se_list[CHARA_MOTION_SET_MAX];                /**< Motion sounds of each motion set. */
     s32                   se_num[CHARA_MOTION_SET_MAX];                 /**< Number of entries of each se_list. */
     s32                   effect_image_load;                            /**< Nonzero to enter the IMG archives that the effects name. */
@@ -360,9 +393,7 @@ public:
      * @size 0xA0
      */
     CCharacter2() {
-        shadow_link_num = 0;
-        shadow_link_shadow = 0;
-        shadow_link_model = 0;
+        shadow_link.Initialize();
         Initialize();
     }
 

@@ -43,6 +43,15 @@ public:
 
     /**
      *
+     * Empties the manager.
+     *
+     */
+    CEditInfoMngr() {
+        Initialize();
+    }
+
+    /**
+     *
      * Empties the manager of all its tables.
      *
      * @mangled Initialize__13CEditInfoMngrFv

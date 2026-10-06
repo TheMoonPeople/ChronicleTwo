@@ -49,7 +49,35 @@ void InitVector(float *vector) {
     vector[2] = 0.0f;
     vector[3] = 1.0f;
 }
+#ifdef NONMATCHING
+float RandXYinViewArea(float min_dist, float max_dist, float view_angle, float *x, float *z) {
+    float position[4];
+    float reference[4];
+    float direction[4];
+    float heading;
+    float distance;
+    CScene *scene = GetMainScene();
+    mgCCamera *camera = scene->GetCamera(scene->active_camera);
+
+    camera->GetPos(position);
+    camera->GetRef(reference);
+    sceVu0SubVector(direction, reference, position);
+    heading = atan2f(direction[0], direction[2]);
+    heading += f_rand(view_angle / -2.0f, view_angle / 2.0f);
+    distance = f_rand(min_dist, max_dist);
+    *x = distance * sinf(heading);
+    *z = distance * cosf(heading);
+    *x += position[0];
+    *z += position[2];
+    float pitch = -1.0f * camera->GetAngleV();
+    pitch += 0.7853982f;
+    float height = distance * atanf(pitch);
+    height += position[1];
+    return height;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", RandXYinViewArea__FfffPfPf);
+#endif
 int CRipple::Birth(float *position) {
     if (active != 0) {
         return 0;
@@ -203,7 +231,50 @@ int CParticle::Step(void) {
     pos[2] += speed[2];
     return 1;
 }
+#ifdef NONMATCHING
+void CParticle::Draw(void) {
+    if (active != 0) {
+        mgCDrawPrim prim;
+        float camera_pos[4];
+        int vertex[4];
+
+        prim.Initialize(0, 0);
+        prim.AlphaBlendEnable(1);
+        prim.AlphaBlend(1);
+        prim.AlphaTestEnable(1);
+        prim.AlphaTest(1, 0);
+        prim.DepthTestEnable(0);
+        prim.ZMask(-1);
+        prim.Bilinear(0);
+        prim.TextureMapEnable(0);
+        prim.Coord(1);
+        prim.Shading(1);
+        prim.DepthTestEnable(1);
+        prim.DepthTest(1);
+        prim.AlphaBlend(2);
+        prim.AntiAliasing(1);
+        prim.Begin(0);
+        CScene *scene = GetMainScene();
+        mgCCamera *camera = scene->GetCamera(scene->active_camera);
+        if (camera != NULL) {
+            camera->GetPos(camera_pos);
+            float dx = pos[0] - camera_pos[0];
+            float dz = pos[2] - camera_pos[2];
+            float distance = sqrtf(dx * dx + dz * dz);
+            float alpha = 128.0f + -0.42666668f * distance;
+            if (!(alpha <= 0.0f)) {
+                prim.Color(128, 128, 128, fptosi(alpha));
+                if (mgTransWorldPrim(vertex, pos) != 0) {
+                    prim.Vertex4(vertex);
+                }
+                prim.End();
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", Draw__9CParticleFv);
+#endif
 void CParticle::Init(void) {
     active = 0;
     InitVector(pos);
@@ -342,8 +413,96 @@ void CRain::ParticleBirth(float *position, int from_character) {
 void CRain::Stop(void) {
     active = 0;
 }
+#ifdef NONMATCHING
+void CRain::Start() {
+    int i;
+    float position[4];
+
+    active = 1;
+    for (i = 0; i < RAIN_DROP_NUM; i++) {
+        drop[i].Birth(RAIN_DROP_NEAR);
+    }
+    for (i = 0; i < RAIN_FAR_DROP_NUM; i++) {
+        far_drop[i].Birth(RAIN_DROP_FAR);
+    }
+    for (i = 0; i < RAIN_RIPPLE_NUM; i++) {
+        ripple[i].active = 0;
+        RandXYinViewArea(110.0f, 600.0f, 0.7853982f, &position[0], &position[2]);
+        position[1] = 1.0f;
+        position[3] = 1.0f;
+        ripple[i].Birth(position);
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", Start__5CRainFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", Step__5CRainFv);
+#endif
+void CRain::Step() {
+    int i;
+    float landing[4];
+    float hand_pos[4];
+    float velocity[4];
+    float splash_pos[4];
+
+    if (active == 0) {
+        return;
+    }
+    for (i = 0; i < RAIN_DROP_NUM; i++) {
+        if (drop[i].Step() == -1) {
+            sceVu0CopyVector(landing, drop[i].pos[0]);
+            landing[1] = 0.0f;
+            landing[3] = 1.0f;
+        } else if (drop[i].Step() == -2) {
+            drop[i].active = 0;
+            drop[i].Birth(RAIN_DROP_NEAR);
+        }
+    }
+    for (i = 0; i < RAIN_FAR_DROP_NUM; i++) {
+        if (far_drop[i].Step() == -1) {
+            far_drop[i].active = 0;
+            far_drop[i].Birth(RAIN_DROP_FAR);
+        }
+    }
+    for (i = 0; i < RAIN_PARTICLE_NUM; i++) {
+        if (particle[i].Step() == -1) {
+            CCharacter2 *chara = GetMainScene()->GetCharacter(chara_no);
+            if (chara == NULL) {
+                break;
+            }
+            mgCFrame *chara_frame = chara->GetFrame();
+            if (chara_frame == NULL) {
+                break;
+            }
+            mgCFrame *frame = chara_frame->SearchFrame(at_1117);
+            if (frame == NULL) {
+                break;
+            }
+            frame->GetWorldPosition0(hand_pos);
+            float yaw = f_rand(-3.1415927f, 3.1415927f);
+            float pitch = f_rand(0.0f, 1.5707964f);
+            velocity[1] = 4.0f * sinf(pitch);
+            float radius = 4.0f * cosf(pitch);
+            velocity[0] = radius * cosf(yaw);
+            velocity[2] = radius * sinf(yaw);
+            velocity[0] += hand_pos[0];
+            velocity[1] += hand_pos[1];
+            velocity[2] += hand_pos[2];
+            velocity[3] = 1.0f;
+            ParticleBirth(velocity, 1);
+        }
+    }
+    for (i = 0; i < RAIN_RIPPLE_NUM; i++) {
+        if (ripple[i].Step() == -1) {
+            ripple[i].active = 0;
+            RandXYinViewArea(110.0f, 600.0f, 0.7853982f, &splash_pos[0], &splash_pos[2]);
+            splash_pos[1] = 5.0f;
+            splash_pos[3] = 1.0f;
+            ripple[i].Birth(splash_pos);
+            ParticleBirth(splash_pos, 0);
+            ParticleBirth(splash_pos, 0);
+            ParticleBirth(splash_pos, 0);
+        }
+    }
+}
 void CRain::Init(void) {
     int i;
     active = 0;
@@ -694,7 +853,30 @@ void CScene::ClearStack(int index) {
         offset += 4;
     }
 }
+#ifdef NONMATCHING
+void CScene::AssignStack(int index) {
+    mgCMemory *memory;
+
+    if (index >= 2 && stack[index] != NULL) {
+        if (stack[index - 1] == NULL) {
+            return;
+        }
+        if (stack[index - 1]->stack_size <= 0) {
+            AssignStack(index - 1);
+        }
+        stack[index - 1]->Align64();
+        stack[index - 1]->lock = 1;
+        stack[index]->stSetBuffer(stack[index - 1]->stack + stack[index - 1]->stack_used,
+                                  stack[index - 1]->stack_size - stack[index - 1]->stack_used);
+        memory = stack[index];
+        memory->stack_used = 0;
+        memory->lock = 0;
+        stack_no = index;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", AssignStack__6CSceneFi);
+#endif
 CSceneCharacter *CScene::GetSceneCharacter(int index) {
     if (index < 0 || index >= chara_num) {
         return NULL;

@@ -238,7 +238,19 @@ void CFont::SetStr(char *text) {
     }
     strcpy(this->str, text);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/font", GetGaijiFontNo__FPc);
+static inline int GetTagLen(FCONV_CODE *table, int no) {
+    return table[no].len;
+}
+u16 GetGaijiFontNo(char *text) {
+    int i;
+    for (i = 0; i < FCONV_CODE_NUM; i++) {
+        int len = GetTagLen(FconvCodeTbl, i);
+        if (strncmp(text, FconvCodeTbl[i].str, len) == 0) {
+            return FconvCodeTbl[i].code;
+        }
+    }
+    return 0;
+}
 int GetGaijiLen(u16 code) {
     int found = -1;
     int i;
@@ -303,7 +315,19 @@ u16 GetAlphabeticalFontNo_cp(char *text) {
     }
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/font", GetFontGaijiFontNo__FPc);
+u16 GetFontGaijiFontNo(char *text) {
+    int i;
+    if (LanguageCode == 1) {
+        return 0;
+    }
+    for (i = 0; i < FONT_GAIJI_CONV_NUM; i++) {
+        int len = GetTagLen(FontGaijiConvTbl, i);
+        if (strncmp(text, FontGaijiConvTbl[i].str, len) == 0) {
+            return FontGaijiConvTbl[i].code;
+        }
+    }
+    return 0;
+}
 u16 GetAlphabeticalFontNo_us(u16 code) {
     HankakuKanaWideTable table = at_1120;
     int i;
@@ -337,7 +361,49 @@ int GetFontGaijiHankaku(u16 code) {
     }
     return 0;
 }
+#ifdef NONMATCHING
+static inline u16 GetYoyakuCode(u8 *table, int no) {
+    u8 *pair = &table[no * 2];
+    return pair[1] + (pair[0] << 8);
+}
+int GetFontNo(char *text) {
+    if (text[0] == '\n') {
+        return FONT_NO_NEWLINE;
+    }
+    int gaiji = (u16)GetFontGaijiFontNo(text);
+    if (gaiji != 0) {
+        return (u16)gaiji;
+    }
+    u8 *table = GetYoyakuTblTop();
+    u16 code = (u8)text[1] + ((u8)text[0] << 8);
+    int low = 0;
+    int high = GetYoyakuTblNum() - 1;
+    u16 first = table[1] + (table[0] << 8);
+    if (first == code) {
+        return 0;
+    }
+    u16 end = GetYoyakuCode(table, high);
+    if (end == code) {
+        return high;
+    }
+    while (1) {
+        int mid = (low + high) / 2;
+        u16 entry = GetYoyakuCode(table, mid);
+        if (code < entry) {
+            high = mid;
+        } else if (entry < code) {
+            low = mid;
+        } else {
+            return mid;
+        }
+        if (high == low + 1) {
+            return -1;
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/font", GetFontNo__FPc);
+#endif
 extern "C" int GetHalfFontNo__Fc(int ch) {
     char buf[8];
     u16 no = GetAlphabeticalFontNo_uc(ch & 0xFF);

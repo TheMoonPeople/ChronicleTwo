@@ -40,6 +40,17 @@ enum WMAP_POS_TYPE {
 
 /**
  *
+ * States of the world map menu, as CBaseMenuClass::mode holds them.
+ *
+ */
+enum WORLD_MAP_MODE {
+    WORLD_MAP_MODE_RUN = 0,   /**< Takes input for the current step. */
+    WORLD_MAP_MODE_OPEN = 1,  /**< Waits for the map files, then loads the map and fades in. */
+    WORLD_MAP_MODE_CLOSE = 2, /**< Fades out, then hands back the result. */
+};
+
+/**
+ *
  * Steps of the world map menu while it is open, as CBaseMenuClass::step holds them.
  *
  */
@@ -91,7 +102,7 @@ struct WMAP_POS_DATA {
     s16 area_no;    /**< Area of the world map the place belongs to. */
     s16 dng_no;     /**< Dungeon the place leads to when loop_no is LOOP_DUNGEON. */
     s8 floor;       /**< Dungeon floor to start on, or negative to choose one on the dungeon's tree map. */
-    u8 enable;      /**< Non-zero once the place can be travelled to. */
+    s8 enable;      /**< Non-zero once the place can be travelled to. */
     s16 flag_no;    /**< Event flag that makes the place reachable. */
     s8 type;        /**< Kind of place, which picks its icon. @see WMAP_POS_TYPE */
     u8 unk_13;

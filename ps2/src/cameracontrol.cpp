@@ -20,6 +20,7 @@ union camera_control_vector {
 
 extern "C" camera_control_vector at_373__3;
 extern "C" u_char at_396__3[];
+extern "C" CameraCtrlParam &__as__15CameraCtrlParamFRC15CameraCtrlParam(CameraCtrlParam *dest, const CameraCtrlParam *src);
 
 // Code (.text)
 void CameraCtrlParam::SetFixHeight(float height) {
@@ -34,7 +35,31 @@ void CameraCtrlParam::SetFixDist(float distance) {
     max_dist = distance;
     min_dist = distance;
 }
+#ifdef NONMATCHING
+CCameraControl::CCameraControl() : mgCCameraFollow(40.0f, 30.0f, 0.0f, 8.0f) {
+    mgCCameraFollow(40.0f, 30.0f, 0.0f, 8.0f);
+    active_param = 0;
+    control_on = 0;
+    CameraCtrlParam *p = GetActiveParam();
+    p->min_dist = 100.0f;
+    p->max_dist = 160.0f;
+    p->near_height = 18.0f;
+    p->far_height = 10.0f;
+    p->max_height = 40.0f;
+    p->min_height = -15.0f;
+    p->rest_max_height = 20.0f;
+    p->rest_min_height = -15.0f;
+    p->height = -15.0f;
+    p->ground_space = 25.0f;
+    check_ref_on = 0;
+    p->no_check = 0;
+    rot_reverse = 0;
+    InitStatus();
+    __as__15CameraCtrlParamFRC15CameraCtrlParam(&default_param, GetActiveParam());
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/cameracontrol", __ct__14CCameraControlFv);
+#endif
 CameraCtrlParam *CCameraControl::GetActiveParam(void) {
     return &param[active_param];
 }

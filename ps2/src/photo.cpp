@@ -21,7 +21,7 @@ extern int ShowLevelUpCnt;
 extern int ShowTakePhotoCnt;
 extern int ShutterAnmCnt;
 extern u32 TakePhotoMode;
-extern CFont Font__3;
+static CFont Font__3;
 extern char *null_txt;
 extern char at_852__6[];
 extern mgCTexture *WorkTex;
@@ -43,7 +43,7 @@ float PhotoAddProjection() {
     }
     return 0.0f;
 }
-void InitPhotoTitle() {
+static void InitPhotoTitle() {
     ShowTitleCnt = 0;
     PhotoTitle[0] = 0;
 }
@@ -122,7 +122,19 @@ void LoopTakePhoto(CPadControl *pad, CInventUserData *user_data) {
     }
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/photo", DrawTakePhoto__FP17USER_PICTURE_INFOPf);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/photo", SetTookPhotoData__FP17USER_PICTURE_INFO);
+void SetTookPhotoData(USER_PICTURE_INFO *photo) {
+    InitPhotoTitle();
+    char *name = GetPhotoNameCheck(photo);
+    if (name != NULL) {
+        ShowTitleCnt = 90;
+        strcpy(PhotoTitle, name);
+        CInventUserData *invent = GetSaveData()->GetUserDataManager()->GetInventUserData();
+        invent->AddShutterNum(1);
+        if (invent->LevelCheck(photo) != 0) {
+            ShowLevelUpCnt = 60;
+        }
+    }
+}
 void DrawTakePhotoSystem(int texture, CInventUserData *user_data) {
     char title[0x100];
     char count_text[0x28];
@@ -175,9 +187,6 @@ void DrawTakePhotoSystem(int texture, CInventUserData *user_data) {
     Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
 }
 
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/photo", __sinit_photo_cpp);
-
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", mes_txt__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_936__6__DATA);
@@ -212,9 +221,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_852__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_997__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_1055__DATA);
 
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", D_0037B088__DATA);
-
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", null_txt__DATA);
 
@@ -230,5 +236,4 @@ INCLUDE_BSS(ShowTitleCnt, 0x4);
 INCLUDE_BSS(ShowLevelUpCnt, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(Font__3, 0xC0);
 INCLUDE_BSS(PhotoTitle, 0x80);

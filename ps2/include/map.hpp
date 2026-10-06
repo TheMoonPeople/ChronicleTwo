@@ -121,6 +121,8 @@ STATIC_ASSERT(sizeof(CList<CMapParts *>) == 0x10);
  */
 class CPartsGroup {
 public:
+    CPartsGroup() { Initialize(); }
+
     char *name;                   /**< Name the group is looked up by, or NULL when the slot is free. */
     s32 off;                      /**< Hides the group's parts while nonzero. */
     s32 camera_off;               /**< Hides the group's parts for the frame a fixed camera asks it to. */
@@ -155,6 +157,12 @@ STATIC_ASSERT(sizeof(CPartsGroup) == 0x10);
  *
  */
 struct MapDrawOffRect {
+    MapDrawOffRect() {
+        outside = 0;
+        used = 0;
+        parts = NULL;
+    }
+
     mgVu0FBOX area;               /**< Box that the viewpoint is tested against. */
     s32 used;                     /**< Nonzero once the slot holds an area. */
     s32 outside;                  /**< Hides the parts while the viewpoint is outside the area instead of inside. */

@@ -77,8 +77,6 @@ extern "C" int fptosi(float value);
 #include <cstdio>
 #include <cstdlib>
 
-extern CGamePad GamePad__2;
-extern CFont dbFont;
 extern int command_int[];
 extern char *command_str[];
 
@@ -108,99 +106,69 @@ void dngDebugInit() {
     dbFont.Init();
     dbFont.SetClearance(20, 20);
 }
-#ifdef NONMATCHING
 void dngDebugStart() {
     dbinfo.active = 1;
     dbinfo.command = -1;
     dbinfo.first_enemy_load = 1;
     command_int[DNG_DEBUG_CMD_DEBUG_CAMERA * 2] = DebugInfo.debug_camera;
     command_int[DNG_DEBUG_CMD_CHARA_MOVE * 2] = DebugInfo.chara_move;
-    command_int[DNG_DEBUG_CMD_LOCK_ON_MODE * 2] = BattleAreaScene->unk_9e;
+    command_int[DNG_DEBUG_CMD_LOCK_ON_MODE * 2] = BattleAreaScene->lock_on_mode;
     command_int[DNG_DEBUG_CMD_SOUND_FLAG * 2] = dbinfo.sound_flag;
     command_int[DNG_DEBUG_CMD_MONSTER_TALK * 2] = dbinfo.monster_talk;
     command_int[DNG_DEBUG_CMD_EFFECT_ID * 2] = dbinfo.effect_id;
     command_int[DNG_DEBUG_CMD_EFFECT_VOL * 2] = (int)dbinfo.effect_vol;
     GamePad__2.SetAutoRepeat(0xF000, 15, 4);
     GamePad__2.SetAutoRepeat(PAD_UP | PAD_DOWN, 8, 1);
-    dbinfo.saved_battle_area_unk_8 = BattleAreaScene->pause_flag;
+    dbinfo.saved_pause_flag = BattleAreaScene->pause_flag;
     BattleAreaScene->pause_flag = 15;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_debug", dngDebugStart__Fv);
-#endif
 void dngDebugDraw(void) {
-    u8 sprite_storage[0x130];
+    union { CPreSprite sprite; };
     char text[0x800];
     char *cursor;
     int i;
-    int string_offset;
-    int value_offset;
     if (dbinfo.active != 0) {
         (mgTexManager).ReloadTexture(0x6C, (sceVif1Packet *)NULL);
 
-        __ct__11mgCDrawPrimFv((CPreSprite *)sprite_storage);
-    ((CPreSprite *)sprite_storage)->Initialize(0, 0);
-        ((CPreSprite *)sprite_storage)->Preset2D();
-        ((CPreSprite *)sprite_storage)->TextureMapEnable(0);
-        ((CPreSprite *)sprite_storage)->Begin(6);
-        ((CPreSprite *)sprite_storage)->Color(0x10, 0x10, 0x10, 0x48);
-        ((CPreSprite *)sprite_storage)->Vertex(0xE, 0x46, 0);
-        ((CPreSprite *)sprite_storage)->Vertex(0x104, 0x14C, 0);
-        ((CPreSprite *)sprite_storage)->End();
+        __ct__11mgCDrawPrimFv(&sprite);
+        sprite.Initialize(0, 0);
+        sprite.Preset2D();
+        sprite.TextureMapEnable(0);
+        sprite.Begin(6);
+        sprite.Color(0x10, 0x10, 0x10, 0x48);
+        sprite.Vertex(0xE, 0x46, 0);
+        sprite.Vertex(0x104, 0x14C, 0);
+        sprite.End();
         cursor = text;
         cursor += sprintf(cursor, at_968);
-        i = 0;
-        string_offset = 0;
-        value_offset = 0;
-        while (*(char **)((u8 *)command_str + string_offset) != 0) {
+        for (i = 0; command_str[i] != NULL; i++) {
             if (i == dbinfo.cursor) {
                 cursor += sprintf(cursor, at_969);
             } else {
                 cursor += sprintf(cursor, at_970);
             }
-            cursor += sprintf(cursor, *(char **)((u8 *)command_str + string_offset));
-            cursor += sprintf(cursor, at_971, *(int *)((u8 *)&command_int + value_offset));
-            string_offset += 4;
-            value_offset += 8;
-            i++;
+            cursor += sprintf(cursor, command_str[i]);
+            cursor += sprintf(cursor, at_971, command_int[i * 2]);
         }
         if (dbinfo.cursor == 1) {
             cursor += sprintf(cursor, at_972);
             int selected = command_int[2];
             int k = 0;
             int found = -1;
-            int entryOffset = 0;
-            while (*(s16 *)((u8 *)base_monster_define + entryOffset) != -1) {
-                if (selected == *(s16 *)((u8 *)base_monster_define + entryOffset)) {
-                    int byteOffset = k * 0xB8;
-                    cursor +=
-                        sprintf(cursor, at_973__2,
-                                *(s16 *)((u8 *)&base_monster_define[0].grade + byteOffset),
-                                (char *)((u8 *)base_monster_define + byteOffset) + 4);
+            for (; base_monster_define[k].id != -1; k++) {
+                if (selected == base_monster_define[k].id) {
+                    cursor += sprintf(cursor, at_973__2, base_monster_define[k].grade, base_monster_define[k].name);
                     found = k;
                     break;
                 }
-                entryOffset += 0xB8;
-                k++;
             }
             if (found == -1) {
                 sprintf(cursor, at_974__2, command_int[2]);
-            } else {
-                int foundOffset = found * 0xB8;
-                if (*(s16 *)((u8 *)&base_monster_define[0].grade + foundOffset) > 0) {
-                    int mOffset;
-                    int m;
-                    m = 0;
-                    mOffset = 0;
-                    while (*(s16 *)((u8 *)base_monster_define + mOffset) != -1) {
-                        if (*(s16 *)((u8 *)base_monster_define + mOffset + 0x44) ==
-                            *(s16 *)((u8 *)base_monster_define + foundOffset + 0x44)) {
-                            sprintf(cursor, at_975,
-                                    (char *)((u8 *)base_monster_define + m * 0xB8) + 4);
-                            break;
-                        }
-                        mOffset += 0xB8;
-                        m++;
+            } else if (base_monster_define[found].grade > 0) {
+                for (i = 0; base_monster_define[i].id != -1; i++) {
+                    if (base_monster_define[i].gift_type == base_monster_define[found].gift_type) {
+                        sprintf(cursor, at_975, base_monster_define[i].name);
+                        break;
                     }
                 }
             }
@@ -211,10 +179,10 @@ void dngDebugDraw(void) {
 static void dngDebugExit() {
     dbinfo.active = 0;
     GamePad__2.AutoRepeatOff();
-    BattleAreaScene->pause_flag = dbinfo.saved_battle_area_unk_8;
+    BattleAreaScene->pause_flag = dbinfo.saved_pause_flag;
     DebugInfo.debug_camera = command_int[DNG_DEBUG_CMD_DEBUG_CAMERA * 2];
     DebugInfo.chara_move = command_int[DNG_DEBUG_CMD_CHARA_MOVE * 2];
-    BattleAreaScene->unk_9e = command_int[DNG_DEBUG_CMD_LOCK_ON_MODE * 2];
+    BattleAreaScene->lock_on_mode = command_int[DNG_DEBUG_CMD_LOCK_ON_MODE * 2];
     dbinfo.sound_flag = command_int[DNG_DEBUG_CMD_SOUND_FLAG * 2];
     dbinfo.monster_talk = command_int[DNG_DEBUG_CMD_MONSTER_TALK * 2];
     dbinfo.effect_id = command_int[DNG_DEBUG_CMD_EFFECT_ID * 2];
@@ -368,7 +336,7 @@ void DrawSystemParamInfo(void) {
     dbFont.DrawDirect(text, 0x10, 0x118);
 }
 void DrawSystemParamInfo2(void) {
-    u8 sprite_storage[0x130];
+    CPreSprite sprite;
     char text[0x800];
     float position[4];
     float monster_position[4];
@@ -376,15 +344,14 @@ void DrawSystemParamInfo2(void) {
     float monster_width;
     char *cursor;
 
-    __ct__11mgCDrawPrimFv((CPreSprite *)sprite_storage);
-    ((CPreSprite *)sprite_storage)->Initialize(0, 0);
-    ((CPreSprite *)sprite_storage)->Preset2D();
-    ((CPreSprite *)sprite_storage)->TextureMapEnable(0);
-    ((CPreSprite *)sprite_storage)->Begin(6);
-    ((CPreSprite *)sprite_storage)->Color(0x10, 0x10, 0x10, 0x48);
-    ((CPreSprite *)sprite_storage)->Vertex(0xE, 0xB2, 0);
-    ((CPreSprite *)sprite_storage)->Vertex(0x144, 0x198, 0);
-    ((CPreSprite *)sprite_storage)->End();
+    sprite.Initialize(0, 0);
+    sprite.Preset2D();
+    sprite.TextureMapEnable(0);
+    sprite.Begin(6);
+    sprite.Color(0x10, 0x10, 0x10, 0x48);
+    sprite.Vertex(0xE, 0xB2, 0);
+    sprite.Vertex(0x144, 0x198, 0);
+    sprite.End();
     cursor = text;
     CActionChara *chara = (CActionChara *)DngMainScene->GetCharacter(0);
     ((CCharacter2 *)chara)->GetPosition(position);

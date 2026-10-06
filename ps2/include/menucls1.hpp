@@ -138,7 +138,7 @@ public:
      * @address 0x21F600
      * @size 0xB0
      */
-    char AddMsgCursor2(int min, int max, int loop);
+    int AddMsgCursor2(int min, int max, int loop);
 
     /**
      *
@@ -159,7 +159,7 @@ public:
      * @address 0x21F720
      * @size 0xD0
      */
-    char CommandMsgCursor();
+    int CommandMsgCursor();
 
     /**
      *
@@ -424,6 +424,13 @@ public:
 
     /**
      *
+     * Creates the animator with nothing being carried.
+     *
+     */
+    CMenuMoveItem() { Initialize(); }
+
+    /**
+     *
      * Clears both carried items and their forms.
      *
      * @mangled Initialize__13CMenuMoveItemFv
@@ -450,7 +457,7 @@ public:
      * @address 0x220450
      * @size 0x170
      */
-    char CheckMove();
+    int CheckMove();
 
     /**
      *

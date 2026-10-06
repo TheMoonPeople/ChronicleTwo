@@ -33,9 +33,6 @@ struct map_light_points {
 struct map_light_fog {
     u_long128 quad[3];
 };
-extern "C" void __ct__18CScriptInterpreterFv(void *);
-extern "C" CColFrame *__ct__9CColFrameFv(CColFrame *);
-extern "C" CCollision *__ct__10CCollisionFv(CCollision *);
 
 extern CFuncPoint * mapNowFuncPoint;
 extern int mapCameraInfoIdx;
@@ -728,7 +725,7 @@ int mapLOD_PIECE(SPI_STACK *stack, int argc) {
     if (piece != NULL) {
         if (resetFlag > 0) {
             piece->show = 0;
-            *(int *)&piece->fade_alpha = 0;
+            piece->fade_alpha = 0.0f;
         }
         if (parts->GetLODBlend() != 0) {
             piece->fade = 1;
@@ -1174,18 +1171,10 @@ int mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc) {
     if (name == NULL) {
         return 0;
     }
-    frame = (CColFrame *)operator new(sizeof(CColFrame),
-                                      (u_long128 *)mapStack->Alloc(algn16_size(sizeof(CColFrame)) + 2));
-    if (frame != NULL) {
-        frame = __ct__9CColFrameFv(frame);
-    }
+    frame = new (mapStack->Alloc(algn16_size(sizeof(CColFrame)) + 2)) CColFrame;
     collision = NULL;
     if (strcmp(name, at_1064) == 0) {
-        collision = (CCollision *)operator new(
-            sizeof(CCollision), (u_long128 *)mapStack->Alloc(algn16_size(sizeof(CCollision)) + 2));
-        if (collision != NULL) {
-            collision = __ct__10CCollisionFv(collision);
-        }
+        collision = new (mapStack->Alloc(algn16_size(sizeof(CCollision)) + 2)) CCollision;
         spiGetStackVector(collision->bbox.min, stack);
         collision->bbox.min[3] = 1.0f;
         spiGetStackVector(collision->bbox.max, stack + 3);
@@ -1218,7 +1207,6 @@ int mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc) {
     return 1;
 }
 #pragma inline_depth reset
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapload", __ct__10CCollisionFv);
 
 int mapFIX_CAMERA_END(SPI_STACK *stack, int argc) {
     if (IsAddMode() != 0) {
@@ -1327,12 +1315,12 @@ int mapFUNC_FIRE_DATA(SPI_STACK *stack, int argc) {
     }
     color[3] = 128.0f;
     *(u_long128 *)mapNowFuncPoint->fire.color = *(u_long128 *)color;
-    mapNowFuncPoint->fire.unk_30 = !(spiGetStackInt(stack++) != 0);
+    mapNowFuncPoint->fire.effect_off = !(spiGetStackInt(stack++) != 0);
     if (argc >= 5) {
-        mapNowFuncPoint->fire.unk_34 = spiGetStackInt(stack++);
+        mapNowFuncPoint->fire.heat_haze = spiGetStackInt(stack++);
     }
     if (argc >= 6) {
-        mapNowFuncPoint->fire.unk_38 = spiGetStackInt(stack);
+        mapNowFuncPoint->fire.cast_light = spiGetStackInt(stack);
     }
     return 1;
 }
@@ -1357,9 +1345,9 @@ int mapFUNC_PLIGHT_DATA(SPI_STACK *stack, int argc) {
     funcPoint->plight.range =
         0.25 * ((double)funcPoint->plight.power * sqrt((double)largest));
     *(u_long128 *)mapNowFuncPoint->plight.color = *(u_long128 *)color;
-    mapNowFuncPoint->plight.unk_38 = spiGetStackInt(stack++);
+    mapNowFuncPoint->plight.light_type = spiGetStackInt(stack++);
     if (argc >= 6) {
-        mapNowFuncPoint->plight.unk_3c = spiGetStackInt(stack++);
+        mapNowFuncPoint->plight.light_chara = spiGetStackInt(stack++);
     }
     if (argc >= 7) {
         mapNowFuncPoint->plight.unk_40 = spiGetStackInt(stack++);
@@ -1368,7 +1356,7 @@ int mapFUNC_PLIGHT_DATA(SPI_STACK *stack, int argc) {
         mapNowFuncPoint->plight.unk_44 = spiGetStackInt(stack++);
     }
     if (argc >= 9) {
-        mapNowFuncPoint->plight.unk_48 = spiGetStackInt(stack++);
+        mapNowFuncPoint->plight.no_map_light = spiGetStackInt(stack++);
     }
     if (argc >= 10) {
         mapNowFuncPoint->plight.flicker_type = spiGetStackInt(stack++);
@@ -1390,18 +1378,18 @@ int mapFUNC_ANIME_DATA(SPI_STACK *stack, int argc) {
     anime->parts_name = mgCopyString(spiGetStackString(stack++), mapStack);
     anime->piece_name = mgCopyString(spiGetStackString(stack++), mapStack);
     anime->frame_name = mgCopyString(spiGetStackString(stack++), mapStack);
-    anime->unk_2c = spiGetStackInt(stack++);
-    anime->unk_30 = spiGetStackInt(stack++);
+    anime->kind = spiGetStackInt(stack++);
+    anime->mode = spiGetStackInt(stack++);
     spiGetStackVector(anime->param, stack);
-    spiGetStackVector(anime->unk_50, stack + 3);
-    spiGetStackVector(anime->unk_60, stack + 6);
-    anime->unk_34 = 0;
+    spiGetStackVector(anime->speed, stack + 3);
+    spiGetStackVector(anime->end, stack + 6);
+    anime->uniform = 0;
     stack += 9;
     if (argc >= 15) {
-        anime->unk_34 = spiGetStackInt(stack++);
+        anime->uniform = spiGetStackInt(stack++);
     }
     if (argc >= 16) {
-        anime->unk_36 = spiGetStackInt(stack);
+        anime->piece_space = spiGetStackInt(stack);
     }
     return 1;
 }
@@ -1410,14 +1398,14 @@ int mapFUNC_INVENT_DATA(SPI_STACK *stack, int argc) {
     if (mapNowFuncPoint == 0) {
         return 0;
     }
-    invent->unk_20 = spiGetStackInt(stack++);
+    invent->neta_no = spiGetStackInt(stack++);
     spiGetStackVector(invent->box.min, stack);
     invent->box.min[3] = 1.0f;
     spiGetStackVector(invent->box.max, stack + 3);
     stack += 6;
     invent->box.max[3] = 1.0f;
     invent->unk_24 = spiGetStackInt(stack++);
-    invent->unk_28 = spiGetStackFloat(stack++);
+    invent->range = spiGetStackFloat(stack++);
     invent->angle = 3.1415927f * spiGetStackFloat(stack) / 180.0f;
     return 1;
 }
@@ -1634,8 +1622,6 @@ update:
 }
 #pragma inline_depth reset
 void CMap::LoadMapFile(char *script, int length, mgCMemory *memory, int addMode) {
-
-    u8 interpreter[0xED0];
     mapStack = memory;
     mapAddMode = addMode;
     mapMap = this;
@@ -1647,10 +1633,10 @@ void CMap::LoadMapFile(char *script, int length, mgCMemory *memory, int addMode)
     mapNowFuncPoint = 0;
     mapPtsFunc = 0;
     SetPieceLoadSkip(0);
-    __ct__18CScriptInterpreterFv(interpreter);
-    ((CScriptInterpreter *)interpreter)->SetTag(map_tag);
-    ((CScriptInterpreter *)interpreter)->SetScript(script, length);
-    ((CScriptInterpreter *)interpreter)->Run();
+    CScriptInterpreter interpreter;
+    interpreter.SetTag(map_tag);
+    interpreter.SetScript(script, length);
+    interpreter.Run();
 }
 void CMap::SetPieceLoadSkip(s32 skip) {
     piece_load_skip = skip;
@@ -1852,17 +1838,15 @@ int cfgWATER_DRAW(SPI_STACK *stack, int argc) {
     return 1;
 }
 void CMap::LoadCfgFile(char *script, int length, mgCMemory *memory) {
-
-    u8 interpreter[0xED0];
     mapMap = this;
     mapStack = memory;
     ReserveFuncFlag = 0;
     WaterIndex = 0;
     cfgWater = NULL;
-    __ct__18CScriptInterpreterFv(interpreter);
-    ((CScriptInterpreter *)interpreter)->SetTag(cfg_tag);
-    ((CScriptInterpreter *)interpreter)->SetScript(script, length);
-    ((CScriptInterpreter *)interpreter)->Run();
+    CScriptInterpreter interpreter;
+    interpreter.SetTag(cfg_tag);
+    interpreter.SetScript(script, length);
+    interpreter.Run();
 }
 
 // Initialised data (.data)

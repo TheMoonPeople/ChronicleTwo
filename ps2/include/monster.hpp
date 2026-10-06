@@ -215,6 +215,20 @@ STATIC_ASSERT(sizeof(MONSTER_STATUS) == 0xC);
 
 /**
  *
+ * How a monster reacts to one kind of attack, an entry of react_tbl; the table ends at kind -1.
+ *
+ */
+struct MONSTER_REACT {
+    s16 kind;  /**< DamageKind that the entry is for. */
+    s16 flag;  /**< Bits added to the battle area's unk_98 when a hit of this kind lands. */
+    s16 blow;  /**< Nonzero when a hit of this kind knocks the monster back. */
+    s16 pad;
+};
+
+STATIC_ASSERT(sizeof(MONSTER_REACT) == 0x8);
+
+/**
+ *
  * A monster out on the dungeon floor, run by its own script on top of an action character.
  *
  */
@@ -236,7 +250,7 @@ public:
     CMapParts        *link_parts;     /**< Map part that the monster is linked with; NULL for none. */
     CMapPiece        *link_piece;     /**< Piece of link_parts that the monster rides on; NULL for none. */
     s16              link_type;       /**< How the monster is linked with link_parts, a MONSTER_LINK value. */
-    s32              unk_1208;
+    s32              last_hit_kind;   /**< DamageKind of the hit that killed the monster. */
     s32              last_hit_chara;  /**< Battle character that dealt the killing hit, or -1. */
     s32              last_hit_source; /**< Kind of attacker that dealt the killing hit. */
     u32              last_hit_attr;   /**< Attribute bits of the hit that killed the monster. */
@@ -267,7 +281,7 @@ public:
     s16              gekirin_num;     /**< Hits that fill the monster's rage. */
     float            gekirin;         /**< Hits left before the monster is enraged; -1.0 for a boss. */
     s16              gekirin_time;    /**< Steps left of the monster's rage. */
-    s16              unk_1322;
+    u16              unk_1322;
     u16              whp;             /**< Wear that a melee hit on the monster does to the main character's weapon. */
     u16              defense;         /**< Defence that is taken off the attack power of a hit. */
     s32              reward_exp;      /**< Weapon experience scattered when the monster dies. */

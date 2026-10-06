@@ -1,11 +1,14 @@
 #include "common.h"
 #include "movie.hpp"
 #include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 #include <eekernel.h>
 #include <libdma.h>
 #include <libgraph.h>
+#include <libpkt.h>
 #include <libsdr.h>
 #include <sifdev.h>
 #include <sifdma.h>
@@ -65,6 +68,15 @@ extern u8 isStrFileInit;
 static int voBufIsFull(VoBuf *buf);
 
 extern "C" char *index(const char *, int);
+extern char at_584__2[];
+extern char at_318__2[];
+extern char at_319__2[];
+extern char at_320[];
+extern char at_321[];
+extern char at_322[];
+extern char at_323[];
+extern u_long128 at_1276__2;
+extern u_long128 at_1287__2;
 extern char at_810__3[];
 extern char at_1028__5[];
 extern char at_1029__4[];
@@ -82,8 +94,80 @@ extern char at_1110__2[];
 extern char at_1270__3[];
 
 // Code (.text)
+static inline void *DmaAddr(void *addr) {
+    return (void *)((u32)addr & 0xFFFFFFF);
+}
+static inline void *UncAddr(void *addr) {
+    return (void *)(((u32)addr & 0xFFFFFFF) | 0x20000000);
+}
+#ifdef NONMATCHING
+void CMovie::Load(char *name, mgCMemory **memory, int width, int height, bool with_audio, bool loop,
+                  bool init_sound) {
+    int i;
+    u8 *area;
+    int read_size;
+
+    isWithAudio = with_audio;
+    isStrFileInit = 0;
+    isStarted = 0;
+    is_playing = 0;
+    isCountVblank = 0;
+    isFrameEnd = 0;
+    MpegW = width;
+    MpegH = height;
+    Loop = loop;
+    Cb = 0;
+    vo_data = (VoData *)memory[0]->stAlloc64(GetVoBufDataSize() / 16);
+    vi_buf_data = memory[1]->stAlloc64(GetViBufDataSize() / 16);
+    vi_buf_tag = memory[2]->stAlloc64(GetViBufTagSize() / 16);
+    mpeg_work = (u_char *)memory[3]->stAlloc64(GetMpegWorkSize(MpegW, MpegH) / 16);
+    readBuf = (ReadBuf *)memory[4]->stAlloc64(GetReadBufSize() / 16);
+    for (i = 0; i < 2; i++) {
+        image_tag[0][i] = (u_int *)memory[5]->stAlloc64(GetTagProgSize(MpegW, MpegH) / 16);
+        image_tag[1][i] = (u_int *)memory[5]->stAlloc64(GetTagProgSize(MpegW, MpegH) / 16);
+    }
+    printf(at_318__2, GetVoBufDataSize() / 16);
+    printf(at_319__2, GetViBufDataSize() / 16);
+    printf(at_320, GetViBufTagSize() / 16);
+    printf(at_321, GetMpegWorkSize(MpegW, MpegH) / 16);
+    printf(at_322, GetReadBufSize() / 16);
+    printf(at_323, GetTagProgSize(MpegW, MpegH) / 16 * 2);
+    *(int *)0x1000E000 |= 3;
+    *(int *)0x1000E010 = 4;
+    readBufCreate(readBuf);
+    sceMpegInit();
+    videoDecCreate(&videoDec, mpeg_work, GetMpegWorkSize(MpegW, MpegH), vi_buf_data, vi_buf_tag,
+                   0x100, time_stamp, 0x200);
+    if (init_sound) {
+        sceSdRemoteInit();
+        sceSdRemote(1, 0x8000, 0);
+        sceSdRemote(1, 0x8070, 0xA, 0x80);
+    }
+    audioDecCreate(&audioDec, audio_buf, 0x18000, 0xC000);
+    videoDecSetStream(&videoDec, 0, 0, (int (*)(sceMpeg *, sceMpegCbData *, void *))videoCallback,
+                      readBuf);
+    if (isWithAudio) {
+        videoDecSetStream(&videoDec, 2, 0,
+                          (int (*)(sceMpeg *, sceMpegCbData *, void *))pcmCallback, readBuf);
+    }
+    vo_tag[0].v[0] = image_tag[0][0];
+    vo_tag[0].v[1] = image_tag[1][0];
+    vo_tag[1].v[0] = image_tag[0][1];
+    vo_tag[1].v[1] = image_tag[1][1];
+    voBufCreate(&voBuf, (VoData *)UncAddr(vo_data), vo_tag, 2);
+    while (strFileOpen(&infile, name) == 0) {
+    }
+    writerest = infile.size;
+    readrest = infile.size;
+    readBufBeginPut(readBuf, &area);
+    read_size = strFileRead(&infile, area, 0x50000);
+    readBufEndPut(readBuf, read_size);
+    readrest -= read_size;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", Load__6CMovieFPcPP9mgCMemoryiibbb);
-int CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop) {
+#endif
+void CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop) {
     MoviePools pools = at_344;
     pools.pool[0] = memory;
     pools.pool[1] = memory;
@@ -91,9 +175,9 @@ int CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with
     pools.pool[3] = memory;
     pools.pool[4] = memory;
     pools.pool[5] = memory;
-    return Load(name, pools.pool, width, height, with_audio, loop, true);
+    Load(name, pools.pool, width, height, with_audio, loop, true);
 }
-int CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop, bool init_sound) {
+void CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop, bool init_sound) {
     MoviePools pools = at_349;
     pools.pool[0] = memory;
     pools.pool[1] = memory;
@@ -101,7 +185,7 @@ int CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with
     pools.pool[3] = memory;
     pools.pool[4] = memory;
     pools.pool[5] = memory;
-    return Load(name, pools.pool, width, height, with_audio, loop, init_sound);
+    Load(name, pools.pool, width, height, with_audio, loop, init_sound);
 }
 void CMovie::Play(char *path) {
     ThreadParam param;
@@ -244,7 +328,25 @@ int CMovie::videoDecDelete(VideoDec *dec) {
     sceMpegDelete(&dec->mpeg);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", videoDecFlush__6CMovieFP8VideoDec);
+int CMovie::videoDecFlush(VideoDec *dec) {
+    u8 *area1;
+    u8 *area2;
+    int size1;
+    int size2;
+    videoDecBeginPut(dec, &area1, &size1, &area2, &size2);
+    if (size1 + size2 < 4) {
+        return 0;
+    }
+    u8 *uncached1 = (u8 *)UncAddr(area1);
+    u8 *uncached2 = (u8 *)UncAddr(area2);
+    u8 end_code[4] = {0x00, 0x00, 0x01, 0xB7};
+    videoDecEndPut(&videoDec, cpy2area(uncached1, size1, uncached2, size2, end_code, 4, NULL, 0));
+    viBufFlush(&dec->vibuf);
+    if (dec->state == 0) {
+        dec->state = 2;
+    }
+    return 1;
+}
 int defMain(void *) {
     for (;;) {
         switchThread();
@@ -329,7 +431,35 @@ int mpegTS(sceMpeg *mpeg, sceMpegCbDataTimeStamp *data, void *user) {
     data->dts = ts.dts;
     return 1;
 }
+#ifdef NONMATCHING
+int videoCallback(sceMpeg *mpeg, sceMpegCbDataStr *str, void *user) {
+    u8 *area1;
+    u8 *area2;
+    int size1;
+    int size2;
+    u8 *src = str->data;
+    u_int total = str->len;
+    u_int first = ((u8 *)user + ((ReadBuf *)user)->size) - src;
+    if (total < first) {
+        first = total;
+    }
+    videoDecBeginPut(&videoDec, &area1, &size1, &area2, &size2);
+    int copied = cpy2area((u8 *)(((u32)area1 & 0xFFFFFFF) | 0x20000000), size1,
+                          (u8 *)(((u32)area2 & 0xFFFFFFF) | 0x20000000), size2, src, first,
+                          (u8 *)user, total - first);
+    if (copied > 0 && videoDecPutTs(&videoDec, str->pts, str->dts, area1, copied) == 0) {
+        printf(at_584__2);
+    }
+    videoDecEndPut(&videoDec, copied);
+    int result = 0;
+    if (copied > 0) {
+        result = 1;
+    }
+    return result;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", videoCallback__FP7sceMpegP16sceMpegCbDataStrPv);
+#endif
 int pcmCallback(sceMpeg *mpeg, sceMpegCbDataStr *str, void *user) {
     u8 *area1;
     u8 *area2;
@@ -486,7 +616,31 @@ int viBufCreate(ViBuf *buf, u_long128 *data, u_long128 *tags, int sectors, TimeS
     buf->total_bytes = 0;
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", viBufReset__FP5ViBuf);
+int viBufReset(ViBuf *buf) {
+    int i;
+
+    buf->dma_start = 0;
+    buf->dma_n = 0;
+    buf->read_bytes = 0;
+    buf->is_active = 1;
+    buf->count_ts = 0;
+    buf->wt_ts = 0;
+    for (i = 0; i < buf->n_ts; i++) {
+        buf->ts[i].pts = -1;
+        buf->ts[i].dts = -1;
+        buf->ts[i].pos = 0;
+        buf->ts[i].len = 0;
+    }
+    for (i = 0; i < buf->n; i++) {
+        scTag2((QWORD *)(buf->tag + i), DmaAddr((u8 *)buf->data + i * 0x800), 3, 0x80);
+    }
+    scTag2((QWORD *)(buf->tag + i), DmaAddr(buf->tag), 2, 0);
+    *(int *)0x1000B420 = 0;
+    *(int *)0x1000B410 = (u32)buf->data & 0xFFFFFFF;
+    *(int *)0x1000B430 = (u32)buf->tag & 0xFFFFFFF;
+    setD4_CHCR(5U);
+    return 1;
+}
 #pragma divbyzerocheck on
 void viBufBeginPut(ViBuf *buf, u8 **area1, int *size1, u8 **area2, int *size2) {
     WaitSema(buf->sema);
@@ -580,7 +734,78 @@ int viBufStopDMA(ViBuf *buf) {
     return 1;
 }
 #pragma optimization_level reset
+#ifdef NONMATCHING
+int viBufRestartDMA(ViBuf *buf) {
+    u32 ipubp = buf->env.ipubp;
+    u32 tag_addr = buf->env.d4tadr;
+    u32 chcr = buf->env.d4chcr | 0x100;
+    int fifo_quads = ((ipubp >> 16) & 3) + ((ipubp >> 8) & 0xF);
+    u32 qwc = buf->env.d4qwc + fifo_quads;
+    u32 madr = buf->env.d4madr - fifo_quads * 0x10;
+
+    WaitSema(buf->sema);
+    if (madr < (u32)buf->data) {
+        int size = buf->n << 11;
+        int mode = 0;
+        int distance;
+        qwc = (u32)((u8 *)buf->data - madr) >> 4;
+        tag_addr = (u32)buf->tag & 0xFFFFFFF;
+        madr += size;
+        if (buf->env.d4madr != (u32)buf->data && buf->env.d4madr != (u32)buf->data + size) {
+            mode = 3;
+        }
+        distance = (buf->n - buf->dma_start) % buf->n;
+        chcr = (((u_long)buf->env.d4chcr << 36) >> 36) | (mode << 28) | 0x100;
+        if (distance < 0 || distance >= buf->dma_n) {
+            buf->dma_start = buf->n - 1;
+            buf->dma_n++;
+        }
+    } else {
+        int index = getFIFOindex(buf, (void *)buf->env.d4madr);
+        int fifo_index = getFIFOindex(buf, (void *)madr);
+        if (index != fifo_index) {
+            int mode = 0;
+            int distance;
+            qwc = (u32)(((u8 *)buf->data + (fifo_index << 11)) - madr) >> 4;
+            tag_addr = (u32)(buf->tag + fifo_index) & 0xFFFFFFF;
+            distance = (fifo_index + buf->n - buf->dma_start) % buf->n;
+            if ((u32)buf->data + (buf->env.d4madr - (u32)buf->data) % (buf->n << 11) !=
+                (u32)buf->data + ((buf->dma_start + buf->dma_n) % buf->n << 11)) {
+                mode = 3;
+            }
+            chcr = (((u_long)buf->env.d4chcr << 36) >> 36) | (mode << 28) | 0x100;
+            if (distance < 0 || distance >= buf->dma_n) {
+                buf->dma_start = fifo_index;
+                buf->dma_n++;
+            }
+        }
+    }
+    if (buf->env.d3madr != 0 && buf->env.d3qwc != 0) {
+        *(u32 *)0x1000B010 = buf->env.d3madr;
+        *(u32 *)0x1000B020 = buf->env.d3qwc;
+        setD3_CHCR(buf->env.d3chcr | 0x100);
+    }
+    if (buf->dma_n != 0) {
+        while (*(volatile int *)0x10002010 < 0) {
+        }
+        *(int *)0x10002000 = ipubp & 0x7F;
+        while (*(volatile int *)0x10002010 < 0) {
+        }
+    }
+    *(u32 *)0x1000B410 = madr;
+    *(u32 *)0x1000B430 = tag_addr;
+    *(u32 *)0x1000B420 = qwc;
+    if (buf->dma_n != 0) {
+        setD4_CHCR(chcr);
+    }
+    *(int *)0x10002010 = buf->env.ipuctrl;
+    buf->is_active = 1;
+    SignalSema(buf->sema);
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", viBufRestartDMA__FP5ViBuf);
+#endif
 int viBufDelete(ViBuf *buf) {
     setD4_CHCR(5U);
     *(int *)0x1000B420 = 0;
@@ -594,7 +819,50 @@ void viBufFlush(ViBuf *buf) {
     buf->read_bytes = (buf->read_bytes + 0x7FF) / 0x800 * 0x800;
     SignalSema(buf->sema);
 }
+#pragma divbyzerocheck on
+#ifdef NONMATCHING
+int viBufModifyPts(ViBuf *buf, TimeStamp *ts) {
+    int index = (buf->n_ts + (buf->wt_ts - buf->count_ts)) % buf->n_ts;
+    int size = buf->n << 11;
+    int keep_going = 1;
+
+    if (buf->count_ts > 0) {
+        do {
+            TimeStamp *entry = &buf->ts[index];
+            int len = entry->len;
+            if (len == 0 || ts->len == 0) {
+                break;
+            }
+            if ((entry->pos + size - ts->pos) % size < ts->len) {
+                int remaining = ts->pos + ts->len - entry->pos;
+                len = (len < remaining) ? len : remaining;
+                entry->pos = (entry->pos + len) % size;
+                entry->len -= len;
+                if (entry->len == 0) {
+                    if (entry->pts >= 0) {
+                        entry->pts = -1;
+                        entry->dts = -1;
+                        entry->pos = 0;
+                        entry->len = 0;
+                    }
+                    int remaining_ts = buf->count_ts - 1;
+                    if (remaining_ts < 0) {
+                        remaining_ts = 0;
+                    }
+                    buf->count_ts = remaining_ts;
+                }
+            } else {
+                keep_going = 0;
+            }
+            index = (index + 1) % buf->n_ts;
+        } while (keep_going);
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", viBufModifyPts__FP5ViBufP9TimeStamp);
+#endif
+#pragma divbyzerocheck reset
 #pragma divbyzerocheck on
 int viBufPutTs(ViBuf *buf, TimeStamp *ts) {
     int had_room = 0;
@@ -615,7 +883,44 @@ int viBufPutTs(ViBuf *buf, TimeStamp *ts) {
     return had_room;
 }
 #pragma divbyzerocheck reset
+#pragma divbyzerocheck on
+#ifdef NONMATCHING
+int viBufGetTs(ViBuf *buf, TimeStamp *ts) {
+    int found = 0;
+    u32 ipu_ctrl = *(u32 *)0x10002020;
+    u32 size = buf->n << 11;
+    int fifo_bits = buf->env.ipubp & 0x7F;
+    int dma_addr = *(int *)0x1000B410 - ((((ipu_ctrl >> 16) & 3) + ((ipu_ctrl >> 8) & 0xF)) * 0x10);
+    u32 read_pos;
+    int i;
+
+    WaitSema(buf->sema);
+    ts->pts = -1;
+    ts->dts = -1;
+    read_pos = (size + (dma_addr + (fifo_bits >> 3)) - (u32)buf->data) % size;
+    for (i = 0; i < buf->count_ts && found == 0; i++) {
+        int index = (i + (buf->n_ts + (buf->wt_ts - buf->count_ts))) % buf->n_ts;
+        TimeStamp *entry = &buf->ts[index];
+        if ((int)((read_pos + size - entry->pos) % size) < entry->len) {
+            ts->pts = entry->pts;
+            ts->dts = buf->ts[index].dts;
+            buf->ts[index].pts = -1;
+            buf->ts[index].dts = -1;
+            found = 1;
+            int consumed = buf->count_ts;
+            if (consumed > 0) {
+                consumed = 1;
+            }
+            buf->count_ts -= consumed;
+        }
+    }
+    SignalSema(buf->sema);
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", viBufGetTs__FP5ViBufP9TimeStamp);
+#endif
+#pragma divbyzerocheck reset
 int strFileOpen(StrFile *file, char *path) {
     char full_path[0x100];
     char device[0x4C];
@@ -983,7 +1288,56 @@ int decBs0(VideoDec *dec) {
     sceMpegReset(&dec->mpeg);
     return 1;
 }
+#ifdef NONMATCHING
+void setImageTag(u32 *tag, void *data, int a, int width, int height) {
+    sceGifPacket packet;
+    u_long128 giftag = at_1276__2;
+    sceGsTex0 tex0;
+    int x;
+    int y;
+    int blocks_x;
+    int blocks_y;
+    int tile_x;
+    int tile_y;
+
+    sceGifPkInit(&packet, (u_long128 *)(((u32)tag & 0xFFFFFFF) | 0x20000000));
+    sceGifPkReset(&packet);
+    tex0 = mgTexManager.GetTexture(TexName, -1)->tex0;
+    sceGifPkCnt(&packet, 0, 0, 0);
+    sceGifPkOpenGifTag(&packet, giftag);
+    sceGifPkAddGsAD(&packet, 0x50, SCE_GS_SET_BITBLTBUF(0, 0, 0, tex0.TBP0, tex0.TBW, 0));
+    sceGifPkAddGsAD(&packet, 0x52, SCE_GS_SET_TRXREG(16, 16));
+    sceGifPkCloseGifTag(&packet);
+    blocks_x = width >> 4;
+    blocks_y = height >> 4;
+    tile_x = 0;
+    for (x = 0; x < blocks_x; x++) {
+        tile_y = 0;
+        for (y = 0; y < blocks_y; y++) {
+            sceGifPkCnt(&packet, 0, 0, 0);
+            sceGifPkOpenGifTag(&packet, giftag);
+            sceGifPkAddGsAD(&packet, 0x51, SCE_GS_SET_TRXPOS(0, 0, tile_x, tile_y, 0));
+            sceGifPkAddGsAD(&packet, 0x53, 0);
+            sceGifPkCloseGifTag(&packet);
+            u_int *image_tag = sceGifPkReserve(&packet, 4);
+            *(u_long *)image_tag = 0x40 | ((u_long)0x08000000 << 32);
+            *(u_long *)(image_tag + 2) = 0;
+            sceGifPkRef(&packet, (u_long128 *)(((u_long)data << 36) >> 36), 0x40, 0, 0, 0);
+            data = (u8 *)data + 0x400;
+            tile_y += 0x10;
+        }
+        tile_x += 0x10;
+    }
+    giftag = at_1287__2;
+    sceGifPkEnd(&packet, 0, 0, 0);
+    sceGifPkOpenGifTag(&packet, giftag);
+    sceGifPkAddGsAD(&packet, 0x3F, 0);
+    sceGifPkCloseGifTag(&packet);
+    sceGifPkTerminate(&packet);
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", setImageTag__FPUiPviii);
+#endif
 void videoDecBeginPut(VideoDec *dec, u8 **area1, int *size1, u8 **area2, int *size2) {
     viBufBeginPut(&dec->vibuf, area1, size1, area2, size2);
 }

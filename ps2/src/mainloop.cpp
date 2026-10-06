@@ -39,7 +39,6 @@
 #include "scene.hpp"
 #include "title.hpp"
 
-#ifdef NONMATCHING
 extern INIT_LOOP_ARG NextInitArg;
 extern INIT_LOOP_ARG PrevInitArg;
 extern int NextLoopNo;
@@ -62,73 +61,10 @@ static int gcALL_GEO_PARTS(SPI_STACK *stack, int argc);
 extern void (*LoopInit[])(INIT_LOOP_ARG);
 extern int (*LoopMain[])();
 extern void (*LoopExit[])();
-static PAD_TABLE_ENTRY pad_table[] = {
-    { 0, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE },
-    { 1, PAD_CTRL_TRIGGER_DOWN, PAD_CROSS },
-    { 2, PAD_CTRL_TRIGGER_ON, PAD_R1 },
-    { 3, PAD_CTRL_TRIGGER_ON, PAD_L1 },
-    { 4, PAD_CTRL_TRIGGER_DOWN, PAD_L2 },
-    { 5, PAD_CTRL_TRIGGER_DOWN, PAD_TRIANGLE },
-    { 6, PAD_CTRL_TRIGGER_DOWN, PAD_R2 },
-    { 7, PAD_CTRL_TRIGGER_DOWN, PAD_UP },
-    { 8, PAD_CTRL_TRIGGER_DOWN, PAD_DOWN },
-    { 9, PAD_CTRL_TRIGGER_DOWN, PAD_RIGHT },
-    { 10, PAD_CTRL_TRIGGER_DOWN, PAD_LEFT },
-    { 11, PAD_CTRL_TRIGGER_ON, PAD_UP },
-    { 12, PAD_CTRL_TRIGGER_ON, PAD_DOWN },
-    { 13, PAD_CTRL_TRIGGER_ON, PAD_RIGHT },
-    { 14, PAD_CTRL_TRIGGER_ON, PAD_LEFT },
-    { 15, PAD_CTRL_TRIGGER_DOWN, PAD_START },
-    { 16, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE },
-    { 17, PAD_CTRL_TRIGGER_DOWN, PAD_CROSS },
-    { 19, PAD_CTRL_TRIGGER_ON, PAD_CIRCLE },
-    { 20, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE },
-    { 21, PAD_CTRL_TRIGGER_DOWN, PAD_START },
-    { 22, PAD_CTRL_TRIGGER_DOWN, PAD_TRIANGLE },
-    { 23, PAD_CTRL_TRIGGER_DOWN, PAD_L3 },
-    { 24, PAD_CTRL_TRIGGER_DOWN, PAD_R3 },
-    { 50, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE },
-    { 51, PAD_CTRL_TRIGGER_DOWN, PAD_SQUARE },
-    { 52, PAD_CTRL_TRIGGER_DOWN, PAD_CROSS },
-    { 53, PAD_CTRL_TRIGGER_ON, PAD_L1 },
-    { 54, PAD_CTRL_TRIGGER_ON, PAD_R1 },
-    { 55, PAD_CTRL_TRIGGER_DOWN, PAD_SELECT },
-    { 56, PAD_CTRL_TRIGGER_ON, PAD_CIRCLE },
-    { 100, PAD_CTRL_TRIGGER_DOWN, PAD_R2 },
-    { 101, PAD_CTRL_TRIGGER_DOWN, PAD_L2 },
-    { 102, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE },
-    { 103, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE },
-    { 104, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE },
-    { 107, PAD_CTRL_TRIGGER_DOWN, PAD_SQUARE },
-    { 105, PAD_CTRL_TRIGGER_DOWN, PAD_R2 },
-    { 106, PAD_CTRL_TRIGGER_DOWN, PAD_L2 },
-    { 18, PAD_CTRL_TRIGGER_DOWN, PAD_R1 },
-    { 108, PAD_CTRL_TRIGGER_DOWN, PAD_SELECT },
-    { 109, PAD_CTRL_TRIGGER_DOWN, PAD_SQUARE },
-    { 120, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE },
-    { 121, PAD_CTRL_TRIGGER_ON, PAD_CIRCLE },
-    { 122, PAD_CTRL_TRIGGER_ON, PAD_SQUARE },
-    { -1, -1, -1 },
-};
-
-/**
- * Binds the game's logical stick inputs to controller axes.
- */
-static ANALOG_TABLE_ENTRY analog_table[] = {
-    { 0, PAD_CTRL_AXIS_LX },
-    { 1, PAD_CTRL_AXIS_LY },
-    { 2, PAD_CTRL_AXIS_RX },
-    { 3, PAD_CTRL_AXIS_RY },
-    { 4, PAD_CTRL_AXIS_LY },
-    { 5, PAD_CTRL_AXIS_LX },
-    { 6, PAD_CTRL_AXIS_RX },
-    { 7, PAD_CTRL_AXIS_RY },
-    { -1, -1 },
-};
-#endif
+extern PAD_TABLE_ENTRY pad_table[];
+extern ANALOG_TABLE_ENTRY analog_table[];
 
 void LoadFilePictureName();
-extern "C" void LoadEditAnalyzeData__FiP1(...);
 int get_gajji_id_from_monster_progress_table(int monster_no, int *level);
 int GetMonsterProgressTableNo(int level, int monster_no);
 
@@ -137,7 +73,7 @@ extern mgCMemory MainBuffer;
 extern int menu_mode;
 void InitEventSelect();
 
-extern INIT_LOOP_ARG SelectArg;
+extern int SelectArg[32];
 
 extern CSaveData *ActiveSaveData;
 extern int CaptureMode;
@@ -150,7 +86,6 @@ extern int hdd_sel;
 extern CScene MainScene;
 extern INIT_LOOP_ARG InitArg;
 extern mgCMemory InfoStack;
-extern "C" int InitPadTable__Fi(int);
 
 extern mgCMemory MenuBuffer;
 extern mgCMemory buf0_1224;
@@ -205,14 +140,10 @@ int GetVramTopAddress(void) {
 mgCMemory *GetMainStack(void) {
     return &MainBuffer;
 }
-#ifdef NONMATCHING
 void NextLoop(int loop_no, INIT_LOOP_ARG arg) {
     NextLoopNo = loop_no;
     NextInitArg = arg;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", NextLoop__Fi13INIT_LOOP_ARG);
-#endif
 int GetNowLoopNo(void) {
     return LoopNo;
 }
@@ -225,7 +156,6 @@ void SetTextureTable(int table_size, int table_count, mgCMemory *memory) {
     mgTexManager.SetTableBuffer(table_count, table_size, memory);
     mgTexManager.Initialize(GetVramTopAddress(), -1);
 }
-#ifdef NONMATCHING
 /**
  * Registers the logical controller bindings for the selected language.
  */
@@ -235,26 +165,29 @@ static void InitPadTable(int language) {
     int language_index;
     int i;
 
-    language_index = language != LANG_JAPANESE;
+    language_index = 0;
+    if (language != LANG_JAPANESE) {
+        language_index = 1;
+    }
     PadCtrl.Initialize();
     for (i = 0; pad_table[i].no >= 0; i++) {
         switch (pad_table[i].no) {
-            case 0x34:
-            case 0x11:
-            case 1:
-                pad_table[i].button = cancel[language_index];
-                break;
-            case 0x79:
-            case 0x78:
-            case 0x68:
-            case 0x67:
-            case 0x66:
-            case 0x38:
-            case 0x32:
-            case 0x14:
-            case 0x10:
             case 0:
+            case 0x10:
+            case 0x14:
+            case 0x32:
+            case 0x38:
+            case 0x66:
+            case 0x67:
+            case 0x68:
+            case 0x78:
+            case 0x79:
                 pad_table[i].button = confirm[language_index];
+                break;
+            case 1:
+            case 0x11:
+            case 0x34:
+                pad_table[i].button = cancel[language_index];
                 break;
         }
         PadCtrl.RegisterBtn(pad_table[i].no, pad_table[i].button, pad_table[i].trigger);
@@ -263,10 +196,7 @@ static void InitPadTable(int language) {
         PadCtrl.RegisterAnalog(analog_table[i].no, analog_table[i].axis);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", InitPadTable__Fi);
-#endif
-extern "C" void VSyncCallBack__Fi__3(int unused) {
+static void VSyncCallBack(int unused) {
     if (PlayTimeCountFlag != 0) {
         s64 ticks = GetSaveData()->play_time;
         CSaveData *save = GetSaveData();
@@ -279,7 +209,7 @@ void PlayTimeCount(int value) {
 int GetPlayTimeCountFlag(void) {
     return PlayTimeCountFlag;
 }
-extern "C" void LanguageChange__FiP1(int language) {
+void LanguageChange(int language, u_long128 *buffer) {
     LanguageCode = language;
     GameItemDataManage.LoadItemSystemMes(language);
     LoadHelpMes(read_buffer);
@@ -291,16 +221,15 @@ extern "C" void LanguageChange__FiP1(int language) {
     LoadGaijiImg();
     LoadFontTexture();
     LoadFontTblBin();
-    LoadEditAnalyzeData__FiP1((u32)LanguageCode, (u_long128 *)read_buffer);
+    LoadEditAnalyzeData(LanguageCode, read_buffer);
     LoadFilePictureName();
     LoadMonsterLanguage(LanguageCode);
     InfoStack.stack_used = 0;
     InfoStack.lock = 0;
     LoadGameInfo(&InfoStack);
     InitPauseData();
-    InitPadTable__Fi(LanguageCode);
+    InitPadTable(LanguageCode);
 }
-#ifdef NONMATCHING
 void MainLoop() {
     mgCMemory        *memory;
     mgCMemory        *read_memory;
@@ -324,7 +253,7 @@ void MainLoop() {
     InitFileCache(NULL, 0);
     mgInit(MG_SCREEN_MODE_512X480, 3);
     PlayTimeCountFlag = 0;
-    mgInitVSyncCallBack((int (*)(int))VSyncCallBack__Fi__3);
+    mgInitVSyncCallBack((int (*)(int))VSyncCallBack);
     LanguageCode = LANG_FRENCH;
     SCElogoFade(0, memory);
     LoopNo = LOOP_TITLE;
@@ -437,10 +366,12 @@ void MainLoop() {
         mgFrameRate = 2;
         CaptureScreen = 0;
         GetMainScene()->save_data = GetSaveData();
-        GetMainScene()->SetTime(GetSaveData()->now_time);
+        float now_time = GetSaveData()->now_time;
+        GetMainScene()->SetTime(now_time);
         GetMainScene()->day = GetSaveData()->day;
         if (GetSaveData()->game_progress == 2) {
-            GetSaveData()->now_time = 22.0f;
+            CSaveData *save = GetSaveData();
+            save->now_time = 22.0f;
             GetMainScene()->SetTime(22.0f);
             GetMainScene()->time_step = 0;
         }
@@ -461,15 +392,18 @@ void MainLoop() {
             }
             if (LoopNo != LOOP_MENU) {
                 GetMainScene()->save_data = GetSaveData();
-                GetMainScene()->SetTime(GetSaveData()->now_time);
+                float now_time = GetSaveData()->now_time;
+                GetMainScene()->SetTime(now_time);
                 GetMainScene()->day = GetSaveData()->day;
                 if (GetSaveData()->game_progress == 2) {
-                    GetSaveData()->now_time = 22.0f;
+                    CSaveData *save = GetSaveData();
+                    save->now_time = 22.0f;
                     GetMainScene()->SetTime(22.0f);
                     GetMainScene()->time_step = 0;
                 }
             }
-            GamePad__2.VibrationEnable(GetSaveData()->config.vibration == 0);
+            SV_CONFIG_OPTION *config = &GetSaveData()->config;
+            GamePad__2.VibrationEnable(!config->vibration);
             if (GamePad__2.Down2(PAD_L1)) {
                 pmeter_flag = !pmeter_flag;
             }
@@ -506,25 +440,30 @@ void MainLoop() {
             if (GamePad__2.On(PAD_CIRCLE)) {
                 cat_end();
             }
-            if (LoopNo == LOOP_TITLE || LoopNo == LOOP_DUNGEON || LoopNo == LOOP_EDIT) {
-                static int pause = 0;
+            switch (LoopNo) {
+                case LOOP_EDIT:
+                case LOOP_DUNGEON:
+                case LOOP_TITLE: {
+                    static int pause = 0;
 
-                if (GamePad__2.Down2(PAD_SELECT)) {
-                    pause = 1;
-                }
-                while (pause != 0) {
-                    sceGsSyncV(0);
-                    GamePad__2.UpDate();
-                    if (GamePad__2.Down(PAD_START) || GamePad__2.Down2(PAD_SELECT)) {
-                        pause = 0;
-                        break;
+                    if (GamePad__2.Down2(PAD_SELECT)) {
+                        pause = 1;
                     }
-                    if (GamePad__2.Down2(PAD_START)) {
-                        mgStoreFrameImage();
+                    while (pause != 0) {
+                        sceGsSyncV(0);
+                        GamePad__2.UpDate();
+                        if (GamePad__2.Down(PAD_START) || GamePad__2.Down2(PAD_SELECT)) {
+                            pause = 0;
+                            break;
+                        }
+                        if (GamePad__2.Down2(PAD_START)) {
+                            mgStoreFrameImage();
+                        }
+                        if (GamePad__2.Down(PAD_RIGHT | PAD_CIRCLE) || GamePad__2.Down2(PAD_RIGHT)) {
+                            break;
+                        }
                     }
-                    if (GamePad__2.Down(PAD_RIGHT | PAD_CIRCLE) || GamePad__2.Down2(PAD_RIGHT)) {
-                        break;
-                    }
+                    break;
                 }
             }
             while (PauseLoop() != 0) {
@@ -559,9 +498,6 @@ void MainLoop() {
     sndStep(2.0f);
     GamePad__2.Close();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", MainLoop__Fv);
-#endif
 void MenuInit(INIT_LOOP_ARG arg) {
     mgCMemory *main_stack;
     u_long128 *packet_a;
@@ -621,7 +557,39 @@ void MenuInit(INIT_LOOP_ARG arg) {
  * Runs the debug mode selection menu and its configuration screens.
  */
 static int MenuLoop() {
-    int *menu_arguments = (int *)&SelectArg;
+    mgCTextureManager *textures = &mgTexManager;
+    int map_result;
+
+    textures->ReloadTexture(1, (sceVif1Packet *)NULL);
+    if (DebugFlag == 0) {
+        menu_mode = DEBUG_MENU_EVENT_SELECT;
+    }
+    if (menu_mode == DEBUG_MENU_MAP_SELECT) {
+        map_result = MapSelectLoop();
+        if (map_result == 2) {
+            INIT_LOOP_ARG arg;
+            memset(&arg, 0, sizeof(arg));
+            arg.map_no = -1;
+            arg.event_no = DefStartEventNo;
+            NextLoop(LOOP_EDIT, arg);
+            return 1;
+        }
+        if (map_result == 1) {
+            menu_mode = DEBUG_MENU_TOP;
+            return 0;
+        }
+        return 0;
+    }
+    if (menu_mode == DEBUG_MENU_EVENT_SELECT) {
+        textures->ReloadTexture(1, (sceVif1Packet *)NULL);
+        return EventSelect() != 0;
+    }
+    if (menu_mode == DEBUG_MENU_SAVE_DATA_EDIT) {
+        if (SaveDataEditLoop()) {
+            menu_mode = DEBUG_MENU_TOP;
+        }
+        return 0;
+    }
     static char *menu[] = {
         "game start ", "map        ", "dungeon    ", "title      ",
         "chrview    ", "texview    ", "mapview    ", "sound view ",
@@ -634,42 +602,13 @@ static int MenuLoop() {
     };
     char *item_set[] = {"Presentation", "GameStart", "StartDebug", "WeaponOnly"};
     int   item_set_no[] = {0, 1, 2, 6};
-    char *cursor[] = {" ", ">"};
     char  text[2048];
     char  config_name[64];
-    char *text_end;
-    int   row;
-    int   map_result;
-
-    mgTexManager.ReloadTexture(1, (sceVif1Packet *)NULL);
-    if (DebugFlag == 0) {
-        menu_mode = DEBUG_MENU_EVENT_SELECT;
-    }
-    switch (menu_mode) {
-        case DEBUG_MENU_MAP_SELECT:
-            map_result = MapSelectLoop();
-            if (map_result == 2) {
-                INIT_LOOP_ARG arg;
-                memset(&arg, 0, sizeof(arg));
-                arg.map_no = -1;
-                arg.event_no = DefStartEventNo;
-                NextLoop(LOOP_EDIT, arg);
-                return 1;
-            }
-            if (map_result == 1) {
-                menu_mode = DEBUG_MENU_TOP;
-            }
-            return 0;
-        case DEBUG_MENU_EVENT_SELECT:
-            mgTexManager.ReloadTexture(1, (sceVif1Packet *)NULL);
-            return EventSelect() != 0;
-        case DEBUG_MENU_SAVE_DATA_EDIT:
-            if (SaveDataEditLoop()) {
-                menu_mode = DEBUG_MENU_TOP;
-            }
-            return 0;
-    }
+    int   row = 0;
     static int select = 0;
+    char *cursor[] = {" ", ">"};
+    int  *menu_arguments = SelectArg;
+    char *text_end;
 
     if (GamePad__2.Down(PAD_DOWN)) {
         select++;
@@ -678,9 +617,9 @@ static int MenuLoop() {
         select--;
     }
     if (select < 0) {
-        select = 13;
+        select = DEBUG_ROW_CONVERT_SAVE;
     }
-    if (select >= 14) {
+    if (select >= DEBUG_ROW_NUM) {
         select = 0;
     }
     if (GamePad__2.Down(PAD_RIGHT)) {
@@ -704,15 +643,16 @@ static int MenuLoop() {
     if (menu_arguments[select] < -1) {
         menu_arguments[select] = -1;
     }
-    if (select == 9) {
-        if (menu_arguments[select] >= 6) {
-            menu_arguments[select] = 5;
+    if (select == DEBUG_ROW_LANGUAGE) {
+        if (menu_arguments[select] > LANG_SPANISH) {
+            menu_arguments[select] = LANG_SPANISH;
         }
         if (menu_arguments[select] < 0) {
             menu_arguments[select] = 0;
         }
     }
-    text_end = text + sprintf(text, "\nDark Chronicle %s\n", "Ver0.334");
+    text_end = text;
+    text_end += sprintf(text_end, "\nDark Chronicle %s\n", "Ver0.334");
     switch (CaptureMode) {
         case CAPTURE_RECORD:
             text_end += sprintf(text_end, "Capture Input Key\n");
@@ -730,13 +670,13 @@ static int MenuLoop() {
     if (GamePad__2.Down(PAD_SELECT)) {
         CaptureMode++;
     }
-    if (CaptureMode >= CAPTURE_MODE_NUM) {
+    if (CaptureMode > CAPTURE_PLAY_SCREEN) {
         CaptureMode = CAPTURE_OFF;
     }
-    for (row = 0; row < 14 && menu[row][0] != '\0'; row++) {
-        if (row == 10) {
+    for (; row < DEBUG_ROW_NUM && menu[row][0] != '\0'; row++) {
+        if (row == DEBUG_ROW_ITEM_SET) {
             text_end += sprintf(text_end, "%s%s%s\n", cursor[row == select], menu[row], item_set[menu_arguments[row]]);
-        } else if (row == 9) {
+        } else if (row == DEBUG_ROW_LANGUAGE) {
             text_end += sprintf(text_end, "%s%s%s (now %s)\n", cursor[row == select], menu[row], language[menu_arguments[row]], language[LanguageCode]);
         } else if (row <= 0) {
             text_end += sprintf(text_end, "%s%s\n", cursor[row == select], menu[row]);
@@ -745,35 +685,32 @@ static int MenuLoop() {
         }
     }
     Font.DrawDirect(text, 10, 10);
-    if (!GamePad__2.Down(PAD_CIRCLE)) {
-        return 0;
-    }
-    switch (select) {
-        case 0:
+    if (GamePad__2.Down(PAD_CIRCLE)) {
+        if (select == DEBUG_ROW_EVENT_SELECT) {
             InitEventSelect();
             return 0;
-        case 9:
+        } else if (select == DEBUG_ROW_LANGUAGE) {
             LanguageChange(menu_arguments[select], read_buffer);
             return 0;
-        case 10:
+        } else if (select == DEBUG_ROW_ITEM_SET) {
             DebugGetItem(&GetSaveData()->user_data, item_set_no[menu_arguments[select]]);
             return 0;
-        case 11:
+        } else if (select == DEBUG_ROW_SAVE_DATA) {
             InitSaveDataEdit(&MenuBuffer);
             menu_mode = DEBUG_MENU_SAVE_DATA_EDIT;
             return 0;
-        case 12:
+        } else if (select == DEBUG_ROW_LOAD_CFG) {
             sprintf(config_name, "dbg/game%d.cfg", menu_arguments[select]);
             InitSaveData();
             LoadGameConfig(config_name);
             return 0;
-        default:
-            if (menu_arguments[select] < 0 && select == 1) {
+        } else {
+            if (menu_arguments[select] < 0 && select == LOOP_EDIT) {
                 InitMapSelect(&MenuBuffer);
                 menu_mode = DEBUG_MENU_MAP_SELECT;
                 return 0;
             }
-            if (select == 13) {
+            if (select == DEBUG_ROW_CONVERT_SAVE) {
                 INIT_LOOP_ARG arg;
                 memset(&arg, 0, sizeof(arg));
 
@@ -787,7 +724,9 @@ static int MenuLoop() {
                 NextLoop(select, arg);
             }
             return 1;
+        }
     }
+    return 0;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", MenuLoop__Fv);
@@ -822,44 +761,27 @@ static int EventSelect() {
         "extra                     :",
         ""
     };
-    static int    select = 0;
-    char         *subgame_name[3] = { "Spheda", "GyoRace", "Fishing" };
-    char         *cursor[2] = { "  ", ">>" };
-    char         *map_name;
-    char         *text;
-    char          display[1024];
-
-    char          config_path[64];
     int           result;
-    int           row;
-    int           chapter;
-    int           subgame;
-    int           loop_no;
-    int           monica;
 
     if (event_view != 0) {
         result = EventViewLoop();
-        switch (result) {
-            case EVENT_VIEW_CONTINUE:
-                return 0;
-            case EVENT_VIEW_START:
-                return 1;
-            case EVENT_VIEW_CANCEL:
-                event_view = 0;
-                break;
+        if (result == EVENT_VIEW_CONTINUE) {
+            return 0;
+        } else if (result == EVENT_VIEW_START) {
+            return 1;
+        } else if (result == EVENT_VIEW_CANCEL) {
+            event_view = 0;
         }
         return 0;
     }
     if (future_sel != 0) {
         result = FutureMapSelect();
-        switch (result) {
-            case FUTURE_MAP_SELECT_CONTINUE:
-                return 0;
-            case FUTURE_MAP_SELECT_CHOSEN:
-                return 1;
-            case FUTURE_MAP_SELECT_CLOSED:
-                future_sel = 0;
-                break;
+        if (result == FUTURE_MAP_SELECT_CONTINUE) {
+            return 0;
+        } else if (result == FUTURE_MAP_SELECT_CHOSEN) {
+            return 1;
+        } else if (result == FUTURE_MAP_SELECT_CLOSED) {
+            future_sel = 0;
         }
         return 0;
     }
@@ -870,6 +792,19 @@ static int EventSelect() {
         }
         return result > 0;
     }
+
+    char         *subgame_name[3] = { "Spheda", "GyoRace", "Fishing" };
+    static int    select = 0;
+    char         *cursor[2] = { "  ", ">>" };
+    int           row = 0;
+    char         *map_name;
+    char         *text;
+    char          display[1024];
+    char          config_path[64];
+    int           chapter;
+    int           subgame;
+    int           loop_no;
+    int           monica;
 
     if (GamePad__2.Down(PAD_DOWN)) {
         select++;
@@ -895,7 +830,7 @@ static int EventSelect() {
             if (menu_sel[select] < 0) {
                 menu_sel[select] = 0;
             }
-            if (menu_sel[select] >= 7) {
+            if (menu_sel[select] > 6) {
                 menu_sel[select] = 6;
             }
             break;
@@ -903,7 +838,7 @@ static int EventSelect() {
             if (menu_sel[select] < 0) {
                 menu_sel[select] = 0;
             }
-            if (menu_sel[select] >= 3) {
+            if (menu_sel[select] > 2) {
                 menu_sel[select] = 2;
             }
             break;
@@ -911,7 +846,7 @@ static int EventSelect() {
             if (menu_sel[select] < 0) {
                 menu_sel[select] = 0;
             }
-            if (menu_sel[select] >= 5) {
+            if (menu_sel[select] > 4) {
                 menu_sel[select] = 4;
             }
             break;
@@ -919,7 +854,7 @@ static int EventSelect() {
             if (menu_sel[select] < 0) {
                 menu_sel[select] = 0;
             }
-            if (menu_sel[select] >= 2) {
+            if (menu_sel[select] > 1) {
                 menu_sel[select] = 1;
             }
             break;
@@ -927,7 +862,7 @@ static int EventSelect() {
 
     text = display;
     text += sprintf(text, "\n\x83\x5F\x81\x5B\x83\x4E\x83\x4E\x83\x8D\x83\x6A\x83\x4E\x83\x8B\x83\x56\x83\x58\x83\x65\x83\x80\x92\xB2\x90\xAE" "ROM %s %s\n", "2003/07/29", "Ver0.334");
-    for (row = 0; menu[row][0] != '\0'; row++) {
+    for (; menu[row][0] != '\0'; row++) {
         text += sprintf(text, "%s%s", cursor[row == select], menu[row]);
         switch (row) {
             case 1:
@@ -1157,7 +1092,6 @@ void demoAttractInterrupted() {}
 void demoAttractComplete() {}
 void FadeOutForE3() {}
 int TimeLimitCheck() { return 0; }
-#ifdef NONMATCHING
 void InitPauseMenu(int value) {
     PauseMes.Init();
     PauseMes.Preset(MES_PRESET_SMALL_FUKIDASHI);
@@ -1169,10 +1103,6 @@ void InitPauseMenu(int value) {
     PauseMenuMode = PAUSE_MENU_OPEN;
     exit_start = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", InitPauseMenu__Fi);
-#endif
-#ifdef NONMATCHING
 int PauseMenu() {
     int result;
     int previous_select;
@@ -1196,10 +1126,11 @@ int PauseMenu() {
             if (PadCtrl.Analog(0) < -0.8f) {
                 PauseSel = 0;
             }
+            int selected = PauseSel;
             if (PauseMes.select < 0) {
                 PauseMes.cursor_time = 0;
             }
-            PauseMes.select = PauseSel;
+            PauseMes.select = selected;
             if (previous_select != PauseSel) {
                 sndSePlay(GetSystemSndID(), 0, 0);
             }
@@ -1245,14 +1176,8 @@ int PauseMenu() {
     PauseMes.DrawMesWin();
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", PauseMenu__Fv);
-#endif
-extern "C" void *__ct__18CScriptInterpreterFv(void *);
-extern "C" int SetScript__18CScriptInterpreterFPci(...);
 void LoadGameConfig(char *path) {
-    u8 script[0x4000];
-    u8 interpreter[sizeof(CScriptInterpreter)];
+    u8  script[0x4000];
     int size;
 
     if (path == NULL) {
@@ -1262,16 +1187,13 @@ void LoadGameConfig(char *path) {
             return;
         }
         SetCurrentDir(NULL);
-        goto run;
+    } else if (LoadFile2(path, script, &size, 0) == 0) {
+        return;
     }
-    if (LoadFile2(path, script, &size, 0) != 0) {
-    run:
-
-        __ct__18CScriptInterpreterFv(interpreter);
-        ((CScriptInterpreter *)interpreter)->SetTag(tag__3);
-        SetScript__18CScriptInterpreterFPci(interpreter, (char *)script, size);
-        ((CScriptInterpreter *)interpreter)->Run();
-    }
+    CScriptInterpreter interpreter;
+    interpreter.SetTag(tag__3);
+    interpreter.SetScript((char *)script, size);
+    interpreter.Run();
 }
 int gcMAP_NO(SPI_STACK *stack, int arg) {
     int map_no;
@@ -1280,7 +1202,7 @@ int gcMAP_NO(SPI_STACK *stack, int arg) {
     } else {
         map_no = spiGetStackInt(stack);
     }
-    SelectArg.selected_map_no = map_no;
+    SelectArg[LOOP_EDIT] = map_no;
     return 1;
 }
 int gcPROGRESS(SPI_STACK *stack, int arg) {
@@ -1398,7 +1320,6 @@ int gcHP(SPI_STACK *stack, int arg_count) {
     }
     return 1;
 }
-#ifdef NONMATCHING
 /**
  * Unlocks Geostones and town conditions and grants Georama materials.
  */
@@ -1448,9 +1369,6 @@ static int gcALL_GEO_PARTS(SPI_STACK *stack, int argc) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", gcALL_GEO_PARTS__FP9SPI_STACKi);
-#endif
 int gcPARAM_DRAW(SPI_STACK *stack, int arg_count) {
     DebugInfo.param_off = !spiGetStackInt(stack);
     return 1;
@@ -1561,30 +1479,9 @@ int gcACTIVE_CHARA(SPI_STACK *stack, int arg_count) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", __ct__16CUserDataManagerFv);
-extern "C" CEditData *__ct__9CEditDataFv(CEditData *self) {
-    char *entry;
-    char *cursor;
-    char *entry2;
-    char *cursor2;
-
-    cursor = (char *)self->parts;
-    entry = cursor;
-    do {
-        memset(entry, 0, 0x24);
-        cursor += 0x24;
-        entry = cursor;
-    } while ((u32)cursor < (u32)&self->house_max);
-    cursor2 = (char *)self->house;
-    entry2 = cursor2;
-    do {
-        memset(entry2, 0, 0x10);
-        cursor2 += 0x10;
-        entry2 = cursor2;
-    } while ((u32)cursor2 < (u32)self->place_log);
-    memset(&self->analyze, 0, sizeof(self->analyze));
-    self->Initialize();
-    return self;
+CUserDataManager::CUserDataManager() {}
+CEditData::CEditData() {
+    Initialize();
 }
 
 // Static initialiser (.init)

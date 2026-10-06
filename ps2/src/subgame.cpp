@@ -22,7 +22,7 @@
 extern int SubGame;
 extern int MenuOpenFlag;
 extern int ItemOver;
-extern SubGameInfo GameInfo;
+static SubGameInfo GameInfo;
 extern char at_985__3[];
 
 // Code (.text)
@@ -65,7 +65,37 @@ void sgGetItemOverReset(void) {
 void sgGetItemOverFlagOn(void) {
     ItemOver = 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/subgame", sgInitSubGame__FiP11SubGameInfo);
+int sgInitSubGame(int type, SubGameInfo *info) {
+    int result;
+
+    MenuOpenFlag = 0;
+    ItemOver = 0;
+    SubGame = type;
+    if (type <= SUBGAME_NONE || type >= SUBGAME_MAX) {
+        return 0;
+    }
+    result = 0;
+    GameInfo = *info;
+    GameInfo.texb = GameInfo.scene->unk_3e68;
+    GameInfo.texb_num = GameInfo.scene->unk_3e6c;
+    switch (type) {
+        case SUBGAME_FISHING:
+            result = sgInitFishing(&GameInfo);
+            break;
+        case SUBGAME_GYORACE:
+            result = sgInitGyoRace(&GameInfo);
+            break;
+        case SUBGAME_BUGGY:
+            result = sgInitBuggy(&GameInfo);
+            break;
+        case SUBGAME_UNK_4:
+            break;
+    }
+    if (result == 0) {
+        SubGame = SUBGAME_NONE;
+    }
+    return result;
+}
 int sgLoopSubGame(void) {
     int finished;
 
@@ -301,19 +331,10 @@ void sgCPlayVoice::Close(void) {
     }
 }
 
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/subgame", __sinit_subgame_cpp);
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/subgame", at_985__3__DATA);
-
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/subgame", D_0037B078__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(SubGame, 0x4);
 INCLUDE_BSS(MenuOpenFlag, 0x4);
 INCLUDE_BSS(ItemOver, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(GameInfo, 0x30);

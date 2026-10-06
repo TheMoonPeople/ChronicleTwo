@@ -1,0 +1,17 @@
+dng_debug primer=u64div
+dng_effect drafts primer=u64div
+dngmenu primer=u64div
+fishingobj primer=u64div
+gyoracesim drafts
+menusys primer=u64div
+monster drafts
+nd_meswin drafts
+snd_mngr primer=u64div
+automap primer=u64div
+dng_event primer=u64div
+menushop drafts
+menudraw primer=u64div
+menuchr primer=u64div
+menuop primer=u64div
+inventmn primer=u64div
+editmenu drafts primer=u64div

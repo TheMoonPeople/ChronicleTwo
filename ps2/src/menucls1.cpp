@@ -410,7 +410,7 @@ void CDC2Mes::MsgPreset(int preset, int unused) {
 void CDC2Mes::SetMsgCursor(int choice) {
     cursor = choice;
 }
-char CDC2Mes::AddMsgCursor2(int min, int max, int loop) {
+int CDC2Mes::AddMsgCursor2(int min, int max, int loop) {
     int step = 0;
     if (GamePad__2.Down(PAD_UP)) {
         step--;
@@ -441,7 +441,7 @@ int CDC2Mes::AddMsgCursor(int step, int min, int max, int loop) {
     }
     return previous != cursor;
 }
-char CDC2Mes::CommandMsgCursor() {
+int CDC2Mes::CommandMsgCursor() {
     int step = 0;
     if (GamePad__2.Down(PAD_UP)) {
         step--;
@@ -786,7 +786,7 @@ void CMenuMoveItem::AttachForm() {
         form[1]->SetNumber(at_1514__3, 0);
     }
 }
-char CMenuMoveItem::CheckMove() {
+int CMenuMoveItem::CheckMove() {
     int moving = 0;
     if (move_on != 0) {
         for (int index = 0; index < 2; index++) {

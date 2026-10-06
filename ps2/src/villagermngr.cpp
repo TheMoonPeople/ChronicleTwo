@@ -396,7 +396,7 @@ int CVillagerMngr::GetTalkRect(int chara_id, float *rect) {
     CVillagerPlaceInfo *place;
     int is_empty;
 
-    *(int *)&rect[3] = 0;
+    rect[3] = 0.0f;
     index = mngr->SearchDataIDatCharaID(chara_id);
     if (index < 0) {
         return 0;

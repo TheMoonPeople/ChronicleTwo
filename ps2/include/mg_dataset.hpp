@@ -121,16 +121,10 @@ STATIC_ASSERT(sizeof(MDT_FACES) == 0x10);
  *
  */
 struct FACES_ID {
-    union {
-    int type;     /**< Primitive flags, which set how many indices make one face. */
-        u_short type_low;
-    };
-    int face_num; /**< Number of faces in the primitive. */
-    union {
-    int material; /**< Index of the material the primitive is drawn with. */
-        u_short material_low;
-    };
-    int index[1]; /**< Vertex indices, as many as the faces need. */
+    u_int type;     /**< Primitive flags, which set how many indices make one face. */
+    u_int face_num; /**< Number of faces in the primitive. */
+    u_int material; /**< Index of the material the primitive is drawn with. */
+    int index[1];   /**< Vertex indices, as many as the faces need. */
 };
 
 /**

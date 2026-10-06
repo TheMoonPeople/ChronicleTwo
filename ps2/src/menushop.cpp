@@ -4,6 +4,7 @@
 #include "mg_drawprim.hpp"
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include "menusystemdata.hpp"
 #include "font.hpp"
 #include "sysmes.hpp"
@@ -17,6 +18,7 @@
 #include "mglib.hpp"
 #include "mainloop.hpp"
 #include "menucls1.hpp"
+#include "menuaqua.hpp"
 #include "menucommon.hpp"
 #include "menudraw.hpp"
 #include "menusys.hpp"
@@ -25,6 +27,7 @@
 #include "menushop.hpp"
 #include "quest.hpp"
 #include "inventmn.hpp"
+#include "editmenu.hpp"
 
 mgCMemory MenuLocalStack;
 
@@ -63,8 +66,8 @@ extern short Now_Shop_ID;
 extern int *Now_ShopDataReadPtr;
 extern short Now_ShopListNum;
 extern SPI_TAG_PARAM menu_shop_tag[];
-extern "C" void *CShopMenuPt;
-extern "C" void *MenuQuestView;
+extern CShopMenu *CShopMenuPt;
+extern CMenuQuestView *MenuQuestView;
 
 // Code (.text)
 int GetDonyShopLineUp(int *itemList, int *status) {
@@ -167,7 +170,67 @@ void CShop::CheckEventItem() {
         cursor += 1;
     }
 }
+#ifdef NONMATCHING
+void CShop::GetPrice(CGameDataUsed *item, int *buy, int *sell) {
+    if (item == NULL) {
+        return;
+    }
+    int item_id = item->item_no;
+    if (buy != NULL) {
+        *buy = 0;
+    }
+    if (sell != NULL) {
+        *sell = 0;
+    }
+    if (item_id > 0) {
+        if (buy != NULL) {
+            *buy = price[item_id].buy;
+        }
+        if (sell != NULL) {
+            *sell = price[item_id].sell;
+        }
+        if (NowSellMode == SHOP_SELL_MODE_DONY && buy != NULL) {
+            *buy = 0;
+        }
+    }
+    if (buy != NULL && item_id == 0x1A7) {
+        int bought = GetUserDataMan()->unk_44dc0;
+        float scaled = (float)*buy;
+        while (bought > 0) {
+            scaled *= 1.1f;
+            bought--;
+        }
+        *buy = fptosi(scaled);
+    }
+    if (sell != NULL) {
+        if (item->item_no == 0x130) {
+            for (int slot = 0; slot < 3; slot++) {
+                int box_item = item->GetGiftBoxItemNo(slot);
+                int box_price = 0;
+                if (box_item > 0) {
+                    box_price = price[box_item].sell;
+                }
+                *sell += box_price;
+            }
+        }
+        switch (item->used_type) {
+        case USED_ITEM_TYPE_WEAPON: {
+            int level = item->GetLevel();
+            if (0 < level) {
+                *sell += level * 20;
+                *sell += item->RemainFusion() * 5;
+            }
+            break;
+        }
+        case USED_ITEM_TYPE_BOILED:
+            *sell += (s16)item->data.boiled.value;
+            break;
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", GetPrice__5CShopFP13CGameDataUsedPiPi);
+#endif
 int CShop::CheckMoney() {
     int money;
     if (NowSellMode == SHOP_SELL_MODE_MONEY) {
@@ -334,10 +397,858 @@ void CShopMenu::UpdataScrlBar() {
         scrl_bar_body->h = height - scrl_bar_top->h - scrl_bar_bottom->h;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", InitEnd__9CShopMenuFv);
+extern char at_1306__3[];
+extern char at_1298__2[];
+extern char at_1299__4[];
+extern char at_1300__4[];
+extern char at_1301__3[];
+extern char at_1302__3[];
+extern char at_1303__3[];
+extern char at_1304__4[];
+extern char at_1305__3[];
+extern char at_1307__4[];
+extern char at_1308__4[];
+extern char *imglist_1267[3];
+extern char *extbl_1278[4];
+extern mgCTexture *Tex_Shop;
+extern mgCTexture *Tex_Mt0;
+void CShopMenu::InitEnd() {
+    mgCTextureManager *textures = &mgTexManager;
+    int size;
+    int shop_name_no;
+    int texture_block = tex_block[1];
+    if (pack != NULL) {
+        u_int *shop_pack = pack;
+        char path[0x40];
+        int chapter = GetNowChapter(GetSaveData());
+        if (chapter <= 0 || chapter > 8) {
+            chapter = 1;
+        }
+        sprintf(path, at_1298__2, chapter);
+        if (LanguageCode > 0) {
+            sprintf(path, at_1299__4, chapter);
+        }
+        MenuLocalStack.Align64();
+        u_long128 *script_buffer = MenuLocalStack.stGetTop();
+        if (LoadFile2(path, script_buffer, &size, 0) != 0) {
+            CShopPtr->AnalyzeShopList((char *)script_buffer, size);
+        }
+        for (int image = 0; image < 3; image++) {
+            textures->EnterIMGFile((u_char *)GetPackFile(shop_pack, imglist_1267[image], &size), texture_block, NULL, NULL);
+        }
+        Tex_Shop = textures->GetTexture(at_1300__4, -1);
+        Tex_Mt0 = textures->GetTexture(at_1301__3, -1);
+        MenuDataAnalyze((char *)GetPackFile(shop_pack, at_1302__3, &size), size, &MenuLocalStack);
+        script = (char *)GetPackFile(shop_pack, at_1303__3, &script_size);
+        MenuCommandAnalyzeInfo.system_mes_buff[2] = (short *)GetPackFile(shop_pack, at_1304__4, &size);
+    }
+    mgCMemory sound_memory;
+    MenuLocalStack.Align64();
+    sound_memory.stSetBuffer(MenuLocalStack.stGetTop(), 0x300);
+    MenuLocalStack.Alloc(0x300);
+    u_int *sound_buffer = (u_int *)MenuLocalStack.stGetTop();
+    if (LoadFile2(at_1305__3, sound_buffer, NULL, 0) != 0) {
+        sndInitPort(8);
+        se_handle = sndLoadSound(8, sound_buffer, &sound_memory);
+    }
+    MenuPosData->AttachCommonTexInfo();
+    MenuItemIconTextureBlock = texture_block;
+    MenuPosData->MallocPallet(&MenuLocalStack);
+    MenuPosData->SearchTransPalletNo();
+    AttachMessageForm();
+    AttachForm();
+    MenuMoveItemPtr->AttachForm();
+    int bag_max = GetNowBagMax(0);
+    MenuItemBrdSetInfo(bag_pos, bag_top, bag_max / 6, 5);
+    MenuItemBrdCalcManner = 0;
+    UpdataScrlBar();
+    MenuLocalStack.Align64();
+    MenuMainScene->LoadBGM(0x32, MenuLocalStack.stGetTop());
+    MenuMainScene->PlayBGM(0, -1, 1.0f);
+    cursor_reset = 1;
+    MenuPosData->FormReLink(at_1306__3, at_1307__4);
+    MenuCommonInfo->InitHaveData();
+    MenuCommonInfo->SetHaveItemInfo(0, 0);
+    ExeScript(at_1308__4);
+    ExeScript(extbl_1278[NowSellMode]);
+    CDC2Mes *message = MenuDCMsg[1];
+    shop_name_no = CShopPtr->shop_id;
+    message->SetMsgItemNo(&shop_name_no, 1);
+    shop_name_ofs_x = message->GetMesWidth_system(shop_name_no) >> 1;
+    shop_name_ofs_y = 2;
+}
+#ifdef NONMATCHING
+extern s16 shop_mode_prev_1326;
+extern s8 init_1327;
+extern char *exe_tbl_1509[];
+extern char *extbl_1573[];
+extern char *extbl_1589[];
+extern char at_1650[];
+extern char at_1651[];
+extern char at_1652[];
+extern char at_1653[];
+extern char at_1654__2[];
+extern char at_1655__3[];
+extern char at_1656__3[];
+extern char at_1657__2[];
+extern char at_1658[];
+extern char at_1659[];
+extern char at_1660[];
+extern char at_1661__2[];
+extern char at_1662[];
+extern char at_1663[];
+extern char at_1664__2[];
+extern char at_1665[];
+extern char at_1666[];
+int CShopMenu::KeyStep() {
+    int ret = 0;
+    MenuCommonInfo->CheckSelectKey();
+    int push = MenuCommonInfo->CheckPushButton();
+    int lr = MenuCommonInfo->CheckLRKey();
+    CUserDataManager *user = GetUserDataMan();
+    int fade_end = FadeCheckMenu();
+    switch (mode) {
+    case 1:
+        if (fade_end) {
+            ExeScript(at_1650);
+            mode = 0;
+        }
+        break;
+    case 2:
+        if (fade_end) {
+            MenuMainScene->StopBGM(0);
+            MenuMainScene->LoadBGM(bgm_status.load_no, MenuLocalStack.stGetTop());
+            MenuMainScene->SetActiveBgmStatus(&bgm_status);
+            ret = 1;
+        }
+        break;
+    case 0: {
+        if (MenuMoveItemPtr->CheckMove()) {
+            push = 0;
+        }
+        if (menu_debug_flag != 0) {
+            if (GamePad__2.On(0x20)) {
+                GetUserDataMan()->AddYarikomiMedal(1);
+            }
+            return 0;
+        }
+        if (init_1327 == 0) {
+            shop_mode_prev_1326 = 0;
+            init_1327 = 1;
+        }
+        int command = 0;
+        MENU_SWAPITEM_INFO swap;
+        swap.Set(-1, 0, -1, 0);
+        int item_num = CShopPtr->item_num;
+        int buy_price = 0;
+        int sell_price;
+        switch (key_arg_no) {
+        case 0: {
+            int old_pos = list_pos;
+            int old_top = list_top;
+            int moved = MenuListKeyCheck(lr, &list_pos, &list_top, item_num, 6, 0, 0);
+            if (lr & 0x50) {
+                list_pos -= 5;
+            }
+            if (lr & 0xA0) {
+                list_pos += 5;
+            }
+            if (list_pos < 0) {
+                list_pos = 0;
+            }
+            if (list_pos >= item_num) {
+                list_pos = item_num - 1;
+            }
+            while (list_pos < list_top) {
+                list_top--;
+            }
+            while (list_top + 6 < list_pos) {
+                list_top++;
+            }
+            if (old_pos != list_pos || old_top != list_top) {
+                moved = 1;
+            }
+            if (lr & 8) {
+                key_arg_no = 1;
+                int line = list_pos - list_top + 1;
+                if (line >= 5) {
+                    line = 4;
+                }
+                bag_pos = (bag_top + line) * 6;
+                MenuSePlay(0);
+            } else {
+                if (moved) {
+                    MenuSePlay(0);
+                }
+                switch (push) {
+                case 1:
+                case 4:
+                    command = 0x3E8;
+                    shop_mode_prev_1326 = key_arg_no;
+                    break;
+                case 2:
+                    command = 0x32;
+                    break;
+                }
+            }
+            break;
+        }
+        case 1:
+            if (MenuItemBrdKey(lr, &bag_pos, &bag_top, 0) == 1 && MenuCommonInfo->have_item.item_no <= 0) {
+                if (item_num > 0) {
+                    key_arg_no = 0;
+                    int line = bag_pos / 6 - bag_top - 1;
+                    if (line < 0) {
+                        line = 0;
+                    }
+                    list_pos = list_top + line;
+                    MenuSePlay(0);
+                }
+            } else {
+                swap.Set(3, bag_pos, -1, 0);
+                switch (push) {
+                case 1:
+                    command = 0x14;
+                    if (MenuCommonInfo->have_item.item_no <= 0) {
+                        command = 5;
+                        if (NowSellMode != SHOP_SELL_MODE_ROBO_ABS && NowSellMode != SHOP_SELL_MODE_MEDAL) {
+                            command = 0x3F2;
+                            shop_mode_prev_1326 = key_arg_no;
+                        }
+                    }
+                    break;
+                case 4:
+                    command = 0x14;
+                    break;
+                case 8:
+                    command = 0x1E;
+                    break;
+                case 2:
+                    command = 0x32;
+                    break;
+                }
+            }
+            break;
+        case 2:
+        case 3: {
+            s16 old_num = num;
+            s16 old_cursor = num_cursor;
+            if (lr & 4) {
+                num_cursor = old_cursor - 1;
+            }
+            if (lr & 8) {
+                num_cursor++;
+            }
+            if (num_cursor < 0) {
+                num_cursor = 0;
+            }
+            if (num_cursor >= 2) {
+                num_cursor = 1;
+            }
+            int arrow = -1;
+            if (num_cursor == 0) {
+                if (lr & 1) {
+                    num++;
+                }
+                if (lr & 2) {
+                    num--;
+                }
+                if (lr & 0x50) {
+                    num -= 10;
+                }
+                if (lr & 0xA0) {
+                    if (num == 1) {
+                        num += 9;
+                    } else {
+                        num += 10;
+                    }
+                }
+            }
+            if (old_num < num) {
+                arrow = 0;
+            }
+            if (num < old_num) {
+                arrow = 1;
+            }
+            if (num <= 0) {
+                num = 1;
+            }
+            if (num_max < num) {
+                num = num_max;
+            }
+            if (old_cursor != num_cursor || old_num != num) {
+                MenuSePlay(0);
+                if (arrow >= 0) {
+                    arrow_flash[arrow] = 8;
+                    arrow_flash[arrow ^ 1] = 0;
+                }
+            }
+            total = 0;
+            if (NowSellMode == SHOP_SELL_MODE_DONY && key_arg_no == 2) {
+                MenuDCMsg[3]->SetMsgCursor(num_cursor);
+            }
+            if (key_arg_no == 2) {
+                CShopPtr->GetPrice(SearchNowPosItemExist(), &buy_price, NULL);
+                total = buy_price * num;
+            }
+            if (key_arg_no == 3) {
+                CShopPtr->GetPrice(SearchNowPosItemExist(), NULL, &sell_price);
+                total = sell_price * num;
+            }
+            trade_brd->SetNumber(at_1651, total);
+            trade_brd->SetPartRGBA(at_1651, 0x80, 0x80, 0x80, 0x80);
+            trade_brd->SetPartRGBA(at_1652, 0x80, 0x80, 0x80, 0x80);
+            if (key_arg_no == 2 && CShopPtr->CheckMoney() < total) {
+                trade_brd->SetPartRGBA(at_1651, 0x80, 0x14, 0x14, 0x80);
+                trade_brd->SetPartRGBA(at_1652, 0x80, 0x14, 0x14, 0x80);
+            }
+            switch (push) {
+            case 4:
+            case 1:
+                if (num_cursor == 0) {
+                    if (key_arg_no == 2) {
+                        command = 0x3E9;
+                        if (NowSellMode == SHOP_SELL_MODE_DONY) {
+                            command = 0x3ED;
+                        }
+                    }
+                    if (key_arg_no == 3) {
+                        command = 0x3F3;
+                    }
+                    break;
+                }
+            case 2:
+                command = 0x44C;
+                break;
+            }
+            break;
+        }
+        case 4:
+        case 5: {
+            int answer = MenuDCMsg[4]->YesNoCursor2(0);
+            if (answer == 1) {
+                if (key_arg_no == 4) {
+                    command = 0x3ED;
+                }
+                if (key_arg_no == 5) {
+                    command = 0x3F7;
+                }
+            }
+            if (answer == 2) {
+                ExeScript(at_1653);
+                if (key_arg_no == 4) {
+                    key_arg_no = 2;
+                }
+                if (key_arg_no == 5) {
+                    key_arg_no = 3;
+                }
+            }
+            break;
+        }
+        case 6:
+        case 7:
+            if (push != 0) {
+                command = 0x44C;
+                cursor_reset = 1;
+            }
+            break;
+        }
+        CGameDataUsed *item = SearchNowPosItemExist();
+        char *item_name = NULL;
+        s16 item_no = -1;
+        if (item != NULL) {
+            item_no = item->item_no;
+            item_name = item->GetName(1);
+        }
+        if (trade_brd != NULL) {
+            MENUFORMPARTS_TYPE *icon = trade_brd->GetPartInfo(at_1654__2);
+            if (item != NULL && item_no != 0x1A6 && item_no != 0x1A8) {
+                if (item_no == 0x1AA) {
+                    MenuFormPartsPresetItem(icon, 1, item_no, item->data.item.num);
+                } else {
+                    MenuFormPartsPresetItem(icon, 1, item_no, item->GetSpectolNo());
+                }
+            }
+        }
+        CDC2Mes *count_mes = MenuDCMsg[3];
+        CDC2Mes *ask_mes = MenuDCMsg[4];
+        int refuse = -1;
+        switch (command) {
+        case 5:
+            MenuSePlay(5);
+            break;
+        case 0x14:
+            switch (MenuCommonInfo->EnableSwapNowPos(&swap)) {
+            case 0:
+                MenuSePlay(menu_item_swap_sndtbl[MenuCommonInfo->MenuSwapItem(item, &swap, 1, 1)]);
+                break;
+            case 4:
+                SetAskHowMuchItemNum(&swap, item);
+                MenuSePlay(1);
+                break;
+            default:
+                MenuSePlay(5);
+                break;
+            }
+            break;
+        case 0x1E:
+            MenuCommonInfo->GetItemAll(item, &swap);
+            break;
+        case 0x32:
+            if (IsCancelNoneLoadItem()) {
+                FadeOutMenu(0x1E, 0.0f);
+                mode = 2;
+            }
+            break;
+        case 0x3E8: {
+            num_max = 1;
+            CDataCommon *common = GameItemDataManage.GetCommonData(item_no);
+            if (common == NULL) {
+                break;
+            }
+            int room = 0;
+            CGameDataUsed *bag = user->GetUsedDataPtr(0);
+            for (int slot = 0; slot < GetNowBagMax(0); slot++, bag++) {
+                if (bag->item_no <= 0) {
+                    room += common->stack_num;
+                }
+                if (bag->item_no == item_no && bag->CheckTypeEnableStack()) {
+                    room += bag->CheckStackRemain();
+                }
+            }
+            if (item_no == 0x1A6 || item_no == 0x1A8 || item_no == 0x1AB || item_no == 0x1AC ||
+                GetItemDataType(item_no) == 0xB) {
+                room = 1;
+            }
+            if (room <= 0) {
+                refuse = 2;
+                break;
+            }
+            int can_have = common->max_num - user->GetNumSameItem(item_no);
+            if (can_have <= 0) {
+                refuse = 3;
+                break;
+            }
+            if (room < can_have) {
+                can_have = room;
+            }
+            num_cursor = 0;
+            num_max = can_have;
+            if (item_no == 0x1A7) {
+                num_max = 1;
+                CShopPtr->once_item_chosen = 1;
+            }
+            if (NowSellMode == SHOP_SELL_MODE_DONY) {
+                num_max = 1;
+            }
+            SetMenuKeyCtrlEnv(2);
+            key_arg_no = 2;
+            arrow_flash[1] = 0;
+            arrow_flash[0] = 0;
+            CShopPtr->GetPrice(SearchNowPosItemExist(), &buy_price, NULL);
+            trade_brd->SetNumber(at_1655__3, buy_price);
+            num = 1;
+            ExeScript(exe_tbl_1509[NowSellMode]);
+            count_mes->SetMsgItemNo(&item_name, 1);
+            if (item_no == 0x1A6) {
+                ExeScript(at_1656__3);
+            } else if (item_no == 0x1A8) {
+                ExeScript(at_1657__2);
+            } else {
+                ExeScript(at_1658);
+            }
+            break;
+        }
+        case 0x3ED: {
+            key_arg_no = 0;
+            if (GetItemDataType(item_no) == 0xB) {
+                user->DeleteItem(item_no - 1, 1);
+            }
+            int no_get = 0;
+            if (item_no == 0x1A8 || item_no == 0x1AC || item_no == 0x1AB) {
+                no_get = 1;
+            }
+            if (item_no == 0x1A6) {
+                no_get = 1;
+            }
+            if (no_get == 0) {
+                user->GetItem(item_no, num);
+            }
+            CShopPtr->AddMoney(-total);
+            ExeScript(at_1659);
+            if (item_no == 0x1A7) {
+                user->unk_44dc0++;
+            }
+            CSaveData *save = GetSaveData();
+            save->SetBitFlag(0xC, 1);
+            if (item_no == 0x173) {
+                save->SetBitFlag(0x1B, 1);
+            }
+            if (item_no == 0x1A8) {
+                GetUserDataMan()->monster_box.EnableChange(4);
+                CMap *map = MenuMainScene->GetMap(MenuMainScene->active_map);
+                if (map != NULL) {
+                    CFuncPoint *point = map->func_point.Search(at_1660);
+                    if (point != NULL) {
+                        point->enable = 1;
+                    }
+                }
+            }
+            if (item_no == 0x1AC) {
+                GetUserDataMan()->monster_box.EnableChange(0xC);
+            }
+            if (item_no == 0x1AB) {
+                GetUserDataMan()->monster_box.EnableChange(0xB);
+            }
+            if (item_no == 0x1A6) {
+                GetUserDataMan()->SetVoiceUnit(1);
+            }
+            if (item_no == 0x163) {
+                GetUserDataMan()->GetInventUserData()->GetScoopData()->KnowScoop();
+            }
+            if (NowSellMode == SHOP_SELL_MODE_DONY) {
+                GetMenuSysData()->GetGhobi(item_no);
+            }
+            CShopPtr->CheckEventItem();
+            CShopPtr->CheckSyojiHin();
+            CheckEnableHaveItemNum();
+            UpdataScrlBar();
+            int goods = CShopPtr->item_num;
+            CheckMenuLine(&list_pos, &list_top, goods + 1, 6);
+            MenuSePlay(se_handle, 0);
+            if (goods <= 0) {
+                key_arg_no = 1;
+            }
+            break;
+        }
+        case 0x3F2: {
+            CGameDataUsed *sell_item = SearchNowPosItemExist();
+            if (sell_item->GetNum() <= 0) {
+                MenuSePlay(5);
+            } else if (CShopPtr->price[item_no].sell <= 0) {
+                MenuSePlay(5);
+            } else if (CheckEquipFishRod(sell_item) == 1) {
+                refuse = 4;
+            } else {
+                arrow_flash[1] = 0;
+                arrow_flash[0] = 0;
+                if (item_no == 0x1A6) {
+                    ExeScript(at_1656__3);
+                } else if (item_no == 0x1A8) {
+                    ExeScript(at_1657__2);
+                } else {
+                    ExeScript(at_1658);
+                }
+                int unit_price;
+                CShopPtr->GetPrice(sell_item, NULL, &unit_price);
+                trade_brd->SetNumber(at_1655__3, unit_price);
+                key_arg_no = 3;
+                SetMenuKeyCtrlEnv(2);
+                num_cursor = 0;
+                num = 1;
+                num_max = sell_item->GetNum();
+                ExeScript(at_1661__2);
+                count_mes->SetMsgItemNo(&item_name, 1);
+            }
+            break;
+        }
+        case 0x3F3:
+        case 0x3E9:
+            if (key_arg_no == 2) {
+                if (NowSellMode != SHOP_SELL_MODE_DONY && CShopPtr->CheckMoney() < total) {
+                    refuse = 1;
+                    break;
+                }
+                ExeScript(extbl_1573[NowSellMode]);
+                key_arg_no = 4;
+            } else {
+                if (key_arg_no == 3) {
+                    ExeScript(at_1662);
+                    key_arg_no = 5;
+                }
+                CGameDataUsed *trade_item = SearchNowPosItemExist();
+                char *name = NULL;
+                if (trade_item != NULL) {
+                    name = trade_item->GetName(0);
+                }
+                char *names[2] = {NULL, NULL};
+                names[0] = name;
+                int values[2] = {0, 0};
+                values[0] = num;
+                values[1] = total;
+                ask_mes->SetMsgItemNo(names, 1);
+                ask_mes->SetMsgVolumeNo(values, 2);
+            }
+            break;
+        case 0x3F7:
+            item->DeleteNum(num);
+            CShopPtr->AddMoney(total);
+            CShopPtr->CheckSyojiHin();
+            CheckEnableHaveItemNum();
+            key_arg_no = 1;
+            ExeScript(at_1659);
+            MenuSePlay(se_handle, 0);
+            break;
+        case 0x44C:
+            ExeScript(at_1663);
+            error = -1;
+            key_arg_no = shop_mode_prev_1326;
+            SetMenuKeyCtrlEnv(0);
+            break;
+        }
+        if (refuse > 0) {
+            error = refuse;
+            ask_mes->mes_no = -1;
+        }
+        switch (refuse) {
+        case 1:
+            key_arg_no = 6;
+            ExeScript(extbl_1589[NowSellMode]);
+            break;
+        case 2:
+            key_arg_no = 6;
+            ExeScript(at_1664__2);
+            break;
+        case 3: {
+            key_arg_no = 6;
+            ExeScript(at_1665);
+            char *message[1] = {NULL};
+            message[0] = GetItemMessage(item_no);
+            ask_mes->SetMsgItemNo(message, 1);
+            break;
+        }
+        case 4:
+            key_arg_no = 6;
+            ExeScript(at_1666);
+            break;
+        }
+    }
+    default:
+        ExtendCommand(lr, push);
+        break;
+    }
+    MenuPosData->FormStep();
+    CalcTex();
+    CalcCursorPosition();
+    CGameDataUsed *now_item = SearchNowPosItemExist();
+    if (now_item != NULL) {
+        MenuDCMsg[0]->MakeMsg(now_item);
+    } else {
+        MenuDCMsg[0]->MakeMsg(now_item);
+    }
+    return ret;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", KeyStep__9CShopMenuFv);
+#endif
+#ifdef NONMATCHING
+extern char at_1817[];
+extern char at_1818[];
+extern char at_1819[];
+extern char at_1820[];
+extern char at_1821[];
+extern char at_1822[];
+extern char at_1823__2[];
+extern char at_1824__2[];
+extern char at_1825__3[];
+extern char at_1826__4[];
+void CShopMenu::CalcTex() {
+    int num_pos[2];
+    int up_pos[2];
+    int down_pos[2];
+    int name_pos[2];
+    float bar_pos[2];
+    if (shop_name_brd != NULL && MenuMesForm[1] != NULL) {
+        shop_name_brd->GetPutPosXY(at_1817, name_pos[0], name_pos[1]);
+        MenuDCMsg[1]->SetMovePosGyou(0, name_pos[0] - shop_name_ofs_x, name_pos[1] + shop_name_ofs_y);
+    }
+    if (item_list != NULL && item_brd != NULL) {
+        CalcMenu1(item_brd->y - 44.0f * (float)list_top, &item_list->y, 4.0f, 0.0f, 0);
+        item_brd->GetPutPosXY(at_1818, bar_pos[0], bar_pos[1]);
+        bar_pos[1] -= item_brd->y;
+        CalcMenu1(bar_pos[1] + scrl_bar_step * (float)list_top, &scrl_bar_top->y, 4.0f, 0.0f, 0);
+        scrl_bar_body->y = scrl_bar_top->y + scrl_bar_top->h;
+        scrl_bar_bottom->y = scrl_bar_body->y + scrl_bar_body->h;
+    }
+    CUserDataManager *user_data = GetUserDataMan();
+    if (money_brd != NULL) {
+        money_brd->SetNumber(at_1819, user_data->money);
+    }
+    if (exp_brd != NULL) {
+        exp_brd->SetNumber(at_1820, GetDispVolumeForFloat(user_data->GetRoboAbs()));
+    }
+    if (medal_brd != NULL) {
+        medal_brd->SetNumber(at_1819, CShopPtr->CheckMoney());
+    }
+    Func_MenuItemBrdPosStep(bag_top);
+    NowGiftBoxPtr = SearchNowPosItemExist();
+    if (GiftBoxViewForm != NULL) {
+        int view_pos[2] = {0, 0};
+        if (key_arg_no == SHOP_MENU_MODE_BAG) {
+            MenuPosData->GetPosMenuItemOnItemBrd(view_pos, bag_pos, 0);
+        } else {
+            NowGiftBoxPtr = NULL;
+            view_pos[0] = 0x280;
+            view_pos[1] = 0x1B8;
+        }
+        CMenuPosDataForm *view_form = GiftBoxViewForm;
+        view_form->x = view_pos[0];
+        view_form->y = view_pos[1];
+        if (mode == 2) {
+            NowGiftBoxPtr = NULL;
+        }
+    }
+    CDC2Mes *message = MenuDCMsg[2];
+    CMenuPosDataForm *message_form = MenuMesForm[2];
+    if (message_form != NULL) {
+        message_form->draw_flag = 0;
+        message->MakeMsg(0);
+        if (NowSellMode == SHOP_SELL_MODE_MONEY &&
+            (key_arg_no == SHOP_MENU_MODE_BAG || key_arg_no == SHOP_MENU_MODE_SELL_NUM)) {
+            s16 *mes_width = &price_mes_width;
+            CGameDataUsed *item = SearchNowPosItemExist();
+            message->point_y = 0;
+            int gift_box = 0;
+            int mes_no = -1;
+            int sell;
+            if (item->item_no > 0) {
+                message_form->draw_flag = 1;
+                sell = 0;
+                CShopPtr->GetPrice(item, NULL, &sell);
+                if (item->used_type == USED_ITEM_TYPE_GIFT_BOX) {
+                    gift_box = 1;
+                }
+                if (sell <= 0) {
+                    message->win_color.r = 0x3B;
+                    mes_width = &no_price_mes_width;
+                    message->win_color.g = 0x16;
+                    message->win_color.b = 0x16;
+                    message->win_color.a = 0x80;
+                    mes_no = 0x3EA;
+                } else {
+                    message->SetMsgVolumeNoOne(sell);
+                    message->win_color.r = 0x27;
+                    message->win_color.g = 0x20;
+                    message->win_color.b = 0x20;
+                    message->win_color.a = 0x80;
+                    mes_no = 0x3E8;
+                }
+                message->MakeMsg(mes_no);
+            }
+            message->StepMsg();
+            int line = bag_pos / 6 - bag_top;
+            int koma[2];
+            int win_x;
+            int win_y;
+            MenuPosData->GetPosMenuItemBrdKoma(koma, bag_pos, 1);
+            if (gift_box == 1) {
+                koma[0] += 0x2C;
+                win_x = koma[0] + 0xA;
+                if (mgScreenWidth - *mes_width - 0x1E < win_x) {
+                    win_x -= *mes_width + 0x6D;
+                }
+                koma[1] += 0xC;
+                win_y = koma[1] - 0x1A;
+                message->point_x = koma[0] - win_x;
+                message->point_y = koma[1] - win_y;
+            } else {
+                koma[0] += 0x14;
+                win_x = koma[0] - *mes_width / 2;
+                int right_limit = mgScreenWidth - 0x28;
+                if (right_limit < win_x + *mes_width) {
+                    while (right_limit - *mes_width < win_x) {
+                        win_x--;
+                    }
+                }
+                win_y = koma[1] + 0x32;
+                if (line >= 3) {
+                    win_y = koma[1] - 0x50;
+                    if (mes_no == 0x3EA) {
+                        win_y = koma[1] - 0x32;
+                    }
+                }
+                message->point_x = koma[0] - win_x;
+                message->point_y = koma[1] - win_y;
+            }
+            message_form->x = win_x;
+            message_form->y = win_y;
+        }
+    }
+    if (trade_brd != NULL) {
+        trade_brd->GetPutPosXY(at_1821, num_pos[0], num_pos[1]);
+        trade_brd->GetPutPosXY(at_1822, up_pos[0], up_pos[1]);
+        trade_brd->GetPutPosXY(at_1823__2, down_pos[0], down_pos[1]);
+        trade_brd->SetNumber(at_1824__2, num);
+        if (NowSellMode != SHOP_SELL_MODE_DONY ||
+            (key_arg_no != SHOP_MENU_MODE_BUY_NUM && key_arg_no != SHOP_MENU_MODE_BUY_ASK &&
+             key_arg_no != SHOP_MENU_MODE_BUY_ERROR)) {
+            MenuDCMsg[3]->SetMovePosGyou(0, num_pos[0], num_pos[1]);
+            MenuDCMsg[3]->SetMovePosGyou(1, up_pos[0], up_pos[1]);
+            MenuDCMsg[3]->SetMovePosGyou(2, down_pos[0], down_pos[1]);
+        }
+        trade_brd->SetPartRGBA(at_1825__3, 0x80, 0x80, 0x80, 0x80);
+        trade_brd->SetPartRGBA(at_1826__4, 0x80, 0x80, 0x80, 0x80);
+        if (arrow_flash[0] > 0) {
+            trade_brd->SetPartRGBA(at_1825__3, 0xA4, 0xA4, 0xA4, 0x80);
+        }
+        if (arrow_flash[1] > 0) {
+            trade_brd->SetPartRGBA(at_1826__4, 0xA4, 0xA4, 0xA4, 0x80);
+        }
+    }
+    if (arrow_flash[0] > 0) {
+        arrow_flash[0]--;
+    }
+    if (arrow_flash[1] > 0) {
+        arrow_flash[1]--;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", CalcTex__9CShopMenuFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", CalcCursorPosition__9CShopMenuFv);
+#endif
+struct CursorPoint {
+    int x;
+    int y;
+};
+extern CursorPoint at_1831__2;
+extern CursorPoint t_offxy_1832;
+extern CursorPoint cursor_offsetxy_1836;
+extern char *cursortbl_1838[2];
+static inline void SetFormPoint(CMenuPosDataForm *form, int x, int y) {
+    form->x = (float)x;
+    form->y = (float)y;
+}
+void CShopMenu::CalcCursorPosition() {
+    CursorPoint position = at_1831__2;
+    CursorPoint bag_point;
+    int waku_type = -1;
+    CursorPoint *offset = &t_offxy_1832;
+    switch (key_arg_no) {
+    case SHOP_MENU_MODE_BUY_LIST:
+        position.x = fptosi(list_x - 10.0f);
+        position.y = fptosi(list_y + (float)((list_pos - list_top) * 0x2C));
+        break;
+    case SHOP_MENU_MODE_BAG:
+        MenuPosData->GetPosMenuItemOnItemBrd(&bag_point.x, bag_pos, 1);
+        waku_type = 0;
+        offset = &cursor_offsetxy_1836;
+        position.x = bag_point.x - 8;
+        position.y = bag_point.y - 10;
+        break;
+    default:
+        if (trade_brd != NULL) {
+            trade_brd->GetPutPosXY(cursortbl_1838[num_cursor], position.x, position.y);
+        }
+        break;
+    }
+    if (cursor_reset != 0) {
+        SetFormPoint(MenuCommonInfo->cursor_form, position.x, position.y);
+        SetFormPoint(MenuCommonInfo->waku_form, position.x, position.y);
+        cursor_reset = 0;
+    }
+    MenuCommonInfo->MenuPosStep(&position.x, &offset->x);
+    MenuCommonInfo->SetWakuType(waku_type);
+    MenuCommonInfo->SetWakuWH(0, 0x24, 0x2A);
+}
 CGameDataUsed *CShopMenu::SearchNowPosItemExist() {
     switch (key_arg_no) {
     case SHOP_MENU_MODE_BUY_LIST:
@@ -367,10 +1278,243 @@ CGameDataUsed *CShopMenu::SearchNowPosItemExist() {
     }
     return NULL;
 }
+#ifdef NONMATCHING
+extern u8 rgba_1897[4];
+void ShopSellListDraw(int &tex_block, float *pos) {
+    mgCTexture *icon_tex = MenuPosData->item_icon_tex[0][0];
+    if (icon_tex == NULL) {
+        return;
+    }
+    MenuReloadTexture(tex_block, icon_tex->block);
+    mgRect<int> money_mark(0, 0xC4, 0x24, 0x10);
+    mgRect<int> abs_mark(0x24, 0xC4, 0x24, 0x10);
+    mgRect<int> medal_mark(0x48, 0xC2, 0x12, 0x12);
+    mgRect<int> free_mark(0xAA, 0x9E, 0x30, 0x10);
+    mgRect<int> *price_mark = &money_mark;
+    if (NowSellMode == SHOP_SELL_MODE_ROBO_ABS) {
+        price_mark = &abs_mark;
+    }
+    if (NowSellMode == SHOP_SELL_MODE_MEDAL) {
+        price_mark = &medal_mark;
+        if (LanguageCode > 0) {
+            price_mark = &free_mark;
+            free_mark.right = 0x32;
+        }
+        if (LanguageCode == 4) {
+            free_mark.right = 0x36;
+        }
+    }
+    mgRect<int> have_board(0x3A, 0x94, 0x30, 0x28);
+    mgRect<int> have_digits(0, 0xD4, 0xB, 0x14);
+    mgRect<int> price_digits(0, 0xE8, 0xB, 0x17);
+    if (LanguageCode > 0) {
+        abs_mark.left = 0x28;
+        have_board.left = 0x3E;
+    }
+    mgRect<int> line_rect(0, 0x8E, 0xB0, 6);
+    mgCDrawPrim *prim = GetMenuPrim();
+    SetSpriteEnv(prim, 0);
+    float x = pos[0] + 18.0f;
+    float y = pos[1] + 44.0f;
+    CGameDataUsed item;
+    float price_x = x + 92.0f;
+    float mark_x;
+    if (LanguageCode > 0 && NowSellMode == SHOP_SELL_MODE_MEDAL) {
+        mark_x = price_x;
+        price_x -= 12.0f;
+    } else {
+        mark_x = price_x;
+    }
+    if (LanguageCode > 0 && NowSellMode == SHOP_SELL_MODE_ROBO_ABS) {
+        mark_x = price_x + 6.0f;
+    }
+    int item_num = CShopPtr->item_num;
+    for (int line = 0; line < item_num; line++, y += 44.0f) {
+        if (y + 44.0f < 0.0f) {
+            continue;
+        }
+        int item_no = CShopPtr->GetItemNo(line);
+        if ((float)(mgScreenHeight - 30) <= y) {
+            break;
+        }
+        prim->Bilinear(0);
+        prim->Begin(6);
+        prim->Texture(Tex_Shop);
+        prim->Color(0x80, 0x80, 0x80, 0x80);
+        PrimQuad(prim, x - 4.0f, y + 40.0f, line_rect);
+        PrimQuad(prim, x + 128.0f, y + 1.0f, have_board);
+        int price = CShopPtr->GetHaveNum(line);
+        PrimDrawNumber(prim, price, 1, fptosi(x + 134.0f + 23.0f), fptosi(y + 12.0f), have_digits, 0, 0);
+        item.item_no = item_no;
+        CShopPtr->GetPrice(&item, &price, NULL);
+        PrimDrawNumber(prim, price, 0, fptosi(price_x), fptosi(y + 16.0f), price_digits, 0, 0);
+        mgRect<int> mark_rect(fptosi(mark_x), fptosi(y + 22.0f), price_mark->right, price_mark->bottom);
+        PrimQuad(prim, mark_rect, *price_mark);
+        prim->End();
+        mgRect<float> icon_rect(x, y, 32.0f, 40.0f);
+        if (item_no == 0x1A8 || item_no == 0x1AB || item_no == 0x1AC || item_no == 0x1A6) {
+            prim->Bilinear(1);
+            prim->Begin(6);
+            prim->Color(0x80, 0x80, 0x80, 0x80);
+            mgRect<int> robo_icon(0x6A, 0xAE, 0x22, 0x22);
+            if (LanguageCode > 0) {
+                robo_icon.left += 4;
+            }
+            if (item_no == 0x1A8) {
+                robo_icon.left += 0x22;
+            }
+            if (item_no == 0x1AC) {
+                robo_icon.left += 0x44;
+            }
+            if (item_no == 0x1AB) {
+                robo_icon.left += 0x66;
+            }
+            PrimQuad(prim, icon_rect, robo_icon);
+            prim->End();
+        } else {
+            DrawOneItem(prim, icon_rect, item_no, 0, NULL, rgba_1897, 0);
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", ShopSellListDraw__FRiPf);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuShopInit__FP9mgCMemoryPii);
+#endif
+extern char at_2114__2[];
+extern char at_2115__2[];
+extern char at_2116__2[];
+extern char at_2117__2[];
+extern char at_2118__2[];
+extern "C" void *__ct__14CBaseMenuClassFv(void *);
+extern "C" void *__ct__13CGameDataUsedFv(void *);
+extern "C" void *__vt__9CShopMenu[];
+void MenuShopInit(mgCMemory *stack, int *tex_block, int arg) {
+    int cfg_size;
+    CMenuPosDataForm *form;
+    int no;
+    int form_num;
+    int free_size = stack->stGetRest();
+    u_long128 *top = stack->stGetTop();
+    MenuLocalStack.stSetBuffer(top, free_size);
+    CShopMenu *menu;
+    if ((menu = (CShopMenu *)operator new(sizeof(CShopMenu), MenuLocalStack.Alloc(0x23))) != NULL) {
+        __ct__14CBaseMenuClassFv(menu);
+        *(void ***)((u_char *)menu + 0x10C) = __vt__9CShopMenu;
+        __ct__13CGameDataUsedFv(&menu->shop_item);
+        menu->list_pos = 0;
+        menu->list_top = 0;
+        menu->bag_pos = 0;
+        menu->bag_top = 0;
+        menu->key_arg_no = 0;
+        menu->num_cursor = 0;
+        menu->total = 0;
+        menu->cursor_reset = 1;
+        menu->error = -1;
+        menu->num = 0;
+        menu->num_max = 0;
+        menu->arrow_flash[0] = 0;
+        menu->arrow_flash[1] = 0;
+        menu->list_x = 0.0f;
+        menu->list_y = 0.0f;
+        menu->shop_name_ofs_x = 0;
+        menu->shop_name_ofs_y = 0;
+        menu->price_mes_width = 0;
+        menu->unk_1e6 = 0;
+        menu->no_price_mes_width = 0;
+        menu->unk_1ea = 0;
+        menu->scrl_bar_top = NULL;
+        menu->scrl_bar_body = NULL;
+        menu->scrl_bar_bottom = NULL;
+        menu->pack = NULL;
+        menu->pack_size = 0;
+        menu->se_handle = 0;
+        menu->trade_brd = NULL;
+        menu->item_list = NULL;
+        menu->shop_name_brd = NULL;
+        menu->money_brd = NULL;
+        menu->exp_brd = NULL;
+        menu->medal_brd = NULL;
+        menu->item_brd = NULL;
+    }
+    CShopMenuPt = menu;
+    CShopMenuPt->SetTexBlock(tex_block);
+    CShop *shop;
+    if ((shop = (CShop *)operator new(sizeof(CShop), MenuLocalStack.Alloc(0x123))) != NULL) {
+        memset(shop, 0, sizeof(CShop));
+    }
+    int shop_id = MenuArg.param[0];
+    CShopPtr = shop;
+    if (shop_id < 0) {
+        shop_id = 0;
+    }
+    shop->shop_id = shop_id;
+    MenuMainScene->GetActiveBgmStatus(&CShopMenuPt->bgm_status);
+    MenuMainScene->StopBGM(0);
+    MenuMoveItemPtr = new (MenuLocalStack.Alloc(0x13)) CMenuMoveItem;
+    MenuCommonInfo->now_mode = MENU_MODE_SHOP;
+    MenuMainImageDataEnter(CShopMenuPt->tex_block[1]);
+    short *system_mes = GetSystemMesBuffer();
+    short *menu_mes = GetMenuMainMessageBuffer();
+    MenuCommandAnalyzeInfo.system_mes_buff[0] = system_mes;
+    MenuCommandAnalyzeInfo.mes_buff[0] = menu_mes;
+    MenuCommandAnalyzeInfo.system_mes_buff[1] = menu_mes;
+    CDC2Mes *message = MenuDCMsg[2];
+    message->SetMessData(menu_mes, menu_mes);
+    message->MsgPreset(6);
+    message->fuchi = 4;
+    message->value_sign = 0;
+    message->value_zero = 1;
+    int width = 60;
+    message->line_indent_on = 1;
+    message->MakeMsg(0x3E8);
+    message->StepMsg();
+    if (message->line_w[0] > 60) {
+        width = message->line_w[0];
+    }
+    int no_width = 60;
+    CShopMenuPt->price_mes_width = width;
+    message->MakeMsg(0x3EA);
+    message->StepMsg();
+    if (message->line_w[0] > 60) {
+        no_width = message->line_w[0];
+    }
+    CShopMenuPt->no_price_mes_width = no_width;
+    message->MakeMsg(0);
+    MenuDataAnalyze((char *)GetMenuMainPosCfgBuffer(&cfg_size), cfg_size, &MenuLocalStack);
+    form = MenuPosData->GetFormInfo(0x50);
+    form_num = MenuPosData->form_num;
+    for (no = 0x50; no < form_num; no++, form++) {
+        if (form != NULL && form->name != NULL && strcmp(form->name, at_1306__3) != 0 &&
+            strcmp(form->name, at_2114__2) != 0 && strcmp(form->name, at_2115__2) != 0 &&
+            strcmp(form->name, at_2116__2) != 0 && strcmp(form->name, at_2117__2) != 0) {
+            form->draw_flag = 0;
+        }
+    }
+    form = MenuPosData->GetFormInfo(1);
+    for (no = 1; no < 9; no++, form++) {
+        if (form != NULL && form->name != NULL) {
+            form->draw_flag = 0;
+        }
+    }
+    MenuPosData->InitDrawList();
+    MenuPosData->AttachCommonTexInfo();
+    MenuCommonInfo->AttachFuncData();
+    AttachMessageForm();
+    MenuMainFrameModeSet(0, 1);
+    CShopMenuPt->AttachForm();
+    MenuLocalStack.Alloc(0x180);
+    MenuLocalStack.Align64();
+    CShopMenuPt->pack = (u_int *)MenuLocalStack.stGetTop();
+    CShopMenuPt->pack_size =
+        LoadFileMenu(at_2118__2, (u_long128 *)CShopMenuPt->pack, 1);
+    u_int pack_size = CShopMenuPt->pack_size;
+    MenuLocalStack.Alloc((pack_size & 0xF) ? (pack_size >> 4) + 1 : pack_size >> 4);
+    MenuLocalStack.Alloc(0x100);
+    GiftBoxViewForm = NULL;
+    CheckEnableHaveItemNum();
+    CShopMenuPt->InitEnd();
+}
 int MenuShopKey() {
-    return ((CShopMenu *)CShopMenuPt)->KeyStep();
+    return CShopMenuPt->KeyStep();
 }
 void MenuShopDraw() {
     MenuPosData->FormDraw();
@@ -416,8 +1560,8 @@ extern float QuestScrlBarY;
 extern float QuestScrlBarH;
 extern float QuestMoveRate;
 extern u8 QuestViewCommentFlag;
-extern CQuestData *ActiveQuestInfo;
-extern int ScmFlagCtrl;
+extern QUEST_INFO *ActiveQuestInfo;
+extern SCOOP_DATA *ScmFlagCtrl;
 #pragma divbyzerocheck on
 void CMenuQuestView::InitEnd() {
     select = 0;
@@ -485,18 +1629,502 @@ void CMenuQuestView::InitEnd() {
     QuestMoveRate = 1.0f;
     QuestViewCommentFlag = 0;
     ActiveQuestInfo = NULL;
-    ScmFlagCtrl = 0;
+    ScmFlagCtrl = NULL;
     FadeInMenu(40, 0.0f);
 }
 
 #pragma divbyzerocheck reset
 
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", KeyStep__14CMenuQuestViewFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuNPCQuestViewInit__FP9mgCMemoryPii);
-int MenuNPCQuestViewKey() {
-    return ((CMenuQuestView *)MenuQuestView)->KeyStep();
+extern CQuestData *QuestDataPtr;
+extern CScoopDataManager *ScoopMan;
+extern float QuestListTopY;
+extern float QuestCommentWinX;
+extern s16 QuestReactionCommentGyouNum;
+extern int menu_debug_questselect;
+#ifdef NONMATCHING
+int CMenuQuestView::KeyStep() {
+    MenuCommonInfo->CheckSelectKey();
+    int lr_key = MenuCommonInfo->CheckLRKey();
+    int push = MenuCommonInfo->CheckPushButton();
+    int jump = 0;
+    switch (mode) {
+    case 1:
+        if (FadeCheckMenu()) {
+            MenuCommonInfo->key_enable = 1;
+            mode = 0;
+            QuestMoveRate = 4.0f;
+        }
+        break;
+    case 2:
+        if (FadeCheckMenu()) {
+            FadeInMenu(0x28, 0.0f);
+            DeleteTexBlock();
+            return 1;
+        }
+        break;
+    case 0:
+        if (menu_debug_flag) {
+            if (lr_key & 1) {
+                menu_debug_questselect--;
+            }
+            if (lr_key & 2) {
+                menu_debug_questselect++;
+            }
+            if (menu_debug_questselect < 0) {
+                menu_debug_questselect = 0;
+            }
+            if (menu_debug_questselect >= SelectMax()) {
+                menu_debug_questselect = SelectMax() - 1;
+            }
+            if (Menu_Memo_ViewMode == 1) {
+                SCOOP_DATA *scoop = GetScoopDataTableIndex(menu_debug_questselect);
+                if (scoop == NULL) {
+                    return 0;
+                }
+                SCOOP_INFO *info = ScoopMan->GetScoopInfo(scoop->scoop_id);
+                if (push & 1) {
+                    info->known ^= 1;
+                }
+                if (push & 2) {
+                    info->obtained ^= 1;
+                }
+            }
+            if (Menu_Memo_ViewMode == 0) {
+                QUEST_PLAY_DATA *quest = QuestDataPtr->GetPlayQuestData(menu_debug_questselect);
+                if (push & 1) {
+                    quest->accepted ^= 1;
+                }
+                if (push & 2) {
+                    quest->cleared ^= 1;
+                }
+            }
+            return 0;
+        }
+        switch (step) {
+        case 0: {
+            int max = SelectMax();
+            int old_top = top;
+            int old_select = select;
+            MenuKeySelectCheck(MenuListSelectKeyCheck(lr_key, 7), &select, &top, 0, max, 7, 0);
+            if (old_select != select) {
+                MenuSePlay(0);
+                if (abs(old_top - top) >= 2) {
+                    jump = 1;
+                }
+            }
+            if (push & 1) {
+                if (Menu_Memo_ViewMode == 0) {
+                    QUEST_PLAY_DATA *quest = QuestDataPtr->GetPlayQuestData(select);
+                    if (quest != NULL && quest->accepted != 0) {
+                        step = 1;
+                        QuestViewCommentFlag = 1;
+                        ActiveQuestInfo = QuestMan->GetQuestInfo(select);
+                        QuestCommentMes[0]->MakeMsg(ActiveQuestInfo->name);
+                        QuestCommentMes[0]->StepMsg();
+                        QuestCommentMes[1]->MakeMsg(ActiveQuestInfo->comment);
+                        QuestCommentMes[1]->StepMsg();
+                        char *reaction = ActiveQuestInfo->reaction[0];
+                        if (quest->cleared != 0) {
+                            reaction = ActiveQuestInfo->reaction[1];
+                        }
+                        QuestCommentMes[2]->MakeMsg(reaction);
+                        QuestCommentMes[2]->StepMsg();
+                        QuestReactionCommentGyouNum = 1;
+                        if (QuestCommentMes[2]->line_w[1] > 0) {
+                            QuestReactionCommentGyouNum = 2;
+                        }
+                        float width = 0.0f;
+                        for (int line = 0; line < 3; line++) {
+                            float line_w = QuestCommentMes[1]->line_w[line];
+                            if (width < line_w) {
+                                width = line_w;
+                            }
+                        }
+                        QuestCommentWinX = fptosi(mgScreenWidth - width) >> 1;
+                        UnderMsg(1);
+                    }
+                } else if (Menu_Memo_ViewMode == 1) {
+                    ScmFlagCtrl = GetScoopDataTableIndex(select);
+                    if (ScmFlagCtrl != NULL) {
+                        SCOOP_INFO *info = ScoopMan->GetScoopInfo(ScmFlagCtrl->scoop_id);
+                        if (info != NULL && info->known != 0) {
+                            char photo_name[0x100];
+                            step = 1;
+                            QuestViewCommentFlag = 1;
+                            GetPhotoNameStr(ScmFlagCtrl->scoop_id, photo_name);
+                            QuestCommentMes[0]->MakeMsg(photo_name);
+                            QuestCommentMes[0]->StepMsg();
+                            QuestCommentMes[1]->MakeMsg(ScmFlagCtrl->text);
+                            QuestCommentMes[1]->StepMsg();
+                            float width = 0.0f;
+                            for (int line = 0; line < 3; line++) {
+                                float line_w = QuestCommentMes[1]->line_w[line];
+                                if (width < line_w) {
+                                    width = line_w;
+                                }
+                            }
+                            QuestCommentWinX = fptosi(mgScreenWidth - width) >> 1;
+                            UnderMsg(1);
+                        }
+                    }
+                } else {
+                    MenuSePlay(1);
+                }
+            } else if (push & 2) {
+                FadeOutMenu(0x28, 0.0f);
+                MenuSePlay(5);
+                mode = 2;
+            }
+            break;
+        }
+        case 1:
+            if (push != 0) {
+                QuestViewCommentFlag = 0;
+                ActiveQuestInfo = NULL;
+                ScmFlagCtrl = NULL;
+                step = 0;
+                MenuSePlay(5);
+                UnderMsg(0);
+            }
+            break;
+        }
+        break;
+    }
+    QuestTilePatternXY[0] += 0.5f;
+    if (QuestTilePatternXY[0] >= 0.0f) {
+        QuestTilePatternXY[0] -= 128.0f;
+    }
+    float target = 0x52 - top * 0x22;
+    QuestListTopY += (target - QuestListTopY) / QuestMoveRate;
+    if (jump) {
+        QuestListTopY = target;
+    }
+    if (Menu_Memo_ViewMode == 0) {
+        target = 77.0f + (float)top * ((248.0f - QuestScrlBarH) / (float)(QuestMan->num - 7));
+    }
+    if (Menu_Memo_ViewMode == 1) {
+        target = 77.0f + ((248.0f - QuestScrlBarH) / 46.0f) * (float)top;
+    }
+    QuestScrlBarY += (target - QuestScrlBarY) / QuestMoveRate;
+    if (jump) {
+        QuestScrlBarY = target;
+    }
+    QuestCursorPos[1] += ((float)((select - top) * 0x22 + 0x52) + 3.0f - QuestCursorPos[1]) / QuestMoveRate;
+    return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuNPCQuestViewDraw__Fv);
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", KeyStep__14CMenuQuestViewFv);
+#endif
+extern "C" void *__ct__14CBaseMenuClassFv(void *);
+extern "C" void *__vt__14CMenuQuestView[];
+void MenuNPCQuestViewInit(mgCMemory *stack, int *tex_block, int view_mode) {
+    Menu_Memo_ViewMode = 0;
+    if (view_mode == 1) {
+        Menu_Memo_ViewMode = 1;
+    }
+    stack->Align64();
+    int free_size = stack->stGetRest();
+    u_long128 *top = stack->stGetTop();
+    MenuLocalStack.stSetBuffer(top, free_size);
+    CMenuQuestView *view;
+    if ((view = (CMenuQuestView *)operator new(sizeof(CMenuQuestView), MenuLocalStack.Alloc(0x1B))) != NULL) {
+        __ct__14CBaseMenuClassFv(view);
+        *(void ***)((u_char *)view + 0x10C) = __vt__14CMenuQuestView;
+    }
+    MenuQuestView = view;
+    CQuestManager *quest;
+    if ((quest = (CQuestManager *)operator new(sizeof(CQuestManager), MenuLocalStack.Alloc(3))) != NULL) {
+        quest->Initialize();
+    }
+    QuestMan = quest;
+    QuestDataPtr = &GetSaveData()->quest_data;
+    ScoopMan = GetSaveData()->GetUserDataManager()->GetInventUserData()->GetScoopData();
+    MenuQuestView->SetTexBlock(tex_block);
+    MenuQuestView->InitEnd();
+}
+int MenuNPCQuestViewKey() {
+    return MenuQuestView->KeyStep();
+}
+extern int menu_debug_flag;
+extern s8 randam_checktbl[];
+extern short tbl_2469[7][12];
+extern char at_2629__2[];
+void MenuNPCQuestViewDraw() {
+    int mark_u;
+    if (Tex_QuestMemo == NULL) {
+        return;
+    }
+    mgCTextureManager *textures = &mgTexManager;
+    textures->ReloadTexture(Tex_QuestMemo->block, (sceVif1Packet *)NULL);
+    mgCDrawPrim *prim = GetMenuPrim();
+    SetSpriteEnv(prim, 0);
+    DrawMenuTilePattern(prim, Tex_QuestMemo, QuestTilePatternXY[0], QuestTilePatternXY[0],
+                        mgRect<int>(0x180, 0, 0x80, 0x80), 0, NULL);
+    SetSpriteEnv(prim, 0);
+    prim->Begin(6);
+    prim->Texture(Tex_QuestMemo);
+    mgRect<int> board_rect(0, 0xBA, 0x184, 0x146);
+    mgRect<int> line_rect(0, 0xB4, 0x138, 6);
+    prim->Color(0, 0, 0, 0x30);
+    PrimQuad(prim, 66.0f, 60.0f, board_rect);
+    prim->Color(0x80, 0x80, 0x80, 0x80);
+    PrimQuad(prim, 60.0f, 54.0f, board_rect);
+    prim->End();
+    SetMenuScissor(mgRect<int>(0, 0x52, mgScreenWidth - 1, 0x142));
+    int font_num = 0;
+    CMenuFont fonts[16];
+    int y = (int)(QuestListTopY);
+    int i;
+    if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_QUEST) {
+        for (i = 0; i < MenuQuestView->SelectMax() + 1; i++, y += 0x22) {
+            if (y + 0x22 < 0x52) {
+                continue;
+            }
+            if (y >= 0x143) {
+                break;
+            }
+            prim->Begin(6);
+            prim->Texture(Tex_QuestMemo);
+            prim->Color(0x80, 0x80, 0x80, 0x80);
+            PrimQuad(prim, 118.0f, (float)(y - 2), line_rect);
+            QUEST_INFO *info = QuestMan->GetQuestInfo(i);
+            QUEST_PLAY_DATA *play = QuestDataPtr->GetPlayQuestData(i);
+            if (info == NULL || play == NULL) {
+                prim->End();
+                break;
+            }
+            mark_u = 0x48;
+            if (play->accepted == 1 && play->cleared == 0) {
+                mark_u = 0x3A;
+            }
+            PrimQuad(prim, 124.0f, (float)(y + 0xB), mgRect<int>(mark_u, 0x30, 0xE, 0xE));
+            int stamp_y = y + 5;
+            int stamp_v = 0x18;
+            if (play->cleared != 0) {
+                stamp_v = 0;
+            }
+            PrimQuad(prim, 376.0f, (float)stamp_y, mgRect<int>(0x3A, stamp_v, 0x1C, 0x18));
+            prim->End();
+            CMenuFont *font = &fonts[font_num];
+            font->SetColor(0x80132333);
+            font->SetFuchi(2);
+            if (play->accepted != 0) {
+                font->SetStr(info->name);
+            } else {
+                font->SetStr(GetHatena());
+            }
+            font->SetPos(0x90, y + 8);
+            font_num++;
+        }
+    }
+    if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_SCOOP) {
+        CInventUserData *invent = GetInventUserDataPtr();
+        if (invent == NULL) {
+            return;
+        }
+        for (i = 0; i < MenuQuestView->SelectMax() + 1; i++, y += 0x22) {
+            if (y + 0x22 < 0x52) {
+                continue;
+            }
+            if (y >= 0x143) {
+                break;
+            }
+            prim->Begin(6);
+            prim->Texture(Tex_QuestMemo);
+            prim->Color(0x80, 0x80, 0x80, 0x80);
+            PrimQuad(prim, 118.0f, (float)(y - 2), line_rect);
+            SCOOP_DATA *scoop = GetScoopDataTableIndex(i);
+            if (scoop == NULL) {
+                prim->End();
+                continue;
+            }
+            SCOOP_INFO *scoop_info = ScoopMan->GetScoopInfo(scoop->scoop_id);
+            if (scoop_info == NULL) {
+                prim->End();
+                break;
+            }
+            int mark_u = 0x48;
+            if (scoop_info->known == 1 && scoop_info->obtained == 0) {
+                mark_u = 0x3A;
+            }
+            PrimQuad(prim, 124.0f, (float)(y + 0xB), mgRect<int>(mark_u, 0x30, 0xE, 0xE));
+            int stamp_v = 0x18;
+            int stamp_y = y + 5;
+            if (scoop_info->obtained != 0 || 0 <= invent->CheckNetaFlag(scoop->scoop_id) ||
+                0 <= invent->CheckNetaFlagHavePhoto(scoop->scoop_id)) {
+                stamp_v = 0;
+            }
+            PrimQuad(prim, 376.0f, (float)stamp_y, mgRect<int>(0x3A, stamp_v, 0x1C, 0x18));
+            if (scoop_info->obtained != 0) {
+                PrimQuad(prim, 370.0f, (float)(stamp_y - 2),
+                         mgRect<int>(randam_checktbl[i] * 0x28 + 0x56, 0x18, 0x28, 0x1E));
+            }
+            prim->End();
+            CMenuFont *font = &fonts[font_num];
+            font->SetColor(0x80132333);
+            font->SetFuchi(2);
+            if (scoop_info->known != 0) {
+                char photo_name[0x80];
+                GetPhotoNameStr(scoop->scoop_id, photo_name);
+                font->SetStr(photo_name);
+            } else {
+                font->SetStr(GetHatena());
+            }
+            font->SetPos(0x90, y + 8);
+            font_num++;
+        }
+    }
+    textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *)NULL);
+    for (int n = 0; n < font_num; n++) {
+        fonts[n].DrawDirect(fonts[n].str, fonts[n].pos_x, fonts[n].pos_y);
+    }
+    ResetMenuScissor();
+    textures->ReloadTexture(Tex_QuestMemo->block, (sceVif1Packet *)NULL);
+    prim->Begin(6);
+    prim->Texture(Tex_QuestMemo);
+    prim->Color(0x80, 0x80, 0x80, 0x80);
+    PrimQuad(prim, 412.0f, 75.0f, mgRect<int>(0x1F4, 0x104, 0xC, 0xFC));
+    mgRect<int> bar_rect(0x19E, (int)(QuestScrlBarY), 8, 0xA);
+    PrimQuad(prim, bar_rect, mgRect<int>(0x3A, 0x3E, 8, 0xA));
+    bar_rect.bottom = (int)(QuestScrlBarH - 20.0f);
+    bar_rect.top += 0xA;
+    PrimQuad(prim, bar_rect, mgRect<int>(0x3A, 0x48, 8, 0xA));
+    bar_rect.top += bar_rect.bottom;
+    bar_rect.bottom = 0xA;
+    PrimQuad(prim, bar_rect, mgRect<int>(0x3A, 0x52, 8, 0xA));
+    prim->End();
+    mgCTexture *cursor = textures->GetTexture(at_2629__2, -1);
+    if (cursor != NULL && QuestViewCommentFlag == 0) {
+        textures->ReloadTexture(cursor->block, (sceVif1Packet *)NULL);
+        MenuCursorDraw(cursor, QuestCursorPos, 0.0f, 0x80);
+    }
+    if (QuestViewCommentFlag != 0) {
+        DrawMenuFillBox(0x30, 0, 0, 0);
+        textures->ReloadTexture(Tex_QuestMemo->block, (sceVif1Packet *)NULL);
+        short heights[7] = {26, 8, 14, 72, 14, 8, 26};
+        if (1 < QuestReactionCommentGyouNum) {
+            heights[5] += 0x18;
+        }
+        if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_SCOOP) {
+            heights[4] = 0;
+            heights[5] = 0;
+            heights[3] -= 8;
+        }
+        int box_y = 0x78;
+        int box_x = (mgScreenWidth - 0x18C) >> 1;
+        int box_h = 0;
+        for (i = 0; i < 7; i++) {
+            box_h += heights[i];
+        }
+        DrawMenuFillBox((float)(box_x + 6), 125.0f, 384.0f, (float)(box_h - 0xC), 0x56, 0, 0, 0);
+        SetSpriteEnv(prim, 0);
+        prim->Begin(6);
+        prim->Texture(Tex_QuestMemo);
+        prim->Color(0x80, 0x80, 0x80, 0x80);
+        for (int part = 0; part < 7; part++) {
+            Menu3DivideTextureDraw(prim, mgRect<int>(box_x, box_y, 0x18C, heights[part]), tbl_2469[part], 1);
+            box_y += heights[part];
+        }
+        prim->End();
+        textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *)NULL);
+        if (QuestCommentMes[2] != NULL) {
+            int center_x = mgScreenWidth >> 1;
+            QuestCommentMes[0]->SetMovePosCenteringGyou(0, center_x, 0x86);
+            QuestCommentMes[1]->SetPutPos((int)(QuestCommentWinX), 0xA8, -1, -1);
+            QuestCommentMes[2]->SetMovePosCenteringGyou(0, center_x, 0xFE);
+            if (1 < QuestReactionCommentGyouNum) {
+                QuestCommentMes[2]->SetMovePosCenteringGyou(1, center_x, 0x116);
+            }
+            for (int line = 0; line < 3; line++) {
+                QuestCommentMes[line]->StepMsg();
+                QuestCommentMes[line]->DrawMsg();
+            }
+        }
+    }
+    if (QuestMenuMes != NULL) {
+        textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *)NULL);
+        QuestMenuMes->StepMsg();
+        QuestMenuMes->DrawMsg();
+    }
+    textures->ReloadTexture(Tex_QuestMemo->block, (sceVif1Packet *)NULL);
+    PrimQuad(Tex_QuestMemo, 26.0f, 22.0f, mgRect<int>(0x56, 0, 0x92, 0x18), 0x80, 0x80, 0x80, 0x80);
+    if (menu_debug_flag != 0) {
+        CMenuFont debug_font;
+        DrawMenuFillBox(0x40, 0, 0, 0);
+        int line_y = 100;
+        char line[0x100];
+        char photo_name[0x80];
+        if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_QUEST) {
+            QUEST_INFO *info = QuestMan->GetQuestInfo(menu_debug_questselect);
+            QUEST_PLAY_DATA *play = QuestDataPtr->GetPlayQuestData(menu_debug_questselect);
+            for (i = menu_debug_questselect; i < MenuQuestView->SelectMax(); i++) {
+                for (int c = 0; c < 0x18; c++) {
+                    line[c] = ' ';
+                }
+                strcpy(&line[0x18], info->name);
+                if (i == menu_debug_questselect) {
+                    line[1] = '>';
+                }
+                line[6] = '[';
+                line[8] = ':';
+                line[10] = ']';
+                if (play->accepted != 0) {
+                    line[7] = 'o';
+                } else {
+                    line[7] = 'x';
+                }
+                if (play->cleared != 0) {
+                    line[9] = 'o';
+                } else {
+                    line[9] = 'x';
+                }
+                debug_font.SetStr(line);
+                debug_font.SetPos(0x42, line_y);
+                debug_font.DrawDirect(debug_font.str, debug_font.pos_x, debug_font.pos_y);
+                line_y += 0x18;
+                play++;
+                info++;
+            }
+        }
+        if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_SCOOP) {
+            for (int n = menu_debug_questselect; n < menu_debug_questselect + 12 && n < 0x35; n++) {
+                SCOOP_DATA *scoop = GetScoopDataTableIndex(n);
+                if (scoop == NULL) {
+                    break;
+                }
+                SCOOP_INFO *scoop_info = ScoopMan->GetScoopInfo(scoop->scoop_id);
+                if (scoop_info == NULL) {
+                    break;
+                }
+                for (int c = 0; c < 0x18; c++) {
+                    line[c] = ' ';
+                }
+                if (n == menu_debug_questselect) {
+                    line[1] = '>';
+                }
+                line[6] = '[';
+                line[8] = ':';
+                line[10] = ']';
+                GetPhotoNameStr(scoop->scoop_id, photo_name);
+                strcpy(&line[0x18], photo_name);
+                if (scoop_info->known != 0) {
+                    line[7] = 'o';
+                } else {
+                    line[7] = 'x';
+                }
+                if (scoop_info->obtained != 0) {
+                    line[9] = 'o';
+                } else {
+                    line[9] = 'x';
+                }
+                debug_font.SetStr(line);
+                debug_font.SetPos(0x42, line_y);
+                debug_font.DrawDirect(debug_font.str, debug_font.pos_x, debug_font.pos_y);
+                line_y += 0x18;
+            }
+        }
+    }
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", dony_shoplist__DATA);

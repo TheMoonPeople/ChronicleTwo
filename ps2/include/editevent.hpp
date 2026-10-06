@@ -141,7 +141,10 @@ public:
     /**
      * Creates an event with nothing running.
      */
-    CEditEvent() { Reset(); }
+    CEditEvent() {
+        memset(&data, 0, sizeof(data));
+        Reset();
+    }
 
     /**
      *

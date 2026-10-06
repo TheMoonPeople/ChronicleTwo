@@ -63,6 +63,18 @@ struct SYSTEM_SCRIPT_INFO {
 
 /**
  *
+ * What the mini map shows of the parts of a floor not yet explored, as DNG_BATTLE_AREA::minimap_reveal holds it.
+ *
+ */
+// clang-format off
+enum MINIMAP_REVEAL {
+    MINIMAP_REVEAL_ROOMS   = 1, /**< Unexplored cells are drawn dimmed instead of hidden. */
+    MINIMAP_REVEAL_SYMBOLS = 2, /**< Monster and object symbols are drawn in unexplored cells. */
+};
+// clang-format on
+
+/**
+ *
  * Dungeon state a scene keeps: pause and floor flags, the floor manager, the status bar, camera quake and battle music.
  *
  */
@@ -85,7 +97,7 @@ struct DNG_BATTLE_AREA {
     s32                 boss_map;            /**< Non-zero on a boss floor, where the mini map symbols are hidden. */
     s32                 unk_5c;
     u8                  unk_60[0x4];
-    u32                 unk_64;
+    u32                 minimap_reveal;      /**< MINIMAP_REVEAL flags set by floor items for the rest of the floor. */
     u8                  unk_68[0x4];
     float               bright_rate;         /**< Scale applied to the colours the dungeon is drawn with. */
     float               quake_power;         /**< Strength of the running camera quake. */
@@ -102,7 +114,7 @@ struct DNG_BATTLE_AREA {
     u32                 unk_98;
     s8                  map_effect_id;       /**< Map effect number set by event scripts, or -1. */
     u8                  unk_9d;
-    s16                 unk_9e;
+    s16                 lock_on_mode;        /**< How the player picks a target: 0 nearest with lock-on, 2 the RockOn target selection; set by _SET_LOCKON_MODE. */
     s32                 free_texb;           /**< First texture block left free after the dungeon's own textures. */
     u8                  unk_a4[0x4];
 
@@ -318,7 +330,9 @@ public:
             float door_dir_z;
             u8 unk_2f2c[4];
             float door_vec[3];
-            u8 unk_2f3c[0x20];
+            u8 unk_2f3c[0x4];
+            int event_parts_id;
+            u8 unk_2f44[0x18];
             int villager_id;
         };
     };

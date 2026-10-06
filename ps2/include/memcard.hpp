@@ -453,7 +453,7 @@ public:
      * @address 0x2F6EB0
      * @size 0x50
      */
-    s16 CheckDebugCode();
+    int CheckDebugCode();
 
     /**
      *

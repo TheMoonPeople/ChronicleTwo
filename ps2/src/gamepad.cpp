@@ -10,6 +10,7 @@
 
 extern "C" {
 extern s16 rpad_256;
+extern int old_vsync__2;
 extern s8 init_257;
 extern int cnt_374;
 extern s8 init_375;
@@ -1127,21 +1128,20 @@ void CGamePad::Capture(PAD_STATUS *pad) {
 }
 #endif
 
-#ifdef NONMATCHING
 void CGamePad::Play(PAD_STATUS *status) {
-    if (capture_frame < PAD_CAPTURE_FRAME_MAX) {
-        PAD_CAPTURE_FRAME *frame = &PAD_CAPTURE_BUFFER[capture_frame];
+    PAD_CAPTURE_FRAME *frame;
+    u32 index = capture_frame;
+    if (index < PAD_CAPTURE_FRAME_MAX) {
+        frame = PAD_CAPTURE_BUFFER;
+        frame += index;
         status->button = frame->button;
         status->left_y = frame->left_y;
         status->left_x = frame->left_x;
         status->right_y = frame->right_y;
         status->right_x = frame->right_x;
-        capture_frame++;
+        capture_frame = capture_frame + 1;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gamepad", Play__8CGamePadFP10PAD_STATUS);
-#endif
 
 void CGamePad::SaveCapture() {
     WriteFile("host0:key_cap.bin", PAD_CAPTURE_BUFFER, capture_frame * sizeof(PAD_CAPTURE_FRAME));
@@ -1162,11 +1162,9 @@ void SwitchGamePadThread() {
  * the vertical blanks elapsed since its last turn, then yields.
  */
 static void GamePadStep(void *arg) {
-    static int old_vsync;
-
     while (true) {
         int now = mgGetVSyncCount();
-        int elapsed = now - old_vsync;
+        int elapsed = now - old_vsync__2;
 
         if (elapsed < 0) {
             elapsed = 1;
@@ -1177,7 +1175,7 @@ static void GamePadStep(void *arg) {
         }
 
         SwitchGamePadThread();
-        old_vsync = now;
+        old_vsync__2 = now;
     }
 }
 

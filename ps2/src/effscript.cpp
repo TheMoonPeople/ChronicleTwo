@@ -104,6 +104,8 @@ static inline u_int align16_blocks(u_int size) {
     return size >> 4;
 }
 
+extern char at_3303__2[];
+
 // Code (.text)
 void CEffectScriptMan::Initialize(mgCMemory *memory, int texb_start, int texb_num) {
     int i;
@@ -381,9 +383,9 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
             *(void **)chara = __vt__12CObjectFrame;
             chara->Initialize();
             *(void **)chara = __vt__11CCharacter2;
-            chara->shadow_link_num = 0;
-            chara->shadow_link_shadow = 0;
-            chara->shadow_link_model = 0;
+            chara->shadow_link.num = 0;
+            chara->shadow_link.dst_frame = 0;
+            chara->shadow_link.src_frame = 0;
             chara->Initialize();
         }
         script->chara = chara;
@@ -828,9 +830,9 @@ int CEffectScriptMan::AssignCharacter(_EFF_SCRIPT *script, int count) {
             *(void **)chara = __vt__12CObjectFrame;
             chara->Initialize();
             *(void **)chara = __vt__11CCharacter2;
-            chara->shadow_link_num = 0;
-            chara->shadow_link_shadow = 0;
-            chara->shadow_link_model = 0;
+            chara->shadow_link.num = 0;
+            chara->shadow_link.dst_frame = 0;
+            chara->shadow_link.src_frame = 0;
             chara->Initialize();
         }
         script->sub_chara[i] = chara;
@@ -1151,9 +1153,9 @@ int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
             *(void **)chara = __vt__12CObjectFrame;
             chara->Initialize();
             *(void **)chara = __vt__11CCharacter2;
-            chara->shadow_link_num = 0;
-            chara->shadow_link_shadow = 0;
-            chara->shadow_link_model = 0;
+            chara->shadow_link.num = 0;
+            chara->shadow_link.dst_frame = 0;
+            chara->shadow_link.src_frame = 0;
             chara->Initialize();
         }
         (*entry)->chara = chara;
@@ -1170,9 +1172,9 @@ int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
             *(void **)chara = __vt__12CObjectFrame;
             chara->Initialize();
             *(void **)chara = __vt__11CCharacter2;
-            chara->shadow_link_num = 0;
-            chara->shadow_link_shadow = 0;
-            chara->shadow_link_model = 0;
+            chara->shadow_link.num = 0;
+            chara->shadow_link.dst_frame = 0;
+            chara->shadow_link.src_frame = 0;
             chara->Initialize();
         }
             now->chara = chara;
@@ -3109,7 +3111,116 @@ int _SCN_GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc) {
     SetStackFloat(stack, pos[2]);
     return 1;
 }
+#ifdef NONMATCHING
+int _INTERSECTION_POINT(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR start;
+    sceVu0FVECTOR end;
+    sceVu0FVECTOR hit;
+    sceVu0FVECTOR reflection;
+    mgVu0FBOX box;
+    CCPoly poly[0x80];
+    sceVu0FVECTOR normal;
+    int foot_sound;
+    int area_kind;
+
+    switch (argc) {
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+        case 15:
+        case 16:
+            break;
+        default:
+            return 0;
+    }
+    int ignore_mask = GetStackInt(stack++);
+    GetStackVector(start, stack);
+    GetStackVector(end, stack + 3);
+    stack += 6;
+    float range = 10.0f + mgDistVector(start, end);
+    box.max[3] = 1.0f;
+    box.min[3] = 1.0f;
+    box.max[0] = range + start[0];
+    box.min[0] = start[0] - range;
+    box.max[1] = range + start[1];
+    box.min[1] = start[1] - range;
+    box.max[2] = range + start[2];
+    box.min[2] = start[2] - range;
+    int poly_num = now_scene->GetColPoly(poly, box, 0x80);
+    if (poly_num >= 0x80) {
+        printf(at_3303__2, poly_num);
+        return 0;
+    }
+    int hit_no = CheckHit(poly, poly_num, start, end, hit, 1, ignore_mask);
+    if (hit_no >= 0) {
+        CCPoly *hit_poly = &poly[hit_no];
+        sceVu0Normalize(normal, hit_poly->normal);
+        mgReflectionPlane(normal, hit, start, reflection);
+        sceVu0Normalize(reflection, reflection);
+        foot_sound = hit_poly->foot_sound;
+        area_kind = hit_poly->area_kind;
+        if (foot_sound == 0) {
+            CMap *map = now_scene->GetMap(now_scene->active_map);
+            if (map != NULL) {
+                foot_sound = map->def_foot;
+            }
+        }
+    }
+    switch (argc) {
+        case 8:
+        case 9:
+        case 10:
+            SetStackInt(stack++, hit_no);
+            if (argc >= 9) {
+                SetStackInt(stack++, area_kind);
+            }
+            if (argc == 10) {
+                SetStackInt(stack, foot_sound);
+            }
+            break;
+        case 11:
+        case 12:
+        case 13:
+            SetStackFloat(stack++, hit[0]);
+            SetStackFloat(stack++, hit[1]);
+            SetStackFloat(stack++, hit[2]);
+            SetStackInt(stack++, hit_no);
+            if (argc >= 12) {
+                SetStackInt(stack++, area_kind);
+            }
+            if (argc == 13) {
+                SetStackInt(stack, foot_sound);
+            }
+            break;
+        case 14:
+        case 15:
+        case 16:
+            SetStackFloat(stack++, hit[0]);
+            SetStackFloat(stack++, hit[1]);
+            SetStackFloat(stack++, hit[2]);
+            SetStackFloat(stack++, reflection[0]);
+            SetStackFloat(stack++, reflection[1]);
+            SetStackFloat(stack++, reflection[2]);
+            SetStackInt(stack++, hit_no);
+            if (argc >= 15) {
+                SetStackInt(stack++, area_kind);
+            }
+            if (argc == 16) {
+                SetStackInt(stack, foot_sound);
+            }
+            break;
+        default:
+            return 0;
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", _INTERSECTION_POINT__FP12RS_STACKDATAi);
+#endif
 int _MON_SE_PLAY(RS_STACKDATA *stack, int argc) {
     float position[4];
     float pad[2];
@@ -3126,7 +3237,7 @@ int _MON_SE_PLAY(RS_STACKDATA *stack, int argc) {
     if (owner == NULL) {
         return 0;
     }
-    se_handle = owner->se_bank;
+    se_handle = owner->sound_info.se_bank;
     se_id = GetStackInt(stack++);
     switch (argc) {
         case 1:
@@ -3152,7 +3263,7 @@ int _MON_SE_STOP(RS_STACKDATA *stack, int argc) {
     if (owner == NULL) {
         return 0;
     }
-    u_int se_handle = owner->se_bank;
+    u_int se_handle = owner->sound_info.se_bank;
     sndSeStop(se_handle, GetStackInt(stack), 0);
     return 1;
 }
@@ -3218,7 +3329,7 @@ int _MON_SE_PLAY2(RS_STACKDATA *stack, int argc) {
     if (owner == NULL) {
         return 0;
     }
-    se_handle = owner->se_bank;
+    se_handle = owner->sound_info.se_bank;
     se_id = GetStackInt(stack++);
     switch (argc) {
         case 2:
@@ -3242,7 +3353,7 @@ int _MON_SE_STOP2(RS_STACKDATA *stack, int argc) {
     if (owner == NULL) {
         return 0;
     }
-    se_handle = owner->se_bank;
+    se_handle = owner->sound_info.se_bank;
     sndSeStop(se_handle, GetStackInt(second), 0);
     return 1;
 }

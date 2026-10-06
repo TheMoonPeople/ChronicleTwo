@@ -24,15 +24,12 @@
 #include <cmath>
 #include <libvu0.h>
 #include <sifdev.h>
-extern CRunScript EventScript;
-extern "C" int CheckNowTourEvent__9CSaveDataFv(CSaveData *);
-extern "C" int CheckNowTourType__9CSaveDataFv(CSaveData *);
+static CRunScript EventScript;
 extern float vv_984[3][4];
 extern char at_819__4[];
 extern char at_820__4[];
 extern char at_1002__4[];
 extern char D_0037B038[];
-extern CSound CSnd;
 
 #include "character.hpp"
 #include "dataread.hpp"
@@ -89,10 +86,10 @@ int GetSquareEvent(void) {
     if (saveData == NULL) {
         return 0;
     }
-    if (CheckNowTourEvent__9CSaveDataFv(saveData) == 0) {
+    if (saveData->CheckNowTourEvent() == 0) {
         return 0;
     }
-    return CheckNowTourType__9CSaveDataFv(saveData);
+    return saveData->CheckNowTourType();
 }
 void InitEvent(CScene *scene) {
     EventSeqInit();
@@ -403,9 +400,6 @@ CCharacter2 *GetCharacter(int index) {
     return character;
 }
 
-// Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event", __sinit_event_cpp);
-
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", vv_984__DATA);
 
@@ -414,12 +408,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", at_819__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", at_820__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", at_1002__4__DATA);
 
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", D_0037B038__DATA);
-
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(EventScene, 0x4);
 INCLUDE_BSS(cnt_1056, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(EventScript, 0x60);

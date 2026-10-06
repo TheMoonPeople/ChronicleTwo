@@ -4,6 +4,7 @@
 #include "mg_memory.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
+#include <cstring>
 
 /**
  * @file
@@ -213,6 +214,10 @@ enum OmakePlayEnableBit {
  *
  */
 struct TITLE_INFO {
+    TITLE_INFO() {
+        memset(this, 0, sizeof(TITLE_INFO));
+        InitSV_CONFIG_OPTION(&config);
+    }
     int mode;                        /**< Screen being shown. @see TitleMode */
     int next_mode;                   /**< Screen to switch to at the end of the frame, or TITLE_MODE_NONE. @see TitleMode */
     s16 select;                      /**< Row chosen in the title menu. @see TitleMenuItem */
@@ -261,6 +266,7 @@ STATIC_ASSERT(sizeof(RUSH_INFO) == 0x18);
  *
  */
 struct HDD_INFO {
+    HDD_INFO() : connect(0), app_install(0), install_space(0) {}
     int connect;       /**< Result of HddConectCheck: positive when a hard disk is usable, zero when there is none. */
     int hdd_state;     /**< State HddConectCheck reports through its argument. */
     int app_install;   /**< Result of CheckAppInstallForTitle: positive when the game is installed, negative on error. */

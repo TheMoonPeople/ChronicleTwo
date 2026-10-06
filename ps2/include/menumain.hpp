@@ -571,7 +571,7 @@ int *GetCommonMenuModeID();
  * @address 0x236B20
  * @size 0x50
  */
-u8 CursorSaveOptionState();
+int CursorSaveOptionState();
 
 /**
  *

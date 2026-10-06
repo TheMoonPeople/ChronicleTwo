@@ -56,7 +56,7 @@ public:
     s32                        lod_num;                          /**< Number of levels of detail the part has distances for. */
     s32                        lod_blend;                        /**< Non-zero blends between levels of detail. */
     float                     *lod_dist;                         /**< Distance at which each level of detail starts. */
-    s32                        unk_1dc;
+    s32                        minimap_tile;                     /**< Tile of the dungeon mini map drawn for the part, or -1 for none; set by CMiniMap. */
     float                      fixed_time;                       /**< Time of day the function points are checked against; below zero to use the scene's time. */
     s32                        need_step;                        /**< Non-zero while a piece of the part moves and must be stepped every frame. */
     s32                        color_num;                        /**< Number of entries of color in use. */

@@ -28,6 +28,7 @@ extern char at_1221__5[];
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 
 // Code (.text)
 GOLF_CLUB_DEF *GetSphidaClubDef(int club) {
@@ -58,8 +59,122 @@ void CPowGage::Initialize(void) {
     state = -1;
     reverse = 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sphida", Step__8CPowGageFv);
+void CPowGage::Step() {
+    switch (state) {
+        case POWGAGE_STATE_IDLE:
+            break;
+        case POWGAGE_STATE_START:
+            state = POWGAGE_STATE_IDLE;
+            reverse = 0;
+            count = 0;
+            power = 0.0f;
+            code = POWGAGE_CODE_NONE;
+            state = POWGAGE_STATE_CHARGE;
+        case POWGAGE_STATE_CHARGE:
+            if (reverse == 0) {
+                count++;
+            } else {
+                count--;
+            }
+            power = (float)count / 40.0f;
+            if (count >= 40) {
+                reverse = 1;
+            }
+            if (reverse == 1 && count <= 0) {
+                code = POWGAGE_CODE_NO_POWER;
+                state = POWGAGE_STATE_IDLE;
+            }
+            break;
+        case POWGAGE_STATE_CHARGE_SET:
+            if (reverse == 1) {
+                state = POWGAGE_STATE_IMPACT;
+            } else {
+                count++;
+                if (count >= 40) {
+                    reverse = 1;
+                }
+                break;
+            }
+        case POWGAGE_STATE_IMPACT:
+            count--;
+            if (count < -7) {
+                code = POWGAGE_CODE_LATE;
+                state = POWGAGE_STATE_IDLE;
+            }
+            break;
+        case POWGAGE_STATE_JUDGE: {
+            float offset = (float)count;
+            float outer = 1.5f * (float)safe_level;
+            if (!(offset <= outer)) {
+                code = -3;
+            }
+            if (offset < outer) {
+                code = 3;
+            }
+            if (!(offset <= 0.0f) && offset <= outer) {
+                code = -2;
+            }
+            if (offset < 0.0f && !(offset < -outer)) {
+                code = 2;
+            }
+            float inner = 0.5f * (float)safe_level;
+            if (!(offset <= 0.0f) && offset <= inner) {
+                code = -1;
+            }
+            if (offset < 0.0f && !(offset < -inner)) {
+                code = 1;
+            }
+            if (count == 0) {
+                code = 0;
+            }
+            state = POWGAGE_STATE_IDLE;
+            break;
+        }
+    }
+}
+#ifdef NONMATCHING
+void CPowGage::Draw() {
+    if (texture == NULL) {
+        return;
+    }
+    mgCDrawPrim prim;
+    prim.Initialize(NULL, NULL);
+    prim.DepthTestEnable(0);
+    prim.TextureMapEnable(1);
+    prim.AlphaBlendEnable(1);
+    prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
+    prim.AlphaTestEnable(1);
+    prim.AlphaTest(1, 0);
+    prim.Bilinear(0);
+    prim.Coord(0);
+    prim.Begin(MG_PRIM_SPRITE);
+    prim.Texture(texture);
+    prim.Color(128, 128, 128, 128);
+    DPrimEnterSprite(&prim, 22, 28, 2, 10, pos_x, pos_y, 325.0f, 10.0f);
+    float bar_width = 260.0f * power;
+    float bar_x = 104.0f + pos_x - bar_width / 2.0f;
+    if (state == POWGAGE_STATE_CHARGE) {
+        DPrimEnterSprite(&prim, 28, 28, 2, 10, bar_x, pos_y, bar_width, 10.0f);
+    } else {
+        DPrimEnterSprite(&prim, 40, 28, 2, 10, bar_x, pos_y, bar_width, 10.0f);
+    }
+    float safe_width = 19.5f * (float)safe_level;
+    float safe_x = 104.0f + pos_x;
+    DPrimEnterSprite(&prim, 20, 38, 14, 6, safe_x, 10.0f + pos_y, safe_width, 10.0f);
+    DPrimEnterSprite(&prim, 32, 28, 6, 10, 104.0f + pos_x, pos_y, 6.0f, 10.0f);
+    DPrimEnterSprite(&prim, 32, 0, 18, 28, pos_x + 156.0f, pos_y, 18.0f, 28.0f);
+    DPrimEnterSprite(&prim, 0, 0, 18, 28, pos_x - 156.0f, pos_y, 18.0f, 28.0f);
+    for (int index = 0; index < 23; index++) {
+        DPrimEnterSprite(&prim, 18, 0, 13, 28, 143.0f + pos_x - 13.0f * (float)index, pos_y, 13.0f, 28.0f);
+    }
+    DPrimEnterSprite(&prim, 0, 28, 12, 22, 104.0f + pos_x, pos_y, 12.0f, 22.0f);
+    DPrimEnterSprite(&prim, 12, 28, 8, 22, pos_x - 26.0f, pos_y, 8.0f, 22.0f);
+    DPrimEnterSprite(&prim, 52, 0, 12, 30, 104.0f + pos_x - 6.5f * (float)count, pos_y, 12.0f, 30.0f);
+    prim.End();
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sphida", Draw__8CPowGageFv);
+#endif
 void InitSphida(void) {
     Sphida = 0;
 }
@@ -425,7 +540,187 @@ void CSphida::InitStatusSprite() {
     pow_gage.pos_y = 406.4f;
     pow_gage.texture = texture;
 }
+#ifdef NONMATCHING
+void CSphida::DrawStatusSprite() {
+    int index;
+    if (status_flag == 0) {
+        return;
+    }
+    InitStatusSprite();
+    mgTexManager.ReloadTexture(tex_bank, (sceVif1Packet *)NULL);
+    pow_gage.Draw();
+    mgCTexture *texture = mgTexManager.GetTexture(at_1221__5, -1);
+    mgCDrawPrim prim;
+    prim.Initialize(NULL, NULL);
+    prim.DepthTestEnable(0);
+    prim.TextureMapEnable(1);
+    prim.AlphaBlendEnable(1);
+    prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
+    prim.AlphaTestEnable(1);
+    prim.AlphaTest(1, 0);
+    prim.Bilinear(0);
+    prim.Coord(0);
+    prim.Begin(MG_PRIM_SPRITE);
+    prim.Texture(texture);
+    prim.Color(128, 128, 128, 128);
+    if (LanguageCode == LANG_JAPANESE) {
+        DPrimEnterSprite(&prim, 96, 0, 24, 24, 383.0f, 34.0f, 24.0f, 24.0f);
+        DPrimEnterSprite(&prim, 196, 0, 36, 20, 413.0f, 34.0f, 36.0f, 20.0f);
+        int par = par_count;
+        int par_tens = par / 10;
+        int par_ones = par - par_tens * 10;
+        if (par_tens != 0) {
+            DPrimEnterSprite(&prim, par_tens * 18 + 332, 212, 18, 20, 438.0f, 33.0f, 18.0f, 20.0f);
+        }
+        DPrimEnterSprite(&prim, par_ones * 18 + 332, 212, 18, 20, 454.0f, 33.0f, 18.0f, 20.0f);
+        DPrimEnterSprite(&prim, 232, 0, 24, 20, 474.0f, 34.0f, 24.0f, 20.0f);
+        DPrimEnterSprite(&prim, 150, 20, 84, 22, 380.0f, 60.0f, 84.0f, 22.0f);
+        int pin_distance = (int)(mgDistVector(pin_pos, ball_pos) / 20.0f);
+        if (pin_distance > 999) {
+            pin_distance = 999;
+        }
+        int pin_digits[3];
+        pin_digits[0] = pin_distance / 100;
+        pin_digits[1] = (pin_distance - pin_digits[0] * 100) / 10;
+        pin_digits[2] = pin_distance - pin_digits[1] * 10 - pin_digits[0] * 100;
+        int pin_shown = 0;
+        for (index = 0; index < 3; index++) {
+            if (pin_digits[index] != 0 || pin_shown == 1) {
+                pin_shown = 1;
+                DPrimEnterSprite(&prim, pin_digits[index] * 16 + 352, 192, 16, 20,
+                                 430.0f + (float)(index * 14), 60.0f, 16.0f, 20.0f);
+            }
+        }
+        DPrimEnterSprite(&prim, 234, 20, 22, 22, 474.0f, 60.0f, 22.0f, 22.0f);
+        DPrimEnterSprite(&prim, 0, 50, 80, 80, 60.0f, 344.0f, 80.0f, 80.0f);
+        DPrimEnterSprite(&prim, 330, 88, 54, 16, 60.0f, 304.0f, 54.0f, 16.0f);
+        DPrimEnterSprite(&prim, 454, 88, 58, 16, 60.0f, 384.0f, 58.0f, 16.0f);
+        DPrimEnterSprite(&prim, 384, 88, 40, 16, 40.0f, 336.0f, 40.0f, 16.0f);
+        DPrimEnterSprite(&prim, 424, 88, 30, 16, 85.0f, 336.0f, 30.0f, 16.0f);
+        DPrimEnterSprite(&prim, 68, 130, 10, 10, 60.0f + 32.0f * spin_mark_pos_x, 344.0f + 32.0f * spin_mark_pos_y,
+                         10.0f, 10.0f);
+        DPrimEnterSprite(&prim, 278, 88, 52, 16, 460.0f, 382.4f, 52.0f, 16.0f);
+        DPrimEnterSprite(&prim, 0, 130, 68, 28, 460.0f, 406.4f, 68.0f, 28.0f);
+        int carry_distance = 0;
+        GOLF_CLUB_DEF *club = GetSphidaClubDef(club_no);
+        if (club != NULL) {
+            float landing[4];
+            float velocity[4];
+            mgZeroVector(landing);
+            mgZeroVector(velocity);
+            landing[1] += 3.0f;
+            velocity[0] = (float)((double)(club->power - club->power * carry) * cos((double)carry));
+            velocity[1] = (float)((double)(club->power - club->power * carry) * sin((double)carry));
+            for (int step = 0; step < 600; step++) {
+                velocity[0] *= 0.999f;
+                velocity[1] += -0.0045f * (float)(step + 1);
+                sceVu0AddVector(landing, landing, velocity);
+                if (landing[1] <= 3.0f) {
+                    break;
+                }
+            }
+            landing[3] = 0.0f;
+            landing[2] = 0.0f;
+            landing[1] = 0.0f;
+            carry_distance = (int)(mgDistVector(landing) / 20.0f);
+        }
+        if (carry_distance > 999) {
+            carry_distance = 999;
+        }
+        int carry_digits[3];
+        carry_digits[0] = carry_distance / 100;
+        carry_digits[1] = (carry_distance - carry_digits[0] * 100) / 10;
+        carry_digits[2] = carry_distance - carry_digits[1] * 10 - carry_digits[0] * 100;
+        int carry_shown = 0;
+        for (index = 0; index < 3; index++) {
+            if (carry_digits[index] != 0 || carry_shown == 1 || index == 2) {
+                carry_shown = 1;
+                DPrimEnterSprite(&prim, carry_digits[index] * 16 + 352, 192, 16, 20,
+                                 438.0f + 14.0f * (float)index, 406.4f, 16.0f, 20.0f);
+            }
+        }
+        DPrimEnterSprite(&prim, 234, 20, 22, 22, 482.0f, 406.4f, 22.0f, 22.0f);
+    } else {
+        DPrimEnterSprite(&prim, 96, 0, 24, 24, 334.0f, 34.0f, 24.0f, 24.0f);
+        DPrimEnterSprite(&prim, 150, 54, 102, 20, 430.0f, 34.0f, 102.0f, 20.0f);
+        int par = par_count;
+        int par_tens = par / 10;
+        int par_ones = par - par_tens * 10;
+        if (par_tens != 0) {
+            DPrimEnterSprite(&prim, par_tens * 18 + 332, 212, 18, 20, 355.0f, 33.0f, 18.0f, 20.0f);
+        }
+        DPrimEnterSprite(&prim, par_ones * 18 + 332, 212, 18, 20, 371.0f, 33.0f, 18.0f, 20.0f);
+        DPrimEnterSprite(&prim, 178, 74, 74, 22, 442.0f, 60.0f, 74.0f, 22.0f);
+        int pin_distance = (int)(mgDistVector(pin_pos, ball_pos) / 20.0f);
+        if (pin_distance > 999) {
+            pin_distance = 999;
+        }
+        int pin_digits[3];
+        pin_digits[0] = pin_distance / 100;
+        pin_digits[1] = (pin_distance - pin_digits[0] * 100) / 10;
+        pin_digits[2] = pin_distance - pin_digits[1] * 10 - pin_digits[0] * 100;
+        int pin_shown = 0;
+        for (index = 0; index < 3; index++) {
+            if (pin_digits[index] != 0 || pin_shown == 1) {
+                pin_shown = 1;
+                DPrimEnterSprite(&prim, pin_digits[index] * 16 + 352, 192, 16, 20,
+                                 430.0f + (float)(index * 14) - 60.0f, 60.0f, 16.0f, 20.0f);
+            }
+        }
+        DPrimEnterSprite(&prim, 0, 50, 80, 80, 60.0f, 344.0f, 80.0f, 80.0f);
+        DPrimEnterSprite(&prim, 330, 88, 54, 16, 60.0f, 304.0f, 54.0f, 16.0f);
+        DPrimEnterSprite(&prim, 454, 88, 58, 16, 60.0f, 384.0f, 58.0f, 16.0f);
+        DPrimEnterSprite(&prim, 384, 88, 34, 16, 40.0f, 336.0f, 34.0f, 16.0f);
+        DPrimEnterSprite(&prim, 418, 88, 36, 16, 85.0f, 336.0f, 36.0f, 16.0f);
+        DPrimEnterSprite(&prim, 68, 130, 10, 10, 60.0f + 32.0f * spin_mark_pos_x, 344.0f + 32.0f * spin_mark_pos_y,
+                         10.0f, 10.0f);
+        DPrimEnterSprite(&prim, 264, 88, 66, 16, 460.0f, 382.4f, 66.0f, 16.0f);
+        DPrimEnterSprite(&prim, 0, 130, 68, 28, 460.0f, 406.4f, 68.0f, 28.0f);
+        int carry_distance = 0;
+        GOLF_CLUB_DEF *club = GetSphidaClubDef(club_no);
+        if (club != NULL) {
+            float landing[4];
+            float velocity[4];
+            mgZeroVector(landing);
+            mgZeroVector(velocity);
+            landing[1] += 3.0f;
+            velocity[0] = (float)((double)(club->power - club->power * carry) * cos((double)carry));
+            velocity[1] = (float)((double)(club->power - club->power * carry) * sin((double)carry));
+            for (int step = 0; step < 600; step++) {
+                velocity[0] *= 0.999f;
+                velocity[1] += -0.0045f * (float)(step + 1);
+                sceVu0AddVector(landing, landing, velocity);
+                if (landing[1] <= 3.0f) {
+                    break;
+                }
+            }
+            landing[3] = 0.0f;
+            landing[2] = 0.0f;
+            landing[1] = 0.0f;
+            carry_distance = (int)(mgDistVector(landing) / 20.0f);
+        }
+        if (carry_distance > 999) {
+            carry_distance = 999;
+        }
+        int carry_digits[3];
+        carry_digits[0] = carry_distance / 100;
+        carry_digits[1] = (carry_distance - carry_digits[0] * 100) / 10;
+        carry_digits[2] = carry_distance - carry_digits[1] * 10 - carry_digits[0] * 100;
+        int carry_shown = 0;
+        for (index = 0; index < 3; index++) {
+            if (carry_digits[index] != 0 || carry_shown == 1 || index == 2) {
+                carry_shown = 1;
+                DPrimEnterSprite(&prim, carry_digits[index] * 16 + 352, 192, 16, 20,
+                                 438.0f + 14.0f * (float)index, 406.4f, 16.0f, 20.0f);
+            }
+        }
+        DPrimEnterSprite(&prim, 178, 74, 22, 22, 482.0f, 406.4f, 22.0f, 22.0f);
+    }
+    prim.End();
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/sphida", DrawStatusSprite__7CSphidaFv);
+#endif
 #pragma divbyzerocheck on
 void CSphida::DrawParCounter() {
     mgTexManager.ReloadTexture(tex_bank, (sceVif1Packet *)NULL);
@@ -484,7 +779,103 @@ void CSphida::DrawParCounter() {
     prim.End();
 }
 #pragma divbyzerocheck reset
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sphida", Draw__7CSphidaFv);
+void CSphida::Draw() {
+    if (play_flag == 0) {
+        return;
+    }
+    DrawStatusSprite();
+    mgCTextureManager *tex_man = &mgTexManager;
+    SV_CONFIG_OPTION *config = DngSaveData->GetConfig();
+    if (DngStatus.mode != DNG_STATUS_FIELD && minimap_flag == 1) {
+        if (config->map != 0) {
+            tex_man->ReloadTexture(0x66, (sceVif1Packet *)NULL);
+            CCharacter2 *player = DngMainScene->GetCharacter(0);
+            if (config->map == 1) {
+                AutoMapGen.mini_map.x = 420;
+                AutoMapGen.mini_map.y = 160;
+                AutoMapGen.mini_map.w = 144;
+                AutoMapGen.mini_map.h = 144;
+            }
+            if (config->map == 2) {
+                AutoMapGen.mini_map.x = 256;
+                AutoMapGen.mini_map.y = 230;
+                AutoMapGen.mini_map.w = 320;
+                AutoMapGen.mini_map.h = 280;
+            }
+            if (GamePad__2.On(PAD_RIGHT)) {
+                map_view_pos[0] -= 120.0f;
+                float limit = ball_pos[0] - 10.0f * AutoMapGen.cell_w;
+                if (map_view_pos[0] < limit) {
+                    map_view_pos[0] = limit;
+                }
+            } else if (GamePad__2.On(PAD_LEFT)) {
+                map_view_pos[0] += 120.0f;
+                float limit = ball_pos[0] + 10.0f * AutoMapGen.cell_w;
+                if (!(map_view_pos[0] <= limit)) {
+                    map_view_pos[0] = limit;
+                }
+            }
+            if (GamePad__2.On(PAD_UP)) {
+                map_view_pos[2] += 120.0f;
+                float limit = ball_pos[2] + 10.0f * AutoMapGen.cell_w;
+                if (!(map_view_pos[2] <= limit)) {
+                    map_view_pos[2] = limit;
+                }
+            } else if (GamePad__2.On(PAD_DOWN)) {
+                map_view_pos[2] -= 120.0f;
+                float limit = ball_pos[2] - 10.0f * AutoMapGen.cell_w;
+                if (map_view_pos[2] < limit) {
+                    map_view_pos[2] = limit;
+                }
+            }
+            AutoMapGen.mini_map.Draw(map_view_pos);
+            tex_man->ReloadTexture(0x48, (sceVif1Packet *)NULL);
+            AutoMapGen.mini_map.DrawSymbolOpen();
+            DrawMiniMapSymbol(&AutoMapGen.mini_map);
+            AutoMapGen.mini_map.DrawSymbolClose();
+            AutoMapGen.mini_map.DrawSymbol_Chara(player);
+        }
+        if (DngStatus.mode != DNG_STATUS_FIELD && GamePad__2.Down(PAD_SELECT)) {
+            config->map++;
+            if (config->map > 2) {
+                config->map = 0;
+            }
+        }
+        mini_level = config->map;
+    } else if (omake_mode == 1 && DngStatus.mode == DNG_STATUS_FIELD) {
+        DNG_BATTLE_AREA *area = &DngMainScene->battle_area;
+        if (!area->script.running && !(area->pause_flag & 0x100) && config->map != 0) {
+            float player_pos[4];
+            tex_man->ReloadTexture(0x66, (sceVif1Packet *)NULL);
+            CCharacter2 *player = DngMainScene->GetCharacter(0);
+            player->GetPosition(player_pos);
+            if (config->map == 1) {
+                AutoMapGen.mini_map.large = 0;
+                AutoMapGen.mini_map.x = 436;
+                AutoMapGen.mini_map.y = 144;
+                AutoMapGen.mini_map.w = 112;
+                AutoMapGen.mini_map.h = 112;
+            }
+            if (config->map == 2) {
+                AutoMapGen.mini_map.x = 336;
+                AutoMapGen.mini_map.y = 212;
+                AutoMapGen.mini_map.w = 320;
+                AutoMapGen.mini_map.h = 280;
+                AutoMapGen.mini_map.large = 1;
+            }
+            AutoMapGen.mini_map.Draw(player_pos);
+            tex_man->ReloadTexture(0x48, (sceVif1Packet *)NULL);
+            AutoMapGen.mini_map.DrawSymbolOpen();
+            DrawMiniMapSymbol(&AutoMapGen.mini_map);
+            AutoMapGen.mini_map.DrawSymbolClose();
+            AutoMapGen.mini_map.DrawSymbol_Chara(player);
+        }
+    }
+    if (DngStatus.mode == DNG_STATUS_FIELD) {
+        red_mark.Draw();
+        DrawParCounter();
+    }
+}
 int CSphida::SetCollisionModel(MDS_HEADER *header, mgCMemory *memory) {
     col_model = LoadCollisionFile(header, memory);
     return col_model != 0;

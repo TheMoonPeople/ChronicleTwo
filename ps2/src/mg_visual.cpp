@@ -389,7 +389,7 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
 
     GetTextureManager();
     face = (mgCFace *)memory->Alloc(3);
-    face->vertex_num = (u_short)faces->face_num;
+    face->vertex_num = faces->face_num;
     face->type = faces->type;
     face->index_stride = 3;
     if (face->type & MG_FACE_COLOUR) {
@@ -402,7 +402,7 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
         face->index_stride--;
     }
     face->index_num = face->vertex_num * face->index_stride;
-    face->material = (u_short)faces->material;
+    face->material = faces->material;
     indices = faces->index;
     write = (int *)index_memory->Alloc(face->index_num / 4 + 1);
     face->index = write;
@@ -412,8 +412,7 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
     face->next = NULL;
     previous = face_group;
     if (previous == NULL) {
-        group = new (memory->Alloc(4)) mgFACE_GROUP;
-        if (group != NULL) {
+        if ((group = (mgFACE_GROUP *)operator new(sizeof(mgFACE_GROUP), memory->Alloc(4))) != NULL) {
             memset(group, 0, sizeof(mgFACE_GROUP));
         }
         group->next = NULL;
@@ -427,10 +426,8 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
             }
             previous = previous->next;
         }
-        group = previous;
         if (previous->next == NULL) {
-            group = new (memory->Alloc(4)) mgFACE_GROUP;
-            if (group != NULL) {
+            if ((group = (mgFACE_GROUP *)operator new(sizeof(mgFACE_GROUP), memory->Alloc(4))) != NULL) {
                 memset(group, 0, sizeof(mgFACE_GROUP));
             }
             previous->next = group;
@@ -438,14 +435,15 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
             group->face = NULL;
             group->material = face->material;
             group->vu_program = 0;
+        } else {
+            group = previous;
         }
     }
     last_face = group->face;
     if (last_face == NULL) {
         group->face = face;
     } else {
-        while (last_face->next != NULL) {
-            last_face = last_face->next;
+        for (; last_face->next != NULL; last_face = last_face->next) {
         }
         last_face->next = face;
     }
@@ -677,9 +675,6 @@ u_int mgCVisualFixMDT::CreatePacket(mgCDrawManager *manager) {
     return (u_int)manager;
 }
 #ifdef NONMATCHING
-/**
- * Writes the indexed vertex, normal, uv streams for one vertex batch.
- */
 u_long128 *SetData0(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour) {
     int       *cursor;
     u_long128 *vertex_out;
@@ -690,10 +685,10 @@ u_long128 *SetData0(int count, int type, int **index, u_long128 *packet, u_long1
     ((int *)packet)[1] = count;
     ((int *)packet)[2] = count;
     ((int *)packet)[3] = type;
-    cursor = *index;
     vertex_out = packet + 1;
-    normal_out = vertex_out + count;
+    normal_out = packet + count + 1;
     uv_out = normal_out + count;
+    cursor = *index;
     while (count > 0) {
         count--;
         *vertex_out++ = vertex[cursor[0]];

@@ -63,7 +63,9 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4],
                                         mgRENDER_INFO *render_info) {
     sceVu0FMATRIX local_screen;
     sceVu0IVECTOR zero = {0, 0, 0, 0};
-    mg3DSpriteRenderInfo *info;
+    u_int *packet;
+    mg3DSpriteRenderHead *head;
+    mg3DSpriteRenderTail *tail;
     mgCFrameAttr *attr;
     float scale_x;
     float scale_y;
@@ -73,51 +75,52 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4],
     int size;
 
     mgMulMatrix(local_screen, render_info->world_screen, matrix);
-    info = (mg3DSpriteRenderInfo *)GetScrPad();
+    packet = (u_int *)GetScrPad();
+    head = (mg3DSpriteRenderHead *)packet;
+    tail = (mg3DSpriteRenderTail *)(head + 1);
     render_info->GetpLightInfo();
 
-    info->dma_tag[0] = MG_DMA_CNT;
-    info->dma_tag[1] = 0;
-    info->dma_tag[2] = 0;
-    info->dma_tag[3] = 0;
-    info->vif_code[0] = 0;
-    info->vif_code[1] = MG_VIF_BASE | 0x3C;
-    info->vif_code[2] = MG_VIF_OFFSET | 0xB4;
-    *(u_long128 *)info->unk_20[0] = *(u_long128 *)zero;
-    *(u_long128 *)info->unk_20[1] = *(u_long128 *)zero;
-    *(u_long128 *)info->unk_20[2] = *(u_long128 *)zero;
-    info->unk_50[0] = render_info->unk_fb0[3];
-    info->unk_50[1] = render_info->unk_fb0[0];
-    info->unk_50[2] = render_info->unk_fb0[1];
-    info->unk_50[3] = render_info->unk_fb0[2];
-    sceVu0CopyMatrix(info->local_screen, local_screen);
-    sceVu0CopyMatrix(info->local_world, matrix);
+    head->dma_tag[0] = MG_DMA_CNT;
+    head->dma_tag[1] = 0;
+    head->dma_tag[2] = 0;
+    head->dma_tag[3] = 0;
+    head->vif_code[0] = 0;
+    head->vif_code[1] = MG_VIF_BASE | 0x3C;
+    head->vif_code[2] = MG_VIF_OFFSET | 0xB4;
+    *(u_long128 *)head->unk_20[0] = *(u_long128 *)zero;
+    *(u_long128 *)head->unk_20[1] = *(u_long128 *)zero;
+    *(u_long128 *)head->unk_20[2] = *(u_long128 *)zero;
+    head->unk_50[0] = render_info->unk_fb0[3];
+    head->unk_50[1] = render_info->unk_fb0[0];
+    head->unk_50[2] = render_info->unk_fb0[1];
+    head->unk_50[3] = render_info->unk_fb0[2];
+    sceVu0CopyMatrix(head->local_screen, local_screen);
+    sceVu0CopyMatrix(head->local_world, matrix);
     render_info->scissor = 0;
 
-    info->fog[0] = render_info->fog.offset;
-    info->fog[1] = render_info->fog.near_value;
-    info->fog[2] = render_info->fog.far_value;
-    info->fog[3] = render_info->fog.scale;
+    head->fog[0] = render_info->fog.offset;
+    head->fog[1] = render_info->fog.near_value;
+    head->fog[2] = render_info->fog.far_value;
+    head->fog[3] = render_info->fog.scale;
 
-    // The sprites are sized in view space, so the view axes take on the scale of the local transform.
     scale_x = mgDistVector(matrix[0]);
     scale_y = mgDistVector(matrix[1]);
     scale_z = mgDistVector(matrix[2]);
-    *(u_long128 *)info->view_screen[0] = *(u_long128 *)render_info->view_screen[0];
-    *(u_long128 *)info->view_screen[1] = *(u_long128 *)render_info->view_screen[1];
-    *(u_long128 *)info->view_screen[2] = *(u_long128 *)render_info->view_screen[2];
-    *(u_long128 *)info->view_screen[3] = *(u_long128 *)render_info->view_screen[3];
-    sceVu0ScaleVectorXYZ(info->view_screen[0], info->view_screen[0], scale_x);
-    sceVu0ScaleVectorXYZ(info->view_screen[1], info->view_screen[1], scale_y);
-    sceVu0ScaleVectorXYZ(info->view_screen[2], info->view_screen[2], scale_z);
+    *(u_long128 *)tail->view_screen[0] = *(u_long128 *)render_info->view_screen[0];
+    *(u_long128 *)tail->view_screen[1] = *(u_long128 *)render_info->view_screen[1];
+    *(u_long128 *)tail->view_screen[2] = *(u_long128 *)render_info->view_screen[2];
+    *(u_long128 *)tail->view_screen[3] = *(u_long128 *)render_info->view_screen[3];
+    sceVu0ScaleVectorXYZ(tail->view_screen[0], tail->view_screen[0], scale_x);
+    sceVu0ScaleVectorXYZ(tail->view_screen[1], tail->view_screen[1], scale_y);
+    sceVu0ScaleVectorXYZ(tail->view_screen[2], tail->view_screen[2], scale_z);
 
-    info->vif_code[3] = MG_VIF_UNPACK_V4_32 | (((u_int *)info->program_call - info->vif_code) / 4 -
+    head->vif_code[3] = MG_VIF_UNPACK_V4_32 | (((u_int *)tail->program_call - head->vif_code) / 4 -
                                                1) << MG_VIF_NUM_SHIFT;
-    info->program_call[0] = 0;
-    info->program_call[1] = 0;
-    info->program_call[2] = 0;
-    info->program_call[3] = MG_VIF_MSCAL;
-    info->dma_tag[0] |= (info->flags_tag - info->vif_code) / 4;
+    tail->program_call[0] = 0;
+    tail->program_call[1] = 0;
+    tail->program_call[2] = 0;
+    tail->program_call[3] = MG_VIF_MSCAL;
+    head->dma_tag[0] |= (tail->flags_tag - head->vif_code) / 4;
 
     flags = 0;
     if (render_info->clip | render_info->scissor) {
@@ -140,49 +143,48 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4],
         flags |= MG_3DSPRITE_FLAG_NO_LIGHT;
     }
 
-    info->flags_tag[0] = MG_DMA_CNT | 6;
-    info->flags_tag[1] = 0;
-    info->flags_tag[2] = 0;
-    info->flags_tag[3] = MG_VIF_UNPACK_V4_32 | 1 << MG_VIF_NUM_SHIFT | 0x26;
-    info->flags[0] = flags;
-    info->flags[1] = 0;
-    info->flags[2] = 0;
-    info->flags[3] = 0;
-    info->direct_tag[0] = 0;
-    info->direct_tag[1] = 0;
-    info->direct_tag[2] = 0;
-    info->direct_tag[3] = MG_VIF_DIRECT | 4;
-    info->giftag[0] = MG_GIFTAG_EOP | 3;
-    info->giftag[1] = 1 << MG_GIFTAG_NREG_SHIFT;
-    info->giftag[2] = SCE_GIF_PACKED_AD;
-    info->giftag[3] = 0;
-    info->prmodecont[0] = 0;
-    info->prmodecont[1] = 0;
-    info->prmodecont[2] = SCE_GS_PRMODECONT;
-    info->prmodecont[3] = 0;
+    tail->flags_tag[0] = MG_DMA_CNT | 6;
+    tail->flags_tag[1] = 0;
+    tail->flags_tag[2] = 0;
+    tail->flags_tag[3] = MG_VIF_UNPACK_V4_32 | 1 << MG_VIF_NUM_SHIFT | 0x26;
+    tail->flags[0] = flags;
+    tail->flags[1] = 0;
+    tail->flags[2] = 0;
+    tail->flags[3] = 0;
+    tail->direct_tag[0] = 0;
+    tail->direct_tag[1] = 0;
+    tail->direct_tag[2] = 0;
+    tail->direct_tag[3] = MG_VIF_DIRECT | 4;
+    tail->giftag[0] = MG_GIFTAG_EOP | 3;
+    tail->giftag[1] = 1 << MG_GIFTAG_NREG_SHIFT;
+    tail->giftag[2] = SCE_GIF_PACKED_AD;
+    tail->giftag[3] = 0;
+    tail->prmodecont[0] = 0;
+    tail->prmodecont[1] = 0;
+    tail->prmodecont[2] = SCE_GS_PRMODECONT;
+    tail->prmodecont[3] = 0;
 
-    prmode =
+    this->prmode =
         SCE_GS_SET_PRIM(0, 1, 1, render_info->attr->fog && render_info->fog_enable, 1, 0, 1, 0, 0);
-    info->prmode[0] = prmode;
-    info->prmode[1] = 0;
-    info->prmode[2] = SCE_GS_PRMODE;
-    info->prmode[3] = 0;
+    tail->prmode[0] = prmode;
+    tail->prmode[1] = 0;
+    tail->prmode[2] = SCE_GS_PRMODE;
+    tail->prmode[3] = 0;
 
-    // The black and white fog modes do not use the scene's fog colour.
     fog_color = render_info->fog.r | render_info->fog.g << 8 | render_info->fog.b << 16;
     if (render_info->attr->fog >= 2) {
         fog_color = 0;
     }
-    info->fogcol[0] = fog_color;
-    info->fogcol[1] = 0;
-    info->fogcol[2] = SCE_GS_FOGCOL;
-    info->fogcol[3] = 0;
-    info->ret_tag[0] = MG_DMA_RET;
-    info->ret_tag[1] = 0;
-    info->ret_tag[2] = 0;
-    info->ret_tag[3] = 0;
+    tail->fogcol[0] = fog_color;
+    tail->fogcol[1] = 0;
+    tail->fogcol[2] = SCE_GS_FOGCOL;
+    tail->fogcol[3] = 0;
+    tail->ret_tag[0] = MG_DMA_RET;
+    tail->ret_tag[1] = 0;
+    tail->ret_tag[2] = 0;
+    tail->ret_tag[3] = 0;
 
-    size = ((u_int *)(info + 1) - (u_int *)info) / 4;
+    size = ((u_int *)(tail + 1) - packet) / 4;
     SendDMA(dest, size);
     return size;
 }

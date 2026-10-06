@@ -142,6 +142,15 @@ public:
 
     /**
      *
+     * Makes an empty edit map.
+     *
+     */
+    CEditMap() {
+        Initialize();
+    }
+
+    /**
+     *
      * Draws every edit part placed, flashing the one in focus, then the map's own parts, and returns the number drawn.
      *
      * @mangled DrawSub__8CEditMapFi

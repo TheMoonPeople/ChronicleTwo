@@ -23,7 +23,6 @@
 #include "common.h"
 #include "menucapt.hpp"
 
-extern "C" int StreamPlay__6CSoundFi(void *, int);
 extern "C" void *__ct__11mgCDrawPrimFv(void *prim);
 
 extern MENU_CHAPTER_INFO *MenuChapterInfo;
@@ -37,7 +36,6 @@ extern u32 voiceflag_921;
 extern u32 wait_cnt_918;
 extern mgCTexture *MenuChapterBG;
 extern mgCTexture *MenuChapter_Logo;
-extern CSound CSnd;
 extern "C" int fptosi(float value);
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
@@ -138,7 +136,7 @@ int MenuChapterKey(void) {
         voiceflag_921 = 0;
         init_922 = 1;
     }
-    fade = (CFadeInOut *)((u8 *)MenuMainScene + 0x2C70);
+    fade = &MenuMainScene->fade;
     fadeDone = fade->FadeCheck();
     switch (MenuChapterMode) {
         case MENU_CHAPTER_MODE_FADE_IN:
@@ -146,11 +144,11 @@ int MenuChapterKey(void) {
                 menu_snd_counter += 1;
                 if (menu_snd_counter == 2) {
                     CSnd.StreamSetVol(1, 0x7FFF, 0x7FFF);
-                    StreamPlay__6CSoundFi(&CSnd, 1);
+                    CSnd.StreamPlay(1);
                     wait_cnt_918 = 0;
                 }
 
-                if (CalcMenuAdd((float *)((u8 *)MenuChapterInfo + 0x1C), 3.0f, 128.0f) != 0) {
+                if (CalcMenuAdd(&MenuChapterInfo->logo_alpha, 3.0f, 128.0f) != 0) {
                     MenuChapterMode = MENU_CHAPTER_MODE_SHOW;
                     MenuChapterInfo->show_cnt = 0;
                     menu_snd_counter = 0;
@@ -178,7 +176,7 @@ int MenuChapterKey(void) {
             }
             if ((MenuChapterInfo->show_cnt > 0x12C) &&
                 (menu_snd_counter >= 0x15A)) {
-                ((CFadeInOut *)((u8 *)MenuMainScene + 0x2C70))->FadeOut(0x3C, 0.0f, 0.0f, 0.0f);
+                MenuMainScene->fade.FadeOut(0x3C, 0.0f, 0.0f, 0.0f);
                 MenuChapterMode = MENU_CHAPTER_MODE_FADE_OUT;
             }
             break;
@@ -230,7 +228,9 @@ void MenuChapterDraw(void) {
 
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucapt", __sinit_menucapt_cpp);
+extern "C" void __sinit_menucapt_cpp() {
+    MenuChapterStack.Init();
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucapt", chap_voice_851__DATA);

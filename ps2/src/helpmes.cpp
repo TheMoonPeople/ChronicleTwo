@@ -10,6 +10,7 @@ extern int ShowOffOnce;
 extern int WindowMode;
 extern HELP_MES_INFO HelpMesInfo;
 extern ClsMes HelpMes;
+extern "C" void *__ct__6ClsMesFv(void *);
 extern char at_799__6[15];
 extern char at_800__5[30];
 #include "mglib.hpp"
@@ -265,9 +266,8 @@ void ShowErrorHelpMes(int mes_no, int time) {
 }
 
 // Static initialiser (.init)
-#ifdef NONMATCHING
-void __sinit_helpmes_cpp() {
-    new ((u_long128 *)&HelpMes) ClsMes;
+extern "C" void __sinit_helpmes_cpp() {
+    __ct__6ClsMesFv(&HelpMes);
     HelpMesInfo.time = 0;
     HelpMesInfo.mes_no = -1;
     HelpMesInfo.fukidashi_pos = -1;
@@ -276,9 +276,6 @@ void __sinit_helpmes_cpp() {
     HelpMesInfo.x = 0;
     HelpMesInfo.created = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/helpmes", __sinit_helpmes_cpp);
-#endif
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/helpmes", at_799__6__DATA);

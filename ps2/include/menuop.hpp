@@ -52,6 +52,39 @@ enum ManualMenuStep {
 // clang-format on
 /**
  *
+ * Steps of the file list page of the save menu, as CSaveMenuClass::phase holds them.
+ *
+ */
+// clang-format off
+enum SaveListPhase {
+    SAVE_LIST_PHASE_SELECT       = 0,  /**< The player picks a file. */
+    SAVE_LIST_PHASE_CONFIRM_SAVE = 1,  /**< The player is asked to save to the chosen file. */
+    SAVE_LIST_PHASE_SAVING       = 2,  /**< The save is written. */
+    SAVE_LIST_PHASE_SAVE_DONE    = 3,  /**< The save has finished. */
+    SAVE_LIST_PHASE_NOTICE       = 6,  /**< A message is shown until a button is pushed. */
+    SAVE_LIST_PHASE_MAKING_DIR   = 10, /**< The directory for a new file is made. */
+    SAVE_LIST_PHASE_CONFIRM_LOAD = 50, /**< The player is asked to load the chosen file. */
+    SAVE_LIST_PHASE_LOADING      = 51, /**< The save is read. */
+    SAVE_LIST_PHASE_LOAD_DONE    = 52, /**< The load has finished. */
+    SAVE_LIST_PHASE_LOAD_NOTICE  = 60, /**< A message is shown until a button is pushed, then the load is asked again. */
+};
+
+// clang-format on
+/**
+ *
+ * Steps of the format page of the save menu, as CSaveMenuClass::phase holds them.
+ *
+ */
+// clang-format off
+enum SaveFormatPhase {
+    SAVE_FORMAT_PHASE_ASK        = 0,  /**< The player is asked to format the card. */
+    SAVE_FORMAT_PHASE_FORMATTING = 10, /**< The card is formatted. */
+    SAVE_FORMAT_PHASE_DONE       = 20, /**< The format has finished. */
+};
+
+// clang-format on
+/**
+ *
  * What the save menu was opened to do, as CSaveMenuClass::mode holds it.
  *
  */
@@ -77,6 +110,36 @@ enum SaveMenuPage {
     SAVE_MENU_PAGE_FORMAT      = 4, /**< The player is asked to format an unformatted card. */
     SAVE_MENU_PAGE_UNK_5       = 5,
     SAVE_MENU_PAGE_ERROR       = 6, /**< A card error or lack of space is reported. */
+};
+
+// clang-format on
+/**
+ *
+ * Phases of the mini-game save menu, as SubGameSaveOrLoadPhase holds them.
+ *
+ */
+// clang-format off
+enum SubGameSavePhase {
+    SUB_SAVE_SLOT_SELECT       = 0,     /**< The player picks a memory card slot. */
+    SUB_SAVE_CARD_CHECK        = 1,     /**< The card in the chosen slot is read. */
+    SUB_SAVE_CARD_READY        = 2,     /**< The bonus data file of the card is looked for. */
+    SUB_SAVE_QUIT_ASK          = 10,    /**< The player is asked to leave the menu. */
+    SUB_SAVE_QUIT_ASK_LOAD     = 11,    /**< The player is asked to leave the menu, with a note on loading. */
+    SUB_SAVE_OVERWRITE_ASK     = 100,   /**< The player is asked to overwrite the file on the card. */
+    SUB_SAVE_WRITING           = 101,   /**< The bonus data is written. */
+    SUB_SAVE_WRITE_DONE        = 102,   /**< The write has finished. */
+    SUB_SAVE_WRITE_FAILED      = 110,   /**< The write failed. */
+    SUB_SAVE_WRITE_FAILED_FULL = 111,   /**< The write failed for lack of room. */
+    SUB_SAVE_SPACE_ASK         = 150,   /**< The player is told how much room a new file needs and asked to go on. */
+    SUB_SAVE_DIR_MAKING        = 151,   /**< The directory for the file is made. */
+    SUB_SAVE_FORMAT_ASK        = 160,   /**< The player is asked to format the card. */
+    SUB_SAVE_FORMATTING        = 161,   /**< The card is formatted. */
+    SUB_SAVE_NO_DATA           = 165,   /**< The card holds no data to load. */
+    SUB_SAVE_LOAD_ASK          = 200,   /**< The player is asked to load the file. */
+    SUB_SAVE_LOADING           = 201,   /**< The file is read. */
+    SUB_SAVE_LOAD_DONE         = 202,   /**< The read has finished. */
+    SUB_SAVE_LOAD_MISSING      = 250,   /**< The player is told the file is missing and asked to go on. */
+    SUB_SAVE_CARD_ERROR        = 1000,  /**< A card error is reported. */
 };
 
 // clang-format on

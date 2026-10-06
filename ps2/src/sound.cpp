@@ -29,14 +29,14 @@ void CSound::StopVoice(int core) {
     sceSdRemote(1, rSdSetSwitch, core | SD_S_KOFF, 0xFFFFFF);
     printf("voice completed Core=%d\n", core);
 }
-extern "C" void SndInReverb__6CSoundFb(CSound *self, int on) {
-    if (on != 0) {
-        sceSdRemote(1, 0x8010, 0x800, -4);
-        sceSdRemote(1, 0x8010, 0x801, -4);
+void CSound::SndInReverb(bool enable) {
+    if (enable) {
+        sceSdRemote(1, rSdSetParam, 0x800, -4);
+        sceSdRemote(1, rSdSetParam, 0x801, -4);
         return;
     }
-    sceSdRemote(1, 0x8010, 0x800, -0x34);
-    sceSdRemote(1, 0x8010, 0x801, -0x34);
+    sceSdRemote(1, rSdSetParam, 0x800, -0x34);
+    sceSdRemote(1, rSdSetParam, 0x801, -0x34);
 }
 
 void CSound::SetReverb(int core, int mode, int depth) {
@@ -422,12 +422,11 @@ void CSound::SQ_RePlay(int port) {
     }
 }
 
-#ifdef NONMATCHING
 void CSound::SE_Play(int port, int bank, int program, int key, int pan, int velocity, int volume, int pitch, int id) {
     u8  message[7];
     u32 stream_port;
 
-    if (id >= 0x7F) {
+    if (id > 0x7E) {
         printf(" ################################SE_ID ERR!! PORT NO=%d !!!\n", port);
         return;
     }
@@ -441,6 +440,7 @@ void CSound::SE_Play(int port, int bank, int program, int key, int pan, int velo
         message[3] = volume;
         message[4] = 0;
         sceMSIn_PutHsMsg(&msinCtx, stream_port, message);
+        message[0] = 0xF9;
         message[1] = 2;
         message[2] = 0;
         message[3] = pitch & 0x7F;
@@ -461,9 +461,6 @@ void CSound::SE_Play(int port, int bank, int program, int key, int pan, int velo
         sceMSIn_PutHsMsg(&msinCtx, stream_port, message);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sound", SE_Play__6CSoundFiiiiiiiii);
-#endif
 
 void CSound::SE_SetVol(int port, int bank, int program, int key, int volume, int id) {
     u8  message[7];

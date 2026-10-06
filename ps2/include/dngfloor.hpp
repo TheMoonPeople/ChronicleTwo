@@ -118,7 +118,7 @@ struct DNGMAP_ROOT_INFO {
     u8 shape;     /**< Shape the piece of passage is drawn with. */
     u8 show_mark; /**< Non-zero to draw the passage's type mark once it has been opened. */
     u8 open;      /**< Non-zero while both rooms the passage joins can be entered. */
-    u8 opened;    /**< Non-zero once open has ever been set. */
+    s8 opened;    /**< Non-zero once open has ever been set. */
 };
 
 STATIC_ASSERT(sizeof(DNGMAP_ROOT_INFO) == 0x5);
@@ -252,7 +252,7 @@ public:
      * @address 0x2FE740
      * @size 0x30
      */
-    s8 IsGeoStone(int floor_id);
+    int IsGeoStone(int floor_id);
 
     /**
      *
@@ -292,7 +292,7 @@ public:
      * @address 0x2FE8F0
      * @size 0x110
      */
-    s8 IsSealFloor(int floor_id);
+    int IsSealFloor(int floor_id);
 
     /**
      *

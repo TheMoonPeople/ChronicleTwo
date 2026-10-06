@@ -122,28 +122,6 @@ struct GEORAMA_LIST_INFO {
 STATIC_ASSERT(sizeof(GEORAMA_LIST_INFO) == 0x8);
 
 /**
- * Index of each frame of one model that matches a frame of another model,
- * pairing the frames that are posed together.
- */
-class CCharaFrameMatching {
-public:
-    s32  num;       /**< Number of entries in src_frame and dst_frame. */
-    s32 *src_frame; /**< Index of each frame of the first model. */
-    s32 *dst_frame; /**< Index of the frame of the second model that matches each entry of src_frame. */
-
-    /**
-     * Empties the matching.
-     *
-     * @mangled Initialize__19CCharaFrameMatchingFv
-     * @address 0x1FF8A0
-     * @size 0x10
-     */
-    void Initialize();
-};
-
-STATIC_ASSERT(sizeof(CCharaFrameMatching) == 0xC);
-
-/**
  * The Georama menu of a town: lists the parts the town can build, the parts
  * in stock, the paint colours, the placed houses and the analysis of the
  * town, and shows the part the cursor is on as a turning model.
@@ -164,7 +142,7 @@ public:
     s32                    polygon_left;                                          /**< Polygons the town can still place. */
     s32                    paint_select;                                          /**< Paint colour the cursor is on; GEORAMA_PENKI_NUM for leaving. */
     s32                    paint_top;                                             /**< First paint colour line shown. */
-    s32                    unk_164;
+    s32                    free_color_select;                                     /**< Line of the free colour list the cursor is on. */
     s32                    paint_return;                                          /**< Non-zero when the menu opened to pick a paint colour, and closes once one is picked. */
     s32                    unk_16C;
     mgCMemory              parts_stack;                                           /**< Memory that the part shown draws from. */
@@ -199,6 +177,55 @@ public:
     CMenuPosDataForm      *house_info_form;                                       /**< Form of the house information. */
     s32                    sub_step;                                              /**< Step of the stock and house pages: 0 for the list, others for the choices on a line. */
     u8                     unk_1B8F8[8];
+
+    /**
+     * Creates the menu on the stock page with every list empty and no part
+     * shown.
+     */
+    CMenuGeorama() {
+        view_mode = GEORAMA_VIEW_STOCK;
+        top = 0;
+        select = 0;
+        make_parts = NULL;
+        start_wait = 0;
+        paint_select = 0;
+        paint_top = 0;
+        view_loaded = 0;
+        parts_info = NULL;
+        place_parts = NULL;
+        view_parts = NULL;
+        title_form = NULL;
+        cpview_form = NULL;
+        free_color_form = NULL;
+        make_brd_form = NULL;
+        house_info_form = NULL;
+        unk_1B83C = 0;
+        sub_step = 0;
+        for (int i = 0; i < GEORAMA_VIEW_MODE_NUM; i++) {
+            list_form[i] = NULL;
+            list_target_y[i] = 0.0f;
+            scroll_bar_y[i] = 0.0f;
+            list_pos[i][1] = 0.0f;
+            list_pos[i][0] = 0.0f;
+        }
+        analyze_form = NULL;
+        analyze_percent_form = NULL;
+        list_pos[GEORAMA_VIEW_ANALYZE][1] = 164.0f;
+        memset(list_info, 0, sizeof(list_info));
+        memset(place_no, 0, sizeof(place_no));
+        memset(place_name, 0, sizeof(place_name));
+        memset(placed_list, 0, sizeof(placed_list));
+        stock_num = 0;
+        memset(stock_list, 0, sizeof(stock_list));
+        make_num = 0;
+        memset(make_list, 0, sizeof(make_list));
+        house_num = 0;
+        memset(house_list, 0, sizeof(house_list));
+        sort_mode[0] = 0;
+        sort_mode[1] = 0;
+        sort_mode[2] = 0;
+        unk_1AC = 0;
+    }
 
     /**
      * Finishes opening the menu: enters its textures, makes its messages,
@@ -418,6 +445,44 @@ public:
     s32                 top;                                         /**< First line shown. */
 
     /**
+     * Creates the menu with no house, no villager list and no model.
+     */
+    CRemovalMenu() {
+        data_stack.stSetBuffer(NULL, 0);
+        chara_stack.stSetBuffer(NULL, 0);
+        exit_wait = 0;
+        place_no = 0;
+        select_npc = 0;
+        model_wait = 0;
+        model_state = 0;
+        chara.Initialize(NULL);
+        parts = NULL;
+        house = NULL;
+        house_form = NULL;
+        list_form = NULL;
+        npc_win_form = NULL;
+        npc_chr_form = NULL;
+        clip_form = NULL;
+        parts_info = NULL;
+        list_x = 0.0f;
+        list_y = 0.0f;
+        npc_num = 0;
+        memset(npc_list, 0, sizeof(npc_list));
+        for (int i = 0; i < REMOVAL_NAME_LINE_MAX; i++) {
+            line_parts[i] = NULL;
+        }
+        scroll_parts[0] = NULL;
+        scroll_parts[1] = NULL;
+        scroll_parts[2] = NULL;
+        clip_form = NULL;
+        select = 0;
+        top = 0;
+        key_arg_no = 0;
+        special_house = 0;
+        first_npc = -1;
+    }
+
+    /**
      * Lists the villagers who have joined the town and live in no house.
      *
      * @mangled MakeNPCList__12CRemovalMenuFv
@@ -455,7 +520,7 @@ void GetPenkiColor(int no, float *out_rgb);
  * @address 0x1F3DC0
  * @size 0x20
  */
-short ConvGeoramaDataNo(int data_no);
+int ConvGeoramaDataNo(int data_no);
 
 /**
  * Keeps a list's first shown line and cursor within the list and the lines

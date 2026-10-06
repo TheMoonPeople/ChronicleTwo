@@ -248,7 +248,78 @@ int CEditGrid::ResetRiver(int x, int z) {
     UpdateRiver(x - 1, z + 1);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editriver", UpdateRiver__9CEditGridFii);
+int CEditGrid::UpdateRiver(int x, int z) {
+    CGridData *cell = Get(x, z);
+    if (cell == NULL) {
+        return 0;
+    }
+    if (cell->river == 0) {
+        return 0;
+    }
+    int shape[EDIT_GRID_CORNER_MAX] = {0};
+    int turn[EDIT_GRID_CORNER_MAX] = {0};
+    int hash = 0x10DCD;
+    for (int corner = 0; corner < EDIT_GRID_CORNER_MAX; corner++) {
+        int side_a;
+        int side_b;
+        int diagonal;
+        int variant;
+
+        hash *= (x + corner) * (z + corner + 1);
+        variant = 0;
+        if (hash < 0) {
+            variant = EDIT_RIVER_PIECE_VARIANT;
+        }
+        switch (corner) {
+            case 0:
+                side_a = River(x - 1, z);
+                side_b = River(x, z - 1);
+                diagonal = River(x - 1, z - 1);
+                break;
+            case 1:
+                side_a = River(x, z - 1);
+                side_b = River(x + 1, z);
+                diagonal = River(x + 1, z - 1);
+                break;
+            case 2:
+                side_a = River(x + 1, z);
+                side_b = River(x, z + 1);
+                diagonal = River(x + 1, z + 1);
+                break;
+            case 3:
+                side_a = River(x, z + 1);
+                side_b = River(x - 1, z);
+                diagonal = River(x - 1, z + 1);
+                break;
+        }
+        int sides = side_a + side_b;
+        if (sides == 0) {
+            shape[corner] = EDIT_RIVER_PIECE_OUTER;
+            turn[corner] = (corner + 2) % 4;
+        }
+        if (sides == 1) {
+            shape[corner] = EDIT_RIVER_PIECE_EDGE;
+            if (side_a != 0) {
+                turn[corner] = 1;
+            } else {
+                turn[corner] = 0;
+            }
+            turn[corner] = (corner + turn[corner]) % 4;
+        }
+        if (sides == 2) {
+            if (diagonal != 0) {
+                shape[corner] = EDIT_RIVER_PIECE_FULL;
+                turn[corner] = 0;
+            } else {
+                shape[corner] = EDIT_RIVER_PIECE_INNER;
+                turn[corner] = corner;
+            }
+        }
+        cell->piece[corner] = variant + shape[corner];
+        cell->rot[corner] = turn[corner];
+    }
+    return 1;
+}
 int CEditGrid::River(int x, int z) {
     CGridData *cell;
 
@@ -258,7 +329,34 @@ int CEditGrid::River(int x, int z) {
     }
     return 0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editriver", GetRiverPos__9CEditGridFiiPA4_f);
+void CEditGrid::GetRiverPos(int x, int z, float (*pos)[4]) {
+    float half_x = step_x / 2.0f;
+    float half_z = step_z / 2.0f;
+    float quarter_x = step_x / 4.0f;
+    float quarter_z = step_z / 4.0f;
+    float center[4];
+
+    GetWPos(center, x, z);
+    float y = center[1];
+    float center_x = center[0] + half_x;
+    float center_z = center[2] + half_z;
+    pos[0][0] = center_x - quarter_x;
+    pos[0][1] = y;
+    pos[0][2] = center_z - quarter_z;
+    pos[0][3] = 1.0f;
+    pos[1][0] = center_x + quarter_x;
+    pos[1][1] = y;
+    pos[1][2] = center_z - quarter_z;
+    pos[1][3] = 1.0f;
+    pos[2][0] = center_x + quarter_x;
+    pos[2][1] = y;
+    pos[2][2] = center_z + quarter_z;
+    pos[2][3] = 1.0f;
+    pos[3][0] = center_x - quarter_x;
+    pos[3][1] = y;
+    pos[3][2] = center_z + quarter_z;
+    pos[3][3] = 1.0f;
+}
 void CEditGrid::GetRiverPos(int x, int y, float *pos) {
     float half_width = step_x / 2.0f;
     float half_height = step_z / 2.0f;

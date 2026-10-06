@@ -501,7 +501,22 @@ void AnalyzeHeim(CEditData *data, CEditMap *map) {
 }
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editanalyze", AnalyzeMoonFlower__FP9CEditDataP8CEditMap);
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editanalyze", CheckLiveChara__FiP8CEditMapii);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editanalyze", EditMapInitEvent__FiP8CEditMap);
+void EditMapInitEvent(int map_no, CEditMap *edit_map) {
+    if (edit_map == NULL || map_no < 0) {
+        return;
+    }
+    if (map_no == 14) {
+        CFuncPoint *point = edit_map->func_point.Search("dun07");
+        int opened = GetSaveData()->GetBitFlag(800);
+        if (point != NULL) {
+            point->enable = opened;
+        }
+        CMapParts *parts = edit_map->GetPlaceParts("p02_e05a02-0");
+        if (parts != NULL) {
+            parts->Show(!opened);
+        }
+    }
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editanalyze", at_913__6__DATA);

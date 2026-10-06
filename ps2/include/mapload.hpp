@@ -71,6 +71,17 @@ enum FUNC_EVENT_FLAG {
 
 /**
  *
+ * Kinds of light a light function point gives the parts around it.
+ *
+ */
+enum FUNC_PLIGHT_TYPE {
+    FUNC_PLIGHT_DIRECTIONAL = 0, /**< A directional light from the point's direction. */
+    FUNC_PLIGHT_AMBIENT = 1,     /**< The ambient colour. */
+    FUNC_PLIGHT_POINT = 2,       /**< A point light at the point's position; the only kind GetLight hands out. */
+};
+
+/**
+ *
  * Ways the strength of a point light function point varies over time.
  *
  */
@@ -135,10 +146,10 @@ public:
      *
      */
     struct FireData {
-        sceVu0FVECTOR color; /**< Colour, 0 to 128 with w of 128. */
-        int           unk_30;
-        int           unk_34;
-        int           unk_38;
+        sceVu0FVECTOR color;      /**< Colour, 0 to 128 with w of 128. */
+        int           effect_off; /**< Non-zero leaves out the fire effect drawn at the point. */
+        int           heat_haze;  /**< Non-zero draws the map's CFireRaster heat haze above the point. */
+        int           cast_light; /**< Non-zero makes the fire light its surroundings as a point light. */
     };
 
     /**
@@ -150,11 +161,11 @@ public:
         sceVu0FVECTOR color;          /**< Colour of the light, with w of 0. */
         float         power;          /**< Strength of the light. */
         float         range;          /**< Distance the light reaches. */
-        int           unk_38;
-        int           unk_3c;
+        int           light_type;     /**< Kind of light, a FUNC_PLIGHT_TYPE. */
+        int           light_chara;    /**< Non-zero lets the light reach characters. */
         int           unk_40;
         int           unk_44;
-        int           unk_48;
+        int           no_map_light;   /**< Non-zero keeps the light off the map itself. */
         int           flicker_type;   /**< How the strength varies, a FUNC_PLIGHT_FLICKER. */
         float         flicker_depth;  /**< Largest fraction of the strength that the variation takes away. */
         float         flicker_period; /**< Frames one cycle of the variation lasts. */
@@ -169,13 +180,13 @@ public:
         char         *parts_name; /**< Placed part that the animation controls. */
         char         *piece_name; /**< Name of the map piece animated. */
         char         *frame_name; /**< Name of the frame of that piece animated. */
-        int           unk_2c;
-        int           unk_30;
-        s16           unk_34;
-        s16           unk_36;
-        sceVu0FVECTOR param;      /**< Parameters handed to the animation. */
-        sceVu0FVECTOR unk_50;
-        sceVu0FVECTOR unk_60;
+        int           kind;        /**< Value the animation drives, an OBJ_ANIME_PARAM. */
+        int           mode;        /**< How the value moves each step, an OBJ_ANIME_MODE. */
+        s16           uniform;     /**< Non-zero copies the first component to the other two. */
+        s16           piece_space; /**< Non-zero applies a position in the space of the piece. */
+        sceVu0FVECTOR param;       /**< Start value of the animation. */
+        sceVu0FVECTOR speed;       /**< Value added each step; for the clock and time modes, the time range and fade. */
+        sceVu0FVECTOR end;         /**< End value of the animation. */
     };
 
     /**
@@ -214,9 +225,9 @@ public:
      *
      */
     struct InventData {
-        int       unk_20;
+        int       neta_no; /**< Photo subject (neta) the point gives a picture taken of it. */
         int       unk_24;
-        float     unk_28;
+        float     range;   /**< Distance the point reaches, 400 when zero. */
         float     angle;  /**< Angle in radians, given in degrees by the script. */
         mgVu0FBOX box;    /**< Box the point covers. */
     };

@@ -236,15 +236,396 @@ int mgCVisualMotionMDT::DataAssignMotionMDT(MDT_HEADER *header, mgCVMotionData *
     }
     return 1;
 }
+struct mgVertexBatchHeader {
+    int stream_count[3];
+    int type;
+};
+#ifdef NONMATCHING
+u_long128 *SetData0(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
+    mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
+    u_long128 *vertex_out;
+    u_long128 *normal_out;
+    u_long128 *uv_out;
+    u_long128 *weight_out;
+    int *cursor;
+
+    header->stream_count[0] = count;
+    header->stream_count[1] = count;
+    header->stream_count[2] = 0;
+    header->type = type;
+    cursor = *index;
+    vertex_out = packet + 1;
+    normal_out = packet + count + 1;
+    uv_out = normal_out + count;
+    weight_out = uv_out + count;
+    while (count > 0) {
+        count--;
+        *vertex_out++ = vertex[cursor[0]];
+        weight_out[0] = ((u_long128 *)&weight[cursor[0]])[0];
+        weight_out[1] = ((u_long128 *)&weight[cursor[0]])[1];
+        weight_out += 2;
+        *normal_out++ = normal[cursor[1]];
+        *uv_out++ = uv[cursor[2]];
+        cursor += 3;
+    }
+    *index = cursor;
+    return weight_out;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData0__FiiPPiP1P1P1P1P1P14mgVertexWeight);
+#endif
+#ifdef NONMATCHING
+u_long128 *SetData1(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
+    mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
+    u_long128 *vertex_out;
+    u_long128 *normal_out;
+    u_long128 *uv_out;
+    u_long128 *colour_out;
+    u_long128 *weight_out;
+    int *cursor;
+
+    header->stream_count[0] = count;
+    header->stream_count[1] = count;
+    header->stream_count[2] = count;
+    header->type = type;
+    cursor = *index;
+    vertex_out = packet + 1;
+    normal_out = packet + count + 1;
+    uv_out = normal_out + count;
+    colour_out = uv_out + count;
+    weight_out = colour_out + count;
+    while (count > 0) {
+        count--;
+        *vertex_out++ = vertex[cursor[0]];
+        weight_out[0] = ((u_long128 *)&weight[cursor[0]])[0];
+        weight_out[1] = ((u_long128 *)&weight[cursor[0]])[1];
+        weight_out += 2;
+        *normal_out++ = normal[cursor[1]];
+        *uv_out++ = uv[cursor[2]];
+        *colour_out++ = colour[cursor[3]];
+        cursor += 4;
+    }
+    *index = cursor;
+    return weight_out;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData1__FiiPPiP1P1P1P1P1P14mgVertexWeight);
+#endif
+#ifdef NONMATCHING
+u_long128 *SetData2(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
+    mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
+    u_long128 *vertex_out;
+    u_long128 *normal_out;
+    u_long128 *weight_out;
+    int *cursor;
+
+    header->stream_count[0] = count;
+    header->stream_count[1] = 0;
+    header->stream_count[2] = 0;
+    header->type = type;
+    cursor = *index;
+    vertex_out = packet + 1;
+    normal_out = packet + count + 1;
+    weight_out = normal_out + count;
+    while (count > 0) {
+        count--;
+        *vertex_out++ = vertex[cursor[0]];
+        weight_out[0] = ((u_long128 *)&weight[cursor[0]])[0];
+        weight_out[1] = ((u_long128 *)&weight[cursor[0]])[1];
+        weight_out += 2;
+        *normal_out++ = normal[cursor[1]];
+        cursor += 2;
+    }
+    *index = cursor;
+    return weight_out;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData2__FiiPPiP1P1P1P1P1P14mgVertexWeight);
+#endif
+#ifdef NONMATCHING
+u_long128 *SetData3(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
+    mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
+    u_long128 *vertex_out;
+    u_long128 *normal_out;
+    u_long128 *colour_out;
+    u_long128 *weight_out;
+    int *cursor;
+
+    header->stream_count[0] = count;
+    header->stream_count[1] = count;
+    header->stream_count[2] = 0;
+    header->type = type;
+    cursor = *index;
+    vertex_out = packet + 1;
+    normal_out = packet + count + 1;
+    colour_out = normal_out + count;
+    weight_out = colour_out + count;
+    while (count > 0) {
+        count--;
+        *vertex_out++ = vertex[cursor[0]];
+        weight_out[0] = ((u_long128 *)&weight[cursor[0]])[0];
+        weight_out[1] = ((u_long128 *)&weight[cursor[0]])[1];
+        weight_out += 2;
+        *normal_out++ = normal[cursor[1]];
+        *colour_out++ = colour[cursor[2]];
+        cursor += 3;
+    }
+    *index = cursor;
+    return weight_out;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData3__FiiPPiP1P1P1P1P1P14mgVertexWeight);
+#endif
+#ifdef NONMATCHING
+u_long128 *SetData4(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
+    mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
+    u_long128 *vertex_out;
+    u_long128 *uv_out;
+    u_long128 *weight_out;
+    int *cursor;
+
+    header->stream_count[0] = count;
+    header->stream_count[1] = 0;
+    header->stream_count[2] = 0;
+    header->type = type;
+    cursor = *index;
+    vertex_out = packet + 1;
+    uv_out = packet + count + 1;
+    weight_out = uv_out + count;
+    while (count > 0) {
+        count--;
+        *vertex_out++ = vertex[cursor[0]];
+        weight_out[0] = ((u_long128 *)&weight[cursor[0]])[0];
+        weight_out[1] = ((u_long128 *)&weight[cursor[0]])[1];
+        weight_out += 2;
+        *uv_out++ = uv[cursor[1]];
+        cursor += 2;
+    }
+    *index = cursor;
+    return weight_out;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData4__FiiPPiP1P1P1P1P1P14mgVertexWeight);
+#endif
+#ifdef NONMATCHING
+u_long128 *SetData5(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
+    mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
+    u_long128 *vertex_out;
+    u_long128 *uv_out;
+    u_long128 *colour_out;
+    u_long128 *weight_out;
+    int *cursor;
+
+    header->stream_count[0] = count;
+    header->stream_count[1] = 0;
+    header->stream_count[2] = count;
+    header->type = type;
+    cursor = *index;
+    vertex_out = packet + 1;
+    uv_out = packet + count + 1;
+    colour_out = uv_out + count;
+    weight_out = colour_out + count;
+    while (count > 0) {
+        count--;
+        *vertex_out++ = vertex[cursor[0]];
+        weight_out[0] = ((u_long128 *)&weight[cursor[0]])[0];
+        weight_out[1] = ((u_long128 *)&weight[cursor[0]])[1];
+        weight_out += 2;
+        *uv_out++ = uv[cursor[1]];
+        *colour_out++ = colour[cursor[2]];
+        cursor += 3;
+    }
+    *index = cursor;
+    return weight_out;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData5__FiiPPiP1P1P1P1P1P14mgVertexWeight);
+#endif
+#ifdef NONMATCHING
+u_long128 *SetData6(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
+    mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
+    u_long128 *vertex_out;
+    u_long128 *weight_out;
+    int *cursor;
+
+    header->stream_count[0] = 0;
+    header->stream_count[1] = 0;
+    header->stream_count[2] = 0;
+    header->type = type;
+    cursor = *index;
+    vertex_out = packet + 1;
+    weight_out = packet + count + 1;
+    while (count > 0) {
+        count--;
+        *vertex_out++ = vertex[cursor[0]];
+        weight_out[0] = ((u_long128 *)&weight[cursor[0]])[0];
+        weight_out[1] = ((u_long128 *)&weight[cursor[0]])[1];
+        weight_out += 2;
+        cursor += 1;
+    }
+    *index = cursor;
+    return weight_out;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData6__FiiPPiP1P1P1P1P1P14mgVertexWeight);
+#endif
+#ifdef NONMATCHING
+u_long128 *SetData7(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
+    mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
+    u_long128 *vertex_out;
+    u_long128 *colour_out;
+    u_long128 *weight_out;
+    int *cursor;
+
+    header->stream_count[0] = count;
+    header->stream_count[1] = 0;
+    header->stream_count[2] = 0;
+    header->type = type;
+    cursor = *index;
+    vertex_out = packet + 1;
+    colour_out = packet + count + 1;
+    weight_out = colour_out + count;
+    while (count > 0) {
+        count--;
+        *vertex_out++ = vertex[cursor[0]];
+        weight_out[0] = ((u_long128 *)&weight[cursor[0]])[0];
+        weight_out[1] = ((u_long128 *)&weight[cursor[0]])[1];
+        weight_out += 2;
+        *colour_out++ = colour[cursor[1]];
+        cursor += 2;
+    }
+    *index = cursor;
+    return weight_out;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData7__FiiPPiP1P1P1P1P1P14mgVertexWeight);
+#endif
+#ifdef NONMATCHING
+static u_long128 *(*set_data_func[8])(int, int, int **, u_long128 *, u_long128 *, u_long128 *, u_long128 *, u_long128 *, mgVertexWeight *) = {
+    SetData0, SetData1, SetData2, SetData3, SetData4, SetData5, SetData6, SetData7
+};
+int mgCVisualMotionMDT::CreateFaceMotionPacket(u_int *packet, mgCFace *face, mgCVMotionData *motion) {
+    static u_int prog_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 0x2};
+    static u_int progf_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCNT};
+    sceGifTag  batch_tag;
+    sceGifTag  end_tag;
+    int       *indices;
+    u_int     *destination;
+    u_int     *write;
+    u_int     *buffer_start;
+    u_int     *unpack;
+    u_int     *batch;
+    u_long128 *end;
+    int        remaining;
+    int        batch_limit;
+    int        count;
+    int        variant;
+    int        primitive;
+    int        use_scratchpad;
+    int        started;
+    int        words;
+
+    if (face == NULL) {
+        return 0;
+    }
+    use_scratchpad = 0;
+    if (((u_int)packet & 0xF0000000) == MG_UNCACHED) {
+        use_scratchpad = 1;
+    }
+    variant = 0;
+    started = 0;
+    remaining = face->vertex_num;
+    primitive = face->type & MG_FACE_PRIM_MASK;
+    indices = face->index;
+    batch_limit = (vu1_offset - 2) / 5 / 3 * 3;
+    if (face->type & MG_FACE_COLOUR) {
+        variant = 1;
+        batch_limit = (vu1_offset - 2) / 6 / 3 * 3;
+    }
+    if (face->type & MG_FACE_NO_TEXTURE) {
+        variant += 2;
+    }
+    if (face->type & MG_FACE_NO_NORMAL) {
+        variant += 4;
+    }
+    *(u_long128 *)&batch_tag = 0;
+    batch_tag.EOP = 1;
+    batch_tag.PRE = 1;
+    end_tag = batch_tag;
+    if (primitive == MG_PRIM_TRIANGLE_STRIP) {
+        batch_tag.PRIM = 0x5C;
+    } else {
+        batch_tag.PRIM = 0x5B;
+    }
+    batch_tag.NREG = 3;
+    batch_tag.REGS0 = 2;
+    batch_tag.REGS1 = 1;
+    batch_tag.REGS2 = 4;
+    end_tag.PRIM = 0x5D;
+    end_tag.NREG = 3;
+    end_tag.REGS0 = 2;
+    end_tag.REGS1 = 1;
+    end_tag.REGS2 = 4;
+    packet[0] = 0;
+    packet[1] = 0;
+    packet[2] = 0;
+    packet[3] = MG_VIF_UNPACK_V4_32 | (1 << MG_VIF_NUM_SHIFT) | 0x0027;
+    *(u_long128 *)&packet[4] = *(u_long128 *)&end_tag;
+    destination = packet + 8;
+    write = use_scratchpad ? GetScrPad() : destination;
+    buffer_start = write;
+    while (remaining > 0) {
+        count = batch_limit;
+        if (remaining < batch_limit) {
+            count = remaining;
+        }
+        write[0] = 0;
+        write[1] = 0;
+        write[2] = 0;
+        write[3] = 0;
+        unpack = write + 3;
+        batch = write + 4;
+        batch_tag.NLOOP = count | 0x8000;
+        *(u_long128 *)batch = *(u_long128 *)&batch_tag;
+        end = set_data_func[variant](count, face->type, &indices, (u_long128 *)(batch + 4),
+                                     (u_long128 *)vertex, (u_long128 *)normal, (u_long128 *)uv,
+                                     (u_long128 *)colour, weight);
+        *unpack = (((u_int)((u_int *)end - batch) / 4) << MG_VIF_NUM_SHIFT) | MG_VIF_UNPACK_V4_32 | MG_VIF_UNPACK_FLG;
+        if (started == 0) {
+            started = 1;
+            *end = *(u_long128 *)prog_vif;
+        } else {
+            *end = *(u_long128 *)progf_vif;
+        }
+        write = (u_int *)(end + 1);
+        if (primitive == MG_PRIM_TRIANGLE_STRIP && batch_limit < remaining) {
+            remaining += 2;
+            indices -= face->index_stride * 2;
+        }
+        words = write - buffer_start;
+        if (words > 0x514) {
+            if (use_scratchpad != 0) {
+                SendDMA(destination, words / 4);
+            }
+            destination += words;
+            write = use_scratchpad ? GetScrPad() : destination;
+            buffer_start = write;
+        }
+        remaining -= batch_limit;
+    }
+    words = write - buffer_start;
+    if (use_scratchpad != 0 && words > 0) {
+        SendDMA(destination, words / 4);
+    }
+    destination += words;
+    u_int finish[4] __attribute__((aligned(16))) = {MG_VIF_FLUSHA, 0, 0, 0};
+    *(u_long128 *)destination = *(u_long128 *)finish;
+    destination += 4;
+    return (destination - packet) / 4;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", CreateFaceMotionPacket__18mgCVisualMotionMDTFPUiP7mgCFaceP14mgCVMotionData);
+#endif
 int mgCVisualMotionMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4],
                                                mgRENDER_INFO *render_info) {
     render_info->motion = 1;

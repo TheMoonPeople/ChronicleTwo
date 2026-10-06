@@ -19,6 +19,8 @@
 #include "userdata.hpp"
 #include "password.hpp"
 #include "gamedata.hpp"
+#include "dataread.hpp"
+#include "sysmes.hpp"
 #include "gcc/stddef.h"
 
 struct BoardTable {
@@ -34,6 +36,50 @@ extern s8 NameStrSelectModeTable[7][6];
 extern NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[0x2C];
 extern s8 testchar[0x2C][2];
 extern s8 txt_table[0x3B];
+struct FontTables {
+    char *first;
+    char *second;
+    char *third;
+};
+struct BoardColor {
+    s16 r;
+    s16 g;
+    s16 b;
+    s16 a;
+};
+struct BoardRect {
+    s16 x;
+    s16 y;
+    s16 w;
+    s16 h;
+};
+struct BoardPoint {
+    s16 x;
+    s16 y;
+};
+extern BoardColor colt_1808[2];
+extern BoardRect table_1819[][5];
+extern BoardRect tex_commtbl_1822[][6];
+extern BoardPoint nameregist_baseboard_upper_table[][12];
+extern s16 get_Htable_1806[3];
+extern char KIGOU_TABLE_ASCII1[0x20];
+extern char KIGOU_TABLE_ASCII2[0x100];
+extern char KIGOU_TABLE1[4];
+extern char KIGOU_TABLE2[8];
+extern char *jis_ptr_table[2];
+extern mgCMemory NameRegiStack;
+extern char at_1281__6[0x10];
+extern char at_1282__6[0x10];
+extern char at_1283__5[0x10];
+extern char at_1284__6[0x10];
+extern char at_1285__3[0x10];
+extern char at_1286__2[0x10];
+extern char at_1287__3[0x10];
+extern char at_1288__2[0x10];
+extern mgCTexture *NameRegiWaku;
+extern mgCTexture *NameRegiBGTile;
+extern mgCTexture *NameregiGaiji;
+extern FontTables NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM];
 extern CNameRegiMenu *NameRegiMenuPtr;
 extern int OldReloadTexNumber;
 extern s16 LimmitTable_1360[5];
@@ -112,7 +158,38 @@ void CNameRegiMenu::CopyAsciiToJis(char *src, char *dst) {
         *dst = 0;
     }
 }
+#ifdef NONMATCHING
+void CNameRegiMenu::CopyJisToAscii(char *src, char *dst) {
+    if (src == NULL || dst == NULL) {
+        return;
+    }
+    if (CheckNowEurope() != 0) {
+        strcpy(dst, src);
+    } else {
+        char *ascii_codes = ascii_code_table;
+        while ((s8)*src != 0) {
+            long high = *src;
+            int matched_index = -1;
+            int table_index = 0;
+            while ((s8)jis_table[table_index] != 0) {
+                if (high == jis_table[table_index] && src[1] == jis_table[table_index + 1]) {
+                    matched_index = table_index;
+                    break;
+                }
+                table_index += 2;
+            }
+            if (0 <= matched_index) {
+                *dst = ascii_codes[matched_index / 2];
+                dst++;
+            }
+            src += 2;
+        }
+        *dst = 0;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", CopyJisToAscii__13CNameRegiMenuFPcPc);
+#endif
 int CheckChronicleKanjiFont(mgCMemory *memory) {
     char name[3];
     int total;
@@ -288,7 +365,215 @@ void ConvertAscii2ShitJiss(char *src, char *dst) {
         output += 2;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", NameRegistInit__FP9mgCMemoryPii);
+struct NameRegiItemNames {
+    char *name[3];
+};
+extern NameRegiItemNames at_1171__3;
+inline CNameRegiMenu::CNameRegiMenu() {
+    select.pos = 0;
+    select.row = 0;
+    unk_120 = 0;
+    command_pos = 0;
+    if (LanguageCode > 0) {
+        command_pos = 2;
+    }
+    cursor_x = 0.0f;
+    cursor_y = 0.0f;
+    cursor_snap = 1;
+    cursor_cnt = 0;
+    caret_cnt = 0;
+    wave_angle = 0.0f;
+    for (int i = 0; i < 16; i++) {
+        button_flash[i] = 0;
+    }
+    kanji_cell_num = 0;
+    kanji_page_num = 0;
+    kanji_line_max = 0;
+    select_box_x = 0.0f;
+    select_box_y = 0.0f;
+    unk_6 = 0;
+    memset(old_name, 0, sizeof(old_name));
+    memset(name, 0, sizeof(name));
+    name_pos = 0;
+    name_font.Init();
+    name_font.unk_b0 = 0.0f;
+    name_font.unk_b4 = 0.0f;
+    name_font.SetClearance(0x18, 0x14);
+    name_font.SetFuchi(5);
+    name_font.SetColor(0x80686A6B);
+    password_input = 0;
+    message_open = 0;
+    tile_scroll = 0.0f;
+    select_mode = 0;
+    if (LanguageCode > 0) {
+        select_mode = 2;
+    }
+    char *jis = jis_table;
+    for (int i = 0; jis_ptr_table[i] != NULL; i++) {
+        char *ascii = jis_ptr_table[i];
+        while (*ascii != 0) {
+            if ((s8)*ascii != '\n') {
+                jis[0] = *ascii;
+                ascii++;
+                jis[1] = ascii[0];
+                jis += 2;
+            }
+            ascii++;
+        }
+    }
+    *jis = 0;
+    ChangeFontSelectMode(GetActiveFontMode());
+}
+static inline u_int Align16Blocks(u_int n) {
+    if (n & 0xF) {
+        return (n >> 4) + 1;
+    }
+    return n >> 4;
+}
+void NameRegistInit(mgCMemory *stack, int *tex_block, int open_type) {
+    int rest = stack->stGetRest();
+    NameRegiStack.stSetBuffer(stack->stGetTop(), rest);
+    CNameRegiMenu *menu = new ((u_long128 *)NameRegiStack.Alloc(0xBF)) CNameRegiMenu;
+    NameRegiMenuPtr = menu;
+    menu->SetTexBlock(tex_block);
+    NameRegiStack.Align64();
+    mgCTextureManager *textures;
+    int file_size;
+    u_int *pack = (u_int *)NameRegiStack.stGetTop();
+    NameRegiStack.Alloc(Align16Blocks(LoadFileMenu(at_1281__6, (u_long128 *)pack, 1)));
+    textures = &mgTexManager;
+    MenuEnterIMG(NameRegiMenuPtr->tex_block[0], (u8 *)GetPackFile(pack, at_1282__6, &file_size), NULL);
+    NameRegiTex1 = textures->GetTexture(at_1283__5, -1);
+    NameRegiBGTile = textures->GetTexture(at_1283__5, -1);
+    NameRegiWaku = NULL;
+    NameRegiCursor = NULL;
+    u8 *waku_img = (u8 *)GetPackFile(pack, at_1284__6, &file_size);
+    if (waku_img != NULL) {
+        MenuEnterIMG(NameRegiMenuPtr->tex_block[0], waku_img, at_1285__3);
+        NameRegiWaku = textures->GetTexture(at_1286__2, -1);
+    }
+    u8 *cursor_img = (u8 *)GetMenuMainIMGPtr();
+    if (cursor_img != NULL) {
+        MenuEnterIMG(NameRegiMenuPtr->tex_block[0], cursor_img, at_1285__3);
+        NameRegiCursor = textures->GetTexture(at_1287__3, -1);
+    }
+    NameregiGaiji = textures->GetTexture(at_1288__2, -1);
+    NameRegistMax = 10;
+    NameRegistFont_Table[NAMEREGI_FONT_MODE_KIGOU].first = KIGOU_TABLE1;
+    NameRegistFont_Table[NAMEREGI_FONT_MODE_KIGOU].second = KIGOU_TABLE2;
+    if (LanguageCode > 0) {
+        NameRegistMax = 20;
+        NameRegistFont_Table[NAMEREGI_FONT_MODE_KIGOU].first = KIGOU_TABLE_ASCII1;
+        NameRegistFont_Table[NAMEREGI_FONT_MODE_KIGOU].second = KIGOU_TABLE_ASCII2;
+        if (CheckNowEurope() != 0) {
+            int ranges[17] = {0xBA, 0xBA, 0xBD, 0xCF, 0xD2, 0xD6, 0xD9, 0xDD, 0xDF, 0xE4, 0xE6, 0xEF, 0xF2, 0xF6, 0xF9, 0xFD, -1};
+            int out = 0;
+            int count = 0;
+            int pair = 0;
+            for (;;) {
+                int first = ranges[pair];
+                if (first < 0) {
+                    break;
+                }
+                int offset = 0;
+                for (;;) {
+                    if (ranges[pair + 1] < first + offset) {
+                        break;
+                    }
+                    KIGOU_TABLE_ASCII2[out] = first + offset;
+                    out++;
+                    if (count % 15 == 14) {
+                        KIGOU_TABLE_ASCII2[out] = '\n';
+                        out++;
+                    }
+                    count++;
+                    offset++;
+                }
+                pair += 2;
+            }
+            KIGOU_TABLE_ASCII2[out] = 0;
+        }
+    }
+    mgCMemory kanji_memory;
+    int kanji_rest = NameRegiStack.stGetRest();
+    kanji_memory.stSetBuffer(NameRegiStack.stGetTop(), kanji_rest);
+    NameRegiMenuPtr->kanji_cell_num = CheckChronicleKanjiFont(&kanji_memory) + 0x58;
+    NameRegiMenuPtr->kanji_page_num = NameRegiMenuPtr->kanji_cell_num / 114;
+    NameRegiMenuPtr->kanji_line_max = NameRegiMenuPtr->kanji_page_num * 6;
+    NameRegiStack.Alloc(Align16Blocks(kanji_memory.stGetUsed()));
+    short *message_buffer = GetMenuMainMessageBuffer();
+    short *system_buffer = GetSystemMesBuffer();
+    CDC2Mes *message = MenuDCMsg[6];
+    message->SetBuff(message_buffer);
+    message->SetBuff_system(system_buffer);
+    message->MsgPreset(2);
+    message->push_button = 0;
+    message->fade_speed = 1.0f;
+    int message_no = 0;
+    NameRegiItemNames item_names = at_1171__3;
+    switch (Nameregi_Target.target) {
+    case NAMEREGI_TARGET_ITEM:
+        if (Nameregi_Target.item != NULL) {
+            s16 used_type = Nameregi_Target.item->used_type;
+            if (used_type != 0) {
+                switch (used_type) {
+                case 3:
+                case 5:
+                case 6:
+                    message_no = 1;
+                    item_names.name[0] = Nameregi_Target.item->GetName(0);
+                    break;
+                }
+            }
+        }
+        break;
+    case NAMEREGI_TARGET_ROBO:
+        item_names.name[0] = GetUserDataMan()->GetRoboName();
+        break;
+    case NAMEREGI_TARGET_KEYWORD:
+        MenuArg.result[0] = 0;
+        message_no = MenuArg.param[0] + 0xA;
+        if (NameRegiCode == 1) {
+            item_names.name[0] = Nameregi_Target.keyword;
+        }
+        break;
+    case NAMEREGI_TARGET_FISH:
+        item_names.name[0] = NULL;
+        message_no = 0x6E;
+        break;
+    case NAMEREGI_TARGET_SPHIDA:
+        message_no = 0x78;
+        memset(Nameregi_Target.keyword, 0, sizeof(Nameregi_Target.keyword));
+        item_names.name[0] = NULL;
+        break;
+    }
+    if (item_names.name[0] != NULL) {
+        strcpy(NameRegiMenuPtr->old_name, item_names.name[0]);
+        strcpy(NameRegiMenuPtr->name, item_names.name[0]);
+        if (LanguageCode > 0) {
+            NameRegiMenuPtr->CopyAsciiToJis(item_names.name[0], NameRegiMenuPtr->name);
+        }
+    }
+    int name_length = strlen(NameRegiMenuPtr->name);
+    NameRegiMenuPtr->name_pos = name_length / 2;
+    if (CheckNowEurope() != 0) {
+        NameRegiMenuPtr->name_pos = name_length;
+    }
+    if (NameRegistMax <= NameRegiMenuPtr->name_pos) {
+        NameRegiMenuPtr->name_pos = NameRegistMax - 1;
+    }
+    if (Nameregi_Target.target == NAMEREGI_TARGET_KEYWORD) {
+        message->MakeMsg(NameRegiTopic);
+    } else {
+        message->MakeMsg(message_no + 0xFA0);
+        message->SetMsgItemNo(item_names.name, 1);
+    }
+    AdjustWaku(message, &NameRegiMenuPtr->waku);
+    CDC2Mes *confirm = MenuDCMsg[7];
+    confirm->SetBuff(message_buffer);
+    confirm->SetBuff_system(system_buffer);
+    NameRegiMenuPtr->FadeInMenu(0x28, 0.0f);
+}
 int NameRegistKey() {
     return NameRegiMenuPtr->KeyStep();
 }
@@ -300,7 +585,29 @@ void NameRegistDraw() {
     NameRegiMenuPtr->DrawMarkCursor();
     NameRegiMenuPtr->DrawMessage();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", CheckInputWord__FPc);
+void CheckInputWord(char *word) {
+    int index = strlen(word) - 1;
+    while (index >= 0) {
+        if (CheckNowEurope() != 0) {
+            if (word[index] != 0x20) {
+                break;
+            }
+            word[index] = 0;
+            index--;
+        } else if (LanguageCode == 0 || LanguageCode == 1) {
+            if (word[index] != 0x40) {
+                break;
+            }
+            if ((u8)word[index - 1] == 0x81) {
+                word[index - 1] = 0;
+                word[index] = 0;
+            }
+            index -= 2;
+        } else {
+            index--;
+        }
+    }
+}
 #pragma divbyzerocheck on
 int nameregist_local_key(MENU_SELECT_PARAM *param, int &keys, s16 *step, int table_index) {
     int direction = 0;
@@ -443,7 +750,6 @@ extern PasswordKey at_1669;
 extern char at_1747__2[0x10];
 extern char at_1748__2[0x10];
 extern char *Sfida_default_Name[4];
-void CheckInputWord(char *name);
 s32 CNameRegiMenu::KeyStep() {
     s32 keys;
     s32 event;
@@ -1054,7 +1360,52 @@ s32 CNameRegiMenu::KeyStep() {
     return 0;
 }
 
+#ifdef NONMATCHING
+void CNameRegiMenu::GetSelectedActiveFont(char *dst) {
+    int font_mode = GetActiveFontMode();
+    int cell = (s16)select.pos;
+    FontTables *tables = &NameRegistFont_Table[font_mode];
+    char *first_table = tables->first;
+    char *second_table = tables->second;
+    char *third_table = tables->third;
+    char *table = first_table;
+    if (font_mode == NAMEREGI_FONT_MODE_HIRA || font_mode == NAMEREGI_FONT_MODE_KATA) {
+        char *kana_tables[3] = {first_table, second_table, third_table};
+        int column = cell / 15;
+        int rest = cell % 15;
+        table = kana_tables[rest / 5];
+        char *glyph = table + column + ((rest % 5 + column * 5) * 2);
+        dst[0] = glyph[0];
+        dst[1] = glyph[1];
+    }
+    if (font_mode == NAMEREGI_FONT_MODE_ALPHA) {
+        table = first_table;
+        int line = cell / 13;
+        if (cell >= 26 && cell < 52) {
+            table = second_table;
+            line -= 2;
+        }
+        if (cell >= 52) {
+            table = third_table;
+            line -= 4;
+        }
+        dst[0] = table[line + (cell % 13 + line * 13)];
+    }
+    if (font_mode == NAMEREGI_FONT_MODE_KANJI) {
+        GetNameRegistFontKanjiList(select.pos + select.row * 0x13, dst);
+    }
+    if (font_mode == NAMEREGI_FONT_MODE_KIGOU) {
+        int line = cell / 15;
+        if (line >= 2) {
+            table = second_table;
+            line -= 2;
+        }
+        dst[0] = table[line + (cell % 15 + (line * 16 - line))];
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", GetSelectedActiveFont__13CNameRegiMenuFPc);
+#endif
 void CNameRegiMenu::ChangeFontSelectMode(int mode) {
     if (mode < 0 || mode >= 5) {
         return;
@@ -1079,17 +1430,287 @@ void CNameRegiMenu::ChangeFontSelectMode(int mode) {
     grid_font[0].unk_b0 = 0.0f;
     grid_font[0].unk_b4 = 0.0f;
 }
-s8 ConvertNameRegiBaseBoardTable(int index) {
-    s8 result = convtbl_1792.slot[index];
+int ConvertNameRegiBaseBoardTable(int index) {
+    int result = convtbl_1792.slot[index];
     if (LanguageCode > 0) {
         BoardTable alternate = at_1795;
         result = alternate.slot[index];
     }
     return result;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", DrawBaseBoard__13CNameRegiMenuFv);
+void CNameRegiMenu::DrawBaseBoard() {
+    mgRect<int> tile;
+    mgRect<int> put_rect;
+    mgRect<int> tex_rect;
+    mgRect<int> mode_tex;
+    mgRect<int> extra_tex;
+    mgRect<int> button_tex;
+    mgRect<int> arrow_tex;
+    mgRect<int> arrow_tex_right;
+    mgCDrawPrim *prim = GetMenuPrim();
+    if (NameRegiBGTile != NULL) {
+        MenuReloadTexture(OldReloadTexNumber, NameRegiBGTile->block);
+        tile.Set(0x180, 0x100, 0x80, 0x80);
+        DrawMenuTilePattern(prim, NameRegiBGTile, tile_scroll, tile_scroll, tile, 0, NULL);
+        tile_scroll += 0.5f;
+        if (tile_scroll >= 0.0f) {
+            tile_scroll -= (float)tile.right;
+        }
+    }
+    if (NameRegiTex1 != NULL) {
+        MenuReloadTexture(OldReloadTexNumber, NameRegiTex1->block);
+        s16 board_heights[4] = {100, 0, 32, 0};
+        board_heights[1] = 0x80;
+        int put_x = 0x13;
+        int put_y = 0xA9;
+        int tex_y = 0;
+        int pass = 0;
+        do {
+            int part = 0;
+            do {
+                tex_rect.Set(0, tex_y, 0x1E0, get_Htable_1806[part]);
+                put_rect.Set(put_x, put_y, 0x1E0, board_heights[part]);
+                PrimQuad(NameRegiTex1, put_rect, tex_rect, colt_1808[pass].a, colt_1808[pass].r, colt_1808[pass].g, colt_1808[pass].b);
+                put_y += board_heights[part];
+                tex_y += get_Htable_1806[part];
+                part++;
+            } while (part < 3);
+            tex_y = 0;
+            put_x = 0x10;
+            put_y = 0xA6;
+            pass++;
+        } while (pass < 2);
+        int font_mode = GetActiveFontMode();
+        BoardRect *mode_rect = &table_1819[LanguageCode][font_mode];
+        BoardPoint *mode_pos = &nameregist_baseboard_upper_table[0][ConvertNameRegiBaseBoardTable(font_mode)];
+        if (LanguageCode > 0) {
+            mode_pos += 12;
+        }
+        mode_tex.Set(mode_rect->x, mode_rect->y, mode_rect->w, mode_rect->h);
+        PrimQuad(NameRegiTex1, (float)(mode_pos->x + 0x10), (float)(mode_pos->y + 0xA6), mode_tex, 0x80, 0x80, 0x80, 0x80);
+        if (LanguageCode <= 0) {
+            extra_tex.Set(0x58, 0x144, 0x58, 0x1E);
+            PrimQuad(NameRegiTex1, (float)(nameregist_baseboard_upper_table[LanguageCode][10].x + 0x10), (float)(nameregist_baseboard_upper_table[LanguageCode][10].y + 0xA6), extra_tex, 0x80, 0x80, 0x80, 0x80);
+        }
+        int button = 5;
+        do {
+            if (0 < button_flash[button]) {
+                BoardPoint *button_pos = &nameregist_baseboard_upper_table[LanguageCode][button];
+                BoardRect *button_rect = &tex_commtbl_1822[LanguageCode][button - 5];
+                button_tex.Set(button_rect->x, button_rect->y, button_rect->w, button_rect->h);
+                PrimQuad(NameRegiTex1, (float)(button_pos->x + 0x10), (float)(button_pos->y + 0xA6), button_tex, 0x80, 0x80, 0x80, 0x80);
+                button_flash[button]--;
+            }
+            button++;
+        } while (button < 11);
+        if (key_arg_no == 1 && font_mode == NAMEREGI_FONT_MODE_KANJI) {
+            float arrow_y = 246.0f + 6.0f * sinf(wave_angle);
+            if (NameregiGaiji != NULL) {
+                MenuReloadTexture(OldReloadTexNumber, NameregiGaiji->block);
+                arrow_tex.Set(0x20, 0x84, 0x20, 0x16);
+                PrimQuad(NameregiGaiji, 16.0f, arrow_y, arrow_tex, 0x80, 0x80, 0x80, 0x80);
+                arrow_tex_right.Set(0x40, 0x84, 0x20, 0x16);
+                PrimQuad(NameregiGaiji, (float)(mgScreenWidth - 0x2A), arrow_y, arrow_tex_right, 0x80, 0x80, 0x80, 0x80);
+            }
+        }
+    }
+}
+#ifdef NONMATCHING
+void CNameRegiMenu::DrawActiveFont() {
+    struct KanjiMark { int x; int y; };
+    KanjiMark marks[20];
+    FontTables *tables;
+    char glyphs[20][3];
+    char line[0x40];
+    int mark_num;
+    int y;
+    int font_mode;
+    CFont *font;
+    mgRect<int> mark_rect;
+    y = 0x104;
+    font_mode = GetActiveFontMode();
+    if (NameregiGaiji != NULL) {
+        MenuReloadTexture(OldReloadTexNumber, NameregiGaiji->block);
+    }
+    font = &grid_font[0];
+    tables = &NameRegistFont_Table[font_mode];
+    if (key_arg_no == 1) {
+        DrawMenuFillBox(select_box_x, select_box_y, 14.0f, 21.0f, 0x40, 0x80, 0x20, 0x20);
+    }
+    switch (font_mode) {
+        case NAMEREGI_FONT_MODE_HIRA:
+        case NAMEREGI_FONT_MODE_KATA:
+            font->SetPos(0x3E, 0x104);
+            font->SetStr(tables->first);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetPos(0xC6, 0x104);
+            font->SetStr(tables->second);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetPos(0x14E, 0x104);
+            font->SetStr(tables->third);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            break;
+        case NAMEREGI_FONT_MODE_ALPHA:
+            font->SetPos(0x64, 0x110);
+            font->SetStr(tables->first);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetPos(0x64, 0x140);
+            font->SetStr(tables->second);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetPos(0x64, 0x170);
+            font->SetStr(tables->third);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            break;
+        case NAMEREGI_FONT_MODE_KANJI: {
+            mark_num = 0;
+            line[0x26] = 0;
+            int cell = select.row * 0x13;
+            int column = 0;
+            line[0x27] = 0;
+            if (cell < 0x672) {
+                int mark_offset = 0;
+                int glyph_offset = 0;
+                do {
+                    char *glyph = &line[column];
+                    int kind = GetNameRegistFontKanjiList(cell, glyph);
+                    if (kind == 0) {
+                        column += 2;
+                    } else if (kind == 1) {
+                        marks[mark_num].x = (cell % 0x13) * 0x16 + 0x2E;
+                        marks[mark_num].y = y - 3;
+                        glyphs[mark_num][0] = glyph[0];
+                        glyphs[mark_num][1] = glyph[1];
+                        glyphs[mark_num][2] = 0;
+                        mark_num++;
+                        column += 2;
+                    } else if (kind == 2) {
+                        column += 2;
+                    } else {
+                        glyph[0] = 0;
+                        font->SetStr(line);
+                        font->SetPos(0x34, y);
+                        font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                        break;
+                    }
+                    cell++;
+                    if (column >= 0x26) {
+                        font->SetStr(line);
+                        font->SetPos(0x34, y);
+                        font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                        y += 0x18;
+                        column = 0;
+                        if (y >= 0x194) {
+                            break;
+                        }
+                    }
+                } while (cell < 0x672);
+            }
+            MenuReloadTexture(OldReloadTexNumber, NameRegiTex1->block);
+            int mark = 0;
+            if (0 < mark_num) {
+                do {
+                    mgRect<int> mark_tex;
+                    mark_rect.Set(marks[mark].x, marks[mark].y, 0x1A, 0x19);
+                    mark_tex.Set(0x1E2, 0, 0x1E, 0x1C);
+                    PrimQuad(NameRegiTex1, mark_rect, mark_tex, 0x80, 0x80, 0x80, 0x80);
+                    mark++;
+                } while (mark < mark_num);
+            }
+            if (NameregiGaiji != NULL) {
+                MenuReloadTexture(OldReloadTexNumber, NameregiGaiji->block);
+                mark = 0;
+                if (0 < mark_num) {
+                    do {
+                        int glyph_y = marks[mark].y + 3;
+                        int glyph_x = marks[mark].x + 6;
+                        font->SetStr(glyphs[mark]);
+                        font->SetPos(glyph_x, glyph_y);
+                        font->DrawDirect(font->str, font->pos_x, font->pos_y);
+                        mark++;
+                    } while (mark < mark_num);
+                }
+            }
+            break;
+        }
+        case NAMEREGI_FONT_MODE_KIGOU:
+            font->SetPos(0x52, 0x104);
+            font->SetStr(tables->first);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            font->SetPos(0x52, 0x134);
+            font->SetStr(tables->second);
+            font->DrawDirect(font->str, font->pos_x, font->pos_y);
+            break;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", DrawActiveFont__13CNameRegiMenuFv);
+#endif
+#ifdef NONMATCHING
+#pragma divbyzerocheck on
+void CNameRegiMenu::StepMarkCursor() {
+    float target_x = 0.0f;
+    float target_y = 0.0f;
+    switch (key_arg_no) {
+    case 0: {
+        int button = command_pos;
+        int language = 0;
+        int slot = button;
+        if (LanguageCode > 0) {
+            language = 1;
+            if (button == 2) {
+                slot = 0;
+            }
+            if (button == 3) {
+                slot = 4;
+            }
+        }
+        target_x = (18.0f + (float)nameregist_baseboard_upper_table[language][slot].x) - 32.0f;
+        target_y = 5.0f + (166.0f + (float)nameregist_baseboard_upper_table[language][slot].y);
+        if (button == 0xB) {
+            target_y += 5.0f;
+        }
+        break;
+    }
+    case 1: {
+        int font_mode = GetActiveFontMode();
+        MENU_SELECT_PARAM *param = &select;
+        int cell = param->pos;
+        int column = cell % NameRegistGyouLimmitTable[font_mode];
+        int line = cell / NameRegistGyouLimmitTable[font_mode];
+        if (font_mode == NAMEREGI_FONT_MODE_HIRA || font_mode == NAMEREGI_FONT_MODE_KATA) {
+            target_y = (float)(line * 0x18 + 0x104);
+            target_x = (float)(column * 0x18 + 0x3E + column / 5 * 0x10);
+        }
+        if (font_mode == NAMEREGI_FONT_MODE_KANJI) {
+            target_x = (float)(column * 0x16 + 0x34);
+            target_y = (float)(line * 0x18 + 0x104);
+        }
+        if (font_mode == NAMEREGI_FONT_MODE_ALPHA) {
+            target_x = (float)(column * 0x18 + 0x64);
+            target_y = (float)(line * 0x18 + 0x110);
+        }
+        if (font_mode == NAMEREGI_FONT_MODE_KIGOU) {
+            target_x = (float)(column * 0x18 + 0x52);
+            target_y = (float)(line * 0x18 + 0x104);
+        }
+        target_x -= 2.0f;
+        select_box_x = target_x;
+        target_x -= 36.0f;
+        select_box_y = target_y;
+        break;
+    }
+    }
+    CalcMenu1(target_x, &cursor_x, 4.0f, 0.0f, cursor_snap);
+    CalcMenu1(target_y, &cursor_y, 4.0f, 0.0f, cursor_snap);
+    cursor_snap = 0;
+    if (mode != NAMEREGI_MODE_MESSAGE) {
+        cursor_cnt++;
+    }
+}
+#pragma divbyzerocheck reset
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", StepMarkCursor__13CNameRegiMenuFv);
+#endif
 void CNameRegiMenu::DrawMarkCursor() {
     float pos[2];
     pos[0] = cursor_x + 6.0f * cosf(mgAngleLimit(0.05235988f * (float)cursor_cnt));
@@ -1158,7 +1779,7 @@ void CNameRegiMenu::DrawMessage() {
 }
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nameregi", __sinit_nameregi_cpp);
+extern "C" void __sinit_nameregi_cpp() { NameRegiStack.Init(); }
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", Sfida_default_Name__DATA);

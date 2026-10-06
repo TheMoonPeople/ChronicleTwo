@@ -171,7 +171,8 @@ STATIC_ASSERT(sizeof(BattleEffectPrim) == 0x50);
 struct BattleEffectChara {
     s32          unk_0;
     s32          unk_4;
-    s32          unk_8;
+    s8           unk_8;
+    u8           unk_9[3];
     u8           unk_c[0xC];
     CCharacter2 *chara; /**< Character the slot holds. */
 };
@@ -1103,7 +1104,6 @@ public:
     s16           tex_u;      /**< Left texel of the flash's texture square. */
     s16           tex_v;      /**< Top texel of the flash's texture square. */
     s16           tex_size;   /**< Width and height of the texture square. */
-
     /**
      *
      * Draws the flash as a textured quad.

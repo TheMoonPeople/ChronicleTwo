@@ -42,7 +42,7 @@ void CSaveData::Initialize() {
     quest_data.Initialize();
     memset(&monster_book, 0, sizeof(monster_book));
     InitBitCtrl();
-    memset((u8 *)this + 0x643D0, 0, 0x1C);
+    memset(&tour, 0, sizeof(tour));
     tour.base_day = -1;
 }
 int CSaveData::CheckBitFlagNo(int bit) {
@@ -51,7 +51,23 @@ int CSaveData::CheckBitFlagNo(int bit) {
     }
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/savedata", SetBitFlag__9CSaveDataFii);
+int CSaveData::SetBitFlag(int bit, int on) {
+    if (CheckBitFlagNo(bit) == 0) {
+        return 0;
+    }
+    int mask = 1;
+    int index = bit / 32;
+    mask <<= bit % 32;
+    int old = bit_flag[index];
+    int was_set = (mask & old) != 0;
+
+    if (on) {
+        bit_flag[index] = mask | old;
+    } else {
+        bit_flag[index] = ~mask & old;
+    }
+    return was_set;
+}
 int CSaveData::GetBitFlag(int bit) {
     if (CheckBitFlagNo(bit) == 0) {
         return 0;
@@ -207,7 +223,7 @@ void CSaveData::CheckTourBoot(int day) {
         }
     }
 }
-short CSaveData::CheckNowTourEvent() {
+int CSaveData::CheckNowTourEvent() {
     return tour.now_event;
 }
 int CSaveData::CheckNowTourType() {
@@ -246,7 +262,7 @@ void CSphidaData::SetHorlScore(int total_score, int slot) {
     }
     this->hole_score[slot] = total_score;
 }
-short CSphidaData::GetNowHorl() {
+int CSphidaData::GetNowHorl() {
     return now_hole;
 }
 int CSphidaData::GetHorlScore(int slot) {

@@ -374,7 +374,7 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
         }
     }
     hard_landing = 0;
-    character->foot_sound_id = -1;
+    character->sound_info.foot_sound_id = -1;
     MoveInfo.radius = 13.0f;
     MoveCheck(position, velocity, next_position, &MoveInfo, polys, poly_count, ignore_mask);
     if (MoveInfo.landed) {
@@ -388,7 +388,7 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
             if (foot_sound == 0) {
                 foot_sound = map->def_foot;
             }
-            character->foot_sound_id = foot_sound;
+            character->sound_info.foot_sound_id = foot_sound;
         }
     }
     if (info != NULL) {
@@ -1016,7 +1016,7 @@ static void InitLadder(int mode, CScene *scene, CSceneEventData *event) {
     sceVu0ApplyMatrix(camera_offset, matrix, camera_offset);
     height = (float)event->event.unk_2c;
     LdrSound = event->event.unk_30;
-    current_foot = character->foot_sound_id;
+    current_foot = character->sound_info.foot_sound_id;
     other_foot = event->event.unk_34;
     sceVu0AddVector(LdrTopPos, LdrPos, top_offset);
     sceVu0AddVector(LdrBottomPos, LdrPos, bottom_offset);
@@ -1094,7 +1094,7 @@ static void LadderControl(CScene *scene, CPadControl *pad) {
         case 2:
             character->SetMotion("\x82\xCC\x82\xDA\x82\xE9", CHARA_MOTION_HOLD);
             if (!(character->GetNowFrameWait() <= 0.6f)) {
-                character->foot_sound_id = LdrSound;
+                character->sound_info.foot_sound_id = LdrSound;
             }
             if (character->CheckMotionEnd()) {
                 LadderStep = 3;
@@ -1102,7 +1102,7 @@ static void LadderControl(CScene *scene, CPadControl *pad) {
             break;
         case 4:
             character->SetMotion("\x8D\x7E\x82\xE8\x82\xE9", CHARA_MOTION_HOLD);
-            character->foot_sound_id = LdrSound;
+            character->sound_info.foot_sound_id = LdrSound;
             if (character->CheckMotionEnd()) {
                 LadderStep = 5;
             }
@@ -1215,7 +1215,7 @@ static void LadderControl(CScene *scene, CPadControl *pad) {
             break;
         case 10:
             if (!(character->GetNowFrameWait() <= 0.4f)) {
-                character->foot_sound_id = LdrBtmFoot;
+                character->sound_info.foot_sound_id = LdrBtmFoot;
             }
             if (character->CheckMotionEnd()) {
                 *(u_long128 *)position = *(u_long128 *)LdrBottomPos;
@@ -1225,7 +1225,7 @@ static void LadderControl(CScene *scene, CPadControl *pad) {
             break;
         case 11:
             if (!(character->GetNowFrameWait() <= 0.6f)) {
-                character->foot_sound_id = LdrTopFoot;
+                character->sound_info.foot_sound_id = LdrTopFoot;
             }
             if (character->CheckMotionEnd()) {
                 *(u_long128 *)position = *(u_long128 *)LdrTopPos;
@@ -1234,7 +1234,7 @@ static void LadderControl(CScene *scene, CPadControl *pad) {
             }
             break;
         case 12:
-            character->foot_sound_id = LdrTopFoot;
+            character->sound_info.foot_sound_id = LdrTopFoot;
             mgVectorInterpolate(position, position, LdrTopWalk, 1.0f, 0);
             if (mgDistVector(position, LdrTopWalk) < 0.1f) {
                 *(u_long128 *)position = *(u_long128 *)LdrTopWalk;

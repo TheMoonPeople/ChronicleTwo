@@ -17,16 +17,22 @@
 #include "mglib.hpp"
 #include "mg_math.hpp"
 #include "editctrl.hpp"
+#include "gameutil.hpp"
 
 #include "padcontrol.hpp"
 #include <cstring>
 #include <cmath>
+#include <cstdlib>
 
 void InitBuggy(CScene *scene);
 void InitBomb(CScene *scene);
 void BuggyControl(CScene *scene);
 void BombControl(CScene *scene);
 void BombCheck(CScene *scene);
+int TakeBombCheck(void);
+int TakeBomb(void);
+int ThrowBomb(float *velocity);
+int NowPutBomb(void);
 extern "C" int fptosi(float value);
 struct EffectScriptSpriteState {
     u_char padding[0x30];
@@ -58,13 +64,13 @@ extern CCharacter2 *GunHitEff;
 extern "C" void CharaControl__FP6CSceneP11CPadControl__3(CScene *scene, CPadControl *pad);
 
 extern u32 BombHitObj;
-extern u32 BuggyActCount;
+extern int BuggyActCount;
 extern u32 BuggyDamageMotion;
 extern int BuggyHP;
 extern u32 BuggyStatus;
 extern u32 BuggyStatusStep;
 extern u32 BombStatus;
-extern u32 BombCount;
+extern int BombCount;
 extern float BombVelo[4];
 extern CCharacter2 *BombChara;
 extern int SysTexb;
@@ -104,6 +110,32 @@ extern char at_960__3[];
 extern char at_961__4[];
 extern char at_963__3[];
 extern char at_964__3[];
+extern char at_1302__5[];
+extern char at_1303__5[];
+extern char at_1304__9[];
+extern char at_1305__6[];
+extern char at_1306__7[];
+extern char at_1307__7[];
+union BuggyQuad {
+    float values[4];
+    u_long128 quadword;
+};
+extern "C" BuggyQuad at_1193;
+extern "C" BuggyQuad at_1074__4;
+extern char at_1156[];
+extern char at_1157[];
+extern char at_1158[];
+extern char at_1159[];
+extern char at_1160__2[];
+extern char at_1161__2[];
+extern int test_1254;
+extern signed char init_1255;
+extern char at_1433__4[];
+extern char at_1434__3[];
+extern char at_1435__3[];
+extern int BombEffHandle;
+extern int BombImpact;
+extern int reload_cnt_1350;
 
 // Code (.text)
 int sgInitBuggy(SubGameInfo *info) {
@@ -214,11 +246,11 @@ int sgInitBuggy(SubGameInfo *info) {
     gun_fire_frame->SetReference(buggy_frame->SearchFrame(at_956__3));
     frame = gun_fire_frame->SearchFrame(at_957__3);
     if (frame != NULL) {
-        *(int *)((u8 *)frame->attr + 0x18) = 0;
+        frame->attr->draw = 0;
     }
     frame = gun_fire_frame->SearchFrame(at_958__5);
     if (frame != NULL) {
-        *(int *)((u8 *)frame->attr + 0x18) = 0;
+        frame->attr->draw = 0;
     }
     if ((file = (u32 *)GetPackFile(pack, at_959__5, NULL)) != NULL) {
         player->LoadPack(file, at_950__6, stack, stack, stack, 0, 0);
@@ -485,7 +517,226 @@ int sgSystemDrawBuggy(SubGameInfo *info) {
     prim.End();
     return 1;
 }
+#ifdef NONMATCHING
+extern "C" void CharaControl__FP6CSceneP11CPadControl__3(CScene *scene, CPadControl *pad) {
+    CCharacter2 *player;
+    mgCCamera *base_camera;
+    CCameraControl *camera;
+    sceVu0FVECTOR player_position;
+    sceVu0FVECTOR velocity;
+    sceVu0FVECTOR player_rotation;
+    sceVu0FVECTOR bomb_position;
+    sceVu0FVECTOR to_bomb;
+    sceVu0FVECTOR direction;
+    float direction_matrix[4][4];
+    sceVu0FVECTOR buggy_position;
+    sceVu0FVECTOR throw_velocity;
+    sceVu0FVECTOR turn_rotation;
+    EditMoveCharaInfo move;
+    CCPoly bomb_polys[0x10];
+    float angle;
+    float stick_x;
+    float stick_y;
+    float speed_x;
+    float speed_z;
+    float frame_now;
+    float frame_next;
+    float anim_scale;
+    float target_angle;
+    float next_angle;
+    float angle_error;
+    float strength;
+    float step_scale;
+    char *idle_motion;
+    char *walk_motion;
+    char *run_motion;
+    char *carry_idle_motion;
+    char *carry_walk_motion;
+    int stopped;
+
+    if (pad == NULL) {
+        return;
+    }
+    player = scene->GetCharacter(scene->player_chara);
+    if (player != NULL) {
+        base_camera = scene->GetCamera(scene->active_camera);
+        if (base_camera != NULL) {
+            switch (base_camera->Iam()) {
+            case CAMERA_KIND_CONTROL:
+                break;
+            default:
+                return;
+            }
+            camera = (CCameraControl *)base_camera;
+            BombChara->GetPosition(bomb_position);
+            player->GetPosition(player_position);
+            player->GetRotation(player_rotation);
+            sceVu0SubVector(to_bomb, bomb_position, player_position);
+            *(u_long128 *)velocity = *(u_long128 *)player->velocity;
+            angle = camera->GetAngle();
+            stick_x = pad->Analog(5);
+            stick_y = pad->Analog(4);
+            speed_x = stick_x * cosf(angle) + stick_y * sinf(angle);
+            speed_z = -stick_x * sinf(angle) + stick_y * cosf(angle);
+            speed_x *= 5.0f;
+            speed_z *= 3.5f;
+            if (DebugInfo.chara_move) {
+                if (GamePad__2.On(1)) {
+                    speed_x *= 3.0f;
+                    speed_z *= 3.0f;
+                }
+                if (pad->Btn(1)) {
+                    velocity[1] = 8.0f;
+                }
+            }
+            velocity[0] = speed_x;
+            velocity[2] = speed_z;
+            carry_idle_motion = at_1158;
+            idle_motion = at_964__3;
+            walk_motion = at_1156;
+            run_motion = at_1157;
+            velocity[1] -= 0.6f;
+            anim_scale = 1.0f;
+            frame_now = player->GetNowFrame();
+            frame_next = frame_now + player->GetStep();
+            carry_walk_motion = at_1159;
+            *(BuggyQuad *)direction = at_1074__4;
+            mgUnitMatrix(direction_matrix);
+            sceVu0RotMatrixY(direction_matrix, direction_matrix, player_rotation[1]);
+            sceVu0ApplyMatrix(direction, direction_matrix, direction);
+            sceVu0Normalize(direction, direction);
+            switch (CharaStatus) {
+            case 0:
+                if (pad->Btn(0) && pad->Btn(0x36) && TakeBombCheck() &&
+                    mgDistVector(player_position, bomb_position) <= 40.0f &&
+                    mgAngleCmp(player_rotation[1], atan2f(to_bomb[0], to_bomb[2]), 2.0f) == 0) {
+                    CharaStatus = 1;
+                }
+                break;
+            case 1:
+                player->SetMotion(at_1160__2, 6);
+                CharaStatus = 2;
+                break;
+            case 2:
+                if (frame_now <= 15.0f && !(frame_next <= 15.0f)) {
+                    TakeBomb();
+                    sndSePlay(BuggySndID, 0xA, 0);
+                }
+                if (player->CheckMotionEnd() != 0) {
+                    CharaStatus = 3;
+                }
+                break;
+            case 3:
+                if (pad->Btn(0) != 0) {
+                    player->SetMotion(at_1161__2, 6);
+                    CharaStatus = 4;
+                }
+                BuggyChara->GetPosition(buggy_position);
+                camera->RotBack(mgAngleLimit(atan2f(buggy_position[0] - player_position[0],
+                                                    buggy_position[2] - player_position[2]) -
+                                             3.1415927f));
+                break;
+            case 4:
+                if (frame_now <= 44.0f && !(frame_next <= 44.0f)) {
+                    sceVu0Normalize(direction, direction);
+                    sceVu0ScaleVector(throw_velocity, direction, 10.0f);
+                    throw_velocity[1] = 6.0f;
+                    ThrowBomb(throw_velocity);
+                    sndSePlay(BuggySndID, 0xB, 0);
+                }
+                if (player->CheckMotionEnd() != 0) {
+                    CharaStatus = 0;
+                }
+                break;
+            }
+            stopped = 0;
+            switch (CharaStatus) {
+            case 4:
+            case 2:
+            case 1:
+                speed_x = 0.0f;
+                velocity[0] = 0.0f;
+                velocity[2] = 0.0f;
+                stopped = 1;
+                speed_z = 0.0f;
+                break;
+            case 3:
+                idle_motion = carry_idle_motion;
+                walk_motion = carry_walk_motion;
+                anim_scale = 0.3f;
+                run_motion = NULL;
+                break;
+            }
+            if (!stopped) {
+                if (speed_x != 0.0f || speed_z != 0.0f) {
+                    player->GetRotation(turn_rotation);
+                    target_angle = atan2f(speed_x, speed_z);
+                    next_angle = mgAngleInterpolate(turn_rotation[1], target_angle, 0.3f, 0);
+                    angle_error = target_angle - next_angle;
+                    if (angle_error < 0.0f) {
+                        angle_error = -angle_error;
+                    }
+                    if (!((float)fptosi(angle_error) <= 1.0f)) {
+                        velocity[0] *= 0.5f;
+                        velocity[2] *= 0.5f;
+                    }
+                    player->SetRotation(0.0f, next_angle, 0.0f);
+                    strength = sqrtf(stick_x * stick_x + stick_y * stick_y);
+                    if (!(strength < 0.8f) && run_motion != NULL) {
+                        player->SetMotion(run_motion, 0);
+                    } else {
+                        step_scale = 0.1f + strength / 0.8f;
+                        if (!(step_scale <= 1.0f)) {
+                            step_scale = 1.0f;
+                        }
+                        player->SetMotion(walk_motion, 0);
+                        player->SetStep(anim_scale * step_scale);
+                    }
+                } else {
+                    player->SetMotion(idle_motion, 0);
+                }
+            }
+            BombChara->GetPosition(bomb_position);
+            memset(&move.move_info, 0, sizeof(move.move_info));
+            memset(&move, 0, sizeof(move));
+            if (NowPutBomb() != 0) {
+                move.polys = bomb_polys;
+                move.poly_num = CreateCharaCPoly(bomb_polys, 0x10, bomb_position, player_position, 1.0f, 20.0f);
+            }
+            EditMoveChara(scene, velocity, &move);
+            if (camera != NULL) {
+                camera->SetRotCameraCancel(1);
+            }
+            switch (BombStatus) {
+            case 1:
+                player->SetPosition(0.0f, 134.0f, -340.0f);
+                player->SetRotation(0.0f, 0.0f, 0.0f);
+                camera->SetHeight(20.0f);
+                camera->RotBack(2.6415927f);
+                EditCameraControl(scene, pad, NULL);
+                camera->SetHeight(20.0f);
+                camera->Step(-1);
+                break;
+            case 7:
+                player->SetPosition(0.0f, 134.0f, -340.0f);
+                player->SetRotation(0.0f, 0.0f, 0.0f);
+            case 6:
+                camera->RotBack(0.0f);
+                EditCameraControl(scene, NULL, (float (*)[4])bomb_position);
+                break;
+            default:
+                EditCameraControl(scene, pad, NULL);
+                break;
+            }
+            if (camera != NULL) {
+                camera->SetRotCameraCancel(0);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/pbuggy", CharaControl__FP6CSceneP11CPadControl__3);
+#endif
 void InitBuggy(CScene *scene) {
     float x = 225.0f;
     float y = 0.0f;
@@ -531,7 +782,228 @@ void PlayBuggyLoopSe(CScene *scene, int state) {
         loop_se->SeLoopPlayStop(BuggySndID, 4, 3, volume, pan, 3);
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/pbuggy", BuggyControl__FP6CScene);
+void BuggyControl(CScene *scene) {
+    float position[4];
+    CCPoly polys[0x200];
+    float muzzle_start[4];
+    float muzzle_end[4];
+    float hit_point[4];
+    float muzzle_matrix[4][4];
+    mgVu0FBOX box;
+    float entry_position[4];
+    int poly_count;
+
+    BuggyChara->GetPosition(position);
+    poly_count = 0;
+    mgCFrame *muzzle = BuggyChara->CObjectFrame::frame->SearchFrame(at_956__3);
+    *(BuggyQuad *)muzzle_end = at_1193;
+    if (muzzle != NULL) {
+        muzzle->GetWorldPosition0(muzzle_start);
+        muzzle->GetLWMatrix(muzzle_matrix);
+        sceVu0ApplyMatrix(muzzle_end, muzzle_matrix, muzzle_end);
+        mgVectorMaxMin(box.max, box.min, muzzle_start, muzzle_end);
+        poly_count = scene->GetColPoly(polys, box, 0x200);
+    }
+    switch (BuggyStatus) {
+    case 0:
+        BuggyChara->SetMotion(at_1302__5, 0);
+        BuggyActCount--;
+        PlayBuggyLoopSe(scene, 2);
+        break;
+    case 3:
+        PlayBuggyLoopSe(scene, 2);
+        switch (BuggyStatusStep) {
+        case 0:
+            if (BuggySidePos == 1) {
+                BuggyChara->SetMotion(at_1303__5, 6);
+            } else {
+                BuggyChara->SetMotion(at_1304__9, 6);
+            }
+            if ((rand() >> 16) % 2 != 0) {
+                PolVoice.Open(0x82EBB4);
+            } else {
+                PolVoice.Open(0x82EBBE);
+            }
+            PolVoice.Play();
+            BuggyStatusStep++;
+            break;
+        case 1:
+            PlayBuggyLoopSe(scene, 6);
+            if (BuggyChara->CheckMotionEnd() != 0) {
+                BuggyStatusStep++;
+            }
+            GunFireEffDraw = 1;
+            if (GunHitEffDraw <= 0 &&
+                CheckHit(polys, poly_count, muzzle_start, muzzle_end, hit_point, 1, 0) >= 0) {
+                GunHitEffDraw = 3;
+                GunHitEff->SetScale(2.0f, 2.0f, 2.0f);
+                hit_point[1] += 10.0f;
+                GunHitEff->SetPosition(hit_point);
+                float yaw = atan2f(muzzle_start[0] - muzzle_end[0], muzzle_start[2] - muzzle_end[2]);
+                GunHitEff->SetRotation(0.0f, yaw, 0.0f);
+            }
+            TrainHP -= 0.00125f;
+            break;
+        case 2:
+            BuggyChara->SetMotion(at_1302__5, 4);
+            BuggyActCount = 0;
+            break;
+        }
+        break;
+    case 1:
+        switch (BuggyStatusStep) {
+        case 0:
+            BuggyChara->SetMotion(at_1305__6, 6);
+            BuggyStatusStep++;
+            PlayBuggyLoopSe(scene, 2);
+            if ((rand() >> 16) % 4 == 0) {
+                PolVoice.Open(0x82EBAA);
+                PolVoice.Play();
+            }
+            break;
+        case 1:
+            PlayBuggyLoopSe(scene, 2);
+            if (!(BuggyChara->GetNowFrameWait() < 0.1f)) {
+                BuggyStatusStep++;
+                if (BuggySidePos == 1) {
+                    BuggyVelo[0] = (-245.0f - position[0]) / 65.0f;
+                } else {
+                    BuggyVelo[0] = (245.0f - position[0]) / 65.0f;
+                }
+                PlayBuggyLoopSe(scene, 4);
+            }
+            break;
+        case 2:
+            PlayBuggyLoopSe(scene, 4);
+            if (!(BuggyChara->GetNowFrameWait() < 0.83f)) {
+                BuggyStatusStep++;
+            }
+            position[0] += BuggyVelo[0];
+            break;
+        case 3:
+            PlayBuggyLoopSe(scene, 4);
+            PlayBuggyLoopSe(scene, 2);
+            if (BuggyChara->CheckMotionEnd() != 0) {
+                BuggyStatusStep++;
+                BuggyChara->SetMotion(at_1302__5, 4);
+                BuggyActCount = 0;
+                if (BuggySidePos == 1) {
+                    BuggySidePos = 0;
+                } else {
+                    BuggySidePos = 1;
+                }
+                BuggyVelo[0] = 0.0f;
+            }
+            break;
+        }
+        break;
+    case 2:
+        switch (BuggyStatusStep) {
+        case 0:
+            sndSePlay(BuggySndID, 0x12, 0);
+            if (BuggyDamageMotion == 1) {
+                BuggyChara->SetMotion(at_1306__7, 6);
+            } else {
+                BuggyChara->SetMotion(at_1307__7, 6);
+            }
+            BuggyStatusStep++;
+            if (BuggyHP >= 2) {
+                PolVoice.Open(0x82EBC8);
+            }
+            if (BuggyHP == 1) {
+                PolVoice.Open(0x82EBD2);
+            }
+            if (BuggyHP == 0) {
+                PolVoice.Open(0x82EBDC);
+            }
+            PolVoice.Play();
+            break;
+        case 1:
+            if (BuggyChara->CheckMotionEnd() != 0) {
+                BuggyStatus = 0;
+                BuggyActCount = 0x3C;
+                BuggyStatusStep = 0;
+            }
+            break;
+        }
+        break;
+    }
+    BuggyChara->GetEntryObjectPos(0, entry_position);
+    if (!(entry_position[1] <= 40.0f)) {
+        EffectMan__2->Pause(1, 0x40, SmokeEffHandle);
+    } else {
+        EffectMan__2->Pause(0, 0x40, SmokeEffHandle);
+    }
+    if (BuggyActCount <= 0) {
+        BuggyStatusStep = 0;
+        if (init_1255 == 0) {
+            test_1254 = 0;
+            init_1255 = 1;
+        }
+        switch (test_1254 % 3) {
+        case 0:
+            BuggyStatus = 0;
+            BuggyActCount = rand() % 60 + 60;
+            break;
+        case 1:
+            BuggyStatus = 3;
+            BuggyActCount = 99999;
+            break;
+        case 2:
+            BuggyStatus = 1;
+            BuggyActCount = 999991;
+            break;
+        }
+        test_1254++;
+    }
+    if (BuggyStatus != 1) {
+        BuggyVelo[0] += 0.5f * (mgRnd() - 0.5f);
+        BuggyVelo[2] += 0.5f * (mgRnd() - 0.5f);
+        if (!(BuggyVelo[0] <= 10.0f)) {
+            BuggyVelo[0] = 10.0f;
+        }
+        if (BuggyVelo[0] < -10.0f) {
+            BuggyVelo[0] = -10.0f;
+        }
+        if (!(BuggyVelo[2] <= 10.0f)) {
+            BuggyVelo[2] = 10.0f;
+        }
+        if (BuggyVelo[2] < -10.0f) {
+            BuggyVelo[2] = -10.0f;
+        }
+        position[0] += BuggyVelo[0];
+        position[2] += BuggyVelo[2];
+        if (BuggySidePos == 1) {
+            if (!(position[0] <= 345.0f)) {
+                position[0] = 345.0f;
+                BuggyVelo[0] = 0.0f;
+            }
+            if (position[0] < 145.0f) {
+                position[0] = 145.0f;
+                BuggyVelo[0] = 0.0f;
+            }
+        } else {
+            if (!(position[0] <= -145.0f)) {
+                position[0] = -145.0f;
+                BuggyVelo[0] = 0.0f;
+            }
+            if (position[0] < -345.0f) {
+                position[0] = -345.0f;
+                BuggyVelo[0] = 0.0f;
+            }
+        }
+        if (!(position[2] <= -1100.0f)) {
+            position[2] = -1100.0f;
+            BuggyVelo[2] = 0.0f;
+        }
+        if (position[2] < -1350.0f) {
+            position[2] = -1350.0f;
+            BuggyVelo[2] = 0.0f;
+        }
+    }
+    BuggyChara->SetPosition(position);
+    PolVoice.Step();
+}
 extern float StarbullPos[4];
 extern char at_1316__3[];
 void InitBomb(CScene *scene) {
@@ -542,7 +1014,8 @@ void InitBomb(CScene *scene) {
     StarbullPos[1] = 113.0f;
     StarbullPos[2] = -300.0f;
     StarbullChara->SetPosition(StarbullPos);
-    StarbullChara->SetRotation(0.0f, 3.1415927f, 0.0f);
+    float tilt = 0.0f;
+    StarbullChara->SetRotation(tilt, 3.1415927f, tilt);
     StarbullChara->SetMotion(at_1316__3, 0);
 }
 int TakeBombCheck(void) {
@@ -582,8 +1055,126 @@ int BombBomb(void) {
 int NowPutBomb(void) {
     return BombStatus == 3;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/pbuggy", BombControl__FP6CScene);
-extern int BombImpact;
+void BombControl(CScene *scene) {
+    float matrix[4][4];
+    float rest_position[4];
+    float position[4];
+    float previous[4];
+    float hit_point[4];
+    float effect_position[4];
+    CCPoly polys[0x200];
+    mgVu0FBOX box;
+    float explode_position[4];
+
+    CCharacter2 *player = scene->GetCharacter(scene->player_chara);
+    if (player == NULL) {
+        return;
+    }
+    int status = BombStatus;
+    if (status == 1) {
+        reload_cnt_1350 = 0;
+        BombImpact = 0;
+        StarbullChara->SetMotion(at_1433__4, 6);
+        BombChara->SetPosition(0.0f, 0.0f, 0.0f);
+        BombChara->UpdatePosition();
+        BombStatus = 2;
+        scene->ResetActive(1, 0x43);
+    } else if (status == 2) {
+        float frame_now = StarbullChara->GetNowFrame();
+        float frame_next = frame_now + StarbullChara->GetStep();
+        mgCFrame *hand_frame = StarbullChara->CObjectFrame::frame;
+        mgCFrame *bomb_frame = BombChara->CObjectFrame::frame;
+        if (hand_frame != NULL) {
+            hand_frame = hand_frame->SearchFrame(at_1434__3);
+        }
+        if (frame_now <= 18.0f && !(frame_next <= 18.0f) && bomb_frame != NULL) {
+            bomb_frame->SetReference(hand_frame);
+        }
+        if (!(frame_now < 18.0f)) {
+            scene->SetActive(1, 0x43);
+        }
+        if (frame_now <= 30.9f && !(frame_next <= 30.9f)) {
+            bomb_frame->GetLWMatrix(matrix);
+            bomb_frame->DeleteReference();
+            BombChara->SetPosition(matrix[3]);
+            BombChara->SetRotation(0.0f, atan2f(matrix[2][0], matrix[2][2]), 0.0f);
+            BombChara->UpdatePosition();
+        }
+        reload_cnt_1350++;
+        if (StarbullChara->CheckMotionEnd() != 0) {
+            StarbullChara->SetMotion(at_1316__3, 0);
+            BombStatus = 3;
+        }
+    } else if (status == 3) {
+        BombChara->GetPosition(rest_position);
+    } else if (status == 4) {
+        mgCFrame *hand_frame = player->CObjectFrame::frame;
+        if (hand_frame != NULL) {
+            hand_frame = hand_frame->SearchFrame(at_1435__3);
+        }
+        mgCFrame *bomb_frame = BombChara->CObjectFrame::frame;
+        BombChara->SetPosition(0.0f, 0.0f, 0.0f);
+        bomb_frame->SetReference(hand_frame);
+    } else if (status == 6) {
+        BombChara->GetPosition(previous);
+        BombChara->GetPosition(position);
+        mgAddVector(position, BombVelo);
+        if (BombCount <= 0) {
+            BombChara->GetPosition(effect_position);
+            BombEffHandle = EffectMan__2->CreateEffSpt(at_961__4, 0x43, 1);
+            CCharacter2 *effect = EffectMan__2->GetCharacter(0x43, BombEffHandle);
+            if (effect != NULL) {
+                effect->SetScale(2.0f, 2.0f, 2.0f);
+            }
+            BombVelo[0] = 0.0f;
+            BombVelo[1] = 0.0f;
+            BombVelo[2] = -25.0f;
+            BombStatus = 7;
+            BombCount = 0x28;
+            scene->ResetActive(1, 0x43);
+            BombImpact = 8;
+        } else {
+            mgVectorMaxMin(box.max, box.min, position, previous);
+            int poly_count = scene->GetColPoly(polys, box, 0x200);
+            if (CheckHit(polys, poly_count, previous, position, hit_point, 0, 4) >= 0 &&
+                !(hit_point[1] <= 100.0f)) {
+                *(u_long128 *)position = *(u_long128 *)hit_point;
+                BombBomb();
+                TrainHP -= 0.1f;
+            }
+            if (!(position[0] <= 400.0f)) {
+                position[0] = 400.0f;
+            }
+            if (position[0] < -400.0f) {
+                position[0] = -400.0f;
+            }
+            if (position[1] < 0.0f) {
+                BombVelo[1] *= -0.5f;
+                position[1] = 0.0f;
+                BombVelo[2] += 0.3f * (-50.0f - BombVelo[2]);
+                sndSePlay(BuggySndID, 0xC, 0);
+            }
+            BombVelo[1] -= 0.6f;
+        }
+        BombChara->SetPosition(position);
+        BombCount--;
+    } else if (status == 7) {
+        BombChara->GetPosition(explode_position);
+        if (BombHitObj == 0) {
+            mgAddVector(explode_position, BombVelo);
+        }
+        BombChara->SetPosition(explode_position);
+        EffectMan__2->SetOrigin(explode_position, 0x43, BombEffHandle);
+        BombCount--;
+        BombImpact--;
+        if (BombImpact < 0) {
+            BombImpact = 0;
+        }
+        if (BombCount <= 0) {
+            BombStatus = 1;
+        }
+    }
+}
 void BombCheck(CScene *scene) {
     sceVu0FVECTOR bomb_position;
     sceVu0FVECTOR buggy_position;

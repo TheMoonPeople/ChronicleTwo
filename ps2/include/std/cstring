@@ -20,6 +20,7 @@ char *strcat(char *dest, const char *src);
 char *strncat(char *dest, const char *src, size_t size);
 char *strstr(const char *text, const char *substring);
 char *strchr(const char *text, int character);
+char *strrchr(const char *text, int character);
 size_t strlen(const char *text);
 int strcasecmp(const char *left, const char *right);
 }

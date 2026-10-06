@@ -10,7 +10,15 @@
 
 extern CEditPartsInfo *emapNowInfo__2;
 extern mgCMemory *emapStack__2;
-extern void *emapRect__2;
+struct EditMapRect {
+    int type;
+    int unk_04[3];
+    float start[4];
+    float end[4];
+};
+
+extern EditMapRect *emapRect__2;
+extern int emapRectType;
 extern int emapRectNum__2;
 extern int emapRectIdx__2;
 
@@ -291,7 +299,23 @@ int emapFENCE_PARTS(SPI_STACK *stack, int argument_count) {
     emapNowInfo__2->attr = emapNowInfo__2->attr | kPartsFence;
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editinfo", emapRECT__FP9SPI_STACKi);
+int emapRECT(SPI_STACK *stack, int argument_count) {
+    if (emapRect__2 == NULL) {
+        return 0;
+    }
+    if (emapRectIdx__2 < 0 || emapRectIdx__2 >= emapRectNum__2) {
+        return 0;
+    }
+    EditMapRect *rect = &emapRect__2[emapRectIdx__2];
+    rect->type = emapRectType;
+    spiGetStackVector(rect->start, stack);
+    rect->start[3] = 1.0f;
+    spiGetStackVector(rect->end, stack + 3);
+    rect->end[3] = 1.0f;
+    emapRectIdx__2++;
+    return 1;
+}
+
 int emapPLACE_RECT(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == 0) {
         return 0;

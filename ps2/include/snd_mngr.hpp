@@ -85,7 +85,7 @@ enum sndREVERB_TYPE {
  * requested again within a number of frames.
  */
 struct SND_LOOP_SE_SEQ {
-    int se_id;     /**< Sound ID with the sound effect number, or -1 when the entry is free. */
+    u32 se_id;     /**< Sound ID with the sound effect number, or -1 when the entry is free. */
     s16 keep_time; /**< Frames the sound keeps playing after the last request. */
     s16 count;     /**< Frames since the last request; 0 until the sound has been started. */
     s16 voice;     /**< Voice number the sound effect plays with. */
@@ -251,6 +251,21 @@ public:
     }
 
     /**
+     * Finds a sound effect table entry by number, or NULL when it is out of range.
+     */
+    sndSeInfo *GetSe(int se_no) {
+        if (se_no < 0 || se_no >= se_num) {
+            return NULL;
+        }
+        return &se[se_no];
+    }
+
+    /**
+     * Finds a sound-effect sequence by number, or NULL when it is out of range.
+     */
+    inline sndCSeSeqData *GetSeSeqData(int seseq_no);
+
+    /**
      * Finds how a sound effect named in the sound effect table is played:
      * "KeyOn" or a name without an extension is a key-on sound effect, a
      * sequence or sound-effect sequence name is that type with its number
@@ -329,6 +344,42 @@ public:
             bank[i].seseq_num = 0;
             bank[i].seseq = NULL;
         }
+    }
+
+    /**
+     * Finds a loaded bank by number, or NULL when it is out of range.
+     */
+    sndBankInfo *GetBank(int bank_no) {
+        if (bank_no < 0 || bank_no >= bank_num) {
+            return NULL;
+        }
+        return &bank[bank_no];
+    }
+
+    /**
+     * Finds a free sequence entry, or NULL when all sixteen are playing.
+     */
+    sndPortSeSeq *GetFreeSeSeq() {
+        for (int i = 0; i < 16; i++) {
+            if (seseq[i].seseq_no < 0) {
+                return &seseq[i];
+            }
+        }
+        return NULL;
+    }
+
+    /**
+     * Finds the playing sequence entry started for a sound effect of a bank
+     * with a voice, or NULL when there is none.
+     */
+    sndPortSeSeq *SearchSeSeq(int bank_no, int se_no, int voice) {
+        for (int i = 0; i < 16; i++) {
+            sndPortSeSeq *entry = &seseq[i];
+            if (entry->seseq_no >= 0 && entry->bank == bank_no && entry->se_no == se_no && entry->voice == voice) {
+                return entry;
+            }
+        }
+        return NULL;
     }
 
     /**

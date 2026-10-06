@@ -127,10 +127,6 @@ static void SetObjectBind(FISH_BIND &bind, FISH_POINT &first, FISH_POINT &second
 }
 #endif
 
-#ifndef NONMATCHING
-void GetTriPose(float (*matrix)[4], float (*tri)[4], int *order);
-#endif
-
 // Code (.text)
 void SetFishingMode(int value) {
     NowMode = value;
@@ -273,7 +269,6 @@ void InitRodPoint(mgCFrame *reference, mgCFrame *rod) {
     NowMode = FISHING_MODE_BAIT;
     ShowHari = 1;
 }
-#ifdef NONMATCHING
 static void GetTriPose(sceVu0FMATRIX pose, sceVu0FVECTOR points[3], int axes[3]) {
     float first[4];
     float second[4];
@@ -303,9 +298,6 @@ static void GetTriPose(sceVu0FMATRIX pose, sceVu0FVECTOR points[3], int axes[3])
     if (axes[1] < 0) sceVu0ScaleVector(matrix[second_axis], matrix[second_axis], -1.0f);
     if (axes[2] < 0) sceVu0ScaleVector(matrix[normal_axis], matrix[normal_axis], -1.0f);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/fishingobj", GetTriPose__FPA4_fPA4_fPi);
-#endif
 void GetHariPos(float *pos, float *old_pos) {
     *(u_long128 *)pos = *(u_long128 *)LinePoint[kLinePointNum - 1].pos;
     *(u_long128 *)old_pos = *(u_long128 *)LinePoint[kLinePointNum - 1].old_pos;

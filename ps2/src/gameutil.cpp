@@ -2251,11 +2251,11 @@ s32 CheckPosInOutFor2P(float x0, float y0, float x1, float y1, float x, float y)
     }
     return outside ^ 1;
 }
-#ifdef NONMATCHING
 int CalcIntersectionPointLineAndLine(float ax0, float ay0, float ax1, float ay1, float bx0, float by0, float bx1, float by1, float *out_x, float *out_y) {
     float slope_a;
     float slope_b;
     float relative_x;
+    float relative_y;
 
     if (ax0 == ax1 && bx0 == bx1) {
         return 0;
@@ -2280,13 +2280,11 @@ int CalcIntersectionPointLineAndLine(float ax0, float ay0, float ax1, float ay1,
     } else {
         relative_x = ((by0 - ay0) - slope_b * (bx0 - ax0)) / (slope_a - slope_b);
         *out_x = relative_x + ax0;
-        *out_y = (relative_x * slope_a) + ay0;
+        relative_y = relative_x * slope_a;
+        *out_y = relative_y + ay0;
         return 1;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gameutil", CalcIntersectionPointLineAndLine__FffffffffPfPf);
-#endif
 s32 CalcIntersectionPoint2PAnd2P(float ax0, float ay0, float ax1, float ay1, float bx0, float by0, float bx1, float by1, float *out_x, float *out_y) {
     if (CalcIntersectionPointLineAndLine(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, out_x, out_y) == 0) {
         return 0;

@@ -93,16 +93,6 @@ struct SCN_LOADMAP_INFO2 {
      * @size 0x10
      */
     void Initialize();
-
-    /**
-     *
-     * Copies every name, buffer and setting of another map description into this one.
-     *
-     * @mangled __as__17SCN_LOADMAP_INFO2FRC17SCN_LOADMAP_INFO2
-     * @address 0x289B80
-     * @size 0xC0
-     */
-    SCN_LOADMAP_INFO2 &operator=(const SCN_LOADMAP_INFO2 &other);
 };
 STATIC_ASSERT(sizeof(SCN_LOADMAP_INFO2::MapFiles) == 0xB4);
 STATIC_ASSERT(sizeof(SCN_LOADMAP_INFO2) == 0x1A8);
@@ -118,6 +108,15 @@ public:
     u8 unk_0[0x8];
     s32 unk_8;
     u8 unk_c[0x8];
+
+    /**
+     *
+     * Makes an empty stack.
+     *
+     */
+    mgCObjectStack() {
+        Initialize();
+    }
 
     /**
      *

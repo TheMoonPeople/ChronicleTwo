@@ -2,7 +2,6 @@
 #include "gyoracesim.hpp"
 #include <cstring>
 
-struct FishEntryCopy { union { char name[24]; int words[6]; }; int values[10]; };
 
 struct RaceProgressCopy { float pos; int lane; float lane_pos; s8 state; s8 battle; int detail[2]; };
 
@@ -15,7 +14,6 @@ struct FISH_STATS {
     float unknownB;
 };
 
-extern "C" float GetRandomNumber__Fff(float, float);
 extern "C" int fptosi(float value);
 extern int jrand;
 extern int ia[56];
@@ -32,10 +30,6 @@ void CharacterBonus(grFISH_PARAM *param, RACE_FISH_PARAM *fish, int count);
 void RndFishParam(RACE_FISH_PARAM *fish);
 #include "crandom.hpp"
 #include <cstring>
-
-extern grFISH_DATA fish_data[18];
-extern int ia[56];
-extern int jrand;
 
 int GetRaceDivision(float distance);
 float GetCourseR(float position, float lane);
@@ -257,7 +251,7 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
             }
         } else {
             float crowd_effect = 0.0f;
-            float increment = 0.1f * GetRandomNumber__Fff(1.0f, 0.5f);
+            float increment = 0.1f * GetRandomNumber(1.0f, 0.5f);
             if (!crowded[0] && !crowded[1]) crowd_effect = -increment;
             if (crowded[0]) crowd_effect += increment;
             if (crowded[1]) crowd_effect += increment;
@@ -348,7 +342,6 @@ static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyoracesim", CollisionFish__FP15RACE_FISH_PARAMi);
 #endif
-#ifdef NONMATCHING
 int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
     int i;
     int step;
@@ -397,9 +390,6 @@ int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
     }
     return step;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyoracesim", StepGyoRace__FP15RACE_FISH_PARAMP11grRACE_INFO);
-#endif
 
 int GetRaceDivision(float distance) {
     int division;
@@ -527,7 +517,6 @@ void FishModifyParam(grFISH_PARAM *source, float *output, float average) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyoracesim", FishModifyParam__FP12grFISH_PARAMPff);
 #endif
-#ifdef NONMATCHING
 void CharacterBonus(grFISH_PARAM *source, RACE_FISH_PARAM *fish, int count) {
     int type = source->bonus_type;
     fish->rank_ratio[0] = 1.0f;
@@ -556,10 +545,8 @@ void CharacterBonus(grFISH_PARAM *source, RACE_FISH_PARAM *fish, int count) {
     case GR_CHARA_BONUS_NONE:
         break;
     case GR_CHARA_BONUS_RANDOM: {
-        float mean = 1.0f;
-        float range = 0.01f;
-        front = GetRandomNumber(mean, range);
-        back = GetRandomNumber(mean, range);
+        front = GetRandomNumber(front, 0.01f);
+        back = GetRandomNumber(1.0f, 0.01f);
         break;
     }
     }
@@ -568,9 +555,6 @@ void CharacterBonus(grFISH_PARAM *source, RACE_FISH_PARAM *fish, int count) {
     }
     fish->rank_ratio[0] = 1.0f;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyoracesim", CharacterBonus__FP12grFISH_PARAMP15RACE_FISH_PARAMi);
-#endif
 void RndFishParam(RACE_FISH_PARAM *fish) {
     for (int i = 0; i < 5; ++i) {
         float mean = 1.0f;
@@ -610,7 +594,7 @@ void SetRaceFishParam(RACE_FISH_PARAM *fish, grRACE_INFO *race) {
     for (i = 0; i < race->fish_num; i++) {
         slot = &fish[i];
         memset(slot, 0, sizeof(RACE_FISH_PARAM));
-        FishEntryCopy param = *(FishEntryCopy *)&race->fish[i];
+        grFISH_PARAM param = race->fish[i];
         float pace[5];
         FISH_STATS stats;
         grFISH_PARAM *param_ptr = (grFISH_PARAM *)&param;
@@ -626,7 +610,7 @@ void SetRaceFishParam(RACE_FISH_PARAM *fish, grRACE_INFO *race) {
         slot->speed[2] = mid;
         slot->speed[3] = (high + half) / 1.5f;
         slot->speed[4] = high;
-        GetPaseRatio(param.values[8], pace);
+        GetPaseRatio(param.tactics, pace);
         for (k = 0; k < 5; k++) {
             float scaled = speed * pace[k];
             slot->accel[k] = scaled / (10.0f * GetRaceDivisionLength(k));
@@ -642,7 +626,7 @@ void SetRaceFishParam(RACE_FISH_PARAM *fish, grRACE_INFO *race) {
         slot->battle_urge = 0;
         slot->battle_time = 0;
         slot->pos = 0;
-        slot->lane = ((FishEntryCopy *)param_ptr)->values[9];
+        slot->lane = param_ptr->lane;
         slot->state = 1;
         slot->battle = 0;
         slot->progress_num = race->step_max;

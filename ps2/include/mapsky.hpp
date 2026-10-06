@@ -65,6 +65,13 @@ public:
     AnimeFrame    anime[16];         /**< Frames of the sky and back sky models that turn by themselves. */
 
     /**
+     * Makes a sky with no models.
+     */
+    CMapSky() {
+        Initialize();
+    }
+
+    /**
      * Clears every model and turning frame and frees every texture block entry.
      *
      * @mangled Initialize__7CMapSkyFv

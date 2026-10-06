@@ -41,20 +41,18 @@ extern CGameDataUsed *FishGamePreEquip;
 extern char *magic_str_1462[8];
 extern char word_1327[0x61];
 extern char *symbol_tbl_1338[8][2][2];
-extern char *MenuBigNum[10];
 extern signed char htbl_1662[10];
 extern char *strtbl_1505[8];
 extern char temp_1510[0x40];
 extern char *f_2005[2];
 extern char *basefish_1288[];
-extern char aquarium_fish_maxtbl[3];
 extern unsigned char use_limmit_table_2558[7];
 extern MOS_HENGE_PARAM mos_henge_param[];
 extern short fish_record_dataindex_convert[];
 extern char *robo_nametable_3330[];
 extern float lifetbl_2854[2];
 extern short weptbl_4503[2][10];
-extern int BattleParamater_Time;
+extern float BattleParamater_Time;
 extern int BattleParamater_TimeBand;
 extern signed char tbl1_5167[3];
 extern signed char tbl2_5168[2];
@@ -71,6 +69,21 @@ extern char at_2061[];
 extern char at_2018[];
 extern char at_2019[];
 extern char at_5773[];
+struct DEBUG_ITEM {
+    short item_no;
+    short num;
+};
+extern DEBUG_ITEM cureItemtable_5744[];
+extern DEBUG_ITEM itemtbl_5745[];
+extern DEBUG_ITEM start_tbl_5746[];
+extern DEBUG_ITEM e3_town_5747[];
+extern DEBUG_ITEM e3_dng_5748[];
+extern DEBUG_ITEM e3_boss_5749[];
+extern s8 init_partytbl_5752[];
+extern DEBUG_ITEM dbg_set1_5774[];
+extern DEBUG_ITEM dbg_set2_5775[];
+extern DEBUG_ITEM dbg_set3_5776[];
+extern DEBUG_ITEM subgame1_5788[];
 
 // Code (.text)
 CUserDataManager *GetUserDataMan() {
@@ -214,9 +227,8 @@ int CheckNowRoboUseCapacity(ROBO_DATA *robo, int *out_capacity) {
     }
     return used;
 }
-extern "C" CGameDataUsed *__ct__13CGameDataUsedFv(CGameDataUsed *self) {
-    self->Init();
-    return self;
+CGameDataUsed::CGameDataUsed() {
+    Init();
 }
 void CGameDataUsed::Init() {
     memset(this, 0, sizeof(CGameDataUsed));
@@ -314,7 +326,7 @@ int CGameDataUsed::GetNum() {
             return 1;
     }
 }
-u8 CGameDataUsed::GetActiveSetNum(void) {
+int CGameDataUsed::GetActiveSetNum(void) {
     return this->IsActiveSet();
 }
 int CGameDataUsed::AddNum(int count, int clear) {
@@ -396,7 +408,7 @@ int CGameDataUsed::Boiled() {
     fish->item_no = 0x1AA;
     return 1;
 }
-u8 CGameDataUsed::IsActiveSet(void) {
+int CGameDataUsed::IsActiveSet(void) {
     CDataCommon *item = GetCommonItemData(item_no);
     if (item != NULL) {
         return item->active_set;
@@ -440,29 +452,29 @@ char *CGameDataUsed::GetName(int name_type) {
 
     memset(word_1327, 0, 0x61);
     switch (used_type) {
-        case 3:
-            name = (char *)this + 0x43;
+        case USED_ITEM_TYPE_WEAPON:
+            name = data.weapon.name;
             break;
-        case 5:
-            name = (char *)this + 0x3C;
+        case USED_ITEM_TYPE_ROBO_PART:
+            name = data.robopart.name;
             break;
-        case 6:
-            name = (char *)this + 0x10;
+        case USED_ITEM_TYPE_FISH:
+            name = &data.fish.name[0];
             break;
-        case 2:
+        case USED_ITEM_TYPE_ATTACH:
             if (item_no == 185) {
-                name = (char *)this + 0x30;
+                name = data.attach.name;
             } else {
                 name = GetItemMessage(item_no);
-    }
+            }
             break;
-        case 8:
-            name = (char *)this + 0x12;
+        case USED_ITEM_TYPE_BOILED:
+            name = data.boiled.name;
             break;
         default:
             name = GetItemMessage(item_no);
             break;
-        }
+    }
     if (name != NULL) {
         if (name_type == 2) {
             strcpy(word_1327, symbol_tbl_1338[LanguageCode][(signed char)rename_flag][0]);
@@ -636,7 +648,6 @@ int CGameDataUsed::GetEffectReadType(char **effect_name, char **hit_name, int *p
     }
     return 0;
 }
-extern "C" int GetYarikomiMedal__16CUserDataManagerFv(CUserDataManager *);
 void CGameDataUsed::GetMsgAddInfo(char **message, char **extra_message, int *values) {
     ATTACH_USED *body;
     char *text;
@@ -654,7 +665,7 @@ void CGameDataUsed::GetMsgAddInfo(char **message, char **extra_message, int *val
     switch (used_type) {
         case 1:
             if (item_no == 0x137) {
-                values[0] = GetYarikomiMedal__16CUserDataManagerFv(GetUserDataMan());
+                values[0] = GetUserDataMan()->GetYarikomiMedal();
             }
             break;
         case 3:
@@ -790,7 +801,6 @@ int CGameDataUsed::GetRoboInfoType() {
     }
     return -1;
 }
-extern "C" int GetOffsetNo__13CDataRoboPartFv(CDataRoboPart *);
 void CGameDataUsed::GetRoboJointName(char *name) {
     CDataRoboPart *record = (CDataRoboPart *)GetRoboPartInfoData(item_no);
 
@@ -798,10 +808,10 @@ void CGameDataUsed::GetRoboJointName(char *name) {
         return;
     }
     if (item_type == 0xD) {
-        sprintf(name, at_1623, GetOffsetNo__13CDataRoboPartFv(record));
+        sprintf(name, at_1623, record->GetOffsetNo());
     }
     if (item_type == 0xC) {
-        sprintf(name, at_1624, GetOffsetNo__13CDataRoboPartFv(record));
+        sprintf(name, at_1624, record->GetOffsetNo());
     }
 }
 void CGameDataUsed::GetRoboSoundFileName(char *name) {
@@ -811,7 +821,7 @@ void CGameDataUsed::GetRoboSoundFileName(char *name) {
         return;
     }
     if (item_type == 0xD) {
-        int sound_no = GetOffsetNo__13CDataRoboPartFv(record) + 0x27;
+        int sound_no = record->GetOffsetNo() + 0x27;
         if (sound_no < 0x28 || sound_no > 0x32) {
             sound_no = 0x28;
         }
@@ -954,7 +964,86 @@ int CGameDataUsed::IsSpectolTrans() {
     }
     return 0;
 }
+#ifdef NONMATCHING
+void CGameDataUsed::ToSpectolTrans(CGameDataUsed *attach, int num) {
+    if (attach != NULL) {
+        attach->Init();
+        int count = GetNum();
+        if (0 < num) {
+            count = num;
+        }
+        ATTACH_USED *spectol = &attach->data.attach;
+        spectol->spectol_item_no = item_no;
+        char *name = GetName(0);
+        int level = GetLevel();
+        switch (used_type) {
+            case 3:
+                if (level < 5) {
+                    spectol->spectol_type = 3;
+                    spectol->spectol_value = GetRandI(4) + 1;
+                    short bonus = GetRandI(4) + 1;
+                    int slot = GetRandI(10);
+                    if (slot < 8) {
+                        spectol->attribute[slot] = bonus;
+                    } else {
+                        spectol->status[slot - 8] = bonus;
+                    }
+                    spectol->special = 0;
+                } else {
+                    spectol->spectol_type = 1;
+                    spectol->spectol_value = (u8)(s8)data.weapon.level;
+                    if (spectol->spectol_value >= 21) {
+                        spectol->spectol_value = 20;
+                    }
+                    spectol->special = data.weapon.special;
+                    spectol->level = data.weapon.level;
+                    spectol->status[0] = data.weapon.status[0];
+                    spectol->status[1] = fptosi(0.6f * (float)data.weapon.status[1]);
+                    for (int i = 0; i < 8; i++) {
+                        spectol->attribute[i] = fptosi(0.6f * (float)data.weapon.attribute[i]);
+                    }
+                }
+                break;
+            case 2:
+                spectol->level = 0;
+                spectol->status[0] = data.attach.status[0] * count;
+                spectol->status[1] = data.attach.status[1] * count;
+                for (int i = 0; i < 8; i++) {
+                    spectol->attribute[i] = data.attach.attribute[i] * count;
+                }
+                spectol->special = data.attach.special;
+                spectol->spectol_type = 2;
+                spectol->spectol_value = count;
+                if (item_no == 0x17F) {
+                    spectol->spectol_value = data.attach.spectol_value;
+                }
+                break;
+            case 6:
+                spectol->level = 0;
+                spectol->attribute[7] = 2;
+                spectol->special = 0;
+                spectol->spectol_type = 4;
+                spectol->spectol_value = 1;
+                break;
+            default:
+                SetItemSpectolPoint(spectol->spectol_item_no, spectol, count);
+                spectol->special = 0;
+                spectol->spectol_type = 4;
+                spectol->spectol_value = count;
+                break;
+        }
+        spectol->level = level;
+        attach->item_type = GameItemDataManage.GetDataType(0xB9);
+        attach->used_type = 2;
+        attach->item_no = 0xB9;
+        spectol->num = 1;
+        attach->SetName(name);
+        attach->CheckParamLimmit();
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", ToSpectolTrans__13CGameDataUsedFP13CGameDataUsedi);
+#endif
 void CGameDataUsed::GetStatusParam(short *param) {
     if (param != NULL) {
         if (used_type == 3) {
@@ -1006,7 +1095,7 @@ void CGameDataUsed::GetStatusParam(short *param, float time) {
     }
 }
 int CGameDataUsed::IsBuildUp(int *count, int *item_nos, int *flags) {
-    COMMON_GAGE *gauge;
+    WEAPON_USED *weapon;
     CDataWeapon *info;
     CDataWeapon *target;
     float mine[16];
@@ -1020,21 +1109,21 @@ int CGameDataUsed::IsBuildUp(int *count, int *item_nos, int *flags) {
     built_up = 0;
     found = 0;
     if (this->used_type == 3) {
-        gauge = &this->data.weapon.whp;
+        weapon = &this->data.weapon;
         info = (CDataWeapon *)GetWeaponInfoData(this->item_no);
         if (info == NULL) {
             return 0;
         }
 
-        mine[0] = *(short *)((u8 *)gauge + 0x12);
-        mine[1] = *(short *)((u8 *)gauge + 0x16);
-        mine[2] = *(short *)((u8 *)gauge + 0x18);
-        mine[3] = *(short *)((u8 *)gauge + 0x1A);
-        mine[4] = *(short *)((u8 *)gauge + 0x1C);
-        mine[5] = *(short *)((u8 *)gauge + 0x1E);
-        mine[6] = *(short *)((u8 *)gauge + 0x20);
-        mine[7] = *(short *)((u8 *)gauge + 0x22);
-        mine[8] = *(short *)((u8 *)gauge + 0x24);
+        mine[0] = weapon->status[0];
+        mine[1] = weapon->attribute[0];
+        mine[2] = weapon->attribute[1];
+        mine[3] = weapon->attribute[2];
+        mine[4] = weapon->attribute[3];
+        mine[5] = weapon->attribute[4];
+        mine[6] = weapon->attribute[5];
+        mine[7] = weapon->attribute[6];
+        mine[8] = weapon->attribute[7];
         for (i = 0; i < 3; i++) {
             target = (CDataWeapon *)GetWeaponInfoData(info->buildup_weapon[i]);
             if (target != NULL) {
@@ -1143,7 +1232,96 @@ int GetMainCharaModelName(int character_index, char *model_name, int alternate) 
         return 1;
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", CheckParamLimmit__13CGameDataUsedFv);
+void CGameDataUsed::CheckParamLimmit() {
+    if (used_type == 3) {
+        CDataWeapon *weapon_info = GetWeaponInfoData(item_no);
+        if (weapon_info == NULL) {
+            return;
+        }
+        WEAPON_USED *weapon = &data.weapon;
+        if (255.0f <= weapon->whp.max) {
+            weapon->whp.max = 255.0f;
+        }
+        if (weapon_info->status_max[0] < weapon->status[0]) {
+            weapon->status[0] = weapon_info->status_max[0];
+        }
+        if (weapon_info->status_max[1] < weapon->status[1]) {
+            weapon->status[1] = weapon_info->status_max[1];
+        }
+        for (int i = 0; i < 8; i++) {
+            if (weapon_info->attribute_max[i] < weapon->attribute[i]) {
+                weapon->attribute[i] = weapon_info->attribute_max[i];
+            }
+            if (weapon->attribute[i] < 0) {
+                weapon->attribute[i] = 0;
+            }
+        }
+        AddFusionPoint(0);
+        if (99999.0f <= weapon->abs.max) {
+            weapon->abs.max = 99999.0f;
+        }
+        if (weapon->abs.max < weapon->abs.now) {
+            LevelUp();
+        }
+    }
+    if (used_type == 2) {
+        ATTACH_USED *attach = &data.attach;
+        if (attach->status[0] > 999) {
+            attach->status[0] = 999;
+        }
+        if (attach->status[1] > 999) {
+            attach->status[1] = 999;
+        }
+        for (int i = 0; i < 8; i++) {
+            if (attach->attribute[i] >= 999) {
+                attach->attribute[i] = 999;
+            }
+        }
+    }
+    if (used_type == 6) {
+        BREEDFISH_USED *fish = &data.fish;
+        int excess = CalcBreedFishParam(fish) - 400;
+        u16 *param[5] = {&fish->param[0], &fish->param[1], &fish->param[2], &fish->param[3], &fish->param[4]};
+        for (int i = 0; i < 5; i++) {
+            if (*param[i] > 500) {
+                param[i] = NULL;
+            }
+        }
+        while (excess > 0) {
+            u16 *target = param[GetRandI(5)];
+            if (0 < *target) {
+                excess--;
+                (*target)--;
+            }
+        }
+        int pass = 0;
+        while (true) {
+            bool stable = true;
+            for (int i = 0; i < 5; i++) {
+                while (*param[i] >= 101) {
+                    u16 *lowest = param[0];
+                    stable = false;
+                    for (int k = 0; k < 5; k++) {
+                        if (lowest != param[i]) {
+                            if (*param[k] < *lowest) {
+                                lowest = param[k];
+                            }
+                        }
+                    }
+                    if (lowest != NULL) {
+                        (*lowest)++;
+                    }
+                    (*param[i])--;
+                }
+            }
+            if (!stable && pass < 4) {
+                pass++;
+            } else {
+                break;
+            }
+        }
+    }
+}
 void CGameDataUsed::TimeCheck(int elapsed) {
     int time_left;
 
@@ -1231,7 +1409,7 @@ int CGameDataUsed::CopyDataWeapon(int item_no) {
     CDataWeapon *record;
     char *message;
     float durability;
-    COMMON_GAGE *gauge;
+    WEAPON_USED *weapon;
 
     record = (CDataWeapon *)GameItemDataManage.GetWeaponData(item_no);
     if (record == NULL) {
@@ -1240,12 +1418,12 @@ int CGameDataUsed::CopyDataWeapon(int item_no) {
     this->used_type = 3;
     this->item_no = item_no;
     this->item_type = GetItemDataType(item_no);
-    gauge = &this->data.weapon.whp;
+    weapon = &this->data.weapon;
     this->data.weapon.level = 0;
     durability = record->durability;
     this->data.weapon.whp.max = durability;
     this->data.weapon.whp.now = durability;
-    *(int *)&this->data.weapon.abs.now = 0;
+    this->data.weapon.abs.now = 0.0f;
     this->data.weapon.abs.max = record->levelup_exp;
     this->data.weapon.status[0] = record->status[0];
     this->data.weapon.status[1] = record->status[1];
@@ -1263,7 +1441,7 @@ int CGameDataUsed::CopyDataWeapon(int item_no) {
     this->data.weapon.unk_30 = 0;
     message = GetItemMessage(item_no);
     if (message != NULL) {
-        strcpy((char *)gauge + 0x33, message);
+        strcpy(weapon->name, message);
     }
     this->rename_flag = 0;
     return 1;
@@ -1541,7 +1719,78 @@ int CFishAquarium::CheckHaigouTankSex(CGameDataUsed *fish) {
     }
     return 1;
 }
+#ifdef NONMATCHING
+void CFishAquarium::RefreshParam() {
+    int now = GetSaveData()->play_time;
+    s64 elapsed = now - last_time;
+    last_time = now;
+    int day = GetMainScene()->day;
+    float hour = GetMainScene()->time;
+    float hours = hour - last_hour;
+    int days = day - last_day;
+    if (hours < 0.0f && 0 < days) {
+        days--;
+        hours += 24.0f;
+        if (days < 0) {
+            days = 0;
+        }
+    }
+    int fatigue_step = 0;
+    if (6.0f <= (float)fptosi(hours + 24.0f * (float)days)) {
+        fatigue_step = 1;
+    }
+    for (int i = 0; i < 6; i++) {
+        fish_tank[i].TimeCheck(elapsed);
+    }
+    bool crowded = false;
+    if (GetAquariumFishNum(1) >= 2) {
+        crowded = true;
+    }
+    for (int i = 0; i < 4; i++) {
+        if (sub_tank[i].item_no > 0) {
+            sub_tank[i].TimeCheck(elapsed);
+            float tank_hours = hour - sub_tank[i].data.fish.tank_hour;
+            int tank_days = day - sub_tank[i].data.fish.tank_day;
+            if (tank_hours < 0.0f && 0 < tank_days) {
+                tank_days--;
+                tank_hours += 24.0f;
+                if (tank_days < 0) {
+                    tank_days = 0;
+                }
+            }
+            int in_tank = fptosi(tank_hours + 24.0f * (float)tank_days);
+            int tired = 0;
+            while (crowded && in_tank - 6 >= 0) {
+                if ((u32)sub_tank[i].data.fish.hp >= 16) {
+                    sub_tank[i].data.fish.param[4]++;
+                    sub_tank[i].AddFishHp(-5);
+                    sub_tank[i].CheckParamLimmit();
+                }
+                in_tank -= 6;
+                tired = 1;
+            }
+            if (tired) {
+                int new_day = day;
+                if ((float)fptosi(hour - (float)in_tank) < 0.0f) {
+                    new_day = day - 1;
+                }
+                sub_tank[i].data.fish.tank_day = new_day;
+                sub_tank[i].data.fish.tank_hour = hour;
+            }
+        }
+    }
+    for (int i = 0; i < 2; i++) {
+        breed_tank[i].TimeCheck(elapsed);
+    }
+    if (fatigue_step) {
+        last_day = day;
+        last_hour = hour;
+    }
+    unk_518 = unk_518 % 0x534;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", RefreshParam__13CFishAquariumFv);
+#endif
 
 int GetShiledKitLimmit(int item_no) {
     int index = item_no - 0xF6;
@@ -1790,7 +2039,46 @@ int CFishingTournament::CalcTopWeight(void) {
     this->SortRecord();
     return entry[2].weight + (entry[0].weight + entry[1].weight);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", Initialize__16CUserDataManagerFv);
+void CUserDataManager::Initialize() {
+    int i;
+    memset(this, 0, sizeof(CUserDataManager));
+    active_chr_no = 0;
+    party_member = 0;
+    chara_change = 0;
+    JoinPartyMember(0);
+    EnableCharaChange(0);
+    monster_id = -1;
+    money = 0;
+    yarikomi_medal = 0;
+    aquarium.Initialize();
+    invent_data.Initialize();
+    for (i = 0; i < 150; i++) {
+        used_data[i].Init();
+    }
+    for (i = 0; i < 32; i++) {
+        party_chara[i].chara_no = -1;
+        party_chara[i].status = 0;
+    }
+    unk_44dc8 = 0;
+    LanguageEquipChange();
+    for (i = 0; i < 2; i++) {
+        CHARA_DATA *chara = &chara_data[i];
+        float life = lifetbl_2854[i];
+        chara->hp.max = life;
+        chara->hp.now = life;
+        chara->active_item[0].Init();
+        chara->active_item[1].Init();
+        chara->active_item[2].Init();
+    }
+    chara_data[0].defence = 4;
+    chara_data[1].defence = 8;
+    memset(&robo_data, 0, sizeof(ROBO_DATA));
+    SetRoboName(GetRoboNameDefault());
+    monster_box.Initialize();
+    for (int j = 0; j < 150; j++) {
+        used_data[j].Init();
+    }
+}
 
 void CUserDataManager::RefreshParam() {
     RefreshNPCStatus(0);
@@ -2299,7 +2587,7 @@ int CUserDataManager::CheckCapacity() {
     }
     return 0;
 }
-short CUserDataManager::CheckRobotCore() {
+int CUserDataManager::CheckRobotCore() {
     for (int i = 0; i < 150; i++) {
         if (used_data[i].item_type == 11) {
             return used_data[i].item_no;
@@ -2448,7 +2736,82 @@ void CUserDataManager::AllWeaponRepair() {
     robo_data.parts[0].Repair(999);
     robo_data.AddPoint(999.0f);
 }
+#ifdef NONMATCHING
+void CUserDataManager::RefreshNPCStatus(int mode) {
+    CGameDataUsed *repair_item[144];
+    int day = GetSaveData()->day;
+    int refresh = 0;
+    float elapsed = GetSaveData()->now_time - npc_refresh_hour;
+    int days = day - npc_refresh_day;
+
+    if (elapsed < 0.0f) {
+        days--;
+        elapsed += 24.0f;
+        if (days < 0) {
+            days = 0;
+        }
+    }
+    elapsed += 24.0f * (float)days;
+    if (1.0f <= elapsed) {
+        refresh = 1;
+    }
+    if (refresh != 0) {
+        s16 time = fptosi(elapsed);
+        if (NowPartyCharaID() == 0xB) {
+            int repair_num = 0;
+            if (time > 0) {
+                for (int i = 0; i < 144; i++) {
+                    CGameDataUsed *item = GetUsedDataPtr(i);
+                    if (item->used_type == 3 && item->IsRepair() != 0) {
+                        repair_item[repair_num++] = item;
+                    }
+                }
+                if (repair_num > 0) {
+                    s16 uses = 0;
+                    if (time > 0) {
+                        while (uses < time) {
+                            if (UseNpcAbility(0xB, 3, 1) == 0) {
+                                time = uses;
+                                break;
+                            }
+                            uses++;
+                        }
+                    }
+                    for (int i = 0; i < repair_num; i++) {
+                        repair_item[i]->Repair(time * 2);
+                    }
+                }
+            }
+        }
+        for (int chara = 1; chara < 32; chara++) {
+            PARTY_CHARA_INFO *info = GetPartyCharaInfo(chara);
+            NPC_BASE_DATA *npc = GetPartyNPCData(chara);
+            if (info != NULL && npc != NULL && !(info->status & 1)) {
+                s8 max_point = npc->max_npc_point;
+                float gain = (float)max_point * elapsed / 24.0f;
+                if (gain < 1.0f) {
+                    gain = 1.0f;
+                }
+                float total = (float)info->point + gain;
+                if (total > 1000.0f) {
+                    info->point = max_point;
+                } else {
+                    info->point = fptosi(total);
+                }
+                if (npc->max_npc_point < info->point) {
+                    info->point = npc->max_npc_point;
+                }
+            }
+        }
+        unk_44dc8 = unk_44dc8 % 0x534;
+        npc_refresh_day = day;
+        GetFloatCommaValue(elapsed);
+        npc_refresh_hour = GetSaveData()->now_time;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", RefreshNPCStatus__16CUserDataManagerFi);
+#endif
 int CUserDataManager::GetFishingRodNo() {
     return chara_data[0].equip[0].item_no;
 }
@@ -2564,7 +2927,6 @@ int CUserDataManager::AddFp(int points) {
     }
     return chara_data[0].equip[0].AddFusionPoint(points);
 }
-extern "C" int GetDataType__9CGameDataFi(void *, int);
 int CUserDataManager::SetChrEquip(int chara_no, CGameDataUsed *item) {
     int slot;
     if (item == 0) {
@@ -2572,7 +2934,7 @@ int CUserDataManager::SetChrEquip(int chara_no, CGameDataUsed *item) {
     }
     CGameData *game_data = GetGameDataPt();
     short item_no = item->item_no;
-    int item_type = GetDataType__9CGameDataFi(game_data, item_no);
+    int item_type = game_data->GetDataType(item_no);
     CBattleCharaInfo *battle = GetBattleCharaInfo();
     if (chara_no == 0 || chara_no == 1) {
         CHARA_DATA *chara = GetCharaDataPtr(chara_no);
@@ -2719,7 +3081,22 @@ int CUserDataManager::SearchSpaceUsedData() {
     }
     return -1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", SearchSpaceUsedData__16CUserDataManagerFi);
+int CUserDataManager::SearchSpaceUsedData(int item_no) {
+    int found = -1;
+    int bag_size = GetNowBagMax(0);
+    int i = 0;
+    while (i < bag_size) {
+        if (used_data[i].item_no == item_no && used_data[i].CheckStackRemain() > 0) {
+            found = i;
+            break;
+        }
+        i++;
+    }
+    if (0 <= found) {
+        return found;
+    }
+    return SearchSpaceUsedData();
+}
 
 CGameDataUsed *CUserDataManager::SearchSpaceUsedDataPtr() {
     int index = SearchSpaceUsedData();
@@ -2926,7 +3303,76 @@ int CUserDataManager::GetItem(int item_no, int count) {
     }
     return fit;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", GetItemNotOver__16CUserDataManagerFii);
+int CUserDataManager::GetItemNotOver(int item_no, int num) {
+    CDataCommon *common = GetCommonItemData(item_no);
+    if (common == NULL) {
+        return 0;
+    }
+    if (item_no == 0xF6) {
+        int robo_part_no[4] = {0x87, 0x91, 0x9B, 0xA5};
+        for (int i = 0; i < 4; i++) {
+            CGameDataUsed *part = SearchItemOnItemBrd(robo_part_no[i], 1);
+            if (part == NULL) {
+                part = SearchItemOnItemBrd(robo_part_no[i], 1);
+            }
+            SetChrEquip(2, part);
+        }
+        JoinPartyMember(2);
+    }
+    DNG_BATTLE_AREA *battle_area = &GetMainScene()->battle_area;
+    if (item_no == 0x131) {
+        battle_area->minimap_reveal |= MINIMAP_REVEAL_ROOMS;
+        return 1;
+    }
+    if (item_no == 0x132) {
+        battle_area->minimap_reveal |= MINIMAP_REVEAL_SYMBOLS;
+        return 1;
+    }
+    if (item_no == 0x134) {
+        CMonsterBox *box = &monster_box;
+        if (box != NULL) {
+            box->Initialize();
+        }
+    }
+    GetCostume(item_no);
+    if (item_no == 0x12F) {
+        GetSaveData()->SetBitFlag(0x30, 1);
+    }
+    int added = 0;
+    int owned = GetNumSameItem(item_no);
+    if (common->max_num <= owned) {
+        if (common->max_num == 1) {
+            return 0;
+        }
+    } else {
+        int bag_size = GetNowBagMax(0);
+        for (int n = 0; n < num; n++) {
+            int found = -1;
+            CGameDataUsed *slot = GetUsedDataPtr(0);
+            for (int i = 0; i < bag_size; i++, slot++) {
+                if (item_no == slot->item_no && slot->CheckTypeEnableStack() != 0 && slot->CheckStackRemain() > 0) {
+                    found = i;
+                    break;
+                }
+            }
+            int space = SearchSpaceUsedData();
+            CGameDataUsed *target = NULL;
+            if (found >= 0) {
+                target = GetUsedDataPtr(found);
+            } else if (space >= 0) {
+                target = GetUsedDataPtr(space);
+            }
+            if (CopyGameData(target, item_no) != 0) {
+                owned++;
+                added++;
+                if (owned >= common->max_num) {
+                    break;
+                }
+            }
+        }
+    }
+    return added;
+}
 int CUserDataManager::GetOverItem(int item_no, int count) {
     if (item_no <= 0 || count <= 0) {
         return 0;
@@ -2970,7 +3416,60 @@ int CUserDataManager::GetOverItem(int item_no, int count) {
     }
     return 0;
 }
+#ifdef NONMATCHING
+int CUserDataManager::CheckItemLimmitOver() {
+    u16 item_count[0x200];
+    u16 item_count2[0x200];
+
+    memset(item_count, 0, sizeof(item_count));
+    memset(item_count2, 0, sizeof(item_count2));
+    CGameDataUsed *inventory = GetUsedDataPtr(0);
+    int bag_size = GetNowBagMax(1);
+    for (int i = 0; i < bag_size; i++) {
+        CGameDataUsed *used = &inventory[i];
+        int owned_no = used->item_no;
+        if (0 < owned_no) {
+            item_count[owned_no] += used->GetNum();
+            if (0 < used->GetGiftBoxItemNum()) {
+                for (int k = 0; k < 3; k++) {
+                    int gift = used->GetGiftBoxItemNo(k);
+                    if (0 < gift) {
+                        item_count[gift]++;
+                    }
+                }
+            }
+        }
+    }
+    CHARA_DATA *charas = GetCharaDataPtr(0);
+    for (int chara = 0; chara < 2; chara++) {
+        CHARA_DATA *data = &charas[chara];
+        for (int slot = 0; slot < 3; slot++) {
+            CGameDataUsed *active = &data->active_item[slot];
+            int active_no = active->item_no;
+            if (0 < active_no) {
+                item_count[active_no] += active->GetNum();
+                if (0 < active->GetGiftBoxItemNum()) {
+                    for (int k = 0; k < 3; k++) {
+                        int gift = active->GetGiftBoxItemNo(k);
+                        if (0 < gift) {
+                            item_count[gift]++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for (int item_no = 1; item_no < 0x200; item_no++) {
+        CDataCommon *common = GetCommonItemData(item_no);
+        if (common != NULL && common->max_num < item_count[item_no]) {
+            return item_no;
+        }
+    }
+    return 0;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", CheckItemLimmitOver__16CUserDataManagerFv);
+#endif
 
 int DeleteItem_Local(CGameDataUsed *item, int item_no, int count) {
     int removed;
@@ -3295,7 +3794,98 @@ short CBattleCharaInfo::GetPalletNo(int slot) {
     }
     return -1;
 }
+#ifdef NONMATCHING
+void CBattleCharaInfo::RefreshParamater() {
+    float weapon_rate[2] = {1.0f, 1.0f};
+    short status[10];
+    int capacity;
+
+    if (chara_data == NULL) {
+        return;
+    }
+    memset(weapon_param, 0, sizeof(weapon_param));
+    BATTLE_WEAPON_PARAM *param = weapon_param;
+    CUserDataManager *user_data = GetUserDataMan();
+    now_npc = 0;
+    if (user_data != NULL) {
+        now_npc = user_data->NowPartyCharaID();
+    }
+    CGameDataUsed *equipment = equip;
+    CScene *scene = GetMainScene();
+    switch (chara_type) {
+        case BATTLE_CHARA_HUMAN:
+            if (((CHARA_DATA *)chara_data)->status_attr & CHARA_STATUS_POWER) {
+                weapon_rate[0] = 1.5f;
+                weapon_rate[1] = 1.5f;
+            }
+            defence = ((CHARA_DATA *)chara_data)->defence;
+            for (int i = 0; i < 2; i++) {
+                CGameDataUsed *item = &equipment[i];
+                item->GetStatusParam(status, scene->time);
+                param->status[0] = fptosi((float)status[0] * weapon_rate[i]);
+                param->status[1] = status[1];
+                param->status[2] = status[2];
+                param->status[3] = status[3];
+                param->status[4] = status[4];
+                param->status[5] = status[5];
+                param->status[6] = status[6];
+                param->status[7] = status[7];
+                param->status[8] = status[8];
+                param->status[9] = status[9];
+                param->special = item->data.weapon.special;
+                param->pallet_no = item->GetPalletColor();
+                param++;
+            }
+            break;
+        case BATTLE_CHARA_ROBO:
+            robo_hp_drain = 0.006f * ((float)CheckNowRoboUseCapacity((ROBO_DATA *)chara_data, &capacity) / (float)capacity);
+            defence = ((ROBO_DATA *)chara_data)->GetDefenceVol();
+            for (int i = 0; i < 2; i++) {
+                param->status[0] = equipment->data.weapon.level;
+                param->status[1] = equipment->data.weapon.status[0];
+                param->status[2] = equipment->data.weapon.status[1];
+                param->status[3] = equipment->data.weapon.attribute[0];
+                param->status[4] = equipment->data.weapon.attribute[1];
+                param->status[5] = equipment->data.weapon.attribute[2];
+                param->status[6] = equipment->data.weapon.attribute[3];
+                param->status[7] = equipment->data.weapon.attribute[4];
+                param->status[8] = equipment->data.weapon.attribute[5];
+                param->status[9] = equipment->data.weapon.attribute[6];
+                param++;
+            }
+            break;
+        case BATTLE_CHARA_MONSTER: {
+            monster_hp_drain = 0.005f;
+            if (user_data->monster_box.IsChange(0xC) != 0) {
+                monster_hp_drain = 0.0025f;
+            }
+            float monster_rate = 1.0f;
+            if (user_data->monster_box.IsChange(0xB) != 0) {
+                monster_rate = 1.25f;
+            }
+            MOS_CHANGE_PARAM *monster = (MOS_CHANGE_PARAM *)chara_data;
+            weapon_param[0].status[0] = fptosi(monster_rate * (float)monster->GetAttackVol(-1));
+            weapon_param[0].status[1] = fptosi(monster_rate * (float)monster->GetAttackVol(-1));
+            defence = fptosi(monster_rate * (float)monster->GetDefenceVol(-1));
+            weapon_param[0].status[2] = 0;
+            weapon_param[0].status[3] = 0;
+            weapon_param[0].status[4] = 0;
+            weapon_param[0].status[5] = 0;
+            weapon_param[0].status[6] = 0;
+            weapon_param[0].status[7] = 0;
+            weapon_param[0].status[8] = 0;
+            weapon_param[0].status[9] = 0;
+            break;
+        }
+    }
+    if (scene != NULL) {
+        BattleParamater_Time = scene->time;
+        BattleParamater_TimeBand = GetTimeBand(scene->time);
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", RefreshParamater__16CBattleCharaInfoFv);
+#endif
 COMMON_GAGE *CBattleCharaInfo::GetNowAccessWHp(int slot) {
     COMMON_GAGE *gage = 0;
     short current_mode = chara_type;
@@ -3704,7 +4294,109 @@ int SetRandamCircleStatus(int kind, float &amountOut) {
     }
     return applied;
 }
+#ifdef NONMATCHING
+int CBattleCharaInfo::StatusParamStep(int *poison_damage) {
+    int result;
+    int attr;
+
+    if (hp == NULL) {
+        return 0;
+    }
+    GetUserDataMan()->GetCharaDataPtr(1);
+    result = 0;
+    attr = GetAttr();
+    if (poison_damage != NULL) {
+        *poison_damage = 0;
+    }
+    if ((weapon_param[0].special & 0x100) || (weapon_param[1].special & 0x100)) {
+        regen_count++;
+        if (regen_count >= 125) {
+            hp->AddPoint(1.0f);
+            regen_count = 0;
+        }
+    }
+    if (attr & CHARA_STATUS_POISON) {
+        poison_count++;
+        if (poison_count >= 100) {
+            COMMON_GAGE *gauge = hp;
+            float poison_rate = 0.02f * gauge->max;
+            if (!(gauge->now <= 1.0f)) {
+                float damage = (float)GetDispVolumeForFloat(poison_rate);
+                float now = hp->now - damage;
+                if (now < 1.0f) {
+                    damage = hp->now - 1.0f;
+                    now = 1.0f;
+                    if (0.0f < damage && damage <= 1.0f) {
+                        damage = 1.0f;
+                    }
+                }
+                hp->now = now;
+                result = attr;
+                poison_count = 0;
+                if (poison_damage != NULL) {
+                    *poison_damage = fptosi(damage);
+                }
+            }
+        }
+    }
+    if (attr & CHARA_STATUS_POWER) {
+        if (chara_type == BATTLE_CHARA_HUMAN) {
+            ((CHARA_DATA *)chara_data)->status_time[0]--;
+            if (((CHARA_DATA *)chara_data)->status_time[0] <= 0) {
+                SetAttr(CHARA_STATUS_POWER, 1);
+                ((CHARA_DATA *)chara_data)->status_time[0] = 0;
+                RefreshParamater();
+            }
+        } else if (chara_type == BATTLE_CHARA_MONSTER) {
+            if (chara_data != NULL) {
+                ((MOS_CHANGE_PARAM *)chara_data)->status_time_10--;
+                if (((MOS_CHANGE_PARAM *)chara_data)->status_time_10 <= 0) {
+                    SetAttr(CHARA_STATUS_POWER, 1);
+                    ((MOS_CHANGE_PARAM *)chara_data)->status_time_10 = 0;
+                    RefreshParamater();
+                }
+            }
+        }
+    }
+    if (attr & CHARA_STATUS_UNK_2) {
+        if (chara_type == BATTLE_CHARA_HUMAN) {
+            ((CHARA_DATA *)chara_data)->status_time[1]--;
+            if (((CHARA_DATA *)chara_data)->status_time[1] <= 0) {
+                SetAttr(CHARA_STATUS_UNK_2, 1);
+            }
+        } else if (chara_type == BATTLE_CHARA_ROBO) {
+            ((ROBO_DATA *)chara_data)->status_time[0]--;
+            if (((ROBO_DATA *)chara_data)->status_time[0] <= 0) {
+                SetAttr(CHARA_STATUS_UNK_2, 1);
+            }
+        }
+    }
+    if (attr & CHARA_STATUS_UNK_8) {
+        if (chara_type == BATTLE_CHARA_HUMAN) {
+            ((CHARA_DATA *)chara_data)->status_time[2]--;
+            if (((CHARA_DATA *)chara_data)->status_time[2] <= 0) {
+                SetAttr(CHARA_STATUS_UNK_8, 1);
+            }
+        } else if (chara_type == BATTLE_CHARA_ROBO) {
+            ((ROBO_DATA *)chara_data)->status_time[1]--;
+            if (((ROBO_DATA *)chara_data)->status_time[1] <= 0) {
+                SetAttr(CHARA_STATUS_UNK_8, 1);
+            }
+        }
+    }
+    if (attr & CHARA_STATUS_UNK_20) {
+        if (chara_type == BATTLE_CHARA_HUMAN) {
+            ((CHARA_DATA *)chara_data)->status_time[3]--;
+            if (((CHARA_DATA *)chara_data)->status_time[3] <= 0) {
+                SetAttr(CHARA_STATUS_UNK_20, 1);
+            }
+        }
+    }
+    return result;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", StatusParamStep__16CBattleCharaInfoFPi);
+#endif
 void CBattleCharaInfo::Step() {
     if (hp != NULL) {
         if (disp_hp < 0.0f) {
@@ -3877,9 +4569,8 @@ int SearchEquipType(int category, int slot) {
     return *(slot + (equip_type_tbl_5456 + category * 5));
 }
 #pragma global_optimizer reset
-extern "C" int GetItemDataType__Fi(int);
 int IsItemtypeWhoisEquip(int item_no, int *out_slot) {
-    int type = GetItemDataType__Fi(item_no);
+    int type = GetItemDataType(item_no);
     int category = -1;
     int found_slot = -1;
     int c;
@@ -4182,10 +4873,156 @@ void AquaFishFatigueClear(void) {
         tank++;
     } while (tank < 3);
 }
+#ifdef NONMATCHING
+void DebugGetItem(CUserDataManager *user_data, int mode) {
+    CUserDataManager *manager = user_data;
+    DEBUG_ITEM *items;
+    DEBUG_ITEM *extra_items;
+    short equip_no[4];
+    CGameDataUsed *attach;
+
+    if (user_data == NULL) {
+        manager = GetUserDataMan();
+    }
+    if (manager == NULL) {
+        return;
+    }
+    manager->Initialize();
+    manager->SetActiveChrNo(0);
+    extra_items = NULL;
+    items = itemtbl_5745;
+    if (mode == 0) {
+        manager->JoinPartyMember(1);
+        manager->EnableCharaChange(1);
+        int member = 0;
+        do {
+            s8 chara_no = init_partytbl_5752[member];
+            if (chara_no < 0) {
+                break;
+            }
+            manager->SetPartyCharaStatus(chara_no, 0x80);
+            member++;
+        } while (member < 32);
+        manager->SetPartyCharaStatus(1, 1);
+    }
+    if (mode == 1 || mode == 2) {
+        manager->LeavePartyMember(1);
+        CHARA_DATA *chara = manager->GetCharaDataPtr(0);
+        if (mode == 1) {
+            chara->equip[0].Init();
+            chara->equip[1].Init();
+        }
+        items = NULL;
+    }
+    if (mode == 6) {
+        manager->LeavePartyMember(1);
+        items = NULL;
+    }
+    if (mode == 3) {
+        items = e3_town_5747;
+    }
+    if (mode == 4) {
+        manager->JoinPartyMember(1);
+        manager->EnableCharaChange(1);
+        manager->EnableCharaChange(2);
+        manager->EnableCharaChange(3);
+        items = e3_dng_5748;
+    }
+    if (mode == 5) {
+        manager->EnableCharaChange(2);
+        items = e3_boss_5749;
+    }
+    memcpy(equip_no, at_5773, sizeof(equip_no));
+    if (mode == 7) {
+        items = dbg_set1_5774;
+        extra_items = &start_tbl_5746[1];
+    }
+    if (mode == 8) {
+        equip_no[0] = 2;
+        items = dbg_set2_5775;
+        equip_no[1] = 0x17;
+        extra_items = cureItemtable_5744;
+    }
+    if (mode == 9) {
+        equip_no[0] = 0x12;
+        equip_no[1] = 0x19;
+        items = dbg_set3_5776;
+        extra_items = cureItemtable_5744;
+        equip_no[2] = 0x30;
+        equip_no[3] = 0x5C;
+    }
+    if (mode == 0x10 || mode == 0xF) {
+        manager->chara_data[0].equip[0].Init();
+        manager->chara_data[0].equip[1].Init();
+        if (mode == 0xF) {
+            items = subgame1_5788;
+            manager->SetChrEquipDirect(0, 0xA);
+        }
+        if (mode == 0x10) {
+            items = NULL;
+        }
+    }
+    if (items != NULL) {
+        for (int i = 0; items[i].item_no > 0; i++) {
+            manager->GetItem(items[i].item_no, items[i].num);
+        }
+        if (mode == 0) {
+            manager->monster_box.EnableChange(1);
+            manager->monster_box.EnableChange(4);
+            manager->DeleteItem(0xF6, 1);
+            MenuSeiton(manager->GetUsedDataPtr(0), 0x90);
+        }
+        if (mode == 4) {
+            manager->SetChrEquip(0, 2);
+            manager->SetChrEquip(0, 0x17);
+            manager->DeleteItem(0xF6, 1);
+            manager->GetItem(0xF7, 1);
+            manager->monster_box.EnableChange(1);
+            manager->monster_box.EnableChange(4);
+        }
+        if (mode == 5) {
+            attach = manager->SearchItemOnItemBrd(2, 0);
+            if (attach != NULL) {
+                attach->data.weapon.status[0] = 0x13;
+            }
+            manager->SetChrEquip(0, attach);
+            manager->DeleteItem(0xF6, 1);
+            manager->GetItem(0xF7, 1);
+            manager->GetCharaDataPtr(0)->hp.now = 48.0f;
+            manager->GetCharaDataPtr(0)->hp.max = 48.0f;
+            manager->GetCharaDataPtr(0)->defence = 8;
+        }
+        if (equip_no[0] >= 2) {
+            manager->GetItem(equip_no[0], 1);
+            manager->SetChrEquip(0, equip_no[0]);
+        }
+        if (equip_no[1] >= 2) {
+            manager->GetItem(equip_no[1], 1);
+            manager->SetChrEquip(0, equip_no[1]);
+        }
+        if (equip_no[2] >= 2) {
+            manager->GetItem(equip_no[2], 1);
+            manager->SetChrEquip(1, equip_no[2]);
+        }
+        if (equip_no[3] >= 2) {
+            manager->GetItem(equip_no[3], 1);
+            manager->SetChrEquip(1, equip_no[3]);
+        }
+        if (extra_items != NULL) {
+            for (int i = 0; extra_items[i].item_no > 0; i++) {
+                manager->GetItem(extra_items[i].item_no, extra_items[i].num);
+            }
+        }
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", DebugGetItem__FP16CUserDataManageri);
+#endif
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", __sinit_userdata_cpp);
+extern "C" void __sinit_userdata_cpp() {
+    BattleParamater.Initialize();
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", mos_henge_param__DATA);

@@ -1140,8 +1140,10 @@ void ClsMes::StepNormal() {
     float dy;
     float distance;
 
-    if (window_mode == MES_WIN_FUKIDASHI && (fukidashi_centre_x < 0 || fukidashi_centre_y < 0)) {
-        return;
+    if (window_mode == MES_WIN_FUKIDASHI) {
+        if (fukidashi_centre_x < 0 || fukidashi_centre_y < 0) {
+            return;
+        }
     }
     if (fade_speed == 0.0f) {
         fade = 1.0f;
@@ -1149,11 +1151,11 @@ void ClsMes::StepNormal() {
         if (fade < 1.0f) {
             fade += fade_speed;
         }
-        if (fade > 1.0f) {
+        if (1.0f < fade) {
             fade = 1.0f;
         }
     } else {
-        if (fade > 0.0f) {
+        if (0.0f < fade) {
             fade -= fade_speed;
         }
         if (fade < 0.0f) {
@@ -1178,8 +1180,10 @@ void ClsMes::StepNormal() {
         dy = tail_target_y - tail_root_y;
         distance = sqrt(dx * dx + dy * dy);
         if (distance > 0.0f) {
-            tail_tip_x = (int)(tail_length * dx / distance) + tail_root_x;
-            tail_tip_y = (int)(tail_length * dy / distance) + tail_root_y;
+            float tip_y = tail_length * dy / distance;
+            float tip_x = tail_length * dx / distance;
+            tail_tip_x = tail_root_x + fptosi(tip_x);
+            tail_tip_y = tail_root_y + fptosi(tip_y);
         } else {
             tail_tip_x = tail_root_x;
             tail_tip_y = tail_root_y;
@@ -1988,15 +1992,17 @@ int ClsMes::MakeMesWinTbl_item(int ref_code, int *x, int *y) {
         }
     }
 }
-#ifdef NONMATCHING
 int ClsMes::GetMesWidth_system(int mes_no) {
+    int inserted_width;
     unsigned short *text;
-    unsigned short  code;
-    int             width;
-    int             maximum;
-    int             inserted_width;
+    int code;
+    int width;
+    int maximum;
 
-    if (mes_no < 0 || buff_system == NULL) {
+    if (mes_no < 0) {
+        return -1;
+    }
+    if (buff_system == NULL) {
         return -1;
     }
     text = (unsigned short *)GetTextLineDataTop_system(mes_no);
@@ -2007,19 +2013,25 @@ int ClsMes::GetMesWidth_system(int mes_no) {
     maximum = 0;
     while (1) {
         code = *text++;
-        if (code == MES_CODE_NEWLINE) {
-            if (maximum < width) {
-                maximum = width;
-            }
-            width = 0;
-        } else if (code == MES_CODE_END) {
-            break;
-        } else if (code >= 0xFAEA && code <= 0xFAF9) {
+        switch (code) {
+            case MES_CODE_END:
+                if (maximum < width) {
+                    maximum = width;
+                }
+                return maximum;
+            case MES_CODE_NEWLINE:
+                if (maximum < width) {
+                    maximum = width;
+                }
+                width = 0;
+                continue;
+        }
+        if (code >= 0xFAEA && code <= 0xFAF9) {
             inserted_width = GetStrWidth(0xFAF9 - code);
             if (inserted_width != -1) {
                 width += inserted_width;
             }
-        } else if (code >= 0xFFA0) {
+        } else if (code >= 0xFFA0 && code <= 0xFFFF) {
             width += (int)(font_w * half_font_w_percent);
         } else if (code >= 0xFDE0 && code < 0xFDF8) {
             if (GetFontGaijiHankaku(code) != 0) {
@@ -2045,14 +2057,7 @@ int ClsMes::GetMesWidth_system(int mes_no) {
             width += font_w;
         }
     }
-    if (maximum < width) {
-        return width;
-    }
-    return maximum;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", GetMesWidth_system__6ClsMesFi);
-#endif
 short *ClsMes::GetTextLineDataTop(int line_id) {
     short *table = buff;
     int i = 0;
@@ -2942,7 +2947,9 @@ void ClsMes::MakeMesWin(int message) {
         if (mes_no == -2) {
             open = 1;
         }
-    } else if (mes_no == message) {
+        return;
+    }
+    if (mes_no == message) {
         if (GetPageAutoFlg() == 0) {
             open = 1;
             GoNextPage();
@@ -3183,6 +3190,7 @@ RGBAQ_TYPE RgbqToUint(unsigned int color) {
     rgbaq.a = (color & 0xFF000000) >> 24;
     return rgbaq;
 }
+#pragma divbyzerocheck on
 #ifdef NONMATCHING
 RGBAQ_TYPE ClsMes::GetFontColor(int index, int *outline) {
     RGBAQ_TYPE result;
@@ -3195,7 +3203,7 @@ RGBAQ_TYPE ClsMes::GetFontColor(int index, int *outline) {
         return result;
     }
     result = RgbqToUint(tbl[index].color);
-    if (line_alpha[line] >= 0) {
+    if (0 <= line_alpha[line]) {
         result.a = line_alpha[line] * result.a / 128;
     } else {
         result.a = alpha * result.a / 128;
@@ -3226,6 +3234,7 @@ RGBAQ_TYPE ClsMes::GetFontColor(int index, int *outline) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", GetFontColor__6ClsMesFiPi);
 #endif
+#pragma divbyzerocheck reset
 int ClsMes::GetGyouAlpha(int line) {
     if (line < select_top) {
         return 0;
@@ -3259,6 +3268,7 @@ int ClsMes::GetGyouAlpha(int line) {
     }
     return alpha;
 }
+#pragma divbyzerocheck on
 #ifdef NONMATCHING
 void ClsMes::DrawFont() {
     int        index;
@@ -3269,11 +3279,8 @@ void ClsMes::DrawFont() {
     int        dy;
     int        left;
     int        right;
-    int        top;
     int        bottom;
-    int        outline;
-    int        digit;
-    RGBAQ_TYPE glyph_color;
+    int        top;
 
     if (MesAbsDrawOff != 0) {
         return;
@@ -3281,8 +3288,9 @@ void ClsMes::DrawFont() {
     mgRect<int> rect(0, 0, 0, 0);
     mgCDrawPrim prim;
     MySetPrim(&prim, MES_PRIM_SPRITE, 0);
-    prim.offset_x = (int)draw_off_x * 16;
-    prim.offset_y = (int)draw_off_y * 16;
+    int origin_y = fptosi(draw_off_y);
+    prim.offset_x = fptosi(draw_off_x) * 16;
+    prim.offset_y = origin_y * 16;
     prim.Begin(MG_PRIM_SPRITE);
     for (index = page_top; index < reveal_num; index++) {
         line = tbl[index].y / font_h;
@@ -3337,26 +3345,26 @@ void ClsMes::DrawFont() {
             }
         }
         if (tbl[index].code >= MES_CODE_GAIJI && tbl[index].code < 0xFD32) {
+            RGBAQ_TYPE gaiji_color;
+            int        gaiji_outline;
             if (tbl[index].code == 0xFD26 || tbl[index].code == 0xFD27 || tbl[index].code == 0xFD28) {
-                glyph_color = GetFontColor(index, &outline);
+                gaiji_color = GetFontColor(index, &gaiji_outline);
             } else {
-                glyph_color.r = 0x80;
-                glyph_color.g = 0x80;
-                glyph_color.b = 0x80;
-                glyph_color.a = alpha;
+                gaiji_color.r = gaiji_color.g = gaiji_color.b = 0x80;
+                gaiji_color.a = alpha * 128 / 128;
             }
             MySetTex("gaiji", &prim);
-            DrawGaiji_sub(&prim, tbl[index].code, x, y, glyph_color, font_h);
+            DrawGaiji_sub(&prim, tbl[index].code, x, y, gaiji_color, font_h);
         } else {
-            outline = 1;
-            glyph_color = GetFontColor(index, &outline);
-            digit = GetDigitNo(tbl[index].code);
+            int        outline = 1;
+            RGBAQ_TYPE glyph_color = GetFontColor(index, &outline);
+            int digit = GetDigitNo(tbl[index].code);
             if (digit_font == 1 && digit != -1) {
                 MySetTex("gaiji", &prim);
                 DrawDigit(&prim, digit, x, y, alpha, &glyph_color);
             } else {
                 CFont::alpha = alpha;
-                if (line_alpha[line] >= 0) {
+                if (0 <= line_alpha[line]) {
                     DrawChar(&prim, tbl[index].code, x, y, outline, glyph_color, line_alpha[line]);
                 } else {
                     DrawChar(&prim, tbl[index].code, x, y, outline, glyph_color, alpha);
@@ -3375,12 +3383,12 @@ void ClsMes::DrawFont() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", DrawFont__6ClsMesFv);
 #endif
-#ifdef NONMATCHING
+#pragma divbyzerocheck reset
 void ClsMes::SetGoalCursorXY() {
     int dx;
     int dy;
-    int line;
     int count;
+    int line;
     int width;
 
     if (select < 0) {
@@ -3407,18 +3415,15 @@ void ClsMes::SetGoalCursorXY() {
                 count++;
             }
             width = 0;
-            for (line = select_top; line < count; line++) {
-                if (width < line_w[line]) {
-                    width = line_w[line];
+            for (int row = select_top; row < count; row++) {
+                if (width < line_w[row]) {
+                    width = line_w[row];
                 }
             }
             goal_cursor_x += (text_w - width) / 2;
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", SetGoalCursorXY__6ClsMesFv);
-#endif
 void ClsMes::StepSelectCursor(int steps) {
     int i;
 
@@ -3496,6 +3501,8 @@ void ClsMes::DrawEquipment(mgCDrawPrim *prim) {
     RECT       at = {191, 82, 9, 16};
     RGBAQ_TYPE color;
     int        line;
+    mgRect<int> xy;
+    mgRect<int> uv;
 
     for (line = 0; line < MES_LINE_MAX; line++) {
         if (equip_on[line] != 0) {
@@ -3503,13 +3510,11 @@ void ClsMes::DrawEquipment(mgCDrawPrim *prim) {
                 color = RgbqToUint(line_color[line]);
                 color.a = alpha * color.a / 128;
             } else {
-                color.r = 0x80;
-                color.g = 0x80;
-                color.b = 0x80;
-                color.a = alpha;
+                color.r = color.g = color.b = 0x80;
+                color.a = alpha * 128 / 128;
             }
-            mgRect<int> uv(at.x, at.y, at.width, at.height);
-            mgRect<int> xy((int)(draw_off_x + (line_pos[line][0] + equip_x[line])),
+            uv.Set(at.x, at.y, at.width, at.height);
+            xy.Set((int)(draw_off_x + (line_pos[line][0] + equip_x[line])),
                            (int)(draw_off_y + (line_pos[line][1] + equip_y[line])), at.width, at.height);
             set2DSprite(prim, xy, uv, &color);
         }
@@ -3523,6 +3528,8 @@ void ClsMes::DrawCross(mgCDrawPrim *prim) {
     RECT       at = {132, 104, 10, 16};
     RGBAQ_TYPE color;
     int        line;
+    mgRect<int> xy;
+    mgRect<int> uv;
 
     for (line = 0; line < MES_LINE_MAX; line++) {
         if (cross_on[line] != 0) {
@@ -3530,13 +3537,11 @@ void ClsMes::DrawCross(mgCDrawPrim *prim) {
                 color = RgbqToUint(line_color[line]);
                 color.a = alpha * color.a / 128;
             } else {
-                color.r = 0x80;
-                color.g = 0x80;
-                color.b = 0x80;
-                color.a = alpha;
+                color.r = color.g = color.b = 0x80;
+                color.a = alpha * 128 / 128;
             }
-            mgRect<int> uv(at.x, at.y, at.width, at.height);
-            mgRect<int> xy((int)(draw_off_x + (line_pos[line][0] + cross_x[line])),
+            uv.Set(at.x, at.y, at.width, at.height);
+            xy.Set((int)(draw_off_x + (line_pos[line][0] + cross_x[line])),
                            (int)(draw_off_y + (line_pos[line][1] + cross_y[line])), at.width, at.height);
             set2DSprite(prim, xy, uv, &color);
         }
@@ -3550,6 +3555,8 @@ void ClsMes::DrawRightDelta(mgCDrawPrim *prim) {
     RECT       at = {158, 240, 10, 16};
     RGBAQ_TYPE color;
     int        line;
+    mgRect<int> xy;
+    mgRect<int> uv;
 
     for (line = 0; line < MES_LINE_MAX; line++) {
         if (delta_on[line] != 0) {
@@ -3557,13 +3564,11 @@ void ClsMes::DrawRightDelta(mgCDrawPrim *prim) {
                 color = RgbqToUint(line_color[line]);
                 color.a = alpha * color.a / 128;
             } else {
-                color.r = 0x80;
-                color.g = 0x80;
-                color.b = 0x80;
-                color.a = alpha;
+                color.r = color.g = color.b = 0x80;
+                color.a = alpha * 128 / 128;
             }
-            mgRect<int> uv(at.x, at.y, at.width, at.height);
-            mgRect<int> xy((int)(draw_off_x + (line_pos[line][0] + delta_x[line])),
+            uv.Set(at.x, at.y, at.width, at.height);
+            xy.Set((int)(draw_off_x + (line_pos[line][0] + delta_x[line])),
                            (int)(draw_off_y + (line_pos[line][1] + delta_y[line])), at.width, font_h - 2);
             set2DSprite(prim, xy, uv, &color);
         }
@@ -3573,14 +3578,17 @@ void ClsMes::DrawRightDelta(mgCDrawPrim *prim) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", DrawRightDelta__6ClsMesFP11mgCDrawPrim);
 #endif
 #ifdef NONMATCHING
+extern RECT at_4185;
 void ClsMes::DrawDigit(mgCDrawPrim *prim, int digit, int x, int y, int alpha, RGBAQ_TYPE *color) {
-    RECT at = {176, 140, 16, 20};
+    RECT at = at_4185;
+    mgRect<int> xy;
+    mgRect<int> uv;
 
     at.x += digit % 5 * at.width;
     at.y += digit / 5 * at.height;
     color->a = alpha * 128 / 128;
-    mgRect<int> uv(at.x, at.y, at.width, at.height);
-    mgRect<int> xy(x, (int)(y + 2.0), at.width, at.height);
+    uv.Set(at.x, at.y, at.width, at.height);
+    xy.Set(x, (int)(y + 2.0), at.width, at.height);
     set2DSpriteEasy(prim, xy, uv, color);
 }
 #else

@@ -94,7 +94,7 @@ CDataWeapon::CDataWeapon(void) {
     durability = 0x14;
     levelup_exp = 0x14;
 }
-u8 CDataRoboPart::GetOffsetNo() { return this->offset_no; }
+int CDataRoboPart::GetOffsetNo() { return this->offset_no; }
 CDataBreedFish::CDataBreedFish(void) {
     memset(this, 0, 0x14);
 }
@@ -643,7 +643,7 @@ extern "C" u8 *GetGuardData__9CGameDataFi(CGameData *self, int item_no) {
     return 0;
 }
 #pragma optimization_level reset
-u8 CGameData::GetDataType(int item_no) {
+int CGameData::GetDataType(int item_no) {
     CDataCommon *common = GetCommonData(item_no);
     if (common != NULL) {
         return common->type;
@@ -792,7 +792,7 @@ char *GetItemMessage(int item_no) {
     }
     return 0;
 }
-short GetItemIconNo(int item_no) {
+int GetItemIconNo(int item_no) {
     CDataCommon *common = GameItemDataManage.GetCommonData(item_no);
     if (common != NULL) {
         return common->icon_no;

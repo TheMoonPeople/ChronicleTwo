@@ -51,6 +51,7 @@ extern char at_1394[];
 extern char at_1427[];
 extern char at_1428[];
 extern CScene *nowScene__2;
+void GuardEffectSet(CScene *scene, float *point);
 union ActionVector { float f[4]; int i[4]; u_long128 qw; };
 struct ThrowItemTable { int item_no[19]; };
 extern ThrowItemTable at_1398;
@@ -317,13 +318,13 @@ ACTION_SW_EFFECT *CActionChara::GetSwEffectPtr() {
 }
 void CActionChara::SetSoundInfoCopy() {
     CActionChara *chara;
-    u8 *info;
+    CHARA_SOUND_INFO *info;
 
     chara = next;
-    info = (u8 *)&foot_se_bank;
+    info = &sound_info;
     if (chara != NULL) {
         do {
-            memcpy(&chara->foot_se_bank, info, 0x28);
+            memcpy(&chara->sound_info, info, sizeof(CHARA_SOUND_INFO));
             chara = chara->next;
         } while (chara != NULL);
     }
@@ -1744,9 +1745,9 @@ int CActionChara::RoboTankMoveIF(int mode) {
     move_x *= 2.0f * (float)mgFrameRate;
     move_z *= 2.0f * (float)mgFrameRate;
     if (move_type == ACTION_MOVE_ROBO_TANK) {
-        loop_se->SeLoopPlayStop(se_bank, 14, 3, 12);
+        sound_info.loop_se->SeLoopPlayStop(sound_info.se_bank, 14, 3, 12);
         if (move_x != 0.0f || move_z != 0.0f) {
-            foot_effect_wait = 6;
+            sound_info.foot_effect_wait = 6;
         }
     }
     if (move_type == ACTION_MOVE_ROBO_TANK2) {
@@ -1925,8 +1926,8 @@ int CActionChara::RoboBikeMoveIF(int mode) {
         accele.speed = -3.0f;
     }
     if (accele.speed > 0.2f) {
-        foot_effect_wait = 2;
-        loop_se->SeLoopPlayStop(se_bank, 16, 3, 12);
+        sound_info.foot_effect_wait = 2;
+        sound_info.loop_se->SeLoopPlayStop(sound_info.se_bank, 16, 3, 12);
     }
     if (GamePad__2.On(0x4) != 0) {
         steering = leg_rotation[1] + 0.8f * (0.034906585f * -stick_x * accele.speed);
@@ -2050,9 +2051,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", RoboBikeMoveIF__12CActionCha
 int CActionChara::RoboAirMoveIF(int unk, int mode) {
     sceVu0FVECTOR position;
     sceVu0FVECTOR move_velocity;
-    sceVu0FVECTOR movement;
-    sceVu0FVECTOR target_position;
-    sceVu0FVECTOR rotation;
     CActionChara *target;
     CActionChara *arm;
     float         camera_angle;
@@ -2075,8 +2073,8 @@ int CActionChara::RoboAirMoveIF(int unk, int mode) {
     move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
     move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
     stand_flag = 0;
-    turn_speed = 8.0f;
     speed_limit = 7.0f;
+    turn_speed = 8.0f;
     accele.accele[0] += move_x;
     accele.accele[2] += move_z;
     if (move_type == ACTION_MOVE_ROBO_AIR2) {
@@ -2096,14 +2094,14 @@ int CActionChara::RoboAirMoveIF(int unk, int mode) {
         accele.accele[2] = -speed_limit;
     }
     move_x = accele.accele[0];
-    move_z = accele.accele[2];
     move_velocity[0] = move_x;
+    move_z = accele.accele[2];
     move_velocity[2] = move_z;
     accele.accele[0] *= 0.96f;
     accele.accele[2] *= 0.96f;
     if (move_type == ACTION_MOVE_ROBO_AIR) {
-        foot_effect_wait = 2;
-        loop_se->SeLoopPlayStop(se_bank, 20, 3, 12);
+        sound_info.foot_effect_wait = 2;
+        sound_info.loop_se->SeLoopPlayStop(sound_info.se_bank, 20, 3, 12);
         propeller = SearchObject("prop1");
         if (propeller != NULL) {
             propeller->GetRotation(propeller_rotation);
@@ -2120,10 +2118,13 @@ int CActionChara::RoboAirMoveIF(int unk, int mode) {
         }
     }
     if (move_type == ACTION_MOVE_ROBO_AIR2) {
-        foot_effect_wait = 2;
-        loop_se->SeLoopPlayStop(se_bank, 21, 3, 12);
+        sound_info.foot_effect_wait = 2;
+        sound_info.loop_se->SeLoopPlayStop(sound_info.se_bank, 21, 3, 12);
     }
     if (lock_on != 0) {
+        sceVu0FVECTOR movement;
+        sceVu0FVECTOR target_position;
+        sceVu0FVECTOR rotation;
         if (move_x != 0.0f || move_z != 0.0f) {
             SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), turn_speed), 0.0f);
             movement[0] = move_x;
@@ -2164,6 +2165,7 @@ int CActionChara::RoboAirMoveIF(int unk, int mode) {
             arm->SetRotation(0.0f, unitRotation(arm->CObjectFrame::frame, 0.0f, 16.0f), 0.0f);
         }
         if (move_x != 0.0f || move_z != 0.0f) {
+            sceVu0FVECTOR movement;
             SetRotation(0.0f, unitRotation(CObjectFrame::frame, atan2f(move_x, move_z), turn_speed), 0.0f);
             movement[0] = move_x;
             movement[1] = 0.0f;
@@ -2485,7 +2487,7 @@ int CActionChara::CheckDamage() {
     }
     battle_area = &nowScene__2->battle_area;
     battle_sound = nowScene__2->se_battle_id;
-    chara_sound = se_bank;
+    chara_sound = sound_info.se_bank;
     battle = GetBattleCharaInfo();
     GetPosition(position);
     if (damage_time > 0) {
@@ -2815,7 +2817,7 @@ void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
         if (foot == 0 && map != NULL) {
             foot = map->def_foot;
         }
-        foot_sound_id = foot;
+        sound_info.foot_sound_id = foot;
         adjusted_velocity[1] = 0.0f;
     } else {
         if (battle->chr_no == USER_CHARA_ROBO) {
@@ -2829,7 +2831,7 @@ void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
                 adjusted_velocity[1] = -3.5f;
             }
         }
-        foot_sound_id = -1;
+        sound_info.foot_sound_id = -1;
     }
     if (new_position[1] < -500.0f) {
         new_position[1] = 500.0f;
@@ -2879,10 +2881,10 @@ void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
             }
         }
     }
-    if (scene->battle_area.unk_9e == 2) {
+    if (scene->battle_area.lock_on_mode == 2) {
         target_no = RockOn_TargetSel(scene, target_no);
     }
-    if (scene->battle_area.unk_9e == 0) {
+    if (scene->battle_area.lock_on_mode == 0) {
         if (lock_on == 0) {
             target_no = DistCheck_Action2(scene, 0.5f, 400.0f, &target_distance, 0, NULL);
         } else {
@@ -3041,16 +3043,16 @@ void CActionChara::Step() {
     mgCFrame *gun;
 
     StepParam();
-    if (self->se_positional != 2) {
-        self->se_positional = 1;
+    if (self->sound_info.se_positional != 2) {
+        self->sound_info.se_positional = 1;
     }
     self->CCharacter2::Step();
     link = next;
     if (link != NULL) {
         do {
             chained = (CCharacter2 *)link;
-            if (chained->se_positional != 2) {
-                chained->se_positional = 0;
+            if (chained->sound_info.se_positional != 2) {
+                chained->sound_info.se_positional = 0;
             }
             chained->CCharacter2::Step();
             link = link->next;
@@ -3176,19 +3178,12 @@ void CActionChara::Initialize(mgCMemory *memory) {
     }
     ResetScript();
 }
-#ifdef NONMATCHING
 void CActionChara::Copy(CActionChara &dest, mgCMemory *memory) {
     dest = *this;
     if (memory != NULL) {
         CCharacter2::Copy(dest, memory);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", Copy__12CActionCharaFR12CActionCharaP9mgCMemory);
-#endif
-#ifndef NONMATCHING
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actionchara", __as__11CCharacter2FRC11CCharacter2);
-#endif
 
 extern char at_2818[];
 extern char at_2840[];
@@ -3216,14 +3211,12 @@ void GuardEffectSet(CScene *scene, float *point) {
         hit = NULL;
     } else {
         hit = BattleFX.hit + BattleFX.hit_next;
-        BattleFX.hit_next++;
+        ++BattleFX.hit_next;
         if (BattleFX.hit_next >= BattleFX.hit_num) {
             BattleFX.hit_next = 0;
         }
     }
-    float spread = 50.0f;
-    SethitEffect__15CHitEffectImageFPfPfffffii(hit, position, direction.f,
-                                          spread, 30.0f, 0.0f, 0.1f, 30, 32);
+    SethitEffect__15CHitEffectImageFPfPfffffii(hit, position, direction.f, 50.0f, 30.0f, 0.0f, 0.1f, 30, 32);
     hit->kind = 1;
     if (BattleFX.flush == NULL) {
         flush = NULL;

@@ -366,7 +366,7 @@ void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INF
     }
     leader = scene->GetCharacter(0);
     if (leader != NULL) {
-        leader->loop_se = &scene->loop_se;
+        leader->sound_info.loop_se = &scene->loop_se;
     }
     slot = 0;
     if (unit == ACTION_CHARA_ROBO) {

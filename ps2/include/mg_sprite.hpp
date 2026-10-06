@@ -59,7 +59,7 @@ enum {
  * Packet that mgC3DSprite::CreateRenderInfoPacket builds: the VU program's matrices, lighting and fog, its draw flags and the GS drawing state.
  *
  */
-struct mg3DSpriteRenderInfo {
+struct mg3DSpriteRenderHead {
     u_int dma_tag[4];              /**< DMA tag over the VU data and the program call. */
     u_int vif_code[4];             /**< VIF NOP, BASE, OFFSET and the UNPACK of the VU data. */
     sceVu0IVECTOR unk_20[3];
@@ -68,7 +68,10 @@ struct mg3DSpriteRenderInfo {
     sceVu0FMATRIX local_world;     /**< Transform from the sprite's local space to world space. */
     u_int unk_e0[11][4];
     sceVu0FVECTOR fog;             /**< Fog offset, near value, far value and scale. */
-    u_int unk_1a0[4];
+};
+
+struct mg3DSpriteRenderTail {
+    u_int unk_00[4];
     sceVu0FMATRIX view_screen;     /**< View-to-screen transform with its axes scaled by the local transform's scale. */
     u_int program_call[4];         /**< VIF MSCAL that starts the VU program. */
     u_int flags_tag[4];            /**< DMA tag and VIF UNPACK of the draw flags. */
@@ -79,6 +82,11 @@ struct mg3DSpriteRenderInfo {
     u_int prmode[4];               /**< PRMODE write of the visual's primitive attributes. */
     u_int fogcol[4];               /**< FOGCOL write of the fog colour. */
     u_int ret_tag[4];              /**< DMA tag that returns to the caller. */
+};
+
+struct mg3DSpriteRenderInfo {
+    mg3DSpriteRenderHead head;
+    mg3DSpriteRenderTail tail;
 };
 STATIC_ASSERT(sizeof(mg3DSpriteRenderInfo) == 0x280);
 

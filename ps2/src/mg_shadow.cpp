@@ -142,12 +142,12 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_shadow", CreateFacePacket__12mgCShadowM
 FACES_ID *mgCShadowMDT::CreateFace(FACES_ID *source, mgCMemory *face_memory, mgCMemory *index_memory,
                                mgCFace **result) {
     mgCFace *face = new ((u_long128 *)face_memory->Alloc(5)) mgCFace;
-    face->vertex_num = source->face_num / 3;
-    face->type = source->type_low;
+    face->vertex_num = (int)source->face_num / 3;
+    face->type = source->type;
     face->index_stride = 3;
     face->index_num = face->vertex_num * face->index_stride;
     // Only the position index of each of a triangle's three vertices is kept.
-    face->material = source->material_low;
+    face->material = source->material;
     u_char *vertex;
     source = (FACES_ID *)(vertex = (u_char *)source->index);
     int *index = (int *)index_memory->Alloc(face->index_num * 4 / 16 + 0x10);

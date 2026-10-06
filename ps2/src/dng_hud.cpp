@@ -36,6 +36,7 @@ extern "C" void *__ct__11mgCDrawPrimFv(void *);
 #include "prespr.hpp"
 #include "scenesnd.hpp"
 #include "dng_hud.hpp"
+#include "userdata.hpp"
 #include "character.hpp"
 #include "nd_meswin.hpp"
 
@@ -442,7 +443,56 @@ void CDamageScore::SetSprite(float *pos, int u0, int v0, int u1, int v1) {
     sprite_u = u0;
     sprite_v = v0;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__12CDamageScoreFv);
+void CDamageScore::Draw() {
+    if (active == 0) {
+        return;
+    }
+    if (sprite != 0) {
+        CPreSprite prim;
+        int screen[4];
+        prim.Initialize(NULL, NULL);
+        prim.Preset2D();
+        prim.Coord(1);
+        prim.Begin(6);
+        prim.Texture(TEX_SystenFrame);
+        prim.AlphaTestEnable(1);
+        pos[3] = 1.0f;
+        if (mgTransWorldPrim(screen, pos)) {
+            prim.Color(0x80, 0x80, 0x80, alpha);
+            screen[1] += (int)(12.0f * sinf(bounce[0])) << 4;
+            prim.TextureCrd(sprite_u, sprite_v);
+            prim.Vertex4(screen[0], screen[1], 0);
+            prim.TextureCrd(sprite_u + sprite_w, sprite_v + sprite_h);
+            prim.Vertex4(screen[0] + (sprite_w << 4), screen[1] + (sprite_h << 4), 0);
+        }
+        prim.End();
+    }
+    if (sprite == 0) {
+        CPreSprite prim;
+        int screen[4];
+        prim.Initialize(NULL, NULL);
+        prim.Preset2D();
+        prim.Coord(1);
+        prim.Begin(6);
+        prim.Texture(TEX_SystenFrame);
+        prim.AlphaTestEnable(1);
+        pos[3] = 1.0f;
+        for (int i = 0; text[i] > 0; i++) {
+            if (mgTransWorldPrim(screen, pos)) {
+                prim.Color(color[0], color[1], color[2], alpha);
+                screen[0] -= (length * digit_w) << 3;
+                screen[0] += (i * digit_w) << 4;
+                screen[1] += (int)(48.0f * sinf(bounce[i])) << 4;
+                int digit = text[i] - '0';
+                prim.TextureCrd(digit_u + digit * digit_w, digit_v);
+                prim.Vertex4(screen[0], screen[1], 0);
+                prim.TextureCrd(digit_w + (digit_u + digit * digit_w), digit_v + digit_h);
+                prim.Vertex4(screen[0] + (digit_w << 4), screen[1] + (digit_h << 4), 0);
+            }
+        }
+        prim.End();
+    }
+}
 void CDamageScore::Step() {
     if (active != 0) {
         if (sprite != 0) {
@@ -564,7 +614,93 @@ void CDamageScore2::Step() {
         }
     }
 }
+#ifdef NONMATCHING
+void CLockOnModel::Draw() {
+    float target_pos[4];
+    int top_left[4];
+    int bottom_right[4];
+
+    CActionChara *player = (CActionChara *)scene->GetCharacter(0);
+    if (player == NULL) {
+        return;
+    }
+    name = NULL;
+    if (player->target_no == -1) {
+        return;
+    }
+    CActiveMonster *target = (CActiveMonster *)scene->GetCharacter(player->target_no);
+    if (target == NULL) {
+        return;
+    }
+    float height = target->body_height;
+    if (!(target->target_dist <= target->clip_dist)) {
+        return;
+    }
+    if (target->alpha <= 0.0f) {
+        return;
+    }
+    CHARA_ENTRY_OBJECT *entry = target->GetEntryObjectPos(0, 0, target_pos);
+    if (entry == NULL) {
+        return;
+    }
+    float size = entry->unk_04;
+    sceVu0CopyVector(pos, target_pos);
+    if (!(height <= 85.0f)) {
+        height = 85.0f;
+    }
+    pos[1] += height;
+    name = target->tbl->name;
+    int monster_id = -1;
+    if (DngUserData->active_chr_no == USER_CHARA_MONSTER) {
+        monster_id = DngUserData->monster_id;
+    }
+    int message = -1;
+    if (target->monster_id == monster_id) {
+        message = target->unk_134c;
+        if (message >= 0) {
+            message += 5000;
+        }
+    }
+    unk_90 = message;
+    if (player->lock_on == 0) {
+        target_pos[1] += 5.0f + 10.0f * size;
+        SetRotation(0.0f, angle, 0.0f);
+        SetPosition(target_pos);
+        CObjectFrame::DrawDirect();
+        return;
+    }
+    CPreSprite prim;
+    prim.Initialize(NULL, NULL);
+    prim.Preset2D();
+    prim.Coord(1);
+    prim.Begin(6);
+    prim.Texture(TEX_SystenFrame);
+    prim.Color(0x80, 0x80, 0x80, 0x80);
+    if (mgTransWorldPrim3DSprite(top_left, bottom_right, target_pos, 20.0f * size, 20.0f * size, 0) != 0) {
+        bottom_right[0] -= 0x120;
+        bottom_right[1] -= 0x120;
+        prim.TextureCrd(0xC0, 0x16);
+        prim.Vertex4(top_left[0], top_left[1], 0);
+        prim.TextureCrd(0xD2, 0x28);
+        prim.Vertex4(top_left[0] + 0x120, top_left[1] + 0x120, 0);
+        prim.TextureCrd(0xD2, 0x16);
+        prim.Vertex4(bottom_right[0], top_left[1], 0);
+        prim.TextureCrd(0xE4, 0x28);
+        prim.Vertex4(bottom_right[0] + 0x120, top_left[1] + 0x120, 0);
+        prim.TextureCrd(0xC0, 0x26);
+        prim.Vertex4(top_left[0], bottom_right[1], 0);
+        prim.TextureCrd(0xD2, 0x3A);
+        prim.Vertex4(top_left[0] + 0x120, bottom_right[1] + 0x120, 0);
+        prim.TextureCrd(0xD2, 0x28);
+        prim.Vertex4(bottom_right[0], bottom_right[1], 0);
+        prim.TextureCrd(0xE4, 0x3A);
+        prim.Vertex4(bottom_right[0] + 0x120, bottom_right[1] + 0x120, 0);
+    }
+    prim.End();
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__12CLockOnModelFv);
+#endif
 void CLockOnModel::DrawMess(int tex_block) {
     if (name != NULL) {
         if (mes->MakeAnd3DPosSet(name, pos, 0, -48) == 0) {
@@ -594,7 +730,86 @@ void CWarningGage2::Step() {
         time = 0;
     }
 }
+#ifdef NONMATCHING
+void CWarningGage2::Draw() {
+    if (time >= 20 && layout != WARNING_GAGE_LAYOUT_NONE) {
+        CPreSprite prim;
+        prim.Initialize(NULL, NULL);
+        prim.Preset2D();
+        prim.Begin(6);
+        prim.Color(0x80, 0x80, 0x80, 0x80);
+        if (layout == WARNING_GAGE_LAYOUT_MAIN) {
+            for (int i = 0; i < 3; i++) {
+                if (warning[i] == 0) {
+                    continue;
+                }
+                if (rate[i] == 0.0f) {
+                    switch (i) {
+                        case 0:
+                            prim.SetIRect(0xB7, 0x29, 0x44, 0x14, 0x13C, 0xEC);
+                            prim.SetIRect(0xAA, 0x10, 0x1C, 0x24, 0xD2, 0xE2);
+                            break;
+                        case 1:
+                            prim.SetIRect(0x112, 0x40, 0x44, 0x14, 0x13C, 0xD8);
+                            prim.SetIRect(0x12E, 0xF, 0x1A, 0x36, 0x108, 0xCA);
+                            break;
+                        case 2:
+                            prim.SetIRect(0x19B, 0x49, 0x44, 0x14, 0x13C, 0xD8);
+                            prim.SetIRect(0x1B7, 0x38, 0x1A, 0x16, 0xEE, 0xD4);
+                            break;
+                    }
+                } else {
+                    switch (i) {
+                        case 0:
+                            prim.SetIRect(0xB7, 0x29, 0x44, 0x14, 0x13C, 0xEC);
+                            prim.SetIRect(0xAA, 0x10, 0x1C, 0x24, 0xD2, 0xE2);
+                            break;
+                        case 1:
+                            prim.SetIRect(0x112, 0x40, 0x44, 0x14, 0x13C, 0xEC);
+                            prim.SetIRect(0x12E, 0xF, 0x1A, 0x36, 0x122, 0xCA);
+                            break;
+                        case 2:
+                            prim.SetIRect(0x19B, 0x49, 0x44, 0x14, 0x13C, 0xEC);
+                            prim.SetIRect(0x1B7, 0x38, 0x1A, 0x16, 0xEE, 0xEA);
+                            break;
+                    }
+                }
+            }
+        }
+        if (layout == WARNING_GAGE_LAYOUT_ROBO) {
+            for (int i = 0; i < 2; i++) {
+                if (warning[i] == 0) {
+                    continue;
+                }
+                if (rate[i] == 0.0f) {
+                    switch (i) {
+                        case 0:
+                            break;
+                        case 1:
+                            prim.SetIRect(0x140, 0x21, 0x44, 0x14, 0x13C, 0xD8);
+                            prim.SetIRect(0x15C, 0x10, 0x1A, 0x16, 0xEE, 0xD4);
+                            break;
+                    }
+                } else {
+                    switch (i) {
+                        case 0:
+                            prim.SetIRect(0x92, 0x26, 0x44, 0x14, 0x13C, 0xEC);
+                            prim.SetIRect(0x85, 0xD, 0x1C, 0x24, 0xD2, 0xE2);
+                            break;
+                        case 1:
+                            prim.SetIRect(0x140, 0x21, 0x44, 0x14, 0x13C, 0xEC);
+                            prim.SetIRect(0x15C, 0x10, 0x1A, 0x16, 0xEE, 0xEA);
+                            break;
+                    }
+                }
+            }
+        }
+        prim.End();
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__13CWarningGage2Fv);
+#endif
 void CLockOnModel::Initialize(CScene *scene) {
     this->scene = scene;
     name = NULL;

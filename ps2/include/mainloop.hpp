@@ -83,6 +83,22 @@ enum DebugMenuMode {
 
 // clang-format on
 /**
+ * Rows of the debug start menu's top screen; rows 1 to 8 are the MainLoopMode they start,
+ * and each row's value in SelectArg is the map, language, item set or cfg number it uses.
+ */
+// clang-format off
+enum DebugMenuRow {
+    DEBUG_ROW_EVENT_SELECT = 0,  /**< Opens the event selection. */
+    DEBUG_ROW_LANGUAGE     = 9,  /**< Language to switch to. */
+    DEBUG_ROW_ITEM_SET     = 10, /**< Item set handed to DebugGetItem. */
+    DEBUG_ROW_SAVE_DATA    = 11, /**< Opens the save data editor. */
+    DEBUG_ROW_LOAD_CFG     = 12, /**< Number of the dbg/game%d.cfg file to load. */
+    DEBUG_ROW_CONVERT_SAVE = 13, /**< Starts the save data conversion. */
+    DEBUG_ROW_NUM          = 14, /**< Number of rows. */
+};
+
+// clang-format on
+/**
  * Steps of the pause menu, as PauseMenuMode holds them.
  */
 // clang-format off
@@ -121,8 +137,7 @@ enum MasterDebugCodeValue {
  */
 struct INIT_LOOP_ARG {
     int map_no;       /**< Map or dungeon the mode starts in, or -1 for none. */
-    int selected_map_no;
-    u8 unk_8[0x3C];
+    s8 unk_4[0x40];
     int floor_no;     /**< Dungeon floor to start on, or -1 for the saved one. */
     int event_no;     /**< Event to run on entry, or -1 for none. */
     int unk_4c;

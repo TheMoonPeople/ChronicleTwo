@@ -220,11 +220,11 @@ struct BREEDFISH_USED {
     u16   param[5];     /**< Racing parameters of the fish. */
     u16   timer;        /**< Time left, counted down by the game clock. */
     u8    unk_32[3];
-    u8    unk_35;
-    s16   unk_36;
+    s8    unk_35;
+    u16   unk_36;
     u16   flags;        /**< Flags; 0x2 marks an electric fish, which is never rubbish. */
     u8    unk_3a;
-    u8    unk_3b;
+    s8    grow_count;   /**< Food eaten towards the next growth; the fish grows past 10. */
     u8    unk_3c;
     u8    unk_3d;
     u8    unk_3e[2];
@@ -374,7 +374,7 @@ int GetNum();
      * @address 0x198870
      * @size 0x8
      */
-    u8 GetActiveSetNum();
+    int GetActiveSetNum();
 
     /**
      * Adds to the count of a stackable item, emptying the place when nothing is left if asked, and
@@ -420,7 +420,7 @@ int GetUseCapacity();
      * @address 0x198B20
      * @size 0x30
      */
-    u8 IsActiveSet();
+    int IsActiveSet();
 
     /**
      * Renames an attachment, fish, ridepod part or weapon.
@@ -1033,7 +1033,7 @@ STATIC_ASSERT(sizeof(CMonsterBox) == 0x2F00);
  */
 class CFishAquarium {
 public:
-    s16           unk_0;
+    u16           unk_0;
     s16           unk_2;
     CGameDataUsed fish_tank[6];  /**< First tank. */
     CGameDataUsed sub_tank[4];   /**< Second tank, where fish crowded together tire. */
@@ -1324,8 +1324,8 @@ STATIC_ASSERT(sizeof(INVENT_CREATED_ITEM) == 0x4);
  *
  */
 struct SCOOP_INFO {
-    u8 known;    /**< Non-zero once the scoop's event flag has been seen. */
-    u8 obtained; /**< Non-zero once a photo or idea of the scoop has been obtained. */
+    s8 known;    /**< Non-zero once the scoop's event flag has been seen. */
+    s8 obtained; /**< Non-zero once a photo or idea of the scoop has been obtained. */
     u8 unk_2[2];
 };
 STATIC_ASSERT(sizeof(SCOOP_INFO) == 0x4);
@@ -1406,6 +1406,10 @@ public:
     u8                  unk_cd8[0x88];
     char                photo_work[30][0x2000];    /**< Pixels of the photos carried. */
     u8                  unk_3cd60[0x100];
+
+    CScoopDataManager *GetScoopData() {
+        return &scoop;
+    }
 
     /**
      *
@@ -1685,6 +1689,18 @@ public:
     CFishingRecord     fish_record;          /**< The fishing records. */
     unsigned long      costume_bit;          /**< Costumes collected, one bit each. */
     u8                 unk_455a0[0x200];
+
+    CInventUserData *GetInventUserData() {
+        return &invent_data;
+    }
+
+    /**
+     * Creates the data of a new game.
+     *
+     * @mangled __ct__16CUserDataManagerFv
+     * @address 0x1957C0
+     */
+    CUserDataManager();
 
     /**
      * Resets everything to the start of a new game.
@@ -2093,7 +2109,7 @@ public:
      * @address 0x19DAE0
      * @size 0x54
      */
-    s16 CheckRobotCore();
+    int CheckRobotCore();
 
     /**
      * Gives a character's defence.

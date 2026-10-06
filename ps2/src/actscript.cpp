@@ -38,17 +38,14 @@
 #include <libvu0.h>
 extern CScene *nowScene__2;
 extern ACTION_DAMAGE *LastCInfo2__2;
-extern int sw_1617;
-extern int init_1618;
-extern int canon_slot_1620;
-extern int init_1621;
-extern int cnt_1661;
-extern int init_1662;
 extern int (*ext_func__3[256])(RS_STACKDATA *, int);
 extern float at_1181__3[4];
 extern float at_1417__3[4];
 extern int at_1597__2[4];
-extern char at_1645__2[];
+struct CanonObjectNames {
+    char *name[4][2];
+};
+extern CanonObjectNames at_1645__2;
 struct RingColors {
     int rgb[4][3];
 };
@@ -196,7 +193,15 @@ int _SET_PALLET(RS_STACKDATA *stack, int argc) {
     action_info.chara->pallet[0].SetAnim(red, green, blue, pulses, duration, repeats);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _CHECK_EQUIP__FP12RS_STACKDATAi);
+int _CHECK_EQUIP(RS_STACKDATA *stack, int argc) {
+    if (argc != 2) {
+        return 0;
+    }
+    int slot = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    CGameDataUsed *equip = DngUserData->GetCharaDataPtr(action_info.chara->chara_type)->equip;
+    SetStack__FP12RS_STACKDATAi__3(stack, equip[slot].item_no);
+    return 1;
+}
 extern "C" int _CAMERA_QUAKE__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *area = &nowScene__2->battle_area;
     if (area == NULL) {
@@ -238,7 +243,7 @@ int _SE_PLAY(RS_STACKDATA *stack, int argc) {
     int sound = GetStackInt__FP12RS_STACKDATA__3(stack);
     int bank = -1;
     if (requested_bank == -1) {
-        bank = action_info.chara->se_bank;
+        bank = action_info.chara->sound_info.se_bank;
     }
     if (bank == -1) {
         return 0;
@@ -255,12 +260,12 @@ int _SE_LOOP_PLAY(RS_STACKDATA *stack, int argc) {
     int loop = GetStackInt__FP12RS_STACKDATA__3(stack);
     int bank = -1;
     if (requested_bank == -1) {
-        bank = action_info.chara->se_bank;
+        bank = action_info.chara->sound_info.se_bank;
     }
     if (bank == -1) {
         return 0;
     }
-    CLoopSeMngr *sounds = action_info.chara->loop_se;
+    CLoopSeMngr *sounds = action_info.chara->sound_info.loop_se;
     if (sounds != NULL) {
         sounds->SeLoopPlayStop(bank, sound, loop, 13);
     }
@@ -274,8 +279,26 @@ int _GET_SHOT_TYPE(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAi__3(stack, attack_type);
     return 1;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _GET_MONS_ID__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _GET_FRONT_VEC__FP12RS_STACKDATAi);
+int _GET_MONS_ID(RS_STACKDATA *stack, int argc) {
+    if (argc != 1) {
+        return 0;
+    }
+    int monster_id = -1;
+    if (DngUserData->GetActiveChrNo() == USER_CHARA_MONSTER) {
+        monster_id = GetBattleCharaInfo()->GetMonsterID();
+    }
+    SetStack__FP12RS_STACKDATAi__3(stack, monster_id);
+}
+int _GET_FRONT_VEC(RS_STACKDATA *stack, int argc) {
+    sceVu0FVECTOR front;
+    if (argc != 3) {
+        return 0;
+    }
+    sceVu0CopyVector(front, action_info.chara->front_vec);
+    SetStack__FP12RS_STACKDATAf__3(stack++, front[0]);
+    SetStack__FP12RS_STACKDATAf__3(stack++, front[1]);
+    SetStack__FP12RS_STACKDATAf__3(stack, front[2]);
+}
 extern "C" int _GET_PADON__FP12RS_STACKDATAi__2(RS_STACKDATA *stack, int argc) {
     if (argc <= 0) {
         return 0;
@@ -862,7 +885,7 @@ void ShotMonicaMagic(float *position, float *direction, float scale) {
         action_info.chara->effect_man->SetColPrim(prim, -1, -1);
         calcWeaponParam2(5, prim->param->hit_count);
     }
-    sndSePlay(action_info.chara->se_bank, 13, 0);
+    sndSePlay(action_info.chara->sound_info.se_bank, 13, 0);
 }
 void ShotNormalGun(float *position, float *direction) {
     action_info.chara->effect_man->CreateEffSpt(at_1458__3, 0, 0);
@@ -879,7 +902,7 @@ void ShotNormalGun(float *position, float *direction) {
     }
     action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
-    sndSePlay(action_info.chara->se_bank, 5, 0);
+    sndSePlay(action_info.chara->sound_info.se_bank, 5, 0);
 }
 void ShotMachineGun(float *position, float *direction, char *damageName, float damage) {
     MachineGun.Set(position, direction);
@@ -897,8 +920,8 @@ void ShotMachineGun(float *position, float *direction, char *damageName, float d
     action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
     CActionChara *owner = action_info.chara;
-    if (owner->loop_se != NULL) {
-        owner->loop_se->SeLoopPlayStop(owner->se_bank, 5, 5, 13);
+    if (owner->sound_info.loop_se != NULL) {
+        owner->sound_info.loop_se->SeLoopPlayStop(owner->sound_info.se_bank, 5, 5, 13);
     }
 }
 void ShotGrenadGun(float *position, float *direction) {
@@ -927,7 +950,7 @@ void ShotGrenadGun(float *position, float *direction) {
     }
     action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
-    sndSePlay(action_info.chara->se_bank, 5, 0);
+    sndSePlay(action_info.chara->sound_info.se_bank, 5, 0);
 }
 void ShotLaserGun(float *position, float *direction, int type) {
     float muzzle[4];
@@ -985,10 +1008,89 @@ void ShotLaserGun(float *position, float *direction, int type) {
     action_info.chara->effect_man->SetValue(2, color_b, 0, -1);
     action_info.chara->effect_man->SetValue(3, color_c, 0, -1);
     action_info.chara->effect_man->SetValue(4, color_d, 0, -1);
-    sndSePlay(action_info.chara->se_bank, 5, 0);
+    sndSePlay(action_info.chara->sound_info.se_bank, 5, 0);
 }
 
+#ifdef NONMATCHING
+int _SET_SHOT(RS_STACKDATA *stack, int argc) {
+    float position[4];
+    float direction[4];
+    int whp;
+    int magic_whp;
+
+    if (argc < 4 || argc > 5) {
+        return 0;
+    }
+    int object_no = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    GetStackString__FP12RS_STACKDATA__3(stack++);
+    GetStackInt__FP12RS_STACKDATA__3(stack++);
+    int wait = GetStackInt__FP12RS_STACKDATA__3(stack++);
+    float scale = 1.0f;
+    if (argc == 5) {
+        scale = GetStackFloat__FP12RS_STACKDATA__3(stack);
+    }
+    CBattleCharaInfo *info = GetBattleCharaInfo();
+    int chara = info->chr_no;
+    sceVu0CopyVector(direction, action_info.chara->front_vec);
+    sceVu0CopyVector(position, action_info.chara->object[object_no].pos);
+    if (chara == USER_CHARA_MAX) {
+        info->GetNowWhp(1, &whp);
+        mgCFrame *muzzle = action_info.chara->SearchObject(at_1579);
+        mgCFrame *grip = action_info.chara->SearchObject(at_1580__2);
+        if (muzzle != NULL && grip != NULL) {
+            muzzle->GetWorldPosition0(direction);
+            grip->GetWorldPosition0(position);
+            sceVu0SubVector(direction, direction, position);
+            sceVu0Normalize(direction, direction);
+        }
+        CGameDataUsed *equip = info->equip;
+        int attack_type = equip[1].GetAttackType();
+        if (whp > 0) {
+            if (attack_type == 0 || attack_type == 11) {
+                if (action_info.chara->shot_wait > 0) {
+                    return 1;
+                }
+                action_info.chara->shot_wait = wait;
+                ShotNormalGun(position, direction);
+            }
+            if (attack_type == 30) {
+                ShotMachineGun(position, direction, at_1581__3, 300.0f);
+            }
+            if (attack_type == 10) {
+                ShotGrenadGun(position, direction);
+            }
+            if (attack_type == 20) {
+                int laser = 0;
+                if (equip[1].item_no == 0x1F) {
+                    laser = 0;
+                }
+                if (equip[1].item_no == 0x20) {
+                    laser = 1;
+                }
+                if (equip[1].item_no == 0x22) {
+                    laser = 2;
+                }
+                ShotLaserGun(position, direction, laser);
+            }
+        } else {
+            sndSePlay(action_info.chara->sound_info.se_bank, 4, 0);
+        }
+    }
+    if (chara == USER_CHARA_MONICA) {
+        if (action_info.chara->shot_wait > 0) {
+            return 1;
+        }
+        action_info.chara->shot_wait = wait;
+        info->GetNowWhp(1, &magic_whp);
+        if (magic_whp > 0) {
+            ShotMonicaMagic(position, direction, scale);
+        }
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _SET_SHOT__FP12RS_STACKDATAi);
+#endif
 int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc) {
     float facing[4];
     float position[4];
@@ -1030,7 +1132,190 @@ int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc) {
     info->ClearMagicSwordPow();
     return 1;
 }
+#ifdef NONMATCHING
+int _SHOT(RS_STACKDATA *stack, int argc) {
+    float position[4];
+    float target_pos[4];
+    float direction[4];
+    CanonObjectNames canon;
+    float rocket_target[4];
+    float missile_target[4];
+    float laser_target[4];
+    float beam_target[4];
+    float beam_offset[4];
+    int whp;
+
+    CBattleCharaInfo *info = GetBattleCharaInfo();
+    int left = GetStackInt__FP12RS_STACKDATA__3(stack);
+    if (action_info.chara->shot_wait > 0) {
+        return 1;
+    }
+    action_info.chara->shot_wait = 2;
+    int attack_type = info->equip[0].GetAttackType();
+    static int sw = 1;
+    static int canon_slot = 0;
+    if (attack_type != 40) {
+        mgCFrame *muzzle;
+        if (attack_type == 90) {
+            if (left != 0) {
+                muzzle = action_info.chara->SearchObject(at_1725__2);
+            } else {
+                muzzle = action_info.chara->SearchObject(at_1726);
+            }
+        } else if (sw != 0) {
+            muzzle = action_info.chara->SearchObject(at_1726);
+            sw = 0;
+        } else {
+            muzzle = action_info.chara->SearchObject(at_1725__2);
+            sw = 1;
+        }
+        if (muzzle == NULL) {
+            return 0;
+        }
+        muzzle->GetWorldPosition0(position);
+    } else {
+        canon = at_1645__2;
+        mgCFrame *muzzle = action_info.chara->SearchObject(canon.name[canon_slot][0]);
+        mgCFrame *barrel = action_info.chara->SearchObject(canon.name[canon_slot][1]);
+        canon_slot++;
+        if (canon_slot >= 4) {
+            canon_slot = 0;
+        }
+        if (muzzle == NULL || barrel == NULL) {
+            return 0;
+        }
+        muzzle->GetWorldPosition0(position);
+        barrel->GetWorldPosition0(target_pos);
+    }
+    sceVu0CopyVector(direction, action_info.chara->front_vec);
+    info->GetNowWhp(1, &whp);
+    if (whp <= 0) {
+        return 1;
+    }
+    if (attack_type == 10) {
+        sceVu0ScaleVector(rocket_target, direction, 500.0f);
+        sceVu0AddVector(rocket_target, position, rocket_target);
+        CRocketLauncher *launcher = RocketLauncher.Get();
+        if (launcher != NULL) {
+            launcher->SetPos(position, rocket_target, direction);
+            launcher->target_chara = action_info.chara->target_no;
+            launcher->speed = 20.0f;
+            launcher->homing_delay = 2;
+            launcher->homing_time = 30;
+            CColPrim *prim = ColPrimMan.GetPrim();
+            int col_prim_id = -1;
+            if (prim != NULL) {
+                prim->SetDamage(at_1727, 0);
+                prim->SetCoord(position, 10.0f);
+                SetDamageParam(prim, 1);
+                col_prim_id = prim->id;
+                calcWeaponParam2(1, prim->param->hit_count);
+                sndSePlay(action_info.chara->sound_info.se_bank, 7, 0);
+            }
+            launcher->col_prim_id = col_prim_id;
+        }
+    }
+    if (attack_type == 30) {
+        ShotMachineGun(position, direction, at_1728__2, 500.0f);
+        static int cnt = 0;
+        cnt++;
+        if (cnt >= 3) {
+            cnt = 0;
+            CLoopSeMngr *sounds = action_info.chara->sound_info.loop_se;
+            if (sounds != NULL) {
+                sounds->SeLoopPlayStop(action_info.chara->sound_info.se_bank, 6, 10, 13);
+            }
+        }
+    }
+    if (attack_type == 70) {
+        sceVu0ScaleVector(missile_target, direction, 500.0f);
+        sceVu0AddVector(missile_target, position, missile_target);
+        direction[0] += direction[2] * (fRand(1.0f) - 0.5f);
+        direction[2] += direction[0] * (fRand(1.0f) - 0.5f);
+        direction[1] += fRand(1.0f);
+        CRocketLauncher *launcher = RocketLauncher.Get();
+        if (launcher != NULL) {
+            launcher->SetPos(position, missile_target, direction);
+            launcher->target_chara = action_info.chara->target_no;
+            CColPrim *prim = ColPrimMan.GetPrim();
+            int col_prim_id = -1;
+            if (prim != NULL) {
+                prim->SetDamage(at_1729__2, 0);
+                prim->SetCoord(position, 5.0f);
+                SetDamageParam(prim, 1);
+                col_prim_id = prim->id;
+                calcWeaponParam2(1, prim->param->hit_count);
+                sndSePlay(action_info.chara->sound_info.se_bank, 7, 0);
+            }
+            launcher->col_prim_id = col_prim_id;
+        }
+    }
+    if (attack_type == 40) {
+        sceVu0ScaleVector(laser_target, direction, 500.0f);
+        sceVu0AddVector(laser_target, position, laser_target);
+        sceVu0SubVector(direction, target_pos, position);
+        sceVu0Normalize(direction, direction);
+        CLaserGun *laser = LaserGun.Get();
+        if (laser != NULL) {
+            laser->SetPos(position, laser_target, direction);
+            laser->target_chara = action_info.chara->target_no;
+            laser->SetVisualCode(3);
+            CColPrim *prim = ColPrimMan.GetPrim();
+            int col_prim_id = -1;
+            if (prim != NULL) {
+                prim->SetDamage(at_1730__2, 0);
+                prim->SetCoord(position, 5.0f);
+                SetDamageParam(prim, 1);
+                col_prim_id = prim->id;
+                calcWeaponParam2(1, prim->param->hit_count);
+                sndSePlay(action_info.chara->sound_info.se_bank, 7, 0);
+            }
+            laser->col_prim_id = col_prim_id;
+            action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
+            action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
+            action_info.chara->effect_man->SetValue(0, 1, 0, -1);
+            action_info.chara->effect_man->SetValue(1, 0.0f, 0, -1);
+            action_info.chara->effect_man->SetValue(2, 128.0f, 0, -1);
+            action_info.chara->effect_man->SetValue(3, 128.0f, 0, -1);
+            action_info.chara->effect_man->SetValue(4, 160.0f, 0, -1);
+            action_info.chara->shot_wait = 4;
+        }
+    }
+    if (attack_type == 90) {
+        sceVu0ScaleVector(beam_target, direction, 500.0f);
+        sceVu0AddVector(beam_target, position, beam_target);
+        sceVu0ScaleVector(beam_offset, direction, 20.0f);
+        sceVu0AddVector(position, position, beam_offset);
+        CLaserGun *laser = LaserGun.Get();
+        if (laser != NULL) {
+            laser->SetPos(position, beam_target, direction);
+            laser->target_chara = action_info.chara->target_no;
+            laser->SetVisualCode(4);
+            CColPrim *prim = ColPrimMan.GetPrim();
+            int col_prim_id = -1;
+            if (prim != NULL) {
+                prim->SetDamage(at_1730__2, 0);
+                prim->SetCoord(position, 5.0f);
+                SetDamageParam(prim, 1);
+                col_prim_id = prim->id;
+                calcWeaponParam2(1, prim->param->hit_count);
+            }
+            laser->col_prim_id = col_prim_id;
+            action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
+            action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
+            action_info.chara->effect_man->SetValue(0, 1, 0, -1);
+            action_info.chara->effect_man->SetValue(1, 128.0f, 0, -1);
+            action_info.chara->effect_man->SetValue(2, 64.0f, 0, -1);
+            action_info.chara->effect_man->SetValue(3, 0.0f, 0, -1);
+            action_info.chara->effect_man->SetValue(4, 160.0f, 0, -1);
+            action_info.chara->shot_wait = 4;
+        }
+    }
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/actscript", _SHOT__FP12RS_STACKDATAi);
+#endif
 int _GET_OBJECT_POS(RS_STACKDATA *stack, int argc) {
     float pos[4];
     if (argc != 4) {

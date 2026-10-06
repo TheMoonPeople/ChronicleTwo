@@ -400,6 +400,19 @@ public:
 
     /**
      *
+     * Places a line at a screen position of its own; ignores lines out of range.
+     *
+     */
+    void SetMovePosGyou(int line, int x, int y) {
+        if (line >= 0 && line < MES_LINE_MAX) {
+            line_pos[line][0] = x;
+            line_pos[line][1] = y;
+            line_pos_on[line] = 1;
+        }
+    }
+
+    /**
+     *
      * Gives back how wide a string of font numbers draws.
      *
      * @mangled GetStrWidth__6ClsMesFPc
@@ -1033,6 +1046,12 @@ public:
      * @size 0xB80
      */
     void DrawMesWin();
+
+    void SetItemMes(int index, int mes) {
+        if (index >= 0 && index < MES_ITEM_MAX) {
+            item_mes[index] = mes;
+        }
+    }
 
     /**
      *

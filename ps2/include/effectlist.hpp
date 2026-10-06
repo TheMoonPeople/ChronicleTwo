@@ -42,6 +42,15 @@ enum CrossFadeType {
  */
 class CEffectList {
 public:
+    CEffectList() {
+        pack = NULL;
+        name = NULL;
+        block = -1;
+        effect_num = 0;
+        managers = NULL;
+        sprites = NULL;
+    }
+
     char *name;                /**< Copy, in the list's memory, of the name the list was loaded under. */
     u_int *pack;               /**< Pack file the effects and their textures were read from. */
     int block;                 /**< Texture block the pack's textures were entered into. */

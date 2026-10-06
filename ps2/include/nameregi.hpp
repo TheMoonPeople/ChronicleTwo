@@ -154,6 +154,7 @@ public:
      * @size 0x50
      */
     int GetActiveFontMode();
+    CNameRegiMenu();
 
     /**
      *
@@ -396,7 +397,7 @@ void NameRegistDraw();
  * @address 0x312700
  * @size 0x40
  */
-s8 ConvertNameRegiBaseBoardTable(int font_mode);
+int ConvertNameRegiBaseBoardTable(int font_mode);
 
 /**
  * What the name entry screen is to name.

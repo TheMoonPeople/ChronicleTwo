@@ -240,18 +240,16 @@ int CEditParts::GetFenceSide(float *end_a, float *end_b) {
     sceVu0ApplyMatrix(end_b, matrix, point_b);
     return 1;
 }
-#ifdef NONMATCHING
 int CEditParts::GetWallPlane(int wall_no, WallInfo *out_info) {
     sceVu0FVECTOR sum;
-    sceVu0FVECTOR max;
-    sceVu0FVECTOR min;
+    mgVu0FBOX     box;
     sceVu0FVECTOR poly_max;
     sceVu0FVECTOR poly_min;
-    CCPoly       *poly;
-    int           vertex_count;
     int           found;
-    int           poly_count;
+    int           vertex_count;
     int           i;
+    int           poly_count;
+    CCPoly       *poly;
 
     if (!IsWallParts()) {
         return 0;
@@ -266,11 +264,11 @@ int CEditParts::GetWallPlane(int wall_no, WallInfo *out_info) {
             if (!found) {
                 sceVu0Normalize(out_info->plane, poly->normal);
                 out_info->plane[3] = -sceVu0InnerProduct(out_info->plane, poly->vertex[0]);
-                mgVectorMaxMin(max, min, poly->vertex[0], poly->vertex[1], poly->vertex[2]);
+                mgVectorMaxMin(box.max, box.min, poly->vertex[0], poly->vertex[1], poly->vertex[2]);
                 found = 1;
             } else {
                 mgVectorMaxMin(poly_max, poly_min, poly->vertex[0], poly->vertex[1], poly->vertex[2]);
-                mgVectorMaxMin(max, min, max, min, poly_max, poly_min);
+                mgVectorMaxMin(box.max, box.min, box.max, box.min, poly_max, poly_min);
             }
             mgAddVector(sum, poly->vertex[0]);
             mgAddVector(sum, poly->vertex[1]);
@@ -279,10 +277,10 @@ int CEditParts::GetWallPlane(int wall_no, WallInfo *out_info) {
         }
     }
     sceVu0ScaleVector(out_info->center, sum, 1.0f / (float)vertex_count);
-    out_info->box.max[1] = max[1] - out_info->center[1];
-    out_info->box.min[1] = min[1] - out_info->center[1];
-    out_info->box.max[0] = mgDistVectorXZ(max, out_info->center);
-    out_info->box.min[0] = -mgDistVectorXZ(min, out_info->center);
+    out_info->box.max[1] = box.max[1] - out_info->center[1];
+    out_info->box.min[1] = box.min[1] - out_info->center[1];
+    out_info->box.max[0] = mgDistVectorXZ(box.max, out_info->center);
+    out_info->box.min[0] = -mgDistVectorXZ(box.min, out_info->center);
     out_info->box.max[2] = 0.0f;
     out_info->box.min[2] = 0.0f;
     out_info->box.max[3] = 1.0f;
@@ -290,9 +288,7 @@ int CEditParts::GetWallPlane(int wall_no, WallInfo *out_info) {
     out_info->center[3] = 1.0f;
     return found;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editparts", GetWallPlane__10CEditPartsFiPQ210CEditParts8WallInfo);
-#endif
+
 int CEditParts::GetWallGroupNum() {
     CEditPartsInfo *river_info;
 

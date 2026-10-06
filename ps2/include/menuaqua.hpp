@@ -1006,7 +1006,7 @@ int GetFishImgPath(char *path, int fish_no, BREEDFISH_USED *fish);
  * @address 0x213900
  * @size 0x70
  */
-signed char GetFishImageColor(int fish_no, int which);
+int GetFishImageColor(int fish_no, int which);
 
 /**
  * Replaces the images of a fish's model with those of its colouring.

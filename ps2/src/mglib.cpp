@@ -85,9 +85,11 @@ extern char at_715[];
 extern char at_716[];
 extern "C" int fptosi(float value);
 extern "C" void Exit__2(int code);
+#ifndef NONMATCHING
 extern "C" int sceDevConsInit();
 extern "C" int sceDevConsOpen(int x, int y, int columns, int rows);
 extern "C" void sceDevConsClose(int handle);
+#endif
 void StoreImage(int index);
 
 #ifdef NONMATCHING
@@ -746,7 +748,7 @@ void mgEndDrawShadow(mgCTexture *shadow, mgCTexture *unused) {
         alpha.bits.b = SCE_GS_ALPHA_CD;
         alpha.bits.c = SCE_GS_ALPHA_AS;
         alpha.bits.d = SCE_GS_ALPHA_CD;
-        prim.Direct(SCE_GS_ALPHA_1, alpha.value);
+        prim.Direct(SCE_GS_ALPHA_1, *(u_long *)&alpha);
         texa.TA0 = 48;
         texa.TA1 = 128;
         texa.AEM = 1;
@@ -1095,13 +1097,12 @@ void mgSetPkMoveImage(mgCTexture *source, mgRect<int> rect, mgCTexture *destinat
     }
     mgSetPkMoveImage(&source->tex0, rect, &destination->tex0, extra0, extra1, extra2);
 }
-#ifdef NONMATCHING
 void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int dst_x, int dst_y, int direction) {
-    sceVif1Packet *vif;
-    int            src_width;
     int            dst_width;
+    int            src_width;
     int            left;
     int            top;
+    sceVif1Packet *vif;
     int            right;
     int            bottom;
 
@@ -1114,11 +1115,20 @@ void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int 
     if (src_width < 64) {
         src_width = 64;
     }
-    if (src_rect.right - src_rect.left + 1 > 0 && src_rect.bottom - src_rect.top + 1 > 0) {
+    right = src_rect.right;
+    if (right - src_rect.left + 1 > 0 && (bottom = src_rect.bottom, bottom - src_rect.top + 1 > 0)) {
         left = src_rect.left / 16;
         top = src_rect.top / 16;
-        right = src_rect.right / 16;
-        bottom = src_rect.bottom / 16;
+        if (right % 16 != 0) {
+            right = right / 16;
+        } else {
+            right = right / 16;
+        }
+        if (bottom % 16 != 0) {
+            bottom = bottom / 16;
+        } else {
+            bottom = bottom / 16;
+        }
         sceVif1PkCnt(vif, 0);
         sceVif1PkOpenDirectCode(vif, 0);
         sceVif1PkOpenGifTag(vif, *(u_long128 *)&mgGiftagAD);
@@ -1136,9 +1146,6 @@ void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int 
         sceVif1PkCloseDirectCode(vif);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkMoveImage__FP9sceGsTex09mgRect_i_P9sceGsTex0iii);
-#endif
 void mgSetPkMoveImage(mgCTexture *source, mgRect<int> source_rect, mgCTexture *destination,
                       mgRect<int> destination_rect, mgCDrawEnv *draw_env) {
     if (source == NULL || destination == NULL) {
@@ -1147,13 +1154,9 @@ void mgSetPkMoveImage(mgCTexture *source, mgRect<int> source_rect, mgCTexture *d
     mgSetPkMoveImage(&source->tex0, source_rect, &destination->tex0, destination->height,
                      destination_rect, draw_env);
 }
-#ifdef NONMATCHING
 void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int dst_height, mgRect<int> dst_rect, mgCDrawEnv *env) {
     sceVif1Packet *vif;
-    sceGsTest      test;
-    sceGsZbuf      zbuf;
-    sceGsAlpha     alpha;
-    int            width;
+    int width;
 
     width = dst->TBW * 64;
     if (width % 64 != 0) {
@@ -1170,21 +1173,21 @@ void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int 
     sceVif1PkAddGsAD(vif, SCE_GS_TEXFLUSH, 0);
     if (env != NULL) {
         sceVif1PkAddGsAD(vif, SCE_GS_TEST_1, env->test.value);
-        zbuf = mgZBUF_1;
+        sceGsZbuf zbuf = mgZBUF_1;
         zbuf.bits.zmsk = env->zbuf.bits.zmsk;
         sceVif1PkAddGsAD(vif, SCE_GS_ZBUF_1, *(u_long *)&zbuf);
         sceVif1PkAddGsAD(vif, SCE_GS_ALPHA_1, env->alpha.value);
     } else {
-        test = mgTEST_1;
+        sceGsTest test = mgTEST_1;
         test.bits.ate = 0;
         test.bits.zte = 1;
         test.bits.ztst = SCE_GS_ALWAYS;
         test.bits.date = 0;
         sceVif1PkAddGsAD(vif, SCE_GS_TEST_1, *(u_long *)&test);
-        zbuf = mgZBUF_1;
+        sceGsZbuf zbuf = mgZBUF_1;
         zbuf.bits.zmsk = 1;
         sceVif1PkAddGsAD(vif, SCE_GS_ZBUF_1, *(u_long *)&zbuf);
-        alpha = mgALPHA_1;
+        sceGsAlpha alpha = mgALPHA_1;
         alpha.bits.a = SCE_GS_ALPHA_ZERO;
         alpha.bits.b = SCE_GS_ALPHA_ZERO;
         alpha.bits.c = SCE_GS_ALPHA_FIX;
@@ -1197,17 +1200,14 @@ void mgSetPkMoveImage(sceGsTex0 *src, mgRect<int> src_rect, sceGsTex0 *dst, int 
     sceVif1PkAddGsAD(vif, SCE_GS_PRIM, 0x116);
     sceVif1PkAddGsAD(vif, SCE_GS_RGBAQ, 0x80808080);
     sceVif1PkAddGsAD(vif, SCE_GS_UV, (u_long)src_rect.left | ((u_long)src_rect.top << 16));
-    sceVif1PkAddGsAD(vif, SCE_GS_XYZF2, (u_long)(mgScreenOffx * 16 + dst_rect.left) | ((u_long)(mgScreenOffy * 16 + dst_rect.top) << 16));
+    sceVif1PkAddGsAD(vif, SCE_GS_XYZF2, (u_long)((mgScreenOffx << 4) + dst_rect.left) | ((u_long)((mgScreenOffy << 4) + dst_rect.top) << 16));
     sceVif1PkAddGsAD(vif, SCE_GS_UV, (u_long)src_rect.right | ((u_long)src_rect.bottom << 16));
-    sceVif1PkAddGsAD(vif, SCE_GS_XYZF2, (u_long)(mgScreenOffx * 16 + dst_rect.right) | ((u_long)(mgScreenOffy * 16 + dst_rect.bottom) << 16));
+    sceVif1PkAddGsAD(vif, SCE_GS_XYZF2, (u_long)((mgScreenOffx << 4) + dst_rect.right) | ((u_long)((mgScreenOffy << 4) + dst_rect.bottom) << 16));
     sceVif1PkAddGsAD(vif, SCE_GS_TEXFLUSH, 0);
     sceVif1PkCloseGifTag(vif);
     sceVif1PkCloseDirectCode(vif);
     mgSetPkFrameBuffer(-1, -1, -1, -1);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgSetPkMoveImage__FP9sceGsTex09mgRect_i_P9sceGsTex0i9mgRect_i_P10mgCDrawEnv);
-#endif
 void mgSetPkClearScreen(u_char red, u_char green, u_char blue, u_char alpha) {
     sceVif1Packet *packet = mgVif1Packet;
     sceVif1PkCnt(mgVif1Packet, 0);
@@ -1270,7 +1270,6 @@ int mgStoreImage(mgCTexture *texture, u_long128 *buffer) {
     sceGsSyncPath(0, 0);
     return texture->bpp * (texture->width * texture->height);
 }
-#ifdef NONMATCHING
 int mgStoreZBuffImage(mgRect<int> &rect, u_long128 *buffer) {
     sceGsStoreImage image;
     int             width;
@@ -1295,13 +1294,11 @@ int mgStoreZBuffImage(mgRect<int> &rect, u_long128 *buffer) {
     sceGsSyncPath(0, 0);
     depth = (u_int *)buffer;
     for (pixel = 0; pixel < width * height; pixel++) {
-        depth[pixel] &= 0xFFFFFF;
+        *depth &= 0xFFFFFF;
+        depth++;
     }
     return width * height / 4;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgStoreZBuffImage__FR9mgRect_i_P1);
-#endif
 float mgConvZBuffToDist(u_int zbuf) {
     return mgRenderInfo.view_screen[3][2] / ((float)zbuf - mgRenderInfo.view_screen[2][2]);
 }
@@ -1311,7 +1308,7 @@ mgCTexture *mgGetTextureZ(int index) {
     }
     return &fixz_tex[index];
 }
-int prim_clip_check(float *vertex) {
+static int prim_clip_check(float *vertex) {
     mgRENDER_INFO *info = &mgRenderInfo;
     if (vertex[0] < 0.0f || vertex[0] > 4095.0f) {
         return 0;
@@ -1383,17 +1380,14 @@ void mgGetCameraPose(float (*pose)[4]) {
     *(u_long128 *)pose[2] = *(u_long128 *)mgRenderInfo.camera_pose[2];
     *(u_long128 *)pose[3] = *(u_long128 *)mgRenderInfo.camera_pose[3];
 }
-#ifdef NONMATCHING
 int mgTransWorldPrim3DSprite(int *top_left, int *bottom_right, float *position, float width, float height, int unused) {
-    sceVu0FVECTOR projected;
     sceVu0FVECTOR first;
     sceVu0FVECTOR second;
-    float         scaled_width;
-    float         scaled_height;
-    float         reciprocal;
-    float         half_width;
-    float         half_height;
-    int           visible;
+    sceVu0FVECTOR projected;
+    float scaled_width;
+    float scaled_height;
+    float reciprocal;
+    int visible;
 
     scaled_width = width * mgRenderInfo.view_screen[0][0];
     scaled_height = height * mgRenderInfo.view_screen[1][1];
@@ -1405,14 +1399,14 @@ int mgTransWorldPrim3DSprite(int *top_left, int *bottom_right, float *position, 
     projected[0] *= reciprocal;
     projected[1] *= reciprocal;
     projected[2] *= reciprocal;
+    scaled_width *= reciprocal;
+    scaled_height *= reciprocal;
     sceVu0CopyVector(first, projected);
     sceVu0CopyVector(second, projected);
-    half_width = 0.5f * (scaled_width * reciprocal);
-    first[0] -= half_width;
-    half_height = 0.5f * (scaled_height * reciprocal);
-    first[1] -= half_height;
-    second[0] += half_width;
-    second[1] += half_height;
+    first[0] -= 0.5f * scaled_width;
+    first[1] -= 0.5f * scaled_height;
+    second[0] += 0.5f * scaled_width;
+    second[1] += 0.5f * scaled_height;
     top_left[0] = (int)(16.0f * first[0]);
     top_left[1] = (int)(16.0f * first[1]);
     top_left[2] = (int)first[2];
@@ -1424,9 +1418,6 @@ int mgTransWorldPrim3DSprite(int *top_left, int *bottom_right, float *position, 
     visible = prim_clip_check(first);
     return visible & prim_clip_check(second);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", mgTransWorldPrim3DSprite__FPiPiPfffi);
-#endif
 #pragma global_optimizer off
 static int CheckVuProgID(int id) {
     if (id < user_vu_prog_base) {
@@ -1559,7 +1550,25 @@ extern "C" mgCMemory *__ct__9mgCMemoryFv(mgCMemory *memory) {
 }
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", __sinit_mglib_cpp);
+extern "C" void *__construct_array(void *array, void *(*constructor)(void *), void *destructor,
+                                   unsigned int element_size, unsigned int count);
+extern "C" void *__ct__10mgCDrawEnvFv(void *);
+extern "C" void *__ct__10mgCTextureFv(void *);
+extern "C" void *__ct__14mgCDrawManagerFv(void *);
+extern "C" void *__ct__17mgCTextureManagerFv(void *);
+extern "C" void __sinit_mglib_cpp() {
+    mgCDrawEnv *draw_env = mgRenderInfo.draw_env;
+    do {
+        __ct__10mgCDrawEnvFv(draw_env);
+        draw_env++;
+    } while (draw_env < &mgRenderInfo.draw_env[2]);
+    __ct__17mgCTextureManagerFv(&mgTexManager);
+    __ct__14mgCDrawManagerFv(&mgDrawManager);
+    __construct_array(packet_buf, (void *(*)(void *))__ct__9mgCMemoryFv, NULL, sizeof(mgCMemory), 2);
+    __construct_array(data_buf, (void *(*)(void *))__ct__9mgCMemoryFv, NULL, sizeof(mgCMemory), 2);
+    __ct__10mgCTextureFv(&frame_tex);
+    __construct_array(fixz_tex, __ct__10mgCTextureFv, NULL, sizeof(mgCTexture), 2);
+}
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mglib", dimx_281__DATA);

@@ -56,13 +56,24 @@ foreach(row IN LISTS unit_rows)
         endforeach()
     endif()
     list(APPEND base_compiler -DMIGRATED_CPP)
+    set(base_output -o ${base} ${source})
+    state_options(${source} state_stamp state_inputs state_row)
+    if(NOT state_row STREQUAL "")
+        set(base_compiler ${PYTHON} ${SCRIPTS_DIR}/build/state.py --objdiff-base ${base} ${source}
+                          ${CC_FLAGS} -lang c++ -DMIGRATED_CPP)
+        list(APPEND base_environment MW_DIR=${MW_CC_DIR})
+        set(base_output "")
+        list(APPEND state_inputs ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/state.py)
+    endif()
     add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/${base}
         COMMAND ${CMAKE_COMMAND} -E env ${base_environment}
                 ${base_compiler}
-                -o ${base} ${source}
+                ${base_output}
         DEPENDS ${CMAKE_SOURCE_DIR}/${source} ${PROJECT_HEADERS}
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/ee_gcc.py
+                ${state_stamp}
+                ${state_inputs}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "CC (objdiff base) ${source}"
         VERBATIM)

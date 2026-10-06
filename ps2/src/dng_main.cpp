@@ -354,14 +354,14 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     area->unk_54 = 0;
     area->pause_flag = 0;
     area->timer = 0;
-    area->unk_64 = 0;
+    area->minimap_reveal = 0;
     area->quake_count = 0;
     area->script.running = 0;
     area->subject_counter = 0;
     area->unk_98 = 0;
     area->floor_status = 0;
     area->unk_8c = 0;
-    area->unk_9e = 0;
+    area->lock_on_mode = 0;
     BattleAreaScene->map_name[0] = '\0';
     for (int i = 0; i < 8; i++) {
         CActionChara *chara = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CActionChara)) + 2)) CActionChara;
@@ -664,8 +664,8 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     }
     AutoMapGen.grid_w = 30;
     AutoMapGen.grid_h = 30;
-    MainChara__2->foot_se_bank = DngMainScene->se_base_id;
-    MainChara__2->foot_sound_id = -1;
+    MainChara__2->sound_info.foot_se_bank = DngMainScene->se_base_id;
+    MainChara__2->sound_info.foot_sound_id = -1;
     sndInitPort(7);
     char snd_path[64];
 
@@ -679,9 +679,9 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
         if (DngUserData->active_chr_no == 3) {
             base = 0;
         }
-        MainChara__2->se_bank = sndLoadSound(7, (u32 *) BuffReadData, &BaseCharacter[base]);
+        MainChara__2->sound_info.se_bank = sndLoadSound(7, (u32 *) BuffReadData, &BaseCharacter[base]);
     }
-    MainChara__2->se_bank_2 = DngMainScene->se_battle_id;
+    MainChara__2->sound_info.se_bank_2 = DngMainScene->se_battle_id;
     MainChara__2->effect_man = FxScriptMan;
     NowLoadingBarStep();
     BuffStageMain.stSetBuffer(MainBuffer->stGetTop(), MainBuffer->stGetRest());
@@ -1506,7 +1506,7 @@ void DngMainDraw() {
             picture->neta_id = -1;
             picture->npc_no = -1;
             if (point != NULL) {
-                neta = point->invent.unk_20;
+                neta = point->invent.neta_no;
             }
             if (neta == 30001) {
                 neta = -1;
@@ -2573,7 +2573,7 @@ int EventScriptSetup(SYSTEM_SCRIPT_INFO *script) {
         ResetEyeView(MainChara__2);
         memcpy(&EventCamera, &MainCamera, sizeof(CCameraControl));
         DngMainScene->active_camera = 1;
-        MainChara__2->foot_sound_id = -1;
+        MainChara__2->sound_info.foot_sound_id = -1;
         LoopSoundManager(0);
         BattleAreaScene->pause_flag |= 0x400;
         MainChara__2->RemoveThrowItem();

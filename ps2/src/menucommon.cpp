@@ -110,14 +110,6 @@ extern s8 mes_cord_conv_1193[16][2];
 
 static inline unsigned int align16_blocks(unsigned int n);
 
-extern "C" u16 MenuTexPosNo;
-
-extern "C" u16 MenuTexPosNo_local;
-
-extern "C" u8 MenuSpiTextureName[];
-
-extern "C" CMenuPosDataForm *menu_formPt;
-
 int menu_spi_analyze_func_strcut1(MENU_SPI_ANALYZE_STRUCT1 *table, char *name);
 
 int menu_dtype_init(CMenuPosDataForm *form, SPI_STACK *stack, int argc);
@@ -125,75 +117,7 @@ int menu_dtype_init(CMenuPosDataForm *form, SPI_STACK *stack, int argc);
 extern "C" MENU_FORM_ACTION
     *menu_spi_form_action_info;
 
-extern "C" MENU_PARTS_EFFECT_STRUCT1 *menu_parts_effect_ptr;
-
-extern "C" MENUFORMPARTS_TYPE *menu_form_part;
-
-extern "C" int menu_form_partsno;
-
-extern "C" u8 SpiMenuExeCommandFlag;
-
-extern "C" short menu_analyze_texblock;
-
-extern "C" short menu_analyze_formno;
-
-extern "C" short menu_analyze_formno_offset;
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_1728[];
-
-extern "C" char *tbl_1759[];
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2060[];
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2074[];
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2144[];
-
-extern "C" SPI_TAG_PARAM menu_analyze_tag[];
-
-extern "C" u8 at_2253__2[];
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_1994[];
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2369[];
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2422[];
-
-extern MENU_SPI_ANALYZE_STRUCT1 tbl_2516[];
-
-extern "C" u8 at_2538[];
-
-extern "C" SPI_TAG_PARAM menu_execommand_analyze_tag[];
-
-extern short sort_top_type;
-
-extern u16 Menu_Target_No;
-
-extern u16 Menu_Target_No_local;
-
-extern float SndPortVol_Ob;
-
-extern float SndPortVol_Base;
-
-extern float SndPortVol_Event;
-
-extern float SndPortVol_Env;
-
-extern int SndPortCheck_EventPort;
-
-extern char at_1173[];
-
-extern char *langdirpathTable_1161[7];
-
 extern "C" int fptosi(float value);
-
-extern "C" int CheckTypeEnableStack__13CGameDataUsedFv(CGameDataUsed *self);
-
-extern "C" int GetNum__13CGameDataUsedFv(CGameDataUsed *self);
-
-extern "C" int AddNum__13CGameDataUsedFii(CGameDataUsed *self, int count, int flag);
-
-extern "C" int EnterTexture__17mgCTextureManagerFiPcPP1iiiP1Uli(...);
 
 int CompGameData(int itemA, int itemB);
 
@@ -573,7 +497,7 @@ int MenuSeiton(CGameDataUsed *items, int count) {
     }
     for (i = 0; i < count; i++) {
         first = &board[i];
-        if (CheckTypeEnableStack__13CGameDataUsedFv(first) != 0) {
+        if (first->CheckTypeEnableStack() != 0) {
             for (j = i + 1; j < count; j++) {
                 second = &board[j];
                 if (first->item_no == second->item_no) {
@@ -581,11 +505,11 @@ int MenuSeiton(CGameDataUsed *items, int count) {
                     if (room <= 0) {
                         break;
                     }
-                    moved = GetNum__13CGameDataUsedFv(second);
+                    moved = second->GetNum();
                     if (room < moved) {
                         moved = room;
                     }
-                    AddNum__13CGameDataUsedFii(first, moved, 1);
+                    first->AddNum(moved, 1);
                     second->DeleteNum(moved);
                 }
             }
@@ -792,8 +716,7 @@ void MenuWorkTextureEnter(int id, char *name, int width, int height, int format)
     if (height_rest != 0) {
         height += 64 - height_rest;
     }
-    EnterTexture__17mgCTextureManagerFiPcPP1iiiP1Uli(manager, id, name, NULL, width, height, format,
-                                                     0, 0, 0);
+    manager->EnterTexture(id, name, NULL, width, height, format, NULL, 0, 0);
 }
 void MenuEnterIMG(int size, u8 *data, char *name) {
     mgCTextureManager *manager = &mgTexManager;
@@ -882,7 +805,17 @@ int GetDispVolumeForFloat(float volume) {
 float GetFloatCommaValue(float value) {
     return value - (float)fptosi(value);
 }
+#ifdef NONMATCHING
+int CalcScrlBarPutPos(int top, float pos, int length, float pos_max) {
+    int y = top;
+    if (pos_max != 0.0f) {
+        y = fptosi((float)top + (float)length * (pos / pos_max));
+    }
+    return y;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menucommon", CalcScrlBarPutPos__Fifif);
+#endif
 void Trans3DPosTo2DPos(mgCCamera *camera, mgCFrame *frame, int *out) {
     float view[4][4];
     float camera_pos[4];
@@ -2205,11 +2138,11 @@ int _MENU_SCENE_FADE(SPI_STACK *stack, int argc) {
         frames = spiGetStackInt(stack);
     }
     if (fade_in != 0) {
-        ((CFadeInOut *)((u8 *)MenuMainScene + 0x2C70))->FadeIn(frames);
+        MenuMainScene->fade.FadeIn(frames);
     } else {
-        ((CFadeInOut *)((u8 *)MenuMainScene + 0x2C70))->FadeOut(frames, 0.0f, 0.0f, 0.0f);
+        MenuMainScene->fade.FadeOut(frames, 0.0f, 0.0f, 0.0f);
     }
-    ((CFadeInOut *)((u8 *)MenuMainScene + 0x2C70))->FadeStep();
+    MenuMainScene->fade.FadeStep();
     return 1;
 }
 int _MENU_SE_PLAY(SPI_STACK *stack, int argc) {

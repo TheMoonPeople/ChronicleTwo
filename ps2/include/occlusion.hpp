@@ -3,6 +3,7 @@
 #include "common.h"
 
 #include <libvu0.h>
+#include <cstring>
 
 /**
  * @file
@@ -17,6 +18,8 @@
  */
 class COcclusion {
 public:
+    COcclusion() { memset(this, 0, sizeof(COcclusion)); }
+
     int enable;                   /**< Non-zero while the occluder is in use. */
     u8 unk_4[0xC];
     sceVu0FVECTOR vertex[4];      /**< Corners of the occluder in world space. */

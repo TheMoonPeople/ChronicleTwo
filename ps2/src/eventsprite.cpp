@@ -18,7 +18,19 @@
 float ParabolicInitialVectorY(float start_y, float end_y, float gravity, float frames) {
     return ((2.0f * (end_y - start_y)) - (frames * (gravity * frames))) / (2.0f * frames);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/eventsprite", CalcPosParabolicJump__FPfPfPffff);
+void CalcPosParabolicJump(float *pos, float *start, float *end, float gravity, float frames, float frame) {
+    float y = start[1];
+    float velocity = ParabolicInitialVectorY(start[1], end[1], gravity, 1.0f + frames);
+    for (int i = 0; i < (int)frame; i++) {
+        velocity += gravity;
+        y += velocity;
+    }
+    float rate = frame / frames;
+    pos[0] = LinerInterpolation(start[0], end[0], rate);
+    pos[1] = y;
+    pos[2] = LinerInterpolation(start[2], end[2], rate);
+    pos[3] = 1.0f;
+}
 void CMarker::Draw(void) {
     if (this->count > 0) {
         this->count = this->count - 1;

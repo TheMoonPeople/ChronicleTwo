@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+#include <cstring>
+
 #include "menusys.hpp"
 #include "scenesnd.hpp"
 #include "userdata.hpp"
@@ -135,6 +137,37 @@ public:
 
     /**
      *
+     * Creates a shop with no goods and no prices.
+     *
+     */
+    CShop() { memset(this, 0, sizeof(CShop)); }
+
+    /**
+     *
+     * Gives the item number of one of the goods, or 0 for a line past the goods.
+     *
+     */
+    int GetItemNo(int no) {
+        if (no < 0 || no >= item_num) {
+            return 0;
+        }
+        return item_no[no];
+    }
+
+    /**
+     *
+     * Gives how many of one of the goods the player holds, or 0 for a line past the goods.
+     *
+     */
+    int GetHaveNum(int no) {
+        if (no < 0 || no >= item_num) {
+            return 0;
+        }
+        return have_num[no];
+    }
+
+    /**
+     *
      * Counts how many of each of the goods the player already holds.
      *
      * @mangled CheckSyojiHin__5CShopFv
@@ -250,7 +283,42 @@ public:
      * Creates the menu with every field cleared and the cursor ready to be put in place.
      *
      */
-    CShopMenu();
+    CShopMenu() {
+        list_pos = 0;
+        list_top = 0;
+        bag_pos = 0;
+        bag_top = 0;
+        key_arg_no = 0;
+        num_cursor = 0;
+        total = 0;
+        cursor_reset = 1;
+        error = -1;
+        num = 0;
+        num_max = 0;
+        arrow_flash[0] = 0;
+        arrow_flash[1] = 0;
+        list_x = 0.0f;
+        list_y = 0.0f;
+        shop_name_ofs_x = 0;
+        shop_name_ofs_y = 0;
+        price_mes_width = 0;
+        unk_1e6 = 0;
+        no_price_mes_width = 0;
+        unk_1ea = 0;
+        scrl_bar_top = NULL;
+        scrl_bar_body = NULL;
+        scrl_bar_bottom = NULL;
+        pack = NULL;
+        pack_size = 0;
+        se_handle = 0;
+        trade_brd = NULL;
+        item_list = NULL;
+        shop_name_brd = NULL;
+        money_brd = NULL;
+        exp_brd = NULL;
+        medal_brd = NULL;
+        item_brd = NULL;
+    }
 
     /**
      *

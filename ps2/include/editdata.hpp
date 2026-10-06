@@ -154,6 +154,19 @@ struct EditDataParts {
 STATIC_ASSERT(sizeof(EditDataParts) == 0x24);
 
 /**
+ * Header the saved bytes of a river grid start with, followed by one byte for
+ * each cell.
+ */
+struct EditDataGrid {
+    u8  num_x;     /**< Number of cells along the X axis. */
+    u8  num_z;     /**< Number of cells along the Z axis. */
+    s16 pos[3];    /**< Position of the grid on the edit map. */
+    u8  unk_8[0x10];
+};
+
+STATIC_ASSERT(sizeof(EditDataGrid) == 0x18);
+
+/**
  * House of a saved town layout, recording a villager who lives in it.
  */
 struct EditDataHouse {

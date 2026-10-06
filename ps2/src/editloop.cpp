@@ -44,13 +44,12 @@
 #include "scene.hpp"
 #include "editloop.hpp"
 #include <cstring>
+#include "wavetable.hpp"
 
 void EditModeChgStep(CScene *scene);
 
 extern EditDebugInfo EdDebugInfo;
-extern DEBUG_INFO DebugInfo;
 extern CEditEvent EditEvent;
-extern "C" int Reset__10CEditEventFv(CEditEvent *event);
 
 static const int kEventNoMapJump = 0x1869F;
 static const int kEventDataCallFlag = 8;
@@ -73,34 +72,20 @@ extern char at_2262[];
 
 extern mgCMemory ControlCharaBuff;
 extern mgCMemory MainDataBuff;
-extern EditDebugInfo EdDebugInfo;
 extern int EditDrawCancelFlag;
 extern int LoopCounter;
-extern int LanguageCode;
-extern mgCTextureManager mgTexManager;
 extern CScene *MainScene__2;
 extern int SubMapLoadBG;
 extern int now_load_map_no;
-extern u_long128 *read_buffer;
 extern int MapNo;
 extern int DelMainNPCflag;
 extern CMapTreasureBox *TreasureBox;
 extern int beforeAnalyze[16];
-extern DEBUG_INFO DebugInfo;
-extern CEditEvent EditEvent;
 extern float at_3041[4];
 extern CCharacter2 *WalkChara;
 extern int ControlMode;
 extern int LoopMode;
-extern ClsMes EventMes1;
 extern char at_2747[9];
-extern "C" void LoadEditInfo__13CEditInfoMngrFPciP9mgCMemory(void *infoMngr, char *data, int size,
-                                                             mgCMemory *memory);
-extern "C" void CreateTrBox__4CMapFP15CMapTreasureBoxiP9mgCMemory(CMap *map, CMapTreasureBox *boxes,
-                                                                  int count, int stack);
-extern "C" int Reset__10CEditEventFv(CEditEvent *event);
-extern "C" void *__ct__10CRunScriptFv(void *);
-extern CGamePad GamePad__2;
 extern int LockChara;
 extern int EditModeChgCnt;
 extern int EditModeChgEvent;
@@ -125,7 +110,6 @@ extern int EditModeChgFlag;
 #include "photo.hpp"
 #include "screeneffect.hpp"
 #include "snd_mngr.hpp"
-#include "wavetable.hpp"
 extern mgCFrame * WaterFrame;
 extern mgCFrame * RedBicMark;
 extern mgCFrame * BlueBicMark;
@@ -140,7 +124,6 @@ extern int PauseFlag;
 extern int PreEditMenuCnt;
 extern u_long128 * main_pkt1;
 extern u_long128 * main_pkt2;
-extern u_long128 * read_buffer_end;
 extern u_long128 * MenuDataBuf;
 extern int MenuDataSize;
 extern int FixCharaBuffSize;
@@ -156,7 +139,6 @@ extern mgCMemory init_dbuf[2];
 extern mgCMemory WorkBuffer;
 extern mgCMemory MenuBuffer__2;
 extern mgCMemory ChrEffBuffer;
-extern mgCMemory ScriptBuffer__2;
 extern mgCMemory TotalDataBuff;
 extern mgCMemory MainCharaBuff;
 extern mgCMemory SubDataBuff;
@@ -178,7 +160,7 @@ void editLoadSound(int map_no);
 #endif
 
 // Code (.text)
-extern "C" CUserDataManager *GetUserData__Fv__2(void) {
+static CUserDataManager *GetUserData() {
     CSaveData *save;
 
     save = GetSaveData();
@@ -190,7 +172,7 @@ extern "C" CUserDataManager *GetUserData__Fv__2(void) {
 void InitLockCharaCtrl(void) {
     LockChara = 0;
 }
-void LockCharaCtrl(void) {
+static void LockCharaCtrl(void) {
     LockChara++;
 }
 static void UnLockCharaCtrl(void) {
@@ -216,19 +198,15 @@ int NowEditModeChg(void) {
     }
     return 0;
 }
-#ifdef NONMATCHING
 /**
  * Locks character control for thirty frames before starting the transition event.
  */
 void EditModeChg(int event) {
     EditModeChgEvent = event;
-    EditModeChgCnt = 30;
     EditModeChgFlag = 1;
+    EditModeChgCnt = 30;
     LockCharaCtrl();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditModeChg__Fi);
-#endif
 void EditModeChgStep(CScene *scene) {
     if (EditModeChgFlag != 0) {
         EditModeChgCnt--;
@@ -579,9 +557,9 @@ void EditInit(INIT_LOOP_ARG arg) {
     ControlCharaBuff.Align64();
     FixCharaBuffSize = ControlCharaBuff.stack_used;
     ControlCharaBuff.lock = 1;
-    active_chara_no = GetUserData__Fv__2()->active_chr_no;
-    SetupMainUnit(read_buffer, &ControlCharaBuff, CharaBufs, 70, MainScene__2, GetUserData__Fv__2(), active_chara_no, 1);
-    ActiveCharaNo = GetUserData__Fv__2()->active_chr_no;
+    active_chara_no = GetUserData()->active_chr_no;
+    SetupMainUnit(read_buffer, &ControlCharaBuff, CharaBufs, 70, MainScene__2, GetUserData(), active_chara_no, 1);
+    ActiveCharaNo = GetUserData()->active_chr_no;
     ControlCharaID = 0;
     MainScene__2->SetActive(1, 0);
     MainScene__2->player_chara = ControlCharaID;
@@ -661,7 +639,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     MenuInfo->tex_block_num = 16;
     MenuInfo->mes_tex_block = 154;
     MenuInfo->active_chara_no = ActiveCharaNo;
-    MenuInfo->user_data = GetUserData__Fv__2();
+    MenuInfo->user_data = GetUserData();
     MenuInfo->chara_stack = &ControlCharaBuff;
     MenuInfo->base_chara_stack = CharaBufs;
     MenuInfo->chara_tex_block = 70;
@@ -696,7 +674,9 @@ extern "C" CameraCtrlParam &__as__15CameraCtrlParamFRC15CameraCtrlParam(
     *destination = *source;
     return *destination;
 }
+#ifndef NONMATCHING
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __ct__12CActionCharaFv);
+#endif
 void EditExit(void) {
     sndSeAllStop(1);
     MainScene__2->InitSeSrc();
@@ -1015,7 +995,7 @@ int EditLoop() {
                             MainScene__2->fade.CrossFade(20, 1.0f);
                         }
                         ActiveCharaNo = MenuInfo->result[0];
-                        ActiveCharaNo = GetUserData__Fv__2()->active_chr_no;
+                        ActiveCharaNo = GetUserData()->active_chr_no;
                         chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
                         if (chara != NULL) {
                             chara->UpdatePosition();
@@ -1265,7 +1245,7 @@ int EditLoop() {
         }
         WalkChara = MainScene__2->GetCharacter(MainScene__2->player_chara);
         if (WalkChara != NULL) {
-            WalkChara->foot_se_bank = MainScene__2->se_base_id;
+            WalkChara->sound_info.foot_se_bank = MainScene__2->se_base_id;
         }
         EditStep();
         if (WalkChara != NULL) {
@@ -1285,8 +1265,8 @@ int EditLoop() {
             if (MainScene__2->fade.NowFade() != 0 && MainScene__2->fade.cross != 0) {
                 quick_change = 0;
             }
-            next_chara = GetUserData__Fv__2()->active_chr_no == 0;
-            if ((GetUserData__Fv__2()->CheckQuickChange(next_chara, NULL) & 0x1) == 0) {
+            next_chara = GetUserData()->active_chr_no == 0;
+            if ((GetUserData()->CheckQuickChange(next_chara, NULL) & 0x1) == 0) {
                 quick_change = 0;
             }
             if (IsWalkMode() == 0 || GetPauseFlag() != 0) {
@@ -1587,11 +1567,11 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditLoop__Fv);
 #endif
 void InitEditEvent(void) {
     InitLockCharaCtrl();
-    Reset__10CEditEventFv(&EditEvent);
+    EditEvent.Reset();
 }
 void ResetEditEvent() {
     if (EditEvent.state == 1) {
-        Reset__10CEditEventFv(&EditEvent);
+        EditEvent.Reset();
         UnLockCharaCtrl();
     }
 }
@@ -1617,7 +1597,7 @@ int EditStep(void) {
     chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
     WalkChara = chara;
     if (chara != NULL) {
-        chara->foot_se_bank = MainScene__2->se_base_id;
+        chara->sound_info.foot_se_bank = MainScene__2->se_base_id;
     }
     EditModeChgStep(MainScene__2);
     if (MainScene__2->event_run != 0) {
@@ -1973,8 +1953,8 @@ int EditDraw() {
         mgTexManager.ReloadTexture(0xA2, (sceVif1Packet *)NULL);
         mgTexManager.GetTexture("fix_work", -1);
         invent = NULL;
-        if (GetUserData__Fv__2() != NULL) {
-            invent = &GetUserData__Fv__2()->invent_data;
+        if (GetUserData() != NULL) {
+            invent = &GetUserData()->invent_data;
         }
         if (init == 0) {
             flag = 0;
@@ -2000,7 +1980,7 @@ int EditDraw() {
             picture->neta_id = -1;
             picture->npc_no = -1;
             if (subject != NULL) {
-                idea_no = subject->invent.unk_20;
+                idea_no = subject->invent.neta_no;
             }
             if (idea_no == 196 && MainScene__2->GetMainMapNo() == 2) {
                 idea_no = 2006;
@@ -2232,8 +2212,7 @@ int EditMapJump(int map_no) {
         strcat(path, size_text);
         strcat(path, at_2953);
         if (LoadFile2(path, (void *)read_buffer, &file_size, 0) != 0) {
-            LoadEditInfo__13CEditInfoMngrFPciP9mgCMemory(&map->info_mngr, (char *)read_buffer,
-                                                         file_size, main_data);
+            map->info_mngr.LoadEditInfo((char *)read_buffer, file_size, main_data);
         }
         GetMapPath(path, map_name);
         strcat(path, at_2954);
@@ -2273,8 +2252,7 @@ int EditMapJump(int map_no) {
     map = (CEditMap *)MainScene__2->GetMap(MainScene__2->active_map);
     if (map != NULL) {
         if (TreasureBox != NULL) {
-            CreateTrBox__4CMapFP15CMapTreasureBoxiP9mgCMemory((CMap *)map, TreasureBox, 0xAD,
-                                                              (int)main_data);
+            map->CreateTrBox(TreasureBox, 0xAD, main_data);
             UpdateTrBoxFlag(MapNo);
         }
         map->now_time = MainScene__2->time;
@@ -2341,7 +2319,7 @@ int EditMapJump(int map_no) {
 }
 int EditGotoInterior(int interior_no, int delete_villagers) {
     float door_pos[4];
-    int stack;
+    mgCMemory *stack;
     CMap *map;
     InitEditEvent();
     DeleteFileCache();
@@ -2359,11 +2337,10 @@ int EditGotoInterior(int interior_no, int delete_villagers) {
         GotoInterior(MainScene__2, interior_no);
     }
     editLoadSound(interior_no);
-    stack =
-        (int)MainScene__2->GetStack(3);
+    stack = MainScene__2->GetStack(3);
     map = MainScene__2->GetMap(MainScene__2->active_map);
     if (map != NULL && TreasureBox != NULL) {
-        CreateTrBox__4CMapFP15CMapTreasureBoxiP9mgCMemory(map, TreasureBox, 0xAD, stack);
+        map->CreateTrBox(TreasureBox, 0xAD, stack);
         UpdateTrBoxFlag(interior_no);
     }
     MainScene__2->LoadSubVillager(interior_no, 0x5E);
@@ -2502,7 +2479,6 @@ void LoadMap(void) {
 }
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __sinit_editloop_cpp);
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1045__DATA);
@@ -2575,7 +2551,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2957__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2958__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", D_0037B00C__DATA);
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", MenuInfo__DATA);
@@ -2639,31 +2614,31 @@ INCLUDE_BSS(DelMainNPCflag, 0x4);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(at_949, 0x10);
-INCLUDE_BSS(WaveTable, 0x1210);
-INCLUDE_BSS(CharaOldPos, 0x10);
-INCLUDE_BSS(EventMes1, 0x2960);
-INCLUDE_BSS(buf0, 0x30);
-INCLUDE_BSS(buf1, 0x30);
-INCLUDE_BSS(data_buf__2, 0x60);
-INCLUDE_BSS(init_dbuf, 0x60);
-INCLUDE_BSS(WorkBuffer, 0x30);
-INCLUDE_BSS(MenuBuffer__2, 0x30);
-INCLUDE_BSS(ChrEffBuffer, 0x30);
-INCLUDE_BSS(ScriptBuffer__2, 0x30);
-INCLUDE_BSS(TotalDataBuff, 0x30);
-INCLUDE_BSS(ControlCharaBuff, 0x30);
-INCLUDE_BSS(MainDataBuff, 0x30);
-INCLUDE_BSS(MainCharaBuff, 0x30);
-INCLUDE_BSS(SubDataBuff, 0x30);
-INCLUDE_BSS(SubCharaBuff, 0x30);
-INCLUDE_BSS(EventBuff, 0xC0);
-INCLUDE_BSS(CharaBufs, 0x180);
-INCLUDE_BSS(FishingBuff, 0x30);
-INCLUDE_BSS(SkyBuff, 0x30);
-INCLUDE_BSS(EditEvent, 0x150);
-INCLUDE_BSS(EdDebugInfo, 0x40);
-INCLUDE_BSS(TestVisual, 0x50);
-INCLUDE_BSS(TestFrame, 0x110);
+CWaveTable WaveTable;
+sceVu0FVECTOR CharaOldPos;
+ClsMes EventMes1;
+mgCMemory buf0;
+mgCMemory buf1;
+mgCMemory data_buf__2[2];
+mgCMemory init_dbuf[2];
+mgCMemory WorkBuffer;
+mgCMemory MenuBuffer__2;
+mgCMemory ChrEffBuffer;
+mgCMemory ScriptBuffer__2;
+mgCMemory TotalDataBuff;
+mgCMemory ControlCharaBuff;
+mgCMemory MainDataBuff;
+mgCMemory MainCharaBuff;
+mgCMemory SubDataBuff;
+mgCMemory SubCharaBuff;
+mgCMemory EventBuff[4];
+mgCMemory CharaBufs[8];
+mgCMemory FishingBuff;
+mgCMemory SkyBuff;
+CEditEvent EditEvent;
+EditDebugInfo EdDebugInfo;
+mgCVisualMDT TestVisual;
+mgCFrame TestFrame;
 INCLUDE_BSS(at_1077, 0x10);
 INCLUDE_BSS(at_3041, 0x10);
 INCLUDE_BSS(beforeAnalyze, 0x40);

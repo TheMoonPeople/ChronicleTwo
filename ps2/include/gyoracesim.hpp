@@ -39,7 +39,7 @@ enum grCHARA_BONUS_TYPE {
  *
  */
 struct grFISH_PARAM {
-    union { char name[0x18]; int name_words[6]; };
+    char name[0x18]; /**< Name of the fish. */
     int  fish_no;    /**< Item number of the kind of fish. */
     int  affinity;   /**< Value that, matching the affinity of the fish's kind, raises every figure by a tenth. */
     int  bonus_type; /**< How the place in the race changes the speed of the fish. @see grCHARA_BONUS_TYPE */

@@ -3,6 +3,7 @@
 #include "common.h"
 
 #include <libvu0.h>
+#include <cstring>
 
 #include "editcoll.hpp"
 #include "mapparts.hpp"
@@ -200,6 +201,13 @@ class CEditHouse {
 public:
     s32 active;                     /**< Non-zero while a placed building uses the house. */
     s32 npc_no[EDIT_HOUSE_NPC_MAX]; /**< Villagers who live in the house; 0 or below for none. */
+
+    /**
+     * Clears the house.
+     */
+    CEditHouse() {
+        memset(this, 0, sizeof(*this));
+    }
 
     /**
      * Gives back non-zero while any villager lives in the house.

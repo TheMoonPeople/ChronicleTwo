@@ -55,11 +55,6 @@ extern u_char water_cam;
 extern CHitEffectImage *battle_effect;
 extern "C" void __ct__11mgCDrawPrimFv(void *);
 extern "C" void __ct__10mgCTextureFv(void *);
-extern "C" void mgGetFrameBuffer__FP10mgCTexture(void *);
-extern "C" void Direct__11mgCDrawPrimFUlUl(void *, unsigned long, unsigned long);
-extern "C" void Step__15CHitEffectImageFv(CHitEffectImage *effect);
-extern "C" void Draw__15CHitEffectImageFv(CHitEffectImage *effect);
-extern "C" void DivSpriteScreen__FR11mgCDrawPrim__2(mgCDrawPrim *prim);
 #ifndef NONMATCHING
 extern unsigned int gyore_snd_id;
 extern int hero_no;
@@ -431,7 +426,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
     CScene *scene = info->scene;
     switch ((unsigned int)race_mode) {
     case 0:
-        scene->active_camera = camera_id;
+        *(int *)((u_char *)scene + 0x2E54) = camera_id;
         camera0.SetPos(225.0f, 38.0f, 168.0f);
         camera0.SetNextPos(225.0f, 38.0f, 168.0f);
         camera0.SetRef(222.0f, 0.0f, 0.0f);
@@ -463,7 +458,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
         }
         break;
     case 1: {
-        scene->active_camera = camera_id;
+        *(int *)((u_char *)scene + 0x2E54) = camera_id;
         camera0.SetPos(225.0f, 38.0f, 168.0f);
         camera0.SetNextPos(225.0f, 38.0f, 168.0f);
         camera0.SetRef(222.0f, 0.0f, 0.0f);
@@ -646,7 +641,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
         break;
     }
     case 4: {
-        scene->active_camera = camera_id;
+        *(int *)((u_char *)scene + 0x2E54) = camera_id;
         camera0.SetPos(270.0f, -40.0f, -10.0f);
         camera0.SetNextPos(270.0f, -40.0f, -10.0f);
         camera0.SetRef(192.0f, 0.0f, 0.0f);
@@ -708,7 +703,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
         break;
     }
     case 5: {
-        scene->active_camera = camera_id;
+        *(int *)((u_char *)scene + 0x2E54) = camera_id;
         race_mode = 2;
         race_proc_cnt = 0;
         SetGyoRaceRanking(RaceInfo.rank[hero_no] - 1);
@@ -844,17 +839,14 @@ int sgCharaDrawGyoRace(SubGameInfo *info) {
     do {
         effect = (CHitEffectImage *)((u_char *)battle_effect + offset);
         if (effect != 0) {
-            Step__15CHitEffectImageFv(effect);
-            Draw__15CHitEffectImageFv(effect);
+            effect->Step();
+            effect->Draw();
         }
         j++;
         offset += 0x60;
     } while (j < 0x60);
     return 0;
 }
-extern "C" void BeginPrim2__11mgCDrawPrimFiUiUii(void *, int, unsigned int, unsigned int, int);
-extern "C" void Data__11mgCDrawPrimFPi(void *, int *);
-extern "C" void EndPrim2__11mgCDrawPrimFv(void *);
 extern "C" int fptosi(float);
 static void DivSpriteScreen(mgCDrawPrim &prim) {
     int strip_height;
@@ -870,7 +862,7 @@ static void DivSpriteScreen(mgCDrawPrim &prim) {
         ras_off_1762 = 0.0f;
         init_1763 = 1;
     }
-    BeginPrim2__11mgCDrawPrimFiUiUii(&prim, 4, 0x43, 0, 2);
+    prim.BeginPrim2(4, 0x43, 0, 2);
     int origin[4] = {mgScreenOffx << 4, mgScreenOffy << 4, 0, 0};
     screen_width = mgScreenWidth;
     int screen_height = mgScreenHeight;
@@ -897,16 +889,16 @@ static void DivSpriteScreen(mgCDrawPrim &prim) {
             xy.v[0] = x16;
             int *xy_y = &xy.v[1];
             *xy_y = y16;
-            Data__11mgCDrawPrimFPi(&prim, xy.v);
+            prim.Data(xy.v);
             uv.v[0] = xy.v[0] + origin[0] - (int)step[0];
             uv.v[1] = *xy_y + origin[1];
-            Data__11mgCDrawPrimFPi(&prim, uv.v);
+            prim.Data(uv.v);
             xy.v[0] = (x + screen_width) << 4;
             *xy_y = (y + strip_height) << 4;
-            Data__11mgCDrawPrimFPi(&prim, xy.v);
+            prim.Data(xy.v);
             uv.v[0] = (int)step[0] + (xy.v[0] + origin[0]);
             uv.v[1] = *xy_y + origin[1];
-            Data__11mgCDrawPrimFPi(&prim, uv.v);
+            prim.Data(uv.v);
             y += strip_height;
             y16 += height16;
         }
@@ -915,7 +907,7 @@ static void DivSpriteScreen(mgCDrawPrim &prim) {
     }
     ras_off_1762 += 0.0004363323f;
     if (!(ras_off_1762 <= 6.2831855f)) ras_off_1762 = -6.2831855f;
-    EndPrim2__11mgCDrawPrimFv(&prim);
+    prim.EndPrim2();
 }
 
 int sgEffectDrawGyoRace(SubGameInfo *info) {
@@ -927,7 +919,7 @@ int sgEffectDrawGyoRace(SubGameInfo *info) {
     ((mgCDrawPrim *)prim)->Initialize(0, 0);
     RaceFrameTexture frame;
     __ct__10mgCTextureFv(&frame);
-    mgGetFrameBuffer__FP10mgCTexture(&frame);
+    mgGetFrameBuffer((mgCTexture *)&frame);
     frame.swizzled = 0;
     ((mgCDrawPrim *)prim)->DepthTestEnable(0);
     ((mgCDrawPrim *)prim)->AlphaTestEnable(0);
@@ -937,10 +929,10 @@ int sgEffectDrawGyoRace(SubGameInfo *info) {
     ((mgCDrawPrim *)prim)->Begin2();
     ((mgCDrawPrim *)prim)->BeginPrim2(6);
     ((mgCDrawPrim *)prim)->Texture((mgCTexture *)&frame);
-    Direct__11mgCDrawPrimFUlUl(&prim, 0x3B, 0x8080 | ((unsigned long)0x80 << 32));
+    ((mgCDrawPrim *)prim)->Direct(0x3B, 0x8080 | ((unsigned long)0x80 << 32));
     ((mgCDrawPrim *)prim)->Color(0x80, 0x80, 0x80, 0x80);
     ((mgCDrawPrim *)prim)->EndPrim2();
-    DivSpriteScreen__FR11mgCDrawPrim__2((mgCDrawPrim *)prim);
+    DivSpriteScreen(*(mgCDrawPrim *)prim);
     ((mgCDrawPrim *)prim)->End2();
     return 0;
 }

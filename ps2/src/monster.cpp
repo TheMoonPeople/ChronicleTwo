@@ -19,6 +19,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cmath>
+#include <cstdlib>
 #include "actionchara.hpp"
 #include "automap.hpp"
 #include "cameracontrol.hpp"
@@ -34,6 +35,12 @@
 #include "scriptinterpreter.hpp"
 #include "userdata.hpp"
 #include "monster.hpp"
+#include "dng_debug.hpp"
+#include "runscript_opcodes.hpp"
+#include "maintex.hpp"
+#include "mapparts.hpp"
+#include "mapinfo.hpp"
+#include "gameutil.hpp"
 
 extern mgCTextureManager mgTexManager;
 extern short gift_item_tbl[][3];
@@ -48,6 +55,8 @@ extern EffectVector at_1724__2;
 extern EffectVector at_2079__2;
 extern char at_1999[];
 extern char at_2100[];
+extern char at_2588[];
+extern char at_2589[];
 extern char at_2809[];
 extern int no_score_uv[][4];
 extern int guard_score_uv[][4];
@@ -158,8 +167,12 @@ int CActiveMonster::CheckView(int rank_limit) {
 void CActiveMonster::Step(void) {
     CActionChara::Step();
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", Copy__14CActiveMonsterFR14CActiveMonsterP9mgCMemory);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", __as__12CActionCharaFRC12CActionChara);
+void CActiveMonster::Copy(CActiveMonster &dest, mgCMemory *memory) {
+    dest = *this;
+    if (memory != NULL) {
+        CActionChara::Copy(dest, memory);
+    }
+}
 void CActiveMonster::Initialize(void) {
     int i;
 
@@ -197,7 +210,7 @@ void CActiveMonster::Initialize(void) {
     dead_alpha = 0;
     link_parts = 0;
     link_type = 0;
-    unk_1208 = 0;
+    last_hit_kind = 0;
     attack = 0;
     life_gage.Initialize(0);
     scoop.type = 0;
@@ -251,7 +264,46 @@ void CMonsterLocateInfo::SetPutFlag(int slot, int put) {
     }
 }
 
+#ifdef NONMATCHING
+void CMonsterMan::Initialize(CScene *scene) {
+    mgCTextureManager *textures;
+    int i;
+    DNG_BATTLE_AREA *area = &scene->battle_area;
+    int texb;
+
+    SetMonsterExtendTable();
+    textures = &mgTexManager;
+    this->scene = scene;
+    effect_man = FxScriptMan;
+    priority_limit = 5;
+    for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
+        active[i] = (CActiveMonster *)scene->GetCharacter(i + MONSTER_ACTIVE_MAX);
+        active[i]->Initialize();
+    }
+    for (i = 0; i < MONSTER_REFER_MAX; i++) {
+        textures->DeleteBlock(i + 0x28);
+        refer[i].id = -1;
+    }
+    for (i = 0; i < MONSTER_SHARE_MAX; i++) {
+        share_var[i].i = 0;
+    }
+    FxScriptMan->ClearBaseFromLevel(3, NULL, -1);
+    for (texb = area->free_texb; texb < 0xAA; texb++) {
+        textures->DeleteBlock(texb);
+    }
+    boss_life_gage.Initialize(0);
+    boss_max_life = 0;
+    locate.num = 0;
+    locate.put_num = 0;
+    locate.put_flag = 0;
+    for (i = 0; i < MONSTER_LOCATE_MAX; i++) {
+        locate.param[i] = -1;
+        locate.monster_id[i] = -1;
+    }
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", Initialize__11CMonsterManFP6CScene);
+#endif
 
 void CMonsterMan::DrawEffectScript() {
     int i;
@@ -298,7 +350,57 @@ float CMonsterMan::IsBattleStyleDist() {
 
 
 
+#ifdef NONMATCHING
+int CMonsterMan::CheckMonsterTolk(float *pos) {
+    CActiveMonster *monster;
+
+    if (dbinfo.monster_talk != 0) {
+        int found = -1;
+        float nearest = 90.0f;
+        int i = 0;
+
+        do {
+            monster = active[i];
+            if (monster != NULL && monster->IsDraw(1)) {
+                monster = active[i];
+                if (monster->tbl->boss == 0 && monster->locate_param != -1 && nearest > monster->target_dist) {
+                    nearest = monster->target_dist;
+                    found = i;
+                }
+            }
+            i++;
+        } while (i < MONSTER_ACTIVE_MAX);
+        return found;
+    }
+    if (DngUserData->active_chr_no != 3) {
+        return -1;
+    }
+    int mons_base = GetBattleCharaInfo()->unk_2;
+    int found = -1;
+    int i;
+    float nearest;
+    if (mons_base == -1) {
+        return -1;
+    }
+    i = 0;
+    nearest = 90.0f;
+    do {
+        monster = active[i];
+        if (monster != NULL && monster->IsDraw(1)) {
+            monster = active[i];
+            if (monster->tbl->user_mons_id == mons_base && monster->tbl->boss == 0 &&
+                monster->locate_param != -1 && monster->gekirin > 0.0f && nearest > monster->target_dist) {
+                nearest = monster->target_dist;
+                found = i;
+            }
+        }
+        i++;
+    } while (i < MONSTER_ACTIVE_MAX);
+    return found;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", CheckMonsterTolk__11CMonsterManFPf);
+#endif
 
 CActiveMonster *CMonsterMan::CheckThrowTarget(mgCFrame *frame) {
     float frame_pos[4];
@@ -406,8 +508,195 @@ int CMonsterMan::EntryRefer(int monster_id, mgCMemory *memory) {
     }
     return 1;
 }
+#ifdef NONMATCHING
+extern char at_1421__2[];
+extern char at_1422__2[];
+extern char at_1423[];
+extern char at_1424[];
+extern char at_1425[];
+extern char at_1426[];
+extern char at_1427__2[];
+extern char at_1428__3[];
+extern char at_1429__2[];
+extern char at_1430__2[];
+extern char at_1431__2[];
+int CMonsterMan::LoadReferMonsterFile(int id, BASE_MONSTER_TBL *tbl, mgCMemory *memory) {
+    char path[0x40];
+    char config_path[0x40];
+    int size;
+    int slot = SearchReferBlock();
+    MONSTER_REFER *entry;
+    int sound;
+    int i;
+    int blocks;
+    mgCTextureManager *textures;
+
+    if (slot == -1) {
+        return 0;
+    }
+    entry = &refer[slot];
+    if (entry == NULL) {
+        return 0;
+    }
+    sprintf(config_path, at_1421__2, tbl->model);
+    sprintf(path, at_1422__2, tbl->model);
+    textures = &mgTexManager;
+    textures->DeleteBlock(slot + 0x28);
+    LoadFile(path, BuffReadData, &size);
+    strcpy(textures->name_suffix, at_1423);
+    entry->chara.Initialize();
+    if (strcmp(tbl->model, at_1424) == 0 || strcmp(tbl->model, at_1425) == 0 ||
+        strcmp(tbl->model, at_1426) == 0 || strcmp(tbl->model, at_1427__2) == 0) {
+        entry->chara.LoadPackNoLine((unsigned int *)BuffReadData, config_path, memory, memory, memory, slot + 0x28, NULL);
+    } else {
+        entry->chara.LoadPack((unsigned int *)BuffReadData, config_path, memory, memory, memory, slot + 0x28, NULL);
+    }
+    textures->name_suffix[0] = 0;
+    entry->chara.tbl = tbl;
+    sound = -1;
+    if (tbl->sound_no > 0) {
+        if (tbl->sound_no < 10) {
+            sprintf(path, at_1428__3, tbl->sound_no);
+        } else if (tbl->sound_no < 100) {
+            sprintf(path, at_1429__2, tbl->sound_no);
+        } else {
+            sprintf(path, at_1430__2, tbl->sound_no);
+        }
+        LoadFile(path, BuffReadData, &size);
+        sound = sndLoadSound(5, (unsigned int *)BuffReadData, memory);
+    }
+    entry->chara.sound_info.se_bank = sound;
+    for (i = 0; i < tbl->sw_effect_num; i++) {
+        entry->chara.sword_effect[i] = new ((u_long128 *)memory->Alloc(0xC)) CSWordAfterEffect;
+        entry->chara.sword_effect[i]->Initialize(memory, 0xC, 8);
+        entry->chara.sword_effect[i]->SetTexture(0x4A, TEX_SystemEffectSw, 0, 0x20, 0x40, 0x20);
+    }
+    sprintf(path, at_1431__2, tbl->script);
+    LoadFile(path, BuffReadData, &size);
+    blocks = size / 16;
+    entry->script = (char *)memory->stAlloc64(blocks + 1);
+    if (entry->script == NULL) {
+        return 0;
+    }
+    memcpy(entry->script, BuffReadData, size);
+    entry->id = id;
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", LoadReferMonsterFile__11CMonsterManFiP16BASE_MONSTER_TBLP9mgCMemory);
+#endif
+#ifdef NONMATCHING
+CActiveMonster *CMonsterMan::SetActiveMonster(int refer_no, float *pos, float *rot, int param) {
+    if (refer_no < 0 || refer_no >= MONSTER_REFER_MAX) {
+        return NULL;
+    }
+    if (refer[refer_no].chara.GetFrame() == NULL) {
+        return NULL;
+    }
+    int slot = SearchActiveMonsterBlock();
+    if (slot < 0) {
+        return NULL;
+    }
+    DNG_BATTLE_AREA *area = &scene->battle_area;
+    int npc = GetBattleCharaInfo()->GetNowNPC();
+    active[slot] = (CActiveMonster *)scene->GetCharacter(slot + MONSTER_ACTIVE_MAX);
+    if (active[slot] == NULL) {
+        return NULL;
+    }
+    memory[slot].stReset();
+    locate.SetPutFlag(slot, 1);
+    CActiveMonster *monster = active[slot];
+    MONSTER_REFER *source = &refer[refer_no];
+    BASE_MONSTER_TBL *tbl = GetReferPtr2(source->id);
+    if (tbl->unk_b4 == 0) {
+        source->chara.SetPosition(0.0f, 0.0f, 0.0f);
+        source->chara.SetRotation(0.0f, 0.0f, 0.0f);
+        source->chara.Copy(*monster, &memory[slot]);
+    } else {
+        *monster = source->chara;
+        monster->unk_500 = (s32)monster->motion[0].frame_info;
+        monster->shadow_frame_info = monster->shadow_motion[0].frame_info;
+        monster->now_key = 0;
+    }
+    if (tbl->boss) {
+        area->boss_map = 1;
+    }
+    monster->ResetMotion();
+    monster->SetPosition(pos);
+    monster->SetRotation(rot);
+    monster->UpdatePosition();
+    sceVu0CopyVector(monster->place_pos, pos);
+    monster->param = *tbl;
+    monster->base_tbl = tbl;
+    monster->tbl = &monster->param;
+    monster->monster_id = source->id;
+    monster->chara_type = slot + MONSTER_ACTIVE_MAX;
+    monster->chara_kind = 2;
+    monster->Show(1, 1);
+    monster->refer_no = refer_no;
+    monster->view_state = MONSTER_VIEW_INIT;
+    monster->view_alpha = 0.0f;
+    monster->camera_alpha = 1.0f;
+    monster->next_pos[0] = 0.0f;
+    monster->next_pos[1] = 0.0f;
+    monster->next_pos[2] = 0.0f;
+    monster->next_pos[3] = 1.0f;
+    monster->move_speed = 0.0f;
+    monster->max_life = monster->life = tbl->life;
+    monster->reward_exp = tbl->unk_56;
+    monster->reward_money = tbl->unk_58;
+    monster->unk_1322 = tbl->unk_5a;
+    monster->whp = tbl->whp;
+    monster->attack = tbl->attack;
+    monster->defense = tbl->defense;
+    monster->gekirin_num = tbl->gekirin_num;
+    if (npc == 8) {
+        monster->gekirin_num += 2;
+    }
+    if (tbl->boss) {
+        monster->gekirin = -1.0f;
+        monster->life_gage.Initialize(0);
+        boss_max_life += monster->max_life;
+    } else {
+        monster->gekirin = monster->gekirin_num;
+        monster->life_gage.Initialize(fptosi(monster->gekirin));
+    }
+    monster->gekirin_time = 0;
+    monster->piyori.Initialize();
+    monster->gift_mark.Initialize();
+    monster->drop_badge = 0;
+    monster->sound_info.loop_se = &scene->loop_se;
+    monster->unk_134c = param;
+    monster->locate_param = -1;
+    monster->attrib = 0;
+    monster->state = ACTIVE_MONSTER_LIVE;
+    monster->target_no = 0;
+    monster->target_dist = 999999.0f;
+    monster->camera_dist = 999999.0f;
+    monster->clip_dist = 800.0f;
+    monster->alpha = 1.0f;
+    monster->unk_1300 = 400.0f;
+    monster->unk_1304 = 300.0f;
+    monster->unk_1308 = 180;
+    monster->stagger = 0;
+    monster->stagger_time = 0;
+    monster->target_dist = 0.0f;
+    monster->priority = -1;
+    for (int i = 0; i < MONSTER_VAR_MAX; i++) {
+        monster->var[i].i = 0;
+    }
+    for (int i = 0; i < MONSTER_VAR2_MAX; i++) {
+        monster->var2[i].i = 0;
+    }
+    SetMonsterScript(&monster->mons_script, source->script, &memory[slot]);
+    monster->req_prog = MONSTER_PROG_INIT;
+    RunScript(slot);
+    monster->req_prog = MONSTER_PROG_MAIN;
+    return active[slot];
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", SetActiveMonster__11CMonsterManFiPfPfi);
+#endif
 void CMonsterMan::DrawMiniMapSymbol(CMiniMapSymbol *symbol) {
     CBattleCharaInfo *battle_info;
     int show_all;
@@ -418,7 +707,7 @@ void CMonsterMan::DrawMiniMapSymbol(CMiniMapSymbol *symbol) {
 
     if (symbol != NULL) {
         show_all = 0;
-        if (scene->battle_area.unk_64 & 2) {
+        if (scene->battle_area.minimap_reveal & MINIMAP_REVEAL_SYMBOLS) {
             show_all = 1;
         }
         battle_info = GetBattleCharaInfo();
@@ -722,6 +1011,7 @@ float SearchArea(CScene *scene, float *from, float *to, float range) {
     }
     return mgDistVector(hit, from);
 }
+#ifdef NONMATCHING
 void HitEffectSet(CScene *scene, float *point, int flags) {
     float to_camera[4];
     float pos[4];
@@ -753,8 +1043,8 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
         }
     }
     if (hit != NULL) {
-        const float speed = 60.0f;
         float gravity = 0.1f;
+        float speed = 60.0f;
         float spread = 30.0f;
         float power = 0.2f;
         SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir.f, spread, speed, power, gravity, 30, 32);
@@ -815,6 +1105,9 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
         hit->kind = 2;
     }
 }
+#else
+INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", HitEffectSet__FP6CScenePfi);
+#endif
 void GuardEffectSet(CScene *scene, float *point, int play_script) {
     float to_camera[4];
     float pos[4];
@@ -844,10 +1137,10 @@ void GuardEffectSet(CScene *scene, float *point, int play_script) {
             BattleFX.hit_next = 0;
         }
     }
-    float spread = 50.0f;
+    float speed = 30.0f;
     float power_value = 0.0f;
     const float &power = power_value;
-    const float speed = 30.0f;
+    float spread = 50.0f;
     float gravity = 0.1f;
     SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir.f, spread, speed, power, gravity, 30, 32);
     hit->kind = 1;
@@ -926,9 +1219,797 @@ int CheckGiftPack(CActiveMonster *monster, CColPrim *prim) {
     }
     return 1;
 }
+#ifdef NONMATCHING
+extern MONSTER_REACT react_tbl[];
+extern s16 vs_attk_index[];
+extern CFireAfterHit fireAfterHit[];
+extern CChillAfterHit chillAfterHit[];
+extern CThunder thunder[];
+extern CTornado tornado[];
+extern char at_2485[];
+extern char at_2486[];
+extern char at_2487[];
+extern char at_2488[];
+#pragma divbyzerocheck on
+void CMonsterMan::CheckDamage() {
+    CScene *now_scene = scene;
+    DNG_BATTLE_AREA *area = &now_scene->battle_area;
+    u_int se_id = now_scene->se_battle_id;
+    CActionChara *player = (CActionChara *)now_scene->GetCharacter(0);
+    CBattleCharaInfo *chara_info = GetBattleCharaInfo();
+    int gift_pack_num = GetUserItemHaveNum(0x134);
+
+    for (int i = 0; i < MONSTER_ACTIVE_MAX; i++) {
+        CActiveMonster *monster = active[i];
+        if (monster == NULL || monster->state != ACTIVE_MONSTER_LIVE) {
+            continue;
+        }
+        BASE_MONSTER_TBL *tbl = monster->tbl;
+        if (monster->damage_time > 0) {
+            continue;
+        }
+        if (monster->attrib & MONSTER_ATTRIB_NO_DAMAGE) {
+            continue;
+        }
+        if (monster->catch_state != 0) {
+            continue;
+        }
+        CColPrim *prim = ColPrimMan.CheckHit(i + 0x18);
+        if (prim != NULL) {
+            if (prim->has_gift) {
+                if (CheckGiftPack(monster, prim) && gift_pack_num != 0) {
+                    monster->gift_mark.Set(monster, monster->body_height);
+                    monster->drop_badge = 1;
+                } else {
+                    GuardEffectSet(scene, prim->hit_pos, 1);
+                }
+                continue;
+            }
+            if (prim->param->kind == DAMAGE_KIND_CHECK) {
+                continue;
+            }
+            monster->att_type = prim->param->kind;
+            MONSTER_REACT *react = react_tbl;
+            while (react->kind != prim->param->kind) {
+                react++;
+                if (react->kind == -1) {
+                    react = react_tbl;
+                    break;
+                }
+            }
+            area->unk_98 |= react->flag;
+            int melee = 0;
+            if (prim->param->kind == DAMAGE_KIND_MAX_MELEE || prim->param->kind == DAMAGE_KIND_MONICA_MELEE) {
+                melee = 1;
+            }
+            float damage = prim->damage - monster->defense;
+            if (prim->status & 0x1000) {
+                damage = (float)monster->max_life * (0.01f * (float)prim->param->damage) *
+                         (0.01f * (float)monster->tbl->unk_ae);
+            }
+            if (prim->status & 0x40000) {
+                if (monster->tbl->user_mons_id != 9) {
+                    damage = 0.0f;
+                }
+                printf(at_2485, prim->status);
+            }
+            float element_rate[8] = {0.6f, 1.2f, 1.4f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f};
+            float element_damage = 0.0f;
+            damage *= 0.01f * (float)tbl->ext_param[vs_attk_index[prim->param->kind]];
+            BASE_MONSTER_TBL *resist_tbl = monster->tbl;
+            for (int e = 0; e < 8; e++) {
+                float power = 0.007843138f * (float)prim->element[e];
+                float resist = 0.01f * (float)resist_tbl->unk_6c[e];
+                if (area->unk_8c != 2) {
+                    element_damage += resist * (damage * power);
+                } else {
+                    element_damage += resist * (damage * power) * element_rate[e];
+                }
+            }
+            damage += element_damage;
+            int element = -1;
+            int element_power = 0;
+            for (int e = 0; e < 4; e++) {
+                if (element_power < prim->element[e] && prim->element[e] > 16) {
+                    element_power = prim->element[e];
+                    element = e;
+                }
+            }
+            if (resist_tbl->user_mons_id == 4 && chara_info->GetNowNPC() == 3) {
+                damage *= 1.2f;
+            }
+            if (monster->tbl->user_mons_id == 9 && chara_info->GetNowNPC() == 0x13) {
+                damage *= 1.2f;
+            }
+            if (prim->param->hit_count > 1) {
+                damage /= (float)prim->param->hit_count;
+            }
+            float dist = mgDistVector(prim->pos[0], prim->origin);
+            printf(at_2486, dist, prim->range);
+            float half_range = prim->range / 2.0f;
+            if (!(dist <= half_range)) {
+                float rate;
+                if (!(dist <= prim->range)) {
+                    rate = 0.0f;
+                } else {
+                    rate = 1.0f - (dist - half_range) / half_range;
+                }
+                damage *= rate;
+                printf(at_2487, rate);
+            }
+            if (!(damage < 0.0f)) {
+                damage = GetDispVolumeForFloat(damage);
+            }
+            if ((int)damage <= 0) {
+                damage = 0.0f;
+                monster->no_damage_cnt++;
+            }
+            if (monster->muteki_time > 0) {
+                damage = 0.0f;
+            }
+            if (monster->status.attr & (MONSTER_STATUS_UNK_8 | MONSTER_STATUS_UNK_20)) {
+                monster->status.grey_time -= 0x5A;
+                if (monster->status.grey_time <= 0) {
+                    monster->status.grey_time = 0;
+                    monster->status.attr &= ~(MONSTER_STATUS_UNK_8 | MONSTER_STATUS_UNK_20);
+                }
+            }
+            int greyed = 0;
+            BASE_MONSTER_TBL *status_tbl = monster->tbl;
+            s16 status_rate = status_tbl->unk_ac / prim->param->hit_count;
+            int hit_damage = (int)damage;
+            if (hit_damage > 0) {
+                if ((prim->status & 0x4) && !(status_tbl->resist_attr & 0x4) && status_rate >= iRand(100)) {
+                    monster->status.attr |= MONSTER_STATUS_POISON;
+                    monster->status.poison_count = 0x78;
+                }
+                if ((prim->status & 0x8) && !(monster->status.attr & (MONSTER_STATUS_UNK_8 | MONSTER_STATUS_UNK_20)) &&
+                    !(monster->tbl->resist_attr & 0x8) && status_rate >= iRand(100)) {
+                    greyed = 1;
+                    monster->status.attr |= MONSTER_STATUS_UNK_8;
+                    monster->status.grey_time = 300;
+                }
+                if ((prim->status & 0x8000) && !(monster->status.attr & MONSTER_STATUS_UNK_20) &&
+                    !(monster->tbl->resist_attr & 0x8000) && status_rate >= iRand(100)) {
+                    greyed = 1;
+                    monster->status.attr |= MONSTER_STATUS_UNK_20;
+                    monster->status.grey_time = 900;
+                }
+                if ((prim->status & 0x10000) && !(monster->tbl->resist_attr & 0x10000) && status_rate >= iRand(100)) {
+                    monster->status.attr |= MONSTER_STATUS_SLOW;
+                    monster->status.slow_time = 1800;
+                }
+            }
+            if (hit_damage > 0 && (prim->status & 0x200) && (prim->attacker == 0 || prim->attacker == 1)) {
+                damage *= 1.5f;
+                if (chara_info->GetNowHp_i() > 1) {
+                    chara_info->AddHp_Point(-(0.01f * (float)chara_info->GetMaxHp_i()), 0.0f);
+                }
+            }
+            if ((int)damage > 0 && (prim->status & 0x400) && iRand(10) == 0) {
+                damage *= 1.8f;
+            }
+            int final_damage = (int)damage;
+            if (final_damage > 0 && (prim->status & 0x80) && prim->attacker == chara_info->chr_no) {
+                int drain_rate = 25 / prim->param->hit_count;
+                if (drain_rate <= 1) {
+                    drain_rate = 1;
+                }
+                if (drain_rate >= iRand(100)) {
+                    chara_info->AddHp_Point(0.02f * damage, 0.0f);
+                }
+            }
+            if (final_damage > 0 && (prim->status & 0x10)) {
+                int steal_rate = 12 / prim->param->hit_count;
+                if (steal_rate <= 1) {
+                    steal_rate = 1;
+                }
+                int roll = (iRand(100) + iRand(100)) / 2;
+                printf(at_2488, steal_rate, roll);
+                if (steal_rate >= roll && (monster->tbl->drop_item[0] > 0 || monster->tbl->drop_item[1] > 0)) {
+                    int slot = 0;
+                    if (iRand(100) < 20 && monster->tbl->drop_item[1] > 0) {
+                        slot = 1;
+                    }
+                    if (monster->tbl->drop_item[0] <= 0) {
+                        slot = 1;
+                    }
+                    if (CheckGetItemLimmitOver(monster->tbl->drop_item[slot], 1) > 0) {
+                        CPullItem *item = PullItemMan.GetList(2);
+                        if (item != NULL) {
+                            float velocity[4] = {0.0f, 2.0f, 0.0f, 1.0f};
+                            float item_pos[4];
+                            monster->GetEntryObjectPos(0, item_pos);
+                            item_pos[1] += 20.0f;
+                            item->SetItem(item_pos, velocity, 7);
+                            item->item_no = monster->tbl->drop_item[slot];
+                            monster->tbl->drop_item[0] = 0;
+                            monster->tbl->drop_item[1] = 0;
+                        }
+                    }
+                }
+            }
+            int guard = 0;
+            if (iRand(100) < tbl->guard_rate) {
+                guard = 1;
+            }
+            if (monster->mask_flag & 1) {
+                guard = 0;
+            }
+            if (monster->guard_flag != 0) {
+                guard = 1;
+            }
+            if (monster->piyori_time > 0) {
+                guard = 0;
+            }
+            if (prim->param->hit_flags & 8) {
+                guard = 0;
+            }
+            if (guard) {
+                damage *= 0.01f * (float)prim->param->critical_rate;
+            }
+            calcWeaponParamWhp(monster, prim);
+            int dealt = (int)damage;
+            monster->life -= dealt;
+            if (monster->life <= 0) {
+                monster->life = 0;
+            }
+            if (dealt <= 0) {
+                monster->no_damage_cnt++;
+                GuardEffectSet(scene, prim->hit_pos, 0);
+                sndSePlay(se_id, 0x26, 0);
+                if (guard) {
+                    HitScoreSet(prim->hit_pos, 2, 0);
+                    monster->req_prog = MONSTER_PROG_GUARD;
+                } else {
+                    HitScoreSet(prim->hit_pos, 1, 0);
+                }
+                if (melee) {
+                    player->unk_bec = 1;
+                }
+                continue;
+            }
+            if (!(monster->attrib & MONSTER_ATTRIB_UNK_80) && react->blow != 0) {
+                float monster_pos[4];
+                monster->GetPosition(monster_pos);
+                sceVu0SubVector(monster->blow_vec, monster_pos, prim->hit_pos);
+                sceVu0CopyVector(monster->blow_vec, monster->blow_vec);
+                monster->blow_vec[1] = 0.0f;
+                sceVu0Normalize(monster->blow_vec, monster->blow_vec);
+                monster->blow_speed = 2.0f;
+                monster->blow_rate = 1.0f;
+                monster->blow_decel = 0.0f;
+                monster->blow_time = 3;
+            }
+            monster->damage_time = prim->param->stun_time;
+            switch (element) {
+            case 2:
+                monster->pallet[0].SetAnim(0xB4, 0xB4, 0, 4, 0x18, 0);
+                break;
+            case 0:
+                monster->pallet[0].SetAnim(0xFF, 0x60, 0, 1, 0x18, 0);
+                break;
+            case 3:
+                monster->pallet[0].SetAnim(0x60, 0xA0, 0x60, 1, 0x18, 0);
+                break;
+            case 1:
+                monster->pallet[0].SetAnim(0, 0xB4, 0xFF, 1, 0x18, 0);
+                break;
+            case -1:
+            default:
+                monster->pallet[0].SetAnim(0xFF, 0xB4, 0x80, 2, 0xA, 0);
+                break;
+            }
+            monster->shake.time = 4;
+            int se_no = -1;
+            switch (prim->param->kind) {
+            case DAMAGE_KIND_MONSTER:
+            case 21:
+            case DAMAGE_KIND_ITEM:
+            case DAMAGE_KIND_MAX_MELEE:
+                se_no = 0x1C;
+                break;
+            case DAMAGE_KIND_MAX_GUN:
+                se_no = 0x1A;
+                break;
+            case DAMAGE_KIND_MONICA_MELEE:
+            case DAMAGE_KIND_RIDEPOD_SWORD:
+                se_no = 0x1B;
+                break;
+            case DAMAGE_KIND_RIDEPOD_PUNCH:
+                se_no = 0x19;
+                break;
+            case 14:
+            case DAMAGE_KIND_RIDEPOD_GUN:
+            case DAMAGE_KIND_MONICA_MAGIC:
+            case DAMAGE_KIND_LASER_GUN:
+            case DAMAGE_KIND_GRENADE:
+                break;
+            }
+            if (se_no >= 0) {
+                sndSePlay(se_id, se_no, 0);
+            }
+            HitEffectSet(scene, prim->hit_pos, (s16)prim->param->hit_flags);
+            if (element >= 0 || dbinfo.effect_id > 0) {
+                float power = prim->element[element];
+                if (dbinfo.effect_id > 0) {
+                    element = dbinfo.effect_id - 1;
+                    power = dbinfo.effect_vol;
+                }
+                CWeaponElement *effect = GetWeaponEffect();
+                if (effect != NULL) {
+                    effect->Set(&monster->center_pos, monster->center_pos, power, element, 2.0f * monster->body_width);
+                }
+                int contact;
+                if (prim->param->kind != DAMAGE_KIND_RIDEPOD_SWORD && prim->param->kind != DAMAGE_KIND_RIDEPOD_PUNCH &&
+                    prim->param->kind != DAMAGE_KIND_MONICA_MELEE && prim->param->kind != DAMAGE_KIND_MAX_MELEE) {
+                    contact = 0;
+                } else {
+                    contact = 1;
+                }
+                if (contact) {
+                    switch (element) {
+                    case 0:
+                        fireAfterHit[0].SetPos(monster->center_pos, 5.0f * monster->body_width, (int)power);
+                        break;
+                    case 1:
+                        chillAfterHit[0].SetPos(monster->center_pos, 5.0f * monster->body_width, (int)power);
+                        break;
+                    case 2:
+                        thunder[0].SetPos(monster->center_pos, 5.0f * monster->body_width, power);
+                        break;
+                    case 3: {
+                        float tornado_pos[4];
+                        monster->GetPosition(tornado_pos);
+                        tornado[0].SetPos(tornado_pos, 5.0f * monster->body_width, power);
+                        break;
+                    }
+                    }
+                }
+            }
+            HitScoreSet(prim->hit_pos, 0, dealt);
+            int reaction = 2;
+            if (prim->param->hit_flags & 2) {
+                reaction = 4;
+            }
+            if (prim->param->hit_flags & 4) {
+                reaction = 1;
+            }
+            if (greyed) {
+                reaction = 3;
+            }
+            if (monster->status.attr & (MONSTER_STATUS_UNK_8 | MONSTER_STATUS_UNK_20)) {
+                reaction = 3;
+            }
+            if (monster->life <= 0) {
+                monster->last_hit_kind = prim->param->kind;
+                monster->last_hit_chara = prim->attacker;
+                monster->last_hit_source = prim->param->source_type;
+                monster->last_hit_attr = prim->status;
+                reaction = 6;
+                if (gift_pack_num != 0) {
+                    if (monster->monster_id >= 0xB0 && monster->monster_id < 0xB5 && (prim->status & 0x40000)) {
+                        monster->drop_badge = 1;
+                    }
+                    if (monster->monster_id == 0xDC && (prim->status & 0x80000)) {
+                        monster->drop_badge = 1;
+                    }
+                }
+            }
+            if (dealt > 0 && !(monster->gekirin <= 0.0f)) {
+                monster->gekirin -= 1.0f / (float)prim->param->hit_count;
+                if (monster->gekirin <= 0.0f) {
+                    monster->gekirin = 0.0f;
+                    monster->gekirin_time = 900;
+                    monster->pallet[1].SetAnim(0xC8, 0xC8, 0x80, 1, 0x1E, -1);
+                    if (monster->tbl->boss == 0) {
+                        monster->attack = 1.3f * (u16)monster->tbl->attack;
+                    }
+                }
+            }
+            switch (reaction) {
+            case 3:
+                monster->req_prog = MONSTER_PROG_STATUS;
+                sndSePlay(monster->sound_info.se_bank, 0xB, 0);
+                break;
+            case 2:
+                if (guard) {
+                    monster->req_prog = MONSTER_PROG_GUARD;
+                    break;
+                }
+                if ((tbl->unk_94 & 1) || monster->piyori_time > 0) {
+                    break;
+                }
+                if (monster->tbl->stagger > 0) {
+                    monster->stagger += prim->param->stagger;
+                    monster->stagger_time = 60;
+                    if (monster->stagger < monster->tbl->stagger) {
+                        break;
+                    }
+                }
+                monster->req_prog = MONSTER_PROG_DAMAGE;
+                sndSePlay(monster->sound_info.se_bank, 0xB, 0);
+                break;
+            case 4:
+                if (tbl->unk_94 & 4) {
+                    break;
+                }
+                monster->req_prog = MONSTER_PROG_KNOCK;
+                monster->piyori.Reset();
+                monster->stagger = 0;
+                monster->stagger_time = 0;
+                break;
+            case 1:
+                break;
+            case 6:
+                monster->req_prog = MONSTER_PROG_DEAD;
+                monster->piyori.Reset();
+                break;
+            }
+        }
+        if ((monster->req_prog == MONSTER_PROG_DAMAGE || monster->req_prog == MONSTER_PROG_KNOCK) && prim != NULL &&
+            (prim->param->hit_flags & 1)) {
+            monster->req_prog = MONSTER_PROG_PIYORI;
+            monster->piyori_time = 0x78;
+        }
+    }
+}
+#pragma divbyzerocheck reset
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", CheckDamage__11CMonsterManFv);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", MoveUnit__11CMonsterManFP14CActiveMonsterP6CCPolyi);
+#endif
+void CMonsterMan::MoveUnit(CActiveMonster *monster, CCPoly *poly, int poly_num) {
+    float position[4];
+    float rotation[4];
+    float move[4];
+    float new_position[4];
+    float wanted[4];
+    float toward[4];
+    float ray_from[4];
+    float ray_to[4];
+    float ray_hit[4];
+    float effect_position[4];
+    float matrix[4][4];
+    int i;
+    u32 sound_bank = scene->se_battle_id;
+
+    monster->GetPosition(position);
+    monster->GetRotation(rotation);
+    sceVu0CopyVector(wanted, monster->velocity);
+    sceVu0SubVector(toward, monster->next_pos, position);
+    sceVu0Normalize(toward, toward);
+    sceVu0ScaleVectorXYZ(toward, toward, monster->move_speed);
+    if (!(monster->attrib & MONSTER_ATTRIB_SET_VELOCITY)) {
+        sceVu0AddVector(wanted, wanted, toward);
+    } else {
+        sceVu0CopyVector(wanted, toward);
+    }
+    if (monster->state == ACTIVE_MONSTER_LIVE) {
+        if (!(monster->attrib & MONSTER_ATTRIB_NO_BODY_HIT)) {
+            CollisionCheck(monster, position, wanted, move);
+        } else {
+            sceVu0CopyVector(move, wanted);
+        }
+    } else {
+        sceVu0CopyVector(move, wanted);
+    }
+    monster->height = 0.0f;
+    sceVu0CopyVector(ray_from, position);
+    sceVu0CopyVector(ray_to, position);
+    ray_from[1] += 5.0f;
+    ray_to[1] -= 1000.0f;
+    if (CheckHit(poly, poly_num, ray_from, ray_to, ray_hit, 1, 2) >= 0) {
+        monster->height = position[1] - ray_hit[1];
+    }
+    if (!(monster->attrib & MONSTER_ATTRIB_NO_MAP_HIT)) {
+        monster->mons_move_check.radius = monster->body_width;
+        if (monster->catch_state != 0) {
+            monster->mons_move_check.radius = 5.0f + 2.5f * monster->mons_move_check.radius;
+        }
+        monster->mons_move_check.skip_ground = 0;
+        if (monster->attrib & MONSTER_ATTRIB_SKIP_GROUND) {
+            monster->mons_move_check.skip_ground = 1;
+        }
+        MoveCheck(position, move, new_position, &monster->mons_move_check, poly, poly_num, 2);
+    } else {
+        sceVu0AddVector(new_position, position, move);
+        monster->mons_move_check.landed = 0;
+    }
+    if (!(monster->attrib & MONSTER_ATTRIB_SET_VELOCITY)) {
+        if (monster->mons_move_check.landed != 0) {
+            if (monster->catch_state == 2) {
+                monster->req_prog = MONSTER_PROG_LAND;
+                int ground = -1;
+                if (monster->mons_move_check.landed != 0) {
+                    ground = monster->mons_move_check.ground_poly.foot_sound;
+                    if (ground == 0) {
+                        CMap *map = scene->GetMap(scene->active_map);
+                        if (map != NULL) {
+                            ground = map->def_foot;
+                        }
+                    }
+                    if (ground != 0xB && ground != 0x12) {
+                        ground = -1;
+                    }
+                }
+                if (ground == -1) {
+                    FxScriptMan->CreateEffSpt(at_2588, 0, 0);
+                    FxScriptMan->SetScriptVect1(monster->mons_move_check.ground_point, 0, -1);
+                    sndSePlay(sound_bank, 30, 0);
+                } else {
+                    for (i = 0; i < 4; i++) {
+                        sceVu0CopyVector(effect_position, monster->mons_move_check.ground_point);
+                        effect_position[0] += fRand(40.0f) - 20.0f;
+                        effect_position[2] += fRand(40.0f) - 20.0f;
+                        FxScriptMan->CreateEffSpt(at_2589, 0, 0);
+                        FxScriptMan->SetScriptVect1(effect_position, 0, -1);
+                    }
+                    sndSePlay(sound_bank, 30, 0);
+                }
+            }
+            if (move[1] < -0.6f) {
+                move[1] *= -0.6f;
+            }
+        } else {
+            move[1] -= 0.6f;
+            if (move[1] <= -3.5f) {
+                move[1] = -3.5f;
+            }
+        }
+    }
+    if (scene->GetCharacter(monster->target_no) != NULL && monster->move_speed != 0.0f &&
+        mgDistVector(monster->next_pos, new_position) < monster->arrive_dist) {
+        monster->move_speed = 0.0f;
+    }
+    if (monster->rot_speed != 0.0f) {
+        rotation[1] = mgAngleInterpolate(rotation[1], monster->next_rot, monster->rot_speed, 0);
+        if (mgAngleCmp(rotation[1], monster->next_rot, 0.049087387f) == 0) {
+            monster->rot_speed = 0.0f;
+        }
+    } else {
+        monster->GetRotation(rotation);
+    }
+    monster->SetPosition(new_position);
+    monster->SetRotation(rotation);
+    sceVu0CopyVector(monster->velocity, move);
+    if (monster->link_piece != NULL && monster->link_type == MONSTER_LINK_PIECE) {
+        monster->link_parts->GetLWMatrix(matrix);
+        monster->link_piece->GetPosition(position);
+        sceVu0ApplyMatrix(position, matrix, position);
+        monster->SetPosition(position);
+        monster->link_piece->SetRotation(rotation);
+    }
+    if (monster->link_parts != NULL && monster->link_type == MONSTER_LINK_PARTS) {
+        monster->link_parts->SetPosition(new_position);
+        monster->link_parts->SetRotation(rotation);
+    }
+}
+#ifdef NONMATCHING
+extern EffectVector at_2699;
+void CMonsterMan::ThinkHost() {
+    sceVu0FVECTOR monster_pos;
+    CCPoly polys[0x80];
+    sceVu0FVECTOR camera_pos;
+    sceVu0FVECTOR target_pos;
+    sceVu0FVECTOR own_pos;
+    mgVu0FBOX box;
+    sceVu0FVECTOR item_pos;
+    CMap *map = scene->GetMap(scene->active_map);
+    if (map == NULL) {
+        return;
+    }
+    CCameraControl *camera = GetCamera__6CSceneFi(scene, scene->active_camera);
+    if (camera != NULL) {
+        camera->GetPos(camera_pos);
+    }
+    int user_monster = -1;
+    if (DngUserData->active_chr_no == 3) {
+        user_monster = GetBattleCharaInfo()->unk_2;
+    }
+    for (int i = 0; i < MONSTER_ACTIVE_MAX; i++) {
+        CActiveMonster *monster = active[i];
+        if (monster == NULL || monster->state == ACTIVE_MONSTER_NONE) {
+            continue;
+        }
+        monster->GetEntryObjectPos(0, 0, monster->center_pos);
+        monster->scoop.ok = 0;
+        MONSTER_SCOOP *scoop = &monster->scoop;
+        if (monster->scoop.type & MONSTER_SCOOP_ALWAYS) {
+            scoop->ok = 1;
+        }
+        if (monster->scoop.type != 0 && (monster->scoop.type & MONSTER_SCOOP_MOTION)) {
+            char *motion = monster->GetNowMotionName();
+            if (motion != NULL && strcmp(motion, scoop->motion) == 0) {
+                float frame = monster->GetNowFrameWait(NULL);
+                if (!(frame < scoop->start) && frame < scoop->end) {
+                    scoop->ok = 1;
+                }
+            }
+        }
+        if (scene->battle_area.pause_flag & 0x1000) {
+            if (monster->tbl->user_mons_id == user_monster) {
+                monster->Step();
+            }
+            continue;
+        }
+        if (monster->catch_state == 1) {
+            RunScript(i);
+            monster->SetPosition(0.0f, -2.0f, 0.0f);
+            monster->Step();
+            ACTION_DAMAGE *damage = monster->damage;
+            for (int n = 0; n < 11; n++) {
+                if (damage->use != 0) {
+                    if (damage->prim != NULL) {
+                        damage->prim->Delete(-1);
+                        damage->prim = NULL;
+                    }
+                    damage++;
+                }
+            }
+            continue;
+        }
+        monster->CheckStatusAttr();
+        monster->GetPosition(monster_pos);
+        BASE_MONSTER_TBL *tbl = monster->tbl;
+        CActionChara *target = NULL;
+        if (monster->target_no != -1) {
+            target = (CActionChara *)scene->GetCharacter(monster->target_no);
+        }
+        if (target != NULL) {
+            target->GetPosition(target_pos);
+            monster->GetPosition(own_pos);
+            monster->target_dist = mgDistVector(target_pos, own_pos);
+            if (AutoMapGen.GetNaviDistance(own_pos) < 0.0f) {
+                monster->target_dist = 9999999.0f;
+            }
+            if (camera != NULL) {
+                monster->camera_dist = mgDistVector(camera_pos, own_pos);
+            }
+            if (monster->state != ACTIVE_MONSTER_DEAD && monster->CheckView(priority_limit) == MONSTER_VIEW_OUT) {
+                continue;
+            }
+        }
+        box.max[3] = 1.0f;
+        box.min[3] = 1.0f;
+        box.max[0] = monster_pos[0] + 40.0f;
+        box.min[0] = monster_pos[0] - 40.0f;
+        box.max[2] = monster_pos[2] + 40.0f;
+        box.min[2] = monster_pos[2] - 40.0f;
+        box.max[1] = monster_pos[1] + 200.0f;
+        box.min[1] = monster_pos[1] - 200.0f;
+        CTreasureBoxManager *treasure = scene->battle_area.treasure_box;
+        int poly_num = map->GetPoly(0, polys, box, 0x80);
+        if (treasure != NULL) {
+            poly_num += treasure->PickupCollision(monster_pos, &polys[poly_num], box, 0x80 - poly_num);
+        }
+        if (target != NULL && monster->state == ACTIVE_MONSTER_LIVE && target->murderous_time > 0 &&
+            target->target_no == i + MONSTER_ACTIVE_MAX) {
+            int chance = fptosi(100.0f * (float)rand() / 2147483648.0f);
+            if (monster->mask_flag & 2) {
+                chance = 100;
+            }
+            if (target->murderous == 0 && chance < tbl->escape_rate[0]) {
+                monster->req_prog = MONSTER_PROG_ESCAPE_0;
+            }
+            if (target->murderous == 1 && chance < tbl->escape_rate[1]) {
+                monster->req_prog = MONSTER_PROG_ESCAPE_1;
+            }
+            target->murderous_time = 0;
+        }
+        if (monster->damage_req == 4) {
+            monster->req_prog = MONSTER_PROG_DEAD;
+            monster->damage_req = 0;
+        }
+        RunScript(i);
+        MoveUnit(monster, polys, poly_num);
+        for (int n = 0; n < 11; n++) {
+            ACTION_DAMAGE *damage = &monster->damage[n];
+            if (monster->damage[n].use == 0) {
+                continue;
+            }
+            float frame = monster->GetNowFrame(damage->chara);
+            if (damage->prim == NULL) {
+                if (!(frame < damage->start_frame) && frame < damage->end_frame) {
+                    damage->prim = ColPrimMan.GetPrim();
+                    if (damage->prim != NULL) {
+                        damage->prim->SetDamage(damage->damage, monster->chara_type);
+                        damage->prim->SetCoord(damage->frame0, damage->frame1, damage->radius);
+                        damage->prim->unk_8c = monster->attack;
+                    }
+                }
+            } else if (frame < damage->start_frame || !(frame <= damage->end_frame)) {
+                damage->prim->Delete(-1);
+                damage->prim = NULL;
+            }
+        }
+        if (monster->state == ACTIVE_MONSTER_DEAD && monster->dead_alpha > 0) {
+            monster->dead_alpha -= 3;
+            monster->alpha = (float)monster->dead_alpha / 128.0f;
+            monster->damage_time = 0;
+            if (monster->attrib & MONSTER_ATTRIB_QUICK_DEAD) {
+                monster->alpha = 0.0f;
+                monster->dead_alpha = 0;
+                monster->damage_time = 0;
+            }
+            if (monster->dead_alpha <= 0) {
+                KillMonsterCount(monster->tbl->id, 1);
+                monster->dead_alpha = 0;
+                monster->state = ACTIVE_MONSTER_NONE;
+                monster->chara_kind = 0;
+                if (NowFloorInfoPtr != NULL) {
+                    NowFloorInfoPtr->kill_count++;
+                }
+                if (monster->gate_key > 0) {
+                    CPullItem *item = PullItemMan.GetList(0);
+                    if (item != NULL) {
+                        EffectVector velocity = at_2699;
+                        monster->GetEntryObjectPos(0, item_pos);
+                        item_pos[1] += 20.0f;
+                        item->SetItem(item_pos, velocity.f, 2);
+                        item->item_no = monster->gate_key;
+                    }
+                }
+            }
+        }
+        monster->piyori.Step();
+        monster->gift_mark.Step();
+        if (monster->piyori_mark > 0) {
+            monster->piyori_mark--;
+            if (monster->piyori_mark <= 0) {
+                monster->piyori_time = 0;
+            }
+        }
+        if (monster->gekirin_time > 0) {
+            monster->gekirin_time--;
+            if (monster->gekirin_time <= 0) {
+                monster->gekirin = monster->gekirin_num;
+                monster->life_gage.ResetGekirin(monster->gekirin_num);
+                monster->pallet[1].duration = 0;
+                if (monster->tbl->boss == 0) {
+                    monster->attack = monster->tbl->attack;
+                }
+            }
+        }
+        if (monster->camera_dist < 4.0f * monster->body_width) {
+            if (!(monster->camera_alpha <= 0.0f)) {
+                monster->camera_alpha -= 1.0f / 12.0f;
+                if (monster->camera_alpha <= 0.0f) {
+                    monster->camera_alpha = 0.0f;
+                }
+            }
+        } else if (monster->camera_alpha < 1.0f) {
+            monster->camera_alpha += 1.0f / 12.0f;
+            if (!(monster->camera_alpha < 1.0f)) {
+                monster->camera_alpha = 1.0f;
+            }
+        }
+        if (monster->view_state == MONSTER_VIEW_FADE_OUT) {
+            monster->view_alpha -= 0.05f;
+            if (monster->view_alpha <= 0.0f) {
+                monster->view_alpha = 0.0f;
+                monster->view_state = MONSTER_VIEW_OUT;
+            }
+        }
+        if (monster->view_state == MONSTER_VIEW_FADE_IN) {
+            monster->view_alpha += 0.05f;
+            if (!(monster->view_alpha < 1.0f)) {
+                monster->view_alpha = 1.0f;
+                monster->view_state = MONSTER_VIEW_IN;
+            }
+        }
+        float step = monster->GetDefaultStep();
+        if (monster->status.attr & MONSTER_STATUS_SLOW) {
+            monster->SetStep(0.5f * step);
+        } else {
+            monster->SetStep(step);
+        }
+        monster->Step();
+    }
+    PriorityLevelCheck();
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", ThinkHost__11CMonsterManFv);
+#endif
 int _MONSTER_NAME(SPI_STACK *stack, int argument_count) {
     char name[0x80];
     int monster_id;

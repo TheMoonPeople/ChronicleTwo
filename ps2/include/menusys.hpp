@@ -131,7 +131,7 @@ struct MENU_ASKMODE_PARA {
     int cmd_msg[8];             /**< Message number of each command. */
     u32 cmd_color[8];           /**< Colour each command is drawn in; 0x80202020 marks one that cannot be chosen. */
     s16 unk_48[8];
-    s16 unk_58[8];
+    s16 cmd_mark[8];           /**< Non-zero for a command the list marks as ready, such as a weapon that can be built up. */
     s16 arg0;                   /**< Value that depends on the question, such as the character an item belongs to. */
     s16 arg1;                   /**< Second value that depends on the question. */
     s16 unk_6C;
@@ -789,6 +789,13 @@ public:
 
     /**
      *
+     * Gives the first row of the list that is shown.
+     *
+     */
+    int GetTopLine() { return top_line; }
+
+    /**
+     *
      * Starts fading the cursor and its frame in.
      *
      * @mangled CursorFadeIn__12CMenuKeyFuncFfi
@@ -1029,8 +1036,8 @@ public:
     u8 unk_170;
     s16 unk_172;
     s16 unk_174;
-    s16 unk_176;
-    s16 unk_178;
+    s16 sub_menu;                        /**< Screen opened from the item menu that is running, or -1 for the item menu itself. */
+    s16 next_sub_menu;                   /**< Screen to open from the item menu, or -1 for none. */
     CGameDataUsed *view_weapon;          /**< Weapon whose status is shown. */
     CMenuPosDataForm *view_form[6];      /**< Forms of the pages. */
     s16 unk_198;
@@ -1040,15 +1047,14 @@ public:
     CMenuPosDataForm *chara_poly_form[2];/**< Forms behind the two character models. */
     CMenuPosDataForm *fill_form;         /**< Form that fills the main page. */
     MENUFORMPARTS_TYPE *item_board_icon; /**< Icon part of the inventory board. */
-    u8 unk_1B8[0x10];
-    MENUFORMPARTS_TYPE *wep_parts[2][16];/**< Parts of the two weapon slots of each character page. */
-    u8 unk_248[0x58];
+    MENUFORMPARTS_TYPE *wep_parts[2][16];/**< Parts of the two weapon slots of each character page, from index 4. */
+    u8 unk_238[0x68];
     MENUFORMPARTS_TYPE *robo_parts[6];   /**< Parts of the ridepod page. */
     MENUFORMPARTS_TYPE *hp_bar[2];       /**< Life bar of each character page. */
     MENUFORMPARTS_TYPE *item_parts[2][3];/**< Item icons of each character page. */
     MENUFORMPARTS_TYPE *item_num[2][3];  /**< Item counts of each character page. */
     MENUFORMPARTS_TYPE *voice_part;      /**< Voice part of the ridepod page. */
-    int *model_tex_block;                /**< Texture blocks the shown models use. */
+    CActionChara *build_up_chara;        /**< Model of the weapon being built up. */
     s32 unk_2F8;
     s16 unk_2FC;
     s16 debug_item_no;                   /**< Item number the debug controls show. */
@@ -1414,6 +1420,13 @@ public:
 
     /**
      *
+     * Creates the list of the items that can be chosen, placed at the bottom of the screen.
+     *
+     */
+    CItemSelect();
+
+    /**
+     *
      * Lists every item of the inventory that can be chosen.
      *
      * @mangled SetPtrList__11CItemSelectFv
@@ -1485,11 +1498,17 @@ STATIC_ASSERT(sizeof(MENU_ITEM_CURSOR_INFO) == 0xC);
  */
 struct BUILDUP_WEAPON_INFO {
     s16 unk_0;
-    union { s8 mode; s8 select; };
+    s8 mode;
     s8 select_no;
-    s32 unk_4;
-    int select_num; /**< Number of build-ups that can be chosen. */
-    u8 unk_C[0x38];
+    s16 build_up;
+    s16 unk_6;
+    int select_num;
+    int weapon_no[3];
+    int enable[3];
+    CGameDataUsed *weapon;
+    s32 unk_28;
+    CDataWeapon *weapon_data[3];
+    s32 unk_38[3];
 };
 STATIC_ASSERT(sizeof(BUILDUP_WEAPON_INFO) == 0x44);
 
@@ -1633,7 +1652,7 @@ int MenuListKeyCheck(int select_key, int *pos, int *top_line, int min, int max, 
  * @address 0x23D8B0
  * @size 0x300
  */
-int MenuGlidKeyCheck(int select_key, int *pos, int *top_line, int *columns, int *rows, int *disp_lines, int limit);
+int MenuGlidKeyCheck(int select_key, int *pos, int *top_line, int *size, int *disp, int *limit, int max);
 
 /**
  *
@@ -1838,7 +1857,7 @@ extern CRepairManager *MenuRepairMan;
 extern u8 menu_chara_activeItem_limmit_check[6];
 
 /** Non-zero while the character status texture is not drawn. */
-extern u8 MenuStatusMode;
+extern s8 MenuStatusMode;
 
 /** Texture of the character status. */
 extern mgCTexture *MenuStatusTex;

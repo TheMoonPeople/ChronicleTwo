@@ -47,10 +47,184 @@ void PlaneNormalXZ(float *normal, float *p0, float *p1, float *p2) {
         sqc2 vf12, 0(normal)
     }
 }
+#ifdef NONMATCHING
+float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, float *pos, float rot_y, CEditParts **parts, int num) {
+    sceVu0FMATRIX parts_matrix;
+    sceVu0FMATRIX invers_matrix;
+    sceVu0FMATRIX matrix;
+    sceVu0FVECTOR parts_pos;
+    sceVu0FVECTOR offset;
+    sceVu0FVECTOR parts_rot;
+    sceVu0FVECTOR triangle[3];
+    mgVu0FBOX box;
+    sceVu0FVECTOR normal;
+    float area;
+
+    if (info == NULL) {
+        return pos[1];
+    }
+    GetMatrix(matrix, pos, ConvEditAngle(rot_y));
+    float alt = pos[1];
+    for (int i = 0; i < num; i++) {
+        CEditParts *edit_parts = parts[i];
+        if (edit_parts->name[0] == 0) {
+            continue;
+        }
+        CEditPartsInfo *parts_info = edit_parts->info;
+        if (parts_info == NULL) {
+            continue;
+        }
+        edit_parts->GetPosition(parts_pos);
+        edit_parts->GetRotation(parts_rot);
+        GetMatrix(parts_matrix, parts_pos, ConvEditAngle(parts_rot[1]));
+        GetInversMatrix(invers_matrix, parts_matrix);
+        sceVu0SubVector(offset, pos, parts_pos);
+        mgAngleLimit(rot_y - parts_rot[1]);
+        int poly_count = info->col_area1.poly_count;
+        CCPoly *poly = info->col_area1.poly;
+        for (int j = 0; j < poly_count; j++, poly++) {
+            mgApplyMatrixN(triangle, matrix, poly->vertex, 3);
+            mgApplyMatrixN(triangle, invers_matrix, triangle, 3);
+            PlaneNormalXZ(normal, triangle[0], triangle[1], triangle[2]);
+            if (parts_info->col_floor.OverlapPoly3XZ(triangle, &area, &box) == 0) {
+                continue;
+            }
+            area = (area < 0.0f) ? -area : area;
+            if (area <= 0.01f) {
+                continue;
+            }
+            float top = box.max[1] + parts_matrix[3][1];
+            if (top <= alt) {
+                continue;
+            }
+            alt = top;
+        }
+    }
+    return GetEditAlt(alt);
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap2", GetEditPartsAlt__8CEditMapFP14CEditPartsInfoPffPP10CEditPartsi);
+#endif
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap2", CheckEditParts__8CEditMapFP14CEditPartsInfoPffP13EP_PLACE_INFOPP10CEditPartsi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap2", CheckEditPartsOnRiver__8CEditMapFP14CEditPartsInfoPff);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap2", CheckRiverParts__8CEditMapFPf);
+int CEditMap::CheckEditPartsOnRiver(CEditPartsInfo *info, float *pos, float rot_y) {
+    sceVu0FMATRIX matrix;
+    int x;
+
+    GetMatrix(matrix, pos, ConvEditAngle(rot_y));
+    mgVu0FBOX box = info->col_area3.bbox;
+    float area = info->col_area5.AreaXZ();
+    mgVu0FBOX world_box;
+    float corner[EDIT_GRID_CORNER_MAX][4];
+    sceVu0FMATRIX piece_matrix;
+    sceVu0FMATRIX invers_matrix;
+    sceVu0FMATRIX local_matrix;
+    int max_pos[2];
+    int min_pos[2];
+    mgApplyMatrix(world_box.max, world_box.min, matrix, box.max, box.min);
+    float river_area = 0.0f;
+    for (int i = 0; i < grid_max; i++) {
+        if (grid[i] == NULL) {
+            continue;
+        }
+        grid[i]->GetLPos(min_pos, world_box.min[0], world_box.min[2]);
+        grid[i]->GetLPos(max_pos, world_box.max[0], world_box.max[2]);
+        for (x = min_pos[0]; x <= max_pos[0]; x++) {
+            for (int z = min_pos[1]; z <= max_pos[1]; z++) {
+                CGridData *cell = grid[i]->Get(x, z);
+                if (cell == NULL) {
+                    continue;
+                }
+                if (grid[i]->River(x, z) == 0) {
+                    continue;
+                }
+                grid[i]->GetRiverPos(x, z, corner);
+                for (int c = 0; c < EDIT_GRID_CORNER_MAX; c++) {
+                    sceVu0CopyMatrix(piece_matrix, grid[i]->rot[cell->rot[c]]);
+                    *(u_long128 *)piece_matrix[3] = *(u_long128 *)corner[c];
+                    mgInversMatrix(invers_matrix, piece_matrix);
+                    mgMulMatrix(local_matrix, invers_matrix, matrix);
+                    river_area += river_info[cell->piece[c]].col_floor.OverlapXZ(info->col_area5, local_matrix, NULL);
+                    if (river_info[cell->piece[c]].col_floor.OverlapXZ(info->col_area1, local_matrix, NULL) > 0.01f) {
+                        return 0;
+                    }
+                }
+            }
+        }
+    }
+    float rest = area - river_area;
+    rest = (rest < 0.0f) ? -rest : rest;
+    if (rest > 0.01f) {
+        return 0;
+    }
+    return 1;
+}
+int CEditMap::CheckRiverParts(float *pos) {
+    int lpos[2];
+    CEditGrid *river = NULL;
+
+    for (int i = 0; i < grid_max; i++) {
+        river = grid[i];
+        if (river == NULL) {
+            continue;
+        }
+        if (river->GetLPos(lpos, pos[0], pos[2]) == 0) {
+            continue;
+        }
+        if (river->River(lpos[0], lpos[1]) != 0) {
+            return 0;
+        }
+        break;
+    }
+    if (river == NULL) {
+        return 0;
+    }
+    int x = lpos[0];
+    int z = lpos[1];
+    river->SetRiver(x, z);
+    CGridData *cell = river->Get(x, z);
+    if (cell == NULL) {
+        return 0;
+    }
+    river->ResetRiver(x, z);
+    CGridData cell_copy = *cell;
+    float corner[EDIT_GRID_CORNER_MAX][4];
+    sceVu0FMATRIX piece_matrix[EDIT_GRID_CORNER_MAX];
+    sceVu0FMATRIX parts_matrix;
+    sceVu0FMATRIX invers_matrix;
+    mgVu0FBOX box;
+    CEditParts *near_parts[0x100];
+    sceVu0FVECTOR parts_pos;
+    sceVu0FVECTOR parts_rot;
+    sceVu0FMATRIX local_matrix;
+    river->GetRiverPos(x, z, corner);
+    for (int c = 0; c < EDIT_GRID_CORNER_MAX; c++) {
+        *(u_long128 *)piece_matrix[c][0] = *(u_long128 *)river->rot[cell_copy.rot[c]][0];
+        *(u_long128 *)piece_matrix[c][1] = *(u_long128 *)river->rot[cell_copy.rot[c]][1];
+        *(u_long128 *)piece_matrix[c][2] = *(u_long128 *)river->rot[cell_copy.rot[c]][2];
+        *(u_long128 *)piece_matrix[c][3] = *(u_long128 *)river->rot[cell_copy.rot[c]][3];
+        *(u_long128 *)piece_matrix[c][3] = *(u_long128 *)corner[c];
+    }
+    river->GetGridBox(&box, pos);
+    int near_num = GetNearParts(box, near_parts, 0x100);
+    for (int i = 0; i < near_num; i++) {
+        CEditParts *parts = near_parts[i];
+        CEditPartsInfo *parts_info = parts->info;
+        if (parts_info == NULL) {
+            continue;
+        }
+        parts->GetPosition(parts_pos);
+        parts->GetRotation(parts_rot);
+        GetMatrix(parts_matrix, parts_pos, ConvEditAngle(parts_rot[1]));
+        GetInversMatrix(invers_matrix, parts_matrix);
+        for (int c = 0; c < EDIT_GRID_CORNER_MAX; c++) {
+            mgMulMatrix(local_matrix, invers_matrix, piece_matrix[c]);
+            if (parts_info->col_area1.OverlapXZ(river_info[cell_copy.piece[c]].col_floor, local_matrix, NULL) > 0.01f) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
 int CEditMap::CheckNormalPlaceParts(int place_no) {
     CEditParts *edit_parts = GetePlaceParts(place_no);
     return CheckNormalPlaceParts(edit_parts);

@@ -42,8 +42,7 @@ extern int now_texb;
 /** Non-zero once the script has asked for exact record timing. */
 extern int texBugPatch;
 /** Record the script is building. */
-extern mgCTexAnimeData nowTexData[2048];
-#define nowTexData nowTexData[0]
+static mgCTexAnimeData nowTexData;
 }
 
 extern char at_873[];
@@ -1017,8 +1016,6 @@ int texBUG_PATCH(SPI_STACK *stack, int argc) {
     return 1;
 }
 
-#pragma schedule off
-// Defined in the class body in mg_tanime.hpp.
 template <>
 void mgRect<int>::Set(int new_left, int new_top, int new_right, int new_bottom) {
     left = new_left;
@@ -1026,11 +1023,8 @@ void mgRect<int>::Set(int new_left, int new_top, int new_right, int new_bottom) 
     right = new_right;
     bottom = new_bottom;
 }
-#pragma schedule off
 
-// Static initialiser (.init)
-// nowTexData, the one object constructed here, is defined with the file-local data at the top.
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", __sinit_mg_tanime_cpp);
+#pragma optimization_level 1
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", tex_tag__DATA);
@@ -1051,9 +1045,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_842__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_843__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_873__DATA);
 
-// Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", D_0037AFE4__DATA);
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", __vt__24CList_15mgCTexAnimeData___DATA);
 
@@ -1071,4 +1062,3 @@ INCLUDE_BSS(now_texb, 0x4);
 INCLUDE_BSS(texBugPatch, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(nowTexData, 0x40);
