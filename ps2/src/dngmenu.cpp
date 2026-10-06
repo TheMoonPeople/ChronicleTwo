@@ -2595,7 +2595,6 @@ int CMenuTreeMap::FadeInOutMenu() {
     }
     return fade_done;
 }
-#ifdef NONMATCHING
 inline CMenuTreeMap::CMenuTreeMap() {
     unk_11a = 0;
     select_glid = NULL;
@@ -2667,9 +2666,6 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     char *files[2] = {name, NULL};
     MenuCommonReadData(&MenuTreeMapStack, files, 0);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DngTreeMapInit__FP9mgCMemoryPiii);
-#endif
 extern "C" void Init__6ClsMesFv(ClsMes *mes) {
     int i;
     int j;

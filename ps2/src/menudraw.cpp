@@ -4765,7 +4765,6 @@ void SetBGFrameForMenu(int tex_block, char *name) {
     background->Bilinear(1);
     mgSetPkMoveImage(&frame, src, background, 0, 0, 0);
 }
-#ifdef NONMATCHING
 static void MenuFrameImageDraw(mgCDrawPrim *prim, mgCTexture *tex, mgRect<float> rect, mgRect<int> tex_rect, int gray,
                                int alpha, int dtype) {
     int prim_type;
@@ -4824,9 +4823,6 @@ static void MenuFrameImageDraw(mgCDrawPrim *prim, mgCTexture *tex, mgRect<float>
         tex->Bilinear(0);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", MenuFrameImageDraw__FP11mgCDrawPrimP10mgCTexture9mgRect_f_9mgRect_i_iii);
-#endif
 void CRepairEffect::Initialize(void) {
     active = 0;
     particle = NULL;

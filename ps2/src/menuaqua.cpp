@@ -4744,7 +4744,6 @@ void MenuAquaInit(mgCMemory *memory, int *tex_block, int) {
     mgPlightEnable(1);
     mgGetLight(aqua_old_env->light_dir, aqua_old_env->light_color);
 }
-#ifdef NONMATCHING
 int MenuAquaKey() {
     switch (AquaMode) {
         case 0:
@@ -4772,7 +4771,8 @@ int MenuAquaKey() {
                 } else if (!(Camera__2->GetDistance() <= 262.0f)) {
                     Camera__2->SetDistance(262.0f);
                 }
-                Camera__2->SetSpeed(2.0f, -1.0f);
+                float pos_speed = 2.0f;
+                Camera__2->SetSpeed(pos_speed, -1.0f);
             }
             if (AquaCameraCtrlMode == 1) {
                 Camera__2->AddAngle(0.04f * -GamePad__2.GetRXf());
@@ -4850,9 +4850,6 @@ int MenuAquaKey() {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", MenuAquaKey__Fv);
-#endif
 void MenuAquaDraw() {
     float view[4][4];
     float position[4];

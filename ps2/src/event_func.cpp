@@ -5668,7 +5668,6 @@ int _GOTO_SUBGAME(RS_STACKDATA *stack, int argc) {
     info.texb_num = EventScene->unk_3e6c;
     return sgInitSubGame(type, &info) != 0;
 }
-#ifdef NONMATCHING
 int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
     int digit[8];
     char text[0x14];
@@ -5729,10 +5728,10 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
             if (360000.0f <= time) {
                 time = 360000.0f;
             }
-            minutes = fptosi(time / 3600.0f);
+            minutes = (int)(time / 3600.0f);
             time -= minutes * 3600.0f;
-            seconds = fptosi(time / 60.0f);
-            hundredths = fptosi(100.0f * (time - seconds * 60.0f) / 60.0f);
+            seconds = (int)(time / 60.0f);
+            hundredths = (int)(100.0f * (time - seconds * 60.0f) / 60.0f);
             digit[0] = minutes / 10;
             digit[1] = minutes % 10;
             digit[2] = -1;
@@ -5825,9 +5824,6 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_GYORACE_ETC__FP12RS_STACKDATAi);
-#endif
 int _GET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
     FISH_PRIZE_INFO info;
     int raceNo;

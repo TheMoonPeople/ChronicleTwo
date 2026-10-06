@@ -18,3 +18,4 @@ editmenu drafts primer=u64div
 menucls1 primer=u64div
 scene primer=u64div
 scenesnd primer=u64div
+event_func primer=u64div

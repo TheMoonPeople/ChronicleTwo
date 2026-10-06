@@ -10,9 +10,7 @@
 #include "mg_sprite.hpp"
 #include "scriptinterpreter.hpp"
 #include "effectlist.hpp"
-#ifdef NONMATCHING
 #include "dataread.hpp"
-#endif
 #include <cstring>
 
 extern "C" int fptosi(float value);
@@ -22,7 +20,6 @@ void DivSpriteScreen(mgCDrawPrim &prim);
 void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int mode);
 
 // Code (.text)
-#ifdef NONMATCHING
 void CEffectList::LoadEFPFile(char *name, u_int *pack, int block, mgCMemory *stack) {
     int           sizes[64];
     u_int        *files[64];
@@ -38,50 +35,36 @@ void CEffectList::LoadEFPFile(char *name, u_int *pack, int block, mgCMemory *sta
     u_int         quadwords;
     CEffect      *particles;
     CEffectCtrl  *ctrls;
+    mgCTextureManager *textures = &mgTexManager;
 
     this->block = block;
     this->pack = pack;
     bytes = strlen(name) + 1;
-    quadwords = bytes / 16;
-    if (bytes % 16) {
-        quadwords++;
-    }
+    quadwords = bytes % 16 ? bytes / 16 + 1 : bytes / 16;
     this->name = (char *)stack->Alloc(quadwords);
     strcpy(this->name, name);
 
     image_num = GetPackFileExt(pack, "img", files, 64, sizes, names);
     for (i = 0; i < image_num; i++) {
-        mgTexManager.EnterIMGFile((u_char *)files[i], block, NULL, NULL);
+        textures->EnterIMGFile((u_char *)files[i], block, NULL, NULL);
     }
 
     effect_num = GetPackFileExt(pack, "em", files, 64, sizes, names);
     bytes = effect_num * sizeof(CEffectManager);
-    quadwords = bytes / 16;
-    if (bytes % 16) {
-        quadwords++;
-    }
+    quadwords = bytes % 16 ? bytes / 16 + 1 : bytes / 16;
     managers = new (stack->Alloc(quadwords + 2)) CEffectManager[effect_num];
     bytes = effect_num * sizeof(mgC3DSprite);
-    quadwords = bytes / 16;
-    if (bytes % 16) {
-        quadwords++;
-    }
+    quadwords = bytes % 16 ? bytes / 16 + 1 : bytes / 16;
     sprites = new (stack->Alloc(quadwords + 2)) mgC3DSprite[effect_num];
 
     for (i = 0; i < effect_num; i++) {
         DivPathNameExt(names[i], directory, basename, extension);
         managers[i].GetBufferNums((char *)files[i], sizes[i], &particle_num, &ctrl_num);
         bytes = particle_num * sizeof(CEffect);
-        quadwords = bytes / 16;
-        if (bytes % 16) {
-            quadwords++;
-        }
+        quadwords = bytes % 16 ? bytes / 16 + 1 : bytes / 16;
         particles = new (stack->Alloc(quadwords + 2)) CEffect[particle_num];
         bytes = ctrl_num * sizeof(CEffectCtrl);
-        quadwords = bytes / 16;
-        if (bytes % 16) {
-            quadwords++;
-        }
+        quadwords = bytes % 16 ? bytes / 16 + 1 : bytes / 16;
         ctrls = new (stack->Alloc(quadwords + 2)) CEffectCtrl[ctrl_num];
         managers[i].EntryEffCtrls(particles, particle_num, ctrls, ctrl_num);
         managers[i].Initialize();
@@ -90,13 +73,6 @@ void CEffectList::LoadEFPFile(char *name, u_int *pack, int block, mgCMemory *sta
         managers[i].Run();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", LoadEFPFile__11CEffectListFPcPUiiP9mgCMemory);
-#endif
-#ifdef NONMATCHING
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", __ct__11mgC3DSpriteFv);
-#endif
 int CEffectList::SaerchEffectIndex(char *name) {
     int i;
 
