@@ -34,12 +34,12 @@ STATIC_ASSERT(sizeof(RECT) == 0x10);
  *
  */
 struct RGBAQ_TYPE {
-    u8 r;    /**< Red. */
-    u8 g;    /**< Green. */
-    u8 b;    /**< Blue. */
-    u8 a;    /**< Alpha; 0x80 is fully opaque. */
-    float q; /**< Q value of the register. */
-} __attribute__((aligned(8)));
+    u_long r : 8;  /**< Red. */
+    u_long g : 8;  /**< Green. */
+    u_long b : 8;  /**< Blue. */
+    u_long a : 8;  /**< Alpha; 0x80 is fully opaque. */
+    u_long q : 32; /**< Q value of the register. */
+};
 
 STATIC_ASSERT(sizeof(RGBAQ_TYPE) == 0x8);
 

@@ -863,9 +863,9 @@ void CCharacter2::ResetFloor() {
     }
 }
 
-#ifdef NONMATCHING
 void CCharacter2::NormalDrive() {
     float  frame_step;
+    float  motion_speed = 1.2f;
 
     if (next_key != now_key && next_key != NULL) {
         posed_key = now_key;
@@ -895,7 +895,7 @@ void CCharacter2::NormalDrive() {
         return;
     }
     if (posed_key == now_key) {
-        frame_step = step * 1.2f;
+        frame_step = step * motion_speed;
         if ((now_flags & CHARA_MOTION_PAUSE) != 0) {
             frame_step = 0.0f;
         }
@@ -903,11 +903,11 @@ void CCharacter2::NormalDrive() {
         if (!(frame_step <= 0.0f)) {
             motion_status = CHARA_MOTION_STATUS_PLAY;
         }
-        if (frame < now_key->start_frame + step * 1.2f && !(frame < now_key->start_frame)) {
+        if (frame < now_key->start_frame + step * motion_speed && !(frame < now_key->start_frame)) {
             frame = now_key->start_frame;
             motion_status = CHARA_MOTION_STATUS_START;
         }
-        if (!(frame + step * 1.2f <= now_key->end_frame)) {
+        if (!(frame + step * motion_speed <= now_key->end_frame)) {
             if ((now_flags & CHARA_MOTION_HOLD) != 0) {
                 frame = now_key->end_frame;
                 motion_status = CHARA_MOTION_STATUS_END;
@@ -941,9 +941,6 @@ void CCharacter2::NormalDrive() {
         motion_status = CHARA_MOTION_STATUS_START;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/character", NormalDrive__11CCharacter2Fv);
-#endif
 void CCharacter2::ShadowStep() {
     int i;
     mgCFrame *source;

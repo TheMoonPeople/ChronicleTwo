@@ -260,8 +260,9 @@ int CWorldMapMenu::KeyStep() {
         exit_wait = 0;
         back_alpha = 0.0f;
         WorldMapStack.Align64();
+        unsigned int size;
         u_long128 *script = WorldMapStack.stGetTop();
-        unsigned int size = LoadFileMenu(at_1312, script, 1);
+        size = LoadFileMenu(at_1312, script, 1);
         unsigned int blocks;
         if (size & 0xF) {
             blocks = (size >> 4) + 1;
@@ -1552,6 +1553,8 @@ void SphidaScoreViewDraw() {
     int row_y;
     int row;
     int loaded_tex_no;
+    int number_y;
+    int label_y;
 
     textures->ReloadTexture(SphidaMenuTexbk[0], (sceVif1Packet *)NULL);
     loaded_tex_no = -1;
@@ -1573,14 +1576,16 @@ void SphidaScoreViewDraw() {
         prim->Color(128, 128, 128, 128);
         if (LanguageCode == 0) {
             label_left.Set(0, 0, 0x24, 0x26);
-            PrimQuad(prim, 42.0f, (float)(mgScreenHeight - 0x4C), label_left);
+            label_y = mgScreenHeight - 0x4C;
+            PrimQuad(prim, 42.0f, (float)label_y, label_left);
             label_right.Set(0x24, 0, 0x5A, 0x26);
             PrimQuad(prim, 110.0f, (float)(mgScreenHeight - 0x4C), label_right);
             PrimDrawNumber(prim, hole_no, 0, 0x6A, mgScreenHeight - 0x4A, hole_digits, -2, 0);
         } else if (LanguageCode > 0) {
             label_wide.Set(0, 0, 0x88, 0x26);
             PrimQuad(prim, 42.0f, mgScreenHeight - 0x4C, label_wide);
-            PrimDrawNumber(prim, hole_no, 0, 0xCE, mgScreenHeight - 0x4A, hole_digits, -2, 0);
+            number_y = mgScreenHeight - 0x4A;
+            PrimDrawNumber(prim, hole_no, 0, 0xCE, number_y, hole_digits, -2, 0);
         }
         prim->End();
     }
@@ -1604,7 +1609,8 @@ void SphidaScoreViewDraw() {
             }
             PrimDrawNumber(prim, row + 1, 0, 0x178, row_y - 0x12, number_digits, -2, 0);
             hole_label.Set(0x9A, 0x74, 0xE, 0x14);
-            PrimQuad(prim, 376.0f, row_y - 0x12, hole_label);
+            int hole_y = row_y - 0x12;
+            PrimQuad(prim, 376.0f, hole_y, hole_label);
             prim->Color(128, 128, 128, 128);
             if (hole_no < row + 1) {
                 par_label.Set(0xB4, 0xEC, 0x12, 0x14);

@@ -159,15 +159,18 @@ extern char at_1021__3[];
 int SearchMapNo(char *mapName);
 
 // Code (.text)
-#ifdef NONMATCHING
 void CDngFreeMap::Initialize() {
+    float left = 120.0f;
+    float top = 138.0f;
+    float bottom = 286.0f;
+    float right = 420.0f;
     active = 1;
     unk_9 = 0;
     dng_no = 0;
     floor_manager = NULL;
     save_dungeon = NULL;
     mode = DNGMAP_MODE_MENU;
-    view_rect.Set(120.0f, 138.0f, 420.0f, 286.0f);
+    view_rect.Set(left, top, right, bottom);
     mark_num = 0;
     next_room_no = -1;
     user_room_no = -1;
@@ -188,9 +191,6 @@ void CDngFreeMap::Initialize() {
     fade_time = -1;
     fade_step = 0.0f;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Initialize__11CDngFreeMapFv);
-#endif
 void CDngFreeMap::InitTexture(void) {
     map_tex = NULL;
     last_tex = NULL;
@@ -2444,7 +2444,6 @@ int CMenuTreeMap::Step() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Step__12CMenuTreeMapFv);
 #endif
-#ifdef NONMATCHING
 void CMenuTreeMap::Draw() {
     float target[2];
     if ((mode & 2) && unk_11a == 1) {
@@ -2485,7 +2484,8 @@ void CMenuTreeMap::Draw() {
     }
     if (MenuDngMap->select_glid != NULL) {
         if (dngfloor_backdraw != 0) {
-            CalcMenuAdd(&dngfloor_backdraw_alpha, 3, 0x40);
+            int *alpha = &dngfloor_backdraw_alpha;
+            CalcMenuAdd(alpha, 3, 0x40);
         } else {
             CalcMenuAdd(&dngfloor_backdraw_alpha, -3, 0);
         }
@@ -2573,9 +2573,6 @@ void CMenuTreeMap::Draw() {
         MenuDCMsg[3]->DrawMsg();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Draw__12CMenuTreeMapFv);
-#endif
 int CMenuTreeMap::FadeInOutMenu() {
     int fade_done;
 

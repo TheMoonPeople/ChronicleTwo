@@ -2031,15 +2031,15 @@ void MenuMainFrameDraw(int &loaded_tex, int unused) {
 void MenuMainFrameImgDraw(int &loaded_tex_no) {
     mgRect<int> dest(0, 0, 0, 0);
     mgRect<int> source(0, 0, mgScreenWidth / 2, mgScreenHeight / 2);
-    int alpha = fptosi(128.0f * (MenuMainFrame_Display_Mode_Cnt / 10.0f));
+    int alpha = (int)(128.0f * (MenuMainFrame_Display_Mode_Cnt / 10.0f));
     dest = MenuMainIMG_PutRect;
     if (MenuMainFrame_Display_Mode == 1 || MenuMainFrame_Display_Mode == 0) {
         if (MenuMainFrame_Display_Mode == 1) {
             alpha = 0x80;
         }
     } else {
-        dest.left = fptosi(MenuMainFrame_Lenze_Pos[0] - 194.0f);
-        dest.top = fptosi(MenuMainFrame_Lenze_Pos[1] - 184.61539f);
+        dest.left = (int)(MenuMainFrame_Lenze_Pos[0] - 194.0f);
+        dest.top = (int)(MenuMainFrame_Lenze_Pos[1] - 184.61539f);
     }
     mgRect<int> screen(0, 0, mgScreenWidth, mgScreenHeight);
     DrawMenuMainFrmImg(loaded_tex_no, screen, source, 0x80, 0x80, 0x80, alpha, 0);
@@ -4435,14 +4435,14 @@ void MenuItemBrdScrlBarStep(int line, int height, int mode) {
         MenuItemBrdScrlBarY = (float)pos;
     }
 }
-#ifdef NONMATCHING
 void Func_MenuItemBrdPosStep(int top_line) {
     int pos[2] = {0, 24};
     CMenuPosDataForm *form = MenuPosData->GetFormInfo(at_4453);
     if (form != NULL) {
         form->GetPutPosXY(NULL, pos[0], pos[1]);
     }
-    MenuItemBrdUnderBrdPosXY[0] = pos[0] + 16;
+    __typeof__(pos[0]) x = pos[0];
+    MenuItemBrdUnderBrdPosXY[0] = x + 16;
     MenuItemBrdUnderBrdPosY_Next = pos[1] + 26;
     MenuItemBrdUnderBrdPosY_Next -= 50.0f * top_line;
     if (MenuItemBrdCalcManner == 0) {
@@ -4453,9 +4453,6 @@ void Func_MenuItemBrdPosStep(int top_line) {
     }
     MenuItemBrdScrlBarStep(top_line, pos[1] + 18, MenuItemBrdCalcManner);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", Func_MenuItemBrdPosStep__Fi);
-#endif
 void CMenuPosDataManage::GetPosMenuItemBrdKoma(int *position, int item_index, int clip) {
     CMenuPosDataForm *form = GetFormInfo(at_4453);
     if (form != NULL) {

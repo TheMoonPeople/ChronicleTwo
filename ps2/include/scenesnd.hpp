@@ -121,7 +121,11 @@ struct DNG_BATTLE_AREA {
     void SetStatusBar(int show, float speed) {
         statusbar_show_old = statusbar_show;
         statusbar_show = show;
-        statusbar_rate = show ? 0.0f : 1.0f;
+        if (show) {
+            statusbar_rate = 0.0f;
+        } else {
+            statusbar_rate = 1.0f;
+        }
         statusbar_speed = speed;
     }
 

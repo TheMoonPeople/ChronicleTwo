@@ -20,6 +20,13 @@ class mgCTexture;
  * Trail left behind a weapon swing, built from a ring of point pairs recorded from two frames and smoothed into a strip.
  *
  */
+struct SWordFloat4 {
+    float values[4];
+};
+struct SWordFloat2 {
+    float values[2];
+};
+
 class CSWordAfterEffect {
 public:
     mgCFrame      *frame0;      /**< Frame whose world position is recorded into the first ring each step. */
@@ -31,8 +38,8 @@ public:
     u_char             unk_18[8];
     sceVu0IVECTOR  color0;      /**< Colour and peak alpha of the first edge; also of the second when textured. */
     sceVu0IVECTOR  color1;      /**< Colour and peak alpha of the second edge when untextured. */
-    float          unk_40[4];
-    float          unk_50[2];
+    SWordFloat4    unk_40;
+    SWordFloat2    unk_50;
     int            division; /**< Smoothed points made between two recorded points. */
     int            smooth_num; /**< Number of smoothed points last built. */
     int            tex_block; /**< Texture block reloaded into VRAM before drawing. */

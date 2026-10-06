@@ -674,21 +674,21 @@ u_int mgCVisualFixMDT::CreatePacket(mgCDrawManager *manager) {
     data_memory->stack_used += (data_cursor - data_start) / 16;
     return (u_int)manager;
 }
-#ifdef NONMATCHING
 u_long128 *SetData0(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour) {
-    int       *cursor;
     u_long128 *vertex_out;
     u_long128 *normal_out;
     u_long128 *uv_out;
 
     ((int *)packet)[0] = count;
+    int *cursor;
     ((int *)packet)[1] = count;
     ((int *)packet)[2] = count;
     ((int *)packet)[3] = type;
     vertex_out = packet + 1;
-    normal_out = packet + count + 1;
-    uv_out = normal_out + count;
+    u_long128 *normal_base = packet + 1;
+    normal_out = count + normal_base;
     cursor = *index;
+    uv_out = normal_out + count;
     while (count > 0) {
         count--;
         *vertex_out++ = vertex[cursor[0]];
@@ -699,27 +699,24 @@ u_long128 *SetData0(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return uv_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", SetData0__FiiPPiP1P1P1P1P1);
-#endif
-#ifdef NONMATCHING
 /**
  * Writes the indexed vertex, normal, uv, colour streams for one vertex batch.
  */
 u_long128 *SetData1(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour) {
-    int       *cursor;
     u_long128 *vertex_out;
     u_long128 *normal_out;
     u_long128 *uv_out;
     u_long128 *colour_out;
 
     ((int *)packet)[0] = count;
+    int *cursor;
     ((int *)packet)[1] = count;
     ((int *)packet)[2] = count;
     ((int *)packet)[3] = type;
-    cursor = *index;
     vertex_out = packet + 1;
-    normal_out = vertex_out + count;
+    u_long128 *stream_base = packet + 1;
+    normal_out = count + stream_base;
+    cursor = *index;
     uv_out = normal_out + count;
     colour_out = uv_out + count;
     while (count > 0) {
@@ -733,25 +730,22 @@ u_long128 *SetData1(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return colour_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", SetData1__FiiPPiP1P1P1P1P1);
-#endif
-#ifdef NONMATCHING
 /**
  * Writes the indexed vertex, normal streams for one vertex batch.
  */
 u_long128 *SetData2(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour) {
-    int       *cursor;
     u_long128 *vertex_out;
     u_long128 *normal_out;
 
     ((int *)packet)[0] = count;
+    int *cursor;
     ((int *)packet)[1] = count;
     ((int *)packet)[2] = count;
     ((int *)packet)[3] = type;
-    cursor = *index;
     vertex_out = packet + 1;
-    normal_out = vertex_out + count;
+    u_long128 *stream_base = packet + 1;
+    normal_out = count + stream_base;
+    cursor = *index;
     while (count > 0) {
         count--;
         *vertex_out++ = vertex[cursor[0]];
@@ -761,26 +755,23 @@ u_long128 *SetData2(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return normal_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", SetData2__FiiPPiP1P1P1P1P1);
-#endif
-#ifdef NONMATCHING
 /**
  * Writes the indexed vertex, normal, colour streams for one vertex batch.
  */
 u_long128 *SetData3(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour) {
-    int       *cursor;
     u_long128 *vertex_out;
     u_long128 *normal_out;
     u_long128 *colour_out;
 
     ((int *)packet)[0] = count;
+    int *cursor;
     ((int *)packet)[1] = count;
     ((int *)packet)[2] = 0;
     ((int *)packet)[3] = type;
-    cursor = *index;
     vertex_out = packet + 1;
-    normal_out = vertex_out + count;
+    u_long128 *stream_base = packet + 1;
+    normal_out = count + stream_base;
+    cursor = *index;
     colour_out = normal_out + count;
     while (count > 0) {
         count--;
@@ -792,25 +783,22 @@ u_long128 *SetData3(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return colour_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", SetData3__FiiPPiP1P1P1P1P1);
-#endif
-#ifdef NONMATCHING
 /**
  * Writes the indexed vertex, uv streams for one vertex batch.
  */
 u_long128 *SetData4(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour) {
-    int       *cursor;
     u_long128 *vertex_out;
     u_long128 *uv_out;
 
     ((int *)packet)[0] = count;
+    int *cursor;
     ((int *)packet)[1] = 0;
     ((int *)packet)[2] = count;
     ((int *)packet)[3] = type;
-    cursor = *index;
     vertex_out = packet + 1;
-    uv_out = vertex_out + count;
+    u_long128 *stream_base = packet + 1;
+    uv_out = count + stream_base;
+    cursor = *index;
     while (count > 0) {
         count--;
         *vertex_out++ = vertex[cursor[0]];
@@ -820,26 +808,23 @@ u_long128 *SetData4(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return uv_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", SetData4__FiiPPiP1P1P1P1P1);
-#endif
-#ifdef NONMATCHING
 /**
  * Writes the indexed vertex, uv, colour streams for one vertex batch.
  */
 u_long128 *SetData5(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour) {
-    int       *cursor;
     u_long128 *vertex_out;
     u_long128 *uv_out;
     u_long128 *colour_out;
 
     ((int *)packet)[0] = count;
+    int *cursor;
     ((int *)packet)[1] = 0;
     ((int *)packet)[2] = count;
     ((int *)packet)[3] = type;
-    cursor = *index;
     vertex_out = packet + 1;
-    uv_out = vertex_out + count;
+    u_long128 *stream_base = packet + 1;
+    uv_out = count + stream_base;
+    cursor = *index;
     colour_out = uv_out + count;
     while (count > 0) {
         count--;
@@ -851,9 +836,6 @@ u_long128 *SetData5(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return colour_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", SetData5__FiiPPiP1P1P1P1P1);
-#endif
 #ifdef NONMATCHING
 /**
  * Writes the indexed vertex streams for one vertex batch.
@@ -866,11 +848,15 @@ u_long128 *SetData6(int count, int type, int **index, u_long128 *packet, u_long1
     ((int *)packet)[1] = 0;
     ((int *)packet)[2] = 0;
     ((int *)packet)[3] = type;
-    cursor = *index;
     vertex_out = packet + 1;
+    u_long128 unused;
+    u_long128 *unused_out = &unused;
+    cursor = *index;
     while (count > 0) {
         count--;
-        *vertex_out++ = vertex[cursor[0]];
+        u_long128 element = vertex[cursor[0]];
+        *vertex_out++ = element;
+        *unused_out = element;
         cursor += 1;
     }
     *index = cursor;
@@ -879,22 +865,22 @@ u_long128 *SetData6(int count, int type, int **index, u_long128 *packet, u_long1
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", SetData6__FiiPPiP1P1P1P1P1);
 #endif
-#ifdef NONMATCHING
 /**
  * Writes the indexed vertex, colour streams for one vertex batch.
  */
 u_long128 *SetData7(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour) {
-    int       *cursor;
     u_long128 *vertex_out;
     u_long128 *colour_out;
 
     ((int *)packet)[0] = count;
+    int *cursor;
     ((int *)packet)[1] = 0;
     ((int *)packet)[2] = 0;
     ((int *)packet)[3] = type;
-    cursor = *index;
     vertex_out = packet + 1;
-    colour_out = vertex_out + count;
+    u_long128 *stream_base = packet + 1;
+    colour_out = count + stream_base;
+    cursor = *index;
     while (count > 0) {
         count--;
         *vertex_out++ = vertex[cursor[0]];
@@ -904,9 +890,6 @@ u_long128 *SetData7(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return colour_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", SetData7__FiiPPiP1P1P1P1P1);
-#endif
 #ifdef NONMATCHING
 int mgCVisualMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
     static u_int prog_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 0x2};

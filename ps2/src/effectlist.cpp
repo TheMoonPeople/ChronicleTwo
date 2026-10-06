@@ -104,34 +104,34 @@ void CEffectList::CreatePacket(void) {
         managers[i].CreatePacket(sprites + i);
     }
 }
-#ifdef NONMATCHING
 void CEffectManager::CreatePacket(mgC3DSprite *sprite) {
     if (sprite == NULL) {
         return;
     }
 
     mgCDrawEnv    env = *mgGetpDrawEnv(0);
-    sceVu0FVECTOR size = { 0.0f, 0.0f, 0.0f, 0.0f };
-    sceVu0FVECTOR color = { 128.0f, 128.0f, 128.0f, 128.0f };
-    sceVu0FVECTOR uv0;
-    sceVu0FVECTOR uv1;
     mgCTexture   *last_texture;
     mgCTexture   *texture;
-    CEffect      *particle;
     int           last_blend;
     int           blend;
+    CEffect      *particle;
     int           first;
     int           texture_changed;
     int           blend_changed;
     int           i;
 
-    env.test.bits.zte = 1;
-    env.test.bits.ztst = SCE_GS_ZGEQUAL;
+    sceGsTest *test = &env.test;
+    test->bits.zte = 1;
+    test->bits.ztst = SCE_GS_ZGEQUAL;
     env.SetZBuf(MG_ZBUF_NO_WRITE);
     env.SetAlpha(MG_ALPHA_MACRO_ADD);
     sprite->BeginCreatePacket(MG_3DSPRITE_MODE_ROTATE, NULL);
     sprite->CPSetDrawEnv(&env);
     sprite->BeginCPSprite();
+    sceVu0FVECTOR size = { 0.0f, 0.0f, 0.0f, 0.0f };
+    sceVu0FVECTOR color = { 128.0f, 128.0f, 128.0f, 128.0f };
+    sceVu0FVECTOR uv0;
+    sceVu0FVECTOR uv1;
     mgZeroVector(uv0);
     mgZeroVector(uv1);
     last_texture = NULL;
@@ -185,9 +185,6 @@ void CEffectManager::CreatePacket(mgC3DSprite *sprite) {
     sprite->EndCPSprite();
     sprite->EndCreatePacket();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", CreatePacket__14CEffectManagerFP11mgC3DSprite);
-#endif
 void CFadeInOut::Initialize(void) {
     alpha = 0.0f;
     b = 0.0f;
@@ -306,15 +303,15 @@ void CFadeInOut::CaptureScreen(void) {
 #ifdef NONMATCHING
 
 void DivSpriteScreen(mgCDrawPrim &prim) {
-    sceVu0IVECTOR offset = { 0, 0, 0, 0 };
-    sceVu0IVECTOR vertex = { 0, 0, 0, 0 };
-    sceVu0IVECTOR uv = { 0, 0, 0, 0 };
     int           x;
     int           y;
 
     prim.BeginPrim2(MG_PRIM_SPRITE, 0x43, 0, 2);
+    sceVu0IVECTOR offset = { 0, 0, 0, 0 };
     offset[0] = mgScreenOffx * 16;
     offset[1] = mgScreenOffy * 16;
+    sceVu0IVECTOR vertex = { 0, 0, 0, 0 };
+    sceVu0IVECTOR uv = { 0, 0, 0, 0 };
     for (x = 0; x < mgScreenWidth; x += 64) {
         for (y = 0; y < mgScreenHeight; y += 32) {
             *(u_long128 *)vertex = *(u_long128 *)offset;
@@ -340,17 +337,17 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/effectlist", DivSpriteScreen__FR11mgCDrawP
 #ifdef NONMATCHING
 
 void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int jagged_left) {
-    sceVu0IVECTOR offset = { 0, 0, 0, 0 };
-    sceVu0IVECTOR vertex = { 0, 0, 0, 0 };
-    sceVu0IVECTOR uv = { 0, 0, 0, 0 };
-    int           edge_offset[2] = { -10, 10 };
     int           row_height;
     int           row;
 
     prim.BeginPrim2(MG_PRIM_TRIANGLE_STRIP, 0x43, 0, 2);
+    sceVu0IVECTOR offset = { 0, 0, 0, 0 };
     offset[0] = mgScreenOffx * 16;
     offset[1] = mgScreenOffy * 16;
     row_height = mgScreenHeight / 16;
+    sceVu0IVECTOR vertex = { 0, 0, 0, 0 };
+    sceVu0IVECTOR uv = { 0, 0, 0, 0 };
+    int           edge_offset[2] = { -10, 10 };
     for (row = 0; row < 17; row++) {
         if (jagged_left) {
             uv[0] = (left + edge_offset[row % 2]) * 16;

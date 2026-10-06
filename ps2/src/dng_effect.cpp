@@ -451,7 +451,10 @@ void CFireAfterHit::Draw(void) {
     int main0[4];
     int main1[4];
 
-    if (active == 0 || TEX_ExFx_FIRE == NULL) {
+    if (active == 0) {
+        return;
+    }
+    if (TEX_ExFx_FIRE == NULL) {
         return;
     }
     FIRE_AFTER_HIT_TRAIL *puff = &trail[0][0];
@@ -1493,12 +1496,12 @@ void CHitEffectImage::Draw(void) {
 }
 #ifdef NONMATCHING
 void CHitEffectImage::DrawBord(void) {
+    CPreSprite prim;
     int corner0[4];
     int corner_b_r[4];
     int corner_t_l[4];
     int corner1[4];
 
-    CPreSprite prim;
     prim.Initialize(0, 0);
     prim.Preset2D();
     prim.DepthTestEnable(1);
@@ -3046,55 +3049,49 @@ int CreatSmoothPass(sceVu0FVECTOR *out, sceVu0FVECTOR *ring, int point_num, int 
     float powers[4];
     float result[4];
     int control[4];
-    int written;
-    int span;
-    int row;
-    float t;
-    float step;
-
     if (point_num < 3) {
         return 0;
     }
-    float half = 0.5f;
     float quarter = 0.25f;
+    float half = 0.5f;
     basis[0][0] = -quarter / half;
     basis[0][1] = 1.5f;
     basis[0][2] = (-half - quarter) / half;
-    basis[0][3] = half;
+    basis[0][3] = 0.5f;
     basis[1][0] = 1.0f;
     basis[1][1] = -1.25f / half;
     basis[1][2] = 2.0f;
     basis[1][3] = -half;
     basis[2][0] = basis[0][0];
     basis[2][1] = 0.0f;
-    basis[2][2] = half;
+    basis[2][2] = 0.5f;
     basis[2][3] = 0.0f;
     basis[3][0] = 0.0f;
     basis[3][1] = 1.0f;
     basis[3][2] = 0.0f;
     basis[3][3] = 0.0f;
-    written = 0;
-    for (span = 0; span < point_num - 1; span++) {
-        if (span > 0 && span < point_num - 2) {
-            control[0] = span - 1;
-            control[1] = span;
-            control[2] = span + 1;
-            control[3] = span + 2;
+    int written = 0;
+    for (int segment = 0; segment < point_num - 1; segment++) {
+        if (segment > 0 && segment < point_num - 2) {
+            control[0] = segment - 1;
+            control[1] = segment;
+            control[2] = segment + 1;
+            control[3] = segment + 2;
         } else {
-            if (span <= 0) {
+            if (segment <= 0) {
                 control[0] = 0;
                 control[1] = 0;
                 control[2] = 1;
                 control[3] = 2;
             }
-            if (span >= point_num - 2) {
-                control[0] = span - 1;
-                control[1] = span;
-                control[2] = span + 1;
-                control[3] = span + 1;
+            if (segment >= point_num - 2) {
+                control[0] = segment - 1;
+                control[1] = segment;
+                control[2] = segment + 1;
+                control[3] = segment + 1;
             }
         }
-        for (row = 0; row < 4; row++) {
+        for (int row = 0; row < 4; row++) {
             control[row] += start;
             if (control[row] >= ring_size) {
                 control[row] -= ring_size;
@@ -3103,29 +3100,41 @@ int CreatSmoothPass(sceVu0FVECTOR *out, sceVu0FVECTOR *ring, int point_num, int 
                 control[row] += ring_size;
             }
         }
-        for (row = 0; row < 4; row++) {
-            points[row][0] = ring[control[row]][0];
-            points[row][1] = ring[control[row]][1];
-            points[row][2] = ring[control[row]][2];
-            points[row][3] = 0.0f;
-        }
+        float *p0 = ring[control[0]];
+        float *p1 = ring[control[1]];
+        float *p2 = ring[control[2]];
+        float *p3 = ring[control[3]];
+        points[0][0] = p0[0];
+        points[0][1] = p0[1];
+        points[0][2] = p0[2];
+        points[0][3] = 0.0f;
+        points[1][0] = p1[0];
+        points[1][1] = p1[1];
+        points[1][2] = p1[2];
+        points[1][3] = 0.0f;
+        points[2][0] = p2[0];
+        points[2][1] = p2[1];
+        points[2][2] = p2[2];
+        points[2][3] = 0.0f;
+        points[3][0] = p3[0];
+        points[3][1] = p3[1];
+        points[3][2] = p3[2];
+        points[3][3] = 0.0f;
         sceVu0MulMatrix(coefficients, points, basis);
-        t = 0.0f;
-        while (1) {
-            step = 1.0f / ((float)division - 1.0f);
-            if (!(t < 1.0f - step)) {
-                break;
-            }
+        float t = 0.0f;
+        float step;
+        while (t < 1.0f - (step = 1.0f / (division - 1.0f))) {
             powers[3] = 1.0f;
+            powers[2] = t;
             powers[1] = t * t;
             powers[0] = t * powers[1];
-            powers[2] = t;
             sceVu0ApplyMatrix(result, coefficients, powers);
+            float *entry = out[written];
+            entry[0] = result[0];
+            entry[1] = result[1];
+            entry[2] = result[2];
+            entry[3] = 1.0f;
             t += step;
-            out[written][0] = result[0];
-            out[written][1] = result[1];
-            out[written][2] = result[2];
-            out[written][3] = 1.0f;
             written++;
         }
     }

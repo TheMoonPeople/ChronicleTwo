@@ -100,6 +100,8 @@ extern "C" void *__vt__9mgCObject[];
 extern "C" void *__vt__7CObject[];
 extern "C" void *__vt__12CObjectFrame[];
 extern "C" void *__vt__11CCharacter2[];
+extern "C" void *__vt__9mgCVisual[];
+extern "C" void *__vt__11mgC3DSprite[];
 extern "C" int fptosi(float value);
 extern "C" unsigned int fptoui(float value);
 extern "C" int GetItemDataType__Fi(int);
@@ -3393,10 +3395,10 @@ int _LOAD_IMG(RS_STACKDATA *stack, int argc) {
     int stackNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
     char *fileName = GetStackString__FP12RS_STACKDATA__2(stack++);
     int imageNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
+    int block = EventScene->event_texb + imageNo;
     if (EventScene->event_texb_num <= 0 || EventScene->event_texb_num < imageNo) {
         return 0;
     }
-    int block = EventScene->event_texb + imageNo;
     u_char *file = (u_char *)GetLoadBGBuff(fileName, &size);
     if (file == NULL) {
         return 0;
@@ -3410,18 +3412,17 @@ int _LOAD_IMG(RS_STACKDATA *stack, int argc) {
     memory->stAlloc64(size / 16 + 1);
     memcpy(image, file, size);
     mgTexManager.EnterIMGFile(image, block, memory, NULL);
-    switch (argc) {
-        case 3:
-            if (esMother.Set(imageNo, block) == 0) {
-                return 0;
-            }
+    if (argc == 3) {
+        if (esMother.Set(imageNo, block)) {
             return 1;
-        case 4:
-            SetStack__FP12RS_STACKDATAi__2(stack, block);
-            return 1;
-        default:
-            return 1;
+        }
+        return 0;
     }
+    if (argc == 4) {
+        SetStack__FP12RS_STACKDATAi__2(stack, block);
+        return 1;
+    }
+    return 1;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _LOAD_IMG__FP12RS_STACKDATAi);
@@ -3914,12 +3915,12 @@ int _SET_ACTIVE_LIGHT(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-#ifdef NONMATCHING
 int _SET_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
-    char *name2 = NULL;
+    char *name2;
     int eohNo = GetStackInt__FP12RS_STACKDATA__2(stack++);
     char *name = GetStackString__FP12RS_STACKDATA__2(stack++);
-    if (argc >= 3) {
+    name2 = NULL;
+    if (argc > 2) {
         name2 = GetStackString__FP12RS_STACKDATA__2(stack);
     }
     PakuAnimEohNo = eohNo;
@@ -3931,9 +3932,6 @@ int _SET_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_PAKU_ANIM__FP12RS_STACKDATAi);
-#endif
 int _RESET_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
     PakuAnimEohNo = -1;
     memset(PakuAnimName, 0, sizeof(PakuAnimName));
@@ -6066,7 +6064,6 @@ int _SET_MENU_ETC(RS_STACKDATA *stack, int argc) {
     }
     return 0;
 }
-#ifdef NONMATCHING
 int _GET_MENU_ETC(RS_STACKDATA *stack, int argc) {
     float size;
     float weight;
@@ -6128,7 +6125,6 @@ int _GET_MENU_ETC(RS_STACKDATA *stack, int argc) {
             SetStack__FP12RS_STACKDATAi__2(stack, total);
             return 1;
         }
-        return 0;
     }
     if (command == 6) {
         SetStack__FP12RS_STACKDATAi__2(stack++, GetDonyShopLineUp(NULL, &status));
@@ -6136,7 +6132,8 @@ int _GET_MENU_ETC(RS_STACKDATA *stack, int argc) {
         return 1;
     }
     if (command == 7) {
-        SetStack__FP12RS_STACKDATAi__2(stack, StepDownLoadAnaunce(GetStackInt__FP12RS_STACKDATA__2(stack++)));
+        result = StepDownLoadAnaunce(GetStackInt__FP12RS_STACKDATA__2(stack++));
+        SetStack__FP12RS_STACKDATAi__2(stack, result);
         return 1;
     }
     if (command == 8) {
@@ -6145,9 +6142,6 @@ int _GET_MENU_ETC(RS_STACKDATA *stack, int argc) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_MENU_ETC__FP12RS_STACKDATAi);
-#endif
 int _GET_ANALYZE(RS_STACKDATA *stack, int argc) {
     int analyze_id = GetStackInt__FP12RS_STACKDATA__2(stack++);
     int map_no = analyze_id / 100 - 1;
@@ -6325,6 +6319,7 @@ int _STOPWATCH(RS_STACKDATA *stack, int argc) {
         if (EdEventInfo.stopwatch_start == 0) {
             EdEventInfo.stopwatch_start = 0;
             SetStack__FP12RS_STACKDATAi__2(stack, -1);
+            return 1;
         } else {
             u64 elapsed = saveData->play_time - EdEventInfo.stopwatch_start;
             EdEventInfo.stopwatch_start = 0;
@@ -6332,20 +6327,20 @@ int _STOPWATCH(RS_STACKDATA *stack, int argc) {
             SetStack__FP12RS_STACKDATAi__2(stack++, elapsed % 3600 / 60);
             SetStack__FP12RS_STACKDATAi__2(stack++, elapsed % 60 * 100 / 60);
             SetStack__FP12RS_STACKDATAi__2(stack, elapsed < 7261);
+            return 1;
         }
-        return 1;
     }
     if (mode == 2) {
         EdEventInfo.stopwatch_limit = GetStackInt__FP12RS_STACKDATA__2(stack);
         return 1;
     }
-    if (mode != 3) {
-        return 0;
-    }
+    if (mode == 3) {
         EdEventInfo.stopwatch_x = GetStackInt__FP12RS_STACKDATA__2(stack++);
         EdEventInfo.stopwatch_y = GetStackInt__FP12RS_STACKDATA__2(stack++);
         EdEventInfo.stopwatch_style = GetStackInt__FP12RS_STACKDATA__2(stack);
-    return 1;
+        return 1;
+    }
+    return 0;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _STOPWATCH__FP12RS_STACKDATAi);
@@ -10023,8 +10018,9 @@ int _GET_DEF_BGM_NO(RS_STACKDATA *stack, int argc) {
     int sndId;
     if (argc == 1) {
         CScene *scene = EventScene;
-        if (scene->now_sub_map_no > 0) {
-            sndId = GetMapSndDataID(scene->now_sub_map_no);
+        int subMapNo = scene->now_sub_map_no;
+        if (0 < subMapNo) {
+            sndId = GetMapSndDataID(subMapNo);
         } else {
             sndId = GetMapSndDataID(scene->now_map_no);
         }
@@ -10397,19 +10393,16 @@ int _EOH_SET_TEX_ANIM(RS_STACKDATA *stack, int argc) {
                 return EventObjHandleMother.SetTexAnim(no, GetStackInt__FP12RS_STACKDATA__2(stack + 1), GetStackString__FP12RS_STACKDATA__2(stack + 2));
             }
             return 0;
+        default:
+            return 0;
         case RS_STR: {
             if (argc == 2) {
                 return EventObjHandleMother.SetTexAnim(no, 1, GetStackString__FP12RS_STACKDATA__2(stack + 1));
             }
             char *offName = GetStackString__FP12RS_STACKDATA__2(stack + 1);
             char *onName = GetStackString__FP12RS_STACKDATA__2(stack + 2);
-            if (EventObjHandleMother.SetTexAnim(no, 0, offName) == 0) {
-                return 0;
-            }
-            return EventObjHandleMother.SetTexAnim(no, 1, onName);
+            return EventObjHandleMother.SetTexAnim(no, 0, offName) ? EventObjHandleMother.SetTexAnim(no, 1, onName) : 0;
         }
-        default:
-            return 0;
     }
 }
 #else
@@ -10475,22 +10468,17 @@ void _EOH_SET_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
     frameName = GetStackString__FP12RS_STACKDATA__2(stack++);
     EventObjHandleMother.SetFrameShow(slot, frameName, GetStackInt__FP12RS_STACKDATA__2(stack));
 }
-#ifdef NONMATCHING
-int _EOH_GET_FRAME_POS(RS_STACKDATA *stack, int argc) {
+void _EOH_GET_FRAME_POS(RS_STACKDATA *stack, int argc) {
     float pos[4];
     int no = GetStackInt__FP12RS_STACKDATA__2(stack++);
     char *name = GetStackString__FP12RS_STACKDATA__2(stack++);
     if (EventObjHandleMother.GetFramePos(no, name, pos) == 0) {
-        return 0;
+        return;
     }
     SetStack__FP12RS_STACKDATAf__2(stack++, pos[0]);
     SetStack__FP12RS_STACKDATAf__2(stack++, pos[1]);
     SetStack__FP12RS_STACKDATAf__2(stack, pos[2]);
-    return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _EOH_GET_FRAME_POS__FP12RS_STACKDATAi);
-#endif
 void _EOH_SET_SOUND_ID(RS_STACKDATA *stack, int argc) {
     int slot;
 
@@ -12207,14 +12195,13 @@ int _SET_RND_CIRCLE_STATUS(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAf__2(stack, result);
     return 1;
 }
-#ifdef NONMATCHING
 int _SET_STATUSBAR_SHOW(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *area = &EventScene->battle_area;
     if (area == NULL) {
         return 0;
     }
     float speed = 0.02f;
-    if (argc <= 0 || argc >= 3) {
+    if (argc <= 0 || argc > 2) {
         return 0;
     }
     int show = GetStackInt__FP12RS_STACKDATA__2(stack++);
@@ -12226,14 +12213,14 @@ int _SET_STATUSBAR_SHOW(RS_STACKDATA *stack, int argc) {
     }
     area->SetStatusBar(show, speed);
     if (!(speed < 1.0f)) {
-        area->statusbar_rate = show ? 1.0f : 0.0f;
+        if (show) {
+            area->statusbar_rate = 1.0f;
+        } else {
+            area->statusbar_rate = 0.0f;
+        }
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_STATUSBAR_SHOW__FP12RS_STACKDATAi);
-#endif
-#ifdef NONMATCHING
 int _SET_PULL_ITEM(RS_STACKDATA *stack, int argc) {
     float pos[4];
     float velocity[4];
@@ -12276,11 +12263,7 @@ int _SET_PULL_ITEM(RS_STACKDATA *stack, int argc) {
         velocity[3] = 1.0f;
         item->SetItem(pos, velocity, type);
         switch (type) {
-            case PULL_ITEM_ITEM:
-            case PULL_ITEM_GATE_KEY:
-                break;
             case PULL_ITEM_MONEY:
-            case PULL_ITEM_MONEY_LARGE:
                 item->item_no = fptosi(value);
                 break;
             case PULL_ITEM_WEAPON_EXP:
@@ -12288,13 +12271,17 @@ int _SET_PULL_ITEM(RS_STACKDATA *stack, int argc) {
                 item->exp_param = charaNo;
                 item->item_no = 3;
                 break;
+            case PULL_ITEM_GATE_KEY:
+                break;
+            case PULL_ITEM_MONEY_LARGE:
+                item->item_no = fptosi(value);
+                break;
+            case PULL_ITEM_ITEM:
+                break;
         }
     }
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _SET_PULL_ITEM__FP12RS_STACKDATAi);
-#endif
 int _MENU_CHARA_CHENGE(RS_STACKDATA *stack, int argc) {
     GetStackInt__FP12RS_STACKDATA__2(stack);
     MenuArg.open_type = 0xE;
@@ -12689,7 +12676,15 @@ int _ESM_INITIALIZE(RS_STACKDATA *stack, int argc) {
     if ((memory = (mgCMemory *)EventScene->GetStack(stackNo)) == NULL) {
         return 0;
     }
-    EventEffectScript = new (memory->Alloc(0x11B)) CEffectScriptMan;
+    CEffectScriptMan *manager;
+    if ((manager = (CEffectScriptMan *)operator new(sizeof(CEffectScriptMan), memory->Alloc(0x11B))) != NULL) {
+        ((void ***)&manager->sprite)[7] = __vt__9mgCVisual;
+        manager->sprite.Initialize();
+        *(void ***)((u_int)&manager->sprite + 0x1C) = __vt__11mgC3DSprite;
+        manager->sprite.Initialize();
+        manager->Initialize(NULL, -1, -1);
+    }
+    EventEffectScript = manager;
     if (EventEffectScript == NULL) {
         return 0;
     }
@@ -13081,8 +13076,13 @@ int _IS_CLEAR_PRACTICE(RS_STACKDATA *stack, int argc) {
     }
     if (info->practice_type == 2) {
         int param = info->practice_param;
-        if (param == 4 || param == 3 || param == 2 || param == 1) {
-            bonus = param + 5;
+        switch (param) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                bonus = param + 5;
+                break;
         }
     }
     SetStack__FP12RS_STACKDATAi__2(stack++, cleared);
@@ -13585,7 +13585,6 @@ int _SEARCH_CHARA_NO(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAi__2(args, EventScene->SearchCharaID(id));
     return 1;
 }
-#ifdef NONMATCHING
 int _GET_NEAR_RANDOM_STONE_POS(RS_STACKDATA *stack, int argc) {
     float pos[4];
     float stonePos[4];
@@ -13594,11 +13593,11 @@ int _GET_NEAR_RANDOM_STONE_POS(RS_STACKDATA *stack, int argc) {
     }
     int found = -1;
     GetStackVector__FPfP12RS_STACKDATA(pos, stack);
+    stack += 3;
     stonePos[0] = 0.0f;
     stonePos[1] = 0.0f;
     stonePos[2] = 0.0f;
     stonePos[3] = 0.0f;
-    stack += 3;
     CMapParts *stone;
     if ((stone = AutoMapGen.SearchRandomStone(pos, 30.0f)) != NULL) {
         stone->GetPosition(stonePos);
@@ -13610,9 +13609,6 @@ int _GET_NEAR_RANDOM_STONE_POS(RS_STACKDATA *stack, int argc) {
     SetStack__FP12RS_STACKDATAi__2(stack, found);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _GET_NEAR_RANDOM_STONE_POS__FP12RS_STACKDATAi);
-#endif
 int _INIT_MONO_FLASH(RS_STACKDATA *stack, int argc) {
     u_long128 *buffers[2];
     mgCTexture *textures[2];

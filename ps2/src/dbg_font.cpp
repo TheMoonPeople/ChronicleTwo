@@ -10,6 +10,18 @@
 #include <cstdio>
 #include <cstring>
 
+extern "C" int vsprintf(char *, const char *, char *);
+
+static inline char *VaStart(char *stack_arguments, int named_arguments) {
+    int register_bytes;
+    if (named_arguments >= 8) {
+        register_bytes = 0;
+    } else {
+        register_bytes = (8 - named_arguments) * 8;
+    }
+    return stack_arguments - register_bytes;
+}
+
 
 // Code (.text)
 unsigned long SjisToJis(unsigned long sjis) {
@@ -257,46 +269,73 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/dbg_font", __putc__11dbgCJISFontFUl);
 #ifdef NONMATCHING
 void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
     char text[0x408];
-    // The runtime's varargs forwarding needs a target-specific argument-list type.
-    sprintf(text, "%s", format);
+    char escape[8];
+    char *cursor = text;
+    char ch;
+    int length;
+
     x = start_x;
     y = start_y;
     prev_serno = 0;
-    for (char *cursor = text; *cursor != 0;) {
-        unsigned char first = (unsigned char)*cursor;
-        if (first & 0x80) {
-            if (first >= 0xA1 && first < 0xE0) {
-                unsigned long serno = ascii2serno(first);
-                if ((serno == DBG_FONT_SERNO_DAKUTEN || serno == DBG_FONT_SERNO_HANDAKUTEN) && prev_serno != 0) {
-                    serno = prev_serno + (serno == DBG_FONT_SERNO_DAKUTEN ? 1 : 2);
+    char *args = VaStart((char *)__builtin_next_arg(format), 4);
+    vsprintf(text, format, args);
+    while ((ch = *cursor) != 0) {
+        long code = ch;
+        if (!(code & 0x80)) {
+            switch (code) {
+                case '\n':
+                    cursor++;
+                    y += char_height;
+                    x = 0;
+                    break;
+                case '\t':
+                    cursor++;
+                    x += char_width * 2;
+                    break;
+                case 'E':
+                    length = 0;
+                    while (length < 5 && cursor[length] != 0) {
+                        escape[length] = cursor[length];
+                        length++;
+                    }
+                    if (length >= 5) {
+                        if (strcmp(escape, "ESC[$") == 0) {
+                            cursor += 5;
+                            back_enable = ~back_enable;
+                            break;
+                        } else if (strcmp(escape, "ESC[#") == 0) {
+                            cursor += 5;
+                            shadow_enable = ~shadow_enable;
+                            break;
+                        }
+                    }
+                default:
+                    __putc(*cursor + 0x204D);
+                    cursor++;
+                    break;
+            }
+        } else {
+            unsigned int byte = ch & 0xFF;
+            if (byte >= 0xA1 && byte < 0xE0) {
+                unsigned long serno = ascii2serno(byte);
+                if (serno == DBG_FONT_SERNO_DAKUTEN && prev_serno != 0) {
+                    serno = prev_serno + 1;
+                    prev_serno = 0;
+                    x -= char_width - 8;
+                } else if (serno == DBG_FONT_SERNO_HANDAKUTEN && prev_serno != 0) {
+                    serno = prev_serno + 2;
                     prev_serno = 0;
                     x -= char_width - 8;
                 } else {
                     prev_serno = serno;
                 }
                 __putc(serno);
-                ++cursor;
+                cursor++;
             } else {
-                unsigned long sjis = ((unsigned long)first << 8) | (unsigned char)cursor[1];
-                __putc(SjisToSerno(sjis));
+                unsigned long sjis = (((long)ch << 8) & 0xFF00) | (unsigned char)cursor[1];
                 cursor += 2;
+                __putc(SjisToSerno(sjis));
             }
-        } else if (first == '\n') {
-            y += char_height;
-            x = 0;
-            ++cursor;
-        } else if (first == '\t') {
-            x += char_width * 2;
-            ++cursor;
-        } else if (strncmp(cursor, "ESC[$", 5) == 0) {
-            back_enable = ~back_enable;
-            cursor += 5;
-        } else if (strncmp(cursor, "ESC[#", 5) == 0) {
-            shadow_enable = ~shadow_enable;
-            cursor += 5;
-        } else {
-            __putc(first + 0x204D);
-            ++cursor;
         }
     }
     loaded_texture_id = -1;

@@ -2699,8 +2699,8 @@ int MenuCharaChangeKey(void) {
     }
     return result;
 }
-#ifdef NONMATCHING
 void MenuCharaChangeDraw() {
+    int partyMember;
     if (ChrChangMenuPt->sub_menu == CHR_CNG_SUB_MENU_NONE) {
         MenuPosData->FormDraw();
         if (MenuRepairMan != NULL) {
@@ -2717,10 +2717,11 @@ void MenuCharaChangeDraw() {
             DebugLine party = at_2674;
             DebugLine change = at_2675;
             DebugLine mask = at_2676;
-            int partyMember = MenuUserDataManPtr->GetNowPartyMember();
+            partyMember = MenuUserDataManPtr->GetNowPartyMember();
             int charaChange = MenuUserDataManPtr->chara_change;
             int changeMask = MenuUserDataManPtr->chara_change_mask;
-            for (int i = 0; i < 4; i++) {
+            int i;
+            for (i = 0; i < 4; i++) {
                 int bit = 1 << i;
                 if (partyMember & bit) {
                     strcat(party.text, at_2770);
@@ -2836,9 +2837,6 @@ void MenuCharaChangeDraw() {
         MenuMonsterBoxDraw();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuCharaChangeDraw__Fv);
-#endif
 char *GetMonsterName(int monsterNo) {
     BASE_MONSTER_TBL *record = GetMonsterTable(monsterNo);
     if (record != NULL) {
@@ -4964,10 +4962,11 @@ void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no) 
         return;
     }
     CScene scene;
+    CCharacter2 *chara;
     for (int i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
-        CCharacter2 *chara = NULL;
+        chara = NULL;
         int slot = convtbl_4621[chara_no][i];
-        if (slot >= 0 && info[slot] != NULL) {
+        if (0 <= slot && info[slot] != NULL) {
             chara = info[slot]->chara;
         }
         scene.DeleteChara(i);
@@ -5397,7 +5396,6 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *texBlock) {
     this->load_wait = 0;
     MenuCosutumeLoadPhase = 2;
 }
-#ifdef NONMATCHING
 int CMenuCostumeSel::KeyStep() {
     CActionChara *model = MenuActionChara[0];
     CDC2Mes *ask = MenuDCMsg[7];
@@ -5469,8 +5467,9 @@ int CMenuCostumeSel::KeyStep() {
                         moveX = 0;
                     }
                     model->GetPosition(pos);
-                    float z = pos[2] + 0.9f * zoom;
                     float shift = 0.1f * zoom;
+                    float z = 0.9f * zoom;
+                    z = pos[2] + z;
                     if (!(z < 4.0f) && !(21.0f < z)) {
                         pos[2] = z;
                         pos[0] -= shift;
@@ -5656,9 +5655,6 @@ int CMenuCostumeSel::KeyStep() {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", KeyStep__15CMenuCostumeSelFv);
-#endif
 #ifdef NONMATCHING
 void CMenuCostumeSel::Draw() {
     sceVu0FMATRIX view;
@@ -5815,9 +5811,10 @@ void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
     if ((menu = (CMenuCostumeSel *)operator new(sizeof(CMenuCostumeSel),
                                                 (u_long128 *)MenuChangeMemory.Alloc(0x2F))) != NULL) {
         __ct__14CBaseMenuClassFv(menu);
+        float distance = 40.0f, height = 30.0f, angle = 0.0f, width = 8.0f;
         void **vtable = (void **)((u8 *)menu + 0x10C);
         *vtable = __vt__15CMenuCostumeSel;
-        __ct__15mgCCameraFollowFffff(&menu->camera, 40.0f, 30.0f, 0.0f, 8.0f);
+        __ct__15mgCCameraFollowFffff(&menu->camera, distance, height, angle, width);
         menu->stack.Init();
         menu->select = 0;
         MenuCosutumeLoadPhase = 0;
@@ -6023,7 +6020,6 @@ void CMosBookMenu::InitEnd(void) {
     this->SetMonsterInfo(this->monster_info);
     ((CBaseMenuClass *)this)->FadeInMenu(0x32, 0.0f);
 }
-#ifdef NONMATCHING
 void CMosBookMenu::Draw() {
     sceVu0FMATRIX view;
     sceVu0FVECTOR eye;
@@ -6053,17 +6049,18 @@ void CMosBookMenu::Draw() {
     if (CheckNowEurope()) {
         boxW = 0xBE;
     }
-    DrawMenuFillBox(52.0f, 101.0f, (float)boxW, 220.0f, 0x80, 0xD, 0xD, 0xD);
+    float x = 52.0f, y = 101.0f;
+    DrawMenuFillBox(x, y, (float)boxW, 220.0f, 0x80, 0xD, 0xD, 0xD);
     SetSpriteEnv(prim, 0);
     prim->Begin(6);
     prim->Texture(Tex_MBase);
     prim->Color(0x80, 0x80, 0x80, 0x80);
     Menu3DivideTextureDraw(prim,
-                           mgRect<int>(put_under_offset_5577[2][0] + 0x16, put_under_offset_5577[2][1] + 0x47, 0x52,
+                           mgRect<int>(put_under_offset_5577[1][0] + 0x16, put_under_offset_5577[1][1] + 0x47, 0x52,
                                        0x20),
                            under_brdtbl_5576, 1);
     Menu3DivideTextureDraw(prim,
-                           mgRect<int>(put_under_offset_5577[2][0] + 0x6E, put_under_offset_5577[2][1] + 0x47, 0x52,
+                           mgRect<int>(put_under_offset_5577[1][0] + 0x6E, put_under_offset_5577[1][1] + 0x47, 0x52,
                                        0x20),
                            under_brdtbl_5576, 1);
     int shift = 0;
@@ -6115,9 +6112,9 @@ void CMosBookMenu::Draw() {
     PrimQuad(prim, (float)titleX, (float)(put_under_offset_5577[0][1] + 0x47), mgRect<int>(0, 0x82, 0xB0, 0x12));
     PrimQuad(prim, (float)(titleX + 0xB), (float)(titleY + 0x19), mgRect<int>(0xC, 0x2C, 0xC, 0x10));
     PrimQuad(prim, (float)(titleX + 0x5E), (float)(titleY + 0x15), mgRect<int>(0xC, 0x16, 0x14, 0x16));
-    PrimQuad(prim, (float)(put_under_offset_5577[4][0] + 0x16), (float)(put_under_offset_5577[4][1] + 0x47),
+    PrimQuad(prim, (float)(put_under_offset_5577[2][0] + 0x16), (float)(put_under_offset_5577[2][1] + 0x47),
              mgRect<int>(0, 0x94, 0xB0, 0x12));
-    PrimQuad(prim, (float)(put_under_offset_5577[8][0] + 0x16), (float)(put_under_offset_5577[8][1] + 0x47),
+    PrimQuad(prim, (float)(put_under_offset_5577[4][0] + 0x16), (float)(put_under_offset_5577[4][1] + 0x47),
              mgRect<int>(0, 0xA6, 0xB0, 0x12));
     PrimQuad(prim, (float)(put_under_offset_5577[6][0] + 0x16), (float)(put_under_offset_5577[6][1] + 0x47),
              mgRect<int>(0, 0xB8, 0xB0, 0x12));
@@ -6221,9 +6218,6 @@ void CMosBookMenu::Draw() {
     font.SetPos(0x14C, 0x2D);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", Draw__12CMosBookMenuFv);
-#endif
 int CMosBookMenu::KeyStep(void) {
     int select;
     int lr;

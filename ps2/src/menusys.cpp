@@ -3796,17 +3796,19 @@ void CMenuItemInfo::SetEquipListNo(int list_no) {
 int CMenuItemInfo::CheckEquipListNo(int check) {
     int chara = GetActiveCharaNo();
     int changed = 0;
+    CGameDataUsed *equip;
+    int i;
     if (chara < 2) {
-        CGameDataUsed *equip = MenuUserParam.chara[chara]->equip;
+        equip = MenuUserParam.chara[chara]->equip;
         if (check == 0) {
-            for (int i = 0; i < 2; equip++, i++) {
+            for (i = 0; i < 2; equip++, i++) {
                 if (equip_flag[i] || equip_list[i] != equip->item_no) {
                     changed = 1;
                     equip_flag[i] = 1;
                 }
             }
         } else if (check == 1) {
-            for (int i = 0; i < 5; equip++, i++) {
+            for (i = 0; i < 5; equip++, i++) {
                 if (equip_flag[i] || equip_list[i] != equip->item_no) {
                     changed = 1;
                     equip_flag[i] = 1;
@@ -5817,7 +5819,8 @@ void CBaseMenuClass::EffectDrawCheck(CMenuPosDataForm *form) {
                         old_part->rgba[0] = 0x80;
                         old_part->rgba[1] = 0x80;
                         old_part->rgba[2] = 0x80;
-                        old_part->rgba[3] = 0x80;
+                        int full_alpha = 0x80;
+                    old_part->rgba[3] = full_alpha;
                     }
                     break;
                 }
@@ -8832,8 +8835,7 @@ int CMenuItemInfo::LRCheck(int key) {
         int held_type = ConvertUsedItemType(GetItemDataType__Fi(MenuCommonInfo->have_item.item_no));
         if ((view_mode == 0 || view_mode == 1) &&
             (held_type == USED_ITEM_TYPE_WEAPON || held_type == USED_ITEM_TYPE_UNK_4)) {
-        } else if (view_mode == 3 && held_type == USED_ITEM_TYPE_ROBO_PART) {
-        } else {
+        } else if (view_mode != 3 || held_type != USED_ITEM_TYPE_ROBO_PART) {
         MenuMemoryAdjust(item_memory, load_stack, MenuActionCharaBuffer, next_chara);
         MenuLoadInfo.unk_2 = 1;
         MenuLoadInfo.unk_4 = -1;
@@ -9855,7 +9857,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", Draw__11CItemSelectFv);
 #endif
 extern char at_9215[];
 extern char at_9216[];
-#ifdef NONMATCHING
 extern "C" u8 __vt__11CItemSelect[];
 void MenuItemSelectInit(mgCMemory *stack, int *tex_block, int mode) {
     int size;
@@ -9876,7 +9877,10 @@ void MenuItemSelectInit(mgCMemory *stack, int *tex_block, int mode) {
         select->scroll = 0.0f;
         select->texture = NULL;
         select->list_rect.Set(120.0f, mgScreenHeight - 0x10A, 0.0f, 200.0f);
-        select->item_rect.Set(select->list_rect.left + 20.0f, select->list_rect.top + 370.0f, 44.0f, 55.0f);
+        float item_left = select->list_rect.left + 20.0f;
+        float item_width = 44.0f;
+        float item_top = select->list_rect.top + 370.0f;
+        select->item_rect.Set(item_left, item_top, item_width, 55.0f);
         select->top_line = 0;
         select->cursor = 0;
         select->line_num = 1.0f;
@@ -9905,9 +9909,6 @@ void MenuItemSelectInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuDCMsg[0]->fuchi = 5;
     MenuDCMsg[0]->MakeMsg(0);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", MenuItemSelectInit__FP9mgCMemoryPii);
-#endif
 int MenuItemSelectKey(void) {
     int result;
 

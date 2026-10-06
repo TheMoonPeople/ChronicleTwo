@@ -65,7 +65,7 @@ float RandXYinViewArea(float min_dist, float max_dist, float view_angle, float *
     camera->GetRef(reference);
     sceVu0SubVector(direction, reference, position);
     heading = atan2f(direction[0], direction[2]);
-    heading += f_rand(view_angle / -2.0f, view_angle / 2.0f);
+    heading = f_rand(view_angle / -2.0f, view_angle / 2.0f) + heading;
     distance = f_rand(min_dist, max_dist);
     *x = distance * sinf(heading);
     *z = distance * cosf(heading);
@@ -411,10 +411,10 @@ void CRain::ParticleBirth(float *position, int from_character) {
 void CRain::Stop(void) {
     active = 0;
 }
-#ifdef NONMATCHING
 void CRain::Start() {
     int i;
     float position[4];
+    float view_angle = 0.7853982f;
 
     active = 1;
     for (i = 0; i < RAIN_DROP_NUM; i++) {
@@ -425,15 +425,12 @@ void CRain::Start() {
     }
     for (i = 0; i < RAIN_RIPPLE_NUM; i++) {
         ripple[i].active = 0;
-        RandXYinViewArea(110.0f, 600.0f, 0.7853982f, &position[0], &position[2]);
+        RandXYinViewArea(110.0f, 600.0f, view_angle, &position[0], &position[2]);
         position[1] = 1.0f;
         position[3] = 1.0f;
         ripple[i].Birth(position);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", Start__5CRainFv);
-#endif
 void CRain::Step() {
     int i;
     float landing[4];

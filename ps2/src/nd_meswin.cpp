@@ -3191,7 +3191,6 @@ RGBAQ_TYPE RgbqToUint(unsigned int color) {
     return rgbaq;
 }
 #pragma divbyzerocheck on
-#ifdef NONMATCHING
 RGBAQ_TYPE ClsMes::GetFontColor(int index, int *outline) {
     RGBAQ_TYPE result;
     int        line;
@@ -3231,9 +3230,6 @@ RGBAQ_TYPE ClsMes::GetFontColor(int index, int *outline) {
     }
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", GetFontColor__6ClsMesFiPi);
-#endif
 #pragma divbyzerocheck reset
 int ClsMes::GetGyouAlpha(int line) {
     if (line < select_top) {
@@ -3269,7 +3265,6 @@ int ClsMes::GetGyouAlpha(int line) {
     return alpha;
 }
 #pragma divbyzerocheck on
-#ifdef NONMATCHING
 void ClsMes::DrawFont() {
     int        index;
     int        line;
@@ -3380,9 +3375,6 @@ void ClsMes::DrawFont() {
     }
     prim.End();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/nd_meswin", DrawFont__6ClsMesFv);
-#endif
 #pragma divbyzerocheck reset
 void ClsMes::SetGoalCursorXY() {
     int dx;

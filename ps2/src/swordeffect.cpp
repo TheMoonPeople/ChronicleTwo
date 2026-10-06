@@ -22,39 +22,99 @@ extern char at_356[];
 
 #ifdef NONMATCHING
 int CreatSmoothPassSW(float (*dst)[4], float (*src)[4], int num, int division, int start, int ring_size) {
-    if (num < 3) return 0;
-    sceVu0FMATRIX basis = {
-        {-0.5f, 1.5f, -1.5f, 0.5f},
-        {1.0f, -2.5f, 2.0f, -0.5f},
-        {-0.5f, 0.0f, 0.5f, 0.0f},
-        {0.0f, 1.0f, 0.0f, 0.0f}
-    };
+    sceVu0FMATRIX coefficients;
+    sceVu0FMATRIX points;
+    sceVu0FMATRIX basis;
+    float powers[4];
+    float result[4];
+    int control[4];
+    if (num < 3) {
+        return 0;
+    }
+    float quarter = 0.25f;
+    float half = 0.5f;
+    basis[0][0] = -quarter / half;
+    basis[0][1] = 1.5f;
+    basis[0][2] = (-half - quarter) / half;
+    basis[0][3] = 0.5f;
+    basis[1][0] = 1.0f;
+    basis[1][1] = -1.25f / half;
+    basis[1][2] = 2.0f;
+    basis[1][3] = -half;
+    basis[2][0] = basis[0][0];
+    basis[2][1] = 0.0f;
+    basis[2][2] = 0.5f;
+    basis[2][3] = 0.0f;
+    basis[3][0] = 0.0f;
+    basis[3][1] = 1.0f;
+    basis[3][2] = 0.0f;
+    basis[3][3] = 0.0f;
     int written = 0;
-    for (int segment = 0; segment < num - 1; ++segment) {
-        int control[4];
-        control[0] = segment > 0 ? segment - 1 : 0;
-        control[1] = segment;
-        control[2] = segment + 1;
-        control[3] = segment < num - 2 ? segment + 2 : segment + 1;
-        sceVu0FMATRIX points;
-        for (int row = 0; row < 4; ++row) {
-            int index = start + control[row];
-            if (index >= ring_size) index -= ring_size;
-            if (index < 0) index += ring_size;
-            points[row][0] = src[index][0];
-            points[row][1] = src[index][1];
-            points[row][2] = src[index][2];
-            points[row][3] = 0.0f;
+    for (int segment = 0; segment < num - 1; segment++) {
+        if (segment > 0 && segment < num - 2) {
+            control[0] = segment - 1;
+            control[1] = segment;
+            control[2] = segment + 1;
+            control[3] = segment + 2;
+        } else {
+            if (segment <= 0) {
+                control[0] = 0;
+                control[1] = 0;
+                control[2] = 1;
+                control[3] = 2;
+            }
+            if (segment >= num - 2) {
+                control[0] = segment - 1;
+                control[1] = segment;
+                control[2] = segment + 1;
+                control[3] = segment + 1;
+            }
         }
-        sceVu0FMATRIX coefficients;
+        for (int row = 0; row < 4; row++) {
+            control[row] += start;
+            if (control[row] >= ring_size) {
+                control[row] -= ring_size;
+            }
+            if (control[row] < 0) {
+                control[row] += ring_size;
+            }
+        }
+        float *p0 = src[control[0]];
+        float *p1 = src[control[1]];
+        float *p2 = src[control[2]];
+        float *p3 = src[control[3]];
+        points[0][0] = p0[0];
+        points[0][1] = p0[1];
+        points[0][2] = p0[2];
+        points[0][3] = 0.0f;
+        points[1][0] = p1[0];
+        points[1][1] = p1[1];
+        points[1][2] = p1[2];
+        points[1][3] = 0.0f;
+        points[2][0] = p2[0];
+        points[2][1] = p2[1];
+        points[2][2] = p2[2];
+        points[2][3] = 0.0f;
+        points[3][0] = p3[0];
+        points[3][1] = p3[1];
+        points[3][2] = p3[2];
+        points[3][3] = 0.0f;
         sceVu0MulMatrix(coefficients, points, basis);
         float t = 0.0f;
-        while (t < 1.0f - 1.0f / (division - 1.0f)) {
-            float powers[4] = {t * t * t, t * t, t, 1.0f};
-            sceVu0ApplyMatrix(dst[written], coefficients, powers);
-            dst[written][3] = 1.0f;
-            t += 1.0f / (division - 1.0f);
-            ++written;
+        float step;
+        while (t < 1.0f - (step = 1.0f / (division - 1.0f))) {
+            powers[3] = 1.0f;
+            powers[2] = t;
+            powers[1] = t * t;
+            powers[0] = t * powers[1];
+            sceVu0ApplyMatrix(result, coefficients, powers);
+            float *out = dst[written];
+            out[0] = result[0];
+            out[1] = result[1];
+            out[2] = result[2];
+            out[3] = 1.0f;
+            t += step;
+            written++;
         }
     }
     return written;
@@ -190,56 +250,71 @@ void CSWordAfterEffect::Clear(void) {
     frame1 = NULL;
     frame0 = NULL;
 }
-#ifdef NONMATCHING
 void CSWordAfterEffect::Initialize(mgCMemory *memory, int capacity, int subdivisions) {
-    frame0 = NULL; frame1 = NULL;
-    int point_words = capacity + 1;
-    point0 = (sceVu0FVECTOR *)memory->Alloc(point_words);
-    point1 = (sceVu0FVECTOR *)memory->Alloc(point_words);
-    int smooth_words = capacity * (subdivisions + 2) + 1;
-    smooth0 = (sceVu0FVECTOR *)memory->Alloc(smooth_words);
-    smooth1 = (sceVu0FVECTOR *)memory->Alloc(smooth_words);
-    color0[0] = 0x60; color0[1] = 0x40; color0[2] = 0x30; color0[3] = 0x80;
-    color1[0] = 0x40; color1[1] = 0x30; color1[2] = 0x20; color1[3] = 0x40;
+    int point_size = capacity * 16;
+    int smooth_size = capacity * (subdivisions + 2) * 16;
+    frame1 = NULL;
+    frame0 = NULL;
+    point0 = (sceVu0FVECTOR *)memory->Alloc(point_size / 16 + 1);
+    point1 = (sceVu0FVECTOR *)memory->Alloc(point_size / 16 + 1);
+    smooth0 = (sceVu0FVECTOR *)memory->Alloc(smooth_size / 16 + 1);
+    smooth1 = (sceVu0FVECTOR *)memory->Alloc(smooth_size / 16 + 1);
+    color0[0] = 0x60;
+    color0[1] = 0x40;
+    color0[2] = 0x30;
+    color0[3] = 0x80;
+    color1[0] = 0x40;
+    color1[1] = 0x30;
+    color1[2] = 0x20;
+    color1[3] = 0x40;
     texture = NULL;
-    point_max = capacity; division = subdivisions;
-    smooth_num = point_num = 0;
-    write_index = head_index = capacity - 1;
-    active = 0; alpha = fade_speed = 0.0f;
-    hold_time = 0; length = 0x20;
+    point_max = capacity;
+    division = subdivisions;
+    point_num = smooth_num = 0;
+    head_index = write_index = capacity - 1;
+    active = 0;
+    fade_speed = alpha = 0.0f;
+    hold_time = 0;
+    length = 0x20;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/swordeffect", Initialize__17CSWordAfterEffectFP9mgCMemoryii);
-#endif
 
-#ifdef NONMATCHING
 void CSWordAfterEffect::Copy(CSWordAfterEffect &dst, mgCMemory *memory) {
-    dst.frame0 = frame0; dst.frame1 = frame1;
-    dst.point0 = point0; dst.point1 = point1;
-    dst.smooth0 = smooth0; dst.smooth1 = smooth1;
-    sceVu0CopyVector((float *)dst.color0, (float *)color0);
-    sceVu0CopyVector((float *)dst.color1, (float *)color1);
-    for (int component = 0; component < 4; ++component) dst.unk_40[component] = unk_40[component];
-    for (int component = 0; component < 2; ++component) dst.unk_50[component] = unk_50[component];
-    dst.division = division; dst.smooth_num = smooth_num;
-    dst.tex_block = tex_block; dst.texture = texture;
-    dst.tex_u = tex_u; dst.tex_v = tex_v; dst.tex_w = tex_w; dst.tex_h = tex_h;
-    dst.point_max = point_max; dst.point_num = point_num;
-    dst.write_index = write_index; dst.head_index = head_index;
-    dst.active = active; dst.length = length; dst.hold_time = hold_time;
-    dst.alpha = alpha; dst.fade_speed = fade_speed;
+    dst.frame0 = frame0;
+    dst.frame1 = frame1;
+    dst.point0 = point0;
+    dst.point1 = point1;
+    dst.smooth0 = smooth0;
+    dst.smooth1 = smooth1;
+    *(u_long128 *)dst.color0 = *(u_long128 *)color0;
+    *(u_long128 *)dst.color1 = *(u_long128 *)color1;
+    dst.unk_40 = unk_40;
+    dst.unk_50 = unk_50;
+    dst.division = division;
+    dst.smooth_num = smooth_num;
+    dst.tex_block = tex_block;
+    dst.texture = texture;
+    dst.tex_u = tex_u;
+    dst.tex_v = tex_v;
+    dst.tex_w = tex_w;
+    dst.tex_h = tex_h;
+    dst.point_max = point_max;
+    dst.point_num = point_num;
+    dst.write_index = write_index;
+    dst.head_index = head_index;
+    dst.active = active;
+    dst.length = length;
+    dst.hold_time = hold_time;
+    dst.alpha = alpha;
+    dst.fade_speed = fade_speed;
     if (memory != NULL) {
-        int point_words = point_max + 1;
-        dst.point0 = (sceVu0FVECTOR *)memory->Alloc(point_words);
-        dst.point1 = (sceVu0FVECTOR *)memory->Alloc(point_words);
-        int smooth_words = point_max * (division + 2) + 1;
-        dst.smooth0 = (sceVu0FVECTOR *)memory->Alloc(smooth_words);
-        dst.smooth1 = (sceVu0FVECTOR *)memory->Alloc(smooth_words);
+        int point_size = point_max * 16;
+        int smooth_size = point_max * (division + 2) * 16;
+        dst.point0 = (sceVu0FVECTOR *)memory->Alloc(point_size / 16 + 1);
+        dst.point1 = (sceVu0FVECTOR *)memory->Alloc(point_size / 16 + 1);
+        dst.smooth0 = (sceVu0FVECTOR *)memory->Alloc(smooth_size / 16 + 1);
+        dst.smooth1 = (sceVu0FVECTOR *)memory->Alloc(smooth_size / 16 + 1);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/swordeffect", Copy__17CSWordAfterEffectFR17CSWordAfterEffectP9mgCMemory);
-#endif
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/swordeffect", at_356__DATA);

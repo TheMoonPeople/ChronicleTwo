@@ -156,8 +156,8 @@ void MyMenuFloatingWinDraw(mgCDrawPrim *prim, RECT win, int point_x, int point_y
     inside_width = win.width - 14;
     right_x = right_edge - 7;
     top_y = win.y;
-    side_y = win.y + 9;
     bottom_edge = win.y + win.height;
+    side_y = win.y + 9;
     bottom_y = bottom_edge - 9;
     MySetPrim(prim, 1, 0);
     DrawWindowTile(prim, win.x, top_y, 7, 9, 0xa0, 0x0, 0x7, 0x9, fill_color);

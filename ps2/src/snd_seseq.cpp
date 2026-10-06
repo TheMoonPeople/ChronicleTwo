@@ -264,7 +264,6 @@ int sndCSeSeq::chk_trk(int trk) {
     return 1;
 }
 
-#ifdef NONMATCHING
 void sndCSeSeq::NoteOn(int trk, int key, int velocity) {
     sndTrack *channel;
     int       volume;
@@ -276,15 +275,13 @@ void sndCSeSeq::NoteOn(int trk, int key, int velocity) {
         }
         channel = &track[trk];
         if (channel->NoteOn(key, velocity) != 0) {
-            volume = channel->expression * (vol * channel->vol) / 127 / 127;
-            sndSePlayPBPrKr(port, bank, channel->prog, key, velocity, volume,
-                           channel->pan, channel->bend_lsb + (channel->bend_msb << 7), channel->se_id);
+            int bend = channel->bend_lsb + (channel->bend_msb << 7);
+            int level = channel->expression * (vol * channel->vol) / 127 / 127;
+            volume = level;
+            sndSePlayPBPrKr(port, bank, channel->prog, key, velocity, volume, channel->pan, bend, channel->se_id);
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_seseq", NoteOn__9sndCSeSeqFiii);
-#endif
 
 void sndCSeSeq::NoteOff(int trk, int key, int velocity) {
     if (chk_trk(trk) != 0 && track[trk].NoteOff(key, velocity) != 0) {

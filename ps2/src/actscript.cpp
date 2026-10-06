@@ -1015,8 +1015,8 @@ void ShotLaserGun(float *position, float *direction, int type) {
 int _SET_SHOT(RS_STACKDATA *stack, int argc) {
     float position[4];
     float direction[4];
-    int whp;
-    int magic_whp;
+    int whp[2];
+    int magic_whp[2];
 
     if (argc < 4 || argc > 5) {
         return 0;
@@ -1034,7 +1034,7 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
     sceVu0CopyVector(direction, action_info.chara->front_vec);
     sceVu0CopyVector(position, action_info.chara->object[object_no].pos);
     if (chara == USER_CHARA_MAX) {
-        info->GetNowWhp(1, &whp);
+        info->GetNowWhp(1, whp);
         mgCFrame *muzzle = action_info.chara->SearchObject(at_1579);
         mgCFrame *grip = action_info.chara->SearchObject(at_1580__2);
         if (muzzle != NULL && grip != NULL) {
@@ -1045,7 +1045,7 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
         }
         CGameDataUsed *equip = info->equip;
         int attack_type = equip[1].GetAttackType();
-        if (whp > 0) {
+        if (whp[0] > 0) {
             if (attack_type == 0 || attack_type == 11) {
                 if (action_info.chara->shot_wait > 0) {
                     return 1;
@@ -1081,8 +1081,8 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
             return 1;
         }
         action_info.chara->shot_wait = wait;
-        info->GetNowWhp(1, &magic_whp);
-        if (magic_whp > 0) {
+        info->GetNowWhp(1, magic_whp);
+        if (magic_whp[0] > 0) {
             ShotMonicaMagic(position, direction, scale);
         }
     }

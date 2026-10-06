@@ -27,8 +27,8 @@ extern float fnowMasterVol[2];
 extern float fstpMasterVol[2];
 extern int snd_old_vsync;
 extern float PortVolf[SND_PORT_NUM];
-extern sndPortInfo PortInfo[SND_PORT_NUM];
-extern sndCSeSeq SeSequencer[32];
+sndPortInfo PortInfo[SND_PORT_NUM];
+sndCSeSeq SeSequencer[32];
 extern float MicPos[4];
 extern float MicDir[4];
 extern "C" int WaitSema(int id);
@@ -1518,13 +1518,13 @@ void sndPortInfo::LoadSeInfoTxt(int bank_no, char *text, int size, mgCMemory *me
     sndBankInfo *bank_info;
     sndSeInfo   *entry;
     char        *end;
+    char        *begin;
     char        *line;
-    char        *col[9] = { NULL };
-    char         number[8];
     char         name[64];
     char         description[64];
-    char         category[8];
     char         filename[64];
+    char         number[8];
+    char         category[8];
     char         program[8];
     char         key[8];
     char         flag[8];
@@ -1536,26 +1536,16 @@ void sndPortInfo::LoadSeInfoTxt(int bank_no, char *text, int size, mgCMemory *me
     int          depth;
     int          core;
 
-    bank_info = NULL;
-    if (bank_no >= 0 && bank_no < bank_num) {
-        bank_info = &bank[bank_no];
-    }
+    bank_info = GetBank(bank_no);
     if (bank_info == NULL) {
         return;
     }
     end = text + size;
-    line = text;
-    col[0] = number;
-    col[1] = name;
-    col[2] = description;
-    col[3] = category;
-    col[4] = filename;
-    col[5] = program;
-    col[6] = key;
-    col[7] = flag;
+    char        *col[9] = { number, name, description, category, filename, program, key, flag, NULL };
+    begin = text;
     bank_info->se_num = 0;
-    while (line < end) {
-        line = GetLine(col, line, end);
+    while (text < end) {
+        text = GetLine(col, text, end);
         if (strcmp(col[0], "END") == 0) {
             break;
         }
@@ -1567,7 +1557,7 @@ void sndPortInfo::LoadSeInfoTxt(int bank_no, char *text, int size, mgCMemory *me
         quadwords++;
     }
     bank_info->se = new (memory->Alloc(quadwords + 2)) sndSeInfo[bank_info->se_num];
-    line = text;
+    line = begin;
     count = 0;
     while (line < end && count < bank_info->se_num) {
         line = GetLine(col, line, end);
@@ -1644,35 +1634,26 @@ sndSeInfo::sndSeInfo(void) {
     this->type = 0;
 }
 
-#ifdef NONMATCHING
 void sndPortInfo::LoadVolInfoTxt(int bank_no, char *text, int size) {
     sndBankInfo *bank_info;
     sndSeInfo   *entry;
     char        *end;
-    char        *line;
-    char        *col[4] = { NULL };
-    char         number[8];
     char         volume[64];
     char         depth_text[64];
+    char         number[8];
     int          se_no;
     int          type;
     int          depth;
     int          core;
 
-    bank_info = NULL;
-    if (bank_no >= 0 && bank_no < bank_num) {
-        bank_info = &bank[bank_no];
-    }
+    bank_info = GetBank(bank_no);
     if (bank_info == NULL) {
         return;
     }
+    char        *col[4] = { number, volume, depth_text, NULL };
     end = text + size;
-    col[0] = number;
-    col[1] = volume;
-    col[2] = depth_text;
-    line = text;
-    while (line < end) {
-        line = GetLine(col, line, end);
+    while (text < end) {
+        text = GetLine(col, text, end);
         if (strcmp(col[0], "END") == 0) {
             break;
         }
@@ -1701,9 +1682,6 @@ void sndPortInfo::LoadVolInfoTxt(int bank_no, char *text, int size) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", LoadVolInfoTxt__11sndPortInfoFiPci);
-#endif
 
 void sndStopSeSeq(int port_no) {
     sndPortInfo *info;
@@ -1859,25 +1837,6 @@ void sndStreamClose() {
     sndSignalSema();
 }
 
-#ifdef NONMATCHING
-// Defined inline in snd_seseq.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", __ct__9sndCSeSeqFv);
-#endif
-
-#ifdef NONMATCHING
-// Defined inline in snd_mngr.hpp.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", __ct__11sndPortInfoFv);
-#endif
-
-
-// Static initialiser (.init)
-#ifdef NONMATCHING
-// PortInfo and SeSequencer produce this initializer.
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/snd_mngr", __sinit_snd_mngr_cpp);
-#endif
 
 
 // Constants (.rodata)
@@ -1924,8 +1883,6 @@ INCLUDE_BSS(fnowMasterVol, 0x8);
 INCLUDE_BSS(fstpMasterVol, 0x8);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(PortInfo, 0x29C0);
-INCLUDE_BSS(SeSequencer, 0x1600);
 INCLUDE_BSS(PortVolf, 0x40);
 INCLUDE_BSS(MicPos, 0x10);
 INCLUDE_BSS(MicDir, 0x10);

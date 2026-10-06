@@ -1887,23 +1887,20 @@ int emapINIT_EPARTS_END(SPI_STACK *stack, int argc) {
     emapInit = 0;
     return 1;
 }
-#ifdef NONMATCHING
 void CEditMap::LoadEditInfo(char *script, int size, mgCMemory *stack) {
-    int i;
-    CMapParts *parts;
     int has_river;
     emapMap = this;
     emapStack = stack;
     emapInfo = &info_mngr;
     has_river = 0;
-    for (i = 0; i < info_mngr.parts_info_num; i++) {
-        if (info_mngr.parts_info[i].attr & EDIT_PARTS_ATR_RIVER) {
+    for (int n = 0; n < info_mngr.parts_info_num; n++) {
+        if (info_mngr.parts_info[n].attr & EDIT_PARTS_ATR_RIVER) {
             has_river = 1;
         }
     }
-    for (i = 0; i < info_mngr.parts_info_num; i++) {
+    for (int i = 0; i < info_mngr.parts_info_num; i++) {
         CEditPartsInfo *info = &info_mngr.parts_info[i];
-        parts = GetParts(info->parts_name);
+        CMapParts *parts = GetParts(info->parts_name);
         info->parts = parts;
         info->CreateBox();
         CMapPiece *piece = NULL;
@@ -2023,8 +2020,9 @@ void CEditMap::LoadEditInfo(char *script, int size, mgCMemory *stack) {
             mgCFrameAttr frame_attr;
             frame_attr.dest_alpha_test = MG_DEST_ALPHA_TEST_ONE;
             for (; node != NULL; node = node->next) {
-                if (node->data.type == MDS_TYPE_MODEL) {
-                    mgCFrame *frame = node->pGetData()->frame;
+                CMapPiece *model = node->pGetData();
+                if (model->type == MDS_TYPE_MODEL) {
+                    mgCFrame *frame = model->frame;
                     if (frame != NULL) {
                         mgVu0FBOX grid_box;
                         if (has_river) {
@@ -2070,10 +2068,6 @@ void CEditMap::LoadEditInfo(char *script, int size, mgCMemory *stack) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", LoadEditInfo__8CEditMapFPciP9mgCMemory);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap", __ct__14CEditPartsInfoFv);
-#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", at_830__3__DATA);

@@ -353,12 +353,14 @@ float CMonsterMan::IsBattleStyleDist() {
 #ifdef NONMATCHING
 int CMonsterMan::CheckMonsterTolk(float *pos) {
     CActiveMonster *monster;
+    int found;
+    int i;
+    float nearest;
 
     if (dbinfo.monster_talk != 0) {
-        int found = -1;
-        float nearest = 90.0f;
-        int i = 0;
-
+        found = -1;
+        nearest = 90.0f;
+        i = 0;
         do {
             monster = active[i];
             if (monster != NULL && monster->IsDraw(1)) {
@@ -376,12 +378,10 @@ int CMonsterMan::CheckMonsterTolk(float *pos) {
         return -1;
     }
     int mons_base = GetBattleCharaInfo()->unk_2;
-    int found = -1;
-    int i;
-    float nearest;
     if (mons_base == -1) {
         return -1;
     }
+    found = -1;
     i = 0;
     nearest = 90.0f;
     do {
@@ -1011,7 +1011,6 @@ float SearchArea(CScene *scene, float *from, float *to, float range) {
     }
     return mgDistVector(hit, from);
 }
-#ifdef NONMATCHING
 void HitEffectSet(CScene *scene, float *point, int flags) {
     float to_camera[4];
     float pos[4];
@@ -1020,6 +1019,7 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
     CCameraControl *camera;
     CHitEffectImage *hit;
     CFlushEffect *flush;
+    float power;
 
     camera = GetCamera__6CSceneFi(scene, scene->active_camera);
     if (camera == NULL) {
@@ -1043,10 +1043,10 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
         }
     }
     if (hit != NULL) {
-        float gravity = 0.1f;
         float speed = 60.0f;
         float spread = 30.0f;
-        float power = 0.2f;
+        float gravity = 0.1f;
+        power = 0.2f;
         SethitEffect__15CHitEffectImageFPfPfffffii(hit, pos, dir.f, spread, speed, power, gravity, 30, 32);
         hit->kind = 0;
         rect.Set(32, 0, 32, 32);
@@ -1105,9 +1105,6 @@ void HitEffectSet(CScene *scene, float *point, int flags) {
         hit->kind = 2;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/monster", HitEffectSet__FP6CScenePfi);
-#endif
 void GuardEffectSet(CScene *scene, float *point, int play_script) {
     float to_camera[4];
     float pos[4];

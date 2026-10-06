@@ -2405,45 +2405,41 @@ void EditDataSave(void) {
 #ifdef NONMATCHING
 void EditDataLoad() {
     EP_PLACE_INFO   placement;
-    sceVu0FVECTOR  positions[2] = { { 54.0f, 0.0f, 454.0f, 0.0f }, { -103.0f, 0.0f, 397.0f, 0.0f } };
-    sceVu0FVECTOR  rotation = { 0.0f, 0.0f, 0.0f, 0.0f };
-    CMap          *base;
-    CEditMap      *map;
-    CEditData     *data;
-    CSaveData     *save;
+    CEditMap       *map;
+    CEditData      *data;
+    CSaveData      *save;
     CEditPartsInfo *info;
-    int            slot;
-    int            i;
+    int             slot;
+    int             i;
 
-    base = MainScene__2->GetMap(MainScene__2->active_map);
-    if (base == NULL) {
-        return;
-    }
-    data = GetSaveData()->GetEditData(MapNo);
-    if (data == NULL || strcmp(base->Iam(), "CEditMap") != 0) {
-        return;
-    }
-    map = (CEditMap *)base;
-    map->ClearAllParts();
-    map->LoadData(data);
-    map->InitialPlaceParts(data);
-    map->GroundBalance(0);
-    map->UpdateHouse();
-    if (DebugInfo.georama_debug == 0 && GetMapType(MapNo) == 1) {
-        AnalyzeEditMap(MapNo, map);
-    }
-    save = GetSaveData();
-    if (MapNo == 0 && save->GetBitFlag(0xFA) != 0 && save->GetBitFlag(0x3D) == 0) {
-        info = map->GetePartsInfoAtID(19);
-        for (i = 0; i < 2; i++) {
-            if (map->CheckEditParts(info, positions[i], 0.0f, &placement) != 0) {
-                slot = map->BuildEditParts(19);
-                if (slot >= 0) {
-                    map->PlaceEditParts(slot, &placement, positions[i], rotation, NULL);
+    map = (CEditMap *)MainScene__2->GetMap(MainScene__2->active_map);
+    if (map != NULL) {
+        data = GetSaveData()->GetEditData(MapNo);
+        if (data != NULL && strcmp(map->Iam(), "CEditMap") == 0 && map != NULL) {
+            map->ClearAllParts();
+            map->LoadData(data);
+            map->InitialPlaceParts(data);
+            map->GroundBalance(0);
+            map->UpdateHouse();
+            if (DebugInfo.georama_debug == 0 && GetMapType(MapNo) == 1) {
+                AnalyzeEditMap(MapNo, map);
+            }
+            save = GetSaveData();
+            if (MapNo == 0 && save->GetBitFlag(0xFA) != 0 && save->GetBitFlag(0x3D) == 0) {
+                sceVu0FVECTOR positions[2] = { { 54.0f, 0.0f, 454.0f, 0.0f }, { -103.0f, 0.0f, 397.0f, 0.0f } };
+                sceVu0FVECTOR rotation = { 0.0f, 0.0f, 0.0f, 0.0f };
+                info = map->GetePartsInfoAtID(19);
+                for (i = 0; i < 2; i++) {
+                    if (map->CheckEditParts(info, positions[i], 0.0f, &placement) != 0) {
+                        slot = map->BuildEditParts(19);
+                        if (slot >= 0) {
+                            map->PlaceEditParts(slot, &placement, positions[i], rotation, NULL);
+                        }
+                    }
                 }
+                save->SetBitFlag(0x3D, 1);
             }
         }
-        save->SetBitFlag(0x3D, 1);
     }
 }
 #else

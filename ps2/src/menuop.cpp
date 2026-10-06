@@ -2278,7 +2278,6 @@ int CSaveMenuClass::KeyStep(void) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuop", KeyStep__14CSaveMenuClassFv);
 #endif
-#ifdef NONMATCHING
 void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
     ScreenPos linePos[13];
     SAVEDATA_INFO *info[13];
@@ -2293,17 +2292,8 @@ void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
     CDC2Mes *window;
     float rowY;
     float top;
-    int textY;
-    u_long seconds;
     u_long minutesTotal;
-    u_long hours;
     u_long minutes;
-    u_long hundreds;
-    int tens;
-    char hoursText[0x40];
-    char digitText[0x40];
-    ScreenPos *line;
-    char timeText[0x80];
 
     if (alpha > 0 && Tex_SaveFile != NULL) {
         linePos[0].x = pos[0];
@@ -2323,7 +2313,7 @@ void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
         prim->Color(0x80, 0x80, 0x80, alpha);
         for (i = 0; i < 13; i++) {
             info[i] = &MemoryCardPtr->file_info[i];
-            line = &linePos[i];
+            ScreenPos *line = &linePos[i];
             line->x = pos[0];
             line->y = pos[1] + 80.0f * (float)i;
             prim->Color(0, 0, 0, shadowAlpha);
@@ -2331,7 +2321,9 @@ void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
             prim->Color(0x80, 0x80, 0x80, alpha);
             PrimQuad(prim, line->x, line->y, nameRect);
             if (info[i]->state != 0) {
-                PrimQuad(prim, 120.0f + line->x, 34.0f + line->y, markRect);
+                float mark_x = 120.0f + line->x;
+                float mark_y = 34.0f + line->y;
+                PrimQuad(prim, mark_x, mark_y, markRect);
             }
         }
         prim->End();
@@ -2341,19 +2333,26 @@ void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
         }
         centerX = fptosi(pos[0] + (float)offset);
         CMenuFont font;
+        char timeText[0x80];
+        char hoursText[0x40];
+        char digitText[0x40];
         font.SetClearance(0xE, 0x14);
         MenuReloadTexture(tex_block, MenuArg.mes_tex_block);
         for (row = 0; row < 13; row++) {
             window = SaveFileList[row];
-            line = &linePos[row];
-            textY = fptosi(18.0f + line->y);
-            window->line_pos[0][0] = fptosi(18.0f + line->x);
+            ScreenPos *line = &linePos[row];
+            int textY = (int)(18.0f + line->y);
+            window->line_pos[0][0] = (int)(18.0f + line->x);
             window->line_pos[0][1] = textY;
             window->line_pos_on[0] = 1;
             rowY = line->y;
             top = 18.0f + rowY;
             if (!(top < 100.0f) && !((float)mgScreenHeight < top)) {
                 if (info[row]->state != 0) {
+                    u_long seconds;
+                    u_long hours;
+                    int tens;
+                    u_long hundreds;
                     textY = fptosi(40.0f + rowY);
                     window->line_pos[1][0] = fptosi(520.0f + line->x);
                     window->line_pos[1][1] = textY;
@@ -2414,9 +2413,6 @@ void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuop", SaveFileListDraw__FRiPfi);
-#endif
 void SetMCIconData(u_int *pack, int slot) {
     SaveIconSet icons = at_2609__2;
     for (int i = 0; i < 3; i++) {

@@ -92,9 +92,10 @@ extern "C" void sceDevConsClose(int handle);
 #endif
 void StoreImage(int index);
 
+#include <sifdev.h>
+extern sceGsStoreImage gs_simage;
 #ifdef NONMATCHING
 #include <libdev.h>
-#include <sifdev.h>
 extern int old_vcount;
 extern int over_vsync;
 extern int capture_on;
@@ -102,7 +103,6 @@ extern int cap_ture_cnt;
 extern int frame_buf0;
 extern int frame_buf1;
 extern sceGsDimx mgDIMX;
-extern sceGsStoreImage gs_simage;
 #endif
 
 // Code (.text)
@@ -1476,19 +1476,18 @@ void mgSetUserVuProgAdr(int index, u_long128 *adr) {
     *(u_long128 **)(base + index) = adr;
 }
 #pragma global_optimizer reset
-#ifdef NONMATCHING
 void StoreImage(int front_buffer) {
     static int image_num = 0;
     u_char     tga[18] = { 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0 };
-    char       device[128];
     char       filename[128];
+    char       device[128];
     char      *character;
     u_char    *row;
     u_char     red;
     int        file;
     int        y;
-    int        pixel;
     int        output;
+    int        pixel;
 
     tga[12] = mgScreenWidth;
     tga[14] = mgScreenHeight;
@@ -1496,10 +1495,13 @@ void StoreImage(int front_buffer) {
     tga[15] = mgScreenHeight >> 8;
     strcpy(device, "host0:");
     sprintf(filename, "%si%5d.tga", device, image_num++);
-    for (character = filename; *character != '\0'; character++) {
-        if (*character == ' ') {
+    character = filename;
+    char current;
+    while ((current = *character) != '\0') {
+        if (current == ' ') {
             *character = '0';
         }
+        character++;
     }
     file = sceOpen(filename, SCE_WRONLY | SCE_CREAT | SCE_TRUNC);
 
@@ -1517,7 +1519,7 @@ void StoreImage(int front_buffer) {
     sceWrite(file, tga, 18);
     for (y = 0; y < mgScreenHeight; y++) {
         row = (u_char *)((u_long128 *)0x2100000 + mgScreenWidth * (mgScreenHeight - y - 1) / 4);
-        for (pixel = 0, output = 0; pixel < mgScreenWidth * 4; pixel += 4, output += 3) {
+        for (output = 0, pixel = 0; pixel < mgScreenWidth * 4; output += 3, pixel += 4) {
             red = row[pixel];
             row[pixel] = row[pixel + 2];
             row[pixel + 2] = red;
@@ -1530,9 +1532,6 @@ void StoreImage(int front_buffer) {
     }
     sceClose(file);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", StoreImage__Fi);
-#endif
 int mgInitFont(void) {
     sceDevConsInit();
     font_cons = sceDevConsOpen((mgScreenOffx + 8) * 0x10, (mgScreenOffy + 8) * 0x10, 0x28, 0x18);

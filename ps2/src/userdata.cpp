@@ -4294,7 +4294,6 @@ int SetRandamCircleStatus(int kind, float &amountOut) {
     }
     return applied;
 }
-#ifdef NONMATCHING
 int CBattleCharaInfo::StatusParamStep(int *poison_damage) {
     int result;
     int attr;
@@ -4334,7 +4333,7 @@ int CBattleCharaInfo::StatusParamStep(int *poison_damage) {
                 result = attr;
                 poison_count = 0;
                 if (poison_damage != NULL) {
-                    *poison_damage = fptosi(damage);
+                    *poison_damage = (int)damage;
                 }
             }
         }
@@ -4394,9 +4393,6 @@ int CBattleCharaInfo::StatusParamStep(int *poison_damage) {
     }
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/userdata", StatusParamStep__16CBattleCharaInfoFPi);
-#endif
 void CBattleCharaInfo::Step() {
     if (hp != NULL) {
         if (disp_hp < 0.0f) {

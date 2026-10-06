@@ -240,7 +240,6 @@ struct mgVertexBatchHeader {
     int stream_count[3];
     int type;
 };
-#ifdef NONMATCHING
 u_long128 *SetData0(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
     mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
     u_long128 *vertex_out;
@@ -255,7 +254,8 @@ u_long128 *SetData0(int count, int type, int **index, u_long128 *packet, u_long1
     header->type = type;
     cursor = *index;
     vertex_out = packet + 1;
-    normal_out = packet + count + 1;
+    u_long128 *normal_base = packet + 1;
+    normal_out = count + normal_base;
     uv_out = normal_out + count;
     weight_out = uv_out + count;
     while (count > 0) {
@@ -271,10 +271,6 @@ u_long128 *SetData0(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return weight_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData0__FiiPPiP1P1P1P1P1P14mgVertexWeight);
-#endif
-#ifdef NONMATCHING
 u_long128 *SetData1(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
     mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
     u_long128 *vertex_out;
@@ -290,7 +286,8 @@ u_long128 *SetData1(int count, int type, int **index, u_long128 *packet, u_long1
     header->type = type;
     cursor = *index;
     vertex_out = packet + 1;
-    normal_out = packet + count + 1;
+    u_long128 *stream_base = packet + 1;
+    normal_out = count + stream_base;
     uv_out = normal_out + count;
     colour_out = uv_out + count;
     weight_out = colour_out + count;
@@ -308,10 +305,6 @@ u_long128 *SetData1(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return weight_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData1__FiiPPiP1P1P1P1P1P14mgVertexWeight);
-#endif
-#ifdef NONMATCHING
 u_long128 *SetData2(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
     mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
     u_long128 *vertex_out;
@@ -325,7 +318,8 @@ u_long128 *SetData2(int count, int type, int **index, u_long128 *packet, u_long1
     header->type = type;
     cursor = *index;
     vertex_out = packet + 1;
-    normal_out = packet + count + 1;
+    u_long128 *stream_base = packet + 1;
+    normal_out = count + stream_base;
     weight_out = normal_out + count;
     while (count > 0) {
         count--;
@@ -339,10 +333,6 @@ u_long128 *SetData2(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return weight_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData2__FiiPPiP1P1P1P1P1P14mgVertexWeight);
-#endif
-#ifdef NONMATCHING
 u_long128 *SetData3(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
     mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
     u_long128 *vertex_out;
@@ -357,7 +347,8 @@ u_long128 *SetData3(int count, int type, int **index, u_long128 *packet, u_long1
     header->type = type;
     cursor = *index;
     vertex_out = packet + 1;
-    normal_out = packet + count + 1;
+    u_long128 *stream_base = packet + 1;
+    normal_out = count + stream_base;
     colour_out = normal_out + count;
     weight_out = colour_out + count;
     while (count > 0) {
@@ -373,10 +364,6 @@ u_long128 *SetData3(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return weight_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData3__FiiPPiP1P1P1P1P1P14mgVertexWeight);
-#endif
-#ifdef NONMATCHING
 u_long128 *SetData4(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
     mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
     u_long128 *vertex_out;
@@ -390,7 +377,8 @@ u_long128 *SetData4(int count, int type, int **index, u_long128 *packet, u_long1
     header->type = type;
     cursor = *index;
     vertex_out = packet + 1;
-    uv_out = packet + count + 1;
+    u_long128 *stream_base = packet + 1;
+    uv_out = count + stream_base;
     weight_out = uv_out + count;
     while (count > 0) {
         count--;
@@ -404,10 +392,6 @@ u_long128 *SetData4(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return weight_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData4__FiiPPiP1P1P1P1P1P14mgVertexWeight);
-#endif
-#ifdef NONMATCHING
 u_long128 *SetData5(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
     mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
     u_long128 *vertex_out;
@@ -422,7 +406,8 @@ u_long128 *SetData5(int count, int type, int **index, u_long128 *packet, u_long1
     header->type = type;
     cursor = *index;
     vertex_out = packet + 1;
-    uv_out = packet + count + 1;
+    u_long128 *stream_base = packet + 1;
+    uv_out = count + stream_base;
     colour_out = uv_out + count;
     weight_out = colour_out + count;
     while (count > 0) {
@@ -438,10 +423,6 @@ u_long128 *SetData5(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return weight_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData5__FiiPPiP1P1P1P1P1P14mgVertexWeight);
-#endif
-#ifdef NONMATCHING
 u_long128 *SetData6(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
     mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
     u_long128 *vertex_out;
@@ -454,7 +435,8 @@ u_long128 *SetData6(int count, int type, int **index, u_long128 *packet, u_long1
     header->type = type;
     cursor = *index;
     vertex_out = packet + 1;
-    weight_out = packet + count + 1;
+    u_long128 *stream_base = packet + 1;
+    weight_out = count + stream_base;
     while (count > 0) {
         count--;
         *vertex_out++ = vertex[cursor[0]];
@@ -466,10 +448,6 @@ u_long128 *SetData6(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return weight_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData6__FiiPPiP1P1P1P1P1P14mgVertexWeight);
-#endif
-#ifdef NONMATCHING
 u_long128 *SetData7(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour, mgVertexWeight *weight) {
     mgVertexBatchHeader *header = (mgVertexBatchHeader *)packet;
     u_long128 *vertex_out;
@@ -483,7 +461,8 @@ u_long128 *SetData7(int count, int type, int **index, u_long128 *packet, u_long1
     header->type = type;
     cursor = *index;
     vertex_out = packet + 1;
-    colour_out = packet + count + 1;
+    u_long128 *stream_base = packet + 1;
+    colour_out = count + stream_base;
     weight_out = colour_out + count;
     while (count > 0) {
         count--;
@@ -497,9 +476,6 @@ u_long128 *SetData7(int count, int type, int **index, u_long128 *packet, u_long1
     *index = cursor;
     return weight_out;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", SetData7__FiiPPiP1P1P1P1P1P14mgVertexWeight);
-#endif
 #ifdef NONMATCHING
 static u_long128 *(*set_data_func[8])(int, int, int **, u_long128 *, u_long128 *, u_long128 *, u_long128 *, u_long128 *, mgVertexWeight *) = {
     SetData0, SetData1, SetData2, SetData3, SetData4, SetData5, SetData6, SetData7

@@ -809,7 +809,8 @@ float GetFloatCommaValue(float value) {
 int CalcScrlBarPutPos(int top, float pos, int length, float pos_max) {
     int y = top;
     if (pos_max != 0.0f) {
-        y = fptosi((float)top + (float)length * (pos / pos_max));
+        float ratio = pos / pos_max;
+        y = fptosi((float)top + (float)length * ratio);
     }
     return y;
 }

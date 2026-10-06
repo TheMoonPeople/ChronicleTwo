@@ -1851,8 +1851,9 @@ static void GetBalanceHeight(CScene *scene, float *balance) {
 #ifdef NONMATCHING
 extern mgCTexture *eSysTexture;
 void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
+    mgCTextureManager *manager = &mgTexManager;
     if (eSysTexture != NULL) {
-        mgTexManager.ReloadTexture(block, (sceVif1Packet *)NULL);
+        manager->ReloadTexture(block, (sceVif1Packet *)NULL);
         mgCDrawPrim prim;
         prim.Initialize(NULL, NULL);
         prim.AlphaBlendEnable(1);
@@ -1907,7 +1908,7 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
                     for (int i = 0; i < 4; i++) {
                         float *color = colors[balance * 2];
                         prim.Color(color);
-                        if (focused == 0 && CheckFocusBalanceParts(map, i, cursor)) {
+                        if (!focused && CheckFocusBalanceParts(map, i, cursor)) {
                             prim.Color(color + 4);
                             focused = 1;
                         }

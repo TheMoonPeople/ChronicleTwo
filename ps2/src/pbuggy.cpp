@@ -144,6 +144,11 @@ int sgInitBuggy(SubGameInfo *info) {
     int i;
     u32 *pack;
     mgCTextureManager *texture_manager;
+    char *idle_motion;
+    char *walk_motion;
+    char *run_motion;
+    char *carry_idle_motion;
+    char *carry_walk_motion;
     CCharacter2 *player;
     int img_size;
     CCameraControl *camera;
@@ -519,6 +524,11 @@ int sgSystemDrawBuggy(SubGameInfo *info) {
 }
 #ifdef NONMATCHING
 extern "C" void CharaControl__FP6CSceneP11CPadControl__3(CScene *scene, CPadControl *pad) {
+    char *walk_motion;
+    char *idle_motion;
+    char *run_motion;
+    char *carry_idle_motion;
+    char *carry_walk_motion;
     CCharacter2 *player;
     mgCCamera *base_camera;
     CCameraControl *camera;
@@ -547,11 +557,6 @@ extern "C" void CharaControl__FP6CSceneP11CPadControl__3(CScene *scene, CPadCont
     float angle_error;
     float strength;
     float step_scale;
-    char *idle_motion;
-    char *walk_motion;
-    char *run_motion;
-    char *carry_idle_motion;
-    char *carry_walk_motion;
     int stopped;
 
     if (pad == NULL) {
@@ -591,15 +596,15 @@ extern "C" void CharaControl__FP6CSceneP11CPadControl__3(CScene *scene, CPadCont
             }
             velocity[0] = speed_x;
             velocity[2] = speed_z;
-            carry_idle_motion = at_1158;
+            velocity[1] -= 0.6f;
             idle_motion = at_964__3;
             walk_motion = at_1156;
             run_motion = at_1157;
-            velocity[1] -= 0.6f;
+            carry_idle_motion = at_1158;
+            carry_walk_motion = at_1159;
             anim_scale = 1.0f;
             frame_now = player->GetNowFrame();
             frame_next = frame_now + player->GetStep();
-            carry_walk_motion = at_1159;
             *(BuggyQuad *)direction = at_1074__4;
             mgUnitMatrix(direction_matrix);
             sceVu0RotMatrixY(direction_matrix, direction_matrix, player_rotation[1]);
@@ -651,9 +656,9 @@ extern "C" void CharaControl__FP6CSceneP11CPadControl__3(CScene *scene, CPadCont
             }
             stopped = 0;
             switch (CharaStatus) {
-            case 4:
-            case 2:
             case 1:
+            case 2:
+            case 4:
                 speed_x = 0.0f;
                 velocity[0] = 0.0f;
                 velocity[2] = 0.0f;
@@ -682,15 +687,15 @@ extern "C" void CharaControl__FP6CSceneP11CPadControl__3(CScene *scene, CPadCont
                     }
                     player->SetRotation(0.0f, next_angle, 0.0f);
                     strength = sqrtf(stick_x * stick_x + stick_y * stick_y);
-                    if (!(strength < 0.8f) && run_motion != NULL) {
-                        player->SetMotion(run_motion, 0);
-                    } else {
+                    if (strength < 0.8f || run_motion == NULL) {
                         step_scale = 0.1f + strength / 0.8f;
                         if (!(step_scale <= 1.0f)) {
                             step_scale = 1.0f;
                         }
                         player->SetMotion(walk_motion, 0);
                         player->SetStep(anim_scale * step_scale);
+                    } else {
+                        player->SetMotion(run_motion, 0);
                     }
                 } else {
                     player->SetMotion(idle_motion, 0);

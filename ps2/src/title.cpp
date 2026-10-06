@@ -1634,11 +1634,12 @@ int TitleMCCheckKey() {
         case TITLE_MC_PHASE_OMAKE_1:
         case TITLE_MC_PHASE_OMAKE_2:
             if (busy) {
-                if (TitleMCCheck->file_exists != 0) {
-                    if (TitleMCCheck->omake_flag & 1) {
+                CMemoryCardManager *manager = TitleMCCheck;
+                if (manager->file_exists != 0) {
+                    if (manager->omake_flag & 1) {
                         OmakePlayEnableAttr |= 2;
                     }
-                    if (TitleMCCheck->omake_flag & 2) {
+                    if (manager->omake_flag & 2) {
                         OmakePlayEnableAttr |= 1;
                     }
                 }
@@ -1871,8 +1872,9 @@ void TitleHDDInstallInit() {
     char image_name[32];
     char message_path[0x4C];
     int file_size;
-    mgCMemory *stack = &Stack_ReadBuff;
+    mgCMemory *stack;
     mgCTextureManager *textures = &mgTexManager;
+    stack = &Stack_ReadBuff;
 
     stack->stack_used = 0;
     HDDnowDisplayImageNo = 0;
@@ -2248,7 +2250,6 @@ int TitleHDDInstallKey() {
     }
     return 0;
 }
-#ifdef NONMATCHING
 void DrawMenuDl(int x, int y, int width, int alpha, float rate) {
     mgCDrawPrim prim;
     mgRect<int> frame_tex;
@@ -2270,7 +2271,7 @@ void DrawMenuDl(int x, int y, int width, int alpha, float rate) {
     prim.Begin(6);
     int end_width = table_2611[0][2] - 0x14 + table_2611[1][4];
     float inner = ((float)width - (float)end_width) - 2.0f;
-    int bar_width = fptosi(inner * rate);
+    int bar_width = (int)(inner * rate);
     if (rate < 1.0f) {
         prim.Color(0x80, 0x80, 0x80, alpha);
     } else {
@@ -2292,9 +2293,6 @@ void DrawMenuDl(int x, int y, int width, int alpha, float rate) {
     }
     prim.End();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", DrawMenuDl__Fiiiif);
-#endif
 void TitleHDDInstallDraw() {
     union { CMenuFont font; };
     mgCTextureManager *textures = &mgTexManager;

@@ -435,7 +435,7 @@ CFuncPoint *CFuncPointMngr::Add(int type, CList<CFuncPoint> *node) {
 }
 #ifdef NONMATCHING
 void CFuncPointMngr::Reserve(int num, mgCMemory *stack) {
-    CList<CFuncPoint> *nodes;
+    int index;
     unsigned int size = num * sizeof(CList<CFuncPoint>);
     int blocks;
     if (size & 0xF) {
@@ -443,11 +443,10 @@ void CFuncPointMngr::Reserve(int num, mgCMemory *stack) {
     } else {
         blocks = size >> 4;
     }
-    nodes = new ((u_long128 *)stack->Alloc(blocks + 2)) CList<CFuncPoint>[num];
+    CList<CFuncPoint> *nodes = new ((u_long128 *)stack->Alloc(blocks + 2)) CList<CFuncPoint>[num];
     if (num > 0) {
-        for (int index = 0; index < num; index++) {
-            CList<CFuncPoint> *node = &nodes[index];
-            Add(FUNC_POINT_NONE, node);
+        for (index = 0; index < num; index++) {
+            Add(FUNC_POINT_NONE, &nodes[index]);
         }
     }
 }

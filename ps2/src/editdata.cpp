@@ -406,13 +406,14 @@ int GetCulturePoint(CEditParts *parts, int) {
 }
 #ifdef NONMATCHING
 int CEditMap::CultureAnalyzeParts(int no, int cpoint_no) {
-    int related[0x80];
+    int related[0x200];
     CEditParts *parts = GetePlaceParts(no);
 
     if (parts == NULL || parts->info == NULL) {
         return 0;
     }
-    if (parts->name[0] == 0 || parts->state == 0) {
+    int empty = parts->name[0] == 0;
+    if (empty || parts->state == 0) {
         return 0;
     }
     switch (parts->info->cpoint[0]) {
@@ -522,6 +523,7 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdata", GetOnOffParts__8CEditMapFPcPP9C
 void CEditMap::PartsOnOff(int map_no, CEditData *data) {
     CMapParts *parts[0x10];
     CMapPiece *pieces[0x10];
+    int i;
 
     if (data == NULL) {
         return;
@@ -541,11 +543,11 @@ void CEditMap::PartsOnOff(int map_no, CEditData *data) {
             }
         }
         int off_count = GetOnOffParts(request->off_parts, parts, pieces, 0x10);
-        for (int i = 0; i < off_count; i++) {
+        for (i = 0; i < off_count; i++) {
             if (pieces[i] != NULL) {
-                pieces[i]->Show((flag == 0) & 0xFF);
+                pieces[i]->Show((u8)((flag != 0) ^ 1));
             } else if (parts[i] != NULL) {
-                parts[i]->Show((flag == 0) & 0xFF);
+                parts[i]->Show((u8)((flag != 0) ^ 1));
             }
         }
     }

@@ -719,7 +719,6 @@ int MenuGeoramaKey() {
     MenuPlacedHousePosLinkMes();
     return closed;
 }
-#ifdef NONMATCHING
 void MenuGeoramaDraw() {
     if (CMenuGeoPt != NULL) {
         mgCTextureManager *tex_manager;
@@ -736,7 +735,8 @@ void MenuGeoramaDraw() {
             MenuMesForm[2]->MenuFormDraw(tex_block);
         }
         if (menu_debug_flag != 0) {
-            tex_manager->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *)NULL);
+            int mes_block = MenuArg.mes_tex_block;
+            tex_manager->ReloadTexture(mes_block, (sceVif1Packet *)NULL);
             CMenuFont font;
             DrawMenuFillBox(340.0f, 98.0f, 160.0f, 100.0f, 0x48, 0, 0, 0);
             font.SetStr(at_1277__2);
@@ -748,16 +748,13 @@ void MenuGeoramaDraw() {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmenu", MenuGeoramaDraw__Fv);
-#endif
-#ifdef NONMATCHING
 void MenuGeoramaTitleDraw(int &tex_block, float *pos, int alpha) {
     if (MenuGeoStoneDonwLoadFlag == 0) {
-        DrawMenuWakuRect(mgTexManager.GetTexture(at_1299__3, -1),
+        __typeof__(&mgTexManager) tex_manager = &mgTexManager;
+        DrawMenuWakuRect(tex_manager->GetTexture(at_1299__3, -1),
                          mgRect<float>(menu_georama_title_pos[0], menu_georama_title_pos[1], 74.0f, 21.0f),
                          mgRect<int>(0x10, 0x20, 0x12, 0xC), alpha, 0x80, 0x80, 0x80);
-        mgCTexture *cursor_tex = mgTexManager.GetTexture(at_1300__3, -1);
+        mgCTexture *cursor_tex = tex_manager->GetTexture(at_1300__3, -1);
         if (cursor_tex != NULL && CMenuGeoPt->key_arg_no == 0) {
             MenuReloadTexture(tex_block, cursor_tex->block);
             float cursor_pos[2];
@@ -767,9 +764,6 @@ void MenuGeoramaTitleDraw(int &tex_block, float *pos, int alpha) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmenu", MenuGeoramaTitleDraw__FRiPfi);
-#endif
 #ifdef NONMATCHING
 void MenuGeoramaListDraw(int &tex_block, float *pos, int page, int alpha) {
     if (Tex_Georama != NULL && pos[0] >= -260.0f) {

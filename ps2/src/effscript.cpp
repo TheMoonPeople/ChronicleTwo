@@ -262,7 +262,6 @@ void CEffectScriptMan::AddTexb() {
         level_texb_used[level] = level_texb_used[level] + 1;
     }
 }
-#ifdef NONMATCHING
 extern char at_1099__2[];
 extern char at_1100[];
 extern char at_1101[];
@@ -327,7 +326,21 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
                 base[index]->chara = NULL;
                 if (data != NULL) {
                     CCharacter2 *source = GetBaseChara(base_no);
-                    base[index]->chara = new (memory->Alloc(0x68)) CCharacter2;
+                    CCharacter2 *model;
+                    if ((model = (CCharacter2 *)operator new(sizeof(CCharacter2), memory->Alloc(0x68))) != NULL) {
+                        *(void ***)model = __vt__9mgCObject;
+                        model->Initialize();
+                        *(void ***)model = __vt__7CObject;
+                        model->Initialize();
+                        *(void ***)model = __vt__12CObjectFrame;
+                        model->Initialize();
+                        *(void ***)model = __vt__11CCharacter2;
+                        model->shadow_link.num = 0;
+                        model->shadow_link.dst_frame = 0;
+                        model->shadow_link.src_frame = 0;
+                        model->Initialize();
+                    }
+                    base[index]->chara = model;
                     base[index]->chara->Initialize();
                     if (source != NULL) {
                         source->Copy(*base[index]->chara, memory);
@@ -389,9 +402,6 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
     base_num++;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", BuildBase__16CEffectScriptManFiP1iP1iP9mgCMemoryi);
-#endif
 int CEffectScriptMan::BuildBase(char *name, u_long128 *path_file, int path_size, u_long128 *pack_file,
                                  int pack_size, mgCMemory *memory, int level) {
     return BuildBase(SearchBaseNo(name), path_file, path_size, pack_file, pack_size, memory, level);
@@ -1343,7 +1353,6 @@ EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index) {
     EFF_SPT_BASE_DEF *base = eff_spt_base_def + index;
     return strcmp(base->name, at_1341__2) == 0 ? 0 : base;
 }
-#ifdef NONMATCHING
 extern EffectVector at_2067;
 static void DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, sceVu0FVECTOR offset, mgC3DSprite *renderer, CMapLightingInfo *lighting) {
     _ES_SPRITE *sprites = script->sprite;
@@ -1359,81 +1368,73 @@ static void DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, sceVu0FVE
     renderer->CPSetDrawEnv(&environment);
     renderer->CPSetTexture(texture);
     renderer->BeginCPSprite();
-    s32 i = 0;
-    if (i < count) {
-        do {
+    for (int i = 0; i < count; i++) {
+        if (sprites[i].draw_flag != 0) {
             _ES_SPRITE *sprite = &sprites[i];
-            if (sprite->draw_flag != 0) {
-                if (alpha != sprite->alpha) {
-                    alpha = sprite->alpha;
-                    renderer->EndCPSprite();
-                    mgCDrawEnv next_environment(* mgGetpDrawEnv(0));
-                    sceGsTest *next_test = &next_environment.test;
-                    next_test->bits.zte = 1;
-                    next_test->bits.ztst = 2;
-                    next_environment.SetZBuf(-1);
-                    next_environment.SetAlpha(alpha);
-                    renderer->CPSetDrawEnv(&next_environment);
-                    renderer->CPSetTexture(texture);
-                    renderer->BeginCPSprite();
-                }
-                EffectVector size = at_2067;
-                sceVu0FVECTOR uv0, uv1, position;
-                sceVu0FVECTOR color;
-                mgZeroVector(uv0);
-                mgZeroVector(uv1);
-                sceVu0AddVector(position, sprite->pos, offset);
-                position[3] = 1.0f;
-                *(u_long128 *)color = *(u_long128 *)sprite->color;
-                if (0.0f != sprite->blink_speed) {
-                    for (component = 0; component < 4; component++) {
-                        color[component] += sinf(sprite->blink_phase) * sprite->blink_amp[component];
-                        if (color[component] < 0.0f) {
-                            color[component] = 0.0f;
-                        }
-                        if (color[component] > 255.0f) {
-                            color[component] = 255.0f;
-                        }
-                    }
-                    sprite->blink_phase += sprite->blink_speed;
-                    sprite->blink_phase = mgAngleLimit(sprite->blink_phase);
-                } else {
-                    for (int component = 0; component < 4; component++) {
-                        if (color[component] < 0.0f) {
-                            color[component] = 0.0f;
-                        }
-                        if (color[component] > 255.0f) {
-                            color[component] = 255.0f;
-                        }
-                    }
-                }
-                if (script->light_flag) {
-                    sceVu0FMATRIX light_direction, light_color;
-                    sceVu0FVECTOR ambient;
-                    mgGetLight(light_direction, light_color);
-                    mgGetAmbient(ambient);
-                    color[0] = 0.3 * light_color[0][0] + ambient[0];
-                    color[1] = light_color[0][1] * 0.3 + ambient[1];
-                    color[2] = light_color[0][2] * 0.3 + ambient[2];
-                }
-                size.values[0] = sprite->put_size[0] * sprite->scale[0];
-                size.values[1] = sprite->put_size[1] * sprite->scale[1];
-                size.values[2] = mgAngleLimit(sprite->rotz);
-                uv0[0] = sprite->uv[0];
-                uv0[1] = sprite->uv[1];
-                uv1[0] = sprite->uv[0] + sprite->uv[2];
-                uv1[1] = sprite->uv[1] + sprite->uv[3];
-                renderer->CPSetSprite(position, size.values, color, uv0, uv1);
+            if (alpha != sprite->alpha) {
+                alpha = sprite->alpha;
+                renderer->EndCPSprite();
+                mgCDrawEnv next_environment(* mgGetpDrawEnv(0));
+                sceGsTest *next_test = &next_environment.test;
+                next_test->bits.zte = 1;
+                next_test->bits.ztst = 2;
+                next_environment.SetZBuf(-1);
+                next_environment.SetAlpha(alpha);
+                renderer->CPSetDrawEnv(&next_environment);
+                renderer->CPSetTexture(texture);
+                renderer->BeginCPSprite();
             }
-            i++;
-        } while (i < count);
+            EffectVector size = at_2067;
+            sceVu0FVECTOR uv0, uv1, position;
+            sceVu0FVECTOR color;
+            mgZeroVector(uv0);
+            mgZeroVector(uv1);
+            sceVu0AddVector(position, sprite->pos, offset);
+            position[3] = 1.0f;
+            *(u_long128 *)color = *(u_long128 *)sprite->color;
+            if (0.0f != sprite->blink_speed) {
+                for (component = 0; component < 4; component++) {
+                    color[component] += sinf(sprite->blink_phase) * sprite->blink_amp[component];
+                    if (color[component] < 0.0f) {
+                        color[component] = 0.0f;
+                    }
+                    if (color[component] > 255.0f) {
+                        color[component] = 255.0f;
+                    }
+                }
+                sprite->blink_phase += sprite->blink_speed;
+                sprite->blink_phase = mgAngleLimit(sprite->blink_phase);
+            } else {
+                for (int component = 0; component < 4; component++) {
+                    if (color[component] < 0.0f) {
+                        color[component] = 0.0f;
+                    }
+                    if (color[component] > 255.0f) {
+                        color[component] = 255.0f;
+                    }
+                }
+            }
+            if (script->light_flag) {
+                sceVu0FMATRIX light_direction, light_color;
+                sceVu0FVECTOR ambient;
+                mgGetLight(light_direction, light_color);
+                mgGetAmbient(ambient);
+                color[0] = 0.3 * light_color[0][0] + ambient[0];
+                color[1] = light_color[0][1] * 0.3 + ambient[1];
+                color[2] = light_color[0][2] * 0.3 + ambient[2];
+            }
+            size.values[0] = sprite->put_size[0] * sprite->scale[0];
+            size.values[1] = sprite->put_size[1] * sprite->scale[1];
+            size.values[2] = mgAngleLimit(sprite->rotz);
+            uv0[0] = sprite->uv[0];
+            uv0[1] = sprite->uv[1];
+            uv1[0] = sprite->uv[0] + sprite->uv[2];
+            uv1[1] = sprite->uv[1] + sprite->uv[3];
+            renderer->CPSetSprite(position, size.values, color, uv0, uv1);
+        }
     }
     renderer->EndCPSprite();
 }
-
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", DrawEffSptSprite__FP11_EFF_SCRIPTP10mgCTexturePfP11mgC3DSpriteP16CMapLightingInfo);
-#endif
 static _ES_SPRITE *GetSpritePtr(_EFF_SCRIPT *script, int index) {
     if (script == 0 || index >= script->sprite_num) {
         return 0;

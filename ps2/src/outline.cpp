@@ -128,20 +128,60 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/outline", Draw__12COutLineDrawFff);
 #ifdef NONMATCHING
 static void DrawDivSprite(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *texture,
                           int *color, int dx, int dy, int z, int unused) {
-    prim->Begin(MG_PRIM_SPRITE);
+    mgRect<int> area = rect;
+    sceVu0IVECTOR texcrd_end;
+    sceVu0IVECTOR texcrd_start;
+    sceVu0IVECTOR vertex_end;
+    sceVu0IVECTOR vertex_start;
+    int offset_x = dx + mgScreenOffx * 16;
+    int offset_y = dy + mgScreenOffy * 16;
+    int block_height = mgScreenHeight * 16;
+
+    prim->Begin2();
+    prim->BeginPrim2(MG_PRIM_SPRITE);
     prim->Texture(texture);
     prim->Color(color[0], color[1], color[2], color[3]);
-    for (int x = rect.left; x < rect.right; x += 0x200) {
-        int x_end = x + 0x200 < rect.right ? x + 0x200 : rect.right;
-        for (int y = rect.top; y < rect.bottom; y += mgScreenHeight * 16) {
-            int y_end = y + mgScreenHeight * 16 < rect.bottom ? y + mgScreenHeight * 16 : rect.bottom;
-            prim->TextureCrd4(x, y);
-            prim->Vertex4(x + mgScreenOffx * 16 + dx, y + mgScreenOffy * 16 + dy, z);
-            prim->TextureCrd4(x_end, y_end);
-            prim->Vertex4(x_end + mgScreenOffx * 16 + dx, y_end + mgScreenOffy * 16 + dy, z);
+    prim->EndPrim2();
+    prim->BeginPrim2(MG_PRIM_SPRITE, 0x43, 0, 2);
+    *(u_long128 *)vertex_start = 0;
+    *(u_long128 *)vertex_end = 0;
+    *(u_long128 *)texcrd_start = 0;
+    *(u_long128 *)texcrd_end = 0;
+    vertex_start[2] = z;
+    vertex_end[2] = z;
+    for (int x = area.left; x < area.right;) {
+        int x_end = x + 0x200;
+        if (area.right < x_end) {
+            x_end = area.right;
         }
+        for (int y = area.top; y < area.bottom;) {
+            int y_end = y + block_height;
+            if (area.bottom < y_end) {
+                y_end = area.bottom;
+            }
+            vertex_start[0] = x;
+            texcrd_start[0] = x;
+            vertex_start[1] = y;
+            texcrd_start[1] = y;
+            vertex_start[0] += offset_x;
+            vertex_start[1] += offset_y;
+            vertex_end[0] = x_end;
+            texcrd_end[0] = x_end;
+            vertex_end[1] = y_end;
+            texcrd_end[1] = y_end;
+            vertex_end[0] += offset_x;
+            vertex_end[1] += offset_y;
+            u_long128 *packet = (u_long128 *)prim->DirectData(4);
+            y = y_end;
+            packet[0] = *(u_long128 *)texcrd_start;
+            packet[1] = *(u_long128 *)vertex_start;
+            packet[2] = *(u_long128 *)texcrd_end;
+            packet[3] = *(u_long128 *)vertex_end;
+        }
+        x = x_end;
     }
-    prim->End();
+    prim->EndPrim2();
+    prim->End2();
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/outline", DrawDivSprite__FP11mgCDrawPrim9mgRect_i_P10mgCTexturePiiiii);

@@ -16,11 +16,11 @@ extern MAP_SKY_INFO * skyInfo;
 extern int skyAnmNum;
 extern int skybAnmNum;
 extern SPI_TAG_PARAM tag__2[];
-s32 CheckSkyID(s32 sky_id);
-s32 _SKY_IMG(SPI_STACK *stack, s32 argCount);
-s32 _SKY_MDS(SPI_STACK *stack, s32 argCount);
-s32 _SUN_MDS(SPI_STACK *stack, s32 argCount);
-s32 _SKYB_MDS(SPI_STACK *stack, s32 argCount);
+static s32 CheckSkyID(s32 sky_id);
+static s32 _SKY_IMG(SPI_STACK *stack, s32 argCount);
+static s32 _SKY_MDS(SPI_STACK *stack, s32 argCount);
+static s32 _SUN_MDS(SPI_STACK *stack, s32 argCount);
+static s32 _SKYB_MDS(SPI_STACK *stack, s32 argCount);
 extern MAP_SKY_INFO *skyInfo;
 extern int skyAnmNum;
 extern int skybAnmNum;
@@ -28,7 +28,6 @@ extern int skybAnmNum;
 static int _SKY_BG(SPI_STACK *stack, int argument_count);
 static int _SKY_ANIME(SPI_STACK *stack, int argument_count);
 static int _SKYB_ANIME(SPI_STACK *stack, int argument_count);
-int CheckSkyID(int sky_id);
 static void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size);
 
 // Code (.text)
@@ -226,13 +225,8 @@ static void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size) {
     skyAnmNum = 0;
     skybAnmNum = 0;
     if (script == NULL || size == 0) return;
-    static SPI_TAG_PARAM tags[] = {
-        {"SKY_IMG", _SKY_IMG}, {"SKY_MDS", _SKY_MDS}, {"SKY_ANIME", _SKY_ANIME},
-        {"SUN_MDS", _SUN_MDS}, {"SKYB_MDS", _SKYB_MDS}, {"SKYB_ANIME", _SKYB_ANIME},
-        {"SKY_BG", _SKY_BG}, {NULL, NULL}
-    };
     CScriptInterpreter interpreter;
-    interpreter.SetTag(tags);
+    interpreter.SetTag(tag__2);
     interpreter.SetScript(script, size);
     interpreter.Run();
 }
@@ -242,12 +236,12 @@ static void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size) {
  * Checks whether a sky time band index is in range.
  *
  */
-s32 CheckSkyID(s32 sky_id) {
+static s32 CheckSkyID(s32 sky_id) {
     s32 valid;
     if (sky_id < 0 || sky_id >= 4) valid = 0; else valid = 1;
     return valid;
 }
-s32 _SKY_IMG(SPI_STACK *stack, s32 argCount) {
+static s32 _SKY_IMG(SPI_STACK *stack, s32 argCount) {
     s32 skyId = spiGetStackInt(stack++);
     char *name;
 
@@ -260,7 +254,7 @@ s32 _SKY_IMG(SPI_STACK *stack, s32 argCount) {
     }
     return 1;
 }
-s32 _SKY_MDS(SPI_STACK *stack, s32 argCount) {
+static s32 _SKY_MDS(SPI_STACK *stack, s32 argCount) {
     s32 skyId = spiGetStackInt(stack++);
     char *name;
 
@@ -274,7 +268,7 @@ s32 _SKY_MDS(SPI_STACK *stack, s32 argCount) {
     skyInfo->sky_rot_speed[skyId] = spiGetStackFloat(stack) * 3.14159265358979323846f / 180.0f;
     return 1;
 }
-s32 _SUN_MDS(SPI_STACK *stack, s32 argCount) {
+static s32 _SUN_MDS(SPI_STACK *stack, s32 argCount) {
     s32 skyId = spiGetStackInt(stack++);
     char *name;
 
@@ -287,7 +281,7 @@ s32 _SUN_MDS(SPI_STACK *stack, s32 argCount) {
     }
     return 1;
 }
-s32 _SKYB_MDS(SPI_STACK *stack, s32 argCount) {
+static s32 _SKYB_MDS(SPI_STACK *stack, s32 argCount) {
     s32 skyId = spiGetStackInt(stack++);
     char *name;
 
@@ -306,36 +300,28 @@ static int _SKY_BG(SPI_STACK *stack, int argument_count) {
     if (name != NULL) strcpy(skyInfo->bg_mds_name, name);
     return 1;
 }
-#ifdef NONMATCHING
 static int _SKY_ANIME(SPI_STACK *stack, int argument_count) {
     if (skyAnmNum >= 16) return 0;
-    int id = spiGetStackInt(&stack[0]);
+    int id = spiGetStackInt(stack++);
     if (!CheckSkyID(id)) return 0;
     skyInfo->sky_anime_id[skyAnmNum] = id;
-    char *name = spiGetStackString(&stack[1]);
+    char *name = spiGetStackString(stack++);
     if (name != NULL) strcpy(skyInfo->sky_anime_name[skyAnmNum], name);
-    skyInfo->sky_anime_speed[skyAnmNum] = 3.1415927f * spiGetStackFloat(&stack[2]) / 180.0f;
+    skyInfo->sky_anime_speed[skyAnmNum] = 3.1415927f * spiGetStackFloat(stack) / 180.0f;
     ++skyAnmNum;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapsky", _SKY_ANIME__FP9SPI_STACKi);
-#endif
-#ifdef NONMATCHING
 static int _SKYB_ANIME(SPI_STACK *stack, int argument_count) {
     if (skybAnmNum >= 16) return 0;
-    int id = spiGetStackInt(&stack[0]);
+    int id = spiGetStackInt(stack++);
     if (!CheckSkyID(id)) return 0;
     skyInfo->skyb_anime_id[skybAnmNum] = id;
-    char *name = spiGetStackString(&stack[1]);
+    char *name = spiGetStackString(stack++);
     if (name != NULL) strcpy(skyInfo->skyb_anime_name[skybAnmNum], name);
-    skyInfo->skyb_anime_speed[skybAnmNum] = 3.1415927f * spiGetStackFloat(&stack[2]) / 180.0f;
+    skyInfo->skyb_anime_speed[skybAnmNum] = 3.1415927f * spiGetStackFloat(stack) / 180.0f;
     ++skybAnmNum;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapsky", _SKYB_ANIME__FP9SPI_STACKi);
-#endif
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_387__2__DATA);

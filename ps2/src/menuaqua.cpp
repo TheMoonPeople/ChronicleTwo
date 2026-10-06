@@ -1511,21 +1511,19 @@ void CFishFood::Drop() {
     spin[0] = 0.015707964f + GetRandF(3.1415927f) / 34.0f;
     spin[2] = 0.015707964f + GetRandF(3.1415927f) / 34.0f;
 }
-#ifdef NONMATCHING
 void CFishFood::Step() {
     float next[4];
     float rot[4];
     float test[4];
     float away[4];
-    float spin_x;
     float spin_z;
     float sway_x;
     int check_y;
     aqua_col_point *point;
     int i;
 
+    float spin_x = 0.0f;
     next[0] = 0.0f;
-    spin_x = 0.0f;
     next[1] = 0.0f;
     next[2] = 0.0f;
     spin_z = spin_x;
@@ -1588,8 +1586,9 @@ void CFishFood::Step() {
     next[1] += pos[1];
     next[2] += pos[2];
     local_aquarium_limmit_check(next, 1.3f, check_y, 0.0f);
+    int current_state = state;
     if (next[1] <= 48.0f) {
-        if (state == FISH_FOOD_DROP) {
+        if (current_state == FISH_FOOD_DROP) {
             state = FISH_FOOD_ENTER;
         } else {
             state = FISH_FOOD_SINK;
@@ -1603,9 +1602,6 @@ void CFishFood::Step() {
     SetRotation(rot);
     CCharacter2::Step();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", Step__9CFishFoodFv);
-#endif
 #ifdef NONMATCHING
 void DrawEsaDropRoot(CFishFood *food, float bottom) {
     if (food != NULL) {
@@ -1620,7 +1616,7 @@ void DrawEsaDropRoot(CFishFood *food, float bottom) {
         prim.DepthTestEnable(1);
         food->GetPosition(pos);
         for (; bottom < pos[1]; pos[1] -= 2.4f) {
-            if (mgTransWorldPrim3DSprite(left, right, pos, 0.3f, 1.0f, 0) != 0) {
+            if (0 != mgTransWorldPrim3DSprite(left, right, pos, 0.3f, 1.0f, 0)) {
                 prim.Begin(6);
                 prim.Color(0x80, 0x80, 0xC8, 0x60);
                 prim.Vertex4(left);

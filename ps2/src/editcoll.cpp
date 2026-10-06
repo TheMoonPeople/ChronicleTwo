@@ -346,7 +346,6 @@ int CEditCollision::OverlapPoly3XZ(float (*triangle)[4], float (*matrix)[4], flo
     CCPoly *source = poly;
     int index;
     float total;
-    register unsigned int check;
     if (source == NULL) return 0;
     mgVectorMaxMin(tri_max, tri_min, triangle[0], triangle[1], triangle[2]);
     if (area != NULL) *area = 0.0f;
@@ -355,17 +354,17 @@ int CEditCollision::OverlapPoly3XZ(float (*triangle)[4], float (*matrix)[4], flo
     total = 0.0f;
     for (index = 0; index < poly_count; index++, source++) {
         mgApplyMatrixN(transformed, matrix, source->vertex, 3);
-        check = (transformed[0][1] <= 0.1f ? 0u : 1u);
+        unsigned int check = (transformed[0][1] <= 0.1f ? 0u : 1u);
         float first = check;
         first = first < 0.0f ? -first : first;
         float first_zero = 0.0f;
         if (first == first_zero) {
-            check = (transformed[1][1] <= 0.1f ? 0u : 1u);
+            unsigned int check = (transformed[1][1] <= 0.1f ? 0u : 1u);
             float second = check;
             second = second < 0.0f ? -second : second;
             float second_zero = 0.0f;
             if (second == second_zero) {
-                check = (transformed[2][1] <= 0.1f ? 0u : 1u);
+                unsigned int check = (transformed[2][1] <= 0.1f ? 0u : 1u);
                 float third = check;
                 third = third < 0.0f ? -third : third;
                 float third_zero = 0.0f;

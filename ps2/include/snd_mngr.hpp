@@ -241,13 +241,13 @@ public:
      * Creates the bank empty.
      */
     sndBankInfo() {
-        unk_0 = 0;
+        seseq_num = 0;
+        sq_num = 0;
         se_num = 0;
         se = NULL;
-        sq_num = 0;
         sq_name = NULL;
-        seseq_num = 0;
         seseq = NULL;
+        unk_0 = 0;
     }
 
     /**
@@ -335,14 +335,14 @@ public:
         for (i = 0; i < 16; i++) {
             seseq[i].seseq_no = -1;
         }
-        for (i = 0; i < 16; i++) {
-            bank[i].unk_0 = 0;
-            bank[i].se_num = 0;
-            bank[i].se = NULL;
-            bank[i].sq_num = 0;
-            bank[i].sq_name = NULL;
-            bank[i].seseq_num = 0;
-            bank[i].seseq = NULL;
+        for (int j = 0; j < 16; j++) {
+            bank[j].seseq_num = 0;
+            bank[j].sq_num = 0;
+            bank[j].se_num = 0;
+            bank[j].se = NULL;
+            bank[j].sq_name = NULL;
+            bank[j].seseq = NULL;
+            bank[j].unk_0 = 0;
         }
     }
 

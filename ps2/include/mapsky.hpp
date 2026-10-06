@@ -111,4 +111,3 @@ public:
 STATIC_ASSERT(sizeof(CMapSky::AnimeFrame) == 0x8);
 STATIC_ASSERT(sizeof(CMapSky) == 0x108);
 
-int CheckSkyID(int sky_id);

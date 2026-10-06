@@ -128,7 +128,6 @@ void CMiniMapSymbol::DrawSymbolClose() {
         blink_cnt = 0;
     }
 }
-#ifdef NONMATCHING
 void CMiniMapSymbol::DrawSymbol(float *pos, int symbol) {
     float delta[4];
 
@@ -137,11 +136,11 @@ void CMiniMapSymbol::DrawSymbol(float *pos, int symbol) {
     }
     sceVu0SubVector(delta, pos, center);
     float sizeX = cell_w;
-    int screen_x = x + (int)(16.0f * (delta[0] / sizeX));
-    float sizeZ = cell_d;
-    int screen_y = y + (int)(16.0f * (delta[2] / sizeZ));
+    float ratio = delta[0] / sizeX;
+    int screen_x = x + (int)(16.0f * ratio);
+    int screen_y = y + (int)(16.0f * (delta[2] / cell_d));
     int cell_x = (int)((pos[0] + 0.5f * sizeX) / sizeX);
-    int cell_z = (int)((pos[2] + 0.5f * sizeZ) / sizeZ);
+    int cell_z = (int)((pos[2] + 0.5f * cell_d) / cell_d);
     int revealed = 0;
     if (grid != NULL && (grid + cell_z * grid_w)[cell_x].visible != 0) {
         revealed = 1;
@@ -159,9 +158,6 @@ void CMiniMapSymbol::DrawSymbol(float *pos, int symbol) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/automap", DrawSymbol__14CMiniMapSymbolFPfi);
-#endif
 void CMiniMapSymbol::DrawSymbol_Chara(CCharacter2 *chara) {
     float pos[4];
     float rot[4];
@@ -441,14 +437,14 @@ int CAutoMapGen::CreatRoom(int x, int y, int room_no, int info_no) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/automap", CreatRoom__11CAutoMapGenFiiii);
 #endif
-#ifdef NONMATCHING
 int CAutoMapGen::LinkConnectCheck(int x, int y, int kind, int room_no, int exclude) {
     int sides[4];
+    int cell_kind;
     int count = 0;
 
     if (exclude != kStepDown) {
         if (y > 0) {
-            int cell_kind = (grid + (y - 1) * grid_w)[x].kind;
+            cell_kind = (grid + (y - 1) * grid_w)[x].kind;
             int cell_room = (grid + (y - 1) * grid_w)[x].room_no;
             if ((cell_kind & kind) && cell_room != room_no) {
                 sides[count++] = kStepUp;
@@ -457,7 +453,7 @@ int CAutoMapGen::LinkConnectCheck(int x, int y, int kind, int room_no, int exclu
     }
     if (exclude != kStepUp) {
         if (y < grid_h - 1) {
-            int cell_kind = (grid + (y + 1) * grid_w)[x].kind;
+            cell_kind = (grid + (y + 1) * grid_w)[x].kind;
             int cell_room = (grid + (y + 1) * grid_w)[x].room_no;
             if ((cell_kind & kind) && cell_room != room_no) {
                 sides[count++] = kStepDown;
@@ -466,7 +462,7 @@ int CAutoMapGen::LinkConnectCheck(int x, int y, int kind, int room_no, int exclu
     }
     if (exclude != kStepLeft) {
         if (x < grid_w - 1) {
-            int cell_kind = (grid + y * grid_w + x + 1)->kind;
+            cell_kind = (grid + y * grid_w + x + 1)->kind;
             int cell_room = (grid + y * grid_w + x + 1)->room_no;
             if ((cell_kind & kind) && cell_room != room_no) {
                 sides[count++] = kStepRight;
@@ -475,7 +471,7 @@ int CAutoMapGen::LinkConnectCheck(int x, int y, int kind, int room_no, int exclu
     }
     if (exclude != kStepRight) {
         if (x > 0) {
-            int cell_kind = (grid + y * grid_w + x - 1)->kind;
+            cell_kind = (grid + y * grid_w + x - 1)->kind;
             int cell_room = (grid + y * grid_w + x - 1)->room_no;
             if ((cell_kind & kind) && cell_room != room_no) {
                 sides[count++] = kStepLeft;
@@ -487,9 +483,6 @@ int CAutoMapGen::LinkConnectCheck(int x, int y, int kind, int room_no, int exclu
     }
     return sides[iRand(count)];
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/automap", LinkConnectCheck__11CAutoMapGenFiiiii);
-#endif
 void CAutoMapGen::SetRoadLinkMark(int x, int y, int direction) {
     int nx = x;
     int ny = y;
