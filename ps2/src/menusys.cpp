@@ -9735,8 +9735,7 @@ void CItemSelect::Draw(void) {
         }
     }
     prim->End();
-    mgRect<float> icon_rect;
-    icon_rect.Set(4.0f + item_rect.left, 8.0f + item_rect.top, item_rect.right, item_rect.bottom);
+    mgRect<float> icon_rect(4.0f + item_rect.left, 8.0f + item_rect.top, item_rect.right, item_rect.bottom);
     icon_rect.right = 32.0f;
     icon_rect.bottom = 40.0f;
     ItemSelectColor color = at_9055;
@@ -9827,7 +9826,6 @@ void CItemSelect::Draw(void) {
     PrimQuad(prim, end_put, end_tex);
     prim->End();
     mgRect<float> cursor_rect;
-    cursor_rect.Set(0.0f, 0.0f, 0.0f, 0.0f);
     cursor_rect.Set(item_rect.left, 40.0f + list->top, item_rect.right, item_rect.bottom);
     cursor_rect.left += (cursor % 5) * item_rect.right - 4.0f;
     cursor_rect.top += item_rect.bottom * (cursor / 5 - top_line);
@@ -9840,8 +9838,7 @@ void CItemSelect::Draw(void) {
     }
     mgRect<int> waku_tex;
     waku_tex.Set(0x10, 0x20, 0x12, 0xC);
-    mgRect<float> waku_rect;
-    waku_rect.Set(cursor_x - 2.0f, cursor_y - 4.0f, cursor_rect.right, 40.0f);
+    mgRect<float> waku_rect(cursor_x - 2.0f, cursor_y - 4.0f, cursor_rect.right, 40.0f);
     DrawMenuWakuRect(MenuPosData->icon_effect_tex, waku_rect, waku_tex, alpha, 0x80, 0x80, 0x80);
     if (mode == MENU_ASK_MODE_NONE) {
         int mes_pos[2];

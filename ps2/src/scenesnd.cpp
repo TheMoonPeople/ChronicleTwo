@@ -3,6 +3,7 @@
 #include "mg_memory.hpp"
 #include "scenesnd.hpp"
 #include <cstring>
+#include <cstdlib>
 #include <cstdio>
 #include "sound.hpp"
 #include "dataread.hpp"
@@ -133,7 +134,6 @@ void CScene::InitLooSeMngr() {
 CScene::BGM_INFO *CScene::GetActiveBgmInfo() {
     return &bgm[bgm_no];
 }
-#ifdef NONMATCHING
 void CScene::PlayBGM(int bgm_no, int vol, float volf) {
     if (skip_play_bgm != 0) {
         skip_play_bgm = 0;
@@ -147,7 +147,7 @@ void CScene::PlayBGM(int bgm_no, int vol, float volf) {
         if (info->vol < 0) {
             info->vol = sndGetSeDefVol(info->snd_id, bgm_no);
         }
-        int play_vol = sndVolLimit(fptosi((float)info->vol * volf));
+        int play_vol = sndVolLimit((int)((float)info->vol * volf));
         if (play_vol < 0) {
             play_vol = 1;
         }
@@ -156,9 +156,6 @@ void CScene::PlayBGM(int bgm_no, int vol, float volf) {
         info->fade_speed = 0.0f;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenesnd", PlayBGM__6CSceneFiif);
-#endif
 void CScene::PauseBGM(void) {
     BGM_INFO *info = GetActiveBgmInfo();
     if (info->play_no >= 0) {
@@ -691,7 +688,80 @@ float CScene::GetTimeBgmVolf() {
     }
     return 1.0f;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenesnd", StepSnd__6CSceneFv);
+void CScene::StepSnd() {
+    BGM_INFO *bgm_info = GetActiveBgmInfo();
+    float fade = bgm_info->fade_volf;
+    if (bgm_info->fade_speed != 0.0f) {
+        fade += bgm_info->fade_speed;
+        if (!(fade <= 1.0f)) {
+            bgm_info->fade_speed = 0.0f;
+            fade = 1.0f;
+        }
+        if (fade < 0.0f) {
+            bgm_info->fade_speed = 0.0f;
+            fade = 0.0f;
+        }
+        bgm_info->fade_volf = fade;
+        SetVolfBGM(GetVolfBGM());
+    }
+    if (bgm_info->time_vol != 0) {
+        SetVolfBGM(GetTimeBgmVolf());
+    }
+    if (env_bgm_auto != 0) {
+        CMap *map = GetMap(active_map);
+        if (map != NULL) {
+            int env_no = env_bgm_offset + map->GetNowTimeBand();
+            if (env_no != env_bgm_no) {
+                StopEnvBGM();
+                PlayEnvBGM(env_no, env_bgm_volf);
+            }
+        }
+    }
+    SetEnvBGMVol(env_bgm_volf);
+    for (int i = 0; i < 4; i++) {
+        se_src_play_flag[i] = 0;
+    }
+    for (int i = 0; i < 4; i++) {
+        int se_no = se_src_play[i].se_no;
+        if (se_no >= 0) {
+            int playing = check_se_play(se_no);
+            if (playing >= 0) {
+                u32 snd_id = GetSeSrcID(se_no);
+                if (playing == 0) {
+                    sndSePlayV(snd_id, 0, 0, se_no);
+                }
+                int n;
+                float volume = 0.0f;
+                for (n = 0; n < se_src_play[i].num; n++) {
+                    volume += se_src_play[i].vol[n];
+                }
+                float pan = 0.0f;
+                for (n = 0; n < se_src_play[i].num; n++) {
+                    pan += se_src_play[i].pan[n] * se_src_play[i].vol[n] / volume;
+                }
+                if (!(volume <= 1.0f)) {
+                    volume = 1.0f;
+                }
+                sndSetSeVolf(snd_id, 0, volume, se_no);
+                if (!(pan <= 1.0f)) {
+                    pan = 1.0f;
+                }
+                if (pan < -1.0f) {
+                    pan = -1.0f;
+                }
+                sndSetSePanf(snd_id, 0, pan, se_no);
+            }
+        }
+    }
+    for (int i = 0; i < 4; i++) {
+        if (se_src_play_flag[i] == 0 && se_src_play_no[i] >= 0) {
+            u32 snd_id = GetSeSrcID(se_src_play_no[i]);
+            sndSeStop(snd_id, 0, se_src_play_no[i]);
+            se_src_play_no[i] = -1;
+        }
+    }
+    loop_se.Step();
+}
 void CScene::StopSeSrc() {
     for (int i = 0; i < 4; i++) {
         int id = se_src_play[i].se_no;
@@ -792,7 +862,127 @@ void CScene::LoadSndRevInfo(char *src, int size) {
     snd_rev_num = (u32)size >> 3;
     memcpy(snd_rev, src, size);
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenesnd", LoadSndFileInfo__6CSceneFPci);
+void CScene::LoadSndFileInfo(char *src, int size) {
+    char buffer[64][64];
+    char *columns[65];
+    char *end = src + size;
+    char *cursor = src;
+    int i;
+    for (i = 0; i < 64; i++) {
+        columns[i] = buffer[i];
+    }
+    columns[i] = NULL;
+    snd_file_num = 0;
+    while (cursor < end) {
+        cursor = GetLine__FPPcPcPc__2(columns, cursor, end);
+        if ((s8)columns[0][0] >= '0' && (s8)columns[0][0] < ':') {
+            int id = atoi(columns[0]);
+            SND_FILE_INFO *entry = &snd_file[snd_file_num++];
+            if (id < 0) {
+                break;
+            }
+            entry->id = id;
+            int column = 4;
+            char *file;
+            file = columns[column++];
+            if (file[0] != 'B') {
+                entry->bgm_no = -1;
+            } else {
+                entry->bgm_no = atoi(file + 3);
+            }
+            if (file[0] == '*') {
+                entry->bgm_no = SND_FILE_NO_KEEP;
+            }
+            file = columns[column++];
+            if (file[0] != 'B') {
+                entry->se_base = -1;
+            } else {
+                entry->se_base = atoi(file + 3);
+            }
+            if (file[0] == '*') {
+                entry->se_base = SND_FILE_NO_KEEP;
+            }
+            file = columns[column++];
+            if (file[0] != 'F') {
+                entry->se_battle = -1;
+            } else {
+                entry->se_battle = atoi(file + 3);
+            }
+            if (file[0] == '*') {
+                entry->se_battle = SND_FILE_NO_KEEP;
+            }
+            file = columns[column++];
+            if (file[0] != 'S') {
+                entry->se_env = -1;
+            } else {
+                entry->se_env = atoi(file + 3);
+            }
+            if (file[0] == '*') {
+                entry->se_env = SND_FILE_NO_KEEP;
+            }
+            char *prefix = at_1766__2;
+            int prefix_length = strlen(prefix);
+            char *environment = columns[column++];
+            entry->env_bgm = 0;
+            if (environment[0] == 'S') {
+                entry->env_bgm = atoi(environment + 7);
+                entry->env_vol = 0;
+            } else if (strncmp(prefix, environment, prefix_length) == 0) {
+                entry->env_bgm = -1;
+                int volume = (int)(127.0f * (float)atof(environment + prefix_length));
+                if (volume > 127) {
+                    volume = 127;
+                }
+                entry->env_vol = volume;
+            }
+            for (int i = 0; i < 8; i++) {
+                entry->se_src[i] = -1;
+            }
+            for (int i = 0; i < 6; i++) {
+                char *source = columns[column++];
+                if (source[0] != 'O') {
+                    entry->se_src[i] = -1;
+                } else {
+                    entry->se_src[i] = atoi(source + 3);
+                }
+                if (source[0] == '*') {
+                    entry->se_src[0] = SND_FILE_NO_KEEP;
+                    break;
+                }
+            }
+            char first[16];
+            char second[16];
+            file = columns[column++];
+            if (file[0] != 'E') {
+                entry->event_se[0] = -1;
+                entry->event_se[1] = -1;
+            } else {
+                strncpy(first, file + 3, 3);
+                first[3] = 0;
+                strncpy(second, file + 7, 3);
+                second[3] = 0;
+                entry->event_se[0] = atoi(first);
+                entry->event_se[1] = atoi(second);
+            }
+            s16 reverb_type = 0;
+            s16 reverb_depth = 0;
+            column += 5;
+            char *reverb = columns[column];
+            if (reverb[0] == 'R') {
+                int reverb_id = atoi(reverb + 3);
+                for (int i = 0; i < snd_rev_num; i++) {
+                    if (reverb_id == snd_rev[i].id) {
+                        reverb_type = snd_rev[i].type;
+                        reverb_depth = snd_rev[i].depth;
+                        break;
+                    }
+                }
+            }
+            entry->reverb_type = reverb_type;
+            entry->reverb_depth = reverb_depth;
+        }
+    }
+}
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1011__3__DATA);

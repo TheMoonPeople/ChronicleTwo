@@ -44,6 +44,7 @@ enum SCN_LOADMAP_STEP {
  *
  */
 struct SCN_LOADMAP_INFO2 {
+    SCN_LOADMAP_INFO2() { Initialize(); }
     /**
      *
      * Names and loaded contents of the files of one map: the map itself, or the map added to it.

@@ -943,8 +943,6 @@ int LoopDungeonMain() {
             }
             if (MenuArg.end_code == 5 && MenuArg.result[2] == 0) {
                 INIT_LOOP_ARG arg;
-
-                memset(&arg, 0, sizeof(arg));
                 char *map[7] = {"d01e01", "s02", "g02", "g03", "g04", "d06e01", "m05"};
                 arg.map_no = SearchMapNo(map[DngStatus.dungeon_no]);
                 arg.event_no = 100;
@@ -2406,7 +2404,6 @@ int DngMainKey() {
 }
 void IsEventRun() {
     sceVu0FVECTOR     pos;
-    CSceneEventData   data;
     CBattleCharaInfo *info;
     int               button;
     int               near;
@@ -2443,7 +2440,8 @@ void IsEventRun() {
         max = info->GetMaxHp_i();
 
         if ((max > info->GetNowHp_i() || attr) && AutoMapGen.healing_point.CheckHealingTime()) {
-            info->AddHp_Point(9999.0f, 0.0f);
+            float healing = 9999.0f;
+            info->AddHp_Point(healing, 0.0f);
             info->SetAttr(0x6F, 1);
             FxScriptMan->CreateEffSpt("\x92\xca\x8f\xed\x89\xf1\x95\x9c", 0, 0);
             FxScriptMan->SetScriptTargetId(0, -1, -1);
@@ -2505,7 +2503,7 @@ void IsEventRun() {
     if (target != NULL && target->target_dist < 200.0f) {
         near = 1;
     }
-    memset(&data, 0, sizeof(data));
+    CSceneEventData data;
     if (DngMainScene->GetMapEvent(pos, button, &data)) {
         DngMainScene->RunEvent(data.event.point_no, &data);
         return;

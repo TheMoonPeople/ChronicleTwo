@@ -499,8 +499,228 @@ void AnalyzeHeim(CEditData *data, CEditMap *map) {
     target[12] = 6;
     data->Analize(3, condition, target);
 }
+#ifdef NONMATCHING
+void AnalyzeMoonFlower(CEditData *data, CEditMap *map) {
+    int condition[analyze_slots];
+    int target[analyze_slots];
+    float position[4];
+    int parts_nos[parts_list_max];
+    int i;
+
+    int count;
+    for (count = 0; count < analyze_slots; count++) {
+        condition[count] = 0;
+        target[count] = -1;
+    }
+    float center[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    if (map->GetePlacePartsAtInfoID(0x39, parts_nos, parts_list_max) > 0) {
+        if (GetPartsPos(map, parts_nos[0], position) && mgDistVector(position, center) < 300.0f) {
+            *(u_long128 *)center = *(u_long128 *)position;
+            condition[0] = 1;
+        }
+    }
+    int num = map->GetePlacePartsAtInfoID(0x42, parts_nos, parts_list_max);
+    count = 0;
+    for (i = 0; i < num; i++) {
+        if (GetPartsPos(map, parts_nos[i], position)) {
+            float distance = position[0] - center[0];
+            distance = distance < 0.0f ? -distance : distance;
+            if (distance < 50.0f) {
+                count++;
+            }
+        }
+    }
+    if (count >= 8) {
+        condition[1] = 1;
+    }
+    num = map->GetePlacePartsAtInfoID(0x40, parts_nos, parts_list_max);
+    count = 0;
+    for (i = 0; i < num; i++) {
+        if (GetPartsPos(map, parts_nos[i], position)) {
+            float distance = position[0] - center[0];
+            distance = distance < 0.0f ? -distance : distance;
+            if (!(distance < 150.0f) && distance <= 250.0f) {
+                count++;
+            }
+        }
+    }
+    if (count >= 16) {
+        condition[2] = 1;
+    }
+    num = map->GetePlacePartsAtInfoID(0x43, parts_nos, parts_list_max);
+    count = 0;
+    for (i = 0; i < num; i++) {
+        if (GetPartsPos(map, parts_nos[i], position)) {
+            float distance = position[2] - center[2];
+            distance = distance < 0.0f ? -distance : distance;
+            if (distance < 50.0f) {
+                count++;
+            }
+        }
+    }
+    if (count >= 4) {
+        condition[3] = 1;
+    }
+    int east;
+    int west = 0;
+    east = 0;
+    num = map->GetePlacePartsAtInfoID(0x3D, parts_nos, parts_list_max);
+    for (i = 0; i < num; i++) {
+        if (GetPartsPos(map, parts_nos[i], position)) {
+            float distance = position[2] - center[2];
+            distance = distance < 0.0f ? -distance : distance;
+            if (distance <= 100.0f) {
+                float side = position[0] - center[0];
+                if (!(side <= 50.0f)) {
+                    east++;
+                } else if (side < -50.0f) {
+                    west++;
+                }
+            }
+        }
+    }
+    condition[4] = east > 0 && west > 0;
+    count = 0;
+    for (i = 0; i < num; i++) {
+        if (map->GetRiverNum(parts_nos[i], 50.0f) > 0) {
+            count++;
+        }
+    }
+    if (count >= 2) {
+        condition[5] = 1;
+    }
+    count = 0;
+    num = map->GetePlacePartsAtInfoID(0x3E, parts_nos, parts_list_max);
+    for (i = 0; i < num; i++) {
+        if (GetPartsPos(map, parts_nos[i], position) && (position[0] - center[0]) <= -50.0f && (position[2] - center[2]) <= -50.0f) {
+            count++;
+        }
+    }
+    if (count >= 2) {
+        condition[6] = 1;
+    }
+    count = 0;
+    num = map->GetePlacePartsAtInfoID(0x3F, parts_nos, parts_list_max);
+    for (i = 0; i < num; i++) {
+        if (GetPartsPos(map, parts_nos[i], position) && !((position[0] - center[0]) < 50.0f) && (position[2] - center[2]) <= -50.0f) {
+            count++;
+        }
+    }
+    if (count >= 1) {
+        condition[7] = 1;
+    }
+    count = 0;
+    num = map->GetePlacePartsAtInfoID(0x41, parts_nos, parts_list_max);
+    for (i = 0; i < num; i++) {
+        if (GetPartsPos(map, parts_nos[i], position) && !((position[0] - center[0]) < 50.0f) && (position[2] - center[2]) <= -50.0f) {
+            count++;
+        }
+    }
+    if (count >= 1) {
+        condition[8] = 1;
+    }
+    count = 0;
+    num = map->GetePlacePartsAtInfoID(0x3B, parts_nos, parts_list_max);
+    for (i = 0; i < num; i++) {
+        if (GetPartsPos(map, parts_nos[i], position) && (position[0] - center[0]) <= -50.0f && !((position[2] - center[2]) < 50.0f)) {
+            count++;
+        }
+    }
+    if (count >= 1) {
+        condition[9] = 1;
+    }
+    count = 0;
+    num = map->GetePlacePartsAtInfoID(0x3C, parts_nos, parts_list_max);
+    for (i = 0; i < num; i++) {
+        if (GetPartsPos(map, parts_nos[i], position) && !((position[0] - center[0]) < 50.0f) && !((position[2] - center[2]) < 50.0f)) {
+            count++;
+        }
+    }
+    if (count >= 1) {
+        condition[10] = 1;
+    }
+    condition[11] = map->GetePlacePartsAtInfoID(0x44, parts_nos, parts_list_max) >= 2;
+    data->Analize(4, condition, target);
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editanalyze", AnalyzeMoonFlower__FP9CEditDataP8CEditMap);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editanalyze", CheckLiveChara__FiP8CEditMapii);
+#endif
+int CheckLiveChara(int map_no, CEditMap *map, int no, int chara) {
+    int parts_nos[parts_list_max];
+    float position[4];
+    CEditParts *parts = map->GetePlaceParts(no);
+    if (parts == NULL) return 0;
+    CEditPartsInfo *info = parts->info;
+    if (info == NULL) return 0;
+    parts->GetPosition(position);
+    switch (chara) {
+    case 1: return 1;
+    case 2: return 1;
+    case 3:
+        if (CountPartsType(2, map, parts_nos, map->GetTerritoryParts(no, parts_nos, parts_list_max)) > 0) return 1;
+        break;
+    case 4: return 1;
+    case 5:
+        if (GetColorType(parts, 1) == 5) return 1;
+        if (info->paint_num == 1 && GetColorType(parts, 0) == 5) return 1;
+        break;
+    case 6: return 1;
+    case 7: return 1;
+    case 8:
+        if (CountPartsType(6, map, parts_nos, map->GetTerritoryParts(no, parts_nos, parts_list_max)) <= 0) return 0;
+        return 1;
+    case 9:
+        if (CountPartsInfoID(7, map, parts_nos, map->GetTerritoryParts(no, parts_nos, parts_list_max)) > 0) return 1;
+        break;
+    case 10:
+        if (map_no == 2) return 0;
+        if (map->GetRiverNum(no, 300.0f) > 0) return 0;
+        return 1;
+    case 11: return 1;
+    case 12:
+        if (CountPartsInfoID(0x11, map, parts_nos, map->GetTerritoryParts(no, parts_nos, parts_list_max)) > 0) return 1;
+        break;
+    case 13: return 1;
+    case 14: {
+        int num = map->GetTerritoryParts(no, parts_nos, parts_list_max);
+        if (CountPartsType(8, map, parts_nos, num) < 7) return 0;
+        if (CountPartsType(7, map, parts_nos, num) <= 0) return 0;
+        return 1;
+    }
+    case 15:
+        if (parts->GetInfoID() != 1) return 1;
+        break;
+    case 16:
+        if (map->CultureAnalyzeParts(no, 0) >= 20) return 1;
+        break;
+    case 17:
+        if (CountPartsInfoID(0x12, map, parts_nos, map->GetTerritoryParts(no, parts_nos, parts_list_max)) > 0) return 1;
+        break;
+    case 18:
+        if (parts->GetInfoID() == 0x4B) return 1;
+        break;
+    case 19:
+        if (map_no == 2) {
+            if (!(position[1] < 134.0f)) return 1;
+        } else if (!(position[1] < 84.0f)) return 1;
+        break;
+    case 20:
+        if (map->GetRiverNum(no, 300.0f) >= 3) return 1;
+        break;
+    case 21: return 1;
+    case 22: return 1;
+    case 23:
+        if (map_no != 0) return 1;
+        break;
+    case 24:
+        if (parts->GetInfoID() != 0x16) return 0;
+        if (GetColorType(parts, 0) != 6) return 0;
+        if (CountPartsInfoID(0x12, map, parts_nos, map->GetTerritoryParts(no, parts_nos, parts_list_max)) > 0) return 1;
+        break;
+    case 25: return 1;
+    }
+    return 0;
+}
 void EditMapInitEvent(int map_no, CEditMap *edit_map) {
     if (edit_map == NULL || map_no < 0) {
         return;

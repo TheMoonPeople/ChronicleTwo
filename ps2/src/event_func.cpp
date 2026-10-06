@@ -4193,11 +4193,10 @@ int _GOTO_DNG_MAP(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 int _GOTO_DNG(RS_STACKDATA *stack, int argc) {
-    INIT_LOOP_ARG loopArg;
     if (EdEventFinish() == 0) {
         return 0;
     }
-    memset(&loopArg, 0, sizeof(loopArg));
+    INIT_LOOP_ARG loopArg;
     loopArg.map_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
     loopArg.floor_no = -1;
     loopArg.event_no = -1;
@@ -4212,11 +4211,10 @@ int _GOTO_DNG(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 int _GOTO_EDIT(RS_STACKDATA *stack, int argc) {
-    INIT_LOOP_ARG loopArg;
     if (EdEventFinish() == 0) {
         return 0;
     }
-    memset(&loopArg, 0, sizeof(loopArg));
+    INIT_LOOP_ARG loopArg;
     loopArg.map_no = GetStackInt__FP12RS_STACKDATA__2(stack++);
     loopArg.event_no = -1;
     if (argc > 1) {
@@ -14145,7 +14143,7 @@ void SetEventFunc(CRunScript *script) {
 }
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", __sinit_event_func_cpp);
+
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1084__DATA);
@@ -14268,10 +14266,35 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_10100__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_10101__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", D_0037B03C__DATA);
+
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(EventMarker, 0x4);
+
+
+
+// Uninitialised data (.bss)
+INCLUDE_BSS(EdEventInfo, 0x12A0);
+inline CEventScriptArg::CEventScriptArg() {
+    next_id = 0;
+    list = NULL;
+    list_num = 0;
+    memory = NULL;
+}
+
+inline CRaster::CRaster() {
+    Initialize();
+}
+
+inline CScreenEffect::CScreenEffect() {
+    Initialize();
+}
+
+CEohMother EventObjHandleMother;
+CEventSpriteMother esMother;
+INCLUDE_BSS(EventLocalFlag, 0x100);
+INCLUDE_BSS(EventLocalCnt, 0x100);
+CRain EventRain;
+CMarker EventMarker;
 INCLUDE_BSS(SwordEffect, 0x4);
 INCLUDE_BSS(EventEffectScript, 0x4);
 INCLUDE_BSS(p_use_item, 0x4);
@@ -14281,30 +14304,22 @@ INCLUDE_BSS(PakuMotionEohNo, 0x4);
 INCLUDE_BSS(PakuMotionType, 0x4);
 INCLUDE_BSS(PakuMotionType2, 0x4);
 INCLUDE_BSS(nowScriptArg, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(EdEventInfo, 0x12A0);
-INCLUDE_BSS(EventObjHandleMother, 0x200);
-INCLUDE_BSS(esMother, 0x440);
-INCLUDE_BSS(EventLocalFlag, 0x100);
-INCLUDE_BSS(EventLocalCnt, 0x100);
-INCLUDE_BSS(EventRain, 0xABF0);
 INCLUDE_BSS(Hit_para, 0x6400);
-INCLUDE_BSS(HitEffect, 0x1E0);
+CHitEffectImage HitEffect[5];
 INCLUDE_BSS(PakuAnimName, 0x40);
 INCLUDE_BSS(PakuAnimName2, 0x40);
 INCLUDE_BSS(PakuMotionName, 0x40);
 INCLUDE_BSS(PakuMotionName2, 0x40);
 INCLUDE_BSS(event_snd_buff, 0x8010);
-INCLUDE_BSS(BuffEventSnd, 0x30);
+mgCMemory BuffEventSnd;
 INCLUDE_BSS(event_snd2_buff, 0x1410);
-INCLUDE_BSS(BuffEventSnd2, 0x30);
-INCLUDE_BSS(EventDngMap, 0x110);
+mgCMemory BuffEventSnd2;
+CDngFreeMap EventDngMap;
 INCLUDE_BSS(cmr_seq_tbl, 0x6000);
-INCLUDE_BSS(CameraSeq, 0xB10);
+CSceneCmrSeq CameraSeq;
 INCLUDE_BSS(obj_seq_tbl, 0x5000);
-INCLUDE_BSS(ObjectSeq, 0xBE00);
-INCLUDE_BSS(EventSprite2, 0x1800);
-INCLUDE_BSS(EventScriptArg, 0x10);
-INCLUDE_BSS(EventScreenEffect, 0x50);
+CSceneObjSeq ObjectSeq[32];
+CEventSprite2 EventSprite2[48];
+CEventScriptArg EventScriptArg;
+CScreenEffect EventScreenEffect;
 INCLUDE_BSS(ext_func__2, 0x1770);

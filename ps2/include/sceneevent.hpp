@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 
 #include "common.h"
 
@@ -27,6 +28,7 @@ struct EventVector4 { u_long128 v[4]; };
 #pragma push
 #pragma cpp_extensions on
 struct CSceneEventData {
+    CSceneEventData() { memset(this, 0, sizeof(*this)); }
     union {
         struct {
     CFuncPoint::EventData event;      /**< Settings of the event point, or the event number of a villager or game object. */

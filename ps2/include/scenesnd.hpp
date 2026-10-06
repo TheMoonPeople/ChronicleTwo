@@ -206,7 +206,7 @@ public:
      * Creates a scene with all data slots and playback state reset.
      *
      */
-    CScene() { InitAllData(); }
+    CScene() : event_data() { InitAllData(); }
 
     /**
      *
@@ -982,6 +982,8 @@ public:
      * @size 0x18
      */
     void SetNowMapNo(int map_no);
+
+    int GetNowMapNo() { return now_map_no; }
 
     /**
      *

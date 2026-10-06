@@ -3,6 +3,7 @@
 #include "collision.hpp"
 #include "effscript.hpp"
 #include "mapparts.hpp"
+#include "mdslist.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_frame.hpp"
 #include "pot.hpp"
@@ -308,7 +309,101 @@ void CPot::HoldStep() {
         sceVu0CopyVector(hold_pos, position);
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/pot", FlyStep__4CPotFv);
+int CPot::FlyStep() {
+    float next_position[4];
+    float normal[4];
+    float hit_position[4];
+    float reflected[4];
+    mgVu0FBOX bounds;
+    CCPoly polys[512];
+    int hit_indices[32];
+    float hit_points[64][4];
+    if (parts == NULL) {
+        return POT_STEP_NONE;
+    }
+    fly_time++;
+    if (fly_time >= POT_FLY_TIME_MAX) {
+        Init(0);
+        return POT_STEP_TIMEOUT;
+    }
+    int moved = 1;
+    next_position[0] = position[0] + velocity[0];
+    next_position[1] = position[1] + velocity[1];
+    next_position[2] = position[2] + velocity[2];
+    next_position[3] = 1.0f;
+    mgDistVector(velocity);
+    CMapPiece *piece = parts->SearchPiece(at_1438__4);
+    if (piece != NULL) {
+        piece->Show(0);
+    }
+    bounds.max[0] = 100.0f + position[0];
+    bounds.min[0] = position[0] - 100.0f;
+    bounds.max[1] = 100.0f + position[1];
+    bounds.min[1] = position[1] - 100.0f;
+    bounds.max[2] = 100.0f + position[2];
+    bounds.min[2] = position[2] - 100.0f;
+    bounds.max[3] = 1.0f;
+    bounds.min[3] = 1.0f;
+    int poly_count = GetMainScene()->GetColPoly(polys, bounds, 512);
+    int hit = CheckHit(polys, poly_count, position, next_position, hit_position, 1, 4);
+    if (0 <= hit) {
+        moved = 0;
+        sceVu0CopyVector(normal, polys[hit].normal);
+        CalcReflectionVector(velocity, polys[hit].normal, reflected);
+        sceVu0ScaleVector(reflected, reflected, 0.5f);
+        reflected[3] = 1.0f;
+    } else {
+        int hit_count = CheckHits(polys, poly_count, position, next_position, 32,
+                                  hit_indices, hit_points, 1, 0);
+        if (hit_count != 0) {
+            for (int i = 0; i < hit_count; i++) {
+                switch (polys[hit_indices[i]].area_kind) {
+                    case 1:
+                    case 7: {
+                        CEffectScriptMan *effects = GetMainScene()->GetEffect(0);
+                        if (effects != NULL) {
+                            effects->CreateEffSpt(at_1196, -1, 0);
+                            effects->SetScriptVect1(hit_points[i], -1, -1);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if (moved != 0) {
+        position[0] = next_position[0];
+        position[1] = next_position[1];
+        position[2] = next_position[2];
+        position[3] = 1.0f;
+        velocity[0] += gravity[0];
+        velocity[1] += gravity[1];
+        velocity[2] += gravity[2];
+        velocity[3] = 1.0f;
+        parts->SetPosition(position);
+        return POT_STEP_NONE;
+    }
+    position[0] = hit_position[0];
+    position[1] = hit_position[1];
+    position[2] = hit_position[2];
+    position[3] = 1.0f;
+    u32 se_handle = GetMainScene()->se_battle_id;
+    if (BTsubo2.type == BPOT_TYPE_BOX) {
+        sndSePlay(se_handle, 0x39, 0);
+    } else if (BTsubo2.type == BPOT_TYPE_ROCK0) {
+        sndSePlay(se_handle, 0x3A, 0);
+    } else if (BTsubo2.type == BPOT_TYPE_ROCK1) {
+        sndSePlay(se_handle, 0x3B, 0);
+    }
+    BTsubo2.Clash(position, normal, reflected);
+    sceVu0CopyVector(break_pos, position);
+    float parts_position[4];
+    parts->GetPosition(parts_position);
+    parts_position[1] -= 1000.0f;
+    parts->SetPosition(parts_position);
+    Init(1);
+    return POT_STEP_BREAK;
+}
 void CPot::Clear() {
     if (parts != NULL) {
         float parts_position[4];

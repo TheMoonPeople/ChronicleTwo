@@ -78,7 +78,6 @@ int FutureMapSelect() {
     if ((select_795 == 0 && GamePad__2.Down(PAD_CIRCLE)) ||
         GamePad__2.Down(PAD_TRIANGLE)) {
         INIT_LOOP_ARG arg;
-        memset(&arg, 0, sizeof(arg));
         arg.map_no = map_ids[sel_map_798];
         arg.floor_no = 0;
         arg.event_no = GamePad__2.Down(PAD_TRIANGLE) ? 100 : 99;

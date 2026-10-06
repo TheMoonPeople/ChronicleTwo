@@ -213,9 +213,6 @@ int GetLoadMapInfo(SCN_LOADMAP_INFO2 *info, int mapNo) {
     return 1;
 }
 int LoadSubMap(CScene *scene, int subMapNo, int flag) {
-    SCN_LOADMAP_INFO2 info;
-    char mapPath[0x40];
-    char fileName[0x20];
     char *mapName = GetMapName(subMapNo, NULL);
     if (mapName == NULL) {
         printf(at_863__3, subMapNo);
@@ -224,7 +221,9 @@ int LoadSubMap(CScene *scene, int subMapNo, int flag) {
     mgWaitFrame();
     scene->DeleteMap(SubMapInfo.map_no, 1);
     scene->DeleteSubVillager();
-    info.Initialize();
+    SCN_LOADMAP_INFO2 info;
+    char mapPath[0x40];
+    char fileName[0x20];
     info.tex_block = SubMapInfo.tex_block;
     info.stack_no = SubMapInfo.stack_no;
     info.load_buf = SubMapInfo.load_buf;

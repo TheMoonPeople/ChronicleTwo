@@ -13,6 +13,7 @@
 #include "cameracontrol.hpp"
 #include "eventsprite.hpp"
 #include <cstring>
+#include <cmath>
 
 // Code (.text)
 float ParabolicInitialVectorY(float start_y, float end_y, float gravity, float frames) {
@@ -329,7 +330,114 @@ void CEventSprite2::FirstDraw(void) {
         this->Draw();
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/eventsprite", Draw__13CEventSprite2Fv);
+extern char at_1069__4[];
+void CEventSprite2::Draw() {
+    mgCTextureManager *textures = &mgTexManager;
+    textures->ReloadTexture(tex_block, (sceVif1Packet *)NULL);
+    mgCTexture *texture;
+    if (strcmp(tex_name, at_1069__4) == 0) {
+        texture = NULL;
+    } else {
+        texture = textures->GetTexture(tex_name, -1);
+    }
+    mgCDrawPrim prim;
+    prim.Initialize(NULL, NULL);
+    prim.DepthTestEnable(1);
+    prim.DepthTest(-1);
+    if (texture != NULL) {
+        prim.TextureMapEnable(1);
+    } else {
+        prim.TextureMapEnable(0);
+    }
+    prim.AlphaBlendEnable(1);
+    prim.AlphaBlend(alpha_blend);
+    prim.AlphaTestEnable(0);
+    prim.Bilinear(1);
+    float width = put_w * scale_x;
+    float height = put_h * scale_y;
+    switch (sprite_type) {
+        case 0:
+            prim.Coord(0);
+            width /= 2.0f;
+            height /= 2.0f;
+            if (rot_z != 0.0f) {
+                float x0 = -width * cosf(rot_z) - -height * sinf(rot_z);
+                float y0 = -width * sinf(rot_z) + -height * cosf(rot_z);
+                float x1 = width * cosf(rot_z) - -height * sinf(rot_z);
+                float y1 = width * sinf(rot_z) + -height * cosf(rot_z);
+                float x2 = -width * cosf(rot_z) - height * sinf(rot_z);
+                float y2 = -width * sinf(rot_z) + height * cosf(rot_z);
+                float x3 = width * cosf(rot_z) - height * sinf(rot_z);
+                float y3 = width * sinf(rot_z) + height * cosf(rot_z);
+                prim.Begin(4);
+                if (texture != NULL) {
+                    prim.Texture(texture);
+                    prim.Color(color);
+                    prim.TextureCrd(uv_x, uv_y);
+                    prim.Vertex(pos[0] + x0, pos[1] + y0, 0.0f);
+                    prim.TextureCrd(uv_x + uv_w, uv_y);
+                    prim.Vertex(pos[0] + x1, pos[1] + y1, 0.0f);
+                    prim.TextureCrd(uv_x, uv_y + uv_h);
+                    prim.Vertex(pos[0] + x2, pos[1] + y2, 0.0f);
+                    prim.TextureCrd(uv_x + uv_w, uv_y + uv_h);
+                    prim.Vertex(pos[0] + x3, pos[1] + y3, 0.0f);
+                } else {
+                    prim.Color(color);
+                    prim.Vertex(pos[0] + x0, pos[1] + y0, 0.0f);
+                    prim.Vertex(pos[0] + x1, pos[1] + y1, 0.0f);
+                    prim.Vertex(pos[0] + x2, pos[1] + y2, 0.0f);
+                    prim.Vertex(pos[0] + x3, pos[1] + y3, 0.0f);
+                }
+                prim.End();
+            } else {
+                prim.Begin(6);
+                if (texture != NULL) {
+                    prim.Texture(texture);
+                    prim.Color(color);
+                    prim.TextureCrd(uv_x, uv_y);
+                    prim.Vertex(pos[0] - width, pos[1] - height, 0.0f);
+                    prim.TextureCrd(uv_x + uv_w, uv_y + uv_h);
+                    prim.Vertex(pos[0] + width, pos[1] + height, 0.0f);
+                } else {
+                    prim.Color(color);
+                    prim.Vertex(pos[0] - width, pos[1] - height, 0.0f);
+                    prim.Vertex(pos[0] + width, pos[1] + height, 0.0f);
+                }
+            }
+            prim.End();
+            break;
+        case 1:
+            prim.DepthTestEnable(1);
+            prim.DepthTest(1);
+            prim.ZMask(-1);
+            prim.Bilinear(0);
+            prim.Coord(1);
+            pos[3] = 1.0f;
+            int top_left[4];
+            int bottom_right[4];
+            if (mgTransWorldPrim3DSprite(top_left, bottom_right, pos, width, height, 0)) {
+                prim.Begin(6);
+                if (texture != NULL) {
+                    prim.Texture(texture);
+                    prim.Color(color);
+                    prim.TextureCrd(uv_x, uv_y);
+                    prim.Vertex4(top_left);
+                    prim.TextureCrd(uv_x + uv_w, uv_y + uv_h);
+                    prim.Vertex4(bottom_right);
+                } else {
+                    prim.Color(color);
+                    prim.Vertex4(top_left);
+                    prim.Vertex4(bottom_right);
+                }
+                prim.End();
+            }
+            break;
+        default:
+            draw_flag = 0;
+            break;
+    }
+}
+
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventsprite", at_1069__4__DATA);

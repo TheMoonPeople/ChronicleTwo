@@ -1035,7 +1035,6 @@ int EditLoop() {
                         if (MenuInfo->result[0] != LOOP_EDIT) {
                             finish = 1;
                             INIT_LOOP_ARG next_loop;
-                            memset(&next_loop, 0, sizeof(next_loop));
                             next_loop.map_no = MenuInfo->result[1];
                             next_loop.floor_no = MenuInfo->result[2];
                             next_loop.event_no = 1010;
@@ -1111,7 +1110,6 @@ int EditLoop() {
                     }
                     event_result = EditEvent.Step(MainScene__2);
                     CSceneEventData event_data;
-                    memset(&event_data, 0, sizeof(event_data));
                     reset_event = 0;
                     switch (event_result) {
                         case EDIT_EVENT_RESULT_END:
@@ -1154,7 +1152,6 @@ int EditLoop() {
                             chara->GetPosition(talk_height);
                             talk_position[3] = talk_height[1];
                             CSceneEventData talk_event;
-                            memset(&talk_event, 0, sizeof(talk_event));
                             if (MainScene__2->GetTalkEvent(talk_position, &talk_event) != 0) {
                                 MainScene__2->RunEvent(1000, &talk_event);
                                 printf("chara No = %d\n", talk_event.chara_no);
@@ -2128,8 +2125,6 @@ void editLoadSound(int map_no) {
     }
 }
 int EditMapJump(int map_no) {
-    SCN_LOADMAP_INFO2 load_info;
-    char path[0x88];
     int file_size;
     char size_text[4];
     int sub_map_no;
@@ -2179,7 +2174,8 @@ int EditMapJump(int map_no) {
     MainDataBuff.stack_used = 0;
     MainDataBuff.lock = 0;
     printf(at_2949, MainDataBuff.stack + MainDataBuff.stack_used);
-    load_info.Initialize();
+    SCN_LOADMAP_INFO2 load_info;
+    char path[0x88];
     if (GetLoadMapInfo(&load_info, map_no) == 0) {
         return 0;
     }

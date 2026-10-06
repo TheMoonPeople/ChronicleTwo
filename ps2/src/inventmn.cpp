@@ -4561,8 +4561,7 @@ void MenuInventCreateCardDraw(int &tex_block, float *pos) {
             put_rect.top = origin.xy[1] + 6;
             for (i = 0; i < 256; i++) {
                 if (put_rect.top + put_rect.bottom >= 20) {
-                    mgRect<float> icon_rect;
-                    icon_rect.Set(put_rect.left, put_rect.top, 32.0f, 33.0f);
+                    mgRect<float> icon_rect(put_rect.left, put_rect.top, 32.0f, 33.0f);
                     DrawOneItem(prim, icon_rect, InventUserDataPtr->GetCreateItemID(i), 2, NULL, rgba.rgba, 0);
                     if (put_rect.top >= 410) {
                         break;

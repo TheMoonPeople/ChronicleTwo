@@ -133,7 +133,7 @@ template <>
 void mgRect<int>::Set(int new_left, int new_top, int new_right, int new_bottom);
 
 template <>
-inline mgRect<float>::mgRect() {}
+inline mgRect<float>::mgRect() { Set(0, 0, 0, 0); }
 
 template <>
 void mgRect<float>::Set(float new_left, float new_top, float new_right, float new_bottom);

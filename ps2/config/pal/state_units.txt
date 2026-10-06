@@ -15,3 +15,6 @@ menuchr primer=u64div
 menuop primer=u64div
 inventmn primer=u64div
 editmenu drafts primer=u64div
+menucls1 primer=u64div
+scene primer=u64div
+scenesnd primer=u64div

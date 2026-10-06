@@ -67,7 +67,8 @@ float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, float *pos, float rot_y, C
     float alt = pos[1];
     for (int i = 0; i < num; i++) {
         CEditParts *edit_parts = parts[i];
-        if (edit_parts->name[0] == 0) {
+        int empty = edit_parts->name[0] == 0;
+        if (empty) {
             continue;
         }
         CEditPartsInfo *parts_info = edit_parts->info;
@@ -89,8 +90,8 @@ float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, float *pos, float rot_y, C
             if (parts_info->col_floor.OverlapPoly3XZ(triangle, &area, &box) == 0) {
                 continue;
             }
-            area = (area < 0.0f) ? -area : area;
-            if (area <= 0.01f) {
+            float overlap = (area < 0.0f) ? -area : area;
+            if (overlap <= 0.01f) {
                 continue;
             }
             float top = box.max[1] + parts_matrix[3][1];
@@ -105,7 +106,94 @@ float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, float *pos, float rot_y, C
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap2", GetEditPartsAlt__8CEditMapFP14CEditPartsInfoPffPP10CEditPartsi);
 #endif
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmap2", CheckEditParts__8CEditMapFP14CEditPartsInfoPffP13EP_PLACE_INFOPP10CEditPartsi);
+int CEditMap::CheckEditParts(CEditPartsInfo *info, float *pos, float rot_y, EP_PLACE_INFO *place, CEditParts **parts, int num) {
+    sceVu0FMATRIX parts_matrix;
+    sceVu0FMATRIX invers_matrix;
+    sceVu0FMATRIX matrix;
+    if (info == NULL) return 0;
+    place->num = 0;
+    place->unk_44 = 0;
+    GetMatrix(matrix, pos, ConvEditAngle(rot_y));
+    mgVu0FBOX box = info->col_area3.bbox;
+    mgVu0FBOX overlap_box;
+    sceVu0FVECTOR parts_pos;
+    sceVu0FVECTOR offset;
+    sceVu0FVECTOR parts_rot;
+    mgBoxMaxMin(&box, &info->col_area5.bbox);
+    float total_area = 0.0f;
+    float area = info->col_area1.AreaXZ();
+    info->col_area5.AreaXZ();
+    static int cnt = 0;
+    cnt++;
+    cnt %= 10;
+    for (int i = 0; i < num; i++) {
+        CEditParts *edit_parts = parts[i];
+        int empty = edit_parts->name[0] == 0;
+        if (empty) continue;
+        CEditPartsInfo *parts_info = edit_parts->info;
+        if (parts_info != NULL) {
+            edit_parts->GetPosition(parts_pos);
+            edit_parts->GetRotation(parts_rot);
+            GetMatrix(parts_matrix, parts_pos, ConvEditAngle(parts_rot[1]));
+            GetInversMatrix(invers_matrix, parts_matrix);
+            sceVu0SubVector(offset, pos, parts_pos);
+            mgAngleLimit(rot_y - parts_rot[1]);
+            mgVu0FBOX parts_box = parts_info->col_area3.bbox;
+            sceVu0FMATRIX local_matrix;
+            mgMulMatrix(local_matrix, invers_matrix, matrix);
+            if (box.max[1] != 0.0f && !(box.max[1] + offset[1] <= parts_box.min[1]) && box.min[1] + offset[1] < parts_box.max[1]) {
+                float overlap = parts_info->col_area3.OverlapXZ(info->col_area3, local_matrix, NULL);
+                float smaller_area = parts_info->col_area3.AreaXZ();
+                smaller_area = smaller_area < area ? smaller_area : area;
+                if (!(smaller_area <= 0.01f)) {
+                    float ratio = overlap / smaller_area;
+                    ratio = ratio < 0.0f ? -ratio : ratio;
+                    if (!(ratio <= 0.01f)) {
+                        if (parts_info->id == 0x46 || parts_info->id == 0x47 || parts_info->id == 0x48) {
+                            place->unk_44 = 1;
+                        }
+                        return 0;
+                    }
+                }
+            }
+            float floor_top = parts_matrix[3][1] + parts_info->col_floor.bbox.max[1];
+            float floor_bottom = parts_matrix[3][1] + parts_info->col_floor.bbox.min[1];
+            if (pos[1] <= floor_top && !(pos[1] < floor_bottom)) {
+                float overlap = parts_info->col_floor.OverlapXZ(info->col_area1, local_matrix, &overlap_box);
+                if (!(overlap < 0.01f) && place->num < 16) {
+                    int base = ConvertParts(edit_parts);
+                    total_area += overlap;
+                    place->base[place->num++] = base;
+                }
+            }
+        }
+    }
+    if (!CheckEditPartsOnRiver(info, pos, rot_y)) return 0;
+    if (info->attr & 0x10000) {
+        for (int i = 0; i < place->num; i++) {
+            CEditParts *base = GetePlaceParts(place->base[i]);
+            if (base != NULL && base->info != NULL && !(base->info->attr & 0x20000)) return 0;
+        }
+    }
+    if (area_no == 2) {
+        if (!(info->attr & 0x2000)) {
+            for (int i = 0; i < place->num; i++) {
+                if (place->base[i] == 0) return 0;
+            }
+        }
+        if (info->id == 0x35 || info->id == 0x4E) {
+            for (int i = 0; i < place->num; i++) {
+                if (place->base[i] != 0) return 0;
+            }
+        }
+    }
+    if (area <= 0.0f) return 1;
+    float covered_area = total_area / area;
+    float required_area = info->place_eps;
+    if (required_area <= 0.00001f) required_area = 0.98f;
+    if (covered_area < required_area) return 0;
+    return CmpEditAlt(overlap_box.max[1] - overlap_box.min[1], info->bury_depth) >= 0;
+}
 int CEditMap::CheckEditPartsOnRiver(CEditPartsInfo *info, float *pos, float rot_y) {
     sceVu0FMATRIX matrix;
     int x;

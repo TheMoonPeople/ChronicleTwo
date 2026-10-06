@@ -352,7 +352,6 @@ void TitleBootInit() {
     TitleScene->active_map = 0;
     MapJumpMapInfo main_map;
     SCN_LOADMAP_INFO2 load_info;
-    load_info.Initialize();
     main_map.stack_no = 1;
     main_map.map_no = 0;
     main_map.efp_tex_block = 0x64;
@@ -625,7 +624,6 @@ int TitleLoop() {
         TitleScene->skip_load_bgm = 1;
         TitleScene->StopEnvBGM();
         INIT_LOOP_ARG arg;
-        memset(&arg, 0, sizeof(INIT_LOOP_ARG));
         arg.event_no = 0x3F2;
         arg.map_no = 0;
         arg.floor_no = 0x14;
@@ -647,7 +645,6 @@ int TitleLoop() {
     }
     if (next_loop == 2) {
         INIT_LOOP_ARG arg;
-        memset(&arg, 0, sizeof(INIT_LOOP_ARG));
         CSaveData *save = GetSaveData();
         int loop_no = MenuArg.result[0];
         int event_no = 100;
@@ -735,7 +732,6 @@ int TitleLoop() {
         TitleScene->StopEnvBGM();
         INIT_LOOP_ARG arg;
         int loop_no;
-        memset(&arg, 0, sizeof(INIT_LOOP_ARG));
         InitOmakeEnv(omake_type, &arg, &loop_no);
         GyoraceSubGameInitData();
         if (omake_type == OMAKE_TYPE_DUNGEON) {

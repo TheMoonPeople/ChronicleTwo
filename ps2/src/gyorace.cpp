@@ -55,6 +55,8 @@ extern u_char water_cam;
 extern CHitEffectImage *battle_effect;
 extern "C" void __ct__11mgCDrawPrimFv(void *);
 extern "C" void __ct__10mgCTextureFv(void *);
+extern mgCMemory BuffTextureData;
+extern mgCMemory BuffWorkData;
 #ifndef NONMATCHING
 extern unsigned int gyore_snd_id;
 extern int hero_no;
@@ -119,9 +121,6 @@ static int fish_rank[6];
 static int old_fish_rank[6];
 static CGameDataUsed *game_data[8];
 static float old_ambient[4];
-static mgCMemory BuffTextureData;
-static mgCMemory BuffWorkData;
-mgCCamera camera0(8.0f);
 GYORACE_FISH_INF fish_inf[6];
 static int old_cam_no = -1;
 #endif
@@ -1383,9 +1382,7 @@ int Jikkyou(SubGameInfo *info) {
 }
 
 // Static initialiser (.init)
-#ifndef NONMATCHING
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", __sinit_gyorace_cpp);
-#endif
+
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", fish_name__DATA);
@@ -1439,7 +1436,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1702__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1703__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", D_0037B07C__DATA);
+
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", old_cam_no__DATA);
@@ -1484,9 +1481,11 @@ INCLUDE_BSS(D_01F5971C, 0x4);
 INCLUDE_BSS(old_fish_rank, 0x20);
 INCLUDE_BSS(game_data, 0x20);
 INCLUDE_BSS(old_ambient, 0x10);
-INCLUDE_BSS(BuffTextureData, 0x30);
-static INCLUDE_BSS(BuffWorkData, 0x30);
-INCLUDE_BSS(camera0, 0x70);
+#endif
+mgCMemory BuffTextureData;
+static mgCMemory BuffWorkData;
+mgCCamera camera0(8.0f);
+#ifndef NONMATCHING
 INCLUDE_BSS(fish_inf, 0x110);
 INCLUDE_BSS(at_1765__2, 0x10);
 INCLUDE_BSS(at_1775, 0x10);

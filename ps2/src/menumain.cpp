@@ -32,6 +32,12 @@
 #include "menusys.hpp"
 #include "common.h"
 #include "menumain.hpp"
+#include "nameregi.hpp"
+#include "menucapt.hpp"
+#include "gamepad.hpp"
+#include "menuaqua.hpp"
+#include "menumap.hpp"
+#include "mapselect.hpp"
 
 extern "C" int
 EnterIMGFile__17mgCTextureManagerFPUciP9mgCMemoryP15mgCEnterIMGInfo(mgCTextureManager *, u8 *, int,
@@ -65,7 +71,6 @@ void SetupUnitMan(CScene *scene, CUserDataManager *userData, int unit, ROBO_INFO
 void EdEventMenuExit(void);
 void MenuInventInit(mgCMemory *memory, int *args, int page);
 void MenuAquaInit(mgCMemory *memory, int *args, int page);
-void WorldMoveInit(mgCMemory *memory, int *args, int page);
 short CheckEventDay(int *day);
 void MenuWorldTrans(void);
 void MenuDebugModeDraw(void);
@@ -316,7 +321,329 @@ void DisablePadReset(int disable) {
         }
     }
 }
+#ifdef NONMATCHING
+void MakeMenuTopic();
+int MenuInternInit(mgCMemory *, int, int);
+extern float light_1062[4][4];
+extern float lightcolor_1063[4][4];
+extern "C" mgCCamera *__ct__9mgCCameraFf(mgCCamera *, float);
+extern "C" CGameDataUsed *__ct__13CGameDataUsedFv(CGameDataUsed *);
+
+int MenuMainInit(MENU_INIT_ARG *arg) {
+    MENU_INIT_ARG *init_arg = arg;
+    if (arg == NULL) {
+        init_arg = &MenuArg;
+    }
+    SetMenuFrameRate(1);
+    old_light_menu = mgActiveLighting(3, 0);
+    mgInitActiveLighting();
+    SetMenuKeyCtrlEnv(0);
+    PauseEnable(0);
+    DisablePadReset(1);
+    menu_debug_flag = 0;
+    MenuMainStack.stSetBuffer(init_arg->stack->stGetTop(), init_arg->stack->stGetSize());
+    MenuMainStack_Next.stReset();
+    MENU_DRAW_ENV *draw_env;
+    if ((draw_env = (MENU_DRAW_ENV *)operator new(sizeof(MENU_DRAW_ENV), MenuMainStack.Alloc(15))) != NULL) {
+        __ct__9mgCCameraFf(&draw_env->camera, 8.0f);
+    }
+    MenuDrawEnv = draw_env;
+    draw_env->camera.Resume();
+    MenuCamInit(1.0f);
+    MenuDrawEnv->projection = 800.0f;
+    MenuDrawEnv->old_projection = mgGetProjection();
+    MenuDrawEnv->ambient[0] = 80.0f;
+    MenuDrawEnv->ambient[1] = 80.0f;
+    MenuDrawEnv->ambient[2] = 80.0f;
+    MenuDrawEnv->ambient[3] = 128.0f;
+    mgSetLight(light_1062, lightcolor_1063);
+    MenuPosData = new (MenuMainStack.Alloc(0x5E)) CMenuPosDataManage;
+    MenuPosData->InitializeCMenuPosDataManage();
+    CMenuKeyFunc *common;
+    if ((common = (CMenuKeyFunc *)operator new(sizeof(CMenuKeyFunc), MenuMainStack.Alloc(0x18))) != NULL) {
+        common->rect.Set(0, 0, 0, 0);
+        __ct__13CGameDataUsedFv(&common->have_item);
+        common->have_swap.Set(-1, 0, -1, 0);
+        common->Initialize();
+    }
+    MenuCommonInfo = common;
+    memset(MenuCommonInfo, 0, sizeof(CMenuKeyFunc));
+    MenuCommonInfo->next_mode = -1;
+    MenuCommonInfo->have_item.Init();
+    MenuSoundBuffer.stSetBuffer(MenuMainStack.stGetTop(), 0x140);
+    MenuMainStack.Alloc(0x140);
+    MenuSePlayUsedFlag = 0;
+    MenuCommonInfo->user_data = MenuArg.user_data;
+    MenuPrevEndCode = MenuArg.end_code;
+    MenuArg.end_code = 0;
+    MenuCommonInfo->pack = init_arg->pack;
+    MenuCommonInfo->pack_size = init_arg->pack_size;
+    mgCTextureManager *texture_manager = &mgTexManager;
+    for (int i = 0; i < init_arg->tex_block_num && i < 16; i++) {
+        MenuCommonInfo->tex_block[i] = init_arg->tex_block_top + i;
+        texture_manager->DeleteBlock(MenuCommonInfo->tex_block[i]);
+    }
+    MenuCommonInfo->unk_4C = -1;
+    MenuBGTextureBlock = -1;
+    MenuItemIconTextureBlock = -1;
+    MenuCommonInfo->open_type = init_arg->open_type;
+    MorattaStack = MenuArg.base_chara_stack;
+    CUserDataManager *user;
+    MenuActiveSaveData = GetSaveData();
+    MenuUserDataManPtr = NULL;
+    MenuConfigPtr = NULL;
+    MenuSystemDataPtr = NULL;
+    MenuSaveDataDungeonPtr = NULL;
+    MenuFishAquarium = NULL;
+    if (MenuActiveSaveData != NULL) {
+        user = MenuActiveSaveData->GetUserDataManager();
+        MenuUserDataManPtr = user;
+        MenuConfigPtr = MenuActiveSaveData->GetConfig();
+        MenuSystemDataPtr = &MenuActiveSaveData->menu_system_data;
+        MenuSaveDataDungeonPtr = &MenuActiveSaveData->save_dungeon;
+        int active_chara_no = user->active_chr_no;
+        MenuFishAquarium = &user->aquarium;
+        MenuArg.active_chara_no = active_chara_no;
+    }
+    MenuCommonInfo->user_data = MenuUserDataManPtr;
+    MenuMainScene = GetMainScene();
+    MenuNowMapNo = MenuMainScene->GetNowMapNo();
+    MenuNowMapType = GetMapType(MenuNowMapNo);
+    CCharacter2 *chara = MenuMainScene->GetCharacter(0);
+    if (chara != NULL) {
+        chara->GetPosition(menu_old_chara_position);
+        chara->GetRotation(menu_old_chara_rotation);
+    }
+    UserDataRefresh();
+    MenuNowTime = MenuMainScene->time;
+    MakeMenuTopic();
+    if (CheckBitFlagMenu(0x68) == 0) {
+        if (CheckBitFlagMenu(4) == 1) {
+            MenuNowTime = 18.25f;
+            int event = CheckShortFlagMenu(5);
+            if (event == 1) {
+                MenuNowTime = 20.92f;
+            }
+            if (event == 2) {
+                MenuNowTime = 21.25f;
+            }
+            if (event == 3) {
+                MenuNowTime = 21.5f;
+            }
+        } else {
+            if (CheckBitFlagMenu(0x66) == 1) {
+                MenuNowTime = 0.0f;
+            }
+            if (CheckBitFlagMenu(0x67) == 1) {
+                MenuNowTime = 1.0f;
+            }
+        }
+    }
+    MenuBGMVolume_Save = MenuMainScene->GetVolBGM();
+    MenuAreaName = GetMapTitle(MenuNowMapNo);
+    if (MenuNowMapNo == 10) {
+        int map = MenuMainScene->now_sub_map_no;
+        if (map < 0) {
+            map = 10;
+        }
+        MenuAreaName = GetMapTitle(map);
+    }
+    SndPortVol_Enemy = sndGetPortVol(5);
+    sndSetPortVol(5, 0.0f);
+    MenuPrim->Initialize(NULL, NULL);
+    mgCDrawPrim *prim = MenuPrim;
+    prim->offset_x = 0;
+    prim->offset_y = 0;
+    short *system_messages = GetSystemMesBuffer();
+    short *menu_messages = GetMenuMainMessageBuffer();
+    for (int i = 0; i < 9; i++) {
+        MenuMainStack.Align64();
+        MenuDCMsg[i] = new (MenuMainStack.Alloc(0x2A7)) CDC2Mes;
+        CDC2Mes *message = MenuDCMsg[i];
+        message->Init();
+        message->texture_block = MenuArg.mes_tex_block;
+        message->buff = NULL;
+        message->SetMessData(system_messages, menu_messages);
+    }
+    InitSpectolRasterTable(&MenuMainStack);
+    MenuCursorReverseFlag = 0;
+    MenuUserParam.AttachInfo();
+    MenuItemUse.Initialize();
+    MenuAreaBrdForm = NULL;
+    MenuTimeBrdForm = NULL;
+    TopicTex = NULL;
+    InitMenuEtcSpecialFlag();
+    SetModeMenuDrawItemBoard(0);
+    TreeMapSaveFlag = 0;
+    TreeMapCallDungeonSubMap = 0;
+    TreeMapCalledWorldMap = 0;
+    int *texture_blocks = MenuCommonInfo->tex_block;
+    MenuMainStack.Align64();
+    mgCMemory *menu_stack = &MenuMainStack;
+    ItemOverFlowCheckFlag = 0;
+    if (CheckItemOver() > 0 && (MenuCommonInfo->open_type == 0 || MenuCommonInfo->open_type == 1)) {
+        MenuCommonInfo->open_type += 16;
+        ItemOverFlowCheckFlag = 1;
+    }
+    MenuLoopType = 0;
+    if (MenuCommonInfo->open_type == 1 || MenuCommonInfo->open_type == 17 ||
+        MenuCommonInfo->open_type == 14 || MenuCommonInfo->open_type == 21) {
+        MenuLoopType = 1;
+    }
+    SetCommonMenuModeID();
+    int sound = -1;
+    CMenuInterPt = NULL;
+    MenuInterMesDrawFlag = 0;
+    MenuInterMes = NULL;
+    switch (MenuCommonInfo->open_type) {
+    case 0:
+    case 1:
+        sound = 1;
+        MenuInternInit(menu_stack, MenuCommonInfo->open_type, 1);
+        break;
+    case 2:
+        sound = 1;
+        MenuGeoramaInit(menu_stack, MenuCommonInfo->open_type);
+        break;
+    case 3:
+        TreeMapSaveNum = 0;
+        TreeMapSaveFlag = 1;
+        MenuCommonInfo->now_mode = 11;
+        DngTreeMapInit(menu_stack, texture_blocks, MenuCommonInfo->open_type, MenuArg.param[0]);
+        break;
+    case 4:
+    case 14:
+        MenuInternInit(menu_stack, MenuCommonInfo->open_type, 0);
+        while (ReadBGSync() != 0) {}
+        CMenuInterPt->InitEnd();
+        ReturnMenuIntern(1);
+        NextMenuInit(4, &MenuMainStack_Next, &texture_blocks[3]);
+        MenuCommonInfo->now_mode = 4;
+        MenuMainScene->fade.FadeIn(30);
+        break;
+    case 6:
+        MenuShopInit(menu_stack, texture_blocks, 6);
+        break;
+    case 9:
+        sound = 1;
+    case 22:
+        MenuScreenBlackBeltSet(0);
+        MenuCommonInfo->now_mode = 15;
+        MenuItemSelectInit(menu_stack, texture_blocks, MenuCommonInfo->open_type);
+        break;
+    case 10:
+        sound = 1;
+        MenuInternInit(menu_stack, MenuCommonInfo->open_type, 1);
+        NextMenuInit(16, menu_stack, &texture_blocks[3]);
+        MenuCommonInfo->now_mode = 16;
+        break;
+    case 11:
+        MenuCommonInfo->now_mode = 17;
+        MenuChapterInit(menu_stack, texture_blocks, 11, MenuArg.param[0]);
+        break;
+    case 7:
+    case 8:
+        SetDngTreeFlag(0);
+        if (MenuCommonInfo->open_type == 7) {
+            SaveMapInfo(-1);
+            NowProgramLoopNo = GetNowLoopNo();
+            MenuCommonInfo->now_mode = 13;
+        }
+        if (MenuCommonInfo->open_type == 8) {
+            MenuCommonInfo->now_mode = 14;
+        }
+        MenuSaveInit(menu_stack, texture_blocks, MenuCommonInfo->open_type);
+        break;
+    case 26:
+    case 27:
+        MenuCommonInfo->now_mode = 28;
+        SubGameSaveInit(menu_stack, texture_blocks, MenuCommonInfo->open_type);
+        break;
+    case 12:
+        MenuScreenBlackBeltSet(0);
+        MenuRemovalInit(menu_stack, texture_blocks);
+        MenuCommonInfo->now_mode = 19;
+        break;
+    case 13:
+    case 19:
+        WorldMoveInit(menu_stack, texture_blocks, MenuCommonInfo->open_type);
+        MenuCommonInfo->now_mode = 6;
+        break;
+    case 5:
+        Nameregi_Target.target = 2;
+        NameRegistInit(menu_stack, texture_blocks, MenuCommonInfo->open_type);
+        MenuCommonInfo->now_mode = 20;
+        break;
+    case 15:
+        MenuScreenBlackBeltSet(0);
+        sound = 1;
+        MenuGyoraceFishSelInit(menu_stack, texture_blocks, MenuCommonInfo->open_type);
+        MenuCommonInfo->now_mode = 21;
+        break;
+    case 16:
+    case 17:
+        MenuInternInit(menu_stack, MenuCommonInfo->open_type, 0);
+        while (ReadBGSync() != 0) {}
+        CMenuInterPt->InitEnd();
+        CMenuInterPt->ReadBGTexture(2, 1);
+        while (CMenuInterPt->ReadBGTexture(2, 0) == 0) {}
+        ReturnMenuIntern(1);
+        NextMenuInit(2, &MenuMainStack_Next, &texture_blocks[3]);
+        MenuMainScene->fade.FadeIn(40);
+        MenuCommonInfo->now_mode = 2;
+        break;
+    case 18:
+        GamePad__2.KeyLock(1);
+        MenuInternInit(menu_stack, MenuCommonInfo->open_type, 0);
+        while (ReadBGSync() != 0) {}
+        CMenuInterPt->InitEnd();
+        CMenuInterPt->ReadBGTexture(7, 1);
+        while (CMenuInterPt->ReadBGTexture(7, 0) == 0) {}
+        ReturnMenuIntern(1);
+        NextMenuInit(7, &MenuMainStack_Next, &texture_blocks[3]);
+        break;
+    case 20:
+        MenuCostumeInit(menu_stack, texture_blocks, 0);
+        MenuCommonInfo->now_mode = 23;
+        break;
+    case 21:
+    case 29: {
+        int town = 0;
+        if (MenuCommonInfo->open_type == 29) {
+            town = 1;
+        }
+        MenuScreenBlackBeltSet(0);
+        InitMainCharaBG(MenuArg.param[0], menu_stack, town);
+        MenuCommonInfo->now_mode = 24;
+        break;
+    }
+    case 23:
+        MenuScreenBlackBeltSet(0);
+        GyoraceMenuInit(menu_stack, texture_blocks, 0);
+        sound = 1;
+        MenuCommonInfo->now_mode = 25;
+        break;
+    case 24:
+        SphidaMenuInit(menu_stack, texture_blocks, 0);
+        sound = 1;
+        MenuCommonInfo->now_mode = 26;
+        break;
+    case 28:
+        MenuScreenBlackBeltSet(0);
+        SphidaScoreViewInit(menu_stack, texture_blocks, 0);
+        MenuCommonInfo->now_mode = 29;
+        break;
+    case 25:
+        MonsterBookInit(menu_stack, texture_blocks, 1);
+        MenuCommonInfo->now_mode = 27;
+        break;
+    }
+    MenuSePlay(sound);
+    return MenuCommonInfo->open_type;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", MenuMainInit__FP13MENU_INIT_ARG);
+#endif
 int MenuMainExit(void) {
     CCharacter2 *chara;
     int i;

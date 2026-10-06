@@ -1824,7 +1824,6 @@ extern char at_2454[];
 extern char at_2455__2[];
 extern char at_2456[];
 void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
-    SCN_LOADMAP_INFO2 load_info;
     char image_path[0x40];
     char stage_path[0x30];
     char room_path[0x80];
@@ -1907,7 +1906,7 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
         if (map_no < 0) {
             printf(at_2446, map_name);
         }
-        load_info.Initialize();
+        SCN_LOADMAP_INFO2 load_info;
         MainMapInfo.map_no = 0;
         MainMapInfo.stack_no = 1;
         MainMapInfo.efp_tex_block = 0xF;

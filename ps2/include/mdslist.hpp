@@ -157,6 +157,7 @@ STATIC_ASSERT(sizeof(CIMGList) == 0x8);
  */
 class CMdsListSet {
 public:
+    CMdsListSet() { Initialize(); }
     int      mds_list_num; /**< Number of slots in mds_list. */
     u_char       unk_4[0xC];
     CMdsList mds_list[8];  /**< Loaded pack files. */

@@ -648,6 +648,7 @@ STATIC_ASSERT(sizeof(ARG_LIST) == 0x10);
  */
 class CEventScriptArg {
 public:
+    CEventScriptArg();
     int next_id;        /**< Number the next list built is given. */
     ARG_LIST *list;     /**< First list, or null. */
     int list_num;       /**< Number of lists. */
@@ -673,6 +674,7 @@ STATIC_ASSERT(sizeof(CEventScriptArg) == 0x10);
  */
 class CRaster {
 public:
+    CRaster();
     int state;             /**< Progress of the effect. @see RASTER_STATE. */
     float amplitude;       /**< Distance, in pixels, lines are moved at most. */
     float amplitude_step;  /**< Change of the amplitude each frame. */
@@ -750,6 +752,7 @@ STATIC_ASSERT(sizeof(CRaster) == 0x2C);
  */
 class CScreenEffect {
 public:
+    CScreenEffect();
     CRaster raster;                   /**< Raster wave effect. */
     mgCTexture *sepia_texture;        /**< Texture the sepia picture is captured into, or null. */
     int sepia;                        /**< Non-zero while the sepia picture is drawn. */

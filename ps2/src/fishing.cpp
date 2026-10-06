@@ -1166,13 +1166,6 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
     float stick_length;
     float cast_dir[4];
     float event_pos[4];
-    union {
-        CSceneEventData data;
-        struct {
-            u_char unknown_00[8];
-            int event_no;
-        } fields;
-    } eventData;
     int can_cast;
 
     chara = scene->GetCharacter(scene->player_chara);
@@ -1257,7 +1250,13 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
             }
             if (GetNowSubGameInfo()->no_map_event == 0) {
                 chara->GetPosition(event_pos);
-                memset(&eventData.data, 0, 0xD0);
+                union {
+                    CSceneEventData data;
+                    struct {
+                        u_char unknown_00[8];
+                        int event_no;
+                    } fields;
+                } eventData;
                 if (scene->GetMapEvent(event_pos, 0, &eventData.data) != 0) {
                     scene->RunEvent(eventData.fields.event_no, &eventData.data);
                     ExitFishing(scene);

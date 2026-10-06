@@ -383,7 +383,7 @@ void MainLoop() {
         printf("##### %d\n", mgGetVSyncCount());
         LoopInit[LoopNo](InitArg);
         INIT_LOOP_ARG next_arg;
-        memset(&next_arg, 0, sizeof(next_arg));
+
         NextLoop(LOOP_MENU, next_arg);
 
         while (1) {
@@ -568,7 +568,7 @@ static int MenuLoop() {
         map_result = MapSelectLoop();
         if (map_result == 2) {
             INIT_LOOP_ARG arg;
-            memset(&arg, 0, sizeof(arg));
+
             arg.map_no = -1;
             arg.event_no = DefStartEventNo;
             NextLoop(LOOP_EDIT, arg);
@@ -712,12 +712,12 @@ static int MenuLoop() {
             }
             if (select == DEBUG_ROW_CONVERT_SAVE) {
                 INIT_LOOP_ARG arg;
-                memset(&arg, 0, sizeof(arg));
+
 
                 NextLoop(LOOP_SV_CONV_VIEW, arg);
             } else {
                 INIT_LOOP_ARG arg;
-                memset(&arg, 0, sizeof(arg));
+
 
                 arg.map_no = menu_arguments[select];
                 arg.event_no = DefStartEventNo;
@@ -902,7 +902,7 @@ static int EventSelect() {
     }
 
     INIT_LOOP_ARG arg;
-    memset(&arg, 0, sizeof(arg));
+
     char config_name[64] = "";
 
     loop_no = LOOP_EDIT;
@@ -1485,7 +1485,7 @@ CEditData::CEditData() {
 }
 
 // Static initialiser (.init)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mainloop", __sinit_mainloop_cpp);
+
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopInit__DATA);
@@ -1613,7 +1613,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2084__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2085__DATA);
 
 // Static initialiser table (.ctor)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", D_0037AFF8__DATA);
+
 
 // Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", MainThreadPriority__DATA);
@@ -1666,25 +1666,25 @@ INCLUDE_BSS(PauseMenuMode, 0x4);
 // Uninitialised data (.bss)
 INCLUDE_BSS(GamePad__2, 0x480);
 INCLUDE_BSS(PadCtrl, 0x510);
-INCLUDE_BSS(DebugInfo, 0x20);
-INCLUDE_BSS(Font, 0xC0);
-INCLUDE_BSS(InitArg, 0x50);
-INCLUDE_BSS(NextInitArg, 0x50);
-INCLUDE_BSS(PrevInitArg, 0x50);
+DEBUG_INFO DebugInfo;
+CFont Font;
+INIT_LOOP_ARG InitArg;
+INIT_LOOP_ARG NextInitArg;
+INIT_LOOP_ARG PrevInitArg;
 INCLUDE_BSS(main_buffer, 0x1A00000);
-static INCLUDE_BSS(MainBuffer, 0x30);
-INCLUDE_BSS(MainScene, 0x10550);
+static mgCMemory MainBuffer;
+CScene MainScene;
 INCLUDE_BSS(SystemSeBuff, 0x1900);
-INCLUDE_BSS(SystemSeStack, 0x30);
+mgCMemory SystemSeStack;
 INCLUDE_BSS(InfoBuff, 0x13880);
-INCLUDE_BSS(InfoStack, 0x30);
-INCLUDE_BSS(SaveData, 0x65930);
+mgCMemory InfoStack;
+CSaveData SaveData;
 INCLUDE_BSS(vu_prog_1048, 0x40);
-INCLUDE_BSS(MenuBuffer, 0x30);
+mgCMemory MenuBuffer;
 INCLUDE_BSS(buf0_1224, 0x30);
 INCLUDE_BSS(buf1_1227, 0x30);
 INCLUDE_BSS(dbuf0_1230, 0x30);
 INCLUDE_BSS(dbuf1_1233, 0x30);
 INCLUDE_BSS(at_1529, 0x40);
 INCLUDE_BSS(font_buff, 0xD000);
-INCLUDE_BSS(PauseMes, 0x2960);
+ClsMes PauseMes;

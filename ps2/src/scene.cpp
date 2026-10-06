@@ -2,6 +2,8 @@
 #include "character.hpp"
 #include "effscript.hpp"
 #include "map.hpp"
+#include "mapparts.hpp"
+#include "mapload.hpp"
 #include "mapsky.hpp"
 #include "mg_camera.hpp"
 #include "mg_drawprim.hpp"
@@ -172,7 +174,7 @@ void CRipple::Draw(void) {
             h = rect_b.height;
         }
         MySetTex(tex_no, (mgCDrawPrim *)&prim_storage);
-        ((mgCDrawPrim *)&prim_storage)->Color(0x80, 0x80, 0x80, fptosi(alpha));
+        ((mgCDrawPrim *)&prim_storage)->Color(0x80, 0x80, 0x80, (int)alpha);
         ((mgCDrawPrim *)&prim_storage)->TextureCrd(u, v);
         ((mgCDrawPrim *)&prim_storage)->Vertex4(vertex[0]);
         ((mgCDrawPrim *)&prim_storage)->TextureCrd(u, v + h);
@@ -231,7 +233,6 @@ int CParticle::Step(void) {
     pos[2] += speed[2];
     return 1;
 }
-#ifdef NONMATCHING
 void CParticle::Draw(void) {
     if (active != 0) {
         mgCDrawPrim prim;
@@ -263,7 +264,7 @@ void CParticle::Draw(void) {
             float distance = sqrtf(dx * dx + dz * dz);
             float alpha = 128.0f + -0.42666668f * distance;
             if (!(alpha <= 0.0f)) {
-                prim.Color(128, 128, 128, fptosi(alpha));
+                prim.Color(128, 128, 128, (int)alpha);
                 if (mgTransWorldPrim(vertex, pos) != 0) {
                     prim.Vertex4(vertex);
                 }
@@ -272,9 +273,6 @@ void CParticle::Draw(void) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", Draw__9CParticleFv);
-#endif
 void CParticle::Init(void) {
     active = 0;
     InitVector(pos);
@@ -853,30 +851,23 @@ void CScene::ClearStack(int index) {
         offset += 4;
     }
 }
-#ifdef NONMATCHING
 void CScene::AssignStack(int index) {
     mgCMemory *memory;
-
-    if (index >= 2 && stack[index] != NULL) {
-        if (stack[index - 1] == NULL) {
-            return;
-        }
-        if (stack[index - 1]->stack_size <= 0) {
-            AssignStack(index - 1);
-        }
-        stack[index - 1]->Align64();
-        stack[index - 1]->lock = 1;
-        stack[index]->stSetBuffer(stack[index - 1]->stack + stack[index - 1]->stack_used,
-                                  stack[index - 1]->stack_size - stack[index - 1]->stack_used);
-        memory = stack[index];
-        memory->stack_used = 0;
-        memory->lock = 0;
-        stack_no = index;
+    if (index <= 1 || stack[index] == NULL || stack[index - 1] == NULL) {
+        return;
     }
+    if (stack[index - 1]->stack_size <= 0) {
+        AssignStack(index - 1);
+    }
+    stack[index - 1]->Align64();
+    stack[index - 1]->lock = 1;
+    int remaining = stack[index - 1]->stGetRest();
+    stack[index]->stSetBuffer(stack[index - 1]->stGetTop(), remaining);
+    memory = stack[index];
+    memory->stack_used = 0;
+    memory->lock = 0;
+    stack_no = index;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", AssignStack__6CSceneFi);
-#endif
 CSceneCharacter *CScene::GetSceneCharacter(int index) {
     if (index < 0 || index >= chara_num) {
         return NULL;
@@ -1231,7 +1222,100 @@ int CScene::GetMainMapNo() {
     }
     return now_sub_map_no;
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scene", InScreenFunc__6CSceneFP16InScreenFuncInfo);
+CFuncPoint *CScene::InScreenFunc(InScreenFuncInfo *info) {
+    CFuncPoint *nearest = NULL;
+    float distance = -1.0f;
+    float range = 0.0f;
+    for (int i = 0; i < map_num; i++) {
+        if (IsActive(SCENE_DATA_MAP, i)) {
+            CMap *map = GetMap(i);
+            if (map != NULL) {
+                CFuncPoint *point = map->InScreenFunc(info);
+                if (point != NULL && (nearest == NULL || info->dist < distance)) {
+                    nearest = point;
+                    range = info->unk_04;
+                    distance = info->dist;
+                }
+            }
+        }
+    }
+    info->unk_04 = range;
+    if (nearest != NULL) {
+        return nearest;
+    }
+    CMap *map = GetMap(active_map);
+    if (map == NULL) {
+        return NULL;
+    }
+    CMapSky *sky = GetSky(0);
+    if (sky == NULL) {
+        return NULL;
+    }
+    for (int i = 0; i < 4; i++) {
+        if (sky->sun[i] == NULL) {
+            return NULL;
+        }
+    }
+    float lighting[4];
+    float position[4];
+    float screen_max[4];
+    float screen_min[4];
+    sceVu0FMATRIX matrix;
+    mgVu0FBOX box;
+    map->GetLightingSunRatio(lighting);
+    mgUnitMatrix(matrix);
+    float brightness = lighting[0] > lighting[1]
+        ? (lighting[0] > lighting[2] ? (lighting[0] > lighting[3] ? lighting[0] : lighting[3]) : (lighting[2] > lighting[3] ? lighting[2] : lighting[3]))
+        : (lighting[1] > lighting[2] ? (lighting[1] > lighting[3] ? lighting[1] : lighting[3]) : (lighting[2] > lighting[3] ? lighting[2] : lighting[3]));
+    if (brightness < 0.2f) {
+        return NULL;
+    }
+    if (lighting[2] > 0.0f) {
+        GetMoonPosition(position);
+    } else {
+        GetSunPosition(position);
+    }
+    position[3] = 1.0f;
+    *(u_long128 *)box.max = *(u_long128 *)position;
+    *(u_long128 *)box.min = *(u_long128 *)position;
+    for (int i = 0; i < 3; i++) {
+        box.max[i] += 100.0f;
+        box.min[i] -= 100.0f;
+    }
+    if (!mgInsideScreen(&box, matrix, screen_max, screen_min)) {
+        return NULL;
+    }
+    float bounds_max[4] = {50.0f, 50.0f, 0.0f, 0.0f};
+    float bounds_min[4] = {-50.0f, -50.0f, 0.0f, 0.0f};
+    if (!(screen_max[0] < bounds_min[0])) {
+        if (screen_min[0] <= bounds_max[0] && !(screen_max[1] < bounds_min[1]) &&
+            screen_min[1] <= bounds_max[1] && screen_min[3] - 100.0f <= 4.0f + info->range) {
+            static CFuncPoint sun_func;
+            sun_func.type = FUNC_POINT_INVENT;
+            int subject;
+            if (lighting[2] > 0.0f) {
+                subject = 0xC1;
+            } else {
+                if (lighting[0] > lighting[1]) {
+                    if (lighting[0] > lighting[3]) {
+                        subject = 0xC2;
+                    } else {
+                        subject = 0xC3;
+                    }
+                } else {
+                    if (lighting[1] > lighting[3]) {
+                        subject = 0xC4;
+                    } else {
+                        subject = 0xC3;
+                    }
+                }
+            }
+            sun_func.invent.neta_no = subject;
+            return &sun_func;
+        }
+    }
+    return NULL;
+}
 void CScene::DrawScreenFunc(mgCFrame *frame) {
     for (int i = 0; i < map_num; i++) {
         CMap *map = GetMap(i);

@@ -577,7 +577,6 @@ int SaveDataEditLoop() {
 int EventViewLoop(void) {
     char text[0x400];
     EventListColors colors;
-    INIT_LOOP_ARG loopArg;
     char *cursor = text;
     cursor += sprintf(cursor, at_1323__3);
     if (BossBattleSelFlag != 0) {
@@ -628,7 +627,7 @@ int EventViewLoop(void) {
         sel_event = 0;
     }
     if (GamePad__2.Down(0x20)) {
-        memset(&loopArg, 0, sizeof(loopArg));
+        INIT_LOOP_ARG loopArg;
         EVENT_VIEW_INFO *chosen = &EventInfo[top_event + sel_event];
         if (chosen->map_no >= 0) {
             loopArg.map_no = chosen->map_no;

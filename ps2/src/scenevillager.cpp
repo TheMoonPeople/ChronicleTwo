@@ -679,7 +679,6 @@ int CScene::GetTalkEvent(float *position, CSceneEventData *event) {
     float character_rotation[4];
     float talk_rect[4];
     float rotation[4][4];
-    CSceneEventData cleared_event;
     float range;
     int slot;
     for (slot = SCENE_VILLAGER_SLOT_TOP; slot < SCENE_TALK_SLOT_END; slot++) {
@@ -703,7 +702,7 @@ int CScene::GetTalkEvent(float *position, CSceneEventData *event) {
                     }
                     if (mgDistVector(character_position, position) < range) {
 
-                        memset(&cleared_event, 0, sizeof(cleared_event));
+                        CSceneEventData cleared_event;
                         event->chara_slot = slot;
                         event->chara_no = GetCharaNo(slot);
                         event->event.point_no = slot - SCENE_VILLAGER_SLOT_TOP;

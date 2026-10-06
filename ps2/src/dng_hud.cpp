@@ -368,7 +368,112 @@ void CEnemyLifeGage::Set(float *position, int new_max_life, int new_life, int co
         }
     }
 }
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__14CEnemyLifeGageFi);
+void CEnemyLifeGage::Draw(int hide_gekirin) {
+    if (!(scale <= 0.0f) && (max_hp != 0 || hp != 0)) {
+        int i;
+        CPreSprite sprite;
+        if (screen != 0) {
+            CPreSprite frame;
+            CPreSprite fill;
+            frame.Initialize(NULL, NULL);
+            frame.Preset2D();
+            frame.Begin(6);
+            frame.Bilinear(0);
+            frame.Texture(TEX_SystenFrame);
+            int y = mgScreenHeight - 44;
+            frame.Color(128, 128, 128, 128);
+            frame.SetIRect(16, y, 34, 34, 210, 146);
+            for (int i = 0; i < 15; i++) {
+                frame.SetIRect(50 + i * 10, y, 10, 34, 244, 146);
+            }
+            frame.SetIRect(200, y, 34, 34, 254, 146);
+            frame.End();
+            frame.Initialize(NULL, NULL);
+            frame.Preset2D();
+            frame.Coord(0);
+            frame.TextureMapEnable(0);
+            frame.Shading(1);
+            frame.Begin(4);
+            float hp_width = 170.0f * ((float)hp / max_hp);
+            int width = (int)(hp_width * scale);
+            y = mgScreenHeight - 39;
+            frame.Color(255, 96, 0, 128);
+            frame.Vertex(48, y + 12, 0);
+            frame.Color(255, 255, 0, 128);
+            frame.Vertex(width + 48, y + 12, 0);
+            y = mgScreenHeight - 35;
+            frame.Color(255, 96, 0, 128);
+            frame.Vertex(48, y + 12, 0);
+            frame.Color(255, 255, 0, 128);
+            frame.Vertex(width + 48, y + 12, 0);
+            frame.End();
+            return;
+        }
+        int position[4];
+        if (mgTransWorldScreen(position, pos) != 0) {
+            sprite.Initialize(NULL, NULL);
+            sprite.Preset2D();
+            sprite.Coord(0);
+            sprite.TextureMapEnable(0);
+            sprite.Shading(1);
+            sprite.Begin(3);
+            sprite.Color(30, 20, 30, 128);
+            position[0] /= 16;
+            position[1] /= 16;
+            position[1] -= 24;
+            if (position[1] < 89) {
+                position[1] = 88;
+            }
+            int half_width = (int)(34.0f * scale);
+            int left = position[0] - half_width + 2;
+            u32 top = position[1];
+            int right = position[0] + half_width + 2;
+            int bottom = top + 4;
+            sprite.Vertex(left, top, 0);
+            sprite.Vertex(right, top, 0);
+            sprite.Vertex(left, bottom, 0);
+            sprite.Vertex(left, bottom, 0);
+            sprite.Vertex(right, bottom, 0);
+            sprite.Vertex(right, top, 0);
+            top = position[1] - 2;
+            left = position[0] - half_width;
+            float hp_half_width = (float)half_width * ((float)hp / (float)max_hp);
+            right = (int)(2.0f * hp_half_width) + left;
+            bottom = position[1] + 2;
+            sprite.Color(255, 96, 0, 128);
+            sprite.Vertex(left, top, 0);
+            sprite.Color(255, 255, 0, 128);
+            sprite.Vertex(right, top, 0);
+            sprite.Color(255, 96, 0, 128);
+            sprite.Vertex(left, bottom, 0);
+            sprite.Color(255, 96, 0, 128);
+            sprite.Vertex(left, bottom, 0);
+            sprite.Color(255, 255, 0, 128);
+            sprite.Vertex(right, bottom, 0);
+            sprite.Color(255, 255, 0, 128);
+            sprite.Vertex(right, top, 0);
+            sprite.End();
+            if (hide_gekirin == 0) {
+                sprite.Initialize(NULL, NULL);
+                sprite.Preset2D();
+                sprite.Coord(0);
+                sprite.TextureMapEnable(1);
+                sprite.Begin(6);
+                sprite.Color(128, 128, 128, 128);
+                sprite.Texture(TEX_SystenFrame);
+                int x = position[0] - half_width;
+                top = position[1] - 12;
+                for (i = 0; i < 16; i += 1) {
+                    gekirin[i].Draw(&sprite, x, top);
+                    x += 8;
+                }
+                sprite.End();
+            }
+        }
+    }
+}
+
+
 void CEnemyLifeGage::Step(void) {
     int i;
 
@@ -614,7 +719,6 @@ void CDamageScore2::Step() {
         }
     }
 }
-#ifdef NONMATCHING
 void CLockOnModel::Draw() {
     float target_pos[4];
     int top_left[4];
@@ -632,6 +736,7 @@ void CLockOnModel::Draw() {
     if (target == NULL) {
         return;
     }
+    float size;
     float height = target->body_height;
     if (!(target->target_dist <= target->clip_dist)) {
         return;
@@ -643,7 +748,7 @@ void CLockOnModel::Draw() {
     if (entry == NULL) {
         return;
     }
-    float size = entry->unk_04;
+    size = entry->unk_04;
     sceVu0CopyVector(pos, target_pos);
     if (!(height <= 85.0f)) {
         height = 85.0f;
@@ -654,14 +759,15 @@ void CLockOnModel::Draw() {
     if (DngUserData->active_chr_no == USER_CHARA_MONSTER) {
         monster_id = DngUserData->monster_id;
     }
-    int message = -1;
     if (target->monster_id == monster_id) {
-        message = target->unk_134c;
+        int message = target->unk_134c;
         if (message >= 0) {
             message += 5000;
         }
+        unk_90 = message;
+    } else {
+        unk_90 = -1;
     }
-    unk_90 = message;
     if (player->lock_on == 0) {
         target_pos[1] += 5.0f + 10.0f * size;
         SetRotation(0.0f, angle, 0.0f);
@@ -698,9 +804,7 @@ void CLockOnModel::Draw() {
     }
     prim.End();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__12CLockOnModelFv);
-#endif
+
 void CLockOnModel::DrawMess(int tex_block) {
     if (name != NULL) {
         if (mes->MakeAnd3DPosSet(name, pos, 0, -48) == 0) {
@@ -730,7 +834,6 @@ void CWarningGage2::Step() {
         time = 0;
     }
 }
-#ifdef NONMATCHING
 void CWarningGage2::Draw() {
     if (time >= 20 && layout != WARNING_GAGE_LAYOUT_NONE) {
         CPreSprite prim;
@@ -807,9 +910,7 @@ void CWarningGage2::Draw() {
         prim.End();
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_hud", Draw__13CWarningGage2Fv);
-#endif
+
 void CLockOnModel::Initialize(CScene *scene) {
     this->scene = scene;
     name = NULL;

@@ -1075,7 +1075,6 @@ void MenuWindowHelp(mgCDrawPrim *prim, mgCTexture *texture, float x, float y, fl
 }
 void MenuPresentBoxView(int x, int y, int &tex_block, mgCTexture *tex, mgCTexture *cursor_tex) {
     mgCDrawPrim *prim;
-    mgRect<float> item_rect;
     mgRect<int> *window;
     int item_x;
     int i;
@@ -1111,7 +1110,7 @@ void MenuPresentBoxView(int x, int y, int &tex_block, mgCTexture *tex, mgCTextur
             Pos_ItemInGiftBox[i][0] = item_x;
             Pos_ItemInGiftBox[i][1] = window->top + 16;
             if (NowGiftBoxPtr->data.giftbox.item_no[i] > 0) {
-                item_rect.Set(Pos_ItemInGiftBox[i][0], Pos_ItemInGiftBox[i][1], 32.0f, 40.0f);
+                mgRect<float> item_rect(Pos_ItemInGiftBox[i][0], Pos_ItemInGiftBox[i][1], 32.0f, 40.0f);
                 DrawOneItem(prim, item_rect, NowGiftBoxPtr->data.giftbox.item_no[i], 0, NULL, rgbatbl_1379, 0);
             }
             item_x += 41;
@@ -2643,13 +2642,12 @@ static void DrawItemIconEffect2(mgCDrawPrim *prim, mgCTexture *tex, MENUFORMPART
     int *color;
     float dx;
     float dy;
-    mgRect<float> star_rect;
-    float corners[4][2];
-    int uv[8];
 
     if (parts != NULL && parts->effect != NULL) {
         effect = parts->effect + 2;
-        star_rect.Set(0.0f, 0.0f, 0.0f, 0.0f);
+        mgRect<float> star_rect;
+        float corners[4][2];
+        int uv[8];
         star_rect.left = rect.left;
         star_rect.top = rect.top;
         star_rect.right = 8.0f;

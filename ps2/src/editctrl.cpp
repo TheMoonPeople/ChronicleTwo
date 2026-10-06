@@ -635,7 +635,6 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
     EditMoveCharaInfo move;
     sceVu0FVECTOR     event_position;
     sceVu0FVECTOR     event_rotation;
-    CSceneEventData   event;
     float             frame_rate;
     float             angle;
     float             stick_x;
@@ -764,7 +763,7 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
     }
     character->GetPosition(event_position);
     character->GetRotation(event_rotation);
-    memset(&event, 0, sizeof(event));
+    CSceneEventData event;
     event_check = 0;
     if (pad->Btn(0)) {
         event_check = 1;

@@ -43,7 +43,7 @@ extern CColPrimMan ColPrimMan;
 EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index);
 int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory);
 void SetEffectScriptFunc();
-void DrawEffSptSprite(_EFF_SCRIPT *, mgCTexture *, float *, mgC3DSprite *, CMapLightingInfo *);
+static void DrawEffSptSprite(_EFF_SCRIPT *, mgCTexture *, float *, mgC3DSprite *, CMapLightingInfo *);
 extern RS_EXTFUNC_INFO ext_func_info__4[];
 extern char at_3644[];
 extern char at_3645[];
@@ -262,7 +262,136 @@ void CEffectScriptMan::AddTexb() {
         level_texb_used[level] = level_texb_used[level] + 1;
     }
 }
+#ifdef NONMATCHING
+extern char at_1099__2[];
+extern char at_1100[];
+extern char at_1101[];
+extern char at_1102__2[];
+extern char at_1103__5[];
+extern char at_1104__7[];
+
+int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_long128 *script, int script_size, mgCMemory *work, int texb) {
+    mgCMemory *memory;
+    if (work == NULL) {
+        memory = this->memory;
+    } else {
+        memory = work;
+    }
+    if (memory == NULL) {
+        printf(at_1099__2);
+        return -1;
+    }
+    for (int i = 0; i < EFF_SPT_BASE_MAX; i++) {
+        if (base[i] != NULL && base[i]->base_no == base_no) {
+            return 0;
+        }
+    }
+    EFF_SPT_BASE_DEF *definition = GetEffSptBaseDefPtr(base_no);
+    if (definition == NULL) {
+        printf(at_1100, base_no);
+        return -1;
+    }
+    int index;
+    for (index = 0; index < EFF_SPT_BASE_MAX; index++) {
+        if (base[index] == NULL) {
+            break;
+        }
+    }
+    if (index >= EFF_SPT_BASE_MAX) {
+        printf(at_1101);
+        return -1;
+    }
+    int texture_block = texb;
+    if (texb <= -1) {
+        if (texb_used >= texb_num) {
+            printf(at_1102__2);
+            return -1;
+        }
+        texture_block = texb_start + texb_used;
+    }
+    if (texture_block < texb_start || texture_block >= texb_start + texb_num) {
+        printf(at_1103__5, texb_start, texb_num, texture_block);
+        return -1;
+    }
+    mgCTextureManager *textures = &mgTexManager;
+    memory->lock = 0;
+    memory->Align64();
+    base[index] = new (memory->Alloc(4)) EFF_SPT_BASE;
+    if (base[index] != NULL) {
+        base[index]->base_no = base_no;
+        base[index]->work_size = 0x7D;
+        base[index]->work_size += 0x24;
+        base[index]->texb_owned = 0;
+        switch (definition->type) {
+            case EFF_SPT_BASE_CHR:
+                base[index]->chara = NULL;
+                if (data != NULL) {
+                    CCharacter2 *source = GetBaseChara(base_no);
+                    base[index]->chara = new (memory->Alloc(0x68)) CCharacter2;
+                    base[index]->chara->Initialize();
+                    if (source != NULL) {
+                        source->Copy(*base[index]->chara, memory);
+                        base[index]->texb = source->texture_block;
+                        base[index]->texb_owned = 0;
+                    } else {
+                        base[index]->texb = texture_block;
+                        if (texb <= -1) {
+                            textures->DeleteBlock(base[index]->texb);
+                        }
+                        base[index]->chara->LoadPackNoLine((u_int *)data, at_1104__7, memory, memory, memory, base[index]->texb, NULL);
+                        if (texb <= -1) {
+                            texb_used++;
+                            base[index]->texb_owned = 1;
+                        }
+                        CCharacter2 copy;
+                        mgCMemory copy_memory;
+                        copy_memory.stSetBuffer(load_buffer, 300000);
+                        base[index]->chara->Copy(copy, &copy_memory);
+                    }
+                    base[index]->work_size += base[index]->chara->GetCopySize();
+                }
+                break;
+            case EFF_SPT_BASE_IMG:
+                base[index]->chara = NULL;
+                mgCTexture *texture = textures->GetTexture(definition->file, -1);
+                if (texture != NULL) {
+                    base[index]->texb = texture->block;
+                    base[index]->texb_owned = 0;
+                } else {
+                    base[index]->texb = texture_block;
+                    if (texb <= -1) {
+                        textures->DeleteBlock(base[index]->texb);
+                    }
+                    int size = data_size / 16 + 1;
+                    u_long128 *image = memory->stAllocTest(size);
+                    if (image != NULL) {
+                        memory->stAlloc64(size);
+                        memcpy(image, data, data_size);
+                        textures->EnterIMGFile((u_char *)image, base[index]->texb, memory, NULL);
+                        if (texb <= -1) {
+                            texb_used++;
+                            base[index]->texb_owned = 1;
+                        }
+                    } else {
+                        base[index]->texb = -1;
+                        base[index]->texb_owned = 0;
+                        return 0;
+                    }
+                }
+                break;
+        }
+    }
+    base[index]->script = (char *)memory->stAlloc64(script_size / 16 + 1);
+    if (base[index]->script != NULL) {
+        memcpy(base[index]->script, script, script_size);
+    }
+    base[index]->level = level;
+    base_num++;
+    return 1;
+}
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", BuildBase__16CEffectScriptManFiP1iP1iP9mgCMemoryi);
+#endif
 int CEffectScriptMan::BuildBase(char *name, u_long128 *path_file, int path_size, u_long128 *pack_file,
                                  int pack_size, mgCMemory *memory, int level) {
     return BuildBase(SearchBaseNo(name), path_file, path_size, pack_file, pack_size, memory, level);
@@ -1214,7 +1343,97 @@ EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index) {
     EFF_SPT_BASE_DEF *base = eff_spt_base_def + index;
     return strcmp(base->name, at_1341__2) == 0 ? 0 : base;
 }
+#ifdef NONMATCHING
+extern EffectVector at_2067;
+static void DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, sceVu0FVECTOR offset, mgC3DSprite *renderer, CMapLightingInfo *lighting) {
+    _ES_SPRITE *sprites = script->sprite;
+    int count = script->sprite_num;
+    int alpha = sprites->alpha;
+    mgCDrawEnv environment(* mgGetpDrawEnv(0));
+    sceGsTest *test = &environment.test;
+    int component;
+    test->bits.zte = 1;
+    test->bits.ztst = 2;
+    environment.SetZBuf(-1);
+    environment.SetAlpha(alpha);
+    renderer->CPSetDrawEnv(&environment);
+    renderer->CPSetTexture(texture);
+    renderer->BeginCPSprite();
+    s32 i = 0;
+    if (i < count) {
+        do {
+            _ES_SPRITE *sprite = &sprites[i];
+            if (sprite->draw_flag != 0) {
+                if (alpha != sprite->alpha) {
+                    alpha = sprite->alpha;
+                    renderer->EndCPSprite();
+                    mgCDrawEnv next_environment(* mgGetpDrawEnv(0));
+                    sceGsTest *next_test = &next_environment.test;
+                    next_test->bits.zte = 1;
+                    next_test->bits.ztst = 2;
+                    next_environment.SetZBuf(-1);
+                    next_environment.SetAlpha(alpha);
+                    renderer->CPSetDrawEnv(&next_environment);
+                    renderer->CPSetTexture(texture);
+                    renderer->BeginCPSprite();
+                }
+                EffectVector size = at_2067;
+                sceVu0FVECTOR uv0, uv1, position;
+                sceVu0FVECTOR color;
+                mgZeroVector(uv0);
+                mgZeroVector(uv1);
+                sceVu0AddVector(position, sprite->pos, offset);
+                position[3] = 1.0f;
+                *(u_long128 *)color = *(u_long128 *)sprite->color;
+                if (0.0f != sprite->blink_speed) {
+                    for (component = 0; component < 4; component++) {
+                        color[component] += sinf(sprite->blink_phase) * sprite->blink_amp[component];
+                        if (color[component] < 0.0f) {
+                            color[component] = 0.0f;
+                        }
+                        if (color[component] > 255.0f) {
+                            color[component] = 255.0f;
+                        }
+                    }
+                    sprite->blink_phase += sprite->blink_speed;
+                    sprite->blink_phase = mgAngleLimit(sprite->blink_phase);
+                } else {
+                    for (int component = 0; component < 4; component++) {
+                        if (color[component] < 0.0f) {
+                            color[component] = 0.0f;
+                        }
+                        if (color[component] > 255.0f) {
+                            color[component] = 255.0f;
+                        }
+                    }
+                }
+                if (script->light_flag) {
+                    sceVu0FMATRIX light_direction, light_color;
+                    sceVu0FVECTOR ambient;
+                    mgGetLight(light_direction, light_color);
+                    mgGetAmbient(ambient);
+                    color[0] = 0.3 * light_color[0][0] + ambient[0];
+                    color[1] = light_color[0][1] * 0.3 + ambient[1];
+                    color[2] = light_color[0][2] * 0.3 + ambient[2];
+                }
+                size.values[0] = sprite->put_size[0] * sprite->scale[0];
+                size.values[1] = sprite->put_size[1] * sprite->scale[1];
+                size.values[2] = mgAngleLimit(sprite->rotz);
+                uv0[0] = sprite->uv[0];
+                uv0[1] = sprite->uv[1];
+                uv1[0] = sprite->uv[0] + sprite->uv[2];
+                uv1[1] = sprite->uv[1] + sprite->uv[3];
+                renderer->CPSetSprite(position, size.values, color, uv0, uv1);
+            }
+            i++;
+        } while (i < count);
+    }
+    renderer->EndCPSprite();
+}
+
+#else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", DrawEffSptSprite__FP11_EFF_SCRIPTP10mgCTexturePfP11mgC3DSpriteP16CMapLightingInfo);
+#endif
 static _ES_SPRITE *GetSpritePtr(_EFF_SCRIPT *script, int index) {
     if (script == 0 || index >= script->sprite_num) {
         return 0;
@@ -3123,19 +3342,8 @@ int _INTERSECTION_POINT(RS_STACKDATA *stack, int argc) {
     int foot_sound;
     int area_kind;
 
-    switch (argc) {
-        case 8:
-        case 9:
-        case 10:
-        case 11:
-        case 12:
-        case 13:
-        case 14:
-        case 15:
-        case 16:
-            break;
-        default:
-            return 0;
+    if (argc != 8 && argc != 9 && argc != 10 && argc != 11 && argc != 12 && argc != 13 && argc != 14 && argc != 15 && argc != 16) {
+        return 0;
     }
     int ignore_mask = GetStackInt(stack++);
     GetStackVector(start, stack);
