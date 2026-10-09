@@ -2,18 +2,22 @@
 
 ## Result
 
-Keep `Add__14CFuncPointMngrFiP9mgCMemory` and
-`NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory` guarded. Their constructor
-chains still lack an evidenced statement-shaped replacement preserving the
-retail operations. Natural initialization loops in `CShopMenu` and
-`CSaveMenuClass` now reproduce and promote their retail callers; see
+`Add__14CFuncPointMngrFiP9mgCMemory` and
+`NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory` are native. Their natural
+source compiles to retail only with a placement-construction row that requests
+MWCC's statement-conversion path for the one construction in each
+(after-inline for `Add`, before-inline for `NewTexAnimeData`); see
+[the placement design note](../satansfiddle/placement-new.md). No source form
+without the row reproduces the retail null test. Natural initialization loops
+in `CShopMenu` and `CSaveMenuClass` reproduce their retail callers without a
+row; see
 [Constructor inline classification](#constructor-inline-classification).
 
-The retained natural drafts are:
+The native source is:
 
 ```cpp
 CFuncPoint *CFuncPointMngr::Add(int type, mgCMemory *stack) {
-    CList<CFuncPoint> *node = new ((u_long128 *) stack->Alloc(0x20)) CList<CFuncPoint>;
+    CList<CFuncPoint> *node = new (stack->Alloc(0x20)) CList<CFuncPoint>;
     if (node == NULL) {
         return NULL;
     }
@@ -30,8 +34,10 @@ CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeData(mgCMemory *stack) {
 
 The allocator overload is the out-of-line `operator new(size_t, u_long128 *)`
 in `mg_memory.hpp`. Non-trivial construction generates a null check of the
-allocation result. The unresolved issue is how MWCC binds that result to the
-persistent object pointer during inlining and register allocation.
+allocation result. Plain compilation copies that result to the saved register
+and tests the copy (shape B below); retail tests `v0` first (shape A). The
+rest of this note records how MWCC's constructor inline class decides between
+the two shapes.
 
 ## Retail instructions
 
