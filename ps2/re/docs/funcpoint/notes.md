@@ -1,6 +1,11 @@
 # funcpoint: reverse-engineering notes
 
-The six decompiled functions in this unit compile to exact retail instruction matches. `GetEventNum`
+`CFuncPointMngr::Add(int, mgCMemory*)` is accepted native C++ with one scoped
+placement row for `CList<CFuncPoint>`. No `NONMATCHING` guards or assembly
+fallbacks remain in this unit. See
+[placement conversion](../satansfiddle/placement-new.md).
+
+The active native functions in this unit compile to exact retail instruction matches. `GetEventNum`
 tests `CFuncPoint::EventData::flag` at offset 0x20, and `UpdateFlag` stores each point's `Check`
 result in `CFuncPoint::active` at offset 0x1B0 before counting successful checks. The two walk
 functions use `CFuncPointMngr::GetEnd` to clear `now` after traversal.
@@ -111,21 +116,21 @@ weight between 0.7 and one; other point types return one.
 The original guarded candidate produced 0x228 bytes versus retail's 0x220.
 The native source now gives the signed remainder a named `phase` local before
 converting it to float in the sine and saw modes. The sine angle multiplies that
-phase by the full-turn constant before dividing by the period. Complete canonical
-verification of this merged native source remains necessary; size equality alone
-does not establish matching.
+phase by the full-turn constant before dividing by the period. The current
+native source is accepted by complete-object and PAL verification; the earlier
+size-equality observation alone did not establish that match.
 
-## `CFuncPointMngr::Add(int, mgCMemory*)` draft
-The typed placement-new draft differs only in the placement-new null branch: retail
-tests `v0` and copies the returned pointer into `s0` in the branch delay slot,
-while MWCC's current expression copies it before testing `s0`. Both versions
-produce the same node construction and calls, but the linked image differs by seven
-bytes. The assembly implementation remains active until this branch order matches.
+## Earlier `CFuncPointMngr::Add(int, mgCMemory*)` trials
+
+Before scoped compiler conversion, the typed draft differed only in the null
+branch: retail tested `v0` and copied into `s0` in the delay slot, while MWCC
+copied first and tested `s0`. Node construction and calls agreed, but the
+linked image differed by seven bytes, so that baseline retained assembly.
 Combining allocation with the null test, changing the later branch layout,
-removing the redundant cast on `mgCMemory::Alloc`, separating the allocation
-buffer, and changing the pointer declaration or constructor parentheses all
-retain those two differing instructions. Local scheduling and optimizer pragmas
-either leave the same pair or change many additional instructions.
+removing the redundant allocator cast, separating the buffer, and changing
+the pointer declaration or constructor parentheses all retained the pair.
+Scheduling and optimizer pragmas left the pair or changed many additional
+instructions. The current accepted caller retains natural construction.
 
 A private trial used the typed allocation pointer without the redundant cast,
 scoped `optimization_level 2` to this function, and restored level 3 immediately
@@ -134,14 +139,14 @@ function grew from retail's 0xA0 to 0xC4 bytes and scored 56.35%. The allocation
 branch then tests the saved register and adds extra copies and nops, so this
 optimization-level change is not a useful match.
 
-The [placement-new report](placement-new.md) records the constructor evidence
-and the remaining allocation-result register issue. Retail's point constructor
+The [earlier placement-new report](placement-new.md) preserves the constructor
+evidence and allocation-result issue measured before scoped conversion. Retail's point constructor
 and array-node constructor do not initialize the point's other fields. Adding
 that initialization to the shared constructor changes five complete units and
 fails PAL verification (144/149 object checks pass). Compiler-generated,
 empty, specialized, and source-defined inline constructor variants do not
 reproduce the target's two differing instructions. A matching invented inline
 consumer is retained only as private evidence; it is not admissible source.
-The original guarded draft is retained. Reconsider upon a genuine matching
-inlined-list caller or new retail constructor evidence that distinguishes the
-allocation-result lifetime without an invented helper.
+Those trials retained the guarded draft pending genuine constructor and
+allocation-result evidence. The current native caller resolves the schedule
+through the documented compiler conversion without an invented helper.

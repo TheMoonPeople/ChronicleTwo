@@ -1759,6 +1759,14 @@
         "expected_matches": 1
       },
       {
+        "translation_unit": "funcpoint.cpp",
+        "function": "Add__14CFuncPointMngrFiP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__19CList<10CFuncPoint>Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "map.cpp",
         "function": "AddPartsGroup__4CMapFPcP9CMapPartsP9mgCMemory",
         "allocator": "__nw__FUiP1",
