@@ -49,12 +49,14 @@ struct PositionTable {
  *
  */
 static char NameRegiTopic[0x40];
+
 /**
  *
  * Stores the event keyword result code.
  *
  */
 static s8 NameRegiCode;
+
 /**
  *
  * Maps language and name entry button selection to a character set.
@@ -69,6 +71,7 @@ static s8 NameStrSelectModeTable[7][6] = {
     {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
     {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1}
 };
+
 /**
  *
  * Stores the initial Shift-JIS boundaries and generated kanji lists for each reading.
@@ -122,12 +125,14 @@ static NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[46] = {
     {{0x98, 0x73}},
     {{0x00, 0x00}}
 };
+
 /**
  *
  * Stores the Shift-JIS reading characters shown at the start of kanji groups.
  *
  */
 static s8 testchar[93] = "\x82\xA0\x82\xA2\x82\xA4\x82\xA6\x82\xA8\x82\xA9\x82\xAB\x82\xAD\x82\xAF\x82\xB1\x82\xB3\x82\xB5\x82\xB7\x82\xB9\x82\xBB\x82\xBD\x82\xBF\x82\xC2\x82\xC4\x82\xC6\x82\xC8\x82\xC9\x82\xCA\x82\xCB\x82\xCC\x82\xCD\x82\xD0\x82\xD3\x82\xD6\x82\xD9\x82\xDC\x82\xDD\x82\xDE\x82\xDF\x82\xE0\x82\xE2\x82\xE4\x82\xE6\x82\xE7\x82\xE8\x82\xE9\x82\xEA\x82\xEB\x82\xED\x82\xF0\x82\xF1";
+
 /**
  *
  * Stores ASCII characters accepted by the name conversion table.
@@ -151,49 +156,49 @@ static char ALPHA_TABLE2[28] = "abcdefghijklm\nnopqrstuvwxyz";
 
 /**
  *
- * Stores the str characters used by the name entry font.
+ * Stores the digit characters used by the name entry font.
  *
  */
 static char STR_NUM_TABLE[14] = "0123456789   ";
 
 /**
  *
- * Stores the hira characters used by the name entry font.
+ * Stores the first hiragana character table used by the name entry font.
  *
  */
 static char HIRA_TABLE1[2] = " ";
 
 /**
  *
- * Stores the hira characters used by the name entry font.
+ * Stores the second hiragana character table used by the name entry font.
  *
  */
 static char HIRA_TABLE2[2] = " ";
 
 /**
  *
- * Stores the hira characters used by the name entry font.
+ * Stores the third hiragana character table used by the name entry font.
  *
  */
 static char HIRA_TABLE3[2] = " ";
 
 /**
  *
- * Stores the kata characters used by the name entry font.
+ * Stores the first katakana character table used by the name entry font.
  *
  */
 static char KATA_TABLE1[2] = " ";
 
 /**
  *
- * Stores the kata characters used by the name entry font.
+ * Stores the second katakana character table used by the name entry font.
  *
  */
 static char KATA_TABLE2[2] = " ";
 
 /**
  *
- * Stores the kata characters used by the name entry font.
+ * Stores the third katakana character table used by the name entry font.
  *
  */
 static char KATA_TABLE3[2] = " ";
@@ -266,6 +271,7 @@ static BoardColor colt_1808[2] = {
     {0, 0, 0, 32},
     {128, 128, 128, 128}
 };
+
 /**
  *
  * Stores character set button texture rectangles for each name entry board layout.
@@ -322,6 +328,7 @@ static BoardRect table_1819[7][5] = {
         {132, 294, 132, 30}
     }
 };
+
 /**
  *
  * Stores editing command texture rectangles for each name entry board layout.
@@ -385,6 +392,7 @@ static BoardRect tex_commtbl_1822[7][6] = {
         {0, 294, 92, 30}
     }
 };
+
 /**
  *
  * Stores the screen positions of name entry commands for each board layout.
@@ -476,48 +484,56 @@ static BoardPoint nameregist_baseboard_upper_table[6][12] = {
         {369, 22}
     }
 };
+
 /**
  *
  * Stores the heights of the name entry board texture slices.
  *
  */
 static s16 get_Htable_1806[4] = {100, 16, 32, 0};
+
 /**
  *
  * Stores the primary ASCII symbol grid for European name entry.
  *
  */
 static char KIGOU_TABLE_ASCII1[31] = "!?\"#$&'()*+-%,.\n:;<=>@[]_{}|/ ";
+
 /**
  *
  * Stores the extended ASCII symbol grid for European name entry.
  *
  */
 static char KIGOU_TABLE_ASCII2[128] = " ";
+
 /**
  *
  * Lists the Shift-JIS character tables used to build the conversion grid.
  *
  */
 static char *jis_ptr_table[2] = {NULL, NULL};
+
 /**
  *
  * Points to the name entry window frame texture.
  *
  */
-static mgCTexture * NameRegiWaku;
+static mgCTexture *NameRegiWaku;
+
 /**
  *
  * Points to the scrolling name entry background texture.
  *
  */
-static mgCTexture * NameRegiBGTile;
+static mgCTexture *NameRegiBGTile;
+
 /**
  *
  * Points to the extra glyph texture used by name entry.
  *
  */
-static mgCTexture * NameregiGaiji;
+static mgCTexture *NameregiGaiji;
+
 /**
  *
  * Groups the character arrays available for each name entry font mode.
@@ -530,30 +546,35 @@ static FontTables NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM] = {
     {NULL, NULL, NULL},
     {KIGOU_TABLE1, KIGOU_TABLE2, NULL}
 };
+
 /**
  *
  * Points to the active name entry menu.
  *
  */
-static CNameRegiMenu * NameRegiMenuPtr;
+static CNameRegiMenu *NameRegiMenuPtr;
+
 /**
  *
  * Caches the last texture block loaded by the name entry menu.
  *
  */
 static int OldReloadTexNumber;
+
 /**
  *
  * Stores the number of cells in each name entry character set.
  *
  */
 static s16 LimmitTable_1360[5] = {65, 90, 90, 114, 90};
+
 /**
  *
  * Stores the number of columns in each name entry character set.
  *
  */
 static s8 NameRegistGyouLimmitTable[5] = {13, 15, 15, 19, 15};
+
 /**
  *
  * Maps grid columns to name entry commands for each language and character set.
@@ -575,30 +596,35 @@ static s8 Convtable2_1382[2][5][8] = {
         {0, 2, 5, 5, 9, 12, 9, 14}
     }
 };
+
 /**
  *
  * Maps character sets to buttons on the Japanese name entry board.
  *
  */
 static BoardTable convtbl_1792 = {{2, 1, 0, 4, 3}};
+
 /**
  *
  * Points to the name entry cursor texture.
  *
  */
-static mgCTexture * NameRegiCursor;
+static mgCTexture *NameRegiCursor;
+
 /**
  *
  * Points to the name entry board texture.
  *
  */
-static mgCTexture * NameRegiTex1;
+static mgCTexture *NameRegiTex1;
+
 /**
  *
  * Limits the number of characters accepted by name entry.
  *
  */
 static s16 NameRegistMax = 10;
+
 /**
  *
  * Stores the three texture slices used to draw the selected name frame.
@@ -1494,12 +1520,14 @@ static s16 addTable_1510[5][4] = {
     {-19, 19, -1, 1},
     {-15, 15, -1, 1}
 };
+
 /**
  *
  * Maps name entry character sets to command buttons.
  *
  */
 static s8 convTbl_1579[5] = {2, 1, 0, 4, 3};
+
 /**
  *
  * Stores the default Spheda name for each language.
@@ -1542,7 +1570,7 @@ s32 CNameRegiMenu::KeyStep() {
                 if (answer == 1) {
                     char converted_name[0x100];
                     event = 0x1FE;
-                    MenuSePlay(1);
+                    MenuSePlay(SYSTEM_SE_DECIDE);
 
                     if (Nameregi_Target.target == NAMEREGI_TARGET_KEYWORD) {
                         MenuArg.result[0] = 0;
@@ -1578,7 +1606,7 @@ s32 CNameRegiMenu::KeyStep() {
 
                 if (answer == 2) {
                     event = 0x1F9;
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
 
                     if (Nameregi_Target.target == NAMEREGI_TARGET_KEYWORD) {
                         MenuArg.result[0] = -1;
@@ -1588,7 +1616,7 @@ s32 CNameRegiMenu::KeyStep() {
 
             if (message_type == 1 && pushed != 0) {
                 event = 1;
-                MenuSePlay(1);
+                MenuSePlay(SYSTEM_SE_DECIDE);
             }
 
             s16 message_mode = message_type;
@@ -1604,7 +1632,7 @@ s32 CNameRegiMenu::KeyStep() {
 
                 if (answer == 1) {
                     event = 1;
-                    MenuSePlay(1);
+                    MenuSePlay(SYSTEM_SE_DECIDE);
 
                     if (Nameregi_Target.target == NAMEREGI_TARGET_SPHIDA) {
                         Nameregi_Target.keyword[0] = 0;
@@ -1646,7 +1674,7 @@ s32 CNameRegiMenu::KeyStep() {
                 }
 
                 message_open = 0;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
 
             break;
@@ -1688,7 +1716,7 @@ s32 CNameRegiMenu::KeyStep() {
 
                         if (0 <= target) {
                             command_pos = target;
-                            MenuSePlay(0);
+                            MenuSePlay(SYSTEM_SE_CURSOR);
                         } else if (target == -2) {
                             ConvertPositionNameRegi(0);
                             key_arg_no = 1;
@@ -1698,7 +1726,7 @@ s32 CNameRegiMenu::KeyStep() {
                                 CheckKanjiPosition(2, key_table, font_mode);
                             }
 
-                            MenuSePlay(0);
+                            MenuSePlay(SYSTEM_SE_CURSOR);
                             break;
                         }
                     }
@@ -1754,7 +1782,7 @@ s32 CNameRegiMenu::KeyStep() {
                         }
 
                         if (previous_row != selection->row) {
-                            MenuSePlay(0);
+                            MenuSePlay(SYSTEM_SE_CURSOR);
                         }
                     }
 
@@ -1776,10 +1804,10 @@ s32 CNameRegiMenu::KeyStep() {
                     if (result == -1) {
                         ConvertPositionNameRegi(1);
                         key_arg_no = 0;
-                        MenuSePlay(0);
+                        MenuSePlay(SYSTEM_SE_CURSOR);
                     } else {
                         if (previous_position != selection->pos) {
-                            MenuSePlay(0);
+                            MenuSePlay(SYSTEM_SE_CURSOR);
                         }
 
                         if ((pushed & 1) || (pushed & 4)) {
@@ -1802,23 +1830,23 @@ s32 CNameRegiMenu::KeyStep() {
     switch (event) {
         case 0x14:
             if (password_input != 0) {
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             } else {
                 select_mode = command_pos;
                 ChangeFontSelectMode(GetActiveFontMode());
-                MenuSePlay(1);
+                MenuSePlay(SYSTEM_SE_DECIDE);
             }
 
             break;
         case 0xA:
             key_arg_no = 1;
             select.row = 0;
-            MenuSePlay(1);
+            MenuSePlay(SYSTEM_SE_DECIDE);
             break;
         case 0xB:
             key_arg_no = 0;
             command_pos = convTbl_1579[GetActiveFontMode()];
-            MenuSePlay(5);
+            MenuSePlay(SYSTEM_SE_CANCEL);
             break;
         case 5: {
             union {
@@ -1842,7 +1870,7 @@ s32 CNameRegiMenu::KeyStep() {
                 name_pos = NameRegistMax - 1;
             }
 
-            MenuSePlay(1);
+            MenuSePlay(SYSTEM_SE_DECIDE);
             break;
         }
         case 0x46:
@@ -1854,7 +1882,7 @@ s32 CNameRegiMenu::KeyStep() {
 
             button_flash[5] = 8;
             caret_cnt = 0x28;
-            MenuSePlay(1);
+            MenuSePlay(SYSTEM_SE_DECIDE);
             break;
         case 0x47:
             name_pos += 1;
@@ -1865,10 +1893,10 @@ s32 CNameRegiMenu::KeyStep() {
 
             button_flash[6] = 8;
             caret_cnt = 0x28;
-            MenuSePlay(1);
+            MenuSePlay(SYSTEM_SE_DECIDE);
             break;
         case 0x64: {
-            MenuSePlay(5);
+            MenuSePlay(SYSTEM_SE_CANCEL);
             s32 index = name_pos;
 
             if (index != 0) {
@@ -1899,7 +1927,7 @@ s32 CNameRegiMenu::KeyStep() {
             name[NameRegistMax] = 0;
             button_flash[8] = 8;
             caret_cnt = 0x28;
-            MenuSePlay(5);
+            MenuSePlay(SYSTEM_SE_CANCEL);
             break;
         }
         case 0x78: {
@@ -1913,12 +1941,12 @@ s32 CNameRegiMenu::KeyStep() {
             name[NameRegistMax] = 0;
             button_flash[9] = 8;
             caret_cnt = 0x28;
-            MenuSePlay(1);
+            MenuSePlay(SYSTEM_SE_DECIDE);
             break;
         }
         case 0x82:
             if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             } else {
                 mode = NAMEREGI_MODE_MESSAGE;
                 message_open = 1;
@@ -1947,14 +1975,14 @@ s32 CNameRegiMenu::KeyStep() {
                 }
 
                 message->SetMsgItemNo(arguments.name, 2);
-                MenuSePlay(1);
+                MenuSePlay(SYSTEM_SE_DECIDE);
             }
 
             break;
         case 0x83:
             message_open = 0;
             mode = NAMEREGI_MODE_INPUT;
-            MenuSePlay(1);
+            MenuSePlay(SYSTEM_SE_DECIDE);
             memset(name, 0, 0x61);
 
             if (Nameregi_Target.target == NAMEREGI_TARGET_KEYWORD) {
@@ -2038,7 +2066,7 @@ s32 CNameRegiMenu::KeyStep() {
             CheckInputWord(name);
 
             if ((s32) strlen(name) <= 0) {
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
                 break;
             }
 
@@ -2070,13 +2098,13 @@ s32 CNameRegiMenu::KeyStep() {
                         message->ClsMes::mes_no = -1;
                         message->MakeMsg(0x1011);
                         message->SetMsgCursor(-1);
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     } else {
                         Nameregi_Target.item->Init();
                         Nameregi_Target.item->used_type = 6;
                         Nameregi_Target.item->SetName((char *) key_text);
                         Nameregi_Target.item->TransToData((char *) decoded, 0xE);
-                        MenuSePlay(1);
+                        MenuSePlay(SYSTEM_SE_DECIDE);
                         mode = NAMEREGI_MODE_MESSAGE;
                         message->MsgPreset(0xA);
                         message->SetAbsPos(5);
@@ -2114,7 +2142,7 @@ s32 CNameRegiMenu::KeyStep() {
                     NameMessageArguments arguments = {{NULL, NULL}};
                     arguments.name[0] = old_name;
                     message->SetMsgItemNo(arguments.name, 2);
-                    MenuSePlay(1);
+                    MenuSePlay(SYSTEM_SE_DECIDE);
                     break;
                 }
             } else {
@@ -2140,14 +2168,14 @@ s32 CNameRegiMenu::KeyStep() {
                 }
 
                 message->SetMsgItemNo(arguments.name, 1);
-                MenuSePlay(1);
+                MenuSePlay(SYSTEM_SE_DECIDE);
             }
             break;
         }
         case 0x1F9:
             mode = NAMEREGI_MODE_INPUT;
             message_open = 0;
-            MenuSePlay(5);
+            MenuSePlay(SYSTEM_SE_CANCEL);
             break;
         case 2:
             if (Nameregi_Target.target == NAMEREGI_TARGET_KEYWORD) {
@@ -2159,7 +2187,7 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetMsgCursor(1);
                 mode = NAMEREGI_MODE_MESSAGE;
                 message->MakeMsg(0xFB4);
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             } else {
                 mode = NAMEREGI_MODE_MESSAGE;
                 message_type = 0xA;
@@ -2171,7 +2199,7 @@ s32 CNameRegiMenu::KeyStep() {
                 NameMessageArguments arguments = {{NULL, NULL}};
                 arguments.name[0] = old_name;
                 message->SetMsgItemNo(arguments.name, 1);
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
 
                 if (Nameregi_Target.target == NAMEREGI_TARGET_SPHIDA) {
                     message->MsgPreset(0xB);
