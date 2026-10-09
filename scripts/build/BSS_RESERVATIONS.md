@@ -1,10 +1,14 @@
 # BSS reservation evidence
 
-At baseline `0250c35d`, fresh raw linked compiles classify all 156 reservations
-from the earlier audit. Two now have original compiler alignment proof.
-`KeyChangeMain`'s native guard `menuchr:SelectedCmdNo_1415` adds one more, so
-155 placements across 23 units remain explicit unresolved retail storage in
-`postprocess_object.py:BSS_RETAIL_RESERVATIONS`.
+Fresh raw linked compiles classify 157 BSS gaps. Two have original compiler
+alignment proof and need no reservation; the other 155 placements across 23
+units are explicit unresolved retail storage in
+`postprocess_object.py:BSS_RETAIL_RESERVATIONS`. One of them belongs to a
+function-local static: `CMenuChrCngMenu::KeyChangeMain` in `menuchr.cpp`
+declares `static s8 SelectedCmdNo`, which the postprocessor binds to the retail
+slot `SelectedCmdNo_1415`; its one byte at `0x0037e244` is followed by its
+one-byte guard `init_1416` at `0x0037e248`, and the native guard's alignment of
+one does not explain that gap.
 
 | Classification | Count | Evidence |
 |---|---:|---|
@@ -31,9 +35,9 @@ is measured before postprocessing. Links use MWLD 2.4-001213 with
 | `char`, `short`, `int`/`float`/pointer scalar | 1, 2, 4 respectively |
 | `long`, `long long`, `double` scalar | 8 |
 | `__int128` scalar | 16 |
-| Array/struct of 1–4 bytes | 4 |
-| Array/struct of 5–15 bytes | 8 |
-| Array/struct of 16–65,536 bytes | 16 |
+| Array/struct of 1-4 bytes | 4 |
+| Array/struct of 5-15 bytes | 8 |
+| Array/struct of 16-65,536 bytes | 16 |
 
 Initialized aggregates have the same promotions. The small-data threshold is
 eight bytes. Promotions already appear in `sh_addralign`; calculating type
@@ -94,8 +98,7 @@ in `test_bss_original_alignment.py` and `test_data_padding.py`.
 ## Complete inventory
 
 Addresses and sizes are retail declarations. Alignment is the following
-object's current original native section alignment; a dash means absent
-native proof. The two native-alignment rows are excluded from the exception
+object's original native section alignment; `none` means absent native proof. The two native-alignment rows are excluded from the exception
 list. Every other row is an unresolved placement.
 
 | Unit | Owner | Start | Size | Gap | Following object | Alignment | Classification |
@@ -104,9 +107,9 @@ list. Every other row is an unresolved placement.
 | convviewlp | `init_817` | 0x0037eac8 | 1 | 3 | `init_820` | 1 | Four-byte placement |
 | convviewlp | `init_820` | 0x0037eacc | 1 | 3 | `init_823` | 1 | Four-byte placement |
 | convviewlp | `init_823` | 0x0037ead0 | 1 | 3 | `init_826` | 1 | Four-byte placement |
-| dng_debug | `dbFont` | 0x01ecdc30 | 184 | 8 | `dbinfo` | — | Retained following marker |
-| dng_main | `nowload` | 0x01ee5210 | 60 | 4 | `at_941__2` | — | Retained following marker |
-| dng_main | `init_1107` | 0x0037d470 | 1 | 3 | `init_1824` | — | Retained following marker |
+| dng_debug | `dbFont` | 0x01ecdc30 | 184 | 8 | `dbinfo` | none | Retained following marker |
+| dng_main | `nowload` | 0x01ee5210 | 60 | 4 | `at_941__2` | none | Retained following marker |
+| dng_main | `init_1107` | 0x0037d470 | 1 | 3 | `init_1824` | none | Retained following marker |
 | dngmenu | `dngfloor_infoview` | 0x0037d52c | 1 | 3 | `dngfloor_backdraw` | 1 | Four-byte placement |
 | dngmenu | `DngInfoFishOkFlag` | 0x0037d53c | 1 | 3 | `DngInfoSphidaOkFlag` | 1 | Four-byte placement |
 | dngmenu | `DngInfoSphidaOkFlag` | 0x0037d540 | 1 | 3 | `DngAskMessageDrawFlag` | 1 | Four-byte placement |
@@ -217,10 +220,10 @@ list. Every other row is an unresolved placement.
 | menusys | `SpectolBreakNum` | 0x0037dca8 | 2 | 2 | `SpectolBreakSpPoint` | 2 | Four-byte placement |
 | menusys | `MenuSpectolTransPos` | 0x0037dcc0 | 2 | 2 | `itemmenu_chr_rotflag` | 1 | Four-byte placement |
 | menusys | `itemmenu_chr_rotflag` | 0x0037dcc4 | 1 | 3 | `sndflag_1665` | 1 | Four-byte placement |
-| menusys | `MenuDebugCamera` | 0x0037dd88 | 4 | 4 | `at_6133` | — | Retained following marker |
+| menusys | `MenuDebugCamera` | 0x0037dd88 | 4 | 4 | `at_6133` | none | Retained following marker |
 | menusys | `init_4683` | 0x0037dd3c | 1 | 3 | `BuildEndFlag_4703` | 1 | Four-byte placement |
 | menusys | `BuildEndFlag_4703` | 0x0037dd40 | 1 | 3 | `init_4704` | 1 | Four-byte placement |
-| menusys | `init_6162` | 0x0037dd9c | 1 | 3 | `at_6176` | — | Retained following marker |
+| menusys | `init_6162` | 0x0037dd9c | 1 | 3 | `at_6176` | none | Retained following marker |
 | menusys | `cmd_counter_1048` | 0x0037dc8c | 1 | 3 | `init_1049` | 1 | Four-byte placement |
 | menusys | `sndflag_1665` | 0x0037dcc8 | 1 | 3 | `init_1666` | 1 | Four-byte placement |
 | menusys | `count_time_3839` | 0x0037dd08 | 1 | 3 | `init_3840` | 1 | Four-byte placement |
@@ -243,9 +246,9 @@ list. Every other row is an unresolved placement.
 | sound | `msinBfCtx` | 0x003f3f80 | 72 | 56 | `msinBf` | 16 | Larger gap |
 | title | `TitleOmakeFlag` | 0x0037e0cc | 2 | 2 | `TitleMCCheckBootMode` | 1 | Four-byte placement |
 | title | `TitlePhase` | 0x0037e038 | 2 | 2 | `TitlePushStart_AlphaPlus` | 2 | Four-byte placement |
-| title | `TitleMCActivePort` | 0x0037e024 | 2 | 2 | `TitleMCCheckNow` | — | Retained following marker |
-| title | `DCSelectedMovie` | 0x0037e008 | 1 | 3 | `DCRuncherCounter` | — | Retained following marker |
-| title | `TitleRushWaitCountBoot` | 0x0037dfd4 | 1 | 3 | `TitleSelectInit` | — | Retained following marker |
+| title | `TitleMCActivePort` | 0x0037e024 | 2 | 2 | `TitleMCCheckNow` | none | Retained following marker |
+| title | `DCSelectedMovie` | 0x0037e008 | 1 | 3 | `DCRuncherCounter` | none | Retained following marker |
+| title | `TitleRushWaitCountBoot` | 0x0037dfd4 | 1 | 3 | `TitleSelectInit` | none | Retained following marker |
 | title | `debug_start_drawflag` | 0x0037e098 | 1 | 3 | `HDDPhase` | 2 | Four-byte placement |
 | title | `TitleCopyRightDispPhase` | 0x0037e044 | 1 | 3 | `TitleCopyRightDispCounter` | 2 | Four-byte placement |
 | title | `TitleCopyRightDispCounter` | 0x0037e048 | 2 | 2 | `TitleSkipLogoFlag` | 1 | Four-byte placement |
@@ -253,7 +256,7 @@ list. Every other row is an unresolved placement.
 | title | `HDDConfirmType` | 0x0037e0a0 | 2 | 2 | `HDDnowDisplayImageNo` | 2 | Four-byte placement |
 | title | `HDDnowDisplayImageNo` | 0x0037e0a4 | 2 | 2 | `HDDDlBarDrawFlag` | 1 | Four-byte placement |
 | title | `HDDModeSelect` | 0x0037e0c8 | 2 | 2 | `TitleOmakeFlag` | 2 | Four-byte placement |
-| title | `TitleSkipLogoFlag` | 0x0037e04c | 1 | 3 | `Tex_TitleBG` | — | Retained following marker |
+| title | `TitleSkipLogoFlag` | 0x0037e04c | 1 | 3 | `Tex_TitleBG` | none | Retained following marker |
 | title | `TitleMCCheckBootMode` | 0x0037e0d0 | 1 | 3 | `TitleMCCheckPort` | 2 | Four-byte placement |
 | title | `TitleMCCheckPort` | 0x0037e0d4 | 2 | 2 | `TitleMCCheckPhase` | 2 | Four-byte placement |
-| title | `MasterDebugModeOn` | 0x0037dffc | 1 | 3 | `TitleBootEventNo` | — | Retained following marker |
+| title | `MasterDebugModeOn` | 0x0037dffc | 1 | 3 | `TitleBootEventNo` | none | Retained following marker |

@@ -5,8 +5,7 @@ plain `wibo`; library and data-only assembly use GNU `as`. The Docker image
 builds a pinned Satan's Fiddle revision and includes LLDB and an unstripped
 `wibo`, so local container builds and CI use the same compiler wrapper. For
 builds outside the container, build Satan's Fiddle with its documented Linux,
-Rust, LLDB and unstripped `wibo` prerequisites. Reuse the existing checkout in
-cloud tasks; no worktree is needed for setup.
+Rust, LLDB and unstripped `wibo` prerequisites.
 
 Objdiff's source-only base objects use the same adapter, profile, options and
 logical translation-unit name as the linked objects. They omit mwccgap so

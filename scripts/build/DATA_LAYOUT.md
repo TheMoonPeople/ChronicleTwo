@@ -125,7 +125,7 @@ original extent to equal the complete declared retail object, with matching
 resolved bytes and relocation shapes. Appended piece padding cannot establish
 that original extent; a missing declaration or a truncated copy rejects removal.
 A terminal datum retains its declared extent when its end equals the generated
-linker script’s `contents_end`. The checker accepts larger linker-owned tails
+linker script's `contents_end`. The checker accepts larger linker-owned tails
 only with no retail relocations, complete zero initialized bytes and a length
 below `min(end & -end, 128)`. This is an upper bound from the following run's
 address, rather than a proof of its original compiler or linker alignment.
