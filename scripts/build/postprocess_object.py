@@ -228,7 +228,9 @@ BSS_RETAIL_RESERVATIONS = {
     ('menuchr', 'MenuDebugChangeSelectMode'):
         ('.sbss', 0x0037e23c, 0x2, 'MenuDebugCharaChangeSelect', 0x0037e240, 0x2, (2,)),
     ('menuchr', 'MenuDebugCharaChangeSelect'):
-        ('.sbss', 0x0037e240, 0x2, 'SelectedCmdNo_1415', 0x0037e244, 0x1, (None,)),
+        ('.sbss', 0x0037e240, 0x2, 'SelectedCmdNo_1415', 0x0037e244, 0x1, (1,)),
+    ('menuchr', 'SelectedCmdNo_1415'):
+        ('.sbss', 0x0037e244, 0x1, 'init_1416', 0x0037e248, 0x1, (1,)),
     ('menuchr', 'NowMainCharaChngStatusBit'):
         ('.sbss', 0x0037e2c0, 0x2, 'MenuNPCLoadFlag', 0x0037e2c4, 0x1, (1,)),
     ('menucommon', 'MenuTexPosNo'):

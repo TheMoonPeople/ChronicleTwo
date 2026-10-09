@@ -83,7 +83,7 @@ next retail start. Searching for an alignment that happens to fit an address
 supplies no proof.
 
 Unresolved retail storage is listed separately in
-`postprocess_object.py:BSS_RETAIL_RESERVATIONS`: 154 exact placements across
+`postprocess_object.py:BSS_RETAIL_RESERVATIONS`: 155 exact placements across
 23 units. Every entry fixes the unit, owner, section kind, address, declared
 size and following object's name, address and declared size. These exceptions
 preserve existing retail piece extents; they do not establish compiler alignment,

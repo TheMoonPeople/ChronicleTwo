@@ -553,3 +553,15 @@ With `CMenuChrCngMenu::LoadBGNPCModel`, `CMenuCostumeSel::LoadMenuData` and
 (`"fukusen"`), `at_5053` (`"mnmain"`) and `at_5839` (the standing motion
 name). Their extern declarations and markers are gone, and the inventory rows
 above that call those three methods frozen are superseded. Markers: **31**.
+
+## KeyChangeMain data (October 9)
+
+With `CMenuChrCngMenu::KeyChangeMain` native, its 21 literals
+`at_2003__2`–`at_2023` are inline at their uses (`at_2011` is spelled as two
+adjacent strings so `END` does not join the preceding hex escape), the static
+`SelectedCmdNo$1415` and guard `init$1416` come from the function-local
+`static s8 SelectedCmdNo = -1`, and the templates `at_1650__2`, `at_1684__2`
+and `at_1806__2` come from `char *names[1]`, `int answers[2]` and
+`int volume[8]` initializers. Their externs, the three wrapper types and all
+26 markers are gone, and the inventory rows above that call KeyChangeMain
+frozen are superseded. Markers: **5**.

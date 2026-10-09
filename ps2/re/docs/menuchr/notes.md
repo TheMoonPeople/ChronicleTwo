@@ -4,7 +4,7 @@
 `CMosBookMenu::KeyStep` are native C++ with three expected-one after-inline
 `CActionChara` rows; see [placement conversion](../satansfiddle/placement-new.md).
 The matching build uses retail gaps for the C++ drafts still guarded by
-`NONMATCHING`: `KeyChangeMain`, `MenuCharaChangeInit` and `MenuCostumeInit`.
+`NONMATCHING`: `MenuCharaChangeInit` and `MenuCostumeInit`.
 `CMenuMosSelect::KeyStep` is native;
 see [the KeyStep promotion](night-20261008.md#keystep-promoted) and
 [the round-three review fixes](review-fixes-r3-20261009.md).
@@ -72,6 +72,21 @@ font sequence and matches with its six native drawing tables; see
 Before their placement rows, `CMenuCostumeSel::LoadMenuData` and
 `CMosBookMenu::KeyStep` each differed by the same two branch/move instructions
 as `LoadBGNPCModel`. Both current bodies are accepted native C++.
+`CMenuChrCngMenu::KeyChangeMain` is native. Its cursor table
+`nextIDtbl_1594` is a flat 40-entry array read as `[select * 8 + dir]`:
+retail adds the direction before the row offset, while every
+`[select][dir]` form adds the row first. Cancelling in the dungeon variant
+writes `action = 5` before the HP test and again in the test's then-arm. That
+repeated same-value store is the one accepted redundant form: retail's
+then-block is a leftover `b break; nop`, so the original arm held a statement
+that survived block layout and was removed afterwards. An empty arm, `;`,
+`(void) 0`, `do {} while (0)`, `if (0)`, an empty inline call and
+`action = action` are removed before layout, and `break` in the arm does not
+match; see [night-20261008.md](night-20261008.md). Its 21 script and map
+names are inline literals, the remembered command is the function-local
+`static s8 SelectedCmdNo = -1` with its compiler guard, and the name, answer
+and gift-volume arrays use aggregate initializers whose zero templates MWCC
+emits (`at_1650__2`, `at_1684__2`, `at_1806__2`).
 `KeyStep` advances its background scroll in place (`bg_scroll += 0.5f`, then
 subtracts 256 once it reaches zero); computing `bg_scroll + 0.5f` into a local
 first commutes retail's `add.s` operands. Its preview model is placed with

@@ -1,18 +1,19 @@
 # BSS reservation evidence
 
 At baseline `0250c35d`, fresh raw linked compiles classify all 156 reservations
-from the earlier audit. Two now have original compiler alignment proof;
-154 placements across 23 units remain explicit unresolved retail storage in
+from the earlier audit. Two now have original compiler alignment proof.
+`KeyChangeMain`'s native guard `menuchr:SelectedCmdNo_1415` adds one more, so
+155 placements across 23 units remain explicit unresolved retail storage in
 `postprocess_object.py:BSS_RETAIL_RESERVATIONS`.
 
 | Classification | Count | Evidence |
 |---|---:|---|
 | Native alignment | 2 | Exact following native extent and original alignment explain the gap. |
-| Four-byte placement | 139 | Retail small-data placement fits minimum-four-byte alignment; its original policy is unproved. |
-| Retained following marker | 11 | The following retail object has no native alignment proof. |
+| Four-byte placement | 141 | Retail small-data placement fits minimum-four-byte alignment; its original policy is unproved. |
+| Retained following marker | 10 | The following retail object has no native alignment proof. |
 | Larger gap | 4 | Original following alignment contradicts the observed gap. |
 
-The four-byte group contains 137 scalar/guard slots and two aggregate slots:
+The four-byte group contains 139 scalar/guard slots and two aggregate slots:
 `editmenu:GeoramaMesMakeManner` is five bytes followed by a short;
 `menuaqua:GyoraceFishSel` is six bytes followed by a byte. Their own alignment
 of eight does not round their tails under default MWLD.
@@ -170,7 +171,8 @@ list. Every other row is an unresolved placement.
 | menuaqua | `save_now_space_racer_no_5180` | 0x0037d9b0 | 1 | 3 | `init_5181` | 1 | Four-byte placement |
 | menuchr | `NowMainCharaChngStatusBit` | 0x0037e2c0 | 2 | 2 | `MenuNPCLoadFlag` | 1 | Four-byte placement |
 | menuchr | `MenuDebugChangeSelectMode` | 0x0037e23c | 2 | 2 | `MenuDebugCharaChangeSelect` | 2 | Four-byte placement |
-| menuchr | `MenuDebugCharaChangeSelect` | 0x0037e240 | 2 | 2 | `SelectedCmdNo_1415` | — | Retained following marker |
+| menuchr | `MenuDebugCharaChangeSelect` | 0x0037e240 | 2 | 2 | `SelectedCmdNo_1415` | 1 | Four-byte placement |
+| menuchr | `SelectedCmdNo_1415` | 0x0037e244 | 1 | 3 | `init_1416` | 1 | Four-byte placement |
 | menuchr | `menu_debug_npc_decide` | 0x0037e238 | 1 | 3 | `MenuDebugChangeSelectMode` | 2 | Four-byte placement |
 | menuchr | `menu_debug_npcselect` | 0x0037e234 | 1 | 3 | `menu_debug_npc_decide` | 1 | Four-byte placement |
 | menucommon | `MenuTexPosNo` | 0x0037de3c | 2 | 2 | `MenuTexPosNo_local` | 2 | Four-byte placement |
