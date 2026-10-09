@@ -36,8 +36,20 @@ int  TakeBomb();
 int  ThrowBomb(float *velocity);
 int  NowPutBomb();
 
-extern mgCMemory    EffectBuff;
-extern sgCPlayVoice PolVoice;
+/**
+ *
+ * Heap the buggy game's effect scripts allocate from.
+ *
+ */
+static mgCMemory EffectBuff;
+
+/**
+ *
+ * Voice clip played for Pol during the buggy game.
+ *
+ */
+static sgCPlayVoice PolVoice __attribute__((aligned(16)));
+
 void                CharaControl(CScene *scene, CPadControl *pad);
 
 extern char              at_962__4[];
@@ -59,207 +71,289 @@ extern BuggyQuad   at_1193;
 extern BuggyQuad   at_1074__4;
 
 /**
+ *
  * Remaining hits the buggy can withstand.
+ *
  */
 static int BuggyHP = 1;
 
 /**
+ *
  * Enemy buggy character.
+ *
  */
-static CCharacter2      * BuggyChara;
+static CCharacter2 *BuggyChara;
 
 /**
+ *
  * Porcuss character in the buggy game.
+ *
  */
-static CCharacter2 * PorcussChara;
+static CCharacter2 *PorcussChara;
 
 /**
+ *
  * Muccho character in the buggy game.
+ *
  */
-static CCharacter2 * MucchoChara;
+static CCharacter2 *MucchoChara;
 
 /**
+ *
  * Bomb character manipulated by the player.
+ *
  */
-static CCharacter2      * BombChara;
+static CCharacter2 *BombChara;
 
 /**
+ *
  * Starbull character in the buggy game.
+ *
  */
-static CCharacter2 * StarbullChara;
+static CCharacter2 *StarbullChara;
 
 /**
+ *
  * Gun muzzle-flash character.
+ *
  */
-static CCharacter2 * GunFireEff;
+static CCharacter2 *GunFireEff;
 
 /**
+ *
  * Gun impact-effect character.
+ *
  */
-static CCharacter2 * GunHitEff;
+static CCharacter2 *GunHitEff;
 
 /**
+ *
  * Handle of the bomb explosion effect.
+ *
  */
 static int BombEffHandle;
 
 /**
+ *
  * Handle of the buggy smoke effect.
+ *
  */
 static int SmokeEffHandle;
 
 /**
+ *
  * Texture block for the buggy character.
+ *
  */
 static int BuggyTexb;
 
 /**
+ *
  * Texture block for Porcuss.
+ *
  */
 static int PorcussTexb;
 
 /**
+ *
  * Texture block for Muccho.
+ *
  */
 static int MucchoTexb;
 
 /**
+ *
  * First texture block for buggy effects.
+ *
  */
-static int EffectTexb__2;
+static int EffectTexb;
 
 /**
+ *
  * Number of texture blocks reserved for buggy effects.
+ *
  */
 static int EffectTexbNum;
 
 /**
+ *
  * Texture block for the bomb character.
+ *
  */
 static int BombTexb;
 
 /**
+ *
  * Texture block for Starbull.
+ *
  */
 static int StarbullTexb;
 
 /**
+ *
  * Texture block for gun effects.
+ *
  */
 static int GunEffTexb;
 
 /**
+ *
  * Texture block for the buggy HUD.
+ *
  */
 static int SysTexb;
 
 /**
+ *
  * Script manager for buggy-game effects.
+ *
  */
-static CEffectScriptMan * EffectMan__2;
+static CEffectScriptMan *EffectMan;
 
 /**
+ *
  * End event queued until the fade completes.
+ *
  */
-static int RunEventNo__2;
+static int RunEventNo;
 
 /**
+ *
  * Work buffer allocated for the buggy game.
+ *
  */
-static u8 * WorkBuff;
+static u8 *WorkBuff;
 
 /**
+ *
  * Sound-bank identifier for the buggy game.
+ *
  */
 static int BuggySndID;
 
 /**
+ *
  * Whether the introductory help message is active.
+ *
  */
 static int IntroHelpMesFlag;
 
 /**
+ *
  * Current bomb interaction state of the player.
+ *
  */
 static int CharaStatus;
 
 /**
+ *
  * Current buggy action state.
+ *
  */
 static u32 BuggyStatus;
 
 /**
+ *
  * Step within the current buggy action state.
+ *
  */
 static u32 BuggyStatusStep;
 
 /**
+ *
  * Smoothed buggy health used by the HUD.
+ *
  */
 static float BuggyHPf;
 
 /**
+ *
  * Health of the train defended by the player.
+ *
  */
 static float TrainHP;
 
 /**
+ *
  * Frames remaining in the current buggy action.
+ *
  */
 static int BuggyActCount;
 
 /**
+ *
  * Side of the train used by the buggy.
+ *
  */
 static int BuggySidePos;
 
 /**
+ *
  * Left or right damage animation selected for the buggy.
+ *
  */
 static u32 BuggyDamageMotion;
 
 /**
+ *
  * Frames remaining to draw the muzzle-flash character.
+ *
  */
 static int GunFireEffDraw;
 
 /**
+ *
  * Frames remaining to draw the impact-effect character.
+ *
  */
 static int GunHitEffDraw;
 
 /**
+ *
  * Current state of the player's bomb.
+ *
  */
 static u32 BombStatus;
 
 /**
+ *
  * Countdown for the current bomb state.
+ *
  */
 static int BombCount;
 
 /**
+ *
  * Whether impact has stopped the explosion movement.
+ *
  */
 static u32 BombHitObj;
 
 /**
+ *
  * Frames remaining in the explosion damage window.
+ *
  */
 static int BombImpact;
 
 /**
+ *
  * World position of Starbull.
+ *
  */
 static float StarbullPos[4];
 
 /**
+ *
  * Velocity of the buggy.
+ *
  */
 static float BuggyVelo[4];
 
 /**
+ *
  * Velocity of the bomb.
+ *
  */
 static float BombVelo[4];
 
@@ -306,7 +400,7 @@ int sgInitBuggy(SubGameInfo *info) {
     StarbullTexb = BombTexb + 1;
     GunEffTexb = StarbullTexb + 1;
     SysTexb = GunEffTexb + 1;
-    EffectTexb__2 = SysTexb + 1;
+    EffectTexb = SysTexb + 1;
     scene = info->scene;
     player = scene->GetCharacter(scene->player_chara);
 
@@ -440,15 +534,15 @@ int sgInitBuggy(SubGameInfo *info) {
 
     effects = new (stack->Alloc((sizeof(CEffectScriptMan) + 15) / 16 + 2)) CEffectScriptMan;
 
-    effects->Initialize(stack, EffectTexb__2, EffectTexbNum);
+    effects->Initialize(stack, EffectTexb, EffectTexbNum);
     effects->load_buffer = (u_long128 *) pack;
     effects->SetWorkBuffer(&EffectBuff);
     effects->LoadBaseEffSpt("\x94\x9a\x94\xad", NULL, -1);
     effects->LoadBaseEffSpt("\x83o\x83M\x81[\x8d\xbb\x89\x8c", NULL, -1);
     scene->AssignEffect(7, effects, NULL);
-    EffectMan__2 = scene->GetEffect(7);
+    EffectMan = scene->GetEffect(7);
 
-    if (EffectMan__2 == NULL) {
+    if (EffectMan == NULL) {
         return 0;
     }
 
@@ -465,7 +559,7 @@ int sgInitBuggy(SubGameInfo *info) {
     InitBomb(scene);
     CharaStatus = 0;
     player->SetMotion("\x83o\x83g\x83\x8b\x97\xa7\x82\xbf", CHARA_MOTION_RESTART);
-    RunEventNo__2 = -1;
+    RunEventNo = -1;
     player->SetPosition(0.0f, 134.0f, -340.0f);
     player->SetRotation(0.0f, 0.0f, 0.0f);
     camera = static_cast<CCameraControl *>(scene->GetCamera(scene->active_camera));
@@ -511,7 +605,7 @@ int sgExitBuggy(SubGameInfo *info) {
     j = 0;
 
     do {
-        scene->DeleteChara(j + 0x40);
+        scene->DeleteChara(j + BUGGY_CHARA_BUGGY);
         j++;
     } while (j < 0x28);
 
@@ -564,19 +658,19 @@ int sgLoopBuggy(SubGameInfo *info) {
     BombChara->Step();
     StarbullChara->Step();
 
-    if (RunEventNo__2 <= 0) {
+    if (RunEventNo <= 0) {
         if (BuggyHP <= 0) {
-            RunEventNo__2 = 0x1F7;
+            RunEventNo = 0x1F7;
             scene->fade.FadeOut(0x1E, 0.0f, 0.0f, 0.0f);
         }
 
         if (TrainHP <= 0.0f) {
-            RunEventNo__2 = 0x1F6;
+            RunEventNo = 0x1F6;
             scene->fade.FadeOut(0x5A, 0.0f, 0.0f, 0.0f);
         }
     } else if (scene->fade.FadeCheck() != 0) {
         scene->loop_se.AllSeStop();
-        scene->RunEvent(RunEventNo__2, NULL);
+        scene->RunEvent(RunEventNo, NULL);
         sgExitBuggy(info);
         return 1;
     }
@@ -588,11 +682,11 @@ int sgDrawBuggy(SubGameInfo *info) {
     CScene *scene;
 
     scene = info->scene;
-    scene->DrawChara(0x40, 1);
-    scene->DrawChara(0x41, 1);
-    scene->DrawChara(0x42, 1);
-    scene->DrawChara(0x44, 1);
-    scene->DrawChara(0x43, 1);
+    scene->DrawChara(BUGGY_CHARA_BUGGY, 1);
+    scene->DrawChara(BUGGY_CHARA_PORCUSS, 1);
+    scene->DrawChara(BUGGY_CHARA_MUCCHO, 1);
+    scene->DrawChara(BUGGY_CHARA_STARBULL, 1);
+    scene->DrawChara(BUGGY_CHARA_BOMB, 1);
     return 1;
 }
 
@@ -602,13 +696,13 @@ int sgEffectDrawBuggy(SubGameInfo *info) {
     if (GunFireEffDraw > 0) {
         GunFireEffDraw--;
         GunFireEff->Step();
-        scene->DrawChara(0x45, 1);
+        scene->DrawChara(BUGGY_CHARA_GUN_FIRE, 1);
     }
 
     if (GunHitEffDraw > 0) {
         GunHitEffDraw--;
         GunHitEff->Step();
-        scene->DrawChara(0x46, 1);
+        scene->DrawChara(BUGGY_CHARA_GUN_HIT, 1);
     }
 
     return 1;
@@ -722,6 +816,18 @@ enum BUGGY_CHARA_STATE {
     BUGGY_CHARA_PICKING_UP = 2,   /**< Takes the bomb during its pickup motion. */
     BUGGY_CHARA_CARRYING = 3,     /**< Moves with the bomb and accepts a throw. */
     BUGGY_CHARA_THROWING = 4,     /**< Releases the bomb during its throw motion. */
+};
+
+/**
+ *
+ * Actions of the enemy buggy, each stepped by BuggyStatusStep.
+ *
+ */
+enum BUGGY_STATE {
+    BUGGY_STATE_DRIVE = 0,  /**< Drives along while its action timer runs down. */
+    BUGGY_STATE_JUMP = 1,   /**< Jumps across to the other side of the track. */
+    BUGGY_STATE_DAMAGE = 2, /**< Plays the damage reaction after a bomb hit. */
+    BUGGY_STATE_ATTACK = 3, /**< Fires the gun from its current side. */
 };
 
 /**
@@ -973,9 +1079,9 @@ void InitBuggy(CScene *scene) {
     float z = -1100.0f;
     BuggyChara->SetPosition(x, y, z);
     BuggySidePos = 1;
-    BuggyStatus = 0;
+    BuggyStatus = BUGGY_STATE_DRIVE;
     BuggyStatusStep = 0;
-    SmokeEffHandle = EffectMan__2->CreateEffSpt(at_962__4, 0x40, 1);
+    SmokeEffHandle = EffectMan->CreateEffSpt(at_962__4, 0x40, 1);
     BuggyHP = 3;
     BuggyHPf = 3.0f;
     TrainHP = 1.0f;
@@ -991,9 +1097,9 @@ void InitBuggy(CScene *scene) {
  *
  */
 void BuggyDamage(int damage_motion) {
-    if (BuggyStatus != 1) {
+    if (BuggyStatus != BUGGY_STATE_JUMP) {
         BuggyDamageMotion = damage_motion;
-        BuggyStatus = 2;
+        BuggyStatus = BUGGY_STATE_DAMAGE;
         BuggyStatusStep = 0;
         BuggyActCount = 1;
         BombHitObj = 1;
@@ -1058,12 +1164,12 @@ void BuggyControl(CScene *scene) {
     }
 
     switch (BuggyStatus) {
-        case 0:
+        case BUGGY_STATE_DRIVE:
             BuggyChara->SetMotion("\x91\x96\x8ds", 0);
             BuggyActCount--;
             PlayBuggyLoopSe(scene, 2);
             break;
-        case 3:
+        case BUGGY_STATE_ATTACK:
             PlayBuggyLoopSe(scene, 2);
 
             switch (BuggyStatusStep) {
@@ -1111,7 +1217,7 @@ void BuggyControl(CScene *scene) {
             }
 
             break;
-        case 1:
+        case BUGGY_STATE_JUMP:
             switch (BuggyStatusStep) {
                 case 0:
                     BuggyChara->SetMotion("\x83W\x83\x83\x83\x93\x83v", 6);
@@ -1171,7 +1277,7 @@ void BuggyControl(CScene *scene) {
             }
 
             break;
-        case 2:
+        case BUGGY_STATE_DAMAGE:
             switch (BuggyStatusStep) {
                 case 0:
                     sndSePlay(BuggySndID, 0x12, 0);
@@ -1200,7 +1306,7 @@ void BuggyControl(CScene *scene) {
                     break;
                 case 1:
                     if (BuggyChara->CheckMotionEnd() != 0) {
-                        BuggyStatus = 0;
+                        BuggyStatus = BUGGY_STATE_DRIVE;
                         BuggyActCount = 0x3C;
                         BuggyStatusStep = 0;
                     }
@@ -1214,9 +1320,9 @@ void BuggyControl(CScene *scene) {
     BuggyChara->GetEntryObjectPos(0, entry_position);
 
     if (!(entry_position[1] <= 40.0f)) {
-        EffectMan__2->Pause(1, 0x40, SmokeEffHandle);
+        EffectMan->Pause(1, 0x40, SmokeEffHandle);
     } else {
-        EffectMan__2->Pause(0, 0x40, SmokeEffHandle);
+        EffectMan->Pause(0, 0x40, SmokeEffHandle);
     }
 
     if (BuggyActCount <= 0) {
@@ -1227,15 +1333,15 @@ void BuggyControl(CScene *scene) {
 
         switch (test % 3) {
             case 0:
-                BuggyStatus = 0;
+                BuggyStatus = BUGGY_STATE_DRIVE;
                 BuggyActCount = rand() % 60 + 60;
                 break;
             case 1:
-                BuggyStatus = 3;
+                BuggyStatus = BUGGY_STATE_ATTACK;
                 BuggyActCount = 99999;
                 break;
             case 2:
-                BuggyStatus = 1;
+                BuggyStatus = BUGGY_STATE_JUMP;
                 BuggyActCount = 999991;
                 break;
         }
@@ -1243,7 +1349,7 @@ void BuggyControl(CScene *scene) {
         test++;
     }
 
-    if (BuggyStatus != 1) {
+    if (BuggyStatus != BUGGY_STATE_JUMP) {
         BuggyVelo[0] += 0.5f * (mgRnd() - 0.5f);
         BuggyVelo[2] += 0.5f * (mgRnd() - 0.5f);
 
@@ -1309,8 +1415,8 @@ void BuggyControl(CScene *scene) {
  *
  */
 void InitBomb(CScene *scene) {
-    BombStatus = 3;
-    scene->SetActive(1, 67);
+    BombStatus = BUGGY_BOMB_PLACED;
+    scene->SetActive(1, BUGGY_CHARA_BOMB);
     BombChara->SetPosition(-0.8f, 136.5f, -320.0f);
     StarbullPos[0] = 0.0f;
     StarbullPos[1] = 113.0f;
@@ -1326,8 +1432,7 @@ void InitBomb(CScene *scene) {
  *
  */
 int TakeBombCheck() {
-
-    return (BombStatus != 3) ^ 1;
+    return (BombStatus != BUGGY_BOMB_PLACED) ^ 1;
 }
 
 /**
@@ -1340,7 +1445,7 @@ int TakeBomb() {
         return 0;
     }
 
-    BombStatus = 4;
+    BombStatus = BUGGY_BOMB_CARRIED;
     return 1;
 }
 
@@ -1353,7 +1458,7 @@ int ThrowBomb(float *velocity) {
     float matrix[4][4];
     BombCount = 0x32;
     *(u_long128 *) BombVelo = *(u_long128 *) velocity;
-    BombStatus = 6;
+    BombStatus = BUGGY_BOMB_THROWN;
     BombHitObj = 0;
     mgCFrame *frame = BombChara->CObjectFrame::frame;
     frame->GetLWMatrix(matrix);
@@ -1370,7 +1475,7 @@ int ThrowBomb(float *velocity) {
  *
  */
 int BombBomb() {
-    if (BombStatus == 6) {
+    if (BombStatus == BUGGY_BOMB_THROWN) {
         mgZeroVector(BombVelo);
         BombCount = 0;
         BombHitObj = 1;
@@ -1386,7 +1491,7 @@ int BombBomb() {
  *
  */
 int NowPutBomb() {
-    return BombStatus == 3;
+    return BombStatus == BUGGY_BOMB_PLACED;
 }
 
 /**
@@ -1415,15 +1520,15 @@ void BombControl(CScene *scene) {
 
     int status = BombStatus;
 
-    if (status == 1) {
+    if (status == BUGGY_BOMB_RELOAD_START) {
         reload_cnt = 0;
         BombImpact = 0;
         StarbullChara->SetMotion("\x94\x9a\x92" "e\x82\xf0\x8e\xe6\x82\xe9", 6);
         BombChara->SetPosition(0.0f, 0.0f, 0.0f);
         BombChara->UpdatePosition();
-        BombStatus = 2;
-        scene->ResetActive(1, 0x43);
-    } else if (status == 2) {
+        BombStatus = BUGGY_BOMB_RELOADING;
+        scene->ResetActive(1, BUGGY_CHARA_BOMB);
+    } else if (status == BUGGY_BOMB_RELOADING) {
         float     frame_now = StarbullChara->GetNowFrame();
         float     frame_next = frame_now + StarbullChara->GetStep();
         mgCFrame *hand_frame = StarbullChara->CObjectFrame::frame;
@@ -1438,7 +1543,7 @@ void BombControl(CScene *scene) {
         }
 
         if (!(frame_now < 18.0f)) {
-            scene->SetActive(1, 0x43);
+            scene->SetActive(1, BUGGY_CHARA_BOMB);
         }
 
         if (frame_now <= 30.9f && !(frame_next <= 30.9f)) {
@@ -1453,11 +1558,11 @@ void BombControl(CScene *scene) {
 
         if (StarbullChara->CheckMotionEnd() != 0) {
             StarbullChara->SetMotion("\x97\xa7\x82\xbf", 0);
-            BombStatus = 3;
+            BombStatus = BUGGY_BOMB_PLACED;
         }
-    } else if (status == 3) {
+    } else if (status == BUGGY_BOMB_PLACED) {
         BombChara->GetPosition(rest_position);
-    } else if (status == 4) {
+    } else if (status == BUGGY_BOMB_CARRIED) {
         mgCFrame *hand_frame = player->CObjectFrame::frame;
 
         if (hand_frame != NULL) {
@@ -1467,15 +1572,15 @@ void BombControl(CScene *scene) {
         mgCFrame *bomb_frame = BombChara->CObjectFrame::frame;
         BombChara->SetPosition(0.0f, 0.0f, 0.0f);
         bomb_frame->SetReference(hand_frame);
-    } else if (status == 6) {
+    } else if (status == BUGGY_BOMB_THROWN) {
         BombChara->GetPosition(previous);
         BombChara->GetPosition(position);
         mgAddVector(position, BombVelo);
 
         if (BombCount <= 0) {
             BombChara->GetPosition(effect_position);
-            BombEffHandle = EffectMan__2->CreateEffSpt(at_961__4, 0x43, 1);
-            CCharacter2 *effect = EffectMan__2->GetCharacter(0x43, BombEffHandle);
+            BombEffHandle = EffectMan->CreateEffSpt(at_961__4, 0x43, 1);
+            CCharacter2 *effect = EffectMan->GetCharacter(0x43, BombEffHandle);
 
             if (effect != NULL) {
                 effect->SetScale(2.0f, 2.0f, 2.0f);
@@ -1484,9 +1589,9 @@ void BombControl(CScene *scene) {
             BombVelo[0] = 0.0f;
             BombVelo[1] = 0.0f;
             BombVelo[2] = -25.0f;
-            BombStatus = 7;
+            BombStatus = BUGGY_BOMB_EXPLODING;
             BombCount = 0x28;
-            scene->ResetActive(1, 0x43);
+            scene->ResetActive(1, BUGGY_CHARA_BOMB);
             BombImpact = 8;
         } else {
             mgVectorMaxMin(box.max, box.min, position, previous);
@@ -1519,7 +1624,7 @@ void BombControl(CScene *scene) {
 
         BombChara->SetPosition(position);
         BombCount--;
-    } else if (status == 7) {
+    } else if (status == BUGGY_BOMB_EXPLODING) {
         BombChara->GetPosition(explode_position);
 
         if (BombHitObj == 0) {
@@ -1527,7 +1632,7 @@ void BombControl(CScene *scene) {
         }
 
         BombChara->SetPosition(explode_position);
-        EffectMan__2->SetOrigin(explode_position, 0x43, BombEffHandle);
+        EffectMan->SetOrigin(explode_position, 0x43, BombEffHandle);
         BombCount--;
         BombImpact--;
 
@@ -1536,7 +1641,7 @@ void BombControl(CScene *scene) {
         }
 
         if (BombCount <= 0) {
-            BombStatus = 1;
+            BombStatus = BUGGY_BOMB_RELOAD_START;
         }
     }
 }
@@ -1589,7 +1694,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_956__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_961__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_962__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_964__3__DATA);
-
-// Uninitialised data (.bss)
-mgCMemory EffectBuff;
-sgCPlayVoice PolVoice __attribute__((aligned(16)));
