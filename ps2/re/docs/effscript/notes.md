@@ -1,12 +1,63 @@
 # effscript: reverse-engineering notes
 
-`CEffectScriptMan::BuildBase(int, ...)` and `AssignCharacter` are accepted
-native C++ callers with one scoped `CCharacter2` placement row each.
-`CreateEffSpt` and `SetCharacter` are the only remaining guarded functions.
-See [placement conversion](../satansfiddle/placement-new.md).
-
 Effect script manager. No counterpart in the first game's decompilation (nothing named
 EffectScript / EFF_SCRIPT / ES_SPRITE there).
+
+## Status
+183 of the 185 functions in `ps2/src/effscript.cpp` are native C++ definitions and match retail.
+Two are guarded drafts (`#ifdef NONMATCHING` C++ with an `INCLUDE_ASM` fallback):
+`CEffectScriptMan::CreateEffSpt(int, int, int)` (0x2E5D60, 0x500) and
+`CEffectScriptMan::SetCharacter(CCharacter2 *, int, int)` (0x2A0 extent, 0x29C body). Both fail
+on MWCC's placement-new allocation-result schedule: retail tests the allocator's `v0` and copies it
+into the saved register in the branch delay slot, while MWCC copies first and branches on the
+saved register (see [placement conversion](../satansfiddle/placement-new.md)).
+`BuildBase(int, ...)` and `AssignCharacter` are native with one scoped `CCharacter2` placement
+row each; `CObjectFrame`/`ColPrimMan` come from their owning headers (`dng_main.hpp` for
+`ColPrimMan`).
+
+- `CreateEffSpt`: the natural draft constructs the whole `_EFF_SCRIPT` with
+  `new (work_memory->Alloc(sizeof(_EFF_SCRIPT) / 16 + 2)) _EFF_SCRIPT` (0x17 quadwords), so the
+  compiler constructs the `CRunScript` member at +0x50; the character allocation is
+  `sizeof(CCharacter2) / 16 + 2` (0x68). The body is 0x500 like retail and differs by 206/320
+  words: retail and native agree through +0x190; at +0x194 retail branches on `v0`, copies to
+  `s2` in the delay slot, calls `CRunScript` at +0x19C with `run` computed in the call delay
+  slot, while native copies first, branches on `s2`, calls at +0x1A0 with a nop delay slot;
+  +0x1A4..+0x4C8 matches at offset +4 except the same branch/copy pair for the character
+  allocation at +0x1F8/+0x1FC; retail's final join nop at +0x4CC is absent. Script stays in
+  `s2` and the work token in `s3` in both. The not-loaded-base diagnostic (0x3773D0, contains
+  `[%d]`) takes `base_no` as its variadic argument. Member placement overloads, split
+  allocation, an explicit `script->run.CRunScript()` call (constructs a temporary on the
+  stack) and dummy wrappers all score worse and are not solutions.
+- `SetCharacter`: 24/168 words. In the slot path the mutable table entry and the new
+  character exchange `s1` and `s2` (20 words), plus the two allocation-result branch pairs
+  (+0xD4/+0xD8, +0x1AC/+0x1B0). Typed slot access `slot[group][slot]` keeps the address but
+  reverses both commutative `addu` operands (+0x9C/+0xA0); `_EFF_SCRIPT **entry =
+  &this->slot[group][slot]` adds two words; staging the row first leaves one reversed `addu`.
+  The entry's script is reloaded after allocation and the virtual `Copy`, and `now` is reloaded
+  in the negative-slot branch; caching either changes behaviour. The manager layout it uses:
+  `work_memory` +0x4, `slot[128][8]` +0x184, `now` +0x1184; `_EFF_SCRIPT::chara_work` +0x4,
+  `chara` +0x8; `CCharacter2` is 0x660 with virtual `Copy` +0xEC and `GetCopySize` +0xF0.
+
+## Source forms the match depends on
+- `_SPT_VAN_SET_POS`, `_SPT_ADD_POS`, `_SPT_SET_VELO_POS`, `_SPT_SET_ACC_POS`:
+  `stack = (RS_STACKDATA *) ((u8 *) stack + n * sizeof(*stack))`. `stack += n` lets MWCC fold the
+  advance into the next use instead of updating the pointer register where retail does.
+- `CEffectScriptMan::LoadBaseEffSpt`: `path_buffer`/`pack_buffer` are `int` addresses; the pack
+  buffer is placed after the path file with byte-size padding (`& 0x3F`, `& -0x10`).
+- `_INTERSECTION_POINT` indexes polygons through the polygon cursor; indexing from the original
+  local array changes register allocation.
+- `CEffectScriptMan::DeleteEffSpt` releases the collision primitive through
+  `CColPrim::Delete(owner)` and frees the three owned `u_long128*` blocks with `mgCMemory::Free`,
+  ending with the work block. `AssignSprite` obtains its array storage with `mgCMemory::Alloc`
+  before placement array construction.
+- The static stack helpers use `RS_STACKDATA::val.f` / `val.s` and the `RS_INT` / `RS_FLOAT` /
+  `RS_PTR` type names; `GetStackString` returns `char *`; the two `SetStack` overloads write
+  through reference slots only when `type == RS_PTR`. Retail symbol listings append numeric
+  suffixes to these same-named local helpers; their bodies are identical to the unsuffixed
+  native functions apart from relocated branch addresses.
+- `_CHR_GET_FRAME_POS`, `_CHR_SET_FRAME_SHOW`, `_CHR_SET_LIGHT_COLOR`, `_SCN_GET_CHR_FRM_POS` and
+  `_COLPRIM_SET_COORD` reach the inherited `mgCFrame *frame` that `CCharacter2::frame` (`float`)
+  hides as `chara->CObjectFrame::frame`.
 
 ## Types not named by retail
 Retail names come only from mangled symbols: `CEffectScriptMan`, `_EFF_SCRIPT`, `_ES_SPRITE`.
@@ -87,9 +138,33 @@ Unseen: 0x08, 0x54, 0xC4, 0xE4, 0x108.
 ## Globals
 - `eff_spt_base_def` global .data (above). `now_scene` (.sbss, CScene*, = GetMainScene() in
   Initialize). `EffScriptMan` (.sbss, CEffectScriptMan*, set in Step) global.
-- Local (not in header): `now_script` (_EFF_SCRIPT* being stepped), `ext_func__4` (0x400 = 256
-  function pointers, passed to CRunScript::ext_func with 0x100), `ext_func_info__4` (0x408 =
-  0x81 RS_EXTFUNC_INFO rows, see runscript_opcodes.hpp).
+- Local (static in the .cpp, not in the header): `now_script` (_EFF_SCRIPT* executing external
+  commands), `ext_func` (symbol file `ext_func__4`; 0x400 = 256 typed `int (RS_STACKDATA *, int)`
+  callbacks, passed to `CRunScript::ext_func` with 0x100; its retail symbol must stay reachable
+  for the guarded `CreateEffSpt` assembly), `ext_func_info` (symbol file `ext_func_info__4`;
+  `RS_EXTFUNC_INFO[129]`, see runscript_opcodes.hpp: 128 typed callbacks followed by
+  `{NULL, EFF_EXT_END}`; `EffectExternalCommand` names the retail command numbers; initializer
+  order is retail's, including 252/253 and 157/158 before 155/156; declared extent 0x408, retail
+  piece 0x410 with an eight-byte zero tail).
+- `eff_spt_base_def` is a native array of 219 `EFF_SPT_BASE_DEF` rows (0x558C; the retail piece
+  has four more zero padding bytes): rows 0..172 select character resources, 173..217 image
+  resources, and the final empty-name row uses `EFF_SPT_BASE_END`. Fixed arrays preserve
+  duplicate names and Shift-JIS bytes with hexadecimal escapes; apparent pointer expressions in
+  the generated assembly are not relocations within these arrays.
+- `_GET_DIR_VECTOR` and `_CHR_GET_DIR_VECTOR` initialize a local direction as
+  `{0.0f, 0.0f, 1.0f, 1.0f}` (the 16-byte templates `at_2311`/`at_2498__2`); `DrawEffSptSprite`
+  zero-initializes a local `sceVu0FVECTOR` size (`at_2067`). The `_INTERSECTION_POINT` switch
+  emits its nine-entry jump table `at_3304__2` (0x24 bytes in a 0x30-byte piece).
+- Strings used by native code are inline at their uses: the `%s.chr`/`%s.img`/`%s.stb` pack
+  suffixes and `dungeon/eff_script/` paths, the texture-bank exhaustion diagnostic in
+  `ClearBaseFromLevel`, and the command diagnostics (sprite-work exhaustion, collision polygon
+  limits, unavailable collision primitives, command coordinates, effect creation failures,
+  duplicate command numbers, dispatch capacity exhaustion), with Shift-JIS bytes as hex escapes.
+- Seven `INCLUDE_RODATA` markers remain: `at_1336__2`..`at_1340__2` (`CreateEffSpt`
+  diagnostics), `at_1341__2` (the shared empty string, also used by native code) and `at_2025__3`
+  (`SetCharacter` diagnostic). Each is referenced by an active `INCLUDE_ASM` body under its retail
+  symbol, so the markers stay while those two functions are guarded; the native `""` users of
+  `at_1341__2` keep the extern until then.
 - All non-member functions (GetEffSptBaseDefPtr, DrawEffSptSprite, GetSpritePtr, GetStack*,
   SetStack*, every `_XXX(RS_STACKDATA*, int)` script function, SetEffectScript,
   SetEffectScriptFunc) are LOCAL in retail: define them `static` in the .cpp.
@@ -103,110 +178,3 @@ Unseen: 0x08, 0x54, 0xC4, 0xE4, 0x108.
 - ClearBaseFromLevel: m2c says void (Ghidra's int is a leftover register).
 - CCharacter2 vtable slots used: +0xEC Copy(CCharacter2&, mgCMemory*), +0xF0 GetCopySize,
   +0xD4 (per-step update), +0x10 SetPosition, +0x18 GetPosition, +0x38 draw, +0x54 show.
-
-## Native C++ calls
-
-`CEffectScriptMan::DeleteEffSpt` releases the collision primitive through `CColPrim::Delete(owner)` and frees the three owned `u_long128*` blocks with `mgCMemory::Free`, ending with the work block. `AssignSprite` obtains its array storage with `mgCMemory::Alloc` before placement array construction. Direct typed member calls reproduce the retail code.
-
-The local stack access helpers are ordinary C++ static functions. The two `SetStack` overloads write through reference slots only when `RS_STACKDATA::type == 3`. Retail symbol listings append numeric suffixes where same-named local helpers occur in earlier units; their instruction bodies are identical to the unsuffixed native C++ object functions apart from relocated branch addresses.
-
-`CEffectScriptMan::SetCharacter` reaches `slot[group][slot]` at offset 0x184. Native two-dimensional indexing preserves the address but MWCC reverses both commutative `addu` operands (99.88%); staging the row first leaves one reversed `addu` (99.94%). Typed pointer and flat indexing variants were also tested and did not reproduce retail operand order, so the byte-offset expression remains pending an exact typed form. This function remains a `NONMATCHING` C++ draft with an active `INCLUDE_ASM` fallback. Four sprite-command stack advances likewise changed scheduling when written as `stack += n` or `&stack[n]`; their byte-address forms remain pending.
-
-Earlier `CreateEffSpt` forms constructed the `CRunScript` member at +0x50
-after raw `_EFF_SCRIPT` allocation. Member placement through the project
-overload added an `operator new` call (98.11%); an inline void-pointer
-overload added a second null check (98.13%). Whole-object construction scored
-97.20%, so that older source retained the explicit constructor symbol. The
-current guarded draft constructs the whole `_EFF_SCRIPT` naturally, as
-recorded below.
-
-An inline placement overload taking `CRunScript*` or `CRunScript&` still emits
-an extra null branch before the native constructor call (98.125%). Native
-placement construction of `_EFF_SCRIPT` shifts the branch and long-lived
-register assignments (97.203%). Splitting allocation from construction adds
-another guard (94.25%). These earlier forms preserved construction semantics
-but failed retail matching, so that source/profile boundary retained the
-original call.
-
-MWCC 3.0 accepts `script->run.CRunScript()` as source, but it constructs a
-temporary at a stack address instead of the `run` member; the result is both
-semantically wrong and only 98.45% matching. The compiler's `-help` exposes
-no option to suppress the placement-new null guard. The native member form
-adds a branch and delay-slot instruction in the middle of `CreateEffSpt`, so
-relocation rebinding alone cannot restore the retail instruction stream.
-
-The script's local `GetStackString` returns the pointer stored in a stack
-slot. Typing its return as `char*` removes the integer-to-pointer casts at
-its call sites; all affected functions remain exact.
-
-A direct native allocation, `script = new (work_memory->Alloc(0x17)) _EFF_SCRIPT`,
-constructs the `CRunScript` member and preserves the 0x500-byte function size,
-but scores 97.20%. At the allocation site it puts `beqz v0` before the move
-into the saved script register, while retail moves first and branches on that
-register. It places the constructor argument in the call delay slot; retail
-places it in the branch delay slot and leaves the call delay slot empty. The
-new expression also swaps the saved registers used for the script and work
-token through the rest of `CreateEffSpt`. The original explicit call restored
-100% in that older comparison. This rejected-form result predates the current
-whole-object natural-construction draft.
-## Pending code matches
-
-`_INTERSECTION_POINT` tests a segment against scene collision polygons and returns the hit
-index, position, reflection, area kind, and footstep sound according to its argument count.
-Its native C++ function passes the full linked-image comparison. Array indexing through the
-polygon cursor preserves retail register allocation; indexing from the original local array
-changes it.
-## Constructor call cleanup
-
-All four constructor callers use natural typed allocation. `BuildBase(int, ...)`
-and `AssignCharacter` are native with the scoped compiler conversion.
-`CreateEffSpt(int, int, int)` and `SetCharacter` retain `NONMATCHING` drafts
-and retail assembly bodies. The former constructs the whole `_EFF_SCRIPT`,
-including its `CRunScript` member, and uses the named `RS_STACKDATA::val`
-union and `CMap::map_info` fields. Its natural draft is still nonmatching.
-
-## Earlier constructor schedules
-
-Before scoped conversion, `AssignCharacter` and `BuildBase(int, ...)` each
-differed by two words with the pinned profile. At +0xB4/+0xB8 and
-+0x258/+0x25C respectively, retail tested operator-new's v0 result and copied
-to s2 in the branch delay slot; the candidate copied first and tested s2.
-The natural character constructors accounted for the other initialization.
-Those baseline forms were parked without constructor/header changes; both
-callers now have accepted native bodies.
-
-The following measurements document the earlier forms of the two functions
-that remain guarded.
-
-`SetCharacter` differs by 24/168 words, body 0x29C within retail 0x2A0.
-Both allocation paths exhibit the same null-test issue. In the registered
-path the compiler also exchanges the saved entry and character registers
-through initialization and copy. Storing the new-expression straight into
-the character member does not resolve this. Its existing guarded source
-remains pending a natural table-index form and allocation-result schedule.
-Reconsider when placement lowering is understood and a typed indexing form
-preserves the entry lifetime.
-
-`CreateEffSpt` constructs the whole `_EFF_SCRIPT` through its natural
-new-expression; the compiler constructs its `CRunScript` member at +0x50.
-The native draft is 0x500 bytes, retail's extent, and differs in 206/320
-words, closer than the previous 0x510-byte draft's 224/324 side-by-side
-words. The prior explicit operator-new plus member placement-new added an
-extra allocator call and null branch. The retained whole-object form still
-changes allocation-result branch placement and saved script/work-token
-registers, and its character allocation also has the known null-test
-remainder. It remains guarded. Reconsider with an admissible whole-object
-constructor schedule; explicit constructor calls or dummy wrappers are not
-solutions.
-
-## Collision primitive manager declaration
-
-The effect script collision command uses ColPrimMan through its owning
-header, dng_main.hpp. Including that header removes the duplicate source
-extern without changing the manager's type, linkage or any function body.
-The complete isolated object preserves 0xEA7C checked bytes and 1,285
-resolved relocations; the production PAL build and all 149 objects pass.
-The header and its defining source are unchanged.
-
-Probe: .private/fixes-r0/probes/effscript-header/{compile,objects}.log.
-Production receipts: .private/fixes-r0/effscript-final-{build,objects}.log.

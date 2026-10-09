@@ -263,7 +263,7 @@ static _EFF_SCRIPT *now_script;
 /**
  * Dispatch slots for effect script external commands.
  */
-static int (*ext_func__4[256])(RS_STACKDATA *, int);
+static int (*ext_func[256])(RS_STACKDATA *, int);
 
 EFF_SPT_BASE_DEF      *GetEffSptBaseDefPtr(int index);
 int                    SetEffectScript(CRunScript *script, char *program, mgCMemory *memory);
@@ -793,7 +793,7 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
         script->chara = NULL;
     }
 
-    ((&script->run))->ext_func(ext_func__4, 0x100);
+    ((&script->run))->ext_func(ext_func, 0x100);
     SetEffectScript(&script->run, base->script, (mgCMemory *) work_memory);
     script->prog_no = 200;
     script->user_id = group;
@@ -5589,7 +5589,7 @@ int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory) {
     RS_STACKDATA *stack = (RS_STACKDATA *) memory->Alloc(0x20);
     RS_CALLDATA  *call_data = (RS_CALLDATA *) memory->Alloc(1);
     script->load((RS_PROG_HEADER *) program, stack, 0x40, call_data, 2);
-    script->ext_func(ext_func__4, 0x100);
+    script->ext_func(ext_func, 0x100);
     return 1;
 }
 
@@ -5738,7 +5738,7 @@ void SetEffectScriptFunc() {
     int previous_index;
 
     for (function_index = 0; function_index < 256; function_index++) {
-        ext_func__4[function_index] = NULL;
+        ext_func[function_index] = NULL;
     }
 
     for (function_index = 0;; function_index++) {
@@ -5764,7 +5764,7 @@ void SetEffectScriptFunc() {
         if (ext_func_info[function_index].no < 0 || ext_func_info[function_index].no >= 256) {
             printf("dng_effect ext func over!!\n");
         } else {
-            ext_func__4[ext_func_info[function_index].no] = ext_func_info[function_index].func;
+            ext_func[ext_func_info[function_index].no] = ext_func_info[function_index].func;
         }
     }
 }
