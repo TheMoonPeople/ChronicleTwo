@@ -1,10 +1,17 @@
 # map: reverse-engineering notes
 
-`CreateDrawRect` can use typed `mgVu0FBOX` bounds, direct `CMapParts::GetBoundBox`, and a
-native `CList<CMapParts *>` node. Its 97.55% score differs only at the placement-new null
-branch: MWCC moves the returned node pointer into its saved register before the branch and
-adds a nop, while retail moves it in the delay slot. `PlacePartsEnd`'s native box assignment
-matches exactly.
+`CMap::AddPartsGroup` and `CMap::CreateDrawRect` are native C++ with one
+after-inline placement row each for their list-node constructions. No
+`NONMATCHING` guards or assembly fallbacks remain in map. Complete-object
+and PAL verification pass; see
+[placement conversion](../satansfiddle/placement-new.md).
+
+`CreateDrawRect` uses typed `mgVu0FBOX` bounds, direct `CMapParts::GetBoundBox`
+and a native `CList<CMapParts *>` node. Its earlier 97.55% comparison differed
+at the null branch: the draft copied the node to its saved register before
+branching and added a nop, while retail copied it in the delay slot. That was
+a pre-merge baseline, not the current score. `PlacePartsEnd`'s native box
+assignment is exact.
 
 Header: `ps2/include/map.hpp`. `ps2/src/map.cpp` includes it.
 
@@ -202,23 +209,23 @@ virtual. Out-of-line definitions in map.cpp would make map.o emit both tables.
   by a byte-offset quotient differ more substantially.
 - `AddPartsGroup` constructs a `CList<PartsGroupData>` in the memory stack.
   Native placement construction supplies the list vtable, clears its data and
-  calls `Initialize`; MWCC moves the allocation result before the null branch
-  while retail moves it in the branch delay slot.
+  calls `Initialize`. Before placement conversion, its draft moved the result
+  before the null branch while retail moved it in the delay slot.
 
 ## Constructor-backed allocations and verification
 
 `CMap::AddPartsGroup` and `CMap::CreateDrawRect` allocate `CList` nodes whose
-constructors install the list vtable and initialize the links. Their typed
-constructor drafts remain behind `NONMATCHING`; retail assembly supplies the
-active functions until those drafts compare byte for byte. The list vtables
+constructors install the list vtable and initialize the links. Both natural
+callers are active and accepted under their after-inline rows. The list vtables
 reference `CList<PartsGroupData>::Initialize` and `CList<CMapParts *>::Initialize`.
 Both methods have native explicit specializations: `PartsGroupData` at
 0x15DB50 and `CMapParts *` at 0x15E3D0 (each size 0xC). Each clears
 `prev` at offset 4, then `next` at offset 0, leaving the stored data unchanged. `decompile.sh` confirms those
 two stores. The specializations use the documented `CList` fields and let
-MWCC generate their template symbols naturally. The complete `map` object matches
-0x4734 bytes and 418 resolved relocations; this verifies the methods independently
-of the still-guarded constructor-backed allocations.
+MWCC generate their template symbols naturally. The earlier complete `map`
+object comparison matched 0x4734 bytes and 418 resolved relocations with the
+allocation callers still guarded; that measured the initializers independently.
+Current complete-object acceptance also includes both native allocation callers.
 
 `CPartsGroup::Add` and `CMap::AddParts` reproduce PAL code in the pre-merge
 canonical comparison. Each append walks to the last node, writes its next link
@@ -231,32 +238,35 @@ overlay-placement pointer and overlay-parts displacement registers. The literal
 float arguments in `DrawWater` matched in that isolated build. Pointer
 declaration and redundant initialization trials did not correct those
 allocations and are absent from the source. These observations describe the
-pre-merge snapshot; the merged source requires canonical revalidation.
+pre-merge snapshot; that merged source still required canonical revalidation.
+The current object has since passed complete acceptance.
 
-## Guarded list allocation callers
+## Earlier guarded list-allocation comparisons
 
 Explicit member specializations are the active list initializers. Earlier
-whole-class instantiation experiments also matched the two initialization
-bodies, but do not establish the still-guarded allocation callers.
+whole-class instantiation experiments matched their two bodies but did not
+establish the then-guarded allocation callers.
 
-`AddPartsGroup` remains guarded: its original draft is 0x104 bytes against
-0x100 retail. It clears `data.parts` again after the natural data constructor
+Before its conversion row, AddPartsGroup remained guarded: its original draft
+was 0x104 bytes against 0x100 retail. It clears `data.parts` again after the natural data constructor
 already clears it. Removing that redundant caller clear produces 0xFC bytes
 but increases positional differences to 26/64 words through constructor
-scheduling and inserted nops, so that trial is not retained.
+scheduling and inserted nops, so that isolated trial was not retained then.
+The current natural caller removes the redundant clear and accepts a 0xFC body
+with its after-inline row.
 The earlier pointer-walk `CreateDrawRect` draft had 50/112 positional word differences;
 its construction moves the allocation result before the null branch and
 adds two nops, shifting the subsequent instructions. These counts supersede
 the older pre-merge percentage above.
 
-Blocker for both callers: placement-new allocation-result scheduling.
-Reconsider when the dedicated constructor investigation validates a natural
-form for the same list construction and null-result flow.
+Both callers were blocked by placement-new allocation-result scheduling at
+that earlier source/profile boundary. The current rows preserve the same list
+construction and null-result flow and pass whole-object acceptance.
 
-The mapmglib pass at `0c33a7e` replaces that draft's array pointer induction
-with typed indexing, as required by the midday lane rules. Its retained
-comparison is 112/116 words, with a 0x1D0 native body against 0x1C0 retail.
-The captured array base preserves the original selection traversal. This
-is a guarded source-compliance cleanup, not a closer instruction match.
-See [mapmglib-midday-20261008.md](mapmglib-midday-20261008.md) for the
-constructor trial, current boundaries and validation receipts.
+The mapmglib pass at `0c33a7e` replaced that draft's array pointer induction
+with typed indexing. Its retained comparison was 112/116 words, with a 0x1D0
+native body against 0x1C0 retail. The captured array base preserved the original
+selection traversal. That pass was a guarded source-compliance cleanup, not a
+closer match; the current accepted typed caller has a 0x1B8 body in the 0x1C0
+extent. See [mapmglib-midday-20261008.md](mapmglib-midday-20261008.md) for that
+constructor trial, source boundary and validation receipts.
