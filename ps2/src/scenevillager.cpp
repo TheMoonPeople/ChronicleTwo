@@ -23,7 +23,9 @@
 #include "vlgr_info.hpp"
 
 /**
+ *
  * Villager motion names indexed by VILLAGER_MOTION.
+ *
  */
 static char *motion_name[] = {
     "\x97\xa7\x82\xbf",
@@ -39,7 +41,9 @@ static char *motion_name[] = {
 };
 
 /**
+ *
  * Map placements of red and blue goal markers and save points.
+ *
  */
 static GAMEOBJ_INFO GameObjInfo[] = {
     {0, GAMEOBJ_TYPE_TG_RED, 1, 0, {
@@ -133,10 +137,10 @@ static GAMEOBJ_INFO GameObjInfo[] = {
         {{-2268.1f, -0.0f, 2502.4f}, -2.91f}
     }},
     {92, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{-88.1f, -3e+01f, 1727.0f}, -1.82f}
+        {{-88.1f, -30.0f, 1727.0f}, -1.82f}
     }},
     {187, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{70.1f, 1.4e+02f, -865.0f}, 0.0f}
+        {{70.1f, 140.0f, -865.0f}, 0.0f}
     }},
     {103, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
         {{-71.1f, -268.0f, 3166.0f}, 0.0f}
@@ -148,7 +152,7 @@ static GAMEOBJ_INFO GameObjInfo[] = {
         {{78.0f, 0.0f, 1338.0f}, 3.14f}
     }},
     {109, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{54.0f, 2.8e+02f, -607.0f}, 0.0f}
+        {{54.0f, 280.0f, -607.0f}, 0.0f}
     }},
     {-1, GAMEOBJ_TYPE_NONE, 0, 0},
 };
@@ -986,24 +990,24 @@ int CScene::GetTalkEvent(float *position, CSceneEventData *event) {
  */
 static char *GetMotionName(int motion_id) {
     switch (motion_id) {
-        case 1:
-            return motion_name[1];
-        case 2:
-            return motion_name[2];
-        case 3:
-            return motion_name[3];
-        case 4:
-            return motion_name[4];
-        case 5:
-            return motion_name[5];
-        case 6:
-            return motion_name[6];
-        case 7:
-            return motion_name[7];
-        case 8:
-            return motion_name[8];
+        case VILLAGER_MOTION_WALK:
+            return motion_name[VILLAGER_MOTION_WALK];
+        case VILLAGER_MOTION_RUN:
+            return motion_name[VILLAGER_MOTION_RUN];
+        case VILLAGER_MOTION_TALK:
+            return motion_name[VILLAGER_MOTION_TALK];
+        case VILLAGER_MOTION_SIT:
+            return motion_name[VILLAGER_MOTION_SIT];
+        case VILLAGER_MOTION_CAMERA_IN:
+            return motion_name[VILLAGER_MOTION_CAMERA_IN];
+        case VILLAGER_MOTION_CAMERA:
+            return motion_name[VILLAGER_MOTION_CAMERA];
+        case VILLAGER_MOTION_CAMERA_OUT:
+            return motion_name[VILLAGER_MOTION_CAMERA_OUT];
+        case VILLAGER_MOTION_SPECIAL:
+            return motion_name[VILLAGER_MOTION_SPECIAL];
         default:
-            return motion_name[0];
+            return motion_name[VILLAGER_MOTION_STAND];
     }
 }
 
@@ -1441,7 +1445,7 @@ void CScene::LoadGameObject(int now_map_no, int tex_block, mgCMemory *memory) {
 
         if (entry->map_no == now_map_no) {
             switch (entry->type) {
-                case 3:
+                case GAMEOBJ_TYPE_SAVEPOINT:
                     if (LoadFile2("effect/savepoint.chr", file_buffer, NULL, 0) != 0) {
                         LoadChara(SCENE_GAMEOBJ_SLOT_SAVEPOINT, file_buffer, NULL, memory, memory, memory,
                                   tex_block, 1);
@@ -1455,7 +1459,7 @@ void CScene::LoadGameObject(int now_map_no, int tex_block, mgCMemory *memory) {
                     }
 
                     break;
-                case 1:
+                case GAMEOBJ_TYPE_TG_RED:
                     if ((skip_objects == 0) &&
                         (LoadFile2("effect/tg_maru_red.chr", file_buffer, NULL, 0) != 0)) {
                         LoadChara(SCENE_GAMEOBJ_SLOT_TG, file_buffer, NULL, memory, memory, memory,
@@ -1470,7 +1474,7 @@ void CScene::LoadGameObject(int now_map_no, int tex_block, mgCMemory *memory) {
                     }
 
                     break;
-                case 2:
+                case GAMEOBJ_TYPE_TG_BLUE:
                     if ((skip_objects == 0) &&
                         (LoadFile2("effect/tg_maru_blue.chr", file_buffer, NULL, 0) != 0)) {
                         LoadChara(SCENE_GAMEOBJ_SLOT_TG, file_buffer, NULL, memory, memory, memory,
@@ -1520,7 +1524,7 @@ int CScene::GetGameObjectEvent(float *position, CSceneEventData *event) {
                     mgZeroVector(event->rotation);
 
                     switch (entry->type) {
-                        case 3:
+                        case GAMEOBJ_TYPE_SAVEPOINT:
                             if (IsActive(1, SCENE_GAMEOBJ_SLOT_SAVEPOINT) != 0 &&
                                 IsActive(1, SCENE_GAMEOBJ_SLOT_BOOK) != 0) {
                                 event->gameobj_no = i;
@@ -1528,8 +1532,8 @@ int CScene::GetGameObjectEvent(float *position, CSceneEventData *event) {
                             }
 
                             break;
-                        case 1:
-                        case 2:
+                        case GAMEOBJ_TYPE_TG_RED:
+                        case GAMEOBJ_TYPE_TG_BLUE:
                             if (IsActive(1, SCENE_GAMEOBJ_SLOT_TG) != 0 &&
                                 IsActive(1, SCENE_GAMEOBJ_SLOT_TG_BASE) != 0) {
                                 return SCENE_GAMEOBJ_SLOT_TG;
@@ -1571,15 +1575,15 @@ void CScene::DrawGameObject(int now_map_no) {
             second = NULL;
 
             switch (entry->type) {
-                case 3:
+                case GAMEOBJ_TYPE_SAVEPOINT:
                     if (IsActive(1, SCENE_GAMEOBJ_SLOT_SAVEPOINT) != 0 && IsActive(1, SCENE_GAMEOBJ_SLOT_BOOK) != 0) {
                         first = GetCharacter(SCENE_GAMEOBJ_SLOT_SAVEPOINT);
                         second = GetCharacter(SCENE_GAMEOBJ_SLOT_BOOK);
                     }
 
                     break;
-                case 1:
-                case 2:
+                case GAMEOBJ_TYPE_TG_RED:
+                case GAMEOBJ_TYPE_TG_BLUE:
                     if (IsActive(1, SCENE_GAMEOBJ_SLOT_TG) != 0 && IsActive(1, SCENE_GAMEOBJ_SLOT_TG_BASE) != 0) {
                         first = GetCharacter(SCENE_GAMEOBJ_SLOT_TG);
                         second = GetCharacter(SCENE_GAMEOBJ_SLOT_TG_BASE);
@@ -1595,7 +1599,7 @@ void CScene::DrawGameObject(int now_map_no) {
                 *(u_long128 *) second_point = *(u_long128 *) &entry->place[i];
                 second_point[3] = 1.0f;
 
-                if (entry->type == 1 || entry->type == 2) {
+                if (entry->type == GAMEOBJ_TYPE_TG_RED || entry->type == GAMEOBJ_TYPE_TG_BLUE) {
                     first_point[1] += 60.0f;
                 }
 
