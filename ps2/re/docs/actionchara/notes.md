@@ -1,15 +1,28 @@
 # actionchara: reverse-engineering notes
 
-`CActionChara::CheckDamage` now compiles to retail's bytes and passes the
-isolated whole-image check with the game compiler flags.
+## Source status
 
-## Current source status
+`actionchara.cpp` defines every game function natively; it contains no
+`NONMATCHING` guards, `INCLUDE_ASM` gaps, or data markers. All data is
+source-emitted: strings (including the Shift-JIS motion and effect names) are
+inlined at their uses, the movement-vector initializers, the `CheckDamage`
+switch table and the compiler-generated `CActionChara` vtable emit their
+sections directly.
 
-The current `actionchara.cpp` defines its game functions in C++ and contains
-no `NONMATCHING` guards or `INCLUDE_ASM` function gaps. Earlier promotion
-attempts are recorded in `scripts/re/promotion_attempts.tsv`; their results
-do not by themselves verify the present object. The matching build must be
-checked before making a unit-wide match claim.
+- `EntryThrowItem` holds a nineteen-entry aggregate initializer: eighteen item
+  numbers selecting item model slots, then a -1 terminator (76 bytes plus a
+  four-byte alignment gap).
+- `HitEffectSet` and `GuardEffectSet` initialize their four-float directions at
+  the use sites; `StepParam` initializes its two forward vectors in the branches
+  that use them. The matrices and knockback buffers are declared in their use
+  scopes, which preserves the retail stack layout.
+- `old_angle` is a file-scope `static float` (previous stick direction).
+  `Step` uses a function-local `static float ang = 0.0f` (part "L_arm" angle);
+  MWCC emits the retail initialization guard for it. `RunScript` has a
+  zero-initialized local vector (`adjusted_velocity`) whose sixteen-byte
+  compiler-generated zero initializer lives in BSS.
+- `hit->param->hit_flags` is read without a cast because the field is `s16`
+  (colprim.hpp).
 
 Header: `ps2/include/actionchara.hpp`. Owns `CActionChara` (derives `CCharacter2`, unit `character`),
 plus the parameter/table types `RUN_SCRIPT_ENV`, `ACTION_SW_EFFECT`, `ACTION_DAMAGE`, `ACTION_OBJECT`,
@@ -55,7 +68,7 @@ other struct and enum names are ours. No first-game equivalent of `CActionChara`
   0,2,4,6,0xA,8,0xC). Never Initialized/stepped/drawn -> `CPalletAnime unk_67c` (type inferred).
 - 0x68A chara_kind: 2 set by LoadActionFile, 1 by SetRef on the part; many checks for ==2 on scene
   characters (only scripted characters are targets).
-- 0x690 front_vec: StepParam = RotY(angle) * (0,0,1) (data at_3289/at_3291); `_GET_FRONT_VEC`.
+- 0x690 front_vec: StepParam = RotY(angle) * (0,0,1); `_GET_FRONT_VEC`.
 - 0x6A0 mask_flag (SetMaskFlag, `_SET_INT_FLAG` on nowMonster; monster tests bits 1,2).
 - 0x6A4 attack_type (`_GET_ATTK_TYPE`; set from ROBO_INFO_DATA+0x20). 0x6A8 move_type (`_RUN_MAIN_MOVE`:
   0 Human, 3 Monster; `_RUN_ROBO_MOVE`: 1/4 Walk, 2/5 Tank, 3 Bike, 6/7 Air; Tank tests 2 vs 5, Air 6 vs 7).
@@ -66,7 +79,7 @@ other struct and enum names are ours. No first-game equivalent of `CActionChara`
   (CRunScript+0x3C, i.e. 0x6F8) -> 200. Values: 100 InitScript, 150 ResetAction, 200, 500/600/550/1400
   from damage_req 1/2/7/4, 700 from unk_bec, 550 SetHold, 1500 landing (grounded, old vy <= -3.5).
 - 0x712 prog (`_PROG_SET/_PROG_GET`). 0x714 pad_history (|= PadCtrl Btn(0x32); `_GET/_RESET_PAD_HISTORY`).
-- 0x718 default_motion (`_SET_DEFAULT_MOS`; init string at_2210).
+- 0x718 default_motion (`_SET_DEFAULT_MOS`; initialized to a Shift-JIS motion name literal).
 - 0x71C hold_type: 1 EntryThrowItem, 3 CheckEnemyCatch (monster), 4 CheckEnemyCatch (stone); 0 on
   release. 2 never seen. 0x720 hold_parts (CMapParts*), 0x724 hold_frame (mgCFrame*): Step carries the
   stone to hold_frame while hold_type==4.
@@ -135,15 +148,16 @@ CheckRunEvent/CheckReleaseTimming load s8/s16 fields; declared int.
 
 ## Globals and statics
 - `old_angle` (sbss float, 0x37D00C) is LOCAL in retail -> `static float old_angle;` in the .cpp
-  (HumanMoveIF/MonsterMoveIF: previous stick angle). `ang_3371`/`init_3372` are Step's function statics
-  (part "L_arm" angle). `at_3107` (bss 0x10) is a local float[4] literal.
+  (HumanMoveIF/MonsterMoveIF: previous stick angle). `ang` and its initialization guard are Step's
+  function-local statics (part "L_arm" angle). A 0x10-byte bss object is RunScript's zero-initialized
+  local vector.
 - All seven non-members (RockOn_TargetSel, DistCheck_Action2, Check_LockOn, GuardEffectSet,
   HitEffectSet, CheckAmuletAvoid, CheckEquipSetItem) are LOCAL -> static in the .cpp, not in the header.
 - Globals used but owned elsewhere: `action_info` (actscript bss 0x10: [0] CActionChara*, [8]
   RUN_SCRIPT_ENV* -- Ghidra shows DAT_01f3d178 = action_info+8, DAT_01f3d174 = camera at +4),
   `nowScene__2`, `ActionScriptEnv` (dng_main, a RUN_SCRIPT_ENV: item models of stride 0x660, 18 of them).
-- Strings: at_1325 "rnd_obj01-a", at_1357 "sword", at_1358 "shot", at_2423 "arm", at_3262 "MainCam",
-  at_3389 "L_arm"; at_1394/at_1427/at_2210 are Shift-JIS.
+- Strings are inlined literals: "rnd_obj01-a", "sword", "shot", "arm", "MainCam", "L_arm"; the
+  motion and effect names are Shift-JIS.
 
 ## Unresolved
 - Names of all non-retail struct/enum types; meanings of unk_67c (if not CPalletAnime), 0x6B0, 0x6B4,
@@ -207,26 +221,19 @@ GuardEffectSet__FP6CScenePf uses binary32 evaluate-first policies for
 that function. Both values are required to reproduce the PAL argument
 materialization order. Satan's Fiddle verifies the original type/value
 identity and initializes expression flags; no source value, argument
-order or pointer workaround was introduced for this calibration. The calibrated effect routines match; other movement and data-piece
-findings remain in the merged unit.
+order or pointer workaround is used for this calibration.
 
 ## Gun movement rotation argument order
 
 `HumanGunMoveIF__12CActionCharaFPcPc` needs binary32 zero
 (`0x00000000`) evaluated first, before the nested rotation calculation.
-The stable function/type/value policy produces the complete retail
-736-byte body and resolves its five canonical findings. All other 135
-allocated sections retain identical bytes, geometry and resolved relocation
-targets; the unit's other existing findings remain unchanged.
+The function/type/value policy produces the complete retail 736-byte body.
 
 ## Robot movement literals and remaining instruction order
 
-`RoboWalkMoveIF` and `RoboAirMoveIF` already emit the six Shift-JIS motion
-strings `at_2420`–`at_2422` and `at_2504`–`at_2506` directly from their
-`SetMotion` arguments. Keeping matching `INCLUDE_RODATA` markers appended a
-second copy of each section and prevented the object checker from resolving
-the whole `.rodata` run. Removing those markers leaves the retail 43-piece
-data layout and reduces the unit check to two movement-function differences.
+`RoboWalkMoveIF` and `RoboAirMoveIF` emit their six Shift-JIS motion strings
+directly from their `SetMotion` arguments; the unit's `.rodata` is the retail
+43-piece layout.
 
 In `RoboWalkMoveIF`'s idle-arm path, retail preserves floating zero in a saved
 FPR across `unitRotation(frame, 0.0f, 16.0f)` and reuses it for `SetRotation`.
@@ -236,10 +243,9 @@ late; the later movement call with a local angle preserves it across
 other calls in these functions. The compiler profile distinguishes the walk
 call by the nested `16.0f` argument and the air call by its nested local-angle
 load. These are parsed argument identities, independent of occurrence or code
-address. With both policies, the whole actionchara object matches its retail
-0x8F80 bytes and 1,035 resolved relocations.
+address. With both policies the whole actionchara object matches retail.
 
 A reused `neutral_angle` local constant-folds away; unsuffixed double zero
 also narrows to the same binary32 identity. Neither separates the rotation
-consumers under a broad zero-first policy. The native nested expressions and
-upstream nested selectors are the active implementation.
+consumers under a broad zero-first policy, so the nested expressions and
+nested selectors are the required form.
