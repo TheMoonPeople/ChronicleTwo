@@ -98,6 +98,9 @@
 
 ## CSound::Init guarded draft — scheduling blocker
 
+Superseded by [night-20261008.md](night-20261008.md): the function matches with
+the configuration assignments in the common port order.
+
 `Init__6CSoundFiiii` (0x18A410, retail extent 0x780) remains guarded. The
 natural draft has 12/480 relocated-field-masked instruction differences, down
 from 190/480 at 0abce37. Its body is 0x77C bytes; retail's final four bytes are

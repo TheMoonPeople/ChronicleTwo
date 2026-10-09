@@ -42,7 +42,9 @@ in PreDraw; 0x58 float reset to -1.0 by Copy; 0x64 show flag and 0x68 flag check
 0x6C CheckDraw, 0x70 Copy(CObject&, mgCMemory*) (CObject's);
 new in CObjectFrame: 0x74 UpDatePosition, 0x78 Copy(CObjectFrame&, mgCMemory*).
 (* = overridden by CObjectFrame.) `__vt__7CObject` is identical up to 0x70 with CObject's
-Draw/DrawDirect/Initialize/PreDraw/GetCameraDist/DrawStep.
+Draw/DrawDirect/Initialize/PreDraw/GetCameraDist/DrawStep. This unit emits it because
+CObject's Draw/DrawDirect are inline (`map.hpp`, weak in map), leaving `Initialize` as the
+first non-inline virtual.
 
 ## Member notes
 - Return types: Draw/DrawDirect return int 0 (`daddu v0,0,0`; same as `mgCObject::Draw`);

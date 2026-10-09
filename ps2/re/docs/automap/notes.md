@@ -82,8 +82,9 @@ SetMapInfo stores the minimap tile into `CMapParts::unk_1dc` (+0x1DC, -1 if none
 
 ## Data
 - `PartsInfoData` (.data 0x33D440, 0x19F8 = 277 x 0x18, global): row = `char *name; s16 kind;
-  u8 link; u8 entrance; s16 unk_8[8]`. Row 276 is the NULL-name terminator. `unk_8` is never read by
-  automap or any other unit. SetPartsIndex bounds its search at 0x118 rows.
+  u8 link; u8 entrance; s16 unk_8[8]`. Row 276 has an empty string name, not NULL. `SetMapInfo` terminates by reading
+  a zero name pointer from the eight alignment bytes after the declared array
+  extent. `unk_8` is never read by automap or any other unit. SetPartsIndex bounds its search at 0x118 rows.
 - `MiniMapInfoData` (.data 0x33EE40, 0x2E20 = 18 x 0x290, global): `char name[16]` (e.g. "d01f01")
   then 320 s16 tiles indexed by PartsInfoData row. SetMapInfo matches name to
   `BattleAreaScene+0x24` (truncated to 6 chars if 7 long).

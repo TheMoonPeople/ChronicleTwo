@@ -1,5 +1,8 @@
 # wavetable: reverse-engineering notes
 
+The current 27/324 guarded baseline and the additional bounded-cell
+probes are documented in [the night assessment](night-20261008.md).
+
 ## C++ draft status
 The constructor, destructor, `CreateTexture`, and `GetEffect` are native C++.
 Only `Effect` retains `INCLUDE_ASM` in the matching build. Its guarded draft

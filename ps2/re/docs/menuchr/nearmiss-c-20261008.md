@@ -1,5 +1,9 @@
 # Costume and temporary-scene near-miss assessment
 
+Historical probe record. Current exact matches and guarded remainders are
+listed in [notes.md](notes.md); later promotions are documented in
+[night-20261008.md](night-20261008.md).
+
 Base `3d49d02`, image `chronicletwo_dev:sf-d8bf13c`, canonical MWCC
 3.0-011126 and the checked-in Satan's Fiddle configuration. Both targets
 remain guarded. The only retained implementation change improves

@@ -77,7 +77,7 @@ Jikkyou tests ==2 for push commentary), 0xD battle u8, 0xE pad, 0x10 battle_targ
   v -= 0.01. Initial N(0.02,0.02) clamped 0.
 - 0x54 pos: += v*GetCourseR(); goal at >= 16.0 (state set 3 in the record).
 - 0x58 lane: int 0..5 (CollisionFish buckets by it into 6 lanes).
-- 0x5C state u8 (1 init, 2 push, back to 1), 0x5D battle u8 (1 during push).
+- 0x5C state s8 (1 init, 2 push, back to 1), 0x5D battle u8 (1 during push).
 - 0x60 battle_target, 0x64 battle_hits (incremented on rand_prob win), 0x68 power (out[4]),
   0x6C aggression (out[5]), 0x70 battle_urge (+= aggression*crowd, >1 starts push),
   0x74 battle_time (set 5.0, -1 per step), 0x78 boost (clamped +-1, decays 0.05/step; push winner
@@ -100,18 +100,16 @@ No equivalent in Dark Cloud 1 (no fish race).
 
 ## Current matching status (2026-10-08)
 
-Twenty functions are source supplied. `StepGyoRace`, `CollisionFish` and
-`FishModifyParam` retain guarded typed drafts and retail assembly in the
-default build. With every draft enabled, twenty-one functions match: only
-CollisionFish and FishModifyParam differ. StepGyoRace's default-build callee
-dependency is described below.
+Twenty-two functions are source supplied. `CollisionFish` and `StepGyoRace`
+are native and exact (see [night-20261008.md](night-20261008.md));
+`FishModifyParam` retains its guarded typed draft and retail assembly in the
+default build.
 
 FishModifyParam still needs direct retail assembly analysis because m2c
-cannot resolve its six-way tactics jump table. All three draft reservations
-already exist in the promotion ledger; no new promotion attempt is reserved.
+cannot resolve its six-way tactics jump table.
 
 ## StepGyoRace draft
-`StepGyoRace` records the first completed step of each fish as a fractional goal time, assigns a current rank by position each step, resolves collisions and lane battles, then assigns final ranks by goal time. It records up to `after_goal_step + 1` further steps and returns the next step index. The C++ draft matches all 204 retail instruction words when CollisionFish is compiled in the same unit. Isolated promotion fails: the assembly-backed CollisionFish prevents MWCC from proving that its call preserves the fish argument in a0, so StepGyoRace reloads that argument and reschedules seven instruction words at +0x1A8. Promotion requires a matching C++ CollisionFish.
+`StepGyoRace` records the first completed step of each fish as a fractional goal time, assigns a current rank by position each step, resolves collisions and lane battles, then assigns final ranks by goal time. It records up to `after_goal_step + 1` further steps and returns the next step index. It matches all 204 retail instruction words. Its call to LaneBattleStep relies on MWCC knowing that the native CollisionFish preserves the fish argument in a0; with an assembly CollisionFish the compiler reloads a0 and reschedules seven words at +0x1A8, so the two functions are native together.
 
 `FISH_STATS` is the six-float output buffer passed to `FishModifyParam`.
 `SetRaceFishParam` maps its fifth and sixth floats directly to the race
@@ -132,13 +130,16 @@ constants, without relying on their visitation order.
 With MWCC 3.0-011126, `-O3,p`, both mwccgap passes and the normal section
 fixup, the complete unit passes the retail checker: `0x3150` initialized bytes and
 86 relocations. This remains true with the call-argument consumer hook.
-`CollisionFish` differs by eight register choices in its final per-lane separation loop; moving the lane counter declaration did not change the allocation.
+`CollisionFish` and `StepGyoRace` are now native; the complete unit is `0x313C` bytes with 87 relocations.
 
 ## CollisionFish and StepGyoRace caller dependency
 
 A post-merge isolated trial with the explicit GPR 0x30/FPR 0 helper history compiles both guarded drafts natively. StepGyoRace then matches completely: its retail call to LaneBattleStep relies on a0 remaining live across CollisionFish. When CollisionFish remains an opaque assembly fallback, the compiler reloads a0 and shifts the following call by four bytes. The joint trial retains one canonical error in CollisionFish at 0x003231B1, in the final per-lane traversal register assignment. Advancing one fish pointer directly, and using the existing outer traversal index with a separate inner index, both preserve the retail operations but leave that allocation difference. Both fallbacks remain active until the joint unit passes.
 
 ## Remaining matching blockers (2026-10-08)
+
+The CollisionFish paragraph below is superseded by the C-style variable
+reuse in [night-20261008.md](night-20261008.md).
 
 `CollisionFish` is 8/360 instruction words from matching; the compiled body is
 0x59C bytes within the 0x5A0 retail extent. Only the final per-lane separation
@@ -417,3 +418,26 @@ objects, and 6,746 matched / zero fuzzy functions. Every other linked and
 source-only object hash equals the `24d3d21` baseline. Full selector,
 hygiene and validation evidence is in
 [selector-context-20261008.md](selector-context-20261008.md).
+
+## Race state signedness
+
+Every read of `grRACE_PROGRESS::state` in gyorace and gyoracesim is an
+unsigned byte load, so the field is `u8` and its comparisons need no cast.
+`RACE_FISH_PARAM::state` stays `s8`: StepFish copies it into the record
+with a signed load, and its comparisons in LaneBattleStep keep `(u_char)`.
+`RaceProgressCopy::state` also stays `s8`, because grGetFishProgress's
+record copy loads the byte signed. Making all three fields `u8` fails
+grGetFishProgress and StepFish on those loads; retyping only
+`grRACE_PROGRESS::state` passes SCES_511.90 and 149/149 objects.
+
+## Race-step function linkage
+
+Retail StepGyoRace__FP15RACE_FISH_PARAMP11grRACE_INFO is LOCAL at 0x323270,
+with declared size 0x32C (812 bytes). Both source prototypes and the definition
+now use static linkage. The complete isolated object preserves 0x3134 checked
+bytes and all 87 resolved relocations, with the native symbol also LOCAL and
+812 bytes. The production PAL build and all 149 objects remain exact; no
+function guard changes.
+
+Receipts: .private/fixes-r0/probes/gyoracesim-static/objects.log and
+.private/fixes-r0/gyoracesim-final-{build,objects}.log.

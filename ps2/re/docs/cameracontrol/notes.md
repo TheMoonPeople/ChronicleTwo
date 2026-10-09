@@ -87,10 +87,12 @@ CopyParam. All fields float except +0x28.
 | 0x24 | `ground_space` | CheckGround: eye kept this far above floor hit; default 25 |
 | 0x28 | `no_check` s32 | inline ctor = 0; fishing UkiWaitLoop sets 1 after SetFixHeight(100)/SetFixDist(80); MoveCamera skips ground/wall checks when non-zero |
 
-`CameraCtrlParam::operator=` has no explicit header declaration or C++
-definition. Native assignment in camera code uses the implicit operation; the
-retail out-of-line body at 0x1ACEE0 is currently an `INCLUDE_ASM` gap in
-`editloop.cpp`. It copies the scalar limits and `no_check` field.
+`CameraCtrlParam::operator=` has an optional retail declaration under
+`CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT` in `cameracontrol.hpp`;
+`cameracontrol.cpp` enables it for its assignment callers. Other includers
+use the implicit operation. The retail out-of-line body at 0x1ACEE0 is
+currently an `INCLUDE_ASM` gap in `editloop.cpp`, with no explicit C++ body.
+It copies the ten scalar float limits and the integer `no_check` field.
 
 ## Enums
 - `CameraRotCancel`: bits seen in MoveCamera (1 buttons, 2 analog, 0x40 rot-back, 0x80

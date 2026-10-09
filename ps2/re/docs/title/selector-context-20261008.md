@@ -33,7 +33,9 @@ experiments already recorded in notes are not repeated.
 
 The complete-wrapper probe has one problem, target bytes at `0x002A521A`;
 all other unit bytes and relocations pass (`0x68B4` bytes, 2,200 relocations).
-The function remains guarded and **none of these partial rows is committed**.
+The function then remained guarded and none of these partial rows was committed.
+The night run commits all five rows with the native promotion; the card-byte
+residual is resolved in [night-20261008.md](night-20261008.md).
 The source is unchanged. `TitleBootInit` is not attempted.
 
 Exact candidate rows: `.private/ctxrows/title-context-rows.json`.

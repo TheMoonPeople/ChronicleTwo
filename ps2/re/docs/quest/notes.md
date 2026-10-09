@@ -14,7 +14,7 @@ No first-game counterpart (Dark Cloud has no quest/request memo or monster book 
 - `spi_queststack` (0x37EA2C): `mgCMemory *` heap passed to LoadCfg.
 - `spi_quest_info` (0x37EA30): `QUEST_INFO *` cursor; quest_NUM sets it to `info`, quest_END advances it by one (0x3D0).
 - `quest_cmd_tag` (.rodata 0x363040, symbol size 0x28): `SPI_TAG_PARAM[5]` =
-  {"NUM",quest_NUM}, {"NEW",quest_NEW}, {"COMMENT",quest_COMMENT}, {"END",quest_END}, {0,0}.
+  {"NUM",quest_NUM}, {"NEW",quest_NEW}, {"COMENT",quest_COMMENT}, {"END",quest_END}, {0,0}.
   Strings are at_878..at_881 (.rodata 0x379108..).
 
 ## Names

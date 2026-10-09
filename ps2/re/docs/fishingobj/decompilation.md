@@ -9,7 +9,7 @@
 - `FISH_FLOAT` is 0x10 bytes: two point pointers, an unused stored word, and buoyancy. The first point gets horizontal damping and upward acceleration according to the pair's depth in water.
 - `FISH_ROD_SEGMENT` is 0x10 bytes: rest length, stiffness, damping, and an untouched final word. Five entries correspond to the rod's five point masses.
 - `CFishObj` is 0x3D0 bytes. It holds at most eight points, eighteen constraints, and sixteen float pairs in the currently mapped storage. Observed object counts are 5/6/2 for the lure, 4/6/3 for the float, and 3/3/0 for the hook. The maximum array counts are storage extents rather than proven gameplay limits.
-- `RodPoint[5]`, `LurePoint[3]`, `FlyingPoint`, `FishPoint`, and `LinePoint[64]` share the `FISH_POINT` layout. `SaoFrame[8]` points at the rod joints named `sao1` through `sao8`. `SaoDist` records each joint's distance from the first joint.
+- `RodPoint[5]`, `LurePoint[3]`, `FlyingPoint`, `FishPoint`, and `LinePoint[64]` share the `FISH_POINT` layout. `SaoFrame[8]` points at the rod joints named `sao`, `sao2` through `sao7`, and `ito`. `SaoDist` records each joint's distance from the first joint.
 
 ## Line and casting
 

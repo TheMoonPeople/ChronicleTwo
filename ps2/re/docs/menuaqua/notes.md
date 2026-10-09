@@ -6,9 +6,9 @@ and menu overlays in retail order. Its native body is exact.
 `GyoraceMenuDraw` is native and exact.
 The `SettingAqua` draft constructs its `love_chara` member as a `CCharacter2`.
 
-`DrawFishParam`, `CAquarium::ColCheck`,
-`CAquarium::Step` retains a `NONMATCHING` draft with a retail `INCLUDE_ASM`
-fallback. `GyoraceMenuKey` is native and exact.
+`CAquarium::Step`, `DrawFishParam` and `CAquarium::ColCheck` are native and
+exact; see [night-20261008.md](night-20261008.md). `GyoraceMenuKey` is native
+and exact.
 
 `CAquaFish::SetAdjustScale` (0x20F0E0, size 0x8C) is native and exact. It
 computes a size-dependent scale, applies it to all three axes, and derives the
@@ -27,17 +27,17 @@ No first-game counterpart (Dark Cloud has no aquarium); layouts below come from 
 `GyoraceMenuKey` drives the saved-racer menu and returns 2 when the user exits
 or a fade finishes. Mode 0 waits for the background read, enters two packed
 images and a configuration buffer, then initializes the menu textures. Mode 1
-dispatches the main menu cursor to name registration, race start, racer
-assignment, racer deletion, tactics viewing, race submission, or the save menu.
+dispatches main-menu cursors 0..6 to name registration, save/load, racer
+assignment, racer deletion, entrant withdrawal, tactics viewing and race start.
 Modes 0xA-0xC select a stored fish and its tactics; modes 0x14-0x16 ask before
-deleting a stored fish; 0x1E asks before starting a race; 0x28 displays a
-racer's tactics; and 0x32 asks before submitting a race result. Modes
+deleting a stored fish; 0x1E asks before withdrawing the entrants; 0x28 displays a
+racer's tactics; and 0x32 asks before starting a race. Modes
 0x3C-0x42 run the save and fish-load flow, including confirmation before
 replacing saved data or assigning the selected inventory fish. After a mode
 change, the function updates visibility flags, list contents, selection
 state, and cursor position before stepping the message windows.
 `GyoraceMenuMode` names the analyzed prompt and sub-screen values; the
-assembly-owned mode storage remains a 16-bit integer.
+native mode storage remains a 16-bit integer.
 
 `GyoraceMenuDraw` delegates name registration and save-mode drawing to their
 own routines. Its normal path draws the full-screen frame and title, race
@@ -48,9 +48,10 @@ The packed archive returned by `GetPackFile` is word-addressed; the key
 function views its image payload as bytes when passing it to `EnterIMGFile`
 and its configuration payload as characters.
 
-Both functions have retail-sized native bodies (`0x12B0` and `0x9C0`). The
-canonical `menuaqua` object comparison passes all `0x11C44` allocated bytes
-and 3,218 relocations with both promoted together.
+Both functions have retail-sized native bodies (`0x12AC` and `0x9B4`). The
+promotion checkpoint compared `0x11C44` allocated bytes and 3,218
+relocations with both functions native. The current review build compares
+`0x11C10` allocated bytes and 3,340 resolved relocations with zero findings.
 
 ## Aquarium drawing
 
@@ -119,7 +120,8 @@ finding; standard objdiff scores its `0xE80` body at 100%.
   0x924 col_flags (cleared each ColCheck), 0x928 wall_time (round: >200 forces a turn),
   0x92C fatigue, 0x930 fatigue_max = `(data[+0x3C]/10 + rand(20) + 26) * 20`, 0x934 flash_count,
   0x938 data (CGameDataUsed*; BREEDFISH_USED is `data + 0x10`).
-- ParamStep return bits: 2 = fish died (HP <= 0; 0x88 bubbles emitted), 8 = fish had flag 0x80,
+- ParamStep return bits: 2 = fish died (HP <= 0; 0x88 bubbles emitted),
+  8 = food eaten after feeding benefits were exhausted (flag 0x80),
   0x10/0x20 = special food 0x13B toggled sex byte (+0x15 of the breed data). ColCheck return:
   bit 1 = ate food 0x168, bit 4 = battle hit.
 - Think modes (enum AQUA_FISH_THINK): seen in NextThink switch and Thinking switch. Mode 2 has no
@@ -164,7 +166,7 @@ buffer, 0x32 per line), 0x225C/0x2278/0x228C (cursor), 0x258C/0x2590 widths.
   pairing/special food/messages, 0x31E draw flag for the selected fish's data.
 - 0x320 food, 0x330 drop_pos (initialised (0,61,0,1)), 0x340 food_time (0xFA when dropped),
   0x384 drop-line draw flag (DrawEsaDropRoot).
-- 0x388 love_phase (Step state machine: 1,2 combine, 3/0xB/0xC messages, 5 start, 10), 0x38A
+- 0x388 love_phase (AQUA_EVENT_PHASE: breeding uses 5 then 1..4; electric food uses 10..13), 0x38A
   counter, 0x38C tex block (= tex_block slot 0x2D0 copy), 0x390 love_chara.
 - Never accessed: 0x326 (only cleared), 0x328..0x32F (padding before drop_pos), 0x344..0x383,
   0x386 (only assigned), 0x3C4..0x3CF.
@@ -186,14 +188,15 @@ buffer, 0x32 per line), 0x225C/0x2278/0x228C (cursor), 0x258C/0x2590 widths.
   s8 +3 -> +0x2C; +4 -> +0x26; +5 -> +0x28; +6 -> +0x2A; s8 +7 unused; s16 +8 -> +0x30}
   (offsets relative to BREEDFISH_USED; ParamStep adds them), terminated by item <= 0; 10 rows.
   `aquafish_info` rows of 0xC {s16 item; char* name at +4; s8 colour at +8 and +9}, 19 rows.
-  `aquafish_mixTable` s8[171][3] (parent1-0x136, parent2-0x136, child-0x136).
+  `aquafish_mixTable` fish_breed_pair[171] (parent1-0x136, parent2-0x136, child-0x136).
   `ColChkPoint`/`ColChkPoint2` 9 rows, `ColChkPoint3` 6 rows of 0x20 {float pos[4]; float
   radius; 12 bytes}; `ColChkPointNum` s8[3], read with `lb` as the active tank's
   collision-point count. `aqua_bubble_generate_pos` float[3][3][4].
   `GyoracerIndexNo`/`GyoracerTacticsNo` s16[6]. `fish_save_present` FISH_PRIZE_INFO[4][3].
   Prize script data: `FishTournamentGoods` groups of 0x44 {int num; int [8] from script; 7 unused
   ints; ptr at 0x40 to num entries of 0x1C = {int; FISH_PRIZE_INFO[3]}}.
-- No row-type structs were declared for these tables; they belong in the .cpp with the data.
+- The source defines and documents the row types beside their data: aqua_food_info,
+  aqua_fish_info, fish_breed_pair, aqua_col_point, fish_prize_group and fish_prize_record.
 
 ## Functions
 - File-scope `Aquarium_NameregistStack`, `Aquarium`, `GyoraceFishSelStack`, and
@@ -215,12 +218,17 @@ buffer, 0x32 per line), 0x225C/0x2278/0x228C (cursor), 0x258C/0x2590 widths.
 - MenuAquaInit/MenuGyoraceFishSelInit/GyoraceMenuInit third parameter: meaning not established.
 
 ## AquaMode
-Values 3, 4, 6, 7 disable fish battles/pairing (ColCheck, Thinking); full meaning in MenuAquaKey /
-CAquarium::Step not yet worked out — candidate for an enum.
+AQUA_MENU_MODE names the enclosing MenuAquaKey flow: initialization/opening
+(0/1), active input (2), closing/clear (3/4), tank fade-in/out (5/6), and
+name-entry fade-out/menu/fade-in (7/8/9). Closing, clear, tank fade-out
+and name-entry fade-out suppress battles and breeding in ColCheck and
+Thinking. AQUARIUM_MODE names Step's independent command and prompt states;
+AQUA_EVENT_PHASE names its breeding and electric-food transitions.
 
 ## Unresolved
-- BREEDFISH_USED (owned by userdata, no header yet) is only forward-declared; its fields are
-  touched at +0x05..+0x3B here (CalcFishParam sums the u16s at +0x26..+0x2E).
+- BREEDFISH_USED is fully defined in userdata.hpp; CalcFishParam sums its
+  five racing parameters at +0x26..+0x2E. Remaining unknown fields keep
+  their established widths and offsets.
 - FISH_PRIZE_INFO field meanings (event_func pushes both to the script stack).
 - AQUA_BUBBLE byte 0 doubles as wobble-table row (0..4) while rising and countdown (10..19) while
   popping.
@@ -276,6 +284,8 @@ Canonical normal and objdiff-base targets also pass after integration: the
 whole-unit checker reports 0x11C54 bytes and 2,970 relocations, and the standard
 project objdiff reports 100% for the native 316-byte DrawEsaDropRoot.
 
+## Historical ColCheck lifetime probes (superseded by promotion)
+
 `ColCheck`'s private baseline compiles to 0x6F8 bytes and scores 99.31615%: 386 instructions
 match and 60 have argument mismatches, with no instruction insertions or deletions. The first
 mismatch swaps the saved-register roles of the selected fish pointer and loop index. Moving the
@@ -289,7 +299,7 @@ Giving the fish, obstacle, and effect-clear loops distinct local indices scores 
 ColCheck (366 matching instructions, 80 argument mismatches); the whole unit still has the single
 ColCheck byte mismatch. This improves on the declaration-position swap but remains below baseline.
 
-## Remaining guarded-function measurements
+## Current status and historical measurements
 
 - `SettingAqua__9CAquariumFv`: **2/752 words**, compiled **0xBB4**, retail extent
   **0xBC0**. At **+0xA00/+0xA04**, placement new for `CCharacter2` branches on
@@ -297,16 +307,17 @@ ColCheck byte mismatch. This improves on the declaration-position swap but remai
   and branches on `s3`. Parked under the placement-new stop rule; reconsider
   when the dedicated constructor/null-branch lane supplies a natural solution.
 
-- `ColCheck__9CAquariumFi`: **60/448 words**, compiled **0x6F8**, retail extent
-  **0x700**. The differing instructions exchange `s2` and `s3`: retail holds
-  the selected fish in `s3` and uses `s2` for the fish-loop offset and obstacle
-  count; draft allocates those registers oppositely. All other instructions
-  and relocations agree. Giving each loop its own index produces **76**
-  differing words; initializing the selected-fish pointer before the
-  temporary declarations produces **89**. Reconsider with evidence for a
-  natural local lifetime or type correction that yields the retail allocation.
+- `ColCheck__9CAquariumFi` is native and exact: its declared retail and
+  native symbol sizes are **0x6F8** in a **0x700** aligned reservation. The
+  slot null check before binding the selected fish resolves the old `s2`/`s3`
+  exchange; the typed collision-point element walk preserves the exact body.
+  See [night-20261008.md](night-20261008.md) for promotion and complete-object
+  verification. Earlier guarded probes gave **60/448** words, **76** with
+  separate loop indices, and **89** with early pointer initialization; these
+  historical negative results do not describe the current implementation.
 
-- `DrawFishParam__FiiP10mgCTextureP13CGameDataUsed`: **652/704 words**, compiled
+- `DrawFishParam__FiiP10mgCTextureP13CGameDataUsed` (now exact; the forms that
+  match are in [night-20261008.md](night-20261008.md)). Earlier state: **652/704 words**, compiled
   **0xAA4**, retail extent **0xB00**. Retail uses a **0x450** stack frame;
   draft uses **0x430**. Fresh rectangle temporaries for the three unknown-weight
   glyphs restore the frame size but still leave **651** differing words and
@@ -317,14 +328,11 @@ ColCheck byte mismatch. This improves on the declaration-position swap but remai
   original initializer/lifetime structure established from the retail loads,
   stores, and rectangle stack slots. Both probes are reverted.
 
-- `Step__9CAquariumFv`: **1111/1732 words**, compiled **0x1B04**, retail extent
-  **0x1B10**. Before **+0x660**, instruction differences are downstream branch
-  targets. At **+0x664**, the draft schedules the tank-index shift into a
-  branch delay slot where retail has a nop, then loads `menu_cursor` after
-  the table-address work; retail loads it first. That one-word contraction
-  shifts the following menu cases and inflates the aligned-word difference.
-  Its out-of-line `CFishFood` constructor preserves the retail placement-new
-  branch/copy-delay pattern and is not the inline constructor blocker above.
-  m2c currently cannot resolve the menu switch jump table. Reconsider with
-  jump-table recovery and a natural evaluation-order/type explanation for
-  the menu-id lookup, then realign the comparison before chasing later blocks.
+- `Step__9CAquariumFv` is native and exact: its declared symbol is 0x1B04
+  bytes in a 0x1B10 aligned reservation. A separate function-scope fish
+  counter declared before menu/result and an ordinary cursor assignment
+  before the menu switch resolve the old 39/1732 remainder. Its switch
+  tables, local statics and initialization guard are now emitted entirely
+  by C++. The state/result enums and signed field types preserve every
+  byte and resolved relocation; see [night-20261008.md](night-20261008.md)
+  and [review-fixes-20261008.md](review-fixes-20261008.md).

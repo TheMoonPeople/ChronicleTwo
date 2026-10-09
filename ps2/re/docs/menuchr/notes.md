@@ -4,17 +4,24 @@ The matching build uses retail gaps for the C++ drafts still guarded by
 `NONMATCHING`, including `CMenuChrCngMenu::LoadBGNPCModel`,
 `MenuCharaChangeInit`, `CMenuCostumeSel::LoadMenuData`,
 and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
-`EnterDataMenu`, `KeyChangeMain`,
-`MenuCharaChangeStarDraw`, `CMenuMosSelect::KeyStep`,
-`MenuItemCharaDataLoadEndCheckAfter`,
-`CMenuCostumeSel::Draw` and `MenuCostumeInit`.
+`KeyChangeMain` and `MenuCostumeInit`. `CMenuMosSelect::KeyStep` is native;
+see [the KeyStep promotion](night-20261008.md#keystep-promoted) and
+[the round-three review fixes](review-fixes-r3-20261009.md).
+`MenuItemCharaDataLoadEndCheckAfter` is native; see
+[the temporary-scene notes](night-20261008.md#temporary-scene-initializer-match-round-1).
 Only unguarded functions are active C++ decompilations. `MenuMemoryDivide` and
 `CMosBookMenu::Draw` are native, including their capacity and drawing tables.
-The complete unit passes canonical verification. The merged October 8
-Satan's Fiddle base has independent PAL `.text` mismatches in `nd_meswin`
-and `actscript`. The current scores, retained drafts, and receipts are in
-[mid-day round-one assessment](midday-r1-assessment.md); the dated older assessments below
-record their earlier baselines.
+`CMenuChrCngMenu::EnterDataMenu` is native; its palette and command-loop
+findings are in [the night assessment](night-20261008.md#enterdatamenu-match).
+`MenuCharaChangeStarDraw` is native; `mgRect<short>` is the generic
+template (see [the star notes](night-20261008.md#character-change-star-drawing-round-1)).
+`CMenuCostumeSel::Draw` is native with one scoped floating-argument row; see
+[the costume notes](night-20261008.md#costume-drawing-match-round-1).
+The complete unit passes canonical verification. The `63f7a9e5` baseline
+and the current lane pass all 149 object checks and the complete PAL
+verifier. Current scores and new probes are in
+[the night assessment](night-20261008.md); the dated older assessments
+below record their earlier baselines.
 
 `MonsterBookDraw` draws the book, then draws a debug label when
 `menu_debug_flag` is set. The retail float register setup for
@@ -63,9 +70,11 @@ font sequence and matches with its six native drawing tables; see
 [monster-book drawing](midday-book.md).
 `CMenuCostumeSel::LoadMenuData` and `CMosBookMenu::KeyStep` each differ by
 the same two placement-new branch/move instructions as `LoadBGNPCModel`.
-`MenuItemCharaDataLoadEndCheckAfter` differs by two instructions in the
-inlined `CScene` constructor: the address argument for `CMdsListSet::Initialize`
-is prepared before the call in the draft and in the call delay slot in retail.
+`MenuItemCharaDataLoadEndCheckAfter` returns early through a `switch` on the
+load mode. An equivalent `if` lets MWCC fill the inlined `CScene` constructor's
+message-loop branch delay slot with the `CMdsListSet::Initialize` address, which
+retail sets in the call's delay slot. The function is compiled at inline depth 8
+so that the game-object array's `CSceneData` base constructor is inlined.
 
 The seven `MenuActionCharaBuffer` stacks and the other eight `mgCMemory` globals use native
 C++ construction in BSS declaration order. MWCC generates the 148-byte retail
@@ -136,21 +145,23 @@ Slot order is the base's: `IsCreateObject`, `IsMakeObject`, `IsAskExtend`, `Item
 
 ### CMenuChrCngMenu::EnterDataMenu
 
-The guarded draft registers the ring image, parses the menu layout once, installs repair data,
+The native function registers the ring image, parses the menu layout once, installs repair data,
 then clones the base texture and darkens its 256 palette entries using a 32-step warm colour
 scale. It attaches forms, shows the party members and available characters, installs the two
 message buffers, and loads the current townsperson's command messages and ability costs. The
 m2c output mislabels several fields after offset 0x110 as `star` members; disassembly confirms
 that offsets 0x124/0x128 are `enable_change`/`party_member`, 0x140 is `form`, and 0x21C–0x248
-are the NPC and message fields in `menuchr.hpp`. The draft compiles but differs from retail.
+are the NPC and message fields in `menuchr.hpp`. The exact native match is
+recorded in [night-20261008.md](night-20261008.md).
 
 ### CMosBookMenu (0x980)
-- Its guarded `Draw` draft draws the scrolling background, layered panels, attribute icons,
+- Its native `Draw` function draws the scrolling background, layered panels, attribute icons,
   monster model, three numeric stats and the monster's names and item drops. The model is clipped
   to the central panel after load phase 4 and 17 frames of display. The list counter at offset
   0x7E8 supplies the final page indicator; m2c mislabels it as `abs`. The `ic_5580` table has
-  seven entries although the retail loop tests eight attribute bits, so the last bit reads the
-  alignment bytes before `line_5595`. The draft compiles but differs from retail.
+  eight coordinate pairs: seven explicit icon positions and a final zero pair
+  used for the eighth attribute bit. The exact match and declared table extent
+  are documented in [midday-book.md](midday-book.md).
 - Size: `__nw__FUiP1(0x980, ...)` in `MonsterBookInit`; instance in `MonsterBookPtr` /
   `MenuMosBookPtr`.
 - Inline ctor: `mgCCamera(8.0f)` at 0x110 (0x70 -> 0x180), `mgCMemory` Init at 0x184, zeroes
@@ -178,7 +189,8 @@ Stride from `InitStarInfo`/`CalcTex`/`MenuCharaChangeStarDraw`; 0x10/0x14 unreso
 
 ### mgRect<short>
 Declared by the `mgRect<T>` template in `mg_tanime.hpp`; `Set__9mgRect_s_Fssss` is its inline
-`Set` instantiated here. Size 0x8 is asserted in the header.
+`Set` instantiated here. Its four halfword fields use 16-byte class alignment,
+so `sizeof(mgRect<short>)` is `0x10`, including eight bytes of trailing padding.
 
 ## Enums
 - `CHR_CNG_PHASE` (change_phase 0x120): 0..3 from `CheckChrChange`.
@@ -308,17 +320,19 @@ constructor clear. These names repair compilation of all eighteen original
 drafts; the nested switch in `KeyChangeMain` itself was well formed.
 
 `MenuMemoryDivide` uses typed quadword-array indexing for its buffer movement.
-This preserves the existing 18-word register-allocation difference. Moving
+The earlier round-two draft retained an 18-word register-allocation difference.
+The native match in [midday-memory.md](midday-memory.md) supersedes that score. Moving
 the buffer declaration before alignment and reversing the explicit rounding
 addition operands do not correct the allocation.
 
-The guarded `EnterDataMenu` draft uses the texture block loaded from base
+The earlier guarded `EnterDataMenu` draft used the texture block loaded from base
 menu offset 0x18 for texture registration, repair setup, and reload. Its
 script pointer and script length are base fields at 0x8 and 0xc, rather than
 the party-change state at 0x118/0x11c. The NPC reset includes offset 0x23c.
 Capturing the texture manager and initial texture block follows retail's
 reads before the pack lookup. These corrections reduce the draft difference
-from 370 to 331 of 388 words; the body remains guarded.
+from 370 to 331 of 388 words at that checkpoint. The subsequent exact native
+match is recorded in [night-20261008.md](night-20261008.md).
 
 See [the October 8 lane assessment](round2.md) for the remaining function
 scores, concrete park triggers, shared constructor proposal, and validation
@@ -348,3 +362,25 @@ complete-unit checker accept `0x11CDC` allocated bytes and 3,734 resolved
 relocations. The native loader body is `0x1E4` bytes inside its `0x1F0` retail
 extent. See [remaining guards on the merged base](remaining-sf-r2.md) for
 per-target measurements, useful negative experiments, and final receipts.
+
+## Review cleanup and scene-update load flag
+
+CMenuCostumeSel::Draw uses snake_case local names and USER_CHARA_MONICA for
+its character comparison. MenuItemCharaDataLoadEndCheckAfter's case label
+uses the surrounding switch indentation. The MenuDCMsg and CostumeOptionEnv
+source redeclarations are unnecessary: menuaqua.hpp and title.hpp own them.
+MenuCharaChangePosDataCfgBuffer already has one static definition at this
+checkpoint (introduced by fb857059); the duplicated extern finding is resolved.
+
+MENU_LOAD_INFO byte +7, update_scene, selects main-scene model updates:
+CheckLoadBGMonster uses the main scene's stack and character when it is set,
+the character/ridepod loaders collect and reload the main scene's characters,
+and MenuItemCharaDataLoadEndCheckAfter calls SetupUnitMan for MenuMainScene.
+The signed-byte field shares a union with the old unk_6 array, retaining the
+eight-byte layout and existing accesses in protected methods and inventmn.
+All unprotected menuchr and menusys accesses use the named field. Byte +6
+remains unidentified. The earlier cross-unit full-rename proposal is
+superseded; see [the October 9 fixes](review-fixes-r2-20261009.md).
+
+Receipts: .private/fixes-r0/menuchr-final-{build,objects}.log:
+SCES_511.90: OK and 149/149 objects.

@@ -1,9 +1,12 @@
 # title: reverse-engineering notes
 
-`TitleBootInit` and `TitleModeKey` retain C++ drafts under `NONMATCHING`;
-the matching build uses retail `INCLUDE_ASM` gaps for both. `TitleHDDInstallDraw`
-is source-supplied and matches retail, including the complete title object and
-linked PAL image. The unit has 35 matched functions and two guarded drafts.
+`TitleBootInit` retains a C++ draft under `NONMATCHING`; the matching build
+uses its retail `INCLUDE_ASM` gap. `TitleModeKey` matches with five
+`CalcMenuAdd__FPfff` control selectors (see [night-20261008.md](night-20261008.md)).
+`TitleHDDInstallDraw` is source-supplied and matches retail, including the
+complete title object and linked PAL image. The unit has 36 matched functions
+and one guarded draft. Later sections that describe `TitleModeKey` as guarded
+are dated investigation records.
 
 The title main-loop mode (`LOOP_TITLE`). No class is owned by this unit (`class_units.tsv`
 has none); the header declares the unit's own structs and enums, the 8 global functions and
@@ -389,3 +392,16 @@ coverage is unchanged. The verifier retains exactly `0x26` text bytes and
 passes all other sections and the memory-end check. Receipts:
 `.private/round1/final-build.log`, `final-check.log`, `final-coverage.txt`,
 `final-hashes.json` and `validation-summary.json`.
+
+## Title input source cleanup
+
+Retail `TitleModeKey__Fv` is a LOCAL function at `0x2A5150`, with declared
+size `0x9BC` (2492 bytes), rather than its padded `0x9C0` section extent.
+Static linkage, the existing memory-card function and menu/button enums,
+and binary32 literals for the former `float(N.0)` arguments preserve the
+complete unit's bytes and resolved relocations. The `338.0f` argument in
+TitleModeDraw is also identical. The `0x10` START mask remains numeric until
+the shared START/SELECT enum names are corrected by the header owner.
+
+Receipts: `.private/fixes-r0/title-probe-{build,objects}.log` and
+`title-final-{build,objects}.log`: `SCES_511.90: OK`, 149/149 objects.

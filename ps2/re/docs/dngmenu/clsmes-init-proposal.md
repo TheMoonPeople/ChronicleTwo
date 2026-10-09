@@ -1,5 +1,13 @@
 # ClsMes::Init standalone proposal
 
+This is a historical probe record. The current native/guarded status is in
+[notes.md](notes.md#current-assembly-gaps); later exact matches are documented
+in [night-20261008.md](night-20261008.md).
+
+Applied on October 8 night: `DngTreeMapInit` is exact and the `Init__6ClsMesFv`
+assembly marker is removed. The complete dngmenu object passes and the PAL
+executable verifies; see [night-20261008.md](night-20261008.md).
+
 `Init__6ClsMesFv` at 0x001F38E0 remains assembly-supplied in dngmenu by
 assignment. The unchanged `nd_meswin.hpp` contains its inline definition.
 The midday natural `CMenuTreeMap` constructor makes MWCC emit that body as

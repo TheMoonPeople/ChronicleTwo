@@ -4,6 +4,11 @@ Sphida is the golf-like minigame on dungeon floors. Event scripts (`_SPHIDA_*` i
 create and drive it; `dng_main` steps/draws it; `actionchara`/`editctrl` collide against its pin.
 No corresponding class in the first game.
 
+All twenty unit functions now match as native C++, including status-sprite
+drawing. The current selector and whole-PAL acceptance evidence is in
+[the October 8 night assessment](night-20261008.md). Dated guarded results
+below retain their historical compiler and source baselines.
+
 ## CPowGage (size 0x24, asserted)
 Size: it is the first member of CSphida, and CSphida's next field (`tex_bank`) is at 0x24.
 No vtable. `CSphida::CSphida` calls `CPowGage::Initialize` on `this`, so the gauge's
@@ -70,7 +75,8 @@ No vtable of its own.
 - `_SPHIDA_SET_UP` mode 0 -> `SetUp(tex_bank)`, 1 -> `s17_SetUp(tex_bank)`, 2 -> `Omake_SetUp(course, tex_bank)`.
 
 ## Globals
-- `GolfClubDef` (.data, 0x54 = 7 x GOLF_CLUB_DEF): clubs 9..14 then a zero row.
+- `GolfClubDef` (.data, 0x54 = 7 x GOLF_CLUB_DEF, retail LOCAL): clubs 9..14 then a zero row.
+  It is `static` in sphida.cpp and not declared in the header.
   power = 38, 40, 42, 46, 44, 50; unk_4 = 0.2, 1.6, 2.6, 2.6, 4.0, 1.2; unk_8 = 6, 4, 5, 3, 2, 1.
   `_SPHIDA_GET_CULB_DEF` returns all three to scripts; only `power` is used in this unit.
 - `Sphida` (.sbss, 4): `CSphida*`; `InitSphida` clears it, `GetSphidaPtr` returns it.

@@ -276,3 +276,38 @@ source snapshot, word comparison, disassembly and complete-object check;
 `.private/midday-editmenu-build.log`, `.private/midday-editmenu-objects.log`,
 `.private/midday/editmenu-hash-comparison.json`, and
 `.private/midday-coverage-editmenu.txt` record integrated validation.
+
+## Initialized removal-state markers
+
+DestroyNum_3583 and DestroyPartsName_3587 each occupy four zero bytes in
+retail .sdata at 0x37C890 and 0x37C894. Their meanings remain the selected
+removal quantity and part-name pointer. The earlier scalar-initializer probe
+records that ordinary zero/null initialization emits .sbss; it is not
+repeated. A new natural scalar brace-initializer probe (`= {0}` / `= {NULL}`)
+also emits .sbss: canonical postprocessing rejects section 36 with
+`cannot become .sdata`. Its receipt is
+.private/fixes-r0/probes/editmenu-braced/compile.log. A different nonzero value or runtime initializer would alter the
+retail state or initializer, and a wrapper/one-element array solely to change
+section placement would not express these scalar variables naturally.
+
+A zero-initialized function-local static does not avoid this difference:
+MWCC emits `.sbss` storage and an initialization guard. Retail's own
+`wavetable` pair `cnt$302` / `init$303` and `menuop` pair
+`ManualMovieFadeCount$1253` / `init$1254` show that pattern. The former
+has a four-byte counter and one-byte guard at 0x37D208 / 0x37D20C;
+the latter has a two-byte counter and one-byte guard at
+0x37E32C / 0x37E330. In contrast, `DestroyNum$3583` and
+`DestroyPartsName$3587` are guard-less four-byte zero objects in
+`.sdata` at 0x37C890 / 0x37C894. A local-static rewrite would therefore
+change both the section and generated initialization behavior. The only
+verified scalar spelling for that initialized section uses
+`explicit_zero_data`, which is not an accepted source accommodation.
+
+The unaccepted explicit_zero_data pragma is removed. The unit-owned extern
+declarations and original initialized-data markers preserve the scalar
+accesses and exact retail .sdata. These two values remain assembly-supplied
+data until a natural scalar declaration reproduces that section placement.
+No function guard changes.
+
+Receipts: .private/fixes-r0/editmenu-final-{build,objects}.log:
+SCES_511.90: OK and 149/149 objects.

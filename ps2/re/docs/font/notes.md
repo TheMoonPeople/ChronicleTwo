@@ -25,7 +25,7 @@ Size: retail symbols `Font` (0x3FAF50, mainloop) and `MovieCCFont` (0x3F0510, nd
 | 0x9C/0xA0 | `clearance_w/h` | `SetClearance`; `Init` 15/24; `DrawGaiji` passes 0xA0 as line height |
 | 0xA4/0xA8 | `draw_w/h` | `SetDrawSize`; `Init` 16/20; `DrawChar` uses them as the screen rect size, halving w for half-width |
 | 0xAC | `s32 mini` | `DrawChar`: non-zero -> `GetRectFontTexMini` + `MySetTexMini` |
-| 0xB0/0xB4 | `float unk_b0/unk_b4` | `Init` zeroes; `DrawDirect` does `fptosi` on both and shifts << 4 (used as a 12.4 offset); meaning not established |
+| 0xB0/0xB4 | `float offset_x/offset_y` | `Init` zeroes; `DrawDirect` does `fptosi` on both and shifts << 4 (used as a 12.4 offset); meaning not established |
 
 Verified by a trial compile (reverted): `Init`, `DrawChar(mgCDrawPrim*,char*,int,int)`,
 `SetColor(RGBAQ_TYPE)` and `GetRectFontTexMini` MATCH with this layout.
@@ -92,7 +92,7 @@ DIFFs: retail copies the returned value through a second stack temp (0x28 -> 0x2
 | at_1137__2 | 0x35B4A0 | 0x30 | u16[24] font gaiji codes (local aggregate initialiser) |
 
 ## Unresolved
-- `unk_84`, `unk_b0`, `unk_b4` meaning (b0/b4 are a float offset used by `DrawDirect`).
+- `unk_84` meaning; the float fields at `0xB0` and `0xB4` are the drawing offsets `offset_x` and `offset_y`.
 - `FONT_TBL_BIN::unk_6` never read.
 
 ## Typed access matching
@@ -102,7 +102,7 @@ two code-point subtractions in separate statements preserves retail's two
 `addiu` instructions; collapsing them into one indexed expression makes MWCC
 fold the base address instead. Both functions match fully without byte-offset
 pointer arithmetic. `CFont::DrawDirect` reads its known float fields
-`unk_b0` and `unk_b4` directly, also matching fully without raw field casts.
+`offset_x` and `offset_y` directly, also matching fully without raw field casts.
 The unused C-linkage constructor declaration was removed, and the genuine
 runtime `fptosi` declaration now comes from `mw_runtime.h`.
 The text walkers in `CalcDrawWH` and `DrawDirect` also use `char *` with

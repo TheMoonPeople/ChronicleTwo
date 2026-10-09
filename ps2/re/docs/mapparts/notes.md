@@ -65,7 +65,9 @@ UpDatePosition (0x7C), Copy(CMapParts&, mgCMemory*) (0x80). Other slots used: 0x
 | 0x304-0x30F | alignment | |
 
 Inline functions emitted elsewhere: ctor (map 0x15DF40; the `*(this+0x2FC)=0` store is
-CFuncPointCheck's ctor), Draw/DrawDirect (map; tail calls to DrawSub(0)/DrawSub(1)),
+CFuncPointCheck's ctor), Draw/DrawDirect (map, weak; tail calls to DrawSub(0)/DrawSub(1);
+inline in `mapparts.hpp`, so `Initialize` is the first non-inline virtual and this unit
+emits `__vt__9CMapParts`),
 SetLODDist/SetLODBlend/GetLODBlend (mapload).
 
 Return types: functions returning a value are declared `int` (flags/counts) except SearchPiece /

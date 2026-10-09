@@ -50,7 +50,8 @@ assignments retain the retail store sequence while sharing each constant load.
 - `__ct__` calls `Initialize` and returns this.
 - `InitTexture` returns void (v0 is just strcpy's leftover). Retail call (evLoadDebugFont):
   `(-1, "", -1, "", slot, name)` -- only the half-width sheet is loaded there.
-- `PrintDirect` returns void (v0 not set). `vsprintf` into a 0x408-byte stack buffer
+- `PrintDirect` returns void (v0 not set). `vsprintf` (declared with the other newlib printf
+  functions in `ps2/include/std/cstdio`, taking the argument pointer as `char *`) into a 0x408-byte stack buffer
   (frame 0x4A0: buffer at sp+0x30, 5-byte compare buffer at sp+0x438).
   Byte loop: 0 ends; bit 7 set -> if 0xA1..0xDF half-width kana via `ascii2serno`, else a two-byte
   SJIS char via `SjisToSerno((b0<<8)|b1)`. Sound marks 0x2134/0x2135 with a nonzero `prev_serno`

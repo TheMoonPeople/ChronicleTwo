@@ -31,10 +31,10 @@ No class is owned by this unit (`class_units.tsv` has none). No first-game count
 - `static int MapNameNum; static MAP_NAME_INFO *map_name; static int pMapNameBuff` (offset in
   quadwords into MapNameBuff); `static int pCharBuff` (byte offset into CharBuff);
   `static char *CharBuff; static int now_no` (next MAP_NAME row).
-- `static u_long128 MapNameBuff[0x800]` (0x8000 bytes; indexed as `MapNameBuff + p*16`).
+- `char MapNameBuff[0x8000]` (the mixed record/string arena; indexed in bytes as `MapNameBuff + p*16`). Its global linkage is retained for generated VU data references.
   `mlMAP_NAME_NUM` puts `(n+1)` MAP_NAME_INFO rows at quadword `pMapNameBuff`, advances by
   `(n+1)*0x1C/16 + 1`, and CharBuff follows; LoadMapName then advances by `pCharBuff/16 + 1`.
-- `static SPI_TAG_PARAM tag[3]` (function-local in LoadMapName): `{"MAP_NAME_NUM",
+- `static SPI_TAG_PARAM tag[3]` (the LoadMapName command dispatch table): `{"MAP_NAME_NUM",
   mlMAP_NAME_NUM}, {"MAP_NAME", mlMAP_NAME}, {0,0}`. Symbol size 0x18, file holds 0x20 (padding).
 - `static char *map_sel_type[8]`: "New", "Georama", "PalmBlinks", "Submap", "Future", "Dungeon",
   "Event", "Special" (-> `MapSelType`).

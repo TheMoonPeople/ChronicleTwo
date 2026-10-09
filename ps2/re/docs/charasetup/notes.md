@@ -44,14 +44,14 @@ Filled by `GetRoboPartsInfo` into `robo_dat`:
 - 0x18 arm_name = `&robo_info_body[body_type-1].arm_name` (address 0x351E2D = base+0xD), else NULL.
 - 0x1C move_type = `GetRoboInfoType` on user_data+0x47D4 (legs) if legs present.
 - 0x20 attack_type = `GetRoboInfoType` on user_data+0x4690 (arm) if arm present.
-`robo_dat`'s symbol extent is 0x30 because the next bss symbol is 16-byte aligned; struct is 0x24.
+`robo_dat` has declared size 0x24; its piece extends to 0x30 because the next BSS symbol is 16-byte aligned.
 Used by menuchr (`MenuItemRoboDataLoad`: reads [3] and +0x14).
 `SetupRobo` reads the arm/leg joint names itself; the five SetRef names are `at_1216__4`
 (leg, arm, body, mints, bpack) -> `ROBO_MODEL_SLOT`.
 
 ## ROBO_INFO_BODY (0x25), robo_info_body[11] (0x197 = 11*0x25)
-Each row: `char[13]` body file (`body01.chr`, `body02.chr`, ...) then `char[24]` arm name (`arm1`,
-`arm2`, ...). Indexed by body type - 1 (body item info +0x22).
+Each row: `char[13]` body file then `char[24]` arm name. Retail contains one
+`body01.chr`/`arm1` row followed by ten identical `body02.chr`/`arm2` rows. Indexed by body type - 1 (body item info +0x22).
 
 ## mem_table (local, 0x351D50, 0x70) -> `static int mem_table[4][7]`
 Stack sizes per character row. `GetCharaMemAllocSize` returns max row sum + 0x10.
@@ -62,7 +62,7 @@ Stack sizes per character row. `GetCharaMemAllocSize` returns max row sum + 0x10
 ## Other data
 - `r_robo_pname_1282` (bss 0x40) = `char[4][16]`; `fname_1290` (bss 0x40) = `char[64]`;
   function-local statics of GetRoboPartsInfo.
-- `fname_tbl_1291`, `fname_tbl2_1298`: local `char *[8]` (6 used, 2 NULL).
+- `fname_tbl_1291`, `fname_tbl2_1298`: local `char *[6]`; the two following zero words are piece padding.
 
 ## First game
 No direct counterpart header checked in chronicle for this unit.

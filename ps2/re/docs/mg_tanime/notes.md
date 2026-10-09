@@ -40,6 +40,19 @@ No source or shared-header patch is validated. A comparable 3.0-011126 inlined
 list caller, or a compiler trace showing where the implicit allocation check
 is bound to its persistent object pointer, is still needed.
 
+## Current TexAnime and optimizer state
+
+`TexAnime` is native and exact at retail's 0x1458-byte symbol size. The
+unit uses `#pragma optimization_level 2`, preserving global common-
+subexpression elimination without the level-3 loop strength reduction.
+Template-using functions receive the pragma state in force when their
+code generation is triggered by the next top-level declaration; this
+explains the earlier unsuccessful scoped/reset experiment. The complete
+unit-wide setting preserves the already matched sibling functions.
+The zero-constructed rectangle objects correspond to six real retail
+`Set(0,0,0,0)` calls on distinct slots. Full reconstruction and deferred
+code-generation evidence are in [nmmisc-20261008.md](nmmisc-20261008.md).
+
 Engine texture animation (`mg_tanime.cpp`). First-game counterpart: `textureanime.hpp`
 (`CTexAnimeData` / `CTextureAnime`). The design is the same in spirit, but every layout differs:
 records are now heap-allocated `CList<mgCTexAnimeData>` nodes in per-group linked lists, groups have
@@ -66,7 +79,7 @@ Evidence: `Initialize` (stores), `EnterTexAnime` (copy, by width: 4 bytes, 2 ptr
 | 0x00 | s8 type | init 0xFF; `TEX_ANIME_DATA` arg 0; TexAnime: 0 copy, 1 scroll, 2 wave; texSCROLL branches on 1/2 |
 | 0x01 | s8 group | EnterTexAnime passes `(char)data[1]` to NewTexAnimeGroupData; DATA_END stores now_group |
 | 0x02 | s8 link_group | init 0xFF; TexAnime enables this group (if >=0) for each enabled group's current record |
-| 0x03 | u8 clut_copy | `CLUT_COPY` arg; TexAnime: if both textures 8bpp and (flag or src_w/h == texture width/height) a 256x256 MoveImage of CLUT TEX0s |
+| 0x03 | s8 clut_copy | `CLUT_COPY` arg; TexAnime: if both textures 8bpp and (flag or src_w/h == texture width/height) a 256x256 MoveImage of CLUT TEX0s |
 | 0x04 | mgCTexture* src_tex | `SRC_TEX` GetTexture(name,-1) |
 | 0x08 | mgCTexture* dest_tex | `DEST_TEX` |
 | 0x0C..0x12 | s16 src_x/y/w/h | `SRC_TEX` args 1..4, `<<4` |
@@ -76,8 +89,8 @@ Evidence: `Initialize` (stores), `EnterTexAnime` (copy, by width: 4 bytes, 2 ptr
 | 0x24/0x26 | s16 amplitude_x/y | texSCROLL type2: frac(arg)*10000 (10000 when |frac|<0.001); TexAnime: dest_w * amp * (1+sin(2pi*phase/period))/2 / 10000 |
 | 0x28 | s16 wait | `WAIT` arg0; arg1 non-zero -> 0xFFFF. TexAnime: 0 chains to next record in same frame; <0 holds |
 | 0x2A | s16 bug_patch | init from `mgBugPatch`; DATA sets from `texBugPatch` (`BUG_PATCH` tag). Non-zero: advance when frame >= wait, else when frame > wait |
-| 0x2C | u8 bilinear | init 1; `DEST_TEX` arg 5; TexAnime `Bilinear()` (only when dest bpp >= 24) |
-| 0x2D | u8 alpha_blend | init 4; `ALPHA_BLEND`; TexAnime: 4 = AlphaBlendEnable(0) |
+| 0x2C | s8 bilinear | init 1; `DEST_TEX` arg 5; TexAnime `Bilinear()` (only when dest bpp >= 24) |
+| 0x2D | s8 alpha_blend | init 4; `ALPHA_BLEND`; TexAnime: 4 = AlphaBlendEnable(0) |
 | 0x2E | s8 alpha_test | init 0xFF; `ALPHA_TEST` arg0; -1 = AlphaTestEnable(0), else AlphaTest(method, ref) |
 | 0x2F | u8 alpha_ref | `ALPHA_TEST` arg1 |
 | 0x30..0x33 | u8 r,g,b,a | init 0x80; `COLOR` args; `mgCDrawPrim::Color` |
@@ -183,7 +196,11 @@ with `optimization_level reset` immediately after the function. Its target retai
 the same six instruction differences. The fixed-up unit changed from 0x27E0 bytes
 to 0x25F8 bytes and reported 223 object problems, including shortened later function
 extents. Pairing the scope with `global_optimizer off` produced the same target
-difference and unit-wide failure. Neither pragma form is a viable local fix.
+difference and unit-wide failure. Neither scoped pragma form was a viable
+local fix at that checkpoint.
+MWCC defers template-using functions until the next top-level declaration,
+so the reset affected more than the intended function. The later unit-wide
+level-2 reconstruction documented above supersedes this scoped experiment.
 
 ## Placement construction under Satan's Fiddle (2026-10-08)
 

@@ -50,7 +50,7 @@ Size from `Init` memset 0x6C, every array stride, `memcpy(...,0x6C)` in `CopyGam
 instead of casting the record to `short *` produces byte-identical code for the whole unit.
 - 0x0 s16 `used_type`: `ConvertUsedItemType` result (`CopyDataItem(int)`), 1 item, 2 attach, 3 weapon,
   4 item family 4, 5 ridepod part, 6 fish, 7 gift box, 8 boiled (`Boiled`). 0x2 s16 `item_no`.
-  0x4 s8 `item_type` (common data type; `IsWhoEquip` compares as `(char)`). 0x5 u8 `rename_flag`
+  0x4 s8 `item_type` (common data type; `IsWhoEquip` compares as `(char)`). 0x5 s8 `rename_flag`
   (`SetName`: 1 when strcmp with `GetItemMessage` differs; `GetName(2)` indexes `symbol_tbl_1338` by it).
   0x6..0x10 never seen.
 - 0x10: union by `used_type` (0x5C bytes). Evidence that the union starts at 0x10: `ToSpectolTrans` passes
@@ -277,9 +277,10 @@ The header gives their addresses, sizes, declarations and purpose comments.
 
 All six functions retain 100% PAL object matches with the typed member access.
 
-Signed reads of the weapon palette and attack-type bytes, the fish sex byte,
-the attachment spectrum source and the character equipment flag use value
-conversion to `s8`. This preserves retail's signed-byte behavior without
+Signed reads of the weapon palette and attack-type bytes, the attachment
+spectrum source and the character equipment flag use value conversion to
+`s8`. The fish `sex` and `rename_flag` fields are themselves `s8`, so their
+reads need no conversion. This preserves retail's signed-byte behavior without
 aliasing those fields through signed-byte pointers in `GetPalletColor`,
 `GetAttackType`, `TransToPassword`, `GetMsgAddInfo`, and `CheckEquipChange`.
 

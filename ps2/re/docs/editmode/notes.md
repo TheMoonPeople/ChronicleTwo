@@ -1,5 +1,15 @@
 # editmode: reverse-engineering notes
 
+`EditMode` is active native C++ and exact after the October 9 promotion:
+0/1912 differing words, GLOBAL symbol size 0x1DDC. The production profile
+evaluates its three `mgAngleCmp` quarter-turn tolerances first and asserts
+three matches. `LoadEditCursor` is the unit's only remaining guarded function.
+EditMode-owned literals and zero-vector templates are native; the only ten
+data markers are LoadEditCursor strings. The dated probes below describe
+earlier source snapshots; the current result
+and its complete-object/PAL validation are in
+[night-20261008.md](night-20261008.md).
+
 `LoadEditCursor` allocates three `CCharacter2` objects for the paint, removal,
 and shovel cursors. Its C++ draft uses the class constructor; retail assembly
 remains active while the surrounding load and construction code is unmatched.
@@ -44,7 +54,7 @@ Everything else is LOCAL in retail (`local_symbols.tsv`) and belongs in the .cpp
   sound at 40, place at 30), `RemoveMtnCnt` (18 at start; removal at 3), `eDirCurLen` (float),
   `NowSelectWallParts`, `SelectWallGroup`, `PreMenuCount`, `PreMenuMaxCount`, `CtrlLockFlag`
   (lock counter, clamped at 0), `eCameraDist` (float, 600.0f in `InitEditFlag`), `eCurRot`
-  (float), `eSysTexture` (`mgCTexture*`), `PaintCursor`, `PaintCursor2` (+0xF4 -> material with
+  (integer 15-degree turn index), `eSysTexture` (`mgCTexture*`), `PaintCursor`, `PaintCursor2` (+0xF4 -> material with
   colour floats at +0x70..0x78), `PaintCurChr`, `RemoveCursor`, `ShovelCursor`, `ShovelCurChr`,
   `RemoveCurChr`, `UnitCursor` (models/characters; virtual calls at +0x18, +0xB0, +0xB4),
   `EditHelpMesNo` (EditHelpMes), `EditHelpMesParam`, `EditHelpMesParam2`, `SysMesCnt`,
@@ -55,7 +65,7 @@ Everything else is LOCAL in retail (`local_symbols.tsv`) and belongs in the .cpp
   `CFont`: `CFont::SetColor` called on it), `UndoData` (UNDO_DATA).
 - .data help strings: `space_str`, `place_str`, ... `repaint_fence_str` are `char *[6]` (0x18,
   indexed by `LanguageCode` 0..5); `onoff_str` is `char *[2][6]` (0x30; index
-  `(param == 0) * 6 + lang`, so [0] = on, [1] = off).
+  `(param == 0) * 6 + lang`, so [0] = OFF, [1] = ON; the help labels name the action offered by the toggle).
 - Function-local statics: `cnt_1857/init_1858`, `cnt_1939/init_1940`, `pos_save_1942`;
   `at_2063`/`at_2064` (0x100 each) are copied to 0x100-byte char buffers in `DrawEditHelpMes`.
 
@@ -82,7 +92,9 @@ Everything else is LOCAL in retail (`local_symbols.tsv`) and belongs in the .cpp
 ## Unresolved
 - `DeleteKanketuParts` ("kanketu" = completion): first calls `GetePlaceParts(PartsInfoID)` as a
   null check, then removes `parts_no` at `eCurPos`; chosen in `EditMode` instead of
-  `PlaceEditParts` under a flag computed earlier in the placing branch (not traced).
+  `PlaceEditParts` when the selected definition is 0x55 and the probed existing part has
+  definition 0x4C. The existing ground height is retained for that completion
+  operation; the retail names of those definitions remain unidentified.
 - UNDO_DATA 0x08/0x0C meaning (likely padding before the vectors).
 
 ## Native static initialization

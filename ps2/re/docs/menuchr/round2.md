@@ -1,5 +1,9 @@
 # menuchr lane assessment — 2026-10-08
 
+Historical probe record. Current exact matches and guarded remainders are
+listed in [notes.md](notes.md); later promotions are documented in
+[night-20261008.md](night-20261008.md).
+
 Worktree: `/home/dylan/projects/chronicletwo-menuchr-20261008`.
 Branch: `work/dc2-menuchr-20261008`. Base:
 `0abce376a0d178797f62ae7e0e67b407fb67bd62`.

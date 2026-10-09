@@ -86,13 +86,13 @@ others {-1,-1,0,4,-1,-1}. ConvertNameRegiBaseBoardTable(font_mode) maps mode to 
 
 ## Globals
 Global: `Nameregi_Target` only (in header). Everything else is LOCAL in retail
-(local_symbols.tsv) and belongs as `static` in the .cpp: Sfida_default_Name (char*[7]+NULL,
+(local_symbols.tsv) and belongs as `static` in the .cpp: Sfida_default_Name (char*[7], followed by four zero padding bytes,
 default Spheda course names per language), ALPHA_TABLE1/2, STR_NUM_TABLE, KIGOU_TABLE_ASCII1/2
 (ASCII2 is rewritten at init in Europe from at_1153 code ranges, 15 per line), ascii_code_table,
 NameRegistFont_Table, NameStrSelectModeTable, NameRegiSearchKanjiIndexTable, testchar,
 txt_table/txt_table2 (ASCII <-> Shift-JIS pairs, 0x3A entries), nameregist_baseboard_upper_table
 (s16 x,y pairs of the buttons), NameRegistMax (s16: 10, 20 non-JP, 0x16 for passwords),
-HIRA/KATA/KIGOU_TABLE* (sdata pointers to strings), jis_ptr_table, NameRegistGyouLimmitTable,
+HIRA/KATA/KIGOU_TABLE* (one- or two-byte writable character arrays), jis_ptr_table, NameRegistGyouLimmitTable,
 NameRegiCode (char, SetEventKeyword's code), NameRegiMenuPtr (CNameRegiMenu*),
 OldReloadTexNumber (int, MenuReloadTexture cache, reset to -1 by NameRegistDraw),
 NameRegiTex1/NameRegiBGTile/NameRegiCursor/NameRegiWaku/NameregiGaiji (mgCTexture*),
@@ -142,3 +142,15 @@ The fish-password branch converts the Shift-JIS input to ASCII, terminates the i
 restores retail rectangle argument scheduling without changing the source
 body. With the typed password-call casts, the entire nameregi unit passes
 canonical byte and resolved-relocation comparison.
+
+## Name command event array
+
+KeyStep's twelve confirmation/cancellation pairs fit a plain local
+s16 command_table[12][2]. The single-member NameCommandEvents wrapper is
+unnecessary; command_events indexes the local array directly. The isolated
+canonical object preserves all checked bytes and 801 resolved relocations
+(0x4C34 bytes), and the production PAL build and all 149 objects pass.
+No other KeyStep expression or function guard changes.
+
+Probe: .private/fixes-r0/probes/nameregi-array/{compile,objects}.log.
+Production receipts: .private/fixes-r0/nameregi-final-{build,objects}.log.

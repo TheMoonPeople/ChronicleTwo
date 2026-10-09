@@ -184,3 +184,15 @@ registers, and its character allocation also has the known null-test
 remainder. It remains guarded. Reconsider with an admissible whole-object
 constructor schedule; explicit constructor calls or dummy wrappers are not
 solutions.
+
+## Collision primitive manager declaration
+
+The effect script collision command uses ColPrimMan through its owning
+header, dng_main.hpp. Including that header removes the duplicate source
+extern without changing the manager's type, linkage or any function body.
+The complete isolated object preserves 0xEA7C checked bytes and 1,285
+resolved relocations; the production PAL build and all 149 objects pass.
+The header and its defining source are unchanged.
+
+Probe: .private/fixes-r0/probes/effscript-header/{compile,objects}.log.
+Production receipts: .private/fixes-r0/effscript-final-{build,objects}.log.

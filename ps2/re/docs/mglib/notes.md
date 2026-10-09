@@ -100,10 +100,11 @@ slot. The same duplicate-entry pattern appeared in 21 other game units with nati
 
 ## Current source status
 
-The round-3 `sf-d8bf13c` build has 98 exact functions and three guarded drafts:
-`VSyncCallBack`, `mgEndFrame`, and `mgSetPkFrameBuffer(int,int,int,int)`.
-The complete object passes `0x4DA8` checked bytes and 1,146 resolved
-relocations. Upstream's
+The source has 100 exact functions and one guarded draft, `VSyncCallBack`
+(its `sync`/`ei` pair has no native compiler expression). `mgEndFrame` and
+`mgSetPkFrameBuffer(int,int,int,int)` are exact; see
+[night-20261008.md](night-20261008.md). The complete object passes `0x4D9C`
+checked bytes and 1,248 resolved relocations. Upstream's
 native framebuffer copies and the local native shadow compositor coexist.
 The earlier 43-exact/31-isolated/27-differing inventory describes initial
 source drafting rather than this merged state. Remaining draft measurements
@@ -269,3 +270,15 @@ into the `mgRENDER_INFO` class (first game: `RenderInfo` struct, 0x350). The fir
 
 ## VSyncCallBack draft
 The guarded C++ draft samples GS CSR bit 13, stores the inverse in `VSyncField`, calls an installed secondary callback, increments the non-negative frame counter and clears the active flag. Retail ends with `sync; ei`, which MWCC does not emit from this C++ representation; the retail assembly remains active.
+
+## Frame-end buffer alignment and symbol extent
+
+`mgEndFrame__FP14mgCDrawManager` has retail symbol size `0xA74`; `0xA80`
+is its padded section extent. Its 1024-word `store_data` DMA readback buffer
+now explicitly requires 16-byte alignment, matching the quadword pointer
+accepted by `sceGsExecStoreImage`. The aligned declaration preserves all
+allocated object bytes and resolved relocations; the retained retail marker
+still supplies the exported identity required by library data.
+
+Receipts: `.private/fixes-r0/mglib-probe-{build,objects}.log` and
+`mglib-final-{build,objects}.log`: `SCES_511.90: OK`, 149/149 objects.

@@ -1,5 +1,9 @@
 # October 8 midday matching
 
+This is a historical probe record. The current native/guarded status is in
+[notes.md](notes.md#current-assembly-gaps); later exact matches are documented
+in [night-20261008.md](night-20261008.md).
+
 Base: `fe60604`, with upstream `d8bf13c` already merged. The container image is
 `chronicletwo_dev:sf-d8bf13c`, with canonical optimization and the existing
 Satan's Fiddle profile. The starting coverage is 6,736 matched, 124 guarded,

@@ -12,10 +12,12 @@ access fits `PAD_STATUS` directly, so `PAD_DATA` is a plain struct.
 - LOCAL (static in the .cpp, not in the header): `pad_button_read`, `read_pad`,
   `AxisCalibration`, `GamePadStep`, data `GamePad` (CGamePad*, 0x37CF44), `TheadID`,
   `ThreadStack` (0x400), `pad_dma_buf`, `pad_dma_buf2` (0x400 each, scePadPortOpen DMA
-  buffers, need 64-byte alignment), `old_vsync` (function-local static in GamePadStep,
-  symbol `old_vsync__2`), `rpad`/`init` (`rpad_256`, function-local static u16 in
-  pad_button_read), `cnt`/`init` (`cnt_374`, function-local static int in UpDate, toggled 0/1
-  each frame, never read elsewhere).
+  buffers, need 64-byte alignment), `old_vsync` (file-scope static read and written by
+  GamePadStep; retail names it `old_vsync` with no numbered suffix, and the symbol list's
+  `old_vsync__2` only tells it apart from dataread's own `old_vsync`), `rpad$256`/`init$257`
+  (function-local `static u16 rpad = 0` in pad_button_read), `cnt$374`/`init$375`
+  (function-local `static int cnt = 0` in UpDate, toggled 0/1 each frame, never read
+  elsewhere).
 - GLOBAL: `SwitchGamePadThread`, `CreateGamePadThread`, every `CGamePad` member.
 - The global instance `CGamePad GamePad` (0x3FA5A0, size 0x478, symbol `GamePad__2` in the
   config) is defined in **mainloop**, not here. gamepad.cpp has its own `static CGamePad

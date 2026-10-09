@@ -1,5 +1,9 @@
 # October 8 midday round 1
 
+This is a historical probe record. The current native/guarded status is in
+[notes.md](notes.md#current-assembly-gaps); later exact matches are documented
+in [night-20261008.md](night-20261008.md).
+
 Base: `c33c821`, branch `work/dc2-dnginv-midday`. Compiler image:
 `chronicletwo_dev:sf-d8bf13c`, canonical `-O3,p` options and existing SF
 profile, `JOBS=4`. The round-0 records and m2c output are the prior analysis;

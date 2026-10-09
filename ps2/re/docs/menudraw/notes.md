@@ -1,5 +1,10 @@
 # menudraw: reverse-engineering notes
 
+`CommonBoardDraw` matches. Its row loop colours `left`, `top`, the row-UV
+base and the inline bottom-edge subexpression in retail's order only
+without no-op `(int)` casts and without a named bottom-edge local; see
+[the night assessment](night-20261008.md#common-board-drawing-match-round-1).
+
 `CRepairManager::GeneratePoly` compiles to 0x214 bytes against retail's 0x240,
 moving the next function and the following translation units by 0x20 after
 alignment. Its typed C++ draft is guarded by `NONMATCHING`; the matching build

@@ -76,7 +76,9 @@ All non-member functions (`LoadSkyPack`, `CheckSkyID`, `_SKY_IMG`, `_SKY_MDS`, `
 (`MAP_SKY_INFO *`), `skyAnmNum`, `skybAnmNum` (int)) are LOCAL in retail: `static` in
 mapsky.cpp, not in the header. Handlers have signature `int (SPI_STACK *, int)` and return 1 on
 success, 0 on an invalid id / full table; they read int, string (stack+8), float (stack+0x10).
-- `tag__2` (0x40): function-local static `SPI_TAG_PARAM tag[8]` in LoadSkyPack, in tag order
+- `tag` (0x40): file-scope static `SPI_TAG_PARAM tag[8]` used by LoadSkyPack, in tag order (retail
+  LOCAL `tag` has no numbered suffix, so it is not a function static; the symbol list's `tag__2`
+  only separates it from other units' `tag`)
   SKY_IMG, SKY_MDS, SKY_ANIME, SUN_MDS, SKYB_MDS, SKYB_ANIME, SKY_BG, {0,0}.
 - `at_387__2` (0x10): function-local static `mgCreateVisualType` in LoadPack: {0, "" (at_386), -1, 0}.
 - LoadSkyPack builds a `CScriptInterpreter` on the stack (0xED0 bytes), `SetTag`, `SetScript`, `Run`.

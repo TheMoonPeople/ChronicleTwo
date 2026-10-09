@@ -1,5 +1,9 @@
 # menuchr mid-day round-one assessment
 
+Historical probe record. Current exact matches and guarded remainders are
+listed in [notes.md](notes.md); later promotions are documented in
+[night-20261008.md](night-20261008.md).
+
 October 8, 2026. Worktree `/home/dylan/projects/chronicletwo-menuchr-midday`,
 branch `work/dc2-menuchr-midday`, required base `a741e2e`.
 Image `chronicletwo_dev:sf-d8bf13c`, `JOBS=4`.

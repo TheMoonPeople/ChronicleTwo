@@ -41,11 +41,11 @@ flight, CastingLure return), AddLineSpeed, BattleFlag, BattleLineDist f (line le
 battle), ShowHari, LureLessFlag (InitLureObj with no lure), NowMode (FishingMode),
 NowFishSpeed, NowFishRot, ActionChanceNextCnt, ActionChanceCnt, ActionChanceDir.
 .bss: RodPoint[5] FISH_POINT, RodPointDist 0x50 (5 x {dist, ?, f, f} 0x10 stride: +0 dist to
-previous point, +4 0.3..1.0, +8 0.2..), SaoFrame mgCFrame*[8] (frames "sao1".."sao8" of rod
+previous point, +4 0.3..1.0, +8 0.2..), SaoFrame mgCFrame*[8] (frames "sao", "sao2".."sao7", "ito" of rod
 model), SaoDist float[8], LinePoint[64], LurePoint[3], FlyingPoint, FishPoint, CastingPoint,
 ReleasePoint, BattleStartPos (vectors), LureObj/UkiObj/HariObj CFishObj, ChanceBarPos.
 SaoFrame[7] (0x1F5D60C) world pos is the rod tip used by InitLureObj/InitUkiObj.
-Rodata strings: at_896..903 = "sao1".."sao8"; at_1564 = "obj1" (lure model frame).
+Rodata strings: at_896..903 = "sao", "sao2".."sao7", "ito"; at_1564 = "obj1" (lure model frame).
 
 ## Functions
 Local (static, not in header): GetActiveHariObj (LureObj when NowMode==2 else HariObj),

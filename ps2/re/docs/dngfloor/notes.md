@@ -67,7 +67,7 @@ DNG_FLOOR_FLAG_OPEN, [4] |= same. [0..2] from _ROOT_INFO args. Signedness of [1]
 | 0x36 | s16[4] | key_room | _ROOM_KEYROOM; GetKeyNextRoom (CMenuTreeMap::Step) |
 | 0x3E/0x40 | s16 | offset_x/y | init 0/0 (ROOM_INFO), boss/sub: 0/-26 unless args given; DrawRoomOne adds them |
 | 0x42 | s8 | tex_no | _ROOM_TEXNO; negative n -> `D_0036178C[abs(n)] + GetRandI(4)`; DrawRoomOne |
-| 0x44 | u8 | unk_44 | init 0; CheckDrawGlidInfo sets 1 for every room |
+| 0x44 | s8 | selectable | init 0 by `_ROOM_INFO`; CheckDrawGlidInfo sets 1 for every room; CMenuTreeMap::Step moves the cursor only onto rooms where it is 1 (signed load) |
 | 0x45 | u8 | visited | CheckDrawGlidInfo: save `visit_count` (0x12) != 0; dngmenu draws differently |
 | 0x46 | u8 | mark | CheckDrawGlidInfo: save flag OPEN && !UNK_2; DrawRoomOne bobbing mark |
 | 0x48 | float | mark_phase | init 0 (sw zero); DrawRoomOne advances it, wraps 2pi |
@@ -104,6 +104,5 @@ DNG_FLOOR_FLAG_OPEN, [4] |= same. [0..2] from _ROOT_INFO args. Signedness of [1]
 - CheckDrawGlidInfo uses `at_1259` = floors per dungeon {9,16,25,21,23,29,39}.
 
 ## Unresolved
-- GLID_INFO 0x6/0x8, room 0x0 string, 0x44, 0x4C meaning; root [1]/[2] signedness.
-- What DNG_FLOOR_FLAG_UNK_2 means (affects `mark`).
+- GLID_INFO 0x6/0x8, room 0x0 string, 0x4C meaning; root [1]/[2] signedness (0x44 is `selectable`).
 - DNGMAP_FLOOR_SPECIAL (100) meaning beyond the two special cases above.

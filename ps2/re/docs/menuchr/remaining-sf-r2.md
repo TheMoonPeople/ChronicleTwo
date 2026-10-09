@@ -1,5 +1,9 @@
 # Remaining menuchr guards on the merged Satan's Fiddle base
 
+Historical probe record. Current exact matches and guarded remainders are
+listed in [notes.md](notes.md); later promotions are documented in
+[night-20261008.md](night-20261008.md).
+
 Lane `menuchr-r2`, October 8, 2026. Worktree
 `/home/dylan/projects/chronicletwo-menuchr-20261008`, branch
 `work/dc2-menuchr-r2-20261008`, base

@@ -137,6 +137,8 @@ pass the complete unit: 0x5440 bytes and 876 relocations.
 
 ## SearchMapFlatPosition guarded checkpoint
 
+Superseded by [night-20261008.md](night-20261008.md): the function matches.
+
 `SearchMapFlatPosition__FPfP11CAutoMapGen` selects a placed map part that the
 automap has not hidden, samples vertical segments around its center, and accepts
 a floor polygon only when a short follow-up collision succeeds. It tries sixteen

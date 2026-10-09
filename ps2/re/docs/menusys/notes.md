@@ -220,7 +220,7 @@ branch-local automatic objects are documented in [pushkey.md](pushkey.md).
 
 - `CBaseMenuClass::MenuItemCommandSelect` is an exact C++ match when compiled alone through mwccgap. Its dispatch selects an item command from a key and button pair, including ask mode handling.
 - `MenuItemSelectDiffer` is an exact C++ match when compiled alone through mwccgap. It tests whether an item selection differs from the currently selected item.
-- Both functions passed the isolated linked-image verification. `MenuWeaponBuildUpDraw` differs in four instructions in the linked image despite the whole-unit draft comparison reporting a match. `CMenuItemInfo::LRCheck` differs in two branch-delay-slot words at offsets 0x264 and 0x268; the compiler places the zero return value in the delay slot and skips the shared return-value assignment.
+- Both functions passed the isolated linked-image verification. `MenuWeaponBuildUpDraw` initially differed in four instructions in the linked image despite the whole-unit draft comparison reporting a match; the verified-profile result below supersedes that earlier trial. `CMenuItemInfo::LRCheck` then differed in two branch-delay-slot words at offsets 0x264 and 0x268; the shoulder-button `switch` documented in [night-20261008.md](night-20261008.md) resolves them.
 
 ## Constructor-backed allocations
 
@@ -231,47 +231,32 @@ selector construction boundaries are documented in
 
 ## Remaining matching blockers
 
-The [round-one matching status](matching-round1-20261008.md) records the current
-scores, new source hypotheses, and validation receipts. `MenuDataSwap` improves
-to 34/228 differing words while remaining guarded, and both swap-result tables
-have exact C++ data definitions; see [swap-results.md](swap-results.md).
+The [round-one matching status](matching-round1-20261008.md) records the historical
+scores, source hypotheses, and validation receipts from that round. In that round `MenuDataSwap`
+improved to 34/228 differing words, and both swap-result tables gained exact
+C++ data definitions; see [swap-results.md](swap-results.md).
 The [midday matching status](matching-midday-20261008.md) records the eleven
-remaining guarded symbols and the earlier round-zero experiments.
+guards retained in that round and the earlier round-zero experiments.
 The [morning matching status](matching-status-20261008.md) is a historical
 snapshot from before the lane base and includes the subsequently promoted
 `MenuWeaponBuildUpDraw`.
 
-`CalcTex` has seven differing words at offsets 0x394, 0x398, 0x3A4, 0x3A8,
-0x3B0, 0x3B8 and 0x3BC. Retail uses `s3` for the held item type and `s0` for the
-equipment-search counter; the draft reverses them. This persists in the
-isolated game build. Moving either variable's scope, grouping the declarations,
-or giving the equipment loop a separate counter does not give a match.
+The [night near-miss run](night-20261008.md) promotes `CommonSetMoveItemClass`,
+`MenuDataSwap`, `MenuPosFormValueSetCharaRobo`, `CMenuItemInfo::CalcTex`,
+`CMenuItemInfo::LRCheck`, `MenuItemDebugDraw` (with its seven control
+selectors) and `CheckEnableHaveItemNum`, and records the source facts that
+close each one.
+The earlier residual descriptions of those functions in the dated notes are
+superseded.
 
-`MenuPosFormValueSetCharaRobo` has nineteen differing words: the zero-WHP red
-assignment at 0x238 and the eighteen colour stores for six parts at
-0x24C..0x2B8. Retail uses `s3` for red and `s1` for green; the draft reverses
-them. Changing initialization order, chained assignment order or declaration
-scope does not resolve it. Its isolated game build has the same nineteen
-differences. A section ending at 0x498 instead of the manifest extent 0x4A0
-is only zero alignment padding, not missing behavior.
-
-`CheckEnableHaveItemNum` has two register-allocation differences: the first
-active-slot loop exchanges the `s1` counter and `s3` item pointer, while the
-final flag loop exchanges `t0` and `a3` offsets. Reusing the earlier `j` counter
-or replacing repeated active-item address expressions with the named pointer
-does not resolve these thirteen differing words.
-
-`MenuDataSwap` agrees through the swap behavior but differs in its final
-presence flags and two-byte result-table scheduling. Its retained automatic
-result array is declared with the function locals and filled in the general
-exchange tail, giving 34/228 differing words. Retail's table at
-`at_2512` contains `{0, 2}`; `ret_tbl1_2511` contains `{1, 3}`. Splitting the
-mixed initializer into a constant initializer and an assignment produces the
-same instructions. Swapping the presence-flag declaration order worsens the
-comparison. `CommonSetMoveItemClass` differs in its source-row copy and first
-equipment branch; the draft adds a `dsll32`/`dsra32` pair before comparing the
-copied short with one. An unrolled four-field loop produces the same draft;
-holding the short in a local worsens its layout.
+`CheckEnableHaveItemNum` is an exact native C++ match (0/212 words,
+declared size `0x34C`). Its final `for` loop resolves the former `t0`/`a3`
+offset exchange. The first active-slot pass also matches when its slot counter
+`k` is function-scoped and every active-record call uses the named pointer;
+its gift-slot counter remains separately scoped. Both source facts are needed
+together to resolve the former `s1`/`s3` exchange. The round-two promotion and
+full validation are in [night-20261008.md](night-20261008.md#round-2--checkenablehaveitemnum-promoted).
+The four constructor-backed functions listed below remain guarded.
 
 The placement-new null-branch blocker occurs in `MenuItemSelectInit`,
 `MenuModeMalloc`, `IsAskExtend` and `MenuItemDebugKey`. Retail branches on `v0`
@@ -294,5 +279,5 @@ passes all `0x1B0E8` allocated unit bytes and 5,764 resolved relocations.
 
 [nearmiss-20261008.md](nearmiss-20261008.md) records the new linkage,
 width, initialization-order, indexed item-limit and compiler-control probes.
-LRCheck, CalcTex and CheckEnableHaveItemNum remain at 2/220, 7/832 and 13/212
-words; no source change or promotion is retained.
+At that point LRCheck, CalcTex and CheckEnableHaveItemNum remained at 2/220,
+7/832 and 13/212 words; the night run later promoted all three functions.

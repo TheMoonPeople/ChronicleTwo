@@ -19,9 +19,9 @@ structure mirrors this game's `ezmidi` unit (see `ps2/re/docs/ezmidi/notes.md`).
 `sceSifCheckStatRpc` is declared in `ps2/include/sce/sifrpc.h` with a
 `sceSifClientData*` parameter and `int` return.
 
-All three functions have named compiling C++ definitions. `StreamOpenState` matches the linked
-retail image. The single promotion attempts for `ezBgmInit` and `ezBgm` differed from retail,
-so their `NONMATCHING` guards retain the assembly fallbacks.
+All three functions match the linked retail image. `ezBgmInit` and `ezBgm` compile from their
+`#else` definitions; the `NONMATCHING` branches keep the earlier non-matching drafts. The
+compiled `ezBgm` switch names its cases with `EzBgmCommand` values.
 
 ## Enum `EzBgmCommand` (names not retail)
 Command word = command | channel (low 4 bits). Only the values `ezBgm` tests are in the header:

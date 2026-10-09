@@ -1,8 +1,12 @@
 # menusys round-one matching status — October 8, 2026
 
+Historical probe record. Current exact matches and guarded remainders are
+listed in [notes.md](notes.md); later promotions are in
+[night-20261008.md](night-20261008.md).
+
 Lane base: `55e7ed3`, the midday integration containing upstream `d8bf13c`
-and the round-zero `PushKey` promotion. This supersedes the active matching
-status in [matching-midday-20261008.md](matching-midday-20261008.md); that file
+and the round-zero `PushKey` promotion. At that checkpoint this superseded
+the round-zero matching status in [matching-midday-20261008.md](matching-midday-20261008.md); that file
 remains the historical round-zero experiment ledger. A fresh build was made
 before experimenting because the inherited build directory was stale.
 

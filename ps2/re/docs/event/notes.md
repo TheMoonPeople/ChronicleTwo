@@ -8,8 +8,8 @@ scene event script. No first-game counterpart (`chronicle` has no `event.cpp`).
 |---|---|---|---|---|
 | `EventScene` | 0x37DE74 .sbss 4 | global | `CScene *` | Set by `InitEvent`/`RunEvent`; read by event_func too. Declared `extern` in the header. |
 | `EventScript` | 0x1EFD400 .bss 0x54 (slot 0x60) | **local** | `static CRunScript` | Constructed by `__sinit_event_cpp` (`CRunScript::CRunScript()`); `load`/`run`/`resume`/`skip`/`DeleteProgram` called on it. Belongs in the .cpp as `static`. |
-| `cnt_1056` | 0x37DE78 .sbss 4 | local | `static int` in `EventLoop` | Door-sequence frame counter passed to `EventDoorLoop`. |
-| `vv_984` | 0x356080 .data 0x30 | local | function-local static of `EventDoorLoop` | `vv_984 + 0x10` used as a vector for `sceVu0ApplyMatrix` (camera offset rotated by the character's yaw). Likely three float[4] vectors; only +0x10 read. |
+| `cnt$1056` | 0x37DE78 .sbss 4 | local | `static int cnt` in `EventLoop` | Door-sequence frame counter passed to `EventDoorLoop`. |
+| `vv$984` | 0x356080 .data 0x30 | local | `static float vv[3][4]` in `EventDoorLoop` | `vv + 0x10` used as a vector for `sceVu0ApplyMatrix` (camera offset rotated by the character's yaw). Likely three float[4] vectors; only +0x10 read. |
 | `at_819__4` | .rodata | literal | `"event/talk/npc_talk_c%d_%d.txt"` (chapter, LanguageCode) |
 | `at_820__4` | .rodata | literal | `"event/talk/npc_talk_c2_%d.txt"` fallback |
 | `at_1002__4` | 0x371A30 .rodata 9 | literal | SJIS "ドア開け" (door open): motion name passed to character vtable slot 0xB0 (likely `SetMotion(char*, int)`) with flags 2. |
@@ -51,7 +51,7 @@ storage are currently visible only to the NONMATCHING branch; the retail
 assembly remains selected in the normal build. The initializer draft matches
 in draft mode but is emitted by static object construction and has no
 standalone source function to promote. The door motion literal is the SJIS
-bytes for ドア開け; the camera offset is `vv_984[1]`. The script reload path uses
+bytes for ドア開け; the camera offset is `vv[1]`. The script reload path uses
 the town script memory or dungeon script memory according to the active loop.
 ## Typed stack-buffer access
 

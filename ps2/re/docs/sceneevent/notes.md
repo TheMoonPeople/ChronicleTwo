@@ -3,7 +3,7 @@
 ## What the unit owns
 - All 14 functions are `CScene` members. `CScene` is owned by `scenesnd` (class_units.tsv), so it
   is declared in `scenesnd.hpp`, not here.
-- No non-member functions, no global data with plain names. `col_1003` (.data, used by
+- No non-member functions, no global data with plain names. `col$1003` (.data, used by
   `DrawLensFlare`) is a function-local static; `at_*` are literals. Nothing to `extern`.
 - `sceneevent.hpp` declares only `CSceneEventData`, which no class owns (it has no member
   functions) and which first appears in this unit's `RunEvent` / `GetMapEvent`. `scenesnd.hpp`

@@ -89,13 +89,16 @@ grRACE_PROGRESS (0x18): `+0` float course position (0..16, 8 per lap), `+8` floa
 
 ## Current matching status (2026-10-08)
 
-Seven of the ten functions are source supplied. Only `sgInitGyoRace`,
-`sgLoopGyoRace` and `sgSysDrawGyoRace` remain guarded. The earlier partial-draft
+Nine of the ten functions are source supplied. Only `sgLoopGyoRace`
+remains guarded; `sgInitGyoRace` and `sgSysDrawGyoRace` are native and exact
+(see [night-20261008.md](night-20261008.md)). The earlier partial-draft
 and initializer promotion descriptions are obsolete; the current initializer
 and drawing/commentary helpers already match. Fresh receipts supersede the
 previous claims of ten/twelve-word Init/Draw differences.
 
 ### Race display
+
+Superseded by [night-20261008.md](night-20261008.md): the function matches.
 
 `sgSysDrawGyoRace` starts at 65/1172 differing words, with a 0x1244-byte body
 inside the 0x1250 retail extent. Computing the lane's vertical bar position
@@ -115,6 +118,10 @@ not recover the retail lifetimes. Reconsider with a natural loop form that
 accounts for these saved-register identities.
 
 ### Race initialization
+
+This historical draft analysis is superseded by the native initialization
+and camera calibration in [night-20261008.md](night-20261008.md). The shared
+fatigue field is now `u16`, and the complete native function matches.
 
 The untouched Init draft emits a 0x1210-byte section against retail's 0x1200
 extent and differs in 437 disassembled instructions. Direct fish pointers
@@ -159,7 +166,8 @@ independent mismatches. The guarded assembly remains active.
 
 ## October 8 mid-day matching audit
 
-The retained source still guards all three large functions. All probes use
+At this historical mid-day checkpoint all three large functions were guarded;
+Init and SysDraw have since become native. All probes below use
 MWCC 3.0-011126 with canonical flags and the checked-in profile, unless a
 private diagnostic profile or header overlay is explicitly named. The
 following measurements supersede earlier draft scores and alias conclusions.
@@ -353,3 +361,25 @@ Receipts under `.private/editloop-r1/`: `sgSysDrawGyoRace.m2c.cpp`,
 `retained-sys/{compare.log,diff-with-zeros.txt}`,
 `attempt-word-metrics.json`, `trial-ledger.tsv`, `final-objects.log` and
 `final-object-hash-diff.json`.
+
+## Race sprite helper forms
+
+The canonical isolated baseline passes the complete gyorace object. Replacing
+DrawRaceSprite with a static inline function that takes the atlas texture and
+nine integer arguments grows sgSysDrawGyoRace's section from 0x1244 to 0x1304;
+1,136/1,172 relocation-masked words differ within the padded retail extent.
+An inline function reading the file-static wind_tex directly still grows the
+section to 0x1274 and differs in 640/1,172 words. Both fail the complete object
+check, including its local-static data identities. The first stack-frame and
+rectangle-slot instructions already differ, so neither form preserves the
+retail call-site layout. No inline-depth pragma or other steering is added.
+
+The macro remains, with an explicit texture argument at every call. It no
+longer captures wind_tex from the caller's scope. This form passes the full
+isolated object check (0x4FF8 bytes, 1,114 resolved relocations), PAL, and all
+149 production objects. TEX_SystemEffect1 already comes from maintex.hpp;
+the duplicate source extern was removed by 43560dbd before this checkpoint.
+
+Probes: .private/fixes-r0/probes/gyorace-{baseline,inline,inline-global,macro-texture}/
+(compile.log, objects.log, and score.log for the two inline forms).
+Production receipts: .private/fixes-r0/gyorace-final-{build,objects}.log.

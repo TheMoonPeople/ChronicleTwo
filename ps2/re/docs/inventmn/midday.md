@@ -1,5 +1,9 @@
 # October 8 midday matching
 
+This is a historical checkpoint. MenuInventKey is now native and exact;
+see [notes.md](notes.md) and [night-20261008.md](night-20261008.md).
+Five guarded inventory functions remain.
+
 Base `fe60604` already contains upstream `d8bf13c`, including the native
 notebook sorting promotion. Canonical image:
 `chronicletwo_dev:sf-d8bf13c`. This pass retains two strictly better guarded

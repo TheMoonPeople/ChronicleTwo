@@ -2,12 +2,14 @@
 
 ## Native storage and padding verification
 
-`HelpMes` has its declared 0x2958-byte `ClsMes` size. Its section piece also
-contains four unreferenced padding bytes up to the separately referenced
-`D_01F628BC` address. An explicit `D_01F628B8` object duplicates that padding
-and creates an extra section piece. Removing it and preserving the short
-alignment tail through the data postprocessor restores the unit's complete
-canonical match: 0x828 initialized bytes and 215 resolved relocations.
+`HelpMes` has its declared 0x2958-byte `ClsMes` size. Native alignment
+supplies the eight bytes before `HelpMesInfo`, including the split boundary
+at `D_01F628BC`; neither an aligned(4) attribute nor a filler object is
+needed. `HelpMes` and `HelpMesInfo` have static linkage, matching retail's
+LOCAL binding. Their ordinary constructors preserve the complete unit.
+The full PAL checksum is `SCES_511.90: OK`, and all 149 object checks
+pass after removing the attribute and filler; only helpmes changes its
+complete object hash in this step.
 
 No class is owned by this unit (`class_units.tsv` has none). The unit drives one `ClsMes`
 (`nd_meswin.hpp`) as a help/error message window.
@@ -16,7 +18,7 @@ No class is owned by this unit (`class_units.tsv` has none). The unit drives one
 | Symbol | Addr | Size | Type / meaning |
 |---|---|---|---|
 | `HelpMesBuff` | 0x1F5EF60 | 0x1000 | `u8[0x1000]` (used as `short *` text): copy of `etc/help%d.mes` (`%d` = `LanguageCode`). `LoadHelpMes` rejects files > 0x1000 with printf "HMes Buffer Over!!(%d/%dbyte)". |
-| `HelpMes` | 0x1F5FF60 | 0x2958 | `ClsMes`. Constructed in `__sinit_helpmes_cpp`. BSS slot 0x295C includes `D_01F628BC` (4 bytes alignment padding before `HelpMesInfo`). |
+| `HelpMes` | 0x1F5FF60 | 0x2958 | `ClsMes`. Constructed in `__sinit_helpmes_cpp`. The eight-byte alignment gap before `HelpMesInfo` includes a separately split `D_01F628BC` boundary; native alignment supplies both fragments. |
 | `HelpMesInfo` | 0x1F628C0 | 0x1C | `HELP_MES_INFO` (header). Reset in `__sinit`, `CreateHelpMes`, and inline in Step/Show*. |
 | `WindowMode` | 0x37E9D0 | 4 | `int`, a `MesWindowMode`: `ShowHelpMes` stores 0 (`MES_WIN_NONE`), `ShowErrorHelpMes` 4 (`MES_WIN_VERSATILE_1`); `StepHelpMes` passes it to `ClsMes::SetWindowMode`. |
 | `ShowOffOnce` | 0x37E9D4 | 4 | `int` flag: `ShowOffOnceHelpMes` sets 1; `DrawHelpMes` skips one draw and clears it; `CreateHelpMes` clears. |

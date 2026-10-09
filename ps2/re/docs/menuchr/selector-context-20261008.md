@@ -1,5 +1,9 @@
 # Costume-draw selector boundary
 
+Historical probe record. Current exact matches and guarded remainders are
+listed in [notes.md](notes.md); later promotions are documented in
+[night-20261008.md](night-20261008.md).
+
 The proto-image baseline at `24d3d21` confirms 71/568 differing words in
 `Draw__15CMenuCostumeSelFv`, body `0x8D0` in retail extent `0x8E0`.
 The existing camera, costume, rectangle, font and primitive analyses are

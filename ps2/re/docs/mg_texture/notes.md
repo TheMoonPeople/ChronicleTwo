@@ -11,7 +11,12 @@ why the symbol list calls that one `texflush_dma__2`). Hence the header has **no
 - `texflush_dma`: `u_long128[3]` (copied with `lq`/`sq` in `SetTexFlush_TagCnt`): DMA cnt tag
   qwc 2 + VIF DIRECT 2, GIF tag (NLOOP 1, EOP, A+D), TEXFLUSH (0x3F) = 0.
 - `lut_1246`, `block_table8_1266`, `block_table32_1267`, `conv_work_1306` (0x10000 bss) are
-  function-local statics of BlockConv32to8 / PageConv32to8 / Conv32To8.
+  function-local statics of BlockConv32to8 / PageConv32to8 / Conv32To8. `conv_work_1306` alone
+  is still an `extern` over an `INCLUDE_BSS` marker: the generated data assembly
+  (`ps2/asm/pal/data/lib/sce/libdev.rodata.s` and the menuop, title, fishing and automap data)
+  names it in address-shaped words that retail does not relocate, so a native definition with
+  internal linkage leaves those references unresolved at link time. Its migration waits on the
+  tooling change described in [data-migration-20261008.md](data-migration-20261008.md).
 - Suggested signatures: `static int GetZBufVram(int *size)` (returns `(mgZBUF_1 & 0x1FF) << 5`
   = Z buffer VRAM block address; `*size` = `height*height*4/256` blocks of a local
   mgCTexture filled by `mgGetFrameBuffer(&local)`; it also calls `mgGetTextureZ(0)` and

@@ -135,7 +135,8 @@ overridden, then PreDraw(0x40), GetCameraDist, FarClip, DrawStep, GetAlpha, Show
 SetFarDist, GetFarDist, SetNearDist, GetNearDist, CheckDraw, Copy(0x70).
 - Emitted in map (weak, after the code that uses them): GetShow (0x160520), Draw, DrawDirect,
   Show, Set/GetFarDist, Set/GetNearDist, Copy (0x161F60..0x162080). These are inline in-class
-  definitions; give them bodies in the header when decompiling. Draw/DrawDirect return 0.
+  definitions in `map.hpp`. Draw/DrawDirect return 0. With them inline, `Initialize` is the
+  first non-inline virtual, so object.cpp emits `__vt__7CObject`.
 - Non-inline, in object.cpp: GetMatrix, FarClip, GetCameraDist, CheckDraw, DrawStep, GetAlpha,
   PreDraw, Initialize. `CObject()` is emitted in mapload (inline ctor: mgCObject ctor, vtable,
   `Initialize()` via vtable).
@@ -171,11 +172,12 @@ CFuncPoint::CFuncPoint (0x15F5D0), CObjAnime::CObjAnime (0x1616B0), CMapTreasure
 
 ## Trivial CObject draws
 `CObject::Draw` and `CObject::DrawDirect` each return 0 without changing state.
-Both C++ bodies match their retail instruction bytes. `DrawDirect` links into a
-byte-identical image. The isolated `Draw` promotion trial could not link because
-the rebuilt unit also emitted `mgCObject::UseParam` and `ChangeParam`, which the
-existing `mg_frame` object already defines; `Draw` therefore retains its assembly
-fallback.
+Retail binds both weak (binding 13) in map's `.text`, as it does
+`CMapParts::Draw`/`DrawDirect`, which tail call `DrawSub(0)`/`DrawSub(1)`. All four
+are inline in their class bodies (`map.hpp`, `mapparts.hpp`); map.cpp emits weak
+copies that match retail's bytes, and the classes' vtables are emitted by
+object.cpp and mapparts.cpp, whose `Initialize` is each class's first non-inline
+virtual. Out-of-line definitions in map.cpp would make map.o emit both tables.
 
 ## Typed array access and matching
 - `PreDraw` indexes the `COcclusion` member array directly; `CreateTrBox` indexes
