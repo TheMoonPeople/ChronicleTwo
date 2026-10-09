@@ -250,7 +250,7 @@ int CSound::Init(int mode0, int mode1, int depth0, int depth1) {
                 midi_state.port[port].bank[slot] = NULL;
             }
             midi_state.port[port].bank_count = 0;
-            midi_state.port[port].unk_98 = 0;
+            midi_state.port[port].ezmidi_param = 0;
             midi_state.port[port].spu_next_address = 0;
             for (slot = 0; slot < MIDI_PORT_SEQ_MAX; slot++) {
                 midi_state.port[port].sequence[slot] = NULL;
@@ -327,19 +327,19 @@ int CSound::Init(int mode0, int mode1, int depth0, int depth1) {
         midi_state.port[9].spu_address = midi_state.port[9].spu_next_address = 0x1E0000;
         midi_state.port[12].spu_address = midi_state.port[12].spu_next_address = 0x18AE20;
         midi_state.port[11].spu_address = midi_state.port[11].spu_next_address = 0x1A82E0;
-        midi_state.port[0].unk_98 = 0x3040;
-        midi_state.port[3].unk_98 = 0x3040;
-        midi_state.port[10].unk_98 = 0x3037;
-        midi_state.port[8].unk_98 = 0x3035;
-        midi_state.port[1].unk_98 = 0x3032;
-        midi_state.port[15].unk_98 = 0x3031;
-        midi_state.port[2].unk_98 = 0x3039;
-        midi_state.port[14].unk_98 = 0x3039;
-        midi_state.port[13].unk_98 = 0x3036;
-        midi_state.port[7].unk_98 = 0x3010;
-        midi_state.port[9].unk_98 = 0x3038;
-        midi_state.port[12].unk_98 = 0x3034;
-        midi_state.port[11].unk_98 = 0x3033;
+        midi_state.port[0].ezmidi_param = 0x3040;
+        midi_state.port[3].ezmidi_param = 0x3040;
+        midi_state.port[10].ezmidi_param = 0x3037;
+        midi_state.port[8].ezmidi_param = 0x3035;
+        midi_state.port[1].ezmidi_param = 0x3032;
+        midi_state.port[15].ezmidi_param = 0x3031;
+        midi_state.port[2].ezmidi_param = 0x3039;
+        midi_state.port[14].ezmidi_param = 0x3039;
+        midi_state.port[13].ezmidi_param = 0x3036;
+        midi_state.port[7].ezmidi_param = 0x3010;
+        midi_state.port[9].ezmidi_param = 0x3038;
+        midi_state.port[12].ezmidi_param = 0x3034;
+        midi_state.port[11].ezmidi_param = 0x3033;
     }
     return 0;
 }
@@ -705,9 +705,9 @@ void CSound::LoadHdBd2(int port, int hd, int hd_size, int bd, int bd_size) {
         child = &midi_state.port[dependent_port];
         child->spu_next_address = child->spu_address = midi_state.port[port].spu_address;
     }
-    ezMidi(port + 0xA0, midi_state.port[port].unk_98);
+    ezMidi(port + 0xA0, midi_state.port[port].ezmidi_param);
     if (midi_state.port[port].linked_port >= 0) {
-        ezMidi(midi_state.port[port].linked_port + 0xA0, midi_state.port[midi_state.port[port].linked_port].unk_98);
+        ezMidi(midi_state.port[port].linked_port + 0xA0, midi_state.port[midi_state.port[port].linked_port].ezmidi_param);
     }
     midi_state.port[port].bank[0] = gBank.hd_address;
     for (slot = 0; slot < midi_state.port[port].dependent_port_count; slot++) {
