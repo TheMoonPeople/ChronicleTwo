@@ -1132,7 +1132,12 @@ int dynCOLLISION_START(SPI_STACK *stack, int argc) {
     dynNowDA->NewCollisionTable(spiGetStackInt(stack), dynStack);
     return 1;
 }
-#ifdef NONMATCHING
+
+/**
+ *
+ * Constructs and registers a scripted pipe collision volume.
+ *
+ */
 static int dynCOLLISION(SPI_STACK *stack, int count) {
     char       *kind;
     CDAColPipe *pipe;
@@ -1142,7 +1147,7 @@ static int dynCOLLISION(SPI_STACK *stack, int count) {
         return 0;
     }
     if (strcmp(kind, "pipe") == 0) {
-        pipe = new ((u_long128 *) dynStack->Alloc(16)) CDAColPipe;
+        pipe = new (dynStack->Alloc(16)) CDAColPipe;
         if (pipe == NULL) {
             return 0;
         }
@@ -1159,9 +1164,6 @@ static int dynCOLLISION(SPI_STACK *stack, int count) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dynamicanime", dynCOLLISION__FP9SPI_STACKi);
-#endif
 void CDAColPipe::Initialize() {
     axis = 0;
     mgZeroVector(center);
@@ -1322,6 +1324,3 @@ int CDAColPipe::CheckHit(float *point) {
     sceVu0ApplyMatrix(point, lw_matrix, local);
     return 1;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_1074__DATA);

@@ -1687,6 +1687,14 @@
   "placement_new": {
     "statement_conversions": [
       {
+        "translation_unit": "dynamicanime.cpp",
+        "function": "dynCOLLISION__FP9SPI_STACKi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__10CDAColPipeFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "editeff.cpp",
         "function": "EditSetPlaceAnime__FiP9CMapParts",
         "allocator": "__nw__FUiP1",
