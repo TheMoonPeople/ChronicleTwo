@@ -249,15 +249,6 @@ static signed char sort_table[0x24] = {
 
 /**
  *
- * Language-specific subdirectory used for menu files.
- *
- */
-static char *langdirpathTable_1161[8] = {
-    "0/", "1/", "2/", "3/", "4/", "5/", "1/", NULL
-};
-
-/**
- *
  * Hexadecimal digits and their nibble values for bracketed font codes.
  *
  */
@@ -1063,6 +1054,7 @@ u_long128 *MenuCalcBufAlignment(u_long128 *buffer) {
 }
 
 int LoadFileMenu(char *name, u_long128 *buffer, int mode) {
+    static char *langdirpathTable[7] = {"0/", "1/", "2/", "3/", "4/", "5/", "1/"};
     char path[0x8C];
     int  size;
 
@@ -1071,7 +1063,7 @@ int LoadFileMenu(char *name, u_long128 *buffer, int mode) {
     }
 
     strcpy(path, "menu/");
-    strcat(path, langdirpathTable_1161[LanguageCode]);
+    strcat(path, langdirpathTable[LanguageCode]);
     strcat(path, name);
 
     if (mode == 0) {

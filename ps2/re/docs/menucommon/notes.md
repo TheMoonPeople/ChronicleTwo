@@ -46,7 +46,9 @@ corners set to 1.0.
 - `LoadFileMenu(char*, u_long128*, int mode)`: path = `at_1173` + `langdirpathTable_1161[LanguageCode]`
   + name; mode 0 -> `LoadFileBG(path, buf, &size)`, 1 -> `LoadFile2(path, buf, &size, 0)`; returns
   size, -1 for null args. Callers pass only 0 or 1 (enum `MenuFileLoadMode`).
-  `langdirpathTable_1161` = { "0/","1/","2/","3/","4/","5/","1/",NULL } (function-local static).
+  The function-local `langdirpathTable` has seven entries: "0/", "1/", "2/",
+  "3/", "4/", "5/", and "1/". Retail declares 0x1C bytes; the following
+  zero word is section padding rather than an eighth pointer.
 - `MenuCommonReadData(stack, names, mode)`: `StartReadBG`; for each name until NULL loads into
   `stack->buffer + stack->pos*16` (+0x20/+0x24 of mgCMemory), `Alloc((size+15)/16)`, `Align64`.
   Returns total bytes. `mode` is passed on to LoadFileMenu in $a2.
