@@ -46,14 +46,28 @@ enum DNGMAP_FADE {
 
 /**
  *
+ * Directions in which a map route follows rooms and their interpolation points.
+ *
+ */
+enum DNGMAP_PATH_ORDER {
+    DNGMAP_PATH_NONE = -1,   /**< The cell has no interpolation path in this direction. */
+    DNGMAP_PATH_FORWARD = 0, /**< Reads a cell's interpolation points from first to last. */
+    DNGMAP_PATH_REVERSE = 1, /**< Reads a cell's interpolation points from last to first. */
+};
+
+/**
+ *
  * Sizes of the floor map's tables.
  *
  */
 enum {
+    DNGMAP_ROOT_HOKAN_POINTS = 20,    /**< Interpolation points in a passage path, excluding its terminator. */
+    DNGMAP_ROOM_HOKAN_POINTS = 10,    /**< Interpolation points in a room path, excluding its terminator. */
     DNGMAP_MARK_MAX = 8,              /**< Room marks the map can queue in one frame. */
     DNGMAP_BLINK_CYCLE = 100,         /**< Frames one cycle of the map's blink counter lasts. */
     DNG_TREE_MAP_MES_MAX = 8,         /**< Message windows the tree map menu holds. */
     DNG_TREE_MAP_MATERIA_MAX = 0x103, /**< Georama parts the tree map can list for one floor. */
+    DNG_TREE_MAP_MATERIA_PAGE = 14,   /**< Georama parts one page of the material list shows. */
 };
 
 /**
@@ -69,12 +83,34 @@ enum DNG_TREE_MAP_RESULT {
 
 /**
  *
+ * Opening contexts distinguished by the dungeon tree map.
+ *
+ */
+enum DNG_TREE_MAP_FUNC {
+    DNG_TREE_MAP_FUNC_OTHER = 0,      /**< An opening request outside the dungeon or save-point contexts. */
+    DNG_TREE_MAP_FUNC_DUNGEON = 1,    /**< The dungeon main menu or its requested sub map. */
+    DNG_TREE_MAP_FUNC_SAVE_POINT = 2, /**< The tree-map request opened at a save point. */
+};
+
+/**
+ *
  * Screens the tree map's key and draw functions run.
  *
  */
 enum DNG_TREE_MODE {
     DNG_TREE_MODE_MAP = 0,  /**< The tree map menu itself. */
     DNG_TREE_MODE_SAVE = 1, /**< The save menu opened from the tree map. */
+};
+
+/**
+ *
+ * Screens of the tree map menu whose keys its step reads, as CBaseMenuClass::key_arg_no holds them.
+ *
+ */
+enum DNG_TREE_MAP_SCREEN {
+    DNG_TREE_MAP_SCREEN_MAP = 0,       /**< The cursor moves between the floors. */
+    DNG_TREE_MAP_SCREEN_FLOOR = 1,     /**< The selected floor's jump question or information is open. */
+    DNG_TREE_MAP_SCREEN_MATERIALS = 2, /**< The selected floor's georama material list is open. */
 };
 
 /**
@@ -149,7 +185,7 @@ public:
      *
      * @mangled Initialize__11CDngFreeMapFv
      * @address 0x1EBC70
-     * @size 0xD0
+     * @size 0xC4
      */
     void Initialize();
 
@@ -159,7 +195,7 @@ public:
      *
      * @mangled InitTexture__11CDngFreeMapFv
      * @address 0x1EBD40
-     * @size 0x20
+     * @size 0x1C
      */
     void InitTexture();
 
@@ -169,7 +205,7 @@ public:
      *
      * @mangled SetUserGlid__11CDngFreeMapFi
      * @address 0x1EBD60
-     * @size 0x40
+     * @size 0x38
      */
     void SetUserGlid(int room_no);
 
@@ -179,7 +215,7 @@ public:
      *
      * @mangled CalcGlidPutPos__11CDngFreeMapFP9GLID_INFORfRfi
      * @address 0x1EBDA0
-     * @size 0x90
+     * @size 0x8C
      */
     void CalcGlidPutPos(GLID_INFO *glid, float &x, float &y, int board);
 
@@ -199,7 +235,7 @@ public:
      *
      * @mangled SetNextRoomPos__11CDngFreeMapFP9GLID_INFO
      * @address 0x1EBF70
-     * @size 0x90
+     * @size 0x88
      */
     void SetNextRoomPos(GLID_INFO *glid);
 
@@ -209,7 +245,7 @@ public:
      *
      * @mangled GetNextGlid__11CDngFreeMapFP9GLID_INFOPi
      * @address 0x1EC000
-     * @size 0x40
+     * @size 0x34
      */
     GLID_INFO *GetNextGlid(GLID_INFO *glid, int *direction);
 
@@ -219,7 +255,7 @@ public:
      *
      * @mangled GetRoomGlid__11CDngFreeMapFi
      * @address 0x1EC040
-     * @size 0x30
+     * @size 0x28
      */
     GLID_INFO *GetRoomGlid(int room_no);
 
@@ -229,7 +265,7 @@ public:
      *
      * @mangled GetEntranceRoomGlid__11CDngFreeMapFv
      * @address 0x1EC070
-     * @size 0x80
+     * @size 0x74
      */
     GLID_INFO *GetEntranceRoomGlid();
 
@@ -249,7 +285,7 @@ public:
      *
      * @mangled ResetDngMapPos__11CDngFreeMapFii
      * @address 0x1EC180
-     * @size 0x1A0
+     * @size 0x198
      */
     void ResetDngMapPos(int room_no, int at_once);
 
@@ -269,7 +305,7 @@ public:
      *
      * @mangled DrawDngName__11CDngFreeMapFi
      * @address 0x1EC480
-     * @size 0x110
+     * @size 0x104
      */
     void DrawDngName(int alpha);
 
@@ -279,7 +315,7 @@ public:
      *
      * @mangled DrawLast__11CDngFreeMapFv
      * @address 0x1EC590
-     * @size 0xF0
+     * @size 0xEC
      */
     void DrawLast();
 
@@ -289,9 +325,9 @@ public:
      *
      * @mangled DrawRoot__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOT_INFOiUii
      * @address 0x1EC680
-     * @size 0xD30
+     * @size 0xD2C
      */
-    void DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shadow, unsigned int glid_check, int alpha);
+    void DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shadow, unsigned int marks, int opacity);
 
     /**
      *
@@ -309,9 +345,9 @@ public:
      *
      * @mangled DrawRoomOne__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOM_INFOUiif
      * @address 0x1ED4E0
-     * @size 0x920
+     * @size 0x914
      */
-    void DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsigned int glid_check, int alpha, float bright);
+    void DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsigned int unused, int opacity, float brightness);
 
     /**
      *
@@ -329,7 +365,7 @@ public:
      *
      * @mangled DrawTreeMap__11CDngFreeMapFi
      * @address 0x1EF010
-     * @size 0x320
+     * @size 0x31C
      */
     void DrawTreeMap(int alpha);
 
@@ -339,7 +375,7 @@ public:
      *
      * @mangled DrawPlayer__11CDngFreeMapFi
      * @address 0x1EF330
-     * @size 0x250
+     * @size 0x244
      */
     void DrawPlayer(int alpha);
 
@@ -349,7 +385,7 @@ public:
      *
      * @mangled Step__11CDngFreeMapFv
      * @address 0x1EF580
-     * @size 0x1B0
+     * @size 0x1A8
      */
     void Step();
 
@@ -359,7 +395,7 @@ public:
      *
      * @mangled Draw__11CDngFreeMapFv
      * @address 0x1EF730
-     * @size 0x610
+     * @size 0x608
      */
     void Draw();
 
@@ -369,7 +405,7 @@ public:
      *
      * @mangled FadeIn__11CDngFreeMapFi
      * @address 0x1EFD40
-     * @size 0x40
+     * @size 0x38
      */
     void FadeIn(int frames);
 
@@ -379,7 +415,7 @@ public:
      *
      * @mangled FadeOut__11CDngFreeMapFi
      * @address 0x1EFD80
-     * @size 0x40
+     * @size 0x3C
      */
     void FadeOut(int frames);
 
@@ -389,7 +425,7 @@ public:
      *
      * @mangled DeleteTexBlock__11CDngFreeMapFv
      * @address 0x1EFDC0
-     * @size 0x30
+     * @size 0x2C
      */
     void DeleteTexBlock();
 
@@ -399,7 +435,7 @@ public:
      *
      * @mangled SetKomaMove__11CDngFreeMapFi
      * @address 0x1EFDF0
-     * @size 0x30
+     * @size 0x28
      */
     void SetKomaMove(int moving);
 
@@ -412,7 +448,7 @@ public:
      * @address 0x1EFE20
      * @size 0xFE0
      */
-    int LoadDngInfo(mgCMemory *stack, int tex_block, int dng_no, int user_room_no, int next_room_no);
+    int LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room, int next_room);
 };
 
 STATIC_ASSERT(sizeof(CDngFreeMap) == 0x110);
@@ -478,7 +514,7 @@ public:
      *
      * @mangled Step__12CMenuTreeMapFv
      * @address 0x1F14E0
-     * @size 0x1830
+     * @size 0x1828
      */
     int Step();
 
@@ -488,7 +524,7 @@ public:
      *
      * @mangled Draw__12CMenuTreeMapFv
      * @address 0x1F2D10
-     * @size 0x730
+     * @size 0x728
      */
     void Draw();
 
@@ -499,7 +535,7 @@ public:
      *
      * @mangled FadeInOutMenu__12CMenuTreeMapFv
      * @address 0x1F3440
-     * @size 0xA0
+     * @size 0x94
      */
     int FadeInOutMenu();
 };
@@ -508,12 +544,11 @@ STATIC_ASSERT(sizeof(CMenuTreeMap) == 0x2FBE0);
 
 /**
  *
- * Tells how the tree map was opened: 2 from a save point, 1 from the dungeon
- * or its sub map, 0 otherwise.
+ * Returns the tree map's opening context as a DNG_TREE_MAP_FUNC.
  *
  * @mangled CheckDngTreeMapFuncType__Fv
  * @address 0x1F0E00
- * @size 0x40
+ * @size 0x3C
  */
 int CheckDngTreeMapFuncType();
 
@@ -523,7 +558,7 @@ int CheckDngTreeMapFuncType();
  *
  * @mangled MakeDngTreeMapJumpNo__FiiPiPi
  * @address 0x1F0E40
- * @size 0x150
+ * @size 0x144
  */
 void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no);
 
@@ -533,7 +568,7 @@ void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no);
  *
  * @mangled DngTreeMapInit__FP9mgCMemoryPiii
  * @address 0x1F34E0
- * @size 0x400
+ * @size 0x3F8
  */
 void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no);
 
@@ -543,7 +578,7 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
  *
  * @mangled DngTreeMapKey__Fv
  * @address 0x1F3BA0
- * @size 0x120
+ * @size 0x114
  */
 int DngTreeMapKey();
 

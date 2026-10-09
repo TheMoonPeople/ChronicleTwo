@@ -17,12 +17,33 @@
 #include "mglib.hpp"
 #include "scriptinterpreter.hpp"
 
-extern CEffectManager *g_tmp_effm;
-extern CEffectCtrl    *g_tmp_effc;
-extern char            g_tmp_eff_name[];
-extern int             g_eff_entry_flag;
-extern SPI_TAG_PARAM   effm_tag[];
-extern char            at_848__2[];
+/**
+ *
+ * Effect manager receiving the current script.
+ *
+ */
+static CEffectManager *g_tmp_effm;
+
+/**
+ *
+ * Emitter receiving the current script block.
+ *
+ */
+static CEffectCtrl *g_tmp_effc;
+
+/**
+ *
+ * Whether parsed emitters are entered into the manager.
+ *
+ */
+static int g_eff_entry_flag;
+
+/**
+ *
+ * Name of the emitter being parsed.
+ *
+ */
+static char g_tmp_eff_name[0x20];
 
 // Code (.text)
 /**
@@ -1587,6 +1608,62 @@ int __GRAVITY(SPI_STACK *args, int arg_count) {
     return 1;
 }
 
+/**
+ *
+ * Effect-script tags and their argument handlers.
+ *
+ */
+static SPI_TAG_PARAM effm_tag[48] = {
+    {"BUFFER_SIZE", __BUFFER_SIZE},
+    {"EFFECT_START", __EFFECT_START},
+    {"EFFECT_END", __EFFECT_END},
+    {"WAIT_FRAME", __WAIT_FRAME},
+    {"IMG_NAME", __IMG_NAME},
+    {"SIZE", __SIZE},
+    {"DIR", __DIR},
+    {"NUM", __NUM},
+    {"NUM_RAND", __NUM_RAND},
+    {"COUNT", __COUNT},
+    {"CNT_RAND", __CNT_RAND},
+    {"REPEAT", __REPEAT},
+    {"__REP_RAND", __REP_RAND},
+    {"POS", __POS},
+    {"POS_RAND", __POS_RAND},
+    {"VELO", __VELO},
+    {"VELO_RAND", __VELO_RAND},
+    {"VELO_MUL", __VELO_MUL},
+    {"ACC", __ACC},
+    {"ACC_RAND", __ACC_RAND},
+    {"ACC_MUL", __ACC_MUL},
+    {"MOVE_TYPE", __MOVE_TYPE},
+    {"MOVE_P1", __MOVE_P1},
+    {"MOVE_P1_RAND", __MOVE_P1_RAND},
+    {"MOVE_P2", __MOVE_P2},
+    {"MOVE_P2_RAND", __MOVE_P2_RAND},
+    {"SCALE_TYPE", __SCALE_TYPE},
+    {"SCALE", __SCALE},
+    {"SCALE_RAND", __SCALE_RAND},
+    {"SVELO", __SVELO},
+    {"SVELO_RAND", __SVELO_RAND},
+    {"SCALE_P1", __SCALE_P1},
+    {"SCALE_P1_RAND", __SCALE_P1_RAND},
+    {"SCALE_P2", __SCALE_P2},
+    {"SCALE_P2_RAND", __SCALE_P2_RAND},
+    {"ALPHA_BLEND", __ALPHA_BLEND},
+    {"ALPHA_TYPE", __ALPHA_TYPE},
+    {"ALPHA", __ALPHA},
+    {"ALPHA_RAND", __ALPHA_RAND},
+    {"ALPHA_P1", __ALPHA_P1},
+    {"ALPHA_P1_RAND", __ALPHA_P1_RAND},
+    {"ALPHA_P2", __ALPHA_P2},
+    {"ALPHA_P2_RAND", __ALPHA_P2_RAND},
+    {"TEX_GET_RECT", __TEX_GET_RECT},
+    {"TEX_GET_TYPE", __TEX_GET_TYPE},
+    {"TEX_NAME", __TEX_NAME},
+    {"GRAVITY", __GRAVITY},
+    {NULL, NULL},
+};
+
 CEffectManager::CEffectManager() {
     EntryEffCtrls(NULL, 0, NULL, 0);
     Initialize();
@@ -1604,14 +1681,14 @@ void CEffectManager::Initialize() {
 
     for (i = 0; i < 8; i++) {
         wait_frame[i] = 0;
-        strcpy(ctrl_name[i], at_848__2);
+        strcpy(ctrl_name[i], "");
     }
 
     for (i = 0; i < ctrl_num; i++) {
         ctrls[i].Initialize();
     }
 
-    strcpy(img_name, at_848__2);
+    strcpy(img_name, "");
 }
 
 void CEffectManager::EntryEffCtrls(CEffect *effects, int effect_num, CEffectCtrl *ctrls,
@@ -1769,66 +1846,3 @@ void CEffectManager::SetOrigin(float *origin) {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", effm_tag__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_383__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_382__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_566__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_567__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_568__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_569__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_570__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_571__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_572__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_573__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_574__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_575__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_576__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_577__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_578__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_579__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_580__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_581__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_582__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_583__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_584__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_585__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_586__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_587__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_588__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_589__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_590__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_591__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_592__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_593__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_594__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_595__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_596__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_597__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_598__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_599__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_600__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_601__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_602__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_603__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_604__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_605__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_606__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_607__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_608__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_609__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_610__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_611__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_612__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effect", at_848__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(g_tmp_effm, 0x4);
-INCLUDE_BSS(g_tmp_effc, 0x4);
-INCLUDE_BSS(g_eff_entry_flag, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(g_tmp_eff_name, 0x20);

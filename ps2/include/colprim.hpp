@@ -105,7 +105,7 @@ struct DAMAGE_PARAM {
     signed char stagger; /**< Amount that a hit adds to the target's stagger count. */
     u_char      unk_23;
     short       critical_rate; /**< Percentage by which a critical hit scales the damage. */
-    u_short     hit_flags;     /**< Flags that choose the hit effect and reaction. */
+    s16         hit_flags;     /**< Flags that choose the hit effect and reaction. */
     int         unk_28;
     short       element[DAMAGE_ELEMENT_MAX]; /**< Elemental attribute values that the primitive starts with. */
     int         source_type;                 /**< Kind of attacker, recorded on the monster that takes the hit. */

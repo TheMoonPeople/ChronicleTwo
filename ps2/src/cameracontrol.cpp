@@ -16,19 +16,6 @@
 #include "mglib.hpp"
 #include "padcontrol.hpp"
 
-/**
- *
- * Camera control vector viewed as floats or a quadword.
- *
- */
-union camera_control_vector {
-    float     values[4]; /**< Floating point components. */
-    u_long128 quadword;  /**< The same components as a quadword. */
-};
-
-extern "C" camera_control_vector at_373__3;
-extern "C" u_char                at_396__3[];
-
 // Code (.text)
 void CameraCtrlParam::SetFixHeight(float height) {
     max_height = height;
@@ -160,11 +147,11 @@ void CCameraControl::MoveCamera(CPadControl *pad, float *target, CCPoly *polys, 
         }
 
         if (!(rot_cancel & 1)) {
-            if (pad->Btn(3) != 0) {
+            if (pad->Btn(PAD_BTN_L1_HELD) != 0) {
                 turn = 0.05f;
             }
 
-            if (pad->Btn(2) != 0) {
+            if (pad->Btn(PAD_BTN_R1_HELD) != 0) {
                 turn = -0.05f;
             }
         }
@@ -313,16 +300,14 @@ void CCameraControl::Rotate(float angle) {
 }
 
 void CCameraControl::SetRotate(float angle) {
-    camera_control_vector vector;
-    float                *offset = vector.values;
-    float                 matrix[4][4];
-    float                 distance;
-    float                 height;
+    float distance;
+    float height;
 
     distance = mgDistVectorXZ(next_ref, next_pos);
 
     height = next_pos[1] - next_ref[1];
-    vector = at_373__3;
+    float offset[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float matrix[4][4];
     offset[1] = height;
     offset[2] = distance;
     mgUnitMatrix(matrix);
@@ -358,9 +343,7 @@ void CCameraControl::SetCheckRef(float *ref) {
 }
 
 void CCameraControl::SetCheckRef(float x, float y, float z) {
-    float ref[4];
-
-    *(u_long128 *) ref = *(u_long128 *) at_396__3;
+    float ref[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     ref[0] = x;
     ref[1] = y;
     ref[2] = z;
@@ -658,12 +641,3 @@ void CCameraControl::CopyParam(CCameraControl &dest) {
 int CCameraControl::Iam() {
     return 1000;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/cameracontrol", at_396__3__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/cameracontrol", __vt__14CCameraControl__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_373__3, 0x10);

@@ -33,13 +33,49 @@ struct FISH_STATS {
     float aggression; /**< Tendency to challenge other fish. */
 };
 
-extern int         jrand;
-extern int         ia[56];
-extern grFISH_DATA fish_data[18];
+/**
+ *
+ * Current index in the subtractive random number sequence.
+ *
+ */
+static int jrand;
+
+/**
+ *
+ * State of the subtractive random number generator.
+ *
+ */
+static int ia[56];
+
+/**
+ *
+ * Species modifiers applied to a racing fish's attributes and affinity.
+ *
+ */
+static grFISH_DATA fish_data[18] = {
+    {0x136, 100.0f, 100.0f, {100.0f, 100.0f, 100.0f}, 14},
+    {0x140, 98.0f, 102.0f, {98.0f, 102.0f, 100.0f}, 1},
+    {0x141, 104.0f, 100.0f, {100.0f, 98.0f, 98.0f}, 2},
+    {0x142, 98.0f, 100.0f, {100.0f, 102.0f, 100.0f}, 3},
+    {0x143, 102.0f, 102.0f, {96.0f, 102.0f, 100.0f}, 4},
+    {0x144, 102.0f, 98.0f, {98.0f, 100.0f, 102.0f}, 9},
+    {0x145, 100.0f, 104.0f, {100.0f, 100.0f, 102.0f}, 18},
+    {0x146, 95.0f, 98.0f, {100.0f, 98.0f, 100.0f}, 5},
+    {0x147, 105.0f, 98.0f, {98.0f, 98.0f, 98.0f}, 16},
+    {0x148, 90.0f, 105.0f, {105.0f, 102.0f, 102.0f}, 8},
+    {0x149, 98.0f, 100.0f, {98.0f, 98.0f, 100.0f}, 10},
+    {0x14A, 96.0f, 100.0f, {105.0f, 95.0f, 98.0f}, 11},
+    {0x14B, 95.0f, 98.0f, {98.0f, 96.0f, 102.0f}, 12},
+    {0x14C, 105.0f, 98.0f, {102.0f, 98.0f, 100.0f}, 13},
+    {0x14D, 102.0f, 98.0f, {102.0f, 100.0f, 96.0f}, 17},
+    {0x14E, 100.0f, 102.0f, {98.0f, 96.0f, 102.0f}, 15},
+    {0x14F, 96.0f, 98.0f, {102.0f, 100.0f, 98.0f}, 6},
+    {0x150, 105.0f, 105.0f, {98.0f, 98.0f, 104.0f}, 7},
+};
 static void        irn55();
 static int         irnd();
 void               init_rnd(u_int seed);
-int                StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *race);
+static int                StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *race);
 int                GetRaceDivision(float distance);
 float              GetCourseR(float pos, float unused);
 void               SetRaceFishParam(RACE_FISH_PARAM *fish, grRACE_INFO *race);
@@ -58,7 +94,7 @@ void         CharacterBonus(grFISH_PARAM *source, RACE_FISH_PARAM *fish, int cou
 void         FishModifyParam(grFISH_PARAM *source, float *output, float average);
 static void  GetPaseRatio(int tactics, float *ratio);
 void         SetRaceFishParam(RACE_FISH_PARAM *fish, grRACE_INFO *race);
-int          StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info);
+static int          StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info);
 static void  CollisionFish(RACE_FISH_PARAM *fish, int count);
 void         LaneBattleStep(RACE_FISH_PARAM *fish, int count);
 grFISH_DATA *GetFishData(int fish_no);
@@ -140,7 +176,7 @@ int grGetFishProgress(grRACE_INFO *race, int fish, float time, grRACE_PROGRESS *
 
     *(RaceProgressCopy *) out = *(RaceProgressCopy *) &progress[index];
 
-    if ((u_char) out->state == 0) {
+    if (out->state == GR_RACE_STATE_NONE) {
         return 0;
     }
 
@@ -238,7 +274,7 @@ int StepFish(int index, RACE_FISH_PARAM *fish) {
     sample->lane_pos = fish->lane;
 
     if (!(sample->pos < 16.0f)) {
-        sample->state = 3;
+        sample->state = GR_RACE_STATE_GOAL;
         return 1;
     }
 
@@ -408,7 +444,15 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
     }
 }
 #pragma divbyzerocheck reset
-#ifdef NONMATCHING
+
+/**
+ *
+ * Orders fish by position less velocity and spaces each lane's followers behind their leaders.
+ *
+ * @mangled CollisionFish__FP15RACE_FISH_PARAMi
+ * @address 0x322CD0
+ * @size 0x59C
+ */
 static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
     int i;
     int order[6];
@@ -418,8 +462,9 @@ static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
         distance[i] = fish[i].pos - fish[i].velocity;
     }
     int old_index;
+    int j;
     for (i = 0; i < count - 1; ++i) {
-        for (int j = i + 1; j < count; ++j) {
+        for (j = i + 1; j < count; ++j) {
             if (distance[i] < distance[j]) {
                 float old_distance = distance[i];
                 distance[i] = distance[j];
@@ -432,39 +477,39 @@ static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
     }
     int lane_fish[6][6];
     int lane_count[6];
+    RACE_FISH_PARAM *current;
     for (i = 0; i < 6; ++i) lane_count[i] = 0;
     for (i = 0; i < count; ++i) {
         int index = order[i];
-        int lane = fish[index].lane;
+        current = &fish[index];
+        int lane = current->lane;
         lane_fish[lane][lane_count[lane]++] = index;
     }
-    int lane_no = 0;
-    do {
-        RACE_FISH_PARAM *ahead = &fish[lane_fish[lane_no][0]];
-        for (i = 1; i < lane_count[lane_no]; ++i) {
-            RACE_FISH_PARAM *behind = &fish[lane_fish[lane_no][i]];
+    for (i = 0; i < 6; ++i) {
+        RACE_FISH_PARAM *ahead = &fish[lane_fish[i][0]];
+        for (j = 1; j < lane_count[i]; ++j) {
+            current = &fish[lane_fish[i][j]];
             float limit = ahead->pos - 0.05f;
-            if (limit < behind->pos) behind->pos = limit;
-            ahead = behind;
+            if (limit < current->pos) current->pos = limit;
+            ahead = current;
         }
-        ++lane_no;
-    } while (lane_no < 6);
+    }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyoracesim", CollisionFish__FP15RACE_FISH_PARAMi);
-#endif
-#ifdef NONMATCHING
+
 /**
  *
  * Simulates race steps, records goal times and assigns the final places.
  *
+ * @mangled StepGyoRace__FP15RACE_FISH_PARAMP11grRACE_INFO
+ * @address 0x323270
+ * @size 0x32C
  */
-int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
-    int i;
+static int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
+    int i, j;
     int step;
-    for (i = 0; i < 6; ++i) {
-        info->rank[i] = 0;
-        info->goal_time[i] = 0.0f;
+    for (j = 0; j < 6; ++j) {
+        info->rank[j] = 0;
+        info->goal_time[j] = 0.0f;
     }
     step = 0;
     for (; step < info->step_max; ++step) {
@@ -477,7 +522,6 @@ int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
             }
         }
         for (i = 0; i < info->fish_num; ++i) {
-            int j;
             int rank = 0;
             for (j = 0; j < info->fish_num; ++j) {
                 if (i != j && fish[i].pos < fish[j].pos) ++rank;
@@ -493,10 +537,9 @@ int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
         if (all_finished) break;
     }
     for (i = 0; i < info->fish_num; ++i) {
-        int number=info->fish_num;
         int rank = 0;
-        for (unsigned int j = 0; (int)j < (int)number; ++j) {
-            if (i != (int)j && info->goal_time[i] > info->goal_time[j]) ++rank;
+        for (j = 0; j < info->fish_num; ++j) {
+            if (i != j && info->goal_time[i] > info->goal_time[j]) ++rank;
         }
         info->rank[i] = rank + 1;
     }
@@ -507,9 +550,6 @@ int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
     }
     return step;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyoracesim", StepGyoRace__FP15RACE_FISH_PARAMP11grRACE_INFO);
-#endif
 
 /**
  *
@@ -838,7 +878,7 @@ void SetRaceFishParam(RACE_FISH_PARAM *fish, grRACE_INFO *race) {
         slot->battle_time = 0;
         slot->pos = 0;
         slot->lane = param_ptr->lane;
-        slot->state = 1;
+        slot->state = GR_RACE_STATE_SWIM;
         slot->battle = 0;
         slot->progress_num = race->step_max;
         slot->progress = race->progress[i];
@@ -979,18 +1019,3 @@ float GetRandomNumber(float mean, float range) {
 int rand_prob(int percent) {
     return ((irnd() >> 12) % 100) < percent;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyoracesim", fish_data__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyoracesim", at_1059__3__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyoracesim", at_483__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(jrand, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(ia, 0xE0);

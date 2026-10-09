@@ -71,7 +71,7 @@ extern ROBO_INFO_BODY robo_info_body[11];
  *
  * @mangled robo_dat
  * @address 0x1EF7830
- * @size 0x30
+ * @size 0x24
  */
 extern ROBO_INFO_DATA robo_dat;
 

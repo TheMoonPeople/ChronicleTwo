@@ -10,16 +10,47 @@
 #include "gamepad.hpp"
 #include "mglib.hpp"
 
-extern "C" {
-extern int                                             old_vsync__2;
-extern int                                             TheadID; /**< Identifier of the controller thread. */
-extern u8                                              pad_dma_buf[0x400];
-extern u8 /**< First controller port's DMA buffer. */  pad_dma_buf2[0x400];
-extern u8 /**< Second controller port's DMA buffer. */ ThreadStack[0x400]; /**< Stack of the controller thread. */
-}
-extern const char at_248[];
+/**
+ *
+ * VSync count at the preceding controller-thread update.
+ *
+ */
+static int old_vsync;
 
-static CGamePad *GamePad; /**< Controller manager the controller thread steps. */
+/**
+ *
+ * Identifier of the controller thread.
+ *
+ */
+static int TheadID;
+
+/**
+ *
+ * First controller port's DMA buffer.
+ *
+ */
+static u8 pad_dma_buf[0x400] __attribute__((aligned(64)));
+
+/**
+ *
+ * Second controller port's DMA buffer.
+ *
+ */
+static u8 pad_dma_buf2[0x400] __attribute__((aligned(64)));
+
+/**
+ *
+ * Stack of the controller thread.
+ *
+ */
+static u8 ThreadStack[0x400] __attribute__((aligned(16)));
+
+/**
+ *
+ * Controller manager the controller thread steps.
+ *
+ */
+static CGamePad *GamePad;
 
 static int read_pad(PAD_STATUS *status, int port, int slot);
 
@@ -66,7 +97,7 @@ void CGamePad::Init() {
     }
 
     if (!scePadPortOpen(0, 0, pad_dma_buf)) {
-        printf(at_248);
+        printf("ERROR: scePadPortOpen\n");
         return;
     }
 
@@ -74,7 +105,7 @@ void CGamePad::Init() {
     sceGsSyncV(0);
 
     if (!scePadPortOpen(1, 0, pad_dma_buf2)) {
-        printf(at_248);
+        printf("ERROR: scePadPortOpen\n");
         return;
     }
 
@@ -95,16 +126,16 @@ void CGamePad::Close() {
  *
  */
 static int pad_button_read(PAD_STATUS *status, int port, int slot) {
-    static u16  rpad;
-    static char init;
     u8          data[32];
     int         extended_id;
     int         button;
 
-    if (init == 0) {
-        rpad = 0;
-        init = 1;
-    }
+    /**
+     *
+     * Last button word read from a connected controller.
+     *
+     */
+    static u16 rpad = 0;
 
     extended_id = 0;
 
@@ -304,15 +335,15 @@ int CGamePad::Connect() {
 }
 
 void CGamePad::UpDate() {
-    static int  cnt;
-    static char init;
     int         i;
     int         j;
 
-    if (!init) {
-        cnt = 0;
-        init = 1;
-    }
+    /**
+     *
+     * Alternating controller-update counter.
+     *
+     */
+    static int cnt = 0;
 
     previous_pad[0] = pad[0];
     read_pad(&pad[0], 0, 0);
@@ -789,7 +820,7 @@ void SwitchGamePadThread() {
 static void GamePadStep(void *arg) {
     while (true) {
         int now = mgGetVSyncCount();
-        int elapsed = now - old_vsync__2;
+        int elapsed = now - old_vsync;
 
         if (elapsed < 0) {
             elapsed = 1;
@@ -800,7 +831,7 @@ static void GamePadStep(void *arg) {
         }
 
         SwitchGamePadThread();
-        old_vsync__2 = now;
+        old_vsync = now;
     }
 }
 
@@ -816,23 +847,3 @@ void CreateGamePadThread(CGamePad *game_pad) {
     GamePad = game_pad;
     StartThread(TheadID, NULL);
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamepad", at_248__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamepad", at_904__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamepad", at_909__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamepad", at_910__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(rpad_256, 0x4);
-INCLUDE_BSS(init_257, 0x4);
-INCLUDE_BSS(cnt_374, 0x4);
-INCLUDE_BSS(init_375, 0x4);
-INCLUDE_BSS(TheadID, 0x4);
-INCLUDE_BSS(GamePad, 0x4);
-INCLUDE_BSS(old_vsync__2, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(pad_dma_buf, 0x400);
-INCLUDE_BSS(pad_dma_buf2, 0x400);
-INCLUDE_BSS(ThreadStack, 0x400);

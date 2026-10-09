@@ -18,25 +18,110 @@
 #include "snd_mngr.hpp"
 #include "userdata.hpp"
 
-extern char       *mes_txt[6][4];
-extern float       AddProj__2;
-extern char        PhotoTitle[];
-extern int         ShowTitleCnt;
-extern u32         CameraTexb;
-extern u32         OpenMenu;
-extern int         ShowLevelUpCnt;
-extern int         ShowTakePhotoCnt;
-extern int         ShutterAnmCnt;
-extern u32         TakePhotoMode;
-static CFont       Font__3;
-extern char       *null_txt;
-extern char        at_852__6[];
-extern mgCTexture *WorkTex;
-extern char        at_1055[];
+/**
+ * Photo mode prompts and announcements in each supported language.
+ */
+static char *mes_txt[6][PHOTO_MES_NUM] = {
+    {
+        "(A):\x8E\xCA\x90^\x82\xF0\x8Am\x94" "F",
+        "(#):\x8E\xCA\x90^\x82\xF0\x82\xC6\x82\xE9",
+        "\x83\x86\x83\x8A\x83X\x82\xCC\x8E\xCA\x90^\x89\xC6\x83\x8C\x83x\x83\x8B\x82\xAA\x8F\xE3\x82\xAA\x82\xC1\x82\xBD",
+        "(R):\x83Y\x81[\x83\x80",
+    },
+    {
+        "(A):Confirm Picture",
+        "(#):Take Picture",
+        "Max's photography level increased!",
+        "(R):zoom (X):Back",
+    },
+    {
+        "(A) : confirmer photo",
+        "(#) : prendre photo",
+        "Niveau de photographie de Max a augment[UNI00e9] !",
+        "(R) : zoom (X) : retour",
+    },
+    {
+        "(A):Foto best[UNI00e4]tigen",
+        "(#):Fotografieren",
+        "Max' Fotografen-Level ist gestiegen!",
+        "(R):Zoom (X):Zur[UNI00fc]ck",
+    },
+    {
+        "(A):Conferma Foto",
+        "(#):Scatta foto",
+        "Il livello foto di Max [UNI00e8] aumentato!",
+        "(R):zoom (X):Indietro",
+    },
+    {
+        "(A):Confirmar foto",
+        "(#):Hacer foto",
+        "[UNI00a1]Ha aumentado el nivel de fotograf[UNI00ed]a de Max!",
+        "(R):zoom (X):Volver",
+    },
+};
+
+/**
+ * Empty text returned for an invalid photo message or language.
+ */
+static char *null_txt = "";
+/**
+ * Font used to draw the camera prompts, titles and picture count.
+ */
+static CFont Font__3;
+
+/**
+ * Current step of camera capture and display.
+ */
+static u32 TakePhotoMode;
+
+/**
+ * Projection offset controlled by camera zoom.
+ */
+static float AddProj__2;
+
+/**
+ * Texture block holding the camera interface.
+ */
+static u32 CameraTexb;
+
+/**
+ * Texture used to capture and preview the last picture.
+ */
+static mgCTexture *WorkTex;
+
+/**
+ * Frames remaining in the shutter animation.
+ */
+static int ShutterAnmCnt;
+
+/**
+ * Frames remaining in the last-picture preview.
+ */
+static int ShowTakePhotoCnt;
+
+/**
+ * Request to open the camera picture menu.
+ */
+static u32 OpenMenu;
+
+/**
+ * Frames remaining in the subject-title display.
+ */
+static int ShowTitleCnt;
+
+/**
+ * Frames remaining in the photography-level announcement.
+ */
+static int ShowLevelUpCnt;
+
+/**
+ * Title of the subject in the last picture.
+ */
+static char PhotoTitle[128];
 
 // Code (.text)
 char *GetMesTxt(int message_id) {
-    if (message_id < 0 || message_id >= 4) {
+    if (message_id < 0 || message_id >= PHOTO_MES_NUM) {
         return null_txt;
     }
 
@@ -66,7 +151,7 @@ static void InitPhotoTitle() {
 }
 
 void InitTakePhoto() {
-    TakePhotoMode = 0;
+    TakePhotoMode = TAKE_PHOTO_OFF;
     AddProj__2 = 0;
     InitPhotoTitle();
     ShowTakePhotoCnt = 0;
@@ -77,7 +162,7 @@ void InitTakePhoto() {
 }
 
 void LoadTakePhoto(int tex_block, mgCMemory *memory, u_long128 *buffer) {
-    WorkTex = mgTexManager.EnterTexture(0x7FFF, at_852__6, NULL, 0x40, 0x40, 0x10, 0, 0, 0);
+    WorkTex = mgTexManager.EnterTexture(0x7FFF, "fix_work", NULL, 0x40, 0x40, 0x10, 0, 0, 0);
     CameraTexb = tex_block;
     Font__3.Init();
     Font__3.Preset(4);
@@ -87,7 +172,7 @@ void LoadTakePhoto(int tex_block, mgCMemory *memory, u_long128 *buffer) {
 
 void StartTakePhoto() {
     InitTakePhoto();
-    TakePhotoMode = 2;
+    TakePhotoMode = TAKE_PHOTO_AIM;
 }
 
 void EndTakePhoto() {
@@ -95,11 +180,11 @@ void EndTakePhoto() {
 }
 
 int NowTakePhoto() {
-    return (int) TakePhotoMode > 0;
+    return (int) TakePhotoMode > TAKE_PHOTO_OFF;
 }
 
 int IsEnablePhotoMenu() {
-    return TakePhotoMode == 2;
+    return TakePhotoMode == TAKE_PHOTO_AIM;
 }
 
 void HidePhoto() {
@@ -108,8 +193,8 @@ void HidePhoto() {
 
 int GhostPhotoTiming() {
     switch (TakePhotoMode) {
-        case 3:
-        case 5:
+        case TAKE_PHOTO_SHUTTER:
+        case TAKE_PHOTO_STORE:
             return 1;
         default:
             return 0;
@@ -118,8 +203,8 @@ int GhostPhotoTiming() {
 
 void LoopTakePhoto(CPadControl *pad, CInventUserData *user_data) {
     if (user_data != NULL) {
-        if (TakePhotoMode == 2) {
-            AddProj__2 += 10.0f * -pad->Analog(3);
+        if (TakePhotoMode == TAKE_PHOTO_AIM) {
+            AddProj__2 += 10.0f * -pad->Analog(PAD_ANALOG_RIGHT_Y);
 
             if (!(AddProj__2 <= 200.0f)) {
                 AddProj__2 = 200.0f;
@@ -130,7 +215,7 @@ void LoopTakePhoto(CPadControl *pad, CInventUserData *user_data) {
             }
 
             if (user_data->IsPhotoSpace(NULL) != 0 && pad->Btn(0x33) != 0) {
-                TakePhotoMode = 3;
+                TakePhotoMode = TAKE_PHOTO_SHUTTER;
             }
 
             ShowTakePhotoCnt -= 1;
@@ -140,22 +225,21 @@ void LoopTakePhoto(CPadControl *pad, CInventUserData *user_data) {
             }
         }
 
-        if (TakePhotoMode == 4) {
+        if (TakePhotoMode == TAKE_PHOTO_AFTERSHOT) {
             ShutterAnmCnt -= 1;
 
             if (ShutterAnmCnt < 0) {
                 ShutterAnmCnt = 0;
-                TakePhotoMode = 2;
+                TakePhotoMode = TAKE_PHOTO_AIM;
             }
         }
 
-        if (TakePhotoMode == 6) {
+        if (TakePhotoMode == TAKE_PHOTO_OPEN_MENU) {
             OpenMenu = 1;
-            TakePhotoMode = 2;
+            TakePhotoMode = TAKE_PHOTO_AIM;
         }
     }
 }
-extern char at_997__5[];
 int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     int corner_x;
     int corner_y;
@@ -175,7 +259,7 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     u_long128 depth[0x40];
     mgCDrawPrim prim;
     int taken = 0;
-    if (TakePhotoMode == 5) {
+    if (TakePhotoMode == TAKE_PHOTO_STORE) {
         mgStoreImage(WorkTex, image);
         mgRect<int> area(252, 204, 260, 212);
         int count = mgStoreZBuffImage(area, depth);
@@ -199,10 +283,10 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
             taken = 1;
         }
         ShowTakePhotoCnt = 120;
-        TakePhotoMode = 4;
+        TakePhotoMode = TAKE_PHOTO_AFTERSHOT;
         ShutterAnmCnt = 8;
     }
-    if (TakePhotoMode == 3) {
+    if (TakePhotoMode == TAKE_PHOTO_SHUTTER) {
         mgCTexture frame;
         mgGetFrameBuffer(&frame);
         mgCTexture *target = WorkTex;
@@ -222,7 +306,7 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
         capture.Vertex(target->width, target->height, 0);
         capture.End();
         mgSetPkFrameBuffer(-1, -1, -1, -1);
-        TakePhotoMode = 5;
+        TakePhotoMode = TAKE_PHOTO_STORE;
     }
     prim.Initialize(NULL, NULL);
     prim.DepthTestEnable(0);
@@ -232,7 +316,7 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     prim.ZMask(MG_Z_MASK_MASKED);
     prim.Begin(MG_PRIM_SPRITE);
     prim.Color(255, 255, 255, 128);
-    prim.Texture(textures->GetTexture(at_997__5, -1));
+    prim.Texture(textures->GetTexture("camera", -1));
     int center_x = mgScreenWidth / 2;
     int center_y = mgScreenHeight / 2;
     prim.TextureCrd(0x40, 1);
@@ -273,7 +357,7 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     prim.TextureMapEnable(0);
     prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
     prim.AntiAliasing(1);
-    if (TakePhotoMode == 4) {
+    if (TakePhotoMode == TAKE_PHOTO_AFTERSHOT) {
         int frame = 8 - ShutterAnmCnt;
         sceVu0FVECTOR center = {width / 2, height / 2, 0.0f, 1.0f};
         float radius = mgDistVector(center);
@@ -470,7 +554,7 @@ void DrawTakePhotoSystem(int texture, CInventUserData *user_data) {
     }
 
     user_data->GetPictureNum(counts);
-    sprintf(count_text, at_1055, counts[0], counts[1]);
+    sprintf(count_text, "%d/%d", counts[0], counts[1]);
 
     if (counts[0] >= counts[1]) {
         Font__3.SetColor(0xFF, 0x20, 0x10, 0x80);
@@ -481,53 +565,3 @@ void DrawTakePhotoSystem(int texture, CInventUserData *user_data) {
     Font__3.SetPos(0x1B8, y);
     Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", mes_txt__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_793__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_794__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_795__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_796__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_797__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_798__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_799__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_800__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_801__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_802__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_803__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_804__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_805__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_806__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_807__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_808__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_809__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_810__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_811__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_812__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_813__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_814__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_815__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_816__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_817__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_852__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_997__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_1055__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", null_txt__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(TakePhotoMode, 0x4);
-INCLUDE_BSS(AddProj__2, 0x4);
-INCLUDE_BSS(CameraTexb, 0x4);
-INCLUDE_BSS(WorkTex, 0x4);
-INCLUDE_BSS(ShutterAnmCnt, 0x4);
-INCLUDE_BSS(ShowTakePhotoCnt, 0x4);
-INCLUDE_BSS(OpenMenu, 0x4);
-INCLUDE_BSS(ShowTitleCnt, 0x4);
-INCLUDE_BSS(ShowLevelUpCnt, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(PhotoTitle, 0x80);

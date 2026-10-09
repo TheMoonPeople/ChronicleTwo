@@ -480,6 +480,3 @@ int CVillagerMngr::GetTalkRect(int chara_id, float *rect) {
 
     return is_empty ^ 1;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/villagermngr", at_513__DATA);

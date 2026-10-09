@@ -35,6 +35,13 @@ enum ITEM_DATA_TYPE {
     ITEM_DATA_ROBO_PART_D = 0xD,
     ITEM_DATA_ROBO_PART_E = 0xE,
     ITEM_DATA_ROBO_WEAPON = 0xF,
+    ITEM_DATA_UNK_11      = 0x11, /**< Attachment type excluded from gift-box insertion. */
+    ITEM_DATA_UNK_15      = 0x15, /**< Item type excluded from gift-box insertion. */
+    ITEM_DATA_DUNGEON_KEY = 0x1A, /**< Dungeon key. */
+    ITEM_DATA_UNK_1B      = 0x1B, /**< Item type excluded from gift-box insertion. */
+    ITEM_DATA_AQUARIUM    = 0x1D, /**< Aquarium that receives owned fish. */
+    ITEM_DATA_FISH        = 0x1E, /**< Fish. */
+    ITEM_DATA_UNK_22      = 0x22, /**< Attachment type excluded from gift-box insertion. */
 };
 
 /**
@@ -240,11 +247,11 @@ class CDataBreedFish {
 public:
     float size; /**< Standard size of the fish. */
     s16   unk_4;
-    s16   battle; /**< Base battle ability of the fish. */
-    s16   stamina; /**< Base stamina of the fish. */
-    s16   boost; /**< Base boost ability of the fish. */
-    s16   endurance; /**< Base endurance of the fish. */
-    s16   tenacity; /**< Base tenacity of the fish. */
+    u16   battle; /**< Base battle ability of the fish. */
+    u16   stamina; /**< Base stamina of the fish. */
+    u16   boost; /**< Base boost ability of the fish. */
+    u16   endurance; /**< Base endurance of the fish. */
+    u16   tenacity; /**< Base tenacity of the fish. */
     s16   unk_10;
     s16   unk_12;
 

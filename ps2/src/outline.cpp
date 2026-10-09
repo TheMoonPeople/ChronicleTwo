@@ -33,7 +33,6 @@ static void DrawDivSprite(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *textu
                           int *color, int dx, int dy, int z, int unused);
 static void DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *texture,
                            int *color, int offset, int z);
-extern int  at_338[4];
 
 int COutLineDraw::Draw(float *pos, float scale, float alpha) {
 
@@ -243,7 +242,7 @@ static void DrawDivSprite(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *textu
             texcrd_end[1] = y_end;
             vertex_end[0] += offset_x;
             vertex_end[1] += offset_y;
-            u_long128 *packet = (u_long128 *)prim->DirectData(4);
+            u_long128 *packet = prim->DirectData(4);
             y = y_end;
             packet[0] = *(u_long128 *)texcrd_start;
             packet[1] = *(u_long128 *)vertex_start;
@@ -288,7 +287,7 @@ static void DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *text
             if (bottom < y_end) {
                 y_end = bottom;
             }
-            u_long128 *packet = (u_long128 *)prim->DirectData(0x10);
+            u_long128 *packet = prim->DirectData(0x10);
             texcrd_start[0] = x - offset_x;
             texcrd_start[1] = y - offset_y;
             texcrd_end[0] = x_end - offset_x;
@@ -332,15 +331,3 @@ static void DrawDivSprite4(mgCDrawPrim *prim, mgRect<int> rect, mgCTexture *text
     prim->EndPrim2();
     prim->End2();
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/outline", at_338__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_299__2, 0x10);
-INCLUDE_BSS(at_300__2, 0x10);
-INCLUDE_BSS(at_325, 0x10);
-INCLUDE_BSS(at_395, 0x10);
-INCLUDE_BSS(at_396, 0x10);
-INCLUDE_BSS(at_398, 0x10);
-INCLUDE_BSS(at_399, 0x10);

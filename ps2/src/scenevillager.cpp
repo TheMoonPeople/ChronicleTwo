@@ -22,44 +22,142 @@
 #include "villagermngr.hpp"
 #include "vlgr_info.hpp"
 
-extern char        *motion_name[];
-extern GAMEOBJ_INFO GameObjInfo[];
-extern float        at_868__4[4];
-extern char         at_988__3[];
-extern char         at_991__4[];
-extern char         at_992__3[];
-extern char         at_815__3[];
-extern char         at_1335[];
-extern char         at_1336[];
-extern char         at_1337[];
-extern char         at_1338[];
-extern char         at_1339__2[];
-extern char         at_1441__3[];
-extern char         at_1442__2[];
-extern char         at_1443__2[];
-extern char         at_1444__2[];
-extern char         at_1445__2[];
-extern char         at_1446__2[];
-extern char         at_1447__2[];
-extern char         at_1448__2[];
-extern char         at_1449__2[];
-extern char         at_1464__4[];
-extern char         at_1592__4[];
-extern char         at_1593__3[];
-extern char         at_1594__4[];
-extern char         at_1595__5[];
-extern char         at_1842__3[];
-extern char         at_1843__3[];
-extern char         at_1844__3[];
-extern char         at_1845__2[];
-extern char         at_1846__2[];
-extern char         at_1847__2[];
+/**
+ * Villager motion names indexed by VILLAGER_MOTION.
+ */
+static char *motion_name[] = {
+    "\x97\xa7\x82\xbf",
+    "\x95\xe0\x82\xab",
+    "\x91\x96\x82\xe8",
+    "\x89\xef\x98" "b",
+    "\x8d\xc0\x82\xe8",
+    "\x83J\x83\x81\x83\x89\x93\xfc\x82\xe8",
+    "\x83J\x83\x81\x83\x89",
+    "\x83J\x83\x81\x83\x89\x96\xdf\x82\xe8",
+    "\x93\xc1\x95\xca",
+    NULL
+};
+
+/**
+ * Map placements of red and blue goal markers and save points.
+ */
+static GAMEOBJ_INFO GameObjInfo[] = {
+    {0, GAMEOBJ_TYPE_TG_RED, 1, 0, {
+        {{-697.8f, -0.0f, -1087.4f}, 0.22f}
+    }},
+    {25, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {
+        {{107.5f, 24.7f, 1527.8f}, -2.85f}
+    }},
+    {1, GAMEOBJ_TYPE_TG_RED, 1, 0, {
+        {{-741.2f, 1.0f, -709.9f}, -2.59f}
+    }},
+    {26, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {
+        {{-620.5f, 151.0f, -899.2f}, 0.5f}
+    }},
+    {2, GAMEOBJ_TYPE_TG_RED, 1, 0, {
+        {{-138.5f, 166.0f, 1863.7f}, -3.08f}
+    }},
+    {82, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {
+        {{160.5f, 287.0f, 1850.2f}, 0.5f}
+    }},
+    {3, GAMEOBJ_TYPE_TG_RED, 1, 0, {
+        {{1770.9f, 1.0f, -417.5f}, -1.7f}
+    }},
+    {102, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {
+        {{0.0f, 0.0f, 0.0f}, 0.0f}
+    }},
+    {10, GAMEOBJ_TYPE_SAVEPOINT, 4, 0, {
+        {{559.3f, 4.1f, 120.1f}, 1.58f},
+        {{2094.2f, 0.0f, 2066.3f}, 0.17f},
+        {{-4241.7f, 353.0f, 2876.7f}, 3.04f},
+        {{-3796.3f, 359.4f, -1639.8f}, 1.63f}
+    }},
+    {17, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{2100.2f, 0.0f, 2248.6f}, 2.89f}
+    }},
+    {22, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{-112.3f, 104.0f, -160.7f}, -0.69f}
+    }},
+    {86, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{40.3f, 24.7f, -70.8f}, -2.25f}
+    }},
+    {34, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{-240.6f, 35.8f, 177.2f}, -2.78f}
+    }},
+    {23, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{33.9f, 36.1f, -102.7f}, 3.07f}
+    }},
+    {16, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{-769.7f, 0.0f, -78.7f}, 1.05f}
+    }},
+    {65, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{2805.7f, 0.0f, 1630.3f}, -1.77f}
+    }},
+    {54, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{-387.7f, 0.0f, -209.7f}, -2.15f}
+    }},
+    {1, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{1961.2f, 0.0f, -189.0f}, 1.46f}
+    }},
+    {83, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{-1861.1f, 29.2f, -336.5f}, 2.8f}
+    }},
+    {2, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{1835.6f, -6.3f, -425.0f}, 2.34f}
+    }},
+    {87, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{2394.5f, 0.0f, 1511.4f}, 2.76f}
+    }},
+    {3, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{-1378.5f, 0.0f, -1369.0f}, -2.39f}
+    }},
+    {24, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{85.6f, -0.0f, 213.5f}, 3.04f}
+    }},
+    {76, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{94.9f, 38.0f, 2816.2f}, 3.14f}
+    }},
+    {81, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{184.3f, 57.9f, 1249.0f}, -1.62f}
+    }},
+    {61, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{971.7f, 49.3f, -15.5f}, -0.2f}
+    }},
+    {84, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{43.6f, -18.1f, 1007.0f}, -2.66f}
+    }},
+    {90, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{1875.3f, -0.0f, -338.6f}, 0.26f}
+    }},
+    {88, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{-2268.1f, -0.0f, 2502.4f}, -2.91f}
+    }},
+    {92, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{-88.1f, -3e+01f, 1727.0f}, -1.82f}
+    }},
+    {187, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{70.1f, 1.4e+02f, -865.0f}, 0.0f}
+    }},
+    {103, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{-71.1f, -268.0f, 3166.0f}, 0.0f}
+    }},
+    {72, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{96.0f, 0.0f, 3451.0f}, 0.0f}
+    }},
+    {4, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{78.0f, 0.0f, 1338.0f}, 3.14f}
+    }},
+    {109, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
+        {{54.0f, 2.8e+02f, -607.0f}, 0.0f}
+    }},
+    {-1, GAMEOBJ_TYPE_NONE, 0, 0},
+};
 
 // Code (.text)
 int GetChrFileSize(u32 *pack, int file_size) {
     u32 *files[8];
     int  sizes[8];
-    int  count = GetPackFileExt(pack, at_815__3, files, 8, sizes, NULL);
+    int  count = GetPackFileExt(pack, "mds", files, 8, sizes, NULL);
     int  total = 0;
     int  i = 0;
     int  size;
@@ -141,11 +239,6 @@ void CScene::GetCharaLighting(float (*lights)[4], float *ambient) {
         float ambient_scale = 1.8f;
         float ambient_floor = 56.0f;
 
-        union {
-            float     f[4];
-            u_long128 word;
-        } limit;
-
         int   i;
         float lowest;
         float next;
@@ -157,10 +250,10 @@ void CScene::GetCharaLighting(float (*lights)[4], float *ambient) {
             ambient_floor = 128.0f * map->map_info.chara_light_adjust_value[2];
         }
 
-        limit = *(typeof(limit) *) at_868__4;
+        sceVu0FVECTOR limit = {255.0f, 255.0f, 255.0f, 128.0f};
         for (i = 0; i < 4; i++) {
             sceVu0ScaleVectorXYZ(lights[i], lights[i], light_scale);
-            mgVectorMin(lights[i], lights[i], limit.f);
+            mgVectorMin(lights[i], lights[i], limit);
         }
 
         sceVu0ScaleVectorXYZ(ambient, ambient, ambient_scale);
@@ -677,7 +770,7 @@ int CScene::LoadVillager(int map_no, int texb) {
             continue;
         }
 
-        u_long128 *buffer = read_buff;
+        u_int     *buffer = (u_int *) read_buff;
         int        rest_before;
         int        block = texb + loaded;
         int        slot;
@@ -689,26 +782,26 @@ int CScene::LoadVillager(int map_no, int texb) {
             if (stack->stGetRest() >= 0x1900) {
                 slot = CopyChara(loaded + SCENE_VILLAGER_SLOT_TOP, copy_from, stack);
             } else {
-                printf(at_1335);
+                printf("load vlgr memory over!!!");
             }
         } else {
             if (LoadFile2(model_name, buffer, &file_size, 0) == 0) {
                 continue;
             }
 
-            int chr_size = GetChrFileSize((u_int *) buffer, file_size);
+            int chr_size = GetChrFileSize(buffer, file_size);
             rest_before = stack->stGetRest();
 
             if (rest_before < chr_size / 16 + 1) {
-                printf(at_1335);
+                printf("load vlgr memory over!!!");
                 continue;
             }
 
-            sprintf(suffix, at_1336, loaded + SCENE_VILLAGER_SLOT_TOP);
+            sprintf(suffix, "%d", loaded + SCENE_VILLAGER_SLOT_TOP);
             strcpy(tex_manager->name_suffix, suffix);
-            slot = LoadChara(loaded + SCENE_VILLAGER_SLOT_TOP, (u_int *) buffer, at_1337, stack, stack, stack, texb + loaded, 0);
+            slot = LoadChara(loaded + SCENE_VILLAGER_SLOT_TOP, buffer, "info.cfg", stack, stack, stack, texb + loaded, 0);
             tex_manager->name_suffix[0] = 0;
-            printf(at_1338, (rest_before - stack->stGetRest()) * 16 / 1024, chr_size / 1024);
+            printf("used : %dkb (%dkb)\n", (rest_before - stack->stGetRest()) * 16 / 1024, chr_size / 1024);
         }
 
         SetCharaNo(slot, chara_nos[i]);
@@ -721,7 +814,7 @@ int CScene::LoadVillager(int map_no, int texb) {
     }
 
     villager_time = GetNowVillagerTime();
-    printf(at_1339__2, stack->stGetRest() * 16 / 1024);
+    printf("remain %dkByte\n", stack->stGetRest() * 16 / 1024);
     return count;
 }
 
@@ -754,7 +847,7 @@ int CScene::LoadSubVillager(int map_no, int texb) {
             continue;
         }
 
-        u_long128 *buffer = read_buff;
+        u_int     *buffer = (u_int *) read_buff;
         int        rest_before;
         int        block = texb + loaded;
         int        slot;
@@ -766,26 +859,26 @@ int CScene::LoadSubVillager(int map_no, int texb) {
             if (stack->stGetRest() >= 0x1900) {
                 slot = CopyChara(loaded + SCENE_SUB_VILLAGER_SLOT_TOP, copy_from, stack);
             } else {
-                printf(at_1335);
+                printf("load vlgr memory over!!!");
             }
         } else {
             if (LoadFile2(model_name, buffer, &file_size, 0) == 0) {
                 continue;
             }
 
-            int chr_size = GetChrFileSize((u_int *) buffer, file_size);
+            int chr_size = GetChrFileSize(buffer, file_size);
             rest_before = stack->stGetRest();
 
             if (rest_before < chr_size / 16 + 1) {
-                printf(at_1335);
+                printf("load vlgr memory over!!!");
                 continue;
             }
 
-            sprintf(suffix, at_1336, loaded + SCENE_SUB_VILLAGER_SLOT_TOP);
+            sprintf(suffix, "%d", loaded + SCENE_SUB_VILLAGER_SLOT_TOP);
             strcpy(tex_manager->name_suffix, suffix);
-            slot = LoadChara(loaded + SCENE_SUB_VILLAGER_SLOT_TOP, (u_int *) buffer, at_1337, stack, stack, stack, texb + loaded, 0);
+            slot = LoadChara(loaded + SCENE_SUB_VILLAGER_SLOT_TOP, buffer, "info.cfg", stack, stack, stack, texb + loaded, 0);
             tex_manager->name_suffix[0] = 0;
-            printf(at_1338, (rest_before - stack->stGetRest()) * 16 / 1024, chr_size / 1024);
+            printf("used : %dkb (%dkb)\n", (rest_before - stack->stGetRest()) * 16 / 1024, chr_size / 1024);
         }
 
         SetCharaNo(slot, chara_nos[i]);
@@ -798,7 +891,7 @@ int CScene::LoadSubVillager(int map_no, int texb) {
     }
 
     sub_villager_time = GetNowVillagerTime();
-    printf(at_1339__2, stack->stGetRest() * 16 / 1024);
+    printf("remain %dkByte\n", stack->stGetRest() * 16 / 1024);
     return count;
 }
 
@@ -987,10 +1080,10 @@ void CScene::StepVillager() {
             mgCFrame *model = chara->CObjectFrame::frame;
 
             if (model != NULL) {
-                hide_a = model->SearchFrame(at_1592__4);
-                hide_b = model->SearchFrame(at_1593__3);
-                show_a = model->SearchFrame(at_1594__4);
-                show_b = model->SearchFrame(at_1595__5);
+                hide_a = model->SearchFrame("hand_R");
+                hide_b = model->SearchFrame("hand_L");
+                show_a = model->SearchFrame("v_R");
+                show_b = model->SearchFrame("v_L");
 
                 if (villager->parts_mode == 1) {
                     if (hide_a != NULL && hide_a->attr != NULL) {
@@ -1328,7 +1421,7 @@ void CScene::LoadGameObject(int now_map_no, int tex_block, mgCMemory *memory) {
     CSaveData    *save;
 
     file_buffer = (u32 *) read_buff;
-    entry = (GAMEOBJ_INFO *) GameObjInfo;
+    entry = GameObjInfo;
     DeleteChara(SCENE_GAMEOBJ_SLOT_TG);
     DeleteChara(SCENE_GAMEOBJ_SLOT_TG_BASE);
     DeleteChara(SCENE_GAMEOBJ_SLOT_SAVEPOINT);
@@ -1349,12 +1442,12 @@ void CScene::LoadGameObject(int now_map_no, int tex_block, mgCMemory *memory) {
         if (entry->map_no == now_map_no) {
             switch (entry->type) {
                 case 3:
-                    if (LoadFile2(at_1842__3, file_buffer, NULL, 0) != 0) {
+                    if (LoadFile2("effect/savepoint.chr", file_buffer, NULL, 0) != 0) {
                         LoadChara(SCENE_GAMEOBJ_SLOT_SAVEPOINT, file_buffer, NULL, memory, memory, memory,
                                   tex_block, 1);
                         SetActive(1, SCENE_GAMEOBJ_SLOT_SAVEPOINT);
 
-                        if (LoadFile2(at_1843__3, file_buffer, NULL, 0) != 0) {
+                        if (LoadFile2("effect/book.chr", file_buffer, NULL, 0) != 0) {
                             LoadChara(SCENE_GAMEOBJ_SLOT_BOOK, file_buffer, NULL, memory, memory, memory,
                                       tex_block, 1);
                             SetActive(1, SCENE_GAMEOBJ_SLOT_BOOK);
@@ -1364,12 +1457,12 @@ void CScene::LoadGameObject(int now_map_no, int tex_block, mgCMemory *memory) {
                     break;
                 case 1:
                     if ((skip_objects == 0) &&
-                        (LoadFile2(at_1844__3, file_buffer, NULL, 0) != 0)) {
+                        (LoadFile2("effect/tg_maru_red.chr", file_buffer, NULL, 0) != 0)) {
                         LoadChara(SCENE_GAMEOBJ_SLOT_TG, file_buffer, NULL, memory, memory, memory,
                                   tex_block, 1);
                         SetActive(1, SCENE_GAMEOBJ_SLOT_TG);
 
-                        if (LoadFile2(at_1845__2, file_buffer, NULL, 0) != 0) {
+                        if (LoadFile2("effect/tg_sita_red.chr", file_buffer, NULL, 0) != 0) {
                             LoadChara(SCENE_GAMEOBJ_SLOT_TG_BASE, file_buffer, NULL, memory, memory, memory,
                                       tex_block, 1);
                             SetActive(1, SCENE_GAMEOBJ_SLOT_TG_BASE);
@@ -1379,12 +1472,12 @@ void CScene::LoadGameObject(int now_map_no, int tex_block, mgCMemory *memory) {
                     break;
                 case 2:
                     if ((skip_objects == 0) &&
-                        (LoadFile2(at_1846__2, file_buffer, NULL, 0) != 0)) {
+                        (LoadFile2("effect/tg_maru_blue.chr", file_buffer, NULL, 0) != 0)) {
                         LoadChara(SCENE_GAMEOBJ_SLOT_TG, file_buffer, NULL, memory, memory, memory,
                                   tex_block, 1);
                         SetActive(1, SCENE_GAMEOBJ_SLOT_TG);
 
-                        if (LoadFile2(at_1847__2, file_buffer, NULL, 0) != 0) {
+                        if (LoadFile2("effect/tg_sita_blue.chr", file_buffer, NULL, 0) != 0) {
                             LoadChara(SCENE_GAMEOBJ_SLOT_TG_BASE, file_buffer, NULL, memory, memory, memory,
                                       tex_block, 1);
                             SetActive(1, SCENE_GAMEOBJ_SLOT_TG_BASE);
@@ -1410,7 +1503,7 @@ int CScene::GetGameObjectEvent(float *position, CSceneEventData *event) {
     }
 
     now_map_no = GetMainMapNo();
-    entry = (GAMEOBJ_INFO *) GameObjInfo;
+    entry = GameObjInfo;
 
     for (;;) {
         if (entry->map_no < 0) {
@@ -1466,7 +1559,7 @@ void CScene::DrawGameObject(int now_map_no) {
         return;
     }
 
-    entry = (GAMEOBJ_INFO *) GameObjInfo;
+    entry = GameObjInfo;
 
     for (;;) {
         if (entry->map_no < 0) {
@@ -1523,41 +1616,3 @@ void CScene::DrawGameObject(int now_map_no) {
         entry++;
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_868__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_991__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_992__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", motion_name__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", GameObjInfo__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_815__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1335__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1336__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1337__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1338__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1339__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1441__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1442__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1443__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1444__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1445__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1446__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1447__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1448__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1449__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1464__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1592__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1593__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1594__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1595__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1842__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1843__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1844__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1845__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1846__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenevillager", at_1847__2__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_988__3, 0x10);

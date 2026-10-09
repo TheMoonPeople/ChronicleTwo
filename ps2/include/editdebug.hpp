@@ -82,6 +82,48 @@ enum LIGHTING_EDIT_PAGE {
 
 /**
  *
+ * Rows shared by every lighting editor page, ahead of the page's own entries.
+ *
+ */
+enum LIGHTING_EDIT_ROW {
+    LIGHTING_EDIT_ROW_LIGHT_SET = 0, /**< Chooses the map's light set and moves the time of day to it. */
+    LIGHTING_EDIT_ROW_PAGE = 1,      /**< Chooses the page, and on the directional light page the light. */
+    LIGHTING_EDIT_ROW_ITEM = 2,      /**< First of the page's own entries. */
+};
+
+/**
+ *
+ * Entries of the directional light page of the lighting editor, counted from its first entry row.
+ *
+ */
+enum LIGHTING_EDIT_DIR_ITEM {
+    LIGHTING_EDIT_DIR_COLOR_R = 0,  /**< Red component of the light's colour. */
+    LIGHTING_EDIT_DIR_COLOR_G = 1,  /**< Green component of the light's colour. */
+    LIGHTING_EDIT_DIR_COLOR_B = 2,  /**< Blue component of the light's colour. */
+    LIGHTING_EDIT_DIR_ROTATE_X = 3, /**< Turns the light about the x axis. */
+    LIGHTING_EDIT_DIR_ROTATE_Y = 4, /**< Turns the light about the y axis. */
+    LIGHTING_EDIT_DIR_ROTATE_Z = 5, /**< Turns the light about the z axis. */
+    LIGHTING_EDIT_DIR_COUNT = 6,    /**< Number of entries on the directional light page. */
+};
+
+/**
+ *
+ * Entries of the fog page of the lighting editor, counted from its first entry row.
+ *
+ */
+enum LIGHTING_EDIT_FOG_ITEM {
+    LIGHTING_EDIT_FOG_NEAR = 0,  /**< Distance at which the fog takes its near value. */
+    LIGHTING_EDIT_FOG_FAR = 1,   /**< Distance at which the fog takes its far value. */
+    LIGHTING_EDIT_FOG_R = 2,     /**< Red component of the fog colour. */
+    LIGHTING_EDIT_FOG_G = 3,     /**< Green component of the fog colour. */
+    LIGHTING_EDIT_FOG_B = 4,     /**< Blue component of the fog colour. */
+    LIGHTING_EDIT_FOG_MIN = 5,   /**< Fog value at the far distance. */
+    LIGHTING_EDIT_FOG_MAX = 6,   /**< Fog value at the near distance. */
+    LIGHTING_EDIT_FOG_COUNT = 7, /**< Number of entries on the fog page. */
+};
+
+/**
+ *
  * State the town-building mode shares with its debug menu: the sub game start parameters,
  * the town layout being edited and a pending map jump.
  *
@@ -188,6 +230,6 @@ int IsLightingEditMode();
  *
  * @mangled LightingEdit__FP6CScene
  * @address 0x1A9820
- * @size 0x1530
+ * @size 0x1524
  */
 void LightingEdit(CScene *scene);

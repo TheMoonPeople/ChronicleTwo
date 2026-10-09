@@ -38,15 +38,21 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "sysmes.hpp"
+#include "title.hpp"
 #include "userdata.hpp"
 
-extern int MenuCharaChangePosDataCfgBuffer;
+/**
+ *
+ * Configuration data for the party change layout.
+ *
+ */
+static u_int *MenuCharaChangePosDataCfgBuffer;
 
 inline CMenuChrCngMenu::CMenuChrCngMenu() {
     change_phase = 0;
     change_chara = -1;
     change_ready = 0;
-    MenuCharaChangePosDataCfgBuffer = 0;
+    MenuCharaChangePosDataCfgBuffer = NULL;
     unk_118 = 0;
     select = 0;
     last_select = 0;
@@ -115,16 +121,6 @@ inline CMenuChrCngMenu::CMenuChrCngMenu() {
 
 /**
  *
- * Views four worn costume IDs as one quadword.
- *
- */
-union WornCostumes {
-    int       id[4]; /**< IDs of the four worn costumes. */
-    u_long128 qw;    /**< Combined 128-bit representation. */
-};
-
-/**
- *
  * Returns the unused size of a character model stack.
  *
  */
@@ -189,6 +185,24 @@ static inline unsigned int blocks_for(unsigned int size) {
     return (size & 0xF) != 0 ? (size >> 4) + 1 : size >> 4;
 }
 
+/**
+ *
+ * Returns the character count of a message's longest page.
+ *
+ */
+static inline int MaxPageChars(ClsMes *mes) {
+    if (mes->page_num <= 0) {
+        return 0;
+    }
+    int max_chars = 0;
+    for (int i = 0; i < mes->page_num; i++) {
+        if (max_chars < mes->page_chars[i]) {
+            max_chars = mes->page_chars[i];
+        }
+    }
+    return max_chars;
+}
+
 const int kMonsterMemoCount = 0x119;
 const int kModelDelayFrames = 20;
 const int kModelFrameCap = 20;
@@ -209,103 +223,30 @@ enum {
     kTimeBandNight = 2
 };
 
-extern short       tbl_992[];
-extern signed char MenuNPCLoadFlag;
-extern int         mos_effect_read_num;
+/**
+ *
+ * Loading phase of each playable character and equipment part.
+ *
+ */
+static short tbl_992[USER_CHARA_NUM * 5] = {2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 1, 2, 4, 0, 0, 0, 0, 0, 0, 0};
+
+/**
+ *
+ * Non-zero while the party townsperson model is loading.
+ *
+ */
+static signed char MenuNPCLoadFlag;
+
+/**
+ *
+ * Number of transformation effect resource pairs read.
+ *
+ */
+static int         mos_effect_read_num;
+
 void               SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INFO_DATA *robo);
 void               GetBajjiPosition(CMenuPosDataForm *form, int slot, int unused, int *pos);
 void               SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int blur_type);
-
-/**
- *
- * Stores a 64-byte block of monster book data.
- *
- */
-struct MonsterBookBlock64 {
-    u_long128 q[4]; /**< Four quadwords of monster book data. */
-};
-
-/**
- *
- * Stores a 32-byte block of monster book data.
- *
- */
-struct MonsterBookBlock32 {
-    u_long128 q[2]; /**< Two quadwords of monster book data. */
-};
-
-/**
- *
- * Groups the seven memory stacks used by the character menu.
- *
- */
-struct MemoryList {
-    mgCMemory *entry[7]; /**< Memory stack for each character slot. */
-};
-
-/**
- *
- * Groups character instances used by the character menu.
- *
- */
-struct SceneCharaList {
-    CActionChara *entry[7]; /**< Character in each scene slot. */
-};
-
-/**
- *
- * Lists the three character targets for loading.
- *
- */
-struct LoadTargetList {
-    CActionChara *entry[3]; /**< Character target in each load slot. */
-};
-
-/**
- *
- * Lists the three memory stacks used while loading characters.
- *
- */
-struct LoadStackList {
-    mgCMemory *entry[3]; /**< Memory stack in each load slot. */
-};
-
-/**
- *
- * Stores the path category for each character load.
- *
- */
-struct CharaPathKinds {
-    s8 kind[MENU_CHARA_LOAD_MAX]; /**< Path category for each load slot. */
-};
-
-/**
- *
- * Tracks the character data requested for loading.
- *
- */
-struct LoadWantedList {
-    int entry[9]; /**< Requested load entry for each slot. */
-};
-
-/**
- *
- * Stores the centre of a menu ring.
- *
- */
-struct RingCenter {
-    float x; /**< Horizontal centre coordinate. */
-    float y; /**< Vertical centre coordinate. */
-};
-
-/**
- *
- * Stores texture coordinates for a quadrilateral.
- *
- */
-struct QuadTexCoords {
-    float uv[4][2]; /**< Texture coordinates of its four corners. */
-};
 
 /**
  *
@@ -318,275 +259,545 @@ struct CameraPoint {
 
 /**
  *
- * Lists eight character targets for loading.
+ * Message numbers of the monster box's badge commands.
  *
  */
-struct LoadTargetList8 {
-    CActionChara *entry[8]; /**< Character target in each load slot. */
+enum MOS_SELECT_COMMAND_MSG {
+    MOS_SELECT_CMD_TRANSFORM = 0x14B6,   /**< Turns Monica into one of the badge's monsters. */
+    MOS_SELECT_CMD_STATUS = 0x14B7,      /**< Shows the status of the badge's monster. */
+    MOS_SELECT_CMD_CLASS_CHANGE = 0x14B8 /**< Moves the badge on to a higher class of monster. */
 };
 
 /**
  *
- * Groups the six robot-part character instances.
+ * Page of the monster box shown, as CBaseMenuClass::key_arg_no holds it.
  *
  */
-struct RoboCharaList {
-    CActionChara *entry[6]; /**< Character instance for each robot part. */
+enum MOS_SELECT_PAGE {
+    MOS_SELECT_PAGE_BADGE = 0,   /**< The cursor moves over the badges. */
+    MOS_SELECT_PAGE_COMMAND = 1, /**< A command of the chosen badge is picked and run. */
+    MOS_SELECT_PAGE_STATUS = 2   /**< The status of the badge's monster forms is shown. */
 };
 
 /**
  *
- * Groups the six memory stacks for robot parts.
+ * Step of the badge command page, as CBaseMenuClass::step holds it while key_arg_no is MOS_SELECT_PAGE_COMMAND.
  *
  */
-struct RoboStackList {
-    mgCMemory *entry[6]; /**< Memory stack for each robot part. */
+enum MOS_SELECT_COMMAND_STEP {
+    MOS_SELECT_STEP_COMMAND = 0,            /**< A badge command is chosen. */
+    MOS_SELECT_STEP_ERROR = 1,              /**< A message that the command is not possible waits for a button. */
+    MOS_SELECT_STEP_CLASS_SELECT = 10,      /**< The monster to change class to is chosen. */
+    MOS_SELECT_STEP_CLASS_CONFIRM = 11,     /**< The class change waits for its yes/no answer. */
+    MOS_SELECT_STEP_CLASS_EFFECT = 12,      /**< The class-change effect loads and plays. */
+    MOS_SELECT_STEP_CLASS_DONE = 13,        /**< The class change's end message waits for a button. */
+    MOS_SELECT_STEP_CLASS_REWARD = 14,      /**< The monster-drop reward message waits for a button. */
+    MOS_SELECT_STEP_CLASS_LAST_REWARD = 15, /**< The last class's item reward message waits for a button. */
+    MOS_SELECT_STEP_FORM_SELECT = 20        /**< The monster form to transform into is chosen. */
 };
 
 /**
  *
- * Holds one line of character-menu debug text.
+ * Transformation effect resources selected for the monster menu.
  *
  */
-struct DebugLine {
-    char text[0x80]; /**< Debug text line. */
+static MOS_HENGE_PARAM   *mos_effect_henge_param;
+
+/**
+ *
+ * Script buffer for each loaded transformation effect.
+ *
+ */
+static u8                *mos_effect_readbuff1[4];
+
+/**
+ *
+ * Script byte count for each loaded transformation effect.
+ *
+ */
+static int                mos_effect_readbuff1_size[4];
+
+/**
+ *
+ * Pack buffer for each loaded transformation effect.
+ *
+ */
+static u8                *mos_effect_readbuff2[4];
+
+/**
+ *
+ * Pack byte count for each loaded transformation effect.
+ *
+ */
+static int                mos_effect_readbuff2_size[4];
+
+/**
+ *
+ * Dimensions of the monster badge grid.
+ *
+ */
+enum {
+    MOS_SELECT_GRID_COLUMNS = 4, /**< Columns of monster badges. */
+    MOS_SELECT_GRID_ROWS = 3     /**< Rows of monster badges. */
 };
 
 /**
  *
- * Holds a character-menu debug text block.
+ * Total columns and rows of the monster badge grid.
  *
  */
-struct DebugText {
-    char text[0x200]; /**< Debug text block. */
-};
+static int max_3170[2] = {MOS_SELECT_GRID_COLUMNS, MOS_SELECT_GRID_ROWS};
 
 /**
  *
- * Holds debug text for a non-player character.
+ * Visible columns and rows of the monster badge grid.
  *
  */
-struct DebugNpcText {
-    char text[0x100]; /**< Non-player character debug text. */
-};
+static int viewnum_3171[2] = {MOS_SELECT_GRID_COLUMNS, MOS_SELECT_GRID_ROWS};
 
 /**
  *
- * Holds a monster name used by the menu.
+ * Directional edge overrides of the monster badge grid.
  *
  */
-struct MonsterNameList {
-    char *name[1]; /**< Name of the monster. */
-};
+static int overcode_3172[4] = {0, 0, 0, 0};
 
 /**
  *
- * Stores message numbers for menu commands.
+ * Active monster selection menu.
  *
  */
-struct MenuCommandList {
-    int mes[8]; /**< Message number for each command. */
-};
+static CMenuMosSelect    *MenuMosSelectPtr;
 
 /**
  *
- * Stores names shown in the monster menu.
+ * Character whose menu sound archive is loaded.
  *
  */
-struct MonsterNameTable {
-    char *name[8]; /**< Monster name in each table slot. */
-};
+static int MenuSoundCharaNo = -1;
 
 /**
  *
- * Stores values displayed for badge information.
+ * Texture sliding across the main character background.
  *
  */
-struct BadgeInfoValues {
-    int value[6]; /**< Badge information values. */
-};
+static mgCTexture        *NowMainCharaChngTex;
 
 /**
  *
- * Pairs two integer menu values.
+ * Frame texture of the main character background.
  *
  */
-struct SmallPair {
-    int v[2]; /**< The two values in the pair. */
-};
+static mgCTexture        *NowMainCharaFrameImage;
 
 /**
  *
- * Holds a file name used while loading menu assets.
+ * Status flags for the main character background transition.
  *
  */
-struct FileNameBuf {
-    char text[0x40]; /**< Menu asset file name. */
-};
+static short              NowMainCharaChngStatusBit;
 
 /**
  *
- * Pairs two names used by the character menu.
+ * Current phase of the sliding character texture.
  *
  */
-struct NamePair {
-    char *a; /**< First name in the pair. */
-    char *b; /**< Second name in the pair. */
-};
+static int                NowMainCharaChngTexMovePhase;
 
-extern char               at_2940[];
-extern char               at_2941[];
-extern char               at_2942[];
-extern char               at_2943[];
-extern char               at_2944[];
-extern MOS_HENGE_PARAM   *mos_effect_henge_param;
-extern u8                *mos_effect_readbuff1[4];
-extern int                mos_effect_readbuff1_size[4];
-extern u8                *mos_effect_readbuff2[4];
-extern int                mos_effect_readbuff2_size[4];
-extern int                max_3170;
-extern int                viewnum_3171;
-extern int                overcode_3172[4];
-extern CMenuMosSelect    *MenuMosSelectPtr;
-extern char               at_3779[];
-extern char               at_3780[];
-extern char               at_3790[];
-extern int                MenuSoundCharaNo;
-extern float              at_4158;
-extern char               at_4186__2[];
-extern char               at_4123[];
-extern char               at_4296[];
-extern u8                 at_4517__2[];
-extern mgCTexture        *NowMainCharaChngTex;
-extern mgCTexture        *NowMainCharaFrameImage;
-extern short              NowMainCharaChngStatusBit;
-extern int                NowMainCharaChngTexMovePhase;
-extern int                NowMainCharaChngTexMoveX;
-extern short              NowReadMainCharaNo;
-extern u_int             *MenuPartyNPCModelReadBuffer;
-extern short              MenuCosutumeLoadPhase;
+/**
+ *
+ * Horizontal position of the sliding character texture.
+ *
+ */
+static int                NowMainCharaChngTexMoveX;
+
+/**
+ *
+ * Main character whose quick-change background load is pending.
+ *
+ */
+static short NowReadMainCharaNo = -1;
+
+/**
+ *
+ * Pack data read for the party townsperson model.
+ *
+ */
+static u_int             *MenuPartyNPCModelReadBuffer;
+
+/**
+ *
+ * Current phase of the costume menu model load.
+ *
+ */
+static short              MenuCosutumeLoadPhase;
+
 extern mgCMemory          MenuChangeMemory;
-extern unsigned long      CostumeAttr;
-extern CMenuCostumeSel   *MenuCosPtr;
+
+/**
+ *
+ * Bit mask of costumes available to the costume menu.
+ *
+ */
+static unsigned long      CostumeAttr;
+
+/**
+ *
+ * Active costume selection menu.
+ *
+ */
+static CMenuCostumeSel   *MenuCosPtr;
+
 extern mgCMemory          MosBookStack;
-extern CMosBookMenu      *MenuMosBookPtr;
-extern u8                *MonsterBookPtr;
-extern short              MonsterBookBootMode;
-extern mgCTexture        *Tex_MBase;
-extern mgCTexture        *Tex_MBook;
-extern mgCTexture        *Tex_MBg;
-extern u32                stand_bit_5472[];
-extern char              *monster_type_name[][12];
-extern char              *monster_jyakuten[][8];
-extern char               at_4950__2[];
-extern char               menu_infocfgname[];
-extern u8                 at_4967__2[16];
+
+/**
+ *
+ * Active monster book menu.
+ *
+ */
+static CMosBookMenu      *MenuMosBookPtr;
+
+/**
+ *
+ * Saved monster book records displayed by the menu.
+ *
+ */
+static u8                *MonsterBookPtr;
+
+/**
+ *
+ * Opening mode of the monster book.
+ *
+ */
+static short              MonsterBookBootMode;
+
+/**
+ *
+ * Panel texture of the monster book.
+ *
+ */
+static mgCTexture        *Tex_MBase;
+
+/**
+ *
+ * Heading texture of the monster book.
+ *
+ */
+static mgCTexture        *Tex_MBook;
+
+/**
+ *
+ * Background texture of the monster book.
+ *
+ */
+static mgCTexture        *Tex_MBg;
+
+/**
+ *
+ * Resistance and weakness display bits of each monster property.
+ *
+ */
+static u32 stand_bit_5472[14] = {1, 4, 16, 8, 2, 32, 64, 64, 64, 64, 0, 0, 0, 0};
+
+/**
+ *
+ * Monster family names displayed by the book for each supported language.
+ *
+ */
+static char *monster_type_name[LANG_CHINESE + 1][12] = {
+    {
+        "", "", "",
+        "", "", "",
+        "", "", "",
+        "", "", "",
+    },
+    {
+        "???", "Beast", "Windup",
+        "Aquatic", "Flora", "Magical Creature",
+        "Darkling", "Reptile Family", "Spirit",
+        "Undead", "Card", "???",
+    },
+    {
+        "???", "Animal", "Robotis[UNI00e9]",
+        "Aquatique", "V[UNI00e9]g[UNI00e9]tal", "Cr[UNI00e9]ature magique",
+        "Cr[UNI00e9]ature obscure", "Reptile", "Esprit",
+        "Mort-vivant", "Carte", "???",
+    },
+    {
+        "???", "Tier", "Aufzieh-Figur",
+        "Wassertier", "Flora", "Zauberwesen",
+        "D[UNI00fc]sterling", "Reptil", "Geist",
+        "Untoter", "Karte", "???",
+    },
+    {
+        "???", "Bestia", "Robot",
+        "Acquatico", "Flora", "Creatura magica",
+        "Oscuro", "Rettile", "Spirito",
+        "Nonmorto", "Carta", "???",
+    },
+    {
+        "???", "Bestia", "Broma",
+        "Acu[UNI00e1]tico", "Flora", "Criatura m[UNI00e1]gica",
+        "Misterioso", "Familia de reptiles", "Esp[UNI00ed]ritu",
+        "Muerto Viviente", "Carta", "???",
+    },
+    {
+        "???", "Beast", "Windup",
+        "Aquatic", "Flora", "Magical Creature",
+        "Darkling", "Reptile Family", "Spirit",
+        "Undead", "Card", "???",
+    },
+};
+
+/**
+ *
+ * Weakness names displayed by the book for each supported language.
+ *
+ */
+static char *monster_jyakuten[LANG_CHINESE + 1][8] = {
+    {
+        "", "", "",
+        "", "", "",
+        "", "",
+    },
+    {
+        "Fl.", "Ch.", "Li.",
+        "Cy.", "Sm.", "Ex.",
+        "Be.", "Sc.",
+    },
+    {
+        "Fe.", "Fr.", "[UNI00c9]c.",
+        "Cy.", "Ma.", "Ex.",
+        "An.", "[UNI00c9]c.",
+    },
+    {
+        "Hi.", "K[UNI00e4].", "Bl.",
+        "To.", "Ze.", "Ex.",
+        "Ti.", "Sc.",
+    },
+    {
+        "Fu.", "Gh.", "Li.",
+        "Ci.", "Di.", "Es.",
+        "Be.", "Sq.",
+    },
+    {
+        "Ll.", "Fr.", "Ra.",
+        "Ci.", "Ap.", "Ex.",
+        "Co.", "De.",
+    },
+    {
+        "Fl.", "Ch.", "Li.",
+        "Cy.", "Sm.", "Ex.",
+        "Be.", "Sc.",
+    },
+};
+
+/**
+ *
+ * Character model information configuration filename.
+ *
+ */
+static char menu_infocfgname[10] = "info.cfg";
+
 extern char               at_5051[];
 extern char               at_5052[];
 extern char               at_5053[];
-extern int                tbl_5016[];
-extern u8                 at_5452[64];
-extern u8                 at_5482[32];
-extern char               at_5558__2[];
-extern char               at_5559__2[];
-extern char               at_3271[];
-extern char               at_5560__2[];
-extern char               at_5561[];
+
+/**
+ *
+ * Character slots that require costume menu background read requests.
+ *
+ */
+static int tbl_5016[MENU_CHARA_LOAD_MAX] = {1, 1, 0, 0, 1, 1, 1};
+
 extern char               at_5839[];
-extern char               at_5893[];
-extern int                tbl_5848[];
-extern CDC2Mes           *MenuDCMsg[9];
-extern MemoryList         at_1083__2;
-extern char               at_1104__4[];
-extern char               at_1131__3[];
-extern char               at_1132__5[];
-extern char               at_1133__4[];
-extern char               at_1134__3[];
-extern char               at_1135__3[];
-extern char               at_1319[11];
+
+/**
+ *
+ * Character slots that require monster book background read requests.
+ *
+ */
+static int tbl_5848[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
+
 extern char               at_1361[];
-extern char               at_2287[];
-extern char               at_3969[];
-extern s8                 convtbl_4621[][MENU_CHARA_LOAD_MAX];
-extern SceneCharaList     at_3054__2;
+
+/**
+ *
+ * Scene character slot supplied by each party member loading slot.
+ *
+ */
+static s8 convtbl_4621[USER_CHARA_NUM][MENU_CHARA_LOAD_MAX] = {
+    {0, 2, 3, 4, 5, 6, -1},
+    {0, 2, 3, 4, 5, 6, -1},
+    {0, 1, 2, 3, 4, 5, -1},
+    {0, -1, -1, -1, -1, -1, -1}
+};
+
 extern mgCMemory          MenuMonChangeLoadStack;
-extern MENU_BGREAD_INFO2 *MenuMonsterBGInfo[8];
-extern CharaPathKinds     at_3810;
-extern s8                 pathtbl_3836[2];
-extern char              *menu_chara_chrtbl[2];
-extern char              *menu_chara_cfg_chrtbl[2];
-extern char              *menu_load_chrpathtbl_3811[];
-extern char               at_3913[];
-extern LoadWantedList     at_4728__2;
-extern char               at_4789[];
-extern char               at_4790[];
-extern char               at_4791[];
-extern short              NowReadMainCharaPhase;
-extern CActionChara      *NowReadMainChara;
-extern short              NowReadMainCharaMonsterNo;
-extern sceVu0FVECTOR      NowMainReadPosition;
-extern sceVu0FVECTOR      NowMainReadRotation;
-extern char               at_4868[];
-extern RingCenter         at_2371__4;
-extern QuadTexCoords      at_2372__4;
-extern char               at_1276__3[];
-extern char               at_1277__3[];
-extern char               at_1278__3[];
-extern char               at_1279__4[];
-extern char               at_1280__3[];
-extern char               at_1281__5[];
-extern char               at_1282__5[];
-extern char               at_1283__4[];
-extern char               at_1284__4[];
-extern char               at_1285__2[];
-extern char              *tbl_1233[4];
-extern u32               *MenuCharaChangeCLUT;
-extern int                tbl_3186[MENU_CHARA_LOAD_MAX];
-extern sceVu0FVECTOR      posdef_3194;
-extern sceVu0FVECTOR      refdef_3195;
-extern char              *tbl_3196[];
-extern char               at_3269[];
-extern char               at_3270[];
-extern char               at_3272[];
-extern char               at_3273[];
-extern char               at_3274[];
-extern char               at_3275[];
-extern char               at_3276[];
-extern mgCTexture        *MenuMosTexture;
+
+/**
+ *
+ * Background read requests for the monster menu character slots.
+ *
+ */
+static MENU_BGREAD_INFO2 *MenuMonsterBGInfo[MENU_CHARA_LOAD_MAX];
+
+/**
+ *
+ * Character model path category selected by alternate model mode.
+ *
+ */
+static s8 pathtbl_3836[2] = {4, 5};
+
+/**
+ *
+ * Main character model archive names.
+ *
+ */
+static char *menu_chara_chrtbl[2] = {
+    "c01b_menu.chr",
+    "c02a_menu.chr",
+};
+
+/**
+ *
+ * Main character animation configuration names.
+ *
+ */
+static char *menu_chara_cfg_chrtbl[2] = {
+    "c01.stb",
+    "c02.stb",
+};
+
+/**
+ *
+ * Model directories indexed by character background path category.
+ *
+ */
+static char *menu_load_chrpathtbl_3811[6] = {
+    "menu/chara4/",
+    "mainchr/",
+    "mainchr/",
+    "mainchr/",
+    "mainchr/",
+    "chara/",
+};
+
+/**
+ *
+ * Current phase of the main character background read.
+ *
+ */
+static short              NowReadMainCharaPhase;
+
+/**
+ *
+ * Main character model loaded for the menu background.
+ *
+ */
+static CActionChara      *NowReadMainChara;
+
+/**
+ *
+ * Monster used by the pending main character background load.
+ *
+ */
+static short NowReadMainCharaMonsterNo = -1;
+
+/**
+ *
+ * Position preserved while replacing the main character background model.
+ *
+ */
+static sceVu0FVECTOR      NowMainReadPosition;
+
+/**
+ *
+ * Rotation preserved while replacing the main character background model.
+ *
+ */
+static sceVu0FVECTOR      NowMainReadRotation;
+
+/**
+ *
+ * Darkened palette used by the party change ring.
+ *
+ */
+static CHR_CNG_CLUT_COLOR *MenuCharaChangeCLUT;
+
+/**
+ *
+ * Character slots that require monster menu background read requests.
+ *
+ */
+static int tbl_3186[MENU_CHARA_LOAD_MAX] = {1, 0, 0, 0, 0, 1, 0};
+
+/**
+ *
+ * Default camera position for the monster selection menu.
+ *
+ */
+static sceVu0FVECTOR posdef_3194 = {0.0f, 0.0f, 100.0f, 1.0f};
+
+/**
+ *
+ * Default camera target for the monster selection menu.
+ *
+ */
+static sceVu0FVECTOR refdef_3195 = {0.0f, 9.0f, 0.0f, 1.0f};
+
+/**
+ *
+ * Localized help messages for monster transformation selection.
+ *
+ */
+static char *tbl_3196[LANG_CHINESE + 1] = {
+    ":",
+    "[l1][r1]:View same type of monster",
+    "[l1][r1]: voir m[UNI00ea]me type de monstre",
+    "[l1][r1]: Selbe Monster anzeigen.",
+    "[l1][r1]: Vis. stesso tipo di mostro",
+    "[l1][r1]: Ver mismo tipo de monstruo",
+    "[l1][r1]:View same type of monster",
+};
+
+/**
+ *
+ * Background texture of the monster selection menu.
+ *
+ */
+static mgCTexture        *MenuMosTexture;
+
 extern mgCMemory          MenuMosLoadStack;
-extern SceneCharaList     at_3974;
-extern SceneCharaList     at_3975;
-extern LoadTargetList8    at_3993;
 extern sceVu0FVECTOR      menu_old_chara_position;
-extern RoboCharaList      at_4300__2;
-extern RoboStackList      at_4327;
-extern RoboStackList      at_4328;
-extern SceneCharaList     at_4329;
-extern DebugLine          at_2674;
-extern DebugLine          at_2675;
-extern DebugLine          at_2676;
-extern DebugText          at_2691;
-extern DebugNpcText       at_2696;
-extern char               at_2770[];
-extern char               at_2771[];
-extern char               at_2772[];
-extern char               at_2773[];
-extern char               at_2774[];
-extern char               at_2775[];
-extern char               at_2776__2[];
-extern char               at_2777[];
-extern char               at_2778[];
-extern char               at_2779[];
-extern char               at_2780[];
-extern char               at_2781[];
-extern char               at_2782[];
-extern char               at_2783[];
-extern char               at_2784[];
-extern char               at_2785[];
-extern short              MenuDebugChangeSelectMode;
-extern short              MenuDebugCharaChangeSelect;
-extern s8                 menu_debug_npc_decide;
-extern s8                 menu_debug_npcselect;
+
+/**
+ *
+ * Character category selected by the party change debug controls.
+ *
+ */
+static short              MenuDebugChangeSelectMode;
+
+/**
+ *
+ * Character index selected by the party change debug controls.
+ *
+ */
+static short              MenuDebugCharaChangeSelect;
+
+/**
+ *
+ * Non-zero when the debug townsperson selection is confirmed.
+ *
+ */
+static s8                 menu_debug_npc_decide;
+
+/**
+ *
+ * Townsperson selected by the party change debug controls.
+ *
+ */
+static s8                 menu_debug_npcselect;
 
 /**
  *
@@ -620,9 +831,34 @@ extern s8               init_1416;
 extern NpcNameList      at_1650__2;
 extern NpcCmdMesList    at_1684__2;
 extern GiftVolumeList   at_1806__2;
-extern s8               nextIDtbl_1594[5][8];
-extern s16              msgtbl1_1732[4];
-extern s8               se_sndtbl_1749[3];
+
+/**
+ *
+ * Townsperson command cursor transitions, eight input directions per command.
+ *
+ */
+static s8 nextIDtbl_1594[40] = {
+    0, 0, 2, 2, 2, 1, 1, 0,
+    3, 0, 0, 1, 4, 4, 3, 3,
+    0, 0, 2, 2, 2, 2, 0, 0,
+    3, 3, 1, 1, 1, 3, 3, 3,
+    1, 1, 1, 1, 4, 4, 4, 4
+};
+
+/**
+ *
+ * Party character message numbers used by character change commands.
+ *
+ */
+static s16 msgtbl1_1732[USER_CHARA_NUM] = {410, 411, 412, 413};
+
+/**
+ *
+ * Sounds selected by the party change action outcome.
+ *
+ */
+static s8 se_sndtbl_1749[3] = {1, 1, 15};
+
 extern char             at_2003__2[];
 extern char             at_2004__3[];
 extern char             at_2005__2[];
@@ -644,11 +880,50 @@ extern char             at_2020__2[];
 extern char             at_2021__2[];
 extern char             at_2022[];
 extern char             at_2023[];
-extern u8               tilergba_5203[4];
-extern s8               convtbl_5238[3];
-extern float            putw_5262[];
-extern char            *infomsg_5256[];
-extern s8               phasetbl_5119[COSTUME_LIST_NUM];
+
+/**
+ *
+ * Red, green, blue and alpha of the costume menu background tiles.
+ *
+ */
+static u8 tilergba_5203[4] = {108, 108, 108, 128};
+
+/**
+ *
+ * Equipment slot displayed by each costume list.
+ *
+ */
+static s8 convtbl_5238[COSTUME_LIST_NUM] = {2, 4, 3};
+
+/**
+ *
+ * Help panel width of the costume menu for each supported language.
+ *
+ */
+static float putw_5262[LANG_CHINESE + 1] = {246.0f, 206.0f, 270.0f, 234.0f, 236.0f, 246.0f, 256.0f};
+
+/**
+ *
+ * Localized costume selection help text.
+ *
+ */
+static char *infomsg_5256[LANG_CHINESE + 1] = {
+    " ",
+    "(R)L/R:Turn (R)U/D:Zoom",
+    "(R)G/D: tourner (R)H/B: avancer",
+    "(R)L/R: drehen (R)O/U: bew.",
+    "(R)S/D: gira (R)S/G: sposta",
+    "(R)I/D: girar (R)A/AB: zoom",
+    "(R)L/R:Turn (R)U/D:Zoom",
+};
+
+/**
+ *
+ * Background load phase associated with each costume list.
+ *
+ */
+static s8 phasetbl_5119[COSTUME_LIST_NUM] = {4, 1, 5};
+
 /**
  *
  * Number of resistance or weakness icons that the monster book can display.
@@ -666,12 +941,14 @@ static short tiletbl_5573[3][12] = {
     {0x77, 0xE1, 0x26, 0xC, 0x9C, 0xE1, 0x4, 0xC, 0xA1, 0xE1, 0x26, 0xC},
     {0x77, 0xED, 0x26, 0x24, 0x9C, 0xED, 0x4, 0x24, 0xA1, 0xED, 0x26, 0x24}
 };
+
 /**
  *
  * Texture rectangles of the monster-book description underboards.
  *
  */
 static short under_brdtbl_5576[12] = {0x93, 0x2D, 0xA, 0x20, 0x9D, 0x2D, 0x2, 0x20, 0xA1, 0x2D, 0xA, 0x20};
+
 /**
  *
  * Positions of the monster-book headings and description panels.
@@ -695,6 +972,7 @@ static short put_under_offset_5577[16][2] = {
     {0x104, 0x118},
     {0x0, 0x0}
 };
+
 /**
  *
  * Texture coordinates of the eight monster affinity icon slots.
@@ -710,12 +988,14 @@ static const short ic_5580[MOS_BOOK_AFFINITY_NUM][2] = {
     {0xEA, 0x16},
     {0x0, 0x0}
 };
+
 /**
  *
  * Texture rectangles of the monster-book vertical divider.
  *
  */
 static short line_5595[12] = {0x0, 0x16, 0xC, 0x14, 0x0, 0x2A, 0xC, 0x4, 0x0, 0x2E, 0xC, 0x14};
+
 /**
  *
  * Texture rectangles of the three monster-model frame strips.
@@ -726,117 +1006,122 @@ static short wakutbl_5600[3][12] = {
     {0x1E, 0xDA, 0x32, 0x4, 0x50, 0xDA, 0x2, 0x4, 0x54, 0xDA, 0x22, 0x4},
     {0x1E, 0xDF, 0x32, 0x32, 0x50, 0xDF, 0x2, 0x32, 0x54, 0xDF, 0x22, 0x32}
 };
-extern char            *monstere_file_template[];
-extern char            *tbl_3725[MOS_SELECT_BADGE_NUM];
-extern int              menu_debug_select__2;
-extern int              select_monster_save_3371;
-extern s8               init_3372__2;
-extern MonsterNameList  at_3412;
-extern MonsterNameList  at_3440;
-extern MenuCommandList  at_3481;
-extern MonsterNameTable at_3511;
-extern MonsterNameTable at_3529;
-extern BadgeInfoValues  at_3554;
-extern s8               convert_table_3430[];
-extern short            ghobitbl_3437[];
-extern char            *get_stringtbl_3557[4];
-extern char             at_3685[];
-extern char             at_3686[];
-extern char             at_3687[];
-extern char             at_3688[];
-extern char             at_3689[];
-extern char             at_3690[];
-extern char             at_3691[];
-extern char             at_3692[];
-extern char             at_3693[];
-extern char             at_3694[];
-extern char             at_3695[];
-extern char             at_3696[];
-extern char             at_3697[];
-extern char             at_3698[];
-extern char             at_3699[];
-extern char             at_3700[];
-extern char             at_3701[];
-extern char             at_3702[];
-extern char             at_3703[];
-extern char             at_3704[];
-extern char             at_3705[];
-extern char             at_3706[];
-extern char             at_3707[];
-extern char             at_3708[];
-int                     CosutmeSelDefaultSet(int costume_id, short *costume_list);
-extern char             at_2191__2[];
-extern char             at_2192__2[];
-extern char             at_2193__2[];
-extern char             at_2194__2[];
-extern char             at_2195__2[];
-extern char             at_2196__2[];
-extern char            *MonsterDataPath[];
-extern char             script_file_name[0x20];
-extern short            monster_load_id;
-extern char             at_4548[];
-extern char             at_3160__3[];
-extern char             at_3161__3[];
-extern char             at_3162__3[];
-extern char             at_3163__3[];
-extern char             at_3164__4[];
-extern char             at_3165__2[];
-extern char             at_3166__2[];
-extern char             at_1304__6[15];
-extern char            *partt_2332[6];
-extern char             at_2363[14];
-extern char             at_2364[15];
-extern char             at_2365[13];
-extern char             at_1171__2[];
-extern char             at_1172[];
-extern char             at_1173__2[];
-extern char             at_1174[];
-extern char             at_1175[];
-extern char             at_1176[];
-extern char             at_1177[];
-extern char             at_1178[];
-extern char             at_1179[];
-extern char             at_1180[];
-extern char             at_1181__2[];
-extern char             at_2912[];
-extern char             at_2913__2[];
-extern char             at_2914[];
-extern char             at_2915[];
-extern char             at_2916[];
-extern char             at_2917[];
-extern char             at_2918[];
 
 /**
  *
- * Views a four-component menu position as one quadword.
+ * Page counter format of the monster book for each supported language.
  *
  */
-union MenuPositionVector {
-    float     f[4]; /**< Four components of the menu position. */
-    u_long128 qw;   /**< Combined 128-bit representation. */
+static char *monstere_file_template[LANG_CHINESE + 1] = {
+    " ",
+    "  File  %3d/%3d",
+    "Fichier %3d/%3d",
+    "  Datei %3d/%3d",
+    "  File  %3d/%3d",
+    "Archivo %3d/%3d",
+    "  File  %3d/%3d",
 };
 
-extern MenuPositionVector at_1372__2;
-extern char               at_1402__3[];
-extern CMenuChrCngMenu   *ChrChangMenuPt;
-extern int                MenuCharaChangePosDataCfgBuffer;
-extern int                tbl_2483[];
+/**
+ *
+ * Monster badge item-number label part names.
+ *
+ */
+static char *tbl_3725[MOS_SELECT_BADGE_NUM] = {
+    "  %d:Beast   %d",
+    "  %d:Machine %d",
+    "  %d:Aquatic %d",
+    "  %d:Plant   %d",
+    "  %d:Magical %d",
+    "  %d:Devil   %d",
+    "  %d:Dragon  %d",
+    "  %d:Element %d",
+    "  %d:Undead  %d",
+    "  %d:Card    %d",
+    "  %d:Sun     %d",
+    "  %d:Moon    %d",
+};
+
+/**
+ *
+ * Monster selected by the monster menu debug controls.
+ *
+ */
+static int              menu_debug_select__2;
+
+int                     CosutmeSelDefaultSet(int costume_id, short *costume_list);
+
+/**
+ *
+ * Monster resource directories indexed by model file category.
+ *
+ */
+static char *MonsterDataPath[3] = {
+    "menu/mhenge/",
+    "dungeon/monster/",
+    "menu/monster/",
+};
+
+/**
+ *
+ * Script name associated with the monster model being read.
+ *
+ */
+static char             script_file_name[0x20];
+
+/**
+ *
+ * Monster whose menu model background load is pending.
+ *
+ */
+static short monster_load_id = -1;
+
+/**
+ *
+ * Current and maximum gauge label part names of the party menu.
+ *
+ */
+static char *partt_2332[6] = {
+    "hp_now0",
+    "hp_max0",
+    "hp_now1",
+    "hp_max1",
+    "hp_now2",
+    "hp_max2",
+};
+
+/**
+ *
+ * Active party change menu.
+ *
+ */
+static CMenuChrCngMenu   *ChrChangMenuPt;
+
+/**
+ *
+ * Character slots that require party menu background read requests.
+ *
+ */
+static int tbl_2483[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
+
 extern char               at_2595__2[];
 extern char               at_2596__3[];
-extern SmallPair          at_2232;
-extern NamePair           at_2288;
-extern SmallPair          at_2289__2;
-extern char               at_2303__2[];
-extern char               at_2304[];
-extern char               at_2305[];
-extern char               at_2306[];
-extern char               at_2307[];
-extern u8                 cursor_revtbl_2237[5];
-extern u8                 MenuGetPartySeFlag;
+
+/**
+ *
+ * Cursor reversal flag for each party menu selection.
+ *
+ */
+static u8 cursor_revtbl_2237[USER_CHARA_NUM + 1] = {1, 0, 0, 0, 0};
+
+/**
+ *
+ * Non-zero after the party acquisition sound has played.
+ *
+ */
+static u8                 MenuGetPartySeFlag;
+
 extern mgCMemory          ChrChangeInitTextureStack;
-extern FileNameBuf        at_2629__3;
-extern char               at_2197__2[];
-extern char               at_2662__2[];
 short                     GetCostumeList(unsigned long chara_flag, int kind, short *list);
 int                       GetDngMapNo(int dungeon_no);
 static int                MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara);
@@ -860,7 +1145,6 @@ static const u16 menu_chr_memorytbl[MENU_CHARA_LOAD_MAX] = {
     0x1B80, 0x9AC0, 0x1C84, 0x11C0, 0x0BC0, 0x26C0, 0x0708
 };
 int                       ReadBGSync();
-
 
 // Code (.text)
 void InitMenuBGReadInfo2(MENU_BGREAD_INFO2 *info) {
@@ -948,6 +1232,7 @@ void SetMenuLoadItemNo(int who) {
         count++;
     }
 }
+
 /**
  *
  * Partitions character menu memory among its work buffers.
@@ -988,22 +1273,23 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
     }
     return total;
 }
+
 void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffers, int chara) {
     int        free_blocks = pool->stack_size - pool->stack_used;
-    MemoryList list = at_1083__2;
-    list.entry[0] = buffers;
-    list.entry[1] = buffers + 1;
-    list.entry[2] = buffers + 2;
-    list.entry[3] = buffers + 3;
-    list.entry[4] = buffers + 4;
-    list.entry[5] = buffers + 5;
-    list.entry[6] = buffers + 6;
-    int used = MenuMemoryDivide(pool, list.entry, chara);
+    mgCMemory *list[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    list[0] = buffers;
+    list[1] = buffers + 1;
+    list[2] = buffers + 2;
+    list[3] = buffers + 3;
+    list[4] = buffers + 4;
+    list[5] = buffers + 5;
+    list[6] = buffers + 6;
+    int used = MenuMemoryDivide(pool, list, chara);
     rest->stSetBuffer(buffers->stack + buffers->stack_used + used,
                       free_blocks - used);
 
-    if (strlen(at_1104__4) < 16) {
-        strcpy((char *) rest, at_1104__4);
+    if (strlen("LOAD STACK") < 16) {
+        strcpy(rest->name, "LOAD STACK");
     }
 
     rest->stack_used = 0;
@@ -1027,15 +1313,15 @@ void SetMessagePositionNPCForm(CMenuPosDataForm *form, CDC2Mes *mes) {
 
     int  pos[10];
     int *point;
-    form->GetPutPosXY(at_1131__3, pos[0], pos[1]);
+    form->GetPutPosXY("pname", pos[0], pos[1]);
     point = &pos[2];
-    form->GetPutPosXY(at_1132__5, point[0], point[1]);
+    form->GetPutPosXY("setu0", point[0], point[1]);
     point = &pos[4];
-    form->GetPutPosXY(at_1133__4, point[0], point[1]);
+    form->GetPutPosXY("setu1", point[0], point[1]);
     point = &pos[6];
-    form->GetPutPosXY(at_1134__3, point[0], point[1]);
+    form->GetPutPosXY("setu2", point[0], point[1]);
     point = &pos[8];
-    form->GetPutPosXY(at_1135__3, point[0], point[1]);
+    form->GetPutPosXY("setu3", point[0], point[1]);
     mes->SetMsgItemPos(pos, 5);
     mes->SetMovePosCenteringGyou(0, pos[0], pos[1]);
 }
@@ -1061,42 +1347,58 @@ void CMenuChrCngMenu::AttachForm() {
     int  i;
     int  j;
 
-    form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1171__2);
+    form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("chr_bg");
 
     if (form != NULL) {
-        gauge_part[0] = form->GetPartInfo(at_1172);
-        gauge_part[1] = form->GetPartInfo(at_1173__2);
-        gauge_part[2] = form->GetPartInfo(at_1174);
+        gauge_part[0] = form->GetPartInfo("hpfill0");
+        gauge_part[1] = form->GetPartInfo("hpfill1");
+        gauge_part[2] = form->GetPartInfo("hpfill2");
     }
 
-    (&npc_mes_form)[0] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1175);
-    (&npc_mes_form)[1] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1176);
-    (&npc_mes_form)[2] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1177);
-    (&npc_mes_form)[3] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1178);
+    (&npc_mes_form)[0] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("polywin");
+    (&npc_mes_form)[1] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("polywin_bg");
+    (&npc_mes_form)[2] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("polychr");
+    (&npc_mes_form)[3] = (CMenuPosDataForm *) MenuPosData->GetFormInfo("polywin_chrhide");
     (&npc_mes_form)[2]->SetActionCharaPtr(NULL, 0, -1);
 
     for (i = 0; i < 5; i++) {
-        sprintf(name, at_1179, i);
+        sprintf(name, "namep%d", i);
         chara_pos[i] = MenuPosData->GetEtcTbl(name);
     }
 
-    point_gauge_part = form->GetPartInfo(at_1180);
+    point_gauge_part = form->GetPartInfo("stbar");
 
     for (j = 0; j < 4; j++) {
-        sprintf(name, at_1181__2, j);
+        sprintf(name, "cmd%d", j);
         cmd_part[j] = form->GetPartInfo(name);
     }
 }
-#ifdef NONMATCHING
+
 void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
-    mgCTextureManager *tex_manager = &mgTexManager;
-    int block = tex_block[0];
-    tex_manager->EnterIMGFile((u_char *) GetPackFile(reinterpret_cast<u_int *>(pack), "chr_bg.img", NULL),
-                              block, NULL, NULL);
-    int    size;
+    /**
+     *
+     * Part names of townsperson command point costs.
+     *
+     */
+    static char *tbl[CHR_CNG_NPC_COMMAND_NUM] = {
+        "sp0",
+        "sp1",
+        "sp2",
+        "sp3",
+    };
+
+    int                 i;
+    mgCTextureManager  *tex_manager = &mgTexManager;
+    int                 block = tex_block[0];
+    int                 size;
+    int                 palette_index;
+    CHR_CNG_CLUT_COLOR *color;
+
+    tex_manager->EnterIMGFile((u_char *) GetPackFile(reinterpret_cast<u_int *>(pack), "chr_bg.img", NULL), block,
+                              NULL, NULL);
     u_int *cfg = GetPackFile(reinterpret_cast<u_int *>(pack), "chrchg.cfg", &size);
-    if (MenuCharaChangePosDataCfgBuffer == 0 && cfg != NULL) {
-        MenuCharaChangePosDataCfgBuffer = (int) cfg;
+    if (MenuCharaChangePosDataCfgBuffer == NULL && cfg != NULL) {
+        MenuCharaChangePosDataCfgBuffer = cfg;
         MenuDataAnalyze((char *) cfg, size, &MenuChangeMemory);
     }
     MenuRepairMan->Initialize();
@@ -1110,49 +1412,31 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
         MenuCharaChangeCLUT_Tex = new (MenuChangeMemory.Alloc(9)) mgCTexture;
     }
     memcpy(MenuCharaChangeCLUT_Tex, MenuCharaChangeBase_Tex, sizeof(mgCTexture));
-    memcpy(MenuCharaChangeCLUT, MenuCharaChangeBase_Tex->clut, 0x400);
+    memcpy(MenuCharaChangeCLUT, MenuCharaChangeBase_Tex->clut, sizeof(palette.clut));
     MenuCharaChangeCLUT_Tex->clut = (u_long128 *) MenuCharaChangeCLUT;
-    /**
-     *
-     * A byte-addressable RGBA colour in the copied character-change palette.
-     *
-     */
-    typedef u8 PaletteColor[4];
-    /**
-     *
-     * Components, quantization bands, and command slots of the character-change screen.
-     *
-     */
-    enum {
-        PALETTE_RED = 0,
-        PALETTE_GREEN = 1,
-        PALETTE_BLUE = 2,
-        PALETTE_BAND_NUM = 32,
-        NPC_COMMAND_NUM = 4
-    };
-    PaletteColor *colors = reinterpret_cast<PaletteColor *>(MenuCharaChangeCLUT);
-    for (int palette_index = 0; palette_index < CHR_CNG_CLUT_NUM; palette_index++) {
-        PaletteColor &color = colors[palette_index];
-        float         luminance = (float) ((color[PALETTE_RED] + color[PALETTE_GREEN] + color[PALETTE_BLUE]) / 3);
-        // Quantize brightness without changing the palette alpha byte.
-        int step = 1;
+
+    // Darken the copied palette into brightness bands, keeping each colour's alpha.
+    for (palette_index = 0, color = MenuCharaChangeCLUT; palette_index < CHR_CNG_CLUT_NUM; palette_index++, color++) {
+        float luminance = (float) ((color->r + color->g + color->b) / 3);
+        int   step = 1;
         do {
             if (8.0f * (float) (step - 1) <= luminance && luminance < 8.0f * (float) step) {
                 break;
             }
             step++;
-        } while (step < PALETTE_BAND_NUM + 1);
-        color[PALETTE_RED] = (u8) (7.75f * (float) step);
-        color[PALETTE_GREEN] = (u8) (5.625f * (float) step);
-        color[PALETTE_BLUE] = (u8) (4.6875f * (float) step);
+        } while (step < CHR_CNG_CLUT_BAND_NUM + 1);
+        color->r = (u8) (7.75f * (float) step);
+        color->g = (u8) (5.625f * (float) step);
+        color->b = (u8) (4.6875f * (float) step);
     }
+
     MenuPosData->InitDrawList();
     AttachForm();
     AttachMessageForm();
     ExeScript("INIT_FORM");
     party_member = MenuUserDataManPtr->GetNowPartyMember();
     enable_change = MenuUserDataManPtr->GetEnableCharaChangeFlag();
-    for (int i = 0; i < USER_CHARA_NUM; i++) {
+    for (i = 0; i < USER_CHARA_NUM; i++) {
         char name[32];
         sprintf(name, "clut%d", i);
         MENUFORMPARTS_TYPE *locked = form->GetPartInfo(name);
@@ -1187,7 +1471,7 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     npc_mes_talk = 0;
     npc_mes_cmd = 0;
     npc_mes_cancel = 0;
-    for (int i = 0; i < NPC_COMMAND_NUM; i++) {
+    for (i = 0; i < CHR_CNG_NPC_COMMAND_NUM; i++) {
         npc_cmd_mes[i] = 0;
     }
     unk_23C = 0;
@@ -1195,34 +1479,31 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     npc_data = NULL;
     npc_no = MenuUserDataManPtr->NowPartyCharaID();
     if (npc_no > 0) {
-        party_info = (PARTY_CHARA_INFO *) MenuUserDataManPtr->GetPartyCharaInfo(npc_no);
+        party_info = MenuUserDataManPtr->GetPartyCharaInfo(npc_no);
         npc_data = GetPartyNPCData(npc_no);
         npc_mes_talk = GetPartyCharaMessage(npc_no, 1, 0);
         npc_mes_cmd = GetPartyCharaMessage(npc_no, 0, 0);
         npc_mes_cancel = GetPartyCharaMessage(npc_no, 3, 0);
         int first_message = GetPartyCharaMessage(npc_no, 5, 0);
-        int i = 0;
-        for (; i < npc_data->ability_num; i++) {
+        // Each ability's command takes the message after the previous one; unused slots stay empty.
+        for (i = 0; i < npc_data->ability_num; i++) {
             npc_cmd_mes[i] = first_message + i;
         }
-        for (; i < NPC_COMMAND_NUM; i++) {
+        for (; i < CHR_CNG_NPC_COMMAND_NUM; i++) {
             npc_cmd_mes[i] = 0;
         }
         if (npc_data->ability_num == 0) {
             npc_cmd_mes[0] = 10;
         }
-        i = 0;
-        for (; i < npc_data->ability_num; i++) {
-            form->SetNumber(tbl_1233[i], npc_data->ability_cost[i]);
+        for (i = 0; i < npc_data->ability_num; i++) {
+            form->SetNumber(tbl[i], npc_data->ability_cost[i]);
         }
-        for (; i < NPC_COMMAND_NUM; i++) {
-            form->SetPartDrawFlag(tbl_1233[i], 0);
+        for (; i < CHR_CNG_NPC_COMMAND_NUM; i++) {
+            form->SetPartDrawFlag(tbl[i], 0);
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", EnterDataMenu__15CMenuChrCngMenuFPUc);
-#endif
+
 void CMenuChrCngMenu::LoadNPCFaceData(mgCMemory *memory, int mode) {
     char         path[0x40];
     unsigned int size;
@@ -1247,7 +1528,7 @@ void CMenuChrCngMenu::LoadNPCFaceData(mgCMemory *memory, int mode) {
             face_chara = 26;
         }
 
-        sprintf(path, at_1304__6, face_chara);
+        sprintf(path, "npcface/%d.img", face_chara);
         memory->Align64();
         face_img = reinterpret_cast<u8 *>(memory->stGetTop());
         size = LoadFileMenu(path, (u_long128 *) face_img, mode);
@@ -1262,7 +1543,7 @@ void CMenuChrCngMenu::EnterNPCFaceData() {
                               ((load_state == 0) && (ReadBGSync() == 0)))) {
         mgTexManager.EnterIMGFile(face_img, tex_block[0], NULL, NULL);
         face_state = 1;
-        ExeScript(at_1319);
+        ExeScript("NPCFACEEND");
     }
 }
 
@@ -1309,7 +1590,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", LoadBGNPCModel__15CMenuChrCngMen
 
 int CMenuChrCngMenu::CheckBGNPCModel() {
     int   load_result;
-    float position[4];
 
     load_result = 0;
 
@@ -1327,7 +1607,7 @@ int CMenuChrCngMenu::CheckBGNPCModel() {
         npc_y = npc_y + ((-16.6f - npc_y) / 6.0f);
     }
 
-    *(MenuPositionVector *) position = at_1372__2;
+    sceVu0FVECTOR position = {14.0f, 0.0f, 0.0f, 1.0f};
     position[1] = npc_y;
 
     if (load_result == 1) {
@@ -1350,7 +1630,7 @@ int CMenuChrCngMenu::CheckBGNPCModel() {
         ((CCharacter2 *) npc_chara)->Step();
 
         if ((&npc_mes_form)[2]->counter >= 0xF && (&npc_mes_form)[1]->y < 60.0f) {
-            ExeScript(at_1402__3);
+            ExeScript("CHRFADEIN");
         }
 
         if (npc_wait < 0x15) {
@@ -1398,6 +1678,7 @@ void EditCharaPrepare() {
         chara->Initialize(NULL);
     }
 }
+
 #ifdef NONMATCHING
 int CMenuChrCngMenu::KeyChangeMain() {
     CMenuKeyFunc *keyFunc = MenuCommonInfo;
@@ -1483,11 +1764,11 @@ int CMenuChrCngMenu::KeyChangeMain() {
                         if (close_on_end) {
                             mode = 2;
                             ExeScript(at_2003__2);
+                            action = -1;
                             MenuArg.end_code = 5;
                             MenuArg.result[0] = 1;
                             MenuArg.result[1] = 1;
                             MenuArg.result[2] = 0;
-                            action = -1;
                         }
                         if (got_item) {
                             step = 3;
@@ -1497,18 +1778,11 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 case 3:
                     break;
                 case 10: {
-                    int widest = 0;
-                    if (npcMes->page_num > 0) {
-                        for (int i = 0; i < npcMes->page_num; i++) {
-                            if (widest < npcMes->page_chars[i]) {
-                                widest = npcMes->page_chars[i];
-                            }
-                        }
-                    }
+                    int widest = MaxPageChars(npcMes);
                     int cursor = npcMes->AddMsgCursor2(widest - 2, widest - 1, 1);
                     switch (buttons) {
                         case 1:
-                            if (cursor == widest - 2) {
+                            if (cursor - (widest - 2) == 0) {
                                 action = 0x5A;
                                 if (npc_no == 1) {
                                     if (SelectedCmdNo_1415 == 0) {
@@ -1541,8 +1815,8 @@ int CMenuChrCngMenu::KeyChangeMain() {
                             }
                             break;
                         case 2:
-                            ExeScript(at_2004__3);
                             action = 0x1E;
+                            ExeScript(at_2004__3);
                             MenuCommonInfo->SetWakuType(-1);
                             break;
                     }
@@ -1557,10 +1831,8 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 case 8:
                     if (answer == 0) {
                         action = 0x14;
-                    } else {
-                        action = 0x50;
+                        break;
                     }
-                    break;
                 case 2:
                     action = 0x50;
                     break;
@@ -1666,45 +1938,45 @@ int CMenuChrCngMenu::KeyChangeMain() {
                         MenuUserDataManPtr->EnableCharaChangeMask(2);
                         MenuUserDataManPtr->EnableCharaChangeMask(3);
                     }
-                    return 0;
-                }
-                if (keys & 1) {
-                    menu_debug_npcselect--;
-                }
-                if (keys & 2) {
-                    menu_debug_npcselect++;
-                }
-                if (menu_debug_npcselect < 1) {
-                    menu_debug_npcselect = 1;
-                }
-                if (menu_debug_npcselect >= 0x1B) {
-                    menu_debug_npcselect = 0x1A;
-                }
-                if (keys & 8) {
-                    menu_debug_npc_decide++;
-                }
-                if (keys & 4) {
-                    menu_debug_npc_decide--;
-                }
-                if (menu_debug_npc_decide < 0) {
-                    menu_debug_npc_decide = 0;
-                }
-                if (menu_debug_npc_decide > 1) {
-                    menu_debug_npc_decide = 1;
-                }
-                if (buttons & 1 || buttons & 2) {
-                    int npc = menu_debug_npcselect;
-                    if (GetUserDataMan()->GetPartyCharaStatus(npc) == 0) {
-                        GetUserDataMan()->JoinPartyChara(npc, 0x80, 1);
+                } else {
+                    if (keys & 1) {
+                        menu_debug_npcselect--;
                     }
-                    if (menu_debug_npc_decide == 0) {
-                        GetUserDataMan()->SetPartyCharaStatus(npc, 1);
+                    if (keys & 2) {
+                        menu_debug_npcselect++;
                     }
-                    if (menu_debug_npc_decide == 1) {
-                        GetUserDataMan()->SetPartyCharaStatus(npc, 2);
+                    if (menu_debug_npcselect < 1) {
+                        menu_debug_npcselect = 1;
                     }
-                    if (menu_debug_npc_decide == 2) {
-                        GetUserDataMan()->SetPartyCharaStatus(npc, 4);
+                    if (menu_debug_npcselect >= 0x1B) {
+                        menu_debug_npcselect = 0x1A;
+                    }
+                    if (keys & 8) {
+                        menu_debug_npc_decide++;
+                    }
+                    if (keys & 4) {
+                        menu_debug_npc_decide--;
+                    }
+                    if (menu_debug_npc_decide < 0) {
+                        menu_debug_npc_decide = 0;
+                    }
+                    if (menu_debug_npc_decide > 1) {
+                        menu_debug_npc_decide = 1;
+                    }
+                    if (buttons & 1 || buttons & 2) {
+                        int npc = menu_debug_npcselect;
+                        if (GetUserDataMan()->GetPartyCharaStatus(npc) == 0) {
+                            GetUserDataMan()->JoinPartyChara(npc, 0x80, 1);
+                        }
+                        if (menu_debug_npc_decide == 0) {
+                            GetUserDataMan()->SetPartyCharaStatus(npc, 1);
+                        }
+                        if (menu_debug_npc_decide == 1) {
+                            GetUserDataMan()->SetPartyCharaStatus(npc, 2);
+                        }
+                        if (menu_debug_npc_decide == 2) {
+                            GetUserDataMan()->SetPartyCharaStatus(npc, 4);
+                        }
                     }
                 }
                 return 0;
@@ -1739,7 +2011,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     }
                     int next = -1;
                     if (dir >= 0) {
-                        next = nextIDtbl_1594[lastSelect][dir];
+                        next = nextIDtbl_1594[select * 8 + dir];
                     }
                     if (next >= 0) {
                         select = next;
@@ -1755,26 +2027,31 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     }
                     switch (buttons) {
                         case 1:
-                            if (select == 3) {
-                                action = 0x32;
-                            } else if (select == 4) {
-                                action = 5;
-                                if (MenuCommonInfo->open_type != 0xE && 0 < npc_no) {
-                                    action = 0x22;
-                                }
-                            } else {
-                                action = 0x46;
+                            switch (select) {
+                                case 4:
+                                    action = 5;
+                                    if (MenuCommonInfo->open_type != 0xE && 0 < npc_no) {
+                                        action = 0x22;
+                                    }
+                                    break;
+                                case 3:
+                                    action = 0x32;
+                                    break;
+                                default:
+                                    action = 0x46;
+                                    break;
                             }
                             break;
                         case 2:
                             action = 0x28;
                             if (MenuCommonInfo->open_type == 0xE) {
-                                action = 5;
                                 if (MenuUserDataManPtr->GetHp(MenuUserDataManPtr->active_chr_no) < 1.0f) {
-                                    break;
+                                    action = 5;
+                                } else {
+                                    action = 5;
+                                    mode = 2;
+                                    FadeOutMenu(40, 0.0f);
                                 }
-                                mode = 2;
-                                FadeOutMenu(40, 0.0f);
                             }
                             break;
                     }
@@ -1894,7 +2171,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 cmdMes->SetMsgCursor(-1);
                 if (npc_data->ability_num > 0) {
                     cmdMes->SetMsgCursor(0);
-                    if (SelectedCmdNo_1415 >= 0) {
+                    if (0 <= SelectedCmdNo_1415) {
                         cmdMes->SetMsgCursor(SelectedCmdNo_1415);
                     }
                 }
@@ -1954,19 +2231,16 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 cmdMes->MakeMsg(0x1A4);
                 break;
             }
-            switch (select) {
-                case 1:
-                case 0:
-                    if (gauge[select]->now <= 0.0f) {
-                        MenuSePlay(5);
-                        return 0;
-                    }
-                    attr = MenuUserDataManPtr->GetCharaStatusAttirbute(select);
-                    if (attr & 8 || attr & 0x20) {
-                        MenuSePlay(5);
-                        return 0;
-                    }
+            if (select == 0 || select == 1) {
+                if (gauge[select]->now <= 0.0f) {
+                    MenuSePlay(5);
                     break;
+                }
+                attr = MenuUserDataManPtr->GetCharaStatusAttirbute(select);
+                if (attr & 8 || attr & 0x20) {
+                    MenuSePlay(5);
+                    break;
+                }
             }
             if (select == 3 && gauge[1]->now <= 0.0f) {
                 MenuSePlay(5);
@@ -1984,11 +2258,12 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 InitMenuBGReadInfo2(MenuCharaBuild2[i]);
             }
             change_chara = select;
-            MenuLoadInfo.chara_no = select;
-            MenuLoadInfo.mode = 2;
-            MenuLoadInfo.request_phase = -1;
-            MenuLoadInfo.load_phase = 0;
-            MenuLoadInfo.unk_6[1] = 1;
+            MENU_LOAD_INFO *load_info = &MenuLoadInfo;
+            load_info->chara_no = select;
+            load_info->mode = 2;
+            load_info->request_phase = -1;
+            load_info->load_phase = 0;
+            load_info->update_scene = 1;
             ReEquipFishingGameWeapon();
             MenuCharaLoadStack.stack_used = 0;
             MenuCharaLoadStack.lock = 0;
@@ -1997,12 +2272,12 @@ int CMenuChrCngMenu::KeyChangeMain() {
             switch (change_chara) {
                 case 0:
                 case 1:
-                    MenuLoadInfo.load_all = 1;
-                    MenuLoadInfo.request_phase = -1;
+                    load_info->load_all = 1;
+                    load_info->request_phase = -1;
                     MenuItemCharaDataLoad(&MenuCharaLoadStack, change_chara, MenuCharaBuild2, 1);
                     break;
                 case 2:
-                    MenuLoadInfo.load_all = 1;
+                    load_info->load_all = 1;
                     MenuCharaLoadStack.Alloc(blocks_for(MenuItemRoboDataLoad(&MenuCharaLoadStack, MenuCharaBuild2, 1)));
                     break;
             }
@@ -2049,16 +2324,18 @@ int CMenuChrCngMenu::KeyChangeMain() {
             }
             break;
         }
-        case 0x28:
+        case 0x28: {
             mode = 2;
             ReturnMenuIntern(0);
             ExeScript(at_2019__2);
             MenuMainFrameModeSet(5, 0);
-            if (MenuFormMI2 != NULL) {
-                MenuFormMI2->rate_x = 4.0f;
-                MenuFormMI2->rate_y = 9.0f;
+            CMenuPosDataForm *main_form = MenuFormMI2;
+            if (main_form != NULL) {
+                main_form->rate_x = 4.0f;
+                main_form->rate_y = 9.0f;
             }
             break;
+        }
         case 0x32:
             if (!GetMenuMainFrameEndFlag()) {
                 break;
@@ -2125,14 +2402,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
             {
                 npcMes->MakeMsg(GetPartyCharaMessage(npc_no, 6, 0) + SelectedCmdNo_1415);
                 npcMes->StepMsg();
-                int widest = 0;
-                if (npcMes->page_num > 0) {
-                    for (int i = 0; i < npcMes->page_num; i++) {
-                        if (widest < npcMes->page_chars[i]) {
-                            widest = npcMes->page_chars[i];
-                        }
-                    }
-                }
+                int widest = MaxPageChars(npcMes);
                 npcMes->SetMsgCursor(widest - 1);
                 npcMes->draw_speed = 0.0f;
                 AdjustNPCTalk(npcMes, npc_chara);
@@ -2144,6 +2414,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
             MenuMesForm[6]->draw_flag = 0;
             npcMes->push_button = 0;
             npcMes->SetMsgCursor(-1);
+            int soundMode = 0;
             if (party_info->point - npc_data->ability_cost[SelectedCmdNo_1415] < 0) {
                 step = 1;
                 ExeScript(at_2022);
@@ -2152,7 +2423,6 @@ int CMenuChrCngMenu::KeyChangeMain() {
             }
             int se = 5;
             int used = 0;
-            int soundMode = 0;
             int inDungeon = 0;
             if (GetMenuLoopType() == 1) {
                 inDungeon = 1;
@@ -2179,20 +2449,20 @@ int CMenuChrCngMenu::KeyChangeMain() {
             switch (npc_no) {
                 case 1:
                     if (SelectedCmdNo_1415 == 2) {
-                        if (MenuUserDataManPtr->robo_data.AddPoint(0.0f) >= 1.0f) {
+                        if (1.0f <= MenuUserDataManPtr->robo_data.AddPoint(0.0f)) {
                             used = 0;
                             message = GetPartyCharaMessage(1, 8, 0);
                         } else {
                             MenuUserDataManPtr->robo_data.AddPoint(999.0f);
-                            UpdataLife();
                             se = 10;
+                            UpdataLife();
                             used = 1;
                         }
                     } else {
                         int pos[2];
                         item->Repair(999);
-                        MenuPosData->GetPosMenuItemBrdKoma(pos, item_brd_select, 0);
                         se = 10;
+                        MenuPosData->GetPosMenuItemBrdKoma(pos, item_brd_select, 0);
                         MenuRepairMan->Generate(pos[0], pos[1]);
                         UpdataLife();
                         used = 1;
@@ -2214,10 +2484,11 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     used = 0;
                     if (inDungeon) {
                         used = 1;
+                        area = &MenuMainScene->battle_area;
                         if (bitCtrl & 1) {
                             used = 0;
                         }
-                        if (MenuMainScene->battle_area.boss_map && MenuMainScene->battle_area.battle_clear) {
+                        if (area->boss_map && area->battle_clear) {
                             used = 0;
                         }
                     }
@@ -2267,8 +2538,8 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     }
                     if (used) {
                         soundMode = 1;
-                        UpdataLife();
                         se = 0x56;
+                        UpdataLife();
                     } else {
                         message = GetPartyCharaMessage(0x12, 8, 0);
                     }
@@ -2278,7 +2549,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                         used = 0;
                         for (int chara = 0; chara < 2; chara++) {
                             if (MenuUserDataManPtr->GetNowPartyMember() & (1 << chara) &&
-                                MenuUserDataManPtr->GetHp(chara) >= 1.0f) {
+                                1.0f <= MenuUserDataManPtr->GetHp(chara)) {
                                 MenuUserDataManPtr->SetCharaStatusAttirbuteVol(chara, 0x10, 750);
                                 used = 1;
                             }
@@ -2338,8 +2609,8 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     } else {
                         used = 1;
                         got_item = 1;
-                        MenuUserDataManPtr->GetItem(gift_item, gift_num);
                         se = 0x12;
+                        MenuUserDataManPtr->GetItem(gift_item, gift_num);
                     }
                     break;
                 }
@@ -2388,14 +2659,13 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 }
             }
             break;
-        default:
-            return 0;
     }
     return 0;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", KeyChangeMain__15CMenuChrCngMenuFv);
 #endif
+
 void CMenuChrCngMenu::CalcTex() {
     char                name[0x20];
     int                 item_pos[10][2];
@@ -2426,9 +2696,9 @@ void CMenuChrCngMenu::CalcTex() {
     }
 
     for (i = 0; i < icon_num; i++) {
-        sprintf(name, at_2191__2, i);
+        sprintf(name, "fc%dname", i);
         icon = form->GetPartInfo(name);
-        strcat(name, at_2192__2);
+        strcat(name, "sh");
         shadow = form->GetPartInfo(name);
         shadow->draw_flag = 0;
 
@@ -2460,7 +2730,7 @@ void CMenuChrCngMenu::CalcTex() {
         cursor_wave -= 6.2831855f;
     }
 
-    sprintf(name, at_1284__4, last_select);
+    sprintf(name, "fc%d", last_select);
     MENUFORMPARTS_TYPE *ring = form->GetPartInfo(name);
 
     if (ring != NULL && (star_spawn != 0 || star_fade == 0 || mode == 2)) {
@@ -2543,12 +2813,12 @@ void CMenuChrCngMenu::CalcTex() {
     }
 
     if (npc_mes_form != NULL && 0 < npc_no) {
-        form->GetPutPosXY(at_1175, pos[0], pos[1]);
+        form->GetPutPosXY("polywin", pos[0], pos[1]);
         SetFormPoint(npc_mes_form, pos[0], pos[1]);
         SetFormPoint(npc_sub_form, pos[0], pos[1]);
         SetFormPoint(npc_sub_form2, pos[0], pos[1]);
-        form->GetPutPosXY(at_2193__2, item_pos[0][0], item_pos[0][1]);
-        form->GetPutPosXY(at_2194__2, item_pos[1][0], item_pos[1][1]);
+        form->GetPutPosXY("stpt", item_pos[0][0], item_pos[0][1]);
+        form->GetPutPosXY("dousuru", item_pos[1][0], item_pos[1][1]);
         MenuDCMsg[2]->SetMsgItemPos(item_pos[0], 2);
 
         for (i = 0; i < 4; i++) {
@@ -2565,8 +2835,8 @@ void CMenuChrCngMenu::CalcTex() {
         SetMessagePositionNPCForm(npc_mes_form, MenuDCMsg[3]);
 
         if (party_info != NULL && npc_data != NULL) {
-            form->SetNumber(at_2195__2, party_info->point);
-            form->SetNumber(at_2196__2, npc_data->max_npc_point);
+            form->SetNumber("sp_n", party_info->point);
+            form->SetNumber("sp_m", npc_data->max_npc_point);
 
             if (point_gauge_part != NULL) {
                 float rate = 0.0f;
@@ -2587,7 +2857,7 @@ void CMenuChrCngMenu::CalcTex() {
     Func_MenuItemBrdPosStep(item_brd_pos);
 
     if (MenuFormMI2 != NULL) {
-        form->GetPutPosXY(at_2197__2, frame_pos[0], frame_pos[1]);
+        form->GetPutPosXY("mi2", frame_pos[0], frame_pos[1]);
 
         if (abs((int) ((float) frame_pos[0] - MenuFormMI2->x)) < 8) {
             item_brd_arrived = 1;
@@ -2683,21 +2953,21 @@ int CMenuChrCngMenu::MenuLocalLoop() {
     int            width;
 
     KeyChangeMain();
-    SmallPair step = at_2232;
+    int step[2] = {0, 0};
 
     if (npc_no == 1 && this->step == 0x14) {
         (MenuPosData)->GetPosMenuItemOnItemBrd(cursor, item_brd_select, 1);
         cursor[0] -= 8;
         cursor[1] -= 10;
-        step.v[0] = -0x2E;
-        step.v[1] = 0x12;
+        step[0] = -0x2E;
+        step[1] = 0x12;
     } else {
-        sprintf(name, at_2303__2, select);
+        sprintf(name, "cur%d", select);
         form->GetPutPosXY(name, cursor[0], cursor[1]);
         MenuCursorReverseFlag = cursor_revtbl_2237[select];
     }
 
-    MenuCommonInfo->MenuPosStep(cursor, step.v);
+    MenuCommonInfo->MenuPosStep(cursor, step);
 
     if (set_cursor != 0) {
         MenuCommonInfo->MenuSetPos(cursor[0], cursor[1]);
@@ -2734,13 +3004,13 @@ int CMenuChrCngMenu::MenuLocalLoop() {
                     star_spawn = 1;
                     open_wait = 0;
                     set_cursor = 1;
-                    ExeScript(at_2304);
+                    ExeScript("INI0");
                     key_mode = MenuCommonInfo->open_type;
 
                     if (key_mode == 4) {
-                        ExeScript(at_2305);
+                        ExeScript("INIT1");
                     } else if (key_mode == 0xE) {
-                        ExeScript(at_2306);
+                        ExeScript("INIT2");
                     }
 
                     LoadBGNPCModel(1);
@@ -2753,7 +3023,7 @@ int CMenuChrCngMenu::MenuLocalLoop() {
                 DeleteTexBlock();
                 (&MenuCommonInfo->cursor)[0] = 1;
                 MenuCursorReverseFlag = 0;
-                ExeScript(at_2307);
+                ExeScript("\x8F\x49\x97\xB9\x8F\x88\x97\x9D");
                 result = 1;
 
                 if (close_on_end != 0) {
@@ -2796,18 +3066,18 @@ int CMenuChrCngMenu::MenuLocalLoop() {
         item_no = item_brd_select;
 
         if (0 <= item_no && item_no < GetNowBagMax(0)) {
-            NamePair  item_names = at_2288;
-            SmallPair item_volumes = at_2289__2;
+            char *item_names[2] = {" ", ""};
+            int item_volumes[2] = {0, 0};
             item = MenuDrawItemInfo[item_brd_select];
             mes = MenuDCMsg[7];
 
             if (item != NULL) {
-                item_names.a = item->GetName(0);
-                item->GetWHp(item_volumes.v);
+                item_names[0] = item->GetName(0);
+                item->GetWHp(item_volumes);
             }
 
-            mes->SetMsgItemNo(&item_names.a, 1);
-            mes->SetMsgVolumeNo(item_volumes.v, 2);
+            mes->SetMsgItemNo(item_names, 1);
+            mes->SetMsgVolumeNo(item_volumes, 2);
             mes->value_width[0] = 6;
             name_x = fptosi(MenuMesForm[7]->x + (float) (mes->abs_win.width >> 1));
             width = mes->GetStrWidth(0);
@@ -2865,80 +3135,82 @@ void CMenuChrCngMenu::UpdataLife() {
     } while (i < 3);
 
     if (!(party_member & 1)) {
-        ExeScript(at_2363);
+        ExeScript("YURIS_OFFLIFE");
     }
 
     if (!(party_member & 2)) {
-        ExeScript(at_2364);
+        ExeScript("MONICA_OFFLIFE");
     }
 
     if (!(party_member & 4)) {
-        ExeScript(at_2365);
+        ExeScript("ROBO_OFFLIFE");
     }
 }
-#ifdef NONMATCHING
+
 void MenuCharaChangeStarDraw() {
+    mgCTextureManager *tex_manager = &mgTexManager;
 
     if (MenuCharaChangeBase_Tex == NULL) {
         return;
     }
-    mgTexManager.ReloadTexture(MenuCharaChangeBase_Tex->block, (sceVif1Packet *) NULL);
+    tex_manager->ReloadTexture(MenuCharaChangeBase_Tex->block, (sceVif1Packet *) NULL);
+
     CMenuChrCngMenu *menu = ChrChangMenuPt;
     float            angle;
     float            size = menu->star_size;
     float            offset = size / 2.0f - 2.0f;
-    RingCenter       center = at_2371__4;
-    center.x = menu->star_x + offset;
-    center.y = menu->star_y + 1.1538461f * offset;
+    float            center[2] = {menu->star_x + offset, menu->star_y + 1.1538461f * offset};
     angle = menu->star_angle;
-    mgCDrawPrim  *prim = GetMenuPrim();
-    mgRect<int>   baseRect(0x13F, 0xC0, 0x40, 0x40);
-    QuadTexCoords crd = at_2372__4;
-    crd.uv[0][0] = baseRect.left;
-    crd.uv[3][0] = baseRect.left;
-    crd.uv[1][0] = baseRect.left + baseRect.right;
-    crd.uv[2][0] = baseRect.left + baseRect.right;
-    crd.uv[2][1] = baseRect.top + baseRect.bottom;
-    crd.uv[3][1] = baseRect.top + baseRect.bottom;
-    crd.uv[0][1] = baseRect.top;
-    crd.uv[1][1] = baseRect.top;
+    mgCDrawPrim *prim = GetMenuPrim();
+    int          i;
+
+    // The ring texture is drawn as a square fan rotated by the ring angle.
+    mgRect<int> base_rect(0x13F, 0xC0, 0x40, 0x40);
+    float       u1 = base_rect.left + base_rect.right;
+    float       v1 = base_rect.top + base_rect.bottom;
+    float       u0 = base_rect.left;
+    float       v0 = base_rect.top;
+    float       uv[4][2] = {{u0, v0}, {u1, v0}, {u1, v1}, {u0, v1}};
     SetSpriteEnv(prim, 4);
     prim->Bilinear(1);
     prim->Begin(MG_PRIM_TRIANGLE_FAN);
     prim->Texture(MenuCharaChangeBase_Tex);
     prim->Color(0x80, 0x80, 0x80, (int) ChrChangMenuPt->star_alpha);
-    for (int i = 0; i < 4; i++) {
-        prim->TextureCrd((int) crd.uv[i][0], (int) crd.uv[i][1]);
-        float x = 1.0f + (center.x + size * cosf(angle));
-        prim->Vertex(x, center.y + 1.1538461f * (size * sinf(angle)), 0.0f);
+    for (i = 0; i < 4; i++) {
+        prim->TextureCrd((int) uv[i][0], (int) uv[i][1]);
+        float x = 1.0f + (center[0] + size * cosf(angle));
+        prim->Vertex(x, center[1] + 1.1538461f * (size * sinf(angle)), 0.0f);
         angle += 1.5707964f;
     }
     prim->End();
 
-    mgRect<int> wakuRect(0x121, 0xE1, 0x1E, 0x1E);
-    float       ringSize = 0.546875f * ChrChangMenuPt->star_size;
-    float       wave = ChrChangMenuPt->star_wave;
+    // Two pairs of circles orbit opposite each other, the outer one of each pair pulsing.
+    mgRect<int> waku_rect(0x121, 0xE1, 0x1E, 0x1E);
+    float       circle;
+    float       alpha;
+    float       wave;
+    float       pulse_alpha;
+    float       y;
+    float       x;
+    size = 0.546875f * ChrChangMenuPt->star_size;
+    wave = ChrChangMenuPt->star_wave;
     angle -= 0.15707964f;
     float pulse = sinf(ChrChangMenuPt->star_pulse);
-    if (pulse < 0.0f) {
-        pulse = -pulse;
-    }
-    float pulseAlpha = 0.5f * ChrChangMenuPt->star_alpha * pulse;
-    for (int j = 0; j < 2; j++) {
-        float alpha = ChrChangMenuPt->star_alpha;
-        float circle = 60.0f + 3.0f * sinf(wave);
-        float x = ringSize * cosf(angle);
-        float y = ringSize * sinf(angle);
-        x = center.x + x;
-        mgRect<float> inner(x - 0.5f * circle, 6.0f + (center.y + 1.1538461f * (y - 0.5f * circle)), circle,
-                            circle);
-        DrawWakuCircle(prim, MenuCharaChangeBase_Tex, inner, wakuRect, wave, ringSize, (int) alpha, 0x80, 0x80,
-                       0x80);
+    pulse_alpha = 0.5f * ChrChangMenuPt->star_alpha * (pulse < 0.0f ? -pulse : pulse);
+    for (i = 0; i < 2; i++) {
+        alpha = ChrChangMenuPt->star_alpha;
+        circle = 60.0f + 3.0f * sinf(wave);
+        x = size * cosf(angle);
+        y = size * sinf(angle);
+        DrawWakuCircle(prim, MenuCharaChangeBase_Tex,
+                       mgRect<float>(center[0] + x - 0.5f * circle,
+                                     6.0f + (center[1] + 1.1538461f * (y - 0.5f * circle)), circle, circle),
+                       waku_rect, wave, size, (int) alpha, 0x80, 0x80, 0x80);
         circle *= 1.4f;
-        mgRect<float> outer(x - 0.5f * circle, 6.0f + (center.y + 1.1538461f * (y - 0.5f * circle)), circle,
-                            circle);
-        DrawWakuCircle(prim, MenuCharaChangeBase_Tex, outer, wakuRect, wave, ringSize, (int) pulseAlpha, 0x80, 0x80,
-                       0x80);
+        DrawWakuCircle(prim, MenuCharaChangeBase_Tex,
+                       mgRect<float>(center[0] + x - 0.5f * circle,
+                                     6.0f + (center[1] + 1.1538461f * (y - 0.5f * circle)), circle, circle),
+                       waku_rect, wave, size, (int) pulse_alpha, 0x80, 0x80, 0x80);
         angle += 3.1415927f;
         wave += 3.1415927f;
     }
@@ -2946,27 +3218,24 @@ void MenuCharaChangeStarDraw() {
     if (MenuCharaChangeStar_Tex == NULL) {
         return;
     }
-    mgTexManager.ReloadTexture(MenuCharaChangeStar_Tex->block, (sceVif1Packet *) NULL);
-    mgRect<short> starRect(0, 0x20, 8, 8);
+    tex_manager->ReloadTexture(MenuCharaChangeStar_Tex->block, (sceVif1Packet *) NULL);
+    mgRect<short> star_rect(0, 0x20, 8, 8);
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(MenuCharaChangeStar_Tex);
-    for (int k = 0; k < CHR_CNG_STAR_NUM; k++) {
-        CHR_CNG_STAR *star = &ChrChangMenuPt->star[k];
-        if (star->alpha > 0.0f) {
-            float starX = star->x + ChrChangMenuPt->star_x;
-            float starY = star->y + ChrChangMenuPt->star_y;
-            prim->Color(0x80, 0x80, 0x80, (int) star->alpha);
-            prim->TextureCrd(starRect.left, starRect.top);
-            prim->Vertex(starX, starY, 0.0f);
-            prim->TextureCrd(starRect.left + starRect.right, starRect.top + starRect.bottom);
-            prim->Vertex(starX + starRect.right, starY + starRect.bottom, 0.0f);
+    for (i = 0; i < CHR_CNG_STAR_NUM; i++) {
+        if (0.0f < ChrChangMenuPt->star[i].alpha) {
+            float star_x = ChrChangMenuPt->star[i].x + ChrChangMenuPt->star_x;
+            float star_y = ChrChangMenuPt->star[i].y + ChrChangMenuPt->star_y;
+            prim->Color(0x80, 0x80, 0x80, (int) ChrChangMenuPt->star[i].alpha);
+            prim->TextureCrd(star_rect.left, star_rect.top);
+            prim->Vertex(star_x, star_y, 0.0f);
+            prim->TextureCrd(star_rect.left + star_rect.right, star_rect.top + star_rect.bottom);
+            prim->Vertex(star_x + star_rect.right, star_y + star_rect.bottom, 0.0f);
         }
     }
     prim->End();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuCharaChangeStarDraw__Fv);
-#endif
+
 #ifdef NONMATCHING
 int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     u_long128       *buffer;
@@ -3071,7 +3340,6 @@ int MenuCharaChangeKey() {
     u8               *texture;
     CMenuPosDataForm *form;
     CMenuPosDataForm *cursor_form;
-    FileNameBuf       file_name;
     int               pos[2];
 
     result = 0;
@@ -3113,8 +3381,8 @@ int MenuCharaChangeKey() {
                         MenuCharaLoadStack.stack_used = 0;
                         MenuCharaLoadStack.lock = 0;
                         texture = (u8 *) ChrChangeInitTextureStack.stack;
-                        file_name = at_2629__3;
-                        LoadFileMenu(file_name.text, (u_long128 *) texture, 1);
+                        char file_name[0x40] = "chrchg0.pac";
+                        LoadFileMenu(file_name, (u_long128 *) texture, 1);
                         ChrChangMenuPt->EnterDataMenu(texture);
                         ChrChangMenuPt->LoadNPCFaceData(&MenuChangeNpcMemory, 1);
                         ChrChangMenuPt->EnterNPCFaceData();
@@ -3137,9 +3405,9 @@ int MenuCharaChangeKey() {
                         ChrChangMenuPt->InitStarInfo();
                         ChrChangMenuPt->star_fade = 0;
                         ChrChangMenuPt->set_cursor = 1;
-                        ChrChangMenuPt->form->GetPutPosXY(at_2662__2, pos[0], pos[1]);
+                        ChrChangMenuPt->form->GetPutPosXY("cur3", pos[0], pos[1]);
                         MenuCommonInfo->MenuSetPos(pos[0], pos[1]);
-                        ChrChangMenuPt->form->GetPutPosXY(at_2197__2, pos[0], pos[1]);
+                        ChrChangMenuPt->form->GetPutPosXY("mi2", pos[0], pos[1]);
                         cursor_form = MenuFormMI2;
                         cursor_form->x = (float) pos[0];
                         cursor_form->y = (float) pos[1];
@@ -3179,9 +3447,9 @@ void MenuCharaChangeDraw() {
 
         if (ChrChangMenuPt->select != 4) {
             DrawMenuFillBox(20.0f, 20.0f, 300.0f, 220.0f, 0x60, 0, 0, 0);
-            DebugLine party = at_2674;
-            DebugLine change = at_2675;
-            DebugLine mask = at_2676;
+            char party[0x80] = {0};
+            char change[0x80] = {0};
+            char mask[0x80] = {0};
             party_member = MenuUserDataManPtr->GetNowPartyMember();
             int chara_change = MenuUserDataManPtr->chara_change;
             int change_mask = MenuUserDataManPtr->chara_change_mask;
@@ -3191,63 +3459,63 @@ void MenuCharaChangeDraw() {
                 int bit = 1 << i;
 
                 if (party_member & bit) {
-                    strcat(party.text, at_2770);
+                    strcat(party, "\x81\x9B\x0A");
                 } else {
-                    strcat(party.text, at_2771);
+                    strcat(party, "\x81\x7E\x0A");
                 }
 
                 if (chara_change & bit) {
-                    strcat(change.text, at_2770);
+                    strcat(change, "\x81\x9B\x0A");
                 } else {
-                    strcat(change.text, at_2771);
+                    strcat(change, "\x81\x7E\x0A");
                 }
 
                 if (change_mask & bit) {
-                    strcat(mask.text, at_2770);
+                    strcat(mask, "\x81\x9B\x0A");
                 } else {
-                    strcat(mask.text, at_2771);
+                    strcat(mask, "\x81\x7E\x0A");
                 }
             }
 
-            DebugText title = at_2691;
-            font.SetStr(title.text);
+            char title[0x200] = "Max\nMonica\nRidepod\nMonster";
+            font.SetStr(title);
             font.SetPos(0x28, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             int cursor_x = MenuDebugChangeSelectMode * 0x3C + 0x98;
-            font.SetStr(at_2772);
+            font.SetStr("NowMode");
             font.SetPos(cursor_x, 0x14);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(at_2773);
+            font.SetStr("Party");
             font.SetPos(0x98, 0x28);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(party.text);
+            font.SetStr(party);
             font.SetPos(0x98, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(at_2774);
+            font.SetStr("Shift");
             font.SetPos(0xD4, 0x28);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(change.text);
+            font.SetStr(change);
             font.SetPos(0xD4, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(at_2775);
+            font.SetStr("MASK");
             font.SetPos(0x110, 0x28);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            font.SetStr(mask.text);
+            font.SetStr(mask);
             font.SetPos(0x110, 0x3C);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             int cursor_y = MenuDebugCharaChangeSelect * 0x14 + 0x3C;
-            font.SetStr(at_2776__2);
+            font.SetStr("\x81\xA8");
             font.SetPos(0x14, cursor_y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
 
             if (LanguageCode == 0) {
-                font.SetStr(at_2777);
+                font.SetStr("Control \nL1 R1:Mode Change\n(O):Join or Shift Enable\n(X):Leave or Shift Disable");
                 font.SetPos(0x28, 0xA0);
                 font.DrawDirect(font.str, font.pos_x, font.pos_y);
                 return;
             }
 
-            font.SetStr(at_2778);
+            font.SetStr("Control \nL1 R1:Mode Change\n(X):Join or Shift Enable\n(O):Leave or Shift Disable");
             font.SetPos(0x28, 0xA0);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             return;
@@ -3257,12 +3525,12 @@ void MenuCharaChangeDraw() {
         CUserDataManager *user_data = GetUserDataMan();
         mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
         int y = 0x46;
-        font.SetStr(at_2779);
+        font.SetStr("                  Pa:Tr:Ge");
         font.SetPos(0x14, 0x1E);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
-        DebugNpcText npc_title = at_2696;
-        strcpy(&npc_title.text[menu_debug_npc_decide * 3 + 0x11], at_2780);
-        font.SetStr(npc_title.text);
+        char npc_title[0x100] = "                           ";
+        strcpy(&npc_title[menu_debug_npc_decide * 3 + 0x11], "\x81\xAB");
+        font.SetStr(npc_title);
         font.SetPos(0x14, 0x32);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
 
@@ -3286,24 +3554,24 @@ void MenuCharaChangeDraw() {
             }
 
             char line[0x100];
-            sprintf(line, at_2781, name);
+            sprintf(line, "  :%14s", name);
 
             if (info->status & 1) {
-                strcat(line, at_2782);
+                strcat(line, "o:");
             } else {
-                strcat(line, at_2783);
+                strcat(line, "x:");
             }
 
             if (info->status & 2) {
-                strcat(line, at_2782);
+                strcat(line, "o:");
             } else {
-                strcat(line, at_2783);
+                strcat(line, "x:");
             }
 
             if (info->status & 4) {
-                strcat(line, at_2784);
+                strcat(line, "o");
             } else {
-                strcat(line, at_2785);
+                strcat(line, "x");
             }
 
             font.SetStr(line);
@@ -3316,7 +3584,7 @@ void MenuCharaChangeDraw() {
             }
         }
 
-        font.SetStr(at_2776__2);
+        font.SetStr("\x81\xA8");
         font.SetPos(0x14, 0x46);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
     } else if (ChrChangMenuPt->sub_menu == CHR_CNG_SUB_MENU_MONSTER_BOX) {
@@ -3441,7 +3709,7 @@ int GetMonsterModelFile(int monster_id, int kind, char *file_name) {
     strcpy(file_name, base_name);
 
     if (kind == 0) {
-        strcat(file_name, at_2912);
+        strcat(file_name, ".chr");
     }
 
     if (kind == 1) {
@@ -3451,14 +3719,14 @@ int GetMonsterModelFile(int monster_id, int kind, char *file_name) {
             return 0;
         }
 
-        strcpy(file_name, at_2913__2);
+        strcpy(file_name, "snd2/mon/");
 
         if (number < 10) {
-            sprintf(suffix, at_2914, number);
+            sprintf(suffix, "EN_00%d.snd", number);
         } else if (number < 100) {
-            sprintf(suffix, at_2915, number);
+            sprintf(suffix, "EN_0%d.snd", number);
         } else {
-            sprintf(suffix, at_2916, number);
+            sprintf(suffix, "EN_%d.snd", number);
         }
 
         strcat(file_name, suffix);
@@ -3468,13 +3736,13 @@ int GetMonsterModelFile(int monster_id, int kind, char *file_name) {
         henge_param = (int *) GetMonsterHengeParam(monster_id);
 
         if (henge_param != NULL) {
-            sprintf(file_name, at_2917, henge_param[2]);
+            sprintf(file_name, "%s.stb", henge_param[2]);
         }
     }
 
     if (kind == 3) {
         strcpy(file_name, monster->model);
-        strcat(file_name, at_2918);
+        strcat(file_name, ".cfg");
     }
 
     return 1;
@@ -3484,10 +3752,10 @@ void CMenuMosSelect::AttachForm() {
     char              name[0x20];
     MOS_CHANGE_PARAM *base;
     int               i;
-    badge_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2940);
-    model_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2941);
-    info_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_2942);
-    Tex_BuildUpBoard = mgTexManager.GetTexture(at_2943, -1);
+    badge_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x83\x6F\x83\x62\x83\x57\x94\xA0");
+    model_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x83\x7C\x83\x8A");
+    info_form = (CMenuPosDataForm *) MenuPosData->GetFormInfo("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x83\x58\x83\x65\x81\x5B\x83\x5E\x83\x58");
+    Tex_BuildUpBoard = mgTexManager.GetTexture("itembrd", -1);
     GetUserDataMan();
 
     if (badge_form != NULL) {
@@ -3496,7 +3764,7 @@ void CMenuMosSelect::AttachForm() {
 
         do {
             MENUFORMPARTS_TYPE *part;
-            sprintf(name, at_2944, i);
+            sprintf(name, "B%d", i);
             part = badge_form->GetPartInfo(name);
 
             if (part != NULL) {
@@ -3631,7 +3899,7 @@ int CMenuMosSelect::CheckLoadBGMonster() {
             load_monster = view_monster;
             stack->stReset();
 
-            if (MenuLoadInfo.unk_6[1] == 1) {
+            if (MenuLoadInfo.update_scene == 1) {
                 MenuMainScene->AssignStack(5);
                 stack = MenuMainScene->GetStack(5);
             }
@@ -3640,7 +3908,7 @@ int CMenuMosSelect::CheckLoadBGMonster() {
             MenuMonsterLoadBG(stack, MenuMonsterBGInfo, load_monster, 1);
             model_form->counter = -16;
 
-            if (MenuLoadInfo.unk_6[1] == 1) {
+            if (MenuLoadInfo.update_scene == 1) {
                 MenuCharaSoundLoad(stack, 3, 1);
             }
 
@@ -3650,14 +3918,14 @@ int CMenuMosSelect::CheckLoadBGMonster() {
         }
         case 1:
             if (MenuMonsterBGInfo[0]->reading && ReadBGSync() == 0) {
-                SceneCharaList chara = at_3054__2;
-                chara.entry[0] = monster;
+                CActionChara *chara[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+                chara[0] = monster;
                 int tex_block = this->tex_block[1];
-                MenuMonsterLoadBGCheck(MenuMonsterBGInfo, chara.entry, tex_block, MenuArg.chara_tex_block);
+                MenuMonsterLoadBGCheck(MenuMonsterBGInfo, chara, tex_block, MenuArg.chara_tex_block);
 
-                if (MenuLoadInfo.unk_6[1] == 0) {
-                    MonsterScaleCheck(chara.entry[0]);
-                    chara.entry[0]->SetPosition(float(16.0), 1.0f, 0.0f);
+                if (MenuLoadInfo.update_scene == 0) {
+                    MonsterScaleCheck(chara[0]);
+                    chara[0]->SetPosition(float(16.0), 1.0f, 0.0f);
                     model_form->SetActionCharaPtr(monster, tex_block, -1);
                     model_form->counter = -14;
                     model_form->draw_flag = 1;
@@ -3668,11 +3936,11 @@ int CMenuMosSelect::CheckLoadBGMonster() {
 
                 load_phase++;
 
-                if (MenuLoadInfo.unk_6[1] == 1) {
+                if (MenuLoadInfo.update_scene == 1) {
                     load_phase++;
                     MenuSoundCharaNo = 3;
-                    chara.entry[0] = (CActionChara *) MenuMainScene->GetCharacter(0);
-                    MenuCharaSoundEnter(MenuMainScene, chara.entry[0], 1);
+                    chara[0] = (CActionChara *) MenuMainScene->GetCharacter(0);
+                    MenuCharaSoundEnter(MenuMainScene, chara[0], 1);
                     mgCMemory *stack = MenuMainScene->GetStack(5);
                     stack->stReset();
                     StartReadBG();
@@ -3725,7 +3993,7 @@ void GetBajjiPosition(CMenuPosDataForm *form, int slot, int unused, int *pos) {
     char name[0x20];
 
     if (form != NULL) {
-        sprintf(name, at_2944, slot);
+        sprintf(name, "B%d", slot);
         form->GetPutPosXY(name, pos[0], pos[1]);
     }
 }
@@ -3759,22 +4027,22 @@ void CMenuMosSelect::CalcTex() {
     CDC2Mes *ask = MenuDCMsg[7];
 
     if (info_form != NULL && ask != NULL) {
-        info_form->GetPutPosXY(at_3160__3, item_pos[0][0], item_pos[0][1]);
+        info_form->GetPutPosXY("\x96\xBC\x91\x4F", item_pos[0][0], item_pos[0][1]);
         int *choice = item_pos[1];
-        info_form->GetPutPosXY(at_3161__3, choice[0], choice[1]);
+        info_form->GetPutPosXY("\x8F\xCC\x8D\x86", choice[0], choice[1]);
         pos = item_pos[2];
-        info_form->GetPutPosXY(at_3162__3, pos[0], pos[1]);
+        info_form->GetPutPosXY("\x81\x9B", pos[0], pos[1]);
         pos = item_pos[3];
-        info_form->GetPutPosXY(at_3163__3, pos[0], pos[1]);
+        info_form->GetPutPosXY("\x81\xA1", pos[0], pos[1]);
         pos = item_pos[4];
-        info_form->GetPutPosXY(at_3164__4, pos[0], pos[1]);
+        info_form->GetPutPosXY("\x8B\x5A" "1", pos[0], pos[1]);
         pos = item_pos[5];
-        info_form->GetPutPosXY(at_3165__2, pos[0], pos[1]);
+        info_form->GetPutPosXY("\x8B\x5A" "2", pos[0], pos[1]);
         item_pos[0][0] -= ask->GetStrWidth(0) >> 1;
         int width = ask->GetMesWidth_system(ask->item_mes[1]);
         choice[0] -= width >> 1;
         ask->SetMsgItemPos(item_pos[0], 6);
-        info_form->GetPutPosXY(at_3166__2, win_pos[0], win_pos[1]);
+        info_form->GetPutPosXY("\x90\xE0\x96\xBE", win_pos[0], win_pos[1]);
         info_win.abs_win.x = win_pos[0];
         info_win.abs_win.y = win_pos[1];
     }
@@ -3812,11 +4080,11 @@ void CMenuMosSelect::CalcTex() {
 
 int CMenuMosSelect::KeyNormalMode(int keys, int a, int b) {
     int old_cursor = select;
-    MenuGlidKeyCheck(keys, &select, &top, &max_3170, &viewnum_3171, overcode_3172,
+    MenuGlidKeyCheck(keys, &select, &top, max_3170, viewnum_3171, overcode_3172,
                      0xC);
 
     if (old_cursor != select) {
-        MenuLoadInfo.unk_6[1] = 0;
+        MenuLoadInfo.update_scene = 0;
         view_monster = -1;
 
         if (select < 0xA) {
@@ -3912,14 +4180,14 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuDrawEnv->camera.SetRef(refdef_3195);
     stack->Align64();
     u_int *pack = (u_int *) stack->stGetTop();
-    size = LoadFileMenu(at_3269, (u_long128 *) pack, 1);
+    size = LoadFileMenu("mosbox.pac", (u_long128 *) pack, 1);
     stack->Alloc(blocks_for(size));
-    u_char *image = (u_char *) GetPackFile(pack, at_3270, NULL);
+    u_char *image = (u_char *) GetPackFile(pack, "mosbox.img", NULL);
     int     block = MenuMosSelectPtr->tex_block[0];
     mgTexManager.EnterIMGFile(image, block, NULL, NULL);
-    MenuMosTexture = mgTexManager.GetTexture(at_3271, block);
+    MenuMosTexture = mgTexManager.GetTexture("mosbox", block);
     MenuMosSelectPtr->mes_data = MenuDCMsg[0]->buff;
-    s16 *box_mes = (s16 *) GetPackFile(pack, at_3272, NULL);
+    s16 *box_mes = (s16 *) GetPackFile(pack, "menumos.mes", NULL);
     MenuCommandAnalyzeInfo.system_mes_buff[0] = GetSystemMesBuffer();
     MenuCommandAnalyzeInfo.system_mes_buff[1] = box_mes;
     MenuCommandAnalyzeInfo.mes_buff[0] = MenuMosSelectPtr->mes_data;
@@ -3928,19 +4196,19 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuMosSelectPtr->info_win.SetBuff_system(GetSystemMesBuffer());
     MenuMosSelectPtr->info_win.SetBuff(MenuMosSelectPtr->mes_data);
     MenuMosSelectPtr->info_win.MakeMesWin(tbl_3196[LanguageCode], 1, 1);
-    char *cfg = (char *) GetPackFile(pack, at_3273, &size);
+    char *cfg = (char *) GetPackFile(pack, "mosbox.cfg", &size);
     MenuDataAnalyze(cfg, size, stack);
-    MenuMosSelectPtr->script = (char *) GetPackFile(pack, at_3274, &MenuMosSelectPtr->script_size);
+    MenuMosSelectPtr->script = (char *) GetPackFile(pack, "mosbox_com.cfg", &MenuMosSelectPtr->script_size);
     MenuMosSelectPtr->AttachForm();
-    MenuMosSelectPtr->ExeScript(at_3275);
-    MenuMosSelectPtr->ExeScript(at_3276);
+    MenuMosSelectPtr->ExeScript("MSG\x8F\x89\x8A\xFA\x89\xBB");
+    MenuMosSelectPtr->ExeScript("FORM_INIT");
     AttachMessageForm();
     stack->Align64();
     rest = stack->stGetRest();
     MenuMosLoadStack.stSetBuffer(stack->stGetTop(), rest);
     MenuLoadInfo.load_all = 1;
     MenuLoadInfo.mode = 0;
-    MenuLoadInfo.unk_6[1] = 0;
+    MenuLoadInfo.update_scene = 0;
     MenuMemoryAdjust(&MenuMosLoadStack, &MenuMonChangeLoadStack, MenuActionCharaBuffer, 3);
     int badge_no = get_gajji_id_from_monster_progress_table(MenuUserDataManPtr->monster_id, NULL);
 
@@ -3960,9 +4228,52 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
 }
 
 #pragma inline_depth reset
-#ifdef NONMATCHING
+
 int CMenuMosSelect::KeyStep() {
-    sceVu0FVECTOR effectPos;
+    /**
+     *
+     * Reward parameter index of each displayed monster badge.
+     *
+     */
+    static s8 convert_table[10] = {8, 4, 9, 2, 3, 5, 0, 6, 7, 1};
+
+    /**
+     *
+     * Growth title message number of each monster badge family.
+     *
+     */
+    static short ghobitbl[10] = {186, 187, 188, 189, 190, 191, 192, 193, 194, 196};
+
+    /**
+     *
+     * Monster badge health and growth number part names.
+     *
+     */
+    static char *get_stringtbl[4] = {
+        "\x82\xD6\x82\xF1\x82\xB0\x8D\xA1",
+        "\x82\xD6\x82\xF1\x82\xB0\x8D\xC5\x91\xE5",
+        "\x8F\x6E\x97\xFB\x8D\xA1",
+        "\x8F\x6E\x97\xFB\x8D\xC5\x91\xE5",
+    };
+
+    /**
+     *
+     * Actions requested by the badge, command, form-list and status keys.
+     *
+     */
+    enum MosSelectAction {
+        MOS_SELECT_ACTION_NONE = 0,              /**< No action requested. */
+        MOS_SELECT_ACTION_REJECT = 5,            /**< Rejects the key with the cancel sound. */
+        MOS_SELECT_ACTION_TRANSFORM = 10,        /**< Turns Monica into the monster form chosen in the form list. */
+        MOS_SELECT_ACTION_CANNOT_TRANSFORM = 11, /**< Shows that the transformation is not possible. */
+        MOS_SELECT_ACTION_FORM_LIST = 12,        /**< Opens the list of the badge's monster forms to transform into. */
+        MOS_SELECT_ACTION_STATUS = 20,           /**< Opens the status page of the badge's monster. */
+        MOS_SELECT_ACTION_CLASS_CHANGE = 30,     /**< Opens the list of monsters the badge can change class to. */
+        MOS_SELECT_ACTION_BADGES = 500,          /**< Returns to the badge selection. */
+        MOS_SELECT_ACTION_COMMANDS = 600,        /**< Opens the chosen badge's command window. */
+        MOS_SELECT_ACTION_CLOSE = 1000           /**< Closes the monster box. */
+    };
+
     int           size;
     int           i;
     int           keys = MenuCommonInfo->CheckSelectKey();
@@ -3974,13 +4285,13 @@ int CMenuMosSelect::KeyStep() {
     int           action;
 
     switch (mode) {
-        case 1:
+        case MENU_ASK_MODE_OPEN:
             if (fadeEnd) {
-                mode = 0;
+                mode = MENU_ASK_MODE_NONE;
                 select_badge = NULL;
             }
             break;
-        case 2:
+        case MENU_ASK_MODE_CLOSE:
             if (fadeEnd && (result == MOS_SELECT_RESULT_CLOSE || (result == MOS_SELECT_RESULT_CHANGE && load_phase == 4))) {
                 if (result == MOS_SELECT_RESULT_CHANGE) {
                     CActionChara *player = (CActionChara *) MenuMainScene->GetCharacter(0);
@@ -3989,25 +4300,25 @@ int CMenuMosSelect::KeyStep() {
                         player->InitScript();
                     }
                     MenuArg.end_code = 1;
-                    MenuArg.result[0] = 3;
+                    MenuArg.result[0] = USER_CHARA_MONSTER;
                 }
                 MenuDrawEnv->camera.SetPos(camera_pos);
                 MenuDrawEnv->camera.SetRef(camera_ref);
                 *(CameraPoint *) MenuDrawEnv->pos = *(CameraPoint *) camera_pos;
                 *(CameraPoint *) MenuDrawEnv->ref = *(CameraPoint *) camera_ref;
-                ExeScript(at_2307);
+                ExeScript("\x8F\x49\x97\xB9\x8F\x88\x97\x9D");
                 MenuPosData->TexGetInfoClear(0xAA, 0x100);
                 MenuPosData->FormInfoClear(0x3C, 0x4F);
                 return result;
             }
             break;
-        case 0: {
-            action = 0;
+        case MENU_ASK_MODE_NONE: {
+            action = MOS_SELECT_ACTION_NONE;
             if (menu_debug_flag) {
-                if (keys & 1) {
+                if (keys & MENU_SELECT_KEY_UP) {
                     menu_debug_select__2--;
                 }
-                if (keys & 2) {
+                if (keys & MENU_SELECT_KEY_DOWN) {
                     menu_debug_select__2++;
                 }
                 if (menu_debug_select__2 < 0) {
@@ -4019,29 +4330,29 @@ int CMenuMosSelect::KeyStep() {
                 MOS_CHANGE_PARAM *debugBadge = &badge[menu_debug_select__2];
                 if (debugBadge != NULL) {
                     COMMON_GAGE *gauge = &debugBadge->hp;
-                    if (GamePad__2.On(0x80)) {
+                    if (GamePad__2.On(PAD_SQUARE)) {
                         gauge = &debugBadge->abs;
                     }
-                    if (keys & 8) {
+                    if (keys & MENU_SELECT_KEY_RIGHT) {
                         gauge->AddPoint(1.0f);
-                    } else if (keys & 4) {
+                    } else if (keys & MENU_SELECT_KEY_LEFT) {
                         gauge->AddPoint(-1.0f);
                     }
-                    if (buttons & 1) {
+                    if (buttons & MENU_PUSH_BUTTON_DECIDE) {
                         if (debugBadge->enable) {
                             debugBadge->enable = 0;
                         } else {
                             GetUserDataMan()->monster_box.EnableChange(menu_debug_select__2 + 1);
                         }
-                        MenuSePlay(1);
+                        MenuSePlay(SYSTEM_SE_DECIDE);
                     }
-                    if (buttons & 4) {
+                    if (buttons & MENU_PUSH_BUTTON_TRIANGLE) {
                         if (debugBadge->enable) {
                             debugBadge->abs.SetFillRate(1.0f);
                             debugBadge->LevelUp();
                         }
                     }
-                    if (buttons & 2) {
+                    if (buttons & MENU_PUSH_BUTTON_CANCEL) {
                         for (i = 0; i < MOS_SELECT_BADGE_NUM; i++) {
                             MOS_CHANGE_PARAM *entry = &badge[i];
                             GetUserDataMan()->monster_box.EnableChange(i + 1);
@@ -4053,116 +4364,122 @@ int CMenuMosSelect::KeyStep() {
             }
             CDC2Mes *info = MenuDCMsg[6];
             switch (key_arg_no) {
-                case 0:
+                case MOS_SELECT_PAGE_BADGE:
                     KeyNormalMode(keys, lrKeys, buttons);
                     switch (buttons) {
-                        case 1:
-                        case 4:
+                        case MENU_PUSH_BUTTON_DECIDE:
+                        case MENU_PUSH_BUTTON_TRIANGLE:
                             if (select > 9) {
-                                action = 5;
+                                action = MOS_SELECT_ACTION_REJECT;
                             } else {
                                 select_badge = &badge[select];
                                 if (select_badge == NULL || (select_badge != NULL && !select_badge->enable)) {
-                                    MenuSePlay(5);
+                                    MenuSePlay(SYSTEM_SE_CANCEL);
                                     select_badge = NULL;
                                 } else {
-                                    action = 600;
+                                    action = MOS_SELECT_ACTION_COMMANDS;
                                 }
                             }
                             break;
-                        case 2:
+                        case MENU_PUSH_BUTTON_CANCEL:
                             select_badge = NULL;
-                            action = 1000;
+                            action = MOS_SELECT_ACTION_CLOSE;
                             break;
                     }
                     break;
-                case 1:
+                case MOS_SELECT_PAGE_COMMAND:
                     switch (step) {
-                        case 0: {
+                        case MOS_SELECT_STEP_COMMAND: {
                             int cursor = command->CommandMsgCursor();
                             switch (buttons) {
-                                case 1:
-                                case 4:
+                                case MENU_PUSH_BUTTON_DECIDE:
+                                case MENU_PUSH_BUTTON_TRIANGLE: {
                                     int mes = command->item_mes[cursor];
-                                    if (mes == 0x14B7) {
-                                        action = 20;
+                                    if (mes == MOS_SELECT_CMD_STATUS) {
+                                        action = MOS_SELECT_ACTION_STATUS;
                                     }
-                                    if (mes == 0x14B6) {
-                                        action = 12;
+                                    if (mes == MOS_SELECT_CMD_TRANSFORM) {
+                                        action = MOS_SELECT_ACTION_FORM_LIST;
                                     }
-                                    if (mes == 0x14B8) {
-                                        action = 30;
+                                    if (mes == MOS_SELECT_CMD_CLASS_CHANGE) {
+                                        action = MOS_SELECT_ACTION_CLASS_CHANGE;
                                     }
-                                    if (action == 12 && command->line_color[cursor] == 0x80202020) {
-                                        action = 5;
+                                    if (action == MOS_SELECT_ACTION_FORM_LIST && command->line_color[cursor] == MES_COLOR_DARK) {
+                                        action = MOS_SELECT_ACTION_REJECT;
                                     }
                                     break;
-                                case 2:
-                                    action = 500;
+                                }
+                                case MENU_PUSH_BUTTON_CANCEL:
+                                    action = MOS_SELECT_ACTION_BADGES;
                                     break;
                             }
                             break;
                         }
-                        case 1:
+                        case MOS_SELECT_STEP_ERROR:
                             if (buttons) {
-                                ExeScript(at_3685);
-                                step = 0;
+                                ExeScript("ERRMSGOFF");
+                                step = MOS_SELECT_STEP_COMMAND;
                             }
                             break;
-                        case 10: {
-                            if (!init_3372__2) {
-                                init_3372__2 = 1;
-                                select_monster_save_3371 = 0;
-                            }
-                            int oldSelect = BuildUpWeaponInfo.select_no;
-                            if (keys & 1) {
-                                BuildUpWeaponInfo.select_no = oldSelect - 1;
-                            }
-                            if (keys & 2) {
-                                BuildUpWeaponInfo.select_no++;
-                            }
-                            if (BuildUpWeaponInfo.select_no < 0) {
-                                BuildUpWeaponInfo.select_no = 0;
-                            }
-                            if (!(BuildUpWeaponInfo.select_no < BuildUpWeaponInfo.select_num)) {
-                                BuildUpWeaponInfo.select_no = BuildUpWeaponInfo.select_num - 1;
-                            }
-                            if (oldSelect != BuildUpWeaponInfo.select_no) {
-                                MenuSePlay(0);
-                            }
-                            switch (buttons) {
-                                case 1:
-                                    select_monster_save_3371 = BuildUpWeaponInfo.select_no;
-                                    step = 11;
-                                    ExeScript(at_3686);
-                                    mes_show = 1;
-                                    mes.MsgPreset(0xB);
-                                    mes.ClsMes::mes_no = -1;
-                                    char *name = GetMonsterName(level_monster[select_monster_save_3371]);
-                                    if (name != NULL) {
-                                        strcpy(mes.name[0], name);
+                        case MOS_SELECT_STEP_CLASS_SELECT:
+                            /**
+                             *
+                             * Class-change monster chosen in the growth list, kept for the change steps.
+                             *
+                             */
+                            static int select_monster_save = 0;
+
+                            {
+                                int oldSelect = BuildUpWeaponInfo.select_no;
+                                if (keys & MENU_SELECT_KEY_UP) {
+                                    BuildUpWeaponInfo.select_no = oldSelect - 1;
+                                }
+                                if (keys & MENU_SELECT_KEY_DOWN) {
+                                    BuildUpWeaponInfo.select_no++;
+                                }
+                                if (BuildUpWeaponInfo.select_no < 0) {
+                                    BuildUpWeaponInfo.select_no = 0;
+                                }
+                                if (BuildUpWeaponInfo.select_num <= BuildUpWeaponInfo.select_no) {
+                                    BuildUpWeaponInfo.select_no = BuildUpWeaponInfo.select_num - 1;
+                                }
+                                if (oldSelect != BuildUpWeaponInfo.select_no) {
+                                    MenuSePlay(SYSTEM_SE_CURSOR);
+                                }
+                                switch (buttons) {
+                                    case MENU_PUSH_BUTTON_DECIDE: {
+                                        select_monster_save = BuildUpWeaponInfo.select_no;
+                                        step = MOS_SELECT_STEP_CLASS_CONFIRM;
+                                        ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x81\x48");
+                                        mes_show = 1;
+                                        mes.MsgPreset(MENU_SCRIPT_MES_YESNO);
+                                        mes.ClsMes::mes_no = -1;
+                                        char *name = GetMonsterName(level_monster[select_monster_save]);
+                                        if (name != NULL) {
+                                            strcpy(mes.name[0], name);
+                                        }
+                                        mes.SetAbsPos(5);
+                                        mes.MakeMsg(0x1D8);
+                                        mes.SetMsgCursor(1);
+                                        break;
                                     }
-                                    mes.SetAbsPos(5);
-                                    mes.MakeMsg(0x1D8);
-                                    mes.SetMsgCursor(1);
-                                    break;
-                                case 2:
-                                    step = 0;
-                                    ExeScript(at_3687);
-                                    MenuSePlay(5);
-                                    BuildUpWeaponInfo.mode = 0;
-                                    break;
+                                    case MENU_PUSH_BUTTON_CANCEL:
+                                        step = MOS_SELECT_STEP_COMMAND;
+                                        ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57" "2OFF");
+                                        MenuSePlay(SYSTEM_SE_CANCEL);
+                                        BuildUpWeaponInfo.mode = 0;
+                                        break;
+                                }
+                                break;
                             }
-                            break;
-                        }
-                        case 11: {
+                        case MOS_SELECT_STEP_CLASS_CONFIRM: {
                             int answer = mes.YesNoCursor2(0);
-                            if (answer == 1 && ReadBGSync() == 0) {
+                            if (answer == MES_YESNO_YES && ReadBGSync() == 0) {
                                 mes_show = 0;
                                 BuildUpWeaponInfo.mode = 0;
                                 change_wait = 0;
-                                step = 12;
-                                ExeScript(at_3688);
+                                step = MOS_SELECT_STEP_CLASS_EFFECT;
+                                ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x81\x49");
                                 MenuMonChangeLoadStack.stReset();
                                 effect.Initialize(NULL);
                                 effect_show = 0;
@@ -4171,18 +4488,18 @@ int CMenuMosSelect::KeyStep() {
                                 effect_stack.stSetBuffer(
                                     MenuMonChangeLoadStack.stack + MenuMonChangeLoadStack.stack_size - 0x3B80, 0x3980);
                                 StartReadBG();
-                                LoadFileBG(at_3689, (u_long128 *) effect_sound, &size);
-                                LoadFileBG(at_3690, effect_data, &size);
+                                LoadFileBG("snd2/sp/SP_045.snd", (u_long128 *) effect_sound, &size);
+                                LoadFileBG("menu/eff/mos_chn.chr", effect_data, &size);
                             }
-                            if (answer == 2) {
+                            if (answer == MES_YESNO_NO) {
                                 mes_show = 0;
                                 BuildUpWeaponInfo.mode = 1;
-                                step = 10;
-                                ExeScript(at_3691);
+                                step = MOS_SELECT_STEP_CLASS_SELECT;
+                                ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8E\x7E\x82\xDF");
                             }
                             break;
                         }
-                        case 12:
+                        case MOS_SELECT_STEP_CLASS_EFFECT: {
                             change_wait++;
                             if (ReadBGSync() == 0 && effect_show == 0) {
                                 if (effect_sound != NULL) {
@@ -4193,15 +4510,16 @@ int CMenuMosSelect::KeyStep() {
                                 }
                                 mgTexManager.DeleteBlock(tex_block[2]);
                                 effect.Initialize(NULL);
-                                effect.LoadPack((u_int *) effect_data, at_3692, &effect_stack, &effect_stack, &effect_stack,
+                                effect.LoadPack((u_int *) effect_data, "info.cfg", &effect_stack, &effect_stack, &effect_stack,
                                                 tex_block[2], NULL);
                                 effect.SetScale(1.5f, 1.5f, 1.5f);
+                                sceVu0FVECTOR effectPos;
                                 monster->GetPosition(effectPos);
                                 effectPos[1] += 10.2f;
                                 effectPos[0] -= 3.4f;
                                 effectPos[2] += 18.0f;
                                 effect.SetPosition(effectPos);
-                                effect.SetMotion(at_3693, 6, 1);
+                                effect.SetMotion("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57", 6, 1);
                                 effect.Step();
                                 effect_show = 1;
                                 effect_frame = 0;
@@ -4214,7 +4532,7 @@ int CMenuMosSelect::KeyStep() {
                                 if (effect_frame == 10) {
                                     load_phase = 0;
                                     select_badge->class_level++;
-                                    select_badge->monster_id = level_monster[select_monster_save_3371];
+                                    select_badge->monster_id = level_monster[select_monster_save];
                                     view_monster = select_badge->monster_id;
                                     select_badge->progress =
                                         GetMonsterProgressTableNo(select_badge->class_level, select_badge->monster_id);
@@ -4227,101 +4545,102 @@ int CMenuMosSelect::KeyStep() {
                             if (change_wait > 900 || (effect_show && effect.CheckMotionEnd(NULL))) {
                                 effect_show = 0;
                                 effect.Initialize(NULL);
-                                step = 13;
-                                ExeScript(at_3694);
+                                step = MOS_SELECT_STEP_CLASS_DONE;
+                                ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9MSG");
                                 MenuSePlay(0x1E);
-                                MonsterNameList grown = at_3412;
-                                grown.name[0] = GetMonsterName(level_monster[select_monster_save_3371]);
-                                info->SetMsgItemNo(grown.name, 1);
+                                char *grown[1] = {NULL};
+                                grown[0] = GetMonsterName(level_monster[select_monster_save]);
+                                info->SetMsgItemNo(grown, 1);
                             }
                             break;
-                        case 13:
-                        case 14:
-                        case 15:
-                            if (!(buttons & 1) && !(buttons & 2)) {
+                        }
+                        case MOS_SELECT_STEP_CLASS_DONE:
+                        case MOS_SELECT_STEP_CLASS_REWARD:
+                        case MOS_SELECT_STEP_CLASS_LAST_REWARD:
+                            if (!(buttons & MENU_PUSH_BUTTON_DECIDE) && !(buttons & MENU_PUSH_BUTTON_CANCEL)) {
                                 break;
                             }
-                            if (step == 13) {
+                            if (step == MOS_SELECT_STEP_CLASS_DONE) {
                                 level_max = 0;
-                                step = 14;
+                                step = MOS_SELECT_STEP_CLASS_REWARD;
                                 CGameDataUsed *place = GetUserDataMan()->SearchSpaceUsedDataPtr();
                                 if (place != NULL) {
                                     CGameDataUsed reward;
                                     reward.Init();
+                                    int badge_index = select;
                                     reward.item_no = 0x17F;
-                                    reward.used_type = 2;
-                                    reward.item_type = 0x22;
+                                    reward.used_type = USED_ITEM_TYPE_ATTACH;
+                                    reward.item_type = ITEM_DATA_UNK_22;
                                     reward.data.attach.spectol_value = select_badge->class_level + 1;
+                                    s16 *param = reward.data.attach.status;
                                     if (select_badge->class_level == 3) {
                                         level_max = 1;
                                     }
-                                    s16 *param = reward.data.attach.status;
-                                    for (i = 0; i < 10; i++) {
-                                        param[i] = select_badge->class_level + 3;
+                                    for (int j = 0; j < 10; j++) {
+                                        param[j] = select_badge->class_level + 3;
                                     }
-                                    param[convert_table_3430[select]] += select_badge->class_level * 2;
+                                    param[convert_table[badge_index]] += select_badge->class_level * 2;
                                     place->CopyGameData(&reward);
-                                    ExeScript(at_3695);
+                                    ExeScript("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x82\xB5\x82\xB8\x82\xAD");
                                 } else {
-                                    ExeScript(at_3696);
+                                    ExeScript("\x83\x82\x83\x93\x83\x58\x83\x5E\x81\x5B\x82\xB5\x82\xB8\x82\xADNOT");
                                 }
-                            } else if (step == 14) {
+                            } else if (step == MOS_SELECT_STEP_CLASS_REWARD) {
                                 if (level_max) {
-                                    int got = MenuUserDataManPtr->GetItem(ghobitbl_3437[select], 5);
+                                    int got = MenuUserDataManPtr->GetItem(ghobitbl[select], 5);
                                     if (0 < got) {
-                                        ExeScript(at_3697);
-                                        MonsterNameList item = at_3440;
-                                        item.name[0] = GetItemMessage(ghobitbl_3437[select]);
-                                        MenuDCMsg[6]->SetMsgItemNo(item.name, 1);
+                                        ExeScript("GET_LAST");
+                                        char *item[1] = {NULL};
+                                        item[0] = GetItemMessage(ghobitbl[select]);
+                                        MenuDCMsg[6]->SetMsgItemNo(item, 1);
                                         MenuDCMsg[6]->SetMsgVolumeNoOne(got);
                                     } else {
-                                        ExeScript(at_3698);
-                                        action = 500;
+                                        ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9");
+                                        action = MOS_SELECT_ACTION_BADGES;
                                     }
                                     step++;
                                 } else {
-                                    ExeScript(at_3698);
-                                    action = 500;
+                                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57\x8F\x49\x97\xB9");
+                                    action = MOS_SELECT_ACTION_BADGES;
                                 }
-                            } else if (step == 15) {
-                                action = 500;
+                            } else if (step == MOS_SELECT_STEP_CLASS_LAST_REWARD) {
+                                action = MOS_SELECT_ACTION_BADGES;
                             }
                             break;
-                        case 20: {
-                            int cursor = info->AddMsgCursor2(0, select_badge->class_level, 0);
+                        case MOS_SELECT_STEP_FORM_SELECT: {
+                            int cursor = info->AddMsgCursor2(0, select_badge->class_level, 1);
                             view_monster = monster_progress_tbl[select_badge->progress][1 + cursor];
                             switch (buttons) {
-                                case 1:
-                                    if (GetUserDataMan()->active_chr_no == 3 &&
-                                        view_monster == GetUserDataMan()->monster_id) {
-                                        MenuSePlay(5);
+                                case MENU_PUSH_BUTTON_DECIDE:
+                                    if (GetUserDataMan()->GetActiveChrNo() == USER_CHARA_MONSTER &&
+                                        GetUserDataMan()->GetMonsterID() == view_monster) {
+                                        MenuSePlay(SYSTEM_SE_CANCEL);
                                     } else {
-                                        action = 10;
+                                        action = MOS_SELECT_ACTION_TRANSFORM;
                                     }
                                     break;
-                                case 2:
-                                    action = 600;
+                                case MENU_PUSH_BUTTON_CANCEL:
+                                    action = MOS_SELECT_ACTION_COMMANDS;
                                     break;
                             }
                             break;
                         }
                     }
                     break;
-                case 2: {
+                case MOS_SELECT_PAGE_STATUS: {
                     s16 *row = monster_progress_tbl[select_badge->progress];
-                    int  count = select_badge->class_level + 1;
                     int  level = -1;
-                    for (i = 0; i < count; i++) {
-                        if (view_monster == row[1 + i]) {
-                            level = i;
+                    for (int j = 0; j < select_badge->class_level + 1; j++) {
+                        if (view_monster == row[1 + j]) {
+                            level = j;
                             break;
                         }
                     }
                     int move = 0;
-                    if ((lrKeys & 0x20) || (lrKeys & 0x80)) {
+                    if ((lrKeys & MENU_SELECT_KEY_R1) || (lrKeys & MENU_SELECT_KEY_R2)) {
                         move = 1;
                     }
-                    if ((lrKeys & 0x10) || (lrKeys & 0x40)) {
+                    if ((lrKeys & MENU_SELECT_KEY_L1) || (lrKeys & MENU_SELECT_KEY_L2)) {
                         move = -1;
                     }
                     int oldLevel = level;
@@ -4333,126 +4652,129 @@ int CMenuMosSelect::KeyStep() {
                         level = 0;
                     }
                     if (level != oldLevel) {
+                        view_monster = monster_progress_tbl[select_badge->progress][1 + level];
                         showInfo = 1;
-                        view_monster = row[1 + level];
                         pick_monster = view_monster;
                         load_wait = 0;
                         load_phase = 0;
-                        MenuSePlay(0);
+                        MenuSePlay(SYSTEM_SE_CURSOR);
                     }
                     switch (buttons) {
-                        case 1:
-                        case 4:
-                            action = 5;
+                        case MENU_PUSH_BUTTON_DECIDE:
+                        case MENU_PUSH_BUTTON_TRIANGLE:
+                            action = MOS_SELECT_ACTION_REJECT;
                             break;
-                        case 2:
-                            action = 500;
+                        case MENU_PUSH_BUTTON_CANCEL:
+                            action = MOS_SELECT_ACTION_BADGES;
                             break;
                     }
                     break;
                 }
             }
             switch (action) {
-                case 5:
-                    MenuSePlay(5);
+                case MOS_SELECT_ACTION_REJECT:
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                     break;
-                case 500:
-                    ExeScript(at_3699);
+                case MOS_SELECT_ACTION_BADGES:
+                    ExeScript("\x83\x6F\x83\x62\x83\x57\x91\x49\x91\xF0\x82\xC9\x96\xDF\x82\xE9");
                     model_side = 0;
-                    key_arg_no = 0;
+                    key_arg_no = MOS_SELECT_PAGE_BADGE;
                     break;
-                case 600: {
-                    ExeScript(at_3700);
+                case MOS_SELECT_ACTION_COMMANDS: {
+                    ExeScript("\x83\x6F\x83\x62\x83\x57\x83\x52\x83\x7D\x83\x93\x83\x68");
                     int             commandNum = 3;
-                    int             row = 0;
-                    MenuCommandList commands = at_3481;
+                    int             row;
+                    int             commands[8] = {MOS_SELECT_CMD_TRANSFORM, MOS_SELECT_CMD_STATUS, MOS_SELECT_CMD_CLASS_CHANGE, -1, -1, -1};
+                    row = 0;
                     for (; row < commandNum; row++) {
-                        if (commands.mes[row] == 0x14B6) {
-                            if (MenuCommonInfo->now_mode == 2 || GetMenuLoopType() == 0) {
-                                local_sort1(row, &commandNum, commands.mes);
+                        if (commands[row] == MOS_SELECT_CMD_TRANSFORM) {
+                            if (MenuCommonInfo->now_mode == MENU_MODE_ITEM || GetMenuLoopType() == MENU_LOOP_TOWN) {
+                                local_sort1(row, &commandNum, commands);
                             } else {
-                                if (MenuUserDataManPtr->CheckEnableCharaChange(3, NULL) == 0 && row >= 0 && row < 20) {
-                                    command->line_color[row] = 0x80202020;
+                                if (MenuUserDataManPtr->CheckEnableCharaChange(USER_CHARA_MONSTER, NULL) == 0 && row >= 0 && row < MES_LINE_MAX) {
+                                    command->line_color[row] = MES_COLOR_DARK;
                                 }
-                                if (select_badge != NULL && select_badge->hp.GetRate() <= 0.0f && row >= 0 && row < 20) {
-                                    command->line_color[row] = 0x80202020;
-                                }
-                                int attr = MenuUserDataManPtr->GetCharaStatusAttirbute(MenuUserDataManPtr->active_chr_no);
-                                if (((attr & 4) || (attr & 8) || (attr & 0x20)) && row >= 0 && row < 20) {
-                                    command->line_color[row] = 0x80202020;
+                                if (select_badge != NULL) {
+                                    if (select_badge->hp.GetRate() <= 0.0f && row >= 0 && row < MES_LINE_MAX) {
+                                        command->line_color[row] = MES_COLOR_DARK;
+                                    }
+                                    int attr = MenuUserDataManPtr->GetCharaStatusAttirbute(MenuUserDataManPtr->active_chr_no);
+                                    if (((attr & CHARA_STATUS_UNK_4) || (attr & CHARA_STATUS_UNK_8) || (attr & CHARA_STATUS_UNK_20)) && row >= 0 && row < MES_LINE_MAX) {
+                                        command->line_color[row] = MES_COLOR_DARK;
+                                    }
                                 }
                             }
                         }
-                        if (commands.mes[row] == 0x14B8 && select_badge != NULL && !select_badge->CheckClassChange()) {
-                            local_sort1(row, &commandNum, commands.mes);
+                        if (commands[row] == MOS_SELECT_CMD_CLASS_CHANGE && select_badge != NULL && !select_badge->CheckClassChange()) {
+                            local_sort1(row, &commandNum, commands);
                         }
                     }
                     command->MakeMsg(commandNum);
-                    command->SetMsgItemNo(commands.mes, commandNum);
+                    command->SetMsgItemNo(commands, commandNum);
                     command->SetMsgCursor(0);
                     MenuMesForm[6]->draw_flag = 0;
-                    step = 0;
-                    key_arg_no = 1;
-                    MenuSePlay(0x13);
+                    step = MOS_SELECT_STEP_COMMAND;
+                    key_arg_no = MOS_SELECT_PAGE_COMMAND;
+                    MenuSePlay(SYSTEM_SE_WINDOW);
                     break;
                 }
-                case 1000:
-                    mode = 2;
+                case MOS_SELECT_ACTION_CLOSE:
+                    mode = MENU_ASK_MODE_CLOSE;
                     result = MOS_SELECT_RESULT_CLOSE;
                     FadeOutMenu(40, 0.0f);
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                     break;
-                case 12: {
-                    step = 2;
+                case MOS_SELECT_ACTION_FORM_LIST: {
+                    step = MOS_SELECT_STEP_FORM_SELECT;
                     MenuMesForm[6]->draw_flag = 1;
-                    MenuSePlay(1);
-                    info->MsgPreset(6);
-                    MonsterNameTable names = at_3511;
-                    for (i = 0; i < select_badge->class_level + 1; i++) {
-                        names.name[i] = GetMonsterName(monster_progress_tbl[select_badge->progress][1 + i]);
-                        if (GetUserDataMan()->active_chr_no == 3 &&
-                            monster_progress_tbl[select_badge->progress][1 + i] == GetUserDataMan()->monster_id &&
-                            i >= 0 && i < 20) {
-                            info->line_color[i] = 0x80202020;
+                    MenuSePlay(SYSTEM_SE_DECIDE);
+                    info->MsgPreset(MENU_SCRIPT_MES_ITEMCMD);
+                    char *names[8] = {NULL};
+                    for (int name_index = 0; name_index < select_badge->class_level + 1; name_index++) {
+                        names[name_index] = GetMonsterName(monster_progress_tbl[select_badge->progress][1 + name_index]);
+                        if (GetUserDataMan()->GetActiveChrNo() == USER_CHARA_MONSTER &&
+                            GetUserDataMan()->GetMonsterID() == monster_progress_tbl[select_badge->progress][1 + name_index] &&
+                            name_index >= 0 && name_index < MES_LINE_MAX) {
+                            info->line_color[name_index] = MES_COLOR_DARK;
                         }
                     }
-                    info->SetMsgItemNo(names.name, select_badge->class_level + 1);
+                    info->SetMsgItemNo(names, select_badge->class_level + 1);
                     info->MakeMsg(select_badge->class_level + 0x32);
                     info->SetMsgCursor(0);
                     break;
                 }
-                case 10: {
-                    MenuLoadInfo.unk_6[1] = 1;
-                    if (MenuLoadInfo.unk_6[1] == 1 && FxScriptMan != NULL) {
+                case MOS_SELECT_ACTION_TRANSFORM: {
+                    MenuLoadInfo.update_scene = 1;
+                    if (MenuLoadInfo.update_scene == 1 && FxScriptMan != NULL) {
                         DeleteMonsterEffect();
                     }
-                    GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, 3, 0);
-                    MenuMosLoadStack.stReset();
+                    GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, USER_CHARA_MONSTER, 0);
                     MenuLoadInfo.mode = 2;
-                    MenuLoadInfo.unk_6[1] = 1;
+                    MenuLoadInfo.update_scene = 1;
+                    MenuMosLoadStack.stReset();
                     result = MOS_SELECT_RESULT_CHANGE;
                     monster->Initialize(NULL);
                     load_wait = 0;
                     load_phase = 0;
                     FadeOutMenu(40, 0.0f);
-                    mode = 2;
+                    mode = MENU_ASK_MODE_CLOSE;
                     MOS_CHANGE_PARAM *chosen = select_badge;
                     s16               monsterNo = monster_progress_tbl[chosen->progress][1 + info->GetMsgCursor()];
                     chosen->monster_id = monsterNo;
                     view_monster = monsterNo;
                     load_monster = -1;
-                    MenuUserDataManPtr->SetActiveChrNo(3);
+                    MenuUserDataManPtr->SetActiveChrNo(USER_CHARA_MONSTER);
                     MenuUserDataManPtr->monster_id = monsterNo;
                     MenuSePlay(0x10);
                     break;
                 }
-                case 11:
-                    ExeScript(at_3701);
-                    step = 1;
+                case MOS_SELECT_ACTION_CANNOT_TRANSFORM:
+                    ExeScript("NOT_\x95\xCF\x89\xBB");
+                    step = MOS_SELECT_STEP_ERROR;
                     break;
-                case 20:
-                    key_arg_no = 2;
-                    ExeScript(at_3702);
+                case MOS_SELECT_ACTION_STATUS:
+                    key_arg_no = MOS_SELECT_PAGE_STATUS;
+                    ExeScript("\x83\x58\x83\x65\x81\x5B\x83\x5E\x83\x58\x82\xF0\x8C\xA9\x82\xE9");
                     view_monster = select_badge->monster_id;
                     if (select_badge != NULL) {
                         showInfo = 1;
@@ -4460,20 +4782,20 @@ int CMenuMosSelect::KeyStep() {
                     model_side = 1;
                     MenuSePlay(2);
                     break;
-                case 30: {
+                case MOS_SELECT_ACTION_CLASS_CHANGE: {
                     BuildUpWeaponInfo.monster_mode = 1;
-                    step = 10;
+                    step = MOS_SELECT_STEP_CLASS_SELECT;
                     int monsterNo = monster_progress_tbl[select_badge->progress][1 + select_badge->class_level];
                     level_num = get_monster_tbl_bajjilevel(level_monster, select, monsterNo, select_badge->class_level + 1);
-                    MonsterNameTable names = at_3529;
-                    ExeScript(at_3703);
-                    names.name[0] = at_3704;
-                    names.name[1] = GetMonsterName(monsterNo);
-                    for (i = 0; i < level_num; i++) {
-                        names.name[2 + i] = GetMonsterName(level_monster[i]);
+                    char *names[8] = {NULL};
+                    ExeScript("\x83\x4E\x83\x89\x83\x58\x83\x60\x83\x46\x83\x93\x83\x57" "2");
+                    names[0] = "  ";
+                    names[1] = GetMonsterName(monsterNo);
+                    for (int name_index = 0; name_index < level_num; name_index++) {
+                        names[2 + name_index] = GetMonsterName(level_monster[name_index]);
                     }
                     info->MakeMsg(level_num + 0x33);
-                    info->SetMsgItemNo(names.name, level_num + 2);
+                    info->SetMsgItemNo(names, level_num + 2);
                     info->StepMsg();
                     BuildUpWeaponInfo.select_no = 0;
                     BuildUpWeaponInfo.mode = 1;
@@ -4489,30 +4811,31 @@ int CMenuMosSelect::KeyStep() {
         load_phase = 0;
         pick_monster = view_monster;
     }
-    if (select_badge != NULL && select_badge->enable == 1 && select_badge->class_level > 0) {
-        if (key_arg_no == 2) {
-            info_win.alpha += 8;
-            if (info_win.alpha > 0x80) {
-                info_win.alpha = 0x80;
+    if (select_badge != NULL) {
+        if (select_badge->enable == 1 && select_badge->class_level > 0) {
+            if (key_arg_no == MOS_SELECT_PAGE_STATUS) {
+                info_win.alpha += 8;
+                if (info_win.alpha > 0x80) {
+                    info_win.alpha = 0x80;
+                }
+            } else {
+                int alpha = info_win.alpha - 8;
+                if (alpha < 0) {
+                    alpha = 0;
+                }
+                info_win.alpha = alpha;
             }
         } else {
-            int alpha = info_win.alpha - 8;
-            if (alpha < 0) {
-                alpha = 0;
-            }
-            info_win.alpha = alpha;
+            info_win.alpha = 0;
         }
-    } else {
-        info_win.alpha = 0;
     }
     if (showInfo && select_badge != NULL) {
-        BadgeInfoValues values = at_3554;
+        int             values[6] = {0};
         int             base = view_monster * 10 + 10000;
-        int             degree = select_badge->GetDegreeLevel();
-        values.value[2] = base + 10;
-        values.value[3] = base + 11;
-        values.value[4] = -1;
-        values.value[1] = select * 20 + degree + 1;
+        values[1] = select_badge->GetDegreeLevel() + 1 + select * 20;
+        values[2] = base + 10;
+        values[3] = base + 11;
+        values[4] = -1;
         CDC2Mes *desc = MenuDCMsg[7];
         desc->ClsMes::mes_no = -1;
         desc->value_zero = 1;
@@ -4522,7 +4845,7 @@ int CMenuMosSelect::KeyStep() {
             desc->value_half = 1;
             desc->value_space = 1;
         }
-        desc->SetMsgItemNo(values.value, 4);
+        desc->SetMsgItemNo(values, 4);
         desc->SetMsgVolumeNoOne(select_badge->level + 1);
         char *name = GetMonsterName(view_monster);
         if (name != NULL) {
@@ -4533,25 +4856,25 @@ int CMenuMosSelect::KeyStep() {
         MOS_CHANGE_PARAM *shown = &badge[select];
         if (info_form != NULL) {
             if (shown != NULL) {
-                info_form->SetNumber(get_stringtbl_3557[0], GetDispVolumeForFloat(shown->hp.now));
-                info_form->SetNumber(get_stringtbl_3557[1], GetDispVolumeForFloat(shown->hp.max));
+                info_form->SetNumber(get_stringtbl[0], GetDispVolumeForFloat(shown->hp.now));
+                info_form->SetNumber(get_stringtbl[1], GetDispVolumeForFloat(shown->hp.max));
                 float absRate = shown->abs.GetRate();
-                info_form->SetNumber(get_stringtbl_3557[2], GetDispVolumeForFloat(100.0f * absRate));
-                info_form->SetNumber(get_stringtbl_3557[3], 100);
-                MENUFORMPARTS_TYPE *hpBar = info_form->GetPartInfo(at_3705);
+                info_form->SetNumber(get_stringtbl[2], GetDispVolumeForFloat(100.0f * absRate));
+                info_form->SetNumber(get_stringtbl[3], 100);
+                MENUFORMPARTS_TYPE *hpBar = info_form->GetPartInfo("life");
                 if (hpBar != NULL) {
                     hpBar->w = 168.0f * shown->hp.GetRate();
                 }
-                MENUFORMPARTS_TYPE *absBar = info_form->GetPartInfo(at_3706);
+                MENUFORMPARTS_TYPE *absBar = info_form->GetPartInfo("abs");
                 if (absBar != NULL) {
                     absBar->w = 168.0f * absRate;
                 }
-                info_form->SetNumber(at_3707, shown->GetAttackVol(view_monster));
-                info_form->SetNumber(at_3708, shown->GetDefenceVol(view_monster));
+                info_form->SetNumber("\x8D\x55\x90\x94", shown->GetAttackVol(view_monster));
+                info_form->SetNumber("\x96\x68\x90\x94", shown->GetDefenceVol(view_monster));
             } else {
-                info_form->SetNumber(get_stringtbl_3557[0], 0);
-                info_form->SetNumber(get_stringtbl_3557[2], 0);
-                info_form->SetNumber(get_stringtbl_3557[3], 100);
+                info_form->SetNumber(get_stringtbl[0], 0);
+                info_form->SetNumber(get_stringtbl[2], 0);
+                info_form->SetNumber(get_stringtbl[3], 100);
             }
         }
     }
@@ -4561,9 +4884,7 @@ int CMenuMosSelect::KeyStep() {
     CalcCursorPosition();
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", KeyStep__14CMenuMosSelectFv);
-#endif
+
 int MenuMonsterBoxKey() {
     return MenuMosSelectPtr->KeyStep();
 }
@@ -4633,8 +4954,8 @@ void MenuTimeStepEnvFunc(CScene *scene, CActionChara *chara, int step) {
         return;
     }
 
-    sun = chara->SearchObject(at_3779);
-    moon = chara->SearchObject(at_3780);
+    sun = chara->SearchObject("w15a");
+    moon = chara->SearchObject("w15b");
 
     if (sun == NULL || moon == NULL) {
         return;
@@ -4654,7 +4975,7 @@ void MenuWeaponRealStepEnvFunc(CActionChara *chara, int step) {
     float     rotation[4];
 
     if (step == 0x58) {
-        object = chara->SearchObject(at_3790);
+        object = chara->SearchObject("parts01");
 
         if (object != NULL) {
             object->GetRotation(rotation);
@@ -4667,7 +4988,6 @@ void MenuWeaponRealStepEnvFunc(CActionChara *chara, int step) {
 
 int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **info, int restart_read) {
     char           name[MENU_CHARA_LOAD_MAX][0x40];
-    CharaPathKinds path_kind;
     int            i;
 
     if (restart_read) {
@@ -4686,7 +5006,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
     }
 
     stack->Align64();
-    path_kind = at_3810;
+    s8 path_kind[MENU_CHARA_LOAD_MAX] = {0, 2, 1, 1, 2, 2, 3};
 
     for (u32 slot = 0; slot < MENU_CHARA_LOAD_MAX; slot++) {
         name[slot][0] = 0;
@@ -4700,7 +5020,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
         case 0:
         case 3:
             if (MenuLoadInfo.mode == 3) {
-                strcpy(name[0], at_3913);
+                strcpy(name[0], "c01b_think.chr");
             }
 
             for (i = 0; i < 4; i++) {
@@ -4714,7 +5034,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
 
             break;
         case 1:
-            strcpy(name[0], at_3913);
+            strcpy(name[0], "c01b_think.chr");
 
             if (0 < MenuLoadItemNo[2]) {
                 strcpy(name[4], GetItemFileName(MenuLoadItemNo[2], 1));
@@ -4726,15 +5046,15 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
 
             break;
         case 2:
-            path_kind.kind[0] = pathtbl_3836[MenuLoadInfo.alternate_model];
+            path_kind[0] = pathtbl_3836[MenuLoadInfo.alternate_model];
 
             if (MenuLoadInfo.alternate_model == 0) {
-                path_kind.kind[0] = 4;
+                path_kind[0] = 4;
                 GetMainCharaModelName(chara_no, name[0], 0);
             }
 
             if (MenuLoadInfo.alternate_model == 1) {
-                path_kind.kind[0] = 5;
+                path_kind[0] = 5;
                 GetMainCharaModelName(chara_no, name[0], 1);
             }
 
@@ -4776,7 +5096,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
         }
 
         if (MenuLoadInfo.load_all == 1 || (MenuLoadInfo.load_all == 0 && i == MenuLoadInfo.load_phase)) {
-            strcpy(info[i]->path, menu_load_chrpathtbl_3811[path_kind.kind[i]]);
+            strcpy(info[i]->path, menu_load_chrpathtbl_3811[path_kind[i]]);
             info[i]->chara = NULL;
             strcpy(info[i]->name, name[i]);
             strcat(info[i]->path, info[i]->name);
@@ -4824,7 +5144,7 @@ static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CAction
                 break;
             case 1:
                 tex_manager->DeleteTexAnime(tex_block);
-                body->LoadSkin(pack, menu_infocfgname, at_2287, stack, tex_block);
+                body->LoadSkin(pack, menu_infocfgname, "", stack, tex_block);
                 break;
             case 2:
             case 3:
@@ -4860,7 +5180,7 @@ static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CAction
                     chara->Initialize(NULL);
                 }
 
-                body->LoadSkin(pack, menu_infocfgname, at_3969, stack, tex_block);
+                body->LoadSkin(pack, menu_infocfgname, "skin3", stack, tex_block);
                 break;
         }
     }
@@ -4872,47 +5192,47 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
     mgCTextureManager *tex_manager = &mgTexManager;
     CScene            *scene = MenuMainScene;
     CActionChara      *player = NULL;
-    SceneCharaList     scene_chara = at_3974;
-    SceneCharaList     menu_chara = at_3975;
+    CActionChara *scene_chara[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    CActionChara *menu_chara[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 
     if (chara != NULL) {
-        menu_chara.entry[0] = chara[0];
-        menu_chara.entry[1] = NULL;
-        menu_chara.entry[2] = chara[1];
-        menu_chara.entry[3] = chara[2];
-        menu_chara.entry[4] = chara[3];
-        menu_chara.entry[5] = chara[4];
-        menu_chara.entry[6] = chara[5];
+        menu_chara[0] = chara[0];
+        menu_chara[1] = NULL;
+        menu_chara[2] = chara[1];
+        menu_chara[3] = chara[2];
+        menu_chara[4] = chara[3];
+        menu_chara[5] = chara[4];
+        menu_chara[6] = chara[5];
     }
 
-    if (scene != NULL && MenuLoadInfo.unk_6[1] != 0) {
+    if (scene != NULL && MenuLoadInfo.update_scene != 0) {
         for (i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
-            scene_chara.entry[i] = (CActionChara *) scene->GetCharacter(i);
+            scene_chara[i] = (CActionChara *) scene->GetCharacter(i);
         }
 
-        player = scene_chara.entry[0];
+        player = scene_chara[0];
 
         if (MenuLoadInfo.mode == 0 || MenuLoadInfo.mode == 1) {
-            scene_chara.entry[0] = NULL;
+            scene_chara[0] = NULL;
         }
 
         if (MenuLoadInfo.alternate_model == 1) {
-            scene_chara.entry[1] = NULL;
+            scene_chara[1] = NULL;
 
             if (chara_no == 0) {
-                scene_chara.entry[2] = NULL;
+                scene_chara[2] = NULL;
             }
         }
     }
 
-    LoadTargetList8 scene_target = at_3993;
-    scene_target.entry[0] = scene_chara.entry[0];
-    scene_target.entry[1] = player;
-    scene_target.entry[2] = scene_chara.entry[1];
-    scene_target.entry[3] = scene_chara.entry[2];
-    scene_target.entry[4] = scene_chara.entry[3];
-    scene_target.entry[5] = scene_chara.entry[4];
-    scene_target.entry[6] = scene_chara.entry[5];
+    CActionChara *scene_target[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    scene_target[0] = scene_chara[0];
+    scene_target[1] = player;
+    scene_target[2] = scene_chara[1];
+    scene_target[3] = scene_chara[2];
+    scene_target[4] = scene_chara[3];
+    scene_target[5] = scene_chara[4];
+    scene_target[6] = scene_chara[5];
 
     switch (MenuLoadInfo.mode) {
         case 2:
@@ -4928,8 +5248,8 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
                     tex_manager->DeleteBlock(tex_block);
 
                     for (int slot = 0; slot < 6; slot++) {
-                        if (menu_chara.entry[slot] != NULL) {
-                            menu_chara.entry[slot]->Initialize(NULL);
+                        if (menu_chara[slot] != NULL) {
+                            menu_chara[slot]->Initialize(NULL);
                         }
                     }
                 }
@@ -4949,7 +5269,7 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
             continue;
         }
 
-        info[i]->chara = menu_chara.entry[i];
+        info[i]->chara = menu_chara[i];
         mgCMemory *buffer = &MenuActionCharaBuffer[i];
 
         if (buffer != NULL) {
@@ -4964,7 +5284,7 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
             case 0:
             case 1:
             case 3:
-                strcpy(tex_manager->name_suffix, at_4123);
+                strcpy(tex_manager->name_suffix, "_menu");
                 MenuItemCharaDataLoadPack(chara_no, info[i]->chara, info[0]->chara, i, (u_int *) read->buffer, buffer,
                                           tex_block, -1);
                 tex_manager->name_suffix[0] = 0;
@@ -4974,13 +5294,13 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
         switch (MenuLoadInfo.mode) {
             case 0:
             case 2:
-                if (scene_target.entry[i] != NULL) {
+                if (scene_target[i] != NULL) {
                     mgCMemory *scene_stack = &MorattaStack[i];
                     scene_stack->stReset();
-                    MenuItemCharaDataLoadPack(chara_no, scene_target.entry[i], player, i, (u_int *) read->buffer,
+                    MenuItemCharaDataLoadPack(chara_no, scene_target[i], player, i, (u_int *) read->buffer,
                                               scene_stack, scene_tex_block, chara_no);
 
-                    if (i == 0 && scene_target.entry[0] != NULL) {
+                    if (i == 0 && scene_target[0] != NULL) {
                         player->SetPosition(menu_old_chara_position);
                     }
                 }
@@ -5016,11 +5336,11 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
                 info[6]->reading = 0;
             }
 
-            if (MenuLoadInfo.unk_6[1] != 0) {
+            if (MenuLoadInfo.update_scene != 0) {
                 MorattaStack[6].stReset();
 
-                if (scene_chara.entry[0] != NULL) {
-                    scene_chara.entry[0]->LoadActionFile((char *) script->buffer, script->size, &MorattaStack[6]);
+                if (scene_chara[0] != NULL) {
+                    scene_chara[0]->LoadActionFile((char *) script->buffer, script->size, &MorattaStack[6]);
                 }
             }
 
@@ -5099,7 +5419,6 @@ unsigned int MenuCharaSoundLoad(mgCMemory *stack, int chara_no, int background) 
 }
 
 void MenuCharaSoundEnter(CScene *scene, CActionChara *chara, int open_port) {
-    signed char chara_ids[4];
 
     if (scene != NULL && chara != NULL) {
         chara->sound_info.foot_se_bank = scene->se_base_id;
@@ -5113,7 +5432,7 @@ void MenuCharaSoundEnter(CScene *scene, CActionChara *chara, int open_port) {
 
         if (buffer != NULL) {
             int index;
-            *(float *) chara_ids = at_4158;
+            signed char chara_ids[USER_CHARA_NUM] = {3, 3, 1, 0};
             index = MenuSoundCharaNo;
 
             if (index < 0) {
@@ -5142,10 +5461,10 @@ unsigned int MenuItemChrLoad(mgCMemory *stack, int item_no, int variant, MENU_BG
     GetGameDataPt();
     info->reading = 1;
     info->chara = 0;
-    strcpy((char *) info, GetItemFileName(item_no, 0));
+    strcpy(info->name, GetItemFileName(item_no, 0));
 
     if (variant == 1) {
-        strcat((char *) info, at_4186__2);
+        strcat(info->name, "_item.chr");
     }
 
     strcpy((char *) &info->path, GetItemFilePath(item_no, 1));
@@ -5177,7 +5496,7 @@ int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMem
         info->chara = chara;
 
         if (chara != NULL) {
-            strcpy(tex_manager->name_suffix, at_4123);
+            strcpy(tex_manager->name_suffix, "_menu");
             chara->Initialize(NULL);
             chara->LoadPack(model_buffer, menu_infocfgname, stack, stack, stack, tex_block,
                             0);
@@ -5191,10 +5510,12 @@ int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMem
     return 0;
 }
 
-extern s8   convItoPhase_4229[6];
-extern char at_4276__2[];
-extern char at_4277[];
-extern char at_4278[];
+/**
+ *
+ * Background loading phase associated with each ridepod part.
+ *
+ */
+static s8 convItoPhase_4229[6] = {0, 1, 2, 2, 4, 2};
 
 int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart_read) {
     int i;
@@ -5233,7 +5554,7 @@ int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart
             continue;
         }
 
-        strcpy(info[i]->path, at_4276__2);
+        strcpy(info[i]->path, "dungeon/robo/");
         info[i]->chara = NULL;
         info[i]->name[0] = 0;
 
@@ -5272,8 +5593,8 @@ int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart
         MENU_BGREAD_INFO2 *hat = info[6];
         hat->reading = 1;
         hat->chara = NULL;
-        strcpy(hat->name, at_4277);
-        strcpy(hat->path, at_4278);
+        strcpy(hat->name, "robo.stb");
+        strcpy(hat->path, "dungeon/act_script/robo.stb");
         LoadFileBG(hat->path, stack->stGetTop(), &size);
         stack->Alloc(blocks_for(size));
         stack->Align64();
@@ -5288,10 +5609,10 @@ void DeleteOutLineMenu(CActionChara *chara, int alternate) {
 
     if (chara != NULL) {
         mgCTextureManager *tex_manager = &mgTexManager;
-        sprintf(name, at_4296, chara->outline_tex_no);
+        sprintf(name, "out_line2%d", chara->outline_tex_no);
 
         if (alternate != 0) {
-            strcat(name, at_4123);
+            strcat(name, "_menu");
         }
 
         tex_manager->DeleteTexture(name, -1);
@@ -5303,13 +5624,13 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
     CActionChara      *parent = NULL;
     mgCTextureManager *tex_manager = &mgTexManager;
     CScene            *scene = MenuMainScene;
-    RoboCharaList      scene_chara = at_4300__2;
+    CActionChara *scene_chara[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
     int                i;
     mgCMemory         *part_stack;
 
-    if (scene != NULL && MenuLoadInfo.unk_6[1] != 0) {
+    if (scene != NULL && MenuLoadInfo.update_scene != 0) {
         for (i = 0; i < 6; i++) {
-            scene_chara.entry[i] = (CActionChara *) scene->GetCharacter(i);
+            scene_chara[i] = (CActionChara *) scene->GetCharacter(i);
         }
     }
 
@@ -5319,15 +5640,15 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
         if (0 < tex_block) {
             tex_manager->DeleteBlock(tex_block);
 
-            if (MenuLoadInfo.unk_6[1] != 0) {
+            if (MenuLoadInfo.update_scene != 0) {
                 tex_manager->DeleteBlock(scene_tex_block);
             }
         }
     }
 
     if (MenuLoadInfo.load_all == 0 && MenuLoadInfo.request_phase == 0) {
-        if (MenuLoadInfo.unk_6[1] != 0) {
-            DeleteOutLineMenu(scene_chara.entry[0], 0);
+        if (MenuLoadInfo.update_scene != 0) {
+            DeleteOutLineMenu(scene_chara[0], 0);
         }
 
         if (chara[0] != NULL) {
@@ -5335,21 +5656,21 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
         }
     }
 
-    RoboStackList menu_stack = at_4327;
-    RoboStackList scene_stack = at_4328;
-    scene_stack.entry[1] = &MorattaStack[1];
-    scene_stack.entry[0] = &MorattaStack[0];
-    scene_stack.entry[2] = &MorattaStack[2];
-    scene_stack.entry[4] = &MorattaStack[3];
-    scene_stack.entry[3] = &MorattaStack[2];
-    scene_stack.entry[5] = &MorattaStack[2];
-    SceneCharaList menu_chara = at_4329;
-    menu_chara.entry[0] = chara[0];
-    menu_chara.entry[1] = chara[1];
-    menu_chara.entry[2] = chara[2];
-    menu_chara.entry[3] = chara[3];
-    menu_chara.entry[4] = chara[4];
-    menu_chara.entry[5] = chara[5];
+    mgCMemory *menu_stack[6] = {&MenuActionCharaBuffer[0], &MenuActionCharaBuffer[1], &MenuActionCharaBuffer[2], &MenuActionCharaBuffer[2], &MenuActionCharaBuffer[3], &MenuActionCharaBuffer[2]};
+    mgCMemory *scene_stack[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+    scene_stack[1] = &MorattaStack[1];
+    scene_stack[0] = &MorattaStack[0];
+    scene_stack[2] = &MorattaStack[2];
+    scene_stack[4] = &MorattaStack[3];
+    scene_stack[3] = &MorattaStack[2];
+    scene_stack[5] = &MorattaStack[2];
+    CActionChara *menu_chara[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    menu_chara[0] = chara[0];
+    menu_chara[1] = chara[1];
+    menu_chara[2] = chara[2];
+    menu_chara[3] = chara[3];
+    menu_chara[4] = chara[4];
+    menu_chara[5] = chara[5];
 
     for (int part = 0; part < 6; part++) {
         if (info[part] == NULL || info[part]->reading == 0) {
@@ -5363,55 +5684,55 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
         }
 
         u_int         *pack = (u_int *) read->buffer;
-        CActionChara **slot = &menu_chara.entry[part];
+        CActionChara **slot = &menu_chara[part];
         info[part]->chara = *slot;
 
         if (MenuLoadInfo.mode == 2) {
-            menu_chara.entry[part] = NULL;
+            menu_chara[part] = NULL;
         }
 
         if (MenuLoadInfo.mode != 2) {
             if (part == 2) {
-                strcpy(tex_manager->name_suffix, at_4123);
+                strcpy(tex_manager->name_suffix, "_menu");
 
-                if (menu_chara.entry[2] != NULL) {
-                    menu_chara.entry[2]->DeleteImage();
+                if (menu_chara[2] != NULL) {
+                    menu_chara[2]->DeleteImage();
                 }
 
-                if (menu_chara.entry[3] != NULL) {
-                    menu_chara.entry[3]->DeleteImage();
+                if (menu_chara[3] != NULL) {
+                    menu_chara[3]->DeleteImage();
                 }
 
-                if (menu_chara.entry[5] != NULL) {
-                    menu_chara.entry[5]->DeleteImage();
+                if (menu_chara[5] != NULL) {
+                    menu_chara[5]->DeleteImage();
                 }
 
                 tex_manager->name_suffix[0] = 0;
 
-                if (MenuLoadInfo.unk_6[1] != 0) {
-                    if (scene_chara.entry[2] != NULL) {
-                        scene_chara.entry[2]->DeleteImage();
+                if (MenuLoadInfo.update_scene != 0) {
+                    if (scene_chara[2] != NULL) {
+                        scene_chara[2]->DeleteImage();
                     }
 
-                    if (scene_chara.entry[3] != NULL) {
-                        scene_chara.entry[3]->DeleteImage();
+                    if (scene_chara[3] != NULL) {
+                        scene_chara[3]->DeleteImage();
                     }
 
-                    if (scene_chara.entry[5] != NULL) {
-                        scene_chara.entry[5]->DeleteImage();
+                    if (scene_chara[5] != NULL) {
+                        scene_chara[5]->DeleteImage();
                     }
                 }
             } else if (part != 3 && part != 5) {
                 CActionChara *model = *slot;
 
                 if (model != NULL) {
-                    strcpy(tex_manager->name_suffix, at_4123);
+                    strcpy(tex_manager->name_suffix, "_menu");
                     model->DeleteImage();
                     tex_manager->name_suffix[0] = 0;
                 }
 
-                if (MenuLoadInfo.unk_6[1] != 0 && scene_chara.entry[part] != NULL) {
-                    scene_chara.entry[part]->DeleteImage();
+                if (MenuLoadInfo.update_scene != 0 && scene_chara[part] != NULL) {
+                    scene_chara[part]->DeleteImage();
                 }
             }
         }
@@ -5419,21 +5740,21 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
         switch (MenuLoadInfo.mode) {
             case 2: {
                 if (part > 0) {
-                    parent = scene_chara.entry[0];
+                    parent = scene_chara[0];
                 }
 
-                part_stack = scene_stack.entry[part];
+                part_stack = scene_stack[part];
 
                 if (part != 3 && part != 5 && part_stack != NULL) {
                     part_stack->stReset();
                 }
 
                 if (part == 0) {
-                    scene_chara.entry[part]->AllDeleteDamage();
+                    scene_chara[part]->AllDeleteDamage();
                     tex_manager->DeleteTexAnime(tex_block);
                 }
 
-                CActionChara *model = scene_chara.entry[part];
+                CActionChara *model = scene_chara[part];
 
                 if (model != NULL) {
                     model->Initialize(NULL);
@@ -5447,19 +5768,19 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
                 break;
             }
             case 0: {
-                strcpy(tex_manager->name_suffix, at_4123);
+                strcpy(tex_manager->name_suffix, "_menu");
                 CActionChara *model = *slot;
 
                 if (model != NULL) {
                     if (part > 0) {
-                        parent = menu_chara.entry[0];
+                        parent = menu_chara[0];
                     }
 
                     if (part == 0) {
                         tex_manager->DeleteTexAnime(tex_block);
                     }
 
-                    part_stack = menu_stack.entry[part];
+                    part_stack = menu_stack[part];
 
                     if (part != 3 && part != 5 && part_stack != NULL) {
                         part_stack->stReset();
@@ -5471,18 +5792,18 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
                 }
 
                 tex_manager->name_suffix[0] = 0;
-                CActionChara *scene_model = scene_chara.entry[part];
+                CActionChara *scene_model = scene_chara[part];
 
-                if (scene_model != NULL && MenuLoadInfo.unk_6[1] != 0) {
+                if (scene_model != NULL && MenuLoadInfo.update_scene != 0) {
                     if (part > 0) {
-                        parent = scene_chara.entry[0];
+                        parent = scene_chara[0];
                     }
 
                     if (part == 0) {
                         tex_manager->DeleteTexAnime(scene_tex_block);
                     }
 
-                    part_stack = scene_stack.entry[part];
+                    part_stack = scene_stack[part];
 
                     if (part != 3 && part != 5 && part_stack != NULL) {
                         part_stack->stReset();
@@ -5494,7 +5815,7 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
 
                     if (CheckBattleLoop()) {
                         if (part == 0) {
-                            SetSwordBlurEffect(scene_chara.entry[0], part_stack, 2);
+                            SetSwordBlurEffect(scene_chara[0], part_stack, 2);
                         }
 
                         if (part == 1) {
@@ -5531,16 +5852,16 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
 
         switch (MenuLoadInfo.mode) {
             case 2:
-                if (scene_chara.entry[0] != NULL) {
+                if (scene_chara[0] != NULL) {
                     script_stack->stReset();
-                    scene_chara.entry[0]->LoadActionFile((char *) script->buffer, script->size, script_stack);
+                    scene_chara[0]->LoadActionFile((char *) script->buffer, script->size, script_stack);
                 }
 
                 break;
             default:
-                if (scene_chara.entry[0] != NULL) {
+                if (scene_chara[0] != NULL) {
                     script_stack->stReset();
-                    scene_chara.entry[0]->LoadActionFile((char *) script->buffer, script->size, script_stack);
+                    scene_chara[0]->LoadActionFile((char *) script->buffer, script->size, script_stack);
                 }
 
                 info[6]->reading = 0;
@@ -5575,6 +5896,7 @@ void MenuRoboPartsLightOff(mgCFrame *frame) {
         }
     }
 }
+
 int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no, int restart_read) {
     char model_buffer[0x40];
     char script_buffer[0x40];
@@ -5612,7 +5934,7 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
         if (MenuLoadInfo.mode == 2) {
             stack->Align64();
             u_long128 *buffer = stack->stGetTop();
-            strcpy(path, at_4548);
+            strcpy(path, "dungeon/act_script/");
             strcat(path, script);
             strcpy(script_file_name, script);
             LoadFileBG(path, buffer, &size);
@@ -5621,15 +5943,9 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
     }
     return 1;
 }
-extern SceneCharaList at_4565;
-extern LoadTargetList at_4585;
-extern LoadStackList  at_4586;
 
 int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int tex_block,
                            int scene_tex_block) {
-    SceneCharaList     scene_chara;
-    char               path[0x80];
-    char               name[0x20];
     mgCTextureManager *tex_manager = &mgTexManager;
     int                i;
 
@@ -5640,11 +5956,13 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
     }
 
     CScene *scene = MenuMainScene;
-    scene_chara = at_4565;
+    CActionChara *scene_chara[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+    char               path[0x80];
+    char               name[0x20];
 
-    if (MenuLoadInfo.unk_6[1] != 0 || MenuLoadInfo.mode == 2) {
+    if (MenuLoadInfo.update_scene != 0 || MenuLoadInfo.mode == 2) {
         for (i = 0; i < 7; i++) {
-            scene_chara.entry[i] = (CActionChara *) scene->GetCharacter(i);
+            scene_chara[i] = (CActionChara *) scene->GetCharacter(i);
         }
     }
 
@@ -5662,7 +5980,7 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
     if (MenuLoadInfo.mode != 2) {
         mgCMemory *buffer = MenuActionCharaBuffer;
         buffer->stReset();
-        strcpy(tex_manager->name_suffix, at_4123);
+        strcpy(tex_manager->name_suffix, "_menu");
 
         if (chara[0] != NULL) {
             chara[0]->Initialize(NULL);
@@ -5675,28 +5993,28 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
         mgCMemory *stack = MorattaStack;
         stack->stReset();
 
-        if (scene_chara.entry[0] != NULL) {
-            scene_chara.entry[0]->AllDeleteDamage();
-            scene_chara.entry[0]->Initialize(NULL);
-            scene_chara.entry[0]->LoadPack(pack, name, stack, stack, stack, scene_tex_block, NULL);
-            SetSwordBlurEffect(scene_chara.entry[0], stack, 3);
+        if (scene_chara[0] != NULL) {
+            scene_chara[0]->AllDeleteDamage();
+            scene_chara[0]->Initialize(NULL);
+            scene_chara[0]->LoadPack(pack, name, stack, stack, stack, scene_tex_block, NULL);
+            SetSwordBlurEffect(scene_chara[0], stack, 3);
         }
     }
 
     GetCurrentDir(path);
-    strcat(path, at_4548);
+    strcat(path, "dungeon/act_script/");
     strcat(path, script_file_name);
     BG_READ_INFO *script = GetReadBGFile(path);
 
     if (script != NULL) {
-        LoadTargetList targets = at_4585;
-        targets.entry[0] = info[0]->chara;
-        targets.entry[1] = info[0]->chara;
-        targets.entry[2] = scene_chara.entry[0];
-        LoadStackList stacks = at_4586;
-        stacks.entry[2] = &MorattaStack[5];
-        mgCMemory    *stack = stacks.entry[MenuLoadInfo.mode];
-        CActionChara *target = targets.entry[MenuLoadInfo.mode];
+        CActionChara *targets[3] = {NULL, NULL, NULL};
+        targets[0] = info[0]->chara;
+        targets[1] = info[0]->chara;
+        targets[2] = scene_chara[0];
+        mgCMemory *stacks[3] = {&MenuActionCharaBuffer[5], &MenuActionCharaBuffer[5], NULL};
+        stacks[2] = &MorattaStack[5];
+        mgCMemory    *stack = stacks[MenuLoadInfo.mode];
+        CActionChara *target = targets[MenuLoadInfo.mode];
         stack->stReset();
 
         if (target != NULL) {
@@ -5711,15 +6029,18 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
     MenuLoadInfo.request_phase = -2;
     return 1;
 }
-#ifdef NONMATCHING
+
+#pragma inline_depth(8)
+
 void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no) {
     CUserDataManager *userData = MenuUserDataManPtr;
     ROBO_INFO_DATA   *robo = GetRoboPartsInfo(userData);
-    if (MenuLoadInfo.unk_6[1] != 0) {
+    if (MenuLoadInfo.update_scene != 0) {
         SetupUnitMan(MenuMainScene, userData, chara_no, robo);
     }
-    if (MenuLoadInfo.mode == 2) {
-        return;
+    switch (MenuLoadInfo.mode) {
+        case 2:
+            return;
     }
     CScene       scene;
     CCharacter2 *chara;
@@ -5734,9 +6055,9 @@ void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no) 
     }
     SetupUnitMan(&scene, userData, chara_no, robo);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuItemCharaDataLoadEndCheckAfter__FPP17MENU_BGREAD_INFO2i);
-#endif
+
+#pragma inline_depth reset
+
 void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     int                reason;
     mgCTextureManager *texManager;
@@ -5748,10 +6069,10 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     texManager = &mgTexManager;
     NowReadMainCharaNo = chara_no;
     texManager->DeleteBlock(MenuCommonInfo->tex_block[0]);
-    texManager->EnterTexture(MenuCommonInfo->tex_block[0], at_4789, NULL, 0x80, 0x80, 0x20, NULL, 0, 0);
-    NowMainCharaFrameImage = texManager->EnterTexture(MenuCommonInfo->tex_block[0], at_4790, NULL,
+    texManager->EnterTexture(MenuCommonInfo->tex_block[0], "mnworkk23456", NULL, 0x80, 0x80, 0x20, NULL, 0, 0);
+    NowMainCharaFrameImage = texManager->EnterTexture(MenuCommonInfo->tex_block[0], "mnworkk22", NULL,
                                                       mgScreenWidth, mgScreenHeight, 0x18, NULL, 0, 0);
-    SetBGFrameForMenu(MenuCommonInfo->tex_block[0], at_4790);
+    SetBGFrameForMenu(MenuCommonInfo->tex_block[0], "mnworkk22");
     MenuPosData->AttachCommonTexInfo();
     NowMainCharaChngStatusBit = GetUserDataMan()->CheckQuickChange(NowReadMainCharaNo, &reason);
     NowReadMainCharaPhase = 0;
@@ -5767,13 +6088,13 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     mgCMemory memory;
     int       rest = stack->stGetRest();
     memory.stSetBuffer(stack->stGetTop(), rest);
-    LoadWantedList wanted = at_4728__2;
-    MenuBGReadInfo2Malloc(&memory, wanted.entry);
+    int wanted[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    MenuBGReadInfo2Malloc(&memory, wanted);
     memory.Alloc(0x100);
     memory.Align64();
     rest = memory.stGetRest();
     MenuCharaLoadStack.stSetBuffer(memory.stGetTop(), rest);
-    NowMainCharaChngTex = texManager->GetTexture(at_4791, -1);
+    NowMainCharaChngTex = texManager->GetTexture("change_logo", -1);
     NowMainCharaChngTexMovePhase = 0;
     NowMainCharaChngTexMoveX = -0x100;
     MenuMainScene = GetMainScene();
@@ -5784,8 +6105,8 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     MenuLoadInfo.chara_no = NowReadMainCharaNo;
     MenuLoadInfo.request_phase = -1;
     MenuLoadInfo.load_phase = 0;
-    MenuLoadInfo.unk_6[0] = 0;
-    MenuLoadInfo.unk_6[1] = 1;
+    MenuLoadInfo.unk_6 = 0;
+    MenuLoadInfo.update_scene = 1;
     NowReadMainChara = (CActionChara *) MenuMainScene->GetCharacter(0);
     if (NowReadMainChara != NULL) {
         NowReadMainChara->GetPosition(NowMainReadPosition);
@@ -5833,6 +6154,7 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
             break;
     }
 }
+
 int ReadMainCharaBG() {
     char model[0x48];
     int  size;
@@ -5927,7 +6249,7 @@ int ReadMainCharaBG() {
 
             if (MenuLoadInfo.alternate_model == 0 && NowReadMainCharaNo < 3) {
                 MenuCharaLoadStack.Align64();
-                LoadFileBG(at_4868, MenuCharaLoadStack.stGetTop(), &script_size);
+                LoadFileBG("img/allitem.img", MenuCharaLoadStack.stGetTop(), &script_size);
             }
 
             NowReadMainCharaPhase++;
@@ -6078,7 +6400,7 @@ int MenuNPCLoadCheck(CActionChara *chara, mgCMemory *memory, int tex_block) {
             memory->stack_used = 0;
             memory->lock = 0;
             tex_manager->DeleteBlock(tex_block);
-            strcpy(tex_manager->name_suffix, at_4950__2);
+            strcpy(tex_manager->name_suffix, "_mn");
             chara->Initialize(NULL);
             chara->LoadPack(MenuPartyNPCModelReadBuffer, menu_infocfgname, memory, memory, memory,
                             tex_block, 0);
@@ -6092,7 +6414,6 @@ int MenuNPCLoadCheck(CActionChara *chara, mgCMemory *memory, int tex_block) {
 }
 
 void CMenuCostumeSel::UpdateCostumeList(int mode, unsigned long chara_flag) {
-    WornCostumes worn;
     CHARA_DATA  *chara_data;
     int          kind;
     int          index;
@@ -6116,16 +6437,16 @@ void CMenuCostumeSel::UpdateCostumeList(int mode, unsigned long chara_flag) {
         return;
     }
 
-    worn = *(WornCostumes *) at_4967__2;
-    worn.id[0] = chara_data->equip[2].item_no;
-    worn.id[1] = chara_data->equip[4].item_no;
-    worn.id[2] = chara_data->equip[3].item_no;
+    int worn[COSTUME_LIST_NUM + 1] = {0, 0, 0, -1};
+    worn[0] = chara_data->equip[2].item_no;
+    worn[1] = chara_data->equip[4].item_no;
+    worn[2] = chara_data->equip[3].item_no;
 
     for (kind = 0; kind < 3; kind++) {
         this->costume_select[kind] = 0;
 
         for (index = 0; index < this->costume_num[kind]; index++) {
-            if (worn.id[kind] == this->list[kind][index]) {
+            if (worn[kind] == this->list[kind][index]) {
                 this->costume_select[kind] = index;
             }
         }
@@ -6168,7 +6489,7 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     stack->Align64();
     mgTexManager.EnterIMGFile(buffer, *tex_block, NULL, NULL);
     this->tile_tex = mgTexManager.GetTexture(at_5052, -1);
-    icons = (u8 *) GetMenuMainIMGPtr();
+    icons = GetMenuMainIMGPtr();
 
     if (icons != NULL) {
         tex_manager->EnterIMGFile(icons, *tex_block, NULL, NULL);
@@ -6196,8 +6517,8 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     MenuLoadInfo.load_phase = 0;
     MenuLoadInfo.request_phase = -1;
     MenuLoadInfo.chara_no = 0;
-    MenuLoadInfo.unk_6[1] = 0;
-    MenuLoadInfo.unk_6[0] = 1;
+    MenuLoadInfo.update_scene = 0;
+    MenuLoadInfo.unk_6 = 1;
     free_size = memory_free_size(stack);
     this->stack.stSetBuffer((u_long128 *) memory_free_top(stack), free_size);
     MenuMemoryAdjust(&this->stack, &MenuCharaLoadStack, MenuActionCharaBuffer, 0);
@@ -6272,19 +6593,19 @@ int CMenuCostumeSel::KeyStep() {
                     int move_y = 0;
                     int move_x = 0;
 
-                    if (keys & 1) {
+                    if (keys & MENU_SELECT_KEY_UP) {
                         move_y--;
                     }
 
-                    if (keys & 2) {
+                    if (keys & MENU_SELECT_KEY_DOWN) {
                         move_y++;
                     }
 
-                    if (keys & 4) {
+                    if (keys & MENU_SELECT_KEY_LEFT) {
                         move_x--;
                     }
 
-                    if (keys & 8) {
+                    if (keys & MENU_SELECT_KEY_RIGHT) {
                         move_x++;
                     }
 
@@ -6375,14 +6696,14 @@ int CMenuCostumeSel::KeyStep() {
                         }
                     }
 
-                    if (buttons & 2) {
+                    if (buttons & MENU_PUSH_BUTTON_CANCEL) {
                         wait_load = 0;
                         mode = 2;
                         MenuArg.end_code = 0;
                         MenuCommonInfo->key_enable = 0;
                         FadeOutMenu(40, 0.0f);
                         MenuSePlay(5);
-                    } else if (buttons & 1) {
+                    } else if (buttons & MENU_PUSH_BUTTON_DECIDE) {
                         if (select == 3) {
                             step++;
                             wait_load = 1;
@@ -6522,7 +6843,7 @@ int CMenuCostumeSel::KeyStep() {
 
     return 0;
 }
-#ifdef NONMATCHING
+
 void CMenuCostumeSel::Draw() {
     sceVu0FMATRIX view;
     sceVu0FVECTOR eye;
@@ -6533,97 +6854,95 @@ void CMenuCostumeSel::Draw() {
     camera.GetCameraMatrix(view);
     camera.GetPos(eye);
     mgSetViewMatrix(view, eye);
-    mgCTextureManager *texManager = &mgTexManager;
-    texManager->ReloadTexture(tile_tex->block, (sceVif1Packet *) NULL);
+    mgCTextureManager *tex_manager = &mgTexManager;
+    tex_manager->ReloadTexture(tile_tex->block, (sceVif1Packet *) NULL);
     mgCDrawPrim *prim = GetMenuPrim();
     DrawMenuTilePattern(prim, tile_tex, tile_scroll, tile_scroll, mgRect<int>(0x100, 0, 0x100, 0x100), 0,
                         tilergba_5203);
     PrimQuad(prim, tile_tex, 24.0f, 24.0f, mgRect<int>(0, 0xEA, 0xC8, 0x16), 0x80, 0x80, 0x80, 0x80);
     if (MenuCosutumeLoadPhase == 4) {
-        texManager->ReloadTexture(tex_block[3], (sceVif1Packet *) NULL);
+        tex_manager->ReloadTexture(tex_block[3], (sceVif1Packet *) NULL);
         MenuActionChara[0]->DrawDirect();
     }
-    texManager->ReloadTexture(tile_tex->block, (sceVif1Packet *) NULL);
-    mgRect<int> lineRect(0, 0, 0xB0, 0x20);
-    mgRect<int> labelRect(0, 0xB6, 0x38, 0x1A);
-    mgRect<int> charaRect(0, 0xD0, 0x78, 0x1A);
-    mgRect<int> leftRect(0, 0x20, 0x10, 0x16);
-    mgRect<int> rightRect(0x10, 0x20, 0x10, 0x16);
+    tex_manager->ReloadTexture(tile_tex->block, (sceVif1Packet *) NULL);
+    mgRect<int> line_rect(0, 0, 0xB0, 0x20);
+    mgRect<int> label_rect(0, 0xB6, 0x38, 0x1A);
+    mgRect<int> chara_rect(0, 0xD0, 0x78, 0x1A);
+    mgRect<int> left_rect(0, 0x20, 0x10, 0x16);
+    mgRect<int> right_rect(0x10, 0x20, 0x10, 0x16);
     int         i;
-    int         cursorY = select * 0x42 + 0x6E;
+    int         cursor_y_pos = select * 0x42 + 0x6E;
     int         y = 0x50;
     SetSpriteEnv(prim, 0);
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(tile_tex);
     for (i = 0; i < COSTUME_LIST_NUM; i++) {
-        int lineY = y + 0x1E;
+        int line_y = y + 0x1E;
         prim->Color(0, 0, 0, 0x30);
-        PrimQuad(prim, 50.0f, (float) (y + 4), labelRect);
-        PrimQuad(prim, 74.0f, (float) (lineY + 4), lineRect);
+        PrimQuad(prim, 50.0f, (float) (y + 4), label_rect);
+        PrimQuad(prim, 74.0f, (float) (line_y + 4), line_rect);
         float wave = 6.0f * sinf(line_wave[i]);
-        if (wave < 0.0f) {
-            wave = -wave;
-        }
-        float leftX;
-        float rightX;
-        float arrowY;
-        rightX = wave + (float) (lineRect.right + 0x49);
-        leftX = 55.0f - wave;
-        arrowY = (float) (lineY + 3);
-        PrimQuad(prim, 4.0f + leftX, 4.0f + arrowY, leftRect);
-        PrimQuad(prim, 4.0f + rightX, 4.0f + arrowY, rightRect);
+        wave = wave < 0.0f ? -wave : wave;
+        float left_x;
+        float right_x;
+        float arrow_y;
+        right_x = wave + (float) (line_rect.right + 0x49);
+        left_x = 55.0f - wave;
+        arrow_y = (float) (line_y + 3);
+        PrimQuad(prim, 4.0f + left_x, 4.0f + arrow_y, left_rect);
+        PrimQuad(prim, 4.0f + right_x, 4.0f + arrow_y, right_rect);
         if (i == select) {
             prim->Color(0xA4, 0xA4, 0xA4, 0x80);
         } else {
             prim->Color(0x80, 0x80, 0x80, 0x80);
         }
-        PrimQuad(prim, 46.0f, (float) y, labelRect);
-        PrimQuad(prim, 70.0f, (float) lineY, lineRect);
-        PrimQuad(prim, leftX, arrowY, leftRect);
-        PrimQuad(prim, rightX, arrowY, rightRect);
-        labelRect.left += labelRect.right;
+        PrimQuad(prim, 46.0f, (float) y, label_rect);
+        PrimQuad(prim, 70.0f, (float) line_y, line_rect);
+        PrimQuad(prim, left_x, arrow_y, left_rect);
+        PrimQuad(prim, right_x, arrow_y, right_rect);
+        label_rect.left += label_rect.right;
         y += 0x42;
     }
-    int charaY = y + 0xA;
-    int exitY = charaY + 0x28;
-    if (mode == 0 && (step == 0 || step == 3)) {
+    int chara_y = y + 0xA;
+    int exit_y = chara_y + 0x28;
+    if (mode == MENU_ASK_MODE_NONE && (step == 0 || step == 3)) {
         prim->Color(0, 0, 0, 0x30);
-        PrimQuad(prim, 116.0f, (float) (charaY + 4), charaRect);
+        PrimQuad(prim, 116.0f, (float) (chara_y + 4), chara_rect);
         if (select == 3) {
             prim->Color(0xA4, 0xA4, 0xA4, 0x80);
         } else {
             prim->Color(0x80, 0x80, 0x80, 0x80);
         }
-        PrimQuad(prim, 112.0f, (float) charaY, charaRect);
-        if (chara == 1) {
-            mgRect<int> exitRect(0, 0x9C, 0xAA, 0x1A);
+        PrimQuad(prim, 112.0f, (float) chara_y, chara_rect);
+        if (chara == USER_CHARA_MONICA) {
+            mgRect<int> exit_rect(0, 0x9C, 0xAA, 0x1A);
             prim->Color(0, 0, 0, 0x30);
-            PrimQuad(prim, 78.0f, (float) (exitY + 4), exitRect);
+            PrimQuad(prim, 78.0f, (float) (exit_y + 4), exit_rect);
             if (select == 4) {
                 prim->Color(0xA4, 0xA4, 0xA4, 0x80);
             } else {
                 prim->Color(0x80, 0x80, 0x80, 0x80);
             }
-            PrimQuad(prim, 74.0f, (float) exitY, exitRect);
+            PrimQuad(prim, 74.0f, (float) exit_y, exit_rect);
         }
     }
     prim->End();
-    float cursorX = 0.0f;
+    float cursor_x_pos = 0.0f;
     if (select == 3) {
-        cursorX = 70.0f;
-        cursorY = charaY;
+        cursor_x_pos = 70.0f;
+        cursor_y_pos = chara_y;
     }
     if (select == 4) {
-        cursorX = 32.0f;
-        cursorY = exitY;
+        cursor_x_pos = 32.0f;
+        cursor_y_pos = exit_y;
     }
-    CalcMenu1(cursorX, &cursor_x, 4.0f, 0.0f, 0);
-    CalcMenu1((float) cursorY, &cursor_y, 4.0f, 0.0f, 0);
+    CalcMenu1(cursor_x_pos, &cursor_x, 4.0f, 0.0f, 0);
+    CalcMenu1((float) cursor_y_pos, &cursor_y, 4.0f, 0.0f, 0);
     if (cursor_tex != NULL && cursor_show) {
-        float cursorPos[2];
-        cursorPos[0] = cursor_x + 6.0f * cosf(cursor_wave);
-        cursorPos[1] = cursor_y + 4.0f * sinf(cursor_wave_y);
-        MenuCursorDraw(cursor_tex, cursorPos, 0.0f, 0, 0x80, 1.0f);
+        float cursor_pos[2];
+        cursor_pos[0] = cursor_x + 6.0f * cosf(cursor_wave);
+        cursor_pos[1] = cursor_y + 4.0f * sinf(cursor_wave_y);
+        MenuCursorDraw(cursor_tex, cursor_pos, 0.0f, 0, 0x80, 1.0f);
         cursor_wave += 0.05235988f;
         cursor_wave_y += 0.10471976f;
         if (!(cursor_wave < 3.1415927f)) {
@@ -6633,18 +6952,18 @@ void CMenuCostumeSel::Draw() {
             cursor_wave_y -= 6.2831855f;
         }
     }
-    texManager->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
-    int nameY = 0x72;
+    tex_manager->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
+    int name_y = 0x72;
     if (chara_data != NULL) {
         CMenuFont font;
         for (i = 0; i < COSTUME_LIST_NUM; i++) {
             char *name = chara_data->equip[convtbl_5238[i]].GetName(1);
             if (name != NULL) {
                 font.SetStr(name);
-                font.SetPos(0x4E, nameY);
+                font.SetPos(0x4E, name_y);
                 font.DrawDirect(font.str, font.pos_x, font.pos_y);
             }
-            nameY += 0x42;
+            name_y += 0x42;
         }
     }
     if (loading) {
@@ -6662,10 +6981,7 @@ void CMenuCostumeSel::Draw() {
         help.DrawDirect(infomsg_5256[LanguageCode], 0x28, mgScreenHeight - 0x28);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", Draw__15CMenuCostumeSelFv);
-#endif
-extern u_long CostumeOptionEnv;
+
 #ifdef NONMATCHING
 void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuChangeMemory.stSetBuffer(stack->stGetTop(), stack->stGetRest());
@@ -6689,6 +7005,7 @@ void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuCostumeInit__FP9mgCMemoryPii);
 #endif
+
 int MenuCostumeKey() {
     return MenuCosPtr->KeyStep();
 }
@@ -6730,8 +7047,6 @@ void CMosBookMenu::InitMonsterInfo() {
 }
 
 void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
-    char   local_area_names[2][32];
-    int    weak_list[8];
     char  *area;
     char **type_names;
     char  *message;
@@ -6752,7 +7067,7 @@ void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
             area = GetMapTitle(GetDngMapNo(monster->area_no));
         }
 
-        *(MonsterBookBlock64 *) local_area_names = *(MonsterBookBlock64 *) at_5452;
+        char local_area_names[2][32] = {"Rainbow Butterfly Wd.", "Bois Pap. arc-en-ciel"};
 
         if (LanguageCode == 1) {
             if (monster->area_no == 1) {
@@ -6801,7 +7116,7 @@ void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
         }
 
         weak_count = 0;
-        *(MonsterBookBlock32 *) weak_list = *(MonsterBookBlock32 *) at_5482;
+        int weak_list[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
         for (k = 0; k < 8; k++) {
             if (monster->element_resist[k] >= 50) {
@@ -6830,13 +7145,13 @@ void CMosBookMenu::InitEnd() {
     BASE_MONSTER_TBL *entry;
 
     buffer = memory_free_top(&MosBookStack);
-    size = LoadFileMenu(at_5558__2, (u_long128 *) buffer, 1);
+    size = LoadFileMenu("memomos.pac", (u_long128 *) buffer, 1);
     MosBookStack.Alloc(blocks_for(size));
-    mgTexManager.EnterIMGFile((u8 *) GetPackFile((unsigned int *) buffer, at_5559__2, NULL),
+    mgTexManager.EnterIMGFile((u8 *) GetPackFile((unsigned int *) buffer, "out.img", NULL),
                               this->tex_block[0], NULL, NULL);
-    Tex_MBase = mgTexManager.GetTexture(at_3271, -1);
-    Tex_MBook = mgTexManager.GetTexture(at_5560__2, -1);
-    Tex_MBg = mgTexManager.GetTexture(at_5561, -1);
+    Tex_MBase = mgTexManager.GetTexture("mosbox", -1);
+    Tex_MBook = mgTexManager.GetTexture("memomos", -1);
+    Tex_MBg = mgTexManager.GetTexture("mosbg", -1);
     this->tex_block_no = this->tex_block[4];
     mgCMemory scratch;
     free_size = memory_free_size(&MosBookStack);
@@ -7248,7 +7563,7 @@ void MonsterBookInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuBGReadInfo2Malloc(&MosBookStack, tbl_5848);
     MenuLoadInfo.mode = 4;
     MenuLoadInfo.load_all = 1;
-    MenuLoadInfo.unk_6[1] = 0;
+    MenuLoadInfo.update_scene = 0;
     MenuLoadInfo.alternate_model = 0;
     MenuLoadInfo.request_phase = -1;
     MenuLoadInfo.load_phase = 0;
@@ -7266,110 +7581,37 @@ void MonsterBookDraw() {
     if (menu_debug_flag) {
         DrawMenuFillBox(float(20.0), 40.0f, 200.0f, float(24.0), 0x40, 0, 0, 0);
         CMenuFont font;
-        font.SetStr(at_5893);
+        font.SetStr("(A):All Monster Beaten");
         font.SetPos(20, 40);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
     }
 }
 
-/**
- *
- * Short rectangle used for screen positions and bounds.
- *
- */
-class mgRect_s_ {
-public:
-    short left;   /**< Left edge. */
-    short top;    /**< Top edge. */
-    short right;  /**< Right edge. */
-    short bottom; /**< Bottom edge. */
-
-    /** Sets the four sides of the rectangle. */
-    void Set(short x, short y, short w, short h);
+// Initialised data (.data)
+s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] = {
+    {0, 0, 1, 2, 3},
+    {0, 0, 1, 22, 23},
+    {0, 0, 136, 137, 139},
+    {1, 220, 221, 222, 223},
+    {3, 52, 53, 54, 55},
+    {3, 52, 53, 102, 103},
+    {2, 8, 9, 10, 11},
+    {2, 8, 9, 150, 151},
+    {7, 44, 45, 46, 47},
+    {9, 224, 236, 228, 232},
+    {8, 176, 177, 180, 183},
+    {8, 176, 177, 186, 187},
+    {5, 72, 73, 74, 75},
+    {5, 72, 73, 154, 155},
+    {4, 24, 25, 26, 27},
+    {4, 24, 25, 166, 167},
+    {6, 124, 116, 120, 112},
+    {6, 124, 116, 120, 128},
+    {9, 224, 236, 228, 240},
 };
 
-void mgRect_s_::Set(short x, short y, short w, short h) {
-    left = x;
-    top = y;
-    right = w;
-    bottom = h;
-}
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_progress_tbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_992__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_1233__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1372__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", nextIDtbl_1594__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", partt_2332__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_2483__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2629__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2691__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2696__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", overcode_3172__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_3186__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", posdef_3194__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", refdef_3195__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_3196__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convert_table_3430__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", ghobitbl_3437__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3481__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", get_stringtbl_3557__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_3725__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_load_chrpathtbl_3811__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_infocfgname__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4327__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", MonsterDataPath__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4586__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convtbl_4621__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4728__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4967__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5016__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", infomsg_5256__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", putw_5262__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_type_name__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_jyakuten__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monstere_file_template__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5452__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", stand_bit_5472__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tbl_5848__DATA);
-
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1104__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1131__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1132__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1133__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1134__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1135__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1171__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1172__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1173__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1174__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1175__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1176__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1177__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1178__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1179__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1180__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1181__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1234__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1235__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1236__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1237__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1276__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1277__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1278__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1279__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1280__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1281__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1282__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1283__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1284__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1285__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1304__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1319__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1361__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1402__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2003__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2004__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2005__2__DATA);
@@ -7391,361 +7633,49 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2020__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2021__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2022__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2023__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2191__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2192__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2193__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2194__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2195__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2196__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2197__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2286__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2287__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2303__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2304__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2305__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2306__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2307__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2333__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2334__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2335__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2336__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2337__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2338__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2363__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2364__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2365__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2595__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2596__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2662__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2770__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2771__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2772__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2773__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2774__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2775__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2776__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2777__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2778__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2779__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2780__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2781__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2782__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2783__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2784__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2785__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2912__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2913__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2914__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2915__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2916__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2917__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2918__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2940__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2941__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2942__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2943__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2944__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3160__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3161__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3162__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3163__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3164__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3165__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3166__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3197__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3198__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3199__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3200__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3201__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3202__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3269__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3270__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3271__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3272__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3273__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3274__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3275__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3276__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3558__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3559__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3560__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3561__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3685__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3686__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3687__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3688__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3689__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3690__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3691__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3692__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3693__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3694__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3695__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3696__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3697__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3698__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3699__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3700__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3701__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3702__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3703__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3704__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3705__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3706__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3707__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3708__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3726__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3727__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3728__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3729__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3730__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3731__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3732__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3733__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3734__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3735__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3736__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3737__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3779__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3780__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3790__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3791__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3792__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3793__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3794__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3812__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3813__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3814__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3913__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3969__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3970__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4123__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4186__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4276__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4277__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4278__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4296__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4517__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4518__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4519__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4520__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4548__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4789__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4790__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4791__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4868__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4950__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5051__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5052__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5053__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5197__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5257__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5258__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5259__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5260__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5261__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5356__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5357__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5358__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5359__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5360__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5361__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5362__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5363__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5364__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5365__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5366__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5367__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5368__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5369__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5370__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5371__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5372__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5373__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5374__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5375__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5376__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5377__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5378__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5379__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5380__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5381__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5382__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5383__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5384__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5385__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5386__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5387__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5388__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5389__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5390__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5391__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5392__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5393__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5394__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5395__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5396__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5397__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5398__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5399__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5400__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5401__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5402__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5403__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5404__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5405__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5406__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5407__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5408__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5409__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5410__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5411__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5412__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5413__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5414__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5415__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5416__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5417__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5418__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5419__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5420__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5421__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5422__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5423__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5424__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5425__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5426__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5427__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5428__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5429__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5430__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5431__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5432__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5433__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5434__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5435__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5558__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5559__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5560__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5561__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5839__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5893__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__12CMosBookMenu__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuCostumeSel__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__14CMenuMosSelect__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuChrCngMenu__DATA);
 
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", MenuSoundCharaNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", msgtbl1_1732__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", se_sndtbl_1749__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", cursor_revtbl_2237__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2288__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", max_3170__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", viewnum_3171__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_chrtbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", menu_chara_cfg_chrtbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_3810__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", pathtbl_3836__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_4158__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convItoPhase_4229__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", monster_load_id__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", NowReadMainCharaMonsterNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", phasetbl_5119__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", tilergba_5203__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", convtbl_5238__DATA);
-
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(MorattaStack, 0x4);
-INCLUDE_BSS(MenuLoadInfo, 0x8);
-INCLUDE_BSS(MenuCharaChangeBase_Tex, 0x4);
-INCLUDE_BSS(MenuCharaChangeCLUT_Tex, 0x4);
-INCLUDE_BSS(MenuCharaChangeStar_Tex, 0x4);
-INCLUDE_BSS(MenuCharaChangeCLUT, 0x4);
-INCLUDE_BSS(MenuCharaChangePosDataCfgBuffer, 0x4);
-INCLUDE_BSS(menu_debug_npcselect, 0x4);
-INCLUDE_BSS(menu_debug_npc_decide, 0x4);
-INCLUDE_BSS(MenuDebugChangeSelectMode, 0x4);
-INCLUDE_BSS(MenuDebugCharaChangeSelect, 0x4);
+mgCMemory *MorattaStack;
+
+MENU_LOAD_INFO MenuLoadInfo;
+
+mgCTexture *MenuCharaChangeBase_Tex;
+
+mgCTexture *MenuCharaChangeCLUT_Tex;
+
+mgCTexture *MenuCharaChangeStar_Tex;
+
 INCLUDE_BSS(SelectedCmdNo_1415, 0x4);
 INCLUDE_BSS(init_1416, 0x4);
 INCLUDE_BSS(at_1650__2, 0x4);
 INCLUDE_BSS(at_1684__2, 0x8);
-INCLUDE_BSS(MenuGetPartySeFlag, 0x8);
-INCLUDE_BSS(at_2232, 0x8);
-INCLUDE_BSS(at_2289__2, 0x8);
-INCLUDE_BSS(ChrChangMenuPt, 0x8);
-INCLUDE_BSS(at_2371__4, 0x8);
-INCLUDE_BSS(MenuMosTexture, 0x4);
-INCLUDE_BSS(CharaSndBuffer, 0x4);
-INCLUDE_BSS(mos_effect_henge_param, 0x4);
-INCLUDE_BSS(mos_effect_read_num, 0x4);
-INCLUDE_BSS(MenuMosSelectPtr, 0x4);
-INCLUDE_BSS(menu_debug_select__2, 0x4);
-INCLUDE_BSS(select_monster_save_3371, 0x4);
-INCLUDE_BSS(init_3372__2, 0x4);
-INCLUDE_BSS(at_3412, 0x4);
-INCLUDE_BSS(at_3440, 0x4);
-INCLUDE_BSS(NowReadMainCharaPhase, 0x4);
-INCLUDE_BSS(NowReadMainChara, 0x4);
-INCLUDE_BSS(NowMainCharaChngTex, 0x4);
-INCLUDE_BSS(NowMainCharaChngTexMoveX, 0x4);
-INCLUDE_BSS(NowMainCharaChngTexMovePhase, 0x4);
-INCLUDE_BSS(NowMainCharaFrameImage, 0x4);
-INCLUDE_BSS(NowMainCharaChngStatusBit, 0x4);
-INCLUDE_BSS(MenuNPCLoadFlag, 0x4);
-INCLUDE_BSS(MenuPartyNPCModelReadBuffer, 0x4);
-INCLUDE_BSS(MenuCosutumeLoadPhase, 0x4);
-INCLUDE_BSS(CostumeAttr, 0x8);
-INCLUDE_BSS(MenuCosPtr, 0x4);
-INCLUDE_BSS(MonsterBookPtr, 0x4);
-INCLUDE_BSS(Tex_MBook, 0x4);
-INCLUDE_BSS(Tex_MBase, 0x4);
-INCLUDE_BSS(Tex_MBg, 0x4);
-INCLUDE_BSS(MonsterBookBootMode, 0x4);
-INCLUDE_BSS(MenuMosBookPtr, 0x4);
+u32 *CharaSndBuffer;
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(MenuCharaBuild2, 0x1C);
+MENU_BGREAD_INFO2 *MenuCharaBuild2[MENU_CHARA_LOAD_MAX];
+
 INCLUDE_BSS(D_01F3C7FC, 0x4);
-INCLUDE_BSS(MenuActionChara, 0x20);
+CActionChara *MenuActionChara[MENU_CHARA_LOAD_MAX];
+
 mgCMemory MenuActionCharaBuffer[MENU_CHARA_LOAD_MAX];
-INCLUDE_BSS(MenuLoadItemNo, 0x20);
-INCLUDE_BSS(at_1083__2, 0x20);
+s16 MenuLoadItemNo[MENU_LOAD_ITEM_MAX];
+
 mgCMemory MenuChangeMemory;
 mgCMemory MenuChangeNpcMemory;
 mgCMemory ChrChangeInitTextureStack;
 INCLUDE_BSS(at_1806__2, 0x20);
-INCLUDE_BSS(at_2372__4, 0x20);
-INCLUDE_BSS(at_2674, 0x80);
-INCLUDE_BSS(at_2675, 0x80);
-INCLUDE_BSS(at_2676, 0x80);
 mgCMemory MenuMonChangeLoadStack;
 mgCMemory MenuMosBuildStack;
 mgCMemory MenuMosLoadStack;
-INCLUDE_BSS(MenuMonsterBGInfo, 0x20);
-INCLUDE_BSS(mos_effect_readbuff1, 0x10);
-INCLUDE_BSS(mos_effect_readbuff2, 0x10);
-INCLUDE_BSS(mos_effect_readbuff1_size, 0x10);
-INCLUDE_BSS(mos_effect_readbuff2_size, 0x10);
-INCLUDE_BSS(at_3054__2, 0x20);
-INCLUDE_BSS(at_3511, 0x20);
-INCLUDE_BSS(at_3529, 0x20);
-INCLUDE_BSS(at_3554, 0x20);
 mgCMemory SwordEffectStack;
-INCLUDE_BSS(at_3974, 0x20);
-INCLUDE_BSS(at_3975, 0x20);
-INCLUDE_BSS(at_3993, 0x20);
-INCLUDE_BSS(at_4300__2, 0x20);
-INCLUDE_BSS(at_4328, 0x20);
-INCLUDE_BSS(at_4329, 0x20);
-INCLUDE_BSS(script_file_name, 0x20);
-INCLUDE_BSS(at_4565, 0x20);
-INCLUDE_BSS(at_4585, 0x10);
-INCLUDE_BSS(NowMainReadPosition, 0x10);
-INCLUDE_BSS(NowMainReadRotation, 0x10);
 mgCMemory MosBookStack;
-INCLUDE_BSS(at_5482, 0x20);

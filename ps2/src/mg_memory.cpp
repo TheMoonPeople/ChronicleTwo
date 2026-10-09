@@ -283,8 +283,3 @@ char *mgCopyString(char *source, mgCMemory *memory) {
     strcpy(copy, source);
     return copy;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_memory", at_166__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_memory", at_238__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_memory", at_288__DATA);

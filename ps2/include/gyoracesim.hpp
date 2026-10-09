@@ -61,7 +61,7 @@ struct grRACE_PROGRESS {
     float  pos;      /**< Distance swum along the course; the goal is at 16. */
     int    lane;     /**< Lane that the fish swims in, from 0. */
     float  lane_pos; /**< Lane that the fish swims in, as a value that moves smoothly between lanes. */
-    s8     state;    /**< What the fish is doing. @see grRACE_STATE */
+    u8     state;    /**< What the fish is doing. @see grRACE_STATE */
     s8     battle;   /**< 1 while the fish pushes against another fish. */
     u_char unk_e[2];
     int    battle_target; /**< Entrant that the fish pushes against. */

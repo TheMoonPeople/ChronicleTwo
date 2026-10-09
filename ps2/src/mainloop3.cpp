@@ -18,35 +18,77 @@
 #include "savedata.hpp"
 #include "snd_mngr.hpp"
 
-extern int        select_795, sel_map_798;
-extern char       init_796, init_799;
-extern int        col_962;
-extern char       init_963;
-extern char      *txt_965;
-extern char      *emergency_mes[2];
-extern const char at_882__5[];
-static mgCMemory  buf0__2, buf1__2, dbuf0, dbuf1;
-mgCMemory         Stack__2;
+/**
+ * Messages for an unrecoverable hard-disk read error in Japanese and English.
+ */
+static char *emergency_mes[2] = {
+    "\x93\xC7\x82\xDD\x8D\x9E\x82\xDD\x83G\x83\x89\x81[\x82\xAA\x94\xAD\x90\xB6\x82\xB5\x82\xDC\x82\xB5\x82\xBD\x81" "B\n"
+    "\n"
+    "\x81hPlayStation 2\x81h\x90\xEA\x97p\x83n\x81[\x83h\x83" "f\x83" "B\x83X\x83N\x83h\x83\x89\x83" "C\x83u\x82\xC9\x95t\x91\xAE\x82\xCC\x8E\xE6\x88\xB5\x90\xE0\x96\xBE\x8F\x91\x82\xCC\n"
+    "\x8Ew\x8E\xA6\x82\xC9\x8F]\x82\xC1\x82\xC4\x81" "A\x81hPlayStation 2\x81h\x90\xEA\x97p\x83n\x81[\x83h\x83" "f\x83" "B\x83X\x83N\x83h\x83\x89\x83" "C\x83u\x82\xCC\x8F" "C\x95\x9C\n"
+    "\x82\xF0\x8Ds\x82\xC1\x82\xC4\x82\xAD\x82\xBE\x82\xB3\x82\xA2\x81" "B",
+    "error.",
+};
+/**
+ * Packet buffers for the hard-disk error display.
+ */
+static mgCMemory buf0__2, buf1__2;
 
-extern int        HddConnect;
-extern int        AppInstall;
-extern int        FreeSpace;
-extern int        sel_hdd;
-extern int        now_install;
-extern int        error_code;
-extern u_long128 *inst_work;
+/**
+ * Data buffers for the hard-disk error display.
+ */
+static mgCMemory dbuf0, dbuf1;
+/**
+ * Texture-table storage for the hard-disk error display.
+ */
+mgCMemory Stack__2;
+
+/**
+ * Connection status of the debug-menu hard disk.
+ */
+static int HddConnect;
+
+/**
+ * Status of the installed game image on the hard disk.
+ */
+static int AppInstall;
+
+/**
+ * Result of the free-space check for installation.
+ */
+static int FreeSpace;
+
+/**
+ * Selected hard-disk debug-menu command.
+ */
+static int sel_hdd;
+
+/**
+ * Whether an installation thread is active.
+ */
+static int now_install;
+
+/**
+ * Most recent hard-disk operation result.
+ */
+static int error_code;
+
+/**
+ * Memory used by the hard-disk installer.
+ */
+static u_long128 *inst_work;
 
 // Code (.text)
 int FutureMapSelect() {
-    if (init_796 == 0) {
-        select_795 = 0;
-        init_796 = 1;
-    }
+    /**
+     * Selected row of the future-map debug menu.
+     */
+    static int select = 0;
 
-    if (init_799 == 0) {
-        sel_map_798 = 0;
-        init_799 = 1;
-    }
+    /**
+     * Future map selected by the debug menu.
+     */
+    static int sel_map = 0;
 
     const int   map_ids[4] = {0x19, 0x1A, 0x52, 0x66};
     int         rows = 1;
@@ -57,10 +99,10 @@ int FutureMapSelect() {
     const char *previous[2] = {"  ", "<-"};
     const char *flag_text[2] = {"X", "O"};
     int         analyze_count = 0;
-    CEditData  *edit = GetSaveData()->GetEditData(sel_map_798);
+    CEditData  *edit = GetSaveData()->GetEditData(sel_map);
 
     for (int index = 0; index < EDIT_ANALYZE_DATA_MAX; index++) {
-        if (edit->GetAnalyzeData(sel_map_798, index) == NULL) {
+        if (edit->GetAnalyzeData(sel_map, index) == NULL) {
             break;
         }
 
@@ -70,71 +112,71 @@ int FutureMapSelect() {
     rows += analyze_count;
 
     if (GamePad__2.Down(PAD_L1)) {
-        select_795 = 0;
-        sel_map_798--;
+        select = 0;
+        sel_map--;
     }
 
     if (GamePad__2.Down(PAD_R1)) {
-        select_795 = 0;
-        sel_map_798++;
+        select = 0;
+        sel_map++;
     }
 
-    if (select_795 == 0) {
+    if (select == 0) {
         if (GamePad__2.Down(PAD_RIGHT)) {
-            sel_map_798++;
+            sel_map++;
         }
 
         if (GamePad__2.Down(PAD_LEFT)) {
-            sel_map_798--;
+            sel_map--;
         }
 
-        if (sel_map_798 < 0) {
-            sel_map_798 = 0;
+        if (sel_map < 0) {
+            sel_map = 0;
         }
 
-        if (sel_map_798 >= 4) {
-            sel_map_798 = 3;
+        if (sel_map >= 4) {
+            sel_map = 3;
         }
     }
 
     if (GamePad__2.Down(PAD_DOWN)) {
-        select_795++;
+        select++;
     }
 
     if (GamePad__2.Down(PAD_UP)) {
-        select_795--;
+        select--;
     }
 
-    if (select_795 < 0) {
-        select_795 = rows - 1;
+    if (select < 0) {
+        select = rows - 1;
     }
 
-    if (select_795 >= rows) {
-        select_795 = 0;
+    if (select >= rows) {
+        select = 0;
     }
 
     end += sprintf(end, "\x96\xA2\x97\x88\x83\x7D\x83\x62\x83\x76\x91\x49\x91\xF0\n");
-    end += sprintf(end, "%smap  %s %s %s\n", cursor[select_795 == 0], previous[sel_map_798 > 0],
-                   GetMapTitle(map_ids[sel_map_798]), next[sel_map_798 < 3]);
+    end += sprintf(end, "%smap  %s %s %s\n", cursor[select == 0], previous[sel_map > 0],
+                   GetMapTitle(map_ids[sel_map]), next[sel_map < 3]);
 
     for (int row = 0; row < analyze_count; row++) {
-        EditAnalyzeDataSrc *data = edit->GetAnalyzeData(sel_map_798, row);
-        int                 flag = edit->GetAnalyzeFlag(sel_map_798, row);
+        EditAnalyzeDataSrc *data = edit->GetAnalyzeData(sel_map, row);
+        int                 flag = edit->GetAnalyzeFlag(sel_map, row);
 
         if (data != NULL) {
-            end += sprintf(end, "%s %s:%s\n", cursor[select_795 == row + 1], flag_text[flag], data->message);
+            end += sprintf(end, "%s %s:%s\n", cursor[select == row + 1], flag_text[flag], data->message);
         } else {
             sprintf(end, "\n");
         }
 
-        if (row + 1 == select_795 && GamePad__2.Down(PAD_CIRCLE)) {
-            edit->dbgSetAnalyzeFlag(sel_map_798, row, !flag);
+        if (row + 1 == select && GamePad__2.Down(PAD_CIRCLE)) {
+            edit->dbgSetAnalyzeFlag(sel_map, row, !flag);
         }
     }
 
-    if ((select_795 == 0 && GamePad__2.Down(PAD_CIRCLE)) || GamePad__2.Down(PAD_TRIANGLE)) {
+    if ((select == 0 && GamePad__2.Down(PAD_CIRCLE)) || GamePad__2.Down(PAD_TRIANGLE)) {
         INIT_LOOP_ARG arg;
-        arg.map_no = map_ids[sel_map_798];
+        arg.map_no = map_ids[sel_map];
         arg.floor_no = 0;
         arg.event_no = 99;
 
@@ -162,7 +204,7 @@ void InitHDDMenu(u_long128 *work) {
 }
 
 int HDDMenuLoop() {
-    const char *connect_text[2] = {"disconnect", at_882__5};
+    const char *connect_text[2] = {"disconnect", "connect"};
     const char *cursor[2] = {"  ", ">>"};
     char        text[1024];
     char       *end = text;
@@ -309,13 +351,18 @@ int EmergencyMessage(int error) {
     ReLoadFontTexture(1);
     texture_manager->EnterIMGFile(GetFontTex2ImgPtr(), 1, NULL, NULL);
 
-    if (init_963 == 0) {
-        col_962 = 0;
-        init_963 = 1;
-    }
+    /**
+     * Frame counter wrapping after one hundred error-display iterations.
+     */
+    static int col = 0;
+
+    /**
+     * Localized message shown by the hard-disk error display.
+     */
+    static char *txt;
 
     if (LanguageCode >= 0 && LanguageCode < 2) {
-        txt_965 = emergency_mes[LanguageCode];
+        txt = emergency_mes[LanguageCode];
     }
 
     while (true) {
@@ -323,71 +370,12 @@ int EmergencyMessage(int error) {
         mgBeginFrame(NULL);
         texture_manager->ReloadTexture(1, (sceVif1Packet *) NULL);
 
-        if (txt_965 != NULL) {
-            GetDebugFont()->DrawDirect(txt_965, 20, 100);
+        if (txt != NULL) {
+            GetDebugFont()->DrawDirect(txt, 20, 100);
         }
 
         mgEndFrame(NULL);
-        col_962++;
-        col_962 %= 100;
+        col++;
+        col %= 100;
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_801__5__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_802__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_803__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_805__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_807__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_809__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_810__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_870__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_871__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_872__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_873__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_881__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_882__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_939__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_940__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_941__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_942__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_943__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_944__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_945__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_946__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_947__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_948__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_949__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_950__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_951__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_952__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_953__5__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_804__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_806__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_808__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_811__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_883__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", at_884__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop3", emergency_mes__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(select_795, 0x4);
-INCLUDE_BSS(init_796, 0x4);
-INCLUDE_BSS(sel_map_798, 0x4);
-INCLUDE_BSS(init_799, 0x4);
-INCLUDE_BSS(HddConnect, 0x4);
-INCLUDE_BSS(AppInstall, 0x4);
-INCLUDE_BSS(FreeSpace, 0x4);
-INCLUDE_BSS(sel_hdd, 0x4);
-INCLUDE_BSS(now_install, 0x4);
-INCLUDE_BSS(error_code, 0x4);
-INCLUDE_BSS(inst_work, 0x4);
-INCLUDE_BSS(col_962, 0x4);
-INCLUDE_BSS(init_963, 0x4);
-INCLUDE_BSS(txt_965, 0x4);
-
-// Uninitialised data (.bss)

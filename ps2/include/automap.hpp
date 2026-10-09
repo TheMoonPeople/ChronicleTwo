@@ -25,16 +25,18 @@ class mgCTexture;
  *
  */
 enum AUTOMAP_PARTS_KIND {
-    AUTOMAP_KIND_NONE = 0x0,       /**< Empty cell. */
-    AUTOMAP_KIND_ROAD = 0x1,       /**< Corridor cell ("way" parts). */
-    AUTOMAP_KIND_ROOM = 0x2,       /**< Room cell of the first room family ("room00" to "room27"). */
-    AUTOMAP_KIND_ROOM_ALT = 0x4,   /**< Room cell of the second room family ("room28" to "room55"). */
-    AUTOMAP_KIND_ENTRANCE = 0x8,   /**< Room cell that a corridor enters ("door" parts). */
-    AUTOMAP_KIND_DOOR = 0x10,      /**< Entrance closed by a door that the floor's door event opens. */
-    AUTOMAP_KIND_STEP = 0x20,      /**< Cell of the "step" parts family. */
-    AUTOMAP_KIND_PART = 0x100,     /**< Cell of the "part" parts family. */
-    AUTOMAP_KIND_ROAD_END = 0x200, /**< Corridor end that holds a way in or out of the floor. */
-    AUTOMAP_KIND_HEALING = 0x400,  /**< Room cell that holds the healing point. */
+    AUTOMAP_KIND_NONE = 0x0,        /**< Empty cell. */
+    AUTOMAP_KIND_ROAD = 0x1,        /**< Corridor cell ("way" parts). */
+    AUTOMAP_KIND_ROOM = 0x2,        /**< Room cell of the first room family ("room00" to "room27"). */
+    AUTOMAP_KIND_ROOM_ALT = 0x4,    /**< Room cell of the second room family ("room28" to "room55"). */
+    AUTOMAP_KIND_ENTRANCE = 0x8,    /**< Room cell that a corridor enters ("door" parts). */
+    AUTOMAP_KIND_DOOR = 0x10,       /**< Entrance closed by a door that the floor's door event opens. */
+    AUTOMAP_KIND_STEP = 0x20,       /**< Cell of the "step" parts family. */
+    AUTOMAP_KIND_UNKNOWN_40 = 0x40, /**< Additional kind flag of step00-03 and door56-59. */
+    AUTOMAP_KIND_UNKNOWN_80 = 0x80, /**< Additional kind flag of step04-07 and door60-63. */
+    AUTOMAP_KIND_PART = 0x100,      /**< Cell of the "part" parts family. */
+    AUTOMAP_KIND_ROAD_END = 0x200,  /**< Corridor end that holds a way in or out of the floor. */
+    AUTOMAP_KIND_HEALING = 0x400,   /**< Room cell that holds the healing point. */
 };
 
 /**
@@ -109,7 +111,7 @@ enum MINIMAP_SYMBOL {
  *
  */
 struct AUTOMAP_PARTS_INFO {
-    char *name;     /**< Name of the part to place; NULL ends the table. */
+    char *name;     /**< Name of the part to place; the final entry has an empty name. */
     s16   kind;     /**< Cell kind, an AUTOMAP_PARTS_KIND combination. */
     u8    link;     /**< Sides the part opens onto, an AUTOMAP_LINK combination. */
     u8    entrance; /**< Side an entrance part's corridor arrives from, an AUTOMAP_LINK combination. */
@@ -672,7 +674,11 @@ public:
 
 STATIC_ASSERT(sizeof(CAutoMapGen) == 0x2A0);
 
-/** Every kind of part the floor generator can place, ending with an entry whose name is NULL. */
+/**
+ *
+ * Every kind of part the floor generator can place, followed by an empty-name entry.
+ *
+ */
 extern AUTOMAP_PARTS_INFO PartsInfoData[277];
 
 /** Mini map tiles of the parts of each dungeon map. */

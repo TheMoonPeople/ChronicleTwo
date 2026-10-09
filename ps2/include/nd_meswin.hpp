@@ -274,7 +274,7 @@ public:
     s32         page_time;            /**< Frames the window has been drawn since the page began. */
     s32         page_auto_time;       /**< Frames a page shows for before turning by itself. */
     s32         mes_no;               /**< Message the window holds; -1 for none, -2 for a string. */
-    s32         text_ptr; /**< Address of the current message text. */
+    char       *text_ptr;             /**< Current message text. */
     char       *mes_data;                         /**< Message text loaded for the window. */
     s32         mes_data_size;                    /**< Bytes of mes_data. */
     s32         push_button;                      /**< Non-zero to draw the button prompt when the text is shown. */
@@ -711,7 +711,7 @@ public:
      * @address 0x156700
      * @size 0x70
      */
-    short *GetTextLineDataTop(int line_id);
+    u16 *GetTextLineDataTop(int line_id);
 
     /**
      *
@@ -721,7 +721,7 @@ public:
      * @address 0x156770
      * @size 0x70
      */
-    short *GetTextLineDataTop_system(int line_id);
+    u16 *GetTextLineDataTop_system(int line_id);
 
     /**
      *
@@ -1059,7 +1059,7 @@ public:
      *
      * @mangled Init__6ClsMesFv
      * @address 0x1F38E0
-     * @size 0x2C0
+     * @size 0x2B8
      */
     void Init() {
         int name_count;

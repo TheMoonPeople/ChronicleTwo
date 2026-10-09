@@ -29,9 +29,6 @@ void mgCVisualMotionMDT::Initialize() {
     frame_id = 0;
 }
 
-extern const char at_357[];
-extern const char at_358[];
-
 /**
  *
  * Header of a vertex weight block in motion data.
@@ -114,7 +111,7 @@ void mgCVisualMotionMDT::CreateVertexWeight(u_int *data, int selected_frame, mgC
                 }
 
                 if (bone_index == 32) {
-                    printf(at_357);
+                    printf("Bone Num Over!!!\n");
                     weight = NULL;
                     weight_num = 0;
                     return;
@@ -141,7 +138,7 @@ void mgCVisualMotionMDT::CreateVertexWeight(u_int *data, int selected_frame, mgC
                     vertex_weight->weight[1] /= total;
                     vertex_weight->weight[2] /= total;
                     vertex_weight->weight[3] /= total;
-                    printf(at_358, frame[selected_frame]->name, entry->vertex_id);
+                    printf("Weight Num Over!!! %s vert=%d\n", frame[selected_frame]->name, entry->vertex_id);
                 }
             }
         }
@@ -246,10 +243,10 @@ int mgCVisualMotionMDT::DataAssignMotionMDT(MDT_HEADER *header, mgCVMotionData *
         source = CreateFace(source, memory, &scratch, &packet);
         address = (int) memory->stGetTop();
         size = CreateFaceMotionPacket((u_int *) address, packet, data);
-        ((u_int *) &packet->packet_tag)[0] = size | 0x30000000;
-        ((u_int *) &packet->packet_tag)[1] = address;
-        ((u_int *) &packet->packet_tag)[2] = 0;
-        ((u_int *) &packet->packet_tag)[3] = 0;
+        packet->packet_tag_word[0] = size | MG_DMA_REF;
+        packet->packet_tag_word[1] = address;
+        packet->packet_tag_word[2] = 0;
+        packet->packet_tag_word[3] = 0;
         memory->Alloc(size);
     }
 
@@ -847,16 +844,3 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", Copy__18mgCVisualMotionMDTF
 int mgCVisualMotionMDT::Iam() {
     return 3;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", set_data_func__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", prog_vif_532__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", progf_vif_533__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", at_571__3__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", at_357__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", at_358__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/visualmotion", __vt__18mgCVisualMotionMDT__DATA);

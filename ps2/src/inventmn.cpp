@@ -33,42 +33,6 @@
 
 /**
  *
- * Stores four grid overlay codes for the inventory display.
- *
- */
-struct GridOverCode {
-    int value[4]; /**< Code for each grid overlay. */
-};
-
-/**
- *
- * Groups three character models used by the inventory menu.
- *
- */
-struct ModelTriple {
-    CActionChara *model[3]; /**< Character model in each slot. */
-};
-
-/**
- *
- * Holds one item name for the inventory display.
- *
- */
-struct ItemNameList1 {
-    char *name[1]; /**< Item name. */
-};
-
-/**
- *
- * Holds five item names for the inventory display.
- *
- */
-struct ItemNameList5 {
-    char *name[5]; /**< Item name in each slot. */
-};
-
-/**
- *
  * Stores an inventory cursor position.
  *
  */
@@ -77,66 +41,100 @@ struct CursorPos {
     int y; /**< Vertical cursor coordinate. */
 };
 
-/**
- *
- * Stores message types for record board entries.
- *
- */
-struct RecordBoardMsgTypes {
-    int v[5]; /**< Message type for each entry. */
-};
-
-/**
- *
- * Stores three steps of a menu colour gradation.
- *
- */
-struct GradationSteps {
-    int v[3]; /**< Value for each gradation step. */
-};
-
-/**
- *
- * Stores the grade assigned to two rows.
- *
- */
-struct GradeRows {
-    signed char v[2]; /**< Grade for each row. */
-};
-
-extern CMenuInvent        *CMenuInventPt;
-extern CInventUserData    *InventUserDataPtr;
-extern CDC2AlbumData      *InventAlbumPtr;
 extern int                 menu_debug_flag;
-extern signed char         InventInNetaEffectNum;
 extern short               MenuItemCmdArgPos;
-extern int                 maxtbl_5171;
-extern int                 viewnum_5172;
-extern GridOverCode        at_5173;
-extern short               nextmodetbl_5183[];
-extern char               *gaiji_table_4737[3];
-extern int                 maxtbl_album_5223;
-extern int                 viewnum_album_5224;
-extern int                 overcode_album_5225[];
+
+/**
+ *
+ * Column and row counts of the inventory photo grid.
+ *
+ */
+static int maxtbl_5171[2] = {
+    15, 2
+};
+
+/**
+ *
+ * Visible column and row counts of the inventory photo grid.
+ *
+ */
+static int viewnum_5172[2] = {
+    3, 2
+};
+
+/**
+ *
+ * Inventory mode reached when leaving each photo menu.
+ *
+ */
+static short nextmodetbl_5183[12] = {
+    INVENT_MODE_THINK_ALBUM_BUTTON, -1, -1, -1, INVENT_MODE_ALBUM_VIEW, -1,
+    INVENT_MODE_PHOTO_ALBUM_BUTTON, -1, -1, -1, -1, INVENT_MODE_THINK
+};
+
+/**
+ *
+ * Icon prefixes used by the invention memo list.
+ *
+ */
+static char *gaiji_table_4737[3] = {
+    "[bulb2]",
+    "[bulb3]",
+    "[heart]"
+};
+
+/**
+ *
+ * Column and row counts of the photo album grid.
+ *
+ */
+static int maxtbl_album_5223[2] = {
+    25, 2
+};
+
+/**
+ *
+ * Visible column and row counts of the photo album grid.
+ *
+ */
+static int viewnum_album_5224[2] = {
+    5, 2
+};
+
+/**
+ *
+ * Grid overlay codes used while navigating the album.
+ *
+ */
+static int overcode_album_5225[4] = {
+    0, 0, 2, 0
+};
+
 extern short               menu_item_swap_sndtbl[];
-extern ItemNameList1       at_5448;
-extern ItemNameList1       at_5457;
-extern ItemNameList5       at_5460;
-extern ModelTriple         at_5474;
-extern RecordBoardMsgTypes at_2455;
-extern int                 rec_board_offset_xtbl[10];
-extern GradationSteps      at_2639;
-extern unsigned char       invent_color_tbl[3][2][4];
-extern char               *invent_grade_fff[2];
-extern GradeRows           at_2562;
-extern mgCTexture         *Tex_Hatsumei;
-extern unsigned int        InventSubDataReadBGInfo;
+
+/**
+ *
+ * Colours used by the two invention success strips.
+ *
+ */
+static u8 invent_color_tbl[3][2][4] = {
+    {{0, 0, 0, 0}, {0, 0, 255, 128}},
+    {{240, 140, 80, 80}, {255, 255, 0, 128}},
+    {{0, 0, 0, 0}, {128, 128, 128, 128}}
+};
+
+/**
+ *
+ * Form names for the two invention grade effect rows.
+ *
+ */
+static char *invent_grade_fff[2] = {
+    "f0",
+    "f1"
+};
+
 extern mgCMemory           MenuInventStack;
 extern CActionChara       *MenuActionChara[7];
-extern short               NetaMemoID[512];
-/** Names of discovered ideas displayed in the invention notebook. */
-extern char               *NetaMemoStr[512];
-extern short               NetaMemoStrNum;
 extern CMenuPosDataForm   *GiftBoxViewForm;
 
 enum {
@@ -219,80 +217,14 @@ enum {
     K_COMMAND_QUIT = 110
 };
 
-extern char at_1046__2[];
-
-/**
- *
- * Tracks whether each of three invention ideas was found.
- *
- */
-struct NetaFoundFlags {
-    s8 flag[3]; /**< Found flag for each idea. */
-};
-
-extern NetaFoundFlags at_1965;
-extern char           at_2124__2[];
-extern char           at_2125__3[];
-extern char           at_2126__3[];
-extern char           at_2127__2[];
-extern char           at_2128__3[];
-extern char           at_2129__2[];
-extern char           at_2130__2[];
-extern char           at_2131__2[];
-extern char           at_2132__2[];
-extern char           at_2133__2[];
-extern char           at_2134__2[];
-extern char           at_2135[];
-extern char           at_2136__2[];
-extern char           at_2137[];
-extern char           at_2138[];
-extern char           at_2139[];
-extern char           at_2140[];
-extern char           at_2141[];
-extern char           at_2142[];
-extern char           at_2143[];
-extern char           at_2144[];
-extern char           at_2145[];
-extern char           at_2146__2[];
-extern char           at_2147[];
-extern char           at_2148[];
-extern char           at_2149[];
-extern char           at_2150[];
-extern char           at_2151[];
-extern char           at_2152[];
 extern char           at_2244[];
 extern char           at_2245[];
-extern char           at_2246[];
 extern char           at_2247[];
 extern char           at_2248[];
 extern char           at_2249[];
 extern char           at_2250[];
 extern char           at_2251[];
 extern char           at_2252[];
-extern char           at_2253[];
-extern char           at_2313[];
-extern char           at_2395__2[];
-extern char           at_2396__2[];
-extern char           at_2520[];
-extern char           at_2521[];
-extern char           at_2522[];
-extern char           at_2523[];
-extern char           at_2524[];
-extern char           at_2525[];
-extern char           at_2526[];
-extern char           at_2527[];
-extern char           at_2528[];
-extern char           at_2543__2[];
-extern char           at_2544[];
-extern char           at_2712[];
-extern char           at_2713__2[];
-extern char           at_2720__2[];
-extern char           at_2732__2[];
-extern char           at_2733__2[];
-extern char           at_2734__2[];
-extern char           at_2735__2[];
-extern char           at_2736[];
-extern char           at_2737[];
 
 /**
  *
@@ -304,26 +236,15 @@ struct FoundSlots {
 };
 
 extern FoundSlots at_2776;
-extern CursorPos  at_3202;
 
 /**
  *
- * Stores four inventory cursor coordinates.
+ * Cursor frame type for each inventory menu mode.
  *
  */
-struct InventCursorPos {
-    int pos[4]; /**< Coordinates used by the inventory cursor. */
-} __attribute__((aligned(16)));
-
-extern InventCursorPos at_3201;
-extern s8              wakutype_3203[];
-extern char            at_3257[];
-extern char            at_3258[];
-extern char            at_3259[];
-extern char            at_3260__2[];
-extern char            at_3261[];
-extern char            at_3262__2[];
-extern char            at_3263__2[];
+static s8 wakutype_3203[12] = {
+    0, -1, -1, 0, 0, 0, 0, -1, 0, -1, -1, 0
+};
 
 /**
  *
@@ -334,10 +255,6 @@ struct ItemNameList2 {
     char *name[2]; /**< Item name in each slot. */
 };
 
-extern ItemNameList2       at_3317;
-extern CMemoryCardManager *MCManagerPtr;
-extern s8                  ActiveSlot_3949;
-extern s8                  init_3950;
 extern mgCMemory           MenuInventCharaStack;
 extern mgCMemory           MenuInventMCStack;
 extern char                at_4354[];
@@ -364,24 +281,10 @@ extern char                at_4374[];
 extern char                at_4375[];
 extern char                at_4376[];
 extern char                at_4377[];
-extern char                at_4378[];
 extern char                at_4379[];
 extern char                at_4380[];
 extern ItemNameList2       at_3739;
 extern ItemNameList2       at_3765;
-extern s8                  convtbl_3726[7];
-extern char                at_3858[];
-extern char                at_3859[];
-extern char                at_3860[];
-extern char                at_3861[];
-extern char                at_3862[];
-extern char                at_3863__2[];
-extern char                at_3864__2[];
-extern char                at_3865__2[];
-extern char                at_3866__2[];
-extern char                at_3867__2[];
-extern char                at_3868__2[];
-extern char                at_3869[];
 
 /**
  *
@@ -401,118 +304,27 @@ enum INVENT_ASK_MODE {
 
 /**
  *
- * Stores the positions of item board pieces.
+ * Localized label for an undiscovered invention card.
  *
  */
-struct ItemBoardKoma {
-    int pos[10]; /**< Position for each board piece. */
-};
-
-extern ItemBoardKoma at_3306;
-extern char          at_3348__2[];
-extern char          at_3349__2[];
-extern char          at_3350__2[];
-extern char          at_3351[];
-extern char          at_3352[];
-extern char          at_3353[];
-
-/**
- *
- * Defines the vertical clipping range for invention ideas.
- *
- */
-struct NetaClipRange {
-    float top;    /**< Upper clipping boundary. */
-    float bottom; /**< Lower clipping boundary. */
+static char *NewComer_5648[7] = {
+    "     ",
+    "New Invention",
+    "Nouvelle Invention",
+    "Neue Erfindung",
+    "Nuova Invenzione",
+    "Nuevo invento",
+    "New Invention"
 };
 
 /**
  *
- * Stores a point on the inventory screen.
+ * Decimal widths used to display the invention count.
  *
  */
-struct ScreenPoint {
-    int xy[2]; /**< Horizontal and vertical screen coordinates. */
+static int digit_tbl3_5641[8] = {
+    3, 3, 3, 3, 3, 3, 3, 3
 };
-
-extern ScreenPoint   at_3363;
-extern NetaClipRange at_3379;
-extern CursorPos     at_3509;
-extern ScreenPoint   at_4493;
-
-/**
- *
- * Stores an inventory menu colour.
- *
- */
-struct MenuColor {
-    u8 rgba[4]; /**< Red, green, blue, and alpha channels. */
-};
-
-extern MenuColor at_4494;
-
-/**
- *
- * Stores the target position of an invention effect.
- *
- */
-struct NetaEffectTarget {
-    float x; /**< Horizontal target coordinate. */
-    float y; /**< Vertical target coordinate. */
-};
-
-extern NetaEffectTarget at_4638;
-extern char             at_4775[];
-extern char             at_5066[];
-extern char             at_5067[];
-extern char             at_5550[];
-extern char             at_5551[];
-extern char             at_5552[];
-extern char             at_5553[];
-extern char             at_5554[];
-extern char             at_5555[];
-extern char             at_5556[];
-extern char             at_5557[];
-extern char             at_5558[];
-extern char             at_5559[];
-
-/**
- *
- * Stores the first visible row of two card lists.
- *
- */
-struct CardListTops {
-    int top[2]; /**< First visible row for each list. */
-};
-
-extern CardListTops at_5642;
-extern char        *NewComer_5648[];
-extern int          digit_tbl3_5641[];
-extern char         at_5742[];
-extern char         at_5743[];
-extern char         at_5744[];
-extern char         at_5745[];
-extern char         at_5746[];
-
-/**
- *
- * Holds the blank marker used for an invention name.
- *
- */
-struct NetaNameBlank {
-    char text[2]; /**< Blank name marker. */
-};
-
-extern NetaNameBlank at_4470;
-
-extern signed char       pict_seiton_case;
-extern short             debug_invent_successflag;
-extern short             debug_invent_select;
-extern CInventDataManage InventManageMan;
-extern char              at_5153[];
-extern char              at_5154[];
-extern char              at_5155[];
-extern char              at_5156[];
 
 /**
  *
@@ -540,44 +352,21 @@ struct InventCommandList {
     int cmd[5];  /**< Command codes for this mode. */
 };
 
-extern InventCommandList  modecmdtbl_3636[12];
-extern InventCommandList *menu_invent_command_info_ptr;
-extern USER_PICTURE_INFO *menu_invent_command_info_pict_info;
-extern USER_PICTURE_INFO *menu_invent_command_info_move_album_Space_info;
-extern int                menu_invent_command_info_move_album_Space_pos;
-extern char               at_2368__2[];
-extern char               at_2369__2[];
-extern char               at_3932[];
-extern char               at_3933[];
-extern char               at_3934[];
-extern char               at_3935[];
-extern char               at_3936[];
-extern u8                 InventInNetaEffectFlag;
-extern short              InventInNetaEffectNum4;
-extern CStarDust         *InventInNetaEffect;
 int                       MenuInventDebugKey();
 void                      MenuInventDebugDraw();
-extern char               at_2005[];
 
-extern mgCMemory     *scoop_str_stack;
-extern SPI_TAG_PARAM  menu_scoop_str_tag[];
-extern mgCMemory     *PicNameStack;
-extern short          pic_name_info_num;
-extern PIC_NAME_INFO *pic_name_info_top;
-extern short          pic_name_info_num_count;
-extern char           pic_name_text_buff_1660[];
-extern char           at_1664[];
-extern SPI_TAG_PARAM  pic_tag[];
-extern char          *addstringtable_1722[];
-extern char           temp_1728[0x30];
+/**
+ *
+ * Icon prefixes used by invention idea names.
+ *
+ */
+static char *addstringtable_1722[3] = {
+    "[bulb2]",
+    "[bulb3]",
+    "[heart]"
+};
 
-extern SCOOP_DATA         scoop_table[53];
-extern InventFoundFlags   at_1788__2;
-extern CInventDataManage *InventManagePt;
 extern mgCMemory          InventTeigiStack;
-extern INVENT_DATA_INFO  *inventSpiDataTblTop;
-extern short              invent_num_counter;
-extern SPI_TAG_PARAM      invent_teigi_func[];
 
 enum {
     kCreateAsk = 0,
@@ -606,6 +395,338 @@ enum {
     kSceneAttrFlags = 0x18000
 };
 
+/**
+ *
+ * Enables forced invention success in the debug menu.
+ *
+ */
+static short debug_invent_successflag;
+
+/**
+ *
+ * Invention records of the active user.
+ *
+ */
+static CInventUserData *InventUserDataPtr;
+
+/**
+ *
+ * Photo album used by the inventory menu.
+ *
+ */
+static CDC2AlbumData *InventAlbumPtr;
+
+/**
+ *
+ * Recipe manager used while inventing an item.
+ *
+ */
+static CInventDataManage *InventManagePt;
+
+/**
+ *
+ * Memory-card manager used for photo album transfers.
+ *
+ */
+static CMemoryCardManager *MCManagerPtr;
+
+/**
+ *
+ * Selects the ordering applied to the photo list.
+ *
+ */
+static signed char pict_seiton_case;
+
+/**
+ *
+ * Arena that stores the scoop name strings.
+ *
+ */
+static mgCMemory *scoop_str_stack;
+
+/**
+ *
+ * Arena that stores photo name definitions.
+ *
+ */
+static mgCMemory *PicNameStack;
+
+/**
+ *
+ * First parsed photo name record.
+ *
+ */
+static PIC_NAME_INFO *pic_name_info_top;
+
+/**
+ *
+ * Number of parsed photo name records.
+ *
+ */
+static short pic_name_info_num;
+
+/**
+ *
+ * Photo name records counted while sizing the list.
+ *
+ */
+static short pic_name_info_num_count;
+
+/**
+ *
+ * First recipe record populated by the invention script.
+ *
+ */
+static INVENT_DATA_INFO *inventSpiDataTblTop;
+
+/**
+ *
+ * Recipe index advanced by the invention script.
+ *
+ */
+static short invent_num_counter;
+
+/**
+ *
+ * Number of discovered idea names in the notebook.
+ *
+ */
+static short NetaMemoStrNum;
+
+/**
+ *
+ * Texture used for the invention display.
+ *
+ */
+static mgCTexture *Tex_Hatsumei;
+
+/**
+ *
+ * Background data-read handle of the inventory submenu.
+ *
+ */
+static unsigned int InventSubDataReadBGInfo;
+
+/**
+ *
+ * Photo selected by the active inventory command.
+ *
+ */
+static USER_PICTURE_INFO *menu_invent_command_info_pict_info;
+
+/**
+ *
+ * Command list of the current inventory screen.
+ *
+ */
+static InventCommandList *menu_invent_command_info_ptr;
+
+/**
+ *
+ * Photo moved between album spaces.
+ *
+ */
+static USER_PICTURE_INFO *menu_invent_command_info_move_album_Space_info;
+
+/**
+ *
+ * Destination position of a photo moved between album spaces.
+ *
+ */
+static int menu_invent_command_info_move_album_Space_pos;
+
+/**
+ *
+ * Controls the effect for a newly added idea.
+ *
+ */
+static u8 InventInNetaEffectFlag;
+
+/**
+ *
+ * Number of ideas displayed by the addition effect.
+ *
+ */
+static signed char InventInNetaEffectNum;
+
+/**
+ *
+ * Counter used by the idea addition effect.
+ *
+ */
+static short InventInNetaEffectNum4;
+
+/**
+ *
+ * Particle effect used when adding an idea.
+ *
+ */
+static CStarDust *InventInNetaEffect;
+
+/**
+ *
+ * Memory-card slot selected for album operations.
+ *
+ */
+static s8 ActiveSlot_3949;
+
+/**
+ *
+ * Indicates that the album memory-card slot has been initialized.
+ *
+ */
+static s8 init_3950;
+
+/**
+ *
+ * Active inventory menu.
+ *
+ */
+static CMenuInvent *CMenuInventPt;
+
+/**
+ *
+ * Recipe manager owned by the inventory menu.
+ *
+ */
+static CInventDataManage InventManageMan;
+
+/**
+ *
+ * Selected row of the inventory debug display.
+ *
+ */
+static short debug_invent_select;
+
+/**
+ *
+ * Work buffer for photo name definitions.
+ *
+ */
+static char pic_name_text_buff_1660[0x2480];
+
+/**
+ *
+ * Scratch string used while resolving a scoop name.
+ *
+ */
+static char temp_1728[0x21];
+
+/**
+ *
+ * Names of discovered ideas displayed in the notebook.
+ *
+ */
+static char *NetaMemoStr[512];
+
+/**
+ *
+ * Idea identifiers displayed in the notebook.
+ *
+ */
+static short NetaMemoID[512];
+
+/**
+ *
+ * Horizontal offsets of the inventory record-board entries.
+ *
+ */
+static int rec_board_offset_xtbl[10];
+
+/**
+ *
+ * Confirmation mode selected by each photo command.
+ *
+ */
+static s8 convtbl_3726[7] = {
+    INVENT_ASK_ZOOM, INVENT_ASK_DELETE, INVENT_ASK_TO_ALBUM, INVENT_ASK_FROM_ALBUM, INVENT_ASK_DELETE_UNUSED, INVENT_ASK_SET_BOARD, INVENT_ASK_DELETE_ALL
+};
+
+/**
+ *
+ * Defines each scoop and the event flag that reveals it.
+ *
+ */
+static SCOOP_DATA scoop_table[53] = {
+    {1000, 300, 1},
+    {1001, 300, 2},
+    {1002, 300, 3},
+    {1003, 300, 4},
+    {1004, 300, 5},
+    {1005, 500, 6},
+    {1006, 100, 7},
+    {1007, 201, 8},
+    {1009, 300, 9},
+    {1010, 300, 10},
+    {1011, 201, 11},
+    {1012, 201, 12},
+    {1013, 54, 13},
+    {1014, 54, 14},
+    {1016, 408, 15},
+    {1017, 520, 16},
+    {1018, 100, 17},
+    {1019, 201, 18},
+    {1021, 300, 19},
+    {1022, 201, 20},
+    {1023, 500, 21},
+    {1024, 804, 22},
+    {1026, 600, 24},
+    {1027, 438, 25},
+    {2000, 250, 26},
+    {2001, 250, 27},
+    {2002, 348, 28},
+    {2003, 456, 29},
+    {2004, 556, 30},
+    {2005, 54, 31},
+    {2006, 402, 32},
+    {2007, 408, 33},
+    {2008, 54, 34},
+    {2009, 209, 35},
+    {2010, 340, 36},
+    {2011, 500, 37},
+    {2012, 448, 38},
+    {2013, 708, 39},
+    {2014, 604, 40},
+    {2015, 616, 41},
+    {2016, 556, 42},
+    {2017, 616, 43},
+    {2018, 616, 44},
+    {2019, 616, 45},
+    {2020, 616, 46},
+    {2021, 700, 47},
+    {2022, 700, 48},
+    {2023, 524, 49},
+    {2025, 520, 51},
+    {2026, 300, 52},
+    {2027, 400, 53},
+    {2028, 500, 54},
+    {1015, 209, 55},
+};
+
+/**
+ *
+ * Lists the commands available for each inventory layout.
+ *
+ */
+static InventCommandList modecmdtbl_3636[12] = {
+    {1, 5, {INVENT_CMD_SET_BOARD, INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
+    {0, 5, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_FROM_ALBUM, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
+    {0, 0, {INVENT_CMD_ZOOM, 0, 0, -1, -1}},
+    {0, 0, {INVENT_CMD_ZOOM, 0, 0, -1, -1}},
+    {1, 5, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_TO_ALBUM, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
+    {1, 5, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_FROM_ALBUM, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
+    {1, 4, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL, -1}},
+    {0, 5, {INVENT_CMD_ZOOM, INVENT_CMD_DELETE, INVENT_CMD_FROM_ALBUM, INVENT_CMD_DELETE_UNUSED, INVENT_CMD_DELETE_ALL}},
+};
+
+/**
+ *
+ * Byte lengths of the proposed Japanese invention name endings.
+ *
+ */
+static u8 jp_conv_lentbl_2835[12] = {
+    2, 2, 2, 4, 4, 8, 6, 4, 6, 14, 10, 6
+};
 
 // Code (.text)
 CInventUserData *GetInventUserDataPtr() {
@@ -787,7 +908,7 @@ void AttachPictTex(int block, mgCTexture **textures, USER_PICTURE_INFO *info, in
     }
 
     for (i = 0; i < count; i++) {
-        sprintf(name, at_1046__2, i + base);
+        sprintf(name, "neta%d", i + base);
         manager->DeleteTexture(name, block);
         manager->EnterTexture(block, name, NULL, (64), (64), (0x10), 0, 0, 0);
         textures[i] = manager->GetTexture(name, -1);
@@ -1296,6 +1417,16 @@ int _SCOOP_STR(SPI_STACK *stack, int unused) {
     return 1;
 }
 
+/**
+ *
+ * Script handlers used to load scoop descriptions.
+ *
+ */
+static SPI_TAG_PARAM menu_scoop_str_tag[2] = {
+    {"STR", _SCOOP_STR},
+    {NULL, NULL}
+};
+
 void AnalyzeScoopString(mgCMemory *stack, char *script, int size) {
     InitScoopString();
     scoop_str_stack = stack;
@@ -1468,6 +1599,17 @@ int _PIC_NAME(SPI_STACK *stack, int unused) {
     return 1;
 }
 
+/**
+ *
+ * Script handlers used to load photo subject names.
+ *
+ */
+static SPI_TAG_PARAM pic_tag[3] = {
+    {"PIC_INFO", _PIC_INFO},
+    {"PIC_NAME", _PIC_NAME},
+    {NULL, NULL}
+};
+
 void LoadFilePictureName() {
     mgCMemory    stack;
     char         align_buffer[0x5000];
@@ -1476,7 +1618,7 @@ void LoadFilePictureName() {
     stack.stSetBuffer((u_long128 *) pic_name_text_buff_1660, 0x248);
     PicNameStack = &stack;
     buffer = (char *) MenuCalcBufAlignment((u_long128 *) align_buffer);
-    size = LoadFileMenu(at_1664, (u_long128 *) buffer, 1);
+    size = LoadFileMenu("neta2.lst", (u_long128 *) buffer, 1);
     CScriptInterpreter interpreter;
     interpreter.SetTag(pic_tag);
     interpreter.SetScript(buffer, size);
@@ -1624,14 +1766,14 @@ int CInventDataManage::CheckInventEnable(int *ids, int *combined) {
         ingredient = &entry->neta_id[0];
 
         if (ingredient != NULL) {
-            InventFoundFlags found = at_1788__2;
+            u8 found[3] = {0, 0, 0};
 
             for (j = 0; j < 3; j++) {
                 want[j] = ingredient[j];
 
                 for (k = 0; k < 3; k++) {
                     if (want[j] == ids[k]) {
-                        found.flag[j] = 1;
+                        found[j] = 1;
                     }
                 }
             }
@@ -1639,7 +1781,7 @@ int CInventDataManage::CheckInventEnable(int *ids, int *combined) {
             count = 0;
 
             for (m = 0; m < 3; m++) {
-                if (found.flag[m] != 0) {
+                if (found[m] != 0) {
                     count++;
                     want[m] = 0;
                 }
@@ -1649,7 +1791,7 @@ int CInventDataManage::CheckInventEnable(int *ids, int *combined) {
                 *combined = 1;
             }
 
-            if (found.flag[0] != 0 && found.flag[1] != 0 && found.flag[2] != 0) {
+            if (found[0] != 0 && found[1] != 0 && found[2] != 0) {
                 return entry->item_id;
             }
         }
@@ -1810,6 +1952,17 @@ int _INVENT_DATASET(SPI_STACK *stack, int argument_count) {
     return 1;
 }
 
+/**
+ *
+ * Script handlers used to load invention recipes.
+ *
+ */
+static SPI_TAG_PARAM invent_teigi_func[3] = {
+    {"DATATABLESET", _INVENT_DATATABLESET},
+    {"DATASET", _INVENT_DATASET},
+    {NULL, NULL}
+};
+
 int CInventDataManage::LoadAnalyzeInventFile(char *script, int size) {
     if (script == NULL) {
         return 0;
@@ -1837,7 +1990,7 @@ int CheckInventItem(int item_id) {
     manage.num = 0;
     manage.table = NULL;
     buffer = (char *) MenuCalcBufAlignment((u_long128 *) align_buffer);
-    LoadFile2(at_2005, buffer, &file_size, 0);
+    LoadFile2("menu/inv6.lst", buffer, &file_size, 0);
     InventTeigiStack.stSetBuffer((u_long128 *) teigi_buffer, 0x400);
     manage.LoadAnalyzeInventFile(buffer, file_size);
     InventUserDataPtr = GetInventUserDataPtr();
@@ -1906,7 +2059,7 @@ int CheckItemTable(int item_id, int *values) {
     manage.table = NULL;
     buffer = (char *) MenuCalcBufAlignment((u_long128 *) align_buffer);
 
-    if (LoadFile2(at_2005, buffer, &file_size, 0) != 0) {
+    if (LoadFile2("menu/inv6.lst", buffer, &file_size, 0) != 0) {
         InventTeigiStack.stSetBuffer((u_long128 *) teigi_buffer, 0x400);
         manage.LoadAnalyzeInventFile(buffer, file_size);
         record = manage.GetInventDataInfoByItemID(item_id);
@@ -2004,9 +2157,9 @@ int CMenuInvent::CheckRecoverPhotoNum() {
 }
 
 void CMenuInvent::AttachFormInfo() {
-    bg_form = MenuPosData->GetFormInfo(at_2124__2);
-    itembrd_form = MenuPosData->GetFormInfo(at_2125__3);
-    neta_board_form = MenuPosData->GetFormInfo(at_2126__3);
+    bg_form = MenuPosData->GetFormInfo("inv_bg");
+    itembrd_form = MenuPosData->GetFormInfo("itembrd");
+    neta_board_form = MenuPosData->GetFormInfo("\x83\x6c\x83\x5e\x94\xc2");
     neta_board_bar[0] = 0;
     neta_board_bar[1] = 0;
     neta_board_bar[2] = 0;
@@ -2014,49 +2167,49 @@ void CMenuInvent::AttachFormInfo() {
     neta_memo_arrow = 0;
 
     if (neta_board_form != 0) {
-        neta_board_form->SetNumber(at_2127__2, 30);
-        neta_board_bar[0] = neta_board_form->GetPartInfo(at_2128__3);
-        neta_board_bar[1] = neta_board_form->GetPartInfo(at_2129__2);
-        neta_board_bar[2] = neta_board_form->GetPartInfo(at_2130__2);
-        neta_board_arrow = neta_board_form->GetPartInfo(at_2131__2);
-        neta_memo_arrow = neta_board_form->GetPartInfo(at_2132__2);
+        neta_board_form->SetNumber("maxnum", 30);
+        neta_board_bar[0] = neta_board_form->GetPartInfo("bar0");
+        neta_board_bar[1] = neta_board_form->GetPartInfo("bar1");
+        neta_board_bar[2] = neta_board_form->GetPartInfo("bar2");
+        neta_board_arrow = neta_board_form->GetPartInfo("\x81\xaa");
+        neta_memo_arrow = neta_board_form->GetPartInfo("\x83\x6c\x83\x5e\x92\xa0\x96\xee\x88\xf3\x8a\xee\x96\x7b");
     }
 
-    neta_memo_form = MenuPosData->GetFormInfo(at_2133__2);
+    neta_memo_form = MenuPosData->GetFormInfo("\x83\x6c\x83\x5e\x92\xa0");
     photo_scroll_reset = 1;
-    makebrd_form = MenuPosData->GetFormInfo(at_2134__2);
+    makebrd_form = MenuPosData->GetFormInfo("makebrd");
     card_scroll_reset = 1;
-    card_list_title_form = MenuPosData->GetFormInfo(at_2135);
-    card_list_form = MenuPosData->GetFormInfo(at_2136__2);
-    album_sw_form = MenuPosData->GetFormInfo(at_2137);
+    card_list_title_form = MenuPosData->GetFormInfo("\x83\x4a\x81\x5b\x83\x68\x83\x8a\x83\x58\x83\x67");
+    card_list_form = MenuPosData->GetFormInfo("cardlist");
+    album_sw_form = MenuPosData->GetFormInfo("Album_sw");
 
     if (album_sw_form != 0) {
         album_sw_form->rgba_bit = 8;
     }
 
-    album_big_form = MenuPosData->GetFormInfo(at_2138);
-    GiftBoxViewForm = MenuPosData->GetFormInfo(at_2139);
-    neta_form[0] = MenuPosData->GetFormInfo(at_2140);
-    neta_form[1] = MenuPosData->GetFormInfo(at_2141);
-    neta_form[2] = MenuPosData->GetFormInfo(at_2142);
-    neta_name_form[0] = MenuPosData->GetFormInfo(at_2143);
-    neta_name_form[1] = MenuPosData->GetFormInfo(at_2144);
-    neta_name_form[2] = MenuPosData->GetFormInfo(at_2145);
-    recbrd_form = MenuPosData->GetFormInfo(at_2146__2);
-    poly_chr_form[0] = MenuPosData->GetFormInfo(at_2147);
-    poly_chr_form[1] = MenuPosData->GetFormInfo(at_2148);
+    album_big_form = MenuPosData->GetFormInfo("Album_Big");
+    GiftBoxViewForm = MenuPosData->GetFormInfo("giftview");
+    neta_form[0] = MenuPosData->GetFormInfo("neta0");
+    neta_form[1] = MenuPosData->GetFormInfo("neta1");
+    neta_form[2] = MenuPosData->GetFormInfo("neta2");
+    neta_name_form[0] = MenuPosData->GetFormInfo("neta0name");
+    neta_name_form[1] = MenuPosData->GetFormInfo("neta1name");
+    neta_name_form[2] = MenuPosData->GetFormInfo("neta2name");
+    recbrd_form = MenuPosData->GetFormInfo("recbrd");
+    poly_chr_form[0] = MenuPosData->GetFormInfo("poly_chr0");
+    poly_chr_form[1] = MenuPosData->GetFormInfo("poly_chr1");
 
     if (poly_chr_form[0] != 0) {
         poly_chr_form[0]->SetActionCharaPtr(0, -1, -1);
     }
 
-    invent_okeff_form = MenuPosData->GetFormInfo(at_2149);
-    dload_form = MenuPosData->GetFormInfo(at_2150);
-    kakudai_pic_form = MenuPosData->GetFormInfo(at_2151);
+    invent_okeff_form = MenuPosData->GetFormInfo("invent_okeff");
+    dload_form = MenuPosData->GetFormInfo("DLOAD");
+    kakudai_pic_form = MenuPosData->GetFormInfo("kakudai_pic");
     kakudai_pic = 0;
 
     if (kakudai_pic_form != 0) {
-        kakudai_pic = kakudai_pic_form->GetPartInfo(at_2152);
+        kakudai_pic = kakudai_pic_form->GetPartInfo("pic");
     }
 
     AttachMessageForm();
@@ -2096,7 +2249,7 @@ void CMenuInvent::LoadCharaCheck() {
             MenuLoadInfo.mode = 1;
             MenuLoadInfo.load_all = 1;
             MenuLoadInfo.chara_no = 0;
-            MenuLoadInfo.unk_6[1] = 0;
+            MenuLoadInfo.update_scene = 0;
             SetMenuLoadItemNo(0);
             size = MenuItemCharaDataLoad(load_stack, 0, MenuCharaBuild2, 0);
             chara_load_step = 1;
@@ -2123,7 +2276,7 @@ void CMenuInvent::LoadCharaCheck() {
                 attr->no_light = 1;
                 frame->SetAttrParam(*attr, 1, kSceneAttrFlags);
             }
-            chara->SetMotion(at_2246, 0, 1);
+            chara->SetMotion("\x97\xa7\x82\xbf", 0, 1);
             if (chara_read_info != NULL) {
                 BG_READ_INFO            *read_info = chara_read_info;
                 u_int                   *model_file = GetPackFile((u_int *) read_info->buffer, at_2247, &size);
@@ -2156,7 +2309,7 @@ void CMenuInvent::LoadCharaCheck() {
             }
             chara->SetRotation(0.0f, -0.56f, 0.0f);
             chara->Step();
-            ExeScript(at_2253);
+            ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
             chara_load_step = 2;
             poly_chr_form[0]->SetActionCharaPtr(chara, tex_block[1], -1);
             unk_642 = 0;
@@ -2176,12 +2329,12 @@ USER_PICTURE_INFO *CMenuInvent::GetNowSelectedPictInfo() {
     USER_PICTURE_INFO *info = 0;
 
     switch (key_arg_no) {
-        case 0:
-        case 6:
-        case 4:
+        case INVENT_MODE_THINK:
+        case INVENT_MODE_PHOTO_VIEW:
+        case INVENT_MODE_THINK_WITH_ALBUM:
             info = InventUserDataPtr->GetPhotoInfo(photo_cursor);
             break;
-        case 5:
+        case INVENT_MODE_ALBUM_VIEW:
             info = InventAlbumPtr->GetAlbumPhotoInfo(album_cursor);
             break;
     }
@@ -2191,15 +2344,15 @@ USER_PICTURE_INFO *CMenuInvent::GetNowSelectedPictInfo() {
 
 USER_PICTURE_INFO *CMenuInvent::GetPhotoInfoFromMode(int *slot_count) {
     switch (key_arg_no) {
-        case 0:
-        case 6:
-        case 4:
+        case INVENT_MODE_THINK:
+        case INVENT_MODE_PHOTO_VIEW:
+        case INVENT_MODE_THINK_WITH_ALBUM:
             if (slot_count != 0) {
                 *slot_count = 30;
             }
 
             return InventUserDataPtr->GetPhotoInfo(0);
-        case 5:
+        case INVENT_MODE_ALBUM_VIEW:
             if (slot_count != 0) {
                 *slot_count = 50;
             }
@@ -2234,7 +2387,7 @@ void CMenuInvent::InitNetaCircle(int show) {
                 CMenuPosDataForm *label = neta_name_form[i];
 
                 if (label != 0) {
-                    label->SetAction(at_2313);
+                    label->SetAction("\x92\x86\x82\xd6");
                 }
             }
         }
@@ -2308,7 +2461,7 @@ int CMenuInvent::SetNetaCircle(int type, int index) {
         }
 
         form->SetRGBACalcParam(3, 8, 0x80);
-        MENUFORMPARTS_TYPE *ring = form->GetPartInfo(at_2368__2);
+        MENUFORMPARTS_TYPE *ring = form->GetPartInfo("neta");
         ring->draw_flag = 1;
 
         if (neta_select_type[neta_select_num] == 0) {
@@ -2339,7 +2492,7 @@ int CMenuInvent::SetNetaCircle(int type, int index) {
     label = neta_name_form[neta_select_num];
 
     if (label != NULL) {
-        label->SetAction(at_2313);
+        label->SetAction("\x92\x86\x82\xd6");
     }
 
     SetNetaName(MenuDCMsg[7], neta_select_num, name);
@@ -2348,7 +2501,7 @@ int CMenuInvent::SetNetaCircle(int type, int index) {
     neta_select_num++;
 
     if (neta_select_num == 1 && MenuActionChara[0] != NULL) {
-        MenuActionChara[0]->SetMotion(at_2369__2, 0, 1);
+        MenuActionChara[0]->SetMotion("\x8d\x6c\x82\xa6", 0, 1);
     }
 
     neta_circle_angle += 0.05235988f;
@@ -2378,20 +2531,20 @@ int CMenuInvent::CancelNetaCircle(int mode) {
     CMenuPosDataForm *label = neta_name_form[neta_select_num];
 
     if (label != 0) {
-        label->SetAction(at_2395__2);
+        label->SetAction("\x8a\x4f\x82\xd6");
     }
 
     if (neta_select_num <= 0) {
         if (MenuActionChara[0] != 0) {
-            MenuActionChara[0]->SetMotion(at_2246, 0, 1);
+            MenuActionChara[0]->SetMotion("\x97\xa7\x82\xbf", 0, 1);
         }
 
         if (mode == 0) {
-            ExeScript(at_2253);
+            ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
         }
 
         if (mode == 5) {
-            ExeScript(at_2396__2);
+            ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "5");
         }
     }
 
@@ -2475,8 +2628,8 @@ void CMenuInvent::UpdataRecordBoard() {
     values[2] = InventUserDataPtr->CountScoop();
     values[3] = InventUserDataPtr->CalcPhotoExp();
     values[4] = InventUserDataPtr->GetLevel();
-    RecordBoardMsgTypes volume_types = at_2455;
-    mes->SetMsgVolumeNo(values, (int *) &volume_types, 5);
+    int volume_types[5] = {5, 5, 5, 3, 4};
+    mes->SetMsgVolumeNo(values, volume_types, 5);
     mes->ClsMes::mes_no = -1;
     mes->MakeMsg(0x2BC);
 
@@ -2503,23 +2656,23 @@ void CMenuInvent::PrepareNextMode(int next_mode) {
     neta_form[1]->parts->etc_info[0] = -1;
     neta_form[2]->parts->etc_info[0] = -1;
     MenuPosData->InitDrawList();
-    ExeScript(at_2253);
-    ExeScript(at_2520);
+    ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
+    ExeScript("\x83\x74\x83\x48\x81\x5b\x83\x80\x8f\x89\x8a\xfa\x89\xbb");
 
     switch (key_arg_no) {
-        case 0:
-            ExeScript(at_2521);
-            ExeScript(at_2522);
+        case INVENT_MODE_THINK:
+            ExeScript("MSG\x8d\x6c\x8e\x40\x83\x82\x81\x5b\x83\x68");
+            ExeScript("NextToThink");
 
             if (LanguageCode > 0) {
                 MenuDCMsg[7]->font_w = 0xE;
             }
 
             break;
-        case 2:
-            ExeScript(at_2523);
+        case INVENT_MODE_CARD_LIST:
+            ExeScript("MSG\x94\xad\x96\xbe\x90\xbb\x8d\xec\x83\x82\x81\x5b\x83\x68");
             CreateModeSwapForm(0);
-            ExeScript(at_2524);
+            ExeScript("NextToCardList");
             MenuDCMsg[2]->font_w = 0xD;
             MenuDCMsg[3]->value_space = -7;
 
@@ -2533,26 +2686,26 @@ void CMenuInvent::PrepareNextMode(int next_mode) {
             }
 
             break;
-        case 5:
-            ExeScript(at_2525);
+        case INVENT_MODE_ALBUM_VIEW:
+            ExeScript("NextToAlbumView");
 
             do {
             } while (CancelNetaCircle(0) >= 0);
 
             break;
-        case 6:
-            ExeScript(at_2521);
-            ExeScript(at_2526);
+        case INVENT_MODE_PHOTO_VIEW:
+            ExeScript("MSG\x8d\x6c\x8e\x40\x83\x82\x81\x5b\x83\x68");
+            ExeScript("NextToPhotoView");
             UpdataRecordBoard();
             break;
     }
 
     if (photo_only == 1) {
-        ExeScript(at_2527);
+        ExeScript("picmodeonly");
     }
 
     if (album_enable == 0) {
-        ExeScript(at_2528);
+        ExeScript("ALBUM_OFF");
     }
 }
 
@@ -2560,13 +2713,13 @@ CGameDataUsed *CMenuInvent::SearchNowPosItemExist() {
     CGameDataUsed *item = 0;
 
     switch (key_arg_no) {
-        case 2:
+        case INVENT_MODE_CARD_LIST:
 
             create_item.Init();
             item = &create_item;
             item->item_no = InventUserDataPtr->GetCreateItemID(card_cursor);
             break;
-        case 3:
+        case INVENT_MODE_ITEM_LIST:
             item = &MenuUserParam.used_data[item_cursor];
             break;
     }
@@ -2576,11 +2729,11 @@ CGameDataUsed *CMenuInvent::SearchNowPosItemExist() {
 
 void CMenuInvent::CreateModeSwapForm(int side) {
     if (side == 0) {
-        ExeScript(at_2543__2);
+        ExeScript("FORMSWAP0");
         return;
     }
 
-    ExeScript(at_2544);
+    ExeScript("FORMSWAP1");
 }
 
 void CMenuInvent::GradationSet(int mode) {
@@ -2610,7 +2763,7 @@ void CMenuInvent::GradationSet(int mode) {
                         invent_okeff_form->GetPartInfo(*(char **) ((u8 *) invent_grade_fff + offset));
                     i++;
 
-                    *(int *) &part->y = 0x43600000;
+                    part->y = 224.0f;
                     offset += 4;
                     part->h = 0.0f;
                 } while (i < 2);
@@ -2635,13 +2788,13 @@ void CMenuInvent::GradationSet(int mode) {
                     j++;
                 } while (j < 4);
 
-                GradeRows rows = at_2562;
+                signed char rows[2] = {0, 1};
 
                 do {
                     MENUFORMPARTS_TYPE *part = invent_okeff_form->GetPartInfo(invent_grade_fff[i]);
-                    *(int *) &part->y = 0x43600000;
+                    part->y = 224.0f;
                     part->h = 0.0f;
-                    int                        row = rows.v[i];
+                    int                        row = rows[i];
                     u8                        *first = invent_color_tbl[2][row];
                     MENU_PARTS_EFFECT_STRUCT1 *first_effect = part->effect;
                     first_effect->param[0] = first[0];
@@ -2696,7 +2849,7 @@ void CMenuInvent::GradationStep() {
 
     int                 i;
     MENUFORMPARTS_TYPE *part;
-    GradationSteps      steps = at_2639;
+    int steps[3] = {30, 60, 90};
 
     switch (gradation_mode) {
         case 1: {
@@ -2705,7 +2858,7 @@ void CMenuInvent::GradationStep() {
             for (i = 0; i < 2; i++) {
                 part = invent_okeff_form->GetPartInfo(invent_grade_fff[i]);
 
-                if (steps.v[2] >= gradation_height) {
+                if (steps[2] >= gradation_height) {
                     part->h = gradation_height;
 
                     if (i % 2 == 0) {
@@ -2777,13 +2930,13 @@ void CMenuInvent::InitEnd() {
 
     if (photo_only == 1) {
         EnterDataMenu((u8 *) read_info->buffer);
-        ExeScript(at_2253);
-        ExeScript(at_2712);
+        ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
+        ExeScript("\x8e\xca\x90\x5e\x8a\x6d\x94\x46\x83\x82\x81\x5b\x83\x68\x8f\x89\x8a\xfa\x89\xbb");
         PrepareNextMode((int) key_arg_no);
     }
 
     cursor_snap = 1;
-    ExeScript(at_2713__2);
+    ExeScript("INIT_END");
     MenuItemBrdCalcManner = 0;
 }
 
@@ -2805,22 +2958,22 @@ void CMenuInvent::ExitEnd() {
     }
 
     InventUserDataPtr->PhotoCheckEnd();
-    ExeScript(at_2720__2);
+    ExeScript("\x96\x7b\x8f\x49\x97\xb9\x8f\x88\x97\x9d");
 }
 
 void CMenuInvent::EnterDataMenu(u8 *pack) {
     mgCTextureManager *tex_manager = &mgTexManager;
-    u_int             *file = GetPackFile((unsigned int *) pack, at_2732__2, 0);
+    u_int             *file = GetPackFile((unsigned int *) pack, "inv_bg.img", 0);
 
     if (file != 0) {
         int image_block = this->tex_block[3];
 
         if (file != 0) {
             tex_manager->EnterIMGFile((u8 *) file, image_block, 0, 0);
-            Tex_Hatsumei = tex_manager->GetTexture(at_2733__2, -1);
+            Tex_Hatsumei = tex_manager->GetTexture("inv0", -1);
         }
 
-        file = GetPackFile((unsigned int *) pack, at_2734__2, 0);
+        file = GetPackFile((unsigned int *) pack, "edmenu.img", 0);
 
         if (file != 0) {
             tex_manager->EnterIMGFile((u8 *) file, MenuCommonInfo->tex_block[1], 0, 0);
@@ -2828,16 +2981,16 @@ void CMenuInvent::EnterDataMenu(u8 *pack) {
         }
 
         int size = 0;
-        MenuDataAnalyze((char *) GetPackFile((unsigned int *) pack, at_2735__2, &size), size, &data_stack);
+        MenuDataAnalyze((char *) GetPackFile((unsigned int *) pack, "invent.cfg", &size), size, &data_stack);
         MenuInventStack.Align64();
 
         icon_data[0].data = GetPackFile((u_int *) pack, icon_data[0].name, &icon_data[0].size);
         icon_data[1].data = GetPackFile((u_int *) pack, icon_data[1].name, &icon_data[1].size);
         icon_data[2].data = GetPackFile((u_int *) pack, icon_data[2].name, &icon_data[2].size);
         AttachPictTex(tex_block[3], photo_tex, InventUserDataPtr->GetPhotoInfo(0), 0x1E);
-        script = (char *) GetPackFile((unsigned int *) pack, at_2736, &script_size);
+        script = (char *) GetPackFile((unsigned int *) pack, "inv_com.cfg", &script_size);
         int size2 = 0;
-        InventManagePt->LoadAnalyzeInventFile((char *) GetPackFile((unsigned int *) pack, at_2737, &size2),
+        InventManagePt->LoadAnalyzeInventFile((char *) GetPackFile((unsigned int *) pack, "inv6.lst", &size2),
                                               size2);
     }
 
@@ -2900,15 +3053,80 @@ extern char        at_3132[];
 extern char        at_3133[];
 extern char        at_3134[];
 extern char        at_3135[];
-extern char        at_2820[];
-extern char       *Tb_2819[7];
-extern char       *gobitbl_2847[2];
-extern char       *getfilename_2928[2];
-extern char       *sndfileName_2951[2];
-extern char       *wavname_2960[3];
-extern short       sndtimetbl_2868[2];
+
+/**
+ *
+ * Prefix used for an automatically proposed invention name.
+ *
+ */
+static char *Tb_2819[7] = {
+    "\x82\xa4\x81\x5b\x82\xf1",
+    "Ummm",
+    "Ummm",
+    "Ummm",
+    "Ummm",
+    "Ummm",
+    "Ummm"
+};
+
+/**
+ *
+ * Question endings appended to a proposed Japanese invention name.
+ *
+ */
+static char *gobitbl_2847[2] = {
+    "\x82\xa9\x82\xe0\x81\x48",
+    "\x82\xa9\x82\xc8\x81\x48"
+};
+
+/**
+ *
+ * Item model assets selected for invention outcomes.
+ *
+ */
+static char *getfilename_2928[2] = {
+    "inv_ng.mds",
+    "inv_ok.mds"
+};
+
+/**
+ *
+ * Sound banks selected for invention outcomes.
+ *
+ */
+static char *sndfileName_2951[2] = {
+    "snd2/sp/SP_008.snd",
+    "snd2/sp/SP_009.snd"
+};
+
+/**
+ *
+ * Wave names used during the invention sound sequence.
+ *
+ */
+static char *wavname_2960[3] = {
+    "200",
+    "190",
+    "180"
+};
+
+/**
+ *
+ * Sound-bank time limits of the two invention stages.
+ *
+ */
+static short sndtimetbl_2868[2] = {
+    210, 280
+};
+
 extern signed char D_003532DF[];
-extern float       eff_light_2927[4];
+
+/**
+ *
+ * Lighting colour used for the invented item model.
+ *
+ */
+static float eff_light_2927[4] = {255.0f, 255.0f, 255.0f, 128.0f};
 
 #pragma inline_depth(5)
 #ifdef NONMATCHING
@@ -3084,7 +3302,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                             } else if (name != NULL) {
                                 sprintf((char *) this->create_photo_name, at_3119, name, gobitbl_2847[GetRandI(2)]);
                             } else {
-                                strcpy((char *) this->create_photo_name, at_2820);
+                                strcpy((char *) this->create_photo_name, "\x82\xa4\x81\x5b\x82\xf1");
                             }
                             break;
                         }
@@ -3488,72 +3706,72 @@ void CMenuInvent::CalcCursorPosition() {
         MenuCommonInfo->SetWakuType(-1);
     }
 
-    InventCursorPos cursor = at_3201;
+    int cursor[4] = {10, 10, 0, 0};
     char            text[0x28];
-    CursorPos       offset = at_3202;
+    CursorPos       offset = {0, 0};
     CursorPos       waku;
     CursorPos       command_pos;
-    sprintf(text, at_3257, key_arg_no);
+    sprintf(text, "wakuwh%d", key_arg_no);
     MenuPosData->GetEtcTblValue(text, waku.x, waku.y);
-    sprintf(text, at_3258, key_arg_no);
+    sprintf(text, "c_of%d", key_arg_no);
     MenuPosData->GetEtcTblValue(text, offset.x, offset.y);
     MenuCommonInfo->SetWakuWH(wakutype_3203[key_arg_no], waku.x, waku.y);
     MenuCommonInfo->SetWakuType(wakutype_3203[key_arg_no]);
 
     switch (key_arg_no) {
-        case 0:
-        case 4:
-        case 6:
-            GetNetaBoardCursorPosition(photo_cursor, cursor.pos);
+        case INVENT_MODE_THINK:
+        case INVENT_MODE_THINK_WITH_ALBUM:
+        case INVENT_MODE_PHOTO_VIEW:
+            GetNetaBoardCursorPosition(photo_cursor, cursor);
 
             if (neta_board_form != NULL) {
-                cursor.pos[1] = 108.0f + (4.0f + neta_board_form->y) + (float) ((photo_cursor / 2 - photo_top) * 54);
+                cursor[1] = 108.0f + (4.0f + neta_board_form->y) + (float) ((photo_cursor / 2 - photo_top) * 54);
             }
 
-            cursor.pos[0] += 3;
-            cursor.pos[1] += 2;
-            command_pos.x = cursor.pos[0];
-            command_pos.y = cursor.pos[1];
+            cursor[0] += 3;
+            cursor[1] += 2;
+            command_pos.x = cursor[0];
+            command_pos.y = cursor[1];
             break;
-        case 1:
-        case 7:
-            album_sw_form->GetPutPosXY(at_3259, cursor.pos[0], cursor.pos[1]);
+        case INVENT_MODE_THINK_ALBUM_BUTTON:
+        case INVENT_MODE_PHOTO_ALBUM_BUTTON:
+            album_sw_form->GetPutPosXY("cur", cursor[0], cursor[1]);
             break;
-        case 2:
-            cursor.pos[0] = card_list_form->x - 40.0f;
-            cursor.pos[1] = (card_cursor - card_top) * 46 + 72;
+        case INVENT_MODE_CARD_LIST:
+            cursor[0] = card_list_form->x - 40.0f;
+            cursor[1] = (card_cursor - card_top) * 46 + 72;
 
             if (mode == 6) {
-                cursor.pos[0] = -50.0f + MakeBoardDrawInfo[make_cursor * 2];
-                cursor.pos[1] = MakeBoardDrawInfo[make_cursor * 2 + 1];
+                cursor[0] = -50.0f + MakeBoardDrawInfo[make_cursor * 2];
+                cursor[1] = MakeBoardDrawInfo[make_cursor * 2 + 1];
             }
 
             break;
-        case 3:
-            MenuPosData->GetPosMenuItemOnItemBrd(cursor.pos, item_cursor, 1);
-            cursor.pos[0] -= 8;
-            cursor.pos[1] -= 10;
-            command_pos.x = cursor.pos[0];
-            command_pos.y = cursor.pos[1];
+        case INVENT_MODE_ITEM_LIST:
+            MenuPosData->GetPosMenuItemOnItemBrd(cursor, item_cursor, 1);
+            cursor[0] -= 8;
+            cursor[1] -= 10;
+            command_pos.x = cursor[0];
+            command_pos.y = cursor[1];
             break;
-        case 5:
-            sprintf(text, at_3260__2, album_cursor - album_top * 2);
-            album_big_form->GetPutPosXY(text, cursor.pos[0], cursor.pos[1]);
-            command_pos.x = cursor.pos[0];
-            command_pos.y = cursor.pos[1];
+        case INVENT_MODE_ALBUM_VIEW:
+            sprintf(text, "cur%d", album_cursor - album_top * 2);
+            album_big_form->GetPutPosXY(text, cursor[0], cursor[1]);
+            command_pos.x = cursor[0];
+            command_pos.y = cursor[1];
             break;
-        case 8:
-            neta_board_form->GetPutPosXY(at_3261, cursor.pos[0], cursor.pos[1]);
+        case INVENT_MODE_MEMO_BUTTON:
+            neta_board_form->GetPutPosXY("\x83\x6c\x83\x5e\x92\xa0\x88\xca\x92\x75", cursor[0], cursor[1]);
             break;
-        case 11:
-            neta_memo_form->GetPutPosXY(at_3262__2, cursor.pos[0], cursor.pos[1]);
+        case INVENT_MODE_MEMO_CORK:
+            neta_memo_form->GetPutPosXY("\x83\x52\x83\x8b\x83\x4e", cursor[0], cursor[1]);
             break;
-        case 10:
-            neta_board_form->GetPutPosXY(at_3263__2, cursor.pos[0], cursor.pos[1]);
+        case INVENT_MODE_MEMO_ARROW:
+            neta_board_form->GetPutPosXY("\x83\x6c\x83\x5e\x92\xa0\x96\xee\x88\xf3", cursor[0], cursor[1]);
             break;
-        case 9:
-            GetNetaMemoCursorPosition(memo_cursor - memo_top, cursor.pos);
-            cursor.pos[0] -= 32;
+        case INVENT_MODE_MEMO_LIST:
+            GetNetaMemoCursorPosition(memo_cursor - memo_top, cursor);
+            cursor[0] -= 32;
             break;
     }
 
@@ -3567,10 +3785,10 @@ void CMenuInvent::CalcCursorPosition() {
         MenuCommonInfo->SetWakuType(-1);
     }
 
-    MenuCommonInfo->MenuPosStep(cursor.pos, &offset.x);
+    MenuCommonInfo->MenuPosStep(cursor, &offset.x);
 
     if (cursor_snap != 0) {
-        MenuCommonInfo->MenuSetPos(cursor.pos[0], cursor.pos[1]);
+        MenuCommonInfo->MenuSetPos(cursor[0], cursor[1]);
         cursor_snap = 0;
     }
 }
@@ -3596,10 +3814,10 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
 
                         if (enough == 0) {
                             step = 3;
-                            ExeScript(at_3348__2);
+                            ExeScript("ITEM\x95\x73\x91\xab");
                         } else if (make_space_no < 0) {
                             step = 3;
-                            ExeScript(at_3349__2);
+                            ExeScript("\x8b\xf3\x82\xab\x96\xb3\x82\xb5");
                         } else {
                             if (make_item_no == 0xA5) {
                                 GetSaveData()->SetBitFlag(13, 1);
@@ -3631,7 +3849,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
                             load_sound_buffer = MenuCharaLoadStack.stack + MenuCharaLoadStack.stack_used;
                             StartReadBG();
                             int size;
-                            LoadFileBG(at_3350__2, (u_long128 *) load_sound_buffer, &size);
+                            LoadFileBG("snd2/sp/SP_001.snd", (u_long128 *) load_sound_buffer, &size);
                             u_int bytes = size + 16;
                             MenuCharaLoadStack.Alloc((bytes & 0xF) ? (bytes >> 4) + 1 : bytes >> 4);
                         }
@@ -3640,7 +3858,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
                     }
                 case 2:
                     mode = 0;
-                    ExeScript(at_3351);
+                    ExeScript("\x8d\xec\x90\xac\x83\x7b\x81\x5b\x83\x68OFF");
                     MenuSePlay(5);
                     MenuCommonInfo->SetVibeR(6, 4);
                     break;
@@ -3650,14 +3868,14 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
         }
         case 10:
             if (ReadBGSync() == 0) {
-                ItemBoardKoma koma = at_3306;
-                MenuPosData->GetPosMenuItemBrdKoma(koma.pos, make_space_no, 0);
+                int koma[10] = {256, 225, 100, 100};
+                MenuPosData->GetPosMenuItemBrdKoma(koma, make_space_no, 0);
                 mgCTexture *effect_tex = MenuPosData->icon_effect_tex;
-                MenuEffect[0]->PresetEffect(&MenuCharaLoadStack, effect_tex, 0, koma.pos);
+                MenuEffect[0]->PresetEffect(&MenuCharaLoadStack, effect_tex, 0, koma);
                 MenuEffect[0]->EffectStart();
-                koma.pos[2] = 32;
-                koma.pos[3] = 40;
-                MenuEffect[1]->PresetEffect(&MenuCharaLoadStack, effect_tex, 4, koma.pos);
+                koma[2] = 32;
+                koma[3] = 40;
+                MenuEffect[1]->PresetEffect(&MenuCharaLoadStack, effect_tex, 4, koma);
                 MenuEffect[1]->EffectStart();
                 MenuCommonInfo->SetVibeR(6, 4);
 
@@ -3665,7 +3883,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
                     MenuCommonInfo->cursor_form->draw_flag = 0;
                 }
 
-                ExeScript(at_3351);
+                ExeScript("\x8d\xec\x90\xac\x83\x7b\x81\x5b\x83\x68OFF");
                 MenuSePlay(0, (u_int *) load_sound_buffer, &MenuSoundBuffer);
                 CreateModeSwapForm(1);
                 step = 1;
@@ -3686,11 +3904,11 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
 
             if (MenuEffect[1]->run == 0) {
                 step++;
-                ExeScript(at_3352);
-                ItemNameList2 names = at_3317;
-                names.name[0] = GetItemMessage(make_item_no);
+                ExeScript("MSG_ITEMMAKE");
+                char *names[2] = {NULL, NULL};
+                names[0] = GetItemMessage(make_item_no);
                 CDC2Mes *message = MenuDCMsg[4];
-                message->SetMsgItemNo(names.name, 1);
+                message->SetMsgItemNo(names, 1);
                 message->SetMsgVolumeNoOne(make_num);
             }
 
@@ -3698,7 +3916,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
         case 2:
             if (button != 0) {
                 CreateModeSwapForm(0);
-                ExeScript(at_3353);
+                ExeScript("ERRMSGOFF0");
                 MenuSePlay(1);
                 mode = 0;
                 step = 0;
@@ -3708,7 +3926,7 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
             break;
         case 3:
             if (button != 0) {
-                ExeScript(at_3353);
+                ExeScript("ERRMSGOFF0");
                 MenuCommonInfo->SetVibeR(6, 4);
                 MenuSePlay(5);
                 mode = 0;
@@ -3727,44 +3945,28 @@ int CMenuInvent::IsMakeObject(int keys, int button) {
     return 1;
 }
 
-extern char at_3621[];
-extern char at_3622[];
-extern char at_3623[];
-extern char at_3624[];
-extern char at_3625[];
-extern char at_3626[];
-extern char at_3627[];
-extern char at_3628[];
-extern char at_3629[];
-extern char at_3630[];
-extern char at_3631[];
-extern char at_3632[];
-
-#ifdef NONMATCHING
 void CMenuInvent::CalcTex() {
     if (bg_form != NULL) {
         float *left_top = GetMenuMainFrameLeftTopPos(0);
-        int    bg_pos[2] = {0, 0};
-        bg_pos[0] = (int) left_top[0];
-        bg_pos[1] = (int) (left_top[1] - 480.0f);
-        bg_form->x = bg_pos[0];
-        bg_form->y = bg_pos[1];
+        int    bg_pos[2] = {(int) left_top[0], (int) (left_top[1] - 480.0f)};
+        bg_form->SetPos(bg_pos[0], bg_pos[1]);
     }
     blink_count++;
     blink_count %= 50;
     if (blink_count >= 180000) {
         blink_count = 0;
     }
-    float shade = 128.0f + 64.0f * sinf(mgAngleLimit(3.1415927f * blink_count / 50.0f));
+    float wave = sinf(mgAngleLimit(3.1415927f * blink_count / 50.0f));
+    float shade = 128.0f + 64.0f * wave;
     neta_color[0] = shade;
     neta_color[1] = shade;
     neta_color[2] = 128.0f;
     scoop_color[0] = scoop_color[1] = shade;
-    CMenuPosDataForm *balloon = MenuPosData->GetFormInfo(at_3621);
+    CMenuPosDataForm *balloon = MenuPosData->GetFormInfo("\x90\x81\x8f\x6f\x82\xb5" "0");
     if (balloon != NULL) {
         float center[2];
-        balloon->GetPutPosXY(at_3622, center[0], center[1]);
-        if (mode == 5 && step > 0 && step < 3) {
+        balloon->GetPutPosXY("o", center[0], center[1]);
+        if (mode == MENU_ASK_MODE_CREATE && step > 0 && step < 3) {
             neta_circle_radius -= 0.44444445f;
             if (neta_circle_radius < 0.0f) {
                 neta_circle_radius = 0.0f;
@@ -3780,9 +3982,7 @@ void CMenuInvent::CalcTex() {
         if (neta_circle_angle >= 3.1415927f) {
             neta_circle_angle -= 6.2831855f;
         }
-        NetaClipRange clip = at_3379;
-        clip.top = neta_board_form->y;
-        clip.bottom = neta_board_form->y + 6.0f + 270.0f;
+        float clip[2] = {neta_board_form->y, neta_board_form->y + 6.0f + 270.0f};
         for (int i = 0; i < 3; i++) {
             CMenuPosDataForm *form = neta_form[i];
             if (form == NULL || form->draw_flag == 0) {
@@ -3793,7 +3993,7 @@ void CMenuInvent::CalcTex() {
             form->rgba_bit = 8;
             int target[2];
             if (neta_select_state[i] == 1) {
-                clip.top = neta_board_form->y;
+                clip[0] = neta_board_form->y;
                 float angle = neta_circle_angle + slot_angle * i;
                 target[0] = (int) (center[0] + neta_circle_radius * cosf(angle));
                 target[1] = (int) (center[1] + neta_circle_radius * sinf(angle));
@@ -3819,12 +4019,12 @@ void CMenuInvent::CalcTex() {
                     }
                 }
             } else if (neta_select_state[i] == 0) {
-                clip.top = neta_board_form->y + 6.0f + 54.0f;
+                clip[0] = neta_board_form->y + 6.0f + 54.0f;
                 if (neta_select_type[i] == 0) {
                     GetNetaBoardCursorPosition(neta_select_index[i], target);
                     form->SetNextMovePos(target, 2);
-                    if ((target[1] < clip.top && form->y < clip.top) ||
-                        (target[1] > clip.bottom && form->y > clip.top) || target[0] < 0) {
+                    if ((target[1] < clip[0] && form->y < clip[0]) ||
+                        (target[1] > clip[1] && form->y > clip[0]) || target[0] < 0) {
                         form->SetRGBACalcParam(3, -0x1C, 0);
                     }
                 } else if (neta_select_type[i] == 1) {
@@ -3832,8 +4032,8 @@ void CMenuInvent::CalcTex() {
                     target[0] += 200;
                     form->SetNextMovePos(target, 2);
                     form->SetRGBACalcParam(3, -0x10, 0);
-                    if ((target[1] < clip.top && form->y < clip.top) ||
-                        (target[1] > clip.bottom && form->y > clip.top)) {
+                    if ((target[1] < clip[0] && form->y < clip[0]) ||
+                        (target[1] > clip[1] && form->y > clip[0])) {
                         form->SetRGBACalcParam(3, -0x1C, 0);
                     }
                 }
@@ -3852,7 +4052,7 @@ void CMenuInvent::CalcTex() {
         CalcMenu1(neta_memo_form->y + 76.0f + 2.0f - memo_top * 26, &memo_scroll, 4.0f, 0.0f, memo_scroll_reset);
         float bar_step = 0.0f;
         if (pic_name_info_num > 9) {
-            bar_step = 108.0f / (pic_name_info_num - 9.0f);
+            bar_step = 216.0f / (pic_name_info_num - 9.0f);
         }
         CalcMenu1(neta_memo_form->y + 76.0f + 1.0f + bar_step * memo_top, &memo_bar, 4.0f, 0.0f, memo_scroll_reset);
         memo_scroll_reset = 0;
@@ -3867,7 +4067,7 @@ void CMenuInvent::CalcTex() {
             neta_board_bar[1]->h = 23.2f;
             neta_board_bar[2]->y = neta_board_bar[1]->y + neta_board_bar[1]->h;
         }
-        if (mode != 13) {
+        if (mode != MENU_ASK_MODE_PHOTO_NETA) {
             arrow_count++;
         }
         if (arrow_count >= 50) {
@@ -3877,21 +4077,22 @@ void CMenuInvent::CalcTex() {
             neta_board_arrow->x = neta_memo_arrow->x;
             neta_board_arrow->y = neta_memo_arrow->y + 6.0f * sinf(3.1415927f / 25.0f * arrow_count);
         }
-        neta_board_form->SetNumber(at_3623, InventUserDataPtr->GetNowHavePictureNum());
+        neta_board_form->SetNumber("nownum", InventUserDataPtr->GetNowHavePictureNum());
     }
     if (album_big_form != NULL && album_big_form->draw_flag != 0) {
         int cursor[2];
-        album_big_form->GetPutPosXY(at_3624, cursor[0], cursor[1]);
+        album_big_form->GetPutPosXY("cur0", cursor[0], cursor[1]);
         album_scroll_x = cursor[0] - 2;
         CalcMenu1(cursor[1] - 2 - album_top * 0x36, &album_scroll_y, 4.0f, 1.0f, album_scroll_reset);
-        MENUFORMPARTS_TYPE *frame = album_big_form->GetPartInfo(at_3625);
-        MENUFORMPARTS_TYPE *bar = album_big_form->GetPartInfo(at_3626);
+        MENUFORMPARTS_TYPE *frame = album_big_form->GetPartInfo("b0");
+        MENUFORMPARTS_TYPE *bar = album_big_form->GetPartInfo("c0");
         if (frame != NULL && bar != NULL) {
             bar[0].x = bar[1].x = bar[2].x = frame[0].x + 2.0f;
             float length = bar[0].h + bar[1].h + bar[2].h;
+            float scroll_step = (frame[1].h + 4.0f - length) / 20.0f;
+            float scroll_target = frame[0].y + 4.0f + scroll_step * album_top;
             float bar_y = bar[0].y;
-            CalcMenu1(frame[0].y + 4.0f + (frame[1].h + 4.0f - length) / 20.0f * album_top, &bar_y, 4.0f, 0.0f,
-                      album_scroll_reset);
+            CalcMenu1(scroll_target, &bar_y, 4.0f, 0.0f, album_scroll_reset);
             length = bar[0].h + bar[1].h + bar[2].h;
             float mid_scale = (6.0f + (length - bar[0].h - bar[2].h)) / 40.0f;
             bar[0].y = bar_y;
@@ -3909,22 +4110,22 @@ void CMenuInvent::CalcTex() {
             card_scroll_reset = 0;
             reset = 1;
         }
-        CMenuPosDataForm *clip = MenuPosData->GetFormInfo(at_3627);
+        CMenuPosDataForm *clip = MenuPosData->GetFormInfo("\x94\xad\x96\xbe\x83\x4a\x81\x5b\x83\x68\x83\x4e\x83\x8a\x83\x62\x83\x76" "1");
         clip->x = title->x;
         int card_pos[2];
-        title->GetPutPosXY(at_3628, card_pos[0], card_pos[1]);
+        title->GetPutPosXY("basecard", card_pos[0], card_pos[1]);
         int bar_size[2];
-        title->GetPutPosXY(at_3629, bar_size[0], bar_size[1]);
+        title->GetPutPosXY("barlong", bar_size[0], bar_size[1]);
         card_list_form->x = title->x + 10.0f;
         CalcMenu1(card_pos[1] - card_top * 46, &card_list_form->y, 4.0f, 2.0f, reset);
-        MENUFORMPARTS_TYPE *base_bar = title->GetPartInfo(at_3630);
-        MENUFORMPARTS_TYPE *bar_top = title->GetPartInfo(at_2128__3);
-        MENUFORMPARTS_TYPE *bar_mid = title->GetPartInfo(at_2129__2);
-        MENUFORMPARTS_TYPE *bar_end = title->GetPartInfo(at_2130__2);
+        MENUFORMPARTS_TYPE *base_bar = title->GetPartInfo("basebar");
+        MENUFORMPARTS_TYPE *bar_top = title->GetPartInfo("bar0");
+        MENUFORMPARTS_TYPE *bar_mid = title->GetPartInfo("bar1");
+        MENUFORMPARTS_TYPE *bar_end = title->GetPartInfo("bar2");
         int                 card_max = EnableSelectMaxCardList();
-        float               bar_step = 0.0f;
         float               knob = bar_size[1] * (5.0f / card_max);
         float               hidden = card_max - 5;
+        float               bar_step = 0.0f;
         if (1.0f <= hidden) {
             bar_step = (bar_size[1] - knob) / hidden;
         }
@@ -3939,7 +4140,7 @@ void CMenuInvent::CalcTex() {
     if (recbrd_form != NULL && recbrd_form->draw_flag != 0 && recbrd_form->rgba[3] > 0 && MenuDCMsg[7] != NULL) {
         for (int i = 0; i < 10; i++) {
             char name[0x20];
-            sprintf(name, at_3631, i);
+            sprintf(name, "n%d", i);
             int line_pos[2];
             recbrd_form->GetPutPosXY(name, line_pos[0], line_pos[1]);
             line_pos[0] += rec_board_offset_xtbl[i];
@@ -3951,8 +4152,8 @@ void CMenuInvent::CalcTex() {
         chara = poly_chr_form[0]->chara;
     }
     switch (key_arg_no) {
-        case 0:
-        case 1:
+        case INVENT_MODE_THINK:
+        case INVENT_MODE_THINK_ALBUM_BUTTON:
             if (chara != NULL) {
                 float pos[4];
                 float move[4];
@@ -3960,7 +4161,7 @@ void CMenuInvent::CalcTex() {
                 chara->GetPosition(pos);
                 float *target = chara_pos;
                 switch (mode) {
-                    case 5:
+                    case MENU_ASK_MODE_CREATE:
                         if (step > 0 && step < 4) {
                             target = chara_make_pos;
                         }
@@ -3976,7 +4177,7 @@ void CMenuInvent::CalcTex() {
                     frame = create_effect->GetFrame();
                 }
                 if (frame != NULL) {
-                    if (mode == 5 && step == 3) {
+                    if (mode == MENU_ASK_MODE_CREATE && step == 3) {
                         if (create_step != 0) {
                             pos[0] += 3.0f;
                             frame->GetScale(scale);
@@ -4024,7 +4225,7 @@ void CMenuInvent::CalcTex() {
     }
     GradationStep();
     if (kakudai_pic_form != NULL && kakudai_pic != NULL) {
-        if (mode == 12) {
+        if (mode == MENU_ASK_MODE_EXTEND) {
             if (ask_para.ask_mode == INVENT_ASK_ZOOM) {
                 CalcMenuAdd(&kakudai_pic->picture_scale, 0.025f, 1.3f);
             } else if (CalcMenuAdd(&kakudai_pic->picture_scale, -0.025f, 0.7f)) {
@@ -4036,22 +4237,22 @@ void CMenuInvent::CalcTex() {
     }
     NowGiftBoxPtr = SearchNowPosItemExist();
     if (GiftBoxViewForm != NULL) {
-        CursorPos gift_pos = at_3509;
-        if (key_arg_no == 3) {
-            MenuPosData->GetPosMenuItemOnItemBrd(&gift_pos.x, item_cursor, 0);
+        int gift_pos[2] = {0, 0};
+        if (key_arg_no == INVENT_MODE_ITEM_LIST) {
+            MenuPosData->GetPosMenuItemOnItemBrd(gift_pos, item_cursor, 0);
         }
         CMenuPosDataForm *gift_form = GiftBoxViewForm;
-        gift_form->x = gift_pos.x;
-        gift_form->y = gift_pos.y;
-        if (mode == 2) {
+        gift_form->x = gift_pos[0];
+        gift_form->y = gift_pos[1];
+        if (mode == MENU_ASK_MODE_CLOSE) {
             NowGiftBoxPtr = NULL;
         }
     }
     if (itembrd_form != NULL && itembrd_form->draw_flag != 0) {
         Func_MenuItemBrdPosStep(item_top);
-        Func_MenuItemBrdPrepare(itembrd_form->GetPartInfo(at_3632), MenuUserParam.used_data, NULL, 1);
+        Func_MenuItemBrdPrepare(itembrd_form->GetPartInfo("icon"), MenuUserParam.used_data, NULL, 1);
     }
-    if (mode == 6 && step == 1) {
+    if (mode == MENU_ASK_MODE_MAKE && step == 1) {
         int effect_pos[2];
         MenuPosData->GetPosMenuItemBrdForEffect(effect_pos, make_space_no, 0);
         MenuEffect[0]->base_info[0] = effect_pos[0];
@@ -4063,9 +4264,6 @@ void CMenuInvent::CalcTex() {
     MenuEffect[1]->Step();
 }
 
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", CalcTex__11CMenuInventFv);
-#endif
 void CMenuInvent::BootExtendCommand() {
     menu_invent_command_info_ptr = &modecmdtbl_3636[key_arg_no];
 
@@ -4215,14 +4413,14 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                         int picture = 0;
 
                         switch (key_arg_no) {
-                            case 0:
-                            case 4:
-                            case 6:
+                            case INVENT_MODE_THINK:
+                            case INVENT_MODE_THINK_WITH_ALBUM:
+                            case INVENT_MODE_PHOTO_VIEW:
                                 GetNetaBoardCursorPosition(photo_cursor, pos);
                                 picture = photo_cursor;
                                 break;
-                            case 5:
-                                sprintf(text, at_3260__2, album_cursor - album_top * 2);
+                            case INVENT_MODE_ALBUM_VIEW:
+                                sprintf(text, "cur%d", album_cursor - album_top * 2);
                                 album_big_form->GetPutPosXY(text, pos[0], pos[1]);
                                 pos[0]--;
                                 pos[1]--;
@@ -4238,36 +4436,36 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                         break;
                     }
                     case INVENT_ASK_DELETE: {
-                        ExeScript(at_3858);
+                        ExeScript("\x8e\xca\x90\x5e\x8f\xc1\x82\xb5\x82\xdc\x82\xb7\x82\xa9\x81\x48");
                         names = at_3739;
                         names.name[0] = GetPhotoName(menu_invent_command_info_pict_info);
                         yesno_message->SetMsgItemNo(names.name, se);
                         break;
                     }
                     case INVENT_ASK_DELETE_UNUSED:
-                        if (key_arg_no == 5) {
-                            ExeScript(at_3859);
+                        if (key_arg_no == INVENT_MODE_ALBUM_VIEW) {
+                            ExeScript("\x8e\xca\x90\x5e\x82\xcc\x88\xea\x8a\x87\x8f\xc1\x8b\x8e\x81\x48" "Album");
                         } else {
-                            ExeScript(at_3860);
+                            ExeScript("\x8e\xca\x90\x5e\x82\xcc\x88\xea\x8a\x87\x8f\xc1\x8b\x8e\x81\x48\x83\x6c\x83\x5e");
                         }
 
                         break;
                     case INVENT_ASK_DELETE_ALL:
-                        if (key_arg_no == 5) {
-                            ExeScript(at_3861);
+                        if (key_arg_no == INVENT_MODE_ALBUM_VIEW) {
+                            ExeScript("\x8e\xca\x90\x5e\x91\x53\x8f\xc1\x8b\x8e\x81\x48" "Album");
                         } else {
-                            ExeScript(at_3862);
+                            ExeScript("\x8e\xca\x90\x5e\x91\x53\x8f\xc1\x8b\x8e\x81\x48\x83\x6c\x83\x5e");
                         }
 
                         break;
                     case INVENT_ASK_TO_ALBUM: {
-                        ExeScript(at_3863__2);
+                        ExeScript("\x83\x41\x83\x8b\x83\x6f\x83\x80\x88\xda\x82\xb7\x81\x48");
                         names.name[0] = GetPhotoName(menu_invent_command_info_pict_info);
                         yesno_message->SetMsgItemNo(names.name, se);
                         break;
                     }
                     case INVENT_ASK_FROM_ALBUM: {
-                        ExeScript(at_3864__2);
+                        ExeScript("\x83\x6c\x83\x5e\x82\xc9\x88\xda\x82\xb7\x81\x48");
                         names.name[0] = GetPhotoName(menu_invent_command_info_pict_info);
                         yesno_message->SetMsgItemNo(names.name, se);
                         break;
@@ -4301,19 +4499,19 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                 switch (button) {
                     case 1:
                         if (answer == 0) {
-                            ExeScript(at_3865__2);
+                            ExeScript("\x8e\xca\x90\x5e\x8f\xc1\x82\xb5\x82\xdc\x82\xb5\x82\xbd");
                             delete_names = at_3765;
                             delete_names.name[0] = GetPhotoName(menu_invent_command_info_pict_info);
                             yesno_message->SetMsgItemNo(delete_names.name, 1);
                             MenuSePlay(13);
 
                             switch (key_arg_no) {
-                                case 0:
-                                case 4:
-                                case 6:
+                                case INVENT_MODE_THINK:
+                                case INVENT_MODE_THINK_WITH_ALBUM:
+                                case INVENT_MODE_PHOTO_VIEW:
                                     InventUserDataPtr->DeletePhotoData(photo_cursor);
                                     break;
-                                case 5:
+                                case INVENT_MODE_ALBUM_VIEW:
                                     InventAlbumPtr->DeletePhotoData(album_cursor);
                                     album_flag[album_cursor] = -1;
                                     break;
@@ -4390,11 +4588,11 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
 
                             MenuSePlay(13);
 
-                            if (key_arg_no == 5) {
-                                ExeScript(at_3866__2);
+                            if (key_arg_no == INVENT_MODE_ALBUM_VIEW) {
+                                ExeScript("\x8e\xca\x90\x5e\x82\xcc\x88\xea\x8a\x87\x8f\xc1\x8b\x8e\x83\x41\x83\x8b\x83\x6f\x83\x80");
                                 InitPhotoNetaBoardToAlbum(1);
                             } else {
-                                ExeScript(at_3867__2);
+                                ExeScript("\x8e\xca\x90\x5e\x82\xcc\x88\xea\x8a\x87\x8f\xc1\x8b\x8e");
                             }
 
                             step = 1;
@@ -4429,11 +4627,11 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                                 step = 1;
                                 MenuSePlay(13);
 
-                                if (key_arg_no == 5) {
-                                    ExeScript(at_3868__2);
+                                if (key_arg_no == INVENT_MODE_ALBUM_VIEW) {
+                                    ExeScript("\x8e\xca\x90\x5e\x91\x53\x8f\xc1\x8b\x8e" "Album");
                                     InitPhotoNetaBoardToAlbum(0);
                                 } else {
-                                    ExeScript(at_3869);
+                                    ExeScript("\x8e\xca\x90\x5e\x91\x53\x8f\xc1\x8b\x8e\x83\x6c\x83\x5e");
                                 }
 
                                 break;
@@ -4475,7 +4673,7 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
                     if (answer == 0) {
                         neta_effect_time = 0;
                         InventInNetaEffectFlag = 1;
-                        ExeScript(at_3932);
+                        ExeScript("\x83\x6c\x83\x5e\x93\x6f\x98\x5e\x8a\x4a\x8e\x6e");
                         MenuSePlay(0x20);
                         MenuCharaLoadStack.stack_used = 0;
                         MenuCharaLoadStack.lock = 0;
@@ -4514,13 +4712,13 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
                 MenuSePlay(0x21);
                 InventInNetaEffectFlag = 0;
                 step = 2;
-                ExeScript(at_3933);
+                ExeScript("\x83\x6c\x83\x5e\x93\x6f\x98\x5e");
             }
 
             break;
         case 2:
             if (button != 0) {
-                ExeScript(at_3934);
+                ExeScript("\x93\x6f\x98\x5e\x8e\xca\x90\x5e\x8f\xc1\x82\xb7\x81\x48");
                 step = 3;
             }
 
@@ -4531,7 +4729,7 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
             switch (button) {
                 case 1:
                     if (answer == 0) {
-                        ExeScript(at_3935);
+                        ExeScript("\x93\x6f\x98\x5e\x8e\xca\x90\x5e\x8f\xc1\x82\xb7");
 
                         for (int i = 0; i < 30; i++) {
                             if (new_neta_photo[i] != 0) {
@@ -4566,7 +4764,7 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
     if (cancel) {
         mode = 0;
         step = 0;
-        ExeScript(at_3936);
+        ExeScript("\x83\x6c\x83\x5e\x93\x6f\x98\x5e\x8f\x49\x97\xb9");
         MenuSePlay(5);
     }
 }
@@ -5147,7 +5345,7 @@ void CMenuInvent::IsAccessAlbum() {
         step = 6;
         if (loaded < 0) {
             step = 0;
-            ExeScript(at_4378);
+            ExeScript("IS_MCACCESS");
             if (LanguageCode > 0 && LanguageCode < 6) {
                 MenuDCMsg[4]->SetMsgCursor(1);
                 MenuDCMsg[4]->select_top = 1;
@@ -5301,12 +5499,12 @@ void CMenuInvent::UpdataNetaMemoStr() {
 }
 
 void MakeMsgNetaName(CDC2Mes *message, CMenuPosDataForm *form, USER_PICTURE_INFO *photo, int *pos, int show_mark) {
-    NetaNameBlank blank = at_4470;
+    char blank[2] = " ";
     char         *name = GetPhotoName(photo);
     int           offset_x = 6;
 
     if (name == NULL) {
-        name = blank.text;
+        name = blank;
     }
 
     int message_no = 50;
@@ -5352,7 +5550,7 @@ void MenuInventCreateCardDraw(int &tex_block, float *pos) {
         mgCDrawPrim *prim = GetMenuPrim();
         int          origin[2] = {(int) pos[0], (int) pos[1]};
         put_rect.Set(origin[0], origin[1], card_rect.right, card_rect.bottom);
-        MenuColor rgba = at_4494;
+        u8 rgba[4] = {0x80, 0x80, 0x80, 0x80};
         SetSpriteEnv(prim, 0);
         prim->Bilinear(1);
         prim->Begin(6);
@@ -5382,7 +5580,7 @@ void MenuInventCreateCardDraw(int &tex_block, float *pos) {
             for (i = 0; i < 256; i++) {
                 if (put_rect.top + put_rect.bottom >= 20) {
                     mgRect<float> icon_rect(put_rect.left, put_rect.top, 32.0f, 33.0f);
-                    DrawOneItem(prim, icon_rect, InventUserDataPtr->GetCreateItemID(i), 2, NULL, rgba.rgba, 0);
+                    DrawOneItem(prim, icon_rect, InventUserDataPtr->GetCreateItemID(i), 2, NULL, rgba, 0);
 
                     if (put_rect.top >= 410) {
                         break;
@@ -5749,7 +5947,7 @@ void MenuInventNetaMemoDraw(float *origin, int &loaded_tex) {
                         prefix = gaiji_table_4737[2];
                     }
 
-                    sprintf(text, at_4775, prefix, name);
+                    sprintf(text, "%s%s", prefix, name);
                     menu_font.SetStr(text);
                     menu_font.SetPos(text_x, text_y);
                     menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
@@ -5768,14 +5966,21 @@ void MenuInventNetaMemoDraw(float *origin, int &loaded_tex) {
     }
 }
 
-extern int  tbl_4782[];
+/**
+ *
+ * Background allocation selections for the inventory character assets.
+ *
+ */
+static int tbl_4782[7] = {
+    1, 1, 0, 0, 1, 1, 0
+};
+
 extern char at_5011[];
 extern char at_5012[];
 extern char at_5013[];
 extern char at_5014[];
 extern char at_5015[];
 extern char at_5016[];
-extern u8   itemmenu_chr_rotflag;
 extern int *menu_randam_line_draw_postbl;
 
 inline CMenuInvent::CMenuInvent() {
@@ -5976,7 +6181,7 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
             CMenuInventPt->key_arg_no = 2;
             CMenuInventPt->ExeScript(at_5016);
             CMenuInventPt->poly_chr_form[0]->counter = 0;
-            CMenuInventPt->ExeScript(at_2253);
+            CMenuInventPt->ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
             CMenuInventPt->PrepareNextMode(CMenuInventPt->key_arg_no);
             CMenuInventPt->GradationSet(0);
             MenuMainFrameModeSet(6, 1);
@@ -6028,15 +6233,15 @@ void CMenuInvent::NextDifferentMode(int next, int arg) {
                 break;
             }
 
-            if (this->key_arg_no == 3) {
-                MenuMesForm[0]->SetAction(at_5066);
+            if (this->key_arg_no == INVENT_MODE_ITEM_LIST) {
+                MenuMesForm[0]->SetAction("\x8d\xb6\x89\xba\x82\xd6");
                 this->CreateModeSwapForm(0);
             }
 
             break;
         case 3:
             this->CreateModeSwapForm(1);
-            MenuMesForm[0]->SetAction(at_2313);
+            MenuMesForm[0]->SetAction("\x92\x86\x82\xd6");
             this->item_cursor = (this->item_top + (this->card_cursor - this->card_top)) * 6;
             break;
         case 4: {
@@ -6058,7 +6263,7 @@ void CMenuInvent::NextDifferentMode(int next, int arg) {
         case 7:
             break;
         case 8:
-            this->ExeScript(at_5067);
+            this->ExeScript("\x83\x6c\x83\x5e\x92\x50\x8c\xea\x83\x8a\x83\x58\x83\x67OFF");
             break;
         case 9:
             break;
@@ -6073,7 +6278,7 @@ int MenuInventDebugKey() {
     int button = MenuCommonInfo->CheckPushButton();
 
     switch (CMenuInventPt->key_arg_no) {
-        case 0:
+        case INVENT_MODE_THINK:
             if (keys & MENU_SELECT_KEY_UP) {
                 debug_invent_select--;
             }
@@ -6099,7 +6304,7 @@ int MenuInventDebugKey() {
             }
 
             switch (button) {
-                case MENU_PUSH_BUTTON_START:
+                case MENU_PUSH_BUTTON_SELECT:
                     debug_invent_successflag ^= 1;
                     break;
                 case MENU_PUSH_BUTTON_DECIDE: {
@@ -6160,7 +6365,7 @@ void MenuInventDebugDraw() {
     char               model_text[0x80];
 
     switch (CMenuInventPt->key_arg_no) {
-        case 0: {
+        case INVENT_MODE_THINK: {
             int   y = 80 - debug_invent_select * 20;
             float top = 80.0f;
             float left = 270.0f;
@@ -6171,7 +6376,7 @@ void MenuInventDebugDraw() {
 
             for (int i = 0; i < pic_name_info_num; i++) {
                 if (y >= 80) {
-                    sprintf(line, at_5153, pic_name_info_top[i].neta_id, pic_name_info_top[i].name);
+                    sprintf(line, "%3d: %s", pic_name_info_top[i].neta_id, pic_name_info_top[i].name);
                     font.SetStr(line);
                     font.SetPos(270, y);
                     font.DrawDirect(font.str, font.pos_x, font.pos_y);
@@ -6184,12 +6389,12 @@ void MenuInventDebugDraw() {
                 }
             }
 
-            font.SetStr(at_5154);
+            font.SetStr("\x81\xa8");
             font.SetPos(250, 80);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
 
             if (debug_invent_successflag != 0) {
-                font.SetStr(at_5155);
+                font.SetStr("Force Success Mode");
                 font.SetPos(20, 60);
                 font.DrawDirect(font.str, font.pos_x, font.pos_y);
             }
@@ -6197,7 +6402,7 @@ void MenuInventDebugDraw() {
             if (CMenuInventPt->create_chara != NULL) {
                 CMenuInventPt->create_chara->GetScale(scale);
                 CMenuInventPt->create_chara->GetPosition(position);
-                sprintf(model_text, at_5156, scale[0], position[0], position[1], position[2]);
+                sprintf(model_text, "scale:%f\npos  :%f\n      %f\n      %f\n", scale[0], position[0], position[1], position[2]);
                 font.SetStr(model_text);
                 font.SetPos(40, 340);
                 font.DrawDirect(font.str, font.pos_x, font.pos_y);
@@ -6228,23 +6433,23 @@ int MenuInventPushKey(int pad, int pushed) {
         int mode_changed = 0;
 
         switch (mode) {
-            case 0:
-            case 4:
-            case 6: {
-                GridOverCode overcode = at_5173;
+            case INVENT_MODE_THINK:
+            case INVENT_MODE_THINK_WITH_ALBUM:
+            case INVENT_MODE_PHOTO_VIEW: {
+                int overcode[4] = {0, 0, 0, 2};
 
                 if (CMenuInventPt->album_enable == 0) {
-                    overcode.value[3] = 0;
+                    overcode[3] = 0;
                 }
 
                 int old_cursor = CMenuInventPt->photo_cursor;
 
                 if ((pad & (1)) && old_cursor / 2 == 0) {
-                    CMenuInventPt->NextDifferentMode(10, 0);
+                    CMenuInventPt->NextDifferentMode(INVENT_MODE_MEMO_ARROW, 0);
                 } else {
                     int result =
                         MenuGlidKeyCheck(pad, &CMenuInventPt->photo_cursor, &CMenuInventPt->photo_top,
-                                         &maxtbl_5171, &viewnum_5172, overcode.value, 30);
+                                         maxtbl_5171, viewnum_5172, overcode, 30);
 
                     if (old_cursor != CMenuInventPt->photo_cursor) {
                         MenuSePlay(0);
@@ -6258,20 +6463,20 @@ int MenuInventPushKey(int pad, int pushed) {
 
                 break;
             }
-            case 1:
-            case 7:
+            case INVENT_MODE_THINK_ALBUM_BUTTON:
+            case INVENT_MODE_PHOTO_ALBUM_BUTTON:
                 if (pad & (4)) {
                     if (CMenuInventPt->photo_only == 1) {
-                        CMenuInventPt->NextDifferentMode(6, 0);
+                        CMenuInventPt->NextDifferentMode(INVENT_MODE_PHOTO_VIEW, 0);
                     } else {
-                        CMenuInventPt->NextDifferentMode(0, 0);
+                        CMenuInventPt->NextDifferentMode(INVENT_MODE_THINK, 0);
                     }
 
                     mode_changed = 1;
                 }
 
                 break;
-            case 2: {
+            case INVENT_MODE_CARD_LIST: {
                 int old_row = CMenuInventPt->card_top;
                 int old_cursor = CMenuInventPt->card_cursor;
                 int count = CMenuInventPt->EnableSelectMaxCardList();
@@ -6300,7 +6505,7 @@ int MenuInventPushKey(int pad, int pushed) {
                                      count, 5, 0, 0);
 
                     if (pad & (8)) {
-                        CMenuInventPt->NextDifferentMode(3, 0);
+                        CMenuInventPt->NextDifferentMode(INVENT_MODE_ITEM_LIST, 0);
                         mode_changed = 1;
                     }
                 }
@@ -6332,43 +6537,43 @@ int MenuInventPushKey(int pad, int pushed) {
 
                 break;
             }
-            case 3:
+            case INVENT_MODE_ITEM_LIST:
                 if (MenuItemBrdKey(pad, &CMenuInventPt->item_cursor, &CMenuInventPt->item_top,
                                    0) == 1) {
-                    CMenuInventPt->NextDifferentMode(2, 0);
+                    CMenuInventPt->NextDifferentMode(INVENT_MODE_CARD_LIST, 0);
                     mode_changed = 1;
                 }
 
                 break;
-            case 5: {
+            case INVENT_MODE_ALBUM_VIEW: {
                 int old_cursor = CMenuInventPt->album_cursor;
                 int result = MenuGlidKeyCheck(pad, &CMenuInventPt->album_cursor,
-                                              &CMenuInventPt->album_top, &maxtbl_album_5223,
-                                              &viewnum_album_5224, overcode_album_5225, 50);
+                                              &CMenuInventPt->album_top, maxtbl_album_5223,
+                                              viewnum_album_5224, overcode_album_5225, 50);
 
                 if (old_cursor != CMenuInventPt->album_cursor) {
                     MenuSePlay(0);
                 }
 
                 if (result == 2) {
-                    CMenuInventPt->NextDifferentMode(4, 0);
+                    CMenuInventPt->NextDifferentMode(INVENT_MODE_THINK_WITH_ALBUM, 0);
                     mode_changed = 1;
                 }
 
                 break;
             }
-            case 10:
+            case INVENT_MODE_MEMO_ARROW:
                 if (pad & (1)) {
-                    CMenuInventPt->NextDifferentMode(8, 0);
+                    CMenuInventPt->NextDifferentMode(INVENT_MODE_MEMO_BUTTON, 0);
                 } else if (pad & (2)) {
-                    int next = 0;
+                    int next = INVENT_MODE_THINK;
 
                     if (CMenuInventPt->photo_only == 1) {
-                        next = 6;
+                        next = INVENT_MODE_PHOTO_VIEW;
                     }
 
                     if (CMenuInventPt->unk_112 == 1) {
-                        next = 4;
+                        next = INVENT_MODE_THINK_WITH_ALBUM;
                     }
 
                     CMenuInventPt->NextDifferentMode(next, 0);
@@ -6376,19 +6581,19 @@ int MenuInventPushKey(int pad, int pushed) {
                 }
 
                 break;
-            case 8:
+            case INVENT_MODE_MEMO_BUTTON:
                 if (pad & (2)) {
-                    CMenuInventPt->NextDifferentMode(10, 0);
+                    CMenuInventPt->NextDifferentMode(INVENT_MODE_MEMO_ARROW, 0);
                 }
 
                 break;
-            case 11:
+            case INVENT_MODE_MEMO_CORK:
                 if (pad & (2)) {
-                    CMenuInventPt->NextDifferentMode(9, 0);
+                    CMenuInventPt->NextDifferentMode(INVENT_MODE_MEMO_LIST, 0);
                 }
 
                 break;
-            case 9: {
+            case INVENT_MODE_MEMO_LIST: {
                 int step = 0;
 
                 if (pad & (1)) {
@@ -6427,7 +6632,7 @@ int MenuInventPushKey(int pad, int pushed) {
                 MenuCheckLine(&CMenuInventPt->memo_top, CMenuInventPt->memo_cursor, 9);
 
                 if (at_start != 0) {
-                    CMenuInventPt->NextDifferentMode(11, 0);
+                    CMenuInventPt->NextDifferentMode(INVENT_MODE_MEMO_CORK, 0);
                 } else if (old_cursor != CMenuInventPt->memo_cursor) {
                     MenuSePlay(0);
                 }
@@ -6448,8 +6653,8 @@ int MenuInventPushKey(int pad, int pushed) {
 
         if (mode_changed == 0) {
             switch (CMenuInventPt->key_arg_no) {
-                case 0:
-                case 6: {
+                case INVENT_MODE_THINK:
+                case INVENT_MODE_PHOTO_VIEW: {
                     USER_PICTURE_INFO *photo =
                         InventUserDataPtr->GetPhotoInfo(CMenuInventPt->photo_cursor);
 
@@ -6499,11 +6704,11 @@ int MenuInventPushKey(int pad, int pushed) {
 
                     break;
                 }
-                case 1:
-                case 7:
+                case INVENT_MODE_THINK_ALBUM_BUTTON:
+                case INVENT_MODE_PHOTO_ALBUM_BUTTON:
                     switch (pushed) {
                         case 1:
-                            CMenuInventPt->ExeScript(at_4378);
+                            CMenuInventPt->ExeScript("IS_MCACCESS");
 
                             if (LanguageCode > 0 && LanguageCode < 6) {
                                 MenuDCMsg[4]->SetMsgCursor(1);
@@ -6527,7 +6732,7 @@ int MenuInventPushKey(int pad, int pushed) {
                     }
 
                     break;
-                case 2:
+                case INVENT_MODE_CARD_LIST:
                     switch (pushed) {
                         case 1:
                         case 4:
@@ -6545,7 +6750,7 @@ int MenuInventPushKey(int pad, int pushed) {
                     }
 
                     break;
-                case 3:
+                case INVENT_MODE_ITEM_LIST:
                     switch (pushed) {
                         case 4:
                             command = K_COMMAND_SWAP_ITEM;
@@ -6562,7 +6767,7 @@ int MenuInventPushKey(int pad, int pushed) {
                     }
 
                     break;
-                case 4:
+                case INVENT_MODE_THINK_WITH_ALBUM:
                     switch (pushed) {
                         case 4:
                             break;
@@ -6576,7 +6781,7 @@ int MenuInventPushKey(int pad, int pushed) {
                     }
 
                     break;
-                case 5:
+                case INVENT_MODE_ALBUM_VIEW:
                     switch (pushed) {
                         case 4:
                         case 8:
@@ -6595,7 +6800,7 @@ int MenuInventPushKey(int pad, int pushed) {
                     }
 
                     break;
-                case 10:
+                case INVENT_MODE_MEMO_ARROW:
                     if ((pushed & 1) || (pushed & 4)) {
                         command = K_COMMAND_CONFIRM_BOARD;
                     } else if (pushed & 2) {
@@ -6612,7 +6817,7 @@ int MenuInventPushKey(int pad, int pushed) {
                     }
 
                     break;
-                case 8:
+                case INVENT_MODE_MEMO_BUTTON:
                     switch (pushed) {
                         case 1:
                         case 4:
@@ -6632,14 +6837,14 @@ int MenuInventPushKey(int pad, int pushed) {
                                 CMenuInventPt->step = 201;
                                 CMenuInventPt->album_save_mode = 1;
                                 command = K_COMMAND_HANDLED;
-                                CMenuInventPt->ExeScript(at_5550);
+                                CMenuInventPt->ExeScript("SAVE_SLOTSEL");
                             }
 
                             break;
                     }
 
                     break;
-                case 11:
+                case INVENT_MODE_MEMO_CORK:
                     if ((pushed & 1) || (pushed & 4)) {
                         command = K_COMMAND_CLOSE_MEMO;
                         MenuSePlay(1);
@@ -6649,7 +6854,7 @@ int MenuInventPushKey(int pad, int pushed) {
                     }
 
                     break;
-                case 9:
+                case INVENT_MODE_MEMO_LIST:
                     switch (pushed) {
                         case 1:
                         case 4:
@@ -6731,7 +6936,7 @@ int MenuInventPushKey(int pad, int pushed) {
                 if (0 < CMenuInventPt->neta_select_num) {
                     MenuSePlay(5);
                 } else {
-                    if (CMenuInventPt->key_arg_no == 5) {
+                    if (CMenuInventPt->key_arg_no == INVENT_MODE_ALBUM_VIEW) {
                         USER_PICTURE_INFO *album_photo = InventAlbumPtr->GetAlbumPhotoInfo(0);
                         PictureSeiton(album_photo, (char *) InventAlbumPtr, 50);
                         InventAlbumPtr->RelateAlbumPicData();
@@ -6755,7 +6960,7 @@ int MenuInventPushKey(int pad, int pushed) {
                 int index = CMenuInventPt->photo_cursor;
                 int source = 0;
 
-                if (CMenuInventPt->key_arg_no == 9) {
+                if (CMenuInventPt->key_arg_no == INVENT_MODE_MEMO_LIST) {
                     index = CMenuInventPt->memo_cursor;
                     source = 1;
                 }
@@ -6800,10 +7005,10 @@ int MenuInventPushKey(int pad, int pushed) {
                 } while (i < 30);
 
                 if (InventInNetaEffectNum <= 0) {
-                    CMenuInventPt->ExeScript(at_5551);
+                    CMenuInventPt->ExeScript("\x83\x6c\x83\x5e\x8a\xf9\x93\x6f\x98\x5e");
                     CMenuInventPt->step = 10;
                 } else {
-                    CMenuInventPt->ExeScript(at_5552);
+                    CMenuInventPt->ExeScript("\x83\x6c\x83\x5e\x93\x6f\x98\x5e\x81\x48");
                     CMenuInventPt->step = 0;
                 }
 
@@ -6811,7 +7016,7 @@ int MenuInventPushKey(int pad, int pushed) {
             }
             case K_COMMAND_LEAVE_CIRCLE:
                 if (CMenuInventPt->CancelNetaCircle(5) < 0) {
-                    if (CMenuInventPt->key_arg_no == 6) {
+                    if (CMenuInventPt->key_arg_no == INVENT_MODE_PHOTO_VIEW) {
                         leave = 1;
                     } else {
                         CMenuInventPt->InitNetaCircle(0);
@@ -6889,12 +7094,12 @@ int MenuInventPushKey(int pad, int pushed) {
 
                 if (InventUserDataPtr->IsAlreadyCreatedItem(CMenuInventPt->create_item_id) >= 0) {
                     CMenuInventPt->step = 4;
-                    CMenuInventPt->ExeScript(at_5553);
-                    ItemNameList1 item_name = at_5448;
-                    item_name.name[0] = GetItemMessage(CMenuInventPt->create_item_id);
-                    message->SetMsgItemNo(item_name.name, 1);
+                    CMenuInventPt->ExeScript("\x94\xad\x96\xbe\x8d\xcf\x82\xdd");
+                    char *item_name[1] = {NULL};
+                    item_name[0] = GetItemMessage(CMenuInventPt->create_item_id);
+                    message->SetMsgItemNo(item_name, 1);
                 } else {
-                    CMenuInventPt->ExeScript(at_5554);
+                    CMenuInventPt->ExeScript("\x94\xad\x96\xbe\x82\xb7\x82\xe9\x81\x48");
                 }
 
                 break;
@@ -6904,7 +7109,7 @@ int MenuInventPushKey(int pad, int pushed) {
                 MenuSePlay(1);
 
                 if (item_id <= 0) {
-                    CMenuInventPt->PrepareNextMode(0);
+                    CMenuInventPt->PrepareNextMode(INVENT_MODE_THINK);
                 } else {
                     CMenuInventPt->make_item_no = item_id;
                     CMenuInventPt->make_num = 1;
@@ -6925,26 +7130,26 @@ int MenuInventPushKey(int pad, int pushed) {
 
                     if (CMenuInventPt->make_num_max <= 0) {
                         CMenuInventPt->step = 3;
-                        CMenuInventPt->ExeScript(at_5555);
-                        ItemNameList1 item_name = at_5457;
-                        item_name.name[0] = GetItemMessage(CMenuInventPt->make_item_no);
-                        MenuDCMsg[4]->SetMsgItemNo(item_name.name, 1);
+                        CMenuInventPt->ExeScript("\x8d\xc5\x91\xe5\x83\x60\x83\x46\x83\x62\x83\x4e");
+                        char *item_name[1] = {NULL};
+                        item_name[0] = GetItemMessage(CMenuInventPt->make_item_no);
+                        MenuDCMsg[4]->SetMsgItemNo(item_name, 1);
                         MenuDCMsg[4]->SetMsgVolumeNoOne(common->max_num);
                     } else {
                         if (common->stack_num == 1) {
                             CMenuInventPt->make_num_max = 1;
                         }
 
-                        ItemNameList5 names = at_5460;
-                        names.name[0] = GetItemMessage(CMenuInventPt->make_item_no);
+                        char *names[5] = {NULL, NULL, NULL, NULL, NULL};
+                        names[0] = GetItemMessage(CMenuInventPt->make_item_no);
 
                         for (int i = 0; i < CMenuInventPt->make_material->num; i++) {
-                            names.name[1 + i] =
+                            names[1 + i] =
                                 GetItemMessage(CMenuInventPt->make_material->material[i].item_id);
                         }
 
-                        CMenuInventPt->ExeScript(at_5556);
-                        message->SetMsgItemNo(names.name, 5);
+                        CMenuInventPt->ExeScript("\x8d\xec\x82\xe9\x81\x48");
+                        message->SetMsgItemNo(names, 5);
                         message->StepMsg();
                         MenuCommonInfo->SetVibeR(0, 0);
                     }
@@ -6956,19 +7161,19 @@ int MenuInventPushKey(int pad, int pushed) {
                 CMenuInventPt->BootExtendCommand();
                 break;
             case K_COMMAND_OPEN_MEMO:
-                CMenuInventPt->ExeScript(at_5557);
+                CMenuInventPt->ExeScript("\x83\x6c\x83\x5e\x92\x50\x8c\xea\x83\x8a\x83\x58\x83\x67");
                 CMenuInventPt->UpdataNetaMemoStr();
-                CMenuInventPt->key_arg_no = 11;
+                CMenuInventPt->key_arg_no = INVENT_MODE_MEMO_CORK;
                 break;
             case K_COMMAND_CLOSE_MEMO:
-                CMenuInventPt->ExeScript(at_5067);
-                CMenuInventPt->key_arg_no = 8;
+                CMenuInventPt->ExeScript("\x83\x6c\x83\x5e\x92\x50\x8c\xea\x83\x8a\x83\x58\x83\x67OFF");
+                CMenuInventPt->key_arg_no = INVENT_MODE_MEMO_BUTTON;
                 break;
             case K_COMMAND_QUIT:
                 CMenuInventPt->mode = 14;
                 CMenuInventPt->step = 201;
                 CMenuInventPt->album_save_mode = 1;
-                CMenuInventPt->ExeScript(at_5550);
+                CMenuInventPt->ExeScript("SAVE_SLOTSEL");
                 MenuSePlay(5);
                 break;
         }
@@ -6977,15 +7182,15 @@ int MenuInventPushKey(int pad, int pushed) {
             CMenuInventPt->mode = 2;
 
             if (CMenuInventPt->photo_only == 1) {
-                CMenuInventPt->ExeScript(at_5558);
-                ModelTriple hidden = at_5474;
-                hidden.model[0] = MenuActionChara[0];
-                hidden.model[1] = MenuActionChara[3];
-                hidden.model[2] = CMenuInventPt->sub_chara;
+                CMenuInventPt->ExeScript("\x8e\xca\x90\x5e\x83\x81\x83\x6a\x83\x85\x81\x5b\x8f\x49\x97\xb9");
+                CActionChara *hidden[3] = {NULL, NULL, NULL};
+                hidden[0] = MenuActionChara[0];
+                hidden[1] = MenuActionChara[3];
+                hidden[2] = CMenuInventPt->sub_chara;
                 int i = 0;
 
                 do {
-                    CActionChara *model = hidden.model[i];
+                    CActionChara *model = hidden[i];
 
                     if (model != NULL) {
                         model->SetFadeFlag(1);
@@ -6996,7 +7201,7 @@ int MenuInventPushKey(int pad, int pushed) {
                     i += 1;
                 } while (i < 3);
             } else {
-                CMenuInventPt->ExeScript(at_5559);
+                CMenuInventPt->ExeScript("\x91\x4f\x8f\x49\x97\xb9\x8f\x88\x97\x9d");
                 MenuMainFrameModeSet(7, 0);
                 ReturnMenuIntern(0);
             }
@@ -7005,31 +7210,30 @@ int MenuInventPushKey(int pad, int pushed) {
 
     return 1;
 }
-#ifdef NONMATCHING
 
 int MenuInventKey() {
-    int          result = 0;
-    int          item_pos[16];
-    char        *names[MES_ITEM_MAX];
-    int          number_pos[16];
-    int          numbers[8];
-    CardListTops tops;
-    int          count_x;
-    int          count_y;
+    int   result = 0;
+    int   index;
+    int   item_pos[16];
+    char *names[MES_ITEM_MAX];
+    int   number_pos[16];
+    int   numbers[8];
+    int   count_x;
+    int   count_y;
     MenuCommonInfo->CheckSelectKey();
     int lr_key = MenuCommonInfo->CheckLRKey();
     int button = MenuCommonInfo->CheckPushButton();
     MenuCommonInfo->CheckKeyInput();
     switch (CMenuInventPt->mode) {
-        case 1:
+        case MENU_ASK_MODE_OPEN:
             if (ReadBGSync() == 0 && CMenuInventPt->opened == 0) {
                 CMenuInventPt->InitEnd();
-                CMenuInventPt->mode = 0;
+                CMenuInventPt->mode = MENU_ASK_MODE_NONE;
                 CMenuInventPt->opened = 1;
                 CMenuInventPt->unk_10 = 0x80;
             }
             break;
-        case 2:
+        case MENU_ASK_MODE_CLOSE:
             if ((CMenuInventPt->photo_only == 0 && GetMenuMainFrameEndFlag() != 0) ||
                 (CMenuInventPt->photo_only == 1 && CalcMenuAdd(&CMenuInventPt->unk_10, -8, 0) != 0)) {
                 CMenuInventPt->ExitEnd();
@@ -7039,17 +7243,17 @@ int MenuInventKey() {
                 }
             }
             break;
-        case 0:
+        case MENU_ASK_MODE_NONE:
             MenuMoveItemPtr->CheckMove();
             if (MenuMoveItemPtr->move_on != 0) {
                 button = 0;
             }
             MenuInventPushKey(lr_key, button);
             break;
-        case 14:
+        case MENU_ASK_MODE_ALBUM_ACCESS:
             CMenuInventPt->IsAccessAlbum();
             break;
-        case 13:
+        case MENU_ASK_MODE_PHOTO_NETA:
             CMenuInventPt->PhotoNetaEnter(lr_key, button);
             break;
         default:
@@ -7059,10 +7263,10 @@ int MenuInventKey() {
     CMenuInventPt->LoadCharaCheck();
     if (CMenuInventPt->photo_only == 0) {
         int icon_mode = 2;
-        if (CMenuInventPt->mode == 2) {
+        if (CMenuInventPt->mode == MENU_ASK_MODE_CLOSE) {
             icon_mode = 0;
         }
-        MenuPosData->StepMainMenuIconMove(GetCommonMenuModeID(), 5, icon_mode);
+        MenuPosData->StepMainMenuIconMove(GetCommonMenuModeID(), MENU_MODE_INVENT, icon_mode);
     }
     MenuPosData->FormStep();
     CMenuInventPt->CalcTex();
@@ -7071,50 +7275,43 @@ int MenuInventKey() {
     CDC2Mes *list_message = MenuDCMsg[2];
     CDC2Mes *number_message = MenuDCMsg[3];
     switch (CMenuInventPt->key_arg_no) {
-        case 0:
-        case 1:
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9:
-        case 10:
-        case 11: {
+        case INVENT_MODE_THINK:
+        case INVENT_MODE_THINK_ALBUM_BUTTON:
+        case INVENT_MODE_THINK_WITH_ALBUM:
+        case INVENT_MODE_ALBUM_VIEW:
+        case INVENT_MODE_PHOTO_VIEW:
+        case INVENT_MODE_PHOTO_ALBUM_BUTTON:
+        case INVENT_MODE_MEMO_BUTTON:
+        case INVENT_MODE_MEMO_LIST:
+        case INVENT_MODE_MEMO_ARROW:
+        case INVENT_MODE_MEMO_CORK: {
             USER_PICTURE_INFO *photo = InventUserDataPtr->GetPhotoInfo(CMenuInventPt->photo_cursor);
             if (photo != NULL) {
                 CMenuInventPt->SelectedNetaPhotoAlready(CMenuInventPt->photo_cursor);
             }
             if (CMenuInventPt->neta_board_form != NULL) {
-                CMenuInventPt->neta_board_form->GetPutPosXY(at_5742, item_pos[0], item_pos[1]);
+                CMenuInventPt->neta_board_form->GetPutPosXY("msgbrd", item_pos[0], item_pos[1]);
                 item_pos[1] += 5;
             }
             MakeMsgNetaName(list_message, MenuMesForm[2], photo, item_pos, 1);
-            int      line;
             CDC2Mes *name_message = MenuDCMsg[7];
             if (name_message != NULL) {
                 short key = CMenuInventPt->key_arg_no;
-                if (key == 4 || key == 5) {
+                if (key == INVENT_MODE_THINK_WITH_ALBUM || key == INVENT_MODE_ALBUM_VIEW) {
                     if (CMenuInventPt->album_big_form != NULL && InventAlbumPtr != NULL) {
-                        CMenuInventPt->album_big_form->GetPutPosXY(at_5743, item_pos[0], item_pos[1]);
+                        CMenuInventPt->album_big_form->GetPutPosXY("msgpos", item_pos[0], item_pos[1]);
                         item_pos[1] += 5;
                         MenuMesForm[7]->draw_flag = 1;
                         name_message->line_pos_on[0] = 0;
                         MakeMsgNetaName(name_message, MenuMesForm[7],
                                         InventAlbumPtr->GetAlbumPhotoInfo(CMenuInventPt->album_cursor), item_pos, 1);
                     }
-                } else if (key != 6 && CMenuInventPt->unk_112 == 0 && CMenuInventPt->photo_only == 0) {
-                    for (line = 0; line < 3; line++) {
-                        CMenuPosDataForm *name_form = CMenuInventPt->neta_name_form[line];
+                } else if (key != INVENT_MODE_PHOTO_VIEW && CMenuInventPt->unk_112 == 0 && CMenuInventPt->photo_only == 0) {
+                    for (index = 0; index < 3; index++) {
+                        CMenuPosDataForm *name_form = CMenuInventPt->neta_name_form[index];
                         if (name_form != NULL) {
-                            name_form->GetPutPosXY(at_5744, item_pos[0], item_pos[1]);
-                            int x = item_pos[0];
-                            int y = item_pos[1];
-                            if (line >= 0 && line < MES_LINE_MAX) {
-                                name_message->line_pos[line][0] = x;
-                                name_message->line_pos[line][1] = y;
-                                name_message->line_pos_on[line] = 1;
-                            }
+                            name_form->GetPutPosXY("msg", item_pos[0], item_pos[1]);
+                            name_message->SetMovePosGyou(index, item_pos[0], item_pos[1]);
                         }
                     }
                 }
@@ -7122,43 +7319,41 @@ int MenuInventKey() {
             if (MenuMesForm[3] != NULL) {
                 count_x = 370;
                 count_y = 16;
-                if (LanguageCode == 1) {
+                if (LanguageCode == LANG_ENGLISH) {
                     count_x = 336;
                     count_y = 14;
                 }
-                if (LanguageCode < 2) {
+                if (LanguageCode < LANG_FRENCH) {
                     MenuMesForm[3]->SetPos(count_x, count_y);
                 } else {
-                    MenuPosData->GetEtcTblValue(at_5745, count_x, count_y);
+                    MenuPosData->GetEtcTblValue("msg3q", count_x, count_y);
                 }
                 int message_no = 619;
                 if (CMenuInventPt->neta_select_num < 3) {
                     number_message->SetMsgVolumeNoOne(3 - CMenuInventPt->neta_select_num);
                     message_no = 618;
-                    MenuPosData->GetEtcTblValue(at_5746, count_x, count_y);
+                    MenuPosData->GetEtcTblValue("msg3p", count_x, count_y);
                 }
-                if (LanguageCode >= 2) {
+                if (LanguageCode >= LANG_FRENCH) {
                     MenuMesForm[3]->SetPos(count_x, count_y);
                 }
                 number_message->MakeMsg(message_no);
             }
             break;
         }
-        case 2:
-        case 3: {
-            tops = at_5642;
+        case INVENT_MODE_CARD_LIST:
+        case INVENT_MODE_ITEM_LIST: {
+            int tops[2] = {CMenuInventPt->card_top, CMenuInventPt->card_top - 1};
             int line = 0;
-            tops.top[0] = CMenuInventPt->card_top;
-            tops.top[1] = CMenuInventPt->card_top - 1;
-            int top = tops.top[CMenuInventPt->card_scroll_dir];
+            int top = tops[CMenuInventPt->card_scroll_dir];
             InventUserDataPtr->GetHatsumeiNum();
             CMenuPosDataForm *list_form = CMenuInventPt->card_list_form;
             float             list_x = list_form->x;
             int               name_x = 74.0f + list_x;
             int               y = 13.0f + list_form->y + (float) (top * 46);
-            int               card = top;
             int               number_x = 11.0f + list_x;
-            for (; card < 0; card++) {
+            index = top;
+            for (; index < 0; index++) {
                 names[line] = NULL;
                 item_pos[line * 2] = name_x;
                 item_pos[line * 2 + 1] = y;
@@ -7197,7 +7392,7 @@ int MenuInventKey() {
             number_message->SetMsgVolumeNo(numbers, digit_tbl3_5641, 6);
             number_message->SetMsgItemPos(number_pos, 6);
             CGameDataUsed *item = CMenuInventPt->SearchNowPosItemExist();
-            if (CMenuInventPt->key_arg_no == 2 && InventUserDataPtr->GetCreateItemID(CMenuInventPt->card_cursor) <= 0) {
+            if (CMenuInventPt->key_arg_no == INVENT_MODE_CARD_LIST && InventUserDataPtr->GetCreateItemID(CMenuInventPt->card_cursor) <= 0) {
                 item_message->MakeMsg(617);
             } else {
                 item_message->MakeMsg(item);
@@ -7207,9 +7402,7 @@ int MenuInventKey() {
     }
     return result;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", MenuInventKey__Fv);
-#endif
+
 void MenuInventDraw() {
     MenuPosData->FormDraw();
     MenuEffect[0]->Draw();
@@ -7221,121 +7414,18 @@ void MenuInventDraw() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", scoop_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", menu_scoop_str_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", pic_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", addstringtable_1722__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", invent_teigi_func__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2455__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", invent_color_tbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2639__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", Tb_2819__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", D_003532DF__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", jp_conv_lentbl_2835__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2913__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", eff_light_2927__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", wavname_2960__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3201__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", wakutype_3203__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3306__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", modecmdtbl_3636__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", gaiji_table_4737__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", tbl_4782__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5173__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", nextmodetbl_5183__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", overcode_album_5225__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", digit_tbl3_5641__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", NewComer_5648__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1046__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1537__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1655__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1656__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1664__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1723__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1724__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1725__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1947__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_1948__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2005__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2124__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2125__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2126__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2127__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2128__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2129__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2130__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2131__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2132__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2133__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2134__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2135__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2136__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2137__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2138__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2139__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2140__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2141__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2142__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2143__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2144__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2145__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2146__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2147__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2148__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2149__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2150__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2151__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2152__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2244__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2245__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2246__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2247__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2248__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2249__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2250__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2251__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2252__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2253__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2313__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2368__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2369__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2395__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2396__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2520__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2521__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2522__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2523__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2524__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2525__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2526__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2527__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2528__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2543__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2544__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2545__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2546__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2712__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2713__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2720__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2732__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2733__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2734__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2735__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2736__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2737__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2820__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2821__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2848__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2849__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2929__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2930__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2952__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2953__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2961__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2962__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2963__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3113__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3114__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3115__DATA);
@@ -7360,51 +7450,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3133__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3134__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3135__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3138__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3257__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3258__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3259__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3260__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3261__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3262__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3263__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3264__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3348__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3349__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3350__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3351__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3352__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3353__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3621__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3622__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3623__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3624__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3625__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3626__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3627__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3628__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3629__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3630__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3631__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3632__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3858__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3859__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3860__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3861__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3862__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3863__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3864__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3865__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3866__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3867__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3868__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3869__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3871__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3870__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3932__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3933__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3934__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3935__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_3936__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4354__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4355__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4356__DATA);
@@ -7429,121 +7474,23 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4374__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4375__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4376__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4377__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4378__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4379__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4380__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4775__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5011__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5012__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5013__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5014__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5015__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5016__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5066__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5067__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5068__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5153__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5154__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5155__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5156__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5550__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5551__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5552__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5553__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5554__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5555__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5556__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5557__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5558__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5559__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5562__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5560__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5649__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5650__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5651__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5652__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5653__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5654__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5742__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5743__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5744__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5745__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5746__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5747__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", __vt__11CMenuInvent__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", invent_grade_fff__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_2562__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", gobitbl_2847__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", sndtimetbl_2868__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", getfilename_2928__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", sndfileName_2951__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", convtbl_3726__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4470__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4494__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", maxtbl_5171__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", viewnum_5172__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", maxtbl_album_5223__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", viewnum_album_5224__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(debug_invent_successflag, 0x4);
-INCLUDE_BSS(InventUserDataPtr, 0x4);
-INCLUDE_BSS(InventAlbumPtr, 0x4);
-INCLUDE_BSS(InventManagePt, 0x4);
-INCLUDE_BSS(MCManagerPtr, 0x4);
-INCLUDE_BSS(pict_seiton_case, 0x4);
-INCLUDE_BSS(scoop_str_stack, 0x4);
-INCLUDE_BSS(PicNameStack, 0x4);
-INCLUDE_BSS(pic_name_info_top, 0x4);
-INCLUDE_BSS(pic_name_info_num, 0x4);
-INCLUDE_BSS(pic_name_info_num_count, 0x4);
-INCLUDE_BSS(at_1788__2, 0x4);
-INCLUDE_BSS(inventSpiDataTblTop, 0x4);
-INCLUDE_BSS(invent_num_counter, 0x4);
-INCLUDE_BSS(at_1965, 0x4);
-INCLUDE_BSS(NetaMemoStrNum, 0x4);
-INCLUDE_BSS(Tex_Hatsumei, 0x4);
-INCLUDE_BSS(InventSubDataReadBGInfo, 0x8);
-INCLUDE_BSS(at_3202, 0x8);
-INCLUDE_BSS(at_3317, 0x8);
-INCLUDE_BSS(at_3363, 0x8);
-INCLUDE_BSS(at_3379, 0x8);
 INCLUDE_BSS(at_3509, 0x8);
-INCLUDE_BSS(menu_invent_command_info_pict_info, 0x4);
-INCLUDE_BSS(menu_invent_command_info_ptr, 0x4);
-INCLUDE_BSS(menu_invent_command_info_move_album_Space_info, 0x4);
-INCLUDE_BSS(menu_invent_command_info_move_album_Space_pos, 0x4);
 INCLUDE_BSS(at_3739, 0x8);
 INCLUDE_BSS(at_3765, 0x8);
-INCLUDE_BSS(InventInNetaEffectFlag, 0x4);
-INCLUDE_BSS(InventInNetaEffectNum, 0x4);
-INCLUDE_BSS(InventInNetaEffectNum4, 0x4);
-INCLUDE_BSS(InventInNetaEffect, 0x4);
-INCLUDE_BSS(ActiveSlot_3949, 0x4);
-INCLUDE_BSS(init_3950, 0x4);
-INCLUDE_BSS(CMenuInventPt, 0x8);
-INCLUDE_BSS(at_4493, 0x8);
-INCLUDE_BSS(at_4638, 0x8);
-INCLUDE_BSS(InventManageMan, 0x8);
-INCLUDE_BSS(debug_invent_select, 0x4);
-INCLUDE_BSS(at_5448, 0x4);
-INCLUDE_BSS(at_5457, 0x8);
-INCLUDE_BSS(at_5642, 0x8);
 
 // Uninitialised data (.bss)
 static mgCMemory MenuInventStack;
 static mgCMemory MenuInventCharaStack;
 static mgCMemory MenuInventMCStack;
-INCLUDE_BSS(pic_name_text_buff_1660, 0x2480);
-INCLUDE_BSS(temp_1728, 0x30);
 static mgCMemory InventTeigiStack;
-INCLUDE_BSS(NetaMemoStr, 0x800);
-INCLUDE_BSS(NetaMemoID, 0x400);
-INCLUDE_BSS(rec_board_offset_xtbl, 0x28);
 INCLUDE_BSS(at_2776, 0x18);
-INCLUDE_BSS(at_5460, 0x18);
-INCLUDE_BSS(at_5474, 0x18);

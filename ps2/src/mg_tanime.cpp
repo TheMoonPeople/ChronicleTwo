@@ -1,5 +1,4 @@
 #include "common.h"
-#include "mg_tanime_cabi.h"
 #include "mw_runtime.h"
 
 #include <cmath>
@@ -16,12 +15,137 @@
 #include "mglib.hpp"
 #include "scriptinterpreter.hpp"
 
+static int texTEX_ANIME(SPI_STACK *stack, int argc);
+
+static int texTEX_ANIME_DATA(SPI_STACK *stack, int argc);
+
+static int texSRC_TEX(SPI_STACK *stack, int argc);
+
+static int texDEST_TEX(SPI_STACK *stack, int argc);
+
+static int texSCROLL(SPI_STACK *stack, int argc);
+
+static int texCLUT_COPY(SPI_STACK *stack, int argc);
+
+static int texCOLOR(SPI_STACK *stack, int argc);
+
+static int texALPHA_BLEND(SPI_STACK *stack, int argc);
+
+static int texALPHA_TEST(SPI_STACK *stack, int argc);
+
+static int texWAIT(SPI_STACK *stack, int argc);
+
+static int texTEX_ANIME_DATA_END(SPI_STACK *stack, int argc);
+
+static int texTEX_ANIME_END(SPI_STACK *stack, int argc);
+
+static int texBUG_PATCH(SPI_STACK *stack, int argc);
+
+/**
+ *
+ * Commands accepted by the texture-animation script loader.
+ *
+ */
+static SPI_TAG_PARAM tex_tag[] = {
+    {"TEX_ANIME", texTEX_ANIME},
+    {"TEX_ANIME_DATA", texTEX_ANIME_DATA},
+    {"SRC_TEX", texSRC_TEX},
+    {"DEST_TEX", texDEST_TEX},
+    {"SCROLL", texSCROLL},
+    {"CLUT_COPY", texCLUT_COPY},
+    {"COLOR", texCOLOR},
+    {"ALPHA_BLEND", texALPHA_BLEND},
+    {"ALPHA_TEST", texALPHA_TEST},
+    {"WAIT", texWAIT},
+    {"TEX_ANIME_DATA_END", texTEX_ANIME_DATA_END},
+    {"TEX_ANIME_END", texTEX_ANIME_END},
+    {"BUG_PATCH", texBUG_PATCH},
+    {NULL, NULL},
+};
+
+/**
+ *
+ * Default timing patch applied to new texture-animation records.
+ *
+ */
+static int mgBugPatch;
+
+/**
+ *
+ * Pauses advancement of every texture-animation group.
+ *
+ */
+int mgCTextureAnime::stop_anime;
+
+/**
+ *
+ * Animation receiving the current script record.
+ *
+ */
+static mgCTextureAnime *pTexAnime;
+
+/**
+ *
+ * Animation supplied to the texture script loader.
+ *
+ */
+static mgCTextureAnime *pLoadTexAnime;
+
+/**
+ *
+ * Group receiving the current texture-animation record.
+ *
+ */
+static int now_group;
+
+/**
+ *
+ * Texture manager used by the animation script loader.
+ *
+ */
+static mgCTextureManager *TexManager;
+
+/**
+ *
+ * Memory pool used to allocate texture-animation records and names.
+ *
+ */
+static mgCMemory *TexAnimeStack;
+
+/**
+ *
+ * Name of the group being assembled by the animation script.
+ *
+ */
+static char *group_name;
+
+/**
+ *
+ * Initial enable state of the current animation group.
+ *
+ */
+static int ta_enable;
+
+/**
+ *
+ * Texture block shared by the current animation record.
+ *
+ */
+static int now_texb;
+
+/**
+ *
+ * Timing patch requested for subsequent animation records.
+ *
+ */
+static int texBugPatch;
+
 /** Record the script is building. */
 static mgCTexAnimeData nowTexData;
 
-extern char at_873[];
 // Code (.text)
 #pragma schedule off
+#pragma optimization_level 2
 
 mgCTexAnimeData::mgCTexAnimeData() {
     Initialize();
@@ -59,21 +183,11 @@ void mgCTexAnimeData::Initialize() {
     r = 0x80;
 }
 
-#ifdef NONMATCHING
-#pragma global_optimizer off
-
 void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
     int                      i;
     int                      group;
-    int                      src_left;
-    int                      src_top;
-    int                      dest_left;
-    int                      dest_top;
-    int                      offset;
     CList<mgCTexAnimeData>  *node;
-    int                      src_end;
-    int                      src_bottom_end;
-    CList<mgCTexAnimeData> **current;
+    mgCTexAnimeData         *data;
 
     if (packet == NULL) {
         packet = mgVif1Packet;
@@ -89,12 +203,12 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
     sceVif1PkCloseDirectCode(packet);
 
     for (i = 0; i < group_num; i++) {
-        if (*(int *) ((i << 2) + (int) this + 4) != 0) {
-            CList<mgCTexAnimeData> *node = *(CList<mgCTexAnimeData> **) ((i << 2) + (int) this + 0xC4);
-            if (node != NULL) {
-                mgCTexAnimeData *data = node->pGetData();
-                if (data != NULL && data->link_group >= 0) {
-                    Enable(data->link_group);
+        if (enable[i] != 0) {
+            CList<mgCTexAnimeData> *linked_node = now[i];
+            if (linked_node != NULL) {
+                mgCTexAnimeData *linked_data = linked_node->pGetData();
+                if (linked_data != NULL && linked_data->link_group >= 0) {
+                    Enable(linked_data->link_group);
                 }
             }
         }
@@ -111,17 +225,14 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
     prim.TextureMapEnable(1);
 
     for (group = 0; group < group_num; group++) {
-        offset = group << 2;
-        if (*(int *) (offset + (int) this + 4) == 0) {
+        if (enable[group] == 0) {
             continue;
         }
-
-        current = (CList<mgCTexAnimeData> **) (offset + (int) this + 0xC4);
-        node = *current;
-        if (node == NULL) {
+        if (now[group] == NULL) {
             continue;
         }
-        mgCTexAnimeData *data = node->pGetData();
+        node = now[group];
+        data = node->pGetData();
         if (data == NULL || data->src_tex == NULL || data->dest_tex == NULL) {
             continue;
         }
@@ -131,23 +242,15 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
 
         // Records that wait no frames play together with the record after them.
         for (;;) {
-            mgRect<int> indexed_src_rect;
-            mgRect<int> indexed_dest_rect;
-            mgRect<int> colour_src_rect;
-            mgRect<int> colour_dest_rect;
-            mgRect<int> draw_rect;
-            mgRect<int> unused_draw_rect;
-            mgRect<int> clut_rect;
-
             if (data->dest_tex->bpp >= MG_TEX_ANIME_BPP_TRUE_COLOUR) {
-                if ((s8) data->bilinear != 0) {
+                if (data->bilinear != 0) {
                     prim.Bilinear(1);
                 } else {
                     prim.Bilinear(0);
                 }
-                if ((s8) data->alpha_blend != MG_TEX_ANIME_ALPHA_BLEND_OFF) {
+                if (data->alpha_blend != MG_TEX_ANIME_ALPHA_BLEND_OFF) {
                     prim.AlphaBlendEnable(1);
-                    prim.AlphaBlend((s8) data->alpha_blend);
+                    prim.AlphaBlend(data->alpha_blend);
                 } else {
                     prim.AlphaBlendEnable(0);
                 }
@@ -161,7 +264,7 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
 
             mgCTexture *src = data->src_tex;
             if (src->bpp == MG_TEX_ANIME_BPP_INDEXED && data->dest_tex->bpp == MG_TEX_ANIME_BPP_INDEXED &&
-                ((s8) data->clut_copy != 0 || (data->src_w == src->width && data->src_h == src->height))) {
+                (data->clut_copy != 0 || (data->src_w == src->width && data->src_h == src->height))) {
                 // Copy the source palette over the destination's, each treated as a 16x16 image.
                 sceGsTex0 src_clut;
                 sceGsTex0 dest_clut;
@@ -171,15 +274,12 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                 dest_clut.TBP0 = data->dest_tex->tex0.CBP;
                 dest_clut.TBW = 1;
                 dest_clut.PSM = data->dest_tex->tex0.CPSM;
-                clut_rect.Set(0, 0, 0x100, 0x100);
-                mgRect<int> *clut_p = &clut_rect;
-                clut_p = clut_p;
-                mgSetPkMoveImage(&src_clut, *clut_p, &dest_clut, 0, 0, 0);
+                mgSetPkMoveImage(&src_clut, mgRect<int>(0, 0, 16 * MG_TEX_ANIME_SUBTEXEL, 16 * MG_TEX_ANIME_SUBTEXEL), &dest_clut, 0, 0, 0);
             }
 
             if (data->type == MG_TEX_ANIME_TYPE_COPY) {
                 mgCTexture *dest = data->dest_tex;
-                dest = dest;
+
                 if (dest->bpp < MG_TEX_ANIME_BPP_TRUE_COLOUR) {
                     mgSetPkMoveImage(&data->src_tex->tex0,
                                      mgRect<int>(data->src_x, data->src_y,
@@ -206,8 +306,7 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                 }
             }
 
-            int type = data->type;
-            if (type == MG_TEX_ANIME_TYPE_SCROLL || type == MG_TEX_ANIME_TYPE_WAVE) {
+            if (data->type == MG_TEX_ANIME_TYPE_SCROLL || data->type == MG_TEX_ANIME_TYPE_WAVE) {
                 // The source is split where the scroll or sway has reached and its four
                 // quarters are placed crosswise so that the image wraps round.
                 int src_split_x;
@@ -220,53 +319,42 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                 int dest_end_y;
 
                 if (data->dest_tex->bpp < MG_TEX_ANIME_BPP_TRUE_COLOUR) {
-                    src_left = data->src_x / MG_TEX_ANIME_SUBTEXEL;
-                    src_left = src_left;
-                    src_top = data->src_y / MG_TEX_ANIME_SUBTEXEL;
-                    src_top = src_top;
+                    int src_left = data->src_x / MG_TEX_ANIME_SUBTEXEL;
+                    int src_top = data->src_y / MG_TEX_ANIME_SUBTEXEL;
                     int src_width = data->src_w / MG_TEX_ANIME_SUBTEXEL;
                     int src_height = data->src_h / MG_TEX_ANIME_SUBTEXEL;
-                    dest_left = data->dest_x / MG_TEX_ANIME_SUBTEXEL;
-                    dest_left = dest_left;
-                    dest_top = data->dest_y / MG_TEX_ANIME_SUBTEXEL;
-                    dest_top = dest_top;
+                    int dest_left = data->dest_x / MG_TEX_ANIME_SUBTEXEL;
+                    int dest_top = data->dest_y / MG_TEX_ANIME_SUBTEXEL;
                     int dest_width = data->dest_w / MG_TEX_ANIME_SUBTEXEL;
                     int dest_height = data->dest_h / MG_TEX_ANIME_SUBTEXEL;
                     int offset_x;
                     int offset_y;
 
-                    if (type == MG_TEX_ANIME_TYPE_SCROLL) {
-                        float period = data->period_x;
-                        if (period >= 0.0f) {
-                        } else {
-                            period = -period;
-                        }
-                        offset_x = (int) ((float) ((dest_width - 1) * data->phase_x) / period);
-                        float numerator;
+                    if (data->type == MG_TEX_ANIME_TYPE_SCROLL) {
+                        float period_x = data->period_x;
+                        period_x = period_x < 0.0f ? -period_x : period_x;
+                        offset_x = (float) ((dest_width - 1) * data->phase_x) / period_x;
+                        float numerator_y;
                         float period_y;
                         period_y = data->period_y;
-                        numerator = (float) ((dest_height - 1) * data->phase_y);
-                        if (period_y < 0.0f) {
-                            period_y = -period_y;
-                        }
-                        period_y = period_y;
-                        offset_y = (int) (numerator / period_y);
+                        numerator_y = (dest_height - 1) * data->phase_y;
+                        period_y = period_y < 0.0f ? -period_y : period_y;
+                        offset_y = numerator_y / period_y;
                     } else {
                         offset_y = 0;
                         offset_x = 0;
                     }
 
-                    src_end = src_left + src_width;
-                    int src_right = src_end - 1;
-                    src_bottom_end = src_top + src_height;
-                    int src_bottom = src_bottom_end - 1;
-                    int dest_right = dest_left + dest_width - 1;
-                    int dest_bottom = dest_top + dest_height - 1;
-                    indexed_src_rect.Set(0, 0, 0, 0);
-                    indexed_dest_rect.Set(0, 0, 0, 0);
+                    src_end_x = src_left + src_width - 1;
+                    src_end_y = src_top + src_height - 1;
+                    dest_end_x = dest_left + dest_width - 1;
+                    dest_end_y = dest_top + dest_height - 1;
 
-                    src_split_x = src_end - offset_x - 1;
-                    src_split_y = src_bottom_end - offset_y - 1;
+                    mgRect<int> src_rect(0, 0, 0, 0);
+                    mgRect<int> dest_rect(0, 0, 0, 0);
+
+                    src_split_x = src_left + src_width - offset_x - 1;
+                    src_split_y = src_top + src_height - offset_y - 1;
                     dest_split_x = dest_left + offset_x + 1;
                     dest_split_y = dest_top + offset_y + 1;
                     if (src_split_x < src_left) {
@@ -281,113 +369,92 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                     if (dest_split_y < dest_top) {
                         dest_split_y = dest_top;
                     }
-                    if (src_split_x > src_right) {
-                        src_split_x = src_right;
+                    if (src_split_x > src_end_x) {
+                        src_split_x = src_end_x;
                     }
-                    if (src_split_y > src_bottom) {
-                        src_split_y = src_bottom;
+                    if (src_split_y > src_end_y) {
+                        src_split_y = src_end_y;
                     }
-                    if (dest_split_x > dest_right) {
-                        dest_split_x = dest_right;
+                    if (dest_split_x > dest_end_x) {
+                        dest_split_x = dest_end_x;
                     }
-                    if (dest_split_y > dest_bottom) {
-                        dest_split_y = dest_bottom;
+                    if (dest_split_y > dest_end_y) {
+                        dest_split_y = dest_end_y;
                     }
                     src_split_x *= MG_TEX_ANIME_SUBTEXEL;
                     src_split_y *= MG_TEX_ANIME_SUBTEXEL;
                     dest_split_x *= MG_TEX_ANIME_SUBTEXEL;
                     dest_split_y *= MG_TEX_ANIME_SUBTEXEL;
-                    src_right *= MG_TEX_ANIME_SUBTEXEL;
-                    src_end_x = src_right;
-                    src_bottom *= MG_TEX_ANIME_SUBTEXEL;
-                    src_end_y = src_bottom;
-                    dest_right *= MG_TEX_ANIME_SUBTEXEL;
-                    dest_end_x = dest_right;
-                    dest_bottom *= MG_TEX_ANIME_SUBTEXEL;
-                    dest_end_y = dest_bottom;
+                    src_end_x *= MG_TEX_ANIME_SUBTEXEL;
+                    src_end_y *= MG_TEX_ANIME_SUBTEXEL;
+                    dest_end_x *= MG_TEX_ANIME_SUBTEXEL;
+                    dest_end_y *= MG_TEX_ANIME_SUBTEXEL;
                 } else {
                     int offset_x;
                     int offset_y;
 
-                    if (type == MG_TEX_ANIME_TYPE_SCROLL) {
-                        float period = data->period_x;
-                        if (period < 0.0f) {
-                            period = -period;
-                        }
-                        offset_x = (int) ((float) (data->dest_w * data->phase_x) / period);
-                        float numerator;
+                    if (data->type == MG_TEX_ANIME_TYPE_SCROLL) {
+                        float period_x = data->period_x;
+                        period_x = period_x < 0.0f ? -period_x : period_x;
+                        offset_x = (float) (data->dest_w * data->phase_x) / period_x;
+                        float numerator_y;
                         float period_y;
                         period_y = data->period_y;
-                        numerator = (float) (data->dest_h * data->phase_y);
-                        if (period_y < 0.0f) {
-                            period_y = -period_y;
-                        }
-                        period_y = period_y;
-                        offset_y = (int) (numerator / period_y);
+                        numerator_y = data->dest_h * data->phase_y;
+                        period_y = period_y < 0.0f ? -period_y : period_y;
+                        offset_y = numerator_y / period_y;
                     } else {
-                        float phase = (float) data->phase_x;
-                        float radians = float(6.2831855);
-                        float sine = sinf(radians * phase / data->period_x);
-                        float one = float(1.0);
-                        float wave = one + sine;
-                        float two = float(2.0);
-                        float half = wave / two;
-                        float amplitude = (float) data->amplitude_x;
-                        float scaled = amplitude * half;
-                        float full = float(10000.0);
-                        float ratio = scaled / full;
-                        float width = (float) data->dest_w;
-                        offset_x = (int) (width * ratio);
-                        offset_y = (int) ((float) data->dest_h *
-                                          ((float) data->amplitude_y *
-                                           ((float(1.0) + sinf((float(6.2831855) * (float) data->phase_y) / (float) data->period_y)) /
-                                            float(2.0)) /
-                                           float(10000.0)));
+                        offset_x = (float) data->dest_w *
+                                   ((float) data->amplitude_x *
+                                    ((1.0f + sinf(6.2831855f * (float) data->phase_x / (float) data->period_x)) / 2.0f) /
+                                    MG_TEX_ANIME_AMPLITUDE_FULL);
+                        offset_y = (float) data->dest_h *
+                                   ((float) data->amplitude_y *
+                                    ((1.0f + sinf(6.2831855f * (float) data->phase_y / (float) data->period_y)) / 2.0f) /
+                                    MG_TEX_ANIME_AMPLITUDE_FULL);
                     }
 
                     src_end_x = data->src_x + data->src_w;
                     src_end_y = data->src_y + data->src_h;
                     dest_end_x = data->dest_x + data->dest_w;
                     dest_end_y = data->dest_y + data->dest_h;
-                    colour_src_rect.Set(0, 0, 0, 0);
-                    colour_dest_rect.Set(0, 0, 0, 0);
 
-                    int width = data->src_w;
-                    src_split_x = data->src_x + width - offset_x * width / data->dest_w;
-                    int height = data->src_h;
-                    src_split_y = data->src_y + height - offset_y * height / data->dest_h;
+                    mgRect<int> src_rect(0, 0, 0, 0);
+                    mgRect<int> dest_rect(0, 0, 0, 0);
+
+                    src_split_x = data->src_x + data->src_w - offset_x * data->src_w / data->dest_w;
+                    src_split_y = data->src_y + data->src_h - offset_y * data->src_h / data->dest_h;
                     dest_split_x = data->dest_x + offset_x;
                     dest_split_y = data->dest_y + offset_y;
                 }
 
-                mgCTexture *dest = data->dest_tex;
-                dest = dest;
-                if (dest->bpp < MG_TEX_ANIME_BPP_TRUE_COLOUR) {
-                    draw_rect.Set(0, 0, 0, 0);
-                    unused_draw_rect.Set(0, 0, 0, 0);
+                if (data->dest_tex->bpp < MG_TEX_ANIME_BPP_TRUE_COLOUR) {
+                    mgRect<int> src_rect(0, 0, 0, 0);
+                    mgRect<int> dest_rect(0, 0, 0, 0);
 
-                    draw_rect.Set(data->src_x, data->src_y, src_split_x, src_split_y);
-                    int *right = &draw_rect.right;
-                    if (*right - draw_rect.left + 1 > 0 && draw_rect.bottom - draw_rect.top + 1 > 0) {
-                        mgSetPkMoveImage(&data->src_tex->tex0, draw_rect, &data->dest_tex->tex0,
+                    src_rect.Set(data->src_x, data->src_y, src_split_x, src_split_y);
+                    if (src_rect.right - src_rect.left + 1 > 0 && src_rect.bottom - src_rect.top + 1 > 0) {
+                        mgSetPkMoveImage(&data->src_tex->tex0, src_rect, &data->dest_tex->tex0,
                                          dest_split_x - MG_TEX_ANIME_SUBTEXEL, dest_split_y - MG_TEX_ANIME_SUBTEXEL, 0);
                     }
-                    draw_rect.Set(data->src_x, src_split_y, src_split_x, src_end_y - MG_TEX_ANIME_SUBTEXEL);
-                    if (*right - draw_rect.left + 1 > 0 && draw_rect.bottom - draw_rect.top + 1 > 0) {
-                        mgSetPkMoveImage(&data->src_tex->tex0, draw_rect, &data->dest_tex->tex0,
+                    src_rect.Set(data->src_x, src_split_y, src_split_x, src_end_y - MG_TEX_ANIME_SUBTEXEL);
+                    if (src_rect.right - src_rect.left + 1 > 0 && src_rect.bottom - src_rect.top + 1 > 0) {
+                        mgSetPkMoveImage(&data->src_tex->tex0, src_rect, &data->dest_tex->tex0,
                                          dest_split_x - MG_TEX_ANIME_SUBTEXEL, data->dest_y, 0);
                     }
-                    draw_rect.Set(src_split_x, data->src_y, src_end_x - MG_TEX_ANIME_SUBTEXEL, src_split_y);
-                    if (*right - draw_rect.left + 1 > 0 && draw_rect.bottom - draw_rect.top + 1 > 0) {
-                        mgSetPkMoveImage(&data->src_tex->tex0, draw_rect, &data->dest_tex->tex0, data->dest_x,
+                    src_rect.Set(src_split_x, data->src_y, src_end_x - MG_TEX_ANIME_SUBTEXEL, src_split_y);
+                    if (src_rect.right - src_rect.left + 1 > 0 && src_rect.bottom - src_rect.top + 1 > 0) {
+                        mgSetPkMoveImage(&data->src_tex->tex0, src_rect, &data->dest_tex->tex0, data->dest_x,
                                          dest_split_y - MG_TEX_ANIME_SUBTEXEL, 0);
                     }
-                    draw_rect.Set(src_split_x, src_split_y, src_end_x - MG_TEX_ANIME_SUBTEXEL,
-                                  src_end_y - MG_TEX_ANIME_SUBTEXEL);
-                    if (*right - draw_rect.left + 1 > 0 && draw_rect.bottom - draw_rect.top + 1 > 0) {
-                        mgSetPkMoveImage(&data->src_tex->tex0, draw_rect, &data->dest_tex->tex0, data->dest_x, data->dest_y, 0);
+                    src_rect.Set(src_split_x, src_split_y, src_end_x - MG_TEX_ANIME_SUBTEXEL,
+                                 src_end_y - MG_TEX_ANIME_SUBTEXEL);
+                    if (src_rect.right - src_rect.left + 1 > 0 && src_rect.bottom - src_rect.top + 1 > 0) {
+                        mgSetPkMoveImage(&data->src_tex->tex0, src_rect, &data->dest_tex->tex0, data->dest_x,
+                                         data->dest_y, 0);
                     }
                 } else {
+                    mgCTexture *dest = data->dest_tex;
                     int height = dest->height;
                     int rem = height % MG_TEX_ANIME_FRAME_ALIGN;
                     if (rem != 0) {
@@ -465,36 +532,27 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
         }
 
         if (stop_anime == 0) {
-            (*(int *) (offset + (int) this + 0x184))++;
+            frame[group]++;
         }
         int wait = data->wait;
         if (wait < 0) {
-            *(int *) (offset + (int) this + 0x184) = 0;
+            frame[group] = 0;
         } else if (data->bug_patch != 0) {
-            int                    *base = (int *) (offset + (int) this);
-            int                    *counter = base + 0x61;
-            int                     count = base[0x61];
-            CList<mgCTexAnimeData> *next;
-            if (wait <= *counter) {
-                *counter = 0;
-                next = node->next;
-                *current = next;
-                if (*current == NULL) {
-                    *current = *(CList<mgCTexAnimeData> **) (base + 0x19);
+            if (wait <= frame[group]) {
+                frame[group] = 0;
+                CList<mgCTexAnimeData> *next = node->next;
+                now[group] = next;
+                if (now[group] == NULL) {
+                    now[group] = list[group];
                 }
             }
         } else {
-            int  count;
-            int *base = (int *) (offset + (int) this);
-            int *counter = base + 0x61;
-            count = base[0x61];
-            CList<mgCTexAnimeData> *next;
-            if (count > wait) {
-                *counter = 0;
-                next = node->next;
-                *current = next;
-                if (*current == NULL) {
-                    *current = *(CList<mgCTexAnimeData> **) (base + 0x19);
+            if (frame[group] > wait) {
+                frame[group] = 0;
+                CList<mgCTexAnimeData> *next = node->next;
+                now[group] = next;
+                if (now[group] == NULL) {
+                    now[group] = list[group];
                 }
             }
         }
@@ -508,12 +566,6 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
     sceVif1PkCloseDirectCode(packet);
 }
 
-#pragma global_optimizer reset
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", TexAnime__15mgCTextureAnimeFiP13sceVif1Packet);
-#endif
-#pragma global_optimizer off
-
 void mgCTextureAnime::Initialize() {
     group_num = MG_TEX_ANIME_GROUP_MAX;
 
@@ -521,8 +573,6 @@ void mgCTextureAnime::Initialize() {
         DeleteGroup(i);
     }
 }
-
-#pragma global_optimizer reset
 
 mgCTextureAnime::mgCTextureAnime() {
     Initialize();
@@ -536,11 +586,9 @@ void mgCTextureAnime::SetGroupName(int group, char *group_name) {
     name[group] = group_name;
 }
 
-#pragma global_optimizer off
-
 int mgCTextureAnime::GetEmptyGroup() {
-    for (int i = 0; i < *(volatile int *) &group_num; i++) {
-        if (*(CList<mgCTexAnimeData> **) ((i << 2) + (int) this + 0x64) == NULL) {
+    for (int i = 0; i < group_num; i++) {
+        if (list[i] == NULL) {
             return i;
         }
     }
@@ -548,17 +596,13 @@ int mgCTextureAnime::GetEmptyGroup() {
     return -1;
 }
 
-#pragma global_optimizer reset
-
-#pragma global_optimizer off
-
 int mgCTextureAnime::SearchGroupName(char *group_name) {
     if (group_name == NULL) {
         return -1;
     }
 
     for (int i = 0; i < group_num; i++) {
-        char *candidate = *(char **) ((i << 2) + (int) this + 0x124);
+        char *candidate = name[i];
 
         if (candidate != NULL && strcmp(candidate, group_name) == 0) {
             return i;
@@ -567,9 +611,6 @@ int mgCTextureAnime::SearchGroupName(char *group_name) {
 
     return -1;
 }
-
-#pragma global_optimizer reset
-
 
 #ifdef NONMATCHING
 CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeData(mgCMemory *stack) {
@@ -583,9 +624,6 @@ CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeData(mgCMemory *stack) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory);
 #endif
 
-// Defined in the class body in mg_tanime.hpp.
-#pragma global_optimizer off
-
 CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeGroupData(int group, mgCMemory *stack) {
     if (group < 0 || group >= group_num) {
         return NULL;
@@ -597,7 +635,7 @@ CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeGroupData(int group, mgCMemo
         return NULL;
     }
 
-    if (&node->data == NULL) {
+    if (node->pGetData() == NULL) {
         return NULL;
     }
 
@@ -634,8 +672,6 @@ CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeGroupData(int group, mgCMemo
     return node;
 }
 
-#pragma global_optimizer reset
-
 /**
  *
  * Four colour channels used by a texture animation.
@@ -661,7 +697,7 @@ int mgCTextureAnime::EnterTexAnime(mgCTexAnimeData *data, mgCMemory *stack) {
     entry->type = data->type;
     entry->group = data->group;
     entry->link_group = data->link_group;
-    entry->clut_copy = *(s8 *) &data->clut_copy;
+    entry->clut_copy = data->clut_copy;
     entry->src_tex = data->src_tex;
     entry->dest_tex = data->dest_tex;
     entry->src_x = data->src_x;
@@ -680,8 +716,8 @@ int mgCTextureAnime::EnterTexAnime(mgCTexAnimeData *data, mgCMemory *stack) {
     entry->amplitude_y = data->amplitude_y;
     entry->wait = data->wait;
     entry->bug_patch = data->bug_patch;
-    entry->bilinear = *(s8 *) &data->bilinear;
-    entry->alpha_blend = *(s8 *) &data->alpha_blend;
+    entry->bilinear = data->bilinear;
+    entry->alpha_blend = data->alpha_blend;
     entry->alpha_test = data->alpha_test;
     entry->alpha_ref = data->alpha_ref;
     *(mgTexAnimeColor *) &entry->r = *(mgTexAnimeColor *) &data->r;
@@ -810,7 +846,7 @@ int texSRC_TEX(SPI_STACK *stack, int argc) {
         if (now_texb < 0) {
             now_texb = nowTexData.src_tex->block;
         } else if (now_texb != nowTexData.src_tex->block) {
-            printf(at_873, nowTexData.src_tex->name);
+            printf("%s block is not match!!!\n", nowTexData.src_tex->name);
         }
     }
 
@@ -849,7 +885,7 @@ int texDEST_TEX(SPI_STACK *stack, int argc) {
         if (now_texb < 0) {
             now_texb = nowTexData.dest_tex->block;
         } else if (now_texb != nowTexData.dest_tex->block) {
-            printf(at_873, nowTexData.dest_tex->name);
+            printf("%s block is not match!!!\n", nowTexData.dest_tex->name);
         }
     }
 
@@ -1075,41 +1111,5 @@ void mgRect<int>::Set(int new_left, int new_top, int new_right, int new_bottom) 
     bottom = new_bottom;
 }
 
-#pragma optimization_level 1
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", tex_tag__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_831__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_832__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_833__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_834__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_835__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_836__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_837__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_838__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_839__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_840__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_841__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_842__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_843__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", at_873__DATA);
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", __vt__24CList_15mgCTexAnimeData___DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(mgBugPatch, 0x4);
-INCLUDE_BSS(stop_anime__15mgCTextureAnime, 0x4);
-INCLUDE_BSS(pTexAnime, 0x4);
-INCLUDE_BSS(pLoadTexAnime, 0x4);
-INCLUDE_BSS(now_group, 0x4);
-INCLUDE_BSS(TexManager, 0x4);
-INCLUDE_BSS(TexAnimeStack, 0x4);
-INCLUDE_BSS(group_name, 0x4);
-INCLUDE_BSS(ta_enable, 0x4);
-INCLUDE_BSS(now_texb, 0x4);
-INCLUDE_BSS(texBugPatch, 0x4);
-
-// Uninitialised data (.bss)

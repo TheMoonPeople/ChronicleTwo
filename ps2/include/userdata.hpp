@@ -63,6 +63,7 @@ enum CHARA_STATUS_ATTR {
  *
  */
 enum BREEDFISH_FLAGS {
+    BREEDFISH_FLAG_RAISED = 0x1,   /**< Marks a fish fed or bred in the aquarium; its weight is shown and the fishing tournament refuses it. */
     BREEDFISH_FLAG_ELECTRIC = 0x2, /**< Marks an electric fish, which is never rubbish. */
 };
 
@@ -161,7 +162,7 @@ struct ITEM_USED {
 struct ATTACH_USED {
     u8   spectol_type;    /**< What a spectrumised attachment came from, a SPECTOL_TYPE. */
     u8   spectol_value;   /**< Count, level or strength of what a spectrumised attachment came from. */
-    s16  status[2];       /**< First two parameters the attachment adds to a weapon. */
+    s16  status[2];       /**< First two parameters the attachment adds to a weapon; ten-parameter writes continue into attribute. */
     s16  attribute[8];    /**< Attribute parameters the attachment adds to a weapon. */
     s16  spectol_item_no; /**< Item number a spectrumised attachment came from. */
     s16  level;           /**< Level of the weapon a spectrumised attachment came from. */
@@ -216,7 +217,7 @@ struct ROBOPART_USED {
  */
 struct BREEDFISH_USED {
     char  name[0x15]; /**< Name of the fish. */
-    u8    sex;        /**< Sex of the fish, 0 or 1. */
+    s8    sex;        /**< Sex of the fish, 0 or 1. */
     u8    kind; /**< Fish variety used to select its displayed name. */
     u8    unk_17;
     u16   size;   /**< Size of the fish. */
@@ -229,7 +230,7 @@ struct BREEDFISH_USED {
     u8    unk_32[3];
     s8    breed_feeds_remaining; /**< Feedings left before this breeding fish stops eating. */
     u16   life; /**< Remaining lifetime of the breeding fish. */
-    u16   flags; /**< Flags; 0x2 marks an electric fish, which is never rubbish. */
+    u16   flags; /**< BREEDFISH_FLAGS of the fish. */
     u8    color; /**< Colour variant of the breeding fish. */
     s8    grow_count; /**< Food eaten towards the next growth; the fish grows past 10. */
     u8    unk_3c;
@@ -272,7 +273,7 @@ public:
     s16 used_type;   /**< Family of the item, a USED_ITEM_TYPE, or 0 for an empty place. */
     s16 item_no;     /**< Item number, or 0 for an empty place. */
     s8  item_type;   /**< Item type from the item's common data. */
-    u8  rename_flag; /**< Non-zero when the item's name differs from its item name. */
+    s8  rename_flag; /**< Non-zero when the item's name differs from its item name. */
     u8  unk_6[0xA];
 
     union {
@@ -901,7 +902,7 @@ STATIC_ASSERT(sizeof(CGameDataUsed) == 0x6C);
 struct CHARA_DATA {
     COMMON_GAGE   hp;             /**< Health gauge. */
     u16           status_attr;    /**< Conditions, CHARA_STATUS_ATTR bits. */
-    s16           defence;        /**< Defence of the character. */
+    u16           defence;        /**< Defence of the character. */
     s16           status_time[4]; /**< Time left of the CHARA_STATUS_POWER, 0x2, 0x8 and 0x20 conditions. */
     u8            unk_14[0x17];
     u8            keep_costume_on_equip_change; /**< Keeps the selected costume when equipment changes. */
@@ -962,7 +963,8 @@ struct MOS_HENGE_PARAM {
     s16   monster_id; /**< Monster this row belongs to. */
     s16   attack;     /**< Base attack. */
     s16   defence;    /**< Base defence. */
-    u8    unk_6[6];
+    u8    unk_6[2];
+    char *script_name; /**< Monster script basename used to form its .stb path. */
     char *effect_name[4]; /**< Effect base names loaded for the monster. */
 };
 
@@ -1113,6 +1115,17 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CMonsterBox) == 0x2F00);
+
+/**
+ *
+ * Tanks of the aquarium, as CFishAquarium::active_tank and its tank arguments number them.
+ *
+ */
+enum AQUARIUM_TANK {
+    AQUARIUM_TANK_FIRST = 0,  /**< First tank, held in fish_tank. */
+    AQUARIUM_TANK_SECOND = 1, /**< Second tank, held in sub_tank. */
+    AQUARIUM_TANK_BREED = 2,  /**< Breeding tank, held in breed_tank. */
+};
 
 /**
  *
@@ -1333,7 +1346,7 @@ public:
      * @address 0x19C470
      * @size 0x48
      */
-    int EntryFish(int entrant, int fish, int weight);
+    int EntryFish(int item_no, int size, int weight);
 
     /**
      *
@@ -2159,8 +2172,22 @@ public:
      */
     void SetActiveChrNo(int chara);
 
+    /**
+     *
+     * Gives the character being played.
+     *
+     */
     s16 GetActiveChrNo() {
         return active_chr_no;
+    }
+
+    /**
+     *
+     * Gives the monster Monica transforms into.
+     *
+     */
+    s16 GetMonsterID() {
+        return monster_id;
     }
 
     /**

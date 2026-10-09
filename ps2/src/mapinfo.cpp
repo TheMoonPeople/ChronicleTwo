@@ -40,40 +40,6 @@ static int mapCHARA_LIGHT_ADJUST(SPI_STACK *stack, int argument_count);
 static int amapIMG(SPI_STACK *stack, int argument_count);
 static int amapPCP(SPI_STACK *stack, int argument_count);
 
-extern char at_360[];
-extern char at_361[];
-extern char at_362[];
-extern char at_363[];
-extern char at_364[];
-extern char at_365[];
-extern char at_366[];
-extern char at_367[];
-extern char at_368[];
-extern char at_369__3[];
-extern char at_370__2[];
-extern char at_371[];
-extern char at_372[];
-extern char at_373[];
-extern char at_374[];
-extern char at_375[];
-extern char at_376[];
-extern char at_377[];
-extern char at_378[];
-extern char at_379[];
-extern char at_380[];
-extern char at_381[];
-extern char at_382__2[];
-extern char at_704[];
-extern char at_705[];
-extern char at_706[];
-extern char at_707[];
-extern char at_708[];
-extern char at_709[];
-extern char at_710[];
-extern char at_711[];
-extern char at_712[];
-extern char at_713__2[];
-
 /**
  *
  * Tags of a map's configuration script and the routines that read them.
@@ -81,30 +47,30 @@ extern char at_713__2[];
  */
 // Initialised data (.data)
 static SPI_TAG_PARAM mapinfo_tag[] = {
-    {at_360,    mapIMG               },
-    {at_361,    mapPCP               },
-    {at_362,    mapACTIVE_LIGHT_SET  },
-    {at_363,    mapLIGHT_SET         },
-    {at_364,    mapFOV               },
-    {at_365,    mapBGCOLOR           },
-    {at_366,    mapBGCOLOR2          },
-    {at_367,    mapAMBIENT           },
-    {at_368,    mapLIGHT             },
-    {at_369__3, mapPLIGHT            },
-    {at_370__2, mapFOG_ENABLE        },
-    {at_371,    mapFOG               },
-    {at_372,    mapLIGHT_SET_END     },
-    {at_373,    mapFLOOR             },
-    {at_374,    mapCHARA_POS         },
-    {at_375,    mapTIME_FLAG         },
-    {at_376,    mapTIME_LIGHT_NUM    },
-    {at_377,    mapDEF_FOOT          },
-    {at_378,    mapSKY_INFO          },
-    {at_379,    mapLENS_FLARE        },
-    {at_380,    mapTIME_CFADE        },
-    {at_381,    mapALL_SCISSOR       },
-    {at_382__2, mapCHARA_LIGHT_ADJUST},
-    {NULL,      NULL                 },
+    {"IMG",                mapIMG               },
+    {"PCP",                mapPCP               },
+    {"ACTIVE_LIGHT_SET",   mapACTIVE_LIGHT_SET  },
+    {"LIGHT_SET",          mapLIGHT_SET         },
+    {"FOV",                mapFOV               },
+    {"BGCOLOR",            mapBGCOLOR           },
+    {"BGCOLOR2",           mapBGCOLOR2          },
+    {"AMBIENT",            mapAMBIENT           },
+    {"LIGHT",              mapLIGHT             },
+    {"PLIGHT",             mapPLIGHT            },
+    {"FOG_ENABLE",         mapFOG_ENABLE        },
+    {"FOG",                mapFOG               },
+    {"LIGHT_SET_END",      mapLIGHT_SET_END     },
+    {"FLOOR",              mapFLOOR             },
+    {"CHARA_POS",          mapCHARA_POS         },
+    {"TIME_FLAG",          mapTIME_FLAG         },
+    {"TIME_LIGHT_NUM",     mapTIME_LIGHT_NUM    },
+    {"DEF_FOOT",           mapDEF_FOOT          },
+    {"SKY_INFO",           mapSKY_INFO          },
+    {"LENS_FLARE",         mapLENS_FLARE        },
+    {"TIME_CFADE",         mapTIME_CFADE        },
+    {"ALL_SCISSOR",        mapALL_SCISSOR       },
+    {"CHARA_LIGHT_ADJUST", mapCHARA_LIGHT_ADJUST},
+    {NULL,                 NULL                 },
 };
 
 /**
@@ -113,9 +79,9 @@ static SPI_TAG_PARAM mapinfo_tag[] = {
  *
  */
 static SPI_TAG_PARAM add_mapinfo_tag[] = {
-    {at_360, amapIMG},
-    {at_361, amapPCP},
-    {NULL,   NULL   },
+    {"IMG", amapIMG},
+    {"PCP", amapPCP},
+    {NULL,  NULL   },
 };
 
 /**
@@ -854,14 +820,14 @@ int CMapInfo::OutputLightData(char *buff) {
         int x, y, z, w;
     } ambient;
 
-    cursor += sprintf(cursor, at_704, active_light_no);
+    cursor += sprintf(cursor, "MPL_ACTIVE_LIGHT_SET %d;\n", active_light_no);
 
     for (set = 0; set < lighting_info_num; set++) {
         CMapLightingInfo *info = &lighting_info[set];
-        cursor += sprintf(cursor, at_705, set);
-        cursor += sprintf(cursor, at_706);
-        cursor += sprintf(cursor, at_707, (int) info->bg_color[0], (int) info->bg_color[1], (int) info->bg_color[2]);
-        cursor += sprintf(cursor, at_708, (int) info->bg_color2[0], (int) info->bg_color2[1], (int) info->bg_color2[2]);
+        cursor += sprintf(cursor, "MPL_LIGHT_SET %d;\n", set);
+        cursor += sprintf(cursor, " MPL_FOV 52;\n");
+        cursor += sprintf(cursor, " MPL_BGCOLOR %d,%d,%d;\n", (int) info->bg_color[0], (int) info->bg_color[1], (int) info->bg_color[2]);
+        cursor += sprintf(cursor, " MPL_BGCOLOR2 %d,%d,%d;\n", (int) info->bg_color2[0], (int) info->bg_color2[1], (int) info->bg_color2[2]);
         ambient.x = fptosi(info->ambient[0]);
         int  converted_y = fptosi(info->ambient[1]);
         int *ambient_y = &ambient.y;
@@ -869,7 +835,7 @@ int CMapInfo::OutputLightData(char *buff) {
         int  converted_z = fptosi(info->ambient[2]);
         int *ambient_z = &ambient.z;
         *ambient_z = converted_z;
-        cursor += sprintf(cursor, at_709, ambient.x, *ambient_y, *ambient_z);
+        cursor += sprintf(cursor, " MPL_AMBIENT %d,%d,%d;\n", ambient.x, *ambient_y, *ambient_z);
         light = 0;
 
         do {
@@ -878,49 +844,14 @@ int CMapInfo::OutputLightData(char *buff) {
             color.x = info->light_color[light][0];
             *color_y = info->light_color[light][1];
             *color_z = info->light_color[light][2];
-            cursor += sprintf(cursor, at_710, light, info->light_dir[0][light], info->light_dir[1][light], info->light_dir[2][light], (int) color.x, (int) *color_y, (int) *color_z);
+            cursor += sprintf(cursor, " MPL_LIGHT %d,%f,%f,%f,%d,%d,%d,1;\n", light, info->light_dir[0][light], info->light_dir[1][light], info->light_dir[2][light], (int) color.x, (int) *color_y, (int) *color_z);
             light++;
         } while (light < 4);
 
-        cursor += sprintf(cursor, at_711, info->fog_enable);
-        cursor += sprintf(cursor, at_712, info->fog.near_dist, info->fog.far_dist, info->fog.r, info->fog.g, info->fog.b, (int) info->fog.far_value, (int) info->fog.near_value);
-        cursor += sprintf(cursor, at_713__2);
+        cursor += sprintf(cursor, " MPL_FOG_ENABLE %d;\n", info->fog_enable);
+        cursor += sprintf(cursor, " MPL_FOG %f,%f,%d,%d,%d,%d,%d;\n", info->fog.near_dist, info->fog.far_dist, info->fog.r, info->fog.g, info->fog.b, (int) info->fog.far_value, (int) info->fog.near_value);
+        cursor += sprintf(cursor, "MPL_LIGHT_SET_END;\n");
     }
 
     return cursor - buff;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_360__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_361__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_362__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_363__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_364__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_365__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_366__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_367__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_368__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_369__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_370__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_371__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_372__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_373__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_374__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_375__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_376__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_377__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_378__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_379__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_380__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_381__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_382__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_704__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_705__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_706__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_707__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_708__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_709__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_710__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_711__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_712__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapinfo", at_713__2__DATA);

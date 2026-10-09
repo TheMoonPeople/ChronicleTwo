@@ -34,6 +34,740 @@ class ClsMes;
 
 /**
  *
+ * Extents of the running event's local state, mouth-animation names and sequence tables.
+ *
+ */
+enum EventStorageExtent {
+    EVENT_LOCAL_NUM = 0x40, /**< Words in each event-local flag and counter array. */
+    PAKU_NAME_SIZE = 0x40,  /**< Bytes in each mouth-animation or motion name. */
+    SEQ_NODE_NUM = 0x100,   /**< Command entries in each event sequence table. */
+};
+
+/**
+ * Numeric identifiers of external event script commands.
+ */
+enum EventExternalCommand {
+    EVENT_EXT_GET_PADON = 0,                       /**< Runs the _GET_PADON command. */
+    EVENT_EXT_GET_PADDOWN = 1,                     /**< Runs the _GET_PADDOWN command. */
+    EVENT_EXT_GET_PADUP = 2,                       /**< Runs the _GET_PADUP command. */
+    EVENT_EXT_GET_APAD = 3,                        /**< Runs the _GET_APAD command. */
+    EVENT_EXT_GOTO_INTERIOR = 6,                   /**< Runs the _GOTO_INTERIOR command. */
+    EVENT_EXT_INITIALIZE = 8,                      /**< Runs the _INITIALIZE command. */
+    EVENT_EXT_GOTO_OUTSIDE = 7,                    /**< Runs the _GOTO_OUTSIDE command. */
+    EVENT_EXT_LOAD_CHARA = 9,                      /**< Runs the _LOAD_CHARA command. */
+    EVENT_EXT_CHARA_ACTIVE = 10,                   /**< Runs the _CHARA_ACTIVE command. */
+    EVENT_EXT_CLEAR_STACK = 11,                    /**< Runs the _CLEAR_STACK command. */
+    EVENT_EXT_ASSIGN_STACK = 12,                   /**< Runs the _ASSIGN_STACK command. */
+    EVENT_EXT_SET_FLAG = 13,                       /**< Runs the _SET_FLAG command. */
+    EVENT_EXT_GET_FLAG = 14,                       /**< Runs the _GET_FLAG command. */
+    EVENT_EXT_SET_CNT = 15,                        /**< Runs the _SET_CNT command. */
+    EVENT_EXT_GET_CNT = 16,                        /**< Runs the _GET_CNT command. */
+    EVENT_EXT_SET_CURRENT_DIR = 17,                /**< Runs the _SET_CURRENT_DIR command. */
+    EVENT_EXT_DELETE_CHARA = 18,                   /**< Runs the _DELETE_CHARA command. */
+    EVENT_EXT_LOAD_MOTION = 19,                    /**< Runs the _LOAD_MOTION command. */
+    EVENT_EXT_MAP_JUMP = 20,                       /**< Runs the _MAP_JUMP command. */
+    EVENT_EXT_SET_RAIN = 21,                       /**< Runs the _SET_RAIN command. */
+    EVENT_EXT_DEL_EXT_MOTION = 22,                 /**< Runs the _DEL_EXT_MOTION command. */
+    EVENT_EXT_SET_MARKER = 23,                     /**< Runs the _SET_MARKER command. */
+    EVENT_EXT_SET_WORLD_COORD = 24,                /**< Runs the _SET_WORLD_COORD command. */
+    EVENT_EXT_FINISH = 25,                         /**< Runs the _FINISH command. */
+    EVENT_EXT_GET_DUN_WORLD_COORD = 26,            /**< Runs the _GET_DUN_WORLD_COORD command. */
+    EVENT_EXT_LOAD_IMG = 27,                       /**< Runs the _LOAD_IMG command. */
+    EVENT_EXT_DEL_IMG = 28,                        /**< Runs the _DEL_IMG command. */
+    EVENT_EXT_SET_DNG_MAP = 29,                    /**< Runs the _SET_DNG_MAP command. */
+    EVENT_EXT_LOAD_ITEM = 30,                      /**< Runs the _LOAD_ITEM command. */
+    EVENT_EXT_GOTO_USE_ITEM = 31,                  /**< Runs the _GOTO_USE_ITEM command. */
+    EVENT_EXT_SET_LOCAL_FLAG = 32,                 /**< Runs the _SET_LOCAL_FLAG command. */
+    EVENT_EXT_GET_LOCAL_FLAG = 33,                 /**< Runs the _GET_LOCAL_FLAG command. */
+    EVENT_EXT_GOTO_SELECT_PARTY = 34,              /**< Runs the _GOTO_SELECT_PARTY command. */
+    EVENT_EXT_SET_LOADBG_FILE = 35,                /**< Runs the _SET_LOADBG_FILE command. */
+    EVENT_EXT_CHECK_LOADBG_FILE = 36,              /**< Runs the _CHECK_LOADBG_FILE command. */
+    EVENT_EXT_GET_TB_ITEMNO = 37,                  /**< Runs the _GET_TB_ITEMNO command. */
+    EVENT_EXT_SET_TB_STATUS = 38,                  /**< Runs the _SET_TB_STATUS command. */
+    EVENT_EXT_SET_TB_ANGLE = 39,                   /**< Runs the _SET_TB_ANGLE command. */
+    EVENT_EXT_ADD_ITEM = 40,                       /**< Runs the _ADD_ITEM command. */
+    EVENT_EXT_GET_ITEM_TYPE = 41,                  /**< Runs the _GET_ITEM_TYPE command. */
+    EVENT_EXT_GET_ITEM_SPACE = 42,                 /**< Runs the _GET_ITEM_SPACE command. */
+    EVENT_EXT_GET_ADJUST_POLYGON_SCALE = 43,       /**< Runs the _GET_ADJUST_POLYGON_SCALE command. */
+    EVENT_EXT_LOAD_MOVIE = 44,                     /**< Runs the _LOAD_MOVIE command. */
+    EVENT_EXT_INIT_LOCAL_CNT = 45,                 /**< Runs the _INIT_LOCAL_CNT command. */
+    EVENT_EXT_SET_CROSSFADE = 46,                  /**< Runs the _SET_CROSSFADE command. */
+    EVENT_EXT_SET_TIME = 47,                       /**< Runs the _SET_TIME command. */
+    EVENT_EXT_SET_ACTIVE_LIGHT = 48,               /**< Runs the _SET_ACTIVE_LIGHT command. */
+    EVENT_EXT_SET_PAKU_ANIM = 49,                  /**< Runs the _SET_PAKU_ANIM command. */
+    EVENT_EXT_RESET_PAKU_ANIM = 50,                /**< Runs the _RESET_PAKU_ANIM command. */
+    EVENT_EXT_TRG_PAKU_ANIM = 51,                  /**< Runs the _TRG_PAKU_ANIM command. */
+    EVENT_EXT_RESET_CAMERA = 52,                   /**< Runs the _RESET_CAMERA command. */
+    EVENT_EXT_GET_ACTIVE_CHR_NO = 53,              /**< Runs the _GET_ACTIVE_CHR_NO command. */
+    EVENT_EXT_SET_ACTIVE_CHR_NO = 54,              /**< Runs the _SET_ACTIVE_CHR_NO command. */
+    EVENT_EXT_DNG_SET_FLOOR_ID = 55,               /**< Runs the _DNG_SET_FLOOR_ID command. */
+    EVENT_EXT_DNG_GET_FLOOR_ID = 56,               /**< Runs the _DNG_GET_FLOOR_ID command. */
+    EVENT_EXT_SET_PAKU_MOTION = 57,                /**< Runs the _SET_PAKU_MOTION command. */
+    EVENT_EXT_RESET_PAKU_MOTION = 58,              /**< Runs the _RESET_PAKU_MOTION command. */
+    EVENT_EXT_TRG_PAKU_MOTION = 59,                /**< Runs the _TRG_PAKU_MOTION command. */
+    EVENT_EXT_SET_BG_COLOR = 60,                   /**< Runs the _SET_BG_COLOR command. */
+    EVENT_EXT_GOTO_DNG_MAP = 61,                   /**< Runs the _GOTO_DNG_MAP command. */
+    EVENT_EXT_GOTO_DNG = 62,                       /**< Runs the _GOTO_DNG command. */
+    EVENT_EXT_GOTO_EDIT = 63,                      /**< Runs the _GOTO_EDIT command. */
+    EVENT_EXT_GET_MENU_PARAM = 64,                 /**< Runs the _GET_MENU_PARAM command. */
+    EVENT_EXT_LOAD_CHARA_NPC = 65,                 /**< Runs the _LOAD_CHARA_NPC command. */
+    EVENT_EXT_AUTO_SET_TREASURE_BOX = 66,          /**< Runs the _AUTO_SET_TREASURE_BOX command. */
+    EVENT_EXT_AUTO_SET_MONSTER = 67,               /**< Runs the _AUTO_SET_MONSTER command. */
+    EVENT_EXT_LOAD_DUNGEON_MAP_FILE = 68,          /**< Runs the _LOAD_DUNGEON_MAP_FILE command. */
+    EVENT_EXT_LOAD_MONSTER_FILE = 69,              /**< Runs the _LOAD_MONSTER_FILE command. */
+    EVENT_EXT_GET_NPC_STATUS = 70,                 /**< Runs the _GET_NPC_STATUS command. */
+    EVENT_EXT_SET_NPC_STATUS = 71,                 /**< Runs the _SET_NPC_STATUS command. */
+    EVENT_EXT_GET_NOW_PARTY_CHARA = 72,            /**< Runs the _GET_NOW_PARTY_CHARA command. */
+    EVENT_EXT_SET_LOCAL_CNT = 73,                  /**< Runs the _SET_LOCAL_CNT command. */
+    EVENT_EXT_GET_LOCAL_CNT = 74,                  /**< Runs the _GET_LOCAL_CNT command. */
+    EVENT_EXT_GET_LOCAL_CNT2 = 75,                 /**< Runs the _GET_LOCAL_CNT2 command. */
+    EVENT_EXT_GET_TRAIN_NPC_POS = 76,              /**< Runs the _GET_TRAIN_NPC_POS command. */
+    EVENT_EXT_GOTO_DRAW_CHAPTER = 77,              /**< Runs the _GOTO_DRAW_CHAPTER command. */
+    EVENT_EXT_SET_PROJECTION = 78,                 /**< Runs the _SET_PROJECTION command. */
+    EVENT_EXT_GET_PROJECTION = 79,                 /**< Runs the _GET_PROJECTION command. */
+    EVENT_EXT_SET_FADE_IN = 80,                    /**< Runs the _SET_FADE_IN command. */
+    EVENT_EXT_SET_FADE_OUT = 81,                   /**< Runs the _SET_FADE_OUT command. */
+    EVENT_EXT_DNG_DEBUG_COMMAND = 82,              /**< Runs the _DNG_DEBUG_COMMAND command. */
+    EVENT_EXT_CD_SEEK = 83,                        /**< Runs the _CD_SEEK command. */
+    EVENT_EXT_GET_ROT_LOOK_POS = 84,               /**< Runs the _GET_ROT_LOOK_POS command. */
+    EVENT_EXT_SET_MOTION_BLUR = 85,                /**< Runs the _SET_MOTION_BLUR command. */
+    EVENT_EXT_LOAD_SCRIPT = 86,                    /**< Runs the _LOAD_SCRIPT command. */
+    EVENT_EXT_SET_TALK_CAMERA = 87,                /**< Runs the _SET_TALK_CAMERA command. */
+    EVENT_EXT_HIT_EFFECT = 88,                     /**< Runs the _HIT_EFFECT command. */
+    EVENT_EXT_COPY_CHARA = 89,                     /**< Runs the _COPY_CHARA command. */
+    EVENT_EXT_GET_START_BUTTON = 90,               /**< Runs the _GET_START_BUTTON command. */
+    EVENT_EXT_MOVE_INTERIOR = 91,                  /**< Runs the _MOVE_INTERIOR command. */
+    EVENT_EXT_GET_MONSTER_TALK_DATA = 92,          /**< Runs the _GET_MONSTER_TALK_DATA command. */
+    EVENT_EXT_FUNC_POINT_SHOW = 93,                /**< Runs the _FUNC_POINT_SHOW command. */
+    EVENT_EXT_GET_NOW_MAP_NO = 94,                 /**< Runs the _GET_NOW_MAP_NO command. */
+    EVENT_EXT_GET_NOW_SUBMAP_NO = 95,              /**< Runs the _GET_NOW_SUBMAP_NO command. */
+    EVENT_EXT_GET_OLD_MAP_NO = 96,                 /**< Runs the _GET_OLD_MAP_NO command. */
+    EVENT_EXT_GET_OLD_SUBMAP_NO = 97,              /**< Runs the _GET_OLD_SUBMAP_NO command. */
+    EVENT_EXT_SET_RAIN_CHARA_NO = 98,              /**< Runs the _SET_RAIN_CHARA_NO command. */
+    EVENT_EXT_GET_EDIT_PARTS_POS = 99,             /**< Runs the _GET_EDIT_PARTS_POS command. */
+    EVENT_EXT_GET_CHARA_POS = 100,                 /**< Runs the _GET_CHARA_POS command. */
+    EVENT_EXT_GET_CHARA_TALK_POS = 101,            /**< Runs the _GET_CHARA_TALK_POS command. */
+    EVENT_EXT_TURN_CHARA = 102,                    /**< Runs the _TURN_CHARA command. */
+    EVENT_EXT_SET_CHARA_POS = 103,                 /**< Runs the _SET_CHARA_POS command. */
+    EVENT_EXT_SET_CHARA_ROT = 104,                 /**< Runs the _SET_CHARA_ROT command. */
+    EVENT_EXT_GET_CHARA_ROT = 105,                 /**< Runs the _GET_CHARA_ROT command. */
+    EVENT_EXT_SET_MOTION = 106,                    /**< Runs the _SET_MOTION command. */
+    EVENT_EXT_SET_STEP = 107,                      /**< Runs the _SET_STEP command. */
+    EVENT_EXT_SET_TEX_ANIM = 108,                  /**< Runs the _SET_TEX_ANIM command. */
+    EVENT_EXT_SET_SCALE = 109,                     /**< Runs the _SET_SCALE command. */
+    EVENT_EXT_SET_REFERENCE = 110,                 /**< Runs the _SET_REFERENCE command. */
+    EVENT_EXT_DEL_REFERENCE = 111,                 /**< Runs the _DEL_REFERENCE command. */
+    EVENT_EXT_SHADOW_CLIP_OFF = 112,               /**< Runs the _SHADOW_CLIP_OFF command. */
+    EVENT_EXT_GET_COORDINATE_ANGLE = 113,          /**< Runs the _GET_COORDINATE_ANGLE command. */
+    EVENT_EXT_GET_CHARA_WIDTH = 114,               /**< Runs the _GET_CHARA_WIDTH command. */
+    EVENT_EXT_GET_CHARA_HEIGHT = 115,              /**< Runs the _GET_CHARA_HEIGHT command. */
+    EVENT_EXT_GET_CHARA_WEIGHT = 116,              /**< Runs the _GET_CHARA_WEIGHT command. */
+    EVENT_EXT_SET_CHARA_SHOW = 117,                /**< Runs the _SET_CHARA_SHOW command. */
+    EVENT_EXT_GET_CHARA_SHOW = 118,                /**< Runs the _GET_CHARA_SHOW command. */
+    EVENT_EXT_CHARA_DA_ENABLE = 119,               /**< Runs the _CHARA_DA_ENABLE command. */
+    EVENT_EXT_GET_MOT_NOW_WAIT = 120,              /**< Runs the _GET_MOT_NOW_WAIT command. */
+    EVENT_EXT_CHECK_MOTION_END = 121,              /**< Runs the _CHECK_MOTION_END command. */
+    EVENT_EXT_ACTCHR_SET_MOTION = 122,             /**< Runs the _ACTCHR_SET_MOTION command. */
+    EVENT_EXT_SET_CHARA_EX_SOUNDID = 123,          /**< Runs the _SET_CHARA_EX_SOUNDID command. */
+    EVENT_EXT_ACTCHR_SOUND_INFO_COPY = 124,        /**< Runs the _ACTCHR_SOUND_INFO_COPY command. */
+    EVENT_EXT_MES_MAKE = 192,                      /**< Runs the _MES_MAKE command. */
+    EVENT_EXT_MES_CLOSE = 193,                     /**< Runs the _MES_CLOSE command. */
+    EVENT_EXT_MES_NEXTPAGE = 194,                  /**< Runs the _MES_NEXTPAGE command. */
+    EVENT_EXT_SET_MES_AUTOSET = 195,               /**< Runs the _SET_MES_AUTOSET command. */
+    EVENT_EXT_SET_MES_SHIPPO = 196,                /**< Runs the _SET_MES_SHIPPO command. */
+    EVENT_EXT_SET_MES_POS = 197,                   /**< Runs the _SET_MES_POS command. */
+    EVENT_EXT_SET_MES_DRAWSPEED = 198,             /**< Runs the _SET_MES_DRAWSPEED command. */
+    EVENT_EXT_SET_MES_CURSOR = 199,                /**< Runs the _SET_MES_CURSOR command. */
+    EVENT_EXT_SET_MES_OKURI = 203,                 /**< Runs the _SET_MES_OKURI command. */
+    EVENT_EXT_SET_MES_FUKIDASHI = 204,             /**< Runs the _SET_MES_FUKIDASHI command. */
+    EVENT_EXT_CHECK_MES_COMPLETE = 200,            /**< Runs the _CHECK_MES_COMPLETE command. */
+    EVENT_EXT_CHECK_MES_WAIT = 201,                /**< Runs the _CHECK_MES_WAIT command. */
+    EVENT_EXT_CHECK_MES = 202,                     /**< Runs the _CHECK_MES command. */
+    EVENT_EXT_SET_MES_WIN_FLAG = 205,              /**< Runs the _SET_MES_WIN_FLAG command. */
+    EVENT_EXT_SET_CAMERA_POS = 206,                /**< Runs the _SET_CAMERA_POS command. */
+    EVENT_EXT_GET_CAMERA_POS = 207,                /**< Runs the _GET_CAMERA_POS command. */
+    EVENT_EXT_SET_CAMERA_REF = 208,                /**< Runs the _SET_CAMERA_REF command. */
+    EVENT_EXT_GET_CAMERA_REF = 209,                /**< Runs the _GET_CAMERA_REF command. */
+    EVENT_EXT_SET_CAMERA_SPEED = 210,              /**< Runs the _SET_CAMERA_SPEED command. */
+    EVENT_EXT_CAMERA_STEP = 211,                   /**< Runs the _CAMERA_STEP command. */
+    EVENT_EXT_SET_MES_WINDOW_MODE = 212,           /**< Runs the _SET_MES_WINDOW_MODE command. */
+    EVENT_EXT_SET_MES_PRESET = 213,                /**< Runs the _SET_MES_PRESET command. */
+    EVENT_EXT_SET_MES_ITEM_DIRECT = 214,           /**< Runs the _SET_MES_ITEM_DIRECT command. */
+    EVENT_EXT_SET_MES_ITEM = 215,                  /**< Runs the _SET_MES_ITEM command. */
+    EVENT_EXT_SET_MES_VALUE = 216,                 /**< Runs the _SET_MES_VALUE command. */
+    EVENT_EXT_GET_MES_STATUS = 217,                /**< Runs the _GET_MES_STATUS command. */
+    EVENT_EXT_GET_PARTY_CHARA_MES_NO = 218,        /**< Runs the _GET_PARTY_CHARA_MES_NO command. */
+    EVENT_EXT_MES_SET_BUFF = 219,                  /**< Runs the _MES_SET_BUFF command. */
+    EVENT_EXT_GET_MES_WINDOW_MODE = 220,           /**< Runs the _GET_MES_WINDOW_MODE command. */
+    EVENT_EXT_GET_MES_VOICE = 222,                 /**< Runs the _GET_MES_VOICE command. */
+    EVENT_EXT_SET_MES_QUESTION_GYOU = 223,         /**< Runs the _SET_MES_QUESTION_GYOU command. */
+    EVENT_EXT_GET_MES_QUESTION_GYOU = 224,         /**< Runs the _GET_MES_QUESTION_GYOU command. */
+    EVENT_EXT_SET_MES_CLOSE_CNT = 225,             /**< Runs the _SET_MES_CLOSE_CNT command. */
+    EVENT_EXT_SET_MES_ETC = 226,                   /**< Runs the _SET_MES_ETC command. */
+    EVENT_EXT_GET_MES_ETC = 227,                   /**< Runs the _GET_MES_ETC command. */
+    EVENT_EXT_LOAD_MES = 228,                      /**< Runs the _LOAD_MES command. */
+    EVENT_EXT_MES_SE_PLAY = 229,                   /**< Runs the _MES_SE_PLAY command. */
+    EVENT_EXT_SET_MES_STR = 230,                   /**< Runs the _SET_MES_STR command. */
+    EVENT_EXT_GET_MES_OKURI = 231,                 /**< Runs the _GET_MES_OKURI command. */
+    EVENT_EXT_ASQ_INIT = 300,                      /**< Runs the _ASQ_INIT command. */
+    EVENT_EXT_ASQ_SYNC_CHARA = 301,                /**< Runs the _ASQ_SYNC_CHARA command. */
+    EVENT_EXT_ASQ_SET_POS = 302,                   /**< Runs the _ASQ_SET_POS command. */
+    EVENT_EXT_ASQ_MOVE = 303,                      /**< Runs the _ASQ_MOVE command. */
+    EVENT_EXT_ASQ_MOVE_STEP = 304,                 /**< Runs the _ASQ_MOVE_STEP command. */
+    EVENT_EXT_ASQ_ROT_REF = 305,                   /**< Runs the _ASQ_ROT_REF command. */
+    EVENT_EXT_ASQ_CLEAR_ROT = 307,                 /**< Runs the _ASQ_CLEAR_ROT command. */
+    EVENT_EXT_ASQ_WAIT_ROT = 308,                  /**< Runs the _ASQ_WAIT_ROT command. */
+    EVENT_EXT_ASQ_ROT_MOVE = 309,                  /**< Runs the _ASQ_ROT_MOVE command. */
+    EVENT_EXT_ASQ_ROT_ANGLE = 306,                 /**< Runs the _ASQ_ROT_ANGLE command. */
+    EVENT_EXT_ASQ_SET_ROT = 310,                   /**< Runs the _ASQ_SET_ROT command. */
+    EVENT_EXT_ASQ_DELAY_ROT = 311,                 /**< Runs the _ASQ_DELAY_ROT command. */
+    EVENT_EXT_ASQ_CHECK = 312,                     /**< Runs the _ASQ_CHECK command. */
+    EVENT_EXT_ASQ_MOTION_TRG = 313,                /**< Runs the _ASQ_MOTION_TRG command. */
+    EVENT_EXT_ASQ_MOTION_PLAY = 314,               /**< Runs the _ASQ_MOTION_PLAY command. */
+    EVENT_EXT_ASQ_MOTION_STOP = 315,               /**< Runs the _ASQ_MOTION_STOP command. */
+    EVENT_EXT_ASQ_MOTION_NEXT = 316,               /**< Runs the _ASQ_MOTION_NEXT command. */
+    EVENT_EXT_ASQ_ANIME_TRG = 317,                 /**< Runs the _ASQ_ANIME_TRG command. */
+    EVENT_EXT_ASQ_ANIME = 318,                     /**< Runs the _ASQ_ANIME command. */
+    EVENT_EXT_ASQ_SE_PLAY = 319,                   /**< Runs the _ASQ_SE_PLAY command. */
+    EVENT_EXT_IMG_SET_DRAW = 320,                  /**< Runs the _IMG_SET_DRAW command. */
+    EVENT_EXT_IMG_SET_GET = 321,                   /**< Runs the _IMG_SET_GET command. */
+    EVENT_EXT_IMG_SET_PUT = 322,                   /**< Runs the _IMG_SET_PUT command. */
+    EVENT_EXT_IMG_SET_NAME = 323,                  /**< Runs the _IMG_SET_NAME command. */
+    EVENT_EXT_IMG_SET_MOVE = 324,                  /**< Runs the _IMG_SET_MOVE command. */
+    EVENT_EXT_IMG_SET_FADE = 325,                  /**< Runs the _IMG_SET_FADE command. */
+    EVENT_EXT_IMG_SET_COLOR = 326,                 /**< Runs the _IMG_SET_COLOR command. */
+    EVENT_EXT_SPRITE_INIT = 350,                   /**< Runs the _SPRITE_INIT command. */
+    EVENT_EXT_SPRITE_SET_DRAW = 351,               /**< Runs the _SPRITE_SET_DRAW command. */
+    EVENT_EXT_SPRITE_SET_TYPE = 352,               /**< Runs the _SPRITE_SET_TYPE command. */
+    EVENT_EXT_SPRITE_SET_TEXTURE = 353,            /**< Runs the _SPRITE_SET_TEXTURE command. */
+    EVENT_EXT_SPRITE_SET_POS = 354,                /**< Runs the _SPRITE_SET_POS command. */
+    EVENT_EXT_SPRITE_SET_PUTSIZE = 355,            /**< Runs the _SPRITE_SET_PUTSIZE command. */
+    EVENT_EXT_SPRITE_SET_UVSIZE = 356,             /**< Runs the _SPRITE_SET_UVSIZE command. */
+    EVENT_EXT_SPRITE_SET_COLOR = 357,              /**< Runs the _SPRITE_SET_COLOR command. */
+    EVENT_EXT_SPRITE_SET_SCALE = 358,              /**< Runs the _SPRITE_SET_SCALE command. */
+    EVENT_EXT_SPRITE_SET_ALPHAB = 359,             /**< Runs the _SPRITE_SET_ALPHAB command. */
+    EVENT_EXT_CMRS_CHECK = 400,                    /**< Runs the _CMRS_CHECK command. */
+    EVENT_EXT_CMRS_INIT = 401,                     /**< Runs the _CMRS_INIT command. */
+    EVENT_EXT_CMRS_PRDELAY = 402,                  /**< Runs the _CMRS_PRDELAY command. */
+    EVENT_EXT_CMRS_SET_POS = 403,                  /**< Runs the _CMRS_SET_POS command. */
+    EVENT_EXT_CMRS_SET_REF = 404,                  /**< Runs the _CMRS_SET_REF command. */
+    EVENT_EXT_CMRS_MOVE = 405,                     /**< Runs the _CMRS_MOVE command. */
+    EVENT_EXT_CMRS_MOVE_REF = 406,                 /**< Runs the _CMRS_MOVE_REF command. */
+    EVENT_EXT_CMRS_INIT_PAS = 407,                 /**< Runs the _CMRS_INIT_PAS command. */
+    EVENT_EXT_CMRS_SET_PAS_FRM = 408,              /**< Runs the _CMRS_SET_PAS_FRM command. */
+    EVENT_EXT_CMRS_ADD_PAS = 409,                  /**< Runs the _CMRS_ADD_PAS command. */
+    EVENT_EXT_CMRS_START_PAS = 410,                /**< Runs the _CMRS_START_PAS command. */
+    EVENT_EXT_CMRS_PR_SLOWING = 423,               /**< Runs the _CMRS_PR_SLOWING command. */
+    EVENT_EXT_CMRS_PR_KEEP = 427,                  /**< Runs the _CMRS_PR_KEEP command. */
+    EVENT_EXT_CMRS_PR_RETURN = 428,                /**< Runs the _CMRS_PR_RETURN command. */
+    EVENT_EXT_CMRS_AHDDELAY = 411,                 /**< Runs the _CMRS_AHDDELAY command. */
+    EVENT_EXT_CMRS_SET_ANGLE = 412,                /**< Runs the _CMRS_SET_ANGLE command. */
+    EVENT_EXT_CMRS_SET_HEIGHT = 413,               /**< Runs the _CMRS_SET_HEIGHT command. */
+    EVENT_EXT_CMRS_SET_DIST = 414,                 /**< Runs the _CMRS_SET_DIST command. */
+    EVENT_EXT_CMRS_SET_AHD = 415,                  /**< Runs the _CMRS_SET_AHD command. */
+    EVENT_EXT_CMRS_MOVE_AHD = 416,                 /**< Runs the _CMRS_MOVE_AHD command. */
+    EVENT_EXT_CMRS_SYNC_OBJ = 617,                 /**< Runs the _CMRS_SYNC_OBJ command. */
+    EVENT_EXT_CMRS_RELEASE_OBJ = 618,              /**< Runs the _CMRS_RELEASE_OBJ command. */
+    EVENT_EXT_CMRS_AHD_SLOWING = 424,              /**< Runs the _CMRS_AHD_SLOWING command. */
+    EVENT_EXT_CMRS_AHD_KEEP = 425,                 /**< Runs the _CMRS_AHD_KEEP command. */
+    EVENT_EXT_CMRS_AHD_RETURN = 426,               /**< Runs the _CMRS_AHD_RETURN command. */
+    EVENT_EXT_CMRS_FADE_DELAY = 419,               /**< Runs the _CMRS_FADE_DELAY command. */
+    EVENT_EXT_CMRS_FADE_INIT = 420,                /**< Runs the _CMRS_FADE_INIT command. */
+    EVENT_EXT_CMRS_FADE_IN = 421,                  /**< Runs the _CMRS_FADE_IN command. */
+    EVENT_EXT_CMRS_FADE_OUT = 422,                 /**< Runs the _CMRS_FADE_OUT command. */
+    EVENT_EXT_CMRS_QUAKE_DELAY = 429,              /**< Runs the _CMRS_QUAKE_DELAY command. */
+    EVENT_EXT_CMRS_QUAKE = 430,                    /**< Runs the _CMRS_QUAKE command. */
+    EVENT_EXT_CMRS_MOVE2 = 431,                    /**< Runs the _CMRS_MOVE2 command. */
+    EVENT_EXT_CMRS_MOVE_AHD2 = 432,                /**< Runs the _CMRS_MOVE_AHD2 command. */
+    EVENT_EXT_CMRS_CHARA_DELAY = 433,              /**< Runs the _CMRS_CHARA_DELAY command. */
+    EVENT_EXT_CMRS_CHARA_ATTACH = 434,             /**< Runs the _CMRS_CHARA_ATTACH command. */
+    EVENT_EXT_CMRS_MOVE_POS = 435,                 /**< Runs the _CMRS_MOVE_POS command. */
+    EVENT_EXT_CMRS_QUAKE2 = 436,                   /**< Runs the _CMRS_QUAKE2 command. */
+    EVENT_EXT_OBJS_CHECK = 450,                    /**< Runs the _OBJS_CHECK command. */
+    EVENT_EXT_OBJS_INIT = 451,                     /**< Runs the _OBJS_INIT command. */
+    EVENT_EXT_OBJS_SYNC_OBJ = 452,                 /**< Runs the _OBJS_SYNC_OBJ command. */
+    EVENT_EXT_OBJS_POS_DELAY = 453,                /**< Runs the _OBJS_POS_DELAY command. */
+    EVENT_EXT_OBJS_SET_POS = 454,                  /**< Runs the _OBJS_SET_POS command. */
+    EVENT_EXT_OBJS_MOVE = 455,                     /**< Runs the _OBJS_MOVE command. */
+    EVENT_EXT_OBJS_MOVE2 = 488,                    /**< Runs the _OBJS_MOVE2 command. */
+    EVENT_EXT_OBJS_INIT_PAS = 456,                 /**< Runs the _OBJS_INIT_PAS command. */
+    EVENT_EXT_OBJS_SET_PAS_FRM = 457,              /**< Runs the _OBJS_SET_PAS_FRM command. */
+    EVENT_EXT_OBJS_ADD_PAS = 458,                  /**< Runs the _OBJS_ADD_PAS command. */
+    EVENT_EXT_OBJS_START_PAS = 459,                /**< Runs the _OBJS_START_PAS command. */
+    EVENT_EXT_OBJS_JUMP = 473,                     /**< Runs the _OBJS_JUMP command. */
+    EVENT_EXT_OBJS_SET_EOH_FRAME_POS = 483,        /**< Runs the _OBJS_SET_EOH_FRAME_POS command. */
+    EVENT_EXT_OBJS_ADD_POS = 484,                  /**< Runs the _OBJS_ADD_POS command. */
+    EVENT_EXT_OBJS_ATTACH_CAMERA = 489,            /**< Runs the _OBJS_ATTACH_CAMERA command. */
+    EVENT_EXT_OBJS_ROT_DELAY = 460,                /**< Runs the _OBJS_ROT_DELAY command. */
+    EVENT_EXT_OBJS_SET_ROT = 461,                  /**< Runs the _OBJS_SET_ROT command. */
+    EVENT_EXT_OBJS_ROTATION = 462,                 /**< Runs the _OBJS_ROTATION command. */
+    EVENT_EXT_OBJS_ROTATION2 = 490,                /**< Runs the _OBJS_ROTATION2 command. */
+    EVENT_EXT_OBJS_REFERENCE = 463,                /**< Runs the _OBJS_REFERENCE command. */
+    EVENT_EXT_OBJS_MOTION_DELAY = 464,             /**< Runs the _OBJS_MOTION_DELAY command. */
+    EVENT_EXT_OBJS_SET_MOTION = 465,               /**< Runs the _OBJS_SET_MOTION command. */
+    EVENT_EXT_OBJS_NEXT_MOTION = 466,              /**< Runs the _OBJS_NEXT_MOTION command. */
+    EVENT_EXT_OBJS_MOTION_WAIT = 467,              /**< Runs the _OBJS_MOTION_WAIT command. */
+    EVENT_EXT_OBJS_SET_STEP = 482,                 /**< Runs the _OBJS_SET_STEP command. */
+    EVENT_EXT_OBJS_CHENGE_STEP = 469,              /**< Runs the _OBJS_CHENGE_STEP command. */
+    EVENT_EXT_OBJS_SEQ_MOT_TRG = 468,              /**< Runs the _OBJS_SEQ_MOT_TRG command. */
+    EVENT_EXT_OBJS_SEQ_MOT_TRG_WAIT = 472,         /**< Runs the _OBJS_SEQ_MOT_TRG_WAIT command. */
+    EVENT_EXT_OBJS_RESET_MOTION = 476,             /**< Runs the _OBJS_RESET_MOTION command. */
+    EVENT_EXT_OBJS_SET_MOTION_NOW_TIME = 479,      /**< Runs the _OBJS_SET_MOTION_NOW_TIME command. */
+    EVENT_EXT_OBJS_SET_MOTION_WAIT_TIME = 481,     /**< Runs the _OBJS_SET_MOTION_WAIT_TIME command. */
+    EVENT_EXT_OBJS_TEXA_DELAY = 470,               /**< Runs the _OBJS_TEXA_DELAY command. */
+    EVENT_EXT_OBJS_TEX_ANIME = 471,                /**< Runs the _OBJS_TEX_ANIME command. */
+    EVENT_EXT_OBJS_COLOR_DELAY = 474,              /**< Runs the _OBJS_COLOR_DELAY command. */
+    EVENT_EXT_OBJS_SET_COLOR = 475,                /**< Runs the _OBJS_SET_COLOR command. */
+    EVENT_EXT_OBJS_SCALE_DELAY = 477,              /**< Runs the _OBJS_SCALE_DELAY command. */
+    EVENT_EXT_OBJS_SET_SCALE = 478,                /**< Runs the _OBJS_SET_SCALE command. */
+    EVENT_EXT_OBJS_SE_DELAY = 485,                 /**< Runs the _OBJS_SE_DELAY command. */
+    EVENT_EXT_OBJS_SE_PLAY = 486,                  /**< Runs the _OBJS_SE_PLAY command. */
+    EVENT_EXT_OBJS_RESET_DA_POSITION = 487,        /**< Runs the _OBJS_RESET_DA_POSITION command. */
+    EVENT_EXT_OBJS_NORMAL_DRIVE = 491,             /**< Runs the _OBJS_NORMAL_DRIVE command. */
+    EVENT_EXT_GET_CONTENTS_POS = 501,              /**< Runs the _GET_CONTENTS_POS command. */
+    EVENT_EXT_GET_BPOT_POS = 502,                  /**< Runs the _GET_BPOT_POS command. */
+    EVENT_EXT_GET_BPOT_STATUS = 503,               /**< Runs the _GET_BPOT_STATUS command. */
+    EVENT_EXT_GET_PERSON_STATUS = 504,             /**< Runs the _GET_PERSON_STATUS command. */
+    EVENT_EXT_GET_CONTROL_CHRID = 505,             /**< Runs the _GET_CONTROL_CHRID command. */
+    EVENT_EXT_GET_BEFORE_CAMERA_POS = 506,         /**< Runs the _GET_BEFORE_CAMERA_POS command. */
+    EVENT_EXT_GET_BEFORE_CAMERA_REF = 507,         /**< Runs the _GET_BEFORE_CAMERA_REF command. */
+    EVENT_EXT_SET_CAMERA_NEXT_REF = 508,           /**< Runs the _SET_CAMERA_NEXT_REF command. */
+    EVENT_EXT_GOTO_MENU = 509,                     /**< Runs the _GOTO_MENU command. */
+    EVENT_EXT_GET_MENU_STATUS = 510,               /**< Runs the _GET_MENU_STATUS command. */
+    EVENT_EXT_LOAD_EQUIP = 511,                    /**< Runs the _LOAD_EQUIP command. */
+    EVENT_EXT_GET_EQUIP_ITEMNO = 512,              /**< Runs the _GET_EQUIP_ITEMNO command. */
+    EVENT_EXT_SET_TIME_STEP_ENABLE = 513,          /**< Runs the _SET_TIME_STEP_ENABLE command. */
+    EVENT_EXT_SET_DOOR_MATERIAL = 514,             /**< Runs the _SET_DOOR_MATERIAL command. */
+    EVENT_EXT_INIT_DRAMA_SCENE = 515,              /**< Runs the _INIT_DRAMA_SCENE command. */
+    EVENT_EXT_SET_ACTIVE_CMRID = 516,              /**< Runs the _SET_ACTIVE_CMRID command. */
+    EVENT_EXT_SET_BEFORE_CMRID = 517,              /**< Runs the _SET_BEFORE_CMRID command. */
+    EVENT_EXT_DNGMAP_LOAD = 519,                   /**< Runs the _DNGMAP_LOAD command. */
+    EVENT_EXT_DNGMAP_DELETE = 520,                 /**< Runs the _DNGMAP_DELETE command. */
+    EVENT_EXT_DNGMAP_MOVE_PIECE = 521,             /**< Runs the _DNGMAP_MOVE_PIECE command. */
+    EVENT_EXT_DNGMAP_ONOFF = 522,                  /**< Runs the _DNGMAP_ONOFF command. */
+    EVENT_EXT_DNGMAP_SET_FADE = 523,               /**< Runs the _DNGMAP_SET_FADE command. */
+    EVENT_EXT_GET_BEFORE_CAMERA_NEXT_POS = 524,    /**< Runs the _GET_BEFORE_CAMERA_NEXT_POS command. */
+    EVENT_EXT_GET_BEFORE_CAMERA_NEXT_REF = 525,    /**< Runs the _GET_BEFORE_CAMERA_NEXT_REF command. */
+    EVENT_EXT_SET_CAMERA_NEXT_POS = 526,           /**< Runs the _SET_CAMERA_NEXT_POS command. */
+    EVENT_EXT_CHK_INTERSECTION_POINT = 527,        /**< Runs the _CHK_INTERSECTION_POINT command. */
+    EVENT_EXT_SET_FCAMERA_FOLLOW = 528,            /**< Runs the _SET_FCAMERA_FOLLOW command. */
+    EVENT_EXT_SET_FCAMERA_FOLLOW_A = 529,          /**< Runs the _SET_FCAMERA_FOLLOW_A command. */
+    EVENT_EXT_SET_FCAMERA_FOLLOW_OFS = 530,        /**< Runs the _SET_FCAMERA_FOLLOW_OFS command. */
+    EVENT_EXT_SET_FCAMERA_FOLLOW_FLAG = 531,       /**< Runs the _SET_FCAMERA_FOLLOW_FLAG command. */
+    EVENT_EXT_FCAMERA_STEP = 532,                  /**< Runs the _FCAMERA_STEP command. */
+    EVENT_EXT_SET_FCAMERA_ANGLE = 533,             /**< Runs the _SET_FCAMERA_ANGLE command. */
+    EVENT_EXT_SET_FCAMERA_HEIGHT = 534,            /**< Runs the _SET_FCAMERA_HEIGHT command. */
+    EVENT_EXT_SET_FCAMERA_DIST = 535,              /**< Runs the _SET_FCAMERA_DIST command. */
+    EVENT_EXT_GET_REF_ANGLE = 536,                 /**< Runs the _GET_REF_ANGLE command. */
+    EVENT_EXT_DNG_SET_STAGE_ID = 537,              /**< Runs the _DNG_SET_STAGE_ID command. */
+    EVENT_EXT_DNG_GET_STAGE_ID = 538,              /**< Runs the _DNG_GET_STAGE_ID command. */
+    EVENT_EXT_SET_CAMERA_CTRL = 539,               /**< Runs the _SET_CAMERA_CTRL command. */
+    EVENT_EXT_GET_FCAMERA_ANGLE = 540,             /**< Runs the _GET_FCAMERA_ANGLE command. */
+    EVENT_EXT_GET_FCAMERA_HEIGHT = 541,            /**< Runs the _GET_FCAMERA_HEIGHT command. */
+    EVENT_EXT_GET_FCAMERA_DIST = 542,              /**< Runs the _GET_FCAMERA_DIST command. */
+    EVENT_EXT_GET_INVENTION_ID = 543,              /**< Runs the _GET_INVENTION_ID command. */
+    EVENT_EXT_FUNCTION_MAP_JUMP = 544,             /**< Runs the _FUNCTION_MAP_JUMP command. */
+    EVENT_EXT_FUNCTION_DOOR_MODE = 545,            /**< Runs the _FUNCTION_DOOR_MODE command. */
+    EVENT_EXT_GET_MONEY = 546,                     /**< Runs the _GET_MONEY command. */
+    EVENT_EXT_ADD_MONEY = 547,                     /**< Runs the _ADD_MONEY command. */
+    EVENT_EXT_GET_ITEM_NUM = 548,                  /**< Runs the _GET_ITEM_NUM command. */
+    EVENT_EXT_CHECK_BUTTON = 549,                  /**< Runs the _CHECK_BUTTON command. */
+    EVENT_EXT_GET_LANGUAGE = 550,                  /**< Runs the _GET_LANGUAGE command. */
+    EVENT_EXT_CHECK_INVENT_ITEM = 551,             /**< Runs the _CHECK_INVENT_ITEM command. */
+    EVENT_EXT_SET_AI = 552,                        /**< Runs the _SET_AI command. */
+    EVENT_EXT_CHECK_INVENT_PHOTO = 553,            /**< Runs the _CHECK_INVENT_PHOTO command. */
+    EVENT_EXT_GET_PHOTO_NUM = 554,                 /**< Runs the _GET_PHOTO_NUM command. */
+    EVENT_EXT_SET_CONTENTS_ETC = 555,              /**< Runs the _SET_CONTENTS_ETC command. */
+    EVENT_EXT_SET_STATUS = 556,                    /**< Runs the _SET_STATUS command. */
+    EVENT_EXT_GOTO_SUBGAME = 557,                  /**< Runs the _GOTO_SUBGAME command. */
+    EVENT_EXT_SET_GYORACE_ETC = 558,               /**< Runs the _SET_GYORACE_ETC command. */
+    EVENT_EXT_GET_GYORACE_ETC = 559,               /**< Runs the _GET_GYORACE_ETC command. */
+    EVENT_EXT_SET_SAVEDATA_ETC = 560,              /**< Runs the _SET_SAVEDATA_ETC command. */
+    EVENT_EXT_GET_SAVEDATA_ETC = 561,              /**< Runs the _GET_SAVEDATA_ETC command. */
+    EVENT_EXT_DEL_MONSTER = 562,                   /**< Runs the _DEL_MONSTER command. */
+    EVENT_EXT_SET_MENU_ETC = 563,                  /**< Runs the _SET_MENU_ETC command. */
+    EVENT_EXT_GET_MENU_ETC = 564,                  /**< Runs the _GET_MENU_ETC command. */
+    EVENT_EXT_GET_ANALYZE = 565,                   /**< Runs the _GET_ANALYZE command. */
+    EVENT_EXT_GET_DIORAMA_PERCENT = 566,           /**< Runs the _GET_DIORAMA_PERCENT command. */
+    EVENT_EXT_GEORAMA_FUNC = 567,                  /**< Runs the _GEORAMA_FUNC command. */
+    EVENT_EXT_GET_CHARA_ID = 568,                  /**< Runs the _GET_CHARA_ID command. */
+    EVENT_EXT_SET_LOADBG_FILE_MONS_TALK = 569,     /**< Runs the _SET_LOADBG_FILE_MONS_TALK command. */
+    EVENT_EXT_LOAD_MES_MONS_TALK = 570,            /**< Runs the _LOAD_MES_MONS_TALK command. */
+    EVENT_EXT_GOTO_EDITMODE = 571,                 /**< Runs the _GOTO_EDITMODE command. */
+    EVENT_EXT_GET_CHAPTER = 572,                   /**< Runs the _GET_CHAPTER command. */
+    EVENT_EXT_GET_NPC_TRAIN_ETC = 573,             /**< Runs the _GET_NPC_TRAIN_ETC command. */
+    EVENT_EXT_REGISTER_VILLAGER = 574,             /**< Runs the _REGISTER_VILLAGER command. */
+    EVENT_EXT_EYE_VIEW_DRAW_ON_OFF = 575,          /**< Runs the _EYE_VIEW_DRAW_ON_OFF command. */
+    EVENT_EXT_SET_QUEST_ETC = 576,                 /**< Runs the _SET_QUEST_ETC command. */
+    EVENT_EXT_GET_QUEST_ETC = 577,                 /**< Runs the _GET_QUEST_ETC command. */
+    EVENT_EXT_CHK_INTERSECTION_POINT_PIPE = 578,   /**< Runs the _CHK_INTERSECTION_POINT_PIPE command. */
+    EVENT_EXT_GET_OLD_INTERIOR_MAP_NO = 579,       /**< Runs the _GET_OLD_INTERIOR_MAP_NO command. */
+    EVENT_EXT_SET_EVENT_DATA = 581,                /**< Runs the _SET_EVENT_DATA command. */
+    EVENT_EXT_STOPWATCH = 582,                     /**< Runs the _STOPWATCH command. */
+    EVENT_EXT_SET_FUNC_ETC = 583,                  /**< Runs the _SET_FUNC_ETC command. */
+    EVENT_EXT_GET_FISHINGTOURNAMENT_ETC = 584,     /**< Runs the _GET_FISHINGTOURNAMENT_ETC command. */
+    EVENT_EXT_SET_CHARA_FAR_DIST = 585,            /**< Runs the _SET_CHARA_FAR_DIST command. */
+    EVENT_EXT_SET_MODEL_LIGHT_SWITCH = 586,        /**< Runs the _SET_MODEL_LIGHT_SWITCH command. */
+    EVENT_EXT_SET_MODEL_LIGHT_COLOR = 587,         /**< Runs the _SET_MODEL_LIGHT_COLOR command. */
+    EVENT_EXT_GET_OMAKE_FLAG = 588,                /**< Runs the _GET_OMAKE_FLAG command. */
+    EVENT_EXT_SET_WIND = 589,                      /**< Runs the _SET_WIND command. */
+    EVENT_EXT_SET_OMAKE_FLAG = 590,                /**< Runs the _SET_OMAKE_FLAG command. */
+    EVENT_EXT_SND_INIT_PORT = 600,                 /**< Runs the _SND_INIT_PORT command. */
+    EVENT_EXT_SND_LOAD_SOUND = 601,                /**< Runs the _SND_LOAD_SOUND command. */
+    EVENT_EXT_SND_SE_PLAY = 602,                   /**< Runs the _SND_SE_PLAY command. */
+    EVENT_EXT_GET_SND_ID = 603,                    /**< Runs the _GET_SND_ID command. */
+    EVENT_EXT_SND_SE_PAUSE = 604,                  /**< Runs the _SND_SE_PAUSE command. */
+    EVENT_EXT_SND_SE_STOP = 605,                   /**< Runs the _SND_SE_STOP command. */
+    EVENT_EXT_SND_SET_SE_VOL = 606,                /**< Runs the _SND_SET_SE_VOL command. */
+    EVENT_EXT_SND_SET_SE_PAN = 607,                /**< Runs the _SND_SET_SE_PAN command. */
+    EVENT_EXT_SND_SET_SE_PITCH = 608,              /**< Runs the _SND_SET_SE_PITCH command. */
+    EVENT_EXT_SND_SE_ALL_STOP = 609,               /**< Runs the _SND_SE_ALL_STOP command. */
+    EVENT_EXT_LOAD_BGM = 610,                      /**< Runs the _LOAD_BGM command. */
+    EVENT_EXT_PLAY_BGM = 611,                      /**< Runs the _PLAY_BGM command. */
+    EVENT_EXT_STOP_BGM = 612,                      /**< Runs the _STOP_BGM command. */
+    EVENT_EXT_STREAM_OPEN = 613,                   /**< Runs the _STREAM_OPEN command. */
+    EVENT_EXT_STREAM_PLAY = 614,                   /**< Runs the _STREAM_PLAY command. */
+    EVENT_EXT_STREAM_STOP = 615,                   /**< Runs the _STREAM_STOP command. */
+    EVENT_EXT_STREAM_STANDBY = 616,                /**< Runs the _STREAM_STANDBY command. */
+    EVENT_EXT_STREAM_GET_STATUS = 619,             /**< Runs the _STREAM_GET_STATUS command. */
+    EVENT_EXT_GET_SYS_SND_ID = 620,                /**< Runs the _GET_SYS_SND_ID command. */
+    EVENT_EXT_STREAM_OPEN_CHECK = 621,             /**< Runs the _STREAM_OPEN_CHECK command. */
+    EVENT_EXT_LOAD_SE_ENV = 622,                   /**< Runs the _LOAD_SE_ENV command. */
+    EVENT_EXT_PLAY_ENV_BGM = 623,                  /**< Runs the _PLAY_ENV_BGM command. */
+    EVENT_EXT_SYS_SE_PLAY = 624,                   /**< Runs the _SYS_SE_PLAY command. */
+    EVENT_EXT_INIT_SE_SRC = 625,                   /**< Runs the _INIT_SE_SRC command. */
+    EVENT_EXT_INIT_SE_ENV = 626,                   /**< Runs the _INIT_SE_ENV command. */
+    EVENT_EXT_INIT_SE_BAS = 627,                   /**< Runs the _INIT_SE_BAS command. */
+    EVENT_EXT_LOAD_SE_SRC = 628,                   /**< Runs the _LOAD_SE_SRC command. */
+    EVENT_EXT_LOAD_SE_FOOT = 629,                  /**< Runs the _LOAD_SE_FOOT command. */
+    EVENT_EXT_LOAD_SE_DOOR = 630,                  /**< Runs the _LOAD_SE_DOOR command. */
+    EVENT_EXT_LOAD_SE_BOX = 631,                   /**< Runs the _LOAD_SE_BOX command. */
+    EVENT_EXT_LOAD_SE_BATTLE = 632,                /**< Runs the _LOAD_SE_BATTLE command. */
+    EVENT_EXT_SND_DELETE_PORT = 633,               /**< Runs the _SND_DELETE_PORT command. */
+    EVENT_EXT_STOP_ENV_BGM = 634,                  /**< Runs the _STOP_ENV_BGM command. */
+    EVENT_EXT_FADE_IN_BGM = 635,                   /**< Runs the _FADE_IN_BGM command. */
+    EVENT_EXT_FADE_OUT_BGM = 636,                  /**< Runs the _FADE_OUT_BGM command. */
+    EVENT_EXT_SET_BGM_VOL = 637,                   /**< Runs the _SET_BGM_VOL command. */
+    EVENT_EXT_SND_SET_REVERB = 638,                /**< Runs the _SND_SET_REVERB command. */
+    EVENT_EXT_SND_SET_ENV_VOL = 639,               /**< Runs the _SND_SET_ENV_VOL command. */
+    EVENT_EXT_STREAM_SILENT_CHECK = 640,           /**< Runs the _STREAM_SILENT_CHECK command. */
+    EVENT_EXT_AUTO_CHANGE_ENV = 641,               /**< Runs the _AUTO_CHANGE_ENV command. */
+    EVENT_EXT_BGM_LOAD_CANCEL = 642,               /**< Runs the _BGM_LOAD_CANCEL command. */
+    EVENT_EXT_SOUND_LOAD_CANCEL = 643,             /**< Runs the _SOUND_LOAD_CANCEL command. */
+    EVENT_EXT_BGM_LOAD_ENABLE = 644,               /**< Runs the _BGM_LOAD_ENABLE command. */
+    EVENT_EXT_SOUND_LOAD_ENABLE = 645,             /**< Runs the _SOUND_LOAD_ENABLE command. */
+    EVENT_EXT_LOAD_SE_BASE = 646,                  /**< Runs the _LOAD_SE_BASE command. */
+    EVENT_EXT_LOAD_SOUND = 647,                    /**< Runs the _LOAD_SOUND command. */
+    EVENT_EXT_STREAM_CLOSE = 648,                  /**< Runs the _STREAM_CLOSE command. */
+    EVENT_EXT_STREAM_OPEN2 = 649,                  /**< Runs the _STREAM_OPEN2 command. */
+    EVENT_EXT_LOAD_BGM_PACK = 650,                 /**< Runs the _LOAD_BGM_PACK command. */
+    EVENT_EXT_GET_BGM_NO = 651,                    /**< Runs the _GET_BGM_NO command. */
+    EVENT_EXT_GET_MASTER_VOL = 652,                /**< Runs the _GET_MASTER_VOL command. */
+    EVENT_EXT_SET_MASTER_VOL = 653,                /**< Runs the _SET_MASTER_VOL command. */
+    EVENT_EXT_GET_BTL_BGM_VOL = 654,               /**< Runs the _GET_BTL_BGM_VOL command. */
+    EVENT_EXT_SET_BTL_BGM_VOL = 655,               /**< Runs the _SET_BTL_BGM_VOL command. */
+    EVENT_EXT_SND_IN_REVERB = 656,                 /**< Runs the _SND_IN_REVERB command. */
+    EVENT_EXT_SND_STOP_SRC = 657,                  /**< Runs the _SND_STOP_SRC command. */
+    EVENT_EXT_SND_PAUSE_BGM = 658,                 /**< Runs the _SND_PAUSE_BGM command. */
+    EVENT_EXT_STREAM_OPEN3 = 659,                  /**< Runs the _STREAM_OPEN3 command. */
+    EVENT_EXT_GET_ACTIVE_BGM_STATUS = 660,         /**< Runs the _GET_ACTIVE_BGM_STATUS command. */
+    EVENT_EXT_SET_ACTIVE_BGM_STATUS = 661,         /**< Runs the _SET_ACTIVE_BGM_STATUS command. */
+    EVENT_EXT_GET_BGM_STATUS_NOW_NO = 662,         /**< Runs the _GET_BGM_STATUS_NOW_NO command. */
+    EVENT_EXT_GET_SE_STATUS = 663,                 /**< Runs the _GET_SE_STATUS command. */
+    EVENT_EXT_SE_ALL_STOP = 664,                   /**< Runs the _SE_ALL_STOP command. */
+    EVENT_EXT_SOUND_ALL_STOP = 665,                /**< Runs the _SOUND_ALL_STOP command. */
+    EVENT_EXT_BGM_PLAY_CANCEL = 666,               /**< Runs the _BGM_PLAY_CANCEL command. */
+    EVENT_EXT_BGM_PLAY_ENABLE = 667,               /**< Runs the _BGM_PLAY_ENABLE command. */
+    EVENT_EXT_GET_DEF_BGM_NO = 668,                /**< Runs the _GET_DEF_BGM_NO command. */
+    EVENT_EXT_SET_MOVIE_CC = 669,                  /**< Runs the _SET_MOVIE_CC command. */
+    EVENT_EXT_REGISTER_VILLAGER2 = 670,            /**< Runs the _REGISTER_VILLAGER2 command. */
+    EVENT_EXT_SET_FISHINGTOURNAMENT_ETC = 671,     /**< Runs the _SET_FISHINGTOURNAMENT_ETC command. */
+    EVENT_EXT_EOH_SYNC_CHARA = 700,                /**< Runs the _EOH_SYNC_CHARA command. */
+    EVENT_EXT_EOH_SYNC_OBJ = 701,                  /**< Runs the _EOH_SYNC_OBJ command. */
+    EVENT_EXT_EOH_SET_POS = 702,                   /**< Runs the _EOH_SET_POS command. */
+    EVENT_EXT_EOH_SET_ROT = 703,                   /**< Runs the _EOH_SET_ROT command. */
+    EVENT_EXT_EOH_GET_POS = 704,                   /**< Runs the _EOH_GET_POS command. */
+    EVENT_EXT_EOH_GET_ROT = 705,                   /**< Runs the _EOH_GET_ROT command. */
+    EVENT_EXT_EOH_SET_MOTION = 706,                /**< Runs the _EOH_SET_MOTION command. */
+    EVENT_EXT_EOH_SET_STEP = 707,                  /**< Runs the _EOH_SET_STEP command. */
+    EVENT_EXT_EOH_SET_TEX_ANIM = 708,              /**< Runs the _EOH_SET_TEX_ANIM command. */
+    EVENT_EXT_EOH_SET_SCALE = 709,                 /**< Runs the _EOH_SET_SCALE command. */
+    EVENT_EXT_EOH_SET_SHOW = 710,                  /**< Runs the _EOH_SET_SHOW command. */
+    EVENT_EXT_EOH_GET_SHOW = 711,                  /**< Runs the _EOH_GET_SHOW command. */
+    EVENT_EXT_EOH_SET_FRAME_SHOW = 712,            /**< Runs the _EOH_SET_FRAME_SHOW command. */
+    EVENT_EXT_EOH_SET_SHADOW = 713,                /**< Runs the _EOH_SET_SHADOW command. */
+    EVENT_EXT_EOH_SET_TRANSLATE = 714,             /**< Runs the _EOH_SET_TRANSLATE command. */
+    EVENT_EXT_EOH_SYNC_SPRITE = 715,               /**< Runs the _EOH_SYNC_SPRITE command. */
+    EVENT_EXT_EOH_SET_FOOT_SOUND_ID = 716,         /**< Runs the _EOH_SET_FOOT_SOUND_ID command. */
+    EVENT_EXT_EOH_SET_FRAME_STATUS = 717,          /**< Runs the _EOH_SET_FRAME_STATUS command. */
+    EVENT_EXT_EOH_GET_FRAME_POS = 718,             /**< Runs the _EOH_GET_FRAME_POS command. */
+    EVENT_EXT_EOH_SET_SOUND_ID = 719,              /**< Runs the _EOH_SET_SOUND_ID command. */
+    EVENT_EXT_EOH_GET_FRAME_STATUS = 720,          /**< Runs the _EOH_GET_FRAME_STATUS command. */
+    EVENT_EXT_EOH_SYNC_CHROBJ = 721,               /**< Runs the _EOH_SYNC_CHROBJ command. */
+    EVENT_EXT_EOH_SET_FADE_FLAG = 722,             /**< Runs the _EOH_SET_FADE_FLAG command. */
+    EVENT_EXT_EOH_RESET_DA_POSITION = 723,         /**< Runs the _EOH_RESET_DA_POSITION command. */
+    EVENT_EXT_EOH_SET_SHADOW_FRAME_STATUS = 724,   /**< Runs the _EOH_SET_SHADOW_FRAME_STATUS command. */
+    EVENT_EXT_EOH_SYNC_GEOSTONE = 725,             /**< Runs the _EOH_SYNC_GEOSTONE command. */
+    EVENT_EXT_EOH_SYNC_SEARCH_CHARA = 726,         /**< Runs the _EOH_SYNC_SEARCH_CHARA command. */
+    EVENT_EXT_EOH_NORMAL_DRIVE = 727,              /**< Runs the _EOH_NORMAL_DRIVE command. */
+    EVENT_EXT_EOH_SYNC_EDIT_OBJ = 728,             /**< Runs the _EOH_SYNC_EDIT_OBJ command. */
+    EVENT_EXT_EOH_SET_FRAME_ALPHA = 729,           /**< Runs the _EOH_SET_FRAME_ALPHA command. */
+    EVENT_EXT_EOH_SYNC_FUNCP = 730,                /**< Runs the _EOH_SYNC_FUNCP command. */
+    EVENT_EXT_EOH_SET_FOOT_SE_ID = 731,            /**< Runs the _EOH_SET_FOOT_SE_ID command. */
+    EVENT_EXT_EOH_SYNC_DOOR_PARTS = 732,           /**< Runs the _EOH_SYNC_DOOR_PARTS command. */
+    EVENT_EXT_SPHIDA_INIT = 750,                   /**< Runs the _SPHIDA_INIT command. */
+    EVENT_EXT_SPHIDA_SET_UP = 751,                 /**< Runs the _SPHIDA_SET_UP command. */
+    EVENT_EXT_SPHIDA_SET_PLAY_FLAG = 752,          /**< Runs the _SPHIDA_SET_PLAY_FLAG command. */
+    EVENT_EXT_SPHIDA_SET_MINIMAP_FLAG = 753,       /**< Runs the _SPHIDA_SET_MINIMAP_FLAG command. */
+    EVENT_EXT_SPHIDA_SET_MM_LINE_FLAG = 754,       /**< Runs the _SPHIDA_SET_MM_LINE_FLAG command. */
+    EVENT_EXT_SPHIDA_SET_MM_LINE_POS = 755,        /**< Runs the _SPHIDA_SET_MM_LINE_POS command. */
+    EVENT_EXT_SPHIDA_SET_PIN_POS = 756,            /**< Runs the _SPHIDA_SET_PIN_POS command. */
+    EVENT_EXT_SPHIDA_GET_PIN_POS = 757,            /**< Runs the _SPHIDA_GET_PIN_POS command. */
+    EVENT_EXT_SPHIDA_SET_BALL_POS = 758,           /**< Runs the _SPHIDA_SET_BALL_POS command. */
+    EVENT_EXT_SPHIDA_GET_BALL_POS = 759,           /**< Runs the _SPHIDA_GET_BALL_POS command. */
+    EVENT_EXT_SPHIDA_SET_PIN_COL = 760,            /**< Runs the _SPHIDA_SET_PIN_COL command. */
+    EVENT_EXT_SPHIDA_GET_PIN_COL = 761,            /**< Runs the _SPHIDA_GET_PIN_COL command. */
+    EVENT_EXT_SPHIDA_SET_BALL_COL = 762,           /**< Runs the _SPHIDA_SET_BALL_COL command. */
+    EVENT_EXT_SPHIDA_GET_BALL_COL = 763,           /**< Runs the _SPHIDA_GET_BALL_COL command. */
+    EVENT_EXT_SPHIDA_SET_PAR_COUNT = 764,          /**< Runs the _SPHIDA_SET_PAR_COUNT command. */
+    EVENT_EXT_SPHIDA_GET_PAR_COUNT = 765,          /**< Runs the _SPHIDA_GET_PAR_COUNT command. */
+    EVENT_EXT_SPHIDA_GET_MINI_LEVEL = 766,         /**< Runs the _SPHIDA_GET_MINI_LEVEL command. */
+    EVENT_EXT_SPHIDA_GET_TEXB = 767,               /**< Runs the _SPHIDA_GET_TEXB command. */
+    EVENT_EXT_SPHIDA_SET_STATUS_FLAG = 768,        /**< Runs the _SPHIDA_SET_STATUS_FLAG command. */
+    EVENT_EXT_SPHIDA_RESET_POWGAGE = 769,          /**< Runs the _SPHIDA_RESET_POWGAGE command. */
+    EVENT_EXT_SPHIDA_START_POWGAGE = 770,          /**< Runs the _SPHIDA_START_POWGAGE command. */
+    EVENT_EXT_SPHIDA_TRIGGER_POWGAGE = 771,        /**< Runs the _SPHIDA_TRIGGER_POWGAGE command. */
+    EVENT_EXT_SPHIDA_GET_SHOT_POW = 772,           /**< Runs the _SPHIDA_GET_SHOT_POW command. */
+    EVENT_EXT_SPHIDA_GET_POWGAGE_CODE = 773,       /**< Runs the _SPHIDA_GET_POWGAGE_CODE command. */
+    EVENT_EXT_SPHIDA_SET_POWGAGE_SAFE_LEVEL = 774, /**< Runs the _SPHIDA_SET_POWGAGE_SAFE_LEVEL command. */
+    EVENT_EXT_SPHIDA_GET_CULB_DEF = 775,           /**< Runs the _SPHIDA_GET_CULB_DEF command. */
+    EVENT_EXT_SPHIDA_SET_SPIN_MARK_POS = 776,      /**< Runs the _SPHIDA_SET_SPIN_MARK_POS command. */
+    EVENT_EXT_SPHIDA_SET_CULB_NO = 777,            /**< Runs the _SPHIDA_SET_CULB_NO command. */
+    EVENT_EXT_SPHIDA_CALC_CARRY = 778,             /**< Runs the _SPHIDA_CALC_CARRY command. */
+    EVENT_EXT_SPHIDA_GET_PG_CURSOR_POS = 779,      /**< Runs the _SPHIDA_GET_PG_CURSOR_POS command. */
+    EVENT_EXT_SPHIDA_SET_COL_MODEL = 780,          /**< Runs the _SPHIDA_SET_COL_MODEL command. */
+    EVENT_EXT_SPHIDA_GET_PRIZE = 781,              /**< Runs the _SPHIDA_GET_PRIZE command. */
+    EVENT_EXT_SPHIDA_SET_LAST_CHALLENGE = 782,     /**< Runs the _SPHIDA_SET_LAST_CHALLENGE command. */
+    EVENT_EXT_SPHIDA_GET_LAST_CHALLENGE = 783,     /**< Runs the _SPHIDA_GET_LAST_CHALLENGE command. */
+    EVENT_EXT_SPHIDA_GET_OMAKE_MODE = 784,         /**< Runs the _SPHIDA_GET_OMAKE_MODE command. */
+    EVENT_EXT_SPHIDA_SET_NOW_HOLE = 785,           /**< Runs the _SPHIDA_SET_NOW_HOLE command. */
+    EVENT_EXT_SPHIDA_GET_NOW_HOLE = 786,           /**< Runs the _SPHIDA_GET_NOW_HOLE command. */
+    EVENT_EXT_SPHIDA_SET_SCORE = 787,              /**< Runs the _SPHIDA_SET_SCORE command. */
+    EVENT_EXT_SPHIDA_GET_SCORE = 788,              /**< Runs the _SPHIDA_GET_SCORE command. */
+    EVENT_EXT_ZERO_VECTOR = 1000,                  /**< Runs the _ZERO_VECTOR command. */
+    EVENT_EXT_NORMAL_VECTOR = 1001,                /**< Runs the _NORMAL_VECTOR command. */
+    EVENT_EXT_COPY_VECTOR = 1002,                  /**< Runs the _COPY_VECTOR command. */
+    EVENT_EXT_ADD_VECTOR = 1003,                   /**< Runs the _ADD_VECTOR command. */
+    EVENT_EXT_SUB_VECTOR = 1004,                   /**< Runs the _SUB_VECTOR command. */
+    EVENT_EXT_SCALE_VECTOR = 1005,                 /**< Runs the _SCALE_VECTOR command. */
+    EVENT_EXT_DIV_VECTOR = 1006,                   /**< Runs the _DIV_VECTOR command. */
+    EVENT_EXT_DIST_VECTOR = 1007,                  /**< Runs the _DIST_VECTOR command. */
+    EVENT_EXT_DIST_VECTOR2 = 1008,                 /**< Runs the _DIST_VECTOR2 command. */
+    EVENT_EXT_SQRT = 1009,                         /**< Runs the _SQRT command. */
+    EVENT_EXT_ATAN2F = 1010,                       /**< Runs the _ATAN2F command. */
+    EVENT_EXT_ANGLE_CMP = 1011,                    /**< Runs the _ANGLE_CMP command. */
+    EVENT_EXT_ANGLE_LIMIT = 1012,                  /**< Runs the _ANGLE_LIMIT command. */
+    EVENT_EXT_GET_RAND = 1013,                     /**< Runs the _GET_RAND command. */
+    EVENT_EXT_LINE_POINT_DIST = 1014,              /**< Runs the _LINE_POINT_DIST command. */
+    EVENT_EXT_CREATE_SWORD_EFFECT = 1015,          /**< Runs the _CREATE_SWORD_EFFECT command. */
+    EVENT_EXT_DELETE_SWORD_EFFECT = 1016,          /**< Runs the _DELETE_SWORD_EFFECT command. */
+    EVENT_EXT_SWORD_EFFECT_COLOR = 1017,           /**< Runs the _SWORD_EFFECT_COLOR command. */
+    EVENT_EXT_SWORD_EFFECT_ADD_POINT = 1018,       /**< Runs the _SWORD_EFFECT_ADD_POINT command. */
+    EVENT_EXT_ADD_CHARA_POS = 1019,                /**< Runs the _ADD_CHARA_POS command. */
+    EVENT_EXT_ADD_CHARA_ROT = 1020,                /**< Runs the _ADD_CHARA_ROT command. */
+    EVENT_EXT_POST_TREASURE_BOX = 1021,            /**< Runs the _POST_TREASURE_BOX command. */
+    EVENT_EXT_GET_PARTS_ORIGIN = 1022,             /**< Runs the _GET_PARTS_ORIGIN command. */
+    EVENT_EXT_CTRLC_STEP = 1023,                   /**< Runs the _CTRLC_STEP command. */
+    EVENT_EXT_CTRLC_SET_ROTATE = 1024,             /**< Runs the _CTRLC_SET_ROTATE command. */
+    EVENT_EXT_CTRLC_MOVE_CAMERA = 1025,            /**< Runs the _CTRLC_MOVE_CAMERA command. */
+    EVENT_EXT_CTRLC_SET_ROT_CANCEL = 1026,         /**< Runs the _CTRLC_SET_ROT_CANCEL command. */
+    EVENT_EXT_CTRLC_MOVE_RANGE = 1027,             /**< Runs the _CTRLC_MOVE_RANGE command. */
+    EVENT_EXT_GET_NEAR_TBOX_POS = 1028,            /**< Runs the _GET_NEAR_TBOX_POS command. */
+    EVENT_EXT_CONV_CHRNO_S2L = 1029,               /**< Runs the _CONV_CHRNO_S2L command. */
+    EVENT_EXT_SWE_INIT = 1030,                     /**< Runs the _SWE_INIT command. */
+    EVENT_EXT_SWE_SET_COLOR = 1031,                /**< Runs the _SWE_SET_COLOR command. */
+    EVENT_EXT_SWE_SET_TEXTURE = 1032,              /**< Runs the _SWE_SET_TEXTURE command. */
+    EVENT_EXT_SWE_START_EFFECT = 1033,             /**< Runs the _SWE_START_EFFECT command. */
+    EVENT_EXT_SET_CHARA_TYPE = 1034,               /**< Runs the _SET_CHARA_TYPE command. */
+    EVENT_EXT_GET_EVENT_DATA = 1035,               /**< Runs the _GET_EVENT_DATA command. */
+    EVENT_EXT_DNG_SET_PREV_FLOOR = 1036,           /**< Runs the _DNG_SET_PREV_FLOOR command. */
+    EVENT_EXT_DNG_GET_PREV_FLOOR = 1037,           /**< Runs the _DNG_GET_PREV_FLOOR command. */
+    EVENT_EXT_DNG_SET_FAST_FLOOR = 1038,           /**< Runs the _DNG_SET_FAST_FLOOR command. */
+    EVENT_EXT_SET_FLOOR_INFO = 1039,               /**< Runs the _SET_FLOOR_INFO command. */
+    EVENT_EXT_GET_FLOOR_INFO = 1040,               /**< Runs the _GET_FLOOR_INFO command. */
+    EVENT_EXT_GET_NEXT_FLOOR = 1041,               /**< Runs the _GET_NEXT_FLOOR command. */
+    EVENT_EXT_PAD_AUTO_REPEAT_OFF = 1042,          /**< Runs the _PAD_AUTO_REPEAT_OFF command. */
+    EVENT_EXT_PAD_SET_AUTO_REPEAT = 1043,          /**< Runs the _PAD_SET_AUTO_REPEAT command. */
+    EVENT_EXT_DNG_PAUSE = 1044,                    /**< Runs the _DNG_PAUSE command. */
+    EVENT_EXT_DNG_CHECK_PAUSE = 1045,              /**< Runs the _DNG_CHECK_PAUSE command. */
+    EVENT_EXT_DNG_RESET_TIMER = 1046,              /**< Runs the _DNG_RESET_TIMER command. */
+    EVENT_EXT_DNG_GET_TIMER = 1047,                /**< Runs the _DNG_GET_TIMER command. */
+    EVENT_EXT_LOAD_SKIN = 1048,                    /**< Runs the _LOAD_SKIN command. */
+    EVENT_EXT_CHK_CAMERA_COL = 1049,               /**< Runs the _CHK_CAMERA_COL command. */
+    EVENT_EXT_GET_PARTS_FUNC_POS = 1050,           /**< Runs the _GET_PARTS_FUNC_POS command. */
+    EVENT_EXT_RANDOM_CIRCLE_GET_POS = 1051,        /**< Runs the _RANDOM_CIRCLE_GET_POS command. */
+    EVENT_EXT_RANDOM_CIRCLE_OFF = 1052,            /**< Runs the _RANDOM_CIRCLE_OFF command. */
+    EVENT_EXT_DNG_XCHG_MAP_LIGHT = 1053,           /**< Runs the _DNG_XCHG_MAP_LIGHT command. */
+    EVENT_EXT_GEOSTONE_ANIME_OFF = 1054,           /**< Runs the _GEOSTONE_ANIME_OFF command. */
+    EVENT_EXT_GEOSTONE_SET_FLAG = 1055,            /**< Runs the _GEOSTONE_SET_FLAG command. */
+    EVENT_EXT_GEOSTONE_SET_REFERENCE = 1056,       /**< Runs the _GEOSTONE_SET_REFERENCE command. */
+    EVENT_EXT_GEOSTONE_DEL_REFERENCE = 1057,       /**< Runs the _GEOSTONE_DEL_REFERENCE command. */
+    EVENT_EXT_GET_ROBO_MOVE_TYPE = 1058,           /**< Runs the _GET_ROBO_MOVE_TYPE command. */
+    EVENT_EXT_SET_EXIT_FLAG = 1059,                /**< Runs the _SET_EXIT_FLAG command. */
+    EVENT_EXT_GET_EXIT_FLAG = 1060,                /**< Runs the _GET_EXIT_FLAG command. */
+    EVENT_EXT_GET_E3_VERSION = 1061,               /**< Runs the _GET_E3_VERSION command. */
+    EVENT_EXT_CHK_PAD_CTRL = 1062,                 /**< Runs the _CHK_PAD_CTRL command. */
+    EVENT_EXT_CTRLC_STAY = 1063,                   /**< Runs the _CTRLC_STAY command. */
+    EVENT_EXT_BSCN_SET_BLIGHT_RATE = 1064,         /**< Runs the _BSCN_SET_BLIGHT_RATE command. */
+    EVENT_EXT_GET_RND_CIRCLE_TRAPID = 1065,        /**< Runs the _GET_RND_CIRCLE_TRAPID command. */
+    EVENT_EXT_SET_RND_CIRCLE_STATUS = 1066,        /**< Runs the _SET_RND_CIRCLE_STATUS command. */
+    EVENT_EXT_SET_STATUSBAR_SHOW = 1067,           /**< Runs the _SET_STATUSBAR_SHOW command. */
+    EVENT_EXT_SET_PULL_ITEM = 1068,                /**< Runs the _SET_PULL_ITEM command. */
+    EVENT_EXT_MENU_CHARA_CHENGE = 1069,            /**< Runs the _MENU_CHARA_CHENGE command. */
+    EVENT_EXT_GET_EVENT_INFO_SNDID = 1070,         /**< Runs the _GET_EVENT_INFO_SNDID command. */
+    EVENT_EXT_GET_PARTS_POS = 1071,                /**< Runs the _GET_PARTS_POS command. */
+    EVENT_EXT_CANCEL_DRAMA_SCENE = 1072,           /**< Runs the _CANCEL_DRAMA_SCENE command. */
+    EVENT_EXT_GET_RNDC_MOT_NOWT = 1073,            /**< Runs the _GET_RNDC_MOT_NOWT command. */
+    EVENT_EXT_SET_CHARA_MOT_NOWT = 1074,           /**< Runs the _SET_CHARA_MOT_NOWT command. */
+    EVENT_EXT_CHARA_NORMAL_DRIVE = 1075,           /**< Runs the _CHARA_NORMAL_DRIVE command. */
+    EVENT_EXT_CHARA_RESET_DA = 1076,               /**< Runs the _CHARA_RESET_DA command. */
+    EVENT_EXT_DNG_SETUP_MAIN_UNIT = 1077,          /**< Runs the _DNG_SETUP_MAIN_UNIT command. */
+    EVENT_EXT_JOIN_PARTY_MEMBER = 1078,            /**< Runs the _JOIN_PARTY_MEMBER command. */
+    EVENT_EXT_SET_CHARA_CHANGE_FLAG = 1079,        /**< Runs the _SET_CHARA_CHANGE_FLAG command. */
+    EVENT_EXT_SET_CHARA_CHANGE_MASK = 1080,        /**< Runs the _SET_CHARA_CHANGE_MASK command. */
+    EVENT_EXT_CHANGE_DIR = 1081,                   /**< Runs the _CHANGE_DIR command. */
+    EVENT_EXT_SUB_ITEM = 1082,                     /**< Runs the _SUB_ITEM command. */
+    EVENT_EXT_SET_CHARA_EQUIP = 1083,              /**< Runs the _SET_CHARA_EQUIP command. */
+    EVENT_EXT_LOAD_PACK_FILE = 1084,               /**< Runs the _LOAD_PACK_FILE command. */
+    EVENT_EXT_SET_BIT_CTRL = 1085,                 /**< Runs the _SET_BIT_CTRL command. */
+    EVENT_EXT_GET_BIT_CTRL = 1086,                 /**< Runs the _GET_BIT_CTRL command. */
+    EVENT_EXT_LOAD_ARG = 1087,                     /**< Runs the _LOAD_ARG command. */
+    EVENT_EXT_GET_ITEM_HAVE_NUM = 1088,            /**< Runs the _GET_ITEM_HAVE_NUM command. */
+    EVENT_EXT_SET_SKIP_BOTTON = 1089,              /**< Runs the _SET_SKIP_BOTTON command. */
+    EVENT_EXT_SET_SKIP_FCOL = 1090,                /**< Runs the _SET_SKIP_FCOL command. */
+    EVENT_EXT_GET_DEBUG_MODE = 1091,               /**< Runs the _GET_DEBUG_MODE command. */
+    EVENT_EXT_GET_MAP_TYPE = 1092,                 /**< Runs the _GET_MAP_TYPE command. */
+    EVENT_EXT_DNG_COLLISION_ALL_CLR = 1093,        /**< Runs the _DNG_COLLISION_ALL_CLR command. */
+    EVENT_EXT_SET_MAP_DRAW = 1094,                 /**< Runs the _SET_MAP_DRAW command. */
+    EVENT_EXT_CHECK_MC_LOAD = 1095,                /**< Runs the _CHECK_MC_LOAD command. */
+    EVENT_EXT_SET_NOW_MAP_NO = 1096,               /**< Runs the _SET_NOW_MAP_NO command. */
+    EVENT_EXT_GET_TBOX_PARAM = 1097,               /**< Runs the _GET_TBOX_PARAM command. */
+    EVENT_EXT_CANCEL_LOAD_VILLAGER = 1098,         /**< Runs the _CANCEL_LOAD_VILLAGER command. */
+    EVENT_EXT_CANCEL_NOW_LOADING = 1099,           /**< Runs the _CANCEL_NOW_LOADING command. */
+    EVENT_EXT_ESM_INITIALIZE = 1100,               /**< Runs the _ESM_INITIALIZE command. */
+    EVENT_EXT_ESM_INIT_FIX = 1101,                 /**< Runs the _ESM_INIT_FIX command. */
+    EVENT_EXT_ESM_CLEAR = 1102,                    /**< Runs the _ESM_CLEAR command. */
+    EVENT_EXT_ESM_LOAD_BASE = 1103,                /**< Runs the _ESM_LOAD_BASE command. */
+    EVENT_EXT_ESM_CREATE = 1104,                   /**< Runs the _ESM_CREATE command. */
+    EVENT_EXT_ESM_FINISH = 1105,                   /**< Runs the _ESM_FINISH command. */
+    EVENT_EXT_ESM_DELETE = 1106,                   /**< Runs the _ESM_DELETE command. */
+    EVENT_EXT_ESM_SET_VECT1 = 1107,                /**< Runs the _ESM_SET_VECT1 command. */
+    EVENT_EXT_ESM_SET_VECT2 = 1108,                /**< Runs the _ESM_SET_VECT2 command. */
+    EVENT_EXT_ESM_SET_TARGET_ID = 1109,            /**< Runs the _ESM_SET_TARGET_ID command. */
+    EVENT_EXT_ESM_LOAD_BASE_PACK = 1110,           /**< Runs the _ESM_LOAD_BASE_PACK command. */
+    EVENT_EXT_ESM_SET_VALUE = 1111,                /**< Runs the _ESM_SET_VALUE command. */
+    EVENT_EXT_SET_CHARA_CONDITION = 1200,          /**< Runs the _SET_CHARA_CONDITION command. */
+    EVENT_EXT_ADD_WHP = 1201,                      /**< Runs the _ADD_WHP command. */
+    EVENT_EXT_ADD_HP_RATE = 1202,                  /**< Runs the _ADD_HP_RATE command. */
+    EVENT_EXT_GET_TIME = 1203,                     /**< Runs the _GET_TIME command. */
+    EVENT_EXT_CHECK_GET_ITEM_LIMIT = 1204,         /**< Runs the _CHECK_GET_ITEM_LIMIT command. */
+    EVENT_EXT_CHECK_ITEM_OVER = 1205,              /**< Runs the _CHECK_ITEM_OVER command. */
+    EVENT_EXT_GET_NOW_LOOP_NO = 1206,              /**< Runs the _GET_NOW_LOOP_NO command. */
+    EVENT_EXT_IS_CLEAR_DESTROY = 1207,             /**< Runs the _IS_CLEAR_DESTROY command. */
+    EVENT_EXT_IS_CLEAR_PRACTICE = 1208,            /**< Runs the _IS_CLEAR_PRACTICE command. */
+    EVENT_EXT_IS_PLAY_SUB_GAME = 1209,             /**< Runs the _IS_PLAY_SUB_GAME command. */
+    EVENT_EXT_RESET_SUBJECT_COUNTER = 1210,        /**< Runs the _RESET_SUBJECT_COUNTER command. */
+    EVENT_EXT_SCR_EFF_INIT_RASTER = 1211,          /**< Runs the _SCR_EFF_INIT_RASTER command. */
+    EVENT_EXT_SCR_EFF_START_RASTER = 1212,         /**< Runs the _SCR_EFF_START_RASTER command. */
+    EVENT_EXT_SCR_EFF_STOP_RASTER = 1213,          /**< Runs the _SCR_EFF_STOP_RASTER command. */
+    EVENT_EXT_SET_MPCHARA_MOTION = 1214,           /**< Runs the _SET_MPCHARA_MOTION command. */
+    EVENT_EXT_FUNC_POINT_POS = 1215,               /**< Runs the _FUNC_POINT_POS command. */
+    EVENT_EXT_CTRLC_ROT_BACK = 1216,               /**< Runs the _CTRLC_ROT_BACK command. */
+    EVENT_EXT_PARTS_NAME_STRCMP = 1217,            /**< Runs the _PARTS_NAME_STRCMP command. */
+    EVENT_EXT_GET_TRIAL_VERSION = 1218,            /**< Runs the _GET_TRIAL_VERSION command. */
+    EVENT_EXT_SET_FLOOR_EPISODE = 1219,            /**< Runs the _SET_FLOOR_EPISODE command. */
+    EVENT_EXT_FUNC_POINT_GET_POS = 1220,           /**< Runs the _FUNC_POINT_GET_POS command. */
+    EVENT_EXT_FUNC_POINT_GET_ROT = 1221,           /**< Runs the _FUNC_POINT_GET_ROT command. */
+    EVENT_EXT_ACTCHR_SET_DEF_MOTION = 1222,        /**< Runs the _ACTCHR_SET_DEF_MOTION command. */
+    EVENT_EXT_ADD_FUSION_POINT = 1223,             /**< Runs the _ADD_FUSION_POINT command. */
+    EVENT_EXT_GET_DEBUG_FLAG = 1224,               /**< Runs the _GET_DEBUG_FLAG command. */
+    EVENT_EXT_MINIMAP_DOOR_ENABLE = 1225,          /**< Runs the _MINIMAP_DOOR_ENABLE command. */
+    EVENT_EXT_DNG_CHECK_BOSS_MAP = 1226,           /**< Runs the _DNG_CHECK_BOSS_MAP command. */
+    EVENT_EXT_DNG_RUN_EVENT = 1227,                /**< Runs the _DNG_RUN_EVENT command. */
+    EVENT_EXT_CHECK_ENABLE_CHARA_CHANGE = 1228,    /**< Runs the _CHECK_ENABLE_CHARA_CHANGE command. */
+    EVENT_EXT_INIT_SEPIA = 1229,                   /**< Runs the _INIT_SEPIA command. */
+    EVENT_EXT_START_SEPIA = 1230,                  /**< Runs the _START_SEPIA command. */
+    EVENT_EXT_END_SEPIA = 1231,                    /**< Runs the _END_SEPIA command. */
+    EVENT_EXT_COPY_MONS2SCNCHR = 1232,             /**< Runs the _COPY_MONS2SCNCHR command. */
+    EVENT_EXT_UNLOCK_STACK = 1233,                 /**< Runs the _UNLOCK_STACK command. */
+    EVENT_EXT_RESET_EVENT_TRG = 1234,              /**< Runs the _RESET_EVENT_TRG command. */
+    EVENT_EXT_SET_CHARA_NO = 1235,                 /**< Runs the _SET_CHARA_NO command. */
+    EVENT_EXT_GET_CHARA_NO = 1236,                 /**< Runs the _GET_CHARA_NO command. */
+    EVENT_EXT_SEARCH_CHARA_NO = 1237,              /**< Runs the _SEARCH_CHARA_NO command. */
+    EVENT_EXT_GET_NEAR_RANDOM_STONE_POS = 1238,    /**< Runs the _GET_NEAR_RANDOM_STONE_POS command. */
+    EVENT_EXT_INIT_MONO_FLASH = 1239,              /**< Runs the _INIT_MONO_FLASH command. */
+    EVENT_EXT_START_MONO_FLASH = 1240,             /**< Runs the _START_MONO_FLASH command. */
+    EVENT_EXT_END_MONO_FLASH = 1241,               /**< Runs the _END_MONO_FLASH command. */
+    EVENT_EXT_DELETE_VILLAGER = 1242,              /**< Runs the _DELETE_VILLAGER command. */
+    EVENT_EXT_DNG_SET_WEATHER = 1243,              /**< Runs the _DNG_SET_WEATHER command. */
+    EVENT_EXT_SET_CHARA_MAXHP = 1244,              /**< Runs the _SET_CHARA_MAXHP command. */
+    EVENT_EXT_SET_CHARA_DEFENCE = 1245,            /**< Runs the _SET_CHARA_DEFENCE command. */
+    EVENT_EXT_PLACE_PARTS_NAME_STRCMP = 1246,      /**< Runs the _PLACE_PARTS_NAME_STRCMP command. */
+    EVENT_EXT_GOTO_USE_ITEM2 = 1247,               /**< Runs the _GOTO_USE_ITEM2 command. */
+    EVENT_EXT_DBG_SET_ANALYZE_FLAG = 1248,         /**< Runs the _DBG_SET_ANALYZE_FLAG command. */
+    EVENT_EXT_ATRAMIRIA_ON_OFF = 1249,             /**< Runs the _ATRAMIRIA_ON_OFF command. */
+    EVENT_EXT_ADD_YARIKOMI_MEDAL = 1250,           /**< Runs the _ADD_YARIKOMI_MEDAL command. */
+    EVENT_EXT_SET_MAP_EFFECT_ID = 1251,            /**< Runs the _SET_MAP_EFFECT_ID command. */
+    EVENT_EXT_GET_MAP_EFFECT_ID = 1252,            /**< Runs the _GET_MAP_EFFECT_ID command. */
+    EVENT_EXT_DNG_FLOOR_INIT = 1253,               /**< Runs the _DNG_FLOOR_INIT command. */
+    EVENT_EXT_DNG_FLOOR_FINISH = 1254,             /**< Runs the _DNG_FLOOR_FINISH command. */
+    EVENT_EXT_CLEAR_RND_STONE = 1255,              /**< Runs the _CLEAR_RND_STONE command. */
+    EVENT_EXT_GET_FLOOR_STATUS = 1256,             /**< Runs the _GET_FLOOR_STATUS command. */
+    EVENT_EXT_SET_FLOOR_STATUS = 1257,             /**< Runs the _SET_FLOOR_STATUS command. */
+    EVENT_EXT_AMG_GET_ATTR_STATUS = 1258,          /**< Runs the _AMG_GET_ATTR_STATUS command. */
+    EVENT_EXT_SET_NEAR_DIST = 1259,                /**< Runs the _SET_NEAR_DIST command. */
+    EVENT_EXT_SET_KEEP_TIME = 1260,                /**< Runs the _SET_KEEP_TIME command. */
+    EVENT_EXT_GET_KEEP_TIME = 1261,                /**< Runs the _GET_KEEP_TIME command. */
+    EVENT_EXT_GET_DOOR_PARTS_ID = 1262,            /**< Runs the _GET_DOOR_PARTS_ID command. */
+    EVENT_EXT_CHECK_EQUEP_CHANGE = 1263,           /**< Runs the _CHECK_EQUEP_CHANGE command. */
+    EVENT_EXT_ADD_HP_RATE2 = 1264,                 /**< Runs the _ADD_HP_RATE2 command. */
+    EVENT_EXT_DNG_EFFECT_ALL_CLEAR = 1265,         /**< Runs the _DNG_EFFECT_ALL_CLEAR command. */
+    EVENT_EXT_AUTO_CHENGE_BGM_VOL = 1266,          /**< Runs the _AUTO_CHENGE_BGM_VOL command. */
+    EVENT_EXT_UDATA_GET_WHP = 1267,                /**< Runs the _UDATA_GET_WHP command. */
+    EVENT_EXT_UDATA_ADD_WHP = 1268,                /**< Runs the _UDATA_ADD_WHP command. */
+    EVENT_EXT_UDATA_GET_ABS = 1269,                /**< Runs the _UDATA_GET_ABS command. */
+    EVENT_EXT_UDATA_ADD_ABS = 1270,                /**< Runs the _UDATA_ADD_ABS command. */
+    EVENT_EXT_DNG_CREATE_EFFECT = 1271,            /**< Runs the _DNG_CREATE_EFFECT command. */
+    EVENT_EXT_LEAVE_MONICA_ITEM_CHECK = 1272,      /**< Runs the _LEAVE_MONICA_ITEM_CHECK command. */
+    EVENT_EXT_PAUSE_ENABLE_FLAG = 1273,            /**< Runs the _PAUSE_ENABLE_FLAG command. */
+    EVENT_EXT_FORCE_BOOT_TOUR = 1274,              /**< Runs the _FORCE_BOOT_TOUR command. */
+    EVENT_EXT_MT_TEST = 998,                       /**< Runs the _MT_TEST command. */
+    EVENT_EXT_TEST = 999,                          /**< Runs the _TEST command. */
+    EVENT_EXT_END = -1,                            /**< Ends the command definition table. */
+};
+
+/**
+ * Numeric identifiers of commands in event argument scripts.
+ */
+enum EventArgumentCommand {
+    EVENT_ARG_DATA = 0,      /**< Records one argument list. */
+    EVENT_ARG_ID_OFFSET = 1, /**< Selects the next argument-list identifier. */
+};
+
+/**
+ *
+ * Event script function and its numeric identifier.
+ *
+ */
+struct EventScriptFunc {
+    int (*func)(RS_STACKDATA *, int); /**< Function called by the script. */
+    int id;                           /**< Script function identifier. */
+};
+
+STATIC_ASSERT(sizeof(EventScriptFunc) == 8);
+
+/**
+ *
  * Kinds of game thing an event object handle refers to, as CEoh::type holds them.
  *
  */
@@ -946,27 +1680,6 @@ STATIC_ASSERT(sizeof(CScreenEffect) == 0x4C);
 
 /**
  *
- * One spark of a hit effect, taken from the event's spark buffers.
- *
- */
-struct HIT_EFFECT_PARTICLE {
-    u8            unk_0[0x10];
-    sceVu0FVECTOR pos; /**< Position of the spark. */
-    sceVu0FVECTOR dir; /**< Direction the spark flies in. */
-    float         unk_30;
-    float         speed; /**< Distance the spark flies each frame. */
-    float         slow;  /**< Amount the speed falls each frame. */
-    int           life;  /**< Frames left before the spark disappears. */
-    s32           unk_40;
-    float         alpha;      /**< Opacity of the spark. */
-    float         alpha_step; /**< Amount the opacity falls each frame. */
-    s32           unk_4c;
-};
-
-STATIC_ASSERT(sizeof(HIT_EFFECT_PARTICLE) == 0x50);
-
-/**
- *
  * Number of hit effects an event can show at once.
  *
  */
@@ -1054,14 +1767,14 @@ extern CEventSpriteMother esMother;
  * Flags local to the running event, 32 to a word.
  *
  */
-extern u32 EventLocalFlag[0x40];
+extern u32 EventLocalFlag[EVENT_LOCAL_NUM];
 
 /**
  *
  * Counters local to the running event.
  *
  */
-extern int EventLocalCnt[0x40];
+extern int EventLocalCnt[EVENT_LOCAL_NUM];
 
 /**
  *
@@ -1075,7 +1788,7 @@ extern CRain EventRain;
  * Spark buffers of the event's hit effects.
  *
  */
-extern HIT_EFFECT_PARTICLE Hit_para[EVENT_HIT_EFFECT_NUM][EVENT_HIT_PARTICLE_NUM];
+extern BattleEffectPrim Hit_para[EVENT_HIT_EFFECT_NUM][EVENT_HIT_PARTICLE_NUM];
 
 /**
  *
@@ -1089,42 +1802,42 @@ extern CHitEffectImage HitEffect[EVENT_HIT_EFFECT_NUM];
  * Name of the texture animation that follows the voice stream's mouth movement.
  *
  */
-extern char PakuAnimName[0x40];
+extern char PakuAnimName[PAKU_NAME_SIZE];
 
 /**
  *
  * Name of the second texture animation that follows the voice stream's mouth movement.
  *
  */
-extern char PakuAnimName2[0x40];
+extern char PakuAnimName2[PAKU_NAME_SIZE];
 
 /**
  *
  * Name of the motion that follows the voice stream's mouth movement.
  *
  */
-extern char PakuMotionName[0x40];
+extern char PakuMotionName[PAKU_NAME_SIZE];
 
 /**
  *
  * Name of the second motion that follows the voice stream's mouth movement.
  *
  */
-extern char PakuMotionName2[0x40];
+extern char PakuMotionName2[PAKU_NAME_SIZE];
 
 /**
  *
  * Command entries of the event's camera sequence.
  *
  */
-extern _SEN_CMR_SEQ cmr_seq_tbl[0x100];
+extern _SEN_CMR_SEQ cmr_seq_tbl[SEQ_NODE_NUM];
 
 /**
  *
  * Command entries shared by the event's object sequences.
  *
  */
-extern _SEN_OBJ_SEQ obj_seq_tbl[0x100];
+extern _SEN_OBJ_SEQ obj_seq_tbl[SEQ_NODE_NUM];
 
 /**
  *

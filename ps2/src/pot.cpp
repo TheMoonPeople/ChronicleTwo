@@ -18,13 +18,6 @@
 #include "sound.hpp"
 #include "dng_main.hpp"
 
-extern char  at_1196[];
-extern char  at_1323__2[];
-extern char  at_1324[];
-extern char  at_1325__2[];
-extern char  at_1326[];
-extern char  at_1438__4[];
-
 // Code (.text)
 void CalcReflectionVector(float *incoming, float *surface, float *reflected) {
     float normal[4];
@@ -104,7 +97,7 @@ void CFragment::Step(CCPoly *polys, int poly_count) {
                                 GetMainScene()->GetEffect(0);
 
                             if (effects != NULL) {
-                                effects->CreateEffSpt(at_1196, -1, 0);
+                                effects->CreateEffSpt("\x91\xAB\x90\x85\x83\x70\x83\x56\x83\x83", -1, 0);
                                 effects->SetScriptVect1(hit_points[i], -1, -1);
                             }
 
@@ -272,34 +265,34 @@ int CBPot::SetObject2(int kind, CMapParts *map_parts) {
     this->parts = map_parts;
 
     if (kind == 0) {
-        type = 1;
+        type = BPOT_TYPE_BOX;
     } else if (kind == 5) {
-        type = 3;
+        type = BPOT_TYPE_ROCK1;
     } else if (kind > 0 && kind < 5) {
-        type = 2;
+        type = BPOT_TYPE_ROCK0;
     } else if (kind == 6) {
-        type = 2;
+        type = BPOT_TYPE_ROCK0;
     } else {
         return 0;
     }
 
-    if (type == 1) {
+    if (type == BPOT_TYPE_BOX) {
         fragment_num = 12;
-        prefix = at_1323__2;
+        prefix = "box";
         offset = box_offset;
-    } else if (type == 2) {
+    } else if (type == BPOT_TYPE_ROCK0) {
         fragment_num = 10;
-        prefix = at_1324;
+        prefix = "rock";
         offset = iwa0_offset;
-    } else if (type == 3) {
+    } else if (type == BPOT_TYPE_ROCK1) {
         fragment_num = 9;
-        prefix = at_1324;
+        prefix = "rock";
         offset = iwa1_offset;
     } else {
         return 0;
     }
 
-    piece = this->parts->SearchPiece(at_1325__2);
+    piece = this->parts->SearchPiece("rnd_obj02-m0");
 
     if (piece == NULL) {
         return 0;
@@ -319,7 +312,7 @@ int CBPot::SetObject2(int kind, CMapParts *map_parts) {
         }
 
         mgCFrame *frame;
-        sprintf(name, at_1326, prefix, i + 1);
+        sprintf(name, "%s%02d", prefix, i + 1);
         frame = this->frame->SearchFrame(name);
 
         if (frame != NULL) {
@@ -339,7 +332,7 @@ void CBPot::Init() {
     this->frame = NULL;
     InitVector(position);
     timer = 0;
-    type = 0;
+    type = BPOT_TYPE_NONE;
     fragment_num = 0;
 
     for (i = 0; i < BPOT_FRAGMENT_MAX; i++) {
@@ -385,7 +378,7 @@ int CPot::FlyStep() {
     next_position[2] = position[2] + velocity[2];
     next_position[3] = 1.0f;
     mgDistVector(velocity);
-    CMapPiece *piece = parts->SearchPiece(at_1438__4);
+    CMapPiece *piece = parts->SearchPiece("rnd_obj01-a");
 
     if (piece != NULL) {
         piece->Show(0);
@@ -420,7 +413,7 @@ int CPot::FlyStep() {
                         CEffectScriptMan *effects = GetMainScene()->GetEffect(0);
 
                         if (effects != NULL) {
-                            effects->CreateEffSpt(at_1196, -1, 0);
+                            effects->CreateEffSpt("\x91\xAB\x90\x85\x83\x70\x83\x56\x83\x83", -1, 0);
                             effects->SetScriptVect1(hit_points[i], -1, -1);
                         }
 
@@ -481,14 +474,13 @@ void CPot::Clear() {
 
 void CPot::Bakuhatsu(float *position_, float *normal) {
     if (parts != NULL) {
-
         u32 se_handle = GetMainScene()->se_battle_id;
 
-        if (BTsubo2.type == 1) {
+        if (BTsubo2.type == BPOT_TYPE_BOX) {
             sndSePlay(se_handle, 0x39, 0);
-        } else if (BTsubo2.type == 2) {
+        } else if (BTsubo2.type == BPOT_TYPE_ROCK0) {
             sndSePlay(se_handle, 0x3A, 0);
-        } else if (BTsubo2.type == 3) {
+        } else if (BTsubo2.type == BPOT_TYPE_ROCK1) {
             sndSePlay(se_handle, 0x3B, 0);
         }
 
@@ -575,14 +567,57 @@ void CPot::Init(int keep_velocity) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pot", box_offset__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pot", iwa0_offset__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pot", iwa1_offset__DATA);
+/**
+ *
+ * Starting offsets of the twelve pieces of a broken box.
+ *
+ */
+float box_offset[12][4] __attribute__((aligned(16))) = {
+    {-5.2f, 9.2f, -5.2f, 1.0f},
+    {5.0f, 9.4f, 5.2f, 1.0f},
+    {-5.2f, 0.0f, 5.2f, 1.0f},
+    {-5.2f, 0.0f, -5.2f, 1.0f},
+    {5.2f, 5.0f, 0.0f, 1.0f},
+    {0.0f, 5.0f, -5.2f, 1.0f},
+    {5.6f, 5.0f, 3.0f, 1.0f},
+    {-3.0f, 5.6f, 2.2f, 1.0f},
+    {3.1999998f, 6.8f, 3.6000001f, 1.0f},
+    {-3.6000001f, 0.0f, -2.8f, 1.0f},
+    {-4.0f, 3.0f, 3.0f, 1.0f},
+    {5.6f, 5.0f, -3.1999998f, 1.0f}
+};
 
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pot", at_1196__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pot", at_1323__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pot", at_1324__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pot", at_1325__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pot", at_1326__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pot", at_1438__4__DATA);
+/**
+ *
+ * Starting offsets of the ten pieces of the first broken rock.
+ *
+ */
+float iwa0_offset[10][4] __attribute__((aligned(16))) = {
+    {-4.4f, 11.2f, 4.2f, 1.0f},
+    {-3.7f, 10.8f, -2.3999999f, 1.0f},
+    {-4.6f, 4.7999997f, 4.0f, 1.0f},
+    {-2.2f, 2.0f, 2.0f, 1.0f},
+    {-4.6f, 3.8f, -2.6f, 1.0f},
+    {2.0f, 10.8f, 4.0f, 1.0f},
+    {2.8f, 11.0f, -3.0f, 1.0f},
+    {2.0f, 4.0f, 4.0f, 1.0f},
+    {3.1999998f, 4.7999997f, -3.1999998f, 1.0f},
+    {2.0f, 2.0f, -3.0f, 1.0f}
+};
+
+/**
+ *
+ * Starting offsets of the nine pieces of the second broken rock.
+ *
+ */
+float iwa1_offset[9][4] __attribute__((aligned(16))) = {
+    {-4.364f, 12.022f, 0.022f, 1.0f},
+    {-0.844f, 12.524f, 3.802f, 1.0f},
+    {3.512f, 12.996f, 1.848f, 1.0f},
+    {2.762f, 12.198f, 3.0379999f, 1.0f},
+    {-2.33f, 11.232f, -3.3000002f, 1.0f},
+    {2.216f, 5.976f, 0.168f, 1.0f},
+    {-2.112f, 2.664f, -1.778f, 1.0f},
+    {1.562f, 1.33f, 0.49199998f, 1.0f},
+    {-1.768f, 4.292f, -1.7939999f, 1.0f}
+};

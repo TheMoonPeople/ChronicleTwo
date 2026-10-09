@@ -73,7 +73,7 @@ public:
     s16         text_off_y;    /**< Distance of the text from the fixed frame's top edge; negative to use the frame's margins. */
     s16         mes_no;        /**< System message the window shows; -1 to show str. */
     u8          cursor_on;     /**< Non-zero to draw the choice cursor. */
-    u8          put_centering; /**< Non-zero to centre the window horizontally on screen. */
+    s8          put_centering; /**< Non-zero to centre the window horizontally on screen. */
     u8          scissor_on;    /**< Non-zero to clip the window to scissor. */
     u8          unk_2963[0xD];
     mgRect<int> scissor;   /**< Screen rectangle the window is clipped to. */

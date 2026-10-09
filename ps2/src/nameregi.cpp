@@ -43,12 +43,174 @@ struct PositionTable {
     s8 index[3][5][12]; /**< Character grid position for each language, font, and command. */
 };
 
-extern char                 NameRegiTopic[0x40];
-extern s8                   NameRegiCode;
-extern s8                   NameStrSelectModeTable[7][6];
-extern NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[0x2C];
-extern s8                   testchar[0x2C][2];
-extern s8                   txt_table[0x3B];
+/**
+ *
+ * Stores the topic shown while entering an event keyword.
+ *
+ */
+static char NameRegiTopic[0x40];
+/**
+ *
+ * Stores the event keyword result code.
+ *
+ */
+static s8 NameRegiCode;
+/**
+ *
+ * Maps language and name entry button selection to a character set.
+ *
+ */
+static s8 NameStrSelectModeTable[7][6] = {
+    {NAMEREGI_FONT_MODE_KATA, NAMEREGI_FONT_MODE_HIRA, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, NAMEREGI_FONT_MODE_KANJI, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
+    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1}
+};
+/**
+ *
+ * Stores the initial Shift-JIS boundaries and generated kanji lists for each reading.
+ *
+ */
+static NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[46] = {
+    {{0x88, 0x9F}},
+    {{0x88, 0xC8}},
+    {{0x89, 0x45}},
+    {{0x89, 0x61}},
+    {{0x89, 0x98}},
+    {{0x89, 0xBA}},
+    {{0x8A, 0xE9}},
+    {{0x8B, 0xE3}},
+    {{0x8C, 0x54}},
+    {{0x8C, 0xC1}},
+    {{0x8D, 0xB1}},
+    {{0x8E, 0x64}},
+    {{0x90, 0x79}},
+    {{0x90, 0xA2}},
+    {{0x91, 0x58}},
+    {{0x91, 0xBC}},
+    {{0x92, 0x6C}},
+    {{0x92, 0xC3}},
+    {{0x92, 0xE0}},
+    {{0x93, 0x65}},
+    {{0x93, 0xDE}},
+    {{0x93, 0xF1}},
+    {{0x94, 0x47}},
+    {{0x94, 0x4B}},
+    {{0x94, 0x54}},
+    {{0x94, 0x62}},
+    {{0x94, 0xD9}},
+    {{0x95, 0x73}},
+    {{0x95, 0xB8}},
+    {{0x95, 0xDB}},
+    {{0x96, 0x80}},
+    {{0x96, 0xA1}},
+    {{0x96, 0xB1}},
+    {{0x96, 0xBB}},
+    {{0x96, 0xCC}},
+    {{0x96, 0xE7}},
+    {{0x96, 0xF9}},
+    {{0x97, 0x5C}},
+    {{0x97, 0x85}},
+    {{0x97, 0x98}},
+    {{0x97, 0xDA}},
+    {{0x97, 0xDF}},
+    {{0x98, 0x43}},
+    {{0x98, 0x60}},
+    {{0x98, 0x73}},
+    {{0x00, 0x00}}
+};
+/**
+ *
+ * Stores the Shift-JIS reading characters shown at the start of kanji groups.
+ *
+ */
+static s8 testchar[93] = "\x82\xA0\x82\xA2\x82\xA4\x82\xA6\x82\xA8\x82\xA9\x82\xAB\x82\xAD\x82\xAF\x82\xB1\x82\xB3\x82\xB5\x82\xB7\x82\xB9\x82\xBB\x82\xBD\x82\xBF\x82\xC2\x82\xC4\x82\xC6\x82\xC8\x82\xC9\x82\xCA\x82\xCB\x82\xCC\x82\xCD\x82\xD0\x82\xD3\x82\xD6\x82\xD9\x82\xDC\x82\xDD\x82\xDE\x82\xDF\x82\xE0\x82\xE2\x82\xE4\x82\xE6\x82\xE7\x82\xE8\x82\xE9\x82\xEA\x82\xEB\x82\xED\x82\xF0\x82\xF1";
+/**
+ *
+ * Stores ASCII characters accepted by the name conversion table.
+ *
+ */
+static s8 txt_table[59] = "0123456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+
+/**
+ *
+ * Stores the alpha characters used by the name entry font.
+ *
+ */
+static char ALPHA_TABLE1[28] = "ABCDEFGHIJKLM\nNOPQRSTUVWXYZ";
+
+/**
+ *
+ * Stores the alpha characters used by the name entry font.
+ *
+ */
+static char ALPHA_TABLE2[28] = "abcdefghijklm\nnopqrstuvwxyz";
+
+/**
+ *
+ * Stores the str characters used by the name entry font.
+ *
+ */
+static char STR_NUM_TABLE[14] = "0123456789   ";
+
+/**
+ *
+ * Stores the hira characters used by the name entry font.
+ *
+ */
+static char HIRA_TABLE1[2] = " ";
+
+/**
+ *
+ * Stores the hira characters used by the name entry font.
+ *
+ */
+static char HIRA_TABLE2[2] = " ";
+
+/**
+ *
+ * Stores the hira characters used by the name entry font.
+ *
+ */
+static char HIRA_TABLE3[2] = " ";
+
+/**
+ *
+ * Stores the kata characters used by the name entry font.
+ *
+ */
+static char KATA_TABLE1[2] = " ";
+
+/**
+ *
+ * Stores the kata characters used by the name entry font.
+ *
+ */
+static char KATA_TABLE2[2] = " ";
+
+/**
+ *
+ * Stores the kata characters used by the name entry font.
+ *
+ */
+static char KATA_TABLE3[2] = " ";
+
+/**
+ *
+ * Stores the kigou characters used by the name entry font.
+ *
+ */
+static char KIGOU_TABLE1[1] = "";
+
+/**
+ *
+ * Stores the kigou characters used by the name entry font.
+ *
+ */
+static char KIGOU_TABLE2[2] = " ";
 
 /**
  *
@@ -95,42 +257,361 @@ struct BoardPoint {
     s16 y; /**< Vertical coordinate. */
 };
 
-extern BoardColor     colt_1808[2];
-extern BoardRect      table_1819[][5];
-extern BoardRect      tex_commtbl_1822[][6];
-extern BoardPoint     nameregist_baseboard_upper_table[][12];
-extern s16            get_Htable_1806[3];
-extern char           KIGOU_TABLE_ASCII1[0x20];
-extern char           KIGOU_TABLE_ASCII2[0x100];
-extern char           KIGOU_TABLE1[4];
-extern char           KIGOU_TABLE2[8];
-extern char          *jis_ptr_table[2];
-extern mgCMemory      NameRegiStack;
-extern char           at_1281__6[0x10];
-extern char           at_1282__6[0x10];
-extern char           at_1283__5[0x10];
-extern char           at_1284__6[0x10];
-extern char           at_1285__3[0x10];
-extern char           at_1286__2[0x10];
-extern char           at_1287__3[0x10];
-extern char           at_1288__2[0x10];
-extern mgCTexture    *NameRegiWaku;
-extern mgCTexture    *NameRegiBGTile;
-extern mgCTexture    *NameregiGaiji;
-extern FontTables     NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM];
-extern CNameRegiMenu *NameRegiMenuPtr;
-extern int            OldReloadTexNumber;
-extern s16            LimmitTable_1360[5];
-extern PositionTable  at_1377__5;
-extern s8             NameRegistGyouLimmitTable[5];
-extern s8             Convtable2_1382[2][5][8];
-extern BoardTable     convtbl_1792;
-extern BoardTable     at_1795;
-extern mgCTexture    *NameRegiCursor;
-extern mgCTexture    *NameRegiTex1;
-extern s16            NameRegistMax;
-extern s16            gettbl0_2012[12];
-extern s64            at_2031__3;
+/**
+ *
+ * Stores the two colours used to draw name entry board passes.
+ *
+ */
+static BoardColor colt_1808[2] = {
+    {0, 0, 0, 32},
+    {128, 128, 128, 128}
+};
+/**
+ *
+ * Stores character set button texture rectangles for each name entry board layout.
+ *
+ */
+static BoardRect table_1819[7][5] = {
+    {
+        {176, 324, 54, 30},
+        {88, 324, 88, 30},
+        {0, 324, 88, 30},
+        {188, 354, 70, 30},
+        {230, 324, 54, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    },
+    {
+        {0, 294, 132, 30},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {132, 294, 132, 30}
+    }
+};
+/**
+ *
+ * Stores editing command texture rectangles for each name entry board layout.
+ *
+ */
+static BoardRect tex_commtbl_1822[7][6] = {
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {184, 294, 58, 30},
+        {72, 354, 58, 30},
+        {130, 354, 58, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    },
+    {
+        {0, 354, 36, 30},
+        {36, 354, 36, 30},
+        {0, 324, 88, 30},
+        {72, 354, 88, 30},
+        {160, 354, 88, 30},
+        {0, 294, 92, 30}
+    }
+};
+/**
+ *
+ * Stores the screen positions of name entry commands for each board layout.
+ *
+ */
+static BoardPoint nameregist_baseboard_upper_table[6][12] = {
+    {
+        {21, 16},
+        {107, 16},
+        {193, 16},
+        {245, 16},
+        {297, 16},
+        {29, 44},
+        {66, 44},
+        {107, 44},
+        {163, 44},
+        {219, 44},
+        {275, 44},
+        {369, 22}
+    },
+    {
+        {21, 16},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {150, 16},
+        {29, 44},
+        {66, 44},
+        {279, 44},
+        {107, 44},
+        {193, 44},
+        {279, 16},
+        {369, 22}
+    },
+    {
+        {21, 16},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {150, 16},
+        {29, 44},
+        {66, 44},
+        {279, 44},
+        {107, 44},
+        {193, 44},
+        {279, 16},
+        {369, 22}
+    },
+    {
+        {21, 16},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {150, 16},
+        {29, 44},
+        {66, 44},
+        {279, 44},
+        {107, 44},
+        {193, 44},
+        {279, 16},
+        {369, 22}
+    },
+    {
+        {21, 16},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {150, 16},
+        {29, 44},
+        {66, 44},
+        {279, 44},
+        {107, 44},
+        {193, 44},
+        {279, 16},
+        {369, 22}
+    },
+    {
+        {21, 16},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {150, 16},
+        {29, 44},
+        {66, 44},
+        {279, 44},
+        {107, 44},
+        {193, 44},
+        {279, 16},
+        {369, 22}
+    }
+};
+/**
+ *
+ * Stores the heights of the name entry board texture slices.
+ *
+ */
+static s16 get_Htable_1806[4] = {100, 16, 32, 0};
+/**
+ *
+ * Stores the primary ASCII symbol grid for European name entry.
+ *
+ */
+static char KIGOU_TABLE_ASCII1[31] = "!?\"#$&'()*+-%,.\n:;<=>@[]_{}|/ ";
+/**
+ *
+ * Stores the extended ASCII symbol grid for European name entry.
+ *
+ */
+static char KIGOU_TABLE_ASCII2[128] = " ";
+/**
+ *
+ * Lists the Shift-JIS character tables used to build the conversion grid.
+ *
+ */
+static char *jis_ptr_table[2] = {NULL, NULL};
+/**
+ *
+ * Points to the name entry window frame texture.
+ *
+ */
+static mgCTexture * NameRegiWaku;
+/**
+ *
+ * Points to the scrolling name entry background texture.
+ *
+ */
+static mgCTexture * NameRegiBGTile;
+/**
+ *
+ * Points to the extra glyph texture used by name entry.
+ *
+ */
+static mgCTexture * NameregiGaiji;
+/**
+ *
+ * Groups the character arrays available for each name entry font mode.
+ *
+ */
+static FontTables NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM] = {
+    {ALPHA_TABLE1, ALPHA_TABLE2, STR_NUM_TABLE},
+    {HIRA_TABLE1, HIRA_TABLE2, HIRA_TABLE3},
+    {KATA_TABLE1, KATA_TABLE2, KATA_TABLE3},
+    {NULL, NULL, NULL},
+    {KIGOU_TABLE1, KIGOU_TABLE2, NULL}
+};
+/**
+ *
+ * Points to the active name entry menu.
+ *
+ */
+static CNameRegiMenu * NameRegiMenuPtr;
+/**
+ *
+ * Caches the last texture block loaded by the name entry menu.
+ *
+ */
+static int OldReloadTexNumber;
+/**
+ *
+ * Stores the number of cells in each name entry character set.
+ *
+ */
+static s16 LimmitTable_1360[5] = {65, 90, 90, 114, 90};
+/**
+ *
+ * Stores the number of columns in each name entry character set.
+ *
+ */
+static s8 NameRegistGyouLimmitTable[5] = {13, 15, 15, 19, 15};
+/**
+ *
+ * Maps grid columns to name entry commands for each language and character set.
+ *
+ */
+static s8 Convtable2_1382[2][5][8] = {
+    {
+        {0, 1, 3, 5, 8, 11, 12, 0},
+        {1, 2, 5, 7, 9, 11, 13, 0},
+        {1, 2, 5, 7, 9, 11, 13, 0},
+        {1, 3, 5, 7, 11, 15, 20, 0},
+        {0, 1, 2, 3, 5, 7, 9, 14}
+    },
+    {
+        {0, 1, 3, 5, 8, 11, 12, 0},
+        {1, 2, 5, 7, 9, 11, 13, 0},
+        {1, 2, 5, 7, 9, 11, 13, 0},
+        {1, 3, 5, 7, 11, 15, 20, 0},
+        {0, 2, 5, 5, 9, 12, 9, 14}
+    }
+};
+/**
+ *
+ * Maps character sets to buttons on the Japanese name entry board.
+ *
+ */
+static BoardTable convtbl_1792 = {{2, 1, 0, 4, 3}};
+/**
+ *
+ * Points to the name entry cursor texture.
+ *
+ */
+static mgCTexture * NameRegiCursor;
+/**
+ *
+ * Points to the name entry board texture.
+ *
+ */
+static mgCTexture * NameRegiTex1;
+/**
+ *
+ * Limits the number of characters accepted by name entry.
+ *
+ */
+static s16 NameRegistMax = 10;
+/**
+ *
+ * Stores the three texture slices used to draw the selected name frame.
+ *
+ */
+static s16 gettbl0_2012[12] = {0, 148, 42, 64, 42, 148, 16, 64, 58, 148, 42, 64};
+
+/**
+ *
+ * Owns the temporary model, texture and font storage for name entry.
+ *
+ */
+static mgCMemory NameRegiStack;
 
 // Code (.text)
 void SetEventKeyword(char *target, char *topic, int code) {
@@ -177,7 +658,12 @@ int CNameRegiMenu::GetActiveFontMode() {
     return NameStrSelectModeTable[language][select_mode];
 }
 
-extern char ascii_code_table[];
+/**
+ *
+ * Lists the ASCII characters mapped by the name entry font.
+ *
+ */
+static char ascii_code_table[95] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789   !\"#$%&'()*+,-. /:;<=>?@[]_{}|";
 
 void CNameRegiMenu::CopyAsciiToJis(char *src, char *dst) {
     if (src == NULL || dst == NULL) {
@@ -329,8 +815,8 @@ int GetNameRegistFontKanjiList(int font_index, char *out) {
 
     do {
         if (position == font_index) {
-            out[0] = testchar[row][0];
-            out[1] = testchar[row][1];
+            out[0] = testchar[row * 2];
+            out[1] = testchar[row * 2 + 1];
             return 1;
         }
 
@@ -373,8 +859,6 @@ union NameRegiWindowPosition {
     s64 packed;         /**< Both positions copied together. */
 };
 
-extern NameRegiWindowPosition at_1081__4;
-
 /**
  *
  * Centers a message window and updates its surrounding frame.
@@ -386,7 +870,7 @@ extern NameRegiWindowPosition at_1081__4;
 void AdjustWaku(CDC2Mes *message, RECT *frame) {
     message->StepMsg();
     int                    width = message->line_w[0];
-    NameRegiWindowPosition position = at_1081__4;
+    NameRegiWindowPosition position = {{0, 36}};
     position.coordinates[0] = (mgScreenWidth - width) >> 1;
     message->SetPutPos(position.coordinates);
     frame->x = position.coordinates[0] - 20;
@@ -395,7 +879,12 @@ void AdjustWaku(CDC2Mes *message, RECT *frame) {
     frame->height = message->font_h + 36;
 }
 
-extern s8 txt_table2[0x3B][2];
+/**
+ *
+ * Stores the Shift-JIS counterparts of the ASCII name conversion characters.
+ *
+ */
+static s8 txt_table2[117] = "\x82O\x82P\x82Q\x82R\x82S\x82T\x82U\x82V\x82W\x82X\x82\x81\x82\x82\x82\x83\x82\x84\x82\x85\x82\x86\x82\x87\x82\x88\x82\x89\x82\x8A\x82\x8B\x82\x8D\x82\x8E\x82\x90\x82\x91\x82\x92\x82\x93\x82\x94\x82\x95\x82\x96\x82\x97\x82\x98\x82\x99\x82\x9A\x82`\x82" "a\x82" "b\x82" "c\x82" "d\x82" "e\x82" "f\x82g\x82i\x82j\x82k\x82l\x82m\x82o\x82p\x82q\x82r\x82s\x82t\x82u\x82v\x82w\x82x\x82y";
 
 /**
  *
@@ -409,7 +898,7 @@ int search_txt_jis(char *text) {
     int index = 0;
 
     do {
-        if ((s8) text[0] == txt_table2[index][0] && (s8) text[1] == txt_table2[index][1]) {
+        if ((s8) text[0] == txt_table2[index * 2] && (s8) text[1] == txt_table2[index * 2 + 1]) {
             return index;
         }
 
@@ -428,7 +917,7 @@ int search_txt_jis(char *text) {
  * @size 0x44
  */
 static int search_txt_asci(char *text) {
-    s8 *character = (s8 *) text;
+    s8 *character = text;
     int table_index = 0;
 
     do {
@@ -476,8 +965,8 @@ void ConvertAscii2ShitJiss(char *src, char *dst) {
         int index = search_txt_asci(input);
 
         if (0 <= index) {
-            output[0] = txt_table2[index][0];
-            output[1] = txt_table2[index][1];
+            output[0] = txt_table2[index * 2];
+            output[1] = txt_table2[index * 2 + 1];
         }
 
         input++;
@@ -493,8 +982,6 @@ void ConvertAscii2ShitJiss(char *src, char *dst) {
 struct NameRegiItemNames {
     char *name[3]; /**< Item name for each selectable entry. */
 };
-
-extern NameRegiItemNames at_1171__3;
 
 inline CNameRegiMenu::CNameRegiMenu() {
     select.pos = 0;
@@ -585,28 +1072,28 @@ void NameRegistInit(mgCMemory *stack, int *tex_block, int open_type) {
     mgCTextureManager *textures;
     int                file_size;
     u_int             *pack = (u_int *) NameRegiStack.stGetTop();
-    NameRegiStack.Alloc(Align16Blocks(LoadFileMenu(at_1281__6, (u_long128 *) pack, 1)));
+    NameRegiStack.Alloc(Align16Blocks(LoadFileMenu("nregi.pac", (u_long128 *) pack, 1)));
     textures = &mgTexManager;
-    MenuEnterIMG(NameRegiMenuPtr->tex_block[0], (u8 *) GetPackFile(pack, at_1282__6, &file_size), NULL);
-    NameRegiTex1 = textures->GetTexture(at_1283__5, -1);
-    NameRegiBGTile = textures->GetTexture(at_1283__5, -1);
+    MenuEnterIMG(NameRegiMenuPtr->tex_block[0], (u8 *) GetPackFile(pack, "img.img", &file_size), NULL);
+    NameRegiTex1 = textures->GetTexture("nameregi", -1);
+    NameRegiBGTile = textures->GetTexture("nameregi", -1);
     NameRegiWaku = NULL;
     NameRegiCursor = NULL;
-    u8 *waku_img = (u8 *) GetPackFile(pack, at_1284__6, &file_size);
+    u8 *waku_img = (u8 *) GetPackFile(pack, "edmenu.img", &file_size);
 
     if (waku_img != NULL) {
-        MenuEnterIMG(NameRegiMenuPtr->tex_block[0], waku_img, at_1285__3);
-        NameRegiWaku = textures->GetTexture(at_1286__2, -1);
+        MenuEnterIMG(NameRegiMenuPtr->tex_block[0], waku_img, "m");
+        NameRegiWaku = textures->GetTexture("menueff0m", -1);
     }
 
-    u8 *cursor_img = (u8 *) GetMenuMainIMGPtr();
+    u8 *cursor_img = GetMenuMainIMGPtr();
 
     if (cursor_img != NULL) {
-        MenuEnterIMG(NameRegiMenuPtr->tex_block[0], cursor_img, at_1285__3);
-        NameRegiCursor = textures->GetTexture(at_1287__3, -1);
+        MenuEnterIMG(NameRegiMenuPtr->tex_block[0], cursor_img, "m");
+        NameRegiCursor = textures->GetTexture("mnmainm", -1);
     }
 
-    NameregiGaiji = textures->GetTexture(at_1288__2, -1);
+    NameregiGaiji = textures->GetTexture("gaiji", -1);
     NameRegistMax = 10;
     NameRegistFont_Table[NAMEREGI_FONT_MODE_KIGOU].first = KIGOU_TABLE1;
     NameRegistFont_Table[NAMEREGI_FONT_MODE_KIGOU].second = KIGOU_TABLE2;
@@ -671,7 +1158,7 @@ void NameRegistInit(mgCMemory *stack, int *tex_block, int open_type) {
     message->push_button = 0;
     message->fade_speed = 1.0f;
     int               message_no = 0;
-    NameRegiItemNames item_names = at_1171__3;
+    NameRegiItemNames item_names = {{NULL, NULL, NULL}};
 
     switch (Nameregi_Target.target) {
         case NAMEREGI_TARGET_ITEM:
@@ -863,7 +1350,29 @@ void CNameRegiMenu::ConvertPositionNameRegi(int mode) {
 
     if (mode == 0) {
         int           col = command_pos;
-        PositionTable table = at_1377__5;
+        PositionTable table = {{
+            {
+                {0, 0, 7, 9, 11, 0, 0, 2, 4, 6, 8, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+                {0, 0, 8, 10, 11, 0, 0, 2, 4, 7, 9, 14}
+            },
+            {
+                {0, 0, 5, 8, 0, 0, 0, 9, 1, 5, 8, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+                {0, 0, 8, 10, 11, 0, 0, 9, 2, 6, 9, 13}
+            },
+            {
+                {0, 0, 7, 9, 11, 0, 0, 2, 4, 6, 8, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+                {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+                {0, 0, 8, 10, 11, 0, 0, 11, 2, 6, 9, 13}
+            }
+        }};
         int           language = LanguageCode;
 
         if (language > 0) {
@@ -973,20 +1482,32 @@ struct PasswordKey {
     u8 bytes[0x21]; /**< Password decoding key and its terminator. */
 };
 
-extern s16                  addTable_1510[8][4];
-extern s8                   convTbl_1579[4];
-extern NameCommandTable     at_1513__6;
-extern NameCommandTable     at_1514__6;
-extern NameCommandTable     at_1534;
-extern NameMessageArguments at_1621__3;
-extern NameMessageArguments at_1661__3;
-extern NameMessageArguments at_1684__3;
-extern NameMessageArguments at_1686;
-extern NameMessageArguments at_1693__2;
-extern PasswordKey          at_1669;
-extern char                 at_1747__2[0x10];
-extern char                 at_1748__2[0x10];
-extern char                *Sfida_default_Name[4];
+/**
+ *
+ * Stores row and horizontal cursor steps for each name entry character set.
+ *
+ */
+static s16 addTable_1510[5][4] = {
+    {-13, 13, -1, 1},
+    {-15, 15, -1, 1},
+    {-15, 15, -1, 1},
+    {-19, 19, -1, 1},
+    {-15, 15, -1, 1}
+};
+/**
+ *
+ * Maps name entry character sets to command buttons.
+ *
+ */
+static s8 convTbl_1579[5] = {2, 1, 0, 4, 3};
+/**
+ *
+ * Stores the default Spheda name for each language.
+ *
+ */
+static char *Sfida_default_Name[7] = {
+    "\x83\x86\x83\x8A\x83X", "Max", "Max", "Max", "Max", "Max", "Max"
+};
 
 s32 CNameRegiMenu::KeyStep() {
     s32      keys;
@@ -1036,7 +1557,7 @@ s32 CNameRegiMenu::KeyStep() {
                             MenuArg.result[0] = 1;
                         }
 
-                        if (strcmp(Nameregi_Target.keyword, at_1747__2) == 0 && strcmp(converted_name, at_1748__2) == 0) {
+                        if (strcmp(Nameregi_Target.keyword, "SIRUS") == 0 && strcmp(converted_name, "Sirus") == 0) {
                             MenuArg.result[0] = 1;
                         }
                     } else if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
@@ -1136,8 +1657,8 @@ s32 CNameRegiMenu::KeyStep() {
 
             switch (key_arg_no) {
                 case 0: {
-                    NameCommandTable japanese_navigation = at_1513__6;
-                    NameCommandTable localized_navigation = at_1514__6;
+                    NameCommandTable japanese_navigation = {{-1, 5, 11, 1, -1, 7, 0, 2, -1, 8, 1, 3, -1, 10, 2, 4, -1, 10, 3, 11, 0, -2, 11, 6, 0, -2, 5, 7, 1, -2, 6, 8, 1, -2, 7, 9, 2, -2, 8, 10, 3, -2, 9, 11, -1, -2, 4, 0}};
+                    NameCommandTable localized_navigation = {{-1, -1, -1, -1, -1, -1, -1, -1, -1, 5, 11, 3, -1, 8, 2, 10, -1, -1, -1, -1, 2, -2, 11, 6, 2, -2, 5, 8, 10, -2, 9, 11, 2, -2, 6, 9, 3, -2, 8, 7, -1, 7, 3, 11, -1, -2, 10, 2}};
                     s8              *row = &japanese_navigation.bytes[command_pos * 4];
 
                     if (LanguageCode > 0) {
@@ -1182,8 +1703,21 @@ s32 CNameRegiMenu::KeyStep() {
                         }
                     }
 
-                    NameCommandTable command_table = at_1534;
-                    s16             *command_events = (s16 *) &command_table.bytes[command_pos * 4];
+                    s16 command_table[12][2] = {
+                        {20, 2},
+                        {20, 2},
+                        {20, 2},
+                        {20, 2},
+                        {20, 2},
+                        {70, 2},
+                        {71, 2},
+                        {100, 2},
+                        {110, 2},
+                        {120, 2},
+                        {130, 2},
+                        {500, 2}
+                    };
+                    s16 *command_events = command_table[command_pos];
 
                     if ((pushed & 1) || (pushed & 4)) {
                         event = command_events[0];
@@ -1386,7 +1920,6 @@ s32 CNameRegiMenu::KeyStep() {
             if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
                 MenuSePlay(5);
             } else {
-                NameMessageArguments arguments;
                 mode = NAMEREGI_MODE_MESSAGE;
                 message_open = 1;
                 message_type = 0x14;
@@ -1394,7 +1927,7 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetAbsPos(5);
                 message->SetMsgCursor(0);
                 message->MakeMsg(0x1007);
-                arguments = at_1621__3;
+                NameMessageArguments arguments = {{NULL, NULL}};
 
                 if (Nameregi_Target.target == NAMEREGI_TARGET_ITEM) {
                     arguments.name[0] = GetItemMessage(Nameregi_Target.item->item_no);
@@ -1441,8 +1974,8 @@ s32 CNameRegiMenu::KeyStep() {
 
             break;
         case 0x1FE: {
-            char                 final_name[0x80];
-            NameMessageArguments arguments;
+            char final_name[0x80];
+
             strcpy(final_name, name);
 
             if (Nameregi_Target.target == NAMEREGI_TARGET_ITEM) {
@@ -1494,7 +2027,7 @@ s32 CNameRegiMenu::KeyStep() {
             message->MsgPreset(0xA);
             message->SetAbsPos(5);
             message->MakeMsg(0x1006);
-            arguments = at_1661__3;
+            NameMessageArguments arguments = {{NULL, NULL}};
             arguments.name[0] = old_name;
             arguments.name[1] = final_name;
             message->SetMsgItemNo(arguments.name, 2);
@@ -1515,14 +2048,13 @@ s32 CNameRegiMenu::KeyStep() {
                 message_id = 0x1010;
 
                 if (password_input != 0) {
-                    char        password[0x30];
-                    u8          decoded[0x20];
-                    PasswordKey key;
-                    u16         header[7];
-                    u8         *key_text;
-                    s32         password_valid;
+                    char password[0x30];
+                    u8   decoded[0x20];
+                    u16  header[7];
+                    u8  *key_text;
+                    s32  password_valid;
                     ConvertShitJiss2Ascii(name, password);
-                    key = at_1669;
+                    PasswordKey key = {{0}};
                     password[0x16] = 0;
                     strcpy((char *) key.bytes, Nameregi_Target.item->GetName(0));
                     key_text = key.bytes;
@@ -1579,7 +2111,7 @@ s32 CNameRegiMenu::KeyStep() {
                     message->SetAbsPos(5);
                     message->SetMsgCursor(0);
                     message->MakeMsg(0xFDC);
-                    NameMessageArguments arguments = at_1684__3;
+                    NameMessageArguments arguments = {{NULL, NULL}};
                     arguments.name[0] = old_name;
                     message->SetMsgItemNo(arguments.name, 2);
                     MenuSePlay(1);
@@ -1599,7 +2131,7 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetAbsPos(5);
                 message->SetMsgCursor(1);
                 message->MakeMsg(message_id);
-                NameMessageArguments arguments = at_1686;
+                NameMessageArguments arguments = {{NULL, NULL}};
                 arguments.name[0] = name;
 
                 if (LanguageCode > 0) {
@@ -1629,7 +2161,6 @@ s32 CNameRegiMenu::KeyStep() {
                 message->MakeMsg(0xFB4);
                 MenuSePlay(5);
             } else {
-                NameMessageArguments arguments;
                 mode = NAMEREGI_MODE_MESSAGE;
                 message_type = 0xA;
                 message_open = 1;
@@ -1637,7 +2168,7 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetAbsPos(5);
                 message->SetMsgCursor(1);
                 message->MakeMsg(0xFDC);
-                arguments = at_1693__2;
+                NameMessageArguments arguments = {{NULL, NULL}};
                 arguments.name[0] = old_name;
                 message->SetMsgItemNo(arguments.name, 1);
                 MenuSePlay(5);
@@ -1800,7 +2331,7 @@ int ConvertNameRegiBaseBoardTable(int index) {
     int result = convtbl_1792.slot[index];
 
     if (LanguageCode > 0) {
-        BoardTable alternate = at_1795;
+        BoardTable alternate = {{0, 0, 0, 0, 4}};
         result = alternate.slot[index];
     }
 
@@ -2095,7 +2626,7 @@ void CNameRegiMenu::DrawMarkCursor() {
 void CNameRegiMenu::DrawSelectedWord() {
     mgRect<int> shadow;
     mgRect<int> frame;
-    MenuReloadTexture(OldReloadTexNumber, *(s16 *) NameRegiTex1);
+    MenuReloadTexture(OldReloadTexNumber, NameRegiTex1->block);
     int          box_width = NameRegistMax * 0xC + 0x3E;
     int          box_left = (mgScreenWidth - box_width) >> 1;
     mgCDrawPrim *prim = GetMenuPrim();
@@ -2143,11 +2674,10 @@ void CNameRegiMenu::DrawSelectedWord() {
 }
 
 void CNameRegiMenu::DrawMessage() {
-    RGBAQ_TYPE color;
     MenuReloadTexture(OldReloadTexNumber, MenuDCMsg[6]->texture_block);
     mgCDrawPrim prim;
     SetSpriteEnv(&prim, 0);
-    *(s64 *) &color = at_2031__3;
+    RGBAQ_TYPE color = {0x80, 0x80, 0x80, 0x80, 0x3F800000};
     DrawVersatileWin_1(&prim, waku, &color, 0x80);
     (MenuDCMsg[6])->DrawMsg();
 
@@ -2158,90 +2688,10 @@ void CNameRegiMenu::DrawMessage() {
     }
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", Sfida_default_Name__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", ALPHA_TABLE1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", ALPHA_TABLE2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", STR_NUM_TABLE__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE_ASCII1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE_ASCII2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", ascii_code_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameRegistFont_Table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameStrSelectModeTable__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameRegiSearchKanjiIndexTable__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", testchar__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", txt_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", txt_table2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1153__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", LimmitTable_1360__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1377__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", Convtable2_1382__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", addTable_1510__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1513__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1514__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1534__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", nameregist_baseboard_upper_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", colt_1808__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", table_1819__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", tex_commtbl_1822__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", gettbl0_2012__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_892__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_893__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1281__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1282__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1283__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1284__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1285__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1286__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1287__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1288__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1747__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1748__2__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", __vt__13CNameRegiMenu__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameRegistMax__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", HIRA_TABLE1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", HIRA_TABLE2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", HIRA_TABLE3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KATA_TABLE1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KATA_TABLE2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KATA_TABLE3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", KIGOU_TABLE2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", jis_ptr_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", NameRegistGyouLimmitTable__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1081__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", convTbl_1579__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", convtbl_1792__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1795__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", get_Htable_1806__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_1807__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_2031__3__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(NameRegiCode, 0x4);
-INCLUDE_BSS(NameRegiMenuPtr, 0x4);
-INCLUDE_BSS(OldReloadTexNumber, 0x4);
-INCLUDE_BSS(NameRegiTex1, 0x4);
-INCLUDE_BSS(NameRegiBGTile, 0x4);
-INCLUDE_BSS(NameRegiCursor, 0x4);
-INCLUDE_BSS(NameRegiWaku, 0x4);
-INCLUDE_BSS(NameregiGaiji, 0x8);
-INCLUDE_BSS(at_1621__3, 0x8);
-INCLUDE_BSS(at_1661__3, 0x8);
-INCLUDE_BSS(at_1684__3, 0x8);
-INCLUDE_BSS(at_1686, 0x8);
-INCLUDE_BSS(at_1693__2, 0x8);
-
 // Uninitialised data (.bss)
-INCLUDE_BSS(Nameregi_Target, 0x50);
-INCLUDE_BSS(NameRegiTopic, 0x40);
-mgCMemory NameRegiStack;
-INCLUDE_BSS(at_1171__3, 0x10);
-INCLUDE_BSS(at_1669, 0x28);
-INCLUDE_BSS(at_1755, 0x18);
+/**
+ *
+ * Stores the target and keyword for the name entry screen.
+ *
+ */
+NAMEREGI_TARGET_INFO Nameregi_Target;

@@ -8,8 +8,6 @@
 
 #include "ezmidi.hpp"
 
-extern char at_33[];
-
 static s32 sbuff__2[16]; /**< Shared argument and response buffer for EZMIDI RPC calls. */
 
 /**
@@ -32,7 +30,7 @@ int ezMidiInit() {
 
     while (1) {
         if (sceSifBindRpc(&gCd.client, 0x12346, 0) < 0) {
-            printf(at_33);
+            printf("error: sceSifBindRpc \n");
 
             for (;;) {
             }
@@ -97,5 +95,3 @@ int ezTransToIOP2(void *iop_address, void *ee_address, int size) {
     transData.data = (void *) source;
     return 0;
 }
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/ezmidi", at_33__DATA);

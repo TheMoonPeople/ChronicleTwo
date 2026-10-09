@@ -11,7 +11,6 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 
-
 static const float paint_color_max = 255.0f;
 const int          color_channels = 3;
 const int          star_particle_max = 0x40;
@@ -26,32 +25,44 @@ const int          paint_effect_count = 1;
 const int          paint_particle_count = 24;
 const int          place_anime_count = 3;
 
-extern char          at_821__5[];
-extern sceVu0FVECTOR at_1112__3;
+/**
+ *
+ * Effect types enabled for the current edit operation.
+ *
+ */
+static u32 EffectFlag;
 
-extern u32               EffectFlag;
-extern u32               EffectState;
-extern CPaintEffect     *PaintEffect;
+/**
+ *
+ * Progress of the active edit effect.
+ *
+ */
+static u32 EffectState;
+
+/**
+ *
+ * Paint-particle effect used by the current edit operation.
+ *
+ */
+static CPaintEffect *PaintEffect;
+
 extern CStarEffect       _StarEffect[star_effect_count];
 extern mgCMemory         CurPartsBuff;
-extern CPlaceAnime       PlaceAnime[place_anime_count];
 
 // Code (.text)
 void EditSetEffectBuffer(mgCMemory *memory) {
-    mgCTexture *texture = mgTexManager.GetTexture(at_821__5, -1);
+    mgCTexture *texture = mgTexManager.GetTexture("haichi_eff", -1);
     int         i;
-    int         offset;
 
-    for (i = 0, offset = 0; i < star_effect_count; offset += sizeof(CStarEffect), i++) {
-        CStarEffect *star = (CStarEffect *) ((u8 *) _StarEffect + offset);
+    for (i = 0; i < star_effect_count; i++) {
         u32          bytes;
         int         *count;
         u32          blocks;
-        star->CObject::Initialize();
-        star->particle_max = star_particle_max;
-        star->particle_num = 0;
-        bytes = star->particle_max << 5;
-        count = &star->particle_max;
+        _StarEffect[i].CObject::Initialize();
+        _StarEffect[i].particle_max = star_particle_max;
+        _StarEffect[i].particle_num = 0;
+        bytes = _StarEffect[i].particle_max << 5;
+        count = &_StarEffect[i].particle_max;
 
         if (bytes & 0xF) {
             blocks = (bytes >> 4) + 1;
@@ -59,9 +70,8 @@ void EditSetEffectBuffer(mgCMemory *memory) {
             blocks = bytes >> 4;
         }
 
-        star->particle = (EditStarParticle *) operator new[](
-            *count << 5, memory->Alloc(blocks + 2));
-        star->texture = texture;
+        _StarEffect[i].particle = new (memory->Alloc(blocks + 2)) EditStarParticle[*count];
+        _StarEffect[i].texture = texture;
     }
 
     PaintEffect = new (memory->Alloc(0x42)) CPaintEffect[1];
@@ -93,19 +103,16 @@ int EditPlaceEffect(CEditParts *parts, float *position) {
     CStarEffect *effect = NULL;
     int          oldest_frame = 0;
     int          index = 0;
-    int          byte_offset = 0;
 
-    for (; index < star_effect_count; ++index, byte_offset += sizeof(CStarEffect)) {
-        CStarEffect *candidate = (CStarEffect *) ((u8 *) _StarEffect + byte_offset);
-
-        if (candidate->state == effect_idle) {
+    for (; index < star_effect_count; ++index) {
+        if (_StarEffect[index].state == effect_idle) {
             effect = &_StarEffect[index];
             break;
         }
 
-        if (candidate->frame > oldest_frame) {
-            oldest_frame = candidate->frame;
-            effect = candidate;
+        if (_StarEffect[index].frame > oldest_frame) {
+            oldest_frame = _StarEffect[index].frame;
+            effect = &_StarEffect[index];
         }
     }
 
@@ -168,7 +175,7 @@ int EditPaintEffect(CEditParts *parts, float *position, float *color, int shape)
         return 0;
     }
 
-    texture = mgTexManager.GetTexture(at_821__5, -1);
+    texture = mgTexManager.GetTexture("haichi_eff", -1);
     size = 1.0f;
 
     if (shape != 0) {
@@ -262,7 +269,6 @@ void CStarEffect::ParamInit(float *spread, int count) {
     float         radius;
     float         theta;
     sceVu0FVECTOR p;
-    u_long128     q;
 
     sceVu0ScaleVector(spread, spread, 0.12f);
     state = effect_started;
@@ -275,8 +281,7 @@ void CStarEffect::ParamInit(float *spread, int count) {
         p[2] = radius * cosf(theta);
         p[3] = 1.0f;
 
-        q = *(volatile u_long128 *) &p;
-        *(u_long128 *) particle[i].position = q;
+        *(u_long128 *) particle[i].position = *(u_long128 *) p;
         particle[i].shape = i % 2;
     }
 
@@ -464,11 +469,10 @@ int CPaintEffect::Draw() {
 
     for (int index = 0; index < paint_particle_count; ++index) {
         float drop_position[4];
-        float drop_size[4];
         float drop_scale = drop[index][3];
         *(u_long128 *) drop_position = *(u_long128 *) drop[index];
         drop_position[3] = 1.0f;
-        *(u_long128 *) drop_size = *(u_long128 *) at_1112__3;
+        float drop_size[4] = {0.0f, 0.0f, 0.0f, 0.0f};
         drop_size[0] = 10.0f * drop_scale;
         drop_size[1] = drop_size[0];
         billboard->CPSetSprite(drop_position, drop_size, drop_color, uv_start[shape], uv_end[shape]);
@@ -768,28 +772,13 @@ int EditPlaceAnimeEndCheck() {
 
 CStarEffect::CStarEffect() {}
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1038__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1039__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1040__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1106__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_1107__4__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", at_821__5__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", __vt__12CPaintEffect__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editeff", __vt__11CStarEffect__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(EffectFlag, 0x4);
-INCLUDE_BSS(EffectState, 0x4);
-INCLUDE_BSS(PaintEffect, 0x4);
-
 // Uninitialised data (.bss)
 CStarEffect _StarEffect[star_effect_count];
 mgCMemory   CurPartsBuff;
-INCLUDE_BSS(at_1037__6, 0x20);
-INCLUDE_BSS(at_1112__3, 0x10);
-INCLUDE_BSS(PlaceAnime, 0x1B0);
+
+/**
+ *
+ * Placement animations for the three edit-operation slots.
+ *
+ */
+CPlaceAnime PlaceAnime[EDIT_PLACE_ANIME_MAX];

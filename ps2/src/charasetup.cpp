@@ -29,14 +29,6 @@
 #include "swordeffect.hpp"
 #include "userdata.hpp"
 
-extern char at_868__3[];
-extern char at_869__3[];
-extern char at_870__2[];
-extern char at_871__3[];
-extern char at_872__3[];
-extern char at_1150[];
-extern char at_1000__3[], at_1001__3[], at_1002__3[], at_1003__3[], at_1004__3[], at_1005__3[], at_1006__2[], at_1007__2[], at_1008__3[], at_1009__2[], at_1010__2[], at_1011__2[], at_1012__2[], at_1013__2[], at_1014__2[], at_1015__2[], at_1016__3[], at_1017__3[], at_1018__4[];
-
 /**
  *
  * Memory stack slots used while setting up character parts.
@@ -46,9 +38,17 @@ struct SetupPartStack {
     int stacks[5]; /**< Stack slots for the parts. */
 };
 
-extern SetupPartStack at_919__3;
-extern int            mem_table[4][7];
-extern char           at_1149[];
+/**
+ *
+ * Stores the memory stack capacities for each main character setup.
+ *
+ */
+static int mem_table[4][7] = {
+    {68500, 40000, 7000, 4650, 3000, 9900, 4500},
+    {30000, 30000, 60000, 10000, 10000, 0, 0},
+    {75000, 40000, 7000, 4650, 3000, 9900, 0},
+    {120000, 0, 0, 0, 0, 5500, 0}
+};
 int                   SetupMints(CScene *scene, CUserDataManager *user_data);
 int                   SetupMonica(CScene *scene, CUserDataManager *user_data);
 int                   SetupMonster(CScene *scene, CUserDataManager *user_data);
@@ -80,12 +80,6 @@ struct SetupNameTable6 {
     char *names[6]; /**< Resource names. */
 };
 
-extern SetupNameTable6 at_1216__4;
-extern char            at_1268[], at_1269[], at_1270[], at_1271[], at_1272[], at_1273[], at_1274[], at_1275[], at_1276[], at_1277[];
-extern SetupNameTable4 at_1110;
-extern SetupNameTable3 at_1113;
-extern SetupNameTable3 at_1161;
-extern SetupNameTable3 at_1162;
 int                    SetupMints(CScene *scene, CUserDataManager *user_data);
 int                    SetupMonica(CScene *scene, CUserDataManager *user_data);
 int                    SetupMonster(CScene *scene, CUserDataManager *user_data);
@@ -95,8 +89,18 @@ int                    SetupMonster(CScene *scene, CUserDataManager *user_data);
 #include "menuchr.hpp"
 #include "mg_memory.hpp"
 
-extern char r_robo_pname_1282[4][16];
-extern char fname_1290[64];
+/**
+ *
+ * Stores the filenames of the four equipped ridepod components.
+ *
+ */
+static char r_robo_pname_1282[4][16];
+/**
+ *
+ * Stores the filename of Max's model aboard the ridepod.
+ *
+ */
+static char fname_1290[64];
 
 /**
  *
@@ -107,9 +111,22 @@ struct SetupPartOrder {
     int parts[4]; /**< Part order. */
 };
 
-extern SetupPartOrder at_1281__2;
-extern char          *fname_tbl_1291[6];
-extern char          *fname_tbl2_1298[6];
+/**
+ *
+ * Stores the ridepod rider model patterns for Max's costumes.
+ *
+ */
+static char *fname_tbl_1291[6] = {
+    "mints0%da.chr", "mints0%db.chr", "mints0%dc.chr", "mints0%dd.chr", "mints0%de.chr", "mints0%df.chr"
+};
+/**
+ *
+ * Stores the ridepod rider model patterns for Max's costumes.
+ *
+ */
+static char *fname_tbl2_1298[6] = {
+    "mints%da.chr", "mints%db.chr", "mints%dc.chr", "mints%dd.chr", "mints%de.chr", "mints%df.chr"
+};
 
 static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA *robo_info);
 
@@ -123,25 +140,25 @@ void GetCharacterSnd(CUserDataManager *user_data, int unit, char *path) {
             int item_no = equip[1].item_no;
 
             if (item_no < 0x16 || item_no > 0x28) {
-                sprintf(path, at_868__3);
+                sprintf(path, "snd2/chara/CH_000.snd");
                 return;
             }
 
             if (item_no < 0x20) {
-                sprintf(path, at_869__3, item_no - 0x16);
+                sprintf(path, "snd2/chara/CH_00%d.snd", item_no - 0x16);
             } else {
-                sprintf(path, at_870__2, item_no - 0x16);
+                sprintf(path, "snd2/chara/CH_0%d.snd", item_no - 0x16);
             }
         }
 
         if (unit == 1) {
-            sprintf(path, at_871__3);
+            sprintf(path, "snd2/chara/CH_020.snd");
         }
 
         if (unit == 2) {
             char name[0x40];
             user_data->robo_data.parts[0].GetRoboSoundFileName(name);
-            sprintf(path, at_872__3, name);
+            sprintf(path, "snd2/chara/%s.snd", name);
         }
     }
 }
@@ -161,47 +178,47 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
         parts[0]->Initialize(stacks);
         GetMainCharaModelName(0, model_name, edit_mode);
         if (edit_mode != 0) {
-            sprintf(path, at_1000__3, model_name);
+            sprintf(path, "chara/%s", model_name);
             LoadFile(path, read_buffer, NULL);
         } else {
-            sprintf(path, at_1001__3, model_name);
+            sprintf(path, "mainchr/%s", model_name);
             LoadFile(path, read_buffer, NULL);
         }
         parts[0]->accume_effect = &AccumulateEffect;
-        parts[0]->LoadPack((unsigned int *)read_buffer, at_1002__3, stacks, stacks, stacks, texture, NULL);
+        parts[0]->LoadPack((unsigned int *)read_buffer, "info.cfg", stacks, stacks, stacks, texture, NULL);
         parts[0]->SetPosition(0.0f, 0.0f, 200.0f);
         parts[0]->texture_block = texture;
         CGameDataUsed *equip = user_data->GetCharaDataPtr(chara_type)->equip;
         char *item_path;
         LoadFile(GetItemFilePath(equip[4].item_no, 0), read_buffer, NULL);
-        parts[0]->LoadSkin((unsigned int *)read_buffer, at_1002__3, at_1003__3, &stacks[1], texture);
+        parts[0]->LoadSkin((unsigned int *)read_buffer, "info.cfg", "", &stacks[1], texture);
         if (!edit_mode) {
             if (equip[0].item_no > 0) {
                 item_path = GetItemFilePath(equip[0].item_no, 0);
                 parts[1]->Initialize(NULL);
                 LoadFile(item_path, read_buffer, NULL);
-                parts[1]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
-                if (!parts[0]->SetRef(parts[1], at_1004__3)) printf(at_1005__3);
+                parts[1]->LoadPack((unsigned int *)read_buffer, "info.cfg", &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
+                if (!parts[0]->SetRef(parts[1], "ef00")) printf("err wep1\n");
             }
             if (equip[1].item_no > 0) {
                 item_path = GetItemFilePath(equip[1].item_no, 0);
                 parts[2]->Initialize(NULL);
                 LoadFile(item_path, read_buffer, NULL);
-                parts[2]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[3], &stacks[3], &stacks[3], texture, parts[0]);
-                if (!parts[0]->SetRef(parts[2], at_1006__2)) printf(at_1005__3);
+                parts[2]->LoadPack((unsigned int *)read_buffer, "info.cfg", &stacks[3], &stacks[3], &stacks[3], texture, parts[0]);
+                if (!parts[0]->SetRef(parts[2], "gun_hand")) printf("err wep1\n");
             }
             SetSwordBlurEffect(parts[0], &stacks[2], chara_type);
         }
         item_path = GetItemFilePath(equip[2].item_no, 0);
         parts[3]->Initialize(NULL);
         LoadFile(item_path, read_buffer, NULL);
-        parts[3]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[4], &stacks[4], &stacks[4], texture, parts[0]);
-        if (!parts[0]->SetRef(parts[3], at_1007__2)) printf(at_1005__3);
+        parts[3]->LoadPack((unsigned int *)read_buffer, "info.cfg", &stacks[4], &stacks[4], &stacks[4], texture, parts[0]);
+        if (!parts[0]->SetRef(parts[3], "hat")) printf("err wep1\n");
         LoadFile(GetItemFilePath(equip[3].item_no, 0), read_buffer, NULL);
-        parts[0]->LoadSkin((unsigned int *)read_buffer, at_1002__3, at_1003__3, &stacks[5], texture);
+        parts[0]->LoadSkin((unsigned int *)read_buffer, "info.cfg", "", &stacks[5], texture);
         if (!edit_mode) {
             int file_size;
-            LoadFile(at_1008__3, read_buffer, &file_size);
+            LoadFile("mainchr/c01.stb", read_buffer, &file_size);
             parts[0]->LoadActionFile((char *)read_buffer, file_size, &stacks[6]);
             parts[0]->InitScript();
         }
@@ -216,43 +233,43 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
         parts[0]->Initialize(stacks);
         GetMainCharaModelName(1, model_name, edit_mode);
         if (edit_mode != 0) {
-            sprintf(path, at_1000__3, model_name);
+            sprintf(path, "chara/%s", model_name);
             LoadFile(path, read_buffer, NULL);
         } else {
-            sprintf(path, at_1001__3, model_name);
+            sprintf(path, "mainchr/%s", model_name);
             LoadFile(path, read_buffer, NULL);
         }
         parts[0]->accume_effect = &AccumulateEffect;
-        parts[0]->LoadPack((unsigned int *)read_buffer, at_1002__3, stacks, stacks, stacks, texture, NULL);
+        parts[0]->LoadPack((unsigned int *)read_buffer, "info.cfg", stacks, stacks, stacks, texture, NULL);
         parts[0]->SetPosition(0.0f, 0.0f, 200.0f);
         parts[0]->texture_block = texture;
         CGameDataUsed *equip = user_data->GetCharaDataPtr(chara_type)->equip;
         char *item_path;
         LoadFile(GetItemFilePath(equip[4].item_no, 0), read_buffer, NULL);
-        parts[0]->LoadSkin((unsigned int *)read_buffer, at_1002__3, at_1003__3, &stacks[1], texture);
+        parts[0]->LoadSkin((unsigned int *)read_buffer, "info.cfg", "", &stacks[1], texture);
         if (!edit_mode) {
             item_path = GetItemFilePath(equip[0].item_no, 0);
             parts[1]->Initialize(NULL);
             LoadFile(item_path, read_buffer, NULL);
-            parts[1]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
-            if (!parts[0]->SetRef(parts[1], at_1009__2)) printf(at_1005__3);
+            parts[1]->LoadPack((unsigned int *)read_buffer, "info.cfg", &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
+            if (!parts[0]->SetRef(parts[1], "sword_hand")) printf("err wep1\n");
             SetSwordBlurEffect(parts[0], &stacks[2], chara_type);
         }
         item_path = GetItemFilePath(equip[1].item_no, 0);
         parts[2]->Initialize(NULL);
         LoadFile(item_path, read_buffer, NULL);
-        parts[2]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[3], &stacks[3], &stacks[3], texture, parts[0]);
-        if (!parts[0]->SetRef(parts[2], at_1010__2)) printf(at_1005__3);
+        parts[2]->LoadPack((unsigned int *)read_buffer, "info.cfg", &stacks[3], &stacks[3], &stacks[3], texture, parts[0]);
+        if (!parts[0]->SetRef(parts[2], "wr")) printf("err wep1\n");
         item_path = GetItemFilePath(equip[2].item_no, 0);
         parts[3]->Initialize(NULL);
         LoadFile(item_path, read_buffer, NULL);
-        parts[3]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[4], &stacks[4], &stacks[4], texture, parts[0]);
-        if (!parts[0]->SetRef(parts[3], at_1011__2)) printf(at_1005__3);
+        parts[3]->LoadPack((unsigned int *)read_buffer, "info.cfg", &stacks[4], &stacks[4], &stacks[4], texture, parts[0]);
+        if (!parts[0]->SetRef(parts[3], "ac")) printf("err wep1\n");
         LoadFile(GetItemFilePath(equip[3].item_no, 0), read_buffer, NULL);
-        parts[0]->LoadSkin((unsigned int *)read_buffer, at_1002__3, at_1003__3, &stacks[5], texture);
+        parts[0]->LoadSkin((unsigned int *)read_buffer, "info.cfg", "", &stacks[5], texture);
         if (!edit_mode) {
             int file_size;
-            LoadFile(at_1012__2, read_buffer, &file_size);
+            LoadFile("mainchr/c02.stb", read_buffer, &file_size);
             parts[0]->LoadActionFile((char *)read_buffer, file_size, &stacks[6]);
             parts[0]->InitScript();
         }
@@ -265,27 +282,27 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
         GetCharaMemAllocPtr(memory, stacks, 2, edit_mode);
         ROBO_INFO_DATA *robo_info = GetRoboPartsInfo(user_data);
         parts[0]->Initialize(NULL);
-        sprintf(path, at_1013__2, robo_info->model_name[0]);
+        sprintf(path, "dungeon/robo/%s.chr", robo_info->model_name[0]);
         LoadFile(path, read_buffer, NULL);
-        parts[0]->LoadPack((unsigned int *)read_buffer, at_1002__3, stacks, stacks, stacks, texture, NULL);
+        parts[0]->LoadPack((unsigned int *)read_buffer, "info.cfg", stacks, stacks, stacks, texture, NULL);
         parts[0]->texture_block = texture;
-        SetupPartStack part_stack = at_919__3;
+        SetupPartStack part_stack = {{0, 1, 2, 2, 3}};
         for (int i = 1; i < 5; ++i) {
             parts[i]->Initialize(NULL);
-            if (i != 3) sprintf(path, at_1013__2, robo_info->model_name[i]);
-            else sprintf(path, at_1014__2, robo_info->model_name[i]);
+            if (i != 3) sprintf(path, "dungeon/robo/%s.chr", robo_info->model_name[i]);
+            else sprintf(path, "dungeon/robo/%s", robo_info->model_name[i]);
             LoadFile(path, read_buffer, NULL);
-            parts[i]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[part_stack.stacks[i]],
+            parts[i]->LoadPack((unsigned int *)read_buffer, "info.cfg", &stacks[part_stack.stacks[i]],
                                &stacks[part_stack.stacks[i]], &stacks[part_stack.stacks[i]], texture, parts[0]);
             if (i == 1) SetSwordBlurEffect(parts[0], &stacks[part_stack.stacks[i]], chara_type);
         }
         CActionChara *part = parts[5];
         part->Initialize(NULL);
         LoadFile(robo_info->hat_file, read_buffer, NULL);
-        part->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
+        part->LoadPack((unsigned int *)read_buffer, "info.cfg", &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
         SetupUnitMan(scene, user_data, 2, robo_info);
         int file_size;
-        LoadFile(at_1015__2, read_buffer, &file_size);
+        LoadFile("dungeon/act_script/robo.stb", read_buffer, &file_size);
         parts[0]->LoadActionFile((char *)read_buffer, file_size, &stacks[4]);
         parts[0]->InitScript();
         parts[0]->move_type = robo_info->move_type;
@@ -300,10 +317,10 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
         int monster_id = user_data->monster_id;
         GetCharaMemAllocPtr(memory, stacks, 3, edit_mode);
         GetMonsterModelFile(monster_id, 0, monster_model);
-        sprintf(monster_path, at_1016__3, monster_model);
+        sprintf(monster_path, "dungeon/monster/%s", monster_model);
         GetMonsterModelFile(monster_id, 3, monster_info);
         GetMonsterModelFile(monster_id, 2, monster_model);
-        sprintf(monster_script, at_1017__3, monster_model);
+        sprintf(monster_script, "dungeon/act_script/%s", monster_model);
         LoadFile(monster_path, read_buffer, NULL);
         parts[0]->Initialize(NULL);
         parts[0]->LoadPack((unsigned int *)read_buffer, monster_info, stacks, stacks, stacks, texture, NULL);
@@ -319,7 +336,7 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
     }
     int i = 0;
     do {
-        printf(at_1018__4, i, stacks[i].stack_used, stacks[i].stack_size);
+        printf("[%d]STACK %d/%d\n", i, stacks[i].stack_used, stacks[i].stack_size);
         ++i;
     } while (i < 7);
     return 1;
@@ -369,35 +386,26 @@ int GetCharaMemAllocPtr(mgCMemory *memory, mgCMemory *stacks, int chara_type, in
 
     memory->stack_used = 0;
     memory->lock = 0;
-    int index = 0;
+    int index;
     int size;
 
-    if (index < count) {
-        int table_offset = 0;
-        int stack_offset = 0;
+    for (index = 0; index < count; index++) {
+        size = mem_table[row][index];
 
-        do {
-            size = *(int *) (table_offset + (int) mem_table[row]);
+        if (size < 0) {
+            break;
+        }
 
-            if (size < 0) {
-                break;
-            }
+        u_long128 *buffer = memory->stAllocTest(size);
 
-            u_long128 *buffer = memory->stAllocTest(size);
-            mgCMemory *stack = (mgCMemory *) ((u8 *) stacks + stack_offset);
+        if (buffer == NULL) {
+            return 0;
+        }
 
-            if (buffer == NULL) {
-                return 0;
-            }
-
-            stack->stSetBuffer(buffer, size);
-            stack->stack_used = 0;
-            stack->lock = 0;
-            memory->stAlloc64(size);
-            index++;
-            table_offset += 4;
-            stack_offset += 0x30;
-        } while (index < count);
+        stacks[index].stSetBuffer(buffer, size);
+        stacks[index].stack_used = 0;
+        stacks[index].lock = 0;
+        memory->stAlloc64(size);
     }
 
     return 1;
@@ -449,22 +457,22 @@ void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INF
  */
 int SetupMints(CScene *scene, CUserDataManager *user_data) {
     CGameDataUsed *equip = user_data->GetCharaDataPtr(0)->equip;
-    CCharacter2   *characters[5];
+    CActionChara  *characters[5];
 
     for (int slot = 0; slot < 5; slot++) {
-        characters[slot] = scene->GetCharacter(slot);
+        characters[slot] = (CActionChara *) scene->GetCharacter(slot);
 
         if (characters[slot] != NULL) {
-            ((CActionChara *) characters[slot])->ResetParent();
+            characters[slot]->ResetParent();
         }
     }
 
-    SetupNameTable4 attach_names = at_1110;
-    SetupNameTable3 part_names = at_1113;
+    SetupNameTable4 attach_names = {{"ef00", "gun_hand", "hat", ""}};
+    SetupNameTable3 part_names = {{"sword", "shot", "hat"}};
     int             part = 0;
 
     if (characters[0] != NULL) {
-        strcpy(characters[0]->name, at_1149);
+        strcpy(characters[0]->name, "body");
         part = 0;
     }
 
@@ -473,9 +481,8 @@ int SetupMints(CScene *scene, CUserDataManager *user_data) {
             if (characters[part + 1] != NULL) {
                 char *attach_name = attach_names.names[part];
 
-                if (((CActionChara *) characters[0])
-                        ->SetRef((CActionChara *) characters[part + 1], attach_name) == 0) {
-                    printf(at_1150, attach_name);
+                if (characters[0]->SetRef(characters[part + 1], attach_name) == 0) {
+                    printf("setref failed : %s\n", attach_name);
                 } else {
                     strcpy(characters[part + 1]->name, part_names.names[part]);
                     characters[part + 1]->CopyOutLine(characters[0]);
@@ -484,9 +491,9 @@ int SetupMints(CScene *scene, CUserDataManager *user_data) {
         }
     }
 
-    ((CActionChara *) characters[0])->move_type = 0;
-    ((CActionChara *) characters[0])->attack_type = 0;
-    ((CActionChara *) characters[0])->chara_type = 0;
+    characters[0]->move_type = 0;
+    characters[0]->attack_type = 0;
+    characters[0]->chara_type = 0;
     return 1;
 }
 
@@ -497,22 +504,22 @@ int SetupMints(CScene *scene, CUserDataManager *user_data) {
  */
 int SetupMonica(CScene *scene, CUserDataManager *user_data) {
     CGameDataUsed *equip = user_data->GetCharaDataPtr(1)->equip;
-    CCharacter2   *characters[5];
+    CActionChara  *characters[5];
 
     for (int slot = 0; slot < 5; slot++) {
-        characters[slot] = scene->GetCharacter(slot);
+        characters[slot] = (CActionChara *) scene->GetCharacter(slot);
 
         if (characters[slot] != NULL) {
-            ((CActionChara *) characters[slot])->ResetParent();
+            characters[slot]->ResetParent();
         }
     }
 
-    SetupNameTable3 attach_names = at_1161;
-    SetupNameTable3 part_names = at_1162;
+    SetupNameTable3 attach_names = {{"sword_hand", "wr", "ac"}};
+    SetupNameTable3 part_names = {{"sword", "shot", "hat"}};
     int             part = 0;
 
     if (characters[0] != NULL) {
-        strcpy(characters[0]->name, at_1149);
+        strcpy(characters[0]->name, "body");
         part = 0;
     }
 
@@ -521,9 +528,8 @@ int SetupMonica(CScene *scene, CUserDataManager *user_data) {
             if (characters[part + 1] != NULL) {
                 char *attach_name = attach_names.names[part];
 
-                if (((CActionChara *) characters[0])
-                        ->SetRef((CActionChara *) characters[part + 1], attach_name) == 0) {
-                    printf(at_1150, attach_name);
+                if (characters[0]->SetRef(characters[part + 1], attach_name) == 0) {
+                    printf("setref failed : %s\n", attach_name);
                 } else {
                     strcpy(characters[part + 1]->name, part_names.names[part]);
                     characters[part + 1]->CopyOutLine(characters[0]);
@@ -532,8 +538,8 @@ int SetupMonica(CScene *scene, CUserDataManager *user_data) {
         }
     }
 
-    ((CActionChara *) characters[0])->move_type = 0;
-    ((CActionChara *) characters[0])->chara_type = ACTION_CHARA_MONICA;
+    characters[0]->move_type = 0;
+    characters[0]->chara_type = ACTION_CHARA_MONICA;
     return 1;
 }
 
@@ -565,40 +571,40 @@ static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA 
         parts[i]->ResetParent();
     }
 
-    SetupNameTable6 joint_names = at_1216__4;
+    SetupNameTable6 joint_names = {{"body%d", "spine", "joint2", "joint1", "hat", NULL}};
 
     for (int i = 0; i < 5; ++i) {
         if (i == 0) {
             parts[0]->SetRef(parts[i + 1], leg_joint);
         } else {
             if (!parts[0]->SetRef(parts[i + 1], joint_names.names[i])) {
-                printf(at_1268, joint_names.names[i]);
+                printf(" refer failed  :  %s\n", joint_names.names[i]);
             }
         }
 
         parts[i + 1]->CopyOutLine(parts[0]);
     }
 
-    strcpy(parts[0]->name, at_1269);
-    strcpy(parts[1]->name, at_1270);
-    strcpy(parts[2]->name, at_1149);
-    strcpy(parts[3]->name, at_1271);
-    strcpy(parts[4]->name, at_1272);
-    strcpy(parts[5]->name, at_1273);
+    strcpy(parts[0]->name, "leg");
+    strcpy(parts[1]->name, "arm");
+    strcpy(parts[2]->name, "body");
+    strcpy(parts[3]->name, "mints");
+    strcpy(parts[4]->name, "bpack");
+    strcpy(parts[5]->name, "cap");
 
     if (robo_info == NULL) {
         return 0;
     }
 
-    mgCFrame *arm = parts[0]->SearchObject(at_1274);
+    mgCFrame *arm = parts[0]->SearchObject("ude");
     mgCFrame *joint = parts[0]->SearchObject(arm_joint);
 
     if (arm == NULL) {
-        printf(at_1275);
+        printf("NOT ARM!\n");
     }
 
     if (joint == NULL) {
-        printf(at_1276);
+        printf("NOT MAT!\n");
     }
 
     if (arm == NULL || joint == NULL) {
@@ -610,7 +616,7 @@ static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA 
     arm->SetTransMatrix(matrix);
     parts[0]->move_type = leg_type;
     parts[0]->attack_type = arm_type;
-    printf(at_1277, leg_joint, arm_joint);
+    printf("***************** %s,%s\n", leg_joint, arm_joint);
     parts[0]->chara_type = 2;
     return 1;
 }
@@ -619,7 +625,7 @@ ROBO_INFO_DATA *GetRoboPartsInfo(CUserDataManager *user_data) {
     int            i;
     ROBO_DATA     *parts = &user_data->robo_data;
     CGameData     *game_data = GetGameDataPt();
-    SetupPartOrder part_order = at_1281__2;
+    SetupPartOrder part_order = {{3, 0, 1, 2}};
     CDataRoboPart *part_info[4];
 
     for (i = 0; i < 4; ++i) {
@@ -683,95 +689,48 @@ ROBO_INFO_DATA *GetRoboPartsInfo(CUserDataManager *user_data) {
  *
  */
 int SetupMonster(CScene *scene, CUserDataManager *user_data) {
-    CCharacter2 *characters[5];
+    CActionChara *characters[5];
 
     for (int slot = 0; slot < 5; slot++) {
-        characters[slot] = scene->GetCharacter(slot);
+        characters[slot] = (CActionChara *) scene->GetCharacter(slot);
 
         if (characters[slot] != NULL) {
-            ((CActionChara *) characters[slot])->ResetParent();
+            characters[slot]->ResetParent();
         }
     }
 
     if (characters[0] != NULL) {
-        strcpy(characters[0]->name, at_1149);
+        strcpy(characters[0]->name, "body");
     }
 
-    ((CActionChara *) characters[0])->move_type = 3;
-    ((CActionChara *) characters[0])->chara_type = ACTION_CHARA_MONSTER;
+    characters[0]->move_type = 3;
+    characters[0]->chara_type = ACTION_CHARA_MONSTER;
     return 1;
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_919__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", mem_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1110__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1113__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1161__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1162__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1216__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", robo_info_body__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1281__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", fname_tbl_1291__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", fname_tbl2_1298__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_868__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_869__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_870__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_871__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_872__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1000__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1001__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1002__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1003__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1004__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1005__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1006__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1007__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1008__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1009__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1010__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1011__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1012__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1013__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1014__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1015__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1016__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1017__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1018__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1111__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1112__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1149__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1150__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1212__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1213__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1214__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1215__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1268__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1269__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1270__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1271__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1272__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1273__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1274__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1275__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1276__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1277__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1292__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1293__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1294__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1295__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1296__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1297__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1299__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1300__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1301__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1302__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1303__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/charasetup", at_1304__3__DATA);
+/**
+ *
+ * Stores the body model and arm joint names for each ridepod body type.
+ *
+ */
+ROBO_INFO_BODY robo_info_body[11] = {
+    {"body01.chr", "arm1"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"},
+    {"body02.chr", "arm2"}
+};
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(robo_dat, 0x30);
-INCLUDE_BSS(r_robo_pname_1282, 0x40);
-INCLUDE_BSS(fname_1290, 0x40);
+/**
+ *
+ * Stores the model files and behaviour of the equipped ridepod.
+ *
+ */
+ROBO_INFO_DATA robo_dat;

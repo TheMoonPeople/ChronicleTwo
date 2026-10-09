@@ -508,22 +508,3 @@ void CFadeInOut::Draw() {
         prim2.End();
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effectlist", at_393__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effectlist", at_260__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effectlist", at_261__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effectlist", at_589__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_392, 0x10);
-INCLUDE_BSS(at_564__2, 0x10);
-INCLUDE_BSS(at_565, 0x10);
-INCLUDE_BSS(at_566, 0x10);
-INCLUDE_BSS(at_586, 0x10);
-INCLUDE_BSS(at_587, 0x10);
-INCLUDE_BSS(at_588, 0x10);

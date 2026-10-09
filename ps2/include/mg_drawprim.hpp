@@ -78,6 +78,7 @@ enum mgZ_MASK {
  */
 enum mgPACKET_CODE {
     MG_DMA_CNT = 1 << 28,             /**< DMA tag ID CNT, in the tag's first word: the data follows the tag. */
+    MG_DMA_REF = 3 << 28,             /**< DMA tag ID REF, in the tag's first word: transfers the data at the tag's address. */
     MG_DMA_CALL = 5 << 28,            /**< DMA tag ID CALL, in the tag's first word: calls the packet at the tag's address. */
     MG_DMA_RET = 6 << 28,             /**< DMA tag ID RET, in the tag's first word: returns to the caller of the packet. */
     MG_VIF_DIRECT = 0x50 << 24,       /**< VIF DIRECT code: the given quadwords go to the GIF. */
@@ -361,7 +362,7 @@ public:
      * @address 0x135180
      * @size 0x20
      */
-    u_char *DirectData(int count);
+    u_long128 *DirectData(int count);
 
     /**
      *

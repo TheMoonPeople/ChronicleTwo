@@ -618,7 +618,3 @@ void CCollision::Copy(CCollision &dest, mgCMemory *memory) {
 // Defined in collision.hpp.
 // Defined in collision.hpp.
 // Defined in collision.hpp.
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/collision", __vt__9CColFrame__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/collision", __vt__13CCollisionMDT__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/collision", __vt__10CCollision__DATA);

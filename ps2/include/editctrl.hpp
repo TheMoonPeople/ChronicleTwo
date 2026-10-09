@@ -58,6 +58,18 @@ enum EditCharaMotionMode {
 
 /**
  *
+ * Effect script selected by the material beneath the player's feet.
+ *
+ */
+enum EditFootEffect {
+    EDIT_FOOT_EFFECT_NONE = 0,  /**< No footstep effect. */
+    EDIT_FOOT_EFFECT_SAND = 1,  /**< Sand kicked up by a footstep. */
+    EDIT_FOOT_EFFECT_WATER = 2, /**< Water splashed by a footstep. */
+    EDIT_FOOT_EFFECT_GRASS = 3, /**< Grass disturbed by a footstep. */
+};
+
+/**
+ *
  * Extra collision polygons handed to EditMoveChara, and what the move ran into.
  *
  */

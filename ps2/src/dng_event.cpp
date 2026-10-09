@@ -1217,12 +1217,7 @@ int SearchMapEventParts(int kind, CMapParts **parts, float *rotation, int unused
 
     return result;
 }
-#ifdef NONMATCHING
-static inline CMap *ActiveDngMap() {
-    return DngMainScene->GetMap(DngMainScene->active_map);
-}
-template <typename T> static inline T Ident(T v) { return v; }
-int SearchMapFlatPosition(float *out_pos, CAutoMapGen *map_gen) {
+int SearchMapFlatPosition(sceVu0FVECTOR out_pos, CAutoMapGen *map_gen) {
     float center[4];
     float from[4];
     float to[4];
@@ -1233,19 +1228,19 @@ int SearchMapFlatPosition(float *out_pos, CAutoMapGen *map_gen) {
     float found[4];
     CMapParts *parts;
     int place_num;
-    int poly_num __attribute__((aligned(16)));
+    int poly_num;
     CMapParts *place_parts;
-    int tries_left __attribute__((aligned(32)));
-    int attempt __attribute__((aligned(16)));
-    CMap *map __attribute__((aligned(32)));
-    int hit_num __attribute__((aligned(16)));
-    int attr __attribute__((aligned(32)));
-    int axis __attribute__((aligned(32)));
-    map = ActiveDngMap();
-    if (map == NULL) {
+    int tries_left;
+    int attempt;
+    CMap *map;
+    int hit_num;
+    int attr;
+    int axis;
+    CMap *const scene_map = DngMainScene->GetMap(DngMainScene->active_map);
+    if ((map = scene_map) == NULL) {
         return 0;
     }
-    place_parts = map->GetPlacPartsTable(&place_num);
+    place_parts = scene_map->GetPlacPartsTable(&place_num);
     if (place_parts == NULL) {
         return 0;
     }
@@ -1286,7 +1281,7 @@ int SearchMapFlatPosition(float *out_pos, CAutoMapGen *map_gen) {
                 box.min[axis] = center[axis] - 100.0f;
             }
         }
-        poly_num = Ident(map)->GetColPoly(polys, box, 0x80);
+        poly_num = map->GetColPoly(polys, box, 0x80);
         for (attempt = 0; attempt < 16; attempt++) {
             sceVu0CopyVector(from, center);
             from[0] += fRand(320.0f) - 160.0f;
@@ -1320,9 +1315,6 @@ int SearchMapFlatPosition(float *out_pos, CAutoMapGen *map_gen) {
         tries_left--;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_event", SearchMapFlatPosition__FPfP11CAutoMapGen);
-#endif
 int GetDungeonEventPoint(float *out_pos, float *out_rot, int kind) {
     float euler[4];
     if (kind == DUNGEON_EVENT_POINT_PLAYER) {

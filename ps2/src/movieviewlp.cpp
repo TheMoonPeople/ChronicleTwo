@@ -16,44 +16,111 @@
 #include "scriptinterpreter.hpp"
 #include "snd_mngr.hpp"
 
-extern SPI_TAG_PARAM     tag_movie[];
-extern CMovie           *MovieView;
-extern int               MovieMode;
-extern short             MovieSelect;
-extern short             MovieLine;
-extern short             MovieSpecialMode;
-extern short             MovieSpecialModeInfo[3];
-extern CScene           *MovieScene;
-extern mgCTexture       *RushWork__2;
-extern mgCMemory         Stack_ReadBuff__2;
-extern mgCMemory         DataBuffer__2;
-extern mgCMemory         buf0_791;
-extern mgCMemory         buf1_794;
-extern mgCMemory         dbuf0_797;
-extern mgCMemory         dbuf1_800;
-extern signed char       init_792;
-extern signed char       init_795;
-extern signed char       init_798;
-extern signed char       init_801;
-extern char              at_843__4[];
-extern char              at_844__3[];
-extern char              at_1028__8[];
-extern char              at_1029__6[];
-extern char              at_1030__5[];
-extern char              at_1031__5[];
-extern char              at_1032__6[];
-extern char              at_1033__7[];
-extern char              at_1034__5[];
-extern char              at_1035__5[];
-extern char              at_1036__5[];
-extern char              at_1037__5[];
-extern MOVIE_LIST_ENTRY *MovieList;
-extern int               MovieListNum;
-extern mgCMemory        *spi_MovieStack;
-extern int               performance_meter_flag;
+/**
+ *
+ * Scene used to display movies and play their music.
+ *
+ */
+static CScene *MovieScene;
+
+/**
+ *
+ * Movie player for the selected viewer entry.
+ *
+ */
+static CMovie *MovieView;
+
+/**
+ *
+ * Texture containing the current movie frame.
+ *
+ */
+static mgCTexture *RushWork__2;
+
+/**
+ *
+ * Performance meter setting restored when the viewer exits.
+ *
+ */
+static int performance_meter_flag;
+
+/**
+ *
+ * Number of configured movie entries.
+ *
+ */
+static int MovieListNum;
+
+/**
+ *
+ * Configured movies available to the viewer.
+ *
+ */
+static MOVIE_LIST_ENTRY *MovieList;
+
+/**
+ *
+ * First movie row displayed in the viewer list.
+ *
+ */
+static short MovieLine;
+
+/**
+ *
+ * Index of the selected movie entry.
+ *
+ */
+static short MovieSelect;
+
+/**
+ *
+ * Stack used to store movie names parsed from the configuration.
+ *
+ */
+static mgCMemory *spi_MovieStack;
+
+/**
+ *
+ * Promotional sequence currently selected for playback.
+ *
+ */
+static short MovieSpecialMode;
+
+/**
+ *
+ * Current part and additional state of a promotional sequence.
+ *
+ */
+static short MovieSpecialModeInfo[3];
+
+/**
+ *
+ * Current movie viewer list or playback mode.
+ *
+ */
+static int MovieMode;
+
+/**
+ *
+ * Texture data buffer used by the movie viewer.
+ *
+ */
+static mgCMemory DataBuffer__2;
+
+/**
+ *
+ * Read buffer for movie files and their accompanying music.
+ *
+ */
+static mgCMemory Stack_ReadBuff__2;
 
 // Code (.text)
-int _MOVIE(SPI_STACK *stack, int argument_count) {
+/**
+ *
+ * Adds one configured movie and its optional music to the viewer list.
+ *
+ */
+static int _MOVIE(SPI_STACK *stack, int argument_count) {
     MOVIE_LIST_ENTRY *entry = MovieList + MovieListNum;
 
     if (entry == NULL) {
@@ -78,6 +145,16 @@ int _MOVIE(SPI_STACK *stack, int argument_count) {
     return 1;
 }
 
+/**
+ *
+ * Script tags accepted by the movie viewer configuration.
+ *
+ */
+static SPI_TAG_PARAM tag_movie[2] = {
+    {"MOVIE", _MOVIE},
+    {NULL, NULL},
+};
+
 void MovieViewInit(INIT_LOOP_ARG arg) {
     mgCMemory         *main_stack;
     mgCTextureManager *textures;
@@ -96,42 +173,42 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     main_stack->stack_used = 0;
     main_stack->lock = 0;
 
-    if (init_792 == 0) {
-        buf0_791.Init();
-        init_792 = 1;
-    }
+    /**
+     * First packet buffer manager.
+     */
+    static mgCMemory buf0;
 
-    if (init_795 == 0) {
-        buf1_794.Init();
-        init_795 = 1;
-    }
+    /**
+     * Second packet buffer manager.
+     */
+    static mgCMemory buf1;
 
-    if (init_798 == 0) {
-        dbuf0_797.Init();
-        init_798 = 1;
-    }
+    /**
+     * First draw-data buffer manager.
+     */
+    static mgCMemory dbuf0;
 
-    if (init_801 == 0) {
-        dbuf1_800.Init();
-        init_801 = 1;
-    }
+    /**
+     * Second draw-data buffer manager.
+     */
+    static mgCMemory dbuf1;
 
     packet_a = main_stack->stAlloc64(0x2710);
     packet_b = main_stack->stAlloc64(0x2710);
     mgInitVif1Packet(packet_a, packet_b, 0x27100);
-    buf0_791.stSetBuffer(main_stack->stAlloc64(0x7530), 0x7530);
-    buf1_794.stSetBuffer(main_stack->stAlloc64(0x7530), 0x7530);
-    dbuf0_797.stSetBuffer(main_stack->stAlloc64(0xEA60), 0xEA60);
-    dbuf1_800.stSetBuffer(main_stack->stAlloc64(0xEA60), 0xEA60);
+    buf0.stSetBuffer(main_stack->stAlloc64(0x7530), 0x7530);
+    buf1.stSetBuffer(main_stack->stAlloc64(0x7530), 0x7530);
+    dbuf0.stSetBuffer(main_stack->stAlloc64(0xEA60), 0xEA60);
+    dbuf1.stSetBuffer(main_stack->stAlloc64(0xEA60), 0xEA60);
     DataBuffer__2.stSetBuffer(main_stack->stAlloc64(0x186A0), 0x186A0);
-    mgSetPacketBuffer(&buf0_791, &buf1_794);
-    mgSetDataBuffer(&dbuf0_797, &dbuf1_800, 1);
+    mgSetPacketBuffer(&buf0, &buf1);
+    mgSetDataBuffer(&dbuf0, &dbuf1, 1);
     mgSetBackGround(0.0f, 0.0f, 0.0f, 128.0f);
     SetTextureTable(0x64, 0x14, &DataBuffer__2);
     textures = &mgTexManager;
-    textures->EnterIMGFile((u8 *) GetGaijiImgPtr(), 0, NULL, NULL);
+    textures->EnterIMGFile(GetGaijiImgPtr(), 0, NULL, NULL);
     ReLoadFontTexture(0);
-    textures->EnterIMGFile((u8 *) GetFontTex2ImgPtr(), 0, NULL, NULL);
+    textures->EnterIMGFile(GetFontTex2ImgPtr(), 0, NULL, NULL);
     MovieView = new (main_stack->Alloc(0x2396)) CMovie;
     MovieListNum = 0;
     MovieList = new (main_stack->Alloc(0x32)) MOVIE_LIST_ENTRY[64];
@@ -141,7 +218,7 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     spi_MovieStack = main_stack;
     script_ptr = script;
 
-    if (LoadFile2(at_843__4, script_ptr, &script_size, 0) != 0) {
+    if (LoadFile2("mv.cfg", script_ptr, &script_size, 0) != 0) {
         CScriptInterpreter interpreter;
         interpreter.SetTag(tag_movie);
         interpreter.SetScript(script_ptr, script_size);
@@ -159,9 +236,9 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     special_info[1] = 0;
     MovieSpecialMode = MOVIE_SPECIAL_MODE_NONE;
     special_info[2] = 0;
-    textures->EnterTexture(0xA, at_844__3, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth,
+    textures->EnterTexture(0xA, "moviework", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth,
                            0, 0, 0);
-    RushWork__2 = textures->GetTexture(at_844__3, 0xA);
+    RushWork__2 = textures->GetTexture("moviework", 0xA);
     performance_meter_flag = mgGetPerformanceMeterFlag();
     mgPerformanceMeter(0);
 }
@@ -236,21 +313,21 @@ int MovieViewLoop() {
 
             MovieSpecialMode = MOVIE_SPECIAL_MODE_NONE;
 
-            if (strcmp(entry->name, at_1028__8) == 0) {
+            if (strcmp(entry->name, "promo") == 0) {
                 MovieSpecialMode = MOVIE_SPECIAL_MODE_PROMO;
                 MovieSpecialModeInfo[0] = 1;
-                MovieView->Load(at_1029__6, &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
-                MovieView->Play(at_844__3);
+                MovieView->Load("PROMO1.PSS", &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
+                MovieView->Play("moviework");
                 MovieView->SwitchThread();
 
                 while (MovieView->IsStarted() == 0) {
                     MovieView->SwitchThread();
                 }
-            } else if (strcmp(entry->name, at_1030__5) == 0) {
+            } else if (strcmp(entry->name, "promo_tv") == 0) {
                 MovieSpecialMode = MOVIE_SPECIAL_MODE_PROMO_TV;
                 MovieSpecialModeInfo[0] = 1;
-                MovieView->Load(at_1031__5, &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
-                MovieView->Play(at_844__3);
+                MovieView->Load("PROMO1TV.PSS", &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
+                MovieView->Play("moviework");
                 MovieView->SwitchThread();
 
                 while (MovieView->IsStarted() == 0) {
@@ -258,7 +335,7 @@ int MovieViewLoop() {
                 }
             } else {
                 MovieView->Load(entry->file_name, &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
-                MovieView->Play(at_844__3);
+                MovieView->Play("moviework");
                 MovieView->SwitchThread();
 
                 while (MovieView->IsStarted() == 0) {
@@ -276,12 +353,12 @@ int MovieViewLoop() {
         menu_font.SetClearance(0x10, 0x14);
         menu_font.SetFuchi(FUCHI_SHADOW_BLACK_WIDE);
         menu_font.SetColor(0x80686A6BU);
-        sprintf(row_text, at_1032__6, at_1033__7, at_1034__5);
+        sprintf(row_text, "  :%18s     %s", "\x89" "f\x91\x9c  ", "BGMID");
         i = MovieLine;
         row_y = 0x28;
 
         while (i < MovieLine + 8 && i < MovieListNum) {
-            sprintf(row_text, at_1035__5, i, MovieList[i].name);
+            sprintf(row_text, "  %d:%18s  ", i, MovieList[i].name);
 
             if (i == MovieSelect) {
                 row_text[1] = '>';
@@ -340,15 +417,15 @@ int MovieViewLoop() {
                     MovieMode = MOVIE_VIEW_MODE_PLAY;
 
                     if (MovieSpecialMode == MOVIE_SPECIAL_MODE_PROMO) {
-                        sprintf(part_path, at_1036__5, MovieSpecialModeInfo[0]);
+                        sprintf(part_path, "PROMO%d.PSS", MovieSpecialModeInfo[0]);
                     }
 
                     if (MovieSpecialMode == MOVIE_SPECIAL_MODE_PROMO_TV) {
-                        sprintf(part_path, at_1037__5, MovieSpecialModeInfo[0]);
+                        sprintf(part_path, "PROMO%dTV.PSS", MovieSpecialModeInfo[0]);
                     }
 
                     MovieView->Load(part_path, &Stack_ReadBuff__2, 0x200, 0x1A0, true, false);
-                    MovieView->Play(at_844__3);
+                    MovieView->Play("moviework");
                     MovieView->SwitchThread();
 
                     while (MovieView->IsStarted() == 0) {
@@ -366,47 +443,3 @@ int MovieViewLoop() {
 
     return 0;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", tag_movie__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_786__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_843__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_844__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1028__8__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1029__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1030__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1031__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1032__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1033__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1034__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1035__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1036__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movieviewlp", at_1037__5__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(MovieScene, 0x4);
-INCLUDE_BSS(MovieView, 0x4);
-INCLUDE_BSS(RushWork__2, 0x4);
-INCLUDE_BSS(performance_meter_flag, 0x4);
-INCLUDE_BSS(MovieListNum, 0x4);
-INCLUDE_BSS(MovieList, 0x4);
-INCLUDE_BSS(MovieLine, 0x4);
-INCLUDE_BSS(MovieSelect, 0x4);
-INCLUDE_BSS(spi_MovieStack, 0x4);
-INCLUDE_BSS(MovieSpecialMode, 0x4);
-INCLUDE_BSS(MovieSpecialModeInfo, 0x8);
-INCLUDE_BSS(MovieMode, 0x4);
-INCLUDE_BSS(init_792, 0x4);
-INCLUDE_BSS(init_795, 0x4);
-INCLUDE_BSS(init_798, 0x4);
-INCLUDE_BSS(init_801, 0x4);
-
-// Uninitialised data (.bss)
-mgCMemory DataBuffer__2;
-mgCMemory Stack_ReadBuff__2;
-INCLUDE_BSS(buf0_791, 0x30);
-INCLUDE_BSS(buf1_794, 0x30);
-INCLUDE_BSS(dbuf0_797, 0x30);
-INCLUDE_BSS(dbuf1_800, 0x30);

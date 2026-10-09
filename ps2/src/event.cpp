@@ -10,10 +10,14 @@
 #include "character.hpp"
 #include "dataread.hpp"
 #include "dbg_font.hpp"
+#include "dng_main.hpp"
+#include "editloop.hpp"
+#include "effectlist.hpp"
 #include "event.hpp"
 #include "event_func.hpp"
 #include "gamepad.hpp"
 #include "mainloop.hpp"
+#include "mapselect.hpp"
 #include "menucommon.hpp"
 #include "mg_camera.hpp"
 #include "mg_drawprim.hpp"
@@ -22,26 +26,27 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "nd_meswin.hpp"
+#include "padcontrol.hpp"
+#include "runscript.hpp"
 #include "savedata.hpp"
 #include "sceneseq.hpp"
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
+
+/**
+ *
+ * Interpreter running the active scene event script.
+ *
+ */
 static CRunScript EventScript;
-extern float      vv_984[3][4];
-extern char       at_819__4[];
-extern char       at_820__4[];
-extern char       at_1002__4[];
-extern char       D_0037B038[];
 
-#include "dng_main.hpp"
-#include "editloop.hpp"
-#include "effectlist.hpp"
-#include "mapselect.hpp"
-#include "padcontrol.hpp"
-#include "runscript.hpp"
-
-extern int cnt_1056;
+/**
+ *
+ * Scene receiving the active event script's commands.
+ *
+ */
+CScene *EventScene;
 
 // Code (.text)
 int LoadNpcTalkMes(mgCMemory *memory) {
@@ -53,10 +58,10 @@ int LoadNpcTalkMes(mgCMemory *memory) {
         return 0;
     }
 
-    sprintf(path, at_819__4, GetNowChapter(GetSaveData()), LanguageCode);
+    sprintf(path, "event/talk/npc_talk_c%d_%d.txt", GetNowChapter(GetSaveData()), LanguageCode);
 
     if (LoadFile2(path, buffer, &size, 0) == 0) {
-        sprintf(path, at_820__4, LanguageCode);
+        sprintf(path, "event/talk/npc_talk_c2_%d.txt", LanguageCode);
 
         if (LoadFile2(path, buffer, &size, 0) == 0) {
             return 0;
@@ -117,12 +122,24 @@ int RunEvent(int event_no, CScene *scene) {
 }
 
 int EventDoorLoop(int frame, int use_scene_se) {
+    /**
+     *
+     * Camera offsets used by the door-opening sequence.
+     *
+     */
+    static float vv[3][4] __attribute__((aligned(16))) = {
+        {-94.0f, 35.5f, -106.5f, 1.0f},
+        {105.0f, 32.5f, -28.5f, 1.0f},
+        {113.0f, 34.5f, 82.5f, 1.0f}
+    };
+
     float         character_pos[4];
     float         character_rot[4];
     float         camera_pos[4];
     float         camera_ref[4];
     sceVu0FMATRIX rotation;
     float         rotated_offset[4];
+
     character_pos[0] = EdEventInfo.func_fparam[0];
     character_pos[1] = EdEventInfo.func_fparam[1];
     character_pos[2] = EdEventInfo.func_fparam[2];
@@ -141,9 +158,9 @@ int EventDoorLoop(int frame, int use_scene_se) {
         character->SetRotation(character_rot);
 
         if (use_scene_se != 0) {
-            character->SetMotion(at_1002__4, 2);
+            character->SetMotion("\x83\x68\x83\x41\x8A\x4A\x82\xAF", 2);
         } else {
-            character->SetMotion(at_1002__4, 2);
+            character->SetMotion("\x83\x68\x83\x41\x8A\x4A\x82\xAF", 2);
         }
     } else if (frame == 25) {
         u32 bank = EventScene->se_base_id;
@@ -197,7 +214,7 @@ int EventDoorLoop(int frame, int use_scene_se) {
     if (camera_pos[0] == 0.0f && camera_pos[1] == 0.0f && camera_pos[2] == 0.0f) {
         sceVu0UnitMatrix(rotation);
         sceVu0RotMatrixY(rotation, rotation, character_rot[1]);
-        sceVu0ApplyMatrix(rotated_offset, rotation, vv_984[1]);
+        sceVu0ApplyMatrix(rotated_offset, rotation, vv[1]);
         sceVu0AddVector(rotated_offset, camera_ref, rotated_offset);
 
         if (camera != NULL) {
@@ -264,6 +281,13 @@ bool CheckEventSkip() {
 }
 
 int EventLoop() {
+    /**
+     *
+     * Door-sequence frame counter while a scene event is active.
+     *
+     */
+    static int cnt;
+
     int        request;
     int        index;
     mgCMemory *buffer;
@@ -306,12 +330,12 @@ int EventLoop() {
 
     switch (EdEventInfo.command_mode) {
         case EVENT_COMMAND_DOOR:
-            if (EventDoorLoop(cnt_1056, 1)) {
-                cnt_1056 = 0;
+            if (EventDoorLoop(cnt, 1)) {
+                cnt = 0;
                 EdEventInfo.command_mode = EVENT_COMMAND_RUN;
                 EdEventInfo.request = EVENT_REQUEST_NONE;
             } else {
-                cnt_1056++;
+                cnt++;
             }
 
             break;
@@ -324,7 +348,7 @@ int EventLoop() {
         case EVENT_COMMAND_UNK_2:
             break;
         default:
-            cnt_1056 = 0;
+            cnt = 0;
             EventScript.resume();
             break;
     }
@@ -463,15 +487,3 @@ CCharacter2 *GetCharacter(int index) {
 
     return character;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", vv_984__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", at_819__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", at_820__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event", at_1002__4__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(EventScene, 0x4);
-INCLUDE_BSS(cnt_1056, 0x4);

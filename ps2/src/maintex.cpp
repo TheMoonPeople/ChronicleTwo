@@ -5,7 +5,10 @@
 #include "character.hpp"
 #include "colprim.hpp"
 #include "dataread.hpp"
+#include "dng_effect.hpp"
 #include "dng_hud.hpp"
+#include "dng_main.hpp"
+#include "effectlist.hpp"
 #include "gaiji.hpp"
 #include "mainloop.hpp"
 #include "maintex.hpp"
@@ -20,39 +23,6 @@
 #include "swordeffect.hpp"
 #include "userdata.hpp"
 
-extern char at_792__2[];
-extern char at_793__2[];
-extern char at_794__2[];
-extern char at_795__2[];
-extern char at_796__2[];
-extern char at_797__2[];
-extern char at_798__2[];
-extern char at_799__2[];
-extern char at_800__2[];
-extern char at_801__2[];
-extern char at_802__2[];
-extern char at_803__2[];
-extern char at_804__2[];
-extern char at_819__3[];
-extern char at_820__3[];
-extern char at_821__3[];
-extern char at_822__3[];
-extern char at_823__3[];
-extern char at_824__3[];
-extern char at_825__3[];
-extern char at_826__3[];
-extern char at_827__3[];
-extern char at_828__4[];
-extern char at_829__4[];
-extern char at_830__5[];
-extern char at_831__4[];
-extern char at_832__4[];
-
-#include "dng_effect.hpp"
-#include "dng_main.hpp"
-#include "effectlist.hpp"
-
-#ifdef NONMATCHING
 mgCTexture *TEX_ShadowTexture;
 mgCTexture *TEX_SystenFrame;
 mgCTexture *TEX_SystenFrame2;
@@ -66,7 +36,6 @@ mgCTexture *TEX_SystemEffectSw;
 mgCTexture *TEX_ExFx_FIRE;
 mgCTexture *TEX_ExFx_ICE;
 mgCTexture *TEX_ExFx_THUN;
-#endif
 
 // Code (.text)
 void GetTextureInfo(CScene *scene) {
@@ -329,48 +298,3 @@ void SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int blur_type) {
 
     chara->sword_effect[0]->SetTexture(0x4A, TEX_SystemEffectSw, u, v, 64, 32);
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_792__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_793__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_794__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_795__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_796__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_797__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_798__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_799__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_800__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_801__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_802__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_803__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_804__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_819__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_820__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_821__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_822__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_823__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_824__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_825__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_826__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_827__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_828__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_829__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_830__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_831__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_832__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_936__3__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(TEX_ShadowTexture, 0x4);
-INCLUDE_BSS(TEX_SystenFrame, 0x4);
-INCLUDE_BSS(TEX_SystenFrame2, 0x4);
-INCLUDE_BSS(TEX_StatusIcon, 0x4);
-INCLUDE_BSS(TEX_DummyIcon1, 0x4);
-INCLUDE_BSS(TEX_DummyIcon2, 0x4);
-INCLUDE_BSS(TEX_SystemEffect1, 0x4);
-INCLUDE_BSS(TEX_SystemEffect2, 0x4);
-INCLUDE_BSS(TEX_SystemEffect3, 0x4);
-INCLUDE_BSS(TEX_SystemEffectSw, 0x4);
-INCLUDE_BSS(TEX_ExFx_FIRE, 0x4);
-INCLUDE_BSS(TEX_ExFx_ICE, 0x4);
-INCLUDE_BSS(TEX_ExFx_THUN, 0x4);

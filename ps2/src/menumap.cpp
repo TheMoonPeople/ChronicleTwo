@@ -28,51 +28,154 @@
 #include "scriptinterpreter.hpp"
 #include "sysmes.hpp"
 
-extern signed char   SfidaMoveInitFlag;
-static mgCMemory     WorldMapStack;
-static mgCMemory     SphidaStack;
-extern int           SphidaMenuTexbk[16];
-extern CSubGameData *SubSaveData__2;
-extern CSphidaData  *SubSphidaData;
-extern mgCTexture   *SphidaTex;
-extern mgCTexture   *SphidaTex_Sys;
-extern char          at_1674[];
-extern char          at_1675[];
-extern char          at_1677[];
-extern char          at_1310__4[];
-extern char          at_1676[];
-extern int           D_01F3C7FC[4];
-extern float         SfidaBGXY;
-extern CDC2Mes      *SphidaMenuMes;
-extern CDC2Mes      *SphidaMenuQus;
-extern CDC2Mes      *SphidaScore;
-extern u8            SphidaMenuQusDrawFlag;
-extern u8            SphidaInfoMsgDrawFlag;
-extern mgCTexture   *SphidaTex2;
-extern mgCTexture   *SphidaCursor;
-extern u8            SphidaCursorDrawFlag;
-extern float         SphidaCursorY;
-extern int           SphidaCursorCount;
-extern short         SphidaMenuPhase;
-extern char          at_1556__2[];
-extern char          at_1557__2[];
-extern int           SphidaSelect[2];
-extern short         SfidaMakeLine;
+/**
+ * Whether Spheda cursor movement should snap to its target.
+ */
+static signed char SfidaMoveInitFlag;
+/**
+ * Storage for the active world map menu.
+ */
+static mgCMemory WorldMapStack;
+/**
+ * Storage for the active Spheda menu.
+ */
+static mgCMemory SphidaStack;
+/**
+ * Texture blocks used by the Spheda menu.
+ */
+static int SphidaMenuTexbk[8];
+/**
+ * Subgame save data used by the Spheda menus.
+ */
+static CSubGameData *SubSaveData__2;
+/**
+ * Spheda player and course records used by the menus.
+ */
+static CSphidaData *SubSphidaData;
+/**
+ * Primary Spheda menu texture.
+ */
+static mgCTexture *SphidaTex;
+/**
+ * Spheda menu interface texture.
+ */
+static mgCTexture *SphidaTex_Sys;
+/**
+ * Animated background offset for the Spheda menu.
+ */
+static float SfidaBGXY;
+/**
+ * Message window for the Spheda menu and score list.
+ */
+static CDC2Mes *SphidaMenuMes;
+/**
+ * Question window for Spheda menu confirmation prompts.
+ */
+static CDC2Mes *SphidaMenuQus;
+/**
+ * Message window used for Spheda score information.
+ */
+static CDC2Mes *SphidaScore;
+/**
+ * Whether to draw the Spheda confirmation question.
+ */
+static u8 SphidaMenuQusDrawFlag;
+/**
+ * Whether to draw the Spheda information message.
+ */
+static u8 SphidaInfoMsgDrawFlag;
+/**
+ * Spheda menu background texture.
+ */
+static mgCTexture *SphidaTex2;
+/**
+ * Texture used to draw the Spheda menu cursor.
+ */
+static mgCTexture *SphidaCursor;
+/**
+ * Whether to draw the Spheda menu cursor.
+ */
+static u8 SphidaCursorDrawFlag;
+/**
+ * Vertical position of the Spheda menu cursor.
+ */
+static float SphidaCursorY;
+/**
+ * Frame counter for the Spheda cursor animation.
+ */
+static int SphidaCursorCount;
+/**
+ * Current phase of the Spheda menu.
+ */
+static short SphidaMenuPhase;
+/**
+ * Cursor index and first visible row in the Spheda lists.
+ */
+static int SphidaSelect[2];
+/**
+ * Whether the Spheda list needs its next row populated.
+ */
+static short SfidaMakeLine;
 
-extern signed char     WorldMapMenuType;
-extern CWorldMapMenu  *WorldMapPtr;
-extern short           Sfida_NowPlayHorlBlink;
-extern short           WorldMap_NextLoopNo;
-extern short           WorldMap_MapNo;
-extern short           WorldMap_DngFloor;
-extern short           spi_wmappos_tblnum;
-extern WMAP_POS_DATA  *spi_wmappos_tbl;
-extern short           spi_wmaparea_tblnum;
-extern WMAP_AREA_DATA *spi_wmaparea_tbl;
-extern mgCMemory      *spi_wmapstack;
-extern short           MapEnableNum;
-extern SPI_TAG_PARAM   menu_wmap_analyze_tag[];
+/**
+ * Whether the world map or its dungeon tree map is open.
+ */
+static signed char WorldMapMenuType;
+/**
+ * Active world map menu instance.
+ */
+static CWorldMapMenu *WorldMapPtr;
+/**
+ * Frame counter for the active Spheda player highlight.
+ */
+static short Sfida_NowPlayHorlBlink;
+/**
+ * Main-loop mode requested by the selected travel destination.
+ */
+static short WorldMap_NextLoopNo;
+/**
+ * Map requested by the selected travel destination.
+ */
+static short WorldMap_MapNo;
+/**
+ * Dungeon floor requested by the selected travel destination.
+ */
+static short WorldMap_DngFloor;
+/**
+ * Number of scripted world map places.
+ */
+static short spi_wmappos_tblnum;
+/**
+ * Scripted world map place records.
+ */
+static WMAP_POS_DATA *spi_wmappos_tbl;
+/**
+ * Number of scripted world map areas.
+ */
+static short spi_wmaparea_tblnum;
+/**
+ * Scripted world map area records.
+ */
+static WMAP_AREA_DATA *spi_wmaparea_tbl;
+/**
+ * Memory backing the scripted world map place and area tables.
+ */
+static mgCMemory *spi_wmapstack;
+/**
+ * Number of world map areas currently available for travel.
+ */
+static short MapEnableNum;
 
+/**
+ * Script commands that populate the world map places and areas.
+ */
+static SPI_TAG_PARAM menu_wmap_analyze_tag[] = {
+    {"POS_NUM", _WMAP_POSNUM},
+    {"POS", _WMAP_POS},
+    {"AREA_NUM", _WMAP_AREANUM},
+    {"AREA", _WMAP_AREA},
+    {NULL, NULL},
+};
 
 // Code (.text)
 int _WMAP_POSNUM(SPI_STACK *stack, int) {
@@ -202,25 +305,12 @@ void worldmap_analyze(mgCMemory *stack, char *script, int size) {
 void CWorldMapMenu::SetMsgBuffer() {
     MenuDCMsg[4]->SetMessData(menu_mes_data, menu_mes_data);
     MenuDCMsg[4]->MsgPreset(15);
-    ((ClsMes *) MenuDCMsg[4])->fuchi = 5;
+    MenuDCMsg[4]->fuchi = 5;
     MenuDCMsg[2]->SetMessData(mes_data, menu_mes_data);
     MenuDCMsg[3]->SetMessData(mes_data, menu_mes_data);
-    ((ClsMes *) MenuDCMsg[3])->push_button = 0;
-    ((ClsMes *) MenuDCMsg[3])->fade_speed = 1.0f;
+    MenuDCMsg[3]->push_button = 0;
+    MenuDCMsg[3]->fade_speed = 1.0f;
 }
-extern char at_1302__4[];
-extern char at_1303__4[];
-extern char at_1304__5[];
-extern char at_1305__4[];
-extern char at_1306__4[];
-extern char at_1307__5[];
-extern char at_1308__5[];
-extern char at_1309__4[];
-extern char at_1311__3[];
-extern char at_1312[];
-extern char at_1313[];
-extern char at_1314[];
-extern char *geo_table_1183[];
 int CWorldMapMenu::KeyStep() {
     int result = WORLD_MOVE_CONTINUE;
     int i;
@@ -244,26 +334,26 @@ int CWorldMapMenu::KeyStep() {
         }
         BG_READ_INFO *read = GetReadBGFile(0);
         if (read != NULL) {
-            u_char *map_image = (u_char *)GetPackFile((u_int *)read->buffer, at_1302__4, NULL);
+            u_char *map_image = (u_char *)GetPackFile((u_int *)read->buffer, "map.img", NULL);
             mgCTextureManager *textures = &mgTexManager;
             textures->DeleteBlock(tex_block[0]);
             textures->EnterIMGFile(map_image, tex_block[0], NULL, NULL);
-            u_char *capture_image = (u_char *)GetPackFile((u_int *)read->buffer, at_1303__4, NULL);
+            u_char *capture_image = (u_char *)GetPackFile((u_int *)read->buffer, "frametex.img", NULL);
             if (world_move) {
                 textures->EnterIMGFile(capture_image, tex_block[0], NULL, NULL);
             }
             char map_name[0x20];
-            sprintf(map_name, at_1304__5, map_type);
+            sprintf(map_name, "wmap0%d", map_type);
             map_tex = textures->GetTexture(map_name, -1);
-            mark_tex = textures->GetTexture(at_1305__4, -1);
-            anim_tex = textures->GetTexture(at_1306__4, -1);
-            pulse_tex = textures->GetTexture(at_1307__5, -1);
+            mark_tex = textures->GetTexture("wname", -1);
+            anim_tex = textures->GetTexture("wmap021", -1);
+            pulse_tex = textures->GetTexture("wmap022", -1);
             if (map_type == 4) {
-                anim_tex = textures->GetTexture(at_1308__5, -1);
-                map_tex = textures->GetTexture(at_1309__4, -1);
+                anim_tex = textures->GetTexture("wmap04", -1);
+                map_tex = textures->GetTexture("wmap01", -1);
             }
-            cursor_tex = textures->GetTexture(at_1310__4, -1);
-            mes_data = (short *)GetPackFile((u_int *)read->buffer, at_1311__3, NULL);
+            cursor_tex = textures->GetTexture("mnmain", -1);
+            mes_data = (short *)GetPackFile((u_int *)read->buffer, "mapname.mes", NULL);
             menu_mes_data = GetMenuMainMessageBuffer();
             SetMsgBuffer();
         }
@@ -281,7 +371,7 @@ int CWorldMapMenu::KeyStep() {
         WorldMapStack.Align64();
         char *script = (char *)WorldMapStack.stGetTop();
         unsigned int size;
-        size = LoadFileMenu(at_1312, (u_long128 *)script, 1);
+        size = LoadFileMenu("wldmap.cfg", (u_long128 *)script, MENU_FILE_LOAD_DIRECT);
         unsigned int blocks;
         if (size & 0xF) {
             blocks = (size >> 4) + 1;
@@ -371,7 +461,7 @@ int CWorldMapMenu::KeyStep() {
                     spi_wmaparea_tbl[i].enable = 1;
                 }
                 MapEnableNum = spi_wmaparea_tblnum - 1;
-                cursor_tex = mgTexManager.GetTexture(at_1310__4, -1);
+                cursor_tex = mgTexManager.GetTexture("mnmain", -1);
                 name_view = 1;
             }
             return WORLD_MOVE_CONTINUE;
@@ -544,11 +634,17 @@ int CWorldMapMenu::KeyStep() {
                         MenuArg.result[2] = select_pos->floor;
                     }
                 } else {
-                    if (WorldMap_MapNo == SearchMapNo(at_1313) && CheckBitFlagMenu(0x2BC) != 0) {
-                        WorldMap_MapNo = SearchMapNo(at_1314);
+                    if (WorldMap_MapNo == SearchMapNo("s12") && CheckBitFlagMenu(0x2BC) != 0) {
+                        WorldMap_MapNo = SearchMapNo("s34");
                     }
                     if (select_pos->type == WMAP_POS_TYPE_GEORAMA) {
-                        MenuMainScene->SetNowMapNo(SearchMapNo(geo_table_1183[select_pos->area_no]));
+                        /**
+                         * Georama map names indexed by world map area.
+                         */
+                        static char *geo_table[11] = {
+                            "", "", "g01", "g02", "g03", "g04", "", "g05", "", "", "",
+                        };
+                        MenuMainScene->SetNowMapNo(SearchMapNo(geo_table[select_pos->area_no]));
                     }
                     MenuArg.result[3] = 0;
                     MenuArg.result[2] = 0;
@@ -614,7 +710,7 @@ int CWorldMapMenu::KeyStep() {
             list_mes->MsgPreset(10);
             list_mes->SetMsgCursor(0);
             list_mes->cursor_on = 1;
-            ((ClsMes *)list_mes)->mes_no = -1;
+            list_mes->ClsMes::mes_no = -1;
             list_mes->cursor_time = 0;
             list_mes->fade_speed = 1.0f;
             list_mes->fade = 1.0f;
@@ -631,7 +727,7 @@ int CWorldMapMenu::KeyStep() {
             char *names[1] = {NULL};
             names[0] = select_pos->name;
             ask_mes->SetMsgItemNo(names, 1);
-            ((ClsMes *)ask_mes)->mes_no = -1;
+            ask_mes->ClsMes::mes_no = -1;
             ask_mes->fade = 0.0f;
             ask_mes->MakeMsg(0x9C6);
             ask_mes->SetMsgCursor(0);
@@ -647,7 +743,6 @@ int CWorldMapMenu::KeyStep() {
     }
     return result;
 }
-extern char at_1498__3[];
 static inline void WorldMapCursorDraw(mgCTexture *texture, float *position, float rotation, int alpha) {
     MenuCursorDraw(texture, position, rotation, 0, alpha, 1.0f);
 }
@@ -887,7 +982,7 @@ void CWorldMapMenu::Draw() {
         MenuReloadTexture(debug_tex, MenuArg.mes_tex_block);
         DrawMenuFillBox(300.0f, 10.0f, 220.0f, box_h, 0x40, 0, 0, 0);
         CMenuFont font;
-        font.SetStr(at_1498__3);
+        font.SetStr("(O):Open All Area");
         font.SetPos(0x136, 0xC);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
     }
@@ -964,7 +1059,7 @@ int WorldMoveInit(mgCMemory *stack, int *tex_block, int open_type) {
         WorldMapPtr->back_alpha = 0.0f;
     }
 
-    WorldMapPtr->capture_tex = mgTexManager.GetTexture(at_1556__2, -1);
+    WorldMapPtr->capture_tex = mgTexManager.GetTexture("menuwork2", -1);
     buffer = WorldMapStack.stGetTop();
 
     if (CheckBitFlagMenu(0x258) != 0) {
@@ -980,8 +1075,8 @@ int WorldMoveInit(mgCMemory *stack, int *tex_block, int open_type) {
     }
 
     StartReadBG();
-    sprintf(path, at_1557__2, WorldMapPtr->map_type);
-    size = LoadFileMenu(path, buffer, 0);
+    sprintf(path, "wmap%d.pac", WorldMapPtr->map_type);
+    size = LoadFileMenu(path, buffer, MENU_FILE_LOAD_BG);
 
     if (size & 0xF) {
         blocks = (size >> 4) + 1;
@@ -1087,11 +1182,12 @@ void SphidaMenuInit(mgCMemory *stack, int *tex_block, int open_type) {
     u_long128 *top = stack->stGetTop();
     SphidaStack.stSetBuffer(top, available);
 
+    // Initialization also writes eight slots beyond the texture-block table.
     for (int i = 0; i < 16; i++) {
         SphidaMenuTexbk[i] = tex_block[i];
     }
 
-    D_01F3C7FC[0] = -1;
+    SphidaMenuTexbk[15] = -1;
     MenuMainScene->fade.FadeIn(40);
     SubSaveData__2 = GetSubGameSaveData();
     SubSphidaData = NULL;
@@ -1124,7 +1220,7 @@ void SphidaMenuInit(mgCMemory *stack, int *tex_block, int open_type) {
         MenuPosData->AttachCommonTexInfo();
         MenuCommonInfo->key_enable = 1;
         u_long128   *buffer = SphidaStack.stGetTop();
-        unsigned int size = LoadFileMenu(at_1674, buffer, 1);
+        unsigned int size = LoadFileMenu("omake.img", buffer, MENU_FILE_LOAD_DIRECT);
         unsigned int blocks;
 
         if (size & 15) {
@@ -1135,14 +1231,14 @@ void SphidaMenuInit(mgCMemory *stack, int *tex_block, int open_type) {
 
         SphidaStack.Alloc(blocks);
         mgTexManager.EnterIMGFile((u8 *) buffer, SphidaMenuTexbk[1], NULL, NULL);
-        SphidaTex = mgTexManager.GetTexture(at_1675, -1);
-        mgTexManager.EnterIMGFile((u8 *) GetMenuMainIMGPtr(), SphidaMenuTexbk[1], NULL, NULL);
-        SphidaCursor = mgTexManager.GetTexture(at_1310__4, -1);
+        SphidaTex = mgTexManager.GetTexture("omaketx", -1);
+        mgTexManager.EnterIMGFile(GetMenuMainIMGPtr(), SphidaMenuTexbk[1], NULL, NULL);
+        SphidaCursor = mgTexManager.GetTexture("mnmain", -1);
         SphidaCursorY = 300.0f;
         SphidaCursorDrawFlag = 0;
         SphidaCursorCount = 0;
-        SphidaTex2 = mgTexManager.GetTexture(at_1676, -1);
-        SphidaTex_Sys = mgTexManager.GetTexture(at_1677, -1);
+        SphidaTex2 = mgTexManager.GetTexture("mnbg", -1);
+        SphidaTex_Sys = mgTexManager.GetTexture("omake_sfida", -1);
         SphidaMenuPhase = 0;
         SubSphidaData->InitPlay();
         SphidaScreListUpdate(SphidaScore, 1);
@@ -1398,10 +1494,14 @@ int SphidaMenuKey() {
     MenuDCMsg[2]->StepMsg();
     return 0;
 }
-extern float SphidaScoreListY;
-extern float SphidaScoreListBarY;
-extern char at_1937__2[];
-extern char at_1938__2[];
+/**
+ * Vertical position of the Spheda score list.
+ */
+static float SphidaScoreListY;
+/**
+ * Vertical position of the Spheda score-list highlight.
+ */
+static float SphidaScoreListBarY;
 void SphidaMenuDraw() {
     int list_rect[4];
     mgRect<int> clip;
@@ -1527,8 +1627,8 @@ void SphidaMenuDraw() {
     }
     if (menu_debug_flag) {
         CMenuFont font;
-        font.DrawDirect(at_1937__2, 0x14, 0x50);
-        font.DrawDirect(at_1938__2, 0x14, 0x64);
+        font.DrawDirect("(A):Set Data(test)", 0x14, 0x50);
+        font.DrawDirect("(#):Initialize ", 0x14, 0x64);
     }
     SfidaMoveInitFlag = 0;
 }
@@ -1554,7 +1654,7 @@ void SphidaScoreViewInit(mgCMemory *memory, int *tex_block, int) {
         SubSphidaData = SubSaveData__2->GetSphidaData();
         SphidaStack.Align64();
         u_long128   *buffer = SphidaStack.stGetTop();
-        unsigned int size = LoadFileMenu(at_1674, buffer, 1);
+        unsigned int size = LoadFileMenu("omake.img", buffer, MENU_FILE_LOAD_DIRECT);
         unsigned int blocks;
 
         if (size & 15) {
@@ -1565,8 +1665,8 @@ void SphidaScoreViewInit(mgCMemory *memory, int *tex_block, int) {
 
         SphidaStack.Alloc(blocks);
         mgTexManager.EnterIMGFile((u8 *) buffer, SphidaMenuTexbk[1], NULL, NULL);
-        SphidaTex = mgTexManager.GetTexture(at_1675, -1);
-        SphidaTex_Sys = mgTexManager.GetTexture(at_1677, -1);
+        SphidaTex = mgTexManager.GetTexture("omaketx", -1);
+        SphidaTex_Sys = mgTexManager.GetTexture("omake_sfida", -1);
         MenuCommonInfo->key_enable = 1;
         Sfida_NowPlayHorlBlink = 0;
     }
@@ -1681,93 +1781,3 @@ void SphidaScoreViewDraw() {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", menu_wmap_analyze_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1072__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1081__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1095__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", geo_table_1183__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1342__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1383__2__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_970__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_971__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_972__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_973__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1184__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1185__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1186__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1187__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1188__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1189__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1302__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1303__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1304__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1305__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1306__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1307__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1308__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1309__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1310__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1311__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1312__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1313__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1314__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1498__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1556__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1557__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1674__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1675__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1676__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1677__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1937__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1938__2__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", __vt__13CWorldMapMenu__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumap", at_1343__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(spi_wmapstack, 0x4);
-INCLUDE_BSS(spi_wmaparea_tblnum, 0x4);
-INCLUDE_BSS(spi_wmaparea_tbl, 0x4);
-INCLUDE_BSS(spi_wmappos_tblnum, 0x4);
-INCLUDE_BSS(spi_wmappos_tbl, 0x4);
-INCLUDE_BSS(MapEnableNum, 0x4);
-INCLUDE_BSS(WorldMapMenuType, 0x4);
-INCLUDE_BSS(WorldMap_NextLoopNo, 0x4);
-INCLUDE_BSS(WorldMap_MapNo, 0x4);
-INCLUDE_BSS(WorldMap_DngFloor, 0x4);
-INCLUDE_BSS(at_1218__2, 0x4);
-INCLUDE_BSS(at_1393__2, 0x8);
-INCLUDE_BSS(WorldMapPtr, 0x4);
-INCLUDE_BSS(SubSaveData__2, 0x4);
-INCLUDE_BSS(SubSphidaData, 0x4);
-INCLUDE_BSS(SphidaMenuMes, 0x4);
-INCLUDE_BSS(SphidaMenuQus, 0x4);
-INCLUDE_BSS(SphidaMenuQusDrawFlag, 0x4);
-INCLUDE_BSS(SphidaScore, 0x4);
-INCLUDE_BSS(SphidaTex, 0x4);
-INCLUDE_BSS(SphidaTex2, 0x4);
-INCLUDE_BSS(SphidaTex_Sys, 0x4);
-INCLUDE_BSS(SphidaCursor, 0x4);
-INCLUDE_BSS(SphidaCursorDrawFlag, 0x4);
-INCLUDE_BSS(SphidaCursorY, 0x4);
-INCLUDE_BSS(SphidaCursorCount, 0x4);
-INCLUDE_BSS(SphidaInfoMsgDrawFlag, 0x4);
-INCLUDE_BSS(SfidaBGXY, 0x4);
-INCLUDE_BSS(SphidaScoreListY, 0x4);
-INCLUDE_BSS(SphidaScoreListBarY, 0x4);
-INCLUDE_BSS(SphidaSelect, 0x8);
-INCLUDE_BSS(SphidaMenuPhase, 0x4);
-INCLUDE_BSS(SfidaMakeLine, 0x4);
-INCLUDE_BSS(SfidaMoveInitFlag, 0x8);
-INCLUDE_BSS(at_1764__3, 0x8);
-INCLUDE_BSS(Sfida_NowPlayHorlBlink, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(SphidaMenuTexbk, 0x20);

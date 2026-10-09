@@ -287,9 +287,3 @@ void LensFlare(sceVu0IVECTOR screen, sceVu0FVECTOR color, int bank, char *textur
     prim.Vertex(width, height, 0);
     prim.End();
 }
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(at_205, 0x8);
-INCLUDE_BSS(at_206, 0x8);
-INCLUDE_BSS(at_283__2, 0x8);
-INCLUDE_BSS(at_292__2, 0x8);

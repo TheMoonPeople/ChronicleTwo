@@ -15,6 +15,7 @@ struct sceCdlFILE {
     u_int  size;     /**< File size in bytes. */
     char   name[16]; /**< ISO 9660 file name. */
     u_char date[8];  /**< ISO 9660 recording date. */
+    u_int  flag;     /**< Flags of the file's directory record. */
 };
 
 /**

@@ -27,39 +27,30 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-extern char        *MenuHatena_894;
-extern signed char  init_895;
-extern char        *MenuHatena_1byte_897;
-extern signed char  init_898;
-extern char         at_905__4[];
-extern char         at_906__4[];
-extern char        *MenuBigNum[];
-extern signed char *sn_944[];
+char *MenuBigNum[10] = {
+    "\x82O", "\x82P", "\x82Q", "\x82R", "\x82S", "\x82T", "\x82U", "\x82V", "\x82W", "\x82X"
+};
 CItemUseTarget      MenuUsedTarget;
-extern char         at_1328[];
-extern char         at_1512__3[];
-extern char         at_1513__3[];
-extern char         at_1514__3[];
-extern char         at_1623__3[];
-
+int MenuUsedItemNo;
+u32 MenuUsedItemType;
+int MenuUsedNotErrorCode;
 
 // Code (.text)
 char *GetHatena() {
-    if (init_895 == 0) {
-        MenuHatena_894 = at_905__4;
-        init_895 = 1;
-    }
-
-    if (init_898 == 0) {
-        MenuHatena_1byte_897 = at_906__4;
-        init_898 = 1;
-    }
+    /**
+     * Full-width placeholder for an unidentified item name.
+     */
+    static char *MenuHatena = "\x81H\x81H\x81H";
+    /**
+     * Single-byte placeholder for an unidentified item name.
+     */
+    static char *MenuHatena_1byte = "???";
 
     if (LanguageCode >= 2 && LanguageCode < 6) {
-        return MenuHatena_1byte_897;
+        return MenuHatena_1byte;
     }
 
-    return MenuHatena_894;
+    return MenuHatena;
 }
 
 char *GetMenuBigNum(int number) {
@@ -74,13 +65,13 @@ void SetMenuBigNum2(char *out, int number) {
 
         if (digits > 0) {
             do {
-                signed char *glyph;
+                char *glyph;
 
                 if (digits == 1) {
-                    glyph = (signed char *) GetMenuBigNum(rest);
+                    glyph = GetMenuBigNum(rest);
                 } else {
                     int divisor = (int) pow(10.0, (double) (digits - 1));
-                    glyph = (signed char *) GetMenuBigNum(rest / divisor);
+                    glyph = GetMenuBigNum(rest / divisor);
                     rest = rest % divisor;
                 }
 
@@ -97,6 +88,10 @@ void SetMenuBigNum2(char *out, int number) {
 }
 
 void SetMenuBigNum(char *out, int number) {
+    /**
+     * Single-byte glyphs used to write decimal item counts.
+     */
+    static char *sn[10] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
     if (out != 0) {
         int rest = number;
         int pos = 0;
@@ -105,14 +100,14 @@ void SetMenuBigNum(char *out, int number) {
         if (CheckNowEurope() != 0) {
             if (digits > 0) {
                 do {
-                    signed char *glyph;
+                    char *glyph;
 
                     if (digits == 1) {
-                        glyph = sn_944[rest];
+                        glyph = sn[rest];
                     } else {
                         double e = (double) (digits - 1);
                         int    divisor = (int) pow(10.0, e);
-                        glyph = sn_944[rest / divisor];
+                        glyph = sn[rest / divisor];
                         rest = rest % divisor;
                     }
 
@@ -123,16 +118,16 @@ void SetMenuBigNum(char *out, int number) {
             }
         } else if (digits > 0) {
             do {
-                signed char *glyph;
+                char *glyph;
 
                 if (digits == 1) {
-                    glyph = (signed char *) GetMenuBigNum(rest);
+                    glyph = GetMenuBigNum(rest);
                 } else {
                     double        base = 10.0;
                     const double &reference = base;
                     double        e = (double) (digits - 1);
                     int           divisor = (int) pow(reference, e);
-                    glyph = (signed char *) GetMenuBigNum(rest / divisor);
+                    glyph = GetMenuBigNum(rest / divisor);
                     rest = rest % divisor;
                 }
 
@@ -153,8 +148,8 @@ CMenuFont::CMenuFont() {
     SetClearance(0x10, 0x14);
     SetFuchi(5);
     SetColor(0x80686A6BU);
-    *(int *) &offset_x = 0;
-    *(int *) &offset_y = 0;
+    offset_x = 0.0f;
+    offset_y = 0.0f;
 }
 
 void MenuMesInit(ClsMes *mes) {
@@ -174,12 +169,12 @@ void MenuMesInit(ClsMes *mes) {
 
         mes->last_x = 0;
         mes->last_y = 0;
-        *(int *) &mes->fade = 0;
+        mes->fade = 0.0f;
         mes->open = 1;
         mes->draw_speed = mes->GetDrawSpeedDef();
         mes->page_wait = 0;
         mes->scroll_wait = 0;
-        *(int *) &mes->reveal = 0;
+        mes->reveal = 0.0f;
         mes->reveal_num = 0;
         mes->page_top = 0;
         mes->unk_1f4 = 0;
@@ -287,8 +282,8 @@ void MenuMesInit(ClsMes *mes) {
 
         mes->draw_off_x = 0.0f;
         mes->draw_off_y = 0.0f;
-        *(int *) &mes->offset_x = 0;
-        *(int *) &mes->offset_y = 0;
+        mes->offset_x = 0.0f;
+        mes->offset_y = 0.0f;
     }
 }
 
@@ -584,7 +579,7 @@ void CDC2Mes::SetPutPos(int x, int y, int w, int h) {
     abs_win.width = w;
     abs_win.height = h;
 
-    if (*(signed char *) &put_centering != 0) {
+    if (put_centering != 0) {
         abs_win.x = (int) ((unsigned int) mgScreenWidth - text_w) >> 1;
     }
 }
@@ -593,7 +588,7 @@ void CDC2Mes::SetPutPos(int *pos) {
     abs_win.x = pos[0];
     abs_win.y = pos[1];
 
-    if ((s8) put_centering != 0) {
+    if (put_centering != 0) {
         abs_win.x = (int) ((unsigned int) mgScreenWidth - text_w) >> 1;
     }
 
@@ -667,11 +662,11 @@ void CDC2Mes::SetMsgItemNo(char **strings, int count) {
         previous[index] = name[index];
 
         if (strings[index] == NULL) {
-            if (strcmp(name[index], at_1328) != 0) {
+            if (strcmp(name[index], "") != 0) {
                 msg_change = 1;
             }
 
-            strcpy(name[index], at_1328);
+            strcpy(name[index], "");
         } else {
             if (strcmp(previous[index], strings[index]) != 0) {
                 msg_change = 1;
@@ -684,7 +679,7 @@ void CDC2Mes::SetMsgItemNo(char **strings, int count) {
 
         if (strings[index] == NULL) {
             for (; index < MES_ITEM_MAX; index++) {
-                strcpy(name[index], at_1328);
+                strcpy(name[index], "");
             }
 
             break;
@@ -913,17 +908,17 @@ void CMenuMoveItem::Initialize() {
 }
 
 void CMenuMoveItem::AttachForm() {
-    form[0] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1512__3);
-    form[1] = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1513__3);
+    form[0] = MenuPosData->GetFormInfo("moveitem0");
+    form[1] = MenuPosData->GetFormInfo("moveitem1");
 
     if (form[0] != NULL) {
         form[0]->draw_flag = 0;
-        form[0]->SetNumber(at_1514__3, 0);
+        form[0]->SetNumber("num", 0);
     }
 
     if (form[1] != NULL) {
         form[1]->draw_flag = 0;
-        form[1]->SetNumber(at_1514__3, 0);
+        form[1]->SetNumber("num", 0);
     }
 }
 
@@ -993,7 +988,7 @@ void CMenuMoveItem::SetMoveItemInfo(MENU_ITEM_MOVE_INFO *request, int *start, in
             moving_form->x = start[0];
             moving_form->y = start[1];
             moving_form->SetNextMovePos(goal, 2);
-            MENUFORMPARTS_TYPE *part = moving_form->GetPartInfo(at_1623__3);
+            MENUFORMPARTS_TYPE *part = moving_form->GetPartInfo("item");
             part->etc_info[1] = entry->item.item_no;
             part->etc_info[2] = 0;
 
@@ -1005,7 +1000,7 @@ void CMenuMoveItem::SetMoveItemInfo(MENU_ITEM_MOVE_INFO *request, int *start, in
                 part->etc_info[2] = entry->item.data.item.num;
             }
 
-            part = moving_form->GetPartInfo(at_1514__3);
+            part = moving_form->GetPartInfo("num");
             part->etc_info[0] = 0;
             part->etc_info[1] = entry->item.GetNum();
             part->etc_info[2] = 1;
@@ -1045,9 +1040,14 @@ int CheckRoboShieldKit(CUserDataManager *manager, CGameDataUsed *item, int apply
     return -1;
 }
 
-extern u32 st_bittable_1654[7];
-
 int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply) {
+    /**
+     * Character status bits tested when an item adds or cures a condition.
+     */
+    static u32 st_bittable[7] = {
+        CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8,
+        CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40
+    };
     if (item == NULL || target == NULL) {
         return 0;
     }
@@ -1092,11 +1092,11 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
         if (!(chara->status_attr & 0x40) || !(effect.status_flags & 0x10)) {
             if (((MenuUsedItemNo == 0x184 && weapon_type == 1) ||
                  (MenuUsedItemNo == 0x185 && weapon_type == 3)) &&
-                (u16)chara->defence < 0x80) {
+                chara->defence < 0x80) {
                 count++;
                 if (apply != 0) {
-                    (u16 &)chara->defence += 4;
-                    if ((u16)chara->defence > 0x80) {
+                    chara->defence += 4;
+                    if (chara->defence > 0x80) {
                         chara->defence = 0x80;
                     }
                     sound = 10;
@@ -1185,21 +1185,21 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                 int changed = 0;
                 if (add != 0) {
                     for (int i = 0; i < 7; i++) {
-                        if (!(chara->status_attr & st_bittable_1654[i]) && add == st_bittable_1654[i]) {
+                        if (!(chara->status_attr & st_bittable[i]) && add == st_bittable[i]) {
                             available = 1;
                             if (apply != 0) {
                                 chara->status_attr |= add;
                                 changed = 1;
-                                if (st_bittable_1654[i] & 0x10) {
+                                if (st_bittable[i] & 0x10) {
                                     chara->status_time[0] = 750;
                                 }
-                                if (st_bittable_1654[i] & 2) {
+                                if (st_bittable[i] & 2) {
                                     chara->status_time[1] = 750;
                                 }
-                                if (st_bittable_1654[i] & 8) {
+                                if (st_bittable[i] & 8) {
                                     chara->status_time[2] = 750;
                                 }
-                                if (st_bittable_1654[i] & 0x20) {
+                                if (st_bittable[i] & 0x20) {
                                     chara->status_time[2] = 750;
                                 }
                             }
@@ -1209,7 +1209,7 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                 int cured = 0;
                 if (cure != 0) {
                     for (int i = 0; i < 7; i++) {
-                        if ((chara->status_attr & st_bittable_1654[i]) && (cure & st_bittable_1654[i])) {
+                        if ((chara->status_attr & st_bittable[i]) && (cure & st_bittable[i])) {
                             available = 1;
                             if (apply != 0) {
                                 cured = 1;
@@ -1341,15 +1341,13 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
     return 0;
 }
 int CMenuItemUse::CheckItemUseEnable(CGameDataUsed *item, int kind, void *ptr) {
-    int target_data[2];
-
     if (item == NULL || ptr == NULL) {
         return 0;
     }
 
-    target_data[0] = -1;
-    ((CItemUseTarget *) &target_data)->SetPtr(kind, ptr);
-    return MenuUseItemCheckFunc(item, (CItemUseTarget *) &target_data, 0);
+    CItemUseTarget target_data;
+    target_data.SetPtr(kind, ptr);
+    return MenuUseItemCheckFunc(item, &target_data, 0);
 }
 
 int CMenuItemUse::UseItem(CGameDataUsed *item, int kind, void *ptr) {
@@ -1380,56 +1378,3 @@ void CMenuItemUse::Initialize() {
 int CheckNowStateUseThisItem(CGameDataUsed *item, CItemUseTarget *target) {
     return MenuUseItemCheckFunc(item, target, 0);
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", MenuBigNum__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", sn_944__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_1415__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", st_bittable_1654__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_905__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_906__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_907__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_908__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_909__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_910__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_911__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_912__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_913__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_914__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_915__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_916__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_945__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_946__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_947__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_948__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_949__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_950__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_951__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_952__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_953__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_954__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_1104__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_1328__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_1512__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_1513__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_1514__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_1623__3__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menucls1", at_1371__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(MenuHatena_894, 0x4);
-INCLUDE_BSS(init_895, 0x4);
-INCLUDE_BSS(MenuHatena_1byte_897, 0x4);
-INCLUDE_BSS(init_898, 0x4);
-INCLUDE_BSS(at_1433__2, 0x4);
-INCLUDE_BSS(MenuUsedItemNo, 0x4);
-INCLUDE_BSS(MenuUsedItemType, 0x4);
-INCLUDE_BSS(MenuUsedNotErrorCode, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1407__2, 0x10);
-INCLUDE_BSS(at_1436__3, 0x18);

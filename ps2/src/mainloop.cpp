@@ -6,6 +6,14 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "charaviewlp.hpp"
+#include "convviewlp.hpp"
+#include "dng_main.hpp"
+#include "editloop.hpp"
+#include "mapviewlp.hpp"
+#include "movieviewlp.hpp"
+#include "sndviewlp.hpp"
+#include "texviewlp.hpp"
 #include "dataread.hpp"
 #include "editdata.hpp"
 #include "font.hpp"
@@ -43,73 +51,312 @@
 
 extern INIT_LOOP_ARG NextInitArg;
 extern INIT_LOOP_ARG PrevInitArg;
-extern int           NextLoopNo;
-extern int           PrevLoopNo;
-extern int           CaptureScreen;
-extern int           PauseSel;
-extern int           PauseMenuMode;
-extern int           exit_start;
-extern float         BlackFade;
-extern float         BlackFade2;
+/**
+ * Mode entered after the current main loop finishes.
+ */
+static int           NextLoopNo;
+/**
+ * Mode active before the current main loop.
+ */
+static int           PrevLoopNo;
+/**
+ * Whether input replay also captures screen images.
+ */
+static int           CaptureScreen;
+/**
+ * Selected pause-menu command.
+ */
+static int           PauseSel;
+/**
+ * Stage of the pause menu.
+ */
+static int           PauseMenuMode;
+/**
+ * Whether leaving the pause menu has started.
+ */
+static int           exit_start;
+/**
+ * Opacity of the pause-menu screen fade.
+ */
+static float         BlackFade;
+/**
+ * Opacity of the pause-menu message fade.
+ */
+static float         BlackFade2;
 extern CSaveData     SaveData;
 extern ClsMes        PauseMes;
 extern mgCMemory     SystemSeStack;
-extern u_long128     main_buffer[0x1A0000];
-extern u_long128     SystemSeBuff[400];
-extern u_long128     InfoBuff[5000];
+/**
+ * Main memory arena for game resources.
+ */
+u_long128            main_buffer[0x1A0000];
+/**
+ * Memory backing the system sound-effect loader.
+ */
+u_long128            SystemSeBuff[400];
+/**
+ * Memory backing configuration and villager data.
+ */
+u_long128            InfoBuff[5000];
+static void MenuInit(INIT_LOOP_ARG arg);
+static void MenuExit();
 static int           MenuLoop();
 static int           EventSelect();
 static int           gcALL_GEO_PARTS(SPI_STACK *stack, int argc);
-extern void (*LoopInit[])(INIT_LOOP_ARG);
-extern int (*LoopMain[])();
-extern void (*LoopExit[])();
-extern PAD_TABLE_ENTRY    pad_table[];
-extern ANALOG_TABLE_ENTRY analog_table[];
-
+LOOP_INIT_FUNC LoopInit[LOOP_MODE_NUM] = {
+    MenuInit,
+    EditInit,
+    InitDungeonMain,
+    TitleInit,
+    InitCharaViewerMain,
+    InitTextuerViewerMain,
+    MapViewInit,
+    InitSoundViewerMain,
+    MovieViewInit,
+    SVConvViewInit,
+};
+LOOP_MAIN_FUNC LoopMain[LOOP_MODE_NUM] = {
+    MenuLoop,
+    EditLoop,
+    LoopDungeonMain,
+    TitleLoop,
+    LoopCharaViewerMain,
+    LoopTextuerViewerMain,
+    MapViewLoop,
+    LoopSoundViewerMain,
+    MovieViewLoop,
+    SVConvViewLoop,
+};
+LOOP_EXIT_FUNC LoopExit[LOOP_MODE_NUM] = {
+    MenuExit,
+    EditExit,
+    FinishDungeonMain,
+    TitleExit,
+    FinishCharaVieweMain,
+    FinishTextuerVieweMain,
+    MapViewExit,
+    FinishSoundVieweMain,
+    MovieViewExit,
+    SVConvViewExit,
+};
+/**
+ * Language-adjusted mappings from logical controls to pad buttons.
+ */
+static PAD_TABLE_ENTRY pad_table[] = {
+    {PAD_BTN_CONFIRM, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {PAD_BTN_CANCEL, PAD_CTRL_TRIGGER_DOWN, PAD_CROSS},
+    {PAD_BTN_R1_HELD, PAD_CTRL_TRIGGER_ON, PAD_R1},
+    {PAD_BTN_L1_HELD, PAD_CTRL_TRIGGER_ON, PAD_L1},
+    {4, PAD_CTRL_TRIGGER_DOWN, PAD_L2},
+    {PAD_BTN_MENU, PAD_CTRL_TRIGGER_DOWN, PAD_TRIANGLE},
+    {6, PAD_CTRL_TRIGGER_DOWN, PAD_R2},
+    {PAD_BTN_UP, PAD_CTRL_TRIGGER_DOWN, PAD_UP},
+    {PAD_BTN_DOWN, PAD_CTRL_TRIGGER_DOWN, PAD_DOWN},
+    {PAD_BTN_RIGHT, PAD_CTRL_TRIGGER_DOWN, PAD_RIGHT},
+    {PAD_BTN_LEFT, PAD_CTRL_TRIGGER_DOWN, PAD_LEFT},
+    {11, PAD_CTRL_TRIGGER_ON, PAD_UP},
+    {12, PAD_CTRL_TRIGGER_ON, PAD_DOWN},
+    {13, PAD_CTRL_TRIGGER_ON, PAD_RIGHT},
+    {14, PAD_CTRL_TRIGGER_ON, PAD_LEFT},
+    {PAD_BTN_START, PAD_CTRL_TRIGGER_DOWN, PAD_START},
+    {16, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {17, PAD_CTRL_TRIGGER_DOWN, PAD_CROSS},
+    {19, PAD_CTRL_TRIGGER_ON, PAD_CIRCLE},
+    {20, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {PAD_BTN_PAUSE, PAD_CTRL_TRIGGER_DOWN, PAD_START},
+    {PAD_BTN_EVENT_SKIP, PAD_CTRL_TRIGGER_DOWN, PAD_TRIANGLE},
+    {PAD_BTN_QUICK_CHANGE, PAD_CTRL_TRIGGER_DOWN, PAD_L3},
+    {24, PAD_CTRL_TRIGGER_DOWN, PAD_R3},
+    {PAD_BTN_ACTION_CONFIRM, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {PAD_BTN_ACTION_SQUARE, PAD_CTRL_TRIGGER_DOWN, PAD_SQUARE},
+    {PAD_BTN_ACTION_CANCEL, PAD_CTRL_TRIGGER_DOWN, PAD_CROSS},
+    {53, PAD_CTRL_TRIGGER_ON, PAD_L1},
+    {54, PAD_CTRL_TRIGGER_ON, PAD_R1},
+    {55, PAD_CTRL_TRIGGER_DOWN, PAD_SELECT},
+    {PAD_BTN_ACTION_HELD, PAD_CTRL_TRIGGER_ON, PAD_CIRCLE},
+    {PAD_BTN_EDIT_TURN_DECREASE, PAD_CTRL_TRIGGER_DOWN, PAD_R2},
+    {PAD_BTN_EDIT_TURN_INCREASE, PAD_CTRL_TRIGGER_DOWN, PAD_L2},
+    {PAD_BTN_EDIT_PLACE, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {PAD_BTN_EDIT_REMOVE, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {PAD_BTN_EDIT_PAINT, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {PAD_BTN_EDIT_PAINT_ALL, PAD_CTRL_TRIGGER_DOWN, PAD_SQUARE},
+    {PAD_BTN_EDIT_WALL_NEXT, PAD_CTRL_TRIGGER_DOWN, PAD_R2},
+    {PAD_BTN_EDIT_WALL_PREVIOUS, PAD_CTRL_TRIGGER_DOWN, PAD_L2},
+    {18, PAD_CTRL_TRIGGER_DOWN, PAD_R1},
+    {PAD_BTN_EDIT_SWITCH, PAD_CTRL_TRIGGER_DOWN, PAD_SELECT},
+    {PAD_BTN_EDIT_MAGNET, PAD_CTRL_TRIGGER_DOWN, PAD_SQUARE},
+    {120, PAD_CTRL_TRIGGER_DOWN, PAD_CIRCLE},
+    {121, PAD_CTRL_TRIGGER_ON, PAD_CIRCLE},
+    {122, PAD_CTRL_TRIGGER_ON, PAD_SQUARE},
+    {-1, -1, -1},
+};
+/**
+ * Mappings from logical analog controls to pad stick axes.
+ */
+static ANALOG_TABLE_ENTRY analog_table[] = {
+    {PAD_ANALOG_LEFT_X, PAD_CTRL_AXIS_LX},
+    {PAD_ANALOG_LEFT_Y, PAD_CTRL_AXIS_LY},
+    {PAD_ANALOG_RIGHT_X, PAD_CTRL_AXIS_RX},
+    {PAD_ANALOG_RIGHT_Y, PAD_CTRL_AXIS_RY},
+    {4, PAD_CTRL_AXIS_LY},
+    {5, PAD_CTRL_AXIS_LX},
+    {6, PAD_CTRL_AXIS_RX},
+    {7, PAD_CTRL_AXIS_RY},
+    {-1, -1},
+};
 
 extern CFont     Font;
 extern mgCMemory MainBuffer;
-extern int       menu_mode;
+/**
+ * Active page of the debug menu.
+ */
+static int       menu_mode;
 void             InitEventSelect();
 
-extern int SelectArg[32];
+/**
+ * Values selected by the debug menu and game configuration tags.
+ */
+static int SelectArg[32] = {0};
 
-extern CSaveData    *ActiveSaveData;
-extern int           CaptureMode;
-extern int           LoopNo;
-extern int           PlayTimeCountFlag;
-extern CSubGameData *SubGameSaveData;
-extern int           event_view;
-extern int           future_sel;
-extern int           hdd_sel;
+/**
+ * Save data used by the current game mode.
+ */
+static CSaveData    *ActiveSaveData;
+/**
+ * Selected input capture or replay mode.
+ */
+static int           CaptureMode;
+/**
+ * Currently active main-loop mode.
+ */
+static int           LoopNo;
+/**
+ * Whether vertical blank advances the saved play time.
+ */
+static int           PlayTimeCountFlag;
+/**
+ * Save-data arena for the active extra game.
+ */
+static CSubGameData *SubGameSaveData;
+/**
+ * Whether the event-selection sub-menu is open.
+ */
+static int           event_view;
+/**
+ * Whether the future-map sub-menu is open.
+ */
+static int           future_sel;
+/**
+ * Whether the hard-disk debug menu is open.
+ */
+static int           hdd_sel;
 extern CScene        MainScene;
 extern INIT_LOOP_ARG InitArg;
 extern mgCMemory     InfoStack;
 
 extern mgCMemory   MenuBuffer;
-extern mgCMemory   buf0_1224;
-extern mgCMemory   buf1_1227;
-extern mgCMemory   dbuf0_1230;
-extern mgCMemory   dbuf1_1233;
-extern s8          init_1225;
-extern s8          init_1228;
-extern s8          init_1231;
-extern s8          init_1234;
-extern mgCTexture *FontTex[1];
-extern TM2_head   *FontDataAdr[1];
-extern char        at_1654[];
-extern char        at_1655[];
-extern char        at_1656[];
-extern u8          font_buff[];
-extern char        at_1657[];
-extern char        at_1296[];
-extern char        at_1856[];
+/**
+ * Font texture pages loaded for the current language.
+ */
+static mgCTexture *FontTex[1];
+/**
+ * Texture image data for each font page.
+ */
+static TM2_head   *FontDataAdr[1];
+/**
+ * Image storage used when loading font texture pages.
+ */
+u8                 font_buff[0xD000];
 
-extern SPI_TAG_PARAM tag__3[];
-extern char          at_2082[];
-extern char          at_2083[];
-extern char          at_2084[];
-extern char          at_2085[];
+static int gcMAP_NO(SPI_STACK *stack, int argument_count);
+static int gcPROGRESS(SPI_STACK *stack, int argument_count);
+static int gcBIT_FLAG_ON(SPI_STACK *stack, int argument_count);
+static int gcBIT_FLAG_OFF(SPI_STACK *stack, int argument_count);
+static int gcSTART_EVENT(SPI_STACK *stack, int argument_count);
+static int gcGEO_COMPLETE(SPI_STACK *stack, int argument_count);
+static int gcGEO_DEBUG(SPI_STACK *stack, int argument_count);
+static int gcITEM_SET(SPI_STACK *stack, int argument_count);
+static int gcGET_ITEM(SPI_STACK *stack, int argument_count);
+static int gcGET_N_ITEM(SPI_STACK *stack, int argument_count);
+static int gcEQUIP(SPI_STACK *stack, int argument_count);
+static int gcDEFENSE(SPI_STACK *stack, int argument_count);
+static int gcDEFENSE(SPI_STACK *stack, int argument_count);
+static int gcHP(SPI_STACK *stack, int argument_count);
+static int gcALL_GEO_PARTS(SPI_STACK *stack, int argument_count);
+static int gcPARAM_DRAW(SPI_STACK *stack, int argument_count);
+static int gcOPTION(SPI_STACK *stack, int argument_count);
+static int gcMONICA(SPI_STACK *stack, int argument_count);
+static int gcSTEVE(SPI_STACK *stack, int argument_count);
+static int gcMONSTER(SPI_STACK *stack, int argument_count);
+static int gcPARTY(SPI_STACK *stack, int argument_count);
+static int gcACTIVE_CHARA(SPI_STACK *stack, int argument_count);
+
+/**
+ * Tags accepted by the main game configuration parser.
+ */
+static SPI_TAG_PARAM tag__3[] = {
+    {"MAP_NO", gcMAP_NO},
+    {"PROGRESS", gcPROGRESS},
+    {"BIT_FLAG_ON", gcBIT_FLAG_ON},
+    {"BIT_FLAG_OFF", gcBIT_FLAG_OFF},
+    {"START_EVENT", gcSTART_EVENT},
+    {"GEO_COMPLETE", gcGEO_COMPLETE},
+    {"GEO_DEBUG", gcGEO_DEBUG},
+    {"ITEM_SET", gcITEM_SET},
+    {"GET_ITEM", gcGET_ITEM},
+    {"GET_N_ITEM", gcGET_N_ITEM},
+    {"EQUIP", gcEQUIP},
+    {"DEFENSE", gcDEFENSE},
+    {"DEFENCE", gcDEFENSE},
+    {"HP", gcHP},
+    {"ALL_GEO_PARTS", gcALL_GEO_PARTS},
+    {"PARAM_DRAW", gcPARAM_DRAW},
+    {"OPTION", gcOPTION},
+    {"MONICA", gcMONICA},
+    {"STEVE", gcSTEVE},
+    {"MONSTER", gcMONSTER},
+    {"PARTY", gcPARTY},
+    {"ACTIVE_CHARA", gcACTIVE_CHARA},
+    {NULL, NULL},
+};
+
+/**
+ * Rows displayed by the main debug menu.
+ */
+static char *menu_1281[] = {
+        "game start ", "map        ", "dungeon    ", "title      ",
+        "chrview    ", "texview    ", "mapview    ", "sound view ",
+        "movie view ", "Language   ", "Item       ", "Save Data  ",
+        "Load cfg   ", "Convert Save Data ", ""
+    };
+
+/**
+ * Rows displayed by the chapter and event debug menu.
+ */
+static char *menu_1457[12] = {
+        "It begins in the beginning:",
+        "From each chapter(normal) :",
+        "From each chapter(debug)  :",
+        "sub game                  :",
+        "PalmBrink's               :",
+        "event                     :",
+        "boss battle               :",
+        "future map                :",
+        "diorama map               :",
+        "HDD                       :",
+        "extra                     :",
+        ""
+    };
+
+/**
+ * Persistent row values selected by the chapter and event debug menu.
+ */
+static int menu_sel_1452[11] = {0};
+
+/**
+ * Microprogram addresses loaded when the main game loop starts.
+ */
+static u_long128 *vu_prog_1048[16];
 
 // Code (.text)
 CFont *GetDebugFont() {
@@ -270,7 +517,6 @@ void MainLoop() {
     int               mode_finished;
     int               buffer_address;
     int               alignment;
-    static u_long128 *vu_prog[16];
 
     memory = GetMainStack();
     memory->stSetBuffer(main_buffer, 0x1A0000);
@@ -290,6 +536,9 @@ void MainLoop() {
     LoopNo = LOOP_TITLE;
     DebugFlag = 0;
     DebugInfo.chara_move = 0;
+    /**
+     * Whether the debug performance meter is displayed.
+     */
     static int pmeter_flag = 0;
 
     pmeter_flag = 0;
@@ -310,7 +559,7 @@ void MainLoop() {
     GamePad__2.UpDate();
     sceGsSyncV(0);
     GamePad__2.UpDate();
-    mgSetUserVuProg(vu_prog, 16);
+    mgSetUserVuProg(vu_prog_1048, 16);
     mgSetUserVuProgAdr(0, Vu_prog_wtr);
     InitPadTable(LanguageCode);
     GameItemDataManage.LoadData();
@@ -505,6 +754,9 @@ void MainLoop() {
                 case LOOP_EDIT:
                 case LOOP_DUNGEON:
                 case LOOP_TITLE: {
+                    /**
+                     * Whether the debug frame-advance pause is enabled.
+                     */
                     static int pause = 0;
 
                     if (GamePad__2.Down2(PAD_SELECT)) {
@@ -573,6 +825,9 @@ void MainLoop() {
     GamePad__2.Close();
 }
 
+/**
+ * Prepares rendering and resource buffers for the main debug menu.
+ */
 void MenuInit(INIT_LOOP_ARG arg) {
     mgCMemory *main_stack;
     u_long128 *packet_a;
@@ -589,37 +844,37 @@ void MenuInit(INIT_LOOP_ARG arg) {
     main_stack->stack_used = 0;
     main_stack->lock = 0;
 
-    if (init_1225 == 0) {
-        buf0_1224.Init();
-        init_1225 = 1;
-    }
+    /**
+     * Packet buffer for the first debug-menu draw buffer.
+     */
+    static mgCMemory buf0;
 
-    if (init_1228 == 0) {
-        buf1_1227.Init();
-        init_1228 = 1;
-    }
+    /**
+     * Packet buffer for the second debug-menu draw buffer.
+     */
+    static mgCMemory buf1;
 
-    if (init_1231 == 0) {
-        dbuf0_1230.Init();
-        init_1231 = 1;
-    }
+    /**
+     * Data buffer for the first debug-menu draw buffer.
+     */
+    static mgCMemory dbuf0;
 
-    if (init_1234 == 0) {
-        dbuf1_1233.Init();
-        init_1234 = 1;
-    }
+    /**
+     * Data buffer for the second debug-menu draw buffer.
+     */
+    static mgCMemory dbuf1;
 
     packet_a = main_stack->stAlloc64(0x2710);
     packet_b = main_stack->stAlloc64(0x2710);
     mgInitVif1Packet(packet_a, packet_b, 0x27100);
-    buf0_1224.stSetBuffer(main_stack->stAlloc64(0x2710), 0x2710);
-    buf1_1227.stSetBuffer(main_stack->stAlloc64(0x2710), 0x2710);
-    dbuf0_1230.stSetBuffer(main_stack->stAlloc64(0xC350), 0xC350);
-    dbuf1_1233.stSetBuffer(main_stack->stAlloc64(0xC350), 0xC350);
+    buf0.stSetBuffer(main_stack->stAlloc64(0x2710), 0x2710);
+    buf1.stSetBuffer(main_stack->stAlloc64(0x2710), 0x2710);
+    dbuf0.stSetBuffer(main_stack->stAlloc64(0xC350), 0xC350);
+    dbuf1.stSetBuffer(main_stack->stAlloc64(0xC350), 0xC350);
     MenuBuffer.stSetBuffer(main_stack->stAlloc64(0x7A120), 0x7A120);
     read_buffer = main_stack->stAlloc64(0x186A0);
-    mgSetPacketBuffer(&buf0_1224, &buf1_1227);
-    mgSetDataBuffer(&dbuf0_1230, &dbuf1_1233, 1);
+    mgSetPacketBuffer(&buf0, &buf1);
+    mgSetDataBuffer(&dbuf0, &dbuf1, 1);
     GamePad__2.SetAutoRepeat(0xF000, 0xF, 4);
     mgSetBackGround(0.0f, 0.0f, 0.0f, 0.0f);
     SetTextureTable(0x64, 0x14, &MenuBuffer);
@@ -673,12 +928,6 @@ static int MenuLoop() {
         }
         return 0;
     }
-    static char *menu[] = {
-        "game start ", "map        ", "dungeon    ", "title      ",
-        "chrview    ", "texview    ", "mapview    ", "sound view ",
-        "movie view ", "Language   ", "Item       ", "Save Data  ",
-        "Load cfg   ", "Convert Save Data ", "", NULL
-    };
     char *language[] = {
         "Japanese", "English", "French", "German",
         "Italian", "Spanish", "Chinese", "Korean"
@@ -760,15 +1009,15 @@ static int MenuLoop() {
     if (CaptureMode > CAPTURE_PLAY_SCREEN) {
         CaptureMode = CAPTURE_OFF;
     }
-    while (menu[row][0] != '\0') {
+    while (menu_1281[row][0] != '\0') {
         if (row == DEBUG_ROW_ITEM_SET) {
-            text_end += sprintf(text_end, "%s%s%s\n", cursor[row == select], menu[row], item_set[menu_arguments[row]]);
+            text_end += sprintf(text_end, "%s%s%s\n", cursor[row == select], menu_1281[row], item_set[menu_arguments[row]]);
         } else if (row == DEBUG_ROW_LANGUAGE) {
-            text_end += sprintf(text_end, "%s%s%s (now %s)\n", cursor[row == select], menu[row], language[menu_arguments[row]], language[LanguageCode]);
+            text_end += sprintf(text_end, "%s%s%s (now %s)\n", cursor[row == select], menu_1281[row], language[menu_arguments[row]], language[LanguageCode]);
         } else if (row <= 0) {
-            text_end += sprintf(text_end, "%s%s\n", cursor[row == select], menu[row]);
+            text_end += sprintf(text_end, "%s%s\n", cursor[row == select], menu_1281[row]);
         } else {
-            text_end += sprintf(text_end, "%s%s%d\n", cursor[row == select], menu[row], menu_arguments[row]);
+            text_end += sprintf(text_end, "%s%s%d\n", cursor[row == select], menu_1281[row], menu_arguments[row]);
         }
         if (++row >= DEBUG_ROW_NUM) {
             break;
@@ -817,6 +1066,9 @@ static int MenuLoop() {
     }
     return 0;
 }
+/**
+ * Releases debug-menu input repeat and font state.
+ */
 void MenuExit() {
     GamePad__2.AutoRepeatOff();
     mgCloseFont();
@@ -835,21 +1087,6 @@ void InitEventSelect() {
  *
  */
 static int EventSelect() {
-    static int   menu_sel[11];
-    static char *menu[12] = {
-        "It begins in the beginning:",
-        "From each chapter(normal) :",
-        "From each chapter(debug)  :",
-        "sub game                  :",
-        "PalmBrink's               :",
-        "event                     :",
-        "boss battle               :",
-        "future map                :",
-        "diorama map               :",
-        "HDD                       :",
-        "extra                     :",
-        ""
-    };
     int           result;
 
     if (event_view != 0) {
@@ -908,61 +1145,61 @@ static int EventSelect() {
         select = 0;
     }
     if (GamePad__2.Down(PAD_RIGHT)) {
-        menu_sel[select]++;
+        menu_sel_1452[select]++;
     }
     if (GamePad__2.Down(PAD_LEFT)) {
-        menu_sel[select]--;
+        menu_sel_1452[select]--;
     }
     switch (select) {
         case 1:
         case 2:
-            if (menu_sel[select] < 0) {
-                menu_sel[select] = 0;
+            if (menu_sel_1452[select] < 0) {
+                menu_sel_1452[select] = 0;
             }
-            if (menu_sel[select] > 6) {
-                menu_sel[select] = 6;
+            if (menu_sel_1452[select] > 6) {
+                menu_sel_1452[select] = 6;
             }
             break;
         case 3:
-            if (menu_sel[select] < 0) {
-                menu_sel[select] = 0;
+            if (menu_sel_1452[select] < 0) {
+                menu_sel_1452[select] = 0;
             }
-            if (menu_sel[select] > 2) {
-                menu_sel[select] = 2;
+            if (menu_sel_1452[select] > 2) {
+                menu_sel_1452[select] = 2;
             }
             break;
         case 8:
-            if (menu_sel[select] < 0) {
-                menu_sel[select] = 0;
+            if (menu_sel_1452[select] < 0) {
+                menu_sel_1452[select] = 0;
             }
-            if (menu_sel[select] > 4) {
-                menu_sel[select] = 4;
+            if (menu_sel_1452[select] > 4) {
+                menu_sel_1452[select] = 4;
             }
             break;
         case 10:
-            if (menu_sel[select] < 0) {
-                menu_sel[select] = 0;
+            if (menu_sel_1452[select] < 0) {
+                menu_sel_1452[select] = 0;
             }
-            if (menu_sel[select] > 1) {
-                menu_sel[select] = 1;
+            if (menu_sel_1452[select] > 1) {
+                menu_sel_1452[select] = 1;
             }
             break;
     }
 
     text += sprintf(text, "\n\x83\x5F\x81\x5B\x83\x4E\x83\x4E\x83\x8D\x83\x6A\x83\x4E\x83\x8B\x83\x56\x83\x58\x83\x65\x83\x80\x92\xB2\x90\xAE" "ROM %s %s\n", "2003/07/29", "Ver0.334");
-    for (; menu[row][0] != '\0'; row++) {
-        text += sprintf(text, "%s%s", cursor[row == select], menu[row]);
+    for (; menu_1457[row][0] != '\0'; row++) {
+        text += sprintf(text, "%s%s", cursor[row == select], menu_1457[row]);
         switch (row) {
             case 1:
             case 2:
-                text += sprintf(text, "%d\x8F\xCD", menu_sel[row] + 1);
+                text += sprintf(text, "%d\x8F\xCD", menu_sel_1452[row] + 1);
                 break;
             case 3:
             case 10:
-                text += sprintf(text, "%s", subgame_name[menu_sel[row]]);
+                text += sprintf(text, "%s", subgame_name[menu_sel_1452[row]]);
                 break;
             case 8:
-                if (GetMapName(menu_sel[row], &map_name)) {
+                if (GetMapName(menu_sel_1452[row], &map_name)) {
                     text += sprintf(text, "%s", map_name);
                 }
                 break;
@@ -1001,7 +1238,7 @@ static int EventSelect() {
             case 1:
             case 2:
                 {
-                    switch (menu_sel[select]) {
+                    switch (menu_sel_1452[select]) {
                         case 0:
                             arg.floor_no = 1;
                             loop_no = LOOP_DUNGEON;
@@ -1032,19 +1269,19 @@ static int EventSelect() {
                             arg.event_no = 502;
                             break;
                     }
-                    if (menu_sel[select] >= 2) {
+                    if (menu_sel_1452[select] >= 2) {
                         monica = 1;
                     }
                     if (select == 1) {
-                        sprintf(config_name, "cap%d.cfg", menu_sel[select] + 1);
+                        sprintf(config_name, "cap%d.cfg", menu_sel_1452[select] + 1);
                     } else {
-                        sprintf(config_name, "db_cap%d.cfg", menu_sel[select] + 1);
+                        sprintf(config_name, "db_cap%d.cfg", menu_sel_1452[select] + 1);
                     }
                     break;
                 }
             case 3:
                 {
-                    int subgame = menu_sel[select];
+                    int subgame = menu_sel_1452[select];
                     switch (subgame) {
                         case 0:
                             arg.floor_no = 1;
@@ -1075,7 +1312,7 @@ static int EventSelect() {
                 future_sel = 1;
                 return 0;
             case 8:
-                arg.map_no = menu_sel[select];
+                arg.map_no = menu_sel_1452[select];
                 sprintf(config_name, "geo.cfg");
                 break;
             case 9:
@@ -1084,7 +1321,7 @@ static int EventSelect() {
                 return 0;
             case 10:
                 InitSaveData();
-                InitOmakeEnv(menu_sel[select], &arg, &loop_no);
+                InitOmakeEnv(menu_sel_1452[select], &arg, &loop_no);
                 NextLoop(loop_no, arg);
                 return 1;
         }
@@ -1130,16 +1367,16 @@ void LoadFontTexture() {
 
     do {
         if (LanguageCode == 0) {
-            sprintf(file_name, at_1654, page);
+            sprintf(file_name, "FontTex_%d.tm2", page);
         } else if (LanguageCode == 1) {
             if (page == 0) {
-                sprintf(file_name, at_1655, page);
+                sprintf(file_name, "FontTex_1_0.tm2", page);
             }
         } else if (page == 0) {
-            sprintf(file_name, at_1656);
+            sprintf(file_name, "FontTex_2_0.tm2");
         }
 
-        sprintf(path, at_1657, file_name);
+        sprintf(path, "meswin/%s", file_name);
 
         if (LoadFile2(path, buffer, &size, 0) != 0) {
             FontDataAdr[page] = (TM2_head *) font_buff;
@@ -1156,38 +1393,28 @@ void LoadFontTexture() {
 }
 
 void ReLoadFontTexture(int texture_no) {
-    char       file_name[0x20];
-    int        page;
-    int        offset;
-    TM2_head **font_data;
+    char file_name[0x20];
+    int  page;
 
-    offset = 0;
-    page = 0;
-
-    do {
-        font_data = (TM2_head **) ((u8 *) &FontDataAdr + offset);
-
-        if (*font_data != NULL) {
+    for (page = 0; page <= 0; page++) {
+        if (FontDataAdr[page] != NULL) {
             if (LanguageCode == 0) {
-                sprintf(file_name, at_1654, page);
+                sprintf(file_name, "FontTex_%d.tm2", page);
             } else if (LanguageCode == 1) {
                 if (page == 0) {
-                    sprintf(file_name, at_1655, page);
+                    sprintf(file_name, "FontTex_1_0.tm2", page);
                 }
             } else if (page == 0) {
-                sprintf(file_name, at_1656);
+                sprintf(file_name, "FontTex_2_0.tm2");
             }
 
             if (&mgTexManager == NULL) {
                 return;
             }
 
-            *(mgCTexture **) ((u8 *) &FontTex + offset) = mgTexManager.EnterTexture(texture_no, file_name, *font_data, 0, 0);
+            FontTex[page] = mgTexManager.EnterTexture(texture_no, file_name, FontDataAdr[page], 0, 0);
         }
-
-        page += 1;
-        offset += 4;
-    } while (page <= 0);
+    }
 }
 
 void demQuit() {}
@@ -1235,11 +1462,11 @@ int PauseMenu() {
                 PauseSel = 0;
             }
 
-            if (PadCtrl.Analog(0) > 0.8f) {
+            if (PadCtrl.Analog(PAD_ANALOG_LEFT_X) > 0.8f) {
                 PauseSel = 1;
             }
 
-            if (PadCtrl.Analog(0) < -0.8f) {
+            if (PadCtrl.Analog(PAD_ANALOG_LEFT_X) < -0.8f) {
                 PauseSel = 0;
             }
 
@@ -1307,9 +1534,9 @@ void LoadGameConfig(char *path) {
     int size;
 
     if (path == NULL) {
-        SetCurrentDir(at_1296);
+        SetCurrentDir("");
 
-        if (LoadFile2(at_1856, script, &size, 0) == 0) {
+        if (LoadFile2("game.cfg", script, &size, 0) == 0) {
             SetCurrentDir(NULL);
             return;
         }
@@ -1375,9 +1602,9 @@ int gcSTART_EVENT(SPI_STACK *stack, int arg_count) {
 }
 
 int gcGEO_COMPLETE(SPI_STACK *stack, int count) {
-    int   i;
-    int   index;
-    void *edit_data;
+    int        i;
+    int        index;
+    CEditData *edit_data;
 
     DebugInfo.georama_debug = 1;
 
@@ -1386,7 +1613,7 @@ int gcGEO_COMPLETE(SPI_STACK *stack, int count) {
         edit_data = GetSaveData()->GetEditData(index);
 
         if (edit_data != 0) {
-            ((CEditData *) edit_data)->dbgSetAllContintionFlag(index, 1);
+            edit_data->dbgSetAllContintionFlag(index, 1);
         }
     }
 
@@ -1557,13 +1784,13 @@ int gcOPTION(SPI_STACK *stack, int arg) {
 
     options = &GetSaveData()->config;
 
-    if (strcmp(name, at_2082) == 0) {
+    if (strcmp(name, "MonsterName") == 0) {
         options->monster_name = spiGetStackInt(value);
-    } else if (strcmp(name, at_2083) == 0) {
+    } else if (strcmp(name, "Map") == 0) {
         options->map = spiGetStackInt(value);
-    } else if (strcmp(name, at_2084) == 0) {
+    } else if (strcmp(name, "EnemyHP") == 0) {
         options->enemy_hp = spiGetStackInt(value);
-    } else if (strcmp(name, at_2085) == 0) {
+    } else if (strcmp(name, "AngerCounter") == 0) {
         options->anger_counter = spiGetStackInt(value);
     }
 
@@ -1686,205 +1913,64 @@ CEditData::CEditData() {
     Initialize();
 }
 
-// Static initialiser (.init)
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopInit__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopMain__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", LoopExit__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", pad_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", analog_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", SelectArg__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", menu_1281__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1305__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1310__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1311__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", menu_sel_1452__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1456__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", menu_1457__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", tag__3__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1212__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1213__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1214__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1215__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1216__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1282__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1283__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1284__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1285__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1286__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1287__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1288__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1289__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1290__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1291__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1292__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1293__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1294__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1295__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1296__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1297__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1298__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1299__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1300__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1301__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1302__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1303__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1304__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1306__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1307__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1308__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1309__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1315__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1316__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1408__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1409__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1410__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1411__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1412__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1413__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1414__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1415__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1416__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1417__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1418__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1453__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1454__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1455__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1458__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1459__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1460__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1461__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1462__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1463__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1464__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1465__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1466__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1467__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1468__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1472__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1473__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1582__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1583__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1584__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1585__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1586__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1587__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1588__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1589__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1590__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1591__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1592__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1593__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1594__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1596__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1595__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1654__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1655__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1656__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1657__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1823__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1824__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1825__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1826__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1827__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1828__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1829__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1830__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1831__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1832__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1833__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1834__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1835__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1836__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1837__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1838__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1839__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1840__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1841__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1842__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1843__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1844__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1856__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2082__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2084__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_2085__DATA);
-
-// Static initialiser table (.ctor)
-
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", MainThreadPriority__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_973__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_974__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1317__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1474__DATA);
+int MainThreadPriority = 1;
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(read_buffer, 0x4);
-INCLUDE_BSS(SystemSND_ID, 0x4);
-INCLUDE_BSS(DebugFlag, 0x4);
-INCLUDE_BSS(DefStartEventNo, 0x4);
-INCLUDE_BSS(LanguageCode, 0x4);
-INCLUDE_BSS(OmakeFlag, 0x4);
-INCLUDE_BSS(MasterDebugCode, 0x4);
-INCLUDE_BSS(LoopNo, 0x4);
-INCLUDE_BSS(NextLoopNo, 0x4);
-INCLUDE_BSS(PrevLoopNo, 0x4);
-INCLUDE_BSS(CaptureMode, 0x4);
-INCLUDE_BSS(CaptureScreen, 0x4);
-INCLUDE_BSS(CSnd, 0x4);
-INCLUDE_BSS(ActiveSaveData, 0x4);
-INCLUDE_BSS(SubGameSaveData, 0x4);
-INCLUDE_BSS(PlayTimeCountFlag, 0x4);
-INCLUDE_BSS(pmeter_flag_1037, 0x4);
-INCLUDE_BSS(init_1038, 0x4);
-INCLUDE_BSS(pause_1108, 0x4);
-INCLUDE_BSS(init_1109, 0x4);
-INCLUDE_BSS(menu_mode, 0x4);
-INCLUDE_BSS(init_1225, 0x4);
-INCLUDE_BSS(init_1228, 0x4);
-INCLUDE_BSS(init_1231, 0x4);
-INCLUDE_BSS(init_1234, 0x4);
-INCLUDE_BSS(select_1312, 0x4);
-INCLUDE_BSS(init_1313, 0x4);
-INCLUDE_BSS(event_view, 0x4);
-INCLUDE_BSS(future_sel, 0x4);
-INCLUDE_BSS(hdd_sel, 0x4);
-INCLUDE_BSS(select_1469, 0x4);
-INCLUDE_BSS(init_1470, 0x4);
-INCLUDE_BSS(FontTex, 0x4);
-INCLUDE_BSS(FontDataAdr, 0x4);
-INCLUDE_BSS(BlackFade, 0x4);
-INCLUDE_BSS(BlackFade2, 0x4);
-INCLUDE_BSS(exit_start, 0x4);
-INCLUDE_BSS(PauseSel, 0x4);
-INCLUDE_BSS(PauseMenuMode, 0x4);
+u_long128 *read_buffer;
+u32 SystemSND_ID;
+int DebugFlag;
+int DefStartEventNo;
+int LanguageCode;
+int OmakeFlag;
+int MasterDebugCode;
+CSound CSnd;
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(GamePad__2, 0x480);
-INCLUDE_BSS(PadCtrl, 0x510);
+CGamePad GamePad__2;
+CPadControl PadCtrl;
 DEBUG_INFO    DebugInfo;
+/**
+ * Font used by debug screens.
+ */
 CFont         Font;
+/**
+ * Initialization arguments for the current game mode.
+ */
 INIT_LOOP_ARG InitArg;
+/**
+ * Initialization arguments for the next game mode.
+ */
 INIT_LOOP_ARG NextInitArg;
+/**
+ * Initialization arguments for the previous game mode.
+ */
 INIT_LOOP_ARG PrevInitArg;
-INCLUDE_BSS(main_buffer, 0x1A00000);
+/**
+ * Main allocator over the game resource arena.
+ */
 static mgCMemory MainBuffer;
+/**
+ * Scene used by the main game modes.
+ */
 CScene           MainScene;
-INCLUDE_BSS(SystemSeBuff, 0x1900);
+/**
+ * Allocator for system sound-effect resources.
+ */
 mgCMemory SystemSeStack;
-INCLUDE_BSS(InfoBuff, 0x13880);
+/**
+ * Allocator for configuration and villager records.
+ */
 mgCMemory InfoStack;
+/**
+ * Main save-data object owned by the game loop.
+ */
 CSaveData SaveData;
-INCLUDE_BSS(vu_prog_1048, 0x40);
+/**
+ * Allocator for the debug menu resources.
+ */
 mgCMemory MenuBuffer;
-INCLUDE_BSS(buf0_1224, 0x30);
-INCLUDE_BSS(buf1_1227, 0x30);
-INCLUDE_BSS(dbuf0_1230, 0x30);
-INCLUDE_BSS(dbuf1_1233, 0x30);
-INCLUDE_BSS(at_1529, 0x40);
-INCLUDE_BSS(font_buff, 0xD000);
+/**
+ * Message window used by the pause menu.
+ */
 ClsMes PauseMes;

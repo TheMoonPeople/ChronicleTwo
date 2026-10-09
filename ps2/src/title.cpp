@@ -41,7 +41,13 @@
 #include "userdata.hpp"
 #include "wavetable.hpp"
 
-extern s16              TitleOmakeFlag;
+/**
+ *
+ * Records whether an extra was selected during the current title session.
+ *
+ */
+static s16 TitleOmakeFlag;
+
 extern TITLE_INFO      *TitleInfo;
 extern float            TitleProjection;
 void                    TitleMCCheckDraw();
@@ -51,7 +57,7 @@ void                    TitleModeDraw();
 void                    TitleMapDraw();
 s32                     DCTitleStep(s32 phase);
 int                     TitleMCCheckKey();
-int                     TitleModeKey();
+static int              TitleModeKey();
 void                    TitleCopyRightInit();
 int                     TitleCopyRightStep();
 void                    TitleHDDInstallInit();
@@ -61,21 +67,86 @@ int                     RushMovieKey();
 void                    TitleDraw();
 void                    DrawMenuDl(int x, int y, int width, int alpha, float rate);
 int                     GetSelectLanguageNo();
-extern char             at_1479__2[];
 void                    TitleHDDInstallDraw();
 extern CScene          *TitleScene;
-extern s16              TitlePhase;
-extern s16              TitleMCActivePort;
-extern int              E3Select;
-extern float            E3_Title_SpriteY;
-extern float            E3_Trial_SpriteY;
-extern int              E3ModeBoardDrawFlag;
-extern int              E3ModeBoardDrawAlpha;
-extern int              TitleRushWaitCount;
-extern int              Trial_TitleBlackFadeAlpha;
-extern s8               DCSelectedMovie;
-extern u8               TitleRushWaitCountBoot;
-extern int              TitleCameraPhase;
+
+/**
+ *
+ * Selects the title screen input and transition phase.
+ *
+ */
+static s16 TitlePhase;
+
+/**
+ *
+ * Identifies the memory card port selected for the title save menu.
+ *
+ */
+static s16 TitleMCActivePort;
+
+/**
+ *
+ * Holds the E3 trial menu selection.
+ *
+ */
+static int E3Select;
+
+/**
+ *
+ * Holds the vertical position of the E3 title sprite.
+ *
+ */
+static float E3_Title_SpriteY;
+
+/**
+ *
+ * Holds the vertical position of the E3 trial sprite.
+ *
+ */
+static float E3_Trial_SpriteY;
+
+/**
+ *
+ * Controls drawing of the E3 trial information board.
+ *
+ */
+static int E3ModeBoardDrawFlag;
+
+/**
+ *
+ * Holds the E3 trial information board alpha.
+ *
+ */
+static int E3ModeBoardDrawAlpha;
+
+/**
+ *
+ * Holds the trial title black overlay alpha.
+ *
+ */
+static int Trial_TitleBlackFadeAlpha;
+
+/**
+ *
+ * Selects the attract movie requested by the demo runner.
+ *
+ */
+static s8 DCSelectedMovie;
+
+/**
+ *
+ * Records whether the shortened first-boot attract delay has been applied.
+ *
+ */
+static u8 TitleRushWaitCountBoot;
+
+/**
+ *
+ * Selects the title map camera movement phase.
+ *
+ */
+static int TitleCameraPhase;
+
 extern u8               TitleMCFuncFlag;
 extern u8               TitleMCCheckNow;
 extern s16              TitleMainMCCheckPhase;
@@ -121,7 +192,7 @@ extern mgCTexture      *RushStart;
 extern s8               TitleBootEventNo;
 extern u8               GameBootInit;
 extern u8               TitleHDDCheckFlag;
-void                    TitleBootInit();
+static void             TitleBootInit();
 extern mgCMemory        DataBuffer;
 extern mgCMemory        TitleMapBuffer;
 extern mgCMemory        TitleWorkBuffer;
@@ -131,67 +202,241 @@ extern HDD_INFO         HDDINFO;
 extern mgCMemory        lang_stack;
 extern CMovie          *RushMovie;
 extern mgCTexture      *RushWork;
-extern RUSH_INFO        RushInfo;
-extern s8               debug_start_drawflag;
-extern char             at_1517__2[];
-extern char             at_1234[];
-extern char             at_2281[];
-extern char             at_991__3[];
-extern s8               TitleCopyRightDispPhase;
-extern s16              TitleCopyRightDispCounter;
-extern s16              TitlePushStart_AlphaPlus;
-extern s8               cnttbl_2026[2];
 
-extern char                at_1267[];
-extern mgCTexture         *HDDDlBar;
-extern s16                 HDDPhase;
-extern s16                 HDDConfirmType;
-extern s16                 HDDnowDisplayImageNo;
-extern u8                  HDDDlBarDrawFlag;
-extern u8                  HDDMesDrawFlag;
-extern s16                *HDDMesDataBuff;
-extern CDC2Mes            *HDDMes;
-extern CDC2Mes            *HDDMes2;
-extern mgCTexture         *HDDBGTex;
-extern mgCTexture         *HDDSysImage;
-extern s16                 HDDModeSelect;
-extern mgCTexture         *HDDImage[12];
-extern int                 HDDImageAlpha[12];
-extern char               *infomsg_2664[];
-extern int                 count_2647;
-extern s8                  init_2648;
-extern int                 TitleCameraPhaseCounter;
-extern float               TitleCameraAddAngle;
-extern char                at_2020[];
-extern char                at_2021[];
-extern char                at_2369__3[];
-extern char                at_2370__4[];
-extern char                at_2371__3[];
-extern char                at_2372__3[];
-extern char                at_2373__3[];
-extern char                at_2374__3[];
-extern char                at_2375__3[];
-extern char                at_2376__3[];
-extern s8                  TitleSkipLogoFlag;
-extern short               table_2611[3][12];
-extern ClsMes             *TitleMCCheckMes;
+/**
+ *
+ * Holds the attract movie playback, skip and fade state.
+ *
+ */
+static RUSH_INFO RushInfo;
+
+/**
+ *
+ * Records whether the attract movie START debug indicator is drawn.
+ *
+ */
+static s8 debug_start_drawflag;
+
+extern char             at_1234[];
+
+/**
+ *
+ * Selects the copyright and publisher logo display phase.
+ *
+ */
+static s8 TitleCopyRightDispPhase;
+
+/**
+ *
+ * Counts frames during the copyright and publisher logo display.
+ *
+ */
+static s16 TitleCopyRightDispCounter;
+
+/**
+ *
+ * Selects the rising or falling half of the PUSH START alpha pulse.
+ *
+ */
+static s16 TitlePushStart_AlphaPlus;
+
+/**
+ *
+ * Points to the installation progress bar texture.
+ *
+ */
+static mgCTexture *HDDDlBar;
+
+/**
+ *
+ * Selects the hard disk installation screen phase.
+ *
+ */
+static s16 HDDPhase;
+
+/**
+ *
+ * Selects the hard disk installation confirmation action.
+ *
+ */
+static s16 HDDConfirmType;
+
+/**
+ *
+ * Identifies the current hard disk installation slideshow image.
+ *
+ */
+static s16 HDDnowDisplayImageNo;
+
+/**
+ *
+ * Enables drawing of the installation progress bar.
+ *
+ */
+static u8 HDDDlBarDrawFlag;
+
+/**
+ *
+ * Selects the installation dialog in place of the slideshow overlay.
+ *
+ */
+static u8 HDDMesDrawFlag;
+
+/**
+ *
+ * Points to the loaded installation message data.
+ *
+ */
+static s16 *HDDMesDataBuff;
+
+/**
+ *
+ * Points to the installation confirmation and status dialog.
+ *
+ */
+static CDC2Mes *HDDMes;
+
+/**
+ *
+ * Points to the installation progress caption dialog.
+ *
+ */
+static CDC2Mes *HDDMes2;
+
+/**
+ *
+ * Points to the installation screen background texture.
+ *
+ */
+static mgCTexture *HDDBGTex;
+
+/**
+ *
+ * Points to the installation screen controls and cursor texture.
+ *
+ */
+static mgCTexture *HDDSysImage;
+
+/**
+ *
+ * Holds the installation menu selection.
+ *
+ */
+static s16 HDDModeSelect;
+
+/**
+ *
+ * Holds the ten installation slideshow textures.
+ *
+ */
+static mgCTexture *HDDImage[10];
+
+/**
+ *
+ * Holds the alpha of each installation slideshow image.
+ *
+ */
+static int HDDImageAlpha[10];
+
+/**
+ *
+ * Counts frames in the current title map camera phase.
+ *
+ */
+static int TitleCameraPhaseCounter;
+
+/**
+ *
+ * Accumulates the title map camera rotation.
+ *
+ */
+static float TitleCameraAddAngle;
+
+/**
+ *
+ * Records a request to skip the publisher logo display.
+ *
+ */
+static s8 TitleSkipLogoFlag;
+
+/**
+ *
+ * Points to the title memory card check message window.
+ *
+ */
+static ClsMes *TitleMCCheckMes;
+
 extern CMemoryCardManager *TitleMCCheck;
-extern u8                  TitleMCCheckBootMode;
-extern s16                 TitleMCCheckPort;
-extern s16                 TitleMCCheckPhase;
-extern s32                 OmakePlayEnableAttr;
-extern s16                 TitleMCCheckFileFind[2];
-extern u8                  TitleMCCheckInport[2];
-extern mgCTexture         *lang_tex;
-extern int                 title_lang_cursor_cnt;
-extern int                 title_lang_fadealpha;
-extern int                 title_lang_phase;
-extern int                 title_lang_select;
-extern char                at_2723[];
-extern char                at_2724[];
-extern float               title_lang_curxy[2];
-extern mgRect<short>       start_button_tbl_1826[];
-extern s16                 btn_tblxy_1830[][2];
+
+/**
+ *
+ * Selects the boot-specific memory card check behavior.
+ *
+ */
+static u8 TitleMCCheckBootMode;
+
+/**
+ *
+ * Identifies the memory card port currently being checked.
+ *
+ */
+static s16 TitleMCCheckPort;
+
+/**
+ *
+ * Selects the current memory card check operation.
+ *
+ */
+static s16 TitleMCCheckPhase;
+
+/**
+ *
+ * Holds the extras and costume unlock bits collected from memory cards.
+ *
+ */
+static s32 OmakePlayEnableAttr;
+
+/**
+ *
+ * Points to the language menu row and cursor texture.
+ *
+ */
+static mgCTexture *lang_tex;
+
+/**
+ *
+ * Counts frames for the language menu cursor wobble.
+ *
+ */
+static int title_lang_cursor_cnt;
+
+/**
+ *
+ * Holds the black overlay alpha for language menu transitions.
+ *
+ */
+static int title_lang_fadealpha;
+
+/**
+ *
+ * Selects the language menu fade and input phase.
+ *
+ */
+static int title_lang_phase;
+
+/**
+ *
+ * Holds the selected language menu row.
+ *
+ */
+static int title_lang_select;
+
+/**
+ *
+ * Holds the eased language menu cursor coordinates.
+ *
+ */
+static float title_lang_curxy[2];
 
 /**
  *
@@ -206,6 +451,101 @@ static inline u_int Align16Blocks(u_int size) {
     return size >> 4;
 }
 
+/**
+ *
+ * Records whether a boot memory card contains the debug unlock code.
+ *
+ */
+u8 MasterDebugModeOn;
+
+/**
+ *
+ * Holds the costume bits unlocked by the memory cards.
+ *
+ */
+u_long CostumeOptionEnv;
+
+/**
+ *
+ * PUSH START texture rectangles indexed by the selected language.
+ *
+ */
+static MENU_SHORT_RECT start_button_tbl_1826[7] = {
+    {0, 22, 196, 18},
+    {0, 22, 196, 18},
+    {0, 18, 196, 22},
+    {0, 18, 196, 22},
+    {0, 20, 196, 20},
+    {0, 18, 196, 22},
+    {0, 22, 196, 18},
+};
+
+/**
+ *
+ * Texture origins for the five title menu rows.
+ *
+ */
+static s16 btn_tblxy_1830[5][2] = {
+    {302, 40},
+    {302, 94},
+    {302, 256},
+    {302, 204},
+    {302, 148},
+};
+
+/**
+ *
+ * Left, center and right texture rectangles for the three installation panel rows.
+ *
+ */
+static short table_2611[3][12] = {
+    {0, 0, 32, 32, 32, 0, 32, 32, 64, 0, 32, 32},
+    {0, 32, 32, 16, 32, 32, 32, 16, 64, 32, 32, 16},
+    {0, 48, 32, 76, 32, 48, 32, 76, 64, 48, 32, 76},
+};
+
+/**
+ *
+ * Installation progress captions indexed by the selected language.
+ *
+ */
+static char *infomsg_2664[7] = {
+    " ",
+    "Now installing.",
+    "Installing...",
+    "Installing...",
+    "Installing...",
+    "Installing...",
+    "Installing...",
+};
+
+/**
+ *
+ * Sets the number of idle title frames before the attract movie starts.
+ *
+ */
+static int TitleRushWaitCount = 750;
+
+/**
+ *
+ * Holds the number of save files found on each memory card.
+ *
+ */
+static s16 TitleMCCheckFileFind[2] = {0, 0};
+
+/**
+ *
+ * Holds the inserted-card state captured for each memory card port.
+ *
+ */
+static u8 TitleMCCheckInport[2] = {0, 0};
+
+/**
+ *
+ * Sets the rising alpha pulse speed for the title and attract movie prompts.
+ *
+ */
+static s8 cnttbl_2026[2] = {2, 4};
 
 // Code (.text)
 /**
@@ -272,7 +612,7 @@ void InitOmakeEnv(int type, INIT_LOOP_ARG *arg, int *loop_no) {
     if (type == OMAKE_TYPE_GYORACE) {
         item_mode = 0x10;
         event_no = 0x64;
-        map_no = SearchMapNo(at_991__3);
+        map_no = SearchMapNo("i03h04");
         mode = 1;
     }
 
@@ -376,7 +716,7 @@ void TitleInit(INIT_LOOP_ARG arg) {
  * Loads the title scene, menu resources, sound, and boot-time memory card state.
  *
  */
-void TitleBootInit() {
+static void TitleBootInit() {
     RushMovie = new ((u_long128 *) DataBuffer.Alloc(0x2396)) CMovie;
     TitleMCFuncFlag = 1;
     TitleMCCheckNow = 0;
@@ -388,8 +728,8 @@ void TitleBootInit() {
     WaveTable__3 = new ((u_long128 *) DataBuffer.Alloc(0x123)) CWaveTable;
     mgCTextureManager *textures = &mgTexManager;
     DataBuffer.Align64();
-    u_long128 *map_top;
-    TitleMapBuffer.stSetBuffer(map_top = DataBuffer.stGetTop(), 0x40000);
+    u_long128 *map_top = DataBuffer.stGetTop();
+    TitleMapBuffer.stSetBuffer(DataBuffer.stGetTop(), 0x40000);
     DataBuffer.Alloc(0x60000);
     TitleWorkBuffer.stSetBuffer(DataBuffer.stGetTop(), 0x2800);
     DataBuffer.Alloc(0x2800);
@@ -401,8 +741,10 @@ void TitleBootInit() {
     TitleScene->before_camera = 0;
     TitleScene->SetStack(1, &TitleMapBuffer);
     TitleScene->work_stack = &TitleWorkBuffer;
-    u8 *map_buffer = (u8 *) DataBuffer.stGetTop();
-    int map_no = SearchMapNo(at_1221__4);
+    int map_no;
+    u8 *map_buffer;
+    map_buffer = (u8 *) DataBuffer.stGetTop();
+    map_no = SearchMapNo(at_1221__4);
     TitleScene->active_map = 0;
     MapJumpMapInfo    main_map;
     SCN_LOADMAP_INFO2 load_info;
@@ -414,21 +756,24 @@ void TitleBootInit() {
     SetMainMapInfo(&main_map);
     GetLoadMapInfo(&load_info, map_no);
     load_info.sky_tex_block = 0x6B;
-    load_info.place_parts_max = 0x190;
     load_info.load_sky = 1;
+    load_info.place_parts_max = 0x190;
     TitleScene->DeleteMap(0, 1);
     TitleScene->LoadMap(0, &load_info, 0);
     TitleScene->SetNowMapNo(map_no);
     TitleScene->SetActive(2, 0);
     TitleMap = TitleScene->GetMap(TitleScene->active_map);
-    u32 file_size;
-    if (LoadFile2(at_1222__4, DataBuffer.stAllocTest(1), (int *) &file_size, 0) != 0) {
-        textures->EnterIMGFile((u_char *) DataBuffer.Alloc(Align16Blocks(file_size)), 0x6A, NULL, NULL);
+    int file_size;
+    {
+        int logo_file_size;
+        if (LoadFile2(at_1222__4, DataBuffer.stAllocTest(1), &logo_file_size, 0) != 0) {
+            textures->EnterIMGFile((u_char *) DataBuffer.Alloc(Align16Blocks(logo_file_size)), 0x6A, NULL, NULL);
+        }
     }
     textures->EnterTexture(0x6A, at_1223__4, NULL, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
     char lang_file[0x40];
     sprintf(lang_file, at_1224__4, LanguageCode);
-    LoadFile2(lang_file, map_buffer, (int *) &file_size, 0);
+    LoadFile2(lang_file, map_buffer, &file_size, 0);
     DataBuffer.Alloc(Align16Blocks(file_size));
     textures->EnterIMGFile(map_buffer, 0x40, NULL, NULL);
     Tex_TitleBG = textures->GetTexture(at_1225__4, -1);
@@ -443,11 +788,9 @@ void TitleBootInit() {
     u_long128 *save_pack = &DataBuffer.stGetTop()[0x4100];
     if (LoadFileMenu(at_1233, save_pack, MENU_FILE_LOAD_DIRECT) != 0) {
         for (int i = 0; i < 3; i++) {
-            MC_ICON_DATA *icon = &MC_ICON_Data[i];
-            u_int        *icon_file = GetPackFile((u_int *) save_pack, icon->name, &icon->size);
-            int          *size = &icon->size;
-            icon->data = DataBuffer.Alloc(Align16Blocks(icon->size));
-            memcpy(icon->data, icon_file, *size);
+            u_int *icon_file = GetPackFile((u_int *) save_pack, MC_ICON_Data[i].name, &MC_ICON_Data[i].size);
+            MC_ICON_Data[i].data = DataBuffer.Alloc(Align16Blocks(MC_ICON_Data[i].size));
+            memcpy(MC_ICON_Data[i].data, icon_file, MC_ICON_Data[i].size);
         }
     }
     TitleMCCheck->SetIconData(MC_ICON_Data, 0);
@@ -455,7 +798,7 @@ void TitleBootInit() {
     RushWork = textures->EnterTexture(0x43, at_1234, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
     DataBuffer.Align64();
     u_long128 *push_start_img = DataBuffer.stGetTop();
-    if (LoadFile2(at_1235, push_start_img, (int *) &file_size, 0) != 0) {
+    if (LoadFile2(at_1235, push_start_img, &file_size, 0) != 0) {
         textures->EnterIMGFile((u_char *) push_start_img, 0x43, NULL, NULL);
     }
     RushStart = textures->GetTexture(at_1236, 0x43);
@@ -469,9 +812,9 @@ void TitleBootInit() {
     textures->EnterIMGFile(GetFontTex2ImgPtr(), 0x46, NULL, NULL);
     DataBuffer.Align64();
     MenuArg.mes_tex_block = 0x46;
+    MenuArg.scene = TitleScene;
     MenuArg.tex_block_top = 0x54;
     MenuArg.tex_block_num = 0x10;
-    MenuArg.scene = TitleScene;
     MenuArg.pack = (u_int *) DataBuffer.stGetTop();
     file_size = LoadFileMenu(at_1237__2, (u_long128 *) MenuArg.pack, MENU_FILE_LOAD_DIRECT);
     DataBuffer.Alloc(Align16Blocks(file_size));
@@ -484,11 +827,13 @@ void TitleBootInit() {
     TitleScene->LoadSound(0x1F4, sound_buffer);
     TitleScene->StopEnvBGM();
     sndWaitTransBd();
-    LoadFile2(at_1239__2, sound_buffer, (int *) &file_size, 0);
+    LoadFile2(at_1239__2, sound_buffer, &file_size, 0);
     sndInitPort(4);
     TitleEventSound = sndLoadSound(4, (u_int *) sound_buffer, &snd_memory);
     DataBuffer.Align64();
-    Stack_ReadBuff.stSetBuffer(DataBuffer.stGetTop(), DataBuffer.stGetRest());
+    int remaining = DataBuffer.stGetRest();
+    u_long128 *read_top = DataBuffer.stGetTop();
+    Stack_ReadBuff.stSetBuffer(read_top, remaining);
     read_buffer = Stack_ReadBuff.stGetTop();
     TitleScene->read_buff = read_buffer;
     TitleScene->fade.Initialize();
@@ -527,7 +872,7 @@ void TitleExit() {
         OmakeFlag = 1;
     }
 
-    printf(at_1267, OmakeFlag);
+    printf("OMAKE : %d\n", OmakeFlag);
     sndSeAllStop(-1);
     GamePad__2.AutoRepeatOff();
     GamePad__2.MenuModeOff();
@@ -774,7 +1119,7 @@ int TitleLoop() {
         }
 
         if (CheckStartChapter8(save) != 0) {
-            map_no = SearchMapNo(at_1479__2);
+            map_no = SearchMapNo("m02");
         }
 
         if ((s8) save->skip_load_bgm != 0) {
@@ -988,7 +1333,7 @@ void InitRushMovie(int movie_no) {
     int        remaining = Stack_ReadBuff.stGetRest();
     u_long128 *buffer = Stack_ReadBuff.stGetTop();
     memory.stSetBuffer(buffer, remaining);
-    RushMovie->Load(at_1517__2, &memory, 512, 416, true, false);
+    RushMovie->Load("RUSH.PSS", &memory, 512, 416, true, false);
     RushMovie->Play(at_1234);
     RushMovie->SwitchThread();
 
@@ -1178,15 +1523,16 @@ void TitleModeInit() {
         TitleCamera2->Resume();
     }
 }
-#ifdef NONMATCHING
-int CalcMenuAdd(float *cursor, float step, float limit = 0.0f);
 
 /**
  *
  * Updates card detection, title menu input, fades, and attract-movie timing.
  *
+ * @mangled TitleModeKey__Fv
+ * @address 0x2A5150
+ * @size 0x9BC
  */
-int TitleModeKey() {
+static int TitleModeKey() {
     int start_pushed;
     int start;
     int push;
@@ -1205,14 +1551,12 @@ int TitleModeKey() {
     if (TitlePhase <= TITLE_PHASE_MENU || TitlePhase == TITLE_PHASE_PUSH_START || TitlePhase == TITLE_PHASE_OMAKE_MENU ||
         TitlePhase == TITLE_PHASE_MC_MESSAGE) {
         CMemoryCardManager *card_manager = TitleMCCheck;
-        u8                  inport1;
-        MC_CARD_INFO       *card0;
-        u8                  inport0;
-        MC_CARD_INFO       *card1;
-        inport0 = TitleMCCheckInport[0];
-        inport1 = TitleMCCheckInport[1];
-        card0 = &card_manager->card[0];
-        card1 = &card_manager->card[1];
+        MC_CARD_INFO       *cards[2];
+        u8                  inport[2];
+        cards[0] = &card_manager->card[0];
+        cards[1] = &card_manager->card[1];
+        inport[0] = TitleMCCheckInport[0];
+        inport[1] = TitleMCCheckInport[1];
         if (TitleMCCheckNow != 0) {
             switch (TitleMainMCCheckPhase) {
                 case 0:
@@ -1225,7 +1569,7 @@ int TitleModeKey() {
                         TitleMCCheckNow = 0;
                         TitleMCActivePort = 0;
                         TitleMCCheck->port = 0;
-                        TitleMCCheck->SetFuncNo(0);
+                        TitleMCCheck->SetFuncNo(MC_FUNC_SEARCH_TYPE);
                         TitleInfo->omake_select = 0;
                         if (TitlePhase == TITLE_PHASE_OMAKE_MENU) {
                             TitlePhase = TITLE_PHASE_MENU;
@@ -1239,12 +1583,12 @@ int TitleModeKey() {
         }
         int port_done = card_manager->Step();
         int card_lost = 0;
-        if (inport0 != McCheckMCPs2(card0)) {
+        if (inport[0] != McCheckMCPs2(cards[0])) {
             TitleMCCheckInport[0] = 0;
             card_lost = 1;
         }
-        if (inport1 != McCheckMCPs2(card1)) {
-            memset(card1, 0, sizeof(MC_CARD_INFO));
+        if (inport[1] != McCheckMCPs2(cards[1])) {
+            memset(cards[1], 0, sizeof(MC_CARD_INFO));
             TitleMCCheckInport[1] = 0;
             card_lost = 1;
         }
@@ -1261,14 +1605,14 @@ int TitleModeKey() {
                 TitleMCActivePort = 0;
             }
             TitleMCCheck->port = TitleMCActivePort;
-            TitleMCCheck->SetFuncNo(0);
+            TitleMCCheck->SetFuncNo(MC_FUNC_SEARCH_TYPE);
         }
     }
     push = ConvertCheckPushButton(MenuCheckPushButton());
     if (TitlePhase <= TITLE_PHASE_PUSH_START) {
         TitleInfo->idle_count++;
     }
-    start = push & 0x10;
+    start = push & MENU_PUSH_BUTTON_START;
     start_pushed = 0;
     if (start != 0) {
         start_pushed = 1;
@@ -1303,10 +1647,10 @@ int TitleModeKey() {
             }
             break;
         case TITLE_PHASE_PUSH_START:
-            CalcMenuAdd(&TitleInfo->menu_alpha, float(-12.0));
-            CalcMenuAdd(&TitleInfo->cursor_alpha, float(-12.0));
+            CalcMenuAdd(&TitleInfo->menu_alpha, -12.0f, 0.0f);
+            CalcMenuAdd(&TitleInfo->cursor_alpha, -12.0f, 0.0f);
             CalcMenuAdd(&TitleInfo->title_alpha, 8.0f, 128.0f);
-            CalcMenuAdd(&TitleInfo->omake_alpha, -8.0f);
+            CalcMenuAdd(&TitleInfo->omake_alpha, -8.0f, 0.0f);
             if (start_pushed != 0) {
                 sndSePlay(TitleEventSound, 0, 0);
                 TitlePhase = TITLE_PHASE_MENU;
@@ -1317,8 +1661,8 @@ int TitleModeKey() {
             TitlePushStart_AlphaPlus = 0;
             int old_select = TitleInfo->select;
             CalcMenuAdd(&TitleInfo->title_alpha, -8.0f, 0.0f);
-            CalcMenuAdd(&TitleInfo->menu_alpha, float(12.0), float(128.0));
-            CalcMenuAdd(&TitleInfo->cursor_alpha, float(12.0), float(128.0));
+            CalcMenuAdd(&TitleInfo->menu_alpha, 12.0f, 128.0f);
+            CalcMenuAdd(&TitleInfo->cursor_alpha, 12.0f, 128.0f);
             if (GamePad__2.Down(PAD_UP) != 0) {
                 TitleInfo->select--;
             }
@@ -1329,19 +1673,19 @@ int TitleModeKey() {
                 TitleInfo->select = 0;
             }
             if (TitleHDDCheckFlag != 0) {
-                if (TitleInfo->select > 4) {
-                    TitleInfo->select = 4;
+                if (TitleInfo->select > TITLE_MENU_HDD_INSTALL) {
+                    TitleInfo->select = TITLE_MENU_HDD_INSTALL;
                 }
             } else {
-                if (TitleInfo->select > 3) {
-                    TitleInfo->select = 3;
+                if (TitleInfo->select > TITLE_MENU_OPTION) {
+                    TitleInfo->select = TITLE_MENU_OPTION;
                 }
             }
             if (old_select != TitleInfo->select) {
                 MenuSePlay(SYSTEM_SE_CURSOR);
                 TitleInfo->idle_count = 0;
             }
-            if ((push & 1) || start != 0) {
+            if ((push & MENU_PUSH_BUTTON_DECIDE) || start != 0) {
                 if (TitleInfo->select == TITLE_MENU_NEW_GAME) {
                     TitlePhase = TITLE_PHASE_NEW_GAME;
                     TitleScene->fade.FadeOut(0x28, 0.0f, 0.0f, 0.0f);
@@ -1358,7 +1702,7 @@ int TitleModeKey() {
                         TitleScene->fade.FadeOut(0x1E, 0.0f, 0.0f, 0.0f);
                         MenuSePlay(SYSTEM_SE_DECIDE);
                     } else {
-                        MenuSePlay(5);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     }
                 } else if (TitleInfo->select == TITLE_MENU_OPTION) {
                     TitlePhase = TITLE_PHASE_OPTION;
@@ -1381,11 +1725,11 @@ int TitleModeKey() {
                     }
                     MenuSePlay(SYSTEM_SE_DECIDE);
                 } else {
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 }
-            } else if (push & 2) {
+            } else if (push & MENU_PUSH_BUTTON_CANCEL) {
                 TitlePhase = TITLE_PHASE_PUSH_START;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
         }
@@ -1422,8 +1766,8 @@ int TitleModeKey() {
             break;
         case TITLE_PHASE_OMAKE_MENU: {
             TitlePushStart_AlphaPlus = 0;
-            CalcMenuAdd(&TitleInfo->menu_alpha, float(-8.0));
-            CalcMenuAdd(&TitleInfo->cursor_alpha, float(3.0), float(128.0));
+            CalcMenuAdd(&TitleInfo->menu_alpha, -8.0f, 0.0f);
+            CalcMenuAdd(&TitleInfo->cursor_alpha, 3.0f, 128.0f);
             int old_select = TitleInfo->omake_select;
             if (GamePad__2.Down(PAD_UP) != 0) {
                 TitleInfo->omake_select--;
@@ -1441,22 +1785,22 @@ int TitleModeKey() {
                 MenuSePlay(SYSTEM_SE_CURSOR);
                 TitleInfo->idle_count = 0;
             }
-            if (push & 1) {
+            if (push & MENU_PUSH_BUTTON_DECIDE) {
                 MenuSePlay(SYSTEM_SE_DECIDE);
                 TitlePhase = TITLE_PHASE_OMAKE;
                 TitleScene->fade.FadeOut(0x1E, 0.0f, 0.0f, 0.0f);
-            } else if (push & 2) {
+            } else if (push & MENU_PUSH_BUTTON_CANCEL) {
                 TitlePhase = TITLE_PHASE_MENU;
                 TitleInfo->omake_alpha = 0.0f;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
         }
         case TITLE_PHASE_MC_MESSAGE:
-            if ((push & 2) || (push & 1)) {
+            if ((push & MENU_PUSH_BUTTON_CANCEL) || (push & MENU_PUSH_BUTTON_DECIDE)) {
                 TitlePhase = TITLE_PHASE_MENU;
                 TitleMCCheckMes = NULL;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
             break;
     }
@@ -1466,9 +1810,6 @@ int TitleModeKey() {
     }
     return TITLE_KEY_NONE;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleModeKey__Fv);
-#endif
 void TitleModeDraw() {
     int i;
     int x;
@@ -1492,7 +1833,7 @@ void TitleModeDraw() {
         prim.Begin(6);
         prim.Texture(Tex_Logo);
         prim.Color(0x80, 0x80, 0x80, fptosi(TitleInfo->push_alpha));
-        PrimQuad(&prim, 162.0f, float(338.0), start_rect);
+        PrimQuad(&prim, 162.0f, 338.0f, start_rect);
         prim.Color(0x80, 0x80, 0x80, fptosi(TitleInfo->title_alpha));
         PrimQuad(&prim, 84.0f, 384.0f, mgRect<int>(0, 0, 0x166, 0x16));
         prim.End();
@@ -1646,7 +1987,7 @@ void TitleMapDraw() {
                 mgPlightEnable(1);
 
                 for (int light = 0; light < 4; light++) {
-                    mgSetPlight(light, (mgPOINT_LIGHT *) &lighting->point_light[light]);
+                    mgSetPlight(light, &lighting->point_light[light]);
                 }
             }
 
@@ -1671,7 +2012,7 @@ void TitleMapDraw() {
         int   texture_blocks[128];
         TitleMap->PreDraw(view_pos);
         TitleMap->Draw();
-        mgCTexture *water = textures->GetTexture(at_2020, -1);
+        mgCTexture *water = textures->GetTexture("water", -1);
         int         water_block = -1;
 
         if (water != NULL) {
@@ -1718,7 +2059,7 @@ void TitleMapDraw() {
 
     mgSetPkTextureRepeat(0);
     mgCTexture      *screen = textures->GetTexture(at_1223__4, 0x6A);
-    mgCTexture      *overlay = textures->GetTexture(at_2021, 0x6A);
+    mgCTexture      *overlay = textures->GetTexture("ref", 0x6A);
     mgCCameraFollow *follow = (mgCCameraFollow *) camera;
     mgCCamera       *water_camera = TitleScene->GetCamera(TitleScene->active_camera);
 
@@ -2109,7 +2450,7 @@ int TitleCopyRightStep() {
                 u_long128 *buffer = Stack_ReadBuff.stGetTop();
                 memory.stSetBuffer(buffer, remaining);
                 DrawMenuFillBox(0x80, 0, 0, 0);
-                RushMovie->Load(at_2281, &memory, 512, 416, true, false);
+                RushMovie->Load("L5LOGO.PSS", &memory, 512, 416, true, false);
                 RushMovie->Play(at_1234);
                 RushMovie->SwitchThread();
 
@@ -2224,11 +2565,11 @@ void TitleHDDInstallInit() {
     textures->DeleteBlock(0x4C);
     stack->Align64();
     u_char *buffer = (u_char *) stack->stGetTop();
-    LoadFile2(at_2369__3, buffer, &file_size, 0);
+    LoadFile2("title/hdd0.img", buffer, &file_size, 0);
     textures->EnterIMGFile(buffer, 0x4A, NULL, NULL);
     stack->Alloc(Align16Blocks(file_size));
     buffer = (u_char *) stack->stGetTop();
-    LoadFile2(at_2370__4, buffer, &file_size, 0);
+    LoadFile2("title/hdd1.img", buffer, &file_size, 0);
     textures->EnterIMGFile(buffer, 0x4B, NULL, NULL);
     stack->Alloc(Align16Blocks(file_size));
 
@@ -2236,32 +2577,32 @@ void TitleHDDInstallInit() {
         int number = i + 1;
 
         if (number >= 10) {
-            sprintf(image_name, at_2371__3, number);
+            sprintf(image_name, "hdd_illust%d", number);
         } else {
-            sprintf(image_name, at_2372__3, number);
+            sprintf(image_name, "hdd_illust0%d", number);
         }
 
         HDDImage[i] = textures->GetTexture(image_name, -1);
         HDDImageAlpha[i] = 0;
     }
 
-    HDDDlBar = textures->GetTexture(at_2373__3, -1);
+    HDDDlBar = textures->GetTexture("hdddl", -1);
     HDDSysImage = Tex_Logo;
     buffer = (u_char *) stack->stGetTop();
 
-    if (LoadFile2(at_2374__3, buffer, &file_size, 0) != 0) {
+    if (LoadFile2("title/hddb.img", buffer, &file_size, 0) != 0) {
         textures->EnterIMGFile(buffer, 0x4C, NULL, NULL);
         stack->Alloc(Align16Blocks(file_size));
     }
 
-    HDDBGTex = textures->GetTexture(at_2375__3, -1);
+    HDDBGTex = textures->GetTexture("book", -1);
     HDDMes = new (stack->Alloc(0x2A7)) CDC2Mes;
     HDDMes2 = new (stack->Alloc(0x2A7)) CDC2Mes;
     HDDMes->texture_block = 0x46;
     HDDMes2->texture_block = 0x46;
     stack->Align64();
     HDDMesDataBuff = (s16 *) stack->stGetTop();
-    sprintf(message_path, at_2376__3, LanguageCode);
+    sprintf(message_path, "title/hddchk%d.mes", LanguageCode);
 
     if (LoadFile2(message_path, HDDMesDataBuff, &file_size, 0) != 0) {
         HDDMes->SetMessData(GetSystemMesBuffer(), HDDMesDataBuff);
@@ -2716,21 +3057,23 @@ void TitleHDDInstallDraw() {
         float       cursor[2] = {160.0f, 180.0f};
         PrimQuad(HDDSysImage, cursor[0], cursor[1], mgRect<int>(0x12E, 0x94, 0xD2, 0x36), 0x80, 0x80, 0x80, 0x80);
 
-        if (init_2648 == 0) {
-            count_2647 = 0;
-            init_2648 = 1;
-        }
+        /**
+         *
+         * Counts animation frames while the installation controls are shown.
+         *
+         */
+        static int count = 0;
 
-        count_2647 += 1.0f;
+        count += 1.0f;
 
-        if (1000000.0f < (float) count_2647) {
-            count_2647 = 0;
+        if (1000000.0f < (float) count) {
+            count = 0;
         }
 
         cursor[0] -= 30.0f;
         cursor[1] += 12.0f;
-        cursor[0] += 6.0f * cosf(0.05235988f * (float) count_2647);
-        cursor[1] += 4.0f * sinf(0.10471976f * (float) count_2647);
+        cursor[0] += 6.0f * cosf(0.05235988f * (float) count);
+        cursor[1] += 4.0f * sinf(0.10471976f * (float) count);
         PrimQuad(HDDSysImage, cursor[0], cursor[1], mgRect<int>(0, 0x28, 0x28, 0x20), 0x80, 0x80, 0x80, 0x80);
     }
 
@@ -2810,10 +3153,10 @@ void TitleLangSelInit(mgCMemory *memory) {
     title_lang_select = 0;
     mgFrameRate = 1;
     buffer = reinterpret_cast<u8 *>(memory->stGetTop());
-    LoadFile2(at_2723, buffer, &file_size, 0);
+    LoadFile2("title/lang_select.img", buffer, &file_size, 0);
     memory->Alloc(file_size / 16 + 1);
     mgTexManager.EnterIMGFile(buffer, 1, NULL, NULL);
-    lang_tex = mgTexManager.GetTexture(at_2724, -1);
+    lang_tex = mgTexManager.GetTexture("lang_select", -1);
     title_lang_phase = 0;
     title_lang_curxy[0] = 100.0f;
     title_lang_fadealpha = 0x80;
@@ -2925,16 +3268,8 @@ void TitleLangSelDraw() {
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", MC_ICON_Data__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1594__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1595__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", start_button_tbl_1826__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", btn_tblxy_1830__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1924__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", table_2611__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", infomsg_2664__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_991__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1221__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1222__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1223__4__DATA);
@@ -2954,73 +3289,26 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1236__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1237__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1238__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1239__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1267__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1479__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1481__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1480__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1495__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1517__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2020__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2021__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2182__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2281__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2310__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2369__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2370__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2371__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2372__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2373__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2374__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2375__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2376__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2607__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2606__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2665__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2666__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2667__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2723__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2724__DATA);
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleRushWaitCount__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleProjection__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleHDDCheckFlag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleMCCheckFileFind__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleMCCheckInport__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", cnttbl_2026__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_2646__2__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(TitleRushWaitCountBoot, 0x4);
 INCLUDE_BSS(TitleSelectInit, 0x4);
 INCLUDE_BSS(TitleMap, 0x4);
 INCLUDE_BSS(TitleCamera, 0x4);
 INCLUDE_BSS(TitleCamera2, 0x4);
 INCLUDE_BSS(WaveTable__3, 0x4);
-INCLUDE_BSS(TitleCameraPhase, 0x4);
-INCLUDE_BSS(TitleCameraPhaseCounter, 0x4);
-INCLUDE_BSS(TitleCameraAddAngle, 0x4);
 INCLUDE_BSS(GameBootInit, 0x4);
-INCLUDE_BSS(MasterDebugModeOn, 0x4);
 INCLUDE_BSS(TitleBootEventNo, 0x4);
 INCLUDE_BSS(DCRuncherMode, 0x4);
-INCLUDE_BSS(DCSelectedMovie, 0x4);
 INCLUDE_BSS(DCRuncherCounter, 0x4);
 INCLUDE_BSS(TitleInfo, 0x4);
-INCLUDE_BSS(OmakePlayEnableAttr, 0x4);
-INCLUDE_BSS(CostumeOptionEnv, 0x8);
 INCLUDE_BSS(TitleMCFuncFlag, 0x4);
-INCLUDE_BSS(TitleMCActivePort, 0x4);
 INCLUDE_BSS(TitleMCCheckNow, 0x4);
 INCLUDE_BSS(TitleMainMCCheckPhase, 0x4);
 INCLUDE_BSS(TitleMCCheck, 0x4);
-INCLUDE_BSS(TitleMCCheckMes, 0x4);
-INCLUDE_BSS(TitlePhase, 0x4);
-INCLUDE_BSS(TitlePushStart_AlphaPlus, 0x4);
-INCLUDE_BSS(Trial_TitleBlackFadeAlpha, 0x4);
-INCLUDE_BSS(TitleCopyRightDispPhase, 0x4);
-INCLUDE_BSS(TitleCopyRightDispCounter, 0x4);
-INCLUDE_BSS(TitleSkipLogoFlag, 0x4);
 INCLUDE_BSS(Tex_TitleBG, 0x4);
 INCLUDE_BSS(Tex_Chronicle, 0x4);
 INCLUDE_BSS(Tex_Logo, 0x4);
@@ -3034,36 +3322,6 @@ INCLUDE_BSS(RushStart, 0x4);
 INCLUDE_BSS(RushWork, 0x4);
 INCLUDE_BSS(TitleScene, 0x4);
 INCLUDE_BSS(TitleEventSound, 0x4);
-INCLUDE_BSS(E3Select, 0x4);
-INCLUDE_BSS(E3ModeBoardDrawFlag, 0x4);
-INCLUDE_BSS(E3ModeBoardDrawAlpha, 0x4);
-INCLUDE_BSS(E3_Title_SpriteY, 0x4);
-INCLUDE_BSS(E3_Trial_SpriteY, 0x4);
-INCLUDE_BSS(debug_start_drawflag, 0x4);
-INCLUDE_BSS(HDDPhase, 0x4);
-INCLUDE_BSS(HDDConfirmType, 0x4);
-INCLUDE_BSS(HDDnowDisplayImageNo, 0x4);
-INCLUDE_BSS(HDDDlBarDrawFlag, 0x4);
-INCLUDE_BSS(HDDDlBar, 0x4);
-INCLUDE_BSS(HDDMesDrawFlag, 0x4);
-INCLUDE_BSS(HDDMesDataBuff, 0x4);
-INCLUDE_BSS(HDDMes, 0x4);
-INCLUDE_BSS(HDDMes2, 0x4);
-INCLUDE_BSS(HDDBGTex, 0x4);
-INCLUDE_BSS(HDDSysImage, 0x4);
-INCLUDE_BSS(HDDModeSelect, 0x4);
-INCLUDE_BSS(TitleOmakeFlag, 0x4);
-INCLUDE_BSS(TitleMCCheckBootMode, 0x4);
-INCLUDE_BSS(TitleMCCheckPort, 0x4);
-INCLUDE_BSS(TitleMCCheckPhase, 0x4);
-INCLUDE_BSS(count_2647, 0x4);
-INCLUDE_BSS(init_2648, 0x4);
-INCLUDE_BSS(title_lang_select, 0x4);
-INCLUDE_BSS(title_lang_phase, 0x8);
-INCLUDE_BSS(title_lang_curxy, 0x8);
-INCLUDE_BSS(title_lang_fadealpha, 0x4);
-INCLUDE_BSS(title_lang_cursor_cnt, 0x4);
-INCLUDE_BSS(lang_tex, 0x4);
 
 // Uninitialised data (.bss)
 mgCMemory DataBuffer;
@@ -3071,8 +3329,5 @@ mgCMemory TitleMapBuffer;
 mgCMemory TitleWorkBuffer;
 mgCMemory Stack_ReadBuff;
 mgCMemory Stack_MenuCharaBuff_Fix;
-INCLUDE_BSS(RushInfo, 0x20);
-INCLUDE_BSS(HDDImage, 0x30);
-INCLUDE_BSS(HDDImageAlpha, 0x30);
 HDD_INFO  HDDINFO;
 mgCMemory lang_stack;

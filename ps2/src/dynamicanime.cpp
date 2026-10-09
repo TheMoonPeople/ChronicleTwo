@@ -13,22 +13,50 @@
 #include "mglib.hpp"
 #include "scriptinterpreter.hpp"
 
-extern CDynamicAnime *dynNowDA;
-extern mgCMemory     *dynStack;
-extern mgCFrame      *dynTopFrame;
-extern int            dynFrameCount;
-extern int            dynVertexCount;
-extern int            dynFixVertexCount;
-extern int            dynBindVertexCount;
-extern int            dynBBoxCount;
-extern int            dynColCount;
-extern SPI_TAG_PARAM  dynmc_tag[];
-extern char           at_855__2[];
-extern char           at_976[];
-extern char           at_977[];
-extern char           at_978[];
-extern char           at_979[];
-extern char           at_1025[];
+/**
+ * Dynamic animation receiving script commands.
+ */
+static CDynamicAnime * dynNowDA;
+
+/**
+ * Memory used by the current dynamic animation script.
+ */
+static mgCMemory     * dynStack;
+
+/**
+ * Root frame used to resolve animation frame names.
+ */
+static mgCFrame      * dynTopFrame;
+
+/**
+ * Number of animation frames read from the script.
+ */
+static int dynFrameCount;
+
+/**
+ * Number of animation vertices read from the script.
+ */
+static int dynVertexCount;
+
+/**
+ * Number of fixed vertices read from the script.
+ */
+static int dynFixVertexCount;
+
+/**
+ * Number of vertex bindings read from the script.
+ */
+static int dynBindVertexCount;
+
+/**
+ * Number of bounding boxes read from the script.
+ */
+static int dynBBoxCount;
+
+/**
+ * Number of collision shapes read from the script.
+ */
+static int dynColCount;
 
 /**
  *
@@ -71,7 +99,7 @@ void CDynamicAnime::ResetPosition() {
 
     if (top_frame != 0) {
         top_frame->GetLWMatrix(matrix);
-        mgApplyMatrixN((float (*)[4]) now_vertex, matrix, (float (*)[4]) init_vertex, vertex_num);
+        mgApplyMatrixN(now_vertex, matrix, init_vertex, vertex_num);
     }
 
     for (i = 0; i < vertex_num; i++) {
@@ -311,8 +339,8 @@ void CDynamicAnime::PreCollision() {
             col->frame = GetFrame(col->frame_id);
 
             if (col->frame != NULL) {
-                col->frame->GetLWMatrix((float (*)[4]) col->lw_matrix);
-                mgInversMatrix((float (*)[4]) col->inverse_matrix, (float (*)[4]) col->lw_matrix);
+                col->frame->GetLWMatrix(col->lw_matrix);
+                mgInversMatrix(col->inverse_matrix, col->lw_matrix);
             }
         }
     }
@@ -621,7 +649,7 @@ int dynFRAME(SPI_STACK *stack, int argc) {
     frame = dynTopFrame->SearchFrame(name);
 
     if (frame == NULL) {
-        printf(at_855__2, name);
+        printf("not found %s\n", name);
     }
 
     dynNowDA->SetFrame(dynFrameCount++, frame);
@@ -884,21 +912,21 @@ DA_FRAME_POSE *FRAME_POSE_Sub(SPI_STACK *stack, int argc) {
 
     pose->type = 0;
 
-    if (strcmp(kind, at_976) == 0) {
+    if (strcmp(kind, "bone") == 0) {
         if (argc < 6) {
             return NULL;
         }
 
         pose->type = 1;
         pose->vertex_num = 4;
-    } else if (strcmp(kind, at_977) == 0) {
+    } else if (strcmp(kind, "bone_yx") == 0) {
         if (argc < 6) {
             return NULL;
         }
 
         pose->type = 2;
         pose->vertex_num = 4;
-    } else if (strcmp(kind, at_978) == 0) {
+    } else if (strcmp(kind, "b_cdlr") == 0) {
         if (argc < 6) {
             return NULL;
         }
@@ -915,7 +943,7 @@ DA_FRAME_POSE *FRAME_POSE_Sub(SPI_STACK *stack, int argc) {
         pose->vertex_id[i] = spiGetStackInt(stack++);
 
         if (dynNowDA->CheckVertexID(pose->vertex_id[i]) == 0) {
-            printf(at_979, pose->vertex_id[i]);
+            printf("error vertex no %d!!\n", pose->vertex_id[i]);
             pose->type = 0;
             return NULL;
         }
@@ -1015,7 +1043,7 @@ int dynBIND_VERTEX(SPI_STACK *stack, int argc) {
     vertex2 = spiGetStackInt(stack++);
 
     if (dynNowDA->CheckVertexID(vertex1) == 0 || dynNowDA->CheckVertexID(vertex2) == 0) {
-        printf(at_1025, vertex1, vertex2);
+        printf("error vertex no %d-%d!!!\n", vertex1, vertex2);
         return 0;
     }
 
@@ -1187,6 +1215,42 @@ int dynWind(SPI_STACK *stack, int argc) {
     return 1;
 }
 
+static int dynCOLLISION(SPI_STACK *stack, int count);
+
+/**
+ * Script tags that define dynamic-animation geometry and forces.
+ */
+static SPI_TAG_PARAM dynmc_tag[] = {
+    {"FRAME_START", dynFRAME_START},
+    {"FRAME", dynFRAME},
+    {"FRAME_END", dynFRAME_END},
+    {"VERTEX_START", dynVERTEX_START},
+    {"VERTEX", dynVERTEX},
+    {"VERTEX_L", dynVERTEX_L},
+    {"VERTEX_END", dynVERTEX_END},
+    {"FIX_VERTEX_START", dynFIX_VERTEX_START},
+    {"FIX_VERTEX", dynFIX_VERTEX},
+    {"FIX_VERTEX_C", dynFIX_VERTEX_C},
+    {"FIX_VERTEX_S", dynFIX_VERTEX_S},
+    {"FIX_VERTEX_END", dynFIX_VERTEX_END},
+    {"FRAME_POSE", dynFRAME_POSE},
+    {"FRAME_POSE_L", dynFRAME_POSE_L},
+    {"DRAW_FRAME", dynDRAW_FRAME},
+    {"BIND_VERTEX_START", dynBIND_VERTEX_START},
+    {"BIND_VERTEX", dynBIND_VERTEX},
+    {"BIND_VERTEX_END", dynBIND_VERTEX_END},
+    {"BOUNDING_BOX_START", dynBOUNDING_BOX_START},
+    {"BOUNDING_BOX", dynBOUNDING_BOX},
+    {"BOUNDING_BOX_END", dynBOUNDING_BOX_END},
+    {"COLLISION_START", dynCOLLISION_START},
+    {"COLLISION", dynCOLLISION},
+    {"COLLISION_END", dynCOLLISION_END},
+    {"GRAVITY", dynGRAVITY},
+    {"K", dynK},
+    {"WIND", dynWind},
+    {NULL, NULL}
+};
+
 void CDynamicAnime::Load(char *name, int size, mgCFrame *frame, mgCMemory *memory) {
     float position[4];
     float rotation[4];
@@ -1212,7 +1276,7 @@ void CDynamicAnime::Load(char *name, int size, mgCFrame *frame, mgCMemory *memor
         dynTopFrame->SetRotation(0.0f, 0.0f, 0.0f);
         dynTopFrame->SetScale(1.0f, 1.0f, 1.0f);
         CScriptInterpreter interp;
-        interp.SetTag((SPI_TAG_PARAM *) dynmc_tag);
+        interp.SetTag(dynmc_tag);
         interp.SetScript(name, size);
         interp.Run();
         dynTopFrame->SetPosition(position);
@@ -1227,7 +1291,7 @@ int CDAColPipe::CheckHit(float *point) {
     float saved;
 
     point[3] = 1.0f;
-    sceVu0ApplyMatrix(local, (float (*)[4]) inverse_matrix, point);
+    sceVu0ApplyMatrix(local, inverse_matrix, point);
     sceVu0SubVector(offset, local, center);
     offset[0] /= radius[0];
     offset[1] /= radius[1];
@@ -1255,60 +1319,9 @@ int CDAColPipe::CheckHit(float *point) {
     sceVu0AddVector(local, center, offset);
     local[axis] = saved;
     local[3] = 1.0f;
-    sceVu0ApplyMatrix(point, (float (*)[4]) lw_matrix, local);
+    sceVu0ApplyMatrix(point, lw_matrix, local);
     return 1;
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", dynmc_tag__DATA);
-
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_816__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_817__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_818__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_819__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_820__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_821__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_822__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_823__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_824__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_825__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_826__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_827__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_828__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_829__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_830__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_831__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_832__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_833__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_834__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_835__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_836__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_837__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_838__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_839__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_840__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_841__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_842__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_855__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_976__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_977__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_978__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_979__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_1025__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", at_1074__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", __vt__10CDAColPipe__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", __vt__12CDACollision__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(dynNowDA, 0x4);
-INCLUDE_BSS(dynStack, 0x4);
-INCLUDE_BSS(dynTopFrame, 0x4);
-INCLUDE_BSS(dynFrameCount, 0x4);
-INCLUDE_BSS(dynVertexCount, 0x4);
-INCLUDE_BSS(dynFixVertexCount, 0x4);
-INCLUDE_BSS(dynBindVertexCount, 0x4);
-INCLUDE_BSS(dynBBoxCount, 0x4);
-INCLUDE_BSS(dynColCount, 0x4);

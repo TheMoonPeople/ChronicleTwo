@@ -19,6 +19,7 @@
 #define SCE_GS_PSMT8 19
 #define SCE_GS_PSMT4 20
 #define SCE_GS_PSMT8H 27
+#define SCE_GS_PSMZ32 48
 #define SCE_GS_PSMZ24 49
 
 #define SCE_GS_ZGEQUAL 2

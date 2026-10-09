@@ -46,11 +46,6 @@ static u_char texflush_dma[48] __attribute__((aligned(16))) = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-extern char   at_497[];
-extern char   at_866[];
-extern char   at_884[];
-extern char   at_867[];
-extern char   at_868[];
 /**
  *
  * Maps texels in alternating 32-bit columns to their 8-bit block positions.
@@ -86,6 +81,7 @@ static int block_table32_1267[32] __attribute__((aligned(16))) = {
     0, 1, 4, 5, 16, 17, 20, 21, 2, 3, 6, 7, 18, 19, 22, 23,
     8, 9, 12, 13, 24, 25, 28, 29, 10, 11, 14, 15, 26, 27, 30, 31,
 };
+
 extern u_char conv_work_1306[0x10000];
 
 static inline u_int align16_blocks(u_int n) {
@@ -509,7 +505,7 @@ mgCTexture *mgCTextureManager::SearchTexture(char *name) {
     }
 
     if (SearchTextureName(name, -1) != 0) {
-        printf(at_497, name);
+        printf("%s is already used.\n", name);
     }
 
     return slot;
@@ -1804,15 +1800,6 @@ static int Conv32To8(int width, int height, u_char *image) {
 }
 #pragma optimization_level reset
 #pragma schedule reset
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", at_497__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", at_629__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", at_866__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", at_867__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", at_868__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", at_869__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_texture", at_884__DATA);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(conv_work_1306, 0x10000);

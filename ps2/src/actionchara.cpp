@@ -46,12 +46,6 @@
 #include "swordeffect.hpp"
 #include "userdata.hpp"
 
-extern char    at_1325[];
-extern char    at_1357[];
-extern char    at_1358[];
-extern char    at_1394[];
-extern char    at_1427[];
-extern char    at_1428[];
 void           GuardEffectSet(CScene *scene, float *point);
 
 /**
@@ -74,18 +68,12 @@ struct ThrowItemTable {
     int item_no[19]; /**< Item numbers. */
 };
 
-extern ThrowItemTable at_1398;
-extern ActionVector   at_3289;
-extern ActionVector   at_3291;
-extern char           at_2423[];
-extern char           at_3389[];
-extern char           at_2333[];
-extern char           at_2334[];
-extern char           at_2210[];
-extern float          old_angle;
-extern float          ang_3371;
-extern s8             init_3372;
-extern ActionVector   at_2846;
+/**
+ *
+ * Previous stick direction used by character movement.
+ *
+ */
+static float old_angle;
 int                   RockOn_TargetSel(CScene *scene, int index);
 int                   DistCheck_Action2(CScene *scene, float unused, float range, float *out_dist, int rank, int *out_rank);
 int                   Check_LockOn(CScene *scene, float range, int index);
@@ -507,7 +495,7 @@ int CActionChara::CheckKeri(char *name, int flag) {
 
     if (stone != NULL) {
         if (flag != 0) {
-            piece = stone->SearchPiece(at_1325);
+            piece = stone->SearchPiece("rnd_obj01-a");
 
             if (piece != NULL) {
                 piece->Show(0);
@@ -546,7 +534,7 @@ int CActionChara::CheckEnemyCatch(char *name) {
     if (ActiveMonster->CheckThrowTarget(object) != NULL) {
         hold_type = 3;
         release_timing = 1;
-        other = SearchChara(at_1357);
+        other = SearchChara("sword");
 
         if (other != NULL) {
             other->Show(0, 0);
@@ -555,7 +543,7 @@ int CActionChara::CheckEnemyCatch(char *name) {
         battle_info = GetBattleCharaInfo();
 
         if (battle_info->chr_no == 0) {
-            other = SearchChara(at_1358);
+            other = SearchChara("shot");
 
             if (other != NULL) {
                 other->Show(0, 0);
@@ -571,7 +559,7 @@ int CActionChara::CheckEnemyCatch(char *name) {
     stone = AutoMapGen.SearchRandomStone(pos, 30.0f);
 
     if (stone != NULL) {
-        piece = stone->SearchPiece(at_1325);
+        piece = stone->SearchPiece("rnd_obj01-a");
 
         if (piece != NULL) {
             piece->Show(0);
@@ -581,14 +569,14 @@ int CActionChara::CheckEnemyCatch(char *name) {
         hold_frame = object;
         hold_parts = stone;
         hold_type = 4;
-        other = SearchChara(at_1357);
+        other = SearchChara("sword");
 
         if (other != NULL) {
             other->Show(0, 0);
         }
 
         if ((GetBattleCharaInfo())->chr_no == 0) {
-            other = SearchChara(at_1358);
+            other = SearchChara("shot");
 
             if (other != NULL) {
                 other->Show(0, 0);
@@ -663,7 +651,7 @@ int CActionChara::UsedItemAction() {
                         pallet[0].SetAnim(0xFF, 0xDC, 0x40, 1, 0x2D, 0);
                     }
 
-                    effect_man->CreateEffSpt(at_1394, 0, 0);
+                    effect_man->CreateEffSpt("\x92\xCA\x8F\xED\x89\xF1\x95\x9C", 0, 0);
                     effect_man->SetScriptTargetId(0, -1, -1);
                     effect_man->SetValue(0, healing, 0, -1);
                 }
@@ -677,7 +665,6 @@ int CActionChara::UsedItemAction() {
 }
 
 void CActionChara::EntryThrowItem() {
-    ThrowItemTable    table;
     CGameDataUsed    *item;
     int               index;
     int               item_no;
@@ -686,7 +673,10 @@ void CActionChara::EntryThrowItem() {
     battle_info = GetBattleCharaInfo();
     item = &battle_info->GetActiveItemInfo(0)[DngStatus.active_item];
     item_no = item->item_no;
-    table = at_1398;
+    ThrowItemTable table = {{
+        0x114, 0x118, 0x119, 0x11A, 0x11B, 0x11C, 0x11D, 0x11E, 0x11F,
+        0x120, 0x121, 0x122, 0x123, 0x124, 0x130, 0x186, 0x187, 0x133, -1
+    }};
     index = 0;
 
     while (table.item_no[index] != -1) {
@@ -701,10 +691,10 @@ void CActionChara::EntryThrowItem() {
         index = 0;
     }
 
-    throw_effect = effect_man->CreateEffSpt(at_1427, 0, 1);
+    throw_effect = effect_man->CreateEffSpt("\x8E\xE8\x93\x8A\x82\xB0\x94\x9A\x92" "e", 0, 1);
 
     if (throw_effect < 0) {
-        printf(at_1428);
+        printf("effect entry err\n");
     } else {
         effect_man->SetValue(0, 1, 0, throw_effect);
         effect_man->SetValue(1, item_no, 0, throw_effect);
@@ -1803,10 +1793,10 @@ int CActionChara::HumanTameMoveIF() {
         stand_flag = 1;
     }
 
-    SetMotion(at_2333, 0, 1);
+    SetMotion("\x82\xBD\x82\xDF\x83\x8B\x81[\x83v", 0, 1);
 
     if (world_x != 0.0f || world_z != 0.0f) {
-        SetMotion(at_2334, 0, 1);
+        SetMotion("\x82\xBD\x82\xDF\x88\xDA\x93\xAE", 0, 1);
     }
 
     sceVu0CopyVector(velocity, movement);
@@ -2566,8 +2556,6 @@ void HitEffectSet(CScene *scene, float *point) {
     float            pos[4];
     float            to_camera[4];
     float            origin[4];
-    ActionVector     dir;
-    ActionVector     rect;
     CCameraControl  *camera;
     CHitEffectImage *hit;
     CFlushEffect    *flush;
@@ -2585,7 +2573,8 @@ void HitEffectSet(CScene *scene, float *point) {
     sceVu0Normalize(to_camera, to_camera);
     sceVu0ScaleVector(to_camera, to_camera, 20.0f);
     sceVu0AddVector(pos, origin, to_camera);
-    dir = at_2846;
+    ActionVector dir = {{0.0f, 1.0f, 0.0f, 1.0f}};
+    ActionVector rect;
 
     if (BattleFX.hit == NULL) {
         hit = NULL;
@@ -2793,7 +2782,7 @@ int CActionChara::CheckDamage() {
         if (guarded != 0) {
             damage *= 0.01f * hit->param->critical_rate;
         }
-        if (((s16)hit->param->hit_flags & 0x8) != 0) {
+        if ((hit->param->hit_flags & 0x8) != 0) {
             guard_flag = 0;
             guarded = 0;
         }
@@ -2835,10 +2824,10 @@ int CActionChara::CheckDamage() {
             }
         }
         reaction = 2;
-        if (((s16)hit->param->hit_flags & 0x2) != 0) {
+        if ((hit->param->hit_flags & 0x2) != 0) {
             reaction = 4;
         }
-        if (((s16)hit->param->hit_flags & 0x4) != 0) {
+        if ((hit->param->hit_flags & 0x4) != 0) {
             reaction = 1;
         }
         if (guarded != 0) {
@@ -3188,13 +3177,6 @@ void CActionChara::StepParam() {
     float         move_copy[4];
     float         self_rot[4];
     float         target_rot[4];
-    ActionVector  forward;
-    float         matrix[4][4];
-    float         self_rot2[4];
-    ActionVector  forward2;
-    float         matrix2[4][4];
-    float         knock[4];
-    float         push[4];
     CActionChara *target;
     int           i;
 
@@ -3204,7 +3186,7 @@ void CActionChara::StepParam() {
     sceVu0CopyVector(velocity, move_copy);
 
     if (chara_type == 2) {
-        target = SearchChara(at_2423);
+        target = SearchChara("arm");
 
         if (target != NULL) {
             GetRotation(self_rot);
@@ -3219,14 +3201,17 @@ void CActionChara::StepParam() {
                 self_rot[1] += 6.2831855f;
             }
 
-            forward = at_3289;
+            ActionVector forward = {{0.0f, 0.0f, 1.0f, 1.0f}};
+            float matrix[4][4];
             sceVu0UnitMatrix(matrix);
             sceVu0RotMatrixY(matrix, matrix, self_rot[1]);
             sceVu0ApplyMatrix(front_vec, matrix, forward.f);
         }
     } else {
+        float self_rot2[4];
         GetRotation(self_rot2);
-        forward2 = at_3291;
+        ActionVector forward2 = {{0.0f, 0.0f, 1.0f, 1.0f}};
+        float matrix2[4][4];
         sceVu0UnitMatrix(matrix2);
         sceVu0RotMatrixY(matrix2, matrix2, self_rot2[1]);
         sceVu0ApplyMatrix(front_vec, matrix2, forward2.f);
@@ -3235,6 +3220,7 @@ void CActionChara::StepParam() {
     add_vec[1] = 0.0f;
 
     if (!(add_speed <= 0.0f) && add_time != 0) {
+        float knock[4];
         sceVu0ScaleVectorXYZ(knock, add_vec, add_speed);
         sceVu0AddVector(velocity, velocity, knock);
 
@@ -3252,6 +3238,7 @@ void CActionChara::StepParam() {
     }
 
     if (!(blow_speed <= 0.0f) && blow_time != 0) {
+        float push[4];
         sceVu0ScaleVectorXYZ(push, blow_vec, blow_speed);
         sceVu0AddVector(velocity, velocity, push);
 
@@ -3377,13 +3364,10 @@ void CActionChara::Step() {
         hold_parts->SetRotation(rotation);
     }
 
-    gun = SearchObject(at_3389);
+    gun = SearchObject("L_arm");
 
     if (gun != NULL) {
-        if (init_3372 == 0) {
-            ang_3371 = 0.0f;
-            init_3372 = 1;
-        }
+        static float ang = 0.0f;
 
         gun->GetWorldPosition0(gun_pos);
 
@@ -3394,14 +3378,14 @@ void CActionChara::Step() {
             sceVu0CopyVector(target_pos, gun_pos);
             target_pos[3] = 1.0f;
             target_pos[1] = 0.0f;
-            ang_3371 = -atan2f(gun_pos[1], mgDistVector(target_pos));
+            ang = -atan2f(gun_pos[1], mgDistVector(target_pos));
         } else {
-            ang_3371 = 0.0f;
+            ang = 0.0f;
         }
 
         sceVu0CopyMatrix(matrix, gun->trans_matrix);
         sceVu0UnitMatrix(pitch_matrix);
-        sceVu0RotMatrixZ(pitch_matrix, pitch_matrix, ang_3371);
+        sceVu0RotMatrixZ(pitch_matrix, pitch_matrix, ang);
         sceVu0MulMatrix(matrix, matrix, pitch_matrix);
         gun->SetTransMatrix(matrix);
     }
@@ -3465,7 +3449,7 @@ void CActionChara::Initialize(mgCMemory *memory) {
     stagger_time = 0;
     mask_flag = 0;
     dir_gun = 0;
-    default_motion = at_2210;
+    default_motion = "\x97\xA7\x82\xBF";
     shot_wait = 0;
     murderous = 0;
     murderous_time = 0;
@@ -3509,9 +3493,6 @@ void CActionChara::Copy(CActionChara &dest, mgCMemory *memory) {
     }
 }
 
-extern ActionVector at_2818;
-extern char         at_2840[];
-
 /**
  *
  * Creates guard effects at the impact point facing the active camera.
@@ -3520,7 +3501,6 @@ extern char         at_2840[];
 void GuardEffectSet(CScene *scene, float *point) {
     float            to_camera[4];
     float            position[4];
-    ActionVector     direction;
     CCameraControl  *camera;
     CHitEffectImage *hit;
     CFlushEffect    *flush;
@@ -3538,7 +3518,7 @@ void GuardEffectSet(CScene *scene, float *point) {
     sceVu0Normalize(to_camera, to_camera);
     sceVu0ScaleVector(to_camera, to_camera, 20.0f);
     sceVu0AddVector(position, position, to_camera);
-    direction = at_2818;
+    ActionVector direction = {{0.0f, 1.0f, 0.0f, 1.0f}};
 
     if (BattleFX.hit == NULL) {
         hit = NULL;
@@ -3579,68 +3559,7 @@ void GuardEffectSet(CScene *scene, float *point) {
     }
 
     if (FxScriptMan != NULL) {
-        FxScriptMan->CreateEffSpt(at_2840, 0, 0);
+        FxScriptMan->CreateEffSpt("\x83K\x81[\x83h\x83G\x83t\x83" "F\x83N\x83g\x82`", 0, 0);
         FxScriptMan->SetScriptVect1(position, 0, -1);
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_1398__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2048__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2543__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2586__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2720__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2818__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2846__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_3289__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_3291__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_1325__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_1357__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_1358__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_1394__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_1427__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_1428__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2209__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2210__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2211__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2212__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2213__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2214__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2215__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2216__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2217__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2294__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2295__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2333__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2334__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2423__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2507__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2508__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2509__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2510__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2629__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2630__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2631__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2632__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2633__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2634__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2713__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2714__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_2840__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_3085__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_3262__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_3263__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", at_3389__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actionchara", __vt__12CActionChara__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(old_angle, 0x4);
-INCLUDE_BSS(ang_3371, 0x4);
-INCLUDE_BSS(init_3372, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_3107, 0x10);

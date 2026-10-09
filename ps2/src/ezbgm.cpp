@@ -7,24 +7,28 @@
 #include "ezbgm.hpp"
 #include "sound.hpp"
 
-/** Client connection to the EZBGM IOP server. */
-extern sceSifClientData gCd2;
-/** Command send and response buffer shared with the EZBGM server. */
-extern int        sbuff__3[16];
-extern const char at_32[];
-extern const char at_33__2[];
-extern const char at_52[];
-extern const char at_53[];
-extern const char at_54[];
+/**
+ *
+ * Command send and response buffer shared with the EZBGM server.
+ *
+ */
+static int sbuff[16] __attribute__((aligned(16)));
+
+/**
+ *
+ * Client connection to the EZBGM IOP server.
+ *
+ */
+static sceSifClientData gCd2 __attribute__((aligned(16)));
 
 // Code (.text)
 #ifdef NONMATCHING
 int ezBgmInit() {
-    printf(at_32);
+    printf("EZ_BGMINIT START \n");
     sceSifInitRpc(0);
     do {
         if (sceSifBindRpc(&gCd2, 0x12345, 0) < 0) {
-            printf(at_33__2);
+            printf("error: sceSifBindRpc \n");
             for (;;) {
             }
         }
@@ -40,11 +44,11 @@ int ezBgmInit() {
     int previous;
     int delay;
 
-    printf(at_32);
+    printf("EZ_BGMINIT START \n");
     sceSifInitRpc(0);
 retry:
     if (sceSifBindRpc(&gCd2, 0x12345, 0) < 0) {
-        printf(at_33__2);
+        printf("error: sceSifBindRpc \n");
     hang:
         goto hang;
     }
@@ -68,82 +72,72 @@ int ezBgm(int command, int argument) {
     switch (command & EZBGM_COMMAND_MASK) {
         case EZBGM_PRELOAD:
             if (sceSifCheckStatRpc(&gCd2)) {
-                printf(at_53);
+                printf("########### Rpc is bussy2!! \n");
                 return 0;
             }
-            sbuff__3[0] = argument;
-            sceSifCallRpc(&gCd2, command, 1, sbuff__3, 0x10, sbuff__3, 0x40, 0, 0);
+            sbuff[0] = argument;
+            sceSifCallRpc(&gCd2, command, 1, sbuff, 0x10, sbuff, 0x40, 0, 0);
             break;
         case EZBGM_OPEN_FROM_PACK:
         case EZBGM_UNK_8A00:
         case EZBGM_OPEN:
             if (sceSifCheckStatRpc(&gCd2)) {
-                printf(at_52);
+                printf("########### Rpc is bussy1!! \n");
                 return 0;
             }
-            sceSifCallRpc(&gCd2, command, 1, (void *) argument, 0x40, sbuff__3, 0x40, 0, 0);
+            sceSifCallRpc(&gCd2, command, 1, (void *) argument, 0x40, sbuff, 0x40, 0, 0);
             break;
         default:
             if (sceSifCheckStatRpc(&gCd2)) {
-                printf(at_54);
+                printf("########### Rpc is bussy3!! \n");
                 return 0;
             }
-            sbuff__3[0] = argument;
-            sceSifCallRpc(&gCd2, command, 0, sbuff__3, 0x10, sbuff__3, 0x40, 0, 0);
+            sbuff[0] = argument;
+            sceSifCallRpc(&gCd2, command, 0, sbuff, 0x10, sbuff, 0x40, 0, 0);
             break;
     }
-    return sbuff__3[0];
+    return sbuff[0];
 }
 #else
 int ezBgm(int command, int argument) {
-    switch (command & 0xFFF0) {
-        case 0x8020:
-        case 0x8A00:
-        case 0x80F0:
+    switch (command & EZBGM_COMMAND_MASK) {
+        case EZBGM_OPEN:
+        case EZBGM_UNK_8A00:
+        case EZBGM_OPEN_FROM_PACK:
             if (sceSifCheckStatRpc(&gCd2) != 0) {
-                printf(at_52);
+                printf("########### Rpc is bussy1!! \n");
                 return 0;
             }
 
-            sceSifCallRpc(&gCd2, command, 1, (void *) argument, 0x40, sbuff__3, 0x40, NULL,
+            sceSifCallRpc(&gCd2, command, 1, (void *) argument, 0x40, sbuff, 0x40, NULL,
                           NULL);
             break;
-        case 0x40:
+        case EZBGM_PRELOAD:
             if (sceSifCheckStatRpc(&gCd2) != 0) {
-                printf(at_53);
+                printf("########### Rpc is bussy2!! \n");
                 return 0;
             }
 
-            sbuff__3[0] = argument;
-            sceSifCallRpc(&gCd2, command, 1, sbuff__3, 0x10, sbuff__3, 0x40, NULL,
+            sbuff[0] = argument;
+            sceSifCallRpc(&gCd2, command, 1, sbuff, 0x10, sbuff, 0x40, NULL,
                           NULL);
             break;
         default:
             if (sceSifCheckStatRpc(&gCd2) != 0) {
-                printf(at_54);
+                printf("########### Rpc is bussy3!! \n");
                 return 0;
             }
 
-            sbuff__3[0] = argument;
-            sceSifCallRpc(&gCd2, command, 0, sbuff__3, 0x10, sbuff__3, 0x40, NULL,
+            sbuff[0] = argument;
+            sceSifCallRpc(&gCd2, command, 0, sbuff, 0x10, sbuff, 0x40, NULL,
                           NULL);
             break;
     }
 
-    return sbuff__3[0];
+    return sbuff[0];
 }
 #endif
+
 int CSound::StreamOpenState() {
     return sceSifCheckStatRpc(&gCd2);
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/ezbgm", at_32__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/ezbgm", at_33__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/ezbgm", at_52__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/ezbgm", at_53__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/ezbgm", at_54__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(sbuff__3, 0x40);
-INCLUDE_BSS(gCd2, 0x30);

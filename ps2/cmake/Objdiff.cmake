@@ -16,7 +16,7 @@ file(GLOB_RECURSE PROJECT_HEADERS
      ${CMAKE_SOURCE_DIR}/${INCLUDE_DIR}/*.h)
 
 set(OBJDIFF_OBJS "")
-set(OBJDIFF_BASE_OBJS "")
+set(OBJDIFF_COMPARE_FILES "")
 set(OBJDIFF_SOURCES "")
 foreach(row IN LISTS unit_rows)
     string(REPLACE "\t" ";" parts "${row}")
@@ -62,10 +62,32 @@ foreach(row IN LISTS unit_rows)
         VERBATIM)
 
     list(APPEND OBJDIFF_OBJS ${target} ${base})
-    list(APPEND OBJDIFF_BASE_OBJS ${CMAKE_SOURCE_DIR}/${base})
+    foreach(copy ${OBJDIFF_DIR}/compare/base/${unit}.cpp.o
+                 ${OBJDIFF_DIR}/compare/target/${unit}.s.o)
+        list(APPEND OBJDIFF_COMPARE_FILES
+             ${CMAKE_SOURCE_DIR}/${copy} ${CMAKE_SOURCE_DIR}/${copy}.json)
+    endforeach()
     list(APPEND OBJDIFF_SOURCES ${CMAKE_SOURCE_DIR}/${source})
 endforeach()
 make_object_dirs("${OBJDIFF_OBJS}")
+
+# Source cuts and function/fallback classification affect the global split.
+# Ninja's restat avoids rebuilding the split when this file keeps its timestamp.
+set(SOURCE_CUTS ${BUILD_DIR}/source_cuts.txt)
+add_custom_command(
+    OUTPUT ${CMAKE_SOURCE_DIR}/${SOURCE_CUTS}
+    COMMAND ${PYTHON} ${SCRIPTS_DIR}/build/source_cuts.py
+            ${SOURCE_CUTS} ${OBJDIFF_SOURCES}
+    DEPENDS ${OBJDIFF_SOURCES}
+            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/source_cuts.py
+            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/disassemble.py
+            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/layout.py
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Checking source split inputs"
+    VERBATIM)
+add_custom_command(
+    OUTPUT ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
+    APPEND DEPENDS ${CMAKE_SOURCE_DIR}/${SOURCE_CUTS})
 
 set(OBJDIFF_ABS_OBJS "")
 foreach(obj IN LISTS OBJDIFF_OBJS)
@@ -75,12 +97,20 @@ endforeach()
 # objdiff's GUI reads the configuration at the root of the tree.
 add_custom_command(
     OUTPUT ${CMAKE_SOURCE_DIR}/${OBJDIFF_CONFIG}
+    BYPRODUCTS ${OBJDIFF_COMPARE_FILES}
     COMMAND ${PYTHON} ${SCRIPTS_DIR}/build/objdiff_config.py
             --build-dir ${BUILD_DIR} -o ${OBJDIFF_CONFIG}
     DEPENDS ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/main.yaml
             ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/objdiff_config.py
+            ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/main.symbols.txt
+            ${CMAKE_SOURCE_DIR}/${EXTRACTED_ELF}
             ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/layout.py
-            ${OBJDIFF_BASE_OBJS}
+            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/objdiff_data.py
+            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/postprocess_object.py
+            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/disassemble.py
+            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/lcf.py
+            ${MWCCGAP_SOURCES}
+            ${OBJDIFF_ABS_OBJS} ${OBJDIFF_SOURCES}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Generating ${OBJDIFF_CONFIG}"
     VERBATIM)

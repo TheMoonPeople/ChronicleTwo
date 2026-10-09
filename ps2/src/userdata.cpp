@@ -61,59 +61,455 @@ struct CharaBitTable {
     int bit[4]; /**< Party bit corresponding to each selectable character. */
 };
 
-extern CharaBitTable   at_3192;
-extern CGameDataUsed  *FishGamePreEquip;
-extern char           *magic_str_1462[8];
-extern char            word_1327[0x61];
-extern char           *symbol_tbl_1338[8][2][2];
-extern signed char     htbl_1662[10];
-extern char           *strtbl_1505[8];
-extern char            temp_1510[0x40];
-extern char           *f_2005[2];
-extern char           *basefish_1288[];
-extern unsigned char   use_limmit_table_2558[7];
-extern MOS_HENGE_PARAM mos_henge_param[];
-extern short           fish_record_dataindex_convert[];
-extern char           *robo_nametable_3330[];
-extern float           lifetbl_2854[2];
-extern short           weptbl_4503[2][10];
-extern float           BattleParamater_Time;
-extern int             BattleParamater_TimeBand;
-extern signed char     tbl1_5167[3];
-extern signed char     tbl2_5168[2];
-extern unsigned int    at_table_5400[12];
-extern signed char     equip_type_tbl_5456[15];
-extern char            at_1378__2[];
-extern char            at_1379__2[];
-extern char            at_1623[];
-extern char            at_1624[];
-extern char            at_1637[];
-extern char            at_2061[];
-extern char            at_2018[];
-extern char            at_2019[];
-extern char            at_5773[];
-
 /**
  *
- * Gives an item and quantity for a debug inventory preset.
+ * Identifies fields in a debug preset item sequence.
  *
  */
-struct DEBUG_ITEM {
-    short item_no; /**< Item number to grant. */
-    short num;     /**< Quantity to grant. */
+enum DEBUG_ITEM_FIELD {
+    DEBUG_ITEM_NUMBER = 0,      /**< Item number in each preset pair. */
+    DEBUG_ITEM_QUANTITY = 1,    /**< Quantity in each preset pair. */
+    DEBUG_ITEM_FIELD_COUNT = 2, /**< Halfwords in each complete preset pair. */
 };
 
-extern DEBUG_ITEM cureItemtable_5744[];
-extern DEBUG_ITEM itemtbl_5745[];
-extern DEBUG_ITEM start_tbl_5746[];
-extern DEBUG_ITEM e3_town_5747[];
-extern DEBUG_ITEM e3_dng_5748[];
-extern DEBUG_ITEM e3_boss_5749[];
-extern s8         init_partytbl_5752[];
-extern DEBUG_ITEM dbg_set1_5774[1];
-extern DEBUG_ITEM dbg_set2_5775[];
-extern DEBUG_ITEM dbg_set3_5776[];
-extern DEBUG_ITEM subgame1_5788[];
+/**
+ * Gives the combat parameters and script names for monster transformations.
+ */
+static MOS_HENGE_PARAM mos_henge_param[57] = {
+    {0, 8, 4, {0, 0}, "f201a", {NULL, NULL, NULL, NULL}},
+    {1, 22, 12, {0, 0}, "f201a", {NULL, NULL, NULL, NULL}},
+    {2, 64, 24, {0, 0}, "f201a", {NULL, NULL, NULL, NULL}},
+    {3, 96, 42, {0, 0}, "f201a", {NULL, NULL, NULL, NULL}},
+    {8, 7, 3, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", NULL, NULL}},
+    {9, 23, 11, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", NULL, NULL}},
+    {10, 60, 23, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", NULL, NULL}},
+    {11, 95, 41, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", NULL, NULL}},
+    {22, 60, 20, {0, 0}, "f206a", {"fox_\x8F""e\x92""e", "\x83}\x83Y\x83\x8B\x83t\x83\x89\x83""b\x83V\x83\x85", NULL, NULL}},
+    {23, 88, 39, {0, 0}, "f206a", {"fox_\x8F""e\x92""e", "\x83}\x83Y\x83\x8B\x83t\x83\x89\x83""b\x83V\x83\x85", NULL, NULL}},
+    {24, 8, 3, {0, 0}, "f207a", {NULL, NULL, NULL, NULL}},
+    {25, 22, 10, {0, 0}, "f207a", {NULL, NULL, NULL, NULL}},
+    {26, 64, 21, {0, 0}, "f207a", {NULL, NULL, NULL, NULL}},
+    {27, 96, 39, {0, 0}, "f207a", {NULL, NULL, NULL, NULL}},
+    {44, 7, 3, {0, 0}, "f213a", {"\x89\xCE\x92""e\x82k\x82R", "\x89\xCE\x92""e\x82g", NULL, NULL}},
+    {45, 23, 10, {0, 0}, "f213a", {"\x95\x97\x92""e\x82k\x82Q", "\x95\x97\x92""e\x82g", NULL, NULL}},
+    {46, 60, 21, {0, 0}, "f213a", {"\x95X\x92""e\x82k\x82Q", "\x95X\x92""e\x82g", NULL, NULL}},
+    {47, 95, 39, {0, 0}, "f213a", {"\x97\x8B\x92""e\x82k\x82Q", "\x97\x8B\x92""e\x82g", NULL, NULL}},
+    {52, 9, 4, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL}},
+    {53, 23, 12, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL}},
+    {54, 65, 24, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL}},
+    {55, 99, 42, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL}},
+    {72, 7, 3, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92""e\x82""e", "\x8E\xF4\x82\xA2\x92""e\x82k", "\x8E\xF4\x82\xA2\x92""e\x82g", NULL}},
+    {73, 23, 11, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92""e\x82""e", "\x8E\xF4\x82\xA2\x92""e\x82k", "\x8E\xF4\x82\xA2\x92""e\x82g", NULL}},
+    {74, 60, 23, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92""e\x82""e", "\x8E\xF4\x82\xA2\x92""e\x82k", "\x8E\xF4\x82\xA2\x92""e\x82g", NULL}},
+    {75, 95, 41, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92""e\x82""e", "\x8E\xF4\x82\xA2\x92""e\x82k", "\x8E\xF4\x82\xA2\x92""e\x82g", NULL}},
+    {102, 59, 30, {0, 0}, "f10a", {"\x82\xA9\x82\xDA\x82\xBF\x82\xE1\x94\x9A\x92""e", "\x82l\x8F\xAC\x94\x9A\x94\xAD", NULL, NULL}},
+    {103, 88, 50, {0, 0}, "f10a", {"\x82\xA9\x82\xDA\x82\xBF\x82\xE1\x94\x9A\x92""e", "\x82l\x8F\xAC\x94\x9A\x94\xAD", NULL, NULL}},
+    {112, 80, 26, {0, 0}, "f114a", {"\x89\xCE\x92""e\x82""e", "\x89\xCE\x92""e\x82k\x82R", NULL, NULL}},
+    {116, 44, 22, {0, 0}, "f114a", {"\x95X\x92""e\x82""e", "\x95X\x92""e\x82k\x82Q", "\x95X\x92""e\x82g", NULL}},
+    {120, 55, 24, {0, 0}, "f114a", {"\x97\x8B\x92""e\x82""e", "\x97\x8B\x92""e\x82k\x82Q", "\x97\x8B\x92""e\x82g", NULL}},
+    {124, 33, 20, {0, 0}, "f114a", {"\x95\x97\x92""e\x82""e", "\x95\x97\x92""e\x82k\x82Q", "\x95\x97\x92""e\x82g", NULL}},
+    {128, 75, 28, {0, 0}, "f114a", {"\x90\xB9\x92""e\x82""e", "\x90\xB9\x92""e\x82k\x82Q", "\x90\xB9\x92""e\x82g", NULL}},
+    {136, 30, 12, {0, 0}, "f06a", {NULL, NULL, NULL, NULL}},
+    {137, 70, 24, {0, 0}, "f06a", {NULL, NULL, NULL, NULL}},
+    {139, 100, 34, {0, 0}, "f06a", {NULL, NULL, NULL, NULL}},
+    {150, 60, 23, {0, 0}, "f24a", {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k\x82Q", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL, NULL}},
+    {151, 95, 41, {0, 0}, "f24a", {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k\x82Q", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL, NULL}},
+    {154, 55, 30, {0, 0}, "f26a", {"\x90\xCE\x89\xBB\x92""e\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL, NULL}},
+    {155, 88, 42, {0, 0}, "f26a", {"\x90\xCE\x89\xBB\x92""e\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", NULL, NULL}},
+    {166, 65, 40, {0, 0}, "f05a", {NULL, NULL, NULL, NULL}},
+    {167, 85, 60, {0, 0}, "f05a", {NULL, NULL, NULL, NULL}},
+    {176, 7, 3, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {177, 23, 11, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {180, 60, 23, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {183, 95, 41, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {186, 61, 25, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {187, 89, 38, {0, 0}, "f03a", {NULL, NULL, NULL, NULL}},
+    {220, 8, 3, {0, 0}, "f49a", {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", NULL, NULL, NULL}},
+    {221, 22, 10, {0, 0}, "f49a", {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", NULL, NULL, NULL}},
+    {222, 64, 21, {0, 0}, "f49a", {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", NULL, NULL, NULL}},
+    {223, 96, 39, {0, 0}, "f49a", {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", NULL, NULL, NULL}},
+    {224, 36, 20, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
+    {228, 57, 24, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
+    {232, 66, 40, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
+    {236, 45, 22, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
+    {240, 80, 20, {0, 0}, "f45a", {NULL, NULL, NULL, NULL}},
+};
+
+/**
+ * Formats a cooked fish name for each language.
+ */
+static char *basefish_1288[7] = {
+    " ",
+    "Grilled %s",
+    "R[UNI00f4]tir %s",
+    "Ger[UNI00f6]steter %s",
+    "Cuoci %s",
+    "Asar %s",
+    "Roast %s",
+};
+
+/**
+ * Gives the name prefix and suffix for each language and rename state.
+ */
+static char *symbol_tbl_1338[8][2][2] = {
+    {{"\x81w", "\x81x"}, {"\x81y", "\x81z"}},
+    {{"\"", "\""}, {"\x81y", "\x81z"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"'", "'"}},
+    {{"\"", "\""}, {"\x81y", "\x81z"}},
+};
+
+/**
+ * Gives the primary and secondary effect scripts for each weapon element.
+ */
+static char *magic_str_1462[8] = {
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x89\xCE",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x89\xCE\x83q\x83""b\x83g",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95X",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95X\x83q\x83""b\x83g",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x97\x8B",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x97\x8B\x83q\x83""b\x83g",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95\x97",
+    "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95\x97\x83q\x83""b\x83g",
+};
+
+/**
+ * Gives the spectrum source description format for each language.
+ */
+static char *strtbl_1505[8] = {
+    "\x81w%s\x81x",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+    "\"%s\"",
+};
+
+/**
+ * Gives a weapon's random durability gain when it levels up.
+ */
+static signed char htbl_1662[10] = {1, 1, 1, 1, 1, 2, 2, 2, 3, 3};
+
+/**
+ * Maps fish item numbers to the fishing record slots.
+ */
+static short fish_record_dataindex_convert[19] = {320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 310, -1};
+
+/**
+ * Gives the default ridepod name for each language.
+ */
+static char *robo_nametable_3330[7] = {
+    "\x83\x89\x83""C\x83h\x83|\x83""b\x83h",
+    "Ridepod",
+    "Robomobil",
+    "Ridepod",
+    "Robomobile",
+    "Ridepod",
+    "Ridepod",
+};
+
+/**
+ * Gives the default equipment for each language group and human character.
+ */
+static short weptbl_4503[2][10] = {
+    {0x1, 0x16, 0x6f, 0x75, 0x102, 0x29, 0x5b, 0x7b, 0x81, 0x107},
+    {0x1, 0x16, 0x6f, 0x75, 0x104, 0x29, 0x5b, 0x7b, 0x81, 0x107},
+};
+
+/**
+ * Pairs weapon abilities that cancel one another when combined.
+ */
+static unsigned int at_table_5400[14] = {
+    0x2, 0x1, 0, 0, 0, 0x40, 0x20, 0x100, 0x80, 0x400, 0x200, 0, 0, 0,
+};
+
+/**
+ * Gives the item type accepted by each human or ridepod equipment slot.
+ */
+static signed char equip_type_tbl_5456[3][5] = {
+    {1, 2, 6, 7, 5},
+    {3, 4, 9, 10, 8},
+    {13, 12, 15, 14, 0},
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short cureItemtable_5744[] = {
+    0x10C, 10,
+    0x126, 10,
+    0x12A, 10,
+    0x160, 10,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short itemtbl_5745[] = {
+    0x87, 1,
+    0x91, 1,
+    0x9B, 1,
+    0xA5, 1,
+    0xF6, 1,
+    0x88, 1,
+    0x9C, 1,
+    0xA6, 1,
+    0x89, 1,
+    0x98, 1,
+    0xA7, 1,
+    0xA, 1,
+    0x2, 1,
+    0x17, 1,
+    0x70, 1,
+    0x2A, 1,
+    0x5C, 1,
+    0x5D, 1,
+    0x62, 1,
+    0x6A, 1,
+    0x10C, 5,
+    0x126, 3,
+    0x12A, 10,
+    0x160, 10,
+    0x135, 1,
+    0x140, 1,
+    0x142, 1,
+    0x147, 1,
+    0x14C, 1,
+    0x14F, 1,
+    0x138, 10,
+    0x139, 10,
+    0x13A, 10,
+    0x134, 1,
+    0x72, 1,
+    0x103, 1,
+    0x104, 1,
+    0x16A, 1,
+    0x12E, 1,
+    0x167, 1,
+    0x165, 1,
+    0x171, 1,
+    0x137, 1,
+    0x182, 1,
+    0x82, 1,
+    0x83, 1,
+    0x7C, 1,
+    0x7D, 1,
+    0x105, 1,
+    0x78, 1,
+    0x73, 1,
+    0x108, 1,
+    0x10A, 1,
+    0xFC, 1,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short start_tbl_5746[] = {
+    0x161, 1,
+    0x137, 1,
+    0x10C, 5,
+    0x126, 3,
+    0x12A, 3,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short e3_town_5747[] = {
+    0x171, 1,
+    0x2, 1,
+    0xA, 1,
+    0x17, 1,
+    0x103, 1,
+    0x102, 1,
+    0x72, 1,
+    0x76, 1,
+    0x12E, 1,
+    0x139, 3,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short e3_dng_5748[] = {
+    0x10C, 12,
+    0x126, 7,
+    0x12A, 5,
+    0x160, 5,
+    0x2, 1,
+    0xA, 1,
+    0x17, 1,
+    0x103, 1,
+    0x102, 1,
+    0x72, 1,
+    0x76, 1,
+    0x2A, 1,
+    0x5C, 1,
+    0x7C, 1,
+    0x118, 8,
+    0x87, 1,
+    0x91, 1,
+    0x9B, 1,
+    0xA5, 1,
+    0xF6, 1,
+    0x88, 1,
+    0xA6, 1,
+    0x134, 1,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short e3_boss_5749[] = {
+    0x10C, 12,
+    0x126, 8,
+    0x12A, 6,
+    0x160, 6,
+    0x2, 1,
+    0xA, 1,
+    0x17, 1,
+    0x103, 1,
+    0x102, 1,
+    0x72, 1,
+    0x76, 1,
+    0x87, 1,
+    0x91, 1,
+    0x9B, 1,
+    0xA5, 1,
+    0xF6, 1,
+    0x88, 1,
+    0xA6, 1,
+    -1,
+};
+
+/**
+ * Lists the townspeople enabled by the initial debug preset.
+ */
+static s8 init_partytbl_5752[26] = {
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+    14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short dbg_set2_5775[] = {
+    0x171, 1,
+    0x167, 1,
+    0x137, 1,
+    0x87, 1,
+    0x91, 1,
+    0x9B, 1,
+    0xA5, 1,
+    0xF6, 1,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short dbg_set3_5776[] = {
+    0x171, 1,
+    0x167, 1,
+    0x137, 1,
+    0x87, 1,
+    0x91, 1,
+    0x9B, 1,
+    0xA5, 1,
+    0xF6, 1,
+    0x134, 1,
+    0x12E, 1,
+    -1,
+};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short subgame1_5788[] = {
+    0x9, 1,
+    0xB, 1,
+    0xC, 1,
+    0xD, 1,
+    0xE, 1,
+    -1,
+};
+
+/**
+ * Gives the model-name prefix for each human character.
+ */
+static char *f_2005[2] = {
+    "c01_base",
+    "c02_base",
+};
+
+/**
+ * Gives the fish capacity of each aquarium tank.
+ */
+s8 aquarium_fish_maxtbl[3] = {6, 4, 2};
+
+/**
+ * Gives the shield kit limit for each ridepod core.
+ */
+static unsigned char use_limmit_table_2558[7] = {3, 6, 9, 12, 15, 18, 21};
+
+/**
+ * Gives the initial health capacity of the two human characters.
+ */
+static float lifetbl_2854[2] = {32.0f, 48.0f};
+
+/**
+ * Lists the trap choices for the first random-circle kind.
+ */
+static signed char tbl1_5167[4] = {1, 2, 3, 4};
+
+/**
+ * Lists the trap choices for the second random-circle kind.
+ */
+static signed char tbl2_5168[2] = {6, 7};
+
+/**
+ * Stores item numbers and quantities for a debug preset, terminated by -1.
+ */
+static short dbg_set1_5774[] = {
+    0x167, 1,
+    -1,
+};
+
+/**
+ * Keeps the weapon to restore after the fishing game.
+ */
+static CGameDataUsed *FishGamePreEquip;
+
+/**
+ * Caches the scene time used for battle parameters.
+ */
+static float BattleParamater_Time;
+
+/**
+ * Caches the time band used for battle parameters.
+ */
+static int BattleParamater_TimeBand;
+
+/**
+ * Holds the formatted name of an owned item.
+ */
+static char word_1327[0x61];
+
+/**
+ * Holds an attachment's spectrum source description.
+ */
+static char temp_1510[0x40];
 
 // Code (.text)
 CUserDataManager *GetUserDataMan() {
@@ -611,7 +1007,7 @@ char *CGameDataUsed::GetName(int name_type) {
 
     if (name != NULL) {
         if (name_type == 2) {
-            strcpy(word_1327, symbol_tbl_1338[LanguageCode][(signed char) rename_flag][0]);
+            strcpy(word_1327, symbol_tbl_1338[LanguageCode][rename_flag][0]);
             strcat(word_1327, name);
         }
 
@@ -625,21 +1021,21 @@ char *CGameDataUsed::GetName(int name_type) {
 
         if (weapon_level > 0) {
             if ((int) LanguageCode > 0) {
-                strcat(word_1327, at_1378__2);
+                strcat(word_1327, " + %d");
                 sprintf(word_1327, word_1327, weapon_level);
             } else {
-                strcat(word_1327, at_1379__2);
+                strcat(word_1327, "\x81{");
                 digits = GetNumberKeta(weapon_level);
 
                 if (digits > 0) {
                     do {
                         if (digits == 1) {
-                            strcat(word_1327, (char *) MenuBigNum[weapon_level]);
+                            strcat(word_1327, MenuBigNum[weapon_level]);
                             digits -= 1;
                         } else {
                             divisor = (int) pow(10.0, (double) (digits - 1));
                             digit = weapon_level / divisor;
-                            strcat(word_1327, (char *) MenuBigNum[digit]);
+                            strcat(word_1327, MenuBigNum[digit]);
                             digits -= 1;
                             weapon_level -= digit * divisor;
                         }
@@ -650,7 +1046,7 @@ char *CGameDataUsed::GetName(int name_type) {
     }
 
     if (name != NULL && name_type == 2) {
-        strcat(word_1327, symbol_tbl_1338[LanguageCode][(signed char) rename_flag][1]);
+        strcat(word_1327, symbol_tbl_1338[LanguageCode][rename_flag][1]);
     }
 
     return word_1327;
@@ -671,7 +1067,7 @@ void CGameDataUsed::TransToPassword(char *data, int length) {
                 body = &item->data.fish;
                 memset(&buffer, 0, 14);
                 buffer.fish.item_no = item->item_no;
-                buffer.fish.sex = static_cast<s8>(body->sex);
+                buffer.fish.sex = body->sex;
                 buffer.fish.color = body->color;
                 buffer.fish.battle = body->param[4];
                 buffer.fish.stamina = body->param[3];
@@ -706,7 +1102,7 @@ void CGameDataUsed::TransToData(char *data, int length) {
                 dst = buffer.bytes;
 
                 for (i = 0; i < 14 && i < length; i++) {
-                    dst[i] = ((signed char *) data)[i];
+                    dst[i] = data[i];
                 }
 
                 item->item_no = buffer.fish.item_no;
@@ -1018,11 +1414,11 @@ void CGameDataUsed::GetRoboJointName(char *name) {
     }
 
     if (item_type == 0xD) {
-        sprintf(name, at_1623, record->GetOffsetNo());
+        sprintf(name, "body%d", record->GetOffsetNo());
     }
 
     if (item_type == 0xC) {
-        sprintf(name, at_1624, record->GetOffsetNo());
+        sprintf(name, "arm%d", record->GetOffsetNo());
     }
 }
 
@@ -1040,7 +1436,7 @@ void CGameDataUsed::GetRoboSoundFileName(char *name) {
             sound_no = 0x28;
         }
 
-        sprintf(name, at_1637, sound_no);
+        sprintf(name, "CH_0%d", sound_no);
     }
 }
 
@@ -1523,10 +1919,10 @@ int GetMainCharaModelName(int character_index, char *model_name, int alternate) 
     }
 
     if (alternate != 0) {
-        sprintf(model_name, at_2018, f_2005[character_index]);
+        sprintf(model_name, "%s.chr", f_2005[character_index]);
         return 1;
     } else {
-        sprintf(model_name, at_2019, f_2005[character_index], model_number);
+        sprintf(model_name, "%s%d.chr", f_2005[character_index], model_number);
         return 1;
     }
 }
@@ -1888,11 +2284,11 @@ int CGameDataUsed::CopyDataFish(int item_no) {
     fish->data.fish.kind = GetRandI(4);
     fish->data.fish.hp = 100;
     fish->data.fish.fatigue = 0;
-    fish->data.fish.param[4] = *(u16 *) &record->battle;
-    fish->data.fish.param[0] = *(u16 *) &record->boost;
-    fish->data.fish.param[1] = *(u16 *) &record->endurance;
-    fish->data.fish.param[2] = *(u16 *) &record->tenacity;
-    fish->data.fish.param[3] = *(u16 *) &record->stamina;
+    fish->data.fish.param[4] = record->battle;
+    fish->data.fish.param[0] = record->boost;
+    fish->data.fish.param[1] = record->endurance;
+    fish->data.fish.param[2] = record->tenacity;
+    fish->data.fish.param[3] = record->stamina;
     fish->data.fish.life = GetRandI(0x33) + 0xC8;
     fish->data.fish.breed_feeds_remaining = 0;
     fish->data.fish.timer = 0;
@@ -1993,15 +2389,15 @@ void CFishAquarium::Initialize() {
     unk_2 = 0;
 
     for (i = 0; i < 6; i++) {
-        ((CGameDataUsed *) &fish_tank[i])->Init();
+        fish_tank[i].Init();
     }
 
     for (i = 0; i < 4; i++) {
-        ((CGameDataUsed *) &sub_tank[i])->Init();
+        sub_tank[i].Init();
     }
 
     for (i = 0; i < 2; i++) {
-        ((CGameDataUsed *) &breed_tank[i])->Init();
+        breed_tank[i].Init();
     }
 
     unk_518 = 0;
@@ -2111,7 +2507,7 @@ int CFishAquarium::CheckHaigouTankSex(CGameDataUsed *fish) {
 
     for (; i < 2; i++) {
         if (breed_tank[i].item_no > 0 &&
-            (s8) breed_tank[i].data.fish.sex == (s8) fish->data.fish.sex) {
+            breed_tank[i].data.fish.sex == fish->data.fish.sex) {
             return 0;
         }
     }
@@ -2431,14 +2827,12 @@ void CFishingTournament::ResetRecord() {
     memset(entry, 0, sizeof(entry));
 }
 
-int CFishingTournament::EntryFish(int entrant, int fish, int weight) {
+int CFishingTournament::EntryFish(int item_no, int size, int weight) {
     for (int i = 0; i < 10; i++) {
         if (entry[i].item_no <= 0) {
-
-            short *slot = (short *) ((i << 3) + (int) this);
-            slot[16] = entrant;
-            slot[17] = fish;
-            slot[18] = weight;
+            entry[i].item_no = item_no;
+            entry[i].size = size;
+            entry[i].weight = weight;
             break;
         }
     }
@@ -2968,7 +3362,8 @@ void CUserDataManager::InitCharaChangeMask() {
 u32 CUserDataManager::GetEnableCharaChangeFlag() {
     int           party_chara = GetNowPartyMember();
     int           mask = chara_change & chara_change_mask;
-    CharaBitTable bits = at_3192;
+    CharaBitTable bits = {{1 << USER_CHARA_MAX, 1 << USER_CHARA_MONICA,
+                          1 << USER_CHARA_ROBO, 1 << USER_CHARA_MONICA}};
 
     for (int chara_no = 0; chara_no < 4; chara_no++) {
         if ((party_chara & bits.bit[chara_no]) == 0) {
@@ -3259,7 +3654,7 @@ int CUserDataManager::GetDefenceVol(int chara_no) {
             return 0;
         }
 
-        return *(u16 *) &chara->defence;
+        return chara->defence;
     }
 
     if (chara_no == 2) {
@@ -3270,7 +3665,7 @@ int CUserDataManager::GetDefenceVol(int chara_no) {
         CHARA_DATA *monster = &chara_data[1];
 
         if (monster != 0) {
-            return *(u16 *) &monster->defence;
+            return monster->defence;
         }
     }
 
@@ -3394,14 +3789,14 @@ PARTY_CHARA_INFO *CUserDataManager::GetPartyCharaInfo(int chara_no) {
 int CUserDataManager::UseNpcAbility(int npc_no, int ability_no, int consume) {
     int               usable = 0;
     PARTY_CHARA_INFO *member = GetPartyCharaInfo(npc_no);
-    u8               *npc_data = (u8 *) GetPartyNPCData(npc_no);
+    NPC_BASE_DATA    *npc_data = GetPartyNPCData(npc_no);
 
     if (member == 0 || npc_data == 0) {
         return 0;
     }
 
     short gauge = member->point;
-    u8    cost = npc_data[ability_no + 0x32];
+    u8    cost = npc_data->ability_cost[ability_no];
 
     if (cost <= gauge) {
         usable = 1;
@@ -3744,62 +4139,31 @@ int CUserDataManager::SetChrEquipDirect(int chara_no, int item_no) {
 CGameDataUsed *CUserDataManager::SearchEquip(int chara_no, int item_no) {
     CGameDataUsed *found = 0;
     int            i;
-    int            offset;
-    int            equip_offset;
-    CHARA_DATA    *entry;
-    CHARA_DATA    *equip_entry;
-    ROBO_DATA     *robot;
-    int            part_offset;
-    ROBO_DATA     *part_entry;
-    int            k;
 
     if (chara_no == 0 || chara_no == 1) {
-        int         j;
         CHARA_DATA *chara = GetCharaDataPtr(chara_no);
-        i = 0;
-        offset = 0;
 
-        do {
-            entry = (CHARA_DATA *) ((u8 *) chara + offset);
-
-            if (item_no == entry->active_item[0].item_no) {
-                found = &entry->active_item[0];
+        for (i = 0; i < 3; i++) {
+            if (item_no == chara->active_item[i].item_no) {
+                found = &chara->active_item[i];
             }
+        }
 
-            i++;
-            offset += sizeof(CGameDataUsed);
-        } while (i < 3);
-
-        j = 0;
-        equip_offset = 0;
-
-        do {
-            equip_entry = (CHARA_DATA *) ((u8 *) chara + equip_offset);
-
-            if (item_no == equip_entry->equip[0].item_no) {
-                found = &equip_entry->equip[0];
+        for (i = 0; i < 5; i++) {
+            if (item_no == chara->equip[i].item_no) {
+                found = &chara->equip[i];
             }
-
-            j++;
-            equip_offset += sizeof(CGameDataUsed);
-        } while (j < 5);
+        }
     }
 
     if (chara_no == 2) {
-        robot = &robo_data;
-        k = 0;
-        part_offset = 0;
+        ROBO_DATA *robot = &robo_data;
 
-        do {
-            part_entry = (ROBO_DATA *) ((u8 *) robot + part_offset);
-
-            if (item_no == part_entry->parts[0].item_no) {
-                found = &part_entry->parts[0];
+        for (i = 0; i < 3; i++) {
+            if (item_no == robot->parts[i].item_no) {
+                found = &robot->parts[i];
             }
-
-            k++;
-            part_offset += sizeof(CGameDataUsed);
-        } while (k < 3);
+        }
     }
 
     return found;
@@ -4001,88 +4365,46 @@ int CUserDataManager::CheckElectricFish() {
 }
 
 int CUserDataManager::GetNumSameItem(int item_no) {
-    int            i;
-    int            equip_offset;
-    int            bag_size;
-    int            j;
-    int            total;
-    int            slot;
-    int            bag_offset;
-    int            chara_offset;
-    int            offset;
-    CHARA_DATA    *entry;
-    int            chara;
-    CGameDataUsed *item;
-    CHARA_DATA    *data;
-    int            part_offset;
-    int            part;
+    int         i;
+    int         bag_size;
+    int         j;
+    int         total;
+    CHARA_DATA *data;
+
     total = 0;
     bag_size = GetNowBagMax(1);
-    i = 0;
 
-    if (0 < bag_size) {
-        bag_offset = 0;
-
-        do {
-            item = (CGameDataUsed *) ((u8 *) this + bag_offset);
-
-            if (item_no == item->item_no) {
-                total += item->GetNum();
-            }
-
-            total += item->GetGiftBoxSameItemNum(item_no);
-            i++;
-            bag_offset += sizeof(CGameDataUsed);
-        } while (i < bag_size);
-    }
-
-    chara = 0;
-    chara_offset = 0;
-
-    do {
-        data = (CHARA_DATA *) ((u8 *) this + chara_offset + 0x3F48);
-        j = 0;
-        offset = 0;
-
-        do {
-            entry = (CHARA_DATA *) ((u8 *) data + offset);
-
-            if (item_no == entry->active_item[0].item_no) {
-                total += entry->active_item[0].GetNum();
-            }
-
-            total += entry->active_item[0].GetGiftBoxSameItemNum(item_no);
-            j++;
-            offset += sizeof(CGameDataUsed);
-        } while (j < 3);
-
-        slot = 0;
-        equip_offset = 0;
-
-        do {
-            if (item_no == ((CHARA_DATA *) ((u8 *) data + equip_offset))->equip[0].item_no) {
-                total += 1;
-            }
-
-            slot++;
-            equip_offset += sizeof(CGameDataUsed);
-        } while (slot < 5);
-
-        chara++;
-        chara_offset += sizeof(CHARA_DATA);
-    } while (chara < 2);
-
-    part = 0;
-    part_offset = 0;
-
-    do {
-        if (item_no == ((CGameDataUsed *) ((u8 *) this + part_offset + 0x4690))->item_no) {
-            total += 1;
+    for (i = 0; i < bag_size; i++) {
+        if (item_no == used_data[i].item_no) {
+            total += used_data[i].GetNum();
         }
 
-        part++;
-        part_offset += sizeof(CGameDataUsed);
-    } while (part < 4);
+        total += used_data[i].GetGiftBoxSameItemNum(item_no);
+    }
+
+    for (i = 0; i < 2; i++) {
+        data = &chara_data[i];
+
+        for (j = 0; j < 3; j++) {
+            if (item_no == data->active_item[j].item_no) {
+                total += data->active_item[j].GetNum();
+            }
+
+            total += data->active_item[j].GetGiftBoxSameItemNum(item_no);
+        }
+
+        for (j = 0; j < 5; j++) {
+            if (item_no == data->equip[j].item_no) {
+                total += 1;
+            }
+        }
+    }
+
+    for (i = 0; i < 4; i++) {
+        if (item_no == robo_data.parts[i].item_no) {
+            total += 1;
+        }
+    }
 
     return total;
 }
@@ -4560,7 +4882,7 @@ void CheckEquipChange(int chara_no) {
 }
 
 void CBattleCharaInfo::Initialize() {
-    memset(this, 0, 0x90);
+    memset(this, 0, sizeof(CBattleCharaInfo));
     chr_no = 0;
     chara_type = -1;
     chara_data = 0;
@@ -4594,7 +4916,7 @@ void CBattleCharaInfo::SetChrNo(int new_chara_no) {
         chara_type = 0;
         chara_data = manager->GetCharaDataPtr(chr_no);
         active_item = ((CHARA_DATA *) chara_data)->active_item;
-        equip = (CGameDataUsed *) ((CHARA_DATA *) chara_data)->equip;
+        equip = ((CHARA_DATA *) chara_data)->equip;
         hp = &((CHARA_DATA *) chara_data)->hp;
         disp_hp = hp->now;
         disp_hp_max = hp->max;
@@ -4604,7 +4926,7 @@ void CBattleCharaInfo::SetChrNo(int new_chara_no) {
         chara_type = 1;
         chara_data = &manager->robo_data;
         active_item = 0;
-        equip = (CGameDataUsed *) &((ROBO_DATA *) chara_data)->parts[0];
+        equip = &((ROBO_DATA *) chara_data)->parts[0];
         hp = &((ROBO_DATA *) chara_data)->hp;
         disp_hp = hp->now;
         disp_hp_max = hp->max;
@@ -4697,7 +5019,6 @@ CGameDataUsed *CBattleCharaInfo::GetActiveItemInfo(int index) {
 
 int CBattleCharaInfo::UseActiveItem(CGameDataUsed *item) {
 
-    int target[2];
     int item_no;
 
     if (item == 0) {
@@ -4705,27 +5026,24 @@ int CBattleCharaInfo::UseActiveItem(CGameDataUsed *item) {
     }
 
     item_no = item->item_no;
-    target[0] = -1;
-    ((CItemUseTarget *) target)->SetPtr(0, chara_data);
+    CItemUseTarget target;
+    target.SetPtr(0, chara_data);
 
     if (item_no == 294) {
-        ((CItemUseTarget *) target)->SetPtr(1, GetEquipTablePtr(0));
+        target.SetPtr(1, GetEquipTablePtr(0));
     }
 
     if (item_no == 298 || item_no == 352) {
-        ((CItemUseTarget *) target)->SetPtr(1, GetEquipTablePtr(1));
+        target.SetPtr(1, GetEquipTablePtr(1));
     }
 
-    return MenuUseItemCheckFunc(item, (CItemUseTarget *) target, 1);
+    return MenuUseItemCheckFunc(item, &target, 1);
 }
 
 u32 CBattleCharaInfo::GetSpecialStatus(int slot) {
     if (chara_type == 0) {
         if (slot == 0 || slot == 1) {
-
-            int  offset = ((slot << 3) - slot) << 2;
-            int *entry = (int *) (offset + (int) this);
-            return entry[0x12];
+            return weapon_param[slot].special;
         }
     }
 
@@ -4735,10 +5053,7 @@ u32 CBattleCharaInfo::GetSpecialStatus(int slot) {
 int CBattleCharaInfo::GetPalletNo(int slot) {
     if (chara_type == 0) {
         if (slot == 0 || slot == 1) {
-
-            int    offset = ((slot << 3) - slot) << 2;
-            short *entry = (short *) (offset + (int) this);
-            return entry[0x26];
+            return weapon_param[slot].pallet_no;
         }
     }
 
@@ -4765,7 +5080,7 @@ void CBattleCharaInfo::RefreshParamater() {
             weapon_rate[0] = 1.5f;
             weapon_rate[1] = 1.5f;
         }
-        defence = (u16 &)((CHARA_DATA *)chara_data)->defence;
+        defence = ((CHARA_DATA *)chara_data)->defence;
         int i = 0;
         while (i < 2) {
             WEAPON_USED *weapon0 = &equipment[i].data.weapon;
@@ -5645,10 +5960,8 @@ int CheckBadStatus(int attr) {
 
 unsigned int CheckWeaponAttribute(unsigned int mask_a, unsigned int mask_b) {
     int bit = 0;
-    int byte_offset = 0;
-
     do {
-        unsigned int pair = *(unsigned int *) ((u8 *) at_table_5400 + byte_offset);
+        const unsigned int &pair = at_table_5400[bit];
         unsigned int mask = 1 << bit;
 
         if (pair != 0 && (mask_a & mask) && (mask_b & pair)) {
@@ -5657,7 +5970,6 @@ unsigned int CheckWeaponAttribute(unsigned int mask_a, unsigned int mask_b) {
         }
 
         bit++;
-        byte_offset += 4;
     } while (bit < 12);
 
     mask_a |= mask_b;
@@ -5717,7 +6029,7 @@ int SearchEquipType(int category, int slot) {
         return 0;
     }
 
-    return *(slot + (equip_type_tbl_5456 + category * 5));
+    return equip_type_tbl_5456[category][slot];
 }
 
 #pragma global_optimizer reset
@@ -5753,8 +6065,6 @@ int IsCheckParty(int chara_no) {
 
 char *GetAquariumFish0(int slot) {
     CFishAquarium *aquarium = GetAquariumData();
-    u8            *entry;
-    int            offset;
 
     if (aquarium == NULL) {
         return 0;
@@ -5764,11 +6074,8 @@ char *GetAquariumFish0(int slot) {
         return 0;
     }
 
-    offset = slot * sizeof(CGameDataUsed);
-    entry = (u8 *) (offset + (int) aquarium);
-
-    if (0 < *(short *) (entry + 6)) {
-        return ((CGameDataUsed *) (entry + 4))->GetName(1);
+    if (0 < aquarium->fish_tank[slot].item_no) {
+        return aquarium->fish_tank[slot].GetName(1);
     }
 
     return 0;
@@ -5964,8 +6271,6 @@ void DeleteErekiFish() {
     CFishAquarium *aquarium;
     CGameDataUsed *fish;
     int            i;
-    int            off;
-    CGameDataUsed *entry;
 
     aquarium = GetAquariumData();
 
@@ -5975,20 +6280,12 @@ void DeleteErekiFish() {
 
     fish = aquarium->GetAquariumFishTop(0);
 
-    i = 0;
-    off = 0;
-
-    do {
-        entry = (CGameDataUsed *) ((u8 *) fish + off);
-
-        if ((entry->item_no > 0) && (entry->data.fish.flags & 2)) {
-            ((fish + i))->Init();
+    for (i = 0; i < 6; i++) {
+        if (fish[i].item_no > 0 && (fish[i].data.fish.flags & 2)) {
+            fish[i].Init();
             return;
         }
-
-        i += 1;
-        off += sizeof(CGameDataUsed);
-    } while (i < 6);
+    }
 }
 
 int GetNowBagMax(int board) {
@@ -6003,24 +6300,17 @@ void LeaveMonicaItemCheck() {
     int               item_no;
     CGameDataUsed    *bag_item;
     CGameDataUsed    *free_slot;
-    int               off;
-    CGameDataUsed    *active;
     CHARA_DATA       *monica;
 
     user_data = GetUserDataMan();
 
     if (user_data != NULL) {
         monica = user_data->GetCharaDataPtr(1);
-        i = 0;
 
         if (monica != 0) {
-            off = 0;
-
-            do {
-
-                item_no = ((CGameDataUsed *) ((u8 *) monica + off + 0x2C))->item_no;
-                active = (CGameDataUsed *) ((u8 *) monica + off + 0x2C);
-                num = active->GetNum();
+            for (i = 0; i < 3; i++) {
+                item_no = monica->active_item[i].item_no;
+                num = monica->active_item[i].GetNum();
 
                 if ((item_no > 0) && (num > 0)) {
                     bag_item = user_data->SearchItemOnItemBrd(item_no, 0);
@@ -6029,22 +6319,19 @@ void LeaveMonicaItemCheck() {
                     if (bag_item != NULL) {
                         if (bag_item->CheckTypeEnableStack() == 0) {
                             if (free_slot != NULL) {
-                                free_slot->CopyGameData(active);
-                                active->Init();
+                                free_slot->CopyGameData(&monica->active_item[i]);
+                                monica->active_item[i].Init();
                             }
                         } else {
                             bag_item->AddNum(num, 1);
-                            active->Init();
+                            monica->active_item[i].Init();
                         }
                     } else if (free_slot != NULL) {
-                        free_slot->CopyGameData(active);
-                        active->Init();
+                        free_slot->CopyGameData(&monica->active_item[i]);
+                        monica->active_item[i].Init();
                     }
                 }
-
-                i += 1;
-                off += sizeof(CGameDataUsed);
-            } while (i < 3);
+            }
         }
     }
 }
@@ -6098,8 +6385,8 @@ void AquaFishFatigueClear() {
 }
 void DebugGetItem(CUserDataManager *user_data, int mode) {
     CUserDataManager *manager = user_data;
-    DEBUG_ITEM *items;
-    DEBUG_ITEM *extra_items;
+    short *items;
+    short *extra_items;
     CGameDataUsed *attach;
 
     if (user_data == NULL) {
@@ -6156,7 +6443,7 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
     short equip_no[4] = {0, 0, 0, 0};
     if (mode == 7) {
         items = dbg_set1_5774;
-        extra_items = &start_tbl_5746[1];
+        extra_items = &start_tbl_5746[DEBUG_ITEM_FIELD_COUNT];
     }
     if (mode == 8) {
         equip_no[0] = 2;
@@ -6184,8 +6471,9 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
         }
     }
     if (items != NULL) {
-        for (int i = 0; items[i].item_no > 0; i++) {
-            manager->GetItem(items[i].item_no, items[i].num);
+        for (int i = 0; items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_NUMBER] > 0; i++) {
+            manager->GetItem(items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_NUMBER],
+                             items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_QUANTITY]);
         }
         if (mode == 0) {
             manager->monster_box.EnableChange(1);
@@ -6234,141 +6522,13 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
             manager->SetChrEquip(1, e3);
         }
         if (extra_items != NULL) {
-            for (int i = 0; extra_items[i].item_no > 0; i++) {
-                manager->GetItem(extra_items[i].item_no, extra_items[i].num);
+            for (int i = 0; extra_items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_NUMBER] > 0; i++) {
+                manager->GetItem(extra_items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_NUMBER],
+                                 extra_items[i * DEBUG_ITEM_FIELD_COUNT + DEBUG_ITEM_QUANTITY]);
             }
         }
     }
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", mos_henge_param__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", basefish_1288__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", symbol_tbl_1338__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", magic_str_1462__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", strtbl_1505__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", htbl_1662__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", fish_record_dataindex_convert__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_3192__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", robo_nametable_3330__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_4196__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", weptbl_4503__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_table_5400__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", equip_type_tbl_5456__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", cureItemtable_5744__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", itemtbl_5745__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", start_tbl_5746__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", e3_town_5747__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", e3_dng_5748__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", e3_boss_5749__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", init_partytbl_5752__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", dbg_set2_5775__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", dbg_set3_5776__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", subgame1_5788__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_896__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_897__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_898__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_899__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_900__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_901__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_902__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_903__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_904__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_905__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_906__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_907__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_908__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_909__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_910__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_911__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_912__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_913__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_914__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_915__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_916__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_917__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_918__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_919__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_920__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_921__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_922__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_923__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_924__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_925__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_926__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_927__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_928__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_929__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_930__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_931__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_932__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_933__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_934__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_935__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_936__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_937__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_938__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_939__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_940__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_941__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1289__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1290__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1291__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1292__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1293__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1294__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1295__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1339__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1340__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1341__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1342__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1343__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1344__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1378__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1379__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1463__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1464__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1465__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1466__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1467__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1468__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1469__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1470__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1506__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1507__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1623__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1624__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_1637__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_2006__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_2007__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_2018__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_2019__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_3331__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_3332__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_3333__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_3334__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_4442__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", f_2005__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", aquarium_fish_maxtbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", use_limmit_table_2558__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", lifetbl_2854__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", at_4695__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", tbl1_5167__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", tbl2_5168__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/userdata", dbg_set1_5774__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(FishGamePreEquip, 0x4);
-INCLUDE_BSS(BattleParamater_Time, 0x4);
-INCLUDE_BSS(BattleParamater_TimeBand, 0x4);
-INCLUDE_BSS(at_5773, 0x8);
-
 // Uninitialised data (.bss)
-INCLUDE_BSS(word_1327, 0x70);
-INCLUDE_BSS(temp_1510, 0x40);
-INCLUDE_BSS(at_2061, 0x20);
 CBattleCharaInfo BattleParamater;

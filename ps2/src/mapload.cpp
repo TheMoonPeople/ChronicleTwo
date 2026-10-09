@@ -22,160 +22,191 @@
 #include "scriptinterpreter.hpp"
 #include "water.hpp"
 
-extern CFuncPoint   *mapNowFuncPoint;
-extern int           mapCameraInfoIdx;
-extern int           mapCameraRectIdx;
-extern int           mapFuncPointIdx;
-extern float         mapFarDist;
-extern int           mapFarAlpha;
-extern int           mapShow;
-extern char          mapMapPartsName[0x100];
-extern char          mapPlacePartsName[0x100];
-extern CWaterFrame  *cfgWater;
-extern int           WaterIndex;
-extern int           ReserveFuncFlag;
-extern SPI_TAG_PARAM map_tag[];
-extern SPI_TAG_PARAM cfg_tag[];
-extern char          at_1064[];
-extern char          at_1128[];
-extern char          at_1129[];
-extern char          at_1130[];
-extern char          at_1131[];
-extern char          at_1132[];
-extern char          at_1133[];
-extern char          at_1134[];
-extern char          at_1135[];
-extern char          at_1136[];
-extern char          at_1278[];
-extern char          at_1279[];
-extern char          at_1280[];
-extern char          at_1281[];
-extern char          at_1282[];
-extern char          at_1283[];
-extern char          at_1284[];
-extern char          at_1436[];
-extern char          at_1437[];
-extern char          at_1438[];
-extern char          at_1439[];
-extern char          at_1544[];
-int                  mapDummy(SPI_STACK *stack, int argument_count);
-static int           IsAddMode();
-int                  mapPARTS(SPI_STACK *stack, int argument_count);
-int                  mapFAR_CLIP(SPI_STACK *stack, int argument_count);
-int                  mapLIGHT_FLAG(SPI_STACK *stack, int argument_count);
-int                  mapMOVE_FLAG(SPI_STACK *stack, int argument_count);
-int                  mapLOD_START(SPI_STACK *stack, int argument_count);
-int                  mapLOD_BLEND(SPI_STACK *stack, int argument_count);
-int                  mapLOD_PIECE(SPI_STACK *stack, int argument_count);
-int                  mapLOD_END(SPI_STACK *stack, int argument_count);
-int                  mapPIECE(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_NAME(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_POS(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_ROT(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_SCALE(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_MATERIAL_START(SPI_STACK *stack, int argument_count);
-int                  mapPIECE_MATERIAL(SPI_STACK *stack, int argc);
-s32                  mapPIECE_MATERIAL_END(SPI_STACK *stack, int argc);
-int                  mapPIECE_COL_TYPE(SPI_STACK *stack, int argc);
-int                  mapPIECE_TIME(SPI_STACK *stack, int argc);
-int                  mapPIECE_END(SPI_STACK *stack, int argc);
-int                  mapPARTS_END(SPI_STACK *stack, int argc);
-int                  mapMAP_PARTS(SPI_STACK *stack, int argc);
-int                  mapMAP_FAR_CLIP(SPI_STACK *stack, int argc);
-int                  mapPARTS_NAME(SPI_STACK *stack, int argc);
-int                  mapPARTS_GROUP(SPI_STACK *stack, int argc);
-int                  mapPARTS_POS(SPI_STACK *stack, int argc);
-int                  mapPARTS_ROT(SPI_STACK *stack, int argc);
-int                  mapPARTS_SCALE(SPI_STACK *stack, int argc);
-int                  mapMAP_PARTS_END(SPI_STACK *stack, int argc);
-s32                  map_MAP_INFO_TOP(SPI_STACK *stack, int argc);
-int                  mapCAMERA_INFO(SPI_STACK *stack, int argc);
-int                  mapFIX_CAMERA(SPI_STACK *stack, int argc);
-int                  mapFIX_CAMERA_POS(SPI_STACK *stack, int argc);
-int                  mapFIX_CAMERA_POS2(SPI_STACK *stack, int argc);
-int                  mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc);
-int                  mapFIX_CAMERA_END(SPI_STACK *stack, int argc);
-s32                  mapCAMERA_INFO_END(SPI_STACK *stack, s32 argument_count);
-int                  mapFUNC_POINT(SPI_STACK *stack, int argc);
-int                  mapFUNC_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_NAME(SPI_STACK *stack, int argc);
-int                  mapFUNC_FLAG(SPI_STACK *stack, int argc);
-int                  mapFUNC_FIRE_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_PLIGHT_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_ANIME_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_INVENT_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_EVENT_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_SOUND_DATA(SPI_STACK *stack, int argc);
-int                  mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc);
-int                  mapFUNC_POS(SPI_STACK *stack, int argc);
-int                  mapFUNC_DATA_END(SPI_STACK *stack, int argc);
-int                  mapFUNC_POINT_END(SPI_STACK *stack, int argc);
-int                  cfgDRAW_OFF_RECT(SPI_STACK *stack, int argc);
-int                  cfgOCCLUSION_PLANE(SPI_STACK *stack, int argc);
-int                  cfgFUNC_DATA(SPI_STACK *stack, int argc);
-int                  cfgFUNC_EVENT_DATA(SPI_STACK *stack, int argc);
-int                  cfgFUNC_DATA_END(SPI_STACK *stack, int argc);
-int                  cfgWATER_SURFACE_NUM(SPI_STACK *stack, int argc);
-s32                  cfgWATER_SURFACE_START(SPI_STACK *stack, int argc);
-int                  cfgWATER_VERTEX(SPI_STACK *stack, int argc);
-int                  cfgWATER_POS(SPI_STACK *stack, int argc);
-int                  cfgWATER_PARAM(SPI_STACK *stack, int argc);
-s32                  cfgWATER_SHAKE(SPI_STACK *stack, int argc);
-int                  cfgWATER_SURFACE_END(SPI_STACK *stack, int argc);
-int                  cfgWATER_DRAW(SPI_STACK *stack, int argc);
-
-/** Non-zero when loading an additional map into the current map. */
-extern int mapAddMode;
+int        mapDummy(SPI_STACK *stack, int argument_count);
+static int IsAddMode();
+int        mapPARTS(SPI_STACK *stack, int argument_count);
+int        mapFAR_CLIP(SPI_STACK *stack, int argument_count);
+int        mapLIGHT_FLAG(SPI_STACK *stack, int argument_count);
+int        mapMOVE_FLAG(SPI_STACK *stack, int argument_count);
+int        mapLOD_START(SPI_STACK *stack, int argument_count);
+int        mapLOD_BLEND(SPI_STACK *stack, int argument_count);
+int        mapLOD_PIECE(SPI_STACK *stack, int argument_count);
+int        mapLOD_END(SPI_STACK *stack, int argument_count);
+int        mapPIECE(SPI_STACK *stack, int argument_count);
+int        mapPIECE_NAME(SPI_STACK *stack, int argument_count);
+int        mapPIECE_POS(SPI_STACK *stack, int argument_count);
+int        mapPIECE_ROT(SPI_STACK *stack, int argument_count);
+int        mapPIECE_SCALE(SPI_STACK *stack, int argument_count);
+int        mapPIECE_MATERIAL_START(SPI_STACK *stack, int argument_count);
+int        mapPIECE_MATERIAL(SPI_STACK *stack, int argc);
+s32        mapPIECE_MATERIAL_END(SPI_STACK *stack, int argc);
+int        mapPIECE_COL_TYPE(SPI_STACK *stack, int argc);
+int        mapPIECE_TIME(SPI_STACK *stack, int argc);
+int        mapPIECE_END(SPI_STACK *stack, int argc);
+int        mapPARTS_END(SPI_STACK *stack, int argc);
+int        mapMAP_PARTS(SPI_STACK *stack, int argc);
+int        mapMAP_FAR_CLIP(SPI_STACK *stack, int argc);
+int        mapPARTS_NAME(SPI_STACK *stack, int argc);
+int        mapPARTS_GROUP(SPI_STACK *stack, int argc);
+int        mapPARTS_POS(SPI_STACK *stack, int argc);
+int        mapPARTS_ROT(SPI_STACK *stack, int argc);
+int        mapPARTS_SCALE(SPI_STACK *stack, int argc);
+int        mapMAP_PARTS_END(SPI_STACK *stack, int argc);
+s32        map_MAP_INFO_TOP(SPI_STACK *stack, int argc);
+int        mapCAMERA_INFO(SPI_STACK *stack, int argc);
+int        mapFIX_CAMERA(SPI_STACK *stack, int argc);
+int        mapFIX_CAMERA_POS(SPI_STACK *stack, int argc);
+int        mapFIX_CAMERA_POS2(SPI_STACK *stack, int argc);
+int        mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc);
+int        mapFIX_CAMERA_END(SPI_STACK *stack, int argc);
+s32        mapCAMERA_INFO_END(SPI_STACK *stack, s32 argument_count);
+int        mapFUNC_POINT(SPI_STACK *stack, int argc);
+int        mapFUNC_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_NAME(SPI_STACK *stack, int argc);
+int        mapFUNC_FLAG(SPI_STACK *stack, int argc);
+int        mapFUNC_FIRE_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_PLIGHT_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_ANIME_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_INVENT_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_EVENT_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_SOUND_DATA(SPI_STACK *stack, int argc);
+int        mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc);
+int        mapFUNC_POS(SPI_STACK *stack, int argc);
+int        mapFUNC_DATA_END(SPI_STACK *stack, int argc);
+int        mapFUNC_POINT_END(SPI_STACK *stack, int argc);
+int        cfgDRAW_OFF_RECT(SPI_STACK *stack, int argc);
+int        cfgOCCLUSION_PLANE(SPI_STACK *stack, int argc);
+int        cfgFUNC_DATA(SPI_STACK *stack, int argc);
+int        cfgFUNC_EVENT_DATA(SPI_STACK *stack, int argc);
+int        cfgFUNC_DATA_END(SPI_STACK *stack, int argc);
+int        cfgWATER_SURFACE_NUM(SPI_STACK *stack, int argc);
+s32        cfgWATER_SURFACE_START(SPI_STACK *stack, int argc);
+int        cfgWATER_VERTEX(SPI_STACK *stack, int argc);
+int        cfgWATER_POS(SPI_STACK *stack, int argc);
+int        cfgWATER_PARAM(SPI_STACK *stack, int argc);
+s32        cfgWATER_SHAKE(SPI_STACK *stack, int argc);
+int        cfgWATER_SURFACE_END(SPI_STACK *stack, int argc);
+int        cfgWATER_DRAW(SPI_STACK *stack, int argc);
 
 /**
- *
  * Map the map script is loading into.
- *
  */
-// Small uninitialised data (.sbss)
 static CMap *mapMap;
 
 /**
- *
  * Node of the map part the map script is building, or null outside a part.
- *
  */
 static CList<CMapParts> *mapNowMapParts;
 
 /**
- *
  * Node of the map piece the map script is building, or null outside a piece.
- *
  */
 static CList<CMapPiece> *mapNowMapPiece;
 
 /**
- *
  * Memory that everything the map script builds is taken from.
- *
  */
 static mgCMemory *mapStack;
 
 /**
- *
- * Non-zero while function points of the map script go to the current map part rather than the map.
- *
+ * Far clipping distance of the placed map part, or negative for no clipping.
  */
-static int mapPtsFunc;
+static float mapFarDist;
 
 /**
- *
- * Next entry of the current piece's materials that the map script fills in.
- *
+ * Far-distance fade mode of the placed map part.
+ */
+static int mapFarAlpha;
+
+/**
+ * Visibility setting of the placed map part.
+ */
+static int mapShow;
+
+/**
+ * Level of detail that the map script is giving pieces to.
+ */
+static int mapLOD_ID;
+
+/**
+ * Current fixed-camera information entry.
+ */
+static int mapCameraInfoIdx;
+
+/**
+ * Next rectangle of the current fixed-camera information entry.
+ */
+static int mapCameraRectIdx;
+
+/**
+ * Index of the function point being filled by script handlers.
+ */
+static int mapFuncPointIdx;
+
+/**
+ * Function point being filled by script handlers.
+ */
+static CFuncPoint *mapNowFuncPoint;
+
+/**
+ * Next entry of the current piece materials that the map script fills in.
  */
 static int mapMatIdx;
 
 /**
- *
- * Level of detail that the map script is giving pieces to.
- *
+ * Non-zero while map-script function points belong to the current map part.
  */
-static int mapLOD_ID;
+static int mapPtsFunc;
+
+/**
+ * Non-zero when loading an additional map into the current map.
+ */
+static int mapAddMode;
+
+/**
+ * Non-zero when configuration function-point storage is reserved.
+ */
+static int ReserveFuncFlag;
+
+/**
+ * Next water-surface entry being filled by configuration handlers.
+ */
+static int WaterIndex;
+
+/**
+ * Water frame being filled by configuration handlers.
+ */
+static CWaterFrame *cfgWater;
+
+/**
+ * Instance name of the placed map part.
+ */
+static char mapPlacePartsName[0x100];
+
+/**
+ * Definition name of the map part to place.
+ */
+static char mapMapPartsName[0x100];
+
+/**
+ * Group name of the placed map part.
+ */
+char mapMapPartsGroupName[0x100];
+
+/**
+ * Position of the placed map part.
+ */
+sceVu0FVECTOR mapPos;
+
+/**
+ * Rotation of the placed map part.
+ */
+sceVu0FVECTOR mapRot;
+
+/**
+ * Scale of the placed map part.
+ */
+sceVu0FVECTOR mapScale;
 
 // Code (.text)
 MAP_TIME_BAND GetTimeBand(float time) {
@@ -1044,7 +1075,7 @@ int mapPIECE_MATERIAL(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    frame = (mgCFrame *) ((CObjectFrame *) piece)->GetFrame();
+    frame = piece->GetFrame();
     name = spiGetStackString(stack++);
 
     if (name == NULL || frame == NULL) {
@@ -1479,7 +1510,7 @@ int mapFIX_CAMERA_RECT(SPI_STACK *stack, int argc) {
     frame = new (mapStack->Alloc(algn16_size(sizeof(CColFrame)) + 2)) CColFrame;
     collision = NULL;
 
-    if (strcmp(name, at_1064) == 0) {
+    if (strcmp(name, "box") == 0) {
         collision = new (mapStack->Alloc(algn16_size(sizeof(CCollision)) + 2)) CCollision;
         spiGetStackVector(collision->bbox.min, stack);
         collision->bbox.min[3] = 1.0f;
@@ -1577,24 +1608,24 @@ int mapFUNC_DATA(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    if (strcmp(name, at_1128) == 0) {
+    if (strcmp(name, "effect") == 0) {
         kind = 1;
-    } else if (strcmp(name, at_1129) == 0) {
+    } else if (strcmp(name, "fire") == 0) {
         kind = 2;
-    } else if (strcmp(name, at_1130) == 0) {
+    } else if (strcmp(name, "flare") == 0) {
         kind = 3;
-    } else if (strcmp(name, at_1131) == 0) {
+    } else if (strcmp(name, "plight") == 0) {
         kind = 4;
-    } else if (strcmp(name, at_1132) == 0) {
+    } else if (strcmp(name, "anime") == 0) {
         kind = 5;
-    } else if (strcmp(name, at_1133) == 0) {
+    } else if (strcmp(name, "invent") == 0) {
         kind = 7;
-    } else if (strcmp(name, at_1134) == 0) {
+    } else if (strcmp(name, "event") == 0) {
         kind = 6;
         mapMap->parts_event = 1;
-    } else if (strcmp(name, at_1135) == 0) {
+    } else if (strcmp(name, "sound") == 0) {
         kind = 8;
-    } else if (strcmp(name, at_1136) == 0) {
+    } else if (strcmp(name, "pos") == 0) {
         kind = 9;
     } else {
         return 0;
@@ -1849,22 +1880,22 @@ int mapFUNC_EVENT_DATA(SPI_STACK *stack, int argc) {
     event->arg3 = spiGetStackInt(stack++);
 
     if (kind_name != NULL) {
-        if (strcmp(kind_name, at_1278) == 0) {
+        if (strcmp(kind_name, "door") == 0) {
             kind = 0x10A;
-        } else if (strcmp(kind_name, at_1279) == 0) {
+        } else if (strcmp(kind_name, "ed_door") == 0) {
             kind = 0x11A;
-        } else if (strcmp(kind_name, at_1280) == 0) {
+        } else if (strcmp(kind_name, "lddr_b") == 0) {
             kind = 0x20;
             event->event_no = 1;
-        } else if (strcmp(kind_name, at_1281) == 0) {
+        } else if (strcmp(kind_name, "lddr_t") == 0) {
             kind = 0x40;
             event->event_no = 1;
-        } else if (strcmp(kind_name, at_1282) == 0) {
+        } else if (strcmp(kind_name, "close_door") == 0) {
             kind = 0x8A;
-        } else if (strcmp(kind_name, at_1283) == 0) {
+        } else if (strcmp(kind_name, "t_box") == 0) {
             kind = 0x202;
             event->event_no = 1;
-        } else if (strcmp(kind_name, at_1284) == 0) {
+        } else if (strcmp(kind_name, "book") == 0) {
             kind = 0x402;
         }
     }
@@ -1959,14 +1990,12 @@ int mapFUNC_EFFECT_NAME(SPI_STACK *stack, int argc) {
         strcpy(copy, name);
     }
 
-    mapNowFuncPoint->anime.parts_name = copy;
+    mapNowFuncPoint->effect.name = copy;
     effect_index = mapMap->SaerchEffectIndex(copy);
 
     if (effect_index >= 0) {
-        *(int *) &mapNowFuncPoint->anime.piece_name = effect_index;
-        ((mgCFrame *) &mapNowFuncPoint->frame)
-            ->SetBound((mgCFrame::BoundInfo *) operator new(
-                0xB0, mapStack->Alloc(algn16_size(0xB0) + 2)));
+        mapNowFuncPoint->effect.index = effect_index;
+        mapNowFuncPoint->frame.SetBound(new (mapStack->Alloc(algn16_size(0xB0) + 2)) mgCFrame::BoundInfo);
     } else {
         mapNowFuncPoint->type = 0;
     }
@@ -2044,7 +2073,7 @@ int mapFUNC_POS(SPI_STACK *stack, int argc) {
             offset[2] = -12.0f;
         }
 
-        mgUnitMatrix((float (*)[4]) matrix);
+        mgUnitMatrix(matrix);
         sceVu0RotMatrixY(matrix, matrix, rot[1]);
         sceVu0ApplyMatrix(offset, matrix, offset);
         mgAddVector(pos, offset);
@@ -2107,6 +2136,102 @@ update:
 
 #pragma inline_depth reset
 
+/**
+ *
+ * Maps map script tags to their argument handlers.
+ *
+ */
+static SPI_TAG_PARAM map_tag[] = {
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"d",                    mapDummy               },
+    {"PARTS",                mapPARTS               },
+    {"FAR_CLIP",             mapFAR_CLIP            },
+    {"LIGHT_FLAG",           mapLIGHT_FLAG          },
+    {"MOVE_FLAG",            mapMOVE_FLAG           },
+    {"LOD_START",            mapLOD_START           },
+    {"LOD_BLEND",            mapLOD_BLEND           },
+    {"LOD_PIECE",            mapLOD_PIECE           },
+    {"LOD_END",              mapLOD_END             },
+    {"PIECE",                mapPIECE               },
+    {"PIECE_POS",            mapPIECE_POS           },
+    {"PIECE_NAME",           mapPIECE_NAME          },
+    {"PIECE_ROT",            mapPIECE_ROT           },
+    {"PIECE_SCALE",          mapPIECE_SCALE         },
+    {"PIECE_MATERIAL_START", mapPIECE_MATERIAL_START},
+    {"PIECE_MATERIAL",       mapPIECE_MATERIAL      },
+    {"PIECE_MATERIAL_END",   mapPIECE_MATERIAL_END  },
+    {"PIECE_COL_TYPE",       mapPIECE_COL_TYPE      },
+    {"PIECE_TIME",           mapPIECE_TIME          },
+    {"PIECE_END",            mapPIECE_END           },
+    {"PARTS_END",            mapPARTS_END           },
+    {"MAP_PARTS",            mapMAP_PARTS           },
+    {"MAP_FAR_CLIP",         mapMAP_FAR_CLIP        },
+    {"PARTS_NAME",           mapPARTS_NAME          },
+    {"PARTS_GROUP",          mapPARTS_GROUP         },
+    {"PARTS_POS",            mapPARTS_POS           },
+    {"PARTS_ROT",            mapPARTS_ROT           },
+    {"PARTS_SCALE",          mapPARTS_SCALE         },
+    {"MAP_PARTS_END",        mapMAP_PARTS_END       },
+    {"_MAP_INFO_TOP",        map_MAP_INFO_TOP       },
+    {"CAMERA_INFO",          mapCAMERA_INFO         },
+    {"FIX_CAMERA",           mapFIX_CAMERA          },
+    {"FIX_CAMERA_POS",       mapFIX_CAMERA_POS      },
+    {"FIX_CAMERA_POS2",      mapFIX_CAMERA_POS2     },
+    {"FIX_CAMERA_OFF_GROUP", mapFIX_CAMERA_OFF_GROUP},
+    {"FIX_CAMERA_RECT",      mapFIX_CAMERA_RECT     },
+    {"FIX_CAMERA_END",       mapFIX_CAMERA_END      },
+    {"CAMERA_INFO_END",      mapCAMERA_INFO_END     },
+    {"FUNC_POINT",           mapFUNC_POINT          },
+    {"FUNC_DATA",            mapFUNC_DATA           },
+    {"FUNC_NAME",            mapFUNC_NAME           },
+    {"FUNC_FLAG",            mapFUNC_FLAG           },
+    {"FUNC_FIRE_DATA",       mapFUNC_FIRE_DATA      },
+    {"FUNC_EFFECT_NAME",     mapFUNC_EFFECT_NAME    },
+    {"FUNC_FIRE_DATA",       mapFUNC_EFFECT_NAME    },
+    {"FUNC_PLIGHT_DATA",     mapFUNC_PLIGHT_DATA    },
+    {"FUNC_ANIME_DATA",      mapFUNC_ANIME_DATA     },
+    {"FUNC_INVENT_DATA",     mapFUNC_INVENT_DATA    },
+    {"FUNC_EVENT_DATA",      mapFUNC_EVENT_DATA     },
+    {"FUNC_POS",             mapFUNC_POS            },
+    {"FUNC_DATA_END",        mapFUNC_DATA_END       },
+    {"FUNC_POINT_END",       mapFUNC_POINT_END      },
+    {"FUNC_SOUND_DATA",      mapFUNC_SOUND_DATA     },
+    {NULL,                   NULL                   },
+};
+
 void CMap::LoadMapFile(char *script, int length, mgCMemory *memory, int add_mode) {
     mapStack = memory;
     mapAddMode = add_mode;
@@ -2156,7 +2281,7 @@ int cfgOCCLUSION_PLANE(SPI_STACK *stack, int argc) {
 
     for (i = 0; i < 4; i++) {
         spiGetStackVector(plane[i], stack);
-        *(int *) &plane[i][3] = 0x3F800000;
+        plane[i][3] = 1.0f;
         stack += 3;
     }
 
@@ -2183,7 +2308,7 @@ int cfgFUNC_DATA(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    if (strcmp(kind_name, at_1134) == 0) {
+    if (strcmp(kind_name, "event") == 0) {
         mapMap->parts_event = 1;
     } else {
         return 0;
@@ -2212,17 +2337,17 @@ int cfgFUNC_EVENT_DATA(SPI_STACK *stack, int argc) {
         mapNowFuncPoint->event.event_no = 0;
 
         if (mode_name != NULL) {
-            if (strcmp(mode_name, at_1436) == 0) {
+            if (strcmp(mode_name, "every") == 0) {
                 mapNowFuncPoint->event.flag = 1;
-            } else if (strcmp(mode_name, at_1437) == 0) {
+            } else if (strcmp(mode_name, "action") == 0) {
                 mapNowFuncPoint->event.flag = 2;
-            } else if (strcmp(mode_name, at_1438) == 0) {
+            } else if (strcmp(mode_name, "check") == 0) {
                 mapNowFuncPoint->event.flag = 2;
                 mapNowFuncPoint->event.event_no = 1;
-            } else if (strcmp(mode_name, at_1439) == 0) {
+            } else if (strcmp(mode_name, "item") == 0) {
                 mapNowFuncPoint->event.flag = 4;
                 mapNowFuncPoint->event.event_no = 1;
-            } else if (strcmp(mode_name, at_1133) == 0) {
+            } else if (strcmp(mode_name, "invent") == 0) {
                 mapNowFuncPoint->event.flag = 2;
                 mapNowFuncPoint->event.event_no = 2;
             } else {
@@ -2255,9 +2380,8 @@ int cfgWATER_SURFACE_NUM(SPI_STACK *stack, int argc) {
     mapMap->water_surface_num = spiGetStackInt(stack);
 
     if (mapMap->water_surface_num > 0) {
-        mapMap->water_surface = (CWaterFrame **) operator new[](
-            mapMap->water_surface_num * 4,
-            mapStack->Alloc(algn16_size(mapMap->water_surface_num * 4) + 2));
+        mapMap->water_surface =
+            new (mapStack->Alloc(algn16_size(mapMap->water_surface_num * 4) + 2)) CWaterFrame *[mapMap->water_surface_num];
 
         if (mapMap->water_surface == NULL) {
             mapMap->water_surface_num = 0;
@@ -2311,7 +2435,7 @@ int cfgWATER_POS(SPI_STACK *stack, int argc) {
     }
 
     spiGetStackVector(pos, stack);
-    ((mgCFrame *) cfgWater)->SetPosition(pos);
+    cfgWater->SetPosition(pos);
     return 1;
 }
 
@@ -2419,11 +2543,11 @@ int cfgWATER_DRAW(SPI_STACK *stack, int argc) {
     name = spiGetStackString(stack++);
 
     if (name != NULL) {
-        if (*(s8 *) name != 0) {
-            if (strncmp(name, at_1544, 7) == 0) {
-                slot->follow[0] = ((s8 *) name)[7] - '0';
-                slot->follow[1] = ((s8 *) name)[8] - '0';
-                slot->follow[2] = ((s8 *) name)[9] - '0';
+        if (name[0] != 0) {
+            if (strncmp(name, "#follow", 7) == 0) {
+                slot->follow[0] = name[7] - '0';
+                slot->follow[1] = name[8] - '0';
+                slot->follow[2] = name[9] - '0';
             } else {
                 slot->parts_name = mgCopyString(name, mapStack);
             }
@@ -2438,6 +2562,31 @@ int cfgWATER_DRAW(SPI_STACK *stack, int argc) {
     return 1;
 }
 
+/**
+ *
+ * Maps map configuration tags to their argument handlers.
+ *
+ */
+static SPI_TAG_PARAM cfg_tag[] = {
+    {"DRAW_OFF_RECT",       cfgDRAW_OFF_RECT      },
+    {"OCCLUSION_PLANE",     cfgOCCLUSION_PLANE    },
+    {"FUNC_DATA",           cfgFUNC_DATA          },
+    {"FUNC_NAME",           mapFUNC_NAME          },
+    {"FUNC_EVENT_DATA",     cfgFUNC_EVENT_DATA    },
+    {"FUNC_POS",            mapFUNC_POS           },
+    {"FUNC_DATA",           cfgFUNC_DATA_END      },
+    {"WATER_SURFACE_NUM",   cfgWATER_SURFACE_NUM  },
+    {"WATER_SURFACE_START", cfgWATER_SURFACE_START},
+    {"WATER_VERTEX",        cfgWATER_VERTEX       },
+    {"WATER_POS",           cfgWATER_POS          },
+    {"WATER_PARAM",         cfgWATER_PARAM        },
+    {"WATER_SHAKE",         cfgWATER_SHAKE        },
+    {"WATER_SURFACE_END",   cfgWATER_SURFACE_END  },
+    {"WATER_DRAW_NUM",      cfgWATER_DRAW_NUM     },
+    {"WATER_DRAW",          cfgWATER_DRAW         },
+    {NULL,                  NULL                  },
+};
+
 void CMap::LoadCfgFile(char *script, int length, mgCMemory *memory) {
     mapMap = this;
     mapStack = memory;
@@ -2449,119 +2598,3 @@ void CMap::LoadCfgFile(char *script, int length, mgCMemory *memory) {
     interpreter.SetScript(script, length);
     interpreter.Run();
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_438__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", map_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", cfg_tag__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_611__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_612__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_613__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_614__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_615__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_616__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_617__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_618__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_619__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_620__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_621__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_622__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_623__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_624__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_625__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_626__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_627__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_628__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_629__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_630__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_631__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_632__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_633__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_634__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_635__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_636__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_637__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_638__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_639__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_640__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_641__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_642__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_643__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_644__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_645__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_646__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_647__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_648__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_649__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_650__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_651__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_652__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_653__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_654__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_655__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_656__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_657__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_658__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_659__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_660__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_661__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_662__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1064__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1128__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1129__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1130__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1131__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1132__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1133__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1134__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1135__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1136__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1278__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1279__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1280__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1281__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1282__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1283__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1284__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1370__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1371__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1372__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1373__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1374__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1375__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1376__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1377__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1378__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1379__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1380__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1436__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1437__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1438__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1439__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1544__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", __vt__17CList_9CMapPiece___DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", __vt__17CList_9CMapParts___DATA);
-
-INCLUDE_BSS(mapFarDist, 0x4);
-INCLUDE_BSS(mapFarAlpha, 0x4);
-INCLUDE_BSS(mapShow, 0x4);
-INCLUDE_BSS(mapCameraInfoIdx, 0x4);
-INCLUDE_BSS(mapCameraRectIdx, 0x4);
-INCLUDE_BSS(mapFuncPointIdx, 0x4);
-INCLUDE_BSS(mapNowFuncPoint, 0x4);
-INCLUDE_BSS(mapAddMode, 0x4);
-INCLUDE_BSS(ReserveFuncFlag, 0x4);
-INCLUDE_BSS(WaterIndex, 0x4);
-INCLUDE_BSS(cfgWater, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(mapPlacePartsName, 0x100);
-INCLUDE_BSS(mapMapPartsName, 0x100);
-INCLUDE_BSS(mapMapPartsGroupName, 0x100);
-INCLUDE_BSS(mapPos, 0x10);
-INCLUDE_BSS(mapRot, 0x10);
-INCLUDE_BSS(mapScale, 0x10);

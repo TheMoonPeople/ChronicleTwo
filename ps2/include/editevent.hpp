@@ -153,7 +153,7 @@ public:
      *
      * @mangled Reset__10CEditEventFv
      * @address 0x2F49B0
-     * @size 0x30
+     * @size 0x2C
      */
     void Reset();
 
@@ -163,7 +163,7 @@ public:
      *
      * @mangled StartEvent__10CEditEventFP15CSceneEventData
      * @address 0x2F49E0
-     * @size 0x200
+     * @size 0x1F4
      */
     int StartEvent(CSceneEventData *event_data);
 
@@ -173,7 +173,7 @@ public:
      *
      * @mangled Step__10CEditEventFP6CScene
      * @address 0x2F4BE0
-     * @size 0xF60
+     * @size 0xF5C
      */
     int Step(CScene *scene);
 
@@ -183,7 +183,7 @@ public:
      *
      * @mangled Draw__10CEditEventFP6CScene
      * @address 0x2F5B40
-     * @size 0x20
+     * @size 0x1C
      */
     int Draw(CScene *scene);
 };
@@ -229,6 +229,6 @@ int GeoramaFunc(GeoFuncParam *param, RS_STACKDATA *stack, int mode);
  *
  * @mangled GeoUpdateNpcPos__FP6CScene
  * @address 0x2F6140
- * @size 0x190
+ * @size 0x188
  */
 void GeoUpdateNpcPos(CScene *scene);

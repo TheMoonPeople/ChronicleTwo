@@ -274,7 +274,7 @@ public:
     CMapParts      *ground;           /**< Ground part of the map the part stands on, or NULL. */
     s32             max_material_num; /**< Largest number of materials any piece of the part recolours. */
     s32             unk_31c;
-    s32             allocation_address; /**< Address of the heap allocation that owns this part. */
+    u_long128      *allocation_address; /**< Start of the heap block holding the part's model copy, or NULL. */
     CEditPartsInfo *info;  /**< Definition of the part, or NULL. */
     CEditHouse     *house; /**< House of villagers the part has, or NULL. */
     s32             unk_32c;

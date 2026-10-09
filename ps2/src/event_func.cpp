@@ -84,16 +84,6 @@ struct ExtensionTable {
 
 /**
  *
- * Event script function and its numeric identifier.
- *
- */
-struct EventScriptFunc {
-    int (*func)(RS_STACKDATA *, int); /**< Function called by the script. */
-    int id;                           /**< Script function identifier. */
-};
-
-/**
- *
  * Group, kind and identifiers of one VPK resource.
  *
  */
@@ -131,27 +121,48 @@ struct TrainNpcTable {
     float row[12][4]; /**< Training value rows. */
 };
 
-extern TrainNpcTable at_3242;
-extern NpcTrainTable at_4517;
 typedef int (*EventFunc)(RS_STACKDATA *, int);
-extern CEventScriptArg  *nowScriptArg;
+/**
+ * Argument script whose external commands are being executed.
+ */
+static CEventScriptArg *nowScriptArg;
+
 extern CEventScriptArg   EventScriptArg;
-extern EventScriptFunc   esa_ext_func_info[];
-extern EventScriptFunc   ext_func_info__2[];
-extern EventFunc         ext_func__2[0x5dc];
-extern ExtensionTable    at_1084;
-extern VpkTable          at_6800__2;
+/**
+ * Dispatch slots for event script external commands.
+ */
+static EventFunc ext_func[0x5DC];
+
 extern CEventSprite2     EventSprite2[0x30];
 extern CSceneObjSeq      ObjectSeq[32];
 extern CSceneCmrSeq      CameraSeq;
 extern mgCMemory         BuffEventSnd;
 extern mgCMemory         BuffEventSnd2;
-extern u_long128         event_snd_buff[];
-extern u_long128         event_snd2_buff[];
 extern CDngFreeMap       EventDngMap;
-extern CEffectScriptMan *EventEffectScript;
-extern CSWordAfterImage *SwordEffect;
-extern float             vv_3333[12];
+/**
+ * Effect script manager controlled by the event script.
+ */
+static CEffectScriptMan *EventEffectScript;
+
+/**
+ * Sword trail effect controlled by the event script.
+ */
+static CSWordAfterImage *SwordEffect;
+
+/**
+ * Copies a scene character for an event script.
+ */
+int _COPY_CHARA(RS_STACKDATA *stack, int argc);
+
+/**
+ * Initializes the effect script manager controlled by an event.
+ */
+int _ESM_INITIALIZE(RS_STACKDATA *stack, int argc);
+
+/**
+ * Copies a monster into a scene character slot for an event script.
+ */
+int _COPY_MONS2SCNCHR(RS_STACKDATA *stack, int argc);
 
 static int   GetStackInt(RS_STACKDATA *stack);
 static float GetStackFloat(RS_STACKDATA *stack);
@@ -177,18 +188,25 @@ const int              script_run_id = 0x64;
 const float            raster_max = 3.1415927f;
 const int              prim_sprite = 6;
 const int              half_color = 0x80;
-const int              seq_node_num = 0x100;
 const int              hit_spark_num = 0x40;
 const int              event_snd_buffer_size = 0x801;
 const int              event_snd2_buffer_size = 0x141;
+
+/**
+ * Storage for secondary event sound banks.
+ */
+static u_long128 event_snd2_buff[event_snd2_buffer_size];
+
+/**
+ * Storage for event sound banks.
+ */
+static u_long128 event_snd_buff[event_snd_buffer_size];
+
 const int              memory_name_max = 0x10;
-const int              paku_name_size = 0x40;
 const int              pack_file_max = 0x80;
 const int              type_loaded = 2;
 const int              event_func_slots = 0x5DC;
-const int              event_local_num = 64;
 const int              object_seq_num = 32;
-const int              invent_user_data_offset = 0x7F30;
 const int              exit_edit_mode = 17;
 const int              event_stream = 1;
 const int              stream_max_volume = 0x7FFF;
@@ -205,97 +223,6 @@ const int              exit_map_jump = EVENT_REQUEST_MAP_JUMP;
 const int              request_menu = EVENT_COMMAND_SUB_MODE;
 const int              request_door = EVENT_COMMAND_DOOR;
 const int              event_sprite2_size = 0x80;
-extern char            at_1333[];
-extern char            at_1357__3[];
-extern char            at_1103__2[];
-extern char            at_1104__3[];
-extern char            at_1245[];
-extern char            at_1246[];
-extern char            at_1346__2[];
-extern char            at_1760__3[];
-extern char            at_1761__3[];
-extern char            at_2245__2[];
-extern char            at_2246__2[];
-extern char            at_2247__2[];
-extern char            at_2248__2[];
-extern char            at_2249__2[];
-extern char            at_2291[];
-extern char            at_2292__2[];
-extern char            at_2333__4[];
-extern char            at_3822__2[];
-extern char            at_4261__2[];
-extern char            at_4262__2[];
-extern char            at_4263__2[];
-extern char            at_4264__2[];
-extern char            at_4265__2[];
-extern char            at_4266__2[];
-extern char            at_4267__2[];
-extern char            at_4268__2[];
-extern char            at_4269__2[];
-extern char            at_4270__2[];
-extern char            at_4271__2[];
-extern char            at_8902[];
-extern char            at_8903[];
-extern char            at_8904[];
-extern char            at_4437[];
-extern char            at_5262__2[];
-extern char            at_5263__2[];
-extern char            at_1904[];
-extern char            at_1905[];
-extern char            at_1906[];
-extern char            at_1907[];
-extern char            at_1908[];
-extern char            at_2836[];
-extern char            at_2837[];
-extern char            at_2838[];
-extern char            at_2839[];
-extern char            at_5410[];
-extern char            at_5411[];
-extern char            at_5412[];
-extern char            at_5413[];
-extern char            at_5414[];
-extern char            at_5415[];
-extern char            at_5416[];
-extern char            at_5417[];
-extern char            at_5418[];
-extern char            at_5419[];
-extern char            at_5420[];
-extern char            at_5421[];
-extern char            at_5422[];
-extern char            at_2334__3[];
-extern char            at_9744[];
-extern char            at_9745[];
-extern char            at_10100[];
-extern char            at_10101[];
-extern char            at_3339[];
-extern char            at_3631__2[];
-extern char            at_3632__2[];
-extern char            at_3633[];
-extern char            at_3634[];
-extern char            at_3635[];
-extern char            at_3636[];
-extern char            at_1083[];
-extern char            at_9148[];
-extern char            at_9622[];
-extern char            at_8230[];
-extern char            at_2393__3[];
-extern char            at_2664__2[];
-extern char            at_4072[];
-extern char            at_6773__2[];
-extern char            at_6774__2[];
-extern char            at_6775__2[];
-extern char            at_6776__2[];
-extern char            at_6781__2[];
-extern char            at_6782__2[];
-extern char            at_6816[];
-extern char            at_6839[];
-extern char            at_7117[];
-extern char            at_3328[];
-extern char            at_3329__2[];
-extern char            at_6834[];
-extern char            at_5726[];
-extern char            at_5736[];
-
 
 // Code (.text)
 CEoh::CEoh() {
@@ -533,7 +460,7 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
             x = pos[0];
             y = pos[1];
             z = pos[2];
-            mgCObject *chara = (mgCObject *) eoh[slot].object;
+            mgCObject *chara = eoh[slot].object;
 
             if (chara == NULL) {
                 return 0;
@@ -555,7 +482,7 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
                 z = pos[2];
             }
 
-            mgCObject *object = (mgCObject *) eoh[slot].object;
+            mgCObject *object = eoh[slot].object;
 
             if (object == NULL) {
                 return 0;
@@ -593,7 +520,7 @@ int CEohMother::SetPos(int slot, float x, float y, float z) {
             pos[1] = y;
             pos[2] = z;
             pos[3] = 1.0f;
-            mgCObject *frame = (mgCObject *) handle->object;
+            mgCObject *frame = handle->object;
 
             if (frame == NULL) {
                 return 0;
@@ -667,7 +594,7 @@ int CEohMother::SetRot(int slot, float x, float y, float z) {
             return 1;
         }
         case EOH_TYPE_FRAME: {
-            mgCObject *frame = (mgCObject *) handle->object;
+            mgCObject *frame = handle->object;
 
             if (frame == NULL) {
                 return 0;
@@ -721,7 +648,7 @@ int CEohMother::GetPos(int slot, float *pos) {
 
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
-            mgCObject *chara = (mgCObject *) handle->object;
+            mgCObject *chara = handle->object;
 
             if (chara == NULL) {
                 return 0;
@@ -732,7 +659,7 @@ int CEohMother::GetPos(int slot, float *pos) {
             return 1;
         }
         case EOH_TYPE_OBJECT: {
-            mgCObject *object = (mgCObject *) handle->object;
+            mgCObject *object = handle->object;
 
             if (object == NULL) {
                 return 0;
@@ -764,7 +691,7 @@ int CEohMother::GetPos(int slot, float *pos) {
             return 1;
         }
         case EOH_TYPE_FRAME: {
-            mgCObject *frame = (mgCObject *) handle->object;
+            mgCObject *frame = handle->object;
 
             if (frame == NULL) {
                 return 0;
@@ -798,7 +725,7 @@ int CEohMother::GetRot(int slot, float *rot) {
 
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
-            mgCObject *chara = (mgCObject *) handle->object;
+            mgCObject *chara = handle->object;
 
             if (chara == NULL) {
                 return 0;
@@ -810,7 +737,7 @@ int CEohMother::GetRot(int slot, float *rot) {
             return 1;
         }
         case EOH_TYPE_OBJECT: {
-            mgCObject *object = (mgCObject *) handle->object;
+            mgCObject *object = handle->object;
 
             if (object == NULL) {
                 return 0;
@@ -826,7 +753,7 @@ int CEohMother::GetRot(int slot, float *rot) {
             return 1;
         }
         case EOH_TYPE_FRAME: {
-            mgCObject *frame = (mgCObject *) handle->object;
+            mgCObject *frame = handle->object;
 
             if (frame == NULL) {
                 return 0;
@@ -1105,7 +1032,7 @@ int CEohMother::SetScale(int slot, float x, float y, float z) {
 
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
-            mgCObject *chara = (mgCObject *) handle->object;
+            mgCObject *chara = handle->object;
 
             if (chara == NULL) {
                 return 0;
@@ -1115,7 +1042,7 @@ int CEohMother::SetScale(int slot, float x, float y, float z) {
             return 1;
         }
         case EOH_TYPE_OBJECT: {
-            mgCObject *object = (mgCObject *) handle->object;
+            mgCObject *object = handle->object;
 
             if (object == NULL) {
                 return 0;
@@ -1128,7 +1055,7 @@ int CEohMother::SetScale(int slot, float x, float y, float z) {
             handle->sprite->SetScale(x, y);
             return 1;
         case EOH_TYPE_FRAME:
-            ((mgCObject *) handle->frame)->SetScale(x, y, z);
+            handle->frame->SetScale(x, y, z);
             return 1;
         case EOH_TYPE_FUNC_POINT: {
             CFuncPoint *&func_point = handle->func_point;
@@ -1161,7 +1088,7 @@ int CEohMother::GetScale(int slot, float *scale) {
 
     switch (handle->type) {
         case EOH_TYPE_CHARA: {
-            mgCObject *chara = (mgCObject *) handle->object;
+            mgCObject *chara = handle->object;
 
             if (chara == NULL) {
                 return 0;
@@ -1171,7 +1098,7 @@ int CEohMother::GetScale(int slot, float *scale) {
             return 1;
         }
         case EOH_TYPE_OBJECT: {
-            mgCObject *object = (mgCObject *) handle->object;
+            mgCObject *object = handle->object;
 
             if (object == NULL) {
                 return 0;
@@ -1402,7 +1329,7 @@ int CEohMother::SetShadowFrameShow(int slot, char *name, int show) {
                 return 0;
             }
 
-            mgCFrame *shadow = (mgCFrame *) chara->shadow_frame;
+            mgCFrame *shadow = chara->shadow_frame;
 
             if (shadow == NULL) {
                 return 0;
@@ -1943,13 +1870,13 @@ int CEohMother::SetFootSeId(int slot, int stamp) {
 }
 
 void FileNameConvLanguage(char *name) {
-    ExtensionTable extension = at_1084;
+    ExtensionTable extension = {{"txt", "img", "stb", ""}};
     char           marker[32];
     char          *found;
     int            i;
 
     for (i = 0; i < 3; i++) {
-        sprintf(marker, at_1103__2, extension.name[i]);
+        sprintf(marker, "_1.%s", extension.name[i]);
 
         if ((found = strstr(name, marker)) != NULL) {
             switch (LanguageCode) {
@@ -1957,7 +1884,7 @@ void FileNameConvLanguage(char *name) {
                 case 3:
                 case 4:
                 case 5:
-                    sprintf(found, at_1104__3, LanguageCode, extension.name[i]);
+                    sprintf(found, "_%d.%s", LanguageCode, extension.name[i]);
                     break;
             }
         }
@@ -2010,6 +1937,25 @@ static void SetStack(RS_STACKDATA *stack, float value) {
     }
 }
 
+/**
+ * Records the argument entries supplied by an argument script.
+ */
+static int _DATA(RS_STACKDATA *stack, int argc);
+
+/**
+ * Sets the next argument-list identifier supplied by an argument script.
+ */
+static int _ID_OFFSET(RS_STACKDATA *stack, int argc);
+
+/**
+ * External handlers available to event argument scripts.
+ */
+static EventScriptFunc esa_ext_func_info[3] = {
+    {_DATA, EVENT_ARG_DATA},
+    {_ID_OFFSET, EVENT_ARG_ID_OFFSET},
+    {NULL, EVENT_ARG_DATA},
+};
+
 void CEventScriptArg::BuildArgData(u32 *program) {
     RS_STACKDATA stack[script_stack_slots];
     RS_CALLDATA  calls[script_call_slots];
@@ -2031,7 +1977,7 @@ void CEventScriptArg::BuildArgData(u32 *program) {
 
         for (j = 0; j < count; j++) {
             if (esa_ext_func_info[i].id == esa_ext_func_info[j].id) {
-                printf(at_1245);
+                printf("EvectScriptArg same ext_func_no!!!\n");
 
                 while (1) {
                 }
@@ -2039,7 +1985,7 @@ void CEventScriptArg::BuildArgData(u32 *program) {
         }
 
         if (esa_ext_func_info[i].id < 0 || esa_ext_func_info[i].id >= script_func_slots) {
-            printf(at_1246);
+            printf("EvectScriptArg ext func over!!\n");
         } else {
             func_table[esa_ext_func_info[i].id] = esa_ext_func_info[i].func;
         }
@@ -2146,7 +2092,7 @@ int _ID_OFFSET(RS_STACKDATA *stack, int arg_count) {
 
 int GetArgInt(ARG_DATA *arg) {
     if (arg == NULL) {
-        printf(at_1333);
+        printf("GetArgInt err[null_pointer]\n");
         return 0;
     }
 
@@ -2159,7 +2105,7 @@ int GetArgInt(ARG_DATA *arg) {
 
 float GetArgFloat(ARG_DATA *arg) {
     if (arg == NULL) {
-        printf(at_1346__2);
+        printf("GetArgFloat err[null_pointer]\n");
         return 0.0f;
     }
 
@@ -2172,7 +2118,7 @@ float GetArgFloat(ARG_DATA *arg) {
 
 char *GetArgString(ARG_DATA *arg) {
     if (arg == NULL) {
-        printf(at_1357__3);
+        printf("GetArgString err[null_pointer]\n");
         return 0;
     }
 
@@ -2651,11 +2597,11 @@ int GetLocalFlag(int index) {
         return 0;
     }
 
-    in_range = word < event_local_num;
+    in_range = word < EVENT_LOCAL_NUM;
 
     if (index < 0) {
         word = (index + 0x1F) >> 5;
-        in_range = word < event_local_num;
+        in_range = word < EVENT_LOCAL_NUM;
     }
 
     bit = index & 0x1F;
@@ -2688,11 +2634,11 @@ int SetLocalFlag(int index, int value) {
         return 0;
     }
 
-    in_range = word < event_local_num;
+    in_range = word < EVENT_LOCAL_NUM;
 
     if (index < 0) {
         word = (index + 0x1F) >> 5;
-        in_range = word < event_local_num;
+        in_range = word < EVENT_LOCAL_NUM;
     }
 
     bit = index & 0x1F;
@@ -2719,7 +2665,7 @@ int SetLocalFlag(int index, int value) {
 }
 
 int GetLocalCnt(int index) {
-    if (index < 0 || index >= event_local_num) {
+    if (index < 0 || index >= EVENT_LOCAL_NUM) {
         return -1;
     }
 
@@ -2727,7 +2673,7 @@ int GetLocalCnt(int index) {
 }
 
 int SetLocalCnt(int index, int value) {
-    if (index < 0 || index >= event_local_num) {
+    if (index < 0 || index >= EVENT_LOCAL_NUM) {
         return 0;
     }
 
@@ -2738,7 +2684,7 @@ int SetLocalCnt(int index, int value) {
 int GetLocalCnt2(int value) {
     int i;
 
-    for (i = 0; i < event_local_num; i++) {
+    for (i = 0; i < EVENT_LOCAL_NUM; i++) {
         if (value == EventLocalCnt[i]) {
             return i;
         }
@@ -2750,7 +2696,7 @@ int GetLocalCnt2(int value) {
 void InitLocalCnt() {
     int i;
 
-    for (i = 0; i < event_local_num; i++) {
+    for (i = 0; i < EVENT_LOCAL_NUM; i++) {
         EventLocalCnt[i] = 0;
     }
 }
@@ -2801,11 +2747,11 @@ void EventSeqInit() {
         handle->func_point = 0;
     }
 
-    CameraSeq.Initialize(cmr_seq_tbl, seq_node_num);
+    CameraSeq.Initialize(cmr_seq_tbl, SEQ_NODE_NUM);
     int j;
 
     for (j = 0; j < object_seq_num; j++) {
-        ObjectSeq[j].Initialize(obj_seq_tbl, seq_node_num);
+        ObjectSeq[j].Initialize(obj_seq_tbl, SEQ_NODE_NUM);
     }
 
     int k;
@@ -2826,16 +2772,16 @@ void EdEventInit() {
 
     BuffEventSnd.stSetBuffer(event_snd_buff, event_snd_buffer_size);
 
-    if (strlen(at_1760__3) < memory_name_max) {
-        strcpy((char *) &BuffEventSnd, at_1760__3);
+    if (strlen("Event Snd Buffer") < memory_name_max) {
+        strcpy(BuffEventSnd.name, "Event Snd Buffer");
     }
 
     BuffEventSnd.stack_used = 0;
     BuffEventSnd.lock = 0;
     BuffEventSnd2.stSetBuffer(event_snd2_buff, event_snd2_buffer_size);
 
-    if (strlen(at_1761__3) < memory_name_max) {
-        strcpy((char *) &BuffEventSnd2, at_1761__3);
+    if (strlen("Event Snd2 Buffer") < memory_name_max) {
+        strcpy(BuffEventSnd2.name, "Event Snd2 Buffer");
     }
 
     BuffEventSnd2.stack_used = 0;
@@ -2847,12 +2793,12 @@ void EdEventInit() {
     InitWorldCoord();
     EventScene->map_event_no = 0;
     PakuAnimEohNo = -1;
-    memset(PakuAnimName, 0, paku_name_size);
-    memset(PakuAnimName2, 0, paku_name_size);
+    memset(PakuAnimName, 0, PAKU_NAME_SIZE);
+    memset(PakuAnimName2, 0, PAKU_NAME_SIZE);
     PakuMotionEohNo = -1;
-    memset(PakuMotionName, 0, paku_name_size);
+    memset(PakuMotionName, 0, PAKU_NAME_SIZE);
     PakuMotionType = 0;
-    memset(PakuMotionName2, 0, paku_name_size);
+    memset(PakuMotionName2, 0, PAKU_NAME_SIZE);
     PakuMotionType2 = 0;
     EdEventInfoCommandInitialize();
     EventSeqInit();
@@ -2862,14 +2808,14 @@ void EdEventInit() {
     }
 
     HitEffect[0].live_num = 0;
-    HitEffect[0].spark = (BattleEffectPrim *) Hit_para[0];
+    HitEffect[0].spark = Hit_para[0];
     HitEffect[0].spark_max = hit_spark_num;
-    HitEffect[1].spark = (BattleEffectPrim *) Hit_para[1];
+    HitEffect[1].spark = Hit_para[1];
     SwordEffect = NULL;
-    HitEffect[2].spark = (BattleEffectPrim *) Hit_para[2];
+    HitEffect[2].spark = Hit_para[2];
     EventEffectScript = 0;
-    HitEffect[3].spark = (BattleEffectPrim *) Hit_para[3];
-    HitEffect[4].spark = (BattleEffectPrim *) Hit_para[4];
+    HitEffect[3].spark = Hit_para[3];
+    HitEffect[4].spark = Hit_para[4];
     HitEffect[0].spark_num = 0;
     HitEffect[0].kind = 0;
     HitEffect[1].spark_max = hit_spark_num;
@@ -2984,11 +2930,11 @@ void EventTimeDraw(void) {
             if (EdEventInfo.stopwatch_style == 1) {
                 switch (LanguageCode) {
                     case 0:
-                        label[0] = GetFontNo(at_1904);
-                        label[1] = GetFontNo(at_1905);
-                        label[2] = GetFontNo(at_1906);
-                        label[3] = GetFontNo(at_1907);
-                        label[4] = GetFontNo(at_1908);
+                        label[0] = GetFontNo("\x8C\x8E");
+                        label[1] = GetFontNo("\x97\x8E");
+                        label[2] = GetFontNo("\x89\xBA");
+                        label[3] = GetFontNo("\x82\xDC");
+                        label[4] = GetFontNo("\x82\xC5");
                         break;
                     case 2:
                 label[0] = GetHalfFontNo('C');
@@ -3150,10 +3096,10 @@ int EdEventFinish() {
     int        j;
     int        k;
 
-    CameraSeq.Initialize(cmr_seq_tbl, seq_node_num);
+    CameraSeq.Initialize(cmr_seq_tbl, SEQ_NODE_NUM);
 
     for (i = 0; i < object_seq_num; i++) {
-        ObjectSeq[i].Initialize(obj_seq_tbl, seq_node_num);
+        ObjectSeq[i].Initialize(obj_seq_tbl, SEQ_NODE_NUM);
     }
 
     for (j = 0; j < event_sprite2_num; j++) {
@@ -3161,13 +3107,13 @@ int EdEventFinish() {
     }
 
     HitEffect[0].live_num = 0;
-    HitEffect[0].spark = (BattleEffectPrim *) Hit_para[0];
+    HitEffect[0].spark = Hit_para[0];
     HitEffect[0].spark_max = hit_spark_num;
-    HitEffect[1].spark = (BattleEffectPrim *) Hit_para[1];
+    HitEffect[1].spark = Hit_para[1];
     EventEffectScript = 0;
-    HitEffect[2].spark = (BattleEffectPrim *) Hit_para[2];
-    HitEffect[3].spark = (BattleEffectPrim *) Hit_para[3];
-    HitEffect[4].spark = (BattleEffectPrim *) Hit_para[4];
+    HitEffect[2].spark = Hit_para[2];
+    HitEffect[3].spark = Hit_para[3];
+    HitEffect[4].spark = Hit_para[4];
     HitEffect[0].spark_num = 0;
     HitEffect[0].kind = 0;
     HitEffect[1].spark_max = hit_spark_num;
@@ -3186,7 +3132,7 @@ int EdEventFinish() {
     HitEffect[4].live_num = 0;
     HitEffect[4].spark_num = 0;
     HitEffect[4].kind = 0;
-    camera = (mgCCamera *) EventScene->GetCamera(EventScene->active_camera);
+    camera = EventScene->GetCamera(EventScene->active_camera);
 
     if (camera == NULL) {
         return 0;
@@ -3207,12 +3153,12 @@ int EdEventFinish() {
     }
 
     PakuAnimEohNo = -1;
-    memset(PakuAnimName, 0, paku_name_size);
-    memset(PakuAnimName2, 0, paku_name_size);
+    memset(PakuAnimName, 0, PAKU_NAME_SIZE);
+    memset(PakuAnimName2, 0, PAKU_NAME_SIZE);
     PakuMotionEohNo = -1;
-    memset(PakuMotionName, 0, paku_name_size);
+    memset(PakuMotionName, 0, PAKU_NAME_SIZE);
     PakuMotionType = 0;
-    memset(PakuMotionName2, 0, paku_name_size);
+    memset(PakuMotionName2, 0, PAKU_NAME_SIZE);
     PakuMotionType2 = 0;
     InitWorldCoord();
     EdEventInfo.skip_state = 0;
@@ -3326,7 +3272,7 @@ void EdEventMapInit() {
         message->Preset(5);
     }
 
-    for (i = 0; i < event_local_num; i++) {
+    for (i = 0; i < EVENT_LOCAL_NUM; i++) {
         EventLocalFlag[i] = 0;
     }
 
@@ -3372,14 +3318,14 @@ void EdEventMapInit() {
     InitSphida();
 
     HitEffect[0].live_num = 0;
-    HitEffect[0].spark = (BattleEffectPrim *) Hit_para[0];
+    HitEffect[0].spark = Hit_para[0];
     HitEffect[0].spark_max = hit_spark_num;
     SwordEffect = NULL;
-    HitEffect[1].spark = (BattleEffectPrim *) Hit_para[1];
+    HitEffect[1].spark = Hit_para[1];
     EventEffectScript = 0;
-    HitEffect[2].spark = (BattleEffectPrim *) Hit_para[2];
-    HitEffect[3].spark = (BattleEffectPrim *) Hit_para[3];
-    HitEffect[4].spark = (BattleEffectPrim *) Hit_para[4];
+    HitEffect[2].spark = Hit_para[2];
+    HitEffect[3].spark = Hit_para[3];
+    HitEffect[4].spark = Hit_para[4];
     HitEffect[0].spark_num = 0;
     HitEffect[0].kind = 0;
     HitEffect[1].spark_max = hit_spark_num;
@@ -3507,14 +3453,14 @@ u32 *GetLoadBGBuff(char *name, int *size) {
     buffer = CheckLoadedBGFile(path, &loaded_size);
 
     if (buffer != NULL) {
-        printf(at_2245__2, path);
+        printf("---- EVENT LOAD BG [%s] ----\n", path);
 
         if (size != NULL) {
             *size = loaded_size;
         }
     } else {
         if (EdEventInfo.pack_loaded == 1) {
-            printf(at_2246__2, path);
+            printf("---- EVENT LOAD PACK [%s] ----\n", path);
             buffer = GetPackFile((u32 *) read_buffer, path, &loaded_size);
 
             if (buffer != NULL) {
@@ -3528,15 +3474,15 @@ u32 *GetLoadBGBuff(char *name, int *size) {
 
         if (EdEventInfo.pack_loaded != 1) {
             if (EdEventInfo.stream_reading == 1) {
-                printf(at_2247__2);
-                printf(at_2248__2);
-                printf(at_2247__2);
+                printf("\n-------------------------------------------------------------------\n");
+                printf("EVENT ERR [NOW STREAM OPEN!!! <FILE ACCESS ERROR>]\n");
+                printf("\n-------------------------------------------------------------------\n");
 
                 while (1) {
                 }
             }
 
-            printf(at_2249__2, path);
+            printf("---- EVENT LOAD FILE [%s] ----\n", path);
 
             if (LoadFile2(path, read_buffer, &loaded_size, 0) == 0) {
                 buffer = NULL;
@@ -3610,10 +3556,10 @@ int _LOAD_CHARA_sub(int stack_no, char **name, int chara_no, u32 *pack, int mode
     int                result;
     mgCTextureManager *manager;
 
-    stack = (mgCMemory *) EventScene->GetStack(stack_no);
+    stack = EventScene->GetStack(stack_no);
 
     if (*name == NULL) {
-        if (GetPackFileExt(pack, at_2291, files, pack_file_max, sizes, name) <= 0) {
+        if (GetPackFileExt(pack, "cfg", files, pack_file_max, sizes, name) <= 0) {
             return 0;
         }
     }
@@ -3626,7 +3572,7 @@ int _LOAD_CHARA_sub(int stack_no, char **name, int chara_no, u32 *pack, int mode
 
     manager = &mgTexManager;
     manager->DeleteBlock(tex_block);
-    sprintf(label, at_2292__2, chara_no);
+    sprintf(label, "ev%d", chara_no);
 
     if (chara_no >= 8) {
         strcpy(manager->name_suffix, label);
@@ -3694,9 +3640,9 @@ int _LOAD_CHARA(RS_STACKDATA *stack, int argc) {
             if (result > 0) {
                 CCharacter2 *chara = GetCharacter(charaNo);
                 DivPathName(path, directory, fileName);
-                if (strcmp(fileName, at_2333__4) == 0) {
+                if (strcmp(fileName, "c01_base.chr") == 0) {
                     AtraMiriaOnOff(0, chara, 0);
-                } else if (strcmp(fileName, at_2334__3) == 0) {
+                } else if (strcmp(fileName, "c02_base.chr") == 0) {
                     AtraMiriaOnOff(1, chara, 0);
                 }
             }
@@ -3807,7 +3753,7 @@ int _SET_CURRENT_DIR(RS_STACKDATA *stack, int argc) {
         dir = GetStackString(stack);
     }
 
-    if (dir == NULL || strcmp(dir, at_2393__3) == 0 || strcmp(dir, at_1083) == 0) {
+    if (dir == NULL || strcmp(dir, "DEFAULT") == 0 || strcmp(dir, "") == 0) {
         SetCurrentDir(NULL);
     } else {
         SetCurrentDir(dir);
@@ -3823,7 +3769,7 @@ int _CHANGE_DIR(RS_STACKDATA *stack, int argc) {
         dir = GetStackString(stack);
     }
 
-    if (dir == NULL || strcmp(dir, at_2393__3) == 0 || strcmp(dir, at_1083) == 0) {
+    if (dir == NULL || strcmp(dir, "DEFAULT") == 0 || strcmp(dir, "") == 0) {
         SetCurrentDir(NULL);
     } else {
         ChangeDir(dir);
@@ -3871,7 +3817,7 @@ int _DELETE_CHARA(RS_STACKDATA *stack, int argc) {
 
 int _LOAD_MOTION_sub(int stack_no, char *name, int chara_no, u32 *pack) {
     char         label[0x20];
-    mgCMemory   *stack = (mgCMemory *) EventScene->GetStack(stack_no);
+    mgCMemory   *stack = EventScene->GetStack(stack_no);
     CCharacter2 *chara = EventScene->GetCharacter(chara_no);
 
     if (chara == NULL) {
@@ -3884,7 +3830,7 @@ int _LOAD_MOTION_sub(int stack_no, char *name, int chara_no, u32 *pack) {
         return 0;
     }
 
-    sprintf(label, at_2292__2, chara_no);
+    sprintf(label, "ev%d", chara_no);
     mgCTextureManager *manager = &mgTexManager;
 
     if (chara_no >= 8) {
@@ -4009,8 +3955,11 @@ int _SET_WORLD_COORD(RS_STACKDATA *stack, int argc) {
     return 0;
 }
 
-void _FINISH(RS_STACKDATA *stack, int argc) {
-    EdEventFinish();
+/**
+ * Finishes the running event and returns its completion status.
+ */
+int _FINISH(RS_STACKDATA *stack, int argc) {
+    return EdEventFinish();
 }
 
 int _GET_DUN_WORLD_COORD(RS_STACKDATA *stack, int argc) {
@@ -4061,7 +4010,7 @@ int _LOAD_IMG(RS_STACKDATA *stack, int argc) {
     if (file == NULL) {
         return 0;
     }
-    mgCMemory *memory = (mgCMemory *)EventScene->GetStack(stackNo);
+    mgCMemory *memory = EventScene->GetStack(stackNo);
     memory->Align64();
     u_char *image = (u_char *)memory->stAllocTest(size / 16 + 1);
     if (image == NULL) {
@@ -4145,7 +4094,7 @@ int _LOAD_ITEM(RS_STACKDATA *stack, int argc) {
 int _GOTO_USE_ITEM(RS_STACKDATA *stack, int argc) {
     int arg_no;
 
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
 
@@ -4232,9 +4181,9 @@ int _SET_LOADBG_FILE(RS_STACKDATA *stack, int argc) {
     EdEventInfo.pack_loaded = 0;
 
     if (EdEventInfo.stream_reading == 1) {
-        printf(at_2247__2);
-        printf(at_2248__2);
-        printf(at_2247__2);
+        printf("\n-------------------------------------------------------------------\n");
+        printf("EVENT ERR [NOW STREAM OPEN!!! <FILE ACCESS ERROR>]\n");
+        printf("\n-------------------------------------------------------------------\n");
 
         while (1) {
         }
@@ -4248,7 +4197,7 @@ int _SET_LOADBG_FILE_MONS_TALK(RS_STACKDATA *stack, int argc) {
     int        size;
     u_long128 *buffer = read_buffer;
     StartReadBG();
-    sprintf(path, at_2664__2, DngStatus.dungeon_no, LanguageCode);
+    sprintf(path, "dungeon/msg/mostalk%d_%d.txt", DngStatus.dungeon_no, LanguageCode);
 
     if (LoadFileBG(path, buffer, &size) == 0) {
         return 0;
@@ -4421,7 +4370,7 @@ int GetConfigCaptionOff() {
         SV_CONFIG_OPTION *config = &save->config;
 
         if (config != NULL) {
-            caption_off = (s8) config->caption_off;
+            caption_off = config->caption_off;
         }
     }
 
@@ -4439,23 +4388,23 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
     int frame;
 
     movie.Load(name, memory, 0x200, 0x1A0, true, false, skip);
-    printf(at_2836, (memory->stack_size - memory->stack_used) * 0x10 / 0x400);
+    printf("/////////////////// SIZE REMAIN = %dn /////////////////", (memory->stack_size - memory->stack_used) * 0x10 / 0x400);
     movieBlock = EventScene->event_texb;
     if (EventScene->event_texb_num <= 0) {
         return 0;
     }
     mgCTextureManager *textures = &mgTexManager;
     textures->DeleteBlock(movieBlock);
-    textures->EnterTexture(movieBlock, at_2837, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
+    textures->EnterTexture(movieBlock, "moviework", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
     captionBlock = movieBlock + 1;
     captionOff = GetConfigCaptionOff();
     fontBlock = -1;
     if (EdEventInfo.caption_enable != 0 && captionOff == 0) {
-        mgCTexture *fontTexture = textures->GetTexture(at_2838, fontBlock);
+        mgCTexture *fontTexture = textures->GetTexture("gaiji", fontBlock);
         if (fontTexture != NULL) {
             fontBlock = fontTexture->block;
             textures->DeleteBlock(fontBlock);
-            textures->EnterTexture(captionBlock, at_2839, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
+            textures->EnterTexture(captionBlock, "movieworkte", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
             ReLoadFontTexture(captionBlock);
             textures->EnterIMGFile(GetFontTex2ImgPtr(), captionBlock, NULL, NULL);
         } else {
@@ -4463,8 +4412,8 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
         }
     }
     textures->ReloadTexture(movieBlock, (sceVif1Packet *)NULL);
-    movieTexture = textures->GetTexture(at_2837, movieBlock);
-    movie.Play(at_2837);
+    movieTexture = textures->GetTexture("moviework", movieBlock);
+    movie.Play("moviework");
     movie.SwitchThread();
     while (movie.IsStarted() == 0) {
         movie.SwitchThread();
@@ -4568,7 +4517,7 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
 int _LOAD_MOVIE(RS_STACKDATA *stack, int argc) {
     int        stack_no = GetStackInt(stack++);
     char      *name = GetStackString(stack++);
-    mgCMemory *memory = (mgCMemory *) EventScene->GetStack(stack_no);
+    mgCMemory *memory = EventScene->GetStack(stack_no);
     int        skip = 1;
 
     if (argc >= 3) {
@@ -4671,7 +4620,7 @@ int _SET_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
     if (name2 != NULL) {
         strcpy(PakuAnimName2, name2);
     } else {
-        strcpy(PakuAnimName2, at_1083);
+        strcpy(PakuAnimName2, "");
     }
 
     return 1;
@@ -4686,7 +4635,7 @@ int _RESET_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
 
 int _TRG_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
     if (GetStackInt(stack) != 0) {
-        if (strcmp(PakuAnimName2, at_1083) != 0) {
+        if (strcmp(PakuAnimName2, "") != 0) {
             EventObjHandleMother.SetTexAnim(PakuAnimEohNo, 0, PakuAnimName2);
         }
 
@@ -4694,7 +4643,7 @@ int _TRG_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
     } else {
         EventObjHandleMother.SetTexAnim(PakuAnimEohNo, 0, PakuAnimName);
 
-        if (strcmp(PakuAnimName2, at_1083) != 0) {
+        if (strcmp(PakuAnimName2, "") != 0) {
             EventObjHandleMother.SetTexAnim(PakuAnimEohNo, 1, PakuAnimName2);
         }
     }
@@ -4892,13 +4841,13 @@ int _SET_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
     }
 
     PakuMotionEohNo = eoh_no;
-    strcpy((char *) PakuMotionName, name);
+    strcpy(PakuMotionName, name);
     PakuMotionType = type;
 
     if (name2 != NULL) {
-        strcpy((char *) PakuMotionName2, name2);
+        strcpy(PakuMotionName2, name2);
     } else {
-        strcpy((char *) PakuMotionName2, at_1083);
+        strcpy(PakuMotionName2, "");
     }
 
     PakuMotionType2 = type2;
@@ -4921,7 +4870,7 @@ int _TRG_PAKU_MOTION(RS_STACKDATA *stack, int argc) {
         return 1;
     }
 
-    if (strcmp(PakuMotionName2, at_1083) == 0) {
+    if (strcmp(PakuMotionName2, "") == 0) {
         return 1;
     }
 
@@ -5267,7 +5216,20 @@ int _GET_LOCAL_CNT2(RS_STACKDATA *stack, int argc) {
 }
 
 int _GET_TRAIN_NPC_POS(RS_STACKDATA *stack, int argc) {
-    TrainNpcTable table = at_3242;
+    TrainNpcTable table = {{
+        {-40.0f, 55.0f, 60.0f, 1.57f},
+        {40.0f, 55.0f, 60.0f, -1.57f},
+        {-40.0f, 55.0f, -60.0f, 1.57f},
+        {40.0f, 55.0f, -60.0f, -1.57f},
+        {-40.0f, 55.0f, 115.0f, 1.57f},
+        {40.0f, 55.0f, 115.0f, -1.57f},
+        {-40.0f, 55.0f, -115.0f, 1.57f},
+        {40.0f, 55.0f, -115.0f, -1.57f},
+        {-40.0f, 55.0f, 170.0f, 1.57f},
+        {40.0f, 55.0f, 170.0f, -1.57f},
+        {-40.0f, 55.0f, -170.0f, 1.57f},
+        {40.0f, 55.0f, -170.0f, -1.57f},
+    }};
     int           index = GetStackInt(stack++);
 
     if (index < 0 || index >= 12) {
@@ -5378,9 +5340,9 @@ int _LOAD_SCRIPT(RS_STACKDATA *stack, int argc) {
 
     strcpy(EdEventInfo.script_name, name);
 
-    if (strstr(EdEventInfo.script_name, at_3328) == NULL) {
+    if (strstr(EdEventInfo.script_name, "_1") == NULL) {
         EdEventInfo.script_name[strlen(EdEventInfo.script_name) - 4] = 0;
-        strcat(EdEventInfo.script_name, at_3329__2);
+        strcat(EdEventInfo.script_name, "_1.stb");
     }
 
     FileNameConvLanguage(EdEventInfo.script_name);
@@ -5390,6 +5352,15 @@ int _LOAD_SCRIPT(RS_STACKDATA *stack, int argc) {
 }
 
 int _SET_TALK_CAMERA(RS_STACKDATA *stack, int argc) {
+    /**
+     * Camera offsets available to the scripted conversation camera.
+     */
+    static float vv[3][4] = {
+        {-94.0f, 35.5f, -106.5f, 1.0f},
+        {105.0f, 32.5f, -28.5f, 1.0f},
+        {113.0f, 34.5f, 82.5f, 1.0f},
+    };
+
     float middle[4];
     float offset[4];
     float rotation[4][4];
@@ -5414,7 +5385,7 @@ int _SET_TALK_CAMERA(RS_STACKDATA *stack, int argc) {
     *middle_y += 30.0f;
     sceVu0UnitMatrix(rotation);
     sceVu0RotMatrixY(rotation, rotation, angle);
-    sceVu0ApplyMatrix(offset, rotation, &vv_3333[4]);
+    sceVu0ApplyMatrix(offset, rotation, vv[1]);
     sceVu0AddVector(offset, middle, offset);
     SetStack(stack++, offset[0]);
     SetStack(stack++, offset[1]);
@@ -5427,7 +5398,6 @@ int _SET_TALK_CAMERA(RS_STACKDATA *stack, int argc) {
 
 int _HIT_EFFECT(RS_STACKDATA *stack, int argc) {
     float position[4];
-    float direction[4];
     float spread;
     float speed;
     float power;
@@ -5439,7 +5409,7 @@ int _HIT_EFFECT(RS_STACKDATA *stack, int argc) {
     position[1] = GetStackFloat(stack++);
     position[2] = GetStackFloat(stack++);
     position[3] = 1.0f;
-    *(u_long128 *) direction = *(u_long128 *) at_3339;
+    float direction[4] = {0.0f, 1.0f, 0.0f, 1.0f};
     spread = 50.0f;
     speed = 35.0f;
     power = 0.0f;
@@ -5585,7 +5555,7 @@ int _FUNC_POINT_SHOW(RS_STACKDATA *stack, int argc) {
             char *place_name = GetStackString(stack++);
             char *name = GetStackString(stack++);
 
-            if (strcmp(place_name, at_1083) != 0) {
+            if (strcmp(place_name, "") != 0) {
                 CMapParts *parts = map->GetPlaceParts(place_name);
 
                 if (parts == NULL) {
@@ -5823,18 +5793,18 @@ int _LOAD_EQUIP(RS_STACKDATA *stack, int argc) {
     if (equip_kind >= 3 || equip_kind >= 4) {
         mgCMemory *memory;
 
-        if ((memory = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
+        if ((memory = EventScene->GetStack(stack_no)) == NULL) {
             return 0;
         }
 
-        sprintf(label, at_2292__2, chara_no);
+        sprintf(label, "ev%d", chara_no);
         mgCTextureManager *manager = &mgTexManager;
 
         if (chara_no >= 8) {
             strcpy(manager->name_suffix, label);
         }
 
-        chara->LoadSkin(pack, name, at_1083, memory, tex_block);
+        chara->LoadSkin(pack, name, "", memory, tex_block);
 
         if (chara_no >= 8) {
             manager->name_suffix[0] = 0;
@@ -5847,25 +5817,25 @@ int _LOAD_EQUIP(RS_STACKDATA *stack, int argc) {
         if (member_kind == 0) {
             switch (equip_kind) {
                 case 0:
-                    strcpy(bone_name, at_3631__2);
+                    strcpy(bone_name, "ef00");
                     break;
                 case 1:
-                    strcpy(bone_name, at_3632__2);
+                    strcpy(bone_name, "gun_hand");
                     break;
                 case 2:
-                    strcpy(bone_name, at_3633);
+                    strcpy(bone_name, "hat");
                     break;
             }
         } else if (member_kind == 1) {
             switch (equip_kind) {
                 case 0:
-                    strcpy(bone_name, at_3634);
+                    strcpy(bone_name, "sword_hand");
                     break;
                 case 1:
-                    strcpy(bone_name, at_3635);
+                    strcpy(bone_name, "wr");
                     break;
                 case 2:
-                    strcpy(bone_name, at_3636);
+                    strcpy(bone_name, "ac");
                     break;
             }
         }
@@ -5957,7 +5927,7 @@ int _SET_BEFORE_CMRID(RS_STACKDATA *stack, int argc) {
 int _DNGMAP_LOAD(RS_STACKDATA *stack, int argc) {
     int           tex_base;
     RS_STACKDATA *arg = stack + 1;
-    mgCMemory    *memory = (mgCMemory *) EventScene->GetStack(GetStackInt(stack));
+    mgCMemory    *memory = EventScene->GetStack(GetStackInt(stack));
     int           file_index = GetStackInt(arg++);
     int           tex_count = EventScene->event_texb_num;
     tex_base = EventScene->event_texb;
@@ -6135,7 +6105,7 @@ int _CHK_INTERSECTION_POINT(RS_STACKDATA *stack, int argc) {
     }
 
     if (poly_count > 0x100) {
-        printf(at_3822__2, poly_count);
+        printf("\n\n\n\n\n!!!!!  EVENT COL CHECK ERR <poly num over %d> !!!!!\n\n\n\n\n", poly_count);
     }
 
     poly = polys;
@@ -6267,7 +6237,7 @@ int _CHK_INTERSECTION_POINT_PIPE(RS_STACKDATA *stack, int argc) {
     }
 
     if (poly_count > 0x100) {
-        printf(at_3822__2, poly_count);
+        printf("\n\n\n\n\n!!!!!  EVENT COL CHECK ERR <poly num over %d> !!!!!\n\n\n\n\n", poly_count);
     }
 
     poly = polys;
@@ -6498,7 +6468,7 @@ int _DNG_GET_STAGE_ID(RS_STACKDATA *stack, int argc) {
 }
 
 int _SET_CAMERA_CTRL(RS_STACKDATA *stack, int argc) {
-    mgCCameraFollow *camera = (mgCCameraFollow *) EventScene->GetCamera(EventScene->active_camera);
+    CCameraControl *camera = (CCameraControl *) EventScene->GetCamera(EventScene->active_camera);
 
     if (camera == NULL) {
         return 0;
@@ -6506,10 +6476,10 @@ int _SET_CAMERA_CTRL(RS_STACKDATA *stack, int argc) {
 
     if (GetStackInt(stack) != 0) {
         camera->FollowOn();
-        ((CCameraControl *) camera)->ControlOn();
+        camera->ControlOn();
     } else {
         camera->FollowOff();
-        ((CCameraControl *) camera)->ControlOff();
+        camera->ControlOff();
     }
 
     return 1;
@@ -6555,8 +6525,8 @@ int _GET_INVENTION_ID(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    u8              *user_data = (u8 *) &save->user_data;
-    CInventUserData *invent_data = (CInventUserData *) (user_data + invent_user_data_offset);
+    CUserDataManager *user_data = &save->user_data;
+    CInventUserData  *invent_data = &user_data->invent_data;
 
     if (user_data == NULL) {
         return 0;
@@ -6584,7 +6554,7 @@ int _FUNCTION_MAP_JUMP(RS_STACKDATA *stack, int argc) {
     EdEventInfo.jump_point = -1;
     EdEventInfo.event_no = 100;
 
-    if (strcmp((char *) (request + 6), at_4072) == 0) {
+    if (strcmp((char *) (request + 6), "exit") == 0) {
         EdEventInfo.request = exit_leave_interior;
     } else {
         strcpy(EdEventInfo.jump_map_name, (char *) (request + 6));
@@ -6880,73 +6850,73 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
             memset(text, 0, 0x14);
             switch (digit[0]) {
                 case 0:
-                    sprintf(text, at_4261__2);
+                    sprintf(text, "\x82\x4F");
                     break;
                 case 1:
-                    sprintf(text, at_4262__2);
+                    sprintf(text, "\x82\x50");
                     break;
                 case 2:
-                    sprintf(text, at_4263__2);
+                    sprintf(text, "\x82\x51");
                     break;
                 case 3:
-                    sprintf(text, at_4264__2);
+                    sprintf(text, "\x82\x52");
                     break;
                 case 4:
-                    sprintf(text, at_4265__2);
+                    sprintf(text, "\x82\x53");
                     break;
                 case 5:
-                    sprintf(text, at_4266__2);
+                    sprintf(text, "\x82\x54");
                     break;
                 case 6:
-                    sprintf(text, at_4267__2);
+                    sprintf(text, "\x82\x55");
                     break;
                 case 7:
-                    sprintf(text, at_4268__2);
+                    sprintf(text, "\x82\x56");
                     break;
                 case 8:
-                    sprintf(text, at_4269__2);
+                    sprintf(text, "\x82\x57");
                     break;
                 case 9:
-                    sprintf(text, at_4270__2);
+                    sprintf(text, "\x82\x58");
                     break;
                 default:
-                    sprintf(text, at_4271__2);
+                    sprintf(text, "\x81\x46");
                     break;
             }
             for (i = 1; i < 8; i++) {
                 switch (digit[i]) {
                     case 0:
-                        strcat(text, at_4261__2);
+                        strcat(text, "\x82\x4F");
                         break;
                     case 1:
-                        strcat(text, at_4262__2);
+                        strcat(text, "\x82\x50");
                         break;
                     case 2:
-                        strcat(text, at_4263__2);
+                        strcat(text, "\x82\x51");
                         break;
                     case 3:
-                        strcat(text, at_4264__2);
+                        strcat(text, "\x82\x52");
                         break;
                     case 4:
-                        strcat(text, at_4265__2);
+                        strcat(text, "\x82\x53");
                         break;
                     case 5:
-                        strcat(text, at_4266__2);
+                        strcat(text, "\x82\x54");
                         break;
                     case 6:
-                        strcat(text, at_4267__2);
+                        strcat(text, "\x82\x55");
                         break;
                     case 7:
-                        strcat(text, at_4268__2);
+                        strcat(text, "\x82\x56");
                         break;
                     case 8:
-                        strcat(text, at_4269__2);
+                        strcat(text, "\x82\x57");
                         break;
                     case 9:
-                        strcat(text, at_4270__2);
+                        strcat(text, "\x82\x58");
                         break;
                     default:
-                        strcat(text, at_4271__2);
+                        strcat(text, "\x81\x46");
                         break;
                 }
             }
@@ -7249,7 +7219,7 @@ int _SET_MENU_ETC(RS_STACKDATA *stack, int argc) {
 
         InitDownLoadAnaunce(memory);
         MakeDownLoadAnaunce(town_no, memory, NULL, NULL, NULL);
-        InitMenuDl3(mgTexManager.GetTexture(at_4437, -1));
+        InitMenuDl3(mgTexManager.GetTexture("eventdl", -1));
         return 1;
     }
 
@@ -7403,11 +7373,14 @@ int _GET_DIORAMA_PERCENT(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 
-void _GEORAMA_FUNC(RS_STACKDATA *stack, int argc) {
+/**
+ * Runs a georama script command and returns its status.
+ */
+int _GEORAMA_FUNC(RS_STACKDATA *stack, int argc) {
     GeoFuncParam param;
 
-    param.scene = (CScene *) EventScene;
-    GeoramaFunc(&param, stack, argc);
+    param.scene = EventScene;
+    return GeoramaFunc(&param, stack, argc);
 }
 
 int _GET_CHARA_ID(RS_STACKDATA *stack, int arg_count) {
@@ -7436,7 +7409,33 @@ int _GET_CHAPTER(RS_STACKDATA *stack, int argc) {
 }
 
 int _GET_NPC_TRAIN_ETC(RS_STACKDATA *stack, int argc) {
-    NpcTrainTable table = at_4517;
+    NpcTrainTable table = {{
+        {1, 1, 39},
+        {1, 0, 45},
+        {1, 2, 45},
+        {1, 3, 45},
+        {3, 5, 45},
+        {1, 5, 45},
+        {1, 6, 45},
+        {1, 7, 45},
+        {1, 8, 45},
+        {2, 0, 45},
+        {2, 1, 45},
+        {2, 2, 45},
+        {2, 3, 45},
+        {2, 4, 45},
+        {2, 5, 39},
+        {2, 6, 45},
+        {2, 7, 45},
+        {3, 0, 45},
+        {3, 1, 45},
+        {3, 2, 45},
+        {3, 3, 45},
+        {3, 4, 45},
+        {1, 4, 45},
+        {3, 6, 45},
+        {3, 7, 45},
+    }};
     int           column = GetStackInt(stack++);
     int           row = GetStackInt(stack++) - 1;
     SetStack(stack, table.value[row][column]);
@@ -7448,7 +7447,7 @@ int _REGISTER_VILLAGER(RS_STACKDATA *stack, int argc) {
     int chara_no = GetStackInt(stack++);
 
     if (argc == 2) {
-        mgCMemory *memory = (mgCMemory *) EventScene->GetStack(4);
+        mgCMemory *memory = EventScene->GetStack(4);
 
         if (memory == NULL) {
             return 0;
@@ -7465,7 +7464,7 @@ int _REGISTER_VILLAGER(RS_STACKDATA *stack, int argc) {
 }
 
 int _EYE_VIEW_DRAW_ON_OFF(RS_STACKDATA *stack, int argc) {
-    ((CScene *) EventScene)->EyeViewDrawOnOff(GetStackInt(stack));
+    EventScene->EyeViewDrawOnOff(GetStackInt(stack));
     return 1;
 }
 
@@ -8356,8 +8355,8 @@ int _MES_MAKE(RS_STACKDATA *stack, int argc) {
                     return 0;
                 }
 
-                mes->text_ptr = (s32) text;
-                mes->MakeMesWin((char *) mes->text_ptr, 0, 1);
+                mes->text_ptr = text;
+                mes->MakeMesWin(mes->text_ptr, 0, 1);
             } else if (id == 0 && EdEventInfo.npc_talk_text != NULL) {
                 if (EdEventInfo.npc_talk_text == NULL) {
                     return 0;
@@ -8373,8 +8372,8 @@ int _MES_MAKE(RS_STACKDATA *stack, int argc) {
                     return 0;
                 }
 
-                mes->text_ptr = (s32) text;
-                mes->MakeMesWin((char *) mes->text_ptr, 0, 1);
+                mes->text_ptr = text;
+                mes->MakeMesWin(mes->text_ptr, 0, 1);
             } else {
                 mes->MakeMesWin(no);
             }
@@ -8896,13 +8895,13 @@ int _SET_MES_ETC(RS_STACKDATA *stack, int argc) {
             mes->SetHalfFontWPercent(GetStackFloat(stack));
             break;
         case 3:
-            strcpy(text, at_5262__2);
+            strcpy(text, "\x8B\x9B\x82\xF0\x91\x49\x82\xD7");
 
             for (i = 0; i < 6; i++) {
                 char *fish_name = GetAquariumFish0(i);
 
                 if (fish_name != NULL) {
-                    strcat(text, at_5263__2);
+                    strcat(text, "\n");
                     strcat(text, fish_name);
                 }
             }
@@ -9030,7 +9029,7 @@ int _LOAD_MES_sub(char *file_name, int stack_no, ClsMes *mes) {
         return 0;
     }
 
-    mem = (mgCMemory *) EventScene->GetStack(stack_no);
+    mem = EventScene->GetStack(stack_no);
     mem->Align64();
     dst = (char *) mem->stAllocTest(size / 16 + 1);
 
@@ -9078,7 +9077,7 @@ int _LOAD_MES_MONS_TALK(RS_STACKDATA *stack, int argc) {
     }
 
     int stack_no = GetStackInt(stack);
-    sprintf(path, at_2664__2, DngStatus.dungeon_no, LanguageCode);
+    sprintf(path, "dungeon/msg/mostalk%d_%d.txt", DngStatus.dungeon_no, LanguageCode);
     return _LOAD_MES_sub(path, stack_no, mes);
 }
 
@@ -9163,42 +9162,42 @@ int _GET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
                         strcpy(itemName, name);
                         size = entry->size / 10.0f;
                         weight = entry->weight;
-                        sprintf(nameColumn, at_5410, itemName);
+                        sprintf(nameColumn, "%s", itemName);
                         padding = 0x16 - strlen(itemName);
                         for (j = 0; j < padding / 2; j++) {
-                            strcat(nameColumn, at_5411);
+                            strcat(nameColumn, "\x81\x40");
                         }
-                        sprintf(sizeColumn, at_5412, size, weight);
+                        sprintf(sizeColumn, "%4.1fcm\x81\x40%5dg", size, weight);
                         switch (shown) {
                             case 0:
-                                strcpy(text, at_5413);
+                                strcpy(text, "\x81\x40\x82\x50\x81\x41");
                                 break;
                             case 1:
-                                strcat(text, at_5414);
+                                strcat(text, "\x81\x40\x82\x51\x81\x41");
                                 break;
                             case 2:
-                                strcat(text, at_5415);
+                                strcat(text, "\x81\x40\x82\x52\x81\x41");
                                 break;
                             case 3:
-                                strcat(text, at_5416);
+                                strcat(text, "\x81\x40\x82\x53\x81\x41");
                                 break;
                             case 4:
-                                strcat(text, at_5417);
+                                strcat(text, "\x81\x40\x82\x54\x81\x41");
                                 break;
                             case 5:
-                                strcat(text, at_5418);
+                                strcat(text, "\x81\x40\x82\x55\x81\x41");
                                 break;
                             case 6:
-                                strcat(text, at_5419);
+                                strcat(text, "\x81\x40\x82\x56\x81\x41");
                                 break;
                             case 7:
-                                strcat(text, at_5420);
+                                strcat(text, "\x81\x40\x82\x57\x81\x41");
                                 break;
                             case 8:
-                                strcat(text, at_5421);
+                                strcat(text, "\x81\x40\x82\x58\x81\x41");
                                 break;
                             case 9:
-                                strcat(text, at_5422);
+                                strcat(text, "\x82\x50\x82\x4F\x81\x41");
                                 break;
                             default:
                                 return 0;
@@ -9207,7 +9206,7 @@ int _GET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
                         strcat(text, nameColumn);
                         strcat(text, sizeColumn);
                         if (i < 9) {
-                            strcat(text, at_5263__2);
+                            strcat(text, "\n");
                         }
                     }
                 }
@@ -9487,7 +9486,7 @@ static int _SET_CAMERA_SPEED(RS_STACKDATA *stack, int argc) {
 }
 
 int _CAMERA_STEP(RS_STACKDATA *stack, int argc) {
-    mgCCameraFollow *camera = (mgCCameraFollow *) GetCamera();
+    mgCCameraFollow *camera = GetCamera();
 
     if (camera == NULL) {
         return 0;
@@ -9603,27 +9602,36 @@ int _ASQ_SE_PLAY(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 
-void _IMG_SET_DRAW(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite visibility and returns the update status.
+ */
+int _IMG_SET_DRAW(RS_STACKDATA *stack, int argc) {
     int draw;
 
     draw = GetStackInt(stack++);
-    esMother.SetDraw(GetStackInt(stack), draw);
+    return esMother.SetDraw(GetStackInt(stack), draw);
 }
 
-void _IMG_SET_GET(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite source rectangle and returns the update status.
+ */
+int _IMG_SET_GET(RS_STACKDATA *stack, int argc) {
     int index = GetStackInt(stack++);
     int a = GetStackInt(stack++);
     int b = GetStackInt(stack++);
     int c = GetStackInt(stack++);
-    esMother.SetGet(index, a, b, c, GetStackInt(stack));
+    return esMother.SetGet(index, a, b, c, GetStackInt(stack));
 }
 
-void _IMG_SET_PUT(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite destination rectangle and returns the update status.
+ */
+int _IMG_SET_PUT(RS_STACKDATA *stack, int argc) {
     int index = GetStackInt(stack++);
     int a = GetStackInt(stack++);
     int b = GetStackInt(stack++);
     int c = GetStackInt(stack++);
-    esMother.SetPut(index, a, b, c, GetStackInt(stack));
+    return esMother.SetPut(index, a, b, c, GetStackInt(stack));
 }
 
 int _IMG_SET_NAME(RS_STACKDATA *stack, int argc) {
@@ -9632,25 +9640,34 @@ int _IMG_SET_NAME(RS_STACKDATA *stack, int argc) {
     return esMother.SetName(no, name);
 }
 
-void _IMG_SET_MOVE(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite movement and returns the update status.
+ */
+int _IMG_SET_MOVE(RS_STACKDATA *stack, int argc) {
     int index = GetStackInt(stack++);
     int x = GetStackInt(stack++);
     int y = GetStackInt(stack++);
-    esMother.SetMove(index, x, y, GetStackInt(stack));
+    return esMother.SetMove(index, x, y, GetStackInt(stack));
 }
 
-void _IMG_SET_FADE(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite fade and returns the update status.
+ */
+int _IMG_SET_FADE(RS_STACKDATA *stack, int argc) {
     int index = GetStackInt(stack++);
     int from = GetStackInt(stack++);
-    esMother.SetFade(index, from, GetStackInt(stack));
+    return esMother.SetFade(index, from, GetStackInt(stack));
 }
 
-void _IMG_SET_COLOR(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event text sprite color and returns the update status.
+ */
+int _IMG_SET_COLOR(RS_STACKDATA *stack, int argc) {
     int index = GetStackInt(stack++);
     int r = GetStackInt(stack++);
     int g = GetStackInt(stack++);
     int b = GetStackInt(stack++);
-    esMother.SetColor(index, r, g, b, GetStackInt(stack));
+    return esMother.SetColor(index, r, g, b, GetStackInt(stack));
 }
 
 static CEventSprite2 *GetEventSprite(int index) {
@@ -9736,7 +9753,7 @@ int _SPRITE_SET_POS(RS_STACKDATA *stack, int argc) {
         pos[1] += sprite_ground_offset;
     }
 
-    printf(at_5726, pos[0], pos[1]);
+    printf("_SPRITE_SET_POS:%f,%f\n", pos[0], pos[1]);
     sprite->SetPosition(pos);
     return 1;
 }
@@ -9756,7 +9773,7 @@ int _SPRITE_SET_PUTSIZE(RS_STACKDATA *stack, int argc) {
     }
 
     sprite->SetPutSize(width, height);
-    printf(at_5736, width, height);
+    printf("_SPRITE_SET_PUTSIZE:%d,%d\n", width, height);
     return 1;
 }
 
@@ -11578,13 +11595,13 @@ int CommandStreamOpenFromFPL(int stream, char *name, char *base) {
     char path[64];
     char base_name[64];
 
-    strcpy(path, at_6773__2);
+    strcpy(path, "cdrom0:\\V\\");
     strncat(path, name, 3);
-    strcat(path, (char *) &at_6774__2);
+    strcat(path, "\\V");
     strcat(path, name);
-    strcat(path, (char *) &at_6775__2);
+    strcat(path, ".VPK;1");
     strcpy(base_name, base);
-    strcat(base_name, (char *) &at_6776__2);
+    strcat(base_name, ".wav");
     CSnd.StreamOpenFromFPLFast(stream, path, base_name);
     return 1;
 }
@@ -11592,9 +11609,9 @@ int CommandStreamOpenFromFPL(int stream, char *name, char *base) {
 int CommandStreamOpen(int stream, char *name) {
     char path[64];
 
-    strcpy(path, (char *) at_6781__2);
+    strcpy(path, "cdrom0:\\VOICE\\");
     strcat(path, name);
-    strcat(path, (char *) at_6782__2);
+    strcat(path, ".WV;1");
     CSnd.StreamOpenFast(stream, path);
     return 1;
 }
@@ -11627,11 +11644,176 @@ int VpkFileNameFromVoiceNo(char *name, int voice_no) {
             break;
     }
 
-    VpkTable table = at_6800__2;
+    VpkTable table = {{
+        {1, 0, 0, 100},
+        {1, 1, 0, 106},
+        {1, 2, 0, 105},
+        {2, 0, 0, 110},
+        {3, 0, 0, 115},
+        {4, 0, 0, 120},
+        {5, 0, 0, 125},
+        {6, 0, 100, 100},
+        {50, 0, 0, 130},
+        {60, 0, 0, 180},
+        {61, 0, 0, 185},
+        {100, 0, 100, 105},
+        {101, 0, 100, 110},
+        {102, 0, 100, 115},
+        {103, 0, 100, 120},
+        {104, 0, 100, 125},
+        {105, 0, 0, 135},
+        {105, 1, 0, 140},
+        {105, 2, 0, 145},
+        {106, 0, 0, 150},
+        {107, 0, 100, 130},
+        {108, 0, 100, 135},
+        {108, 1, 100, 136},
+        {108, 2, 100, 137},
+        {109, 0, 0, 155},
+        {109, 1, 0, 160},
+        {110, 0, 100, 140},
+        {111, 0, 100, 145},
+        {201, 0, 100, 150},
+        {202, 0, 100, 155},
+        {203, 0, 300, 100},
+        {204, 0, 10, 100},
+        {205, 0, 10, 105},
+        {206, 0, 10, 110},
+        {207, 0, 10, 115},
+        {208, 0, 10, 120},
+        {209, 0, 10, 125},
+        {215, 0, 110, 100},
+        {220, 0, 110, 105},
+        {230, 0, 110, 110},
+        {235, 0, 110, 115},
+        {240, 0, 110, 120},
+        {245, 0, 110, 125},
+        {247, 0, 10, 130},
+        {250, 0, 10, 135},
+        {253, 0, 10, 140},
+        {255, 0, 110, 130},
+        {255, 1, 110, 135},
+        {256, 0, 110, 140},
+        {257, 0, 110, 145},
+        {260, 0, 110, 150},
+        {270, 0, 10, 145},
+        {272, 0, 10, 150},
+        {275, 0, 10, 155},
+        {277, 0, 10, 160},
+        {280, 0, 10, 165},
+        {283, 0, 10, 170},
+        {285, 0, 10, 180},
+        {290, 0, 110, 155},
+        {300, 0, 15, 100},
+        {302, 0, 15, 105},
+        {304, 0, 15, 110},
+        {305, 0, 0, 165},
+        {306, 0, 15, 115},
+        {307, 0, 115, 100},
+        {308, 0, 115, 105},
+        {312, 0, 115, 110},
+        {314, 0, 115, 115},
+        {315, 0, 115, 120},
+        {316, 0, 115, 125},
+        {317, 0, 115, 130},
+        {320, 0, 15, 120},
+        {324, 0, 15, 125},
+        {328, 0, 15, 130},
+        {330, 0, 15, 135},
+        {332, 0, 115, 135},
+        {336, 0, 115, 140},
+        {340, 0, 115, 145},
+        {344, 0, 0, 170},
+        {348, 0, 115, 150},
+        {352, 0, 115, 155},
+        {356, 0, 115, 160},
+        {360, 0, 15, 140},
+        {364, 0, 15, 145},
+        {368, 0, 15, 150},
+        {372, 0, 15, 155},
+        {376, 0, 15, 160},
+        {400, 0, 20, 100},
+        {402, 0, 20, 105},
+        {404, 0, 20, 110},
+        {406, 0, 120, 100},
+        {408, 0, 120, 105},
+        {410, 0, 120, 110},
+        {412, 0, 20, 115},
+        {414, 0, 20, 120},
+        {416, 0, 120, 115},
+        {420, 0, 120, 120},
+        {424, 0, 0, 175},
+        {428, 0, 20, 125},
+        {432, 0, 120, 125},
+        {434, 0, 120, 130},
+        {436, 0, 120, 135},
+        {438, 0, 120, 140},
+        {440, 0, 120, 145},
+        {444, 0, 120, 150},
+        {448, 0, 20, 130},
+        {452, 0, 20, 135},
+        {456, 0, 20, 140},
+        {460, 0, 20, 145},
+        {464, 0, 20, 150},
+        {468, 0, 20, 155},
+        {500, 0, 25, 100},
+        {504, 0, 25, 105},
+        {508, 0, 25, 110},
+        {512, 0, 125, 100},
+        {516, 0, 125, 105},
+        {520, 0, 125, 110},
+        {522, 0, 125, 115},
+        {523, 0, 125, 120},
+        {524, 0, 25, 115},
+        {526, 0, 125, 125},
+        {528, 0, 125, 130},
+        {532, 0, 125, 135},
+        {536, 0, 125, 140},
+        {540, 0, 25, 120},
+        {548, 0, 25, 125},
+        {552, 0, 25, 130},
+        {556, 0, 25, 135},
+        {560, 0, 25, 140},
+        {600, 0, 20, 160},
+        {600, 1, 20, 161},
+        {604, 0, 30, 100},
+        {608, 0, 130, 100},
+        {610, 0, 130, 105},
+        {612, 0, 130, 110},
+        {616, 0, 40, 100},
+        {624, 0, 110, 160},
+        {628, 0, 115, 165},
+        {632, 0, 120, 155},
+        {636, 0, 125, 145},
+        {640, 0, 40, 105},
+        {640, 1, 40, 106},
+        {640, 2, 40, 107},
+        {648, 0, 40, 110},
+        {700, 0, 30, 105},
+        {702, 0, 130, 115},
+        {704, 0, 30, 110},
+        {708, 0, 130, 120},
+        {712, 0, 130, 125},
+        {716, 0, 130, 130},
+        {720, 0, 130, 135},
+        {724, 0, 130, 140},
+        {728, 0, 130, 145},
+        {732, 0, 130, 150},
+        {736, 0, 130, 160},
+        {744, 0, 30, 115},
+        {748, 0, 30, 120},
+        {800, 0, 0, 190},
+        {804, 0, 0, 195},
+        {808, 0, 150, 100},
+        {812, 0, 150, 105},
+        {816, 0, 150, 110},
+        {820, 0, 150, 115},
+        {824, 0, 50, 100},
+    }};
 
     for (int i = 0; i < vpk_entry_count; i++) {
         if (group == table.entry[i].group && kind == table.entry[i].kind) {
-            sprintf(name, (char *) at_6816, table.entry[i].id, table.entry[i].sub);
+            sprintf(name, "%03d_%03d", table.entry[i].id, table.entry[i].sub);
             return 1;
         }
     }
@@ -11651,7 +11833,7 @@ int _STREAM_OPEN(RS_STACKDATA *stack, int argc) {
                     if (VpkFileNameFromVoiceNo(voicePack, voiceNo) == 0) {
                         return 0;
                     }
-                    sprintf(voicePath, at_6834, voiceNo);
+                    sprintf(voicePath, "%07d", voiceNo);
                     CommandStreamOpenFromFPL(1, voicePack, voicePath);
                 }
                 case RS_STR:
@@ -11670,7 +11852,7 @@ int _STREAM_OPEN(RS_STACKDATA *stack, int argc) {
 int CommandStreamPlay(int stream, int volume) {
     int reverb = sndGetReverbDepth(1);
     int scaled = (int) ((double) volume - 256.0 * (1.5 * (double) reverb));
-    printf((char *) at_6839, scaled, volume);
+    printf("vol=%d,vol_0=%d\n", scaled, volume);
     EdEventInfo.stream_volume = volume;
     CSnd.StreamSetVol(stream, scaled, scaled);
     CSnd.StreamPlay(stream);
@@ -11973,9 +12155,9 @@ int _STREAM_CLOSE(RS_STACKDATA *stack, int argc) {
 
 int CommandStreamOpen2(int stream, char *name) {
     char path[64];
-    strcpy(path, (char *) at_6781__2);
+    strcpy(path, "cdrom0:\\VOICE\\");
     strcat(path, name);
-    strcat(path, (char *) at_6782__2);
+    strcat(path, ".WV;1");
     return 1;
 }
 
@@ -12078,7 +12260,7 @@ int _STREAM_OPEN3(RS_STACKDATA *stack, int argc) {
 
     GetStackInt(stack++);
     EdEventInfo.stream_from_fpl = 2;
-    sprintf(name, at_7117, GetStackInt(stack));
+    sprintf(name, "%07d.wav", GetStackInt(stack));
     CSnd.StreamOpenFast(event_stream, name);
     EdEventInfo.stream_reading = 1;
     return 1;
@@ -12201,7 +12383,7 @@ int _REGISTER_VILLAGER2(RS_STACKDATA *stack, int argc) {
 
     villager_no = GetStackInt(stack++);
     mode = GetStackInt(stack++);
-    memory = (mgCMemory *) EventScene->GetStack(GetStackInt(stack));
+    memory = EventScene->GetStack(GetStackInt(stack));
 
     if (memory == NULL) {
         return 0;
@@ -12277,7 +12459,7 @@ int _EOH_SYNC_OBJ(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    map_count = ((CScene *) EventScene)->GetActiveMap(maps, 8);
+    map_count = EventScene->GetActiveMap(maps, 8);
 
     if (!(map_count > 0)) {
         return 0;
@@ -12387,13 +12569,13 @@ int _EOH_SYNC_EDIT_OBJ(RS_STACKDATA *stack, int argc) {
 
     switch (argc) {
         case 2:
-            EventObjHandleMother.Set(slot, 1, (CObject *) parts, 1);
+            EventObjHandleMother.Set(slot, 1, parts, 1);
             break;
         case 3:
         case 4: {
             CMapPiece *piece;
 
-            if ((piece = ((CMapParts *) parts)->SearchPiece(GetStackString(stack++))) == NULL) {
+            if ((piece = parts->SearchPiece(GetStackString(stack++))) == NULL) {
                 return 0;
             }
 
@@ -12496,24 +12678,38 @@ int _EOH_SET_ROT(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.SetRot(slot, rot[0], rot[1], rot[2]);
 }
 
-void _EOH_GET_POS(RS_STACKDATA *stack, int argc) {
+/**
+ * Writes an event object position to the script stack and returns the lookup status.
+ */
+int _EOH_GET_POS(RS_STACKDATA *stack, int argc) {
     float pos[3];
 
-    if (EventObjHandleMother.GetPos(GetStackInt(stack++), pos) != 0) {
+    int result = EventObjHandleMother.GetPos(GetStackInt(stack++), pos);
+
+    if (result != 0) {
         SetStack(stack++, pos[0]);
         SetStack(stack++, pos[1]);
         SetStack(stack, pos[2]);
     }
+
+    return result;
 }
 
-void _EOH_GET_ROT(RS_STACKDATA *stack, int argc) {
+/**
+ * Writes an event object rotation to the script stack and returns the lookup status.
+ */
+int _EOH_GET_ROT(RS_STACKDATA *stack, int argc) {
     float rot[3];
 
-    if (EventObjHandleMother.GetRot(GetStackInt(stack++), rot) != 0) {
+    int result = EventObjHandleMother.GetRot(GetStackInt(stack++), rot);
+
+    if (result != 0) {
         SetStack(stack++, rot[0]);
         SetStack(stack++, rot[1]);
         SetStack(stack, rot[2]);
     }
+
+    return result;
 }
 
 int _EOH_SET_MOTION(RS_STACKDATA *stack, int argc) {
@@ -12565,9 +12761,12 @@ int _EOH_SET_MOTION(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.SetMotion(index, name, type, blend);
 }
 
-void _EOH_SET_STEP(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object motion step and returns the update status.
+ */
+int _EOH_SET_STEP(RS_STACKDATA *stack, int argc) {
     argc = GetStackInt(stack++);
-    EventObjHandleMother.SetStep(argc, GetStackFloat(stack));
+    return EventObjHandleMother.SetStep(argc, GetStackFloat(stack));
 }
 int _EOH_SET_TEX_ANIM(RS_STACKDATA *stack, int argc) {
     int no = GetStackInt(stack);
@@ -12600,39 +12799,55 @@ int _EOH_SET_SCALE(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.SetScale(no, x, y, z);
 }
 
-void _EOH_SET_SHOW(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object visibility and returns the update status.
+ */
+int _EOH_SET_SHOW(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetShow(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetShow(slot, GetStackInt(stack));
 }
 
-void _EOH_GET_SHOW(RS_STACKDATA *stack, int argc) {
+/**
+ * Writes an event object visibility to the script stack and returns the lookup status.
+ */
+int _EOH_GET_SHOW(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA *next_slot;
 
     next_slot = stack + 1;
 
     int show;
 
-    if (EventObjHandleMother.GetShow(GetStackInt(stack), &show) != 0) {
+    int result = EventObjHandleMother.GetShow(GetStackInt(stack), &show);
+
+    if (result != 0) {
         SetStack(next_slot, show);
     }
+
+    return result;
 }
 
-void _EOH_SET_FRAME_SHOW(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object frame visibility and returns the update status.
+ */
+int _EOH_SET_FRAME_SHOW(RS_STACKDATA *stack, int argc) {
     int   slot;
     char *frame_name;
 
     slot = GetStackInt(stack++);
     frame_name = GetStackString(stack++);
-    EventObjHandleMother.SetFrameShow(slot, frame_name, GetStackInt(stack) != 0 ? 1 : 0);
+    return EventObjHandleMother.SetFrameShow(slot, frame_name, GetStackInt(stack) != 0 ? 1 : 0);
 }
 
-void _EOH_SET_SHADOW(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object shadow and returns the update status.
+ */
+int _EOH_SET_SHADOW(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetShadow(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetShadow(slot, GetStackInt(stack));
 }
 
 int _EOH_SET_TRANSLATE(RS_STACKDATA *stack, int argc) {
@@ -12645,41 +12860,55 @@ int _EOH_SET_TRANSLATE(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.SetTranslate(no, translate);
 }
 
-void _EOH_SET_FOOT_SOUND_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object footstep sound identifier and returns the update status.
+ */
+int _EOH_SET_FOOT_SOUND_ID(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetFootSoundID(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetFootSoundID(slot, GetStackInt(stack));
 }
 
-void _EOH_SET_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object frame visibility and returns the update status.
+ */
+int _EOH_SET_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
     int   slot;
     char *frame_name;
 
     slot = GetStackInt(stack++);
     frame_name = GetStackString(stack++);
-    EventObjHandleMother.SetFrameShow(slot, frame_name, GetStackInt(stack));
+    return EventObjHandleMother.SetFrameShow(slot, frame_name, GetStackInt(stack));
 }
 
-void _EOH_GET_FRAME_POS(RS_STACKDATA *stack, int argc) {
+/**
+ * Writes an event object frame position to the script stack and returns the lookup status.
+ */
+int _EOH_GET_FRAME_POS(RS_STACKDATA *stack, int argc) {
     float pos[4];
     int   no = GetStackInt(stack++);
     char *name = GetStackString(stack++);
 
-    if (EventObjHandleMother.GetFramePos(no, name, pos) == 0) {
-        return;
+    int result = EventObjHandleMother.GetFramePos(no, name, pos);
+
+    if (result != 0) {
+        SetStack(stack++, pos[0]);
+        SetStack(stack++, pos[1]);
+        SetStack(stack, pos[2]);
     }
 
-    SetStack(stack++, pos[0]);
-    SetStack(stack++, pos[1]);
-    SetStack(stack, pos[2]);
+    return result;
 }
 
-void _EOH_SET_SOUND_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object sound identifier and returns the update status.
+ */
+int _EOH_SET_SOUND_ID(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetSoundID(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetSoundID(slot, GetStackInt(stack));
 }
 
 int _EOH_GET_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
@@ -12713,28 +12942,40 @@ int _EOH_SYNC_CHROBJ(RS_STACKDATA *stack, int argc) {
     return EventObjHandleMother.Set(slot, 3, frame);
 }
 
-void _EOH_SET_FADE_FLAG(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object fade flag and returns the update status.
+ */
+int _EOH_SET_FADE_FLAG(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetFadeFlag(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetFadeFlag(slot, GetStackInt(stack));
 }
 
-void _EOH_RESET_DA_POSITION(RS_STACKDATA *stack, int argc) {
-    EventObjHandleMother.ResetDAPosition(GetStackInt(stack));
+/**
+ * Resets an event object animation position and returns the update status.
+ */
+int _EOH_RESET_DA_POSITION(RS_STACKDATA *stack, int argc) {
+    return EventObjHandleMother.ResetDAPosition(GetStackInt(stack));
 }
 
-void _EOH_SET_SHADOW_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object shadow frame visibility and returns the update status.
+ */
+int _EOH_SET_SHADOW_FRAME_STATUS(RS_STACKDATA *stack, int argc) {
     int   slot;
     char *frame_name;
 
     slot = GetStackInt(stack++);
     frame_name = GetStackString(stack++);
-    EventObjHandleMother.SetShadowFrameShow(slot, frame_name, GetStackInt(stack));
+    return EventObjHandleMother.SetShadowFrameShow(slot, frame_name, GetStackInt(stack));
 }
 
-void _EOH_SYNC_GEOSTONE(RS_STACKDATA *stack, int argc) {
-    EventObjHandleMother.Set(GetStackInt(stack), 0, -1, (CCharacter2 *) &GeoStone);
+/**
+ * Attaches an event handle to a geostone and returns the update status.
+ */
+int _EOH_SYNC_GEOSTONE(RS_STACKDATA *stack, int argc) {
+    return EventObjHandleMother.Set(GetStackInt(stack), 0, -1, &GeoStone);
 }
 
 int _EOH_SYNC_SEARCH_CHARA(RS_STACKDATA *stack, int argc) {
@@ -12751,11 +12992,14 @@ int _EOH_SYNC_SEARCH_CHARA(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    return EventObjHandleMother.Set(slot, 0, -1, (CCharacter2 *) player->SearchChara(name));
+    return EventObjHandleMother.Set(slot, 0, -1, player->SearchChara(name));
 }
 
-void _EOH_NORMAL_DRIVE(RS_STACKDATA *stack, int argc) {
-    EventObjHandleMother.NormalDrive(GetStackInt(stack));
+/**
+ * Updates an event character and returns the update status.
+ */
+int _EOH_NORMAL_DRIVE(RS_STACKDATA *stack, int argc) {
+    return EventObjHandleMother.NormalDrive(GetStackInt(stack));
 }
 
 int _EOH_SET_FRAME_ALPHA(RS_STACKDATA *stack, int argc) {
@@ -12794,7 +13038,7 @@ int _EOH_SYNC_FUNCP(RS_STACKDATA *stack, int argc) {
             char *place_name = GetStackString(stack++);
             char *name = GetStackString(stack++);
 
-            if (strcmp(place_name, at_1083) != 0) {
+            if (strcmp(place_name, "") != 0) {
                 CMapParts *parts = map->GetPlaceParts(place_name);
 
                 if (parts == NULL) {
@@ -12817,11 +13061,14 @@ int _EOH_SYNC_FUNCP(RS_STACKDATA *stack, int argc) {
     return 0;
 }
 
-void _EOH_SET_FOOT_SE_ID(RS_STACKDATA *stack, int argc) {
+/**
+ * Sets an event object footstep effect identifier and returns the update status.
+ */
+int _EOH_SET_FOOT_SE_ID(RS_STACKDATA *stack, int argc) {
     int slot;
 
     slot = GetStackInt(stack++);
-    EventObjHandleMother.SetFootSeId(slot, GetStackInt(stack));
+    return EventObjHandleMother.SetFootSeId(slot, GetStackInt(stack));
 }
 
 int _EOH_SYNC_DOOR_PARTS(RS_STACKDATA *stack, int argc) {
@@ -13271,7 +13518,7 @@ int _SPHIDA_SET_COL_MODEL(RS_STACKDATA *stack, int argc) {
 
     int        stack_no = GetStackInt(stack++);
     char      *name = GetStackString(stack);
-    mgCMemory *memory = (mgCMemory *) EventScene->GetStack(stack_no);
+    mgCMemory *memory = EventScene->GetStack(stack_no);
 
     if (memory == NULL) {
         return 0;
@@ -13293,7 +13540,7 @@ int _SPHIDA_GET_PRIZE(RS_STACKDATA *stack, int argc) {
     RS_STACKDATA     *next_slot;
     DNG_BATTLE_AREA  *dng_scene;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
     floor_manager = &dng_scene->floor_manager;
 
     if (dng_scene == 0) {
@@ -13427,8 +13674,11 @@ int _TEST(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 
-void _MT_TEST(RS_STACKDATA *stack, int argc) {
-    mt_test(stack, argc);
+/**
+ * Returns the intersection test routine's script command status.
+ */
+int _MT_TEST(RS_STACKDATA *stack, int argc) {
+    return mt_test(stack, argc);
 }
 
 int _ZERO_VECTOR(RS_STACKDATA *stack, int arg_count) {
@@ -13440,9 +13690,9 @@ int _ZERO_VECTOR(RS_STACKDATA *stack, int arg_count) {
 
 static int _NORMAL_VECTOR(RS_STACKDATA *stack, int argc) {
     float vec[4];
-    vec[0] = ((RS_STACKDATA *) stack[0].val.i)->val.f;
-    vec[1] = ((RS_STACKDATA *) stack[1].val.i)->val.f;
-    vec[2] = ((RS_STACKDATA *) stack[2].val.i)->val.f;
+    vec[0] = stack[0].val.p->val.f;
+    vec[1] = stack[1].val.p->val.f;
+    vec[2] = stack[2].val.p->val.f;
     vec[3] = 1.0f;
     sceVu0Normalize(vec, vec);
     SetStack(stack++, vec[0]);
@@ -13541,7 +13791,7 @@ static int _ANGLE_CMP(RS_STACKDATA *stack, int argc) {
 }
 
 static int _ANGLE_LIMIT(RS_STACKDATA *stack, int argc) {
-    RS_STACKDATA *angle = (RS_STACKDATA *) stack->val.i;
+    RS_STACKDATA *angle = stack->val.p;
     SetStack(stack, mgAngleLimit(angle->val.f));
     return 1;
 }
@@ -13592,7 +13842,7 @@ int _CREATE_SWORD_EFFECT(RS_STACKDATA *stack, int argc) {
     int               init_param2 = GetStackInt(stack);
     mgCMemory        *scene_stack;
     CSWordAfterImage *effect;
-    scene_stack = (mgCMemory *) ((CScene *) EventScene)->GetStack(stack_no);
+    scene_stack = (mgCMemory *) EventScene->GetStack(stack_no);
 
     if (scene_stack == NULL) {
         return 0;
@@ -13730,7 +13980,7 @@ int _POST_TREASURE_BOX(RS_STACKDATA *stack, int argc) {
         count = GetStackInt(stack);
     }
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -13838,7 +14088,7 @@ int _CTRLC_MOVE_CAMERA(RS_STACKDATA *stack, int argc) {
     chara->GetRotation(chara_pos);
     camera = GetCamera();
     distance = camera->GetDistance();
-    map = ((CScene *) EventScene)->GetMap(((CScene *) EventScene)->active_map);
+    map = EventScene->GetMap(EventScene->active_map);
     camera->GetRef(camera_ref);
     camera->SetCheckRef(camera_ref);
     box.max[0] = camera_ref[0] + 1.2f * distance;
@@ -13856,7 +14106,7 @@ int _CTRLC_MOVE_CAMERA(RS_STACKDATA *stack, int argc) {
     }
 
     if (poly_count > 0x100) {
-        printf(at_8230, poly_count);
+        printf("EVENT ERROR <CTRLC_MOVE_CAMERA camera poly over %d>\n", poly_count);
         return 0;
     }
 
@@ -13882,23 +14132,23 @@ int _CTRLC_MOVE_RANGE(RS_STACKDATA *stack, int argc) {
 }
 
 int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
-    float            target[4];
-    float            box_pos[4];
-    DNG_BATTLE_AREA *dng_scene;
-    int              nearest;
-    int              i;
-    u8              *box_manager;
-    float            nearest_dist;
-    float            dist;
-    CTreasureBox    *box;
+    float                target[4];
+    float                box_pos[4];
+    DNG_BATTLE_AREA     *dng_scene;
+    int                  nearest;
+    int                  i;
+    CTreasureBoxManager *box_manager;
+    float                nearest_dist;
+    float                dist;
+    CTreasureBox        *box;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
     }
 
-    box_manager = (u8 *) dng_scene->treasure_box;
+    box_manager = dng_scene->treasure_box;
 
     if (box_manager == NULL) {
         return 0;
@@ -13907,11 +14157,11 @@ int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
     nearest = -1;
     GetStackVector(target, stack);
 
-    stack = (RS_STACKDATA *) ((int) stack + 0x18);
+    stack += 3;
     nearest_dist = 9999.0f;
 
-    for (i = 0; i < 24; i++) {
-        box = (CTreasureBox *) (box_manager + i * 0x70 + 0x10);
+    for (i = 0; i < TREASURE_BOX_MAX; i++) {
+        box = &box_manager->box[i];
 
         if (box != NULL && (box == NULL || box->state != 0)) {
             box->GetPosition(box_pos);
@@ -13930,7 +14180,7 @@ int _GET_NEAR_TBOX_POS(RS_STACKDATA *stack, int argc) {
     box_pos[3] = 0.0f;
 
     if (nearest >= 0) {
-        box = (CTreasureBox *) (box_manager + nearest * 0x70 + 0x10);
+        box = &box_manager->box[nearest];
         box->GetPosition(box_pos);
     }
 
@@ -13959,25 +14209,11 @@ int _SWE_INIT(RS_STACKDATA *stack, int argc) {
 
     mgCMemory *scene_stack;
 
-    if ((scene_stack = (mgCMemory *) ((CScene *) EventScene)->GetStack(stack_no)) == NULL) {
+    if ((scene_stack = EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
-    CSWordAfterEffect *effect =
-        (CSWordAfterEffect *) operator new(0xA0, scene_stack->Alloc(12));
-
-    if (effect != NULL) {
-        effect->color0[0] = 0x80;
-        effect->color0[1] = 0x80;
-        effect->color0[2] = 0x80;
-        effect->color0[3] = 0x80;
-        effect->color1[0] = 0x80;
-        effect->color1[1] = 0x80;
-        effect->color1[2] = 0x80;
-        effect->color1[3] = 0x80;
-    }
-
-    chara->sword_effect[slot] = effect;
+    chara->sword_effect[slot] = new (scene_stack->Alloc(12)) CSWordAfterEffect;
 
     if (chara->sword_effect[slot] == NULL) {
         return 0;
@@ -14129,14 +14365,14 @@ int _SET_CHARA_TYPE(RS_STACKDATA *stack, int argc) {
     int chara_no;
 
     chara_no = GetStackInt(stack++);
-    ((CScene *) EventScene)->SetType(1, chara_no, GetStackInt(stack));
+    EventScene->SetType(1, chara_no, GetStackInt(stack));
     return 1;
 }
 
 int _GET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
     CSceneEventData *event_data;
 
-    event_data = &((CScene *) EventScene)->event_data;
+    event_data = &EventScene->event_data;
 
     if (event_data == NULL) {
         return 0;
@@ -14168,11 +14404,10 @@ int _GET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
             SetStack(stack, event_data->map_event.event_no);
             break;
         case 8:
-            SetStack(stack++, ((float *) &event_data->vectors_b.v[0])[0]);
-            SetStack(stack++, ((float *) &event_data->vectors_b.v[0])[1]);
-            SetStack(stack++, ((float *) &event_data->vectors_b.v[0])[2]);
-            SetStack(stack,
-                     atan2f(((float *) &event_data->vectors_a.v[3])[0], ((float *) &event_data->vectors_a.v[3])[2]));
+            SetStack(stack++, event_data->map_event.matrix[3][0]);
+            SetStack(stack++, event_data->map_event.matrix[3][1]);
+            SetStack(stack++, event_data->map_event.matrix[3][2]);
+            SetStack(stack, atan2f(event_data->map_event.matrix[2][0], event_data->map_event.matrix[2][2]));
             break;
         case 9:
             SetStack(stack, event_data->map_event.parts_no);
@@ -14368,7 +14603,7 @@ int _GET_FLOOR_INFO(RS_STACKDATA *stack, int argc) {
 int _GET_NEXT_FLOOR(RS_STACKDATA *stack, int argc) {
     int              floor = GetStackInt(stack++);
     int              route = GetStackInt(stack++);
-    DNG_BATTLE_AREA *dng_scene = &((CScene *) EventScene)->battle_area;
+    DNG_BATTLE_AREA *dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14401,7 +14636,7 @@ int _PAD_SET_AUTO_REPEAT(RS_STACKDATA *stack, int argc) {
 int _DNG_PAUSE(RS_STACKDATA *stack, int argc) {
     int              mask = GetStackInt(stack++);
     int              enable = GetStackInt(stack);
-    DNG_BATTLE_AREA *dng_scene = &((CScene *) EventScene)->battle_area;
+    DNG_BATTLE_AREA *dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14418,7 +14653,7 @@ int _DNG_PAUSE(RS_STACKDATA *stack, int argc) {
 
 int _DNG_CHECK_PAUSE(RS_STACKDATA *stack, int argc) {
     int              mask = GetStackInt(stack++);
-    DNG_BATTLE_AREA *dng_scene = &((CScene *) EventScene)->battle_area;
+    DNG_BATTLE_AREA *dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14432,7 +14667,7 @@ int _DNG_CHECK_PAUSE(RS_STACKDATA *stack, int argc) {
 int _DNG_RESET_TIMER(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dng_scene;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14445,7 +14680,7 @@ int _DNG_RESET_TIMER(RS_STACKDATA *stack, int argc) {
 int _DNG_GET_TIMER(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dng_scene;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -14483,11 +14718,11 @@ int _LOAD_SKIN(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if (0 > (image_block = ((CScene *) EventScene)->GetCharaTexb(chara_no))) {
+    if (0 > (image_block = EventScene->GetCharaTexb(chara_no))) {
         return 0;
     }
 
-    if ((scene_stack = (mgCMemory *) ((CScene *) EventScene)->GetStack(stack_no)) == NULL) {
+    if ((scene_stack = EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
@@ -14495,14 +14730,14 @@ int _LOAD_SKIN(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    sprintf(name, at_2292__2, chara_no);
+    sprintf(name, "ev%d", chara_no);
     tex_manager = &mgTexManager;
 
     if (chara_no >= 8) {
         strcpy(tex_manager->name_suffix, name);
     }
 
-    chara->LoadSkin((u32 *) pack_file, info_name, at_1083, scene_stack, image_block);
+    chara->LoadSkin((u32 *) pack_file, info_name, "", scene_stack, image_block);
 
     if (chara_no >= 8) {
         tex_manager->name_suffix[0] = 0;
@@ -14722,12 +14957,12 @@ int _GET_ROBO_MOVE_TYPE(RS_STACKDATA *stack, int argc) {
 }
 
 int _SET_EXIT_FLAG(RS_STACKDATA *stack, int argc) {
-    ((CScene *) EventScene)->exit_flag = GetStackInt(stack);
+    EventScene->exit_flag = GetStackInt(stack);
     return 1;
 }
 
 int _GET_EXIT_FLAG(RS_STACKDATA *stack, int argc) {
-    SetStack(stack, ((CScene *) EventScene)->exit_flag);
+    SetStack(stack, EventScene->exit_flag);
     return 1;
 }
 
@@ -14907,7 +15142,7 @@ int _GET_PARTS_POS(RS_STACKDATA *stack, int argc) {
     int        i;
     int        parts_id;
     char      *parts_name;
-    map_count = ((CScene *) EventScene)->GetActiveMap(maps, 8);
+    map_count = EventScene->GetActiveMap(maps, 8);
 
     if (!(map_count > 0)) {
         return 0;
@@ -15043,10 +15278,10 @@ int _DNG_SETUP_MAIN_UNIT(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    LoadFile(at_8902, read_buffer, NULL);
+    LoadFile("img/allitem.img", read_buffer, NULL);
     manager->EnterIMGFile((u_char *) read_buffer, 0x50, NULL, NULL);
-    icons[0] = manager->GetTexture(at_8903, -1);
-    icons[1] = manager->GetTexture(at_8904, -1);
+    icons[0] = manager->GetTexture("icon_dmy1", -1);
+    icons[1] = manager->GetTexture("icon_dmy2", -1);
     CopyActiveIconTexture(icons, chara_no, NULL);
     manager->DeleteBlock(0x50);
     chara->sound_info.foot_se_bank = EventScene->se_base_id;
@@ -15230,7 +15465,7 @@ int _LOAD_ARG(RS_STACKDATA *stack, int argc) {
     char      *file_name = GetStackString(stack);
     mgCMemory *memory;
 
-    if ((memory = (mgCMemory *) EventScene->GetStack(stack_no)) == NULL) {
+    if ((memory = EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
@@ -15323,7 +15558,7 @@ int _CHECK_MC_LOAD(RS_STACKDATA *stack, int arg_count) {
 }
 
 int _SET_NOW_MAP_NO(RS_STACKDATA *stack, int argc) {
-    ((CScene *) EventScene)->SetNowMapNo(GetStackInt(stack));
+    EventScene->SetNowMapNo(GetStackInt(stack));
     return 1;
 }
 
@@ -15357,7 +15592,7 @@ int _GET_TBOX_PARAM(RS_STACKDATA *stack, int argc) {
 }
 
 int _CANCEL_LOAD_VILLAGER(RS_STACKDATA *stack, int argc) {
-    CScene *scene = (CScene *) EventScene;
+    CScene *scene = EventScene;
     scene->skip_load_sub_villager = 1;
     scene->skip_load_villager = 1;
     return 1;
@@ -15412,7 +15647,7 @@ int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc) {
         heap_size = GetStackInt(stack);
     }
 
-    if ((scene_stack = (mgCMemory *) ((CScene *) EventScene)->GetStack(stack_no)) == NULL) {
+    if ((scene_stack = EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
 
@@ -15443,7 +15678,7 @@ int _ESM_CLEAR(RS_STACKDATA *stack, int argc) {
 
     EventEffectScript->ClearBaseFromLevel(0, cleared_blocks, 64);
     EventEffectScript->AllClearEffSpt();
-    work_buffer = (mgCMemory *) EventEffectScript->work_memory;
+    work_buffer = EventEffectScript->work_memory;
 
     if (work_buffer != NULL) {
         work_buffer->stack_used = 0;
@@ -15455,7 +15690,7 @@ int _ESM_CLEAR(RS_STACKDATA *stack, int argc) {
     EventEffectScript = 0;
 
     for (i = 0; i < 64; i++) {
-        printf(at_9148, cleared_blocks[i]);
+        printf("[ESM_CLEAR] DEL TEXB = %d\n", cleared_blocks[i]);
 
         if (cleared_blocks[i] <= -1) {
             break;
@@ -15766,7 +16001,7 @@ int _ADD_HP_RATE(RS_STACKDATA *stack, int argc) {
 }
 
 int _GET_TIME(RS_STACKDATA *stack, int argc) {
-    SetStack(stack, ((CScene *) EventScene)->time);
+    SetStack(stack, EventScene->time);
     return 1;
 }
 
@@ -15808,7 +16043,7 @@ int _IS_CLEAR_DESTROY(RS_STACKDATA *stack, int argc) {
     CDngFloorManager *floor_manager;
     DNG_BATTLE_AREA  *dng_scene;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == 0) {
         return 0;
@@ -15870,7 +16105,7 @@ int _IS_PLAY_SUB_GAME(RS_STACKDATA *stack, int argc) {
     CDngFloorManager *floor_manager;
     DNG_BATTLE_AREA  *dng_scene;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == 0) {
         return 0;
@@ -15890,7 +16125,7 @@ int _RESET_SUBJECT_COUNTER(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *dng_scene;
     CSaveData       *save;
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -15939,7 +16174,7 @@ int _SET_MPCHARA_MOTION(RS_STACKDATA *stack, int argc) {
     CMapParts *parts;
     char      *parts_name;
     int        parts_id;
-    map_count = ((CScene *) EventScene)->GetActiveMap(maps, 8);
+    map_count = EventScene->GetActiveMap(maps, 8);
 
     if (!(map_count > 0)) {
         return 0;
@@ -16022,7 +16257,7 @@ int _FUNC_POINT_POS(RS_STACKDATA *stack, int argc) {
             char *place_name = GetStackString(stack++);
             char *name = GetStackString(stack++);
 
-            if (strcmp(place_name, at_1083) != 0) {
+            if (strcmp(place_name, "") != 0) {
                 CMapParts *parts = map->GetPlaceParts(place_name);
 
                 if (parts == NULL) {
@@ -16104,7 +16339,7 @@ int _FUNC_POINT_GET_POS(RS_STACKDATA *stack, int argc) {
             char *place_name = GetStackString(stack++);
             char *name = GetStackString(stack++);
 
-            if (strcmp(place_name, at_1083) != 0) {
+            if (strcmp(place_name, "") != 0) {
                 CMapParts *parts = map->GetPlaceParts(place_name);
 
                 if (parts == NULL) {
@@ -16155,7 +16390,7 @@ int _FUNC_POINT_GET_ROT(RS_STACKDATA *stack, int argc) {
         case RS_STR: {
             char *placeName = GetStackString(stack++);
             char *name = GetStackString(stack++);
-            if (strcmp(placeName, at_1083) != 0) {
+            if (strcmp(placeName, "") != 0) {
                 CMapParts *parts = map->GetPlaceParts(placeName);
                 if (parts == NULL) {
                     return 0;
@@ -16267,7 +16502,7 @@ int _DNG_CHECK_BOSS_MAP(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    dng_scene = &((CScene *) EventScene)->battle_area;
+    dng_scene = &EventScene->battle_area;
 
     if (dng_scene == NULL) {
         return 0;
@@ -16279,7 +16514,7 @@ int _DNG_CHECK_BOSS_MAP(RS_STACKDATA *stack, int argc) {
 
 int _DNG_RUN_EVENT(RS_STACKDATA *stack, int argc) {
     int              event_no = GetStackInt(stack);
-    DNG_BATTLE_AREA *scene = &((CScene *) EventScene)->battle_area;
+    DNG_BATTLE_AREA *scene = &EventScene->battle_area;
 
     if (scene == NULL) {
         return 0;
@@ -16341,7 +16576,7 @@ int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
         block_offset = GetStackInt(stack);
     }
 
-    scene = (CScene *) EventScene;
+    scene = EventScene;
     tex_count = scene->event_texb_num;
     tex_base = scene->event_texb;
 
@@ -16352,7 +16587,7 @@ int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
     block_no = tex_base + block_offset;
 
     if (stack_no >= 0) {
-        if ((scene_stack = (mgCMemory *) ((CScene *) EventScene)->GetStack(stack_no)) == NULL) {
+        if ((scene_stack = EventScene->GetStack(stack_no)) == NULL) {
             return 0;
         }
 
@@ -16367,7 +16602,7 @@ int _INIT_SEPIA(RS_STACKDATA *stack, int argc) {
 
     mgTexManager.DeleteBlock(block_no);
     EventScreenEffect.SetSepiaTexture(mgTexManager.EnterTexture(
-                                          block_no, at_9622, NULL, mgScreenWidth,
+                                          block_no, "event sepia", NULL, mgScreenWidth,
                                           mgScreenHeight, mgScreenDepth, 0, 0LL, 0),
                                       buffer);
     return 1;
@@ -16541,10 +16776,10 @@ int _INIT_MONO_FLASH(RS_STACKDATA *stack, int argc) {
 
     mgTexManager.DeleteBlock(tex_base);
     mgTexManager.DeleteBlock(tex_base + 1);
-    textures[0] = (mgCTexture *) mgTexManager.EnterTexture(
-        tex_base, at_9744, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
-    textures[1] = (mgCTexture *) mgTexManager.EnterTexture(
-        tex_base + 1, at_9745, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0,
+    textures[0] = mgTexManager.EnterTexture(
+        tex_base, "mono_flash1", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
+    textures[1] = mgTexManager.EnterTexture(
+        tex_base + 1, "mono_flash2", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0,
         0);
     EventScreenEffect.SetMonoFlashTexture(textures, buffers);
     return 1;
@@ -16664,11 +16899,11 @@ int _PLACE_PARTS_NAME_STRCMP(RS_STACKDATA *stack, int argc) {
 int _GOTO_USE_ITEM2(RS_STACKDATA *stack, int argc) {
     int i;
 
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
 
-    p_use_item = (RS_STACKDATA *) stack->val.i;
+    p_use_item = stack->val.p;
     stack++;
     MenuArg.open_type = 9;
     MenuArg.param[0] = GetStackInt(stack++);
@@ -17104,170 +17339,747 @@ int _FORCE_BOOT_TOUR(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 
+/**
+ * External event script handlers in command-table order.
+ */
+static EventScriptFunc ext_func_info[697] = {
+    {_GET_PADON, EVENT_EXT_GET_PADON},
+    {_GET_PADDOWN, EVENT_EXT_GET_PADDOWN},
+    {_GET_PADUP, EVENT_EXT_GET_PADUP},
+    {_GET_APAD, EVENT_EXT_GET_APAD},
+    {_GOTO_INTERIOR, EVENT_EXT_GOTO_INTERIOR},
+    {_INITIALIZE, EVENT_EXT_INITIALIZE},
+    {_GOTO_OUTSIDE, EVENT_EXT_GOTO_OUTSIDE},
+    {_LOAD_CHARA, EVENT_EXT_LOAD_CHARA},
+    {_CHARA_ACTIVE, EVENT_EXT_CHARA_ACTIVE},
+    {_CLEAR_STACK, EVENT_EXT_CLEAR_STACK},
+    {_ASSIGN_STACK, EVENT_EXT_ASSIGN_STACK},
+    {_SET_FLAG, EVENT_EXT_SET_FLAG},
+    {_GET_FLAG, EVENT_EXT_GET_FLAG},
+    {_SET_CNT, EVENT_EXT_SET_CNT},
+    {_GET_CNT, EVENT_EXT_GET_CNT},
+    {_SET_CURRENT_DIR, EVENT_EXT_SET_CURRENT_DIR},
+    {_DELETE_CHARA, EVENT_EXT_DELETE_CHARA},
+    {_LOAD_MOTION, EVENT_EXT_LOAD_MOTION},
+    {_MAP_JUMP, EVENT_EXT_MAP_JUMP},
+    {_SET_RAIN, EVENT_EXT_SET_RAIN},
+    {_DEL_EXT_MOTION, EVENT_EXT_DEL_EXT_MOTION},
+    {_SET_MARKER, EVENT_EXT_SET_MARKER},
+    {_SET_WORLD_COORD, EVENT_EXT_SET_WORLD_COORD},
+    {_FINISH, EVENT_EXT_FINISH},
+    {_GET_DUN_WORLD_COORD, EVENT_EXT_GET_DUN_WORLD_COORD},
+    {_LOAD_IMG, EVENT_EXT_LOAD_IMG},
+    {_DEL_IMG, EVENT_EXT_DEL_IMG},
+    {_SET_DNG_MAP, EVENT_EXT_SET_DNG_MAP},
+    {_LOAD_ITEM, EVENT_EXT_LOAD_ITEM},
+    {_GOTO_USE_ITEM, EVENT_EXT_GOTO_USE_ITEM},
+    {_SET_LOCAL_FLAG, EVENT_EXT_SET_LOCAL_FLAG},
+    {_GET_LOCAL_FLAG, EVENT_EXT_GET_LOCAL_FLAG},
+    {_GOTO_SELECT_PARTY, EVENT_EXT_GOTO_SELECT_PARTY},
+    {_SET_LOADBG_FILE, EVENT_EXT_SET_LOADBG_FILE},
+    {_CHECK_LOADBG_FILE, EVENT_EXT_CHECK_LOADBG_FILE},
+    {_GET_TB_ITEMNO, EVENT_EXT_GET_TB_ITEMNO},
+    {_SET_TB_STATUS, EVENT_EXT_SET_TB_STATUS},
+    {_SET_TB_ANGLE, EVENT_EXT_SET_TB_ANGLE},
+    {_ADD_ITEM, EVENT_EXT_ADD_ITEM},
+    {_GET_ITEM_TYPE, EVENT_EXT_GET_ITEM_TYPE},
+    {_GET_ITEM_SPACE, EVENT_EXT_GET_ITEM_SPACE},
+    {_GET_ADJUST_POLYGON_SCALE, EVENT_EXT_GET_ADJUST_POLYGON_SCALE},
+    {_LOAD_MOVIE, EVENT_EXT_LOAD_MOVIE},
+    {_INIT_LOCAL_CNT, EVENT_EXT_INIT_LOCAL_CNT},
+    {_SET_CROSSFADE, EVENT_EXT_SET_CROSSFADE},
+    {_SET_TIME, EVENT_EXT_SET_TIME},
+    {_SET_ACTIVE_LIGHT, EVENT_EXT_SET_ACTIVE_LIGHT},
+    {_SET_PAKU_ANIM, EVENT_EXT_SET_PAKU_ANIM},
+    {_RESET_PAKU_ANIM, EVENT_EXT_RESET_PAKU_ANIM},
+    {_TRG_PAKU_ANIM, EVENT_EXT_TRG_PAKU_ANIM},
+    {_RESET_CAMERA, EVENT_EXT_RESET_CAMERA},
+    {_GET_ACTIVE_CHR_NO, EVENT_EXT_GET_ACTIVE_CHR_NO},
+    {_SET_ACTIVE_CHR_NO, EVENT_EXT_SET_ACTIVE_CHR_NO},
+    {_DNG_SET_FLOOR_ID, EVENT_EXT_DNG_SET_FLOOR_ID},
+    {_DNG_GET_FLOOR_ID, EVENT_EXT_DNG_GET_FLOOR_ID},
+    {_SET_PAKU_MOTION, EVENT_EXT_SET_PAKU_MOTION},
+    {_RESET_PAKU_MOTION, EVENT_EXT_RESET_PAKU_MOTION},
+    {_TRG_PAKU_MOTION, EVENT_EXT_TRG_PAKU_MOTION},
+    {_SET_BG_COLOR, EVENT_EXT_SET_BG_COLOR},
+    {_GOTO_DNG_MAP, EVENT_EXT_GOTO_DNG_MAP},
+    {_GOTO_DNG, EVENT_EXT_GOTO_DNG},
+    {_GOTO_EDIT, EVENT_EXT_GOTO_EDIT},
+    {_GET_MENU_PARAM, EVENT_EXT_GET_MENU_PARAM},
+    {_LOAD_CHARA_NPC, EVENT_EXT_LOAD_CHARA_NPC},
+    {_AUTO_SET_TREASURE_BOX, EVENT_EXT_AUTO_SET_TREASURE_BOX},
+    {_AUTO_SET_MONSTER, EVENT_EXT_AUTO_SET_MONSTER},
+    {_LOAD_DUNGEON_MAP_FILE, EVENT_EXT_LOAD_DUNGEON_MAP_FILE},
+    {_LOAD_MONSTER_FILE, EVENT_EXT_LOAD_MONSTER_FILE},
+    {_GET_NPC_STATUS, EVENT_EXT_GET_NPC_STATUS},
+    {_SET_NPC_STATUS, EVENT_EXT_SET_NPC_STATUS},
+    {_GET_NOW_PARTY_CHARA, EVENT_EXT_GET_NOW_PARTY_CHARA},
+    {_SET_LOCAL_CNT, EVENT_EXT_SET_LOCAL_CNT},
+    {_GET_LOCAL_CNT, EVENT_EXT_GET_LOCAL_CNT},
+    {_GET_LOCAL_CNT2, EVENT_EXT_GET_LOCAL_CNT2},
+    {_GET_TRAIN_NPC_POS, EVENT_EXT_GET_TRAIN_NPC_POS},
+    {_GOTO_DRAW_CHAPTER, EVENT_EXT_GOTO_DRAW_CHAPTER},
+    {_SET_PROJECTION, EVENT_EXT_SET_PROJECTION},
+    {_GET_PROJECTION, EVENT_EXT_GET_PROJECTION},
+    {_SET_FADE_IN, EVENT_EXT_SET_FADE_IN},
+    {_SET_FADE_OUT, EVENT_EXT_SET_FADE_OUT},
+    {_DNG_DEBUG_COMMAND, EVENT_EXT_DNG_DEBUG_COMMAND},
+    {_CD_SEEK, EVENT_EXT_CD_SEEK},
+    {_GET_ROT_LOOK_POS, EVENT_EXT_GET_ROT_LOOK_POS},
+    {_SET_MOTION_BLUR, EVENT_EXT_SET_MOTION_BLUR},
+    {_LOAD_SCRIPT, EVENT_EXT_LOAD_SCRIPT},
+    {_SET_TALK_CAMERA, EVENT_EXT_SET_TALK_CAMERA},
+    {_HIT_EFFECT, EVENT_EXT_HIT_EFFECT},
+    {_COPY_CHARA, EVENT_EXT_COPY_CHARA},
+    {_GET_START_BUTTON, EVENT_EXT_GET_START_BUTTON},
+    {_MOVE_INTERIOR, EVENT_EXT_MOVE_INTERIOR},
+    {_GET_MONSTER_TALK_DATA, EVENT_EXT_GET_MONSTER_TALK_DATA},
+    {_FUNC_POINT_SHOW, EVENT_EXT_FUNC_POINT_SHOW},
+    {_GET_NOW_MAP_NO, EVENT_EXT_GET_NOW_MAP_NO},
+    {_GET_NOW_SUBMAP_NO, EVENT_EXT_GET_NOW_SUBMAP_NO},
+    {_GET_OLD_MAP_NO, EVENT_EXT_GET_OLD_MAP_NO},
+    {_GET_OLD_SUBMAP_NO, EVENT_EXT_GET_OLD_SUBMAP_NO},
+    {_SET_RAIN_CHARA_NO, EVENT_EXT_SET_RAIN_CHARA_NO},
+    {_GET_EDIT_PARTS_POS, EVENT_EXT_GET_EDIT_PARTS_POS},
+    {_GET_CHARA_POS, EVENT_EXT_GET_CHARA_POS},
+    {_GET_CHARA_TALK_POS, EVENT_EXT_GET_CHARA_TALK_POS},
+    {_TURN_CHARA, EVENT_EXT_TURN_CHARA},
+    {_SET_CHARA_POS, EVENT_EXT_SET_CHARA_POS},
+    {_SET_CHARA_ROT, EVENT_EXT_SET_CHARA_ROT},
+    {_GET_CHARA_ROT, EVENT_EXT_GET_CHARA_ROT},
+    {_SET_MOTION, EVENT_EXT_SET_MOTION},
+    {_SET_STEP, EVENT_EXT_SET_STEP},
+    {_SET_TEX_ANIM, EVENT_EXT_SET_TEX_ANIM},
+    {_SET_SCALE, EVENT_EXT_SET_SCALE},
+    {_SET_REFERENCE, EVENT_EXT_SET_REFERENCE},
+    {_DEL_REFERENCE, EVENT_EXT_DEL_REFERENCE},
+    {_SHADOW_CLIP_OFF, EVENT_EXT_SHADOW_CLIP_OFF},
+    {_GET_COORDINATE_ANGLE, EVENT_EXT_GET_COORDINATE_ANGLE},
+    {_GET_CHARA_WIDTH, EVENT_EXT_GET_CHARA_WIDTH},
+    {_GET_CHARA_HEIGHT, EVENT_EXT_GET_CHARA_HEIGHT},
+    {_GET_CHARA_WEIGHT, EVENT_EXT_GET_CHARA_WEIGHT},
+    {_SET_CHARA_SHOW, EVENT_EXT_SET_CHARA_SHOW},
+    {_GET_CHARA_SHOW, EVENT_EXT_GET_CHARA_SHOW},
+    {_CHARA_DA_ENABLE, EVENT_EXT_CHARA_DA_ENABLE},
+    {_GET_MOT_NOW_WAIT, EVENT_EXT_GET_MOT_NOW_WAIT},
+    {_CHECK_MOTION_END, EVENT_EXT_CHECK_MOTION_END},
+    {_ACTCHR_SET_MOTION, EVENT_EXT_ACTCHR_SET_MOTION},
+    {_SET_CHARA_EX_SOUNDID, EVENT_EXT_SET_CHARA_EX_SOUNDID},
+    {_ACTCHR_SOUND_INFO_COPY, EVENT_EXT_ACTCHR_SOUND_INFO_COPY},
+    {_MES_MAKE, EVENT_EXT_MES_MAKE},
+    {_MES_CLOSE, EVENT_EXT_MES_CLOSE},
+    {_MES_NEXTPAGE, EVENT_EXT_MES_NEXTPAGE},
+    {_SET_MES_AUTOSET, EVENT_EXT_SET_MES_AUTOSET},
+    {_SET_MES_SHIPPO, EVENT_EXT_SET_MES_SHIPPO},
+    {_SET_MES_POS, EVENT_EXT_SET_MES_POS},
+    {_SET_MES_DRAWSPEED, EVENT_EXT_SET_MES_DRAWSPEED},
+    {_SET_MES_CURSOR, EVENT_EXT_SET_MES_CURSOR},
+    {_SET_MES_OKURI, EVENT_EXT_SET_MES_OKURI},
+    {_SET_MES_FUKIDASHI, EVENT_EXT_SET_MES_FUKIDASHI},
+    {_CHECK_MES_COMPLETE, EVENT_EXT_CHECK_MES_COMPLETE},
+    {_CHECK_MES_WAIT, EVENT_EXT_CHECK_MES_WAIT},
+    {_CHECK_MES, EVENT_EXT_CHECK_MES},
+    {_SET_MES_WIN_FLAG, EVENT_EXT_SET_MES_WIN_FLAG},
+    {_SET_CAMERA_POS, EVENT_EXT_SET_CAMERA_POS},
+    {_GET_CAMERA_POS, EVENT_EXT_GET_CAMERA_POS},
+    {_SET_CAMERA_REF, EVENT_EXT_SET_CAMERA_REF},
+    {_GET_CAMERA_REF, EVENT_EXT_GET_CAMERA_REF},
+    {_SET_CAMERA_SPEED, EVENT_EXT_SET_CAMERA_SPEED},
+    {_CAMERA_STEP, EVENT_EXT_CAMERA_STEP},
+    {_SET_MES_WINDOW_MODE, EVENT_EXT_SET_MES_WINDOW_MODE},
+    {_SET_MES_PRESET, EVENT_EXT_SET_MES_PRESET},
+    {_SET_MES_ITEM_DIRECT, EVENT_EXT_SET_MES_ITEM_DIRECT},
+    {_SET_MES_ITEM, EVENT_EXT_SET_MES_ITEM},
+    {_SET_MES_VALUE, EVENT_EXT_SET_MES_VALUE},
+    {_GET_MES_STATUS, EVENT_EXT_GET_MES_STATUS},
+    {_GET_PARTY_CHARA_MES_NO, EVENT_EXT_GET_PARTY_CHARA_MES_NO},
+    {_MES_SET_BUFF, EVENT_EXT_MES_SET_BUFF},
+    {_GET_MES_WINDOW_MODE, EVENT_EXT_GET_MES_WINDOW_MODE},
+    {_GET_MES_VOICE, EVENT_EXT_GET_MES_VOICE},
+    {_SET_MES_QUESTION_GYOU, EVENT_EXT_SET_MES_QUESTION_GYOU},
+    {_GET_MES_QUESTION_GYOU, EVENT_EXT_GET_MES_QUESTION_GYOU},
+    {_SET_MES_CLOSE_CNT, EVENT_EXT_SET_MES_CLOSE_CNT},
+    {_SET_MES_ETC, EVENT_EXT_SET_MES_ETC},
+    {_GET_MES_ETC, EVENT_EXT_GET_MES_ETC},
+    {_LOAD_MES, EVENT_EXT_LOAD_MES},
+    {_MES_SE_PLAY, EVENT_EXT_MES_SE_PLAY},
+    {_SET_MES_STR, EVENT_EXT_SET_MES_STR},
+    {_GET_MES_OKURI, EVENT_EXT_GET_MES_OKURI},
+    {_ASQ_INIT, EVENT_EXT_ASQ_INIT},
+    {_ASQ_SYNC_CHARA, EVENT_EXT_ASQ_SYNC_CHARA},
+    {_ASQ_SET_POS, EVENT_EXT_ASQ_SET_POS},
+    {_ASQ_MOVE, EVENT_EXT_ASQ_MOVE},
+    {_ASQ_MOVE_STEP, EVENT_EXT_ASQ_MOVE_STEP},
+    {_ASQ_ROT_REF, EVENT_EXT_ASQ_ROT_REF},
+    {_ASQ_CLEAR_ROT, EVENT_EXT_ASQ_CLEAR_ROT},
+    {_ASQ_WAIT_ROT, EVENT_EXT_ASQ_WAIT_ROT},
+    {_ASQ_ROT_MOVE, EVENT_EXT_ASQ_ROT_MOVE},
+    {_ASQ_ROT_ANGLE, EVENT_EXT_ASQ_ROT_ANGLE},
+    {_ASQ_SET_ROT, EVENT_EXT_ASQ_SET_ROT},
+    {_ASQ_DELAY_ROT, EVENT_EXT_ASQ_DELAY_ROT},
+    {_ASQ_CHECK, EVENT_EXT_ASQ_CHECK},
+    {_ASQ_MOTION_TRG, EVENT_EXT_ASQ_MOTION_TRG},
+    {_ASQ_MOTION_PLAY, EVENT_EXT_ASQ_MOTION_PLAY},
+    {_ASQ_MOTION_STOP, EVENT_EXT_ASQ_MOTION_STOP},
+    {_ASQ_MOTION_NEXT, EVENT_EXT_ASQ_MOTION_NEXT},
+    {_ASQ_ANIME_TRG, EVENT_EXT_ASQ_ANIME_TRG},
+    {_ASQ_ANIME, EVENT_EXT_ASQ_ANIME},
+    {_ASQ_SE_PLAY, EVENT_EXT_ASQ_SE_PLAY},
+    {_IMG_SET_DRAW, EVENT_EXT_IMG_SET_DRAW},
+    {_IMG_SET_GET, EVENT_EXT_IMG_SET_GET},
+    {_IMG_SET_PUT, EVENT_EXT_IMG_SET_PUT},
+    {_IMG_SET_NAME, EVENT_EXT_IMG_SET_NAME},
+    {_IMG_SET_MOVE, EVENT_EXT_IMG_SET_MOVE},
+    {_IMG_SET_FADE, EVENT_EXT_IMG_SET_FADE},
+    {_IMG_SET_COLOR, EVENT_EXT_IMG_SET_COLOR},
+    {_SPRITE_INIT, EVENT_EXT_SPRITE_INIT},
+    {_SPRITE_SET_DRAW, EVENT_EXT_SPRITE_SET_DRAW},
+    {_SPRITE_SET_TYPE, EVENT_EXT_SPRITE_SET_TYPE},
+    {_SPRITE_SET_TEXTURE, EVENT_EXT_SPRITE_SET_TEXTURE},
+    {_SPRITE_SET_POS, EVENT_EXT_SPRITE_SET_POS},
+    {_SPRITE_SET_PUTSIZE, EVENT_EXT_SPRITE_SET_PUTSIZE},
+    {_SPRITE_SET_UVSIZE, EVENT_EXT_SPRITE_SET_UVSIZE},
+    {_SPRITE_SET_COLOR, EVENT_EXT_SPRITE_SET_COLOR},
+    {_SPRITE_SET_SCALE, EVENT_EXT_SPRITE_SET_SCALE},
+    {_SPRITE_SET_ALPHAB, EVENT_EXT_SPRITE_SET_ALPHAB},
+    {_CMRS_CHECK, EVENT_EXT_CMRS_CHECK},
+    {_CMRS_INIT, EVENT_EXT_CMRS_INIT},
+    {_CMRS_PRDELAY, EVENT_EXT_CMRS_PRDELAY},
+    {_CMRS_SET_POS, EVENT_EXT_CMRS_SET_POS},
+    {_CMRS_SET_REF, EVENT_EXT_CMRS_SET_REF},
+    {_CMRS_MOVE, EVENT_EXT_CMRS_MOVE},
+    {_CMRS_MOVE_REF, EVENT_EXT_CMRS_MOVE_REF},
+    {_CMRS_INIT_PAS, EVENT_EXT_CMRS_INIT_PAS},
+    {_CMRS_SET_PAS_FRM, EVENT_EXT_CMRS_SET_PAS_FRM},
+    {_CMRS_ADD_PAS, EVENT_EXT_CMRS_ADD_PAS},
+    {_CMRS_START_PAS, EVENT_EXT_CMRS_START_PAS},
+    {_CMRS_PR_SLOWING, EVENT_EXT_CMRS_PR_SLOWING},
+    {_CMRS_PR_KEEP, EVENT_EXT_CMRS_PR_KEEP},
+    {_CMRS_PR_RETURN, EVENT_EXT_CMRS_PR_RETURN},
+    {_CMRS_AHDDELAY, EVENT_EXT_CMRS_AHDDELAY},
+    {_CMRS_SET_ANGLE, EVENT_EXT_CMRS_SET_ANGLE},
+    {_CMRS_SET_HEIGHT, EVENT_EXT_CMRS_SET_HEIGHT},
+    {_CMRS_SET_DIST, EVENT_EXT_CMRS_SET_DIST},
+    {_CMRS_SET_AHD, EVENT_EXT_CMRS_SET_AHD},
+    {_CMRS_MOVE_AHD, EVENT_EXT_CMRS_MOVE_AHD},
+    {_CMRS_SYNC_OBJ, EVENT_EXT_CMRS_SYNC_OBJ},
+    {_CMRS_RELEASE_OBJ, EVENT_EXT_CMRS_RELEASE_OBJ},
+    {_CMRS_AHD_SLOWING, EVENT_EXT_CMRS_AHD_SLOWING},
+    {_CMRS_AHD_KEEP, EVENT_EXT_CMRS_AHD_KEEP},
+    {_CMRS_AHD_RETURN, EVENT_EXT_CMRS_AHD_RETURN},
+    {_CMRS_FADE_DELAY, EVENT_EXT_CMRS_FADE_DELAY},
+    {_CMRS_FADE_INIT, EVENT_EXT_CMRS_FADE_INIT},
+    {_CMRS_FADE_IN, EVENT_EXT_CMRS_FADE_IN},
+    {_CMRS_FADE_OUT, EVENT_EXT_CMRS_FADE_OUT},
+    {_CMRS_QUAKE_DELAY, EVENT_EXT_CMRS_QUAKE_DELAY},
+    {_CMRS_QUAKE, EVENT_EXT_CMRS_QUAKE},
+    {_CMRS_MOVE2, EVENT_EXT_CMRS_MOVE2},
+    {_CMRS_MOVE_AHD2, EVENT_EXT_CMRS_MOVE_AHD2},
+    {_CMRS_CHARA_DELAY, EVENT_EXT_CMRS_CHARA_DELAY},
+    {_CMRS_CHARA_ATTACH, EVENT_EXT_CMRS_CHARA_ATTACH},
+    {_CMRS_MOVE_POS, EVENT_EXT_CMRS_MOVE_POS},
+    {_CMRS_QUAKE2, EVENT_EXT_CMRS_QUAKE2},
+    {_OBJS_CHECK, EVENT_EXT_OBJS_CHECK},
+    {_OBJS_INIT, EVENT_EXT_OBJS_INIT},
+    {_OBJS_SYNC_OBJ, EVENT_EXT_OBJS_SYNC_OBJ},
+    {_OBJS_POS_DELAY, EVENT_EXT_OBJS_POS_DELAY},
+    {_OBJS_SET_POS, EVENT_EXT_OBJS_SET_POS},
+    {_OBJS_MOVE, EVENT_EXT_OBJS_MOVE},
+    {_OBJS_MOVE2, EVENT_EXT_OBJS_MOVE2},
+    {_OBJS_INIT_PAS, EVENT_EXT_OBJS_INIT_PAS},
+    {_OBJS_SET_PAS_FRM, EVENT_EXT_OBJS_SET_PAS_FRM},
+    {_OBJS_ADD_PAS, EVENT_EXT_OBJS_ADD_PAS},
+    {_OBJS_START_PAS, EVENT_EXT_OBJS_START_PAS},
+    {_OBJS_JUMP, EVENT_EXT_OBJS_JUMP},
+    {_OBJS_SET_EOH_FRAME_POS, EVENT_EXT_OBJS_SET_EOH_FRAME_POS},
+    {_OBJS_ADD_POS, EVENT_EXT_OBJS_ADD_POS},
+    {_OBJS_ATTACH_CAMERA, EVENT_EXT_OBJS_ATTACH_CAMERA},
+    {_OBJS_ROT_DELAY, EVENT_EXT_OBJS_ROT_DELAY},
+    {_OBJS_SET_ROT, EVENT_EXT_OBJS_SET_ROT},
+    {_OBJS_ROTATION, EVENT_EXT_OBJS_ROTATION},
+    {_OBJS_ROTATION2, EVENT_EXT_OBJS_ROTATION2},
+    {_OBJS_REFERENCE, EVENT_EXT_OBJS_REFERENCE},
+    {_OBJS_MOTION_DELAY, EVENT_EXT_OBJS_MOTION_DELAY},
+    {_OBJS_SET_MOTION, EVENT_EXT_OBJS_SET_MOTION},
+    {_OBJS_NEXT_MOTION, EVENT_EXT_OBJS_NEXT_MOTION},
+    {_OBJS_MOTION_WAIT, EVENT_EXT_OBJS_MOTION_WAIT},
+    {_OBJS_SET_STEP, EVENT_EXT_OBJS_SET_STEP},
+    {_OBJS_CHENGE_STEP, EVENT_EXT_OBJS_CHENGE_STEP},
+    {_OBJS_SEQ_MOT_TRG, EVENT_EXT_OBJS_SEQ_MOT_TRG},
+    {_OBJS_SEQ_MOT_TRG_WAIT, EVENT_EXT_OBJS_SEQ_MOT_TRG_WAIT},
+    {_OBJS_RESET_MOTION, EVENT_EXT_OBJS_RESET_MOTION},
+    {_OBJS_SET_MOTION_NOW_TIME, EVENT_EXT_OBJS_SET_MOTION_NOW_TIME},
+    {_OBJS_SET_MOTION_WAIT_TIME, EVENT_EXT_OBJS_SET_MOTION_WAIT_TIME},
+    {_OBJS_TEXA_DELAY, EVENT_EXT_OBJS_TEXA_DELAY},
+    {_OBJS_TEX_ANIME, EVENT_EXT_OBJS_TEX_ANIME},
+    {_OBJS_COLOR_DELAY, EVENT_EXT_OBJS_COLOR_DELAY},
+    {_OBJS_SET_COLOR, EVENT_EXT_OBJS_SET_COLOR},
+    {_OBJS_SCALE_DELAY, EVENT_EXT_OBJS_SCALE_DELAY},
+    {_OBJS_SET_SCALE, EVENT_EXT_OBJS_SET_SCALE},
+    {_OBJS_SE_DELAY, EVENT_EXT_OBJS_SE_DELAY},
+    {_OBJS_SE_PLAY, EVENT_EXT_OBJS_SE_PLAY},
+    {_OBJS_RESET_DA_POSITION, EVENT_EXT_OBJS_RESET_DA_POSITION},
+    {_OBJS_NORMAL_DRIVE, EVENT_EXT_OBJS_NORMAL_DRIVE},
+    {_GET_CONTENTS_POS, EVENT_EXT_GET_CONTENTS_POS},
+    {_GET_BPOT_POS, EVENT_EXT_GET_BPOT_POS},
+    {_GET_BPOT_STATUS, EVENT_EXT_GET_BPOT_STATUS},
+    {_GET_PERSON_STATUS, EVENT_EXT_GET_PERSON_STATUS},
+    {_GET_CONTROL_CHRID, EVENT_EXT_GET_CONTROL_CHRID},
+    {_GET_BEFORE_CAMERA_POS, EVENT_EXT_GET_BEFORE_CAMERA_POS},
+    {_GET_BEFORE_CAMERA_REF, EVENT_EXT_GET_BEFORE_CAMERA_REF},
+    {_SET_CAMERA_NEXT_REF, EVENT_EXT_SET_CAMERA_NEXT_REF},
+    {_GOTO_MENU, EVENT_EXT_GOTO_MENU},
+    {_GET_MENU_STATUS, EVENT_EXT_GET_MENU_STATUS},
+    {_LOAD_EQUIP, EVENT_EXT_LOAD_EQUIP},
+    {_GET_EQUIP_ITEMNO, EVENT_EXT_GET_EQUIP_ITEMNO},
+    {_SET_TIME_STEP_ENABLE, EVENT_EXT_SET_TIME_STEP_ENABLE},
+    {_SET_DOOR_MATERIAL, EVENT_EXT_SET_DOOR_MATERIAL},
+    {_INIT_DRAMA_SCENE, EVENT_EXT_INIT_DRAMA_SCENE},
+    {_SET_ACTIVE_CMRID, EVENT_EXT_SET_ACTIVE_CMRID},
+    {_SET_BEFORE_CMRID, EVENT_EXT_SET_BEFORE_CMRID},
+    {_DNGMAP_LOAD, EVENT_EXT_DNGMAP_LOAD},
+    {_DNGMAP_DELETE, EVENT_EXT_DNGMAP_DELETE},
+    {_DNGMAP_MOVE_PIECE, EVENT_EXT_DNGMAP_MOVE_PIECE},
+    {_DNGMAP_ONOFF, EVENT_EXT_DNGMAP_ONOFF},
+    {_DNGMAP_SET_FADE, EVENT_EXT_DNGMAP_SET_FADE},
+    {_GET_BEFORE_CAMERA_NEXT_POS, EVENT_EXT_GET_BEFORE_CAMERA_NEXT_POS},
+    {_GET_BEFORE_CAMERA_NEXT_REF, EVENT_EXT_GET_BEFORE_CAMERA_NEXT_REF},
+    {_SET_CAMERA_NEXT_POS, EVENT_EXT_SET_CAMERA_NEXT_POS},
+    {_CHK_INTERSECTION_POINT, EVENT_EXT_CHK_INTERSECTION_POINT},
+    {_SET_FCAMERA_FOLLOW, EVENT_EXT_SET_FCAMERA_FOLLOW},
+    {_SET_FCAMERA_FOLLOW_A, EVENT_EXT_SET_FCAMERA_FOLLOW_A},
+    {_SET_FCAMERA_FOLLOW_OFS, EVENT_EXT_SET_FCAMERA_FOLLOW_OFS},
+    {_SET_FCAMERA_FOLLOW_FLAG, EVENT_EXT_SET_FCAMERA_FOLLOW_FLAG},
+    {_FCAMERA_STEP, EVENT_EXT_FCAMERA_STEP},
+    {_SET_FCAMERA_ANGLE, EVENT_EXT_SET_FCAMERA_ANGLE},
+    {_SET_FCAMERA_HEIGHT, EVENT_EXT_SET_FCAMERA_HEIGHT},
+    {_SET_FCAMERA_DIST, EVENT_EXT_SET_FCAMERA_DIST},
+    {_GET_REF_ANGLE, EVENT_EXT_GET_REF_ANGLE},
+    {_DNG_SET_STAGE_ID, EVENT_EXT_DNG_SET_STAGE_ID},
+    {_DNG_GET_STAGE_ID, EVENT_EXT_DNG_GET_STAGE_ID},
+    {_SET_CAMERA_CTRL, EVENT_EXT_SET_CAMERA_CTRL},
+    {_GET_FCAMERA_ANGLE, EVENT_EXT_GET_FCAMERA_ANGLE},
+    {_GET_FCAMERA_HEIGHT, EVENT_EXT_GET_FCAMERA_HEIGHT},
+    {_GET_FCAMERA_DIST, EVENT_EXT_GET_FCAMERA_DIST},
+    {_GET_INVENTION_ID, EVENT_EXT_GET_INVENTION_ID},
+    {_FUNCTION_MAP_JUMP, EVENT_EXT_FUNCTION_MAP_JUMP},
+    {_FUNCTION_DOOR_MODE, EVENT_EXT_FUNCTION_DOOR_MODE},
+    {_GET_MONEY, EVENT_EXT_GET_MONEY},
+    {_ADD_MONEY, EVENT_EXT_ADD_MONEY},
+    {_GET_ITEM_NUM, EVENT_EXT_GET_ITEM_NUM},
+    {_CHECK_BUTTON, EVENT_EXT_CHECK_BUTTON},
+    {_GET_LANGUAGE, EVENT_EXT_GET_LANGUAGE},
+    {_CHECK_INVENT_ITEM, EVENT_EXT_CHECK_INVENT_ITEM},
+    {_SET_AI, EVENT_EXT_SET_AI},
+    {_CHECK_INVENT_PHOTO, EVENT_EXT_CHECK_INVENT_PHOTO},
+    {_GET_PHOTO_NUM, EVENT_EXT_GET_PHOTO_NUM},
+    {_SET_CONTENTS_ETC, EVENT_EXT_SET_CONTENTS_ETC},
+    {_SET_STATUS, EVENT_EXT_SET_STATUS},
+    {_GOTO_SUBGAME, EVENT_EXT_GOTO_SUBGAME},
+    {_SET_GYORACE_ETC, EVENT_EXT_SET_GYORACE_ETC},
+    {_GET_GYORACE_ETC, EVENT_EXT_GET_GYORACE_ETC},
+    {_SET_SAVEDATA_ETC, EVENT_EXT_SET_SAVEDATA_ETC},
+    {_GET_SAVEDATA_ETC, EVENT_EXT_GET_SAVEDATA_ETC},
+    {_DEL_MONSTER, EVENT_EXT_DEL_MONSTER},
+    {_SET_MENU_ETC, EVENT_EXT_SET_MENU_ETC},
+    {_GET_MENU_ETC, EVENT_EXT_GET_MENU_ETC},
+    {_GET_ANALYZE, EVENT_EXT_GET_ANALYZE},
+    {_GET_DIORAMA_PERCENT, EVENT_EXT_GET_DIORAMA_PERCENT},
+    {_GEORAMA_FUNC, EVENT_EXT_GEORAMA_FUNC},
+    {_GET_CHARA_ID, EVENT_EXT_GET_CHARA_ID},
+    {_SET_LOADBG_FILE_MONS_TALK, EVENT_EXT_SET_LOADBG_FILE_MONS_TALK},
+    {_LOAD_MES_MONS_TALK, EVENT_EXT_LOAD_MES_MONS_TALK},
+    {_GOTO_EDITMODE, EVENT_EXT_GOTO_EDITMODE},
+    {_GET_CHAPTER, EVENT_EXT_GET_CHAPTER},
+    {_GET_NPC_TRAIN_ETC, EVENT_EXT_GET_NPC_TRAIN_ETC},
+    {_REGISTER_VILLAGER, EVENT_EXT_REGISTER_VILLAGER},
+    {_EYE_VIEW_DRAW_ON_OFF, EVENT_EXT_EYE_VIEW_DRAW_ON_OFF},
+    {_SET_QUEST_ETC, EVENT_EXT_SET_QUEST_ETC},
+    {_GET_QUEST_ETC, EVENT_EXT_GET_QUEST_ETC},
+    {_CHK_INTERSECTION_POINT_PIPE, EVENT_EXT_CHK_INTERSECTION_POINT_PIPE},
+    {_GET_OLD_INTERIOR_MAP_NO, EVENT_EXT_GET_OLD_INTERIOR_MAP_NO},
+    {_SET_EVENT_DATA, EVENT_EXT_SET_EVENT_DATA},
+    {_STOPWATCH, EVENT_EXT_STOPWATCH},
+    {_SET_FUNC_ETC, EVENT_EXT_SET_FUNC_ETC},
+    {_GET_FISHINGTOURNAMENT_ETC, EVENT_EXT_GET_FISHINGTOURNAMENT_ETC},
+    {_SET_CHARA_FAR_DIST, EVENT_EXT_SET_CHARA_FAR_DIST},
+    {_SET_MODEL_LIGHT_SWITCH, EVENT_EXT_SET_MODEL_LIGHT_SWITCH},
+    {_SET_MODEL_LIGHT_COLOR, EVENT_EXT_SET_MODEL_LIGHT_COLOR},
+    {_GET_OMAKE_FLAG, EVENT_EXT_GET_OMAKE_FLAG},
+    {_SET_WIND, EVENT_EXT_SET_WIND},
+    {_SET_OMAKE_FLAG, EVENT_EXT_SET_OMAKE_FLAG},
+    {_SND_INIT_PORT, EVENT_EXT_SND_INIT_PORT},
+    {_SND_LOAD_SOUND, EVENT_EXT_SND_LOAD_SOUND},
+    {_SND_SE_PLAY, EVENT_EXT_SND_SE_PLAY},
+    {_GET_SND_ID, EVENT_EXT_GET_SND_ID},
+    {_SND_SE_PAUSE, EVENT_EXT_SND_SE_PAUSE},
+    {_SND_SE_STOP, EVENT_EXT_SND_SE_STOP},
+    {_SND_SET_SE_VOL, EVENT_EXT_SND_SET_SE_VOL},
+    {_SND_SET_SE_PAN, EVENT_EXT_SND_SET_SE_PAN},
+    {_SND_SET_SE_PITCH, EVENT_EXT_SND_SET_SE_PITCH},
+    {_SND_SE_ALL_STOP, EVENT_EXT_SND_SE_ALL_STOP},
+    {_LOAD_BGM, EVENT_EXT_LOAD_BGM},
+    {_PLAY_BGM, EVENT_EXT_PLAY_BGM},
+    {_STOP_BGM, EVENT_EXT_STOP_BGM},
+    {_STREAM_OPEN, EVENT_EXT_STREAM_OPEN},
+    {_STREAM_PLAY, EVENT_EXT_STREAM_PLAY},
+    {_STREAM_STOP, EVENT_EXT_STREAM_STOP},
+    {_STREAM_STANDBY, EVENT_EXT_STREAM_STANDBY},
+    {_STREAM_GET_STATUS, EVENT_EXT_STREAM_GET_STATUS},
+    {_GET_SYS_SND_ID, EVENT_EXT_GET_SYS_SND_ID},
+    {_STREAM_OPEN_CHECK, EVENT_EXT_STREAM_OPEN_CHECK},
+    {_LOAD_SE_ENV, EVENT_EXT_LOAD_SE_ENV},
+    {_PLAY_ENV_BGM, EVENT_EXT_PLAY_ENV_BGM},
+    {_SYS_SE_PLAY, EVENT_EXT_SYS_SE_PLAY},
+    {_INIT_SE_SRC, EVENT_EXT_INIT_SE_SRC},
+    {_INIT_SE_ENV, EVENT_EXT_INIT_SE_ENV},
+    {_INIT_SE_BAS, EVENT_EXT_INIT_SE_BAS},
+    {_LOAD_SE_SRC, EVENT_EXT_LOAD_SE_SRC},
+    {_LOAD_SE_FOOT, EVENT_EXT_LOAD_SE_FOOT},
+    {_LOAD_SE_DOOR, EVENT_EXT_LOAD_SE_DOOR},
+    {_LOAD_SE_BOX, EVENT_EXT_LOAD_SE_BOX},
+    {_LOAD_SE_BATTLE, EVENT_EXT_LOAD_SE_BATTLE},
+    {_SND_DELETE_PORT, EVENT_EXT_SND_DELETE_PORT},
+    {_STOP_ENV_BGM, EVENT_EXT_STOP_ENV_BGM},
+    {_FADE_IN_BGM, EVENT_EXT_FADE_IN_BGM},
+    {_FADE_OUT_BGM, EVENT_EXT_FADE_OUT_BGM},
+    {_SET_BGM_VOL, EVENT_EXT_SET_BGM_VOL},
+    {_SND_SET_REVERB, EVENT_EXT_SND_SET_REVERB},
+    {_SND_SET_ENV_VOL, EVENT_EXT_SND_SET_ENV_VOL},
+    {_STREAM_SILENT_CHECK, EVENT_EXT_STREAM_SILENT_CHECK},
+    {_AUTO_CHANGE_ENV, EVENT_EXT_AUTO_CHANGE_ENV},
+    {_BGM_LOAD_CANCEL, EVENT_EXT_BGM_LOAD_CANCEL},
+    {_SOUND_LOAD_CANCEL, EVENT_EXT_SOUND_LOAD_CANCEL},
+    {_BGM_LOAD_ENABLE, EVENT_EXT_BGM_LOAD_ENABLE},
+    {_SOUND_LOAD_ENABLE, EVENT_EXT_SOUND_LOAD_ENABLE},
+    {_LOAD_SE_BASE, EVENT_EXT_LOAD_SE_BASE},
+    {_LOAD_SOUND, EVENT_EXT_LOAD_SOUND},
+    {_STREAM_CLOSE, EVENT_EXT_STREAM_CLOSE},
+    {_STREAM_OPEN2, EVENT_EXT_STREAM_OPEN2},
+    {_LOAD_BGM_PACK, EVENT_EXT_LOAD_BGM_PACK},
+    {_GET_BGM_NO, EVENT_EXT_GET_BGM_NO},
+    {_GET_MASTER_VOL, EVENT_EXT_GET_MASTER_VOL},
+    {_SET_MASTER_VOL, EVENT_EXT_SET_MASTER_VOL},
+    {_GET_BTL_BGM_VOL, EVENT_EXT_GET_BTL_BGM_VOL},
+    {_SET_BTL_BGM_VOL, EVENT_EXT_SET_BTL_BGM_VOL},
+    {_SND_IN_REVERB, EVENT_EXT_SND_IN_REVERB},
+    {_SND_STOP_SRC, EVENT_EXT_SND_STOP_SRC},
+    {_SND_PAUSE_BGM, EVENT_EXT_SND_PAUSE_BGM},
+    {_STREAM_OPEN3, EVENT_EXT_STREAM_OPEN3},
+    {_GET_ACTIVE_BGM_STATUS, EVENT_EXT_GET_ACTIVE_BGM_STATUS},
+    {_SET_ACTIVE_BGM_STATUS, EVENT_EXT_SET_ACTIVE_BGM_STATUS},
+    {_GET_BGM_STATUS_NOW_NO, EVENT_EXT_GET_BGM_STATUS_NOW_NO},
+    {_GET_SE_STATUS, EVENT_EXT_GET_SE_STATUS},
+    {_SE_ALL_STOP, EVENT_EXT_SE_ALL_STOP},
+    {_SOUND_ALL_STOP, EVENT_EXT_SOUND_ALL_STOP},
+    {_BGM_PLAY_CANCEL, EVENT_EXT_BGM_PLAY_CANCEL},
+    {_BGM_PLAY_ENABLE, EVENT_EXT_BGM_PLAY_ENABLE},
+    {_GET_DEF_BGM_NO, EVENT_EXT_GET_DEF_BGM_NO},
+    {_SET_MOVIE_CC, EVENT_EXT_SET_MOVIE_CC},
+    {_REGISTER_VILLAGER2, EVENT_EXT_REGISTER_VILLAGER2},
+    {_SET_FISHINGTOURNAMENT_ETC, EVENT_EXT_SET_FISHINGTOURNAMENT_ETC},
+    {_EOH_SYNC_CHARA, EVENT_EXT_EOH_SYNC_CHARA},
+    {_EOH_SYNC_OBJ, EVENT_EXT_EOH_SYNC_OBJ},
+    {_EOH_SET_POS, EVENT_EXT_EOH_SET_POS},
+    {_EOH_SET_ROT, EVENT_EXT_EOH_SET_ROT},
+    {_EOH_GET_POS, EVENT_EXT_EOH_GET_POS},
+    {_EOH_GET_ROT, EVENT_EXT_EOH_GET_ROT},
+    {_EOH_SET_MOTION, EVENT_EXT_EOH_SET_MOTION},
+    {_EOH_SET_STEP, EVENT_EXT_EOH_SET_STEP},
+    {_EOH_SET_TEX_ANIM, EVENT_EXT_EOH_SET_TEX_ANIM},
+    {_EOH_SET_SCALE, EVENT_EXT_EOH_SET_SCALE},
+    {_EOH_SET_SHOW, EVENT_EXT_EOH_SET_SHOW},
+    {_EOH_GET_SHOW, EVENT_EXT_EOH_GET_SHOW},
+    {_EOH_SET_FRAME_SHOW, EVENT_EXT_EOH_SET_FRAME_SHOW},
+    {_EOH_SET_SHADOW, EVENT_EXT_EOH_SET_SHADOW},
+    {_EOH_SET_TRANSLATE, EVENT_EXT_EOH_SET_TRANSLATE},
+    {_EOH_SYNC_SPRITE, EVENT_EXT_EOH_SYNC_SPRITE},
+    {_EOH_SET_FOOT_SOUND_ID, EVENT_EXT_EOH_SET_FOOT_SOUND_ID},
+    {_EOH_SET_FRAME_STATUS, EVENT_EXT_EOH_SET_FRAME_STATUS},
+    {_EOH_GET_FRAME_POS, EVENT_EXT_EOH_GET_FRAME_POS},
+    {_EOH_SET_SOUND_ID, EVENT_EXT_EOH_SET_SOUND_ID},
+    {_EOH_GET_FRAME_STATUS, EVENT_EXT_EOH_GET_FRAME_STATUS},
+    {_EOH_SYNC_CHROBJ, EVENT_EXT_EOH_SYNC_CHROBJ},
+    {_EOH_SET_FADE_FLAG, EVENT_EXT_EOH_SET_FADE_FLAG},
+    {_EOH_RESET_DA_POSITION, EVENT_EXT_EOH_RESET_DA_POSITION},
+    {_EOH_SET_SHADOW_FRAME_STATUS, EVENT_EXT_EOH_SET_SHADOW_FRAME_STATUS},
+    {_EOH_SYNC_GEOSTONE, EVENT_EXT_EOH_SYNC_GEOSTONE},
+    {_EOH_SYNC_SEARCH_CHARA, EVENT_EXT_EOH_SYNC_SEARCH_CHARA},
+    {_EOH_NORMAL_DRIVE, EVENT_EXT_EOH_NORMAL_DRIVE},
+    {_EOH_SYNC_EDIT_OBJ, EVENT_EXT_EOH_SYNC_EDIT_OBJ},
+    {_EOH_SET_FRAME_ALPHA, EVENT_EXT_EOH_SET_FRAME_ALPHA},
+    {_EOH_SYNC_FUNCP, EVENT_EXT_EOH_SYNC_FUNCP},
+    {_EOH_SET_FOOT_SE_ID, EVENT_EXT_EOH_SET_FOOT_SE_ID},
+    {_EOH_SYNC_DOOR_PARTS, EVENT_EXT_EOH_SYNC_DOOR_PARTS},
+    {_SPHIDA_INIT, EVENT_EXT_SPHIDA_INIT},
+    {_SPHIDA_SET_UP, EVENT_EXT_SPHIDA_SET_UP},
+    {_SPHIDA_SET_PLAY_FLAG, EVENT_EXT_SPHIDA_SET_PLAY_FLAG},
+    {_SPHIDA_SET_MINIMAP_FLAG, EVENT_EXT_SPHIDA_SET_MINIMAP_FLAG},
+    {_SPHIDA_SET_MM_LINE_FLAG, EVENT_EXT_SPHIDA_SET_MM_LINE_FLAG},
+    {_SPHIDA_SET_MM_LINE_POS, EVENT_EXT_SPHIDA_SET_MM_LINE_POS},
+    {_SPHIDA_SET_PIN_POS, EVENT_EXT_SPHIDA_SET_PIN_POS},
+    {_SPHIDA_GET_PIN_POS, EVENT_EXT_SPHIDA_GET_PIN_POS},
+    {_SPHIDA_SET_BALL_POS, EVENT_EXT_SPHIDA_SET_BALL_POS},
+    {_SPHIDA_GET_BALL_POS, EVENT_EXT_SPHIDA_GET_BALL_POS},
+    {_SPHIDA_SET_PIN_COL, EVENT_EXT_SPHIDA_SET_PIN_COL},
+    {_SPHIDA_GET_PIN_COL, EVENT_EXT_SPHIDA_GET_PIN_COL},
+    {_SPHIDA_SET_BALL_COL, EVENT_EXT_SPHIDA_SET_BALL_COL},
+    {_SPHIDA_GET_BALL_COL, EVENT_EXT_SPHIDA_GET_BALL_COL},
+    {_SPHIDA_SET_PAR_COUNT, EVENT_EXT_SPHIDA_SET_PAR_COUNT},
+    {_SPHIDA_GET_PAR_COUNT, EVENT_EXT_SPHIDA_GET_PAR_COUNT},
+    {_SPHIDA_GET_MINI_LEVEL, EVENT_EXT_SPHIDA_GET_MINI_LEVEL},
+    {_SPHIDA_GET_TEXB, EVENT_EXT_SPHIDA_GET_TEXB},
+    {_SPHIDA_SET_STATUS_FLAG, EVENT_EXT_SPHIDA_SET_STATUS_FLAG},
+    {_SPHIDA_RESET_POWGAGE, EVENT_EXT_SPHIDA_RESET_POWGAGE},
+    {_SPHIDA_START_POWGAGE, EVENT_EXT_SPHIDA_START_POWGAGE},
+    {_SPHIDA_TRIGGER_POWGAGE, EVENT_EXT_SPHIDA_TRIGGER_POWGAGE},
+    {_SPHIDA_GET_SHOT_POW, EVENT_EXT_SPHIDA_GET_SHOT_POW},
+    {_SPHIDA_GET_POWGAGE_CODE, EVENT_EXT_SPHIDA_GET_POWGAGE_CODE},
+    {_SPHIDA_SET_POWGAGE_SAFE_LEVEL, EVENT_EXT_SPHIDA_SET_POWGAGE_SAFE_LEVEL},
+    {_SPHIDA_GET_CULB_DEF, EVENT_EXT_SPHIDA_GET_CULB_DEF},
+    {_SPHIDA_SET_SPIN_MARK_POS, EVENT_EXT_SPHIDA_SET_SPIN_MARK_POS},
+    {_SPHIDA_SET_CULB_NO, EVENT_EXT_SPHIDA_SET_CULB_NO},
+    {_SPHIDA_CALC_CARRY, EVENT_EXT_SPHIDA_CALC_CARRY},
+    {_SPHIDA_GET_PG_CURSOR_POS, EVENT_EXT_SPHIDA_GET_PG_CURSOR_POS},
+    {_SPHIDA_SET_COL_MODEL, EVENT_EXT_SPHIDA_SET_COL_MODEL},
+    {_SPHIDA_GET_PRIZE, EVENT_EXT_SPHIDA_GET_PRIZE},
+    {_SPHIDA_SET_LAST_CHALLENGE, EVENT_EXT_SPHIDA_SET_LAST_CHALLENGE},
+    {_SPHIDA_GET_LAST_CHALLENGE, EVENT_EXT_SPHIDA_GET_LAST_CHALLENGE},
+    {_SPHIDA_GET_OMAKE_MODE, EVENT_EXT_SPHIDA_GET_OMAKE_MODE},
+    {_SPHIDA_SET_NOW_HOLE, EVENT_EXT_SPHIDA_SET_NOW_HOLE},
+    {_SPHIDA_GET_NOW_HOLE, EVENT_EXT_SPHIDA_GET_NOW_HOLE},
+    {_SPHIDA_SET_SCORE, EVENT_EXT_SPHIDA_SET_SCORE},
+    {_SPHIDA_GET_SCORE, EVENT_EXT_SPHIDA_GET_SCORE},
+    {_ZERO_VECTOR, EVENT_EXT_ZERO_VECTOR},
+    {_NORMAL_VECTOR, EVENT_EXT_NORMAL_VECTOR},
+    {_COPY_VECTOR, EVENT_EXT_COPY_VECTOR},
+    {_ADD_VECTOR, EVENT_EXT_ADD_VECTOR},
+    {_SUB_VECTOR, EVENT_EXT_SUB_VECTOR},
+    {_SCALE_VECTOR, EVENT_EXT_SCALE_VECTOR},
+    {_DIV_VECTOR, EVENT_EXT_DIV_VECTOR},
+    {_DIST_VECTOR, EVENT_EXT_DIST_VECTOR},
+    {_DIST_VECTOR2, EVENT_EXT_DIST_VECTOR2},
+    {_SQRT, EVENT_EXT_SQRT},
+    {_ATAN2F, EVENT_EXT_ATAN2F},
+    {_ANGLE_CMP, EVENT_EXT_ANGLE_CMP},
+    {_ANGLE_LIMIT, EVENT_EXT_ANGLE_LIMIT},
+    {_GET_RAND, EVENT_EXT_GET_RAND},
+    {_LINE_POINT_DIST, EVENT_EXT_LINE_POINT_DIST},
+    {_CREATE_SWORD_EFFECT, EVENT_EXT_CREATE_SWORD_EFFECT},
+    {_DELETE_SWORD_EFFECT, EVENT_EXT_DELETE_SWORD_EFFECT},
+    {_SWORD_EFFECT_COLOR, EVENT_EXT_SWORD_EFFECT_COLOR},
+    {_SWORD_EFFECT_ADD_POINT, EVENT_EXT_SWORD_EFFECT_ADD_POINT},
+    {_ADD_CHARA_POS, EVENT_EXT_ADD_CHARA_POS},
+    {_ADD_CHARA_ROT, EVENT_EXT_ADD_CHARA_ROT},
+    {_POST_TREASURE_BOX, EVENT_EXT_POST_TREASURE_BOX},
+    {_GET_PARTS_ORIGIN, EVENT_EXT_GET_PARTS_ORIGIN},
+    {_CTRLC_STEP, EVENT_EXT_CTRLC_STEP},
+    {_CTRLC_SET_ROTATE, EVENT_EXT_CTRLC_SET_ROTATE},
+    {_CTRLC_MOVE_CAMERA, EVENT_EXT_CTRLC_MOVE_CAMERA},
+    {_CTRLC_SET_ROT_CANCEL, EVENT_EXT_CTRLC_SET_ROT_CANCEL},
+    {_CTRLC_MOVE_RANGE, EVENT_EXT_CTRLC_MOVE_RANGE},
+    {_GET_NEAR_TBOX_POS, EVENT_EXT_GET_NEAR_TBOX_POS},
+    {_CONV_CHRNO_S2L, EVENT_EXT_CONV_CHRNO_S2L},
+    {_SWE_INIT, EVENT_EXT_SWE_INIT},
+    {_SWE_SET_COLOR, EVENT_EXT_SWE_SET_COLOR},
+    {_SWE_SET_TEXTURE, EVENT_EXT_SWE_SET_TEXTURE},
+    {_SWE_START_EFFECT, EVENT_EXT_SWE_START_EFFECT},
+    {_SET_CHARA_TYPE, EVENT_EXT_SET_CHARA_TYPE},
+    {_GET_EVENT_DATA, EVENT_EXT_GET_EVENT_DATA},
+    {_DNG_SET_PREV_FLOOR, EVENT_EXT_DNG_SET_PREV_FLOOR},
+    {_DNG_GET_PREV_FLOOR, EVENT_EXT_DNG_GET_PREV_FLOOR},
+    {_DNG_SET_FAST_FLOOR, EVENT_EXT_DNG_SET_FAST_FLOOR},
+    {_SET_FLOOR_INFO, EVENT_EXT_SET_FLOOR_INFO},
+    {_GET_FLOOR_INFO, EVENT_EXT_GET_FLOOR_INFO},
+    {_GET_NEXT_FLOOR, EVENT_EXT_GET_NEXT_FLOOR},
+    {_PAD_AUTO_REPEAT_OFF, EVENT_EXT_PAD_AUTO_REPEAT_OFF},
+    {_PAD_SET_AUTO_REPEAT, EVENT_EXT_PAD_SET_AUTO_REPEAT},
+    {_DNG_PAUSE, EVENT_EXT_DNG_PAUSE},
+    {_DNG_CHECK_PAUSE, EVENT_EXT_DNG_CHECK_PAUSE},
+    {_DNG_RESET_TIMER, EVENT_EXT_DNG_RESET_TIMER},
+    {_DNG_GET_TIMER, EVENT_EXT_DNG_GET_TIMER},
+    {_LOAD_SKIN, EVENT_EXT_LOAD_SKIN},
+    {_CHK_CAMERA_COL, EVENT_EXT_CHK_CAMERA_COL},
+    {_GET_PARTS_FUNC_POS, EVENT_EXT_GET_PARTS_FUNC_POS},
+    {_RANDOM_CIRCLE_GET_POS, EVENT_EXT_RANDOM_CIRCLE_GET_POS},
+    {_RANDOM_CIRCLE_OFF, EVENT_EXT_RANDOM_CIRCLE_OFF},
+    {_DNG_XCHG_MAP_LIGHT, EVENT_EXT_DNG_XCHG_MAP_LIGHT},
+    {_GEOSTONE_ANIME_OFF, EVENT_EXT_GEOSTONE_ANIME_OFF},
+    {_GEOSTONE_SET_FLAG, EVENT_EXT_GEOSTONE_SET_FLAG},
+    {_GEOSTONE_SET_REFERENCE, EVENT_EXT_GEOSTONE_SET_REFERENCE},
+    {_GEOSTONE_DEL_REFERENCE, EVENT_EXT_GEOSTONE_DEL_REFERENCE},
+    {_GET_ROBO_MOVE_TYPE, EVENT_EXT_GET_ROBO_MOVE_TYPE},
+    {_SET_EXIT_FLAG, EVENT_EXT_SET_EXIT_FLAG},
+    {_GET_EXIT_FLAG, EVENT_EXT_GET_EXIT_FLAG},
+    {_GET_E3_VERSION, EVENT_EXT_GET_E3_VERSION},
+    {_CHK_PAD_CTRL, EVENT_EXT_CHK_PAD_CTRL},
+    {_CTRLC_STAY, EVENT_EXT_CTRLC_STAY},
+    {_BSCN_SET_BLIGHT_RATE, EVENT_EXT_BSCN_SET_BLIGHT_RATE},
+    {_GET_RND_CIRCLE_TRAPID, EVENT_EXT_GET_RND_CIRCLE_TRAPID},
+    {_SET_RND_CIRCLE_STATUS, EVENT_EXT_SET_RND_CIRCLE_STATUS},
+    {_SET_STATUSBAR_SHOW, EVENT_EXT_SET_STATUSBAR_SHOW},
+    {_SET_PULL_ITEM, EVENT_EXT_SET_PULL_ITEM},
+    {_MENU_CHARA_CHENGE, EVENT_EXT_MENU_CHARA_CHENGE},
+    {_GET_EVENT_INFO_SNDID, EVENT_EXT_GET_EVENT_INFO_SNDID},
+    {_GET_PARTS_POS, EVENT_EXT_GET_PARTS_POS},
+    {_CANCEL_DRAMA_SCENE, EVENT_EXT_CANCEL_DRAMA_SCENE},
+    {_GET_RNDC_MOT_NOWT, EVENT_EXT_GET_RNDC_MOT_NOWT},
+    {_SET_CHARA_MOT_NOWT, EVENT_EXT_SET_CHARA_MOT_NOWT},
+    {_CHARA_NORMAL_DRIVE, EVENT_EXT_CHARA_NORMAL_DRIVE},
+    {_CHARA_RESET_DA, EVENT_EXT_CHARA_RESET_DA},
+    {_DNG_SETUP_MAIN_UNIT, EVENT_EXT_DNG_SETUP_MAIN_UNIT},
+    {_JOIN_PARTY_MEMBER, EVENT_EXT_JOIN_PARTY_MEMBER},
+    {_SET_CHARA_CHANGE_FLAG, EVENT_EXT_SET_CHARA_CHANGE_FLAG},
+    {_SET_CHARA_CHANGE_MASK, EVENT_EXT_SET_CHARA_CHANGE_MASK},
+    {_CHANGE_DIR, EVENT_EXT_CHANGE_DIR},
+    {_SUB_ITEM, EVENT_EXT_SUB_ITEM},
+    {_SET_CHARA_EQUIP, EVENT_EXT_SET_CHARA_EQUIP},
+    {_LOAD_PACK_FILE, EVENT_EXT_LOAD_PACK_FILE},
+    {_SET_BIT_CTRL, EVENT_EXT_SET_BIT_CTRL},
+    {_GET_BIT_CTRL, EVENT_EXT_GET_BIT_CTRL},
+    {_LOAD_ARG, EVENT_EXT_LOAD_ARG},
+    {_GET_ITEM_HAVE_NUM, EVENT_EXT_GET_ITEM_HAVE_NUM},
+    {_SET_SKIP_BOTTON, EVENT_EXT_SET_SKIP_BOTTON},
+    {_SET_SKIP_FCOL, EVENT_EXT_SET_SKIP_FCOL},
+    {_GET_DEBUG_MODE, EVENT_EXT_GET_DEBUG_MODE},
+    {_GET_MAP_TYPE, EVENT_EXT_GET_MAP_TYPE},
+    {_DNG_COLLISION_ALL_CLR, EVENT_EXT_DNG_COLLISION_ALL_CLR},
+    {_SET_MAP_DRAW, EVENT_EXT_SET_MAP_DRAW},
+    {_CHECK_MC_LOAD, EVENT_EXT_CHECK_MC_LOAD},
+    {_SET_NOW_MAP_NO, EVENT_EXT_SET_NOW_MAP_NO},
+    {_GET_TBOX_PARAM, EVENT_EXT_GET_TBOX_PARAM},
+    {_CANCEL_LOAD_VILLAGER, EVENT_EXT_CANCEL_LOAD_VILLAGER},
+    {_CANCEL_NOW_LOADING, EVENT_EXT_CANCEL_NOW_LOADING},
+    {_ESM_INITIALIZE, EVENT_EXT_ESM_INITIALIZE},
+    {_ESM_INIT_FIX, EVENT_EXT_ESM_INIT_FIX},
+    {_ESM_CLEAR, EVENT_EXT_ESM_CLEAR},
+    {_ESM_LOAD_BASE, EVENT_EXT_ESM_LOAD_BASE},
+    {_ESM_CREATE, EVENT_EXT_ESM_CREATE},
+    {_ESM_FINISH, EVENT_EXT_ESM_FINISH},
+    {_ESM_DELETE, EVENT_EXT_ESM_DELETE},
+    {_ESM_SET_VECT1, EVENT_EXT_ESM_SET_VECT1},
+    {_ESM_SET_VECT2, EVENT_EXT_ESM_SET_VECT2},
+    {_ESM_SET_TARGET_ID, EVENT_EXT_ESM_SET_TARGET_ID},
+    {_ESM_LOAD_BASE_PACK, EVENT_EXT_ESM_LOAD_BASE_PACK},
+    {_ESM_SET_VALUE, EVENT_EXT_ESM_SET_VALUE},
+    {_SET_CHARA_CONDITION, EVENT_EXT_SET_CHARA_CONDITION},
+    {_ADD_WHP, EVENT_EXT_ADD_WHP},
+    {_ADD_HP_RATE, EVENT_EXT_ADD_HP_RATE},
+    {_GET_TIME, EVENT_EXT_GET_TIME},
+    {_CHECK_GET_ITEM_LIMIT, EVENT_EXT_CHECK_GET_ITEM_LIMIT},
+    {_CHECK_ITEM_OVER, EVENT_EXT_CHECK_ITEM_OVER},
+    {_GET_NOW_LOOP_NO, EVENT_EXT_GET_NOW_LOOP_NO},
+    {_IS_CLEAR_DESTROY, EVENT_EXT_IS_CLEAR_DESTROY},
+    {_IS_CLEAR_PRACTICE, EVENT_EXT_IS_CLEAR_PRACTICE},
+    {_IS_PLAY_SUB_GAME, EVENT_EXT_IS_PLAY_SUB_GAME},
+    {_RESET_SUBJECT_COUNTER, EVENT_EXT_RESET_SUBJECT_COUNTER},
+    {_SCR_EFF_INIT_RASTER, EVENT_EXT_SCR_EFF_INIT_RASTER},
+    {_SCR_EFF_START_RASTER, EVENT_EXT_SCR_EFF_START_RASTER},
+    {_SCR_EFF_STOP_RASTER, EVENT_EXT_SCR_EFF_STOP_RASTER},
+    {_SET_MPCHARA_MOTION, EVENT_EXT_SET_MPCHARA_MOTION},
+    {_FUNC_POINT_POS, EVENT_EXT_FUNC_POINT_POS},
+    {_CTRLC_ROT_BACK, EVENT_EXT_CTRLC_ROT_BACK},
+    {_PARTS_NAME_STRCMP, EVENT_EXT_PARTS_NAME_STRCMP},
+    {_GET_TRIAL_VERSION, EVENT_EXT_GET_TRIAL_VERSION},
+    {_SET_FLOOR_EPISODE, EVENT_EXT_SET_FLOOR_EPISODE},
+    {_FUNC_POINT_GET_POS, EVENT_EXT_FUNC_POINT_GET_POS},
+    {_FUNC_POINT_GET_ROT, EVENT_EXT_FUNC_POINT_GET_ROT},
+    {_ACTCHR_SET_DEF_MOTION, EVENT_EXT_ACTCHR_SET_DEF_MOTION},
+    {_ADD_FUSION_POINT, EVENT_EXT_ADD_FUSION_POINT},
+    {_GET_DEBUG_FLAG, EVENT_EXT_GET_DEBUG_FLAG},
+    {_MINIMAP_DOOR_ENABLE, EVENT_EXT_MINIMAP_DOOR_ENABLE},
+    {_DNG_CHECK_BOSS_MAP, EVENT_EXT_DNG_CHECK_BOSS_MAP},
+    {_DNG_RUN_EVENT, EVENT_EXT_DNG_RUN_EVENT},
+    {_CHECK_ENABLE_CHARA_CHANGE, EVENT_EXT_CHECK_ENABLE_CHARA_CHANGE},
+    {_INIT_SEPIA, EVENT_EXT_INIT_SEPIA},
+    {_START_SEPIA, EVENT_EXT_START_SEPIA},
+    {_END_SEPIA, EVENT_EXT_END_SEPIA},
+    {_COPY_MONS2SCNCHR, EVENT_EXT_COPY_MONS2SCNCHR},
+    {_UNLOCK_STACK, EVENT_EXT_UNLOCK_STACK},
+    {_RESET_EVENT_TRG, EVENT_EXT_RESET_EVENT_TRG},
+    {_SET_CHARA_NO, EVENT_EXT_SET_CHARA_NO},
+    {_GET_CHARA_NO, EVENT_EXT_GET_CHARA_NO},
+    {_SEARCH_CHARA_NO, EVENT_EXT_SEARCH_CHARA_NO},
+    {_GET_NEAR_RANDOM_STONE_POS, EVENT_EXT_GET_NEAR_RANDOM_STONE_POS},
+    {_INIT_MONO_FLASH, EVENT_EXT_INIT_MONO_FLASH},
+    {_START_MONO_FLASH, EVENT_EXT_START_MONO_FLASH},
+    {_END_MONO_FLASH, EVENT_EXT_END_MONO_FLASH},
+    {_DELETE_VILLAGER, EVENT_EXT_DELETE_VILLAGER},
+    {_DNG_SET_WEATHER, EVENT_EXT_DNG_SET_WEATHER},
+    {_SET_CHARA_MAXHP, EVENT_EXT_SET_CHARA_MAXHP},
+    {_SET_CHARA_DEFENCE, EVENT_EXT_SET_CHARA_DEFENCE},
+    {_PLACE_PARTS_NAME_STRCMP, EVENT_EXT_PLACE_PARTS_NAME_STRCMP},
+    {_GOTO_USE_ITEM2, EVENT_EXT_GOTO_USE_ITEM2},
+    {_DBG_SET_ANALYZE_FLAG, EVENT_EXT_DBG_SET_ANALYZE_FLAG},
+    {_ATRAMIRIA_ON_OFF, EVENT_EXT_ATRAMIRIA_ON_OFF},
+    {_ADD_YARIKOMI_MEDAL, EVENT_EXT_ADD_YARIKOMI_MEDAL},
+    {_SET_MAP_EFFECT_ID, EVENT_EXT_SET_MAP_EFFECT_ID},
+    {_GET_MAP_EFFECT_ID, EVENT_EXT_GET_MAP_EFFECT_ID},
+    {_DNG_FLOOR_INIT, EVENT_EXT_DNG_FLOOR_INIT},
+    {_DNG_FLOOR_FINISH, EVENT_EXT_DNG_FLOOR_FINISH},
+    {_CLEAR_RND_STONE, EVENT_EXT_CLEAR_RND_STONE},
+    {_GET_FLOOR_STATUS, EVENT_EXT_GET_FLOOR_STATUS},
+    {_SET_FLOOR_STATUS, EVENT_EXT_SET_FLOOR_STATUS},
+    {_AMG_GET_ATTR_STATUS, EVENT_EXT_AMG_GET_ATTR_STATUS},
+    {_SET_NEAR_DIST, EVENT_EXT_SET_NEAR_DIST},
+    {_SET_KEEP_TIME, EVENT_EXT_SET_KEEP_TIME},
+    {_GET_KEEP_TIME, EVENT_EXT_GET_KEEP_TIME},
+    {_GET_DOOR_PARTS_ID, EVENT_EXT_GET_DOOR_PARTS_ID},
+    {_CHECK_EQUEP_CHANGE, EVENT_EXT_CHECK_EQUEP_CHANGE},
+    {_ADD_HP_RATE2, EVENT_EXT_ADD_HP_RATE2},
+    {_DNG_EFFECT_ALL_CLEAR, EVENT_EXT_DNG_EFFECT_ALL_CLEAR},
+    {_AUTO_CHENGE_BGM_VOL, EVENT_EXT_AUTO_CHENGE_BGM_VOL},
+    {_UDATA_GET_WHP, EVENT_EXT_UDATA_GET_WHP},
+    {_UDATA_ADD_WHP, EVENT_EXT_UDATA_ADD_WHP},
+    {_UDATA_GET_ABS, EVENT_EXT_UDATA_GET_ABS},
+    {_UDATA_ADD_ABS, EVENT_EXT_UDATA_ADD_ABS},
+    {_DNG_CREATE_EFFECT, EVENT_EXT_DNG_CREATE_EFFECT},
+    {_LEAVE_MONICA_ITEM_CHECK, EVENT_EXT_LEAVE_MONICA_ITEM_CHECK},
+    {_PAUSE_ENABLE_FLAG, EVENT_EXT_PAUSE_ENABLE_FLAG},
+    {_FORCE_BOOT_TOUR, EVENT_EXT_FORCE_BOOT_TOUR},
+    {_MT_TEST, EVENT_EXT_MT_TEST},
+    {_TEST, EVENT_EXT_TEST},
+    {NULL, EVENT_EXT_END},
+};
+
 void SetEventFunc(CRunScript *script) {
     int i;
     int j;
 
     for (i = 0; i < event_func_slots; i++) {
-        ext_func__2[i] = NULL;
+        ext_func[i] = NULL;
     }
 
     i = 0;
 
     for (;;) {
-        if (ext_func_info__2[i].func == NULL) {
+        if (ext_func_info[i].func == NULL) {
             break;
         }
 
         for (j = 0; j < i; j++) {
-            if (ext_func_info__2[i].id == ext_func_info__2[j].id) {
-                printf(at_10100);
+            if (ext_func_info[i].id == ext_func_info[j].id) {
+                printf("same ext_func_no!!!\n");
 
                 while (1) {
                 }
             }
         }
 
-        if (ext_func_info__2[i].id < 0 || ext_func_info__2[i].id >= event_func_slots) {
-            printf(at_10101);
+        if (ext_func_info[i].id < 0 || ext_func_info[i].id >= event_func_slots) {
+            printf("ext func over!!");
         } else {
-            ext_func__2[ext_func_info__2[i].id] = ext_func_info__2[i].func;
+            ext_func[ext_func_info[i].id] = ext_func_info[i].func;
         }
 
         i++;
     }
 
-    script->ext_func(ext_func__2, event_func_slots);
+    script->ext_func(ext_func, event_func_slots);
 }
 
-// Static initialiser (.init)
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1084__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", esa_ext_func_info__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3242__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", vv_3333__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3339__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4517__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6800__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", ext_func_info__2__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1080__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1081__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1082__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1083__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1103__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1104__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1245__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1246__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1333__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1346__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1357__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1760__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1761__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1904__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1905__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1906__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1907__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1908__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1910__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_1909__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2245__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2246__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2247__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2248__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2249__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2291__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2292__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2333__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2334__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2393__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2664__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2836__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2837__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2838__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_2839__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3328__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3329__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3631__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3632__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3633__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3634__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3635__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3636__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3822__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3823__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_3884__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4072__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4261__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4262__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4263__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4264__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4265__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4266__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4267__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4268__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4269__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4270__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4271__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4274__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4273__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4272__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4291__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4360__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4437__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_4573__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5262__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5263__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5264__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5410__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5411__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5412__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5413__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5414__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5415__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5416__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5417__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5418__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5419__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5420__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5421__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5422__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5424__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5726__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_5736__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6703__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6773__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6774__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6775__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6776__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6781__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6782__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6816__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6834__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_6839__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_7117__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8230__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8406__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8458__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8480__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8902__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8903__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_8904__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_9148__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_9622__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_9744__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_9745__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_10100__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/event_func", at_10101__DATA);
-
-// Static initialiser table (.ctor)
-
-// Small uninitialised data (.sbss)
-
 // Uninitialised data (.bss)
-INCLUDE_BSS(EdEventInfo, 0x12A0);
+ED_EVENT_INFO EdEventInfo;
 
 inline CEventScriptArg::CEventScriptArg() {
     next_id = 0;
@@ -17285,36 +18097,57 @@ inline CScreenEffect::CScreenEffect() {
 }
 
 CEohMother         EventObjHandleMother;
+
 CEventSpriteMother esMother;
-INCLUDE_BSS(EventLocalFlag, 0x100);
-INCLUDE_BSS(EventLocalCnt, 0x100);
+
+u32 EventLocalFlag[EVENT_LOCAL_NUM];
+
+int EventLocalCnt[EVENT_LOCAL_NUM];
+
 CRain   EventRain;
+
 CMarker EventMarker;
-INCLUDE_BSS(SwordEffect, 0x4);
-INCLUDE_BSS(EventEffectScript, 0x4);
-INCLUDE_BSS(p_use_item, 0x4);
-INCLUDE_BSS(SetWorldCoordFlg, 0x4);
-INCLUDE_BSS(PakuAnimEohNo, 0x4);
-INCLUDE_BSS(PakuMotionEohNo, 0x4);
-INCLUDE_BSS(PakuMotionType, 0x4);
-INCLUDE_BSS(PakuMotionType2, 0x4);
-INCLUDE_BSS(nowScriptArg, 0x4);
-INCLUDE_BSS(Hit_para, 0x6400);
+
+RS_STACKDATA *p_use_item;
+
+int SetWorldCoordFlg;
+
+int PakuAnimEohNo;
+
+int PakuMotionEohNo;
+
+int PakuMotionType;
+
+int PakuMotionType2;
+
+BattleEffectPrim Hit_para[EVENT_HIT_EFFECT_NUM][EVENT_HIT_PARTICLE_NUM];
+
 CHitEffectImage HitEffect[5];
-INCLUDE_BSS(PakuAnimName, 0x40);
-INCLUDE_BSS(PakuAnimName2, 0x40);
-INCLUDE_BSS(PakuMotionName, 0x40);
-INCLUDE_BSS(PakuMotionName2, 0x40);
-INCLUDE_BSS(event_snd_buff, 0x8010);
+
+char PakuAnimName[PAKU_NAME_SIZE];
+
+char PakuAnimName2[PAKU_NAME_SIZE];
+
+char PakuMotionName[PAKU_NAME_SIZE];
+
+char PakuMotionName2[PAKU_NAME_SIZE];
+
 mgCMemory BuffEventSnd;
-INCLUDE_BSS(event_snd2_buff, 0x1410);
+
 mgCMemory   BuffEventSnd2;
+
 CDngFreeMap EventDngMap;
-INCLUDE_BSS(cmr_seq_tbl, 0x6000);
+
+_SEN_CMR_SEQ cmr_seq_tbl[SEQ_NODE_NUM];
+
 CSceneCmrSeq CameraSeq;
-INCLUDE_BSS(obj_seq_tbl, 0x5000);
+
+_SEN_OBJ_SEQ obj_seq_tbl[SEQ_NODE_NUM];
+
 CSceneObjSeq    ObjectSeq[32];
+
 CEventSprite2   EventSprite2[48];
+
 CEventScriptArg EventScriptArg;
+
 CScreenEffect   EventScreenEffect;
-INCLUDE_BSS(ext_func__2, 0x1770);

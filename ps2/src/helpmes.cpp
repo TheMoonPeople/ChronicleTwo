@@ -5,35 +5,52 @@
 
 #include "dataread.hpp"
 #include "mainloop.hpp"
-#include "nd_meswin.hpp"
-
-extern int  ShowOffOnce;
-extern int  WindowMode;
-extern char at_799__6[15];
-extern char at_800__5[30];
-
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
+#include "nd_meswin.hpp"
 #include "snd_mngr.hpp"
 
-extern char HelpMesBuff[0x1000];
-extern int  InitFlag__2;
+/**
+ * Whether the help message file has been loaded.
+ */
+static int InitFlag__2;
 
-ClsMes        HelpMes __attribute__((aligned(4)));
-u8            D_01F628BC[4];
-HELP_MES_INFO HelpMesInfo;
+/**
+ * Window style selected for the current help message.
+ */
+static int WindowMode;
+
+/**
+ * Whether to suppress the next help message draw.
+ */
+static int ShowOffOnce;
+
+/**
+ * Loaded bytes of the localized help message file.
+ */
+static char HelpMesBuff[0x1000];
+
+/**
+ * Message window used to display help and error messages.
+ */
+static ClsMes HelpMes;
+
+/**
+ * State of the current help or error message request.
+ */
+static HELP_MES_INFO HelpMesInfo;
 
 // Code (.text)
 void LoadHelpMes(u_long128 *scratch) {
     char path[0x4C];
     int  size;
 
-    sprintf(path, at_799__6, LanguageCode);
+    sprintf(path, "etc/help%d.mes", LanguageCode);
 
     if (LoadFile2(path, scratch, &size, 0) != 0) {
         if (size > 0x1000) {
-            printf(at_800__5, size, 0x1000);
+            printf("HMes Buffer Over!!(%d/%dbyte)", size, 0x1000);
             return;
         }
 
@@ -296,15 +313,3 @@ void ShowErrorHelpMes(int mes_no, int time) {
     WindowMode = 4;
     sndSePlay(GetSystemSndID(), 28, 0);
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/helpmes", at_799__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/helpmes", at_800__5__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(InitFlag__2, 0x4);
-INCLUDE_BSS(WindowMode, 0x4);
-INCLUDE_BSS(ShowOffOnce, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(HelpMesBuff, 0x1000);

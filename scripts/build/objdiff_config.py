@@ -18,14 +18,9 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import layout  # noqa: E402
+import objdiff_data  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-
-
-def suffixed_names(lay, unit, rows):
-    ranges = [(lo, hi) for _s, lo, hi in lay.sections(unit)]
-    return {name: re.sub(r"__\d+$", "", name) for address, name, _size, _func in rows
-            if re.fullmatch(r".+__\d+", name) and any(lo <= address < hi for lo, hi in ranges)}
 
 
 def project_name(name):
@@ -38,6 +33,8 @@ def compiler_mappings(retail_names, compiler_names):
     """Resolve sanitized retail identities to symbols actually present in C++."""
     actual = {}
     for name in compiler_names:
+        if re.fullmatch(r'@\d+', name):
+            continue  # Anonymous numbers are not source/retail identities.
         actual.setdefault(project_name(name), []).append(name)
     result = {}
     for retail_name in retail_names:
@@ -45,7 +42,7 @@ def compiler_mappings(retail_names, compiler_names):
         candidates = actual.get(retail_name, actual.get(identity, []))
         if len(candidates) > 1:
             raise ValueError(f"ambiguous compiler symbols for {retail_name}: {candidates}")
-        if candidates and candidates[0] != retail_name:
+        if candidates and (candidates[0] != retail_name or identity != retail_name):
             result[retail_name] = candidates[0]
     return result
 
@@ -107,21 +104,34 @@ def config(build_dir):
     lay = layout.Layout()
     rows = layout.read_symbols(layout.SYMBOLS)
     units = []
-    for unit in lay.units("cpp"):
+    game_units = list(lay.units("cpp"))
+    # Preflight every input before preparing any comparison. A missing target
+    # must never expose reservation-bearing raw objects or an older copy.
+    for unit in game_units:
+        for kind, suffix in (("base", "cpp.o"), ("target", "s.o")):
+            path = ROOT / f"{build_dir}/objdiff/{kind}/{unit}.{suffix}"
+            if not path.is_file():
+                raise FileNotFoundError(f"{unit}: missing objdiff input {path}")
+    context = objdiff_data.Context()
+    for unit in game_units:
         base_path = f"{build_dir}/objdiff/base/{unit}.cpp.o"
+        target_path = f"{build_dir}/objdiff/target/{unit}.s.o"
+        prepared_base = f"{build_dir}/objdiff/compare/base/{unit}.cpp.o"
+        prepared_target = f"{build_dir}/objdiff/compare/target/{unit}.s.o"
+        objdiff_data.comparison_copy(ROOT / base_path, ROOT / prepared_base, unit, context, True)
+        objdiff_data.comparison_copy(ROOT / target_path, ROOT / prepared_target, unit, context, False)
+        base_path, target_path = prepared_base, prepared_target
         units.append({
             "name": unit,
-            "target_path": f"{build_dir}/objdiff/target/{unit}.s.o",
+            "target_path": target_path,
             "base_path": base_path,
-            "symbol_mappings": {f"__sinit_{unit}_cpp": f"__sinit_{unit}.cpp",
-                                **suffixed_names(lay, unit, rows),
-                                **object_mappings(lay, unit, rows, ROOT / base_path)},
+            "symbol_mappings": object_mappings(lay, unit, rows, ROOT / base_path),
             "metadata": {
                 "source_path": lay.source(unit),
             },
         })
     return {
-        "min_version": "2.0.0-beta.5",
+        "min_version": "3.7.3",
         "custom_make": "sh",
         "custom_args": ["-c", "exec scripts/build/build_objdiff.sh"],
         "build_target": False,
@@ -134,7 +144,8 @@ def config(build_dir):
             "scripts/build/*.{py,sh,json}",
             "ps2/cmake/*.cmake",
         ],
-        "options": {"demangler": "codewarrior", "functionRelocDiffs": "none"},
+        "options": {"demangler": "codewarrior", "functionRelocDiffs": "none",
+                    "combineDataSections": True},
         "name": "chronicletwo",
         "units": units,
     }
@@ -146,7 +157,12 @@ def main():
     ap.add_argument("--build-dir", default=os.environ.get("BUILD_DIR", str(layout.BUILD)))
     ap.add_argument("-o", "--output", default="objdiff.json")
     args = ap.parse_args()
-    Path(args.output).write_text(json.dumps(config(args.build_dir), indent=2) + "\n")
+    output = Path(args.output)
+    try:
+        output.write_text(json.dumps(config(args.build_dir), indent=2) + "\n")
+    except Exception:
+        output.unlink(missing_ok=True)
+        raise
     return 0
 
 

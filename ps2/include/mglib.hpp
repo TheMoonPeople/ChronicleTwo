@@ -408,13 +408,6 @@ extern MG_PICKZ mgPickZBuff[4];
 
 /**
  *
- * Aligned pixel storage for deferred depth-buffer samples.
- *
- */
-extern u_long128 store_data_614[256];
-
-/**
- *
  * GS read-back packet used for frame captures.
  *
  */
@@ -643,7 +636,7 @@ void mgStoreFrameImage();
  *
  * @mangled mgEndFrame__FP14mgCDrawManager
  * @address 0x142C20
- * @size 0xA80
+ * @size 0xA74
  */
 void mgEndFrame(mgCDrawManager *manager);
 
@@ -1090,14 +1083,15 @@ void mgSetPkTextureRepeat(sceGsClamp clamp);
  *
  * @mangled mgSetPkFrameBuffer__FP10mgCTexture
  * @address 0x144410
- * @size 0x80
+ * @size 0x7C
  */
 void mgSetPkFrameBuffer(mgCTexture *texture);
 
 /**
  *
  * Makes an area of video memory the frame buffer drawn into, with its
- * viewport and scissor; -1 in every argument restores the screen.
+ * viewport and scissor; negative frame or format values use the current
+ * draw frame, and negative dimensions use the screen size.
  *
  * @mangled mgSetPkFrameBuffer__Fiiii
  * @address 0x144490

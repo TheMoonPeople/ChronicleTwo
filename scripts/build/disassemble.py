@@ -78,15 +78,23 @@ def invented_address(name):
     return int(m.group(1), 16) if m else None
 
 
-def referenced_addresses(lay):
+def referenced_addresses(lay, *, retail=None):
     """Every unnamed address splat's assembly refers to.
 
     A game unit's own data is written here rather than taken from splat, so
-    only its code is read; every other unit's file is read whole.
+    only its code is read; every other unit's file is read whole. Data words
+    establish a reference only at a real retail pointer relocation, with their
+    emitted byte comments verified. Splat's numeric address guesses own no data.
     """
     paths = [(ROOT / lay.reference(u), lay.kinds[u] == "cpp") for u in lay.units()]
     paths += [(p, False) for p in sorted((ROOT / layout.ASM / "data").rglob("*.s"))]
     found = set()
+    # Explicit source identifiers also own boundaries. An accidental address
+    # expression in a VU instruction must not be their only source of identity.
+    for unit in lay.units('cpp'):
+        source = ROOT / lay.source(unit)
+        if source.is_file():
+            found.update(source_addresses(source.read_text(encoding='utf-8')))
     for path, code_only in paths:
         if not path.is_file():
             continue
@@ -100,9 +108,28 @@ def referenced_addresses(lay):
                 continue
             if GLABEL.match(line):
                 continue
+            if section not in CODE_SECTIONS and INVENTED.search(line):
+                word = VU_WORD.match(line)
+                if word is None:
+                    raise ValueError(f'{path}: unsupported data reference: {line.strip()}')
+                address = int(word.group('address'), 16)
+                retail = layout.Retail() if retail is None else retail
+                kind = retail.relocations.get(address)
+                if kind is None:
+                    continue
+                if (kind != R_MIPS_32 or address % 4 or layout.section_of(address) != section
+                        or bytes.fromhex(word.group('bytes')) != retail.bytes(address, address + 4)):
+                    raise ValueError(f'{path}: invalid retail data reference at 0x{address:08X}')
             for m in INVENTED.finditer(line):
                 found.add(int(m.group(1), 16))
     return found
+
+
+def source_addresses(source):
+    """Unnamed addresses explicitly present as source identifiers."""
+    source = re.sub(r'/\*.*?\*/|//[^\n]*|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
+                    ' ', source, flags=re.DOTALL)
+    return {int(match.group(1), 16) for match in INVENTED.finditer(source)}
 
 
 def local_twin(name):
@@ -306,6 +333,71 @@ def write_unit_files(pieces, retail, resolve, unit):
     return count
 
 
+VU_WORD = re.compile(
+    r"^(?P<prefix>[ \t]*/\*[ \t]+[0-9A-Fa-f]+[ \t]+"
+    r"(?P<address>[0-9A-Fa-f]{8})[ \t]+(?P<bytes>[0-9A-Fa-f]{8})"
+    r"[ \t]+\*/[ \t]+\.word[ \t]+)(?P<operand>[^\r\n]+?)(?P<newline>\r?\n)?$")
+NUMERIC_WORD = re.compile(r"(?:0[xX][0-9A-Fa-f]+|[+-]?[0-9]+)\s*$")
+
+
+def raw_unrelocated_vu_words(text, retail):
+    """Keep VU instruction words literal unless retail actually relocates them."""
+    section = None
+    output = []
+    for line in text.splitlines(keepends=True):
+        match = SECTION_LINE.match(line)
+        if match:
+            section = match.group(1)
+        match = VU_WORD.match(line) if section == '.vutext' else None
+        if match and not NUMERIC_WORD.fullmatch(match.group('operand')):
+            address = int(match.group('address'), 16)
+            if layout.section_of(address) != '.vutext' or address % 4:
+                raise ValueError(f'VU word 0x{address:08X} is outside .vutext or unaligned')
+            if address not in retail.relocations:
+                word = retail.word(address)
+                if bytes.fromhex(match.group('bytes')) != retail.bytes(address, address + 4):
+                    raise ValueError(f'VU word 0x{address:08X} does not match retail bytes')
+                line = (match.group('prefix') + f'0x{word:08X}'
+                        + (match.group('newline') or ''))
+        output.append(line)
+    return ''.join(output)
+
+
+def raw_unrelocated_data_words(text, retail):
+    """Keep initialized data words numeric when retail has no pointer relocation."""
+    sections = {'.data', '.vudata', '.rodata', '.ctor', '.vtables', '.rdata', '.sdata'}
+    section = None
+    output = []
+    for line in text.splitlines(keepends=True):
+        match = SECTION_LINE.match(line)
+        if match:
+            section = match.group(1)
+        match = VU_WORD.match(line) if section in sections else None
+        if match and not NUMERIC_WORD.fullmatch(match.group('operand')):
+            address = int(match.group('address'), 16)
+            if layout.section_of(address) != section or address % 4:
+                raise ValueError(f'Data word 0x{address:08X} is outside {section} or unaligned')
+            if address not in retail.relocations:
+                word = retail.word(address)
+                if bytes.fromhex(match.group('bytes')) != retail.bytes(address, address + 4):
+                    raise ValueError(f'Data word 0x{address:08X} does not match retail bytes')
+                line = (match.group('prefix') + f'0x{word:08X}'
+                        + (match.group('newline') or ''))
+        output.append(line)
+    return ''.join(output)
+
+
+
+def restore_raw_vu_words(lay, retail):
+    """Remove splat's inferred pointers wherever retail has no relocation."""
+    for _kind, reference, _object, _args in layout.assembled_objects(lay):
+        path = ROOT / reference
+        text = path.read_text()
+        restored = raw_unrelocated_data_words(raw_unrelocated_vu_words(text, retail), retail)
+        if restored != text:
+            write_if_changed(path, restored)
+
+
 def run_splat():
     """Run splat in this process, from the directory main.yaml expects."""
     try:
@@ -363,8 +455,9 @@ def main():
         twin_split_files()
 
     lay = layout.Layout()
-    pieces = Pieces(lay)
     retail = layout.Retail()
+    restore_raw_vu_words(lay, retail)
+    pieces = Pieces(lay)
     resolve = Resolver(pieces.defined())
     units = args.units or lay.units("cpp")
     total = 0

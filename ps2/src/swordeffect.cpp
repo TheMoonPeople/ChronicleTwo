@@ -11,8 +11,6 @@
 #include "mglib.hpp"
 #include "swordeffect.hpp"
 
-extern char at_356[];
-
 #ifdef NONMATCHING
 
 #endif
@@ -231,7 +229,7 @@ void CSWordAfterEffect::StartEffect(mgCFrame *start, mgCFrame *end, int value8_c
     point_num = 0;
     write_index = point_max - 1;
     head_index = point_max - 1;
-    printf(at_356);
+    printf("start !!\n");
 }
 
 void CSWordAfterEffect::AddPoint(float *first, float *second) {
@@ -350,6 +348,3 @@ void CSWordAfterEffect::Copy(CSWordAfterEffect &dst, mgCMemory *memory) {
         dst.smooth1 = (sceVu0FVECTOR *) memory->Alloc(smooth_size / 16 + 1);
     }
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/swordeffect", at_356__DATA);

@@ -144,7 +144,6 @@ void CEditCollision::Copy(CEditCollision &dest, int plane_no, mgCMemory *memory)
 
     int     count;
     int     i;
-    int     off;
     u32     size;
     int     copied;
     u32     blocks;
@@ -152,17 +151,12 @@ void CEditCollision::Copy(CEditCollision &dest, int plane_no, mgCMemory *memory)
     int     dst_off;
     CCPoly *src;
     CCPoly *dst;
-    off = 0;
     count = 0;
-    i = 0;
 
-    while (i < poly_count) {
-        if (plane_no == ((CCPoly *) ((u8 *) this->poly + off))->area_kind) {
+    for (i = 0; i < poly_count; i++) {
+        if (plane_no == poly[i].area_kind) {
             count++;
         }
-
-        off += sizeof(CCPoly);
-        i++;
     }
 
     if (count <= 0 || memory == NULL) {
@@ -210,11 +204,11 @@ void CEditCollision::Copy(CEditCollision &dest, int plane_no, mgCMemory *memory)
 
 float CEditCollision::AreaXZ() {
     float total;
-    float (*poly)[4];
+    CCPoly *poly;
     int i;
     int count;
     count = poly_count;
-    poly = (float (*)[4]) this->poly;
+    poly = this->poly;
     total = 0.0f;
 
     for (i = 0; i < count; i++) {
@@ -225,18 +219,18 @@ float CEditCollision::AreaXZ() {
         float ax;
         float az;
         float cx;
-        ax = poly[0][0];
-        bz = poly[1][2];
-        bx = poly[1][0];
-        az = poly[0][2];
-        cz = poly[2][2];
-        cx = poly[2][0];
+        ax = poly->vertex[0][0];
+        bz = poly->vertex[1][2];
+        bx = poly->vertex[1][0];
+        az = poly->vertex[0][2];
+        cz = poly->vertex[2][2];
+        cx = poly->vertex[2][0];
         float sum = -ax * bz + bx * az;
         sum += -bx * cz + cx * bz;
         sum += -cx * az + ax * cz;
         area = 0.5f * sum;
         total += (area < 0.0f) ? -area : area;
-        poly += 5;
+        poly++;
     }
 
     return total;
@@ -316,19 +310,19 @@ float CEditCollision::OverlapXZ(CEditCollision &other, float (*matrix)[4], mgVu0
     float     depth;
     mgVu0FBOX tri_box;
     int       started;
-    float (*poly)[4];
+    CCPoly   *poly;
     int   i;
     int   count;
     float total;
     i = 0;
     count = other.poly_count;
     total = 0.0f;
-    poly = (float (*)[4]) other.poly;
+    poly = other.poly;
     started = 0;
 
     if (0 < count) {
         do {
-            mgApplyMatrixN(triangle, matrix, poly, 3);
+            mgApplyMatrixN(triangle, matrix, poly->vertex, 3);
 
             if (OverlapPoly3XZ(triangle, &depth, &tri_box) != 0) {
                 total += depth;
@@ -344,7 +338,7 @@ float CEditCollision::OverlapXZ(CEditCollision &other, float (*matrix)[4], mgVu0
             }
 
             i++;
-            poly += 5;
+            poly++;
         } while (i < count);
     }
 

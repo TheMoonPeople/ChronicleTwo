@@ -13,11 +13,28 @@
 #include "mglib.hpp"
 #include "scriptinterpreter.hpp"
 
-extern MAP_SKY_INFO *skyInfo;
-extern int           skyAnmNum;
-extern int           skybAnmNum;
-extern SPI_TAG_PARAM tag__2[];
-extern char          at_386[];
+/**
+ *
+ * Sky configuration currently being populated by script commands.
+ *
+ */
+static MAP_SKY_INFO *skyInfo;
+
+/**
+ *
+ * Number of sky-model animation entries read from the script.
+ *
+ */
+static int skyAnmNum;
+
+/**
+ *
+ * Number of background-sky animation entries read from the script.
+ *
+ */
+static int skybAnmNum;
+
+extern char at_386[];
 static s32           CheckSkyID(s32 sky_id);
 static s32           _SKY_IMG(SPI_STACK *stack, s32 arg_count);
 static s32           _SKY_MDS(SPI_STACK *stack, s32 arg_count);
@@ -28,6 +45,22 @@ static int  _SKY_BG(SPI_STACK *stack, int argument_count);
 static int  _SKY_ANIME(SPI_STACK *stack, int argument_count);
 static int  _SKYB_ANIME(SPI_STACK *stack, int argument_count);
 static void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size);
+
+/**
+ *
+ * Sky configuration commands and their script callbacks.
+ *
+ */
+static SPI_TAG_PARAM tag[8] = {
+    {"SKY_IMG", _SKY_IMG},
+    {"SKY_MDS", _SKY_MDS},
+    {"SKY_ANIME", _SKY_ANIME},
+    {"SUN_MDS", _SUN_MDS},
+    {"SKYB_MDS", _SKYB_MDS},
+    {"SKYB_ANIME", _SKYB_ANIME},
+    {"SKY_BG", _SKY_BG},
+    {NULL, NULL},
+};
 
 // Code (.text)
 void CMapSky::Initialize() {
@@ -271,6 +304,7 @@ void CMapSky::LoadPack(unsigned int *pack, int tex_block_base, mgCMemory *memory
         }
     }
 }
+
 /**
  *
  * Parses sky configuration tags into the supplied sky information record.
@@ -286,7 +320,7 @@ static void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size) {
     }
 
     CScriptInterpreter interpreter;
-    interpreter.SetTag(tag__2);
+    interpreter.SetTag(tag);
     interpreter.SetScript(script, size);
     interpreter.Run();
 }
@@ -469,22 +503,5 @@ static int _SKYB_ANIME(SPI_STACK *stack, int argument_count) {
     return 1;
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_387__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", tag__2__DATA);
-
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_386__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_457__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_462__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_463__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_464__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_465__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_466__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_467__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_468__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(skyInfo, 0x4);
-INCLUDE_BSS(skyAnmNum, 0x4);
-INCLUDE_BSS(skybAnmNum, 0x4);

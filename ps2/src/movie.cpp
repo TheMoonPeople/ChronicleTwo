@@ -21,28 +21,145 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 
-extern u8           isStarted;
-extern int          writerest;
-extern volatile u8  isFrameEnd;
-extern u32          frd;
-extern volatile u8  isCountVblank;
-extern volatile int Cb;
-extern int          MpegW;
-extern int          MpegH;
-extern VideoDec     videoDec;
-extern StrFile      infile;
-extern char        *TexName;
-extern ReadBuf     *readBuf;
-extern int          readrest;
-extern u8           Loop;
-extern u8           isWithAudio;
-extern int          cnt_513;
-extern s8           init_514;
-extern volatile int stepMainStatus;
-extern int          stepMainExitFlag;
-extern VoBuf        voBuf;
-extern AudioDec     audioDec;
-extern u8           _0_buf[2048];
+/**
+ *
+ * Whether playback has started.
+ *
+ */
+static u8 isStarted;
+
+/**
+ *
+ * Movie bytes remaining to demultiplex.
+ *
+ */
+static int writerest;
+
+/**
+ *
+ * Whether the second frame DMA transfer has completed.
+ *
+ */
+static volatile u8 isFrameEnd;
+
+/**
+ *
+ * Number of vblanks without a ready movie frame.
+ *
+ */
+static u32 frd;
+
+/**
+ *
+ * Whether the vblank handler advances frame display.
+ *
+ */
+static volatile u8 isCountVblank;
+
+/**
+ *
+ * Parity selecting the movie frame DMA chain.
+ *
+ */
+static volatile int Cb;
+
+/**
+ *
+ * Width of the decoded movie image.
+ *
+ */
+static int MpegW;
+
+/**
+ *
+ * Height of the decoded movie image.
+ *
+ */
+static int MpegH;
+
+/**
+ *
+ * MPEG decoder and compressed-video DMA state.
+ *
+ */
+static VideoDec videoDec;
+
+/**
+ *
+ * Movie stream file and its disc staging buffer.
+ *
+ */
+static StrFile infile;
+
+/**
+ *
+ * Texture name used to build the movie image transfer tags.
+ *
+ */
+static char *TexName;
+
+/**
+ *
+ * Compressed movie input ring buffer.
+ *
+ */
+static ReadBuf *readBuf;
+
+/**
+ *
+ * Movie bytes remaining to read from the file.
+ *
+ */
+static int readrest;
+
+/**
+ *
+ * Whether the movie file restarts at its end.
+ *
+ */
+static u8 Loop;
+
+/**
+ *
+ * Whether the movie includes an audio stream.
+ *
+ */
+static u8 isWithAudio;
+
+/**
+ *
+ * State reported by the movie streaming thread.
+ *
+ */
+static volatile int stepMainStatus;
+
+/**
+ *
+ * Exit request consumed by the movie streaming thread.
+ *
+ */
+static int stepMainExitFlag;
+
+/**
+ *
+ * Ring of decoded frames waiting for display.
+ *
+ */
+static VoBuf voBuf;
+
+/**
+ *
+ * PCM audio buffering and IOP transfer state.
+ *
+ */
+static AudioDec audioDec;
+
+/**
+ *
+ * Silence block transferred to the movie audio decoder.
+ *
+ */
+static u8 _0_buf[2048];
 
 /**
  *
@@ -53,36 +170,18 @@ struct MoviePools {
     mgCMemory *pool[6]; /**< Movie playback pools. */
 };
 
-extern MoviePools at_344;
-extern MoviePools at_349;
-extern u8         isStrFileInit;
+/**
+ *
+ * Whether movie streaming from the disc is initialized.
+ *
+ */
+static u8 isStrFileInit;
 
 static int voBufIsFull(VoBuf *buf);
 
-extern char      at_584__2[];
-extern char      at_318__2[];
-extern char      at_319__2[];
-extern char      at_320[];
-extern char      at_321[];
-extern char      at_322[];
-extern char      at_323[];
 extern u_long128 at_1276__2;
+
 extern u_long128 at_1287__2;
-extern char      at_810__3[];
-extern char      at_1028__5[];
-extern char      at_1029__4[];
-extern char      at_1030__3[];
-extern char      at_1031__3[];
-extern char      at_1032__4[];
-extern char      at_1033__4[];
-extern char      at_1034__3[];
-extern char      at_1035__3[];
-extern char      at_1036__3[];
-extern char      at_1037__3[];
-extern char      at_1038__3[];
-extern char      at_1109[];
-extern char      at_1110__2[];
-extern char      at_1270__3[];
 
 // Code (.text)
 static inline void *DmaAddr(void *addr) {
@@ -117,12 +216,12 @@ void CMovie::Load(char *name, mgCMemory **memory, int width, int height, bool wi
         image_tag[0][i] = (u_int *) memory[5]->stAlloc64(GetTagProgSize(MpegW, MpegH) / 16);
         image_tag[1][i] = (u_int *) memory[5]->stAlloc64(GetTagProgSize(MpegW, MpegH) / 16);
     }
-    printf(at_318__2, GetVoBufDataSize() / 16);
-    printf(at_319__2, GetViBufDataSize() / 16);
-    printf(at_320, GetViBufTagSize() / 16);
-    printf(at_321, GetMpegWorkSize(MpegW, MpegH) / 16);
-    printf(at_322, GetReadBufSize() / 16);
-    printf(at_323, GetTagProgSize(MpegW, MpegH) / 16 * 2);
+    printf("voBufData: %d\n", GetVoBufDataSize() / 16);
+    printf("viBufData: %d\n", GetViBufDataSize() / 16);
+    printf("viBufTag: %d\n", GetViBufTagSize() / 16);
+    printf("mpegWork: %d\n", GetMpegWorkSize(MpegW, MpegH) / 16);
+    printf("readBuf: %d\n", GetReadBufSize() / 16);
+    printf("tagProgData: %d\n", GetTagProgSize(MpegW, MpegH) / 16 * 2);
     *(int *) 0x1000E000 |= 3;
     *(int *) 0x1000E010 = 4;
     readBufCreate(readBuf);
@@ -156,7 +255,7 @@ void CMovie::Load(char *name, mgCMemory **memory, int width, int height, bool wi
     readrest -= read_size;
 }
 void CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop) {
-    MoviePools pools = at_344;
+    MoviePools pools = {};
     pools.pool[0] = memory;
     pools.pool[1] = memory;
     pools.pool[2] = memory;
@@ -167,7 +266,7 @@ void CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool wit
 }
 
 void CMovie::Load(char *name, mgCMemory *memory, int width, int height, bool with_audio, bool loop, bool init_sound) {
-    MoviePools pools = at_349;
+    MoviePools pools = {};
     pools.pool[0] = memory;
     pools.pool[1] = memory;
     pools.pool[2] = memory;
@@ -182,7 +281,7 @@ void CMovie::Play(char *path) {
 
     if (is_playing == 0) {
         TexName = path;
-        param.entry = (void (*)(void *)) defMain;
+        param.entry = defMain;
         param.stack = def_stack;
         param.stackSize = 0x800;
         param.initPriority = 10;
@@ -199,7 +298,7 @@ void CMovie::Play(char *path) {
         video_thread = CreateThread(&param);
         StartThread(video_thread, &videoDec);
         stepMainExitFlag = 0;
-        param.entry = (void (*)(void *)) stepMain;
+        param.entry = stepMain;
         param.stack = step_stack;
         param.stackSize = 0x4000;
         param.initPriority = 10;
@@ -370,7 +469,7 @@ int CMovie::videoDecFlush(VideoDec *dec) {
     return 1;
 }
 
-int defMain(void *) {
+void defMain(void *) {
     for (;;) {
         switchThread();
     }
@@ -400,10 +499,7 @@ void stepMain(void *arg) {
     ReadBuf  *ring = readBuf;
     StrFile  *file = &infile;
 
-    if (init_514 == 0) {
-        cnt_513 = 0;
-        init_514 = 1;
-    }
+    static int cnt = 0;
 
     stepMainStatus = 0;
 
@@ -506,7 +602,7 @@ int videoCallback(sceMpeg *mpeg, sceMpegCbDataStr *str, void *user) {
     uncached2 = (u8 *)UncAddr(area2);
     copied = cpy2area(uncached1, size1, uncached2, size2, src, first, (u8 *)buf, second);
     if (copied > 0 && videoDecPutTs(&videoDec, str->pts, str->dts, area1, copied) == 0) {
-        printf(at_584__2);
+        printf("pts buffer overflow\n");
     }
     videoDecEndPut(&videoDec, copied);
     result = 0;
@@ -755,7 +851,7 @@ int viBufAddDMA(ViBuf *buf) {
     WaitSema(buf->sema);
 
     if (buf->is_active == 0) {
-        printf(at_810__3);
+        printf("DMA ADD not active\n");
         return 0;
     }
 
@@ -882,9 +978,10 @@ int viBufRestartDMA(ViBuf *buf) {
         }
     }
     if (buf->env.d3madr != 0 && buf->env.d3qwc != 0) {
-        *(u32 *)0x1000B010 = ((volatile ViBuf *)buf)->env.d3madr;
-        *(u32 *)0x1000B020 = buf->env.d3qwc;
-        setD3_CHCR(buf->env.d3chcr | 0x100);
+        const ViBuf *saved = buf;
+        *(u32 *)0x1000B010 = saved->env.d3madr;
+        *(u32 *)0x1000B020 = saved->env.d3qwc;
+        setD3_CHCR(saved->env.d3chcr | 0x100);
     }
     if (buf->dma_n != 0) {
         ipu_ctrl = (volatile int *)0x10002010;
@@ -1057,7 +1154,7 @@ int strFileOpen(StrFile *file, char *path) {
         strncpy(device, path, device_len);
         device[device_len] = 0;
 
-        if (strcmp(device, at_1028__5) == 0) {
+        if (strcmp(device, "cdrom0") == 0) {
             int i;
             int length = strlen(colon + 1);
             i = 0;
@@ -1072,22 +1169,22 @@ int strFileOpen(StrFile *file, char *path) {
                 i++;
             }
 
-            sprintf(full_path, at_1029__4, colon + 1, leftover);
+            sprintf(full_path, "%s%s;1", colon + 1, leftover);
         } else {
             file->is_on_cd = 0;
-            sprintf(full_path, at_1030__3, device, colon + 1);
+            sprintf(full_path, "%s:%s", device, colon + 1);
         }
     } else {
-        strcpy(device, at_1031__3);
+        strcpy(device, "host0");
         file->is_on_cd = 0;
-        sprintf(full_path, at_1030__3, device, path);
+        sprintf(full_path, "%s:%s", device, path);
     }
 
     file->is_on_cd = 1;
-    strcpy(full_path, at_1032__4);
+    strcpy(full_path, "\\MOVIE\\");
     strcat(full_path, path);
-    strcat(full_path, at_1033__4);
-    printf(at_1034__3, file->is_on_cd, full_path);
+    strcat(full_path, ";1");
+    printf("file:[%d] %s\n", file->is_on_cd, full_path);
 
     if (file->is_on_cd != 0) {
         if (isStrFileInit == 0) {
@@ -1099,7 +1196,7 @@ int strFileOpen(StrFile *file, char *path) {
         sceCdStInit(0x50, 5, (void *) (((u32) file->iop_buf + 0xF) & ~0xF));
 
         if (sceCdSearchFile(&file->fp, full_path) == 0) {
-            printf(at_1035__3, full_path);
+            printf("Cannot open '%s'(sceCdSearchFile)\n", full_path);
 
             for (;;) {
             }
@@ -1114,20 +1211,20 @@ int strFileOpen(StrFile *file, char *path) {
         file->fd = sceOpen(full_path, 1);
 
         if (file->fd < 0) {
-            printf(at_1036__3, full_path);
+            printf("Cannot open '%s'(sceOpen)\n", full_path);
             return 0;
         }
 
         file->size = sceLseek(file->fd, 0, 2);
 
         if (file->size < 0) {
-            printf(at_1037__3, full_path, file->size);
+            printf("sceLseek() fails (%s): %d\n", full_path, file->size);
             sceClose(file->fd);
             return 0;
         }
 
         if (sceLseek(file->fd, 0, 0) < 0) {
-            printf(at_1038__3, full_path);
+            printf("sceLseek() fails (%s)\n", full_path);
             sceClose(file->fd);
             return 0;
         }
@@ -1223,20 +1320,20 @@ int audioDecCreate(AudioDec *dec, u8 *ring_buf, int ring_size, int iop_size) {
     iop_buf = dec->iop_buff;
 
     if (iop_buf < 0) {
-        printf(at_1109, iop_buf);
+        printf("Cannot allocate IOP memory\n", iop_buf);
         return 0;
     }
 
-    printf(at_1110__2, iop_buf, iop_size);
+    printf("IOP memory 0x%08x(size:%d) is allocated\n", iop_buf, iop_size);
     dec->iop_zero = (int) sceSifAllocIopHeap(0x800);
     iop_stub = dec->iop_zero;
 
     if (iop_stub < 0) {
-        printf(at_1109, iop_stub);
+        printf("Cannot allocate IOP memory\n", iop_stub);
         return 0;
     }
 
-    printf(at_1110__2, iop_stub, 0x800);
+    printf("IOP memory 0x%08x(size:%d) is allocated\n", iop_stub, 0x800);
     memset(&_0_buf, 0, 0x800);
     sendToIOP(dec->iop_zero, &_0_buf[0], 0x800);
     changeMasterVolume(0x3FFFU);
@@ -1454,7 +1551,7 @@ int decBs0(VideoDec *dec) {
             int mb_count = mb_width * MpegH / 16;
 
             if (sceMpegGetPicture(&dec->mpeg, (sceIpuRGB32 *) picture, mb_count) < 0) {
-                printf(at_1270__3);
+                printf("sceMpegGetPicture() decode error");
             }
 
             int i = 0;
@@ -1607,59 +1704,3 @@ int isAudioOK() {
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1276__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1287__2__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_318__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_319__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_320__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_321__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_322__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_323__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_584__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_810__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1028__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1029__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1030__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1031__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1032__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1033__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1034__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1035__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1036__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1037__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1038__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1109__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1110__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_1270__3__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/movie", at_468__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(frd, 0x4);
-INCLUDE_BSS(TexName, 0x4);
-INCLUDE_BSS(readBuf, 0x4);
-INCLUDE_BSS(writerest, 0x4);
-INCLUDE_BSS(readrest, 0x4);
-INCLUDE_BSS(isWithAudio, 0x4);
-INCLUDE_BSS(isStarted, 0x4);
-INCLUDE_BSS(isStrFileInit, 0x4);
-INCLUDE_BSS(Loop, 0x4);
-INCLUDE_BSS(MpegW, 0x4);
-INCLUDE_BSS(MpegH, 0x4);
-INCLUDE_BSS(isCountVblank, 0x4);
-INCLUDE_BSS(isFrameEnd, 0x4);
-INCLUDE_BSS(Cb, 0x4);
-INCLUDE_BSS(stepMainStatus, 0x4);
-INCLUDE_BSS(stepMainExitFlag, 0x4);
-INCLUDE_BSS(cnt_513, 0x4);
-INCLUDE_BSS(init_514, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(videoDec, 0xC0);
-INCLUDE_BSS(audioDec, 0x60);
-INCLUDE_BSS(voBuf, 0x20);
-INCLUDE_BSS(infile, 0x40);
-INCLUDE_BSS(_0_buf, 0x800);
-INCLUDE_BSS(at_344, 0x20);
-INCLUDE_BSS(at_349, 0x20);

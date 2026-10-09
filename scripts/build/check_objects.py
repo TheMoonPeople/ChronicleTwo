@@ -10,7 +10,8 @@ a. its pieces -- the object's sections of that name, in object order -- are
    the symbols scripts/build/disassemble.py cuts the run into, in address
    order, and their sizes add up to exactly the run. A function's section
    may stop short of the next function by the padding its 16-byte alignment
-   adds; a datum's may not stop short at all.
+   adds; a datum's may not stop short at all, except that a run's last datum
+   may leave a zero tail below an address-derived alignment bound.
 b. each piece's bytes equal retail's at its address, once the fields its
    relocations fill in are masked: the low 26 bits for R_MIPS_26, the low 16
    for R_MIPS_HI16, R_MIPS_LO16 and R_MIPS_GPREL16, the whole word for
@@ -20,7 +21,8 @@ c. each relocation resolves to what retail encodes there: the symbol's
    spelling) plus the addend in place gives retail's word for R_MIPS_32, its
    jump target for R_MIPS_26, its offset from `_gp` for R_MIPS_GPREL16, and,
    for a R_MIPS_HI16 paired with the R_MIPS_LO16 after it, retail's two
-   halves. An unpaired R_MIPS_HI16 is not checked.
+   halves. Duplicate, misaligned or out-of-piece sites and unpaired
+   R_MIPS_HI16 entries are errors; standalone R_MIPS_LO16 entries are valid.
 
 A section of the object that belongs to none of the unit's runs is an error.
 Prints one line per unit and exits non-zero if any check fails.
@@ -56,6 +58,8 @@ MASKS = {R_MIPS_32: 0xFFFFFFFF, R_MIPS_26: 0x03FFFFFF, R_MIPS_HI16: 0xFFFF,
          R_MIPS_LO16: 0xFFFF, R_MIPS_GPREL16: 0xFFFF}
 
 FUNCTION_ALIGNMENT = 16
+# Cap on the address-derived possible alignment; the original is not known.
+MAX_RUN_ALIGNMENT = 128
 NAMED_ADDRESS = re.compile(r"(?:D_|\.L)([0-9A-F]{8})")
 
 
@@ -103,13 +107,24 @@ def word(data, offset):
     return struct.unpack_from("<I", data, offset)[0]
 
 
-def is_retail_tail_padding(ctx, name, section_name, start, end, size):
-    """Recognize zero linker padding after the last datum of a unit run."""
+def next_run_alignment(address):
+    """Bound possible run alignment from its address; no original alignment is inferred."""
+    return min(address & -address, MAX_RUN_ALIGNMENT)
+
+
+def is_retail_tail_padding(ctx, name, section_name, start, end, size, contents_end):
+    """Recognize zero linker padding after the last datum of a unit run.
+
+    A tail must stay below the address-derived alignment bound, capped at 128.
+    This does not prove the next run's original compiler or linker alignment.
+    """
     symbol = ctx.pieces.symbols.by_name.get(name)
     if symbol is None or symbol[2] != size:
         return False
     pad_start = start + size
-    if not (0 < end - pad_start < 16):
+    if pad_start != contents_end or pad_start >= end:
+        return False
+    if end - pad_start >= next_run_alignment(end):
         return False
     if any(pad_start <= address < end for address in ctx.retail.relocations):
         return False
@@ -193,7 +208,9 @@ def check_unit(ctx, unit, verbose):
                 if section.sh_addralign > 1:
                     errors.append(f"{name}: alignment {section.sh_addralign}")
                 tail_pad = (index == indices[-1] and
-                            is_retail_tail_padding(ctx, name, section_name, start, end, size))
+                            is_retail_tail_padding(
+                                ctx, name, section_name, start, end, size,
+                                ctx.linker.contents_end(unit, lo, hi)))
                 if size != end - start and not tail_pad:
                     errors.append(f"{name}: size 0x{size:X}, retail 0x{end - start:X}")
             want_nobits = section_name in layout.NOBITS
@@ -228,6 +245,27 @@ def check_unit(ctx, unit, verbose):
         # The assembler puts each R_MIPS_HI16 just before the R_MIPS_LO16 it
         # pairs with, so the records stay in the order it wrote them.
         relocations = relocs.get(index, [])
+        seen = set()
+        invalid = False
+        for k, relocation in enumerate(relocations):
+            offset = relocation.r_offset
+            label = f"{starts.get(index)}+0x{offset:X}"
+            if offset in seen:
+                errors.append(f"{label}: duplicate relocation site")
+                invalid = True
+            seen.add(offset)
+            if offset % 4 or not 0 <= offset <= len(data) - 4:
+                errors.append(f"{label}: misaligned or out-of-piece relocation site")
+                invalid = True
+            if (relocation.reloc_type == R_MIPS_HI16
+                    and not any(later.reloc_type == R_MIPS_LO16
+                                and later.symbol_index == relocation.symbol_index
+                                for later in relocations[k + 1:])):
+                errors.append(f"{label}: unpaired HI16 relocation")
+                invalid = True
+        if invalid:
+            checked_bytes += len(data)
+            continue
         for relocation in relocations:
             mask = MASKS.get(relocation.reloc_type)
             if mask is None:

@@ -6,6 +6,33 @@
 #include "mg_drawprim.hpp"
 #include "nd_meswin.hpp"
 
+/**
+ * Texture rectangles for each versatile-window frame part.
+ */
+s32 data[VWIN_PART_MAX][4] = {
+    {208, 25, 23, 25},
+    {231, 25, 2, 25},
+    {233, 25, 23, 25},
+    {208, 50, 23, 2},
+    {231, 50, 2, 2},
+    {233, 50, 23, 2},
+    {208, 52, 23, 14},
+    {231, 52, 2, 14},
+    {233, 52, 23, 14},
+    {208, 66, 23, 2},
+    {231, 66, 2, 2},
+    {233, 66, 23, 2},
+    {208, 68, 23, 25},
+    {231, 68, 2, 25},
+    {233, 68, 23, 25},
+    {208, 93, 23, 25},
+    {231, 93, 2, 25},
+    {233, 93, 23, 25},
+    {208, 0, 23, 25},
+    {231, 0, 2, 25},
+    {233, 0, 23, 25},
+};
+
 #define DrawWindowPart(prim, part, x, y, width, height, color)                   \
     do {                                                                         \
         mgRect<int> screen;                                                      \
@@ -401,6 +428,3 @@ void DrawDQFukidashi(mgCDrawPrim *prim, RECT win, int tail_x, int tail_y,
                    0x10, 0xF0, 0x10, 0x10, color);
     DrawWindowTile(prim, right_x, bottom_y, 0x10, 0x10, 0x20, 0xF0, 0x10, 0x10, color);
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/drawwin", data__DATA);

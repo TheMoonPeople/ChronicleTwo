@@ -12,10 +12,6 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 
-extern u_char              at_844[];
-extern const unsigned char at_307__DATA[];
-extern u_char              at_324[];
-extern u_char              at_341[];
 extern u_char              at_1118[];
 extern u_char              at_1119[];
 
@@ -491,8 +487,7 @@ void mgCObject::SetPosition(float *position) {
 }
 
 void mgCObject::SetPosition(float x, float y, float z) {
-    float position[4];
-    *(u_long128 *) position = *(u_long128 *) at_307__DATA;
+    float position[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     position[0] = x;
     position[1] = y;
     position[2] = z;
@@ -515,8 +510,7 @@ void mgCObject::SetRotation(float *rotation) {
 }
 
 void mgCObject::SetRotation(float x, float y, float z) {
-    float rotation[4];
-    *(u_long128 *) rotation = *(u_long128 *) at_324;
+    float rotation[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     rotation[0] = x;
     rotation[1] = y;
     rotation[2] = z;
@@ -540,8 +534,7 @@ void mgCObject::SetScale(float *scale) {
 }
 
 void mgCObject::SetScale(float x, float y, float z) {
-    float scale[4];
-    *(u_long128 *) scale = *(u_long128 *) at_341;
+    float scale[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     scale[0] = x;
     scale[1] = y;
     scale[2] = z;
@@ -677,9 +670,7 @@ int mgCFrame::GetWorldBBox(mgVu0FBOX *box) {
         found = 1;
         GetLWMatrix(matrix);
 
-        mgApplyMatrix(world_box.max, world_box.min, matrix,
-                      ((mgCFrame::BoundInfo *) bound)->max,
-                      ((mgCFrame::BoundInfo *) bound)->min);
+        mgApplyMatrix(world_box.max, world_box.min, matrix, bound->max, bound->min);
 
         if (attr != 0 && attr->billboard != 0) {
             float extent;
@@ -1055,7 +1046,7 @@ void mgCFrame::GetLWMatrixTopBottom(float (*matrix)[4]) {
         return;
     }
     if (changed == 0) {
-        mgCFrame *parentFrame = (mgCFrame *)parent;
+        mgCFrame *parentFrame = parent;
         if (parentFrame == 0) {
             sceVu0CopyMatrix(matrix, lw_matrix);
             return;
@@ -1282,8 +1273,7 @@ void mgCFrame::SetRotation(float *rot) {
 }
 
 void mgCFrame::SetRotation(float x, float y, float z) {
-    float rotation[4];
-    *(u_long128 *) rotation = *(u_long128 *) at_844;
+    float rotation[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     rotation[0] = x;
     rotation[1] = y;
     rotation[2] = z;
@@ -1835,21 +1825,6 @@ int mgCObject::Draw() {
     return 0;
 }
 
-// Static initialiser (.init)
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_frame", at_307__DATA);
-
-// Static initialiser table (.ctor)
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_frame", __vt__8mgCFrame__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_frame", __vt__12mgCFrameBase__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_frame", __vt__9mgCObject__DATA);
-
 // Uninitialised data (.bss)
-INCLUDE_BSS(at_324, 0x10);
-INCLUDE_BSS(at_341, 0x10);
-INCLUDE_BSS(at_844, 0x10);
 INCLUDE_BSS(at_1118, 0x10);
 INCLUDE_BSS(at_1119, 0x10);

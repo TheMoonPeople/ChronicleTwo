@@ -18,6 +18,7 @@ extern _reent *_impure_ptr[];
 int printf(const char *fmt, ...);
 int fprintf(FILE *stream, const char *fmt, ...);
 int sprintf(char *out, const char *fmt, ...);
+int vsprintf(char *out, const char *fmt, char *args);
 int fflush(FILE *stream);
 }
 

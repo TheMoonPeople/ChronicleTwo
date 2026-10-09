@@ -73,7 +73,10 @@ public:
     short     vertex_num;   /**< Number of vertices in the primitive. */
     int      *index;        /**< Vertex indices: position, then normal, texture coordinate and colour as the type gives them. */
     mgCFace  *next;         /**< Following primitive of the same material, or NULL. */
-    u_long128 packet_tag;   /**< DMA tag that calls the primitive's prebuilt packet, in a model whose packets are built at load time. */
+    union {
+        u_long128 packet_tag;         /**< DMA tag that calls the primitive's prebuilt packet, in a model whose packets are built at load time. */
+        u_int     packet_tag_word[4]; /**< The same DMA tag as its four 32-bit words. */
+    };
 };
 
 STATIC_ASSERT(sizeof(mgCFace) == 0x30);

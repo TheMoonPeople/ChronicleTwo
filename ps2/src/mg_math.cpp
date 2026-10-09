@@ -1077,8 +1077,9 @@ float mgCosf(float angle) {
 }
 
 // Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_math", sin_table_num__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_math", sin_table_unit_1__DATA);
+float sin_table_num = 1024.0f;
+
+float sin_table_unit_1 = 162.97466f;
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(SinTable, 0x1000);
+float SinTable[1024];

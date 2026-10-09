@@ -155,7 +155,7 @@ struct DNGMAP_ROOM_INFO {
     s16   offset_y;               /**< Vertical offset the room is drawn at. */
     s8    tex_no;                 /**< Picture the room is drawn with. */
     u8    unk_43;
-    u8    unk_44;
+    s8    selectable;             /**< 1 once the room may take the tree-map cursor. */
     u8    visited; /**< Non-zero once the floor has been entered. */
     u8    mark;    /**< Non-zero to draw the bobbing mark over the room. */
     u8    unk_47;

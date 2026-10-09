@@ -10,6 +10,7 @@
 #include "editmap.hpp"
 #include "editmap2.hpp"
 #include "editriver.hpp"
+#include "mainloop.hpp"
 #include "mdslist.hpp"
 #include "menusystemdata.hpp"
 #include "mg_math.hpp"
@@ -23,22 +24,6 @@ static const u32   kFuncPointHasSound = 0x80;
 static const int   kPartsTypeRiver = 0xB;
 static const int   kNpcLiveLength = 7;
 static const int   kChildIdMax = 0x200;
-
-extern "C" char at_1042__4[];
-extern "C" char at_1043__4[];
-
-/**
- *
- * Holds a short live character name used for house occupants.
- *
- */
-struct NpcLiveName {
-    char text[10]; /**< Name text and terminator. */
-};
-
-extern "C" NpcLiveName at_983__3;
-extern int             LanguageCode;
-extern u_long128       at_796__4;
 
 // Code (.text)
 /**
@@ -464,18 +449,8 @@ int CEditMap::GetePlacePartsAtInfoID(int id, int *out, int max) {
     }
 
     if (info->GetPartsType() == kPartsTypeRiver) {
-        /**
-         *
-         * A river position viewed as floats or one quadword.
-         *
-         */
-        union RiverPosition {
-            u_long128 quad;      /**< Packed position components. */
-            float     values[4]; /**< Position components. */
-        };
-
-        RiverPosition position = *(RiverPosition *) &at_796__4;
-        int           river_count = GetRiverNum((float *) &position);
+        sceVu0FVECTOR position = {0.0f, 0.0f, 0.0f, -1.0f};
+        int river_count = GetRiverNum(position);
         limit = river_count < limit ? river_count : limit;
 
         for (i = 0; i < limit; i++) {
@@ -705,8 +680,6 @@ void CEditMap::UpdateHouse() {
     int               child_num;
     int               i;
     CEditParts       *child;
-    NpcLiveName       live_name;
-    char              suffix[10];
     part = edit_parts;
 
     for (index = 0; index < edit_parts_max; index++, part++) {
@@ -724,18 +697,19 @@ void CEditMap::UpdateHouse() {
             for (node = part->piece_list; node != NULL; node = node->next) {
                 node_name = node->data.name;
                 model = &node->data;
-                live_name = at_983__3;
+                char live_name[10] = "npclive";
+                char suffix[10];
                 live_length = kNpcLiveLength;
 
                 if (LanguageCode > 0) {
-                    live_length += sprintf(suffix, at_1042__4, LanguageCode);
-                    strcat(live_name.text, suffix);
+                    live_length += sprintf(suffix, "%d", LanguageCode);
+                    strcat(live_name, suffix);
                 }
 
-                if (node_name != NULL && strncmp(node_name, at_1043__4, kNpcLiveLength) == 0) {
+                if (node_name != NULL && strncmp(node_name, "npclive", kNpcLiveLength) == 0) {
                     model->Show(0);
 
-                    if (strncmp(node_name, live_name.text, live_length) == 0) {
+                    if (strncmp(node_name, live_name, live_length) == 0) {
                         model->Show(visible);
                     }
                 }
@@ -1008,21 +982,6 @@ int CEditMap::GetSeSrcVolPan(int *se_no, float *vol, float *pan, int max) {
     return count;
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap2", at_796__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap2", at_983__3__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap2", at_1042__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap2", at_1043__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap2", at_1127__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap2", at_1128__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap2", at_1129__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap2", at_1130__2__DATA);
-
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(cnt_482, 0x4);
 INCLUDE_BSS(init_483, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1050__2, 0x10);

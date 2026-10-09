@@ -17,40 +17,78 @@
 #include "mg_visual.hpp"
 #include "mglib.hpp"
 
-extern sceVu0FVECTOR *vert_845;
-extern sceVu0FMATRIX  tmp_SkinMatrix_847;
-extern sceVu0FMATRIX  tmp_SkinMatrix_inv_848;
-extern sceVu0FMATRIX  tmp_ChrMatrix_849;
-extern sceVu0FMATRIX  tmp_BaseSkinMatrix_851;
-extern sceVu0FMATRIX  tmp_BaseSkinMatrix_inv_852;
-extern sceVu0FVECTOR *vert_915;
-extern sceVu0FVECTOR *nml_916;
-extern sceVu0FMATRIX  tmp_SkinMatrix_917;
-extern sceVu0FMATRIX  tmp_SkinMatrix_inv_918;
-extern sceVu0FMATRIX  tmp_ChrMatrix_919;
-extern sceVu0FMATRIX  tmp_BaseSkinMatrix_921;
-extern sceVu0FMATRIX  tmp_BaseSkinMatrix_inv_922;
+/**
+ * Vertex buffer used by the skinning pass.
+ */
+sceVu0FVECTOR * vert_845;
+
+/**
+ * Scratch transform of the skinning frame.
+ */
+sceVu0FMATRIX tmp_SkinMatrix_847;
+
+/**
+ * Inverse world transform of the skinning frame.
+ */
+sceVu0FMATRIX tmp_SkinMatrix_inv_848;
+
+/**
+ * World transform of the animation root.
+ */
+sceVu0FMATRIX tmp_ChrMatrix_849;
+
+/**
+ * Bind-pose skinning transform.
+ */
+sceVu0FMATRIX tmp_BaseSkinMatrix_851;
+
+/**
+ * Inverse bind-pose skinning transform.
+ */
+sceVu0FMATRIX tmp_BaseSkinMatrix_inv_852;
+
+/**
+ * Vertex buffer used by the skinning pass.
+ */
+static sceVu0FVECTOR * vert_915;
+
+/**
+ * Normal buffer used by the skinning pass.
+ */
+static sceVu0FVECTOR * nml_916;
+
+/**
+ * Scratch transform of the skinning frame.
+ */
+static sceVu0FMATRIX tmp_SkinMatrix_917;
+
+/**
+ * Inverse world transform of the skinning frame.
+ */
+static sceVu0FMATRIX tmp_SkinMatrix_inv_918;
+
+/**
+ * World transform of the animation root.
+ */
+static sceVu0FMATRIX tmp_ChrMatrix_919;
+
+/**
+ * Bind-pose skinning transform.
+ */
+static sceVu0FMATRIX tmp_BaseSkinMatrix_921;
+
+/**
+ * Inverse bind-pose skinning transform.
+ */
+static sceVu0FMATRIX tmp_BaseSkinMatrix_inv_922;
 
 static mgCFrame *OldSkinFrame;
-
-struct FrameLinkRecord {
-    int count;
-    int link[11];
-};
 
 struct CCPolyCopy {
     float vertex[3][4];
     float normal[4];
     float attr[4];
 };
-
-struct MotionVector {
-    float f[4];
-};
-
-extern MotionVector at_945;
-extern char         at_966[];
-extern char         at_967[];
 
 float def_vrtx[800][4];
 
@@ -665,12 +703,12 @@ Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
         vert_915 = visual->vertex;
         nml_916 = visual->normal;
 
-        if (((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->vertex_count > 400) {
-            printf(at_966, ((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->vertex_count, 400);
+        if (frame_info[list->frame].vertex_count > 400) {
+            printf("###### MAX_VERTX OVER %d/%d######\n", frame_info[list->frame].vertex_count, 400);
         }
 
-        if (((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->normal_count > 800) {
-            printf(at_967, ((tagFRAME_INF *) ((list->frame << 5) + (int) frame_info))->normal_count, 800);
+        if (frame_info[list->frame].normal_count > 800) {
+            printf("###### MAX_NORMAL OVER %d/%d######\n", frame_info[list->frame].normal_count, 800);
         }
 
         for (i = 0; i < frame_info[list->frame].vertex_count; i++) {
@@ -710,15 +748,15 @@ Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
     rotate[3][2] = 0.0f;
 
     for (unsigned int index = 0; index < list->key_count; index++) {
-        MotionVector weight = at_945;
+        float weight[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-        weight.f[0] = 0.01f * list->values[index][0];
+        weight[0] = 0.01f * list->values[index][0];
 
-        if (!(weight.f[0] <= 0.0f)) {
+        if (!(weight[0] <= 0.0f)) {
             vertex = list->key_frames[index];
-            testVUnew(deform, frame_info[list->frame].base_vertices[vertex], weight.f, def_vrtx[vertex], vert_915[vertex]);
+            testVUnew(deform, frame_info[list->frame].base_vertices[vertex], weight, def_vrtx[vertex], vert_915[vertex]);
             sceVu0ApplyMatrix(normal, rotate, frame_info[list->frame].base_normals[vertex]);
-            sceVu0InterVectorXYZ(nml_916[vertex], normal, frame_info[list->frame].base_normals[vertex], weight.f[0]);
+            sceVu0InterVectorXYZ(nml_916[vertex], normal, frame_info[list->frame].base_normals[vertex], weight[0]);
         }
     }
 
@@ -785,8 +823,8 @@ void ChangeWeight(Mot_List *list, mgCMemory *memory, u8 *data, int frame_no, tag
     Mot_List             *channel;
     Mot_List             *cur;
     FRAME_VECTOR_EX_DATA *keys;
-    int                  *src_vertices;
-    int                  *src_uvs;
+    sceVu0FVECTOR        *src_vertices;
+    sceVu0FVECTOR        *src_normals;
     int                   i;
     mgFACE_GROUP         *node;
     mgCFace              *index_list;
@@ -849,22 +887,22 @@ void ChangeWeight(Mot_List *list, mgCMemory *memory, u8 *data, int frame_no, tag
     prev->next = old_prev;
 
     if (mesh != NULL) {
-        src_vertices = (int *) mesh->vertex;
-        src_uvs = (int *) mesh->normal;
+        src_vertices = mesh->vertex;
+        src_normals = mesh->normal;
         frame_info[frame_no].base_vertices = (float (*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
         frame_info[frame_no].base_normals = (float (*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
         frame_info[frame_no].vertex_refs =
-            (int (*)[12]) memory->Alloc(((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
+            (FrameLinkRecord *) memory->Alloc(((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
         frame_info[frame_no].vertex_count = mesh->vertex_num;
         frame_info[frame_no].normal_count = mesh->normal_num;
         memcpy(frame_info[frame_no].base_vertices, src_vertices, mesh->vertex_num * 16);
-        memcpy(frame_info[frame_no].base_normals, src_uvs, mesh->normal_num * 16);
+        memcpy(frame_info[frame_no].base_normals, src_normals, mesh->normal_num * 16);
 
         for (i = 0; i < mesh->vertex_num; i++) {
-            frame_info[frame_no].vertex_refs[i][0] = 0;
+            frame_info[frame_no].vertex_refs[i].count = 0;
         }
 
-        node = (mgFACE_GROUP *) mesh->face_group;
+        node = mesh->face_group;
 
         if (node != NULL) {
             do {
@@ -881,9 +919,9 @@ void ChangeWeight(Mot_List *list, mgCMemory *memory, u8 *data, int frame_no, tag
                                 pos++;
                                 int to = indices[pos];
                                 pos += index_list->index_stride - 1;
-                                record = (FrameLinkRecord *) &frame_info[frame_no].vertex_refs[from];
+                                record = &frame_info[frame_no].vertex_refs[from];
                                 record->link[record->count] = to;
-                                record = (FrameLinkRecord *) &frame_info[frame_no].vertex_refs[from];
+                                record = &frame_info[frame_no].vertex_refs[from];
                                 record->count++;
                             }
 
@@ -1015,8 +1053,8 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
     int             *indices;
     int              pos;
     FrameLinkRecord *record;
-    int             *src_vertices;
-    int             *src_uvs;
+    sceVu0FVECTOR   *src_vertices;
+    sceVu0FVECTOR   *src_normals;
     mgCFrame        *target;
 
     frame_num = frame->GetFrameNum();
@@ -1024,9 +1062,7 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
 
     if (i < frame_num) {
         do {
-            int frame_no =
-                ((int) frame->GetFrame(i)->parent - (int) frame) /
-                272;
+            int frame_no = ((int) frame->GetFrame(i)->parent - (int) frame) / (int) sizeof(mgCFrame);
             tagFRAME_INF *info = &frame_info[i];
             i++;
             info->parent = frame_no;
@@ -1045,25 +1081,25 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
                     mesh = (mgCVisualMDT *) target->visual;
 
                     if (mesh != NULL && mesh != NULL) {
-                        src_vertices = (int *) mesh->vertex;
-                        src_uvs = (int *) mesh->normal;
+                        src_vertices = mesh->vertex;
+                        src_normals = mesh->normal;
                         frame_info[channel->frame].base_vertices =
                             (float (*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
                         frame_info[channel->frame].base_normals =
                             (float (*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
-                        frame_info[channel->frame].vertex_refs = (int (*)[12]) memory->Alloc(
+                        frame_info[channel->frame].vertex_refs = (FrameLinkRecord *) memory->Alloc(
                             ((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
                         frame_info[channel->frame].vertex_count = mesh->vertex_num;
                         frame_info[channel->frame].normal_count = mesh->normal_num;
                         memcpy(frame_info[channel->frame].base_vertices, src_vertices,
                                mesh->vertex_num * 16);
-                        memcpy(frame_info[channel->frame].base_normals, src_uvs, mesh->normal_num * 16);
+                        memcpy(frame_info[channel->frame].base_normals, src_normals, mesh->normal_num * 16);
 
                         for (j = 0; j < mesh->vertex_num; j++) {
-                            frame_info[channel->frame].vertex_refs[j][0] = 0;
+                            frame_info[channel->frame].vertex_refs[j].count = 0;
                         }
 
-                        node = (mgFACE_GROUP *) mesh->face_group;
+                        node = mesh->face_group;
 
                         if (node != NULL) {
                             do {
@@ -1080,9 +1116,9 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
                                                 pos++;
                                                 int to = indices[pos];
                                                 pos += list->index_stride - 1;
-                                                record = (FrameLinkRecord *) &frame_info[channel->frame].vertex_refs[from];
+                                                record = &frame_info[channel->frame].vertex_refs[from];
                                                 record->link[record->count] = to;
-                                                record = (FrameLinkRecord *) &frame_info[channel->frame].vertex_refs[from];
+                                                record = &frame_info[channel->frame].vertex_refs[from];
                                                 record->count++;
                                             }
 
@@ -2481,25 +2517,3 @@ s32 CalcIntersectionPoint2PAnd2P(float ax0, float ay0, float ax1, float ay1, flo
 
     return CheckPosInOutFor2P(bx0, by0, bx1, by1, *out_x, *out_y) != 0;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gameutil", at_966__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gameutil", at_967__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(vert_845, 0x10);
-INCLUDE_BSS(vert_915, 0x10);
-INCLUDE_BSS(nml_916, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(tmp_SkinMatrix_847, 0x40);
-INCLUDE_BSS(tmp_SkinMatrix_inv_848, 0x40);
-INCLUDE_BSS(tmp_ChrMatrix_849, 0x40);
-INCLUDE_BSS(tmp_BaseSkinMatrix_851, 0x40);
-INCLUDE_BSS(tmp_BaseSkinMatrix_inv_852, 0x40);
-INCLUDE_BSS(tmp_SkinMatrix_917, 0x40);
-INCLUDE_BSS(tmp_SkinMatrix_inv_918, 0x40);
-INCLUDE_BSS(tmp_ChrMatrix_919, 0x40);
-INCLUDE_BSS(tmp_BaseSkinMatrix_921, 0x40);
-INCLUDE_BSS(tmp_BaseSkinMatrix_inv_922, 0x40);
-INCLUDE_BSS(at_945, 0x10);

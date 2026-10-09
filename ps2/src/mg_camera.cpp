@@ -13,6 +13,8 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 
+int mgCCamera::StopCamera;
+
 // Code (.text)
 void mgCCamera::Step(int frames) {
     mgCCamera *self = this;
@@ -400,9 +402,3 @@ mgCCameraFollow::mgCCameraFollow(float distance, float height, float angle, floa
 // Defined in mg_camera.hpp.
 // Defined in mg_camera.hpp.
 // Defined in mg_camera.hpp.
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_camera", __vt__15mgCCameraFollow__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_camera", __vt__9mgCCamera__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(StopCamera__9mgCCamera, 0x4);

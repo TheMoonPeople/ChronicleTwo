@@ -393,14 +393,12 @@ void CEventSprite2::FirstDraw() {
     }
 }
 
-extern char at_1069__4[];
-
 void CEventSprite2::Draw() {
     mgCTextureManager *textures = &mgTexManager;
     textures->ReloadTexture(tex_block, (sceVif1Packet *) NULL);
     mgCTexture *texture;
 
-    if (strcmp(tex_name, at_1069__4) == 0) {
+    if (strcmp(tex_name, "") == 0) {
         texture = NULL;
     } else {
         texture = textures->GetTexture(tex_name, -1);
@@ -515,6 +513,3 @@ void CEventSprite2::Draw() {
             break;
     }
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventsprite", at_1069__4__DATA);

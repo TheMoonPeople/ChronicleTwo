@@ -8,9 +8,6 @@
 #include "mg_sprite.hpp"
 #include "mglib.hpp"
 
-extern u_int prog_vif_291[4];
-extern u_int progf_vif_292[4];
-
 /**
  *
  * GIF tag fields used while drawing a sprite.
@@ -60,17 +57,16 @@ union VifQuad {
     u_int     w[4]; /**< The same data as words. */
 };
 
-extern u_int at_298[4];
-extern u_int at_324__2[4];
-
 /**
  *
  * Words of the GIF tag written into a sprite packet.
  *
  */
 struct SpriteGifTagBuf {
-    u_int word0; /**< First GIF tag word. */
-    u_int unknown_04[3];
+    u_int loop_flags;   /**< Loop count and end-of-packet flag. */
+    u_int prim_flags;   /**< Primitive controls and register count. */
+    u_int registers_lo; /**< First eight GS register descriptors. */
+    u_int registers_hi; /**< Last eight GS register descriptors. */
 };
 
 /**
@@ -78,7 +74,9 @@ struct SpriteGifTagBuf {
  * GIF tag of the GS register writes that draw an mgCSprite, in A+D mode, whose loop count CreatePacket sets.
  *
  */
-extern SpriteGifTagBuf sprite_giftag;
+static SpriteGifTagBuf sprite_giftag __attribute__((aligned(16))) = {
+    MG_GIFTAG_EOP, 1 << MG_GIFTAG_NREG_SHIFT, SCE_GIF_PACKED_AD, 0,
+};
 
 // Code (.text)
 int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4],
@@ -365,6 +363,20 @@ void mgC3DSprite::CPSetSprite(float *first, float *second, float *third, float *
 }
 
 void mgC3DSprite::EndCPSprite() {
+    /**
+     *
+     * VIF quadword starting the billboard program at address two.
+     *
+     */
+    static u_int prog_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 2};
+
+    /**
+     *
+     * VIF quadword continuing the billboard program.
+     *
+     */
+    static u_int progf_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCNT};
+
     int quad_count = ((u_char *) packet_cur - (u_char *) batch_tag) / 16;
     int data_count = quad_count - 1;
     batch_tag[0] = data_count | 0x10000000;
@@ -385,13 +397,13 @@ void mgC3DSprite::EndCPSprite() {
 
         // The first batch starts the VU program; later batches continue it.
         if (prog_started == 0) {
-            *packet_cur++ = *(u_long128 *) prog_vif_291;
+            *packet_cur++ = *(u_long128 *) prog_vif;
             prog_started = 1;
         } else {
-            *packet_cur++ = *(u_long128 *) progf_vif_292;
+            *packet_cur++ = *(u_long128 *) progf_vif;
         }
 
-        VifQuad end = *(VifQuad *) at_298;
+        VifQuad end = {MG_VIF_FLUSHA};
         *packet_cur++ = *(u_long128 *) &end;
     }
 }
@@ -464,16 +476,15 @@ u_int mgCSprite::CreatePacket(mgCDrawManager *manager) {
     tag[0] = 0x10000009;
     tag[3] = 0x50000009;
     *(u_long128 *) cursor = *(u_long128 *) tag;
-    sprite_giftag.word0 = 0x8008;
+    sprite_giftag.loop_flags = MG_GIFTAG_EOP | 8;
     // Drawn at depth zero unless a view depth is given and lands on the screen.
     *(u_long128 *) (cursor + 0x10) = *(u_long128 *) &sprite_giftag;
     data = (long long *) (cursor + 0x20);
     screen_z = 0;
 
     if (!(depth < 1.0f)) {
-        float position[4];
+        float position[4] = {0.0f, 0.0f, 0.0f, 1.0f};
         int   projected[4];
-        *(u_long128 *) position = *(u_long128 *) at_324__2;
         position[2] = depth;
 
         if (mgTransViewPrim(projected, position) != 0) {
@@ -565,17 +576,3 @@ void mgC3DSprite::Initialize() {
     this->vu1_offset = 0;
     this->vu1_base = 0;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_sprite", sprite_giftag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_sprite", prog_vif_291__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_sprite", progf_vif_292__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_sprite", at_298__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_sprite", at_324__2__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_sprite", __vt__9mgCSprite__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_sprite", __vt__11mgC3DSprite__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_199, 0x10);

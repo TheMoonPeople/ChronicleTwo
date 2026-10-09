@@ -265,6 +265,3 @@ int IntersectionBox(float *start, float *end, mgVu0FBOX *box, float (*matrix)[4]
 int mt_test(RS_STACKDATA *stack, int argc) {
     return 1;
 }
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_161, 0x10);

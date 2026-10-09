@@ -5,9 +5,12 @@
 
 #include "savedatadungeon.hpp"
 
-extern short limmit_table[];
+/**
+ * Number of saved floor records in each dungeon.
+ */
+static short limmit_table[7] = {9, 16, 25, 21, 23, 29, 39};
+
 // Code (.text)
-extern const char at_79[];
 
 DNG_FLOOR_SAVE *CSaveDataDungeon::GetFloorInfoPtr(int dungeon, int floor) {
     if (dungeon < 0 || dungeon >= 7) {
@@ -61,11 +64,5 @@ void CSaveDataDungeon::Initialize() {
 void CSaveDataDungeon::SetFloorID(int floor) {
     prev_floor_id[stage_id] = floor_id[stage_id];
     floor_id[stage_id] = floor;
-    printf(at_79, stage_id, prev_floor_id[stage_id], floor);
+    printf("[%d] FLOOR :::    %d ----->> %d \n", stage_id, prev_floor_id[stage_id], floor);
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/savedatadungeon", limmit_table__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/savedatadungeon", at_79__DATA);

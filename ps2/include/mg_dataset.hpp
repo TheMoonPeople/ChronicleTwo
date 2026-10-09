@@ -363,7 +363,6 @@ public:
 
     union {
         char          *data;            /**< Start of the open data section. */
-        int            section_start;   /**< Open section address viewed as an integer. */
         u_long128     *data_cursor;     /**< Next quadword in the open section. */
         MDT_MATERIAL_ *material_cursor; /**< Next material in the open section. */
     }; /**< Write position inside the open data section. */
@@ -372,7 +371,6 @@ public:
 
     union {
         MDT_FACES *faces;           /**< Face section header. */
-        int       *face_block;      /**< Face section viewed as words. */
         int        face_block_addr; /**< Face section address viewed as an integer. */
     }; /**< Header of the face section. */
 

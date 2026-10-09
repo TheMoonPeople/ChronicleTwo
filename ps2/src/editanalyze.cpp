@@ -17,21 +17,6 @@ const int info_fence = 0x2F;
 const int analyze_slots = 64;
 const int parts_list_max = 0x200;
 
-extern float at_964__4[4];
-extern float at_1297__4[4];
-
-/**
- *
- * Four house information identifiers stored as a quadword.
- *
- */
-union HouseInfoIds {
-    int       id[4]; /**< House information identifiers. */
-    u_long128 qw;    /**< The same identifiers as one quadword. */
-};
-
-extern "C" HouseInfoIds at_913__6;
-
 // Code (.text)
 void AnalyzeEditMap(int chara_no, CEditMap *map) {
     CEditData *data;
@@ -145,11 +130,11 @@ int GetTreeNum(CEditMap *map) {
 }
 
 int GetHouseParts(CEditMap *map, int *out, int max) {
-    HouseInfoIds ids = at_913__6;
-    int          total = 0;
+    int ids[4] = {1, 9, 0x16, 0x1F};
+    int total = 0;
 
     for (int i = 0; i < 4; i++) {
-        int found = map->GetePlacePartsAtInfoID(ids.id[i], out, max);
+        int found = map->GetePlacePartsAtInfoID(ids[i], out, max);
         out += found;
         total += found;
         max -= found;
@@ -198,11 +183,6 @@ void AnalyzeSharlot(CEditData *data, CEditMap *map) {
     int   condition[analyze_slots];
     int   target[analyze_slots];
     int   parts_nos[parts_list_max];
-    float river_pos[4];
-    float tree_pos[3][4];
-    float to_second[4];
-    float to_third[4];
-    float closest[4];
     int   tree_a;
     int   tree_b;
     int   tree_c;
@@ -215,7 +195,11 @@ void AnalyzeSharlot(CEditData *data, CEditMap *map) {
         target[i] = -1;
     }
 
-    *(u_long128 *) river_pos = *(u_long128 *) at_964__4;
+    sceVu0FVECTOR river_pos = {0.0f, 0.0f, 0.0f, -1.0f};
+    float tree_pos[3][4];
+    float to_second[4];
+    float to_third[4];
+    float closest[4];
     condition[0] = map->GetRiverNum(river_pos) >= 0xF;
     int tree_count = map->GetePlacePartsAtInfoID(info_tree_a, &parts_nos[0], 1);
     tree_count += map->GetePlacePartsAtInfoID(info_tree_b, &parts_nos[1], 1);
@@ -956,15 +940,3 @@ void EditMapInitEvent(int map_no, CEditMap *edit_map) {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editanalyze", at_913__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editanalyze", at_964__4__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editanalyze", at_1618__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editanalyze", at_1632__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editanalyze", at_1633__3__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1297__4, 0x10);

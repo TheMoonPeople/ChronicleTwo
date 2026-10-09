@@ -788,7 +788,7 @@ int SearchMapEventParts(int kind, CMapParts **out_parts, float *rotation, int ma
  * @address 0x291300
  * @size 0x410
  */
-int SearchMapFlatPosition(float *out_pos, CAutoMapGen *map_gen);
+int SearchMapFlatPosition(sceVu0FVECTOR out_pos, CAutoMapGen *map_gen);
 
 /**
  *

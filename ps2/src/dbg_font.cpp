@@ -322,7 +322,7 @@ void dbgCJISFont::__putc(unsigned long serno) {
         x += 2;
     }
 }
-extern "C" int vsprintf(char *, const char *, char *);
+
 void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
     char text[0x408];
     char escape[8];
@@ -398,11 +398,6 @@ void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
     }
     loaded_texture_id = -1;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dbg_font", at_288__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dbg_font", at_419__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dbg_font", at_420__DATA);
 
 // Uninitialised data (.bss)
 dbgCJISFont JisFont __attribute__((aligned(16)));

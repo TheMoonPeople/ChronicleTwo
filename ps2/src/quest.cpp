@@ -8,27 +8,26 @@
 #include "savedata.hpp"
 #include "scriptinterpreter.hpp"
 
-extern CQuestManager *spi_questman;
-extern mgCMemory     *spi_queststack;
-extern QUEST_INFO    *spi_quest_info;
-extern SPI_TAG_PARAM  quest_cmd_tag[];
-#ifdef NONMATCHING
-static CQuestManager *spi_questman;   /**< Request list currently being read from a script. */
-static mgCMemory     *spi_queststack; /**< Heap used for the request list. */
-static QUEST_INFO    *spi_quest_info; /**< Request currently being filled. */
+/**
+ *
+ * Request list currently being read from a script.
+ *
+ */
+static CQuestManager *spi_questman;
 
-int quest_NUM(SPI_STACK *stack, int arg_count);
-int quest_NEW(SPI_STACK *stack, int arg_count);
-int quest_COMMENT(SPI_STACK *stack, int arg_count);
-int quest_END(SPI_STACK *stack, int arg_count);
-static SPI_TAG_PARAM quest_cmd_tag[] = {
-    {"NUM",     quest_NUM    },
-    {"NEW",     quest_NEW    },
-    {"COMMENT", quest_COMMENT},
-    {"END",     quest_END    },
-    {NULL,      NULL         },
-};
-#endif
+/**
+ *
+ * Heap used for the request list.
+ *
+ */
+static mgCMemory *spi_queststack;
+
+/**
+ *
+ * Request currently being filled.
+ *
+ */
+static QUEST_INFO *spi_quest_info;
 
 // Code (.text)
 /**
@@ -61,7 +60,7 @@ QUEST_INFO *CQuestManager::GetQuestInfo(int id) {
  * Allocates the quest entries requested by a quest configuration script.
  *
  */
-int quest_NUM(SPI_STACK *stack, int arg_count) {
+static int quest_NUM(SPI_STACK *stack, int arg_count) {
     int num;
     u32 size;
     u32 blocks;
@@ -87,7 +86,7 @@ int quest_NUM(SPI_STACK *stack, int arg_count) {
  * Sets the identifier and name of the current quest entry.
  *
  */
-int quest_NEW(SPI_STACK *stack, int arg_count) {
+static int quest_NEW(SPI_STACK *stack, int arg_count) {
     int   id = spiGetStackInt(stack++);
     char *name = spiGetStackString(stack);
     spi_quest_info->id = id;
@@ -100,7 +99,7 @@ int quest_NEW(SPI_STACK *stack, int arg_count) {
  * Sets the main comment or a reaction text of the current quest entry.
  *
  */
-int quest_COMMENT(SPI_STACK *stack, int arg_count) {
+static int quest_COMMENT(SPI_STACK *stack, int arg_count) {
     int   index = spiGetStackInt(stack++);
     char *text = spiGetStackString(stack);
 
@@ -120,10 +119,23 @@ int quest_COMMENT(SPI_STACK *stack, int arg_count) {
  * Advances the quest configuration cursor to the next entry.
  *
  */
-int quest_END(SPI_STACK *stack, int arg_count) {
+static int quest_END(SPI_STACK *stack, int arg_count) {
     spi_quest_info++;
     return 1;
 }
+
+/**
+ *
+ * Maps quest configuration keywords to their record-building handlers.
+ *
+ */
+static SPI_TAG_PARAM quest_cmd_tag[] = {
+    {"NUM", quest_NUM},
+    {"NEW", quest_NEW},
+    {"COMENT", quest_COMMENT},
+    {"END", quest_END},
+    {NULL, NULL}
+};
 
 void CQuestManager::LoadCfg(mgCMemory *memory, char *script, int length) {
     spi_questman = this;
@@ -215,17 +227,3 @@ int CMonsterBook::CountKill(int monster, int amount) {
 
     return entry[monster].kill_count;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/quest", quest_cmd_tag__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/quest", at_878__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/quest", at_879__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/quest", at_880__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/quest", at_881__4__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(spi_questman, 0x4);
-INCLUDE_BSS(spi_queststack, 0x4);
-INCLUDE_BSS(spi_quest_info, 0x4);

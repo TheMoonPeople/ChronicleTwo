@@ -183,7 +183,7 @@ public:
      *
      * @mangled Init__6CSoundFiiii
      * @address 0x18A410
-     * @size 0x780
+     * @size 0x77C
      */
     int Init(int mode0, int mode1, int depth0, int depth1);
 

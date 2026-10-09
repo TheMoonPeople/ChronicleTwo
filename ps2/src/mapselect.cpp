@@ -21,15 +21,6 @@
 
 /**
  *
- * Two colours used by the event list.
- *
- */
-struct EventListColors {
-    u32 color[2]; /**< Event list colours. */
-};
-
-/**
- *
  * Pair of characters used for a line break.
  *
  */
@@ -39,93 +30,173 @@ struct LineBreakPair {
 
 /**
  *
- * Two labels used by the save editor.
+ * Pair of labels used to mark selections or name boolean values.
  *
  */
 struct SaveEditLabels {
-    const char *text[2]; /**< Save editor labels. */
+    const char *text[2]; /**< Selection markers or boolean labels. */
 };
 
-extern SaveEditLabels   at_1125;
-extern SaveEditLabels   at_1128__2;
-extern int              MapNameNum;
-extern MAP_NAME_INFO   *map_name;
-extern int              pMapNameBuff;
-extern int              pCharBuff;
-extern char            *CharBuff;
-extern int              now_no;
-extern int              SedSel;
-extern int              SedSelData[SED_ITEM_NUM];
-extern char            *config_str[1];
-extern mgCMemory       *MenuStack;
-extern int              SelectMode;
-extern int              SelectMapType;
-extern int              select_1009;
-extern signed char      init_1010;
-extern int              EventInfoNum;
-extern int              BossEventTop;
-extern int              sel_event;
-extern int              top_event;
-extern char             MapNameBuff[0x8000];
-extern char             SelectMapName[];
-extern char           **SelectMapList[8];
-extern int              SelectMapNum[8];
-extern char            *map_sel_type[8];
-extern int              select__1049[8];
-extern int              top__1050[8];
-extern SPI_TAG_PARAM    tag__7[];
-extern EventListColors  at_1270__4;
-extern LineBreakPair    at_1377__2;
-extern char             at_1040__4[];
-extern char             at_1041__4[];
-extern char             at_1042__3[];
-extern char             at_1043__3[];
-extern char             at_1044__2[];
-extern char             at_1045__3[];
-extern char             at_1103__4[];
-extern char             at_1104__6[];
-extern char             at_1105__3[];
-extern char             at_1323__3[];
-extern char             at_1324__2[];
-extern char             at_1469__4[];
-extern char             at_1470__3[];
-extern char             at_1471__3[];
-extern char             at_842__4[];
-extern char             at_859__3[];
-extern char             at_860__2[];
+/**
+ *
+ * Counts the map name records loaded for the current language.
+ *
+ */
+static int MapNameNum;
+/**
+ *
+ * Points to map records in the map name storage arena.
+ *
+ */
+static MAP_NAME_INFO *map_name;
+/**
+ *
+ * Tracks the next free quadword in the map name storage arena.
+ *
+ */
+static int pMapNameBuff;
+/**
+ *
+ * Tracks the next free byte in the map name string buffer.
+ *
+ */
+static int pCharBuff;
+/**
+ *
+ * Points to the map name string buffer following its records.
+ *
+ */
+static char *CharBuff;
+/**
+ *
+ * Selects the map record filled by the next script command.
+ *
+ */
+static int now_no;
+/**
+ *
+ * Selects the save data editor item.
+ *
+ */
+static int SedSel;
+/**
+ *
+ * Stores editable debug save-data values.
+ *
+ */
+static int SedSelData[SED_ITEM_NUM] = {0};
+/**
+ *
+ * Names the configuration value shown by the save data editor.
+ *
+ */
+static char *config_str[1] = {"Caption off"};
+/**
+ *
+ * Points to the memory stack used by the map selection menu.
+ *
+ */
+static mgCMemory *MenuStack;
+/**
+ *
+ * Selects the current map selection screen.
+ *
+ */
+static int SelectMode;
+/**
+ *
+ * Selects the map category shown by the map list.
+ *
+ */
+static int SelectMapType;
+/**
+ *
+ * Counts the loaded event viewer records.
+ *
+ */
+static int EventInfoNum;
+/**
+ *
+ * Marks the first boss entry in the event viewer list.
+ *
+ */
+static int BossEventTop;
+/**
+ *
+ * Selects the visible event viewer row.
+ *
+ */
+static int sel_event;
+/**
+ *
+ * Selects the first event viewer row on screen.
+ *
+ */
+static int top_event;
+/**
+ *
+ * Stores map records and their variable-length strings in one arena.
+ *
+ */
+char MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
+/**
+ *
+ * Stores the map name selected for the next edit loop.
+ *
+ */
+static char SelectMapName[0x100] = "";
+/**
+ *
+ * Points to the map name lists for each selection category.
+ *
+ */
+static char **SelectMapList[MAP_SEL_TYPE_NUM];
+/**
+ *
+ * Counts the map names in each selection category.
+ *
+ */
+static int SelectMapNum[MAP_SEL_TYPE_NUM];
+/**
+ *
+ * Stores the selected map row for each map category.
+ *
+ */
+static int select__1049[16] = {0};
+/**
+ *
+ * Stores the first visible map row for each map category.
+ *
+ */
+static int top__1050[16] = {0};
 int                     mlMAP_NAME_NUM(SPI_STACK *stack, int argc);
 int                     mlMAP_NAME(SPI_STACK *stack, int argc);
 static MAP_NAME_INFO   *GetMapNameInfo(int map_no);
 int                     MapTypeSelect();
 int                     MapSelect();
 static char            *GetLine(char **columns, char *position, char *end);
-#ifdef NONMATCHING
 
-static int            MapNameNum;
-static MAP_NAME_INFO *map_name;
-static int            pMapNameBuff;
-static int            pCharBuff;
-static char          *CharBuff;
-static int            now_no;
-static char           MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
-static mgCMemory     *MenuStack;
-static int            SelectMode;
-static int            SelectMapType;
-static int            select_1009;
-static signed char    init_1010;
-static int            SedSel;
-static int            EventInfoNum;
-static int            BossEventTop;
-static int            sel_event;
-static int            top_event;
-static char         **SelectMapList[MAP_SEL_TYPE_NUM];
-static int            SelectMapNum[MAP_SEL_TYPE_NUM];
-EVENT_VIEW_INFO      *EventInfo;
-int                   BossBattleSelFlag;
-extern SPI_TAG_PARAM  tag__7[3];
-extern char          *map_sel_type[MAP_SEL_TYPE_NUM];
-extern char           SelectMapName[0x100];
-#endif
+/**
+ *
+ * Names the map categories shown by the map selection menu.
+ *
+ */
+static char *map_sel_type[MAP_SEL_TYPE_NUM] = {
+    "New", "Georama", "PalmBlinks", "Submap", "Future", "Dungeon", "Event", "Special"
+};
+
+/**
+ *
+ * Points to the loaded event viewer records.
+ *
+ */
+EVENT_VIEW_INFO *EventInfo;
+/**
+ *
+ * Selects the boss event list when opening the event viewer.
+ *
+ */
+int BossBattleSelFlag;
 
 // Code (.text)
 /**
@@ -165,7 +236,7 @@ int mlMAP_NAME(SPI_STACK *stack, int argc) {
     int length;
 
     for (i = 0; i < 3; i++) {
-        if (args[i] == NULL || *(s8 *) args[i] == 0) {
+        if (args[i] == NULL || args[i][0] == 0) {
             copies[i] = NULL;
         } else {
             length = strlen(args[i]);
@@ -194,15 +265,26 @@ int mlMAP_NAME(SPI_STACK *stack, int argc) {
     return 1;
 }
 
+/**
+ *
+ * Dispatches the map name script commands.
+ *
+ */
+static SPI_TAG_PARAM tag[3] = {
+    {"MAP_NAME_NUM", mlMAP_NAME_NUM},
+    {"MAP_NAME", mlMAP_NAME},
+    {NULL, NULL}
+};
+
 void LoadMapName(int language, u_long128 *buffer) {
     char path[0x80];
     int  size;
     MapNameNum = 0;
-    sprintf(path, at_842__4, language);
+    sprintf(path, "map/map%d.cfg", language);
 
     if (LoadFile2(path, buffer, &size, 0)) {
         CScriptInterpreter interpreter;
-        interpreter.SetTag(tag__7);
+        interpreter.SetTag(tag);
         interpreter.SetScript((char *) buffer, size);
         interpreter.Run();
         pMapNameBuff += pCharBuff / 16 + 1;
@@ -226,19 +308,19 @@ static MAP_NAME_INFO *GetMapNameInfo(int map_no) {
 void GetMapPath(char *path, char *name) {
     int   length = strlen(name);
     char *rest = name;
-    strcpy(path, at_859__3);
+    strcpy(path, "map/");
     strncat(path, name, 1);
-    strcat(path, at_860__2);
+    strcat(path, "/");
 
     if (length >= 3) {
         strncat(path, name, 3);
         rest = name + 3;
-        strcat(path, at_860__2);
+        strcat(path, "/");
     }
 
     if (length >= 6) {
         strncat(path, rest, 3);
-        strcat(path, at_860__2);
+        strcat(path, "/");
     }
 
     strcat(path, name);
@@ -351,7 +433,7 @@ void InitMapSelect(mgCMemory *stack) {
     MenuStack = stack;
     SetCurrentDir(NULL);
     int list_size;
-    LoadFile((char *) "map/map.lst", read_buffer, &list_size);
+    LoadFile("map/map.lst", read_buffer, &list_size);
     input_str lines;
     lines.buffer = (char *) read_buffer;
     lines.size = list_size;
@@ -416,30 +498,27 @@ int MapTypeSelect() {
     char  text[0x800];
     char *cursor = text;
 
-    if (init_1010 == 0) {
-        select_1009 = 0;
-        init_1010 = 1;
-    }
+    static int select = 0;
 
     if (GamePad__2.Down(0x1000)) {
-        select_1009--;
+        select--;
     }
 
     if (GamePad__2.Down(0x4000)) {
-        select_1009++;
+        select++;
     }
 
-    if (select_1009 < 0) {
-        select_1009 = 7;
+    if (select < 0) {
+        select = 7;
     }
 
-    if (select_1009 >= 8) {
-        select_1009 = 0;
+    if (select >= 8) {
+        select = 0;
     }
 
     if (GamePad__2.Down(0x20)) {
-        if (SelectMapNum[select_1009] > 0) {
-            SelectMapType = select_1009;
+        if (SelectMapNum[select] > 0) {
+            SelectMapType = select;
             SelectMode = 1;
         }
     }
@@ -448,22 +527,22 @@ int MapTypeSelect() {
         SelectMode = -1;
     }
 
-    cursor += sprintf(cursor, at_1040__4);
+    cursor += sprintf(cursor, "\n\n");
 
     for (int i = 0; i < 8; i++) {
-        if (i == select_1009) {
-            cursor += sprintf(cursor, at_1041__4);
+        if (i == select) {
+            cursor += sprintf(cursor, ">>");
         } else {
-            cursor += sprintf(cursor, at_1042__3);
+            cursor += sprintf(cursor, "  ");
         }
 
-        cursor += sprintf(cursor, at_1043__3, map_sel_type[i]);
+        cursor += sprintf(cursor, "%s", map_sel_type[i]);
 
-        if (i == select_1009) {
-            cursor += sprintf(cursor, at_1044__2);
+        if (i == select) {
+            cursor += sprintf(cursor, "<<");
         }
 
-        cursor += sprintf(cursor, at_1045__3);
+        cursor += sprintf(cursor, "\n");
     }
 
     GetDebugFont()->DrawDirect(text, 10, 10);
@@ -541,7 +620,7 @@ int MapSelect() {
     }
 
     int selected_map_no = SearchMapNo(SelectMapList[SelectMapType][*selected]);
-    cursor += sprintf(cursor, at_1103__4, selected_map_no);
+    cursor += sprintf(cursor, "\n\nMapNo = %d\n", selected_map_no);
     int end = *top + 8;
 
     if (count < end) {
@@ -552,31 +631,31 @@ int MapSelect() {
         int map_no = SearchMapNo(SelectMapList[SelectMapType][i]);
 
         if (i == *selected) {
-            cursor += sprintf(cursor, at_1041__4);
+            cursor += sprintf(cursor, ">>");
         } else {
-            cursor += sprintf(cursor, at_1042__3);
+            cursor += sprintf(cursor, "  ");
         }
 
-        cursor += sprintf(cursor, at_1043__3, SelectMapList[SelectMapType][i]);
+        cursor += sprintf(cursor, "%s", SelectMapList[SelectMapType][i]);
 
         if (selected_map_no < 0) {
-            cursor += sprintf(cursor, at_1104__6);
+            cursor += sprintf(cursor, "   *");
         } else {
-            cursor += sprintf(cursor, at_1105__3);
+            cursor += sprintf(cursor, "    ");
         }
 
         name = NULL;
         GetMapName(map_no, &name);
 
         if (name != NULL) {
-            cursor += sprintf(cursor, at_1043__3, name);
+            cursor += sprintf(cursor, "%s", name);
         }
 
         if (i == *selected) {
-            cursor += sprintf(cursor, at_1044__2);
+            cursor += sprintf(cursor, "<<");
         }
 
-        cursor += sprintf(cursor, at_1045__3);
+        cursor += sprintf(cursor, "\n");
     }
 
     GetDebugFont()->DrawDirect(text, 10, 10);
@@ -621,11 +700,11 @@ int SaveDataEditLoop() {
     GAME_PROGRESS_INFO *progress;
     const char         *progress_name;
     SV_CONFIG_OPTION   *config = save->GetConfig();
-    SaveEditLabels      marker = at_1125;
-    SaveEditLabels      on_off = at_1128__2;
+    SaveEditLabels      marker = {{"  ", ">>"}};
+    SaveEditLabels      on_off = {{"OFF", "ON"}};
     progress = GetGameProgressInfo(SedSelData[SED_PROGRESS]);
     SedSelData[SED_PLAY_TIME] = GetPlayTimeCountFlag();
-    char *caption[1] = {(char *) &config->caption_off};
+    s8 *caption[1] = {&config->caption_off};
     progress_name = marker.text[0];
 
     if (progress != NULL) {
@@ -804,9 +883,8 @@ int SaveDataEditLoop() {
 
 int EventViewLoop() {
     char            text[0x400];
-    EventListColors colors;
     char           *cursor = text;
-    cursor += sprintf(cursor, at_1323__3);
+    cursor += sprintf(cursor, "\nEvent \n");
 
     if (BossBattleSelFlag != 0) {
         if (top_event < BossEventTop) {
@@ -818,7 +896,7 @@ int EventViewLoop() {
 
     int index = top_event;
     int last = index + 10;
-    colors = at_1270__4;
+    SaveEditLabels marker = {{"  ", ">>"}};
 
     if (last >= EventInfoNum) {
         last = EventInfoNum;
@@ -828,7 +906,7 @@ int EventViewLoop() {
         EVENT_VIEW_INFO *info = &EventInfo[index];
 
         if (info->name != NULL) {
-            cursor += sprintf(cursor, at_1324__2, colors.color[index == top_event + sel_event],
+            cursor += sprintf(cursor, "%s%s   %s\n", marker.text[index == top_event + sel_event],
                               info->name, info->detail);
         }
     }
@@ -909,7 +987,7 @@ void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
     int              floor_no;
     int              dungeon;
 
-    if (!LoadFile2((char *) "event/view_pal.txt", buffer, &file_size, 0)) {
+    if (!LoadFile2("event/view_pal.txt", buffer, &file_size, 0)) {
         return;
     }
 
@@ -964,10 +1042,9 @@ void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
  *
  */
 static char *GetLine(char **columns, char *position, char *end) {
-    LineBreakPair line_break_pair;
+    LineBreakPair line_break_pair = {{'\r', '\n'}};
     int           field;
     int           length;
-    line_break_pair = at_1377__2;
 
     if (position < end) {
         field = 0;
@@ -1046,8 +1123,8 @@ void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
     }
 
     if (mode == 0) {
-        left = frame->SearchFrame(at_1469__4);
-        right = frame->SearchFrame(at_1470__3);
+        left = frame->SearchFrame("atoramiria");
+        right = frame->SearchFrame("himo");
 
         if (enable) {
             if (left != NULL) {
@@ -1069,7 +1146,7 @@ void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
     }
 
     if (mode == 1) {
-        left = frame->SearchFrame(at_1469__4);
+        left = frame->SearchFrame("atoramiria");
 
         if (enable) {
             if (left != NULL) {
@@ -1083,7 +1160,7 @@ void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
     }
 
     if (mode == 2) {
-        right = frame->SearchFrame(at_1471__3);
+        right = frame->SearchFrame("atora");
 
         if (enable) {
             if (right != NULL) {
@@ -1096,128 +1173,3 @@ void AtraMiriaOnOff(int mode, CCharacter2 *chara, int enable) {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", map_sel_type__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", SelectMapName__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", tag__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", select__1049__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", top__1050__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", SedSelData__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_792__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_793__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_794__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_795__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_796__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_797__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_798__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_799__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_800__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_801__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_842__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_859__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_860__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1004__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1005__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1040__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1041__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1042__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1043__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1044__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1045__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1103__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1104__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1105__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1117__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1126__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1127__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1222__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1223__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1224__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1225__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1226__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1227__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1228__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1323__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1324__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1372__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1373__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1469__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1470__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1471__3__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", config_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1125__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1128__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1270__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapselect", at_1377__2__DATA);
-
-// Small uninitialised data (.sbss)
-#ifndef NONMATCHING
-INCLUDE_BSS(MapNameNum, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(map_name, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(pMapNameBuff, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(pCharBuff, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(CharBuff, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(now_no, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(MenuStack, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(SelectMode, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(SelectMapType, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(select_1009, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(init_1010, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(SedSel, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(EventInfo, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(EventInfoNum, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(BossEventTop, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(sel_event, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(top_event, 0x4);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(BossBattleSelFlag, 0x4);
-#endif
-
-// Uninitialised data (.bss)
-#ifndef NONMATCHING
-INCLUDE_BSS(MapNameBuff, 0x8000);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(SelectMapList, 0x20);
-#endif
-#ifndef NONMATCHING
-INCLUDE_BSS(SelectMapNum, 0x20);
-#endif

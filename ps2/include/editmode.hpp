@@ -323,7 +323,7 @@ int PaintEditParts(CEditMap *map, int parts_no, int color_no, float *color);
  *
  * @mangled EditMode__FP6CScene
  * @address 0x2DF4F0
- * @size 0x1DE0
+ * @size 0x1DDC
  */
 void EditMode(CScene *scene);
 

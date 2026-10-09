@@ -10,17 +10,6 @@
 #include "userdata.hpp"
 
 /**
- *
- * Three bytes of invention discovery flags.
- *
- */
-struct InventFoundFlags {
-    u8 flag[3]; /**< Flags marking discovered inventions. */
-};
-
-STATIC_ASSERT(sizeof(InventFoundFlags) == 3);
-
-/**
  * @file
  * Declares the invention menu: the photos the player takes with the camera,
  * the ideas ("neta") and scoops learnt from them, the album saved on the memory
@@ -39,15 +28,32 @@ struct BG_READ_INFO;
 
 /**
  *
- * Page of the invention menu shown, as held in the menu's mode.
+ * Page of the invention menu shown, as held in key_arg_no.
  *
  */
 enum INVENT_MENU_MODE {
-    INVENT_MODE_THINK      = 0, /**< Idea board, on which three ideas are combined into an invention. */
-    INVENT_MODE_CARD_LIST  = 2, /**< List of the invention cards made so far. */
-    INVENT_MODE_ITEM_LIST  = 3, /**< List of the items the player carries. */
-    INVENT_MODE_ALBUM_VIEW = 5, /**< Album of photos kept on the memory card. */
-    INVENT_MODE_PHOTO_VIEW = 6  /**< Photos carried by the player. */
+    INVENT_MODE_THINK              = 0,  /**< Idea board, on which three ideas are combined into an invention. */
+    INVENT_MODE_THINK_ALBUM_BUTTON = 1,  /**< Album-access button beside the idea board. */
+    INVENT_MODE_CARD_LIST          = 2,  /**< List of the invention cards made so far. */
+    INVENT_MODE_ITEM_LIST          = 3,  /**< List of the items the player carries. */
+    INVENT_MODE_THINK_WITH_ALBUM   = 4,  /**< Idea board while the album is open beside it. */
+    INVENT_MODE_ALBUM_VIEW         = 5,  /**< Album of photos kept on the memory card. */
+    INVENT_MODE_PHOTO_VIEW         = 6,  /**< Photos carried by the player. */
+    INVENT_MODE_PHOTO_ALBUM_BUTTON = 7,  /**< Album-access button beside the photo-only board. */
+    INVENT_MODE_MEMO_BUTTON        = 8,  /**< Closed idea notebook above the idea board. */
+    INVENT_MODE_MEMO_LIST          = 9,  /**< Idea words listed in the opened idea notebook. */
+    INVENT_MODE_MEMO_ARROW         = 10, /**< Arrow between the idea board and the idea notebook. */
+    INVENT_MODE_MEMO_CORK          = 11  /**< Cork tab above the opened idea notebook's word list. */
+};
+
+/**
+ *
+ * Inventory-specific states of the shared menu question flow.
+ *
+ */
+enum INVENT_MENU_ASK_MODE {
+    MENU_ASK_MODE_PHOTO_NETA   = 13, /**< Adds a selected photo to the idea board. */
+    MENU_ASK_MODE_ALBUM_ACCESS = 14  /**< Runs the memory-card album access flow. */
 };
 
 /**
@@ -192,7 +198,7 @@ public:
      *
      * @mangled Initialize__13CDC2AlbumDataFv
      * @address 0x1FFF00
-     * @size 0x40
+     * @size 0x38
      */
     void Initialize();
 
@@ -212,7 +218,7 @@ public:
      *
      * @mangled DeletePhotoData__13CDC2AlbumDataFi
      * @address 0x1FFFB0
-     * @size 0x40
+     * @size 0x3C
      */
     void DeletePhotoData(int index);
 
@@ -255,7 +261,7 @@ public:
      *
      * @mangled GetInventDataInfoByItemID__17CInventDataManageFi
      * @address 0x2013B0
-     * @size 0x60
+     * @size 0x54
      */
     INVENT_DATA_INFO *GetInventDataInfoByItemID(int item_id);
 
@@ -265,7 +271,7 @@ public:
      *
      * @mangled CheckInventEnable__17CInventDataManageFPiPi
      * @address 0x201410
-     * @size 0x180
+     * @size 0x174
      */
     int CheckInventEnable(int *ids, int *combined);
 
@@ -275,7 +281,7 @@ public:
      *
      * @mangled HowMuchZairyouMakeItem__17CInventDataManageFiiPi
      * @address 0x201590
-     * @size 0xE0
+     * @size 0xD8
      */
     int HowMuchZairyouMakeItem(int item_id, int count, int *needs);
 
@@ -285,7 +291,7 @@ public:
      *
      * @mangled DeleteUserUsedItem__17CInventDataManageFii
      * @address 0x201670
-     * @size 0xB0
+     * @size 0xAC
      */
     int DeleteUserUsedItem(int item_id, int count);
 
@@ -295,7 +301,7 @@ public:
      *
      * @mangled CheckMakeItem__17CInventDataManageFiiP13CGameDataUsed
      * @address 0x201720
-     * @size 0x90
+     * @size 0x8C
      */
     int CheckMakeItem(int item_id, int count, CGameDataUsed *item);
 
@@ -470,7 +476,7 @@ public:
      *
      * @mangled InitPhotoNetaBoardToAlbum__11CMenuInventFi
      * @address 0x201EE0
-     * @size 0xB0
+     * @size 0xA8
      */
     void InitPhotoNetaBoardToAlbum(int source);
 
@@ -480,7 +486,7 @@ public:
      *
      * @mangled CheckRecoverPhotoNum__11CMenuInventFv
      * @address 0x201F90
-     * @size 0x40
+     * @size 0x38
      */
     int CheckRecoverPhotoNum();
 
@@ -490,7 +496,7 @@ public:
      *
      * @mangled AttachFormInfo__11CMenuInventFv
      * @address 0x201FD0
-     * @size 0x2D0
+     * @size 0x2C4
      */
     void AttachFormInfo();
 
@@ -500,7 +506,7 @@ public:
      *
      * @mangled LoadCharaCheck__11CMenuInventFv
      * @address 0x2022A0
-     * @size 0x4E0
+     * @size 0x4D8
      */
     void LoadCharaCheck();
 
@@ -510,7 +516,7 @@ public:
      *
      * @mangled GetNowSelectedPictInfo__11CMenuInventFv
      * @address 0x202780
-     * @size 0x70
+     * @size 0x68
      */
     USER_PICTURE_INFO *GetNowSelectedPictInfo();
 
@@ -520,7 +526,7 @@ public:
      *
      * @mangled GetPhotoInfoFromMode__11CMenuInventFPi
      * @address 0x2027F0
-     * @size 0x80
+     * @size 0x7C
      */
     USER_PICTURE_INFO *GetPhotoInfoFromMode(int *slot_count);
 
@@ -530,7 +536,7 @@ public:
      *
      * @mangled InitNetaCircle__11CMenuInventFi
      * @address 0x202870
-     * @size 0xF0
+     * @size 0xE4
      */
     void InitNetaCircle(int show);
 
@@ -550,7 +556,7 @@ public:
      *
      * @mangled CancelNetaCircle__11CMenuInventFi
      * @address 0x202D00
-     * @size 0x130
+     * @size 0x124
      */
     int CancelNetaCircle(int mode);
 
@@ -560,7 +566,7 @@ public:
      *
      * @mangled GetNowSelectNetaID__11CMenuInventFi
      * @address 0x202E30
-     * @size 0xB0
+     * @size 0xAC
      */
     int GetNowSelectNetaID(int slot);
 
@@ -570,7 +576,7 @@ public:
      *
      * @mangled SelectedNetaPhotoAlready__11CMenuInventFi
      * @address 0x202EE0
-     * @size 0x50
+     * @size 0x48
      */
     int SelectedNetaPhotoAlready(int neta_id);
 
@@ -580,7 +586,7 @@ public:
      *
      * @mangled SelectedNetaMemoListAlready__11CMenuInventFi
      * @address 0x202F30
-     * @size 0x70
+     * @size 0x6C
      */
     int SelectedNetaMemoListAlready(int neta_id);
 
@@ -590,7 +596,7 @@ public:
      *
      * @mangled UpdataRecordBoard__11CMenuInventFv
      * @address 0x202FA0
-     * @size 0x1A0
+     * @size 0x19C
      */
     void UpdataRecordBoard();
 
@@ -600,7 +606,7 @@ public:
      *
      * @mangled PrepareNextMode__11CMenuInventFi
      * @address 0x203140
-     * @size 0x210
+     * @size 0x208
      */
     void PrepareNextMode(int mode);
 
@@ -610,7 +616,7 @@ public:
      *
      * @mangled SearchNowPosItemExist__11CMenuInventFv
      * @address 0x203350
-     * @size 0xA0
+     * @size 0x94
      */
     CGameDataUsed *SearchNowPosItemExist();
 
@@ -620,7 +626,7 @@ public:
      *
      * @mangled CreateModeSwapForm__11CMenuInventFi
      * @address 0x2033F0
-     * @size 0x40
+     * @size 0x38
      */
     void CreateModeSwapForm(int side);
 
@@ -630,7 +636,7 @@ public:
      *
      * @mangled GradationSet__11CMenuInventFi
      * @address 0x203430
-     * @size 0x3C0
+     * @size 0x3BC
      */
     void GradationSet(int mode);
 
@@ -640,7 +646,7 @@ public:
      *
      * @mangled GradationStep__11CMenuInventFv
      * @address 0x2037F0
-     * @size 0x300
+     * @size 0x2F4
      */
     void GradationStep();
 
@@ -650,7 +656,7 @@ public:
      *
      * @mangled InitEnd__11CMenuInventFv
      * @address 0x203AF0
-     * @size 0xC0
+     * @size 0xB4
      */
     virtual void InitEnd();
 
@@ -660,7 +666,7 @@ public:
      *
      * @mangled ExitEnd__11CMenuInventFv
      * @address 0x203BB0
-     * @size 0xA0
+     * @size 0x9C
      */
     virtual void ExitEnd();
 
@@ -680,7 +686,7 @@ public:
      *
      * @mangled ItemCmdAfter__11CMenuInventFiP16ITEMCMD_RET_PARA
      * @address 0x203E00
-     * @size 0x90
+     * @size 0x8C
      */
     virtual int ItemCmdAfter(int command, ITEMCMD_RET_PARA *para);
 
@@ -690,7 +696,7 @@ public:
      *
      * @mangled IsCreateObject__11CMenuInventFii
      * @address 0x203E90
-     * @size 0x1590
+     * @size 0x1588
      */
     virtual int IsCreateObject(int mode, int arg);
 
@@ -700,7 +706,7 @@ public:
      *
      * @mangled CalcMakeBrd__11CMenuInventFi
      * @address 0x205420
-     * @size 0x1B0
+     * @size 0x1A4
      */
     void CalcMakeBrd(int message);
 
@@ -720,7 +726,7 @@ public:
      *
      * @mangled CalcCursorPosition__11CMenuInventFv
      * @address 0x205600
-     * @size 0x480
+     * @size 0x474
      */
     void CalcCursorPosition();
 
@@ -740,7 +746,7 @@ public:
      *
      * @mangled CalcTex__11CMenuInventFv
      * @address 0x206020
-     * @size 0x13A0
+     * @size 0x139C
      */
     void CalcTex();
 
@@ -750,7 +756,7 @@ public:
      *
      * @mangled BootExtendCommand__11CMenuInventFv
      * @address 0x2073C0
-     * @size 0x3B0
+     * @size 0x3AC
      */
     void BootExtendCommand();
 
@@ -760,7 +766,7 @@ public:
      *
      * @mangled IsAskExtend__11CMenuInventFii
      * @address 0x207770
-     * @size 0x840
+     * @size 0x83C
      */
     virtual int IsAskExtend(int mode, int button);
 
@@ -770,7 +776,7 @@ public:
      *
      * @mangled PhotoNetaEnter__11CMenuInventFii
      * @address 0x207FB0
-     * @size 0x310
+     * @size 0x304
      */
     void PhotoNetaEnter(int index, int button);
 
@@ -780,7 +786,7 @@ public:
      *
      * @mangled IsAccessAlbum__11CMenuInventFv
      * @address 0x2082D0
-     * @size 0x13F0
+     * @size 0x13E8
      */
     void IsAccessAlbum();
 
@@ -790,7 +796,7 @@ public:
      *
      * @mangled GetNetaBoardCursorPosition__11CMenuInventFiPi
      * @address 0x2096C0
-     * @size 0xA0
+     * @size 0x94
      */
     void GetNetaBoardCursorPosition(int slot, int *pos);
 
@@ -800,7 +806,7 @@ public:
      *
      * @mangled GetNetaMemoCursorPosition__11CMenuInventFiPi
      * @address 0x209760
-     * @size 0x70
+     * @size 0x68
      */
     void GetNetaMemoCursorPosition(int slot, int *pos);
 
@@ -820,7 +826,7 @@ public:
      *
      * @mangled NextDifferentMode__11CMenuInventFii
      * @address 0x20C000
-     * @size 0x160
+     * @size 0x158
      */
     void NextDifferentMode(int next, int arg);
 };
@@ -833,7 +839,7 @@ STATIC_ASSERT(sizeof(CMenuInvent) == 0xF30);
  *
  * @mangled GetInventUserDataPtr__Fv
  * @address 0x1FF8E0
- * @size 0x40
+ * @size 0x38
  */
 CInventUserData *GetInventUserDataPtr();
 
@@ -853,7 +859,7 @@ void Init_USER_PICTURE_INFO(USER_PICTURE_INFO *photo);
  *
  * @mangled Copy_USER_PICTURE_INFO__FP17USER_PICTURE_INFOP17USER_PICTURE_INFO
  * @address 0x1FF950
- * @size 0x60
+ * @size 0x58
  */
 void Copy_USER_PICTURE_INFO(USER_PICTURE_INFO *src, USER_PICTURE_INFO *dst);
 
@@ -863,7 +869,7 @@ void Copy_USER_PICTURE_INFO(USER_PICTURE_INFO *src, USER_PICTURE_INFO *dst);
  *
  * @mangled PictureSeiton__FP17USER_PICTURE_INFOPci
  * @address 0x1FF9B0
- * @size 0x360
+ * @size 0x358
  */
 void PictureSeiton(USER_PICTURE_INFO *photo, char *work, int count);
 
@@ -883,7 +889,7 @@ void AttachPictTex(int block, mgCTexture **tex, USER_PICTURE_INFO *info, int cou
  *
  * @mangled CheckPhotoDataNoNeed__FP17USER_PICTURE_INFOiPi
  * @address 0x1FFE40
- * @size 0x60
+ * @size 0x58
  */
 int CheckPhotoDataNoNeed(USER_PICTURE_INFO *photo, int count, int *unneeded);
 
@@ -893,7 +899,7 @@ int CheckPhotoDataNoNeed(USER_PICTURE_INFO *photo, int count, int *unneeded);
  *
  * @mangled IsTakePhoto__Fv
  * @address 0x1FFEA0
- * @size 0x60
+ * @size 0x54
  */
 int IsTakePhoto();
 
@@ -913,7 +919,7 @@ void TranslateInventUserData(CInventUserData *old_data, CInventUserData *new_dat
  *
  * @mangled GetScoopDataTable__Fi
  * @address 0x200A20
- * @size 0x50
+ * @size 0x4C
  */
 SCOOP_DATA *GetScoopDataTable(int scoop_id);
 
@@ -923,7 +929,7 @@ SCOOP_DATA *GetScoopDataTable(int scoop_id);
  *
  * @mangled GetScoopDataTableIndex__Fi
  * @address 0x200A70
- * @size 0x40
+ * @size 0x3C
  */
 SCOOP_DATA *GetScoopDataTableIndex(int index);
 
@@ -933,7 +939,7 @@ SCOOP_DATA *GetScoopDataTableIndex(int index);
  *
  * @mangled InitScoopString__Fv
  * @address 0x200AB0
- * @size 0xD0
+ * @size 0xC8
  */
 void InitScoopString();
 
@@ -953,7 +959,7 @@ void AnalyzeScoopString(mgCMemory *stack, char *script, int size);
  *
  * @mangled LoadFilePictureName__Fv
  * @address 0x201070
- * @size 0xA0
+ * @size 0x9C
  */
 void LoadFilePictureName();
 
@@ -963,7 +969,7 @@ void LoadFilePictureName();
  *
  * @mangled GetPhotoName__FP17USER_PICTURE_INFO
  * @address 0x201110
- * @size 0xF0
+ * @size 0xE4
  */
 char *GetPhotoName(USER_PICTURE_INFO *info);
 
@@ -983,7 +989,7 @@ int GetPhotoNameStr(int neta_id, char *dest);
  *
  * @mangled GetPhotoNameCheck__FP17USER_PICTURE_INFO
  * @address 0x201250
- * @size 0xA0
+ * @size 0x9C
  */
 char *GetPhotoNameCheck(USER_PICTURE_INFO *info);
 
@@ -1023,7 +1029,7 @@ int CheckItemTable(int item_id, int *values);
  *
  * @mangled CheckInventPhoto__Fii
  * @address 0x201DC0
- * @size 0x120
+ * @size 0x114
  */
 int CheckInventPhoto(int id, int kind);
 
@@ -1043,7 +1049,7 @@ void MenuInventCreateCardDraw(int &tex_block, float *pos);
  *
  * @mangled PictureDraw__FP10mgCTextureP17USER_PICTURE_INFOfffiiii
  * @address 0x209E50
- * @size 0x440
+ * @size 0x43C
  */
 void PictureDraw(mgCTexture *tex, USER_PICTURE_INFO *photo, float x, float y, float scale, int alpha, int red,
                  int blue, int green);
@@ -1054,7 +1060,7 @@ void PictureDraw(mgCTexture *tex, USER_PICTURE_INFO *photo, float x, float y, fl
  *
  * @mangled PictureDraw__FRi9mgRect_f_ifPUc
  * @address 0x20A380
- * @size 0x180
+ * @size 0x174
  */
 void PictureDraw(int &tex_block, mgRect<float> rect, int picture_no, float scale, unsigned char *rgba);
 
@@ -1064,7 +1070,7 @@ void PictureDraw(int &tex_block, mgRect<float> rect, int picture_no, float scale
  *
  * @mangled MenuInventPictureBoardDraw__FPfRii
  * @address 0x20A500
- * @size 0x4A0
+ * @size 0x498
  */
 void MenuInventPictureBoardDraw(float *pos, int &tex_block, int mode);
 
@@ -1074,7 +1080,7 @@ void MenuInventPictureBoardDraw(float *pos, int &tex_block, int mode);
  *
  * @mangled MenuInventAlbumPictureDraw__FPfRi
  * @address 0x20A9A0
- * @size 0x200
+ * @size 0x1F4
  */
 void MenuInventAlbumPictureDraw(float *origin, int &loaded_tex);
 
@@ -1094,7 +1100,7 @@ void MenuInventNetaMemoDraw(float *origin, int &loaded_tex);
  *
  * @mangled MenuInventInit__FP9mgCMemoryPii
  * @address 0x20AFB0
- * @size 0x1050
+ * @size 0x1048
  */
 int MenuInventInit(mgCMemory *memory, int *tex_block, int arg);
 
@@ -1104,7 +1110,7 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg);
  *
  * @mangled MenuInventKey__Fv
  * @address 0x20DBE0
- * @size 0x830
+ * @size 0x824
  */
 int MenuInventKey();
 
@@ -1114,6 +1120,6 @@ int MenuInventKey();
  *
  * @mangled MenuInventDraw__Fv
  * @address 0x20E410
- * @size 0x50
+ * @size 0x48
  */
 void MenuInventDraw();

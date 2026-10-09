@@ -444,6 +444,3 @@ mgVu0FBOX &mgVu0FBOX::operator=(mgVu0FBOX &source) {
     *(u_long128 *) min = *(u_long128 *) source.min;
     return *this;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_drawenv", at_184__DATA);

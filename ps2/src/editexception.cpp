@@ -22,38 +22,97 @@
 #include "scene.hpp"
 #include "sound.hpp"
 
-extern char   at_917__5[];
-extern char   at_918__4[];
-extern char   at_919__6[];
-extern char   at_920__5[];
-extern char   at_921__4[];
 extern char   at_1143__2[];
-extern char   at_1259[];
-extern mgVec4 at_1327;
-extern mgVec4 at_1328__2;
-extern mgVec4 at_1329;
-extern mgVec4 at_1330;
 
-extern char at_1084__2[];
-extern char at_1085[];
-extern char at_1086[];
-extern char at_1385__4[];
-extern char at_1386__3[];
+/**
+ * Character reacting to the camera.
+ */
+static int rea_chara_id;
 
-extern int               fade_cnt;
-extern int               next_thunder_cnt;
-extern int               rea_chara_id;
-extern int               rea_mtn_step;
-extern int               sound_cnt;
-extern int               sound_flag;
-extern int               start_thunder;
-extern int               thunder_count;
-extern CGeyserEffect    *GeyserEffect;
-extern int               FirePowderFlag;
-extern FirePowder       *fire_powder;
-extern int               GeyserEffectTexb;
-extern mgCFrame         *GeyserFrame;
-extern int               GeyserRndSeed;
+/**
+ * Current motion step of the camera reaction.
+ */
+static int rea_mtn_step;
+
+/**
+ * Frames remaining in the current thunder flash.
+ */
+static int thunder_count;
+
+/**
+ * Thunder-start state cleared when S51 lightning is initialized.
+ */
+static int start_thunder;
+
+/**
+ * Frames until the next thunder flash.
+ */
+static int next_thunder_cnt;
+
+/**
+ * Frames remaining in the current thunder fade.
+ */
+static int fade_cnt;
+
+/**
+ * Whether thunder sound has been scheduled.
+ */
+static int sound_flag;
+
+/**
+ * Delay before the thunder sound.
+ */
+static int sound_cnt;
+
+/**
+ * Whether fire-powder rendering is enabled.
+ */
+static int FirePowderFlag;
+
+/**
+ * Texture block used by fire-powder sprites.
+ */
+static int FirePowderTexb;
+
+/**
+ * Sprite visual used for fire-powder rendering.
+ */
+static mgC3DSprite * SpriteVis;
+
+/**
+ * Frame that owns the fire-powder sprite visual.
+ */
+static mgCFrame * FirePowFrame;
+
+/**
+ * Fire-powder particles active in the scene.
+ */
+static FirePowder * fire_powder;
+
+/**
+ * Whether geyser rendering is enabled.
+ */
+static int GeyserEffectFlag;
+
+/**
+ * Texture block used by geyser particles.
+ */
+static int GeyserEffectTexb;
+
+/**
+ * Frame that owns the geyser particle visual.
+ */
+static mgCFrame * GeyserFrame;
+
+/**
+ * Random seed stored when geyser effects are initialized.
+ */
+static int GeyserRndSeed;
+
+/**
+ * Array of geyser emitters shared by placed geyser parts.
+ */
+static CGeyserEffect * GeyserEffect;
 
 /**
  *
@@ -100,22 +159,6 @@ static inline u32 align16_blocks(u32 bytes) {
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 
-extern s32            rea_chara_id;
-extern s32            rea_mtn_step;
-extern s32            thunder_count;
-extern s32            start_thunder;
-extern s32            next_thunder_cnt;
-extern s32            fade_cnt;
-extern s32            sound_flag;
-extern s32            sound_cnt;
-extern s32            FirePowderFlag;
-extern s32            FirePowderTexb;
-extern mgC3DSprite   *SpriteVis;
-extern mgCFrame      *FirePowFrame;
-extern s32            GeyserEffectFlag;
-extern s32            GeyserEffectTexb;
-extern s32            GeyserRndSeed;
-
 // Code (.text)
 void EditExceptionStep(int map_no, CScene *scene) {
     int quarter;
@@ -144,14 +187,14 @@ void EditExceptionStep(int map_no, CScene *scene) {
     switch (map_no) {
         case 2:
         case 9: {
-            CMapParts *parts = map->GetPlaceParts(at_917__5);
+            CMapParts *parts = map->GetPlaceParts("p07_g0301");
 
             if (parts == NULL) {
                 return;
             }
 
-            CMapPiece *piece07 = parts->SearchPiece(at_918__4);
-            CMapPiece *piece08 = parts->SearchPiece(at_919__6);
+            CMapPiece *piece07 = parts->SearchPiece("g0301_07-m");
+            CMapPiece *piece08 = parts->SearchPiece("g0301_08-m");
 
             if (piece07 == NULL) {
                 return;
@@ -172,7 +215,7 @@ void EditExceptionStep(int map_no, CScene *scene) {
                 return;
             }
 
-            mgCFrame *fade_frame = frame07->SearchFrame(at_920__5);
+            mgCFrame *fade_frame = frame07->SearchFrame("na");
 
             if (fade_frame == NULL) {
                 return;
@@ -184,7 +227,7 @@ void EditExceptionStep(int map_no, CScene *scene) {
                 return;
             }
 
-            mgCTexture *texture = textures->GetTexture(at_921__4, -1);
+            mgCTexture *texture = textures->GetTexture("g0301_21", -1);
 
             if (texture == NULL) {
                 return;
@@ -196,7 +239,7 @@ void EditExceptionStep(int map_no, CScene *scene) {
                 return;
             }
 
-            CList<mgCTexAnimeData> *list = anime->GetAnimeList(anime->SearchGroupName(at_920__5));
+            CList<mgCTexAnimeData> *list = anime->GetAnimeList(anime->SearchGroupName("na"));
 
             if (list == NULL) {
                 return;
@@ -245,7 +288,7 @@ void S51Thunder(CScene *scene) {
     char *map_name = scene->GetMapName(scene->active_map);
 
     if (map_name != NULL) {
-        switch (strcmp(map_name, at_1084__2)) {
+        switch (strcmp(map_name, "s51")) {
             case 0:
                 break;
             default:
@@ -297,11 +340,11 @@ void S51Thunder(CScene *scene) {
                 CMapParts *parts = NULL;
 
                 if (i == 0) {
-                    parts = map->GetPlaceParts(at_1085);
+                    parts = map->GetPlaceParts("p05_s5102-0");
                 }
 
                 if (i == 1) {
-                    parts = map->GetPlaceParts(at_1086);
+                    parts = map->GetPlaceParts("p11_s5102-0");
                 }
 
                 if (parts != NULL) {
@@ -309,7 +352,7 @@ void S51Thunder(CScene *scene) {
 
                     for (CList<CMapPiece> *node = parts->piece_list; node != NULL;
                          node = node->next) {
-                        CObject *piece = (CObject *) &node->data;
+                        CObject *piece = &node->data;
                         piece->fade = 1;
                         piece->fade_alpha = fade;
                     }
@@ -414,7 +457,7 @@ void DrawFirePowder(CScene *scene) {
     draw_env.SetAlpha(2);
     draw_sprite->BeginCreatePacket(0, NULL);
     draw_sprite->CPSetDrawEnv(&draw_env);
-    draw_sprite->CPSetTexture(mgTexManager.GetTexture(at_1259, -1));
+    draw_sprite->CPSetTexture(mgTexManager.GetTexture("firerain", -1));
     draw_sprite->BeginCPSprite();
     sceVu0FVECTOR size = {5.0f, 5.0f, 0.0f, 0.0f};
     sceVu0FMATRIX uv0 = {
@@ -605,10 +648,10 @@ void CGeyserEffect::CreatePacket() {
     draw_sprite->CPSetDrawEnv(&draw_env);
     draw_sprite->CPSetTexture(texture);
     draw_sprite->BeginCPSprite();
-    mgVec4 size = at_1327;
-    mgVec4 uv0 = at_1328__2;
-    mgVec4 uv1 = at_1329;
-    mgVec4 color = at_1330;
+    mgVec4 size = {{5.0f, 5.0f, 0.0f, 0.0f}};
+    mgVec4 uv0 = {{0.0f, 0.0f, 0.0f, 0.0f}};
+    mgVec4 uv1 = {{64.0f, 64.0f, 0.0f, 0.0f}};
+    mgVec4 color = {{128.0f, 128.0f, 128.0f, 50.0f}};
 
     for (i = 0; i < point_num; ++i) {
         CGeyserEffectPoint &particle = point[i];
@@ -639,7 +682,7 @@ void InitGeyserEffect(int scene_no, CScene *scene, int texb, mgCMemory *memory) 
     if (scene_no == 3) {
         u8 *buffer = (u8 *) scene->read_buff;
 
-        if (LoadFile2(at_1385__4, buffer, &size, 0) != 0) {
+        if (LoadFile2("effect/geyser.img", buffer, &size, 0) != 0) {
             copy = (u8 *) memory->Alloc(align16_blocks(size));
             memcpy(copy, buffer, size);
             mgCTextureManager *textures = &mgTexManager;
@@ -659,7 +702,7 @@ void InitGeyserEffect(int scene_no, CScene *scene, int texb, mgCMemory *memory) 
                     new (memory->Alloc(0x92)) CGeyserEffectPoint[0x30];
                 GeyserEffect[i].point_num = 0x30;
                 GeyserEffect[i].point = pool;
-                GeyserEffect[i].texture = textures->GetTexture(at_1386__3, -1);
+                GeyserEffect[i].texture = textures->GetTexture("geyser_eff", -1);
             }
 
             GeyserRndSeed = rand();
@@ -734,49 +777,5 @@ void DrawGeyserEffect(CScene *scene) {
     }
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1175__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1176__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1177__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1178__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1184__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1327__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1329__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1330__DATA);
-
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_917__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_918__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_919__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_920__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_921__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1084__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1085__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1086__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1143__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1259__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1385__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1386__3__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(rea_chara_id, 0x4);
-INCLUDE_BSS(rea_mtn_step, 0x4);
-INCLUDE_BSS(thunder_count, 0x4);
-INCLUDE_BSS(start_thunder, 0x4);
-INCLUDE_BSS(next_thunder_cnt, 0x4);
-INCLUDE_BSS(fade_cnt, 0x4);
-INCLUDE_BSS(sound_flag, 0x4);
-INCLUDE_BSS(sound_cnt, 0x4);
-INCLUDE_BSS(FirePowderFlag, 0x4);
-INCLUDE_BSS(FirePowderTexb, 0x4);
-INCLUDE_BSS(SpriteVis, 0x4);
-INCLUDE_BSS(FirePowFrame, 0x4);
-INCLUDE_BSS(fire_powder, 0x4);
-INCLUDE_BSS(GeyserEffectFlag, 0x4);
-INCLUDE_BSS(GeyserEffectTexb, 0x4);
-INCLUDE_BSS(GeyserFrame, 0x4);
-INCLUDE_BSS(GeyserRndSeed, 0x4);
-INCLUDE_BSS(GeyserEffect, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1328__2, 0x10);

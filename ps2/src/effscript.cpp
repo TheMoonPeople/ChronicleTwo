@@ -1,11 +1,20 @@
 #include "common.h"
 #include "mw_runtime.h"
 
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 #include "actionchara.hpp"
 #include "cameracontrol.hpp"
+#include "character.hpp"
+#include "colprim.hpp"
+#include "dataread.hpp"
+#include "dng_main.hpp"
 #include "effscript.hpp"
+#include "event_func.hpp"
+#include "mainloop.hpp"
 #include "map.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_drawprim.hpp"
@@ -19,57 +28,247 @@
 #include "runscript_opcodes.hpp"
 #include "scene.hpp"
 #include "scenesnd.hpp"
-
-
-/**
- *
- * Effect vector viewed as four floats or a quadword.
- *
- */
-union EffectVector {
-    u_long128 quad;      /**< The vector as a quadword. */
-    float     values[4]; /**< Floating point components. */
-};
-
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-
-#include "character.hpp"
-#include "colprim.hpp"
-#include "dataread.hpp"
-#include "event_func.hpp"
-#include "mainloop.hpp"
 #include "snd_mngr.hpp"
 
-extern "C" _EFF_SCRIPT *now_script;
-extern "C" int (*ext_func__4[256])(RS_STACKDATA *, int);
-extern CColPrimMan     ColPrimMan;
+/**
+ * Available effect script resource definitions.
+ */
+EFF_SPT_BASE_DEF eff_spt_base_def[EFF_SPT_BASE_DEF_NUM] = {
+    {"\x94\x9A\x94\xAD", EFF_SPT_BASE_CHR, "Explosion_s", "explosion"},
+    {"\x92\xB1\x83\x72\x81\x5B\x83\x80", EFF_SPT_BASE_IMG, "nana_rinpun", "beam"},
+    {"\x92\xB1\x82\xE8\x82\xF1\x82\xD5\x82\xF1", EFF_SPT_BASE_CHR, "b02a_rinpun_l", "nana_rinpun_l"},
+    {"\x92\xB1\x82\xE8\x82\xF1\x82\xD5\x82\xF1\x82\x67", EFF_SPT_BASE_CHR, "b02a_rinpun_h", "nana_rinpun_h"},
+    {"\x92\xCA\x8F\xED\x89\xF1\x95\x9C", EFF_SPT_BASE_IMG, "n_heal", "n_heal"},
+    {"\x92\xCA\x8F\xED\x89\xF1\x95\x9C\x83\x54\x83\x75", EFF_SPT_BASE_IMG, "n_heal", "n_heal_sub"},
+    {"\x83\x8D\x83\x7B\x83\x7E\x83\x54\x83\x43\x83\x8B", EFF_SPT_BASE_CHR, "polm", "polm"},
+    {"\x83\x8D\x83\x7B\x83\x7E\x83\x54\x83\x43\x83\x8B\x89\x8C", EFF_SPT_BASE_IMG, "m_kemuri", "polm_smoke"},
+    {"\x83\x7D\x83\x59\x83\x8B\x83\x74\x83\x89\x83\x62\x83\x56\x83\x85", EFF_SPT_BASE_IMG, "effect00", "gun_flash"},
+    {"\x83\x89\x83\x74\x83\x8C\x83\x56\x83\x41\x89\xD4\x95\xB2", EFF_SPT_BASE_IMG, "spore", "spore"},
+    {"\x83\x89\x83\x74\x83\x8C\x83\x56\x83\x41\x89\xD4\x95\xB2\x83\x54\x83\x75", EFF_SPT_BASE_IMG, "spore", "spore_sub"},
+    {"\x83\x8D\x83\x7B\x83\x7E\x83\x54\x83\x43\x83\x8B\x94\x9A\x94\xAD", EFF_SPT_BASE_CHR, "m_exp", "m_exp"},
+    {"\x92\xB1\x8D\x87\x91\xCC", EFF_SPT_BASE_CHR, "union", "union"},
+    {"\x83\x4D\x83\x8B\x83\x67\x81\x5B\x83\x6A\x83\x56\x81\x5B\x83\x8B\x83\x68", EFF_SPT_BASE_CHR, "g_shield", "g_shield"},
+    {"\x83\x4D\x83\x8B\x83\x67\x81\x5B\x83\x6A\x96\x82\x96\x40", EFF_SPT_BASE_CHR, "g_magic", "g_magic"},
+    {"\x83\x4D\x83\x8B\x83\x67\x81\x5B\x83\x6A\x96\x82\x96\x40\x83\x54\x83\x75", EFF_SPT_BASE_CHR, "g_magic_obj", "g_magic_sub"},
+    {"\x83\x86\x83\x8A\x83\x58\x97\xAD\x82\xDF\x8D\x55\x8C\x82", EFF_SPT_BASE_CHR, "c01tame", "c01tame"},
+    {"\x83\x82\x83\x6A\x83\x4A\x97\xAD\x82\xDF\x8D\x55\x8C\x82", EFF_SPT_BASE_CHR, "c02tame", "c02tame"},
+    {"\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x97\x8B", EFF_SPT_BASE_IMG, "c02lightning_hit", "c02lightning"},
+    {"\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x97\x8B\x83\x71\x83\x62\x83\x67", EFF_SPT_BASE_IMG, "c02lightning_hit", "c02lightning_hit"},
+    {"\x8D\xBB\x89\x8C", EFF_SPT_BASE_IMG, "base_eff2", "pother"},
+    {"\x91\xAB\x8D\xBB\x89\x8C", EFF_SPT_BASE_IMG, "base_eff2", "foot_pother"},
+    {"\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x89\xCE", EFF_SPT_BASE_IMG, "c02flame", "c02flame"},
+    {"\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x89\xCE\x83\x71\x83\x62\x83\x67", EFF_SPT_BASE_IMG, "c02flame", "c02flame_h"},
+    {"\x83\x4B\x81\x5B\x83\x68\x83\x47\x83\x74\x83\x46\x83\x4E\x83\x67\x82\x60", EFF_SPT_BASE_IMG, "effect01", "guard_eff_a"},
+    {"\x8F\x65\x92\x65", EFF_SPT_BASE_IMG, "effect00", "bullet"},
+    {"\x8E\xE8\x93\x8A\x82\xB0\x94\x9A\x92\x65", EFF_SPT_BASE_CHR, "", "bakudan"},
+    {"\x83\x71\x83\x7D\x81\x5B\x83\x89\x89\xF1\x93\x5D\x8D\x55\x8C\x82", EFF_SPT_BASE_CHR, "e216ex_kaiten", "e216ex_kaiten"},
+    {"fox_\x8F\x65\x92\x65", EFF_SPT_BASE_IMG, "effect00", "fox_bullet"},
+    {"\x83\x81\x83\x80\x83\x43\x81\x5B\x83\x5E\x81\x5B\x92\x65", EFF_SPT_BASE_IMG, "effect00", "mem_bullet"},
+    {"\x83\x94\x83\x40\x83\x93\x83\x4B\x81\x5B\x83\x68\x8F\xD5\x8C\x82\x94\x67", EFF_SPT_BASE_CHR, "m_shockwave", "m_shockwave"},
+    {"e110\x83\x7C\x83\x8B\x89\xF1\x93\x5D\x83\x4C\x83\x89", EFF_SPT_BASE_IMG, "p_kirakira", "e110pol1"},
+    {"\x83\x67\x81\x5B\x83\x8C\x82\xCC\x89\x8C", EFF_SPT_BASE_IMG, "smoke_tore", "smoke_tore"},
+    {"\x91\xAB\x94\x67\x96\xE4", EFF_SPT_BASE_CHR, "f_hamon", "foot_hamon"},
+    {"\x91\xAB\x90\x85\x83\x70\x83\x56\x83\x83", EFF_SPT_BASE_IMG, "base_eff2", "foot_splatter"},
+    {"\x91\xAB\x8E\xC5\x90\xB6", EFF_SPT_BASE_IMG, "base_eff2", "foot_grass"},
+    {"\x8F\xAC\x90\xB8\x97\xEC\x94\x9A\x94\xAD", EFF_SPT_BASE_CHR, "m_explosion", "m_explosion"},
+    {"\x83\x73\x83\x47\x83\x8D\x95\xBA\x83\x69\x83\x43\x83\x74", EFF_SPT_BASE_CHR, "e211aex_knife", "e211aex_knife"},
+    {"\x93\xC5\x89\x74L", EFF_SPT_BASE_CHR, "m_dokueki_l", "m_dokueki_l"},
+    {"\x93\xC5\x89\x74H", EFF_SPT_BASE_CHR, "m_dokueki_h", "m_dokueki_h"},
+    {"\x89\xCE\x89\x8A\x92\x65\x94\xAD\x93\xAE", EFF_SPT_BASE_CHR, "m_fball_f", "m_fball_f"},
+    {"\x89\xCE\x89\x8A\x92\x65\x83\x8B\x81\x5B\x83\x76", EFF_SPT_BASE_CHR, "m_fball_l", "m_fball_l"},
+    {"\x89\xCE\x89\x8A\x92\x65\x83\x71\x83\x62\x83\x67", EFF_SPT_BASE_CHR, "m_fball_h", "m_fball_h"},
+    {"\x83\x8D\x83\x7B\x8C\xCC\x8F\xE1", EFF_SPT_BASE_CHR, "kosyou", "robo_failure"},
+    {"\x93\xC5\x89\x74" "2L", EFF_SPT_BASE_CHR, "m_dokueki_l", "m_dokueki2_l"},
+    {"\x89\xCE\x89\x8A\x92\x65\x83\x8B\x81\x5B\x83\x76\x82\x51", EFF_SPT_BASE_CHR, "m_fball_l", "m_fball_l2"},
+    {"\x89\xCE\x89\x8A\x92\x65\x83\x8B\x81\x5B\x83\x76\x82\x52", EFF_SPT_BASE_CHR, "m_fball_l", "m_fball_l3"},
+    {"\x89\xCE\x89\x8A\x92\x65\x83\x8B\x81\x5B\x83\x76\x82\x53", EFF_SPT_BASE_CHR, "m_fball_l", "m_fball_l4"},
+    {"\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x95\x97", EFF_SPT_BASE_IMG, "c02wind", "c02wind"},
+    {"\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x95\x97\x83\x71\x83\x62\x83\x67", EFF_SPT_BASE_IMG, "c02wind", "c02wind_h"},
+    {"\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x95\x58", EFF_SPT_BASE_CHR, "c02cold", "c02cold"},
+    {"\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x95\x58\x83\x71\x83\x62\x83\x67", EFF_SPT_BASE_CHR, "c02cold", "c02cold_h"},
+    {"\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x97\xAD\x82\xDF", EFF_SPT_BASE_IMG, "effect01", "c02_magic_tame"},
+    {"\x83\x6F\x83\x4D\x81\x5B\x8D\xBB\x89\x8C", EFF_SPT_BASE_IMG, "base_eff2", "buggy_pother"},
+    {"\x95\xF3\x94\xA0\x94\x9A\x94\xAD", EFF_SPT_BASE_CHR, "m_exp", "tbox_exp"},
+    {"\x83\x70\x83\x93\x83\x76\x83\x4C\x83\x93\x83\x77\x83\x62\x83\x68\x94\x9A\x92\x65", EFF_SPT_BASE_CHR, "bakudan", "pump_bakudan"},
+    {"\x83\x6F\x83\x89", EFF_SPT_BASE_CHR, "b06a_bara", "bara"},
+    {"\x83\x6F\x83\x89\x83\x71\x83\x62\x83\x67", EFF_SPT_BASE_CHR, "b06a_bara_h", "bara_hit"},
+    {"\x83\x54\x83\x93\x82\xCC\x97\xB3\x8A\xAA", EFF_SPT_BASE_CHR, "b06a_tatumaki", "b06a_tatu"},
+    {"\x8E\xB5\x90\x46\x92\xB1\x82\xCC\x89\xCE\x92\x8C", EFF_SPT_BASE_CHR, "b02a_hibasira_s", "b02a_hibasira"},
+    {"EV\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x89\xCE", EFF_SPT_BASE_IMG, "c02flame", "ev_c02flame"},
+    {"EV\x83\x82\x83\x6A\x83\x4A\x96\x82\x96\x40\x81\x7C\x89\xCE\x83\x71\x83\x62\x83\x67", EFF_SPT_BASE_IMG, "c02flame", "ev_c02flame_h"},
+    {"\x96\x43\x92\x65", EFF_SPT_BASE_CHR, "b15a_tama1", "houdan"},
+    {"\x8B\x40\x8F\x65", EFF_SPT_BASE_CHR, "b15a_tama", "kizyu"},
+    {"\x82\x6C\x83\x4D\x83\x8B\x89\xCE\x92\x8C\x82\x50", EFF_SPT_BASE_CHR, "p00_23a_hibasira", "p00_23a_hibasira"},
+    {"\x82\x6C\x83\x4D\x83\x8B\x89\xCE\x89\x8A\x92\x65\x82\x50", EFF_SPT_BASE_CHR, "m_fball_l", "mg_fball1"},
+    {"\x82\x6C\x83\x4D\x83\x8B\x89\xCE\x89\x8A\x92\x65\x82\x51", EFF_SPT_BASE_CHR, "p00_23a_fball", "mg_fball2"},
+    {"\x82\x6C\x83\x4D\x83\x8B\x89\xCE\x89\x8A\x92\x65\x82\x52", EFF_SPT_BASE_CHR, "p00_23a_fball", "mg_fball3"},
+    {"\x82\x6C\x83\x4D\x83\x8B\x89\xCE\x82\xCC\x95\xB2", EFF_SPT_BASE_IMG, "hinoko", "hinoko"},
+    {"\x82\x6C\x83\x4D\x83\x8B\x82\xDB\x82\xBD\x82\xDB\x82\xBD", EFF_SPT_BASE_IMG, "hinoko", "potapota"},
+    {"\x82\x6C\x83\x4D\x83\x8B\x82\xB5\x82\xD4\x82\xAB", EFF_SPT_BASE_CHR, "p00_23a_msibuki", "p00_23a_msibuki"},
+    {"\x82\x6C\x83\x4D\x83\x8B\x89\x8C", EFF_SPT_BASE_IMG, "effect00", "mguil_kemuri"},
+    {"\x83\x56\x81\x5B\x83\x4F\x83\x89\x82\xC8\x82\xAC\x95\xA5\x82\xA2", EFF_SPT_BASE_IMG, "base_eff2", "seagura_dust"},
+    {"\x83\x8F\x83\x43\x83\x93\x92\x4D\x92\x65", EFF_SPT_BASE_CHR, "Shell", "robo_missile"},
+    {"\x89\xCE\x92\x65\x82\x65", EFF_SPT_BASE_CHR, "m_fball_f", "m_fballf_f"},
+    {"\x89\xCE\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "m_fball_l", "m_fballf_l"},
+    {"\x89\xCE\x92\x65\x82\x67", EFF_SPT_BASE_CHR, "m_fball_h", "m_fballf_h"},
+    {"\x95\x58\x92\x65\x82\x65", EFF_SPT_BASE_CHR, "m_cball_f", "m_cball_f"},
+    {"\x95\x58\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "m_cball_l", "m_cball_l"},
+    {"\x95\x58\x92\x65\x82\x67", EFF_SPT_BASE_CHR, "m_cball_h", "m_cball_h"},
+    {"\x97\x8B\x92\x65\x82\x65", EFF_SPT_BASE_CHR, "m_sball_f", "m_sball_f"},
+    {"\x97\x8B\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "m_sball_l", "m_sball_l"},
+    {"\x97\x8B\x92\x65\x82\x67", EFF_SPT_BASE_CHR, "m_sball_h", "m_sball_h"},
+    {"\x95\x97\x92\x65\x82\x65", EFF_SPT_BASE_CHR, "m_wball_f", "m_wball_f"},
+    {"\x95\x97\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "m_wball_l", "m_wball_l"},
+    {"\x95\x97\x92\x65\x82\x67", EFF_SPT_BASE_CHR, "m_wball_h", "m_wball_h"},
+    {"\x90\xB9\x92\x65\x82\x65", EFF_SPT_BASE_CHR, "m_hball_f", "m_hball_f"},
+    {"\x90\xB9\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "m_hball_l", "m_hball_l"},
+    {"\x90\xB9\x92\x65\x82\x67", EFF_SPT_BASE_CHR, "m_hball_h", "m_hball_h"},
+    {"\x90\x85\x92\x65\x82\x65", EFF_SPT_BASE_CHR, "m_mball_f", "m_mball_f"},
+    {"\x90\x85\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "m_mball_l", "m_mball_l"},
+    {"\x90\x85\x92\x65\x82\x6B\x82\x51", EFF_SPT_BASE_CHR, "m_mball_l", "m_mball_l2"},
+    {"\x90\x85\x92\x65\x82\x67", EFF_SPT_BASE_CHR, "m_mball_h", "m_mball_h"},
+    {"\x95\x97\x92\x65\x82\x6B\x82\x51", EFF_SPT_BASE_CHR, "m_wball_l", "m_wball_l2"},
+    {"\x95\x97\x92\x65\x82\x67\x82\x51", EFF_SPT_BASE_CHR, "m_wball_h", "m_wball_h2"},
+    {"\x8E\xF4\x82\xA2\x92\x65\x82\x65", EFF_SPT_BASE_CHR, "m_curse_f", "m_curse_f"},
+    {"\x8E\xF4\x82\xA2\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "m_curse_l", "m_curse_l"},
+    {"\x8E\xF4\x82\xA2\x92\x65\x82\x67", EFF_SPT_BASE_CHR, "m_curse_h", "m_curse_h"},
+    {"\x82\xA9\x82\xDA\x82\xBF\x82\xE1\x94\x9A\x92\x65", EFF_SPT_BASE_CHR, "e10a_kabobomb", "e10a_kabobomb"},
+    {"\x82\xA9\x82\xDA\x82\xBF\x82\xE1\x94\x9A\x94\xAD", EFF_SPT_BASE_CHR, "m_fball_h", "e10a_kabobomb_h"},
+    {"\x95\x97\x92\x65\x82\x6B\x82\x51", EFF_SPT_BASE_CHR, "m_wball_l", "m_wball_l2"},
+    {"\x83\x4D\x83\x41\x96\xEE", EFF_SPT_BASE_CHR, "e118a_arrow", "e118a_arrow"},
+    {"\x83\x4D\x83\x41\x93\xC5\x96\xEE", EFF_SPT_BASE_CHR, "e118a_arrow_doku", "e118a_arrow_doku"},
+    {"\x92\x4D\x92\x65\x82\xC4\x82\xB7\x82\xC6", EFF_SPT_BASE_IMG, "effect00", "tarub"},
+    {"\x82\x72\x83\x45\x83\x46\x81\x5B\x83\x75\x82\x6B", EFF_SPT_BASE_CHR, "m_swave_l", "m_swave_l"},
+    {"\x82\x72\x83\x45\x83\x46\x81\x5B\x83\x75\x82\x65", EFF_SPT_BASE_CHR, "m_swave_f", "m_swave_f"},
+    {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82\x6B", EFF_SPT_BASE_CHR, "m_nebaneba_l", "m_nebaneba_l"},
+    {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82\x67", EFF_SPT_BASE_CHR, "m_nebaneba_h", "m_nebaneba_h"},
+    {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82\x6B\x82\x51", EFF_SPT_BASE_CHR, "m_nebaneba_l", "m_nebaneba_l2"},
+    {"\x89\xCE\x92\x8C", EFF_SPT_BASE_CHR, "m_hibasira", "m_hibasira"},
+    {"\x95\x58\x92\x8C", EFF_SPT_BASE_CHR, "m_hibasira_c", "m_hibasira_c"},
+    {"\x97\x8B\x92\x8C", EFF_SPT_BASE_CHR, "m_hibasira_s", "m_hibasira_s"},
+    {"\x95\x97\x92\x8C", EFF_SPT_BASE_CHR, "m_hibasira_w", "m_hibasira_w"},
+    {"\x90\xB9\x92\x8C", EFF_SPT_BASE_CHR, "m_hibasira_h", "m_hibasira_h"},
+    {"\x90\x85\x92\x8C", EFF_SPT_BASE_CHR, "m_hibasira_m", "m_hibasira_m"},
+    {"\x89\xCE\x92\x8C\x92\x65", EFF_SPT_BASE_CHR, "m_fball_l", "m_hball_f_l"},
+    {"\x95\x58\x92\x8C\x92\x65", EFF_SPT_BASE_CHR, "m_hball_c_l", "m_hball_c_l"},
+    {"\x97\x8B\x92\x8C\x92\x65", EFF_SPT_BASE_CHR, "m_hball_s_l", "m_hball_s_l"},
+    {"\x95\x97\x92\x8C\x92\x65", EFF_SPT_BASE_CHR, "m_hball_l", "m_hball_w_l"},
+    {"\x90\xB9\x92\x8C\x92\x65", EFF_SPT_BASE_CHR, "m_hball_h_l", "m_hball_h_l"},
+    {"\x83\x65\x83\x42\x83\x4F\x89\x48\x8D\xAA\x82\x6B", EFF_SPT_BASE_CHR, "e212a_hane_l", "e212a_hane_l"},
+    {"\x83\x65\x83\x42\x83\x4F\x89\x48\x8D\xAA\x82\x67", EFF_SPT_BASE_CHR, "e212a_hane_h", "e212a_hane_h"},
+    {"\x83\x7B\x83\x93\x83\x6F\x83\x77\x8E\xA9\x94\x9A", EFF_SPT_BASE_CHR, "e49a_jibaku", "e49a_jibaku"},
+    {"\x8F\xD5\x8C\x82\x94\x67", EFF_SPT_BASE_CHR, "m_shockwave", "m_shockwave2"},
+    {"\x82\x6C\x8F\xAC\x94\x9A\x94\xAD", EFF_SPT_BASE_CHR, "m_explosion", "m_explosion"},
+    {"\x83\x6F\x83\x4D\x81\x5B\x96\xF2\xE4\xB0", EFF_SPT_BASE_CHR, "e204_yakkyou", "buggy_shell_case"},
+    {"\x83\x56\x83\x4F\x81\x5B\x93\x66\x82\xAB", EFF_SPT_BASE_IMG, "Shigu_breath", "Shigu_breath"},
+    {"\x83\x54\x83\x93\x83\x8F\x81\x5B\x83\x76", EFF_SPT_BASE_CHR, "b06a_warp", "b06a_warp"},
+    {"\x83\x54\x83\x93\x83\x8F\x81\x5B\x83\x76\x82\x51", EFF_SPT_BASE_CHR, "b06a_warp", "b06a_warp2"},
+    {"\x83\x58\x83\x73\x83\x93", EFF_SPT_BASE_CHR, "m_spin", "m_spin"},
+    {"\x92\xB4\x89\xB9\x94\x67", EFF_SPT_BASE_CHR, "m_onpa", "m_onpa"},
+    {"\x96\x82\x90\xCE\x89\x8A", EFF_SPT_BASE_CHR, "maseki_f", "maseki_f"},
+    {"\x96\x82\x90\xCE\x97\xE2", EFF_SPT_BASE_CHR, "maseki_c", "maseki_c"},
+    {"\x96\x82\x90\xCE\x97\x8B", EFF_SPT_BASE_CHR, "maseki_t", "maseki_t"},
+    {"\x96\x82\x90\xCE\x95\x97", EFF_SPT_BASE_CHR, "maseki_w", "maseki_w"},
+    {"\x96\x82\x90\xCE\x90\xB9", EFF_SPT_BASE_CHR, "maseki_h", "maseki_h"},
+    {"\x83\x4F\x83\x8A\x89\x48\x8D\xAA\x82\x6B\x82\x50", EFF_SPT_BASE_CHR, "b08a_hane_l", "b08a_hane_l"},
+    {"\x83\x4F\x83\x8A\x89\x48\x8D\xAA\x82\x6B\x82\x51", EFF_SPT_BASE_CHR, "b08a_hane_l", "b08a_hane_l2"},
+    {"\x83\x4F\x83\x8A\x89\x48\x8D\xAA\x82\x67", EFF_SPT_BASE_CHR, "b08a_hane_h", "b08a_hane_h"},
+    {"\x8D\xBB\x89\x8C" "2", EFF_SPT_BASE_IMG, "base_eff2", "pother2"},
+    {"\x8D\xBB\x89\x8C" "e107", EFF_SPT_BASE_IMG, "base_eff2", "pother_e107"},
+    {"\x83\x41\x83\x67\x83\x89\x82\xCC\x8C\xF5", EFF_SPT_BASE_IMG, "b08_ex", "atora"},
+    {"\x90\xCE\x89\xBB\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "m_nebaneba_l", "m_stnball_l"},
+    {"\x83\x4E\x83\x8D\x83\x58\x83\x4A\x83\x62\x83\x5E\x81\x5B", EFF_SPT_BASE_CHR, "b09a_crossgiri", "b09a_crossgiri"},
+    {"\x83\x4F\x83\x8A\x8F\xD5\x8C\x82\x94\x67", EFF_SPT_BASE_CHR, "b10a_shougekiha", "b10a_shougekiha"},
+    {"\x83\x4F\x83\x8A\x82\x72\x82\x76\x82\x6B", EFF_SPT_BASE_CHR, "b10a_swave_l", "b10a_swave_l"},
+    {"\x83\x4F\x83\x8A\x82\x72\x82\x76\x82\x65", EFF_SPT_BASE_CHR, "b10a_swave_f", "b10a_swave_f"},
+    {"\x83\x4F\x83\x8A\x83\x52\x83\x93\x83\x7B", EFF_SPT_BASE_CHR, "b10a_combo", "b10a_combo"},
+    {"\x83\x4F\x83\x8A\x89\x8A", EFF_SPT_BASE_IMG, "b10a_handfire", "b10a_handfire"},
+    {"\x82\x6C\x94\xC4\x97\x70\x89\x8C", EFF_SPT_BASE_IMG, "effect00", "m_hankemuri"},
+    {"\x82\x63\x82\x64\x8C\xF5\x90\xC2", EFF_SPT_BASE_CHR, "b11a_hikari_blue", "b11a_hikari_blue"},
+    {"\x82\x63\x82\x64\x8C\xF5\x90\xD4", EFF_SPT_BASE_CHR, "b11a_hikari_red", "b11a_hikari_red"},
+    {"\x82\x63\x82\x64\x96\xEE", EFF_SPT_BASE_CHR, "b11a_arrow", "b11a_arrow"},
+    {"\x82\x63\x82\x64\x83\x72\x81\x5B\x83\x80\x82\x65", EFF_SPT_BASE_CHR, "b11a_beam_f", "b11a_beam_f"},
+    {"\x82\x63\x82\x64\x83\x72\x81\x5B\x83\x80\x82\x6B", EFF_SPT_BASE_CHR, "b11a_beam_l", "b11a_beam_l"},
+    {"\x82\x63\x82\x64\x83\x72\x81\x5B\x83\x80\x82\x67", EFF_SPT_BASE_CHR, "b11a_beam_h", "b11a_beam_h"},
+    {"\x82\x63\x82\x64\x96\xEE\x82\x51", EFF_SPT_BASE_CHR, "b11a_arrow", "b11a_arrow2"},
+    {"\x8A\x43\x91\xAF\x94\x9A\x92\x65\x94\x9A\x94\xAD", EFF_SPT_BASE_CHR, "m_exp2", "kai_bomb"},
+    {"e209\x96\x82\x96\x40", EFF_SPT_BASE_CHR, "e209_magic1", "e209_magic"},
+    {"\x96\x83\xE1\x83\x92\x65\x82\x65", EFF_SPT_BASE_CHR, "m_mahi_f", "m_mahi_f"},
+    {"\x96\x83\xE1\x83\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "m_mahi_l", "m_mahi_l"},
+    {"\x96\x83\xE1\x83\x92\x65\x82\x67", EFF_SPT_BASE_CHR, "m_mahi_h", "m_mahi_h"},
+    {"\x89\xCE\x92\x65\x82\x6B\x82\x51", EFF_SPT_BASE_CHR, "m_fball_l", "m_fball_l2"},
+    {"\x82\x6C\x89\xF1\x95\x9C\x82\x65", EFF_SPT_BASE_CHR, "m_heal_f", "m_heal_f"},
+    {"\x82\x6C\x89\xF1\x95\x9C", EFF_SPT_BASE_CHR, "m_heal", "m_heal"},
+    {"\x8D\x82\x91\xAC\x92\x65", EFF_SPT_BASE_CHR, "e25a_tama", "e25a_tama"},
+    {"\x89\xCE\x92\x65\x82\x6B\x82\x52", EFF_SPT_BASE_CHR, "m_fball_l", "m_fball_l3"},
+    {"\x95\x58\x92\x65\x82\x6B\x82\x51", EFF_SPT_BASE_CHR, "m_cball_l", "m_cball_l2"},
+    {"\x82\x64\x82\x55\x82\x53\x82\x4F\x8C\x8E\x89\xD4\x83\x72\x81\x5B\x83\x80", EFF_SPT_BASE_CHR, "e640_beamhajike", "e640_beam"},
+    {"\x97\x8B\x92\x65\x82\x6B\x82\x51", EFF_SPT_BASE_CHR, "m_sball_l", "m_sball_l2"},
+    {"\x90\xB9\x92\x65\x82\x6B\x82\x51", EFF_SPT_BASE_CHR, "m_hball_l", "m_hball_l2"},
+    {"\x82\x64\x82\x55\x82\x50\x82\x55\x8C\x8E\x89\xD4\x83\x72\x81\x5B\x83\x80\x82\x60", EFF_SPT_BASE_CHR, "e616_tama", "e616_beam_a"},
+    {"\x82\x64\x82\x55\x82\x50\x82\x55\x8C\x8E\x89\xD4\x83\x72\x81\x5B\x83\x80\x82\x61", EFF_SPT_BASE_CHR, "e616_tama1", "e616_beam_b"},
+    {"\x97\xF1\x8E\xD4\x89\x8C", EFF_SPT_BASE_IMG, "kemuri_train", "kemuri_train"},
+    {"\x82\x63\x82\x64\x96\xEE\x82\x52", EFF_SPT_BASE_CHR, "b11a_arrow", "b11a_arrow3"},
+    {"\x82\x6C\x8A\xB4\x93\x64", EFF_SPT_BASE_CHR, "m_kanden", "m_kanden"},
+    {"\x83\x7C\x83\x8B\x82\x69\x82\x64\x82\x73", EFF_SPT_BASE_CHR, "e808_mp_jet", "e808_mp_jet"},
+    {"\x96\x82\x90\x6C\x83\x72\x81\x5B\x83\x80", EFF_SPT_BASE_IMG, "nana_rinpun", "majin_beam"},
+    {"\x96\x82\x90\x6C\x83\x72\x81\x5B\x83\x80\x82\x67", EFF_SPT_BASE_CHR, "b02a_hibasira_s", "mj_beam_h"},
+    {"\x93\xC5\x96\xB6\x82\x6B", EFF_SPT_BASE_CHR, "m_dokugiri_l", "m_dokugiri_l"},
+    {"\x93\xC5\x96\xB6\x82\x67", EFF_SPT_BASE_CHR, "m_dokugiri_h", "m_dokugiri_h"},
+    {"\x8C\x52\x8A\xCD\x83\x5F\x83\x81\x81\x5B\x83\x57", EFF_SPT_BASE_CHR, "e206_bbaku", "ggun_damage"},
+    {"\x83\x68\x83\x89\x83\x53\x83\x93\x89\xCE\x92\x65\x82\x65", EFF_SPT_BASE_CHR, "e219ex_fire_f", "e219ex_fire_f"},
+    {"\x83\x68\x83\x89\x83\x53\x83\x93\x89\xCE\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "e219ex_fire_l", "e219ex_fire_l"},
+    {"\x8B\x40\x8A\xD6\x8F\x65\x81\x69\x8F\xAC\x81\x6A", EFF_SPT_BASE_CHR, "e516_gun_s", "e516_gun_s"},
+    {"\x8B\x40\x8F\x65\x92\x85\x92\x65", EFF_SPT_BASE_CHR, "e516_gun_tyaku", "e516_gun_tyaku"},
+    {"\x96\x82\x90\x6C\x83\x72\x81\x5B\x83\x80\x82\x65\x82\x51", EFF_SPT_BASE_CHR, "b13a_beam_f", "mj_beam_f2"},
+    {"\x96\x82\x90\x6C\x83\x72\x81\x5B\x83\x80\x82\x6B\x82\x51", EFF_SPT_BASE_CHR, "b13a_beam_l", "mj_beam_l2"},
+    {"\x96\x82\x90\x6C\x83\x72\x81\x5B\x83\x80\x82\x67\x82\x51", EFF_SPT_BASE_CHR, "b13a_beam_h", "mj_beam_h2"},
+    {"\x82\xCB\x82\xCE\x83\x73\x81\x5B\x83\x60\x82\x6B", EFF_SPT_BASE_CHR, "e10b_neva_momo", "e10b_neva_momo"},
+    {"\x83\x58\x83\x67\x81\x5B\x83\x93\x83\x78\x83\x8A\x81\x5B", EFF_SPT_BASE_CHR, "e10c_stone_bery", "e10c_stone_bery"},
+    {"\x83\x74\x83\x40\x83\x43\x83\x69\x83\x8B\x83\x7B\x83\x80", EFF_SPT_BASE_CHR, "e10e_bomb_f", "e10e_bomb_f"},
+    {"\x83\x74\x83\x40\x83\x43\x83\x69\x83\x8B\x83\x7B\x83\x80\x82\x67", EFF_SPT_BASE_CHR, "m_explosion", "e10e_bomb_f_h"},
+    {"\x83\x68\x83\x89\x83\x53\x83\x93\x89\xCE\x92\x65\x82\x67", EFF_SPT_BASE_CHR, "m_hibasira", "m_dra_hibasira"},
+    {"\x82\x6C\x94\x9A\x94\xAD\x91\xE5", EFF_SPT_BASE_CHR, "m_exp2", "m_mexp_b"},
+    {"\x82\x78\x83\x72\x81\x5B\x83\x80\x82\x67", EFF_SPT_BASE_CHR, "beam_hit", "y_beam_h"},
+    {"\x82\x78\x83\x4F\x83\x8C\x82\x67", EFF_SPT_BASE_CHR, "grenade_hit", "y_grenade_h"},
+    {"\x82\x64\x82\x52\x82\x54\x82\x55\x89\xCE\x82\xCC\x95\xB2", EFF_SPT_BASE_IMG, "hinoko", "e356_hinoko"},
+    {"\x82\x64\x82\x56\x82\x52\x82\x51\x8C\xF5\x89\x4A", EFF_SPT_BASE_IMG, "e732_snow", "e732_snow"},
+    {"\x95\x40\x92\x65\x82\x67", EFF_SPT_BASE_CHR, "e220a_neba_h", "mem_bullet_h"},
+    {"\x95\x40\x92\x65\x82\x6B", EFF_SPT_BASE_CHR, "e220a_neba_l", "mem_bullet_l"},
+    {"\x82\x72\x82\x76\x90\xD4\x82\x65", EFF_SPT_BASE_CHR, "e117e_swave_f", "e117e_swave_f"},
+    {"\x82\x72\x82\x76\x90\xD4\x82\x6B", EFF_SPT_BASE_CHR, "e117e_swave_l", "e117e_swave_l"},
+    {"\x82\x65\x83\x7B\x83\x80\x82\x67", EFF_SPT_BASE_CHR, "finalbomb_h", "finalbomb_h"},
+    {"\x93\x64\x8C\xF5\x90\xCE\x89\xCE", EFF_SPT_BASE_CHR, "denkousekka_h", "denkousekka_h"},
+    {"e104\x83\x4C\x83\x89\x83\x4C\x83\x89", EFF_SPT_BASE_CHR, "e104_kira", "e104_magic_kira"},
+    {"e612\x8D\xBB\x89\x8C", EFF_SPT_BASE_IMG, "e612_tutimemuri", "e612_pother"},
+    {"\x82\x6C\x89\x8C", EFF_SPT_BASE_CHR, "m_smoke", "m_smoke"},
+    {"\x82\x63\x82\x64\x96\xEE\x82\x67", EFF_SPT_BASE_CHR, "b11a_arrow_h", "b11a_arrow_h"},
+    {"\x83\x4D\x83\x8B\x96\x82\x96\x40\x82\x51", EFF_SPT_BASE_CHR, "g_magic", "g_magic2"},
+    {"\x83\x4D\x83\x8B\x96\x82\x96\x40\x83\x54\x83\x75\x82\x51", EFF_SPT_BASE_CHR, "g_magic_obj", "g_magic_sub2"},
+    {"\x92\xB1\x82\xCB\x82\xCE\x82\x6B", EFF_SPT_BASE_CHR, "m_nebaneba_l", "m_bt_neba_l"},
+    {"\x82\x6C\x82\x6F\x94\x9A\x92\x65\x94\x9A\x94\xAD", EFF_SPT_BASE_CHR, "m_exp2", "mpol_bomb"},
+    {"\x83\x4D\x83\x8B\x82\x51\x96\x82\x96\x40\x82\x6B", EFF_SPT_BASE_IMG, "c02flame", "g2_magic_l"},
+    {"\x83\x4D\x83\x8B\x82\x51\x96\x82\x96\x40\x82\x67", EFF_SPT_BASE_IMG, "c02flame", "g2_magic_h"},
+    {"\x93\x79\x89\x8C", EFF_SPT_BASE_CHR, "tutikemuri", "tutikemuri"},
+    {"\x8D\xBB\x89\x8C\x91\xE5", EFF_SPT_BASE_CHR, "bostorol_smoke", "bostorol_smoke"},
+    {"\x90\x85\x82\xB5\x82\xD4\x82\xAB", EFF_SPT_BASE_CHR, "mizusibuki", "mizusibuki"},
+    {"", EFF_SPT_BASE_END, "", ""},
+};
+
+/**
+ * Effect script whose external commands are being executed.
+ */
+static _EFF_SCRIPT *now_script;
+
+/**
+ * Dispatch slots for effect script external commands.
+ */
+static int (*ext_func__4[256])(RS_STACKDATA *, int);
+
 EFF_SPT_BASE_DEF      *GetEffSptBaseDefPtr(int index);
 int                    SetEffectScript(CRunScript *script, char *program, mgCMemory *memory);
 void                   SetEffectScriptFunc();
 static void            DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, float *offset, mgC3DSprite *renderer, CMapLightingInfo *lighting);
-extern RS_EXTFUNC_INFO ext_func_info__4[];
-extern char            at_3644[];
-extern char            at_3645[];
-
-extern float at_2311[];
-
-extern float at_2498__2[];
-
-extern char at_943__3[];
-
-extern char at_1127__2[];
-
-extern char at_1128__3[];
-
-extern char at_1129__2[];
-
-extern char at_1143[];
-
-extern char at_1144[];
-
-extern char at_1145[];
 
 extern char at_1336__2[];
 
@@ -83,17 +282,9 @@ extern char at_1340__2[];
 
 extern char at_1341__2[];
 
-extern char at_1655__5[];
-
 extern char at_1705[];
 
 extern char at_2025__3[];
-
-extern char at_3398[];
-
-extern char at_3495[];
-
-extern char at_3536[];
 
 /**
  *
@@ -107,8 +298,6 @@ static inline u_int align16_blocks(u_int size) {
 
     return size >> 4;
 }
-
-extern char at_3303__2[];
 
 // Code (.text)
 void CEffectScriptMan::Initialize(mgCMemory *memory, int texb_start, int texb_num) {
@@ -254,7 +443,7 @@ void CEffectScriptMan::ClearBaseFromLevel(int level, int *cleared, int max) {
     if (cleared != 0 && count < max) {
         cleared[count] = -1;
     } else if (cleared != 0) {
-        printf(at_943__3);
+        printf("--- effect script err (ClearBaseFromLevel TexbTable Over)!!! ---\n");
         cleared[count - 1] = -1;
     }
 }
@@ -491,14 +680,14 @@ int CEffectScriptMan::BuildPack(int base_no, u_int *pack, mgCMemory *memory, int
 
     switch (base->type) {
         case 0:
-            sprintf(path, at_1127__2, base->file);
+            sprintf(path, "%s.chr", base->file);
             break;
         case 1:
-            sprintf(path, at_1128__3, base->file);
+            sprintf(path, "%s.img", base->file);
             break;
     }
 
-    sprintf(pack_path, at_1129__2, base->script);
+    sprintf(pack_path, "%s.stb", base->script);
     u_int *path_file = GetPackFile(pack, path, &path_size);
     u_int *pack_file = GetPackFile(pack, pack_path, &pack_size);
     return BuildBase(base_no, (u_long128 *) path_file, path_size, (u_long128 *) pack_file, pack_size, memory, level);
@@ -517,14 +706,14 @@ int CEffectScriptMan::GetNeedFilePath(int base_no, char *path, char *pack) {
 
     switch (base->type) {
         case 0:
-            sprintf(path, at_1143, base->file);
+            sprintf(path, "dungeon/eff_script/%s.chr", base->file);
             break;
         case 1:
-            sprintf(path, at_1144, base->file);
+            sprintf(path, "dungeon/eff_script/%s.img", base->file);
             break;
     }
 
-    sprintf(pack, at_1145, base->script);
+    sprintf(pack, "dungeon/eff_script/%s.stb", base->script);
     return 1;
 }
 
@@ -1095,7 +1284,7 @@ _ES_SPRITE *CEffectScriptMan::AssignSprite(int count) {
     u_int blocks = align16_blocks(size) + 3;
 
     if (work_memory->StartStackMode(3, blocks) == 0) {
-        printf(at_1655__5, blocks);
+        printf("------- es work max!! (assign sprite[%d]) ---------\n", blocks);
         return 0;
     }
 
@@ -1626,8 +1815,6 @@ EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index) {
     return strcmp(base->name, at_1341__2) == 0 ? 0 : base;
 }
 
-extern EffectVector at_2067;
-
 /**
  *
  * Draws visible effect sprites with their color, lighting, and alpha settings.
@@ -1666,7 +1853,7 @@ static void DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, sceVu0FVE
                 renderer->BeginCPSprite();
             }
 
-            EffectVector  size = at_2067;
+            sceVu0FVECTOR size = {0.0f, 0.0f, 0.0f, 0.0f};
             sceVu0FVECTOR uv0, uv1, position;
             sceVu0FVECTOR color;
             mgZeroVector(uv0);
@@ -1712,14 +1899,14 @@ static void DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, sceVu0FVE
                 color[2] = light_color[0][2] * 0.3 + ambient[2];
             }
 
-            size.values[0] = sprite->put_size[0] * sprite->scale[0];
-            size.values[1] = sprite->put_size[1] * sprite->scale[1];
-            size.values[2] = mgAngleLimit(sprite->rotz);
+            size[0] = sprite->put_size[0] * sprite->scale[0];
+            size[1] = sprite->put_size[1] * sprite->scale[1];
+            size[2] = mgAngleLimit(sprite->rotz);
             uv0[0] = sprite->uv[0];
             uv0[1] = sprite->uv[1];
             uv1[0] = sprite->uv[0] + sprite->uv[2];
             uv1[1] = sprite->uv[1] + sprite->uv[3];
-            renderer->CPSetSprite(position, size.values, color, uv0, uv1);
+            renderer->CPSetSprite(position, size, color, uv0, uv1);
         }
     }
 
@@ -1745,8 +1932,8 @@ static _ES_SPRITE *GetSpritePtr(_EFF_SCRIPT *script, int index) {
  *
  */
 static int GetStackInt(RS_STACKDATA *slot) {
-    if (slot->type == 1) {
-        return fptosi(*(float *) &slot->val.i);
+    if (slot->type == RS_FLOAT) {
+        return fptosi(slot->val.f);
     }
 
     return slot->val.i;
@@ -1758,11 +1945,11 @@ static int GetStackInt(RS_STACKDATA *slot) {
  *
  */
 static float GetStackFloat(RS_STACKDATA *slot) {
-    if (slot->type == 0) {
+    if (slot->type == RS_INT) {
         return (float) slot->val.i;
     }
 
-    return *(float *) &slot->val.i;
+    return slot->val.f;
 }
 
 /**
@@ -1783,7 +1970,7 @@ static void GetStackVector(float *vector, RS_STACKDATA *slot) {
  *
  */
 static char *GetStackString(RS_STACKDATA *slot) {
-    return reinterpret_cast<char *>(slot->val.i);
+    return slot->val.s;
 }
 
 /**
@@ -1792,7 +1979,7 @@ static char *GetStackString(RS_STACKDATA *slot) {
  *
  */
 static void SetStack(RS_STACKDATA *slot, int value) {
-    if (slot->type == 3) {
+    if (slot->type == RS_PTR) {
         slot->val.p->val.i = value;
     }
 }
@@ -1803,7 +1990,7 @@ static void SetStack(RS_STACKDATA *slot, int value) {
  *
  */
 static void SetStack(RS_STACKDATA *slot, float value) {
-    if (slot->type == 3) {
+    if (slot->type == RS_PTR) {
         slot->val.p->val.f = value;
     }
 }
@@ -2125,8 +2312,7 @@ int _GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count) {
 
     float matrix[4][4];
     float rot[4];
-    float dir[4];
-    *(EffectVector *) dir = *(EffectVector *) at_2311;
+    float dir[4] = {0.0f, 0.0f, 1.0f, 1.0f};
     GetStackVector(rot, stack);
     stack += 3;
     rot[0] = mgAngleLimit(rot[0]);
@@ -2605,8 +2791,7 @@ int _CHR_GET_DIR_VECTOR(RS_STACKDATA *stack, int argument_count) {
 
     float matrix[4][4];
     float rot[4];
-    float dir[4];
-    *(EffectVector *) dir = *(EffectVector *) at_2498__2;
+    float dir[4] = {0.0f, 0.0f, 1.0f, 1.0f};
     sceVu0UnitMatrix(matrix);
     now_script->chara->GetRotation(rot);
     sceVu0RotMatrixX(matrix, matrix, rot[0]);
@@ -2950,7 +3135,7 @@ int _CHR_GET_FRAME_POS(RS_STACKDATA *stack, int argument_count) {
     mgCFrame     *frame;
     char         *name = GetStackString(stack);
 
-    if ((character_frame = ((CObjectFrame *) now_script->chara)->frame) == 0) {
+    if ((character_frame = now_script->chara->CObjectFrame::frame) == 0) {
         return 0;
     }
 
@@ -2979,7 +3164,7 @@ int _CHR_SET_FRAME_SHOW(RS_STACKDATA *stack, int argument_count) {
     char     *name = GetStackString(stack++);
     int       show = GetStackInt(stack++);
     int       attr_mask = GetStackInt(stack);
-    mgCFrame *character_frame = ((CObjectFrame *) now_script->chara)->frame;
+    mgCFrame *character_frame = now_script->chara->CObjectFrame::frame;
 
     if (character_frame == 0) {
         return 0;
@@ -3034,7 +3219,7 @@ int _CHR_SET_LIGHT_COLOR(RS_STACKDATA *stack, int argument_count) {
     }
 
     int       flags;
-    mgCFrame *frame = ((CObjectFrame *) now_script->chara)->frame;
+    mgCFrame *frame = now_script->chara->CObjectFrame::frame;
 
     if (frame == 0) {
         return 0;
@@ -4427,11 +4612,11 @@ int _SCN_GET_CHR_FRM_POS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if (((CObjectFrame *) chara)->frame == NULL) {
+    if (chara->CObjectFrame::frame == NULL) {
         return 0;
     }
 
-    frame = ((CObjectFrame *) chara)->frame->SearchFrame(frame_name);
+    frame = chara->CObjectFrame::frame->SearchFrame(frame_name);
 
     if (frame == NULL) {
         return 0;
@@ -4604,7 +4789,7 @@ int _INTERSECTION_POINT(RS_STACKDATA *stack, int argc) {
     int poly_num = now_scene->GetColPoly(poly, box, 0x80);
 
     if (poly_num >= 0x80) {
-        printf(at_3303__2, poly_num);
+        printf("effect script[INTERSECTION_POINT] poly num over[%d]\n", poly_num);
         return 0;
     }
 
@@ -4939,7 +5124,7 @@ int _SCN_GET_CHR_ENTOBJ_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 int _CREATE_DAMAGE(RS_STACKDATA *stack, int argc) {
-    printf((const char *) &at_3398);
+    printf("effect script err   \x8C\xC3\x82\xA2\x83\x52\x83\x8A\x83\x57\x83\x87\x83\x93\x83\x4E\x83\x89\x83\x58\x82\xCD\x8E\x67\x82\xC1\x82\xBF\x82\xE1\x83\x5F\x83\x81\x82\xE6\x81\x49\x81\x49\n");
     return 0;
 }
 
@@ -4976,7 +5161,7 @@ int _DMG_SET_FRONT_VECT(RS_STACKDATA *stack, int argument_count) {
  *
  */
 int _DMG_SET_DAMAGE(RS_STACKDATA *stack, int argc) {
-    printf((const char *) &at_3398);
+    printf("effect script err   \x8C\xC3\x82\xA2\x83\x52\x83\x8A\x83\x57\x83\x87\x83\x93\x83\x4E\x83\x89\x83\x58\x82\xCD\x8E\x67\x82\xC1\x82\xBF\x82\xE1\x83\x5F\x83\x81\x82\xE6\x81\x49\x81\x49\n");
     return 0;
 }
 
@@ -5049,7 +5234,7 @@ int _COLPRIM_SET_COORD(RS_STACKDATA *stack, int argc) {
 
             start_name = GetStackString(stack++);
             radius = GetStackFloat(stack);
-            root = ((CObjectFrame *) now_script->chara)->frame;
+            root = now_script->chara->CObjectFrame::frame;
 
             if (root == NULL) {
                 return 0;
@@ -5071,7 +5256,7 @@ int _COLPRIM_SET_COORD(RS_STACKDATA *stack, int argc) {
             start_name = GetStackString(stack++);
             end_name = GetStackString(stack++);
             radius = GetStackFloat(stack);
-            root = ((CObjectFrame *) now_script->chara)->frame;
+            root = now_script->chara->CObjectFrame::frame;
 
             if (root == NULL) {
                 return 0;
@@ -5173,7 +5358,7 @@ int _COLPRIM_GET_GIFT(RS_STACKDATA *stack, int argc) {
     colprim->gift[1] = count;
     colprim->gift[2] = rate;
     colprim->has_gift = 1;
-    printf(at_3495, item_id, count, rate);
+    printf("%d,%d,%d\n", item_id, count, rate);
     return 1;
 }
 
@@ -5259,7 +5444,7 @@ int _ES_CREATE(RS_STACKDATA *stack, int argc) {
             SetStack(stack, handle);
 
             if (handle <= -1) {
-                printf(at_3536, name, now_script->user_id);
+                printf("ES_CREATE error [%s][%d][%d]", name, now_script->user_id);
             }
 
             break;
@@ -5434,6 +5619,141 @@ int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory) {
 }
 
 /**
+ * External effect script handlers in command-table order.
+ */
+static RS_EXTFUNC_INFO ext_func_info[129] = {
+    {_ZERO_VECTOR, EFF_EXT_ZERO_VECTOR},
+    {_NORMAL_VECTOR, EFF_EXT_NORMAL_VECTOR},
+    {_COPY_VECTOR, EFF_EXT_COPY_VECTOR},
+    {_ADD_VECTOR, EFF_EXT_ADD_VECTOR},
+    {_SUB_VECTOR, EFF_EXT_SUB_VECTOR},
+    {_SCALE_VECTOR, EFF_EXT_SCALE_VECTOR},
+    {_DIV_VECTOR, EFF_EXT_DIV_VECTOR},
+    {_DIST_VECTOR, EFF_EXT_DIST_VECTOR},
+    {_DIST_VECTOR2, EFF_EXT_DIST_VECTOR2},
+    {_SQRT, EFF_EXT_SQRT},
+    {_ATAN2F, EFF_EXT_ATAN2F},
+    {_ANGLE_CMP, EFF_EXT_ANGLE_CMP},
+    {_ANGLE_LIMIT, EFF_EXT_ANGLE_LIMIT},
+    {_GET_RAND, EFF_EXT_GET_RAND},
+    {_GET_REF_ROT, EFF_EXT_GET_REF_ROT},
+    {_GET_DIR_VECTOR, EFF_EXT_GET_DIR_VECTOR},
+    {_SET_ORIGIN, EFF_EXT_SET_ORIGIN},
+    {_GET_ORIGIN, EFF_EXT_GET_ORIGIN},
+    {_AUTO_SET_OFFSET, EFF_EXT_AUTO_SET_OFFSET},
+    {_GET_WORK_VECT1, EFF_EXT_GET_WORK_VECT1},
+    {_GET_WORK_VECT2, EFF_EXT_GET_WORK_VECT2},
+    {_GET_TARGET_ID, EFF_EXT_GET_TARGET_ID},
+    {_GET_USER_ID, EFF_EXT_GET_USER_ID},
+    {_GET_VALUE, EFF_EXT_GET_VALUE},
+    {_SET_VALUE, EFF_EXT_SET_VALUE},
+    {_CHR_SET_SHOW, EFF_EXT_CHR_SET_SHOW},
+    {_CHR_GET_SHOW, EFF_EXT_CHR_GET_SHOW},
+    {_CHR_SET_POS, EFF_EXT_CHR_SET_POS},
+    {_CHR_GET_POS, EFF_EXT_CHR_GET_POS},
+    {_CHR_SET_ROT, EFF_EXT_CHR_SET_ROT},
+    {_CHR_GET_ROT, EFF_EXT_CHR_GET_ROT},
+    {_CHR_SET_SCALE, EFF_EXT_CHR_SET_SCALE},
+    {_CHR_GET_SCALE, EFF_EXT_CHR_GET_SCALE},
+    {_CHR_SET_MOTION, EFF_EXT_CHR_SET_MOTION},
+    {_CHR_SET_MOT_STEP, EFF_EXT_CHR_SET_MOT_STEP},
+    {_CHR_GET_DIR_VECTOR, EFF_EXT_CHR_GET_DIR_VECTOR},
+    {_CHR_GET_REF_ROT, EFF_EXT_CHR_GET_REF_ROT},
+    {_CHR_ADD_POS, EFF_EXT_CHR_ADD_POS},
+    {_CHR_ADD_ROT, EFF_EXT_CHR_ADD_ROT},
+    {_CHR_ADD_SCALE, EFF_EXT_CHR_ADD_SCALE},
+    {_CHR_COPY_CHARA, EFF_EXT_CHR_COPY_CHARA},
+    {_CHR_SET_POS2, EFF_EXT_CHR_SET_POS2},
+    {_CHR_SET_ROT2, EFF_EXT_CHR_SET_ROT2},
+    {_CHR_SET_SCALE2, EFF_EXT_CHR_SET_SCALE2},
+    {_CHR_SET_MOTION2, EFF_EXT_CHR_SET_MOTION2},
+    {_CHR_ADD_POS2, EFF_EXT_CHR_ADD_POS2},
+    {_CHR_ADD_ROT2, EFF_EXT_CHR_ADD_ROT2},
+    {_CHR_ADD_SCALE2, EFF_EXT_CHR_ADD_SCALE2},
+    {_CHR_GET_MOT_WAIT, EFF_EXT_CHR_GET_MOT_WAIT},
+    {_CHR_SET_SHOW2, EFF_EXT_CHR_SET_SHOW2},
+    {_CHR_GET_FRAME_POS, EFF_EXT_CHR_GET_FRAME_POS},
+    {_CHR_SET_FRAME_SHOW, EFF_EXT_CHR_SET_FRAME_SHOW},
+    {_CHR_CHK_MOT_END, EFF_EXT_CHR_CHK_MOT_END},
+    {_CHR_SET_LIGHT_COLOR, EFF_EXT_CHR_SET_LIGHT_COLOR},
+    {_SPT_ASSIGN_SPRITE, EFF_EXT_SPT_ASSIGN_SPRITE},
+    {_SPT_DELETE_SPRITE, EFF_EXT_SPT_DELETE_SPRITE},
+    {_SPT_SET_TEXNAME, EFF_EXT_SPT_SET_TEXNAME},
+    {_SPT_SET_ALPHAB, EFF_EXT_SPT_SET_ALPHAB},
+    {_SPT_INIT_SPRITE, EFF_EXT_SPT_INIT_SPRITE},
+    {_SPT_SET_UV_SIZE, EFF_EXT_SPT_SET_UV_SIZE},
+    {_SPT_SET_PUT_SIZE, EFF_EXT_SPT_SET_PUT_SIZE},
+    {_SPT_SET_DRAW_FLAG, EFF_EXT_SPT_SET_DRAW_FLAG},
+    {_SPT_GET_DRAW_FLAG, EFF_EXT_SPT_GET_DRAW_FLAG},
+    {_SPT_SET_POS, EFF_EXT_SPT_SET_POS},
+    {_SPT_GET_POS, EFF_EXT_SPT_GET_POS},
+    {_SPT_SET_ROTZ, EFF_EXT_SPT_SET_ROTZ},
+    {_SPT_GET_ROTZ, EFF_EXT_SPT_GET_ROTZ},
+    {_SPT_SET_SCALE, EFF_EXT_SPT_SET_SCALE},
+    {_SPT_GET_SCALE, EFF_EXT_SPT_GET_SCALE},
+    {_SPT_SET_COLOR, EFF_EXT_SPT_SET_COLOR},
+    {_SPT_GET_COLOR, EFF_EXT_SPT_GET_COLOR},
+    {_SPT_VAN_SET_POS, EFF_EXT_SPT_VAN_SET_POS},
+    {_SPT_VAN_SET_ROT, EFF_EXT_SPT_VAN_SET_ROT},
+    {_SPT_ADD_POS, EFF_EXT_SPT_ADD_POS},
+    {_SPT_ADD_ROTZ, EFF_EXT_SPT_ADD_ROTZ},
+    {_SPT_ADD_COLOR, EFF_EXT_SPT_ADD_COLOR},
+    {_SPT_WORLD_ROT, EFF_EXT_SPT_WORLD_ROT},
+    {_SPT_SET_LIFE, EFF_EXT_SPT_SET_LIFE},
+    {_SPT_SET_VELO_POS, EFF_EXT_SPT_SET_VELO_POS},
+    {_SPT_SET_ACC_POS, EFF_EXT_SPT_SET_ACC_POS},
+    {_SPT_SET_VELO_ROTZ, EFF_EXT_SPT_SET_VELO_ROTZ},
+    {_SPT_SET_ACC_ROTZ, EFF_EXT_SPT_SET_ACC_ROTZ},
+    {_SPT_SET_VELO_COL, EFF_EXT_SPT_SET_VELO_COL},
+    {_SPT_SET_ACC_COL, EFF_EXT_SPT_SET_ACC_COL},
+    {_SPT_SET_BLINKING, EFF_EXT_SPT_SET_BLINKING},
+    {_SPT_VAN_SET_COL, EFF_EXT_SPT_VAN_SET_COL},
+    {_SPT_SET_VELO_SCL, EFF_EXT_SPT_SET_VELO_SCL},
+    {_SPT_SET_ACC_SCL, EFF_EXT_SPT_SET_ACC_SCL},
+    {_SPT_VAN_SET_SCL, EFF_EXT_SPT_VAN_SET_SCL},
+    {_SPT_SCALE_CONV, EFF_EXT_SPT_SCALE_CONV},
+    {_SPT_COLOR_CONV, EFF_EXT_SPT_COLOR_CONV},
+    {_SCN_GET_CHR_POS, EFF_EXT_SCN_GET_CHR_POS},
+    {_SCN_GET_CHR_ROT, EFF_EXT_SCN_GET_CHR_ROT},
+    {_SCN_GET_CHR_FRM_POS, EFF_EXT_SCN_GET_CHR_FRM_POS},
+    {_INTERSECTION_POINT, EFF_EXT_INTERSECTION_POINT},
+    {_MON_SE_PLAY, EFF_EXT_MON_SE_PLAY},
+    {_MON_SE_STOP, EFF_EXT_MON_SE_STOP},
+    {_BTL_SE_PLAY, EFF_EXT_BTL_SE_PLAY},
+    {_BTL_SE_STOP, EFF_EXT_BTL_SE_STOP},
+    {_BSE_SE_PLAY, EFF_EXT_BSE_SE_PLAY},
+    {_BSE_SE_STOP, EFF_EXT_BSE_SE_STOP},
+    {_MON_SE_PLAY2, EFF_EXT_MON_SE_PLAY2},
+    {_MON_SE_STOP2, EFF_EXT_MON_SE_STOP2},
+    {_SET_LIGHT_FLAG, EFF_EXT_SET_LIGHT_FLAG},
+    {_SCN_GET_CHR_ENTOBJ_POS, EFF_EXT_SCN_GET_CHR_ENTOBJ_POS},
+    {_SCN_GET_CHR_FRM_DIR, EFF_EXT_SCN_GET_CHR_FRM_DIR},
+    {_SCN_GET_CHR_FRM_ROT, EFF_EXT_SCN_GET_CHR_FRM_ROT},
+    {_SCN_GET_ENTRY_OBJ_POS, EFF_EXT_SCN_GET_ENTRY_OBJ_POS},
+    {_CREATE_DAMAGE, EFF_EXT_CREATE_DAMAGE},
+    {_DELETE_DAMAGE, EFF_EXT_DELETE_DAMAGE},
+    {_DMG_SET_POS, EFF_EXT_DMG_SET_POS},
+    {_DMG_SET_FRONT_VECT, EFF_EXT_DMG_SET_FRONT_VECT},
+    {_DMG_SET_DAMAGE, EFF_EXT_DMG_SET_DAMAGE},
+    {_COLPRIM_CREATE, EFF_EXT_COLPRIM_CREATE},
+    {_COLPRIM_SET_COORD, EFF_EXT_COLPRIM_SET_COORD},
+    {_COLPRIM_DELETE, EFF_EXT_COLPRIM_DELETE},
+    {_COLPRIM_GET_HITCNT, EFF_EXT_COLPRIM_GET_HITCNT},
+    {_COLPRIM_SET_DAMAGE, EFF_EXT_COLPRIM_SET_DAMAGE},
+    {_COLPRIM_GET_HIT_POS, EFF_EXT_COLPRIM_GET_HIT_POS},
+    {_COLPRIM_GET_GIFT, EFF_EXT_COLPRIM_GET_GIFT},
+    {_COLPRIM_GET_REVCNT, EFF_EXT_COLPRIM_GET_REVCNT},
+    {_ES_CREATE, EFF_EXT_ES_CREATE},
+    {_ES_SET_VECT1, EFF_EXT_ES_SET_VECT1},
+    {_ES_SET_VECT2, EFF_EXT_ES_SET_VECT2},
+    {_ES_SET_TARGET_ID, EFF_EXT_ES_SET_TARGET_ID},
+    {_ES_SET_COLPRIM, EFF_EXT_ES_SET_COLPRIM},
+    {_ES_SET_VALUE, EFF_EXT_ES_SET_VALUE},
+    {_GET_EOH_POS, EFF_EXT_GET_EOH_POS},
+    {NULL, EFF_EXT_END},
+};
+
+/**
  *
  * Builds the effect script external function table.
  *
@@ -5447,7 +5767,7 @@ void SetEffectScriptFunc() {
     }
 
     for (function_index = 0;; function_index++) {
-        if (ext_func_info__4[function_index].func == NULL) {
+        if (ext_func_info[function_index].func == NULL) {
             break;
         }
 
@@ -5455,8 +5775,8 @@ void SetEffectScriptFunc() {
             previous_index = 0;
 
             do {
-                if (ext_func_info__4[function_index].no == ext_func_info__4[previous_index].no) {
-                    printf(at_3644, ext_func_info__4[previous_index].no);
+                if (ext_func_info[function_index].no == ext_func_info[previous_index].no) {
+                    printf("dng_effect same ext_func_no!!![%d]\n", ext_func_info[previous_index].no);
 
                     while (1) {
                     }
@@ -5466,56 +5786,31 @@ void SetEffectScriptFunc() {
             } while (previous_index < function_index);
         }
 
-        if (ext_func_info__4[function_index].no < 0 || ext_func_info__4[function_index].no >= 256) {
-            printf(at_3645);
+        if (ext_func_info[function_index].no < 0 || ext_func_info[function_index].no >= 256) {
+            printf("dng_effect ext func over!!\n");
         } else {
-            ext_func__4[ext_func_info__4[function_index].no] = ext_func_info__4[function_index].func;
+            ext_func__4[ext_func_info[function_index].no] = ext_func_info[function_index].func;
         }
     }
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", eff_spt_base_def__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2311__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2498__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", ext_func_info__4__DATA);
-
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_943__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1099__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1100__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1101__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1102__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1103__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1104__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1127__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1128__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1129__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1143__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1144__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1145__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1336__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1337__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1338__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1339__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1340__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1341__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1655__5__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1705__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2025__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3303__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3304__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3398__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3495__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3536__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3644__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_3645__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(now_scene, 0x4);
-INCLUDE_BSS(EffScriptMan, 0x4);
-INCLUDE_BSS(now_script, 0x4);
+CScene *now_scene;
 
-// Uninitialised data (.bss)
-INCLUDE_BSS(ext_func__4, 0x400);
-INCLUDE_BSS(at_2067, 0x10);
+CEffectScriptMan *EffScriptMan;

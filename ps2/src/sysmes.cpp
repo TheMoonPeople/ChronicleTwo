@@ -96,25 +96,15 @@ void CreateSystemMes(int index, int unused) {
     GetSystemMessage(index)->SetBuff_system(GetSystemMesBuffer());
 }
 
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_482__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_483__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_484__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_485__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_486__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_487__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_488__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_489__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_490__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_491__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_492__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_493__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sysmes", at_494__DATA);
-
 // Uninitialised data (.bss)
 mgCMemory SystemMesStack;
-INCLUDE_BSS(SystemMesBuffer, 0xD000);
-INCLUDE_BSS(SysMesBuffer, 0x13880);
+
+short SystemMesBuffer[0x6800];
+
+short SysMesBuffer[0x9C40];
+
 ClsMes SystemMessage;
+
 ClsMes SystemMessage2;
+
 ClsMes SystemMessage3;

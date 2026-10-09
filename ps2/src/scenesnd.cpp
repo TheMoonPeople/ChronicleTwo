@@ -11,19 +11,6 @@
 #include "scenesnd.hpp"
 #include "sound.hpp"
 
-extern char at_1011__3[];
-extern char at_1012__3[];
-extern char at_1013__3[];
-extern char at_1018__6[];
-extern char at_1023__3[];
-extern char at_1028__6[];
-extern char at_1033__5[];
-extern char at_1038__4[];
-extern char at_1132__4[];
-extern char at_1194[];
-extern char at_1195[];
-extern char at_1766__2[];
-
 /**
  *
  * Pair of characters used to break a line of scene text.
@@ -32,8 +19,6 @@ extern char at_1766__2[];
 struct LineBreakPair {
     s8 chars[2]; /**< Line break characters. */
 };
-
-extern LineBreakPair at_1615__2;
 
 // Code (.text)
 void CScene::BGM_INFO::Init() {
@@ -141,7 +126,7 @@ void CScene::SoundAllStop() {
 }
 
 void CScene::InitLooSeMngr() {
-    loop_se_stack.stSetBuffer((u_long128 *) loop_se_buff, 0x200);
+    loop_se_stack.stSetBuffer(loop_se_buff, 0x200);
     loop_se.Initialize();
     loop_se.Create(0x30, &loop_se_stack);
     loop_se.Clear();
@@ -373,43 +358,43 @@ void GetNumber3(char *out, int number) {
     out[0] = 0;
 
     if (number < 10) {
-        strcat(out, at_1011__3);
+        strcat(out, "00");
     } else if (number < 100) {
-        strcat(out, at_1012__3);
+        strcat(out, "0");
     }
 
-    sprintf(digits, at_1013__3, number);
+    sprintf(digits, "%d", number);
     strcat(out, digits);
 }
 
 void CScene::GetBgmFile(char *path, int number) {
     char digits[16];
     GetNumber3(digits, number);
-    sprintf(path, at_1018__6, digits);
+    sprintf(path, "snd2/bgm/BG_%s.snd", digits);
 }
 
 void CScene::GetSeSrcFile(char *path, int number) {
     char digits[16];
     GetNumber3(digits, number);
-    sprintf(path, at_1023__3, digits);
+    sprintf(path, "snd2/ob/OB_%s.snd", digits);
 }
 
 void CScene::GetSeEnvFile(char *path, int number) {
     char digits[16];
     GetNumber3(digits, number);
-    sprintf(path, at_1028__6, digits);
+    sprintf(path, "snd2/env/SR_%s.snd", digits);
 }
 
 void CScene::GetSeBaseFile(char *path, int number) {
     char digits[16];
     GetNumber3(digits, number);
-    sprintf(path, at_1033__5, digits);
+    sprintf(path, "snd2/bs/BS_%s.snd", digits);
 }
 
 void CScene::GetSeBattleFile(char *path, int number) {
     char digits[16];
     GetNumber3(digits, number);
-    sprintf(path, at_1038__4, digits);
+    sprintf(path, "snd2/fg/FG_%s.snd", digits);
 }
 
 int CScene::CheckLoadBGM(int bgm_no) {
@@ -502,7 +487,7 @@ int CScene::GetDefEventSeFile(int id, char *path) {
 
     GetNumber3(bank_digits, entry->event_se[0]);
     GetNumber3(number_digits, entry->event_se[1]);
-    sprintf(path, at_1132__4, bank_digits, number_digits);
+    sprintf(path, "snd2/event/EV_%s_%s.snd", bank_digits, number_digits);
     return 1;
 }
 
@@ -524,7 +509,7 @@ int CScene::LoadSound(int snd_file_id, u_long128 *buff) {
         return 0;
     }
 
-    printf(at_1194);
+    printf("load sound %d\n");
     entry = scene->SearchSndDataID(snd_file_id);
 
     if (entry == NULL) {
@@ -587,7 +572,7 @@ int CScene::LoadSound(int snd_file_id, u_long128 *buff) {
     }
 
     sndSetReverb(1, (int) entry->reverb_type, (int) entry->reverb_depth);
-    printf(at_1195, entry->reverb_type, entry->reverb_depth);
+    printf("Reverb %d %d\n", entry->reverb_type, entry->reverb_depth);
     scene->snd_file_id = snd_file_id;
     scene->PlayEnvBgm();
     return 1;
@@ -1036,7 +1021,7 @@ void CScene::SePlayFoot(int ground, int foot, float *position) {
  *
  */
 static char *GetLine(char **lines, char *cursor, char *end) {
-    LineBreakPair line_break = at_1615__2;
+    LineBreakPair line_break = {{'\r', '\n'}};
     int           line_index;
     int           length;
 
@@ -1178,7 +1163,7 @@ void CScene::LoadSndFileInfo(char *src, int size) {
                 entry->se_env = SND_FILE_NO_KEEP;
             }
 
-            char *prefix = at_1766__2;
+            char *prefix = "\x8e\x9e\x8a\xd4\x95\xcf\x89\xbb*";
             int   prefix_length = strlen(prefix);
             char *environment = columns[column++];
             entry->env_bgm = 0;
@@ -1254,20 +1239,3 @@ void CScene::LoadSndFileInfo(char *src, int size) {
         }
     }
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1011__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1012__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1013__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1018__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1023__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1028__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1033__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1038__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1132__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1194__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1195__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1766__2__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/scenesnd", at_1615__2__DATA);

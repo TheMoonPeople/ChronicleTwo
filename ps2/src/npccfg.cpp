@@ -9,30 +9,35 @@
 #include "npccfg.hpp"
 #include "scriptinterpreter.hpp"
 
-/** Number of initialized party-character entries. */
-extern int NpcBaseDataTotalNum;
-/** Party-character entries loaded from the NPC script. */
-extern NPC_BASE_DATA NpcBaseData[180];
-/** Next free party-character entry while the NPC script runs. */
-extern u8          npc_spi_count_num;
-extern const char  at_838__4[];
-extern const char  at_898__4[];
-extern const char  at_899__4[];
-extern const char  at_900__5[];
-extern const char  at_901__3[];
-extern signed char typetbl_853[16];
-extern char        path_885[0x40];
-extern char        infocfg_886[];
-extern const char  at_847__3[];
+/**
+ *
+ * Number of initialized party-character entries.
+ *
+ */
+static int NpcBaseDataTotalNum;
+
+/**
+ *
+ * Party-character entries loaded from the NPC script.
+ *
+ */
+static NPC_BASE_DATA NpcBaseData[180] __attribute__((aligned(16)));
+
+/**
+ *
+ * Next free party-character entry while the NPC script runs.
+ *
+ */
+static u8 npc_spi_count_num;
+
 // Code (.text)
-extern SPI_TAG_PARAM npc_spitag[3];
 
 /**
  *
  * Records the number of party characters declared by the NPC script.
  *
  */
-int _NPC_NUM(SPI_STACK *stack, int argument_count) {
+static int _NPC_NUM(SPI_STACK *stack, int argument_count) {
     NpcBaseDataTotalNum = spiGetStackInt(stack);
     return 1;
 }
@@ -42,7 +47,7 @@ int _NPC_NUM(SPI_STACK *stack, int argument_count) {
  * Reads one party-character record from the NPC script's stack.
  *
  */
-int _NPC_INFO(SPI_STACK *stack, int argument_count) {
+static int _NPC_INFO(SPI_STACK *stack, int argument_count) {
     NPC_BASE_DATA *data = &NpcBaseData[npc_spi_count_num++];
     int            id = spiGetStackInt(stack++);
     char          *name = spiGetStackString(stack++);
@@ -53,7 +58,7 @@ int _NPC_INFO(SPI_STACK *stack, int argument_count) {
         strcpy(data->name, name);
 
         if (strlen(name) > 0x1B) {
-            printf(at_838__4, name);
+            printf("NAME OVER!!!!!!:%s\n", name);
         }
     }
 
@@ -72,12 +77,23 @@ int _NPC_INFO(SPI_STACK *stack, int argument_count) {
     return 1;
 }
 
+/**
+ *
+ * Script commands that populate the party-character table.
+ *
+ */
+static SPI_TAG_PARAM npc_spitag[3] = {
+    {"NPC_NUM", _NPC_NUM},
+    {"NPC_INFO", _NPC_INFO},
+    {NULL, NULL},
+};
+
 void LoadNPCCfg() {
     u_long128  work[2048];
     char       path[32];
     int        size;
     u_long128 *buffer = MenuCalcBufAlignment(work);
-    sprintf(path, at_847__3, LanguageCode);
+    sprintf(path, "npc%d.cfg", LanguageCode);
     npc_spi_count_num = 0;
 
     if (LoadFile2(path, buffer, &size, 0) != 0) {
@@ -89,6 +105,13 @@ void LoadNPCCfg() {
 
     NpcBaseDataTotalNum = npc_spi_count_num;
 }
+
+/**
+ *
+ * Message suffix for each party-character message category.
+ *
+ */
+static signed char typetbl_853[16] = {0, 10, 20, 30, 2, 40, 45, 50, 55, 0, 90, 60, 0, 21, 25, 0};
 
 int GetPartyCharaMessage(int chara_no, int type, int event) {
     if (GetPartyNPCData(chara_no) == 0) {
@@ -129,35 +152,49 @@ char *GetNPCName(int chara_no) {
 }
 
 char *GetPartyCharaModelName(int chara_no, int type) {
+    /**
+     *
+     * Buffer holding the requested party-character model path.
+     *
+     */
+    static char path[0x40];
+
+    /**
+     *
+     * Character information script name.
+     *
+     */
+    static char infocfg[] = "info.cfg";
+
     char *model;
 
     if (chara_no <= 0 || chara_no > 0x20) {
         return 0;
     }
 
-    path_885[0] = 0;
+    path[0] = 0;
     model = GetNPCModelName(chara_no);
 
     if (model != 0) {
-        if (type == 0) {
-            strcpy(path_885, at_898__4);
-            strcat(path_885, model);
-            strcat(path_885, at_899__4);
-            return path_885;
+        if (type == NPC_MODEL_PATH_CHARA) {
+            strcpy(path, "chara/");
+            strcat(path, model);
+            strcat(path, ".chr");
+            return path;
         }
 
-        if (type == 1) {
-            return infocfg_886;
+        if (type == NPC_MODEL_PATH_INFO) {
+            return infocfg;
         }
 
-        if (type == 2) {
-            sprintf(path_885, at_900__5, model);
-            return path_885;
+        if (type == NPC_MODEL_PATH_EVENT_TRAIN) {
+            sprintf(path, "event/train/t%s.chr", model);
+            return path;
         }
 
-        if (type == 3) {
-            sprintf(path_885, at_901__3, model);
-            return path_885;
+        if (type == NPC_MODEL_PATH_MENU) {
+            sprintf(path, "menu/npc/t%s.chr", model);
+            return path;
         }
     }
 
@@ -173,26 +210,3 @@ NPC_BASE_DATA *GetPartyNPCData(int chara_no) {
 
     return 0;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", npc_spitag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", typetbl_853__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", infocfg_886__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", at_838__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", at_839__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", at_840__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", at_847__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", at_898__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", at_899__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", at_900__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/npccfg", at_901__3__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(NpcBaseDataTotalNum, 0x4);
-INCLUDE_BSS(npc_spi_count_num, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(NpcBaseData, 0x2600);
-INCLUDE_BSS(path_885, 0x40);

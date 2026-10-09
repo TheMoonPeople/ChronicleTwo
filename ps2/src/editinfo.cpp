@@ -10,9 +10,6 @@
 #include "mg_memory.hpp"
 #include "scriptinterpreter.hpp"
 
-extern CEditPartsInfo *emapNowInfo__2;
-extern mgCMemory      *emapStack__2;
-
 /**
  *
  * Rectangle of the edit map with its part type and endpoint positions.
@@ -25,22 +22,60 @@ struct EditMapRect {
     float end[4];   /**< Second endpoint. */
 };
 
-extern EditMapRect *emapRect__2;
-extern int          emapRectType;
-extern int          emapRectNum__2;
-extern int          emapRectIdx__2;
+/**
+ * Manager filled by the edit information script.
+ */
+static CEditInfoMngr *emapInfo__2;
 
-const int kPartsGround = 0x07;
-const int kPartsBlock = 0x30;
-const int kPartsRiver = 0x80;
-const int kPartsFence = 0x130;
+/**
+ * Storage for the edit information tables and strings.
+ */
+static mgCMemory *emapStack__2;
 
-extern int            emapMatID;
-extern CEditInfoMngr *emapInfo__2;
-extern int            emapIdx__2;
-extern int            emapFixNum__2;
-extern int            emapFixIdx__2;
-extern SPI_TAG_PARAM  emap_tag__2[];
+/**
+ * Index of the next edit part definition.
+ */
+static int emapIdx__2;
+
+/**
+ * Index of the next material in the current part definition.
+ */
+static int emapMatID;
+
+/**
+ * Part definition currently filled by the script.
+ */
+static CEditPartsInfo *emapNowInfo__2;
+
+/**
+ * Part type assigned to each rectangle record.
+ */
+static int emapRectType;
+
+/**
+ * Rectangle records currently filled by the script.
+ */
+static EditMapRect *emapRect__2;
+
+/**
+ * Number of records in the current rectangle list.
+ */
+static int emapRectNum__2;
+
+/**
+ * Index of the next rectangle record.
+ */
+static int emapRectIdx__2;
+
+/**
+ * Number of fixed part placements read by the script.
+ */
+static int emapFixNum__2;
+
+/**
+ * Index of the next fixed part placement.
+ */
+static int emapFixIdx__2;
 
 /**
  *
@@ -134,7 +169,7 @@ CEditPartsInfo *CEditInfoMngr::GetePartsInfoAtType(int type) {
  * Allocates the edit part information table for a script.
  *
  */
-int emapEDIT_PARTS_NUM(SPI_STACK *stack, int argument_count) {
+static int emapEDIT_PARTS_NUM(SPI_STACK *stack, int argument_count) {
     int parts_count = spiGetStackInt(stack);
 
     if (parts_count <= 0) {
@@ -152,7 +187,7 @@ int emapEDIT_PARTS_NUM(SPI_STACK *stack, int argument_count) {
  * Begins a named edit part information record.
  *
  */
-int emapEDIT_PARTS(SPI_STACK *stack, int argument_count) {
+static int emapEDIT_PARTS(SPI_STACK *stack, int argument_count) {
     char  converted_name[256];
     char *name;
     char *name_buffer;
@@ -180,7 +215,7 @@ int emapEDIT_PARTS(SPI_STACK *stack, int argument_count) {
  * Sets the identifier of the current edit part.
  *
  */
-int emapID(SPI_STACK *stack, int argument_count) {
+static int emapID(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == 0) {
         return 0;
     }
@@ -194,21 +229,21 @@ int emapID(SPI_STACK *stack, int argument_count) {
  * Sets the model part name of the current edit part.
  *
  */
-int emapPARTS_NAME(SPI_STACK *stack, int argument_count) {
+static int emapPARTS_NAME(SPI_STACK *stack, int argument_count) {
     char *text;
-    int   buffer;
+    char *buffer;
 
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
 
     text = spiGetStackString(stack);
-    buffer = (int) emapStack__2->Alloc(align16_blocks(strlen(text) + 1));
+    buffer = (char *) emapStack__2->Alloc(align16_blocks(strlen(text) + 1));
 
-    if (text != 0) {
-        if (buffer != 0) {
-            strcpy((char *) buffer, text);
-            emapNowInfo__2->parts_name = (char *) buffer;
+    if (text != NULL) {
+        if (buffer != NULL) {
+            strcpy(buffer, text);
+            emapNowInfo__2->parts_name = buffer;
         }
     }
 
@@ -220,7 +255,7 @@ int emapPARTS_NAME(SPI_STACK *stack, int argument_count) {
  * Adds attribute flags to the current edit part.
  *
  */
-int emapPARTS_ATR(SPI_STACK *stack, int argument_count) {
+static int emapPARTS_ATR(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
@@ -234,7 +269,7 @@ int emapPARTS_ATR(SPI_STACK *stack, int argument_count) {
  * Adds an item and quantity to the current part material list.
  *
  */
-int emapPARTS_MATERIAL(SPI_STACK *stack, int argument_count) {
+static int emapPARTS_MATERIAL(SPI_STACK *stack, int argument_count) {
     int                index;
     EditPartsMaterial *material;
 
@@ -260,21 +295,21 @@ int emapPARTS_MATERIAL(SPI_STACK *stack, int argument_count) {
  * Sets the descriptive comment of the current edit part.
  *
  */
-int emapPARTS_COMMENT(SPI_STACK *stack, int argument_count) {
+static int emapPARTS_COMMENT(SPI_STACK *stack, int argument_count) {
     char *text;
-    int   buffer;
+    char *buffer;
 
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
 
     text = spiGetStackString(stack);
-    buffer = (int) emapStack__2->Alloc(align16_blocks(strlen(text) + 1));
+    buffer = (char *) emapStack__2->Alloc(align16_blocks(strlen(text) + 1));
 
-    if (text != 0) {
-        if (buffer != 0) {
-            strcpy((char *) buffer, text);
-            emapNowInfo__2->comment = (char *) buffer;
+    if (text != NULL) {
+        if (buffer != NULL) {
+            strcpy(buffer, text);
+            emapNowInfo__2->comment = buffer;
         }
     }
 
@@ -286,7 +321,7 @@ int emapPARTS_COMMENT(SPI_STACK *stack, int argument_count) {
  * Sets the culture point values of the current edit part.
  *
  */
-int emapCPOINT(SPI_STACK *stack, int argument_count) {
+static int emapCPOINT(SPI_STACK *stack, int argument_count) {
     SPI_STACK *second;
 
     second = stack + 1;
@@ -305,7 +340,7 @@ int emapCPOINT(SPI_STACK *stack, int argument_count) {
  * Sets the weight of the current edit part.
  *
  */
-int emapWEIGHT(SPI_STACK *stack, int argument_count) {
+static int emapWEIGHT(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
@@ -319,7 +354,7 @@ int emapWEIGHT(SPI_STACK *stack, int argument_count) {
  * Sets the geostone requirement of the current edit part.
  *
  */
-int emapGEO_STONE(SPI_STACK *stack, int argument_count) {
+static int emapGEO_STONE(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
@@ -333,7 +368,7 @@ int emapGEO_STONE(SPI_STACK *stack, int argument_count) {
  * Sets the maximum placement count of the current edit part.
  *
  */
-int emapMAX_NUM(SPI_STACK *stack, int argument_count) {
+static int emapMAX_NUM(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
@@ -347,7 +382,7 @@ int emapMAX_NUM(SPI_STACK *stack, int argument_count) {
  * Sets the paint count of the current edit part.
  *
  */
-int emapPAINT_NUM(SPI_STACK *stack, int argument_count) {
+static int emapPAINT_NUM(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
@@ -361,7 +396,7 @@ int emapPAINT_NUM(SPI_STACK *stack, int argument_count) {
  * Sets the paint use value of the current edit part.
  *
  */
-int emapPAINT_USED(SPI_STACK *stack, int argument_count) {
+static int emapPAINT_USED(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
@@ -375,7 +410,7 @@ int emapPAINT_USED(SPI_STACK *stack, int argument_count) {
  * Sets the type of the current edit part.
  *
  */
-int emapPARTS_TYPE(SPI_STACK *stack, int argument_count) {
+static int emapPARTS_TYPE(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
@@ -389,7 +424,7 @@ int emapPARTS_TYPE(SPI_STACK *stack, int argument_count) {
  * Sets the placement tolerance of the current edit part.
  *
  */
-int emapPLACE_EPS(SPI_STACK *stack, int argument_count) {
+static int emapPLACE_EPS(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
@@ -403,7 +438,7 @@ int emapPLACE_EPS(SPI_STACK *stack, int argument_count) {
  * Sets the map number of the current edit part.
  *
  */
-int emapMAP_NO(SPI_STACK *stack, int argument_count) {
+static int emapMAP_NO(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
@@ -417,7 +452,7 @@ int emapMAP_NO(SPI_STACK *stack, int argument_count) {
  * Sets collision polygon limits for the current edit part.
  *
  */
-int emapPOLYN(SPI_STACK *stack, int argument_count) {
+static int emapPOLYN(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
@@ -440,12 +475,12 @@ int emapPOLYN(SPI_STACK *stack, int argument_count) {
  * Marks the current edit part as ground.
  *
  */
-int emapGROUND_PARTS(SPI_STACK *stack, int argument_count) {
+static int emapGROUND_PARTS(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->attr = emapNowInfo__2->attr | kPartsGround;
+    emapNowInfo__2->attr = emapNowInfo__2->attr | EDIT_PARTS_ATR_GROUND;
     return 1;
 }
 
@@ -454,12 +489,12 @@ int emapGROUND_PARTS(SPI_STACK *stack, int argument_count) {
  * Marks the current edit part as a block.
  *
  */
-int emapBLOCK_PARTS(SPI_STACK *stack, int argument_count) {
+static int emapBLOCK_PARTS(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->attr = emapNowInfo__2->attr | kPartsBlock;
+    emapNowInfo__2->attr = emapNowInfo__2->attr | EDIT_PARTS_ATR_BLOCK;
     return 1;
 }
 
@@ -468,12 +503,12 @@ int emapBLOCK_PARTS(SPI_STACK *stack, int argument_count) {
  * Marks the current edit part as river terrain.
  *
  */
-int emapRIVER_PARTS(SPI_STACK *stack, int argument_count) {
+static int emapRIVER_PARTS(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->attr = emapNowInfo__2->attr | kPartsRiver;
+    emapNowInfo__2->attr = emapNowInfo__2->attr | EDIT_PARTS_ATR_RIVER;
     return 1;
 }
 
@@ -482,12 +517,12 @@ int emapRIVER_PARTS(SPI_STACK *stack, int argument_count) {
  * Marks the current edit part as a fence.
  *
  */
-int emapFENCE_PARTS(SPI_STACK *stack, int argument_count) {
+static int emapFENCE_PARTS(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->attr = emapNowInfo__2->attr | kPartsFence;
+    emapNowInfo__2->attr = emapNowInfo__2->attr | EDIT_PARTS_ATR_FENCE;
     return 1;
 }
 
@@ -496,7 +531,7 @@ int emapFENCE_PARTS(SPI_STACK *stack, int argument_count) {
  * Adds a typed rectangular area to the current edit part.
  *
  */
-int emapRECT(SPI_STACK *stack, int argument_count) {
+static int emapRECT(SPI_STACK *stack, int argument_count) {
     if (emapRect__2 == NULL) {
         return 0;
     }
@@ -520,7 +555,7 @@ int emapRECT(SPI_STACK *stack, int argument_count) {
  * Begins the placement rectangle list of the current edit part.
  *
  */
-int emapPLACE_RECT(SPI_STACK *stack, int argument_count) {
+static int emapPLACE_RECT(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == 0) {
         return 0;
     }
@@ -535,7 +570,7 @@ int emapPLACE_RECT(SPI_STACK *stack, int argument_count) {
  * Ends the placement rectangle list.
  *
  */
-int emapPLACE_RECT_END(SPI_STACK *, int) {
+static int emapPLACE_RECT_END(SPI_STACK *, int) {
     emapRect__2 = 0;
     return 1;
 }
@@ -545,7 +580,7 @@ int emapPLACE_RECT_END(SPI_STACK *, int) {
  * Begins the part rectangle list of the current edit part.
  *
  */
-int emapPARTS_RECT(SPI_STACK *stack, int argument_count) {
+static int emapPARTS_RECT(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == 0) {
         return 0;
     }
@@ -560,7 +595,7 @@ int emapPARTS_RECT(SPI_STACK *stack, int argument_count) {
  * Ends the part rectangle list.
  *
  */
-int emapPARTS_RECT_END(SPI_STACK *, int) {
+static int emapPARTS_RECT_END(SPI_STACK *, int) {
     emapRect__2 = 0;
     return 1;
 }
@@ -570,7 +605,7 @@ int emapPARTS_RECT_END(SPI_STACK *, int) {
  * Begins the put rectangle list of the current edit part.
  *
  */
-int emapPUT_RECT(SPI_STACK *stack, int argument_count) {
+static int emapPUT_RECT(SPI_STACK *stack, int argument_count) {
     if (emapNowInfo__2 == 0) {
         return 0;
     }
@@ -585,7 +620,7 @@ int emapPUT_RECT(SPI_STACK *stack, int argument_count) {
  * Ends the put rectangle list.
  *
  */
-int emapPUT_RECT_END(SPI_STACK *, int) {
+static int emapPUT_RECT_END(SPI_STACK *, int) {
     emapRect__2 = 0;
     return 1;
 }
@@ -595,10 +630,46 @@ int emapPUT_RECT_END(SPI_STACK *, int) {
  * Ends the current edit part information record.
  *
  */
-int emapEDIT_PARTS_END(SPI_STACK *, int) {
+static int emapEDIT_PARTS_END(SPI_STACK *, int) {
     emapNowInfo__2 = 0;
     return 1;
 }
+
+/**
+ * Commands that fill the edit part information records.
+ */
+static SPI_TAG_PARAM emap_tag__2[] = {
+    {"EDIT_PARTS_NUM", emapEDIT_PARTS_NUM},
+    {"EDIT_PARTS",     emapEDIT_PARTS    },
+    {"ID",             emapID            },
+    {"PARTS_NAME",     emapPARTS_NAME    },
+    {"PARTS_ATR",      emapPARTS_ATR     },
+    {"PARTS_MATERIAL", emapPARTS_MATERIAL},
+    {"PARTS_COMMENT",  emapPARTS_COMMENT },
+    {"GROUND_PARTS",   emapGROUND_PARTS  },
+    {"BLOCK_PARTS",    emapBLOCK_PARTS   },
+    {"RIVER_PARTS",    emapRIVER_PARTS   },
+    {"FENCE_PARTS",    emapFENCE_PARTS   },
+    {"CPOINT",         emapCPOINT        },
+    {"WEIGHT",         emapWEIGHT        },
+    {"GEO_STONE",      emapGEO_STONE     },
+    {"MAX_NUM",        emapMAX_NUM       },
+    {"PAINT_NUM",      emapPAINT_NUM     },
+    {"PAINT_USED",     emapPAINT_USED    },
+    {"PARTS_TYPE",     emapPARTS_TYPE    },
+    {"PLACE_EPS",      emapPLACE_EPS     },
+    {"MAP_NO",         emapMAP_NO        },
+    {"POLYN",          emapPOLYN         },
+    {"RECT",           emapRECT          },
+    {"PLACE_RECT",     emapPLACE_RECT    },
+    {"PLACE_RECT_END", emapPLACE_RECT_END},
+    {"PARTS_RECT",     emapPARTS_RECT    },
+    {"PARTS_RECT_END", emapPARTS_RECT_END},
+    {"PUT_RECT",       emapPUT_RECT      },
+    {"PUT_RECT_END",   emapPUT_RECT_END  },
+    {"EDIT_PARTS_END", emapEDIT_PARTS_END},
+    {NULL,             NULL              },
+};
 
 void CEditInfoMngr::LoadEditInfo(char *script, int size, mgCMemory *memory) {
     emapInfo__2 = this;
@@ -662,50 +733,3 @@ CFuncPoint *CEditMap::GetEvent(float *position, int check_type, MapEventInfo *in
 
     return NULL;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", emap_tag__2__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_368__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_369__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_370__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_371__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_372__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_373__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_374__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_375__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_376__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_377__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_378__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_379__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_380__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_381__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_382__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_383__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_384__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_385__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_386__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_387__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_388__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_389__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_390__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_391__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_392__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_393__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_394__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_395__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_396__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(emapInfo__2, 0x4);
-INCLUDE_BSS(emapStack__2, 0x4);
-INCLUDE_BSS(emapIdx__2, 0x4);
-INCLUDE_BSS(emapMatID, 0x4);
-INCLUDE_BSS(emapNowInfo__2, 0x4);
-INCLUDE_BSS(emapRectType, 0x4);
-INCLUDE_BSS(emapRect__2, 0x4);
-INCLUDE_BSS(emapRectNum__2, 0x4);
-INCLUDE_BSS(emapRectIdx__2, 0x4);
-INCLUDE_BSS(emapFixNum__2, 0x4);
-INCLUDE_BSS(emapFixIdx__2, 0x4);

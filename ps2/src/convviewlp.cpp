@@ -16,26 +16,68 @@
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 
-extern CScene            *MovieScene__2;
-extern SAVE_CONVERT_WORK *SAVEDATA_BUFFER;
-extern mgCMemory          buf0_816, buf1_819, dbuf0_822, dbuf1_825;
-extern char               init_817, init_820, init_823, init_826;
-extern int                ConvMode;
-extern int                SlotSelect;
-extern char               at_1016__4[], at_1017__4[], at_1018__7[], at_1019__5[];
-extern char               at_1020__4[], at_1021__4[], at_1022__3[], at_1023__5[];
-extern char               at_1024__4[], at_1025__5[], at_1026__4[], at_1027__5[];
-extern char               at_1028__10[], at_1029__7[], at_1030__6[], at_1031__7[];
+/**
+ * Display-time value recorded for the conversion result.
+ */
+static int ConvertResultDispTime;
+/**
+ * Texture and data storage used by the conversion screen.
+ */
+static mgCMemory DataBuffer__3;
+/**
+ * Read buffer backed by the remaining main-stack storage.
+ */
+static mgCMemory Stack_ReadBuff__3;
 
-extern MC_DIR_ENTRY     *SaveFileInfoTablePtr;
-extern int               SaveFileInfoTableSizeConvert[];
-extern int               FileListNum;
-extern int               ConvertPhase;
-extern int               ConvertFileNum;
-extern int               ConvertResult;
-extern int               ConvertResultDispTime;
-extern mgCMemory         DataBuffer__3;
-extern mgCMemory         Stack_ReadBuff__3;
+/**
+ * Scene used by the save-data conversion screen.
+ */
+static CScene *MovieScene__2;
+
+/**
+ * Current mode of the save-data conversion screen.
+ */
+static int ConvMode;
+
+/**
+ * Selected memory-card port.
+ */
+static int SlotSelect;
+
+/**
+ * Number of source save directories in the conversion list.
+ */
+static int FileListNum;
+
+/**
+ * Current phase of memory-card checking and conversion.
+ */
+static int ConvertPhase;
+
+/**
+ * Number of directories converted in the current run.
+ */
+static int ConvertFileNum;
+
+/**
+ * Result reported by the save-data conversion run.
+ */
+static int ConvertResult;
+
+/**
+ * Directory records for the source save files.
+ */
+static MC_DIR_ENTRY *SaveFileInfoTablePtr;
+
+/**
+ * Allocated work image for converting saved game data.
+ */
+static SAVE_CONVERT_WORK *SAVEDATA_BUFFER;
+
+/**
+ * Per-file size information for the conversion list.
+ */
+int SaveFileInfoTableSizeConvert[128];
 
 static void InitSaveFileInfoTablePtr();
 
@@ -47,36 +89,36 @@ void SVConvViewInit(INIT_LOOP_ARG arg) {
     mgCMemory *main_stack = GetMainStack();
     main_stack->stReset();
 
-    if (!init_817) {
-        buf0_816.Init();
-        init_817 = 1;
-    }
+    /**
+     * First packet buffer for the conversion screen.
+     */
+    static mgCMemory buf0;
 
-    if (!init_820) {
-        buf1_819.Init();
-        init_820 = 1;
-    }
+    /**
+     * Second packet buffer for the conversion screen.
+     */
+    static mgCMemory buf1;
 
-    if (!init_823) {
-        dbuf0_822.Init();
-        init_823 = 1;
-    }
+    /**
+     * First data buffer for the conversion screen.
+     */
+    static mgCMemory dbuf0;
 
-    if (!init_826) {
-        dbuf1_825.Init();
-        init_826 = 1;
-    }
+    /**
+     * Second data buffer for the conversion screen.
+     */
+    static mgCMemory dbuf1;
 
     u_long128 *vif0 = main_stack->stAlloc64(10000);
     u_long128 *vif1 = main_stack->stAlloc64(10000);
     mgInitVif1Packet(vif0, vif1, 160000);
-    buf0_816.stSetBuffer(main_stack->stAlloc64(30000), 30000);
-    buf1_819.stSetBuffer(main_stack->stAlloc64(30000), 30000);
-    dbuf0_822.stSetBuffer(main_stack->stAlloc64(60000), 60000);
-    dbuf1_825.stSetBuffer(main_stack->stAlloc64(60000), 60000);
+    buf0.stSetBuffer(main_stack->stAlloc64(30000), 30000);
+    buf1.stSetBuffer(main_stack->stAlloc64(30000), 30000);
+    dbuf0.stSetBuffer(main_stack->stAlloc64(60000), 60000);
+    dbuf1.stSetBuffer(main_stack->stAlloc64(60000), 60000);
     DataBuffer__3.stSetBuffer(main_stack->stAlloc64(100000), 100000);
-    mgSetPacketBuffer(&buf0_816, &buf1_819);
-    mgSetDataBuffer(&dbuf0_822, &dbuf1_825, 1);
+    mgSetPacketBuffer(&buf0, &buf1);
+    mgSetDataBuffer(&dbuf0, &dbuf1, 1);
     mgSetBackGround(0.0f, 0.0f, 0.0f, 128.0f);
     SetTextureTable(100, 20, &DataBuffer__3);
     mgTexManager.EnterIMGFile(GetGaijiImgPtr(), 0, NULL, NULL);
@@ -146,85 +188,85 @@ int SVConvViewLoop() {
     font.SetClearance(16, 20);
     font.SetFuchi(5);
     font.SetColor(0x80686A6B);
-    font.DrawDirect(at_1016__4, 40, 20);
+    font.DrawDirect("SaveData Convert", 40, 20);
 
     if (ConvMode == SV_CONV_MODE_SELECT) {
-        font.DrawDirect(at_1017__4, 200, 20);
+        font.DrawDirect("Exit: Start or (A)", 200, 20);
     }
 
     char line[256];
-    sprintf(line, at_1018__7, SlotSelect);
+    sprintf(line, "Now Slot : %d", SlotSelect);
     font.SetStr(line);
     font.SetPos(40, 42);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
     int y = 72;
 
     if (ConvMode == SV_CONV_MODE_SELECT) {
-        font.DrawDirect(at_1019__5, 40, 72);
+        font.DrawDirect("Slot Select    : Left or Right", 40, 72);
         y += 24;
-        font.DrawDirect(at_1020__4, 40, y);
+        font.DrawDirect("Check & Convert: (O)", 40, y);
     }
 
     if (ConvMode == SV_CONV_MODE_CONVERT) {
         if (ConvertPhase == SAVEDATA_CONVERT_PHASE_CHECK_CARD) {
-            font.SetStr(at_1021__4);
+            font.SetStr("Checking MemoryCard");
             font.SetPos(40, y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
         }
 
         if (ConvertPhase == SAVEDATA_CONVERT_PHASE_READ_DIR) {
-            font.SetStr(at_1022__3);
+            font.SetStr("Now Check DataFile");
             font.SetPos(40, y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
         }
 
         if (ConvertPhase == SAVEDATA_CONVERT_PHASE_CONVERT) {
-            font.SetStr(at_1023__5);
+            font.SetStr("Now Convert Data ....");
             font.SetPos(40, y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
         }
 
         if (ConvertPhase == SAVEDATA_CONVERT_PHASE_END) {
-            font.SetStr(at_1021__4);
+            font.SetStr("Checking MemoryCard");
             font.SetPos(40, y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
         }
 
         y += 24;
-        font.SetStr(at_1024__4);
+        font.SetStr("Don't remove memory card (PS2).");
         font.SetPos(40, y);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
     }
 
     if (ConvMode == SV_CONV_MODE_RESULT) {
         if (ConvertResult == SAVEDATA_CONVERT_RESULT_CARD_ERROR) {
-            font.SetStr(at_1025__5);
+            font.SetStr("Failed Access memory card(PS2)");
             font.SetPos(40, y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             y += 24;
         } else if (ConvertResult == SAVEDATA_CONVERT_RESULT_NO_FILES) {
-            font.SetStr(at_1026__4);
+            font.SetStr("Not Exist Convert Files ");
             font.SetPos(40, y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             y += 24;
         } else {
-            font.DrawDirect(at_1027__5, 40, y);
-            sprintf(line, at_1028__10, FileListNum);
+            font.DrawDirect("End Convert", 40, y);
+            sprintf(line, "Need Convert Files: %d", FileListNum);
             font.SetStr(line);
             font.SetPos(40, y + 24);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            sprintf(line, at_1029__7, ConvertFileNum);
+            sprintf(line, "Converted Files: %d", ConvertFileNum);
             font.SetStr(line);
             font.SetPos(40, y + 48);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
-            sprintf(line, at_1030__6, FileListNum - ConvertFileNum);
+            sprintf(line, "Not Convert Files: %d", FileListNum - ConvertFileNum);
             font.SetStr(line);
             font.SetPos(40, y + 72);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             y += 96;
         }
 
-        font.DrawDirect(at_1031__7, 40, y);
+        font.DrawDirect("Return to SlotSelect : (X)", 40, y);
     }
 
     return 0;
@@ -403,62 +445,3 @@ int SaveDataConvertLoop() {
     }
     return 0;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1072__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1073__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1074__5__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1016__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1017__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1018__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1019__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1020__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1021__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1022__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1023__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1024__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1025__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1026__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1027__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1028__10__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1029__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1030__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1031__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1159__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1160__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1161__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1162__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1163__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1164__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1165__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1166__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1167__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1168__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/convviewlp", at_1169__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(MovieScene__2, 0x4);
-INCLUDE_BSS(ConvMode, 0x4);
-INCLUDE_BSS(SlotSelect, 0x4);
-INCLUDE_BSS(FileListNum, 0x4);
-INCLUDE_BSS(ConvertPhase, 0x4);
-INCLUDE_BSS(ConvertFileNum, 0x4);
-INCLUDE_BSS(ConvertResult, 0x4);
-INCLUDE_BSS(ConvertResultDispTime, 0x34);
-INCLUDE_BSS(SaveFileInfoTablePtr, 0x4);
-INCLUDE_BSS(SAVEDATA_BUFFER, 0x4);
-INCLUDE_BSS(init_817, 0x4);
-INCLUDE_BSS(init_820, 0x4);
-INCLUDE_BSS(init_823, 0x4);
-INCLUDE_BSS(init_826, 0x1);
-
-// Uninitialised data (.bss)
-mgCMemory DataBuffer__3;
-mgCMemory Stack_ReadBuff__3;
-INCLUDE_BSS(SaveFileInfoTableSizeConvert, 0x200);
-INCLUDE_BSS(buf0_816, 0x30);
-INCLUDE_BSS(buf1_819, 0x30);
-INCLUDE_BSS(dbuf0_822, 0x30);
-INCLUDE_BSS(dbuf1_825, 0x30);

@@ -42,6 +42,8 @@ enum {
     MONSTER_PROGRESS_LEVEL_NUM = 4, /**< Monster forms one row of monster_progress_tbl lists. */
     CHR_CNG_STAR_NUM = 256,         /**< Sparkles drawn around the party change ring. */
     CHR_CNG_CLUT_NUM = 256,         /**< Colours of the darkened copy of the party change palette. */
+    CHR_CNG_CLUT_BAND_NUM = 32,     /**< Brightness bands the darkened party change palette is reduced to. */
+    CHR_CNG_NPC_COMMAND_NUM = 4,    /**< Commands the party change screen lists for the townsperson. */
     MOS_SELECT_BADGE_NUM = 12,      /**< Monster badges the monster box shows. */
     MOS_SELECT_LEVEL_MAX = 16,      /**< Forms a badge can grow into, as listed by get_monster_tbl_bajjilevel. */
     COSTUME_LIST_NUM = 3,           /**< Costume lists of the costume screen. */
@@ -112,6 +114,20 @@ STATIC_ASSERT(sizeof(CHR_CNG_STAR) == 0x18);
 
 /**
  *
+ * One colour of the party change palette, a byte per channel.
+ *
+ */
+struct CHR_CNG_CLUT_COLOR {
+    u8 r; /**< Red intensity. */
+    u8 g; /**< Green intensity. */
+    u8 b; /**< Blue intensity. */
+    u8 a; /**< Alpha. */
+};
+
+STATIC_ASSERT(sizeof(CHR_CNG_CLUT_COLOR) == 0x4);
+
+/**
+ *
  * The party change screen: picks who is at the front, shows the townsperson
  * who travels with the party and lets them use their ability, and opens the
  * monster box.
@@ -164,7 +180,7 @@ public:
     int                 npc_mes_talk;     /**< Message that the townsperson says on the screen. */
     int                 npc_mes_cmd;      /**< Message of the townsperson's command question. */
     int                 npc_mes_cancel;   /**< Message the townsperson says when their ability is cancelled. */
-    int                 npc_cmd_mes[4];   /**< Message of each of the townsperson's commands. */
+    int                 npc_cmd_mes[CHR_CNG_NPC_COMMAND_NUM]; /**< Message of each of the townsperson's commands. */
     s32                 unk_23C;
     float               cursor_wave;    /**< Angle that bobs the character under the cursor. */
     s16                *sys_mes;        /**< System message data. */
@@ -188,8 +204,8 @@ public:
 
     union {
         struct {
-            u32 clut[CHR_CNG_CLUT_NUM]; /**< Darkened copy of the screen's palette, drawn for those not in the party. */
-            u8  unk_1E80[0x100];
+            CHR_CNG_CLUT_COLOR clut[CHR_CNG_CLUT_NUM]; /**< Darkened copy of the screen's palette, drawn for those not in the party. */
+            u8                 unk_1E80[0x100];
         } palette; /**< Palette entries and adjacent reserved space. */
 
         u8 clut_storage[0x500]; /**< Palette bytes and adjacent reserved space cleared together. */
@@ -218,7 +234,7 @@ public:
      *
      * @mangled EnterDataMenu__15CMenuChrCngMenuFPUc
      * @address 0x2B4AA0
-     * @size 0x610
+     * @size 0x608
      */
     void EnterDataMenu(u8 *pack);
 
@@ -563,7 +579,7 @@ public:
      *
      * @mangled Draw__15CMenuCostumeSelFv
      * @address 0x2C19D0
-     * @size 0x8E0
+     * @size 0x8D4
      */
     void Draw();
 };
@@ -688,8 +704,6 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CMosBookMenu) == 0x980);
-
-STATIC_ASSERT(sizeof(mgRect<short>) == 0x8);
 
 /**
  *
@@ -871,7 +885,7 @@ void AdjustNPCTalk(CDC2Mes *mes, CCharacter2 *npc);
  *
  * @mangled MenuCharaChangeStarDraw__Fv
  * @address 0x2B8B90
- * @size 0x5C0
+ * @size 0x5BC
  */
 void MenuCharaChangeStarDraw();
 
@@ -1175,7 +1189,7 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
  *
  * @mangled MenuItemCharaDataLoadEndCheckAfter__FPP17MENU_BGREAD_INFO2i
  * @address 0x2BF9C0
- * @size 0x370
+ * @size 0x368
  */
 void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no);
 
@@ -1311,7 +1325,8 @@ struct MENU_LOAD_INFO {
     signed char chara_no; /**< Character selected for model loading. */
     signed char request_phase; /**< Requested phase of character model loading. */
     signed char load_phase; /**< Current phase of character model loading. */
-    signed char unk_6[2];
+    signed char unk_6;
+    signed char update_scene; /**< Non-zero when loading also updates the main scene's characters and stacks. */
 };
 
 STATIC_ASSERT(sizeof(MENU_LOAD_INFO) == 8);

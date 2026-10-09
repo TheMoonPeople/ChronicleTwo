@@ -27,6 +27,37 @@
 #include "sound.hpp"
 #include "userdata.hpp"
 
+float p[16][2] = {
+    {0.5f, 0.5f},
+    {0.02f, 0.29f},
+    {0.099999994f, 0.14f},
+    {0.22f, 0.03f},
+    {0.51f, 0.06f},
+    {0.73f, 0.0f},
+    {0.92f, 0.1f},
+    {0.98f, 0.36f},
+    {0.98f, 0.74f},
+    {0.9f, 0.91f},
+    {0.7f, 0.99f},
+    {0.43f, 0.91f},
+    {0.2f, 0.97f},
+    {0.03f, 0.8f},
+    {0.0f, 0.52f},
+    {0.02f, 0.29f},
+};
+
+s32 waku_data[WAKU_DATA_MAX][4] = {
+    {0, 0, 0, 0},
+    {30, 24, 30, 24},
+    {12, 12, 12, 10},
+    {12, 12, 12, 10},
+    {28, 28, 28, 28},
+    {24, 27, 23, 63},
+    {16, 16, 16, 14},
+    {0, 0, 0, 0},
+    {16, 16, 16, 14},
+};
+
 /**
  *
  * Screen positions used to anchor message elements.
@@ -38,25 +69,12 @@ struct message_anchor_table {
 
 /**
  *
- * Message draw primitive and its backing storage.
+ * Primitive builder used to draw message elements.
  *
  */
 union message_draw_prim {
-    mgCDrawPrim prim;           /**< Draw primitive over the storage. */
-    u8          storage[0x120]; /**< Backing storage. */
+    mgCDrawPrim prim; /**< Message-element drawing primitive. */
 };
-
-extern u8 at_4574[];
-
-extern message_anchor_table at_3748;
-
-extern char at_4634[];
-
-extern char at_4635[];
-
-extern char at_4636[];
-
-extern char at_4637[];
 
 static const int mes_buffer_size = 0x200;
 
@@ -94,42 +112,6 @@ static const int mes_win_inset_x = 0x1E;
 
 static const int mes_win_inset_y = 0x18;
 
-extern char at_2718[];
-extern char at_1317[];
-extern char at_2366[];
-extern char at_2367[];
-extern char at_2368[];
-extern char at_2369[];
-extern char at_2370[];
-extern char at_2371[];
-extern char at_2372[];
-extern char at_2373[];
-extern char at_2374[];
-extern char at_2375[];
-extern char at_2376[];
-extern char at_2377[];
-extern char at_2378[];
-extern char at_2379[];
-extern char at_2380[];
-extern char at_2381[];
-extern char at_2382[];
-extern char at_2383[];
-extern char at_2384[];
-extern char at_2385[];
-extern char at_2386[];
-extern char at_2387[];
-extern char at_2388[];
-extern char at_2389[];
-extern char at_2390[];
-extern char at_2391[];
-extern char at_2392[];
-extern char at_2393[];
-extern char at_2394[];
-extern char at_2395[];
-extern char at_2396[];
-extern char at_2397[];
-extern char at_2398[];
-
 const int mes_newline = 0xFF00;
 
 const int mes_end = 0xFF01;
@@ -138,46 +120,8 @@ const int mes_space = 0xFF02;
 
 const int mes_page_break = 0xFF03;
 
-extern char at_2109[];
-
-extern char at_2110[];
-
-extern char at_2111[];
-
-extern char at_2112[];
-
-extern char at_2113[];
-
-extern char at_2114[];
-
-extern char at_2115[];
-
-extern char at_2116[];
-
-extern char at_2117[];
-
-extern char at_2118[];
-
-extern char at_2119[];
-
-extern char at_2120[];
-
-extern char at_2121[];
-
-extern char at_2122[];
-
-extern char at_2123[];
-
-extern char at_2124[];
-
-extern char at_2567[];
-
-extern char at_1124[];
-
-
 #include "common.h"
 #include "mw_runtime.h"
-
 
 // Code (.text)
 void MySetPrim(mgCDrawPrim *prim, int mode, int bilinear) {
@@ -258,7 +202,7 @@ void _set2DSprite(char *texture_name, mgCDrawPrim *primitive, mgRect<int> destin
 
 void set2DSprite(mgCDrawPrim *primitive, mgRect<int> destination,
                  mgRect<int> texture, RGBAQ_TYPE *color) {
-    _set2DSprite(at_1124, primitive, destination, texture, color);
+    _set2DSprite("gaiji", primitive, destination, texture, color);
 }
 
 void FillRect(int x, int y, int w, int h, int r, int g, int b, int a) {
@@ -432,7 +376,7 @@ int ClsMes::GetCaptionOff() {
         SV_CONFIG_OPTION *options = &save->config;
 
         if (options != NULL) {
-            caption_off = (s8) options->caption_off;
+            caption_off = options->caption_off;
         }
     }
 
@@ -468,7 +412,7 @@ int ClsMes::GetStrWidth(char *text) {
     while (index < length) {
         cursor = text + index;
 
-        if (strncmp(cursor, at_1317, 5) == 0) {
+        if (strncmp(cursor, "[UNI0", 5) == 0) {
             width += fptosi((float) font_w * half_font_w_percent);
             index += 9;
         } else {
@@ -915,7 +859,7 @@ void ClsMes::Preset(int preset) {
 
     last_x = 0;
     last_y = 0;
-    *(int *) &fade = 0;
+    fade = 0.0f;
     open = 1;
     draw_speed = GetDrawSpeedDef();
     page_wait = 0;
@@ -1543,12 +1487,12 @@ void ClsMes::MakeMesWinTbl_value(int *x, int *y) {
 
     if (value_zero != 0 || value != 0) {
         if (value_sign != 0 && value > 0) {
-            sprintf((char *) text, at_2109, value);
+            sprintf(text, "+%d\n", value);
         } else {
-            sprintf((char *) text, at_2110, value);
+            sprintf(text, "%d\n", value);
         }
 
-        length = strlen((char *) text);
+        length = strlen(text);
 
         for (i = 0; i < length; i++) {
             font_no = -1;
@@ -1557,55 +1501,55 @@ void ClsMes::MakeMesWinTbl_value(int *x, int *y) {
                 font_no = GetHalfFontNo(text[i]);
             } else {
                 if (text[i] == '+') {
-                    font_no = GetFontNo(at_2111);
+                    font_no = GetFontNo("\x81{");
                 }
 
                 if (text[i] == '-') {
-                    font_no = GetFontNo(at_2112);
+                    font_no = GetFontNo("\x81|");
                 }
 
                 if (text[i] == '1') {
-                    font_no = GetFontNo(at_2113);
+                    font_no = GetFontNo("\x82P");
                 }
 
                 if (text[i] == '2') {
-                    font_no = GetFontNo(at_2114);
+                    font_no = GetFontNo("\x82Q");
                 }
 
                 if (text[i] == '3') {
-                    font_no = GetFontNo(at_2115);
+                    font_no = GetFontNo("\x82R");
                 }
 
                 if (text[i] == '4') {
-                    font_no = GetFontNo(at_2116);
+                    font_no = GetFontNo("\x82S");
                 }
 
                 if (text[i] == '5') {
-                    font_no = GetFontNo(at_2117);
+                    font_no = GetFontNo("\x82T");
                 }
 
                 if (text[i] == '6') {
-                    font_no = GetFontNo(at_2118);
+                    font_no = GetFontNo("\x82U");
                 }
 
                 if (text[i] == '7') {
-                    font_no = GetFontNo(at_2119);
+                    font_no = GetFontNo("\x82V");
                 }
 
                 if (text[i] == '8') {
-                    font_no = GetFontNo(at_2120);
+                    font_no = GetFontNo("\x82W");
                 }
 
                 if (text[i] == '9') {
-                    font_no = GetFontNo(at_2121);
+                    font_no = GetFontNo("\x82X");
                 }
 
                 if (text[i] == '0') {
-                    font_no = GetFontNo(at_2122);
+                    font_no = GetFontNo("\x82O");
                 }
 
-                printf(at_2123, GetFontNo(at_2122));
-                printf(at_2124, GetFontNo(at_2121));
+                printf("0_fontno=%d\n", GetFontNo("\x82O"));
+                printf("9_fontno=%d\n", GetFontNo("\x82X"));
             }
 
             if (font_no >= 0) {
@@ -1629,12 +1573,12 @@ void ClsMes::MakeMesWinTbl_value(int value_no, int *x, int *y) {
 
     if (value_zero != 0 || values[value_no] != 0) {
         if (value_sign != 0 && values[value_no] > 0) {
-            sprintf((char *) text, at_2109, values[value_no]);
+            sprintf(text, "+%d\n", values[value_no]);
         } else {
-            sprintf((char *) text, at_2110, values[value_no]);
+            sprintf(text, "%d\n", values[value_no]);
         }
 
-        length = strlen((char *) text);
+        length = strlen(text);
 
         if (value_width[value_no] > 0) {
             *x += (value_width[value_no] - length) * (font_w + value_space);
@@ -1647,51 +1591,51 @@ void ClsMes::MakeMesWinTbl_value(int value_no, int *x, int *y) {
                 font_no = GetHalfFontNo(text[i]);
             } else {
                 if (text[i] == '+') {
-                    font_no = GetFontNo(at_2111);
+                    font_no = GetFontNo("\x81{");
                 }
 
                 if (text[i] == '-') {
-                    font_no = GetFontNo(at_2112);
+                    font_no = GetFontNo("\x81|");
                 }
 
                 if (text[i] == '1') {
-                    font_no = GetFontNo(at_2113);
+                    font_no = GetFontNo("\x82P");
                 }
 
                 if (text[i] == '2') {
-                    font_no = GetFontNo(at_2114);
+                    font_no = GetFontNo("\x82Q");
                 }
 
                 if (text[i] == '3') {
-                    font_no = GetFontNo(at_2115);
+                    font_no = GetFontNo("\x82R");
                 }
 
                 if (text[i] == '4') {
-                    font_no = GetFontNo(at_2116);
+                    font_no = GetFontNo("\x82S");
                 }
 
                 if (text[i] == '5') {
-                    font_no = GetFontNo(at_2117);
+                    font_no = GetFontNo("\x82T");
                 }
 
                 if (text[i] == '6') {
-                    font_no = GetFontNo(at_2118);
+                    font_no = GetFontNo("\x82U");
                 }
 
                 if (text[i] == '7') {
-                    font_no = GetFontNo(at_2119);
+                    font_no = GetFontNo("\x82V");
                 }
 
                 if (text[i] == '8') {
-                    font_no = GetFontNo(at_2120);
+                    font_no = GetFontNo("\x82W");
                 }
 
                 if (text[i] == '9') {
-                    font_no = GetFontNo(at_2121);
+                    font_no = GetFontNo("\x82X");
                 }
 
                 if (text[i] == '0') {
-                    font_no = GetFontNo(at_2122);
+                    font_no = GetFontNo("\x82O");
                 }
             }
 
@@ -1718,7 +1662,7 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
     length = strlen(str);
     position = 0;
     while (position < length) {
-        if (strncmp(&str[position], at_2366, 2) == 0) {
+        if (strncmp(&str[position], "//", 2) == 0) {
             position += 2;
             for (;;) {
                 if (GetHalfFontNo(str[position]) == -2) {
@@ -1729,38 +1673,38 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
             }
             continue;
         }
-        if (strncmp(&str[position], at_2367, 5) == 0) {
+        if (strncmp(&str[position], "[\x90\x94\x92l", 5) == 0) {
             position += 5;
             tag_no = 0;
             suffix = &str[position];
-            if (strncmp(suffix, at_2368, 3) == 0) {
+            if (strncmp(suffix, "\x82P]", 3) == 0) {
                 tag_no = 1;
             }
-            if (strncmp(suffix, at_2369, 3) == 0) {
+            if (strncmp(suffix, "\x82Q]", 3) == 0) {
                 tag_no = 2;
             }
-            if (strncmp(suffix, at_2370, 3) == 0) {
+            if (strncmp(suffix, "\x82R]", 3) == 0) {
                 tag_no = 3;
             }
-            if (strncmp(suffix, at_2371, 3) == 0) {
+            if (strncmp(suffix, "\x82S]", 3) == 0) {
                 tag_no = 4;
             }
-            if (strncmp(suffix, at_2372, 3) == 0) {
+            if (strncmp(suffix, "\x82T]", 3) == 0) {
                 tag_no = 5;
             }
-            if (strncmp(suffix, at_2373, 3) == 0) {
+            if (strncmp(suffix, "\x82U]", 3) == 0) {
                 tag_no = 6;
             }
-            if (strncmp(suffix, at_2374, 3) == 0) {
+            if (strncmp(suffix, "\x82V]", 3) == 0) {
                 tag_no = 7;
             }
-            if (strncmp(suffix, at_2375, 3) == 0) {
+            if (strncmp(suffix, "\x82W]", 3) == 0) {
                 tag_no = 8;
             }
-            if (strncmp(suffix, at_2376, 3) == 0) {
+            if (strncmp(suffix, "\x82X]", 3) == 0) {
                 tag_no = 9;
             }
-            if (strncmp(suffix, at_2377, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82O]", 5) == 0) {
                 tag_no = 10;
             }
             if (tag_no != 0) {
@@ -1773,38 +1717,38 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
                 continue;
             }
         }
-        if (strncmp(&str[position], at_2378, 7) == 0) {
+        if (strncmp(&str[position], "[Number", 7) == 0) {
             position += 7;
             tag_no = 0;
             suffix = &str[position];
-            if (strncmp(suffix, at_2379, 2) == 0) {
+            if (strncmp(suffix, "1]", 2) == 0) {
                 tag_no = 1;
             }
-            if (strncmp(suffix, at_2380, 2) == 0) {
+            if (strncmp(suffix, "2]", 2) == 0) {
                 tag_no = 2;
             }
-            if (strncmp(suffix, at_2381, 2) == 0) {
+            if (strncmp(suffix, "3]", 2) == 0) {
                 tag_no = 3;
             }
-            if (strncmp(suffix, at_2382, 2) == 0) {
+            if (strncmp(suffix, "4]", 2) == 0) {
                 tag_no = 4;
             }
-            if (strncmp(suffix, at_2383, 2) == 0) {
+            if (strncmp(suffix, "5]", 2) == 0) {
                 tag_no = 5;
             }
-            if (strncmp(suffix, at_2384, 2) == 0) {
+            if (strncmp(suffix, "6]", 2) == 0) {
                 tag_no = 6;
             }
-            if (strncmp(suffix, at_2385, 2) == 0) {
+            if (strncmp(suffix, "7]", 2) == 0) {
                 tag_no = 7;
             }
-            if (strncmp(suffix, at_2386, 2) == 0) {
+            if (strncmp(suffix, "8]", 2) == 0) {
                 tag_no = 8;
             }
-            if (strncmp(suffix, at_2387, 2) == 0) {
+            if (strncmp(suffix, "9]", 2) == 0) {
                 tag_no = 9;
             }
-            if (strncmp(suffix, at_2388, 3) == 0) {
+            if (strncmp(suffix, "10]", 3) == 0) {
                 tag_no = 10;
             }
             if (tag_no != 0) {
@@ -1817,71 +1761,71 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
                 continue;
             }
         }
-        if (strncmp(&str[position], at_2389, 9) == 0) {
+        if (strncmp(&str[position], "[\x83" "A\x83" "C\x83" "e\x83\x80", 9) == 0) {
             position += 9;
             tag_no = 0;
             suffix = &str[position];
-            if (strncmp(suffix, at_2368, 3) == 0) {
+            if (strncmp(suffix, "\x82P]", 3) == 0) {
                 tag_no = 1;
                 MakeMesWinTbl_item(MES_CODE_ITEM_FIRST, x, y);
             }
-            if (strncmp(suffix, at_2369, 3) == 0) {
+            if (strncmp(suffix, "\x82Q]", 3) == 0) {
                 tag_no = 2;
                 MakeMesWinTbl_item(0xFBFD, x, y);
             }
-            if (strncmp(suffix, at_2370, 3) == 0) {
+            if (strncmp(suffix, "\x82R]", 3) == 0) {
                 tag_no = 3;
                 MakeMesWinTbl_item(0xFBFC, x, y);
             }
-            if (strncmp(suffix, at_2371, 3) == 0) {
+            if (strncmp(suffix, "\x82S]", 3) == 0) {
                 tag_no = 4;
                 MakeMesWinTbl_item(0xFBFB, x, y);
             }
-            if (strncmp(suffix, at_2372, 3) == 0) {
+            if (strncmp(suffix, "\x82T]", 3) == 0) {
                 tag_no = 5;
                 MakeMesWinTbl_item(0xFBF2, x, y);
             }
-            if (strncmp(suffix, at_2373, 3) == 0) {
+            if (strncmp(suffix, "\x82U]", 3) == 0) {
                 tag_no = 6;
                 MakeMesWinTbl_item(0xFBF1, x, y);
             }
-            if (strncmp(suffix, at_2374, 3) == 0) {
+            if (strncmp(suffix, "\x82V]", 3) == 0) {
                 tag_no = 7;
                 MakeMesWinTbl_item(0xFBF0, x, y);
             }
-            if (strncmp(suffix, at_2375, 3) == 0) {
+            if (strncmp(suffix, "\x82W]", 3) == 0) {
                 tag_no = 8;
                 MakeMesWinTbl_item(0xFBEF, x, y);
             }
-            if (strncmp(suffix, at_2376, 3) == 0) {
+            if (strncmp(suffix, "\x82X]", 3) == 0) {
                 tag_no = 9;
                 MakeMesWinTbl_item(0xFBEE, x, y);
             }
-            if (strncmp(suffix, at_2377, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82O]", 5) == 0) {
                 tag_no = 10;
                 MakeMesWinTbl_item(0xFBED, x, y);
             }
-            if (strncmp(suffix, at_2390, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82P]", 5) == 0) {
                 tag_no = 11;
                 MakeMesWinTbl_item(0xFBEC, x, y);
             }
-            if (strncmp(suffix, at_2391, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82Q]", 5) == 0) {
                 tag_no = 12;
                 MakeMesWinTbl_item(0xFBEB, x, y);
             }
-            if (strncmp(suffix, at_2392, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82R]", 5) == 0) {
                 tag_no = 13;
                 MakeMesWinTbl_item(0xFBEA, x, y);
             }
-            if (strncmp(suffix, at_2393, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82S]", 5) == 0) {
                 tag_no = 14;
                 MakeMesWinTbl_item(0xFBE9, x, y);
             }
-            if (strncmp(suffix, at_2394, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82T]", 5) == 0) {
                 tag_no = 15;
                 MakeMesWinTbl_item(0xFBE8, x, y);
             }
-            if (strncmp(suffix, at_2395, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82U]", 5) == 0) {
                 tag_no = 16;
                 MakeMesWinTbl_item(MES_CODE_ITEM_LAST, x, y);
             }
@@ -1894,56 +1838,56 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
                 continue;
             }
         }
-        if (strncmp(&str[position], at_2396, 7) == 0) {
+        if (strncmp(&str[position], "[\x95\xB6\x8E\x9A\x97\xF1", 7) == 0) {
             position += 7;
             tag_no = 0;
             suffix = &str[position];
-            if (strncmp(suffix, at_2368, 3) == 0) {
+            if (strncmp(suffix, "\x82P]", 3) == 0) {
                 tag_no = 1;
             }
-            if (strncmp(suffix, at_2369, 3) == 0) {
+            if (strncmp(suffix, "\x82Q]", 3) == 0) {
                 tag_no = 2;
             }
-            if (strncmp(suffix, at_2370, 3) == 0) {
+            if (strncmp(suffix, "\x82R]", 3) == 0) {
                 tag_no = 3;
             }
-            if (strncmp(suffix, at_2371, 3) == 0) {
+            if (strncmp(suffix, "\x82S]", 3) == 0) {
                 tag_no = 4;
             }
-            if (strncmp(suffix, at_2372, 3) == 0) {
+            if (strncmp(suffix, "\x82T]", 3) == 0) {
                 tag_no = 5;
             }
-            if (strncmp(suffix, at_2373, 3) == 0) {
+            if (strncmp(suffix, "\x82U]", 3) == 0) {
                 tag_no = 6;
             }
-            if (strncmp(suffix, at_2374, 3) == 0) {
+            if (strncmp(suffix, "\x82V]", 3) == 0) {
                 tag_no = 7;
             }
-            if (strncmp(suffix, at_2375, 3) == 0) {
+            if (strncmp(suffix, "\x82W]", 3) == 0) {
                 tag_no = 8;
             }
-            if (strncmp(suffix, at_2376, 3) == 0) {
+            if (strncmp(suffix, "\x82X]", 3) == 0) {
                 tag_no = 9;
             }
-            if (strncmp(suffix, at_2377, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82O]", 5) == 0) {
                 tag_no = 10;
             }
-            if (strncmp(suffix, at_2390, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82P]", 5) == 0) {
                 tag_no = 11;
             }
-            if (strncmp(suffix, at_2391, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82Q]", 5) == 0) {
                 tag_no = 12;
             }
-            if (strncmp(suffix, at_2392, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82R]", 5) == 0) {
                 tag_no = 13;
             }
-            if (strncmp(suffix, at_2393, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82S]", 5) == 0) {
                 tag_no = 14;
             }
-            if (strncmp(suffix, at_2394, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82T]", 5) == 0) {
                 tag_no = 15;
             }
-            if (strncmp(suffix, at_2395, 5) == 0) {
+            if (strncmp(suffix, "\x82P\x82U]", 5) == 0) {
                 tag_no = 16;
             }
             if (tag_no != 0) {
@@ -1978,7 +1922,7 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
             position += GetGaijiLen(gaiji_no);
             continue;
         }
-        if (strncmp(suffix, at_2397, 6) == 0) {
+        if (strncmp(suffix, "<page>", 6) == 0) {
             SetMesWinTbl(MES_CODE_PAGE, *x, *y);
             *x = 0;
             position += 6;
@@ -2002,7 +1946,7 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
         } else {
             font_no = GetFontNo(suffix);
             if (font_no == -1) {
-                font_no = GetFontNo(at_2398);
+                font_no = GetFontNo("\x81H");
             }
             SetMesWinTbl(font_no, *x, *y);
             if (CheckKanjiFont(font_no) != 0) {
@@ -2096,7 +2040,7 @@ int ClsMes::MakeMesWinTbl_item(int ref_code, int *x, int *y) {
         return 0;
     }
 
-    cursor = (u16 *) GetTextLineDataTop_system(line_no);
+    cursor = GetTextLineDataTop_system(line_no);
 
     if (cursor == 0) {
         return 0;
@@ -2144,7 +2088,7 @@ int ClsMes::MakeMesWinTbl_item(int ref_code, int *x, int *y) {
                         }
                     }
                 } else if (code >= 0xFAEA && code < 0xFAFA) {
-                    printf(at_2567);
+                    printf("\x83L\x83`\x83\x83\x83_\x83\x81\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\x81[\n");
                 } else if (code >= 0xFFA0 && code < 0x10000) {
                     SetMesWinTbl(GetAlphabeticalFontNo_us(code) & 0xFFFF, *x, *y);
                     *x += fptosi((float) font_w * half_font_w_percent);
@@ -2196,7 +2140,7 @@ int ClsMes::GetMesWidth_system(int mes_no) {
     if (buff_system == NULL) {
         return -1;
     }
-    text = (unsigned short *)GetTextLineDataTop_system(mes_no);
+    text = GetTextLineDataTop_system(mes_no);
     width = 0;
     if (text == NULL) {
         return -1;
@@ -2249,47 +2193,31 @@ int ClsMes::GetMesWidth_system(int mes_no) {
         }
     }
 }
-short *ClsMes::GetTextLineDataTop(int line_id) {
+u16 *ClsMes::GetTextLineDataTop(int line_id) {
     short *table = buff;
-    int    i = 0;
+    int    i;
     int    count = *table;
     short *entries = table + 1;
-    int    off;
 
-    if (0 < count) {
-        off = 0;
-
-        do {
-            if (line_id == *(u16 *) ((u8 *) entries + off + 2)) {
-                return entries + count + *(u16 *) ((i << 2) + (int) entries + 4);
-            }
-
-            i++;
-            off += 4;
-        } while (i < count);
+    for (i = 0; i < count; i++) {
+        if (line_id == (u16) entries[i * 2 + 1]) {
+            return (u16 *) (entries + count + (u16) entries[i * 2 + 2]);
+        }
     }
 
     return 0;
 }
 
-short *ClsMes::GetTextLineDataTop_system(int line_id) {
+u16 *ClsMes::GetTextLineDataTop_system(int line_id) {
     short *table = buff_system;
-    int    i = 0;
+    int    i;
     int    count = *table;
     short *entries = table + 1;
-    int    off;
 
-    if (0 < count) {
-        off = 0;
-
-        do {
-            if (line_id == *(u16 *) ((u8 *) entries + off + 2)) {
-                return entries + count + *(u16 *) ((i << 2) + (int) entries + 4);
-            }
-
-            i++;
-            off += 4;
-        } while (i < count);
+    for (i = 0; i < count; i++) {
+        if (line_id == (u16) entries[i * 2 + 1]) {
+            return (u16 *) (entries + count + (u16) entries[i * 2 + 2]);
+        }
     }
 
     return 0;
@@ -2369,7 +2297,7 @@ int ClsMes::SetMesWinTbl(int code, short x, short y) {
         tbl[tbl_num].color = color;
         tbl_num += 1;
     } else {
-        printf(at_2718);
+        printf("!!!CAUTION!!! MesWinTblCnt OVER\n");
     }
 
     return 1;
@@ -2445,7 +2373,7 @@ int ClsMes::MakeMesWinTbl(int mes_no) {
     if (buff == NULL) {
         return 0;
     }
-    text = (unsigned short *)GetTextLineDataTop(mes_no);
+    text = GetTextLineDataTop(mes_no);
     if (text == NULL) {
         return 0;
     }
@@ -2659,7 +2587,7 @@ void ClsMes::NeedMesWinWH(int mes_no) {
     if (buff == NULL) {
         return;
     }
-    text = (unsigned short *)GetTextLineDataTop(mes_no);
+    text = GetTextLineDataTop(mes_no);
     if (text == NULL) {
         return;
     }
@@ -2737,9 +2665,9 @@ void ClsMes::NeedMesWinWH(int mes_no) {
                 char number[0x80];
                 if (value_zero != 0 || value != 0) {
                     if (value_sign != 0 && value > 0) {
-                        sprintf(number, at_2109, value);
+                        sprintf(number, "+%d\n", value);
                     } else {
-                        sprintf(number, at_2110, value);
+                        sprintf(number, "%d\n", value);
                     }
                     digits = strlen(number) - 1;
                     if (value_half != 0) {
@@ -2755,9 +2683,9 @@ void ClsMes::NeedMesWinWH(int mes_no) {
                 index = 0xFA - index;
                 if (value_zero != 0 || values[index] != 0) {
                     if (value_sign != 0 && values[index] > 0) {
-                        sprintf(number, at_2109, values[index]);
+                        sprintf(number, "+%d\n", values[index]);
                     } else {
-                        sprintf(number, at_2110, values[index]);
+                        sprintf(number, "%d\n", values[index]);
                     }
                     digits = strlen(number) - 1;
                     if (value_half != 0) {
@@ -2773,9 +2701,9 @@ void ClsMes::NeedMesWinWH(int mes_no) {
                 index = 0xEE - index;
                 if (value_zero != 0 || values[index] != 0) {
                     if (value_sign != 0 && values[index] > 0) {
-                        sprintf(number, at_2109, values[index]);
+                        sprintf(number, "+%d\n", values[index]);
                     } else {
-                        sprintf(number, at_2110, values[index]);
+                        sprintf(number, "%d\n", values[index]);
                     }
                     digits = strlen(number) - 1;
                     if (value_half != 0) {
@@ -2879,7 +2807,7 @@ void ClsMes::NeedMesWinWH(char *text) {
         do {
             cursor = message + position;
 
-            if (strncmp(cursor, at_2366, 2) == 0) {
+            if (strncmp(cursor, "//", 2) == 0) {
                 position += 2;
 
                 while (1) {
@@ -2894,39 +2822,39 @@ void ClsMes::NeedMesWinWH(char *text) {
                 continue;
             }
 
-            if (strncmp(message + position, at_2367, 5) == 0) {
+            if (strncmp(message + position, "[\x90\x94\x92l", 5) == 0) {
                 position += 5;
                 tag_text = message + position;
                 index = -1;
 
-                if (strncmp(tag_text, at_2368, 3) == 0) {
+                if (strncmp(tag_text, "\x82P]", 3) == 0) {
                     position += 3;
                     index = 0;
-                } else if (strncmp(tag_text, at_2369, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82Q]", 3) == 0) {
                     position += 3;
                     index = 1;
-                } else if (strncmp(tag_text, at_2370, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82R]", 3) == 0) {
                     position += 3;
                     index = 2;
-                } else if (strncmp(tag_text, at_2371, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82S]", 3) == 0) {
                     position += 3;
                     index = 3;
-                } else if (strncmp(tag_text, at_2372, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82T]", 3) == 0) {
                     position += 3;
                     index = 4;
-                } else if (strncmp(tag_text, at_2373, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82U]", 3) == 0) {
                     position += 3;
                     index = 5;
-                } else if (strncmp(tag_text, at_2374, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82V]", 3) == 0) {
                     position += 3;
                     index = 6;
-                } else if (strncmp(tag_text, at_2375, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82W]", 3) == 0) {
                     position += 3;
                     index = 7;
-                } else if (strncmp(tag_text, at_2376, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82X]", 3) == 0) {
                     position += 3;
                     index = 8;
-                } else if (strncmp(tag_text, at_2377, 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82O]", 5) == 0) {
                     position += 5;
                     index = 9;
                 }
@@ -2934,9 +2862,9 @@ void ClsMes::NeedMesWinWH(char *text) {
                 if (index != -1) {
                     if (value_zero != 0 || values[index] != 0) {
                         if (value_sign != 0 && values[index] > 0) {
-                            sprintf(value_text, at_2109, values[index]);
+                            sprintf(value_text, "+%d\n", values[index]);
                         } else {
-                            sprintf(value_text, at_2110, values[index]);
+                            sprintf(value_text, "%d\n", values[index]);
                         }
 
                         digits = strlen(value_text) - 1;
@@ -2952,39 +2880,39 @@ void ClsMes::NeedMesWinWH(char *text) {
                 }
             }
 
-            if (strncmp(message + position, at_2378, 7) == 0) {
+            if (strncmp(message + position, "[Number", 7) == 0) {
                 position += 7;
                 int   value_index = -1;
                 char *number_tag = message + position;
 
-                if (strncmp(number_tag, at_2379, 2) == 0) {
+                if (strncmp(number_tag, "1]", 2) == 0) {
                     position += 2;
                     value_index = 0;
-                } else if (strncmp(number_tag, at_2380, 2) == 0) {
+                } else if (strncmp(number_tag, "2]", 2) == 0) {
                     position += 2;
                     value_index = 1;
-                } else if (strncmp(number_tag, at_2381, 2) == 0) {
+                } else if (strncmp(number_tag, "3]", 2) == 0) {
                     position += 2;
                     value_index = 2;
-                } else if (strncmp(number_tag, at_2382, 2) == 0) {
+                } else if (strncmp(number_tag, "4]", 2) == 0) {
                     position += 2;
                     value_index = 3;
-                } else if (strncmp(number_tag, at_2383, 2) == 0) {
+                } else if (strncmp(number_tag, "5]", 2) == 0) {
                     position += 2;
                     value_index = 4;
-                } else if (strncmp(number_tag, at_2384, 2) == 0) {
+                } else if (strncmp(number_tag, "6]", 2) == 0) {
                     position += 2;
                     value_index = 5;
-                } else if (strncmp(number_tag, at_2385, 2) == 0) {
+                } else if (strncmp(number_tag, "7]", 2) == 0) {
                     position += 2;
                     value_index = 6;
-                } else if (strncmp(number_tag, at_2386, 2) == 0) {
+                } else if (strncmp(number_tag, "8]", 2) == 0) {
                     position += 2;
                     value_index = 7;
-                } else if (strncmp(number_tag, at_2387, 2) == 0) {
+                } else if (strncmp(number_tag, "9]", 2) == 0) {
                     position += 2;
                     value_index = 8;
-                } else if (strncmp(number_tag, at_2388, 3) == 0) {
+                } else if (strncmp(number_tag, "10]", 3) == 0) {
                     position += 3;
                     value_index = 9;
                 }
@@ -2992,9 +2920,9 @@ void ClsMes::NeedMesWinWH(char *text) {
                 if (value_index != -1) {
                     if (value_zero != 0 || values[value_index] != 0) {
                         if (value_sign != 0 && values[value_index] > 0) {
-                            sprintf(number_text, at_2109, values[value_index]);
+                            sprintf(number_text, "+%d\n", values[value_index]);
                         } else {
-                            sprintf(number_text, at_2110, values[value_index]);
+                            sprintf(number_text, "%d\n", values[value_index]);
                         }
 
                         digits = strlen(number_text) - 1;
@@ -3010,57 +2938,57 @@ void ClsMes::NeedMesWinWH(char *text) {
                 }
             }
 
-            if (strncmp(message + position, at_2389, 9) == 0) {
+            if (strncmp(message + position, "[\x83" "A\x83" "C\x83" "e\x83\x80", 9) == 0) {
                 position += 9;
                 tag_text = message + position;
                 code = -1;
 
-                if (strncmp(tag_text, at_2368, 3) == 0) {
+                if (strncmp(tag_text, "\x82P]", 3) == 0) {
                     position += 3;
                     code = 0xfbfe;
-                } else if (strncmp(tag_text, at_2369, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82Q]", 3) == 0) {
                     position += 3;
                     code = 0xfbfd;
-                } else if (strncmp(tag_text, at_2370, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82R]", 3) == 0) {
                     position += 3;
                     code = 0xfbfc;
-                } else if (strncmp(tag_text, at_2371, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82S]", 3) == 0) {
                     position += 3;
                     code = 0xfbfb;
-                } else if (strncmp(tag_text, at_2372, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82T]", 3) == 0) {
                     position += 3;
                     code = 0xfbf2;
-                } else if (strncmp(tag_text, at_2373, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82U]", 3) == 0) {
                     position += 3;
                     code = 0xfbf1;
-                } else if (strncmp(tag_text, at_2374, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82V]", 3) == 0) {
                     position += 3;
                     code = 0xfbf0;
-                } else if (strncmp(tag_text, at_2375, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82W]", 3) == 0) {
                     position += 3;
                     code = 0xfbef;
-                } else if (strncmp(tag_text, at_2376, 3) == 0) {
+                } else if (strncmp(tag_text, "\x82X]", 3) == 0) {
                     position += 3;
                     code = 0xfbee;
-                } else if (strncmp(tag_text, at_2377, 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82O]", 5) == 0) {
                     position += 5;
                     code = 0xfbed;
-                } else if (strncmp(tag_text, at_2390, 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82P]", 5) == 0) {
                     position += 5;
                     code = 0xfbec;
-                } else if (strncmp(tag_text, at_2391, 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82Q]", 5) == 0) {
                     position += 5;
                     code = 0xfbeb;
-                } else if (strncmp(tag_text, at_2392, 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82R]", 5) == 0) {
                     position += 5;
                     code = 0xfbea;
-                } else if (strncmp(tag_text, at_2393, 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82S]", 5) == 0) {
                     position += 5;
                     code = 0xfbe9;
-                } else if (strncmp(tag_text, at_2394, 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82T]", 5) == 0) {
                     position += 5;
                     code = 0xfbe8;
-                } else if (strncmp(tag_text, at_2395, 5) == 0) {
+                } else if (strncmp(tag_text, "\x82P\x82U]", 5) == 0) {
                     position += 5;
                     code = 0xfbe7;
                 }
@@ -3086,86 +3014,86 @@ void ClsMes::NeedMesWinWH(char *text) {
                 }
             }
 
-            if (strncmp(message + position, at_2396, 7) == 0) {
+            if (strncmp(message + position, "[\x95\xB6\x8E\x9A\x97\xF1", 7) == 0) {
                 position += 7;
                 index = 0;
 
-                if (strncmp(message + position, at_2368, 3) == 0) {
+                if (strncmp(message + position, "\x82P]", 3) == 0) {
                     index = 1;
                     position += 3;
                 }
 
-                if (strncmp(message + position, at_2369, 3) == 0) {
+                if (strncmp(message + position, "\x82Q]", 3) == 0) {
                     index = 2;
                     position += 3;
                 }
 
-                if (strncmp(message + position, at_2370, 3) == 0) {
+                if (strncmp(message + position, "\x82R]", 3) == 0) {
                     index = 3;
                     position += 3;
                 }
 
-                if (strncmp(message + position, at_2371, 3) == 0) {
+                if (strncmp(message + position, "\x82S]", 3) == 0) {
                     index = 4;
                     position += 3;
                 }
 
-                if (strncmp(message + position, at_2372, 3) == 0) {
+                if (strncmp(message + position, "\x82T]", 3) == 0) {
                     index = 5;
                     position += 3;
                 }
 
-                if (strncmp(message + position, at_2373, 3) == 0) {
+                if (strncmp(message + position, "\x82U]", 3) == 0) {
                     index = 6;
                     position += 3;
                 }
 
-                if (strncmp(message + position, at_2374, 3) == 0) {
+                if (strncmp(message + position, "\x82V]", 3) == 0) {
                     index = 7;
                     position += 3;
                 }
 
-                if (strncmp(message + position, at_2375, 3) == 0) {
+                if (strncmp(message + position, "\x82W]", 3) == 0) {
                     index = 8;
                     position += 3;
                 }
 
-                if (strncmp(message + position, at_2376, 3) == 0) {
+                if (strncmp(message + position, "\x82X]", 3) == 0) {
                     index = 9;
                     position += 3;
                 }
 
-                if (strncmp(message + position, at_2377, 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82O]", 5) == 0) {
                     index = 10;
                     position += 5;
                 }
 
-                if (strncmp(message + position, at_2390, 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82P]", 5) == 0) {
                     index = 11;
                     position += 5;
                 }
 
-                if (strncmp(message + position, at_2391, 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82Q]", 5) == 0) {
                     index = 12;
                     position += 5;
                 }
 
-                if (strncmp(message + position, at_2392, 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82R]", 5) == 0) {
                     index = 13;
                     position += 5;
                 }
 
-                if (strncmp(message + position, at_2393, 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82S]", 5) == 0) {
                     index = 14;
                     position += 5;
                 }
 
-                if (strncmp(message + position, at_2394, 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82T]", 5) == 0) {
                     index = 15;
                     position += 5;
                 }
 
-                if (strncmp(message + position, at_2395, 5) == 0) {
+                if (strncmp(message + position, "\x82P\x82U]", 5) == 0) {
                     index = 16;
                     position += 5;
                 }
@@ -3203,7 +3131,7 @@ void ClsMes::NeedMesWinWH(char *text) {
                     }
 
                     position++;
-                } else if (strncmp(cursor, at_2397, 6) == 0) {
+                } else if (strncmp(cursor, "<page>", 6) == 0) {
                     AddPage(line, page);
                     line++;
                     SetYokoHaba(line, 0);
@@ -3523,7 +3451,27 @@ void DrawYesNo(mgCDrawPrim *prim, int yes_x, int yes_y, int no_x, int no_y, RGBA
 }
 
 void GetPos_AbsPosSet(RECT screen, int width, int height, int bubble_pos, int *x, int *y) {
-    message_anchor_table anchor = at_3748;
+    message_anchor_table anchor = {{
+        {0.17f, 0.17f},
+        {0.5f, 0.17f},
+        {0.83f, 0.17f},
+        {0.17f, 0.5f},
+        {0.5f, 0.5f},
+        {0.83f, 0.5f},
+        {0.17f, 0.83f},
+        {0.5f, 0.83f},
+        {0.83f, 0.83f},
+        {0.0f, 0.0f},
+        {0.5f, 0.0f},
+        {1.0f, 0.0f},
+        {0.0f, 0.5f},
+        {1.0f, 0.5f},
+        {0.0f, 1.0f},
+        {0.5f, 1.0f},
+        {1.0f, 1.0f},
+        {0.5f, 0.42f},
+        {0.5f, 0.375f},
+    }};
     int                  pos_x = fptosi(screen.width * anchor.point[bubble_pos - 1][0]);
     pos_x -= width / 2;
     int pos_y = fptosi(screen.height * anchor.point[bubble_pos - 1][1]);
@@ -4002,7 +3950,24 @@ void ClsMes::DrawDigit(mgCDrawPrim *prim, int digit, int x, int y, int alpha, RG
     xy.Set(x, (int)(y + 2.0), w, h);
     set2DSpriteEasy(prim, xy, uv, color);
 }
-extern RECT data_4206[];
+
+/**
+ *
+ * Texture rectangles for the message advance button animations.
+ *
+ */
+static RECT data_4206[10] = {
+    {56, 198, 24, 18},
+    {80, 198, 24, 18},
+    {104, 198, 24, 18},
+    {80, 198, 24, 18},
+    {128, 90, 20, 20},
+    {148, 90, 20, 20},
+    {168, 90, 20, 20},
+    {188, 90, 20, 20},
+    {88, 116, 16, 16},
+    {104, 116, 18, 16},
+};
 
 void ClsMes::DrawPushButton(mgCDrawPrim *prim, int right, int bottom) {
     mgRect<int> destination;
@@ -4489,9 +4454,11 @@ void MyStrCpyLineFeed(char *dst, char *src) {
 
     in = (signed char *) src;
     out = (signed char *) dst;
-loop:
-    if (*in != 0xA) {
-        if (strncmp((char *) in, (char *) at_4574, 2) == 0) {
+    for (;;) {
+        if (*in == 0xA) {
+            break;
+        }
+        if (strncmp((char *) in, "\\n", 2) == 0) {
             in += 2;
             *out = 0xA;
             out += 1;
@@ -4501,7 +4468,6 @@ loop:
             out += 1;
         }
 
-        goto loop;
     }
     *out = 0;
 }
@@ -4572,21 +4538,21 @@ void MovieCCAnalyze(char *text, int size, int id) {
     InitMovieCC();
     slot = 0;
 
-    while ((unsigned int) cursor < (unsigned int) (text + size)) {
-        if (strncmp(cursor, at_4634, 5) == 0) {
+    while (cursor < text + size) {
+        if (strncmp(cursor, "_STA ", 5) == 0) {
             cursor += 5;
             MovieCCStart[slot] = (int) (movie_ccframes_per_second * atof(cursor));
             GetNextLineTop(&cursor);
-        } else if (strncmp(cursor, at_4635, 5) == 0) {
+        } else if (strncmp(cursor, "_CLR ", 5) == 0) {
             cursor += 5;
             MovieCCClear[slot] = (int) (movie_ccframes_per_second * atof(cursor));
             GetNextLineTop(&cursor);
-        } else if (strncmp(cursor, at_4636, 5) == 0) {
+        } else if (strncmp(cursor, "_STR ", 5) == 0) {
             cursor += 5;
             MyStrCpyLineFeed(MovieCCStr[slot], cursor);
             slot++;
             GetNextLineTop(&cursor);
-        } else if (strncmp(cursor, at_4637, 4) == 0) {
+        } else if (strncmp(cursor, "_END", 4) == 0) {
             break;
         } else {
             cursor++;
@@ -4619,90 +4585,12 @@ void MovieCCInit(char *text, int size, int id) {
     }
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", p__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_3748__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4057__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4100__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4143__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4185__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", data_4206__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", waku_data__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_1124__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_1317__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_1724__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_1758__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2109__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2110__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2111__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2112__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2113__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2114__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2115__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2116__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2117__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2118__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2119__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2120__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2121__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2122__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2123__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2124__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2366__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2367__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2368__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2369__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2370__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2371__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2372__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2373__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2374__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2375__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2376__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2377__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2378__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2379__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2380__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2381__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2382__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2383__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2384__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2385__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2386__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2387__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2388__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2389__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2390__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2391__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2392__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2393__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2394__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2395__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2396__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2397__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2398__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2567__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2718__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_2900__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4276__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4472__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4574__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4634__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4635__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4636__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nd_meswin", at_4637__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(MesAbsDrawOff, 0x4);
-INCLUDE_BSS(MovieCCCnt, 0x4);
-INCLUDE_BSS(MovieCCW, 0x4);
-INCLUDE_BSS(MovieCCH, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(NameRegistTbl, 0xB0);
+s32 MesAbsDrawOff;
+s32 MovieCCCnt;
+s32 MovieCCW;
+s32 MovieCCH;
+short NameRegistTbl[NAME_REGIST_MAX][NAME_REGIST_LEN];
 CFont MovieCCFont;
-INCLUDE_BSS(MovieCCStart, 0x50);
-INCLUDE_BSS(MovieCCClear, 0x50);
-INCLUDE_BSS(MovieCCStr, 0x1B60);
+s32 MovieCCStart[MOVIE_CC_MAX];
+s32 MovieCCClear[MOVIE_CC_MAX];
+char MovieCCStr[MOVIE_CC_MAX][MOVIE_CC_LEN];

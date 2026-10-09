@@ -30,77 +30,61 @@
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
-extern CRunScript    EventScript;
-extern EventEditInfo g_info;
-extern CCameraPas    g_cmr_pas;
-extern CCharaPas     g_chara_pas;
-extern int           g_cp_mode;
-extern int           g_cp_cursor;
-extern int           g_cp_selno;
-extern int           g_chara_pas_mode;
-extern int           g_chara_pas_cursor;
-extern int           g_chara_pas_selno;
-extern char          at_1208[];
-extern char          at_1226__2[];
-extern char          at_1242__2[];
-extern char          at_809__2[];
-extern char          at_810__2[];
-extern char          at_811__2[];
-extern char          at_812__2[];
-extern char          at_813__2[];
-extern char          at_814__2[];
-extern char          at_815__2[];
-extern char          at_816__4[];
-extern char          at_817__3[];
-extern char          at_818__3[];
-extern char          at_819__5[];
-extern char          at_820__5[];
-extern char          at_821__4[];
-extern char          at_822__4[];
-extern char          at_823__4[];
-extern char          at_824__4[];
-extern char          at_825__4[];
-extern char          at_826__4[];
-extern char          at_827__4[];
-extern char          at_828__5[];
-extern char          at_829__5[];
-extern char          at_830__6[];
-extern char          at_831__5[];
-extern char          at_832__5[];
-extern char          at_889__2[];
-extern char          at_890__2[];
-extern char          at_891__2[];
-extern char          at_979__4[];
-extern char          at_1204__2[];
-extern char          at_1205__2[];
-extern char          at_1206[];
-extern char          at_1207[];
-extern char          at_1222__2[];
-extern char          at_1223__2[];
-extern char          at_1224__2[];
-extern char          at_1225__2[];
-extern char          at_1382[];
-extern char          at_1383[];
-extern char          at_1384[];
-extern char          at_1385__3[];
-extern char          at_1386__2[];
-extern char          at_1387__3[];
-extern char          at_1388__3[];
-extern char          at_1389__2[];
-extern char          at_1390[];
-extern char          at_1391[];
-extern char          at_1392[];
-extern char          at_1393[];
-extern char          at_1394__2[];
-extern char          at_1395__3[];
-extern char          at_1396__2[];
-extern char          at_1397__2[];
-extern char          at_1398__3[];
-extern char          at_1399__2[];
-extern char          at_1400__3[];
-extern char          at_1401__2[];
-extern char          at_1402__2[];
-extern char          at_1403__2[];
+
+/**
+ *
+ * Stores the active event editor mode, character and camera state.
+ *
+ */
+static EventEditInfo g_info;
+/**
+ *
+ * Stores and plays the camera path recorded by the event editor.
+ *
+ */
+CCameraPas g_cmr_pas;
+/**
+ *
+ * Stores and plays the character path recorded by the event editor.
+ *
+ */
+CCharaPas g_chara_pas;
+/**
+ *
+ * Selects the camera path editing operation.
+ *
+ */
+static int g_cp_mode;
+/**
+ *
+ * Selects the camera path editor control row.
+ *
+ */
+static int g_cp_cursor;
+/**
+ *
+ * Selects the camera path point being edited.
+ *
+ */
+static int g_cp_selno;
+/**
+ *
+ * Selects the character path editing operation.
+ *
+ */
+static int g_chara_pas_mode;
+/**
+ *
+ * Selects the character path editor control row.
+ *
+ */
+static int g_chara_pas_cursor;
+/**
+ *
+ * Selects the character path point being edited.
+ *
+ */
+static int g_chara_pas_selno;
 void                 DrawBox(float (*corners)[4], int r, int g, int b);
 void                 MoveChara(CCharacter2 *chara, mgCCamera *camera, mgCMemory *memory);
 
@@ -124,18 +108,18 @@ void OutPutFile() {
     CCharacter2 *chara;
     mgCCamera   *camera;
 
-    file = sceOpen(at_809__2, 0x602);
+    file = sceOpen("host0:debug.txt", 0x602);
 
     if (file < 0) {
         return;
     }
 
-    sprintf(text, at_810__2);
+    sprintf(text, "character\r\n");
     sceWrite(file, text, strlen(text));
     chara = GetCharacter(g_info.chara_no);
-    sprintf(text, at_811__2, g_info.chara_no);
+    sprintf(text, "select_chara %d \n", g_info.chara_no);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_812__2, g_info.collision);
+    sprintf(text, "collision %d\n", g_info.collision);
     sceWrite(file, text, strlen(text));
     chara->GetPosition(chara_pos);
     chara->GetRotation(chara_rot);
@@ -143,11 +127,11 @@ void OutPutFile() {
     chara_rot[0] -= EdEventInfo.world_coord_rot[0];
     chara_rot[1] -= EdEventInfo.world_coord_rot[1];
     chara_rot[2] -= EdEventInfo.world_coord_rot[2];
-    sprintf(text, at_813__2, (double) chara_pos[0], (double) chara_pos[1], (double) chara_pos[2]);
+    sprintf(text, "pos = %1.2f, %1.2f, %1.2f\n", (double) chara_pos[0], (double) chara_pos[1], (double) chara_pos[2]);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_814__2, (double) chara_rot[0], (double) chara_rot[1], (double) chara_rot[2]);
+    sprintf(text, "rot = %1.2f, %1.2f, %1.2f\n", (double) chara_rot[0], (double) chara_rot[1], (double) chara_rot[2]);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_815__2);
+    sprintf(text, "\ncamera\n");
     sceWrite(file, text, strlen(text));
     camera = GetActiveCamera();
     camera->GetPos(eye_pos);
@@ -161,9 +145,9 @@ void OutPutFile() {
     angle = atan2f(-flat_dir[0], -flat_dir[2]);
     CalcPosWorldCoordGyaku(eye_pos);
     CalcPosWorldCoordGyaku(look_pos);
-    sprintf(text, at_816__4, (double) eye_pos[0], (double) eye_pos[1], (double) eye_pos[2]);
+    sprintf(text, "CMRS_SET_POS\t%1.2f, %1.2f, %1.2f;\n", (double) eye_pos[0], (double) eye_pos[1], (double) eye_pos[2]);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_817__3, (double) look_pos[0], (double) look_pos[1], (double) look_pos[2]);
+    sprintf(text, "CMRS_SET_REF\t%1.2f, %1.2f, %1.2f;\n", (double) look_pos[0], (double) look_pos[1], (double) look_pos[2]);
     sceWrite(file, text, strlen(text));
     angle -= EdEventInfo.world_coord_rot[1];
 
@@ -173,50 +157,50 @@ void OutPutFile() {
         angle += 6.2831855f;
     }
 
-    sprintf(text, at_818__3, (double) angle);
+    sprintf(text, "angle = %1.2f\n", (double) angle);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_819__5, (double) (eye_pos[1] - look_pos[1]));
+    sprintf(text, "height = %1.2f\n", (double) (eye_pos[1] - look_pos[1]));
     sceWrite(file, text, strlen(text));
     eye_pos[1] = 0.0f;
     look_pos[1] = 0.0f;
-    sprintf(text, at_820__5, (double) mgDistVector(eye_pos, look_pos));
+    sprintf(text, "distance = %1.2f\n", (double) mgDistVector(eye_pos, look_pos));
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_821__4, (double) EdEventInfo.projection);
+    sprintf(text, "projection = %1.1f\n", (double) EdEventInfo.projection);
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_822__4);
+    sprintf(text, "\ncamera pas\n");
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_823__4, g_cmr_pas.pas_num);
+    sprintf(text, "pointnum = %d\n", g_cmr_pas.pas_num);
     sceWrite(file, text, strlen(text));
-    sceWrite(file, at_824__4, strlen(at_824__4));
-    sprintf(text, at_825__4, g_cmr_pas.GetFrame());
+    sceWrite(file, const_cast<char *>("CMRS_INIT_PAS;\n"), strlen("CMRS_INIT_PAS;\n"));
+    sprintf(text, "CMRS_SET_PAS_FRM\t%d;\n", g_cmr_pas.GetFrame());
     sceWrite(file, text, strlen(text));
 
     for (i = 0; i < g_cmr_pas.pas_num; i++) {
         g_cmr_pas.GetCameraPas(i, eye_pos, look_pos);
         CalcPosWorldCoordGyaku(eye_pos);
         CalcPosWorldCoordGyaku(look_pos);
-        sprintf(text, at_826__4, (double) eye_pos[0], (double) eye_pos[1], (double) eye_pos[2],
+        sprintf(text, "CMRS_ADD_PAS\t%1.2f,%1.2f,%1.2f,\t%1.2f,%1.2f,%1.2f;\n", (double) eye_pos[0], (double) eye_pos[1], (double) eye_pos[2],
                 (double) look_pos[0], (double) look_pos[1], (double) look_pos[2]);
         sceWrite(file, text, strlen(text));
     }
 
-    sceWrite(file, at_827__4, strlen(at_827__4));
-    sprintf(text, at_828__5);
+    sceWrite(file, const_cast<char *>("CMRS_START_PAS;\n"), strlen("CMRS_START_PAS;\n"));
+    sprintf(text, "\nchara pas\n");
     sceWrite(file, text, strlen(text));
-    sprintf(text, at_823__4, g_chara_pas.pas_num);
+    sprintf(text, "pointnum = %d\n", g_chara_pas.pas_num);
     sceWrite(file, text, strlen(text));
-    sceWrite(file, at_829__5, strlen(at_829__5));
-    sprintf(text, at_830__6, g_chara_pas.GetFrame());
+    sceWrite(file, const_cast<char *>("OBJS_INIT_PAS\t\tid;\n"), strlen("OBJS_INIT_PAS\t\tid;\n"));
+    sprintf(text, "OBJS_SET_PAS_FRM\tid, %d;\n", g_chara_pas.GetFrame());
     sceWrite(file, text, strlen(text));
 
     for (i = 0; i < g_chara_pas.pas_num; i++) {
         g_chara_pas.GetCharaPas(i, chara_pos);
         CalcPosWorldCoordGyaku(chara_pos);
-        sprintf(text, at_831__5, (double) chara_pos[0], (double) chara_pos[1], (double) chara_pos[2]);
+        sprintf(text, "OBJS_ADD_PAS\t\tid, %1.2f, %1.2f, %1.2f;\n", (double) chara_pos[0], (double) chara_pos[1], (double) chara_pos[2]);
         sceWrite(file, text, strlen(text));
     }
 
-    sceWrite(file, at_832__5, strlen(at_832__5));
+    sceWrite(file, const_cast<char *>("OBJS_START_PAS\t\tid;\n"), strlen("OBJS_START_PAS\t\tid;\n"));
     sceClose(file);
 }
 
@@ -348,13 +332,13 @@ void evLoadDebugFont(int texture_id, mgCMemory *memory) {
     memory->Align64();
     buffer = (u8 *) memory->stAllocTest(1);
 
-    if (LoadFile2(at_889__2, buffer, &file_size, 0) != 0) {
+    if (LoadFile2("img/font3.tm2", buffer, &file_size, 0) != 0) {
         memory->Alloc(file_size / 16 + 1);
-        tex_manager->EnterTexture(texture_id, at_890__2, (TM2_head *) buffer, 0, 0);
+        tex_manager->EnterTexture(texture_id, "font3", (TM2_head *) buffer, 0, 0);
     }
 
     JisFont.Initialize();
-    JisFont.InitTexture(-1, at_891__2, -1, at_891__2, texture_id, at_890__2);
+    JisFont.InitTexture(-1, "", -1, "", texture_id, "font3");
     JisFont.Clear();
     JisFont.shadow_enable = 1;
 }
@@ -535,7 +519,7 @@ void MoveChara(CCharacter2 *chara, mgCCamera *camera, mgCMemory *memory) {
         }
 
         sceVu0CopyVector(next_position, position);
-        printf(at_979__4, poly_count);
+        printf("POLY_NUM = %d\n", poly_count);
     } else {
         sceVu0AddVector(next_position, position, move);
     }
@@ -997,14 +981,14 @@ void DrawEventEdit(void) {
             prim.Vertex(0xE2, 0x128, 0);
         }
         prim.End();
-        char *mode_names[5] = {at_1204__2, at_1205__2, at_1206, at_1207, at_891__2};
+        char *mode_names[5] = {"CAMERA MOVE", "CHARACTER", "CAMERA PAS", "CHARA PAS", ""};
         float eye[4];
         float look[4];
         float view[4];
         float flat[4];
         float focus[4];
         int y = 0x10;
-        JisFont.PrintDirect(0x10, y, at_1382, mode_names[g_info.mode]);
+        JisFont.PrintDirect(0x10, y, "%s\n", mode_names[g_info.mode]);
         CCharacter2 *chara = GetCharacter(g_info.chara_no);
         mgCCamera *camera = GetActiveCamera();
         camera->GetPos(eye);
@@ -1022,58 +1006,58 @@ void DrawEventEdit(void) {
         if (g_info.disp != 0) {
             switch (g_info.mode) {
             case 0: {
-                JisFont.PrintDirect(0x10, y += 0x16, at_1383, EventScene->active_camera);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1384, (double)eye[0]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1385__3, (double)eye[1]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1386__2, (double)eye[2]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1387__3);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1384, (double)look[0]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1385__3, (double)look[1]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1386__2, (double)look[2]);
+                JisFont.PrintDirect(0x10, y += 0x16, " Position %d\n", EventScene->active_camera);
+                JisFont.PrintDirect(0x10, y += 0x12, "  x = %1.2f\n", (double)eye[0]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  y = %1.2f\n", (double)eye[1]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  z = %1.2f\n", (double)eye[2]);
+                JisFont.PrintDirect(0x10, y += 0x12, " Reference\n");
+                JisFont.PrintDirect(0x10, y += 0x12, "  x = %1.2f\n", (double)look[0]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  y = %1.2f\n", (double)look[1]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  z = %1.2f\n", (double)look[2]);
                 angle -= EdEventInfo.world_coord_rot[1];
                 if (angle > 3.1415927f) {
                     angle -= 6.2831855f;
                 } else if (angle <= -3.1415927f) {
                     angle += 6.2831855f;
                 }
-                JisFont.PrintDirect(0x10, y += 0x12, at_1388__3, (double)angle);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1389__2, (double)(eye[1] - look[1]));
+                JisFont.PrintDirect(0x10, y += 0x12, " Angle = %1.2f\n", (double)angle);
+                JisFont.PrintDirect(0x10, y += 0x12, " Height = %1.2f\n", (double)(eye[1] - look[1]));
                 eye[1] = 0.0f;
                 look[1] = 0.0f;
-                JisFont.PrintDirect(0x10, y += 0x12, at_1390, (double)mgDistVector(eye, look));
-                JisFont.PrintDirect(0x10, y += 0x12, at_1391, (double)EdEventInfo.projection);
+                JisFont.PrintDirect(0x10, y += 0x12, " Distance = %1.2f\n", (double)mgDistVector(eye, look));
+                JisFont.PrintDirect(0x10, y += 0x12, " Projection = %1.1f\n", (double)EdEventInfo.projection);
                 float remain;
                 mgCMemory *stack = EventScene->GetStack(EventScene->stack_no);
                 if (stack != NULL) {
                     remain = (float)stack->stGetRest();
                 }
                 remain = ((16.0f * remain) / 1024.0f) / 1024.0f;
-                JisFont.PrintDirect(0x10, y += 0x20, at_1392, (double)remain);
+                JisFont.PrintDirect(0x10, y += 0x20, " REMAIN_MEM = %1.2fM\n", (double)remain);
                 break;
             }
             case 1: {
                 float chara_pos[4];
                 float chara_rot[4];
-                JisFont.PrintDirect(0x10, y += 0x16, at_1393, g_info.chara_no);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1394__2, g_info.collision);
+                JisFont.PrintDirect(0x10, y += 0x16, " SelectChara %d \n", g_info.chara_no);
+                JisFont.PrintDirect(0x10, y += 0x12, " Collision %d\n", g_info.collision);
                 chara->GetPosition(chara_pos);
                 chara->GetRotation(chara_rot);
                 CalcPosWorldCoordGyaku(chara_pos);
                 chara_rot[0] -= EdEventInfo.world_coord_rot[0];
                 chara_rot[1] -= EdEventInfo.world_coord_rot[1];
                 chara_rot[2] -= EdEventInfo.world_coord_rot[2];
-                JisFont.PrintDirect(0x10, y += 0x12, at_1395__3);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1384, (double)chara_pos[0]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1385__3, (double)chara_pos[1]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1386__2, (double)chara_pos[2]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1396__2);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1384, (double)chara_rot[0]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1385__3, (double)chara_rot[1]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1386__2, (double)chara_rot[2]);
+                JisFont.PrintDirect(0x10, y += 0x12, " Position\n");
+                JisFont.PrintDirect(0x10, y += 0x12, "  x = %1.2f\n", (double)chara_pos[0]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  y = %1.2f\n", (double)chara_pos[1]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  z = %1.2f\n", (double)chara_pos[2]);
+                JisFont.PrintDirect(0x10, y += 0x12, " Rotate\n");
+                JisFont.PrintDirect(0x10, y += 0x12, "  x = %1.2f\n", (double)chara_rot[0]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  y = %1.2f\n", (double)chara_rot[1]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  z = %1.2f\n", (double)chara_rot[2]);
                 break;
             }
             case 2: {
-                char *cam_op_names[5] = {at_1222__2, at_1223__2, at_1224__2, at_1225__2, at_891__2};
+                char *cam_op_names[5] = {"Addition", "Insert", "OverWrite", "Delete", ""};
                 float cam_eye[4];
                 float cam_look[4];
                 float cam_point_eye[4];
@@ -1081,33 +1065,33 @@ void DrawEventEdit(void) {
                 float cam_box_max[4];
                 float cam_box_min[4];
                 if (g_cp_cursor == 0) {
-                    JisFont.PrintDirect(0x10, y += 0x16, at_1397__2, cam_op_names[g_cp_mode]);
+                    JisFont.PrintDirect(0x10, y += 0x16, ">EditMode [%s]\n", cam_op_names[g_cp_mode]);
                 } else {
-                    JisFont.PrintDirect(0x10, y += 0x16, at_1398__3, cam_op_names[g_cp_mode]);
+                    JisFont.PrintDirect(0x10, y += 0x16, " EditMode [%s]\n", cam_op_names[g_cp_mode]);
                 }
                 if (g_cp_cursor == 1) {
-                    JisFont.PrintDirect(0x10, y += 0x12, at_1399__2, g_cp_selno);
+                    JisFont.PrintDirect(0x10, y += 0x12, ">SelectNo %d\n", g_cp_selno);
                 } else {
-                    JisFont.PrintDirect(0x10, y += 0x12, at_1400__3, g_cp_selno);
+                    JisFont.PrintDirect(0x10, y += 0x12, " SelectNo %d\n", g_cp_selno);
                 }
                 g_cmr_pas.GetCameraPas(g_cp_selno, cam_eye, cam_look);
                 CalcPosWorldCoordGyaku(cam_eye);
                 CalcPosWorldCoordGyaku(cam_look);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1395__3);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1384, (double)cam_eye[0]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1385__3, (double)cam_eye[1]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1386__2, (double)cam_eye[2]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1387__3);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1384, (double)cam_look[0]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1385__3, (double)cam_look[1]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1386__2, (double)cam_look[2]);
+                JisFont.PrintDirect(0x10, y += 0x12, " Position\n");
+                JisFont.PrintDirect(0x10, y += 0x12, "  x = %1.2f\n", (double)cam_eye[0]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  y = %1.2f\n", (double)cam_eye[1]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  z = %1.2f\n", (double)cam_eye[2]);
+                JisFont.PrintDirect(0x10, y += 0x12, " Reference\n");
+                JisFont.PrintDirect(0x10, y += 0x12, "  x = %1.2f\n", (double)cam_look[0]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  y = %1.2f\n", (double)cam_look[1]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  z = %1.2f\n", (double)cam_look[2]);
                 int frame_no = g_cmr_pas.GetFrame();
                 if (g_cp_cursor == 2) {
-                    JisFont.PrintDirect(0x10, y += 0x12, at_1401__2, frame_no);
+                    JisFont.PrintDirect(0x10, y += 0x12, ">Frame %d\n", frame_no);
                 } else {
-                    JisFont.PrintDirect(0x10, y += 0x12, at_1402__2, frame_no);
+                    JisFont.PrintDirect(0x10, y += 0x12, " Frame %d\n", frame_no);
                 }
-                JisFont.PrintDirect(0x10, y += 0x12, at_1403__2, g_cmr_pas.pas_num);
+                JisFont.PrintDirect(0x10, y += 0x12, " PointNum %d\n", g_cmr_pas.pas_num);
                 for (int i = 0; i < g_cmr_pas.pas_num; i++) {
                     g_cmr_pas.GetCameraPas(i, cam_point_eye, cam_point_look);
                     CalcPosWorldCoordGyaku(cam_point_eye);
@@ -1134,34 +1118,34 @@ void DrawEventEdit(void) {
                 break;
             }
             case 3: {
-                char *chara_op_names[5] = {at_1222__2, at_1223__2, at_1224__2, at_1225__2, at_891__2};
+                char *chara_op_names[5] = {"Addition", "Insert", "OverWrite", "Delete", ""};
                 float path_pos[4];
                 float path_point[4];
                 float path_box_max[4];
                 float path_box_min[4];
                 if (g_chara_pas_cursor == 0) {
-                    JisFont.PrintDirect(0x10, y += 0x16, at_1397__2, chara_op_names[g_chara_pas_mode]);
+                    JisFont.PrintDirect(0x10, y += 0x16, ">EditMode [%s]\n", chara_op_names[g_chara_pas_mode]);
                 } else {
-                    JisFont.PrintDirect(0x10, y += 0x16, at_1398__3, chara_op_names[g_chara_pas_mode]);
+                    JisFont.PrintDirect(0x10, y += 0x16, " EditMode [%s]\n", chara_op_names[g_chara_pas_mode]);
                 }
                 if (g_chara_pas_cursor == 1) {
-                    JisFont.PrintDirect(0x10, y += 0x12, at_1399__2, g_chara_pas_selno);
+                    JisFont.PrintDirect(0x10, y += 0x12, ">SelectNo %d\n", g_chara_pas_selno);
                 } else {
-                    JisFont.PrintDirect(0x10, y += 0x12, at_1400__3, g_chara_pas_selno);
+                    JisFont.PrintDirect(0x10, y += 0x12, " SelectNo %d\n", g_chara_pas_selno);
                 }
                 g_chara_pas.GetCharaPas(g_chara_pas_selno, path_pos);
                 CalcPosWorldCoordGyaku(path_pos);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1395__3);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1384, (double)path_pos[0]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1385__3, (double)path_pos[1]);
-                JisFont.PrintDirect(0x10, y += 0x12, at_1386__2, (double)path_pos[2]);
+                JisFont.PrintDirect(0x10, y += 0x12, " Position\n");
+                JisFont.PrintDirect(0x10, y += 0x12, "  x = %1.2f\n", (double)path_pos[0]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  y = %1.2f\n", (double)path_pos[1]);
+                JisFont.PrintDirect(0x10, y += 0x12, "  z = %1.2f\n", (double)path_pos[2]);
                 int frame_no = g_chara_pas.GetFrame();
                 if (g_chara_pas_cursor == 2) {
-                    JisFont.PrintDirect(0x10, y += 0x12, at_1401__2, frame_no);
+                    JisFont.PrintDirect(0x10, y += 0x12, ">Frame %d\n", frame_no);
                 } else {
-                    JisFont.PrintDirect(0x10, y += 0x12, at_1402__2, frame_no);
+                    JisFont.PrintDirect(0x10, y += 0x12, " Frame %d\n", frame_no);
                 }
-                JisFont.PrintDirect(0x10, y += 0x12, at_1403__2, g_chara_pas.pas_num);
+                JisFont.PrintDirect(0x10, y += 0x12, " PointNum %d\n", g_chara_pas.pas_num);
                 for (int i = 0; i < g_chara_pas.pas_num; i++) {
                     g_chara_pas.GetCharaPas(i, path_point);
                     CalcPosWorldCoordGyaku(path_point);
@@ -1276,81 +1260,3 @@ void DrawEventEdit(void) {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1208__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1226__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1242__2__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_809__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_810__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_811__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_812__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_813__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_814__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_815__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_816__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_817__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_818__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_819__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_820__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_821__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_822__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_823__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_824__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_825__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_826__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_827__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_828__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_829__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_830__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_831__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_832__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_889__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_890__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_891__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_979__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1204__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1205__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1206__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1207__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1222__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1223__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1224__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1225__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1382__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1383__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1384__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1385__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1386__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1387__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1388__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1389__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1390__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1391__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1392__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1393__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1394__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1395__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1396__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1397__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1398__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1399__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1400__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1401__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1402__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/eventedit", at_1403__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(g_cp_mode, 0x4);
-INCLUDE_BSS(g_cp_cursor, 0x4);
-INCLUDE_BSS(g_cp_selno, 0x4);
-INCLUDE_BSS(g_chara_pas_mode, 0x4);
-INCLUDE_BSS(g_chara_pas_cursor, 0x4);
-INCLUDE_BSS(g_chara_pas_selno, 0x4);
-
-// Uninitialised data (.bss)
-CCameraPas g_cmr_pas;
-CCharaPas  g_chara_pas;
-INCLUDE_BSS(g_info, 0x40);

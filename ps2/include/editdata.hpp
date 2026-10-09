@@ -135,7 +135,7 @@ public:
      *
      * @mangled __ct__14EditAnalyzeSrcFv
      * @address 0x2AEEE0
-     * @size 0x30
+     * @size 0x28
      */
     EditAnalyzeSrc();
 
@@ -222,9 +222,9 @@ STATIC_ASSERT(sizeof(EditDataHouse) == 0x10);
  *
  */
 struct EditDataAnalyze {
-    u8 data_open[EDIT_ANALYZE_DATA_MAX];           /**< Non-zero for each request the player has been told about. */
+    s8 data_open[EDIT_ANALYZE_DATA_MAX];           /**< Non-zero for each request the player has been told about. */
     s8 condition[EDIT_ANALYZE_CONDITION_MAX];      /**< Non-zero for each condition the town meets. */
-    u8 condition_open[EDIT_ANALYZE_CONDITION_MAX]; /**< Non-zero for each condition the player has been told about. */
+    s8 condition_open[EDIT_ANALYZE_CONDITION_MAX]; /**< Non-zero for each condition the player has been told about. */
     u8 unk_90[0x40];
 
     /**
@@ -265,7 +265,7 @@ public:
      *
      * @mangled __ct__9CEditDataFv
      * @address 0x195960
-     * @size 0xA0
+     * @size 0x94
      */
     CEditData();
 
@@ -275,7 +275,7 @@ public:
      *
      * @mangled Initialize__9CEditDataFv
      * @address 0x2ACEB0
-     * @size 0x50
+     * @size 0x44
      */
     void Initialize();
 
@@ -285,7 +285,7 @@ public:
      *
      * @mangled InitPlaceData__9CEditDataFv
      * @address 0x2ACF00
-     * @size 0x130
+     * @size 0x128
      */
     void InitPlaceData();
 
@@ -295,7 +295,7 @@ public:
      *
      * @mangled GetPartsNumID__9CEditDataFi
      * @address 0x2AE330
-     * @size 0x60
+     * @size 0x54
      */
     int GetPartsNumID(int id);
 
@@ -307,7 +307,7 @@ public:
      *
      * @mangled Analyze__9CEditDataFiiPii
      * @address 0x2AE390
-     * @size 0x130
+     * @size 0x12C
      */
     s8 Analyze(int entry, int area, int *pending, int depth);
 
@@ -319,7 +319,7 @@ public:
      *
      * @mangled Analize__9CEditDataFiPiPi
      * @address 0x2AE4C0
-     * @size 0xD0
+     * @size 0xCC
      */
     void Analize(int area, int *flags, int *pending);
 
@@ -329,7 +329,7 @@ public:
      *
      * @mangled GetAnalyzeData__9CEditDataFii
      * @address 0x2AE590
-     * @size 0x10
+     * @size 0xC
      */
     EditAnalyzeDataSrc *GetAnalyzeData(int area, int entry);
 
@@ -339,7 +339,7 @@ public:
      *
      * @mangled GetAnalyzeSrc__9CEditDataFi
      * @address 0x2AE5A0
-     * @size 0x50
+     * @size 0x44
      */
     EditAnalyzeSrc *GetAnalyzeSrc(int index);
 
@@ -349,7 +349,7 @@ public:
      *
      * @mangled GetAnalyzePercent__9CEditDataFi
      * @address 0x2AE5F0
-     * @size 0xB0
+     * @size 0xAC
      */
     int GetAnalyzePercent(int area);
 
@@ -360,7 +360,7 @@ public:
      *
      * @mangled GetAnalyzeFlag__9CEditDataFiiPiPi
      * @address 0x2AE6A0
-     * @size 0xA0
+     * @size 0x98
      */
     int GetAnalyzeFlag(int area, int entry, int *condition_nos, int *condition_values);
 
@@ -380,7 +380,7 @@ public:
      *
      * @mangled dbgSetContintionFlag__9CEditDataFiii
      * @address 0x2AE760
-     * @size 0x30
+     * @size 0x2C
      */
     void dbgSetContintionFlag(int map_no, int flag_no, int value);
 
@@ -390,7 +390,7 @@ public:
      *
      * @mangled dbgSetAnalyzeFlag__9CEditDataFiii
      * @address 0x2AE790
-     * @size 0x90
+     * @size 0x88
      */
     void dbgSetAnalyzeFlag(int map_no, int data_no, int flag);
 
@@ -400,7 +400,7 @@ public:
      *
      * @mangled dbgSetAllContintionFlag__9CEditDataFii
      * @address 0x2AE820
-     * @size 0x40
+     * @size 0x3C
      */
     void dbgSetAllContintionFlag(int map_no, int flag);
 
@@ -411,7 +411,7 @@ public:
      *
      * @mangled dbgGetContintionFlag__9CEditDataFiiPc
      * @address 0x2AE860
-     * @size 0xB0
+     * @size 0xA4
      */
     int dbgGetContintionFlag(int area, int flag_no, char *name);
 };
@@ -424,7 +424,7 @@ STATIC_ASSERT(sizeof(CEditData) == 0x5510);
  *
  * @mangled LoadEditAnalyzeData__FiP1
  * @address 0x2AE910
- * @size 0xE0
+ * @size 0xD8
  */
 void LoadEditAnalyzeData(int area_no, u_long128 *dest);
 
@@ -434,7 +434,7 @@ void LoadEditAnalyzeData(int area_no, u_long128 *dest);
  *
  * @mangled GetMaxPolyn__Fi
  * @address 0x2AEE00
- * @size 0x70
+ * @size 0x68
  */
 int GetMaxPolyn(int map_no);
 
@@ -444,6 +444,6 @@ int GetMaxPolyn(int map_no);
  *
  * @mangled GetMaxDrawMem__Fi
  * @address 0x2AEE70
- * @size 0x70
+ * @size 0x68
  */
 int GetMaxDrawMem(int map_no);

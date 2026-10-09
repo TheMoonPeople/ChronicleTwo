@@ -101,7 +101,7 @@ public:
      * @address 0x15F7E0
      * @size 0x10
      */
-    virtual int Draw();
+    virtual int Draw() { return DrawSub(0); }
 
     /**
      *
@@ -112,7 +112,7 @@ public:
      * @address 0x15F7F0
      * @size 0x10
      */
-    virtual int DrawDirect();
+    virtual int DrawDirect() { return DrawSub(1); }
 
     /**
      *

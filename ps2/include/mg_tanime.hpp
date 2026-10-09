@@ -98,33 +98,6 @@ public:
     void Set(T new_left, T new_top, T new_right, T new_bottom);
 } __attribute__((aligned(16)));
 
-/**
- *
- * Short integer rectangle used by the texture animator.
- *
- */
-template <>
-class mgRect<short> {
-public:
-    short left;   /**< Left edge. */
-    short top;    /**< Top edge. */
-    short right;  /**< Right edge, inclusive. */
-    short bottom; /**< Bottom edge, inclusive. */
-
-    mgRect() { Set(0, 0, 0, 0); }
-
-    mgRect(short new_left, short new_top, short new_right, short new_bottom) {
-        Set(new_left, new_top, new_right, new_bottom);
-    }
-
-    void Set(short new_left, short new_top, short new_right, short new_bottom) {
-        left = new_left;
-        top = new_top;
-        right = new_right;
-        bottom = new_bottom;
-    }
-};
-
 template <class T>
 void mgRect<T>::Set(T new_left, T new_top, T new_right, T new_bottom) {
     left = new_left;
@@ -216,7 +189,7 @@ public:
     signed char type;        /**< How the rectangle is moved, an mgTEX_ANIME_TYPE. */
     signed char group;       /**< Animation group the record is entered into. */
     signed char link_group;  /**< Group enabled while this record plays, or -1 for none. */
-    u_char      clut_copy;   /**< Non-zero copies the source's palette to the destination even when the rectangle is not the whole texture. */
+    signed char clut_copy;   /**< Non-zero copies the source's palette to the destination even when the rectangle is not the whole texture. */
     mgCTexture *src_tex;     /**< Texture the rectangle is taken from. */
     mgCTexture *dest_tex;    /**< Texture the rectangle is drawn into. */
     short       src_x;       /**< Left edge of the source rectangle, in sixteenths of a texel. */
@@ -235,8 +208,8 @@ public:
     short       amplitude_y; /**< Vertical sway of a wave record, in ten-thousandths of the destination height. */
     short       wait;        /**< Frames the record plays before the group moves on; zero also plays the next record, -1 holds forever. */
     short       bug_patch;   /**< Non-zero ends the record after exactly wait frames rather than one frame later. */
-    u_char      bilinear;    /**< Non-zero filters a drawn rectangle bilinearly. */
-    u_char      alpha_blend; /**< Alpha blending mode a drawn rectangle uses, or 4 for none. */
+    signed char bilinear;    /**< Non-zero filters a drawn rectangle bilinearly. */
+    signed char alpha_blend; /**< Alpha blending mode a drawn rectangle uses, or 4 for none. */
     signed char alpha_test;  /**< Alpha test method a drawn rectangle uses, or -1 for none. */
     u_char      alpha_ref;   /**< Reference value of the alpha test. */
     u_char      r;           /**< Red the drawn rectangle is tinted with, 0x80 for unchanged. */
@@ -298,7 +271,7 @@ public:
      *
      * @mangled TexAnime__15mgCTextureAnimeFiP13sceVif1Packet
      * @address 0x13C400
-     * @size 0x1460
+     * @size 0x1458
      */
     void TexAnime(int texb, sceVif1Packet *packet);
 

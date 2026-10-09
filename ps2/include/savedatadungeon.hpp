@@ -24,11 +24,12 @@ enum {
  *
  */
 enum DNG_FLOOR_FLAG {
-    DNG_FLOOR_FLAG_OPEN = 0x1, /**< The floor can be entered. */
-    DNG_FLOOR_FLAG_UNK_2 = 0x2,
+    DNG_FLOOR_FLAG_OPEN = 0x1,                /**< The floor can be entered. */
+    DNG_FLOOR_FLAG_CLEAR = 0x2,               /**< The floor has been cleared. */
     DNG_FLOOR_FLAG_PRACTICE_CLEAR = 0x8,      /**< The floor's practice condition is cleared. */
     DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR = 0x10, /**< The floor is cleared within its target time. */
     DNG_FLOOR_FLAG_FISHING_CLEAR = 0x20,      /**< The floor's fishing record is beaten. */
+    DNG_FLOOR_FLAG_TALK_MONSTER = 0x40,       /**< The floor's talk-monster flag, TalkMons in the map debug display. */
     DNG_FLOOR_FLAG_SPHEDA_CLEAR = 0x80,       /**< The floor's spheda challenge is cleared. */
     DNG_FLOOR_FLAG_GEOSTONE_FOUND = 0x100,    /**< The floor's geostone is found. */
     DNG_FLOOR_FLAG_GEOSTONE_READ = 0x200,     /**< The parts of the floor's geostone are handed out. */

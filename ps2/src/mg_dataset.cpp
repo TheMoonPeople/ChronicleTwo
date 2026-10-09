@@ -16,14 +16,7 @@
 #include "mg_visual.hpp"
 #include "mglib.hpp"
 #include "visualmotion.hpp"
-extern u_char at_717[];
-extern char   at_387[];
 extern char   at_550[];
-extern char   at_618[];
-extern char  *name_def_276;
-extern s8     init_277;
-extern int    flag_571;
-extern s8     init_572;
 
 void CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table);
 mgCFrame *CopyFrameSub(mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table);
@@ -51,13 +44,13 @@ int conv_new_text(char *dst, char *src) {
     out = dst;
     more = 1;
 
-    while ((c = *(s8 *) src) != 0) {
+    while ((c = *src) != 0) {
         if (c == 0) {
             more = 0;
             break;
         }
 
-        if (c == '_' && ((s8 *) src)[1] == '_') {
+        if (c == '_' && src[1] == '_') {
             src += 2;
             out[0] = '-';
             out[1] = '-';
@@ -71,7 +64,7 @@ int conv_new_text(char *dst, char *src) {
     }
 
     while (more != 0) {
-        c = *(s8 *) src;
+        c = *src;
 
         if (c == 0) {
             break;
@@ -93,9 +86,9 @@ int conv_new_text(char *dst, char *src) {
             case 'a':
             case 'A':
                 out[0] = 'a';
-                out[1] = ((s8 *) src)[1];
+                out[1] = src[1];
                 src += 2;
-                out[2] = *(s8 *) src;
+                out[2] = *src;
                 out += 3;
                 break;
             case 'z':
@@ -127,7 +120,7 @@ int conv_new_text(char *dst, char *src) {
                 out[0] = 'b';
                 out++;
                 src++;
-                c = *(s8 *) src;
+                c = *src;
 
                 if (c == 0) {
                     src--;
@@ -176,7 +169,7 @@ int conv_new_text(char *dst, char *src) {
 #pragma global_optimizer off
 
 static int htoi(char *text) {
-    s8 *end = (s8 *)text;
+    char *end = text;
     s32 length = 0;
     s32 value = 0;
     while (*end++ != 0) {
@@ -239,23 +232,20 @@ void mgSetFrameAttr(mgCFrame *input_frame, int input_recursive) {
 
     cursor = frame->name;
 
-    if (init_277 == 0) {
-        name_def_276 = at_387;
-        init_277 = 1;
-    }
+    static char *name_def = "";
 
     if (cursor == NULL) {
-        cursor = name_def_276;
+        cursor = name_def;
     }
 
     text = cursor;
 
-    while ((current = *(s8 *) text) != 0) {
+    while ((current = *text) != 0) {
         if (current == 0) {
             apply = 0;
             break;
         } else {
-            if (current == '-' && ((s8 *) text)[1] == '-') {
+            if (current == '-' && text[1] == '-') {
                 text += 2;
                 break;
             }
@@ -709,20 +699,17 @@ mgCFrame *mgLoadMDSFile(mgLoadData *load) {
     }
 
     if ((int) mds % 16 != 0) {
-        printf(at_618, mds);
+        printf("address error!! %d \n", mds);
     }
 
     default_type = MG_VISUAL_CREATE_FIX_MDT;
-    entry = SearchVisualType(visual_type, at_387);
+    entry = SearchVisualType(visual_type, "");
 
     if (entry != NULL) {
         default_type = entry->type;
     }
 
-    if (init_572 == 0) {
-        flag_571 = 0;
-        init_572 = 1;
-    }
+    static int flag = 0;
 
     object = (MDTOBJ_HEADER *) ((char *) mds + mds->object_ofs);
 
@@ -742,7 +729,7 @@ mgCFrame *mgLoadMDSFile(mgLoadData *load) {
         blocks = (mds->object_num * 4) >> 4;
     }
 
-    frame_table = (mgCFrame **) operator new[](mds->object_num * 4, memory->Alloc(blocks + 2));
+    frame_table = new (memory->Alloc(blocks + 2)) mgCFrame *[mds->object_num];
     matrix_table = NULL;
 
     if (weight != NULL) {
@@ -752,7 +739,7 @@ mgCFrame *mgLoadMDSFile(mgLoadData *load) {
             blocks = ((mds->object_num + 2) * 0x40) >> 4;
         }
 
-        matrix_table = (float (*)[4][4]) operator new[]((mds->object_num + 2) * 0x40, memory->Alloc(blocks + 2));
+        matrix_table = new (memory->Alloc(blocks + 2)) sceVu0FMATRIX[mds->object_num + 2];
     }
 
     for (i = 0; i < mds->object_num; i++) {
@@ -822,13 +809,10 @@ void mgCreateBBoxSphere(float *max, float *min, float *sphere, float (*vertex)[4
     }
 
     s32        i;
-    float     *point = (float *) vertex;
-    float      center[4];
-    u_long128 *source = (u_long128 *) at_717;
-    u_long128 *dest = (u_long128 *) center;
-    *dest = *source;
-    sceVu0CopyVector(max, (float *) vertex);
-    sceVu0CopyVector(min, (float *) vertex);
+    float     *point = vertex[0];
+    float      center[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    sceVu0CopyVector(max, vertex[0]);
+    sceVu0CopyVector(min, vertex[0]);
 
     for (i = 0; i < vertex_num; i++) {
         mgVectorMaxMin(max, min, max, min, point);
@@ -839,7 +823,7 @@ void mgCreateBBoxSphere(float *max, float *min, float *sphere, float (*vertex)[4
     sceVu0ScaleVector(sphere, center, 0.5f);
     float radius = 0.0f;
     sphere[3] = 0;
-    point = (float *) vertex;
+    point = vertex[0];
 
     for (i = 0; i < vertex_num; i++) {
         float distance = mgDistVector(sphere, point);
@@ -1030,8 +1014,7 @@ mgCFrame *mgCopyFrame(mgCFrame *frame, mgCMemory *memory, int copy_visual) {
         }
 
         for (i = 0; i < count; i++) {
-            parent = (mgCFrame *) table[i]
-                         ->parent;
+            parent = table[i]->parent;
 
             if (parent != 0) {
                 char *parent_name = parent->name;
@@ -1159,34 +1142,20 @@ void mgCMDTBuilder::SetData(float *vector) {
 
 #pragma schedule off
 
-/**
- *
- * Four vector components viewed as floats or unsigned words.
- *
- */
-union mgVec4Bits {
-    float f[4]; /**< Floating point components. */
-    u_int u[4]; /**< The same components as unsigned words. */
-};
-
-extern u_char at_933[];
 #pragma global_optimizer off
 
 void mgCMDTBuilder::SetData(float x, float y, float z, float w) {
-    mgVec4Bits vector;
-    u_long128 *source = (u_long128 *) at_933;
-    u_long128 *dest = (u_long128 *) &vector;
-    *dest = *source;
-    vector.f[0] = x;
-    vector.f[1] = y;
-    vector.f[2] = z;
-    vector.f[3] = w;
+    float vector[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    vector[0] = x;
+    vector[1] = y;
+    vector[2] = z;
+    vector[3] = w;
 
-    if (data_type == 2) {
-        vector.u[3] = 0;
+    if (data_type == MG_MDT_DATA_NORMAL) {
+        vector[3] = 0.0f;
     }
 
-    SetData(vector.f);
+    SetData(vector);
 }
 
 #pragma schedule reset
@@ -1210,30 +1179,30 @@ void mgCMDTBuilder::SetMaterial(float *colour, char *texture) {
 
 void mgCMDTBuilder::EndData() {
     switch (data_type) {
-        case 1:
-            ((int *) header)[4] = cursor - (s32) header;
-            ((int *) header)[3] = data_num;
+        case MG_MDT_DATA_VERTEX:
+            header->vertex_ofs = end - (char *) header;
+            header->vertex_num = data_num;
             break;
-        case 4:
-            ((int *) header)[8] = cursor - (s32) header;
-            ((int *) header)[7] = data_num;
+        case MG_MDT_DATA_COLOUR:
+            header->colour_ofs = end - (char *) header;
+            header->colour_num = data_num;
             break;
-        case 2:
-            ((int *) header)[6] = cursor - (s32) header;
-            ((int *) header)[5] = data_num;
+        case MG_MDT_DATA_NORMAL:
+            header->normal_ofs = end - (char *) header;
+            header->normal_num = data_num;
             break;
-        case 3:
-            ((int *) header)[12] = cursor - (s32) header;
-            ((int *) header)[11] = data_num;
+        case MG_MDT_DATA_UV:
+            header->uv_ofs = end - (char *) header;
+            header->uv_num = data_num;
             break;
-        case 5:
-            ((int *) header)[14] = cursor - (s32) header;
-            ((int *) header)[13] = data_num;
+        case MG_MDT_DATA_MATERIAL:
+            header->material_ofs = end - (char *) header;
+            header->material_num = data_num;
             break;
     }
 
-    cursor = section_start;
-    data_type = 0;
+    end = data;
+    data_type = MG_MDT_DATA_NONE;
 }
 
 #pragma schedule reset
@@ -1254,7 +1223,7 @@ void mgCMDTBuilder::BeginFaces() {
 #pragma schedule off
 
 void mgCMDTBuilder::EndFaces() {
-    ((int *) header)[9] = face_end - face_block_addr;
+    header->faces_size = face_end - face_block_addr;
     s32 misalign = face_end & 0xF;
 
     if (misalign > 0) {
@@ -1413,21 +1382,7 @@ void mgCVisual::Draw(float (*matrix)[4], mgCDrawManager *manager) {
 #pragma optimization_level reset
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_387__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_550__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_618__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_886__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", __vt__15mgCShadowFixMDT__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", __vt__9mgCVisual__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(name_def_276, 0x4);
-INCLUDE_BSS(init_277, 0x4);
-INCLUDE_BSS(flag_571, 0x4);
-INCLUDE_BSS(init_572, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_717, 0x10);
-INCLUDE_BSS(at_933, 0x10);

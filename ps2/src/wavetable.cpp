@@ -4,9 +4,6 @@
 
 #include "wavetable.hpp"
 
-extern int         cnt_302;
-extern signed char init_303;
-
 #include <libvu0.h>
 
 #include "mg_drawprim.hpp"
@@ -169,13 +166,3 @@ void CWaveTable::Effect() {
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/wavetable", Effect__10CWaveTableFv);
 #endif
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/wavetable", at_251__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/wavetable", at_256__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/wavetable", __vt__10CWaveTable__DATA);
-
-INCLUDE_BSS(cnt_302, 0x4);
-INCLUDE_BSS(init_303, 0x4);

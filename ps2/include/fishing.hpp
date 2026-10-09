@@ -51,13 +51,40 @@ enum FISH_PLACE_AREA {
 
 /**
  *
+ * Identifies the inventory item associated with each fish species.
+ *
+ */
+enum FISH_ITEM_ID {
+    FISH_ITEM_NONE = 0,               /**< No caught fish item. */
+    FISH_ITEM_HAGUHAGU = 310,         /**< Haguhagu fish item. */
+    FISH_ITEM_BOUBOU = 320,           /**< Boubou fish item. */
+    FISH_ITEM_GABURA = 321,           /**< Gabura fish item. */
+    FISH_ITEM_NONKII = 322,           /**< Nonkii fish item. */
+    FISH_ITEM_KAJII = 323,            /**< Kajii fish item. */
+    FISH_ITEM_BAKUBAKU = 324,         /**< Bakubaku fish item. */
+    FISH_ITEM_MAADANGARAYAN = 325,    /**< Maadangarayan fish item. */
+    FISH_ITEM_GUMII = 326,            /**< Gumii fish item. */
+    FISH_ITEM_NIIRAA = 327,           /**< Niiraa fish item. */
+    FISH_ITEM_UMADAKARA = 328,        /**< Umadakara fish item. */
+    FISH_ITEM_TAATON = 329,           /**< Taaton fish item. */
+    FISH_ITEM_PIKKORII = 330,         /**< Pikkorii fish item. */
+    FISH_ITEM_BON = 331,              /**< Bon fish item. */
+    FISH_ITEM_HAMAHAMA = 332,         /**< Hamahama fish item. */
+    FISH_ITEM_NEJII = 333,            /**< Nejii fish item. */
+    FISH_ITEM_DEN = 334,              /**< Den fish item. */
+    FISH_ITEM_HIIRA = 335,            /**< Hiira fish item. */
+    FISH_ITEM_DANSHAKU_GARAYAN = 336, /**< Danshaku garayan fish item. */
+};
+
+/**
+ *
  * Describes one kind of fish: its names, item, size range and how readily it bites.
  *
  */
 struct FISH_PARAM {
     char *name;      /**< Display name of the fish. */
     char *file_name; /**< Base name of the fish's model file under sg/fish. */
-    int   item_no;   /**< Item number of the fish once caught. */
+    int   item_no;   /**< FISH_ITEM_ID of the fish once caught. */
     float base_size; /**< Size at which the fish's model is drawn at its natural scale. */
     float min_size;  /**< Smallest size a caught fish can have, before the rod's size rate. */
     float max_size;  /**< Largest typical size of a caught fish, before the rod's size rate. */

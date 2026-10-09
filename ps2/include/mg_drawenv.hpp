@@ -115,10 +115,16 @@ STATIC_ASSERT(sizeof(mgLIGHT_INFO) == 0x150);
 struct mgFOG_PARAM {
     float  near_dist; /**< Distance at which the fog takes its near value. */
     float  far_dist;  /**< Distance at which the fog takes its far value. */
-    u_char r;         /**< Red component of the fog colour. */
-    u_char g;         /**< Green component of the fog colour. */
-    u_char b;         /**< Blue component of the fog colour. */
-    u_char a; /**< Alpha component of the fog colour. */
+    union {
+        struct {
+            u_char r; /**< Red component of the fog colour. */
+            u_char g; /**< Green component of the fog colour. */
+            u_char b; /**< Blue component of the fog colour. */
+            u_char a; /**< Alpha component of the fog colour. */
+        };
+
+        u_char color[4]; /**< RGBA channels of the fog colour. */
+    };
 
     union {
         struct {

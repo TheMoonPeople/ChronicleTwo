@@ -78,7 +78,7 @@ enum RS_ADDR_MODE {
 // clang-format off
 enum RS_CONST_TYPE {
     RS_CONST_INT   = 1, /**< Integer held in vmcode_t::arg2. */
-    RS_CONST_FLOAT = 2, /**< Float whose bits vmcode_t::arg2 holds. */
+    RS_CONST_FLOAT = 2, /**< Float held in vmcode_t::arg2_float. */
     RS_CONST_STR   = 3, /**< String at the code-section offset vmcode_t::arg2 holds. */
 };
 
@@ -156,7 +156,11 @@ STATIC_ASSERT(sizeof(RS_STACKDATA) == 0x8);
 struct vmcode_t {
     int op;   /**< Operation to execute. @see RS_OPCODE. */
     int arg1; /**< First operand. */
-    int arg2; /**< Second operand. */
+
+    union {
+        int   arg2;       /**< Second operand. */
+        float arg2_float; /**< Second operand of a RS_CONST_FLOAT constant push. */
+    }; /**< Second operand, read by type for a constant push. */
 };
 
 STATIC_ASSERT(sizeof(vmcode_t) == 0xC);
@@ -253,7 +257,7 @@ public:
      *
      * @mangled __ct__10CRunScriptFv
      * @address 0x188280
-     * @size 0x70
+     * @size 0x64
      */
     CRunScript();
 
@@ -284,7 +288,7 @@ public:
      *
      * @mangled push__10CRunScriptF12RS_STACKDATA
      * @address 0x188330
-     * @size 0x50
+     * @size 0x48
      */
     void push(RS_STACKDATA data);
 
@@ -294,7 +298,7 @@ public:
      *
      * @mangled push_int__10CRunScriptFi
      * @address 0x188380
-     * @size 0x50
+     * @size 0x48
      */
     void push_int(int value);
 
@@ -304,7 +308,7 @@ public:
      *
      * @mangled push_str__10CRunScriptFPc
      * @address 0x1883D0
-     * @size 0x50
+     * @size 0x4C
      */
     void push_str(char *value);
 
@@ -314,7 +318,7 @@ public:
      *
      * @mangled push_ptr__10CRunScriptFP12RS_STACKDATA
      * @address 0x188420
-     * @size 0x50
+     * @size 0x4C
      */
     void push_ptr(RS_STACKDATA *value);
 
@@ -324,7 +328,7 @@ public:
      *
      * @mangled push_float__10CRunScriptFf
      * @address 0x188470
-     * @size 0x50
+     * @size 0x4C
      */
     void push_float(float value);
 
@@ -365,7 +369,7 @@ public:
      *
      * @mangled ext__10CRunScriptFP12RS_STACKDATAi
      * @address 0x188600
-     * @size 0xA0
+     * @size 0x9C
      */
     void ext(RS_STACKDATA *command, int arg_count);
 
@@ -376,7 +380,7 @@ public:
      *
      * @mangled load__10CRunScriptFP14RS_PROG_HEADERP12RS_STACKDATAiP11RS_CALLDATAi
      * @address 0x1886A0
-     * @size 0xE0
+     * @size 0xD8
      */
     void load(RS_PROG_HEADER *prog, RS_STACKDATA *values, int value_count, RS_CALLDATA *call, int call_count);
 
@@ -386,7 +390,7 @@ public:
      *
      * @mangled ext_func__10CRunScriptFPPFP12RS_STACKDATAi_ii
      * @address 0x188780
-     * @size 0x10
+     * @size 0xC
      */
     void ext_func(int (**table)(RS_STACKDATA *, int), int count);
 
@@ -396,7 +400,7 @@ public:
      *
      * @mangled resume__10CRunScriptFv
      * @address 0x188790
-     * @size 0x30
+     * @size 0x28
      */
     void resume();
 
@@ -417,7 +421,7 @@ public:
      *
      * @mangled check_program__10CRunScriptFi
      * @address 0x188910
-     * @size 0x50
+     * @size 0x4C
      */
     int check_program(int no);
 
@@ -428,7 +432,7 @@ public:
      *
      * @mangled skip__10CRunScriptFv
      * @address 0x188960
-     * @size 0x10
+     * @size 0xC
      */
     void skip();
 
@@ -438,7 +442,7 @@ public:
      *
      * @mangled exe__10CRunScriptFP8vmcode_t
      * @address 0x188970
-     * @size 0x1460
+     * @size 0x145C
      */
     void exe(vmcode_t *entry);
 };
@@ -451,7 +455,7 @@ STATIC_ASSERT(sizeof(CRunScript) == 0x54);
  *
  * @mangled rsGetStackInt__FP12RS_STACKDATA
  * @address 0x189DD0
- * @size 0x40
+ * @size 0x3C
  */
 int rsGetStackInt(RS_STACKDATA *data);
 

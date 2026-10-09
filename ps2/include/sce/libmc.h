@@ -98,7 +98,7 @@ int sceMcSync(int mode, int *cmd, int *result);
 /**
  * Opens the named file on the card in the given port and returns a command id.
  */
-int sceMcOpen(int port, int slot, const unsigned char *name, int flag);
+int sceMcOpen(int port, int slot, const char *name, int flag);
 
 /**
  * Closes the given file and returns a command id.
@@ -138,7 +138,7 @@ int sceMcRename(int port, int slot, char *old_name, char *new_name);
 /**
  * Creates the named directory on the card and returns a command id.
  */
-int sceMcMkdir(int port, int slot, const unsigned char *name);
+int sceMcMkdir(int port, int slot, const char *name);
 
 /**
  * Deletes the named file of the card and returns a command id.

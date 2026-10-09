@@ -12,6 +12,7 @@
 #include "editmenu.hpp"
 #include "font.hpp"
 #include "gamedata.hpp"
+#include "inventmn.hpp"
 #include "gamepad.hpp"
 #include "mainloop.hpp"
 #include "map.hpp"
@@ -41,20 +42,150 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-extern int          MenuEtcSpecialCode;
-extern signed char  MenuLoopType;
-extern mgCDrawPrim *MenuPrim;
-extern int          CommonMenuModeID2[8];
-extern int (*menu_keyfunctbl[])();
-extern void (*menu_drawfunctbl[])();
-extern char workchr_1622[0x60];
+/**
+ *
+ * Storage for the current menu forms and resources.
+ *
+ */
+static mgCMemory MenuMainStack;
+
+/**
+ *
+ * Storage prepared for the next sub-menu.
+ *
+ */
+static mgCMemory MenuMainStack_Next;
+
+/**
+ *
+ * Primitive builder used by menu drawing.
+ *
+ */
+static mgCDrawPrim MenuPrimFix;
+
+/**
+ *
+ * Memory over the shared menu texture pack.
+ *
+ */
+mgCMemory MenuMainTextureReadBuf;
+
+/**
+ *
+ * Memory used to read menu sounds.
+ *
+ */
+mgCMemory MenuSoundBuffer;
+
+/**
+ *
+ * Font used to draw the scrolling topic message.
+ *
+ */
+static CMenuFont TopicFont;
+
+/**
+ *
+ * Primitive builder currently used by the menu.
+ *
+ */
+static mgCDrawPrim *MenuPrim = &MenuPrimFix;
+
+/**
+ *
+ * Processes selection and closing of the top menu.
+ *
+ */
+int MenuInternSelectKey();
+
+/**
+ *
+ * Draws the top menu and its messages.
+ *
+ */
+void MenuInternSelectDraw();
+
+/**
+ *
+ * Key handler for each menu mode.
+ *
+ */
+static int (*menu_keyfunctbl[MENU_MODE_NUM])() = {
+    MenuInternSelectKey,
+    MenuInternSelectKey,
+    MenuItemKey,
+    MenuGeoramaKey,
+    MenuCharaChangeKey,
+    MenuInventKey,
+    WorldMoveKey,
+    MenuOptionKey,
+    MenuManualKey,
+    NULL,
+    MenuMonsterBoxKey,
+    DngTreeMapKey,
+    MenuShopKey,
+    MenuSaveKey,
+    MenuSaveKey,
+    MenuItemSelectKey,
+    MenuInventKey,
+    MenuChapterKey,
+    MenuAquaKey,
+    MenuRemovalKey,
+    NameRegistKey,
+    MenuGyoraceFishSelKey,
+    MenuNPCQuestViewKey,
+    MenuCostumeKey,
+    KeyMainCharaBG,
+    GyoraceMenuKey,
+    SphidaMenuKey,
+    MonsterBookKey,
+    SubGameSaveKey,
+    SphidaScoreViewKey
+};
+
+/**
+ *
+ * Draw handler for each menu mode.
+ *
+ */
+static void (*menu_drawfunctbl[MENU_MODE_NUM])() = {
+    MenuInternSelectDraw,
+    MenuInternSelectDraw,
+    MenuItemDraw,
+    MenuGeoramaDraw,
+    MenuCharaChangeDraw,
+    MenuInventDraw,
+    WorldMoveDraw,
+    MenuOptionDraw,
+    MenuManualDraw,
+    NULL,
+    MenuMonsterBoxDraw,
+    DngTreeMapDraw,
+    MenuShopDraw,
+    MenuSaveDraw,
+    MenuSaveDraw,
+    MenuItemSelectDraw,
+    MenuInventDraw,
+    MenuChapterDraw,
+    MenuAquaDraw,
+    MenuRemovalDraw,
+    NameRegistDraw,
+    MenuGyoraceFishSelDraw,
+    MenuNPCQuestViewDraw,
+    MenuCostumeDraw,
+    DrawMainCharaBG,
+    GyoraceMenuDraw,
+    SphidaMenuDraw,
+    MonsterBookDraw,
+    SubGameSaveDraw,
+    SphidaScoreViewDraw
+};
+
 int         CheckItemTable(int item_no, int *photos);
-void        GetPhotoNameStr(int photo_no, char *name);
 void        MenuPolygonSetEnv();
 void        MenuPolygonEnvReset();
 int         PauseEnable(int enable);
 void        EdEventMenuExit();
-void        MenuInventInit(mgCMemory *memory, int *args, int page);
 short       CheckEventDay(int *remaining_hours);
 void        MenuWorldTrans();
 void        MenuDebugModeDraw();
@@ -130,92 +261,513 @@ struct MonsterTableEntry {
     short message_no; /**< Message number for the monster description. */
 };
 
-extern CMenuInter *CMenuInterPt;
-extern u_long128  *MenuMainSubDataPackAdr;
-extern char       *fname_1858[2];
-extern MovePoint   at_1865;
-extern MovePoint   at_1866;
-extern MovePoint   at_1867;
-extern MovePoint   at_2209__3;
-extern char        at_1930[];
-extern char        at_1931[];
-extern char        at_1932[];
-extern char        at_1933[];
-extern char        at_1934[];
-extern char        at_1935[];
-extern char        at_1936[];
-extern char        at_1937[];
-extern char        at_1938[];
-extern CMenuInter  CMenuInterStatic;
-extern CDC2Mes    *MenuInterMes;
-extern signed char MenuInterMesDrawFlag;
-extern char        at_2003[];
-extern char        at_1684[];
-extern char        at_2004__2[];
-extern char        at_2439[];
-extern char        at_2440[];
-extern int         loopnumtbl_2360[2];
-extern u8          MenuDoubleDrawCheck;
-extern u8          ManualMenuOkFlag;
-extern u8          HatumeiMenuOkFlag;
-extern u8          WorldMapOkFlag;
-extern u8          DngMoveMenuOkFlag;
-extern short       MenuTopicAlphaCalc;
-extern char        at_1028__4[];
-extern char        at_1630__3[12];
-extern char        at_1635__2[12];
-extern char        at_1640[12];
-extern int         old_light_menu;
-extern mgCDrawPrim MenuPrimFix;
-extern float       SndPortVol_Enemy;
-extern float       menu_old_chara_position[4];
-extern float       menu_old_chara_rotation[4];
-extern int         MenuBGMVolume_Save;
-extern mgCMemory   MenuMainStack;
-extern MenuKeyPageTable  at_1514__4;
-extern signed char       refresh_cnt_1523;
-extern signed char       init_1524;
-extern char              at_1598__2[];
-extern char              at_1599__2[];
+/**
+ *
+ * Images entered for the top-menu icon sheet.
+ *
+ */
+static char *fname_1858[2] = {
+    "mb2.pac",
+    NULL
+};
+
+/**
+ *
+ * Number of equipment icons copied for each player character.
+ *
+ */
+static int loopnumtbl_2360[2] = {
+    3, 2
+};
+
 extern u8                menu_basedgRef[16];
 extern u8                menu_basedgCamPos[16];
-extern char              at_1624__3[9];
-extern char              at_1625__3[0x15];
-extern char             *menu_main_cfgname_1620[2];
-extern int               CommonMenuModeID[2][8];
-extern char             *acttbl_1682[2];
-extern CMenuPosDataForm *MenuAreaBrdForm;
-extern CMenuPosDataForm *MenuTimeBrdForm;
-extern AreaNameItems     at_1697__2;
-extern BoardPosition     at_1698__2;
-extern LanguageWidths    at_1699__2;
-extern char             *MenuAreaName;
-extern char              at_1736__2[];
-extern char              at_1737[];
-extern char              at_1738[];
-extern char              at_1739[];
-extern char              at_1740[];
-extern char              at_1741[];
-extern char              at_1742[];
-extern short             MenuTopicType;
-extern mgCTexture       *TopicTex;
-extern float             menu_maintopic_colortbl[4][4];
-extern float             menu_maintopic_colortbl_shadow[4][4];
-extern int               MenuTopicAlpha;
-extern short             MenuTopicLength;
-extern int               TopicFontX;
-extern char             *topic_tbl_1777[7][3];
-extern CMenuFont         TopicFont;
-extern MonsterTableEntry monster_table[];
-extern mgCMemory         MenuMainStack_Next;
-extern char              at_1956[];
-extern char              at_1957[];
-extern char              at_1958[];
-extern char              at_2344[];
-extern char              at_2345[];
-extern char              at_2450[];
-extern char             *filetbl_2141[];
 
+/**
+ *
+ * Main menu resource packs selected by layout mode.
+ *
+ */
+static char *menu_main_cfgname_1620[2] = {
+    "men0.pac",
+    "men0.pac"
+};
+
+/**
+ *
+ * Sub-menu destinations for town and dungeon top menus.
+ *
+ */
+static int CommonMenuModeID[2][8] = {
+    {MENU_MODE_ITEM, MENU_MODE_CHARA_CHANGE, MENU_MODE_INVENT, MENU_MODE_WORLD_MOVE,
+     MENU_MODE_OPTION, MENU_MODE_MANUAL, -1},
+    {MENU_MODE_ITEM, MENU_MODE_CHARA_CHANGE, MENU_MODE_INVENT, MENU_MODE_DNG_TREE_MAP,
+     MENU_MODE_OPTION, MENU_MODE_MANUAL, -1}
+};
+
+/**
+ *
+ * Actions that move the area and time boards into or out of the menu.
+ *
+ */
+static char *acttbl_1682[2] = {
+    "\x92\x86\x82\xD6",
+    "\x8A\x4F\x82\xD6"
+};
+
+/**
+ *
+ * Foreground colors of the topic ticker's edge gradient.
+ *
+ */
+static float menu_maintopic_colortbl[4][4] = {
+    {86.0f, 169.0f, 104.0f, 64.0f},
+    {86.0f, 169.0f, 104.0f, 0.0f},
+    {86.0f, 169.0f, 104.0f, 64.0f},
+    {86.0f, 169.0f, 104.0f, 0.0f}
+};
+
+/**
+ *
+ * Shadow colors of the topic ticker's edge gradient.
+ *
+ */
+static float menu_maintopic_colortbl_shadow[4][4] = {
+    {42.0f, 34.0f, 20.0f, 110.0f},
+    {42.0f, 34.0f, 20.0f, 0.0f},
+    {42.0f, 34.0f, 20.0f, 110.0f},
+    {42.0f, 34.0f, 20.0f, 0.0f}
+};
+
+/**
+ *
+ * Current opacity of the scrolling topic ticker.
+ *
+ */
+static int MenuTopicAlpha = 128;
+
+/**
+ *
+ * Topic messages selected by language and category.
+ *
+ */
+static char *topic_tbl_1777[7][3] = {
+    {"", " ", " "},
+    {"", "Fishing Contest: %d hr(s). to go", "Finny Frenzy: %d hr(s). to go"},
+    {"", "Tournoi de p[UNI00ea]che : encore %d h(s)", "Meill. nageoires : encore %d h(s)"},
+    {"", "Angelturnier: Noch %d Std.", "Fl.-Fieber: Noch %d Std."},
+    {"", "Torneo di Pesca: ancora %d ora/e", "Pinna Sprint: ancora %d ora/e"},
+    {"", "Concurso Pesca: %d h. para salir", "Finny Frenzy: %d h. para salir"},
+    {"", "Concurso Pesca: %d h. para salir", "Finny Frenzy: %d h. para salir"}
+};
+
+/**
+ *
+ * Monster names and descriptions displayed by bookshelves.
+ *
+ */
+static MonsterTableEntry monster_table[11] = {
+    {0, 269},
+    {220, 280},
+    {8, 318},
+    {0, 0},
+    {164, 211},
+    {72, 225},
+    {124, 234},
+    {44, 289},
+    {176, 276},
+    {236, 189},
+    {0, 0}
+};
+
+/**
+ *
+ * Message resources selected by sub-menu mode.
+ *
+ */
+static char *filetbl_2141[17] = {
+    "itemmn0.pac",
+    "",
+    "chrchg0.pac",
+    "inv2_bg.pac",
+    "",
+    "op1.pac",
+    "manual1.pac",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+};
+
+/**
+ *
+ * Scene that the menu opens over.
+ *
+ */
+CScene *MenuMainScene;
+
+/**
+ *
+ * Save data that the menu shows and changes.
+ *
+ */
+CSaveData *MenuActiveSaveData;
+
+/**
+ *
+ * Player data within the active save data.
+ *
+ */
+CUserDataManager *MenuUserDataManPtr;
+
+/**
+ *
+ * Menu system record within the active save data.
+ *
+ */
+CMenuSystemData *MenuSystemDataPtr;
+
+/**
+ *
+ * Option settings within the active save data.
+ *
+ */
+SV_CONFIG_OPTION *MenuConfigPtr;
+
+/**
+ *
+ * Dungeon progress record within the active save data.
+ *
+ */
+CSaveDataDungeon *MenuSaveDataDungeonPtr;
+
+/**
+ *
+ * Aquarium within the active save data.
+ *
+ */
+CFishAquarium *MenuFishAquarium;
+
+/**
+ *
+ * Map that the menu was opened on.
+ *
+ */
+s16 MenuNowMapNo;
+
+/**
+ *
+ * Type of the map that the menu was opened on.
+ *
+ */
+s16 MenuNowMapType;
+
+/**
+ *
+ * Time of day, in hours, shown on the time board.
+ *
+ */
+float MenuNowTime;
+
+/**
+ *
+ * Non-zero when the menu opened because items overflow.
+ *
+ */
+s8 ItemOverFlowCheckFlag;
+
+/**
+ *
+ * Camera and lighting that the menu draws its models with.
+ *
+ */
+MENU_DRAW_ENV *MenuDrawEnv;
+
+/**
+ *
+ * Key handling and state shared by every menu mode.
+ *
+ */
+CMenuKeyFunc *MenuCommonInfo;
+
+/**
+ *
+ * Texture block and texture that the top menu shares with the menu modes.
+ *
+ */
+MENU_ETC_INFO MenuEtcInfo;
+
+/**
+ *
+ * Item being moved between lists.
+ *
+ */
+CMenuMoveItem *MenuMoveItemPtr;
+
+/**
+ *
+ * Form named mi2 in the main menu layout, whose move speed the top menu sets.
+ *
+ */
+CMenuPosDataForm *MenuFormMI2;
+
+/**
+ *
+ * Frames the menu has run, wrapping after ten million.
+ *
+ */
+int MenuItemCommandCounter;
+
+/**
+ *
+ * Non-zero while the menu debug display is on.
+ *
+ */
+int menu_debug_flag;
+
+/**
+ *
+ * Item use state shared by the item menus.
+ *
+ */
+CMenuItemUse MenuItemUse;
+
+/**
+ *
+ * Arguments the main menu uses when a game loop passes none.
+ *
+ */
+MENU_INIT_ARG MenuArg;
+
+/**
+ *
+ * Resource pack containing the active sub-menu background.
+ *
+ */
+static u_long128 *MenuMainSubDataPackAdr;
+
+/**
+ *
+ * Active top-menu state.
+ *
+ */
+static CMenuInter *CMenuInterPt;
+
+/**
+ *
+ * Help and restriction messages for the selected sub-menu.
+ *
+ */
+static CDC2Mes *MenuInterMes;
+
+/**
+ *
+ * Whether the top-menu message window is visible.
+ *
+ */
+static signed char MenuInterMesDrawFlag;
+
+/**
+ *
+ * Board showing the current area name.
+ *
+ */
+static CMenuPosDataForm *MenuAreaBrdForm;
+
+/**
+ *
+ * Board showing the current day and time.
+ *
+ */
+static CMenuPosDataForm *MenuTimeBrdForm;
+
+/**
+ *
+ * Name displayed on the menu area board.
+ *
+ */
+static char *MenuAreaName;
+
+/**
+ *
+ * Enemy sound volume restored when the menu closes.
+ *
+ */
+static float SndPortVol_Enemy;
+
+/**
+ *
+ * Game loop mode that opened the menu.
+ *
+ */
+static signed char MenuLoopType;
+
+/**
+ *
+ * Additional result code returned by the menu.
+ *
+ */
+static int MenuEtcSpecialCode;
+
+/**
+ *
+ * Background-music volume restored when the menu closes.
+ *
+ */
+static int MenuBGMVolume_Save;
+
+/**
+ *
+ * Fade direction of the topic ticker.
+ *
+ */
+static short MenuTopicAlphaCalc;
+
+/**
+ *
+ * Texture atlas containing the topic ticker backing.
+ *
+ */
+static mgCTexture *TopicTex;
+
+/**
+ *
+ * Lighting state restored when the menu closes.
+ *
+ */
+static int old_light_menu;
+
+/**
+ *
+ * Whether invention is available in the top menu.
+ *
+ */
+static u8 HatumeiMenuOkFlag;
+
+/**
+ *
+ * Whether the world map is available in the top menu.
+ *
+ */
+static u8 WorldMapOkFlag;
+
+/**
+ *
+ * Whether the help menu is available in the top menu.
+ *
+ */
+static u8 ManualMenuOkFlag;
+
+/**
+ *
+ * Whether the dungeon map is available in the top menu.
+ *
+ */
+static u8 DngMoveMenuOkFlag;
+
+/**
+ *
+ * Whether this frame has already drawn the menu.
+ *
+ */
+static u8 MenuDoubleDrawCheck;
+
+/**
+ *
+ * Frames elapsed since the last player-data refresh.
+ *
+ */
+static signed char refresh_cnt_1523;
+
+/**
+ *
+ * Whether the player-data refresh counter is initialized.
+ *
+ */
+static signed char init_1524;
+
+/**
+ *
+ * Topic message category selected for the ticker.
+ *
+ */
+static short MenuTopicType;
+
+/**
+ *
+ * Width of the scrolling topic message.
+ *
+ */
+static short MenuTopicLength;
+
+/**
+ *
+ * Horizontal position of the scrolling topic message.
+ *
+ */
+static int TopicFontX;
+
+/**
+ *
+ * Storage for the top-menu state.
+ *
+ */
+static CMenuInter CMenuInterStatic;
+
+/**
+ *
+ * Player position restored when the menu closes.
+ *
+ */
+float menu_old_chara_position[4];
+
+/**
+ *
+ * Player rotation restored when the menu closes.
+ *
+ */
+float menu_old_chara_rotation[4];
+
+/**
+ *
+ * Path buffer used to locate the menu configuration.
+ *
+ */
+static char workchr_1622[0x60];
+
+/**
+ *
+ * Sub-menu destinations after availability filtering.
+ *
+ */
+static int CommonMenuModeID2[8];
+
+/**
+ *
+ * End code of the previously closed menu.
+ *
+ */
+int MenuPrevEndCode = -1;
+
+/**
+ *
+ * Texture block of the active sub-menu background.
+ *
+ */
+int MenuBGTextureBlock = -1;
+
+/**
+ *
+ * Texture block containing menu item icons.
+ *
+ */
+int MenuItemIconTextureBlock = -1;
 
 // Code (.text)
 void MenuScreenBlackBeltSet(int enable) {
@@ -247,7 +799,7 @@ CSaveDataDungeon *menu_GetSaveDataDungeon() {
     return NULL;
 }
 
-void *menu_GetBattleAreaScene() {
+DNG_BATTLE_AREA *menu_GetBattleAreaScene() {
     CScene *scene;
 
     scene = GetMainScene();
@@ -329,12 +881,12 @@ mgCDrawPrim *GetMenuPrim() {
 void MenuMainImageDataEnter(int block) {
     u8 *image;
 
-    image = (u8 *) GetMenuMainIMGPtr();
+    image = GetMenuMainIMGPtr();
 
     if (image != NULL) {
         mgTexManager.EnterIMGFile(image,
                                   block, NULL, NULL);
-        MenuPosData->ResetTextureBlockNo(at_1028__4, block);
+        MenuPosData->ResetTextureBlockNo("mnmain", block);
     }
 }
 
@@ -359,7 +911,7 @@ void DisablePadReset(int disable) {
     DNG_BATTLE_AREA *scene;
 
     if (GetNowLoopNo() == 2) {
-        scene = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
+        scene = menu_GetBattleAreaScene();
 
         if (scene != NULL) {
             if (disable != 0) {
@@ -693,7 +1245,7 @@ int MenuMainExit() {
     int          active_chara;
     int          is_fishing_menu;
     CScene      *scene;
-    CScene      *camera;
+    mgCCamera   *camera;
     float        view_matrix[4][4];
     float        pos[4];
     float        world_matrix[4][4];
@@ -784,12 +1336,12 @@ int MenuMainExit() {
     menu_debug_flag = 0;
     EdEventMenuExit();
     mgSetProjection(MenuDrawEnv->old_projection);
-    scene = (CScene *) GetMainScene();
-    camera = (CScene *) scene->GetCamera(scene->active_camera);
+    scene = GetMainScene();
+    camera = scene->GetCamera(scene->active_camera);
 
     if (camera != NULL) {
-        ((mgCCamera *) camera)->GetCameraMatrix(view_matrix);
-        ((mgCCamera *) camera)->GetPos(pos);
+        camera->GetCameraMatrix(view_matrix);
+        camera->GetPos(pos);
         sceVu0UnitMatrix(identity);
         sceVu0MulMatrix(world_matrix, identity, view_matrix);
         mgSetViewMatrix(world_matrix, pos);
@@ -808,7 +1360,6 @@ int MenuMainKey() {
     int              result;
     short            page;
     int              menu;
-    MenuKeyPageTable page_table;
 
     MenuWorldTrans();
     MenuPolygonSetEnv();
@@ -833,7 +1384,7 @@ int MenuMainKey() {
                     menu = MenuCommonInfo->now_mode;
 
                     if (menu >= 2 && menu < 12) {
-                        page_table = at_1514__4;
+                        MenuKeyPageTable page_table = {{MENU_MODE_MAIN_TOWN, MENU_MODE_MAIN_DUNGEON}};
                         MenuCommonInfo->now_mode = page_table.next[page];
                         MenuCommonInfo->key_enable = 1;
 
@@ -958,11 +1509,11 @@ int NextMenuInit(int menu, mgCMemory *memory, int *args) {
             if (TreeMapCallDungeonSubMap != 0) {
                 map_name = MenuMainScene->GetMapName(MenuMainScene->active_map);
 
-                if (strcmp(map_name, at_1598__2) == 0) {
+                if (strcmp(map_name, "s05") == 0) {
                     dungeon_mode = 1;
                 }
 
-                if (strcmp(map_name, at_1599__2) == 0) {
+                if (strcmp(map_name, "d04b01") == 0) {
                     dungeon_mode = 3;
                 }
             }
@@ -1034,24 +1585,24 @@ void MenuPolygonEnvReset() {
 char *GetMenuCfgFileName(int index, int unused) {
     int local;
 
-    sprintf(workchr_1622, at_1624__3, LanguageCode);
+    sprintf(workchr_1622, "menu/%d/", LanguageCode);
     strcat(workchr_1622, menu_main_cfgname_1620[index]);
-    printf(at_1625__3, &local);
+    printf("menu_stack ptr : %p\n", &local);
     return workchr_1622;
 }
 
 short *GetMenuMainMessageBuffer() {
     int size;
 
-    return (short *) GetPackFile(MenuArg.pack, at_1630__3, &size);
+    return (short *) GetPackFile(MenuArg.pack, "allmenu.mes", &size);
 }
 
-u_int *GetMenuMainIMGPtr() {
-    return GetPackFile(MenuArg.pack, at_1635__2, 0);
+u_char *GetMenuMainIMGPtr() {
+    return (u_char *) GetPackFile(MenuArg.pack, "frametex.img", 0);
 }
 
-u_int *GetMenuMainPosCfgBuffer(int *size) {
-    return GetPackFile(MenuArg.pack, at_1640, size);
+char *GetMenuMainPosCfgBuffer(int *size) {
+    return (char *) GetPackFile(MenuArg.pack, "menu0.cfg", size);
 }
 
 void SetCommonMenuModeID() {
@@ -1110,24 +1661,21 @@ void ReturnMenuIntern(int index) {
 }
 
 void MenuAreaBoardNameStep() {
-    AreaNameItems  names;
-    BoardPosition  position;
-    LanguageWidths widths;
     CDC2Mes       *message;
     float          hours;
     float          minutes;
     int            day;
 
     if (MenuAreaBrdForm != NULL) {
-        names = at_1697__2;
+        AreaNameItems names = {{NULL, NULL}};
         names.name[0] = MenuAreaName;
         message = MenuDCMsg[1];
         message->MakeMsg(0x32);
         message->SetMsgItemNo(names.name, 1);
         message->GetStrWidth(names.name[0]);
-        position = at_1698__2;
+        BoardPosition position = {{0, 0}};
         MenuAreaBrdForm->GetNextMovePos(position.value);
-        widths = at_1699__2;
+        LanguageWidths widths = {{98, 122, 122, 122, 122, 122, 122, 122, 122}};
         message->SetMovePosCenteringGyou(0, position.value[0] + widths.value[LanguageCode],
                                          position.value[1] + 7);
 
@@ -1149,27 +1697,27 @@ void MenuAreaBoardNameStep() {
                 day = 9999;
             }
 
-            MenuTimeBrdForm->SetNumber(at_1736__2, day);
+            MenuTimeBrdForm->SetNumber("\x93\xFA\x8A\xD4", day);
 
             if (MenuNowMapType == 5 || MenuNowMapType == 6) {
-                MenuTimeBrdForm->SetPartDrawFlag(at_1737, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1738, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1739, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1740, false);
-                MenuTimeBrdForm->SetPartDrawFlag(at_1741, false);
+                MenuTimeBrdForm->SetPartDrawFlag("AM", false);
+                MenuTimeBrdForm->SetPartDrawFlag("PM", false);
+                MenuTimeBrdForm->SetPartDrawFlag("\x8E\x9E", false);
+                MenuTimeBrdForm->SetPartDrawFlag("\x95\xAA", false);
+                MenuTimeBrdForm->SetPartDrawFlag(";", false);
             } else {
-                MenuTimeBrdForm->SetPartDrawFlag(at_1742, false);
+                MenuTimeBrdForm->SetPartDrawFlag("\x96\xA2\x97\x88", false);
 
                 if (LanguageCode == 3) {
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1737, false);
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1738, false);
+                    MenuTimeBrdForm->SetPartDrawFlag("AM", false);
+                    MenuTimeBrdForm->SetPartDrawFlag("PM", false);
                 } else if (12.0f <= hours) {
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1737, false);
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1738, true);
+                    MenuTimeBrdForm->SetPartDrawFlag("AM", false);
+                    MenuTimeBrdForm->SetPartDrawFlag("PM", true);
                     hours -= 12.0f;
                 } else {
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1737, true);
-                    MenuTimeBrdForm->SetPartDrawFlag(at_1738, false);
+                    MenuTimeBrdForm->SetPartDrawFlag("AM", true);
+                    MenuTimeBrdForm->SetPartDrawFlag("PM", false);
                 }
             }
 
@@ -1177,8 +1725,8 @@ void MenuAreaBoardNameStep() {
                 hours = 12.0f;
             }
 
-            MenuTimeBrdForm->SetNumber(at_1739, (int) hours);
-            MenuTimeBrdForm->SetNumber(at_1740, (int) minutes);
+            MenuTimeBrdForm->SetNumber("\x8E\x9E", (int) hours);
+            MenuTimeBrdForm->SetNumber("\x95\xAA", (int) minutes);
         }
     }
 }
@@ -1241,8 +1789,7 @@ void MakeMenuTopic() {
     MenuTopicType = CheckEventDay(&day);
     sprintf(text, topic_tbl_1777[LanguageCode][MenuTopicType], day);
     TopicFont.SetStr(text);
-    char *topic_text = (char *) &TopicFont;
-    ((CFont *) topic_text)->CalcDrawWH(topic_text, &width, &height);
+    TopicFont.CalcDrawWH(TopicFont.str, &width, &height);
     MenuTopicLength = width;
     TopicFontX = 30;
 }
@@ -1346,23 +1893,23 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
         MenuCommonInfo->now_mode = open_type;
     }
     MenuMainImageDataEnter(MenuCommonInfo->tex_block[1]);
-    MenuInterMes = new ((u_long128 *)stack->Alloc(0x2A7)) CDC2Mes;
+    MenuInterMes = new (stack->Alloc(0x2A7)) CDC2Mes;
     int script_size;
-    char *config = (char *)GetMenuMainPosCfgBuffer(&script_size);
+    char *config = GetMenuMainPosCfgBuffer(&script_size);
     char *script = (char *)(stack->stack + stack->stack_used) + (stack->stack_size - stack->stack_used) * 16 - 0x32000;
     memcpy(script, config, script_size);
     MenuDataAnalyze(script, script_size, stack);
     AttachMessageForm();
-    MenuAreaBrdForm = MenuPosData->GetFormInfo(at_1930);
-    MenuTimeBrdForm = MenuPosData->GetFormInfo(at_1931);
+    MenuAreaBrdForm = MenuPosData->GetFormInfo("areaboard");
+    MenuTimeBrdForm = MenuPosData->GetFormInfo("timeboard");
     if (early_game != 0) {
         if (MenuTimeBrdForm != NULL) {
             MenuTimeBrdForm->draw_flag = 0;
             MenuTimeBrdForm = NULL;
         }
     }
-    MenuFormMI2 = MenuPosData->GetFormInfo(at_1932);
-    TopicTex = mgTexManager.GetTexture(at_1028__4, -1);
+    MenuFormMI2 = MenuPosData->GetFormInfo("mi2");
+    TopicTex = mgTexManager.GetTexture("mnmain", -1);
     MenuDCMsg[0]->MsgPreset(3);
     MenuDCMsg[1]->MsgPreset(5);
     MenuDCMsg[1]->value_sign = 0;
@@ -1398,27 +1945,27 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
         for (int k = 0; 0 <= CMenuInterPt->mode_list[k]; k++) {
             icon_count++;
         }
-        MovePoint origin = at_1865;
-        MovePoint pos = at_1866;
-        MovePoint step = at_1867;
+        MovePoint origin = {50, 40};
+        MovePoint pos = {-260, 0};
+        MovePoint step = {20, 40};
         for (int icon = 0; icon < icon_count; icon++) {
-            char *name = (char *)GetMenuMainIconChar(CMenuInterPt->mode_list[icon]);
+            char *name = GetMenuMainIconChar(CMenuInterPt->mode_list[icon]);
             pos.y = origin.y + step.y * icon;
             MenuPosData->SetFormPos(name, &pos.x);
         }
         bool shown = true;
         bool hidden = false;
-        CMenuPosDataForm *form = MenuPosData->GetFormInfo(at_1933);
+        CMenuPosDataForm *form = MenuPosData->GetFormInfo("mi3");
         if (form != NULL) {
             if (HatumeiMenuOkFlag == 0) {
                 shown = false;
                 hidden = true;
             }
-            form->SetPartDrawFlag(at_1934, shown);
-            form->SetPartDrawFlag(at_1935, hidden);
+            form->SetPartDrawFlag("mi0", shown);
+            form->SetPartDrawFlag("mi1", hidden);
         }
         bool manual_hidden;
-        CMenuPosDataForm *manual_form = MenuPosData->GetFormInfo(at_1936);
+        CMenuPosDataForm *manual_form = MenuPosData->GetFormInfo("mi6");
         if (manual_form != NULL) {
             bool manual_shown = true;
             manual_hidden = false;
@@ -1426,11 +1973,11 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
                 manual_shown = false;
                 manual_hidden = true;
             }
-            manual_form->SetPartDrawFlag(at_1934, manual_shown);
-            manual_form->SetPartDrawFlag(at_1935, manual_hidden);
+            manual_form->SetPartDrawFlag("mi0", manual_shown);
+            manual_form->SetPartDrawFlag("mi1", manual_hidden);
         }
         bool world_hidden;
-        CMenuPosDataForm *world_form = MenuPosData->GetFormInfo(at_1937);
+        CMenuPosDataForm *world_form = MenuPosData->GetFormInfo("mi4");
         if (world_form != NULL) {
             bool world_shown = true;
             world_hidden = false;
@@ -1438,14 +1985,14 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
                 world_shown = false;
                 world_hidden = true;
             }
-            world_form->SetPartDrawFlag(at_1934, world_shown);
-            world_form->SetPartDrawFlag(at_1935, world_hidden);
+            world_form->SetPartDrawFlag("mi0", world_shown);
+            world_form->SetPartDrawFlag("mi1", world_hidden);
             if (GetMenuLoopType() == MENU_LOOP_DUNGEON) {
                 world_form->draw_flag = 0;
             }
         }
         bool floor_hidden;
-        CMenuPosDataForm *floor_form = MenuPosData->GetFormInfo(at_1938);
+        CMenuPosDataForm *floor_form = MenuPosData->GetFormInfo("mi9");
         if (floor_form != NULL) {
             bool floor_shown = true;
             floor_hidden = false;
@@ -1453,8 +2000,8 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
                 floor_shown = false;
                 floor_hidden = true;
             }
-            floor_form->SetPartDrawFlag(at_1934, floor_shown);
-            floor_form->SetPartDrawFlag(at_1935, floor_hidden);
+            floor_form->SetPartDrawFlag("mi0", floor_shown);
+            floor_form->SetPartDrawFlag("mi1", floor_hidden);
             if (GetMenuLoopType() == MENU_LOOP_TOWN) {
                 floor_form->draw_flag = 0;
             }
@@ -1487,9 +2034,9 @@ void MenuCommonBaseDataEnter(mgCMemory *pallet_memory, unsigned int *pack, int p
     mgCTextureManager *tex = &mgTexManager;
     int                size;
     MenuMainTextureReadBuf.stSetBuffer((u_long128 *) pack, pack_size / 16);
-    mgTexManager.EnterIMGFile((u8 *) GetPackFile(pack, at_1956, 0), block, 0, 0);
-    mgTexManager.EnterIMGFile((u8 *) GetPackFile(pack, at_1957, &size), block, 0, 0);
-    u8 *image = (u8 *) GetPackFile(pack, at_1958, 0);
+    mgTexManager.EnterIMGFile((u8 *) GetPackFile(pack, "edmenu.img", 0), block, 0, 0);
+    mgTexManager.EnterIMGFile((u8 *) GetPackFile(pack, "allitem.img", &size), block, 0, 0);
+    u8 *image = (u8 *) GetPackFile(pack, "spectre.img", 0);
 
     if (image) {
         tex->EnterIMGFile(image, block, 0, 0);
@@ -1509,9 +2056,9 @@ void MenuBaseTextureReEnter() {
     MenuMainImageDataEnter(block);
     unsigned int *pack = (unsigned int *) MenuMainTextureReadBuf.stack;
     int           size;
-    tex->EnterIMGFile((u8 *) GetPackFile(pack, at_1956, 0), block, 0, 0);
-    tex->EnterIMGFile((u8 *) GetPackFile(pack, at_1957, &size), block, 0, 0);
-    u8 *image = (u8 *) GetPackFile(pack, at_1958, 0);
+    tex->EnterIMGFile((u8 *) GetPackFile(pack, "edmenu.img", 0), block, 0, 0);
+    tex->EnterIMGFile((u8 *) GetPackFile(pack, "allitem.img", &size), block, 0, 0);
+    u8 *image = (u8 *) GetPackFile(pack, "spectre.img", 0);
 
     if (image) {
         tex->EnterIMGFile(image, block, 0, 0);
@@ -1540,12 +2087,12 @@ void CMenuInter::InitEnd() {
     }
     MenuCommonInfo->CursorFadeIn(10.0f, 1);
     MenuCommonInfo->SetWakuType(-1);
-    CMenuPosDataForm *board = MenuPosData->GetFormInfo(at_2003);
+    CMenuPosDataForm *board = MenuPosData->GetFormInfo("mi00");
     if (board != NULL) {
         int pos[2] = {(int)(board->x - 30.0f), (int)(4.0f + board->y)};
         SetFormPoint(MenuCommonInfo->cursor_form, (int)(board->x - 30.0f), (int)(4.0f + board->y));
         MenuCommonInfo->cursor_form->SetNextMovePos(pos, 2);
-        CMenuPosDataForm *next_form = MenuPosData->GetFormInfo(at_2004__2);
+        CMenuPosDataForm *next_form = MenuPosData->GetFormInfo("cur_waku0");
         if (next_form != NULL) {
             pos[0] = (int)board->x;
             pos[1] = (int)(4.0f + board->y);
@@ -1555,7 +2102,7 @@ void CMenuInter::InitEnd() {
     }
     ReturnMenuIntern(0);
     MenuEtcInfo.tex_block = MenuArg.mes_tex_block;
-    MenuEtcInfo.tex = manager->GetTexture(at_1028__4, -1);
+    MenuEtcInfo.tex = manager->GetTexture("mnmain", -1);
 }
 void CMenuInter::PushOk() {
     int mode = mode_list[select_no];
@@ -1733,12 +2280,12 @@ int MenuInternSelectKey(void) {
     if ((next_mode != MENU_MODE_DNG_TREE_MAP && next_mode != MENU_MODE_WORLD_MOVE) || GetMenuMainFrameEndFlag() == 0) {
         MenuPosData->StepMainMenuIconMove(mode_list, mode, closing);
     }
-    CMenuPosDataForm *icon_form = MenuPosData->GetFormInfo((char *)GetMenuMainIconChar(mode));
+    CMenuPosDataForm *icon_form = MenuPosData->GetFormInfo(GetMenuMainIconChar(mode));
     if (old_select != CMenuInterPt->select_no && abs(old_select - CMenuInterPt->select_no) > 1) {
         CMenuInterPt->cursor_jump = 1;
     }
     if (icon_form != NULL) {
-        MovePoint pos = at_2209__3;
+        MovePoint pos = {0, 0};
         pos.x = (int)(icon_form->x - 42.0f);
         pos.y = (int)icon_form->y;
         MenuCommonInfo->MenuPosStep(&pos.x, NULL);
@@ -1812,8 +2359,8 @@ int MenuInternSelectKey(void) {
             }
             if (GamePad__2.Down(PAD_TRIANGLE) != 0) {
                 MenuActiveSaveData->SetBitFlag(0x36, 1);
-                MenuActiveSaveData->SetBitFlag(SAVE_FLAG_TOURNAMENT_STARTED, 1);
-                MenuActiveSaveData->SetBitFlag(SAVE_FLAG_TOURNAMENT_CYCLE, 1);
+                MenuActiveSaveData->SetBitFlag(SAVE_FLAG_FISHING_CONTEST_UNLOCKED, 1);
+                MenuActiveSaveData->SetBitFlag(SAVE_FLAG_FINNY_FRENZY_UNLOCKED, 1);
                 MenuActiveSaveData->ForceBootTour(MenuActiveSaveData->day, 1);
             }
             GamePad__2.Down(PAD_SQUARE);
@@ -1837,7 +2384,7 @@ int MenuInternSelectKey(void) {
             }
             ReturnMenuIntern(1);
             MenuMainFrameModeSet(1, 1);
-            MenuMesForm[0]->SetAction(at_1684);
+            MenuMesForm[0]->SetAction("\x8A\x4F\x82\xD6");
             MenuSePlay(5);
             break;
         }
@@ -1878,11 +2425,11 @@ void MenuInternSelectDraw(void) {
             strcat(text, "Boot Treemap\n");
         }
         if (bit_ctrl == 0) {
-            strcpy(text, "\211\275\202\340\213\326\216\176\012\202\263\202\352\202\304\202\242\202\334\202\271\202\361");
+            strcpy(text, "\x89\xBD\x82\xE0\x8B\xD6\x8E~\n\x82\xB3\x82\xEA\x82\xC4\x82\xA2\x82\xDC\x82\xB9\x82\xF1");
         }
         font.DrawDirect(text, 360, 60);
         DrawMenuFillBox(300.0f, 350.0f, 190.0f, 60.0f, 0x40, 0, 0, 0);
-        font.DrawDirect("\201\233\072\101\144\144\040\104\141\171\012\201\176\072\126\151\145\167\040\117\160\145\156\151\156\147\012\201\242\201\106\102\157\157\164\040\106\151\163\150\105\166\145\156\164", 300, 350);
+        font.DrawDirect("\x81\x9B:Add Day\n\x81~:View Opening\n\x81\xA2\x81" "FBoot FishEvent", 300, 350);
     }
 }
 
@@ -1890,8 +2437,8 @@ void CopyActiveItemAndWeapon(int slot, int weapon_slot) {
     mgCTexture *textures[2];
 
     mgCTextureManager *manager = &mgTexManager;
-    textures[0] = manager->GetTexture(at_2344, -1);
-    textures[1] = manager->GetTexture(at_2345, -1);
+    textures[0] = manager->GetTexture("icon_dmy1", -1);
+    textures[1] = manager->GetTexture("icon_dmy2", -1);
 
     if (textures[0] == NULL || textures[1] == NULL) {
         return;
@@ -1909,8 +2456,8 @@ int CopyActiveIconTexture(mgCTexture **textures, int chara_no, u_int *unused) {
     mgCTextureManager *manager = &mgTexManager;
     u_long128 *icon_clut[2];
     mgCTexture *icon_sheet[2];
-    icon_sheet[0] = manager->GetTexture(at_2439, -1);
-    icon_sheet[1] = manager->GetTexture(at_2440, -1);
+    icon_sheet[0] = manager->GetTexture("itemicon", -1);
+    icon_sheet[1] = manager->GetTexture("wepicon", -1);
     icon_clut[0] = icon_sheet[0]->clut;
     icon_clut[1] = icon_sheet[1]->clut;
     int items[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -1986,7 +2533,7 @@ void MenuDebugModeDraw() {
     mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) 0);
     DrawMenuFillBox(margin, margin, width, height, 0x5C, 0, 0, 0);
     CMenuFont menu_font;
-    menu_font.SetStr(at_2450);
+    menu_font.SetStr("MenuDebugMode");
     menu_font.SetPos(6, 6);
     menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
 }
@@ -2055,151 +2602,8 @@ void BookshelfMessageMake(ClsMes *message, int base_window, int item_no, int mon
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", light_1062__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", lightcolor_1063__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_keyfunctbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_drawfunctbl__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_basedgRef__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_basedgCamPos__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", CommonMenuModeID__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1699__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_maintopic_colortbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_maintopic_colortbl_shadow__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", topic_tbl_1777__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", filetbl_2141__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", monster_table__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1028__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1440__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1598__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1599__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1621__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1624__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1625__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1630__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1635__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1640__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1683__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1684__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1736__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1737__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1738__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1739__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1740__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1741__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1742__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1778__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1779__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1780__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1781__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1782__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1783__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1784__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1785__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1786__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1787__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1788__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1789__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1859__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1930__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1931__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1932__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1933__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1934__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1935__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1936__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1937__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1938__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1956__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1957__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1958__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2003__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2004__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2142__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2143__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2144__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2145__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2146__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2344__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2345__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2439__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2440__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_2450__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", MenuPrim__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", MenuPrevEndCode__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", MenuBGTextureBlock__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", MenuItemIconTextureBlock__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1514__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_main_cfgname_1620__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", acttbl_1682__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", MenuTopicAlpha__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", fname_1858__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1865__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1866__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1867__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", loopnumtbl_2360__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(MenuMainScene, 0x4);
-INCLUDE_BSS(MenuActiveSaveData, 0x4);
-INCLUDE_BSS(MenuUserDataManPtr, 0x4);
-INCLUDE_BSS(MenuSystemDataPtr, 0x4);
-INCLUDE_BSS(MenuConfigPtr, 0x4);
-INCLUDE_BSS(MenuSaveDataDungeonPtr, 0x4);
-INCLUDE_BSS(MenuFishAquarium, 0x4);
-INCLUDE_BSS(MenuNowMapNo, 0x4);
-INCLUDE_BSS(MenuNowMapType, 0x4);
-INCLUDE_BSS(MenuMainSubDataPackAdr, 0x4);
-INCLUDE_BSS(CMenuInterPt, 0x4);
-INCLUDE_BSS(MenuInterMes, 0x4);
-INCLUDE_BSS(MenuInterMesDrawFlag, 0x4);
-INCLUDE_BSS(MenuAreaBrdForm, 0x4);
-INCLUDE_BSS(MenuTimeBrdForm, 0x4);
-INCLUDE_BSS(MenuAreaName, 0x4);
-INCLUDE_BSS(MenuNowTime, 0x4);
-INCLUDE_BSS(SndPortVol_Enemy, 0x4);
-INCLUDE_BSS(ItemOverFlowCheckFlag, 0x4);
-INCLUDE_BSS(MenuDrawEnv, 0x4);
-INCLUDE_BSS(MenuCommonInfo, 0x4);
-INCLUDE_BSS(MenuLoopType, 0x4);
-INCLUDE_BSS(MenuEtcSpecialCode, 0x4);
-INCLUDE_BSS(MenuEtcInfo, 0x8);
-INCLUDE_BSS(MenuMoveItemPtr, 0x4);
-INCLUDE_BSS(MenuBGMVolume_Save, 0x4);
-INCLUDE_BSS(MenuFormMI2, 0x4);
-INCLUDE_BSS(MenuItemCommandCounter, 0x4);
-INCLUDE_BSS(menu_debug_flag, 0x4);
-INCLUDE_BSS(MenuTopicAlphaCalc, 0x4);
-INCLUDE_BSS(TopicTex, 0x4);
-INCLUDE_BSS(old_light_menu, 0x4);
-INCLUDE_BSS(HatumeiMenuOkFlag, 0x4);
-INCLUDE_BSS(WorldMapOkFlag, 0x4);
-INCLUDE_BSS(ManualMenuOkFlag, 0x4);
-INCLUDE_BSS(DngMoveMenuOkFlag, 0x4);
-INCLUDE_BSS(MenuDoubleDrawCheck, 0x4);
-INCLUDE_BSS(refresh_cnt_1523, 0x4);
-INCLUDE_BSS(init_1524, 0x8);
-INCLUDE_BSS(at_1697__2, 0x8);
-INCLUDE_BSS(at_1698__2, 0x8);
-INCLUDE_BSS(MenuTopicType, 0x4);
-INCLUDE_BSS(MenuTopicLength, 0x4);
-INCLUDE_BSS(TopicFontX, 0x8);
-INCLUDE_BSS(at_1976, 0x8);
-INCLUDE_BSS(at_2209__3, 0x8);
-
-// Uninitialised data (.bss)
-mgCMemory MenuMainStack;
-mgCMemory MenuMainStack_Next;
-INCLUDE_BSS(CMenuInterStatic, 0x20);
-mgCDrawPrim MenuPrimFix;
-INCLUDE_BSS(MenuItemUse, 0x20);
-mgCMemory MenuMainTextureReadBuf;
-mgCMemory MenuSoundBuffer;
-INCLUDE_BSS(MenuArg, 0xA0);
-INCLUDE_BSS(menu_old_chara_position, 0x10);
-INCLUDE_BSS(menu_old_chara_rotation, 0x10);
-INCLUDE_BSS(workchr_1622, 0x60);
-INCLUDE_BSS(CommonMenuModeID2, 0x20);
-CMenuFont TopicFont;
-INCLUDE_BSS(at_2351, 0x20);

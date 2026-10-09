@@ -254,7 +254,7 @@ public:
      *
      * @mangled DrawStatusSprite__7CSphidaFv
      * @address 0x2EF390
-     * @size 0x1120
+     * @size 0x111C
      */
     void DrawStatusSprite();
 
@@ -315,13 +315,6 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CSphida) == 0x240);
-
-/**
- *
- * Clubs of the sphida game, for club numbers 9 to 14, closed by an empty entry.
- *
- */
-extern GOLF_CLUB_DEF GolfClubDef[7];
 
 /**
  *

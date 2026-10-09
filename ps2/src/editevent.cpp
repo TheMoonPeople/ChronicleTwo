@@ -32,17 +32,6 @@ int LoadIntNPC(GeoFuncParam *param, RS_STACKDATA *stack, int mode);
 int LoadGeoNPC(GeoFuncParam *param, int mode);
 
 const int kEventNumberF9 = 0xF9;
-const int kEventFlagTypeAB = 0x8;
-const int kEventFlagTypeA = 0x10;
-const int kEventFlagSetNumber = 0x80;
-const int kEventFlagTypeC = 0x200;
-const int kEventFlagTypeD = 0x400;
-
-extern "C" char at_1209[];
-extern "C" char at_1210[];
-extern "C" char at_1211__2[];
-extern char     at_888__3[];
-extern char     at_1175__2[];
 
 #include <cmath>
 
@@ -64,15 +53,15 @@ int CEditEvent::StartEvent(CSceneEventData *event_data) {
         return 0;
     }
 
-    if (state == 1 || state == 2) {
-        printf(at_888__3);
+    if (state == EDIT_EVENT_STATE_RUNNING || state == EDIT_EVENT_STATE_UNK_2) {
+        printf("now running!!!");
         return 0;
     }
 
-    state = 1;
+    state = EDIT_EVENT_STATE_RUNNING;
     count = 0;
     step = 0;
-    type = -1;
+    type = EDIT_EVENT_TYPE_NONE;
     data.head = event_data->head;
     data.group_1 = event_data->group_1;
     data.group_2 = event_data->group_2;
@@ -86,27 +75,27 @@ int CEditEvent::StartEvent(CSceneEventData *event_data) {
     data.gameobj_no = event_data->gameobj_no;
     data.unk_cc = event_data->unk_cc;
 
-    if (*(int *) &data.head.v[0] & kEventFlagTypeAB) {
-        if (*(int *) &data.head.v[0] & kEventFlagTypeA) {
-            type = 0;
+    if (data.event.flag & FUNC_EVENT_DOOR) {
+        if (data.event.flag & FUNC_EVENT_ED_DOOR) {
+            type = EDIT_EVENT_TYPE_HOUSE_DOOR;
         } else {
-            type = 1;
+            type = EDIT_EVENT_TYPE_DOOR;
         }
 
-        if (*(int *) &data.head.v[0] & kEventFlagSetNumber) {
-            *(int *) &data.head.v[2] = kEventNumberF9;
+        if (data.event.flag & FUNC_EVENT_CLOSE_DOOR) {
+            data.event.point_no = kEventNumberF9;
         }
     }
 
-    if (*(int *) &data.head.v[0] & kEventFlagTypeC) {
-        type = 2;
+    if (data.event.flag & FUNC_EVENT_TREASURE_BOX) {
+        type = EDIT_EVENT_TYPE_TREASURE_BOX;
     }
 
-    if (*(int *) &data.head.v[0] & kEventFlagTypeD) {
-        type = 3;
+    if (data.event.flag & FUNC_EVENT_BOOK) {
+        type = EDIT_EVENT_TYPE_BOOK;
     }
 
-    if (type == -1) {
+    if (type == EDIT_EVENT_TYPE_NONE) {
         return 0;
     }
 
@@ -114,19 +103,10 @@ int CEditEvent::StartEvent(CSceneEventData *event_data) {
     return 1;
 }
 
-extern "C" char           at_1133__5[], at_1134__4[], at_1135__4[], at_1136__3[], at_1137__3[], at_1138__3[], at_1139[], at_916__4[];
-extern "C" u_long128      at_920__4;
-extern "C" MENU_INIT_ARG *MenuInfo__2;
-
 /**
- *
- * Four edit event names stored in one quadword.
- *
+ * Menu arguments used by house-door events.
  */
-union EditEventNames {
-    char     *name[4]; /**< Event names. */
-    u_long128 qw;      /**< The same pointers as one quadword. */
-};
+static MENU_INIT_ARG *MenuInfo__2 = &MenuArg;
 
 /**
  *
@@ -154,7 +134,7 @@ int CEditEvent::Step(CScene *scene) {
     int              result;
     CMapTreasureBox *box;
     CCharacter2     *character;
-    mgCCamera       *camera;
+    CCameraControl  *camera;
     CPadControl     *pad;
     CEditMap        *map;
     int              show;
@@ -174,7 +154,7 @@ int CEditEvent::Step(CScene *scene) {
     CSaveData *save = GetSaveData();
     map_flags = save->GetMapFlag(scene->GetMainMapNo());
     character = scene->GetCharacter(scene->player_chara);
-    camera = scene->GetCamera(scene->active_camera);
+    camera = (CCameraControl *) scene->GetCamera(scene->active_camera);
 
     if (character == NULL || camera == NULL || map == NULL) {
         return EDIT_EVENT_RESULT_END;
@@ -210,7 +190,7 @@ int CEditEvent::Step(CScene *scene) {
 
             switch (step) {
                 case EDIT_DOOR_STEP_START:
-                    if (strcmp(data.event.target, at_1133__5) != 0) {
+                    if (strcmp(data.event.target, "exit") != 0) {
                         strcpy(map_name, data.event.target);
 
                         if (data.event.flag & FUNC_EVENT_ED_DOOR) {
@@ -226,15 +206,15 @@ int CEditEvent::Step(CScene *scene) {
 
                             if (strlen(map_name) < 4) {
                                 if (info != NULL) {
-                                    EditEventNames suffix = *(EditEventNames *) &at_920__4;
-                                    strcat(map_name, suffix.name[info->house_type % 4]);
+                                    char *suffix[4] = {"ia", "ib", "ic", "id"};
+                                    strcat(map_name, suffix[info->house_type % 4]);
                                 } else {
-                                    strcat(map_name, at_916__4);
+                                    strcat(map_name, "ia");
                                 }
                             }
                         }
 
-                        ((CCameraControl *) camera)->RotBack(mgAngleLimit(3.1415927f + atan2f(data.map_event.matrix[2][0], data.map_event.matrix[2][2])));
+                        camera->RotBack(mgAngleLimit(3.1415927f + atan2f(data.map_event.matrix[2][0], data.map_event.matrix[2][2])));
                     }
 
                     door_se = -1;
@@ -243,7 +223,7 @@ int CEditEvent::Step(CScene *scene) {
                     step = EDIT_DOOR_STEP_APPROACH;
                     break;
                 case EDIT_DOOR_STEP_APPROACH: {
-                    character->SetMotion(at_1134__4, 0);
+                    character->SetMotion("\x95\xE0\x82\xAB", 0);
                     mgZeroVector(rotation);
                     float target_angle = atan2f(data.map_event.matrix[2][0], data.map_event.matrix[2][2]);
                     mgVectorInterpolate(position, chara_pos, data.map_event.matrix[3], 1.0f, 0);
@@ -262,9 +242,9 @@ int CEditEvent::Step(CScene *scene) {
 
                         if (argument_1 >= 0) {
                             if (flags & FUNC_EVENT_CLOSE_DOOR) {
-                                character->SetMotion(at_1135__4, 2);
+                                character->SetMotion("\x83h\x83""A\x8AJ\x82\xA9\x82\xC8\x82\xA2", 2);
                             } else {
-                                character->SetMotion(at_1136__3, 2);
+                                character->SetMotion("\x83h\x83""A\x8AJ\x82\xAF", 2);
                             }
                         } else {
                             count = 0xE;
@@ -301,12 +281,12 @@ int CEditEvent::Step(CScene *scene) {
 
                     break;
                 case EDIT_DOOR_STEP_LEAVE:
-                    ((CCameraControl *) camera)->CancelRotBack();
+                    camera->CancelRotBack();
 
                     if (data.event.point_no > 0) {
                         scene->RunEvent(data.event.point_no, &data);
                         result = EDIT_EVENT_RESULT_END;
-                    } else if (strcmp(data.event.target, at_1133__5) != 0) {
+                    } else if (strcmp(data.event.target, "exit") != 0) {
                         if (scene->fade.FadeCheck() && PreLoadSync() == 0) {
                             scene->fade.FadeIn(0x1E);
 
@@ -330,9 +310,9 @@ int CEditEvent::Step(CScene *scene) {
 
                     if (angle == 0 && distance < 1.0f) {
                         step = EDIT_DOOR_STEP_WAIT;
-                        character->SetMotion(at_1137__3, 2);
+                        character->SetMotion("\x82\xBE\x82\xDF\x82\xBE\x82\xDF", 2);
                     } else {
-                        character->SetMotion(at_1134__4, 0);
+                        character->SetMotion("\x95\xE0\x82\xAB", 0);
                     }
 
                     character->SetRotation(chara_rot);
@@ -353,7 +333,7 @@ int CEditEvent::Step(CScene *scene) {
                 MenuInfo__2->open_type = 0xC;
                 MenuInfo__2->scene = scene;
                 MenuInfo__2->param[0] = data.map_event.parts_no;
-                ((CCameraControl *) camera)->CancelRotBack();
+                camera->CancelRotBack();
                 result = EDIT_EVENT_RESULT_MENU;
                 ++step;
                 KeepEditAnalyze();
@@ -406,7 +386,7 @@ int CEditEvent::Step(CScene *scene) {
         mgCFrame *lid = NULL;
 
         if (box != NULL && box->CObjectFrame::frame != NULL) {
-            lid = box->CObjectFrame::frame->SearchFrame(at_1138__3);
+            lid = box->CObjectFrame::frame->SearchFrame("top");
         }
 
         if (lid == NULL) {
@@ -416,7 +396,7 @@ int CEditEvent::Step(CScene *scene) {
 
         switch (step) {
             case EDIT_TREASURE_BOX_STEP_START:
-                character->SetMotion(at_1139, 0);
+                character->SetMotion("\x97\xA7\x82\xBF", 0);
                 count = 0;
 
                 if (CheckGetItemLimmitOver(box->item_no, box->item_num) < box->item_num) {
@@ -506,7 +486,7 @@ int CEditEvent::Step(CScene *scene) {
     } else if (type == EDIT_EVENT_TYPE_BOOK) {
         switch (step) {
             case EDIT_BOOK_STEP_START:
-                character->SetMotion(at_1139, 0);
+                character->SetMotion("\x97\xA7\x82\xBF", 0);
                 message->Preset(4);
                 message->SetWindowMode(4);
                 BookshelfMessageMake(message, argument_1, argument_2, argument_3);
@@ -588,7 +568,7 @@ int GeoramaFunc(GeoFuncParam *param, RS_STACKDATA *stack, int mode) {
         case 3:
             return CheckPlaceBurnParts(param, stack, mode - 1);
         case 999:
-            printf(at_1175__2);
+            printf("warning!!! test function  called!!!\n");
             return 0;
         default:
             return 1;
@@ -654,14 +634,14 @@ int LoadIntNPC(GeoFuncParam *param, RS_STACKDATA *stack, int mode) {
     memory = scene->GetStack(4);
 
     if (memory->stack_size - memory->stack_used < 0xC800) {
-        printf(at_1209);
+        printf("geo int chara memory over!!\n");
         return 0;
     }
 
     chara_no = rsGetStackInt(stack);
     tex_block = scene->GetCharaTexb(chara_no);
     mgTexManager.DeleteBlock(tex_block);
-    scene->LoadChara(chara_no, buffer, at_1210, memory, memory, memory, tex_block, 0);
+    scene->LoadChara(chara_no, buffer, "info.cfg", memory, memory, memory, tex_block, 0);
     chara = scene->GetCharacter(chara_no);
 
     if (chara == NULL) {
@@ -671,7 +651,7 @@ int LoadIntNPC(GeoFuncParam *param, RS_STACKDATA *stack, int mode) {
     map = (CEditMap *) scene->GetMap(scene->active_map);
 
     if (map != NULL) {
-        func_point = map->func_point.Search(at_1211__2);
+        func_point = map->func_point.Search("npc_pos");
 
         if (func_point != NULL) {
             *(u_long128 *) position = *(u_long128 *) func_point->position;
@@ -753,14 +733,14 @@ int LoadGeoNPC(GeoFuncParam *param, int mode) {
     memory = scene->GetStack(2);
     tex_block = scene->GetCharaTexb(8);
     mgTexManager.DeleteBlock(tex_block);
-    scene->LoadChara(8, buffer, at_1210, memory, memory, memory, tex_block, 0);
+    scene->LoadChara(8, buffer, "info.cfg", memory, memory, memory, tex_block, 0);
     chara = scene->GetCharacter(8);
 
     if (chara == NULL) {
         return 0;
     }
 
-    func_point = parts->func_point_mngr.Search(at_1211__2);
+    func_point = parts->func_point_mngr.Search("npc_pos");
 
     if (func_point != NULL) {
         parts->GetLWMatrix(matrix);
@@ -802,7 +782,7 @@ void GeoUpdateNpcPos(CScene *scene) {
             if (parts != NULL) {
                 chara_id = scene->SearchCharaID(parts->GetLiveNPC());
                 chara = scene->GetCharacter(chara_id);
-                func_point = parts->func_point_mngr.Search(at_1211__2);
+                func_point = parts->func_point_mngr.Search("npc_pos");
 
                 if (chara != NULL && func_point != NULL) {
                     scene->StayVillager(chara_id);
@@ -823,29 +803,3 @@ void GeoUpdateNpcPos(CScene *scene) {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_920__4__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_888__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_916__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_917__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_918__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_919__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1133__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1134__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1135__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1136__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1137__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1138__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1139__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1154__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1152__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1175__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1209__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1210__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", at_1211__2__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editevent", MenuInfo__2__DATA);

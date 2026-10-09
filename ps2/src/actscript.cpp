@@ -40,11 +40,21 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "userdata.hpp"
-extern ACTION_DAMAGE *LastCInfo2__2;
-extern int (*ext_func__3[256])(RS_STACKDATA *, int);
-extern float at_1181__3[4];
-extern float at_1417__3[4];
-extern int   at_1597__2[4];
+/**
+ *
+ * Most recently entered collision-damage window for the action script.
+ *
+ */
+static ACTION_DAMAGE *LastCInfo2;
+/**
+ *
+ * Dispatch slots used by action-script external calls.
+ *
+ */
+static int (*ext_func[256])(RS_STACKDATA *, int);
+
+CScene *nowScene__2;
+ACTION_INFO action_info;
 
 /**
  *
@@ -55,8 +65,6 @@ struct CanonObjectNames {
     char *name[4][2]; /**< Names grouped by cannon variant. */
 };
 
-extern CanonObjectNames at_1645__2;
-
 /**
  *
  * RGB colours used by the action script's rings.
@@ -66,41 +74,179 @@ struct RingColors {
     int rgb[4][3]; /**< Red, green and blue components of each ring colour. */
 };
 
-extern RingColors      at_1774;
-extern RS_EXTFUNC_INFO ext_func_info__3[];
-extern char            at_1118__4[];
-extern char            at_1202__2[];
-extern char            at_1211[];
-extern char            at_1304__7[];
-extern char            at_1450__2[];
-extern char            at_1458__3[];
-extern char            at_1459__3[];
-extern char            at_1460__3[];
-extern char            at_1487__2[];
-extern char            at_1517__4[];
-extern char            at_1579[];
-extern char            at_1580__2[];
-extern char            at_1581__3[];
-extern char            at_1593__4[];
-extern char            at_1594__5[];
-extern char            at_1595__6[];
-extern char            at_1596__3[];
-extern char            at_1637__2[];
-extern char            at_1638[];
-extern char            at_1639[];
-extern char            at_1640__2[];
-extern char            at_1641[];
-extern char            at_1642[];
-extern char            at_1643[];
-extern char            at_1644[];
-extern char            at_1725__2[];
-extern char            at_1726[];
-extern char            at_1727[];
-extern char            at_1728__2[];
-extern char            at_1729__2[];
-extern char            at_1730__2[];
-extern char            at_2004__4[];
-extern char            at_2005__3[];
+static int _INIT_SCRIPT(RS_STACKDATA *stack, int argc);
+static int _PROG_SET(RS_STACKDATA *stack, int argc);
+static int _PROG_GET(RS_STACKDATA *stack, int argc);
+static int _GET_ATTK_TYPE(RS_STACKDATA *stack, int argc);
+static int _GET_MOVE_TYPE(RS_STACKDATA *stack, int argc);
+static int _SET_MOVE_SPEED(RS_STACKDATA *stack, int argc);
+static int _SET_PALLET(RS_STACKDATA *stack, int argc);
+static int _CHECK_EQUIP(RS_STACKDATA *stack, int argc);
+static int _CAMERA_QUAKE(RS_STACKDATA *stack, int argc);
+static int _CHECK_PAUSE(RS_STACKDATA *stack, int argc);
+static int _GET_STATUS_ATTR(RS_STACKDATA *stack, int argc);
+static int _SE_PLAY(RS_STACKDATA *stack, int argc);
+static int _SE_LOOP_PLAY(RS_STACKDATA *stack, int argc);
+static int _GET_SHOT_TYPE(RS_STACKDATA *stack, int argc);
+static int _GET_MONS_ID(RS_STACKDATA *stack, int argc);
+static int _GET_FRONT_VEC(RS_STACKDATA *stack, int argc);
+static int _GET_PADON(RS_STACKDATA *stack, int argc);
+static int _GET_PADDOWN(RS_STACKDATA *stack, int argc);
+static int _GET_PADUP(RS_STACKDATA *stack, int argc);
+static int _GET_BTN(RS_STACKDATA *stack, int argc);
+static int _GET_PAD_HISTORY(RS_STACKDATA *stack, int argc);
+static int _RESET_PAD_HISTORY(RS_STACKDATA *stack, int argc);
+static int _GET_ACUMU_PAD(RS_STACKDATA *stack, int argc);
+static int _RESET_ACUMU_PAD(RS_STACKDATA *stack, int argc);
+static int _RUN_MAIN_MOVE(RS_STACKDATA *stack, int argc);
+static int _RUN_SHROW_MOVE(RS_STACKDATA *stack, int argc);
+static int _RUN_TAME_MOVE(RS_STACKDATA *stack, int argc);
+static int _RUN_HOLD_MOVE(RS_STACKDATA *stack, int argc);
+static int _SET_MENU_FLAG(RS_STACKDATA *stack, int argc);
+static int _GET_POS(RS_STACKDATA *stack, int argc);
+static int _GET_ROT(RS_STACKDATA *stack, int argc);
+static int _CHECK_FRONT_KEY(RS_STACKDATA *stack, int argc);
+static int _CHECK_BACK_KEY(RS_STACKDATA *stack, int argc);
+static int _SET_BLOW_ANGLE(RS_STACKDATA *stack, int argc);
+static int _SET_BLOW_MOVE(RS_STACKDATA *stack, int argc);
+static int _BLOW_START(RS_STACKDATA *stack, int argc);
+static int _RUN_ROBO_MOVE(RS_STACKDATA *stack, int argc);
+static int _SET_DMG2(RS_STACKDATA *stack, int argc);
+static int _SET_OBJ(RS_STACKDATA *stack, int argc);
+static int _SET_BODY(RS_STACKDATA *stack, int argc);
+static int _SW_EFFECT(RS_STACKDATA *stack, int argc);
+static int _SET_SND(RS_STACKDATA *stack, int argc);
+static int _SET_ACCUME_FX(RS_STACKDATA *stack, int argc);
+static int _SET_ACCUME_FLAG(RS_STACKDATA *stack, int argc);
+static int _GET_MONSTER_NOWSTS(RS_STACKDATA *stack, int argc);
+static int _SET_MURDEROUS(RS_STACKDATA *stack, int argc);
+static int _GET_TRG_DISTANCE(RS_STACKDATA *stack, int argc);
+static int _SET_TRG_ANGLE(RS_STACKDATA *stack, int argc);
+static int _SET_GUARD_FLAG(RS_STACKDATA *stack, int argc);
+static int _SET_MUTEKI(RS_STACKDATA *stack, int argc);
+static int _CHECK_HAND_OBJ(RS_STACKDATA *stack, int argc);
+static int _SET_ITEM_USED(RS_STACKDATA *stack, int argc);
+static int _THROW_HAND_OBJECT(RS_STACKDATA *stack, int argc);
+static int _CHECK_CATCH(RS_STACKDATA *stack, int argc);
+static int _RELEASE_OBJ(RS_STACKDATA *stack, int argc);
+static int _SET_SHOT(RS_STACKDATA *stack, int argc);
+static int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc);
+static int _SHOT(RS_STACKDATA *stack, int argc);
+static int _GET_OBJECT_POS(RS_STACKDATA *stack, int argc);
+static int _SET_DIR_GUN(RS_STACKDATA *stack, int argc);
+static int _GET_NOW_HP_RATE(RS_STACKDATA *stack, int argc);
+static int _SET_BOMB(RS_STACKDATA *stack, int argc);
+static int _GET_ACTION_CODE(RS_STACKDATA *stack, int argc);
+static int _GET_ATTK_POINT(RS_STACKDATA *stack, int argc);
+static int _GET_RING_COLOR(RS_STACKDATA *stack, int argc);
+static int _SET_MOS(RS_STACKDATA *stack, int argc);
+static int _CHECK_MOS_END(RS_STACKDATA *stack, int argc);
+static int _NOW_MOS_WAIT(RS_STACKDATA *stack, int argc);
+static int _GET_MOS_STATUS(RS_STACKDATA *stack, int argc);
+static int _SET_XCHG_STEP(RS_STACKDATA *stack, int argc);
+static int _SET_MOS_STEP(RS_STACKDATA *stack, int argc);
+static int _TRG_ON_MOS(RS_STACKDATA *stack, int argc);
+static int _RESET_MOS(RS_STACKDATA *stack, int argc);
+static int _SET_DEFAULT_MOS(RS_STACKDATA *stack, int argc);
+static int _SET_NEBA2(RS_STACKDATA *stack, int argc);
+static int _NOW_MOS_CHGWAIT(RS_STACKDATA *stack, int argc);
+static int _ESM_CREATE(RS_STACKDATA *stack, int argc);
+static int _ESM_SET_VECT1(RS_STACKDATA *stack, int argc);
+static int _ESM_SET_VECT2(RS_STACKDATA *stack, int argc);
+static int _ESM_FINISH(RS_STACKDATA *stack, int argc);
+static int _ESM_DELETE(RS_STACKDATA *stack, int argc);
+static int _ESM_SET_VALUE(RS_STACKDATA *stack, int argc);
+
+/**
+ *
+ * Associates action-script external function numbers with their handlers.
+ *
+ */
+static RS_EXTFUNC_INFO ext_func_info[83] = {
+    {_INIT_SCRIPT, ACTION_EXT_INIT_SCRIPT},
+    {_PROG_SET, ACTION_EXT_PROG_SET},
+    {_PROG_GET, ACTION_EXT_PROG_GET},
+    {_GET_ATTK_TYPE, ACTION_EXT_GET_ATTK_TYPE},
+    {_GET_MOVE_TYPE, ACTION_EXT_GET_MOVE_TYPE},
+    {_SET_MOVE_SPEED, ACTION_EXT_SET_MOVE_SPEED},
+    {_SET_PALLET, ACTION_EXT_SET_PALLET},
+    {_CHECK_EQUIP, ACTION_EXT_CHECK_EQUIP},
+    {_CAMERA_QUAKE, ACTION_EXT_CAMERA_QUAKE},
+    {_CHECK_PAUSE, ACTION_EXT_CHECK_PAUSE},
+    {_GET_STATUS_ATTR, ACTION_EXT_GET_STATUS_ATTR},
+    {_SE_PLAY, ACTION_EXT_SE_PLAY},
+    {_SE_LOOP_PLAY, ACTION_EXT_SE_LOOP_PLAY},
+    {_GET_SHOT_TYPE, ACTION_EXT_GET_SHOT_TYPE},
+    {_GET_MONS_ID, ACTION_EXT_GET_MONS_ID},
+    {_GET_FRONT_VEC, ACTION_EXT_GET_FRONT_VEC},
+    {_GET_PADON, ACTION_EXT_GET_PADON},
+    {_GET_PADDOWN, ACTION_EXT_GET_PADDOWN},
+    {_GET_PADUP, ACTION_EXT_GET_PADUP},
+    {_GET_BTN, ACTION_EXT_GET_BTN},
+    {_GET_PAD_HISTORY, ACTION_EXT_GET_PAD_HISTORY},
+    {_RESET_PAD_HISTORY, ACTION_EXT_RESET_PAD_HISTORY},
+    {_GET_ACUMU_PAD, ACTION_EXT_GET_ACUMU_PAD},
+    {_RESET_ACUMU_PAD, ACTION_EXT_RESET_ACUMU_PAD},
+    {_RUN_MAIN_MOVE, ACTION_EXT_RUN_MAIN_MOVE},
+    {_RUN_SHROW_MOVE, ACTION_EXT_RUN_SHROW_MOVE},
+    {_RUN_TAME_MOVE, ACTION_EXT_RUN_TAME_MOVE},
+    {_RUN_HOLD_MOVE, ACTION_EXT_RUN_HOLD_MOVE},
+    {_SET_MENU_FLAG, ACTION_EXT_SET_MENU_FLAG},
+    {_GET_POS, ACTION_EXT_GET_POS},
+    {_GET_ROT, ACTION_EXT_GET_ROT},
+    {_CHECK_FRONT_KEY, ACTION_EXT_CHECK_FRONT_KEY},
+    {_CHECK_BACK_KEY, ACTION_EXT_CHECK_BACK_KEY},
+    {_SET_BLOW_ANGLE, ACTION_EXT_SET_BLOW_ANGLE},
+    {_SET_BLOW_MOVE, ACTION_EXT_SET_BLOW_MOVE},
+    {_BLOW_START, ACTION_EXT_BLOW_START},
+    {_RUN_ROBO_MOVE, ACTION_EXT_RUN_ROBO_MOVE},
+    {_SET_DMG2, ACTION_EXT_SET_DMG2},
+    {_SET_OBJ, ACTION_EXT_SET_OBJ},
+    {_SET_BODY, ACTION_EXT_SET_BODY},
+    {_SW_EFFECT, ACTION_EXT_SW_EFFECT},
+    {_SET_SND, ACTION_EXT_SET_SND},
+    {_SET_ACCUME_FX, ACTION_EXT_SET_ACCUME_FX},
+    {_SET_ACCUME_FLAG, ACTION_EXT_SET_ACCUME_FLAG},
+    {_GET_MONSTER_NOWSTS, ACTION_EXT_GET_MONSTER_NOWSTS},
+    {_SET_MURDEROUS, ACTION_EXT_SET_MURDEROUS},
+    {_GET_TRG_DISTANCE, ACTION_EXT_GET_TRG_DISTANCE},
+    {_SET_TRG_ANGLE, ACTION_EXT_SET_TRG_ANGLE},
+    {_SET_GUARD_FLAG, ACTION_EXT_SET_GUARD_FLAG},
+    {_SET_MUTEKI, ACTION_EXT_SET_MUTEKI},
+    {_CHECK_HAND_OBJ, ACTION_EXT_CHECK_HAND_OBJ},
+    {_SET_ITEM_USED, ACTION_EXT_SET_ITEM_USED},
+    {_THROW_HAND_OBJECT, ACTION_EXT_THROW_HAND_OBJECT},
+    {_CHECK_CATCH, ACTION_EXT_CHECK_CATCH},
+    {_RELEASE_OBJ, ACTION_EXT_RELEASE_OBJ},
+    {_SET_SHOT, ACTION_EXT_SET_SHOT},
+    {_SET_SPECIAL_SHOT, ACTION_EXT_SET_SPECIAL_SHOT},
+    {_SHOT, ACTION_EXT_SHOT},
+    {_GET_OBJECT_POS, ACTION_EXT_GET_OBJECT_POS},
+    {_SET_DIR_GUN, ACTION_EXT_SET_DIR_GUN},
+    {_GET_NOW_HP_RATE, ACTION_EXT_GET_NOW_HP_RATE},
+    {_SET_BOMB, ACTION_EXT_SET_BOMB},
+    {_GET_ACTION_CODE, ACTION_EXT_GET_ACTION_CODE},
+    {_GET_ATTK_POINT, ACTION_EXT_GET_ATTK_POINT},
+    {_GET_RING_COLOR, ACTION_EXT_GET_RING_COLOR},
+    {_SET_MOS, ACTION_EXT_SET_MOS},
+    {_CHECK_MOS_END, ACTION_EXT_CHECK_MOS_END},
+    {_NOW_MOS_WAIT, ACTION_EXT_NOW_MOS_WAIT},
+    {_GET_MOS_STATUS, ACTION_EXT_GET_MOS_STATUS},
+    {_SET_XCHG_STEP, ACTION_EXT_SET_XCHG_STEP},
+    {_SET_MOS_STEP, ACTION_EXT_SET_MOS_STEP},
+    {_TRG_ON_MOS, ACTION_EXT_TRG_ON_MOS},
+    {_RESET_MOS, ACTION_EXT_RESET_MOS},
+    {_SET_DEFAULT_MOS, ACTION_EXT_SET_DEFAULT_MOS},
+    {_SET_NEBA2, ACTION_EXT_SET_NEBA2},
+    {_NOW_MOS_CHGWAIT, ACTION_EXT_NOW_MOS_CHGWAIT},
+    {_ESM_CREATE, ACTION_EXT_ESM_CREATE},
+    {_ESM_SET_VECT1, ACTION_EXT_ESM_SET_VECT1},
+    {_ESM_SET_VECT2, ACTION_EXT_ESM_SET_VECT2},
+    {_ESM_FINISH, ACTION_EXT_ESM_FINISH},
+    {_ESM_DELETE, ACTION_EXT_ESM_DELETE},
+    {_ESM_SET_VALUE, ACTION_EXT_ESM_SET_VALUE},
+    {NULL, ACTION_EXT_END}
+};
 
 /**
  *
@@ -121,16 +267,6 @@ struct AccumeSlot {
 
 void ParabolicInitialVector(float *result, float *from, float *to, float gravity, float flight_time);
 
-/**
- *
- * Action script vector viewed as floats or one quadword.
- *
- */
-union ScriptVector {
-    float     value[4]; /**< Floating point components. */
-    u_long128 quadword; /**< The same components as one quadword. */
-};
-
 // Code (.text)
 
 /**
@@ -139,7 +275,7 @@ union ScriptVector {
  *
  */
 static int GetStackInt(RS_STACKDATA *slot) {
-    if (slot->type == 1) {
+    if (slot->type == RS_FLOAT) {
         return (int) slot->val.f;
     }
 
@@ -152,11 +288,11 @@ static int GetStackInt(RS_STACKDATA *slot) {
  *
  */
 static float GetStackFloat(RS_STACKDATA *slot) {
-    if (slot->type == 0) {
+    if (slot->type == RS_INT) {
         return (float) slot->val.i;
     }
 
-    return *(float *) &slot->val.i;
+    return slot->val.f;
 }
 
 /**
@@ -165,7 +301,7 @@ static float GetStackFloat(RS_STACKDATA *slot) {
  *
  */
 static char *GetStackString(RS_STACKDATA *slot) {
-    return (char *) slot->val.i;
+    return slot->val.s;
 }
 
 /**
@@ -174,8 +310,8 @@ static char *GetStackString(RS_STACKDATA *slot) {
  *
  */
 static void SetStack(RS_STACKDATA *slot, int value) {
-    if (slot->type == 3) {
-        ((RS_STACKDATA *) slot->val.i)->val.i = value;
+    if (slot->type == RS_PTR) {
+        slot->val.p->val.i = value;
     }
 }
 
@@ -185,8 +321,8 @@ static void SetStack(RS_STACKDATA *slot, int value) {
  *
  */
 static void SetStack(RS_STACKDATA *slot, float value) {
-    if (slot->type == 3) {
-        *(float *) &((RS_STACKDATA *) slot->val.i)->val.i = value;
+    if (slot->type == RS_PTR) {
+        slot->val.p->val.f = value;
     }
 }
 
@@ -813,8 +949,6 @@ int _SET_BLOW_ANGLE(RS_STACKDATA *stack, int argc) {
  */
 int _SET_BLOW_MOVE(RS_STACKDATA *stack, int argc) {
     float rot[4];
-    float dir[4];
-    float matrix[4][4];
 
     if (argc > 4) {
         return 0;
@@ -840,7 +974,8 @@ int _SET_BLOW_MOVE(RS_STACKDATA *stack, int argc) {
         yaw += 6.2831855f;
     }
 
-    *(ScriptVector *) dir = *(ScriptVector *) at_1181__3;
+    float dir[4] = {0.0f, 0.0f, 1.0f, 1.0f};
+    float matrix[4][4];
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, yaw);
     sceVu0ApplyMatrix(dir, matrix, dir);
@@ -890,15 +1025,15 @@ static int _SET_DMG2(RS_STACKDATA *stack, int argc) {
         extra = GetStackString(stack);
     }
 
-    LastCInfo2__2 = action_info.chara->EntryDamage2(
+    LastCInfo2 = action_info.chara->EntryDamage2(
         first, second, attack, damage, hit_effect, knockback, lift, extra);
 
-    if (LastCInfo2__2 == NULL) {
-        printf(at_1202__2, attack);
+    if (LastCInfo2 == NULL) {
+        printf("CACT:DMG_ENTRY_ERR %s\n", attack);
         return 0;
     }
 
-    LastCInfo2__2->power_rate = rate;
+    LastCInfo2->power_rate = rate;
     return 1;
 }
 
@@ -916,7 +1051,7 @@ static int _SET_OBJ(RS_STACKDATA *stack, int argc) {
     char *name = GetStackString(stack);
 
     if (action_info.chara->EntryObject(name, number) == 0) {
-        printf(at_1211, name);
+        printf("not found %s\n", name);
         return 0;
     }
 
@@ -1085,7 +1220,7 @@ int _SET_ACCUME_FLAG(RS_STACKDATA *stack, int argc) {
             }
 
             if (slot->effect == 0) {
-                printf(at_1304__7);
+                printf("err1\n");
             }
 
             action_info.chara->accume.active = 1;
@@ -1294,7 +1429,6 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
     float start_pos[4];
     float direction[4];
     float target_pos[4];
-    float offset[4];
     int   throw_it = 0;
 
     if (argc == 1) {
@@ -1340,7 +1474,7 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
                             action_info.chara->target_no);
 
                         if (target != NULL) {
-                            ((CCharacter2 *) target)->GetEntryObjectPos(0, 0, target_pos);
+                            target->GetEntryObjectPos(0, 0, target_pos);
                             start_pos[3] = 1.0f;
                             target_pos[3] = 1.0f;
                             distance = mgDistVector(start_pos, target_pos);
@@ -1360,7 +1494,7 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
                     held->catch_state = 2;
                     held->no_hit_time = 5;
                     held->damage_req = 6;
-                    *(ScriptVector *) offset = *(ScriptVector *) at_1417__3;
+                    float offset[4] = {0.0f, 0.0f, 0.0f, 1.0f};
                     sceVu0CopyVector(held->velocity, offset);
                     action_info.chara->release_timing = 2;
                 }
@@ -1401,7 +1535,7 @@ void ShotMonicaMagic(float *position, float *direction, float scale) {
     CColPrim *prim = ColPrimMan.GetPrim();
 
     if (prim != NULL) {
-        prim->SetDamage(at_1450__2, 0);
+        prim->SetDamage("\x83\x82\x83j\x83J\x96\x82\x96@", 0);
         prim->range = 500.0f;
         SetDamageParam(prim, 1);
         prim->damage = fptosi((float) prim->damage * scale);
@@ -1418,21 +1552,21 @@ void ShotMonicaMagic(float *position, float *direction, float scale) {
  *
  */
 void ShotNormalGun(float *position, float *direction) {
-    action_info.chara->effect_man->CreateEffSpt(at_1458__3, 0, 0);
+    action_info.chara->effect_man->CreateEffSpt("\x8F" "e\x92" "e", 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
     sceVu0ScaleVector(direction, direction, 20.0f);
     action_info.chara->effect_man->SetScriptVect2(direction, 0, -1);
     CColPrim *prim = ColPrimMan.GetPrim();
 
     if (prim != NULL) {
-        prim->SetDamage(at_1459__3, 0);
+        prim->SetDamage("\x83\x86\x83\x8A\x83X\x8F" "e\x8DU\x8C\x82", 0);
         prim->range = 300.0f;
         SetDamageParam(prim, 1);
         action_info.chara->effect_man->SetColPrim(prim, -1, -1);
         calcWeaponParam2(1, prim->param->hit_count);
     }
 
-    action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
+    action_info.chara->effect_man->CreateEffSpt("\x83}\x83Y\x83\x8B\x83t\x83\x89\x83" "b\x83V\x83\x85", 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
     sndSePlay(action_info.chara->sound_info.se_bank, 5, 0);
 }
@@ -1457,7 +1591,7 @@ void ShotMachineGun(float *position, float *direction, char *damage_name, float 
     }
 
     MachineGun.col_prim_id[MachineGun.index] = col_prim_id;
-    action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
+    action_info.chara->effect_man->CreateEffSpt("\x83}\x83Y\x83\x8B\x83t\x83\x89\x83" "b\x83V\x83\x85", 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
     CActionChara *owner = action_info.chara;
 
@@ -1488,7 +1622,7 @@ void ShotGrenadGun(float *position, float *direction) {
         int       col_prim_id = -1;
 
         if (prim != NULL) {
-            prim->SetDamage(at_1487__2, 0);
+            prim->SetDamage("\x83O\x83\x8C\x83l\x81[\x83hG", 0);
             prim->SetCoord(position, 5.0f);
             prim->range = 500.0f;
             SetDamageParam(prim, 1);
@@ -1499,7 +1633,7 @@ void ShotGrenadGun(float *position, float *direction) {
         launcher->col_prim_id = col_prim_id;
     }
 
-    action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
+    action_info.chara->effect_man->CreateEffSpt("\x83}\x83Y\x83\x8B\x83t\x83\x89\x83" "b\x83V\x83\x85", 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
     sndSePlay(action_info.chara->sound_info.se_bank, 5, 0);
 }
@@ -1529,7 +1663,7 @@ void ShotLaserGun(float *position, float *direction, int type) {
         int       col_prim_id = -1;
 
         if (prim != NULL) {
-            prim->SetDamage(at_1517__4, 0);
+            prim->SetDamage("\x83\x8C\x81[\x83U\x81[G", 0);
             prim->SetCoord(muzzle, 5.0f);
             prim->range = 500.0f;
             SetDamageParam(prim, 1);
@@ -1540,7 +1674,7 @@ void ShotLaserGun(float *position, float *direction, int type) {
         laser->col_prim_id = col_prim_id;
     }
 
-    action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
+    action_info.chara->effect_man->CreateEffSpt("\x83}\x83Y\x83\x8B\x83t\x83\x89\x83" "b\x83V\x83\x85", 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
     action_info.chara->effect_man->SetValue(0, 1, 0, -1);
     float color_d;
@@ -1608,8 +1742,8 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
     sceVu0CopyVector(position, action_info.chara->object[object_no].pos);
     if (chara == USER_CHARA_MAX) {
         info->GetNowWhp(1, whp);
-        muzzle = action_info.chara->SearchObject(at_1579);
-        grip = action_info.chara->SearchObject(at_1580__2);
+        muzzle = action_info.chara->SearchObject("sp");
+        grip = action_info.chara->SearchObject("gcol00");
         if (muzzle != NULL && grip != NULL) {
             muzzle->GetWorldPosition0(direction);
             grip->GetWorldPosition0(position);
@@ -1627,7 +1761,7 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
                 ShotNormalGun(position, direction);
             }
             if (attack_type == 30) {
-                ShotMachineGun(position, direction, at_1581__3, 300.0f);
+                ShotMachineGun(position, direction, "\x82x\x83}\x83V\x83\x93\x83K\x83\x93", 300.0f);
             }
             if (attack_type == 10) {
                 ShotGrenadGun(position, direction);
@@ -1670,7 +1804,6 @@ int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc) {
     float facing[4];
     float position[4];
     float direction[4];
-    int   effects[4];
 
     if (argc != 1) {
         return 0;
@@ -1697,8 +1830,8 @@ int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc) {
     sceVu0CopyVector(facing, action_info.chara->front_vec);
     object->GetWorldPosition0(position);
     sceVu0CopyVector(direction, action_info.chara->front_vec);
-    *(ScriptVector *) effects = *(ScriptVector *) at_1597__2;
-    action_info.chara->effect_man->CreateEffSpt((char *) effects[info->GetMagicSwordElem()], 0, 0);
+    char *effects[4] = {"\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x89\xCE", "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95X", "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x97\x8B", "\x83\x82\x83j\x83J\x96\x82\x96@\x81|\x95\x97"};
+    action_info.chara->effect_man->CreateEffSpt(effects[info->GetMagicSwordElem()], 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
     action_info.chara->effect_man->SetScriptVect2(direction, 0, -1);
     action_info.chara->effect_man->SetValue(0, 0.0f, -1, -1);
@@ -1706,7 +1839,7 @@ int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc) {
     CColPrim *prim = ColPrimMan.GetPrim();
 
     if (prim != NULL) {
-        prim->SetDamage(at_1450__2, 0);
+        prim->SetDamage("\x83\x82\x83j\x83J\x96\x82\x96@", 0);
         prim->damage = info->GetMagicSwordPow();
         prim->element[info->GetMagicSwordElem()] = 100;
         prim->element[info->GetMagicSwordElem()] = 100;
@@ -1720,13 +1853,6 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
     float position[4];
     float target_pos[4];
     float direction[4];
-    CanonObjectNames canon;
-    float rocket_target[4];
-    float missile_target[4];
-    float laser_target[4];
-    float beam_target[4];
-    int whp[2];
-    float beam_offset[4];
 
     CBattleCharaInfo *info = GetBattleCharaInfo();
     int left = GetStackInt(stack);
@@ -1742,15 +1868,15 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
     if (attack_type != 40) {
         if (attack_type == 90) {
             if (left != 0) {
-                muzzle = action_info.chara->SearchObject(at_1725__2);
+                muzzle = action_info.chara->SearchObject("dcol01");
             } else {
-                muzzle = action_info.chara->SearchObject(at_1726);
+                muzzle = action_info.chara->SearchObject("dcol00");
             }
         } else if (sw != 0) {
-            muzzle = action_info.chara->SearchObject(at_1726);
+            muzzle = action_info.chara->SearchObject("dcol00");
             sw = 0;
         } else {
-            muzzle = action_info.chara->SearchObject(at_1725__2);
+            muzzle = action_info.chara->SearchObject("dcol01");
             sw = 1;
         }
         if (muzzle == NULL) {
@@ -1758,7 +1884,10 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
         }
         muzzle->GetWorldPosition0(position);
     } else {
-        canon = at_1645__2;
+        CanonObjectNames canon = {{{"dcol_rf00", "dcol_rf01"},
+                                   {"dcol_lf00", "dcol_lf01"},
+                                   {"dcol_rb00", "dcol_rb01"},
+                                   {"dcol_lb00", "dcol_lb01"}}};
         muzzle = action_info.chara->SearchObject(canon.name[canon_slot][0]);
         barrel = action_info.chara->SearchObject(canon.name[canon_slot][1]);
         canon_slot++;
@@ -1771,6 +1900,12 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
         muzzle->GetWorldPosition0(position);
         barrel->GetWorldPosition0(target_pos);
     }
+    float rocket_target[4];
+    float missile_target[4];
+    float laser_target[4];
+    float beam_target[4];
+    int whp[2];
+    float beam_offset[4];
     sceVu0CopyVector(direction, action_info.chara->front_vec);
     info->GetNowWhp(1, whp);
     if (whp[0] > 0) {
@@ -1787,7 +1922,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
                 CColPrim *prim = ColPrimMan.GetPrim();
                 int col_prim_id = -1;
                 if (prim != NULL) {
-                    prim->SetDamage(at_1727, 0);
+                    prim->SetDamage("\x83\x8D\x83{\x83L\x83\x83\x83m\x83\x93", 0);
                     prim->SetCoord(position, 10.0f);
                     SetDamageParam(prim, 1);
                     col_prim_id = prim->id;
@@ -1798,7 +1933,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
             }
         }
         if (attack_type == 30) {
-            ShotMachineGun(position, direction, at_1728__2, 500.0f);
+            ShotMachineGun(position, direction, "\x83\x8D\x83{\x83}\x83V\x83\x93\x83K\x83\x93", 500.0f);
             static int cnt = 0;
             cnt++;
             if (cnt > 2) {
@@ -1822,7 +1957,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
                 CColPrim *prim = ColPrimMan.GetPrim();
                 int col_prim_id = -1;
                 if (prim != NULL) {
-                    prim->SetDamage(at_1729__2, 0);
+                    prim->SetDamage("\x83\x8D\x83{\x83\x89\x83\x93\x83`\x83\x83", 0);
                     prim->SetCoord(position, 5.0f);
                     SetDamageParam(prim, 1);
                     col_prim_id = prim->id;
@@ -1845,7 +1980,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
                 CColPrim *prim = ColPrimMan.GetPrim();
                 int col_prim_id = -1;
                 if (prim != NULL) {
-                    prim->SetDamage(at_1730__2, 0);
+                    prim->SetDamage("\x83\x8D\x83{\x83\x8C\x81[\x83U\x81[", 0);
                     prim->SetCoord(position, 5.0f);
                     SetDamageParam(prim, 1);
                     col_prim_id = prim->id;
@@ -1853,7 +1988,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
                     sndSePlay(action_info.chara->sound_info.se_bank, 7, 0);
                 }
                 laser->col_prim_id = col_prim_id;
-                action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
+                action_info.chara->effect_man->CreateEffSpt("\x83}\x83Y\x83\x8B\x83t\x83\x89\x83" "b\x83V\x83\x85", 0, 0);
                 action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
                 action_info.chara->effect_man->SetValue(0, 1, 0, -1);
                 action_info.chara->effect_man->SetValue(1, 0.0f, 0, -1);
@@ -1876,14 +2011,14 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
                 CColPrim *prim = ColPrimMan.GetPrim();
                 int col_prim_id = -1;
                 if (prim != NULL) {
-                    prim->SetDamage(at_1730__2, 0);
+                    prim->SetDamage("\x83\x8D\x83{\x83\x8C\x81[\x83U\x81[", 0);
                     prim->SetCoord(position, 5.0f);
                     SetDamageParam(prim, 1);
                     col_prim_id = prim->id;
                     calcWeaponParam2(1, prim->param->hit_count);
                 }
                 laser->col_prim_id = col_prim_id;
-                action_info.chara->effect_man->CreateEffSpt(at_1460__3, 0, 0);
+                action_info.chara->effect_man->CreateEffSpt("\x83}\x83Y\x83\x8B\x83t\x83\x89\x83" "b\x83V\x83\x85", 0, 0);
                 action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
                 action_info.chara->effect_man->SetValue(0, 1, 0, -1);
                 action_info.chara->effect_man->SetValue(1, 128.0f, 0, -1);
@@ -2011,7 +2146,7 @@ int _GET_RING_COLOR(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    RingColors colors = at_1774;
+    RingColors colors = {{{255, 64, 64}, {128, 255, 255}, {128, 64, 255}, {96, 255, 160}}};
     SetStack(stack++, colors.rgb[type][0]);
     SetStack(stack++, colors.rgb[type][1]);
     SetStack(stack, colors.rgb[type][2]);
@@ -2413,11 +2548,10 @@ static int _ESM_SET_VALUE(RS_STACKDATA *stack, int argc) {
  *
  */
 int SetActionScript(CRunScript *script, char *program, mgCMemory *memory) {
-    int stack = (int) memory->Alloc(0x40);
-    int call_data = (int) memory->Alloc(0x180);
-    script->load((RS_PROG_HEADER *) program, (RS_STACKDATA *) stack, 0x80, (RS_CALLDATA *) call_data,
-                 0x200);
-    script->ext_func(ext_func__3, 0x100);
+    RS_STACKDATA *stack = (RS_STACKDATA *) memory->Alloc(0x40);
+    RS_CALLDATA  *call_data = (RS_CALLDATA *) memory->Alloc(0x180);
+    script->load((RS_PROG_HEADER *) program, stack, 0x80, call_data, 0x200);
+    script->ext_func(ext_func, 0x100);
     return 1;
 }
 
@@ -2431,11 +2565,11 @@ void SetActionExtendTable() {
     int j;
 
     for (i = 0; i < 256; i++) {
-        ext_func__3[i] = NULL;
+        ext_func[i] = NULL;
     }
 
     for (i = 0;; i++) {
-        if (ext_func_info__3[i].func == NULL) {
+        if (ext_func_info[i].func == NULL) {
             break;
         }
 
@@ -2443,8 +2577,8 @@ void SetActionExtendTable() {
             j = 0;
 
             do {
-                if (ext_func_info__3[i].no == ext_func_info__3[j].no) {
-                    printf(at_2004__4);
+                if (ext_func_info[i].no == ext_func_info[j].no) {
+                    printf("chr]same ext_func_no!!!\n");
 
                     while (1) {
                     }
@@ -2454,10 +2588,10 @@ void SetActionExtendTable() {
             } while (j < i);
         }
 
-        if (ext_func_info__3[i].no < 0 || ext_func_info__3[i].no >= 256) {
-            printf(at_2005__3);
+        if (ext_func_info[i].no < 0 || ext_func_info[i].no >= 256) {
+            printf("ext func over!!");
         } else {
-            ext_func__3[ext_func_info__3[i].no] = ext_func_info__3[i].func;
+            ext_func[ext_func_info[i].no] = ext_func_info[i].func;
         }
     }
 }
@@ -2475,60 +2609,3 @@ void ParabolicInitialVector(float *result, float *from, float *to, float gravity
     result[3] = 1.0f;
     result[1] *= -1.0f;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1181__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1417__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1597__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1645__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1774__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", ext_func_info__3__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1118__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1202__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1211__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1304__7__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1450__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1458__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1459__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1460__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1487__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1517__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1579__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1580__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1581__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1593__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1594__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1595__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1596__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1637__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1638__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1639__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1640__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1641__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1642__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1643__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1644__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1725__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1726__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1727__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1728__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1729__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1730__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_2004__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_2005__3__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(nowScene__2, 0x4);
-INCLUDE_BSS(LastCInfo2__2, 0x4);
-INCLUDE_BSS(sw_1617, 0x4);
-INCLUDE_BSS(init_1618, 0x4);
-INCLUDE_BSS(canon_slot_1620, 0x4);
-INCLUDE_BSS(init_1621, 0x4);
-INCLUDE_BSS(cnt_1661, 0x4);
-INCLUDE_BSS(init_1662, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(action_info, 0x10);
-INCLUDE_BSS(ext_func__3, 0x400);

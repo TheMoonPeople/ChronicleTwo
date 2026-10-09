@@ -46,34 +46,23 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "userdata.hpp"
-extern CScene        *nowScene;
-extern ACTION_DAMAGE *LastCInfo2;
-extern int (*ext_func[256])(RS_STACKDATA *, int);
 
 /**
- *
- * Script vector viewed as four floats or a quadword.
- *
+ * Scene used by the active monster's script callbacks.
  */
-union ScriptVector {
-    float     f[4]; /**< Floating point components. */
-    u_long128 qw;   /**< The same components as one quadword. */
-};
+static CScene *nowScene;
 
-extern ScriptVector    at_1480__2;
-extern ScriptVector    at_1481__2;
-extern ScriptVector    at_1864;
-extern ScriptVector    at_2160;
-extern RS_EXTFUNC_INFO ext_func_info[];
-extern char            at_1728[23];
-extern char            at_1733[22];
-extern char            at_1784[];
-extern char            at_2398__2[];
-extern char            at_2399[];
-extern char            at_2580[17];
-extern char            at_2787[13];
-extern char            at_3078[];
-extern char            at_3079[];
+CActiveMonster *nowMonster;
+
+/**
+ * Damage entry returned by the most recent monster damage callback.
+ */
+static ACTION_DAMAGE *LastCInfo2;
+
+/**
+ * Monster script callback dispatch table indexed by external function number.
+ */
+static int (*ext_func[RS_MONSTER_EXT_LIMIT])(RS_STACKDATA *, int);
 
 /**
  *
@@ -117,7 +106,7 @@ void CMonsterMan::RunScript(int index) {
  *
  */
 static int GetStackInt(RS_STACKDATA *stack) {
-    if (stack->type == 1) {
+    if (stack->type == RS_FLOAT) {
         return (int) stack->val.f;
     }
 
@@ -130,11 +119,11 @@ static int GetStackInt(RS_STACKDATA *stack) {
  *
  */
 static float GetStackFloat(RS_STACKDATA *stack) {
-    if (stack->type == 0) {
+    if (stack->type == RS_INT) {
         return (float) stack->val.i;
     }
 
-    return *(float *) &stack->val.i;
+    return stack->val.f;
 }
 
 /**
@@ -143,7 +132,7 @@ static float GetStackFloat(RS_STACKDATA *stack) {
  *
  */
 static char *GetStackString(RS_STACKDATA *stack) {
-    return (char *) stack->val.i;
+    return stack->val.s;
 }
 
 /**
@@ -152,8 +141,8 @@ static char *GetStackString(RS_STACKDATA *stack) {
  *
  */
 static void SetStack(RS_STACKDATA *stack, int value) {
-    if (stack->type == 3) {
-        ((RS_STACKDATA *) stack->val.i)->val.i = value;
+    if (stack->type == RS_PTR) {
+        stack->val.p->val.i = value;
     }
 }
 
@@ -163,8 +152,8 @@ static void SetStack(RS_STACKDATA *stack, int value) {
  *
  */
 static void SetStack(RS_STACKDATA *stack, float value) {
-    if (stack->type == 3) {
-        *(float *) &((RS_STACKDATA *) stack->val.i)->val.i = value;
+    if (stack->type == RS_PTR) {
+        stack->val.p->val.f = value;
     }
 }
 
@@ -513,7 +502,7 @@ int _SET_SCALE(RS_STACKDATA *stack, int argc) {
     scale[1] = GetStackFloat(stack++);
     scale[2] = GetStackFloat(stack);
     scale[3] = 1.0f;
-    ((CActionChara *) nowMonster)->SetScale(scale);
+    nowMonster->SetScale(scale);
     return 1;
 }
 
@@ -840,15 +829,15 @@ int _CALC_MOVE_NEXT_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 int _GET_MONSTER_LIFE(RS_STACKDATA *stack, int argc) {
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
 
-    RS_STACKDATA *slot = (RS_STACKDATA *) stack->val.i;
+    RS_STACKDATA *slot = stack->val.p;
 
-    if (slot->type == 0) {
+    if (slot->type == RS_INT) {
         SetStack(stack, nowMonster->life);
-    } else if (slot->type == 1) {
+    } else if (slot->type == RS_FLOAT) {
         SetStack(stack, (float) nowMonster->life / (float) nowMonster->max_life);
     } else {
         return 0;
@@ -1065,13 +1054,13 @@ int _SET_DAMAGE_SCORE(RS_STACKDATA *stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = (CActionChara *) ActiveMonster->active[id];
+        monster = ActiveMonster->active[id];
 
         if (monster == NULL) {
             return 0;
         }
     } else {
-        monster = (CActionChara *) nowMonster;
+        monster = nowMonster;
     }
 
     value = GetStackInt(stack++);
@@ -1320,7 +1309,7 @@ int _MY_SE_PLAY(RS_STACKDATA *stack, int argc) {
     float pan;
     int   se_id = GetStackInt(stack);
     u32   se_handle = nowMonster->sound_info.se_bank;
-    ((CActionChara *) nowMonster)->GetPosition(pos);
+    nowMonster->GetPosition(pos);
 
     float far = 1200.0f;
     float near = 160.0f;
@@ -1379,25 +1368,22 @@ int _ESM_ALL_CLEAR(RS_STACKDATA *stack, int argc) {
  *
  */
 int _GET_ANGLE_INNER(RS_STACKDATA *stack, int argc) {
-    ScriptVector first;
-    ScriptVector second;
-    float        matrix[4][4];
-    float        rotated[4][4];
-
     if (argc != 3) {
         return 0;
     }
 
     float angle_a = GetStackFloat(stack++);
     float angle_b = GetStackFloat(stack++);
-    first = at_1480__2;
-    second = at_1481__2;
+    sceVu0FVECTOR first = {0.0f, 0.0f, 1.0f, 0.0f};
+    sceVu0FVECTOR second = {0.0f, 0.0f, 1.0f, 0.0f};
+    float matrix[4][4];
+    float rotated[4][4];
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(rotated, matrix, angle_a);
-    sceVu0ApplyMatrix(first.f, rotated, first.f);
+    sceVu0ApplyMatrix(first, rotated, first);
     sceVu0RotMatrixY(rotated, matrix, angle_b);
-    sceVu0ApplyMatrix(second.f, rotated, second.f);
-    SetStack(stack, sceVu0InnerProduct(first.f, second.f));
+    sceVu0ApplyMatrix(second, rotated, second);
+    SetStack(stack, sceVu0InnerProduct(first, second));
     return 1;
 }
 
@@ -1696,13 +1682,13 @@ int _V_POP(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
 
-    RS_STACKDATA *slot = (RS_STACKDATA *) stack->val.i;
+    RS_STACKDATA *slot = stack->val.p;
 
-    if (slot->type == 0) {
+    if (slot->type == RS_INT) {
         if (index < MONSTER_VAR_MAX) {
             ScriptVariable *vars = nowMonster->var;
             SetStack(stack, vars[index].i);
@@ -1714,7 +1700,7 @@ int _V_POP(RS_STACKDATA *stack, int argc) {
         }
 
         return 1;
-    } else if (slot->type == 1) {
+    } else if (slot->type == RS_FLOAT) {
         if (index < MONSTER_VAR_MAX) {
             ScriptVariable *vars = nowMonster->var;
             SetStack(stack, vars[index].f);
@@ -1788,13 +1774,13 @@ int _V_POP2(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if (stack->type != 3) {
+    if (stack->type != RS_PTR) {
         return 0;
     }
 
-    RS_STACKDATA *slot = (RS_STACKDATA *) stack->val.i;
+    RS_STACKDATA *slot = stack->val.p;
 
-    if (slot->type == 0) {
+    if (slot->type == RS_INT) {
         if (index < MONSTER_VAR2_MAX) {
             ScriptVariable *vars = nowMonster->var2;
             SetStack(stack, vars[index].i);
@@ -1803,7 +1789,7 @@ int _V_POP2(RS_STACKDATA *stack, int argc) {
         }
 
         return 1;
-    } else if (slot->type == 1) {
+    } else if (slot->type == RS_FLOAT) {
         if (index < MONSTER_VAR2_MAX) {
             ScriptVariable *vars = nowMonster->var2;
             SetStack(stack, vars[index].f);
@@ -1863,7 +1849,7 @@ int _GET_DIST(RS_STACKDATA *stack, int argc) {
     target[0] = GetStackFloat(stack++);
     target[1] = GetStackFloat(stack++);
     target[2] = GetStackFloat(stack++);
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     SetStack(stack, mgDistVector(target, self_pos));
     return 1;
 }
@@ -1880,7 +1866,7 @@ int _SET_OBJ(RS_STACKDATA *stack, int argc) {
 
     int   index = GetStackInt(stack++);
     char *name = GetStackString(stack);
-    return ((CActionChara *) nowMonster)->EntryObject(name, index) != 0;
+    return nowMonster->EntryObject(name, index) != 0;
 }
 
 /**
@@ -1889,7 +1875,7 @@ int _SET_OBJ(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SET_BODY(RS_STACKDATA *stack, int argc) {
-    printf(at_1728);
+    printf("NOT FOUND (_SET_BODY)\n");
     return 1;
 }
 
@@ -1899,7 +1885,7 @@ int _SET_BODY(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SET_DMG(RS_STACKDATA *stack, int argc) {
-    printf(at_1733);
+    printf("NOT FOUND (_SET_DMG)\n");
     return 1;
 }
 
@@ -1926,7 +1912,7 @@ int _SET_DMG2(RS_STACKDATA *stack, int argc) {
     }
 
     frame_b = NULL;
-    object = ((CCharacter2 *) nowMonster)->GetEntryObjectPos(3, index_a, pos);
+    object = nowMonster->GetEntryObjectPos(3, index_a, pos);
 
     if (object == NULL) {
         return 0;
@@ -1939,16 +1925,14 @@ int _SET_DMG2(RS_STACKDATA *stack, int argc) {
     }
 
     if (index_b >= 0) {
-        object = ((CCharacter2 *) nowMonster)->GetEntryObjectPos(3, index_b, pos);
+        object = nowMonster->GetEntryObjectPos(3, index_b, pos);
 
         if (object != NULL) {
             frame_b = object->frame;
         }
     }
 
-    LastCInfo2 =
-        ((CActionChara *) nowMonster)
-            ->EntryDamage2(frame_a, frame_b, hit_name, power, motion, start_ratio, end_ratio, NULL);
+    LastCInfo2 = nowMonster->EntryDamage2(frame_a, frame_b, hit_name, power, motion, start_ratio, end_ratio, NULL);
     return LastCInfo2 != NULL;
 }
 
@@ -1976,13 +1960,13 @@ int _GET_OBJ_POS(RS_STACKDATA *stack, int argc) {
     }
 
     if (argc == 5) {
-        chara = ((CActionChara *) nowMonster)->SearchChara(chara_name);
+        chara = nowMonster->SearchChara(chara_name);
 
         if (chara != NULL) {
             object = chara->SearchObject(object_name);
         }
     } else {
-        object = ((CActionChara *) nowMonster)->SearchObject(object_name);
+        object = nowMonster->SearchObject(object_name);
     }
 
     if (object == NULL) {
@@ -2020,7 +2004,7 @@ int _GET_MAPOBJ_POS(RS_STACKDATA *stack, int argc) {
     mgCFrame *frame = piece->frame->SearchFrame(name);
 
     if (frame == NULL) {
-        printf(at_1784);
+        printf("ERR\n");
     }
 
     if (frame == NULL) {
@@ -2050,8 +2034,7 @@ int _LINK_MAP_TO_OBJECT(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    nowMonster->link_parts =
-        (CMapParts *) DngMainMap->GetPlaceParts(GetStackString(stack));
+    nowMonster->link_parts = DngMainMap->GetPlaceParts(GetStackString(stack));
 
     if (nowMonster->link_parts == NULL) {
         return 0;
@@ -2077,7 +2060,7 @@ int _LINK_OBJECT_TO_PIECE(RS_STACKDATA *stack, int argc) {
 
     char *part_name = GetStackString(stack++);
     char *piece_name = GetStackString(stack);
-    nowMonster->link_parts = (CMapParts *) DngMainMap->GetPlaceParts(part_name);
+    nowMonster->link_parts = DngMainMap->GetPlaceParts(part_name);
 
     if (nowMonster->link_parts == NULL) {
         return 0;
@@ -2141,13 +2124,13 @@ int _LOAD_RESERV_IMG(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    mgCMemory *memory = (mgCMemory *) nowScene->GetStack(3);
+    mgCMemory *memory = nowScene->GetStack(3);
 
     if (memory == NULL) {
         return 0;
     }
 
-    void *image = (void *) memory->Alloc(file_size / 16 + 1);
+    void *image = memory->Alloc(file_size / 16 + 1);
 
     if (image == NULL) {
         return 0;
@@ -2217,29 +2200,27 @@ int _SET_PLACE_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SEARCH_AREA(RS_STACKDATA *stack, int argc) {
-    ScriptVector dir;
-    float        pos[4];
-    float        rot[4];
-    float        matrix[4][4];
-
     if (argc != 3) {
         return 0;
     }
 
     float distance = GetStackFloat(stack++);
     float angle = GetStackFloat(stack++);
-    dir = at_1864;
-    ((CActionChara *) nowMonster)->GetPosition(pos);
-    ((CActionChara *) nowMonster)->GetRotation(rot);
+    sceVu0FVECTOR dir = {0.0f, 0.0f, 1.0f, 0.0f};
+    float pos[4];
+    float rot[4];
+    float matrix[4][4];
+    nowMonster->GetPosition(pos);
+    nowMonster->GetRotation(rot);
     rot[1] = mgAngleLimit(rot[1] + angle);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, rot[1]);
-    sceVu0ApplyMatrix(dir.f, matrix, dir.f);
-    sceVu0ScaleVector(dir.f, dir.f, distance);
-    sceVu0AddVector(dir.f, dir.f, pos);
+    sceVu0ApplyMatrix(dir, matrix, dir);
+    sceVu0ScaleVector(dir, dir, distance);
+    sceVu0AddVector(dir, dir, pos);
     pos[1] += 100.0f;
-    dir.f[1] += 100.0f;
-    SetStack(stack, SearchArea(nowScene, pos, dir.f, distance));
+    dir[1] += 100.0f;
+    SetStack(stack, SearchArea(nowScene, pos, dir, distance));
     return 1;
 }
 
@@ -2388,7 +2369,7 @@ int _GET_POS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    ((CActionChara *) nowMonster)->GetPosition(pos);
+    nowMonster->GetPosition(pos);
     SetStack(stack++, pos[0]);
     SetStack(stack++, pos[1]);
     SetStack(stack, pos[2]);
@@ -2408,7 +2389,7 @@ int _SET_POS(RS_STACKDATA *stack, int argc) {
     float x = GetStackFloat(stack++);
     float y = GetStackFloat(stack++);
     float z = GetStackFloat(stack);
-    ((CActionChara *) nowMonster)->SetPosition(x, y, z);
+    nowMonster->SetPosition(x, y, z);
     return 1;
 }
 
@@ -2434,7 +2415,7 @@ int _GET_ROT(RS_STACKDATA *stack, int argc) {
 
         chara->GetRotation(rot);
     } else {
-        ((CActionChara *) nowMonster)->GetRotation(rot);
+        nowMonster->GetRotation(rot);
     }
 
     SetStack(stack++, rot[0]);
@@ -2456,7 +2437,7 @@ int _SET_ROT(RS_STACKDATA *stack, int argc) {
     float x = GetStackFloat(stack++);
     float y = GetStackFloat(stack++);
     float z = GetStackFloat(stack);
-    ((CActionChara *) nowMonster)->SetRotation(x, y, z);
+    nowMonster->SetRotation(x, y, z);
     nowMonster->rot_speed = 0.0f;
     return 1;
 }
@@ -2502,7 +2483,7 @@ int _SET_NEXT_POS(RS_STACKDATA *stack, int argc) {
         nowMonster->arrive_dist = GetStackFloat(stack);
     }
 
-    ((CActionChara *) nowMonster)->GetPosition(pos);
+    nowMonster->GetPosition(pos);
 
     if (mgDistVector(target, pos) < nowMonster->arrive_dist) {
         nowMonster->move_speed = 0.0f;
@@ -2525,7 +2506,7 @@ int _CHK_MOVE_END(RS_STACKDATA *stack, int argc) {
     }
 
     arrived = 0;
-    ((CActionChara *) nowMonster)->GetPosition(pos);
+    nowMonster->GetPosition(pos);
 
     if (mgDistVector(pos, nowMonster->next_pos) < nowMonster->arrive_dist) {
         arrived = 1;
@@ -2570,7 +2551,7 @@ int _GET_TARGET_POS(RS_STACKDATA *stack, int argc) {
     SetStack(stack++, pos[2]);
 
     if (argc == 4) {
-        ((CActionChara *) nowMonster)->GetPosition(self_pos);
+        nowMonster->GetPosition(self_pos);
         SetStack(stack, mgDistVector(self_pos, pos));
     }
 
@@ -2597,7 +2578,7 @@ int _GET_TARGET_DIST(RS_STACKDATA *stack, int argc) {
     }
 
     target->GetPosition(target_pos);
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     SetStack(stack, mgDistVector(target_pos, self_pos));
     return 1;
 }
@@ -2622,7 +2603,7 @@ int _GET_TARGET_ANGLE(RS_STACKDATA *stack, int argc) {
     }
 
     target->GetPosition(delta);
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     sceVu0SubVector(delta, delta, self_pos);
     SetStack(stack, atan2f(delta[0], delta[2]));
     return 1;
@@ -2744,7 +2725,7 @@ int _GET_REFANGLE_POS(RS_STACKDATA *stack, int argc) {
 
     float angle = GetStackFloat(stack++);
     float distance = GetStackFloat(stack++);
-    ((CActionChara *) nowMonster)->GetPosition(pos);
+    nowMonster->GetPosition(pos);
     sceVu0CopyVector(offset, nowMonster->front_vec);
     sceVu0Normalize(offset, offset);
     sceVu0UnitMatrix(matrix);
@@ -2775,7 +2756,7 @@ int _GET_REF_ANGLE(RS_STACKDATA *stack, int argc) {
     target[1] = GetStackFloat(stack++);
     target[2] = GetStackFloat(stack++);
     target[3] = 1.0f;
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     sceVu0SubVector(target, target, self_pos);
     SetStack(stack, atan2f(target[0], target[2]));
     return 1;
@@ -2818,7 +2799,7 @@ int _GET_ACTIVE_MONS_POS(RS_STACKDATA *stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *monster = (CActionChara *) ActiveMonster->active[id];
+    CActionChara *monster = ActiveMonster->active[id];
 
     if (monster == NULL) {
         return 0;
@@ -2830,7 +2811,7 @@ int _GET_ACTIVE_MONS_POS(RS_STACKDATA *stack, int argc) {
     SetStack(stack++, pos[2]);
 
     if (argc == 5) {
-        ((CActionChara *) nowMonster)->GetPosition(self_pos);
+        nowMonster->GetPosition(self_pos);
         SetStack(stack, mgDistVector(pos, self_pos));
     }
 
@@ -2851,7 +2832,7 @@ int _GET_ACTIVE_MONS_ROT(RS_STACKDATA *stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *monster = (CActionChara *) ActiveMonster->active[id];
+    CActionChara *monster = ActiveMonster->active[id];
 
     if (monster == NULL) {
         return 0;
@@ -2879,13 +2860,13 @@ int _GET_ACTIVE_MONS_DIST(RS_STACKDATA *stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *other = (CActionChara *) ActiveMonster->active[id];
+    CActionChara *other = ActiveMonster->active[id];
 
     if (other == NULL) {
         return 0;
     }
 
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     other->GetPosition(other_pos);
     SetStack(stack, mgDistVector(other_pos, self_pos));
     return 1;
@@ -2905,7 +2886,7 @@ int _GET_ACTIVE_MONS_ANGLE(RS_STACKDATA *stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *monster = (CActionChara *) ActiveMonster->active[id];
+    CActionChara *monster = ActiveMonster->active[id];
 
     if (monster == NULL) {
         return 0;
@@ -2931,7 +2912,7 @@ int _GET_REF_ROT(RS_STACKDATA *stack, int argc) {
     }
 
     GetStackVector(target, &stack);
-    ((CActionChara *) nowMonster)->GetPosition(self_pos);
+    nowMonster->GetPosition(self_pos);
     sceVu0SubVector(target, target, self_pos);
     sceVu0Normalize(target, target);
     rot[1] = atan2f(target[0], target[2]);
@@ -2978,27 +2959,25 @@ int _GET_REF_ROT2(RS_STACKDATA *stack, int argc) {
  *
  */
 int _FLYING_SEARCH_AREA(RS_STACKDATA *stack, int argc) {
-    ScriptVector dir;
-    float        pos[4];
-    float        rot[4];
-    float        matrix[4][4];
-
     if (argc != 3) {
         return 0;
     }
 
     float distance = GetStackFloat(stack++);
     float angle = GetStackFloat(stack++);
-    dir = at_2160;
-    ((CActionChara *) nowMonster)->GetPosition(pos);
-    ((CActionChara *) nowMonster)->GetRotation(rot);
+    sceVu0FVECTOR dir = {0.0f, 0.0f, 1.0f, 0.0f};
+    float pos[4];
+    float rot[4];
+    float matrix[4][4];
+    nowMonster->GetPosition(pos);
+    nowMonster->GetRotation(rot);
     rot[1] = mgAngleLimit(angle);
     sceVu0UnitMatrix(matrix);
     sceVu0RotMatrixY(matrix, matrix, rot[1]);
-    sceVu0ApplyMatrix(dir.f, matrix, dir.f);
-    sceVu0ScaleVector(dir.f, dir.f, distance);
-    sceVu0AddVector(dir.f, dir.f, pos);
-    SetStack(stack, SearchArea(nowScene, pos, dir.f, distance));
+    sceVu0ApplyMatrix(dir, matrix, dir);
+    sceVu0ScaleVector(dir, dir, distance);
+    sceVu0AddVector(dir, dir, pos);
+    SetStack(stack, SearchArea(nowScene, pos, dir, distance));
     return 1;
 }
 
@@ -3134,13 +3113,13 @@ int _GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc) {
     if (id != -1) {
         id -= 24;
         CActiveMonster **slots = ActiveMonster->active;
-        monster = (CCharacter2 *) ActiveMonster->active[id];
+        monster = ActiveMonster->active[id];
 
         if (monster == NULL) {
             return 0;
         }
     } else {
-        monster = (CCharacter2 *) nowMonster;
+        monster = nowMonster;
     }
 
     monster->GetEntryObjectPos(entry_index, pos);
@@ -3190,7 +3169,7 @@ int _SET_INT_FLAG(RS_STACKDATA *stack, int argc) {
     }
 
     int flag = GetStackInt(stack++);
-    ((CActionChara *) nowMonster)->SetMaskFlag(flag, GetStackInt(stack));
+    nowMonster->SetMaskFlag(flag, GetStackInt(stack));
     return 1;
 }
 
@@ -3353,6 +3332,10 @@ int _SET_DEAD_START(RS_STACKDATA *args, int argc) {
     sndSePlay(nowScene->se_battle_id, 1, 0);
     return 1;
 }
+
+/**
+ * Creates monster death effects and weapon experience pickups.
+ */
 int _SET_DEAD_OFF(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR position;
     sceVu0FVECTOR velocity;
@@ -3453,6 +3436,7 @@ int _SET_DEAD_OFF(RS_STACKDATA *args, int argc) {
     sndSePlay(nowScene->se_battle_id, 20, 0);
     return 1;
 }
+
 /**
  *
  * Clears the monster catch state when its throw ends.
@@ -3498,10 +3482,10 @@ int _SET_MOS(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    ((CActionChara *) nowMonster)->SetMotion(name, flag, 1);
+    nowMonster->SetMotion(name, flag, 1);
 
     if (step > 0.0f) {
-        ((CActionChara *) nowMonster)->SetStep(step);
+        nowMonster->SetStep(step);
     }
 
     return 1;
@@ -3517,7 +3501,7 @@ int _CHECK_MOS_END(RS_STACKDATA *stack, int argc) {
     char *name;
 
     if (argc == 1) {
-        result = ((CActionChara *) nowMonster)->CheckMotionEnd(0);
+        result = nowMonster->CheckMotionEnd(0);
     }
 
     if (argc == 2) {
@@ -3527,7 +3511,7 @@ int _CHECK_MOS_END(RS_STACKDATA *stack, int argc) {
             return 0;
         }
 
-        result = ((CActionChara *) nowMonster)->CheckMotionEnd(name);
+        result = nowMonster->CheckMotionEnd(name);
     }
 
     SetStack(stack, result);
@@ -3543,7 +3527,7 @@ int _NOW_MOS_WAIT(RS_STACKDATA *stack, int argc) {
     float wait;
 
     if (argc == 1) {
-        wait = ((CActionChara *) nowMonster)->GetNowFrameWait(NULL);
+        wait = nowMonster->GetNowFrameWait(NULL);
     }
 
     if (argc == 2) {
@@ -3553,7 +3537,7 @@ int _NOW_MOS_WAIT(RS_STACKDATA *stack, int argc) {
             return 0;
         }
 
-        wait = ((CActionChara *) nowMonster)->GetNowFrameWait(name);
+        wait = nowMonster->GetNowFrameWait(name);
     }
 
     SetStack(stack, wait);
@@ -3758,7 +3742,7 @@ int _GET_SCALE(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    ((CActionChara *) nowMonster)->GetScale(scale);
+    nowMonster->GetScale(scale);
     SetStackVector(scale, &stack);
     return 1;
 }
@@ -3811,10 +3795,9 @@ int _ESM_CREATE(RS_STACKDATA *stack, int argc) {
  * Sets an effect script program for this monster effect slot.
  *
  */
-void _ESM_FINISH(RS_STACKDATA *stack, int argc) {
+int _ESM_FINISH(RS_STACKDATA *stack, int argc) {
     int effect_id = nowMonster->chara_type;
-    ActiveMonster->effect_man->SetScriptProgNo(300, effect_id,
-                                               GetStackInt(stack));
+    return ActiveMonster->effect_man->SetScriptProgNo(300, effect_id, GetStackInt(stack));
 }
 
 /**
@@ -3822,10 +3805,14 @@ void _ESM_FINISH(RS_STACKDATA *stack, int argc) {
  * Deletes an effect from this monster effect slot.
  *
  */
-void _ESM_DELETE(RS_STACKDATA *stack, int argc) {
+int _ESM_DELETE(RS_STACKDATA *stack, int argc) {
     int effect_id = nowMonster->chara_type;
-    ActiveMonster->effect_man->DeleteEffSpt(effect_id, GetStackInt(stack));
+    return ActiveMonster->effect_man->DeleteEffSpt(effect_id, GetStackInt(stack));
 }
+
+/**
+ * Sets the first effect script vector for this monster.
+ */
 int _ESM_SET_VECT1(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
     int slot = GetStackInt(stack++);
@@ -3837,6 +3824,10 @@ int _ESM_SET_VECT1(RS_STACKDATA *stack, int argc) {
     int group = monster_type;
     return ActiveMonster->effect_man->SetScriptVect1(vector, group, slot);
 }
+
+/**
+ * Writes the first effect script vector to output slots.
+ */
 int _ESM_GET_VECT1(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
     if (argc != 4) {
@@ -3851,6 +3842,10 @@ int _ESM_GET_VECT1(RS_STACKDATA *stack, int argc) {
     SetStack(stack, vector[2]);
     return result;
 }
+
+/**
+ * Sets the second effect script vector for this monster.
+ */
 int _ESM_SET_VECT2(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
     if (argc != 4) {
@@ -3865,6 +3860,10 @@ int _ESM_SET_VECT2(RS_STACKDATA *stack, int argc) {
     int group = monster_type;
     return ActiveMonster->effect_man->SetScriptVect2(vector, group, slot);
 }
+
+/**
+ * Writes the second effect script vector to output slots.
+ */
 int _ESM_GET_VECT2(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
     if (argc != 4) {
@@ -3879,6 +3878,10 @@ int _ESM_GET_VECT2(RS_STACKDATA *stack, int argc) {
     SetStack(stack, vector[2]);
     return result;
 }
+
+/**
+ * Sets an effect target identifier for this monster.
+ */
 int _ESM_SET_TARGET_ID(RS_STACKDATA *stack, int argc) {
     int slot = GetStackInt(stack++);
     int id = GetStackInt(stack);
@@ -3886,14 +3889,23 @@ int _ESM_SET_TARGET_ID(RS_STACKDATA *stack, int argc) {
     int group = monster_type;
     return ActiveMonster->effect_man->SetScriptTargetId(id, group, slot);
 }
-void _ESM_GET_TARGET_ID(RS_STACKDATA *stack, int argc) {
+
+/**
+ * Writes an effect target identifier and returns the manager lookup status.
+ */
+int _ESM_GET_TARGET_ID(RS_STACKDATA *stack, int argc) {
     int id;
     int slot = GetStackInt(stack++);
     int monster_type = nowMonster->chara_type;
     int group = monster_type;
-    ActiveMonster->effect_man->GetScriptTargetId(id, group, slot);
+    int result = ActiveMonster->effect_man->GetScriptTargetId(id, group, slot);
     SetStack(stack, id);
+    return result;
 }
+
+/**
+ * Sets an effect user identifier for this monster.
+ */
 int _ESM_SET_USER_ID(RS_STACKDATA *stack, int argc) {
     int slot = GetStackInt(stack++);
     int id = GetStackInt(stack);
@@ -3901,6 +3913,10 @@ int _ESM_SET_USER_ID(RS_STACKDATA *stack, int argc) {
     int group = monster_type;
     return ActiveMonster->effect_man->SetScriptUserId(id, group, slot);
 }
+
+/**
+ * Writes an effect user identifier to an output slot.
+ */
 int _ESM_GET_USER_ID(RS_STACKDATA *stack, int argc) {
     int id;
     int slot = GetStackInt(stack++);
@@ -3910,6 +3926,7 @@ int _ESM_GET_USER_ID(RS_STACKDATA *stack, int argc) {
     SetStack(stack, id);
     return result;
 }
+
 /**
  *
  * Sets an integer or float parameter on a monster effect slot.
@@ -3952,7 +3969,7 @@ int _LOAD_EFFECT_SCRIPT(RS_STACKDATA *stack, int argc) {
     mgCMemory *memory;
     FxScriptMan->level = 3;
     level = -1;
-    memory = (mgCMemory *) nowScene->GetStack(3);
+    memory = nowScene->GetStack(3);
 
     switch (stack->type) {
         case 0: {
@@ -4000,7 +4017,7 @@ int _SW_EFFECT(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    ACTION_SW_EFFECT *effect = ((CActionChara *) nowMonster)->GetSwEffectPtr();
+    ACTION_SW_EFFECT *effect = nowMonster->GetSwEffectPtr();
 
     if (effect == NULL) {
         return 0;
@@ -4319,7 +4336,7 @@ int _GET_STS_ATTR(RS_STACKDATA *stack, int argument_count) {
  */
 int _SET_PIYORI_MARK(RS_STACKDATA *stack, int argument_count) {
     nowMonster->piyori_mark = nowMonster->piyori_time;
-    nowMonster->piyori.Set((mgCObject *) nowMonster, nowMonster->piyori_mark);
+    nowMonster->piyori.Set(nowMonster, nowMonster->piyori_mark);
     return 1;
 }
 
@@ -4574,7 +4591,7 @@ int _SET_MAPOBJ_SHOW(RS_STACKDATA *stack, int argument_count) {
     show = GetStackInt(stack);
 
     for (i = 0; i < map_count; i++) {
-        parts = (CMapParts *) maps[i]->GetPlaceParts(parts_name);
+        parts = maps[i]->GetPlaceParts(parts_name);
 
         if (parts != NULL) {
             break;
@@ -4611,9 +4628,189 @@ int SetMonsterScript(CRunScript *script, char *program, mgCMemory *memory) {
     RS_CALLDATA  *call_stack = (RS_CALLDATA *) memory->Alloc(0x180);
     script->load((RS_PROG_HEADER *) program, value_stack, 128, call_stack,
                  512);
-    script->ext_func(ext_func, 256);
+    script->ext_func(ext_func, RS_MONSTER_EXT_LIMIT);
     return 1;
 }
+
+/**
+ * Associates monster script function numbers with their native callbacks.
+ */
+static RS_EXTFUNC_INFO ext_func_info[] = {
+    {_NORMAL_VECTOR, RS_MONSTER_EXT_NORMAL_VECTOR},
+    {_COPY_VECTOR, RS_MONSTER_EXT_COPY_VECTOR},
+    {_ADD_VECTOR, RS_MONSTER_EXT_ADD_VECTOR},
+    {_SUB_VECTOR, RS_MONSTER_EXT_SUB_VECTOR},
+    {_SCALE_VECTOR, RS_MONSTER_EXT_SCALE_VECTOR},
+    {_DIV_VECTOR, RS_MONSTER_EXT_DIV_VECTOR},
+    {_ANGLE_CMP, RS_MONSTER_EXT_ANGLE_CMP},
+    {_ANGLE_LIMIT, RS_MONSTER_EXT_ANGLE_LIMIT},
+    {_SQRT, RS_MONSTER_EXT_SQRT},
+    {_ATAN2F, RS_MONSTER_EXT_ATAN2F},
+    {_ND_TEST, RS_MONSTER_EXT_ND_TEST},
+    {_GET_DIST_VECTOR, RS_MONSTER_EXT_GET_DIST_VECTOR},
+    {_GET_DIST_VECTOR2, RS_MONSTER_EXT_GET_DIST_VECTOR2},
+    {_CALC_IP_CIRCLE_LINE, RS_MONSTER_EXT_CALC_IP_CIRCLE_LINE},
+    {_GET_ANGLE_INNER, RS_MONSTER_EXT_GET_ANGLE_INNER},
+    {_MY_SE_PLAY, RS_MONSTER_EXT_MY_SE_PLAY},
+    {_MY_SE_STOP, RS_MONSTER_EXT_MY_SE_STOP},
+    {_MONS_SE_PLAY, RS_MONSTER_EXT_MONS_SE_PLAY},
+    {_MONS_SE_STOP, RS_MONSTER_EXT_MONS_SE_STOP},
+    {_MONS_SE_LOOP, RS_MONSTER_EXT_MONS_SE_LOOP},
+    {_SET_CAMERA_NEXT_REF, RS_MONSTER_EXT_SET_CAMERA_NEXT_REF},
+    {_SET_CAMERA_FOLLOW, RS_MONSTER_EXT_SET_CAMERA_FOLLOW},
+    {_SET_CAMERA_NEXT_POS, RS_MONSTER_EXT_SET_CAMERA_NEXT_POS},
+    {_SET_CAMERA_MODE, RS_MONSTER_EXT_SET_CAMERA_MODE},
+    {_SET_CAMERA_SPEED, RS_MONSTER_EXT_SET_CAMERA_SPEED},
+    {_CAMERA_QUAKE, RS_MONSTER_EXT_CAMERA_QUAKE},
+    {_SET_CAMERA_CTRL_PARAM1, RS_MONSTER_EXT_SET_CAMERA_CTRL_PARAM1},
+    {_SET_CAMERA_CTRL_PARAM2, RS_MONSTER_EXT_SET_CAMERA_CTRL_PARAM2},
+    {_RESET_CAMERA_CTRL_PARAM, RS_MONSTER_EXT_RESET_CAMERA_CTRL_PARAM},
+    {_GET_RND, RS_MONSTER_EXT_GET_RND},
+    {_GET_RNDF, RS_MONSTER_EXT_GET_RNDF},
+    {_V_PUSH, RS_MONSTER_EXT_V_PUSH},
+    {_V_POP, RS_MONSTER_EXT_V_POP},
+    {_GET_MONSTER_NUM, RS_MONSTER_EXT_GET_MONSTER_NUM},
+    {_GET_MONSTER_INDEX, RS_MONSTER_EXT_GET_MONSTER_INDEX},
+    {_GET_MONSTER_ID, RS_MONSTER_EXT_GET_MONSTER_ID},
+    {_GET_USERID, RS_MONSTER_EXT_GET_USERID},
+    {_GET_USER_MONS_ID, RS_MONSTER_EXT_GET_USER_MONS_ID},
+    {_RESET_TIMER, RS_MONSTER_EXT_RESET_TIMER},
+    {_GET_TIMER, RS_MONSTER_EXT_GET_TIMER},
+    {_CREATE_MONSTER, RS_MONSTER_EXT_CREATE_MONSTER},
+    {_RUN_EVENT_SCRIPT, RS_MONSTER_EXT_RUN_EVENT_SCRIPT},
+    {_GET_FRAME_POS, RS_MONSTER_EXT_GET_FRAME_POS},
+    {_GET_OBJ_POS, RS_MONSTER_EXT_GET_OBJ_POS},
+    {_GET_MAPOBJ_POS, RS_MONSTER_EXT_GET_MAPOBJ_POS},
+    {_SET_PAUSE, RS_MONSTER_EXT_SET_PAUSE},
+    {_CHECK_PAUSE, RS_MONSTER_EXT_CHECK_PAUSE},
+    {_GET_BIT_FLAG, RS_MONSTER_EXT_GET_BIT_FLAG},
+    {_SET_BIT_FLAG, RS_MONSTER_EXT_SET_BIT_FLAG},
+    {_GET_ATT_TYPE, RS_MONSTER_EXT_GET_ATT_TYPE},
+    {_GET_USER_ATTR, RS_MONSTER_EXT_GET_USER_ATTR},
+    {_TRANS_RESERV_IMG, RS_MONSTER_EXT_TRANS_RESERV_IMG},
+    {_GET_STS_ATTR, RS_MONSTER_EXT_GET_STS_ATTR},
+    {_V_PUSH2, RS_MONSTER_EXT_V_PUSH2},
+    {_V_POP2, RS_MONSTER_EXT_V_POP2},
+    {_SET_LOCKON_MODE, RS_MONSTER_EXT_SET_LOCKON_MODE},
+    {_SET_MOTION_BLUR, RS_MONSTER_EXT_SET_MOTION_BLUR},
+    {_GET_EVENT_INFO, RS_MONSTER_EXT_GET_EVENT_INFO},
+    {_MONS_VOL_CTRL, RS_MONSTER_EXT_MONS_VOL_CTRL},
+    {_GET_DIST, RS_MONSTER_EXT_GET_DIST},
+    {_SEARCH_AREA, RS_MONSTER_EXT_SEARCH_AREA},
+    {_SEARCH_AREA2, RS_MONSTER_EXT_SEARCH_AREA2},
+    {_GET_PLACE_POS, RS_MONSTER_EXT_GET_PLACE_POS},
+    {_SET_PLACE_POS, RS_MONSTER_EXT_SET_PLACE_POS},
+    {_GET_INDEX_POS, RS_MONSTER_EXT_GET_INDEX_POS},
+    {_GET_POS, RS_MONSTER_EXT_GET_POS},
+    {_SET_POS, RS_MONSTER_EXT_SET_POS},
+    {_GET_ROT, RS_MONSTER_EXT_GET_ROT},
+    {_SET_ROT, RS_MONSTER_EXT_SET_ROT},
+    {_SET_NEXT_ROT, RS_MONSTER_EXT_SET_NEXT_ROT},
+    {_SET_NEXT_POS, RS_MONSTER_EXT_SET_NEXT_POS},
+    {_CHK_MOVE_END, RS_MONSTER_EXT_CHK_MOVE_END},
+    {_RESET_MOVE, RS_MONSTER_EXT_RESET_MOVE},
+    {_GET_TARGET_POS, RS_MONSTER_EXT_GET_TARGET_POS},
+    {_GET_TARGET_DIST, RS_MONSTER_EXT_GET_TARGET_DIST},
+    {_GET_TARGET_ANGLE, RS_MONSTER_EXT_GET_TARGET_ANGLE},
+    {_GET_TARGET_REF_POS, RS_MONSTER_EXT_GET_TARGET_REF_POS},
+    {_GET_REF_DIR, RS_MONSTER_EXT_GET_REF_DIR},
+    {_GET_REFANGLE_POS, RS_MONSTER_EXT_GET_REFANGLE_POS},
+    {_GET_TARGET_ROT, RS_MONSTER_EXT_GET_TARGET_ROT},
+    {_GET_REF_ANGLE, RS_MONSTER_EXT_GET_REF_ANGLE},
+    {_GET_HIGH, RS_MONSTER_EXT_GET_HIGH},
+    {_GET_NEAR_MONS_POS, RS_MONSTER_EXT_GET_NEAR_MONS_POS},
+    {_GET_TARGET_OLD_POS, RS_MONSTER_EXT_GET_TARGET_OLD_POS},
+    {_GET_TARGET_SPEED, RS_MONSTER_EXT_GET_TARGET_SPEED},
+    {_CALC_MOVE_NEXT_POS, RS_MONSTER_EXT_CALC_MOVE_NEXT_POS},
+    {_GET_POSREF_ANGLE, RS_MONSTER_EXT_GET_POSREF_ANGLE},
+    {_GET_ACTIVE_MONS_POS, RS_MONSTER_EXT_GET_ACTIVE_MONS_POS},
+    {_GET_ACTIVE_MONS_ROT, RS_MONSTER_EXT_GET_ACTIVE_MONS_ROT},
+    {_GET_ACTIVE_MONS_DIST, RS_MONSTER_EXT_GET_ACTIVE_MONS_DIST},
+    {_GET_ACTIVE_MONS_ANGLE, RS_MONSTER_EXT_GET_ACTIVE_MONS_ANGLE},
+    {_GET_REF_ROT, RS_MONSTER_EXT_GET_REF_ROT},
+    {_GET_REF_ROT2, RS_MONSTER_EXT_GET_REF_ROT2},
+    {_FLYING_SEARCH_AREA, RS_MONSTER_EXT_FLYING_SEARCH_AREA},
+    {_GET_HIGH2, RS_MONSTER_EXT_GET_HIGH2},
+    {_GET_RANGE_MONS_ID, RS_MONSTER_EXT_GET_RANGE_MONS_ID},
+    {_GET_ENTRY_OBJ_POS, RS_MONSTER_EXT_GET_ENTRY_OBJ_POS},
+    {_SET_OBJ, RS_MONSTER_EXT_SET_OBJ},
+    {_SET_BODY, RS_MONSTER_EXT_SET_BODY},
+    {_SET_DMG, RS_MONSTER_EXT_SET_DMG},
+    {_SET_DMG2, RS_MONSTER_EXT_SET_DMG2},
+    {_LINK_MAP_TO_OBJECT, RS_MONSTER_EXT_LINK_MAP_TO_OBJECT},
+    {_LINK_OBJECT_TO_PIECE, RS_MONSTER_EXT_LINK_OBJECT_TO_PIECE},
+    {_LOAD_EFFECT_SCRIPT, RS_MONSTER_EXT_LOAD_EFFECT_SCRIPT},
+    {_SET_SCOOP, RS_MONSTER_EXT_SET_SCOOP},
+    {_LOAD_RESERV_IMG, RS_MONSTER_EXT_LOAD_RESERV_IMG},
+    {_SET_PRIORITY_LIMMIT, RS_MONSTER_EXT_SET_PRIORITY_LIMMIT},
+    {_SET_MODEL_LIGHT_SWITCH, RS_MONSTER_EXT_SET_MODEL_LIGHT_SWITCH},
+    {_SET_MODEL_LIGHT_COLOR, RS_MONSTER_EXT_SET_MODEL_LIGHT_COLOR},
+    {_SET_ALPHA, RS_MONSTER_EXT_SET_ALPHA},
+    {_SET_SCALE, RS_MONSTER_EXT_SET_SCALE},
+    {_SET_INDEX_ALPHA, RS_MONSTER_EXT_SET_INDEX_ALPHA},
+    {_SET_PALLET_ANIM, RS_MONSTER_EXT_SET_PALLET_ANIM},
+    {_RESET_PALLET_ANIM, RS_MONSTER_EXT_RESET_PALLET_ANIM},
+    {_SET_ATTRIB, RS_MONSTER_EXT_SET_ATTRIB},
+    {_SET_STATUS, RS_MONSTER_EXT_SET_STATUS},
+    {_SET_INT_FLAG, RS_MONSTER_EXT_SET_INT_FLAG},
+    {_SET_ACT_STATUS, RS_MONSTER_EXT_SET_ACT_STATUS},
+    {_SET_MUTEKI, RS_MONSTER_EXT_SET_MUTEKI},
+    {_SET_GRAVITY, RS_MONSTER_EXT_SET_GRAVITY},
+    {_SET_COLLISION, RS_MONSTER_EXT_SET_COLLISION},
+    {_GET_GEKIRIN, RS_MONSTER_EXT_GET_GEKIRIN},
+    {_GET_PRIORITY, RS_MONSTER_EXT_GET_PRIORITY},
+    {_SET_CLIP_DIST, RS_MONSTER_EXT_SET_CLIP_DIST},
+    {_SET_PIYORI_MARK, RS_MONSTER_EXT_SET_PIYORI_MARK},
+    {_CHECK_PIYORI, RS_MONSTER_EXT_CHECK_PIYORI},
+    {_GET_SCALE, RS_MONSTER_EXT_GET_SCALE},
+    {_GET_MONS_WIDTH, RS_MONSTER_EXT_GET_MONS_WIDTH},
+    {_BLOW_START, RS_MONSTER_EXT_BLOW_START},
+    {_SET_DEAD_START, RS_MONSTER_EXT_SET_DEAD_START},
+    {_SET_DEAD_OFF, RS_MONSTER_EXT_SET_DEAD_OFF},
+    {_SET_SHROW_END, RS_MONSTER_EXT_SET_SHROW_END},
+    {_GET_BASE_ATTACK, RS_MONSTER_EXT_GET_BASE_ATTACK},
+    {_SET_DEF_RATE, RS_MONSTER_EXT_SET_DEF_RATE},
+    {_SET_MONSTER_LIFE, RS_MONSTER_EXT_SET_MONSTER_LIFE},
+    {_GET_MONSTER_LIFE, RS_MONSTER_EXT_GET_MONSTER_LIFE},
+    {_GET_NO_DAMAGE_CNT, RS_MONSTER_EXT_GET_NO_DAMAGE_CNT},
+    {_GET_ACTIVE_MONS_LIFEI, RS_MONSTER_EXT_GET_ACTIVE_MONS_LIFEI},
+    {_GET_ACTIVE_MONS_LIFEF, RS_MONSTER_EXT_GET_ACTIVE_MONS_LIFEF},
+    {_SET_ACTIVE_MONS_LIFEI, RS_MONSTER_EXT_SET_ACTIVE_MONS_LIFEI},
+    {_SET_ACTIVE_MONS_LIFEF, RS_MONSTER_EXT_SET_ACTIVE_MONS_LIFEF},
+    {_GET_ACTIVE_MONS_MAX_LIFE, RS_MONSTER_EXT_GET_ACTIVE_MONS_MAX_LIFE},
+    {_SET_DAMAGE_SCORE, RS_MONSTER_EXT_SET_DAMAGE_SCORE},
+    {_GET_MONS_GRADE, RS_MONSTER_EXT_GET_MONS_GRADE},
+    {_SET_ESCAPE_RATE, RS_MONSTER_EXT_SET_ESCAPE_RATE},
+    {_SET_GUARD_RATE, RS_MONSTER_EXT_SET_GUARD_RATE},
+    {_SET_EXT_PARAM_RATE, RS_MONSTER_EXT_SET_EXT_PARAM_RATE},
+    {_GET_BOSS_FLAG, RS_MONSTER_EXT_GET_BOSS_FLAG},
+    {_SET_INDEXOBJ_SIZE, RS_MONSTER_EXT_SET_INDEXOBJ_SIZE},
+    {_GET_INDEXOBJ_SIZE, RS_MONSTER_EXT_GET_INDEXOBJ_SIZE},
+    {_RESET_MOTION, RS_MONSTER_EXT_RESET_MOTION},
+    {_SET_MOS, RS_MONSTER_EXT_SET_MOS},
+    {_CHECK_MOS_END, RS_MONSTER_EXT_CHECK_MOS_END},
+    {_NOW_MOS_WAIT, RS_MONSTER_EXT_NOW_MOS_WAIT},
+    {_GET_MOS_STATUS, RS_MONSTER_EXT_GET_MOS_STATUS},
+    {_ESM_CREATE, RS_MONSTER_EXT_ESM_CREATE},
+    {_ESM_FINISH, RS_MONSTER_EXT_ESM_FINISH},
+    {_ESM_DELETE, RS_MONSTER_EXT_ESM_DELETE},
+    {_ESM_SET_VECT1, RS_MONSTER_EXT_ESM_SET_VECT1},
+    {_ESM_GET_VECT1, RS_MONSTER_EXT_ESM_GET_VECT1},
+    {_ESM_SET_VECT2, RS_MONSTER_EXT_ESM_SET_VECT2},
+    {_ESM_GET_VECT2, RS_MONSTER_EXT_ESM_GET_VECT2},
+    {_ESM_SET_TARGET_ID, RS_MONSTER_EXT_ESM_SET_TARGET_ID},
+    {_ESM_GET_TARGET_ID, RS_MONSTER_EXT_ESM_GET_TARGET_ID},
+    {_ESM_SET_USER_ID, RS_MONSTER_EXT_ESM_SET_USER_ID},
+    {_ESM_GET_USER_ID, RS_MONSTER_EXT_ESM_GET_USER_ID},
+    {_ESM_SET_VALUE, RS_MONSTER_EXT_ESM_SET_VALUE},
+    {_SW_EFFECT, RS_MONSTER_EXT_SW_EFFECT},
+    {_ESM_GET_NOTUESD_TEXB, RS_MONSTER_EXT_ESM_GET_NOTUESD_TEXB},
+    {_ESM_ADD_TEXB, RS_MONSTER_EXT_ESM_ADD_TEXB},
+    {_SHOT_ROCKET_LAUNCHER, RS_MONSTER_EXT_SHOT_ROCKET_LAUNCHER},
+    {_ESM_ALL_CLEAR, RS_MONSTER_EXT_ESM_ALL_CLEAR},
+    {_SET_MAPOBJ_SHOW, RS_MONSTER_EXT_SET_MAPOBJ_SHOW},
+    {NULL, RS_MONSTER_EXT_END},
+};
 
 /**
  *
@@ -4624,7 +4821,7 @@ void SetMonsterExtendTable() {
     int index;
     int earlier;
 
-    for (index = 0; index < 256; index++) {
+    for (index = 0; index < RS_MONSTER_EXT_LIMIT; index++) {
         ext_func[index] = NULL;
     }
 
@@ -4638,7 +4835,7 @@ void SetMonsterExtendTable() {
 
             do {
                 if (ext_func_info[index].no == ext_func_info[earlier].no) {
-                    printf(at_3078);
+                    printf("mscript same ext_func_no!!!\n");
 
                     while (1) {
                     }
@@ -4648,36 +4845,10 @@ void SetMonsterExtendTable() {
             } while (earlier < index);
         }
 
-        if (ext_func_info[index].no < 0 || ext_func_info[index].no >= 256) {
-            printf(at_3079);
+        if (ext_func_info[index].no < 0 || ext_func_info[index].no >= RS_MONSTER_EXT_LIMIT) {
+            printf("ext func over!!");
         } else {
             ext_func[ext_func_info[index].no] = ext_func_info[index].func;
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1480__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1481__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1864__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2160__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", ext_func_info__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1728__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1733__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_1784__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2398__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2399__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2580__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_2787__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_3078__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/runscript_opcodes", at_3079__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(nowScene, 0x4);
-INCLUDE_BSS(nowMonster, 0x4);
-INCLUDE_BSS(LastCInfo2, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(ext_func, 0x400);

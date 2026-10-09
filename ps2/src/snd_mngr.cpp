@@ -17,21 +17,86 @@
 #include "snd_seseq.hpp"
 #include "sound.hpp"
 
-extern int          snd_sema_id;
-extern float        MasterVol[2];
-extern int          MasterVolFade[2];
-extern int          ReverbType[2];
-extern int          ReverbDepthe[2];
-extern int          init_snd;
-extern float        feMasterVol[2];
-extern float        fnowMasterVol[2];
-extern float        fstpMasterVol[2];
-extern int          snd_old_vsync;
-extern float        PortVolf[SND_PORT_NUM];
-sndPortInfo         PortInfo[SND_PORT_NUM];
-sndCSeSeq           SeSequencer[32];
-extern float        MicPos[4];
-extern float        MicDir[4];
+/**
+ * Enables loading sound banks.
+ */
+static int EnableSndMngr = 1;
+
+/**
+ * Semaphore that serializes sound driver calls.
+ */
+static int snd_sema_id = -1;
+
+/**
+ * Master volume scale for each sound core.
+ */
+static float MasterVol[2] = {1.0f, 1.0f};
+
+/**
+ * Active master-volume fade flag for each sound core.
+ */
+static int MasterVolFade[2] = {0, 0};
+
+/**
+ * Last vertical sync on which the sound driver stepped.
+ */
+static int snd_old_vsync = -1;
+
+/**
+ * Selected reverb type for each sound core.
+ */
+static int ReverbType[2];
+
+/**
+ * Selected reverb depth for each sound core.
+ */
+static int ReverbDepthe[2];
+
+/**
+ * Indicates that the sound driver has been initialized.
+ */
+static int init_snd;
+
+/**
+ * Target master volume of each core fade.
+ */
+static float feMasterVol[2];
+
+/**
+ * Current interpolated master volume of each core fade.
+ */
+static float fnowMasterVol[2];
+
+/**
+ * Master-volume increment applied by each core fade.
+ */
+static float fstpMasterVol[2];
+
+/**
+ * Bank and sequence state for each game sound port.
+ */
+sndPortInfo PortInfo[SND_PORT_NUM];
+
+/**
+ * Playback state of the sound-effect sequence slots.
+ */
+static sndCSeSeq SeSequencer[32];
+
+/**
+ * Playback volume scale for each game sound port.
+ */
+static float PortVolf[SND_PORT_NUM];
+
+/**
+ * Listener position used by positional sound effects.
+ */
+static sceVu0FVECTOR MicPos;
+
+/**
+ * Listener forward direction used by positional sound effects.
+ */
+static sceVu0FVECTOR MicDir;
+
 static sndPortInfo *GetPortInfo(int port);
 static sndSeInfo   *GetSeInfo(u32 snd_id, int se_no);
 static sndCSeSeq   *GetSeSeq(int seq_id);
@@ -58,12 +123,8 @@ static void         SetVolSeSeq(int index, int vol);
 static int          GetPortBankNo(unsigned int snd_id, int *port, int *bank);
 
 #ifdef NONMATCHING
-static int EnableSndMngr = 1; /**< Enables loading sound banks. */
-
 static void  CSndStepWait();
 static char *GetLine(char **col, char *text, char *end);
-#else
-extern int EnableSndMngr;
 #endif
 
 // Code (.text)
@@ -2159,45 +2220,3 @@ void sndStreamClose() {
     CSnd.StreamClose(1);
     sndSignalSema();
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_732__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_816__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1549__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1625__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1626__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1627__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1628__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1629__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1630__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1631__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1632__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1633__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1634__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1635__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1636__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1679__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1680__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", EnableSndMngr__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", snd_sema_id__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", MasterVol__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", MasterVolFade__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", snd_old_vsync__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/snd_mngr", at_1469__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(ReverbType, 0x8);
-INCLUDE_BSS(ReverbDepthe, 0x8);
-INCLUDE_BSS(init_snd, 0x8);
-INCLUDE_BSS(feMasterVol, 0x8);
-INCLUDE_BSS(fnowMasterVol, 0x8);
-INCLUDE_BSS(fstpMasterVol, 0x8);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(PortVolf, 0x40);
-INCLUDE_BSS(MicPos, 0x10);
-INCLUDE_BSS(MicDir, 0x10);
-INCLUDE_BSS(at_1555, 0x30);
-INCLUDE_BSS(at_1648, 0x10);

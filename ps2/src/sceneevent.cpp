@@ -44,12 +44,7 @@ struct CopyEventWords {
     int value[16]; /**< Event data words. */
 };
 
-extern float col_1003[4][4];
 extern float at_1013__4[4];
-extern char  at_858__3[];
-extern char  at_958__3[];
-extern char  at_959__3[];
-extern char  at_1093[];
 
 #include "mg_tanime.hpp"
 
@@ -138,7 +133,7 @@ int CScene::GetCameraPoly(CCPoly *polys, mgVu0FBOX &box, int max) {
 }
 
 void CScene::RunEvent(int requested_event_no, CSceneEventData *data) {
-    if (event_run == 0 || (printf(at_858__3), event_no != 100)) {
+    if (event_run == 0 || (printf("start event running!!\n"), event_no != 100)) {
         event_no = requested_event_no;
 
         if (data != NULL) {
@@ -252,8 +247,8 @@ void CScene::EyeViewDrawOnOff(int on) {
     int   count = GetActiveMap(maps, 4);
 
     for (int index = 0; index < count; ++index) {
-        CPartsGroup *shown = maps[index]->SearchPartsGroup(at_958__3);
-        CPartsGroup *hidden = maps[index]->SearchPartsGroup(at_959__3);
+        CPartsGroup *shown = maps[index]->SearchPartsGroup("eyeview_on");
+        CPartsGroup *hidden = maps[index]->SearchPartsGroup("eyeview_off");
 
         if (shown != NULL) {
             shown->off = (u8) ((on != 0) ^ 1);
@@ -353,6 +348,18 @@ void CScene::DrawSky(int sky_index) {
 }
 
 void CScene::DrawLensFlare(int flare_type, char *texture, char *alpha_texture) {
+    /**
+     *
+     * Lens-flare color for each map time band.
+     *
+     */
+    static float col[4][4] __attribute__((aligned(16))) = {
+        {128.0f, 128.0f, 128.0f, 128.0f},
+        {192.0f, 96.0f, 0.0f, 128.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {128.0f, 128.0f, 128.0f, 128.0f}
+    };
+
     float ratio[4];
     float color[4];
     float sun_position[4];
@@ -371,18 +378,18 @@ void CScene::DrawLensFlare(int flare_type, char *texture, char *alpha_texture) {
 
     if (ratio[0] != 0.0f || ratio[1] != 0.0f || ratio[3] != 0.0f) {
         *(CopyVector *) color = *(CopyVector *) at_1013__4;
-        color[0] += col_1003[0][0] * ratio[0];
-        color[1] += col_1003[0][1] * ratio[0];
-        color[2] += col_1003[0][2] * ratio[0];
-        color[0] += col_1003[1][0] * ratio[1];
-        color[1] += col_1003[1][1] * ratio[1];
-        color[2] += col_1003[1][2] * ratio[1];
-        color[0] += col_1003[2][0] * ratio[2];
-        color[1] += col_1003[2][1] * ratio[2];
-        color[2] += col_1003[2][2] * ratio[2];
-        color[0] += col_1003[3][0] * ratio[3];
-        color[1] += col_1003[3][1] * ratio[3];
-        color[2] += col_1003[3][2] * ratio[3];
+        color[0] += col[0][0] * ratio[0];
+        color[1] += col[0][1] * ratio[0];
+        color[2] += col[0][2] * ratio[0];
+        color[0] += col[1][0] * ratio[1];
+        color[1] += col[1][1] * ratio[1];
+        color[2] += col[1][2] * ratio[1];
+        color[0] += col[2][0] * ratio[2];
+        color[1] += col[2][1] * ratio[2];
+        color[2] += col[2][2] * ratio[2];
+        color[0] += col[3][0] * ratio[3];
+        color[1] += col[3][1] * ratio[3];
+        color[2] += col[3][2] * ratio[3];
         GetSunPosition(sun_position);
         sun_position[3] = 1.0f;
 
@@ -433,7 +440,7 @@ void CScene::DrawEffect(int tex_block) {
     }
 
     fire_texture =
-        tex_manager->GetTexture(at_1093, tex_block);
+        tex_manager->GetTexture("fire_work", tex_block);
     fire_raster.SetTexture(fire_texture);
     mgCTexture  frame;
     mgRect<int> rect;
@@ -451,11 +458,4 @@ void CScene::DrawEffect(int tex_block) {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneevent", col_1003__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneevent", at_1013__4__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneevent", at_858__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneevent", at_958__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneevent", at_959__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneevent", at_1093__DATA);

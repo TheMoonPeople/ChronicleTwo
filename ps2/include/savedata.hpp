@@ -108,12 +108,14 @@
  *
  */
 enum SAVE_BIT_FLAG {
-    SAVE_FLAG_ROBO_BIKE_EVENT_SEEN = 0x35,
-    SAVE_FLAG_ITEM_BOARD_EXPANDED  = 254,
-    SAVE_FLAG_TOURNAMENT_STARTED   = 0x158,
-    SAVE_FLAG_TOURNAMENT_CYCLE     = 0x1A8,
-    SAVE_FLAG_EDIT_BLOCKED         = 0x208,
-    SAVE_FLAG_COSTUME_UNLOCK       = 0x31F,
+    SAVE_FLAG_ROBO_BIKE_EVENT_SEEN     = 0x35,
+    SAVE_FLAG_FISHING_OPEN             = 0xDC,  /**< Enables the fishing row of the tree map's floor information. */
+    SAVE_FLAG_ITEM_BOARD_EXPANDED      = 254,
+    SAVE_FLAG_SPHEDA_UNLOCKED          = 0x13D, /**< Enables floor spheda challenges and unrestricted club commands. */
+    SAVE_FLAG_FISHING_CONTEST_UNLOCKED = 0x158, /**< Enables Fishing Contest tournaments. */
+    SAVE_FLAG_FINNY_FRENZY_UNLOCKED    = 0x1A8, /**< Enables Finny Frenzy tournaments and the fish-race bonus. */
+    SAVE_FLAG_EDIT_BLOCKED             = 0x208,
+    SAVE_FLAG_COSTUME_UNLOCK           = 0x31F,
 };
 
 
@@ -136,8 +138,8 @@ struct SV_CONFIG_OPTION {
     s32 monster_name;  /**< How the dungeon shows the enemies' names. */
     s32 anger_counter; /**< How the dungeon shows the enemies' anger counters. */
     s32 dof_off;       /**< Non-zero to turn off the depth of field blur. */
-    u8  caption_off;   /**< Non-zero to hide the event captions. */
-    u8  unk_35;
+    s8  caption_off;   /**< Non-zero to hide the event captions. */
+    s8  unk_35;
     s8  eye_reverse; /**< Zero to invert the vertical axis of the first-person camera. */
     s8  rot_normal; /**< Non-zero to use the normal camera rotation direction. */
     u8  unk_38[8];

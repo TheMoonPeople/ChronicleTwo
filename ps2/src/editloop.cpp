@@ -54,44 +54,127 @@ extern EditDebugInfo EdDebugInfo;
 extern CEditEvent    EditEvent;
 
 static const int kEventNoMapJump = 0x1869F;
-static const int kEventDataCallFlag = 8;
-static const int kKeyOpenEvent = 0x96;
-static const int kCameraKindEvent = 0x3E8;
 
-extern char at_2948[];
-extern char at_2949[];
-extern char at_2950[];
-extern char at_2951[];
-extern char at_2952[];
-extern char at_2953[];
-extern char at_2954[];
-extern char at_2955[];
-extern char at_2956[];
-extern char at_2957[];
-extern char at_2958[];
-extern char at_2261[];
-extern char at_2262[];
+static const int kEventDataCallFlag = 8;
+
+static const int kKeyOpenEvent = 0x96;
+
+static const int kCameraKindEvent = 0x3E8;
 
 extern mgCMemory        ControlCharaBuff;
 extern mgCMemory        MainDataBuff;
-extern int              EditDrawCancelFlag;
-extern int              LoopCounter;
-extern CScene          *MainScene__2;
-extern int              SubMapLoadBG;
-extern int              now_load_map_no;
-extern int              MapNo;
-extern int              DelMainNPCflag;
-extern CMapTreasureBox *TreasureBox;
-extern int              beforeAnalyze[16];
-extern float            at_3041[4];
-extern CCharacter2     *WalkChara;
-extern int              ControlMode;
-extern int              LoopMode;
-extern char             at_2747[9];
-extern int              LockChara;
-extern int              EditModeChgCnt;
-extern int              EditModeChgEvent;
-extern int              EditModeChgFlag;
+
+/**
+ *
+ * Request to skip the next town draw.
+ *
+ */
+static int EditDrawCancelFlag;
+
+/**
+ *
+ * Frame counter of the town loop.
+ *
+ */
+static int LoopCounter;
+
+/**
+ *
+ * Scene used by the town loop.
+ *
+ */
+static CScene *MainScene__2;
+
+/**
+ *
+ * Background submap loading state.
+ *
+ */
+static int SubMapLoadBG;
+
+/**
+ *
+ * Map number selected by the current submap load.
+ *
+ */
+static int now_load_map_no;
+
+/**
+ *
+ * Map number currently loaded by the town loop.
+ *
+ */
+static int MapNo;
+
+/**
+ *
+ * Whether the main-map villagers require reloading.
+ *
+ */
+static int DelMainNPCflag;
+
+/**
+ *
+ * Treasure-box character shared by the town maps.
+ *
+ */
+static CMapTreasureBox *TreasureBox;
+
+/**
+ *
+ * Saved Georama analysis flags used to detect changes.
+ *
+ */
+static int beforeAnalyze[16];
+
+/**
+ *
+ * Character controlled while walking around the town.
+ *
+ */
+static CCharacter2 *WalkChara;
+
+/**
+ *
+ * Current player, event or debug control mode.
+ *
+ */
+static int ControlMode;
+
+/**
+ *
+ * Current walking, editing or menu stage of the town loop.
+ *
+ */
+static int LoopMode;
+
+/**
+ *
+ * Nesting count of town character control locks.
+ *
+ */
+static int LockChara;
+
+/**
+ *
+ * Frames remaining before the Georama mode change.
+ *
+ */
+static int EditModeChgCnt;
+
+/**
+ *
+ * Event started when the Georama mode change completes.
+ *
+ */
+static int EditModeChgEvent;
+
+/**
+ *
+ * Whether a Georama mode change is pending.
+ *
+ */
+static int EditModeChgFlag;
 
 #include <libvu0.h>
 
@@ -112,26 +195,147 @@ extern int              EditModeChgFlag;
 #include "photo.hpp"
 #include "screeneffect.hpp"
 #include "snd_mngr.hpp"
-extern mgCFrame       *WaterFrame;
-extern mgCFrame       *RedBicMark;
-extern mgCFrame       *BlueBicMark;
-extern CCameraControl *Camera;
-extern CCameraControl *FixCamera;
-extern CCameraControl *EditCamera;
-extern int             ActiveCharaNo;
-extern int             ControlCharaID;
-extern int             EventSquareJump;
-extern int             EditDrawFlag;
-extern int             PauseFlag;
-extern int             PreEditMenuCnt;
-extern u_long128      *main_pkt1;
-extern u_long128      *main_pkt2;
-extern u_long128      *MenuDataBuf;
-extern int             MenuDataSize;
-extern int             FixCharaBuffSize;
-extern u_long128      *CrossFadeBuff;
-extern MENU_INIT_ARG  *MenuInfo;
-extern int             DataPktMode;
+
+/**
+ *
+ * Frame used to render the town water surface.
+ *
+ */
+static mgCFrame *WaterFrame;
+
+/**
+ *
+ * Red marker frame used by town editing.
+ *
+ */
+static mgCFrame *RedBicMark;
+
+/**
+ *
+ * Blue marker frame used by town editing.
+ *
+ */
+static mgCFrame *BlueBicMark;
+
+/**
+ *
+ * Player camera controller used by the town loop.
+ *
+ */
+static CCameraControl *Camera;
+
+/**
+ *
+ * Fixed camera controller used by the town loop.
+ *
+ */
+static CCameraControl *FixCamera;
+
+/**
+ *
+ * Camera controller used during Georama editing.
+ *
+ */
+static CCameraControl *EditCamera;
+
+/**
+ *
+ * Active town character number.
+ *
+ */
+static int ActiveCharaNo;
+
+/**
+ *
+ * Character identifier selected for player control.
+ *
+ */
+static int ControlCharaID;
+
+/**
+ *
+ * Town event transition flag.
+ *
+ */
+static int EventSquareJump;
+
+/**
+ *
+ * Whether the town loop permits scene drawing.
+ *
+ */
+static int EditDrawFlag;
+
+/**
+ *
+ * Pause state of the town loop.
+ *
+ */
+static int PauseFlag;
+
+/**
+ *
+ * Frames waited before opening the Georama menu.
+ *
+ */
+static int PreEditMenuCnt;
+
+/**
+ *
+ * First half of the town rendering packet buffer.
+ *
+ */
+static u_long128 *main_pkt1;
+
+/**
+ *
+ * Second half of the town rendering packet buffer.
+ *
+ */
+static u_long128 *main_pkt2;
+
+/**
+ *
+ * Data buffer allocated to the town menu.
+ *
+ */
+static u_long128 *MenuDataBuf;
+
+/**
+ *
+ * Byte size of the loaded town menu data.
+ *
+ */
+static int MenuDataSize;
+
+/**
+ *
+ * Quadword capacity reserved for fixed town characters.
+ *
+ */
+static int FixCharaBuffSize;
+
+/**
+ *
+ * Buffer used for town crossfade images.
+ *
+ */
+static u_long128 *CrossFadeBuff;
+
+/**
+ *
+ * Shared menu parameters used by the town loop.
+ *
+ */
+static MENU_INIT_ARG *MenuInfo = &MenuArg;
+
+/**
+ *
+ * Current allocation mode of the town data packet buffers.
+ *
+ */
+static int DataPktMode = -1;
+
 extern CWaveTable      WaveTable;
 extern sceVu0FVECTOR   CharaOldPos;
 extern mgCMemory       buf0;
@@ -152,7 +356,12 @@ extern mgCMemory       SkyBuff;
 extern mgCVisualMDT    TestVisual;
 extern mgCFrame        TestFrame;
 
-extern CCameraControl *EventCamera;
+/**
+ *
+ * Camera controller used for town events.
+ *
+ */
+static CCameraControl *EventCamera;
 
 void InitSubMapLoadStep();
 void LoadMap();
@@ -161,6 +370,13 @@ void ResetEditEvent();
 void RestartEditEvent();
 void UpdateTrBoxFlag(int map_no);
 void editLoadSound(int map_no);
+
+/**
+ *
+ * End of the town file-loading buffer.
+ *
+ */
+u_long128 *read_buffer_end;
 
 // Code (.text)
 /**
@@ -567,7 +783,8 @@ void EditInit(INIT_LOOP_ARG arg) {
     MainScene__2->villager_texb_num = 56;
     MainScene__2->event_texb = 160;
     MainScene__2->event_texb_num = 2;
-    MainScene__2->GetActiveBgmInfo()->master_volf = 1.0f;
+    CScene::BGM_INFO *const bgm = MainScene__2->GetActiveBgmInfo();
+    bgm->master_volf = 1.0f;
     MainScene__2->SetVolfBGM(MainScene__2->GetActiveBgmInfo()->volf);
     MainScene__2->tex_block_base = 185;
     MainScene__2->tex_block_count = 21;
@@ -827,16 +1044,8 @@ int SubMapLoadStep() {
 
     return 1;
 }
-#ifdef NONMATCHING
-static inline bool IsCrossFading(CScene *scene) {
-    return scene->fade.NowFade() && scene->fade.cross;
-}
-
 int EditLoop() {
-    static int       time_step;
-    static int       show_time_step;
     static int       old_cm;
-    static int       rain_flag;
     CMap            *map;
     CCharacter2     *chara;
     CCameraControl  *camera;
@@ -855,13 +1064,13 @@ int EditLoop() {
     float            distance;
     float            camera_angle;
     int              game_progress;
-    int              light_band;
-    int              next_sub_map;
-    int              finish;
     int              light_check;
+    int              light_band;
+    int              finish;
     int              wait_for_map;
-    int              menu_mode;
+    int              next_sub_map;
     int              open_menu;
+    int              menu_mode;
     int              change_mode;
     int              return_to_player;
     int              start_event;
@@ -885,20 +1094,18 @@ int EditLoop() {
     if (LoopCounter > 10000) {
         LoopCounter = 10000;
     }
-    {
-        static char init;
-        if (init == 0) {
-            time_step = 1;
-            init = 1;
-        }
-    }
-    {
-        static char init;
-        if (init == 0) {
-            show_time_step = 0;
-            init = 1;
-        }
-    }
+    /**
+     *
+     * Whether automatic town time progression is enabled.
+     *
+     */
+    static int time_step = 1;
+    /**
+     *
+     * Frames remaining to display the time-progression toggle.
+     *
+     */
+    static int show_time_step = 0;
     if (PauseFlag == 0 && IsLightingEditMode() == 0) {
         CMap *time_map = MainScene__2->GetMap(MainScene__2->active_map);
         if (time_map != NULL) {
@@ -915,8 +1122,8 @@ int EditLoop() {
                 MainScene__2->SetTime(((int) MainScene__2->time / 2) * 2 + 2);
             }
             if (GamePad__2.Down2(PAD_DOWN) != 0) {
-                show_time_step = 30;
                 time_step = !time_step;
+                show_time_step = 30;
             }
             if (LoopMode == EDIT_LOOP_WAIT_READ) {
                 if (ReadBGSync() == 0) {
@@ -943,14 +1150,14 @@ int EditLoop() {
         wait_for_map = 1;
     }
     map_name = MainScene__2->GetMapName(MainScene__2->active_map);
-    while (LoopCounter >= 3 && LoopMode == EDIT_LOOP_WALK && map_name != NULL && strcmp(map_name, "m01") == 0) {
+    while (LoopCounter > 2 && LoopMode == EDIT_LOOP_WALK && map_name != NULL && strcmp(map_name, "m01") == 0) {
         chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
         if (chara != NULL) {
             chara->GetPosition(position);
             *(u_long128 *) ground_position = *(u_long128 *) position;
             ground_position[1] = 0.0f;
-            line_start[3] = 1.0f;
             line_end[3] = 1.0f;
+            line_start[3] = 1.0f;
             sceVu0FVECTOR load_position = {1400.0f, -6.0f, -218.0f, 1.0f};
             next_sub_map = -1;
             if (MainScene__2->LoadMapBGStep(NULL) == 0) {
@@ -1081,13 +1288,13 @@ int EditLoop() {
         }
         break;
     }
-    PAUSE_INFO menu_pause;
-    PAUSE_INFO pause;
     if (SubMapLoadStep() != 0) {
         while (wait_for_map != 0 && SubMapLoadStep() != 0) {
         }
     }
     if (LoopMode == EDIT_LOOP_WALK_MENU || LoopMode == EDIT_LOOP_EDIT_MENU) {
+        PAUSE_INFO menu_pause;
+        menu_pause.scene = NULL;
         menu_pause.scene = MainScene__2;
         menu_pause.event_skip = 0;
         if (PadCtrl.Btn(PAD_BTN_PAUSE) != 0) {
@@ -1100,63 +1307,58 @@ int EditLoop() {
                 if (MenuInfo->end_code != 11 && SubGameRunning() != 0 && GetSubGameNo() == SUBGAME_FISHING) {
                     sgExitSubGame();
                 }
-                switch (MenuInfo->end_code) {
-                    case 1:
-                    case 21:
-                        if (MenuInfo->end_code == 21) {
-                            MainScene__2->fade.CaptureScreen();
-                            MainScene__2->fade.CrossFade(20, 1.0f);
-                        }
-                        ActiveCharaNo = MenuInfo->result[0];
-                        ActiveCharaNo = GetUserData()->active_chr_no;
-                        chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
-                        if (chara != NULL) {
-                            chara->UpdatePosition();
-                            chara->ResetDAPosition();
-                        }
-                        EditControlStatusInit(MainScene__2);
-                        break;
-                    case 11: {
-                        SubGameInfo fishing;
-                        fishing.scene = MainScene__2;
-                        fishing.rod_no = MenuInfo->result[0];
-                        fishing.esa_no = MenuInfo->result[1];
-                        FishingBuff.stSetBuffer(CharaBufs[0].stack + CharaBufs[0].stack_used,
-                                                CharaBufs[0].stack_size - CharaBufs[0].stack_used);
-                        fishing.menu_buff = &MenuBuffer__2;
-                        fishing.load_buff = &FishingBuff;
-                        MenuInfo->end_code = 0;
-                        current_subgame = GetNowSubGameInfo();
-                        if (SubGameRunning() != 0 && current_subgame->rod_no != fishing.rod_no) {
-                            fishing.keep_bgm = 1;
-                        }
-                        if ((GetMenuEtcFlag() & 0x1) != 0 || SubGameRunning() == 0 || current_subgame->rod_no != fishing.rod_no) {
-                            ResetViewMode(MainScene__2);
-                            sgInitSubGame(SUBGAME_FISHING, &fishing);
-                        } else {
-                            sgRestartSubGame(&fishing);
-                        }
-                        break;
+                int end_code = MenuInfo->end_code;
+                if (end_code == 21 || end_code == 1) {
+                    if (end_code == 21) {
+                        MainScene__2->fade.CaptureScreen();
+                        MainScene__2->fade.CrossFade(20, 1.0f);
                     }
-                    case 6:
-                        SetEventScript(NULL, NULL, NULL);
-                        if (ControlMode == EDIT_CONTROL_EVENT) {
-                            MainScene__2->active_camera = MainScene__2->before_camera;
-                            ControlMode = EDIT_CONTROL_PLAYER;
-                        }
-                        if (MenuInfo->result[0] != LOOP_EDIT) {
-                            finish = 1;
-                            INIT_LOOP_ARG next_loop;
-                            next_loop.map_no = MenuInfo->result[1];
-                            next_loop.floor_no = MenuInfo->result[2];
-                            next_loop.event_no = 1010;
-                            NextLoop(MenuInfo->result[0], next_loop);
-                        } else {
-                            BurnEditParts();
-                            EditMapJump(MenuInfo->result[1]);
-                            MainScene__2->RunEvent(100, NULL);
-                        }
-                        break;
+                    ActiveCharaNo = MenuInfo->result[0];
+                    ActiveCharaNo = GetUserData()->active_chr_no;
+                    chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
+                    if (chara != NULL) {
+                        chara->UpdatePosition();
+                        chara->ResetDAPosition();
+                    }
+                    EditControlStatusInit(MainScene__2);
+                } else if (end_code == 11) {
+                    SubGameInfo fishing;
+                    fishing.scene = MainScene__2;
+                    fishing.rod_no = MenuInfo->result[0];
+                    fishing.esa_no = MenuInfo->result[1];
+                    const int &fishing_size = CharaBufs[0].stack_size - CharaBufs[0].stack_used;
+                    FishingBuff.stSetBuffer(CharaBufs[0].stack + CharaBufs[0].stack_used, fishing_size);
+                    fishing.menu_buff = &MenuBuffer__2;
+                    fishing.load_buff = &FishingBuff;
+                    MenuInfo->end_code = 0;
+                    current_subgame = GetNowSubGameInfo();
+                    if (SubGameRunning() != 0 && current_subgame->rod_no != fishing.rod_no) {
+                        fishing.keep_bgm = 1;
+                    }
+                    if ((GetMenuEtcFlag() & 0x1) != 0 || SubGameRunning() == 0 || current_subgame->rod_no != fishing.rod_no) {
+                        ResetViewMode(MainScene__2);
+                        sgInitSubGame(SUBGAME_FISHING, &fishing);
+                    } else {
+                        sgRestartSubGame(&fishing);
+                    }
+                } else if (end_code == 6) {
+                    SetEventScript(NULL, NULL, NULL);
+                    if (ControlMode == EDIT_CONTROL_EVENT) {
+                        MainScene__2->active_camera = MainScene__2->before_camera;
+                        ControlMode = EDIT_CONTROL_PLAYER;
+                    }
+                    if (MenuInfo->result[0] != LOOP_EDIT) {
+                        finish = 1;
+                        INIT_LOOP_ARG next_loop;
+                        next_loop.floor_no = MenuInfo->result[2];
+                        next_loop.map_no = MenuInfo->result[1];
+                        next_loop.event_no = 1010;
+                        NextLoop(MenuInfo->result[0], next_loop);
+                    } else {
+                        BurnEditParts();
+                        EditMapJump(MenuInfo->result[1]);
+                        MainScene__2->RunEvent(100, NULL);
+                    }
                 }
             } else if (LoopMode == EDIT_LOOP_EDIT_MENU) {
                 MainScene__2->GetMap(MainScene__2->active_map);
@@ -1203,8 +1405,10 @@ int EditLoop() {
     change_mode = 0;
     return_to_player = 0;
     start_event = -1;
-    pause.scene = MainScene__2;
+    PAUSE_INFO pause;
+    pause.scene = NULL;
     pause.event_skip = 0;
+    pause.scene = MainScene__2;
     pause_enabled = 0;
     if (PauseFlag == 0) {
         switch (ControlMode) {
@@ -1277,34 +1481,34 @@ int EditLoop() {
                 break;
             case EDIT_CONTROL_EVENT:
                 pause.event_skip = 1;
-                if (CheckEventSkip() == 0) {
+                if (!CheckEventSkip()) {
                     pause.event_skip = 0;
                 }
                 pause_enabled = 1;
                 switch (EventLoop()) {
-                    case 17:
+                    case EVENT_REQUEST_EDIT_MODE:
                         change_mode = 1;
                         return_to_player = 1;
                         break;
-                    case 18:
+                    case EVENT_REQUEST_RESET_EDIT:
                         ResetEditEvent();
                         return_to_player = 1;
                         break;
-                    case 19:
+                    case EVENT_REQUEST_RESTART_EDIT:
                         RestartEditEvent();
                         return_to_player = 1;
                         break;
-                    case 1:
+                    case EVENT_REQUEST_END:
                         return_to_player = 1;
                         break;
-                    case 2:
+                    case EVENT_REQUEST_SUB_MODE:
                         menu_mode = EDIT_LOOP_WALK_MENU;
                         open_menu = 1;
                         break;
-                    case 3:
+                    case EVENT_REQUEST_GOTO:
                         finish = 1;
                         break;
-                    case 8:
+                    case EVENT_REQUEST_MAP_JUMP:
                         BurnEditParts();
                         EditMapJump(SearchMapNo(EdEventInfo.jump_map_name));
                         start_event = EdEventInfo.event_no;
@@ -1314,7 +1518,7 @@ int EditLoop() {
                         printf("start_event = %d\n", start_event);
                         EdEventInfo.event_no = -1;
                         break;
-                    case 4:
+                    case EVENT_REQUEST_INTERIOR:
                         EditGotoInterior(SearchMapNo(EdEventInfo.jump_map_name), EdEventInfo.interior_entrance);
                         start_event = EdEventInfo.event_no;
                         if (start_event < 0) {
@@ -1323,7 +1527,7 @@ int EditLoop() {
                         printf("start_event = %d\n", start_event);
                         EdEventInfo.event_no = -1;
                         break;
-                    case 7:
+                    case EVENT_REQUEST_OUTSIDE:
                         EditExitInterior(0);
                         start_event = EdEventInfo.event_no;
                         if (start_event < 0) {
@@ -1355,9 +1559,10 @@ int EditLoop() {
         if (pause_enabled != 0 && (PadCtrl.Btn(PAD_BTN_PAUSE) != 0 || GamePad__2.Connect() == 0)) {
             PauseStart(&pause);
         }
-        WalkChara = MainScene__2->GetCharacter(MainScene__2->player_chara);
-        if (WalkChara != NULL) {
-            WalkChara->sound_info.foot_se_bank = MainScene__2->se_base_id;
+        CCharacter2 *const walk_chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
+        WalkChara = walk_chara;
+        if (walk_chara != NULL) {
+            walk_chara->sound_info.foot_se_bank = MainScene__2->se_base_id;
         }
         EditStep();
         int           stay[32];
@@ -1376,7 +1581,9 @@ int EditLoop() {
             menu_requested = PadCtrl.Btn(PAD_BTN_MENU) != 0 || sgGetItemOver() != 0;
             menu_button = PadCtrl.Btn(PAD_BTN_MENU);
             quick_change = EditOnGround() != 0 && PadCtrl.Btn(PAD_BTN_QUICK_CHANGE) != 0 && !SubGameRunning();
-            if (IsCrossFading(MainScene__2)) {
+            CScene *const fade_scene = MainScene__2;
+            int cross_fading = fade_scene->fade.NowFade() && fade_scene->fade.cross;
+            if (cross_fading) {
                 quick_change = 0;
             }
             next_chara = !GetUserData()->active_chr_no;
@@ -1390,7 +1597,7 @@ int EditLoop() {
             if (LoopMode != EDIT_LOOP_EDIT && SubGameRunning() == 0 && EditOnGround() == 0) {
                 menu_enabled = 0;
             }
-            if (menu_enabled != 0 && LoopCounter >= 3 && ControlMode == EDIT_CONTROL_PLAYER &&
+            if (menu_enabled != 0 && LoopCounter > 2 && ControlMode == EDIT_CONTROL_PLAYER &&
                 (menu_requested != 0 || quick_change != 0 || menu_button != 0)) {
                 ShowOffOnceHelpMes();
                 if (LoopMode == EDIT_LOOP_WALK) {
@@ -1439,10 +1646,10 @@ int EditLoop() {
     if (DebugFlag != 0) {
         if (EditDebugMode() != 0 && EditDebugLoop(MainScene__2, &EdDebugInfo) != 0) {
             ControlMode = old_cm;
-            debug_closed = 1;
             if (ControlMode == EDIT_CONTROL_DEBUG) {
                 ControlMode = EDIT_CONTROL_PLAYER;
             }
+            debug_closed = 1;
         }
         if (ControlMode != EDIT_CONTROL_DEBUG && GamePad__2.Down(PAD_R3) != 0 && debug_closed == 0) {
             EditDebugStart(215, &MenuBuffer__2);
@@ -1457,7 +1664,7 @@ int EditLoop() {
             debug_move = DebugInfo.chara_move > 0;
             chara = MainScene__2->GetCharacter(MainScene__2->player_chara);
             if (debug_move == 0) {
-                if ((GetSaveData()->GetBitCtrl() & 0x2) != 0) {
+                if ((GetSaveData()->GetBitCtrl() & MENU_DEBUG_BIT_CTRL_NO_GEORAMA) != 0) {
                     edit_enabled = 0;
                 }
                 main_map_no = MainScene__2->GetMainMapNo();
@@ -1534,7 +1741,7 @@ int EditLoop() {
         }
         if (LoopMode == EDIT_LOOP_EDIT_PRE_MENU) {
             PreEditMenuCnt++;
-            if (MenuInfo->param[0] < 0 || PreEditMenuCnt >= 25) {
+            if (MenuInfo->param[0] < 0 || PreEditMenuCnt > 24) {
                 menu_mode = EDIT_LOOP_EDIT_MENU;
                 MenuInfo->open_type = MENU_OPEN_GEORAMA;
                 open_menu = 1;
@@ -1544,7 +1751,9 @@ int EditLoop() {
         if (open_menu != 0) {
             EditDrawFlag &= ~0x1;
             if (!(0 < MainScene__2->bg_load_step)) {
-                if (IsCrossFading(MainScene__2)) {
+                CScene *const fade_scene = MainScene__2;
+                int cross_fading = fade_scene->fade.NowFade() && fade_scene->fade.cross;
+                if (cross_fading) {
                     MainScene__2->fade.FadeIn(0);
                 }
                 MenuInfo->scene = MainScene__2;
@@ -1557,13 +1766,12 @@ int EditLoop() {
                 }
             }
         }
-        {
-            static char init;
-            if (init == 0) {
-                rain_flag = 0;
-                init = 1;
-            }
-        }
+        /**
+         *
+         * Whether the debug rain effect is enabled.
+         *
+         */
+        static int rain_flag = 0;
         if (GamePad__2.Down2(PAD_R2) != 0) {
             if (rain_flag == 0) {
                 EventRain.Start();
@@ -1587,38 +1795,30 @@ int EditLoop() {
     DrawEventEdit();
     FadeOutForE3();
     if (DebugFlag != 0) {
-        static int start_bt_cnt;
-        static int encount_flag;
-        static int show_encount_cnt;
-        static int next_encount;
-        {
-            static char init;
-            if (init == 0) {
-                start_bt_cnt = 0;
-                init = 1;
-            }
-        }
-        {
-            static char init;
-            if (init == 0) {
-                encount_flag = 1;
-                init = 1;
-            }
-        }
-        {
-            static char init;
-            if (init == 0) {
-                show_encount_cnt = 0;
-                init = 1;
-            }
-        }
-        {
-            static char init;
-            if (init == 0) {
-                next_encount = -1;
-                init = 1;
-            }
-        }
+        /**
+         *
+         * Persistent debug battle-start counter.
+         *
+         */
+        static int start_bt_cnt = 0;
+        /**
+         *
+         * Whether debug encounters are enabled.
+         *
+         */
+        static int encount_flag = 1;
+        /**
+         *
+         * Frames remaining to display the encounter toggle.
+         *
+         */
+        static int show_encount_cnt = 0;
+        /**
+         *
+         * Selection of the next debug encounter, or -1 for none.
+         *
+         */
+        static int next_encount = -1;
         if (show_time_step > 0 || show_encount_cnt > 0) {
             mgCDrawPrim prim;
             prim.Initialize(NULL, NULL);
@@ -1671,9 +1871,6 @@ int EditLoop() {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditLoop__Fv);
-#endif
 /**
  *
  * Resets edit event state and character control locks.
@@ -1713,7 +1910,7 @@ void RestartEditEvent() {
 
 int EditStep() {
     CEditMap        *maps[8];
-    float            viewer[24];
+    CObjAnimeEnv     viewer;
     int              event_no;
     int              map_count;
     int              index;
@@ -1733,7 +1930,7 @@ int EditStep() {
 
     if (MainScene__2->event_run != 0) {
         event_no = MainScene__2->event_no;
-        printf(at_2261, event_no);
+        printf("event = %d\n", event_no);
         event_data = &MainScene__2->event_data;
 
         if (event_no == kEventNoMapJump) {
@@ -1748,7 +1945,7 @@ int EditStep() {
                     event_no = event_data->event.arg3;
 
                     if (event_no > 0) {
-                        printf(at_2262, event_no);
+                        printf("   event = %d\n", event_no);
 
                         if (RunEvent(event_data->event.arg3, MainScene__2) > 0) {
                             ResetViewMode(MainScene__2);
@@ -1785,8 +1982,8 @@ int EditStep() {
     map_count = MainScene__2->GetActiveMap((CMap **) maps, 8);
 
     if (WalkChara != NULL) {
-        *(u_long128 *) viewer = *(u_long128 *) WalkChara->position;
-        viewer[4] = MainScene__2->time;
+        *(u_long128 *) viewer.chara_pos = *(u_long128 *) WalkChara->position;
+        viewer.time = MainScene__2->time;
         index = 0;
 
         if (0 < map_count) {
@@ -1794,7 +1991,7 @@ int EditStep() {
                 map = maps[index];
 
                 if (map != NULL) {
-                    map->AnimeStep((CObjAnimeEnv *) viewer);
+                    map->AnimeStep(&viewer);
                     maps[index]->Step();
                 }
 
@@ -1832,7 +2029,6 @@ int EditStep() {
     StepHelpMes();
     return 1;
 }
-#ifdef NONMATCHING
 int EditDraw() {
     static int             flag;
     static char            init;
@@ -1841,7 +2037,6 @@ int EditDraw() {
     USER_PICTURE_INFO     *picture;
     int                    map_index;
     CCharacter2           *chara;
-    mgCTexture            *overlay;
     mgCTexture            *water;
     int                    ghost_visible;
     int                    texture_group;
@@ -1898,7 +2093,7 @@ int EditDraw() {
         edit_map->DrawRiverMask();
     }
     ghost_visible = GhostPhotoTiming();
-    if (CheckTime(MainScene__2->time, float(0), float(4)) == 0) {
+    if (CheckTime(MainScene__2->time, 0.0f, 4.0f) == 0) {
         ghost_visible = 0;
     }
     for (map_index = 0; map_index < map_count; map_index++) {
@@ -1960,11 +2155,11 @@ int EditDraw() {
         mgPreEndDraw(NULL);
         int texture_blocks[128];
         for (texture_group = 0; texture_group < 6; texture_group++) {
-            reverse_block_count = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, texture_blocks, 128);
+            reverse_block_count = MainScene__2->GetTextureBlockNo(texture_group, texture_blocks, 128);
             for (block_count = 0; block_count < reverse_block_count; block_count++) {
-                int *entry = &texture_blocks[reverse_block_count - block_count - 1];
-                block = *entry;
-                if (mgEndDrawReloadTexture(block, NULL) != 0 && water_block == *entry) {
+                int index = reverse_block_count - block_count - 1;
+                block = texture_blocks[index];
+                if (mgEndDrawReloadTexture(block, NULL) != 0 && water_block == texture_blocks[index]) {
                     WaveTable.CreateTexture(water);
                 }
                 mgEndDraw(block, NULL);
@@ -2023,7 +2218,7 @@ int EditDraw() {
     if (map_draw != 0) {
         int later_texture_blocks[128];
         for (int texture_group = 6; texture_group < 16; texture_group++) {
-            block_count = MainScene__2->mds_list_set.GetTextureBlockNo(texture_group, later_texture_blocks, 128);
+            block_count = MainScene__2->GetTextureBlockNo(texture_group, later_texture_blocks, 128);
             for (int block_index = 0; block_index < block_count; block_index++) {
                 int block = later_texture_blocks[block_index];
                 mgEndDrawReloadTexture(block, NULL);
@@ -2139,7 +2334,7 @@ int EditDraw() {
             }
             if (idea_no > 0) {
                 picture->neta_id = idea_no;
-                sndSePlay(GetSystemSndID(), 14, 0);
+                sndSePlay(GetSystemSndID(), SYSTEM_SE_IDEA, 0);
                 printf("invent_no = %d\n", picture->neta_id);
             }
             SetTookPhotoData(picture);
@@ -2149,7 +2344,7 @@ int EditDraw() {
         }
     }
     show_system = !DebugInfo.param_off;
-    if ((GetSaveData()->GetBitCtrl() & 0x2) != 0) {
+    if ((GetSaveData()->GetBitCtrl() & MENU_DEBUG_BIT_CTRL_NO_GEORAMA) != 0) {
         show_system = 0;
     }
     main_map_no = MainScene__2->GetMainMapNo();
@@ -2186,9 +2381,6 @@ int EditDraw() {
     EventTimeDraw();
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditDraw__Fv);
-#endif
 void UpdateTrBoxFlag(int map_no) {
     int           i;
     CMapFlagData *flag_data = GetSaveData()->GetMapFlag(map_no);
@@ -2331,7 +2523,7 @@ int EditMapJump(int map_no) {
     map_name = GetMapName(map_no, NULL);
 
     if (map_name == NULL) {
-        printf(at_2948, map_no);
+        printf("not found map %d\n", map_no);
         return 0;
     }
 
@@ -2353,7 +2545,7 @@ int EditMapJump(int map_no) {
                              free_quads - ControlCharaBuff.stack_used);
     MainDataBuff.stack_used = 0;
     MainDataBuff.lock = 0;
-    printf(at_2949, MainDataBuff.stack + MainDataBuff.stack_used);
+    printf("MAP DATA %x\n", MainDataBuff.stack + MainDataBuff.stack_used);
     SCN_LOADMAP_INFO2 load_info;
     char              path[0x88];
 
@@ -2361,11 +2553,11 @@ int EditMapJump(int map_no) {
         return 0;
     }
 
-    if (map_no == SearchMapNo(at_2950) &&
+    if (map_no == SearchMapNo("f01") &&
         (GetSaveData()->GetEditData(0))->GetAnalyzeFlag(0, 3) == 0) {
-        strcat(load_info.files[0].map_name, at_2951);
-        strcat(load_info.files[0].mpk_name, at_2951);
-        strcat(load_info.files[0].ipk_name, at_2951);
+        strcat(load_info.files[0].map_name, "_2");
+        strcat(load_info.files[0].mpk_name, "_2");
+        strcat(load_info.files[0].ipk_name, "_2");
     }
 
     MainScene__2->DeleteVillager();
@@ -2390,18 +2582,18 @@ int EditMapJump(int map_no) {
         map = (CEditMap *) MainScene__2->GetMap(0);
         map->CreateTable(main_data, 0x100, 0xA000);
         GetMapPath(path, map_name);
-        sprintf(size_text, at_2952, LanguageCode);
+        sprintf(size_text, "%d", LanguageCode);
         strcat(path, size_text);
-        strcat(path, at_2953);
+        strcat(path, ".gpi");
 
-        if (LoadFile2(path, (void *) read_buffer, &file_size, 0) != 0) {
+        if (LoadFile2(path, read_buffer, &file_size, 0) != 0) {
             map->info_mngr.LoadEditInfo((char *) read_buffer, file_size, main_data);
         }
 
         GetMapPath(path, map_name);
-        strcat(path, at_2954);
+        strcat(path, ".cfg");
 
-        if (LoadFile2(path, (void *) read_buffer, &file_size, 0) != 0) {
+        if (LoadFile2(path, read_buffer, &file_size, 0) != 0) {
             map->LoadEditInfo((char *) read_buffer, file_size, main_data);
         }
 
@@ -2409,7 +2601,7 @@ int EditMapJump(int map_no) {
         map->ClearAllParts();
         used_quads = main_data->stack_used - used_before;
         used_kb = (used_quads * 0x10) / 0x400;
-        printf(at_2955, used_kb);
+        printf("edit data %dKB\n", used_kb);
         EditDataLoad();
 
         if (map_no == 0) {
@@ -2422,17 +2614,17 @@ int EditMapJump(int map_no) {
 
     if (GetMapType(MapNo) == 5) {
         area_no = 0;
-        SearchMapNo(at_2950);
+        SearchMapNo("f01");
 
-        if (map_no == SearchMapNo(at_2956)) {
+        if (map_no == SearchMapNo("f02")) {
             area_no = 1;
         }
 
-        if (map_no == SearchMapNo(at_2957)) {
+        if (map_no == SearchMapNo("f03")) {
             area_no = 2;
         }
 
-        if (map_no == SearchMapNo(at_2958)) {
+        if (map_no == SearchMapNo("f04")) {
             area_no = 3;
         }
 
@@ -2483,19 +2675,19 @@ int EditMapJump(int map_no) {
 
     area_no = MapNo;
 
-    if (area_no == SearchMapNo(at_2950)) {
+    if (area_no == SearchMapNo("f01")) {
         area_no = 0;
     }
 
-    if (MapNo == SearchMapNo(at_2956)) {
+    if (MapNo == SearchMapNo("f02")) {
         area_no = 1;
     }
 
-    if (MapNo == SearchMapNo(at_2957)) {
+    if (MapNo == SearchMapNo("f03")) {
         area_no = 2;
     }
 
-    if (MapNo == SearchMapNo(at_2958)) {
+    if (MapNo == SearchMapNo("f04")) {
         area_no = 3;
     }
 
@@ -2618,7 +2810,7 @@ void EditDataSave() {
         if (edit_data != NULL) {
             map = (CEditMap *) (MainScene__2->GetMap(MainScene__2->active_map));
 
-            if ((map != NULL) && (strcmp(map->Iam(), at_2747) == 0) && (map != NULL)) {
+            if ((map != NULL) && (strcmp(map->Iam(), "CEditMap") == 0) && (map != NULL)) {
                 map->SaveData(edit_data);
                 GetSaveData()->GetBitFlag(0x208);
                 edit_data->culture_point = map->CultureAnalyze(0);
@@ -2723,18 +2915,12 @@ void LoadMap() {
     LoadComVillaager();
 }
 
-// Static initialiser (.init)
-
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1045__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1053__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1528__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2271__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_3040__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1032__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1033__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1395__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1396__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1397__DATA);
@@ -2774,91 +2960,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2132__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2133__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2134__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2136__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2261__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2262__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2747__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2748__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2749__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2750__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2751__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2752__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2753__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2948__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2949__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2950__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2951__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2952__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2953__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2954__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2955__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2956__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2957__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2958__DATA);
-
-// Static initialiser table (.ctor)
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", MenuInfo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", DataPktMode__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2346__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2352__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(WaterFrame, 0x4);
-INCLUDE_BSS(RedBicMark, 0x4);
-INCLUDE_BSS(BlueBicMark, 0x4);
-INCLUDE_BSS(TreasureBox, 0x4);
-INCLUDE_BSS(MapNo, 0x4);
-INCLUDE_BSS(Camera, 0x4);
-static INCLUDE_BSS(EventCamera, 0x4);
-INCLUDE_BSS(FixCamera, 0x4);
-INCLUDE_BSS(EditCamera, 0x4);
-INCLUDE_BSS(ActiveCharaNo, 0x4);
-INCLUDE_BSS(ControlCharaID, 0x4);
-INCLUDE_BSS(WalkChara, 0x4);
-INCLUDE_BSS(LoopCounter, 0x4);
-INCLUDE_BSS(LoopMode, 0x4);
-INCLUDE_BSS(ControlMode, 0x4);
-INCLUDE_BSS(SubMapLoadBG, 0x4);
-INCLUDE_BSS(now_load_map_no, 0x4);
-INCLUDE_BSS(EventSquareJump, 0x4);
-INCLUDE_BSS(EditDrawFlag, 0x4);
-INCLUDE_BSS(EditDrawCancelFlag, 0x4);
-INCLUDE_BSS(PauseFlag, 0x4);
-INCLUDE_BSS(LockChara, 0x4);
-INCLUDE_BSS(PreEditMenuCnt, 0x4);
-INCLUDE_BSS(EditModeChgFlag, 0x4);
-INCLUDE_BSS(EditModeChgCnt, 0x4);
-INCLUDE_BSS(EditModeChgEvent, 0x4);
-INCLUDE_BSS(MainScene__2, 0x4);
-INCLUDE_BSS(main_pkt1, 0x4);
-INCLUDE_BSS(main_pkt2, 0x4);
-INCLUDE_BSS(read_buffer_end, 0x4);
-INCLUDE_BSS(MenuDataBuf, 0x4);
-INCLUDE_BSS(MenuDataSize, 0x4);
-INCLUDE_BSS(FixCharaBuffSize, 0x4);
-INCLUDE_BSS(CrossFadeBuff, 0x4);
-INCLUDE_BSS(time_step_1481, 0x4);
-INCLUDE_BSS(init_1482, 0x4);
-INCLUDE_BSS(show_time_step_1484, 0x4);
-INCLUDE_BSS(init_1485, 0x4);
-INCLUDE_BSS(old_cm_1772, 0x4);
-INCLUDE_BSS(rain_flag_1849, 0x4);
-INCLUDE_BSS(init_1850, 0x4);
-INCLUDE_BSS(start_bt_cnt_1865, 0x4);
-INCLUDE_BSS(init_1866, 0x4);
-INCLUDE_BSS(encount_flag_1868, 0x4);
-INCLUDE_BSS(init_1869, 0x4);
-INCLUDE_BSS(show_encount_cnt_1871, 0x4);
-INCLUDE_BSS(init_1872, 0x4);
-INCLUDE_BSS(next_encount_1874, 0x4);
-INCLUDE_BSS(init_1875, 0x4);
-INCLUDE_BSS(flag_2408, 0x4);
-INCLUDE_BSS(init_2409, 0x4);
-INCLUDE_BSS(DelMainNPCflag, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(at_949, 0x10);
 CWaveTable    WaveTable;
 sceVu0FVECTOR CharaOldPos;
 ClsMes        EventMes1;
@@ -2885,5 +2988,3 @@ EditDebugInfo EdDebugInfo;
 mgCVisualMDT  TestVisual;
 mgCFrame      TestFrame;
 INCLUDE_BSS(at_1077, 0x10);
-INCLUDE_BSS(at_3041, 0x10);
-INCLUDE_BSS(beforeAnalyze, 0x40);

@@ -171,7 +171,6 @@ STATIC_ASSERT(sizeof(VoBuf) == 0x18);
  */
 struct StrFile {
     sceCdlFILE fp; /**< Disc location of the file, when streamed from CD. */
-    int        unk_20;
     int        fd;       /**< File descriptor, when read through the file system. */
     int        is_on_cd; /**< Non-zero when the file is streamed from CD. */
     int        size;     /**< File size in bytes. */
@@ -541,7 +540,7 @@ void videoDecMain(void *arg);
  * @address 0x0029d0c0
  * @size 0x18
  */
-int defMain(void *arg);
+void defMain(void *arg);
 
 /**
  *

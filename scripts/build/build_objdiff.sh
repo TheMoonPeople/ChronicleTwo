@@ -21,7 +21,8 @@ REBUILD='
         home=\$(sed -n \"s/^CMAKE_HOME_DIRECTORY:INTERNAL=//p\" \"\$cache\" 2>/dev/null | head -1)
         if [ -f build/pal/build.ninja ] && [ \"\$home\" = \"\$(pwd)\" ]; then
             scripts/build/globs.sh build/pal
-            exec cmake --build build/pal --target objdiff
+            cmake --build build/pal --target objdiff || exit \$?
+            exec python3 scripts/build/objdiff_config.py --build-dir build/pal
         fi
         CHRONICLETWO_BUILD_LOCKED=1 exec scripts/build/cmake.sh objdiff
     "

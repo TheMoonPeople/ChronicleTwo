@@ -112,11 +112,41 @@ enum SaveMenuMode {
 
 /**
  *
+ * Input stages of the save menu, as CBaseMenuClass::step holds them.
+ *
+ */
+enum SaveMenuStep {
+    SAVE_MENU_STEP_READY = 0,  /**< Waits for opening to finish, or accepts slot selection. */
+    SAVE_MENU_STEP_NOTICE = 1, /**< Waits for a chapter-eight notice or an exit confirmation. */
+};
+
+/**
+ *
+ * Result the save menu reports through MenuArg.end_code after loading.
+ *
+ */
+enum SaveMenuEndCode {
+    SAVE_MENU_END_LOAD = 10, /**< The saved game or its fish data has been loaded. */
+};
+
+/**
+ *
+ * Whether saving creates a new file or overwrites an existing one.
+ *
+ */
+enum SaveFileKind {
+    SAVE_FILE_OVERWRITE = 0, /**< Writes over the selected save file. */
+    SAVE_FILE_NEW = 1,       /**< Creates the selected save file and its directory. */
+};
+
+/**
+ *
  * Pages of the save menu, as CSaveMenuClass::page holds them.
  *
  */
 // clang-format off
 enum SaveMenuPage {
+    SAVE_MENU_PAGE_NONE        = -1, /**< No page change is pending. */
     SAVE_MENU_PAGE_SLOT_SELECT = 0, /**< The player picks a memory card slot. */
     SAVE_MENU_PAGE_FILE_LIST   = 1, /**< The player picks a file on the card, and the file is saved or loaded. */
     SAVE_MENU_PAGE_CARD_INFO   = 2, /**< The card in the chosen slot is checked. */
@@ -338,7 +368,7 @@ public:
     s32                 mode;           /**< What the menu was opened to do, a SaveMenuMode. */
     s32                 page;           /**< Page shown, a SaveMenuPage. */
     s32                 phase;          /**< Step within the page. */
-    s32                 save_kind;      /**< 1 to save to a new file, 0 to overwrite the chosen file, as EnvSetSave takes it. */
+    s32                 save_kind;      /**< Kind of file write, a SaveFileKind, as EnvSetSave takes it. */
     s32                 dl_base;        /**< Progress of the card access already shown on the progress bar. */
     s32                 need_kb;        /**< Space the save needs, in kilobytes, as shown to the player. */
     s32                 save_kb;        /**< Size of the save data, in kilobytes. */
@@ -426,7 +456,7 @@ public:
      *
      * @mangled KeyStep__14CSaveMenuClassFv
      * @address 0x2C7710
-     * @size 0x1A70
+     * @size 0x1A64
      */
     int KeyStep();
 };

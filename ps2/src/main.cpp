@@ -14,22 +14,14 @@
 #include "main.hpp"
 #include "mainloop.hpp"
 
-/** Vertical blanks counted since start-up, kept non-negative. */
 // Small uninitialised data (.sbss)
-static volatile int        vcount__2;
-static int                 VSyncCallBack(int event);
-extern const unsigned char at_846__DATA[];
-extern const unsigned char at_847__DATA[];
-extern const unsigned char at_848__DATA[];
-extern const unsigned char at_849__DATA[];
-extern const unsigned char at_850__DATA[];
-extern const unsigned char at_851__DATA[];
-extern const unsigned char at_852__DATA[];
-extern const unsigned char at_853__DATA[];
-extern const unsigned char at_854__DATA[];
-extern const unsigned char at_855__DATA[];
-extern const unsigned char at_856__DATA[];
-extern const unsigned char at_857__DATA[];
+/**
+ *
+ * Vertical blanks counted since start-up, kept non-negative.
+ *
+ */
+static volatile int vcount__2;
+static int          VSyncCallBack(int event);
 
 // Code (.text)
 /**
@@ -89,7 +81,7 @@ static void init() {
     sceCdInit(0);
     sceCdMmode(2);
 
-    while (!sceSifRebootIop((const char *) at_846__DATA)) {
+    while (!sceSifRebootIop("cdrom0:\\MODULES\\IOPRP243.IMG;1")) {
     }
 
     while (!sceSifSyncIop()) {
@@ -99,36 +91,36 @@ static void init() {
     sceCdInit(0);
     sceCdMmode(2);
     sceFsReset();
-    printf((const char *) at_847__DATA, vcount__2);
+    printf("######################%d\n", vcount__2);
 
-    while (sceSifLoadModule((const char *) at_848__DATA, 0, NULL) < 0) {
+    while (sceSifLoadModule("cdrom0:\\MODULES\\SIO2MAN.IRX;1", 0, NULL) < 0) {
     }
 
-    while (sceSifLoadModule((const char *) at_849__DATA, 0, NULL) < 0) {
+    while (sceSifLoadModule("cdrom0:\\MODULES\\PADMAN.IRX;1", 0, NULL) < 0) {
     }
 
-    while (sceSifLoadModule((const char *) at_850__DATA, 0, NULL) < 0) {
+    while (sceSifLoadModule("cdrom0:\\MODULES\\MCMAN.IRX;1", 0, NULL) < 0) {
     }
 
-    while (sceSifLoadModule((const char *) at_851__DATA, 0, NULL) < 0) {
+    while (sceSifLoadModule("cdrom0:\\MODULES\\MCSERV.IRX;1", 0, NULL) < 0) {
     }
 
-    while (sceSifLoadModule((const char *) at_852__DATA, 0, NULL) < 0) {
+    while (sceSifLoadModule("cdrom0:\\MODULES\\LIBSD.IRX;1", 0, NULL) < 0) {
     }
 
-    while (sceSifLoadModule((const char *) at_853__DATA, 0, NULL) < 0) {
+    while (sceSifLoadModule("cdrom0:\\MODULES\\SDRDRV.IRX;1", 0, NULL) < 0) {
     }
 
-    while (sceSifLoadModule((const char *) at_854__DATA, 0, NULL) < 0) {
+    while (sceSifLoadModule("cdrom0:\\MODULES\\MODMIDI.IRX;1", 0, NULL) < 0) {
     }
 
-    while (sceSifLoadModule((const char *) at_855__DATA, 0, NULL) < 0) {
+    while (sceSifLoadModule("cdrom0:\\MODULES\\MODHSYN.IRX;1", 0, NULL) < 0) {
     }
 
-    while (sceSifLoadModule((const char *) at_856__DATA, 0, NULL) < 0) {
+    while (sceSifLoadModule("cdrom0:\\MODULES\\EZMIDI.IRX;1", 0, NULL) < 0) {
     }
 
-    while (sceSifLoadModule((const char *) at_857__DATA, 0, NULL) < 0) {
+    while (sceSifLoadModule("cdrom0:\\MODULES\\EZBGM.IRX;1", 0, NULL) < 0) {
     }
 
     InitCDFile();
@@ -140,7 +132,7 @@ int main() {
     MainThreadPriority = 10;
     ChangeThreadPriority(GetThreadId(), MainThreadPriority);
     init();
-    printf((const char *) at_847__DATA, vcount__2);
+    printf("######################%d\n", vcount__2);
     MainLoop();
 
     sceGsSyncPath(0, 0);
@@ -150,17 +142,3 @@ int main() {
     sceSifExitCmd();
     return 0;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_846__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_847__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_848__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_849__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_850__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_851__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_852__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_853__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_854__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_855__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_856__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/main", at_857__DATA);

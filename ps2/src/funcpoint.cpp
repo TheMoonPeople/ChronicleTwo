@@ -546,7 +546,7 @@ static inline u_int Align16Blocks(u_int n) {
     return n >> 4;
 }
 void CFuncPointMngr::Reserve(int num, mgCMemory *stack) {
-    CList<CFuncPoint> *nodes = new ((u_long128 *)stack->Alloc(Align16Blocks(num * sizeof(CList<CFuncPoint>)) + 2)) CList<CFuncPoint>[num];
+    CList<CFuncPoint> *nodes = new (stack->Alloc(Align16Blocks(num * sizeof(CList<CFuncPoint>)) + 2)) CList<CFuncPoint>[num];
     if (num > 0) {
         for (int index = 0; index < num; index++) {
             Add(FUNC_POINT_NONE, &nodes[index]);
@@ -713,7 +713,7 @@ CFuncPoint *CFuncPointMngr::Search(char *name) {
 
         if (first != NULL) {
             do {
-                if (strcasecmp(*(char **) point, name) == 0) {
+                if (strcasecmp(point->name, name) == 0) {
                     return point;
                 }
 
@@ -1305,20 +1305,3 @@ float GetLightAnimeWeight(CFuncPoint *point, int frame) {
     return weight;
 }
 #pragma divbyzerocheck reset
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/funcpoint", at_475__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/funcpoint", at_1118__3__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/funcpoint", __vt__14CFuncPointMngr__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/funcpoint", __vt__19CList_10CFuncPoint___DATA);
-
-INCLUDE_BSS(init_1175, 0x4);
-INCLUDE_BSS(init_1204, 0x4);
-INCLUDE_BSS(init_1208, 0x4);
-
-INCLUDE_BSS(sp_3d_1174, 0x50);
-INCLUDE_BSS(frame_1203, 0x110);
-INCLUDE_BSS(Bound_1206, 0xB0);
-INCLUDE_BSS(attr_1207, 0x90);

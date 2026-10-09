@@ -28,13 +28,13 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-/** Brightness of the active dungeon tree selection. */
-extern float DngTreeMapActiveLightRate;
-
 /**
  *
  * Draws the selected room's floor information and completion medals.
  *
+ * @mangled DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO
+ * @address 0x1EE0F0
+ * @size 0xB18
  */
 static void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room);
 
@@ -42,11 +42,214 @@ static void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room);
  *
  * Draws a paged list of georama materials for the dungeon room.
  *
+ * @mangled DrawGeoramaMateria__FiPciPii
+ * @address 0x1EEC10
+ * @size 0x400
  */
-void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block);
+static void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block);
 
-/** Tree map menu attached to the active dungeon screen. */
-extern CMenuTreeMap *CMenuTreePt;
+/**
+ *
+ * Selected floor-save flag in the map debug panel.
+ *
+ */
+static int MenuDngDebugFlagSelect;
+
+/**
+ *
+ * Floor map attached to the active dungeon menu.
+ *
+ */
+static CDngFreeMap *MenuDngMap;
+
+/**
+ *
+ * Enables the selected floor information.
+ *
+ */
+static u8 dngfloor_infoview;
+
+/**
+ *
+ * Enables the floor-information backdrop.
+ *
+ */
+static u8 dngfloor_backdraw;
+
+/**
+ *
+ * Opacity of the floor-information backdrop.
+ *
+ */
+static int dngfloor_backdraw_alpha;
+
+/**
+ *
+ * Texture used by the floor-information frame.
+ *
+ */
+static mgCTexture *Floor_InfoTex;
+
+/**
+ *
+ * Indicates that fishing tests are unlocked.
+ *
+ */
+static u8 DngInfoFishOkFlag;
+
+/**
+ *
+ * Indicates that spheda tests are unlocked.
+ *
+ */
+static u8 DngInfoSphidaOkFlag;
+
+/**
+ *
+ * Controls the floor travel confirmation message.
+ *
+ */
+static s8 DngAskMessageDrawFlag;
+
+/**
+ *
+ * Save record of the floor shown by the information panel.
+ *
+ */
+static DNG_FLOOR_SAVE *DngInfoFloorInfo;
+
+/**
+ *
+ * Room shown by the floor-information panel.
+ *
+ */
+static DNGMAP_ROOM_INFO *DngInfoRoomInfo;
+
+/**
+ *
+ * Opacity of the selected floor information.
+ *
+ */
+static int DngInfoDrawAlpha;
+
+/**
+ *
+ * Position of the medal-count message.
+ *
+ */
+static int DngInfoMedalMsgPutPos[2];
+
+/**
+ *
+ * Enables the georama material list.
+ *
+ */
+static u8 GeoramaMateriaInfoDrawFlag;
+
+/**
+ *
+ * Page displayed by the georama material list.
+ *
+ */
+static s8 GeoramaMateriaInfoDrawPage;
+
+/**
+ *
+ * Number of georama materials collected for the floor.
+ *
+ */
+static short GeoramaMateriaNum;
+
+/**
+ *
+ * Brightness of the active dungeon tree selection.
+ *
+ */
+static float DngTreeMapActiveLightRate;
+
+/**
+ *
+ * Animation counter of the player marker.
+ *
+ */
+static int dng_player_blink_cnt;
+
+/**
+ *
+ * Selects the tree map or its save menu.
+ *
+ */
+static short DngTreeMode;
+
+/**
+ *
+ * Indicates that the tree map is open for saving.
+ *
+ */
+u8 TreeMapSaveFlag;
+
+/**
+ *
+ * Counts saves made through the tree map.
+ *
+ */
+s16 TreeMapSaveNum;
+
+/**
+ *
+ * Animation timer of the tree-menu save prompt.
+ *
+ */
+static short TreeMapSaveDispCount;
+
+/**
+ *
+ * Phase of the tree-menu save prompt hop.
+ *
+ */
+static float TreeMapSaveHopCount;
+
+/**
+ *
+ * Vertical position of the tree-menu save prompt.
+ *
+ */
+static short TreeMapSaveDispY;
+
+/**
+ *
+ * Requests the dungeon submap through the tree menu.
+ *
+ */
+u8 TreeMapCallDungeonSubMap;
+
+/**
+ *
+ * Records that the world map opened the tree menu.
+ *
+ */
+u8 TreeMapCalledWorldMap;
+
+/**
+ *
+ * Loaded image data for the tree-menu cursor.
+ *
+ */
+static u8 *MenuCursorDataBuff;
+
+/**
+ *
+ * Tree map menu attached to the active dungeon screen.
+ *
+ */
+static CMenuTreeMap *CMenuTreePt;
+
+/**
+ *
+ * Message windows belonging to the active tree map.
+ *
+ */
+static CDC2Mes *MenuDngMes[DNG_TREE_MAP_MES_MAX];
 
 // Code (.text)
 void CDngFreeMap::Initialize() {
@@ -207,7 +410,7 @@ void CDngFreeMap::DrawBackPattern(int opacity) {
         SetSpriteEnv(prim, 2);
         prim->Bilinear(1);
         prim->AntiAliasing(1);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Color(0, 0, 0, 32);
         prim->Vertex(0, 0, 0);
         prim->Vertex(mgScreenWidth, mgScreenHeight, 0);
@@ -229,7 +432,7 @@ void CDngFreeMap::DrawDngName(int opacity) {
         tex_rect.Set(0, 0, 256, 96);
         mgCDrawPrim *prim = GetMenuPrim();
         SetSpriteEnv(prim, 0);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(name_tex);
         prim->Color(10, 10, 10, static_cast<int>(0.25f * static_cast<float>(opacity)));
         PrimQuad(prim, 4.0f, 4.0f, tex_rect);
@@ -245,7 +448,7 @@ void CDngFreeMap::DrawLast() {
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 4);
     prim->AlphaBlend(1);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(last_tex);
     prim->Color(128, 128, 128, 128);
     prim->TextureCrd(0, 0);
@@ -254,7 +457,7 @@ void CDngFreeMap::DrawLast() {
     prim->Vertex(mgScreenWidth, mgScreenHeight, 0);
     prim->End();
 }
-#ifdef NONMATCHING
+
 /**
  *
  * Offset of a passage mark from its grid cell.
@@ -265,14 +468,51 @@ struct RootMarkOffset {
     s16 y; /**< Vertical position of the mark inside its grid cell. */
 };
 
-/** Destination rectangle used while drawing passage lines. */
+/**
+ *
+ * Destination rectangle used while drawing passage lines.
+ *
+ */
 extern mgRect<float> treemap_root_put;
-/** Passage mark offsets selected by shape. */
-extern RootMarkOffset markOffsetTable_1092[];
-/** Mark offset of the final dungeon's diagonal passage. */
-extern RootMarkOffset zerumaito_offset_1110;
-/** Texture origins of the passage-type icons. */
-extern s16 root_type_texturecrd_1216[][2];
+/**
+ *
+ * Offsets of the passage marks within each passage shape.
+ *
+ */
+static RootMarkOffset markOffsetTable_1092[10] = {
+    {6, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2},
+    {4, -2}
+};
+
+/**
+ *
+ * Offset of the special passage mark in dungeon six.
+ *
+ */
+static RootMarkOffset zerumaito_offset_1110 = {
+    13, -11
+};
+
+/**
+ *
+ * Texture coordinates of the passage-type marks.
+ *
+ */
+static s16 root_type_texturecrd_1216[5][2] = {
+    {0, 0},
+    {490, 0},
+    {490, 22},
+    {490, 44},
+    {294, 18}
+};
 
 void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shadow, unsigned int marks, int opacity) {
     if (root == NULL || (float) mgScreenWidth < rect.left || rect.top > (float) (mgScreenHeight + 20)) {
@@ -284,25 +524,25 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
         put.left += 8.0f;
         put.top += 8.0f;
     }
+    float mark_color = 128.0f;
     float red = 212.0f;
     float green = 192.0f;
     float blue = 144.0f;
-    float mark_color = 128.0f;
     RootMarkOffset *mark = markOffsetTable_1092;
     if (mode == DNGMAP_MODE_EVENT) {
+        mark_color = 64.0f;
         red = 128.0f;
         green = 111.0f;
         blue = 0.0f;
-        mark_color = 64.0f;
     }
     mgCDrawPrim    *prim = GetMenuPrim();
     SetSpriteEnv(prim, 2);
-    prim->Begin(1);
+    prim->Begin(MG_PRIM_LINE);
     prim->Color((int) red, (int) green, (int) blue, opacity);
     if (shadow != 0) {
         prim->Color(0, 0, 0, (int) (0.05f * (float) opacity));
     }
-    if (root->shape == 1 || (root->shape >= 2 && root->shape < 4) || (root->shape >= 6 && root->shape < 8)) {
+    if (root->shape == 1 || (root->shape >= 2 && root->shape <= 3) || (root->shape >= 6 && root->shape < 8)) {
         put.left -= 5.0f;
     }
     put.right = put.left + 52.0f;
@@ -311,8 +551,9 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
         put.left += 26.0f;
         for (int i = 0; i < 3; i++) {
             prim->Vertex(put.left + (float) i, put.top, 0.0f);
-            prim->Vertex(put.left + (float) i - 16.0f, put.bottom, 0.0f);
+            prim->Vertex(put.left + (float) i + -16.0f, put.bottom, 0.0f);
         }
+        mark = &markOffsetTable_1092[0];
         if (dng_no == 6) {
             mark = &zerumaito_offset_1110;
         }
@@ -353,13 +594,15 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
     } else if (root->shape == 4) {
         put.left += 26.0f;
         put.bottom -= 10.0f;
+        float inner_left = put.left - 2.0f;
+        float inner_bottom = put.bottom + 2.0f;
         for (int i = 0; i < 3; i++) {
             prim->Vertex(put.left + (float) i, put.top, 0.0f);
-            prim->Vertex(put.left + (float) i - 10.0f, put.bottom + 2.0f, 0.0f);
+            prim->Vertex(put.left + (float) i - 10.0f, inner_bottom, 0.0f);
         }
         for (int i = 0; i < 3; i++) {
-            prim->Vertex(put.left - 7.0f - (float) i, put.bottom + (float) i, 0.0f);
-            prim->Vertex(put.right - 5.0f - (float) i, put.bottom + (float) i, 0.0f);
+            prim->Vertex(inner_left - (float) i - 5.0f, put.bottom + (float) i, 0.0f);
+            prim->Vertex(put.right - (float) i - 5.0f, put.bottom + (float) i, 0.0f);
         }
         mark = &markOffsetTable_1092[4];
     } else if (root->shape == 5) {
@@ -367,12 +610,12 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
         put.bottom -= 10.0f;
         put.left += 1.0f;
         for (int i = 0; i < 3; i++) {
-            prim->Vertex(put.left - 6.0f - (float) i, put.bottom + (float) i, 0.0f);
-            prim->Vertex(put.right - 6.0f - (float) i, put.bottom + (float) i, 0.0f);
+            prim->Vertex(put.left - (float) i - 5.0f - 1.0f, put.bottom + (float) i, 0.0f);
+            prim->Vertex(put.right - (float) i - 5.0f - 1.0f, put.bottom + (float) i, 0.0f);
         }
         for (int i = 0; i < 3; i++) {
             prim->Vertex(put.right + (float) i, put.top, 0.0f);
-            prim->Vertex(put.right + (float) i - 9.0f, put.bottom, 0.0f);
+            prim->Vertex(put.right + (float) i - 10.0f + 1.0f, put.bottom, 0.0f);
         }
         mark = &markOffsetTable_1092[5];
         put.left = put.right;
@@ -411,30 +654,25 @@ void CDngFreeMap::DrawRoot(mgRect<float> rect, DNGMAP_ROOT_INFO *root, int shado
     prim->End();
     prim->Bilinear(0);
     prim->TextureMapEnable(1);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Color((int) red, (int) green, (int) blue, opacity);
     if (shadow != 0) {
         prim->Color(0, 0, 0, (int) (0.05f * (float) opacity));
     }
     prim->Texture(map_tex);
-    if (root->type != 0 && root->opened != 0 && root->show_mark != 0 && mark != NULL) {
+    if (root->type != 0 && (u8) root->opened != 0 && root->show_mark != 0 && mark != NULL) {
         prim->Color((int) mark_color, (int) mark_color, (int) mark_color, opacity);
         if (shadow != 0) {
             prim->Color(0, 0, 0, (int) (0.05f * (float) opacity));
         }
-        int u = root_type_texturecrd_1216[root->type][0];
-        int v = root_type_texturecrd_1216[root->type][1];
-        prim->TextureCrd(u, v);
+        int type = root->type;
+        prim->TextureCrd(root_type_texturecrd_1216[type][0], root_type_texturecrd_1216[type][1]);
         prim->Vertex(rect.left + (float) mark->x, rect.top + (float) mark->y, 0.0f);
-        prim->TextureCrd(u + 22, v + 22);
+        prim->TextureCrd(root_type_texturecrd_1216[type][0] + 22, root_type_texturecrd_1216[type][1] + 22);
         prim->Vertex(rect.left + (float) mark->x + 22.0f, rect.top + (float) mark->y + 22.0f, 0.0f);
     }
     prim->End();
 }
-
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawRoot__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOT_INFOiUii);
-#endif
 unsigned int CDngFreeMap::DrawGlidCheck(GLID_INFO *glid) {
     unsigned int marks;
     if (glid == NULL) {
@@ -477,18 +715,6 @@ unsigned int CDngFreeMap::DrawGlidCheck(GLID_INFO *glid) {
     }
     return marks;
 }
-#ifdef NONMATCHING
-/**
- *
- * Source rectangle of a room's letter or symbol.
- *
- */
-struct RoomGlyph {
-    s16 x; /**< Horizontal texture origin of the glyph. */
-    s16 y; /**< Vertical texture origin of the glyph. */
-    s16 w; /**< Width of the glyph in texture pixels. */
-    s16 h; /**< Height of the glyph in texture pixels. */
-};
 
 /**
  *
@@ -500,12 +726,35 @@ struct RoomGlyphOffset {
     s16 y; /**< Vertical glyph offset within the room picture. */
 };
 
-/** Source rectangles of the room-kind glyphs. */
-extern RoomGlyph get_moji_tbl_1524[];
-/** Destination offsets of the room-kind glyphs. */
-extern RoomGlyphOffset put_moji_tbl_1525[];
-/** Room-mark phase increment for menu and event maps. */
-extern float stepCntTbl_1501[2];
+/**
+ *
+ * Texture rectangles of the visited-room labels.
+ *
+ */
+static s16 get_moji_tbl_1524[16] = {
+    0, 172, 62, 22, 0, 194, 62, 20, 0, 216, 62, 20, -1, 0, 0, 0
+};
+
+/**
+ *
+ * Destination offsets of the visited-room labels.
+ *
+ */
+static RoomGlyphOffset put_moji_tbl_1525[4] = {
+    {20, -7},
+    {20, -7},
+    {20, 0},
+    {10, 10}
+};
+
+/**
+ *
+ * Room-mark animation speed in menu and event modes.
+ *
+ */
+static float stepCntTbl_1501[2] = {
+    0.0628318563f, 0.125663713f
+};
 
 void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsigned int unused, int opacity, float brightness) {
     if (room == NULL || rect.left > (float) (mgScreenWidth + 20) || rect.top > (float) (mgScreenHeight + 30)) {
@@ -526,12 +775,15 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
     mgRect<int> special;
     tex.Set(0, 66, 96, 66);
     special.Set(192, 198, 96, 96);
+    int tex_no = room->tex_no;
     if (room->visited == 0) {
         tex.left = 0;
         tex.top = 0;
     } else {
-        tex.left += tex.right * (room->tex_no % 5);
-        tex.top += tex.bottom * (room->tex_no / 5);
+        int column = tex_no % 5;
+        int row = tex_no / 5;
+        tex.left += tex.right * column;
+        tex.top += tex.bottom * row;
         if (room->flag & DNGMAP_ROOM_FLAG_START) {
             tex.left = 96;
             tex.top = 0;
@@ -540,11 +792,14 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
             tex.left = 192;
             tex.top = 0;
         }
-        if (room->flag & (DNGMAP_ROOM_FLAG_SUB | DNGMAP_ROOM_FLAG_BOSS)) {
+        if ((room->flag & DNGMAP_ROOM_FLAG_SUB) || (room->flag & DNGMAP_ROOM_FLAG_BOSS)) {
             tex.left = special.left + (room->tex_no % 3) * 96;
             tex.top = special.top + (room->tex_no / 3) * 96;
             tex.right = special.right;
-            tex.bottom = room->tex_no >= 3 ? 90 : special.bottom;
+            tex.bottom = special.bottom;
+            if (room->tex_no >= 3) {
+                tex.bottom = 90;
+            }
             picture.right = (float) special.right;
             picture.bottom = (float) special.bottom;
         }
@@ -552,15 +807,16 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
         picture.top += (float) room->offset_y;
     }
     int   level = (int) (128.0f * brightness);
+    float shadow_alpha = 0.25f * static_cast<float>(opacity);
     float event_brightness = 1.0f;
     if (mode == DNGMAP_MODE_EVENT && user_glid != NULL && &user_glid->room != room) {
         level = (int) (64.0f * brightness);
         event_brightness = 0.5f;
     }
     if (mode == DNGMAP_MODE_MENU) {
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(map_tex);
-        prim->Color(0, 0, 0, static_cast<int>(0.25f * static_cast<float>(opacity)));
+        prim->Color(0, 0, 0, (int) shadow_alpha);
         PrimQuad(prim, picture.left + 8.0f, picture.top + 8.0f, tex);
         prim->End();
     }
@@ -569,7 +825,7 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
     if (room->mark_phase > 3.1415927f) {
         room->mark_phase -= 6.2831855f;
     }
-    int red = 192;
+    int r = 192, g = 192, b = 192;
     if (room->mark != 0) {
         float phase = room->mark_phase;
         while (phase > 3.1415927f) {
@@ -579,26 +835,26 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
             phase += 6.2831855f;
         }
         if (phase > 0.0f) {
-            red = (int) (7.0f * (float) level / 8.0f);
+            b = g = r = (int) (7.0f * (float) level / 8.0f);
         }
     } else {
-        red = level;
+        b = g = r = level;
     }
     prim->Bilinear(0);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(map_tex);
-    prim->Color(red, red, red, opacity);
+    prim->Color(r, g, b, opacity);
     PrimQuad(prim, picture, tex);
     prim->End();
     if (room->visited == 0 && user_glid != NULL && &user_glid->room != room) {
         float overlay_left = picture.left + 40.0f;
+        int left = fptosi(overlay_left);
         float overlay_top = picture.top + 25.0f;
-        int left = (int) overlay_left;
-        int top = (int) overlay_top;
-        int right = (int) (overlay_left + 20.0f);
-        int bottom = (int) (overlay_top + 30.0f);
-        prim->Begin(6);
-        prim->Color(red, red, red, opacity);
+        int top = fptosi(overlay_top);
+        int right = fptosi(overlay_left + 20.0f);
+        int bottom = fptosi(overlay_top + 30.0f);
+        prim->Begin(MG_PRIM_SPRITE);
+        prim->Color(r, g, b, opacity);
         prim->TextureCrd(492, 66);
         prim->Vertex(left, top, 0);
         prim->TextureCrd(512, 96);
@@ -606,41 +862,36 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
         prim->End();
     }
     if (room->mark != 0) {
-        float          bob = 0.71875f * (6.0f * sinf(-room->mark_phase));
-        mgRect<float> &mark = mark_rect[mark_num++];
-        mark.left = picture.left + 64.0f;
-        mark.top = picture.top + 4.0f - bob;
-        mark.right = 64.0f + bob;
-        mark.bottom = 46.0f + bob;
+        float bob = 0.71875f * (6.0f * sinf(-room->mark_phase));
+        mark_rect[mark_num].left = picture.left + 64.0f;
+        mark_rect[mark_num].top = picture.top + 4.0f - bob;
+        mark_rect[mark_num].right = 64.0f + bob;
+        mark_rect[mark_num].bottom = 46.0f + bob;
+        mark_num++;
     }
+    float tint = 128.0f * event_brightness;
     if (name_tex != NULL && room->visited == 1) {
         for (int i = 0; i < 3; i++) {
             if (!(room->flag & (1 << (i + 1)))) {
                 continue;
             }
-            RoomGlyph *glyph = &get_moji_tbl_1524[i];
-            if (glyph->x < 0) {
+            if (get_moji_tbl_1524[i << 2] < 0) {
                 continue;
             }
-            RoomGlyphOffset *offset = &put_moji_tbl_1525[i];
-            mgRect<float> glyph_put(picture.left + (float) offset->x,
-                                    picture.top + (float) offset->y,
-                                    (float) glyph->w, (float) glyph->h);
+            mgRect<float> glyph_put(picture.left + (float) put_moji_tbl_1525[i].x,
+                                    picture.top + (float) put_moji_tbl_1525[i].y,
+                                    (float) get_moji_tbl_1524[(i << 2) + 2], (float) get_moji_tbl_1524[(i << 2) + 3]);
             prim->TextureMapEnable(1);
-            prim->Begin(6);
+            prim->Begin(MG_PRIM_SPRITE);
             prim->Texture(name_tex);
-            int tint = (int) (128.0f * event_brightness);
-            prim->Color(tint, tint, tint, opacity);
+            prim->Color((int) tint, (int) tint, (int) tint, opacity);
             mgRect<int> glyph_rect;
-            glyph_rect.Set(glyph->x, glyph->y, glyph->w, glyph->h);
+            glyph_rect.Set(get_moji_tbl_1524[i << 2], get_moji_tbl_1524[(i << 2) + 1], get_moji_tbl_1524[(i << 2) + 2], get_moji_tbl_1524[(i << 2) + 3]);
             PrimQuad(prim, glyph_put.left, glyph_put.top, glyph_rect);
             prim->End();
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawRoomOne__11CDngFreeMapF9mgRect_f_P16DNGMAP_ROOM_INFOUiif);
-#endif
 void CDngFreeMap::DrawGlid(mgRect<float> rect) {
     mgCDrawPrim prim;
     SetSpriteEnv(&prim, 1);
@@ -657,6 +908,7 @@ void CDngFreeMap::DrawGlid(mgRect<float> rect) {
     prim.Vertex(rect.left, top, 0.0f);
     prim.End();
 }
+
 /**
  *
  * Collects qualifying georama material items for a treasure floor.
@@ -701,31 +953,52 @@ static int CheckGeoramaMateria(TRESURE_BOX_FLOOR_INFO *info, int floor_no, int *
     return count;
 }
 
-#ifdef NONMATCHING
-extern mgCTexture     *Floor_InfoTex;
-extern mgRect<int>     Floor_Info;
-extern short           dngboardbrdtbl[24];
-extern short           dngboardbrdtbl_1[16];
-extern short           dngboardbrdtbl_2[12];
-extern short           DngInfoMedalNumMsg[16];
-extern int             DngInfoMedalMsgPutPos[2];
-extern CDC2Mes        *MenuDngMes[8];
-/** Room whose floor-information activities are being shown. */
-extern DNGMAP_ROOM_INFO *DngInfoRoomInfo;
-extern DNG_FLOOR_SAVE *DngInfoFloorInfo;
-extern int             DngInfoDrawAlpha;
-extern u8              dngfloor_infoview;
-/** Texture X coordinates of the room-info completion icons. */
-extern s16             medal_xytbl_1736[];
-extern float           AlphaRate_1743;
-extern u8              init_1744;
+extern mgRect<int> Floor_Info;
 
 /**
  *
- * Draws the dungeon room information panel and its available activities.
+ * Screen position of the medal-count message for each language, as X/Y pairs.
  *
  */
+static short DngInfoMedalNumMsg[12] = {
+    330, 10, 330, 10, 330, 10, 330, 10, 330, 20, 330, 20
+};
+
+/**
+ *
+ * Texture rectangles of the upper and middle floor-information frame.
+ *
+ */
+static short dngboardbrdtbl[24] = {
+    0, 0, 24, 70, 24, 0, 8, 70, 32, 0, 24, 70, 58, 2, 24, 4, 82, 2, 8, 4, 90, 2, 24, 4
+};
+
+/**
+ *
+ * Texture rectangles of the floor-information frame with a geostone row.
+ *
+ */
+static short dngboardbrdtbl_1[12] = {
+    58, 6, 24, 50, 82, 6, 8, 50, 90, 6, 24, 50
+};
+
+/**
+ *
+ * Texture rectangles of the floor-information frame without a geostone row.
+ *
+ */
+static short dngboardbrdtbl_2[12] = {
+    58, 22, 24, 36, 82, 22, 8, 36, 90, 22, 24, 36
+};
+
 void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
+    /**
+     *
+     * Texture X coordinates of the floor completion icons.
+     *
+     */
+    static s16 medal_xytbl[5] = { 168, 190, 212, 234, 146 };
+
     if (room != NULL && Floor_InfoTex != NULL) {
         if (dngfloor_infoview) {
             CalcMenuAdd(&DngInfoDrawAlpha, 6, 128);
@@ -735,18 +1008,20 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
         int language = LanguageCode;
         int width = 0x19C;
         int height = 0xE4;
-        if (language > 0) {
+        if (language > LANG_JAPANESE) {
             width = 0x1D6;
             if (MenuDngMes[5] == NULL || MenuDngMes[5]->ClsMes::mes_no != 0x6C) {
                 height += 0x16;
             }
         }
-        int               alpha = DngInfoDrawAlpha;
-        float             top = 92.0f;
-        short            *bottom_table = dngboardbrdtbl_1;
+        float left;
+        float top = 92.0f;
+        left = (float) ((0x200 - width) >> 1);
         int               center = mgScreenWidth >> 1;
-        float             left = (float) ((0x200 - width) >> 1);
+        short            *bottom_table = dngboardbrdtbl_1;
+        int               alpha = DngInfoDrawAlpha;
         DNGMAP_ROOM_INFO *shown = DngInfoRoomInfo;
+        int               fill_alpha = (alpha * 7) / 10;
         if (shown != NULL) {
             if (!shown->geostone) {
                 bottom_table = dngboardbrdtbl_2;
@@ -763,184 +1038,162 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
             }
         }
         DrawMenuFillBox(left + 6.0f, top + 6.0f, (float) (width - 8), (float) (height - 8),
-                        (alpha * 7) / 10, 12, 12, 12);
+                        fill_alpha, 12, 12, 12);
         mgCDrawPrim *prim = GetMenuPrim();
         SetSpriteEnv(prim, 0);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, alpha);
-        int         ix = fptosi(left);
-        int         iy = fptosi(top);
-        Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy, width, 0x46), dngboardbrdtbl, 1);
+        int         ix = (int) left;
+        int         iy;
+        Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy = (int) top, width, 0x46), dngboardbrdtbl, 1);
         Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy + 0x46, width, height - 0x46 - dngboardbrdtbl[15]),
                                &dngboardbrdtbl[12], 1);
         Menu3DivideTextureDraw(prim, mgRect<int>(ix, iy + height - bottom_table[3], width, bottom_table[3]),
                                bottom_table, 1);
         prim->End();
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, alpha);
         PrimQuad(prim, (float) (center - (Floor_Info.right >> 1)) - 1.0f, top + 10.0f, Floor_Info);
         prim->End();
 
-        int         right = ix + width;
-        int right_text = right - 0x48;
-        if (CheckNowEurope()) {
-            right_text = right - 0x54;
-        }
+        int   right_text = ix + width - 0x48;
         float row_top = top + 68.0f;
+        if (CheckNowEurope()) {
+            right_text = ix + width - 0x54;
+        }
         mgRect<int> mark(0x7C, 0, 0x16, 0x16);
         mgRect<int> highlight(0x92, 0, 0x16, 0x16);
         prim->Bilinear(1);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, alpha);
         if (MenuDngMes[0] != NULL) {
             MenuDngMes[0]->SetMovePosCenteringGyou(0, center, iy + 0x26);
         }
-        if (DngInfoFloorInfo != NULL && !(DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_SEAL_CLEAR) && room->seal > 0) {
-            if (!init_1744) {
-                AlphaRate_1743 = 0.0f;
-                init_1744 = 1;
+        if (DngInfoFloorInfo != NULL && !(DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_SEAL_CLEAR) && 0 < room->seal) {
+            /**
+             *
+             * Phase of the floor-seal opacity pulse.
+             *
+             */
+            static float AlphaRate = 0.0f;
+            AlphaRate += 0.034906585f;
+            if (3.1415927f <= AlphaRate) {
+                AlphaRate -= 3.1415927f;
             }
-            AlphaRate_1743 += 0.034906585f;
-            if (3.1415927f <= AlphaRate_1743) {
-                AlphaRate_1743 -= 3.1415927f;
-            }
-            float seal_alpha = (float) alpha * sinf(AlphaRate_1743);
+            float seal_alpha = (float) alpha * sinf(AlphaRate);
             if (seal_alpha < 0.0f) {
                 seal_alpha = 0.0f;
             }
-            if (seal_alpha > 128.0f) {
+            if (128.0f < seal_alpha) {
                 seal_alpha = 128.0f;
             }
             mgRect<int> translated_seal(0xD8, 0xA6, 0x28, 0x18);
             mgRect<int> japanese_seal(0xB8, 0xD6, 0x18, 0x18);
             mgRect<int> *seal = &translated_seal;
             prim->Color(128, 128, 128, fptosi(seal_alpha));
-            float seal_right_offset;
-            if (language > 0) {
+            float seal_y = top + 35.0f;
+            float seal_x;
+            if (language > LANG_JAPANESE) {
                 seal->top += (room->seal - 1) * 0x18;
-                seal_right_offset = 56.0f;
+                seal_x = left + width - 56.0f;
             } else {
                 seal = &japanese_seal;
                 seal->left += (room->seal - 1) * 0x18;
-                seal_right_offset = 40.0f;
+                seal_x = left + width - 40.0f;
             }
-            PrimQuad(prim, left + width - seal_right_offset, top + 35.0f, *seal);
+            PrimQuad(prim, seal_x, seal_y, *seal);
             prim->Color(128, 128, 128, alpha);
         }
-        int icon_x = fptosi(left + 20.0f);
-        int icon_y = fptosi(2.0f + (68.0f + (float) iy));
+        int icon_x = (int) (left + 20.0f);
+        int icon_row_y = iy = (int) (2.0f + (68.0f + (float) iy));
         int text_x = icon_x + 0x1C;
         PrimQuad(prim, (float) icon_x, row_top, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR)) {
-            highlight.left = medal_xytbl_1736[0];
-            PrimQuad(prim, (float) icon_x, (float) icon_y, highlight);
+            highlight.left = medal_xytbl[0];
+            PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
         }
-        int icon_row_y = icon_y;
-        int text_row_y = icon_y;
-        {
-            MenuDngMes[1]->line_pos[0][0] = text_x;
-            MenuDngMes[1]->line_pos[0][1] = text_row_y;
-            MenuDngMes[1]->line_pos_on[0] = 1;
-            int line_right = right - MenuDngMes[1]->line_w[1] - 0xE;
-            if (CheckNowEurope()) {
-                line_right -= 8;
-            }
-            MenuDngMes[1]->line_pos[1][0] = line_right;
-            MenuDngMes[1]->line_pos[1][1] = text_row_y;
-            MenuDngMes[1]->line_pos_on[1] = 1;
+        MenuDngMes[1]->SetMovePosGyou(0, text_x, iy);
+        int line_right = ix + width - MenuDngMes[1]->line_w[1] - 0xE;
+        if (CheckNowEurope()) {
+            line_right -= 8;
         }
+        MenuDngMes[1]->SetMovePosGyou(1, line_right, iy);
         icon_row_y += 0x16;
-        text_row_y += 0x16;
+        iy += 0x16;
         shown = DngInfoRoomInfo;
         if (shown != NULL && shown->fishing) {
             PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
             if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FISHING_CLEAR) {
-                highlight.left = medal_xytbl_1736[2];
+                highlight.left = medal_xytbl[2];
                 PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
             }
-                MenuDngMes[3]->line_pos[0][0] = text_x;
-            MenuDngMes[3]->line_pos[0][1] = text_row_y;
-            MenuDngMes[3]->line_pos_on[0] = 1;
-            MenuDngMes[3]->line_pos[1][0] = right - MenuDngMes[3]->line_w[1] - 0x10;
-            MenuDngMes[3]->line_pos[1][1] = text_row_y;
-            MenuDngMes[3]->line_pos_on[1] = 1;
+            MenuDngMes[3]->SetMovePosGyou(0, text_x, iy);
+            MenuDngMes[3]->SetMovePosGyou(1, ix + width - MenuDngMes[3]->line_w[1] - 0x10, iy);
             if (MenuDngMes[3]->ClsMes::mes_no == 2) {
-                MenuDngMes[3]->line_pos[1][0] = right_text;
-                MenuDngMes[3]->line_pos[1][1] = text_row_y;
-                MenuDngMes[3]->line_pos_on[1] = 1;
+                MenuDngMes[3]->SetMovePosGyou(1, right_text, iy);
             }
 
             icon_row_y += 0x16;
-            text_row_y += 0x16;
+            iy += 0x16;
         }
         shown = DngInfoRoomInfo;
         if (shown != NULL && shown->spheda) {
             PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
             int prize_x = right_text;
             if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_SPHEDA_CLEAR) {
-                if (language > 0) {
+                if (language > LANG_JAPANESE) {
                     prize_x -= 9;
                 }
                 if (CheckNowEurope()) {
-                    prize_x = right - MenuDngMes[4]->line_w[1] - 0x10;
+                    prize_x = ix + width - MenuDngMes[4]->line_w[1] - 0x10;
                 }
-                highlight.left = medal_xytbl_1736[3];
+                highlight.left = medal_xytbl[3];
                 PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
-            } else if (CheckBitFlagMenu(0x13D)) {
-                if (language > 0) {
+            } else if (CheckBitFlagMenu(SAVE_FLAG_SPHEDA_UNLOCKED)) {
+                if (language > LANG_JAPANESE) {
                     prize_x -= 0x20;
                 }
                 if (CheckNowEurope()) {
-                    prize_x = right - MenuDngMes[4]->line_w[1] - 0x10;
+                    prize_x = ix + width - MenuDngMes[4]->line_w[1] - 0x10;
                 }
             }
-            MenuDngMes[4]->line_pos[0][0] = text_x;
-            MenuDngMes[4]->line_pos[0][1] = text_row_y;
-            MenuDngMes[4]->line_pos_on[0] = 1;
-            MenuDngMes[4]->line_pos[1][0] = prize_x;
-            MenuDngMes[4]->line_pos[1][1] = text_row_y;
-            MenuDngMes[4]->line_pos_on[1] = 1;
+            MenuDngMes[4]->SetMovePosGyou(0, text_x, iy);
+            MenuDngMes[4]->SetMovePosGyou(1, prize_x, iy);
             icon_row_y += 0x16;
-            text_row_y += 0x16;
+            iy += 0x16;
         }
         PrimQuad(prim, (float) icon_x, (float) icon_row_y, mark);
         if (DngInfoFloorInfo != NULL && (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_PRACTICE_CLEAR)) {
-            highlight.left = medal_xytbl_1736[4];
+            highlight.left = medal_xytbl[4];
             PrimQuad(prim, (float) icon_x, (float) icon_row_y, highlight);
         }
-        if (language == 0) {
-            MenuDngMes[5]->SetMovePosGyou(0, text_x, text_row_y);
-            MenuDngMes[5]->SetMovePosGyou(1, right_text, text_row_y);
-            text_row_y += 0x16;
+        if (language == LANG_JAPANESE) {
+            MenuDngMes[5]->SetMovePosGyou(0, text_x, iy);
+            MenuDngMes[5]->SetMovePosGyou(1, right_text, iy);
+            iy += 0x16;
         } else {
-            MenuDngMes[5]->SetMovePosGyou(0, text_x, text_row_y);
+            MenuDngMes[5]->SetMovePosGyou(0, text_x, iy);
             if (MenuDngMes[5]->ClsMes::mes_no == 0x6C) {
-                MenuDngMes[5]->SetMovePosGyou(1, right - MenuDngMes[5]->line_w[1] - 0x10, text_row_y);
-                text_row_y += 0x16;
+                MenuDngMes[5]->SetMovePosGyou(1, ix + width - MenuDngMes[5]->line_w[1] - 0x10, iy);
+                iy += 0x16;
             } else {
-                MenuDngMes[5]->SetMovePosGyou(1, text_x, text_row_y + 0x16);
-                MenuDngMes[5]->SetMovePosGyou(2, right - MenuDngMes[5]->line_w[2] - 0x10, text_row_y + 0x12);
-                text_row_y += 0x2C;
+                MenuDngMes[5]->SetMovePosGyou(1, text_x, iy + 0x16);
+                MenuDngMes[5]->SetMovePosGyou(2, ix + width - MenuDngMes[5]->line_w[2] - 0x10, iy + 0x12);
+                iy += 0x2C;
             }
         }
         prim->End();
-        MenuDngMes[6]->line_pos[0][0] = text_x;
-        MenuDngMes[6]->line_pos[0][1] = text_row_y;
-        MenuDngMes[6]->line_pos_on[0] = 1;
-        MenuDngMes[6]->line_pos[1][0] = right - MenuDngMes[6]->line_w[1] - 0x1A;
-        MenuDngMes[6]->line_pos[1][1] = text_row_y;
-        MenuDngMes[6]->line_pos_on[1] = 1;
+        MenuDngMes[6]->SetMovePosGyou(0, text_x, iy);
+        MenuDngMes[6]->SetMovePosGyou(1, ix + width - MenuDngMes[6]->line_w[1] - 0x1A, iy);
 
         shown = DngInfoRoomInfo;
         if (shown != NULL && shown->geostone) {
-            MenuDngMes[7]->line_pos[0][0] = center - (MenuDngMes[7]->line_w[0] >> 1);
-            MenuDngMes[7]->line_pos[0][1] = text_row_y + 0x24;
-            MenuDngMes[7]->line_pos_on[0] = 1;
+            MenuDngMes[7]->SetMovePosGyou(0, center - (MenuDngMes[7]->line_w[0] >> 1), iy + 0x24);
         }
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < DNG_TREE_MAP_MES_MAX; ++i) {
             MenuDngMes[i]->SetMsgAlpha(alpha);
         }
         if (MenuDCMsg[5] != NULL) {
@@ -952,24 +1205,10 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
     }
 }
 
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawDngRoomInfo__FP16DNGMAP_ROOM_INFO);
-#endif
-#ifdef NONMATCHING
-extern mgCTexture   *Floor_InfoTex;
-extern s8            GeoramaMateriaInfoDrawPage;
-extern short         GeoramaMateriaNum;
-extern mgRect<int>   Floor_Info;
-extern short         dngboardbrdtbl[24];
-extern short         dngboardbrdtbl_2[12];
-extern char          at_1993[];
-
-/**
- *
- * Draws a paged list of georama materials for the dungeon room.
- *
- */
-void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block) {
+static void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, int tex_block) {
+    int index;
+    int x;
+    int y;
     int left = (mgScreenWidth - 0x1AE) >> 1;
     int column_left = mgScreenWidth / 3;
     int column_right = mgScreenWidth - column_left;
@@ -979,7 +1218,7 @@ void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, in
                     0x59, 0xC, 0xC, 0xC);
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Floor_InfoTex);
     prim->Color(0x80, 0x80, 0x80, 0x80);
     Menu3DivideTextureDraw(prim, mgRect<int>(left, top_y, 0x1AE, 0x46), dngboardbrdtbl, 1);
@@ -992,43 +1231,54 @@ void DrawGeoramaMateria(int top_y, char *title, int unused_count, int *items, in
     prim->End();
 
     mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
-    int text_w, text_h;
+    int text_h, text_w;
     font.SetStr(title);
     font.CalcDrawWH(font.str, &text_w, &text_h);
-    font.SetPos((mgScreenWidth - text_w) >> 1, top_y + 0x26);
+    x = (mgScreenWidth - text_w) >> 1;
+    y = top_y + 0x26;
+    font.SetPos(x, y);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
 
-    int first = GeoramaMateriaInfoDrawPage * 14;
-    int last = first + 14;
+    int first = GeoramaMateriaInfoDrawPage * DNG_TREE_MAP_MATERIA_PAGE;
+    int last = first + DNG_TREE_MAP_MATERIA_PAGE;
+    y = top_y + 0x47;
     if (GeoramaMateriaNum < last) {
         last = GeoramaMateriaNum;
     }
-    int row_y = top_y + 0x47;
-    for (int index = first; index < last; ++index) {
+    for (index = first; index < last; ++index) {
         char *name = GetItemMessage(items[index]);
         if (name == NULL) {
             continue;
         }
         font.SetStr(name);
-        int item_w, item_h;
+        int item_h, item_w;
         font.CalcDrawWH(font.str, &item_w, &item_h);
-        int column = (index % 2 == 0) ? column_left : column_right;
-        font.SetPos(column - (item_w >> 1), row_y);
+        x = item_w;
+        if (index % 2 == 0) {
+            x = column_left - (x >> 1);
+        } else {
+            x = column_right - (x >> 1);
+        }
+        font.SetPos(x, y);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
         if (index % 2 != 0) {
-            row_y += 0x18;
+            y += 0x18;
         }
     }
+    x = left + 0x186;
+    y = top_y + 0xEF;
     char page[32];
-    sprintf(page, at_1993, GeoramaMateriaInfoDrawPage + 1, GeoramaMateriaNum / 14 + 1);
+    sprintf(page, "%d/%d", GeoramaMateriaInfoDrawPage + 1, GeoramaMateriaNum / DNG_TREE_MAP_MATERIA_PAGE + 1);
     font.SetStr(page);
-    font.SetPos(left + 0x186, top_y + 0xEF);
+    font.SetPos(x, y);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawGeoramaMateria__FiPciPii);
-#endif
-/** Source rectangle of the selected floor highlight. */
+
+/**
+ *
+ * Source rectangle of the selected floor highlight.
+ *
+ */
 extern const mgRect<int> dng_light_circle;
 
 void CDngFreeMap::DrawTreeMap(int opacity) {
@@ -1044,7 +1294,7 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
         float reach_y = 40.0f - 40.0f * DngTreeMapActiveLightRate;
         SetSpriteEnv(prim, 4);
         prim->Bilinear(0);
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(map_tex);
         prim->Color(128, 128, 128, (int) (0.5f * (float) opacity));
         prim->TextureCrd(dng_light_circle.left, dng_light_circle.top);
@@ -1073,8 +1323,15 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
         }
     }
 }
-extern float dng_player_pos[2];
-extern int   dng_player_blink_cnt;
+
+/**
+ *
+ * Last player-marker position during event movement.
+ *
+ */
+static float dng_player_pos[2] = {
+    0.0f, 0.0f
+};
 
 void CDngFreeMap::DrawPlayer(int opacity) {
     if (user_glid == NULL || koma_tex == NULL) {
@@ -1108,7 +1365,7 @@ void CDngFreeMap::DrawPlayer(int opacity) {
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
     prim->Bilinear(1);
-    prim->Begin(6);
+    prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(koma_tex);
     int level = (int) brightness;
     prim->Color(level, level, level, static_cast<int>(sprite_alpha));
@@ -1149,14 +1406,50 @@ void CDngFreeMap::Step() {
     }
     mark_num = 0;
 }
-/** Selected flag row in the dungeon map's debug readout. */
-extern int MenuDngDebugFlagSelect;
-/** Names of the passage kinds shown beside the debug room data. */
-extern char *RootTable_2119[4];
-/** Labels for the eight debug floor-save flags. */
-extern char Table_2133[8][32];
-/** Floor-save flag masks corresponding to the debug flag labels. */
-extern unsigned int bittable_2134[8];
+
+/**
+ *
+ * Names of the four passage types in the map debug display.
+ *
+ */
+static char *RootTable_2119[4] = {
+    "Nrm,",
+    "Sun,",
+    "Moon,",
+    "Star,"
+};
+
+/**
+ *
+ * Labels of the floor-save flags in the map debug display.
+ *
+ */
+static char Table_2133[8][32] = {
+    "  go enable :",
+    "  Clear \x81\x40  :",
+    "  Mission Clr:",
+    "  FastestTime:",
+    "  Fish     :",
+    "  TalkMons :",
+    "  Spheda:",
+    "  GeoStone:"
+};
+
+/**
+ *
+ * Save-flag masks corresponding to the floor debug labels.
+ *
+ */
+static unsigned int bittable_2134[8] = {
+    DNG_FLOOR_FLAG_OPEN,
+    DNG_FLOOR_FLAG_CLEAR,
+    DNG_FLOOR_FLAG_PRACTICE_CLEAR,
+    DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR,
+    DNG_FLOOR_FLAG_FISHING_CLEAR,
+    DNG_FLOOR_FLAG_TALK_MONSTER,
+    DNG_FLOOR_FLAG_SPHEDA_CLEAR,
+    DNG_FLOOR_FLAG_GEOSTONE_FOUND
+};
 
 /**
  *
@@ -1193,7 +1486,7 @@ void CDngFreeMap::Draw() {
             mgCDrawPrim *prim = GetMenuPrim();
             SetSpriteEnv(prim, 0);
             prim->Bilinear(1);
-            prim->Begin(6);
+            prim->Begin(MG_PRIM_SPRITE);
             prim->Texture(name_tex);
             prim->Color(128, 128, 128, opacity);
             for (int i = 0; i < mark_num; i++) {
@@ -1319,29 +1612,447 @@ void CDngFreeMap::SetKomaMove(int moving) {
         koma_now = koma_now->next;
     }
 }
-#ifdef NONMATCHING
-/** Passage interpolation point tables, indexed by passage shape. */
-extern const short *RootHokanTablePtrTable_2240__DATA[];
-/** Room interpolation point tables, indexed by entry and exit direction. */
-extern const short *RoomHokanTablePtrTable_2245__DATA[];
-/** Point order of passage routes, indexed by shape and direction. */
-extern const signed char is_reverse_tbl_2246__DATA[];
-/** Room interpolation table selected by entry and exit direction. */
-extern const signed char old_hokantbl_useno_2247__DATA[];
-/** Point order of entry and exit room interpolation tables. */
-extern const signed char is_reverse_tbl_room_2248__DATA[];
+
+// clang-format off
+/**
+ *
+ * Interpolation points and terminator for passage shape 0.
+ *
+ */
+static short RootHokanTable0_2230[DNGMAP_ROOT_HOKAN_POINTS + 1][2] = {
+    {14, -38},
+    {13, -37},
+    {12, -36},
+    {11, -35},
+    {10, -34},
+    {9, -33},
+    {9, -32},
+    {8, -31},
+    {7, -30},
+    {6, -29},
+    {5, -28},
+    {5, -27},
+    {4, -26},
+    {3, -25},
+    {2, -24},
+    {1, -23},
+    {1, -22},
+    {0, -21},
+    {0, -20},
+    {-1, -19},
+    {-1, -1}
+};
 
 /**
  *
- * Orders the interpolation points when tracing a dungeon map route.
+ * Interpolation points and terminator for passage shape 1.
  *
  */
-enum DNGMAP_PATH_ORDER {
-    DNGMAP_PATH_FORWARD = 0, /**< Reads a cell's interpolation points from first to last. */
-    DNGMAP_PATH_REVERSE = 1, /**< Reads a cell's interpolation points from last to first. */
+static short RootHokanTable1_2231[DNGMAP_ROOT_HOKAN_POINTS + 1][2] = {
+    {-20, -28},
+    {-17, -28},
+    {-14, -28},
+    {-12, -28},
+    {-9, -28},
+    {-7, -28},
+    {-4, -28},
+    {-1, -28},
+    {0, -28},
+    {3, -28},
+    {5, -28},
+    {8, -28},
+    {11, -28},
+    {13, -28},
+    {16, -28},
+    {18, -28},
+    {21, -28},
+    {24, -28},
+    {26, -28},
+    {29, -28},
+    {-1, -1}
 };
 
+/**
+ *
+ * Interpolation points and terminator for passage shape 2.
+ *
+ */
+static short RootHokanTable2_2232[DNGMAP_ROOT_HOKAN_POINTS + 1][2] = {
+    {-1, -1},
+    {-1, -19},
+    {0, -20},
+    {0, -21},
+    {1, -22},
+    {1, -23},
+    {2, -24},
+    {3, -25},
+    {4, -26},
+    {5, -27},
+    {5, -28},
+    {8, -28},
+    {11, -28},
+    {13, -28},
+    {16, -28},
+    {18, -28},
+    {21, -28},
+    {24, -28},
+    {26, -28},
+    {29, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 3.
+ *
+ */
+static short RootHokanTable3_2233[DNGMAP_ROOT_HOKAN_POINTS + 1][2] = {
+    {-20, -28},
+    {-17, -28},
+    {-14, -28},
+    {-12, -28},
+    {-9, -28},
+    {-7, -28},
+    {-4, -28},
+    {-1, -28},
+    {0, -28},
+    {3, -28},
+    {5, -28},
+    {5, -27},
+    {4, -26},
+    {3, -25},
+    {2, -24},
+    {1, -23},
+    {1, -22},
+    {0, -21},
+    {0, -20},
+    {-1, -19},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 4.
+ *
+ */
+static short RootHokanTable4_2234[DNGMAP_ROOT_HOKAN_POINTS + 1][2] = {
+    {14, -38},
+    {13, -37},
+    {12, -36},
+    {11, -35},
+    {10, -34},
+    {9, -33},
+    {9, -32},
+    {8, -31},
+    {7, -30},
+    {6, -29},
+    {5, -28},
+    {8, -28},
+    {11, -28},
+    {13, -28},
+    {16, -28},
+    {18, -28},
+    {21, -28},
+    {24, -28},
+    {26, -28},
+    {29, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 5.
+ *
+ */
+static short RootHokanTable5_2235[DNGMAP_ROOT_HOKAN_POINTS + 1][2] = {
+    {-20, -28},
+    {-17, -28},
+    {-14, -28},
+    {-12, -28},
+    {-9, -28},
+    {-7, -28},
+    {-4, -28},
+    {-1, -28},
+    {0, -28},
+    {3, -28},
+    {5, -28},
+    {6, -29},
+    {7, -30},
+    {8, -31},
+    {9, -32},
+    {9, -33},
+    {10, -34},
+    {11, -35},
+    {12, -36},
+    {13, -37},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 6.
+ *
+ */
+static short RootHokanTable6_2236[DNGMAP_ROOT_HOKAN_POINTS + 1][2] = {
+    {32, -28},
+    {30, -27},
+    {28, -27},
+    {26, -26},
+    {25, -26},
+    {23, -25},
+    {21, -25},
+    {20, -24},
+    {18, -24},
+    {16, -23},
+    {14, -23},
+    {13, -22},
+    {11, -22},
+    {9, -21},
+    {8, -21},
+    {6, -20},
+    {4, -20},
+    {3, -19},
+    {1, -19},
+    {0, -18},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 7.
+ *
+ */
+static short RootHokanTable7_2237[DNGMAP_ROOT_HOKAN_POINTS + 1][2] = {
+    {-20, -28},
+    {-19, -27},
+    {-18, -27},
+    {-17, -26},
+    {-16, -26},
+    {-15, -25},
+    {-14, -25},
+    {-13, -24},
+    {-12, -24},
+    {-11, -23},
+    {-11, -23},
+    {-10, -22},
+    {-9, -22},
+    {-8, -21},
+    {-7, -21},
+    {-6, -20},
+    {-5, -20},
+    {-4, -19},
+    {-3, -19},
+    {-2, -18},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 8.
+ *
+ */
+static short RootHokanTable8_2238[DNGMAP_ROOT_HOKAN_POINTS + 1][2] = {
+    {14, -38},
+    {14, -37},
+    {15, -37},
+    {16, -36},
+    {17, -36},
+    {18, -35},
+    {19, -35},
+    {20, -34},
+    {21, -34},
+    {22, -33},
+    {22, -33},
+    {23, -32},
+    {24, -32},
+    {25, -31},
+    {26, -31},
+    {27, -30},
+    {28, -30},
+    {29, -29},
+    {30, -29},
+    {31, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for passage shape 9.
+ *
+ */
+static short RootHokanTable9_2239[DNGMAP_ROOT_HOKAN_POINTS + 1][2] = {
+    {14, -38},
+    {12, -37},
+    {10, -37},
+    {8, -36},
+    {7, -36},
+    {5, -35},
+    {3, -35},
+    {2, -34},
+    {0, -34},
+    {-1, -33},
+    {-3, -33},
+    {-4, -32},
+    {-6, -32},
+    {-8, -31},
+    {-9, -31},
+    {-11, -30},
+    {-13, -30},
+    {-14, -29},
+    {-16, -29},
+    {-18, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for room connection 0.
+ *
+ */
+static short RoomHokanTable0_2241[DNGMAP_ROOM_HOKAN_POINTS + 1][2] = {
+    {14, -38},
+    {13, -37},
+    {12, -36},
+    {11, -35},
+    {10, -34},
+    {9, -33},
+    {9, -32},
+    {8, -31},
+    {7, -30},
+    {6, -29},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for room connection 1.
+ *
+ */
+static short RoomHokanTable1_2242[DNGMAP_ROOM_HOKAN_POINTS + 1][2] = {
+    {6, -28},
+    {5, -27},
+    {4, -26},
+    {3, -25},
+    {2, -24},
+    {1, -23},
+    {1, -22},
+    {0, -21},
+    {0, -20},
+    {-1, -19},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for room connection 2.
+ *
+ */
+static short RoomHokanTable2_2243[DNGMAP_ROOM_HOKAN_POINTS + 1][2] = {
+    {-20, -28},
+    {-17, -28},
+    {-14, -28},
+    {-12, -28},
+    {-9, -28},
+    {-7, -28},
+    {-4, -28},
+    {-1, -28},
+    {0, -28},
+    {3, -28},
+    {-1, -1}
+};
+
+/**
+ *
+ * Interpolation points and terminator for room connection 3.
+ *
+ */
+static short RoomHokanTable3_2244[DNGMAP_ROOM_HOKAN_POINTS + 1][2] = {
+    {6, -28},
+    {8, -28},
+    {11, -28},
+    {13, -28},
+    {16, -28},
+    {18, -28},
+    {21, -28},
+    {24, -28},
+    {26, -28},
+    {29, -28},
+    {-1, -1}
+};
+
+// clang-format on
+
 int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room, int next_room) {
+    /**
+     *
+     * Interpolation point lists for the passage shapes.
+     *
+     */
+    static short (*RootHokanTablePtrTable[11])[2] = {
+        RootHokanTable0_2230,
+        RootHokanTable1_2231,
+        RootHokanTable2_2232,
+        RootHokanTable3_2233,
+        RootHokanTable4_2234,
+        RootHokanTable5_2235,
+        RootHokanTable6_2236,
+        RootHokanTable7_2237,
+        RootHokanTable8_2238,
+        RootHokanTable9_2239,
+        NULL
+    };
+
+    /**
+     *
+     * Interpolation point lists for the four room connections.
+     *
+     */
+    static short (*RoomHokanTablePtrTable[GLID_DIR_NUM + 1])[2] = {
+        RoomHokanTable0_2241,
+        RoomHokanTable1_2242,
+        RoomHokanTable2_2243,
+        RoomHokanTable3_2244,
+        NULL
+    };
+
+    /**
+     *
+     * Point traversal order for each passage shape and connection direction.
+     *
+     */
+    static signed char is_reverse_tbl[11][GLID_DIR_NUM] = {
+        {DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD},
+        {DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE},
+        {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
+        {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE},
+        {DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE},
+        {DNGMAP_PATH_NONE, DNGMAP_PATH_REVERSE, DNGMAP_PATH_NONE, DNGMAP_PATH_FORWARD}
+    };
+
+    /**
+     *
+     * Room interpolation list selected by direction and entry side.
+     *
+     */
+    static signed char old_hokantbl_useno[2 * GLID_DIR_NUM] = {
+        0, 1, 2, 3, 1, 0, 3, 2
+    };
+
+    /**
+     *
+     * Traversal order of each room interpolation list.
+     *
+     */
+    static signed char is_reverse_tbl_room[2 * GLID_DIR_NUM] = {
+        DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD,
+        DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE, DNGMAP_PATH_FORWARD, DNGMAP_PATH_REVERSE
+    };
+
     if (stack == NULL || stack->stGetRest() <= 0) {
         return 0;
     }
@@ -1354,13 +2065,13 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     int remaining = stack->stGetRest();
     memory.stSetBuffer(stack->stGetTop(), remaining);
     memory.Align64();
-    floor_manager = &((DNG_BATTLE_AREA *) menu_GetBattleAreaScene())->floor_manager;
+    floor_manager = &menu_GetBattleAreaScene()->floor_manager;
     dng_no = dungeon;
     floor_manager->CheckDrawGlidInfo();
     user_room_no = room;
     next_room_no = next_room;
     GetRoomGlid(user_room_no);
-    if (next_room_no >= 0) {
+    if (0 <= next_room_no) {
         GetRoomGlid(next_room_no);
     }
     select_glid = NULL;
@@ -1372,10 +2083,10 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     if (buffer != NULL) {
         char filename[0x40];
         sprintf(filename, "dmap%d.img", dungeon);
-        unsigned int size = LoadFileMenu(filename, buffer, 1);
+        unsigned int size = LoadFileMenu(filename, buffer, MENU_FILE_LOAD_DIRECT);
         unsigned int quadwords = (size & 15) ? (size >> 4) + 1 : size >> 4;
         memory.Alloc(quadwords);
-        MenuEnterIMG(tex_block, (unsigned char *) buffer, "_dn");
+        MenuEnterIMG(tex_block, (u8 *) buffer, "_dn");
         koma_tex = mgTexManager.GetTexture("dngop_dn", -1);
         map_tex = mgTexManager.GetTexture("dt_dn", -1);
         name_tex = mgTexManager.GetTexture("dtname_dn", -1);
@@ -1389,159 +2100,228 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
     CalcGlidPutPos(user_glid, dng_player_pos[0], dng_player_pos[1], 0);
     dng_player_pos[0] += 8.0f;
     dng_player_pos[1] += -28.0f;
-    if (next_room_no >= 0) {
+    if (0 <= next_room_no) {
         int direction = -1;
         float gx = 0.0f;
         float gy = 0.0f;
         float x = 0.0f;
         float y = 0.0f;
         GLID_INFO *start = GetRoomGlid(user_room_no);
-        // Event jumps enter the first room of the branch between the two floors.
+        // At branching rooms, the destination becomes the neighbouring room on the way to the requested room.
         if (dng_no == 1) {
-            if (user_room_no == 8 && next_room_no >= 9) {
-                next_room_no = next_room_no < 13 ? 9 : 13;
+            if (user_room_no == 8 && next_room_no > 8) {
+                if (next_room_no < 8) {
+                    next_room_no = 7;
+                } else if (next_room_no < 13) {
+                    next_room_no = 9;
+                } else {
+                    next_room_no = 13;
+                }
             }
-            if (user_room_no >= 14 && next_room_no < user_room_no) {
+            if (user_room_no > 13 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no == 13) {
-                next_room_no = next_room_no < 14 ? 8 : 14;
+                if (next_room_no < 14) {
+                    next_room_no = 8;
+                } else {
+                    next_room_no = 14;
+                }
             }
         }
         if (dng_no == 2) {
-            if (user_room_no == 5 && next_room_no >= 6 && next_room_no < 9) {
+            if (user_room_no == 5 && next_room_no > 5 && next_room_no < 9) {
                 next_room_no = 6;
             }
-            if (user_room_no >= 6 && user_room_no < 9 && next_room_no >= 9) {
+            if (user_room_no > 5 && user_room_no < 9 && next_room_no > 8) {
                 next_room_no = user_room_no - 1;
             }
-            if (user_room_no >= 12 && user_room_no < 15 && next_room_no >= 16) {
+            if (user_room_no >= 12 && user_room_no < 15 && next_room_no > 15) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no == 16) {
-                next_room_no = next_room_no < 16 ? 11 : 17;
+                if (next_room_no < 16) {
+                    next_room_no = 11;
+                } else {
+                    next_room_no = 17;
+                }
             }
-            if (user_room_no >= 17 && next_room_no < user_room_no) {
+            if (user_room_no > 16 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no == 11) {
-                next_room_no = next_room_no < 11 ? 10 : (next_room_no < 12 ? 16 : (next_room_no < 16 ? 12 : 16));
+                if (next_room_no < 11) {
+                    next_room_no = 10;
+                } else if (next_room_no > 11 && next_room_no < 16) {
+                    next_room_no = 12;
+                } else {
+                    next_room_no = 16;
+                }
             }
         }
         if (dng_no == 3) {
-            if (user_room_no >= 11 && user_room_no < 14 && next_room_no >= 16) {
+            if (user_room_no > 10 && user_room_no < 14 && next_room_no > 15) {
                 next_room_no = user_room_no - 1;
             }
-            if (user_room_no == 10 && next_room_no >= 11 && next_room_no < 15) {
+            if (user_room_no == 10 && next_room_no > 10 && next_room_no < 15) {
                 next_room_no = 11;
             }
             if (user_room_no == 15) {
-                next_room_no = next_room_no < 15 ? 10 : 16;
+                if (next_room_no < 15) {
+                    next_room_no = 10;
+                } else {
+                    next_room_no = 16;
+                }
             }
-            if (user_room_no >= 16 && next_room_no < user_room_no) {
+            if (user_room_no > 15 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
         }
         if (dng_no == 4) {
-            if (user_room_no == 4 && next_room_no >= 5 && next_room_no < 9) {
+            if (user_room_no == 4 && next_room_no > 4 && next_room_no < 9) {
                 next_room_no = 5;
             }
-            if (user_room_no >= 5 && user_room_no < 8 && next_room_no >= 9) {
+            if (user_room_no > 4 && user_room_no < 8 && next_room_no > 8) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no == 9) {
-                next_room_no = next_room_no < 9 ? 4 : 10;
+                if (next_room_no < 9) {
+                    next_room_no = 4;
+                } else {
+                    next_room_no = 10;
+                }
             }
-            if (user_room_no >= 10 && next_room_no < user_room_no) {
+            if (user_room_no > 9 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
         }
         if (dng_no == 5) {
-            if (user_room_no == 4 && next_room_no >= 5 && next_room_no < 12) {
+            if (user_room_no == 4 && next_room_no > 4 && next_room_no < 12) {
                 next_room_no = 5;
             }
-            if (user_room_no >= 5 && user_room_no < 11 && next_room_no >= 12) {
+            if (user_room_no > 4 && user_room_no < 11 && next_room_no > 11) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no == 12) {
-                next_room_no = next_room_no < 12 ? 4 : 13;
+                if (next_room_no < 12) {
+                    next_room_no = 4;
+                } else {
+                    next_room_no = 13;
+                }
             }
-            if (user_room_no >= 13 && next_room_no < user_room_no) {
+            if (user_room_no > 12 && next_room_no < user_room_no) {
                 next_room_no = user_room_no - 1;
             }
         }
         if (dng_no == 6) {
-            if (user_room_no >= 8 && user_room_no < 11 && next_room_no >= 11) {
+            if (user_room_no > 7 && user_room_no < 11 && next_room_no > 10) {
                 next_room_no = user_room_no - 1;
             }
-            if (user_room_no >= 13 && user_room_no < 17 && next_room_no >= 17) {
+            if (user_room_no > 12 && user_room_no < 17 && next_room_no > 16) {
                 next_room_no = user_room_no - 1;
             }
-            if (user_room_no == 20 && next_room_no >= 22) {
-                next_room_no = 19;
+            if (user_room_no > 19 && user_room_no < 21 && next_room_no > 21) {
+                next_room_no = user_room_no - 1;
             }
-            if (user_room_no >= 24 && user_room_no < 27 && next_room_no >= 27) {
+            if (user_room_no > 23 && user_room_no < 27 && next_room_no > 26) {
                 next_room_no = user_room_no - 1;
             }
             if (user_room_no >= 29 && user_room_no < 33) {
-                next_room_no = next_room_no < user_room_no ? user_room_no - 1 : user_room_no + 1;
+                if (next_room_no < user_room_no) {
+                    next_room_no = user_room_no - 1;
+                } else {
+                    next_room_no = user_room_no + 1;
+                }
             }
             if (user_room_no == 6) {
-                next_room_no = next_room_no < 6 ? 5 : (next_room_no >= 11 ? 11 : 7);
+                if (next_room_no < 6) {
+                    next_room_no = 5;
+                } else if (next_room_no >= 11) {
+                    next_room_no = 11;
+                } else {
+                    next_room_no = 7;
+                }
             }
             if (user_room_no == 11) {
-                next_room_no = next_room_no < 11 ? 6 : (next_room_no >= 17 ? 17 : 12);
+                if (next_room_no < 11) {
+                    next_room_no = 6;
+                } else if (next_room_no >= 17) {
+                    next_room_no = 17;
+                } else {
+                    next_room_no = 12;
+                }
             }
             if (user_room_no == 18) {
-                next_room_no = next_room_no < 18 ? 17 : (next_room_no >= 22 ? 22 : 19);
+                if (next_room_no < 18) {
+                    next_room_no = 17;
+                } else if (next_room_no >= 22) {
+                    next_room_no = 22;
+                } else {
+                    next_room_no = 19;
+                }
             }
             if (user_room_no == 22) {
-                next_room_no = next_room_no < 22 ? 18 : (next_room_no >= 27 ? 27 : 23);
+                if (next_room_no < 22) {
+                    next_room_no = 18;
+                } else if (next_room_no >= 27) {
+                    next_room_no = 27;
+                } else {
+                    next_room_no = 23;
+                }
             }
             if (user_room_no == 28) {
-                next_room_no = next_room_no < 28 ? 27 : (next_room_no >= 34 ? 34 : 29);
+                if (next_room_no < 28) {
+                    next_room_no = 27;
+                } else if (next_room_no >= 34) {
+                    next_room_no = 34;
+                } else {
+                    next_room_no = 29;
+                }
             }
             if (user_room_no == 35) {
-                next_room_no = next_room_no == 34 ? 34 : (next_room_no >= 36 ? 36 : 33);
+                if (next_room_no == 34) {
+                    next_room_no = 34;
+                } else if (next_room_no >= 36) {
+                    next_room_no = 36;
+                } else {
+                    next_room_no = 33;
+                }
             }
         }
         GLID_INFO *target = GetRoomGlid(next_room_no);
         if (target == NULL) {
             return 0;
         }
-        if (start != NULL && abs((int) start->room.order - (int) target->room.order) >= 2) {
-            GLID_INFO *candidate[4];
-            int        candidate_room[4];
-            int        candidate_count = 0;
-            int        farthest = -1;
-            u8 reverse = DNGMAP_PATH_REVERSE;
-            if (start->room.order < target->room.order) {
-                reverse = DNGMAP_PATH_FORWARD;
+        if (start != NULL && target != NULL && abs(start->room.order - target->room.order) > 1) {
+            int        candidate_room[GLID_DIR_NUM];
+            GLID_INFO *candidate[GLID_DIR_NUM];
+            u8 search_order = DNGMAP_PATH_REVERSE;
+            if (target->room.order > start->room.order) {
+                search_order = DNGMAP_PATH_FORWARD;
             }
+            int candidate_count = 0;
+            int farthest = -1;
             for (int dir = 0; dir < GLID_DIR_NUM; ++dir) {
-                int adjacent = start->room.link[dir];
-                if (adjacent < 0) {
-                    continue;
-                }
-                GLID_INFO *linked = GetRoomGlid(adjacent);
-                if (linked == NULL) {
-                    continue;
-                }
-                if ((reverse == DNGMAP_PATH_REVERSE && linked->room.order < start->room.order) ||
-                    (reverse == DNGMAP_PATH_FORWARD && start->room.order < linked->room.order)) {
-                    candidate[candidate_count] = linked;
-                    candidate_room[candidate_count] = adjacent;
-                    if (adjacent > farthest) {
-                        farthest = adjacent;
+                if (start->room.link[dir] >= 0) {
+                    GLID_INFO *linked = GetRoomGlid(start->room.link[dir]);
+                    if (linked != NULL &&
+                        ((search_order == DNGMAP_PATH_REVERSE && linked->room.order < start->room.order) ||
+                         (search_order == DNGMAP_PATH_FORWARD && linked->room.order > start->room.order))) {
+                        candidate_room[candidate_count] = start->room.link[dir];
+                        candidate[candidate_count] = linked;
+                        if (farthest < start->room.link[dir]) {
+                            farthest = start->room.link[dir];
+                        }
+                        ++candidate_count;
                     }
-                    ++candidate_count;
                 }
             }
+            int target_room = target->room.floor_id;
             for (int i = 0; i < candidate_count; ++i) {
-                if (reverse == DNGMAP_PATH_REVERSE ||
-                    (reverse == DNGMAP_PATH_FORWARD &&
-                     ((target->room.floor_id < farthest && abs((int) target->room.floor_id - candidate_room[i]) <= 0) ||
-                      (farthest < target->room.floor_id && abs((int) target->room.floor_id - candidate_room[i]) > 0)))) {
+                if (search_order == DNGMAP_PATH_REVERSE ||
+                    (search_order == DNGMAP_PATH_FORWARD &&
+                     ((target_room < farthest && abs(target_room - candidate_room[i]) <= 0) ||
+                      (farthest < target_room && abs(target_room - candidate_room[i]) > 0)))) {
                     target = candidate[i];
                     next_room_no = candidate_room[i];
                     break;
@@ -1552,11 +2332,15 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         koma_path = (DNGMAP_KOMA_POS *) memory.Alloc(1);
         koma_now = koma_path;
         koma_now->next = NULL;
+        const short (*curve)[2];
         DNGMAP_KOMA_POS *tail = koma_now;
         CalcGlidPutPos(target, x, y, 0);
         tail->x = x;
         tail->y = y;
         for (int i = 0; i < GLID_DIR_NUM; ++i) {
+            if (target == NULL) {
+                break;
+            }
             if (target->room.link[i] == user_room_no) {
                 direction = i;
                 break;
@@ -1565,22 +2349,22 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
         if (direction < 0) {
             return memory.stGetUsed();
         }
-        int table = old_hokantbl_useno_2247__DATA[direction];
-        int reverse = is_reverse_tbl_room_2248__DATA[table];
-        const short *points = RoomHokanTablePtrTable_2245__DATA[table];
-        if (reverse == DNGMAP_PATH_FORWARD) {
-            for (int i = 0; i < 10; i++) {
+        int room_index = old_hokantbl_useno[direction];
+        const short (*points)[2] = RoomHokanTablePtrTable[room_index];
+        int room_order = is_reverse_tbl_room[room_index];
+        if (room_order == DNGMAP_PATH_FORWARD) {
+            for (room_index = 0; room_index < DNGMAP_ROOM_HOKAN_POINTS; room_index++) {
                 DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                node->x = x + (float) points[i * 2];
-                node->y = y + (float) points[i * 2 + 1];
+                node->x = x + points[room_index][0];
+                node->y = y + points[room_index][1];
                 tail->next = node;
                 tail = node;
             }
-        } else if (reverse == DNGMAP_PATH_REVERSE) {
-            for (int i = 9; i >= 0; i--) {
+        } else if (room_order == DNGMAP_PATH_REVERSE) {
+            for (room_index = DNGMAP_ROOM_HOKAN_POINTS - 1; room_index >= 0; room_index--) {
                 DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                node->x = x + (float) points[i * 2];
-                node->y = y + (float) points[i * 2 + 1];
+                node->x = x + points[room_index][0];
+                node->y = y + points[room_index][1];
                 tail->next = node;
                 tail = node;
             }
@@ -1590,84 +2374,93 @@ int CDngFreeMap::LoadDngInfo(mgCMemory *stack, int block, int dungeon, int room,
             CalcGlidPutPos(glid, gx, gy, 0);
             glid->blink = 1;
             if (glid->type == GLID_TYPE_ROOT) {
-                int route_table = glid->root.shape;
-                int reverse = is_reverse_tbl_2246__DATA[route_table * 4 + direction];
-                const short *points = RootHokanTablePtrTable_2240__DATA[route_table];
-                if (reverse < 0) {
+                int passage_index = glid->root.shape;
+                curve = RootHokanTablePtrTable[passage_index];
+                int passage_order = is_reverse_tbl[passage_index][direction];
+                if (passage_order < 0) {
                     break;
                 }
-                if (reverse == DNGMAP_PATH_FORWARD) {
-                    for (int i = 0; i < 20; i++) {
+                if (passage_order == DNGMAP_PATH_FORWARD) {
+                    for (passage_index = 0; passage_index < DNGMAP_ROOT_HOKAN_POINTS; passage_index++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) points[i * 2];
-                        node->y = gy + (float) points[i * 2 + 1];
+                        node->x = gx + curve[passage_index][0];
+                        node->y = gy + curve[passage_index][1];
                         tail->next = node;
                         tail = tail->next;
                     }
-                } else if (reverse == DNGMAP_PATH_REVERSE) {
-                    for (int i = 19; i >= 0; i--) {
+                } else if (passage_order == DNGMAP_PATH_REVERSE) {
+                    for (passage_index = DNGMAP_ROOT_HOKAN_POINTS - 1; passage_index >= 0; passage_index--) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) points[i * 2];
-                        node->y = gy + (float) points[i * 2 + 1];
+                        node->x = gx + curve[passage_index][0];
+                        node->y = gy + curve[passage_index][1];
                         tail->next = node;
                         tail = node;
                     }
                 }
             } else if (glid->type == GLID_TYPE_ROOM) {
-                int route_table = old_hokantbl_useno_2247__DATA[direction + 4];
-                int reverse = is_reverse_tbl_room_2248__DATA[route_table + 4];
-                const short *points = RoomHokanTablePtrTable_2245__DATA[route_table];
-                if (reverse == DNGMAP_PATH_FORWARD) {
-                    for (int i = 0; i < 10; i++) {
+                int through_room_index = old_hokantbl_useno[direction + GLID_DIR_NUM];
+                curve = RoomHokanTablePtrTable[through_room_index];
+                int through_room_order = is_reverse_tbl_room[through_room_index + GLID_DIR_NUM];
+                if (through_room_order == DNGMAP_PATH_FORWARD) {
+                    for (through_room_index = 0; through_room_index < DNGMAP_ROOM_HOKAN_POINTS; through_room_index++) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) points[i * 2];
-                        node->y = gy + (float) points[i * 2 + 1];
+                        node->x = gx + curve[through_room_index][0];
+                        node->y = gy + curve[through_room_index][1];
                         tail->next = node;
                         tail = node;
                     }
-                } else if (reverse == DNGMAP_PATH_REVERSE) {
-                    for (int i = 9; i >= 0; i--) {
+                } else if (through_room_order == DNGMAP_PATH_REVERSE) {
+                    for (through_room_index = DNGMAP_ROOM_HOKAN_POINTS - 1; through_room_index >= 0; through_room_index--) {
                         DNGMAP_KOMA_POS *node = (DNGMAP_KOMA_POS *) memory.Alloc(1);
-                        node->x = gx + (float) points[i * 2];
-                        node->y = gy + (float) points[i * 2 + 1];
+                        node->x = gx + curve[through_room_index][0];
+                        node->y = gy + curve[through_room_index][1];
                         tail->next = node;
                         tail = node;
                     }
                 }
-            } else {
-                break;
             }
             if (glid == start) {
                 break;
             }
             glid = GetNextGlid(glid, &direction);
+            if (glid == NULL) {
+                break;
+            }
         }
         tail->next = NULL;
-        if (koma_now->next != NULL) {
-            dng_player_pos[0] = koma_now->next->x;
-            dng_player_pos[1] = koma_now->next->y;
+        DNGMAP_KOMA_POS *first = koma_now->next;
+        if (first != NULL) {
+            dng_player_pos[0] = first->x;
+            dng_player_pos[1] = first->y;
         }
     }
     return memory.stGetUsed();
 }
 
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", LoadDngInfo__11CDngFreeMapFP9mgCMemoryiiii);
-#endif
-
-/** Screen currently drawn by the dungeon tree menu. */
-extern short DngTreeMode;
-
 int CheckDngTreeMapFuncType() {
-    if (MenuCommonInfo->open_type == 3) {
-        return 2;
+    if (MenuCommonInfo->open_type == MENU_OPEN_DNG_TREE_MAP) {
+        return DNG_TREE_MAP_FUNC_SAVE_POINT;
     }
-    if (MenuCommonInfo->open_type == 1 || TreeMapCallDungeonSubMap == 1) {
-        return 1;
+    if (MenuCommonInfo->open_type == MENU_OPEN_MAIN_DUNGEON || TreeMapCallDungeonSubMap == 1) {
+        return DNG_TREE_MAP_FUNC_DUNGEON;
     }
-    return 0;
+    return DNG_TREE_MAP_FUNC_OTHER;
 }
-extern char *name_tbl_2728[8];
+
+/**
+ *
+ * First-floor map names for the seven dungeons.
+ *
+ */
+static char *name_tbl_2728[7] = {
+    "d01e01",
+    "s02",
+    "g02",
+    "g03",
+    "g04",
+    "d06e01",
+    "m05"
+};
 
 void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
     if (dng_no == 0 && floor_id == 8) {
@@ -1695,36 +2488,34 @@ void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
         }
     }
 }
-extern CDngFreeMap *MenuDngMap;
-extern u_long128   *MenuCursorDataBuff;
-extern mgCTexture  *Floor_InfoTex;
-extern s8           maxidtable_2752[7];
-extern char         at_2681[];
-extern char         at_2786[];
-extern char         at_2787__2[];
-extern char         at_2788[];
-extern char         at_2789[];
-extern char         at_2790[];
-extern int          DngInfoDrawAlpha;
+
+/**
+ *
+ * Maximum floor number for each dungeon.
+ *
+ */
+static s8 maxidtable_2752[7] = {
+    8, 15, 24, 20, 22, 28, 38
+};
 
 void CMenuTreeMap::InitEnd() {
     BG_READ_INFO *read = GetReadBGFile(0);
     char          map_name[32];
-    sprintf(map_name, at_2681, dng_no);
+    sprintf(map_name, "dmap%d.img", dng_no);
     int block;
     mgCTextureManager *textures;
     u8 *map_img = (u8 *) GetPackFile((u_int *) read->buffer, map_name, NULL);
     block = tex_block[0];
     textures = &mgTexManager;
-    MenuWorkTextureEnter(block, at_2786, 0x200, 0x100, 0x18);
+    MenuWorkTextureEnter(block, "dngmnwork2", 0x200, 0x100, 0x18);
     textures->EnterIMGFile(map_img, block, NULL, NULL);
-    if (CheckDngTreeMapFuncType() == 2) {
-        textures->EnterIMGFile((u8 *) MenuCursorDataBuff, block, NULL, NULL);
+    if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_SAVE_POINT) {
+        textures->EnterIMGFile(MenuCursorDataBuff, block, NULL, NULL);
     }
     MenuDngMap->SetTextureInfo();
-    Floor_InfoTex = textures->GetTexture(at_2787__2, -1);
+    Floor_InfoTex = textures->GetTexture("dngfibrd", -1);
     if (read != NULL) {
-        script = (char *) GetPackFile((u_int *) read->buffer, at_2788, &script_size);
+        script = (char *) GetPackFile((u_int *) read->buffer, "dtmap_com.cfg", &script_size);
         MenuDngMap->floor_manager->CheckDrawGlidInfo();
         int room_no = MenuSaveDataDungeonPtr->floor_id[dng_no];
         if (room_no < 1) {
@@ -1766,12 +2557,12 @@ void CMenuTreeMap::InitEnd() {
         cursor_pos[0] = position[0];
         cursor_pos[1] = position[1];
         FadeInMenu(40, 0.0f);
-        mes_data = (short *) GetPackFile((u_int *) read->buffer, at_2789, NULL);
+        mes_data = (short *) GetPackFile((u_int *) read->buffer, "systree.mes", NULL);
         MsgInit();
         u_long128  buffer[0xA000 / sizeof(u_long128)];
         u_long128 *aligned = MenuCalcBufAlignment(buffer);
         char       treasure_name[64];
-        sprintf(treasure_name, at_2790, dng_no + 1);
+        sprintf(treasure_name, "dungeon/cfg_file/tbox_d0%d.cfg", dng_no + 1);
         int size;
         if (LoadFile2(treasure_name, aligned, &size, 0)) {
             CreatTresuarBoxInfo(&tresure, (char *) aligned, size);
@@ -1785,15 +2576,11 @@ void CMenuTreeMap::InitEnd() {
     key_arg_no = 0;
 }
 
-#ifdef NONMATCHING
-extern short         TreeMapSaveDispY;
-extern unsigned char TreeMapSaveFlag;
-
 void CMenuTreeMap::MsgInit() {
     for (int i = 0; i < DNG_TREE_MAP_MES_MAX; i++) {
         mes[i].SetMessData(mes_data, mes_data);
-        mes[i].MsgPreset(15);
-        mes[i].fuchi = 5;
+        mes[i].MsgPreset(MENU_SCRIPT_MES_ITEMMSG);
+        mes[i].fuchi = FUCHI_SHADOW_BLACK_WIDE;
         mes[i].value_zero = 1;
     }
     MenuCommandAnalyzeInfo.mes_buff[0] = mes_data;
@@ -1805,131 +2592,131 @@ void CMenuTreeMap::MsgInit() {
     message->SetDrawSize(16, 20);
     message->ClsMes::mes_no = -1;
     message->MakeMsg(300);
-    if (CheckDngTreeMapFuncType() == 2) {
+    if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_SAVE_POINT) {
         message->MakeMsg(81);
-    } else if (CheckDngTreeMapFuncType() == 1) {
+    } else if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON) {
         message->MakeMsg(80);
     }
     message->StepMsg();
     int y = mgScreenHeight - 50;
-    message->line_pos[0][0] = (mgScreenWidth >> 2) - (message->line_w[0] >> 1);
-    message->line_pos[0][1] = y;
-    message->line_pos_on[0] = 1;
-    message->line_pos[1][0] = ((mgScreenWidth >> 2) * 3) - (message->line_w[1] >> 1);
-    message->line_pos[1][1] = y;
-    message->line_pos_on[1] = 1;
+    int x = mgScreenWidth;
+    int width = message->line_w[0];
+    x >>= 2;
+    width >>= 1;
+    message->SetMovePosGyou(0, x - width, y);
+    message->SetMovePosGyou(1, ((mgScreenWidth >> 2) * 3) - (message->line_w[1] >> 1), y);
     TreeMapSaveDispY = y;
     if (TreeMapSaveFlag == 0) {
-        message->line_pos[1][0] = 600;
-        message->line_pos[1][1] = y;
-        message->line_pos_on[1] = 1;
+        message->SetMovePosGyou(1, 600, y);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", MsgInit__12CMenuTreeMapFv);
-#endif
-#ifdef NONMATCHING
-extern int             old_direction_2830;
-extern s8              init_2831;
-extern GLID_INFO      *old_glid_2833;
-extern s8              init_2834;
-extern GLID_INFO      *NextFloorGlid_2836;
-extern s8              init_2837;
-extern int             bitTable_2900[12];
-extern s8              DngAskMessageDrawFlag;
-extern u8              DngInfoFishOkFlag;
-extern u8              DngInfoSphidaOkFlag;
-extern u8              dngfloor_infoview;
-extern u8              dngfloor_backdraw;
-extern u8              GeoramaMateriaInfoDrawFlag;
-extern s8              GeoramaMateriaInfoDrawPage;
-extern int             DngInfoDrawAlpha;
-extern DNG_FLOOR_SAVE *DngInfoFloorInfo;
-/** Room whose floor-information activities are being shown. */
-extern DNGMAP_ROOM_INFO *DngInfoRoomInfo;
-extern int             MenuDngDebugFlagSelect;
-extern float           DngTreeMapActiveLightRate;
-extern char            at_3342[];
-extern char            at_3343[];
-extern char            at_3344[];
-extern char            at_3345[];
-extern char            at_3346[];
-extern char            at_3347[];
-extern char            at_3348[];
-extern char            at_3349[];
-extern char            at_3350[];
-
-/** Number of georama parts listed for the selected dungeon floor. */
-extern short GeoramaMateriaNum;
 
 int CMenuTreeMap::Step() {
-    int result = 0;
+    /**
+     *
+     * Actions requested by the map, confirmation and material-list keys.
+     *
+     */
+    enum TreeMapAction {
+        TREE_MAP_ACTION_NONE = -1,           /**< No action requested. */
+        TREE_MAP_ACTION_SELECT = 100,        /**< Opens the selected floor's information or question. */
+        TREE_MAP_ACTION_JUMP = 110,          /**< Confirms the selected floor and closes the map. */
+        TREE_MAP_ACTION_MATERIALS = 130,     /**< Opens the georama material list. */
+        TREE_MAP_ACTION_MATERIAL_PAGE = 131, /**< Advances or closes the georama material list. */
+        TREE_MAP_ACTION_CANCEL = 120,        /**< Closes the selected floor's information or question. */
+        TREE_MAP_ACTION_CLOSE = 200          /**< Closes the map without selecting a floor. */
+    };
+
+    /**
+     *
+     * Messages that ask about or describe the selected floor.
+     *
+     */
+    enum TreeMapMessage {
+        TREE_MAP_MES_JUMP = 0x3C,                /**< Asks whether to go to the selected floor. */
+        TREE_MAP_MES_JUMP_NAMED = 0x3D,          /**< Asks whether to go to the named start, sub, exit or boss floor. */
+        TREE_MAP_MES_PAY = 2,                    /**< Added to a question for its variant that charges for the jump. */
+        TREE_MAP_MES_FLOOR_INFO = 0x40,          /**< Describes a floor without georama materials. */
+        TREE_MAP_MES_FLOOR_INFO_MATERIALS = 0x41 /**< Describes a floor with georama materials to list. */
+    };
+
+    int           result = DNG_TREE_MAP_CONTINUE;
     CMenuKeyFunc *keys = MenuCommonInfo;
-    if (!init_2831) {
-        old_direction_2830 = -1;
-        init_2831 = 1;
-    }
-    if (!init_2834) {
-        old_glid_2833 = NULL;
-        init_2834 = 1;
-    }
+
+    /**
+     *
+     * Navigation state reset when the map opens or the cursor moves.
+     *
+     */
+    static int old_direction = -1;
+
+    /**
+     *
+     * Room the cursor last moved away from, passed back to GetKeyNextRoom.
+     *
+     */
+    static GLID_INFO *old_glid = NULL;
+
     CDC2Mes *message = MenuDCMsg[3];
-    int fade_done = FadeInOutMenu();
+    int      fade_done = FadeInOutMenu();
     MenuDngMap->Step();
-    int  read_busy = ReadBGSync();
+    int read_busy = ReadBGSync();
     int selection_changed = 0;
-    if (!init_2837) {
-        NextFloorGlid_2836 = NULL;
-        init_2837 = 1;
-    }
+
+    /**
+     *
+     * Destination cell selected for floor travel.
+     *
+     */
+    static GLID_INFO *NextFloorGlid = NULL;
 
     switch (mode) {
-        case 1: {
+        case MENU_ASK_MODE_OPEN: {
             if (fade_done && !read_busy) {
                 InitEnd();
                 selection_changed = 1;
                 cursor_reset = 1;
-                old_direction_2830 = -1;
-                old_glid_2833 = NULL;
+                old_direction = -1;
+                old_glid = NULL;
             }
             break;
         }
-        case 2: {
+        case MENU_ASK_MODE_CLOSE: {
             if (fade_done) {
                 DeleteTexBlock();
-                ExeScript(at_3342);
-                result = 1;
+                ExeScript("MSG_END");
+                result = DNG_TREE_MAP_CLOSE;
                 if (MenuArg.end_code == 5) {
-                    result = 2;
+                    result = DNG_TREE_MAP_JUMP;
                     if (TreeMapCallDungeonSubMap) {
                         MenuArg.end_code = 6;
-                        MenuArg.result[0] = 1;
+                        MenuArg.result[0] = LOOP_EDIT;
                         MakeDngTreeMapJumpNo(dng_no, MenuArg.result[2], &MenuArg.result[0], &MenuArg.result[1]);
-                        GetSaveData()->ResetBitCtrl(0x10);
+                        GetSaveData()->ResetBitCtrl(MENU_DEBUG_BIT_CTRL_BOOT_TREEMAP);
                         if (MenuArg.result[2] == 0) {
                             GetSaveData()->save_dungeon.SetFloorID(0);
                         }
                     }
-                    if (CheckDngTreeMapFuncType() == 0 && MenuArg.result[0] == 2) {
+                    if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_OTHER && MenuArg.result[0] == LOOP_DUNGEON) {
                         MenuMainScene->skip_load_bgm = 1;
                     }
                     CheckDngTreeMapFuncType();
-                    DNG_BATTLE_AREA *area = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
+                    DNG_BATTLE_AREA *area = menu_GetBattleAreaScene();
                     if (area != NULL) {
-                        area->floor_status &= 0xFFF8;
+                        area->floor_status &= ~(DNG_FLOOR_STATUS_SEAL_MONICA | DNG_FLOOR_STATUS_SEAL_MAX | DNG_FLOOR_STATUS_UNK_4);
                     }
                 }
-                old_glid_2833 = NULL;
-                old_direction_2830 = -1;
+                old_glid = NULL;
+                old_direction = -1;
             }
             break;
         }
-        case 12: {
+        case MENU_ASK_MODE_EXTEND: {
             if (step == 0 && FadeCheckMenu()) {
                 DngTreeMode = DNG_TREE_MODE_SAVE;
             }
             if (step == 1 && FadeCheckMenu()) {
-                mode = 0;
+                mode = MENU_ASK_MODE_NONE;
             }
             break;
         }
@@ -1938,318 +2725,454 @@ int CMenuTreeMap::Step() {
             keys->CheckSelectKey();
             int directions = keys->CheckLRKey();
             int buttons = keys->CheckPushButton();
-            int action = -1;
-            if (key_arg_no == 2) {
-                if ((buttons & 4) || (buttons & 2)) {
-                    action = 0x83;
-                    MenuSePlay(1);
-                }
-            } else if (key_arg_no == 1) {
-                if (!DngAskMessageDrawFlag) {
-                    if (buttons) {
-                        action = 0x78;
-                    }
-                } else if (!dngfloor_infoview) {
-                    int cursor = message->YesNoCursor();
-                    if (buttons & 1) {
-                        action = cursor == 1 ? 0x78 : (cursor == 0 ? 0x6E : -1);
-                    } else if (buttons & 2) {
-                        action = 0x78;
-                    }
-                } else if (buttons & 1) {
-                    action = CheckDngTreeMapFuncType() == 1 ? -1 : 0x6E;
-                } else if (buttons & 2) {
-                    action = 0x78;
-                } else if ((buttons & 4) && GeoramaMateriaNum > 0) {
-                    action = 0x82;
-                }
-            } else if (key_arg_no == 0) {
-                if (menu_debug_flag) {
-                    DNG_FLOOR_SAVE *floor = MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, select_glid->room.floor_id);
-                    if (directions & 1) {
-                        --MenuDngDebugFlagSelect;
-                    }
-                    if (directions & 2) {
-                        ++MenuDngDebugFlagSelect;
-                    }
-                    if (MenuDngDebugFlagSelect < 0) {
-                        MenuDngDebugFlagSelect = 0;
-                    }
-                    if (MenuDngDebugFlagSelect > 8) {
-                        MenuDngDebugFlagSelect = 8;
-                    }
-                    if (MenuDngDebugFlagSelect == 0) {
-                        if (((buttons & 1) || (directions & 8)) && floor != NULL && floor->visit_count < 30000) {
-                            ++floor->visit_count;
+            int action = TREE_MAP_ACTION_NONE;
+            switch (key_arg_no) {
+                case DNG_TREE_MAP_SCREEN_MAP: {
+                    if (menu_debug_flag) {
+                        /**
+                         *
+                         * Floor-save flag toggled by each debug selector row; row zero edits the visit count instead.
+                         *
+                         */
+                        static int bitTable[9] = {
+                            DNG_FLOOR_FLAG_OPEN,
+                            DNG_FLOOR_FLAG_OPEN,
+                            DNG_FLOOR_FLAG_CLEAR,
+                            DNG_FLOOR_FLAG_PRACTICE_CLEAR,
+                            DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR,
+                            DNG_FLOOR_FLAG_FISHING_CLEAR,
+                            DNG_FLOOR_FLAG_TALK_MONSTER,
+                            DNG_FLOOR_FLAG_SPHEDA_CLEAR,
+                            DNG_FLOOR_FLAG_GEOSTONE_FOUND
+                        };
+
+                        DNG_FLOOR_SAVE *floor = MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, select_glid->room.floor_id);
+                        if (directions & MENU_SELECT_KEY_UP) {
+                            --MenuDngDebugFlagSelect;
                         }
-                        if (((buttons & 2) || (directions & 4)) && floor != NULL && floor->visit_count) {
-                            --floor->visit_count;
+                        if (directions & MENU_SELECT_KEY_DOWN) {
+                            ++MenuDngDebugFlagSelect;
                         }
-                    } else if (floor != NULL) {
-                        if ((buttons & 1) || (directions & 8)) {
-                            floor->flag |= bitTable_2900[MenuDngDebugFlagSelect];
+                        if (MenuDngDebugFlagSelect < 0) {
+                            MenuDngDebugFlagSelect = 0;
                         }
-                        if ((buttons & 2) || (directions & 4)) {
-                            floor->flag &= ~bitTable_2900[MenuDngDebugFlagSelect];
+                        if (MenuDngDebugFlagSelect > 8) {
+                            MenuDngDebugFlagSelect = 8;
                         }
-                    }
-                    if (buttons & 4) {
-                        for (int id = 0;; ++id) {
-                            DNG_FLOOR_SAVE *entry = MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, id);
-                            if (entry == NULL) {
-                                break;
+                        if (MenuDngDebugFlagSelect == 0) {
+                            if (((buttons & MENU_PUSH_BUTTON_DECIDE) || (directions & MENU_SELECT_KEY_RIGHT)) && floor != NULL && floor->visit_count < 30000) {
+                                ++floor->visit_count;
                             }
-                            if (entry->visit_count < 30000) {
-                                ++entry->visit_count;
+                            if (((buttons & MENU_PUSH_BUTTON_CANCEL) || (directions & MENU_SELECT_KEY_LEFT)) && floor != NULL && 0 < floor->visit_count) {
+                                --floor->visit_count;
                             }
-                            entry->flag = 0x1FB;
+                        }
+                        if (MenuDngDebugFlagSelect != 0) {
+                            if ((buttons & MENU_PUSH_BUTTON_DECIDE) || (directions & MENU_SELECT_KEY_RIGHT)) {
+                                floor->flag |= bitTable[MenuDngDebugFlagSelect];
+                            }
+                            if ((buttons & MENU_PUSH_BUTTON_CANCEL) || (directions & MENU_SELECT_KEY_LEFT)) {
+                                floor->flag &= ~bitTable[MenuDngDebugFlagSelect];
+                            }
+                        }
+                        if (buttons & MENU_PUSH_BUTTON_TRIANGLE) {
+                            for (int id = 0;; ++id) {
+                                DNG_FLOOR_SAVE *entry = MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, id);
+                                if (entry == NULL) {
+                                    break;
+                                }
+                                if (entry->visit_count < 30000) {
+                                    ++entry->visit_count;
+                                }
+                                entry->flag = DNG_FLOOR_FLAG_OPEN | DNG_FLOOR_FLAG_CLEAR | DNG_FLOOR_FLAG_PRACTICE_CLEAR |
+                                              DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR | DNG_FLOOR_FLAG_FISHING_CLEAR |
+                                              DNG_FLOOR_FLAG_TALK_MONSTER | DNG_FLOOR_FLAG_SPHEDA_CLEAR | DNG_FLOOR_FLAG_GEOSTONE_FOUND;
+                            }
+                        }
+                        if ((buttons & MENU_PUSH_BUTTON_DECIDE) || (buttons & MENU_PUSH_BUTTON_CANCEL) || (buttons & MENU_PUSH_BUTTON_TRIANGLE) || (directions & MENU_SELECT_KEY_LEFT) || (directions & MENU_SELECT_KEY_RIGHT)) {
+                            MenuDngMap->floor_manager->CheckDrawGlidInfo();
+                        }
+                        if (directions & MENU_SELECT_KEY_R1) {
+                            MenuActiveSaveData->SetBitFlag(SAVE_FLAG_FISHING_OPEN, 1);
+                            MenuActiveSaveData->SetBitFlag(SAVE_FLAG_SPHEDA_UNLOCKED, 1);
+                        }
+                        return DNG_TREE_MAP_CONTINUE;
+                    }
+                    GLID_INFO *next = NULL;
+                    int        dir = -1;
+                    if (directions & MENU_SELECT_KEY_UP) {
+                        dir = GLID_DIR_UP;
+                    } else if (directions & MENU_SELECT_KEY_DOWN) {
+                        dir = GLID_DIR_DOWN;
+                    } else if (directions & MENU_SELECT_KEY_LEFT) {
+                        dir = GLID_DIR_LEFT;
+                    } else if (directions & MENU_SELECT_KEY_RIGHT) {
+                        dir = GLID_DIR_RIGHT;
+                    }
+                    if (0 <= dir) {
+                        next = MenuDngMap->floor_manager->GetKeyNextRoom(select_glid->room.floor_id, dir, old_glid);
+                    }
+                    if (next != NULL && next != select_glid && next->room.selectable == 1) {
+                        MenuSePlay(SYSTEM_SE_CURSOR);
+                        old_glid = select_glid;
+                        old_direction = -1;
+                        select_glid = next;
+                        MenuDngMap->SetNextRoomPos(select_glid);
+                        DngTreeMapActiveLightRate = 0.0f;
+                        selection_changed = 1;
+                    }
+                    MenuDngMap->select_glid = select_glid;
+                    switch (buttons) {
+                        case MENU_PUSH_BUTTON_DECIDE: {
+                            action = TREE_MAP_ACTION_SELECT;
+                            NextFloorGlid = MenuDngMap->GetEntranceRoomGlid();
+                            if (select_glid != NULL) {
+                                NextFloorGlid = select_glid;
+                            }
+                            GLID_INFO *target = NextFloorGlid;
+                            int        current_map = MenuMainScene->now_map_no;
+                            if (target == MenuDngMap->GetEntranceRoomGlid() &&
+                                ((0 <= current_map && current_map < 11 &&
+                                  (GetMapType(MenuMainScene->now_sub_map_no) == 2 ||
+                                   GetMapType(MenuMainScene->now_sub_map_no) == 4 ||
+                                   GetMapType(MenuMainScene->now_sub_map_no) == 6)) ||
+                                 (current_map == 1 && MenuMainScene->now_sub_map_no == 100))) {
+                                action = TREE_MAP_ACTION_CLOSE;
+                            }
+
+                            break;
+                        }
+                        case MENU_PUSH_BUTTON_CANCEL: {
+                            if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_SAVE_POINT) {
+                                action = TREE_MAP_ACTION_SELECT;
+                                NextFloorGlid = MenuDngMap->GetEntranceRoomGlid();
+                            } else {
+                                action = TREE_MAP_ACTION_CLOSE;
+                            }
+                            break;
+                        }
+                        case MENU_PUSH_BUTTON_SQUARE: {
+                            if (CheckDngTreeMapFuncType() != DNG_TREE_MAP_FUNC_OTHER) {
+                                action = TREE_MAP_ACTION_SELECT;
+                                NextFloorGlid = MenuDngMap->GetEntranceRoomGlid();
+                            } else {
+                                action = TREE_MAP_ACTION_CLOSE;
+                            }
+                            break;
+                        }
+                        case MENU_PUSH_BUTTON_TRIANGLE: {
+                            if (TreeMapSaveFlag) {
+                                FadeOutMenu(40, 0.0f);
+                                mode = MENU_ASK_MODE_EXTEND;
+                                step = 0;
+                                MenuSePlay(SYSTEM_SE_DECIDE);
+                            } else {
+                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                            }
+
+                            break;
                         }
                     }
-                    if ((buttons & 7) || (directions & 0xC)) {
-                        MenuDngMap->floor_manager->CheckDrawGlidInfo();
-                    }
-                    if (directions & 0x20) {
-                        MenuActiveSaveData->SetBitFlag(0xDC, 1);
-                        MenuActiveSaveData->SetBitFlag(0x13D, 1);
-                    }
-                    return 0;
+
+                    break;
                 }
-                int dir = -1;
-                if (directions & 1) {
-                    dir = 0;
-                } else if (directions & 2) {
-                    dir = 1;
-                } else if (directions & 4) {
-                    dir = 2;
-                } else if (directions & 8) {
-                    dir = 3;
-                }
-                GLID_INFO *next = NULL;
-                if (dir >= 0) {
-                    next = MenuDngMap->floor_manager->GetKeyNextRoom(select_glid->room.floor_id, dir, old_glid_2833);
-                }
-                if (next != NULL && next != select_glid && next->room.unk_44 == 1) {
-                    MenuSePlay(0);
-                    old_glid_2833 = select_glid;
-                    old_direction_2830 = -1;
-                    select_glid = next;
-                    MenuDngMap->SetNextRoomPos(next);
-                    DngTreeMapActiveLightRate = 0.0f;
-                    selection_changed = 1;
-                }
-                MenuDngMap->select_glid = select_glid;
-                if (buttons == 4) {
-                    if (!TreeMapSaveFlag) {
-                        MenuSePlay(5);
+                case DNG_TREE_MAP_SCREEN_FLOOR: {
+                    if (!DngAskMessageDrawFlag) {
+                        if (buttons) {
+                            action = TREE_MAP_ACTION_CANCEL;
+                        }
+                    } else if (dngfloor_infoview) {
+                        if (buttons & MENU_PUSH_BUTTON_DECIDE) {
+                            action = TREE_MAP_ACTION_JUMP;
+                            if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON) {
+                                action = TREE_MAP_ACTION_NONE;
+                            }
+
+                        } else if (buttons & MENU_PUSH_BUTTON_CANCEL) {
+                            action = TREE_MAP_ACTION_CANCEL;
+
+                        } else if ((buttons & MENU_PUSH_BUTTON_TRIANGLE) && 0 < GeoramaMateriaNum) {
+                            action = TREE_MAP_ACTION_MATERIALS;
+                        }
                     } else {
-                        FadeOutMenu(40, 0.0f);
-                        mode = 12;
-                        step = 0;
-                        MenuSePlay(1);
+                        int cursor = message->YesNoCursor();
+                        if (buttons & MENU_PUSH_BUTTON_DECIDE) {
+                            switch (cursor) {
+                                case 0:
+                                    action = TREE_MAP_ACTION_JUMP;
+                                    break;
+                                case 1:
+                                    action = TREE_MAP_ACTION_CANCEL;
+                                    break;
+                            }
+                        } else if (buttons & MENU_PUSH_BUTTON_CANCEL) {
+                            action = TREE_MAP_ACTION_CANCEL;
+                        }
                     }
-                } else if (buttons == 8 || buttons == 2) {
-                    int kind = CheckDngTreeMapFuncType();
-                    action = 200;
-                    if ((buttons == 8 && kind != 0) || (buttons == 2 && kind == 2)) {
-                        action = 100;
-                        NextFloorGlid_2836 = MenuDngMap->GetEntranceRoomGlid();
+
+                    break;
+                }
+                case DNG_TREE_MAP_SCREEN_MATERIALS: {
+                    if ((buttons & MENU_PUSH_BUTTON_TRIANGLE) || (buttons & MENU_PUSH_BUTTON_CANCEL)) {
+                        action = TREE_MAP_ACTION_MATERIAL_PAGE;
+                        MenuSePlay(SYSTEM_SE_DECIDE);
                     }
-                } else if (buttons == 1) {
-                    action = 100;
-                    NextFloorGlid_2836 = select_glid ? select_glid : MenuDngMap->GetEntranceRoomGlid();
-                    if (NextFloorGlid_2836 == MenuDngMap->GetEntranceRoomGlid() &&
-                    ((MenuMainScene->active_map >= 0 && MenuMainScene->active_map < 11 &&
-                    (GetMapType(MenuMainScene->now_map_no) == 2 ||
-                    GetMapType(MenuMainScene->now_map_no) == 4 ||
-                    GetMapType(MenuMainScene->now_map_no) == 6)) ||
-                    (MenuMainScene->active_map == 1 && MenuMainScene->now_map_no == 100))) {
-                        action = 200;
-                    }
+
+                    break;
                 }
             }
-            DNG_FLOOR_SAVE *target_save = NextFloorGlid_2836 ? MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, NextFloorGlid_2836->room.floor_id) : NULL;
-            if (action == 200) {
-                MenuSePlay(5);
-                FadeOutMenu(40, 0.0f);
-                draw_hidden = 0;
-                mode = 2;
-                cursor_view = 0;
-            } else if (action == 0x78) {
-                MenuSePlay(5);
-                key_arg_no = 0;
-                dngfloor_infoview = 0;
-                dngfloor_backdraw = 0;
-                cursor_view = 1;
-                money_view = 0;
-            } else if (action == 0x83) {
-                if (GeoramaMateriaNum < 15 || GeoramaMateriaInfoDrawPage) {
-                    DngInfoDrawAlpha = 128;
-                    key_arg_no = 1;
-                    dngfloor_infoview = 1;
-                    GeoramaMateriaInfoDrawFlag = 0;
-                } else {
-                    GeoramaMateriaInfoDrawPage = 1;
-                }
-            } else if (action == 0x82) {
-                dngfloor_infoview = 0;
-                dngfloor_backdraw = 1;
-                GeoramaMateriaInfoDrawFlag = 1;
-                GeoramaMateriaInfoDrawPage = 0;
-                DngInfoDrawAlpha = 0;
-                MenuSePlay(1);
-                key_arg_no = 2;
-            } else if (action == 0x6E) {
-                MenuSePlay(1);
-                if (jump_pay) {
-                    int money = -MenuUserDataManPtr->money;
-                    if (money < 0) {
-                        ++money;
-                    }
-                    MenuUserDataManPtr->AddMoney(money >> 1);
-                }
-                MenuArg.result[1] = 0;
-                MenuArg.end_code = 5;
-                MenuArg.result[0] = 1;
-                if (MenuDngMap->user_glid != NULL) {
-                    MenuSaveDataDungeonPtr->stage_id = dng_no;
-                    MenuArg.result[1] = MenuSaveDataDungeonPtr->prev_floor_id[dng_no];
-                }
-                MenuArg.result[2] = NextFloorGlid_2836->room.floor_id;
-                bool jump_event = false;
-                u32  room_flags = NextFloorGlid_2836->room.flag;
-                if (room_flags & (DNGMAP_ROOM_FLAG_SUB | DNGMAP_ROOM_FLAG_BOSS)) {
-                    if (dng_no == 1 && MenuArg.result[2] == 6) {
-                        MenuMainScene->skip_play_bgm = 1;
-                    } else {
-                        jump_event = true;
-                    }
-                    MenuSaveDataDungeonPtr->SetFloorID(MenuArg.result[2]);
-                }
-                if (dng_no == 0 && ((MenuArg.result[2] == 3 && !CheckBitFlagMenu(0x66)) ||
-                (MenuArg.result[2] == 8 && !CheckBitFlagMenu(0xC9)) || MenuArg.result[2] == 6)) {
-                    jump_event = true;
-                }
-                if (dng_no == 1 && ((MenuArg.result[2] == 2 && !CheckBitFlagMenu(0xD4)) || MenuArg.result[2] == 14)) {
-                    jump_event = true;
-                }
-                if (dng_no == 2 && ((MenuArg.result[2] == 2 && !CheckBitFlagMenu(0x133)) ||
-                (MenuArg.result[2] == 21 && !CheckBitFlagMenu(0x158)) || MenuArg.result[2] == 22)) {
-                    jump_event = true;
-                }
-                if (dng_no == 3 && ((MenuArg.result[2] == 2 && !CheckBitFlagMenu(0x196)) ||
-                (MenuArg.result[2] == 17 && !CheckBitFlagMenu(0x1A8)) || MenuArg.result[2] == 19)) {
-                    jump_event = true;
-                }
-                if ((dng_no == 4 && MenuArg.result[2] == 21) || (dng_no == 5 && MenuArg.result[2] == 26) ||
-                (dng_no == 6 && MenuArg.result[2] == 37)) {
-                    jump_event = true;
-                }
-                if (jump_event) {
-                    MenuMainScene->skip_load_bgm = 1;
-                }
-                draw_hidden = 0;
-                mode = 2;
-                FadeOutMenu(40, 0.0f);
-            } else if (action == 100) {
-                bool open_question = false;
-                if (NextFloorGlid_2836 == NULL || (target_save != NULL && !(target_save->flag & 1))) {
-                    MenuSePlay(5);
-                } else if (CheckDngTreeMapFuncType() == 0 && TreeMapCallDungeonSubMap == 1) {
+            DNG_FLOOR_SAVE *target_save = NextFloorGlid ? MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, NextFloorGlid->room.floor_id) : NULL;
+            switch (action) {
+                case TREE_MAP_ACTION_SELECT: {
                     int loop_no, map_no;
-                    MakeDngTreeMapJumpNo(dng_no, NextFloorGlid_2836->room.floor_id, &loop_no, &map_no);
-                    if (map_no == MenuMainScene->now_map_no) {
-                        MenuSePlay(5);
+                    if (NextFloorGlid == NULL) {
+                        MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                    } else if (target_save != NULL && !(target_save->flag & DNG_FLOOR_FLAG_OPEN)) {
+                        MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                     } else {
-                        open_question = true;
-                    }
-                } else {
-                    open_question = true;
-                }
-                if (open_question) {
-                    selection_changed = 1;
-                    DngAskMessageDrawFlag = 1;
-                    if (CheckDngTreeMapFuncType() == 1 && !(NextFloorGlid_2836->room.flag & DNGMAP_ROOM_FLAG_START)) {
-                        DngAskMessageDrawFlag = 2;
-                    }
-                    u32 flags = NextFloorGlid_2836->room.flag;
-                    if (DngAskMessageDrawFlag == 2 && (flags & (DNGMAP_ROOM_FLAG_SUB | DNGMAP_ROOM_FLAG_BOSS | DNGMAP_ROOM_FLAG_EXIT))) {
-                        MenuSePlay(5);
-                        message->SetAbsPos(5);
-                    } else {
-                        MenuSePlay(0x13);
-                        dngfloor_infoview = 1;
-                        dngfloor_backdraw = 1;
-                        DngInfoRoomInfo = &NextFloorGlid_2836->room;
-                        DngInfoFloorInfo = target_save;
-                        GetSaveData()->GetBitCtrl();
-                        DNG_BATTLE_AREA *area = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
-                        jump_pay = (area->battle_clear == 0 && MenuCommonInfo->open_type == 1 && !TreeMapCallDungeonSubMap);
-                        int mes_no = 0x3C;
-                        if (flags & (DNGMAP_ROOM_FLAG_START | DNGMAP_ROOM_FLAG_SUB | DNGMAP_ROOM_FLAG_EXIT | DNGMAP_ROOM_FLAG_BOSS)) {
-                            mes_no = 0x3D;
-                            int name_id = NextFloorGlid_2836->room.floor_id + (dng_no + 1) * 1000;
-                            message->SetMsgItemNo(&name_id, 1);
+                        if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_OTHER && TreeMapCallDungeonSubMap == 1) {
+                            MakeDngTreeMapJumpNo(dng_no, NextFloorGlid->room.floor_id, &loop_no, &map_no);
+                            if (map_no == MenuMainScene->GetNowMapNo()) {
+                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                break;
+                            }
                         }
-                        if (jump_pay) {
-                            mes_no += 2;
+                        selection_changed = 1;
+                        DngAskMessageDrawFlag = 1;
+                        if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON && !(NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_START)) {
+                            DngAskMessageDrawFlag = 2;
                         }
-                        message->SetAbsPos(-1);
-                        int put_pos[2] = {0x3C, 0x118};
-                        message->SetPutPos(put_pos);
-                        message->ClsMes::mes_no = -1;
-                        message->SetMsgCursor(0);
-                        message->fade = 0.0f;
-                        message->fade_speed = 0.1f;
-                        for (int i = 0; i < 3; ++i) {
-                            message->line_pos_on[i] = 0;
-                        }
-                        if (flags & (DNGMAP_ROOM_FLAG_START | DNGMAP_ROOM_FLAG_SUB | DNGMAP_ROOM_FLAG_EXIT | DNGMAP_ROOM_FLAG_BOSS)) {
-                            message->abs_win.x = -1;
-                            message->abs_win.y = -1;
+                        if ((DngAskMessageDrawFlag == 0 || DngAskMessageDrawFlag == 2) &&
+                            ((NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_SUB) ||
+                             (NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_BOSS) ||
+                             (NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_EXIT))) {
+                            MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
                             message->SetAbsPos(5);
-                            dngfloor_infoview = 0;
-                        }
-                        message->fuchi = 5;
-                        message->font_w = 15;
-                        message->SetMsgCursor(1);
-                        message->MakeMsg(mes_no);
-                        money_view = jump_pay ? 1 : 0;
-                        GeoramaMateriaNum = 0;
-                        if (dngfloor_infoview) {
-                            message->fuchi = 0;
-                            message->font_w = LanguageCode > 0 ? 17 : 8;
-                            message->fade_speed = 1.0f;
-                            message->fade = 1.0f;
-                            message->select_top = -1;
-                            message->SetMsgCursor(-1);
-                            GeoramaMateriaNum = CheckGeoramaMateria(&tresure, select_glid->room.floor_id, georama_materia);
-                            if (!(target_save->flag & 2)) {
-                                GeoramaMateriaNum = 0;
+                        } else {
+                            MenuSePlay(SYSTEM_SE_WINDOW);
+                            dngfloor_infoview = 1;
+                            dngfloor_backdraw = 1;
+                            DngInfoRoomInfo = &NextFloorGlid->room;
+                            DngInfoFloorInfo = target_save;
+                            int mes_no = TREE_MAP_MES_JUMP;
+                            GetSaveData()->GetBitCtrl();
+                            int battle_clear = menu_GetBattleAreaScene()->battle_clear;
+                            jump_pay = 0;
+                            if (battle_clear == 0 && MenuCommonInfo->open_type == MENU_OPEN_MAIN_DUNGEON) {
+                                jump_pay = 1;
                             }
-                            message->line_pos[0][0] = 0x46;
-                            message->line_pos[0][1] = mgScreenHeight - (GeoramaMateriaNum ? 0x46 : 0x32);
-                            message->line_pos_on[0] = 1;
-                            message->line_pos[1][0] = 0x14A;
-                            message->line_pos[1][1] = mgScreenHeight - 0x32;
-                            message->line_pos_on[1] = 1;
-                            if (GeoramaMateriaNum) {
-                                message->line_pos[2][0] = 0x46;
-                                message->line_pos[2][1] = mgScreenHeight - 0x2C;
-                                message->line_pos_on[2] = 1;
+                            if (TreeMapCallDungeonSubMap) {
+                                jump_pay = 0;
                             }
-                            message->MakeMsg(GeoramaMateriaNum ? 0x41 : 0x40);
-                            if (GeoramaMateriaNum && (LanguageCode == 4 || LanguageCode == 5)) {
-                                message->line_pos[0][0] = message->line_pos[2][0] = 0x2E;
-                                message->line_pos[1][0] = 0x160;
+                            u32 flags = NextFloorGlid->room.flag;
+                            if ((flags & DNGMAP_ROOM_FLAG_START) || (flags & DNGMAP_ROOM_FLAG_SUB) || (flags & DNGMAP_ROOM_FLAG_EXIT) || (flags & DNGMAP_ROOM_FLAG_BOSS)) {
+                                mes_no = TREE_MAP_MES_JUMP_NAMED;
+                                int name_id[1] = {NextFloorGlid->room.floor_id + (dng_no + 1) * 1000};
+                                message->SetMsgItemNo(name_id, 1);
                             }
-                            if (GeoramaMateriaNum && CheckDngTreeMapFuncType() == 1) {
-                                message->line_pos[0][0] = message->line_pos[1][0] = 0x208;
+                            if (jump_pay) {
+                                mes_no += TREE_MAP_MES_PAY;
                             }
+                            message->SetAbsPos(-1);
+                            int put_pos[2] = {0x3C, 0x118};
+                            message->SetPutPos(put_pos);
+                            message->ClsMes::mes_no = -1;
+                            message->SetMsgCursor(0);
+                            message->fade = 0.0f;
+                            message->fade_speed = 0.1f;
+                            for (int i = 0; i < 3; ++i) {
+                                message->line_pos_on[i] = 0;
+                            }
+                            flags = NextFloorGlid->room.flag;
+                            if ((flags & DNGMAP_ROOM_FLAG_EXIT) || (flags & DNGMAP_ROOM_FLAG_START) || (flags & DNGMAP_ROOM_FLAG_SUB) || (flags & DNGMAP_ROOM_FLAG_BOSS)) {
+                                message->abs_win.x = -1;
+                                message->abs_win.y = -1;
+                                message->SetAbsPos(5);
+                                dngfloor_infoview = 0;
+                            }
+                            message->window_mode = MES_WIN_YESNO;
+                            message->fuchi = FUCHI_SHADOW_BLACK_WIDE;
+                            message->font_w = 15;
+                            message->SetMsgCursor(1);
+                            message->MakeMsg(mes_no);
                             money_view = 0;
+                            if (jump_pay) {
+                                money_view = 1;
+                            }
+                            GeoramaMateriaNum = 0;
+                            if (dngfloor_infoview == 1) {
+                                message->window_mode = MES_WIN_NONE;
+                                message->fuchi = FUCHI_OUTLINE_THICK;
+                                if (LanguageCode > LANG_JAPANESE) {
+                                    message->font_w = 17;
+                                }
+                                message->fade_speed = 1.0f;
+                                message->fade = 1.0f;
+                                message->select_top = -1;
+                                message->SetMsgCursor(-1);
+                                GeoramaMateriaNum = CheckGeoramaMateria(&tresure, select_glid->room.floor_id, georama_materia);
+                                if (!(target_save->flag & DNG_FLOOR_FLAG_CLEAR)) {
+                                    GeoramaMateriaNum = 0;
+                                }
+                                if (GeoramaMateriaNum <= 0) {
+                                    message->SetMovePosGyou(0, 0x46, mgScreenHeight - 0x32);
+                                    message->SetMovePosGyou(1, 0x14A, mgScreenHeight - 0x32);
+                                    message->MakeMsg(TREE_MAP_MES_FLOOR_INFO);
+                                } else {
+                                    message->MakeMsg(TREE_MAP_MES_FLOOR_INFO_MATERIALS);
+                                    message->SetMovePosGyou(0, 0x46, mgScreenHeight - 0x46);
+                                    message->SetMovePosGyou(1, 0x14A, mgScreenHeight - 0x32);
+                                    message->SetMovePosGyou(2, 0x46, mgScreenHeight - 0x2C);
+                                    if (LanguageCode == LANG_ITALIAN || LanguageCode == LANG_SPANISH) {
+                                        message->SetMovePosGyou(0, 0x2E, mgScreenHeight - 0x46);
+                                        message->SetMovePosGyou(1, 0x160, mgScreenHeight - 0x32);
+                                        message->SetMovePosGyou(2, 0x2E, mgScreenHeight - 0x2C);
+                                    }
+                                    if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_DUNGEON) {
+                                        message->SetMovePosGyou(0, 0x208, mgScreenHeight - 0x46);
+                                        message->SetMovePosGyou(1, 0x208, mgScreenHeight - 0x32);
+                                    }
+                                }
+                                money_view = 0;
+                            }
+                            cursor_view = 0;
+                            key_arg_no = DNG_TREE_MAP_SCREEN_FLOOR;
                         }
-                        cursor_view = 0;
-                        key_arg_no = 1;
                     }
+
+                    break;
+                }
+                case TREE_MAP_ACTION_JUMP: {
+                    MenuSePlay(SYSTEM_SE_DECIDE);
+                    if (jump_pay) {
+                        int money = -MenuUserDataManPtr->money;
+                        if (money < 0) {
+                            ++money;
+                        }
+                        MenuUserDataManPtr->AddMoney(money >> 1);
+                    }
+                    MenuArg.result[1] = 0;
+                    MenuArg.end_code = 5;
+                    MenuArg.result[0] = LOOP_EDIT;
+                    if (MenuDngMap->user_glid != NULL) {
+                        MenuSaveDataDungeonPtr->stage_id = dng_no;
+                        MenuArg.result[1] = MenuSaveDataDungeonPtr->prev_floor_id[MenuSaveDataDungeonPtr->stage_id];
+                    }
+                    MenuArg.result[2] = NextFloorGlid->room.floor_id;
+                    int jump_event = 0;
+                    u32 room_flags = NextFloorGlid->room.flag;
+                    if ((room_flags & DNGMAP_ROOM_FLAG_SUB) || (room_flags & DNGMAP_ROOM_FLAG_BOSS)) {
+                        if (CMenuTreePt->dng_no == 1 && NextFloorGlid->room.floor_id == 6) {
+                            MenuMainScene->skip_play_bgm = 1;
+                        } else {
+                            jump_event = 1;
+                        }
+                        MenuSaveDataDungeonPtr->SetFloorID(MenuArg.result[2]);
+                    }
+                    if (CMenuTreePt->dng_no == 0) {
+                        if (MenuArg.result[2] == 3 && !CheckBitFlagMenu(0x66)) {
+                            jump_event = 1;
+                        }
+                        if (MenuArg.result[2] == 8 && !CheckBitFlagMenu(0xC9)) {
+                            jump_event = 1;
+                        }
+                        if (MenuArg.result[2] == 6) {
+                            jump_event = 1;
+                        }
+                    }
+                    if (CMenuTreePt->dng_no == 1) {
+                        if (MenuArg.result[2] == 2 && !CheckBitFlagMenu(0xD4)) {
+                            jump_event = 1;
+                        }
+                        if (MenuArg.result[2] == 14) {
+                            jump_event = 1;
+                        }
+                    }
+                    if (CMenuTreePt->dng_no == 2) {
+                        if (MenuArg.result[2] == 2 && !CheckBitFlagMenu(0x133)) {
+                            jump_event = 1;
+                        }
+                        if (MenuArg.result[2] == 21 && !CheckBitFlagMenu(SAVE_FLAG_FISHING_CONTEST_UNLOCKED)) {
+                            jump_event = 1;
+                        }
+                        if (MenuArg.result[2] == 22) {
+                            jump_event = 1;
+                        }
+                    }
+                    if (CMenuTreePt->dng_no == 3) {
+                        if (MenuArg.result[2] == 2 && !CheckBitFlagMenu(0x196)) {
+                            jump_event = 1;
+                        }
+                        if (MenuArg.result[2] == 17 && !CheckBitFlagMenu(SAVE_FLAG_FINNY_FRENZY_UNLOCKED)) {
+                            jump_event = 1;
+                        }
+                        if (MenuArg.result[2] == 19) {
+                            jump_event = 1;
+                        }
+                    }
+                    if (CMenuTreePt->dng_no == 4) {
+                        if (MenuArg.result[2] == 21) {
+                            jump_event = 1;
+                        }
+                    }
+                    if (CMenuTreePt->dng_no == 5) {
+                        if (MenuArg.result[2] == 26) {
+                            jump_event = 1;
+                        }
+                    }
+                    if (CMenuTreePt->dng_no == 6 && MenuArg.result[2] == 37) {
+                        jump_event = 1;
+                    }
+                    if (jump_event) {
+                        MenuMainScene->skip_load_bgm = 1;
+                    }
+                    draw_hidden = 0;
+                    mode = MENU_ASK_MODE_CLOSE;
+                    FadeOutMenu(40, 0.0f);
+
+                    break;
+                }
+                case TREE_MAP_ACTION_MATERIALS: {
+                    dngfloor_infoview = 0;
+                    dngfloor_backdraw = 1;
+                    GeoramaMateriaInfoDrawFlag = 1;
+                    GeoramaMateriaInfoDrawPage = 0;
+                    DngInfoDrawAlpha = 0;
+                    MenuSePlay(SYSTEM_SE_DECIDE);
+                    key_arg_no = DNG_TREE_MAP_SCREEN_MATERIALS;
+
+                    break;
+                }
+                case TREE_MAP_ACTION_MATERIAL_PAGE: {
+                    if (GeoramaMateriaNum > DNG_TREE_MAP_MATERIA_PAGE && GeoramaMateriaInfoDrawPage == 0) {
+                        GeoramaMateriaInfoDrawPage++;
+                    } else {
+                        DngInfoDrawAlpha = 128;
+                        key_arg_no = DNG_TREE_MAP_SCREEN_FLOOR;
+                        dngfloor_infoview = 1;
+                        GeoramaMateriaInfoDrawFlag = 0;
+                    }
+
+                    break;
+                }
+                case TREE_MAP_ACTION_CANCEL: {
+                    MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                    key_arg_no = DNG_TREE_MAP_SCREEN_MAP;
+                    dngfloor_infoview = 0;
+                    dngfloor_backdraw = 0;
+                    cursor_view = 1;
+                    money_view = 0;
+
+                    break;
+                }
+                case TREE_MAP_ACTION_CLOSE: {
+                    MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                    FadeOutMenu(40, 0.0f);
+                    draw_hidden = 0;
+                    mode = MENU_ASK_MODE_CLOSE;
+                    cursor_view = 0;
+
+                    break;
                 }
             }
             break;
@@ -2258,89 +3181,113 @@ int CMenuTreeMap::Step() {
     if (select_glid != NULL && select_glid->type == GLID_TYPE_ROOM) {
         DngInfoFloorInfo = MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, select_glid->room.floor_id);
         if (selection_changed) {
-            DNGMAP_ROOM_INFO *room = &select_glid->room;
-            int               messages[8] = {room->floor_id + (dng_no + 1) * 1000, 0x96, 0x97, 0x98,
-                0x99, room->practice_type + 100, 0x9B, 0x46};
-            int               challenge_values[2] = {0, 0};
-            if (room->practice_type == 0) {
+            GLID_INFO        *glid = select_glid;
+            int               messages[DNG_TREE_MAP_MES_MAX] = {glid->room.floor_id + (dng_no + 1) * 1000, 0x96, 0x97, 0x98,
+                                                                0x99, glid->room.practice_type + 100, 0x9B, 0x46};
+            int               practice_items[4] = {0, 0, 0, 0};
+            char              time_text[72];
+            DNGMAP_ROOM_INFO *room = &glid->room;
+            if (glid->room.practice_type == 0) {
                 int seconds = room->practice_param / 60;
-                challenge_values[0] = seconds / 60;
-                challenge_values[1] = seconds % 60;
+                int challenge_values[2] = {seconds / 60, seconds % 60};
                 if (challenge_values[1] == 0) {
                     messages[5] = 0x5A;
                 } else {
                     messages[5] = 0x5B;
                 }
                 mes[5].SetMsgVolumeNo(challenge_values, 2);
-            } else if (room->practice_type >= 1 && room->practice_type <= 4) {
+            }
+            if (room->practice_type == 1 || room->practice_type == 2 || room->practice_type == 3 || room->practice_type == 4) {
                 messages[5] = room->practice_param + 0x65;
-            } else if (room->practice_type == 5) {
+            }
+            if (room->practice_type == 5) {
                 messages[5] = 0x6C;
             }
             if (room->fishing < 0) {
                 messages[3] = 0x79;
             }
-            if (room->fishing > 0) {
+            if (0 < room->fishing) {
                 messages[3] = 0x78;
             }
             mes[3].SetMsgVolumeNoOne(room->fishing_record);
-            DngInfoFishOkFlag = CheckBitFlagMenu(0xDC) != 0;
-            DngInfoSphidaOkFlag = CheckBitFlagMenu(0x13D) != 0;
+            DngInfoFishOkFlag = CheckBitFlagMenu(SAVE_FLAG_FISHING_OPEN) != 0;
+            DngInfoSphidaOkFlag = CheckBitFlagMenu(SAVE_FLAG_SPHEDA_UNLOCKED) != 0;
             if (!DngInfoFishOkFlag) {
                 messages[3] = 2;
             }
             if (!DngInfoSphidaOkFlag) {
                 messages[4] = 2;
             }
-            int prize_no = (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_SPHEDA_CLEAR) ? 0x28 : 41;
-            mes[4].SetMsgItemNo(&prize_no, 1);
-            int spheda_no = (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_PRACTICE_CLEAR) ? 0x28 : 0x29;
-            mes[5].SetMsgItemNo(&spheda_no, 1);
+            int prize_no[1] = {41};
+            if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_SPHEDA_CLEAR) {
+                prize_no[0] = 0x28;
+            }
+            mes[4].SetMsgItemNo(prize_no, 1);
+            practice_items[0] = 0x29;
+            if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_PRACTICE_CLEAR) {
+                practice_items[0] = 0x28;
+            }
+            mes[5].SetMsgItemNo(practice_items, 1);
             if (CheckNowEurope()) {
                 mes[6].value_half = 1;
             }
             mes[6].SetMsgVolumeNoOne(DngInfoFloorInfo->kill_count);
-            int best_time = DngInfoFloorInfo->fast_destroy_time;
+            int total_seconds;
             int target_time = room->fast_destroy_time;
-            int minutes = (best_time > 0 && best_time < target_time ? best_time : target_time) / 60;
+            int best_time = DngInfoFloorInfo->fast_destroy_time;
+            total_seconds = target_time / 60;
+            if (best_time != 0 && best_time < target_time) {
+                total_seconds = best_time / 60;
+            }
             if (!(DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR)) {
                 messages[1] = 0x9A;
             }
-            int  seconds = minutes % 60;
-            int  hours = minutes / 60;
-            char time_text[72];
-            if (hours >= 100) {
-                strcpy(time_text, CheckNowEurope() ? at_3344 : at_3343);
-            } else if (!CheckNowEurope()) {
-                if (hours < 10) {
-                    strcpy(time_text, at_3349);
-                } else {
-                    strcpy(time_text, GetMenuBigNum(hours / 10));
+            int time_minutes = total_seconds / 60;
+            int seconds = total_seconds % 60;
+            if (time_minutes > 99) {
+                strcpy(time_text, "\x82\x58\x82\x58\x81\x46\x82\x58\x82\x58");
+                if (CheckNowEurope()) {
+                    strcpy(time_text, "99:99");
                 }
-                strcat(time_text, GetMenuBigNum(hours % 10));
-                strcat(time_text, at_3350);
-                if (seconds < 10) {
-                    strcat(time_text, at_3349);
+            } else if (CheckNowEurope()) {
+                if (time_minutes / 10 <= 0) {
+                    if (seconds / 10 <= 0) {
+                        sprintf(time_text, "0%d:0%d", time_minutes, seconds);
+                    } else {
+                        sprintf(time_text, "0%d:%d%d", time_minutes, seconds / 10, seconds % 10);
+                    }
+                } else {
+                    if (seconds / 10 <= 0) {
+                        sprintf(time_text, "%d:0%d", time_minutes, seconds);
+                    } else {
+                        sprintf(time_text, "%d:%d%d", time_minutes, seconds / 10, seconds % 10);
+                    }
+                }
+            } else {
+                if (time_minutes / 10 <= 0) {
+                    strcpy(time_text, "\x82\x4F");
+                } else {
+                    strcpy(time_text, GetMenuBigNum(time_minutes / 10));
+                }
+                strcat(time_text, GetMenuBigNum(time_minutes % 10));
+                strcat(time_text, "\x81\x46");
+                if (seconds / 10 <= 0) {
+                    strcat(time_text, "\x82\x4F");
                 } else {
                     strcat(time_text, GetMenuBigNum(seconds / 10));
                 }
                 strcat(time_text, GetMenuBigNum(seconds % 10));
-            } else if (hours < 10 && seconds < 10) {
-                sprintf(time_text, at_3345, hours, seconds);
-            } else if (hours < 10) {
-                sprintf(time_text, at_3346, hours, seconds / 10, seconds % 10);
-            } else if (seconds < 10) {
-                sprintf(time_text, at_3347, hours, seconds);
-            } else {
-                sprintf(time_text, at_3348, hours, seconds / 10, seconds % 10);
             }
-            char *time_ptr = time_text;
-            mes[1].SetMsgItemNo(&time_ptr, 1);
-            messages[7] = (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_GEOSTONE_FOUND) ? 0x46 : 0x47;
+            char *time_ptr[1] = {time_text};
+            mes[1].SetMsgItemNo(time_ptr, 1);
+            messages[7] = 0x47;
+            if (DngInfoFloorInfo->flag & DNG_FLOOR_FLAG_GEOSTONE_FOUND) {
+                messages[7] = 0x46;
+            }
             if (!room->geostone) {
                 messages[7] = 2;
             }
-            for (int i = 0; i < 8; ++i) {
+            for (int i = 0; i < DNG_TREE_MAP_MES_MAX; ++i) {
                 mes[i].MakeMsg(messages[i]);
                 mes[i].line_pos[0][0] = 600;
                 mes[i].line_pos[0][1] = 10;
@@ -2353,34 +3300,6 @@ int CMenuTreeMap::Step() {
     }
     return result;
 }
-
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Step__12CMenuTreeMapFv);
-#endif
-/** Floor-information message windows attached to the tree map. */
-extern CDC2Mes *MenuDngMes[DNG_TREE_MAP_MES_MAX];
-/** Floor map drawn behind the tree-map menu. */
-extern CDngFreeMap *MenuDngMap;
-/** Non-zero while the selected floor's information is visible. */
-extern unsigned char dngfloor_infoview;
-/** Non-zero while the floor-information backdrop fades in. */
-extern unsigned char dngfloor_backdraw;
-/** Current opacity of the floor-information backdrop. */
-extern int dngfloor_backdraw_alpha;
-/** Non-zero while the selected floor's georama materials are visible. */
-extern unsigned char GeoramaMateriaInfoDrawFlag;
-/** Visibility state of the question about jumping to the selected floor. */
-extern s8 DngAskMessageDrawFlag;
-/** Resting vertical position of the animated save prompt. */
-extern short TreeMapSaveDispY;
-/** Number of georama materials available on the selected floor. */
-extern short GeoramaMateriaNum;
-/** Frame counter of the save prompt's animation. */
-extern short TreeMapSaveDispCount;
-/** Number displayed in the save prompt. */
-extern short TreeMapSaveNum;
-/** Sine phase of the save prompt's vertical animation. */
-extern float TreeMapSaveHopCount;
 
 void CMenuTreeMap::Draw() {
     if ((mode & 2) && draw_hidden == 1) {
@@ -2434,7 +3353,7 @@ void CMenuTreeMap::Draw() {
             textures->ReloadTexture(Floor_InfoTex->block, (sceVif1Packet *) NULL);
             int alpha = dngfloor_backdraw_alpha * 2;
             SetSpriteEnv(prim, 0);
-            prim->Begin(6);
+            prim->Begin(MG_PRIM_SPRITE);
             prim->Texture(Floor_InfoTex);
             prim->Color(0, 0, 0, alpha / 3);
             PrimQuad(prim, 289.0f, 25.0f, mgRect<int>(0, 182, 164, 56));
@@ -2497,7 +3416,7 @@ void CMenuTreeMap::Draw() {
         textures->ReloadTexture(Floor_InfoTex->block, (sceVif1Packet *) NULL);
         SetSpriteEnv(prim, 0);
         int y_money = mgScreenHeight - 76;
-        prim->Begin(6);
+        prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Floor_InfoTex);
         prim->Color(128, 128, 128, 128);
         PrimQuad(prim, 302.0f, (float) y_money, mgRect<int>(0, 144, 184, 36));
@@ -2531,29 +3450,22 @@ int CMenuTreeMap::FadeInOutMenu() {
     }
     return done;
 }
-#ifdef NONMATCHING
-/** Arena used for tree-menu objects and files. */
+
+/**
+ *
+ * Arena used for tree-menu objects and files.
+ *
+ */
 extern mgCMemory     MenuTreeMapStack;
-/** Tree map menu attached to the active dungeon screen. */
-extern CMenuTreeMap *CMenuTreePt;
-/** Floor map drawn and moved by the tree menu. */
-extern CDngFreeMap  *MenuDngMap;
-/** Message windows belonging to the active tree map. */
-extern CDC2Mes      *MenuDngMes[8];
-/** Loaded image data for the tree-menu cursor. */
-extern u_long128    *MenuCursorDataBuff;
-/** Room whose floor-information activities are being shown. */
-extern DNGMAP_ROOM_INFO *DngInfoRoomInfo;
-/** Opacity of the floor-information backdrop. */
-extern int           dngfloor_backdraw_alpha;
-/** Enables the selected floor information. */
-extern u8            dngfloor_infoview;
-/** Enables the floor-information backdrop. */
-extern u8            dngfloor_backdraw;
-/** Animation timer of the tree-menu save prompt. */
-extern s16           TreeMapSaveDispCount;
-/** Dungeon used by the floor-information panel. */
-extern u8            DngInfoStageNo;
+/**
+ *
+ * Dungeon used by the floor-information panel.
+ *
+ */
+static u8 DngInfoStageNo = {
+    1
+};
+
 /**
  *
  * Carries the two file names read while opening the dungeon tree map.
@@ -2564,9 +3476,6 @@ struct DngTreeReadNames {
 };
 
 STATIC_ASSERT(sizeof(DngTreeReadNames) == 8);
-
-/** Empty filename pair used to initialize the menu data request. */
-extern DngTreeReadNames at_3478;
 
 /**
  *
@@ -2598,39 +3507,43 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     CMenuTreePt->SetTexBlock(tex_block);
     MenuDngMap = new (MenuTreeMapStack.Alloc(0x13)) CDngFreeMap;
     MenuDngMap->save_dungeon = MenuSaveDataDungeonPtr;
-    DNG_BATTLE_AREA *area = (DNG_BATTLE_AREA *) menu_GetBattleAreaScene();
+    DNG_BATTLE_AREA *area = menu_GetBattleAreaScene();
     MenuDngMap->floor_manager = &area->floor_manager;
     DngTreeMode = DNG_TREE_MODE_MAP;
-    DngInfoRoomInfo = 0;
+    DngInfoRoomInfo = NULL;
     dngfloor_backdraw_alpha = 0;
-    bool separate_map = menu_mode == 3 || menu_mode == 0;
-    if (separate_map) {
-        MenuTreeMapStack.Align64();
-        MenuCursorDataBuff = MenuTreeMapStack.stGetTop();
-        unsigned int size = LoadFileMenu("frametex.img", MenuCursorDataBuff, 1);
-        MenuTreeMapStack.Alloc((size & 15) ? (size >> 4) + 1 : size >> 4);
-        CMenuTreePt->FadeOutMenu(1, 0.0f);
-        if (GetNowLoopNo() == 1 || menu_mode == 0) {
-            MenuDngMap->floor_manager->LoadDataTable(dng_no, &MenuTreeMapStack);
-            MenuDngMap->floor_manager->CheckDrawGlidInfo();
-            MenuTreeMapStack.Alloc(0x800);
+    switch (menu_mode) {
+        case MENU_OPEN_MAIN_TOWN:
+        case MENU_OPEN_DNG_TREE_MAP: {
             MenuTreeMapStack.Align64();
+            MenuCursorDataBuff = (u8 *) MenuTreeMapStack.stGetTop();
+            unsigned int size = LoadFileMenu("frametex.img", (u_long128 *) MenuCursorDataBuff, MENU_FILE_LOAD_DIRECT);
+            MenuTreeMapStack.Alloc((size & 15) ? (size >> 4) + 1 : size >> 4);
+            CMenuTreePt->FadeOutMenu(1, 0.0f);
+            if (GetNowLoopNo() == LOOP_EDIT || menu_mode == MENU_OPEN_MAIN_TOWN) {
+                MenuDngMap->floor_manager->LoadDataTable(dng_no, &MenuTreeMapStack);
+                MenuDngMap->floor_manager->CheckDrawGlidInfo();
+                MenuTreeMapStack.Alloc(0x800);
+                MenuTreeMapStack.Align64();
+            }
+            break;
         }
-    } else {
-        if (MenuCommonInfo->cursor_form != NULL) {
-            MenuCommonInfo->cursor_form->draw_flag = 0;
-        }
-        MenuCommonInfo->SetVibeCnt(0, 0);
-        MenuCommonInfo->SetWakuType(-1);
-        MenuCommonInfo->key_enable = 0;
-        MenuCommonInfo->cursor = 0;
-        MenuCommonInfo->top_line = 0;
-        CMenuTreePt->FadeOutMenu(30, 0.0f);
+        default:
+            if (MenuCommonInfo->cursor_form != NULL) {
+                MenuCommonInfo->cursor_form->draw_flag = 0;
+            }
+            MenuCommonInfo->SetVibeCnt(0, 0);
+            MenuCommonInfo->SetWakuType(-1);
+            MenuCommonInfo->key_enable = 0;
+            MenuCommonInfo->cursor = 0;
+            MenuCommonInfo->top_line = 0;
+            CMenuTreePt->FadeOutMenu(30, 0.0f);
+            break;
     }
     dngfloor_infoview = 0;
     dngfloor_backdraw = 0;
     TreeMapSaveDispCount = 0;
-    if (dng_no < 0 || dng_no > 6) {
+    if (dng_no < 0 || dng_no > DNGMAP_DUNGEON_MAX) {
         dng_no = 0;
     }
     CMenuTreePt->dng_no = dng_no;
@@ -2638,16 +3551,10 @@ void DngTreeMapInit(mgCMemory *stack, int *tex_block, int menu_mode, int dng_no)
     DngInfoStageNo = dng_no;
     char filename[40];
     sprintf(filename, "dmap%d.pac", dng_no);
-    DngTreeReadNames names = at_3478;
+    DngTreeReadNames names = {{NULL, NULL}};
     names.name[0] = filename;
-    MenuCommonReadData(&MenuTreeMapStack, names.name, 0);
+    MenuCommonReadData(&MenuTreeMapStack, names.name, MENU_FILE_LOAD_BG);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DngTreeMapInit__FP9mgCMemoryPiii);
-#endif
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", Init__6ClsMesFv);
-extern mgCMemory    MenuTreeMapStack;
-extern CDngFreeMap *MenuDngMap;
 
 int DngTreeMapKey() {
     int result = 0;
@@ -2708,160 +3615,11 @@ void mgRect<float>::Set(float new_left, float new_top, float new_right, float ne
     bottom = new_bottom;
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", markOffsetTable_1092__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", root_type_texturecrd_1216__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", get_moji_tbl_1524__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", put_moji_tbl_1525__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", DngInfoMedalNumMsg__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", dngboardbrdtbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", dngboardbrdtbl_1__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", dngboardbrdtbl_2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", medal_xytbl_1736__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootTable_2119__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", Table_2133__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", bittable_2134__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTable0_2230__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTable1_2231__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTable2_2232__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTable3_2233__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTable4_2234__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTable5_2235__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTable6_2236__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTable7_2237__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTable8_2238__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTable9_2239__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RootHokanTablePtrTable_2240__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RoomHokanTable0_2241__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RoomHokanTable1_2242__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RoomHokanTable2_2243__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RoomHokanTable3_2244__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", RoomHokanTablePtrTable_2245__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", is_reverse_tbl_2246__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", name_tbl_2728__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", bitTable_2900__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3141__DATA);
-
 // Constants (.rodata)
 const mgRect<int> dng_light_circle(388, 304, 124, 80);
 const mgRect<int> dngfreemap_num(0, 0, 12, 18);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_1018__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_1019__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_1020__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_1021__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_1993__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2120__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2121__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2122__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2123__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2176__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2177__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2178__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2179__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2180__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2181__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2182__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2183__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2184__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2185__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2186__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2187__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2188__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2189__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2681__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2682__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2683__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2684__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2685__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2729__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2730__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2731__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2732__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2733__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2734__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2735__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2739__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2740__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2741__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2742__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2786__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2787__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2788__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2789__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2790__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_2826__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3342__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3343__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3344__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3345__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3346__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3347__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3348__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3349__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3350__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3451__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3539__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3540__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", __vt__12CMenuTreeMap__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", zerumaito_offset_1110__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", stepCntTbl_1501__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", DngInfoStageNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", dng_player_pos__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", old_hokantbl_useno_2247__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", is_reverse_tbl_room_2248__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", maxidtable_2752__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3043__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dngmenu", at_3164__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(MenuDngDebugFlagSelect, 0x4);
-INCLUDE_BSS(MenuDngMap, 0x4);
-INCLUDE_BSS(dngfloor_infoview, 0x4);
-INCLUDE_BSS(dngfloor_backdraw, 0x4);
-INCLUDE_BSS(dngfloor_backdraw_alpha, 0x4);
-INCLUDE_BSS(Floor_InfoTex, 0x4);
-INCLUDE_BSS(DngInfoFishOkFlag, 0x4);
-INCLUDE_BSS(DngInfoSphidaOkFlag, 0x4);
-INCLUDE_BSS(DngAskMessageDrawFlag, 0x4);
-INCLUDE_BSS(DngInfoFloorInfo, 0x4);
-INCLUDE_BSS(DngInfoRoomInfo, 0x4);
-INCLUDE_BSS(DngInfoDrawAlpha, 0x8);
-INCLUDE_BSS(DngInfoMedalMsgPutPos, 0x8);
-INCLUDE_BSS(AlphaRate_1743, 0x4);
-INCLUDE_BSS(init_1744, 0x4);
-INCLUDE_BSS(GeoramaMateriaInfoDrawFlag, 0x4);
-INCLUDE_BSS(GeoramaMateriaInfoDrawPage, 0x4);
-INCLUDE_BSS(GeoramaMateriaNum, 0x4);
-INCLUDE_BSS(DngTreeMapActiveLightRate, 0x4);
-INCLUDE_BSS(dng_player_blink_cnt, 0x4);
-INCLUDE_BSS(DngTreeMode, 0x4);
-INCLUDE_BSS(TreeMapSaveFlag, 0x4);
-INCLUDE_BSS(TreeMapSaveNum, 0x4);
-INCLUDE_BSS(TreeMapSaveDispCount, 0x4);
-INCLUDE_BSS(TreeMapSaveHopCount, 0x4);
-INCLUDE_BSS(TreeMapSaveDispY, 0x4);
-INCLUDE_BSS(TreeMapCallDungeonSubMap, 0x4);
-INCLUDE_BSS(TreeMapCalledWorldMap, 0x4);
-INCLUDE_BSS(MenuCursorDataBuff, 0x4);
-INCLUDE_BSS(CMenuTreePt, 0x4);
-INCLUDE_BSS(old_direction_2830, 0x4);
-INCLUDE_BSS(init_2831, 0x4);
-INCLUDE_BSS(old_glid_2833, 0x4);
-INCLUDE_BSS(init_2834, 0x4);
-INCLUDE_BSS(NextFloorGlid_2836, 0x4);
-INCLUDE_BSS(init_2837, 0x4);
-INCLUDE_BSS(at_3040__2, 0x4);
-INCLUDE_BSS(at_3145, 0x8);
-INCLUDE_BSS(at_3199, 0x8);
-INCLUDE_BSS(at_3478, 0x8);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(MenuDngMes, 0x20);
 mgRect<float> treemap_root_put;
 mgRect<int>   Floor_Info(0, 238, 256, 18);
 mgCMemory     MenuTreeMapStack;
-INCLUDE_BSS(at_3142, 0x10);

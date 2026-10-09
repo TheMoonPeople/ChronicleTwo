@@ -21,11 +21,25 @@
 #include "snd_mngr.hpp"
 #include "subgame.hpp"
 
-extern int         SubGame;
-extern int         MenuOpenFlag;
-extern int         ItemOver;
+/**
+ * Currently running sub game.
+ */
+static int SubGame;
+
+/**
+ * Whether menus may open during the running sub game.
+ */
+static int MenuOpenFlag;
+
+/**
+ * Whether a sub-game reward could not fit in the inventory.
+ */
+static int ItemOver;
+
+/**
+ * Parameters retained for the running sub game.
+ */
 static SubGameInfo GameInfo;
-extern char        at_985__3[];
 
 // Code (.text)
 void InitSubGame(CScene *scene) {
@@ -357,7 +371,7 @@ int sgCPlayVoice::Step() {
 
     switch (step) {
         case 1:
-            sprintf(name, at_985__3, file_no);
+            sprintf(name, "%d.wav", file_no);
             sndStreamOpenFast(name);
             step++;
             break;
@@ -401,11 +415,3 @@ void sgCPlayVoice::Close() {
         step = 0;
     }
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/subgame", at_985__3__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(SubGame, 0x4);
-INCLUDE_BSS(MenuOpenFlag, 0x4);
-INCLUDE_BSS(ItemOver, 0x4);

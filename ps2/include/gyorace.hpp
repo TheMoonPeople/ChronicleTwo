@@ -132,7 +132,7 @@ int sgEffectDrawGyoRace(SubGameInfo *info);
  *
  * @mangled sgSysDrawGyoRace__FP11SubGameInfo
  * @address 0x30CD40
- * @size 0x1250
+ * @size 0x1244
  */
 int sgSysDrawGyoRace(SubGameInfo *info);
 

@@ -17,11 +17,21 @@
 
 class mgCMemory;
 class sndCSeSeqData;
-enum SYSTEM_SE {
-    SYSTEM_SE_CURSOR = 0,
-    SYSTEM_SE_DECIDE = 1,
-};
 
+/**
+ *
+ * Sound effects of the system sound bank.
+ *
+ */
+enum SYSTEM_SE {
+    SYSTEM_SE_CURSOR   = 0,    /**< Moves the menu cursor. */
+    SYSTEM_SE_DECIDE   = 1,    /**< Accepts the current menu selection. */
+    SYSTEM_SE_CANCEL   = 5,    /**< Cancels or rejects the current menu selection. */
+    SYSTEM_SE_IDEA     = 0xE,  /**< Announces that a photo has captured an idea. */
+    SYSTEM_SE_WINDOW   = 0x13, /**< Accompanies a menu window or panel being opened or switched. */
+    SYSTEM_SE_MAGNET   = 0x15, /**< A Georama part first snaps to a nearby part. */
+    SYSTEM_SE_COMPLETE = 0x1F, /**< Announces that a memory card operation, a download or an install has finished. */
+};
 
 /**
  *
@@ -120,7 +130,7 @@ struct SND_LOOP_SE_SEQ {
      *
      * @mangled __ct__15SND_LOOP_SE_SEQFv
      * @address 0x18DAE0
-     * @size 0x20
+     * @size 0x1C
      */
     SND_LOOP_SE_SEQ();
 };
@@ -152,7 +162,7 @@ public:
      *
      * @mangled Create__11CLoopSeMngrFiP9mgCMemory
      * @address 0x18DA20
-     * @size 0xC0
+     * @size 0xB8
      */
     int Create(int sequence_count, mgCMemory *memory);
 
@@ -162,7 +172,7 @@ public:
      *
      * @mangled Initialize__11CLoopSeMngrFv
      * @address 0x18DB00
-     * @size 0x10
+     * @size 0xC
      */
     void Initialize();
 
@@ -183,7 +193,7 @@ public:
      *
      * @mangled GetLoopSe__11CLoopSeMngrFPiUii
      * @address 0x18DB60
-     * @size 0xF0
+     * @size 0xE8
      */
     SND_LOOP_SE_SEQ *GetLoopSe(int *found, unsigned int se_id, int voice);
 
@@ -194,7 +204,7 @@ public:
      *
      * @mangled SeLoopPlayStop__11CLoopSeMngrFUiiii
      * @address 0x18DC50
-     * @size 0x20
+     * @size 0x18
      */
     int SeLoopPlayStop(unsigned int handle, int sound, int flags, int loop);
 
@@ -228,7 +238,7 @@ public:
      *
      * @mangled AllSeStop__11CLoopSeMngrFv
      * @address 0x18DEB0
-     * @size 0xB0
+     * @size 0xA4
      */
     void AllSeStop();
 };
@@ -323,7 +333,7 @@ public:
      *
      * @mangled SearchSeq__11sndBankInfoFPcPi
      * @address 0x190F50
-     * @size 0x160
+     * @size 0x154
      */
     int SearchSeq(char *name, int *index);
 };
@@ -379,7 +389,7 @@ public:
      *
      * @mangled __ct__11sndPortInfoFv
      * @address 0x191C30
-     * @size 0x1C0
+     * @size 0x1BC
      */
     sndPortInfo() {
         int i;
@@ -461,7 +471,7 @@ public:
      *
      * @mangled LoadSeInfoTxt__11sndPortInfoFiPciP9mgCMemory
      * @address 0x1910B0
-     * @size 0x470
+     * @size 0x464
      */
     void LoadSeInfoTxt(int bank_no, char *text, int size, mgCMemory *memory);
 
@@ -485,7 +495,7 @@ STATIC_ASSERT(sizeof(sndPortInfo) == 0x29C);
  *
  * @mangled sndGetReverbDepth__Fi
  * @address 0x18DF60
- * @size 0x40
+ * @size 0x34
  */
 int sndGetReverbDepth(int core);
 
@@ -495,7 +505,7 @@ int sndGetReverbDepth(int core);
  *
  * @mangled sndCreateID__FUii
  * @address 0x18DFA0
- * @size 0x20
+ * @size 0x14
  */
 unsigned int sndCreateID(unsigned int snd_id, int se_no);
 
@@ -505,7 +515,7 @@ unsigned int sndCreateID(unsigned int snd_id, int se_no);
  *
  * @mangled sndGetSeNo__FUi
  * @address 0x18DFC0
- * @size 0x10
+ * @size 0x8
  */
 int sndGetSeNo(unsigned int se_id);
 
@@ -516,7 +526,7 @@ int sndGetSeNo(unsigned int se_id);
  *
  * @mangled sndInitMngr__Fv
  * @address 0x18E1A0
- * @size 0xE0
+ * @size 0xD4
  */
 void sndInitMngr();
 
@@ -526,7 +536,7 @@ void sndInitMngr();
  *
  * @mangled sndWaitSema__Fv
  * @address 0x18E280
- * @size 0x30
+ * @size 0x28
  */
 void sndWaitSema();
 
@@ -536,7 +546,7 @@ void sndWaitSema();
  *
  * @mangled sndSignalSema__Fv
  * @address 0x18E2B0
- * @size 0x30
+ * @size 0x28
  */
 void sndSignalSema();
 
@@ -557,7 +567,7 @@ void sndInitPort(int port_no);
  *
  * @mangled sndInitSeSeq__Fi
  * @address 0x18E490
- * @size 0x70
+ * @size 0x64
  */
 void sndInitSeSeq(int port_no);
 
@@ -567,7 +577,7 @@ void sndInitSeSeq(int port_no);
  *
  * @mangled sndSetReverb__Fiii
  * @address 0x18E500
- * @size 0x90
+ * @size 0x8C
  */
 void sndSetReverb(int core, int type, int depth);
 
@@ -577,7 +587,7 @@ void sndSetReverb(int core, int type, int depth);
  *
  * @mangled sndStopVoice__Fi
  * @address 0x18E590
- * @size 0x60
+ * @size 0x58
  */
 void sndStopVoice(int voice);
 
@@ -597,7 +607,7 @@ void sndSetMasterVol(int core, float vol);
  *
  * @mangled sndGetMasterVol__Fi
  * @address 0x18E820
- * @size 0x40
+ * @size 0x34
  */
 float sndGetMasterVol(int core);
 
@@ -609,7 +619,7 @@ float sndGetMasterVol(int core);
  *
  * @mangled sndMasterVolFadeInOut__Fiiff
  * @address 0x18E860
- * @size 0x170
+ * @size 0x168
  */
 void sndMasterVolFadeInOut(int core, int frames, float target, float start);
 
@@ -619,7 +629,7 @@ void sndMasterVolFadeInOut(int core, int frames, float target, float start);
  *
  * @mangled sndSetPortVol__Fif
  * @address 0x18E9D0
- * @size 0x110
+ * @size 0x104
  */
 void sndSetPortVol(int port_no, float vol);
 
@@ -629,7 +639,7 @@ void sndSetPortVol(int port_no, float vol);
  *
  * @mangled sndGetPortVol__Fi
  * @address 0x18EAE0
- * @size 0x40
+ * @size 0x38
  */
 float sndGetPortVol(int port_no);
 
@@ -640,7 +650,7 @@ float sndGetPortVol(int port_no);
  *
  * @mangled sndTransBdState__Fv
  * @address 0x18EB20
- * @size 0x10
+ * @size 0xC
  */
 int sndTransBdState();
 
@@ -651,7 +661,7 @@ int sndTransBdState();
  *
  * @mangled sndWaitTransBd__Fv
  * @address 0x18EB30
- * @size 0x60
+ * @size 0x54
  */
 void sndWaitTransBd();
 
@@ -662,7 +672,7 @@ void sndWaitTransBd();
  *
  * @mangled sndStep__Ff
  * @address 0x18EC00
- * @size 0xD0
+ * @size 0xCC
  */
 void sndStep(float frames);
 
@@ -672,7 +682,7 @@ void sndStep(float frames);
  *
  * @mangled sndFlush__Fv
  * @address 0x18ECD0
- * @size 0x30
+ * @size 0x2C
  */
 void sndFlush();
 
@@ -683,7 +693,7 @@ void sndFlush();
  *
  * @mangled sndSeAllStop__Fi
  * @address 0x18ED70
- * @size 0xD0
+ * @size 0xCC
  */
 void sndSeAllStop(int port_no);
 
@@ -705,7 +715,7 @@ int sndGetSeDefVol(unsigned int se_id, int index);
  *
  * @mangled sndLoadSound__FiPUiP9mgCMemory
  * @address 0x18EFE0
- * @size 0x4D0
+ * @size 0x4C4
  */
 unsigned int sndLoadSound(int port_no, unsigned int *pack, mgCMemory *memory);
 
@@ -725,7 +735,7 @@ void sndDeletePort(int port_no);
  *
  * @mangled sndSePlay__FUiii
  * @address 0x18F610
- * @size 0x20
+ * @size 0x18
  */
 void sndSePlay(unsigned int snd_id, int se_no, int voice);
 
@@ -735,7 +745,7 @@ void sndSePlay(unsigned int snd_id, int se_no, int voice);
  *
  * @mangled sndSePlayV__FUiiii
  * @address 0x18F630
- * @size 0x20
+ * @size 0x1C
  */
 void sndSePlayV(unsigned int snd_id, int se_no, int vol, int voice);
 
@@ -745,7 +755,7 @@ void sndSePlayV(unsigned int snd_id, int se_no, int vol, int voice);
  *
  * @mangled sndSePlayVP__FUiiiii
  * @address 0x18F650
- * @size 0x20
+ * @size 0x1C
  */
 void sndSePlayVP(unsigned int snd_id, int se_no, int vol, int pan, int voice);
 
@@ -756,7 +766,7 @@ void sndSePlayVP(unsigned int snd_id, int se_no, int vol, int pan, int voice);
  *
  * @mangled sndSePlayVPf__FUiiffi
  * @address 0x18F670
- * @size 0xD0
+ * @size 0xC8
  */
 void sndSePlayVPf(unsigned int snd_id, int se_no, float vol, float pan, int voice);
 
@@ -766,7 +776,7 @@ void sndSePlayVPf(unsigned int snd_id, int se_no, float vol, float pan, int voic
  *
  * @mangled sndSePlayVf__FUiifi
  * @address 0x18F740
- * @size 0x80
+ * @size 0x7C
  */
 void sndSePlayVf(unsigned int snd_id, int se_no, float vol, int voice);
 
@@ -776,7 +786,7 @@ void sndSePlayVf(unsigned int snd_id, int se_no, float vol, int voice);
  *
  * @mangled sndSePause__FUii
  * @address 0x18F7C0
- * @size 0x100
+ * @size 0xF4
  */
 void sndSePause(unsigned int snd_id, int se_no);
 
@@ -787,7 +797,7 @@ void sndSePause(unsigned int snd_id, int se_no);
  *
  * @mangled sndGetSeStatus__FUii
  * @address 0x18F8C0
- * @size 0x100
+ * @size 0xF8
  */
 int sndGetSeStatus(unsigned int snd_id, int se_no);
 
@@ -817,7 +827,7 @@ void sndPortSqReplay(int port_no);
  *
  * @mangled sndSeCheck__FUii
  * @address 0x18FA70
- * @size 0xE0
+ * @size 0xD8
  */
 int sndSeCheck(unsigned int snd_id, int se_no);
 
@@ -850,7 +860,7 @@ void sndSeStop(unsigned int snd_id, int se_no, int voice);
  *
  * @mangled sndSetSeVol__FUiiii
  * @address 0x18FFA0
- * @size 0x210
+ * @size 0x204
  */
 void sndSetSeVol(unsigned int snd_id, int se_no, int vol, int voice);
 
@@ -871,7 +881,7 @@ void sndSetSePan(unsigned int snd_id, int se_no, int pan, int voice);
  *
  * @mangled sndSetSeVolf__FUiifi
  * @address 0x190290
- * @size 0x80
+ * @size 0x7C
  */
 void sndSetSeVolf(unsigned int snd_id, int se_no, float vol, int voice);
 
@@ -881,7 +891,7 @@ void sndSetSeVolf(unsigned int snd_id, int se_no, float vol, int voice);
  *
  * @mangled sndSetSePanf__FUiifi
  * @address 0x190310
- * @size 0x80
+ * @size 0x74
  */
 void sndSetSePanf(unsigned int snd_id, int se_no, float pan, int voice);
 
@@ -902,7 +912,7 @@ void sndSetSePitch(unsigned int snd_id, int se_no, int pitch, int voice);
  *
  * @mangled sndSetMicPos__FPfPf
  * @address 0x190470
- * @size 0x30
+ * @size 0x24
  */
 void sndSetMicPos(float *pos, float *dir);
 
@@ -914,7 +924,7 @@ void sndSetMicPos(float *pos, float *dir);
  *
  * @mangled sndGetVolPan__FPfPfPfff
  * @address 0x1904A0
- * @size 0x1D0
+ * @size 0x1C8
  */
 void sndGetVolPan(float *vol, float *pan, float *pos, float near_dist, float far_dist);
 
@@ -925,7 +935,7 @@ void sndGetVolPan(float *vol, float *pan, float *pos, float near_dist, float far
  *
  * @mangled sndGetVolPan__FPfPfPfPfff
  * @address 0x190670
- * @size 0x80
+ * @size 0x74
  */
 void sndGetVolPan(float *vol, float *pan, float *start, float *end, float near_dist, float far_dist);
 
@@ -935,7 +945,7 @@ void sndGetVolPan(float *vol, float *pan, float *start, float *end, float near_d
  *
  * @mangled sndVolLimit__Fi
  * @address 0x1906F0
- * @size 0x30
+ * @size 0x28
  */
 int sndVolLimit(int vol);
 
@@ -965,7 +975,7 @@ void sndSeStopPrKr(unsigned int snd_id, int prog, int key, int voice);
  *
  * @mangled sndSetSeVolPrKr__FUiiiii
  * @address 0x1907E0
- * @size 0x60
+ * @size 0x58
  */
 void sndSetSeVolPrKr(unsigned int snd_id, int prog, int key, int vol, int voice);
 
@@ -975,7 +985,7 @@ void sndSetSeVolPrKr(unsigned int snd_id, int prog, int key, int vol, int voice)
  *
  * @mangled sndSetSePanPrKr__FUiiiii
  * @address 0x190840
- * @size 0x60
+ * @size 0x58
  */
 void sndSetSePanPrKr(unsigned int snd_id, int prog, int key, int pan, int voice);
 
@@ -985,7 +995,7 @@ void sndSetSePanPrKr(unsigned int snd_id, int prog, int key, int pan, int voice)
  *
  * @mangled sndSetSePitchPrKr__FUiiiii
  * @address 0x1908A0
- * @size 0x60
+ * @size 0x58
  */
 void sndSetSePitchPrKr(unsigned int snd_id, int prog, int key, int pitch, int voice);
 
@@ -996,7 +1006,7 @@ void sndSetSePitchPrKr(unsigned int snd_id, int prog, int key, int pitch, int vo
  *
  * @mangled sndSePlayPBPrKr__Fiiiiiiiii
  * @address 0x190900
- * @size 0xD0
+ * @size 0xC8
  */
 void sndSePlayPBPrKr(int port, int bank, int prog, int key, int velocity, int vol, int pan, int pitch, int voice);
 
@@ -1006,7 +1016,7 @@ void sndSePlayPBPrKr(int port, int bank, int prog, int key, int velocity, int vo
  *
  * @mangled sndSeStopPBPrKr__Fiiiii
  * @address 0x1909D0
- * @size 0x80
+ * @size 0x78
  */
 void sndSeStopPBPrKr(int a, int bank, int c, int d, int voice);
 
@@ -1017,7 +1027,7 @@ void sndSeStopPBPrKr(int a, int bank, int c, int d, int voice);
  *
  * @mangled sndSetSeVolPBPrKr__Fiiiiii
  * @address 0x190A50
- * @size 0xA0
+ * @size 0x94
  */
 void sndSetSeVolPBPrKr(int port, int bank, int prog, int key, int vol, int voice);
 
@@ -1027,7 +1037,7 @@ void sndSetSeVolPBPrKr(int port, int bank, int prog, int key, int vol, int voice
  *
  * @mangled sndSetSePanPBPrKr__Fiiiiii
  * @address 0x190AF0
- * @size 0x90
+ * @size 0x88
  */
 void sndSetSePanPBPrKr(int a, int bank, int c, int d, int e, int f);
 
@@ -1037,7 +1047,7 @@ void sndSetSePanPBPrKr(int a, int bank, int c, int d, int e, int f);
  *
  * @mangled sndSetSePitchPBPrKr__Fiiiiii
  * @address 0x190B80
- * @size 0x90
+ * @size 0x88
  */
 void sndSetSePitchPBPrKr(int a, int bank, int c, int d, int e, int f);
 
@@ -1047,7 +1057,7 @@ void sndSetSePitchPBPrKr(int a, int bank, int c, int d, int e, int f);
  *
  * @mangled sndSqPlay__Fiii
  * @address 0x190C10
- * @size 0x60
+ * @size 0x58
  */
 void sndSqPlay(int a, int b, int c);
 
@@ -1058,7 +1068,7 @@ void sndSqPlay(int a, int b, int c);
  *
  * @mangled sndSqStop__Fii
  * @address 0x190C70
- * @size 0x90
+ * @size 0x84
  */
 void sndSqStop(int port, int sq_no);
 
@@ -1068,7 +1078,7 @@ void sndSqStop(int port, int sq_no);
  *
  * @mangled sndSetSqVol__Fiii
  * @address 0x190D00
- * @size 0x50
+ * @size 0x48
  */
 void sndSetSqVol(int port, int sq_no, int vol);
 
@@ -1078,7 +1088,7 @@ void sndSetSqVol(int port, int sq_no, int vol);
  *
  * @mangled sndSqRePlay__Fii
  * @address 0x190D50
- * @size 0x40
+ * @size 0x38
  */
 void sndSqRePlay(int port, int sq_no);
 
@@ -1098,7 +1108,7 @@ void sndStopSeSeq(int port_no);
  *
  * @mangled sndStreamOpenFast__FPc
  * @address 0x191910
- * @size 0x40
+ * @size 0x3C
  */
 void sndStreamOpenFast(char *name);
 
@@ -1108,7 +1118,7 @@ void sndStreamOpenFast(char *name);
  *
  * @mangled sndStreamOpenState__Fv
  * @address 0x191950
- * @size 0x40
+ * @size 0x34
  */
 int sndStreamOpenState();
 
@@ -1128,7 +1138,7 @@ void sndStreamStandBy();
  *
  * @mangled sndStreamSetVol__Fff
  * @address 0x1919C0
- * @size 0xF0
+ * @size 0xE8
  */
 void sndStreamSetVol(float left, float right);
 
@@ -1168,7 +1178,7 @@ void sndStreamRePlay();
  *
  * @mangled sndStreamGetState__Fv
  * @address 0x191B40
- * @size 0x40
+ * @size 0x38
  */
 int sndStreamGetState();
 

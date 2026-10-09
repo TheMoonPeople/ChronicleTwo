@@ -141,6 +141,20 @@ enum MENU_PARTS_EFFECT_TYPE {
 
 /**
  *
+ * Texture rectangle with short coordinates and dimensions.
+ *
+ */
+struct MENU_SHORT_RECT {
+    short left;   /**< Left texture coordinate. */
+    short top;    /**< Top texture coordinate. */
+    short right;  /**< Texture rectangle width. */
+    short bottom; /**< Texture rectangle height. */
+};
+
+STATIC_ASSERT(sizeof(MENU_SHORT_RECT) == 0x8);
+
+/**
+ *
  * Texture rectangle registered by name in a menu layout script, together
  * with the texture it is cut from.
  *
@@ -1931,7 +1945,7 @@ void CalcCommonBrdDrawInfo(float *pos, MENUFORM_MAKEBRD_INFO *info, ClsMes *mes)
  *
  * @mangled CommonBoardDraw__FPfRi
  * @address 0x224F10
- * @size 0xDE0
+ * @size 0xDD8
  */
 void CommonBoardDraw(float *pos, int &tex_block);
 
@@ -2173,7 +2187,7 @@ void Menu3DivideTextureDraw(mgCDrawPrim *prim, mgRect<int> rect, short *tex_tbl,
  * @address 0x22D060
  * @size 0x40
  */
-void *GetMenuMainIconChar(int no);
+char *GetMenuMainIconChar(int no);
 
 /**
  *

@@ -402,7 +402,7 @@ public:
     s32                   seq_advance;                          /**< Nonzero to let a waiting step move on. */
     tagMOTION_TYPE        motion[CHARA_MOTION_SET_MAX];         /**< Motion data of each motion set of the model. */
     tagMOTION_TYPE        shadow_motion[CHARA_MOTION_SET_MAX];  /**< Motion data of each motion set of the shadow. */
-    s32                   main_frame_info; /**< Frame information used by the character's main model. */
+    tagFRAME_INF         *main_frame_info;                      /**< Frame information used by the character's main model. */
     tagFRAME_INF         *shadow_frame_info;                    /**< Skinning data that every motion set of the shadow shares. */
     float                 blend;                                /**< Weight of the motion that plays against the previous one while blending. */
     float                 blend_speed;                          /**< Weight that blend gains each step. */

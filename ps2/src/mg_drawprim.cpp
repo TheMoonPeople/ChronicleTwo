@@ -195,7 +195,7 @@ void mgCDrawPrim::BeginPrim2(int prim_type, u_int data_a, u_int data_b, int unit
     dma_tag = clear;
     direct_code = clear + 3;
     write++;
-    u_int flags = *(u_int *) &prim & 0x7FF;
+    u_int flags = *(u_long *) &prim & 0x7FF;
     nreg = unit_count;
     u_int *tag = (u_int *) write;
     giftag = tag;
@@ -262,14 +262,12 @@ void mgCDrawPrim::Data4(float *data) {
 
 void mgCDrawPrim::Data(int *data) {
     u_long128 quad = *(u_long128 *) data;
-    data = (int *) command_write;
-    command_write = (u_long *) ((u_long128 *) data + 1);
-    *(u_long128 *) data = quad;
+    *write++ = quad;
 }
 
-u_char *mgCDrawPrim::DirectData(int count) {
-    u_char *p = (u_char *) command_write;
-    command_write = (u_long *) (p + (count << 4));
+u_long128 *mgCDrawPrim::DirectData(int count) {
+    u_long128 *p = write;
+    write += count;
     return p;
 }
 
@@ -277,11 +275,8 @@ void mgCDrawPrim::Vertex(int x, int y, int z) {
     Vertex4(x << 4, y << 4, z);
 }
 
-extern char at_369[16];
-
 void mgCDrawPrim::Vertex(float x, float y, float z) {
-    float pos[4];
-    *(u_long128 *) pos = *(u_long128 *) at_369;
+    float pos[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     pos[0] = x;
     pos[1] = y;
     pos[2] = z;
@@ -357,38 +352,35 @@ void mgCDrawPrim::Direct(unsigned long reg, unsigned long data) {
 
 /**
  *
- * Copies the texture state cached in a drawing primitive.
+ * Texture state of a drawing primitive, copied from a texture as plain data.
  *
  */
 struct mgCTextureFields {
-    short  block;
-    short  width;
-    short  height;
-    short  bpp;
-    char   name[32]; /**< Texture name copied with its register state. */
-    int    vram_size;
-    int    image_blocks;
-    int    clut_size;
-    u_long tex0_bits;
-    u_long tex1_bits;
-    u_long clamp_bits;
-    float  image[4];
-    int    clut;
-    int    swizzled;
-    int    next;
+    short       block;                       /**< Texture block the texture belongs to. */
+    short       width;                       /**< Width of the base level, in pixels. */
+    short       height;                      /**< Height of the base level, in pixels. */
+    short       bpp;                         /**< Bits per pixel. */
+    char        name[32];                    /**< Name the texture is registered under. */
+    int         vram_size;                   /**< GS blocks of VRAM reserved for the pixels. */
+    int         image_blocks;                /**< GS blocks the pixels of every mip level occupy. */
+    int         clut_size;                   /**< GS blocks the palette occupies. */
+    u_long      tex0_bits;                   /**< Packed GS TEX0 register value. */
+    u_long      tex1_bits;                   /**< Packed GS TEX1 register value. */
+    u_long      clamp_bits;                  /**< Packed GS CLAMP register value. */
+    u_long128  *image[MG_TEXTURE_LEVEL_MAX]; /**< Pixels of each mip level in main memory. */
+    u_long128  *clut;                        /**< Palette in main memory. */
+    int         swizzled;                    /**< Non-zero when the 8-bit pixels are stored in 32-bit page order. */
+    mgCTexture *next;                        /**< Following texture of the same texture block. */
 };
 
 /**
  *
- * Exposes the texture cache and packet cursor of a drawing primitive.
+ * Exposes the texture cache of a drawing primitive.
  *
  */
 struct mgCDrawPrimTexture {
-    u_char           pad0[0x58];
-    mgCTextureFields texture;  /**< Texture state copied for this primitive. */
-    int              bilinear; /**< Filter mode applied before drawing. */
-    u_char           pad_cc[0x10];
-    u_long          *command_write; /**< Next GS command word in the packet. */
+    u_char           unk_0[0x58];
+    mgCTextureFields texture; /**< Texture state copied for this primitive. */
 };
 
 void mgCDrawPrim::Texture(mgCTexture *source) {
@@ -396,15 +388,15 @@ void mgCDrawPrim::Texture(mgCTexture *source) {
 
     if (source != 0) {
         self->texture = *(mgCTextureFields *) source;
-        ((mgCTexture *) &self->texture)->Bilinear(self->bilinear);
-        u_long *packet = self->command_write;
+        texture.Bilinear(bilinear);
+        u_long *packet = command_write;
         packet[0] = 0;
         packet[1] = SCE_GS_TEXFLUSH;
-        packet[2] = self->texture.tex1_bits;
+        packet[2] = texture.tex1_bits;
         packet[3] = SCE_GS_TEX1_1;
-        packet[4] = self->texture.tex0_bits;
+        packet[4] = texture.tex0_bits;
         packet[5] = SCE_GS_TEX0_1;
-        self->command_write = packet + 6;
+        command_write = packet + 6;
     }
 }
 
@@ -430,42 +422,30 @@ void mgCDrawPrim::DAlphaTest(int enable, int mode) {
     draw_env.test.bits.datm = mode;
 }
 
-/**
- *
- * Exposes the depth test enable and comparison mode bits.
- *
- */
-struct mgCDrawPrimDepthState {
-    u_char pad0[2];
-    u_char enable : 1; /**< Depth testing enable bit. */
-    u_char mode : 2;   /**< Depth comparison mode. */
-    u_char rest : 5;
-};
-
 void mgCDrawPrim::DepthTestEnable(int enable) {
-    mgCDrawPrimDepthState *state = (mgCDrawPrimDepthState *) ((u_char *) this + 0x20);
+    sceGsTest *test = &draw_env.test;
 
     if (enable == 0) {
-        state->enable = 1;
-        state->mode = 1;
+        test->bits.zte = 1;
+        test->bits.ztst = 1;
     } else {
         DepthTest(1);
     }
 }
 
 void mgCDrawPrim::DepthTest(int mode) {
-    mgCDrawPrimDepthState *state = (mgCDrawPrimDepthState *) ((u_char *) this + 0x20);
-    state->enable = 1;
+    sceGsTest *test = &draw_env.test;
+    test->bits.zte = 1;
 
     switch (mode) {
         case -1:
-            state->mode = 1;
+            test->bits.ztst = 1;
             break;
         case 1:
-            state->mode = 2;
+            test->bits.ztst = 2;
             break;
         case 2:
-            state->mode = 3;
+            test->bits.ztst = 3;
             break;
     }
 }
@@ -804,6 +784,3 @@ void mgCDrawManager::AddPacket(int group, u_long128 *common, u_long128 *packet, 
 }
 
 #pragma schedule reset
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_369, 0x10);

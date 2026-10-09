@@ -163,17 +163,17 @@ FACES_ID *mgCShadowMDT::CreateFace(FACES_ID *source, mgCMemory *face_memory, mgC
     face->index_num = face->vertex_num * face->index_stride;
     // Only the position index of each of a triangle's three vertices is kept.
     face->material = source->material;
-    u_char *vertex;
-    source = (FACES_ID *) (vertex = (u_char *) source->index);
+    int *vertex;
+    source = (FACES_ID *) (vertex = source->index);
     int *index = (int *) index_memory->Alloc(face->index_num * 4 / 16 + 0x10);
     face->index = index;
 
     for (int i = 0; i < face->vertex_num; i++) {
-        index[0] = *(int *) (vertex + 0x0);
-        index[1] = *(int *) (vertex + 0xC);
-        index[2] = *(int *) (vertex + 0x18);
+        index[0] = vertex[0];
+        index[1] = vertex[3];
+        index[2] = vertex[6];
         index += 3;
-        vertex += 0x24;
+        vertex += 9;
     }
 
     face->next = NULL;
@@ -219,8 +219,8 @@ u_int mgCShadowMDT::CreatePacket(mgCDrawManager *draw_manager) {
 
     GetTextureManager();
     mgFACE_GROUP *node = face_group;
-    mgCMemory    *packet_memory = (mgCMemory *) draw_manager->packet_memory;
-    mgCMemory    *face_memory = (mgCMemory *) draw_manager->data_memory;
+    mgCMemory    *packet_memory = draw_manager->packet_memory;
+    mgCMemory    *face_memory = draw_manager->data_memory;
     u_int        *packet_start = (u_int *) &packet_memory->stack[packet_memory->stack_used];
     int           face_start = (int) &face_memory->stack[face_memory->stack_used];
     int           face_cursor = face_start;
@@ -280,9 +280,9 @@ int mgCShadowMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
     header->normal_num = 0;
     mgCVisualMDT::CopyMDTData(header, memory);
     face_group = 0;
-    u_char   *table = (u_char *) header + header->faces_ofs;
-    FACES_ID *cursor = (FACES_ID *) (table + 0x10);
-    int       count = *(int *) (table + 8);
+    MDT_FACES *faces = (MDT_FACES *) ((u_char *) header + header->faces_ofs);
+    FACES_ID  *cursor = (FACES_ID *) (faces + 1);
+    int        count = faces->prim_num;
 
     for (int i = 0; i < count; i++) {
         cursor = CreateFace(cursor, memory, memory, 0);
@@ -401,13 +401,3 @@ int mgCShadowMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
 }
 #pragma global_optimizer reset
 #pragma schedule reset
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_shadow", prog_vif_208__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_shadow", at_243__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_shadow", __vt__12mgCShadowMDT__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_353, 0x10);

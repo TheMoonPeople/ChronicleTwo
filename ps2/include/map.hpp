@@ -219,7 +219,7 @@ public:
      * @address 0x161F60
      * @size 0x10
      */
-    virtual int Draw();
+    virtual int Draw() { return 0; }
 
     /**
      *
@@ -229,7 +229,7 @@ public:
      * @address 0x161F70
      * @size 0x10
      */
-    virtual int DrawDirect();
+    virtual int DrawDirect() { return 0; }
 
     /**
      *

@@ -14,64 +14,590 @@
 #include "scriptinterpreter.hpp"
 #include "userdata.hpp"
 
-extern CDataCommon   *comdatapt;
-extern int            comdatapt_num;
-extern mgCMemory     *gamedata_build_stack;
-extern CDataCommon    local_com_itemdata[432];
-extern CDataItem      local_itemdata[162];
-extern CDataWeapon    local_weapondata[116];
-extern CDataAttach    local_attachdata[38];
-extern CDataRoboPart  local_robodata[68];
-extern CDataBreedFish local_fishdata[20];
-extern short          local_guarddata[40];
-extern short          local_itemdatano_converttable[512];
-extern char           gamedata_sysword_buffer_1073[0x2800];
-extern char           filename_1267[0x20];
-extern char           item_file_path_1288[0x80];
-extern SPI_TAG_PARAM  gamedata_tag[];
-extern short          msg_offsettbl_1363[3];
-extern signed char    ItemCmdMsgTbl[33][8];
-extern char           at_1018[];
-extern char           at_1019[];
-extern char           at_1020[];
-extern char           at_1021[];
-extern char           at_1022[];
-extern char           at_1023[];
-extern char           at_1024[];
-extern char           at_1025__2[];
-extern char           at_1026[];
-extern char           at_1027[];
-extern char           at_1028[];
-extern char           at_1029[];
-extern char           at_1030[];
-extern char           at_1031[];
-extern char           at_1032[];
-extern char           at_1033[];
-extern char           at_1034[];
-extern char           at_1035[];
-extern char           at_1036[];
-extern char           at_1037[];
-extern char           at_1038[];
-extern char           at_1039[];
-extern char           at_1040[];
-extern char           at_1041[];
-extern char           at_1048[];
-extern char           at_1063[];
-extern char           at_1064__2[];
-extern char           at_1065[];
-extern char           at_1066[];
-extern char           at_1067[];
-extern char           at_1068[];
-extern char           at_1069__2[];
-extern char           at_1079[];
-extern char           at_1283__3[];
-extern char           at_1284__3[];
-extern char           at_1307__2[];
-extern char           at_1308__2[];
-extern char           at_1309__2[];
-extern char           at_1310__2[];
-extern char           at_1311__2[];
-extern char           at_1501[];
+s8 etcitem_spectol_table[0x352] = {
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    11, 2,
+    11, 2,
+    11, 2,
+    0, 2,
+    11, 2,
+    11, 2,
+    6, 2,
+    3, 2,
+    2, 2,
+    6, 2,
+    11, 2,
+    5, 2,
+    2, 2,
+    1, 2,
+    5, 2,
+    1, 2,
+    11, 2,
+    11, 2,
+    10, 2,
+    4, 2,
+    3, 2,
+    0, 2,
+    2, 2,
+    4, 2,
+    0, 2,
+    1, 2,
+    1, 2,
+    4, 2,
+    11, 2,
+    10, 2,
+    4, 2,
+    5, 2,
+    1, 1,
+    1, 1,
+    4, 2,
+    0, 2,
+    4, 2,
+    10, 2,
+    10, 2,
+    2, 2,
+    3, 2,
+    5, 2,
+    0, 2,
+    0, 2,
+    4, 2,
+    4, 2,
+    1, 2,
+    4, 2,
+    3, 2,
+    3, 2,
+    6, 2,
+    3, 2,
+    11, 2,
+    1, 1,
+    0, 2,
+    0, 2,
+    0, 2,
+    3, 2,
+    4, 2,
+    4, 2,
+    1, 1,
+    1, 1,
+    1, 1,
+    3, 2,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    4, 2,
+    4, 2,
+    4, 2,
+    3, 2,
+    6, 2,
+    0, 2,
+    1, 2,
+    5, 2,
+    11, 2,
+    5, 2,
+    0, 2,
+    0, 2,
+    2, 2,
+    3, 2,
+    2, 2,
+    2, 2,
+    2, 2,
+    2, 2,
+    5, 2,
+    5, 2,
+    4, 2,
+    1, 2,
+    1, 2,
+    2, 2,
+    3, 2,
+    0, 2,
+    11, 2,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    6, 2,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    0, 2,
+    6, 2,
+    6, 2,
+    1, 2,
+    0, 2,
+    11, 2,
+    10, 1,
+    7, 2,
+    5, 2,
+    1, 2,
+    7, 2,
+    11, 2,
+    0, 2,
+    4, 2,
+    0, 2,
+    1, 2,
+    2, 2,
+    3, 2,
+    5, 2,
+    7, 2,
+    4, 2,
+    6, 2,
+    0, 2,
+    10, 0,
+    11, 2,
+    5, 2,
+    11, 2,
+    10, 1,
+    11, 2,
+    6, 2,
+    11, 2,
+    11, 2,
+    11, 2,
+    3, 2,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    0, 2,
+    1, 1,
+    1, 1,
+    7, 2,
+    1, 1,
+    6, 2,
+    6, 2,
+    7, 2,
+    4, 2,
+    0, 2,
+    6, 2,
+    6, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    2, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    7, 2,
+    0, 2,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 1,
+    0, 2,
+    0, 3,
+    4, 2,
+    4, 2,
+    4, 2,
+    0, 2,
+    0, 2,
+    0, 2,
+    4, 2,
+    4, 2,
+    4, 2,
+    10, 2,
+    10, 2,
+    10, 2,
+    10, 2,
+    10, 2,
+    10, 2,
+    2, 2,
+    2, 2,
+    2, 2,
+    3, 2,
+    3, 2,
+    3, 2,
+    5, 2,
+    5, 2,
+    5, 2,
+    0, 2,
+    0, 2,
+    0, 2,
+    0, 2,
+    0, 2,
+    0, 2,
+    1, 1,
+    1, 1,
+    1, 1,
+    1, 2,
+};
+
+/**
+ *
+ * Allocator for loaded item display names.
+ *
+ */
+static mgCMemory *gamedata_build_stack;
+
+/**
+ *
+ * Common item entry receiving script values.
+ *
+ */
+static CDataCommon *comdatapt;
+
+/**
+ *
+ * Number of common item entries parsed.
+ *
+ */
+static int comdatapt_num;
+
+CDataWeapon *SpiWeaponPt;
+
+CDataItem *SpiItemPt;
+
+CDataAttach *SpiAttach;
+
+CDataRoboPart *SpiRoboPart;
+
+CDataBreedFish *SpiFish;
+
+CGameData GameItemDataManage;
+
+/**
+ *
+ * Common records for the master item catalog.
+ *
+ */
+static CDataCommon local_com_itemdata[432];
+
+/**
+ *
+ * Usable item records loaded from item data scripts.
+ *
+ */
+static CDataItem local_itemdata[162];
+
+/**
+ *
+ * Weapon records loaded from weapon data scripts.
+ *
+ */
+static CDataWeapon local_weapondata[116];
+
+/**
+ *
+ * Attachment records loaded from attachment data scripts.
+ *
+ */
+static CDataAttach local_attachdata[38];
+
+/**
+ *
+ * Ridepod part records loaded from part data scripts.
+ *
+ */
+static CDataRoboPart local_robodata[68];
+
+/**
+ *
+ * Breedable fish records loaded from fish data scripts.
+ *
+ */
+static CDataBreedFish local_fishdata[20];
+
+/**
+ *
+ * Guard values loaded from guard data scripts.
+ *
+ */
+static short local_guarddata[35];
+
+/**
+ *
+ * Lookup from item numbers to common-record indices.
+ *
+ */
+static short local_itemdatano_converttable[512];
+
+/**
+ *
+ * Storage for loaded item display names.
+ *
+ */
+static u_long128 gamedata_sysword_buffer_1073[0x280];
+
+/**
+ *
+ * Scratch buffer for an item model filename.
+ *
+ */
+static char filename_1267[0x20];
+
+/**
+ *
+ * Scratch buffer for an item model path.
+ *
+ */
+static char item_file_path_1288[0x80];
+
+/**
+ *
+ * Message-number bases for the three item message kinds.
+ *
+ */
+static short msg_offsettbl_1363[3] = {0, 10000, 0};
+/**
+ *
+ * Command-message offsets offered for each item command group.
+ *
+ */
+static signed char ItemCmdMsgTbl[33][8] = {
+    {2, 3, 4, 9, 23, 26, 1, -1},
+    {9, 3, 1, -1, 0, 0, 0, 0},
+    {10, 9, 26, 1, -1, 0, 0, 0},
+    {15, 16, 5, 9, 1, -1, 0, 0},
+    {5, 9, 1, -1, 0, 0, 0, 0},
+    {30, 3, 1, -1, 0, 0, 0, 0},
+    {2, 3, 9, 1, -1, 0, 0, 0},
+    {3, 26, 34, -1, 0, 0, 0, 0},
+    {2, 9, 1, -1, 0, 0, 0, 0},
+    {11, -1, 0, 0, 0, 0, 0, 0},
+    {12, -1, 0, 0, 0, 0, 0, 0},
+    {13, 5, 1, -1, 0, 0, 0, 0},
+    {14, 45, 42, 9, 26, 1, -1, 0},
+    {19, 5, 9, 1, -1, 0, 0, 0},
+    {2, 3, 46, 26, 1, -1, 0, 0},
+    {25, 9, 1, -1, -1, 0, 0, 0},
+    {10, 22, 9, 26, 1, -1, 0, 0},
+    {20, 5, 9, 1, -1, 0, 0, 0},
+    {15, -1, 0, 0, 0, 0, 0, 0},
+    {16, -1, 0, 0, 0, 0, 0, 0},
+    {15, 16, -1, 0, 0, 0, 0, 0},
+    {29, -1, 0, 0, 0, 0, 0, 0},
+    {10, 3, 4, 9, 26, 1, -1, 0},
+    {22, 9, 1, -1, 0, 0, 0, 0},
+    {9, 1, -1, 0, 0, 0, 0, 0},
+    {37, 9, 1, -1, 0, 0, 0, 0},
+    {38, -1, 0, 0, 0, 0, 0, 0},
+    {43, 9, 1, -1, 0, 0, 0, 0},
+    {44, 9, 1, -1, 0, 0, 0, 0},
+    {15, 16, 1, -1, 0, 0, 0, 0},
+    {47, -1, 0, 0, 0, 0, 0, 0},
+    {19, 20, 9, 1, -1, 0, 0, 0},
+    {48, -1, 0, 0, 0, 0, 0, 0},
+};
 
 // Code (.text)
 CGameData *GetGameDataPt() {
@@ -87,11 +613,11 @@ CDataItem::CDataItem() {
 }
 
 CDataAttach::CDataAttach() {
-    memset(this, 0, 0x18);
+    memset(this, 0, sizeof(CDataAttach));
 }
 
 CDataWeapon::CDataWeapon() {
-    memset(this, 0, 0x4C);
+    memset(this, 0, sizeof(CDataWeapon));
     durability = 0x14;
     levelup_exp = 0x14;
 }
@@ -99,7 +625,7 @@ CDataWeapon::CDataWeapon() {
 int CDataRoboPart::GetOffsetNo() { return this->offset_no; }
 
 CDataBreedFish::CDataBreedFish() {
-    memset(this, 0, 0x14);
+    memset(this, 0, sizeof(CDataBreedFish));
 }
 
 void CGameData::Initialize() {
@@ -110,7 +636,7 @@ void CGameData::Initialize() {
     item_num = 0;
     weapon_data = local_weapondata;
     weapon_num = 0;
-    guard_data = (short *) local_guarddata;
+    guard_data = local_guarddata;
     guard_num = 0;
     attach_data = local_attachdata;
     attach_num = 0;
@@ -178,26 +704,26 @@ int _DATACOM(SPI_STACK *stack, int arg_count) {
  *
  */
 int _MES_SYS(SPI_STACK *stack, int arg_count) {
-    u8           converted[0x100];
+    char         converted[0x100];
     int          item_no;
-    int          copy;
-    signed char *text;
+    char        *copy;
+    char        *text;
     CDataCommon *record;
 
     item_no = spiGetStackInt(stack++);
-    text = (signed char *) (spiGetStackString(stack));
+    text = spiGetStackString(stack);
     record = GameItemDataManage.GetCommonData(item_no);
 
     if (record != NULL) {
         if ((LanguageCode >= 2) && (LanguageCode < 6)) {
             memset(converted, 0, 0x100);
-            ConvertFontCode((char *) text, (char *) converted);
-            copy = (int) mgCopyString((char *) converted, gamedata_build_stack);
+            ConvertFontCode(text, converted);
+            copy = mgCopyString(converted, gamedata_build_stack);
         } else {
-            copy = (int) (mgCopyString((char *) text, gamedata_build_stack));
+            copy = mgCopyString(text, gamedata_build_stack);
         }
 
-        record->name = (char *) copy;
+        record->name = copy;
     }
 
     return 1;
@@ -597,7 +1123,7 @@ int _DATAGAURDNUM(SPI_STACK *stack, int arg_count) {
 int _DATAGAURD(SPI_STACK *stack, int arg_count) {
     short *guard;
 
-    guard = (short *) GameItemDataManage.GetGuardData(spiGetStackInt(stack++));
+    guard = GameItemDataManage.GetGuardData(spiGetStackInt(stack++));
 
     if (guard == NULL) {
         return 1;
@@ -614,18 +1140,51 @@ int _DATAGAURD(SPI_STACK *stack, int arg_count) {
 
 /**
  *
+ * Item-data script tags and their record loaders.
+ *
+ */
+static SPI_TAG_PARAM gamedata_tag[25] = {
+    {"COMINIT", _DATACOMINIT},
+    {"COM", _DATACOM},
+    {"WEPNUM", _DATAWEPNUM},
+    {"WEP", _DATAWEP},
+    {"WEP_ST", _DATAWEP_ST},
+    {"WEP_ST_L", _DATAWEP_ST_L},
+    {"WEP_ST2", _DATAWEP2_ST},
+    {"WEP_ST2_L", _DATAWEP2_ST_L},
+    {"WEP_SPE", _DATAWEP_SPE},
+    {"WEP_BUILD", _DATAWEP_BUILDUP},
+    {"ITEMINIT", _DATAITEMINIT},
+    {"ITEM", _DATAITEM},
+    {"AT_INIT", _DATAATTACHINIT},
+    {"AT_ST", _DATAATTACH_ST},
+    {"AT_ST2", _DATAATTACH_ST2},
+    {"AT_ST_SP", _DATAATTACH_ST_SP},
+    {"ROBOINIT", _DATAROBOINIT},
+    {"RB_PARTS", _DATAROBO_ANALYZE},
+    {"GRDNUM", _DATAGAURDNUM},
+    {"GRD", _DATAGAURD},
+    {"FISHINIT", _DATAFISHINIT},
+    {"FISH", _DATAFISH},
+    {"MES_SYS", _MES_SYS},
+    {"MES_SYSSPE", _MES_SYS_SPECTOL},
+    {NULL, NULL},
+};
+
+/**
+ *
  * Loads and interprets a game item data script.
  *
  */
 int LoadGameDataAnalyze(char *name) {
     int   size;
-    u8    buffer[0x7800];
+    u_long128 buffer[0x780];
     char  path[0x40];
     char *script;
 
-    script = (char *) MenuCalcBufAlignment((u_long128 *) buffer);
+    script = (char *) MenuCalcBufAlignment(buffer);
     SetCurrentDir(NULL);
-    sprintf(path, at_1048, name);
+    sprintf(path, "menu/cfg7/%s", name);
 
     if (LoadFile2(path, script, &size, 0) == 0) {
         return 0;
@@ -645,13 +1204,13 @@ int CGameData::LoadData() {
     comdatapt = common_data;
     comdatapt_num = 0;
     memset(local_itemdatano_converttable, -1, 0x400);
-    LoadGameDataAnalyze(at_1063);
-    LoadGameDataAnalyze(at_1064__2);
-    LoadGameDataAnalyze(at_1065);
-    LoadGameDataAnalyze(at_1066);
-    LoadGameDataAnalyze(at_1067);
-    LoadGameDataAnalyze(at_1068);
-    LoadGameDataAnalyze(at_1069__2);
+    LoadGameDataAnalyze("comdat.cfg");
+    LoadGameDataAnalyze("wepdat.cfg");
+    LoadGameDataAnalyze("itemdat.cfg");
+    LoadGameDataAnalyze("atdat.cfg");
+    LoadGameDataAnalyze("robodat.cfg");
+    LoadGameDataAnalyze("fishdat.cfg");
+    LoadGameDataAnalyze("grddat.cfg");
     item_no = 0;
     common_num = comdatapt_num;
     max_item_no = 0;
@@ -669,18 +1228,17 @@ int CGameData::LoadData() {
 
 int CGameData::LoadItemSystemMes(int language) {
     int   size;
-    u8    buffer[0x7800];
-    u8    memory_storage[0x30];
-    char  path[0x40];
+    u_long128 buffer[0x780];
     char *script;
 
-    script = (char *) MenuCalcBufAlignment((u_long128 *) buffer);
+    script = (char *) MenuCalcBufAlignment(buffer);
     memset(gamedata_sysword_buffer_1073, 0, 0x2800);
 
-    ((mgCMemory *) memory_storage)->Init();
-    ((mgCMemory *) memory_storage)->stSetBuffer((u_long128 *) gamedata_sysword_buffer_1073, 0x280);
-    gamedata_build_stack = (mgCMemory *) memory_storage;
-    sprintf(path, at_1079, language);
+    mgCMemory memory;
+    char path[0x40];
+    memory.stSetBuffer(gamedata_sysword_buffer_1073, 0x280);
+    gamedata_build_stack = &memory;
+    sprintf(path, "menu/cfg7/comdatmes%d.cfg", language);
 
     if (LoadFile2(path, script, &size, 0) != 0) {
         CScriptInterpreter interpreter;
@@ -959,11 +1517,11 @@ char *GetItemFileName(int item_no, int variant) {
     u8         type = record->type;
 
     if ((type == 5 || type == 8) && save_data->GetBitFlag(0x31F) != 0) {
-        strcat(filename_1267, at_1283__3);
+        strcat(filename_1267, "t");
     }
 
     if (variant != 0 && variant == 1) {
-        strcat(filename_1267, at_1284__3);
+        strcat(filename_1267, ".chr");
     }
 
     return filename_1267;
@@ -989,27 +1547,27 @@ char *GetItemFilePath(int item_no, int variant) {
         switch (type) {
             case 3:
             case 4:
-                strcpy(item_file_path_1288, at_1307__2);
+                strcpy(item_file_path_1288, "mainchr/");
                 break;
             case 5:
-                strcpy(item_file_path_1288, at_1308__2);
+                strcpy(item_file_path_1288, "dungeon/robo/");
                 break;
             default:
-                strcpy(item_file_path_1288, at_1309__2);
+                strcpy(item_file_path_1288, "item/");
                 break;
         }
 
         strcat(item_file_path_1288, name);
-        strcat(item_file_path_1288, at_1284__3);
+        strcat(item_file_path_1288, ".chr");
 
         if (variant == 1) {
             if (type == 3) {
-                sprintf(item_file_path_1288, at_1310__2, name);
+                sprintf(item_file_path_1288, "wep_t/%s_item.chr", name);
             }
         }
 
         if (variant == 1 && (record->type == 0xD || record->type == 0xE)) {
-            sprintf(item_file_path_1288, at_1311__2, name);
+            sprintf(item_file_path_1288, "wep_t/%s.chr", name);
         }
     }
 
@@ -1292,7 +1850,12 @@ int SearchItemByName(char *name) {
     return -1;
 }
 
-extern s16 table_1553[7];
+/**
+ *
+ * Ridepod core item numbers in increasing capacity order.
+ *
+ */
+static s16 table_1553[8] = {0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, -1};
 
 int GetRidePodCore(int index) {
     if (index < 0 || index > 6) {
@@ -1355,79 +1918,3 @@ void CItemUseTarget::SetPtr(int new_kind, void *new_ptr) {
         target.data = new_ptr;
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", etcitem_spectol_table__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", gamedata_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", ItemCmdMsgTbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", table_1553__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1018__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1019__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1020__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1021__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1022__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1023__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1024__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1025__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1026__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1027__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1028__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1029__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1030__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1031__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1032__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1033__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1034__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1035__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1036__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1037__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1038__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1039__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1040__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1041__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1048__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1063__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1064__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1065__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1066__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1067__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1068__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1069__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1079__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1283__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1284__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1307__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1308__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1309__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1310__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1311__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1501__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", msg_offsettbl_1363__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(gamedata_build_stack, 0x4);
-INCLUDE_BSS(comdatapt, 0x4);
-INCLUDE_BSS(comdatapt_num, 0x4);
-INCLUDE_BSS(SpiWeaponPt, 0x4);
-INCLUDE_BSS(SpiItemPt, 0x4);
-INCLUDE_BSS(SpiAttach, 0x4);
-INCLUDE_BSS(SpiRoboPart, 0x4);
-INCLUDE_BSS(SpiFish, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(GameItemDataManage, 0x30);
-INCLUDE_BSS(local_com_itemdata, 0x4A40);
-CDataItem   local_itemdata[162];
-CDataWeapon local_weapondata[116];
-CDataAttach local_attachdata[38];
-INCLUDE_BSS(local_robodata, 0x990);
-CDataBreedFish local_fishdata[20];
-INCLUDE_BSS(local_guarddata, 0x50);
-INCLUDE_BSS(local_itemdatano_converttable, 0x400);
-INCLUDE_BSS(gamedata_sysword_buffer_1073, 0x2800);
-INCLUDE_BSS(filename_1267, 0x20);
-INCLUDE_BSS(item_file_path_1288, 0x80);

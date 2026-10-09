@@ -27,41 +27,144 @@
 #include "scriptinterpreter.hpp"
 #include "userdata.hpp"
 
-extern char at_1028__2[];
-extern char at_1029__2[];
-
-extern int EditDebugFlag;
-extern int EditDebugTexb;
-extern int Select;
-extern int LEditFlag;
-
-extern int      EditDebugFlag, EditDebugTexb, Select, SelTAG, sg_type, map_jump;
-extern int      save_no, load_no, condition, map_flag_no, LEditFlag, LightType, DirLightNo, fish_num;
-extern int      EventNo;
-extern int      SelMax[EDIT_DEBUG_PAGE_COUNT];
-extern int      LightSel[LIGHTING_EDIT_PAGE_COUNT], LightListNum[LIGHTING_EDIT_PAGE_COUNT];
-extern int     *SelData[EDIT_DEBUG_PAGE_COUNT][8];
-extern char    *SelText[EDIT_DEBUG_PAGE_COUNT][8];
-extern char    *SelHelp[EDIT_DEBUG_PAGE_COUNT][8];
-
 /**
  *
  * Writes the marker for the selected debug-menu row and returns its length.
  *
  */
 static int PrintCursor(char *text, int row);
+
 /**
  *
  * Loads one fish-race contestant from the GYOFISH script tag.
  *
  */
-int tagGyoFish(SPI_STACK *stack, int argument_count);
+static int tagGyoFish(SPI_STACK *stack, int argument_count);
+
 /**
  *
  * Reloads the host fish-race configuration into the bonus racer table.
  *
  */
 static void LoadGyorace();
+
+/**
+ * Whether the town-building debug menu is open.
+ */
+static int EditDebugFlag;
+
+/**
+ * Texture bank selected for the town-building debug menu.
+ */
+static int EditDebugTexb;
+
+/**
+ * Selected row of the town-building debug menu.
+ */
+static int Select;
+
+/**
+ * Current page of the town-building debug menu.
+ */
+static int SelTAG;
+
+/**
+ * Sub game selected for the debug launch action.
+ */
+static int sg_type;
+
+/**
+ * Destination map selected for the debug jump action.
+ */
+static int map_jump;
+
+/**
+ * Host town-layout file number selected for saving.
+ */
+static int save_no;
+
+/**
+ * Host town-layout file number selected for loading.
+ */
+static int load_no;
+
+/**
+ * Town-layout condition selected for inspection.
+ */
+static int condition;
+
+/**
+ * Map flag selected for inspection.
+ */
+static int map_flag_no;
+
+/**
+ * Whether the lighting editor is open.
+ */
+static int LEditFlag;
+
+/**
+ * Current page of the lighting editor.
+ */
+static int LightType;
+
+/**
+ * Directional light selected in the lighting editor.
+ */
+static int DirLightNo;
+
+/**
+ * Fish-race contestant index while loading the debug configuration.
+ */
+static int fish_num;
+
+/**
+ * Event selected for the debug run action.
+ */
+static int EventNo = 100;
+
+/**
+ * Number of selectable rows on each debug-menu page.
+ */
+static int SelMax[EDIT_DEBUG_PAGE_COUNT] = {EDIT_DEBUG_GENERAL_COUNT, EDIT_DEBUG_EDIT_DATA_COUNT, EDIT_DEBUG_MAP_COUNT};
+
+/**
+ * Editable values associated with each debug-menu row.
+ */
+static int *SelData[EDIT_DEBUG_PAGE_COUNT][8] = {
+    {&DebugInfo.debug_camera, &EventNo, &DebugInfo.georama_debug, &DebugInfo.chara_move,
+     &sg_type, &DebugInfo.param_off, &DebugInfo.invent_debug, NULL},
+    {NULL, &save_no, &load_no, &condition, &map_flag_no, NULL, NULL, NULL},
+    {&map_jump, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+};
+
+/**
+ * Labels displayed for each debug-menu row.
+ */
+static char *SelText[EDIT_DEBUG_PAGE_COUNT][8] = {
+    {"Debug Camera    ", "RunEvent        ", "Georama Debug   ", "CharaMove       ", "SubGame         ", "ParamOff        ", "InventDebug     ", NULL},
+    {"All Clear       ", "Save File       ", "Load File       ", "Con ", "Map Flag  ", NULL, NULL, NULL},
+    {"Map Jump        ", "Load Gyorace    ", NULL, NULL, NULL, NULL, NULL, NULL},
+};
+
+/**
+ * Help text displayed for each debug-menu row.
+ */
+static char *SelHelp[EDIT_DEBUG_PAGE_COUNT][8] = {
+    {"", "\x81\x9B:run \x81\xA2:reload", "", "1:sp up 2:col off", "", "", "", NULL},
+    {"", "", "", "", "", "", NULL, NULL},
+    {"", "", "", "", "", "", NULL, NULL},
+};
+
+/**
+ * Selected row on each lighting-editor page.
+ */
+static int LightSel[LIGHTING_EDIT_PAGE_COUNT] = {0, 0, 0, 0};
+
+/**
+ * Number of selectable rows on each lighting-editor page.
+ */
+static int LightListNum[LIGHTING_EDIT_PAGE_COUNT] = {11, 8, 9, 3};
 
 // Code (.text)
 void EditDebugInit() {
@@ -92,6 +195,7 @@ static int PrintCursor(char *text, int row) {
 
     return sprintf(text, "  ");
 }
+
 int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
     char text[4096];
     int edit_data_no;
@@ -327,7 +431,7 @@ void EndLightingEdit() {
 }
 
 int IsLightingEditMode() { return LEditFlag; }
-#ifdef NONMATCHING
+
 void LightingEdit(CScene *scene) {
     int row;
     float *selected;
@@ -359,7 +463,7 @@ void LightingEdit(CScene *scene) {
     prim.Vertex(150, 300, 0);
     prim.End();
     light_no = map->map_info.active_light_no;
-    light = ((CMapInfo *)map)->GetLightingInfo(light_no);
+    light = map->map_info.GetLightingInfo(light_no);
     selected = NULL;
     selected_index = 0;
     const char *channel[3] = {"R", "G", "B"};
@@ -370,11 +474,11 @@ void LightingEdit(CScene *scene) {
     const char *pages[4] = {"<- BG & AMB  ->", "<-Dir Light ", "<-    Fog    ->", "<-   File    ->"};
     end = text;
     row = LightSel[LightType];
-    end += sprintf(end, "%sLightSet [%d]\n", cursor[row == 0], light_no);
-    if (LightType != 1) end += sprintf(end, "%s%s\n", cursor[row == 1], pages[LightType]);
-    else end += sprintf(end, "%s%s%d->\n", cursor[row == 1], pages[LightType], DirLightNo);
+    end += sprintf(end, "%sLightSet [%d]\n", cursor[row == LIGHTING_EDIT_ROW_LIGHT_SET], light_no);
+    if (LightType != LIGHTING_EDIT_PAGE_DIR_LIGHT) end += sprintf(end, "%s%s\n", cursor[row == LIGHTING_EDIT_ROW_PAGE], pages[LightType]);
+    else end += sprintf(end, "%s%s%d->\n", cursor[row == LIGHTING_EDIT_ROW_PAGE], pages[LightType], DirLightNo);
     if (LightType == LIGHTING_EDIT_PAGE_BG_AMBIENT) {
-        edit = row - 2;
+        edit = row - LIGHTING_EDIT_ROW_ITEM;
         float *colors[3] __attribute__((aligned(16))) = {light->bg_color, light->bg_color2, light->ambient};
         if (row > 10) row = 10;
         selected = colors[edit / 3];
@@ -390,12 +494,12 @@ void LightingEdit(CScene *scene) {
         end += sprintf(end, "   BG   BG2   AMB\n");
     }
     if (LightType == LIGHTING_EDIT_PAGE_DIR_LIGHT) {
-        int edit = row - 2;
-        if (edit >= 3 && edit < 6) {
+        int edit = row - LIGHTING_EDIT_ROW_ITEM;
+        if (edit >= LIGHTING_EDIT_DIR_ROTATE_X && edit < LIGHTING_EDIT_DIR_COUNT) {
             sceVu0FVECTOR angles;
             mgZeroVector(angles);
-            if (GamePad__2.Down2(PAD_RIGHT)) angles[edit - 3] = 0.04f;
-            if (GamePad__2.Down2(PAD_LEFT)) angles[edit - 3] = -0.04f;
+            if (GamePad__2.Down2(PAD_RIGHT)) angles[edit - LIGHTING_EDIT_DIR_ROTATE_X] = 0.04f;
+            if (GamePad__2.Down2(PAD_LEFT)) angles[edit - LIGHTING_EDIT_DIR_ROTATE_X] = -0.04f;
             if (!(mgDistVector(angles) <= 0.0f)) {
                 sceVu0FVECTOR vector;
                 vector[0] = light->light_dir[0][DirLightNo];
@@ -414,7 +518,7 @@ void LightingEdit(CScene *scene) {
             }
         }
         if (edit >= 0) {
-            if (edit < 3) {
+            if (edit < LIGHTING_EDIT_DIR_ROTATE_X) {
                 selected_index = edit;
                 selected = light->light_color[DirLightNo];
             }
@@ -424,40 +528,39 @@ void LightingEdit(CScene *scene) {
             end += sprintf(end, "%sCOL %s = %d%s\n", cursor[hit], channel[component],
                            (int)light->light_color[DirLightNo][component], tail[hit]);
         }
-        end += sprintf(end, "%sROTATE X <->%s\n", cursor[edit == 3], tail[edit == 3]);
-        end += sprintf(end, "%sROTATE Y <->%s\n", cursor[edit == 4], tail[edit == 4]);
-        end += sprintf(end, "%sROTATE Z <->%s\n", cursor[edit == 5], tail[edit == 5]);
+        end += sprintf(end, "%sROTATE X <->%s\n", cursor[edit == LIGHTING_EDIT_DIR_ROTATE_X], tail[edit == LIGHTING_EDIT_DIR_ROTATE_X]);
+        end += sprintf(end, "%sROTATE Y <->%s\n", cursor[edit == LIGHTING_EDIT_DIR_ROTATE_Y], tail[edit == LIGHTING_EDIT_DIR_ROTATE_Y]);
+        end += sprintf(end, "%sROTATE Z <->%s\n", cursor[edit == LIGHTING_EDIT_DIR_ROTATE_Z], tail[edit == LIGHTING_EDIT_DIR_ROTATE_Z]);
         for (int a = 0; a < 3; a++)
             end += sprintf(end, " DIR %s = %f\n", axis[a], light->light_dir[a][DirLightNo]);
     }
     if (LightType == LIGHTING_EDIT_PAGE_FOG) {
-        unsigned int edit = row - 2;
+        unsigned int edit = row - LIGHTING_EDIT_ROW_ITEM;
         mgFOG_PARAM *fog = &light->fog;
         int direction = 0;
         if (GamePad__2.Down2(PAD_RIGHT)) direction = 1;
         if (GamePad__2.Down2(PAD_LEFT)) direction = -1;
         if (direction != 0) {
             switch (edit) {
-            case 0:
+            case LIGHTING_EDIT_FOG_NEAR:
                 fog->near_dist += 10.0f * direction;
                 break;
-            case 1:
+            case LIGHTING_EDIT_FOG_FAR:
                 fog->far_dist += 10.0f * direction;
                 break;
-            case 2:
-            case 3:
-            case 4: {
-                u_char *component = (u_char *)(edit + (u_int)fog + 6);
-                int value = *component + direction;
+            case LIGHTING_EDIT_FOG_R:
+            case LIGHTING_EDIT_FOG_G:
+            case LIGHTING_EDIT_FOG_B: {
+                int value = fog->color[edit - LIGHTING_EDIT_FOG_R] + direction;
                 if (value < 0) value = 0;
                 if (value > 255) value = 255;
-                *component = value;
+                fog->color[edit - LIGHTING_EDIT_FOG_R] = value;
                 break;
             }
-            case 5:
+            case LIGHTING_EDIT_FOG_MIN:
                 fog->far_value = (int)fog->far_value + direction;
                 break;
-            case 6:
+            case LIGHTING_EDIT_FOG_MAX:
                 fog->near_value = (int)fog->near_value + direction;
                 break;
             }
@@ -468,20 +571,20 @@ void LightingEdit(CScene *scene) {
             if (fog->near_dist < 10.0f) fog->near_dist = 10.0f;
             if (fog->far_dist < fog->near_dist) fog->far_dist = fog->near_dist;
         }
-        end += sprintf(end, "%sNEAR = %f%s\n", cursor[edit == 0], fog->near_dist, tail[edit == 0]);
-        end += sprintf(end, "%sFAR  = %f%s\n", cursor[edit == 1], fog->far_dist, tail[edit == 1]);
-        end += sprintf(end, "%sR    = %d%s\n", cursor[edit == 2], fog->r, tail[edit == 2]);
-        end += sprintf(end, "%sG    = %d%s\n", cursor[edit == 3], fog->g, tail[edit == 3]);
-        end += sprintf(end, "%sB    = %d%s\n", cursor[edit == 4], fog->b, tail[edit == 4]);
-        end += sprintf(end, "%sMIN  = %d%s\n", cursor[edit == 5], (int)fog->far_value, tail[edit == 5]);
-        end += sprintf(end, "%sMAX  = %d%s\n", cursor[edit == 6], (int)fog->near_value, tail[edit == 6]);
+        end += sprintf(end, "%sNEAR = %f%s\n", cursor[edit == LIGHTING_EDIT_FOG_NEAR], fog->near_dist, tail[edit == LIGHTING_EDIT_FOG_NEAR]);
+        end += sprintf(end, "%sFAR  = %f%s\n", cursor[edit == LIGHTING_EDIT_FOG_FAR], fog->far_dist, tail[edit == LIGHTING_EDIT_FOG_FAR]);
+        end += sprintf(end, "%sR    = %d%s\n", cursor[edit == LIGHTING_EDIT_FOG_R], fog->r, tail[edit == LIGHTING_EDIT_FOG_R]);
+        end += sprintf(end, "%sG    = %d%s\n", cursor[edit == LIGHTING_EDIT_FOG_G], fog->g, tail[edit == LIGHTING_EDIT_FOG_G]);
+        end += sprintf(end, "%sB    = %d%s\n", cursor[edit == LIGHTING_EDIT_FOG_B], fog->b, tail[edit == LIGHTING_EDIT_FOG_B]);
+        end += sprintf(end, "%sMIN  = %d%s\n", cursor[edit == LIGHTING_EDIT_FOG_MIN], (int)fog->far_value, tail[edit == LIGHTING_EDIT_FOG_MIN]);
+        end += sprintf(end, "%sMAX  = %d%s\n", cursor[edit == LIGHTING_EDIT_FOG_MAX], (int)fog->near_value, tail[edit == LIGHTING_EDIT_FOG_MAX]);
     }
     if (LightType == LIGHTING_EDIT_PAGE_FILE) {
-        int edit = row - 2;
+        int edit = row - LIGHTING_EDIT_ROW_ITEM;
         sprintf(end, "%sSAVE <->%s\n", cursor[edit == 0], tail[edit == 0]);
         if (edit == 0 && (GamePad__2.Down2(PAD_LEFT) || GamePad__2.Down2(PAD_RIGHT))) {
             char script[0x5000];
-            int size = ((CMapInfo *)map)->OutputLightData(script);
+            int size = map->map_info.OutputLightData(script);
             if (size > 0) {
                 char host[16] = "host:";
                 char path[128];
@@ -506,8 +609,8 @@ void LightingEdit(CScene *scene) {
     previous = LightType;
     if (row >= LightListNum[LightType]) row = 0;
     LightSel[LightType] = row;
-    if (row == 1) {
-        if (previous == 1) {
+    if (row == LIGHTING_EDIT_ROW_PAGE) {
+        if (previous == LIGHTING_EDIT_PAGE_DIR_LIGHT) {
             if (GamePad__2.Down2(PAD_RIGHT)) DirLightNo += 1;
             if (GamePad__2.Down2(PAD_LEFT)) DirLightNo -= 1;
             if (DirLightNo < 0) {
@@ -522,13 +625,13 @@ void LightingEdit(CScene *scene) {
             if (GamePad__2.Down2(PAD_RIGHT)) LightType += 1;
             if (GamePad__2.Down2(PAD_LEFT)) LightType -= 1;
         }
-        if (LightType < 0) LightType = 0;
-        if (LightType > 3) LightType = 3;
-        if (LightType == 0) DirLightNo = 0;
-        if (LightType == 2) DirLightNo = 3;
-        if (previous != LightType) LightSel[LightType] = 1;
+        if (LightType < 0) LightType = LIGHTING_EDIT_PAGE_BG_AMBIENT;
+        if (LightType > LIGHTING_EDIT_PAGE_FILE) LightType = LIGHTING_EDIT_PAGE_FILE;
+        if (LightType == LIGHTING_EDIT_PAGE_BG_AMBIENT) DirLightNo = 0;
+        if (LightType == LIGHTING_EDIT_PAGE_FOG) DirLightNo = 3;
+        if (previous != LightType) LightSel[LightType] = LIGHTING_EDIT_ROW_PAGE;
     }
-    if (row == 0) {
+    if (row == LIGHTING_EDIT_ROW_LIGHT_SET) {
         if (GamePad__2.Down2(PAD_RIGHT)) light_no += 1;
         if (GamePad__2.Down2(PAD_LEFT)) light_no -= 1;
         if (light_no < 0) light_no = 0;
@@ -655,15 +758,13 @@ void LightingEdit(CScene *scene) {
         GamePad__2.CancelAutoRepeat2(PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editdebug", LightingEdit__FP6CScene);
-#endif
+
 /**
  *
  * Loads a gyorace fish definition from a debug script.
  *
  */
-int tagGyoFish(SPI_STACK *stack, int argument_count) {
+static int tagGyoFish(SPI_STACK *stack, int argument_count) {
     CGameDataUsed *racer = GetOmakeGyoracer2(fish_num);
 
     if (racer == NULL) {
@@ -712,117 +813,3 @@ static void LoadGyorace() {
         interpreter.Run();
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", SelMax__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", SelData__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", SelText__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", SelHelp__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", LightSel__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", LightListNum__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1219__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1222__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1231__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1243__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1321__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1385__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1386__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1387__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1388__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1542__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_989__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_990__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_991__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_992__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_993__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_994__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_995__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_996__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_997__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_998__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_999__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1000__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1001__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1002__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1003__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1004__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1005__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1028__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1029__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1057__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1058__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1181__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1182__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1183__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1184__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1185__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1186__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1187__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1188__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1189__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1190__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1191__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1216__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1217__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1218__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1220__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1221__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1223__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1225__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1227__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1228__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1229__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1230__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1240__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1241__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1242__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1495__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1496__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1497__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1498__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1499__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1500__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1501__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1502__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1503__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1504__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1505__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1506__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1507__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1508__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1509__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1510__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1511__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1512__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1513__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1514__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1541__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1544__2__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", EventNo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1059__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1063__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1224__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editdebug", at_1226__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(EditDebugFlag, 0x4);
-INCLUDE_BSS(EditDebugTexb, 0x4);
-INCLUDE_BSS(Select, 0x4);
-INCLUDE_BSS(SelTAG, 0x4);
-INCLUDE_BSS(sg_type, 0x4);
-INCLUDE_BSS(map_jump, 0x4);
-INCLUDE_BSS(save_no, 0x4);
-INCLUDE_BSS(load_no, 0x4);
-INCLUDE_BSS(condition, 0x4);
-INCLUDE_BSS(map_flag_no, 0x4);
-INCLUDE_BSS(LEditFlag, 0x4);
-INCLUDE_BSS(LightType, 0x4);
-INCLUDE_BSS(DirLightNo, 0x4);
-INCLUDE_BSS(fish_num, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1237, 0x10);

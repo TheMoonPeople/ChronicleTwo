@@ -9,63 +9,160 @@
 #include "villagermngr.hpp"
 #include "vlgr_info.hpp"
 
-extern int                           PlaceInfoNum;
-extern CVillagerPlaceInfo           *PlaceInfo;
-extern int                           VlgrInfoNum;
-extern CVillagerInfo                *VlgrInfo;
-extern CVillagerPlace                VlgrPlace[VLGR_PLACE_MAX];
-extern mgCMemory                    *niStack;
-extern CVillagerPlace               *niVlgr;
-extern int                           niProgNum;
-extern int                           niProgTime;
-extern int                           niProgDupliID;
-extern int                           niProgCon;
-extern CVillagerPlace::ProgressInfo *niProgInfo;
-extern CVillagerPlace::ProgressInfo *niNowProgInfo;
-extern CVillagerPlaceInfo           *niPlaceInfo;
-extern int                           niPlaceInfoNum;
-extern int                           niVlgrInfoIdx;
-extern mgCMemory                    *vpiStack;
-extern CVillagerPlaceInfo           *vpiInfo;
-extern SPI_TAG_PARAM                 ni_tag[];
-extern SPI_TAG_PARAM                 tag__9[];
-extern SPI_TAG_PARAM                 gi_tag[];
-extern char                          at_214[];
-extern char                          at_250[];
-extern char                          at_351[];
-extern char                          at_352[];
-extern char                          at_353__2[];
-extern char                          at_354[];
-extern char                          at_355[];
-extern char                          at_356__2[];
-extern char                          at_357__2[];
-extern char                          at_358__3[];
-extern char                          at_359__2[];
-extern char                          at_364__2[];
-extern char                          at_365__2[];
-extern char                          at_366__2[];
-extern char                          at_367__2[];
-extern char                          at_368__3[];
-extern char                          at_369__5[];
-extern char                          at_370__4[];
-extern char                          at_371__3[];
-extern char                          at_372__3[];
-extern char                          at_373__4[];
-extern char                          at_374__3[];
-extern char                          at_439__2[];
-extern char                          at_450__2[];
-extern char                          at_495[];
-extern char                          at_496[];
-extern char                          at_497__2[];
-extern char                          at_498[];
-extern char                          at_509[];
-extern char                          at_555[];
-extern char                          at_556[];
-extern char                          at_557[];
-extern int                           ProgressNum;
-extern GAME_PROGRESS_INFO            ProgressInfo[GAME_PROGRESS_MAX];
-extern GAME_PROGRESS_INFO           *giGamePI;
-extern mgCMemory                    *giStack;
+/**
+ * Number of villager places in the loaded table.
+ */
+static int PlaceInfoNum;
+/**
+ * Loaded villager place records.
+ */
+static CVillagerPlaceInfo *PlaceInfo;
+/**
+ * Number of loaded villager model records.
+ */
+static int VlgrInfoNum;
+/**
+ * Loaded villager model and appearance records.
+ */
+static CVillagerInfo *VlgrInfo;
+/**
+ * Villager placement schedules indexed by villager number.
+ */
+CVillagerPlace VlgrPlace[VLGR_PLACE_MAX];
+/**
+ * Memory used to allocate villager schedule records.
+ */
+static mgCMemory *niStack;
+/**
+ * Villager schedule currently being parsed.
+ */
+static CVillagerPlace *niVlgr;
+/**
+ * Number of progress conditions in the current schedule.
+ */
+static int niProgNum;
+/**
+ * Progress-time state of the current schedule.
+ */
+static int niProgTime;
+/**
+ * Alternative placement selected by the current progress condition.
+ */
+static int niProgDupliID;
+/**
+ * Whether the current condition applies from its progress point onward.
+ */
+static int niProgCon;
+/**
+ * Temporary progress conditions for the current villager.
+ */
+static CVillagerPlace::ProgressInfo *niProgInfo;
+/**
+ * Progress condition currently being parsed.
+ */
+static CVillagerPlace::ProgressInfo *niNowProgInfo;
+/**
+ * Place records available to the schedule parser.
+ */
+static CVillagerPlaceInfo *niPlaceInfo;
+/**
+ * Number of places available to the schedule parser.
+ */
+static int niPlaceInfoNum;
+/**
+ * Next villager model record to fill.
+ */
+static int niVlgrInfoIdx;
+/**
+ * Memory used to allocate villager place records.
+ */
+static mgCMemory *vpiStack;
+/**
+ * Villager place currently being parsed.
+ */
+static CVillagerPlaceInfo *vpiInfo;
+/**
+ * Number of story progress points.
+ */
+static int ProgressNum;
+/**
+ * Story progress points loaded from the configuration script.
+ */
+GAME_PROGRESS_INFO ProgressInfo[GAME_PROGRESS_MAX];
+/**
+ * Story progress records available to the game-info parser.
+ */
+static GAME_PROGRESS_INFO *giGamePI;
+/**
+ * Memory used to allocate story progress names.
+ */
+static mgCMemory *giStack;
+
+static int niNPC(SPI_STACK *stack, int argument_count);
+static int niNPC_END(SPI_STACK *stack, int argument_count);
+static int niPROGRESS(SPI_STACK *stack, int argument_count);
+static int niPROGRESS_END(SPI_STACK *stack, int argument_count);
+static int niPLACE(SPI_STACK *stack, int argument_count);
+static int niNOON_PLACE(SPI_STACK *stack, int argument_count);
+static int niNIGHT_PLACE(SPI_STACK *stack, int argument_count);
+static int niNPC_INFO_NUM(SPI_STACK *stack, int argument_count);
+static int niNPC_INFO(SPI_STACK *stack, int argument_count);
+
+/**
+ * Tags accepted by the villager schedule and appearance parser.
+ */
+static SPI_TAG_PARAM ni_tag[] = {
+    {"NPC",          niNPC         },
+    {"NPC_END",      niNPC_END     },
+    {"PROGRESS",     niPROGRESS    },
+    {"PROGRESS_END", niPROGRESS_END},
+    {"PLACE",        niPLACE       },
+    {"NOON_PLACE",   niNOON_PLACE  },
+    {"NIGHT_PLACE",  niNIGHT_PLACE },
+    {"NPC_INFO_NUM", niNPC_INFO_NUM},
+    {"NPC_INFO",     niNPC_INFO    },
+    {NULL,           NULL          },
+};
+
+static int vpiNPC_PLACE_NUM(SPI_STACK *stack, int argument_count);
+static int vpiNPC_PLACE(SPI_STACK *stack, int argument_count);
+static int vpiNPC_PLACE_END(SPI_STACK *stack, int argument_count);
+static int vpiPLACE_POS(SPI_STACK *stack, int argument_count);
+static int vpiMOTION(SPI_STACK *stack, int argument_count);
+static int vpiMOVE_TO(SPI_STACK *stack, int argument_count);
+static int vpiWAIT(SPI_STACK *stack, int argument_count);
+static int vpiTALK_OFFSET(SPI_STACK *stack, int argument_count);
+static int vpiMOVE_MOTION(SPI_STACK *stack, int argument_count);
+static int vpiMOVE_SPEED(SPI_STACK *stack, int argument_count);
+static int vpiSHADOW(SPI_STACK *stack, int argument_count);
+
+/**
+ * Tags accepted by the villager place parser.
+ */
+static SPI_TAG_PARAM tag__9[] = {
+    {"NPC_PLACE_NUM", vpiNPC_PLACE_NUM},
+    {"NPC_PLACE",     vpiNPC_PLACE    },
+    {"NPC_PLACE_END", vpiNPC_PLACE_END},
+    {"PLACE_POS",     vpiPLACE_POS    },
+    {"MOTION",        vpiMOTION       },
+    {"MOVE_TO",       vpiMOVE_TO      },
+    {"WAIT",          vpiWAIT         },
+    {"TALK_OFFSET",   vpiTALK_OFFSET  },
+    {"MOVE_MOTION",   vpiMOVE_MOTION  },
+    {"MOVE_SPEED",    vpiMOVE_SPEED   },
+    {"SHADOW",        vpiSHADOW       },
+    {NULL,            NULL            },
+};
+
+static int giPROG_INFO(SPI_STACK *stack, int argument_count);
+
+/**
+ * Tags accepted by the story progress parser.
+ */
+static SPI_TAG_PARAM gi_tag[] = {
+    {"PROG_INFO", giPROG_INFO},
+    {NULL,        NULL       },
+};
 
 // Code (.text)
 CVillagerPlaceInfo *GetVlgrPlaceInfo(int index) {
@@ -123,7 +220,7 @@ int GetVillagerModelName(int villager_no, char *path) {
         return 0;
     }
 
-    sprintf(path, at_214, info->model_name);
+    sprintf(path, "chara/%s.chr", info->model_name);
     return 1;
 }
 
@@ -188,7 +285,7 @@ int niPROGRESS(SPI_STACK *stack, int argument_count) {
     niProgCon = 0;
     char *condition = spiGetStackString(stack);
 
-    if (condition != NULL && strcmp(condition, at_250) == 0) {
+    if (condition != NULL && strcmp(condition, "\x88\xC8\x8C\xE3") == 0) {
         niProgCon = 1;
     }
 
@@ -377,6 +474,7 @@ void LoadNPCInfo(char *script, int length, mgCMemory *memory) {
 }
 
 void LoadPlaceInfo(char *script, int length, mgCMemory *memory) {
+
     vpiStack = memory;
     vpiInfo = NULL;
     CScriptInterpreter interpreter;
@@ -405,8 +503,8 @@ int vpiNPC_PLACE_NUM(SPI_STACK *stack, int argc) {
         blocks = ((u32) count * sizeof(CVillagerPlaceInfo)) >> 4;
     }
 
-    void               *block = vpiStack->Alloc(blocks + 2);
-    CVillagerPlaceInfo *places = new ((u_long128 *) block) CVillagerPlaceInfo[count];
+    u_long128          *block = vpiStack->Alloc(blocks + 2);
+    CVillagerPlaceInfo *places = new (block) CVillagerPlaceInfo[count];
 
     if (places == NULL) {
         return 0;
@@ -504,7 +602,7 @@ int vpiWAIT(SPI_STACK *stack, int argc) {
     int   motion_end = 0;
 
     if (posture != NULL) {
-        if (strcmp(posture, at_439__2) == 0) {
+        if (strcmp(posture, "mtn") == 0) {
             motion_end = 1;
         }
     }
@@ -539,7 +637,7 @@ int vpiMOTION(SPI_STACK *stack, int argc) {
         return 1;
     }
 
-    if (strcmp(name, at_450__2) == 0) {
+    if (strcmp(name, "sit") == 0) {
         vpiInfo->motion = 4;
     }
 
@@ -620,23 +718,23 @@ int vpiGetMotionID(char *name) {
         return -1;
     }
 
-    if (strcmp(name, at_450__2) == 0) {
+    if (strcmp(name, "sit") == 0) {
         return 4;
     }
 
-    if (strcmp(name, at_495) == 0) {
+    if (strcmp(name, "stand") == 0) {
         return 0;
     }
 
-    if (strcmp(name, at_496) == 0) {
+    if (strcmp(name, "special") == 0) {
         return 8;
     }
 
-    if (strcmp(name, at_497__2) == 0) {
+    if (strcmp(name, "walk") == 0) {
         return 1;
     }
 
-    return (strcmp(name, at_498) == 0) ? 2 : -1;
+    return (strcmp(name, "run") == 0) ? 2 : -1;
 }
 
 /**
@@ -667,7 +765,7 @@ void LoadGameInfo(mgCMemory *memory) {
     int  script_size;
     char script[0x19000];
 
-    if (LoadFile2(at_555, script, &script_size, 0) == 0) {
+    if (LoadFile2("place.cfg", script, &script_size, 0) == 0) {
         return;
     }
 
@@ -680,7 +778,7 @@ void LoadGameInfo(mgCMemory *memory) {
         ProgressInfo[progress].order = 0;
     }
 
-    if (LoadFile2(at_556, script, &script_size, 0) == 0) {
+    if (LoadFile2("npc_place4.cfg", script, &script_size, 0) == 0) {
         return;
     }
 
@@ -692,7 +790,7 @@ void LoadGameInfo(mgCMemory *memory) {
     interpreter.SetScript(script, script_size);
     interpreter.Run();
     LoadNPCInfo(script, script_size, memory);
-    printf(at_557, memory->stack_size - memory->stack_used);
+    printf("rm %d\n", memory->stack_size - memory->stack_used);
 }
 
 GAME_PROGRESS_INFO *GetGameProgressInfo(int index) {
@@ -720,68 +818,3 @@ int GetGameProgressNum() {
 CVillagerPlace::CVillagerPlace() {
     memset(this, 0, sizeof(CVillagerPlace));
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", ni_tag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", tag__9__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", gi_tag__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_214__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_250__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_351__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_352__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_353__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_354__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_355__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_356__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_357__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_358__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_359__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_364__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_365__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_366__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_367__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_368__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_369__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_370__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_371__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_372__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_373__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_374__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_439__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_450__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_495__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_496__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_497__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_498__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_509__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_555__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_556__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/vlgr_info", at_557__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(PlaceInfoNum, 0x4);
-INCLUDE_BSS(PlaceInfo, 0x4);
-INCLUDE_BSS(VlgrInfoNum, 0x4);
-INCLUDE_BSS(VlgrInfo, 0x4);
-INCLUDE_BSS(ProgressNum, 0x4);
-INCLUDE_BSS(niStack, 0x4);
-INCLUDE_BSS(niVlgr, 0x4);
-INCLUDE_BSS(niProgNum, 0x4);
-INCLUDE_BSS(niProgTime, 0x4);
-INCLUDE_BSS(niProgDupliID, 0x4);
-INCLUDE_BSS(niProgCon, 0x4);
-INCLUDE_BSS(niProgInfo, 0x4);
-INCLUDE_BSS(niNowProgInfo, 0x4);
-INCLUDE_BSS(niPlaceInfo, 0x4);
-INCLUDE_BSS(niPlaceInfoNum, 0x4);
-INCLUDE_BSS(niVlgrInfoIdx, 0x4);
-INCLUDE_BSS(vpiStack, 0x4);
-INCLUDE_BSS(vpiInfo, 0x4);
-INCLUDE_BSS(giGamePI, 0x4);
-INCLUDE_BSS(giStack, 0x4);
-
-// Uninitialised data (.bss)
-CVillagerPlace VlgrPlace[VLGR_PLACE_MAX];
-INCLUDE_BSS(ProgressInfo, 0xC00);

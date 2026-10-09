@@ -12,25 +12,75 @@
 #include "ezmidi.hpp"
 #include "sound.hpp"
 
-extern int        bgm_info[2];
-extern MIDI_STATE midi_state;
-extern sceCslCtx  msinCtx;
+/**
+ *
+ * Stream format information returned by each EZBGM channel.
+ *
+ */
+static int bgm_info[2];
 
-#ifdef NONMATCHING
-static void         *iopMSINBuffAddr;                 /**< IOP destination of the MIDI stream buffers. */
-static int           bd_size_total;                   /**< Accumulated bank body size. */
-static sceCslBuffGrp msinBfGrp[2];                    /**< Input and output buffer groups of the MIDI stream module. */
-static sceCslBuffCtx msinBfCtx[MIDI_MSIN_PORT_COUNT]; /**< Contexts of the MIDI message buffers. */
-static MSIN_BUFFER   msinBf[MIDI_MSIN_PORT_COUNT];    /**< MIDI messages waiting to be sent to the IOP. */
-static MIDI_BANK     gBank;                           /**< Description of the bank being transferred. */
-#else
-extern void         *iopMSINBuffAddr;
-extern int           bd_size_total;
-extern sceCslBuffGrp msinBfGrp[2];
-extern sceCslBuffCtx msinBfCtx[MIDI_MSIN_PORT_COUNT];
-extern MSIN_BUFFER   msinBf[MIDI_MSIN_PORT_COUNT];
-extern MIDI_BANK     gBank;
-#endif
+/**
+ *
+ * Playback, bank allocation and fade state for all MIDI ports.
+ *
+ */
+static MIDI_STATE midi_state;
+
+/**
+ *
+ * MIDI stream input module context.
+ *
+ */
+static sceCslCtx msinCtx;
+
+/**
+ *
+ * IOP destination of the MIDI stream buffers.
+ *
+ */
+static void *iopMSINBuffAddr;
+
+/**
+ *
+ * Accumulated body size of the sound bank transfer.
+ *
+ */
+static int bd_size_total;
+
+/**
+ *
+ * Input and output groups of the MIDI stream module.
+ *
+ */
+static sceCslBuffGrp msinBfGrp[2];
+
+/**
+ *
+ * Contexts of the MIDI message buffers.
+ *
+ */
+static sceCslBuffCtx msinBfCtx[MIDI_MSIN_PORT_COUNT];
+
+/**
+ *
+ * MIDI message buffers transferred to the stream input module.
+ *
+ */
+static MSIN_BUFFER msinBf[MIDI_MSIN_PORT_COUNT];
+
+/**
+ *
+ * Sound bank descriptor submitted to the sequencer.
+ *
+ */
+static MIDI_BANK gBank;
+
+/**
+ *
+ * IOP staging area used to transfer sound banks.
+ *
+ */
+void *iop_bd_addr;
 
 // Code (.text)
 void CSound::StopVoice(int core) {
@@ -148,7 +198,6 @@ int TransHdBd(int hd, int hd_size, int bd, int bd_size) {
     return 0;
 }
 
-#ifdef NONMATCHING
 int CSound::Init(int mode0, int mode1, int depth0, int depth1) {
     static int load_m_flg = 0;
     int        port;
@@ -280,12 +329,12 @@ int CSound::Init(int mode0, int mode1, int depth0, int depth1) {
         midi_state.port[11].spu_address = midi_state.port[11].spu_next_address = 0x1A82E0;
         midi_state.port[0].unk_98 = 0x3040;
         midi_state.port[3].unk_98 = 0x3040;
-        midi_state.port[2].unk_98 = 0x3039;
-        midi_state.port[14].unk_98 = 0x3039;
         midi_state.port[10].unk_98 = 0x3037;
         midi_state.port[8].unk_98 = 0x3035;
         midi_state.port[1].unk_98 = 0x3032;
         midi_state.port[15].unk_98 = 0x3031;
+        midi_state.port[2].unk_98 = 0x3039;
+        midi_state.port[14].unk_98 = 0x3039;
         midi_state.port[13].unk_98 = 0x3036;
         midi_state.port[7].unk_98 = 0x3010;
         midi_state.port[9].unk_98 = 0x3038;
@@ -294,9 +343,6 @@ int CSound::Init(int mode0, int mode1, int depth0, int depth1) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/sound", Init__6CSoundFiiii);
-#endif
 
 int CSound::Exit() {
     int port;
@@ -852,48 +898,3 @@ void CSound::StreamStandBy(int channel) {
 int CSound::TransBdState(int channel) {
     return sceSdRemote(1, rSdVoiceTransStatus, channel, SD_TRANS_STATUS_CHECK);
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_218__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_278__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_279__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_280__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_281__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_282__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_283__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_474__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_475__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_476__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_477__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_564__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_595__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_613__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_728__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_733__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_843__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_883__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_884__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_904__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_905__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_906__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_907__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_908__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_929__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sound", at_930__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(iopMSINBuffAddr, 0x8);
-INCLUDE_BSS(bgm_info, 0x8);
-INCLUDE_BSS(iop_bd_addr, 0x4);
-INCLUDE_BSS(bd_size_total, 0x4);
-INCLUDE_BSS(load_m_flg_351, 0x4);
-INCLUDE_BSS(init_352, 0x4);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(msinCtx, 0x1C);
-INCLUDE_BSS(D_003F3F6C, 0x4);
-INCLUDE_BSS(msinBfGrp, 0x10);
-INCLUDE_BSS(msinBfCtx, 0x80);
-INCLUDE_BSS(msinBf, 0x1200);
-INCLUDE_BSS(gBank, 0x50);
-INCLUDE_BSS(midi_state, 0x1270);

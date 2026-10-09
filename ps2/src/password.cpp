@@ -20,8 +20,7 @@ static char txt_table__2[] = "0123456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQR
  *
  */
 // Small initialised data (.sdata)
-static unsigned int        random_seed = 1;
-extern const unsigned char at_211__DATA[];
+static unsigned int random_seed = 1;
 
 #pragma optimization_level 0
 // Code (.text)
@@ -139,7 +138,7 @@ int ConvertBinToTxt(u8 *data, int size, char *text) {
         group[11] = 0;
 
         if (ConvTxtToLong(group, &decoded) == 0 || packed.value != decoded) {
-            printf((const char *) at_211__DATA, packed.value);
+            printf("err %lu\n", packed.value);
             return -1;
         }
 
@@ -366,6 +365,3 @@ int DecodePassword(char *text, u8 *data, int size, u8 *key, int key_size) {
 }
 
 #pragma optimization_level reset
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/password", at_211__DATA);

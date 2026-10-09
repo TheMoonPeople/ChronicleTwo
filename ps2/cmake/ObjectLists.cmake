@@ -75,6 +75,8 @@ function(add_cpp_object obj src)
                 ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/mwccgap.sh
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/postprocess_object.py
+                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/objdiff_data.py
+                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/lcf.py
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/fixup_sections.sh
                 ${MWCCGAP_SOURCES}
                 ${SATANSFIDDLE_DEPENDENCIES}

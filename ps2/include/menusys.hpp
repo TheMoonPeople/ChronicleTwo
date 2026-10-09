@@ -29,6 +29,29 @@ enum MENU_SWAP_TYPE {
     MENU_SWAP_TYPE_ACTIVE_ESA = 10,
 };
 
+/**
+ *
+ * Weapon ability bits displayed by the item-menu status icons and debug labels.
+ *
+ */
+// clang-format off
+enum MENU_WEAPON_ABILITY {
+    MENU_WEAPON_ABILITY_RICH        = 0x001, /**< Rich ability flag. */
+    MENU_WEAPON_ABILITY_POOR        = 0x002, /**< Poor ability flag. */
+    MENU_WEAPON_ABILITY_POISON      = 0x004, /**< Poison ability flag. */
+    MENU_WEAPON_ABILITY_STOP        = 0x008, /**< Stop ability flag. */
+    MENU_WEAPON_ABILITY_STEAL       = 0x010, /**< Steal ability flag. */
+    MENU_WEAPON_ABILITY_BREAK_EASY  = 0x020, /**< Break easy ability flag. */
+    MENU_WEAPON_ABILITY_BREAK_HARD  = 0x040, /**< Break hard ability flag. */
+    MENU_WEAPON_ABILITY_DRAIN       = 0x080, /**< Drain ability flag. */
+    MENU_WEAPON_ABILITY_HEAL        = 0x100, /**< Heal ability flag. */
+    MENU_WEAPON_ABILITY_DARK        = 0x200, /**< Dark ability flag. */
+    MENU_WEAPON_ABILITY_CRITICAL    = 0x400, /**< Critical ability flag. */
+    MENU_WEAPON_ABILITY_ABS2        = 0x800, /**< ABS2 ability flag. */
+};
+
+// clang-format on
+
 class CActionChara;
 class CCharacter2;
 class CDC2Mes;
@@ -92,8 +115,8 @@ enum MENU_PUSH_BUTTON {
     MENU_PUSH_BUTTON_CANCEL   = 0x2,  /**< The button that cancels, which depends on the language. */
     MENU_PUSH_BUTTON_TRIANGLE = 0x4,  /**< The triangle button. */
     MENU_PUSH_BUTTON_SQUARE   = 0x8,  /**< The square button. */
-    MENU_PUSH_BUTTON_SELECT   = 0x10, /**< The select button. */
-    MENU_PUSH_BUTTON_START    = 0x20, /**< The start button. */
+    MENU_PUSH_BUTTON_START    = 0x10, /**< The start button. */
+    MENU_PUSH_BUTTON_SELECT   = 0x20, /**< The select button. */
     MENU_PUSH_BUTTON_R3       = 0x40, /**< The right stick button. */
     MENU_PUSH_BUTTON_L3       = 0x80, /**< The left stick button. */
 };
@@ -130,7 +153,7 @@ struct MENU_SWAPITEM_INFO {
      *
      * @mangled Set__18MENU_SWAPITEM_INFOFiiii
      * @address 0x23CAE0
-     * @size 0x20
+     * @size 0x14
      */
     void Set(int type, int no, int chara, int flag);
 };
@@ -204,7 +227,7 @@ struct MENU_ASKMODE_PARA {
      *
      * @mangled Initialize__17MENU_ASKMODE_PARAFv
      * @address 0x23CAA0
-     * @size 0x10
+     * @size 0xC
      */
     void Initialize();
 };
@@ -258,7 +281,7 @@ public:
      *
      * @mangled Initialize__15CMENU_USERPARAMFv
      * @address 0x23C9F0
-     * @size 0x20
+     * @size 0x1C
      */
     void Initialize();
 
@@ -268,7 +291,7 @@ public:
      *
      * @mangled AttachInfo__15CMENU_USERPARAMFv
      * @address 0x23CA10
-     * @size 0x90
+     * @size 0x88
      */
     void AttachInfo();
 };
@@ -337,7 +360,7 @@ public:
      *
      * @mangled IsCreateObject__14CBaseMenuClassFii
      * @address 0x1F3D00
-     * @size 0x10
+     * @size 0x8
      */
     virtual int IsCreateObject(int select_key, int push_button);
 
@@ -347,7 +370,7 @@ public:
      *
      * @mangled IsMakeObject__14CBaseMenuClassFii
      * @address 0x1F3D10
-     * @size 0x10
+     * @size 0x8
      */
     virtual int IsMakeObject(int select_key, int push_button);
 
@@ -357,7 +380,7 @@ public:
      *
      * @mangled IsAskExtend__14CBaseMenuClassFii
      * @address 0x1F3D20
-     * @size 0x10
+     * @size 0x8
      */
     virtual int IsAskExtend(int select_key, int push_button);
 
@@ -367,7 +390,7 @@ public:
      *
      * @mangled ItemCmdAfter__14CBaseMenuClassFiP16ITEMCMD_RET_PARA
      * @address 0x1F3D30
-     * @size 0x10
+     * @size 0x8
      */
     virtual int ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret);
 
@@ -377,7 +400,7 @@ public:
      *
      * @mangled InitEnd__14CBaseMenuClassFv
      * @address 0x1FF8D0
-     * @size 0x10
+     * @size 0x8
      */
     virtual void InitEnd();
 
@@ -387,7 +410,7 @@ public:
      *
      * @mangled ExitEnd__14CBaseMenuClassFv
      * @address 0x1F3D40
-     * @size 0x10
+     * @size 0x8
      */
     virtual void ExitEnd();
 
@@ -407,7 +430,7 @@ public:
      *
      * @mangled DeleteTexBlock__14CBaseMenuClassFv
      * @address 0x239640
-     * @size 0x10
+     * @size 0x8
      */
     void DeleteTexBlock();
 
@@ -417,7 +440,7 @@ public:
      *
      * @mangled MenuItemCommnadSelectPrepare__14CBaseMenuClassFP13CGameDataUsedii
      * @address 0x239650
-     * @size 0x80
+     * @size 0x7C
      */
     int MenuItemCommnadSelectPrepare(CGameDataUsed *item, int slot, int arg);
 
@@ -427,7 +450,7 @@ public:
      *
      * @mangled MenuItemMoveItemCommand__14CBaseMenuClassFP13CGameDataUsediiP16CMenuPosDataFormi
      * @address 0x2396D0
-     * @size 0x230
+     * @size 0x22C
      */
     int MenuItemMoveItemCommand(CGameDataUsed *item, int arg_pos, int mes_no, CMenuPosDataForm *form, int chara);
 
@@ -437,7 +460,7 @@ public:
      *
      * @mangled MenuItemCommandSelect__14CBaseMenuClassFii
      * @address 0x239900
-     * @size 0x1000
+     * @size 0xFF4
      */
     int MenuItemCommandSelect(int select_key, int push_button);
 
@@ -457,7 +480,7 @@ public:
      *
      * @mangled MenuItemAskMode_HowMuch__14CBaseMenuClassFii
      * @address 0x23AEF0
-     * @size 0x100
+     * @size 0xF8
      */
     void MenuItemAskMode_HowMuch(int select_key, int push_button);
 
@@ -467,7 +490,7 @@ public:
      *
      * @mangled CheckSpectolFusion__14CBaseMenuClassFP13CGameDataUsediP16CMenuPosDataForm
      * @address 0x23B0A0
-     * @size 0x280
+     * @size 0x278
      */
     int CheckSpectolFusion(CGameDataUsed *item, int panel, CMenuPosDataForm *form);
 
@@ -487,7 +510,7 @@ public:
      *
      * @mangled IsSpectolFusion__14CBaseMenuClassFii
      * @address 0x23B850
-     * @size 0x2D0
+     * @size 0x2C4
      */
     int IsSpectolFusion(int select_key, int command);
 
@@ -497,7 +520,7 @@ public:
      *
      * @mangled IsTrush__14CBaseMenuClassFii
      * @address 0x23BC10
-     * @size 0x200
+     * @size 0x1F8
      */
     int IsTrush(int select_key, int command);
 
@@ -507,7 +530,7 @@ public:
      *
      * @mangled IsItemUseNum__14CBaseMenuClassFiiiP13CGameDataUsedP14CItemUseTarget
      * @address 0x23BE10
-     * @size 0xB0
+     * @size 0xA4
      */
     int IsItemUseNum(int mes_no, int select_key, int push_button, CGameDataUsed *item, CItemUseTarget *target);
 
@@ -527,7 +550,7 @@ public:
      *
      * @mangled SetAskHowMuchItemNum__14CBaseMenuClassFP18MENU_SWAPITEM_INFOP13CGameDataUsed
      * @address 0x23C130
-     * @size 0xB0
+     * @size 0xAC
      */
     void SetAskHowMuchItemNum(MENU_SWAPITEM_INFO *info, CGameDataUsed *item);
 
@@ -537,7 +560,7 @@ public:
      *
      * @mangled SetAskParam__14CBaseMenuClassFP17MENU_ASKMODE_PARA
      * @address 0x23C1E0
-     * @size 0x190
+     * @size 0x188
      */
     void SetAskParam(MENU_ASKMODE_PARA *para);
 
@@ -547,7 +570,7 @@ public:
      *
      * @mangled ExeScript__14CBaseMenuClassFPc
      * @address 0x23C370
-     * @size 0x20
+     * @size 0x14
      */
     void ExeScript(char *script);
 
@@ -557,7 +580,7 @@ public:
      *
      * @mangled ExtendCommand__14CBaseMenuClassFii
      * @address 0x23C390
-     * @size 0x180
+     * @size 0x178
      */
     int ExtendCommand(int select_key, int command);
 
@@ -567,7 +590,7 @@ public:
      *
      * @mangled SelectMakeObject__14CBaseMenuClassFi
      * @address 0x23C510
-     * @size 0x120
+     * @size 0x118
      */
     int SelectMakeObject(int keys);
 
@@ -577,7 +600,7 @@ public:
      *
      * @mangled IsAskEnd__14CBaseMenuClassFiP16CMenuPosDataForm
      * @address 0x23C630
-     * @size 0x40
+     * @size 0x3C
      */
     void IsAskEnd(int se_no, CMenuPosDataForm *form);
 
@@ -587,7 +610,7 @@ public:
      *
      * @mangled FadeInMenu__14CBaseMenuClassFif
      * @address 0x23C670
-     * @size 0x30
+     * @size 0x2C
      */
     void FadeInMenu(int frames, float unused);
 
@@ -597,7 +620,7 @@ public:
      *
      * @mangled FadeOutMenu__14CBaseMenuClassFif
      * @address 0x23C6A0
-     * @size 0x40
+     * @size 0x38
      */
     void FadeOutMenu(int frames, float unused);
 
@@ -607,7 +630,7 @@ public:
      *
      * @mangled FadeCheckMenu__14CBaseMenuClassFv
      * @address 0x23C6E0
-     * @size 0x10
+     * @size 0xC
      */
     int FadeCheckMenu();
 
@@ -617,7 +640,7 @@ public:
      *
      * @mangled EffectDrawCheck__14CBaseMenuClassFP16CMenuPosDataForm
      * @address 0x247620
-     * @size 0x220
+     * @size 0x218
      */
     void EffectDrawCheck(CMenuPosDataForm *form);
 };
@@ -708,7 +731,7 @@ public:
      *
      * @mangled AttachFuncData__12CMenuKeyFuncFv
      * @address 0x23E1E0
-     * @size 0xB0
+     * @size 0xA8
      */
     void AttachFuncData();
 
@@ -718,7 +741,7 @@ public:
      *
      * @mangled GetActiveCharaNo__12CMenuKeyFuncFv
      * @address 0x23E290
-     * @size 0x10
+     * @size 0xC
      */
     int GetActiveCharaNo();
 
@@ -728,7 +751,7 @@ public:
      *
      * @mangled MenuPosStep__12CMenuKeyFuncFPiPi
      * @address 0x23E2A0
-     * @size 0x1E0
+     * @size 0x1DC
      */
     int MenuPosStep(int *pos, int *offset);
 
@@ -748,7 +771,7 @@ public:
      *
      * @mangled MenuPosStop__12CMenuKeyFuncFv
      * @address 0x23E4B0
-     * @size 0x20
+     * @size 0x18
      */
     void MenuPosStop();
 
@@ -758,7 +781,7 @@ public:
      *
      * @mangled MenuPosPlay__12CMenuKeyFuncFv
      * @address 0x23E4D0
-     * @size 0x20
+     * @size 0x14
      */
     void MenuPosPlay();
 
@@ -768,7 +791,7 @@ public:
      *
      * @mangled SetMoveMethod__12CMenuKeyFuncFi
      * @address 0x23E4F0
-     * @size 0x10
+     * @size 0xC
      */
     void SetMoveMethod(int method);
 
@@ -778,7 +801,7 @@ public:
      *
      * @mangled SetWakuMoveMethod__12CMenuKeyFuncFi
      * @address 0x23E500
-     * @size 0x10
+     * @size 0xC
      */
     void SetWakuMoveMethod(int method);
 
@@ -788,7 +811,7 @@ public:
      *
      * @mangled GetItemPos__12CMenuKeyFuncFPi
      * @address 0x23E510
-     * @size 0x20
+     * @size 0x18
      */
     void GetItemPos(int *pos);
 
@@ -798,7 +821,7 @@ public:
      *
      * @mangled SetWakuType__12CMenuKeyFuncFi
      * @address 0x23E530
-     * @size 0xB0
+     * @size 0xA4
      */
     void SetWakuType(int type);
 
@@ -808,7 +831,7 @@ public:
      *
      * @mangled SetWakuWH__12CMenuKeyFuncFiii
      * @address 0x23E5E0
-     * @size 0x80
+     * @size 0x7C
      */
     void SetWakuWH(int part, int width, int height);
 
@@ -818,7 +841,7 @@ public:
      *
      * @mangled SetVibeCnt__12CMenuKeyFuncFii
      * @address 0x23E660
-     * @size 0x50
+     * @size 0x44
      */
     void SetVibeCnt(int count0, int rate);
 
@@ -838,7 +861,7 @@ public:
      *
      * @mangled GetCursorPos__12CMenuKeyFuncFPi
      * @address 0x23E740
-     * @size 0x20
+     * @size 0x18
      */
     void GetCursorPos(int *pos);
 
@@ -855,7 +878,7 @@ public:
      *
      * @mangled CursorFadeIn__12CMenuKeyFuncFfi
      * @address 0x23E760
-     * @size 0x90
+     * @size 0x84
      */
     void CursorFadeIn(float speed, int steps);
 
@@ -865,7 +888,7 @@ public:
      *
      * @mangled CursorFadeOut__12CMenuKeyFuncFfi
      * @address 0x23E7F0
-     * @size 0x90
+     * @size 0x84
      */
     void CursorFadeOut(float speed, int steps);
 
@@ -875,7 +898,7 @@ public:
      *
      * @mangled EnableSwapNowPos__12CMenuKeyFuncFP18MENU_SWAPITEM_INFO
      * @address 0x23E880
-     * @size 0x630
+     * @size 0x628
      */
     int EnableSwapNowPos(MENU_SWAPITEM_INFO *swap);
 
@@ -885,7 +908,7 @@ public:
      *
      * @mangled GetItemAll__12CMenuKeyFuncFP13CGameDataUsedP18MENU_SWAPITEM_INFO
      * @address 0x23EEB0
-     * @size 0x90
+     * @size 0x88
      */
     int GetItemAll(CGameDataUsed *item, MENU_SWAPITEM_INFO *info);
 
@@ -905,7 +928,7 @@ public:
      *
      * @mangled CheckSelectKey__12CMenuKeyFuncFv
      * @address 0x2405D0
-     * @size 0xD0
+     * @size 0xC4
      */
     int CheckSelectKey();
 
@@ -925,7 +948,7 @@ public:
      *
      * @mangled CheckPushButton__12CMenuKeyFuncFv
      * @address 0x2408C0
-     * @size 0x40
+     * @size 0x3C
      */
     int CheckPushButton();
 
@@ -935,7 +958,7 @@ public:
      *
      * @mangled CheckAnalogKey__12CMenuKeyFuncFiPf
      * @address 0x240900
-     * @size 0x110
+     * @size 0x10C
      */
     float CheckAnalogKey(int stick, float *dir);
 
@@ -945,7 +968,7 @@ public:
      *
      * @mangled CheckKeyInput__12CMenuKeyFuncFv
      * @address 0x240A10
-     * @size 0x30
+     * @size 0x2C
      */
     u8 CheckKeyInput();
 
@@ -955,7 +978,7 @@ public:
      *
      * @mangled GetDebugInputKey__12CMenuKeyFuncFRiRi
      * @address 0x240A40
-     * @size 0x210
+     * @size 0x204
      */
     int GetDebugInputKey(int &held, int &pressed);
 
@@ -965,7 +988,7 @@ public:
      *
      * @mangled MenuSwapItem__12CMenuKeyFuncFP13CGameDataUsedP18MENU_SWAPITEM_INFOib
      * @address 0x240C50
-     * @size 0xE0
+     * @size 0xDC
      */
     int MenuSwapItem(CGameDataUsed *item, MENU_SWAPITEM_INFO *swap, int quantity, bool flag);
 
@@ -995,7 +1018,7 @@ public:
      *
      * @mangled SetHaveItemInfo__12CMenuKeyFuncFii
      * @address 0x240FF0
-     * @size 0x1B0
+     * @size 0x1A8
      */
     void SetHaveItemInfo(int visible, int detail);
 
@@ -1015,7 +1038,7 @@ public:
      *
      * @mangled menu_inputkey_limmit_check_glid__12CMenuKeyFuncFi
      * @address 0x241290
-     * @size 0x180
+     * @size 0x174
      */
     int menu_inputkey_limmit_check_glid(int select_key);
 
@@ -1025,7 +1048,7 @@ public:
      *
      * @mangled CheckMoveSelect__12CMenuKeyFuncFi
      * @address 0x241410
-     * @size 0x60
+     * @size 0x5C
      */
     int CheckMoveSelect(int arg);
 
@@ -1035,7 +1058,7 @@ public:
      *
      * @mangled FadeOutMenuBGMVol__12CMenuKeyFuncFii
      * @address 0x241470
-     * @size 0x70
+     * @size 0x68
      */
     void FadeOutMenuBGMVol(int arg, int value);
 
@@ -1045,7 +1068,7 @@ public:
      *
      * @mangled FadeInMenuBGMVol__12CMenuKeyFuncFi
      * @address 0x2414E0
-     * @size 0x20
+     * @size 0x18
      */
     void FadeInMenuBGMVol(int step);
 
@@ -1055,7 +1078,7 @@ public:
      *
      * @mangled StepMenuBGM__12CMenuKeyFuncFv
      * @address 0x241500
-     * @size 0xA0
+     * @size 0x9C
      */
     s16 StepMenuBGM();
 };
@@ -1065,12 +1088,26 @@ STATIC_ASSERT(sizeof(CMenuKeyFunc) == 0x160);
 
 /**
  *
+ * Pages of the item menu, as CMenuItemInfo::view_mode holds them.
+ *
+ */
+enum MENU_ITEM_VIEW {
+    MENU_ITEM_VIEW_MAX = 0,         /**< Max's equipment. */
+    MENU_ITEM_VIEW_MONICA = 1,      /**< Monica's equipment. */
+    MENU_ITEM_VIEW_WEAPON = 2,      /**< The weapon being viewed. */
+    MENU_ITEM_VIEW_ROBO = 3,        /**< The ridepod's parts. */
+    MENU_ITEM_VIEW_MONSTER = 4,     /**< The monster Monica has transformed into. */
+    MENU_ITEM_VIEW_FISHING_ROD = 5, /**< The fishing rod being viewed. */
+};
+
+/**
+ *
  * The item menu: the party's equipment, the inventory, the ridepod and monster forms, and the commands on items.
  *
  */
 class CMenuItemInfo : public CBaseMenuClass {
 public:
-    s16                 view_mode; /**< Page that is shown: a character, the ridepod or a monster form. */
+    s16                 view_mode; /**< Page that is shown. @see MENU_ITEM_VIEW */
     s16                 unk_112;
     s16                 sub_view;     /**< Sub-page that is shown within the page. */
     s16                 view_chara;   /**< Character whose model is shown. */
@@ -1123,7 +1160,7 @@ public:
      *
      * @mangled IsAskExtend__13CMenuItemInfoFii
      * @address 0x2444C0
-     * @size 0xA70
+     * @size 0xA68
      */
     virtual int IsAskExtend(int select_key, int push_button);
 
@@ -1133,7 +1170,7 @@ public:
      *
      * @mangled ItemCmdAfter__13CMenuItemInfoFiP16ITEMCMD_RET_PARA
      * @address 0x2432E0
-     * @size 0x11E0
+     * @size 0x11D8
      */
     virtual int ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret);
 
@@ -1143,7 +1180,7 @@ public:
      *
      * @mangled ExitEnd__13CMenuItemInfoFv
      * @address 0x245730
-     * @size 0x340
+     * @size 0x334
      */
     virtual void ExitEnd();
 
@@ -1153,7 +1190,7 @@ public:
      *
      * @mangled Initialize__13CMenuItemInfoFv
      * @address 0x2421A0
-     * @size 0xF0
+     * @size 0xEC
      */
     void Initialize();
 
@@ -1163,7 +1200,7 @@ public:
      *
      * @mangled SetEquipListNo__13CMenuItemInfoFi
      * @address 0x242290
-     * @size 0xD0
+     * @size 0xCC
      */
     void SetEquipListNo(int list_no);
 
@@ -1193,7 +1230,7 @@ public:
      *
      * @mangled SearchNowPosItemExist__13CMenuItemInfoFv
      * @address 0x2425C0
-     * @size 0x160
+     * @size 0x154
      */
     CGameDataUsed *SearchNowPosItemExist();
 
@@ -1203,7 +1240,7 @@ public:
      *
      * @mangled IsCancelNoneLoadItem__13CMenuItemInfoFv
      * @address 0x242720
-     * @size 0x180
+     * @size 0x17C
      */
     void IsCancelNoneLoadItem();
 
@@ -1233,7 +1270,7 @@ public:
      *
      * @mangled CheckViewWeaponStatus__13CMenuItemInfoFi
      * @address 0x242BC0
-     * @size 0x60
+     * @size 0x5C
      */
     void CheckViewWeaponStatus(int revert);
 
@@ -1243,7 +1280,7 @@ public:
      *
      * @mangled ReturnActiveCharaViewMode__13CMenuItemInfoFi
      * @address 0x242C20
-     * @size 0x160
+     * @size 0x154
      */
     int ReturnActiveCharaViewMode(int mode);
 
@@ -1253,7 +1290,7 @@ public:
      *
      * @mangled NextModeBuildUpInfo__13CMenuItemInfoFP13CGameDataUsed
      * @address 0x242D80
-     * @size 0x1D0
+     * @size 0x1CC
      */
     void NextModeBuildUpInfo(CGameDataUsed *weapon);
 
@@ -1263,7 +1300,7 @@ public:
      *
      * @mangled EquipDirect__13CMenuItemInfoFiP13CGameDataUsedRi
      * @address 0x242F50
-     * @size 0x2D0
+     * @size 0x2CC
      */
     int EquipDirect(int chara, CGameDataUsed *item, int &slot);
 
@@ -1273,7 +1310,7 @@ public:
      *
      * @mangled CheckLoadInfo__13CMenuItemInfoFi
      * @address 0x243220
-     * @size 0xC0
+     * @size 0xB8
      */
     void CheckLoadInfo(int chara);
 
@@ -1283,7 +1320,7 @@ public:
      *
      * @mangled EnterDataMenu__13CMenuItemInfoFPUi
      * @address 0x2454E0
-     * @size 0x180
+     * @size 0x174
      */
     void EnterDataMenu(unsigned int *pack);
 
@@ -1293,7 +1330,7 @@ public:
      *
      * @mangled GetActiveCharaIDForItemCmd__13CMenuItemInfoFv
      * @address 0x245660
-     * @size 0x80
+     * @size 0x78
      */
     int GetActiveCharaIDForItemCmd();
 
@@ -1303,7 +1340,7 @@ public:
      *
      * @mangled GetActiveCharaNo__13CMenuItemInfoFv
      * @address 0x2456E0
-     * @size 0x50
+     * @size 0x4C
      */
     int GetActiveCharaNo();
 
@@ -1313,7 +1350,7 @@ public:
      *
      * @mangled AttachFormInfo__13CMenuItemInfoFv
      * @address 0x245A70
-     * @size 0x450
+     * @size 0x444
      */
     void AttachFormInfo();
 
@@ -1323,7 +1360,7 @@ public:
      *
      * @mangled MenuModeMalloc__13CMenuItemInfoFP9mgCMemory
      * @address 0x245EC0
-     * @size 0x3C0
+     * @size 0x3B8
      */
     void MenuModeMalloc(mgCMemory *stack);
 
@@ -1333,7 +1370,7 @@ public:
      *
      * @mangled CalcTex__13CMenuItemInfoFv
      * @address 0x246280
-     * @size 0xD00
+     * @size 0xCF8
      */
     void CalcTex();
 
@@ -1343,7 +1380,7 @@ public:
      *
      * @mangled CalcCursorPosition__13CMenuItemInfoFv
      * @address 0x246F80
-     * @size 0x6A0
+     * @size 0x698
      */
     void CalcCursorPosition();
 
@@ -1353,7 +1390,7 @@ public:
      *
      * @mangled PushKey__13CMenuItemInfoFii
      * @address 0x24A890
-     * @size 0x1BA0
+     * @size 0x1B94
      */
     int PushKey(int pad, int trigger);
 
@@ -1363,7 +1400,7 @@ public:
      *
      * @mangled CheckLoadItemNo__13CMenuItemInfoFv
      * @address 0x24EA00
-     * @size 0x80
+     * @size 0x7C
      */
     void CheckLoadItemNo();
 
@@ -1373,7 +1410,7 @@ public:
      *
      * @mangled ModelReadStart__13CMenuItemInfoFiii
      * @address 0x24EA80
-     * @size 0x440
+     * @size 0x434
      */
     int ModelReadStart(int mode, int check_item, int restart_read);
 
@@ -1383,7 +1420,7 @@ public:
      *
      * @mangled WeaponBuildCheck__13CMenuItemInfoFP12CActionCharaii
      * @address 0x24EEC0
-     * @size 0x210
+     * @size 0x204
      */
     void WeaponBuildCheck(CActionChara *chara, int chara_no, int tex_block);
 
@@ -1393,7 +1430,7 @@ public:
      *
      * @mangled ModelReadEndCheck__13CMenuItemInfoFv
      * @address 0x24F0D0
-     * @size 0x4D0
+     * @size 0x4CC
      */
     int ModelReadEndCheck();
 
@@ -1413,7 +1450,7 @@ public:
      *
      * @mangled SetItemEffect__13CMenuItemInfoFv
      * @address 0x24F740
-     * @size 0x410
+     * @size 0x40C
      */
     void SetItemEffect();
 
@@ -1443,7 +1480,7 @@ public:
      *
      * @mangled KeyStep__13CMenuItemInfoFv
      * @address 0x2509E0
-     * @size 0x5D0
+     * @size 0x5CC
      */
     int KeyStep();
 };
@@ -1488,7 +1525,7 @@ public:
      *
      * @mangled SetPtrList__11CItemSelectFv
      * @address 0x251780
-     * @size 0x160
+     * @size 0x15C
      */
     void SetPtrList();
 
@@ -1498,7 +1535,7 @@ public:
      *
      * @mangled GetExistThisPosData__11CItemSelectFi
      * @address 0x2518E0
-     * @size 0x40
+     * @size 0x38
      */
     CGameDataUsed *GetExistThisPosData(int pos);
 
@@ -1508,7 +1545,7 @@ public:
      *
      * @mangled CheckUse__11CItemSelectFP13CGameDataUsed
      * @address 0x251920
-     * @size 0x80
+     * @size 0x7C
      */
     void CheckUse(CGameDataUsed *item);
 
@@ -1518,7 +1555,7 @@ public:
      *
      * @mangled KeyStep__11CItemSelectFv
      * @address 0x2519A0
-     * @size 0x530
+     * @size 0x524
      */
     int KeyStep();
 
@@ -1528,7 +1565,7 @@ public:
      *
      * @mangled Draw__11CItemSelectFv
      * @address 0x251ED0
-     * @size 0xA10
+     * @size 0xA04
      */
     void Draw();
 };
@@ -1579,7 +1616,7 @@ STATIC_ASSERT(sizeof(BUILDUP_WEAPON_INFO) == 0x44);
  *
  * @mangled CheckEquipFishRod__FP13CGameDataUsed
  * @address 0x23B3D0
- * @size 0x70
+ * @size 0x6C
  */
 int CheckEquipFishRod(CGameDataUsed *item);
 
@@ -1589,7 +1626,7 @@ int CheckEquipFishRod(CGameDataUsed *item);
  *
  * @mangled IsDispTrushCommand__FP13CGameDataUsed
  * @address 0x23BB20
- * @size 0xF0
+ * @size 0xE8
  */
 int IsDispTrushCommand(CGameDataUsed *item);
 
@@ -1599,7 +1636,7 @@ int IsDispTrushCommand(CGameDataUsed *item);
  *
  * @mangled SetPreCmdTrush__FP14CBaseMenuClassiP13CGameDataUsedP16CMenuPosDataForm
  * @address 0x23C6F0
- * @size 0x130
+ * @size 0x128
  */
 void SetPreCmdTrush(CBaseMenuClass *menu, int panel, CGameDataUsed *item, CMenuPosDataForm *form);
 
@@ -1609,7 +1646,7 @@ void SetPreCmdTrush(CBaseMenuClass *menu, int panel, CGameDataUsed *item, CMenuP
  *
  * @mangled SetPreCmdSpectolBreak__FP14CBaseMenuClassiP16CMenuPosDataFormP13CGameDataUsedP13CGameDataUsed
  * @address 0x23C820
- * @size 0xE0
+ * @size 0xDC
  */
 void SetPreCmdSpectolBreak(CBaseMenuClass *menu, int panel, CMenuPosDataForm *form, CGameDataUsed *item,
                            CGameDataUsed *target);
@@ -1620,7 +1657,7 @@ void SetPreCmdSpectolBreak(CBaseMenuClass *menu, int panel, CMenuPosDataForm *fo
  *
  * @mangled SetPreCmdGiftBoxSelect__FP14CBaseMenuClassP13CGameDataUsed
  * @address 0x23C900
- * @size 0x60
+ * @size 0x58
  */
 void SetPreCmdGiftBoxSelect(CBaseMenuClass *menu, CGameDataUsed *item);
 
@@ -1630,7 +1667,7 @@ void SetPreCmdGiftBoxSelect(CBaseMenuClass *menu, CGameDataUsed *item);
  *
  * @mangled IsEnableChangeRoboParts__FP13CGameDataUsed
  * @address 0x23CB00
- * @size 0x140
+ * @size 0x134
  */
 int IsEnableChangeRoboParts(CGameDataUsed *part);
 
@@ -1640,7 +1677,7 @@ int IsEnableChangeRoboParts(CGameDataUsed *part);
  *
  * @mangled SetSpectolInfo__FP13CGameDataUsedP13CGameDataUsed
  * @address 0x23CC40
- * @size 0x10
+ * @size 0xC
  */
 void SetSpectolInfo(CGameDataUsed *item, CGameDataUsed *part);
 
@@ -1650,7 +1687,7 @@ void SetSpectolInfo(CGameDataUsed *item, CGameDataUsed *part);
  *
  * @mangled FusionColor__FiiPf
  * @address 0x23CF40
- * @size 0x210
+ * @size 0x20C
  */
 void FusionColor(int type, int step, float *color);
 
@@ -1660,7 +1697,7 @@ void FusionColor(int type, int step, float *color);
  *
  * @mangled CheckNowRoboUseCapacity__FPi
  * @address 0x23D460
- * @size 0x70
+ * @size 0x68
  */
 int CheckNowRoboUseCapacity(int *capacity);
 
@@ -1670,7 +1707,7 @@ int CheckNowRoboUseCapacity(int *capacity);
  *
  * @mangled ExchangeItemInfoMake__FP18MENU_SWAPITEM_INFOPA4_iii
  * @address 0x23D4D0
- * @size 0x110
+ * @size 0x10C
  */
 int ExchangeItemInfoMake(MENU_SWAPITEM_INFO *info, int (*row)[4], int mode, int is_equip);
 
@@ -1690,7 +1727,7 @@ void MenuCheckLine(int *top_line, int cursor, int visible_rows);
  *
  * @mangled MenuKeySelectCheck__FiPiPiiiii
  * @address 0x23D630
- * @size 0x180
+ * @size 0x178
  */
 int MenuKeySelectCheck(int step, int *cursor, int *scroll, int min, int max, int visible, int mode);
 
@@ -1700,7 +1737,7 @@ int MenuKeySelectCheck(int step, int *cursor, int *scroll, int min, int max, int
  *
  * @mangled MenuListKeyCheck__FiPiPiiiii
  * @address 0x23D7B0
- * @size 0x100
+ * @size 0xFC
  */
 int MenuListKeyCheck(int keys, int *cursor, int *top_line, int count, int visible_rows, int key_pair, int wrap_kind);
 
@@ -1710,7 +1747,7 @@ int MenuListKeyCheck(int keys, int *cursor, int *top_line, int count, int visibl
  *
  * @mangled MenuGlidKeyCheck__FiPiPiPiPiPii
  * @address 0x23D8B0
- * @size 0x300
+ * @size 0x2F4
  */
 int MenuGlidKeyCheck(int select_key, int *pos, int *top_line, int *size, int *disp, int *limit, int max);
 
@@ -1740,7 +1777,7 @@ int MenuItemBrdKey(int keys, int *cursor, int *scroll, int board);
  *
  * @mangled MenuCheckPushButton__Fv
  * @address 0x240750
- * @size 0x130
+ * @size 0x124
  */
 int MenuCheckPushButton();
 
@@ -1750,7 +1787,7 @@ int MenuCheckPushButton();
  *
  * @mangled ConvertCheckPushButton__Fi
  * @address 0x240880
- * @size 0x40
+ * @size 0x34
  */
 int ConvertCheckPushButton(int buttons);
 
@@ -1770,7 +1807,7 @@ CGameDataUsed *GetGameDataUsedForSWAPINFO(MENU_SWAPITEM_INFO *info);
  *
  * @mangled CheckEnableHaveItemNum__Fv
  * @address 0x2415A0
- * @size 0x350
+ * @size 0x34C
  */
 void CheckEnableHaveItemNum();
 
@@ -1780,7 +1817,7 @@ void CheckEnableHaveItemNum();
  *
  * @mangled MenuMoveItemPos__FPiPii
  * @address 0x244F30
- * @size 0x1D0
+ * @size 0x1CC
  */
 void MenuMoveItemPos(int *item, int *pos, int phase);
 
@@ -1790,7 +1827,7 @@ void MenuMoveItemPos(int *item, int *pos, int phase);
  *
  * @mangled CommonSetMoveItemClass__FPA4_i
  * @address 0x245100
- * @size 0x3E0
+ * @size 0x3D8
  */
 void CommonSetMoveItemClass(int (*table)[4]);
 
@@ -1800,7 +1837,7 @@ void CommonSetMoveItemClass(int (*table)[4]);
  *
  * @mangled MenuItemInit__FP9mgCMemoryPii
  * @address 0x247840
- * @size 0x5D0
+ * @size 0x5C4
  */
 int MenuItemInit(mgCMemory *stack, int *tex_block, int mode);
 
@@ -1810,7 +1847,7 @@ int MenuItemInit(mgCMemory *stack, int *tex_block, int mode);
  *
  * @mangled CheckBuildUp__FP13CGameDataUsedPiPiPi
  * @address 0x24D1C0
- * @size 0x30
+ * @size 0x2C
  */
 int CheckBuildUp(CGameDataUsed *weapon, int *result0, int *result1, int *result2);
 
@@ -1840,7 +1877,7 @@ void MenuWeaponBuildUpDraw(int &tex_block);
  *
  * @mangled MenuCharaStatusDraw__FRi
  * @address 0x24FFF0
- * @size 0x290
+ * @size 0x28C
  */
 void MenuCharaStatusDraw(int &tex_block);
 
@@ -1850,7 +1887,7 @@ void MenuCharaStatusDraw(int &tex_block);
  *
  * @mangled MenuItemInfoCursorDraw__FRi
  * @address 0x250280
- * @size 0x530
+ * @size 0x524
  */
 void MenuItemInfoCursorDraw(int &tex_block);
 
@@ -1880,7 +1917,7 @@ void MenuItemDraw();
  *
  * @mangled MenuItemSelectInit__FP9mgCMemoryPii
  * @address 0x2528E0
- * @size 0x290
+ * @size 0x288
  */
 void MenuItemSelectInit(mgCMemory *stack, int *tex_block, int mode);
 
@@ -1890,7 +1927,7 @@ void MenuItemSelectInit(mgCMemory *stack, int *tex_block, int mode);
  *
  * @mangled MenuItemSelectKey__Fv
  * @address 0x252B70
- * @size 0x30
+ * @size 0x28
  */
 int MenuItemSelectKey();
 
@@ -1900,7 +1937,7 @@ int MenuItemSelectKey();
  *
  * @mangled MenuItemSelectDraw__Fv
  * @address 0x252BA0
- * @size 0x150
+ * @size 0x144
  */
 void MenuItemSelectDraw();
 
@@ -1944,7 +1981,7 @@ extern int MenuItemCommandDir;
 extern float trans_spectol_cnt;
 
 /** Non-zero while the shown character model turns. */
-extern u8 itemmenu_chr_rotflag;
+extern s8 itemmenu_chr_rotflag;
 
 /** Texture of the weapon build-up board. */
 extern mgCTexture *Tex_BuildUpBoard;
