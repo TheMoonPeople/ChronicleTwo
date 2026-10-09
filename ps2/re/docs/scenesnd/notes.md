@@ -9,17 +9,23 @@ should include this header rather than redefine it), `SND_FILE_INFO`, `SND_REV_I
 InScreenCharaInfo and SYSTEM_SCRIPT_INFO are ours. No first-game counterpart.
 
 Non-members `GetNumber3__FPci` and `GetLine__FPPcPcPc__2` are LOCAL (local_symbols.tsv): static in
-the .cpp. No global data: every datum is an `at_*` literal ("snd2/bgm/BG_%s...", "snd2/ob/OB_%s",
-"snd2/env/SR_%s", "snd2/bs/BS_%s", "snd2/fg/FG_%s", "snd2/event/EV_%s_%s", "load sound %d\n",
-"Reverb %d %d\n", at_1766 = SJIS "時間変化" (time change) prefix, at_1615 = "\r\n").
+the .cpp. No file-scope data: every datum is an inline literal at its use ("snd2/bgm/BG_%s...",
+"snd2/ob/OB_%s", "snd2/env/SR_%s", "snd2/bs/BS_%s", "snd2/fg/FG_%s", "snd2/event/EV_%s_%s",
+"load sound %d\n", "Reverb %d %d\n"). `LoadSndFileInfo` compares the Shift-JIS "時間変化*" (time
+change) prefix, trailing `*` included, written with hexadecimal byte escapes. `GetLine` holds the
+line terminator as a two-byte `LineBreakPair` initialised `{'\r', '\n'}` with no NUL terminator;
+MWCC emits the two-byte object with six bytes of padding.
+
+## Status
+All 71 functions are native C++; the unit has no `INCLUDE_ASM`, `INCLUDE_RODATA` or `INCLUDE_BSS`
+markers and all 260 data bytes are owned by the source.
 
 ## CScene size / vtable
 - Size 0x10550: `MainScene` symbol size. Construction is inline (`__sinit_mainloop_cpp`, also
   menuchr MenuItemCharaDataLoadEndCheckAfter): sub-object Initialize loops give every array base.
 - `__vt__6CScene` (0xC) = {0, 0, Initialize}; vptr at +0x10548 (MWCC puts it after the members).
   `InitAllData` calls it through the vtable. Only virtual: `Initialize()`.
-- During writing, every member offset listed below was checked with temporary offsetof asserts
-  (all passed; removed afterwards). Explicit `unk_` pads are at 0x23CC, 0x2CA4, 0x2F7C, 0x3044,
+- Explicit `unk_` pads are at 0x23CC, 0x2CA4, 0x2F7C, 0x3044,
   0x3F0C (after CThunderEffect, assumed 0x9C as water.hpp declares; nothing touches
   0x3F0C..0x405F), 0x9078, 0x99C4, 0xA048, 0xC4D8.
 
@@ -60,7 +66,7 @@ the .cpp. No global data: every datum is an `at_*` literal ("snd2/bgm/BG_%s...",
 | 0x9080 | BGM_INFO bgm[2] (stride 0x460) | InitSnd loop; ports [0]=0 (SND_PORT_BGM), [1]=0xB (SND_PORT_BGM2) |
 | 0x9940 | bgm_no | GetActiveBgmInfo |
 | 0x9944/0x9984 | se_src_id[16] / se_src_no[16] | InitSeSrc, LoadSeSrcPack, GetSeSrcID |
-| 0x99D0/0x9DD0 | se_src_buff (0x40 qw) / stack | InitSeSrc stSetBuffer(…, 0x40), port 1 (OB) |
+| 0x99D0/0x9DD0 | se_src_buff (0x40 qw) / stack | InitSeSrc stSetBuffer(..., 0x40), port 1 (OB) |
 | 0x9E00 | SE_SRC_PLAY_INFO[4] (0x88) | PlaySeSrc, PrePlaySeSrc, StepSnd |
 | 0xA020/0xA030 | se_src_play_no[4] / flag[4] | check_se_play, StepSnd |
 | 0xA040/44, 0xA050, 0xA450 | env id / no, buff (0x40 qw), stack | InitSeEnv, LoadSeEnvPack (port 2) |
@@ -77,36 +83,21 @@ source tables, attaches the source stack to its buffer, starts ports 4 and 1,
 clears the four active playback slots, and queues source effects for playback.
 MWCC unrolls the table loop eight entries at a time.
 
-The ID table at +0x9944 holds unsigned packed sound IDs; the bank-number table
-at +0x9984 holds signed numbers with -1 marking an empty slot. The matched
-`LoadSeSrcPack__6CSceneFiPUi` stores the unsigned return value of
-`sndLoadSound__FiPUiP9mgCMemory` directly into the ID table, while its free-slot
-search uses a signed word load and `bgez` on the number table. Both tables
-have four-byte elements; `GetSeSrcID__6CSceneFi` indexes them separately.
-The sound manager represents IDs as a port byte, bank byte, and effect
-halfword. Its unsigned return declaration is in `snd_mngr.hpp`; returning
-an ID through the existing signed `GetSeSrcID` signature preserves its bits.
+The ID table at +0x9944 (`se_src_id`) is `u32[16]` and holds packed sound IDs
+(port byte, bank byte, effect halfword; `sndLoadSound` returns `unsigned int`);
+the bank-number table at +0x9984 (`se_src_no`) is `s32[16]` with -1 marking an
+empty slot. `LoadSeSrcPack` stores the unsigned `sndLoadSound` result directly
+into the ID table and searches for a free slot with a signed load and `bgez` on
+the number table. Returning an ID through the signed `GetSeSrcID` signature
+preserves its bits.
 
-With `se_src_id` declared `u32[16]` and `se_src_no` retained as `s32[16]`, the
-existing C++ body matches all 110 retail instruction words, and all 71
-scenesnd functions match. No layout, call ordering, or loop-body changes are
-needed.
-
-When both tables are signed, 39 words differ solely through the loop register
-permutation: retail uses `v1` for the count, `a0` for the byte offset, `a1` for
-the scene-relative base, and `a2` for -1; the signed-table draft uses `a0`,
-`a1`, `a2`, and `v1`, respectively. Casting the sentinel RHS to `u32` does not
-fix that permutation when the destination remains signed. Named sentinel
-locals, earlier index declarations, index reuse between loops, nested table
-grouping, and explicit playback-slot clearing also preserve the mismatch.
-Initializing the index across stop calls adds a saved register; local table
-pointers change the addressing, and separate table loops are not fused.
-Explicit eight-entry unrolling, separate count and array indices, array
-references, chained assignments, unsigned indices, and equivalent loop forms
-also do not reproduce retail with signed destinations.
-
-`CScene` and these fields are declared in `scenesnd.hpp`. With the unsigned
-ID table, `InitSeSrc` is active matching C++.
+The unsigned ID table is what the match depends on. With both tables signed,
+39 words differ purely through the loop register permutation: retail uses `v1`
+for the count, `a0` for the byte offset, `a1` for the scene-relative base and
+`a2` for -1, while the signed form colours them `a0`, `a1`, `a2`, `v1`.
+Casting the sentinel RHS to `u32`, named sentinel locals, index reuse, local
+table pointers, explicit unrolling or separate loops do not change that
+permutation while the destination stays signed.
 
 Accesses at +0xA46C/+0xA474 (LoadSeEnvPack) and BGM_INFO +0x44C/+0x454 (LoadBGMPack,
 `piVar1[0x113]`/`[0x115]`) are `mgCMemory::lock` / `stack_used` of the embedded stacks, not
@@ -119,11 +110,9 @@ separate fields.
   +0x18 fade_volf, +0x1C fade_speed (FadeIn/FadeOut/StepSnd), +0x20 play_no, +0x24 time_vol
   (AutoChangeBGMVol; StepSnd uses GetTimeBgmVolf), +0x30 buff (stSetBuffer size 0x40), +0x430 mgCMemory.
 - BGM_STATUS (0x1C): +0 GetBGMState(), +4 = info+8 load_no, +8 = info+0x20 play_no, +0xC, +0x10,
-  +0x14, +0x18 = info+0x24. The previous header's "+4 music_no / +8 unk" was corrected (+4 is the
-  loaded number, which menushop/event_func read as "bgm number"). mapjump's OldBgmStatus symbol
-  is 0x20 (alignment padding of the global).
-  `CScene::GetActiveBgmStatus` reads these members through `this`; removing a cast of that
-  pointer leaves the PAL object unchanged.
+  +0x14, +0x18 = info+0x24. +4 is the loaded number, which menushop/event_func read as the "bgm
+  number". mapjump's OldBgmStatus symbol is 0x20 (alignment padding of the global).
+  `CScene::GetActiveBgmStatus` reads these members through `this` without a cast.
 - SND_FILE_INFO columns (LoadSndFileInfo): id; 'B' -> bgm_no; 'B' -> se_base; 'F' -> se_battle;
   'S' -> se_env; 'S'(+7) -> env_bgm with env_vol 0, or "時間変化<f>" -> env_bgm -1 and env_vol
   f*127 clamped; up to 6 'O' columns -> se_src (8 slots init -1; '*' sets se_src[0] = 9999);
@@ -163,19 +152,17 @@ CheckLoad*/IsActive/DeleteSky/CheckDrawChara/GetNowVillagerTime return compare r
 `InScreenFunc` returns `CFuncPoint *` (a function-local static `sun_func`, 0x1C0, or NULL).
 `monster.hpp` can now declare `int CheckPhoto(CScene::InScreenCharaInfo *)` by including this header.
 
-## PlayBGM draft
-`PlayBGM` consumes `skip_play_bgm` once. It stops the previous play number when changing songs, resolves a negative requested volume from the bank default, clamps a negative limited volume to 1, starts the sound at voice 0, and clears `time_vol`. The guarded C++ draft compiles; isolated comparison differs, so the retail assembly remains active.
+## PlayBGM
+`PlayBGM` consumes `skip_play_bgm` once. It stops the previous play number when changing songs,
+resolves a negative requested volume from the bank default, clamps a negative limited volume to 1,
+starts the sound at voice 0, and clears `time_vol`.
 
-## Deterministic floating-point compilation
+## Float constant materialisation order
 
-`SePlayFoot__6CSceneFiiPf` at `0x002AC5D0` materializes the far distance
-`1200.0f` before the near distance `160.0f` for `sndGetVolPan`. With MWCC
-3.0-011126 and `-O3,p`, Satan's Fiddle's default false evaluation flag reverses
-that order. The JSON profile selects this function's binary32 `0x44960000`
-constant and sets `evaluate_first` to true; the other constants retain the
-default. The selector covers every occurrence of that identity without an
-occurrence number or instruction address.
-
-After both mwccgap passes and the normal section fixup, the complete unit
-passes the retail checker: `0x2CB4` initialized bytes and 241 relocations. This was
-rechecked after enabling the call-argument consumer hook.
+`SePlayFoot__6CSceneFiiPf` at `0x002AC5D0` materialises the far distance `1200.0f`
+before the near distance `160.0f` for `sndGetVolPan`. Plain MWCC 3.0-011126 `-O3,p`
+evaluates them in the opposite order; the build profile marks the binary32 constant
+`0x44960000` in this function as `evaluate_first` so that every occurrence of the
+identity is materialised first. The other constants keep the default order. The
+complete unit then passes the retail checker (`0x2CB4` initialised bytes, 241
+relocations).
