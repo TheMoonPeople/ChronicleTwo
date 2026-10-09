@@ -50,6 +50,23 @@ is a source argument position, not a call occurrence. `RoboWalkMoveIF` uses
 `RoboAirMoveIF` instead selects the call whose angle is a local variable.
 The pinned Satan's Fiddle source patch implements and tests this generic form.
 
+**Placement construction.** `new (buffer) T` with an inline constructor is
+lowered as an expression when the constructor's inline class is 6 and as a
+statement when it is 3 (retained control statements, nonfinal returns or
+cleanup metadata). The two forms test the allocation differently: the
+statement form allows `beqz v0` with the saved-pointer copy in the delay slot,
+the expression form copies first and tests the copy. A
+`placement_new.statement_conversions` row names the caller, the placement
+allocator and the exact direct constructor and asks for the statement path for
+that one construction. `after_constructor_inline` leaves expression inlining
+intact and sets the frontend's own statement-conversion request;
+`before_constructor_inline` reclassifies the root constructor read as class 3,
+so MWCC statement-inlines the body and sets the request itself. Rows apply
+only on the hash-verified compiler, must match exactly `expected_matches`
+constructions, and an empty table installs no hooks. The mechanism, census
+and timing evidence are in
+[the design note](../ps2/re/docs/satansfiddle/placement-new.md).
+
 **Pooled literal aliasing.** The separate bug that treats a literal's value buffer
 as variable alias metadata is verified for MWCC 2.3.3. No affected alias path is
 validated for this 3.0 image. It can pool constants under other optimization
@@ -111,90 +128,96 @@ class initializers must be generated naturally by the compiler.
 
 ## Register allocation
 
-- GPR simplify pushes nodes of degree below 25 in increasing virtual-register
-  order, then the lowest cost/degree node; colouring pops into the first free
-  of `v0 v1 a0–a3 t0–t7 t8 t9 s0–s7`; later pushes get first choice
-  ([gyoracesim](../ps2/re/docs/gyoracesim/night-20261008.md)).
-- Captured [gyoracesim graphs](../ps2/re/docs/gyoracesim/night-20261008.md)
-  place single-web locals (reverse declaration order) above induction and
-  invariant temporaries, then extra webs of reused variables. Direct indexing
-  can make a row address a low-numbered CSE temporary rather than a named local
-  ([gyorace](../ps2/re/docs/gyorace/night-20261008.md)).
-- A loop's own index or a variable's first use is coloured before the loop
-  optimizer's offsets and a later use after them, wherever the variable is
-  declared ([menusys](../ps2/re/docs/menusys/night-20261008.md)); a later
-  assignment to an index can change its loop web
-  ([dngmenu](../ps2/re/docs/dngmenu/night-20261008.md)).
+- Named locals are coloured in reverse declaration order ahead of the loop
+  optimizer's induction and invariant temporaries; a variable reused in a
+  second web is coloured after both. Direct indexing (`table[i].x`) can make
+  the row address a CSE temporary instead of a named local, which colours it
+  differently from a pointer local to the row (gyorace, gyoracesim).
+- A loop's own index, and a variable's first use, are coloured before the loop
+  optimizer's derived offsets; a later use is coloured after them, wherever the
+  variable is declared. Assigning to a loop index after its loop changes the
+  index's web (menusys, dngmenu).
 - An expression repeated in full (`top + heights[row]`) is one CSE temporary
   that shares its left-associated prefix and is coloured after the named
-  locals ([menudraw](../ps2/re/docs/menudraw/night-20261008.md),
-  [mglib](../ps2/re/docs/mglib/night-20261008.md)).
-- Equivalent spellings colour differently: no-op casts, `c ? 4 : 3` versus
-  `if`, `> 2` versus `>= 3`, two-element local arrays versus scalars, and a
-  block-local versus a spill-reload temporary; `u8` snapshots follow their
-  uses ([editloop](../ps2/re/docs/editloop/night-20261008.md),
-  [title](../ps2/re/docs/title/night-20261008.md), mg_tanime).
+  locals (menudraw, mglib).
+- Equivalent spellings colour differently: a no-op cast, `c ? 4 : 3` versus
+  the `if`, `> 2` versus `>= 3`, a two-element local array versus two scalars,
+  and a block-local versus a spilled temporary. A `u8` snapshot of a wider
+  value is coloured where it is used (editloop, title, mg_tanime).
 
 ## Scheduling and delay slots
 
-- Before allocation the list scheduler takes the first ready instruction in
-  emission order and switches only to one with a strictly lower pressure score
-  (a store ending a live range beats a zero store, which beats a new constant),
-  so constants issue in source order and stores follow them
-  ([sound](../ps2/re/docs/sound/night-20261008.md)); splitting a statement or
-  reusing a variable reorders them
-  ([gyorace](../ps2/re/docs/gyorace/night-20261008.md)).
-- After allocation it orders by critical path, successors unblocked, height,
-  then source order (`MsgInit`, dngmenu). An identical schedule can still
-  change interference: assignment order in a branch decides what is live at
-  the join (`DrawRoot`). Evaluate-first rows cover only call arguments.
-- A target block's first instruction fills only the first delay slot that
-  claims it, a jump's included (`b exit; move v0,zero`), so a `switch`
-  default's jump can take a shared `return 0` and leave retail's later `nop`
-  (`LRCheck`, menusys). LRCheck's four sparse labels sharing one body compare
-  in reverse written order.
+- Before allocation the list scheduler issues the first ready instruction in
+  source order and moves one earlier only when it lowers register pressure (a
+  store that ends a live range, before a zero store, before a new constant), so
+  constants materialize in source order and their stores follow them; splitting
+  a statement or reusing a variable reorders them (sound, gyorace).
+- After allocation it orders by critical path, then successors unblocked, then
+  height, then source order (`CMenuTreeMap::MsgInit`, dngmenu). With an
+  identical schedule, the assignment order inside a branch still decides what
+  is live at the join and so the interference (`CDngFreeMap::DrawRoot`).
+- A block's first instruction fills only the first delay slot that claims it,
+  a jump's included (`b exit; move v0,zero`): a `switch` default's jump can take
+  a shared `return 0` and leave a later `nop` (`CMenuItemInfo::LRCheck`,
+  menusys). Sparse case labels sharing one body are compared in reverse
+  written order.
 - A single-case `switch` and the equivalent `if`, or `x = x < 0.0f ? -x : x`
-  and `if (x < 0.0f) x = -x;`, fill delay slots differently
-  ([menuchr](../ps2/re/docs/menuchr/night-20261008.md),
-  [mg_tanime](../ps2/re/docs/mg_tanime/nmmisc-20261008.md)).
+  and `if (x < 0.0f) x = -x;`, fill delay slots differently (menuchr,
+  mg_tanime).
 
 ## Source forms
 
-- Explicitly cast call arguments are set up first, even with the same type:
-  `f(a, (u8 *) b)` sets `a1` before `a0`
-  ([nameregi](../ps2/re/docs/nameregi/natural-20261008.md), actscript).
-- `p + i` and `i + p` both put the pointer first in the `addu`
-  ([mg_dataset](../ps2/re/docs/mg_dataset/natural-20261008.md)).
-- A same-type local copy propagates unless the source is redefined or `const`
-  differs; a local assigned once and used once is substituted. A call result used before the
-  next call stays in `v0`, so a `v0` test beside a spill store needs a separate
-  `const` lookup local ([dng_event](../ps2/re/docs/dng_event/night-20261008.md)).
-- `T *const p = array;` keeps a base register; `x = load; x &= mask;` gives
-  the AND result the load's register (`mgEndFrame`, mglib).
+- An explicitly cast call argument is set up first, even when the cast is to
+  its own type: `f(a, (u8 *) b)` loads `a1` before `a0` (nameregi, actscript).
+- `p + i` and `i + p` both put the pointer first in the `addu` (mg_dataset).
+- A same-type local copy propagates into its uses unless the source is
+  redefined or `const` differs; a local assigned once and used once is
+  substituted. A call result used before the next call stays in `v0`, so a
+  `v0` test beside a spill store needs the looked-up value in a separate
+  `const` local (dng_event).
+- `T *const p = array;` keeps the base in a register; `x = load; x &= mask;`
+  gives the AND result the load's register (`mgEndFrame`, mglib).
 - `*write++ = q;` reuses the dead argument register; a separate cursor local
-  does not ([mg_drawprim](../ps2/re/docs/mg_drawprim/natural-20261008.md)).
-- Placement new can test the copied register (`CMapSky`), and array new
-  can recompute `n * sizeof(T)` instead of retaining a precomputed byte count.
-  The cited probes therefore keep their matching explicit `operator new` or
-  `operator new[]` forms
-  ([sceneload](../ps2/re/docs/sceneload/natural-20261008.md),
-  [mg_dataset](../ps2/re/docs/mg_dataset/natural-20261008.md),
-  [menucommon](../ps2/re/docs/menucommon/natural-20261008.md)).
-- Named locals (block-scoped ones too) take frame slots in declaration order;
-  argument temporaries, built right to left, and spills follow. A
-  `sceVu0FVECTOR` parameter's spill keeps 16-byte alignment (gyorace, dng_event).
-- `optimization_level 2` is global CSE without strength reduction or loop
-  rotation; level 4 runs the IR optimizer twice and CSE renumbers recreated
-  constants lowest ([movie](../ps2/re/docs/movie/nmmisc-20261008.md)).
-  Template-using functions can compile at the next top-level declaration,
-  under the pragmas before it (mg_tanime).
+  does not (mg_drawprim).
+- Placement new can test the copied register rather than `v0` (`CMapSky`),
+  and typed array new recomputes `n * sizeof(T)` rather than keeping a
+  precomputed byte count; where retail kept the byte count, the explicit
+  `operator new` or `operator new[]` call is the matching form (sceneload,
+  mg_dataset, menucommon).
+- Named locals, block-scoped ones included, take frame slots in declaration
+  order; argument temporaries, built right to left, and spills follow. A
+  `sceVu0FVECTOR` parameter's spill keeps 16-byte alignment (gyorace,
+  dng_event).
+- `#pragma optimization_level 2` is global CSE without strength reduction or
+  loop rotation; level 4 runs the IR optimizer twice and CSE renumbers
+  recreated constants lowest (movie).
+- MWCC generates a function that uses a template when it reaches the next
+  top-level declaration, under the pragmas in force there. A scoped
+  `optimization_level 2` / `optimization_level reset` pair around such a
+  function therefore does not apply to it, and the reset lands on the
+  functions that follow instead; mg_tanime sets `#pragma optimization_level 2`
+  for the whole unit.
 
 ## Data extents and alignment
 
+Retail symbol sizes describe objects, while the split section pieces include
+the alignment gap before the next symbol or referenced address. Once data
+sections are assigned alignment one for linking, their bytes must retain that
+gap. The postprocessor extends a correctly sized native object by fewer than
+16 bytes to its piece boundary; initialized padding must be zero in retail.
+An object with a size different from its declared retail size is not padded.
+Referenced interior addresses remain separate piece boundaries.
+
+A terminal function may end before the next unit's address when the generated
+linker script supplies the intervening alignment. The canonical checker permits
+this only at the exact `contents_end` established by the script and only for an
+all-zero retail tail. Objdiff target symbol metadata records declared retail
+function sizes so the same linker padding is excluded from function scores.
+
 MWCC gives native data objects their own extents and alignment; retail symbols
 exclude the gaps between objects. Keep natural definitions exactly sized and
-retain their original compiler alignment as evidence. See the split, padding
-and comparison rules in [Data layout](../scripts/build/DATA_LAYOUT.md).
+retain their original compiler alignment as evidence. The split, padding,
+naming and comparison rules are in [Data layout](../scripts/build/DATA_LAYOUT.md).
 
 ## Natural C++ definitions
 
@@ -216,8 +239,9 @@ function-specific compiler hooks.
 
 Compare complete objects as well as individual functions: emitted inline
 helpers, static initializers and data sizes can change the containing unit.
-The PAL executable verifier checks the final linked layout afterward.
-Word scores mask relocations and so hide calls to a WEAK constructor emitted
-past the inline depth (`MenuItemCharaDataLoadEndCheckAfter`, menuchr). An
-inline function taking a class by value in a widely included header renumbers
-MWCC's generated locals, and so the `at_NNN` symbols, in every includer (gyorace).
+The PAL executable verifier checks the final linked layout afterward. Word
+scores mask relocations and so hide a call to a WEAK constructor emitted past
+the inline depth (`MenuItemCharaDataLoadEndCheckAfter`, menuchr). An inline
+function that takes a class by value in a widely included header renumbers
+MWCC's generated locals, and so the `at_NNN` symbols, in every includer
+(gyorace).
