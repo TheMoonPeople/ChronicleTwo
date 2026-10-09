@@ -24,7 +24,7 @@
  * Map-slot and resource settings for the main map.
  *
  */
-static MapJumpMapInfo MainMapInfo__2;
+static MapJumpMapInfo MainMapInfo;
 
 /**
  *
@@ -163,12 +163,12 @@ MapJumpMapInfo::MapJumpMapInfo() {
 }
 
 void SetMainMapInfo(MapJumpMapInfo *info) {
-    MainMapInfo__2.map_no = info->map_no;
-    MainMapInfo__2.tex_block = info->tex_block;
-    MainMapInfo__2.stack_no = info->stack_no;
-    MainMapInfo__2.efp_tex_block = info->efp_tex_block;
-    MainMapInfo__2.sky_tex_block = info->sky_tex_block;
-    MainMapInfo__2.load_buf = info->load_buf;
+    MainMapInfo.map_no = info->map_no;
+    MainMapInfo.tex_block = info->tex_block;
+    MainMapInfo.stack_no = info->stack_no;
+    MainMapInfo.efp_tex_block = info->efp_tex_block;
+    MainMapInfo.sky_tex_block = info->sky_tex_block;
+    MainMapInfo.load_buf = info->load_buf;
 }
 
 void SetSubMapInfo(MapJumpMapInfo *info) {
@@ -207,7 +207,7 @@ int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int map_index) {
     mgWaitFrame();
     mgInitLighting();
     scene->DeleteMap(SubMapInfo.map_no, 1);
-    scene->DeleteMap(MainMapInfo__2.map_no, 1);
+    scene->DeleteMap(MainMapInfo.map_no, 1);
     NowMainMapNo = -1;
     NowSubMapNo = -1;
 
@@ -229,12 +229,12 @@ int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int map_index) {
 
     info->load_sky = 1;
 
-    if (scene->LoadMap(MainMapInfo__2.map_no, info, 0) < 0) {
+    if (scene->LoadMap(MainMapInfo.map_no, info, 0) < 0) {
         return 0;
     }
 
-    scene->SetActive(2, MainMapInfo__2.map_no);
-    scene->active_map = MainMapInfo__2.map_no;
+    scene->SetActive(2, MainMapInfo.map_no);
+    scene->active_map = MainMapInfo.map_no;
     CEditMap *map = (CEditMap *) scene->GetMap(scene->active_map);
 
     if (map != NULL) {
@@ -261,11 +261,11 @@ int GetLoadMapInfo(SCN_LOADMAP_INFO2 *info, int map_no) {
         return 0;
     }
 
-    info->tex_block = MainMapInfo__2.tex_block;
-    info->stack_no = MainMapInfo__2.stack_no;
-    info->load_buf = MainMapInfo__2.load_buf;
-    info->efp_tex_block = MainMapInfo__2.efp_tex_block;
-    info->sky_tex_block = MainMapInfo__2.sky_tex_block;
+    info->tex_block = MainMapInfo.tex_block;
+    info->stack_no = MainMapInfo.stack_no;
+    info->load_buf = MainMapInfo.load_buf;
+    info->efp_tex_block = MainMapInfo.efp_tex_block;
+    info->sky_tex_block = MainMapInfo.sky_tex_block;
 
     if (info->place_parts_max <= 0) {
         info->place_parts_max = 0x140;
@@ -531,7 +531,7 @@ void GotoInterior(CScene *scene, int interior_no) {
 
         if (LoadSubMap(scene, interior_no, 0) != 0) {
             scene->SetActive(2, SubMapInfo.map_no);
-            scene->ResetActive(2, MainMapInfo__2.map_no);
+            scene->ResetActive(2, MainMapInfo.map_no);
             scene->active_map = SubMapInfo.map_no;
             SetInteriorDoorPos(scene);
         }
@@ -613,8 +613,8 @@ void ExitInterior(CScene *scene, int *map_no) {
         scene->SetNowSubMapNo(-1);
     }
 
-    scene->SetActive(2, MainMapInfo__2.map_no);
-    scene->active_map = MainMapInfo__2.map_no;
+    scene->SetActive(2, MainMapInfo.map_no);
+    scene->active_map = MainMapInfo.map_no;
     OldInteriorMapNo = NowInteriorMapNo;
     NowInteriorMapNo = -1;
     CMap *map = scene->GetMap(scene->active_map);
@@ -623,7 +623,7 @@ void ExitInterior(CScene *scene, int *map_no) {
         map->now_time = scene->time;
     }
 
-    LoadMapScript(scene->GetMapName(MainMapInfo__2.map_no));
+    LoadMapScript(scene->GetMapName(MainMapInfo.map_no));
     PrevInterior[0] = 0;
     NowInterior[0] = 0;
     InitInterior();
@@ -637,7 +637,7 @@ void ExitInterior(CScene *scene, int *map_no) {
 int InteriorMapJump(CScene *scene, int interior_no) {
     if (LoadSubMap(scene, interior_no, 0) != 0) {
         scene->SetActive(2, SubMapInfo.map_no);
-        scene->ResetActive(2, MainMapInfo__2.map_no);
+        scene->ResetActive(2, MainMapInfo.map_no);
         scene->active_map = SubMapInfo.map_no;
         char *map_name = GetMapName(interior_no, NULL);
         strcpy(PrevInterior, NowInterior);
