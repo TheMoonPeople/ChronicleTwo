@@ -231,15 +231,6 @@ static signed char MovieBattleBGMPhase;
  */
 static CMenuPosDataForm *OptionButtonForm;
 
-extern char               at_1102[];
-extern char               at_1103__3[];
-extern char               at_1104__5[];
-extern char               at_1105__2[];
-extern char               at_1106__2[];
-extern char               at_1107__3[];
-extern char               at_1108[];
-extern char               at_1109__2[];
-
 /**
  *
  * Music state saved while the mini-game save menu is open.
@@ -474,7 +465,6 @@ void InitMnOnePictTex() {
     MnOnePictTex[7] = 0;
 }
 
-#ifdef NONMATCHING
 void MenuManualInit(mgCMemory *memory, int *tex_block, int mode) {
     CManualMenu *menu;
     u_int       *pack;
@@ -506,12 +496,12 @@ void MenuManualInit(mgCMemory *memory, int *tex_block, int mode) {
     pack = (u_int *) memory->stack;
     block = CManualPtr->tex_block[0];
     mgTexManager.DeleteBlock(block);
-    mgTexManager.EnterIMGFile((u_char *) GetPackFile(pack, at_1102, NULL), block, NULL, NULL);
+    mgTexManager.EnterIMGFile((u_char *) GetPackFile(pack, "op_bg.img", NULL), block, NULL, NULL);
     block = CManualPtr->tex_block[1];
     mgTexManager.DeleteBlock(block);
-    mgTexManager.EnterTexture(block, at_1103__3, NULL, 0x100, 0x200, 8, NULL, 0, 0);
-    ManualMovieTex = mgTexManager.EnterTexture(block, at_1104__5, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, NULL, 0, 0);
-    menu_data = (u_char *) GetPackFile(pack, at_1105__2, &menu_data_size);
+    mgTexManager.EnterTexture(block, "manumovieworkdm", NULL, 0x100, 0x200, 8, NULL, 0, 0);
+    ManualMovieTex = mgTexManager.EnterTexture(block, "manumoviework", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, NULL, 0, 0);
+    menu_data = (u_char *) GetPackFile(pack, "manual.cfg", &menu_data_size);
 
     if (menu_data != NULL) {
         MenuDataAnalyze((char *) menu_data, menu_data_size, &StaticMenuLocalStack);
@@ -521,9 +511,9 @@ void MenuManualInit(mgCMemory *memory, int *tex_block, int mode) {
     free_size = StaticMenuLocalStack.stGetRest();
     StaticMenuLocalStack2.stSetBuffer(StaticMenuLocalStack.stGetTop(), free_size);
     AttachMessageForm();
-    LocalMenuBGForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1106__2);
-    LocalMenuClipForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo(at_1107__3);
-    CManualPtr->script = (char *) GetPackFile(pack, at_1108, &CManualPtr->script_size);
+    LocalMenuBGForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo("op_bg");
+    LocalMenuClipForm = (CMenuPosDataForm *) MenuPosData->GetFormInfo("clip0");
+    CManualPtr->script = (char *) GetPackFile(pack, "manual_com.cfg", &CManualPtr->script_size);
     main_messages = GetMenuMainMessageBuffer();
     MenuCommandAnalyzeInfo.mes_buff[0] = MenuDCMsg[2]->buff;
     MenuCommandAnalyzeInfo.mes_buff[1] = main_messages;
@@ -532,7 +522,7 @@ void MenuManualInit(mgCMemory *memory, int *tex_block, int mode) {
     MenuDCMsg[7]->SetMessData(GetSystemMesBuffer(), main_messages);
     MenuDCMsg[7]->MsgPreset(0x10);
     MenuDCMsg[7]->MakeMsg(0x11C6);
-    CManualPtr->ExeScript(at_1109__2);
+    CManualPtr->ExeScript("MSG\x8f\x89\x8a\xfa\x89\xbb");
     list_tbl = manual_list_mesclstbl;
 
     for (list = 0, entry = 0; list < 5; list++, entry += 10) {
@@ -549,7 +539,7 @@ void MenuManualInit(mgCMemory *memory, int *tex_block, int mode) {
             window->values[item] = number + 1;
             window->value_width[item] = 2;
 
-            if (item >= 0 && item < 0x10) {
+            if (item >= 0 && item < MES_ITEM_MAX) {
                 window->item_mes[item] = 0x50;
             }
 
@@ -561,18 +551,18 @@ void MenuManualInit(mgCMemory *memory, int *tex_block, int mode) {
             }
 
             if (unlocked != 0 || vtuto != 0) {
-                if (item >= 0 && item < 0x10) {
+                if (item >= 0 && item < MES_ITEM_MAX) {
                     window->item_mes[item] = number + 0x1194;
                 }
 
-                if ((number == 0x15 || number == 0x16) && item >= 0 && item < 0x14) {
+                if ((number == 0x15 || number == 0x16) && item >= 0 && item < MES_LINE_MAX) {
                     window->line_color[item] = 0x80E0E060;
                 }
             }
         }
     }
 
-    Movie_DungeonFlag = GetNowLoopNo() == 2;
+    Movie_DungeonFlag = GetNowLoopNo() == LOOP_DUNGEON;
     Movie_BossFlag = 0;
     DNG_BATTLE_AREA *battle_area = &GetMainScene()->battle_area;
 
@@ -595,9 +585,6 @@ void MenuManualInit(mgCMemory *memory, int *tex_block, int mode) {
     MenuMainFrameModeSet(8, 1);
     MovieBattleBGMPhase = 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuop", MenuManualInit__FP9mgCMemoryPii);
-#endif
 
 int MenuManualKey() {
     return CManualPtr->KeyStep();
@@ -3635,19 +3622,6 @@ void SubGameSaveDraw() {
     textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) 0);
     MenuDCMsg[0]->DrawMsg();
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1102__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1103__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1104__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1105__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1106__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1107__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1108__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", at_1109__2__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuop", __vt__11CManualMenu__DATA);
 
 // Uninitialised data (.bss)
 /**

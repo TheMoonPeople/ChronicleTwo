@@ -1,5 +1,12 @@
 # menuop: reverse-engineering notes
 
+`MenuManualInit` is native C++ with one after-inline conversion of its
+`CManualMenu` construction; complete-object and PAL verification pass. No
+`NONMATCHING` guards, assembly fallbacks or data markers remain in this unit.
+`MenuSaveInit` is already native through its genuine slot-form initialization
+loop, without a new placement row. See
+[placement conversion](../satansfiddle/placement-new.md).
+
 Unit: manual menu (`CManualMenu`, `MenuManual*`), option menu (`CMenuOption`, `MenuOption*`), save/load
 menu (`CSaveMenuClass`, `MenuSave*`, `SaveFileListDraw`, map-info save/restore), mini-game save menu
 (`SubGameSave*`). No first-game counterpart (Dark Cloud 1 has no `CBaseMenuClass` menus).
@@ -25,12 +32,12 @@ three; the constructors are inlined into the *Init functions (`__nw__FUiP1(size,
 constructors reproduce these stores in the order documented below.
 
 ## CManualMenu (0x178) -- `__nw(0x178)` in MenuManualInit
-`MenuManualInit` keeps its typed C++ draft under `NONMATCHING`. The draft emits 0x518 bytes
-where retail uses 0x510, moving the next function by 0x10 after alignment. The matching build
-uses the retail assembly gap; other menuop functions still prevent whole-unit matching.
-`MenuSaveInit` is native and exact with a loop initializing the two slot-form
-pointers in `CSaveMenuClass`. The menuop object passes `check_objects.py` with
-the remaining `MenuManualInit` and save-menu `KeyStep` guards.
+`MenuManualInit` is native and accepted at the retail 0x510-byte body size.
+Before the placement policy, its guarded draft emitted 0x518 bytes and moved
+the next function by 0x10 after alignment, so that baseline used the assembly
+gap. `MenuSaveInit` is native and exact with a loop initializing the two
+slot-form pointers in `CSaveMenuClass`. The current menuop object passes
+`check_objects.py` with no remaining guards.
 Ctor order: vptr; `movie_stack.Init()`; select=0, top=0, list_y=400.0f (0x43C80000), cursor_jump=0,
 pict_mode=0, pict_num=0, base 0x14 (s16)=0; `movie_stack.stSetBuffer(NULL)`.
 - 0x110 select, 0x114 top: `MenuKeySelectCheck(.., &select, &top, 0, 0x2E, 10, 0)`; 46 entries, 10 lines.
@@ -118,9 +125,9 @@ scrlbar_parts[0..2]=0; scrlbar_pos={0,9}; card_ok=0; card_changed=0.
 ## Function notes
 - The typed `CMenuOption` constructor produces an exact retail `MenuOptionInit`.
   `CSaveMenuClass` also produces an exact `MenuSaveInit`, using a loop over its
-  actual slot-form array. `CManualMenu` reproduces the documented member stores
-  but its guarded init still differs at the placement-new null branch and
-  subsequent scheduling.
+  actual slot-form array. `CManualMenu` reproduces the documented member stores;
+  its former guarded init differed at the placement-new null branch and later
+  scheduling, which the current after-inline conversion resolves.
 - Init signature `(mgCMemory *stack, int *tex_block, int open_type)`; open_type is
   MenuCommonInfo+0x50 (MenuOpenType) from NextMenuInit/MenuMainInit, or 7 / 0x1E from
   DngTreeMapKey / GyoraceMenuKey.
@@ -154,38 +161,38 @@ for the row base and `s2` for the byte offset, while MWCC assigns these in
 the opposite order. Reordering declarations and loop increments leaves the
 99.78% score unchanged.
 
-## Remaining-function classification at 0abce37
+## Historical remaining-function classification at 0abce37
 
-The current unit has 36 functions: 33 match and these three retain their
-`NONMATCHING` guards. The comparison below uses relocation-masked instruction
-words over each manifest extent, not objdiff similarity percentages.
+At `0abce37`, the 36-function unit had 33 matches and the three guards below.
+These historical comparisons use relocation-masked instruction words over each
+manifest extent, not objdiff percentages. All three guards are now removed.
 
 ### MenuManualInit__FP9mgCMemoryPii — placement-new null branch
 
-Retail is 0x510 bytes; the natural C++ draft is 0x518 bytes. At retail +0x98
-(0x2C4518), `beqz v0` skips construction and `move s2,v0` occupies its delay
-slot. The draft moves into s2 first, then branches on s2. Base construction,
-vtable emission, and the embedded mgCMemory initialization consequently have
-different scheduling. The current draft does not fit the retail extent.
+Retail is 0x510 bytes; the natural draft at `0abce37` was 0x518 bytes. At
+retail +0x98 (0x2C4518), `beqz v0` skips construction with `move s2,v0` in its
+delay slot. That draft copied into s2 first, then branched on s2. Its base
+construction, vtable emission and mgCMemory initialization consequently had
+different scheduling, and that draft did not fit the retail extent.
 
-This is the placement-new branch category reserved for the dedicated compiler
-research lane. Keep the constructor and init guarded. Reconsider when that lane
-provides a natural C++ declaration or compiler explanation that reproduces
-branch-before-copy without hand-written vtable stores or instruction wrappers.
+This was the placement-new branch category assigned to compiler research.
+The constructor and init remained guarded at that snapshot pending a natural
+form or evidenced lowering policy reproducing branch-before-copy. The later
+accepted conversion uses neither handwritten vtables nor instruction wrappers.
 
 ### MenuSaveInit__FP9mgCMemoryPii — placement-new null branch
 
-The draft and retail extents are both 0x6A0; 245/424 masked words differ. The
-first differing pair is at +0x68/+0x6C (0x2C9B48/0x2C9B4C): retail uses
-`beqz v0` with `move s0,v0` in its delay slot; the draft copies into s0 and then
-branches on s0. This shifts the inline base/derived initialization sequence by
-one instruction through the allocation of CMemoryCardManager. The same store
-order therefore does not imply a matching function. The message-window loop
-has a separate placement-new call whose scheduling also differs.
+At `0abce37`, the draft and retail extents were both 0x6A0, with 245/424 masked
+words differing. The first pair was +0x68/+0x6C (0x2C9B48/0x2C9B4C): retail
+uses `beqz v0` with `move s0,v0` in its delay slot; that draft copied first and
+branched on s0. This shifted the inline base/derived initialization through
+CMemoryCardManager allocation by one instruction. Matching store order alone
+was insufficient, and a separate placement-new call in the message-window
+loop also had a scheduling difference in that snapshot.
 
-Stop on the shared placement-new category. Reconsider after the dedicated lane
-solves the branch/copy pattern, then compare the remaining allocation and loop
-scheduling before attempting manual promotion.
+At that snapshot this caller was parked on the shared placement-new category,
+with allocation and loop scheduling still requiring comparison. The genuine
+slot-form loop below subsequently resolved it without a placement row.
 
 ### KeyStep__14CSaveMenuClassFv — control flow and stack layout
 
@@ -250,8 +257,9 @@ construction guard: `beqz v0` at caller +0x68, with `move s0,v0` at +0x6C.
 Canonical native `MenuSaveInit__FP9mgCMemoryPii` has 0/424 differing words,
 identical relocation kinds and the retail 0x6A0 size; plain-wibo
 `draft.sh --diff` also reports zero differences. Only that function changes
-in the full native draft comparison. Its guard/fallback are removed manually.
-`MenuManualInit` and `CSaveMenuClass::KeyStep` retain their independent parks.
+in the full native draft comparison. Its guard/fallback were removed manually.
+At that stage `MenuManualInit` and `CSaveMenuClass::KeyStep` retained their
+independent parks; neither is guarded now.
 
 The full build retains i15's .text difference of 0x26 bytes, with every other
 section and BSS end OK. Complete objects pass 147/149; nd_meswin and actscript
@@ -264,9 +272,9 @@ See [the classifier rules](../funcpoint/placement-new.md#constructor-inline-clas
 
 ## Mid-day save-menu draft at c79e57c
 
-The lane baseline has 34 matched functions and two guarded drafts in the
-36-function unit: MenuManualInit and CSaveMenuClass::KeyStep. There are no
-asm-only functions. Canonical SF native compilation confirms the earlier
+The `c79e57c` baseline had 34 matched functions and two guarded drafts in the
+36-function unit: MenuManualInit and CSaveMenuClass::KeyStep, with no asm-only
+functions. Canonical SF native compilation confirms the earlier
 1189/1692 masked-word KeyStep diff and its 0x1A44-byte body.
 
 ### Input-wait predicate and retained scheduling
@@ -303,10 +311,10 @@ Additional retained natural expressions preserve these retail operations:
 | Combined version capturing file info before decrement, retained | 994 | 0x1A4C |
 | Combined version capturing file info after clamping, rejected | 1008 | 0x1A4C |
 
-All other 34 native functions remain exact, and the MenuManualInit native
-body remains 0x518 against retail's 0x510. The diff printer counts
-285/326 words when it includes that body's two-word overrun.
-No guard or assembly fallback is removed.
+At the `c79e57c` probe boundary, the other 34 native functions remained exact,
+and MenuManualInit's draft remained 0x518 against retail's 0x510. The diff
+printer counted 285/326 words including that two-word overrun. This probe
+removed no guard or assembly fallback.
 
 ### Remaining boundaries
 
@@ -328,8 +336,9 @@ m2c uses an analysis-only assembly copy with the two existing jump tables
 named `jtbl_at_2517__2` and `jtbl_at_2518__2`; exact destinations are copied
 from their retail data files. Passing that copy as an additional input to
 decompile.sh yields the complete function without modifying generated
-assembly. MenuManualInit's earlier constructor classification park remains
-applicable: no supported homogeneous inline member-array clear exists.
+assembly. At this probe boundary, MenuManualInit's constructor-classification
+park still applied: no supported homogeneous inline member-array clear existed.
+Its later accepted conversion does not invent such a clear.
 
 ### Validation
 
@@ -352,12 +361,12 @@ Private receipts: `.private/menuui-{baseline,final}-{build,objects,objdiff,progr
 
 ## Round-1 load-confirmation join at b1220c8
 
-The refreshed baseline has 6,736 matched functions, 124 guarded drafts,
+The refreshed `b1220c8` baseline had 6,736 matched functions, 124 guarded drafts,
 10 asm-only functions and two fuzzy functions. Complete objects pass
 147/149; the only failures remain nd_meswin/DrawMesWin and actscript/_SHOT.
 The PAL verifier differs in exactly 0x26 .text bytes, with all other sections
-and memory end 0x01F64A00 matching. The menuop baseline is 34 native matches
-and the two established guarded drafts.
+and memory end 0x01F64A00 matching. That menuop baseline had 34 native matches
+and the two then-established guarded drafts.
 
 Retail's quest-fish and ordinary load-confirmation paths join at +0x994
 for one MenuSePlay(SYSTEM_SE_DECIDE) call. A quest file without fish instead
@@ -368,8 +377,8 @@ unchanged; the count-16 volume argument is spelled MES_VALUE_MAX.
 
 Canonical native KeyStep improves from 994/1692 to 522/1692 differing
 relocation-masked words, retaining the 0x1A4C body and NONMATCHING guard.
-All 34 other native functions remain exact, and MenuManualInit retains
-its independent 0x518-versus-0x510 constructor park.
+At that probe boundary, all 34 other native functions remained exact and
+MenuManualInit retained its independent 0x518-versus-0x510 constructor park.
 
 The 0x160 native frame still differs from retail's 0x1A0. The initialized
 quest buffer remains two words at retail stack +0x168, immediately followed
@@ -457,8 +466,8 @@ negative-page predicate allocation and duplicated materialization around
 +0x12A4..+0x14BC, and the other-slot boolean lowering before +0x1568. The
 extra predicate instruction and shorter boolean sequence offset each other;
 most later instructions again align. All 34 other native functions remain
-exact, and MenuManualInit keeps its independent constructor park. The
-KeyStep guard stays active until the full function reaches zero.
+exact in that measured snapshot, and MenuManualInit still had its independent
+constructor park. Both functions are now native and accepted.
 
 Private receipts: `.private/menuui-r1/save-variants2.log` through
 `save-variants8.log`, their `save-*` source/object/diff directories, and
