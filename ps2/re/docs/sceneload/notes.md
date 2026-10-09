@@ -1,5 +1,12 @@
 # sceneload: reverse-engineering notes
 
+`CScene::LoadChara` and `CScene::CopyChara` are accepted native C++ callers,
+with one scoped `CCharacter2` placement row each. No `NONMATCHING` guards or
+assembly fallbacks remain in this unit. See
+[placement conversion](../satansfiddle/placement-new.md).
+Their inline `"chara"` and `"cfg"` literals supply `at_958__2` and
+`at_959__2`, so the unit has no assembly data markers.
+
 Header: `ps2/include/sceneload.hpp`. Owns `SCN_LOADMAP_INFO2` (with nested `MapFiles`) and
 `mgCObjectStack<T>`; also declares `SCN_LOADMAP_FILES_MAX` and `SCN_LOADMAP_STEP`.
 Members emitted here but owned elsewhere: `CScene::*` (8, owner `scenesnd.hpp`) and
@@ -13,10 +20,10 @@ the October 8 midday baseline `c79e57c` and matches retail. The current
 interpretation and its nine-word constructor miss; that is not a remaining
 placement-new target.
 
-`CScene::LoadChara` and `CScene::CopyChara` allocate `CCharacter2` objects.
-Their C++ drafts construct the character directly in each caller; retail
-assembly remains active until the two-word null-branch difference matches
-byte for byte. See [the midday construction note](placement-new-20261008.md).
+`CScene::LoadChara` and `CScene::CopyChara` allocate `CCharacter2` objects
+through natural construction in each native caller. The earlier two-word
+null-branch miss kept their baseline drafts guarded; that source/profile
+measurement is preserved in [the midday construction note](placement-new-20261008.md).
 
 ## Non-member functions and data
 - `LoadMapData(SCN_LOADMAP_INFO2&, int)` is LOCAL in retail (`local_symbols.tsv`): `static` in
