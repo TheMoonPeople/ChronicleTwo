@@ -53,8 +53,8 @@ ints; the rest void. `IsHit(scene, chara_id)` with `chara_id == -1` skips the hi
 `scene` at 0 (`Initialize` stores; `CheckHit` passes `*(CScene**)this`). `prim[64]` at 0x10;
 0x4..0xF is implicit alignment padding from the 16-byte aligned `sceVu0FVECTOR` members (the
 STATIC_ASSERT confirms the compiler places `prim` at 0x10). The single instance `ColPrimMan`
-(0x01ECF220, size 0x4410) is BSS of **dng_main** (`INCLUDE_BSS(ColPrimMan, 0x4410)` in
-`dng_main.cpp`), so its `extern` belongs in `dng_main.hpp`, not here.
+(0x01ECF220, size 0x4410) is BSS of **dng_main** (defined in `dng_main.cpp`), so its `extern`
+belongs in `dng_main.hpp`, not here.
 
 ## DAMAGE_PARAM (0x48) and Damage_Param_Table
 Struct name is not retail (no symbol); named after the table. Row stride 0x48 from `SetDamage`
@@ -74,7 +74,7 @@ whose first name byte is 0, which is the 8 bytes of zero padding after the table
 | 0x22 | `stagger` s8 | added to target `+0xBF4` (monster and actionchara CheckDamage). Values 0..3 |
 | 0x23 | `unk_23` | always 0 |
 | 0x24 | `critical_rate` s16 | damage *= value * 0.01 on a critical (both CheckDamage). Values 0..0x64 |
-| 0x26 | `hit_flags` u16 | `HitEffectSet` 3rd arg; `& 8` disables the critical; `& 1` monster state 500/600 |
+| 0x26 | `hit_flags` s16 | `HitEffectSet` 3rd arg; `& 8` disables the critical; `& 1` monster state 500/600. Every reader (monster, actionchara) loads it with `lh`, hence `s16` |
 | 0x28 | `unk_28` s32 | always -1 |
 | 0x2C | `element[8]` s16 | memcpy to prim 0x90; actionchara CheckDamage reads shorts. Order seen: fire, ice, thunder, wind, holy (rows 火弾/氷弾/雷弾/風弾/魔石聖) |
 | 0x3C | `source_type` s32 | stored to monster `+0x1210`. Values 0,1 (player melee),2 (player shots),3 (items),4 (ridepod),8 (monsters) - meaning inferred from row names only |
@@ -97,28 +97,19 @@ whose first name byte is 0, which is the 8 bytes of zero padding after the table
 ## Unresolved
 `unk_14`, `unk_34`, `unk_8c`, `unk_a8`, `unk_c1`, `unk_e7`, row `unk_21`, `unk_23`, `unk_28`.
 
-## Debug drawing
-`CColPrim::DebugDraw` returns immediately without drawing. Its empty C++ body
-matches the retail code and links into a byte-identical game image.
+## Source status
+Every function in `colprim.cpp` is native; the unit has no `NONMATCHING` guards, `INCLUDE_ASM`
+gaps, or data markers. `Damage_Param_Table` is a typed `DAMAGE_PARAM[115]` definition in retail
+row order; names keep their Shift-JIS bytes through hexadecimal escapes, shape/target/kind use
+the enums, reserved bytes are zero, and the eight zero bytes after the 0x2058-byte array are the
+section's alignment tail (no sentinel row).
 
-## C++ draft pass
-All 18 previously ASM-only game functions received typed C++ drafts, initially
-guarded by `NONMATCHING`.
-The existing matching `DebugDraw` and `Initialize` implementations remain
-unguarded. `IsHit` builds sphere sample points and line segments from the current
-and previous positions according to `DamageShape`, then checks enabled character
-entry objects; on a hit it records hit position and direction, marks the character
-unless the parameter allows multiple hits, and increments `hit_num`.
-
-Each of the 18 drafts received one isolated promotion attempt. Thirteen matched
-the linked retail image and are now compiled by default: the four `SetCoord`
-overloads, `GetReversVec`, and all eight `CColPrimMan` methods. `SetDamage`,
-`IsHit`, `IsReversVec`, `Step`, and `Delete` remain under `NONMATCHING` with
-their original `INCLUDE_ASM` fallbacks. The default full build verifies every
-section as byte-identical to SCES_511.90.
-
-`CColPrim::Step` uses `frame[2]`, `pos[2]`, and `old_pos[2]` at offsets 0x38,
-0x40, and 0x60. A direct `this->frame[i]` replacement alone scores 98.96%; a
-full typed-array rewrite scores 99.30%. The local variable named `frame` must
-not be mistaken for the member array: unqualified `frame[i]` can appear to
-match but indexes the local pointer instead. All Step trials were reverted.
+- `CColPrim::DebugDraw` returns immediately without drawing; its empty body matches retail.
+- `IsHit` builds sphere sample points and line segments from the current and previous positions
+  according to `DamageShape`, then checks enabled character entry objects; on a hit it records
+  hit position and direction, marks the character unless the parameter allows multiple hits,
+  and increments `hit_num`.
+- `CColPrim::Step`: both two-step loops are `for` loops over `frame[j]`, `pos[j]` and
+  `old_pos[j]`; MWCC derives the same two induction values as retail. The local pointer named
+  `frame` must not be confused with the member array.
+- `CColPrim::SetDamage` tests the end of `Damage_Param_Table` with `param->name[0]`.
