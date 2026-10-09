@@ -167,8 +167,6 @@ public:
         Initialize();
     }
 
-    mgCVisualMDT &operator=(const mgCVisualMDT &source);
-
     /**
      *
      * Returns the kind of this visual.

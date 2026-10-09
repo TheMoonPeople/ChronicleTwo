@@ -1,8 +1,14 @@
 # visualmotion: reverse-engineering notes
 
-`mgCVisualMotionMDT::Copy` is currently supplied by retail assembly. Retail
-constructs each base of the copied motion visual before copying its material,
-frame, and weight data; the source has no direct virtual-table stores.
+`mgCVisualMotionMDT::Copy` is native C++. Placement new runs the inline
+constructor of each base, with no direct virtual-table stores. `*copy = *this`
+is the implicit derived assignment: it calls the generated `mgCVisualMDT`
+assignment (emitted by mg_visual) and `mgVu0FBOX::operator=`, and shares the
+frame and weight data. The copy then gets a material array of its own; indexing
+the source and destination material arrays with a separate index keeps retail's
+offset induction. The placement construction uses an after-inline statement
+conversion row in `scripts/build/satansfiddle.json`
+(`placement-new-copy-derived-20261009.md`).
 
 Header: `ps2/include/visualmotion.hpp`. Skinned MDT model (`mgCVisualMotionMDT`), its per-vertex
 weight (`mgVertexWeight`) and its build parameters (`mgCVMotionData`). No first-game counterpart
@@ -104,10 +110,6 @@ retail signature is `PUi`; no record struct is declared.
 
 ## Unresolved
 - Field names are descriptive, not retail. `mgCVMotionData::unk_10` purpose unknown.
-- `Copy` indexes source and destination material arrays directly and removes byte offsets into
-  `mgMaterial` records. The copy placeholder needs a typed material pointer at offset 0x44 for
-  the full game build. A separate material index makes MWCC retain the retail offset induction,
-  and the function matches 100%.
 - `Initialize` clears the 32 typed bone entries with a single loop. MWCC unrolls this
   into eight stores per iteration; writing the unrolled loop explicitly changes its
   register allocation. `ChangeWeight` indexes the bone array directly and stops at

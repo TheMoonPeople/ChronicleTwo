@@ -2038,6 +2038,22 @@
         "constructor": "__ct__17CList<9CMapPiece>Fv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "mg_visual.cpp",
+        "function": "Copy__15mgCVisualFixMDTFP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__15mgCVisualFixMDTFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "visualmotion.cpp",
+        "function": "Copy__18mgCVisualMotionMDTFP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__18mgCVisualMotionMDTFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
       }
     ]
   }

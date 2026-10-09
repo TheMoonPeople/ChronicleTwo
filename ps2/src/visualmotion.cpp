@@ -821,25 +821,34 @@ int mgCVisualMotionMDT::CreateBBox(float *box_max, float *box_min, float (*matri
     return 1;
 }
 
-/**
- *
- * Four colour components copied with a motion visual.
- *
- */
-struct MotionColor {
-    float value[4]; /**< Colour components. */
-};
+mgCVisual *mgCVisualMotionMDT::Copy(mgCMemory *memory) {
+    mgCVisualMotionMDT *copy = new (memory->Alloc(sizeof(mgCVisualMotionMDT) / 16 + 2)) mgCVisualMotionMDT;
 
-/**
- *
- * Bone weight slots copied with a motion visual.
- *
- */
-struct MotionWeightSlots {
-    int slot[4][8]; /**< Weight slot indices. */
-};
+    if (copy == NULL) {
+        return NULL;
+    }
 
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/visualmotion", Copy__18mgCVisualMotionMDTFP9mgCMemory);
+    *copy = *this;
+
+    if (material_num > 0) {
+        unsigned int size = material_num * sizeof(mgMaterial);
+        unsigned int blocks;
+
+        if (size % 16 != 0) {
+            blocks = size / 16 + 1;
+        } else {
+            blocks = size / 16;
+        }
+
+        copy->material = new (memory->Alloc(blocks + 2)) mgMaterial[material_num];
+    }
+
+    for (int material_index = 0; material_index < material_num; material_index++) {
+        copy->material[material_index] = material[material_index];
+    }
+
+    return copy;
+}
 
 int mgCVisualMotionMDT::Iam() {
     return 3;

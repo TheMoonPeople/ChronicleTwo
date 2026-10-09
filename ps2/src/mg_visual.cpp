@@ -1334,28 +1334,33 @@ int mgCVisualMDT::CreateExtRenderInfoPacket(u_int         *packet, float (*matri
     return 0;
 }
 
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_visual", Copy__15mgCVisualFixMDTFP9mgCMemory);
+mgCVisual *mgCVisualFixMDT::Copy(mgCMemory *memory) {
+    mgCVisualFixMDT *copy = new (memory->Alloc(sizeof(mgCVisualFixMDT) / 16 + 2)) mgCVisualFixMDT;
 
-mgCVisualMDT &mgCVisualMDT::operator=(const mgCVisualMDT &source) {
-    unk_00 = source.unk_00;
-    draw_env = source.draw_env;
-    texture_manager = source.texture_manager;
-    prmode = source.prmode;
-    vu1_base = source.vu1_base;
-    vu1_offset = source.vu1_offset;
-    unk_18 = source.unk_18;
-    vertex_num = source.vertex_num;
-    normal_num = source.normal_num;
-    colour_num = source.colour_num;
-    uv_num = source.uv_num;
-    vertex = source.vertex;
-    normal = source.normal;
-    colour = source.colour;
-    uv = source.uv;
-    material_num = source.material_num;
-    material = source.material;
-    face_group = source.face_group;
-    return *this;
+    if (copy == NULL) {
+        return NULL;
+    }
+
+    *copy = *this;
+
+    if (material_num > 0) {
+        unsigned int size = material_num * sizeof(mgMaterial);
+        unsigned int blocks;
+
+        if (size % 16 != 0) {
+            blocks = size / 16 + 1;
+        } else {
+            blocks = size / 16;
+        }
+
+        copy->material = new (memory->Alloc(blocks + 2)) mgMaterial[material_num];
+    }
+
+    for (int index = 0; index < material_num; index++) {
+        copy->material[index] = material[index];
+    }
+
+    return copy;
 }
 
 void SetDrawEnv(mgCDrawEnv *env, mgCVisualAttr *attr, mgCDrawEnv *base) {

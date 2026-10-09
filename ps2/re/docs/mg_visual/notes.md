@@ -1,8 +1,11 @@
 # mg_visual: reverse-engineering notes
 
-`mgCVisualFixMDT::Copy` is currently supplied by retail assembly. The copied
-visual's virtual table is established by class construction in retail, and the
-source no longer substitutes direct virtual-table stores.
+`mgCVisualFixMDT::Copy` is native C++. It constructs the copy with placement
+new, assigns it with `*copy = *this` and gives it a material array of its own.
+The copied visual's virtual table is established by class construction, with no
+direct virtual-table stores. Its placement construction uses an after-inline
+statement conversion row in `scripts/build/satansfiddle.json`
+(`placement-new-copy-derived-20261009.md`).
 
 ## C++ draft status
 The current unit has one guarded C++ draft, `SendDMA`, whose matching build
@@ -63,10 +66,10 @@ through slot +0x30 at each level), so `mgCVisualMDT() { Initialize(); }` etc.
 
 `__as__12mgCVisualMDTFRC12mgCVisualMDT` (0x1413F0, in the manifest) is a compiler-generated copy
 assignment. It sits right after its first user `mgCVisualFixMDT::Copy`, copies every field word by
-word and skips the vptr. The current source explicitly declares and defines this
-operator while `Copy` is assembly-backed; this is a compliance blocker. Copy uses
-it as `*copy = *this` (an `mgCVisualMDT&` assignment), and
-`mgCVisualMotionMDT::Copy` uses it too.
+word and skips the vptr. The header declares no assignment operator: `Copy`'s
+`*copy = *this` invokes the implicit `mgCVisualFixMDT` assignment, which calls
+this generated base assignment, and MWCC emits it weak in this unit with
+retail's 0x98-byte body. `mgCVisualMotionMDT::Copy` uses it too.
 
 A private typed `Copy` trial removed the declaration and manual definition.
 At default inline depth MWCC inlined the assignment, omitted its symbol, and
@@ -76,8 +79,8 @@ bytes and emitted a separate 0x40-byte `mgCVisual` base assignment. Retail's
 0x98-byte derived assignment is a leaf that copies the base fields inline.
 A scoped depth of one made `Copy` 0x1D0
 bytes and again omitted the assignment symbol. These are compiler scheduling
-observations, not accepted source forms; `Copy` and the derived assignment
-remain to be promoted together.
+observations, not accepted source forms. `Copy` and the generated assignment
+are now native together (`placement-new-copy-derived-20261009.md`).
 
 A further private typed `Copy` trial kept the existing explicit assignment
 definition to isolate the caller. MWCC emitted 0x1A0 bytes instead of retail's
