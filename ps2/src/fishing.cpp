@@ -334,8 +334,23 @@ static FISH_PARAM FishParam[19] = {
     }
 };
 
-extern int                EsaInfo[18];
-extern char              *lure_file[4];
+/**
+ *
+ * Item numbers of the baits and lures, indexed by local bait number.
+ *
+ */
+static int EsaInfo[18] = {
+    0x11F, 0x120, 0x121, 0x122, 0x123, 0x124,
+    0x138, 0x139, 0x13A, 0x13B, 0x13C, 0x13D, 0x13E, 0x13F,
+    0x179, 0x17A, 0x17B, 0x17C
+};
+
+/**
+ *
+ * Model file names of the four lures.
+ *
+ */
+static char *lure_file[4] = {"supina.chr", "kaeru.chr", "lure01.chr", "fork.chr"};
 
 enum {
     kCameraSettled = 1000
@@ -406,7 +421,7 @@ static int fpFISH_MAP_END(SPI_STACK *args, int arg_count);
  * Dispatches the fishing place script tags to their definition handlers.
  *
  */
-static SPI_TAG_PARAM tag__8[6] = {
+static SPI_TAG_PARAM tag[6] = {
     {"FISH_MAP_NUM", fpFISH_MAP_NUM},
     {"FISH_MAP", fpFISH_MAP},
     {"FISH_PLACE", fpFISH_PLACE},
@@ -886,14 +901,14 @@ int stack_size;
  * Aligned address of the fishing loading thread stack.
  *
  */
-static int ThreadStack__2;
+static int ThreadStack;
 
 /**
  *
  * Fishing loading thread identifier.
  *
  */
-static int TheadID__2;
+static int TheadID;
 
 /**
  *
@@ -1072,97 +1087,6 @@ static CScene::BGM_STATUS BgmStatus;
 
 /**
  *
- * Frames until the next waiting-state ripple.
- *
- */
-static int hamon_count_1798;
-
-/**
- *
- * Whether the waiting-state ripple counter is initialized.
- *
- */
-static signed char init_1799;
-
-/**
- *
- * Elapsed waiting time before a no-bite response.
- *
- */
-static int boze_cnt_1801;
-
-/**
- *
- * Frames remaining for the float pull action.
- *
- */
-static int pull_uki_cnt_1808;
-
-/**
- *
- * Frames remaining in the current lure action.
- *
- */
-static int act_count_1838;
-
-/**
- *
- * Charge accumulated for the next lure action.
- *
- */
-static int charge_point_1839;
-
-/**
- *
- * Frames between accepted lure actions.
- *
- */
-static int act_interval_1840;
-
-/**
- *
- * Cooldown between fishing reel sounds.
- *
- */
-static int snd_cnt_1960;
-
-/**
- *
- * Whether the fish battle sound counter is initialized.
- *
- */
-static signed char init_1961;
-
-/**
- *
- * Font-height state for the catch presentation.
- *
- */
-static int font_h_2216;
-
-/**
- *
- * Whether the fishing result font height is initialized.
- *
- */
-static signed char init_2217;
-
-/**
- *
- * Cooldown between high-tension warning sounds.
- *
- */
-static int snd_cnt_2495;
-
-/**
- *
- * Whether the line-tension sound counter is initialized.
- *
- */
-static signed char init_2496;
-
-/**
- *
  * Storage for bait and lure resources.
  *
  */
@@ -1208,7 +1132,7 @@ static mgCMemory ReadStack;
  * Storage for the fishing subgame resources.
  *
  */
-static mgCMemory FishingBuff__2;
+static mgCMemory FishingBuff;
 
 /**
  *
@@ -1557,11 +1481,11 @@ int CreateLoadThread(mgCMemory *memory) {
 
     stack_size = 0x40000;
 
-    ThreadStack__2 = (int) memory->Alloc(0x4001);
-    misalignment = ThreadStack__2 & 0x3F;
+    ThreadStack = (int) memory->Alloc(0x4001);
+    misalignment = ThreadStack & 0x3F;
 
     if (misalignment != 0) {
-        ThreadStack__2 += 0x40 - misalignment;
+        ThreadStack += 0x40 - misalignment;
     }
 
     param.entry = StepDataLoading;
@@ -1569,11 +1493,11 @@ int CreateLoadThread(mgCMemory *memory) {
     param.initPriority = kLoadThreadPriority;
     param.option = 0;
     param.gpReg = &_gp;
-    param.stack = (void *) ThreadStack__2;
+    param.stack = (void *) ThreadStack;
     param.stackSize = stack_size;
-    TheadID__2 = CreateThread(&param);
+    TheadID = CreateThread(&param);
     ThreadRunning = 1;
-    StartThread(TheadID__2, NULL);
+    StartThread(TheadID, NULL);
     return 1;
 }
 
@@ -1602,8 +1526,8 @@ void DeleteLoadThread() {
         while (StepLoadThread() != 0) {
         }
 
-        TerminateThread(TheadID__2);
-        DeleteThread(TheadID__2);
+        TerminateThread(TheadID);
+        DeleteThread(TheadID);
         ThreadRunning = 0;
     }
 }
@@ -2887,10 +2811,12 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
         FishData.fish_no = -1;
     }
 
-    if (init_1799 == 0) {
-        hamon_count_1798 = 0;
-        init_1799 = 1;
-    }
+    static int hamon_count = 0;
+    static int boze_cnt;
+    static int pull_uki_cnt;
+    static int act_count;
+    static int charge_point;
+    static int act_interval;
 
     caught = 0;
     GetHariPos(hari_now, hari_now_prev);
@@ -2916,26 +2842,26 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
             case kUkiStart:
                 scene->ResetStatus(1, scene->player_chara, 0x20);
                 UkiModeCnt = GetUkiWaitTime(&FishData, scene, hari_now, RodNo, LocalEsaNo);
-                boze_cnt_1801 = 0;
+                boze_cnt = 0;
                 UkiMode = kUkiWaitBite;
-                hamon_count_1798 = 10;
+                hamon_count = 10;
             case kUkiWaitBite:
-                if (moved != 0 || boze_cnt_1801 > 0x258) {
+                if (moved != 0 || boze_cnt > 0x258) {
                     UkiMode = kUkiStart;
                 } else {
-                    if (hamon_count_1798 <= 0) {
+                    if (hamon_count <= 0) {
                         DrawHamon(uki_pos, 0.4f);
-                        hamon_count_1798 = fptosi(50.0f * mgRnd()) + 30;
+                        hamon_count = fptosi(50.0f * mgRnd()) + 30;
                     }
 
-                    hamon_count_1798 -= 1;
+                    hamon_count -= 1;
 
                     if (FishData.fish_no < 0) {
-                        boze_cnt_1801 += 1;
+                        boze_cnt += 1;
                     } else if (UkiModeCnt <= 0) {
                         UkiMode = kUkiPoke;
                         UkiModeCnt = GetUkiPokeTime(&FishData);
-                        pull_uki_cnt_1808 = 0;
+                        pull_uki_cnt = 0;
                     }
                 }
 
@@ -2954,14 +2880,14 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
                         UkiModeCnt = GetUkiPullTime(&FishData);
                     }
 
-                    if (pull_uki_cnt_1808 <= 0) {
+                    if (pull_uki_cnt <= 0) {
                         PullUki(2.0f + 5.0f * mgRnd());
                         GamePad__2.SetVibration(1, 0x50, 10);
-                        pull_uki_cnt_1808 = rand() % 10 + 5;
+                        pull_uki_cnt = rand() % 10 + 5;
                         DrawHamon(uki_pos, 0.6f);
                     }
 
-                    pull_uki_cnt_1808 -= 1;
+                    pull_uki_cnt -= 1;
                 }
 
                 break;
@@ -2993,33 +2919,33 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
             case kUkiStart:
                 scene->ResetStatus(1, scene->player_chara, 0x20);
                 RodActionPoint = GetUkiWaitTime(&FishData, scene, hari_now, RodNo, LocalEsaNo);
-                act_count_1838 = 0;
+                act_count = 0;
                 UkiMode = kUkiCharge;
-                charge_point_1839 = 0;
-                act_interval_1840 = 0;
+                charge_point = 0;
+                act_interval = 0;
             case kUkiCharge:
-                if (act_count_1838 <= 0 && pushed != 0) {
-                    RodActionPoint -= charge_point_1839;
-                    act_count_1838 = 0;
-                    charge_point_1839 = 0;
+                if (act_count <= 0 && pushed != 0) {
+                    RodActionPoint -= charge_point;
+                    act_count = 0;
+                    charge_point = 0;
                 }
 
                 if (pushed != 0 || pad->Btn(kFishBtnAction) != 0) {
-                    if (act_interval_1840 < 3) {
+                    if (act_interval < 3) {
                         RodActionPoint = RodActionPoint + fptosi(3.0f * mgRnd());
                     } else {
-                        charge_point_1839 += fptosi(10.0f * mgRnd()) + 2;
+                        charge_point += fptosi(10.0f * mgRnd()) + 2;
                         RodActionPoint = RodActionPoint - fptosi(3.0f * mgRnd());
                     }
 
-                    act_interval_1840 = 0;
-                    act_count_1838 = fptosi(30.0f * mgRnd()) + 10;
+                    act_interval = 0;
+                    act_count = fptosi(30.0f * mgRnd()) + 10;
                     DrawHamon(hari_now, 0.5f);
                     sndSePlay(FishSnd, 10, 0);
                 }
 
-                act_interval_1840 += 1;
-                act_count_1838 -= 1;
+                act_interval += 1;
+                act_count -= 1;
 
                 if (FishData.fish_no >= 0 && RodActionPoint < 0) {
                     UkiMode = kUkiBite;
@@ -3244,26 +3170,23 @@ void BattleLoop(CScene *scene, CPadControl *pad) {
         sndSePlay(FishSnd, 0x11, 0);
     }
 
-    if (init_1961 == 0) {
-        snd_cnt_1960 = 0;
-        init_1961 = 1;
-    }
+    static int snd_cnt = 0;
 
     if (pushed) {
         GetHariPos(hari_pos, hari_prev);
         sndSePlay(FishSnd, 0xB, 0);
         DrawSplash(hari_pos, 0.5f);
 
-        if (snd_cnt_1960 == 0) {
+        if (snd_cnt == 0) {
             sndSePlay(FishSnd, 9, 0);
-            snd_cnt_1960 = 10;
+            snd_cnt = 10;
         }
     }
 
-    snd_cnt_1960 -= 1;
+    snd_cnt -= 1;
 
-    if (snd_cnt_1960 < 0) {
-        snd_cnt_1960 = 0;
+    if (snd_cnt < 0) {
+        snd_cnt = 0;
     }
 
     switch (RodStatus) {
@@ -3696,10 +3619,7 @@ void SuccessLoop(CScene *scene, CPadControl *pad) {
         FalseMotionCount = 0;
     }
 
-    if (init_2217 == 0) {
-        font_h_2216 = 0;
-        init_2217 = 1;
-    }
+    static int font_h = 0;
 
     if (FalseStep == 1) {
         if (FalseMotionCount <= 0 && pad->Btn(kFishBtnAction) != 0) {
@@ -4229,17 +4149,14 @@ void LineTensionStep(FISH_DATA *fish, int reel) {
     }
     GamePad__2.SetVibration(1, right_vibration, 4);
     GamePad__2.SetVibration(0, left_vibration, 4);
-    if (init_2496 == 0) {
-        snd_cnt_2495 = 0;
-        init_2496 = 1;
-    }
-    if (!(LineTension <= 0.7f) && snd_cnt_2495 == 0) {
+    static int snd_cnt = 0;
+    if (!(LineTension <= 0.7f) && snd_cnt == 0) {
         sndSePlay(FishSnd, 0x10, 0);
-        snd_cnt_2495 = 0x14;
+        snd_cnt = 0x14;
     }
-    snd_cnt_2495--;
-    if (snd_cnt_2495 < 0) {
-        snd_cnt_2495 = 0;
+    snd_cnt--;
+    if (snd_cnt < 0) {
+        snd_cnt = 0;
     }
 }
 int GetAppearFish(int map_no, float *pos, FISH_PLACE *places, int max_places) {
@@ -4473,20 +4390,14 @@ void LoadFishPlaceData(char *script, int size, mgCMemory *stack) {
     FishPlaceMapNum = 0;
     FishPlaceMap = NULL;
     CScriptInterpreter interpreter;
-    interpreter.SetTag(tag__8);
+    interpreter.SetTag(tag);
     interpreter.SetScript(script, size);
     interpreter.Run();
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", lure_file__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", EsaInfo__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_832__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_833__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_834__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_835__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_932__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2197__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2198__3__DATA);

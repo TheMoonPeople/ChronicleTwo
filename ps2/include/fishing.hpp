@@ -305,3 +305,10 @@ int GetAppearFish(int map_no, float *position, FISH_PLACE *place, int max_places
  * @size 0x70
  */
 void LoadFishPlaceData(char *script, int size, mgCMemory *stack);
+
+/**
+ *
+ * Size in bytes of the fishing loading thread stack.
+ *
+ */
+extern int stack_size;
