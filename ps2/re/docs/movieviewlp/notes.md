@@ -62,9 +62,13 @@ VIF1 packet 10000+10000.
 
 ## Matching source and stack layout
 
-All five game functions are active C++ and match retail. The unit has no
-remaining `NONMATCHING` function guards. The complete unit linked against the
-other game objects passes the PAL image comparison.
+All five game functions are native C++ and byte-identical. The unit has no
+`NONMATCHING` guards, `INCLUDE_ASM` entries or data markers: the viewer state,
+`DataBuffer`, `Stack_ReadBuff`, `tag_movie` (two `SPI_TAG_PARAM` entries, `"MOVIE"`
+and `_MOVIE`, then the null terminator) and every string are ordinary file-local
+definitions and inline literals, and the four packet/draw buffer managers are
+function-local `static mgCMemory` objects of `MovieViewInit` whose constructor
+guards the compiler generates.
 
 `MovieViewInit` has 0x3B4 bytes of instructions in its 0x3C0 manifest extent;
 `MovieViewLoop` has 0x758 bytes of instructions in its 0x760 extent. The
@@ -94,21 +98,10 @@ only the retail placement allocation calls; both types need no constructor
 instructions. Pad buttons, viewer states, outline style, and sprite primitive
 use the existing header enums without changing the code.
 
-## Buffer-manager storage constraint
+## Buffer-manager storage
 
-The four packet/draw managers retain their explicit one-time `Init` guard
-paths and existing `INCLUDE_BSS` storage. Native function-local static
-`mgCMemory` objects reproduce every function instruction after relocation
-masking but do not preserve the complete unit layout with the current build.
-Their four one-byte compiler guards are packed at the start of the unit's
-`.sbss`, ahead of viewer globals; retail has four separate four-byte guard
-slots at 0x37E43C, 0x37E440, 0x37E444, and 0x37E448. This shortens `.sbss` by
-twelve bytes and shifts references in later units. Defining `DataBuffer__2`
-and `Stack_ReadBuff__2` before the native locals restores `.bss` order but
-leaves that `.sbss` mismatch. MWCC's generated local names also differ from
-the numbered retail inventory names.
-
-Reconsider native buffer-manager statics only with a supported storage/symbol
-mapping that preserves the four retail guard slots and the complete `.sbss`
-order. No shared-header or compiler-option change is needed for the matched
-viewer functions.
+The four function-local `static mgCMemory` managers have one-byte compiler guards
+that the object postprocessor binds to retail's four-byte guard slots at
+0x37E43C, 0x37E440, 0x37E444 and 0x37E448, keeping the complete `.sbss` layout.
+`MovieLine`, `MovieSelect` and `MovieSpecialMode` own two bytes each and
+`MovieSpecialModeInfo` three shorts; their piece tails are alignment.

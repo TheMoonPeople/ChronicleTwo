@@ -173,24 +173,16 @@ void MovieViewInit(INIT_LOOP_ARG arg) {
     main_stack->stack_used = 0;
     main_stack->lock = 0;
 
-    /**
-     * First packet buffer manager.
-     */
+    // First packet buffer manager.
     static mgCMemory buf0;
 
-    /**
-     * Second packet buffer manager.
-     */
+    // Second packet buffer manager.
     static mgCMemory buf1;
 
-    /**
-     * First draw-data buffer manager.
-     */
+    // First draw-data buffer manager.
     static mgCMemory dbuf0;
 
-    /**
-     * Second draw-data buffer manager.
-     */
+    // Second draw-data buffer manager.
     static mgCMemory dbuf1;
 
     packet_a = main_stack->stAlloc64(0x2710);
