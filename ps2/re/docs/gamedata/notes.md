@@ -1,11 +1,7 @@
 # gamedata: reverse-engineering notes
 
-## C++ draft status
-All 67 functions have C++ in `ps2/src/gamedata.cpp`. 20 are exact and compiled
-by the matching build. 25 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 22 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Status
+All 67 functions are native; the unit has no data markers.
 
 Master item tables, filled by running `CScriptInterpreter` over `menu/cfg7/*.cfg` with the tag
 table `gamedata_tag`. No counterpart in the first game (its `itemdata` is a different system).
@@ -14,14 +10,17 @@ table `gamedata_tag`. No counterpart in the first game (its `itemdata` is a diff
 - `LoadData` loads, via `LoadGameDataAnalyze("menu/cfg7/%s")`: `comdat.cfg`, `wepdat.cfg`,
   `itemdat.cfg`, `atdat.cfg`, `robodat.cfg`, `fishdat.cfg`, `grddat.cfg`.
 - `LoadItemSystemMes(n)` loads `menu/cfg7/comdatmes%d.cfg` (n = language; called from
-  `LanguageChange`) into a 0x2800-byte `mgCMemory` buffer (`gamedata_sysword_buffer_1073`);
+  `LanguageChange`) into its function-local static `u_long128 gamedata_sysword_buffer[0x280]`
+  (retail `gamedata_sysword_buffer_1073`) through a local `mgCMemory`;
   `_MES_SYS` copies each name there (`gamedata_build_stack`), converting via `ConvertFontCode`
   when `LanguageCode` is 2..5.
 - `gamedata_tag` (0xC8 = 25 `SPI_TAG_PARAM`, last null): `_DATACOMINIT, _DATACOM, _DATAWEPNUM,
   _DATAWEP, _DATAWEP_ST, _DATAWEP_ST_L, _DATAWEP2_ST, _DATAWEP2_ST_L, _DATAWEP_SPE,
   _DATAWEP_BUILDUP, _DATAITEMINIT, _DATAITEM, _DATAATTACHINIT, _DATAATTACH_ST, _DATAATTACH_ST2,
   _DATAATTACH_ST_SP, _DATAROBOINIT, _DATAROBO_ANALYZE, _DATAFISHINIT, _DATAFISH, _DATAGAURDNUM,
-  _DATAGAURD, ..., _MES_SYS, _MES_SYS_SPECTOL` (the tag-name strings are `at_1018`..`at_1041`).
+  _DATAGAURD, ..., _MES_SYS, _MES_SYS_SPECTOL`; the guard callbacks precede the fish callbacks in
+  the table regardless of source function order, and the 0xC8 declared bytes have an eight-byte
+  zero alignment tail.
 - Every `*INIT`/`*NUM` tag stores the count into `GameItemDataManage.<x>_num` and resets the
   matching `Spi*` cursor to the table base. Tag routines all return 1 except the `SpiWeaponPt`/
   `SpiAttach == NULL` early outs.
@@ -44,7 +43,7 @@ returns it (`lw 0($this)`).
 | local_attachdata | 0x390 | CDataAttach 0x18 | 38 (0x26) |
 | local_robodata | 0x990 | CDataRoboPart 0x24 | 68 (no ctor, no construct_array) |
 | local_fishdata | 0x190 | CDataBreedFish 0x14 | 20 (0x14) |
-| local_guarddata | 0x46 | s16 | 35 (stride 2 in GetGuardData) |
+| local_guarddata | 0x46 | s16 | 35 (stride 2 in GetGuardData); its 0x50-byte piece ends in 14 zero alignment bytes, not five more entries |
 | local_itemdatano_converttable | 0x400 | s16 | 512: item_no -> index into com table, -1 empty |
 `GetCommonData` accepts 0 < item_no < 0x200. Family getters then index the family table with
 `CDataCommon::list_no` (< `<x>_num`) after checking `ConvertUsedItemType(type)`: weapon 3,
@@ -54,14 +53,14 @@ item 1/7/8, attach 2, fish 6; robo and guard do not check type.
 Written by `_DATACOM` (stride 0x2C): +0 u8 type, +2 s16 item_no (convert-table key), +4 s16
 list_no, +0x1C u8, +0x1E s16, +0xA u16 (clamped to 0x90 when weapon family and >100), +0x20 u8,
 +6 s16, +8 s16, +0xC char[16] (strcpy of string arg), +0x24 u32, +0x28 zeroed (name ptr).
-- +6 icon_no (`GetItemIconNo`), +8 message_no (`GetItemMessageNo` adds `msg_offsettbl_1363[k]`
-  = {0, 10000, 0}), +0xC file_name (`GetItemFileName`), +0x24 attribute (`GetItemDataAttribute`;
+- +6 icon_no (`GetItemIconNo`), +8 message_no (`GetItemMessageNo` adds its function-local
+  static `msg_offsettbl[k]` = {0, 10000, 0}, retail `msg_offsettbl_1363`), +0xC file_name (`GetItemFileName`), +0x24 attribute (`GetItemDataAttribute`;
   bit1 `IsTrush`, bit2 `IsSpectolTrans`), +0x28 name (`GetItemMessage`, `SearchItemByName`).
 - +0xA max_num: `CGameDataUsed::AddNum` clamps counts to it. +0x1E stack_num:
   `CheckStackRemain` = it - GetNum. +0x1C active_set: `IsActiveSet` returns it. +0x20 unknown.
 
 ## Item type (CDataCommon::type) -> ConvertUsedItemType
-1..4 -> 3 weapon; 5..10 -> 4 (unknown; path `main/chr/` like weapons); 0xB and >=0x14 -> 1 item;
+1..4 -> 3 weapon; 5..10 -> 4 (unknown; path `mainchr/` like weapons); 0xB and >=0x14 -> 1 item;
 0xC..0xF -> 5 robo part (`dungeon/robo/`); 0x10..0x13 and 0x22 -> 2 attach; then overrides
 0x1C -> 7 (CGameDataUsed gift box, `CopyDataGiftBox` sets used type 7), 0x1E -> 6 fish,
 0x23 -> 8 (`CGameDataUsed::Boiled` sets used type 8). The used-type values match
@@ -124,37 +123,47 @@ default ctor `CItemUseTarget() { type = ITEM_USE_TARGET_NONE; }` (-1), also run 
 (`GetMonsterBajjiDataPtrMosId`). Global instance `MenuUsedTarget` lives in menucls1.
 
 ## Globals
-Global (in header): `etcitem_spectol_table` (0x352 = 425 x {s8 slot, s8 value}, indexed by
+Global (in header): `etcitem_spectol_table` (`s8[0x1A9][2]`, 425 {slot, value} pairs indexed by
 item_no-1; slot < 8 -> ATTACH_USED+6+2*slot, slot > 9 -> ATTACH_USED+2*slot-0x12, i.e. the
-attribute[8]/status[2] shorts at CGameDataUsed+0x16/+0x12), `SpiWeaponPt`, `SpiItemPt`,
-`SpiAttach`, `SpiRoboPart`, `SpiFish`, `GameItemDataManage`.
-Static (local in retail; keep in the .cpp): `gamedata_tag`, `ItemCmdMsgTbl` (0x108 = 33 rows of
-8 s8; `ItemCmdMsgSet` emits row[i]+5000 until < 5000, then -1), `table_1553` (s16[8]; 7 ridepod
-core item numbers 0xF6..0xFC, -1), `msg_offsettbl_1363` (s16[3]), `gamedata_build_stack`
-(mgCMemory*), `comdatapt` (CDataCommon*), `comdatapt_num` (int), all `local_*` tables,
-`gamedata_sysword_buffer_1073`, `filename_1267` (char[0x20]), `item_file_path_1288` (char[0x80]).
+attribute[8]/status[2] shorts at CGameDataUsed+0x16/+0x12; the 0x352-byte object has a 14-byte
+zero alignment tail), `SpiWeaponPt`, `SpiItemPt`, `SpiAttach`, `SpiRoboPart`, `SpiFish`,
+`GameItemDataManage`.
+Static (local in retail; in the .cpp): `gamedata_tag`, `ItemCmdMsgTbl` (0x108 = 33 rows of
+8 s8; `ItemCmdMsgSet` emits row[i]+5000 until < 5000, then -1; zeros after each terminator are
+real table data), `gamedata_build_stack` (mgCMemory*), `comdatapt` (CDataCommon*),
+`comdatapt_num` (int), all `local_*` tables. Function-local statics: `GetRidePodCore`'s
+`table` (s16[8]; 7 ridepod core item numbers 0xF6..0xFC, -1; retail `table_1553`),
+`GetItemMessageNo`'s `msg_offsettbl` (s16[3], retail `msg_offsettbl_1363`; two trailing piece
+bytes are alignment), `LoadItemSystemMes`'s `gamedata_sysword_buffer`, `GetItemFileName`'s
+`filename` (char[0x20], retail `filename_1267`) and `GetItemFilePath`'s `item_file_path`
+(char[0x80], retail `item_file_path_1288`).
 Static functions: all `_DATA*`/`_MES_SYS*` tags, `LoadGameDataAnalyze`, `ItemCmdMsgSet`,
 `Init_USEITEM_EFFECT`.
 
 ## Misc
 - `GetItemFileName(no, ext)`: types 5 and 8 append "t" when save bit flag 799 is set; ext==1
   appends ".chr". Uses `GetSaveData`/`CSaveData::GetBitFlag`.
-- `GetItemFilePath(no, alt)`: dir `dungeon/robo/` (family 5), `main/chr/` (3,4), else `item/`;
+- `GetItemFilePath(no, alt)`: dir `dungeon/robo/` (family 5), `mainchr/` (3,4), else `item/`;
   alt==1: weapons -> `wep_t/%s_item.chr`, types 0xD/0xE -> `wep_t/%s.chr`.
 - `CheckItemEquip(chara, item)`: 0x12A only chara 0, 0x160 only chara 1, 0x171 only chara 0.
-- `GetItemMessageNo` second argument indexes `msg_offsettbl_1363`.
+- `GetItemMessageNo` second argument indexes `msg_offsettbl`.
 - `ATTACH_USED` is a userdata struct (CGameDataUsed+0x10); only forward-declared here.
 - Return types: `GetDataType` lbu -> u8; `GetItemIconNo`/`GetDataTypeStartListNo`/
   `GetRidePodCore` lh -> s16; `GetOffsetNo` lbu -> u8.
-- `CDataRoboPart::GetOffsetNo` returns `offset_no` at +0x22 directly; the C++
-  getter matches and links into a byte-identical game image.
+- `CDataRoboPart::GetOffsetNo` returns `offset_no` at +0x22 directly.
+- `CDataBreedFish::battle`, `stamina`, `boost`, `endurance`, `tenacity` are `u16`: the only
+  reader, `CGameDataUsed::CopyDataFish` (userdata), loads them with `lhu`.
+- `_MES_SYS`: the item name copy is the `char *` that `mgCopyString` returns; the item text and
+  its converted copy are `char` (`text`, `converted[0x100]`).
 
 ## Local object construction and item message table
 
 - `LoadGameDataAnalyze` constructs `CScriptInterpreter` only after a successful
   file load. `LoadItemSystemMes` constructs it inside the successful-load branch.
   Declaring either object at function entry moves the constructor call and does
-  not match the retail function.
+  not match the retail function. `LoadItemSystemMes` constructs its `mgCMemory`
+  after clearing the name buffer and declares the path array after the manager;
+  declaring the path first places it before the manager on the stack.
 - `InitItemMes` clears `name` in eight `CDataCommon` records per loop iteration.
   Eight records have a 0x160-byte stride. Directly writing the eight typed
   `local_com_itemdata[index + n]` entries preserves the retail register order.

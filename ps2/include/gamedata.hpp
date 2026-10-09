@@ -35,13 +35,13 @@ enum ITEM_DATA_TYPE {
     ITEM_DATA_ROBO_PART_D = 0xD,
     ITEM_DATA_ROBO_PART_E = 0xE,
     ITEM_DATA_ROBO_WEAPON = 0xF,
-    ITEM_DATA_UNK_11      = 0x11, /**< Attachment type excluded from gift-box insertion. */
-    ITEM_DATA_UNK_15      = 0x15, /**< Item type excluded from gift-box insertion. */
+    ITEM_DATA_UNK_11      = 0x11,
+    ITEM_DATA_UNK_15      = 0x15,
     ITEM_DATA_DUNGEON_KEY = 0x1A, /**< Dungeon key. */
-    ITEM_DATA_UNK_1B      = 0x1B, /**< Item type excluded from gift-box insertion. */
+    ITEM_DATA_UNK_1B      = 0x1B,
     ITEM_DATA_AQUARIUM    = 0x1D, /**< Aquarium that receives owned fish. */
     ITEM_DATA_FISH        = 0x1E, /**< Fish. */
-    ITEM_DATA_UNK_22      = 0x22, /**< Attachment type excluded from gift-box insertion. */
+    ITEM_DATA_UNK_22      = 0x22,
 };
 
 /**
@@ -472,8 +472,12 @@ public:
 
 STATIC_ASSERT(sizeof(CGameData) == 0x30);
 
-/** Spectrumising table: for each item number from 1, the attachment parameter it raises and by how much. */
-extern s8 etcitem_spectol_table[0x352];
+/**
+ *
+ * Attachment parameter index and amount each item number from 1 raises when spectrumised.
+ *
+ */
+extern s8 etcitem_spectol_table[0x1A9][2];
 
 /** Weapon entry the weapon data script is filling. */
 extern CDataWeapon *SpiWeaponPt;
