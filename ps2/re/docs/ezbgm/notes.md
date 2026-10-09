@@ -6,8 +6,8 @@ owns no class (`class_units.tsv`); it holds one `CSound` member, `CSound::Stream
 is declared in `ps2/include/sound.hpp` (owning unit `sound`), not in `ezbgm.hpp`. The `.cpp`
 needs `sound.hpp` when that function is decompiled.
 
-First game: no equivalent (no `ezBgm` anywhere in `/home/adubbz/development/chronicle`). The
-structure mirrors this game's `ezmidi` unit (see `ps2/re/docs/ezmidi/notes.md`).
+First game: no equivalent. The structure mirrors this game's `ezmidi` unit (see
+`ps2/re/docs/ezmidi/notes.md`).
 
 ## Functions
 | Symbol | Returns | Notes |
@@ -19,9 +19,11 @@ structure mirrors this game's `ezmidi` unit (see `ps2/re/docs/ezmidi/notes.md`).
 `sceSifCheckStatRpc` is declared in `ps2/include/sce/sifrpc.h` with a
 `sceSifClientData*` parameter and `int` return.
 
-All three functions match the linked retail image. `ezBgmInit` and `ezBgm` compile from their
-`#else` definitions; the `NONMATCHING` branches keep the earlier non-matching drafts. The
-compiled `ezBgm` switch names its cases with `EzBgmCommand` values.
+All three functions are native and match the linked retail image. `ezBgmInit` and `ezBgm` compile
+from their `#else` definitions; the `#ifdef NONMATCHING` branches hold alternative drafts that do
+not match. The compiled `ezBgm` switch names its cases with `EzBgmCommand` values. The five
+diagnostic strings are inline at their `printf` uses (exact spaces, spelling and newlines); the
+unit has no data markers.
 
 ## Enum `EzBgmCommand` (names not retail)
 Command word = command | channel (low 4 bits). Only the values `ezBgm` tests are in the header:
@@ -38,8 +40,8 @@ before each open), `0x8000` (StandBy, arg 0x3000 or 0x4000), `0x80B0` (GetState,
 ## Data (all LOCAL in retail -> `static` in the .cpp, no `extern` in the header)
 | Symbol | Address | Size | Type |
 |---|---|---|---|
-| `sbuff__3` (retail local `sbuff`) | 0x1F350C0 | 0x40 | `static s32 sbuff[16]`, RPC send/receive buffer. |
-| `gCd2` | 0x1F35100 | 0x28 symbol, 0x30 extent (`INCLUDE_BSS` 0x30; next symbol `at_1348` at 0x1F35130) | `sceSifClientData` (`<sifrpc.h>`, `+0x24` = `server`). Like `ezmidi`'s `gCd` (`EzMidiClientStorage`, in `ezmidi.cpp`), likely needs the same 0x28 + 8-byte storage wrapper to reproduce the 0x30 extent. |
+| `sbuff` (symbol file `sbuff__3`) | 0x1F350C0 | 0x40 | `static int sbuff[16]`, 16-byte aligned, RPC send/receive buffer. |
+| `gCd2` | 0x1F35100 | 0x28 symbol, 0x30 extent (next symbol `at_1348` at 0x1F35130) | `static sceSifClientData gCd2`, 16-byte aligned (`<sifrpc.h>`, `+0x24` = `server`). The eight-byte tail to 0x30 is alignment padding supplied by the object postprocessor; no storage wrapper or extra field is needed. |
 | `at_32` | 0x372CE0 | 0x13 | `"EZ_BGMINIT START \n"` |
 | `at_33__2` | 0x372D00 | 0x17 | `"error: sceSifBindRpc \n"` |
 | `at_52` / `at_53` / `at_54` | 0x372D20 / 40 / 60 | 0x1E each | `"########### Rpc is bussy1!! \n"` / `2` / `3` |
