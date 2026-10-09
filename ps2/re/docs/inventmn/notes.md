@@ -1,17 +1,26 @@
 # inventmn: reverse-engineering notes
 
-## Linked text length
+`CMenuInvent::LoadCharaCheck` and `CMenuInvent::IsCreateObject` are accepted
+native C++ callers. Their scoped placement rows construct one and two
+`CActionChara` objects respectively; the former requires after-inline conversion.
+Three additional floating-argument rows preserve their position-call schedules.
+See [placement conversion](../satansfiddle/placement-new.md).
 
-The native drafts of `CMenuInvent::LoadCharaCheck`, `CMenuInvent::IsCreateObject`,
-and `MenuInventInit` compile to 0x48C, 0x1568, and 0x1018 bytes, respectively;
-retail uses 0x4D8, 0x1588, and 0x1048. Their shorter code shifts the following
-linked text by 0xA0 after function alignment. These drafts remain guarded by
-`NONMATCHING` and the matching build uses their retail assembly. `UpdataNetaMemoStr` matches with the sorting helper declared local, as in retail.
+Three guarded functions remain: `ResetAddress`, `IsAccessAlbum` and
+`MenuInventInit`. `UpdataNetaMemoStr` is native with the sorting helper
+declared local, as in retail.
 
-The matching build also selects retail gaps for `ResetAddress` and
-`IsAccessAlbum`; those functions have guarded C++ drafts.
 `MenuInventKey` and `CalcTex` are native and exact (see [night-20261008.md](night-20261008.md)).
 The other invention-menu functions remain native C++ where already matched.
+
+## Earlier linked text length
+
+Before the placement-conversion profile, the native drafts of
+`LoadCharaCheck`, `IsCreateObject`, and `MenuInventInit` compiled to 0x48C,
+0x1568, and 0x1018 bytes; retail used 0x4D8, 0x1588, and 0x1048. Their shorter
+code shifted the following linked text by 0xA0 after function alignment.
+At that source/profile boundary all three were guarded and retail assembly
+supplied their bodies.
 
 Invention menu ("Invent"): camera photos, ideas ("neta", id < 1000) and scoops (id >= 1000),
 the memory-card album, invention recipes and the menu page class. No first-game counterpart
@@ -274,23 +283,30 @@ evaluates pi first for `CalcMenuAdd`. Retail calls the three SDK vector
 routines rather than inlining COP2. Details and probes are in
 [night-20261008.md](night-20261008.md).
 
+## Earlier promoted-caller measurements
+
+Before the current constructor/profile integration, `LoadCharaCheck` differed
+in 190/312 words, with 0x48C native bytes against retail's 0x4E0 extent.
+Retail branched on `v0` at 0x00202528 and copied into `s4` in its delay slot
+at 0x0020252C; the draft copied first at +0x288 and branched on `s4` at +0x28C.
+Its constructor expansion was also shorter.
+
+At the same earlier boundary, `IsCreateObject` differed in 382/1380 words,
+with 0x1568 native bytes against retail's 0x1590 extent. Its two allocation
+branch/copy pairs were at 0x00204E04/0x00204E08 and 0x0020500C/0x00205010.
+These results document the rejected baseline forms; both callers are now native.
+
 ## Remaining guarded functions
 
 The draft checker compares relocated instruction words against each manifest
-extent, including alignment padding. The following functions remain guarded.
+extent, including alignment padding. The following three functions remain guarded;
+the scores below record the earlier measured source/profile forms.
 
 - `ResetAddress__15CInventUserDataFv`: 13/48 words differ, both 0xC0 bytes.
   A typed, indexed row pointer restores the exact eight-assignment unrolled
   body; its invariant-base setup and two-photo remainder still differ. The
   previous direct indexing was 34/48. No row-pointer induction or shared
   flat-buffer type change is retained; see [midday.md](midday.md).
-- `LoadCharaCheck__11CMenuInventFv`: 190/312 words differ, 0x48C native bytes
-  against retail's 0x4E0 extent. Retail's placement new branches on `v0` at
-  0x00202528 and copies its result into `s4` in the delay slot at 0x0020252C.
-  The draft copies first (offset 0x288), then branches on `s4` (offset 0x28C).
-  The constructor expansion is also shorter. Reconsider after the dedicated
-  placement-new lane supplies a compliant matching form and the shared
-  `CActionChara` constructor chain reproduces the retail expansion.
 - `MenuInventInit__FP9mgCMemoryPii`: 606/1044 words differ, 0x1018 native bytes
   against retail's 0x1050 extent. The first character allocation branches on
   `v0` at 0x0020B79C with the copy to `s1` at 0x0020B7A0; the draft copies
@@ -300,11 +316,6 @@ extent, including alignment padding. The following functions remain guarded.
   0x0020B024/0x0020B028, as do the two effect allocations; those are useful
   comparisons for the dedicated allocation research. Reconsider after that
   lane resolves character allocation and the shared constructor chain.
-- `IsCreateObject__11CMenuInventFii`: 380/1380 words differ, 0x1568 native bytes
-  against retail's 0x1590 extent. Its two character allocations have the same
-  placement-new branch/copy pairs at 0x00204E04/0x00204E08 and
-  0x0020500C/0x00205010. Reconsider after the dedicated allocation result and
-  shared constructor chain are resolved.
 - `IsAccessAlbum__11CMenuInventFv`: 1080/1276 words differ, 0x13D0 native bytes
   against retail's 0x13F0 extent. The album allocation branches on `v0` at
   0x00208608 with the copy to `s2` in the delay slot at 0x0020860C. The draft
@@ -321,7 +332,7 @@ assembly was modified.
 [midday.md](midday.md) records the retained ResetAddress and MenuInventKey
 improvements, rejected CalcTex local-layout probes, and the natural-constructor
 condition for revisiting the four placement-new remainders. CalcTex has
-since been matched together with MenuInventKey; five guards remain.
+since been matched together with MenuInventKey; three guards now remain.
 
 ## Midday round 1
 
@@ -330,7 +341,7 @@ since been matched together with MenuInventKey; five guards remain.
 photo index and assigned after its initialization. The native unrolled body
 remains exact; the invariant-base setup and two-photo tail still differ.
 That midday checkpoint had MenuInventKey at 8/524 and seven guards.
-Its later promotion supersedes that remainder; five guards now remain.
+Its later promotion supersedes that remainder; three guards now remain.
 
 ## October 8 near-miss wave
 
@@ -339,6 +350,15 @@ local-data, index-width, initialization-order and compiler-control probes.
 That near-miss wave retained 8/524 for MenuInventKey and 13/48 for
 ResetAddress without a promotion. MenuInventKey is now native; the
 ResetAddress remainder remains current.
+
+## Japanese name-length table
+
+`jp_conv_lentbl_2835` is a native static table. `IsCreateObject` reads
+`jp_conv_lentbl_2835[half_length - 1]`, the byte offset of the masked character
+for a proposed Japanese name; retail addresses that element through
+`D_003532DF`, the label one byte before the table. No `D_003532DF` data marker
+is needed: PAL and the complete-object check pass without it. The `s8`
+destination makes MWCC load the unsigned element with retail's `lb`.
 
 ## Layout modes held in key_arg_no
 

@@ -1681,6 +1681,41 @@
         "callee": "mgSetRenderInfo__Ffff",
         "evaluate_first": true,
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "inventmn.cpp",
+        "function": "IsCreateObject__11CMenuInventFii",
+        "value_type": "binary32",
+        "value_bits": "0x41a00000",
+        "callee": "SetPosition__11CCharacter2Ffff",
+        "evaluate_first": false,
+        "expected_matches": 1,
+        "evaluate_before": 2
+      },
+      {
+        "translation_unit": "inventmn.cpp",
+        "function": "LoadCharaCheck__11CMenuInventFv",
+        "callee": "SetPosition__11CCharacter2Ffff",
+        "value_type": "binary32",
+        "evaluate_first": false,
+        "value_bits": "0x41600000",
+        "evaluate_before": 1,
+        "expected_matches": 2
+      },
+      {
+        "translation_unit": "inventmn.cpp",
+        "function": "LoadCharaCheck__11CMenuInventFv",
+        "callee": "SetPosition__11CCharacter2Ffff",
+        "value_type": "binary32",
+        "evaluate_first": false,
+        "value_bits": "0xc1e80000",
+        "argument": {
+          "argument_index": 1,
+          "value_type": "binary32",
+          "value_bits": "0x41a00000"
+        },
+        "evaluate_before": 3,
+        "expected_matches": 1
       }
     ]
   },
@@ -1796,6 +1831,22 @@
         "allocator": "__nw__FUiP1",
         "constructor": "__ct__24CList<15mgCTexAnimeData>Fv",
         "conversion": "before_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "inventmn.cpp",
+        "function": "IsCreateObject__11CMenuInventFii",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 2
+      },
+      {
+        "translation_unit": "inventmn.cpp",
+        "function": "LoadCharaCheck__11CMenuInventFv",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
+        "conversion": "after_constructor_inline",
         "expected_matches": 1
       },
       {
