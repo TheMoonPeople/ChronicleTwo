@@ -14,13 +14,12 @@
 #include "main.hpp"
 #include "mainloop.hpp"
 
-// Small uninitialised data (.sbss)
 /**
  *
  * Vertical blanks counted since start-up, kept non-negative.
  *
  */
-static volatile int vcount__2;
+static volatile int vcount;
 static int          VSyncCallBack(int event);
 
 // Code (.text)
@@ -91,7 +90,7 @@ static void init() {
     sceCdInit(0);
     sceCdMmode(2);
     sceFsReset();
-    printf("######################%d\n", vcount__2);
+    printf("######################%d\n", vcount);
 
     while (sceSifLoadModule("cdrom0:\\MODULES\\SIO2MAN.IRX;1", 0, NULL) < 0) {
     }
@@ -132,7 +131,7 @@ int main() {
     MainThreadPriority = 10;
     ChangeThreadPriority(GetThreadId(), MainThreadPriority);
     init();
-    printf("######################%d\n", vcount__2);
+    printf("######################%d\n", vcount);
     MainLoop();
 
     sceGsSyncPath(0, 0);
