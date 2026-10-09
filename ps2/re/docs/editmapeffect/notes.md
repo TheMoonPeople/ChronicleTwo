@@ -7,13 +7,13 @@ globals, so `ps2/include/editmapeffect.hpp` only includes `editmap.hpp`, where a
 members are already declared (vtable slots: `DrawFireEffect` at `__vt__8CEditMap+0x1C`).
 
 ## Data
-- `at_358__2` = `"fire_wrk"`, `at_359` = `"lightling"`: texture names passed to
-  `mgCTextureManager::GetTexture(char*, int)` in `DrawFireEffect` (literals, inline them).
-- `attr_378` (0x90, .bss) / `init_379` (4, .sbss): function-local `static mgCFrameAttr attr;`
-  in `DrawEffect` with its guard. After construction, every call sets (offsets in
+- `"fire_wrk"` and `"lightling"`: inline texture-name literals passed to
+  `mgCTextureManager::GetTexture(char*, int)` in `DrawFireEffect`.
+- `attr` (0x90, .bss) and its one-byte constructor guard (.sbss): function-local
+  `static mgCFrameAttr attr;` in `DrawEffect`. After construction, every call sets (offsets in
   `mgCFrameAttr`, `mg_frame.hpp`): `+0x18 draw = 3` (VISIBLE|SKIP_CHILDREN),
   `+0x30 fog = 2`, `+0x48 no_cull = 1`, `+0x8C depth_bias = 1.015f` (`0x3F81EB85`).
-  Ghidra shows these as `DAT_01f35bxx`; the asm has `%lo(attr_378 + off)`.
+  Ghidra shows these as `DAT_01f35bxx`.
 
 ## CEditMap offsets used (all already named in editmap.hpp / map.hpp)
 - `0xD40 edit_parts_max`, `0xD44 edit_parts` (`CEditParts*`, stride 0x330 = sizeof(CEditParts)).
@@ -44,14 +44,6 @@ members are already declared (vtable slots: `DrawFireEffect` at `__vt__8CEditMap
 ## Unresolved
 - Meaning of func_point_mngr flag bit 1 (`&2`), and the exact field at part `+0x2F0`.
 
-## Build state
-`editmapeffect.hpp` itself is trivial; it fails to compile only because `editmap.hpp`
-(another unit, in progress) does not compile on its own yet.
-
-All four functions now have named, typed C++ drafts in `editmapeffect.cpp`.
-The grouped draft compilation succeeded. Each received one isolated promotion
-attempt; all remain under `NONMATCHING` with retail assembly selected by the
-normal build. `AnimeStep` differed by one instruction byte in the linked
-image. `DrawEffect` could not link because the C++ draft emitted a duplicate
-`mgCFrame::SetVisual` definition. The two fire drawing drafts differed in
-object size and changed the linked image.
+## Source status
+All four functions are native; the unit has no `NONMATCHING` guards, `INCLUDE_ASM` gaps, or
+data markers.
