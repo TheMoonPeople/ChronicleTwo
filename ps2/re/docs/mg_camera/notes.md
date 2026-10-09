@@ -2,7 +2,7 @@
 
 Header: `ps2/include/mg_camera.hpp`. Classes: `mgCCamera` (0x70), `mgCCameraFollow` (0xC0),
 enum `mgCameraKind`. First-game counterparts: `CCamera` (`camera.hpp`) and `CCameraFollow`
-(`camerafollow.hpp`) in `/home/adubbz/development/chronicle`.
+(`camerafollow.hpp`) in the first game's decompilation.
 
 ## mgCCamera (size 0x70)
 Size: `__nw__FUiP1(0x70, ...)` before `__ct__9mgCCameraFf` in `TitleBootInit__Fv`; derived fields
@@ -80,18 +80,14 @@ No CFrame member, no destructor, no `parent` frame argument on setters, separate
 Suspend/Resume/Iam added, roll unused by GetCameraMatrix, follow camera gains `follow_offset`
 and `follow_next` and a virtual SetFollow.
 
-## Drafts (job mg_camera.1)
-- 39 functions promoted; Iam x2/Suspend/Resume stay INCLUDE_ASM (inline in the header; emitted
-  only with the vtable, i.e. once Step__9mgCCameraFi matches); 3 drafts reported DIFF:
-  - `Step__9mgCCameraFi` (0x298 vs 0x290): logic as described above; codegen/ordering only.
-  - `GetCameraMatrix__9mgCCameraFPA4_f`: retail re-loads and re-stores dir[0..2] (0x30..0x38)
-    right after GetDir before building `up`, as if dir were copied onto itself or through an
-    inline helper; the draft omits that. up = (dx*dy, -(dx^2+dz^2), dy*dz, 1).
-  - `Step__15mgCCameraFollowFi` (0x214 vs 0x210): codegen only.
-- GetFollow/GetFollowOffset are a single lq/sq: matched by `*(u_long128 *)dst = *(u_long128 *)src`.
+## Source status
+Every function of the unit is native C++ and byte-identical; there are no guarded drafts,
+`INCLUDE_ASM` entries or data markers. `Iam` (both), `Suspend` and `Resume` are inline in the
+header and are emitted with the vtables, which `Step__9mgCCameraFi` (the first non-inline
+virtual) causes MWCC to emit. The static `StopCamera` freeze flag is an ordinary C++ definition
+and both camera vtables are compiler generated.
+- `GetCameraMatrix`: up = (dx*dy, -(dx^2+dz^2), dy*dz, 1); retail re-loads and re-stores
+  dir[0..2] right after GetDir before building `up`.
+- GetFollow/GetFollowOffset are a single lq/sq: `*(u_long128 *)dst = *(u_long128 *)src`.
 - mg_math functions come from `mg_math.hpp`; Step(F) passes `MG_INTERPOLATE_FRACTION` to
   mgAngleInterpolate.
-- Suspend, Resume and both Iam report MATCH under UNMATCHING (the vtables are emitted because
-  Step__9mgCCameraFi, the first non-inline virtual, is defined there), confirming they are inline
-  vtable copies. They cannot be promoted until Step__9mgCCameraFi matches: without it no vtable
-  and no inline copies are emitted.
