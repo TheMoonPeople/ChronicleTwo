@@ -6391,7 +6391,7 @@ int GyoraceMenuKey() {
                         GyoraceHaveFishCursorDrawFlag = list_update;
                         GyoraceHaveFishListScrlInit = list_update;
                         break;
-                    case 1:
+                    case 4:
                         if (racer_num <= 0) {
                             se = 5;
                         } else {
@@ -6400,7 +6400,7 @@ int GyoraceMenuKey() {
                             GyoraceCFGAnalyze(at_5493);
                         }
                         break;
-                    case 4:
+                    case 5:
                         GyoraceNowMode = GYORACE_MENU_VIEW_TACTICS;
                         GyoraceFishInfoDrawFlag = se;
                         GyoracerActive = NULL;
@@ -6414,7 +6414,7 @@ int GyoraceMenuKey() {
                         GyoraceMes->cursor_on = 0;
                         GyoraceFishMes->SetMsgCursor(0);
                         break;
-                    case 5:
+                    case 6:
                         if (racer_num <= 0) {
                             se = 5;
                         } else {
@@ -6423,7 +6423,7 @@ int GyoraceMenuKey() {
                             GyoraceCFGAnalyze(at_5494);
                         }
                         break;
-                    case 6:
+                    case 1:
                         GyoraceNowMode = GYORACE_MENU_SAVE_FADE;
                         MenuMainScene->fade.FadeOut(40, 0.0f, 0.0f, 0.0f);
                         break;
