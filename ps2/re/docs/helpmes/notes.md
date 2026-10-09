@@ -1,15 +1,10 @@
 # helpmes: reverse-engineering notes
 
-## Native storage and padding verification
-
-`HelpMes` has its declared 0x2958-byte `ClsMes` size. Native alignment
-supplies the eight bytes before `HelpMesInfo`, including the split boundary
-at `D_01F628BC`; neither an aligned(4) attribute nor a filler object is
-needed. `HelpMes` and `HelpMesInfo` have static linkage, matching retail's
-LOCAL binding. Their ordinary constructors preserve the complete unit.
-The full PAL checksum is `SCES_511.90: OK`, and all 149 object checks
-pass after removing the attribute and filler; only helpmes changes its
-complete object hash in this step.
+All eight functions and the static initializer are native. `HelpMes` has its
+declared 0x2958-byte `ClsMes` size; native alignment supplies the eight bytes
+before `HelpMesInfo`, including the split boundary at `D_01F628BC`, without
+an alignment attribute or filler object. `HelpMes` and `HelpMesInfo` have
+static linkage, matching retail's LOCAL binding.
 
 No class is owned by this unit (`class_units.tsv` has none). The unit drives one `ClsMes`
 (`nd_meswin.hpp`) as a help/error message window.
@@ -17,12 +12,12 @@ No class is owned by this unit (`class_units.tsv` has none). The unit drives one
 ## Globals (all `static` in retail: listed in `local_symbols.tsv`, so no `extern` in the header)
 | Symbol | Addr | Size | Type / meaning |
 |---|---|---|---|
-| `HelpMesBuff` | 0x1F5EF60 | 0x1000 | `u8[0x1000]` (used as `short *` text): copy of `etc/help%d.mes` (`%d` = `LanguageCode`). `LoadHelpMes` rejects files > 0x1000 with printf "HMes Buffer Over!!(%d/%dbyte)". |
+| `HelpMesBuff` | 0x1F5EF60 | 0x1000 | `char[0x1000]` (passed to `ClsMes::SetBuff` as `short *`): copy of `etc/help%d.mes` (`%d` = `LanguageCode`). `LoadHelpMes` rejects files > 0x1000 with printf "HMes Buffer Over!!(%d/%dbyte)". A `short[0x800]` declaration changes three instruction/relocation sites around `CreateHelpMes+0x3C8`. |
 | `HelpMes` | 0x1F5FF60 | 0x2958 | `ClsMes`. Constructed in `__sinit_helpmes_cpp`. The eight-byte alignment gap before `HelpMesInfo` includes a separately split `D_01F628BC` boundary; native alignment supplies both fragments. |
 | `HelpMesInfo` | 0x1F628C0 | 0x1C | `HELP_MES_INFO` (header). Reset in `__sinit`, `CreateHelpMes`, and inline in Step/Show*. |
 | `WindowMode` | 0x37E9D0 | 4 | `int`, a `MesWindowMode`: `ShowHelpMes` stores 0 (`MES_WIN_NONE`), `ShowErrorHelpMes` 4 (`MES_WIN_VERSATILE_1`); `StepHelpMes` passes it to `ClsMes::SetWindowMode`. |
 | `ShowOffOnce` | 0x37E9D4 | 4 | `int` flag: `ShowOffOnceHelpMes` sets 1; `DrawHelpMes` skips one draw and clears it; `CreateHelpMes` clears. |
-| `InitFlag__2` | 0x37E9CC | 4 | Retail name `InitFlag`, LOCAL (local_symbols.tsv); `__2` only disambiguates it from another unit's static `InitFlag` at 0x37E868. File-scope `static int InitFlag`: written 1 in `LoadHelpMes` after a successful copy, read in `CreateHelpMes` (whole body is gated on it). |
+| `InitFlag` | 0x37E9CC | 4 | LOCAL; the map's `InitFlag__2` only disambiguates it from another unit's static `InitFlag` at 0x37E868. File-scope `static int InitFlag`: written 1 in `LoadHelpMes` after a successful copy, read in `CreateHelpMes` (whole body is gated on it). |
 
 ## HELP_MES_INFO (0x1C, name chosen; no retail name)
 Size from the symbol extent 0x1C and `__sinit` / reset code writing offsets 0x0..0x18.
@@ -48,10 +43,8 @@ Step also writes `HelpMes.fade_speed` (+0x190) = 1.0f.
   zeroes, `draw_speed_def = GetDrawSpeedDef()`, `InitMesWinTbl()`, 16x memset of `name[i]` 0x32,
   `item_mes[]` = -1, per-line arrays for 20 lines, etc.), then Preset(4), SetWindowMode(0),
   SetBuff((short*)HelpMesBuff), resets ShowOffOnce and HelpMesInfo, and stores `tex_no` into
-  ClsMes+0x22A4 (`unk_22a4` in nd_meswin.hpp). `DrawHelpMes` passes that same field to
-  `mgTexManager.ReloadTexture(tex, NULL)` before `DrawMesWin`, so ClsMes::unk_22a4 is a texture
-  number (the nd_meswin header owner may wish to name it). Compare against nd_meswin's ctor to see
-  whether the inline sequence is a single inline member.
+  `ClsMes::texture_block` (+0x22A4). `DrawHelpMes` passes that same field to
+  `mgTexManager.ReloadTexture(tex, NULL)` before `DrawMesWin`.
 - `DrawHelpMes()`: returns early when a global at 0x3FAF3C (sdata/sbss of another unit; not
   identified here) is non-zero.
 - `ShowErrorHelpMes`: also `sndSePlay(GetSystemSndID(), 0x1C, 0)`.
@@ -64,21 +57,8 @@ Step also writes `HelpMes.fade_speed` (+0x190) = 1.0f.
   speech position, show, y, x, created; an initializer list instead emits member declaration order.
 
 ## First game
-No corresponding unit/class in `/home/adubbz/development/chronicle` (only `EdSetHelpMes` etc. in
-edit.hpp, unrelated).
+No corresponding unit or class in Dark Cloud (only `EdSetHelpMes` etc. in edit.hpp, unrelated).
 
-## Current source status
-
-`GetHepMesInfo` and `ShowOffOnceHelpMes` have previously compared byte-identically.
-The current source also defines `LoadHelpMes`, `CreateHelpMes`, `StepHelpMes`,
-`DrawHelpMes`, `ShowHelpMes`, and `ShowErrorHelpMes` as ordinary C++ functions.
-`CreateHelpMes` resets the message window fields in retail order; the field at
-`ClsMes+0x22A4` is named `texture_block`, and `DrawHelpMes` reloads that block
-before drawing. These recent definitions still require integrated object and
-linked-image verification before their matching status can be stated.
-
-`HelpMes` and `HelpMesInfo` are file-scope C++ objects. Their constructors
-produce `__sinit_helpmes_cpp` naturally; there is no source definition or
-`NONMATCHING` draft of that compiler initializer. The initializer's retail
-store order is described above. Its generated bytes also require verification
-with the current objects.
+`HelpMes` and `HelpMesInfo` are file-scope C++ objects whose constructors
+produce `__sinit_helpmes_cpp`; there is no source definition of that compiler
+initializer. The two load/error strings are literals at their use.

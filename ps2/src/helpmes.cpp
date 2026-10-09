@@ -12,32 +12,44 @@
 #include "snd_mngr.hpp"
 
 /**
+ *
  * Whether the help message file has been loaded.
+ *
  */
-static int InitFlag__2;
+static int InitFlag;
 
 /**
+ *
  * Window style selected for the current help message.
+ *
  */
 static int WindowMode;
 
 /**
+ *
  * Whether to suppress the next help message draw.
+ *
  */
 static int ShowOffOnce;
 
 /**
+ *
  * Loaded bytes of the localized help message file.
+ *
  */
 static char HelpMesBuff[0x1000];
 
 /**
+ *
  * Message window used to display help and error messages.
+ *
  */
 static ClsMes HelpMes;
 
 /**
+ *
  * State of the current help or error message request.
+ *
  */
 static HELP_MES_INFO HelpMesInfo;
 
@@ -55,7 +67,7 @@ void LoadHelpMes(u_long128 *scratch) {
         }
 
         memcpy(HelpMesBuff, scratch, size);
-        InitFlag__2 = 1;
+        InitFlag = 1;
     }
 }
 
@@ -69,7 +81,7 @@ static HELP_MES_INFO *GetHepMesInfo() {
 }
 
 void CreateHelpMes(int message_id) {
-    if (InitFlag__2 != 0) {
+    if (InitFlag != 0) {
         HelpMes.npc_name_mode = 0;
         HelpMes.char_num = 0;
         HelpMes.text_w = 0;
