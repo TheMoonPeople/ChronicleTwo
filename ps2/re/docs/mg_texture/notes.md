@@ -13,10 +13,12 @@ why the symbol list calls that one `texflush_dma__2`). Hence the header has **no
 - `lut_1246`, `block_table8_1266`, `block_table32_1267`, `conv_work_1306` (0x10000 bss) are
   function-local statics of BlockConv32to8 / PageConv32to8 / Conv32To8. `conv_work_1306` alone
   is still an `extern` over an `INCLUDE_BSS` marker: the generated data assembly
-  (`ps2/asm/pal/data/lib/sce/libdev.rodata.s` and the menuop, title, fishing and automap data)
-  names it in address-shaped words that retail does not relocate, so a native definition with
-  internal linkage leaves those references unresolved at link time. Its migration waits on the
-  tooling change described in [data-migration-20261008.md](data-migration-20261008.md).
+  (the generated `libdev` read-only data and the menuop, title, fishing and automap data)
+  names it in address-shaped words that retail does not relocate (retail has no relocation at
+  those three library words, 0x36423C, 0x364244 and 0x36439C), so a native definition with
+  internal linkage leaves those references unresolved at link time. A native file-static
+  aligned `u_char conv_work[0x10000]` otherwise reproduces every byte and all 160 relocations
+  of the object; the marker stays until the generated data stops referencing the symbol.
 - Suggested signatures: `static int GetZBufVram(int *size)` (returns `(mgZBUF_1 & 0x1FF) << 5`
   = Z buffer VRAM block address; `*size` = `height*height*4/256` blocks of a local
   mgCTexture filled by `mgGetFrameBuffer(&local)`; it also calls `mgGetTextureZ(0)` and
@@ -26,8 +28,9 @@ why the symbol list calls that one `texflush_dma__2`). Hence the header has **no
   `static int SetTexFlush_TagCnt(u_int*)` returns 3 (quadwords); `static int Conv32To8(int w,
   int h, u_char*)` returns 1 on success (w*h <= 0x10000), 0 otherwise.
 - `sceGsTex0::operator=` (0x12EE60) copies the 64-bit TEX0 value and returns the
-  destination. It has a native 0x14-byte definition because `ReloadTexture`'s
-  assignment to a local `sceGsTex0` is still guarded by `NONMATCHING`.
+  destination; `ReloadTexture`'s assignment to a local `sceGsTex0` calls it. The seven
+  retail string literals of the unit (the duplicate-texture and VRAM diagnostics, the
+  IM/IMG/IM2/IM3 signatures and the capacity diagnostic) are inline at their uses.
 
 `mgCTexture::Initialize` matches PAL with typed field writes and an indexed
 clear of the four image pointers under MWCC optimization level 2. TEX1 and
