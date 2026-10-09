@@ -199,7 +199,7 @@ enum RS_MONSTER_EXTFUNC {
 
 /**
  *
- * Pairs one external function a monster script can call with the number
+ * Pairs one external function a script can call with the number
  * the script calls it by.
  *
  */
