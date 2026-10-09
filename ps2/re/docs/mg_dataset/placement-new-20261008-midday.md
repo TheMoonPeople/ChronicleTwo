@@ -56,4 +56,3 @@ All other native functions in `mg_dataset` retain their match results. The
 normal complete build preserves all 149 object-file SHA-256 hashes, retains
 147/149 complete-object matches, and retains the baseline PAL `.text`
 difference of 0x26 bytes. No shared header or compiler-profile row changes.
-
