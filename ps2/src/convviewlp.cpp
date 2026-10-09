@@ -23,16 +23,16 @@ static int ConvertResultDispTime;
 /**
  * Texture and data storage used by the conversion screen.
  */
-static mgCMemory DataBuffer__3;
+static mgCMemory DataBuffer;
 /**
  * Read buffer backed by the remaining main-stack storage.
  */
-static mgCMemory Stack_ReadBuff__3;
+static mgCMemory Stack_ReadBuff;
 
 /**
  * Scene used by the save-data conversion screen.
  */
-static CScene *MovieScene__2;
+static CScene *MovieScene;
 
 /**
  * Current mode of the save-data conversion screen.
@@ -83,8 +83,8 @@ static void InitSaveFileInfoTablePtr();
 
 // Code (.text)
 void SVConvViewInit(INIT_LOOP_ARG arg) {
-    MovieScene__2 = GetMainScene();
-    MovieScene__2->Initialize();
+    MovieScene = GetMainScene();
+    MovieScene->Initialize();
     mgInitFont();
     mgCMemory *main_stack = GetMainStack();
     main_stack->stReset();
@@ -116,11 +116,11 @@ void SVConvViewInit(INIT_LOOP_ARG arg) {
     buf1.stSetBuffer(main_stack->stAlloc64(30000), 30000);
     dbuf0.stSetBuffer(main_stack->stAlloc64(60000), 60000);
     dbuf1.stSetBuffer(main_stack->stAlloc64(60000), 60000);
-    DataBuffer__3.stSetBuffer(main_stack->stAlloc64(100000), 100000);
+    DataBuffer.stSetBuffer(main_stack->stAlloc64(100000), 100000);
     mgSetPacketBuffer(&buf0, &buf1);
     mgSetDataBuffer(&dbuf0, &dbuf1, 1);
     mgSetBackGround(0.0f, 0.0f, 0.0f, 128.0f);
-    SetTextureTable(100, 20, &DataBuffer__3);
+    SetTextureTable(100, 20, &DataBuffer);
     mgTexManager.EnterIMGFile(GetGaijiImgPtr(), 0, NULL, NULL);
     ReLoadFontTexture(0);
     mgTexManager.EnterIMGFile(GetFontTex2ImgPtr(), 0, NULL, NULL);
@@ -131,9 +131,9 @@ void SVConvViewInit(INIT_LOOP_ARG arg) {
     SAVEDATA_BUFFER = new (main_stack->Alloc(0x659E)) SAVE_CONVERT_WORK;
     main_stack->Align64();
     int rest = main_stack->stGetRest();
-    Stack_ReadBuff__3.stSetBuffer(main_stack->stGetTop(), rest);
-    Stack_ReadBuff__3.stReset();
-    Stack_ReadBuff__3.Align64();
+    Stack_ReadBuff.stSetBuffer(main_stack->stGetTop(), rest);
+    Stack_ReadBuff.stReset();
+    Stack_ReadBuff.Align64();
     InitSaveFileInfoTablePtr();
     ConvMode = SV_CONV_MODE_SELECT;
     SlotSelect = 0;
