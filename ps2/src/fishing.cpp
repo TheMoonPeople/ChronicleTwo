@@ -49,7 +49,7 @@ struct Vec4 {
     float v[4]; /**< Vector components. */
 };
 
-void                    StepDataLoading(void *arg);
+static void             StepDataLoading(void *arg);
 extern char             at_932__4[];
 extern char             at_2197__3[];
 extern char             at_2198__3[];
@@ -72,6 +72,11 @@ enum {
     kUkiBite = 6,
 };
 
+/**
+ *
+ * Fishing modes selected for float bait and lures.
+ *
+ */
 enum {
     kFishingModeFloat = 1,
     kFishingModeLure = 2
@@ -329,21 +334,6 @@ static FISH_PARAM FishParam[19] = {
     }
 };
 
-extern char               at_917__6[];
-extern char               at_1058__3[];
-extern char               at_1304__8[];
-extern char               at_1305__5[];
-extern char               at_1306__6[];
-extern char               at_1307__6[];
-extern char               at_1308__6[];
-extern char               at_1309__5[];
-extern char               at_1310__5[];
-extern char               at_1311__4[];
-extern char               at_1312__2[];
-extern char               at_1313__2[];
-extern char               at_1314__2[];
-extern char               at_1315__4[];
-extern char               at_1316__2[];
 extern int                EsaInfo[18];
 extern char              *lure_file[4];
 
@@ -1296,7 +1286,7 @@ int LoadExMotionBG(SubGameInfo *info, u_long128 *buffer) {
 
     StartReadBG();
 
-    if (LoadFileBG(at_917__6, buffer, 0) == 0) {
+    if (LoadFileBG("chara/c01_fishing.chr", buffer, 0) == 0) {
         return 0;
     }
 
@@ -1402,7 +1392,6 @@ int sgInitFishing(SubGameInfo *info) {
     info->record_check = info->dungeon;
     return 1;
 }
-#ifdef NONMATCHING
 int sgRestartFishing(SubGameInfo *info) {
     CScene *scene = info->scene;
     u_long128 *buffer = ReadBuffer;
@@ -1429,8 +1418,8 @@ int sgRestartFishing(SubGameInfo *info) {
         LureFrame = NULL;
         if (lure_no >= 0) {
             strcat(lure_path, lure_file[lure_no]);
-            if (LoadFile2(lure_path, buffer, NULL, 0) != 0) {
-                Lure->LoadPackNoLine((u_int *)buffer, at_932__4, &EsaStack, &EsaStack, &EsaStack, EsaTexb, NULL);
+            if (LoadFile2(lure_path, buffer, NULL, LOAD_FILE_READ) != 0) {
+                Lure->LoadPackNoLine((u_int *)buffer, "info.cfg", &EsaStack, &EsaStack, &EsaStack, EsaTexb, NULL);
             }
             LureFrame = Lure->CObjectFrame::frame;
         }
@@ -1449,26 +1438,26 @@ int sgRestartFishing(SubGameInfo *info) {
                 esa_chara = new (EsaStack.Alloc(0x68)) CCharacter2;
                 EsaChara = esa_chara;
                 EsaChara->Initialize();
-                if (LoadFile2(esa_path, buffer, NULL, 0) != 0) {
-                    EsaChara->LoadPackNoLine((u_int *)buffer, at_932__4, &EsaStack, &EsaStack, &EsaStack, EsaTexb, NULL);
+                if (LoadFile2(esa_path, buffer, NULL, LOAD_FILE_READ) != 0) {
+                    EsaChara->LoadPackNoLine((u_int *)buffer, "info.cfg", &EsaStack, &EsaStack, &EsaStack, EsaTexb, NULL);
                 } else {
                     EsaChara = NULL;
                 }
             }
         }
     }
-    sndSeAllStop(5);
-    sndSeAllStop(8);
+    sndSeAllStop(SND_PORT_ENEMY);
+    sndSeAllStop(SND_PORT_MENU);
     if (sndSeCheck(FanSnd, 0) == 0) {
         mgCMemory sound_memory;
         int sound_size = MotionBuff.stGetRest();
         sound_memory.stSetBuffer(MotionBuff.stGetTop(), sound_size);
         u_int *sound_buffer = (u_int *)sound_memory.stAlloc64(0x4000);
-        if (sound_buffer != NULL && LoadFile2(at_1058__3, sound_buffer, NULL, 0) != 0) {
-            sndInitPort(8);
+        if (sound_buffer != NULL && LoadFile2("snd2/sp/SP_006.snd", sound_buffer, NULL, LOAD_FILE_READ) != 0) {
+            sndInitPort(SND_PORT_MENU);
             SndStack.stack_used = 0;
             SndStack.lock = 0;
-            FanSnd = sndLoadSound(8, sound_buffer, &SndStack);
+            FanSnd = sndLoadSound(SND_PORT_MENU, sound_buffer, &SndStack);
         }
     }
     MardanEventMap = 0;
@@ -1497,9 +1486,6 @@ int sgRestartFishing(SubGameInfo *info) {
     SetWaterLevel(-100000.0f);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/fishing", sgRestartFishing__FP11SubGameInfo);
-#endif
 /**
  *
  * Resets fishing loading state and captures the active BGM status.
@@ -1621,8 +1607,12 @@ void DeleteLoadThread() {
         ThreadRunning = 0;
     }
 }
-#ifdef NONMATCHING
-void StepDataLoading(void *arg) {
+/**
+ *
+ * Loads the fishing models, textures, sounds and scene configuration in the worker thread.
+ *
+ */
+static void StepDataLoading(void *arg) {
     char path[0x80];
     char bgm_path[0x80];
     int file_size;
@@ -1636,14 +1626,14 @@ void StepDataLoading(void *arg) {
     if (memory == NULL) {
         memory = scene->GetStack(5);
     }
-    if (LoadFile2(at_1304__8, buffer, &file_size, 0) != 0) {
+    if (LoadFile2("sg/fish/fishing.cfg", buffer, &file_size, LOAD_FILE_READ) != 0) {
         LoadFishPlaceData((char *)buffer, file_size, memory);
     }
     StartReadBG();
     if (LanguageCode >= 2) {
-        sprintf(path, at_1305__5, LanguageCode);
+        sprintf(path, "sg/fish/fishing2_%d.pak", LanguageCode);
     } else {
-        strcpy(path, at_1306__6);
+        strcpy(path, "sg/fish/fishing2.pak");
     }
     if (LoadFileBG(path, buffer, &pack_size) == 0) {
         step_end_flag = 1;
@@ -1695,25 +1685,25 @@ void StepDataLoading(void *arg) {
     scene->PlayBGM(0, -1, 1.0f);
     if (info->rod_no == 0x12F) {
         u_int *rod_pack;
-        if ((rod_pack = GetPackFile(pack, at_1307__6, NULL)) != NULL) {
-            UkiRod->LoadPackNoLine(rod_pack, at_932__4, memory, memory, memory, FishingTexb, NULL);
+        if ((rod_pack = GetPackFile(pack, "f_rod2.chr", NULL)) != NULL) {
+            UkiRod->LoadPackNoLine(rod_pack, "info.cfg", memory, memory, memory, FishingTexb, NULL);
         }
     } else {
         u_int *rod_pack;
-        if ((rod_pack = GetPackFile(pack, at_1308__6, NULL)) != NULL) {
-            UkiRod->LoadPackNoLine(rod_pack, at_932__4, memory, memory, memory, FishingTexb, NULL);
+        if ((rod_pack = GetPackFile(pack, "f_rod.chr", NULL)) != NULL) {
+            UkiRod->LoadPackNoLine(rod_pack, "info.cfg", memory, memory, memory, FishingTexb, NULL);
         }
     }
     if (UkiRod->CObjectFrame::frame == NULL) {
         step_end_flag = 1;
         return;
     }
-    u_int *cursor_pack = GetPackFile(pack, at_1309__5, NULL);
+    u_int *cursor_pack = GetPackFile(pack, "c_point.chr", NULL);
     if (cursor_pack != NULL) {
-        CursorChara[0]->LoadPackNoLine(cursor_pack, at_932__4, memory, memory, memory, FishingTexb, NULL);
+        CursorChara[0]->LoadPackNoLine(cursor_pack, "info.cfg", memory, memory, memory, FishingTexb, NULL);
     }
     u_int *system_pack;
-    if ((system_pack = GetPackFile(pack, at_1310__5, &pack_size)) != NULL) {
+    if ((system_pack = GetPackFile(pack, "fish_juji.img", &pack_size)) != NULL) {
         int qwords;
         if ((u_int)pack_size & 0xF) {
             qwords = ((u_int)pack_size >> 4) + 1;
@@ -1727,7 +1717,7 @@ void StepDataLoading(void *arg) {
         }
     }
     u_int *fish_pack;
-    if ((fish_pack = GetPackFile(pack, at_1311__4, &pack_size)) != NULL) {
+    if ((fish_pack = GetPackFile(pack, "linetens.img", &pack_size)) != NULL) {
         int qwords;
         if ((u_int)pack_size & 0xF) {
             qwords = ((u_int)pack_size >> 4) + 1;
@@ -1740,13 +1730,13 @@ void StepDataLoading(void *arg) {
             tex_manager->EnterIMGFile(copy, SystemTexb, NULL, NULL);
         }
     }
-    u_int *uki_pack = GetPackFile(pack, at_1312__2, NULL);
+    u_int *uki_pack = GetPackFile(pack, "uki.chr", NULL);
     if (uki_pack != NULL) {
-        Uki->LoadPackNoLine(uki_pack, at_932__4, memory, memory, memory, FishingTexb, NULL);
+        Uki->LoadPackNoLine(uki_pack, "info.cfg", memory, memory, memory, FishingTexb, NULL);
     }
     u_int *hari_pack;
-    if ((hari_pack = GetPackFile(pack, at_1313__2, NULL)) != NULL) {
-        Hari->LoadPackNoLine(hari_pack, at_932__4, memory, memory, memory, FishingTexb, NULL);
+    if ((hari_pack = GetPackFile(pack, "hari.chr", NULL)) != NULL) {
+        Hari->LoadPackNoLine(hari_pack, "info.cfg", memory, memory, memory, FishingTexb, NULL);
     }
     mgCFrame *uki_frame = Uki->CObjectFrame::frame;
     UkiFrame = uki_frame;
@@ -1762,7 +1752,7 @@ void StepDataLoading(void *arg) {
         step_end_flag = 1;
         return;
     }
-    RodHand = main_chara->CObjectFrame::frame->SearchFrame(at_1314__2);
+    RodHand = main_chara->CObjectFrame::frame->SearchFrame("gun_hand");
     if (RodHand == NULL) {
         step_end_flag = 1;
         return;
@@ -1774,28 +1764,25 @@ void StepDataLoading(void *arg) {
     FishSnd = -1;
     FanSnd = -1;
     SndStack.stSetBuffer(memory->Alloc(100), 100);
-    if (LoadFile2(at_1315__4, buffer, NULL, 0) != 0) {
-        sndInitPort(5);
-        FishSnd = sndLoadSound(5, (u_int *)buffer, memory);
+    if (LoadFile2("snd2/mon/EN_901.snd", buffer, NULL, LOAD_FILE_READ) != 0) {
+        sndInitPort(SND_PORT_ENEMY);
+        FishSnd = sndLoadSound(SND_PORT_ENEMY, (u_int *)buffer, memory);
     }
-    if (LoadFile2(at_1058__3, buffer, NULL, 0) != 0) {
-        sndInitPort(8);
+    if (LoadFile2("snd2/sp/SP_006.snd", buffer, NULL, LOAD_FILE_READ) != 0) {
+        sndInitPort(SND_PORT_MENU);
         SndStack.stack_used = 0;
         SndStack.lock = 0;
-        FanSnd = sndLoadSound(8, (u_int *)buffer, &SndStack);
+        FanSnd = sndLoadSound(SND_PORT_MENU, (u_int *)buffer, &SndStack);
     }
     if (info->dungeon != 0) {
-        if (LoadFile2(at_917__6, buffer, NULL, 0) != 0) {
-            MainChara->LoadPack((u_int *)buffer, at_932__4, memory, memory, memory, 0, NULL);
+        if (LoadFile2("chara/c01_fishing.chr", buffer, NULL, LOAD_FILE_READ) != 0) {
+            MainChara->LoadPack((u_int *)buffer, "info.cfg", memory, memory, memory, 0, NULL);
         }
     }
     sgRestartFishing(info);
-    printf(at_1316__2, (memory->stack_size - memory->stack_used) * 16 / 1024);
+    printf("fg remain = %dkb\n", (memory->stack_size - memory->stack_used) * 16 / 1024);
     step_end_flag = 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/fishing", StepDataLoading__FPv);
-#endif
 int sgBreakFishing() {
     DeleteLoadThread();
     sgExitFishing(GetNowSubGameInfo());
@@ -4494,28 +4481,12 @@ void LoadFishPlaceData(char *script, int size, mgCMemory *stack) {
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", lure_file__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", EsaInfo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_993__4__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_832__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_833__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_834__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_835__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_917__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_932__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1058__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1304__8__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1305__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1306__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1307__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1308__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1309__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1310__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1311__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1312__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1313__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1314__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1315__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_1316__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2197__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2198__3__DATA);

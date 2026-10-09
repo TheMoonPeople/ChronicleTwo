@@ -1,9 +1,18 @@
 # fishing: reverse-engineering notes
 
-`sgRestartFishing`, `StepDataLoading`, and `InitSuccess` allocate `CCharacter2`
-objects for bait, rod, cursor, and caught-fish models. Their C++ drafts use the
-class constructor. The retail assembly remains active until those constructor
-call sites match byte for byte.
+`sgRestartFishing` and `StepDataLoading` are accepted native C++ callers with
+one and seven scoped `CCharacter2` placement sites respectively. The worker
+retains its retail LOCAL binding. See
+[placement conversion](../satansfiddle/placement-new.md).
+Their resource names and formats are inline literals. The worker's motion
+pack path `at_917__6` and the restart lure-path template `at_993__4` are
+emitted natively, with `LoadExMotionBG` spelling the same pack path. The
+shared `"info.cfg"` (`at_932__4`) stays a marker for guarded `InitSuccess`;
+`lure_file` and `EsaInfo` remain assembly data read by the native restart.
+
+`InitSuccess` is the unit's only remaining guarded function. Its caught-fish
+allocation uses a natural `CCharacter2` constructor in the C++ draft; the normal
+build selects retail assembly for that function.
 
 Header: `ps2/include/fishing.hpp`. No first-game counterpart: Dark Cloud's `fishing.hpp`/`fish.hpp`
 (CFish, CCharacter Rod, line points) is a different design; nothing was carried over.
@@ -13,11 +22,13 @@ Header: `ps2/include/fishing.hpp`. No first-game counterpart: Dark Cloud's `fish
   sgLoopFishing, sgLoopFishing2, sgDrawFishing, sgSystemDrawFishing, ResetUkiCamera,
   GetAppearFish, FISH_PLACE_MAP::SetFishPlace, FISH_PLACE_MAP::CheckFishPlace, LoadFishPlaceData.
   All sg* return int (subgame's sgInitSubGame/sgDrawSubGameSystem use the results).
-- Every other function is LOCAL in retail (`static` in the .cpp), including SetNextMode,
+- Every other function is LOCAL in retail (intended C++ linkage: `static`), including SetNextMode,
   GetRandamNumber, GetFishParam, the fp* script tag handlers and `CharaControl` (retail symbol
   `CharaControl__FP6CSceneP11CPadControl__2`; another unit has a global of the same name).
   `FishLoadBG__FP9FISH_DATAP1` and `LoadExMotionBG__FP11SubGameInfoP1` are truncated retail
   names (last parameter type unknown from the symbol).
+  `StepDataLoading` is declared and defined `static`; the native worker has
+  the retail LOCAL/FUNC binding without an assembly-table alias.
 - Data: only `stack_size` (int, 0x4, set to 0x40000 in CreateLoadThread) is global. Every named
   datum in .data/.sbss/.bss is local.
 

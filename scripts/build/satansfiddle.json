@@ -1830,6 +1830,22 @@
         "expected_matches": 1
       },
       {
+        "translation_unit": "fishing.cpp",
+        "function": "StepDataLoading__FPv",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 7
+      },
+      {
+        "translation_unit": "fishing.cpp",
+        "function": "sgRestartFishing__FP11SubGameInfo",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "funcpoint.cpp",
         "function": "Add__14CFuncPointMngrFiP9mgCMemory",
         "allocator": "__nw__FUiP1",
