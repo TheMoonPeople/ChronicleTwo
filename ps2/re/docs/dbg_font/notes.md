@@ -3,25 +3,12 @@
 Header: `ps2/include/dbg_font.hpp`. One class (`dbgCJISFont`), one global (`JisFont`), three
 file-local functions, two enums (`DbgFontSerno`, `DbgFontSheet`).
 
-## Draft status
-All seven remaining assembly functions, including the static initializer, now
-have named, typed C++ drafts guarded by `NONMATCHING`. The three existing
-promoted functions remain unchanged. The half-width glyph lookup was decoded
-from all 64 entries of the retail `at_288__3` jump table. The normal build
-continues to use the assembly for every draft that does not match.
-The draft comparison compiles all ten functions: the existing three functions
-and the constructor match individually; the other six differ. Each new draft
-received one isolated promotion attempt, but none promoted. The checker had no
-complete `build/pal` image to link for five attempts; the two dependent
-functions failed compilation because their guarded file-local helpers lacked
-forward declarations at the time of the check. Those declarations have since
-been added; no second promotion attempt was made.
-
-`PrintDirect` currently copies the format string without expanding variadic
-arguments. The local MWCC headers provide neither `<cstdarg>` nor `<stdarg.h>`;
-the runtime's variadic argument-list type and forwarding convention still need
-typework before this draft can reproduce formatted output. The glyph drawing
-draft also differs in packet details from retail and remains guarded.
+## Source status
+All ten functions, including the static initializer, are native; the unit has no
+`NONMATCHING` guards, `INCLUDE_ASM` gaps, or data markers. The `ascii2serno`
+switch emits its 64-entry jump table (0x368800); the `PrintDirect` string
+comparisons emit the six-byte "ESC[$" and "ESC[#" literals (0x368900, 0x368908).
+The section pieces keep their zero alignment tails.
 
 ## dbgCJISFont (size 0x8B0)
 Size from the `JisFont` .bss symbol (0x8B0) constructed by `__sinit_dbg_font_cpp`. No vtable,
@@ -56,7 +43,7 @@ assignments retain the retail store sequence while sharing each constant load.
   Byte loop: 0 ends; bit 7 set -> if 0xA1..0xDF half-width kana via `ascii2serno`, else a two-byte
   SJIS char via `SjisToSerno((b0<<8)|b1)`. Sound marks 0x2134/0x2135 with a nonzero `prev_serno`
   become `prev_serno+1`/`+2`, x moves back by `char_width-8`, `prev_serno` cleared.
-  ASCII: 'E' starts a check of 5 bytes against "ESC[$" (`at_419`) / "ESC[#" (`at_420`) -- the
+  ASCII: 'E' starts a check of 5 bytes against "ESC[$" / "ESC[#" -- the
   literal letters E,S,C,[ , not the 0x1B control code; `\t`, `\n`; anything else is
   `__putc(c + 0x204D)`.
 - `__putc(serno)`: serno >= 0x2285 draws nothing. <0x1000 sheet 0, <0x2000 sheet 1 (serno-0x1000),
@@ -69,14 +56,13 @@ Listed local in `build/re/local_symbols.tsv`. All return 64-bit values (`daddu`/
 - `static unsigned long SjisToJis(unsigned long sjis)` -- standard SJIS -> JIS X 0208.
 - `static unsigned long SjisToSerno(unsigned long sjis)` -- `(jis>>8)*94 + (jis&0xFF) - 0xC3F`
   (row-major index of 94-cell rows from JIS 0x2121).
-- `static unsigned long ascii2serno(unsigned char c)` -- switch over 0xA0..0xDF via jump table
-  `at_288__3` (.rodata 0x100 bytes); default 0x227E. Asm is marked "handwritten" because the
-  first instruction is `addi` (signed add) -- MWCC switch idiom.
+- `static unsigned long ascii2serno(unsigned char c)` -- switch over 0xA0..0xDF via a 64-entry
+  jump table (.rodata 0x100 bytes); default 0x227E. The retail asm starts with `addi` (signed
+  add) -- MWCC switch idiom.
 
 ## Globals
 - `JisFont` (.bss 0x3F36A0, 0x8B0): the single instance.
-- `at_419`, `at_420` (.rodata, 6 bytes): "ESC[$" and "ESC[#" string literals.
-- `at_288__3`: jump table of `ascii2serno`.
+- .rodata: the two 6-byte "ESC[$" / "ESC[#" literals and the `ascii2serno` jump table.
 
 ## Enums
 `DbgFontSerno` values all seen in `__putc`/`PrintDirect`/`ascii2serno` as above.
