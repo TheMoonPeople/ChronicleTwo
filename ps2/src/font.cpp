@@ -40,9 +40,11 @@ struct HankakuKanaTable {
 };
 
 /**
- * Holds the loaded font-code table and its character counts.
+ *
+ * Raw font table file, read as a FONT_TBL_BIN.
+ *
  */
-static FONT_TBL_BIN FontTblBinBuff;
+static u8 FontTblBinBuff[FONT_TBL_BIN_SIZE];
 
 // Code (.text)
 int GetGaijiW(int code) {
@@ -149,22 +151,17 @@ char *My_strncpy(char *dst, const char *src, u32 count) {
 
 #pragma global_optimizer reset
 
-#pragma opt_propagation off
-
 u8 *GetYoyakuTblTop() {
-    FONT_TBL_BIN *table = &FontTblBinBuff;
-    return table->yoyaku_tbl[0];
+    return ((FONT_TBL_BIN *) FontTblBinBuff)->yoyaku_tbl[0];
 }
-
-#pragma opt_propagation reset
 
 int LoadFontTblBin() {
     int size;
 
     if (LanguageCode == 1) {
-        LoadFile("meswin/fonttbl_1.bin", &FontTblBinBuff, &size);
+        LoadFile("meswin/fonttbl_1.bin", FontTblBinBuff, &size);
     } else {
-        LoadFile("meswin/fonttbl_2.bin", &FontTblBinBuff, &size);
+        LoadFile("meswin/fonttbl_2.bin", FontTblBinBuff, &size);
     }
 
     if (size > 0x1000) {
@@ -175,24 +172,17 @@ int LoadFontTblBin() {
     return 1;
 }
 
-#pragma opt_propagation off
-
 int GetYoyakuTblNum() {
-    FONT_TBL_BIN *table = &FontTblBinBuff;
-    return table->yoyaku_num;
+    return ((FONT_TBL_BIN *) FontTblBinBuff)->yoyaku_num;
 }
 
 int GetKanjiTopNo() {
-    FONT_TBL_BIN *table = &FontTblBinBuff;
-    return table->kanji_top_no;
+    return ((FONT_TBL_BIN *) FontTblBinBuff)->kanji_top_no;
 }
 
 int GetHalfFontNum() {
-    FONT_TBL_BIN *table = &FontTblBinBuff;
-    return table->half_font_num;
+    return ((FONT_TBL_BIN *) FontTblBinBuff)->half_font_num;
 }
-
-#pragma opt_propagation reset
 
 int CFont::CheckKanjiFont(int font_no) {
     if (LanguageCode == 6) {
@@ -883,21 +873,14 @@ void CFont::CalcDrawWH(char *text, int *width, int *height) {
 void CFont::DrawDirect(char *text, int x, int y) {
     SetPos(x, y);
 
-    /**
-     *
-     * Holds the primitive builder initialized for this text draw.
-     *
-     */
-    union {
-        mgCDrawPrim prim; /**< Builder for the glyph sprite packets. */
-    } local;
+    mgCDrawPrim prim;
 
-    MySetPrim(&local.prim, 1, 0);
+    MySetPrim(&prim, 1, 0);
 
     int height = fptosi(offset_y);
-    local.prim.offset_x = fptosi(offset_x) * 16;
-    local.prim.offset_y = height * 16;
-    (&local.prim)->Begin(MG_PRIM_SPRITE);
+    prim.offset_x = fptosi(offset_x) * 16;
+    prim.offset_y = height * 16;
+    prim.Begin(MG_PRIM_SPRITE);
     int   len = strlen(text);
     int   pen_x = 0;
     int   pen_y = 0;
@@ -914,14 +897,14 @@ void CFont::DrawDirect(char *text, int x, int y) {
             font_no = GetAlphabeticalFontNo_cp(cursor);
 
             if (0 < font_no) {
-                DrawChar(&local.prim, font_no, pos_x + pen_x, pos_y + pen_y, 1, color, (int) alpha);
+                DrawChar(&prim, font_no, pos_x + pen_x, pos_y + pen_y, 1, color, (int) alpha);
                 pen_x += clearance_w / 2;
                 pos += 9;
             } else {
                 gaiji = GetFontGaijiFontNo(cursor);
 
                 if (gaiji != 0) {
-                    DrawChar(&local.prim, gaiji & 0xFFFF, pos_x + pen_x, pos_y + pen_y, 1, color,
+                    DrawChar(&prim, gaiji & 0xFFFF, pos_x + pen_x, pos_y + pen_y, 1, color,
                              (int) alpha);
 
                     if (GetFontGaijiHankaku(gaiji) != 0) {
@@ -935,7 +918,7 @@ void CFont::DrawDirect(char *text, int x, int y) {
                     gaiji_no = GetGaijiFontNo(cursor);
 
                     if (gaiji_no >= 0xFD00 && gaiji_no < 0xFD32) {
-                        DrawGaiji(&local.prim, gaiji_no, pos_x + pen_x, pos_y + pen_y);
+                        DrawGaiji(&prim, gaiji_no, pos_x + pen_x, pos_y + pen_y);
                         pen_x += GetGaijiW(gaiji_no);
                         pos += GetGaijiLen(gaiji_no);
                     } else {
@@ -946,12 +929,12 @@ void CFont::DrawDirect(char *text, int x, int y) {
                             pos += 1;
                             pen_y += clearance_h;
                         } else if (CheckHalfFont(half) != 0) {
-                            DrawChar(&local.prim, half, pos_x + pen_x, pos_y + pen_y, 1, color,
+                            DrawChar(&prim, half, pos_x + pen_x, pos_y + pen_y, 1, color,
                                      (int) alpha);
                             pen_x += clearance_w / 2;
                             pos += 1;
                         } else {
-                            DrawChar(&local.prim, cursor, pos_x + pen_x, pos_y + pen_y);
+                            DrawChar(&prim, cursor, pos_x + pen_x, pos_y + pen_y);
 
                             if (CheckKanjiFont(GetFontNo(cursor)) != 0) {
                                 pen_x += clearance_w;
@@ -969,7 +952,7 @@ void CFont::DrawDirect(char *text, int x, int y) {
         } while (pos < len);
     }
 
-    (&local.prim)->End();
+    (&prim)->End();
 }
 
 #pragma optimization_level reset
@@ -1014,7 +997,9 @@ void CFont::Init() {
 
 // Initialised data (.data)
 /**
+ *
  * Gives the texture rectangle and drawing offset of each external glyph.
+ *
  */
 GAIJI_DATA GaijiDataTbl[GAIJI_DATA_NUM] = {
     {0xFD00, 12, 176, 86, 22, 0, -4},
@@ -1070,7 +1055,9 @@ GAIJI_DATA GaijiDataTbl[GAIJI_DATA_NUM] = {
     {0xFFFF, 222, 118, 34, 32, 0, 0},
 };
 /**
+ *
  * Converts named text tags to external glyph codes.
+ *
  */
 FCONV_CODE FconvCodeTbl[FCONV_CODE_NUM] = {
     {"[select]", 8, 0xFD00},
@@ -1121,7 +1108,9 @@ FCONV_CODE FconvCodeTbl[FCONV_CODE_NUM] = {
     {NULL, 0, 0x0000},
 };
 /**
+ *
  * Converts encoded font tags to language-specific glyph codes.
+ *
  */
 FCONV_CODE FontGaijiConvTbl[FONT_GAIJI_CONV_NUM] = {
     {"\x81\x9B", 2, 0xFDE0},
@@ -1150,7 +1139,9 @@ FCONV_CODE FontGaijiConvTbl[FONT_GAIJI_CONV_NUM] = {
     {"\x81" "f", 2, 0xFDF7},
 };
 /**
+ *
  * Gives the alphabetical tag payload for each half-width glyph.
+ *
  */
 char alphabetical_chara_tbl[ALPHABETICAL_CHARA_NUM][ALPHABETICAL_CHARA_LEN] = {
     "0a1]",
