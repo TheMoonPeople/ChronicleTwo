@@ -27,48 +27,6 @@
 #include "scene.hpp"
 #include "scenesnd.hpp"
 
-/**
- *
- * Default name assigned to unnamed camera slots.
- *
- */
-static char noname_1188[8] = "no_name";
-
-/**
- *
- * Default name assigned to unnamed message slots.
- *
- */
-static char noname_1242[8] = "no_name";
-
-/**
- *
- * Default name assigned to unnamed character slots.
- *
- */
-static char noname_1294[8] = "no_name";
-
-/**
- *
- * Default name assigned to unnamed map slots.
- *
- */
-static char noname_1381[8] = "no_name";
-
-/**
- *
- * Default name assigned to unnamed sky slots.
- *
- */
-static char noname_1692[8] = "no_name";
-
-/**
- *
- * Default name assigned to unnamed effect slots.
- *
- */
-static char noname_1709[8] = "no_name";
-
 // Code (.text)
 float f_rand(float min_value, float max_value) {
     return min_value + (((max_value - min_value) * (float) rand()) / 2147483648.0f);
@@ -1112,8 +1070,11 @@ int CScene::AssignCamera(int index, mgCCamera *camera, char *camera_name) {
         return -1;
     }
 
+    static char noname[8] = "no_name";
+
+
     if (camera_name == NULL) {
-        camera_name = noname_1188;
+        camera_name = noname;
     }
 
     if (active_camera < 0) {
@@ -1199,8 +1160,11 @@ int CScene::AssignMessage(int index, ClsMes *message_data, char *message_name) {
         return -1;
     }
 
+    static char noname[8] = "no_name";
+
+
     if (message_name == NULL) {
-        message_name = noname_1242;
+        message_name = noname;
     }
 
     if (slot->AssignData(message_data, message_name) != 0) {
@@ -1254,8 +1218,11 @@ int CScene::AssignChara(int index, CCharacter2 *character_data, char *character_
         return -1;
     }
 
+    static char noname[8] = "no_name";
+
+
     if (character_name == NULL) {
-        character_name = noname_1294;
+        character_name = noname;
     }
 
     if (slot->AssignData(character_data, character_name) != 0) {
@@ -1329,8 +1296,11 @@ int CScene::AssignMap(int index, CMap *map_data, char *map_name) {
         return -1;
     }
 
+    static char noname[8] = "no_name";
+
+
     if (map_name == NULL) {
-        map_name = noname_1381;
+        map_name = noname;
     }
 
     if (active_map < 0) {
@@ -1578,8 +1548,11 @@ int CScene::AssignSky(int index, CMapSky *sky_data, char *sky_name) {
         return -1;
     }
 
+    static char noname[8] = "no_name";
+
+
     if (sky_name == NULL) {
-        sky_name = noname_1692;
+        sky_name = noname;
     }
 
     if (slot->AssignData(sky_data, sky_name) != 0) {
@@ -1609,8 +1582,11 @@ int CScene::AssignEffect(int index, CEffectScriptMan *effect, char *effect_name)
         return -1;
     }
 
+    static char noname[8] = "no_name";
+
+
     if (effect_name == NULL) {
-        effect_name = noname_1709;
+        effect_name = noname;
     }
 
     if (slot->AssignData(effect, effect_name) != 0) {
