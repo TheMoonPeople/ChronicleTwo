@@ -28,7 +28,7 @@ Note: Initialize writes 0x00 as a u64 0 then bitfields; it does not write 0x20 (
 `mgInit` copies `mgZBUF_1`/`mgZBUF_2` into mgRenderInfo+0xF40 / +0xF80 (draw_env[0/1].zbuf).
 The constructor is `mgCDrawEnv() { Initialize(0); }` but is NOT inline (symbol in this unit).
 `operator=(mgCDrawEnv&)` takes a non-const reference, so it is user-declared (not generated); its
-body copies four 128-bit quadwords -- the next agent must find a source form that emits lq/sq.
+body copies four 128-bit quadwords with lq/sq.
 
 ### SetAlpha(int) values (`mgAlphaMacroID`)
 | mode | ALPHA value | equation |
@@ -161,11 +161,12 @@ GetAlphaMacroID return int. Everything else is void (m2c shows no use of v0).
 - `mgLIGHT_INFO`, enum names: not retail.
 - How a user-written `operator=` emits the qword copies (mgCDrawEnv, mgVu0FBOX).
 
-## Drafting (job mg_drawenv.1)
-- 19 of 28 functions match and are promoted. DIFF drafts: both `operator=` (member-wise / loop
-  copy, retail uses lq/sq), SetAlpha and GetAlphaMacroID (switch shape), SetRenderInfo (register
-  allocation/scheduling), SetLight(int,..), SetPlight(int, mgPOINT_LIGHT*), GetPlight (struct copy
-  shape), SetFogParam (1 word).
+## Source status
+All 28 functions are native C++ and byte-identical; the unit has no guarded drafts,
+`INCLUDE_ASM` entries or data markers. `SetAlpha`'s blend-mode switch emits its six-word
+branch table from the C++ `switch`.
+- `mgRENDER_INFO::GetPlight`: `(mgPOINT_LIGHT *) (index * 0x30 + (int) GetpLightInfo() + 0x90)`
+  keeps retail's index-first `addu`; `&GetpLightInfo()->point_light[index]` adds the base first.
 - `screen` matrix: the 2048 screen centre sits in [2][0]/[2][1] (SetViewMatrix zeroes those two for
   `world_screen_rel`), not [3][0]/[3][1]; `clip_screen` does have it in [3][0]/[3][1].
 - `light_changed` is set by Initialize, ActiveLighting, InitActiveLighting, InitLighting and both
