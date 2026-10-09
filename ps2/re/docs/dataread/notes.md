@@ -1,9 +1,5 @@
 # dataread: reverse-engineering notes
 
-`GetPackFileNum` probes consecutive entries with `GetPackFile(pack, index, &name, &size)`
-until the lookup fails, then returns the count. The output name and size are scratch values;
-the loop shape in the matching source preserves the retail branch layout.
-
 File access layer: device-prefixed paths, the DATA.DAT index, background read queue, file
 cache, pack-file lookup. First-game counterpart: `chronicle/ps2/include/dataread.hpp` +
 `ps2/src/dataread.cpp` (PAL branch is closest: linear `SearchFile`, no name tree). This game adds
@@ -16,36 +12,44 @@ No classes are owned by this unit (`class_units.tsv` has none).
   `GetDevType(char*, char*)`, `ConvStr(char*)`, `GetFullPath(char*, char*)`,
   `CDRead(char*, u_int*, int*)`, `align_size(u_int, u_int)`, `GetNewFileCache()`,
   `EntryFileCache(char*, u_long128*, int)`, `SearchFileCache(char*)`.
-- ALL data symbols are LOCAL (`static`): `TopDir`, `CurrentDir` (splitter calls it
-  `CurrentDir__2`; the ELF name is `CurrentDir`), `DefaultFileDev`, `header_num`,
+- ALL data symbols are LOCAL (`static`): `TopDir`, `CurrentDir`,
+  `DefaultFileDev`, `header_num`,
   `packfile_buff`, `data_sector`, `error_cb`, `old_vsync`, `start_vsync`, `CacheAddress`,
   `NowCacheAddress`, `FileCacheType`, `header_buff`, `bg_read_info`, `FileCache`.
-  Hence the header has no `extern` data. Suggested definitions:
-  - `static char TopDir[256];` `static char CurrentDir[256];` (.data, all zero: `= ""`).
+  Hence the header has no `extern` data. Definitions:
+  - `static char TopDir[256] = "";` `static char CurrentDir[256] = "";` (.data, all zero).
   - `static int DefaultFileDev = FILE_DEV_CDROM;` (.sdata, value 1).
   - `static int header_num; static u_int *packfile_buff; static int data_sector;`
     `static int (*error_cb)(int); static int old_vsync; static int start_vsync;`
     `static u_long128 *CacheAddress; static u_long128 *NowCacheAddress; static int FileCacheType;`
     (.sbss, in this order).
-  - `static u_char header_buff[0x50000]` (or DATA_HEADER-typed; code indexes it as 12-byte
-    records and reads word 0 as an int), `static BG_READ_INFO bg_read_info[32]`,
-    `static FILE_CACHE FileCache[16]`.
-- `.bss` compiler statics `at_259` (0x100, LoadFileBG), `at_583` (0x100, LoadFile2),
-  `at_845` (0x130? listed 0x130, WriteFile copies 0x100), `at_554` (0x10, GetFullPath) are
-  zero-initialised local array initialisers copied to the stack: `char path[256] = "";`-style
-  (8 x 32-byte copy loop). `at_554` is a 16-byte `char dev[16] = ""` style initialiser.
+  - `u_char header_buff[0x50000]` (code indexes it as 12-byte records and reads word 0 as an
+    int). It is retail-LOCAL but the source keeps external binding: the split library assembly
+    (`intr`, `libgraph`, `libdev`, `e_rem_pio2`) references it by name for words that have no
+    relocation in the retail ELF, so a `static` definition leaves those references unresolved.
+  - `static BG_READ_INFO bg_read_info[32]`, `static FILE_CACHE FileCache[16]`.
+- Four `.bss` zero templates are local array initializers: `char path[256] = ""` in `LoadFileBG`
+  (after the argument checks), `LoadFile2` (after the cache-hit return) and `WriteFile` (at its
+  start), and `char dev[16] = ""` in `GetFullPath` (after device selection); MWCC copies each with
+  an 8 x 32-byte loop. MWCC assigns stack arrays in declaration order: the initialized path must
+  be declared before the function's scratch path (`LoadFileBG`) and before the `sce_stat` local
+  (`LoadFile2`), or their stack slots swap. `WriteFile`'s template is the unit's last BSS object
+  (0x100 bytes at 0x3EC290); the 0x30 bytes up to the next unit's BSS start are a linker
+  alignment tail, not part of the object.
+- The unit has no data markers; file and device names (with their leading backslash and `;1`
+  suffix), current-directory reset strings and diagnostics are inline literals. The empty string
+  and "/" are distinct retail objects emitted by the two default-device transitions.
 
 ## Mangling
 `P1` = `u_long128 *` (`unsigned __int128`), same as first game's `LoadFileBG__FPcP1Pi`.
 `InitFileCache__FP1i` = (u_long128*, int); `EntryFileCache__FPcP1i` = (char*, u_long128*, int)
 (asm: a0 name -> strcpy src, a1 -> +0 address, a2 -> +4 size). Ghidra/m2c mis-read both.
 
-## Strings (.rodata)
-at_183 "/", at_190 "", at_369 "error at %s\n", at_370 "LoadBG %s\n", at_438 "\DATA.DAT;1",
-at_439 "cdrom0:\DATA.HD4;1", at_440 "File open error \"\"\n \n \n", at_441 "head size = %d/%d\n",
-at_530 "host:", at_531 "host0:", at_532 "cdrom:", at_533 "net:", at_534 "psf0:" (sic; GetDevType's
-HDD prefix), at_564 "pfs0:" (GetFullPath's HDD prefix), at_571 "File open error \"%s\"\n \n \n",
-at_659 "file cache %s\n", at_660 "load %s\n", at_713 "Load %s\n", at_714 "%s %d %d\n".
+## Strings (.rodata, inline literals)
+"/", "", "error at %s\n", "LoadBG %s\n", "\DATA.DAT;1", "cdrom0:\DATA.HD4;1",
+"File open error \"\"\n \n \n" (as in the first game), "head size = %d/%d\n", "host:", "host0:",
+"cdrom:", "net:", "psf0:" (sic; GetDevType's HDD prefix), "pfs0:" (GetFullPath's HDD prefix),
+"File open error \"%s\"\n \n \n", "file cache %s\n", "load %s\n", "Load %s\n", "%s %d %d\n".
 
 ## Enums (names are neutral, not retail)
 - `FILE_DEV`: GetDevType returns -1 (no prefix / path[1]==':' single-letter drive), 0 host:/host0:,
@@ -110,40 +114,36 @@ the first '.' of each entry name.
 - `packfile_buff` only zeroed (InitCDFile); type `u_int *` assumed from the first game.
 - `size_to_sector` = ceil(size / 2048) with signed division (`size / 0x800 + (size % 0x800 != 0)`).
 
-## Drafting (job dataread.1)
-- 22 functions promoted, 2 MATCH but not promotable, 15 drafts (DIFF).
-- Corrections: at_440 is `"File open error \"\"\n \n \n"` (as in the first game).
-  `DATA_HEADER` word 0 is now a union `name_offset` (as on disc) / `name` (after InitCDFile).
-- `Exit__2` in main.symbols.txt is the SDK `Exit(int)` (eekernel.h); the object references it as
-  `Exit`, which the link cannot resolve, so `LoadFile` (and later `InitCDFile`) cannot be promoted
-  until the symbol is renamed in the config.
-- `InitFileCache` matches under UNMATCHING but not in the game build: there `align_size` is only
-  declared (INCLUDE_ASM), and the schedule changes (MWCC uses a defined callee's register usage).
-  Promote it together with `align_size`. Same caution for `GetFullPath`/`SearchFileCache(char*,int*)`
-  callers of unmatched statics (those two did link and verify).
-- A file-local datum that only unpromoted functions use must stay inside `#ifdef UNMATCHING`: the
-  build drops a compiler copy only when a promoted function's reference was bound to the
-  placeholder; an unreferenced copy stays and shifts .bss (`packfile_buff`, `CacheAddress`,
-  `NowCacheAddress`, `FileCacheType` are kept there for that reason).
-- SDK: `sce_stat`, `sceGetstat`, `sceIoctl`, `SCE_NOWAIT`, `SCE_FS_EXECUTING` added to
+## Source status and forms
+Every function is native; the unit has no `NONMATCHING` guards, `INCLUDE_ASM` gaps, or data
+markers. The `Exit` referenced by `LoadFile` is the SDK `Exit(int)` (eekernel.h). The unit has no
+`divbyzerocheck` pragma; the global MWCC flag covers it. MWCC schedules a call differently when
+the callee is defined in the same unit (it uses the defined callee's register usage), which is
+why `InitFileCache` and `align_size` must both be native.
+
+- `DATA_HEADER` word 0 is a union `name_offset` (as on disc) / `name` (after InitCDFile).
+- SDK: `sce_stat`, `sceGetstat`, `sceIoctl`, `SCE_NOWAIT`, `SCE_FS_EXECUTING` live in
   `ps2/include/sce/sifdev.h`. LoadFile2 reads `stat.st_size` (+8); ReadBG polls
   `sceIoctl(fd, SCE_FS_EXECUTING, &status)` for non-disc reads.
-- Draft notes: InitCDFile retail retries sceCdSearchFile in an inner loop before sceCdSync (draft
-  uses the first game's single loop). LoadFileCacheBG moves NowCacheAddress by
-  `align_size(size, 0x800) / 16` quads (signed) before queuing, in both directions. GetPackFile(char*)
-  also returns null for a null or empty name. DivPathName treats a slash at index 0 as "no
-  directory" and copies the whole path into the name.
-
-## Division-check pragma
-
-The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; removing it left the full compiled object identical in objdiff.
-
-`SearchFileCache` compares the declared `FILE_CACHE::name` field and advances typed cache entries with `&entry[1]`. Device and path splitting cursors are `char*`, matching the textual path data and removing byte-pointer casts. The edited functions retain exact object code.
-
-The two `GetPackFile` overloads can use `PACK_ENTRY` for the name, data
-offset, size, and next-entry offset without changing either object function.
-The record header is 0x4C bytes. Records have a variable stride: `next` and
-`offset` count bytes from the start of the current record, so following the
-chain and obtaining file data still requires byte-addressed addition. Both
-functions also return the data address directly as `u_int*`, removing the
-integer round trip; both remain 100% matches.
+- `InitCDFile` retries sceCdSearchFile in an inner loop before sceCdSync (the first game has a
+  single loop). Its search result is a `sceCdlFILE file` (36 bytes: the SDK struct ends with
+  `u_int flag`), with the start sector read as `file.lsn`. `base = (int) header_buff` relocates
+  the DATA.HD4 table in place (`entry->name += base`) and `*(u32 *) base / 12` takes the entry
+  count from the first name offset.
+- `LoadFileCacheBG` moves `NowCacheAddress` (`u_long128 *`) by `align_size(size, 0x800) / 16`
+  quads (signed) before queuing, in both directions; downward initialization subtracts four
+  quadwords. `LoadFileBG` writes `BG_READ_INFO::buffer`, `size` and `sectors` directly and uses
+  the device/read-mode enums; `CDRead` keeps the `DATA_HEADER *` from `SearchFile` and reads
+  its `name`, `size` and `sector`.
+- `GetPackFile(char*)` returns null for a null or empty name. `DivPathName` treats a slash at
+  index 0 as "no directory" and copies the whole path into the name; its cursors are `char *`.
+- `GetPackFileNum` probes consecutive entries with `GetPackFile(pack, index, &name, &size)` until
+  the lookup fails, then returns the count; the name and size outputs are scratch values and the
+  loop shape fixes the retail branch layout.
+- `SearchFileCache` compares `FILE_CACHE::name` and advances typed cache entries with `&entry[1]`.
+- The two `GetPackFile` overloads use `PACK_ENTRY` for the name, data offset, size and
+  next-entry offset (record header 0x4C bytes). Records have a variable stride: `next` and
+  `offset` count bytes from the start of the current record, so following the chain and
+  locating file data requires byte-addressed addition (`(u8 *) entry + ...`). Both return the
+  data address directly as `u_int *`. The scanned name bytes are `char` (`s8` is `char` in
+  `types.h`); empty-name tests are `*name` / `*path`; `GetDevType` reads `path[1]`.
