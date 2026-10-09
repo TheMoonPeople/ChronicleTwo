@@ -573,12 +573,6 @@ static mgCTexture *fish_boiled_effect_tex;
  */
 static char temp_3925[32];
 
-extern "C" char at_4933[];
-
-extern "C" char at_4934[];
-
-extern "C" char at_4935[];
-
 void MENU_BASETEXINFO_Init(MENU_BASETEXINFO *info);
 
 /**
@@ -5903,7 +5897,6 @@ void CRepairManager::SetRepairData(mgCMemory *memory, int block, unsigned int *p
     keep = 1;
 }
 
-#ifdef NONMATCHING
 void CRepairManager::GeneratePoly(float *pos, int block) {
     int           pack_size;
     unsigned int *pack;
@@ -5911,7 +5904,7 @@ void CRepairManager::GeneratePoly(float *pos, int block) {
     mgCFrameAttr *attr;
     CActionChara *chara;
 
-    pack = (unsigned int *) GetPackFile(data, at_4933, &pack_size);
+    pack = (unsigned int *) GetPackFile(data, "repair_powder.chr", &pack_size);
     model_stack.stack_used = 0;
     model_stack.lock = 0;
 
@@ -5919,26 +5912,22 @@ void CRepairManager::GeneratePoly(float *pos, int block) {
 
     model = chara;
     model->Initialize(NULL);
-    model->LoadPack(pack, at_4934, &model_stack, &model_stack, &model_stack, block, NULL);
+    model->LoadPack(pack, "info.cfg", &model_stack, &model_stack, &model_stack, block, NULL);
     model->SetScale(0.4f, 0.4f, 0.4f);
     model->SetPosition(pos);
-    model->SetMotion(at_4935, 0, 1);
+    model->SetMotion("\x94\xad\x93\xae", 0, 1);
     model->SetFadeFlag(1);
     model->Show(0, 1);
     frame = model->CObjectFrame::frame;
 
     if (frame != NULL && (attr = frame->attr) != NULL) {
-        attr->z_test = -1;
-        frame->SetAttrParam(*attr, 1, 0x10);
+        attr->z_test = MG_DEPTH_TEST_ALWAYS;
+        frame->SetAttrParam(*attr, 1, MG_FRAME_ATTR_Z_TEST);
     }
 
     model->Show(1, 1);
     model_counter = 0;
 }
-
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menudraw", GeneratePoly__14CRepairManagerFPfi);
-#endif
 
 void CRepairManager::Generate(int x, int y) {
     int            i;
@@ -7465,14 +7454,6 @@ void PrimQuad_i_(mgCDrawPrim *prim, mgRect_i_ rect, mgRect_i_ tex_rect) {
         prim->Vertex(rect.left + rect.right, rect.top + rect.bottom, 0);
     }
 }
-
-// Constants (.rodata)
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4933__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4934__DATA);
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menudraw", at_4935__DATA);
 
 // Small uninitialised data (.sbss)
 int MenuDrawItemInfoNum;

@@ -5,10 +5,14 @@ base and the inline bottom-edge subexpression in retail's order only
 without no-op `(int)` casts and without a named bottom-edge local; see
 [the night assessment](night-20261008.md#common-board-drawing-match-round-1).
 
-`CRepairManager::GeneratePoly` compiles to 0x214 bytes against retail's 0x240,
-moving the next function and the following translation units by 0x20 after
-alignment. Its typed C++ draft is guarded by `NONMATCHING`; the matching build
-uses retail assembly until the constructor sequence matches.
+`CRepairManager::GeneratePoly` is accepted native C++ with one scoped
+`CActionChara` placement conversion after constructor inlining. This timing is
+required for its retail constructor and null-result sequence. No
+`NONMATCHING` guards, assembly fallbacks or `.rodata` markers remain in this
+unit. Earlier `GeneratePoly` source/profile forms produced 0x214 bytes against
+retail's 0x240, shifting following linked text by 0x20 after alignment; that
+baseline selected the retail assembly body. See
+[placement conversion](../satansfiddle/placement-new.md).
 
 The migrated form helpers write the form's character, movement and named part data through
 their existing members. `CMenuEffect::type` is a signed byte: its initializer stores -1, and
@@ -142,11 +146,12 @@ including the order and calls to `mgRect<int>::Set`.
 their native C++ mangled names and instructions match retail. The template `mgRect<T>`
 name mangles differently under this compiler and cannot supply these retail symbols.
 
-`CRepairManager::GeneratePoly` can construct its action character with typed placement
-new, removing raw vtable writes and a run-script constructor alias. Its score is 89.17%:
-retail writes successive base vtables and calls their virtual `Initialize`, whereas
-native construction calls the base constructors. This difference is in the constructor
-sequence before model setup.
+An earlier `CRepairManager::GeneratePoly` typed-placement trial removed raw
+vtable writes and a run-script constructor alias but scored 89.17%. In that
+source/profile form, retail wrote successive base vtables and called their
+virtual `Initialize`, while the candidate called base constructors. The miss
+lay in construction before model setup. The current accepted body uses natural
+construction with the scoped compiler conversion.
 
 ## Other
 - File-local functions (static, not in the header): ConvMGIRECTtoINTtbl, ConvMGFRECTtoFLOATtbl,
@@ -164,13 +169,21 @@ sequence before model setup.
 - No first-game counterpart: the first game has no menudraw/CPosDataManage equivalent in
   `/home/adubbz/development/chronicle/ps2/include`.
 
-## Newly drafted drawing helpers
-`PrimFillRect4` emits four coloured vertices in top-left, top-right, bottom-left, bottom-right order after checking all four colour pointers. `DrawMenuTilePattern` draws up to 16 columns and 12 rows, stepping by the source rectangle width and height; it exits at screen width plus 4 and screen height plus 40. `DrawMenuDl(int&,...)` and `MenuMainFrameStep` have guarded drafts for the progress panel and moving lens frame. `CalcCommonBrdDrawInfo` sizes the common board from up to four message names and positions the line slots. All five compile with assembly fallbacks, and each currently differs from retail.
+## Native drawing helpers
+
+`PrimFillRect4` emits four coloured vertices in top-left, top-right, bottom-left,
+bottom-right order after checking all four colour pointers. `DrawMenuTilePattern`
+draws up to 16 columns and 12 rows, stepping by the source rectangle dimensions;
+it exits at screen width plus 4 and screen height plus 40. `DrawMenuDl(int&,...)`
+and `MenuMainFrameStep` drive the progress panel and moving lens frame.
+`CalcCommonBrdDrawInfo` sizes the common board from up to four message names and
+positions the line slots. All five have active native bodies; the earlier
+five-fallback inventory predates their accepted source forms.
 
 ## Compiler flag
-The local `divbyzerocheck on/reset` directives around form fades and the guarded
-effect step are redundant with the unit's global flag: removing them produces an
-identical complete `menudraw.cpp.o`.
+The earlier local `divbyzerocheck on/reset` directives around form fades and
+an effect step were redundant with the unit's global flag: removing them
+produced an identical complete `menudraw.cpp.o`.
 
 ## Typed menu array access
 
@@ -209,8 +222,9 @@ The native 256-byte function has zero differing instruction words and
 relocation fields with the current annotation and direct-literal consumer
 hooks. Canonical wrapper compilation, `fixup_sections.sh`, and
 `check_objects.py` validate `0x14090` allocated unit bytes and 2,389
-relocations. The existing `CRepairManager::GeneratePoly` constructor/layout
-findings remain; this row introduces no additional failing function.
+relocations. At that source/profile boundary the existing `CRepairManager::GeneratePoly`
+constructor/layout findings remained; the row introduced no additional failing
+function. Those findings predate the accepted placement-conversion body.
 
 ## Native main-frame image drawing
 
@@ -221,19 +235,21 @@ centre. The opacity otherwise follows the display-mode counter, and the
 second destination gains one pixel of height. Grouping modes 0/1 in a switch
 preserves retail's compact mode block before the lens-offset block.
 
-The native function has zero canonical instruction and resolved-relocation
-differences using the standard profile. The isolated unit contains `0x1408C`
-allocated bytes and 2,397 relocations, with only the existing 16
-`CRepairManager::GeneratePoly` constructor/layout problems. No compiler
-profile override is needed. `PrimFillRect4` and `DrawMenuNumber` remain guarded
-drafts after unresolved entry-copy and texture-argument scheduling differences.
+The native function had zero canonical instruction and resolved-relocation
+differences using the then-standard profile. That isolated unit contained
+`0x1408C` allocated bytes and 2,397 relocations, with 16 existing
+`CRepairManager::GeneratePoly` constructor/layout problems. The image-drawing
+function needed no profile override. At that earlier boundary, `PrimFillRect4`
+and `DrawMenuNumber` were guarded after entry-copy and texture-argument
+scheduling misses; both are now native.
 The newer native `DrawMenuWakuStep` is retained in the merge; the earlier
 induction-scheduling trial does not describe its current status.
 
-The tile-pattern draft reproduces retail's outer column loop when the screen
-edge is tested within a bounded do-loop and columns advance by the destination
-width. Its row-loop branch delay and exit scheduling still differ, including
-with a direct label spelling, so its assembly fallback is retained.
-`GenarateRandamLine` has a complete matching point-generation phase when
-`sway` is declared before `progress`; the final periodic y-coordinate exchange
-still allocates different integer registers. Its fallback is retained too.
+An earlier tile-pattern draft reproduced retail's outer column loop when the
+screen edge was tested within a bounded do-loop and columns advanced by the
+destination width. Its row-loop delay and exit schedule differed, including
+with a direct label spelling, so that trial retained assembly. An earlier
+`GenarateRandamLine` trial matched the point-generation phase when `sway` was
+declared before `progress`, but the final periodic y-coordinate exchange
+allocated different integer registers. These rejected forms predate the
+active native implementations of both functions.

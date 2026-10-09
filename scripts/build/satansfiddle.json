@@ -1775,6 +1775,14 @@
         "expected_matches": 1
       },
       {
+        "translation_unit": "menudraw.cpp",
+        "function": "GeneratePoly__14CRepairManagerFPfi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "menuop.cpp",
         "function": "MenuManualInit__FP9mgCMemoryPii",
         "allocator": "__nw__FUiP1",
