@@ -129,3 +129,14 @@ Functions:
 ## Enum mgC3DSpriteMode
 Name is not retail. 0 = upright sprites (default for any value except 1), 1 = rotated strips.
 Values from the BeginCreatePacket callers and the `mode == 1` tests in BeginCPSprite/CPSetSprite.
+
+## Source status
+Every function is native C++ and byte-identical; the unit has no guarded drafts,
+`INCLUDE_ASM` entries or data markers. Both vtables are compiler generated. The MSCAL and
+MSCNT programs are function-local `static u_int[4]` tables of `EndCPSprite` (retail
+`prog_vif$291`/`progf_vif$292`); MWCC rejects a 128-bit shift initializer for them
+(`illegal data size`). `sprite_giftag` is the four-word `SpriteGifTagBuf`. The FLUSHA
+terminator is a `VifQuad end = {MG_VIF_FLUSHA}` aggregate copied as a quadword; reading its
+`q` member directly changes seven text bytes. `CreatePacket`'s view position is a native
+`{0, 0, 0, 1}` array whose Z is then written, and `CreateRenderInfoPacket` emits its own
+zero-vector template.

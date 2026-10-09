@@ -363,18 +363,10 @@ void mgC3DSprite::CPSetSprite(float *first, float *second, float *third, float *
 }
 
 void mgC3DSprite::EndCPSprite() {
-    /**
-     *
-     * VIF quadword starting the billboard program at address two.
-     *
-     */
+    // VIF quadword starting the billboard program at address two.
     static u_int prog_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 2};
 
-    /**
-     *
-     * VIF quadword continuing the billboard program.
-     *
-     */
+    // VIF quadword continuing the billboard program.
     static u_int progf_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCNT};
 
     int quad_count = ((u_char *) packet_cur - (u_char *) batch_tag) / 16;
