@@ -5,96 +5,162 @@
 
 #include "dataread.hpp"
 #include "mg_memory.hpp"
+#include "scenevillager.hpp"
 #include "scriptinterpreter.hpp"
 #include "villagermngr.hpp"
 #include "vlgr_info.hpp"
 
 /**
+ *
  * Number of villager places in the loaded table.
+ *
  */
 static int PlaceInfoNum;
+
 /**
+ *
  * Loaded villager place records.
+ *
  */
 static CVillagerPlaceInfo *PlaceInfo;
+
 /**
+ *
  * Number of loaded villager model records.
+ *
  */
 static int VlgrInfoNum;
+
 /**
+ *
  * Loaded villager model and appearance records.
+ *
  */
 static CVillagerInfo *VlgrInfo;
+
 /**
+ *
  * Villager placement schedules indexed by villager number.
+ *
  */
 CVillagerPlace VlgrPlace[VLGR_PLACE_MAX];
+
 /**
+ *
  * Memory used to allocate villager schedule records.
+ *
  */
 static mgCMemory *niStack;
+
 /**
+ *
  * Villager schedule currently being parsed.
+ *
  */
 static CVillagerPlace *niVlgr;
+
 /**
+ *
  * Number of progress conditions in the current schedule.
+ *
  */
 static int niProgNum;
+
 /**
+ *
  * Progress-time state of the current schedule.
+ *
  */
 static int niProgTime;
+
 /**
+ *
  * Alternative placement selected by the current progress condition.
+ *
  */
 static int niProgDupliID;
+
 /**
+ *
  * Whether the current condition applies from its progress point onward.
+ *
  */
 static int niProgCon;
+
 /**
+ *
  * Temporary progress conditions for the current villager.
+ *
  */
 static CVillagerPlace::ProgressInfo *niProgInfo;
+
 /**
+ *
  * Progress condition currently being parsed.
+ *
  */
 static CVillagerPlace::ProgressInfo *niNowProgInfo;
+
 /**
+ *
  * Place records available to the schedule parser.
+ *
  */
 static CVillagerPlaceInfo *niPlaceInfo;
+
 /**
+ *
  * Number of places available to the schedule parser.
+ *
  */
 static int niPlaceInfoNum;
+
 /**
+ *
  * Next villager model record to fill.
+ *
  */
 static int niVlgrInfoIdx;
+
 /**
+ *
  * Memory used to allocate villager place records.
+ *
  */
 static mgCMemory *vpiStack;
+
 /**
+ *
  * Villager place currently being parsed.
+ *
  */
 static CVillagerPlaceInfo *vpiInfo;
+
 /**
+ *
  * Number of story progress points.
+ *
  */
 static int ProgressNum;
+
 /**
+ *
  * Story progress points loaded from the configuration script.
+ *
  */
 GAME_PROGRESS_INFO ProgressInfo[GAME_PROGRESS_MAX];
+
 /**
+ *
  * Story progress records available to the game-info parser.
+ *
  */
 static GAME_PROGRESS_INFO *giGamePI;
+
 /**
+ *
  * Memory used to allocate story progress names.
+ *
  */
 static mgCMemory *giStack;
 
@@ -109,7 +175,9 @@ static int niNPC_INFO_NUM(SPI_STACK *stack, int argument_count);
 static int niNPC_INFO(SPI_STACK *stack, int argument_count);
 
 /**
+ *
  * Tags accepted by the villager schedule and appearance parser.
+ *
  */
 static SPI_TAG_PARAM ni_tag[] = {
     {"NPC",          niNPC         },
@@ -137,9 +205,11 @@ static int vpiMOVE_SPEED(SPI_STACK *stack, int argument_count);
 static int vpiSHADOW(SPI_STACK *stack, int argument_count);
 
 /**
+ *
  * Tags accepted by the villager place parser.
+ *
  */
-static SPI_TAG_PARAM tag__9[] = {
+static SPI_TAG_PARAM tag[] = {
     {"NPC_PLACE_NUM", vpiNPC_PLACE_NUM},
     {"NPC_PLACE",     vpiNPC_PLACE    },
     {"NPC_PLACE_END", vpiNPC_PLACE_END},
@@ -157,7 +227,9 @@ static SPI_TAG_PARAM tag__9[] = {
 static int giPROG_INFO(SPI_STACK *stack, int argument_count);
 
 /**
+ *
  * Tags accepted by the story progress parser.
+ *
  */
 static SPI_TAG_PARAM gi_tag[] = {
     {"PROG_INFO", giPROG_INFO},
@@ -229,7 +301,7 @@ int GetVillagerModelName(int villager_no, char *path) {
  * Selects and clears a villager place entry while reading NPC configuration.
  *
  */
-int niNPC(SPI_STACK *stack, int argument_count) {
+static int niNPC(SPI_STACK *stack, int argument_count) {
     niVlgr = NULL;
     int villager_no = spiGetStackInt(stack);
 
@@ -250,7 +322,7 @@ int niNPC(SPI_STACK *stack, int argument_count) {
  * Ends the current villager place entry.
  *
  */
-int niNPC_END(SPI_STACK *stack, int argc) {
+static int niNPC_END(SPI_STACK *stack, int argc) {
     niVlgr = 0;
     return 1;
 }
@@ -260,7 +332,7 @@ int niNPC_END(SPI_STACK *stack, int argc) {
  * Selects or creates a villager progress condition and its alternate place index.
  *
  */
-int niPROGRESS(SPI_STACK *stack, int argument_count) {
+static int niPROGRESS(SPI_STACK *stack, int argument_count) {
     int progress = spiGetStackInt(stack++);
     niNowProgInfo = NULL;
 
@@ -298,7 +370,7 @@ int niPROGRESS(SPI_STACK *stack, int argument_count) {
  * Copies the parsed progress conditions into the current villager entry.
  *
  */
-int niPROGRESS_END(SPI_STACK *stack, int argument_count) {
+static int niPROGRESS_END(SPI_STACK *stack, int argument_count) {
     if (niVlgr == NULL) {
         return 0;
     }
@@ -337,7 +409,7 @@ int niPROGRESS_END(SPI_STACK *stack, int argument_count) {
  * Accepts a place section tag without changing the current villager entry.
  *
  */
-int niPLACE(SPI_STACK *stack, int argc) {
+static int niPLACE(SPI_STACK *stack, int argc) {
     return 1;
 }
 
@@ -346,7 +418,7 @@ int niPLACE(SPI_STACK *stack, int argc) {
  * Assigns a daytime place to the current progress condition.
  *
  */
-int niNOON_PLACE(SPI_STACK *stack, int argc) {
+static int niNOON_PLACE(SPI_STACK *stack, int argc) {
     int place_no = spiGetStackInt(stack);
 
     if (place_no < 0 || place_no >= niPlaceInfoNum) {
@@ -362,7 +434,7 @@ int niNOON_PLACE(SPI_STACK *stack, int argc) {
  * Assigns a nighttime place to the current progress condition.
  *
  */
-int niNIGHT_PLACE(SPI_STACK *stack, int argc) {
+static int niNIGHT_PLACE(SPI_STACK *stack, int argc) {
     int place_no = spiGetStackInt(stack);
 
     if (place_no < 0 || place_no >= niPlaceInfoNum) {
@@ -378,7 +450,7 @@ int niNIGHT_PLACE(SPI_STACK *stack, int argc) {
  * Allocates the villager information table specified by a script.
  *
  */
-int niNPC_INFO_NUM(SPI_STACK *stack, int argument_count) {
+static int niNPC_INFO_NUM(SPI_STACK *stack, int argument_count) {
     VlgrInfoNum = spiGetStackInt(stack);
     int count = VlgrInfoNum;
     u32 size = count * sizeof(CVillagerInfo);
@@ -415,7 +487,7 @@ CVillagerInfo::CVillagerInfo() {
  * Stores one villager model, house type, and frame visibility entry.
  *
  */
-int niNPC_INFO(SPI_STACK *stack, int argument_count) {
+static int niNPC_INFO(SPI_STACK *stack, int argument_count) {
     if (niVlgrInfoIdx >= VlgrInfoNum) {
         return 0;
     }
@@ -474,11 +546,10 @@ void LoadNPCInfo(char *script, int length, mgCMemory *memory) {
 }
 
 void LoadPlaceInfo(char *script, int length, mgCMemory *memory) {
-
     vpiStack = memory;
     vpiInfo = NULL;
     CScriptInterpreter interpreter;
-    interpreter.SetTag(tag__9);
+    interpreter.SetTag(tag);
     interpreter.SetScript(script, length);
     interpreter.Run();
 }
@@ -488,7 +559,7 @@ void LoadPlaceInfo(char *script, int length, mgCMemory *memory) {
  * Allocates the villager place table specified by a script.
  *
  */
-int vpiNPC_PLACE_NUM(SPI_STACK *stack, int argc) {
+static int vpiNPC_PLACE_NUM(SPI_STACK *stack, int argc) {
     int count = spiGetStackInt(stack);
 
     if (count <= 0) {
@@ -525,7 +596,7 @@ CVillagerPlaceInfo::CVillagerPlaceInfo() {
  * Selects a place entry and sets its map number.
  *
  */
-int vpiNPC_PLACE(SPI_STACK *stack, int argc) {
+static int vpiNPC_PLACE(SPI_STACK *stack, int argc) {
     int place_no = spiGetStackInt(stack++);
     int id = spiGetStackInt(stack);
     vpiInfo = PlaceInfo + place_no;
@@ -539,7 +610,7 @@ int vpiNPC_PLACE(SPI_STACK *stack, int argc) {
  * Ends the current villager place entry.
  *
  */
-int vpiNPC_PLACE_END(SPI_STACK *stack, int argc) {
+static int vpiNPC_PLACE_END(SPI_STACK *stack, int argc) {
     vpiInfo = NULL;
     return 1;
 }
@@ -549,7 +620,7 @@ int vpiNPC_PLACE_END(SPI_STACK *stack, int argc) {
  * Sets the position and facing angle of the current place.
  *
  */
-int vpiPLACE_POS(SPI_STACK *stack, int argc) {
+static int vpiPLACE_POS(SPI_STACK *stack, int argc) {
     if (vpiInfo == NULL) {
         return 0;
     }
@@ -564,7 +635,7 @@ int vpiPLACE_POS(SPI_STACK *stack, int argc) {
  * Adds a movement destination to the current villager place.
  *
  */
-int vpiMOVE_TO(SPI_STACK *stack, int argc) {
+static int vpiMOVE_TO(SPI_STACK *stack, int argc) {
     if (vpiInfo == NULL) {
         return 0;
     }
@@ -586,7 +657,7 @@ int vpiMOVE_TO(SPI_STACK *stack, int argc) {
  * Adds a timed wait and motion to the current villager place.
  *
  */
-int vpiWAIT(SPI_STACK *stack, int argc) {
+static int vpiWAIT(SPI_STACK *stack, int argc) {
     if (vpiInfo == NULL) {
         return 0;
     }
@@ -624,7 +695,7 @@ int vpiWAIT(SPI_STACK *stack, int argc) {
  * Sets the place motion when its configured name is recognized.
  *
  */
-int vpiMOTION(SPI_STACK *stack, int argc) {
+static int vpiMOTION(SPI_STACK *stack, int argc) {
     char *name;
 
     if (vpiInfo == NULL) {
@@ -638,7 +709,7 @@ int vpiMOTION(SPI_STACK *stack, int argc) {
     }
 
     if (strcmp(name, "sit") == 0) {
-        vpiInfo->motion = 4;
+        vpiInfo->motion = VILLAGER_MOTION_SIT;
     }
 
     return 1;
@@ -649,7 +720,7 @@ int vpiMOTION(SPI_STACK *stack, int argc) {
  * Sets the conversation position offset of the current place.
  *
  */
-int vpiTALK_OFFSET(SPI_STACK *stack, int argc) {
+static int vpiTALK_OFFSET(SPI_STACK *stack, int argc) {
     if (vpiInfo == NULL) {
         return 0;
     }
@@ -663,7 +734,7 @@ int vpiTALK_OFFSET(SPI_STACK *stack, int argc) {
  * Sets the motion used while moving through the current place.
  *
  */
-int vpiMOVE_MOTION(SPI_STACK *stack, int argc) {
+static int vpiMOVE_MOTION(SPI_STACK *stack, int argc) {
     char *name;
 
     if (vpiInfo == NULL) {
@@ -685,7 +756,7 @@ int vpiMOVE_MOTION(SPI_STACK *stack, int argc) {
  * Sets the movement speed of the current place.
  *
  */
-int vpiMOVE_SPEED(SPI_STACK *stack, int argc) {
+static int vpiMOVE_SPEED(SPI_STACK *stack, int argc) {
     if (vpiInfo == NULL) {
         return 0;
     }
@@ -699,7 +770,7 @@ int vpiMOVE_SPEED(SPI_STACK *stack, int argc) {
  * Sets whether the current place hides the villager shadow.
  *
  */
-int vpiSHADOW(SPI_STACK *stack, int argc) {
+static int vpiSHADOW(SPI_STACK *stack, int argc) {
     if (vpiInfo == NULL) {
         return 0;
     }
@@ -719,22 +790,22 @@ int vpiGetMotionID(char *name) {
     }
 
     if (strcmp(name, "sit") == 0) {
-        return 4;
+        return VILLAGER_MOTION_SIT;
     }
 
     if (strcmp(name, "stand") == 0) {
-        return 0;
+        return VILLAGER_MOTION_STAND;
     }
 
     if (strcmp(name, "special") == 0) {
-        return 8;
+        return VILLAGER_MOTION_SPECIAL;
     }
 
     if (strcmp(name, "walk") == 0) {
-        return 1;
+        return VILLAGER_MOTION_WALK;
     }
 
-    return (strcmp(name, "run") == 0) ? 2 : -1;
+    return (strcmp(name, "run") == 0) ? VILLAGER_MOTION_RUN : VILLAGER_MOTION_NONE;
 }
 
 /**
@@ -742,7 +813,7 @@ int vpiGetMotionID(char *name) {
  * Stores chapter, section, order, and name for a progress entry.
  *
  */
-int giPROG_INFO(SPI_STACK *stack, int argument_count) {
+static int giPROG_INFO(SPI_STACK *stack, int argument_count) {
     int progress = spiGetStackInt(stack++);
 
     if (progress < 0 || progress >= GAME_PROGRESS_MAX) {
