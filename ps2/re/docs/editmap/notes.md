@@ -1,9 +1,36 @@
 # editmap: reverse-engineering notes
 
-The river, mask, and water part-name callbacks are accepted native C++ callers,
-with one scoped `CMapPiece` placement row each. No `NONMATCHING` guards or
-assembly fallbacks remain in this unit. See
-[placement conversion](../satansfiddle/placement-new.md).
+## Source status
+
+Every function is native C++ with no `NONMATCHING` guards or `INCLUDE_ASM`
+fallbacks. The complete object is 0x53EC bytes with 541 relocations. The
+three part-name script callbacks (retail LOCAL/FUNC symbols) each depend on a
+placement-new row (`__nw__FUiP1` / `__ct__9CMapPieceFv`,
+`after_constructor_inline`, `expected_matches: 1`) for their single
+`CMapPiece` construction; retail branches on `v0` before copying the result
+to the saved pointer in the delay slot, which MWCC otherwise reverses (two
+words per callback). See [placement conversion](../satansfiddle/placement-new.md).
+
+| Caller | Address | Symbol size | Extent |
+| --- | ---: | ---: | ---: |
+| `emapRIVER_PARTS_NAME__FP9SPI_STACKi` | 0x1B5800 | 0x1A0 | 0x1A0 |
+| `emapMASK_PARTS_NAME__FP9SPI_STACKi` | 0x1B59A0 | 0x174 | 0x180 |
+| `emapWATER_PARTS_NAME__FP9SPI_STACKi` | 0x1B5B20 | 0x11C | 0x120 |
+
+Two data markers remain, both consumed through the `EditVector` union
+wrapper: `INCLUDE_RODATA` `at_1837__2` (the wall-up vector copied by
+`CheckWallEditParts`; an ordinary or aligned VU-vector initialiser at the
+copy point changes 0x20 text bytes from function+0xAC) and `INCLUDE_BSS`
+`at_426` (0x10, the zero rotation reset in each `ClearAllParts` placement
+iteration; ordinary and aligned vector initialisers both change the linked
+image). All other data is typed: part identifiers, the placement diagnostic
+and `"CEditMap"` (`CEditMapName`, a file-private pointer) are inline; the
+river-position and part-bound margin vectors are float aggregates; the
+fourteen script-state words/pointers keep retail order; the fixed and initial
+placement tables are `ePlaceData *`; the twelve-entry writable
+`SPI_TAG_PARAM emap_tag` table holds eleven tag literals/callbacks and a null
+terminator; both `__vt__8CEditMap` and `__vt__14CEditCollision` are emitted
+natively.
 
 Header: `ps2/include/editmap.hpp`. Owns `CEditMap` (93 members across editmap, editmap2,
 editriver, editdata, editmapeffect, editinfo), its nested `CEditMap::RemoveInfo`, and the
@@ -16,22 +43,24 @@ non-class types `EP_PLACE_INFO`, `EditPlaceLog`, `EditBuildResult` and the capac
 - The header depends on `editinfo.hpp` for the by-value 0x18-byte
   `CEditInfoMngr`, and `sceneload.hpp` for the by-value 0x14-byte
   `mgCObjectStack<T>`. The message specialization only zeroes +0x8.
-  Both headers now exist. Earlier layout probing used stubs of those sizes
-  and checked every offset below with static asserts. `EMAP_MESSAGE` is only
+  Every offset below is checked with static asserts. `EMAP_MESSAGE` is only
   forward-declared; no code in this game reads it (its definition belongs with sceneload).
 - `ps2/src/editmap.cpp` includes `editmap.hpp` and uses the real dependent types.
 
 ## Non-member functions and data (all file-local, so none in the header)
-`local_symbols.tsv` lists these as LOCAL in retail. The script callbacks,
-including the three native part-name callbacks, are still defined with
-external linkage; see "Part-name callback binding" below.
+`local_symbols.tsv` lists these as LOCAL in retail. The script callbacks are
+defined with external linkage; declaring the three part-name callbacks
+`static` gives LOCAL FUNC symbols with no extra alias and an unchanged object
+check, so the whole callback set can be made static together.
 The retail-local callback and data set is:
 - Script callbacks `emapEDIT_RIVER`, `emapRIVER_PARTS_NAME`, `emapMASK_PARTS_NAME`,
   `emapWATER_PARTS_NAME`, `emapEDIT_RIVER_END`, `emapFIX_EPARTS_START/_/_END`,
   `emapINIT_EPARTS_START/_/_END` (all `(SPI_STACK *, int)`), run by `LoadEditInfo` through the
   `emap_tag` table.
 - BSS: `emapMap emapInfo emapStack emapIdx emapNowInfo emapRect emapRectNum emapRectIdx
-  emapFixNum emapInitNum emapFixIdx emapInitIdx emapFix emapInit` (4 bytes each): script state.
+  emapFixNum emapInitNum emapFixIdx emapInitIdx emapFix emapInit` (4 bytes each): script state
+  (`emapInfo` is the `CEditInfoMngr *` of the map being loaded). Five of these words are only
+  reset by retail.
   `CEditMapName` (rodata): string returned by `Iam`.
 - Also emitted in this unit but owned elsewhere: `CEditParts::CEditParts()`,
   `CEditPartsInfo::CEditPartsInfo()` (editparts), `__vt__14CEditCollision` (editcoll).
@@ -103,8 +132,8 @@ CEditMap adds no virtual functions, it only overrides CMap's (`Iam`, `Initialize
   multiple of 6.
 
 ## First-game correspondence
-None. The first game's Georama editor (`editground`, `editarea`, `editpartsinfo` in
-`/home/adubbz/development/chronicle`) has no `CEditMap`; layouts were derived from this game only.
+None. The first game's Georama editor (`editground`, `editarea`, `editpartsinfo`) has no
+`CEditMap`; layouts were derived from this game only.
 
 ## Native map and function-point calls
 
@@ -115,7 +144,7 @@ the time before `CMap::CreateFuncCheck` fills the check. Placed parts then step
 or copy the check through `CMapParts` methods. These native calls produce the
 retail `PreDraw` and `DrawSub` functions without C-linkage aliases.
 
-`CEditMap::Initialize` clears the four grid pointers through the declared `grid[]` member; replacing the raw offset with `grid[i] = NULL` preserves the retail function. `ClearGrid` also uses `grid[i]` exactly after removing its local `global_optimizer off/reset` pair; with the pragma present, typed indexing scored 89.81%.
+`CEditMap::Initialize` clears the four grid pointers through the declared `grid[]` member; replacing the raw offset with `grid[i] = NULL` preserves the retail function. `ClearGrid` uses `grid[i]` without a `global_optimizer off/reset` pair; with the pragma present, typed indexing does not match (89.81%).
 
 A placed part's `CMapParts::name` begins at offset 0x70. Eight edit-map loops
 test its first byte to skip unused slots. Reading `part->name[0]`,
@@ -131,30 +160,23 @@ offset in the first overload remains: `out[count - 1]` and
 
 ## Indexed map storage
 
-`ClearAllParts` initializes each `edit_parts[i]` directly; `InitialPlaceParts` reads `info_mngr.init_parts[i]`; `GetePlaceParts(char*)` searches `edit_parts[i]`; and `GetGridPos` checks `grid[i]`. These typed accesses each produce a 100% function match. `ClearAllParts` still uses offset counters for `place_log` and fixed placements: replacing both with typed indexing scored 99.22%; only the log replacement scored 99.69%. `GetSameParts` typed indexing scored 99.09% and was reverted.
+`ClearAllParts` initializes each `edit_parts[i]` directly; `InitialPlaceParts` reads
+`info_mngr.init_parts[i]`; `GetePlaceParts(char*)` and `GetSameParts` index `edit_parts[i]` at
+each use in a `for` loop; `GetGridPos` checks `grid[i]`. `ConvertParts` uses the pointer
+difference `part - edit_parts`. `RemoveEditParts` reads `CEditHouse *house` and
+`house->npc_no[0]`, and walks `remove_info->color[j]`. `PlaceEditParts` reads `place->base[0]`.
+Both `GetNearParts` overloads write `out[count++] = part` (writing `out[count - 1]` after the
+increment adds four words). `CEditParts *part` calls the inherited `CMapParts::GetPoly` and
+`GetColor` without an upcast. `CEditParts::allocation_address` is `u_long128 *` (editparts.hpp).
 
-## Constructor-backed allocations
+Functions under `#pragma global_optimizer off` keep explicit byte offsets, which retail computes
+once and advances instead of rescaling the index at each use: `ClearAllParts`
+(`place_log + log_offset`, `fix_parts + initial_offset`; typed indexing of both scores 99.22%,
+of the log alone 99.69%) and `GetePlaceIDList` (`(s8 *) edit_parts + offset`, `part[0x70]`,
+`out + out_offset`).
 
-`emapRIVER_PARTS_NAME`, `emapMASK_PARTS_NAME`, and `emapWATER_PARTS_NAME`
-each allocate a `CMapPiece` through their active typed placement expressions.
-The scoped compiler conversion preserves retail's null-result schedule.
+`BurnEditParts` initialises its removal sentinel at its original declaration, before its other
+locals; moving the declaration to the copy point changes 0x14 text bytes.
 
-## October 8 merged-base allocation audit
-
-Before scoped placement conversion, the October 8 MWCC 3.0-011126/profile
-baseline differed in exactly two words per callback: water 2/72, mask 2/96,
-river 2/104. Retail branched on `v0` before copying to the saved pointer in
-the delay slot; that candidate copied first and tested the saved pointer.
-Water and mask otherwise omitted only zero alignment tails. The allocation
-stop rule kept those baseline forms guarded. All three callers are now native;
-[the earlier investigation](../funcpoint/placement-new.md) preserves the
-constructor and null-result evidence.
-
-## Part-name callback binding
-
-Retail gives `emapRIVER_PARTS_NAME`, `emapMASK_PARTS_NAME`, and
-`emapWATER_PARTS_NAME` LOCAL function binding. With `emap_tag` defined in this
-unit's C++ source, declaring them `static` gives LOCAL FUNC symbols with no
-extra alias and an unchanged object check. They keep external linkage, like
-the unit's other script callbacks, until the callbacks' retail binding is
-restored together.
+The part-name callbacks use `MG_ZBUF_NO_WRITE` for Z-buffer write suppression and
+`EDIT_MAP_MASK_PIECE_MAX` for the mask bound.
