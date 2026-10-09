@@ -136,8 +136,7 @@ Both the selected argument and target must still participate in this ordinary
 walk: their masked argument category must be 1 or 2, their evaluated marker must
 be zero, and their expression's evaluate-first flag must be false. Missing or
 already evaluated siblings, other categories, self-dependencies, cycles, and incomplete restoration fail the
-compilation. The selector and lowering evidence is documented in
-[`selector-proposal-20261008.md`](../../ps2/re/docs/satansfiddle/selector-proposal-20261008.md).
+compilation.
 
 Unscoped rows apply during annotation and argument consumption. Callee-scoped
 rows apply at argument consumption, where a matching scoped row takes precedence

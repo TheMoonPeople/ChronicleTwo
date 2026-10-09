@@ -37,20 +37,17 @@ has not reached the final matching or source-compliance gate.
 | 4 | Resolve VU and hardware routines through reproducible compiler support and native source. | Explain hardware effects and types; no inline assembly or instruction-byte substitution qualifies as a match. |
 | 5 | Audit remaining source, headers, and data; regenerate the function inventory and verify the complete game. | Zero outstanding native functions, every unit exact, linked retail executable exact, and documentation/source review complete. |
 
-Phases 2–4 may overlap only when they own different translation units and do not
+Phases 2-4 may overlap only when they own different translation units and do not
 change a shared dependency. Shared compiler changes must be generic, reproducible
 from the repository's pinned toolchain, and tested against unaffected units.
 Profiles must preserve existing selectors. A function-specific address or
 occurrence counter is not a semantic explanation of compiler behavior.
 
-## Current ownership and measured results
+## Measured results
 
-The Astra coordinator integrates unit changes and maintains the dependency plan.
-The primary agent owns actionchara, shared compiler support, full-game validation,
-and publishing. Luna workers own separate translation units; their private
-experiments are independently checked before integration. Agent analysis may run
-concurrently, but memory-intensive compiler jobs use
-`flock /tmp/ct-rest-compile.lock` serially to avoid host swap exhaustion.
+Unit changes are integrated through the dependency plan above; experiments on
+a unit are checked independently against the complete object before
+integration.
 
 - **mg_texture:** native AddHash, DelHash, and SearchHash now pass the whole-unit
   check (0x3674 bytes, 160 relocations), and all three objdiff scores are 100%.

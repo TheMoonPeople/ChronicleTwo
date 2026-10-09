@@ -1,54 +1,58 @@
 # Scalar placement-new statement conversion
 
 The placement-new capability requests MWCC's own statement-conversion path for
-selected scalar constructions. It is an intentional frontend decision override,
-not an established repair of uninitialized compiler state. The accepted source
-and profile produce 36 additional native callers in 23 units, with PAL bytes
-matching retail and 149/149 complete game objects passing. The caller rows are
-an activation list for those promotions; they do not recover one original global
-compiler policy.
+selected scalar constructions. It is an explicit frontend policy override, not
+a repair of uninitialized compiler state. The checked-in profile activates 36
+callers in 23 units; each is native, byte-identical to retail, and its unit
+passes the complete object check. The caller rows are an activation list for
+those matches; they do not recover one original global compiler policy.
 
 ## Compiler mechanism and boundary
 
-The supported compiler is MWCC 3.0-011126, executable SHA-256
-`0e16a5d6205101f840f85c02664f21cd63b39a0dec2dff417b3a61b4477f0e00`.
-The full [lowering and constructor study](../funcpoint/placement-new.md) establishes
-that inline metadata and the conversion-request flag are initialized. An
-eligible constructor's classifier at `0x465030` starts at class 6 for expression
-inlining. Retained control statements, nonfinal returns, or cleanup metadata
-select class 3 for statement inlining; some signatures instead return class 0
-and cannot be inlined. A class-3 inline callee can also request conversion inside
-an outer class-6 constructor. Ordinary calls, locals and final returns alone do
-not force class 3.
-
-Early construction conversion at `0x463bf0` puts the allocator assignment inside
-the null condition. Late IroLinearForm at `0x4c2d8a` emits an assignment followed
-by a test of the saved object temporary. These are distinct value dependencies
-before coloring or delay-slot scheduling. In the common near miss, early form
-allows `beqz v0` followed by the saved-pointer copy in the delay slot; late form
-copies first and tests the saved register. The texture-animation caller has a
-separate success-only result lifetime and disables scheduling.
-
-`after_constructor_inline` leaves normal expression inlining intact, then writes
-one byte to the frontend's statement-conversion request at `0x54d6f8`. MWCC
-natively sets that byte on its class-3 path at `0x462fd3`, clears it per statement
-at `0x464b70`, and tests it at `0x464b8d` before ordinary re-lowering through
-`0x463ef0`. `before_constructor_inline` instead changes only the current root
-constructor read's low EAX byte from 6 to 3. Neither changes stored constructor
-metadata, emitted instructions, allocator values, or optimizer operands. All
-MIPS, symbols and relocations are emitted by MWCC's normal passes.
-
-The [placement patch](../../../../scripts/build/patches/satansfiddle-placement-new.patch)
-checks eleven guest opcode signatures before installing its hooks. Those
+The supported compiler is MWCC 3.0-011126. Satan's Fiddle verifies the
+executable's SHA-256 before installing any hook; the placement patch
+additionally requires the profile's `compiler_version` to be `3.0-011126` and
+checks eleven guest opcode signatures at the addresses it hooks. Those
 addresses identify operations in the hash-pinned compiler; none is a profile
 selector.
 
-## Retail census and limits
+Inline metadata and the conversion-request flag are initialized by the
+compiler. An eligible constructor's classifier at `0x465030` starts at class 6
+for expression inlining. Retained control statements, nonfinal returns, or
+cleanup metadata select class 3 for statement inlining; some signatures return
+class 0 and cannot be inlined. A class-3 inline callee can also request
+conversion inside an outer class-6 constructor. Ordinary calls, locals and
+final returns alone do not force class 3.
 
-The [dated census](placement-new-census-20261008.md) covers all direct scalar
-`__nw__FUiP1` calls in top-level PAL game-unit assembly: 216 sites in 116 callers.
-This is `operator new(size_t, u_long128 *)`; its retail body returns the supplied
-buffer. Arrays, ordinary heap allocation and SDK/runtime units are excluded.
+Early construction conversion at `0x463bf0` puts the allocator assignment
+inside the null condition. Late IroLinearForm at `0x4c2d8a` emits an
+assignment followed by a test of the saved object temporary. These are
+distinct value dependencies before coloring or delay-slot scheduling. In the
+common near miss, early form allows `beqz v0` followed by the saved-pointer
+copy in the delay slot; late form copies first and tests the saved register.
+The texture-animation caller has a separate success-only result lifetime and
+compiles with scheduling disabled.
+
+`after_constructor_inline` leaves normal expression inlining intact, then
+writes one byte to the frontend's statement-conversion request at `0x54d6f8`.
+MWCC natively sets that byte on its class-3 path at `0x462fd3`, clears it per
+statement at `0x464b70`, and tests it at `0x464b8d` before ordinary
+re-lowering through `0x463ef0`. `before_constructor_inline` instead
+reclassifies the current root constructor read as class 3 by changing the
+inline classifier's returned low EAX byte from 6 to 3 at `0x462fa3`; MWCC then
+statement-inlines the constructor body and sets the request itself. Neither
+mode changes stored constructor metadata, emitted instructions, allocator
+values, or optimizer operands. All MIPS, symbols and relocations are emitted
+by MWCC's normal passes. The
+[placement patch](../../../../scripts/build/patches/satansfiddle-placement-new.patch)
+writes no instruction bytes.
+
+## Retail census
+
+All direct scalar `__nw__FUiP1` calls in the top-level PAL game units number
+216 sites in 116 callers. This is `operator new(size_t, u_long128 *)`; its
+retail body at `0x00139F50` returns the supplied buffer. Arrays
+(`__nwa__FUiP1`), ordinary heap allocation and SDK/runtime units are excluded.
 Of these calls, 178 construct nontrivial objects, 21 explicitly call the
 allocator and initialize afterwards, and 17 construct trivial scalars. Those
 last 38 do not establish implicit constructor-null-check behavior.
@@ -58,71 +62,105 @@ last 38 do not establish implicit constructor-null-check behavior.
 | Inline constructor | 108 | 0 |
 | Out-of-line constructor | 68 | 2 |
 
-The two B sites are matched `mapFIX_CAMERA_RECT` allocations of `CColFrame` and
-`CCollision` under `inline_depth(0)`. They are not inline-class-6 counterexamples.
-Runtime classification is observed for 91 of the 108 inline sites: 74 class 6,
-17 class 3. The other 17 are unmeasured. The raw instruction-pattern scan's
-196 A/2 B/16 no-branch/2 other count includes explicit checks and trivial objects
-and must not replace the constructor-specific table. Assembly shapes, measured
-classifier reads, and current source status are separate observations.
+The two B sites are the matched `mapFIX_CAMERA_RECT` allocations of
+`CColFrame` and `CCollision` under scoped `inline_depth(0)`. They are not
+inline-class-6 counterexamples. Runtime classification is observed for 91 of
+the 108 inline sites: 74 class 6 and 17 class 3. The other 17 are unmeasured;
+most are implicit or synthesized constructors (for example
+`SAVE_CONVERT_WORK`, `CRedMarkModel`, `CTreasureBoxManager`, `CMonsterMan`,
+`CRepairManager` and `mgCShadowMDT`), which expose no named root constructor
+read. The raw instruction-pattern scan's
+196 A / 2 B / 16 no-branch / 2 other count includes explicit checks and trivial
+objects and must not replace the constructor-specific table.
 
-Natural matched class-6/A examples exist. Pointer lifetime and register pressure
-can produce A without forcing early conversion. The census therefore establishes
-a widespread retail pattern, not a proof of a missing compiler option, identical
-original source, or an affected state defect. Its original source-status labels
-are a dated snapshot and do not override later manual promotions.
+Natural matched class-6/A examples exist, such as `CreateCollisionMDT`, whose
+guard is `beqz v0` with a stack spill in the delay slot. Pointer lifetime and
+register pressure can produce A without forcing early conversion. The census
+therefore establishes a widespread retail pattern, not a proof of a missing
+compiler option, identical original source, or a compiler-state defect.
+
+## Natural-cause controls
+
+No tested natural setting converts the unchanged `CFuncPointMngr::Add`
+allocation guard from `move s0,v0; beqz s0` to retail's `beqz v0; move s0,v0`.
+The controls compile the unchanged funcpoint source and compare the whole
+native object:
+
+- Inliner settings: `-inline on`, `smart`, `noauto`, `level=0,2,3,4,8`,
+  `#pragma inline_depth(4)`/`(8)` and `#pragma auto_inline off` give the same
+  whole object. `-inline deferred` changes three other functions and keeps the
+  guard. `-inline level=1` and `inline_depth(1)` outline the member
+  construction; `-inline off` and `inline_depth(0)` outline the list
+  construction; `auto`, `all` and `auto_inline on` grow the body to 0xEC. Every
+  variant keeps the B guard, and the negative controls prove the switches are
+  active.
+- Text prefixes and genuine precompiled headers, including PCHs built with
+  deferred inlining, auto inlining, `-g`, `inline_depth(0)`, exceptions or ISO
+  templates, reproduce the baseline object byte for byte.
+- Header order (reversed, alphabetized, or with `mg_tanime.hpp` or
+  `mapload.hpp` first), `-g`, `-sym on` and `-iso_templates on` leave every
+  function's bytes and relocations unchanged. RTTI adds descriptors and
+  changes nothing else.
+- Exceptions add `.exceptix`/`.exception` sections absent from retail and
+  break the existing `CFuncPointMngr::Step` match. Retail's
+  `__exception_table_start__` and `__exception_table_end__` are both
+  `0x0037C6F0`, so its game units compile with exceptions off. Retail's five
+  RTTI entries are all standard-library exception types.
+
+A minimal specimen separates the two classes without templates: a constructor
+with two straight-line link clears is class 6 and gives B; the same clears in a
+real two-element loop are class 3 and give A. These controls rule out the
+tested options as a remedy, not every possible original source form or an
+untested option.
 
 ## Semantic rows and safety
 
-`placement_new.statement_conversions` rows require logical translation unit,
-exact mangled caller, exact scalar allocator, direct constructor, conversion
-timing, and positive `expected_matches`. The constructor identifies the allocated
-type. The adapter retains the logical source name across mwccgap's temporary
-second-pass input and source-only objdiff builds. An empty table installs no
-placement hooks.
+`placement_new.statement_conversions` rows require the logical translation
+unit, exact mangled caller, exact scalar allocator, direct constructor,
+conversion timing, and positive `expected_matches`. The constructor identifies
+the allocated type. The adapter retains the logical source name across
+mwccgap's temporary second-pass input and source-only objdiff builds. An empty
+table installs no placement hooks.
 
 Only direct scalar roots with original expression-inline class 6 are eligible.
 Class 0/3 sites, arrays, ordinary same-type constructor calls and base/member
 inline reads are outside the operation. Raw names can provisionally nominate a
-row, but cached names or the compiler's ordinary mangler return must supply exact
-caller, allocator and constructor witnesses before publication. Wrong overloads,
-ambiguous raw associations and unwitnessed implicit constructors fail closed.
-The captured call node and live constructor object must agree at the actual
-inline-info read.
+row, but cached names or the compiler's ordinary mangler return must supply
+exact caller, allocator and constructor witnesses before publication. Wrong
+overloads, ambiguous raw associations and unwitnessed implicit constructors
+fail closed. The captured call node and live constructor object must agree at
+the actual inline-info read.
 
-Conversion affects its enclosing expression. Initial support permits exactly one
-construction in that verified statement region, rejects hidden/nested/sibling
-constructions and shared construction-bearing subtrees, audits retained inline
-callee bodies for deferred constructions and cleanup metadata, and observes
-exactly one ordinary lowering visit to the selected node. Unsupported indirect
-calls, graphs, body forms and bounds reject conservatively. A metadata-free empty
-void return has a verified supported path. Arena epochs prevent reused compiler
-pointers from inheriting records; resets and teardown require completed work and
-saved exact witnesses. Failures preserve an existing destination and remove
-unpublished temporary objects.
+Conversion affects its enclosing expression. Exactly one construction is
+permitted in that verified statement region; hidden, nested or sibling
+constructions and shared construction-bearing subtrees reject. Retained inline
+callee bodies are audited for deferred constructions and cleanup metadata, and
+exactly one ordinary lowering visit to the selected node is observed.
+Unsupported indirect calls, graphs, body forms and bounds reject
+conservatively. A metadata-free empty void return has a verified supported
+path. Arena epochs prevent reused compiler pointers from inheriting records;
+resets and teardown require completed work and saved exact witnesses. Failures
+preserve an existing destination and remove unpublished temporary objects.
 
-`expected_matches` counts distinct eligible constructions, deduplicating callbacks.
-It never selects the first or numbered occurrence. All same-identity sites get
-one policy; zero or excess sites fail. A row for an assembly-guarded caller has
-zero eligible sites and rejects compilation. Rows and guard removal must therefore
-be considered together when constructing a buildable upstream series.
+`expected_matches` counts distinct eligible constructions, deduplicating
+callbacks. It never selects the first or numbered occurrence. All
+same-identity sites get one policy; zero or excess sites fail. A row for an
+assembly-guarded caller has zero eligible sites and rejects compilation, so
+rows and guard removal belong in the same buildable change.
 
 The adapter validates every helper, float and placement row against the C/C++
-source basenames under `ps2/src` before filtering for the current unit. Unknown
-or misspelled translation units reject the whole profile, including rows for
-other units. This closes the earlier silent-discard gap that compiler-side count
-checks could not observe. The regression covers all four row families and
-checks that the compiler is not started and an existing output is preserved.
+source basenames under `ps2/src` before filtering for the current unit. An
+unknown or misspelled translation unit rejects the whole profile, including
+rows for other units, before the compiler is started.
 
 ## Accepted placement rows
 
-All 36 rows below use allocator `__nw__FUiP1` and exact direct constructors.
-The caller spelling is the profile identity. `after/either` means the checked-in
-policy is after-inline, but both timings reproduce that caller. Only the three
-`after/required` and one `before/required` rows have measured timing necessity.
-The table totals 46 sites across 23 units; multiple sites have the same semantic
-identity and do not use occurrence selectors. The two `Copy` rows were validated
-after the 34-row timing study below and are not part of its counts.
+All 36 rows use allocator `__nw__FUiP1` and exact direct constructors. The
+caller spelling is the profile identity. The table totals 46 sites across 23
+units; multiple sites in one caller have the same semantic identity and need no
+occurrence selectors. `after/either` means the checked-in policy is
+after-inline and both timings reproduce the caller; `required` rows match
+under only that timing.
 
 | Unit | Mangled caller | Allocated type | Sites | Timing |
 | --- | --- | --- | ---: | --- |
@@ -185,29 +223,30 @@ The exact direct constructor identities for these allocated types are:
 | `mgCVisualFixMDT` | `__ct__15mgCVisualFixMDTFv` |
 | `mgCVisualMotionMDT` | `__ct__18mgCVisualMotionMDTFv` |
 
-Changing all rows to after-inline matches 33/34 callers and fails
-`NewTexAnimeData`. Changing all to before-inline matches 31/34 and fails
+## Timing study
+
+Setting every row to after-inline matches every caller except
+`mgCTextureAnime::NewTexAnimeData`. Setting every row to before-inline fails
 `CMapParts::Copy`, `CMenuInvent::LoadCharaCheck` and
-`CRepairManager::GeneratePoly` (146/149 complete units pass). The other 30 are
-indifferent. `CMapParts::Copy` constructs template `CList<CMapPiece>` and needs
-after-inline, so “before for templates” is contradicted by the accepted source.
-The observed consistent policy is after-inline with one mg_tanime exception.
+`CRepairManager::GeneratePoly`. The other 32 callers match under either
+timing. `CMapParts::Copy` constructs the template `CList<CMapPiece>` and needs
+after-inline, so a "before for templates" rule is contradicted by the accepted
+source. The consistent policy is after-inline with one mg_tanime exception.
 
 `mg_tanime.cpp` uses `#pragma schedule off`; retail saves `s0` before testing
 `v0` with a nop delay slot. This plausibly explains why its timings diverge
-while scheduled cases can converge, but no controlled schedule-only experiment
-establishes causation. A global setting would need either an explicit justified
-per-unit before-inline exception or to leave this one caller guarded. No single
-uniform timing is established for all 34.
+while scheduled cases converge, but no schedule-only experiment establishes
+causation. A profile-wide after-inline default would need either an explicit
+per-unit before-inline exception for this caller or to leave it guarded.
 
-## Eight additional floating-expression rows
+## Accompanying floating-expression rows
 
-Placement conversion alone is insufficient for five accepted callers. The
-floating-expression table grows from 73 to 81 rows using the existing float
-capability; no new float mechanism is introduced. Every added row is binary32,
-callee-scoped, and has a positive count assertion. Formal slots include implicit
-receivers. “Before slot” uses `evaluate_first: false` and `evaluate_before`;
-“first” uses `evaluate_first: true`.
+Placement conversion alone is insufficient for five of the callers. Eight
+floating-expression rows accompany them, using the existing float capability;
+no new float mechanism is introduced. Every row is binary32, callee-scoped,
+and asserts a positive count. Formal slots include implicit receivers.
+"Before slot" uses `evaluate_first: false` and `evaluate_before`; "first" uses
+`evaluate_first: true`.
 
 | Unit / caller | Mangled callee | IEEE bits / value | Additional selector | Schedule | Count |
 | --- | --- | --- | --- | --- | ---: |
@@ -220,119 +259,86 @@ receivers. “Before slot” uses `evaluate_first: false` and `evaluate_before`;
 | menusys / `MenuItemSelectInit__FP9mgCMemoryPii` | `Set__9mgRect<f>Fffff` | `0x425c0000` / 55.0f | none | before slot 3 | 1 |
 | menusys / `MenuItemDebugKey__Fv` | `__ct__15mgCCameraFollowFffff` | `0x00000000` / +0.0f | none | first | 1 |
 
-## Safety tests and artifact acceptance
+## Tests and acceptance
 
-The genuine pinned-compiler suite passes 13 tests, including eight placement
-fixtures covering both timings, selected/unselected callers, repeated identical
-objects, duplicate static constructions and excess counts, temporary physical
-filenames, wrong overloads, sibling/hidden/nested constructions, indirect inline
-factories, ordinary same-type constructor calls, class-0/3 exclusion and stale
-eligibility, cleanup-bearing retained bodies, supported empty void returns,
-unwitnessed implicit class-6 constructors and request-write failure. Failure
-fixtures preserve existing object sentinels and leave no temporary objects.
-The production executable ignores the fault-injection variable; the separate
-fault-enabled test executable exercises failure publication. The original
-acceptance also passes 30 Rust unit/config tests. The adapter suite passes six
-tests, including whole-profile source validation. The
-legacy integration test requiring an additional genuine MWCC 2.3.3 executable
-was not run.
+The patch's genuine-compiler placement fixtures cover both timings,
+selected and unselected callers, repeated identical objects, duplicate static
+constructions and excess counts, temporary physical filenames, wrong overloads,
+sibling/hidden/nested constructions, indirect inline factories, ordinary
+same-type constructor calls, class-0/3 exclusion and stale eligibility,
+cleanup-bearing retained bodies, supported empty void returns, unwitnessed
+implicit class-6 constructors and request-write failure. Failure fixtures
+preserve existing object sentinels and leave no temporary objects. The
+production executable ignores the fault-injection variable; a separate
+fault-enabled test executable exercises failure publication. The adapter suite
+covers whole-profile source validation. These fixtures run only with the
+genuine compiler mounted, as described in
+[the integration notes](../../../../scripts/build/SATANSFIDDLE.md).
 
-Independent game-source tampering confirms that the override cannot repair
-wrong semantics: deleting Add's explicit null return or changing `Alloc(0x20)`
-to `Alloc(0x24)` still compiles but fails complete-object comparison. Adding a
+Game-source tampering confirms that the override cannot repair wrong
+semantics: deleting `Add`'s explicit null return or changing `Alloc(0x20)` to
+`Alloc(0x24)` still compiles but fails the complete-object comparison. Adding a
 second eligible construction fails compilation. Wrong caller, allocator or
-constructor, duplicate rows, excess counts, no-construction rows and a row on
-still-guarded source also reject compilation. The translation-unit typo previously discarded by adapter filtering now
-fails before compilation through the whole-profile check described above.
+constructor, duplicate rows, excess counts, no-construction rows, a row on
+still-guarded source and a misspelled translation unit all reject compilation.
 
-A clean build independently reproduces `SCES_511.90: OK`, 149/149 complete
-resolved objects, and refreshed coverage of **6,783 matched / 82 guarded /
-7 assembly-only / 0 fuzzy**, from 6,749 / 113 / 10 / 0 at upstream `63f7a9e5`.
-The increase is 31 guarded callers plus three assembly-only callers. Diagnostic
-zero scores alone are not counted as promotions. Guards are removed manually,
-the whole owning object and resolved relocation targets pass, and PAL verification
-and unrelated-object preservation are checked before acceptance.
-
-With all eight added float rows retained, turning placement rows off changes
-exactly the 36 named native callers, the generated `mgCVisualMDT` assignment
-that `mg_visual` now emits, and no other function's bytes or relocations in the
-23 promoted units. The 126 other game units are raw-identical to baseline.
-An empty placement profile with the original guards preserves the complete
-baseline. The older image rejects the new `placement_new` key even when a current
-unit has no rows; adopting the capability requires an image bump for all builds,
-including CI.
+With all eight float rows retained, turning the placement rows off changes
+exactly the 36 named callers, the generated `mgCVisualMDT` assignment that
+`mg_visual` emits, and no other function's bytes or relocations in the 23
+units. The other 126 game units are raw-identical with or without the rows. An
+empty placement profile with the original guards reproduces the pre-row
+baseline. An image without the patch rejects the `placement_new` key even when
+the current unit has no rows, so the capability requires the image built from
+the Dockerfile, including in CI.
 
 PAL identity refers to loaded game bytes and verifier layout. Full ELF identity
-against retail or upstream is not asserted: native promotions change assembly
-markers and symbol metadata, and inherited LOCAL/GLOBAL binding differences
-need separate handling. Loaded main/game bytes retain their retail value and memory ends at
-`0x01f64a00`; metadata-only corrections can change a whole-ELF hash without
-changing that acceptance.
+against retail is not asserted: native matches change assembly markers and
+symbol metadata, and inherited LOCAL/GLOBAL binding differences need separate
+handling. Loaded main/game bytes retain their retail value and memory ends at
+`0x01f64a00`.
 
-## Alternatives and measured limits
+## Global-policy controls
 
-The [natural controls](placement-new-natural-controls-20261008.md) run 44
-successful unchanged-funcpoint probes: text prefixes and genuine PCHs, PCH build
-state, header ordering, inliner/deferred/depth variants, debug settings, ISO
-templates, exceptions and RTTI. None removes the guard difference. Successful
-canonical prefix/PCH and several option controls reproduce the whole native
-object; outlining and auto-inlining controls change other code and demonstrate
-that the options were exercised. Exceptions add tables absent from retail and
-break an existing function. These reject the tested configurations as remedies,
-not every possible original source form, compiler option or state defect.
-Earlier invented helpers, dummy control flow and constructor-semantic changes
-remain inadmissible source solutions.
-
-The [global controls](placement-new-global-controls-20261008.md) and
-[constructor/header subsets](placement-new-global-subsets-20261008.md) compare
-149 successful native draft units per policy, with 6,773 common scored identities
-and 6,654 canonical diagnostic zeros:
+Six experimental global policies, applied to all 149 units compiled with their
+drafts enabled, give the following native diagnostic results against 6,773
+common scored identities, of which 6,654 are canonical diagnostic zeros:
 
 | Experimental policy | Changed native objects | Previous-zero losses | New guarded zeros |
 | --- | ---: | ---: | ---: |
 | Broad before-inline during construction | 27 | 1 | 24 |
 | Global direct after-inline request | 25 | 0 | 25 |
-| Direct before-inline templates only | 3 | 0 | 2 |
+| Direct before-inline, templates only | 3 | 0 | 2 |
 | All class-6 constructor inline reads, including ordinary construction | 32 | 13 | 24 |
 | Observed header-defined roots, before-inline | 25 | 1 | 23 |
 | Observed header-defined roots, after-inline | 23 | 0 | 24 |
 
-Those zeros require matching masked words and relocation offset/type maps and a
-body within its retail extent. They do not compare resolved targets, data/helper
-ownership or source hygiene and are not complete-object acceptance. The global
-after experiment loses no measured zero and is the strongest uniform alternative.
-Its header-only variant misses the source-defined `CMapParts` construction.
-The template-before result predates native `CMapParts::Copy` and cannot justify
-a template-wide timing rule for the final accepted source.
+A diagnostic zero requires matching masked words, equal relocation offset/type
+maps and a body within its retail extent. It does not compare resolved
+targets, data/helper ownership or source hygiene and is not complete-object
+acceptance. The broad before-inline policy regresses the native
+`InitDungeonMain`; the all-constructors policy regresses thirteen matched
+functions, `InitDungeonMain` among them, because it also changes ordinary
+member and base construction. The global after-inline request loses no measured zero and is
+the strongest uniform alternative. Its header-only variant misses the
+source-defined `CMapParts` construction. Forcing a constructor's inline class
+and requesting enclosing-expression conversion are observably different
+policies: only the former zeros `NewTexAnimeData`, and only the latter zeros
+`MenuInventInit` and `GeneratePoly`.
 
-A later [historical hybrid migration](placement-new-global-migration-20261009.md)
-omits all 34 placement rows while retaining 81 float rows, applies global
-after-inline in 148 units and before-template in mg_tanime, and reproduces all
-149 accepted raw game objects and the entire accepted ELF. Its normal wrappers
-complete 281 genuine compiler passes; a separate 306-input link passes PAL.
-This proves artifact preservation under that mixed diagnostic driver, not one
-pure global-after policy or a strict production global engine.
+A hybrid driver that omits the placement rows, keeps the float rows, applies
+global after-inline in 148 units and before-template conversion in mg_tanime
+reproduces all accepted game objects and the accepted executable byte for
+byte. A paired comparison of that hybrid against the scoped rows over the
+current source preserves every scoped diagnostic zero and adds two guarded
+zeros (`MenuInventInit` and `_ESM_INITIALIZE`) whose drafts retain rejected
+helper and dummy scaffolding; those two remain inactive. The hybrid driver
+uses provisional allocator and name filters, excludes raw `__ct` implicit
+roots, and lacks production's exact ownership, bounded-region and completion
+guarantees. A production global policy would need those checks, supported
+allocator ABIs and defined implicit-constructor handling.
 
-The [paired current-source native comparison](placement-new-current34-native-comparison-20261009.md)
-separately completes 298 direct native invocations, preserves all 6,779 scoped
-diagnostic zeros among 6,867 common emitted functions, and adds two guarded zeros
-with already-rejected helper/dummy scaffolding. All 34 accepted native sections,
-sizes, bindings and relocation offset/type maps agree. Fifteen guarded rows
-change; some worsen. These two additional zeros remain inactive and are not
-included in the 34 promotions.
-
-The historical global driver uses provisional allocator/name filters, excludes
-raw `__ct` implicit roots, and lacks production's exact ownership, bounded-region
-and completion guarantees. A production global policy must preserve those
-structural and transactional checks and define supported allocator ABIs and
-implicit-constructor handling. Live root/callee objects can establish global
-ownership without demanding a mangled caller/constructor name for every unasserted
-root; exact exceptions and count assertions still need unambiguous association.
-No such global engine is established by the historical artifact tests.
-
-The maintainer decision remains explicit: adopt the conservative caller activation
-rows, or develop a profile-wide after-inline default with one justified mg_tanime
-exception (or keep that caller guarded). The evidence supports investigating the
-global form. It does not identify a retail global compiler setting or establish
-that `schedule off` causes the exception. Dated studies retain their original
-measurement boundaries; this note owns the current capability description.
+The design choice is therefore explicit: the conservative caller activation
+rows above, or a profile-wide after-inline default with one justified
+mg_tanime exception (or that caller left guarded). The evidence supports
+investigating the global form; it does not identify a retail global compiler
+setting or establish that `schedule off` causes the exception.

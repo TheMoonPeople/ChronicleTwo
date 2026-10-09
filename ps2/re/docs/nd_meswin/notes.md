@@ -430,8 +430,7 @@ and a `0xB80` `DrawMesWin` body with zero differing masked words. Each of the
 four rows is consumed once in each mwccgap pass. All source and headers,
 including the existing inline placement helpers, are unchanged.
 
-The implementation and whole-project validation are recorded in
-[the selector proposal](../satansfiddle/selector-proposal-20261008.md).
+The selector semantics are documented in `scripts/build/SATANSFIDDLE.md`.
 Image: `chronicletwo_dev:sf-d8bf13c-proto`. Receipts:
 `.private/receipts/prototype/focused.log` and `message-word-diff.json`;
 `.private/sfproto/nd_meswin-reorder2-diff.json` records the isolated ordinary-walk
@@ -468,5 +467,5 @@ With `chronicletwo_dev:sf-d8bf13c-proto2`, all four rows log
 `DrawMesWin` body has zero differing masked words, and the focused complete
 object passes `0xBF28` bytes and 1,364 resolved relocations. Source and headers
 remain unchanged. Receipts: `.private/receipts/proto2/focused.log` and
-`message-word-diff.json`; whole-project evidence and the deliberately coarse
-projection are documented in [the proposal](../satansfiddle/selector-proposal-20261008.md).
+`message-word-diff.json`; the deliberately coarse
+projection is documented in `scripts/build/SATANSFIDDLE.md`.

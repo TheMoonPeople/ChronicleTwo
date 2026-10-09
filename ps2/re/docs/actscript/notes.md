@@ -293,8 +293,8 @@ bytes and has zero differing masked words, resolving the four-word residual
 above. The complete focused object passes `0x47FC` checked bytes and 1,111
 resolved relocations.
 
-The implementation, source-context limits, and whole-project validation are
-recorded in [the selector proposal](../satansfiddle/selector-proposal-20261008.md).
+The selector semantics and source-context limits are documented in
+`scripts/build/SATANSFIDDLE.md`.
 Image: `chronicletwo_dev:sf-d8bf13c-proto`. Receipts:
 `.private/receipts/prototype/focused.log` and `shot-word-diff.json`; the trace
 shows the same semantic identity in both compiler passes.
@@ -320,5 +320,5 @@ contains one `expected=1 actual=1` readback in each mwccgap pass. `_SHOT`
 remains `0x900` bytes with zero differing masked words; the complete object
 passes `0x47FC` bytes and 1,111 resolved relocations. Source and headers
 remain unchanged. Receipts: `.private/receipts/proto2/focused.log` and
-`shot-word-diff.json`; whole-project evidence and selector limitations are
-recorded in [the proposal](../satansfiddle/selector-proposal-20261008.md).
+`shot-word-diff.json`; selector limitations are
+documented in `scripts/build/SATANSFIDDLE.md`.
