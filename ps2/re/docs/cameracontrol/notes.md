@@ -5,7 +5,7 @@ Header: `ps2/include/cameracontrol.hpp`. No first-game counterpart (Dark Cloud h
 `camerafollow.hpp`, here `mgCCameraFollow` in `mg_camera.hpp`).
 
 ## CCameraControl : mgCCameraFollow (size 0x1F0)
-Size: `MainCamera` (0x01ED4340) and `EventCamera__2` (0x01ED4530) are `size:0x1f0` in
+Size: `MainCamera` (0x01ED4340) and `EventCamera` (0x01ED4530) are `size:0x1f0` in
 `main.symbols.txt`. Last field ends at 0x1E4; the rest is 16-byte alignment padding.
 
 Base layout (from `mg_camera.hpp`): mgCCamera fields 0x00-0x5C, vptr at 0x60 (ctor stores
@@ -40,17 +40,15 @@ temporary (e.g. `mgCCameraFollow(40.0f, 30.0f, 0.0f, 8.0f);`). The default limit
 through GetActiveParam are the same values `_RESET_CAMERA_CTRL_PARAM` (runscript_opcodes)
 writes: 100,160,18,10,-15(height),40,-15,20,-15,25; then `no_check = 0`.
 
-The constructor is now compiled C++ and matches all 0x120 retail bytes and its
-relocations. `decompile.sh __ct__14CCameraControlFv` confirms the base constructor,
-four `CameraCtrlParam::no_check` initializations, discarded temporary, active
-parameter defaults, `InitStatus`, and copy to `default_param`. m2c's offset
+The constructor is native (0x120 bytes): base constructor, four
+`CameraCtrlParam::no_check` initializations, the discarded temporary, active
+parameter defaults, `InitStatus`, and the copy to `default_param`. m2c's offset
 labels for the vtable and field stores are inaccurate because it loses the
 class layout; the header layout and retail disassembly resolve those stores.
 Both `mgCCameraFollow` calls use plain float literals. The Satan's Fiddle
 profile evaluates binary32 positive zero first within
 `__ct__14CCameraControlFv`, producing retail's argument load order without
-source-level double-to-float casts. The complete unit matches all 0x150C
-bytes and 128 relocations with this policy.
+source-level double-to-float casts.
 
 ### Control (nested struct, size 0xC)
 MoveCamera(CPadControl*) builds it on the stack: +0 `rot` (analog 6 * -0.05, or +/-0.05
@@ -90,9 +88,9 @@ CopyParam. All fields float except +0x28.
 `CameraCtrlParam::operator=` has an optional retail declaration under
 `CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT` in `cameracontrol.hpp`;
 `cameracontrol.cpp` enables it for its assignment callers. Other includers
-use the implicit operation. The retail out-of-line body at 0x1ACEE0 is
-currently an `INCLUDE_ASM` gap in `editloop.cpp`, with no explicit C++ body.
-It copies the ten scalar float limits and the integer `no_check` field.
+use the implicit operation. The retail out-of-line body at 0x1ACEE0 is an
+`INCLUDE_ASM` gap in `editloop.cpp` with no C++ body. It copies the ten scalar
+float limits and the integer `no_check` field.
 
 ## Enums
 - `CameraRotCancel`: bits seen in MoveCamera (1 buttons, 2 analog, 0x40 rot-back, 0x80
@@ -101,11 +99,15 @@ It copies the ten scalar float limits and the integer `no_check` field.
 - `CameraControlKind`: 1000 from Iam.
 
 ## Data
-- `at_396__3` (.data, 0x3613A0): {0,0,0,1.0f} vec4 literal (used as SetCheckRef(fff)'s w).
-  Compiler-generated, not declared.
-- `at_373__3` (.bss, 0x10): function-local static vec4 used in SetRotate as the base of the
-  offset vector (x/w read from it); compiler-generated, not declared.
-- No named globals in this unit. `MainCamera`/`EventCamera__2` are dng_main's.
+Every function is native and the unit has no data markers.
+- `SetCheckRef(float, float, float)` initializes its local float vector as `{0, 0, 0, 1}`;
+  MWCC emits the {0,0,0,1.0f} template in .data (0x3613A0) and copies it as a quadword.
+- `SetRotate` uses a zero-initialized four-float offset vector declared *before* its
+  transformation matrix; MWCC emits its 0x10-byte zero template in .bss. Declaring the
+  matrix first shifts eight stack displacements (explicit 16-byte alignment does not
+  change them), so the retail declaration order is required.
+- The virtual methods emit the camera-control vtable.
+- No named globals in this unit. `MainCamera`/`EventCamera` are dng_main's.
 
 ## Other details
 - CheckGround reads CCPoly entries with stride 0x50 and the normal at +0x30
