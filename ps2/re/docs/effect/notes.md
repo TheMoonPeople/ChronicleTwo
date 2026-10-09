@@ -1,11 +1,9 @@
 # effect: reverse-engineering notes
 
-## C++ draft status
-All 75 functions have C++ in `ps2/src/effect.cpp`. 16 are exact and compiled by
-the matching build. 37 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 22 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Status
+All 75 functions in `ps2/src/effect.cpp` are native C++ definitions and match
+retail; the unit has no `INCLUDE_ASM` or `NONMATCHING` guards and no data
+markers.
 
 Scripted particle effects. An effect file is a script (tags in `effm_tag`, run through
 `CScriptInterpreter`) that declares buffer sizes, an image archive, wait frames, and one or more
@@ -109,12 +107,18 @@ CEffect::Draw has a retail bug: checks `alpha_blend == 1` twice, so SUB (2) draw
 
 ## Globals (all LOCAL in retail -> static in effect.cpp, no externs in the header)
 - `effm_tag` (0x3390F0, 0x180 = 48 SPI_TAG_PARAM of 8 bytes): tag table for the effect script.
+  Native file-local array of 47 name/callback pairs plus one null terminator, defined after the
+  callbacks with each tag spelling inline (including `__REP_RAND`); the pooled tag strings are
+  emitted from the table initializer.
 - `g_tmp_effm` (CEffectManager*), `g_tmp_effc` (CEffectCtrl*, the emitter being read),
   `g_eff_entry_flag` (int: 1 in Load, 0 in GetBufferNums; EFFECT_END only enters the emitter
-  when set), `g_tmp_eff_name` (char[0x20], EFFECT_START name).
+  when set), `g_tmp_eff_name` (char[0x20], EFFECT_START name). Native file-static definitions
+  in retail address order.
+- The `CEffect::Step` jump tables (`at_383`, seven entries; `at_382__3`, six entries) are emitted
+  by the switches themselves. `CEffectManager::Initialize` passes `""` inline when clearing the
+  emitter and image names.
 - Local functions (static in .cpp): `UniformityRand`, `RegularityRand`, and all `__XXX` tag
-  handlers (`int f(SPI_STACK*, int)`, return 1; `__GRAVITY` returns nothing per Ghidra --
-  check its asm for the v0 value). `InitEffectParam` is global (declared in header).
+  handlers (`int f(SPI_STACK*, int)`, return 1). `InitEffectParam` is global (declared in header).
 
 ## Cross-unit
 - `CEffectManager::CreatePacket(mgC3DSprite*)` lives in effectlist (0x17E850) but is declared
@@ -125,13 +129,9 @@ CEffect::Draw has a retail bug: checks `alpha_blend == 1` twice, so SUB (2) draw
 - `__EFFECT_END` passes the emitter by value to `EnterEffectCtrl` (stack copy then
   `~CEffectCtrl`), consistent with the `F11CEffectCtrlPc` mangling.
 
-## Division-check pragma
-
-The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; removing it left the full compiled object identical in objdiff.
-
 ## Texture rectangle initialization
 
-`InitEffectParam` and `CEffectCtrl::Initialize` clear eight four-word texture
-rectangles. Their previous byte-offset loops address the `tex_rect[8][4]`
-members at offsets 0xF8 and 0x25C respectively. Typed two-dimensional
-indexing preserves both functions' exact object code.
+`InitEffectParam` and `CEffectCtrl::Initialize` clear the eight four-word
+`tex_rect[8][4]` members (offsets 0xF8 and 0x25C respectively) with typed
+two-dimensional indexing; no byte-offset loop is needed for the exact object
+code. The unit needs no `divbyzerocheck` pragma: the global MWCC flag covers it.
