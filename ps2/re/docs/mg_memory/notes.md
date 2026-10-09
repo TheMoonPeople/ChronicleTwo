@@ -68,17 +68,17 @@ None besides string literals `at_166`, `at_238`, `at_288` (compiler-generated; n
   `stAlloc64` result directly in callers). Callers cast; does not affect mangling.
 - `mgMEMORY_BLOCK::unk_8` meaning unknown; check other units if a use turns up.
 
-## Drafts (job mg_memory.1)
-- All signatures in the header mangle to retail (`P1` = `u_long128*` confirmed by `draft.sh`).
-- Promoted (11): `MG_ADDRESS_CHECK`, `__nw`, `__nwa`, `Init`, `ClearHeapMem`, `Free`, `stAlloc64`,
-  `stAllocTest`, `stAlign64`, `Align64`, `stSetBuffer`. The string literals of the promoted
-  `MG_ADDRESS_CHECK`/`Free`/`stAllocTest` bind to the `at_166`/`at_238`/`at_288` placeholders
-  (`--promote` OK).
+## Source notes
+- All signatures in the header mangle to retail (`P1` = `u_long128*`).
+- Every function is native C++ and byte-identical; the unit has no guarded drafts, `INCLUDE_ASM`
+  entries or data markers. The three memory-error format strings are inline literals in
+  `MG_ADDRESS_CHECK`, `Free` and the stack allocation.
+- `mgCMemory::SetHeapMem` carves `mgMEMORY_BLOCK` headers out of the raw `u_long128` buffer
+  (memcpy-like allocator code).
 - `ClearHeapMem` saves both `heap` and `heap_size` before `Init()` and passes them back.
 - `stAlloc`/`Alloc`/`stAllocTest` overflow printf args: `(used + n, stack_size, name)`.
   `Free`'s printf passes the pointer being freed. `stAllocTest` does print on overflow too.
 - `StartStackMode`: `stack_size` is set from the gap of the LAST block examined, not of the chosen
   one. In mode 2 (largest) that is the last gap in the heap, so the region size can be wrong;
   modes 1/3 break on the chosen gap so they agree. Reproduced as written in the draft.
-- Remaining DIFFs (`SetHeapMem`, `StartStackMode`, `EndStackMode`, `stAlloc`, `Alloc`,
-  `mgCopyString`) are codegen/ordering differences; behaviour follows Ghidra and the asm.
+- `StartStackMode`'s gap selection is reproduced as written.
