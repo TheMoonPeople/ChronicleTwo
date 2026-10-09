@@ -91,41 +91,11 @@ int                    SetupMonster(CScene *scene, CUserDataManager *user_data);
 
 /**
  *
- * Stores the filenames of the four equipped ridepod components.
- *
- */
-static char r_robo_pname_1282[4][16];
-/**
- *
- * Stores the filename of Max's model aboard the ridepod.
- *
- */
-static char fname_1290[64];
-
-/**
- *
  * Order of the four parts used by character setup.
  *
  */
 struct SetupPartOrder {
     int parts[4]; /**< Part order. */
-};
-
-/**
- *
- * Stores the ridepod rider model patterns for Max's costumes.
- *
- */
-static char *fname_tbl_1291[6] = {
-    "mints0%da.chr", "mints0%db.chr", "mints0%dc.chr", "mints0%dd.chr", "mints0%de.chr", "mints0%df.chr"
-};
-/**
- *
- * Stores the ridepod rider model patterns for Max's costumes.
- *
- */
-static char *fname_tbl2_1298[6] = {
-    "mints%da.chr", "mints%db.chr", "mints%dc.chr", "mints%dd.chr", "mints%de.chr", "mints%df.chr"
 };
 
 static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA *robo_info);
@@ -622,6 +592,7 @@ static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA 
 }
 
 ROBO_INFO_DATA *GetRoboPartsInfo(CUserDataManager *user_data) {
+    static char    r_robo_pname[4][16];
     int            i;
     ROBO_DATA     *parts = &user_data->robo_data;
     CGameData     *game_data = GetGameDataPt();
@@ -630,19 +601,26 @@ ROBO_INFO_DATA *GetRoboPartsInfo(CUserDataManager *user_data) {
 
     for (i = 0; i < 4; ++i) {
         part_info[i] = GetRoboPartInfoData(parts->parts[part_order.parts[i]].item_no);
-        r_robo_pname_1282[i][0] = 0;
+        r_robo_pname[i][0] = 0;
 
         if (part_info[i] != NULL) {
-            strcpy(r_robo_pname_1282[i], GetItemFileName(parts->parts[part_order.parts[i]].item_no, 0));
+            strcpy(r_robo_pname[i], GetItemFileName(parts->parts[part_order.parts[i]].item_no, 0));
         }
     }
 
-    robo_dat.model_name[ROBO_MODEL_LEG] = r_robo_pname_1282[0];
-    robo_dat.model_name[ROBO_MODEL_ARM] = r_robo_pname_1282[1];
-    robo_dat.model_name[ROBO_MODEL_BODY] = r_robo_pname_1282[2];
-    robo_dat.model_name[ROBO_MODEL_BPACK] = r_robo_pname_1282[3];
+    robo_dat.model_name[ROBO_MODEL_LEG] = r_robo_pname[0];
+    robo_dat.model_name[ROBO_MODEL_ARM] = r_robo_pname[1];
+    robo_dat.model_name[ROBO_MODEL_BODY] = r_robo_pname[2];
+    robo_dat.model_name[ROBO_MODEL_BPACK] = r_robo_pname[3];
     CHARA_DATA *max_data = user_data->GetCharaDataPtr(0);
     int         costume = max_data->equip[4].item_no;
+    static char  fname[64];
+    static char *fname_tbl[6] = {
+        "mints0%da.chr", "mints0%db.chr", "mints0%dc.chr", "mints0%dd.chr", "mints0%de.chr", "mints0%df.chr"
+    };
+    static char *fname_tbl2[6] = {
+        "mints%da.chr", "mints%db.chr", "mints%dc.chr", "mints%dd.chr", "mints%de.chr", "mints%df.chr"
+    };
     costume -= game_data->GetDataTypeStartListNo(5);
 
     if (part_info[2] != NULL) {
@@ -653,14 +631,14 @@ ROBO_INFO_DATA *GetRoboPartsInfo(CUserDataManager *user_data) {
         }
 
         if (body_type < 10) {
-            sprintf(fname_1290, fname_tbl_1291[costume], body_type);
+            sprintf(fname, fname_tbl[costume], body_type);
         } else {
-            sprintf(fname_1290, fname_tbl2_1298[costume], body_type);
+            sprintf(fname, fname_tbl2[costume], body_type);
         }
     }
 
     robo_dat.arm_name = NULL;
-    robo_dat.model_name[ROBO_MODEL_MINTS] = fname_1290;
+    robo_dat.model_name[ROBO_MODEL_MINTS] = fname;
 
     if (part_info[2] != NULL) {
         robo_dat.arm_name = robo_info_body[part_info[2]->offset_no - 1].arm_name;
@@ -727,7 +705,6 @@ ROBO_INFO_BODY robo_info_body[11] = {
     {"body02.chr", "arm2"}
 };
 
-// Uninitialised data (.bss)
 /**
  *
  * Stores the model files and behaviour of the equipped ridepod.
