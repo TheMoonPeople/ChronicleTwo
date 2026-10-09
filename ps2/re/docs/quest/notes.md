@@ -15,7 +15,7 @@ No first-game counterpart (Dark Cloud has no quest/request memo or monster book 
 - `spi_quest_info` (0x37EA30): `QUEST_INFO *` cursor; quest_NUM sets it to `info`, quest_END advances it by one (0x3D0).
 - `quest_cmd_tag` (.rodata 0x363040, symbol size 0x28): `SPI_TAG_PARAM[5]` =
   {"NUM",quest_NUM}, {"NEW",quest_NEW}, {"COMENT",quest_COMMENT}, {"END",quest_END}, {0,0}.
-  Strings are at_878..at_881 (.rodata 0x379108..).
+  The keyword strings live in .rodata at 0x379108 onwards.
 
 ## Names
 `QUEST_INFO`, `QUEST_PLAY_DATA`, `MONSTER_BOOK_ENTRY`, `QUEST_LIMIT`, `QUEST_REQUEST_STATUS`
@@ -68,18 +68,14 @@ mode 1 -> QuestRequestClear(id, v). QuestRequestClear ignores its second argumen
 - MONSTER_BOOK_ENTRY: +2 `kill_count` u16 (lhu/sh); +0 and +4..0xC never accessed in code seen
   (MonsterBookPtr in menuchr is only assigned, never read, in the decompiled output).
 
-## C++ draft and promotion status
+## Status
 
-The C++ drafts in `quest.cpp` use the types and fields documented above. A single
-grouped promotion attempt was made for the quest data operations. These matched
-exactly and remain enabled: `GetQuestData`, `CQuestManager::GetQuestInfo`,
-`CQuestData::Initialize`, `QuestRequestSetFlag`, `QuestRequestClear`, and
-`GetQuestRequestStatus`. `CQuestManager::Initialize` already matched.
+Every function in `quest.cpp` is native (no `INCLUDE_ASM`, no `NONMATCHING` guard, no
+assembly-supplied data markers).
 
-The same attempt produced nonzero object differences for
-`CQuestData::SetQuestFlag`, `CQuestData::QuestClear`,
-`CQuestData::GetPlayQuestData`, and `CMonsterBook::CountKill`; their C++ drafts
-remain behind `NONMATCHING`. The script parser drafts (`quest_NUM`, `quest_NEW`,
-`quest_COMMENT`, `quest_END`, and `CQuestManager::LoadCfg`) compiled in their
-single grouped attempt but failed to link: the assembly-owned tag table still
-references the original handler symbols. They also remain behind `NONMATCHING`.
+## Source layout facts
+- `spi_questman`, `spi_queststack` and `spi_quest_info` are typed file-local definitions at the top
+  of `quest.cpp`.
+- `quest_cmd_tag` is defined after its four handlers and before `LoadCfg`, with every keyword
+  string inline in the initialiser. The keyword for `quest_COMMENT` is spelled `COMENT` (retail
+  text); the null terminator row supplies the eight-byte zero tail of the 0x28-byte object.
