@@ -58,8 +58,8 @@ Only +0 (s16) is used: Save copies `CEditMap::house[i].npc_no[0]` (CEditMap+0xD4
 Load copies back (sign-extended). Rest unaccessed.
 
 #### EditDataAnalyze (0xD0)
-0x00 `u8 data_open[16]` (editmenu `MenuAnalyzeData[i] = 1` when request revealed; gcALL_GEO_PARTS sets all 16),
-0x10 `s8 condition[64]` (CEditData+0x5050: Analyze/Analize/dbg*; lb), 0x50 `u8 condition_open[64]`
+0x00 `s8 data_open[16]` (editmenu `MenuAnalyzeData[i] = 1` when request revealed; gcALL_GEO_PARTS sets all 16),
+0x10 `s8 condition[64]` (CEditData+0x5050: Analyze/Analize/dbg*; lb), 0x50 `s8 condition_open[64]`
 (editmenu `MenuAnalyzeData[con+0x50]`; gcALL_GEO_PARTS sets 64; `MenuAnalyzeData[0x55]` checked for map 0 -> SetBitFlag(0x21)),
 0x90..0xD0 unaccessed. `MenuAnalyzeData` (editmenu global) = `&data->analyze`.
 
@@ -71,11 +71,18 @@ padded to even. LoadData printf("%d %d %d") of the position.
 ## Globals (all LOCAL in retail -> `static` in the .cpp, not in the header)
 - `AnalyzeSrc` (.bss 0x1040) `EditAnalyzeSrc AnalyzeSrc[5]`.
 - `eaAnaSrc` `EditAnalyzeSrc *`, `eaAnaData` `EditAnalyzeDataSrc *`, `eaStack` `mgCMemory *` (.sbss): parser state of the tag handlers.
-- `tag__6` (`tag`, .data 0x50): `SPI_TAG_PARAM[10]` = GEO_ANALYZE, CONDITION, ANALYZE, CON_NO, ON_PARTS,
-  OFF_PARTS, PERCENT, END_ANALYZE, END_GEO_ANALYZE (strings at_1290..at_1298), {0,0}. Function-local static of
-  LoadEditAnalyzeData(char*,int,mgCMemory*) or file static named `tag`.
-- `buff_1271` (u_long128[0x300], 0x3000), `Stack_1272` (mgCMemory, 0x30), `init_1273` (guard): function statics
-  of LoadEditAnalyzeData(int,u_long128*). It prints remaining stack (`(Stack.+0x28 - Stack.+0x24) * 16 / 1024` kB).
+- `tag` (.data 0x50): file-local `static SPI_TAG_PARAM tag[10]` = GEO_ANALYZE, CONDITION, ANALYZE, CON_NO,
+  ON_PARTS, OFF_PARTS, PERCENT, END_ANALYZE, END_GEO_ANALYZE (names inlined in each row), {0,0}. The
+  handlers and the script-running overload have retail-local binding (`static`).
+- `buff` (`static u_long128 buff[0x300]`, 0x3000 bytes), `Stack` (`static mgCMemory Stack`, 0x30) and the
+  compiler-generated one-byte constructor guard are function-local statics of
+  LoadEditAnalyzeData(int,u_long128*); the manager's inline constructor calls `Init`, and MWCC emits
+  the retail guard test. The guard's piece is four bytes (three alignment bytes before `eaAnaSrc`).
+  The function prints the remaining stack (`(Stack.+0x28 - Stack.+0x24) * 16 / 1024` kB).
+- The unit has no data markers. The diagnostic strings of `SaveData`, `LoadData`, `Analyze` and
+  `LoadEditAnalyzeData` are inline literals with the exact retail text (`infinty loop!!!`, the
+  extra exclamation marks on the parts limit, no newline on the grid message,
+  `GeoData Remain = %dkbyte`, filename `geo%d.cfg`).
 
 ## Functions
 - `EditAnalyzeDataSrc::Init` clears the message, percentage, floor and part-name pointers,
@@ -109,10 +116,19 @@ padded to even. LoadData printf("%d %d %d") of the position.
 - Names EditDataParts / EditDataHouse / EditDataAnalyze are neutral (no retail names); retail may have used
   unnamed or differently named structs.
 
-## Script loading types
+## Source status and forms
 
-`buff_1271` is 0x300 aligned quadwords used as the backing buffer of
-`Stack_1272`. `LoadEditAnalyzeData` constructs a `CScriptInterpreter` after
-setting the active analyzer globals, then runs the loaded script. Typed
-`mgCMemory::stSetBuffer` and local `CScriptInterpreter` calls match both retail
-loading functions without mangled C-linkage aliases.
+Every function is native; the unit has no `NONMATCHING` guards, `INCLUDE_ASM` gaps, or data
+markers.
+
+- `buff` is 0x300 aligned quadwords used as the backing buffer of `Stack`. `LoadEditAnalyzeData`
+  constructs a `CScriptInterpreter` after setting the active analyzer globals, then runs the loaded
+  script, through typed `mgCMemory::stSetBuffer` and local `CScriptInterpreter` calls.
+- `SaveData` computes the saved house number through the inline `EditHouseIndex(base, target)`
+  wrapper. The direct `part->house - house + 1` expression (or a `house_index` local) swaps the
+  division result's v0/v1 registers in six words; a `static_cast<int>` spills and grows the
+  function from 0x5D0 to 0x5D8 bytes.
+- `data_open` and `condition_open` are `s8` arrays: editmenu reads them signed and every store
+  writes 1 with `sb`.
+- Header `@size` annotations use the retail ELF's declared `STT_FUNC` extents, not the gap up to
+  the next function.
