@@ -25,17 +25,17 @@ struct EditMapRect {
 /**
  * Manager filled by the edit information script.
  */
-static CEditInfoMngr *emapInfo__2;
+static CEditInfoMngr *emapInfo;
 
 /**
  * Storage for the edit information tables and strings.
  */
-static mgCMemory *emapStack__2;
+static mgCMemory *emapStack;
 
 /**
  * Index of the next edit part definition.
  */
-static int emapIdx__2;
+static int emapIdx;
 
 /**
  * Index of the next material in the current part definition.
@@ -45,7 +45,7 @@ static int emapMatID;
 /**
  * Part definition currently filled by the script.
  */
-static CEditPartsInfo *emapNowInfo__2;
+static CEditPartsInfo *emapNowInfo;
 
 /**
  * Part type assigned to each rectangle record.
@@ -55,27 +55,27 @@ static int emapRectType;
 /**
  * Rectangle records currently filled by the script.
  */
-static EditMapRect *emapRect__2;
+static EditMapRect *emapRect;
 
 /**
  * Number of records in the current rectangle list.
  */
-static int emapRectNum__2;
+static int emapRectNum;
 
 /**
  * Index of the next rectangle record.
  */
-static int emapRectIdx__2;
+static int emapRectIdx;
 
 /**
  * Number of fixed part placements read by the script.
  */
-static int emapFixNum__2;
+static int emapFixNum;
 
 /**
  * Index of the next fixed part placement.
  */
-static int emapFixIdx__2;
+static int emapFixIdx;
 
 /**
  *
@@ -176,9 +176,9 @@ static int emapEDIT_PARTS_NUM(SPI_STACK *stack, int argument_count) {
         return 0;
     }
 
-    CEditPartsInfo *table = new (emapStack__2->Alloc(
+    CEditPartsInfo *table = new (emapStack->Alloc(
         align16_blocks(parts_count * sizeof(CEditPartsInfo)) + 2)) CEditPartsInfo[parts_count];
-    emapInfo__2->SetePartsInfoTable(table, parts_count);
+    emapInfo->SetePartsInfoTable(table, parts_count);
     return 1;
 }
 
@@ -191,19 +191,19 @@ static int emapEDIT_PARTS(SPI_STACK *stack, int argument_count) {
     char  converted_name[256];
     char *name;
     char *name_buffer;
-    emapNowInfo__2 = emapInfo__2->GetePartsInfo(emapIdx__2++);
+    emapNowInfo = emapInfo->GetePartsInfo(emapIdx++);
 
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
     name = spiGetStackString(stack);
     ConvertFontCode(name, converted_name);
-    name_buffer = reinterpret_cast<char *>(emapStack__2->Alloc(align16_blocks(strlen(converted_name) + 1)));
+    name_buffer = reinterpret_cast<char *>(emapStack->Alloc(align16_blocks(strlen(converted_name) + 1)));
 
     if (name != NULL && name_buffer != NULL) {
         strcpy(name_buffer, converted_name);
-        emapNowInfo__2->edit_name = name_buffer;
+        emapNowInfo->edit_name = name_buffer;
     }
 
     emapMatID = 0;
@@ -216,11 +216,11 @@ static int emapEDIT_PARTS(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapID(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == 0) {
+    if (emapNowInfo == 0) {
         return 0;
     }
 
-    emapNowInfo__2->id = spiGetStackInt(stack);
+    emapNowInfo->id = spiGetStackInt(stack);
     return 1;
 }
 
@@ -233,17 +233,17 @@ static int emapPARTS_NAME(SPI_STACK *stack, int argument_count) {
     char *text;
     char *buffer;
 
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
     text = spiGetStackString(stack);
-    buffer = (char *) emapStack__2->Alloc(align16_blocks(strlen(text) + 1));
+    buffer = (char *) emapStack->Alloc(align16_blocks(strlen(text) + 1));
 
     if (text != NULL) {
         if (buffer != NULL) {
             strcpy(buffer, text);
-            emapNowInfo__2->parts_name = buffer;
+            emapNowInfo->parts_name = buffer;
         }
     }
 
@@ -256,11 +256,11 @@ static int emapPARTS_NAME(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapPARTS_ATR(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->attr |= spiGetStackInt(stack);
+    emapNowInfo->attr |= spiGetStackInt(stack);
     return 1;
 }
 
@@ -273,13 +273,13 @@ static int emapPARTS_MATERIAL(SPI_STACK *stack, int argument_count) {
     int                index;
     EditPartsMaterial *material;
 
-    if ((emapNowInfo__2 == NULL) || (argument_count < 2)) {
+    if ((emapNowInfo == NULL) || (argument_count < 2)) {
         return 0;
     }
 
     index = emapMatID;
     emapMatID = index + 1;
-    material = emapNowInfo__2->GetMaterial(index);
+    material = emapNowInfo->GetMaterial(index);
 
     if (material == NULL) {
         return 0;
@@ -299,17 +299,17 @@ static int emapPARTS_COMMENT(SPI_STACK *stack, int argument_count) {
     char *text;
     char *buffer;
 
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
     text = spiGetStackString(stack);
-    buffer = (char *) emapStack__2->Alloc(align16_blocks(strlen(text) + 1));
+    buffer = (char *) emapStack->Alloc(align16_blocks(strlen(text) + 1));
 
     if (text != NULL) {
         if (buffer != NULL) {
             strcpy(buffer, text);
-            emapNowInfo__2->comment = buffer;
+            emapNowInfo->comment = buffer;
         }
     }
 
@@ -326,12 +326,12 @@ static int emapCPOINT(SPI_STACK *stack, int argument_count) {
 
     second = stack + 1;
 
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->cpoint[0] = spiGetStackInt(stack);
-    emapNowInfo__2->cpoint[1] = spiGetStackInt(second);
+    emapNowInfo->cpoint[0] = spiGetStackInt(stack);
+    emapNowInfo->cpoint[1] = spiGetStackInt(second);
     return 1;
 }
 
@@ -341,11 +341,11 @@ static int emapCPOINT(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapWEIGHT(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->weight = spiGetStackInt(stack);
+    emapNowInfo->weight = spiGetStackInt(stack);
     return 1;
 }
 
@@ -355,11 +355,11 @@ static int emapWEIGHT(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapGEO_STONE(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->geo_stone = spiGetStackInt(stack);
+    emapNowInfo->geo_stone = spiGetStackInt(stack);
     return 1;
 }
 
@@ -369,11 +369,11 @@ static int emapGEO_STONE(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapMAX_NUM(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->max_num = spiGetStackInt(stack);
+    emapNowInfo->max_num = spiGetStackInt(stack);
     return 1;
 }
 
@@ -383,11 +383,11 @@ static int emapMAX_NUM(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapPAINT_NUM(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->paint_num = spiGetStackInt(stack);
+    emapNowInfo->paint_num = spiGetStackInt(stack);
     return 1;
 }
 
@@ -397,11 +397,11 @@ static int emapPAINT_NUM(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapPAINT_USED(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->paint_used = spiGetStackInt(stack);
+    emapNowInfo->paint_used = spiGetStackInt(stack);
     return 1;
 }
 
@@ -411,11 +411,11 @@ static int emapPAINT_USED(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapPARTS_TYPE(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->parts_type = spiGetStackInt(stack);
+    emapNowInfo->parts_type = spiGetStackInt(stack);
     return 1;
 }
 
@@ -425,11 +425,11 @@ static int emapPARTS_TYPE(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapPLACE_EPS(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->place_eps = spiGetStackFloat(stack);
+    emapNowInfo->place_eps = spiGetStackFloat(stack);
     return 1;
 }
 
@@ -439,11 +439,11 @@ static int emapPLACE_EPS(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapMAP_NO(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->map_no = spiGetStackInt(stack);
+    emapNowInfo->map_no = spiGetStackInt(stack);
     return 1;
 }
 
@@ -453,18 +453,18 @@ static int emapMAP_NO(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapPOLYN(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->polyn[0] = spiGetStackInt(stack++);
+    emapNowInfo->polyn[0] = spiGetStackInt(stack++);
 
     if (argument_count >= 2) {
-        emapNowInfo__2->polyn[1] = spiGetStackInt(stack++);
+        emapNowInfo->polyn[1] = spiGetStackInt(stack++);
     }
 
     if (argument_count >= 3) {
-        emapNowInfo__2->polyn[2] = spiGetStackInt(stack);
+        emapNowInfo->polyn[2] = spiGetStackInt(stack);
     }
 
     return 1;
@@ -476,11 +476,11 @@ static int emapPOLYN(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapGROUND_PARTS(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->attr = emapNowInfo__2->attr | EDIT_PARTS_ATR_GROUND;
+    emapNowInfo->attr = emapNowInfo->attr | EDIT_PARTS_ATR_GROUND;
     return 1;
 }
 
@@ -490,11 +490,11 @@ static int emapGROUND_PARTS(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapBLOCK_PARTS(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->attr = emapNowInfo__2->attr | EDIT_PARTS_ATR_BLOCK;
+    emapNowInfo->attr = emapNowInfo->attr | EDIT_PARTS_ATR_BLOCK;
     return 1;
 }
 
@@ -504,11 +504,11 @@ static int emapBLOCK_PARTS(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapRIVER_PARTS(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->attr = emapNowInfo__2->attr | EDIT_PARTS_ATR_RIVER;
+    emapNowInfo->attr = emapNowInfo->attr | EDIT_PARTS_ATR_RIVER;
     return 1;
 }
 
@@ -518,11 +518,11 @@ static int emapRIVER_PARTS(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapFENCE_PARTS(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == NULL) {
+    if (emapNowInfo == NULL) {
         return 0;
     }
 
-    emapNowInfo__2->attr = emapNowInfo__2->attr | EDIT_PARTS_ATR_FENCE;
+    emapNowInfo->attr = emapNowInfo->attr | EDIT_PARTS_ATR_FENCE;
     return 1;
 }
 
@@ -532,21 +532,21 @@ static int emapFENCE_PARTS(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapRECT(SPI_STACK *stack, int argument_count) {
-    if (emapRect__2 == NULL) {
+    if (emapRect == NULL) {
         return 0;
     }
 
-    if (emapRectIdx__2 < 0 || emapRectIdx__2 >= emapRectNum__2) {
+    if (emapRectIdx < 0 || emapRectIdx >= emapRectNum) {
         return 0;
     }
 
-    EditMapRect *rect = &emapRect__2[emapRectIdx__2];
+    EditMapRect *rect = &emapRect[emapRectIdx];
     rect->type = emapRectType;
     spiGetStackVector(rect->start, stack);
     rect->start[3] = 1.0f;
     spiGetStackVector(rect->end, stack + 3);
     rect->end[3] = 1.0f;
-    emapRectIdx__2++;
+    emapRectIdx++;
     return 1;
 }
 
@@ -556,12 +556,12 @@ static int emapRECT(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapPLACE_RECT(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == 0) {
+    if (emapNowInfo == 0) {
         return 0;
     }
 
-    emapRectNum__2 = spiGetStackInt(stack);
-    emapRectIdx__2 = 0;
+    emapRectNum = spiGetStackInt(stack);
+    emapRectIdx = 0;
     return 1;
 }
 
@@ -571,7 +571,7 @@ static int emapPLACE_RECT(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapPLACE_RECT_END(SPI_STACK *, int) {
-    emapRect__2 = 0;
+    emapRect = 0;
     return 1;
 }
 
@@ -581,12 +581,12 @@ static int emapPLACE_RECT_END(SPI_STACK *, int) {
  *
  */
 static int emapPARTS_RECT(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == 0) {
+    if (emapNowInfo == 0) {
         return 0;
     }
 
-    emapRectNum__2 = spiGetStackInt(stack);
-    emapRectIdx__2 = 0;
+    emapRectNum = spiGetStackInt(stack);
+    emapRectIdx = 0;
     return 1;
 }
 
@@ -596,7 +596,7 @@ static int emapPARTS_RECT(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapPARTS_RECT_END(SPI_STACK *, int) {
-    emapRect__2 = 0;
+    emapRect = 0;
     return 1;
 }
 
@@ -606,12 +606,12 @@ static int emapPARTS_RECT_END(SPI_STACK *, int) {
  *
  */
 static int emapPUT_RECT(SPI_STACK *stack, int argument_count) {
-    if (emapNowInfo__2 == 0) {
+    if (emapNowInfo == 0) {
         return 0;
     }
 
-    emapRectNum__2 = spiGetStackInt(stack);
-    emapRectIdx__2 = 0;
+    emapRectNum = spiGetStackInt(stack);
+    emapRectIdx = 0;
     return 1;
 }
 
@@ -621,7 +621,7 @@ static int emapPUT_RECT(SPI_STACK *stack, int argument_count) {
  *
  */
 static int emapPUT_RECT_END(SPI_STACK *, int) {
-    emapRect__2 = 0;
+    emapRect = 0;
     return 1;
 }
 
@@ -631,14 +631,14 @@ static int emapPUT_RECT_END(SPI_STACK *, int) {
  *
  */
 static int emapEDIT_PARTS_END(SPI_STACK *, int) {
-    emapNowInfo__2 = 0;
+    emapNowInfo = 0;
     return 1;
 }
 
 /**
  * Commands that fill the edit part information records.
  */
-static SPI_TAG_PARAM emap_tag__2[] = {
+static SPI_TAG_PARAM emap_tag[] = {
     {"EDIT_PARTS_NUM", emapEDIT_PARTS_NUM},
     {"EDIT_PARTS",     emapEDIT_PARTS    },
     {"ID",             emapID            },
@@ -672,17 +672,17 @@ static SPI_TAG_PARAM emap_tag__2[] = {
 };
 
 void CEditInfoMngr::LoadEditInfo(char *script, int size, mgCMemory *memory) {
-    emapInfo__2 = this;
-    emapStack__2 = memory;
-    emapIdx__2 = 0;
-    emapNowInfo__2 = NULL;
-    emapRect__2 = NULL;
-    emapRectNum__2 = 0;
-    emapRectIdx__2 = 0;
-    emapFixNum__2 = 0;
-    emapFixIdx__2 = 0;
+    emapInfo = this;
+    emapStack = memory;
+    emapIdx = 0;
+    emapNowInfo = NULL;
+    emapRect = NULL;
+    emapRectNum = 0;
+    emapRectIdx = 0;
+    emapFixNum = 0;
+    emapFixIdx = 0;
     CScriptInterpreter interpreter;
-    interpreter.SetTag(emap_tag__2);
+    interpreter.SetTag(emap_tag);
     interpreter.SetScript(script, size);
     interpreter.Run();
 }
