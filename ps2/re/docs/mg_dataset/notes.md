@@ -2,10 +2,35 @@
 
 The native drafts of `CreateFrameVisual`, `CopyFrame`, `CopyFrameSub`, and `mgCMDTBuilder::End(mgCFrame*, mgCVisualMDT*,
 mgLoadData*)` remain behind `NONMATCHING` with retail assembly fallbacks.
-The current `htoi` and `mgSetFrameAttr` bodies are active native C++; earlier
-statements that both remained guarded are stale. `htoi` matches retail bytes
-with an integer-address expression, but that expression violates the source
-rules and still needs a compliant replacement.
+Every other function, including `htoi` and `mgSetFrameAttr`, is native C++ and
+byte-identical. `htoi` reads digits from the end as `((u8 *) (back + (s32) text))[-1]`:
+retail adds the text address to the position (`addu v1,v1,a0`), while both
+`(text + back)[-1]` and `(back + text)[-1]` put the pointer first.
+
+## Data
+
+- `mgSetFrameAttr` has a function-local `static char *name_def = ""`, and `mgLoadMDSFile` a
+  function-local `static int flag = 0` that nothing reads; each emits its retail storage and
+  one-byte initialization guard. The empty string is inline at `SearchVisualType` as well.
+- The sphere-centre and scalar `SetData` overloads initialize their four-float vectors
+  directly; normal data writes zero to the homogeneous component using `MG_MDT_DATA_NORMAL`.
+- Two `INCLUDE_RODATA` markers remain: `at_550__DATA` is the `"mgLoadMDSFile"` diagnostic
+  referenced by the assembly-backed `CreateFrameVisual`, and `__vt__15mgCShadowFixMDT__DATA`
+  is the shadow-visual vtable that no native source in this unit emits.
+
+## Typed access
+
+- `mgCMDTBuilder::EndData` stores each closed section's offset and count in the named
+  `MDT_HEADER` fields selected by `mgMDTDataType`; section offsets are `end - (char *) header`
+  and the cursor rewinds with `end = data`. `EndFaces` keeps its `face_end`/`face_block_addr`/
+  `cursor` integer views: the face size is a byte difference between differently typed pointers
+  and the end is rounded up with `& 0xF`.
+- MDS and MDT sections are located from serialized byte offsets (`object_ofs`, `mdt_ofs`,
+  `vertex_ofs`, `object->size`); `(int) mds % 16` tests the file buffer's alignment.
+- `mgLoadMDSFile` allocates `new (...) mgCFrame *[mds->object_num]` and
+  `new (...) sceVu0FMATRIX[mds->object_num + 2]`. `mgCopyFrame` keeps
+  `(mgCFrame **) operator new[](bytes, ...)`: `new (...) mgCFrame *[count]` keeps `bytes` in a
+  temporary and shifts `count` again for the call.
 
 A prior typed `static_cast<u8>(text[back - 1])` trial scored 96.01887%.
 An unsigned-byte view of `&text[back]` differed in one commutative `addu`

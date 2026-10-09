@@ -57,9 +57,3 @@ normal complete build preserves all 149 object-file SHA-256 hashes, retains
 147/149 complete-object matches, and retains the baseline PAL `.text`
 difference of 0x26 bytes. No shared header or compiler-profile row changes.
 
-Private receipts: `.private/placenew-midday/probes/copy-generated-assignment/`
-and `.private/placenew-midday/probes/dataset-vertex-first/`, plus the other
-named `copy-*`, `end-*`, and `dataset-*` directories under
-`.private/placenew-midday/probes/`. Complete validation is recorded in
-`draft-cleanup-build.log`, `draft-cleanup-objects.log`, and
-`draft-cleanup-hash-comparison.json` under `.private/placenew-midday/`.

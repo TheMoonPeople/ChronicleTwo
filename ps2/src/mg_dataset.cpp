@@ -709,7 +709,7 @@ mgCFrame *mgLoadMDSFile(mgLoadData *load) {
         default_type = entry->type;
     }
 
-    static int flag = 0;
+    static int flag = 0; // Loader flag retained from retail; never read.
 
     object = (MDTOBJ_HEADER *) ((char *) mds + mds->object_ofs);
 
