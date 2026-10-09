@@ -11,9 +11,9 @@ eye-view and photo cameras, ladders, and stepping and drawing the characters. It
 
 ## EditMoveCharaInfo (0x130)
 Evidence:
-- `fishing` `CharaControl__2`: `memset(&info,0,0x130)`, and before that `memset(&info+0x10,0,0x110)`,
+- `fishing` (its local `CharaControl`): `memset(&info,0,0x130)`, and before that `memset(&info+0x10,0,0x110)`,
   which is the inlined `MoveCheckInfo` constructor.
-- `pbuggy` `CharaControl__3`: the same two memsets.
+- `pbuggy` (its local `CharaControl`): the same two memsets.
 - `editctrl` `CharaControl`: the same two memsets.
 
 | Off | Field | Evidence |
@@ -51,8 +51,8 @@ These offsets were seen in EditMoveChara and CharaControl, for whoever writes `d
   CameraControl adds 0x7F30 to the result and passes it to `LoopTakePhoto` as a
   `CInventUserData*`, so the result is probably the save's `CUserDataManager` (unverified).
 - Return types: EditOnGround returns 0/1 (`sltu`/`xori`), declared `int`. EditControl always
-  returns 0 (`int`). GetFootEffName returns `name_978[name_id_982[kind]]`, or 0 when
-  kind is outside 0..29 (`char*`).
+  returns 0 (`int`). GetFootEffName returns `name[name_id[kind]]` (its two function-local
+  static tables), or 0 when kind is outside 0..29 (`char*`).
 - EditCameraControl's third parameter `float (*)[4]` is a single point to look at, or null.
   The code reads `(*p)[0..2]`, and pbuggy passes the address of a `float[4]`.
 - EditStepChara/EditDrawShadowChara/EditDrawChara/EditDrawEffectChara run over the player
@@ -85,20 +85,36 @@ These offsets were seen in EditMoveChara and CharaControl, for whoever writes `d
 - .sbss floats: viewAngleH, viewAngleV (eye-view yaw/pitch), AddProj, LdrNext(?), LdrRot
   (`atan2` of the ladder direction + pi), and OldMtnRate.
 - `LadderCamera`: `mgCCamera*` from `CScene::GetCamera`.
-- Function-local statics: `HamonCnt_1075`/`init_1076` (a float ripple timer in EditMoveChara),
-  `reference_1252`/`init_1253`, and `camera_dist_mode_1317`/`init_1318` (in EditCameraControl).
+- Function-local statics (each with a compiler-generated initialization guard):
+  `HamonCnt` (`static float HamonCnt = 0.0f`, the ripple timer in EditMoveChara), `reference`
+  (`static float reference = 30.0f`, in EditCameraControl) and `camera_dist_mode`
+  (`static int camera_dist_mode = 0`, in EditCameraControl).
 - .bss: `MoveInfo` is a `MoveCheckInfo` (0x110), memset by `__sinit` and EditControlInit.
   `LadderData` is a `CSceneEventData` (0xD0), memset by `__sinit` and copied in by InitLadder.
   `OldFixCameraPos`, `OldCameraPos`, `LdrPos`, `StdPos`, `LdrBottomPos`, `LdrTopPos`,
   `LdrTopWalk` and `LdrCamPos` are `sceVu0FVECTOR`s.
 - `__sinit_editctrl_cpp` only memsets `MoveInfo` and `LadderData`, so both types have inline
   constructors that zero them.
-- Rodata: `name_978` is `char*[4]` = {null, `足砂煙` (sand), `足水パシャ` (water splash),
-  `足芝生` (grass)}. `name_id_982` is `int[30]`, which maps a ground kind to an index into
-  `name_978`. `at_962` = `立ち` (standing motion), `at_1240` = `走り` (run motion),
-  `at_1241` = `足波紋` (ripple), and `at_1239` = `CEditMap` (the map class name tested with
-  `strcmp`).
+- Rodata: `GetFootEffName`'s function-local `static char *name[4]` = {null, `足砂煙` (sand),
+  `足水パシャ` (water splash), `足芝生` (grass)} and `static EditFootEffect name_id[30]`, which maps
+  a ground kind to an index into `name`: sand at ground kinds 7, 8, 13, 14 and 16; water at 11,
+  18 and 22; grass at 1; all others none. Retail pads the 0x78-byte index table with eight bytes.
+  The standing motion `立ち`, run motion `走り`, ripple effect `足波紋` and the `CEditMap` class
+  name tested with `strcmp` are inline literals, as are the camera strings and ladder motion
+  strings; the effect-scale and camera-distance aggregates are local initializers.
 
-## Native static initialization
+## Source status and forms
 
-`MoveInfo` uses a small derived type whose constructor clears the `MoveCheckInfo` base. `LadderData` uses its native `CSceneEventData` constructor. Together they emit retail’s 60-byte `__sinit_editctrl_cpp` and retain 0x110 and 0xD0 BSS sizes. In `EditMoveChara`, binding `MoveInfo` to a `MoveCheckInfo&` before passing it to `MoveCheck` keeps the retail argument setup order; taking the derived object’s address directly schedules three argument instructions differently.
+Every function is native; the unit has no `NONMATCHING` guards, `INCLUDE_ASM` gaps, or data
+markers.
+
+`MoveInfo` uses a small derived type (`InitializedMoveCheckInfo`) whose constructor clears the
+`MoveCheckInfo` base. `LadderData` uses its native `CSceneEventData` constructor. Together they
+emit retail's 60-byte `__sinit_editctrl_cpp` and keep the 0x110 and 0xD0 BSS sizes. In
+`EditMoveChara`, binding `MoveInfo` to a `MoveCheckInfo&` before passing it to `MoveCheck` keeps
+the retail argument setup order; taking the derived object's address directly schedules three
+argument instructions differently.
+
+`CameraControl` passes the `CCameraControl *camera` directly to `EyeCamera`; `EditControl` sets
+`camera_pad = NULL` without a cast. The `(mgCCameraFollow *)`/`(CCameraControl *)` casts on
+`CScene::GetCamera` results in `ResetViewMode` and `CameraControl` are downcasts.

@@ -53,51 +53,6 @@ InitializedMoveCheckInfo MoveInfo;
  * Map event that defines the ladder currently being climbed.
  */
 CSceneEventData LadderData;
-/**
- * Footstep effects indexed by the collision ground kind.
- */
-static EditFootEffect name_id_982[30] = {
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_GRASS,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_SAND,
-    EDIT_FOOT_EFFECT_SAND,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_WATER,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_SAND,
-    EDIT_FOOT_EFFECT_SAND,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_SAND,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_WATER,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_WATER,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-    EDIT_FOOT_EFFECT_NONE,
-};
-/**
- * Footstep effect scripts selected by ground material.
- */
-static char *name_978[4] = {
-    NULL,
-    "\x91\xAB\x8D\xBB\x89\x8C",
-    "\x91\xAB\x90\x85\x83p\x83V\x83\x83",
-    "\x91\xAB\x8E\xC5\x90\xB6",
-};
-
 #include <libvu0.h>
 
 #include <cmath>
@@ -338,11 +293,28 @@ int EditControl(CScene *scene, CPadControl *pad) {
 }
 
 char *GetFootEffName(int index) {
+    static char *name[4] = {
+        NULL,
+        "\x91\xAB\x8D\xBB\x89\x8C",
+        "\x91\xAB\x90\x85\x83p\x83V\x83\x83",
+        "\x91\xAB\x8E\xC5\x90\xB6",
+    };
+    static EditFootEffect name_id[30] = {
+        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_GRASS, EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_SAND,
+        EDIT_FOOT_EFFECT_SAND,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_WATER,
+        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_SAND,  EDIT_FOOT_EFFECT_SAND,  EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_SAND,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_WATER, EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_WATER, EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,
+    };
+
     if (index < 0 || index >= 30) {
         return 0;
     }
 
-    return name_978[name_id_982[index]];
+    return name[name_id[index]];
 }
 
 void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *info) {
