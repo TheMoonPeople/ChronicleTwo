@@ -63,6 +63,7 @@
 #include "padcontrol.hpp"
 #include "pot.hpp"
 #include "quest.hpp"
+#include "runscript_opcodes.hpp"
 #include "savedata.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
@@ -1945,7 +1946,7 @@ static int _ID_OFFSET(RS_STACKDATA *stack, int argc);
 /**
  * External handlers available to event argument scripts.
  */
-static EventScriptFunc esa_ext_func_info[3] = {
+static RS_EXTFUNC_INFO esa_ext_func_info[3] = {
     {_DATA, EVENT_ARG_DATA},
     {_ID_OFFSET, EVENT_ARG_ID_OFFSET},
     {NULL, EVENT_ARG_DATA},
@@ -1971,7 +1972,7 @@ void CEventScriptArg::BuildArgData(u32 *program) {
         }
 
         for (j = 0; j < count; j++) {
-            if (esa_ext_func_info[i].id == esa_ext_func_info[j].id) {
+            if (esa_ext_func_info[i].no == esa_ext_func_info[j].no) {
                 printf("EvectScriptArg same ext_func_no!!!\n");
 
                 while (1) {
@@ -1979,10 +1980,10 @@ void CEventScriptArg::BuildArgData(u32 *program) {
             }
         }
 
-        if (esa_ext_func_info[i].id < 0 || esa_ext_func_info[i].id >= script_func_slots) {
+        if (esa_ext_func_info[i].no < 0 || esa_ext_func_info[i].no >= script_func_slots) {
             printf("EvectScriptArg ext func over!!\n");
         } else {
-            func_table[esa_ext_func_info[i].id] = esa_ext_func_info[i].func;
+            func_table[esa_ext_func_info[i].no] = esa_ext_func_info[i].func;
         }
 
         i++;
@@ -17338,7 +17339,7 @@ int _FORCE_BOOT_TOUR(RS_STACKDATA *stack, int argc) {
 /**
  * External event script handlers in command-table order.
  */
-static EventScriptFunc ext_func_info[697] = {
+static RS_EXTFUNC_INFO ext_func_info[697] = {
     {_GET_PADON, EVENT_EXT_GET_PADON},
     {_GET_PADDOWN, EVENT_EXT_GET_PADDOWN},
     {_GET_PADUP, EVENT_EXT_GET_PADUP},
@@ -18054,7 +18055,7 @@ void SetEventFunc(CRunScript *script) {
         }
 
         for (j = 0; j < i; j++) {
-            if (ext_func_info[i].id == ext_func_info[j].id) {
+            if (ext_func_info[i].no == ext_func_info[j].no) {
                 printf("same ext_func_no!!!\n");
 
                 while (1) {
@@ -18062,10 +18063,10 @@ void SetEventFunc(CRunScript *script) {
             }
         }
 
-        if (ext_func_info[i].id < 0 || ext_func_info[i].id >= event_func_slots) {
+        if (ext_func_info[i].no < 0 || ext_func_info[i].no >= event_func_slots) {
             printf("ext func over!!");
         } else {
-            ext_func[ext_func_info[i].id] = ext_func_info[i].func;
+            ext_func[ext_func_info[i].no] = ext_func_info[i].func;
         }
 
         i++;

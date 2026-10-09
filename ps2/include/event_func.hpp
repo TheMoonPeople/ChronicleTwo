@@ -756,18 +756,6 @@ enum EventArgumentCommand {
 
 /**
  *
- * Event script function and its numeric identifier.
- *
- */
-struct EventScriptFunc {
-    int (*func)(RS_STACKDATA *, int); /**< Function called by the script. */
-    int id;                           /**< Script function identifier. */
-};
-
-STATIC_ASSERT(sizeof(EventScriptFunc) == 8);
-
-/**
- *
  * Kinds of game thing an event object handle refers to, as CEoh::type holds them.
  *
  */
