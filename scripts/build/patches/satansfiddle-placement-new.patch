@@ -1,0 +1,1228 @@
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -17,6 +17,33 @@
+     translation_units: Vec<TUConfig>,
+     #[serde(default)]
+     floating_point: FloatingPointConfig,
++    #[serde(default)]
++    placement_new: PlacementNewConfig,
++}
++
++/// Select the normal frontend statement-conversion path for scalar new.
++#[derive(Debug, Default, Serialize, Deserialize)]
++#[serde(deny_unknown_fields, default)]
++pub struct PlacementNewConfig {
++    pub statement_conversions: Vec<PlacementNewConversion>,
++}
++
++#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
++#[serde(rename_all = "snake_case")]
++pub enum PlacementConversion {
++    BeforeConstructorInline,
++    AfterConstructorInline,
++}
++
++#[derive(Debug, Serialize, Deserialize)]
++#[serde(deny_unknown_fields)]
++pub struct PlacementNewConversion {
++    pub translation_unit: String,
++    pub function: String,
++    pub allocator: String,
++    pub constructor: String,
++    pub conversion: PlacementConversion,
++    pub expected_matches: usize,
+ }
+ 
+ #[derive(Debug, Serialize, Deserialize)]
+@@ -324,6 +351,23 @@
+                 row.translation_unit
+             );
+         }
++        let mut placements = HashSet::new();
++        for row in &mut config.placement_new.statement_conversions {
++            row.translation_unit = translation_unit_name(&row.translation_unit).to_owned();
++            validate_name(&row.translation_unit, "placement translation_unit")?;
++            validate_name(&row.function, "placement function")?;
++            validate_name(&row.allocator, "placement allocator")?;
++            validate_name(&row.constructor, "placement constructor")?;
++            ensure!(row.function.contains("__"), "placement function requires a mangled name");
++            ensure!(row.allocator.starts_with("__nw__"),
++                "placement allocator requires a mangled scalar operator-new name");
++            ensure!(row.constructor.starts_with("__ct__"),
++                "placement constructor requires a mangled direct constructor name");
++            ensure!(row.expected_matches > 0, "placement expected_matches must be positive");
++            ensure!(placements.insert((row.translation_unit.clone(), row.function.clone(),
++                row.allocator.clone(), row.constructor.clone())),
++                "Duplicate placement selector for {} / {}", row.translation_unit, row.function);
++        }
+         Ok(config)
+     }
+ }
+@@ -370,6 +414,10 @@
+         .context("Invalid shell quoting in compiler_options")
+ }
+ 
++pub fn placement_new() -> &'static PlacementNewConfig {
++    &get().placement_new
++}
++
+ pub fn floating_point() -> &'static FloatingPointConfig {
+     &get().floating_point
+ }
+--- a/src/hooks.rs
++++ b/src/hooks.rs
+@@ -54,6 +54,7 @@
+     walk_priorities: HashMap<u64, Vec<(u32, u8)>>,
+     saved_argument_orders: HashMap<u64, Vec<u32>>,
+     reloads: usize,
++    placement: crate::placement::State,
+ }
+ 
+ pub fn load_compiler(path: &Path) -> Result<()> {
+@@ -103,12 +104,14 @@
+         );
+     }
+     *STATE.lock().map_err(|_| anyhow!("hook state poisoned"))? = Some(HookState::default());
++    let placement_hooks = crate::placement::configure(process, c)?;
+     for address in std::iter::once(c.translation_unit)
+         .chain(std::iter::once(c.annotation))
+         .chain(std::iter::once(c.argument_read))
+         .chain(c.annotation_returns.iter().map(|x| x.0))
+         .chain(c.literal_returns.iter().map(|x| x.0))
+         .chain(c.alias_test)
++        .chain(placement_hooks)
+         .chain(c.statement_read.filter(|_| wants_control))
+         .chain(c.ordinary_argument_walk.filter(|_| wants_walk).into_iter()
+             .flat_map(|(start, end)| [start, end]))
+@@ -157,7 +160,7 @@
+     true
+ }
+ 
+-fn read(process: &SBProcess, address: u64, size: usize) -> Result<Vec<u8>> {
++pub(crate) fn read(process: &SBProcess, address: u64, size: usize) -> Result<Vec<u8>> {
+     let mut bytes = vec![0; size];
+     let count = process
+         .read_memory(address, &mut bytes)
+@@ -169,7 +172,7 @@
+     Ok(bytes)
+ }
+ 
+-fn write(process: &SBProcess, address: u64, bytes: &[u8]) -> Result<()> {
++pub(crate) fn write(process: &SBProcess, address: u64, bytes: &[u8]) -> Result<()> {
+     let count = process
+         .write_memory(address, bytes)
+         .map_err(|e| anyhow!("write {address:#x}: {e:?}"))?;
+@@ -181,7 +184,7 @@
+     Ok(())
+ }
+ 
+-fn u32_at(process: &SBProcess, address: u64) -> Result<u32> {
++pub(crate) fn u32_at(process: &SBProcess, address: u64) -> Result<u32> {
+     let bytes = read(process, address, 4)?;
+     Ok(u32::from_le_bytes(
+         bytes.try_into().map_err(|_| anyhow!("invalid word size"))?,
+@@ -193,19 +196,19 @@
+         .map_err(|_| anyhow!("invalid halfword size"))?))
+ }
+ 
+-fn register(frame: &SBFrame, name: &str) -> Result<SBValue> {
++pub(crate) fn register(frame: &SBFrame, name: &str) -> Result<SBValue> {
+     frame
+         .find_value(name, lldb::ValueType::Register)
+         .ok_or_else(|| anyhow!("missing guest register {name}"))
+ }
+ 
+-fn reg(frame: &SBFrame, name: &str) -> Result<u32> {
++pub(crate) fn reg(frame: &SBFrame, name: &str) -> Result<u32> {
+     Ok(register(frame, name)?
+         .try_value_as_unsigned()
+         .map_err(|e| anyhow!("read register {name}: {e:?}"))? as u32)
+ }
+ 
+-fn cstring(process: &SBProcess, address: u64) -> Result<String> {
++pub(crate) fn cstring(process: &SBProcess, address: u64) -> Result<String> {
+     let mut bytes = Vec::new();
+     for offset in 0..4096 {
+         let byte = read(process, address + offset, 1)?[0];
+@@ -613,6 +616,9 @@
+     let s = state
+         .as_mut()
+         .ok_or_else(|| anyhow!("hook state not initialized"))?;
++    if s.placement.apply(process, &frame, pc)? {
++        return Ok(());
++    }
+     if Some(pc) == c.statement_read {
+         let object = u32_at(process, c.current_function)?;
+         let function = function(process, c)?;
+@@ -663,6 +669,7 @@
+         s.unit =
+             config::translation_unit_name(config::translation_unit_override().unwrap_or(&name))
+                 .to_owned();
++        s.placement.begin_unit(&s.unit)?;
+         s.units.insert(s.unit.clone());
+         s.literal_objects.clear();
+         s.converted_constants.clear();
+@@ -991,6 +998,7 @@
+         !s.units.is_empty(),
+         "translation-unit hook was never reached"
+     );
++    s.placement.check_complete(&s.units)?;
+     for (i, row) in config::floating_point()
+         .expression_overrides
+         .iter()
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -2,6 +2,7 @@
+ mod config;
+ mod control;
+ mod hooks;
++mod placement;
+ 
+ #[cfg(test)]
+ #[path = "../tests/compile_sample/mod.rs"]
+--- a/src/placement.rs
++++ b/src/placement.rs
+@@ -0,0 +1,584 @@
++//! A transactional, identity-checked request for MWCC's ordinary scalar-new
++//! statement conversion. No constructor metadata or generated code is patched.
++use crate::{compiler::Compiler, config::{self, PlacementConversion}, hooks};
++use anyhow::{Result, anyhow, bail, ensure};
++use lldb::{SBFrame, SBProcess};
++use std::collections::{HashMap, HashSet};
++
++const NEW_ENTER: u64 = 0x46380e;
++const NEW_RETURN: u64 = 0x46383b;
++const INLINE_READ: u64 = 0x462fa3;
++const STATEMENT_ENTER: u64 = 0x464b80;
++const STATEMENT_RETURN: u64 = 0x464b8d;
++const CONVERSION_ENTER: u64 = 0x464bae;
++const CONVERSION_RETURN: u64 = 0x464bb4;
++const CONVERT_NEW: u64 = 0x463dec;
++const MANGLED_NAME: u64 = 0x450294;
++const AST_ARENA_RESET: u64 = 0x43300a;
++const ARENA_TEARDOWN: u64 = 0x432e80;
++const FRONTEND_FUNCTION: u64 = 0x54d6d2;
++const CONVERSION_REQUEST: u64 = 0x54d6f8;
++
++pub fn configure(process: &SBProcess, compiler: &Compiler) -> Result<Vec<u64>> {
++    if config::placement_new().statement_conversions.is_empty() {
++        return Ok(Vec::new());
++    }
++    ensure!(compiler.version == "3.0-011126",
++        "compiler {} has no verified placement-new frontend hooks", compiler.version);
++    let signatures: &[(u64, &[u8])] = &[
++        (NEW_ENTER, &[0x8b,0x46,0x18,0x50]),
++        (NEW_RETURN, &[0xe9,0x91,0,0,0]),
++        (INLINE_READ, &[0x3c,0x06,0x73,0x3d,0x3c,0x03]),
++        (STATEMENT_ENTER, &[0x8b,0x43,0x0a,0x50,0xe8,0x97,0xeb,0xff,0xff]),
++        (STATEMENT_RETURN, &[0x80,0x3d,0xf8,0xd6,0x54,0,0,0x74,0x2b]),
++        (CONVERSION_ENTER, &[0xe8,0x3d,0xf3,0xff,0xff]),
++        (CONVERSION_RETURN, &[0x8b,0x43,0x0a,0x50,0xe8,0x63,0xeb,0xff,0xff]),
++        (CONVERT_NEW, &[0xe8,0xff,0xfd,0xff,0xff]),
++        (MANGLED_NAME, &[0x5b,0xc3,0x83,0x7b,0x38,0,0x75,0x0a]),
++        (AST_ARENA_RESET, &[0x89,0x0d,0x9e,0xcb,0x54,0]),
++        (ARENA_TEARDOWN, &[0x68,0xa6,0xcb,0x54,0]),
++    ];
++    for &(address, signature) in signatures {
++        ensure!(hooks::read(process, address, signature.len())? == signature,
++            "placement-new opcode signature differs at {address:#x}");
++    }
++    Ok(signatures.iter().map(|&(address, _)| address).collect())
++}
++
++type Key = (u64, u32, u32);
++
++struct Record {
++    row: usize,
++    statement: u32,
++    objects: [u32; 3],
++    constructor_call: u32,
++    inline_seen: bool,
++    applied: bool,
++    converted: bool,
++}
++
++struct NewFrame {
++    sp: u64,
++    key: Option<Key>,
++}
++
++struct StatementScope {
++    sp: u64,
++    statement: u32,
++    constructions: HashSet<u32>,
++    selected: Option<Key>,
++}
++
++struct ConversionScope {
++    sp: u64,
++    key: Key,
++    entered: bool,
++    constructions: HashSet<u32>,
++    construction_visits: usize,
++}
++
++#[derive(Default)]
++pub struct State {
++    unit: String,
++    epoch: u64,
++    active: bool,
++    names: HashMap<u32, String>,
++    records: HashMap<Key, Record>,
++    matches: HashMap<usize, HashSet<Key>>,
++    new_frames: Vec<NewFrame>,
++    statements: Vec<StatementScope>,
++    conversions: Vec<ConversionScope>,
++}
++
++/// Alias traversal mirrors the measured kind-6 branch of MWCC's name reader.
++fn canonical(process: &SBProcess, mut object: u32) -> Result<Option<u32>> {
++    let mut seen = HashSet::new();
++    while object != 0 {
++        ensure!(seen.insert(object) && seen.len() <= 16, "cyclic/deep placement function alias");
++        match hooks::read(process, object as u64 + 2, 1)?[0] {
++            6 => object = hooks::u32_at(process, object as u64 + 0x28)?,
++            3 | 4 => return Ok(Some(object)),
++            _ => return Ok(None),
++        }
++    }
++    Ok(None)
++}
++
++fn direct_call(process: &SBProcess, node: u32) -> Result<Option<u32>> {
++    if node == 0 || hooks::read(process, node as u64, 1)?[0] != 0x36 {
++        return Ok(None);
++    }
++    let target = hooks::u32_at(process, node as u64 + 0x18)?;
++    if target == 0 || hooks::read(process, target as u64, 1)?[0] != 0x38 {
++        return Ok(None);
++    }
++    canonical(process, hooks::u32_at(process, target as u64 + 0x18)?)
++}
++
++fn raw_stem(mangled: &str) -> &str {
++    let start = if mangled.starts_with("__") { 2 } else { 0 };
++    mangled[start..].find("__").map_or(mangled, |end| &mangled[..start + end])
++}
++
++impl State {
++    pub fn begin_unit(&mut self, unit: &str) -> Result<()> {
++        self.check_live_complete()?;
++        self.unit = unit.to_owned();
++        self.epoch += 1;
++        self.active = config::placement_new().statement_conversions.iter()
++            .any(|row| row.translation_unit == unit);
++        self.names.clear();
++        self.records.clear();
++        Ok(())
++    }
++
++    fn name(&mut self, process: &SBProcess, object: u32) -> Result<(String, bool)> {
++        if let Some(name) = self.names.get(&object) {
++            return Ok((name.clone(), true));
++        }
++        let link = hooks::u32_at(process, object as u64 + 0x30)?;
++        if link != 0 {
++            let name = hooks::cstring(process, link as u64 + 10)?;
++            self.names.insert(object, name.clone());
++            return Ok((name, true));
++        }
++        let raw = hooks::u32_at(process, object as u64 + 8)?;
++        ensure!(raw != 0, "placement function has no identifier");
++        Ok((hooks::cstring(process, raw as u64 + 10)?, false))
++    }
++
++    fn validate_witnesses(&self) -> Result<()> {
++        for record in self.records.values() {
++            let row = &config::placement_new().statement_conversions[record.row];
++            for (&object, expected) in record.objects.iter()
++                .zip([&row.function, &row.allocator, &row.constructor]) {
++                if let Some(actual) = self.names.get(&object) {
++                    ensure!(actual == expected,
++                        "ambiguous placement identity: expected {expected}, witnessed {actual}");
++                }
++            }
++        }
++        Ok(())
++    }
++
++    fn check_live_complete(&self) -> Result<()> {
++        ensure!(self.new_frames.is_empty() && self.statements.is_empty()
++            && self.conversions.is_empty(), "placement frontend walk did not complete");
++        self.validate_witnesses()?;
++        for record in self.records.values() {
++            ensure!(record.applied && record.converted && record.inline_seen,
++                "selected placement construction did not complete its conversion");
++            ensure!(record.objects.iter().all(|object| self.names.contains_key(object)),
++                "selected placement construction has unresolved mangled identities");
++        }
++        Ok(())
++    }
++
++    pub fn check_complete(&self, units: &HashSet<String>) -> Result<()> {
++        self.check_live_complete()?;
++        for (index, row) in config::placement_new().statement_conversions.iter().enumerate() {
++            if units.contains(&row.translation_unit) {
++                let actual = self.matches.get(&index).map_or(0, HashSet::len);
++                ensure!(actual == row.expected_matches,
++                    "placement expected {} distinct constructions, matched {actual} in {}/{} / {}",
++                    row.expected_matches, row.translation_unit, row.function, row.constructor);
++                if std::env::var_os("SATANSFIDDLE_VERIFY").is_some() {
++                    eprintln!("satansfiddle: placement {}/{} allocator={} constructor={} conversion={:?} expected={} actual={actual}",
++                        row.translation_unit, row.function, row.allocator, row.constructor,
++                        row.conversion, row.expected_matches);
++                }
++            }
++        }
++        Ok(())
++    }
++
++    pub fn apply(&mut self, process: &SBProcess, frame: &SBFrame, pc: u64) -> Result<bool> {
++        if !self.active { return Ok(false); }
++        if pc == AST_ARENA_RESET || pc == ARENA_TEARDOWN {
++            self.check_live_complete()?;
++            self.epoch += 1;
++            self.records.clear();
++            self.names.clear();
++        } else if pc == MANGLED_NAME {
++            let object = hooks::reg(frame, "ebx")?;
++            ensure!(canonical(process, object)? == Some(object),
++                "placement mangled-name observer saw unsupported object");
++            let name = hooks::u32_at(process, object as u64 + 0x30)?;
++            ensure!(name != 0 && name == hooks::reg(frame, "eax")?,
++                "placement mangled-name observer lacks the normal cached result");
++            let text = hooks::cstring(process, name as u64 + 10)?;
++            if let Some(old) = self.names.insert(object, text.clone()) {
++                ensure!(old == text, "placement function object changed its mangled identity");
++            }
++            self.validate_witnesses()?;
++        } else if pc == STATEMENT_ENTER {
++            self.statements.push(StatementScope {
++                sp: frame.sp(), statement: hooks::reg(frame, "ebx")?,
++                constructions: HashSet::new(), selected: None,
++            });
++        } else if pc == NEW_ENTER {
++            let node = hooks::reg(frame, "esi")?;
++            ensure!(hooks::read(process, node as u64, 1)?[0] == 0x3a,
++                "placement hook expected scalar construction");
++            if let Some(scope) = self.statements.last_mut() {
++                scope.constructions.insert(node);
++            }
++            let mut key = None;
++            let constructor_call = hooks::u32_at(process, node as u64 + 0x1c)?;
++            if let (Some(caller), Some(allocator), Some(constructor)) = (
++                canonical(process, hooks::u32_at(process, FRONTEND_FUNCTION)?)?,
++                direct_call(process, hooks::u32_at(process, node as u64 + 0x18)?)?,
++                direct_call(process, constructor_call)?,
++            ) {
++                // Class 6 is a policy eligibility condition, independent of
++                // when MWCC publishes the constructor's mangled identity.
++                let info = hooks::u32_at(process, constructor as u64 + 0x28)?;
++                let class = if info == 0 { 0 } else {
++                    hooks::read(process, info as u64 + 0x64, 1)?[0]
++                };
++                if class == 6 {
++                    let objects = [caller, allocator, constructor];
++                    let names = objects.iter().map(|&object| self.name(process, object))
++                        .collect::<Result<Vec<_>>>()?;
++                    let candidates = config::placement_new().statement_conversions.iter().enumerate()
++                        .filter(|(_, row)| row.translation_unit == self.unit)
++                        .filter(|(_, row)| names.iter().zip([&row.function,&row.allocator,&row.constructor])
++                            .all(|((name, exact), wanted)| if *exact { name == wanted }
++                                else { name == raw_stem(wanted) }))
++                        .map(|(index, _)| index).collect::<Vec<_>>();
++                    ensure!(candidates.len() <= 1,
++                        "placement raw identities cannot uniquely select a conversion row");
++                    if let Some(&index) = candidates.first() {
++                        ensure!(self.new_frames.is_empty(), "selected nested placement construction is unsupported");
++                        if config::placement_new().statement_conversions[index].conversion
++                            == PlacementConversion::BeforeConstructorInline {
++                            audit_inline_body(process, constructor)?;
++                        }
++                        let scope = self.statements.last_mut()
++                            .ok_or_else(|| anyhow!("selected placement is outside a verified statement region"))?;
++                        let id = (self.epoch, caller, node);
++                        ensure!(scope.selected.is_none() || scope.selected == Some(id),
++                            "multiple selected constructions in one statement are unsupported");
++                        scope.selected = Some(id);
++                        if let Some(record) = self.records.get(&id) {
++                            ensure!(record.row == index && record.objects == objects
++                                && record.constructor_call == constructor_call
++                                && record.statement == scope.statement,
++                                "placement construction identity was reused with different ownership");
++                        } else {
++                            self.records.insert(id, Record { row: index, statement: scope.statement,
++                                objects, constructor_call, inline_seen: false, applied: false, converted: false });
++                        }
++                        if std::env::var_os("SATANSFIDDLE_VERIFY").is_some() {
++                            eprintln!("satansfiddle: placement-candidate {}/{} constructor={} names={names:?}",
++                                self.unit, config::placement_new().statement_conversions[index].function,
++                                config::placement_new().statement_conversions[index].constructor);
++                        }
++                        key = Some(id);
++                    }
++                } else if std::env::var_os("SATANSFIDDLE_VERIFY").is_some() {
++                    eprintln!("satansfiddle: placement ignored ineligible constructor inline class {class}");
++                }
++            }
++            self.new_frames.push(NewFrame { sp: frame.sp(), key });
++        } else if pc == INLINE_READ {
++            if let Some(key) = self.new_frames.last().and_then(|frame| frame.key) {
++                let object = canonical(process, hooks::reg(frame, "ebp")?)?;
++                let record = self.records.get_mut(&key).ok_or_else(|| anyhow!("missing placement record"))?;
++                let call = hooks::reg(frame, "ebx")?;
++                if object == Some(record.objects[2]) && call == record.constructor_call {
++                    let info = hooks::u32_at(process, record.objects[2] as u64 + 0x28)?;
++                    ensure!(hooks::reg(frame, "ebp")? == record.objects[2]
++                        && info != 0 && hooks::reg(frame, "edi")? == info
++                        && hooks::read(process, info as u64 + 0x64, 1)?[0] == 6,
++                        "placement inline read does not use the audited constructor metadata");
++                    ensure!(hooks::reg(frame, "eax")? & 255 == 6,
++                        "selected direct placement constructor changed inline class");
++                    ensure!(direct_call(process, call)? == object,
++                        "placement inline read does not belong to the direct constructor");
++                    record.inline_seen = true;
++                    if config::placement_new().statement_conversions[record.row].conversion
++                        == PlacementConversion::BeforeConstructorInline {
++                        let value = (hooks::reg(frame, "eax")? & !255) | 3;
++                        hooks::register(frame, "eax")?.set_value(&value.to_string())
++                            .map_err(|e| anyhow!("request statement constructor inline: {e:?}"))?;
++                    }
++                } else if object == Some(record.objects[2])
++                    && std::env::var_os("SATANSFIDDLE_VERIFY").is_some() {
++                    eprintln!("satansfiddle: placement preserved another ordinary constructor inline call");
++                }
++            }
++        } else if pc == NEW_RETURN {
++            let construction = self.new_frames.pop().ok_or_else(|| anyhow!("missing placement walk frame"))?;
++            ensure!(construction.sp == frame.sp(), "placement construction frame mismatch");
++            if let Some(key) = construction.key {
++                let record = self.records.get_mut(&key).ok_or_else(|| anyhow!("missing placement record"))?;
++                ensure!(record.inline_seen, "selected placement direct constructor was not inlined");
++                if config::placement_new().statement_conversions[record.row].conversion
++                    == PlacementConversion::AfterConstructorInline {
++                    let address = CONVERSION_REQUEST;
++                    #[cfg(feature = "hook-test-faults")]
++                    let address = if std::env::var_os("SATANSFIDDLE_TEST_FAIL_PLACEMENT_WRITE").is_some()
++                        { 0 } else { address };
++                    hooks::write(process, address, &[1])?;
++                }
++                record.applied = true;
++                self.matches.entry(record.row).or_default().insert(key);
++            }
++        } else if pc == STATEMENT_RETURN {
++            let scope = self.statements.pop().ok_or_else(|| anyhow!("missing placement statement frame"))?;
++            ensure!(scope.sp == frame.sp() && scope.statement == hooks::reg(frame, "ebx")?,
++                "placement statement frame mismatch");
++            if let Some(key) = scope.selected {
++                ensure!(scope.constructions.len() == 1 && scope.constructions.contains(&key.2),
++                    "selected placement statement contains sibling/nested constructions");
++                let expression = hooks::u32_at(process, scope.statement as u64 + 0x0a)?;
++                let (constructions, calls) = walk_expression(expression, false,
++                    |address,size| hooks::read(process,address,size))?;
++                ensure!(constructions.len() == 1 && constructions.contains(&key.2),
++                    "placement final expression contains unselected/hidden constructions");
++                audit_calls(process, calls)?;
++                ensure!(hooks::read(process, CONVERSION_REQUEST, 1)?[0] != 0,
++                    "placement policy did not request ordinary statement conversion");
++                self.conversions.push(ConversionScope { sp: frame.sp(), key,
++                    entered: false, constructions: HashSet::new(), construction_visits: 0 });
++            }
++        } else if pc == CONVERSION_ENTER {
++            if let Some(scope) = self.conversions.last_mut() {
++                ensure!(!scope.entered && frame.sp() + 4 == scope.sp,
++                    "placement conversion entry frame mismatch");
++                scope.entered = true;
++            }
++        } else if pc == CONVERT_NEW {
++            if let Some(scope) = self.conversions.last_mut() {
++                ensure!(scope.entered, "placement conversion did not enter ordinary lowering");
++                let node = hooks::reg(frame, "ebx")?;
++                ensure!(node == scope.key.2,
++                    "placement policy would convert an unselected construction");
++                scope.construction_visits += 1;
++                ensure!(scope.construction_visits == 1,
++                    "placement policy would convert the selected construction more than once");
++                scope.constructions.insert(node);
++            }
++        } else if pc == CONVERSION_RETURN {
++            if let Some(scope) = self.conversions.last() {
++                if scope.sp == frame.sp() {
++                    let scope = self.conversions.pop().unwrap();
++                    ensure!(scope.entered && scope.constructions.len() == 1
++                        && scope.construction_visits == 1
++                        && scope.constructions.contains(&scope.key.2),
++                        "placement conversion did not lower exactly the selected construction");
++                    self.records.get_mut(&scope.key).ok_or_else(|| anyhow!("missing placement record"))?
++                        .converted = true;
++                }
++            }
++        } else { return Ok(false); }
++        Ok(true)
++    }
++}
++
++/// A copied expression may retain an inline helper call for a later walk.
++/// Audit that body's graph before allowing the enclosing conversion to run.
++fn audit_calls(process: &SBProcess, targets: HashSet<u32>) -> Result<()> {
++    for target in targets {
++        ensure!(target != 0 && hooks::read(process,target as u64,1)?[0] == 0x38,
++            "placement final expression has an unsupported indirect call");
++        let object = canonical(process,hooks::u32_at(process,target as u64 + 0x18)?)?
++            .ok_or_else(|| anyhow!("placement final expression has an unsupported call target"))?;
++        audit_inline_body(process, object)?;
++    }
++    Ok(())
++}
++
++/// Conversion can defer copying constructor or helper bodies. Audit their
++/// retained expression bodies and every available inline callee first, so a
++/// later inline pass cannot expose an unselected scalar construction.
++fn audit_inline_body(process: &SBProcess, constructor: u32) -> Result<()> {
++    let mut pending = vec![constructor];
++    let mut done = HashSet::new();
++    while let Some(object) = pending.pop() {
++        if !done.insert(object) { continue; }
++        ensure!(done.len() <= 256, "placement inline-body graph exceeds verified limit");
++        let info = hooks::u32_at(process, object as u64 + 0x28)?;
++        if info == 0 || hooks::read(process, info as u64 + 0x64, 1)?[0] == 0 { continue; }
++        let count = i16::from_le_bytes(hooks::read(process, info as u64 + 0x0c, 2)?
++            .try_into().map_err(|_| anyhow!("invalid placement inline body count"))?);
++        ensure!((0..=1024).contains(&count), "unsupported placement inline body extent");
++        let body = hooks::u32_at(process, info as u64 + 0x0e)?;
++        ensure!(count == 0 || body != 0, "missing placement inline body");
++        for index in 0..count as u64 {
++            let statement = body as u64 + index * 24;
++            ensure!(hooks::u32_at(process, statement + 0x0c)? == 0,
++                "placement has unsupported inline-body cleanup metadata");
++            ensure!(matches!(hooks::read(process, statement, 1)?[0], 4 | 8),
++                "placement has a non-expression inline callee body");
++            let expression = hooks::u32_at(process, statement + 0x10)?;
++            if hooks::read(process, statement, 1)?[0] == 8 && expression == 0 {
++                let function_type = hooks::u32_at(process, object as u64 + 0x0c)?;
++                ensure!(function_type != 0
++                    && hooks::u32_at(process, function_type as u64 + 0x0e)? == 0x531f90,
++                    "placement inline body has an empty non-void return record");
++            }
++            let (news, calls) = walk_expression(expression, true,
++                |address, size| hooks::read(process, address, size))?;
++            ensure!(news.is_empty(), "placement has a latent nested construction");
++            for target in calls {
++                ensure!(target != 0 && hooks::read(process, target as u64, 1)?[0] == 0x38,
++                    "placement has an unsupported indirect inline-body call");
++                let callee = canonical(process, hooks::u32_at(process, target as u64 + 0x18)?)?
++                    .ok_or_else(|| anyhow!("placement has an unsupported inline-body callee"))?;
++                pending.push(callee);
++            }
++        }
++    }
++    Ok(())
++}
++
++/// Walk the measured expression grammars without hiding shared constructions.
++#[cfg(test)]
++fn walk_constructions<F>(root: u32, mut read: F) -> Result<HashSet<u32>>
++where F: FnMut(u64, usize) -> Result<Vec<u8>> {
++    Ok(walk_expression(root, false, &mut read)?.0)
++}
++
++fn walk_expression<F>(root: u32, inline_template: bool, mut read: F) -> Result<(HashSet<u32>, HashSet<u32>)>
++where F: FnMut(u64, usize) -> Result<Vec<u8>> {
++    fn word<F>(read: &mut F, address: u64) -> Result<u32>
++    where F: FnMut(u64, usize) -> Result<Vec<u8>> {
++        Ok(u32::from_le_bytes(read(address, 4)?.try_into()
++            .map_err(|_| anyhow!("invalid placement AST word"))?))
++    }
++    let mut pending = vec![(root, false)];
++    let mut active = HashSet::new();
++    let mut done = HashSet::new();
++    let mut children: HashMap<u32, Vec<u32>> = HashMap::new();
++    let mut contains_construction = HashMap::new();
++    let mut result = HashSet::new();
++    let mut calls = HashSet::new();
++    while let Some((node, returning)) = pending.pop() {
++        if node == 0 { continue; }
++        if returning {
++            let contains = result.contains(&node) || children.get(&node).into_iter().flatten()
++                .any(|child| contains_construction.get(child).copied().unwrap_or(false));
++            contains_construction.insert(node, contains);
++            active.remove(&node); done.insert(node); continue;
++        }
++        if done.contains(&node) {
++            ensure!(!contains_construction.get(&node).copied().unwrap_or(false),
++                "shared construction-bearing placement expression subtree");
++            continue;
++        }
++        ensure!(active.insert(node), "cyclic placement final expression");
++        ensure!(done.len() + active.len() <= 4096, "placement final expression exceeds verified limit");
++        pending.push((node, true));
++        let address = node as u64;
++        let kind = read(address, 1)?[0];
++        let mut node_children = Vec::new();
++        let fields: &[u64] = match kind {
++            0x00..=0x08 | 0x30 | 0x31 => &[0x18],
++            0x09..=0x2f | 0x41 | 0x42 if inline_template => &[0x18, 0x1c],
++            0x09 | 0x0b | 0x0c | 0x0f..=0x2c | 0x39 => &[0x18, 0x1c],
++            0x3a => { result.insert(node); &[0x18, 0x1c] }
++            0x36 | 0x37 => {
++                calls.insert(word(&mut read, address + 0x18)?);
++                let mut argument = word(&mut read, address + 0x1c)?;
++                let mut seen = HashSet::new();
++                while argument != 0 {
++                    ensure!(seen.insert(argument) && seen.len() <= 256,
++                        "cyclic/deep placement expression argument list");
++                    let child = word(&mut read, argument as u64 + 4)?;
++                    node_children.push(child);
++                    pending.push((child, false));
++                    argument = word(&mut read, argument as u64)?;
++                }
++                &[0x18]
++            }
++            0x43 => &[0x18, 0x1c, 0x20, 0x24],
++            0x45 => {
++                let descriptor = word(&mut read, address + 0x18)?;
++                ensure!(descriptor != 0, "null placement expression descriptor");
++                let child = word(&mut read, descriptor as u64 + 4)?;
++                node_children.push(child);
++                pending.push((child, false));
++                &[]
++            }
++            0x3c..=0x3e if inline_template => &[],
++            0x32..=0x34 | 0x38 | 0x3b | 0x3f | 0x44 | 0x47 => &[],
++            _ => bail!("unsupported placement final-expression kind {kind:#x}"),
++        };
++        for &field in fields {
++            let child = word(&mut read, address + field)?;
++            node_children.push(child);
++            pending.push((child, false));
++        }
++        children.insert(node, node_children);
++    }
++    Ok((result, calls))
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn raw_stems_are_only_provisional_names() {
++        assert_eq!(raw_stem("Add__14CFuncPointMngrFiP9mgCMemory"), "Add");
++        assert_eq!(raw_stem("__ct__5ThingFv"), "__ct");
++        assert_eq!(raw_stem("__nw__FUiP1"), "__nw");
++    }
++
++    #[test]
++    fn final_expression_finds_hidden_and_nested_constructions() {
++        let mut bytes = vec![0u8; 2048];
++        let mut node = |address: usize, kind: u8, children: &[(usize, u32)]| {
++            bytes[address] = kind;
++            for &(offset, child) in children {
++                bytes[address + offset..address + offset + 4].copy_from_slice(&child.to_le_bytes());
++            }
++        };
++        node(64, 0x29, &[(0x18, 128), (0x1c, 256)]);
++        node(128, 0x3a, &[(0x18, 512), (0x1c, 768)]);
++        node(256, 0x3a, &[(0x18, 512), (0x1c, 768)]);
++        node(512, 0x38, &[]);
++        node(768, 0x32, &[]);
++        let read = |address: u64, size| Ok(bytes[address as usize..address as usize + size].to_vec());
++        assert_eq!(walk_constructions(64, read).unwrap(), HashSet::from([128,256]));
++        assert_eq!(walk_constructions(128, read).unwrap(), HashSet::from([128]));
++        bytes[64+0x1c..64+0x20].copy_from_slice(&128u32.to_le_bytes());
++        assert!(walk_constructions(64, |a,s| Ok(bytes[a as usize..a as usize+s].to_vec())).is_err());
++        bytes[64+0x1c..64+0x20].copy_from_slice(&256u32.to_le_bytes());
++        bytes[256] = 0x35;
++        assert!(walk_constructions(64, |a,s| Ok(bytes[a as usize..a as usize+s].to_vec())).is_err());
++        bytes[256] = 0x3a;
++        bytes[128+0x18..128+0x1c].copy_from_slice(&64u32.to_le_bytes());
++        assert!(walk_constructions(64, |a,s| Ok(bytes[a as usize..a as usize+s].to_vec())).is_err());
++    }
++
++
++    #[test]
++    fn shared_construction_ancestor_is_rejected_but_empty_ancestor_is_allowed() {
++        let mut bytes = vec![0u8; 2048];
++        let mut node = |address: usize, kind: u8, children: &[(usize, u32)]| {
++            bytes[address] = kind;
++            for &(offset, child) in children {
++                bytes[address + offset..address + offset + 4].copy_from_slice(&child.to_le_bytes());
++            }
++        };
++        // Both paths share the unary ancestor, rather than the construction itself.
++        node(64, 0x29, &[(0x18, 128), (0x1c, 128)]);
++        node(128, 0x00, &[(0x18, 256)]);
++        node(256, 0x3a, &[(0x18, 512), (0x1c, 768)]);
++        node(512, 0x38, &[]);
++        node(768, 0x32, &[]);
++        let error = walk_constructions(64,
++            |address, size| Ok(bytes[address as usize..address as usize + size].to_vec()))
++            .unwrap_err();
++        assert!(error.to_string().contains("shared construction-bearing placement expression subtree"));
++
++        // Sharing the same composite subtree is safe once it contains only a leaf.
++        bytes[256] = 0x32;
++        assert!(walk_constructions(64,
++            |address, size| Ok(bytes[address as usize..address as usize + size].to_vec()))
++            .unwrap().is_empty());
++    }
++}
+--- a/tests/compiler_cli.rs
++++ b/tests/compiler_cli.rs
+@@ -835,3 +835,421 @@
+             .then(|| code[index.saturating_sub(8) * 4..((index + 2) * 4).min(code.len())].to_vec())
+     }).collect()
+ }
++
++fn placement_config(compiler: &Path, function: &str, constructor: &str,
++    conversion: &str, expected: usize) -> serde_json::Value {
++    let mut config: serde_json::Value = serde_json::from_str(&compiler_config(compiler, "")).unwrap();
++    let options = config["compiler_options"].as_str().unwrap().to_owned();
++    config["compiler_options"] = format!("{options} -lang c++").into();
++    config["placement_new"] = serde_json::json!({"statement_conversions": [{
++        "translation_unit": "placement.cpp", "function": function,
++        "allocator": "__nw__FUiPv", "constructor": constructor,
++        "conversion": conversion, "expected_matches": expected,
++    }]});
++    config
++}
++
++const PLACEMENT_SOURCE: &str = r#"
++void *operator new(unsigned int, void *);
++struct Thing { int value; Thing() : value(7) {} };
++struct Other { int value; Other() : value(11) {} };
++extern void use(Thing *);
++extern void use_other(Other *);
++int selected(void *buffer, int value) {
++    Thing *object = new(buffer) Thing;
++    use(object);
++    return object->value + value;
++}
++int unselected(void *buffer, int value) {
++    Thing *object = new(buffer) Thing;
++    use(object);
++    return object->value + value;
++}
++int mixed(void *buffer, void *other, int value) {
++    Thing *object = new(buffer) Thing;
++    Other *second = new(other) Other;
++    use(object); use_other(second);
++    return object->value + second->value + value;
++}
++int duplicate(void *first, void *second, int value) {
++    Thing *a = new(first) Thing;
++    Thing *b = new(second) Thing;
++    use(a); use(b);
++    return a->value + b->value + value;
++}
++"#;
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_conversion_is_scoped_and_transactional() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let baseline = work.0.join("baseline.o");
++    fs::write(&input, PLACEMENT_SOURCE).unwrap();
++    fs::write(&config, compiler_config(&compiler, "")).unwrap();
++    assert_success(&cli(&input, &baseline, &config));
++    let original = fs::read(&baseline).unwrap();
++    for timing in ["before_constructor_inline", "after_constructor_inline"] {
++        let profile = placement_config(&compiler, "selected__FPvi", "__ct__5ThingFv", timing, 1);
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        let output = work.0.join(format!("selected-{timing}.o"));
++        let result = cli_command(&input, &output, &config).env("SATANSFIDDLE_VERIFY", "1")
++            .output().unwrap();
++        assert_success(&result);
++        assert!(String::from_utf8_lossy(&result.stderr).contains("expected=1 actual=1"));
++        let selected = fs::read(&output).unwrap();
++        assert_ne!(function_bytes(&original, "selected__FPvi"),
++            function_bytes(&selected, "selected__FPvi"));
++        for function in ["unselected__FPvi", "mixed__FPvPvi", "duplicate__FPvPvi"] {
++            assert_eq!(function_bytes(&original, function), function_bytes(&selected, function),
++                "unselected function {function} changed under {timing}");
++        }
++        let repeat = work.0.join(format!("repeat-{timing}.o"));
++        assert_success(&cli(&input, &repeat, &config));
++        assert_eq!(selected, fs::read(&repeat).unwrap());
++    }
++
++    // A different eligible constructor in another statement of the same
++    // caller remains outside the selected identity and count.
++    for timing in ["before_constructor_inline", "after_constructor_inline"] {
++        let profile = placement_config(&compiler, "mixed__FPvPvi", "__ct__5ThingFv", timing, 1);
++        fs::write(&config,serde_json::to_string(&profile).unwrap()).unwrap();
++        let output = work.0.join(format!("mixed-{timing}.o"));
++        let result = cli_command(&input,&output,&config).env("SATANSFIDDLE_VERIFY","1")
++            .output().unwrap();
++        assert_success(&result);
++        assert!(String::from_utf8_lossy(&result.stderr).contains("expected=1 actual=1"));
++        let selected = fs::read(&output).unwrap();
++        assert_ne!(function_bytes(&original,"mixed__FPvPvi"),
++            function_bytes(&selected,"mixed__FPvPvi"));
++        for function in ["selected__FPvi","unselected__FPvi","duplicate__FPvPvi"] {
++            assert_eq!(function_bytes(&original,function),function_bytes(&selected,function));
++        }
++    }
++
++    // Two constructions with the same identities receive one policy. Count is
++    // a fail-closed assertion, never a site selector.
++    let mut profile = placement_config(&compiler, "duplicate__FPvPvi", "__ct__5ThingFv",
++        "after_constructor_inline", 2);
++    fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++    assert_success(&cli(&input, &work.0.join("duplicate.o"), &config));
++    profile["placement_new"]["statement_conversions"][0]["expected_matches"] = 1.into();
++    for existing in [false, true] {
++        let output = work.0.join(format!("rejected-{existing}.o"));
++        if existing { fs::write(&output, b"existing object sentinel").unwrap(); }
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        let result = cli(&input, &output, &config);
++        assert!(!result.status.success());
++        assert!(String::from_utf8_lossy(&result.stderr).contains("matched 2"));
++        if existing { assert_eq!(fs::read(&output).unwrap(), b"existing object sentinel"); }
++        else { assert!(!output.exists()); }
++    }
++
++    // Temporary physical input names retain the original logical TU identity.
++    let temporary = work.0.join("generated-pass.c");
++    fs::write(&temporary, PLACEMENT_SOURCE).unwrap();
++    let profile = placement_config(&compiler, "selected__FPvi", "__ct__5ThingFv",
++        "after_constructor_inline", 1);
++    fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++    let result = cli_command(&temporary, &work.0.join("temporary.o"), &config)
++        .args(["--translation-unit", "path\\placement.cpp"])
++        .output().unwrap();
++    assert_success(&result);
++    assert!(fs::read_dir(&work.0).unwrap().all(|entry| !entry.unwrap().file_name()
++        .to_string_lossy().starts_with(".satansfiddle-")));
++}
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_rejects_ambiguous_overloads_and_conversion_scope() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let output = work.0.join("rejected.o");
++    let prefix = "void *operator new(unsigned int,void *);\nstruct Thing {int value; Thing():value(7){}};\nextern void use(Thing *);\n";
++    let cases = [
++        ("int selected(void *p, float v) {Thing *t=new(p)Thing;use(t);return t->value+(int)v;}",
++            "selected__FPvi", "after_constructor_inline", "ambiguous placement identity"),
++        ("void *operator new(unsigned int,int); int selected(void *p,int v) {Thing *t=new(v)Thing;use(t);return t->value+v;}",
++            "selected__FPvi", "after_constructor_inline", "ambiguous placement identity"),
++        ("extern void pair(Thing *,Thing *); int selected(void *p,int v) {pair(new(p)Thing,new(p)Thing);return v;}",
++            "selected__FPvi", "after_constructor_inline", "multiple selected constructions"),
++        ("inline Thing *make(void *p) {return new(p)Thing;} extern void pair(Thing *,Thing *); int selected(void *p,int v) {pair(new(p)Thing,make(p));return v;}",
++            "selected__FPvi", "after_constructor_inline", "final expression"),
++        ("struct Nested {Thing *data; Nested(void *p):data(new(p)Thing){}}; int selected(void *p,int v) {Nested *t=new(p)Nested(p);return t->data->value+v;}",
++            "selected__FPvi", "before_constructor_inline", "latent nested construction"),
++        ("typedef Thing*(*Factory)(void*); inline Thing* make(void*p){return new(p)Thing;} struct Holder{Thing* data; Holder(Factory f,void*p):data(f(p)) {}}; int selected(void*p,int v){Holder*t=new(p)Holder(make,p);return t->data->value+v;}",
++            "selected__FPvi", "before_constructor_inline", "unsupported indirect inline-body call"),
++        ("inline Thing* make(void*p){return new(p)Thing;} struct Holder{Thing* data; Holder(void*p):data(make(p)) {}}; int selected(void*p,int v){Holder*t=new(p)Holder(p);return t->data->value+v;}",
++            "selected__FPvi", "after_constructor_inline", "latent nested construction"),
++        ("struct Other{int value;Other():value(7){}}; int selected(void*p,int v){Other*t=new(p)Other;return t->value+v;}",
++            "selected__FPvi", "after_constructor_inline", "placement expected"),
++    ];
++    for (body, function, timing, diagnostic) in cases {
++        fs::write(&input, format!("{prefix}\n{body}\n")).unwrap();
++        let constructor = if body.contains("Factory") { "__ct__6HolderFPFPv_P5ThingPv" }
++            else if body.contains("struct Holder") { "__ct__6HolderFPv" }
++            else if body.contains("struct Nested") { "__ct__6NestedFPv" }
++            else { "__ct__5ThingFv" };
++        let profile = placement_config(&compiler, function, constructor, timing, 1);
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        fs::write(&output, b"original object sentinel").unwrap();
++        let result = cli(&input, &output, &config);
++        let stderr = String::from_utf8_lossy(&result.stderr);
++        assert!(!result.status.success(), "published unsupported fixture {body}");
++        assert!(stderr.contains(diagnostic), "expected {diagnostic} in {stderr}");
++        assert_eq!(fs::read(&output).unwrap(), b"original object sentinel");
++        assert!(fs::read_dir(&work.0).unwrap().all(|entry| !entry.unwrap().file_name()
++            .to_string_lossy().starts_with(".satansfiddle-")));
++    }
++}
++
++#[test]
++#[cfg(feature = "hook-test-faults")]
++#[ignore = "requires genuine compiler and fault-enabled CLI"]
++fn real_placement_request_write_failure_is_not_published() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    fs::write(&input, PLACEMENT_SOURCE).unwrap();
++    fs::write(&config, serde_json::to_string(&placement_config(&compiler, "selected__FPvi",
++        "__ct__5ThingFv", "after_constructor_inline", 1)).unwrap()).unwrap();
++    if env::var_os("SATANSFIDDLE_TEST_EXECUTABLE").is_some() {
++        assert_success(&cli_command(&input, &work.0.join("production.o"), &config)
++            .env("SATANSFIDDLE_TEST_FAIL_PLACEMENT_WRITE", "1").output().unwrap());
++    }
++    let executable = env::var_os("SATANSFIDDLE_TEST_FAULT_EXECUTABLE")
++        .unwrap_or_else(|| env!("CARGO_BIN_EXE_satansfiddle").into());
++    for existing in [false,true] {
++        let output = work.0.join(format!("failed-{existing}.o"));
++        if existing { fs::write(&output, b"original object sentinel").unwrap(); }
++        let result = Command::new(&executable).arg("--config").arg(&config).arg("--output")
++            .arg(&output).arg(&input).env("SATANSFIDDLE_TEST_FAIL_PLACEMENT_WRITE", "1")
++            .output().unwrap();
++        assert!(!result.status.success());
++        assert!(String::from_utf8_lossy(&result.stderr).contains("write 0x0"));
++        if existing { assert_eq!(fs::read(&output).unwrap(), b"original object sentinel"); }
++        else { assert!(!output.exists()); }
++        assert!(fs::read_dir(&work.0).unwrap().all(|entry| !entry.unwrap().file_name()
++            .to_string_lossy().starts_with(".satansfiddle-")));
++    }
++}
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_root_constructor_call_is_exact() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let output = work.0.join("root.o");
++    fs::write(&input, "void*operator new(unsigned int,void*); struct Thing{int value;Thing(int v):value(v){}}; extern void use(Thing*); int selected(void*p,int v){Thing*t=new(p)Thing(Thing(9).value);use(t);return t->value+v;}\n").unwrap();
++    let profile = placement_config(&compiler, "selected__FPvi", "__ct__5ThingFi",
++        "before_constructor_inline", 1);
++    fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++    let result = cli_command(&input, &output, &config).env("SATANSFIDDLE_VERIFY", "1")
++        .output().unwrap();
++    assert_success(&result);
++    let trace = String::from_utf8_lossy(&result.stderr);
++    assert!(trace.contains("preserved another ordinary constructor inline call"),
++        "fixture did not exercise a distinct same-type constructor call: {trace}");
++    assert!(trace.contains("expected=1 actual=1"));
++}
++
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_class6_eligibility_is_explicit() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let output = work.0.join("eligible.o");
++    let prefix = "void*operator new(unsigned int,void*); extern int gate; extern void consume(void*);\n";
++    let sources = [
++        ("struct Other{int value;Other(){if(gate)value=11;else value=13;}}; struct Thing{int value;Thing():value(7){}}; int selected(void*p,int v){Other*a=new(p)Other;consume(a);Thing*b=new(p)Thing;consume(b);return a->value+b->value+v;}\n", 3),
++        ("struct External{int value;External();}; struct Thing{int value;Thing():value(7){}}; int selected(void*p,int v){External*a=new(p)External;consume(a);Thing*b=new(p)Thing;consume(b);return a->value+b->value+v;}\n", 0),
++    ];
++    for (source, class) in sources {
++        fs::write(&input,format!("{prefix}{source}")).unwrap();
++        for timing in ["before_constructor_inline", "after_constructor_inline"] {
++            let profile = placement_config(&compiler, "selected__FPvi", "__ct__5ThingFv", timing, 1);
++            fs::write(&config,serde_json::to_string(&profile).unwrap()).unwrap();
++            let result = cli_command(&input,&output,&config).env("SATANSFIDDLE_VERIFY","1")
++                .output().unwrap();
++            assert_success(&result);
++            let trace = String::from_utf8_lossy(&result.stderr);
++            assert!(trace.contains(&format!("ignored ineligible constructor inline class {class}")),
++                "fixture did not exercise excluded inline class {class}: {trace}");
++            assert!(trace.contains("expected=1 actual=1"));
++        }
++    }
++    // A row whose constructor becomes entirely statement-inline has no
++    // eligible match; expected_matches prevents a silently stale row.
++    fs::write(&input,format!("{prefix}struct Thing{{int value;Thing(){{if(gate)value=7;else value=9;}}}};int selected(void*p,int v){{Thing*t=new(p)Thing;consume(t);return t->value+v;}}\n")).unwrap();
++    fs::write(&output,b"original object sentinel").unwrap();
++    let result = cli(&input,&output,&config);
++    assert!(!result.status.success());
++    assert!(String::from_utf8_lossy(&result.stderr).contains("matched 0"));
++    assert_eq!(fs::read(&output).unwrap(),b"original object sentinel");
++}
++
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_retained_cleanup_metadata_is_not_published() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let source = r#"void *operator new(unsigned int, void *);
++extern void consume(void *);
++extern void side_effect();
++struct Life { Life(); ~Life(); };
++inline int clean(int v) { Life local; consume(&local); return v; }
++struct Thing { int value; Thing() : value(clean(7)) {} };
++
++int selected(void *p, int value) {
++    Thing *object = new(p) Thing;
++    consume(object);
++    return object->value + value;
++}
++"#;
++    fs::write(&input, source).unwrap();
++    // The selected Thing constructor is class 6. Its direct clean(int) callee
++    // is class 3 with retained cleanup records, so eligibility is not the failure.
++    for timing in ["before_constructor_inline", "after_constructor_inline"] {
++        let profile = placement_config(&compiler, "selected__FPvi", "__ct__5ThingFv", timing, 1);
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        let output = work.0.join(format!("cleanup-{timing}.o"));
++        fs::write(&output, b"original object sentinel").unwrap();
++        let result = cli_command(&input, &output, &config).env("SATANSFIDDLE_VERIFY", "1")
++            .output().unwrap();
++        let trace = String::from_utf8_lossy(&result.stderr);
++        assert!(!result.status.success(), "published cleanup-bearing inline body under {timing}");
++        assert!(trace.contains("placement has unsupported inline-body cleanup metadata"),
++            "fixture failed outside the retained-body metadata guard: {trace}");
++        assert_eq!(fs::read(&output).unwrap(), b"original object sentinel");
++        assert!(fs::read_dir(&work.0).unwrap().all(|entry| !entry.unwrap().file_name()
++            .to_string_lossy().starts_with(".satansfiddle-")));
++    }
++}
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_accepts_retained_empty_void_return() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let source = r#"void *operator new(unsigned int, void *);
++extern void consume(void *);
++extern void side_effect();
++inline void notify() { side_effect(); return; }
++struct Thing { int value; Thing() { notify(); value = 7; } };
++
++int selected(void *p, int value) {
++    Thing *object = new(p) Thing;
++    consume(object);
++    return object->value + value;
++}
++"#;
++    fs::write(&input, source).unwrap();
++    // notify() retains a kind-8 NULL expression, zero cleanup metadata and
++    // canonical void return type in the pinned compiler's stored inline body.
++    for timing in ["before_constructor_inline", "after_constructor_inline"] {
++        let profile = placement_config(&compiler, "selected__FPvi", "__ct__5ThingFv", timing, 1);
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        let output = work.0.join(format!("void-return-{timing}.o"));
++        fs::write(&output, b"original object sentinel").unwrap();
++        let result = cli_command(&input, &output, &config).env("SATANSFIDDLE_VERIFY", "1")
++            .output().unwrap();
++        assert_success(&result);
++        let trace = String::from_utf8_lossy(&result.stderr);
++        assert!(trace.contains("expected=1 actual=1"), "eligible construction was not completed: {trace}");
++        assert!(fs::read(&output).unwrap().starts_with(b"\x7fELF"));
++        assert!(fs::read_dir(&work.0).unwrap().all(|entry| !entry.unwrap().file_name()
++            .to_string_lossy().starts_with(".satansfiddle-")));
++    }
++}
++
++const IMPLICIT_SHADOW_SOURCE: &str = r#"
++void *operator new(unsigned int size, void *storage);
++
++class Visual {
++public:
++    void *texture_manager;
++    unsigned int drawing_flags;
++
++    Visual() { Initialize(); }
++    virtual void Initialize();
++    virtual void Draw();
++};
++
++class Model : public Visual {
++public:
++    unsigned int vertex_count;
++    float (*vertices)[4];
++
++    Model() { Initialize(); }
++    virtual void Initialize();
++};
++
++class Shadow : public Model {
++public:
++    virtual void Draw();
++};
++
++class FixedShadow : public Shadow {
++};
++
++Shadow *MakeShadow(void *storage) {
++    return new (storage) Shadow;
++}
++
++FixedShadow *MakeFixedShadow(void *storage) {
++    return new (storage) FixedShadow;
++}
++"#;
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_rejects_unwitnessed_implicit_class_six_constructors() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let baseline = work.0.join("baseline.o");
++    fs::write(&input, IMPLICIT_SHADOW_SOURCE).unwrap();
++    fs::write(&config, compiler_config(&compiler, "")).unwrap();
++    assert_success(&cli(&input, &baseline, &config));
++    let original = fs::read(&baseline).unwrap();
++    for (caller, constructor) in [
++        ("MakeShadow__FPv", "__ct__6ShadowFv"),
++        ("MakeFixedShadow__FPv", "__ct__11FixedShadowFv"),
++    ] {
++        assert!(!function_bytes(&original, caller).is_empty());
++        let profile = placement_config(&compiler, caller, constructor,
++            "after_constructor_inline", 1);
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        let output = work.0.join(format!("unwitnessed-{constructor}.o"));
++        fs::write(&output, b"original object sentinel").unwrap();
++        let result = cli_command(&input, &output, &config).env("SATANSFIDDLE_VERIFY", "1")
++            .output().unwrap();
++        assert!(!result.status.success());
++        let trace = String::from_utf8_lossy(&result.stderr);
++        // Candidate tracing occurs only after the real class-6 eligibility
++        // read; an expected-count failure would not exercise this boundary.
++        assert!(trace.contains("placement-candidate"), "class-6 candidate missing: {trace}");
++        assert!(trace.contains("(\"__ct\", false)"), "uncached implicit constructor missing: {trace}");
++        assert!(trace.contains("selected placement construction has unresolved mangled identities"),
++            "implicit constructor identity was not rejected: {trace}");
++        assert_eq!(fs::read(&output).unwrap(), b"original object sentinel");
++        assert!(fs::read_dir(&work.0).unwrap().all(|entry| !entry.unwrap().file_name()
++            .to_string_lossy().starts_with(".satansfiddle-")));
++    }
++}
+--- a/tests/config/mod.rs
++++ b/tests/config/mod.rs
+@@ -308,3 +308,32 @@
+     let encoded = serde_json::to_string(&parse(EXPRESSION).unwrap()).unwrap();
+     assert!(!encoded.contains("callee"));
+ }
++
++
++const PLACEMENT: &str = r#"
++[[placement_new.statement_conversions]]
++translation_unit = 'path\\test.cpp'
++function = 'probe__FPv'
++allocator = '__nw__FUiPv'
++constructor = '__ct__5ThingFv'
++conversion = 'after_constructor_inline'
++expected_matches = 1
++"#;
++
++#[test]
++fn placement_identity_and_cardinality_are_mandatory() {
++    let config = parse(PLACEMENT).unwrap();
++    assert_eq!(config.placement_new.statement_conversions[0].translation_unit, "test.cpp");
++    for field in ["function", "allocator", "constructor", "conversion", "expected_matches"] {
++        let invalid = PLACEMENT.lines().filter(|line| !line.starts_with(field))
++            .collect::<Vec<_>>().join("\n");
++        assert!(parse(&invalid).is_err(), "missing {field}");
++    }
++    assert!(parse(&PLACEMENT.replace("expected_matches = 1", "expected_matches = 0")).is_err());
++    assert!(parse(&PLACEMENT.replace("after_constructor_inline", "guess")).is_err());
++    assert!(parse(&PLACEMENT.replace("__ct__5ThingFv", "Thing")).is_err());
++    assert!(parse(&PLACEMENT.replace("__nw__FUiPv", "__nwa__FUiPv")).is_err());
++    assert!(parse(&format!("{PLACEMENT}\nordinal = 1")).is_err());
++    assert!(parse(&format!("{PLACEMENT}\n{PLACEMENT}")).is_err());
++    assert!(parse("").unwrap().placement_new.statement_conversions.is_empty());
++}

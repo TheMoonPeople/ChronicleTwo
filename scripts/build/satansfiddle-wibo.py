@@ -32,6 +32,34 @@ def unit_name(value):
     return value.replace("\\", "/").rsplit("/", 1)[-1]
 
 
+def validate_profile_units(profile):
+    """Reject unknown game source identities before discarding other units' rows."""
+    source_directory = ROOT / "ps2/src"
+    known_units = {
+        path.name for suffix in ("*.c", "*.cpp")
+        for path in source_directory.rglob(suffix) if path.is_file()
+    }
+    tables = [("translation_units", profile.get("translation_units", []), "name")]
+    for section, names in (
+        ("floating_point", ("expression_overrides", "literal_overrides")),
+        ("placement_new", ("statement_conversions",)),
+    ):
+        block = profile.get(section, {})
+        if not isinstance(block, dict):
+            raise ValueError(f"{section} must be a JSON object")
+        for name in names:
+            tables.append((f"{section}.{name}", block.get(name, []), "translation_unit"))
+    for location, rows, field in tables:
+        if not isinstance(rows, list):
+            raise ValueError(f"{location} must be a JSON array")
+        for row in rows:
+            if not isinstance(row, dict):
+                raise ValueError(f"{location} rows must be JSON objects")
+            name = row.get(field)
+            if not isinstance(name, str) or unit_name(name) not in known_units:
+                raise ValueError(f"unknown translation unit {name!r} in {location}")
+
+
 def main(arguments):
     compiler, options, output, source = invocation(arguments)
     binary = os.environ.get("SATANSFIDDLE", "satansfiddle")
@@ -47,6 +75,7 @@ def main(arguments):
     profile = json.loads(profile_path.read_text())
     if not isinstance(profile, dict):
         raise ValueError("Satan's Fiddle profile must be a JSON object")
+    validate_profile_units(profile)
     logical_unit = unit_name(os.environ.get("SATANSFIDDLE_TRANSLATION_UNIT", source.name))
 
     # mwccgap supplies the complete flags for each pass; retain argument boundaries.
@@ -63,6 +92,12 @@ def main(arguments):
                 row for row in floating_point[key]
                 if unit_name(row["translation_unit"]) == logical_unit
             ]
+    placement_new = profile.get("placement_new", {})
+    if "statement_conversions" in placement_new:
+        placement_new["statement_conversions"] = [
+            row for row in placement_new["statement_conversions"]
+            if unit_name(row["translation_unit"]) == logical_unit
+        ]
 
     # Each compiler pass runs in a fresh process with a private configuration.
     with tempfile.TemporaryDirectory(prefix="chronicletwo-satansfiddle-") as directory:
