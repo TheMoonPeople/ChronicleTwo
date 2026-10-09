@@ -27,6 +27,11 @@
 #include "sound.hpp"
 #include "userdata.hpp"
 
+/**
+ *
+ * Unit-square outline of the speech balloon, traced from the right edge around to it.
+ *
+ */
 float p[16][2] = {
     {0.5f, 0.5f},
     {0.02f, 0.29f},
@@ -46,6 +51,11 @@ float p[16][2] = {
     {0.02f, 0.29f},
 };
 
+/**
+ *
+ * Left, top, right and bottom frame margins of each window frame type.
+ *
+ */
 s32 waku_data[WAKU_DATA_MAX][4] = {
     {0, 0, 0, 0},
     {30, 24, 30, 24},
@@ -65,15 +75,6 @@ s32 waku_data[WAKU_DATA_MAX][4] = {
  */
 struct message_anchor_table {
     float point[19][2]; /**< Anchor coordinates. */
-};
-
-/**
- *
- * Primitive builder used to draw message elements.
- *
- */
-union message_draw_prim {
-    mgCDrawPrim prim; /**< Message-element drawing primitive. */
 };
 
 static const int mes_buffer_size = 0x200;
@@ -206,21 +207,21 @@ void set2DSprite(mgCDrawPrim *primitive, mgRect<int> destination,
 }
 
 void FillRect(int x, int y, int w, int h, int r, int g, int b, int a) {
-    message_draw_prim drawer;
-    drawer.prim.Initialize(NULL, NULL);
-    drawer.prim.AlphaBlendEnable(1);
-    drawer.prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
-    drawer.prim.AlphaTestEnable(1);
-    drawer.prim.AlphaTest(1, 0);
-    drawer.prim.DepthTestEnable(0);
-    drawer.prim.ZMask(MG_Z_MASK_MASKED);
-    drawer.prim.Bilinear(0);
-    drawer.prim.TextureMapEnable(0);
-    drawer.prim.Begin(MG_PRIM_SPRITE);
-    drawer.prim.Color(r, g, b, a);
-    drawer.prim.Vertex(x, y, 0);
-    drawer.prim.Vertex(x + w, y + h, 0);
-    drawer.prim.End();
+    mgCDrawPrim drawer;
+    drawer.Initialize(NULL, NULL);
+    drawer.AlphaBlendEnable(1);
+    drawer.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
+    drawer.AlphaTestEnable(1);
+    drawer.AlphaTest(1, 0);
+    drawer.DepthTestEnable(0);
+    drawer.ZMask(MG_Z_MASK_MASKED);
+    drawer.Bilinear(0);
+    drawer.TextureMapEnable(0);
+    drawer.Begin(MG_PRIM_SPRITE);
+    drawer.Color(r, g, b, a);
+    drawer.Vertex(x, y, 0);
+    drawer.Vertex(x + w, y + h, 0);
+    drawer.End();
 }
 static inline void SetPrimOffset(mgCDrawPrim *prim, int x, int y) {
     prim->offset_x = x * 16;
@@ -327,20 +328,20 @@ void ClsMes::DrawFukidashi_sub(mgCDrawPrim *prim, int dx, int dy, int layer) {
     }
 }
 void ClsMes::DrawFukidashi(int a, int b, int c) {
-    message_draw_prim drawer;
-    drawer.prim.Initialize(NULL, NULL);
-    drawer.prim.ZMask(MG_Z_MASK_MASKED);
-    drawer.prim.AlphaTestEnable(0);
-    drawer.prim.AlphaBlendEnable(1);
-    drawer.prim.DAlphaTest(0, 0);
-    drawer.prim.DepthTestEnable(0);
-    drawer.prim.DepthTest(MG_DEPTH_TEST_ALWAYS);
-    drawer.prim.TextureMapEnable(0);
-    drawer.prim.Bilinear(1);
-    drawer.prim.AntiAliasing(1);
-    DrawFukidashi_sub(&drawer.prim, a, b, c);
-    drawer.prim.AntiAliasing(0);
-    DrawFukidashi_sub(&drawer.prim, a, b, c);
+    mgCDrawPrim drawer;
+    drawer.Initialize(NULL, NULL);
+    drawer.ZMask(MG_Z_MASK_MASKED);
+    drawer.AlphaTestEnable(0);
+    drawer.AlphaBlendEnable(1);
+    drawer.DAlphaTest(0, 0);
+    drawer.DepthTestEnable(0);
+    drawer.DepthTest(MG_DEPTH_TEST_ALWAYS);
+    drawer.TextureMapEnable(0);
+    drawer.Bilinear(1);
+    drawer.AntiAliasing(1);
+    DrawFukidashi_sub(&drawer, a, b, c);
+    drawer.AntiAliasing(0);
+    DrawFukidashi_sub(&drawer, a, b, c);
 }
 
 void ClsMes::SetDrawSpeed() {
@@ -3398,8 +3399,8 @@ void ClsMes::DrawFukidashiShadow() {
     float             scale = fade;
     float             width = (float) fukidashi_w * scale;
     float             height = (float) fukidashi_h * scale;
-    message_draw_prim drawer;
-    mgCDrawPrim      *prim = &drawer.prim;
+    mgCDrawPrim       drawer;
+    mgCDrawPrim      *prim = &drawer;
     prim->Initialize(NULL, NULL);
     prim->AlphaTestEnable(0);
     prim->DepthTestEnable(0);
