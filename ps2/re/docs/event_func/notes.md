@@ -1,5 +1,12 @@
 # event_func: reverse-engineering notes
 
+`_COPY_CHARA` is accepted native C++ with one scoped `CCharacter2` placement
+row. `LoadMovie` and `_SET_GYORACE_ETC` are also native. Three assembly gaps
+remain: guarded `_ESM_INITIALIZE`, guarded `_COPY_MONS2SCNCHR`, and the
+`CObject` copy constructor emitted by the latter's retail body. The constructor
+gap is an emission dependency, not an independent native promotion. See
+[placement conversion](../satansfiddle/placement-new.md).
+
 `_SET_CROSSFADE` captures the current screen, converts script frames from 60 Hz to 50 Hz
 with a minimum of one frame, then starts an incoming, outgoing, or ordinary crossfade.
 The native function matches with the callee-scoped floating argument calibration
@@ -28,11 +35,11 @@ declared in this header.
 - `dng_effect.hpp` (CHitEffectImage, by-value array `HitEffect[5]`), `sceneseq.hpp`
   (`_SEN_CMR_SEQ`, `_SEN_OBJ_SEQ`, arrays), `runscript.hpp` (`RS_STACKDATA`, `CRunScript`),
   `scenesnd.hpp` (owner of `CScene`, needed for the by-value `CScene::BGM_STATUS` member of
-  `ED_EVENT_INFO`). **`scenesnd.hpp` did not exist when this header was written**, so the header
-  does not compile until it appears and declares `CScene::BGM_STATUS` (0x1C bytes: +0 state,
-  +4 now no, +8, +0xC, +0x10, +0x14 float volume, +0x18; see `CScene::GetActiveBgmStatus`).
-  With that member stubbed as `u8[0x1C]` the header and `event_func.cpp` compile and every
-  STATIC_ASSERT holds.
+  `ED_EVENT_INFO`). `scenesnd.hpp` was absent during the original header probing;
+  it now declares `CScene::BGM_STATUS` (0x1C bytes: +0 state, +4 now no, +8,
+  +0xC, +0x10, +0x14 float volume, +0x18; see `CScene::GetActiveBgmStatus`).
+  The original `u8[0x1C]` stub compile checked every STATIC_ASSERT; current
+  builds use the real member type.
 - `RS_EXTFUNC_INFO` (row type of `ext_func_info__2` / `esa_ext_func_info`) is declared in
   `runscript_opcodes.hpp`; include it from the .cpp.
 
@@ -181,7 +188,8 @@ points at: +0x10 pos, +0x20 velocity, +0x34 speed, +0x38 rate, +0x3C life, +0x44
   race number (0–3); tour count (4); fish name (5); formatted race time (6); and prize reload
   (7). The time is clamped to 0–360000 sixtieths, split into hours, minutes and hundredths, and
   assembled from Shift-JIS digit strings plus the separator before being copied into a message
-  name slot. The C++ draft is guarded and differs from retail; the normal build keeps assembly.
+  name slot. Its current body is native C++; the earlier guarded status predates
+  the accepted source form.
 - `VectMatMul__FPfPfPA4_f` exists twice: 0x260A70 here (global) and 0x282610 (local, another unit).
 - `_LOAD_CHARA_sub(int,char**,int,u_int*)` is a 0x10 tail call to the 5-argument form with 0.
 - `GetConfigCaptionOff` returns `lb` of SaveData+0x1C5A8 -> `char`.
@@ -190,19 +198,19 @@ points at: +0x10 pos, +0x20 velocity, +0x34 speed, +0x38 rate, +0x3C life, +0x44
 - `CommandStreamOpen2` builds the path but never opens it (retail behaviour).
 # Native event object construction
 
-`_COPY_CHARA` and `_COPY_MONS2SCNCHR` allocate a `CCharacter2` in a scene stack,
-then copy the source character or monster into the new slot. Their C++ bodies
-use typed placement construction for the base and character initialization.
-`_ESM_INITIALIZE` similarly constructs `CEffectScriptMan` in the event stack;
-its member constructors initialize the sprite and manager. All three remain
-`NONMATCHING` drafts with retail `INCLUDE_ASM` bodies. The retail
-`_COPY_MONS2SCNCHR` body calls the compiler-generated `CObject` copy constructor,
-which is also supplied as an assembly gap immediately after it. The natural
-C++ draft emits the constructor at retail's 0xC8-byte size but differs at
-placement-new's null branch: retail tests `v0` before moving the allocation
-result to `s3` in the delay slot, whereas MWCC moves it first and then tests
-`s3`. Value initialization, staged allocation, reference binding, volatile
-storage, and alternate assignment forms did not match that branch schedule.
+`_COPY_CHARA` allocates a `CCharacter2` in a scene stack and copies the source
+character into its assigned slot. Its accepted native body uses typed placement
+construction. `_COPY_MONS2SCNCHR` and `_ESM_INITIALIZE` retain guarded natural
+construction drafts for a copied character and effect manager respectively.
+
+The retail `_COPY_MONS2SCNCHR` calls the compiler-generated `CObject` copy
+constructor, supplied by the adjacent assembly gap. Earlier natural-copy
+trials emitted that constructor at retail's 0xC8-byte size but missed the
+placement-new branch: retail tested `v0` and moved to `s3` in the delay slot;
+the candidate moved first and tested `s3`. Value initialization, staged
+allocation, reference binding, volatile storage, and alternate assignments
+did not match that schedule. Later measurements below also establish an
+aggregate-copy remainder beyond the null branch.
 ## Pending code matches
 
 `_CHK_INTERSECTION_POINT` tests a segment against event collision polygons. An optional
@@ -213,11 +221,10 @@ the first hit's details. Both native C++ functions pass the full linked-image co
 Their polygon selection uses array indexing through the collision polygon cursor; indexing
 from the original local array changes MWCC register allocation and no longer matches.
 
-`LoadMovie`, `_COPY_CHARA`, `_ESM_INITIALIZE`, and `_COPY_MONS2SCNCHR` retain
-C++ drafts under `NONMATCHING`. The default build uses retail assembly for
-these functions until their C++ object scores reach zero. The copy constructor
-gap is required while `_COPY_MONS2SCNCHR` uses retail assembly, since no active
-C++ use otherwise causes MWCC to emit that constructor.
+Only `_ESM_INITIALIZE` and `_COPY_MONS2SCNCHR` retain `NONMATCHING` function
+drafts here. The copy-constructor gap remains required while the monster-copy
+caller uses assembly, since active C++ use does not otherwise emit it.
+`LoadMovie` and `_COPY_CHARA` have accepted native bodies.
 
 ## Crossfade floating argument calibration
 
@@ -238,11 +245,11 @@ compiler tracing found direct floating constant nodes at all three calls,
 including a freshly allocated node with an uninitialized evaluate-first byte.
 
 The production mwccgap wrapper, section fixup, and canonical object checker
-prove the `0x158`-byte function's exact bytes and resolved relocations. The unit
-returns to its original `0x22cc4` bytes, 6888 relocations, and 16 existing issues,
-with no crossfade failure. Those remaining issues include event object-copy
-functions and unrelated data/layout mismatches. This is a function match,
-not a whole-unit pass. See [MWCC notes](../../../../docs/MWCC.md).
+prove the `0x158`-byte function's exact bytes and resolved relocations. At that source/profile boundary the unit
+returned to `0x22cc4` bytes, 6888 relocations, and 16 existing issues, with no
+crossfade failure. Those findings included event object-copy functions and
+unrelated data/layout mismatches; this earlier result established the function
+match, not the later complete-unit acceptance. See [MWCC notes](../../../../docs/MWCC.md).
 
 ## LoadMovie floating argument calibration
 
@@ -253,15 +260,15 @@ is unchanged. With the artificial division primer removed and translation-unit
 helper masks GPR `0x30` / FPR `0`, the complete unit passes canonical instruction
 bytes and resolved relocations: `0x22C7C` checked bytes and 6,920 relocations.
 
-## Remaining allocation checks on the integrated baseline
+## October 8 integrated-baseline allocation checks
 
-With the pinned profile, `_COPY_CHARA` and `_ESM_INITIALIZE` each differ by
-two instruction words. The generated bodies are 0x2B4 and 0x128 within the
-padded retail extents 0x2C0 and 0x130 respectively. The difference is the documented
-placement-new result schedule: retail tests v0 and copies to the saved
-object register in its delay slot; MWCC copies first and tests that saved
-register. `_ESM_INITIALIZE` isolates the pair at +0x78/+0x7C. These remain
-parked for the dedicated placement-new investigation.
+Before the scoped conversion, `_COPY_CHARA` and `_ESM_INITIALIZE` each
+differed by two words under the pinned profile. Their bodies were 0x2B4 and
+0x128 in padded retail extents 0x2C0 and 0x130. Retail tested v0 and copied
+to the saved object register in the delay slot; that MWCC form copied first
+and tested the saved register. `_ESM_INITIALIZE` isolated the pair at
++0x78/+0x7C. Both were parked at that boundary. `_COPY_CHARA` is now native;
+the effect-manager command remains guarded.
 
 The October 8 midday baseline `c79e57c` does not reproduce the previously
 reported two-word `_COPY_MONS2SCNCHR` miss. It has 248/472 differing words
@@ -286,16 +293,17 @@ constructor assembly fallback. Reconsider its independent promotion when
 an active native caller naturally emits it; an explicit copy body or dummy
 use is not an acceptable way to force emission.
 
-`_ESM_INITIALIZE`'s inherited two-word draft score still includes the legacy
-identity-only `Ident` scaffold; that helper is not an acceptable promotion
-mechanism. Removing it leaves an 11/76-word helper-free draft at the same
-0x128-byte body size: the branch pair plus exchanged s0/s1 lifetimes.
-Initializing the stack number at declaration instead changes the stack frame
-and shortens the body; declaration reordering alone leaves the 11-word
-remainder. The default complete object still passes without Ident, but the
-lane's closer-draft rule leaves the original guarded source unchanged.
-An admissible source lifetime distinction is required before promoting this
-function, in addition to resolving the placement-new branch.
+The inherited two-word `_ESM_INITIALIZE` result included the legacy identity-only
+`Ident` scaffold, which was not an acceptable promotion mechanism. Removing
+it in the earlier probe left 11/76 differing words at the same 0x128-byte
+body size: the branch pair plus exchanged s0/s1 lifetimes. Initializing the
+stack number at declaration changed the frame and shortened the body;
+declaration reordering left the 11-word remainder. The default assembly-backed
+object passed without Ident, although the earlier lane's closer-draft rule
+then retained the scaffold. These are historical probe and retention results.
+`Ident` currently remains only in the guarded diagnostic draft; its inherited
+two-word score is not a promotion. An accepted body still requires an admissible
+source lifetime distinction and the correct placement-new branch.
 
 Midday helper-free probes with named texture-buffer arguments, a named base
 texture buffer, a named offset, or direct assignment to `EventEffectScript`
@@ -318,3 +326,11 @@ retain their values and layouts.
 
 Receipts: .private/fixes-r0/event-func-final-{build,objects}.log:
 SCES_511.90: OK and 149/149 objects.
+
+## Character-copy callback binding
+
+Retail gives `_COPY_CHARA` LOCAL function binding. With the external command
+table defined in this unit's C++ source, a `static` definition gives a LOCAL
+FUNC symbol with no extra alias and an unchanged object check. It keeps
+external linkage, like the unit's other native command callbacks, until the
+callbacks' retail binding is restored together.

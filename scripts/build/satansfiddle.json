@@ -1717,6 +1717,14 @@
         "constructor": "__ct__9CMapPieceFv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "event_func.cpp",
+        "function": "_COPY_CHARA__FP12RS_STACKDATAi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
       }
     ]
   }

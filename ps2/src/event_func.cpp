@@ -150,11 +150,6 @@ static CEffectScriptMan *EventEffectScript;
 static CSWordAfterImage *SwordEffect;
 
 /**
- * Copies a scene character for an event script.
- */
-int _COPY_CHARA(RS_STACKDATA *stack, int argc);
-
-/**
  * Initializes the effect script manager controlled by an event.
  */
 int _ESM_INITIALIZE(RS_STACKDATA *stack, int argc);
@@ -5433,7 +5428,11 @@ int _HIT_EFFECT(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 
-#ifdef NONMATCHING
+/**
+ *
+ * Copies a scene character into another slot using the requested event memory stack.
+ *
+ */
 int _COPY_CHARA(RS_STACKDATA *stack, int argc) {
     int stack_no;
     int src_no;
@@ -5461,7 +5460,7 @@ int _COPY_CHARA(RS_STACKDATA *stack, int argc) {
             return 0;
     }
 
-    mgCMemory *memory = (mgCMemory *) EventScene->GetStack(stack_no);
+    mgCMemory *memory = EventScene->GetStack(stack_no);
 
     if (memory == NULL) {
         return 0;
@@ -5492,9 +5491,6 @@ int _COPY_CHARA(RS_STACKDATA *stack, int argc) {
     EventScene->SetCharaTexb(dst_no, EventScene->GetCharaTexb(src_no));
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _COPY_CHARA__FP12RS_STACKDATAi);
-#endif
 
 int _GET_START_BUTTON(RS_STACKDATA *stack, int argc) {
     SetStack(stack, EdEventInfo.start_button);
