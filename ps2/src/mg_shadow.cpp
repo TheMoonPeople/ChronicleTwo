@@ -59,7 +59,7 @@ struct ShadowGifRegs {
 #pragma schedule off
 #pragma optimization_level 2
 int mgCShadowMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
-    static u_int prog_vif[4] __attribute__((aligned(16))) = {0, 0, 0, 0x14000002};
+    static u_int prog_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 2};
 
     if (face == NULL) {
         return 0;

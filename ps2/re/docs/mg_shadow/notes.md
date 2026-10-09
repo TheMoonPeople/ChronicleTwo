@@ -93,14 +93,26 @@ VIF word 0x6C080029 vs 0x6C080028 here, and DMA tag added here).
 The mgCFace / FACES_ID / face-group layouts above are shared with mgCVisualMDT::CreateFace and
 belong in mg_visual.hpp.
 
-## Drafts (job mg_shadow.1)
-All six functions drafted (`UNMATCHING`), none match; unit promotes OK with all as INCLUDE_ASM.
-- Retail's code here leaves branch delay slots as `nop` (no scheduling into them); the drafts are
-  scheduled, which accounts for most of the word differences (DataAssignMDT's logic is identical).
+## Source status
+All six functions are native C++ and byte-identical under the unit's `schedule off` and
+`optimization_level 2` pragmas; there are no guarded drafts, `INCLUDE_ASM` entries or data
+markers. The FLUSHA and zero quadword initializers and the `mgCShadowMDT` vtable are emitted
+by the compiler.
+- `CreateFace` walks the triangle indices as `int *vertex` over `source->index` (`vertex[0]`,
+  `vertex[3]`, `vertex[6]`, stepping by 9) and reads the face section through `MDT_FACES`
+  (`faces->prim_num`, first `FACES_ID` at `faces + 1`).
+- `CreatePacket` builds DMA tags as `u_int` words, addresses the face data through its uncached
+  mirror as an integer (`face_cursor | 0x20000000`) and measures packet sizes as byte
+  differences between the `u_int` cursor and the `u_long128` packet start. The VU header packet
+  mixes integer and float words (`head[20]` integer, `((float *) head)[21..23]` and `[56..]`
+  floats) and copies quadwords and matrices into it through `u_long128`/`sceVu0FVECTOR` views.
+- `mgRENDER_INFO::render_params` is `u_int[4]` but holds three floats and a word;
+  `CreateRenderInfoPacket` reads `[0..2]` through `(float *)` and `[3]` as an integer. Splitting
+  it needs the same edit in mg_sprite and water.
 - `mgCShadowFixMDT` added to the header (no members; vtable entries all mgCShadowMDT's).
 - `SetShadowData` confirmed file-local by `local_symbols.tsv`: `static` in the .cpp.
-- Function-local data: `prog_vif_208` = `static u_int prog_vif[4] = {0,0,0,0x14000002}` in
-  CreateFacePacket (VIF MSCAL 2, copied by lq/sq); `at_243` = template of a local
+- Function-local data: `prog_vif_208` = `static u_int prog_vif[4] = {0,0,0,MG_VIF_MSCAL | 2}` in
+  CreateFacePacket (copied by lq/sq); `at_243` = template of a local
   `u_int flush[4] = {0x13000000,0,0,0}` (FLUSHA; retail copies it to the stack then to the packet);
   `at_353` (.bss) = template of a zero local `u_int zero[4]` in CreateRenderInfoPacket.
 - CreateFacePacket: GIF tag is a stack `sceGifTag` cleared by `sq $0`, then EOP=1, PRE=1 set BEFORE the
@@ -119,4 +131,4 @@ All six functions drafted (`UNMATCHING`), none match; unit promotes OK with all 
   SetZBuf(-1), ZTE 1, ZTST GEQUAL, ATE 0, AFAIL 0, DATE 0), 45.. SetShadowData with
   view_clip_full*view*shadow*M, then DMA RET. GetpLightInfo's result is unused.
 - `SCE_GS_PRMODECONT` (26) and `SCE_GS_PRMODE` (27) added to `sce/libgraph.h`.
-- No DMA-tag / VIF-code enums exist in the project; the drafts write those words as literals with comments.
+- DMA-tag and VIF-code names come from `mgPACKET_CODE` in `mg_drawprim.hpp`.
