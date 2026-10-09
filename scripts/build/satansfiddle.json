@@ -1716,6 +1716,34 @@
         },
         "evaluate_before": 3,
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemSelectInit__FP9mgCMemoryPii",
+        "callee": "Set__9mgRect<f>Fffff",
+        "value_type": "binary32",
+        "value_bits": "0x43480000",
+        "evaluate_first": true,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemSelectInit__FP9mgCMemoryPii",
+        "callee": "Set__9mgRect<f>Fffff",
+        "value_type": "binary32",
+        "value_bits": "0x425c0000",
+        "evaluate_first": false,
+        "evaluate_before": 3,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugKey__Fv",
+        "callee": "__ct__15mgCCameraFollowFffff",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "evaluate_first": true,
+        "expected_matches": 1
       }
     ]
   },
@@ -1822,6 +1850,30 @@
         "function": "MenuManualInit__FP9mgCMemoryPii",
         "allocator": "__nw__FUiP1",
         "constructor": "__ct__11CManualMenuFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuModeMalloc__13CMenuItemInfoFP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 2
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemSelectInit__FP9mgCMemoryPii",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CItemSelectFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "menusys.cpp",
+        "function": "MenuItemDebugKey__Fv",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
       },

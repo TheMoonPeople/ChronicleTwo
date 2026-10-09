@@ -1,5 +1,15 @@
 # menusys: header notes
 
+`MenuModeMalloc`, `MenuItemSelectInit` and `MenuItemDebugKey` are native C++
+with after-inline placement rows asserting two, one and one constructions.
+SelectInit additionally uses two float rows, and DebugKey one. Complete-object
+and PAL verification pass; see
+[placement conversion](../satansfiddle/placement-new.md). The three functions
+emit their own path literals, analog-input zero templates, the `dbox_path`
+local static and the `CItemSelect` vtable, so no data markers remain for them.
+
+Only `CMenuItemInfo::IsAskExtend` retains a `NONMATCHING` assembly fallback.
+
 Header: `ps2/include/menusys.hpp`. All offsets and sizes below were checked by compiling a test
 against the header (offsets of the key fields and every `sizeof`).
 
@@ -132,12 +142,12 @@ Seen in `menu_inputkey_limmit_check_line/glid`:
 - `MenuItemSelectInit` attaches the caller's remaining stack, constructs the list in 0x47
   quadwords, sets its two screen rectangles, attaches the menu texture, and starts the background
   read. Modes 9 and 0x16 read separate menu files into the stack; the size is rounded up to
-  quadwords before the message window is preset. The constructor and function drafts are guarded
-  by `NONMATCHING`, leaving the retail assembly path intact.
+  quadwords before the message window is preset. The constructor and function are active
+  C++; the placement conversion and two float rows reproduce the complete caller.
 - Built inline in MenuItemSelectInit: base ctor, vptr, two `mgRect<float>::Set(0,0,0,0)` (see the mgRect note),
   then the field clears, then `Set(120, mgScreenHeight-0x10A, 0, 200)` and `Set(list.x+20, list.y+370, 44, 55)`,
   then top_line/cursor = 0, line_num = 1.0, CheckEnableHaveItemNum and SetPtrList. The header declares
-  the constructor; its guarded inline source body has no separate retail function symbol.
+  the constructor; its active inline source body has no separate retail function symbol.
 - 0x110 count, 0x114 `CGameDataUsed *[150]` (from `MenuUserParam.used_data`, stride 0x6C, 150 entries),
   0x36C u8[150] (`menu_limmit_displayflag`), 0x402 alpha step (0xC in, -8 out), 0x404 alpha and 0x408
   background alpha (CalcMenuAdd), 0x430..0x438 eased cursor x/y and scroll, 0x43C texture, 0x440 cursor
@@ -208,9 +218,9 @@ object diff unchanged.
 
 ## Pending menu function matches
 
-`CMenuItemInfo::MenuModeMalloc` retains a guarded C++ draft. Its object code
-differs from the retail function, including its size, so the normal build uses
-the retail assembly until its C++ form matches. `MenuItemInfoCursorSet` now
+`CMenuItemInfo::MenuModeMalloc` is native and accepted with its two-site
+CActionChara conversion row. Its earlier guarded draft differed in code and
+size; that source/profile baseline used retail assembly. `MenuItemInfoCursorSet` now
 matches exactly as C++, including its linked image.
 `CMenuItemInfo::PushKey` is now an exact native match. Its typed tuning bases and
 branch-local automatic objects are documented in [pushkey.md](pushkey.md).
@@ -224,10 +234,10 @@ branch-local automatic objects are documented in [pushkey.md](pushkey.md).
 
 ## Constructor-backed allocations
 
-`IsAskExtend` and `MenuModeMalloc` use direct native placement construction of
-`CActionChara` in their guarded drafts. The deeper natural constructor chain and
-selector construction boundaries are documented in
-[guarded-constructors.md](guarded-constructors.md).
+`IsAskExtend` retains a guarded draft using direct `CActionChara` placement
+construction. `MenuModeMalloc` uses the same natural constructor chain in its
+accepted native body. The earlier constructor analysis and selector boundaries
+are documented in [guarded-constructors.md](guarded-constructors.md).
 
 ## Remaining matching blockers
 
@@ -256,14 +266,15 @@ offset exchange. The first active-slot pass also matches when its slot counter
 its gift-slot counter remains separately scoped. Both source facts are needed
 together to resolve the former `s1`/`s3` exchange. The round-two promotion and
 full validation are in [night-20261008.md](night-20261008.md#round-2--checkenablehaveitemnum-promoted).
-The four constructor-backed functions listed below remain guarded.
 
-The placement-new null-branch blocker occurs in `MenuItemSelectInit`,
-`MenuModeMalloc`, `IsAskExtend` and `MenuItemDebugKey`. Retail branches on `v0`
-and copies the returned pointer in the delay slot. The draft copies it before
-branching on the saved register. Depth-eight native action-character construction preserves the retail
-base/derived constructor operations; allocation scheduling still differs. These functions require
-the dedicated constructor investigation before further allocation experiments.
+Before placement conversion, the null-branch blocker occurred in
+`MenuItemSelectInit`, `MenuModeMalloc`, `IsAskExtend` and `MenuItemDebugKey`.
+Retail branched on `v0` and copied the returned pointer in its delay slot;
+those drafts copied first and branched on the saved register. Depth-eight
+native action-character construction preserved the retail base/derived
+operations but retained the allocation schedule difference. Three callers
+now pass with the documented rows and natural source; `IsAskExtend` remains
+guarded with independent residuals.
 
 ## Weapon buildup drawing under the verified profile
 
@@ -281,3 +292,26 @@ passes all `0x1B0E8` allocated unit bytes and 5,764 resolved relocations.
 width, initialization-order, indexed item-limit and compiler-control probes.
 At that point LRCheck, CalcTex and CheckEnableHaveItemNum remained at 2/220,
 7/832 and 13/212 words; the night run later promoted all three functions.
+
+## Ridepod attribute layout residual
+
+`ROBOPART_USED` currently stores ten halfwords in `status` at +0x10: two
+parameters followed by eight attributes at +0x14. `MenuItemDebugKey`'s typed
+attribute view and index temporaries are required by the matching native form;
+replacing them with direct `status[status_index]` changes the function and local
+static numbering. This is a recorded layout residual, not evidence that all ten
+entries are the same kind of parameter.
+
+A private header-only layout probe splits `status[2]` and `attribute[8]` without
+changing the 0x5C record size or unrelated defence types. Its source uses direct
+attribute operations and preserves the retail cap of the following parameter:
+`status[1]` at cursor zero, `attribute[0]` at cursor one. Compilation and section
+fixup succeed, but the LOCAL function grows to 0x16D8 bytes beyond retail's
+0x16D0 padded extent (0x16CC body). The matching ten-entry view remains active.
+
+The earlier split/direct zero retained cross-array cap accesses and unmigrated
+producer writes, and also changed an unrelated defence field; it does not prove
+a safe complete layout correction. A future owning-header change must migrate
+`CopyDataRoboPart`'s attribute stores and preserve the cross-group cap explicitly.
+The safe proposal includes those producer changes, but this caller probe does
+not compile or validate the producer.
