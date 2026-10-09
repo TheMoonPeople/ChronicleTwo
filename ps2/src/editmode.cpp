@@ -1325,21 +1325,6 @@ static float GetGeoMapLimitHeight(int map_kind) {
 
 /**
  *
- * Part attributes that control cursor placement, snapping and help.
- *
- */
-enum EditCursorAttribute {
-    EDIT_CURSOR_ATTR_NO_REMOVE_FOCUS = 0x1, /**< Excludes a part from removal focus. */
-    EDIT_CURSOR_ATTR_NO_PREVIEW = 0x2,     /**< Suppresses the selected placement preview. */
-    EDIT_CURSOR_ATTR_QUARTER_TURN = 0x8,   /**< Restricts part rotation to quarter turns. */
-    EDIT_CURSOR_ATTR_MAGNET_HELP = 0x20,   /**< Shows the magnet toggle in placement help. */
-    EDIT_CURSOR_ATTR_LINE = 0x100,         /**< Snaps a line part only while the cursor is still. */
-    EDIT_CURSOR_ATTR_WALL = 0x200,         /**< Places the part on a selected wall plane. */
-    EDIT_CURSOR_ATTR_ANY_HEIGHT = 0x10000, /**< Bypasses the placement altitude limit. */
-};
-
-/**
- *
  * System messages for rejected Georama placement and paint requests.
  *
  */
@@ -1525,11 +1510,11 @@ void EditMode(CScene *scene) {
             if (info != NULL) {
                 attr = info->attr;
             }
-            if ((info != NULL && (attr & EDIT_CURSOR_ATTR_QUARTER_TURN)) || (MagnetPartsFlag != 0 && !(attr & EDIT_CURSOR_ATTR_LINE))) {
+            if ((info != NULL && (attr & EDIT_PARTS_ATR_QUARTER_TURN)) || (MagnetPartsFlag != 0 && !(attr & EDIT_PARTS_ATR_LINE))) {
                 turn_step = EDIT_ANGLE_90;
             }
             river = (attr & EDIT_PARTS_ATR_RIVER) != 0;
-            any_height = (attr & EDIT_CURSOR_ATTR_ANY_HEIGHT) != 0;
+            any_height = (attr & EDIT_PARTS_ATR_ANY_HEIGHT) != 0;
             if (pad != NULL && pad->Btn(PAD_BTN_EDIT_TURN_DECREASE)) {
                 eCurRot -= turn_step;
             }
@@ -1537,10 +1522,10 @@ void EditMode(CScene *scene) {
                 eCurRot += turn_step;
             }
             eCurRot = map->AngleLimit(eCurRot);
-            if (info != NULL && (info->attr & EDIT_CURSOR_ATTR_QUARTER_TURN)) {
+            if (info != NULL && (info->attr & EDIT_PARTS_ATR_QUARTER_TURN)) {
                 eCurRot = map->GetEditAngle90(eCurRot);
             }
-            wall_parts = attr & EDIT_CURSOR_ATTR_WALL;
+            wall_parts = attr & EDIT_PARTS_ATR_WALL;
             if (wall_parts == 0 || PutSideMode == EDIT_PUT_SIDE_SELECT) {
                 eCurPos[0] += move_x;
                 eCurPos[2] += move_z;
@@ -1602,7 +1587,7 @@ void EditMode(CScene *scene) {
             mgSetProjection(400.0f);
             if (info != NULL) {
                 edit_name = info->edit_name;
-                if (edit_name == NULL || (info->attr & EDIT_CURSOR_ATTR_NO_PREVIEW)) {
+                if (edit_name == NULL || (info->attr & EDIT_PARTS_ATR_NO_PREVIEW)) {
                     edit_name = NULL;
                     PartsInfoID = -1;
                 } else {
@@ -1733,7 +1718,7 @@ void EditMode(CScene *scene) {
                                     *(u_long128 *) magnet_pos = *(u_long128 *) place_pos;
                                     int was_magnet = MagnetPartsFlag;
                                     magnet_rot = rot[1];
-                                    int line_parts = (place_info->attr & EDIT_CURSOR_ATTR_LINE) != 0;
+                                    int line_parts = (place_info->attr & EDIT_PARTS_ATR_LINE) != 0;
                                     MagnetPartsFlag = 0;
                                     if (!line_parts || (line_parts && !moving)) {
                                         MagnetPartsFlag = map->MagnetParts(place_info, magnet_pos, &magnet_rot);
@@ -1754,7 +1739,7 @@ void EditMode(CScene *scene) {
                                         sndSePlay(GetSystemSndID(), SYSTEM_SE_MAGNET, 0);
                                     }
                                 }
-                                if (place_info->attr & EDIT_CURSOR_ATTR_MAGNET_HELP) {
+                                if (place_info->attr & EDIT_PARTS_ATR_MAGNET_HELP) {
                                     SetHelpMes(EDIT_HELP_PLACE_MAGNET, MagnetEnable, UndoEnable());
                                 } else {
                                     SetHelpMes(EDIT_HELP_PLACE, 0, UndoEnable());
@@ -1828,7 +1813,7 @@ void EditMode(CScene *scene) {
                         int parts_no = map->GetePlaceParts(probe);
                         eCurPos[1] = eCurPos[1] > probe[1] ? eCurPos[1] : probe[1];
                         CEditPartsInfo *remove_info = map->GetePartsInfoAtPlaceID(parts_no);
-                        if (remove_info != NULL && !(remove_info->attr & EDIT_CURSOR_ATTR_NO_REMOVE_FOCUS)) {
+                        if (remove_info != NULL && !(remove_info->attr & EDIT_PARTS_ATR_NO_REMOVE_FOCUS)) {
                             map->focus_parts = parts_no;
                         }
                         if (pad->Btn(PAD_BTN_EDIT_REMOVE)) {
