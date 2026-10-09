@@ -2,7 +2,7 @@
 
 Unit: `CDngFloorManager`, the tree map grid of one dungeon (rooms = floors, passage cells
 between them), built by running map scripts through `CScriptInterpreter` with the tag table
-`tree_map_tag`. No first-game counterpart found in `/home/adubbz/development/chronicle`.
+`tree_map_tag`. No first-game counterpart found in chronicle.
 
 Instances: `CScene + 0x2FA4` (CScene::Initialize calls Initialize there); `BattleAreaScene + 0x14`
 (DNG_BATTLE_AREA; BattleAreaScene = scene + 0x2F90, so the same object). `CDngFreeMap::floor_manager`
@@ -16,7 +16,10 @@ points at it.
 - Every data symbol of the unit is LOCAL (`tree_dngmap` CDngFloorManager*, `tree_glid_info`
   GLID_INFO* cursor, `tree_spi_stack` mgCMemory*, `tree_spi_rootinfo` DNGMAP_ROOT_INFO*,
   `tree_spi_roominfo` DNGMAP_ROOM_INFO*, `menu_dng_debug_glidcnt` s16 (sh/lh; symbol extent 4),
-  `tree_map_tag` SPI_TAG_PARAM[12] (11 + null), function-local statics). So no externs in the header.
+  `tree_map_tag` SPI_TAG_PARAM[12] (11 + null, callbacks with local linkage), function-local
+  statics). So no externs in the header. Every function is native; the unit has no `NONMATCHING`
+  guards, `INCLUDE_ASM` gaps, or data markers. The three script paths are inline literals and
+  the special forest titles keep their Shift-JIS bytes through hexadecimal escapes.
 - Global functions: all members + `GetCountSphedaClear`, `CheckFishingRecord`.
 
 ## CDngFloorManager (0x10)
@@ -49,10 +52,10 @@ DNG_FLOOR_FLAG_OPEN, [4] |= same. [0..2] from _ROOT_INFO args. Signedness of [1]
 | Off | Type | Name | Evidence |
 |---|---|---|---|
 | 0x0 | char* | unk_0 | _ROOM_INFO arg 4 (only when argc >= 4) via mgCopyString; no reader found |
-| 0x4 | char* | title | _ROOM_TITLE (default "err"); GetFloorTitle; CStartupEpisodeTitle shows it |
+| 0x4 | char* | title | _ROOM_TITLE (default from a local `char empty[4] = "err"`, which MWCC lowers to a float load/store); GetFloorTitle; CStartupEpisodeTitle shows it |
 | 0x8 | s8 | floor_id | _ROOM_INFO arg 1; GetDngMapFloorGlidInfo matches it (lb) |
 | 0x9 | s8 | order | _ROOM_INFO arg 2; NextFloorID/NextRoot only follow links to rooms with greater value. Arg 3 is read and discarded |
-| 0xC | u32 | flag | init 1; _ROOM_OPTION ORs keyword values (table at_886: start 2, exit 4, boss 8, sub 0x10; and always 1). dngmenu: 2 entrance, 4 drawn differently |
+| 0xC | u32 | flag | init 1; _ROOM_OPTION ORs keyword values from a local `MENU_SPI_ANALYZE_STRUCT1` aggregate of `DNGMAP_ROOM_FLAG` values (start 2, exit 4, boss 8, sub 0x10; and always 1). The 40-byte aggregate is followed by eight zero bytes of alignment before the next 16-aligned table. dngmenu: 2 entrance, 4 drawn differently |
 | 0x10 | s32 | fast_destroy_time | _ROOM_FLOOR_INFO arg 2; IsClearMostFastDestroy: `(SaveData+0x1A00 - battle+0x90)*6/5 < this` |
 | 0x14 | s8 | seal | _ROOM_FLOOR_INFO arg 5; IsSealFloor; LoadDungeonMapFile sets save bit `1 << (seal-1)` |
 | 0x15 | s8 | spheda | arg 6; IsPlaySubGame bit 1; DrawDngRoomInfo icon |
@@ -66,7 +69,7 @@ DNG_FLOOR_FLAG_OPEN, [4] |= same. [0..2] from _ROOT_INFO args. Signedness of [1]
 | 0x2E | s16[4] | link | _ROOM_LINK (argc entries); GetNextRoom, NextFloorID, NextRoot (negative = none) |
 | 0x36 | s16[4] | key_room | _ROOM_KEYROOM; GetKeyNextRoom (CMenuTreeMap::Step) |
 | 0x3E/0x40 | s16 | offset_x/y | init 0/0 (ROOM_INFO), boss/sub: 0/-26 unless args given; DrawRoomOne adds them |
-| 0x42 | s8 | tex_no | _ROOM_TEXNO; negative n -> `D_0036178C[abs(n)] + GetRandI(4)`; DrawRoomOne |
+| 0x42 | s8 | tex_no | _ROOM_TEXNO; negative n -> `offsetTable[abs(n) - 1] + GetRandI(4)` where `offsetTable` is `_ROOM_TEXNO`'s function-local `static int[] = {0, 4, 8, 12, 16}` (retail indexes it with a -4 addend); DrawRoomOne |
 | 0x44 | s8 | selectable | init 0 by `_ROOM_INFO`; CheckDrawGlidInfo sets 1 for every room; CMenuTreeMap::Step moves the cursor only onto rooms where it is 1 (signed load) |
 | 0x45 | u8 | visited | CheckDrawGlidInfo: save `visit_count` (0x12) != 0; dngmenu draws differently |
 | 0x46 | u8 | mark | CheckDrawGlidInfo: save flag OPEN && !UNK_2; DrawRoomOne bobbing mark |
@@ -84,24 +87,31 @@ DNG_FLOOR_FLAG_OPEN, [4] |= same. [0..2] from _ROOT_INFO args. Signedness of [1]
   only if party has bit 2 (USER_CHARA_MONICA), seal 2 only if bit 1 (USER_CHARA_MAX).
 - IsClearMostFastDestroy: 0 none; 1 first clear under target (adds medal, sets FAST_DESTROY_CLEAR);
   2 improved best time.
-- IsClearPractice(check_type): `diff_conditiontable[type + check_type*7]` must be non-zero:
-  check_type 0 allows types 0-4, check_type 1 type 5. Type 0: battle+0x5C and battle+0x10 <
-  practice_param. Types 1-4 test `battle+0x98` bits against check_bittable (1: row0, 3: row1,
-  4: row2) and cbit (type 2, row practice_param-1); then require bit `1<<practice_param`. Type 5:
+- IsClearPractice(check_type): `diff_conditiontable[check_type][type]` (function-local
+  `static s8[2][7]`) must be non-zero: check_type 0 allows types 0-4, check_type 1 type 5. Type 0:
+  battle+0x5C and battle+0x10 < practice_param. Types 1-4 test `battle+0x98` bits against
+  `check_bittable` (function-local `static u16[3][6]`; 1: row0, 3: row1, 4: row2) and `cbit`
+  (function-local `static u16[4][5]`, type 2, row practice_param-1); then require bit
+  `1<<practice_param`. The three tables keep their signed-byte/unsigned-halfword layouts. Type 5:
   2, or 1 when bit 0x80. Then 2 -> 3 if PRACTICE_CLEAR already set; 2/3 set PRACTICE_CLEAR; 2 adds
   a medal. Practice types are not named (meaning of the battle-area bits not established).
-- GetNextGlid(glid, &dir): search_tbl_1366 (dng 2), _1370 (dng 3), _1372 (else): int[4][3] of
-  candidate directions; first with link_glid non-NULL becomes *dir.
-- GetNextRoom(floor, dir, glid, unused, &found_dir): params 3/4 unused. at_1395 int[4][3]; tries
-  link[row[0]], link[row[1]].
+- GetNextGlid(glid, &dir): three block-scoped function-local statics each named `search_tbl`
+  (`int[GLID_DIR_NUM][3]` of `GLID_DIR` candidate directions; one for dng 2, one for dng 3, one
+  for the rest); first with link_glid non-NULL becomes *dir.
+- GetNextRoom(floor, dir, glid, unused, &found_dir): params 3/4 unused. A local `int[4][3]`
+  initialized directly; tries link[row[0]], link[row[1]].
 - GetDngMapNextFloorID(floor, root_type): dng 2 floor 8 -> 8 (no lookup). Returns floor_id (s8) of
   the onward room whose first passage cell has root.type == root_type; else 0.
 - GetDngMapNextRoot(floor): floor 100 -> 1; else OR of `1 << root.type` of onward passages.
-- GetFloorTitle: dng 1 floor 100 -> `fl_t_1467[min(LanguageCode,1)]` (Japanese / "Wonder Forest").
+- GetFloorTitle: dng 1 floor 100 -> `fl_t[min(LanguageCode,1)]` (function-local `static char *[2]`:
+  Japanese / "Wonder Forest").
 - GetCountSphedaClear: 7 dungeons x 0x28 floors, counts `spheda_clear != 0`; stops a dungeon at
   the first NULL record.
 - CheckFishingRecord(size): returns 1 (and adds a medal, sets FISHING_CLEAR) when newly beaten.
-- CheckDrawGlidInfo uses `at_1259` = floors per dungeon {9,16,25,21,23,29,39}.
+- CheckDrawGlidInfo uses a floor-count initializer {9,16,25,21,23,29,39} (floors per dungeon).
+- `IsClearMostFastDestroy` converts the 64-bit frame counters with `(int) save->play_time -
+  (int) scene->subject_counter`; MWCC loads only the low words. `_TREE_MAPINFO` allocates with
+  `new (...) GLID_INFO[room_count]`. `menu_GetBattleAreaScene()` returns `DNG_BATTLE_AREA *`.
 
 ## Unresolved
 - GLID_INFO 0x6/0x8, room 0x0 string, 0x4C meaning; root [1]/[2] signedness (0x44 is `selectable`).

@@ -111,69 +111,9 @@ static SPI_TAG_PARAM tree_map_tag[] = {
 };
 
 /**
- * Practice conditions checked during each challenge phase.
- */
-static s8 diff_conditiontable_1102[2][7] = {
-    {1, 1, 1, 1, 1, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0},
-};
-
-/**
- * Battle flags tested by three practice-condition groups.
- */
-static u16 check_bittable_1123[3][6] = {
-    {0x2, 0x4, 0x8, 0x10, 0x20, 0x40},
-    {0x1, 0x2, 0x4, 0x8, 0x10, 0x40},
-    {0x20, 0x2, 0x4, 0x8, 0x10, 0x1},
-};
-
-/**
- * Battle flags tested by the combination practice condition.
- */
-static u16 cbit_1158[4][5] = {
-    {0x4, 0x8, 0x10, 0x20, 0x40},
-    {0x2, 0x8, 0x10, 0x20, 0x40},
-    {0x2, 0x4, 0x10, 0x20, 0x40},
-    {0x2, 0x4, 0x8, 0x20, 0x40},
-};
-
-/**
- * Direction search order for the second dungeon.
- */
-static int search_tbl_1366[GLID_DIR_NUM][3] = {
-    {GLID_DIR_UP, GLID_DIR_LEFT, GLID_DIR_RIGHT},
-    {GLID_DIR_DOWN, GLID_DIR_RIGHT, GLID_DIR_LEFT},
-    {GLID_DIR_LEFT, GLID_DIR_DOWN, GLID_DIR_UP},
-    {GLID_DIR_RIGHT, GLID_DIR_UP, GLID_DIR_DOWN},
-};
-
-/**
- * Direction search order for the third dungeon.
- */
-static int search_tbl_1370[GLID_DIR_NUM][3] = {
-    {GLID_DIR_UP, GLID_DIR_LEFT, GLID_DIR_RIGHT},
-    {GLID_DIR_DOWN, GLID_DIR_RIGHT, GLID_DIR_LEFT},
-    {GLID_DIR_LEFT, GLID_DIR_UP, GLID_DIR_DOWN},
-    {GLID_DIR_RIGHT, GLID_DIR_UP, GLID_DIR_DOWN},
-};
-
-/**
- * Default dungeon direction search order.
- */
-static int search_tbl_1372[GLID_DIR_NUM][3] = {
-    {GLID_DIR_UP, GLID_DIR_LEFT, GLID_DIR_RIGHT},
-    {GLID_DIR_DOWN, GLID_DIR_LEFT, GLID_DIR_RIGHT},
-    {GLID_DIR_LEFT, GLID_DIR_UP, GLID_DIR_DOWN},
-    {GLID_DIR_RIGHT, GLID_DIR_UP, GLID_DIR_DOWN},
-};
-
-/**
- * Localized title of the special forest floor.
- */
-static char *fl_t_1467[2] = {"\x95|\x82\xA2\x90X", "Wonder Forest"};
-
-/**
+ *
  * Base texture indices of the randomized dungeon room groups.
+ *
  */
 static int offsetTable_911[] = {0, 4, 8, 12, 16};
 
@@ -643,6 +583,15 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
         return 0;
     }
 
+    static s8 diff_conditiontable[2][7] = {
+        {1, 1, 1, 1, 1, 0, 0},
+        {0, 0, 0, 0, 0, 1, 0},
+    };
+    static u16 check_bittable[3][6] = {
+        {0x2, 0x4, 0x8, 0x10, 0x20, 0x40},
+        {0x1, 0x2, 0x4, 0x8, 0x10, 0x40},
+        {0x20, 0x2, 0x4, 0x8, 0x10, 0x1},
+    };
     int result;
     int mask;
     int found;
@@ -664,7 +613,7 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
     active = scene->battle_clear;
     result = 0;
 
-    if (diff_conditiontable_1102[difficulty][practice_type] == 0) {
+    if (diff_conditiontable[difficulty][practice_type] == 0) {
         return 0;
     }
 
@@ -693,7 +642,7 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
 
                 if (practice_type == 1) {
                     for (i = 0; i < 6; i++) {
-                        if (mask & check_bittable_1123[0][i]) {
+                        if (mask & check_bittable[0][i]) {
                             found = 1;
                         }
                     }
@@ -701,7 +650,7 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
 
                 if (practice_type == 3) {
                     for (k = 0; k < 6; k++) {
-                        if (mask & check_bittable_1123[1][k]) {
+                        if (mask & check_bittable[1][k]) {
                             found = 1;
                         }
                     }
@@ -709,7 +658,7 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
 
                 if (practice_type == 4) {
                     for (l = 0; l < 6; l++) {
-                        if (mask & check_bittable_1123[2][l]) {
+                        if (mask & check_bittable[2][l]) {
                             found = 1;
                         }
                     }
@@ -719,11 +668,17 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
                     if ((mask & 0x1) || (mask & 0x20) || (mask & 0x40)) {
                         found = 1;
                     } else {
+                        static u16 cbit[4][5] = {
+                            {0x4, 0x8, 0x10, 0x20, 0x40},
+                            {0x2, 0x8, 0x10, 0x20, 0x40},
+                            {0x2, 0x4, 0x10, 0x20, 0x40},
+                            {0x2, 0x4, 0x8, 0x20, 0x40},
+                        };
 
                         r = info->practice_param - 1;
 
                         for (m = 0; m < 5; m++) {
-                            if (mask & cbit_1158[r][m]) {
+                            if (mask & cbit[r][m]) {
                                 found = 1;
                             }
                         }
@@ -953,11 +908,29 @@ GLID_INFO *CDngFloorManager::GetNextGlid(GLID_INFO *glid, int *index) {
     current = *index;
 
     if (dng_no == 2) {
-        row = search_tbl_1366[current];
+        static int search_tbl[GLID_DIR_NUM][3] = {
+            {GLID_DIR_UP, GLID_DIR_LEFT, GLID_DIR_RIGHT},
+            {GLID_DIR_DOWN, GLID_DIR_RIGHT, GLID_DIR_LEFT},
+            {GLID_DIR_LEFT, GLID_DIR_DOWN, GLID_DIR_UP},
+            {GLID_DIR_RIGHT, GLID_DIR_UP, GLID_DIR_DOWN},
+        };
+        row = search_tbl[current];
     } else if (dng_no == 3) {
-        row = search_tbl_1370[current];
+        static int search_tbl[GLID_DIR_NUM][3] = {
+            {GLID_DIR_UP, GLID_DIR_LEFT, GLID_DIR_RIGHT},
+            {GLID_DIR_DOWN, GLID_DIR_RIGHT, GLID_DIR_LEFT},
+            {GLID_DIR_LEFT, GLID_DIR_UP, GLID_DIR_DOWN},
+            {GLID_DIR_RIGHT, GLID_DIR_UP, GLID_DIR_DOWN},
+        };
+        row = search_tbl[current];
     } else {
-        row = search_tbl_1372[current];
+        static int search_tbl[GLID_DIR_NUM][3] = {
+            {GLID_DIR_UP, GLID_DIR_LEFT, GLID_DIR_RIGHT},
+            {GLID_DIR_DOWN, GLID_DIR_LEFT, GLID_DIR_RIGHT},
+            {GLID_DIR_LEFT, GLID_DIR_UP, GLID_DIR_DOWN},
+            {GLID_DIR_RIGHT, GLID_DIR_UP, GLID_DIR_DOWN},
+        };
+        row = search_tbl[current];
     }
 
     for (k = 0; k < 3; k++) {
@@ -1090,13 +1063,14 @@ char *CDngFloorManager::GetFloorTitle(int floor) {
     DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor);
 
     if (dng_no == 1 && floor == DNGMAP_FLOOR_SPECIAL) {
-        int language = LanguageCode;
+        static char *fl_t[2] = {"\x95|\x82\xA2\x90X", "Wonder Forest"};
+        int          language = LanguageCode;
 
         if (language > 1) {
             language = 1;
         }
 
-        return fl_t_1467[language];
+        return fl_t[language];
     }
 
     if (info == NULL) {
