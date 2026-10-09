@@ -1,5 +1,10 @@
 # effscript: reverse-engineering notes
 
+`CEffectScriptMan::BuildBase(int, ...)` and `AssignCharacter` are accepted
+native C++ callers with one scoped `CCharacter2` placement row each.
+`CreateEffSpt` and `SetCharacter` are the only remaining guarded functions.
+See [placement conversion](../satansfiddle/placement-new.md).
+
 Effect script manager. No counterpart in the first game's decompilation (nothing named
 EffectScript / EFF_SCRIPT / ES_SPRITE there).
 
@@ -107,14 +112,21 @@ The local stack access helpers are ordinary C++ static functions. The two `SetSt
 
 `CEffectScriptMan::SetCharacter` reaches `slot[group][slot]` at offset 0x184. Native two-dimensional indexing preserves the address but MWCC reverses both commutative `addu` operands (99.88%); staging the row first leaves one reversed `addu` (99.94%). Typed pointer and flat indexing variants were also tested and did not reproduce retail operand order, so the byte-offset expression remains pending an exact typed form. This function remains a `NONMATCHING` C++ draft with an active `INCLUDE_ASM` fallback. Four sprite-command stack advances likewise changed scheduling when written as `stack += n` or `&stack[n]`; their byte-address forms remain pending.
 
-The `CRunScript` member at offset 0x50 is constructed after raw `_EFF_SCRIPT` placement allocation succeeds. Native member placement new through the project overload adds an `operator new` call (98.11%); an inline void-pointer placement overload adds a second null check (98.13%). Native placement construction of the whole `_EFF_SCRIPT` scored 97.20%. The explicit constructor symbol remains for exact matching.
+Earlier `CreateEffSpt` forms constructed the `CRunScript` member at +0x50
+after raw `_EFF_SCRIPT` allocation. Member placement through the project
+overload added an `operator new` call (98.11%); an inline void-pointer
+overload added a second null check (98.13%). Whole-object construction scored
+97.20%, so that older source retained the explicit constructor symbol. The
+current guarded draft constructs the whole `_EFF_SCRIPT` naturally, as
+recorded below.
 
 An inline placement overload taking `CRunScript*` or `CRunScript&` still emits
 an extra null branch before the native constructor call (98.125%). Native
 placement construction of `_EFF_SCRIPT` shifts the branch and long-lived
 register assignments (97.203%). Splitting allocation from construction adds
-another guard (94.25%). All of these forms preserve construction semantics
-but fail retail object matching, so the original call remains.
+another guard (94.25%). These earlier forms preserved construction semantics
+but failed retail matching, so that source/profile boundary retained the
+original call.
 
 MWCC 3.0 accepts `script->run.CRunScript()` as source, but it constructs a
 temporary at a stack address instead of the `run` member; the result is both
@@ -134,8 +146,9 @@ into the saved script register, while retail moves first and branches on that
 register. It places the constructor argument in the call delay slot; retail
 places it in the branch delay slot and leaves the call delay slot empty. The
 new expression also swaps the saved registers used for the script and work
-token through the rest of `CreateEffSpt`. The original explicit call restores
-100% and remains pending a native C++ source form with the same schedule.
+token through the rest of `CreateEffSpt`. The original explicit call restored
+100% in that older comparison. This rejected-form result predates the current
+whole-object natural-construction draft.
 ## Pending code matches
 
 `_INTERSECTION_POINT` tests a segment against scene collision polygons and returns the hit
@@ -145,24 +158,25 @@ polygon cursor preserves retail register allocation; indexing from the original 
 changes it.
 ## Constructor call cleanup
 
-`BuildBase(int, ...)`, `CreateEffSpt(int, int, int)`, `AssignCharacter`, and
-`SetCharacter` retain C++ drafts under `NONMATCHING`; the matching build selects
-their retail `INCLUDE_ASM` bodies. Their `CCharacter2` allocations now use
-typed placement construction, which supplies the constructor chain without
-explicit vtable stores. The `CreateEffSpt` draft also constructs its
-`CRunScript` member through typed placement new and uses the named
-`RS_STACKDATA::val` union and `CMap::map_info` fields. These draft changes have
-not established byte matches.
+All four constructor callers use natural typed allocation. `BuildBase(int, ...)`
+and `AssignCharacter` are native with the scoped compiler conversion.
+`CreateEffSpt(int, int, int)` and `SetCharacter` retain `NONMATCHING` drafts
+and retail assembly bodies. The former constructs the whole `_EFF_SCRIPT`,
+including its `CRunScript` member, and uses the named `RS_STACKDATA::val`
+union and `CMap::map_info` fields. Its natural draft is still nonmatching.
 
-## Remaining constructor schedules
+## Earlier constructor schedules
 
-`AssignCharacter` and `BuildBase(int, ...)` each differ by exactly two
-instruction words with the pinned compiler profile. At caller +0xB4/+0xB8
-and +0x258/+0x25C respectively, retail tests operator-new's v0 result and
-copies it to s2 in the branch delay slot; the compiler copies first and
-tests s2. The existing natural character constructors account for the
-remaining initialization. Both are parked for the dedicated placement-new
-investigation, with no new constructor/header changes.
+Before scoped conversion, `AssignCharacter` and `BuildBase(int, ...)` each
+differed by two words with the pinned profile. At +0xB4/+0xB8 and
++0x258/+0x25C respectively, retail tested operator-new's v0 result and copied
+to s2 in the branch delay slot; the candidate copied first and tested s2.
+The natural character constructors accounted for the other initialization.
+Those baseline forms were parked without constructor/header changes; both
+callers now have accepted native bodies.
+
+The following measurements document the earlier forms of the two functions
+that remain guarded.
 
 `SetCharacter` differs by 24/168 words, body 0x29C within retail 0x2A0.
 Both allocation paths exhibit the same null-test issue. In the registered

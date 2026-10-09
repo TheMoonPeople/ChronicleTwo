@@ -1735,6 +1735,22 @@
         "expected_matches": 3
       },
       {
+        "translation_unit": "effscript.cpp",
+        "function": "AssignCharacter__16CEffectScriptManFP11_EFF_SCRIPTi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "effscript.cpp",
+        "function": "BuildBase__16CEffectScriptManFiP1iP1iP9mgCMemoryi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "event_func.cpp",
         "function": "_COPY_CHARA__FP12RS_STACKDATAi",
         "allocator": "__nw__FUiP1",

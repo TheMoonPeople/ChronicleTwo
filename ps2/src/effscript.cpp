@@ -282,8 +282,6 @@ extern char at_1340__2[];
 
 extern char at_1341__2[];
 
-extern char at_1705[];
-
 extern char at_2025__3[];
 
 /**
@@ -495,14 +493,6 @@ void CEffectScriptMan::AddTexb() {
     }
 }
 
-extern char at_1099__2[];
-extern char at_1100[];
-extern char at_1101[];
-extern char at_1102__2[];
-extern char at_1103__5[];
-extern char at_1104__7[];
-
-#ifdef NONMATCHING
 int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_long128 *script, int script_size, mgCMemory *work, int texb) {
     mgCMemory *memory;
 
@@ -513,7 +503,7 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
     }
 
     if (memory == NULL) {
-        printf(at_1099__2);
+        printf("--- effect script (non build stack)!!! ---\n");
         return -1;
     }
 
@@ -526,7 +516,7 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
     EFF_SPT_BASE_DEF *definition = GetEffSptBaseDefPtr(base_no);
 
     if (definition == NULL) {
-        printf(at_1100, base_no);
+        printf("--- effect script (non define[%d])!!! ---\n", base_no);
         return -1;
     }
 
@@ -539,7 +529,7 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
     }
 
     if (index >= EFF_SPT_BASE_MAX) {
-        printf(at_1101);
+        printf("--- effect script (base max)!!! ---\n");
         return -1;
     }
 
@@ -547,7 +537,7 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
 
     if (texb <= -1) {
         if (texb_used >= texb_num) {
-            printf(at_1102__2);
+            printf("--- effect script (texb max)!!! ---\n");
             return -1;
         }
 
@@ -555,7 +545,7 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
     }
 
     if (texture_block < texb_start || texture_block >= texb_start + texb_num) {
-        printf(at_1103__5, texb_start, texb_num, texture_block);
+        printf("--- effect script (texb error [st %d][num %d][load %d])!!! ---\n", texb_start, texb_num, texture_block);
         return -1;
     }
 
@@ -576,11 +566,7 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
 
                 if (data != NULL) {
                     CCharacter2 *source = GetBaseChara(base_no);
-                    CCharacter2 *model;
-
-                    model = new (memory->Alloc(0x68)) CCharacter2;
-
-                    base[index]->chara = model;
+                    base[index]->chara = new (memory->Alloc(0x68)) CCharacter2;
                     base[index]->chara->Initialize();
 
                     if (source != NULL) {
@@ -594,7 +580,7 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
                             textures->DeleteBlock(base[index]->texb);
                         }
 
-                        base[index]->chara->LoadPackNoLine((u_int *) data, at_1104__7, memory, memory, memory, base[index]->texb, NULL);
+                        base[index]->chara->LoadPackNoLine((u_int *) data, "info.cfg", memory, memory, memory, base[index]->texb, NULL);
 
                         if (texb <= -1) {
                             texb_used++;
@@ -658,9 +644,6 @@ int CEffectScriptMan::BuildBase(int base_no, u_long128 *data, int data_size, u_l
     base_num++;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", BuildBase__16CEffectScriptManFiP1iP1iP9mgCMemoryi);
-#endif
 
 int CEffectScriptMan::BuildBase(char *name, u_long128 *path_file, int path_size, u_long128 *pack_file,
                                 int pack_size, mgCMemory *memory, int level) {
@@ -1307,26 +1290,21 @@ void CEffectScriptMan::DeleteSprite(_ES_SPRITE *sprite) {
     memory->Free((u_long128 *) sprite);
 }
 
-#ifdef NONMATCHING
 int CEffectScriptMan::AssignCharacter(_EFF_SCRIPT *script, int count) {
     if (count > EFF_SPT_SUB_CHARA_MAX) {
         return 0;
     }
 
     int        size = count * (script->chara->GetCopySize() + 0x68);
-    u_long128 *token = work_memory->StartStackMode(3, size);
+    u_long128 *token = work_memory->StartStackMode(MG_STACK_MODE_FIT, size);
 
     if (token == 0) {
-        printf(at_1705, size);
+        printf("------- es work max!! (assign character[%d]) ---------\n", size);
         return 0;
     }
 
     for (int i = 0; i < count; i++) {
-        CCharacter2 *chara;
-
-        chara = new (work_memory->Alloc(0x68)) CCharacter2;
-
-        script->sub_chara[i] = chara;
+        script->sub_chara[i] = new (work_memory->Alloc(0x68)) CCharacter2;
         script->chara->Copy(*script->sub_chara[i], work_memory);
     }
 
@@ -1335,9 +1313,6 @@ int CEffectScriptMan::AssignCharacter(_EFF_SCRIPT *script, int count) {
     work_memory->EndStackMode();
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", AssignCharacter__16CEffectScriptManFP11_EFF_SCRIPTi);
-#endif
 
 int CEffectScriptMan::SetScriptProgNo(int prog_no, int group, int slot) {
     if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot < 0 || slot >= EFF_SPT_OWNER_SLOT_MAX) {
@@ -5795,19 +5770,12 @@ void SetEffectScriptFunc() {
 }
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1099__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1100__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1101__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1102__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1103__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1104__7__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1336__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1337__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1338__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1339__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1340__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1341__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1705__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2025__3__DATA);
 
 // Small uninitialised data (.sbss)
