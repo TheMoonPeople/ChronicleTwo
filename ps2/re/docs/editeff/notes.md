@@ -1,9 +1,15 @@
 # editeff: reverse-engineering notes
 
-`EditSetPlaceAnime` is native C++ with one after-inline conversion of a
-`CMapParts` placement construction. Its constructor definition is active,
-and no `NONMATCHING` guards or assembly fallbacks remain in this unit.
-Complete-object and PAL verification pass; see
+## Source status
+
+Every function is native C++ with no `NONMATCHING` guards, `INCLUDE_ASM`
+fallbacks or data markers; all data (1711 bytes) is typed native definitions,
+and both effect vtables are emitted natively. `EditSetPlaceAnime`
+(`EditSetPlaceAnime__FiP9CMapParts`, 0x300C40, GLOBAL, symbol size 0x264
+inside the 0x270 extent) depends on the placement-new row for
+`__nw__FUiP1` / `__ct__9CMapPartsFv`, `after_constructor_inline`,
+`expected_matches: 1`, which reproduces the allocation-result branch/copy
+schedule at +0xC0/+0xC4 of its `new (CurPartsBuff) CMapParts`; see
 [placement conversion](../satansfiddle/placement-new.md).
 
 Edit-mode (Georama) effects: star burst on placing a part, paint-drop splash on painting
@@ -18,14 +24,14 @@ No first-game counterpart (the first game has no `editeff` unit). The header is 
 | `PaintEffect` | 0x37E618 sbss | 4 | LOCAL | `CPaintEffect *`; `__construct_new_array(mem, CPaintEffect ctor, 0, 0x400, 1)` in EditSetEffectBuffer (`new CPaintEffect[1]`, 0x410 bytes with array header, Alloc 0x42 qw). |
 | `_StarEffect` | 0x1F588C0 bss | 0x300 | LOCAL | `CStarEffect[3]`; constructed in `__sinit_editeff_cpp` by `__construct_array(.., ctor, 0, 0x100, 3)`. |
 | `CurPartsBuff` | 0x1F58BC0 bss | 0x30 | LOCAL | `mgCMemory`; `Init()` in sinit (inline ctor), `stSetBuffer(Alloc(0x5DC), ..)` in EditSetEffectBuffer; removal copies of CMapParts are `new (CurPartsBuff)`. |
-| `at_1037__6` | 0x1F58BF0 | 0x20 | LOCAL | function-local static in CStarEffect::Draw (two float[4] size rows; [3] and [7] read). Compiler-generated. |
-| `at_1112__3` | 0x1F58C10 | 0x10 | LOCAL | function-local static in CPaintEffect::Draw (float[4]; [2],[3] used as size z/w). |
+| (anonymous) | 0x1F58BF0 | 0x20 | LOCAL | compiler-generated zero template in CStarEffect::Draw (two float[4] size rows; [3] and [7] read). |
+| (anonymous) | 0x1F58C10 | 0x10 | LOCAL | compiler-generated zero template in CPaintEffect::Draw (float[4]; [2],[3] used as size z/w); the four-float vector is initialised at its copy point inside the particle loop. |
 | `PlaceAnime` | 0x1F58C20 bss | 0x1B0 | GLOBAL | `CPlaceAnime[3]` (stride 0x90). Only global datum -> the only `extern` in the header. |
 
 The LOCAL ones must be `static` in the .cpp (cannot be `extern`ed in the header).
-`.data` literals: `at_1038__6`/`at_1039__4` (star uv0/uv1 rows, 2 x float[4]), `at_1040__5`
-(colour {128,128,128,_}), `at_1106__3`/`at_1107__4` (paint uv0/uv1 rows), `at_821__5` = "haichi_eff"
-(texture name, rodata). All function-local initialised arrays copied onto the stack.
+`.data` literals: the star uv0/uv1 rows (2 x float[4]), the star colour {128,128,128,_}, the paint
+uv0/uv1 rows, and the `"haichi_eff"` texture name (rodata, an inline literal at the lookup). All
+function-local initialised arrays are copied onto the stack.
 
 All 26 non-member functions are GLOBAL (none in local_symbols.tsv).
 
@@ -114,66 +120,31 @@ Other types: first free slot, else greatest frame.
   EditPlaceEffect's CEditParts is passed to CMapParts::GetBBox (CEditParts : CMapParts).
 - Return types: int for every state/bool-returning function (`EditPEffectEndCheck` returns 3 or 0/1).
 
-`EditSetPlaceAnime` allocates a `CMapParts` in the temporary parts stack, then
-initializes its base objects and frame in retail order. An earlier native
-placement `new CMapParts` form scored 79.74% because that constructor performed
-different work and scheduling; the explicit sequence was retained at that
-source/profile boundary.
+## Source forms the matches depend on
 
-An earlier typed inline placement overload for `mgCFrame*` and native member
-placement construction scored 98.30%: MWCC inserted a second null branch before
-the frame constructor and moved a vtable store into the branch delay slot.
-That trial retained the manual constructor call. Earlier typed array indexing
-of `_StarEffect` and `PlaceAnime` changed increment/address scheduling in three
-tested functions (99.11%, 99.62%, and 99.41%), so those trials retained byte-offset
-expressions. These results describe the earlier forms, not the current typed
-placement-animation body.
-
-## Native static initialization
-
-Native `_StarEffect[3]` and `CurPartsBuff` globals emit the retail array-construction and memory-initialization calls. The generated 64-byte initializer matches exactly. The existing data/vtable objdiff scores are unchanged from the handwritten initializer.
-
-Further earlier native-constructor trials isolated the same obstacle. A placement
-`operator new(size_t, mgCFrame&)` overload returning the member address made
-MWCC emit an extra `beqz` before `__ct__8mgCFrameFv` (98.30%). The
-source expressions `target->frame.mgCFrame()` and
-`target->frame.mgCFrame::mgCFrame()` compile to a temporary at `sp+0x50`,
-not the frame at `target+0xC0`; each scores 99.95% but is semantically wrong.
-The exact retail call passes `target+0xC0` in `a0` and uses the `CMapParts`
-vtable store as the constructor call's delay slot. Restoring the explicit
-constructor alias gave `EditSetPlaceAnime` and every other function 100% in
-that earlier comparison. The current body instead uses natural construction.
-## Constructor call cleanup
-
-`EditSetPlaceAnime` has an active C++ definition that constructs `CMapParts`
-through natural placement new; that constructor constructs its `mgCFrame`
-member. Earlier member-placement forms changed MWCC code generation. The
-current natural body passes complete-object and PAL verification.
-
-## Constructor-backed allocations
-
-`EditSetPlaceAnime` uses native placement construction of the temporary
-`CMapParts`. The after-inline conversion reproduces its allocation-result
-branch/copy schedule without changing the constructor operations.
-
-## October 8 merged-base constructor visibility
-
-At the merged-base source/profile boundary before placement conversion, the
-guarded `EditSetPlaceAnime` draft made the same natural inline `CMapParts`
-constructor definition available that editmap used. This reduced the
-pinned-profile comparison from 106/156 differing words
-(0x1FC/0x270 bytes) to 2/156 (0x264/0x270; the retail tail is zero padding).
-All instructions except the allocation-result branch/copy pair at +0xC0
-and +0xC4 agree, including the frame and function-point initialization.
-The constructor definition was inside `NONMATCHING` and had no active-unit
-effect in that measurement.
-
-The remaining blocker was placement-new allocation-result scheduling, with
-the draft retained pending evidence for a `v0` guard before the saved-pointer
-copy. No shared-header change was required. The current conversion row resolves
-that schedule and activates the natural constructor and caller.
-
-With the closer draft still guarded at that earlier boundary, the complete
-editeff object passed with 0x1C80 bytes and 265 resolved relocations, and coverage
-was 27 matched functions and one guarded draft. Integrated allocated ELF
-contents and the inherited verifier output were unchanged by that guarded edit.
+- `EditSetEffectBuffer` and `EditPlaceEffect` index `_StarEffect[i]` at each
+  use (the optimizer forms retail's 0x100 induction). A `CStarEffect *`
+  element local is coloured before the offset induction value and swaps their
+  registers.
+- Each star effect's particles are
+  `new (memory->Alloc(blocks + 2)) EditStarParticle[*count]` (POD array,
+  no constructor); `PaintEffect` is `new (memory->Alloc(0x42)) CPaintEffect[1]`.
+- `CStarEffect::ParamInit` copies the local position into
+  `particle[i].position` as a plain quadword; the `*(u_long128 *)` vector
+  copies are the accepted quadword-copy convention.
+- `EditSetPlaceAnime`: the two slot searches index the real `PlaceAnime`
+  array with their own `for (int i = 0; ...)` counters, read
+  `PlaceAnime[i].state` directly (a `candidate->state` read leaves 12 words),
+  keep each candidate pointer local to its iteration and the greatest-frame
+  accumulator local to the second branch. The temporary `CMapParts` is built
+  by natural placement new; the real inline `CMapParts` constructor
+  constructs its `mgCFrame` member at +0xC0 and the retail call uses the
+  `CMapParts` vtable store as the constructor call's delay slot. A placement
+  `operator new(size_t, mgCFrame&)` overload makes MWCC emit an extra `beqz`
+  before `__ct__8mgCFrameFv`, and `target->frame.mgCFrame()` constructs a
+  temporary at `sp+0x50` instead of the member.
+- `effect_idle` (0) is the free state of an effect or animation slot;
+  `place_anime_count` (3) is the `PlaceAnime` array length.
+- The native `_StarEffect[3]` and `CurPartsBuff` definitions emit the retail
+  array-construction and memory-initialisation calls in `__sinit_editeff_cpp`
+  (64-byte initialiser).
