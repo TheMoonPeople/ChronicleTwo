@@ -1,10 +1,17 @@
 # menuaqua: reverse-engineering notes
 
+`CAquarium::SettingAqua` is accepted native C++ with one scoped placement row
+for its `CCharacter2` love model and two 47.0f argument rows for bubble
+initialization and object positioning. See
+[placement conversion](../satansfiddle/placement-new.md).
+Its resource names, bubble counts and water and fish position vectors are
+inline literals and initializers, so `at_2935`, `at_2975`, `at_2976`,
+`at_3016` and `at_3150`-`at_3164` are emitted natively rather than kept as
+assembly markers.
+
 `CAquarium::Draw` draws the fish, aquarium frames, bubbles, water reflection,
 and menu overlays in retail order. Its native body is exact.
-`CAquarium::SettingAqua` still uses a retail assembly gap.
 `GyoraceMenuDraw` is native and exact.
-The `SettingAqua` draft constructs its `love_chara` member as a `CCharacter2`.
 
 `CAquarium::Step`, `DrawFishParam` and `CAquarium::ColCheck` are native and
 exact; see [night-20261008.md](night-20261008.md). `GyoraceMenuKey` is native
@@ -299,13 +306,16 @@ Giving the fish, obstacle, and effect-clear loops distinct local indices scores 
 ColCheck (366 matching instructions, 80 argument mismatches); the whole unit still has the single
 ColCheck byte mismatch. This improves on the declaration-position swap but remains below baseline.
 
-## Current status and historical measurements
+## Earlier SettingAqua measurement
 
-- `SettingAqua__9CAquariumFv`: **2/752 words**, compiled **0xBB4**, retail extent
-  **0xBC0**. At **+0xA00/+0xA04**, placement new for `CCharacter2` branches on
-  `v0` and copies it to `s3` in the retail delay slot. MWCC instead copies first
-  and branches on `s3`. Parked under the placement-new stop rule; reconsider
-  when the dedicated constructor/null-branch lane supplies a natural solution.
+Before the scoped conversion and floating-argument rows, `SettingAqua__9CAquariumFv`
+differed in **2/752 words**, with **0xBB4** compiled bytes in retail's **0xBC0**
+extent. At **+0xA00/+0xA04**, retail branched on `v0` and copied to `s3` in the
+delay slot; that earlier MWCC form copied first and branched on `s3`. The
+placement-new stop rule kept that source/profile baseline guarded. The current
+caller is native.
+
+## Current status and historical measurements
 
 - `ColCheck__9CAquariumFi` is native and exact: its declared retail and
   native symbol sizes are **0x6F8** in a **0x700** aligned reservation. The

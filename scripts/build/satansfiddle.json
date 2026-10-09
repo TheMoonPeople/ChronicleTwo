@@ -1718,6 +1718,24 @@
         "expected_matches": 1
       },
       {
+        "translation_unit": "menuaqua.cpp",
+        "function": "SettingAqua__9CAquariumFv",
+        "value_type": "binary32",
+        "value_bits": "0x423c0000",
+        "evaluate_first": true,
+        "callee": "Initialize__7CBubbleFP9mgCMemoryPfif",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "menuaqua.cpp",
+        "function": "SettingAqua__9CAquariumFv",
+        "value_type": "binary32",
+        "value_bits": "0x423c0000",
+        "evaluate_first": true,
+        "callee": "SetPosition__9mgCObjectFfff",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "menusys.cpp",
         "function": "MenuItemSelectInit__FP9mgCMemoryPii",
         "callee": "Set__9mgRect<f>Fffff",
@@ -1864,6 +1882,14 @@
       {
         "translation_unit": "mdslist.cpp",
         "function": "CreateChara__FPUiPcP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "menuaqua.cpp",
+        "function": "SettingAqua__9CAquariumFv",
         "allocator": "__nw__FUiP1",
         "constructor": "__ct__11CCharacter2Fv",
         "conversion": "after_constructor_inline",

@@ -219,33 +219,6 @@ struct aqua_light_env {
     int           plight_enable;     /**< Whether the point light is enabled. */
 };
 
-/**
- *
- * Stores bubble counts for the three aquarium groups.
- *
- */
-struct aqua_bubble_counts {
-    int num[3]; /**< Bubble count for each group. */
-};
-
-extern "C" aqua_bubble_counts at_2935;
-extern "C" aqua_quad          at_2975;
-extern "C" aqua_quad          at_2976;
-extern "C" aqua_quad          at_3016;
-extern "C" char               at_3150[];
-extern "C" char               at_3151[];
-extern "C" char               at_3152[];
-extern "C" char               at_3153[];
-extern "C" char               at_3154[];
-extern "C" char               at_3155[];
-extern "C" char               at_3156[];
-extern "C" char               at_3157[];
-extern "C" char               at_3158__2[];
-extern "C" char               at_3159__2[];
-extern "C" char               at_3160__2[];
-extern "C" char               at_3161__2[];
-extern "C" char               at_3163__2[];
-extern "C" char               at_3164__3[];
 extern "C" aqua_vector        at_3290;
 extern "C" aqua_vector        at_3291__3;
 extern "C" aqua_vector        at_3310;
@@ -4089,7 +4062,6 @@ int CAquarium::LoadFish(int no, CGameDataUsed *data) {
     return 0;
 }
 
-#ifdef NONMATCHING
 void CAquarium::SettingAqua() {
     int                fish_num = aquarium_fish_maxtbl[m_aquarium_para->active_tank];
     int                aqua_no = m_aquarium_para->active_tank;
@@ -4100,21 +4072,15 @@ void CAquarium::SettingAqua() {
     u8                *image;
     mgCMemory          bubble_stack;
     char               path[0x40];
-    aqua_quad          water_min;
-    aqua_quad          water_max;
-    CGameDataUsed     *fish_data[6];
-    NEXT_THINK_PARAM   param;
-    aqua_quad          pos;
 
     int rest = MenuMainTextureReadBuf.stGetRest();
     bubble_stack.stSetBuffer(MenuMainTextureReadBuf.stGetTop(), rest);
     float (*generate_pos)[4] = aqua_bubble_generate_pos[aqua_no];
-    aqua_bubble_counts counts;
-    counts = at_2935;
+    int counts[3] = {224, 224, 24};
 
     for (i = 0; i < 3; i++) {
-        AquaBubble[i] = new ((u_long128 *) bubble_stack.Alloc(sizeof(CBubble) / 16 + 2)) CBubble;
-        AquaBubble[i]->Initialize(&bubble_stack, generate_pos[i], counts.num[i], 47.0f);
+        AquaBubble[i] = new (bubble_stack.Alloc(sizeof(CBubble) / 16 + 2)) CBubble;
+        AquaBubble[i]->Initialize(&bubble_stack, generate_pos[i], counts[i], 47.0f);
     }
 
     for (int i = 0; i < 6; i++) {
@@ -4134,9 +4100,9 @@ void CAquarium::SettingAqua() {
         fish_stack[i].stSetBuffer(aqua_stack.stGetTop() - (i + 1) * 0x319C, 0x319C);
     }
 
-    sprintf(path, at_3150, aqua_no);
+    sprintf(path, "menu/aqua/pack/aqua%d.pak", aqua_no);
 
-    if (LoadFile2(path, load_buf, NULL, 0) == 0) {
+    if (LoadFile2(path, load_buf, NULL, LOAD_FILE_READ) == 0) {
         return;
     }
 
@@ -4144,7 +4110,7 @@ void CAquarium::SettingAqua() {
     textures->DeleteBlock(ground_tex_block);
     aqua_stack.stack_used = 0;
     aqua_stack.lock = 0;
-    file = GetPackFile((u_int *) load_buf, at_3151, &size);
+    file = GetPackFile((u_int *) load_buf, "aqua.img", &size);
 
     if (file != NULL) {
         image = (u8 *) aqua_stack.Alloc(size / 16 + 1);
@@ -4152,13 +4118,13 @@ void CAquarium::SettingAqua() {
         textures->EnterIMGFile(image, aqua_tex_block, &aqua_stack, NULL);
     }
 
-    file = GetPackFile((u_int *) load_buf, at_3152, &size);
+    file = GetPackFile((u_int *) load_buf, "aqua.mds", &size);
 
     if (file != NULL) {
         aqua_frame = mgLoadMDSFile((MDS_HEADER *) file, &aqua_stack, NULL, NULL);
     }
 
-    file = GetPackFile((u_int *) load_buf, at_3153, &size);
+    file = GetPackFile((u_int *) load_buf, "ground.img", &size);
 
     if (file != NULL) {
         image = (u8 *) aqua_stack.Alloc(size / 16 + 1);
@@ -4166,13 +4132,13 @@ void CAquarium::SettingAqua() {
         textures->EnterIMGFile(image, ground_tex_block, NULL, NULL);
     }
 
-    file = GetPackFile((u_int *) load_buf, at_3154, &size);
+    file = GetPackFile((u_int *) load_buf, "ground.mds", &size);
 
     if (file != NULL) {
         ground_frame = mgLoadMDSFile((MDS_HEADER *) file, &aqua_stack, NULL, NULL);
     }
 
-    file = GetPackFile((u_int *) load_buf, at_3155, &size);
+    file = GetPackFile((u_int *) load_buf, "aqua_glass.img", &size);
 
     if (file != NULL) {
         image = (u8 *) aqua_stack.Alloc(size / 16 + 1);
@@ -4180,14 +4146,14 @@ void CAquarium::SettingAqua() {
         textures->EnterIMGFile(image, glass_tex_block, NULL, NULL);
     }
 
-    file = GetPackFile((u_int *) load_buf, at_3156, &size);
+    file = GetPackFile((u_int *) load_buf, "aqua_glass.mds", &size);
 
     if (file != NULL) {
         glass_frame = mgLoadMDSFile((MDS_HEADER *) file, &aqua_stack, NULL, NULL);
     }
 
-    strcpy(textures->name_suffix, at_3157);
-    file = GetPackFile((u_int *) load_buf, at_3158__2, &size);
+    strcpy(textures->name_suffix, "aqua");
+    file = GetPackFile((u_int *) load_buf, "water.img", &size);
 
     if (file != NULL) {
         image = (u8 *) aqua_stack.Alloc(size / 16 + 1);
@@ -4195,13 +4161,13 @@ void CAquarium::SettingAqua() {
         textures->EnterIMGFile(image, water_tex_block, NULL, NULL);
     }
 
-    file = GetPackFile((u_int *) load_buf, at_3159__2, &size);
+    file = GetPackFile((u_int *) load_buf, "aqua_mizu.mds", &size);
 
     if (file != NULL) {
         mizu_frame = mgLoadMDSFile((MDS_HEADER *) file, &aqua_stack, NULL, NULL);
     }
 
-    file = GetPackFile((u_int *) load_buf, at_3160__2, &size);
+    file = GetPackFile((u_int *) load_buf, "suimen.mds", &size);
 
     if (file != NULL) {
         suimen_frame = mgLoadMDSFile((MDS_HEADER *) file, &aqua_stack, NULL, NULL);
@@ -4209,7 +4175,7 @@ void CAquarium::SettingAqua() {
         suimen_frame->SetScale(0.99f, 1.0f, 1.0f);
     }
 
-    file = GetPackFile((u_int *) load_buf, at_3161__2, &size);
+    file = GetPackFile((u_int *) load_buf, "water_ref.img", &size);
 
     if (file != NULL) {
         image = (u8 *) aqua_stack.Alloc(size / 16 + 1);
@@ -4219,24 +4185,24 @@ void CAquarium::SettingAqua() {
 
     textures->name_suffix[0] = 0;
     mgCTexture *screen = textures->EnterTexture(water_tex_block, "AQUA_WATER_WORK", NULL, mgScreenWidth, mgScreenHeight, 0x20, NULL, 0, 0);
-    water_min = at_2975;
-    water_max = at_2976;
-    water = CreateWaterFrame(24, 16, water_min.v, water_max.v, &aqua_stack);
+    float water_min[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float water_max[4] = {68.0f, 0.0f, 43.0f, 1.0f};
+    water = CreateWaterFrame(24, 16, water_min, water_max, &aqua_stack);
 
     if (water != NULL) {
         water->SetTexture(screen);
-        float water_x = -34.0f;
-        water->SetPosition(water_x, 47.0f, -21.5f);
+        water->SetPosition(-34.0f, 47.0f, -21.5f);
     }
 
     naka_stack.stack_used = 0;
     naka_stack.lock = 0;
     naka_frame = NULL;
 
-    if (aqua_no == 0 && LoadFile2(at_3163__2, load_buf, &size, 0) != 0) {
+    if (aqua_no == 0 && LoadFile2("menu/aqua/aqua_naka.mds", load_buf, &size, LOAD_FILE_READ) != 0) {
         naka_frame = mgLoadMDSFile((MDS_HEADER *) load_buf, &naka_stack, NULL, NULL);
     }
 
+    CGameDataUsed *fish_data[6];
     CFishAquarium *aquarium = m_aquarium_para;
 
     for (i = 0; i < 6; i++) {
@@ -4260,6 +4226,7 @@ void CAquarium::SettingAqua() {
         }
     }
 
+    NEXT_THINK_PARAM param;
     for (i = 0; i < fish_num; i++) {
         if (fish_data[i] != NULL && LoadFish(i, fish_data[i]) != 0) {
             int think = AQUA_FISH_THINK_REST;
@@ -4292,20 +4259,20 @@ void CAquarium::SettingAqua() {
     }
 
     if (aqua_no == 2) {
-        pos = at_3016;
+        float pos[4] = {10.0f, 35.0f, 0.0f, 1.0f};
 
         if (fish[0] != NULL) {
-            pos.v[0] += GetRandF(6.0f);
-            pos.v[1] += GetRandF(2.0f);
-            pos.v[2] += 2.0f + GetRandF(6.0f);
-            fish[0]->SetPosition(pos.v);
+            pos[0] += GetRandF(6.0f);
+            pos[1] += GetRandF(2.0f);
+            pos[2] += 2.0f + GetRandF(6.0f);
+            fish[0]->SetPosition(pos);
         }
 
         if (fish[1] != NULL) {
-            pos.v[0] += GetRandF(6.0f) - 20.0f;
-            pos.v[1] += GetRandF(2.0f);
-            pos.v[2] += 2.0f + GetRandF(6.0f);
-            fish[1]->SetPosition(pos.v);
+            pos[0] += GetRandF(6.0f) - 20.0f;
+            pos[1] += GetRandF(2.0f);
+            pos[2] += 2.0f + GetRandF(6.0f);
+            fish[1]->SetPosition(pos);
         }
     }
 
@@ -4313,14 +4280,14 @@ void CAquarium::SettingAqua() {
     love_chara = NULL;
     int love_size;
 
-    if (aqua_no == 2 && LoadFile2(at_3164__3, load_buf, &love_size, 0) != 0) {
+    if (aqua_no == 2 && LoadFile2("menu/eff/haigou_love.chr", load_buf, &love_size, LOAD_FILE_READ) != 0) {
         mgCMemory love_stack;
         love_stack.stSetBuffer(fish_stack[1].stack - 0x3980, 0x3980);
         love_tex_block = fish_tex_block[2];
         textures->DeleteBlock(love_tex_block);
         CCharacter2 *chara;
 
-        chara = new ((u_long128 *) love_stack.Alloc(sizeof(CCharacter2) / 16 + 2)) CCharacter2;
+        chara = new (love_stack.Alloc(sizeof(CCharacter2) / 16 + 2)) CCharacter2;
 
         love_chara = chara;
         love_chara->Initialize();
@@ -4331,7 +4298,7 @@ void CAquarium::SettingAqua() {
         if (frame->attr != NULL) {
             mgCFrameAttr *attr = frame->attr;
 
-            attr->z_write = 1;
+            attr->z_write = MG_ZBUF_WRITE;
             frame->attr = attr;
         }
     }
@@ -4344,9 +4311,6 @@ void CAquarium::SettingAqua() {
     mode = 0;
     mes.help_draw = 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuaqua", SettingAqua__9CAquariumFv);
-#endif
 
 int CalcFishParam(BREEDFISH_USED *fish) {
     BREEDFISH_USED *body = fish;
@@ -8322,30 +8286,10 @@ void DrawSubGameUnderLine(mgCTexture *texture, int x, int y, int width) {
 
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1346__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2935__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2975__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_2976__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3016__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3290__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3291__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3310__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3311__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3150__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3151__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3152__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3153__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3154__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3155__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3156__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3157__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3158__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3159__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3160__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3161__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3163__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3164__3__DATA);
 
 // Uninitialised data (.bss)
 mgCMemory Aquarium_NameregistStack;
