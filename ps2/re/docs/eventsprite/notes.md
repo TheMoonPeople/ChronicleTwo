@@ -8,7 +8,8 @@ separately, while `SetMove` first resets its four animation words and then selec
 Header: `ps2/include/eventsprite.hpp`. No first-game counterpart (Dark Cloud has no
 `CEventSprite`/`CMarker`). No class here has virtual functions (no `__vt__` symbols). The unit owns
 no named global data: its only datum, `at_1069__4` (0x372F98, size 1), is the empty string `""`
-that `CEventSprite2::Draw` compares `tex_name` against. The instances live in `event_func`:
+that `CEventSprite2::Draw` compares `tex_name` against, written inline at its use (no data marker).
+The instances live in `event_func`:
 `esMother` (CEventSpriteMother, 0x440), `EventSprite2` (CEventSprite2[0x30], 0x1800),
 `EventMarker` (CMarker, 4).
 
@@ -79,4 +80,4 @@ come from `NormalDraw`/`FirstDraw`/`Draw`; fields stay `int` because the setters
   calling `Init` explicitly) is inferred from the `__sinit` shape; confirm when matching `__sinit_event_func_cpp`.
 - Field names are descriptive, not retail (no retail field names available).
 
-`CEventSprite::Draw` constructs a local `mgCDrawPrim` only while the sprite is active. Replacing its 0x120-byte scratch buffer and explicit base-constructor alias with a scoped native `mgCDrawPrim` preserves the retail object code.
+`CEventSprite::Draw` constructs a scoped local `mgCDrawPrim` only while the sprite is active (a 0x120-byte stack object); the scoped native object reproduces the retail stack layout and constructor call.
