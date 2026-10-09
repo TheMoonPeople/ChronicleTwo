@@ -40,8 +40,8 @@ The header declares the virtuals in this order. The first non-inline virtual dec
 `SetPosition(float*)` (defined in character), so the vtable is emitted in character.
 The inline virtuals (GetMotionStatus, GetNowMotionName, GetNowFrameWait, SetNowFrame,
 GetNowFrame, GetStep, Set/GetFadeFlag, GetCopySize, SetPosition(f,f,f)) are emitted in mapparts
-(0x169820..0x169930). `SetPosition(f,f,f)` loads mapparts' `at_244` = {0,0,0,1.0} with lq and
-then stores x/y/z: written as `sceVu0FVECTOR position = {x, y, z, 1.0f}`.
+(0x169820..0x169930). `SetPosition(f,f,f)` loads a {0,0,0,1.0} template from mapparts' data with
+lq and then stores x/y/z: written as `sceVu0FVECTOR position = {x, y, z, 1.0f}`.
 
 ## Field evidence (offset -> evidence)
 - 0x80 `velocity`: CActionChara *MoveIF/StepParam copy, add to, normalise it.
@@ -60,7 +60,7 @@ then stores x/y/z: written as `sceVu0FVECTOR position = {x, y, z, 1.0f}`.
   0x11C `copy_size`: read only by GetCopySize.
 - 0x120 u16 flags: SetDAnimeEnable(0) sets bit 0; StepDA skips while set. 0x122 is padding.
 - 0x124 `outline`: COutLineDraw list (next at +0). 0x128: `_OUTLINE` stores the screen texture
-  number used in the "%d" texture name (format at_1522); Copy rebuilds outlines when > 0.
+  number used in the "%d" texture name; Copy rebuilds outlines when > 0.
 - 0x12C/0x130 dynamic anime count/array (stride 0x90), allocated by `_CLOTH_START`.
 - 0x134 `shape_anime`: `_SHAPE_ANIME`; `_MODEL`/`_SKIN_MOTION` choose visual type 0 vs 4 by it.
 - 0x138/0x13C `entry_frame[2]`: `_OBJECT_NAME`/`_OBJECT_NAME2`. Note GetEntryObjectPos(int,..)
@@ -117,7 +117,20 @@ then stores x/y/z: written as `sceVu0FVECTOR position = {x, y, z, 1.0f}`.
   [6 pointers, 0x18], etc.) is LOCAL in retail, so none is declared in the header; all belong
   in character.cpp as `static`. Every non-member function (ScanInfoFile, ScanInfoSkinFile,
   CreateChangeFrame and the `_TAG(SPI_STACK*, int)` handlers) is local too.
-- `tag` (0x140 = 40 SPI_TAG_PARAM) and `skin_tag` (0x28 = 5) are the tag tables.
+- `tag` (0x140 = 40 SPI_TAG_PARAM) and `skin_tag` (0x28 = 5) are the tag tables, defined as
+  native `SPI_TAG_PARAM[40]` / `SPI_TAG_PARAM[5]` with inline name strings and file-local
+  callbacks. Retail pads the skin table with eight zero bytes before the next piece.
+- Parser storage is native: `alloc_vertex` is `char[25][16]`, `img_ptr` is the six-entry
+  `mgIMG_FILE_HEADER *` array (0x18 bytes; retail pads eight more), `skin_mds_name` is `char[64]`.
+- `_SHADOW_MODEL` initializes a two-entry `mgCreateVisualType` array (shadow MDT for the empty
+  object name, then the end sentinel). `_OUTLINE` uses a function-local
+  `static int outline_num = 1` with MWCC's generated guard. `CCharacter2` emits its own vtable.
+  Diagnostic formats, the outline texture format, the weight-file suffix and empty names are
+  inline literals.
+- Both `_MODEL` walks index `alloc_vertex[index]`; a typed pointer walk in the second loop
+  differs in four words/relocation sites.
+- `_OBJECT_NAME` and `_OBJECT_NAME2` bound their free-slot searches by `CHARA_ENTRY_FRAME_MAX`
+  (2) and `CHARA_ENTRY_OBJECT_MAX` (0x18).
 
 ## Oddities
 - GetWaitToFrame looks the motion up on `nowChr`, not `this`.
@@ -128,14 +141,12 @@ then stores x/y/z: written as `sceVu0FVECTOR position = {x, y, z, 1.0f}`.
   the idea (body size, motion sets, foot sounds); layout and API differ entirely. CCharaLOD,
   sequences, outlines and effects have no counterpart there.
 
-## Compile status
-- `character.hpp` itself compiles: checked with stand-in CObject/CObjectFrame copied from
-  map.hpp/object.hpp plus offset asserts for every field. The real include chain
-  (object.hpp -> map.hpp -> funcpoint.hpp, occlusion.hpp, mapinfo.hpp -> mapload.hpp) fails
-  until those headers exist.
-
-## NormalDrive draft
-The guarded C++ draft changes the active key when a new request arrives, records the previous motion for blending, and applies pause, hold and restart flags while advancing frames. It sends the current frame to SetMotionTime or blends with ChangeMotion until the new key is posed. The draft compiles and differs from retail; assembly remains active.
+## Source status
+Every function in `character.cpp` is native; the unit has no `NONMATCHING` guards,
+`INCLUDE_ASM` gaps, or data markers. `NormalDrive` changes the active key when a new request
+arrives, records the previous motion for blending, and applies pause, hold and restart flags
+while advancing frames; it sends the current frame to SetMotionTime or blends with
+ChangeMotion until the new key is posed.
 
 ## Shadow frame types
 `_SHADOW_MODEL` compares the root model's `frame_list` with the shadow model's
@@ -148,12 +159,49 @@ match.
 
 `GetEntryObjectPos(int id, int nth, float*)` walks the 24 `entry_object` records. It counts records with a non-null `frame` and matching `group`, then asks the selected frame for its world position. Named record access matches the retail function at 100%; the slot pointer is returned.
 
-`DeleteExtMotion` accesses `images[1..5]` through a byte offset in the matching source. A direct `this->images[j]` expression scores 99.67%, so that offset still requires a matching typed expression. The similarly named local `images` holds the current archive; `&images[j]` is incorrect even though a local objdiff trial misleadingly scored 100%.
+`DeleteExtMotion` accesses `images[1..5]` through a byte offset
+(`(mgIMG_FILE_HEADER **) ((u8 *) this + offset + 0x2C4)` with `offset += 4`). A direct
+`this->images[j]` or `&this->images[j]` keeps the 0x1E4-byte body but swaps `s4`/`s5` between
+the image pointer and the offset induction value; retail keeps separate `j` and byte-offset
+counters. Indexing with `offset / 4` changes more instructions, and keeping the offset live
+through the loop bound or the clear store also misses. The similarly named local `images`
+holds the current archive, so `&images[j]` is a different (wrong) expression.
 
-`DeleteExtMotion`'s remaining mismatch is register allocation: direct
-`&this->images[j]` keeps the 0x1E4-byte body but assigns the image pointer to
-`s4` and the array offset to `s5`; retail assigns the image pointer to `s5`
-and offset to `s4`. The retail loop maintains separate `j` and byte-offset
-counters. Indexing with `offset / 4` changes more instructions (97.47%), and
-keeping the offset live through the loop bound or the clear store also misses.
-The original offset expression remains for the 100% match.
+## Typed access forms
+- `Initialize` writes `velocity` (0x80-0x8C, w 1.0), `move_accel` (0xA0), `entry_matrix` (0xB0,
+  passed to `mgUnitMatrix`), `main_frame_info` (0x500, `tagFRAME_INF *`, cleared with `NULL`) and
+  `seq_step` (0x3AC) through their members; `alpha = 1.0f`; float zeros store as `$zero` either
+  way; the motion table clears use `sizeof`.
+- Sequence end test: `playing[1].name[0]`. `name` members at offset 0 of `CHRINFO_SEQ` /
+  `CHRINFO_KEY_SET` replace `(char *)` casts of the records.
+- Effect entry: the local is a `CHARA_EFFECT_MANAGER *` and `motion_name` (+0x1BC) /
+  `start_ratio` (+0x1DC) are its members.
+- `_OBJECT_NAME`: the two walks over `entry_frame` / `entry_object` are indexed `for` loops;
+  the second needs its own counter `j` (reusing `i` swaps counter and offset in that loop,
+  reusing `n` changes the later argument loop). `_OBJECT_NAME2` has no offset counter.
+- `_MOTION` / `_SHADOW_MOTION`: `&nowChr->motion[id]`, `&nowChr->shadow_motion[id]`,
+  `motion->frame_info`. The shadow entry of the new slot takes the first entry's
+  `base_matrices`, `motion_list`, `skin_list` and `unk_0C` through `tagMOTION_TYPE *` locals.
+- `CreateChangeFrame`: the `mgCreateVisualType` walk is `&list[i]` ending at
+  `MG_VISUAL_CREATE_END`; a pointer walk `entry++` is 12 bytes shorter.
+- `DeleteExtMotion`, `DeleteImage`: `(u8) image->name[0] != '#'` loads with `lbu`; plain
+  `image->name[0]` loads with `lb`.
+- `GetSoundInfoCopy`, `_CLOTH_START`, `_LOD_MODEL_START`: the stack block is the `u_long128 *`
+  that `Alloc` returns, passed to placement `new` directly. `GetSoundInfoCopy` and `_SE_START`
+  use placement `new (block) CHRINFO_SE[n]`.
+- `CopyOutLine` holds the shared screen texture as `mgCTexture *texture`.
+- `Draw` LOD outline: the stack copy is a local `OutlineCopy` POD viewed as `COutLineDraw`; a
+  `COutLineDraw` local would run its constructor (`next = NULL; Initialize()`), which retail
+  does not call.
+- `SetMotionPara`: `switch ((int) sequence)` with `case 0`; `if (sequence != NULL)` changes
+  the branch layout.
+- `_SHADOW_MODEL`: `(s32 *) operator new[](bytes, ...)` for the frame link tables; `new (...)
+  s32[count]` recomputes `count * 4` into a new register instead of reusing `bytes`.
+- `_OUTLINE` and `Copy`: `(COutLineDraw *) operator new(...)` followed by the constructor's
+  `next = NULL; Initialize();`. `new (...) COutLineDraw` in `Copy` tests the copied register
+  after the `move` and swaps `s4`/`s5`; in `_OUTLINE` it also renumbers the static locals.
+- Loaded data at API boundaries: `_SKIN_MOTION` hands pack entries to `mgLoadData` as
+  `MDS_HEADER *`, `unsigned int *` and `float (*)[4][4]` and the image copy to
+  `mgGetIMGHeaderNum`/`mgGetIMGHeader` as `char *`; `DeleteExtMotion` steps from an
+  `mgIMG_FILE_HEADER` to the `mgIMG_HEADER` records after it; `_KEY_START` starts the key
+  list at the free top of `now_stack`. `(mgCVisualMotionMDT *)` downcasts follow `Iam()` checks.
