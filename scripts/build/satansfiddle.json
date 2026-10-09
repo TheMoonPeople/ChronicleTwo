@@ -1695,6 +1695,14 @@
         "expected_matches": 1
       },
       {
+        "translation_unit": "editexception.cpp",
+        "function": "InitFirePowder__FiP6CSceneiP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11mgC3DSpriteFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "editmap.cpp",
         "function": "emapMASK_PARTS_NAME__FP9SPI_STACKi",
         "allocator": "__nw__FUiP1",

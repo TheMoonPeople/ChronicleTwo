@@ -22,8 +22,6 @@
 #include "scene.hpp"
 #include "sound.hpp"
 
-extern char   at_1143__2[];
-
 /**
  * Character reacting to the camera.
  */
@@ -362,11 +360,9 @@ void S51Thunder(CScene *scene) {
     }
 }
 
-#ifdef NONMATCHING
 void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
     int          i;
     FirePowder  *particle;
-    mgC3DSprite *created;
     int          size;
     u_char      *image;
     FirePowderFlag = 0;
@@ -381,7 +377,7 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
 
     u_char *buffer = (u_char *) scene->read_buff;
 
-    if (LoadFile2(at_1143__2, buffer, &size, 0) == 0) {
+    if (LoadFile2("effect/firerain.img", buffer, &size, LOAD_FILE_READ) == 0) {
         return;
     }
 
@@ -392,15 +388,13 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
     mgTexManager.DeleteBlock(texb);
     mgTexManager.EnterIMGFile(image, FirePowderTexb, NULL, NULL);
 
-    created = new ((u_long128 *) memory->Alloc(7)) mgC3DSprite;
-
-    SpriteVis = created;
-    fire_powder = new ((u_long128 *) memory->Alloc(0x202)) FirePowder[FIRE_POWDER_NUM];
-    FirePowFrame = new ((u_long128 *) memory->Alloc(0x13)) mgCFrame;
-    mgCFrameAttr *attr = new ((u_long128 *) memory->Alloc(0xB)) mgCFrameAttr;
+    SpriteVis = new (memory->Alloc(7)) mgC3DSprite;
+    fire_powder = new (memory->Alloc(0x202)) FirePowder[FIRE_POWDER_NUM];
+    FirePowFrame = new (memory->Alloc(0x13)) mgCFrame;
+    mgCFrameAttr *attr = new (memory->Alloc(0xB)) mgCFrameAttr;
     FirePowFrame->attr = attr;
     attr->fog = 2;
-    attr->z_write = -1;
+    attr->z_write = MG_ZBUF_NO_WRITE;
     FirePowFrame->SetVisual(SpriteVis);
 
     for (i = 0; i < FIRE_POWDER_NUM; ++i) {
@@ -415,9 +409,6 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
         particle->fall_speed = -(0.1f + 0.5f * mgRnd());
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editexception", InitFirePowder__FiP6CSceneiP9mgCMemory);
-#endif
 
 void StepFirePowder(CScene *scene) {
     if (!FirePowderFlag) {
@@ -776,6 +767,3 @@ void DrawGeyserEffect(CScene *scene) {
         mgDrawDirect(GeyserFrame);
     }
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editexception", at_1143__2__DATA);
