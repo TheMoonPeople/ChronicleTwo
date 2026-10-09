@@ -351,139 +351,6 @@ static float georama_parts_adjust_z_table[93] = {
 
 /**
  *
- * Part-list index for each Georama view mode, or minus one when no list applies.
- *
- */
-static short tbl_957[7] = {
-    GEORAMA_MESSAGE_LIST_MAKE,
-    GEORAMA_MESSAGE_LIST_STOCK,
-    GEORAMA_MESSAGE_LIST_PAINT,
-    GEORAMA_MESSAGE_LIST_NONE,
-    GEORAMA_MESSAGE_LIST_HOUSE,
-    GEORAMA_MESSAGE_LIST_NONE,
-    GEORAMA_MESSAGE_LIST_PLACED,
-};
-
-/**
- *
- * Texture rectangles of the active Georama list board pieces.
- *
- */
-static short brdtbl_active_1314[12] = {
-    350, 460, 12, 22, 362, 460, 12, 22,
-    374, 460, 12, 22,
-};
-
-/**
- *
- * Texture rectangles of the inactive Georama list board pieces.
- *
- */
-static short brdtbl_noneactive_1315[12] = {
-    350, 438, 12, 22, 362, 438, 12, 22,
-    374, 438, 12, 22,
-};
-
-/**
- *
- * Texture rectangles of the Georama list scroll bar pieces.
- *
- */
-static short ScrlBarTable_1320[12] = {
-    356, 234, 8, 10, 356, 242, 8, 10,
-    356, 250, 8, 10,
-};
-
-/**
- *
- * Texture rectangles of inactive Georama analysis board pieces.
- *
- */
-static short brdtbl_noneactive_1547[12] = {
-    350, 438, 12, 22, 362, 438, 12, 22,
-    374, 438, 12, 22,
-};
-
-/**
- *
- * Texture rectangles of active Georama analysis board pieces.
- *
- */
-static short brdtbl_1550[12] = {
-    350, 460, 12, 22, 362, 460, 12, 22,
-    374, 460, 12, 22,
-};
-
-/**
- *
- * Georama analysis title position offsets for the two language layouts.
- *
- */
-static float offsettable_1551[2][2] = {
-    {59.0f, 11.0f},
-    {67.0f, 12.0f},
-};
-
-/**
- *
- * Texture rectangles of the Georama analysis scroll bar pieces.
- *
- */
-static short rectboxtbl_1555[12] = {
-    356, 264, 8, 32, 364, 264, 2, 32,
-    366, 264, 8, 32,
-};
-
-/**
- *
- * Texture rectangles of the placed-house panel titles by language.
- *
- */
-static short postbl_2175[8][4] = {
-    {364, 674, 60, 18},
-    {280, 674, 100, 18},
-    {278, 674, 104, 18},
-    {280, 674, 100, 18},
-    {278, 674, 102, 18},
-    {280, 674, 98, 18},
-    {364, 674, 60, 18},
-    {364, 674, 60, 18},
-};
-
-/**
- *
- * Placed-house panel title position offset for each language.
- *
- */
-static short offset_2176[7] = {
-    82, 62, 62, 62, 64, 64, 62,
-};
-
-/**
- *
- * Texture rectangles of resident labels in the placed-house panel.
- *
- */
-static short jyunintbl_2187[2][4] = {
-    {466, 692, 32, 18},
-    {400, 606, 32, 20},
-};
-
-/**
- *
- * Screen positions of the two message columns for each Georama list.
- *
- */
-static short constant_msg_xyoffsettbl_2427[5][4] = {
-    {40, 258, 40, 282},
-    {40, 258, 40, 282},
-    {54, 267, 0, 0},
-    {40, 261, 40, 285},
-    {54, 267, 0, 0},
-};
-
-/**
- *
  * Input handler for each Georama menu action, with null entries for inactive actions.
  *
  */
@@ -519,72 +386,6 @@ static int analyze_percent = 100;
  *
  */
 static signed char GeoramaReqMakeFlag = 1;
-
-/**
- *
- * Files loaded by the Georama menu.
- *
- */
-static char *fname_1013[2] = {"georama0.pac", NULL};
-
-/**
- *
- * Input action number associated with each Georama view mode.
- *
- */
-static signed char viewmode_to_mode_convtable_1310[7] = {
-    GEORAMA_VIEW_MAKE + 1,
-    GEORAMA_VIEW_STOCK + 1,
-    GEORAMA_VIEW_PAINT + 1,
-    GEORAMA_VIEW_EDIT + 1,
-    GEORAMA_VIEW_CHECK_POINT + 1,
-    GEORAMA_VIEW_ANALYZE + 1,
-    GEORAMA_VIEW_PLACED + 1,
-};
-
-/**
- *
- * Texture origins of the two Georama analysis topic buttons.
- *
- */
-static short maintopicbtn_1568[2][2] = {
-    {356, 114},
-    {356, 152},
-};
-
-/**
- *
- * Initial message offsets for the five Georama list windows.
- *
- */
-static signed char msgtbl_2587[5] = {
-    GEORAMA_INITIAL_MESSAGE_MAKE - GEORAMA_INITIAL_MESSAGE_BASE,
-    GEORAMA_INITIAL_MESSAGE_STOCK - GEORAMA_INITIAL_MESSAGE_BASE,
-    GEORAMA_INITIAL_MESSAGE_PAINT - GEORAMA_INITIAL_MESSAGE_BASE,
-    GEORAMA_INITIAL_MESSAGE_PLACED - GEORAMA_INITIAL_MESSAGE_BASE,
-    GEORAMA_INITIAL_MESSAGE_HOUSE - GEORAMA_INITIAL_MESSAGE_BASE,
-};
-
-/**
- *
- * Selected quantity of the Georama part being removed.
- *
- */
-extern int DestroyNum_3583;
-
-/**
- *
- * Display name of the selected Georama part being removed.
- *
- */
-extern char *DestroyPartsName_3587;
-
-/**
- *
- * Files loaded by the villager removal menu.
- *
- */
-static char *fname_4292[2] = {"npcmove.pac", NULL};
 
 /**
  *
@@ -980,20 +781,6 @@ static float GeoAnalyzeCheckPointScrlBarY;
 
 /**
  *
- * Fade opacity of the Georama model preview while the menu closes.
- *
- */
-static int GeoAlpha_1199;
-
-/**
- *
- * Whether the Georama model-preview opacity has been initialized.
- *
- */
-static signed char init_1200;
-
-/**
- *
  * Screen position of the Georama menu title.
  *
  */
@@ -1001,73 +788,17 @@ static float menu_georama_title_pos[2];
 
 /**
  *
- * Frame counter of the placed-house scroll-arrow blinking animation.
+ * Selected quantity of the Georama part being removed.
  *
  */
-static signed char cnt_2177;
+extern int DestroyNum_3583;
 
 /**
  *
- * Whether the placed-house scroll-arrow blink counter has been initialized.
+ * Display name of the selected Georama part being removed.
  *
  */
-static signed char init_2178;
-
-/**
- *
- * Blank name used for missing placed-house information.
- *
- */
-static char *Dmy_2314;
-
-/**
- *
- * Whether the blank placed-house name has been initialized.
- *
- */
-static signed char init_2315;
-
-/**
- *
- * Blank display name used for unused Georama list rows.
- *
- */
-static char *dmychar_3207;
-
-/**
- *
- * Whether the blank Georama list name has been initialized.
- *
- */
-static signed char init_3208;
-
-/**
- *
- * Definition of the placed Georama part selected for removal.
- *
- */
-static CEditPartsInfo *edparts_info_3580;
-
-/**
- *
- * Whether the cached removal part definition has been initialized.
- *
- */
-static signed char init_3581;
-
-/**
- *
- * Maximum quantity of the selected Georama part that can be removed.
- *
- */
-static short DestroyMaxNum_3584;
-
-/**
- *
- * Whether the cached removal quantity limit has been initialized.
- *
- */
-static signed char init_3585;
+extern char *DestroyPartsName_3587;
 
 /**
  *
@@ -1081,14 +812,14 @@ static CRemovalMenu *RemovalMenuPtr;
  * House name, resident name and names of up to twenty attached parts.
  *
  */
-char *HouseChildPartInfo[22];
+static char *HouseChildPartInfo[22];
 
 /**
  *
  * Part definition identifiers already available for construction.
  *
  */
-int PartsMakeOkTable[256];
+static int PartsMakeOkTable[256];
 
 /**
  *
@@ -1212,7 +943,16 @@ void GetPenkiColor(int no, float *out_rgb) {
 }
 
 int ConvGeoramaDataNo(int georama_no) {
-    return tbl_957[georama_no];
+    static short tbl[7] = {
+        GEORAMA_MESSAGE_LIST_MAKE,
+        GEORAMA_MESSAGE_LIST_STOCK,
+        GEORAMA_MESSAGE_LIST_PAINT,
+        GEORAMA_MESSAGE_LIST_NONE,
+        GEORAMA_MESSAGE_LIST_HOUSE,
+        GEORAMA_MESSAGE_LIST_NONE,
+        GEORAMA_MESSAGE_LIST_PLACED,
+    };
+    return tbl[georama_no];
 }
 
 void CheckMenuLine(int *selected, int *top, int count, int visible) {
@@ -1254,6 +994,7 @@ void SetEditMenuEnv() {
 }
 
 int MenuGeoramaInit(mgCMemory *stack, int arg) {
+    static char *fname[2] = {"georama0.pac", NULL};
     int size;
     int num;
     int sub_num;
@@ -1363,7 +1104,7 @@ int MenuGeoramaInit(mgCMemory *stack, int arg) {
     GeoramaMesForceMakeFlag_PaintVer = 0;
     GeoramaReqMakeLine = 0;
     GeoramaReqMakeManner = 0;
-    MenuCommonReadData(&MenuGeoramaStack, fname_1013, 0);
+    MenuCommonReadData(&MenuGeoramaStack, fname, 0);
     MenuGeoramaStack.Alloc(0x1000);
     MenuGeoramaStack.Align64();
     GeoramaParts_DrawWaitCnt = -20;
@@ -1499,10 +1240,7 @@ int MenuGeoramaKey() {
     key_func->CheckKeyInput();
     loading = ReadBGSync();
 
-    if (init_1200 == 0) {
-        GeoAlpha_1199 = 0x80;
-        init_1200 = 1;
-    }
+    static int GeoAlpha = 0x80;
 
     switch (menu->mode) {
         case 1:
@@ -1516,14 +1254,14 @@ int MenuGeoramaKey() {
             if (menu->start_wait > 10 && loading == 0) {
                 menu->mode = 0;
                 MenuScreenBlackBeltSet(1);
-                GeoAlpha_1199 = 0x80;
+                GeoAlpha = 0x80;
             }
 
             break;
         case 2:
-            GeoAlpha_1199 -= 8;
+            GeoAlpha -= 8;
 
-            if (GeoAlpha_1199 <= 0) {
+            if (GeoAlpha <= 0) {
                 menu->LoadGeoramaPart(-1, GEORAMA_LOAD_INFO_ID);
                 menu->ExitEnd();
                 closed = 1;
@@ -1672,6 +1410,27 @@ void MenuGeoramaTitleDraw(int &tex_block, float *pos, int alpha) {
     }
 }
 void MenuGeoramaListDraw(int &tex_block, float *pos, int page, int alpha) {
+    static signed char viewmode_to_mode_convtable[7] = {
+        GEORAMA_VIEW_MAKE + 1,
+        GEORAMA_VIEW_STOCK + 1,
+        GEORAMA_VIEW_PAINT + 1,
+        GEORAMA_VIEW_EDIT + 1,
+        GEORAMA_VIEW_CHECK_POINT + 1,
+        GEORAMA_VIEW_ANALYZE + 1,
+        GEORAMA_VIEW_PLACED + 1,
+    };
+    static short brdtbl_active[12] = {
+        350, 460, 12, 22, 362, 460, 12, 22,
+        374, 460, 12, 22,
+    };
+    static short brdtbl_noneactive[12] = {
+        350, 438, 12, 22, 362, 438, 12, 22,
+        374, 438, 12, 22,
+    };
+    static short ScrlBarTable[12] = {
+        356, 234, 8, 10, 356, 242, 8, 10,
+        356, 250, 8, 10,
+    };
     if (Tex_Georama != NULL && pos[0] >= -260.0f) {
         int data_no = ConvGeoramaDataNo(page);
         if (data_no >= 0) {
@@ -1696,10 +1455,10 @@ void MenuGeoramaListDraw(int &tex_block, float *pos, int page, int alpha) {
             PrimQuad(prim, pos[0], top, head_tex);
             PrimQuad(prim, mgRect < int > ((int)pos[0], body_y, body_tex.right, 0x88), body_tex);
             PrimQuad(prim, mgRect < int > ((int)pos[0], (int)(136.0f + body_y), foot_tex.right, foot_tex.bottom), foot_tex);
-            u8 active = page >= 0 && CMenuGeoPt->key_arg_no == viewmode_to_mode_convtable_1310[page];
-            short *board = brdtbl_active_1314;
+            u8 active = page >= 0 && CMenuGeoPt->key_arg_no == viewmode_to_mode_convtable[page];
+            short *board = brdtbl_active;
             if (!active) {
-                board = brdtbl_noneactive_1315;
+                board = brdtbl_noneactive;
             }
             prim->Color(0x80, 0x80, 0x80, alpha);
             Menu3DivideTextureDraw(prim, mgRect < int > ((int)(54.0f + pos[0]), (int)(11.0f + pos[1]), 0x89, 0x15), board, 1);
@@ -1711,7 +1470,7 @@ void MenuGeoramaListDraw(int &tex_block, float *pos, int page, int alpha) {
             int bar_x = (int)(228.0f + pos[0]);
             int bar_y = (int)(46.0f + pos[1]);
             prim->Color(0x80, 0x80, 0x80, alpha);
-            Menu3DivideTextureDraw(prim, mgRect < int > (bar_x, (int)(bar_y + CMenuGeoPt->scroll_bar_y[page]), 8, (int)CMenuGeoPt->scroll_bar_h[page]), ScrlBarTable_1320, 0);
+            Menu3DivideTextureDraw(prim, mgRect < int > (bar_x, (int)(bar_y + CMenuGeoPt->scroll_bar_y[page]), 8, (int)CMenuGeoPt->scroll_bar_h[page]), ScrlBarTable, 0);
             prim->End();
             float clip_top = pos[1];
             float left = pos[0];
@@ -1890,6 +1649,26 @@ void MenuGeoramaListDraw(int &tex_block, float *pos, int page, int alpha) {
     }
 }
 void MenuGeoramaAnalyzeDraw(int &tex_block, float *pos, int alpha) {
+    static short brdtbl_noneactive[12] = {
+        350, 438, 12, 22, 362, 438, 12, 22,
+        374, 438, 12, 22,
+    };
+    static short brdtbl[12] = {
+        350, 460, 12, 22, 362, 460, 12, 22,
+        374, 460, 12, 22,
+    };
+    static float offsettable[2][2] = {
+        {59.0f, 11.0f},
+        {67.0f, 12.0f},
+    };
+    static short rectboxtbl[12] = {
+        356, 264, 8, 32, 364, 264, 2, 32,
+        366, 264, 8, 32,
+    };
+    static short maintopicbtn[2][2] = {
+        {356, 114},
+        {356, 152},
+    };
     if (Tex_Georama != NULL && pos[0] >= -300.0f) {
         MenuReloadTexture(tex_block, Tex_Georama->block);
         mgCDrawPrim *prim = GetMenuPrim();
@@ -1915,11 +1694,11 @@ void MenuGeoramaAnalyzeDraw(int &tex_block, float *pos, int alpha) {
         PrimQuad(prim, mgRect<int>((int)pos[0], (int)(176.0f + body_y2), foot_tex.right, foot_tex.bottom), foot_tex);
         PrimQuad(prim, 329.0f + pos[0], GeoAnalyzeCheckPointScrlBarY, bar_tex);
         Menu3DivideTextureDraw(prim, mgRect<int>((int)(57.0f + pos[0]), (int)(11.0f + pos[1]), 0x73, 0x15),
-                               brdtbl_noneactive_1547, 1);
+                               brdtbl_noneactive, 1);
         if (CMenuGeoPt->key_arg_no == 6) {
             prim->Color(0x80, 0x80, 0x80, alpha);
             Menu3DivideTextureDraw(prim, mgRect<int>((int)(56.0f + pos[0]), (int)(11.0f + pos[1]), 0x73, 0x15),
-                                   brdtbl_1550, 1);
+                                   brdtbl, 1);
         }
         float check_x;
         float check_y;
@@ -1927,8 +1706,8 @@ void MenuGeoramaAnalyzeDraw(int &tex_block, float *pos, int alpha) {
             check_x = GeoRequestBoardCheckPoint_P[0];
             check_y = GeoRequestBoardCheckPoint_P[1];
         } else {
-            check_x = offsettable_1551[LanguageCode][0];
-            check_y = offsettable_1551[LanguageCode][1];
+            check_x = offsettable[LanguageCode][0];
+            check_y = offsettable[LanguageCode][1];
         }
         PrimQuad(prim, pos[0] + check_x, pos[1] + check_y,
                  mgRect<int>((int)GeoRequestBoardCheckPoint[0], (int)GeoRequestBoardCheckPoint[1],
@@ -1959,7 +1738,7 @@ void MenuGeoramaAnalyzeDraw(int &tex_block, float *pos, int alpha) {
                         first_hidden = font_no;
                     }
                     PrimQuad(prim, list_pos[0] - 19.0f, 17.0f + y, mgRect<int>(0x160, 0x132, 0x26, 0x1A));
-                    short *button = maintopicbtn_1568[GeoRequestFlag->met[no]];
+                    short *button = maintopicbtn[GeoRequestFlag->met[no]];
                     float btn_y = y - 9.0f;
                     PrimQuad(prim, list_pos[0] - 30.0f, btn_y, mgRect<int>(button[0], button[1], 0x1C, 0x26));
                     y += 30.0f;
@@ -1973,11 +1752,11 @@ void MenuGeoramaAnalyzeDraw(int &tex_block, float *pos, int alpha) {
                         int box_h;
                         if (GeoramaReqMsgFontGyouNum[font_no] == 2) {
                             Menu3DivideTextureDraw(prim, mgRect<int>((int)(text_x - 20.0f), (int)(y - 4.0f), 0x116, 0x38),
-                                                   rectboxtbl_1555, 1);
+                                                   rectboxtbl, 1);
                             box_h = 0x36;
                         } else {
                             Menu3DivideTextureDraw(prim, mgRect<int>((int)(text_x - 20.0f), (int)(y - 4.0f), 0x116, 0x20),
-                                                   rectboxtbl_1555, 1);
+                                                   rectboxtbl, 1);
                             box_h = 0x1E;
                         }
                         int mark_x = (int)(text_x - 14.0f);
@@ -2615,6 +2394,23 @@ int StepMenuDl3() {
 }
 
 void MenuPlacedHouseDraw(int &tex_block) {
+    static short postbl[8][4] = {
+        {364, 674, 60, 18},
+        {280, 674, 100, 18},
+        {278, 674, 104, 18},
+        {280, 674, 100, 18},
+        {278, 674, 102, 18},
+        {280, 674, 98, 18},
+        {364, 674, 60, 18},
+        {364, 674, 60, 18},
+    };
+    static short offset[7] = {
+        82, 62, 62, 62, 64, 64, 62,
+    };
+    static short jyunintbl[2][4] = {
+        {466, 692, 32, 18},
+        {400, 606, 32, 20},
+    };
     int   pos[2];
     float cursor_pos[2];
     int   text_h;
@@ -2651,26 +2447,23 @@ void MenuPlacedHouseDraw(int &tex_block) {
             frame.left += 0xA0;
             frame.right = 0x24;
             PrimQuad(prim, frame, mgRect<int>(0x13A, 0x132, 0x24, 0xE0));
-            short *title = postbl_2175[LanguageCode];
-            int    title_x = pos[0] + offset_2176[LanguageCode];
+            short *title = postbl[LanguageCode];
+            int    title_x = pos[0] + offset[LanguageCode];
             prim->Color(0x80, 0x80, 0x80, alpha);
             PrimQuad(prim, mgRect<int>(title_x, pos[1] + 0xE, title[2], title[3]),
                      mgRect<int>(title[0], title[1], title[2], title[3]));
             int blink_alpha = alpha;
 
-            if (init_2178 == 0) {
-                cnt_2177 = 0;
-                init_2178 = 1;
-            }
+            static signed char cnt = 0;
 
-            cnt_2177++;
+            cnt++;
 
-            if (cnt_2177 > 50 || HouseInfoCursorAlphaOnOff == 0) {
+            if (cnt > 50 || HouseInfoCursorAlphaOnOff == 0) {
                 blink_alpha = 0;
             }
 
-            if (cnt_2177 >= 80) {
-                cnt_2177 = 0;
+            if (cnt >= 80) {
+                cnt = 0;
             }
 
             int         blink_up_y = pos[1] + 0x30;
@@ -2710,7 +2503,7 @@ void MenuPlacedHouseDraw(int &tex_block) {
                 lang = 1;
             }
 
-            short      *mark = jyunintbl_2187[lang];
+            short      *mark = jyunintbl[lang];
             mgRect<int> number_rect(number_x - 5, line_y + 0x19, mark[2], mark[3]);
             prim->Color(0x80, 0x80, 0x80, alpha);
             PrimQuad(prim, number_rect, mgRect<int>(mark[0], mark[1], mark[2], mark[3]));
@@ -2795,23 +2588,20 @@ void MenuPlacedHouseMessMake(CEditPartsInfo *info, CEditHouse *house, int update
         return;
     }
 
-    if (init_2315 == 0) {
-        Dmy_2314 = " ";
-        init_2315 = 1;
-    }
+    static char *Dmy = " ";
 
     for (int i = 0; i < 22; i++) {
-        HouseChildPartInfo[i] = Dmy_2314;
+        HouseChildPartInfo[i] = Dmy;
     }
 
     HouseChildPartInfo[0] = info->edit_name;
 
     if (info->GetPartsType() == -1) {
-        HouseChildPartInfo[0] = Dmy_2314;
+        HouseChildPartInfo[0] = Dmy;
     }
 
     if (info->attr & kPartsHidden) {
-        HouseChildPartInfo[0] = Dmy_2314;
+        HouseChildPartInfo[0] = Dmy;
     }
 
     int child_no[21] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -2882,6 +2672,13 @@ void MenuMapPartsDraw(int &draw_wait) {
     }
 }
 void MenuGeoramaMessageMake(int mode) {
+    static short constant_msg_xyoffsettbl[5][4] = {
+        {40, 258, 40, 282},
+        {40, 258, 40, 282},
+        {54, 267, 0, 0},
+        {40, 261, 40, 285},
+        {54, 267, 0, 0},
+    };
     int first_line;
     int force_pos = GeoramaMesPosForceSetFlag;
     int k;
@@ -2983,7 +2780,7 @@ void MenuGeoramaMessageMake(int mode) {
             mes->line_pos[8][0] = mgScreenWidth - 20;
             mes->line_pos_on[8] = 1;
         }
-        short *offset = constant_msg_xyoffsettbl_2427[data_no];
+        short *offset = constant_msg_xyoffsettbl[data_no];
         mes->SetMovePosGyou(9, (int)(form->x + offset[0]), (int)(form->y + offset[1]));
         mes->SetMovePosGyou(10, (int)(form->x + offset[2]), (int)(form->y + offset[3]));
         if (LanguageCode > 0 && list_no == 0) {
@@ -3008,6 +2805,13 @@ int CheckGekkaViewMode(int view_mode) {
 }
 
 void CMenuGeorama::InitEnd() {
+    static signed char msgtbl[5] = {
+        GEORAMA_INITIAL_MESSAGE_MAKE - GEORAMA_INITIAL_MESSAGE_BASE,
+        GEORAMA_INITIAL_MESSAGE_STOCK - GEORAMA_INITIAL_MESSAGE_BASE,
+        GEORAMA_INITIAL_MESSAGE_PAINT - GEORAMA_INITIAL_MESSAGE_BASE,
+        GEORAMA_INITIAL_MESSAGE_PLACED - GEORAMA_INITIAL_MESSAGE_BASE,
+        GEORAMA_INITIAL_MESSAGE_HOUSE - GEORAMA_INITIAL_MESSAGE_BASE,
+    };
     char              part_name[0x20];
     CMenuPosDataForm *form;
     BG_READ_INFO     *read_b_g;
@@ -3040,7 +2844,7 @@ void CMenuGeorama::InitEnd() {
     ExeScript("MSG_BUFF");
 
     for (i = 0; i < 5; i++) {
-        GeoramaMes[i]->MakeMesWin(msgtbl_2587[i] + GEORAMA_INITIAL_MESSAGE_BASE);
+        GeoramaMes[i]->MakeMesWin(msgtbl[i] + GEORAMA_INITIAL_MESSAGE_BASE);
     }
 
     GeoramaMesForceMakeFlag = 1;
@@ -3699,10 +3503,7 @@ int CMenuGeorama::LRCheck() {
 }
 
 void MakeMsgPartsItemInfo(CDC2Mes *mes, CEditPartsInfo *info, MENUFORM_MAKEBRD_INFO *make_brd) {
-    if (init_3208 == 0) {
-        dmychar_3207 = "";
-        init_3208 = 1;
-    }
+    static char *dmychar = "";
 
     char *names[5];
     names[0] = info->edit_name;
@@ -3714,7 +3515,7 @@ void MakeMsgPartsItemInfo(CDC2Mes *mes, CEditPartsInfo *info, MENUFORM_MAKEBRD_I
 
     for (int i = 0; i < 4; i++) {
         EditPartsMaterial *material = info->GetMaterial(i);
-        names[i + 1] = dmychar_3207;
+        names[i + 1] = dmychar;
 
         if (material->item_no > 0) {
             make_brd->material_num++;
@@ -4262,15 +4063,8 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
     msg = MenuDCMsg[3];
     form = MenuMesForm[3];
 
-    if (init_3581 == 0) {
-        edparts_info_3580 = NULL;
-        init_3581 = 1;
-    }
-
-    if (init_3585 == 0) {
-        DestroyMaxNum_3584 = 0;
-        init_3585 = 1;
-    }
+    static CEditPartsInfo *edparts_info = NULL;
+    static short           DestroyMaxNum = 0;
 
     switch (menu->sub_step) {
         case 0:
@@ -4298,15 +4092,15 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
 
             switch (buttons_pressed) {
                 case 1:
-                    edparts_info_3580 =
+                    edparts_info =
                         menu->GetNowSelectEditPartsInfo(menu->view_mode, menu->select);
 
-                    if (edparts_info_3580 == NULL) {
+                    if (edparts_info == NULL) {
                         MenuSePlay(5);
                     } else {
-                        DestroyPartsName_3587 = edparts_info_3580->edit_name;
+                        DestroyPartsName_3587 = edparts_info->edit_name;
                         DestroyNum_3583 = 1;
-                        DestroyMaxNum_3584 = 1;
+                        DestroyMaxNum = 1;
 
                         if (DestroyPartsName_3587 != NULL) {
                             int j = 0;
@@ -4314,7 +4108,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                             for (; j < menu->stock_num; j++) {
                                 if (strcmp(DestroyPartsName_3587,
                                            menu->stock_list[j].name) == 0) {
-                                    DestroyMaxNum_3584 = menu->stock_list[j].num;
+                                    DestroyMaxNum = menu->stock_list[j].num;
                                     break;
                                 }
                             }
@@ -4324,7 +4118,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                         menu->sub_step = 1;
                         msg->MsgPreset(6);
                         msg->MakeMsg(0x672);
-                        int flags = edparts_info_3580->attr;
+                        int flags = edparts_info->attr;
 
                         if ((flags & kPlaceSingle) || (flags & kPlaceHidden)) {
                             msg->line_color[1] = 0x80303030;
@@ -4365,7 +4159,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
         case 1:
             msg->AddMsgCursor2(0, 1, 1);
             int cursor = msg->GetMsgCursor();
-            int flags = edparts_info_3580->attr;
+            int flags = edparts_info->attr;
 
             if (cursor == 1 && !(flags & kPlaceHidden)) {
                 int old_num = DestroyNum_3583;
@@ -4397,8 +4191,8 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                     DestroyNum_3583 = 1;
                 }
 
-                if (DestroyMaxNum_3584 < DestroyNum_3583) {
-                    DestroyNum_3583 = DestroyMaxNum_3584;
+                if (DestroyMaxNum < DestroyNum_3583) {
+                    DestroyNum_3583 = DestroyMaxNum;
                 }
 
                 if (old_num != DestroyNum_3583) {
@@ -4436,7 +4230,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
 
                         int poly_left = menu->polygon_left;
 
-                        if (edparts_info_3580 != NULL && poly_left < edparts_info_3580->polyn[0]) {
+                        if (edparts_info != NULL && poly_left < edparts_info->polyn[0]) {
                             menu->ExeScript("\x83|\x83\x8A\x83\x93\x95s\x91\xAB");
                             menu->sub_step = 3;
                             MenuArg.end_code = 0;
@@ -4485,10 +4279,10 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
             int choice = msg->YesNoCursor2(0);
 
             if (choice == 1) {
-                GetSaveData()->AddBuildPartsNum(edparts_info_3580->id, -DestroyNum_3583);
+                GetSaveData()->AddBuildPartsNum(edparts_info->id, -DestroyNum_3583);
 
                 for (int k = 0; k < 4; k++) {
-                    EditPartsMaterial *material = edparts_info_3580->GetMaterial(k);
+                    EditPartsMaterial *material = edparts_info->GetMaterial(k);
 
                     if (material != NULL) {
                         item_no[k] = material->item_no;
@@ -4528,7 +4322,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                 menu->ExeScript("\x94z\x92uERROROFF");
                 menu->sub_step = 0;
 
-                if (GetSaveData()->GetBuildPartsNum(edparts_info_3580->id) <= 0) {
+                if (GetSaveData()->GetBuildPartsNum(edparts_info->id) <= 0) {
                     menu->ReturnSelectMode(0);
                 } else {
                     MenuSePlay(1);
@@ -5450,6 +5244,7 @@ int CRemovalMenu::KeyStep() {
     return closed;
 }
 void MenuRemovalInit(mgCMemory *stack, int *arg) {
+    static char *fname[2] = {"npcmove.pac", NULL};
     int size;
 
     int rest = stack->stGetRest();
@@ -5505,7 +5300,7 @@ void MenuRemovalInit(mgCMemory *stack, int *arg) {
     AttachMessageForm();
     MenuMesForm[0]->draw_flag = 0;
     MenuMesForm[1]->draw_flag = 0;
-    MenuCommonReadData(&MenuGeoramaStack, fname_4292, 0);
+    MenuCommonReadData(&MenuGeoramaStack, fname, 0);
     MenuGeoramaStack.Align64();
     if (MenuCommonInfo->cursor_form != NULL) {
         MenuCommonInfo->cursor_form->draw_flag = 0;
@@ -5522,6 +5317,5 @@ void MenuRemovalDraw() {
 
 void CBaseMenuClass::InitEnd() {}
 
-// Small initialised data (.sdata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyNum_3583__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyPartsName_3587__DATA);

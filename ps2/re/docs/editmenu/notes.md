@@ -1,37 +1,17 @@
 # editmenu: reverse-engineering notes
 
-`MenuGeoramaStack`, `potti0`, and `potti1` are native C++ globals. Their constructors produce the retail 0x58-byte static initializer (`__sinit_editmenu_cpp`) exactly; no hand-written C-linkage initializer is needed. The rectangle initializers use their four retail edge values.
-
-`CMenuGeorama::InitEnd` passes the memory stack's current top to `MenuCharaLoadStack::stSetBuffer`. Calling `stGetTop()` replaces the explicit stack-pointer addition and leaves the retail function byte-identical.
-
-`MenuGeoramaAnalyzeSelect` moves the analysis cursor with two pairs of key
-bits, clamps it to the page's last line, and scrolls the analysis list toward
-the selected line. It caps the scroll distance, eases the list's Y coordinate
-by one quarter of its remaining distance, and records scroll direction for
-the request display when the top line changes. A guarded C++ draft compiles
-but differs from retail.
-
-`CMenuGeorama::CalcCursorPosition` chooses a form from the current cursor
-layout, positions the cursor on a list row or named colour cell, and forces an
-immediate move when `MenuGeoramaCursorForceSetFlag` is set. The build question
-uses `MakeBoardDrawInfo` positions. Its guarded draft compiles but differs
-from retail.
+## Status
+All 61 functions in `ps2/src/editmenu.cpp` are native C++ definitions and match retail (including
+`MakeDownLoadAnaunce`, `MenuGeoramaMessageMake`, `CMenuGeorama::GetNowSelectEditPartsInfo`,
+`MenuGeoramaAnalyzeSelect`, `CMenuGeorama::CalcCursorPosition` and `MenuRemovalInit`); the unit
+has no `INCLUDE_ASM` or `NONMATCHING` guards. `editmenu.hpp` includes `menusys.hpp`
+(`CBaseMenuClass`) and `menudraw.hpp` (`MENUFORM_MAKEBRD_INFO`, 0x2C from
+`Init_MENUFORM_MAKEBRD_INFO`'s memset); every field offset is asserted.
 
 Unit: the town's Georama menu (`CMenuGeorama`, `MenuGeorama*`), the villager removal menu
 (`CRemovalMenu`, `MenuRemoval*`), and the Geostone download announcement (`*DownLoadAnaunce`,
 `*MenuDl3`). No first-game class corresponds: Dark Cloud 1's `editmenu.hpp` (`EditMenuInit`,
 `EDIT_MENU_STATUS`) is a different, non-class menu.
-
-## Header dependencies (unresolved at time of writing)
-- `CBaseMenuClass` (owner `menusys`) is the base of both menu classes, and
-  `MENUFORM_MAKEBRD_INFO` (owner `menudraw`, size 0x2C from `Init_MENUFORM_MAKEBRD_INFO`'s memset)
-  is a by-value member of `CMenuGeorama`. Neither `menusys.hpp` nor `menudraw.hpp` existed, so
-  `editmenu.hpp` includes them and does not compile until they do. Layout was verified by compiling
-  against stubs (CBaseMenuClass = 0x10C bytes of fields + vptr at 0x10C, sizeof 0x110, virtuals
-  IsCreateObject, IsMakeObject, IsAskExtend, ItemCmdAfter, InitEnd, ExitEnd; MENUFORM_MAKEBRD_INFO =
-  0x2C bytes) with every field offset asserted.
-- `ps2/src/editmenu.cpp` does not yet `#include "editmenu.hpp"` for the same reason; add it once
-  the two headers exist.
 
 ## CBaseMenuClass (menusys) as seen from here
 - ctor `__ct__14CBaseMenuClassFv` stores vptr at 0x10C, memsets 0x110 bytes. Fields used here:
@@ -95,8 +75,7 @@ overrides nothing.
 textures, resets the drawing camera to `(0, 0, 500)`, and constructs this menu in 0x152 quadwords
 of stack storage. It then reserves 0x1180 quadwords for form data, selects the placed house from
 `MenuArg.param[0]`, records its part definition and residents, hides the time, area, message and
-cursor forms, and reads the common menu data. The draft differs by 14 words, principally in the
-inlined constructor and stack-buffer setup; the retail assembly remains active for normal builds.
+cursor forms, and reads the common menu data.
 - 0x110 mgCMemory (form data), 0x140 close counter (state 2, >9 ends), 0x144 s32[0xB4] villagers
   (memset 0x2D0; MakeNPCList: party ids 1.. with status non-zero and bit 4 clear; ids 2 and 13 need
   chapter >= 5), 0x414 count, 0x418 placed house id (from global DAT_01efc668), 0x41C mgCMemory
@@ -133,181 +112,167 @@ member as `shadow_link_num/shadow_link_model/shadow_link_shadow` at 0x35C; it sh
   0x10/0x20 (page).
 
 ## Globals
-Every data symbol of the unit is LOCAL in retail, so none is declared in the header; declare them
-`static` in the .cpp. Types seen: `CMenuGeoPt` CMenuGeorama*, `RemovalMenuPtr` CRemovalMenu*,
-`MenuMainMapInfo` CEditMap*, `MenuMapPart` CMapParts*, `MenuPartsDrawStack` mgCMemory*,
-`MenuGeoramaStack` mgCMemory (0x30), `Tex_Georama` mgCTexture*, `GeoramaMes` CDC2Mes*[5],
-`GeoramaMesMakeLine` s16[5], `GeoramaMesMakeManner` s8[5], `penki_item_no` s16[8],
-`GeoramaColorList` float[9][3] (8 colours + {-1,-1,-1}), `tbl_957` s16[7] = {0,1,2,-1,4,-1,3},
-`georama_parts_adjust_scaletable` / `_z_table` float[0x5D], `PartsMakeOkTable` s32[0x100],
-`GeoramaPenkiNum` s16[8] (symbol spans 0x20), `old_menuparts_pos/rot`, `now_menu_pos_mapparts`,
-`georama_adjust_position` float[4], `MenuGeoramaPushFunc` int(*[9])(CMenuGeorama*,int,int).
+Every data symbol of the unit is LOCAL in retail, so none is declared in the header. All 119 data
+objects are native C++ definitions in `editmenu.cpp`, ordered by retail address (the
+constructor-bearing `MenuGeoramaStack`, `potti0` and `potti1` keep their relative order so the
+compiler emits the exact 0x58-byte `__sinit_editmenu_cpp`; the rectangle initializers use their
+four retail edge values). Every string is inline at its use, with bytes above ASCII written as
+three-digit octal escapes so Shift-JIS text is independent of the editor encoding. The unit has
+no `divbyzerocheck` pragma: the global flag covers it.
 
-## Compiler flag cleanup
+Linkage: definitions are `static` except `HouseChildPartInfo` (`char *[22]`, 0x58) and
+`PartsMakeOkTable` (`int[256]`, 0x400), which keep external linkage because the generated VU
+program data object (`Vu_progmain`) contains cross-unit relocations naming them; making either
+`static` fails the link with `Symbol not found`.
 
-The local `divbyzerocheck on`/`reset` pair is redundant with the PS2 compiler
-flag. Removing it leaves every section and symbol in this unit's object diff
-unchanged.
+Named state (`.bss`/`.sbss`, types from their accesses): `CMenuGeoPt` CMenuGeorama*,
+`RemovalMenuPtr` CRemovalMenu*, `MenuMainMapInfo` CEditMap*, `MenuMapPart` CMapParts*,
+`MenuPartsDrawStack` mgCMemory*, `MenuGeoramaStack` mgCMemory (0x30), `Tex_Georama`
+mgCTexture*, `GeoramaMes` CDC2Mes*[5], `GeoramaMesMakeLine` s16[5], `GeoramaMesMakeManner`
+s8[5], `HouseChildPartInfo` char*[22] (house, resident, up to twenty children), `DownLoadMes`
+CDC2Mes*[6], `GeoBoardListTitlePutOffset` int[5][2], `GeoBoardListTitleTexRect` float[5][4],
+`GeoRequestBoardCheckPoint` float[4], `GeoRequestBoardCheckPoint_P` int[2],
+`MenuEditAnalyzeDataSrc` EditAnalyzeDataSrc*[32], `MenuEditAnalyzeDataSrcListHTable` float[16],
+`GeoramaReqMsgFont` CFont*[48], `GeoramaReqMsgFontGyouNum` s8[48], `GeoramaReqMsgTexH` s16[48],
+`GeoramaReqMsgFontDrawFlag` s8[48], `GeoramaPenkiNum` s16[16] (only the first eight are read as
+paint quantities), `PartsMakeOkTable` s32[0x100] with `PartsMakeOkTableNum`, the placed-house
+panel state (`HouseDrawInfo` CEditHouse*, `HouseInfoFormGrobal` CMenuPosDataForm*, `HousePartsID`,
+`HouseInfoSelectLine`/`HouseInfoSelectSelect` s16, `HouseInfoSelectMoveInit` s8,
+`HouseInfoSelectY`, `HouseInfoCursorAlphaOnOff`, `HouseInfoCursorAlpha`, `HouseInfoCursorY`), the
+Geostone download announcement state (`DownLoadInfo`/`DownLoadInfoNext` DownLoadEntry*,
+`DownLoadInfoEndFlag`/`DownLoadInfoDrawFlag`/`DownLoadMesMakeProgress`/`DownLoadMesMakeNo` s8,
+`DownLoadWinRect` DownLoadRect, `DownLoadDispNum`/`DownLoadProgress`/`DownLoadMesUpY` s16,
+`DownLoadMesAlpha` int, `DownLoadActiveMes` ClsMes*, `MenuGeoStoneDonwLoadFlag` s8,
+`MenuGeoStoneDownLoad_PartsNum`/`_Request` u16, `MenuGeoStoneDownLoadTime` u32,
+`MenuGeoStoneDmyCnt`/`_Now` GeoStoneDmyCnt*), the georama menu state (`MenuGeoramaSystemData`
+MenuGeoramaSystemInfo*, `MenuGeoramaCursorForceSetFlag`/`GeoramaMesPosForceSetFlag`/
+`GeoramaMesForceMakeFlag`/`GeoramaMesForceMakeFlag_PaintVer`/`old_menuparts_pos_flag`/
+`NowPolyGonFormMoveFlag` u8, `GeoRequestFlag` GeoRequestCheck*, `MenuGeoramaViewNowPicNo` s16,
+`MenuGeoramaViewWallPic` mgCTexture*, `MenuEditAnalyzeSrc` EditAnalyzeSrc*,
+`MenuEditAnalyzeDataSrcNum`/`MenuEditAnalyzeDataSrcListLimmitNum` s16,
+`MenuEditAnalyzeDataSrcListH`/`_Move`/`GeoAnalyzeCheckPointScrlBarY` float, `MenuAnalyzeData`
+EditDataAnalyze*, `GeoramaParts_DrawWaitCnt`/`GeoramaReqMakeLine`/`GeoramaReqMakeManner` s16,
+`menu_georama_title_pos` float[2]).
 
-## Stable floating-point evaluation flags
+Initialized data: `old_menuparts_pos`, `old_menuparts_rot`, `now_menu_pos_mapparts` and
+`georama_adjust_position` are four-float vectors in `.data` (zero components stay initialized
+data, not BSS); `GeoramaColorList` float[9][3] (8 RGB paint colours + `{-1,-1,-1}` unpainted
+sentinel); `georama_parts_adjust_scaletable` / `_z_table` float[93] (per-definition preview
+scale and depth; decimal literals round-trip to the retail binary32 values); `penki_item_no`
+s16[8]; `MenuGeoramaPushFunc` (9 handlers, entries 4, 7 and 8 NULL); `DownLoadMesScrlGyouNum`
+s16 = 1; `analyze_percent` int = 100; `GeoramaReqMakeFlag` s8 = 1; the `GeoramaMessageList`
+enum records that list slot 3 is the placed-part list and slot 4 the house list, and
+`GeoramaInitialMessage` names the initial system message IDs whose base-relative offsets the
+signed-byte table holds. Tables consumed by the flat short-rectangle drawing APIs keep their
+flat declarations; two-dimensional tables keep their real rows. All data is writable where the
+pointer-consuming APIs take mutable types.
 
-The `editmenu.cpp` rows in `scripts/build/satansfiddle.json` use `binary32`
-IEEE bits and set `evaluate_first` to `true` for every identical constant in
-the named function. They have no occurrence counter or callee restriction.
+Function-local statics (retail `name$NNNN`; the owning function holds each definition):
+| Static | Owner | Meaning |
+|---|---|---|
+| `tbl` (`tbl$957`) | `ConvGeoramaDataNo` | s16[7] = {0,1,2,-1,4,-1,3}; -1 for views without a part list |
+| `fname` (`fname$1013`) | `MenuGeoramaInit` | `char *[2] = {"georama0.pac", NULL}` |
+| `GeoAlpha` / `init` (`$1199`/`$1200`) | `MenuGeoramaKey` | model-preview fade opacity while closing, and its once-only guard |
+| `viewmode_to_mode_convtable` (`$1310`) | `MenuGeoramaListDraw` | s8[7] view-to-action map (one-based action numbers from the view enum) |
+| `brdtbl_active` / `brdtbl_noneactive` / `ScrlBarTable` (`$1314`/`$1315`/`$1320`) | `MenuGeoramaListDraw` | s16[12] board and scrollbar texture rectangles |
+| `brdtbl_noneactive` / `brdtbl` / `offsettable` / `rectboxtbl` / `maintopicbtn` (`$1547`/`$1550`/`$1551`/`$1555`/`$1568`) | `MenuGeoramaAnalyzeDraw` | s16[12] board rectangles, float[2][2] offsets, s16[12] rectangle box, s16[2][2] analysis topic-button origins |
+| `postbl` / `offset` / `jyunintbl` (`$2175`/`$2176`/`$2187`) | `MenuPlacedHouseDraw` | s16[8][4] texture rectangles (eight rows, including the extra retail row), s16[7] language-specific title offsets (seven languages), s16[2][4] resident labels |
+| `cnt` / `init` (`$2177`/`$2178`) | `MenuPlacedHouseDraw` | eighty-frame scroll-arrow blink counter (not a resident count) and its guard |
+| `Dmy` / `init` (`$2314`/`$2315`) | `MenuPlacedHouseMessMake` | blank name for missing placed-house information and its guard |
+| `constant_msg_xyoffsettbl` (`$2427`) | `MenuGeoramaMessageMake` | s16[5][4] message-column positions |
+| `msgtbl` (`$2587`) | `CMenuGeorama::InitEnd` | s8[5] initial list message offsets |
+| `dmychar` / `init` (`$3207`/`$3208`) | `MakeMsgPartsItemInfo` | blank display name for unused list rows and its guard |
+| `edparts_info` / `init` (`$3580`/`$3581`) | `MenuGeoramaPlacePush` | definition of the placed part selected for removal and its guard |
+| `DestroyNum` (`$3583`) | `MenuGeoramaPlacePush` | selected removal quantity |
+| `DestroyMaxNum` / `init` (`$3584`/`$3585`) | `MenuGeoramaPlacePush` | maximum removable quantity and its guard |
+| `DestroyPartsName` (`$3587`) | `MenuGeoramaPlacePush` | selected removal part-name pointer |
+| `fname` (`$4292`) | `MenuRemovalInit` | `char *[2] = {"npcmove.pac", NULL}` |
+
+`DestroyNum` and `DestroyPartsName` are four-byte zero objects in retail `.sdata` at 0x37C890 and
+0x37C894 with no initialization guard. An ordinary `= 0` / `= {0}` / `= {NULL}` scalar
+definition emits `.sbss`, which postprocessing cannot convert to `.sdata`; a runtime-initialized
+local static adds a guard byte (retail's `wavetable` pair `cnt$302`/`init$303` and `menuop` pair
+`ManualMovieFadeCount$1253`/`init$1254` show that pattern). A wrapper or one-element array used
+only to change section placement, a nonzero value or the `explicit_zero_data` pragma are not
+accepted spellings.
+
+Anonymous `.bss`/`.sbss` templates are compiler-created zero templates for local aggregates, not
+runtime variables; the natural initializers supply them:
+| Retail name | Section, object / piece bytes | Local aggregate and owner |
+|---|---|---|
+| `at_1556` | .sbss 8 / 8 | `float list_pos[2]`, MenuGeoramaAnalyzeDraw |
+| `at_1826__2` | .bss 16 / 16 | `RECT win`, DrawDownLoadAnaunce, from DownLoadWinRect |
+| `at_1827__2` | .bss 16 / 16 | `RECT shadow`, DrawDownLoadAnaunce, shifted five pixels |
+| `at_1829__2` | .sbss 8 / 8 | `WinColor shadow_color`, DrawDownLoadAnaunce (RGBAQ_TYPE bitfields, dynamic alpha) |
+| `at_2434` | .sbss 8 / 8 | `int top_line[2]`, MenuGeoramaMessageMake |
+| `at_2443` | .bss 52 / 64 | `int item_mes[13] = {0}`, MenuGeoramaMessageMake |
+| `at_2444` | .bss 52 / 64 | `char *names[13] = {NULL}`, MenuGeoramaMessageMake |
+| `at_3260`, `at_3268` | .sbss 4 / 4 | `char *items[1] = {make_parts->edit_name}`, IsMakeObject (two sites) |
+| `at_3303` | .bss 36 / 48 | `CMenuPosDataForm *forms[9]`, CalcCursorPosition (members and one NULL) |
+| `at_3304` | .bss 16 / 16 | `int pos[4] = {0,0,0,0}`, CalcCursorPosition |
+| `at_4043` | .sbss 4 / 8 | `char *name[1] = {GetNPCName(...)}`, KeyStep |
+| `at_4085` | .sbss 8 / 8 | `char *names[2] = {GetNPCName(select_npc), parts_info->edit_name}`, KeyStep |
+| `at_4124` | .sbss 8 / 8 | `int talk[2]` of two `GetPartyCharaMessage` results, KeyStep |
+| `at_4137` | .sbss 8 / 8 | `int top_line[2] = {top, top-1}`, KeyStep |
+| `at_4150` | .sbss 8 / 8 | `int bar_pos[2]`, KeyStep (list-form scrollbar position) |
+
+Initialized local templates likewise come from the existing aggregates: the child-number array
+(21 ints), cursor list counts (11 ints), model position (four floats), window RGBAQ (eight
+bytes), scrollbar size and line counts (two ints each), `MenuGeoramaMakePush`'s aligned river
+query `sceVu0FVECTOR {0,0,0,-1}` (`at_3757`), `CalcCursorPosition`'s switch jump table and both
+class vtables.
+
+## Source forms the match depends on
+- `MakeDownLoadAnaunce`: the request loop first checks `MenuEditAnalyzeDataSrc[no]` for NULL
+  and skips the empty entry, then declares `EditAnalyzeDataSrc *src` from that same table entry
+  with no call or write between the test and the declaration; MWCC shares the table load while
+  delaying the pointer's lifetime until after the branch, which places the reduced
+  condition-array indices at sp+0x140/sp+0x150, the request-table index at sp+0x160 and `src` at
+  sp+0x170 as in retail. The shared loop continuation updates `condition_num` before `con`
+  (retail increments the aggregate count at +0x9E0/+0x9E8 before the iterator at +0x9EC/+0x9F4).
+  The condition iterator is declared at function scope; no alignment attribute is needed. The
+  manager is created as `(CEditInfoMngr *) operator new(...)` then `Initialize()`; the
+  `new (...) CEditInfoMngr` expression tests the copied register after the `move` instead of `v0`.
+  Body 0xE08 in the 0xE10 retail extent.
+- `MenuGeoramaMessageMake`: retail assigns the second line loop's index to `s0` and the selected
+  name to `s4`.
+- `CMenuGeorama::GetNowSelectEditPartsInfo`: the stock branch's epilogue branches to the shared
+  `ld ra` with `nop` in the delay slot.
+- `CMenuGeorama::InitEnd` passes the memory stack's current top to
+  `MenuCharaLoadStack::stSetBuffer` via `stGetTop()`.
+- `LoadGeoramaPart` copies `now_menu_pos_mapparts`/`georama_adjust_position` with a quadword-view
+  copy; a 16-byte typed struct assignment changes source/destination address scheduling and
+  `memcpy` adds a call.
+- The form/house pointer-induction loops in `MenuGeoramaInit`, `CMenuGeorama::InitEnd` and
+  `MenuGeoramaListDraw` stay as pointer loops; direct array indexing changes the emitted
+  instructions.
+- `MenuGeoramaPlacePush` indexes `stock_list[j].name` directly and writes the base
+  `msg->ClsMes::mes_no = -1` that `CDC2Mes`'s own `s16 mes_no` hides; `MenuGeoramaMakePush`
+  converts `max_num` to `short` numerically.
+- `MakeMsgPartsItemInfo` calls the inherited `ClsMes::SetDefColor` on a `CDC2Mes *`;
+  `EditDataAnalyze::data_open`/`condition_open` are `s8` arrays read with `lb`;
+  `GetFormInfo` returns `CMenuPosDataForm *`; `MenuDataAnalyze` takes
+  `GetMenuMainPosCfgBuffer`'s `char *`.
+
+## Floating-point evaluation rows (satansfiddle)
+The `editmenu.cpp` rows use `binary32` IEEE bits and set `evaluate_first` to `true` for every
+identical constant in the named function, with no occurrence counter or callee restriction.
 
 | Function | IEEE bits | Value | Purpose |
 | --- | --- | --- | --- |
 | `MenuGeoramaTitleDraw__FRiPfi` | `0x3f333333` | 0.7f | Materializes the cursor scale before its negative rotation angle. |
 | `CalcTex__12CMenuGeoramaFv` | `0x00000000` | 0.0f | Materializes the zero minimum movement argument before the 4.0f interpolation divisor. |
 
-The title helper draws the active georama tab and its cursor. `CalcTex`
-positions the analysis progress indicator and list scroll bars before
-updating the selected map part. These flags preserve the retail argument
-register order without changing either function's calculations. With the
-current annotation and direct-literal consumer hooks, both native functions
-have zero differing instruction words and relocation fields. The canonical
-wrapper build followed by `fixup_sections.sh` and `check_objects.py` passes
-the whole unit: `0xC818` allocated bytes and 2,379 relocations.
+The title helper draws the active georama tab and its cursor. `CalcTex` positions the analysis
+progress indicator and list scroll bars before updating the selected map part. The rows preserve
+the retail argument register order without changing either function's calculations.
 
-## Earlier guarded draft findings
-
-`MenuGeoramaMessageMake` populates ten lines of the georama message window, positions two footer lines, and refreshes the window. Its current C++ draft differs in thirteen register uses in the second line loop: retail assigns the loop index to `s0` and the selected name to `s4`, while MWCC makes the opposite allocation. Separating the loop index, moving the name declaration, and changing declaration order did not reproduce retail's allocation.
-
-`CMenuGeorama::GetNowSelectEditPartsInfo` returns an edit-part description from the stock, make, or checkpoint list. Its C++ draft differs at the stock branch's epilogue: retail branches to the shared `ld ra` with `nop` in the delay slot, while the draft branches past that load and places it in the delay slot. Shared-result and sequential-condition forms did not produce the retail schedule. Both functions keep their assembly fallbacks.
-
-## MakeDownLoadAnaunce on the 73f8e75 merged base
-
-`MakeDownLoadAnaunce__FiP9mgCMemoryPiPiPi` is the unit's only guarded function.
-The entry draft differs by 25 of 900 words with either plain wibo or the pinned
-profile. The control-flow skeleton, placement constructors, integer arithmetic,
-string wrapping and floating arguments already reproduce retail. The native
-body is 0xE08 bytes against the 0xE10 retail extent; the tail is zero padding.
-
-Declaring the condition iterator at function scope and narrowing the analysis
-source pointer to its request loop reduces the difference to 23 words. Both
-loop-local variables instead differ by 34 words; declaring the iterator before
-the aggregate condition count differs by 31. The 32-byte alignment annotation
-on the scalar font index can be removed without changing the 23-word result.
-No new alignment annotation or compiler profile row is introduced.
-
-All remaining differing words are stack operands at function offsets 0x480,
-0x484, 0x498, 0x49C, 0x4B4, 0x540, 0x604, 0x638, 0x68C, 0x6A4, 0x6F0,
-0x79C, 0x7B4, 0x7BC, 0x9B8, 0x9CC, 0x9E0, 0x9E8, 0x9EC, 0x9F4,
-0x9F8, 0xA10 and 0xA1C. They are the request-source/index and condition-loop
-spill slots. Branches, calls and register operands otherwise match. Existing
-placement-new null branches are already exact here; the lane did not modify
-them. There is no float-order remainder to propose.
-
-**Park category:** local lifetimes/spill assignment. **Reconsider when:** retail
-or type evidence establishes the original request-source/condition-iterator
-scope and restores the remaining slots through natural declarations, without
-new alignment attributes or codegen wrappers. Keep the assembly guard until
-zero difference and a complete-unit pass.
-
-Evidence is in `.private/receipts/bigfn-drafts/editmenu-scoped-src.log`,
-`editmenu-scalar-font-index.log`, and the per-unit private experiment log. The
-final guarded build comparison is `.private/receipts/bigfn-final/`.
-
-Final guarded validation is identical to i9 in verifier, complete object-check
-output and coverage. All three lane units pass; the inherited failing set stays
-mg_texture, nd_meswin, actionchara and actscript (145/149 pass). Coverage stays
-6,666 matched / 184 guarded / 15 assembly-only / 7 fuzzy. No target is promoted.
-Comparison receipt: `.private/receipts/bigfn-final/comparison.json`.
-
-## Nearmiss continuation order and source cleanup
-
-The retained guarded `MakeDownLoadAnaunce` draft now differs by 19/900 words,
-down from 23/900, with the same 0xE08 body in the retail 0xE10 extent. Retail
-increments the aggregate condition count at +0x9E0/+0x9E8 before incrementing
-the condition iterator at +0x9EC/+0x9F4. Updating `condition_num` before `con`
-in the shared loop continuation reproduces these four words; their original
-slots were already correct. This is independent update order, not a spill
-layout difference. Every remaining scalar alignment attribute is removed;
-removing them does not change the draft's code. The quadword load buffer
-retains its real type and alignment.
-
-The 19 remaining differences are the prior list excluding those four
-continuation words. A separate request index, request-pass source scope,
-checked source reference, shared font-height pointer and a function-scope
-source after the scalar declarations all retain 19. Sharing the font pointer
-changes saved-register allocation (44/900); merging the source assignment/null
-test changes scheduling/body size (605/900); declaring the source first moves
-earlier spills too (76/900). All are reverted. The guard remains until the
-request-source and three reduced array-index spill slots match naturally.
-
-Receipts: `.private/receipts/nearmiss-probes/editmenu/n1` through `n10`; retained
-candidate `n2`. The canonical guarded complete-object check is under
-`.private/receipts/nearmiss-canonical/editmenu/n2/`. No profile row is added.
-
-## Mid-day request-pointer lifetime match (October 8)
-
-`MakeDownLoadAnaunce__FiP9mgCMemoryPiPiPi` is now native and exact. The request
-loop first checks `MenuEditAnalyzeDataSrc[no]` for NULL and skips the empty
-entry, then declares `EditAnalyzeDataSrc *src` from that same table entry.
-There is no call or write between the test and the declaration. MWCC shares
-the table load while delaying the local pointer's lifetime until after the
-empty-entry branch.
-
-This changes only the four spill assignments that accounted for the retained
-19/900-word checkpoint. The reduced condition-array indices occupy sp+0x140
-and sp+0x150, the reduced request-table index occupies sp+0x160, and `src`
-occupies sp+0x170, as in retail. The previous draft placed `src` at sp+0x140
-and the other three spills at sp+0x150/+0x160/+0x170. Instruction order,
-register operands, calls and branch layout are otherwise unchanged. No new
-compiler selector, type change, alignment annotation or helper is needed.
-
-The native body is 0xE08 bytes followed by the retail extent's eight zero
-padding bytes. Canonical wrapper/fixup comparison reports zero of 900 differing
-words and passes the whole unit: 0xC7E8 allocated bytes, 2,581 relocations.
-Removing the assembly guard also passes the integrated unit check. All 148
-other game objects retain their baseline file hashes. The full check remains
-147/149, with only the inherited nd_meswin and actscript failures, and PAL
-remains 0x26 differing .text bytes with every other file-backed section exact.
-Coverage increases from 6,686 to 6,687 matched functions.
-
-Natural scope trials retained 19 words for a const source pointer, a separately
-named signed request index, a source object reference, and a scoped font index;
-scoping the condition index instead gives 32. An unsigned request index adds a
-signedness difference (20), and a reference to the global pointer slot gives
-539/900 with a 0xE18 body. Those variants are not retained.
-
-Receipts: `.private/midday/probes/editmenu/source-after-test/` contains the
-source snapshot, word comparison, disassembly and complete-object check;
-`.private/midday-editmenu-build.log`, `.private/midday-editmenu-objects.log`,
-`.private/midday/editmenu-hash-comparison.json`, and
-`.private/midday-coverage-editmenu.txt` record integrated validation.
-
-## Initialized removal-state markers
-
-DestroyNum_3583 and DestroyPartsName_3587 each occupy four zero bytes in
-retail .sdata at 0x37C890 and 0x37C894. Their meanings remain the selected
-removal quantity and part-name pointer. The earlier scalar-initializer probe
-records that ordinary zero/null initialization emits .sbss; it is not
-repeated. A new natural scalar brace-initializer probe (`= {0}` / `= {NULL}`)
-also emits .sbss: canonical postprocessing rejects section 36 with
-`cannot become .sdata`. Its receipt is
-.private/fixes-r0/probes/editmenu-braced/compile.log. A different nonzero value or runtime initializer would alter the
-retail state or initializer, and a wrapper/one-element array solely to change
-section placement would not express these scalar variables naturally.
-
-A zero-initialized function-local static does not avoid this difference:
-MWCC emits `.sbss` storage and an initialization guard. Retail's own
-`wavetable` pair `cnt$302` / `init$303` and `menuop` pair
-`ManualMovieFadeCount$1253` / `init$1254` show that pattern. The former
-has a four-byte counter and one-byte guard at 0x37D208 / 0x37D20C;
-the latter has a two-byte counter and one-byte guard at
-0x37E32C / 0x37E330. In contrast, `DestroyNum$3583` and
-`DestroyPartsName$3587` are guard-less four-byte zero objects in
-`.sdata` at 0x37C890 / 0x37C894. A local-static rewrite would therefore
-change both the section and generated initialization behavior. The only
-verified scalar spelling for that initialized section uses
-`explicit_zero_data`, which is not an accepted source accommodation.
-
-The unaccepted explicit_zero_data pragma is removed. The unit-owned extern
-declarations and original initialized-data markers preserve the scalar
-accesses and exact retail .sdata. These two values remain assembly-supplied
-data until a natural scalar declaration reproduces that section placement.
-No function guard changes.
-
-Receipts: .private/fixes-r0/editmenu-final-{build,objects}.log:
-SCES_511.90: OK and 149/149 objects.
+## Function behaviour
+- `MenuGeoramaAnalyzeSelect` moves the analysis cursor with two pairs of key bits, clamps it to
+  the page's last line, and scrolls the analysis list toward the selected line: it caps the
+  scroll distance, eases the list's Y coordinate by one quarter of its remaining distance, and
+  records the scroll direction for the request display when the top line changes.
+- `CMenuGeorama::CalcCursorPosition` chooses a form from the current cursor layout, positions
+  the cursor on a list row or named colour cell, and forces an immediate move when
+  `MenuGeoramaCursorForceSetFlag` is set. The build question uses `MakeBoardDrawInfo`
+  positions (declared in menudraw.hpp).
