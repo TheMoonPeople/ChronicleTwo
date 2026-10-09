@@ -7,12 +7,15 @@ scene event script. No first-game counterpart (`chronicle` has no `event.cpp`).
 | Symbol | Addr | Binding | Type | Notes |
 |---|---|---|---|---|
 | `EventScene` | 0x37DE74 .sbss 4 | global | `CScene *` | Set by `InitEvent`/`RunEvent`; read by event_func too. Declared `extern` in the header. |
-| `EventScript` | 0x1EFD400 .bss 0x54 (slot 0x60) | **local** | `static CRunScript` | Constructed by `__sinit_event_cpp` (`CRunScript::CRunScript()`); `load`/`run`/`resume`/`skip`/`DeleteProgram` called on it. Belongs in the .cpp as `static`. |
-| `cnt$1056` | 0x37DE78 .sbss 4 | local | `static int cnt` in `EventLoop` | Door-sequence frame counter passed to `EventDoorLoop`. |
-| `vv$984` | 0x356080 .data 0x30 | local | `static float vv[3][4]` in `EventDoorLoop` | `vv + 0x10` used as a vector for `sceVu0ApplyMatrix` (camera offset rotated by the character's yaw). Likely three float[4] vectors; only +0x10 read. |
-| `at_819__4` | .rodata | literal | `"event/talk/npc_talk_c%d_%d.txt"` (chapter, LanguageCode) |
-| `at_820__4` | .rodata | literal | `"event/talk/npc_talk_c2_%d.txt"` fallback |
-| `at_1002__4` | 0x371A30 .rodata 9 | literal | SJIS "ドア開け" (door open): motion name passed to character vtable slot 0xB0 (likely `SetMotion(char*, int)`) with flags 2. |
+| `EventScript` | 0x1EFD400 .bss 0x54 (slot 0x60) | **local** | `static CRunScript` | Defined in the .cpp after the includes; constructed by the compiler-generated `__sinit_event_cpp` (`CRunScript::CRunScript()`); `load`/`run`/`resume`/`skip`/`DeleteProgram` called on it. |
+| `cnt$1056` | 0x37DE78 .sbss 4 | local | `static int cnt` in `EventLoop` | Function-local static; door-sequence frame counter passed to `EventDoorLoop`. |
+| `vv$984` | 0x356080 .data 0x30 | local | `static float vv[3][4]` in `EventDoorLoop` | Function-local static with 16-byte alignment; three camera-offset rows (negative half-unit values, homogeneous W). Only `vv[1]` is read, as the vector for `sceVu0ApplyMatrix` (camera offset rotated by the character's yaw). |
+| `at_819__4` | .rodata | literal | `"event/talk/npc_talk_c%d_%d.txt"` (chapter, LanguageCode); inline at its use in `LoadNpcTalkMes` |
+| `at_820__4` | .rodata | literal | `"event/talk/npc_talk_c2_%d.txt"` fallback; inline at its use |
+| `at_1002__4` | 0x371A30 .rodata 9 | literal | SJIS "ドア開け" (door open), written inline as the eight exact Shift-JIS bytes `83 68 83 41 8A 4A 82 AF`: motion name passed to character vtable slot 0xB0 (likely `SetMotion(char*, int)`) with flags 2. |
+
+The unit has no data markers; every object and literal comes from the source definitions above.
+
 
 ## EdEventInfo (owned by event_func, 0x1EFD460, size 0x12A0)
 Fields this unit touches (offsets from EdEventInfo):
@@ -41,21 +44,15 @@ Fields this unit touches (offsets from EdEventInfo):
 ## CScene offsets used (CScene owned by scenesnd)
 0x2C70 CFadeInOut (by value), 0x2E54 active camera number, 0x2E88 int, 0xA498 SE handle (passed to sndSePlay).
 
-## Draft coverage and matching trial
-All 16 functions have typed C++ drafts, including the compiler-generated
-`__sinit_event_cpp` from the file-local `CRunScript`. The draft compiler reports
-seven exact matches and nine differences. Each of the fifteen explicit
-function pairs received one isolated promotion trial. Those trials could not
-compile independently because the typed scene, event information, and script
-storage are currently visible only to the NONMATCHING branch; the retail
-assembly remains selected in the normal build. The initializer draft matches
-in draft mode but is emitted by static object construction and has no
-standalone source function to promote. The door motion literal is the SJIS
-bytes for ドア開け; the camera offset is `vv[1]`. The script reload path uses
-the town script memory or dungeon script memory according to the active loop.
+## Status
+All 15 explicit functions are native C++ definitions and match retail; the unit
+has no `INCLUDE_ASM` or `NONMATCHING` guards. `__sinit_event_cpp` is emitted by
+the static `CRunScript` object's construction and has no standalone source
+function. The script reload path uses the town script memory or dungeon script
+memory according to the active loop.
+
 ## Typed stack-buffer access
 
 The NPC message loader and event script loader take their file destination
 from `mgCMemory::stGetTop()`. Casting that quadword pointer to the API's byte
-pointer type avoids hand-written stack pointer arithmetic. The event unit
-remains exact in objdiff.
+pointer type avoids hand-written stack pointer arithmetic.
