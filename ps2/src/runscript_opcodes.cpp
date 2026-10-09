@@ -48,19 +48,30 @@
 #include "userdata.hpp"
 
 /**
+ *
  * Scene used by the active monster's script callbacks.
+ *
  */
 static CScene *nowScene;
 
+/**
+ *
+ * Monster whose script callbacks are running.
+ *
+ */
 CActiveMonster *nowMonster;
 
 /**
+ *
  * Damage entry returned by the most recent monster damage callback.
+ *
  */
 static ACTION_DAMAGE *LastCInfo2;
 
 /**
+ *
  * Monster script callback dispatch table indexed by external function number.
+ *
  */
 static int (*ext_func[RS_MONSTER_EXT_LIMIT])(RS_STACKDATA *, int);
 
@@ -3334,7 +3345,9 @@ int _SET_DEAD_START(RS_STACKDATA *args, int argc) {
 }
 
 /**
+ *
  * Creates monster death effects and weapon experience pickups.
+ *
  */
 int _SET_DEAD_OFF(RS_STACKDATA *args, int argc) {
     sceVu0FVECTOR position;
@@ -3811,7 +3824,9 @@ int _ESM_DELETE(RS_STACKDATA *stack, int argc) {
 }
 
 /**
+ *
  * Sets the first effect script vector for this monster.
+ *
  */
 int _ESM_SET_VECT1(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
@@ -3826,7 +3841,9 @@ int _ESM_SET_VECT1(RS_STACKDATA *stack, int argc) {
 }
 
 /**
+ *
  * Writes the first effect script vector to output slots.
+ *
  */
 int _ESM_GET_VECT1(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
@@ -3844,7 +3861,9 @@ int _ESM_GET_VECT1(RS_STACKDATA *stack, int argc) {
 }
 
 /**
+ *
  * Sets the second effect script vector for this monster.
+ *
  */
 int _ESM_SET_VECT2(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
@@ -3862,7 +3881,9 @@ int _ESM_SET_VECT2(RS_STACKDATA *stack, int argc) {
 }
 
 /**
+ *
  * Writes the second effect script vector to output slots.
+ *
  */
 int _ESM_GET_VECT2(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
@@ -3880,7 +3901,9 @@ int _ESM_GET_VECT2(RS_STACKDATA *stack, int argc) {
 }
 
 /**
+ *
  * Sets an effect target identifier for this monster.
+ *
  */
 int _ESM_SET_TARGET_ID(RS_STACKDATA *stack, int argc) {
     int slot = GetStackInt(stack++);
@@ -3891,7 +3914,9 @@ int _ESM_SET_TARGET_ID(RS_STACKDATA *stack, int argc) {
 }
 
 /**
+ *
  * Writes an effect target identifier and returns the manager lookup status.
+ *
  */
 int _ESM_GET_TARGET_ID(RS_STACKDATA *stack, int argc) {
     int id;
@@ -3904,7 +3929,9 @@ int _ESM_GET_TARGET_ID(RS_STACKDATA *stack, int argc) {
 }
 
 /**
+ *
  * Sets an effect user identifier for this monster.
+ *
  */
 int _ESM_SET_USER_ID(RS_STACKDATA *stack, int argc) {
     int slot = GetStackInt(stack++);
@@ -3915,7 +3942,9 @@ int _ESM_SET_USER_ID(RS_STACKDATA *stack, int argc) {
 }
 
 /**
+ *
  * Writes an effect user identifier to an output slot.
+ *
  */
 int _ESM_GET_USER_ID(RS_STACKDATA *stack, int argc) {
     int id;
@@ -4633,7 +4662,9 @@ int SetMonsterScript(CRunScript *script, char *program, mgCMemory *memory) {
 }
 
 /**
+ *
  * Associates monster script function numbers with their native callbacks.
+ *
  */
 static RS_EXTFUNC_INFO ext_func_info[] = {
     {_NORMAL_VECTOR, RS_MONSTER_EXT_NORMAL_VECTOR},
