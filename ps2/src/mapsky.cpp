@@ -34,7 +34,6 @@ static int skyAnmNum;
  */
 static int skybAnmNum;
 
-extern char at_386[];
 static s32           CheckSkyID(s32 sky_id);
 static s32           _SKY_IMG(SPI_STACK *stack, s32 arg_count);
 static s32           _SKY_MDS(SPI_STACK *stack, s32 arg_count);
@@ -51,7 +50,7 @@ static void LoadSkyPack(MAP_SKY_INFO *info, char *script, int size);
  * Sky configuration commands and their script callbacks.
  *
  */
-static SPI_TAG_PARAM tag[8] = {
+static SPI_TAG_PARAM tag[] = {
     {"SKY_IMG", _SKY_IMG},
     {"SKY_MDS", _SKY_MDS},
     {"SKY_ANIME", _SKY_ANIME},
@@ -264,7 +263,7 @@ void CMapSky::LoadPack(unsigned int *pack, int tex_block_base, mgCMemory *memory
     }
     MDS_HEADER *background_file = (MDS_HEADER *)GetPackFile(pack, info.bg_mds_name, NULL);
     if (background_file != NULL) {
-        mgCreateVisualType visual_types[2] = {{0, at_386}, {MG_VISUAL_CREATE_END, NULL}};
+        mgCreateVisualType visual_types[2] = {{0, ""}, {MG_VISUAL_CREATE_END, NULL}};
         bg = mgLoadMDSFile(background_file, memory, visual_types, NULL);
         if (bg != NULL) {
             mgCFrameAttr *bg_attr = bg->attr;
@@ -502,6 +501,3 @@ static int _SKYB_ANIME(SPI_STACK *stack, int argument_count) {
     ++skybAnmNum;
     return 1;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_386__DATA);
