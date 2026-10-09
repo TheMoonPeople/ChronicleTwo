@@ -2118,4 +2118,3 @@ int CheckFuncEvent(CFuncPoint *point, float *pos, int check_type, MapEventInfo *
 
     return 1;
 }
-
