@@ -193,13 +193,55 @@ extern s8               TitleBootEventNo;
 extern u8               GameBootInit;
 extern u8               TitleHDDCheckFlag;
 static void             TitleBootInit();
-extern mgCMemory        DataBuffer;
-extern mgCMemory        TitleMapBuffer;
-extern mgCMemory        TitleWorkBuffer;
-extern mgCMemory        Stack_ReadBuff;
-extern mgCMemory        Stack_MenuCharaBuff_Fix;
-extern HDD_INFO         HDDINFO;
-extern mgCMemory        lang_stack;
+
+/**
+ *
+ * Memory stack the title screen allocates its scene, resources and buffers from.
+ *
+ */
+static mgCMemory DataBuffer;
+
+/**
+ *
+ * Memory stack the title map loads into.
+ *
+ */
+static mgCMemory TitleMapBuffer;
+
+/**
+ *
+ * Work memory stack of the title scene.
+ *
+ */
+static mgCMemory TitleWorkBuffer;
+
+/**
+ *
+ * Memory stack the title scene reads files through.
+ *
+ */
+static mgCMemory Stack_ReadBuff;
+
+/**
+ *
+ * Memory stack the menu loads character data into while the title screen runs.
+ *
+ */
+static mgCMemory Stack_MenuCharaBuff_Fix;
+
+/**
+ *
+ * Hard disk state shown and acted on by the title screen.
+ *
+ */
+static HDD_INFO HDDINFO;
+
+/**
+ *
+ * Memory stack reserved for the language selection screen.
+ *
+ */
+static mgCMemory lang_stack;
 extern CMovie          *RushMovie;
 extern mgCTexture      *RushWork;
 
@@ -467,60 +509,6 @@ u_long CostumeOptionEnv;
 
 /**
  *
- * PUSH START texture rectangles indexed by the selected language.
- *
- */
-static MENU_SHORT_RECT start_button_tbl_1826[7] = {
-    {0, 22, 196, 18},
-    {0, 22, 196, 18},
-    {0, 18, 196, 22},
-    {0, 18, 196, 22},
-    {0, 20, 196, 20},
-    {0, 18, 196, 22},
-    {0, 22, 196, 18},
-};
-
-/**
- *
- * Texture origins for the five title menu rows.
- *
- */
-static s16 btn_tblxy_1830[5][2] = {
-    {302, 40},
-    {302, 94},
-    {302, 256},
-    {302, 204},
-    {302, 148},
-};
-
-/**
- *
- * Left, center and right texture rectangles for the three installation panel rows.
- *
- */
-static short table_2611[3][12] = {
-    {0, 0, 32, 32, 32, 0, 32, 32, 64, 0, 32, 32},
-    {0, 32, 32, 16, 32, 32, 32, 16, 64, 32, 32, 16},
-    {0, 48, 32, 76, 32, 48, 32, 76, 64, 48, 32, 76},
-};
-
-/**
- *
- * Installation progress captions indexed by the selected language.
- *
- */
-static char *infomsg_2664[7] = {
-    " ",
-    "Now installing.",
-    "Installing...",
-    "Installing...",
-    "Installing...",
-    "Installing...",
-    "Installing...",
-};
-
-/**
- *
  * Sets the number of idle title frames before the attract movie starts.
  *
  */
@@ -539,13 +527,6 @@ static s16 TitleMCCheckFileFind[2] = {0, 0};
  *
  */
 static u8 TitleMCCheckInport[2] = {0, 0};
-
-/**
- *
- * Sets the rising alpha pulse speed for the title and attract movie prompts.
- *
- */
-static s8 cnttbl_2026[2] = {2, 4};
 
 // Code (.text)
 /**
@@ -729,7 +710,7 @@ static void TitleBootInit() {
     mgCTextureManager *textures = &mgTexManager;
     DataBuffer.Align64();
     u_long128 *map_top = DataBuffer.stGetTop();
-    TitleMapBuffer.stSetBuffer(DataBuffer.stGetTop(), 0x40000);
+    TitleMapBuffer.stSetBuffer(map_top, 0x40000);
     DataBuffer.Alloc(0x60000);
     TitleWorkBuffer.stSetBuffer(DataBuffer.stGetTop(), 0x2800);
     DataBuffer.Alloc(0x2800);
@@ -741,10 +722,8 @@ static void TitleBootInit() {
     TitleScene->before_camera = 0;
     TitleScene->SetStack(1, &TitleMapBuffer);
     TitleScene->work_stack = &TitleWorkBuffer;
-    int map_no;
-    u8 *map_buffer;
-    map_buffer = (u8 *) DataBuffer.stGetTop();
-    map_no = SearchMapNo(at_1221__4);
+    u8 *map_buffer = (u8 *) DataBuffer.stGetTop();
+    int map_no = SearchMapNo(at_1221__4);
     TitleScene->active_map = 0;
     MapJumpMapInfo    main_map;
     SCN_LOADMAP_INFO2 load_info;
@@ -764,11 +743,8 @@ static void TitleBootInit() {
     TitleScene->SetActive(2, 0);
     TitleMap = TitleScene->GetMap(TitleScene->active_map);
     int file_size;
-    {
-        int logo_file_size;
-        if (LoadFile2(at_1222__4, DataBuffer.stAllocTest(1), &logo_file_size, 0) != 0) {
-            textures->EnterIMGFile((u_char *) DataBuffer.Alloc(Align16Blocks(logo_file_size)), 0x6A, NULL, NULL);
-        }
+    if (LoadFile2(at_1222__4, DataBuffer.stAllocTest(1), &file_size, 0) != 0) {
+        textures->EnterIMGFile((u_char *) DataBuffer.Alloc(Align16Blocks(file_size)), 0x6A, NULL, NULL);
     }
     textures->EnterTexture(0x6A, at_1223__4, NULL, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
     char lang_file[0x40];
@@ -831,9 +807,7 @@ static void TitleBootInit() {
     sndInitPort(4);
     TitleEventSound = sndLoadSound(4, (u_int *) sound_buffer, &snd_memory);
     DataBuffer.Align64();
-    int remaining = DataBuffer.stGetRest();
-    u_long128 *read_top = DataBuffer.stGetTop();
-    Stack_ReadBuff.stSetBuffer(read_top, remaining);
+    Stack_ReadBuff.stSetBuffer(DataBuffer.stGetTop(), DataBuffer.stGetRest());
     read_buffer = Stack_ReadBuff.stGetTop();
     TitleScene->read_buff = read_buffer;
     TitleScene->fade.Initialize();
@@ -1528,9 +1502,6 @@ void TitleModeInit() {
  *
  * Updates card detection, title menu input, fades, and attract-movie timing.
  *
- * @mangled TitleModeKey__Fv
- * @address 0x2A5150
- * @size 0x9BC
  */
 static int TitleModeKey() {
     int start_pushed;
@@ -1811,6 +1782,26 @@ static int TitleModeKey() {
     return TITLE_KEY_NONE;
 }
 void TitleModeDraw() {
+    // PUSH START texture rectangles indexed by the selected language.
+    static MENU_SHORT_RECT start_button_tbl[7] = {
+        {0, 22, 196, 18},
+        {0, 22, 196, 18},
+        {0, 18, 196, 22},
+        {0, 18, 196, 22},
+        {0, 20, 196, 20},
+        {0, 18, 196, 22},
+        {0, 22, 196, 18},
+    };
+
+    // Texture origins for the five title menu rows.
+    static s16 btn_tblxy[5][2] = {
+        {302, 40},
+        {302, 94},
+        {302, 256},
+        {302, 204},
+        {302, 148},
+    };
+
     int i;
     int x;
     int y;
@@ -1825,8 +1816,8 @@ void TitleModeDraw() {
     float top = 24.0f;
     float title_alpha = TitleInfo->title_alpha;
     PrimQuad(Tex_Chronicle, 0.0f, top, mgRect<int>(0, 0, 0x200, 0x1A0), fptosi(TitleInfo->title_alpha), 0x80, 0x80, 0x80);
-    mgRect<int> start_rect(start_button_tbl_1826[LanguageCode].left, start_button_tbl_1826[LanguageCode].top,
-                           start_button_tbl_1826[LanguageCode].right, start_button_tbl_1826[LanguageCode].bottom);
+    mgRect<int> start_rect(start_button_tbl[LanguageCode].left, start_button_tbl[LanguageCode].top,
+                           start_button_tbl[LanguageCode].right, start_button_tbl[LanguageCode].bottom);
 
     if (LanguageCode == 0) {
         prim.Bilinear(1);
@@ -1873,8 +1864,8 @@ void TitleModeDraw() {
             prim.Color(0x80, 0x80, 0x80, fptosi(TitleInfo->menu_alpha));
         }
 
-        button_rect.left = btn_tblxy_1830[i][0];
-        button_rect.top = btn_tblxy_1830[i][1];
+        button_rect.left = btn_tblxy[i][0];
+        button_rect.top = btn_tblxy[i][1];
         PrimQuad(&prim, (float) x, (float) y, button_rect);
 
         if (i == TitleInfo->select) {
@@ -2134,15 +2125,18 @@ void TitleMapDraw() {
  *
  */
 void CalcPushAlpha(int index, float *alpha) {
+    // Sets the rising alpha pulse speed for the title and attract movie prompts.
+    static s8 cnttbl[2] = {2, 4};
+
     if (TitlePushStart_AlphaPlus != 0) {
-        *alpha += cnttbl_2026[index];
+        *alpha += cnttbl[index];
 
         if (128.0f <= *alpha) {
             *alpha = 128.0f;
             TitlePushStart_AlphaPlus = 0;
         }
     } else {
-        *alpha -= cnttbl_2026[index] + 2;
+        *alpha -= cnttbl[index] + 2;
 
         if (*alpha < 0.0f) {
             *alpha = 0.0f;
@@ -2285,7 +2279,7 @@ int TitleMCCheckKey() {
 
                 if (push & MENU_PUSH_BUTTON_CANCEL) {
                     result = 0;
-                    MenuSePlay(5);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                 }
             } else {
                 return 1;
@@ -2675,7 +2669,7 @@ int TitleHDDInstallKey() {
             }
 
             if (old_select != HDDModeSelect) {
-                MenuSePlay(0);
+                MenuSePlay(SYSTEM_SE_CURSOR);
             }
 
             if (push & 1) {
@@ -2696,11 +2690,11 @@ int TitleHDDInstallKey() {
                     }
                 }
 
-                MenuSePlay(1);
+                MenuSePlay(SYSTEM_SE_DECIDE);
             } else if (push & 2) {
                 HDDConfirmType = HDD_CONFIRM_EXIT;
                 next_phase = HDD_PHASE_CONFIRM;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
 
             break;
@@ -2711,12 +2705,12 @@ int TitleHDDInstallKey() {
 
             if (answer == 1) {
                 choice = 1;
-                MenuSePlay(1);
+                MenuSePlay(SYSTEM_SE_DECIDE);
             }
 
             if (answer == 2) {
                 choice = 2;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
 
             if (HDDConfirmType == HDD_CONFIRM_EXIT) {
@@ -2766,7 +2760,7 @@ int TitleHDDInstallKey() {
                 MenuSePlay(0x1F);
             } else if (push & 2) {
                 next_phase = HDD_PHASE_CANCEL_ASK;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
 
             break;
@@ -2779,7 +2773,7 @@ int TitleHDDInstallKey() {
                     next_phase = HDD_PHASE_EXIT;
                 }
 
-                MenuSePlay(1);
+                MenuSePlay(SYSTEM_SE_DECIDE);
             }
 
             break;
@@ -2795,7 +2789,7 @@ int TitleHDDInstallKey() {
                 HDDDlBarDrawFlag = 1;
                 HDDMesDrawFlag = 0;
                 HDDPhase = HDD_PHASE_INSTALL;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
 
             break;
@@ -2804,14 +2798,14 @@ int TitleHDDInstallKey() {
             if (StepInstallThread() <= 0) {
                 DeleteInstallThread();
                 next_phase = HDD_PHASE_CANCELLED;
-                MenuSePlay(1);
+                MenuSePlay(SYSTEM_SE_DECIDE);
             }
 
             break;
         case HDD_PHASE_CANCELLED:
             if (push != 0) {
                 next_phase = HDD_PHASE_IMAGE_FADE;
-                MenuSePlay(1);
+                MenuSePlay(SYSTEM_SE_DECIDE);
             }
 
             break;
@@ -2824,7 +2818,7 @@ int TitleHDDInstallKey() {
         case HDD_PHASE_ERROR:
             if (GamePad__2.Down(0x20) != 0 || GamePad__2.Down(0x40) != 0) {
                 next_phase = HDD_PHASE_SELECT;
-                MenuSePlay(1);
+                MenuSePlay(SYSTEM_SE_DECIDE);
             }
 
             break;
@@ -2992,6 +2986,13 @@ int TitleHDDInstallKey() {
 }
 
 void DrawMenuDl(int x, int y, int width, int alpha, float rate) {
+    // Left, center and right texture rectangles for the three installation panel rows.
+    static short table[3][12] = {
+        {0, 0, 32, 32, 32, 0, 32, 32, 64, 0, 32, 32},
+        {0, 32, 32, 16, 32, 32, 32, 16, 64, 32, 32, 16},
+        {0, 48, 32, 76, 32, 48, 32, 76, 64, 48, 32, 76},
+    };
+
     mgCDrawPrim prim;
     mgRect<int> frame_tex;
     mgRect<int> bar_tex;
@@ -3010,7 +3011,7 @@ void DrawMenuDl(int x, int y, int width, int alpha, float rate) {
     PrimQuad(&prim, frame_put, frame_tex);
     prim.End();
     prim.Begin(6);
-    int   end_width = table_2611[0][2] - 0x14 + table_2611[1][4];
+    int   end_width = table[0][2] - 0x14 + table[1][4];
     float inner = ((float) width - (float) end_width) - 2.0f;
     int   bar_width = (int) (inner * rate);
 
@@ -3028,12 +3029,12 @@ void DrawMenuDl(int x, int y, int width, int alpha, float rate) {
 
     for (int i = 0; i < 3; i++) {
         prim.Color(0, 0, 0, alpha >> 2);
-        shadow_put.Set(x + 4, y + 4, width, table_2611[i][3]);
-        Menu3DivideTextureDraw(&prim, shadow_put, table_2611[i], 1);
+        shadow_put.Set(x + 4, y + 4, width, table[i][3]);
+        Menu3DivideTextureDraw(&prim, shadow_put, table[i], 1);
         prim.Color(0x80, 0x80, 0x80, alpha);
-        body_put.Set(x, y, width, table_2611[i][3]);
-        Menu3DivideTextureDraw(&prim, body_put, table_2611[i], 1);
-        y += table_2611[i][3];
+        body_put.Set(x, y, width, table[i][3]);
+        Menu3DivideTextureDraw(&prim, body_put, table[i], 1);
+        y += table[i][3];
     }
 
     prim.End();
@@ -3045,6 +3046,17 @@ void DrawMenuDl(int x, int y, int width, int alpha, float rate) {
  *
  */
 void TitleHDDInstallDraw() {
+    // Installation progress captions indexed by the selected language.
+    static char *infomsg[7] = {
+        " ",
+        "Now installing.",
+        "Installing...",
+        "Installing...",
+        "Installing...",
+        "Installing...",
+        "Installing...",
+    };
+
     mgCTextureManager *textures = &mgTexManager;
 
     if (HDDBGTex != NULL) {
@@ -3057,13 +3069,9 @@ void TitleHDDInstallDraw() {
         float       cursor[2] = {160.0f, 180.0f};
         PrimQuad(HDDSysImage, cursor[0], cursor[1], mgRect<int>(0x12E, 0x94, 0xD2, 0x36), 0x80, 0x80, 0x80, 0x80);
 
-        /**
-         *
-         * Counts animation frames while the installation controls are shown.
-         *
-         */
         static int count = 0;
 
+        // The frame counter advances through a float add, as retail does.
         count += 1.0f;
 
         if (1000000.0f < (float) count) {
@@ -3097,7 +3105,7 @@ void TitleHDDInstallDraw() {
             textures->ReloadTexture(0x46, (sceVif1Packet *) NULL);
 
             CMenuFont font;
-            font.SetStr(infomsg_2664[LanguageCode]);
+            font.SetStr(infomsg[LanguageCode]);
             font.SetPos(0xA6, 0xAE);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
             if (HDDMes2 != NULL) {
@@ -3322,12 +3330,3 @@ INCLUDE_BSS(RushStart, 0x4);
 INCLUDE_BSS(RushWork, 0x4);
 INCLUDE_BSS(TitleScene, 0x4);
 INCLUDE_BSS(TitleEventSound, 0x4);
-
-// Uninitialised data (.bss)
-mgCMemory DataBuffer;
-mgCMemory TitleMapBuffer;
-mgCMemory TitleWorkBuffer;
-mgCMemory Stack_ReadBuff;
-mgCMemory Stack_MenuCharaBuff_Fix;
-HDD_INFO  HDDINFO;
-mgCMemory lang_stack;
