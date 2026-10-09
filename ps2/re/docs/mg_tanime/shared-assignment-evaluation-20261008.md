@@ -27,6 +27,3 @@ These canonical comparisons include zero padding and excess native words,
 with relocation operands masked. No guarded draft improves or reaches zero.
 `TexAnime` and `NewTexAnimeData` retain their baseline scores. No explicit
 assignment or compiler-profile change is retained.
-
-Receipts: `.private/shared-eval/experiments/rectangle-by-value/` and
-`.private/shared-eval/guard-sweeps/rectangle-by-value/results.json`.

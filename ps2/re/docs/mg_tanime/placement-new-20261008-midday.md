@@ -58,8 +58,3 @@ The current guarded draft also contains inherited raw object-field byte
 accesses and self-assignment scaffolding. A valid promotion must recover
 natural field expressions and reproduce the joins together; adding source
 padding or choosing longer arithmetic to compensate for them is not a fix.
-
-Receipts: `.private/placenew-midday/baseline-native/mg_tanime/`, the
-`texture-*` directories under `.private/placenew-midday/probes/`, and
-`.private/placenew-midday/texture-aligned-diff.txt`. The private alignment
-script records the additional diagnostic masks explicitly.
