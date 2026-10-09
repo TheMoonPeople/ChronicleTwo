@@ -1,7 +1,10 @@
 # automap: reverse-engineering notes
 
-No counterpart exists in the first game (no AutoMap / MiniMap / HealingPoint classes in
-`/home/adubbz/development/chronicle`). Everything below comes from this game's code.
+No counterpart exists in the first game (no AutoMap / MiniMap / HealingPoint classes).
+Everything below comes from this game's code.
+
+All 43 functions in `ps2/src/automap.cpp` are native C++ definitions and match retail; the unit
+has no `INCLUDE_ASM` or `NONMATCHING` guards and no data markers.
 
 ## Instances
 - The only instance is the global `AutoMapGen` (dng_main, `0x01ECEF80`, size `0x2A0` in
@@ -81,20 +84,51 @@ SetMapInfo stores the minimap tile into `CMapParts::unk_1dc` (+0x1DC, -1 if none
 `unk_1dc` in mapparts.hpp (another unit's header; candidate name `minimap_tile`).
 
 ## Data
-- `PartsInfoData` (.data 0x33D440, 0x19F8 = 277 x 0x18, global): row = `char *name; s16 kind;
-  u8 link; u8 entrance; s16 unk_8[8]`. Row 276 has an empty string name, not NULL. `SetMapInfo` terminates by reading
-  a zero name pointer from the eight alignment bytes after the declared array
-  extent. `unk_8` is never read by automap or any other unit. SetPartsIndex bounds its search at 0x118 rows.
-- `MiniMapInfoData` (.data 0x33EE40, 0x2E20 = 18 x 0x290, global): `char name[16]` (e.g. "d01f01")
-  then 320 s16 tiles indexed by PartsInfoData row. SetMapInfo matches name to
-  `BattleAreaScene+0x24` (truncated to 6 chars if 7 long).
-- Local (static, go in the .cpp, not the header): `symbol_table` (0xA0 = 10 x `MINIMAP_SYMBOL_INFO`,
-  terminator symbol -1), `tag` (`tag__4`, 0x40: SPI_TAG_PARAM[8] of ROOM_FIXED, GRID_SIZE, ROOM_ID,
-  ROOM_SIZE, ROOM_RATE, RD, ROOM_END, NULL), sbss `auto_map` (CAutoMapGen*), `nowPrisetStack`
-  (mgCMemory*), `nowPriset` (AUTOMAP_ROOM_INFO*), `nowPrisetNum` (int), `nowPrisetTable` (s16*),
-  `cax`/`cay` (int, last navi target cell).
+All data is native: every object below is a C++ definition in `automap.cpp` and every string is
+inline at its use (`minimap1`, `ERR:NotFound StartLinkPoint\n`, `%d,%d [%d][%d]\n`, `o00`/`o01`,
+`room5%d`/`kaifuku`, `p01_gio`/`obj01`/`obj02`, `EXIT INDEX = %d\n`, `rand = %d\n`, `%d\n`).
+- `PartsInfoData` (.data 0x33D440, 0x19F8 = 277 x 0x18, global): 277 native `AUTOMAP_PARTS_INFO`
+  aggregates; row = `char *name; s16 kind; u8 link; u8 entrance; s16 unk_8[8]`. Row 276 has the
+  inline empty string `""` as its name, not NULL. `SetMapInfo` terminates by reading a zero name
+  pointer from the eight alignment bytes after the declared array extent (the native 0x19F8-byte
+  object is followed by that zero tail). `unk_8` is never read by automap or any other unit; its
+  values range -1..85 and are not uniformly repeated. SetPartsIndex bounds its search at 0x118 rows.
+- `MiniMapInfoData` (.data 0x33EE40, 0x2E20 = 18 x 0x290, global): 18 native `MINIMAP_INFO`
+  aggregates, `char name[16]` (e.g. "d01f01") then 320 s16 tiles indexed by PartsInfoData row
+  (the trailing 43 tile slots of each map are zero; negative entries are retail values). SetMapInfo
+  matches name to `BattleAreaScene+0x24` (truncated to 6 chars if 7 long).
+- Local (static in the .cpp, not the header): `symbol_table` (0x341C60, 0xA0 = 10 x
+  `MINIMAP_SYMBOL_INFO`, writable; nine rows with `MINIMAP_SYMBOL` values, final row
+  `MINIMAP_SYMBOL_END` with zero appearance fields), `tag` (symbol file `tag__4`, 0x341D00, 0x40:
+  writable `SPI_TAG_PARAM[8]` of ROOM_FIXED, GRID_SIZE, ROOM_ID, ROOM_SIZE, ROOM_RATE, RD,
+  ROOM_END, `{NULL, NULL}`, each name inline; defined after the static callbacks and before
+  `SetupRoomInfo` so data order follows retail), sbss `auto_map` (CAutoMapGen*),
+  `nowPrisetStack` (mgCMemory*), `nowPriset` (AUTOMAP_ROOM_INFO*), `nowPrisetNum` (int),
+  `nowPrisetTable` (s16*), `cax`/`cay` (int, last navi target cell), in retail order.
+- Six 16-byte `.data` vectors at 0x341D40..0x341D90 are the local aggregate initializers
+  `{0, 0, 0, 1}` (position/rotation) and `{1, 1, 1, 1}` (scale) in `SetDummyMountain`,
+  `SetDummyTree` and `IndexToPartsPlace`.
 - The `_ROOM_*`, `_GRID_SIZE`, `_RD` script tag functions are local -> `static` in the .cpp.
   `_ROOM_SIZE` allocates `w*h*4` bytes (pairs of s16) via `mgCMemory::Alloc` + `operator new[]`.
+
+## Source forms the match depends on
+- `CAutoMapGen::SetupRoomInfo`: `room_info = new (mem->Alloc(0x62)) AUTOMAP_ROOM_INFO[64]`.
+- `_ROOM_SIZE`: the cell table holds two `s16` per cell (part index and attribute), so
+  `width * height * 4` bytes is `s16[width * height * 2]`, but the explicit
+  `operator new[](bytes, ...)` form is required: a typed placement-new with that element count
+  changes the body at 0x1D6BE9 (retail body 0xB4), and `s16[bytes / sizeof(s16)]` changes it at
+  0x1D6BC8 and adds four bytes with shifted relocations.
+- `CAutoMapGen::CreatTermParts`: the candidate cell and its upper and lower neighbours are
+  addressed as `(u8 *) grid + y_off + x_off` with byte offsets computed once, and the room number
+  is read back through the same offsets after the loop. `grid[y * row_width + x]` adds the indices
+  before scaling; `grid + y * row_width + x` scales row and column separately like retail but
+  evaluates the row first, so the column offset and the cell pointer exchange registers
+  (`a0`/`a1`) throughout the loop.
+- `CAutoMapGen::SearchHealingPoint`: the function point position is copied into the local float
+  array with a 128-bit copy; `memcpy(offset, point->position, sizeof(offset))` changes 88 `.text`
+  bytes starting at `SearchHealingPoint+0x12`.
+- `CMiniMapSymbol::SetMapInfo`, `CMiniMapSymbol::Draw` and `CAutoMapGen::Build` test part names
+  with `name[0]` (`CMapParts::name` is `char`).
 
 ## Symbols (MINIMAP_SYMBOL)
 Callers: CMonsterMan 0 (8 when monster +0x1354 > 0 and `GetNowNPC() == 9`), CTreasureBoxManager 1,
@@ -108,11 +142,10 @@ Sphida meanings are not established; names are neutral.
 - Kind bits 0x40/0x80 have no name.
 - RoomLink, CreatDummyRoot, CreatTermParts, SetDummyTree were only skimmed for field offsets.
 
-## Symbol drafts
-`DrawSymbol` maps a world position to 16-pixel map cells, checks room visibility and the blink counter, and draws the matching table symbol. `DrawSymbol_Chara` projects a character and rotates four arrow vertices about its facing, clipped to the map rectangle. Both guarded C++ drafts compile and retain assembly fallbacks while instruction differences remain.
+## Symbol drawing
+`DrawSymbol` maps a world position to 16-pixel map cells, checks room visibility and the blink counter, and draws the matching table symbol. `DrawSymbol_Chara` projects a character and rotates four arrow vertices about its facing, clipped to the map rectangle.
 
 ## Mini-map source types
 `CMiniMapSymbol::SetMapInfo` receives a `CMapParts*` directly from
 `CMap::GetPlacPartsTable`. The battle area's `map_name` is a `char` array, so
-its floor name can be passed to `strcpy` without a signed-byte cast. The
-function remains an exact object match with those types.
+its floor name is passed to `strcpy` without a signed-byte cast.
