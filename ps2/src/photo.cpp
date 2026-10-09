@@ -19,7 +19,9 @@
 #include "userdata.hpp"
 
 /**
+ *
  * Photo mode prompts and announcements in each supported language.
+ *
  */
 static char *mes_txt[6][PHOTO_MES_NUM] = {
     {
@@ -61,61 +63,86 @@ static char *mes_txt[6][PHOTO_MES_NUM] = {
 };
 
 /**
+ *
  * Empty text returned for an invalid photo message or language.
+ *
  */
 static char *null_txt = "";
-/**
- * Font used to draw the camera prompts, titles and picture count.
- */
-static CFont Font__3;
 
 /**
+ *
+ * Font used to draw the camera prompts, titles and picture count.
+ *
+ */
+static CFont Font;
+
+/**
+ *
  * Current step of camera capture and display.
+ *
  */
 static u32 TakePhotoMode;
 
 /**
+ *
  * Projection offset controlled by camera zoom.
+ *
  */
-static float AddProj__2;
+static float AddProj;
 
 /**
+ *
  * Texture block holding the camera interface.
+ *
  */
 static u32 CameraTexb;
 
 /**
+ *
  * Texture used to capture and preview the last picture.
+ *
  */
 static mgCTexture *WorkTex;
 
 /**
+ *
  * Frames remaining in the shutter animation.
+ *
  */
 static int ShutterAnmCnt;
 
 /**
+ *
  * Frames remaining in the last-picture preview.
+ *
  */
 static int ShowTakePhotoCnt;
 
 /**
+ *
  * Request to open the camera picture menu.
+ *
  */
 static u32 OpenMenu;
 
 /**
+ *
  * Frames remaining in the subject-title display.
+ *
  */
 static int ShowTitleCnt;
 
 /**
+ *
  * Frames remaining in the photography-level announcement.
+ *
  */
 static int ShowLevelUpCnt;
 
 /**
+ *
  * Title of the subject in the last picture.
+ *
  */
 static char PhotoTitle[128];
 
@@ -134,7 +161,7 @@ char *GetMesTxt(int message_id) {
 
 float PhotoAddProjection() {
     if (NowTakePhoto()) {
-        return AddProj__2;
+        return AddProj;
     }
 
     return 0.0f;
@@ -152,7 +179,7 @@ static void InitPhotoTitle() {
 
 void InitTakePhoto() {
     TakePhotoMode = TAKE_PHOTO_OFF;
-    AddProj__2 = 0;
+    AddProj = 0;
     InitPhotoTitle();
     ShowTakePhotoCnt = 0;
     CameraTexb = -1;
@@ -164,10 +191,10 @@ void InitTakePhoto() {
 void LoadTakePhoto(int tex_block, mgCMemory *memory, u_long128 *buffer) {
     WorkTex = mgTexManager.EnterTexture(0x7FFF, "fix_work", NULL, 0x40, 0x40, 0x10, 0, 0, 0);
     CameraTexb = tex_block;
-    Font__3.Init();
-    Font__3.Preset(4);
-    Font__3.SetFuchi(3);
-    Font__3.SetClearance(0xF, 0x18);
+    Font.Init();
+    Font.Preset(4);
+    Font.SetFuchi(3);
+    Font.SetClearance(0xF, 0x18);
 }
 
 void StartTakePhoto() {
@@ -204,17 +231,17 @@ int GhostPhotoTiming() {
 void LoopTakePhoto(CPadControl *pad, CInventUserData *user_data) {
     if (user_data != NULL) {
         if (TakePhotoMode == TAKE_PHOTO_AIM) {
-            AddProj__2 += 10.0f * -pad->Analog(PAD_ANALOG_RIGHT_Y);
+            AddProj += 10.0f * -pad->Analog(PAD_ANALOG_RIGHT_Y);
 
-            if (!(AddProj__2 <= 200.0f)) {
-                AddProj__2 = 200.0f;
+            if (!(AddProj <= 200.0f)) {
+                AddProj = 200.0f;
             }
 
-            if (AddProj__2 < -200.0f) {
-                AddProj__2 = -200.0f;
+            if (AddProj < -200.0f) {
+                AddProj = -200.0f;
             }
 
-            if (user_data->IsPhotoSpace(NULL) != 0 && pad->Btn(0x33) != 0) {
+            if (user_data->IsPhotoSpace(NULL) != 0 && pad->Btn(PAD_BTN_ACTION_SQUARE) != 0) {
                 TakePhotoMode = TAKE_PHOTO_SHUTTER;
             }
 
@@ -514,13 +541,13 @@ void DrawTakePhotoSystem(int texture, CInventUserData *user_data) {
     int  y;
     int  char_width;
     mgTexManager.ReloadTexture(texture, (sceVif1Packet *) NULL);
-    Font__3.SetColor(0xFF, 0xFF, 0xFF, 0x80);
+    Font.SetColor(0xFF, 0xFF, 0xFF, 0x80);
 
     if (ShowTitleCnt > 0 && PhotoTitle[0] != 0) {
         y = mgScreenHeight - 0x24;
-        Font__3.SetStr(PhotoTitle);
-        Font__3.SetPos(0x14, y);
-        Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
+        Font.SetStr(PhotoTitle);
+        Font.SetPos(0x14, y);
+        Font.DrawDirect(Font.str, Font.pos_x, Font.pos_y);
         ShowTitleCnt -= 1;
 
         if (ShowTitleCnt <= 0) {
@@ -528,28 +555,28 @@ void DrawTakePhotoSystem(int texture, CInventUserData *user_data) {
         }
     } else {
         y = mgScreenHeight - 0x29;
-        Font__3.SetStr(GetMesTxt(0));
-        Font__3.SetPos(0x28, y);
-        Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
+        Font.SetStr(GetMesTxt(0));
+        Font.SetPos(0x28, y);
+        Font.DrawDirect(Font.str, Font.pos_x, Font.pos_y);
         y = mgScreenHeight - 0x29;
-        Font__3.SetStr(GetMesTxt(3));
-        Font__3.SetPos(0xF0, y);
-        Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
+        Font.SetStr(GetMesTxt(3));
+        Font.SetPos(0xF0, y);
+        Font.DrawDirect(Font.str, Font.pos_x, Font.pos_y);
         y = mgScreenHeight - 0x15;
-        Font__3.SetStr(GetMesTxt(1));
-        Font__3.SetPos(0x28, y);
-        Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
+        Font.SetStr(GetMesTxt(1));
+        Font.SetPos(0x28, y);
+        Font.DrawDirect(Font.str, Font.pos_x, Font.pos_y);
     }
 
     ConvertFontCode(GetMesTxt(2), title);
-    char_width = Font__3.draw_w;
+    char_width = Font.draw_w;
     y = 0xF6;
     y -= (int) ((u32) (char_width * strlen(title)) >> 1) / 2;
 
     if (ShowLevelUpCnt > 0) {
-        Font__3.SetStr(GetMesTxt(2));
-        Font__3.SetPos(y, 0x140);
-        Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
+        Font.SetStr(GetMesTxt(2));
+        Font.SetPos(y, 0x140);
+        Font.DrawDirect(Font.str, Font.pos_x, Font.pos_y);
         ShowLevelUpCnt -= 1;
     }
 
@@ -557,11 +584,11 @@ void DrawTakePhotoSystem(int texture, CInventUserData *user_data) {
     sprintf(count_text, "%d/%d", counts[0], counts[1]);
 
     if (counts[0] >= counts[1]) {
-        Font__3.SetColor(0xFF, 0x20, 0x10, 0x80);
+        Font.SetColor(0xFF, 0x20, 0x10, 0x80);
     }
 
     y = mgScreenHeight - 0x2E;
-    Font__3.SetStr(count_text);
-    Font__3.SetPos(0x1B8, y);
-    Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
+    Font.SetStr(count_text);
+    Font.SetPos(0x1B8, y);
+    Font.DrawDirect(Font.str, Font.pos_x, Font.pos_y);
 }
