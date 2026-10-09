@@ -63,8 +63,6 @@ fills it. Size: stride 0x50 in every loop (`CreateCollisionMDT`, `PickUpNearPoly
   writes `pos[1]`, returns 1 if any hit.
 - `PickUpNearPoly(out, box, max)`: rejects if box and bbox do not overlap; for each poly whose
   MaxMin box `mgClipBox`es the query box, copies it out; stops when `max` reached.
-  A guarded C++ draft now follows this search and compiles, but its generated
-  code still differs from retail.
 
 ## CColFrame (0x120) : mgCFrame
 - mgCFrame is 0x110 (`mgCFrame::operator=` memcpy 0x110). 0x110 `u32 flags`, 0x114
@@ -106,97 +104,47 @@ then index words, three per triangle. Returns null if any list has `(flags & 7) 
 `flags & 0x100`, or if the poly Alloc fails (the CCollisionMDT is leaked). Ends with virtual
 CreateBBox (+8).
 
-## Initial drafting and current implementations
+## Source status and implementation notes
+Every function in `collision.cpp` is native; the unit has no `NONMATCHING` guards,
+`INCLUDE_ASM` gaps, or data markers. The three vtables (`__vt__9CColFrame` 0x37B450,
+`__vt__13CCollisionMDT` 0x37B4B0, `__vt__10CCollision` 0x37B4E0) are emitted by the class
+definitions; their zero tails are piece alignment.
+
 - Inline-emitted copies: the tail block 0x1489E0-0x148A80 (both `CColFrame::Draw`,
   `CCollisionMDT::Initialize`, `CCollision::Copy/CreateBBox/GetMaxY/Initialize`) are class-body
-  inline virtuals, now defined in collision.hpp. Evidence: `CCollision::Initialize` is inlined
-  into `CCollisionMDT::Initialize` and into the inlined MDT ctor in `CreateCollisionMDT`.
-  The initial draft required INCLUDE_ASM while the vtables were assembly data.
-  The current native definitions emit these methods and their required symbols.
-- Initial promotion limits: defining a class's key function (first non-inline virtual) makes MWCC emit
-  that class's vtable and inline virtuals here. Early trials shifted the tail
-  (CCollision: `InsidePoint`; CColFrame: `Initialize`, +0x80 bytes) and had an
-  unresolved `__vt__9CColFrame` constructor reference. Those historical emission
-  problems are superseded by the current exact native unit.
-- `pre_trance_normal` / `trance_normal` are whole-function VU0 blocks.
-  `pre_trance_normal` keeps the world matrix in vf10-vf13 across calls;
-  `trance_normal` transforms three contiguous vertices by that matrix, writes
-  them through three destination pointers, and writes their unnormalised
-  cross-product normal. Earlier scalar C++ drafts kept the matrix in a
-  file-local array and computed the same three vertices and xyz normal. VU0
-  leaves the normal's w lane unspecified; those drafts wrote zero there. `pre_trance_normal`
-  now uses the narrow inline VU0 exception: its four matrix loads match all
-  0x14 retail bytes, and the `collision` object passes `check_objects.py` with
-  98 resolved relocations.
-  `trance_normal` also uses the narrow inline VU0 exception. It reads three
-  contiguous input vectors from its first pointer, transforms them with the
-  matrix retained in vf10-vf13, stores the three results through separate
-  destination pointers, and computes their cross-product normal. Its 0x64
-  retail bytes match objdiff exactly; the `collision` object passes
-  `check_objects.py` with 98 resolved relocations.
+  inline virtuals defined in collision.hpp. `CCollision::Initialize` is inlined into
+  `CCollisionMDT::Initialize` and into the inlined MDT ctor in `CreateCollisionMDT`.
+- Defining a class's key function (first non-inline virtual) makes MWCC emit that class's
+  vtable and inline virtuals here (CCollision: `InsidePoint`; CColFrame: `Initialize`). A
+  class-body `CCollisionMDT::Initialize` with its constructor calling Initialize changes the
+  inline emission.
+- `pre_trance_normal` / `trance_normal` are whole-function VU0 inline-asm blocks (the narrow
+  inline VU0 exception). `pre_trance_normal` keeps the world matrix in vf10-vf13 across calls
+  (four matrix loads, 0x14 bytes); `trance_normal` (0x64 bytes) reads three contiguous input
+  vectors from its first pointer, transforms them by that matrix, stores the results through
+  three destination pointers, and writes their unnormalised cross-product normal. VU0 leaves
+  the normal's w lane unspecified, so a scalar C++ form (which writes zero there) cannot match.
 - `CCollisionMDT::PickUpNearPoly` loads the query box (w = 1) into vf10/vf11 with two `lqc2`
-  before the loop; nothing in this function reads them. The typed volatile view of the
-  box's maximum bounds makes MWCC reload its X lane after the early overlap tests, as
-  retail does. The function's 0x238 bytes match objdiff exactly, and the full collision
-  object passes `check_objects.py` with 98 resolved relocations.
+  before the loop; nothing in this function reads them. A typed volatile view of the box's
+  maximum bounds makes MWCC reload its X lane after the early overlap tests, as retail does.
 - MDT layout: `CreateCollisionMDT` reads `MDT_HEADER` (mg_dataset.hpp) vertex_ofs/faces_ofs/
   material_ofs; `MDT_FACES::prim_num`, records from `faces + 1`; `FACES_ID::face_num` is used as
-  an INDEX count here (triangles = face_num / 3; the next record is `&index[face_num]`), so
-  mg_dataset.hpp's "Number of faces" comment is likely wrong. Material attrs come from
-  `MDT_MATERIAL_::diffuse[0..3]`. The 16-byte zeroing of CCPoly 0x40-0x4F suggests the original
-  had a 16-byte attribute struct there (first game: union `info`/`attr`).
+  an INDEX count here (triangles = face_num / 3 with *signed* division although the field is
+  declared unsigned; the next record is `&index[face_num]`), so mg_dataset.hpp's "Number of
+  faces" comment is likely wrong. Material attrs come from `MDT_MATERIAL_::diffuse[0..3]`. The
+  16-byte zeroing of CCPoly 0x40-0x4F suggests the original had a 16-byte attribute struct
+  there (first game: union `info`/`attr`). Vertex, material and face tables are byte offsets
+  from the MDT header.
 - `LoadCollisionFile`: object records start at `header + 1` (not `object_ofs`) with fixed stride
   0x70 (`MDTOBJ_HEADER`, not its `size`); `frame->Initialize()` is a virtual call; bounds alloc
   is `mgCFrame::BoundInfo` (0xB0). Alloc sizes follow `size/16 + 2` quadwords for placement new.
-- `CColFrame::PickUpNearPoly` explicitly forms eight corners from the query box,
-  transforms them into collision space, queries its own polygons, transforms the
-  returned triangles back with `pre_trance_normal` and `trance_normal`, then
-  recursively queries child frames while capacity remains. Its 0x290 bytes
-  match objdiff exactly; the collision object passes `check_objects.py` with
-  98 resolved relocations.
-- Earlier private loader and constructor variants differed in matrix or
-  vertex-copy allocation; the retained native implementations are exact.
-
-## Native loader comparison
-
-`LoadCollisionFile` was checked with typed MDTOBJ record advancement, indexed
-CColFrame access, and byte-indexed MDT file-offset lookup. This preserves the
-retail 0x230-byte size and all call relocations, but the original header, record
-cursor, memory allocator and frames receive different saved registers. The
-matrix column-copy loop and the call order are unchanged. Naming a captured
-object count, sharing or separating the frame index, and moving the original
-header declaration did not close the register difference. Those trial forms are not the active implementation; the retained native
-`LoadCollisionFile` passes the complete-unit comparison.
-
-## Native MDT constructor comparison
-
-`CreateCollisionMDT` uses signed division for the index count divided by three;
-`FACES_ID::face_num` is declared unsigned, so its signed interpretation must be
-preserved in this query. The counted value represents vertex indices rather
-than triangles. Typed FACES_ID record advancement locates the next record at
-`&index[face_num]`. Serialized vertex, material and face tables are relative byte
-offsets from the original MDT header.
-The native candidate's CCollisionMDT construction has the same two base-bound
-clears and vtable transitions, but placement-new null-test scheduling differs.
-The counting pass and subsequent primitive walk also differ from retail.
-A class-body CCollisionMDT::Initialize with its constructor calling Initialize
-was tested and changed existing inline emission; it was reverted. Seeding helper
-masks for integer argument registers and float argument registers did not change
-the remaining native differences. Those private candidates are not retained. The active native constructor
-and `CreateCollisionMDT` implementation pass the complete-unit comparison.
-
-## CColFrame caller preservation
-
-`CColFrame::PickUpNearPoly` now uses upstream's exact native caller and its
-processor-specific `pre_trance_normal` / `trance_normal` implementations.
-Their visible register preservation resolves the earlier five-word caller
-park: the hit-count/world-matrix argument order and caller-saved triangle
-counter now follow retail. The earlier scalar-helper-interface measurements
-do not describe this merged implementation.
-
-## Merged-unit validation
-
-The `sf-d8bf13c` clean build passes the complete collision object: `0x1240`
-checked bytes and 98 resolved relocations. All 23 function rows are exact;
-there are no guarded or assembly-only gaps. Processor-specific VU0 source
-is imported unchanged from upstream rather than supplied by new C++ trials.
+  Typed MDTOBJ record advancement, indexed CColFrame access, or byte-indexed MDT file-offset
+  lookup keep the 0x230-byte size but change the saved registers of the header, record cursor,
+  allocator and frames; naming a captured object count, sharing or separating the frame index,
+  or moving the header declaration does not fix that.
+- `CColFrame::PickUpNearPoly` explicitly forms eight corners from the query box, transforms
+  them into collision space, queries its own polygons, transforms the returned triangles back
+  with `pre_trance_normal` and `trance_normal`, then recursively queries child frames while
+  capacity remains (0x290 bytes). The VU0 helpers' register preservation gives the retail
+  hit-count/world-matrix argument order and caller-saved triangle counter; a scalar helper
+  interface does not.
