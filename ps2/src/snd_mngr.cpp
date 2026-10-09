@@ -18,82 +18,114 @@
 #include "sound.hpp"
 
 /**
+ *
  * Enables loading sound banks.
+ *
  */
 static int EnableSndMngr = 1;
 
 /**
+ *
  * Semaphore that serializes sound driver calls.
+ *
  */
 static int snd_sema_id = -1;
 
 /**
+ *
  * Master volume scale for each sound core.
+ *
  */
 static float MasterVol[2] = {1.0f, 1.0f};
 
 /**
+ *
  * Active master-volume fade flag for each sound core.
+ *
  */
 static int MasterVolFade[2] = {0, 0};
 
 /**
+ *
  * Last vertical sync on which the sound driver stepped.
+ *
  */
 static int snd_old_vsync = -1;
 
 /**
+ *
  * Selected reverb type for each sound core.
+ *
  */
 static int ReverbType[2];
 
 /**
+ *
  * Selected reverb depth for each sound core.
+ *
  */
 static int ReverbDepthe[2];
 
 /**
+ *
  * Indicates that the sound driver has been initialized.
+ *
  */
 static int init_snd;
 
 /**
+ *
  * Target master volume of each core fade.
+ *
  */
 static float feMasterVol[2];
 
 /**
+ *
  * Current interpolated master volume of each core fade.
+ *
  */
 static float fnowMasterVol[2];
 
 /**
+ *
  * Master-volume increment applied by each core fade.
+ *
  */
 static float fstpMasterVol[2];
 
 /**
+ *
  * Bank and sequence state for each game sound port.
+ *
  */
 sndPortInfo PortInfo[SND_PORT_NUM];
 
 /**
+ *
  * Playback state of the sound-effect sequence slots.
+ *
  */
 static sndCSeSeq SeSequencer[32];
 
 /**
+ *
  * Playback volume scale for each game sound port.
+ *
  */
 static float PortVolf[SND_PORT_NUM];
 
 /**
+ *
  * Listener position used by positional sound effects.
+ *
  */
 static sceVu0FVECTOR MicPos;
 
 /**
+ *
  * Listener forward direction used by positional sound effects.
+ *
  */
 static sceVu0FVECTOR MicDir;
 
