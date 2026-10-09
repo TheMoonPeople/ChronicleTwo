@@ -19,7 +19,9 @@
 #include "snd_mngr.hpp"
 
 /**
+ *
  * Messages for an unrecoverable hard-disk read error in Japanese and English.
+ *
  */
 static char *emergency_mes[2] = {
     "\x93\xC7\x82\xDD\x8D\x9E\x82\xDD\x83G\x83\x89\x81[\x82\xAA\x94\xAD\x90\xB6\x82\xB5\x82\xDC\x82\xB5\x82\xBD\x81" "B\n"
@@ -29,65 +31,83 @@ static char *emergency_mes[2] = {
     "\x82\xF0\x8Ds\x82\xC1\x82\xC4\x82\xAD\x82\xBE\x82\xB3\x82\xA2\x81" "B",
     "error.",
 };
-/**
- * Packet buffers for the hard-disk error display.
- */
-static mgCMemory buf0__2, buf1__2;
 
 /**
+ *
+ * Packet buffers for the hard-disk error display.
+ *
+ */
+static mgCMemory buf0, buf1;
+
+/**
+ *
  * Data buffers for the hard-disk error display.
+ *
  */
 static mgCMemory dbuf0, dbuf1;
-/**
- * Texture-table storage for the hard-disk error display.
- */
-mgCMemory Stack__2;
 
 /**
+ *
+ * Texture-table storage for the hard-disk error display.
+ *
+ */
+static mgCMemory Stack;
+
+/**
+ *
  * Connection status of the debug-menu hard disk.
+ *
  */
 static int HddConnect;
 
 /**
+ *
  * Status of the installed game image on the hard disk.
+ *
  */
 static int AppInstall;
 
 /**
+ *
  * Result of the free-space check for installation.
+ *
  */
 static int FreeSpace;
 
 /**
+ *
  * Selected hard-disk debug-menu command.
+ *
  */
 static int sel_hdd;
 
 /**
+ *
  * Whether an installation thread is active.
+ *
  */
 static int now_install;
 
 /**
+ *
  * Most recent hard-disk operation result.
+ *
  */
 static int error_code;
 
 /**
+ *
  * Memory used by the hard-disk installer.
+ *
  */
 static u_long128 *inst_work;
 
 // Code (.text)
 int FutureMapSelect() {
-    /**
-     * Selected row of the future-map debug menu.
-     */
+    // Selected row of the future-map debug menu.
     static int select = 0;
 
-    /**
-     * Future map selected by the debug menu.
-     */
+    // Future map selected by the debug menu.
     static int sel_map = 0;
 
     const int   map_ids[4] = {0x19, 0x1A, 0x52, 0x66};
@@ -337,28 +357,24 @@ int EmergencyMessage(int error) {
     u_long128 *vif0 = main_stack->stAlloc64(10000);
     u_long128 *vif1 = main_stack->stAlloc64(10000);
     mgInitVif1Packet(vif0, vif1, 160000);
-    buf0__2.stSetBuffer(main_stack->stAlloc64(10000), 10000);
-    buf1__2.stSetBuffer(main_stack->stAlloc64(10000), 10000);
+    buf0.stSetBuffer(main_stack->stAlloc64(10000), 10000);
+    buf1.stSetBuffer(main_stack->stAlloc64(10000), 10000);
     dbuf0.stSetBuffer(main_stack->stAlloc64(50000), 50000);
     dbuf1.stSetBuffer(main_stack->stAlloc64(50000), 50000);
-    Stack__2.stSetBuffer(main_stack->stAlloc64(500000), 500000);
-    mgSetPacketBuffer(&buf0__2, &buf1__2);
+    Stack.stSetBuffer(main_stack->stAlloc64(500000), 500000);
+    mgSetPacketBuffer(&buf0, &buf1);
     mgSetDataBuffer(&dbuf0, &dbuf1, 1);
-    SetTextureTable(100, 20, &Stack__2);
+    SetTextureTable(100, 20, &Stack);
     mgCTextureManager *texture_manager = &mgTexManager;
     texture_manager->DeleteBlock(1);
     texture_manager->EnterIMGFile(GetGaijiImgPtr(), 1, NULL, NULL);
     ReLoadFontTexture(1);
     texture_manager->EnterIMGFile(GetFontTex2ImgPtr(), 1, NULL, NULL);
 
-    /**
-     * Frame counter wrapping after one hundred error-display iterations.
-     */
+    // Frame counter wrapping after one hundred error-display iterations.
     static int col = 0;
 
-    /**
-     * Localized message shown by the hard-disk error display.
-     */
+    // Localized message shown by the hard-disk error display.
     static char *txt;
 
     if (LanguageCode >= 0 && LanguageCode < 2) {
