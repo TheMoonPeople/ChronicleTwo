@@ -1,15 +1,12 @@
 # effectlist: reverse-engineering notes
 
-## C++ draft status
-All 23 functions have C++ in `ps2/src/effectlist.cpp`. 16 are exact and compiled
-by the matching build. 2 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 5 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Status
+All 23 functions in `ps2/src/effectlist.cpp` are native C++ definitions and
+match retail; the unit has no `INCLUDE_ASM` or `NONMATCHING` guards and no data
+markers.
 
 Header: `ps2/include/effectlist.hpp`. Owns `CEffectList` and `CFadeInOut` (no vtables, no
-constructors, no static members, no named globals). No first-game counterpart for either class
-(nothing in `/home/adubbz/development/chronicle` matches).
+constructors, no static members, no named globals). No first-game counterpart for either class.
 
 Also in this unit but owned elsewhere (declare in their own headers, not here):
 - `mgC3DSprite::mgC3DSprite()` (0x17E630), inline ctor emitted here (owned by `mg_sprite`).
@@ -79,8 +76,13 @@ Behaviour notes:
   links into a byte-identical game image.
 - `SetCrossTexture` retail symbol is truncated (`...FP10mgCTextureP1`); second param is
   `u_long128 *` by the same convention as `mgStoreImage__FP10mgCTextureP1` in `mglib.hpp`
-  (callers pass `CrossFadeBuff` / `BuffReadData + 0x200000`). `draft.sh` will confirm when written.
-- Data: `at_392/at_393` (CEffectManager::CreatePacket sprite size/colour init), `at_564__2..at_566`,
-  `at_586..at_589` (DivSpriteScreen vertex templates / jag offsets) are compiler literals.
+  (callers pass `CrossFadeBuff` / `BuffReadData + 0x200000`).
+- Data: every retail piece is emitted by the source without markers. `LoadEFPFile` uses inline
+  `"img"` and `"em"` extensions. `at_392/at_393` are the zero-size and RGBA-128 aggregate
+  templates of `CEffectManager::CreatePacket`; `at_564__2..at_566` are the three zeroed coordinate
+  templates of the whole-screen `DivSpriteScreen`; `at_586..at_589` are the wipe `DivSpriteScreen`'s
+  three coordinate templates and its alternating `{-10, 10}` edge offsets. The compiler keeps the
+  separate BSS templates and initialized pieces from the natural aggregate initializers; no casts
+  or packet-copy forms are needed.
 
-`CFadeInOut::Draw` creates separate `mgCDrawPrim` locals in the main fade and blur branches. Both branch-scoped native objects preserve the retail stack layout and constructor calls while removing byte-buffer casts.
+`CFadeInOut::Draw` creates separate branch-scoped `mgCDrawPrim` locals in the main fade and blur branches; the two native objects reproduce the retail stack layout and constructor calls.
