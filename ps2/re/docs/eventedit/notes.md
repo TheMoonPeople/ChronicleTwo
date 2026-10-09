@@ -7,17 +7,19 @@ Debug event editor (camera / character placement, camera and character path reco
 - `dng_main`: `InitDungeonMain` -> `InitEventEdit(0x7D, &debug_event_stack)` (a 0x30 mgCMemory);
   `LoopDungeonMain` -> `EventEdit(&BuffWorkData)` / `ChkEventEditStart()`; `DngMainDraw` -> `DrawEventEdit()`.
 
-No classes owned (`class_units.tsv` lists none). No first-game counterpart (nothing named
-EventEdit / CCameraPas / g_cp_* in `/home/adubbz/development/chronicle`).
+No classes owned (`class_units.tsv` lists none). No first-game counterpart.
+
+All 13 functions are native C++ definitions and match retail; the unit has no `INCLUDE_ASM` or
+`NONMATCHING` guards and no data markers.
 
 ## Functions
 | Function | Binding | Return | Notes |
 |---|---|---|---|
-| `OutPutFile()` | local -> static | void | `sceOpen("host0:debug.txt", ...)`, sprintf/sceWrite lines: character (select_chara, collision, pos/rot via vtable +0x18/+0x24 then `CalcPosWorldCoordGyaku`, offset by `EdEventInfo`+0x10..0x18), camera (`CMRS_SET_POS/REF`, angle, height, distance, projection = `EdEventInfo`+0x20), camera pas (`CMRS_*_PAS`, count `g_cmr_pas`+0x200, frame), chara pas (`OBJS_*_PAS`, count `g_chara_pas`+0x104). |
+| `OutPutFile()` | local -> static | void | `sceOpen("host0:debug.txt", ...)`, sprintf/sceWrite lines (the four direct path-command literals are passed as `const_cast<char *>("...")` because the SDK `sceWrite` declaration takes `void *` and MWCC's C++ overload check rejects the unqualified literal): character (select_chara, collision, pos/rot via vtable +0x18/+0x24 then `CalcPosWorldCoordGyaku`, offset by `EdEventInfo`+0x10..0x18), camera (`CMRS_SET_POS/REF`, angle, height, distance, projection = `EdEventInfo`+0x20), camera pas (`CMRS_*_PAS`, count `g_cmr_pas`+0x200, frame), chara pas (`OBJS_*_PAS`, count `g_chara_pas`+0x104). |
 | `DrawBox(float*, float*, int, int, int)` | local | void | builds 8 corners (float[8][4]) from two opposite corners (max, min) and calls the other `DrawBox`; r,g,b. |
 | `DrawBox(float(*)[4], int, int, int)` | local | void | stack `mgCDrawPrim`; wireframe (Begin(1) = lines) of 8 corners via `mgTransWorldPrim`, 24 `Vertex4`; colour r,g,b,0x80; draws only if all 8 transform OK. |
 | `VectMatMul(float*, float*, float(*)[4])` | local | void | `out = in(xyz,w=1) * m` (3x3 rotation only), `sceVu0CopyVector(out, tmp)`. A same-named copy exists in event_func at 0x260A70 (`VectMatMul__FPfPfPA4_f__2`). |
-| `evLoadDebugFont(int texb, mgCMemory*)` | local | void | `Align64`, `stAllocTest(1)`, `LoadFile2("img/font3.tm2", ...)`, `Alloc((size>>4)+1)`, `mgTexManager.EnterTexture(texb, "font3", tm2, 0, 0)`; then `JisFont.Initialize()`, `InitTexture(-1, "", -1, "", texb, "font3")`, `Clear()`, `JisFont.shadow_enable(+0x8AC) = 1`. |
+| `evLoadDebugFont(int texb, mgCMemory*)` | local | void | `Align64`, `stAllocTest(1)`, `LoadFile2("img/font3.tm2", ...)`, `Alloc((size>>4)+1)`, `mgTexManager.EnterTexture(texb, "font3", (TM2_head *) buffer, 0, 0)` (the parameter type is part of the mangled name); then `JisFont.Initialize()`, `InitTexture(-1, "", -1, "", texb, "font3")`, `Clear()`, `JisFont.shadow_enable(+0x8AC) = 1`. |
 | `MoveCamera(float* pos, float* ref)` | local | void | pad-driven camera translation in the view's yaw frame; R1/L1 (8/4) strafe by dist*0.04, Cross (0x40) x6, Square (0x80) without L1/R1 also moves ref. |
 | `MoveCameraRef(float*, float*)` | local | void | same shape, moves the reference (not read in detail). |
 | `MoveChara(CCharacter2*, mgCCamera*, mgCMemory*)` | local | void | pad moves character in camera yaw frame; R1/L1 rotate y by ∓0.12 wrapped to ±π; Cross doubles speed. If `collision`: box ±40, `CScene::GetColPoly(EventScene, CCPoly[0x100 on stack, 0x5000 bytes], box, 0x100)`, `CheckHit` down a ±39 segment, else drop 70; below -500 resets to 500; prints `"POLY_NUM = %d\n"`. Uses CCharacter2 vtable +0x10 SetPos, +0x18 GetPos (with mgCMemory* extra arg here), +0x1C SetRot, +0x24 GetRot; +0x110 float (height) * 0.7 for the camera ref on Triangle. |
@@ -63,17 +65,24 @@ EventEdit / CCameraPas / g_cp_* in `/home/adubbz/development/chronicle`).
   - 0x1C never accessed (`unk_1C`; alignment padding before the quadword vectors).
   - 0x20 `camera_pos`, 0x30 `camera_ref` float[4] (16-aligned): GetPos/GetRef on open, SetPos/SetRef on close.
 
-## Data (all LOCAL in retail -> static in the .cpp; header declares no externs)
+## Data (LOCAL in retail; header declares no externs)
 - `.sbss`: `g_cp_mode`, `g_cp_cursor`, `g_cp_selno` (camera path op / row / point), `g_chara_pas_mode`,
-  `g_chara_pas_cursor`, `g_chara_pas_selno` (same for the character path); all int, ranges as above.
+  `g_chara_pas_cursor`, `g_chara_pas_selno` (same for the character path); native `static int`
+  objects, ranges as above.
 - `.bss`: `g_cmr_pas` CCameraPas (0x950; point count int at +0x200), `g_chara_pas` CCharaPas
-  (0x4B0; point count int at +0x104), `g_info` EventEditInfo.
-- `CCameraPas` and `CCharaPas` are owned by `sceneseq`; `sceneseq.hpp` does not exist yet, so the
-  .cpp will need it for the by-value statics. Their methods used here: `Initialize, SetFrame, GetFrame,
-  Setup, Run, CheckEnd, Step, Get/Set/Ins/Del/Add{Camera,Chara}Pas`.
+  (0x4B0; point count int at +0x104), `g_info` (native `static EventEditInfo`, 0x40 bytes).
+- `g_cmr_pas` and `g_chara_pas` are defined with global linkage even though retail binds them
+  LOCAL: the generated VU program data object (`Vu_progmain`) references both names, and the
+  linker rejects the link when they are `static`. They are defined before use in retail
+  constructor order.
+- `CCameraPas` and `CCharaPas` are owned by `sceneseq`. Their methods used here: `Initialize, SetFrame,
+  GetFrame, Setup, Run, CheckEnd, Step, Get/Set/Ins/Del/Add{Camera,Chara}Pas`.
 - Compiler-generated: string literals `at_809..at_832`, `at_889..891`, `at_979`, `at_1204..1207`,
-  `at_1222..1225`, `at_1382..1403`; local string-pointer tables `at_1208`, `at_1226`, `at_1242`
-  (`.data`, 0x14 each: initialisers of `char*[5]` local arrays in DrawEventEdit); `.ctor` `D_0037B040`.
+  `at_1222..1225`, `at_1382..1403` (all inline at their uses; identical strings pool at their retail
+  addresses); local string-pointer tables `at_1208`, `at_1226`, `at_1242` (`.data`, 0x14 each) are
+  emitted from the natural initializers of the three `char*[5]` local arrays in `DrawEventEdit`
+  (four labels plus an empty fifth entry; the two operation-name arrays keep separate templates);
+  `.ctor` `D_0037B040`.
 
 ## Externals referenced
 `DebugFlag`, `GamePad` (`GamePad__2`), `mgCCamera::StopCamera`, `EdEventInfo` (event_func, +0x10..0x18
