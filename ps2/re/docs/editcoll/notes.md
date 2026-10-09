@@ -1,15 +1,14 @@
 # editcoll: reverse-engineering notes
 
-## Current source status
+## Source status
 
-`ClipBoxXZ` uses the narrow inline VU0 exception because its status-flag
-operations cannot be expressed in C++. Its 0x50 retail bytes match objdiff
-exactly, and the complete `editcoll` object passes `check_objects.py` with
-46 resolved relocations. The other nine functions have C++ definitions without
-`NONMATCHING` guards.
+All ten functions are native; the unit has no `NONMATCHING` guards, `INCLUDE_ASM` gaps, or data
+markers. `ClipBoxXZ` is a whole-function inline VU0 `asm` block (the narrow inline VU0
+exception) because its status-flag operations cannot be expressed in C++; a scalar C++ form that
+returns overlap when neither X nor Z projection has a negative separating gap does not match.
 
 Header: `ps2/include/editcoll.hpp`. No first-game counterpart (`CEditCollision` does not exist in
-`/home/adubbz/development/chronicle`); the base classes `CCollision`/`CCollisionMDT`/`CCPoly` are in
+chronicle); the base classes `CCollision`/`CCollisionMDT`/`CCPoly` are in
 `ps2/include/collision.hpp`.
 
 ## CEditCollision : CCollisionMDT (size 0x50, no fields of its own)
@@ -76,8 +75,15 @@ Header: `ps2/include/editcoll.hpp`. No first-game counterpart (`CEditCollision` 
   collision.hpp names were not changed (not this unit's header).
 
 ## Globals
-None: the unit has no data symbols (no INCLUDE_RODATA/INCLUDE_BSS). Float literals (0.5, 0.01,
-0.1) are in .rodata/.sdata of the functions themselves.
+None: the unit has no data symbols. Float literals (0.5, 0.01, 0.1) are in .rodata/.sdata of the
+functions themselves.
 
-## ClipBoxXZ draft
-An earlier scalar C++ draft returned overlap when neither X nor Z projection had a negative separating gap. It differed from the retail VU0 status-flag implementation; the current source keeps an assembly gap.
+## Access forms
+- `Copy`: the counting loop tests `poly[i].area_kind`. The copy loop's `src` and `dst` come from
+  byte offsets over `poly` and `dest.poly`; `&poly[copied]` / `&dest.poly[dst_no]` exchange the
+  source-offset and destination-offset registers.
+- `AreaXZ` and `OverlapXZ` walk polygons with a `CCPoly *` (`poly->vertex[n][c]`, `poly->vertex`
+  passed to `mgApplyMatrixN`, `poly++`).
+- `PickupVerticalPoly`: the plane search reads `this->poly` at a byte offset; `this->poly[j]`
+  (in a `for` or a `do`/`while`) exchanges the offset and `cur` registers.
+- Whole `CCPoly` record copies are quadword row copies (`CollisionRow`).
