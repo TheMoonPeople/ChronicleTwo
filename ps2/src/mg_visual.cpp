@@ -40,21 +40,19 @@ struct mgVISUAL_SETUP_PACKET {
 
 STATIC_ASSERT(sizeof(mgVISUAL_SETUP_PACKET) == 0x140);
 
-#ifdef NONMATCHING
-static u_long128 *(*set_data_func[8])(int, int, int **, u_long128 *, u_long128 *, u_long128 *, u_long128 *, u_long128 *) = {
-    SetData0, SetData1, SetData2, SetData3, SetData4, SetData5, SetData6, SetData7}; /**< Vertex upload writers selected by the face attributes. */
-
-#endif
-
 /**
+ *
  * Mutable A+D tag shared by visual packet writers.
+ *
  */
 mgVisualGifTag giftag __attribute__((aligned(16))) = {MG_GIFTAG_EOP, {1u << MG_GIFTAG_NREG_SHIFT, SCE_GIF_PACKED_AD, 0}};
 
 /**
+ *
  * DMA chain flushing the GS texture cache.
+ *
  */
-static u_char texflush_dma__2[0x30] __attribute__((aligned(16))) = {
+static u_char texflush_dma[0x30] __attribute__((aligned(16))) = {
     0x02, 0x00, 0x00, MG_DMA_CNT >> 24, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, MG_VIF_DIRECT >> 24,
     0x01, MG_GIFTAG_EOP >> 8, 0x00, 0x00, 0x00, 0x00, 0x00, 1 << (MG_GIFTAG_NREG_SHIFT - 24),
@@ -64,39 +62,39 @@ static u_char texflush_dma__2[0x30] __attribute__((aligned(16))) = {
 };
 
 /**
+ *
  * Vertex upload writers selected by each face attribute combination.
+ *
  */
-u_long128 *(*set_data_func__2[8])(int, int, int **, u_long128 *, u_long128 *, u_long128 *, u_long128 *, u_long128 *) = {
+static u_long128 *(*set_data_func[8])(int, int, int **, u_long128 *, u_long128 *, u_long128 *, u_long128 *, u_long128 *) = {
     SetData0, SetData1, SetData2, SetData3, SetData4, SetData5, SetData6, SetData7
 };
 
 /**
- * Starts the vertex transform program at entry two.
- */
-static u_int prog_vif_730[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 2};
-
-/**
- * Continues the active vertex transform program.
- */
-static u_int progf_vif_731[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCNT};
-
-/**
+ *
  * Whether the scratchpad DMA transfer is active.
+ *
  */
 int start_dma;
 
 /**
+ *
  * Scratchpad half selected for the next packet.
+ *
  */
 int buff_id;
 
 /**
+ *
  * Texture whose registers were most recently written.
+ *
  */
 mgCTexture *prev_tex;
 
 /**
+ *
  * Final control quadword of a material upload.
+ *
  */
 u_long128 mat_pw = 3;
 
@@ -140,9 +138,9 @@ int mgSetPkTexFlush_TagCnt(u_int *buffer) {
     }
 
     u_long128 *dst = (u_long128 *) buffer;
-    dst[0] = *(u_long128 *) &texflush_dma__2[0];
-    dst[1] = *(u_long128 *) &texflush_dma__2[0x10];
-    dst[2] = *(u_long128 *) &texflush_dma__2[0x20];
+    dst[0] = *(u_long128 *) &texflush_dma[0];
+    dst[1] = *(u_long128 *) &texflush_dma[0x10];
+    dst[2] = *(u_long128 *) &texflush_dma[0x20];
     return 3;
 }
 
@@ -1010,6 +1008,10 @@ u_long128 *SetData7(int count, int type, int **index, u_long128 *packet, u_long1
     return colour_out;
 }
 int mgCVisualMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
+    // VIF quadwords starting the vertex transform program at entry two and continuing it.
+    static u_int prog_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 2};
+    static u_int progf_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCNT};
+
     u_int     *start;
     sceGifTag  batch_tag;
     u_long128 *end;
@@ -1092,15 +1094,15 @@ int mgCVisualMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
         batch_tag.NLOOP = count | 0x8000;
         *(u_long128 *)write = *(u_long128 *)&batch_tag;
         write += 4;
-        end = set_data_func__2[variant](count, face->type, &indices, (u_long128 *)write,
+        end = set_data_func[variant](count, face->type, &indices, (u_long128 *)write,
                                     (u_long128 *)vertex, (u_long128 *)normal, (u_long128 *)uv, (u_long128 *)colour);
         *unpack = ((u_int)((u_int *)end - payload) / 4 << MG_VIF_NUM_SHIFT) | MG_VIF_UNPACK_V4_32 | MG_VIF_UNPACK_FLG;
         if (started == 0) {
-            *end = *(u_long128 *)prog_vif_730;
+            *end = *(u_long128 *)prog_vif;
             started = 1;
             write = (u_int *)(end + 1);
         } else {
-            *end = *(u_long128 *)progf_vif_731;
+            *end = *(u_long128 *)progf_vif;
             write = (u_int *)(end + 1);
         }
         if (primitive == MG_PRIM_TRIANGLE_STRIP && batch_limit < remaining) {
