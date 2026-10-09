@@ -143,9 +143,9 @@ signature is `(int, u_long128*, u_long128*, int)`. The index's demangling "(int,
   `sceVif1Packet` next to mglib's include.
 - New enums `mgPACKET_CODE` (DMA tag IDs CNT/CALL/RET, VIF DIRECT, GIF tag EOP/PRE/field shifts,
   uncached bit) and `mgGS_CODE` (PRMODECONT, ZTST GREATER, PRIM FST) name constants the SDK shim lacks.
-- Earlier scalar C++ attempts for Data0/Data4/Vertex(float*)/Color(float*) differed from
-  retail's VU0 `lqc2`/`vftoi0`/`vftoi4`/`sqc2` operations. The current source uses
-  `INCLUDE_ASM` for all four. BeginDraw's table sizes are `group_num/4+1` without an
+- Scalar C++ for Data0/Data4/Vertex(float*)/Color(float*) differs from retail's VU0
+  `lqc2`/`vftoi0`/`vftoi4`/`sqc2` operations; they use the VU instruction exception (see
+  below). BeginDraw's table sizes are `group_num/4+1` without an
   order list and `(count+1)/4+1` with one.
 
 ## Drafting (job mg_drawprim.2)
@@ -183,6 +183,41 @@ and 0x1c-byte symbol size equal retail.
 stores the vector in an aligned stack array, then passes its first three
 integer lanes to `Vertex4`. MWCC produces the retail 14-instruction,
 0x38-byte function exactly; objdiff scores the function at 100% (score 0).
+
+## Source status
+
+Every function is native C++ and byte-identical (0x1630 bytes, 54 relocations); the unit has
+no guarded drafts, `INCLUDE_ASM` entries or data markers. `Vertex(float, float, float)`
+initializes its four-lane position with `{0.0f, 0.0f, 0.0f, 0.0f}` before assigning the
+coordinates, which emits the former `at_369` zero template.
+
+- `DepthTestEnable`, `DepthTest`: retail forms the TEST register's address (`addiu t0,a0,0x20`)
+  and updates byte 2 through it, which a `sceGsTest *test = &draw_env.test;` local reproduces;
+  the `bits.zte`/`bits.ztst` u_long bitfields compile to the retail `lbu`/`sb` updates.
+  Writing `draw_env.test.bits.*` directly loads the byte at `0x22(a0)` without the address.
+- `BeginPrim2(int, u_int, u_int, int)`: `*(u_long *) &prim & 0x7FF`, the whole-register view
+  `BeginDma` also uses.
+- `Data` stores with `*write++ = quad`, reusing the dead argument register; a separate cursor
+  local changes the register choice. `DirectData` advances with `write += count` and returns
+  `u_long128 *`.
+- `mgCDrawManager::Draw` (`global_optimizer off`) keeps `offset = group << 2` into
+  `packet_list` / `packet_num`: retail computes the scaled index once into `s4` and reuses it
+  for three loads; indexing re-emits `sll` at each use (0x204 instead of 0x1F8).
+
+### mgCDrawPrim::Texture blocker
+
+The cached texture is copied as `self->texture = *(mgCTextureFields *) source;` through the
+file-local `mgCDrawPrimTexture` view, which places the copied state at the `texture` member's
+offset (0x58). `mgCTextureFields` mirrors `mgCTexture`'s fields with the GS registers as packed
+`u_long` bits but without its constructor and register unions, so the copy is a plain memberwise
+copy. The natural `texture = *source;` uses `mgCTexture`'s implicit copy, which calls the
+out-of-line `__as__9sceGsTex0FRC9sceGsTex0` for TEX0 and keeps `source` live in a saved
+register: the function becomes 0x134 bytes (retail 0x120), differs from 0x135420 on, and places the
+`sceGsTex0` assignment and `Bilinear` relocations elsewhere. Writing the copy as
+`*(mgCTextureFields *) &texture = ...` forms the member's address in a register first and makes
+the function 4 bytes longer. Retail's copy moves the words at 0x50..0x5C with `lwc1`/`swc1`;
+MWCC emits the same for the pointer-typed `image` member. The mirror type stays until the
+implicit TEX0 assignment can be kept inline (see `docs/MWCC.md`, natural C++ definitions).
 
 ## Compiler flag cleanup
 
