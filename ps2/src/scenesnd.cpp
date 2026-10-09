@@ -77,17 +77,21 @@ void CScene::InitSeSrc() {
     sndSeAllStop(1);
     sndDeletePort(4);
     sndDeletePort(1);
+
     for (int i = 0; i < 16; i++) {
         se_src_id[i] = -1;
         se_src_no[i] = -1;
     }
+
     se_src_stack.stSetBuffer(se_src_buff, 0x40);
     sndInitPort(4);
     sndInitPort(1);
+
     for (int i = 0; i < 4; i++) {
         se_src_play_no[i] = -1;
         se_src_play_flag[i] = 0;
     }
+
     PrePlaySeSrc();
 }
 
@@ -157,18 +161,24 @@ void CScene::PlayBGM(int bgm_no, int vol, float volf) {
         skip_play_bgm = 0;
     } else {
         BGM_INFO *info = GetActiveBgmInfo();
+
         if (info->play_no != bgm_no) {
             StopBGM(info->play_no);
         }
+
         info->vol = vol;
         info->volf = volf;
+
         if (info->vol < 0) {
             info->vol = sndGetSeDefVol(info->snd_id, bgm_no);
         }
+
         int play_vol = sndVolLimit((int) ((float) info->vol * volf));
+
         if (play_vol < 0) {
             play_vol = 1;
         }
+
         sndSePlayV(info->snd_id, bgm_no, play_vol, 0);
         info->play_no = bgm_no;
         info->fade_speed = 0.0f;

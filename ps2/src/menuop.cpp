@@ -421,36 +421,41 @@ int MenuManualKey() {
 
 void MenuManualDraw() {
     CManualMenu      *menu;
-    CUserDataManager *userData;
-    u_long128        *effectBuffer;
+    CUserDataManager *user_data;
+    u_long128        *effect_buffer;
     u_long128        *buffer;
     mgCTexture       *picture;
     int               closed;
-    int               isTown;
+    int               is_town;
     int               attribute;
-    int               chrNo;
+    int               chr_no;
     CActionChara     *chara;
 
     menu = CManualPtr;
     closed = 0;
+
     switch (menu->key_arg_no) {
         case MANUAL_STEP_FADE_OUT + 1:
         case MANUAL_STEP_CLOSE:
         case MANUAL_STEP_END:
             mgCTextureManager *textures = &mgTexManager;
+
             if (menu->pict_mode != 0) {
                 picture = (mgCTexture *) MnOnePictTex[menu->pict_page];
+
                 if (picture != NULL) {
                     textures->ReloadTexture(picture->block, (sceVif1Packet *) NULL);
                     PrimQuad(picture, mgRect<int>(0, 0, 0x200, mgScreenHeight), mgRect<int>(0, 0, 0x200, 0x1A0), 0x80, 0x80, 0x80, 0x80);
                     DrawMenuFillBox(35.0f, (float) (mgScreenHeight - 0x28), (float) fillw_1125[LanguageCode],
                                     30.0f, 0x40, 0, 0, 0);
+
                     if (MenuDCMsg[7] != NULL) {
                         textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
                         MenuDCMsg[7]->SetPutPos(0x28, mgScreenHeight - 0x24, -1, -1);
                         MenuDCMsg[7]->StepMsg();
                         MenuDCMsg[7]->DrawMsg();
                     }
+
                     if (CManualPtr->key_arg_no == MANUAL_STEP_END) {
                         closed = 1;
                     }
@@ -472,40 +477,45 @@ void MenuManualDraw() {
                 prim.End();
                 textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
                 MovieCCDraw();
+
                 if (CManualPtr->key_arg_no == MANUAL_STEP_END) {
                     ManualMovie->Term();
                     ManualMovie->SwitchThread();
                     sceGsSyncV(0);
                     sceGsSyncV(0);
                     sceGsSyncV(0);
-                    userData = GetUserDataMan();
+                    user_data = GetUserDataMan();
                     StaticMenuLocalStack2.stReset();
                     buffer = StaticMenuLocalStack2.stGetTop();
-                    isTown = (u_char) !GetMenuLoopType();
+                    is_town = (u_char) !GetMenuLoopType();
                     textures->DeleteBlock(MenuArg.chara_tex_block);
                     MenuArg.chara_stack->stReset();
                     SetupMainUnit(buffer, MenuArg.chara_stack, MenuArg.base_chara_stack,
-                                  MenuArg.chara_tex_block, GetMainScene(), userData,
-                                  userData->active_chr_no, isTown);
-                    MenuCharaSoundLoad(&StaticMenuLocalStack2, userData->active_chr_no, 0);
+                                  MenuArg.chara_tex_block, GetMainScene(), user_data,
+                                  user_data->active_chr_no, is_town);
+                    MenuCharaSoundLoad(&StaticMenuLocalStack2, user_data->active_chr_no, 0);
                     chara = (CActionChara *) GetMainScene()->GetCharacter(0);
                     MenuCharaSoundEnter(GetMainScene(), chara, 1);
-                    if (userData->active_chr_no == USER_CHARA_MONSTER) {
+
+                    if (user_data->active_chr_no == USER_CHARA_MONSTER) {
                         StaticMenuLocalStack2.stReset();
-                        MonsterEffectRead(&StaticMenuLocalStack2, userData->monster_id, 0);
+                        MonsterEffectRead(&StaticMenuLocalStack2, user_data->monster_id, 0);
                         StaticMenuLocalStack2.Align64();
                         StaticMenuLocalStack2.Alloc(0x280);
-                        effectBuffer = StaticMenuLocalStack2.stGetTop();
-                        MonsterEffectEnter(GetMainScene(), effectBuffer, 0xAA);
+                        effect_buffer = StaticMenuLocalStack2.stGetTop();
+                        MonsterEffectEnter(GetMainScene(), effect_buffer, 0xAA);
                     }
-                    if (isTown == 0) {
+
+                    if (is_town == 0) {
                         chara->effect_man = FxScriptMan;
-                        chrNo = GetUserDataMan()->active_chr_no;
-                        attribute = GetUserDataMan()->GetCharaStatusAttirbute(chrNo);
-                        if ((chrNo == 1 || chrNo == 0) && (attribute & 0x28)) {
+                        chr_no = GetUserDataMan()->active_chr_no;
+                        attribute = GetUserDataMan()->GetCharaStatusAttirbute(chr_no);
+
+                        if ((chr_no == 1 || chr_no == 0) && (attribute & 0x28)) {
                             chara->SetHold();
                         }
                     }
+
                     chara->Step();
                     SetMenuEtcFlag(1);
                     MenuMainTextureReadBuf.stReset();
@@ -514,17 +524,20 @@ void MenuManualDraw() {
                     closed = 1;
                 }
             }
+
             break;
         case MANUAL_STEP_FADE_OUT:
         default:
             MenuPosData->FormDraw();
             break;
     }
+
     if (menu_debug_flag != 0) {
         DrawMenuFillBox(300.0f, 10.0f, 310.0f, 24.0f, 0x40, 0, 0, 0);
-        CMenuFont menuFont;
-        menuFont.DrawDirect(at_1238__2, 0x12C, 0xA);
+        CMenuFont menu_font;
+        menu_font.DrawDirect(at_1238__2, 0x12C, 0xA);
     }
+
     if (closed != 0) {
         SetMenuFrameRate(1);
         StaticMenuLocalStack2.stReset();
@@ -536,6 +549,7 @@ void MenuManualDraw() {
         MenuMainScene->LoadBGM(CManualPtr->bgm_status.load_no,
                                StaticMenuLocalStack2.stGetTop());
         MenuMainScene->SetActiveBgmStatus(&CManualPtr->bgm_status);
+
         if (Movie_DungeonFlag != 0) {
             if (MovieBgmBattleCheckStopFlag != 0) {
                 MenuMainScene->battle_area.pause_flag |= DNG_PAUSE_BATTLE_MUSIC;
@@ -543,6 +557,7 @@ void MenuManualDraw() {
                 MenuMainScene->battle_area.pause_flag &= ~DNG_PAUSE_BATTLE_MUSIC;
             }
         }
+
         ReStartEnvSoundMenu();
         CManualPtr->FadeInMenu(0x32, 0.0f);
         CManualPtr->key_arg_no = 0;
@@ -1633,9 +1648,11 @@ void LocalFunc_AdjustScrlBar(MENUFORMPARTS_TYPE **parts, int *pos, int *size, in
         parts[1]->h = (bar_height - parts[0]->h) - parts[2]->h;
         size[1] -= bar_height;
         float travel_lines = line_num - show_num;
+
         if (travel_lines < 1.0f) {
             travel_lines = 1.0f;
         }
+
         float pixels_per_line = (float) size[1] / travel_lines;
         CalcMenu1((float) pos[1] + pixels_per_line * (float) top, &parts[0]->y, 4.0f, 0.0f, jump);
         parts[1]->y = parts[0]->y + parts[0]->h;
@@ -1706,9 +1723,11 @@ void CSaveMenuClass::EnvSetSave(int kind) {
  */
 static inline MC_CARD_INFO *GetSaveMenuCard(int port) {
     CMemoryCardManager *mc = MemoryCardPtr;
+
     if (port == 0 || port == 1) {
         return &mc->card[port];
     }
+
     return NULL;
 }
 #ifdef NONMATCHING
@@ -2485,133 +2504,151 @@ int CSaveMenuClass::KeyStep(void) {
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuop", KeyStep__14CSaveMenuClassFv);
 #endif
 void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
-    ScreenPos      linePos[13];
+    ScreenPos      line_pos[13];
     SAVEDATA_INFO *info[13];
-    mgRect<int>    nameRect;
-    mgRect<int>    markRect;
+    mgRect<int>    name_rect;
+    mgRect<int>    mark_rect;
     mgCDrawPrim   *prim;
-    int            shadowAlpha;
-    int            centerX;
+    int            shadow_alpha;
+    int            center_x;
     int            offset;
     int            i;
     int            row;
     CDC2Mes       *window;
-    float          rowY;
+    float          row_y;
     float          top;
-    u_long         minutesTotal;
+    u_long         minutes_total;
     u_long         minutes;
 
     if (alpha > 0 && Tex_SaveFile != NULL) {
-        linePos[0].x = pos[0];
-        linePos[0].y = pos[1];
-        nameRect.Set(0, 0x42, 0x17E, 0x4A);
-        markRect.Set(0, 0x8C, 0xEA, 6);
+        line_pos[0].x = pos[0];
+        line_pos[0].y = pos[1];
+        name_rect.Set(0, 0x42, 0x17E, 0x4A);
+        mark_rect.Set(0, 0x8C, 0xEA, 6);
+
         if (LanguageCode > 0) {
-            nameRect.right = 0x1CA;
-            markRect.right = 0x14A;
+            name_rect.right = 0x1CA;
+            mark_rect.right = 0x14A;
         }
-        shadowAlpha = alpha / 3;
+
+        shadow_alpha = alpha / 3;
         MenuReloadTexture(tex_block, SaveMenuPtr->tex_block[1]);
         prim = GetMenuPrim();
         SetSpriteEnv(prim, 0);
         prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Tex_SaveFile);
         prim->Color(0x80, 0x80, 0x80, alpha);
+
         for (i = 0; i < 13; i++) {
             info[i] = &MemoryCardPtr->file_info[i];
-            ScreenPos *line = &linePos[i];
+            ScreenPos *line = &line_pos[i];
             line->x = pos[0];
             line->y = pos[1] + 80.0f * (float) i;
-            prim->Color(0, 0, 0, shadowAlpha);
-            PrimQuad(prim, 3.0f + line->x, 3.0f + line->y, nameRect);
+            prim->Color(0, 0, 0, shadow_alpha);
+            PrimQuad(prim, 3.0f + line->x, 3.0f + line->y, name_rect);
             prim->Color(0x80, 0x80, 0x80, alpha);
-            PrimQuad(prim, line->x, line->y, nameRect);
+            PrimQuad(prim, line->x, line->y, name_rect);
+
             if (info[i]->state != 0) {
                 float mark_x = 120.0f + line->x;
                 float mark_y = 34.0f + line->y;
-                PrimQuad(prim, mark_x, mark_y, markRect);
+                PrimQuad(prim, mark_x, mark_y, mark_rect);
             }
         }
+
         prim->End();
         offset = 0xE0;
+
         if (LanguageCode > 0) {
             offset = 0x11A;
         }
-        centerX = fptosi(pos[0] + (float) offset);
+
+        center_x = fptosi(pos[0] + (float) offset);
         CMenuFont font;
-        char      timeText[0x80];
-        char      hoursText[0x40];
-        char      digitText[0x40];
+        char      time_text[0x80];
+        char      hours_text[0x40];
+        char      digit_text[0x40];
         font.SetClearance(0xE, 0x14);
         MenuReloadTexture(tex_block, MenuArg.mes_tex_block);
+
         for (row = 0; row < 13; row++) {
             window = SaveFileList[row];
-            ScreenPos *line = &linePos[row];
-            int        textY = (int) (18.0f + line->y);
+            ScreenPos *line = &line_pos[row];
+            int        text_y = (int) (18.0f + line->y);
             window->line_pos[0][0] = (int) (18.0f + line->x);
-            window->line_pos[0][1] = textY;
+            window->line_pos[0][1] = text_y;
             window->line_pos_on[0] = 1;
-            rowY = line->y;
-            top = 18.0f + rowY;
+            row_y = line->y;
+            top = 18.0f + row_y;
+
             if (!(top < 100.0f) && !((float) mgScreenHeight < top)) {
                 if (info[row]->state != 0) {
                     u_long seconds;
                     u_long hours;
                     int    tens;
                     u_long hundreds;
-                    textY = fptosi(40.0f + rowY);
+                    text_y = fptosi(40.0f + row_y);
                     window->line_pos[1][0] = fptosi(520.0f + line->x);
-                    window->line_pos[1][1] = textY;
+                    window->line_pos[1][1] = text_y;
                     window->line_pos_on[1] = 1;
                     seconds = info[row]->play_time / 50;
-                    minutesTotal = seconds / 60;
-                    hours = minutesTotal / 60;
-                    minutes = minutesTotal % 60;
+                    minutes_total = seconds / 60;
+                    hours = minutes_total / 60;
+                    minutes = minutes_total % 60;
                     tens = (hours % 100 - hours % 10) / 10;
+
                     if (seconds >= 0x36E070) {
                         hours = 999;
                         tens = 9;
                         minutes = 59;
                     }
+
                     static char *space = at_2603;
                     hundreds = hours / 100;
+
                     if (CheckNowEurope() != 0) {
                         if (hundreds == 0) {
-                            strcpy(hoursText, space);
+                            strcpy(hours_text, space);
                         } else {
-                            sprintf(hoursText, at_1905__3, hundreds);
+                            sprintf(hours_text, at_1905__3, hundreds);
                         }
+
                         if (tens == 0 && hundreds == 0) {
-                            strcat(hoursText, space);
+                            strcat(hours_text, space);
                         } else {
-                            sprintf(digitText, at_1905__3, tens % 10);
-                            strcat(hoursText, digitText);
+                            sprintf(digit_text, at_1905__3, tens % 10);
+                            strcat(hours_text, digit_text);
                         }
-                        sprintf(timeText, at_2604, hoursText, hours % 10, minutes / 10,
+
+                        sprintf(time_text, at_2604, hours_text, hours % 10, minutes / 10,
                                 minutes % 10);
                     } else {
                         if (hundreds == 0) {
-                            strcpy(timeText, space);
+                            strcpy(time_text, space);
                         } else {
-                            strcpy(timeText, GetMenuBigNum((int) hundreds));
+                            strcpy(time_text, GetMenuBigNum((int) hundreds));
                         }
+
                         if (tens == 0 && hundreds == 0) {
-                            strcat(timeText, space);
+                            strcat(time_text, space);
                         } else {
-                            strcat(timeText, GetMenuBigNum(tens));
+                            strcat(time_text, GetMenuBigNum(tens));
                         }
-                        strcat(timeText, GetMenuBigNum((int) (hours % 10)));
-                        strcat(timeText, at_2605);
-                        strcat(timeText, GetMenuBigNum((int) (minutes / 10)));
-                        strcat(timeText, GetMenuBigNum((int) minutes));
+
+                        strcat(time_text, GetMenuBigNum((int) (hours % 10)));
+                        strcat(time_text, at_2605);
+                        strcat(time_text, GetMenuBigNum((int) (minutes / 10)));
+                        strcat(time_text, GetMenuBigNum((int) minutes));
                     }
-                    font.DrawDirect(timeText, fptosi(22.0f + line->x),
+
+                    font.DrawDirect(time_text, fptosi(22.0f + line->x),
                                     fptosi(42.0f + line->y));
-                    window->SetMovePosCenteringGyou(2, centerX, fptosi(1.0f + (10.0f + line->y)));
-                    window->SetMovePosCenteringGyou(3, centerX + 0xD, fptosi(42.0f + line->y));
+                    window->SetMovePosCenteringGyou(2, center_x, fptosi(1.0f + (10.0f + line->y)));
+                    window->SetMovePosCenteringGyou(3, center_x + 0xD, fptosi(42.0f + line->y));
                 } else {
-                    window->SetMovePosCenteringGyou(1, centerX - 4, fptosi(24.0f + rowY));
+                    window->SetMovePosCenteringGyou(1, center_x - 4, fptosi(24.0f + row_y));
                 }
+
                 window->SetMsgAlpha(alpha);
                 window->StepMsg();
                 window->DrawMsg();
@@ -2985,9 +3022,9 @@ static inline int &SubGameFileExists(CMemoryCardManager *manager) {
     return manager->file_exists;
 }
 
-int SubGameSaveKey(void) {
+int SubGameSaveKey() {
     MC_CARD_INFO *card;
-    u32           stepResult;
+    u32           step_result;
     int           pushed;
     CDC2Mes      *window;
     int           next;
@@ -2995,65 +3032,79 @@ int SubGameSaveKey(void) {
     int           pressed;
     int           answer;
     int           slot;
-    int           slotNo;
+    int           slot_no;
 
     if (SubGameSaveLoadStatus == 1 && MenuMainScene->fade.FadeCheck() != 0) {
         MemoryCardPtr->FinishForMC();
+
         if (SubGameSaveOrLoad == 1) {
             MenuMainScene->StopBGM(0);
             MenuMainScene->LoadBGM(SubGameDataBgm.load_no, SaveMenuStack.stack + SaveMenuStack.stack_used);
             MenuMainScene->SetActiveBgmStatus(&SubGameDataBgm);
         }
+
         return 1;
     }
+
     pushed = MenuCommonInfo->CheckPushButton();
     MC_ERROR_INFO *error;
-    stepResult = MemoryCardPtr->Step();
+    step_result = MemoryCardPtr->Step();
     error = &MemoryCardPtr->error;
     window = MenuDCMsg[0];
     next = -1;
+
     switch (SubGameSaveOrLoadPhase) {
         case -1:
             break;
         case SUB_SAVE_SLOT_SELECT:
             pressed = ConvertCheckPushButton(pushed);
+
             if (pressed & 2) {
                 MenuSePlay(5);
+
                 if (GetNowLoopNo() == (int) LOOP_TITLE) {
                     next = SUB_SAVE_QUIT_ASK;
                 }
+
                 if (GetNowLoopNo() == (int) LOOP_EDIT || GetNowLoopNo() == (int) LOOP_DUNGEON) {
                     next = SUB_SAVE_QUIT_ASK_LOAD;
                 }
             } else {
                 cursor = window->AddMsgCursor2(2, 3, 0);
+
                 if (pressed & 1) {
                     MenuSePlay(SYSTEM_SE_DECIDE);
                     next = SUB_SAVE_CARD_CHECK;
                     SubGameMCPort = cursor - 2;
                 }
             }
+
             break;
         case SUB_SAVE_CARD_CHECK:
             card = GetSubGameCard(MemoryCardPtr);
-            if (stepResult != 0) {
+
+            if (step_result != 0) {
                 if (McCheckMCPs2(card) == 0) {
                     next = SUB_SAVE_CARD_ERROR;
                 } else {
                     next = SUB_SAVE_CARD_READY;
                 }
             }
+
             break;
         case SUB_SAVE_CARD_READY:
             card = GetSubGameCard(MemoryCardPtr);
-            if (stepResult != 0) {
+
+            if (step_result != 0) {
                 int &exists = SubGameFileExists(MemoryCardPtr);
+
                 if (McCheckMCPs2(card) == 0) {
                     next = SUB_SAVE_CARD_ERROR;
                 } else if (card->formatted == 0) {
                     if (SubGameSaveOrLoad == 0) {
                         next = SUB_SAVE_FORMAT_ASK;
                     }
+
                     if (SubGameSaveOrLoad == 1) {
                         next = SUB_SAVE_NO_DATA;
                     }
@@ -3061,6 +3112,7 @@ int SubGameSaveKey(void) {
                     if (SubGameSaveOrLoad == 0) {
                         next = SUB_SAVE_OVERWRITE_ASK;
                     }
+
                     if (SubGameSaveOrLoad == 1) {
                         next = SUB_SAVE_LOAD_ASK;
                     }
@@ -3070,15 +3122,18 @@ int SubGameSaveKey(void) {
                     if (SubGameSaveOrLoad == 0) {
                         next = SUB_SAVE_SPACE_ASK;
                     }
+
                     if (SubGameSaveOrLoad == 1) {
                         next = SUB_SAVE_LOAD_MISSING;
                     }
                 }
             }
+
             break;
         case SUB_SAVE_QUIT_ASK:
         case SUB_SAVE_QUIT_ASK_LOAD:
             answer = window->YesNoCursor2(0);
+
             if (answer == 1) {
                 MenuSePlay(SYSTEM_SE_DECIDE);
                 MenuArg.end_code = 0;
@@ -3086,32 +3141,39 @@ int SubGameSaveKey(void) {
                 MenuArg.result[0] = 0;
                 SubGameSaveOrLoadPhase = -1;
             }
+
             if (answer == 2) {
                 MenuSePlay(5);
                 next = SUB_SAVE_SLOT_SELECT;
             }
+
             break;
         case 50:
             break;
         case SUB_SAVE_OVERWRITE_ASK:
             card = GetSubGameCard(MemoryCardPtr);
+
             if (McCheckMCPs2(card) == 0) {
                 next = SUB_SAVE_CARD_ERROR;
             } else {
                 answer = window->YesNoCursor2(0);
+
                 if (answer == 1) {
                     next = SUB_SAVE_WRITING;
                     MenuSePlay(SYSTEM_SE_DECIDE);
                 }
+
                 if (answer == 2) {
                     next = SUB_SAVE_SLOT_SELECT;
                     MenuSePlay(5);
                 }
             }
+
             break;
         case SUB_SAVE_WRITING:
-            if (stepResult != 0) {
+            if (step_result != 0) {
                 card = GetSubGameCard(MemoryCardPtr);
+
                 if (McCheckMCPs2(card) == 0) {
                     next = SUB_SAVE_WRITE_FAILED;
                 } else {
@@ -3119,12 +3181,14 @@ int SubGameSaveKey(void) {
                     next = SUB_SAVE_WRITE_DONE;
                 }
             }
+
             break;
         case SUB_SAVE_WRITE_DONE:
             if (pushed != 0) {
                 MenuSePlay(SYSTEM_SE_DECIDE);
                 SubGameSaveLoadStatus = 1;
             }
+
             break;
         case SUB_SAVE_WRITE_FAILED:
         case SUB_SAVE_WRITE_FAILED_FULL:
@@ -3132,15 +3196,19 @@ int SubGameSaveKey(void) {
                 next = SUB_SAVE_SLOT_SELECT;
                 MenuSePlay(SYSTEM_SE_DECIDE);
             }
+
             break;
         case SUB_SAVE_SPACE_ASK:
             card = GetSubGameCard(MemoryCardPtr);
+
             if (McCheckMCPs2(card) == 0) {
                 next = SUB_SAVE_CARD_ERROR;
             } else {
                 answer = window->YesNoCursor2(0);
+
                 if (answer == 1) {
                     MenuSePlay(SYSTEM_SE_DECIDE);
+
                     if (card->formatted == 0) {
                         next = SUB_SAVE_FORMAT_ASK;
                         break;
@@ -3151,15 +3219,18 @@ int SubGameSaveKey(void) {
                         next = SUB_SAVE_DIR_MAKING;
                     }
                 }
+
                 if (answer == 2) {
                     next = SUB_SAVE_SLOT_SELECT;
                     MenuSePlay(5);
                 }
             }
+
             break;
         case SUB_SAVE_DIR_MAKING:
             card = GetSubGameCard(MemoryCardPtr);
-            if (stepResult != 0) {
+
+            if (step_result != 0) {
                 if (McCheckMCPs2(card) == 0) {
                     next = SUB_SAVE_WRITE_FAILED;
                 } else if (error->code == MC_ERROR_FILE) {
@@ -3168,30 +3239,38 @@ int SubGameSaveKey(void) {
                     next = SUB_SAVE_WRITING;
                 }
             }
+
             break;
         case SUB_SAVE_FORMAT_ASK:
             card = GetSubGameCard(MemoryCardPtr);
+
             if (McCheckMCPs2(card) == 0) {
                 next = SUB_SAVE_CARD_ERROR;
             } else {
                 answer = window->YesNoCursor2(0);
+
                 if (answer == 1) {
                     MenuSePlay(SYSTEM_SE_DECIDE);
                     next = SUB_SAVE_FORMATTING;
                 }
+
                 if (answer == 2) {
                     MenuSePlay(5);
                     next = SUB_SAVE_SLOT_SELECT;
                 }
             }
+
             break;
         case SUB_SAVE_FORMATTING:
             card = GetSubGameCard(MemoryCardPtr);
-            if (stepResult != 0) {
+
+            if (step_result != 0) {
                 if (McCheckMCPs2(card) == 0) {
                     goto format_error;
                 }
+
                 next = SUB_SAVE_DIR_MAKING;
+
                 if (card != NULL && card->formatted == 0) {
                 format_error:
                     next = SUB_SAVE_CARD_ERROR;
@@ -3199,39 +3278,48 @@ int SubGameSaveKey(void) {
                     next = SUB_SAVE_DIR_MAKING;
                 }
             }
+
             break;
         case SUB_SAVE_NO_DATA:
             if (pushed != 0) {
                 next = SUB_SAVE_SLOT_SELECT;
                 MenuSePlay(5);
+
                 if (SubGameSaveOrLoad == 0) {
                     next = SUB_SAVE_FORMAT_ASK;
                 }
+
                 if (SubGameSaveOrLoad == 1) {
                     next = SUB_SAVE_LOAD_MISSING;
                 }
             }
+
             break;
         case SUB_SAVE_LOAD_ASK:
             card = GetSubGameCard(MemoryCardPtr);
+
             if (McCheckMCPs2(card) == 0) {
                 next = SUB_SAVE_CARD_ERROR;
             } else {
                 answer = window->YesNoCursor2(0);
+
                 if (answer == 1) {
                     next = SUB_SAVE_LOADING;
                     MemoryCardPtr->SetFuncNo(MC_FUNC_LOAD_OMAKE);
                     MenuSePlay(SYSTEM_SE_DECIDE);
                 }
+
                 if (answer == 2) {
                     next = SUB_SAVE_SLOT_SELECT;
                     MenuSePlay(5);
                 }
             }
+
             break;
         case SUB_SAVE_LOADING:
             card = GetSubGameCard(MemoryCardPtr);
-            if (stepResult != 0) {
+
+            if (step_result != 0) {
                 if (McCheckMCPs2(card) == 0) {
                     next = SUB_SAVE_CARD_ERROR;
                 } else {
@@ -3239,6 +3327,7 @@ int SubGameSaveKey(void) {
                     next = SUB_SAVE_LOAD_DONE;
                 }
             }
+
             break;
         case SUB_SAVE_LOAD_DONE:
             if (pushed != 0) {
@@ -3246,30 +3335,37 @@ int SubGameSaveKey(void) {
                 MenuArg.end_code = 0x13;
                 SubGameSaveLoadStatus = 1;
             }
+
             break;
         case SUB_SAVE_LOAD_MISSING:
             answer = window->YesNoCursor2(0);
+
             if (answer == 1) {
                 MenuSePlay(SYSTEM_SE_DECIDE);
                 SubGameSaveLoadStatus = 1;
                 MenuArg.end_code = 0x13;
             }
+
             if (answer == 2) {
                 MenuSePlay(5);
                 next = SUB_SAVE_SLOT_SELECT;
             }
+
             break;
         case SUB_SAVE_CARD_ERROR:
             if (pushed != 0) {
                 card = GetSubGameCard(MemoryCardPtr);
+
                 if (McCheckMCPs2(card) == 0) {
                     MenuSePlay(5);
                     next = SUB_SAVE_SLOT_SELECT;
                 } else if (card->formatted == 0) {
                     MenuSePlay(5);
+
                     if (SubGameSaveOrLoad == 1) {
                         next = SUB_SAVE_LOAD_MISSING;
                     }
+
                     if (SubGameSaveOrLoad == 0) {
                         next = SUB_SAVE_FORMAT_ASK;
                     }
@@ -3278,13 +3374,16 @@ int SubGameSaveKey(void) {
                     next = SUB_SAVE_SLOT_SELECT;
                 }
             }
+
             break;
         case 1001:
             break;
     }
+
     if (0 <= next) {
         slot = SubGameMCPort;
-        slotNo = slot + 1;
+        slot_no = slot + 1;
+
         switch (next) {
             case SUB_SAVE_SLOT_SELECT:
                 window->MsgPreset(0x12, LanguageCode);
@@ -3308,18 +3407,21 @@ int SubGameSaveKey(void) {
                 window->SetAbsPos(5);
                 window->SetMsgCursor(1);
                 window->MakeMsg(0xC58);
+
                 if (next == SUB_SAVE_QUIT_ASK_LOAD) {
                     window->MakeMsg(0xC5B);
                 }
+
                 break;
             case SUB_SAVE_OVERWRITE_ASK:
                 SubGameCFGAnalyze(at_3199__3);
-                window->SetMsgVolumeNoOne(slotNo);
+                window->SetMsgVolumeNoOne(slot_no);
                 break;
             case SUB_SAVE_WRITING:
                 if (window->mes_no != 0xC5C) {
                     SubGameCFGAnalyze(at_3200__2);
                 }
+
                 MemoryCardPtr->SetFuncNo(MC_FUNC_SAVE_OMAKE);
                 break;
             case SUB_SAVE_WRITE_DONE:
@@ -3330,15 +3432,17 @@ int SubGameSaveKey(void) {
                 window->MsgPreset(0xA, LanguageCode);
                 window->SetAbsPos(5);
                 window->MakeMsg(0xBC1);
+
                 if (next == SUB_SAVE_WRITE_FAILED_FULL) {
                     window->MakeMsg(0xC52);
-                    window->SetMsgVolumeNoOne(slotNo);
+                    window->SetMsgVolumeNoOne(slot_no);
                 }
+
                 break;
             case SUB_SAVE_SPACE_ASK:
                 SubGameCFGAnalyze(at_3202__3);
                 int values[2] = {0, 0};
-                values[0] = slotNo;
+                values[0] = slot_no;
                 values[1] = SubCheckTotalSaveFileSize;
                 window->SetMsgVolumeNo(values, 2);
                 break;
@@ -3348,19 +3452,19 @@ int SubGameSaveKey(void) {
                 break;
             case SUB_SAVE_FORMAT_ASK:
                 SubGameCFGAnalyze(at_3203);
-                window->SetMsgVolumeNoOne(slotNo);
+                window->SetMsgVolumeNoOne(slot_no);
                 break;
             case SUB_SAVE_FORMATTING:
                 MemoryCardPtr->SetFuncNo(MC_FUNC_FORMAT);
                 SubGameCFGAnalyze(at_3204);
-                window->SetMsgVolumeNoOne(slotNo);
+                window->SetMsgVolumeNoOne(slot_no);
                 break;
             case SUB_SAVE_NO_DATA:
                 SubGameCFGAnalyze(at_3205);
                 break;
             case SUB_SAVE_LOAD_ASK:
                 SubGameCFGAnalyze(at_3206);
-                window->SetMsgVolumeNoOne(slotNo);
+                window->SetMsgVolumeNoOne(slot_no);
                 break;
             case SUB_SAVE_LOADING:
                 MemoryCardPtr->SetFuncNo(MC_FUNC_LOAD_OMAKE);
@@ -3375,42 +3479,49 @@ int SubGameSaveKey(void) {
                 window->MsgPreset(0xB, LanguageCode);
                 window->SetAbsPos(5);
                 window->SetMsgCursor(1);
-                window->SetMsgVolumeNoOne(slotNo);
+                window->SetMsgVolumeNoOne(slot_no);
                 window->MakeMsg(0xC59);
                 break;
             case SUB_SAVE_CARD_ERROR:
                 window->MsgPreset(0x12, LanguageCode);
                 card = GetSubGameCard(Ident(MemoryCardPtr));
+
                 if (SubGameSaveOrLoadPhase == SUB_SAVE_FORMATTING) {
                     window->MakeMsg(0xBE5);
-                    window->SetMsgVolumeNoOne(slotNo);
+                    window->SetMsgVolumeNoOne(slot_no);
                 } else if (SubGameSaveOrLoadPhase == SUB_SAVE_LOADING) {
                     window->MsgPreset(0xA, LanguageCode);
                     window->MakeMsg(0xBC6);
                 } else if (McCheckMCPs2(card) == 0) {
                     window->MakeMsg(0xBB9);
-                    window->SetMsgVolumeNoOne(slotNo);
+                    window->SetMsgVolumeNoOne(slot_no);
                 } else if (card->free_size < SubCheckTotalSaveFileSize) {
                     window->MakeMsg(0xC50);
                     int values[2] = {0, 0};
-                    values[0] = slotNo;
+                    values[0] = slot_no;
                     values[1] = SubCheckTotalSaveFileSize;
                     window->SetMsgVolumeNo(values, 0x10);
                 }
+
                 window->SetAbsPos(5);
                 break;
             case 1001:
                 break;
         }
+
         SubGameSaveOrLoadPhase = next;
     }
+
     if (SubGameSaveLoadStatus == 1) {
         MenuMainScene->fade.FadeOut(0x28, 0.0f, 0.0f, 0.0f);
     }
+
     SubSaveTileXY += 0.5f;
+
     if (0.0f <= SubSaveTileXY) {
         SubSaveTileXY -= 256.0f;
     }
+
     MenuDCMsg[0]->StepMsg();
     return 0;
 }

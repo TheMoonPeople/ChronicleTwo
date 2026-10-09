@@ -958,26 +958,32 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
     memory->Align64();
     u_long128 *buffer = memory->stGetTop();
     total = 0;
+
     switch (chara) {
         case USER_CHARA_MAX:
         case USER_CHARA_MONICA:
         case USER_CHARA_ROBO: {
             const u16 *table = menu_chr_memorytbl;
+
             if (chara == USER_CHARA_ROBO) {
                 table = menu_robo_memorytbl;
             }
+
             for (int i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
                 char name[0x20];
                 int  size = table[i];
+
                 if (table[i] % 64 != 0) {
                     size = (64 - table[i] % 64) + table[i];
                 }
+
                 sprintf(name, "stack %d\n", i);
                 SetMemoryName(list[i], name);
                 list[i]->stSetBuffer(buffer, size);
                 total += size;
                 buffer = &list[i]->stGetTop()[size];
             }
+
             break;
         }
         case USER_CHARA_MONSTER:
@@ -986,6 +992,7 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
             total = 0x67C0;
             break;
     }
+
     return total;
 }
 
@@ -3366,6 +3373,7 @@ int GetMonsterProgressTableNo(int column, int value) {
         if (value == monster_progress_tbl[row][column + 1]) {
             return row;
         }
+
         row++;
     } while (row < MONSTER_PROGRESS_NUM);
 
@@ -5592,19 +5600,25 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
         BreakReadBG();
         StartReadBG();
     }
+
     info[0]->chara = NULL;
     int dir = 0;
+
     if (MenuLoadInfo.mode == 2) {
         dir = 1;
     }
+
     if (MenuLoadInfo.mode == 4) {
         dir = 2;
     }
+
     char *model = model_buffer;
     monster_load_id = monster_no;
+
     if (GetMonsterModelFile(monster_no, 0, model) == 0) {
         return 0;
     }
+
     char *script = script_buffer;
     GetMonsterModelFile(monster_no, 2, script);
     strcpy(info[0]->name, model);
@@ -5613,9 +5627,11 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
     strcpy(info[0]->path, path);
     stack->Align64();
     u_long128 *model_data = stack->stGetTop();
+
     if (LoadFileBG(info[0]->path, model_data, &size) != 0) {
         info[0]->reading = 1;
         stack->Alloc(blocks_for(size));
+
         if (MenuLoadInfo.mode == 2) {
             stack->Align64();
             u_long128 *buffer = stack->stGetTop();
@@ -5626,6 +5642,7 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
             stack->Alloc(blocks_for(size));
         }
     }
+
     return 1;
 }
 
@@ -5747,30 +5764,33 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuItemCharaDataLoadEndCheckAft
 #endif
 void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     int                reason;
-    mgCTextureManager *texManager;
+    mgCTextureManager *tex_manager;
 
     if (stack == NULL) {
         return;
     }
-    int activeChara = GetUserDataMan()->active_chr_no;
-    texManager = &mgTexManager;
+
+    int active_chara = GetUserDataMan()->active_chr_no;
+    tex_manager = &mgTexManager;
     NowReadMainCharaNo = chara_no;
-    texManager->DeleteBlock(MenuCommonInfo->tex_block[0]);
-    texManager->EnterTexture(MenuCommonInfo->tex_block[0], at_4789, NULL, 0x80, 0x80, 0x20, NULL, 0, 0);
-    NowMainCharaFrameImage = texManager->EnterTexture(MenuCommonInfo->tex_block[0], at_4790, NULL,
-                                                      mgScreenWidth, mgScreenHeight, 0x18, NULL, 0, 0);
+    tex_manager->DeleteBlock(MenuCommonInfo->tex_block[0]);
+    tex_manager->EnterTexture(MenuCommonInfo->tex_block[0], at_4789, NULL, 0x80, 0x80, 0x20, NULL, 0, 0);
+    NowMainCharaFrameImage = tex_manager->EnterTexture(MenuCommonInfo->tex_block[0], at_4790, NULL,
+                                                       mgScreenWidth, mgScreenHeight, 0x18, NULL, 0, 0);
     SetBGFrameForMenu(MenuCommonInfo->tex_block[0], at_4790);
     MenuPosData->AttachCommonTexInfo();
     NowMainCharaChngStatusBit = GetUserDataMan()->CheckQuickChange(NowReadMainCharaNo, &reason);
     NowReadMainCharaPhase = 0;
     NowReadMainChara = NULL;
     MenuCommonInfo->key_enable = 1;
+
     if ((NowMainCharaChngStatusBit & 2) == 0) {
         MenuDCMsg[0]->MsgPreset(0x12);
         MenuDCMsg[0]->SetAbsPos(8);
         MenuDCMsg[0]->MakeMsg(NowReadMainCharaNo + 0x1A5);
         return;
     }
+
     GetUserDataMan()->SetActiveChrNo(chara_no);
     mgCMemory memory;
     int       rest = stack->stGetRest();
@@ -5781,7 +5801,7 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     memory.Align64();
     rest = memory.stGetRest();
     MenuCharaLoadStack.stSetBuffer(memory.stGetTop(), rest);
-    NowMainCharaChngTex = texManager->GetTexture(at_4791, -1);
+    NowMainCharaChngTex = tex_manager->GetTexture(at_4791, -1);
     NowMainCharaChngTexMovePhase = 0;
     NowMainCharaChngTexMoveX = -0x100;
     MenuMainScene = GetMainScene();
@@ -5795,29 +5815,37 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     MenuLoadInfo.target_flags[0] = 0;
     MenuLoadInfo.target_flags[MENU_LOAD_TARGET_SCENE] = 1;
     NowReadMainChara = (CActionChara *) MenuMainScene->GetCharacter(0);
+
     if (NowReadMainChara != NULL) {
         NowReadMainChara->GetPosition(NowMainReadPosition);
         NowReadMainChara->GetRotation(NowMainReadRotation);
     }
+
     MenuUserParam.chara[0] = GetUserDataMan()->GetCharaDataPtr(USER_CHARA_MAX);
     MenuUserParam.chara[1] = GetUserDataMan()->GetCharaDataPtr(USER_CHARA_MONICA);
     MenuUserParam.robo = &GetUserDataMan()->robo_data;
-    if ((NowReadMainCharaNo == 1 && activeChara == 3) || NowReadMainCharaNo == 3) {
+
+    if ((NowReadMainCharaNo == 1 && active_chara == 3) || NowReadMainCharaNo == 3) {
         DeleteMonsterEffect();
     }
+
     ReEquipFishingGameWeapon();
+
     if (mode == 1) {
         GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, NowReadMainCharaNo, 1);
     } else {
         GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, NowReadMainCharaNo, 0);
     }
+
     SetMenuLoadItemNo(NowReadMainCharaNo);
+
     switch (NowReadMainCharaNo) {
         case 0:
         case 1:
             if (MenuLoadInfo.alternate_model == 1) {
                 EditCharaPrepare();
             }
+
             MenuLoadInfo.request_phase = -1;
             MenuItemCharaDataLoad(&MenuCharaLoadStack, NowReadMainCharaNo, MenuCharaBuild2, 1);
             break;
@@ -5826,17 +5854,21 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
             break;
         case 3:
             NowReadMainCharaMonsterNo = GetUserDataMan()->monster_id;
+
             if (NowReadMainCharaMonsterNo < 0) {
                 CUserDataManager *user_data = GetUserDataMan();
                 user_data->monster_id = 0x34;
                 NowReadMainCharaMonsterNo = 0x34;
             }
+
             for (int i = 1; i < 5; i++) {
                 CActionChara *chara = (CActionChara *) MenuMainScene->GetCharacter(i);
+
                 if (chara != NULL) {
                     chara->Initialize(NULL);
                 }
             }
+
             MenuMonsterLoadBG(&MenuCharaLoadStack, MenuCharaBuild2, NowReadMainCharaMonsterNo, 1);
             break;
     }
@@ -6875,6 +6907,7 @@ void CMosBookMenu::Draw() {
     if (Tex_MBg == NULL || Tex_MBook == NULL || Tex_MBase == NULL) {
         return;
     }
+
     mgCTextureManager *tex_manager = &mgTexManager;
     tex_manager->ReloadTexture(Tex_MBase->block, (sceVif1Packet *) NULL);
     mgCDrawPrim *prim = GetMenuPrim();
@@ -6893,9 +6926,11 @@ void CMosBookMenu::Draw() {
     Menu3DivideTextureDraw(prim, mgRect<int>(0x16, 0x181, 0x1CC, 0x24), tiletbl_5573[2], 1);
     prim->End();
     int model_width = 0xB6;
+
     if (CheckNowEurope()) {
         model_width = 0xBE;
     }
+
     DrawMenuFillBox(52.0f, 101.0f, (float) model_width, 220.0f, 0x80, 0xD, 0xD, 0xD);
     SetSpriteEnv(prim, 0);
     prim->Begin(MG_PRIM_SPRITE);
@@ -6907,12 +6942,14 @@ void CMosBookMenu::Draw() {
     int box_width = 0xB0;
     int last_shift = 0;
     int last_width = 0xB0;
+
     if (CheckNowEurope()) {
         box_shift = 2;
         box_width = 0xB6;
         last_shift = 4;
         last_width = 0xBE;
     }
+
     Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[3][0] + 0x16 - box_shift, put_under_offset_5577[3][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
     Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[5][0] + 0x16 - box_shift, put_under_offset_5577[5][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
     Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[7][0] + 0x16 - box_shift, put_under_offset_5577[7][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
@@ -6945,6 +6982,7 @@ void CMosBookMenu::Draw() {
              (float) (put_under_offset_5577[12][1] + 0x47), mgRect<int>(0, 0xEE, 0xB0, 0x12));
     int icon_x = put_under_offset_5577[4][0] + 0x1D;
     int strong_y = put_under_offset_5577[4][1] + 0x5C;
+
     for (int i = 0; i < MOS_BOOK_AFFINITY_NUM; i++) {
         if (strong_bit & (1 << i)) {
             PrimQuad(prim, (float) icon_x, (float) strong_y,
@@ -6952,9 +6990,11 @@ void CMosBookMenu::Draw() {
             icon_x += 0x16;
         }
     }
+
     int weak_i = 0;
     icon_x = put_under_offset_5577[4][0] + 0x1D;
     int weak_y = put_under_offset_5577[4][1] + 0x8E;
+
     for (; weak_i < MOS_BOOK_AFFINITY_NUM; weak_i++) {
         if (weak_bit & (1 << weak_i)) {
             PrimQuad(prim, (float) icon_x, (float) weak_y,
@@ -6962,6 +7002,7 @@ void CMosBookMenu::Draw() {
             icon_x += 0x16;
         }
     }
+
     Menu3DivideTextureDraw(prim, mgRect<int>(0xFB, 0x55, 0xC, 0x13C), line_5595, 0);
     prim->End();
     sceVu0FMATRIX view;
@@ -6969,6 +7010,7 @@ void CMosBookMenu::Draw() {
     camera.GetCameraMatrix(view);
     camera.GetPos(eye);
     mgSetViewMatrix(view, eye);
+
     if (monster != NULL && load_phase == 4 && show_wait > 0x10) {
         mgRect<int> scissor(0x20, 0x69, 0xE8, 0x135);
         SetMenuScissor(scissor);
@@ -6976,11 +7018,14 @@ void CMosBookMenu::Draw() {
         monster->DrawDirect();
         ResetMenuScissor();
     }
+
     tex_manager->ReloadTexture(Tex_MBase->block, (sceVif1Packet *) NULL);
     int frame_width = 0xD6;
+
     if (CheckNowEurope()) {
         frame_width = 0xDA;
     }
+
     SetSpriteEnv(prim, 0);
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_MBase);
@@ -7032,9 +7077,11 @@ void CMosBookMenu::Draw() {
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
     char position[0x80];
     int  number = select + 1;
+
     if (list_num <= 0) {
         number = 0;
     }
+
     sprintf(position, monstere_file_template[LanguageCode], number, list_num);
     font.SetStr(position);
     font.SetPos(0x14C, 0x2D);

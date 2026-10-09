@@ -625,6 +625,7 @@ void mgCTextureManager::AddHash(mgCTexture *texture) {
     mgTEXTURE_HASH *node;
     mgTEXTURE_HASH *cur;
     mgTEXTURE_HASH *following;
+
     if (hash_num >= hash_max) {
         node = NULL;
     } else {
@@ -659,6 +660,7 @@ void mgCTextureManager::DelHash(mgCTexture *texture) {
     mgTEXTURE_HASH *cur;
     mgTEXTURE_HASH *prev;
     mgTEXTURE_HASH *found;
+
     if (texture != NULL) {
         int index = hash(texture->name);
         cur = hash_table[index];
@@ -910,9 +912,11 @@ mgCTexture *mgCTextureManager::EnterTexture(int block, char *name, u_long128 **i
     }
 
     level_blocks = bpp;
+
     if (bpp == 24) {
         level_blocks = 32;
     }
+
     level_blocks = level_blocks * (width * height) / 256 / 8;
     texture->image_blocks = 0;
     last_level = -1;
@@ -956,12 +960,14 @@ mgCTexture *mgCTextureManager::EnterTexture(int block, char *name, u_long128 **i
                 texture->clut = NULL;
                 texture->tex0.value = SCE_GS_SET_TEX0(0, tbw, psm, tw, th, 1, 0, 0, 0, 0, 0, 0);
             }
+
             break;
     }
 
     texture->vram_size = texture->image_blocks;
 
     rest = texture->vram_size % MG_TEXTURE_PAGE_BLOCKS;
+
     if (rest != 0) {
         texture->vram_size += MG_TEXTURE_PAGE_BLOCKS - rest;
     }
@@ -1131,6 +1137,7 @@ int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMemory *stack,
     }
 
     is_im2 = 0;
+
     if (memcmp(img, "IM", 2) != 0) {
         return 0;
     }
@@ -1140,6 +1147,7 @@ int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMemory *stack,
     }
 
     is_im3 = 0;
+
     if (memcmp(img, "IM3", 3) == 0) {
         is_im3 = 1;
     }
@@ -1618,29 +1626,36 @@ int mgCTextureManager::ReloadTexture(int block, u_int *packet) {
     int         height;
     int         bpp;
     mgCTexture *texture;
+
     if (packet != NULL && (block < 0 || block >= block_max)) {
         last_block = -1;
         return 0;
     }
+
     start = packet;
+
     if (packet != NULL) {
         packet += SetTexFlush_TagCnt(packet) * 4;
     }
+
     vram = vram_top;
     fix = vram_fix;
     zbuf = GetZBufVram(&zbuf_size);
     zbuf_end = zbuf + zbuf_size;
+
     if (last_block != block) {
         for (texture = blocks[block].texture; texture != NULL; texture = texture->next) {
             width = texture->width;
             height = texture->height;
             bpp = texture->bpp;
             to_zbuf = 0;
+
             if (CheckCopyToZBufVram(texture, &size)) {
                 if (zbuf + size < zbuf_end) {
                     to_zbuf = 1;
                 }
             }
+
             if (to_zbuf) {
                 texture->tex0.TBP0 = zbuf;
                 texture->tex0.PSM = SCE_GS_PSMT8H;
@@ -1648,15 +1663,19 @@ int mgCTextureManager::ReloadTexture(int block, u_int *packet) {
             } else {
                 texture->tex0.TBP0 = vram;
                 vram += texture->vram_size;
+
                 if (bpp == 8) {
                     texture->tex0.PSM = SCE_GS_PSMT8;
                 }
             }
+
             tex0 = texture->tex0;
+
             if (texture->bpp <= 8) {
                 fix -= MG_TEXTURE_CLUT_BLOCKS;
                 texture->tex0.CBP = fix;
             }
+
             if (texture->swizzled != 0 && bpp == 8) {
                 width >>= 1;
                 height >>= 1;
@@ -1664,21 +1683,27 @@ int mgCTextureManager::ReloadTexture(int block, u_int *packet) {
                 tex0.PSM = SCE_GS_PSMCT32;
                 tex0.TBW = tex0.TBW >> 1;
             }
+
             if (packet != NULL) {
                 packet += ReloadCLUT(texture, packet);
             }
+
             for (level = 0; level < MG_TEXTURE_LEVEL_MAX; level++) {
                 u_long128 **image = ((mgCTexture *) ((level << 2) + (int) texture))->image;
+
                 if (*image == NULL) {
                     break;
                 }
+
                 if (tex0.TBW == 0) {
                     tex0.TBW = 1;
                 }
+
                 if (packet != NULL) {
                     packet += mgLoadImage(packet, tex0.TBP0, tex0.PSM, tex0.TBW, (u_long128 *) *image,
                                           bpp * (width * height) / 16 / 8, 0, 0, width, height);
                 }
+
                 tex0.TBP0 = tex0.TBP0 + (u_short) (bpp * (width * height) / 256 / 8);
                 tex0.TBW = tex0.TBW >> 1;
                 width >>= 1;
@@ -1686,10 +1711,12 @@ int mgCTextureManager::ReloadTexture(int block, u_int *packet) {
             }
         }
     }
+
     if (packet != NULL) {
         packet += SetTexFlush_TagCnt(packet) * 4;
         last_block = block;
     }
+
     return (packet - start) / 4;
 }
 
@@ -1996,6 +2023,7 @@ static int Conv32To8(int width, int height, u_char *image) {
 
     page_width = 128;
     row_bytes = 256;
+
     if (pages_x == 1) {
         row_bytes = width * 2;
     } else {

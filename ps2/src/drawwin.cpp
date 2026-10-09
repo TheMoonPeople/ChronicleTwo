@@ -183,6 +183,7 @@ void MyMenuFloatingWinDraw(mgCDrawPrim *prim, RECT win, int point_x, int point_y
     DrawWindowTile(prim, inside_x, bottom_y, inside_width, 9, 0x77, 0x27, 0x22, 0x9, frame_color);
     DrawWindowTile(prim, right_x, bottom_y, 7, 9, 0x99, 0x27, 0x7, 0x9, frame_color);
     MySetPrim(prim, 4, 0);
+
     if (point_x < win.x) {
         DrawWindowTile(prim, win.x - 13, point_y - 10, 0x15, 0x15, 0xA6, 0x45, 0x15, 0x15, fill_color);
         DrawWindowTile(prim, win.x - 13, point_y - 10, 0x15, 0x15, 0xA6, 0x30, 0x15, 0x15, frame_color);

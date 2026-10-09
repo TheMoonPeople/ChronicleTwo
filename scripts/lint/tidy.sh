@@ -48,7 +48,7 @@ if [ "${1:-}" = "--fix" ]; then
         merge="$out/fixes"
         mkdir "$merge"
     else
-        fix="--fix"
+        fix="--fix --format-style=none"
         jobs=1
     fi
     shift
@@ -74,7 +74,10 @@ if [ -n "$merge" ]; then
         awk '/^  - DiagnosticName:/ { skip = ($3 ~ /^clang-diagnostic-/) } /^[^ ]/ { skip = 0 } !skip' "$yaml" > "$yaml.tmp"
         mv "$yaml.tmp" "$yaml"
     done
-    clang-apply-replacements -format -style=file "$merge"
+    clang-apply-replacements "$merge"
+fi
+if [ -n "$merge$fix" ]; then
+    python3 scripts/lint/format.py
 fi
 clang-tidy --quiet "$source" -- $(llvm-config --cxxflags) > "$out/plugin.log" 2>/dev/null || true
 

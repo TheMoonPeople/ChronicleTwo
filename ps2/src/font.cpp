@@ -478,31 +478,39 @@ int GetFontNo(char *text) {
     if (text[0] == '\n') {
         return FONT_NO_NEWLINE;
     }
+
     int gaiji = (u16) GetFontGaijiFontNo(text);
+
     if (gaiji != 0) {
         return (u16) gaiji;
     }
+
     u8 *table = GetYoyakuTblTop();
     u16 code = (u8) text[1] + ((u8) text[0] << 8);
     int low = 0;
     int high = GetYoyakuTblNum() - 1;
     u16 first = table[1] + (table[0] << 8);
+
     if (first == code) {
         return 0;
     }
+
     u8 *pair = &table[high * 2];
     u8  first_byte = pair[0];
     u8  second_byte = pair[1];
     u16 end = second_byte + (first_byte << 8);
+
     if (end == code) {
         return high;
     }
+
     while (1) {
         int mid = (low + high) / 2;
         pair = &table[mid * 2];
         first_byte = pair[0];
         second_byte = pair[1];
         u16 entry = second_byte + (first_byte << 8);
+
         if (code < entry) {
             high = mid;
         } else if (entry < code) {
@@ -510,6 +518,7 @@ int GetFontNo(char *text) {
         } else {
             return mid;
         }
+
         if (high == low + 1) {
             return -1;
         }

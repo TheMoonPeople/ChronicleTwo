@@ -182,6 +182,7 @@ static inline void ReadPrice(CShop *shop, int item_no, int *buy, int *sell) {
     if (buy) {
         *buy = shop->price[item_no].buy;
     }
+
     if (sell) {
         *sell = shop->price[item_no].sell;
     }
@@ -191,46 +192,60 @@ void CShop::GetPrice(CGameDataUsed *item, int *buy, int *sell) {
     if (item == NULL) {
         return;
     }
+
     int item_id = item->item_no;
+
     if (buy != NULL) {
         *buy = 0;
     }
+
     if (sell != NULL) {
         *sell = 0;
     }
+
     if (item_id > 0) {
         ReadPrice(this, item_id, buy, sell);
+
         if (NowSellMode == SHOP_SELL_MODE_DONY && buy != NULL) {
             *buy = 0;
         }
     }
+
     if (buy != NULL && item_id == 0x1A7) {
         int   bought = GetUserDataMan()->special_item_bought;
         float scaled = (float) *buy;
+
         while (bought > 0) {
             scaled *= 1.1f;
             bought--;
         }
+
         *buy = fptosi(scaled);
     }
+
     if (sell != NULL) {
         if (item->item_no == 0x130) {
             for (int slot = 0; slot < 3; slot++) {
                 int box_item = item->GetGiftBoxItemNo(slot);
                 int box_price = 0;
+
                 if (box_item > 0) {
                     ReadPrice(this, box_item, NULL, &box_price);
                 }
+
                 *sell += box_price;
             }
         }
+
         switch (item->used_type) {
             case USED_ITEM_TYPE_WEAPON: {
                 int level = item->GetLevel();
+
                 if (0 < level) {
                     *sell += level * 20;
                     *sell += item->RemainFusion() * 5;
                 }
+
                 break;
             }
             case USED_ITEM_TYPE_BOILED:
@@ -549,12 +564,14 @@ int CShopMenu::KeyStep() {
     lr = MenuCommonInfo->CheckLRKey();
     CUserDataManager *user = GetUserDataMan();
     int               fade_end = FadeCheckMenu();
+
     switch (mode) {
         case 1:
             if (fade_end) {
                 ExeScript(at_1650);
                 mode = 0;
             }
+
             break;
         case 2:
             if (fade_end) {
@@ -563,65 +580,82 @@ int CShopMenu::KeyStep() {
                 MenuMainScene->SetActiveBgmStatus(&bgm_status);
                 ret = 1;
             }
+
             break;
         case 0: {
             if (MenuMoveItemPtr->CheckMove()) {
                 push = 0;
             }
+
             if (menu_debug_flag != 0) {
                 if (GamePad__2.On(PAD_CIRCLE)) {
                     GetUserDataMan()->AddYarikomiMedal(1);
                 }
+
                 return 0;
             }
+
             if (init_1327 == 0) {
                 shop_mode_prev_1326 = 0;
                 init_1327 = 1;
             }
+
             int                command = 0;
             MENU_SWAPITEM_INFO swap;
             swap.Set(-1, 0, -1, 0);
             int item_num = CShopPtr->item_num;
             int buy_price = 0;
             int sell_price;
+
             switch (key_arg_no) {
                 case 0: {
                     int old_pos = list_pos;
                     int old_top = list_top;
                     int moved = MenuListKeyCheck(lr, &list_pos, &list_top, item_num, 6, 0, 0);
+
                     if (lr & 0x50) {
                         list_pos -= 5;
                     }
+
                     if (lr & 0xA0) {
                         list_pos += 5;
                     }
+
                     if (list_pos < 0) {
                         list_pos = 0;
                     }
+
                     if (item_num <= list_pos) {
                         list_pos = item_num - 1;
                     }
+
                     while (list_pos < list_top) {
                         list_top--;
                     }
+
                     while (list_top + 6 < list_pos) {
                         list_top++;
                     }
+
                     if (old_pos != list_pos || old_top != list_top) {
                         moved = 1;
                     }
+
                     if (lr & 8) {
                         key_arg_no = 1;
                         int line = list_pos - list_top + 1;
+
                         if (line > 4) {
                             line = 4;
                         }
+
                         bag_pos = (bag_top + line) * 6;
                         MenuSePlay(SYSTEM_SE_CURSOR);
                     } else {
                         if (moved) {
                             MenuSePlay(SYSTEM_SE_CURSOR);
                         }
+
                         switch (push) {
                             case 1:
                             case 4:
@@ -633,6 +667,7 @@ int CShopMenu::KeyStep() {
                                 break;
                         }
                     }
+
                     break;
                 }
                 case 1:
@@ -640,26 +675,33 @@ int CShopMenu::KeyStep() {
                         if (item_num > 0) {
                             key_arg_no = 0;
                             int line = bag_pos / 6 - bag_top - 1;
+
                             if (line < 0) {
                                 line = 0;
                             }
+
                             list_pos = list_top + line;
                             MenuSePlay(SYSTEM_SE_CURSOR);
                         }
                     } else {
                         swap.Set(3, bag_pos, -1, 0);
+
                         switch (push) {
                             case 1:
                                 command = 0x14;
+
                                 if (MenuCommonInfo->have_item.item_no > 0) {
                                     command = 0x14;
                                     break;
                                 }
+
                                 command = 5;
+
                                 if (NowSellMode == SHOP_SELL_MODE_ROBO_ABS || NowSellMode == SHOP_SELL_MODE_MEDAL) {
                                     command = 5;
                                     break;
                                 }
+
                                 command = 0x3F2;
                                 shop_mode_prev_1326 = key_arg_no;
                                 break;
@@ -674,34 +716,44 @@ int CShopMenu::KeyStep() {
                                 break;
                         }
                     }
+
                     break;
                 case 2:
                 case 3: {
                     int old_cursor = num_cursor;
                     int old_num = num;
+
                     if (lr & 4) {
                         num_cursor = old_cursor - 1;
                     }
+
                     if (lr & 8) {
                         num_cursor++;
                     }
+
                     if (num_cursor < 0) {
                         num_cursor = 0;
                     }
+
                     if (num_cursor > 1) {
                         num_cursor = 1;
                     }
+
                     int arrow = -1;
+
                     if (num_cursor == 0) {
                         if (lr & 1) {
                             num++;
                         }
+
                         if (lr & 2) {
                             num--;
                         }
+
                         if (lr & 0x50) {
                             num -= 10;
                         }
+
                         if (lr & 0xA0) {
                             if (num == 1) {
                                 num += 9;
@@ -710,85 +762,108 @@ int CShopMenu::KeyStep() {
                             }
                         }
                     }
+
                     if (old_num < num) {
                         arrow = 0;
                     }
+
                     if (num < old_num) {
                         arrow = 1;
                     }
+
                     if (num <= 0) {
                         num = 1;
                     }
+
                     if (num > num_max) {
                         num = num_max;
                     }
+
                     if (old_cursor != num_cursor || old_num != num) {
                         MenuSePlay(SYSTEM_SE_CURSOR);
+
                         if (0 <= arrow) {
                             arrow_flash[arrow] = 8;
                             arrow_flash[arrow ^ 1] = 0;
                         }
                     }
+
                     total = 0;
+
                     if (NowSellMode == SHOP_SELL_MODE_DONY && key_arg_no == 2) {
                         MenuDCMsg[3]->SetMsgCursor(num_cursor);
                     }
+
                     if (key_arg_no == 2) {
                         CShopPtr->GetPrice(SearchNowPosItemExist(), &buy_price, NULL);
                         total = buy_price * num;
                     }
+
                     if (key_arg_no == 3) {
                         CShopPtr->GetPrice(SearchNowPosItemExist(), NULL, &sell_price);
                         total = sell_price * num;
                     }
+
                     trade_brd->SetNumber(at_1651, total);
                     trade_brd->SetPartRGBA(at_1651, 0x80, 0x80, 0x80, 0x80);
                     trade_brd->SetPartRGBA(at_1652, 0x80, 0x80, 0x80, 0x80);
+
                     if (key_arg_no == 2 && total > CShopPtr->CheckMoney()) {
                         trade_brd->SetPartRGBA(at_1651, 0x80, 0x14, 0x14, 0x80);
                         trade_brd->SetPartRGBA(at_1652, 0x80, 0x14, 0x14, 0x80);
                     }
+
                     switch (push) {
                         case 1:
                         case 4:
                             if (num_cursor == 0) {
                                 if (key_arg_no == 2) {
                                     command = 0x3E9;
+
                                     if (NowSellMode == SHOP_SELL_MODE_DONY) {
                                         command = 0x3ED;
                                     }
                                 }
+
                                 if (key_arg_no == 3) {
                                     command = 0x3F3;
                                 }
+
                                 break;
                             }
                         case 2:
                             command = 0x44C;
                             break;
                     }
+
                     break;
                 }
                 case 4:
                 case 5: {
                     int answer = MenuDCMsg[4]->YesNoCursor2(0);
+
                     if (answer == 1) {
                         if (key_arg_no == 4) {
                             command = 0x3ED;
                         }
+
                         if (key_arg_no == 5) {
                             command = 0x3F7;
                         }
                     }
+
                     if (answer == 2) {
                         ExeScript(at_1653);
+
                         if (key_arg_no == 4) {
                             key_arg_no = 2;
                         }
+
                         if (key_arg_no == 5) {
                             key_arg_no = 3;
                         }
                     }
+
                     break;
                 }
                 case 6:
@@ -797,17 +872,22 @@ int CShopMenu::KeyStep() {
                         command = 0x44C;
                         cursor_reset = 1;
                     }
+
                     break;
             }
+
             CGameDataUsed *item = SearchNowPosItemExist();
             char          *item_name = NULL;
             int            item_no = -1;
+
             if (item != NULL) {
                 item_no = item->item_no;
                 item_name = item->GetName(1);
             }
+
             if (trade_brd != NULL) {
                 MENUFORMPARTS_TYPE *icon = trade_brd->GetPartInfo(at_1654__2);
+
                 if (item != NULL && item_no != 0x1A6 && item_no != 0x1A8) {
                     if (item_no == 0x1AA) {
                         MenuFormPartsPresetItem(icon, 1, item_no, item->data.item.num);
@@ -816,9 +896,11 @@ int CShopMenu::KeyStep() {
                     }
                 }
             }
+
             CDC2Mes *count_mes = MenuDCMsg[3];
             CDC2Mes *ask_mes = MenuDCMsg[4];
             int      refuse = (int) SHOP_MENU_ERROR_NONE;
+
             switch (command) {
                 case 5:
                     MenuSePlay(5);
@@ -836,6 +918,7 @@ int CShopMenu::KeyStep() {
                             MenuSePlay(5);
                             break;
                     }
+
                     break;
                 case 0x1E:
                     MenuCommonInfo->GetItemAll(item, &swap);
@@ -845,48 +928,62 @@ int CShopMenu::KeyStep() {
                         FadeOutMenu(0x1E, 0.0f);
                         mode = 2;
                     }
+
                     break;
                 case 0x3E8: {
                     num_max = 1;
                     CDataCommon *common = GameItemDataManage.GetCommonData(item_no);
+
                     if (common == NULL) {
                         break;
                     }
+
                     int            room = 0;
                     CGameDataUsed *bag = user->GetUsedDataPtr(0);
+
                     for (int slot = 0; slot < GetNowBagMax(0); bag++, slot++) {
                         if (bag->item_no <= 0) {
                             room += common->stack_num;
                         }
+
                         if (bag->item_no == item_no && bag->CheckTypeEnableStack()) {
                             room += bag->CheckStackRemain();
                         }
                     }
+
                     if (item_no == 0x1A6 || item_no == 0x1A8 || item_no == 0x1AB || item_no == 0x1AC ||
                         GetItemDataType(item_no) == ITEM_DATA_ROBO_CORE) {
                         room = 1;
                     }
+
                     if (room <= 0) {
                         refuse = (int) SHOP_MENU_ERROR_BAG_FULL;
                         break;
                     }
+
                     int can_have = common->max_num - user->GetNumSameItem(item_no);
+
                     if (can_have <= 0) {
                         refuse = (int) SHOP_MENU_ERROR_ITEM_LIMIT;
                         break;
                     }
+
                     if (room < can_have) {
                         can_have = room;
                     }
+
                     num_cursor = 0;
                     num_max = can_have;
+
                     if (item_no == 0x1A7) {
                         num_max = 1;
                         CShopPtr->once_item_chosen = 1;
                     }
+
                     if (NowSellMode == SHOP_SELL_MODE_DONY) {
                         num_max = 1;
                     }
+
                     SetMenuKeyCtrlEnv(2);
                     key_arg_no = 2;
                     arrow_flash[1] = 0;
@@ -896,6 +993,7 @@ int CShopMenu::KeyStep() {
                     num = 1;
                     ExeScript(exe_tbl_1509[NowSellMode]);
                     count_mes->SetMsgItemNo(&item_name, 1);
+
                     if (item_no == 0x1A6) {
                         ExeScript(at_1656__3);
                     } else if (item_no == 0x1A8) {
@@ -903,58 +1001,77 @@ int CShopMenu::KeyStep() {
                     } else {
                         ExeScript(at_1658);
                     }
+
                     break;
                 }
                 case 0x3ED: {
                     key_arg_no = 0;
+
                     if (GetItemDataType(item_no) == ITEM_DATA_ROBO_CORE) {
                         user->DeleteItem(item_no - 1, 1);
                     }
+
                     int no_get = 0;
+
                     if (item_no == 0x1A8 || item_no == 0x1AC || item_no == 0x1AB) {
                         no_get = 1;
                     }
+
                     if (item_no == 0x1A6) {
                         no_get = 1;
                     }
+
                     if (no_get == 0) {
                         user->GetItem(item_no, num);
                     }
+
                     CShopPtr->AddMoney(-total);
                     ExeScript(at_1659);
+
                     if (item_no == 0x1A7) {
                         user->special_item_bought++;
                     }
+
                     CSaveData *save = GetSaveData();
                     save->SetBitFlag(0xC, 1);
+
                     if (item_no == 0x173) {
                         save->SetBitFlag(0x1B, 1);
                     }
+
                     if (item_no == 0x1A8) {
                         GetUserDataMan()->monster_box.EnableChange(4);
                         CMap *map = MenuMainScene->GetMap(MenuMainScene->active_map);
+
                         if (map != NULL) {
                             CFuncPoint *point = map->func_point.Search(at_1660);
+
                             if (point != NULL) {
                                 point->enable = 1;
                             }
                         }
                     }
+
                     if (item_no == 0x1AC) {
                         GetUserDataMan()->monster_box.EnableChange(0xC);
                     }
+
                     if (item_no == 0x1AB) {
                         GetUserDataMan()->monster_box.EnableChange(0xB);
                     }
+
                     if (item_no == 0x1A6) {
                         GetUserDataMan()->SetVoiceUnit(1);
                     }
+
                     if (item_no == 0x163) {
                         GetUserDataMan()->GetInventUserData()->GetScoopData()->KnowScoop();
                     }
+
                     if (NowSellMode == SHOP_SELL_MODE_DONY) {
                         GetMenuSysData()->GetGhobi(item_no);
                     }
+
                     CShopPtr->CheckEventItem();
                     CShopPtr->CheckSyojiHin();
                     CheckEnableHaveItemNum();
@@ -962,13 +1079,16 @@ int CShopMenu::KeyStep() {
                     int goods = CShopPtr->item_num;
                     CheckMenuLine(&list_pos, &list_top, goods + 1, 6);
                     MenuSePlay(se_handle, 0);
+
                     if (goods <= 0) {
                         key_arg_no = 1;
                     }
+
                     break;
                 }
                 case 0x3F2: {
                     CGameDataUsed *sell_item = SearchNowPosItemExist();
+
                     if (sell_item->GetNum() <= 0) {
                         MenuSePlay(5);
                     } else if (CShopPtr->price[item_no].sell <= 0) {
@@ -978,6 +1098,7 @@ int CShopMenu::KeyStep() {
                     } else {
                         arrow_flash[1] = 0;
                         arrow_flash[0] = 0;
+
                         if (item_no == 0x1A6) {
                             ExeScript(at_1656__3);
                         } else if (item_no == 0x1A8) {
@@ -985,6 +1106,7 @@ int CShopMenu::KeyStep() {
                         } else {
                             ExeScript(at_1658);
                         }
+
                         int unit_price;
                         CShopPtr->GetPrice(sell_item, NULL, &unit_price);
                         trade_brd->SetNumber(at_1655__3, unit_price);
@@ -996,6 +1118,7 @@ int CShopMenu::KeyStep() {
                         ExeScript(at_1661__2);
                         count_mes->SetMsgItemNo(&item_name, 1);
                     }
+
                     break;
                 }
                 case 0x3E9:
@@ -1005,19 +1128,24 @@ int CShopMenu::KeyStep() {
                             refuse = (int) SHOP_MENU_ERROR_NO_MONEY;
                             break;
                         }
+
                         ExeScript(extbl_1573[NowSellMode]);
                         key_arg_no = 4;
                     }
+
                     if (key_arg_no == 3) {
                         ExeScript(at_1662);
                         key_arg_no = 5;
                     }
+
                     {
                         CGameDataUsed *trade_item = SearchNowPosItemExist();
                         char          *name = NULL;
+
                         if (trade_item != NULL) {
                             name = trade_item->GetName(0);
                         }
+
                         char *names[2] = {NULL, NULL};
                         names[0] = name;
                         int values[2] = {0, 0};
@@ -1043,10 +1171,12 @@ int CShopMenu::KeyStep() {
                     SetMenuKeyCtrlEnv(0);
                     break;
             }
+
             if (refuse > 0) {
                 error = refuse;
                 ask_mes->ClsMes::mes_no = -1;
             }
+
             switch (refuse) {
                 case SHOP_MENU_ERROR_NO_MONEY:
                     key_arg_no = 6;
@@ -1069,21 +1199,25 @@ int CShopMenu::KeyStep() {
                     ExeScript(at_1666);
                     break;
             }
+
             break;
         }
         default:
             ExtendCommand(lr, push);
             break;
     }
+
     MenuPosData->FormStep();
     CalcTex();
     CalcCursorPosition();
     CGameDataUsed *now_item = SearchNowPosItemExist();
+
     if (now_item != NULL) {
         MenuDCMsg[0]->MakeMsg(now_item);
     } else {
         MenuDCMsg[0]->MakeMsg(now_item);
     }
+
     return ret;
 }
 
@@ -1102,10 +1236,12 @@ void CShopMenu::CalcTex() {
     int   pos[3][2];
     int   name_pos[2];
     float bar_pos[2];
+
     if (shop_name_brd != NULL && MenuMesForm[1] != NULL) {
         shop_name_brd->GetPutPosXY(at_1817, name_pos[0], name_pos[1]);
         MenuDCMsg[1]->SetMovePosGyou(0, name_pos[0] - shop_name_ofs_x, name_pos[1] + shop_name_ofs_y);
     }
+
     if (item_list != NULL && item_brd != NULL) {
         CalcMenu1(item_brd->y - 44.0f * (float) list_top, &item_list->y, 4.0f, 0.0f, 0);
         item_brd->GetPutPosXY(at_1818, bar_pos[0], bar_pos[1]);
@@ -1114,20 +1250,27 @@ void CShopMenu::CalcTex() {
         scrl_bar_body->y = scrl_bar_top->y + scrl_bar_top->h;
         scrl_bar_bottom->y = scrl_bar_body->y + scrl_bar_body->h;
     }
+
     CUserDataManager *user_data = GetUserDataMan();
+
     if (money_brd != NULL) {
         money_brd->SetNumber(at_1819, user_data->money);
     }
+
     if (exp_brd != NULL) {
         exp_brd->SetNumber(at_1820, GetDispVolumeForFloat(user_data->GetRoboAbs()));
     }
+
     if (medal_brd != NULL) {
         medal_brd->SetNumber(at_1819, CShopPtr->CheckMoney());
     }
+
     Func_MenuItemBrdPosStep(bag_top);
     NowGiftBoxPtr = SearchNowPosItemExist();
+
     if (GiftBoxViewForm != NULL) {
         int view_pos[2] = {0, 0};
+
         if (key_arg_no == SHOP_MENU_MODE_BAG) {
             MenuPosData->GetPosMenuItemOnItemBrd(view_pos, bag_pos, 0);
         } else {
@@ -1135,18 +1278,23 @@ void CShopMenu::CalcTex() {
             view_pos[0] = 0x280;
             view_pos[1] = 0x1B8;
         }
+
         CMenuPosDataForm *view_form = GiftBoxViewForm;
         view_form->x = view_pos[0];
         view_form->y = view_pos[1];
+
         if (mode == 2) {
             NowGiftBoxPtr = NULL;
         }
     }
+
     CDC2Mes          *message = MenuDCMsg[2];
     CMenuPosDataForm *message_form = MenuMesForm[2];
+
     if (message_form != NULL) {
         message_form->draw_flag = 0;
         message->MakeMsg(0);
+
         if (NowSellMode == SHOP_SELL_MODE_MONEY && (key_arg_no == SHOP_MENU_MODE_BAG || key_arg_no == SHOP_MENU_MODE_SELL_NUM)) {
             int            py;
             s16           *mes_width;
@@ -1163,13 +1311,16 @@ void CShopMenu::CalcTex() {
             message->point_y = 0;
             gift_box = 0;
             mes_no = -1;
+
             if (item->item_no > 0) {
                 message_form->draw_flag = 1;
                 sell = 0;
                 CShopPtr->GetPrice(item, NULL, &sell);
+
                 if (item->used_type == USED_ITEM_TYPE_GIFT_BOX) {
                     gift_box = 1;
                 }
+
                 if (sell <= 0) {
                     message->win_color.r = 0x3B;
                     mes_width = &no_price_mes_width;
@@ -1185,17 +1336,22 @@ void CShopMenu::CalcTex() {
                     message->win_color.a = 0x80;
                     mes_no = 0x3E8;
                 }
+
                 message->MakeMsg(mes_no);
             }
+
             message->StepMsg();
             line = bag_pos / 6 - bag_top;
             MenuPosData->GetPosMenuItemBrdKoma(koma, bag_pos, 1);
+
             if (gift_box == 1) {
                 koma[0] += 0x2C;
                 win_x = koma[0] + 0xA;
+
                 if (win_x > mgScreenWidth - *mes_width - 0x1E) {
                     win_x -= *mes_width + 0x6D;
                 }
+
                 koma[1] = koma[1] + 0xC;
                 win_y = koma[1] - 0x1A;
 
@@ -1205,6 +1361,7 @@ void CShopMenu::CalcTex() {
             } else {
                 koma[0] += 0x14;
                 win_x = koma[0] - *mes_width / 2;
+
                 if (mgScreenWidth - 0x28 < (int) win_x + *mes_width) {
                     if (mgScreenWidth - 0x28 - *mes_width < (int) win_x) {
                         do {
@@ -1214,8 +1371,10 @@ void CShopMenu::CalcTex() {
                 }
 
                 win_y = koma[1] + 0x32;
+
                 if (line >= 3) {
                     win_y = koma[1] - 0x50;
+
                     if (mes_no == 0x3EA) {
                         win_y = koma[1] - 0x32;
                     }
@@ -1225,10 +1384,12 @@ void CShopMenu::CalcTex() {
                 message->point_x = koma[0] - win_x;
                 message->point_y = py;
             }
+
             message_form->x = win_x;
             message_form->y = win_y;
         }
     }
+
     if (trade_brd != NULL) {
         trade_brd->GetPutPosXY(at_1821, pos[0][0], pos[0][1]);
         int *up = pos[1];
@@ -1236,23 +1397,29 @@ void CShopMenu::CalcTex() {
         int *down = pos[2];
         trade_brd->GetPutPosXY(at_1823__2, down[0], down[1]);
         trade_brd->SetNumber(at_1824__2, num);
+
         if (NowSellMode != SHOP_SELL_MODE_DONY || (key_arg_no != SHOP_MENU_MODE_BUY_NUM && key_arg_no != SHOP_MENU_MODE_BUY_ASK && key_arg_no != SHOP_MENU_MODE_BUY_ERROR)) {
             MenuDCMsg[3]->SetMovePosGyou(0, pos[0][0], pos[0][1]);
             MenuDCMsg[3]->SetMovePosGyou(1, up[0], pos[1][1]);
             MenuDCMsg[3]->SetMovePosGyou(2, down[0], pos[2][1]);
         }
+
         trade_brd->SetPartRGBA(at_1825__3, 0x80, 0x80, 0x80, 0x80);
         trade_brd->SetPartRGBA(at_1826__4, 0x80, 0x80, 0x80, 0x80);
+
         if (0 < arrow_flash[0]) {
             trade_brd->SetPartRGBA(at_1825__3, 0xA4, 0xA4, 0xA4, 0x80);
         }
+
         if (0 < arrow_flash[1]) {
             trade_brd->SetPartRGBA(at_1826__4, 0xA4, 0xA4, 0xA4, 0x80);
         }
     }
+
     if (0 < arrow_flash[0]) {
         arrow_flash[0]--;
     }
+
     if (0 < arrow_flash[1]) {
         arrow_flash[1]--;
     }
@@ -1360,35 +1527,44 @@ extern u8 rgba_1897[4];
 void ShopSellListDraw(int &tex_block, float *pos) {
     mgCTexture *icon_tex = MenuPosData->item_icon_tex[0][0];
     int         line;
+
     if (icon_tex == NULL) {
         return;
     }
+
     MenuReloadTexture(tex_block, icon_tex->block);
     mgRect<int>  money_mark(0, 0xC4, 0x24, 0x10);
     mgRect<int>  abs_mark(0x24, 0xC4, 0x24, 0x10);
     mgRect<int>  medal_mark(0x48, 0xC2, 0x12, 0x12);
     mgRect<int>  free_mark(0xAA, 0x9E, 0x30, 0x10);
     mgRect<int> *price_mark = &money_mark;
+
     if (NowSellMode == SHOP_SELL_MODE_ROBO_ABS) {
         price_mark = &abs_mark;
     }
+
     if (NowSellMode == SHOP_SELL_MODE_MEDAL) {
         price_mark = &medal_mark;
+
         if (LanguageCode > 0) {
             price_mark = &free_mark;
             free_mark.right = 0x32;
         }
+
         if (LanguageCode == 4) {
             free_mark.right = 0x36;
         }
     }
+
     mgRect<int> have_board(0x3A, 0x94, 0x30, 0x28);
     mgRect<int> have_digits(0, 0xD4, 0xB, 0x14);
     mgRect<int> price_digits(0, 0xE8, 0xB, 0x17);
+
     if (LanguageCode > 0) {
         abs_mark.left = 0x28;
         have_board.left = 0x3E;
     }
+
     mgRect<int>  line_rect(0, 0x8E, 0xB0, 6);
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
@@ -1402,22 +1578,30 @@ void ShopSellListDraw(int &tex_block, float *pos) {
     y = pos[1] + 44.0f;
     CGameDataUsed item;
     price_x = x + 92.0f;
+
     if (LanguageCode > 0 && NowSellMode == SHOP_SELL_MODE_MEDAL) {
         price_x -= 12.0f;
     }
+
     mark_x = price_x;
+
     if (LanguageCode > 0 && NowSellMode == SHOP_SELL_MODE_ROBO_ABS) {
         mark_x += 6.0f;
     }
+
     count = CShopPtr->item_num;
+
     for (line = 0; line < count; line++, y += 44.0f) {
         if (y + 44.0f < 0.0f) {
             continue;
         }
+
         int item_no = CShopPtr->GetItemNo(line);
+
         if ((float) (mgScreenHeight - 30) <= y) {
             break;
         }
+
         prim->Bilinear(0);
         prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Tex_Shop);
@@ -1435,23 +1619,29 @@ void ShopSellListDraw(int &tex_block, float *pos) {
         PrimQuad(prim, mgRect<int>(mark_left, mark_y, price_mark->right, price_mark->bottom), *price_mark);
         prim->End();
         mgRect<float> icon_rect(x, y, 32.0f, 40.0f);
+
         if (item_no == 0x1A8 || item_no == 0x1AB || item_no == 0x1AC || item_no == 0x1A6) {
             prim->Bilinear(1);
             prim->Begin(MG_PRIM_SPRITE);
             prim->Color(0x80, 0x80, 0x80, 0x80);
             mgRect<int> robo_icon(0x6A, 0xAE, 0x22, 0x22);
+
             if (LanguageCode > 0) {
                 robo_icon.left += 4;
             }
+
             if (item_no == 0x1A8) {
                 robo_icon.left += 0x22;
             }
+
             if (item_no == 0x1AC) {
                 robo_icon.left += 0x44;
             }
+
             if (item_no == 0x1AB) {
                 robo_icon.left += 0x66;
             }
+
             PrimQuad(prim, icon_rect, robo_icon);
             prim->End();
         } else {
@@ -1729,6 +1919,7 @@ int CMenuQuestView::KeyStep() {
     int lr_key = MenuCommonInfo->CheckLRKey();
     int push = MenuCommonInfo->CheckPushButton();
     int jump = 0;
+
     switch (mode) {
         case 1:
             if (FadeCheckMenu()) {
@@ -1736,6 +1927,7 @@ int CMenuQuestView::KeyStep() {
                 mode = 0;
                 QuestMoveRate = 4.0f;
             }
+
             break;
         case 2:
             if (FadeCheckMenu()) {
@@ -1743,45 +1935,59 @@ int CMenuQuestView::KeyStep() {
                 DeleteTexBlock();
                 return 1;
             }
+
             break;
         case 0:
             if (menu_debug_flag) {
                 if (lr_key & 1) {
                     menu_debug_questselect--;
                 }
+
                 if (lr_key & 2) {
                     menu_debug_questselect++;
                 }
+
                 if (menu_debug_questselect < 0) {
                     menu_debug_questselect = 0;
                 }
+
                 if (SelectMax() <= menu_debug_questselect) {
                     menu_debug_questselect = SelectMax() - 1;
                 }
+
                 if (Menu_Memo_ViewMode == 1) {
                     SCOOP_DATA *scoop = GetScoopDataTableIndex(menu_debug_questselect);
+
                     if (scoop == NULL) {
                         return 0;
                     }
+
                     SCOOP_INFO *info = ScoopMan->GetScoopInfo(scoop->scoop_id);
+
                     if (push & 1) {
                         info->known ^= 1;
                     }
+
                     if (push & 2) {
                         info->obtained ^= 1;
                     }
                 }
+
                 if (Menu_Memo_ViewMode == 0) {
                     QUEST_PLAY_DATA *quest = QuestDataPtr->GetPlayQuestData(menu_debug_questselect);
+
                     if (push & 1) {
                         quest->accepted ^= 1;
                     }
+
                     if (push & 2) {
                         quest->cleared ^= 1;
                     }
                 }
+
                 return 0;
             }
+
             switch (step) {
                 case 0: {
                     int max = SelectMax();
@@ -1789,18 +1995,23 @@ int CMenuQuestView::KeyStep() {
                     int old_select = select;
                     int old_top = top;
                     MenuKeySelectCheck(select_key, &select, &top, 0, max, 7, (int) MENU_CURSOR_LIMIT_CLAMP);
+
                     if (old_select != select) {
                         MenuSePlay(SYSTEM_SE_CURSOR);
+
                         if (abs(old_top - top) > 1) {
                             jump = 1;
                         }
                     }
+
                     if (push & 1) {
                         if (Menu_Memo_ViewMode == 0) {
                             QUEST_PLAY_DATA *quest = QuestDataPtr->GetPlayQuestData(select);
+
                             if (quest == NULL || quest->accepted == 0) {
                                 break;
                             }
+
                             step = 1;
                             QuestViewCommentFlag = 1;
                             ActiveQuestInfo = QuestMan->GetQuestInfo(select);
@@ -1809,33 +2020,44 @@ int CMenuQuestView::KeyStep() {
                             QuestCommentMes[1]->MakeMsg(ActiveQuestInfo->comment);
                             QuestCommentMes[1]->StepMsg();
                             char *reaction = ActiveQuestInfo->reaction[0];
+
                             if (quest->cleared != 0) {
                                 reaction = ActiveQuestInfo->reaction[1];
                             }
+
                             QuestCommentMes[2]->MakeMsg(reaction);
                             QuestCommentMes[2]->StepMsg();
                             QuestReactionCommentGyouNum = 1;
+
                             if (0 < QuestCommentMes[2]->line_w[1]) {
                                 QuestReactionCommentGyouNum = 2;
                             }
+
                             float width = 0.0f;
+
                             for (int line = 0; line < 3; line++) {
                                 float line_w = QuestCommentMes[1]->line_w[line];
+
                                 if (width < line_w) {
                                     width = line_w;
                                 }
                             }
+
                             QuestCommentWinX = (int) (mgScreenWidth - width) >> 1;
                             UnderMsg(1);
                         } else if (Menu_Memo_ViewMode == 1) {
                             ScmFlagCtrl = GetScoopDataTableIndex(select);
+
                             if (ScmFlagCtrl == NULL) {
                                 break;
                             }
+
                             SCOOP_INFO *info = ScoopMan->GetScoopInfo(ScmFlagCtrl->scoop_id);
+
                             if (info == NULL || info->known == 0) {
                                 break;
                             }
+
                             char photo_name[0x100];
                             step = 1;
                             QuestViewCommentFlag = 1;
@@ -1845,21 +2067,26 @@ int CMenuQuestView::KeyStep() {
                             QuestCommentMes[1]->MakeMsg(ScmFlagCtrl->text);
                             QuestCommentMes[1]->StepMsg();
                             float width = 0.0f;
+
                             for (int line = 0; line < 3; line++) {
                                 float line_w = QuestCommentMes[1]->line_w[line];
+
                                 if (width < line_w) {
                                     width = line_w;
                                 }
                             }
+
                             QuestCommentWinX = (int) (mgScreenWidth - width) >> 1;
                             UnderMsg(1);
                         }
+
                         MenuSePlay(SYSTEM_SE_DECIDE);
                     } else if (push & 2) {
                         FadeOutMenu(0x28, 0.0f);
                         MenuSePlay(5);
                         mode = 2;
                     }
+
                     break;
                 }
                 case 1:
@@ -1871,29 +2098,40 @@ int CMenuQuestView::KeyStep() {
                         MenuSePlay(5);
                         UnderMsg(0);
                     }
+
                     break;
             }
+
             break;
     }
+
     QuestTilePatternXY[0] += 0.5f;
+
     if (0.0f <= QuestTilePatternXY[0]) {
         QuestTilePatternXY[0] -= 128.0f;
     }
+
     float target = 0x52 - top * 0x22;
     QuestListTopY += (target - QuestListTopY) / QuestMoveRate;
+
     if (jump) {
         QuestListTopY = target;
     }
+
     if (Menu_Memo_ViewMode == 0) {
         target = 77.0f + (float) top * ((248.0f - QuestScrlBarH) / (float) (QuestMan->num - 7));
     }
+
     if (Menu_Memo_ViewMode == 1) {
         target = 77.0f + ((248.0f - QuestScrlBarH) / 46.0f) * (float) top;
     }
+
     QuestScrlBarY += (target - QuestScrlBarY) / QuestMoveRate;
+
     if (jump) {
         QuestScrlBarY = target;
     }
+
     QuestCursorPos[1] += ((float) ((select - top) * 0x22 + 0x52) + 3.0f - QuestCursorPos[1]) / QuestMoveRate;
     return 0;
 }
@@ -1940,9 +2178,11 @@ extern char  at_2629__2[];
 
 void MenuNPCQuestViewDraw() {
     int mark_u;
+
     if (Tex_QuestMemo == NULL) {
         return;
     }
+
     mgCTextureManager *textures = &mgTexManager;
     textures->ReloadTexture(Tex_QuestMemo->block, (sceVif1Packet *) NULL);
     mgCDrawPrim *prim = GetMenuPrim();
@@ -1964,94 +2204,121 @@ void MenuNPCQuestViewDraw() {
     CMenuFont fonts[16];
     int       y = (int) (QuestListTopY);
     int       i;
+
     if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_QUEST) {
         for (i = 0; i < MenuQuestView->SelectMax() + 1; i++, y += 0x22) {
             if (y + 0x22 < 0x52) {
                 continue;
             }
+
             if (y >= 0x143) {
                 break;
             }
+
             prim->Begin(MG_PRIM_SPRITE);
             prim->Texture(Tex_QuestMemo);
             prim->Color(0x80, 0x80, 0x80, 0x80);
             PrimQuad(prim, 118.0f, (float) (y - 2), line_rect);
             QUEST_INFO      *info = QuestMan->GetQuestInfo(i);
             QUEST_PLAY_DATA *play = QuestDataPtr->GetPlayQuestData(i);
+
             if (info == NULL || play == NULL) {
                 prim->End();
                 break;
             }
+
             mark_u = 0x48;
+
             if (play->accepted == 1 && play->cleared == 0) {
                 mark_u = 0x3A;
             }
+
             PrimQuad(prim, 124.0f, (float) (y + 0xB), mgRect<int>(mark_u, 0x30, 0xE, 0xE));
             int stamp_y = y + 5;
             int stamp_v = 0x18;
+
             if (play->cleared != 0) {
                 stamp_v = 0;
             }
+
             PrimQuad(prim, 376.0f, (float) stamp_y, mgRect<int>(0x3A, stamp_v, 0x1C, 0x18));
             prim->End();
             CMenuFont *font = &fonts[font_num];
             font->SetColor(0x80132333);
             font->SetFuchi(2);
+
             if (play->accepted != 0) {
                 font->SetStr(info->name);
             } else {
                 font->SetStr(GetHatena());
             }
+
             font->SetPos(0x90, y + 8);
             font_num++;
         }
     }
+
     if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_SCOOP) {
         CInventUserData *invent = GetInventUserDataPtr();
+
         if (invent == NULL) {
             return;
         }
+
         for (i = 0; i < MenuQuestView->SelectMax() + 1; i++, y += 0x22) {
             if (y + 0x22 < 0x52) {
                 continue;
             }
+
             if (y >= 0x143) {
                 break;
             }
+
             prim->Begin(MG_PRIM_SPRITE);
             prim->Texture(Tex_QuestMemo);
             prim->Color(0x80, 0x80, 0x80, 0x80);
             PrimQuad(prim, 118.0f, (float) (y - 2), line_rect);
             SCOOP_DATA *scoop = GetScoopDataTableIndex(i);
+
             if (scoop == NULL) {
                 prim->End();
                 continue;
             }
+
             SCOOP_INFO *scoop_info = ScoopMan->GetScoopInfo(scoop->scoop_id);
+
             if (scoop_info == NULL) {
                 prim->End();
                 break;
             }
+
             int mark_u = 0x48;
+
             if (scoop_info->known == 1 && scoop_info->obtained == 0) {
                 mark_u = 0x3A;
             }
+
             PrimQuad(prim, 124.0f, (float) (y + 0xB), mgRect<int>(mark_u, 0x30, 0xE, 0xE));
             int stamp_v = 0x18;
             int stamp_y = y + 5;
+
             if (scoop_info->obtained != 0 || 0 <= invent->CheckNetaFlag(scoop->scoop_id) ||
                 0 <= invent->CheckNetaFlagHavePhoto(scoop->scoop_id)) {
                 stamp_v = 0;
             }
+
             PrimQuad(prim, 376.0f, (float) stamp_y, mgRect<int>(0x3A, stamp_v, 0x1C, 0x18));
+
             if (scoop_info->obtained != 0) {
                 PrimQuad(prim, 370.0f, (float) (stamp_y - 2),
                          mgRect<int>(randam_checktbl[i] * 0x28 + 0x56, 0x18, 0x28, 0x1E));
             }
+
             prim->End();
             CMenuFont *font = &fonts[font_num];
             font->SetColor(0x80132333);
             font->SetFuchi(2);
+
             if (scoop_info->known != 0) {
                 char photo_name[0x80];
                 GetPhotoNameStr(scoop->scoop_id, photo_name);
@@ -2059,14 +2326,18 @@ void MenuNPCQuestViewDraw() {
             } else {
                 font->SetStr(GetHatena());
             }
+
             font->SetPos(0x90, y + 8);
             font_num++;
         }
     }
+
     textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
+
     for (int n = 0; n < font_num; n++) {
         fonts[n].DrawDirect(fonts[n].str, fonts[n].pos_x, fonts[n].pos_y);
     }
+
     ResetMenuScissor();
     textures->ReloadTexture(Tex_QuestMemo->block, (sceVif1Packet *) NULL);
     prim->Begin(MG_PRIM_SPRITE);
@@ -2083,90 +2354,113 @@ void MenuNPCQuestViewDraw() {
     PrimQuad(prim, bar_rect, mgRect<int>(0x3A, 0x52, 8, 0xA));
     prim->End();
     mgCTexture *cursor = textures->GetTexture(at_2629__2, -1);
+
     if (cursor != NULL && QuestViewCommentFlag == 0) {
         textures->ReloadTexture(cursor->block, (sceVif1Packet *) NULL);
         MenuCursorDraw(cursor, QuestCursorPos, 0.0f, 0x80);
     }
+
     if (QuestViewCommentFlag != 0) {
         DrawMenuFillBox(0x30, 0, 0, 0);
         textures->ReloadTexture(Tex_QuestMemo->block, (sceVif1Packet *) NULL);
         short heights[7] = {26, 8, 14, 72, 14, 8, 26};
+
         if (1 < QuestReactionCommentGyouNum) {
             heights[5] += 0x18;
         }
+
         if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_SCOOP) {
             heights[4] = 0;
             heights[5] = 0;
             heights[3] -= 8;
         }
+
         int box_y = 0x78;
         int box_x = (mgScreenWidth - 0x18C) >> 1;
         int box_h = 0;
+
         for (i = 0; i < 7; i++) {
             box_h += heights[i];
         }
+
         DrawMenuFillBox((float) (box_x + 6), 125.0f, 384.0f, (float) (box_h - 0xC), 0x56, 0, 0, 0);
         SetSpriteEnv(prim, 0);
         prim->Begin(MG_PRIM_SPRITE);
         prim->Texture(Tex_QuestMemo);
         prim->Color(0x80, 0x80, 0x80, 0x80);
+
         for (int part = 0; part < 7; part++) {
             Menu3DivideTextureDraw(prim, mgRect<int>(box_x, box_y, 0x18C, heights[part]), tbl_2469[part], 1);
             box_y += heights[part];
         }
+
         prim->End();
         textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
+
         if (QuestCommentMes[2] != NULL) {
             int center_x = mgScreenWidth >> 1;
             QuestCommentMes[0]->SetMovePosCenteringGyou(0, center_x, 0x86);
             QuestCommentMes[1]->SetPutPos((int) (QuestCommentWinX), 0xA8, -1, -1);
             QuestCommentMes[2]->SetMovePosCenteringGyou(0, center_x, 0xFE);
+
             if (1 < QuestReactionCommentGyouNum) {
                 QuestCommentMes[2]->SetMovePosCenteringGyou(1, center_x, 0x116);
             }
+
             for (int line = 0; line < 3; line++) {
                 QuestCommentMes[line]->StepMsg();
                 QuestCommentMes[line]->DrawMsg();
             }
         }
     }
+
     if (QuestMenuMes != NULL) {
         textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
         QuestMenuMes->StepMsg();
         QuestMenuMes->DrawMsg();
     }
+
     textures->ReloadTexture(Tex_QuestMemo->block, (sceVif1Packet *) NULL);
     PrimQuad(Tex_QuestMemo, 26.0f, 22.0f, mgRect<int>(0x56, 0, 0x92, 0x18), 0x80, 0x80, 0x80, 0x80);
+
     if (menu_debug_flag != 0) {
         CMenuFont debug_font;
         DrawMenuFillBox(0x40, 0, 0, 0);
         int  line_y = 100;
         char line[0x100];
         char photo_name[0x80];
+
         if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_QUEST) {
             QUEST_INFO      *info = QuestMan->GetQuestInfo(menu_debug_questselect);
             QUEST_PLAY_DATA *play = QuestDataPtr->GetPlayQuestData(menu_debug_questselect);
+
             for (i = menu_debug_questselect; i < MenuQuestView->SelectMax(); i++) {
                 for (int c = 0; c < 0x18; c++) {
                     line[c] = ' ';
                 }
+
                 strcpy(&line[0x18], info->name);
+
                 if (i == menu_debug_questselect) {
                     line[1] = '>';
                 }
+
                 line[6] = '[';
                 line[8] = ':';
                 line[10] = ']';
+
                 if (play->accepted != 0) {
                     line[7] = 'o';
                 } else {
                     line[7] = 'x';
                 }
+
                 if (play->cleared != 0) {
                     line[9] = 'o';
                 } else {
                     line[9] = 'x';
                 }
+
                 debug_font.SetStr(line);
                 debug_font.SetPos(0x42, line_y);
                 debug_font.DrawDirect(debug_font.str, debug_font.pos_x, debug_font.pos_y);
@@ -2175,37 +2469,47 @@ void MenuNPCQuestViewDraw() {
                 info++;
             }
         }
+
         if (Menu_Memo_ViewMode == QUEST_VIEW_MODE_SCOOP) {
             for (int n = menu_debug_questselect; n < menu_debug_questselect + 12 && n < 0x35; n++) {
                 SCOOP_DATA *scoop = GetScoopDataTableIndex(n);
+
                 if (scoop == NULL) {
                     break;
                 }
+
                 SCOOP_INFO *scoop_info = ScoopMan->GetScoopInfo(scoop->scoop_id);
+
                 if (scoop_info == NULL) {
                     break;
                 }
+
                 for (int c = 0; c < 0x18; c++) {
                     line[c] = ' ';
                 }
+
                 if (n == menu_debug_questselect) {
                     line[1] = '>';
                 }
+
                 line[6] = '[';
                 line[8] = ':';
                 line[10] = ']';
                 GetPhotoNameStr(scoop->scoop_id, photo_name);
                 strcpy(&line[0x18], photo_name);
+
                 if (scoop_info->known != 0) {
                     line[7] = 'o';
                 } else {
                     line[7] = 'x';
                 }
+
                 if (scoop_info->obtained != 0) {
                     line[9] = 'o';
                 } else {
                     line[9] = 'x';
                 }
+
                 debug_font.SetStr(line);
                 debug_font.SetPos(0x42, line_y);
                 debug_font.DrawDirect(debug_font.str, debug_font.pos_x, debug_font.pos_y);

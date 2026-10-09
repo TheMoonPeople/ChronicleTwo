@@ -37,6 +37,7 @@ void CWaveTable::CreateTexture(mgCTexture *output_texture) {
     if (output_texture == NULL) {
         return;
     }
+
     if (output_texture->bpp < 24) {
         return;
     }
@@ -59,26 +60,33 @@ void CWaveTable::CreateTexture(mgCTexture *output_texture) {
     prim.Begin2();
 
     float row_offset = 0.0f;
+
     for (int row = 0; row < WAVE_TABLE_DIM - 1; row++, row_offset += 1.0f) {
         prim.BeginPrim2(4, 0x4141U, 0U, 4);
         float column_offset = 0.0f;
+
         for (int column = 0; column < WAVE_TABLE_DIM; column++) {
             position[0] = origin_x + column_offset * cell_width;
             position[1] = origin_y + row_offset * cell_height;
             int sample_column = column;
+
             if (column >= WAVE_TABLE_DIM - 1) {
                 sample_column = 0;
             }
+
             float *line = height[0][row] + current * (WAVE_TABLE_DIM * WAVE_TABLE_DIM);
             int    next_column = (sample_column + 1) % WAVE_TABLE_DIM;
             float  intensity = line[sample_column] - WaveSample(line[next_column]);
             intensity = 40.0f + 540.0f * intensity;
+
             if (!(intensity <= 200.0f)) {
                 intensity = 200.0f;
             }
+
             if (intensity < 0.0f) {
                 intensity = 0.0f;
             }
+
             float color[4] = {0.0f, 0.0f, 0.0f, 96.0f};
             color[0] = intensity;
             color[1] = intensity;
@@ -89,12 +97,15 @@ void CWaveTable::CreateTexture(mgCTexture *output_texture) {
             float *next_line = height[0][(row + 1) % WAVE_TABLE_DIM] + current * (WAVE_TABLE_DIM * WAVE_TABLE_DIM);
             intensity = next_line[sample_column] - next_line[next_column];
             intensity = 40.0f + 540.0f * intensity;
+
             if (intensity < 0.0f) {
                 intensity = 0.0f;
             }
+
             if (!(intensity <= 200.0f)) {
                 intensity = 200.0f;
             }
+
             float next_color[4] = {0.0f, 0.0f, 0.0f, 96.0f};
             next_color[0] = intensity;
             next_color[1] = intensity;
@@ -104,6 +115,7 @@ void CWaveTable::CreateTexture(mgCTexture *output_texture) {
             prim.Data4(position);
             column_offset += 1.0f;
         }
+
         prim.EndPrim2();
     }
 

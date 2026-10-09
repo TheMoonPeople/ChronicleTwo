@@ -766,6 +766,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 break;
             case RS_OP_SKIP_END:
                 skip_end_count++;
+
                 if (skip_wait) {
                     skip_wait = 0;
                     pc++;

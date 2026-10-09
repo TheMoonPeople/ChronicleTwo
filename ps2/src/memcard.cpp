@@ -2437,20 +2437,24 @@ int CMemoryCardManager::GetAllSaveFileInfo() {
     int              sub_step;
 
     result = 0;
+
     if (init_2291 == 0) {
         ReadFileNo_2290 = 0;
         init_2291 = 1;
     }
+
     switch (step) {
         case 0:
             if (sceMcSync(1, NULL, NULL) != 0) {
                 InitSaveFileInfoTable();
                 total_transferred = 0;
                 pattern = at_2297;
+
                 if (sceMcGetDir(port, 1, pattern.text, 0, 0x11, dir_table) == 0) {
                     step++;
                 }
             }
+
             break;
         case 1:
             if (sceMcSync(1, &command, &result) != 0) {
@@ -2461,39 +2465,52 @@ int CMemoryCardManager::GetAllSaveFileInfo() {
                         McError(result);
                         return 1;
                 }
+
                 ReadFileNo_2290 = 0;
                 dir_entries = 0;
+
                 if (result >= 0) {
                     dir_entries = result;
+
                     for (int i = 0; i < 13; i++) {
                         strlen(dir_table[i].name);
                     }
+
                     step++;
                     break;
                 }
+
                 MC_ERROR_INFO *errors = &error;
+
                 if (result == -2) {
                     errors->code = MC_ERROR_UNFORMATTED;
                 }
+
                 errors->func_no = GetFuncNo();
                 errors->step = step;
                 return -1;
             }
+
             break;
         default:
             sub_step = step - 2;
             int finished = GetSaveFileInfoFromMc(ReadFileNo_2290, &sub_step);
             step = sub_step + 2;
+
             if (finished != 0) {
                 ReadFileNo_2290++;
             }
+
             if (ReadFileNo_2290 >= 13) {
                 for (int i = 0; i < 13; i++) {
                 }
+
                 return 1;
             }
+
             break;
     }
+
     return 0;
 }
 

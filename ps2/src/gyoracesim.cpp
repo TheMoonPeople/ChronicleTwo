@@ -263,14 +263,17 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
     int              adjacent_lane;
     RACE_FISH_PARAM *other;
     RACE_FISH_PARAM *opponent;
+
     for (lane = 0; lane < 6; lane++) {
         lane_count[lane] = 0;
     }
+
     for (i = 0; i < count; ++i) {
         RACE_FISH_PARAM *f = &fish[i];
         order[i] = i;
         lane_fish[f->lane][lane_count[f->lane]++] = i;
     }
+
     for (i = 0; i < 20; ++i) {
         int a = (irnd() >> 22) % count;
         int b = (irnd() >> 22) % count;
@@ -278,30 +281,37 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
         order[a] = order[b];
         order[b] = swap;
     }
+
     for (i = 0; i < count; ++i) {
         int   crowded[2];
         int   neighbor[2] = {-1, -1};
         float best_distance[2];
         current = &fish[order[i]];
+
         for (side = 0; side < 2; ++side) {
             crowded[side] = 0;
             adjacent_lane = current->lane;
+
             if (side == 0) {
                 adjacent_lane--;
             } else {
                 adjacent_lane++;
             }
+
             if (adjacent_lane < 0 || adjacent_lane >= 6) {
                 crowded[side] = 0;
                 continue;
             }
+
             for (j = 0; j < lane_count[adjacent_lane]; ++j) {
                 other = &fish[lane_fish[adjacent_lane][j]];
                 float distance = FishDist(other, current);
                 float magnitude = abs(distance);
+
                 if (magnitude < 0.075f) {
                     crowded[side] = 1;
                 }
+
                 if (magnitude < 0.05f && crowded[side] && (u_char) other->state != GR_RACE_STATE_BATTLE &&
                     (neighbor[side] < 0 || best_distance[side] < distance)) {
                     neighbor[side] = lane_fish[adjacent_lane][j];
@@ -309,40 +319,52 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
                 }
             }
         }
+
         fish_ahead = 0;
         adjacent_lane = current->lane;
+
         for (j = 0; j < lane_count[adjacent_lane]; ++j) {
             float distance = FishDist(&fish[lane_fish[adjacent_lane][j]], current);
+
             if (!(distance <= 0.0f) && distance < 0.1f) {
                 fish_ahead = 1;
             }
         }
+
         if ((u_char) current->state == GR_RACE_STATE_BATTLE) {
             opponent = &fish[current->battle_target];
             current->battle_time -= 1.0f;
             float difference = current->power - opponent->power;
+
             if (difference > 30.0f) {
                 difference = 30.0f;
             }
+
             if (difference < -30.0f) {
                 difference = -30.0f;
             }
+
             difference += 30.0f;
             difference /= 60.0f;
             difference *= 100.0f;
             chance = (int) difference;
+
             if (chance == 0) {
                 chance = 1;
             }
+
             if (chance > 100) {
                 chance = 100;
             }
+
             if (rand_prob(chance)) {
                 ++current->battle_hits;
             }
+
             if (current->battle_time < 0.0f) {
                 RACE_FISH_PARAM *winner;
                 RACE_FISH_PARAM *loser;
+
                 if (rand_prob(chance)) {
                     winner = current;
                     loser = opponent;
@@ -350,6 +372,7 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
                     winner = opponent;
                     loser = current;
                 }
+
                 chance = winner->battle_hits;
                 j = loser->battle_hits;
                 adjacent_lane = chance + j;
@@ -365,30 +388,40 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
         } else {
             float increment = 0.1f * GetRandomNumber(1.0f, 0.5f);
             float crowd_effect = 0.0f;
+
             if (!crowded[0] && !crowded[1]) {
                 crowd_effect -= increment;
             }
+
             if (crowded[0]) {
                 crowd_effect += increment;
             }
+
             if (crowded[1]) {
                 crowd_effect += increment;
             }
+
             current->battle_urge += current->aggression * crowd_effect;
+
             if (current->battle_urge < 0.0f) {
                 current->battle_urge = 0.0f;
             }
         }
+
         while ((u_char) current->state != GR_RACE_STATE_BATTLE) {
             if (rand_prob(10) && !crowded[0]) {
                 current->lane--;
+
                 if (current->lane < 0) {
                     current->lane = 0;
                 }
+
                 break;
             }
+
             if (fish_ahead && rand_prob(75)) {
                 int change = 0;
+
                 if (!crowded[0]) {
                     if (!crowded[1]) {
                         if (rand_prob(80)) {
@@ -402,19 +435,25 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
                 } else if (!crowded[1]) {
                     change = 1;
                 }
+
                 current->lane += change;
+
                 if (current->lane < 0) {
                     current->lane = 0;
                 }
+
                 if (current->lane >= 6) {
                     current->lane = 5;
                 }
+
                 if (change != 0) {
                     break;
                 }
             }
+
             if ((neighbor[0] >= 0 || neighbor[1] >= 0) && current->battle_urge > 1.0f) {
                 int target = -1;
+
                 if (crowded[0] && crowded[1]) {
                     if (rand_prob(50)) {
                         target = neighbor[0];
@@ -425,16 +464,20 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
                     if (crowded[0]) {
                         target = neighbor[0];
                     }
+
                     if (crowded[1]) {
                         target = neighbor[1];
                     }
                 }
+
                 if (target >= 0) {
                     RACE_FISH_PARAM *other = &fish[target];
                     float            speed = current->velocity;
+
                     if (speed < other->velocity) {
                         speed = other->velocity;
                     }
+
                     current->state = GR_RACE_STATE_BATTLE;
                     current->battle = 1;
                     current->battle_target = target;
@@ -451,6 +494,7 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
                     other->velocity = speed;
                 }
             }
+
             break;
         }
     }
@@ -657,42 +701,54 @@ float GetCourseR(float pos, float unused) {
 void FishModifyParam(grFISH_PARAM *source, float *output, float average) {
     int i;
     output[0] = (float) source->stamina;
+
     for (i = 0; i < 3; ++i) {
         output[i + 1] = (float) source->speed[i];
     }
+
     output[4] = (float) source->power;
     output[5] = float(0.5);
     grFISH_DATA *kind = GetFishData(source->fish_no);
+
     if (kind != NULL) {
         output[0] *= kind->stamina / 100.0f;
+
         for (i = 0; i < 3; ++i) {
             output[i + 1] *= kind->speed[i] / float(100.0);
         }
+
         output[4] *= kind->power / 100.0f;
+
         if (kind->affinity == source->affinity) {
             for (i = 0; i < 5; ++i) {
                 output[i] *= float(1.1);
             }
         }
     }
+
     float   ratios[5];
     CRandom random;
     u32     seed = random.seed = 1;
     int     shift = 0;
     int     length = strlen(source->name);
+
     for (i = 0; i < length; ++i) {
         signed char letter = source->name[i];
         seed += (u32) (s32) letter << shift;
         shift += 4;
         shift %= 28;
     }
+
     if (seed == 0) {
         seed = 1;
     }
+
     random.seed = seed;
+
     for (i = 0; i < 1000; ++i) {
         random.seed = random.seed * 0x5D588B65 + 1;
     }
+
     for (i = 0; i < 5; ++i) {
         float scale = float(.03);
         float one = float(1.0);
@@ -701,38 +757,51 @@ void FishModifyParam(grFISH_PARAM *source, float *output, float average) {
         float factor = one + product;
         ratios[i] = factor;
     }
+
     for (i = 0; i < 5; ++i) {
         output[i] *= ratios[i];
     }
+
     float noise = float(25.0) * average / float(100.0);
+
     if (noise < float(6.25)) {
         noise = 6.25f;
     }
+
     for (i = 0; i < 4; ++i) {
         float variation = noise * nrnd();
+
         if (variation < 0.0f) {
             variation = -variation;
         }
+
         output[i] += variation;
+
         if (output[i] < float(0.0)) {
             output[i] = float(0.0);
         }
     }
+
     output[5] = GetRandomNumber(float(0.5), float(0.5));
+
     switch (source->tactics) {
         case 0: {
             float factor = GetRandomNumber(float(1.0), 0.1f);
             output[5] -= 0.5f;
+
             for (i = 1; i <= 3; ++i) {
                 output[i] *= factor;
             }
+
             break;
         }
         case 1: {
             float factor = GetRandomNumber(1.0, 0.2);
+
             for (i = 1; i <= 3; ++i) {
                 output[i] *= factor;
             }
+
             break;
         }
         case 2:
@@ -750,9 +819,11 @@ void FishModifyParam(grFISH_PARAM *source, float *output, float average) {
         case 4: {
             float factor = GetRandomNumber((float) 1.0, 0.2f);
             output[5] += 0.5f;
+
             for (i = 1; i <= 3; ++i) {
                 output[i] *= factor;
             }
+
             break;
         }
         case 5:
@@ -766,6 +837,7 @@ void FishModifyParam(grFISH_PARAM *source, float *output, float average) {
             output[3] *= 0.8f;
             break;
     }
+
     for (i = 0; i < 4; ++i) {
         if (output[i] < 0.0f) {
             output[i] = 0.0f;

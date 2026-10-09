@@ -114,10 +114,12 @@ void CMovie::Load(char *name, mgCMemory **memory, int width, int height, bool wi
     vi_buf_tag = memory[2]->stAlloc64(GetViBufTagSize() / 16);
     mpeg_work = (u_char *) memory[3]->stAlloc64(GetMpegWorkSize(MpegW, MpegH) / 16);
     readBuf = (ReadBuf *) memory[4]->stAlloc64(GetReadBufSize() / 16);
+
     for (i = 0; i < 2; i++) {
         image_tag[0][i] = (u_int *) memory[5]->stAlloc64(GetTagProgSize(MpegW, MpegH) / 16);
         image_tag[1][i] = (u_int *) memory[5]->stAlloc64(GetTagProgSize(MpegW, MpegH) / 16);
     }
+
     printf(at_318__2, GetVoBufDataSize() / 16);
     printf(at_319__2, GetViBufDataSize() / 16);
     printf(at_320, GetViBufTagSize() / 16);
@@ -130,25 +132,31 @@ void CMovie::Load(char *name, mgCMemory **memory, int width, int height, bool wi
     sceMpegInit();
     videoDecCreate(&videoDec, mpeg_work, GetMpegWorkSize(MpegW, MpegH), vi_buf_data, vi_buf_tag,
                    0x100, time_stamp, 0x200);
+
     if (init_sound) {
         sceSdRemoteInit();
         sceSdRemote(1, 0x8000, 0);
         sceSdRemote(1, 0x8070, 0xA, 0x80);
     }
+
     audioDecCreate(&audioDec, audio_buf, 0x18000, 0xC000);
     videoDecSetStream(&videoDec, 0, 0, (int (*)(sceMpeg *, sceMpegCbData *, void *)) videoCallback,
                       readBuf);
+
     if (isWithAudio) {
         videoDecSetStream(&videoDec, 2, 0,
                           (int (*)(sceMpeg *, sceMpegCbData *, void *)) pcmCallback, readBuf);
     }
+
     vo_tag[0].v[0] = image_tag[0][0];
     vo_tag[0].v[1] = image_tag[1][0];
     vo_tag[1].v[0] = image_tag[0][1];
     vo_tag[1].v[1] = image_tag[1][1];
     voBufCreate(&voBuf, (VoData *) UncAddr(vo_data), vo_tag, 2);
+
     while (strFileOpen(&infile, name) == 0) {
     }
+
     writerest = infile.size;
     readrest = infile.size;
     readBufBeginPut(readBuf, &area);
@@ -500,22 +508,28 @@ int videoCallback(sceMpeg *mpeg, sceMpegCbDataStr *str, void *user) {
     src = str->data;
     total = str->len;
     first = end - src;
+
     if (first > total) {
         first = total;
     }
+
     second = str->len - first;
     videoDecBeginPut(&videoDec, &area1, &size1, &area2, &size2);
     uncached1 = (u8 *) UncAddr(area1);
     uncached2 = (u8 *) UncAddr(area2);
     copied = cpy2area(uncached1, size1, uncached2, size2, src, first, (u8 *) buf, second);
+
     if (copied > 0 && videoDecPutTs(&videoDec, str->pts, str->dts, area1, copied) == 0) {
         printf(at_584__2);
     }
+
     videoDecEndPut(&videoDec, copied);
     result = 0;
+
     if (copied > 0) {
         result = 1;
     }
+
     return result;
 }
 
@@ -951,25 +965,32 @@ int viBufModifyPts(ViBuf *buf, TimeStamp *ts) {
     index = (buf->n_ts + (buf->wt_ts - buf->count_ts)) % buf->n_ts;
     size = buf->n << 11;
     keep_going = 1;
+
     if (buf->count_ts > 0) {
         do {
             entry = &buf->ts[index];
             len = entry->len;
+
             if (len == 0) {
                 break;
             }
+
             ts_len = ts->len;
+
             if (ts_len == 0) {
                 break;
             }
+
             pos = entry->pos;
             ts_pos = ts->pos;
             inside = ts_len > (pos + size - ts_pos) % size;
+
             if (inside) {
                 remaining = ts_pos + ts_len - pos;
                 len = (remaining > len) ? len : remaining;
                 entry->pos = (pos + len) % size;
                 entry->len -= len;
+
                 if (entry->len == 0) {
                     if (entry->pts >= 0) {
                         entry->pts = -1;
@@ -977,15 +998,18 @@ int viBufModifyPts(ViBuf *buf, TimeStamp *ts) {
                         entry->pos = 0;
                         entry->len = 0;
                     }
+
                     remaining_ts = buf->count_ts - 1;
                     buf->count_ts = (remaining_ts < 0) ? 0 : remaining_ts;
                 }
             } else {
                 keep_going = 0;
             }
+
             index = (index + 1) % buf->n_ts;
         } while (keep_going);
     }
+
     return 0;
 }
 
@@ -1042,10 +1066,12 @@ int viBufGetTs(ViBuf *buf, TimeStamp *ts) {
     read_pos = (size + (dma_addr + (fifo_bits >> 3)) - (u32) buf->data) % size;
     count = buf->count_ts;
     base = TsWritePos(buf->wt_ts) - count;
+
     for (i = 0; i < count && found == 0; i++) {
         index = (i + (buf->n_ts + base)) % buf->n_ts;
         entry = &buf->ts[index];
         inside = entry->len > (int) (read_pos + size - entry->pos) % (int) size;
+
         if (inside) {
             ts->pts = entry->pts;
             ts->dts = buf->ts[index].dts;
@@ -1056,6 +1082,7 @@ int viBufGetTs(ViBuf *buf, TimeStamp *ts) {
             buf->count_ts -= consumed;
         }
     }
+
     SignalSema(buf->sema);
     return 1;
 }
@@ -1512,6 +1539,7 @@ void setImageTag(u32 *tag, void *data, int a, int width, int height) {
     sceGifPkCloseGifTag(&packet);
     blocks_x = width >> 4;
     blocks_y = height >> 4;
+
     for (x = 0; x < blocks_x; x++) {
         for (y = 0; y < blocks_y; y++) {
             sceGifPkCnt(&packet, 0, 0, 0);
@@ -1526,6 +1554,7 @@ void setImageTag(u32 *tag, void *data, int a, int width, int height) {
             data = (u8 *) data + 0x400;
         }
     }
+
     GifTagData end_tag = *(GifTagData *) &at_1287__2;
     sceGifPkEnd(&packet, 0, 0, 0);
     sceGifPkOpenGifTag(&packet, *(u_long128 *) &end_tag);

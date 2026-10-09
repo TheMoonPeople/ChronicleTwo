@@ -829,20 +829,25 @@ void AutoCam(SubGameInfo *info) {
     float nearest = 9999.0f;
     cam_no = 0;
     int camera = 0;
+
     do {
         float distance = mgDistVector(hero_pos, cam_pos[camera]);
+
         if (distance < nearest) {
             nearest = distance;
             cam_no = camera;
         }
+
         camera++;
     } while (camera < 5);
+
     if (old_cam_no != cam_no) {
         if (cam_pos[cam_no][1] < 0.0f) {
             sndSetSeVol(gyore_snd_id, 2, sndGetSeDefVol(gyore_snd_id, 2), 0);
         } else {
             sndSetSeVol(gyore_snd_id, 2, 0, 0);
         }
+
         camera0.SetPos(cam_pos[cam_no]);
         camera0.SetNextPos(cam_pos[cam_no]);
         mgDistVector(hero_pos, cam_pos[cam_no]);
@@ -856,6 +861,7 @@ void AutoCam(SubGameInfo *info) {
         mgDistVector(hero_pos, cam_pos[cam_no]);
         camera0.SetNextRef(hero_pos);
     }
+
     old_cam_no = cam_no;
 }
 

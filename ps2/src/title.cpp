@@ -2756,6 +2756,7 @@ void TitleHDDInstallDraw() {
             font.SetStr(infomsg_2664[LanguageCode]);
             font.SetPos(0xA6, 0xAE);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
+
             if (HDDMes2 != NULL) {
                 HDDMes2->StepMsg();
                 HDDMes2->DrawMsg();

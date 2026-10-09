@@ -250,7 +250,7 @@ int CParticle::Step() {
     return 1;
 }
 
-void CParticle::Draw(void) {
+void CParticle::Draw() {
     if (active != 0) {
         mgCDrawPrim prim;
         float       camera_pos[4];
@@ -274,17 +274,21 @@ void CParticle::Draw(void) {
         prim.Begin(MG_PRIM_POINT);
         CScene    *scene = GetMainScene();
         mgCCamera *camera = scene->GetCamera(scene->active_camera);
+
         if (camera != NULL) {
             camera->GetPos(camera_pos);
             float dx = pos[0] - camera_pos[0];
             float dz = pos[2] - camera_pos[2];
             float distance = sqrtf(dx * dx + dz * dz);
             float alpha = 128.0f + -0.42666668f * distance;
+
             if (!(alpha <= 0.0f)) {
                 prim.Color(128, 128, 128, (int) alpha);
+
                 if (mgTransWorldPrim(vertex, pos) != 0) {
                     prim.Vertex4(vertex);
                 }
+
                 prim.End();
             }
         }
@@ -796,12 +800,14 @@ void CScene::InitAllData() {
     skip_load_sub_villager = 0;
 }
 
-void CScene::Initialize(void) {
+void CScene::Initialize() {
     stack_num = 12;
     stack_no = 0;
+
     for (int index = 0; index < stack_num; index++) {
         stack[index] = NULL;
     }
+
     work_stack = NULL;
     read_buff = NULL;
     chara_num = 128;
@@ -809,6 +815,7 @@ void CScene::Initialize(void) {
         int byte_offset;
         int index = 0;
         byte_offset = 0;
+
         for (; index < chara_num; index++) {
             CSceneCharacter *character = (CSceneCharacter *) ((char *) this + byte_offset +
                                                               offsetof(CScene, chara));
@@ -821,6 +828,7 @@ void CScene::Initialize(void) {
         int byte_offset;
         int index = 0;
         byte_offset = 0;
+
         for (; index < camera_num; index++) {
             CSceneCamera *camera = (CSceneCamera *) ((char *) this + byte_offset +
                                                      offsetof(CScene, camera));
@@ -833,6 +841,7 @@ void CScene::Initialize(void) {
         int byte_offset;
         int index = 0;
         byte_offset = 0;
+
         for (; index < message_num; index++) {
             CSceneMessage *message = (CSceneMessage *) ((char *) this + byte_offset +
                                                         offsetof(CScene, message));
@@ -845,6 +854,7 @@ void CScene::Initialize(void) {
         int byte_offset;
         int index = 0;
         byte_offset = 0;
+
         for (; index < map_num; index++) {
             CSceneMap *map = (CSceneMap *) ((char *) this + byte_offset +
                                             offsetof(CScene, map));
@@ -857,6 +867,7 @@ void CScene::Initialize(void) {
         int byte_offset;
         int index = 0;
         byte_offset = 0;
+
         for (; index < sky_num; index++) {
             CSceneSky *sky = (CSceneSky *) ((char *) this + byte_offset +
                                             offsetof(CScene, sky));
@@ -869,6 +880,7 @@ void CScene::Initialize(void) {
         int byte_offset;
         int index = 0;
         byte_offset = 0;
+
         for (; index < sky_num; index++) {
             CSceneGameObj *object = (CSceneGameObj *) ((char *) this + byte_offset +
                                                        offsetof(CScene, gameobj));
@@ -881,6 +893,7 @@ void CScene::Initialize(void) {
         int byte_offset;
         int index = 0;
         byte_offset = 0;
+
         for (; index < effect_num; index++) {
             CSceneEffect *effect = (CSceneEffect *) ((char *) this + byte_offset +
                                                      offsetof(CScene, effect));
@@ -942,16 +955,20 @@ void CScene::ClearStack(int index) {
     int i;
 
     int offset = index * 4;
+
     for (i = index; i < stack_num; i++) {
         mgCMemory **slot = (mgCMemory **) ((u8 *) this + offset + 8);
         mgCMemory  *stack = *slot;
+
         if (stack != NULL) {
             stack->stack_used = 0;
             stack->lock = 0;
+
             if (index < i) {
                 (*slot)->stSetBuffer(NULL, 0);
             }
         }
+
         offset += 4;
     }
 }

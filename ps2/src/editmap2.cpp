@@ -83,18 +83,24 @@ float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, sceVu0FVECTOR pos, float r
     if (info == NULL) {
         return pos[1];
     }
+
     GetMatrix(matrix, pos, ConvEditAngle(rot_y));
     alt = pos[1];
+
     for (i = 0; i < num; i++) {
         edit_parts = parts[i];
         int empty = edit_parts->name[0] == 0;
+
         if (empty) {
             continue;
         }
+
         parts_info = edit_parts->info;
+
         if (parts_info == NULL) {
             continue;
         }
+
         edit_parts->GetPosition(parts_pos);
         edit_parts->GetRotation(parts_rot);
         GetMatrix(parts_matrix, parts_pos, ConvEditAngle(parts_rot[1]));
@@ -103,24 +109,32 @@ float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, sceVu0FVECTOR pos, float r
         mgAngleLimit(rot_y - parts_rot[1]);
         poly_count = info->col_area1.poly_count;
         poly = info->col_area1.poly;
+
         for (j = 0; j < poly_count; j++, poly++) {
             mgApplyMatrixN(triangle, matrix, poly->vertex, 3);
             mgApplyMatrixN(triangle, invers_matrix, triangle, 3);
             PlaneNormalXZ(normal, triangle[0], triangle[1], triangle[2]);
+
             if (parts_info->col_floor.OverlapPoly3XZ(triangle, &area, &box) == 0) {
                 continue;
             }
+
             float overlap = (area < 0.0f) ? -area : area;
+
             if (overlap <= 0.01f) {
                 continue;
             }
+
             float top = box.max[1] + parts_matrix[3][1];
+
             if (top <= alt) {
                 continue;
             }
+
             alt = top;
         }
     }
+
     return GetEditAlt(alt);
 }
 

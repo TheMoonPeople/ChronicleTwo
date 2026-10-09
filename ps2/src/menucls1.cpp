@@ -1050,10 +1050,13 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
     if (item == NULL || target == NULL) {
         return 0;
     }
+
     USEITEM_EFFECT effect;
+
     if (GetUsedItemAfterEffect(item->item_no, &effect) == 0) {
         return 0;
     }
+
     int               count = 0;
     int               sound = -1;
     int               used = 0;
@@ -1063,63 +1066,82 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
     CScene           *scene = GetMainScene();
     DNG_BATTLE_AREA  *battle = &scene->battle_area;
     user = GetUserDataMan();
+
     if (scene == NULL || battle == NULL || user == NULL) {
         return 0;
     }
+
     MenuUsedItemType = effect.use_flags;
     MenuUsedItemNo = item->item_no;
     MenuUsedNotErrorCode = 0;
     int items_blocked = 0;
+
     if (battle->floor_status & DNG_FLOOR_DISABLE_ITEMS) {
         items_blocked = 1;
     }
+
     int party = user->GetNowPartyMember();
+
     switch (target->type) {
         case ITEM_USE_TARGET_CHARA: {
             if (!(effect.target_flags & 6) && !(effect.target_flags & 0x10)) {
                 break;
             }
+
             chara = (CHARA_DATA *) target->target.data;
             short dead = 0;
+
             if (chara->hp.GetRate() <= 0.0f) {
                 dead = 1;
             }
+
             if (dead == 1 && (effect.status_flags & 0x10)) {
                 break;
             }
+
             int weapon_type = chara->equip[0].item_type;
+
             if (!(chara->status_attr & 0x40) || !(effect.status_flags & 0x10)) {
                 if (((MenuUsedItemNo == 0x184 && weapon_type == (int) ITEM_DATA_MAX_MELEE) ||
                      (MenuUsedItemNo == 0x185 && weapon_type == (int) ITEM_DATA_MONICA_MELEE)) &&
                     (u16) chara->defence < 0x80) {
                     count++;
+
                     if (apply != 0) {
                         (u16 &) chara->defence += 4;
+
                         if ((u16) chara->defence > 0x80) {
                             chara->defence = 0x80;
                         }
+
                         sound = 10;
                         used++;
                     }
                 }
+
                 if (MenuUsedItemNo == 0x128 && chara->hp.max < 255.0f) {
                     count++;
+
                     if (apply != 0) {
                         used++;
                         chara->hp.max += 8.0f;
                         sound = 10;
+
                         if (255.0f < chara->hp.max) {
                             chara->hp.max = 255.0f;
                         }
                     }
                 }
             }
+
             if (items_blocked != 0) {
                 break;
             }
+
             if (MenuUsedItemNo == 0x111) {
                 if (dead == 1) {
                     count++;
+
                     if (apply != 0) {
                         used++;
                         chara->hp.SetFillRate(1.0f);
@@ -1128,27 +1150,35 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                         battle->practice_actions |= DNG_PRACTICE_ACTION_HEAL;
                     }
                 }
+
                 break;
             }
+
             if ((chara->status_attr & 0x40) && (effect.status_flags & 0x10) && item->item_no != 0x110) {
                 MenuUsedNotErrorCode = 1;
                 break;
             }
+
             CHARA_DATA *max = user->GetCharaDataPtr(USER_CHARA_MAX);
             CHARA_DATA *monica = user->GetCharaDataPtr(USER_CHARA_MONICA);
             user->GetMonsterBajjiDataPtrMosId(user->monster_id);
+
             if (MenuUsedItemNo == 0x10F) {
                 if ((!max->hp.CheckFill() && 0.0f < max->hp.GetRate()) ||
                     ((party & 2) && !monica->hp.CheckFill() && 0.0f < monica->hp.GetRate())) {
                     count++;
+
                     if (apply != 0) {
                         used++;
+
                         if (0.0f < max->hp.GetRate()) {
                             max->hp.SetFillRate(1.0f);
                         }
+
                         if (0.0f < monica->hp.GetRate()) {
                             monica->hp.SetFillRate(1.0f);
                         }
+
                         sound = 10;
                         battle->practice_actions |= DNG_PRACTICE_ACTION_HEAL;
                     }
@@ -1156,6 +1186,7 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
             } else if (MenuUsedItemNo == 0x1AA) {
                 if (dead == 0 && chara->hp.GetRate() < 1.0f) {
                     count++;
+
                     if (apply != 0) {
                         used++;
                         chara->hp.AddPoint(item->data.attach.level);
@@ -1167,8 +1198,10 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                 if (MenuUsedItemNo == 0x124 && (dead == 1 || chara->hp.max <= chara->hp.now)) {
                     break;
                 }
+
                 if ((effect.use_flags & (int) ITEM_USE_FLAG_RESTORE_HP) && dead == 0 && chara->hp.now < chara->hp.max) {
                     count++;
+
                     if (apply != 0) {
                         chara->hp.AddPoint(effect.value[used]);
                         sound = 10;
@@ -1176,28 +1209,36 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                         battle->practice_actions |= DNG_PRACTICE_ACTION_HEAL;
                     }
                 }
+
                 int add;
                 int cure;
                 ConvertItemAttrToCharaAttr(effect.use_flags, &add, &cure);
+
                 if ((add != 0 || cure != 0) && GetNowLoopNo() != (int) LOOP_EDIT) {
                     int available = 0;
                     int changed = 0;
+
                     if (add != 0) {
                         for (int i = 0; i < 7; i++) {
                             if (!(chara->status_attr & st_bittable_1654[i]) && add == st_bittable_1654[i]) {
                                 available = 1;
+
                                 if (apply != 0) {
                                     chara->status_attr |= add;
                                     changed = 1;
+
                                     if (st_bittable_1654[i] & 0x10) {
                                         chara->status_time[0] = 750;
                                     }
+
                                     if (st_bittable_1654[i] & 2) {
                                         chara->status_time[1] = 750;
                                     }
+
                                     if (st_bittable_1654[i] & 8) {
                                         chara->status_time[2] = 750;
                                     }
+
                                     if (st_bittable_1654[i] & 0x20) {
                                         chara->status_time[2] = 750;
                                     }
@@ -1205,11 +1246,14 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                             }
                         }
                     }
+
                     int cured = 0;
+
                     if (cure != 0) {
                         for (int i = 0; i < 7; i++) {
                             if ((chara->status_attr & st_bittable_1654[i]) && (cure & st_bittable_1654[i])) {
                                 available = 1;
+
                                 if (apply != 0) {
                                     cured = 1;
                                     changed = 1;
@@ -1217,36 +1261,46 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                                 }
                             }
                         }
+
                         if (cured != 0) {
                             sound = 10;
                         }
                     }
+
                     if (available != 0) {
                         count++;
                     }
+
                     if (apply != 0 && changed != 0) {
                         battle->practice_actions |= DNG_PRACTICE_ACTION_HEAL;
+
                         if (sound < 0) {
                             sound = -1;
                             sndSePlay(scene->se_battle_id, 0x56, 0);
                         }
+
                         used++;
                     }
                 }
             }
+
             break;
         }
         case ITEM_USE_TARGET_ITEM: {
             weapon = target->target.item;
+
             if (weapon->item_no <= 0 || !(effect.target_flags & 0x20)) {
                 break;
             }
+
             if (weapon == NULL) {
                 return 0;
             }
+
             if (MenuUsedItemNo == 0x127) {
                 if (weapon->used_type == USED_ITEM_TYPE_WEAPON && !weapon->IsLevelUp() && weapon->IsFishingRod() != 1) {
                     count++;
+
                     if (apply != 0) {
                         used++;
                         weapon->LevelUp();
@@ -1258,6 +1312,7 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
             } else if (MenuUsedItemNo == (int) ITEM_ID_RIDEPOD_FUEL) {
                 if (weapon == &user->robo_data.parts[2] && user->robo_data.AddPoint(0.0f) < 1.0f && items_blocked == 0) {
                     count++;
+
                     if (apply != 0) {
                         user->robo_data.AddPoint(150.0f);
                         sound = 9;
@@ -1267,18 +1322,23 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
             } else {
                 if ((effect.use_flags & (int) ITEM_USE_FLAG_REPAIR) && weapon->IsRepair() && weapon->IsEnableUseRepair(MenuUsedItemNo)) {
                     count++;
+
                     if (apply != 0) {
                         int amount = 999;
+
                         if (weapon->item_type == ITEM_DATA_ROBO_ARM) {
                             amount = (int) (weapon->data.robopart.whp.max / 2.0f);
                         }
+
                         weapon->Repair(amount);
                         sound = 9;
                         used++;
                     }
                 }
+
                 if ((effect.use_flags & (int) ITEM_USE_FLAG_FILL_ABS) && weapon->data.weapon.abs.now < weapon->data.weapon.abs.max) {
                     count++;
+
                     if (apply != 0) {
                         sound = 10;
                         weapon->data.weapon.abs.now = weapon->data.weapon.abs.max;
@@ -1286,16 +1346,20 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                     }
                 }
             }
+
             break;
         }
         case ITEM_USE_TARGET_ROBO: {
             if (!(effect.target_flags & 8)) {
                 break;
             }
+
             ROBO_DATA *robo = (ROBO_DATA *) target->target.data;
+
             if (MenuUsedItemNo == (int) ITEM_ID_RIDEPOD_FUEL) {
                 if (user->robo_data.AddPoint(0.0f) < 1.0f && items_blocked == 0) {
                     count++;
+
                     if (apply != 0) {
                         user->robo_data.AddPoint(150.0f);
                         sound = 9;
@@ -1304,20 +1368,24 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                 }
             } else if (items_blocked == 0 && (effect.use_flags & (int) ITEM_USE_FLAG_REPAIR) && robo->hp.now < robo->hp.max) {
                 count++;
+
                 if (apply != 0) {
                     sound = 10;
                     robo->hp.now = robo->hp.max;
                     used++;
                 }
             }
+
             break;
         }
         case ITEM_USE_TARGET_MONSTER: {
             if (!(battle->floor_status & DNG_FLOOR_DISABLE_ITEMS)) {
                 user->GetMonsterBajjiDataPtrMosId(user->monster_id);
                 CHARA_DATA *monica = user->GetCharaDataPtr(USER_CHARA_MONICA);
+
                 if ((effect.use_flags & (int) ITEM_USE_FLAG_RESTORE_HP) && monica != NULL && monica->hp.now < monica->hp.max) {
                     count++;
+
                     if (apply != 0) {
                         monica->hp.AddPoint(effect.value[used]);
                         sound = 10;
@@ -1325,18 +1393,22 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                     }
                 }
             }
+
             break;
         }
     }
+
     if (used != 0) {
         item->DeleteNum(1);
         MenuSePlay(sound);
     }
+
     if (apply == 0) {
         return count;
     } else if (apply == 1) {
         return used;
     }
+
     return 0;
 }
 

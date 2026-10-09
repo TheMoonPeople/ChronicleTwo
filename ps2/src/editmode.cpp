@@ -540,11 +540,13 @@ int StartEditModeFromMenu(CScene *scene, int mode, int *params) {
     PartsInfoID = -1;
     RemainPartsNum = 0;
     ClearEditStepCnt();
+
     if (EditModeNo == EDIT_MODE_PLACE || EditModeNo == EDIT_MODE_REMOVE || EditModeNo == EDIT_MODE_PAINT ||
         EditModeNo == EDIT_MODE_REPAINT) {
         ClearEditFlag();
         int color[4] = {params[0], params[1], params[2], params[3]};
         int shade[3] = {params[0], params[1], params[2]};
+
         if (EditModeNo == EDIT_MODE_REPAINT) {
             color[0] = -1;
             color[1] = -1;
@@ -554,6 +556,7 @@ int StartEditModeFromMenu(CScene *scene, int mode, int *params) {
             shade[1] = 0xFF;
             shade[2] = 0xFF;
         }
+
         if (EditModeNo == EDIT_MODE_PAINT || EditModeNo == EDIT_MODE_REPAINT) {
             if (PaintCursor2 != NULL && PaintCursor2->attr != NULL) {
                 float *c;
@@ -573,9 +576,11 @@ int StartEditModeFromMenu(CScene *scene, int mode, int *params) {
             PartsInfoID = params[0];
             RemainPartsNum = params[1];
         }
+
         PlacePartsFlag = 0;
         MagnetPartsFlag = 0;
         mgCCameraFollow *camera = (mgCCameraFollow *) scene->GetCamera(scene->active_camera);
+
         if (camera != NULL) {
             camera->SetFollowOffset(0.0f, 0.0f, 0.0f);
             ((CCameraControl *) camera)->SetFollow(eCurPos[0], eCurPos[1], eCurPos[2]);
@@ -583,6 +588,7 @@ int StartEditModeFromMenu(CScene *scene, int mode, int *params) {
             camera->SetDistance(eCameraDist);
         }
     }
+
     EditInitPlaceEffect();
     EditInitPlaceAnime();
     InitBalanceDraw(scene);
@@ -2171,6 +2177,7 @@ static void GetBalanceHeight(CScene *scene, float *balance) {
 
 void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
     mgCTextureManager *manager = &mgTexManager;
+
     if (eSysTexture != NULL) {
         manager->ReloadTexture(block, (sceVif1Packet *) NULL);
         mgCDrawPrim prim;
@@ -2180,9 +2187,11 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
         prim.DepthTestEnable(0);
         prim.TextureMapEnable(1);
         int icon_y = mgScreenHeight - 0x38;
+
         if (EditHelpMesNo >= 0) {
             icon_y -= 0x14;
         }
+
         if (edit == 0) {
             if (CheckWalkToEdit(scene, pos)) {
                 prim.Begin(MG_PRIM_SPRITE);
@@ -2196,6 +2205,7 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
             }
         } else {
             float exit_pos[4];
+
             if (CheckEditToWalk(scene, exit_pos)) {
                 prim.Begin(MG_PRIM_SPRITE);
                 prim.Texture(eSysTexture);
@@ -2206,8 +2216,10 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
                 prim.Vertex(0x3C, icon_y + 0x26, 0);
                 prim.End();
             }
+
             if (scene->GetMainMapNo() == 1) {
                 CEditMap *map = (CEditMap *) scene->GetMap(scene->active_map);
+
                 if (map != NULL) {
                     prim.Begin(MG_PRIM_SPRITE);
                     prim.Texture(eSysTexture);
@@ -2224,13 +2236,16 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
                     float cursor[4];
                     *(u_long128 *) cursor = *(u_long128 *) eCurPos;
                     int focused = 0;
+
                     for (int i = 0; i < 4; i++) {
                         float *color = colors[balance * 2];
                         prim.Color(color);
+
                         if (!focused && CheckFocusBalanceParts(map, i, cursor)) {
                             prim.Color(color + 4);
                             focused = 1;
                         }
+
                         float *now = (float *) now_balance_h + i;
                         float  height = *now + (target[i] - *now) / 12.0f;
                         *now = height;
@@ -2246,6 +2261,7 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
                         prim.Vertex(x + 0x1D, mgScreenHeight - 0x12 + height1, 0);
                         x += 0x30;
                     }
+
                     prim.End();
                 }
             }

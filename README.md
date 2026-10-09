@@ -35,3 +35,9 @@ project's `.clang-format`. Use `--check` to check without writing. Set
 `CLANG_FORMAT` to select a formatter executable; the current pass uses version
 19.1.7. The script preserves Metrowerks assembly blocks, which clang-format
 cannot parse safely.
+
+Run `scripts/lint/tidy.sh` for diagnostics or `scripts/lint/tidy.sh --fix` to
+apply available fixes and format through the assembly-preserving formatter.
+This requires clang-tidy, the matching LLVM development headers, and clang-format.
+Clang cannot parse every Metrowerks construct; check renamed variables used in
+assembly and verify the retail match after applying fixes.

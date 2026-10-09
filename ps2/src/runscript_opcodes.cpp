@@ -3371,76 +3371,98 @@ int _SET_DEAD_OFF(RS_STACKDATA *args, int argc) {
     if (argc != 0) {
         return 0;
     }
+
     nowMonster->dead_alpha = 128;
     radius = 3.0f * nowMonster->GetBodyWidth();
     height = 2.0f * nowMonster->GetBodyHeight();
+
     if (height >= 60.0f) {
         height = 60.0f;
     }
+
     size = height / 32.0f;
     nowMonster->GetEntryObjectPos(0, position);
+
     if ((nowMonster->attrib & MONSTER_ATTRIB_UNK_2) == 0) {
         if (BattleFX.dead == NULL) {
             effect = NULL;
         } else {
             effect = &BattleFX.dead[BattleFX.dead_next];
             BattleFX.dead_next++;
+
             if (BattleFX.dead_next >= BattleFX.dead_num) {
                 BattleFX.dead_next = 0;
             }
         }
+
         if (effect != NULL) {
             effect->SetDeadEffect(position, radius, height, size, 35);
         }
+
         if (BattleFX.dead == NULL) {
             effect = NULL;
         } else {
             effect = &BattleFX.dead[BattleFX.dead_next];
             BattleFX.dead_next++;
+
             if (BattleFX.dead_next >= BattleFX.dead_num) {
                 BattleFX.dead_next = 0;
             }
         }
+
         if (effect != NULL) {
             effect->SetDeadEffect(position, 0.5f * radius, 0.5f * height, size, 35);
         }
     }
+
     last_chara = nowMonster->last_hit_chara;
     last_source = nowMonster->last_hit_source;
     experience = nowMonster->reward_exp;
     pickup_count = 0;
+
     if (nowMonster->last_hit_attr & 0x800) {
         float bonus = 1.2f;
         experience = (int) ((float) experience * bonus);
     }
+
     if (experience < 6 && experience > 0) {
         pickup_count = 6;
     }
+
     if (experience >= 6) {
         pickup_count = 8;
     }
+
     if (experience >= 50) {
         pickup_count = 10;
     }
+
     if (experience >= 200) {
         pickup_count = 12;
     }
+
     if (experience >= 500) {
         pickup_count = 16;
     }
+
     growth = (float) experience / (float) pickup_count;
+
     for (i = 0; i < pickup_count; i++) {
         CPullItem *item = PullItemMan.GetList(2);
+
         if (item != NULL) {
             velocity[0] = 0.3f + fRand(0.6f);
             velocity[1] = 2.0f + fRand(3.0f);
             velocity[2] = 0.3f + fRand(0.6f);
+
             if (iRand(100) < 50) {
                 velocity[0] *= -1.0f;
             }
+
             if (iRand(100) < 50) {
                 velocity[2] *= -1.0f;
             }
+
             velocity[3] = 1.0f;
             item->SetItem(position, velocity, PULL_ITEM_WEAPON_EXP);
             item->exp = growth;
@@ -3448,9 +3470,11 @@ int _SET_DEAD_OFF(RS_STACKDATA *args, int argc) {
             item->item_no = last_source;
         }
     }
+
     if (pickup_count > 0) {
         sndSePlay(nowScene->se_battle_id, 2, 0);
     }
+
     sndSePlay(nowScene->se_battle_id, 20, 0);
     return 1;
 }
@@ -3843,9 +3867,11 @@ int _ESM_SET_VECT1(RS_STACKDATA *stack, int argc) {
 
 int _ESM_GET_VECT1(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
+
     if (argc != 4) {
         return 0;
     }
+
     int slot = GetStackInt(stack++);
     int monster_type = nowMonster->chara_type;
     int group = monster_type;
@@ -3858,9 +3884,11 @@ int _ESM_GET_VECT1(RS_STACKDATA *stack, int argc) {
 
 int _ESM_SET_VECT2(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
+
     if (argc != 4) {
         return 0;
     }
+
     int slot = GetStackInt(stack++);
     vector[0] = GetStackFloat(stack++);
     vector[1] = GetStackFloat(stack++);
@@ -3873,9 +3901,11 @@ int _ESM_SET_VECT2(RS_STACKDATA *stack, int argc) {
 
 int _ESM_GET_VECT2(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR vector;
+
     if (argc != 4) {
         return 0;
     }
+
     int slot = GetStackInt(stack++);
     int monster_type = nowMonster->chara_type;
     int group = monster_type;

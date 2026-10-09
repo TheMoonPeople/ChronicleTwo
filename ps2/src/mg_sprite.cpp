@@ -146,22 +146,29 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int         *dest, float (*matrix)[4],
     head->dma_tag[0] |= (tail->flags_tag - head->vif_code) / 4;
 
     flags = 0;
+
     if (render_info->clip | render_info->scissor) {
         flags |= MG_3DSPRITE_FLAG_CLIP;
     }
+
     if (render_info->scissor) {
         flags |= MG_3DSPRITE_FLAG_SCISSOR;
     }
+
     attr = render_info->attr;
+
     if (attr->program_mode) {
         flags |= MG_3DSPRITE_FLAG_PROGRAM_MODE;
     }
+
     if (attr->program_option) {
         flags |= MG_3DSPRITE_FLAG_PROGRAM_OPTION;
     }
+
     if (render_info->plight_hit) {
         flags |= MG_3DSPRITE_FLAG_POINT_LIGHT;
     }
+
     if (attr->no_light) {
         flags |= MG_3DSPRITE_FLAG_NO_LIGHT;
     }
@@ -197,9 +204,11 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int         *dest, float (*matrix)[4],
     fog_color = render_info->fog.r;
     fog_color |= render_info->fog.g << 8;
     fog_color |= render_info->fog.b << 16;
+
     if (render_info->attr->fog > 1) {
         fog_color = 0;
     }
+
     tail->fogcol[0] = fog_color;
     tail->fogcol[1] = 0;
     tail->fogcol[2] = SCE_GS_FOGCOL;

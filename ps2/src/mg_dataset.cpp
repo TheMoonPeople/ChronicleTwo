@@ -179,27 +179,35 @@ static int htoi(char *text) {
     s8 *end = (s8 *) text;
     s32 length = 0;
     s32 value = 0;
+
     while (*end++ != 0) {
         length++;
     }
+
     s32 i;
     s32 place = 1;
+
     for (i = 0; i < length; i++) {
         s32 back = length - i;
         s32 ch = ((u8 *) (back + (s32) text))[-1];
         s32 digit = 0;
+
         if (ch >= '0' && ch <= '9') {
             digit = ch - '0';
         }
+
         if (ch >= 'a' && ch <= 'f') {
             digit = ch - 'a' + 10;
         }
+
         if (ch >= 'A' && ch <= 'F') {
             digit = ch - 'A' + 10;
         }
+
         value += digit * place;
         place <<= 4;
     }
+
     return value;
 }
 

@@ -398,9 +398,11 @@ public:
         unk_154 = 0;
         dl_tex = NULL;
         title_form = NULL;
+
         for (int i = 0; i < 2; i++) {
             slot_form[i] = NULL;
         }
+
         cursor_form = NULL;
         list_form = NULL;
         scrlbar_form = NULL;

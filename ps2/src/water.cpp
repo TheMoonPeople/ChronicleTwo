@@ -86,7 +86,7 @@ struct WaterFinishPacket {
 STATIC_ASSERT(sizeof(WaterFinishPacket) == 0x30);
 
 // Code (.text)
-void CFireRaster::Step(void) {
+void CFireRaster::Step() {
     FireRasterParticle *free_slot = 0;
     int                 i = 0;
     FireRasterParticle *particle_slot;
@@ -107,6 +107,7 @@ void CFireRaster::Step(void) {
             particle_slot->time++;
         }
     }
+
     if (free_slot != 0) {
         mgZeroVectorW(free_slot->position);
         free_slot->size = 13.0f;
@@ -173,66 +174,85 @@ void CFireRaster::Draw(sceVu0FVECTOR position, float *scale) {
 
     for (index = 0; index < 20; index++) {
         wisp = &particle[index];
+
         if (wisp->life > 0) {
             world_position[0] = wisp->position[0] * scale[0];
             world_position[1] = wisp->position[1] * scale[1];
             world_position[2] = wisp->position[2] * scale[2];
             sceVu0AddVector(world_position, position, wisp->position);
             world_position[3] = 1.0f;
+
             if (mgTransWorldPrim3DSprite(top_left, bottom_right, world_position,
                                          wisp->size * scale[0], wisp->size * scale[1], 0) != 0) {
                 if (top_left[0] < left) {
                     top_left[0] = left;
                 }
+
                 if (top_left[1] < top) {
                     top_left[1] = top;
                 }
+
                 if (bottom_right[0] < left) {
                     bottom_right[0] = left;
                 }
+
                 if (bottom_right[1] < top) {
                     bottom_right[1] = top;
                 }
+
                 if (top_left[0] > right) {
                     top_left[0] = right;
                 }
+
                 if (top_left[1] > bottom) {
                     top_left[1] = bottom;
                 }
+
                 if (bottom_right[0] > right) {
                     bottom_right[0] = right;
                 }
+
                 if (bottom_right[1] > bottom) {
                     bottom_right[1] = bottom;
                 }
+
                 uv0[0] = top_left[0] - mgScreenOffx * 16 + 0x28;
                 uv0[1] = top_left[1] - mgScreenOffy * 16 + 0x28;
                 uv1[0] = bottom_right[0] - mgScreenOffx * 16 - 0x28;
                 uv1[1] = bottom_right[1] - mgScreenOffy * 16 - 0x28;
+
                 if (uv0[0] < 0) {
                     uv0[0] = 0;
                 }
+
                 if (uv0[1] < 0) {
                     uv0[1] = 0;
                 }
+
                 if (uv1[0] < 0) {
                     uv1[0] = 0;
                 }
+
                 if (uv1[1] < 0) {
                     uv1[1] = 0;
                 }
+
                 if (uv0[0] > mgScreenWidth * 16) {
                     uv0[0] = mgScreenWidth * 16;
                 }
+
                 if (uv0[1] > mgScreenHeight * 16) {
                     uv0[1] = mgScreenHeight * 16;
                 }
+
                 if (uv1[0] > mgScreenWidth * 16) {
                     uv1[0] = mgScreenWidth * 16;
                 }
+
                 if (uv1[1] > mgScreenHeight * 16) {
                     uv1[1] = mgScreenHeight * 16;
                 }
+
                 prim.TextureCrd4(uv0[0], uv0[1]);
                 prim.Vertex4(top_left);
                 prim.TextureCrd4(uv1[0], uv1[1]);
@@ -240,6 +260,7 @@ void CFireRaster::Draw(sceVu0FVECTOR position, float *scale) {
             }
         }
     }
+
     prim.End();
 }
 
@@ -278,10 +299,12 @@ void CWater::Hamon() {
         next = height_a;
         current = height_b;
     }
+
     height = next;
     coefficient = speed * speed;
     friction = damping;
     center_coefficient = 2.0f * (1.0f - 2.0f * coefficient);
+
     for (row = 1; row < rows - 1; row++) {
         for (column = 1; column < columns - 1; column++) {
             index = row * columns + column;
@@ -476,24 +499,31 @@ int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_I
     cursor[19] = MG_VIF_MSCAL;
     render->dma[0] |= (cursor + 20 - render->vif) / 4;
     flags = 0;
+
     if ((info->clip | info->scissor) != 0) {
         flags |= 0x1;
     }
+
     if (info->scissor != 0) {
         flags |= 0x2;
     }
+
     if (info->attr->program_mode != 0) {
         flags |= 0x8;
     }
+
     if (info->attr->program_option != 0) {
         flags |= 0x4;
     }
+
     if (info->plight_hit != 0) {
         flags |= 0x10;
     }
+
     if (info->attr->no_light != 0) {
         flags |= 0x20;
     }
+
     cursor[20] = MG_DMA_CNT | 10;
     cursor[21] = 0;
     cursor[22] = 0;
@@ -522,24 +552,29 @@ int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_I
     fog_color = info->fog.r;
     fog_color |= info->fog.g << 8;
     fog_color |= info->fog.b << 16;
+
     if (info->attr->fog > 1) {
         if (info->attr->fog == 2) {
             fog_color = 0;
         }
+
         if (info->attr->fog == 3) {
             fog_color = 0xFFFFFF;
         }
     }
+
     cursor[44] = fog_color;
     cursor[45] = 0;
     cursor[46] = SCE_GS_FOGCOL;
     cursor[47] = 0;
     cursor += 48;
+
     if (draw_env != NULL) {
         env = draw_env;
     } else {
         env = &info->draw_env[0];
     }
+
     cursor += SetDrawEnvGifTag((u_long128 *) cursor, info, env) * 4;
     cursor[0] = MG_DMA_RET;
     cursor[1] = 0;
@@ -656,13 +691,17 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
     row_step[0] = (max[0] - min[0]) / (rows - 1);
     column_step[2] = (max[2] - min[2]) / (columns - 1);
     row_step[1] = column_step[1] = row_step[3] = column_step[3] = 0.0f;
+
     for (row = 0, row_position = 0.0f; row < rows; row++, row_position += 1.0f) {
         current = height + row * columns;
         previous = current - columns;
+
         if (row == 0) {
             previous = current;
         }
+
         slope0 = slope[row];
+
         for (column = 0; column < columns; column++) {
             (*slope0)[3] = 1.0f;
             (*slope0)[0] = *previous - *current;
@@ -672,8 +711,10 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
             slope0++;
         }
     }
+
     int row_end = rows - 1;
     int column_end = columns - 1;
+
     for (int r = 0; r < rows; r++) {
         slope[r][column_end][3] = 0.0f;
         slope[r][0][3] = 0.0f;
@@ -682,6 +723,7 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
         slope[r][column_end - 2][3] = 0.3f;
         slope[r][2][3] = 0.3f;
     }
+
     for (int c = 0; c < columns; c++) {
         slope[row_end][c][3] = 0.0f;
         slope[0][c][3] = 0.0f;
@@ -690,9 +732,11 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
         slope[row_end - 2][c][3] = 0.3f;
         slope[2][c][3] = 0.3f;
     }
+
     base = (u_int) memory->stGetTop();
     start = (u_long128 *) (base | MG_UNCACHED);
     end = start;
+
     if (texture != NULL) {
         mgCTexture  *source = texture;
         WaterTexture texture_copy;
@@ -714,8 +758,10 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
         end += mgSetPkTEX0((u_int *) end, texture_copy.tex0.value,
                            *(u_long *) &texture_copy.tex1, *(u_long *) &texa);
     }
+
     out = end;
     started = 0;
+
     for (row = 0, row_position = 0.0f; row < rows - 1; row++, row_position += 1.0f) {
         sceVu0FVECTOR position0;
         sceVu0FVECTOR position1;
@@ -728,11 +774,14 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
         position0[3] = 1.0f;
         *(u_long128 *) position1 = *(u_long128 *) position0;
         mgAddVector(position1, row_step);
+
         for (column = columns; column > 0; column -= 27) {
             point_count = 27;
+
             if (column < 27) {
                 point_count = column;
             }
+
             strip = (WaterStripPacket *) out;
             counts = strip->counts;
             *(u_long128 *) &strip->giftag = 0;
@@ -747,6 +796,7 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
             vertex_count = point_count * 2;
             int bytes = point_count * 32;
             out = (u_long128 *) (bytes + (u_int) strip) + 3;
+
             for (index = 0; index < point_count; index++) {
                 positions[0] = *(u_long128 *) position0;
                 positions[1] = *(u_long128 *) position1;
@@ -757,6 +807,7 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
                 mgAddVector(position0, column_step);
                 mgAddVector(position1, column_step);
             }
+
             current--;
             slope1--;
             slope2--;
@@ -771,12 +822,14 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
             counts[1] = vertex_count;
             counts[2] = 0;
             counts[3] = 0;
+
             if (point_count > 0) {
                 tag = (WaterDmaTag *) out;
                 tag->command = MG_DMA_CNT | 1;
                 tag->address = 0;
                 tag->vif[0] = 0;
                 tag->vif[1] = 0;
+
                 if (started == 0) {
                     out[1] = *(u_long128 *) prog_vif;
                     started = 1;
@@ -788,6 +841,7 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
             }
         }
     }
+
     out += mgSetPkTexFlush_TagCnt((u_int *) out);
     finish = (WaterFinishPacket *) out;
     finish->dma.command = MG_DMA_CNT | 1;

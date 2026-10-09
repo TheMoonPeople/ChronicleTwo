@@ -106,6 +106,7 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
     if (!EditDebugFlag || !DebugFlag) {
         return 0;
     }
+
     edit_data_no = info->edit_data_no;
     end = text;
     character = scene->GetCharacter(scene->player_chara);
@@ -127,6 +128,7 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
         character->GetPosition(position);
         character->GetRotation(rotation);
         end += sprintf(end, "%7.1f %7.1f %7.1f R%4.2f\n", position[0], position[1], position[2], rotation[1]);
+
         if (GamePad__2.Down(PAD_START)) {
             char coordinates[512];
             int  length = sprintf(coordinates, "%.1f,%.1f,%.1f,%.2f;", position[0], position[1], position[2], rotation[1]);
@@ -139,6 +141,7 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
     for (row = 0; row < SelMax[SelTAG]; row++) {
         end += PrintCursor(end, row);
         end += sprintf(end, "%s ", SelText[SelTAG][row]);
+
         if (SelTAG == EDIT_DEBUG_PAGE_EDIT_DATA &&
             (row == EDIT_DEBUG_EDIT_DATA_CONDITION || row == EDIT_DEBUG_EDIT_DATA_MAP_FLAG)) {
             if (row == EDIT_DEBUG_EDIT_DATA_CONDITION) {
@@ -151,8 +154,10 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
                     end += sprintf(end, "nothing\n");
                 }
             }
+
             if (row == EDIT_DEBUG_EDIT_DATA_MAP_FLAG) {
                 const char *state[2] = {"X", "O"};
+
                 if (!map_flags) {
                     end += sprintf(end, "nothing\n");
                 } else {
@@ -166,23 +171,29 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
             end += sprintf(end, "\n");
         }
     }
+
     end += sprintf(end, "\n");
+
     if (SelHelp[SelTAG][Select]) {
         sprintf(end, "%s\n", SelHelp[SelTAG][Select]);
     }
 
     value = SelData[SelTAG][Select];
+
     if (value) {
         if (GamePad__2.Down(PAD_LEFT)) {
             --*value;
         }
+
         if (GamePad__2.Down(PAD_RIGHT)) {
             ++*value;
         }
+
         if (GamePad__2.On(PAD_L2) && GamePad__2.On(PAD_R2)) {
             if (GamePad__2.Down(PAD_L1)) {
                 *value -= 10000;
             }
+
             if (GamePad__2.Down(PAD_R1)) {
                 *value += 10000;
             }
@@ -190,72 +201,93 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
             if (GamePad__2.Down(PAD_L1)) {
                 *value -= 10;
             }
+
             if (GamePad__2.Down(PAD_R1)) {
                 *value += 10;
             }
         }
+
         if (GamePad__2.Down(PAD_L2)) {
             *value -= 100;
         }
+
         if (GamePad__2.Down(PAD_R2)) {
             *value += 100;
         }
+
         if (*value < 0) {
             *value = 0;
         }
+
         if (*value >= 99999) {
             *value = 99999;
         }
     }
+
     if (GamePad__2.Down(PAD_SELECT)) {
         ++SelTAG;
+
         if (SelTAG >= EDIT_DEBUG_PAGE_COUNT) {
             SelTAG = EDIT_DEBUG_PAGE_GENERAL;
         }
     }
+
     if (GamePad__2.Down(PAD_DOWN)) {
         ++Select;
     }
+
     if (GamePad__2.Down(PAD_UP)) {
         --Select;
     }
+
     if (Select < 0) {
         Select = SelMax[SelTAG] - 1;
     }
+
     if (Select >= SelMax[SelTAG]) {
         Select = 0;
     }
+
     DebugInfo.debug_camera = DebugInfo.debug_camera != 0;
     DebugInfo.georama_debug = DebugInfo.georama_debug != 0;
     DebugInfo.param_off = DebugInfo.param_off != 0;
+
     if (DebugInfo.chara_move < 0) {
         DebugInfo.chara_move = 0;
     }
+
     if (DebugInfo.chara_move > 2) {
         DebugInfo.chara_move = 2;
     }
+
     if (DebugInfo.invent_debug < 0) {
         DebugInfo.invent_debug = 0;
     }
+
     if (DebugInfo.invent_debug > 1) {
         DebugInfo.invent_debug = 1;
     }
+
     GetDebugFont()->DrawDirect(text, 10, 10);
 
     closed = 0;
+
     if (GamePad__2.Down(PAD_CIRCLE)) {
         if (SelTAG == EDIT_DEBUG_PAGE_GENERAL && Select == EDIT_DEBUG_GENERAL_SUB_GAME) {
             sgInitSubGame(sg_type, info);
             EditDebugEnd();
             closed = 1;
         }
+
         if (SelTAG == EDIT_DEBUG_PAGE_EDIT_DATA) {
             int map_no = scene->now_map_no;
             GetSaveData();
             CEditData *edit_data = info->edit_data;
             CEditMap  *map = (CEditMap *) scene->GetMap(scene->active_map);
+
             if (edit_data && map) {
                 char path[64];
+
                 switch (Select) {
                     case EDIT_DEBUG_EDIT_DATA_ALL_CLEAR:
                         map->ClearAllParts();
@@ -267,9 +299,11 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
                         break;
                     case EDIT_DEBUG_EDIT_DATA_LOAD_FILE:
                         sprintf(path, "host0:geo_data/geo%d-%d.edt", map_no, load_no);
+
                         if (LoadFile2(path, edit_data, NULL, 0)) {
                             EditDataLoad();
                         }
+
                         break;
                     case EDIT_DEBUG_EDIT_DATA_CONDITION:
                         info->edit_data->dbgSetContintionFlag(
@@ -279,10 +313,12 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
                         if (map_flags) {
                             map_flags->SetFlag(map_flag_no, !map_flags->GetFlag(map_flag_no));
                         }
+
                         break;
                 }
             }
         }
+
         if (SelTAG == EDIT_DEBUG_PAGE_MAP) {
             switch (Select) {
                 case EDIT_DEBUG_MAP_MAP_JUMP:
@@ -295,26 +331,32 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
             }
         }
     }
+
     if (GamePad__2.Down(PAD_TRIANGLE) && SelTAG == EDIT_DEBUG_PAGE_EDIT_DATA &&
         Select == EDIT_DEBUG_EDIT_DATA_CONDITION) {
         int flag = info->edit_data->dbgGetContintionFlag(edit_data_no, 0, NULL);
+
         for (int i = 0; i < 64; i++) {
             info->edit_data->dbgSetContintionFlag(edit_data_no, i, !flag);
         }
     }
+
     if (SelTAG == EDIT_DEBUG_PAGE_GENERAL && Select == EDIT_DEBUG_GENERAL_RUN_EVENT) {
         if (GamePad__2.Down(PAD_CIRCLE)) {
             scene->RunEvent(EventNo, NULL);
             closed = 1;
         }
+
         if (GamePad__2.Down(PAD_TRIANGLE)) {
             ReloadMapScript();
         }
     }
+
     if (closed || GamePad__2.Down(PAD_CROSS | PAD_R3)) {
         EditDebugEnd();
         return 1;
     }
+
     return 0;
 }
 

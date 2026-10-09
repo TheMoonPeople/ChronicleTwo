@@ -22,6 +22,7 @@ void DepthOfField(int levels, float *depths, mgCTexture *work_texture, float str
     if (work_texture == NULL) {
         return;
     }
+
     int         level;
     int         screen_top;
     int         dest_left;
@@ -66,6 +67,7 @@ void DepthOfField(int levels, float *depths, mgCTexture *work_texture, float str
     sprite.attr.alpha_test = -1;
     blur_texture.Bilinear(1);
     blur_texture.tex0.bits.tcc = 0;
+
     for (level = 0; level < levels; level++, source_texture = &blur_texture) {
         destination.left -= 8;
         destination.right -= 8;
@@ -102,6 +104,7 @@ void DepthOfField(int levels, float *depths, mgCTexture *work_texture, float str
         prim.Vertex4(vertex_x = (int) x, screen_top, z[0]);
         prim.TextureCrd4(texel_u, dest_bottom - 16);
         prim.Vertex4(vertex_x, screen_bottom, z[0]);
+
         while (x < (float) screen_right) {
             parity = !parity;
             prim.Color(0x80, 0x80, 0x80, alpha[0]);
@@ -112,6 +115,7 @@ void DepthOfField(int levels, float *depths, mgCTexture *work_texture, float str
             x += step_x;
             u += step_u;
         }
+
         prim.End();
         source = destination;
         int width = source.right - source.left;
@@ -129,6 +133,7 @@ void LensFlare(sceVu0IVECTOR screen, sceVu0FVECTOR color, int bank, char *textur
     float dx = (float) screen[0] / 16.0f - (float) (width / 2);
     float dy = (float) screen[1] / 16.0f - (float) (height / 2);
     float distance = sqrtf(dx * dx + dy * dy);
+
     if (!(distance <= (float) width)) {
         return;
     }
@@ -136,6 +141,7 @@ void LensFlare(sceVu0IVECTOR screen, sceVu0FVECTOR color, int bank, char *textur
     mgTexManager.ReloadTexture(bank, (sceVif1Packet *) NULL);
     mgCTexture *first = mgTexManager.GetTexture(texture_a, bank);
     mgCTexture *second = mgTexManager.GetTexture(texture_b, bank);
+
     if (first == NULL || second == NULL) {
         return;
     }
@@ -181,9 +187,11 @@ void LensFlare(sceVu0IVECTOR screen, sceVu0FVECTOR color, int bank, char *textur
     prim.End();
 
     float fade = 1.0f - distance / (float) width;
+
     if (!(fade <= 1.0f)) {
         fade = 1.0f;
     }
+
     float alpha_scale = 0.7f * (fade * fade);
     mgSetPkFrameBuffer(textures[0]);
     prim.DAlphaTest(0, 0);
@@ -201,6 +209,7 @@ void LensFlare(sceVu0IVECTOR screen, sceVu0FVECTOR color, int bank, char *textur
     prim.End();
 
     int current = 0;
+
     for (int pass = 0; pass < 4; pass++) {
         mgSetPkFrameBuffer(textures[(unsigned char) !current]);
         int brightness = (int) (128.0f * ((float) (4 - pass) / 4.0f));
@@ -253,6 +262,7 @@ void LensFlare(sceVu0IVECTOR screen, sceVu0FVECTOR color, int bank, char *textur
     prim.Color(0xFF, 0xFF, 0xFF, 0x80);
     float angle = 0.0f;
     int   radius_index = 0;
+
     while (angle < 6.2831855f) {
         int x = (int) ((float) radii[radius_index] * sinf(angle));
         int y = (int) ((float) radii[radius_index] * cosf(angle));
@@ -260,6 +270,7 @@ void LensFlare(sceVu0IVECTOR screen, sceVu0FVECTOR color, int bank, char *textur
         radius_index = !radius_index;
         angle += 0.2617994f;
     }
+
     prim.Vertex4(centre_x, centre_y - radii[radius_index], 0);
     prim.End();
     prim.DAlphaTest(1, 0);

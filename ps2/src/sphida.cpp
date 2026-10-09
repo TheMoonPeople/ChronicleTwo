@@ -159,6 +159,7 @@ void CPowGage::Draw() {
     if (texture == NULL) {
         return;
     }
+
     mgCDrawPrim prim;
     prim.Initialize(NULL, NULL);
     prim.DepthTestEnable(0);
@@ -175,23 +176,27 @@ void CPowGage::Draw() {
     DPrimEnterSprite(&prim, 22, 28, 2, 10, pos_x, pos_y, 325.0f, 10.0f);
     float bar_width = 260.0f * power;
     float bar_x = 104.0f + pos_x - bar_width / 2.0f;
+
     if ((u8) POWGAGE_STATE_CHARGE == state) {
         DPrimEnterSprite(&prim, 28, 28, 2, 10, bar_x, pos_y, bar_width, 10.0f);
     } else {
         DPrimEnterSprite(&prim, 40, 28, 2, 10, bar_x, pos_y, bar_width, 10.0f);
     }
+
     float safe_x = 104.0f + pos_x;
     DPrimEnterSprite(&prim, 20, 38, 14, 6, safe_x, 10.0f + pos_y, 19.5f * (float) safe_level, 10.0f);
     DPrimEnterSprite(&prim, 32, 28, 6, 10, 104.0f + pos_x, pos_y, 6.0f, 10.0f);
     DPrimEnterSprite(&prim, 32, 0, 18, 28, pos_x + 156.0f, pos_y, 18.0f, 28.0f);
     DPrimEnterSprite(&prim, 0, 0, 18, 28, pos_x - 156.0f, pos_y, 18.0f, 28.0f);
     int index = 0;
+
     if (index < 23) {
         do {
             DPrimEnterSprite(&prim, 18, 0, 13, 28, 143.0f + pos_x - 13.0f * (float) index, pos_y, 13.0f, 28.0f);
             ++index;
         } while (index < 23);
     }
+
     DPrimEnterSprite(&prim, 0, 28, 12, 22, 104.0f + pos_x, pos_y, 12.0f, 22.0f);
     DPrimEnterSprite(&prim, 12, 28, 8, 22, pos_x - 26.0f, pos_y, 8.0f, 22.0f);
     DPrimEnterSprite(&prim, 52, 0, 12, 30, 104.0f + pos_x - 6.5f * (float) count, pos_y, 12.0f, 30.0f);

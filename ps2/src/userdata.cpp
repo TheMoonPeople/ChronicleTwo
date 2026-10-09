@@ -1216,36 +1216,45 @@ void CGameDataUsed::ToSpectolTrans(CGameDataUsed *attach, int num) {
     char *name;
     int   level;
     int   bonus;
+
     if (attach != NULL) {
         attach->Init();
         count = GetNum();
+
         if (0 < num) {
             count = num;
         }
+
         ATTACH_USED *spectol = &attach->data.attach;
         spectol->spectol_item_no = item_no;
         name = GetName(0);
         level = GetLevel();
+
         switch (used_type) {
             case USED_ITEM_TYPE_WEAPON: {
                 WEAPON_USED *weapon = &data.weapon;
+
                 if (level < 5) {
                     spectol->spectol_type = SPECTOL_TYPE_WEAPON_LOW;
                     spectol->spectol_value = GetRandI(4) + 1;
                     bonus = GetRandI(4) + 1;
                     int slot = GetRandI(10);
+
                     if (slot < 8) {
                         spectol->attribute[slot] = bonus;
                     } else {
                         spectol->status[slot - 8] = bonus;
                     }
+
                     spectol->special = 0;
                 } else {
                     spectol->spectol_type = SPECTOL_TYPE_WEAPON;
                     spectol->spectol_value = (u8) (s8) weapon->level;
+
                     if (spectol->spectol_value > 20) {
                         spectol->spectol_value = 20;
                     }
+
                     spectol->special = weapon->special;
                     spectol->level = weapon->level;
                     spectol->status[WEAPON_STAT_ATTACK] = weapon->status[WEAPON_STAT_ATTACK];
@@ -1259,6 +1268,7 @@ void CGameDataUsed::ToSpectolTrans(CGameDataUsed *attach, int num) {
                     spectol->attribute[6] = fptosi(0.6f * (float) weapon->attribute[6]);
                     spectol->attribute[7] = fptosi(0.6f * (float) weapon->attribute[7]);
                 }
+
                 break;
             }
             case USED_ITEM_TYPE_ATTACH: {
@@ -1277,9 +1287,11 @@ void CGameDataUsed::ToSpectolTrans(CGameDataUsed *attach, int num) {
                 spectol->special = source->special;
                 spectol->spectol_type = SPECTOL_TYPE_ATTACH;
                 spectol->spectol_value = count;
+
                 if (item_no == 0x17F) {
                     spectol->spectol_value = source->spectol_value;
                 }
+
                 break;
             }
             case USED_ITEM_TYPE_FISH:
@@ -1296,6 +1308,7 @@ void CGameDataUsed::ToSpectolTrans(CGameDataUsed *attach, int num) {
                 spectol->spectol_value = count;
                 break;
         }
+
         spectol->level = level;
         attach->item_type = GameItemDataManage.GetDataType((int) ITEM_ID_SPECTOL);
         attach->used_type = USED_ITEM_TYPE_ATTACH;
@@ -2139,66 +2152,85 @@ void CFishAquarium::RefreshParam() {
     hour = GetMainScene()->time;
     float hours = hour - last_hour;
     int   days = day - last_day;
+
     if (hours < 0.0f && 0 < days) {
         days--;
         hours += 24.0f;
+
         if (days < 0) {
             days = 0;
         }
     }
+
     int fatigue_step = 0;
     hours += 24.0f * (float) days;
+
     if (6.0f <= (float) fptosi(hours)) {
         fatigue_step = 1;
     }
+
     for (i = 0; i < 6; i++) {
         fish_tank[i].TimeCheck(elapsed);
     }
+
     int fish_num = GetAquariumFishNum(AQUARIUM_TANK_SUB);
     crowded = false;
+
     if (fish_num > 1) {
         crowded = true;
     }
+
     for (i = 0; i < 4; i++) {
         if (sub_tank[i].item_no > 0) {
             sub_tank[i].TimeCheck(elapsed);
             int   tank_days = day - sub_tank[i].data.fish.tank_day;
             float tank_hours = hour - sub_tank[i].data.fish.tank_hour;
+
             if (tank_hours < 0.0f && 0 < tank_days) {
                 tank_days--;
                 tank_hours += 24.0f;
+
                 if (tank_days < 0) {
                     tank_days = 0;
                 }
             }
+
             in_tank = fptosi(tank_hours + 24.0f * (float) tank_days);
             int tired = 0;
+
             while (crowded && in_tank - 6 >= 0) {
                 if ((u32) sub_tank[i].data.fish.hp > 15) {
                     sub_tank[i].data.fish.param[BREEDFISH_STAT_BATTLE]++;
                     sub_tank[i].AddFishHp(-5);
                     sub_tank[i].CheckParamLimmit();
                 }
+
                 in_tank -= 6;
                 tired = 1;
             }
+
             if (tired) {
                 int new_day = (int) day;
+
                 if ((float) fptosi(hour - (float) in_tank) < 0.0f) {
                     new_day = (int) day - 1;
                 }
+
                 sub_tank[i].data.fish.tank_day = new_day;
                 sub_tank[i].data.fish.tank_hour = hour;
             }
         }
     }
+
     for (i = 0; i < 2; i++) {
         breed_tank[i].TimeCheck(elapsed);
     }
+
     if (fatigue_step) {
         last_day = day;
         last_hour = hour;
     }
+
     unk_518 = unk_518 % 0x534;
 }
 
@@ -3453,25 +3485,33 @@ void CUserDataManager::RefreshNPCStatus(int mode) {
     if (elapsed < 0.0f) {
         days--;
         elapsed += 24.0f;
+
         if (days < 0) {
             days = 0;
         }
     }
+
     elapsed += 24.0f * (float) days;
+
     if (1.0f <= elapsed) {
         refresh = 1;
     }
+
     if (refresh != 0) {
         int time = (int) elapsed;
+
         if (NowPartyCharaID() == 0xB) {
             if (0 < time) {
                 int repair_num = 0;
+
                 for (i = 0; i < 144; i++) {
                     CGameDataUsed *item = GetUsedDataPtr(i);
+
                     if (item->used_type == USED_ITEM_TYPE_WEAPON && item->IsRepair() != 0) {
                         repair_item[repair_num++] = item;
                     }
                 }
+
                 if (0 < repair_num) {
                     for (uses = 0; uses < time; uses++) {
                         if (UseNpcAbility(0xB, 3, 1) == 0) {
@@ -3479,32 +3519,40 @@ void CUserDataManager::RefreshNPCStatus(int mode) {
                             break;
                         }
                     }
+
                     for (i = 0; i < repair_num; i++) {
                         repair_item[i]->Repair(time * 2);
                     }
                 }
             }
         }
+
         for (int chara = 1; chara < 32; chara++) {
             PARTY_CHARA_INFO *info = GetPartyCharaInfo(chara);
             NPC_BASE_DATA    *npc = GetPartyNPCData(chara);
+
             if (info != NULL && npc != NULL && !(info->status & 1)) {
                 s8    max_point = npc->max_npc_point;
                 float gain = (float) max_point * elapsed / 24.0f;
+
                 if (gain < 1.0f) {
                     gain = 1.0f;
                 }
+
                 float total = (float) info->point + gain;
+
                 if (1000.0f < total) {
                     info->point = max_point;
                 } else {
                     info->point = (int) total;
                 }
+
                 if (npc->max_npc_point < info->point) {
                     info->point = npc->max_npc_point;
                 }
             }
         }
+
         unk_44dc8 = unk_44dc8 % 0x534;
         npc_refresh_day = day;
         GetFloatCommaValue(elapsed);
@@ -4302,13 +4350,17 @@ int CUserDataManager::CheckItemLimmitOver() {
     memset(item_count2, 0, sizeof(item_count2));
     inventory = GetUsedDataPtr(0);
     bag_size = GetNowBagMax(1);
+
     for (i = 0; i < bag_size; i++) {
         owned_no = inventory[i].item_no;
+
         if (0 < owned_no) {
             item_count[owned_no] += inventory[i].GetNum();
+
             if (0 < inventory[i].GetGiftBoxItemNum()) {
                 for (int k = 0; k < 3; k++) {
                     gift = inventory[i].GetGiftBoxItemNo(k);
+
                     if (gift > 0) {
                         item_count[gift]++;
                     }
@@ -4316,17 +4368,23 @@ int CUserDataManager::CheckItemLimmitOver() {
             }
         }
     }
+
     charas = GetCharaDataPtr(USER_CHARA_MAX);
+
     for (int chara = 0; chara < 2; chara++) {
         charas += chara;
+
         for (int slot = 0; slot < 3; slot++) {
             CGameDataUsed *active = &charas->active_item[slot];
             int            active_no = active->item_no;
+
             if (active_no > 0) {
                 item_count[active_no] += active->GetNum();
+
                 if (0 < active->GetGiftBoxItemNum()) {
                     for (int k = 0; k < 3; k++) {
                         gift = active->GetGiftBoxItemNo(k);
+
                         if (gift > 0) {
                             item_count[gift]++;
                         }
@@ -4335,12 +4393,15 @@ int CUserDataManager::CheckItemLimmitOver() {
             }
         }
     }
+
     for (i = 1; i < 0x200; i++) {
         common = GetCommonItemData(i);
+
         if (common != NULL && common->max_num < item_count[i]) {
             return i;
         }
     }
+
     return 0;
 }
 
@@ -4756,24 +4817,31 @@ void CBattleCharaInfo::RefreshParamater() {
     } else if (chara_data == NULL) {
         return;
     }
+
     memset(weapon_param, 0, 0x40);
     BATTLE_WEAPON_PARAM *param = weapon_param;
     CUserDataManager    *user_data = GetUserDataMan();
     now_npc = 0;
+
     if (user_data != NULL) {
         now_npc = user_data->NowPartyCharaID();
     }
+
     CScene        *scene = GetMainScene();
     CGameDataUsed *equipment = equip;
+
     if (chara_type == BATTLE_CHARA_HUMAN) {
         float weapon_rate[2] = {1.0f, 1.0f};
         short status[10];
+
         if (((CHARA_DATA *) chara_data)->status_attr & CHARA_STATUS_POWER) {
             weapon_rate[0] = 1.5f;
             weapon_rate[1] = 1.5f;
         }
+
         defence = (u16 &) ((CHARA_DATA *) chara_data)->defence;
         int i = 0;
+
         while (i < 2) {
             WEAPON_USED   *weapon0 = &equipment[i].data.weapon;
             WEAPON_USED   *weapon = weapon0;
@@ -4800,6 +4868,7 @@ void CBattleCharaInfo::RefreshParamater() {
         robo_hp_drain = 0.006f * ((float) CheckNowRoboUseCapacity((ROBO_DATA *) chara_data, &capacity) / (float) capacity);
         ROBOPART_USED *part = &equipment->data.robopart;
         defence = ((ROBO_DATA *) chara_data)->GetDefenceVol();
+
         for (int i = 0; i < 2; i++) {
             param->status[WEAPON_STAT_ATTACK] = part->status[WEAPON_STAT_ATTACK];
             param->status[WEAPON_STAT_DURABILITY] = part->status[WEAPON_STAT_DURABILITY];
@@ -4815,13 +4884,17 @@ void CBattleCharaInfo::RefreshParamater() {
         }
     } else if (chara_type == BATTLE_CHARA_MONSTER) {
         monster_hp_drain = 0.005f;
+
         if (user_data->monster_box.IsChange(0xC) != 0) {
             monster_hp_drain = 0.0025f;
         }
+
         float monster_rate = 1.0f;
+
         if (user_data->monster_box.IsChange(0xB) != 0) {
             monster_rate = 1.25f;
         }
+
         param->status[WEAPON_STAT_ATTACK] = fptosi(monster_rate * (float) ((MOS_CHANGE_PARAM *) chara_data)->GetAttackVol(-1));
         param->status[WEAPON_STAT_DURABILITY] = fptosi(monster_rate * (float) ((MOS_CHANGE_PARAM *) chara_data)->GetAttackVol(-1));
         defence = fptosi(monster_rate * (float) ((MOS_CHANGE_PARAM *) chara_data)->GetDefenceVol(-1));
@@ -4834,6 +4907,7 @@ void CBattleCharaInfo::RefreshParamater() {
         param->status[8] = 0;
         param->status[9] = 0;
     }
+
     if (scene != NULL) {
         float time = scene->time;
         BattleParamater_Time = time;
@@ -6114,43 +6188,56 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
     if (user_data == NULL) {
         manager = GetUserDataMan();
     }
+
     if (manager == NULL) {
         return;
     }
+
     manager->Initialize();
     manager->SetActiveChrNo(0);
     extra_items = NULL;
     items = itemtbl_5745;
+
     if (mode == 0) {
         manager->JoinPartyMember(1);
         manager->EnableCharaChange(1);
         int member = 0;
+
         do {
             s8 chara_no = init_partytbl_5752[member];
+
             if (chara_no < 0) {
                 break;
             }
+
             manager->SetPartyCharaStatus(chara_no, 0x80);
             member++;
         } while (member < 32);
+
         manager->SetPartyCharaStatus(1, 1);
     }
+
     if (mode == 1 || mode == 2) {
         manager->LeavePartyMember(1);
         CHARA_DATA *chara = manager->GetCharaDataPtr(USER_CHARA_MAX);
+
         if (mode == 1) {
             chara->equip[0].Init();
             chara->equip[1].Init();
         }
+
         items = NULL;
     }
+
     if (mode == 6) {
         manager->LeavePartyMember(1);
         items = NULL;
     }
+
     if (mode == 3) {
         items = e3_town_5747;
     }
+
     if (mode == 4) {
         manager->JoinPartyMember(1);
         manager->EnableCharaChange(1);
@@ -6158,21 +6245,26 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
         manager->EnableCharaChange(3);
         items = e3_dng_5748;
     }
+
     if (mode == 5) {
         manager->EnableCharaChange(2);
         items = e3_boss_5749;
     }
+
     short equip_no[4] = {0, 0, 0, 0};
+
     if (mode == 7) {
         items = dbg_set1_5774;
         extra_items = &start_tbl_5746[1];
     }
+
     if (mode == 8) {
         equip_no[0] = 2;
         items = dbg_set2_5775;
         equip_no[1] = 0x17;
         extra_items = cureItemtable_5744;
     }
+
     if (mode == 9) {
         equip_no[0] = 0x12;
         equip_no[1] = 0x19;
@@ -6181,27 +6273,33 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
         equip_no[2] = 0x30;
         equip_no[3] = 0x5C;
     }
+
     if (mode == 0x10 || mode == 0xF) {
         manager->chara_data[(int) USER_CHARA_MAX].equip[0].Init();
         manager->chara_data[(int) USER_CHARA_MAX].equip[1].Init();
+
         if (mode == 0xF) {
             items = subgame1_5788;
             manager->SetChrEquipDirect(0, 0xA);
         }
+
         if (mode == 0x10) {
             items = NULL;
         }
     }
+
     if (items != NULL) {
         for (int i = 0; items[i].item_no > 0; i++) {
             manager->GetItem(items[i].item_no, items[i].num);
         }
+
         if (mode == 0) {
             manager->monster_box.EnableChange(1);
             manager->monster_box.EnableChange(4);
             manager->DeleteItem(0xF6, 1);
             MenuSeiton(manager->GetUsedDataPtr(0), 0x90);
         }
+
         if (mode == 4) {
             manager->SetChrEquip(0, 2);
             manager->SetChrEquip(0, 0x17);
@@ -6210,11 +6308,14 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
             manager->monster_box.EnableChange(1);
             manager->monster_box.EnableChange(4);
         }
+
         if (mode == 5) {
             attach = manager->SearchItemOnItemBrd(2, 0);
+
             if (attach != NULL) {
                 attach->data.weapon.status[WEAPON_STAT_ATTACK] = 0x13;
             }
+
             manager->SetChrEquip(0, attach);
             manager->DeleteItem(0xF6, 1);
             manager->GetItem(0xF7, 1);
@@ -6222,26 +6323,35 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
             manager->GetCharaDataPtr(USER_CHARA_MAX)->hp.max = 48.0f;
             manager->GetCharaDataPtr(USER_CHARA_MAX)->defence = 8;
         }
+
         int e0 = equip_no[0];
+
         if (e0 > 1) {
             manager->GetItem(e0, 1);
             manager->SetChrEquip(0, e0);
         }
+
         int e1 = equip_no[1];
+
         if (e1 > 1) {
             manager->GetItem(e1, 1);
             manager->SetChrEquip(0, e1);
         }
+
         int e2 = equip_no[2];
+
         if (e2 > 1) {
             manager->GetItem(e2, 1);
             manager->SetChrEquip(1, e2);
         }
+
         int e3 = equip_no[3];
+
         if (e3 > 1) {
             manager->GetItem(e3, 1);
             manager->SetChrEquip(1, e3);
         }
+
         if (extra_items != NULL) {
             for (int i = 0; extra_items[i].item_no > 0; i++) {
                 manager->GetItem(extra_items[i].item_no, extra_items[i].num);

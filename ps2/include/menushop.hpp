@@ -298,9 +298,11 @@ public:
         error = -1;
         num = 0;
         num_max = 0;
+
         for (int i = 0; i < 2; i++) {
             arrow_flash[i] = 0;
         }
+
         list_x = 0.0f;
         list_y = 0.0f;
         shop_name_ofs_x = 0;

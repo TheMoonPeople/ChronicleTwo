@@ -165,18 +165,22 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     int arc_x;
     int arc_y;
     int step;
+
     if (WorkTex == NULL) {
         return 0;
     }
+
     if (NowTakePhoto() == 0) {
         return 0;
     }
+
     mgCTextureManager *textures = &mgTexManager;
     textures->ReloadTexture(CameraTexb, (sceVif1Packet *) NULL);
     u_long128   image[0x240];
     u_long128   depth[0x40];
     mgCDrawPrim prim;
     int         taken = 0;
+
     if (TakePhotoMode == (int) TAKE_PHOTO_STORE) {
         mgStoreImage(WorkTex, image);
         mgRect<int> area(252, 204, 260, 212);
@@ -185,14 +189,18 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
         u_int *pixel = (u_int *) depth;
         u_int  nearest = *pixel;
         int    i = 0;
+
         while (i < count) {
             if (nearest < *pixel) {
                 nearest = *pixel;
             }
+
             pixel++;
             i++;
         }
+
         *distance = mgConvZBuffToDist(nearest);
+
         if (picture != NULL) {
             memcpy(picture->image, image, 0x2000);
             picture->used = 1;
@@ -200,10 +208,12 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
             sndSePlay(GetSystemSndID(), 11, 0);
             taken = 1;
         }
+
         ShowTakePhotoCnt = 120;
         TakePhotoMode = (int) TAKE_PHOTO_AFTERSHOT;
         ShutterAnmCnt = 8;
     }
+
     if (TakePhotoMode == (int) TAKE_PHOTO_SHUTTER) {
         mgCTexture frame;
         mgGetFrameBuffer(&frame);
@@ -226,6 +236,7 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
         mgSetPkFrameBuffer(-1, -1, -1, -1);
         TakePhotoMode = (int) TAKE_PHOTO_STORE;
     }
+
     prim.Initialize(NULL, NULL);
     prim.DepthTestEnable(0);
     prim.AlphaBlendEnable(1);
@@ -275,14 +286,17 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     prim.TextureMapEnable(0);
     prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
     prim.AntiAliasing(1);
+
     if (TakePhotoMode == (int) TAKE_PHOTO_AFTERSHOT) {
         int           frame = 8 - ShutterAnmCnt;
         sceVu0FVECTOR center = {width / 2, height / 2, 0.0f, 1.0f};
         float         radius = mgDistVector(center);
         float         shutter_angle = (1.5707964f * (frame - 1)) / 4.0f;
+
         if (shutter_angle > 1.5707964f) {
             shutter_angle = 3.1415927f - shutter_angle;
         }
+
         for (int i = 0; i < 12; i++) {
             float         spoke_angle = 0.5235988f;
             float         angle = mgAngleLimit(3.1415927f + i * spoke_angle);
@@ -315,6 +329,7 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
             prim.End();
         }
     }
+
     prim.TextureMapEnable(0);
     prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
     prim.AntiAliasing(1);
@@ -331,8 +346,10 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     prim.End();
     int   x;
     float arc_radius = 33.0f;
+
     for (corner = 0; corner < 4; corner++) {
         float angle = 1.5707964f;
+
         if (corner == 0) {
             arc_y = arc_x = fptosi(48.0f);
             corner_x = 0;
@@ -357,25 +374,32 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
             angle = 0.0f;
             corner_y = 0;
         }
+
         prim.Begin(MG_PRIM_TRIANGLE_FAN);
         prim.Color(0, 0, 0, 128);
         prim.Vertex(corner_x, corner_y, 0);
+
         for (step = 0; step < 9; step++) {
             x = (int) ((float) arc_x + arc_radius * cosf(angle));
             int y = (int) ((float) arc_y + -arc_radius * sinf(angle));
             angle += 0.19634955f;
             prim.Vertex(x, y, 0);
         }
+
         prim.End();
     }
+
     if (ShowTakePhotoCnt > 0 && ShutterAnmCnt == 0) {
         int alpha = 128;
+
         if (ShowTakePhotoCnt < 30) {
             alpha = 128 - (30 - ShowTakePhotoCnt) * 5;
+
             if (alpha < 0) {
                 alpha = 0;
             }
         }
+
         mgCTexture *texture = WorkTex;
         int         y = mgScreenHeight - 126;
         int         photo_width = texture->width * 3 / 2;
@@ -407,6 +431,7 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
         prim.Vertex(photo_width + 20, y + frame_height, 0);
         prim.End();
     }
+
     return taken;
 }
 

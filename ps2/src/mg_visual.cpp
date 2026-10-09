@@ -132,6 +132,7 @@ int SetPointLight(u_int *packet, float (*first)[4], float (*second)[4]) {
 int mgCVisualMDT::SetMaterialRef(u_long128 *packet, mgMaterial *material, int flags) {
     mgCTexture *texture;
     texture = material->texture;
+
     if (texture == NULL) {
         packet[0] = *(u_long128 *) &mat_vif;
         packet[1] = *(u_long128 *) material->diffuse;
@@ -141,6 +142,7 @@ int mgCVisualMDT::SetMaterialRef(u_long128 *packet, mgMaterial *material, int fl
         prev_tex = NULL;
         return 5;
     }
+
     if (flags & 0x1) {
         packet[0] = *(u_long128 *) &mat_vif;
         packet[1] = *(u_long128 *) material->diffuse;
@@ -413,30 +415,38 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
     face->vertex_num = faces->face_num;
     face->type = faces->type;
     face->index_stride = 3;
+
     if (face->type & MG_FACE_COLOUR) {
         face->index_stride++;
     }
+
     if (face->type & MG_FACE_NO_NORMAL) {
         face->index_stride--;
     }
+
     if (face->type & MG_FACE_NO_TEXTURE) {
         face->index_stride--;
     }
+
     face->index_num = face->vertex_num * face->index_stride;
     face->material = faces->material;
     faces = (FACES_ID *) faces->index;
     write = (int *) index_memory->Alloc(face->index_num / 4 + 1);
     face->index = write;
+
     for (i = 0; i < face->index_num; i++) {
         *write++ = *(int *) faces;
         faces = (FACES_ID *) ((int *) faces + 1);
     }
+
     face->next = NULL;
     previous = face_group;
+
     if (previous == NULL) {
         if ((group = (mgFACE_GROUP *) operator new(sizeof(mgFACE_GROUP), memory->Alloc(4))) != NULL) {
             memset(group, 0, sizeof(mgFACE_GROUP));
         }
+
         group->next = NULL;
         group->face = NULL;
         group->material = face->material;
@@ -446,12 +456,15 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
             if (previous->material == face->material && previous->vu_program == 0) {
                 break;
             }
+
             previous = previous->next;
         }
+
         if (previous->next == NULL) {
             if ((group = (mgFACE_GROUP *) operator new(sizeof(mgFACE_GROUP), memory->Alloc(4))) != NULL) {
                 memset(group, 0, sizeof(mgFACE_GROUP));
             }
+
             previous->next = group;
             group->next = NULL;
             group->face = NULL;
@@ -461,14 +474,18 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
             group = previous;
         }
     }
+
     last_face = group->face;
+
     if (last_face == NULL) {
         group->face = face;
     } else {
         for (; last_face->next != NULL; last_face = last_face->next) {
         }
+
         last_face->next = face;
     }
+
     switch ((int) out_face) {
         case 0:
             break;
@@ -476,6 +493,7 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
             *out_face = face;
             break;
     }
+
     return faces;
 }
 
@@ -938,6 +956,7 @@ u_long128 *SetData6(int count, int type, int **index, u_long128 *packet, u_long1
     ((int *) packet)[3] = type;
     vertex_out = packet + 1;
     cursor = *index;
+
     if (count > 0) {
         do {
             count--;
@@ -948,6 +967,7 @@ u_long128 *SetData6(int count, int type, int **index, u_long128 *packet, u_long1
             vertex_out++;
         } while (count > 0);
     }
+
     *index = cursor;
     return vertex_out;
 }
@@ -1002,13 +1022,17 @@ int mgCVisualMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
     int        remaining;
     int        words;
     int        variant;
+
     if (face == NULL) {
         return 0;
     }
+
     use_scratchpad = 0;
+
     if (((u_int) packet & 0xF0000000) == MG_UNCACHED) {
         use_scratchpad = 1;
     }
+
     start = packet;
     primitive = face->type & MG_FACE_PRIM_MASK;
     started = 0;
@@ -1016,25 +1040,31 @@ int mgCVisualMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
     batch_limit = (vu1_offset - 2) / 3 / 3 * 3;
     indices = face->index;
     variant = 0;
+
     if (face->type & MG_FACE_COLOUR) {
         variant += 1;
         batch_limit = (vu1_offset - 2) / 4 / 3 * 3;
     }
+
     if (face->type & MG_FACE_NO_TEXTURE) {
         variant += 2;
     }
+
     if (face->type & MG_FACE_NO_NORMAL) {
         variant += 4;
     }
+
     *(u_long128 *) &batch_tag = 0;
     batch_tag.EOP = 1;
     batch_tag.PRE = 1;
     end_tag = batch_tag;
+
     if (primitive == MG_PRIM_TRIANGLE_STRIP) {
         batch_tag.PRIM = 0x5C;
     } else {
         batch_tag.PRIM = 0x5B;
     }
+
     batch_tag.NREG = 3;
     batch_tag.REGS0 = 2;
     batch_tag.REGS1 = 1;
@@ -1052,11 +1082,14 @@ int mgCVisualMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
     packet += 8;
     write = use_scratchpad ? GetScrPad() : packet;
     buffer_start = write;
+
     while (remaining > 0) {
         count = batch_limit;
+
         if (remaining < batch_limit) {
             count = remaining;
         }
+
         write[0] = 0;
         write[1] = 0;
         write[2] = 0;
@@ -1070,6 +1103,7 @@ int mgCVisualMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
         end = set_data_func__2[variant](count, face->type, &indices, (u_long128 *) write,
                                         (u_long128 *) vertex, (u_long128 *) normal, (u_long128 *) uv, (u_long128 *) colour);
         *unpack = ((u_int) ((u_int *) end - payload) / 4 << MG_VIF_NUM_SHIFT) | MG_VIF_UNPACK_V4_32 | MG_VIF_UNPACK_FLG;
+
         if (started == 0) {
             *end = *(u_long128 *) prog_vif_730;
             started = 1;
@@ -1078,25 +1112,33 @@ int mgCVisualMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
             *end = *(u_long128 *) progf_vif_731;
             write = (u_int *) (end + 1);
         }
+
         if (primitive == MG_PRIM_TRIANGLE_STRIP && batch_limit < remaining) {
             remaining += 2;
             indices -= face->index_stride * 2;
         }
+
         words = write - buffer_start;
+
         if (words > 0x514) {
             if (use_scratchpad != 0) {
                 SendDMA(packet, words / 4);
             }
+
             packet += words;
             write = use_scratchpad ? GetScrPad() : packet;
             buffer_start = write;
         }
+
         remaining -= batch_limit;
     }
+
     words = write - buffer_start;
+
     if (use_scratchpad != 0 && words > 0) {
         SendDMA(packet, words / 4);
     }
+
     packet += words;
     u_int finish[4] __attribute__((aligned(16))) = {MG_VIF_FLUSHA, 0, 0, 0};
     *(u_long128 *) packet = *(u_long128 *) finish;
@@ -1130,6 +1172,7 @@ int mgCVisualMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
         packet[3] = 0;
         return 1;
     }
+
     write = GetScrPad();
     start = write;
     setup = (mgVISUAL_SETUP_PACKET *) write;
@@ -1138,6 +1181,7 @@ int mgCVisualMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
     *(u_long128 *) setup->model_world[1] = *(u_long128 *) matrix[1];
     *(u_long128 *) setup->model_world[2] = *(u_long128 *) matrix[2];
     *(u_long128 *) setup->model_world[3] = *(u_long128 *) matrix[3];
+
     if (info->attr->depth_bias > 1.0f) {
         sceVu0CopyMatrix(projection, info->screen);
         projection[3][2] *= 1.005f;
@@ -1146,6 +1190,7 @@ int mgCVisualMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
     } else {
         mgMulMatrix(setup->model_screen, info->world_screen, setup->model_world);
     }
+
     setup->dma[0] = MG_DMA_CNT;
     setup->dma[1] = 0;
     setup->dma[2] = 0;
@@ -1159,6 +1204,7 @@ int mgCVisualMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
     sceVu0CopyMatrix(setup->light_color, lighting->light_color);
     *(u_long128 *) setup->ambient = *(u_long128 *) lighting->ambient;
     setup->ambient[3] *= info->attr->obj_alpha;
+
     if (info->attr->ambient_boost != 0) {
         sceVu0ScaleVector(boosted_ambient, lighting->light_color[0], 0.3f);
         mgAddVector(boosted_ambient, lighting->ambient);
@@ -1167,9 +1213,11 @@ int mgCVisualMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
     } else {
         *(u_long128 *) setup->object_color = *(u_long128 *) info->object_color;
     }
+
     setup->object_color[3] *= info->attr->obj_alpha;
     write = (u_int *) (setup + 1);
     setup->vif[3] = (((u_int) (write - setup->vif) / 4 - 1) << MG_VIF_NUM_SHIFT) | MG_VIF_UNPACK_V4_32 | 0x0003;
+
     if (info->attr->program_mode != 0) {
         write[0] = 0;
         write[1] = 0;
@@ -1185,6 +1233,7 @@ int mgCVisualMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
         *(u_long128 *) &write[4] = *(u_long128 *) eye;
         write += 8;
     }
+
     if (info->scissor != 0) {
         write[0] = 0;
         write[1] = 0;
@@ -1196,20 +1245,26 @@ int mgCVisualMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
         *(u_long128 *) &write[24] = *(u_long128 *) info->clip_screen[1];
         *(u_long128 *) &write[28] = *(u_long128 *) info->clip_screen[2];
         *(u_long128 *) &write[32] = *(u_long128 *) info->clip_screen[3];
+
         if (info->attr->depth_bias > 1.0f) {
             ((float *) &write[32])[2] *= 1.0000685f;
         }
+
         write += 36;
     }
+
     setup->dma[0] |= (write - setup->vif) / 4;
+
     if (info->plight_hit != 0 && info->lighting_enabled != 0) {
         for (i = 0; i < 4; i++) {
             sceVu0SubVector(point_position[i], lighting->point_light[i].pos, matrix[3]);
             point_position[i][3] = lighting->point_light[i].power;
             sceVu0CopyVector(point_colour[i], lighting->point_light[i].color);
         }
+
         write += SetPointLight(write, point_position, point_colour) * 4;
     }
+
     if (info->attr->program_mode & 0x2) {
         write[0] = MG_DMA_CNT | 4;
         write[1] = 0;
@@ -1218,36 +1273,47 @@ int mgCVisualMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
         mgMulMatrix((float(*)[4]) & write[4], info->view, matrix);
         write += 20;
     }
+
     flags = 0;
+
     if ((info->clip | info->scissor) != 0) {
         flags |= 0x1;
     }
+
     if (info->scissor != 0) {
         flags |= 0x2;
     }
+
     if (info->attr->program_mode != 0) {
         if (info->attr->program_mode & 0x1) {
             flags |= 0x8;
         }
+
         if (info->attr->program_mode & 0x2) {
             flags |= 0x100;
         }
     }
+
     if (info->attr->program_option != 0) {
         flags |= 0x4;
     }
+
     if (info->plight_hit != 0) {
         flags |= 0x10;
     }
+
     if (info->motion != 0) {
         flags |= 0x40;
     }
+
     if (info->attr->no_light != 0 || info->lighting_enabled == 0 || info->attr->ambient_boost != 0) {
         flags |= 0x20;
     }
+
     if (info->attr->unk_84 == 1) {
         flags |= 0x80;
     }
+
     write[0] = MG_DMA_CNT | 10;
     write[1] = 0;
     write[2] = 0;
@@ -1276,24 +1342,29 @@ int mgCVisualMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRE
     fog_colour = info->fog.r;
     fog_colour |= info->fog.g << 8;
     fog_colour |= info->fog.b << 16;
+
     if (info->attr->fog > 1) {
         if (info->attr->fog == 2) {
             fog_colour = 0;
         }
+
         if (info->attr->fog == 3) {
             fog_colour = 0xFFFFFF;
         }
     }
+
     write[24] = fog_colour;
     write[25] = 0;
     write[26] = 0x3D;
     write[27] = 0;
     write += 28;
+
     if (draw_env != NULL) {
         environment = draw_env;
     } else {
         environment = &info->draw_env[0];
     }
+
     write += SetDrawEnvGifTag((u_long128 *) write, info, environment) * 4;
     write += CreateExtRenderInfoPacket(write, matrix, info) * 4;
     write[0] = MG_DMA_RET;
@@ -1415,11 +1486,13 @@ int mgCVisualPrim::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgR
     *(u_long *) &body[4] = 0;
     *(u_long *) &body[6] = SCE_GS_TEXFLUSH;
     environment = (mgCDrawEnv *) (body + 8);
+
     if (draw_env != NULL) {
         *environment = *draw_env;
     } else {
         SetDrawEnv(environment, &attr, &info->draw_env[0]);
     }
+
     write = (u_int *) (environment + 1);
     write[0] = MG_DMA_RET;
     write[1] = 0;

@@ -353,6 +353,7 @@ void DivSpriteScreen(mgCDrawPrim &prim) {
     sceVu0IVECTOR offset = {mgScreenOffx * 16, mgScreenOffy * 16, 0, 0};
     sceVu0IVECTOR vertex = {0, 0, 0, 0};
     sceVu0IVECTOR uv = {0, 0, 0, 0};
+
     for (x = 0; x < mgScreenWidth; x += 64) {
         for (y = 0; y < mgScreenHeight; y += 32) {
             *(u_long128 *) vertex = *(u_long128 *) offset;
@@ -370,6 +371,7 @@ void DivSpriteScreen(mgCDrawPrim &prim) {
             prim.Data(vertex);
         }
     }
+
     prim.EndPrim2();
 }
 
@@ -383,34 +385,41 @@ void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int jagged_left) {
     sceVu0IVECTOR vertex = {0, 0, 0, 0};
     sceVu0IVECTOR uv = {0, 0, 0, 0};
     int           edge_offset[2] = {-10, 10};
+
     for (row = 0; row < 17; row++) {
         if (jagged_left) {
             uv[0] = (left + edge_offset[row % 2]) * 16;
         } else {
             uv[0] = left * 16;
         }
+
         if (uv[0] < 0) {
             uv[0] = 0;
         }
+
         uv[1] = row * row_height * 16;
         prim.Data(uv);
         vertex[0] = uv[0] + offset[0];
         vertex[1] = uv[1] + offset[1];
         prim.Data(vertex);
+
         if (!jagged_left) {
             uv[0] = (right + edge_offset[row % 2]) * 16;
         } else {
             uv[0] = right * 16;
         }
+
         if (uv[0] < 0) {
             uv[0] = 0;
         }
+
         uv[1] = row * row_height * 16;
         prim.Data(uv);
         vertex[0] = uv[0] + offset[0];
         vertex[1] = uv[1] + offset[1];
         prim.Data(vertex);
     }
+
     prim.EndPrim2();
 }
 

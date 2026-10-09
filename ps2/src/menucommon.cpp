@@ -946,9 +946,11 @@ float GetFloatCommaValue(float value) {
 
 int CalcScrlBarPutPos(int top, float pos, int length, float pos_max) {
     int y = top;
+
     if (pos_max != 0.0f) {
         y = (int) ((float) top + length * (pos / pos_max));
     }
+
     return y;
 }
 

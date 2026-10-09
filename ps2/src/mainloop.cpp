@@ -644,11 +644,14 @@ static int MenuLoop() {
     int                map_result;
 
     textures->ReloadTexture(1, (sceVif1Packet *) NULL);
+
     if (DebugFlag == 0) {
         menu_mode = DEBUG_MENU_EVENT_SELECT;
     }
+
     if (menu_mode == DEBUG_MENU_MAP_SELECT) {
         map_result = MapSelectLoop();
+
         if (map_result == (int) MAP_SELECT_DECIDE) {
             INIT_LOOP_ARG arg;
 
@@ -657,22 +660,28 @@ static int MenuLoop() {
             NextLoop(LOOP_EDIT, arg);
             return 1;
         }
+
         if (map_result == (int) MAP_SELECT_CANCEL) {
             menu_mode = DEBUG_MENU_TOP;
             return 0;
         }
+
         return 0;
     }
+
     if (menu_mode == DEBUG_MENU_EVENT_SELECT) {
         textures->ReloadTexture(1, (sceVif1Packet *) NULL);
         return EventSelect() != 0;
     }
+
     if (menu_mode == DEBUG_MENU_SAVE_DATA_EDIT) {
         if (SaveDataEditLoop()) {
             menu_mode = DEBUG_MENU_TOP;
         }
+
         return 0;
     }
+
     static char *menu[] = {
         "game start ", "map        ", "dungeon    ", "title      ",
         "chrview    ", "texview    ", "mapview    ", "sound view ",
@@ -694,50 +703,66 @@ static int MenuLoop() {
     if (GamePad__2.Down(PAD_DOWN)) {
         select++;
     }
+
     if (GamePad__2.Down(PAD_UP)) {
         select--;
     }
+
     if (select < 0) {
         select = DEBUG_ROW_CONVERT_SAVE;
     }
+
     if (select >= DEBUG_ROW_NUM) {
         select = 0;
     }
+
     if (GamePad__2.Down(PAD_RIGHT)) {
         menu_arguments[select]++;
     }
+
     if (GamePad__2.Down(PAD_LEFT)) {
         menu_arguments[select]--;
     }
+
     if (GamePad__2.Down(PAD_R1)) {
         menu_arguments[select] += 10;
     }
+
     if (GamePad__2.Down(PAD_L1)) {
         menu_arguments[select] -= 10;
     }
+
     int step = 100;
+
     if (select == 1) {
         step = 100;
     }
+
     if (GamePad__2.Down(PAD_R2)) {
         menu_arguments[select] += step;
     }
+
     if (GamePad__2.Down(PAD_L2)) {
         menu_arguments[select] -= step;
     }
+
     if (menu_arguments[select] < -1) {
         menu_arguments[select] = -1;
     }
+
     if (select == DEBUG_ROW_LANGUAGE) {
         if (menu_arguments[select] > LANG_SPANISH) {
             menu_arguments[select] = LANG_SPANISH;
         }
+
         if (menu_arguments[select] < 0) {
             menu_arguments[select] = 0;
         }
     }
+
     text_end = text;
     text_end += sprintf(text_end, "\nDark Chronicle %s\n", "Ver0.334");
+
     switch (CaptureMode) {
         case CAPTURE_RECORD:
             text_end += sprintf(text_end, "Capture Input Key\n");
@@ -752,12 +777,15 @@ static int MenuLoop() {
             text_end += sprintf(text_end, "\n");
             break;
     }
+
     if (GamePad__2.Down(PAD_SELECT)) {
         CaptureMode++;
     }
+
     if (CaptureMode > CAPTURE_PLAY_SCREEN) {
         CaptureMode = CAPTURE_OFF;
     }
+
     while (menu[row][0] != '\0') {
         if (row == DEBUG_ROW_ITEM_SET) {
             text_end += sprintf(text_end, "%s%s%s\n", cursor[row == select], menu[row], item_set[menu_arguments[row]]);
@@ -768,11 +796,14 @@ static int MenuLoop() {
         } else {
             text_end += sprintf(text_end, "%s%s%d\n", cursor[row == select], menu[row], menu_arguments[row]);
         }
+
         if (++row >= DEBUG_ROW_NUM) {
             break;
         }
     }
+
     Font.DrawDirect(text, 10, 10);
+
     if (GamePad__2.Down(PAD_CIRCLE)) {
         if (select == DEBUG_ROW_EVENT_SELECT) {
             InitEventSelect();
@@ -799,6 +830,7 @@ static int MenuLoop() {
                 menu_mode = DEBUG_MENU_MAP_SELECT;
                 return 0;
             }
+
             if (select == DEBUG_ROW_CONVERT_SAVE) {
                 INIT_LOOP_ARG arg;
 
@@ -810,9 +842,11 @@ static int MenuLoop() {
                 arg.event_no = DefStartEventNo;
                 NextLoop(select, arg);
             }
+
             return 1;
         }
     }
+
     return 0;
 }
 
@@ -852,6 +886,7 @@ static int EventSelect() {
 
     if (event_view != 0) {
         result = EventViewLoop();
+
         if (result == EVENT_VIEW_CONTINUE) {
             return 0;
         } else if (result == EVENT_VIEW_START) {
@@ -859,10 +894,13 @@ static int EventSelect() {
         } else if (result == EVENT_VIEW_CANCEL) {
             event_view = 0;
         }
+
         return 0;
     }
+
     if (future_sel != 0) {
         result = FutureMapSelect();
+
         if (result == FUTURE_MAP_SELECT_CONTINUE) {
             return 0;
         } else if (result == FUTURE_MAP_SELECT_CHOSEN) {
@@ -870,10 +908,13 @@ static int EventSelect() {
         } else if (result == FUTURE_MAP_SELECT_CLOSED) {
             future_sel = 0;
         }
+
         return 0;
     }
+
     if (hdd_sel != 0) {
         result = HDDMenuLoop();
+
         if (result == 0) {
             return 0;
         } else if (result > 0) {
@@ -896,62 +937,78 @@ static int EventSelect() {
     if (GamePad__2.Down(PAD_DOWN)) {
         select++;
     }
+
     if (GamePad__2.Down(PAD_UP)) {
         select--;
     }
+
     if (select < 0) {
         select = 10;
     }
+
     if (select >= 11) {
         select = 0;
     }
+
     if (GamePad__2.Down(PAD_RIGHT)) {
         menu_sel[select]++;
     }
+
     if (GamePad__2.Down(PAD_LEFT)) {
         menu_sel[select]--;
     }
+
     switch (select) {
         case 1:
         case 2:
             if (menu_sel[select] < 0) {
                 menu_sel[select] = 0;
             }
+
             if (menu_sel[select] > 6) {
                 menu_sel[select] = 6;
             }
+
             break;
         case 3:
             if (menu_sel[select] < 0) {
                 menu_sel[select] = 0;
             }
+
             if (menu_sel[select] > 2) {
                 menu_sel[select] = 2;
             }
+
             break;
         case 8:
             if (menu_sel[select] < 0) {
                 menu_sel[select] = 0;
             }
+
             if (menu_sel[select] > 4) {
                 menu_sel[select] = 4;
             }
+
             break;
         case 10:
             if (menu_sel[select] < 0) {
                 menu_sel[select] = 0;
             }
+
             if (menu_sel[select] > 1) {
                 menu_sel[select] = 1;
             }
+
             break;
     }
 
     text += sprintf(text, "\n\x83\x5F\x81\x5B\x83\x4E\x83\x4E\x83\x8D\x83\x6A\x83\x4E\x83\x8B\x83\x56\x83\x58\x83\x65\x83\x80\x92\xB2\x90\xAE"
                           "ROM %s %s\n",
                     "2003/07/29", "Ver0.334");
+
     for (; menu[row][0] != '\0'; row++) {
         text += sprintf(text, "%s%s", cursor[row == select], menu[row]);
+
         switch (row) {
             case 1:
             case 2:
@@ -965,11 +1022,15 @@ static int EventSelect() {
                 if (GetMapName(menu_sel[row], &map_name)) {
                     text += sprintf(text, "%s", map_name);
                 }
+
                 break;
         }
+
         text += sprintf(text, "\n");
     }
+
     text += sprintf(text, "\n");
+
     switch (select) {
         case 2:
         case 1:
@@ -979,12 +1040,14 @@ static int EventSelect() {
             sprintf(text, "\x95\xFB\x8C\xFC\x83\x4C\x81\x5B\x8D\xB6\x89\x45\x82\xC5\x83\x54\x83\x75\x83\x51\x81\x5B\x83\x80\x82\xCC\x8E\xED\x97\xDE\x91\x49\x91\xF0\n");
             break;
     }
+
     Font.DrawDirect(display, 10, 10);
 
     if (GamePad__2.Down(PAD_CROSS)) {
         menu_mode = DEBUG_MENU_TOP;
         return 0;
     }
+
     if (GamePad__2.Down(PAD_CIRCLE)) {
         INIT_LOOP_ARG arg;
         char          config_name[64] = "";
@@ -992,6 +1055,7 @@ static int EventSelect() {
 
         loop_no = LOOP_EDIT;
         monica = 0;
+
         switch (select) {
             case 0:
                 arg.map_no = 0;
@@ -1031,18 +1095,22 @@ static int EventSelect() {
                         arg.event_no = 502;
                         break;
                 }
+
                 if (menu_sel[select] >= 2) {
                     monica = 1;
                 }
+
                 if (select == 1) {
                     sprintf(config_name, "cap%d.cfg", menu_sel[select] + 1);
                 } else {
                     sprintf(config_name, "db_cap%d.cfg", menu_sel[select] + 1);
                 }
+
                 break;
             }
             case 3: {
                 int subgame = menu_sel[select];
+
                 switch (subgame) {
                     case 0:
                         arg.floor_no = 1;
@@ -1057,6 +1125,7 @@ static int EventSelect() {
                         arg.map_no = 65;
                         break;
                 }
+
                 sprintf(config_name, "sg%d.cfg", subgame);
                 break;
             }
@@ -1086,16 +1155,20 @@ static int EventSelect() {
                 NextLoop(loop_no, arg);
                 return 1;
         }
+
         sprintf(config_path, "dbg/%s", config_name);
         InitSaveData();
         LoadGameConfig(config_path);
+
         if (monica != 0) {
             GetSaveData()->user_data.JoinPartyMember(USER_CHARA_MONICA);
             GetSaveData()->user_data.EnableCharaChange(USER_CHARA_MONICA);
         }
+
         NextLoop(loop_no, arg);
         return 1;
     }
+
     return 0;
 }
 

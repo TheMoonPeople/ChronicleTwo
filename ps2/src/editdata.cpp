@@ -129,52 +129,60 @@ void CEditMap::SaveData(CEditData *data) {
     EditDataParts *saved;
     int            part_no;
     int            i;
-    int            savedCount;
+    int            saved_count;
     CEditParts    *part;
     short          remap[kEditPartsCount];
     u8            *out;
     EditDataGrid  *header;
-    int            logCount;
+    int            log_count;
     float          local[4];
     float          rot[4];
-    short          gridY;
+    short          grid_y;
     CEditGrid     *river;
-    short          gridZ;
+    short          grid_z;
     int            c;
     int            unused;
     int            x;
     float          pos[4];
     float          color[4];
     int            value;
-    float          gridPos[4];
+    float          grid_pos[4];
     int            z;
     int            unnamed;
     int            k;
     EditPlaceLog  *log;
+
     if (data == NULL) {
         return;
     }
+
     data->InitPlaceData();
-    savedCount = 0;
-    logCount = 0;
+    saved_count = 0;
+    log_count = 0;
     saved = data->parts;
     log = data->place_log;
+
     for (i = 0; i < kEditPlaceSlotCount; i++) {
         log[i].parts_no = -1;
     }
+
     for (int slot = 0; slot < place_log_max; slot++) {
         EditPlaceLog *log_entry = &place_log[slot];
         unused = log_entry->parts_no < 0;
+
         if (!unused) {
-            log[logCount++] = place_log[slot];
+            log[log_count++] = place_log[slot];
         }
     }
+
     for (i = 0; i < kEditPartsCount; i++) {
         remap[i] = -1;
     }
+
     for (part_no = 0; part_no < edit_parts_max; part_no++) {
         part = &edit_parts[part_no];
         unnamed = part->name[0] == 0;
+
         if (!unnamed && part->info != NULL) {
             saved->id = part->info->id;
             saved->state = part->state;
@@ -185,76 +193,94 @@ void CEditMap::SaveData(CEditData *data) {
             saved->pos[0] = fptosi(pos[0]);
             saved->pos[1] = fptosi(pos[1]);
             saved->pos[2] = fptosi(pos[2]);
+
             for (c = 0; c < EDIT_DATA_COLOR_MAX; c++) {
                 if (part->GetColor(c, color) != 0) {
                     for (k = 0; k < 3; k++) {
                         value = fptosi(128.0f * color[k]);
+
                         if (value > 0xFF) {
                             value = 0xFF;
                         }
+
                         if (value < 0) {
                             value = 0;
                         }
+
                         saved->color[c][k] = value;
                     }
                 }
             }
+
             if (part->house != NULL) {
                 saved->house_no = EditHouseIndex(house, part->house) + 1;
             } else {
                 saved->house_no = 0;
             }
-            remap[part_no] = savedCount;
-            savedCount++;
+
+            remap[part_no] = saved_count;
+            saved_count++;
             saved++;
-            if (savedCount >= data->parts_max) {
+
+            if (saved_count >= data->parts_max) {
                 printf(at_713__3);
                 exit(0);
                 break;
             }
         }
     }
-    for (int log_no = 0; log_no < logCount; log_no++) {
+
+    for (int log_no = 0; log_no < log_count; log_no++) {
         if (log[log_no].parts_no >= 0) {
             log[log_no].parts_no = remap[log[log_no].parts_no];
         }
+
         if (log[log_no].base_no >= 0) {
             log[log_no].base_no = remap[log[log_no].base_no];
         }
     }
+
     for (int group = 0; group < kEditGroupCount; group++) {
         data->house[group].npc_no = house[group].npc_no[0];
     }
+
     out = data->grid;
     memset(out, 0, kEditPlaceFlagCount);
+
     for (k = 0; k < grid_max; k++) {
         river = grid[k];
+
         if (river != NULL) {
             header = (EditDataGrid *) out;
             header->num_x = river->num_x;
             header->num_z = river->num_z;
-            GetEditPos(gridPos, river->origin);
-            gridY = fptosi(gridPos[1]);
-            gridZ = fptosi(gridPos[2]);
-            header->pos[0] = fptosi(gridPos[0]);
-            header->pos[1] = gridY;
-            header->pos[2] = gridZ;
+            GetEditPos(grid_pos, river->origin);
+            grid_y = fptosi(grid_pos[1]);
+            grid_z = fptosi(grid_pos[2]);
+            header->pos[0] = fptosi(grid_pos[0]);
+            header->pos[1] = grid_y;
+            header->pos[2] = grid_z;
             out += sizeof(EditDataGrid);
+
             for (x = 0; x < river->num_x; x++) {
                 for (z = 0; z < river->num_z; z++) {
                     if (river->GetFast(x, z)->river != 0) {
                         *out |= 1;
                     }
+
                     out++;
                 }
             }
+
             if ((int) out & 1) {
                 out++;
             }
         }
     }
+
     if (out - data->grid >= kEditPlaceFlagCount) {
         printf(at_714__2);
+
         for (int wait = 0; wait < 300; wait++) {
             sceGsSyncV(0);
         }
@@ -267,17 +293,17 @@ void CEditMap::LoadData(CEditData *data) {
     EditDataParts  *saved;
     int             no;
     int             remap[kEditPartsCount];
-    short          *gridPos;
-    float           placePos[4];
+    short          *grid_pos;
+    float           place_pos[4];
     int             changed;
-    float           placeRot[4];
+    float           place_rot[4];
     int             i;
     int             j;
     CEditParts     *lower;
     int             k;
     CEditParts     *part;
     int             x;
-    int             logCount;
+    int             log_count;
     float           color[4];
     CEditPartsInfo *info;
     EditPlaceLog   *log;
@@ -285,58 +311,72 @@ void CEditMap::LoadData(CEditData *data) {
     int             unused;
     CEditGrid      *river;
     int             unnamed;
-    logCount = 0;
+    log_count = 0;
     saved = data->parts;
     log = data->place_log;
+
     for (m = 0; m < place_log_max; ++m) {
         place_log[m].parts_no = -1;
     }
+
     for (int slot = 0; slot < kEditPlaceSlotCount; slot++) {
         unused = log[slot].parts_no < 0;
+
         if (!unused) {
-            place_log[logCount++] = log[slot];
+            place_log[log_count++] = log[slot];
         }
     }
+
     for (m = 0; m < kEditPartsCount; ++m) {
         remap[m] = -1;
     }
+
     for (int index = 0; index < data->parts_max; index++, saved++) {
         if (saved->id != 0) {
             info = GetePartsInfoAtID(saved->id);
+
             if (info != NULL) {
                 if (info->attr & 2) {
                     remap[index] = index;
                 } else {
                     no = BuildEditParts(info->edit_name);
+
                     if (no >= 0) {
                         remap[index] = no;
+
                         if (saved->state != 0 && saved->state != 0) {
-                            placePos[0] = (float) saved->pos[0];
-                            placePos[1] = (float) saved->pos[1];
-                            placePos[2] = (float) saved->pos[2];
-                            placePos[3] = 1.0f;
-                            placeRot[0] = placeRot[2] = 0.0f;
-                            placeRot[1] = GetEditAngle(saved->angle);
+                            place_pos[0] = (float) saved->pos[0];
+                            place_pos[1] = (float) saved->pos[1];
+                            place_pos[2] = (float) saved->pos[2];
+                            place_pos[3] = 1.0f;
+                            place_rot[0] = place_rot[2] = 0.0f;
+                            place_rot[1] = GetEditAngle(saved->angle);
                             placed = GetePlaceParts(no);
+
                             if (placed != NULL && placed->GetPartsType() == 0xB) {
                                 placed->state = EDIT_PARTS_STATE_RIVER;
                                 placed->SetPosition(0.0f, -10000.0f, 0.0f);
                             } else {
-                                placed = PlaceEditParts(no, NULL, placePos, placeRot, NULL);
+                                placed = PlaceEditParts(no, NULL, place_pos, place_rot, NULL);
+
                                 if (placed != NULL) {
                                     CEditParts *part = placed;
+
                                     if (saved->state == EDIT_PARTS_STATE_PLACED) {
                                         part->state = EDIT_PARTS_STATE_NONE;
                                     } else {
                                         part->state = saved->state;
                                     }
+
                                     if (saved->house_no > 0) {
                                         if (part->house != NULL) {
                                             memset(part->house, 0, sizeof(CEditHouse));
                                         }
+
                                         part->house = &house[saved->house_no - 1];
                                         part->house->active = 1;
                                     }
+
                                     for (i = 0; i < EDIT_DATA_COLOR_MAX; i++) {
                                         if (saved->color[i][0] > 0 && saved->color[i][1] > 0 &&
                                             saved->color[i][2] > 0) {
@@ -347,6 +387,7 @@ void CEditMap::LoadData(CEditData *data) {
                                             placed->SetColor(i, color);
                                         }
                                     }
+
                                     placed->UpdateColor();
                                 }
                             }
@@ -356,26 +397,33 @@ void CEditMap::LoadData(CEditData *data) {
             }
         }
     }
+
     for (int group = 0; group < kEditGroupCount; group++) {
         house[group].npc_no[0] = data->house[group].npc_no;
     }
-    for (int entry = 0; entry < logCount; entry++) {
+
+    for (int entry = 0; entry < log_count; entry++) {
         if (place_log[entry].parts_no >= 0) {
             place_log[entry].parts_no = remap[place_log[entry].parts_no];
         }
+
         if (place_log[entry].base_no >= 0) {
             place_log[entry].base_no = remap[place_log[entry].base_no];
         }
     }
+
     do {
         changed = 0;
+
         for (k = 0; k < edit_parts_max; k++) {
             part = &edit_parts[k];
             unnamed = part->name[0] == 0;
+
             if (!unnamed && part->state == EDIT_PARTS_STATE_PLACED) {
-                for (x = 0; x < logCount; ++x) {
+                for (x = 0; x < log_count; ++x) {
                     if (k == place_log[x].base_no) {
                         lower = GetePlaceParts(place_log[x].parts_no);
+
                         if (lower != NULL && lower->state == EDIT_PARTS_STATE_NONE) {
                             changed = 1;
                             lower->state = EDIT_PARTS_STATE_PLACED;
@@ -386,27 +434,35 @@ void CEditMap::LoadData(CEditData *data) {
             }
         }
     } while (changed != 0);
+
     in = data->grid;
+
     for (j = 0; j < grid_max; ++j) {
         river = grid[j];
+
         if (river != NULL) {
             if (river->num_x != *in++) {
                 break;
             }
+
             if (river->num_z != *in++) {
                 break;
             }
-            gridPos = (short *) in;
-            printf(at_917__3, gridPos[0], gridPos[1], gridPos[2]);
+
+            grid_pos = (short *) in;
+            printf(at_917__3, grid_pos[0], grid_pos[1], grid_pos[2]);
             in += sizeof(EditDataGrid) - 2;
+
             for (int x = 0; x < river->num_x; ++x) {
                 for (int z = 0; z < river->num_z; ++z) {
                     if (*in & 1) {
                         river->SetRiver(x, z);
                     }
+
                     in++;
                 }
             }
+
             if ((int) in & 1) {
                 in++;
             }
@@ -434,10 +490,13 @@ int CEditMap::CultureAnalyzeParts(int no, int cpoint_no) {
     if (parts == NULL || parts->info == NULL) {
         return 0;
     }
+
     int empty = parts->name[0] == 0;
+
     if (empty || parts->state == 0) {
         return 0;
     }
+
     switch (parts->info->cpoint[0]) {
         case 6:
             return GetCulturePoint(parts, cpoint_no);
@@ -446,15 +505,20 @@ int CEditMap::CultureAnalyzeParts(int no, int cpoint_no) {
         case 1: {
             int total = GetCulturePoint(parts, cpoint_no);
             int count = GetTerritoryParts(no, related, 0x200);
+
             for (int i = 0; i < count; i++) {
                 CEditParts *other = GetePlaceParts(related[i]);
+
                 if (other != NULL && other->info != NULL && other->info->cpoint[0] == 2) {
                     total += GetCulturePoint(other, cpoint_no);
                 }
             }
+
             count = GetChildParts(no, related, 0x200);
+
             for (int i = 0; i < count; i++) {
                 CEditParts *other = GetePlaceParts(related[i]);
+
                 if (other != NULL && other->info != NULL) {
                     switch (other->info->cpoint[0]) {
                         case 3:
@@ -464,6 +528,7 @@ int CEditMap::CultureAnalyzeParts(int no, int cpoint_no) {
                     }
                 }
             }
+
             return total;
         }
     }
@@ -495,55 +560,71 @@ int CEditMap::GetOnOffParts(char *name, CMapParts **out_parts, CMapPiece **out_p
     if (name == NULL || max <= 0) {
         return 0;
     }
+
     count = 0;
+
     while (*name != 0) {
         if (count >= max) {
             return count;
         }
+
         char *part_cursor = part_name;
         part_name[0] = 0;
         piece_cursor = piece_name;
         piece_name[0] = 0;
+
         for (;;) {
             if (*name == '/' || *name == ';' || *name == 0) {
                 break;
             }
+
             *part_cursor = *name;
             name++;
             part_cursor++;
         }
+
         *part_cursor = 0;
         out_parts[count] = GetPlaceParts(part_name);
         out_piece[count] = NULL;
+
         if (*name == 0) {
             count++;
             break;
         }
+
         if (*name != '/') {
             name++;
             count++;
             continue;
         }
+
         name++;
+
         for (;;) {
             if (*name == ';' || *name == 0) {
                 break;
             }
+
             *piece_cursor = *name;
             name++;
             piece_cursor++;
         }
+
         *piece_cursor = 0;
+
         if (out_parts[count] != NULL) {
             out_piece[count] = out_parts[count]->SearchPiece(piece_name);
         }
+
         if (*name == 0) {
             count++;
             break;
         }
+
         name++;
         count++;
     }
+
     return count;
 }
 
@@ -554,14 +635,18 @@ void CEditMap::PartsOnOff(int map_no, CEditData *data) {
     if (data == NULL) {
         return;
     }
+
     for (int data_no = 0; data_no < 0x10; data_no++) {
         EditAnalyzeDataSrc *request = data->GetAnalyzeData(map_no, data_no);
+
         if (request == NULL || request->message == 0) {
             continue;
         }
+
         int flag = data->GetAnalyzeFlag(map_no, data_no);
         int count = GetOnOffParts(request->on_parts, parts, pieces, 0x10);
         int i;
+
         for (i = 0; i < count; i++) {
             if (pieces[i] != NULL) {
                 pieces[i]->Show(flag);
@@ -569,7 +654,9 @@ void CEditMap::PartsOnOff(int map_no, CEditData *data) {
                 parts[i]->Show(flag);
             }
         }
+
         count = GetOnOffParts(request->off_parts, parts, pieces, 0x10);
+
         for (i = 0; i < count; i++) {
             if (pieces[i] != NULL) {
                 pieces[i]->Show((u8) ((flag != 0) ^ 1));

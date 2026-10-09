@@ -89,6 +89,7 @@ void CDngFreeMap::InitTexture() {
 
 void CDngFreeMap::SetUserGlid(int room_no) {
     user_glid = NULL;
+
     if (0 <= room_no) {
         user_glid = GetRoomGlid(room_no);
     }
@@ -98,6 +99,7 @@ void CDngFreeMap::CalcGlidPutPos(GLID_INFO *glid, float &x, float &y, int board)
     if (glid != NULL) {
         x = static_cast<float>(glid->x * 52 + glid->y * -16);
         y = static_cast<float>(glid->y * 20);
+
         if (board == 0) {
             x += pos_x;
             y += pos_y;
@@ -108,18 +110,23 @@ void CDngFreeMap::CalcGlidPutPos(GLID_INFO *glid, float &x, float &y, int board)
 void CDngFreeMap::CheckIsViewMove(int x, int y, float &move_x, float &move_y) {
     int clipped_x = x;
     int clipped_y = y;
+
     if ((float) x < view_rect.left) {
         clipped_x = (int) view_rect.left;
     }
+
     if (view_rect.right + -10.0f < (float) clipped_x) {
         clipped_x = (int) (view_rect.right + -10.0f);
     }
+
     if ((float) y < view_rect.top) {
         clipped_y = (int) view_rect.top;
     }
+
     if (view_rect.bottom < (float) (clipped_y - 10)) {
         clipped_y = (int) (view_rect.bottom + -10.0f);
     }
+
     move_x = (float) (clipped_x - x);
     move_y = (float) (clipped_y - y);
 }
@@ -171,30 +178,38 @@ void CDngFreeMap::SetTextureInfo() {
 
 void CDngFreeMap::ResetDngMapPos(int room_no, int at_once) {
     GLID_INFO *glid = GetRoomGlid(room_no);
+
     if (glid != NULL) {
         float board_pos[2];
         float unused_x, unused_y;
         float left, top, right, bottom;
         int   width = floor_manager->glid_w;
         int   height = floor_manager->glid_h;
+
         for (int i = 0; i < floor_manager->glid_num; i++) {
             GLID_INFO *cell = &floor_manager->glid_info[i];
+
             if (cell->x == 0) {
                 CalcGlidPutPos(cell, left, unused_y, 1);
             }
+
             if (cell->y == 0) {
                 CalcGlidPutPos(cell, unused_x, top, 1);
             }
+
             if (cell->x == width) {
                 CalcGlidPutPos(cell, right, unused_y, 1);
             }
+
             if (cell->y == height) {
                 CalcGlidPutPos(cell, unused_x, bottom, 1);
             }
         }
+
         CalcGlidPutPos(glid, board_pos[0], board_pos[1], 1);
         next_pos_x = 256.0f - board_pos[0];
         next_pos_y = 208.0f - board_pos[1];
+
         if (at_once != 0) {
             pos_x = next_pos_x;
             pos_y = next_pos_y;
@@ -209,10 +224,12 @@ void CDngFreeMap::ResetDngMapPos(int room_no, int at_once) {
 
 void CDngFreeMap::DrawBackPattern(int opacity) {
     mgCDrawPrim *prim = GetMenuPrim();
+
     if (mode == DNGMAP_MODE_EVENT) {
         if (static_cast<float>(opacity) < 0.0f) {
             return;
         }
+
         SetSpriteEnv(prim, 2);
         prim->Bilinear(1);
         prim->AntiAliasing(1);
@@ -222,11 +239,13 @@ void CDngFreeMap::DrawBackPattern(int opacity) {
         prim->Vertex(mgScreenWidth, mgScreenHeight, 0);
         prim->End();
     }
+
     if (mode == DNGMAP_MODE_MENU && map_tex != NULL) {
         mgRect<int> tile;
         tile.Set(0, 256, 128, 128);
         DrawMenuTilePattern(prim, map_tex, back_scroll, back_scroll, tile, 1, NULL);
         back_scroll += 0.5f;
+
         if (!(back_scroll < 0.0f)) {
             back_scroll -= static_cast<float>(tile.right);
         }
@@ -253,6 +272,7 @@ void CDngFreeMap::DrawLast() {
     if (last_tex == NULL || mode == DNGMAP_MODE_EVENT) {
         return;
     }
+
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 4);
     prim->AlphaBlend(1);
@@ -448,44 +468,56 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/dngmenu", DrawRoot__11CDngFreeMapF9mgRect_
 #endif
 unsigned int CDngFreeMap::DrawGlidCheck(GLID_INFO *glid) {
     unsigned int marks;
+
     if (glid == NULL) {
         return 0;
     }
+
     marks = 0;
+
     for (int direction = 0; direction < GLID_DIR_NUM; direction++) {
         GLID_INFO *neighbour = glid->link_glid[direction];
+
         if (neighbour == NULL || glid->type != GLID_TYPE_ROOT || neighbour->type != GLID_TYPE_ROOM) {
             continue;
         }
+
         if (direction == GLID_DIR_UP && neighbour->y + 1 == glid->y) {
             marks |= 2;
         }
+
         if (direction == GLID_DIR_LEFT && neighbour->x + 1 == glid->x) {
             marks |= 8;
         }
+
         if ((neighbour->room.flag & DNGMAP_ROOM_FLAG_SUB) != 0 ||
             (neighbour->room.flag & DNGMAP_ROOM_FLAG_BOSS) != 0) {
             if (neighbour->room.visited == 0) {
                 continue;
             }
+
             if (neighbour->x == glid->x) {
                 if (neighbour->y == glid->y - 1) {
                     marks |= 0x40;
                 }
+
                 if (neighbour->y == glid->y + 1) {
                     marks |= 0x80;
                 }
             }
+
             if (neighbour->y == glid->y) {
                 if (neighbour->x == glid->x - 1) {
                     marks |= 0x100;
                 }
+
                 if (neighbour->x == glid->x + 1) {
                     marks |= 0x200;
                 }
             }
         }
     }
+
     return marks;
 }
 #ifdef NONMATCHING
@@ -678,31 +710,39 @@ static int CheckGeoramaMateria(TRESURE_BOX_FLOOR_INFO *info, int floor_no, int *
     if (info == NULL) {
         return 0;
     }
+
     if (floor_no < 0) {
         return 0;
     }
+
     int                floor_group;
     int                count = 0;
     TRESURE_BOX_FLOOR *floor = &info->floor[floor_no];
+
     for (floor_group = 0; floor_group < floor->group_num; floor_group++) {
         int group_index;
         int group_id = floor->group_id[floor_group];
+
         if (group_id < 0) {
             break;
         }
+
         TRESURE_BOX_GROUP *group = NULL;
+
         for (group_index = 0; group_index < info->group_num; group_index++) {
             if (group_id == info->group[group_index].group_id) {
                 group = &info->group[group_index];
                 break;
             }
         }
+
         if (group != NULL) {
             for (group_index = 0; group_index < group->item_num; group_index++) {
                 items[count++] = group->item[group_index].item_no;
             }
         }
     }
+
     for (int pass = 0; pass < 2; pass++) {
         for (floor_group = 0; floor_group < count; floor_group++) {
             if (!(GetItemDataAttribute(items[floor_group]) & ITEM_ATTRIBUTE_GEORAMA_MATERIA)) {
@@ -710,6 +750,7 @@ static int CheckGeoramaMateria(TRESURE_BOX_FLOOR_INFO *info, int floor_no, int *
             }
         }
     }
+
     return count;
 }
 
@@ -1045,6 +1086,7 @@ extern const mgRect<int> dng_light_circle;
 void CDngFreeMap::DrawTreeMap(int opacity) {
     GLID_INFO    *glid = floor_manager->glid_info;
     mgRect<float> cell_rect(0.0f, 0.0f, 52.0f, 20.0f);
+
     if (mode == DNGMAP_MODE_MENU) {
         mgCDrawPrim *prim = GetMenuPrim();
         float        position[2];
@@ -1065,18 +1107,25 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
         prim->Vertex(position[0] + 124.0f - reach_x, position[1] + 80.0f - reach_y, 0.0f);
         prim->End();
     }
+
     unsigned int marks;
+
     for (int i = 0; i < floor_manager->glid_num; i++, glid++) {
         CalcGlidPutPos(glid, cell_rect.left, cell_rect.top, 0);
+
         if (menu_debug_flag != 0) {
             DrawGlid(cell_rect);
         }
+
         marks = DrawGlidCheck(glid);
+
         if (glid->type == GLID_TYPE_ROOM) {
             float brightness = 1.0f;
+
             if (glid->blink != 0 && blink_cnt % 25 < 14) {
                 brightness = 0.5f;
             }
+
             DrawRoomOne(cell_rect, &glid->room, 0, opacity, brightness);
         } else if (glid->type == GLID_TYPE_ROOT) {
             DrawRoot(cell_rect, &glid->root, 1, marks, opacity);
@@ -1092,31 +1141,40 @@ void CDngFreeMap::DrawPlayer(int opacity) {
     if (user_glid == NULL || koma_tex == NULL) {
         return;
     }
+
     float board_x, board_y;
     CalcGlidPutPos(user_glid, board_x, board_y, 0);
     board_x += 4.0f;
     board_y -= 30.0f;
     float sprite_alpha = static_cast<float>(opacity);
+
     if (mode == DNGMAP_MODE_EVENT) {
         if (koma_move != 0 && koma_now != NULL) {
             dng_player_pos[0] = koma_now->x;
             dng_player_pos[1] = koma_now->y;
             koma_now = koma_now->next;
         }
+
         board_x = dng_player_pos[0];
         board_y = dng_player_pos[1];
     }
+
     if (mode == DNGMAP_MODE_MENU) {
         board_y -= 6.0f * sinf(0.06283186f * (float) dng_player_blink_cnt);
     }
+
     dng_player_blink_cnt++;
+
     if (dng_player_blink_cnt >= 50) {
         dng_player_blink_cnt = 0;
     }
+
     float brightness = 16.0f + alpha + 16.0f * sinf(0.06283186f * (float) dng_player_blink_cnt);
+
     if (brightness < 0.0f) {
         brightness = 0.0f;
     }
+
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
     prim->Bilinear(1);
@@ -1133,33 +1191,44 @@ void CDngFreeMap::Step() {
     if (active == 0) {
         return;
     }
+
     if (fade_mode == DNGMAP_FADE_IN) {
         alpha += fade_step;
+
         if (128.0f < alpha) {
             alpha = 128.0f;
         }
     } else if (fade_mode == DNGMAP_FADE_OUT) {
         alpha += fade_step;
+
         if (alpha < 0.0f) {
             alpha = 0.0f;
         }
     }
+
     pos_x += (next_pos_x - pos_x) / 5.0f;
     pos_y += (next_pos_y - pos_y) / 5.0f;
+
     if (static_cast<float>(abs(static_cast<int>(pos_x - next_pos_x))) < 1.0f) {
         pos_x = next_pos_x;
     }
+
     if (static_cast<float>(abs(static_cast<int>(pos_y - next_pos_y))) < 1.0f) {
         pos_y = next_pos_y;
     }
+
     blink_cnt++;
+
     if (blink_cnt >= DNGMAP_BLINK_CYCLE) {
         blink_cnt = 0;
     }
+
     DngTreeMapActiveLightRate += 0.05f;
+
     if (!(DngTreeMapActiveLightRate < 1.0f)) {
         DngTreeMapActiveLightRate = 1.0f;
     }
+
     mark_num = 0;
 }
 
@@ -1188,21 +1257,27 @@ void CDngFreeMap::Draw() {
     if (active != 0 && !(alpha <= 0.0f)) {
         mgCTextureManager *textures = &mgTexManager;
         mgCTexture        *texture = map_tex;
+
         if (texture == NULL) {
             return;
         }
+
         int opacity = (int) alpha;
+
         if (opacity < 0) {
             opacity = 0;
         }
+
         if (opacity > 128) {
             opacity = 128;
         }
+
         textures->ReloadTexture(texture->block, (sceVif1Packet *) NULL);
         DrawBackPattern(opacity);
         DrawLast();
         DrawTreeMap(opacity);
         DrawPlayer(opacity);
+
         if (mode != DNGMAP_MODE_EVENT) {
             mgCDrawPrim *prim = GetMenuPrim();
             SetSpriteEnv(prim, 0);
@@ -1210,14 +1285,18 @@ void CDngFreeMap::Draw() {
             prim->Begin(6);
             prim->Texture(name_tex);
             prim->Color(128, 128, 128, opacity);
+
             for (int i = 0; i < mark_num; i++) {
                 PrimQuad(prim, mark_rect[i], mgRect<int>(192, 210, 64, 46));
             }
+
             prim->End();
         }
+
         if (menu_debug_flag == 0) {
             return;
         }
+
         int block = -1;
         MenuReloadTexture(block, MenuDCMsg[2]->texture_block);
         int       moon;
@@ -1231,25 +1310,32 @@ void CDngFreeMap::Draw() {
         font->SetPos(0, 50);
         menu_font.DrawDirect(menu_font.str, menu_font.pos_x, menu_font.pos_y);
         DrawMenuFillBox(0.0f, (float) y, 160.0f, (float) (mgScreenHeight - y), 64, 0, 0, 0);
+
         if (select_glid != NULL && select_glid->type == GLID_TYPE_ROOM) {
             DNG_FLOOR_SAVE *save = MenuSaveDataDungeonPtr->GetFloorInfoPtr(dng_no, select_glid->room.floor_id);
+
             if (save != NULL) {
                 char detail[256];
                 char line[32];
                 sprintf(detail, "Room ID : %d", select_glid->room.floor_id);
                 DNGMAP_ROOM_INFO *room = &select_glid->room;
+
                 if (room->flag & DNGMAP_ROOM_FLAG_START) {
                     strcat(detail, ":START ");
                 }
+
                 if (room->flag & DNGMAP_ROOM_FLAG_EXIT) {
                     strcat(detail, ":EXIT");
                 }
+
                 if (room->flag & DNGMAP_ROOM_FLAG_BOSS) {
                     strcat(detail, ":BOSS");
                 }
+
                 if (room->flag & DNGMAP_ROOM_FLAG_SUB) {
                     strcat(detail, ":SUBMAP");
                 }
+
                 strcat(detail, "\n");
                 font->SetStr(detail);
                 font->SetPos(10, y + 2);
@@ -1265,37 +1351,46 @@ void CDngFreeMap::Draw() {
                 strcpy(line, "\x81@Root\x81"
                              "F");
                 int links = floor_manager->GetDngMapNextRoot(select_glid->room.floor_id);
+
                 for (int i = 0; i < 4; i++) {
                     if (links & (1 << i)) {
                         strcat(line, RootTable_2119[i]);
                     }
                 }
+
                 font->SetStr(line);
                 font->SetPos(10, y + 102);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 sprintf(detail, "  VisitNum\x81\x40: %d\n", save->visit_count);
+
                 if (MenuDngDebugFlagSelect == 0) {
                     sprintf(detail, "> VisitNum\x81\x40: %d\n", save->visit_count);
                 }
+
                 font->SetStr(detail);
                 font->SetPos(10, y + 122);
                 font->DrawDirect(font->str, font->pos_x, font->pos_y);
                 y += 142;
+
                 for (int i = 0; i < 8; i++) {
                     strcpy(detail, Table_2133[i]);
+
                     if (save->flag & bittable_2134[i]) {
                         strcat(detail, "ON");
                     } else {
                         strcat(detail, "OFF");
                     }
+
                     if (MenuDngDebugFlagSelect > 0 && MenuDngDebugFlagSelect - 1 == i) {
                         detail[0] = '>';
                     }
+
                     font->SetStr(detail);
                     font->SetPos(10, y);
                     font->DrawDirect(font->str, font->pos_x, font->pos_y);
                     y += 20;
                 }
+
                 strcat(detail, "NONE");
             }
         }
@@ -1306,9 +1401,11 @@ void CDngFreeMap::FadeIn(int frames) {
     fade_mode = DNGMAP_FADE_IN;
     fade_time = frames;
     fade_step = 128.0f;
+
     if (0 < frames) {
         fade_step = 128.0f / static_cast<float>(frames);
     }
+
     alpha = 0.0f;
 }
 
@@ -1316,6 +1413,7 @@ void CDngFreeMap::FadeOut(int frames) {
     fade_mode = DNGMAP_FADE_OUT;
     fade_time = frames;
     fade_step = -128.0f;
+
     if (0 < frames) {
         fade_step = -128.0f / static_cast<float>(frames);
     }
@@ -1324,6 +1422,7 @@ void CDngFreeMap::FadeOut(int frames) {
 void CDngFreeMap::DeleteTexBlock() {
     mgCTextureManager *manager = &mgTexManager;
     int                block = tex_block;
+
     if (block >= 0) {
         manager->DeleteBlock(block);
     }
@@ -1684,6 +1783,7 @@ int CheckDngTreeMapFuncType() {
     if (MenuCommonInfo->open_type == (int) MENU_OPEN_MAIN_DUNGEON || TreeMapCallDungeonSubMap == 1) {
         return 1;
     }
+
     return 0;
 }
 
@@ -1694,21 +1794,26 @@ void MakeDngTreeMapJumpNo(int dng_no, int floor_id, int *loop_no, int *map_no) {
         *loop_no = 1;
         *map_no = SearchMapNo("s01");
     }
+
     if (dng_no == 1 && floor_id == 6) {
         *loop_no = 1;
         *map_no = SearchMapNo("s05");
     }
+
     if (dng_no == 3 && floor_id == 20) {
         *loop_no = 1;
         *map_no = SearchMapNo("d04b01");
+
         if (CheckBitFlagMenu(0x1B6) != 0 && CheckBitFlagMenu(0x1BC) == 0) {
             *loop_no = 2;
             *map_no = dng_no;
         }
     }
+
     if (floor_id == 0) {
         *loop_no = 1;
         *map_no = SearchMapNo(name_tbl_2728[dng_no]);
+
         if (dng_no == 6) {
             CScene *scene = GetMainScene();
             scene->SetNowMapNo(SearchMapNo("d07f01"));
@@ -1739,46 +1844,59 @@ void CMenuTreeMap::InitEnd() {
     textures = &mgTexManager;
     MenuWorkTextureEnter(block, at_2786, 0x200, 0x100, 0x18);
     textures->EnterIMGFile(map_img, block, NULL, NULL);
+
     if (CheckDngTreeMapFuncType() == 2) {
         textures->EnterIMGFile((u8 *) MenuCursorDataBuff, block, NULL, NULL);
     }
+
     MenuDngMap->SetTextureInfo();
     Floor_InfoTex = textures->GetTexture(at_2787__2, -1);
+
     if (read != NULL) {
         script = (char *) GetPackFile((u_int *) read->buffer, at_2788, &script_size);
         MenuDngMap->floor_manager->CheckDrawGlidInfo();
         int room_no = MenuSaveDataDungeonPtr->floor_id[dng_no];
+
         if (room_no < 1) {
             room_no = 1;
         }
+
         if (maxidtable_2752[dng_no] < room_no) {
             room_no = 1;
         }
+
         MenuDngMap->SetUserGlid(room_no);
         select_glid = MenuDngMap->GetRoomGlid(room_no);
+
         if (select_glid == NULL) {
             select_glid = MenuDngMap->GetRoomGlid(room_no + 1);
         }
+
         int        active_room = room_no;
         GLID_INFO *marked = NULL;
         int        room_count = maxidtable_2752[dng_no];
+
         for (int i = 0; i < room_count; ++i) {
             GLID_INFO *cell = MenuDngMap->floor_manager->GetDngMapFloorGlidInfo(i);
+
             if (cell != NULL && cell->room.mark != 0) {
                 active_room = cell->room.floor_id;
                 marked = cell;
                 break;
             }
         }
+
         if (select_glid != NULL &&
             ((select_glid->room.flag & DNGMAP_ROOM_FLAG_SUB) ||
              (select_glid->room.flag & DNGMAP_ROOM_FLAG_BOSS))) {
             marked = select_glid;
             active_room = room_no;
         }
+
         if (marked != NULL) {
             select_glid = marked;
         }
+
         MenuDngMap->ResetDngMapPos(active_room, 1);
         float position[2];
         MenuDngMap->CalcGlidPutPos(marked, position[0], position[1], 0);
@@ -1794,11 +1912,13 @@ void CMenuTreeMap::InitEnd() {
         char       treasure_name[64];
         sprintf(treasure_name, at_2790, dng_no + 1);
         int size;
+
         if (LoadFile2(treasure_name, aligned, &size, 0)) {
             CreatTresuarBoxInfo(&tresure, (char *) aligned, size);
             tresure_loaded = 1;
         }
     }
+
     DngInfoDrawAlpha = 0;
     MenuCommonInfo->key_enable = 1;
     cursor_view = 1;
@@ -2407,50 +2527,65 @@ void CMenuTreeMap::Draw() {
     if ((mode & 2) && draw_hidden == 1) {
         return;
     }
+
     MenuDngMap->Draw();
     int show_help = 0;
+
     if (help_view != 0 && dngfloor_infoview == 0 && key_arg_no == 0) {
         show_help = 1;
     }
+
     if (menu_debug_flag != 0) {
         show_help = 0;
     }
+
     mgCTextureManager *textures = &mgTexManager;
     mgCDrawPrim       *prim = GetMenuPrim();
+
     if (show_help) {
         textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
         MenuDCMsg[6]->StepMsg();
         MenuDCMsg[6]->DrawMsg();
+
         if (TreeMapSaveFlag == 1) {
             TreeMapSaveDispCount++;
+
             if (TreeMapSaveDispCount >= 90) {
                 TreeMapSaveDispCount = 0;
             }
+
             MenuDCMsg[6]->line_color[1] = 0x80E0E060;
+
             if (TreeMapSaveNum == 0) {
                 if (TreeMapSaveHopCount < 0.6829549f || TreeMapSaveHopCount > 2.4586377f) {
                     MenuDCMsg[6]->line_color[1] = 0x80686A6B;
                 }
+
                 TreeMapSaveHopCount += 0.06829549f;
+
                 if (3.1415927f <= TreeMapSaveHopCount) {
                     TreeMapSaveHopCount -= 3.1415927f;
                 }
+
                 MenuDCMsg[6]->SetMovePosGyou(1, MenuDCMsg[6]->line_pos[1][0],
                                              (int) ((float) TreeMapSaveDispY - 10.0f * sinf(TreeMapSaveHopCount)));
             }
         }
     }
+
     if (MenuDngMap->select_glid != NULL) {
         if (dngfloor_backdraw != 0) {
             CalcMenuAdd(&dngfloor_backdraw_alpha, 3, 64);
         } else {
             CalcMenuAdd(&dngfloor_backdraw_alpha, -3, 0);
         }
+
         DrawMenuFillBox(dngfloor_backdraw_alpha, 0, 0, 0);
         int number_x = 540;
         int number_y = 0;
         int number_alpha = 0;
         int medal = GetUserDataMan()->GetYarikomiMedal();
+
         if (Floor_InfoTex != NULL) {
             textures->ReloadTexture(Floor_InfoTex->block, (sceVif1Packet *) NULL);
             int alpha = dngfloor_backdraw_alpha * 2;
@@ -2466,11 +2601,14 @@ void CMenuTreeMap::Draw() {
             number_y = 39;
             number_alpha = dngfloor_backdraw_alpha * 2;
         }
+
         DrawDngRoomInfo(&MenuDngMap->select_glid->room);
+
         if (GeoramaMateriaInfoDrawFlag != 0 && Floor_InfoTex != NULL) {
             DrawGeoramaMateria(94, MenuDngMap->select_glid->room.title,
                                GeoramaMateriaNum, georama_materia, Floor_InfoTex->block);
         }
+
         MenuDngMap->DrawDngName(128);
         textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
         CMenuFont font;
@@ -2480,11 +2618,13 @@ void CMenuTreeMap::Draw() {
         font.SetStr(number);
         font.SetPos(number_x, number_y);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
+
         for (int i = 0; i < DNG_TREE_MAP_MES_MAX; i++) {
             MenuDngMes[i]->StepMsg();
             MenuDngMes[i]->DrawMsg();
         }
     }
+
     mgRect<int> number_rect;
     float       pos[2];
     MenuDngMap->CalcGlidPutPos(select_glid, pos[0], pos[1], 0);
@@ -2492,28 +2632,36 @@ void CMenuTreeMap::Draw() {
     pos[1] -= 8.0f;
     cursor_pos[0] += (pos[0] - cursor_pos[0]) / 4.0f;
     cursor_pos[1] += (pos[1] - cursor_pos[1]) / 4.0f;
+
     if (cursor_reset != 0) {
         cursor_pos[0] = pos[0];
         cursor_pos[1] = pos[1];
         cursor_reset = 0;
     }
+
     int cursor_alpha;
+
     if (mode == 1) {
         cursor_alpha = 0;
     } else {
         cursor_alpha = 128;
+
         if (mode == 2) {
             cursor_alpha = 0;
         }
     }
+
     if (cursor_view != 0) {
         mgCTexture *cursor = textures->GetTexture("mnmain", -1);
+
         if (cursor == NULL) {
             return;
         }
+
         textures->ReloadTexture(cursor->block, (sceVif1Packet *) NULL);
         MenuCursorDraw(cursor, cursor_pos, 0.0f, cursor_alpha);
     }
+
     if (money_view != 0 && Floor_InfoTex != NULL) {
         textures->ReloadTexture(Floor_InfoTex->block, (sceVif1Packet *) NULL);
         SetSpriteEnv(prim, 0);
@@ -2528,7 +2676,9 @@ void CMenuTreeMap::Draw() {
                        number_rect, -1, 0);
         prim->End();
     }
+
     textures->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
+
     if (key_arg_no == 1 && DngAskMessageDrawFlag == 1) {
         MenuDCMsg[3]->StepMsg();
         MenuDCMsg[3]->DrawMsg();
@@ -2537,19 +2687,24 @@ void CMenuTreeMap::Draw() {
 
 int CMenuTreeMap::FadeInOutMenu() {
     int done = 0;
+
     switch (mode) {
         case 1:
             done = FadeCheckMenu();
+
             if (done != 0) {
                 FadeOutMenu(40, 0.0f);
             }
+
             break;
         case 2:
             if (draw_hidden == 0) {
                 done = FadeCheckMenu();
             }
+
             break;
     }
+
     return done;
 }
 #ifdef NONMATCHING

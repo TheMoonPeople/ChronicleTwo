@@ -251,6 +251,7 @@ void dbgCJISFont::__putc(unsigned long serno) {
             if (loaded_texture_id != texture_id[DBG_FONT_SHEET_HALF_WIDTH]) {
                 textures->ReloadTexture(texture_id[DBG_FONT_SHEET_HALF_WIDTH], (sceVif1Packet *) NULL);
             }
+
             texture = textures->GetTexture(texture_name[DBG_FONT_SHEET_HALF_WIDTH], -1);
             serno -= DBG_FONT_SERNO_HALF_WIDTH;
             loaded_texture_id = texture_id[DBG_FONT_SHEET_HALF_WIDTH];
@@ -259,6 +260,7 @@ void dbgCJISFont::__putc(unsigned long serno) {
             if (loaded_texture_id != texture_id[DBG_FONT_SHEET_FULL_WIDTH_1]) {
                 textures->ReloadTexture(texture_id[DBG_FONT_SHEET_FULL_WIDTH_1], (sceVif1Packet *) NULL);
             }
+
             texture = textures->GetTexture(texture_name[DBG_FONT_SHEET_FULL_WIDTH_1], -1);
             serno -= DBG_FONT_SERNO_SHEET_1;
             loaded_texture_id = texture_id[DBG_FONT_SHEET_FULL_WIDTH_1];
@@ -266,14 +268,17 @@ void dbgCJISFont::__putc(unsigned long serno) {
             if (loaded_texture_id != texture_id[DBG_FONT_SHEET_FULL_WIDTH_0]) {
                 textures->ReloadTexture(texture_id[DBG_FONT_SHEET_FULL_WIDTH_0], (sceVif1Packet *) NULL);
             }
+
             texture = textures->GetTexture(texture_name[DBG_FONT_SHEET_FULL_WIDTH_0], -1);
             loaded_texture_id = texture_id[DBG_FONT_SHEET_FULL_WIDTH_0];
         }
+
         mgCDrawPrim prim;
         prim.Initialize(NULL, NULL);
         prim.DepthTestEnable(0);
         prim.AlphaTestEnable(0);
         prim.AlphaBlendEnable(1);
+
         if (back_enable != 0) {
             prim.Begin(MG_PRIM_SPRITE);
             prim.Color(back_color[0], back_color[1], back_color[2], back_color[3]);
@@ -281,7 +286,9 @@ void dbgCJISFont::__putc(unsigned long serno) {
             prim.Vertex(x + (char_width - (15 - (glyph_width - 1))), y + char_height + 1, 0);
             prim.End();
         }
+
         prim.TextureMapEnable(1);
+
         if (shadow_enable != 0) {
             prim.Begin(MG_PRIM_SPRITE);
             prim.Texture(texture);
@@ -295,6 +302,7 @@ void dbgCJISFont::__putc(unsigned long serno) {
             prim.Vertex(x + (char_width - (15 - (glyph_width - 1))), y + char_height + 1, 0);
             prim.End();
         }
+
         prim.Begin(MG_PRIM_SPRITE);
         prim.Texture(texture);
         prim.Color(color[0], color[1], color[2], color[3]);
@@ -305,6 +313,7 @@ void dbgCJISFont::__putc(unsigned long serno) {
         tex_y = serno * 16;
         prim.TextureCrd(tex_x + 1, tex_y + 1);
         prim.Vertex(x, y, 0);
+
         if (column == 0x3F) {
             if (serno == 0x3F) {
                 prim.TextureCrd(glyph_width - 1 + tex_x, tex_y + 15);
@@ -316,6 +325,7 @@ void dbgCJISFont::__putc(unsigned long serno) {
         } else {
             prim.TextureCrd(glyph_width + tex_x, tex_y + 16);
         }
+
         int padding = 16 - (glyph_width - 1);
         prim.Vertex(x + (char_width - padding), y + char_height, 0);
         prim.End();
@@ -324,7 +334,7 @@ void dbgCJISFont::__putc(unsigned long serno) {
     }
 }
 
-extern "C" int vsprintf(char *, const char *, char *);
+extern "C" int vsprintf(char *destination, const char *format, char *arguments);
 
 void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
     char  text[0x408];
@@ -338,8 +348,10 @@ void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
     prev_serno = 0;
     char *args = (char *) __builtin_next_arg(format) - (__builtin_args_info(2) >= 8 ? 0 : (8 - __builtin_args_info(2)) * 8);
     vsprintf((char *) text, format, args);
+
     while ((ch = *cursor) != 0) {
         long code = ch;
+
         if (!(code & 0x80)) {
             switch (code) {
                 case '\n':
@@ -353,10 +365,12 @@ void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
                     break;
                 case 'E':
                     length = 0;
+
                     while (length < 5 && cursor[length] != 0) {
                         escape[length] = cursor[length];
                         length++;
                     }
+
                     if (length >= 5) {
                         if (strcmp(escape, "ESC[$") == 0) {
                             cursor += 5;
@@ -375,8 +389,10 @@ void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
             }
         } else {
             unsigned char byte = *cursor;
+
             if (byte >= 0xA1 && byte < 0xE0) {
                 unsigned long serno = ascii2serno(byte);
+
                 if (serno == DBG_FONT_SERNO_DAKUTEN && prev_serno != 0) {
                     serno = prev_serno + 1;
                     prev_serno = 0;
@@ -388,6 +404,7 @@ void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
                 } else {
                     prev_serno = serno;
                 }
+
                 __putc(serno);
                 cursor++;
             } else {
@@ -399,6 +416,7 @@ void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
             }
         }
     }
+
     loaded_texture_id = -1;
 }
 

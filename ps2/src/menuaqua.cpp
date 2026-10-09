@@ -4896,74 +4896,92 @@ void CAquarium::Draw() {
     aqua_vector        water_ambient = at_4306;
 
     mgSetAmbient(water_ambient.v);
+
     for (i = 0; i < 6; i++) {
         if (fish[i] != NULL) {
             textures->ReloadTexture(fish_tex_block[i], static_cast<sceVif1Packet *>(NULL));
             fish[i]->FishDraw();
         }
     }
+
     float *light = ambient;
     mgSetAmbient(light);
+
     if (ground_frame != NULL) {
         textures->ReloadTexture(ground_tex_block, static_cast<sceVif1Packet *>(NULL));
         mgDrawDirect(ground_frame);
     }
+
     if (aqua_frame != NULL) {
         load_stack.stack_used = 0;
         load_stack.lock = 0;
         mgBeginDraw(&load_stack, tex_block, NULL);
         mgDraw(aqua_frame);
         mgSetAmbient(water_ambient.v);
+
         if (naka_frame != NULL) {
             mgDraw(naka_frame);
         }
+
         mgSetAmbient(light);
         mgEndDraw(NULL);
     }
+
     if (glass_frame != NULL) {
         textures->ReloadTexture(glass_tex_block, static_cast<sceVif1Packet *>(NULL));
         mgDrawDirect(glass_frame);
     }
+
     if (food != NULL) {
         textures->ReloadTexture(food_tex_block, static_cast<sceVif1Packet *>(NULL));
         food->DrawDirect();
     }
+
     textures->ReloadTexture(menu_tex_block, static_cast<sceVif1Packet *>(NULL));
+
     for (int i = 0; i < 3; i++) {
         if (AquaBubble[i] != NULL) {
             AquaBubble[i]->SetTexture(Tex_Aqualium, 0xF8, 0x64);
             AquaBubble[i]->Draw();
         }
     }
+
     for (int i = 0; i < 6; i++) {
         if (AquaFishBubble[i] != NULL) {
             AquaFishBubble[i]->SetTexture(Tex_Aqualium, 0xF8, 0x64);
             AquaFishBubble[i]->Draw();
         }
     }
+
     if (AquaBattleBubble != NULL) {
         for (int i = 0; i < 0x30; i++) {
             AquaBattleBubble[i].SetTexture(Tex_Aqualium, 0xF8, 0x64);
             AquaBattleBubble[i].Draw();
         }
     }
+
     for (int i = 0; i < 6; i++) {
         AquaFishEff[i]->Draw();
     }
+
     if (suimen_frame != NULL) {
         aqua_vector surface_ambient = at_4352;
 
         mgSetAmbient(surface_ambient.v);
         textures->ReloadTexture(water_tex_block, static_cast<sceVif1Packet *>(NULL));
         mgDrawDirect(suimen_frame);
+
         if (mizu_frame != NULL) {
             mgDrawDirect(mizu_frame);
         }
+
         mgSetAmbient(light);
     }
+
     if (food != NULL && drop_root_draw != 0) {
         DrawEsaDropRoot(food, 48.0f);
     }
+
     if (water != NULL) {
         float       camera_pos[4];
         float       matrix[4][4];
@@ -4972,11 +4990,13 @@ void CAquarium::Draw() {
         int         wall;
 
         Camera__2->GetPos(camera_pos);
+
         if (camera_pos[1] < 47.0f) {
             water->SetPosition(-34.0f, float(46.8), -21.5f);
         } else {
             water->SetPosition(-34.0f, 47.0f, -21.5f);
         }
+
         mgUnitMatrix(matrix);
         textures->ReloadTexture(water_tex_block, static_cast<sceVif1Packet *>(NULL));
         mgCTexture frame_buffer;
@@ -5004,9 +5024,11 @@ void CAquarium::Draw() {
         sceVu0InnerProduct(axis_z.v, flat_dir);
         water->CreatePacket();
         ripple -= 0.01f;
+
         if (ripple <= 0.1f) {
             ripple = 0.1f;
         }
+
         int row = fptosi(24.0f * GetRandF(1.0f));
         water->Shake(row, fptosi(16.0f * GetRandF(1.0f)), ripple);
         float speed = 0.0045f;
@@ -5016,6 +5038,7 @@ void CAquarium::Draw() {
         mgDrawDirect(water);
         reflect = textures->GetTexture(at_4519, -1);
         mgSetPkFrameBuffer(screen);
+
         if (reflect != NULL) {
             prim.Begin(6);
             prim.Texture(reflect);
@@ -5023,6 +5046,7 @@ void CAquarium::Draw() {
             PrimQuad(&prim, mgRect<int>(0, 0, mgScreenWidth, mgScreenHeight), mgRect<int>(0, 0, 0x80, 0x80));
             prim.End();
         }
+
         mgSetPkFrameBuffer(-1, -1, -1, -1);
         water->SetColor(0x80, 0x80, 0x80, 0x30);
         water->SetParam(0.15f, speed, 0.0f, 100.0f);
@@ -5056,6 +5080,7 @@ void CAquarium::Draw() {
         float offset[4];
         int   prim_pos[4][4];
         int   screen_pos[4][4];
+
         for (wall = 0; wall < 4; wall++) {
             float(*quad)[4];
             int visible;
@@ -5066,6 +5091,7 @@ void CAquarium::Draw() {
                     if (camera_pos[2] < 21.0f) {
                         continue;
                     }
+
                     quad = wall0;
                     sceVu0SubVector(offset, v1orig_4373, camera_pos);
                     break;
@@ -5073,6 +5099,7 @@ void CAquarium::Draw() {
                     if (!(camera_pos[2] <= -21.0f)) {
                         continue;
                     }
+
                     quad = wall1;
                     sceVu0SubVector(offset, v2orig_4374, camera_pos);
                     break;
@@ -5080,6 +5107,7 @@ void CAquarium::Draw() {
                     if (camera_pos[0] < 34.0f) {
                         continue;
                     }
+
                     quad = wall2;
                     sceVu0SubVector(offset, v3orig_4375, camera_pos);
                     break;
@@ -5087,10 +5115,12 @@ void CAquarium::Draw() {
                     if (!(camera_pos[0] <= -34.0f)) {
                         continue;
                     }
+
                     quad = wall3;
                     sceVu0SubVector(offset, v4orig_4376, camera_pos);
                     break;
             }
+
             sceVu0Normalize(offset, offset);
             sceVu0ScaleVector(offset, offset, 1.5f);
             prim.Initialize(NULL, NULL);
@@ -5103,11 +5133,13 @@ void CAquarium::Draw() {
             prim.Begin(4);
             prim.Color(0x80, 0x80, 0x80, 0x80);
             visible = 1;
+
             for (k = 0; k < 4; k++) {
                 visible &= mgTransWorldPrim(prim_pos[k], quad[k]);
                 sceVu0AddVector(quad[k], quad[k], offset);
                 mgTransWorldScreen(screen_pos[k], quad[k]);
             }
+
             if (wall == 0 || wall == 2) {
                 screen_pos[0][0] += 0xC0;
                 screen_pos[1][0] -= 0xC0;
@@ -5119,10 +5151,12 @@ void CAquarium::Draw() {
                 screen_pos[2][0] -= 0xC0;
                 screen_pos[3][0] += 0xC0;
             }
+
             screen_pos[0][1] += 0x60;
             screen_pos[1][1] += 0x60;
             screen_pos[2][1] -= 0x60;
             screen_pos[3][1] -= 0x60;
+
             if (visible) {
                 prim.Texture(screen);
                 prim.TextureCrd4(screen_pos[0][0], screen_pos[0][1]);
@@ -5134,10 +5168,13 @@ void CAquarium::Draw() {
                 prim.TextureCrd4(screen_pos[3][0], screen_pos[3][1]);
                 prim.Vertex4(prim_pos[3]);
             }
+
             prim.End();
         }
     }
+
     textures->ReloadTexture(menu_tex_block, static_cast<sceVif1Packet *>(NULL));
+
     if (mes.title_draw != 0) {
         mgCDrawPrim title_prim;
 
@@ -5149,17 +5186,22 @@ void CAquarium::Draw() {
         Menu3DivideTextureDraw(&title_prim, mgRect<int>(AQUA_TITLE_X, AQUA_TITLE_Y, AQUA_TITLE_W, AQUA_TITLE_H), t_4408, 1);
         title_prim.End();
     }
+
     mes.DrawTitleMes();
     textures->ReloadTexture(menu_tex_block, static_cast<sceVif1Packet *>(NULL));
+
     if (fish_info_draw != 0 && 0 <= sel_fish && fish[sel_fish] != NULL) {
         DrawFishParam(mgScreenWidth - 0x152, 2, Tex_Aqualium, fish[sel_fish]->data);
     }
+
     if (0 < love_phase && love_chara != NULL) {
         textures->ReloadTexture(love_tex_block, static_cast<sceVif1Packet *>(NULL));
         love_chara->DrawDirect();
     }
+
     textures->ReloadTexture(MenuArg.mes_tex_block, static_cast<sceVif1Packet *>(NULL));
     mes.Draw();
+
     if (menu_debug_flag != 0) {
         CMenuFont  font;
         CAquaFish *selected = fish[sel_fish];
@@ -5201,11 +5243,14 @@ void CAquarium::Draw() {
                 breed->hp,
             };
             char line[0x100];
+
             for (int i = 0; i < 12; y += 0x14, i++) {
                 sprintf(line, formats[i], values[i]);
+
                 if (i == menu_debug_select) {
                     line[0] = '>';
                 }
+
                 font.DrawDirect(line, x, y);
             }
         }
@@ -6318,6 +6363,7 @@ int GyoraceMenuKey() {
     old_top = GyoraceFishHaveListSelect.top;
     /** Keeps the selected saved-racer slot through the tactics prompt. */
     static s8 save_now_space_racer_no = 0;
+
     switch (GyoraceNowMode) {
         case 0:
             if (ReadBGSync() == 0) {
@@ -6329,13 +6375,17 @@ int GyoraceMenuKey() {
                 file = GetReadBGFile(0);
                 textures = &mgTexManager;
                 image = GetPackFile(reinterpret_cast<u_int *>(file->buffer), at_5487, NULL);
+
                 if (image != NULL) {
                     textures->EnterIMGFile(reinterpret_cast<u_char *>(image), GyoraceTexBlock[1], NULL, NULL);
                 }
+
                 image = GetPackFile(reinterpret_cast<u_int *>(file->buffer), at_5488, NULL);
+
                 if (file != NULL) {
                     textures->EnterIMGFile(reinterpret_cast<u_char *>(image), GyoraceTexBlock[1], NULL, NULL);
                 }
+
                 GyoraceExeCfgBuffer = reinterpret_cast<char *>(
                     GetPackFile(reinterpret_cast<u_int *>(file->buffer), at_5489, &GyoraceExeCfgBufferSize));
                 MenuMainImageDataEnter(GyoraceTexBlock[1]);
@@ -6347,20 +6397,25 @@ int GyoraceMenuKey() {
                 scroll_init = 1;
                 GyoraceHaveFishListScrlInit = scroll_init;
             }
+
             break;
         case 1:
             cursor = GyoraceMes->AddMsgCursor2(0, 6, 1);
+
             if (button & 1) {
                 GYORACE_DATA *space;
 
                 racer_num = 0;
+
                 for (i = 0; i < 6; i++) {
                     if (0 <= GyoracerIndexNo.data_index[i]) {
                         racer_num++;
                     }
                 }
+
                 space = GyoraceData->SearchSpaceData(NULL);
                 se = 1;
+
                 switch (cursor) {
                     case 0:
                         if (space == NULL) {
@@ -6376,15 +6431,18 @@ int GyoraceMenuKey() {
                             MenuMainScene->fade.FadeOut(40, 0.0f, 0.0f, 0.0f);
                             GyoraceNowMode = 8;
                         }
+
                         break;
                     case 2:
                     case 3:
                         if (cursor == 2) {
                             GyoraceNowMode = GYORACE_MENU_ASSIGN_FISH;
                         }
+
                         if (cursor == 3) {
                             GyoraceNowMode = GYORACE_MENU_DELETE_FISH;
                         }
+
                         list_update = 1;
                         GyoraceMes->cursor_on = 0;
                         GyoraceMesDrawFlag = 0;
@@ -6400,6 +6458,7 @@ int GyoraceMenuKey() {
                             GyoraceQuestionMsgDrawFlag = se;
                             GyoraceCFGAnalyze(at_5493);
                         }
+
                         break;
                     case 4:
                         GyoraceNowMode = GYORACE_MENU_VIEW_TACTICS;
@@ -6408,9 +6467,11 @@ int GyoraceMenuKey() {
                         GyoraceFishTacMesDrawFlag = se;
                         tactics_mes->MsgPreset(6);
                         tactics_mes->MakeMsg(0x139A);
+
                         if (LanguageCode > 0) {
                             tactics_mes->point_x = 0x64;
                         }
+
                         tactics_mes->point_y = 0x50;
                         GyoraceMes->cursor_on = 0;
                         GyoraceFishMes->SetMsgCursor(0);
@@ -6423,12 +6484,14 @@ int GyoraceMenuKey() {
                             GyoraceQuestionMsgDrawFlag = se;
                             GyoraceCFGAnalyze(at_5494);
                         }
+
                         break;
                     case 6:
                         GyoraceNowMode = GYORACE_MENU_SAVE_FADE;
                         MenuMainScene->fade.FadeOut(40, 0.0f, 0.0f, 0.0f);
                         break;
                 }
+
                 MenuSePlay(se);
             } else if (button & 2) {
                 MenuSePlay(5);
@@ -6442,18 +6505,21 @@ int GyoraceMenuKey() {
                 GyoraceData->data[0].fish.SetName(debug_name);
                 MenuSePlay(SYSTEM_SE_DECIDE);
             }
+
             break;
         case 2:
             if (button != 0) {
                 next = 1;
                 MenuSePlay(5);
             }
+
             break;
         case 8:
             if (MenuMainScene->fade.FadeCheck() != 0) {
                 GyoraceNowMode = 7;
                 NameRegistInit(&GyoraceStack, &GyoraceTexBlock[5], 0);
             }
+
             break;
         case 7:
             if (NameRegistKey() != 0) {
@@ -6462,21 +6528,25 @@ int GyoraceMenuKey() {
                 GyoraceNowMode = 1;
                 GyoracerListUpdate();
             }
+
             break;
         case GYORACE_MENU_ASSIGN_FISH:
             if (MenuKeySelectCheck(OmakeGyoraceSelect(key), &GyoraceFishHaveListSelect.cursor,
                                    &GyoraceFishHaveListSelect.top, 0, 0x40, 9, (int) MENU_CURSOR_LIMIT_CLAMP) != 0) {
                 MenuSePlay(SYSTEM_SE_CURSOR);
+
                 if (old_top != GyoraceFishHaveListSelect.top) {
                     GyoraceHaveFishListMakeLine = (old_top < GyoraceFishHaveListSelect.top) ? 1 : 0;
                     list_update = 1;
                 }
             }
+
             if (button & 1) {
                 int slot;
 
                 racer = GyoraceData->GetData(GyoraceFishHaveListSelect.cursor);
                 slot = SearchOmakeGyoracer(-1);
+
                 if (racer == NULL || slot < 0) {
                     MenuSePlay(5);
                 } else if (racer->IsUsed() == 0 || 0 <= CheckSameRacerFish(GyoraceFishHaveListSelect.cursor)) {
@@ -6498,9 +6568,11 @@ int GyoraceMenuKey() {
                 next = 1;
                 MenuSePlay(5);
             }
+
             break;
         case GYORACE_MENU_SELECT_TACTICS:
             cursor = tactics_mes->AddMsgCursor2(1, 6, 1);
+
             if (button & 1) {
                 CGameDataUsed *racer_fish;
 
@@ -6508,12 +6580,15 @@ int GyoraceMenuKey() {
                 GyoraceCFGAnalyze(at_5496);
                 name = NULL;
                 racer_fish = GetOmakeGyoracer2(save_now_space_racer_no);
+
                 if (racer_fish != NULL) {
                     name = racer_fish->GetName(0);
                 }
+
                 if (name != NULL) {
                     strcpy(tactics_mes->name[0], name);
                 }
+
                 tactics_mes->SetWindowBgOpaqueFlg(0);
                 GyoraceNowMode = GYORACE_MENU_TACTICS_RESULT;
             } else if (button & 2) {
@@ -6522,6 +6597,7 @@ int GyoraceMenuKey() {
                 tactics_mes->SetWindowBgOpaqueFlg(0);
                 GyoraceNowMode = GYORACE_MENU_ASSIGN_FISH;
             }
+
             break;
         case GYORACE_MENU_TACTICS_RESULT:
             if (button != 0) {
@@ -6529,18 +6605,22 @@ int GyoraceMenuKey() {
                 GyoraceFishTacMesDrawFlag = 0;
                 GyoraceNowMode = GYORACE_MENU_ASSIGN_FISH;
             }
+
             break;
         case GYORACE_MENU_DELETE_FISH:
             if (MenuKeySelectCheck(OmakeGyoraceSelect(key), &GyoraceFishHaveListSelect.cursor,
                                    &GyoraceFishHaveListSelect.top, 0, 0x40, 9, (int) MENU_CURSOR_LIMIT_CLAMP) != 0) {
                 MenuSePlay(SYSTEM_SE_CURSOR);
+
                 if (old_top != GyoraceFishHaveListSelect.top) {
                     GyoraceHaveFishListMakeLine = (old_top < GyoraceFishHaveListSelect.top) ? 1 : 0;
                     list_update = 1;
                 }
             }
+
             if (button & 1) {
                 racer = GyoraceData->GetData(GyoraceFishHaveListSelect.cursor);
+
                 if (racer == NULL) {
                     MenuSePlay(5);
                 } else if (racer->IsUsed() == 0) {
@@ -6548,15 +6628,18 @@ int GyoraceMenuKey() {
                 } else {
                     GyoraceQuestionMsgDrawFlag = 1;
                     name = racer->fish.GetName(0);
+
                     if (0 <= CheckSameRacerFish(GyoraceFishHaveListSelect.cursor)) {
                         GyoraceNowMode = GYORACE_MENU_ALREADY_ASSIGNED;
                         GyoraceCFGAnalyze(at_5497);
+
                         if (name != NULL) {
                             strcpy(ask->name[0], name);
                         }
                     } else {
                         GyoraceNowMode = GYORACE_MENU_DELETE_CONFIRM;
                         GyoraceCFGAnalyze(at_5498);
+
                         if (name != NULL) {
                             strcpy(ask->name[0], name);
                         }
@@ -6566,25 +6649,30 @@ int GyoraceMenuKey() {
                 next = 1;
                 MenuSePlay(5);
             }
+
             break;
         case GYORACE_MENU_DELETE_CONFIRM: {
             int answer = ask->YesNoCursor2(0);
 
             if (answer == 1) {
                 racer = GyoraceData->GetData(GyoraceFishHaveListSelect.cursor);
+
                 if (racer != NULL) {
                     racer->Init();
                 }
+
                 list_update = 1;
                 GyoraceNowMode = GYORACE_MENU_DELETE_FISH;
                 GyoraceQuestionMsgDrawFlag = 0;
                 MenuSePlay(list_update);
             }
+
             if (answer == 2) {
                 GyoraceNowMode = GYORACE_MENU_DELETE_FISH;
                 GyoraceQuestionMsgDrawFlag = 0;
                 MenuSePlay(5);
             }
+
             break;
         }
         case GYORACE_MENU_ALREADY_ASSIGNED:
@@ -6593,6 +6681,7 @@ int GyoraceMenuKey() {
                 GyoraceQuestionMsgDrawFlag = 0;
                 MenuSePlay(SYSTEM_SE_DECIDE);
             }
+
             break;
         case GYORACE_MENU_START_CONFIRM: {
             int answer = ask->YesNoCursor2(0);
@@ -6602,12 +6691,15 @@ int GyoraceMenuKey() {
                 GyoracerListUpdate();
                 MenuSePlay(SYSTEM_SE_DECIDE);
             }
+
             if (answer == 2) {
                 MenuSePlay(5);
             }
+
             if (0 < answer) {
                 next = 1;
             }
+
             break;
         }
         case GYORACE_MENU_START_ACK:
@@ -6615,23 +6707,29 @@ int GyoraceMenuKey() {
                 next = 1;
                 MenuSePlay(next);
             }
+
             break;
         case GYORACE_MENU_VIEW_TACTICS: {
             int old_cursor = GyoraceFishMes->GetMsgCursor();
             int racer_slot = GyoraceFishMes->AddMsgCursor2(0, 5, 0);
 
             GyoracerActive = GetOmakeGyoracer2(racer_slot);
+
             if (old_cursor != racer_slot) {
                 MenuSePlay(SYSTEM_SE_CURSOR);
             }
+
             if (button & 2) {
                 next = 1;
                 MenuSePlay(5);
             }
+
             int tactics[1] = {-1};
+
             if (GyoracerActive != NULL) {
                 tactics[0] = GyoracerTacticsNo.tactics_no[racer_slot] + 0x139C;
             }
+
             tactics_mes->SetMsgItemNo(tactics, 1);
             break;
         }
@@ -6646,42 +6744,51 @@ int GyoraceMenuKey() {
                 MenuMainScene->fade.FadeOut(40, 0.0f, 0.0f, 0.0f);
                 MenuSePlay(SYSTEM_SE_DECIDE);
             }
+
             if (answer == 2) {
                 next = 1;
                 MenuSePlay(5);
             }
+
             break;
         }
         case 6:
             if (MenuMainScene->fade.FadeCheck() != 0) {
                 return 2;
             }
+
             break;
         case GYORACE_MENU_SAVE_FADE:
             if (MenuMainScene->fade.FadeCheck() != 0) {
                 GyoraceNowMode = GYORACE_MENU_SAVE;
                 MenuSaveInit(&GyoraceStack, &GyoraceTexBlock[5], 0x1E);
             }
+
             break;
         case GYORACE_MENU_SAVE:
             if (0 < MenuSaveKey()) {
                 MenuLoadFishIsLoad = 0;
+
                 if (MenuArg.end_code == 10) {
                     MenuLoadFishIsLoad = 1;
                 }
+
                 next = GYORACE_MENU_RETURN_FROM_SAVE;
                 MenuMainScene->fade.FadeIn(30);
                 MenuArg.end_code = 0;
                 MenuArg.result[0] = 0;
             }
+
             break;
         case GYORACE_MENU_RETURN_FROM_SAVE:
             if (MenuMainScene->fade.FadeCheck() != 0) {
                 next = 1;
+
                 if (MenuLoadFishIsLoad == 1) {
                     next = GYORACE_MENU_LOAD_FISH;
                 }
             }
+
             break;
         case GYORACE_MENU_LOAD_FISH:
             if (MenuLoadFishBoardX > 0xE0) {
@@ -6690,11 +6797,13 @@ int GyoraceMenuKey() {
                 MenuItemBrdKey(key, &MenuLoadFishSelect, &MenuLoadFishTopLine, 1);
                 CGameDataUsed *item = MenuDrawItemInfo[MenuLoadFishSelect];
                 GyoracerActive = item;
+
                 if (button & 2) {
                     next = GYORACE_MENU_RESET_CONFIRM;
                     MenuSePlay(5);
                 } else if (button & 1) {
                     MenuLoadFishSelectData = item;
+
                     if (GyoraceData->SearchSpaceData(NULL) == NULL || MenuLoadFishSelectData == NULL) {
                         MenuSePlay(5);
                     } else {
@@ -6703,6 +6812,7 @@ int GyoraceMenuKey() {
                     }
                 }
             }
+
             break;
         case GYORACE_MENU_RESET_CONFIRM:
         case GYORACE_MENU_ASSIGN_CONFIRM: {
@@ -6710,12 +6820,14 @@ int GyoraceMenuKey() {
 
             if (answer == 1) {
                 MenuSePlay(1);
+
                 if (GyoraceNowMode == GYORACE_MENU_RESET_CONFIRM) {
                     next = 1;
                     InitSaveData();
                     InitOmakeEnv(next, NULL, NULL);
                     memcpy(GetSaveData()->GetConfig(), &GyoraceMenuOptionBuff, sizeof(SV_CONFIG_OPTION));
                 }
+
                 if (GyoraceNowMode == GYORACE_MENU_ASSIGN_CONFIRM) {
                     GYORACE_DATA *space = GyoraceData->SearchSpaceData(NULL);
 
@@ -6731,15 +6843,19 @@ int GyoraceMenuKey() {
                     }
                 }
             }
+
             if (answer == 2) {
                 MenuSePlay(5);
+
                 if (GyoraceNowMode == GYORACE_MENU_RESET_CONFIRM) {
                     next = GYORACE_MENU_LOAD_FISH;
                 }
+
                 if (GyoraceNowMode == GYORACE_MENU_ASSIGN_CONFIRM) {
                     next = GYORACE_MENU_LOAD_FISH;
                 }
             }
+
             break;
         }
         case GYORACE_MENU_ASSIGN_RESULT:
@@ -6749,8 +6865,10 @@ int GyoraceMenuKey() {
                 MenuLoadFishSelectData = NULL;
                 MenuSePlay(SYSTEM_SE_DECIDE);
             }
+
             break;
     }
+
     if (0 <= next) {
         switch (next) {
             case 1:
@@ -6764,6 +6882,7 @@ int GyoraceMenuKey() {
                 break;
             case GYORACE_MENU_RETURN_FROM_SAVE:
                 GyoraceFishInfoDrawFlag = 0;
+
                 if (MenuLoadFishIsLoad != 0) {
                     int bag_max;
 
@@ -6781,6 +6900,7 @@ int GyoraceMenuKey() {
                     GyoraceFishInfoDrawFlag = list_update;
                     GyoracerActive = NULL;
                 }
+
                 break;
             case GYORACE_MENU_LOAD_FISH:
                 SetModeMenuDrawItemBoard(4);
@@ -6794,74 +6914,95 @@ int GyoraceMenuKey() {
                 ask->MsgPreset(0xB);
                 ask->SetAbsPos(5);
                 ask->SetMsgCursor(1);
+
                 if (next == GYORACE_MENU_RESET_CONFIRM) {
                     ask->MakeMsg(0x13AC);
                 }
+
                 if (next == GYORACE_MENU_ASSIGN_CONFIRM) {
                     ask->MakeMsg(0x1393);
+
                     if (MenuLoadFishSelectData != NULL) {
                         name = MenuLoadFishSelectData->GetName(0);
+
                         if (name != NULL) {
                             strcpy(ask->name[0], name);
                         }
                     }
                 }
+
                 break;
             case GYORACE_MENU_ASSIGN_RESULT:
                 GyoraceCFGAnalyze(at_5499);
                 name = MenuLoadFishSelectData->GetName(0);
+
                 if (name != NULL) {
                     strcpy(ask->name[0], name);
                 }
+
                 break;
         }
+
         GyoraceNowMode = next;
     }
+
     if (GyoraceFishHave != NULL) {
         int top = GyoraceFishHaveListSelect.top;
         int line_y;
 
         if (GyoraceHaveFishListMakeLine == 1) {
             top--;
+
             if (top < 0) {
                 top = 0;
             }
         }
+
         if (list_update != 0) {
             GYORACE_DATA *entry = GyoraceData->GetData(top);
+
             for (int k = 0; k < 10 && entry != NULL; entry++, k++) {
                 name = Mitouroku[LanguageCode];
                 SetHaveName(GyoraceFishHave, k, name);
+
                 if (entry->IsUsed() != 0) {
                     name = entry->fish.GetName(0);
                     SetHaveName(GyoraceFishHave, k, name);
                 }
             }
+
             GyoraceFishHave->ClsMes::mes_no = -1;
             GyoraceFishHave->MakeMsg(0x3C);
         }
+
         CalcMenu1(-26.0f * GyoraceFishHaveListSelect.top, &GyoraceHaveFishListTopY, 3.5f, 3.0f,
                   GyoraceHaveFishListScrlInit);
         line_y = (int) ((int) (112.0f + GyoraceHaveFishListTopY) + 26.0f * top);
+
         for (int j = 0; j < 10; j++) {
             CDC2Mes *have = GyoraceFishHave;
+
             if (j >= 0 && j < 20) {
                 have->line_pos[j][0] = 0x32;
                 have->line_pos[j][1] = line_y;
                 have->line_pos_on[j] = 1;
             }
+
             line_y += 26.0f;
         }
     }
+
     if (GyoraceMes != NULL) {
         GyoraceMes->StepMsg();
         GyoraceFishMes->StepMsg();
         GyoraceFishHave->StepMsg();
         tactics_mes->StepMsg();
     }
+
     if (ask != NULL) {
         ask->StepMsg();
     }
+
     CalcMenu1(114.0f + 26.0f * (GyoraceFishHaveListSelect.cursor - GyoraceFishHaveListSelect.top),
               &GyoraceHaveFishCursor, 3.6f, 3.0f, scroll_init);
     return 0;

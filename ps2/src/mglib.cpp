@@ -367,9 +367,11 @@ void mgInit(int screen_mode, int video_mode) {
     mgGiftagAD.REGS0 = SCE_GIF_PACKED_AD;
     mgScreenMode = GetScreenSize(screen_mode, &mgScreenWidth, &mgScreenHeight, &mgScreenNX, &mgScreenNY, &mgScreenMX, &mgScreenMY);
     aligned_height = mgScreenHeight;
+
     if (mgScreenHeight % 32 != 0) {
         aligned_height += 32 - aligned_height % 32;
     }
+
     mgScreenOffx = 0x800 - mgScreenWidth / 2;
     mgScreenOffy = 0x800 - mgScreenHeight / 2;
     mgScreenLeft = mgScreenOffx;
@@ -379,14 +381,17 @@ void mgInit(int screen_mode, int video_mode) {
     mgScreenDepth = 32;
     mgScreenZDepth = 32;
     sceGsResetGraph(0, SCE_GS_INTERLACE, video_mode, 0);
+
     for (i = 0; i < 8192; i++) {
         clear_pixels[i] = 0;
     }
+
     for (buffer = 0; buffer < 32; buffer++) {
         sceGsSetDefLoadImage(&load_image, buffer * 0x200, 2, SCE_GS_PSMCT32, 0, 0, 128, 256);
         FlushCache(0);
         sceGsExecLoadImage(&load_image, clear_pixels);
     }
+
     sceGsSetDefDBuff(&mgDBuff, SCE_GS_PSMCT32, (short) mgScreenWidth, (short) mgScreenHeight, SCE_GS_ZGEQUAL, SCE_GS_PSMZ24, 0);
     frame_buf0 = 0;
     frame_buf1 = mgScreenDepth * (mgScreenWidth * aligned_height / 2048) / 32;
@@ -446,19 +451,24 @@ void mgInit(int screen_mode, int video_mode) {
     sceGsSwapDBuff(&mgDBuff, 0);
     sceDmaSync(DmaCH2, 0, 0);
     mgCreateSinTable();
+
     for (int preset = 0; preset < 1; preset++) {
         for (int cell = 0; cell < 16; cell++) {
             dimx_281[preset][cell] = dimx_281[preset][cell] / 2 - 4;
         }
     }
+
     for (int preset = 0; preset < 1; preset++) {
         u_long packed_dimx = 0;
+
         for (int cell = 0; cell < 16; cell++) {
             // The shift uses 32 bits, so cells 8-15 wrap onto the low word.
             packed_dimx |= (dimx_281[preset][cell] & 0x7) << (cell * 4);
         }
+
         mgDIMX[preset].value = packed_dimx;
     }
+
     mgDIMX[0].bits.dm00 = dimx_281[0][0];
     mgDIMX[0].bits.dm01 = dimx_281[0][1];
     mgDIMX[0].bits.dm02 = dimx_281[0][2];

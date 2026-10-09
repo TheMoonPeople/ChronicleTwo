@@ -437,9 +437,12 @@ void CharaControl(CScene *scene, CPadControl *pad) {
     if (pad == NULL) {
         return;
     }
+
     player = scene->GetCharacter(scene->player_chara);
+
     if (player != NULL) {
         base_camera = scene->GetCamera(scene->active_camera);
+
         if (base_camera != NULL) {
             switch (base_camera->Iam()) {
                 case CAMERA_KIND_CONTROL:
@@ -447,6 +450,7 @@ void CharaControl(CScene *scene, CPadControl *pad) {
                 default:
                     return;
             }
+
             camera = (CCameraControl *) base_camera;
             BombChara->GetPosition(bomb_position);
             player->GetPosition(player_position);
@@ -460,15 +464,18 @@ void CharaControl(CScene *scene, CPadControl *pad) {
             speed_z = -stick_x * sinf(angle) + stick_y * cosf(angle);
             speed_x *= 5.0f;
             speed_z *= 3.5f;
+
             if (DebugInfo.chara_move) {
                 if (GamePad__2.On(1)) {
                     speed_x *= 3.0f;
                     speed_z *= 3.0f;
                 }
+
                 if (pad->Btn(1)) {
                     velocity[1] = 8.0f;
                 }
             }
+
             velocity[0] = speed_x;
             velocity[2] = speed_z;
             velocity[1] -= 0.6f;
@@ -485,6 +492,7 @@ void CharaControl(CScene *scene, CPadControl *pad) {
             sceVu0RotMatrixY(direction_matrix, direction_matrix, player_rotation[1]);
             sceVu0ApplyMatrix(direction, direction_matrix, direction);
             sceVu0Normalize(direction, direction);
+
             switch (CharaStatus) {
                 case BUGGY_CHARA_FREE:
                     if (pad->Btn(0) && pad->Btn(0x36) && TakeBombCheck() &&
@@ -492,6 +500,7 @@ void CharaControl(CScene *scene, CPadControl *pad) {
                         mgAngleCmp(player_rotation[1], atan2f(to_bomb[0], to_bomb[2]), 2.0f) == 0) {
                         CharaStatus = BUGGY_CHARA_PICKUP_START;
                     }
+
                     break;
                 case BUGGY_CHARA_PICKUP_START:
                     player->SetMotion(at_1160__2, 6);
@@ -502,15 +511,18 @@ void CharaControl(CScene *scene, CPadControl *pad) {
                         TakeBomb();
                         sndSePlay(BuggySndID, 0xA, 0);
                     }
+
                     if (player->CheckMotionEnd() != 0) {
                         CharaStatus = BUGGY_CHARA_CARRYING;
                     }
+
                     break;
                 case BUGGY_CHARA_CARRYING:
                     if (pad->Btn(0) != 0) {
                         player->SetMotion(at_1161__2, 6);
                         CharaStatus = BUGGY_CHARA_THROWING;
                     }
+
                     BuggyChara->GetPosition(buggy_position);
                     camera->RotBack(mgAngleLimit(atan2f(buggy_position[0] - player_position[0],
                                                         buggy_position[2] - player_position[2]) -
@@ -524,12 +536,16 @@ void CharaControl(CScene *scene, CPadControl *pad) {
                         ThrowBomb(throw_velocity);
                         sndSePlay(BuggySndID, 0xB, 0);
                     }
+
                     if (player->CheckMotionEnd() != 0) {
                         CharaStatus = BUGGY_CHARA_FREE;
                     }
+
                     break;
             }
+
             stopped = 0;
+
             switch (CharaStatus) {
                 case BUGGY_CHARA_PICKUP_START:
                 case BUGGY_CHARA_PICKING_UP:
@@ -547,26 +563,33 @@ void CharaControl(CScene *scene, CPadControl *pad) {
                     run_motion = NULL;
                     break;
             }
+
             if (!stopped) {
                 if (speed_x != 0.0f || speed_z != 0.0f) {
                     player->GetRotation(turn_rotation);
                     target_angle = atan2f(speed_x, speed_z);
                     next_angle = mgAngleInterpolate(turn_rotation[1], target_angle, 0.3f, 0);
                     angle_error = target_angle - next_angle;
+
                     if (angle_error < 0.0f) {
                         angle_error = -angle_error;
                     }
+
                     if (!((float) fptosi(angle_error) <= 1.0f)) {
                         velocity[0] *= 0.5f;
                         velocity[2] *= 0.5f;
                     }
+
                     player->SetRotation(0.0f, next_angle, 0.0f);
                     strength = sqrtf(stick_x * stick_x + stick_y * stick_y);
+
                     if (strength < 0.8f || run_motion == NULL) {
                         step_scale = 0.1f + strength / 0.8f;
+
                         if (!(step_scale <= 1.0f)) {
                             step_scale = 1.0f;
                         }
+
                         player->SetMotion(walk_motion, 0);
                         player->SetStep(anim_scale * step_scale);
                     } else {
@@ -576,17 +599,22 @@ void CharaControl(CScene *scene, CPadControl *pad) {
                     player->SetMotion(idle_motion, 0);
                 }
             }
+
             BombChara->GetPosition(bomb_position);
             memset(&move.move_info, 0, sizeof(move.move_info));
             memset(&move, 0, sizeof(move));
+
             if (NowPutBomb() != 0) {
                 move.polys = bomb_polys;
                 move.poly_num = CreateCharaCPoly(bomb_polys, 0x10, bomb_position, player_position, 1.0f, 20.0f);
             }
+
             EditMoveChara(scene, velocity, &move);
+
             if (camera != NULL) {
                 camera->SetRotCameraCancel((int) CAMERA_ROT_CANCEL_BUTTON);
             }
+
             switch (BombStatus) {
                 case BUGGY_BOMB_RELOAD_START: {
                     mgCObject &player_object = *player;
@@ -610,6 +638,7 @@ void CharaControl(CScene *scene, CPadControl *pad) {
                     EditCameraControl(scene, pad, NULL);
                     break;
             }
+
             if (camera != NULL) {
                 camera->SetRotCameraCancel(0);
             }
