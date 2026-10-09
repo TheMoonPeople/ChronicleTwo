@@ -1838,6 +1838,22 @@
         "expected_matches": 1
       },
       {
+        "translation_unit": "mdslist.cpp",
+        "function": "Copy__9CMapPieceFR9CMapPieceP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "mdslist.cpp",
+        "function": "CreateChara__FPUiPcP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "menudraw.cpp",
         "function": "GeneratePoly__14CRepairManagerFPfi",
         "allocator": "__nw__FUiP1",

@@ -63,7 +63,7 @@ static u_int *pcp_file;
  */
 static int pcpAllScissor;
 
-CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory);
+static CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory);
 
 /**
  *
@@ -196,17 +196,15 @@ int CMapPiece::DrawSub(int direct) {
     return result;
 }
 
-#ifdef NONMATCHING
 void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
     int            i;
     PieceMaterial *to;
     PieceMaterial *from;
-    int            offset;
     int            num;
     CCharacter2   *model;
 
     dest.Initialize();
-    CObjectFrame::Copy((CObjectFrame &) dest, memory);
+    CObjectFrame::Copy(dest, memory);
     dest.name = name;
     dest.type = type;
     dest.draw_enable = draw_enable;
@@ -226,27 +224,10 @@ void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
             dest.material_num = 0;
         }
 
-        offset = 0;
-
         for (; i < dest.material_num; i++) {
-            from = (PieceMaterial *) ((u_char *) material + offset);
-            to = (PieceMaterial *) ((u_char *) dest.material + offset);
-            offset += 0x20;
-            to->frame = from->frame;
-            to->material_no = from->material_no;
-            to->material = from->material;
-            to->unk_c = from->unk_c;
-
-            /**
-             *
-             * Copies the material's four colour components together.
-             *
-             */
-            struct Color {
-                float v[4]; /**< Four material colour components. */
-            };
-
-            *(Color *) to->color = *(Color *) from->color;
+            from = &material[i];
+            to = &dest.material[i];
+            *to = *from;
         }
     }
 
@@ -257,15 +238,12 @@ void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
 
         if (dest.chara != NULL) {
             chara->Copy(*dest.chara, memory);
-            dest.frame = (mgCFrame *) ((CObjectFrame *) dest.chara)->frame;
+            dest.frame = dest.chara->CObjectFrame::frame;
         }
     } else {
         dest.chara = chara;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", Copy__9CMapPieceFR9CMapPieceP9mgCMemory);
-#endif
 
 void CMapPiece::Initialize() {
     int i;
@@ -830,8 +808,7 @@ CMdsInfo::CMdsInfo() {
  * Constructs a character and loads its visual data from a model pack.
  *
  */
-#ifdef NONMATCHING
-CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory) {
+static CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory) {
     CCharacter2 *chara;
 
     chara = new (memory->Alloc(0x68)) CCharacter2;
@@ -844,6 +821,3 @@ CCharacter2 *CreateChara(u_int *pack, char *config, mgCMemory *memory) {
     chara->LoadPackNoLine(pack, config, memory, memory, memory, -1, 0);
     return chara;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mdslist", CreateChara__FPUiPcP9mgCMemory);
-#endif

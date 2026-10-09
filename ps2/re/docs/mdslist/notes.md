@@ -1,12 +1,13 @@
 # mdslist: reverse-engineering notes
 
-## C++ draft status
-The unit has C++ bodies for all 31 functions. `CMapPiece::Copy` and
-`CreateChara` now retain typed placement-construction drafts under
-`NONMATCHING`; the matching build uses their retail `INCLUDE_ASM` bodies.
-Their byte matches have not been re-established after removing explicit
-vtable stores. Earlier promotion attempts are recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Native source status
+
+All 31 functions have active C++ bodies. `CMapPiece::Copy` and the file-local
+`CreateChara` are accepted native callers with one scoped `CCharacter2`
+placement row each. No `NONMATCHING` guards or assembly fallbacks remain.
+See [placement conversion](../satansfiddle/placement-new.md).
+Earlier promotion attempts in `scripts/re/promotion_attempts.tsv` describe
+prior source/profile boundaries.
 
 The unit loads PCP pack files (lists of MDS model / collision / character data driven by an
 `info.cfg` script inside the pack), records IMG texture files, and implements `CMapPiece`, the
@@ -98,7 +99,7 @@ here with a stub only; object.hpp/map.hpp are other agents').
 | 0x98 | `float time_end` | same |
 | 0x9C | `CCharacter2 *chara` | AssignMds; Step calls chara vt+0xD4; Copy news a CCharacter2 (0x660) and calls src chara vt+0xEC (Copy) |
 | 0xA0 | `s16 col_type` | mapPIECE_COL_TYPE arg 0; GetPoly requires 0; SearchPieceColType |
-| 0xA2 | `s16 col_param` | mapPIECE_COL_TYPE optional arg 1; only Initialize/Copy elsewhere; meaning unknown |
+| 0xA2 | `s16 col_param` | mapPIECE_COL_TYPE optional arg 1; Initialize clears it and Copy does not copy it; meaning unknown |
 0xA4..0xAF: tail padding to 16-byte alignment (no access seen).
 
 Vtable `__vt__9CMapPiece` (0x7C) is CObjectFrame's with three overrides: slot 0x34 `Draw`, 0x38
@@ -127,19 +128,18 @@ indexed by material without a bound of 4.
 ## CreateChara (static)
 `new(stack->Alloc(0x68)) CCharacter2` (0x660 bytes, ctor chain inlined), then
 `chara->vt+0x3C` (Initialize) and `vt+0x80(pack, "info.cfg", stack, stack, stack, -1, 0)`; returns
-the character or NULL. The C++ draft uses typed placement construction and is
-guarded by `NONMATCHING`; the matching build uses assembly.
-Retail saves the placement-new result from `v0` to `s0` in the delay slot of
-the null branch. On success, the compiler-generated constructor chain runs
+the character or NULL. Its active C++ body uses typed placement construction.
+The scoped compiler conversion preserves retail's save of the allocation result
+from `v0` to `s0` in the null branch's delay slot. On success, the compiler-generated constructor chain runs
 `mgCObject`, `CObject`, `CObjectFrame`, and `CCharacter2` initialization; the
-function then calls `Initialize` once more before `LoadPackNoLine`. The isolated
-native candidate has not been checked against the repaired compiler toolchain.
+function then calls `Initialize` once more before `LoadPackNoLine`. The native
+caller is covered by the complete-object and PAL acceptance.
 
 ## CMapPiece::Copy
 
 Copies the piece's frame, metadata, material records, and optional character
-into the destination. Its character allocation uses typed placement
-construction in the `NONMATCHING` draft. The matching build uses assembly.
+into the destination. Its accepted native character allocation uses typed
+placement construction and the scoped compiler conversion.
 
 ## Matched slot clearing
 `CMapPiece::SetTimeBand` writes the start and end floats to its named members.
