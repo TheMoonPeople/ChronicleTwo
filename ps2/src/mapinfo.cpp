@@ -40,12 +40,12 @@ static int mapCHARA_LIGHT_ADJUST(SPI_STACK *stack, int argument_count);
 static int amapIMG(SPI_STACK *stack, int argument_count);
 static int amapPCP(SPI_STACK *stack, int argument_count);
 
+// Initialised data (.data)
 /**
  *
  * Tags of a map's configuration script and the routines that read them.
  *
  */
-// Initialised data (.data)
 static SPI_TAG_PARAM mapinfo_tag[] = {
     {"IMG",                mapIMG               },
     {"PCP",                mapPCP               },
@@ -84,12 +84,12 @@ static SPI_TAG_PARAM add_mapinfo_tag[] = {
     {NULL,  NULL   },
 };
 
+// Small uninitialised data (.sbss)
 /**
  *
  * Map settings being filled in by the running configuration script.
  *
  */
-// Small uninitialised data (.sbss)
 static CMapInfo *MapInfo;
 
 /**
@@ -700,7 +700,6 @@ void CMapInfo::LoadMapInfo(char *script, int script_size, mgCMemory *stack) {
     interpreter.Run();
 }
 
-// Defined in mapload.hpp.
 /**
  *
  * Adds a texture pack to the map in its first free entry, keeping a copy of its name.
