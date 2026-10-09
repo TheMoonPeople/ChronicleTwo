@@ -377,7 +377,7 @@ public:
     int                   create_partial_match; /**< Non-zero when the selected ideas match two parts of a recipe. */
     int                   create_photo_neta[3]; /**< Idea identifiers associated with the selected photos. */
     int                   create_missing_slot; /**< Slot of the idea missing from a partial recipe match. */
-    s8                    create_photo_name[32]; /**< Name displayed for the selected invention photo. */
+    char                  create_photo_name[32]; /**< Name displayed for the selected invention photo. */
     s8                    blink_time; /**< Step counter that alternates the missing idea highlight. */
     u8                    unk_5b9[3];
     int                   neta_circle_snap;     /**< Snap state of the idea board selection circle. */
