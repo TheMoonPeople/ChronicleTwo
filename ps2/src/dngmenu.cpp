@@ -2867,7 +2867,7 @@ int CMenuTreeMap::Step() {
                                 step = 0;
                                 MenuSePlay(SYSTEM_SE_DECIDE);
                             } else {
-                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                             }
 
                             break;
@@ -2926,14 +2926,14 @@ int CMenuTreeMap::Step() {
                 case TREE_MAP_ACTION_SELECT: {
                     int loop_no, map_no;
                     if (NextFloorGlid == NULL) {
-                        MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     } else if (target_save != NULL && !(target_save->flag & DNG_FLOOR_FLAG_OPEN)) {
-                        MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     } else {
                         if (CheckDngTreeMapFuncType() == DNG_TREE_MAP_FUNC_OTHER && TreeMapCallDungeonSubMap == 1) {
                             MakeDngTreeMapJumpNo(dng_no, NextFloorGlid->room.floor_id, &loop_no, &map_no);
                             if (map_no == MenuMainScene->GetNowMapNo()) {
-                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                                 break;
                             }
                         }
@@ -2946,7 +2946,7 @@ int CMenuTreeMap::Step() {
                             ((NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_SUB) ||
                              (NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_BOSS) ||
                              (NextFloorGlid->room.flag & DNGMAP_ROOM_FLAG_EXIT))) {
-                            MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                            MenuSePlay(SYSTEM_SE_CANCEL);
                             message->SetAbsPos(5);
                         } else {
                             MenuSePlay(SYSTEM_SE_WINDOW);
@@ -3156,7 +3156,7 @@ int CMenuTreeMap::Step() {
                     break;
                 }
                 case TREE_MAP_ACTION_CANCEL: {
-                    MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                     key_arg_no = DNG_TREE_MAP_SCREEN_MAP;
                     dngfloor_infoview = 0;
                     dngfloor_backdraw = 0;
@@ -3166,7 +3166,7 @@ int CMenuTreeMap::Step() {
                     break;
                 }
                 case TREE_MAP_ACTION_CLOSE: {
-                    MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                    MenuSePlay(SYSTEM_SE_CANCEL);
                     FadeOutMenu(40, 0.0f);
                     draw_hidden = 0;
                     mode = MENU_ASK_MODE_CLOSE;

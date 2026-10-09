@@ -62,16 +62,6 @@ enum MenuScriptMessagePreset {
 
 /**
  *
- * System sound effects selected by menu command script keywords.
- *
- */
-enum MenuScriptSound {
-    MENU_SCRIPT_SOUND_OK = SYSTEM_SE_DECIDE, /**< Accept the current menu selection. */
-    MENU_SCRIPT_SOUND_CANCEL = SYSTEM_SE_CANCEL, /**< Cancel the current menu selection. */
-};
-
-/**
- *
  * Pairs a keyword that a menu script may give with the value it stands for, in tables ended by a null keyword.
  *
  */

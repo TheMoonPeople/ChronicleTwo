@@ -2195,7 +2195,7 @@ int CSaveMenuClass::KeyStep() {
                                         case MENU_PUSH_BUTTON_CANCEL:
                                             next = SAVE_MENU_PAGE_SLOT_SELECT;
                                             MenuMesForm[2]->draw_flag = 0;
-                                            MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                            MenuSePlay(SYSTEM_SE_CANCEL);
                                             break;
                                     }
                                 }
@@ -2223,7 +2223,7 @@ int CSaveMenuClass::KeyStep() {
                                             next = SAVE_MENU_PAGE_FILE_LIST;
                                             MenuMesForm[2]->draw_flag = 0;
                                             cursor_form->draw_flag = 0;
-                                            MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                            MenuSePlay(SYSTEM_SE_CANCEL);
                                             break;
                                     }
                                 }
@@ -2291,7 +2291,7 @@ int CSaveMenuClass::KeyStep() {
                                 answer = file_mes->YesNoCursor();
                                 if (McCheckMCPs2(card) == 0 || card->formatted == 0) {
                                     next = SAVE_MENU_PAGE_ERROR;
-                                    MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                    MenuSePlay(SYSTEM_SE_CANCEL);
                                 } else {
                                     if (answer != cursor_pos) {
                                         input_wait_counter = 6;
@@ -2317,7 +2317,7 @@ int CSaveMenuClass::KeyStep() {
                                                 }
                                             case MENU_PUSH_BUTTON_CANCEL:
                                                 next = SAVE_MENU_PAGE_FILE_LIST;
-                                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                                MenuSePlay(SYSTEM_SE_CANCEL);
                                                 break;
                                         }
                                     }
@@ -2388,7 +2388,7 @@ int CSaveMenuClass::KeyStep() {
                                 }
                                 if (answer == MES_YESNO_NO) {
                                     next = SAVE_MENU_PAGE_FILE_LIST;
-                                    MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                    MenuSePlay(SYSTEM_SE_CANCEL);
                                 }
                                 break;
                             case SAVE_FORMAT_PHASE_FORMATTING:
@@ -2450,14 +2450,14 @@ int CSaveMenuClass::KeyStep() {
                     } else if (McCheckMCPs2(card) == 0) {
                         if (pushed != 0) {
                             next = SAVE_MENU_PAGE_SLOT_SELECT;
-                            MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                            MenuSePlay(SYSTEM_SE_CANCEL);
                         }
                     } else if (card->type == sceMcTypePS2) {
                         if (card->formatted == 0) {
                             if (mode == SAVE_MENU_MODE_LOAD) {
                                 if (pushed != 0) {
                                     next = SAVE_MENU_PAGE_SLOT_SELECT;
-                                    MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                    MenuSePlay(SYSTEM_SE_CANCEL);
                                 }
                             } else {
                                 answer = 0;
@@ -2473,23 +2473,23 @@ int CSaveMenuClass::KeyStep() {
                                         }
                                     case MENU_PUSH_BUTTON_CANCEL:
                                         next = SAVE_MENU_PAGE_SLOT_SELECT;
-                                        MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                        MenuSePlay(SYSTEM_SE_CANCEL);
                                         break;
                                 }
                             }
                         } else if (mode == SAVE_MENU_MODE_LOAD && MemoryCardPtr->CheckDataFileNum() <= 0) {
                             if (pushed != 0) {
                                 next = SAVE_MENU_PAGE_SLOT_SELECT;
-                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                             }
                         } else if (card->free_size <= check_kb) {
                             if (pushed != 0) {
                                 next = SAVE_MENU_PAGE_SLOT_SELECT;
-                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                             }
                         } else if (pushed != 0) {
                             next = SAVE_MENU_PAGE_SLOT_SELECT;
-                            MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                            MenuSePlay(SYSTEM_SE_CANCEL);
                         }
                     }
                     break;

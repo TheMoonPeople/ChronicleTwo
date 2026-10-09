@@ -478,8 +478,8 @@ static MENU_SPI_ANALYZE_STRUCT1 tbl_2422[] = {
  *
  */
 static MENU_SPI_ANALYZE_STRUCT1 tbl_2516[] = {
-    {"OK", 1},
-    {"CANCEL", MENU_SCRIPT_SOUND_CANCEL},
+    {"OK", SYSTEM_SE_DECIDE},
+    {"CANCEL", SYSTEM_SE_CANCEL},
     {NULL, -1},
 };
 
