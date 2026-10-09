@@ -22,22 +22,30 @@
 #include "subgame.hpp"
 
 /**
+ *
  * Currently running sub game.
+ *
  */
 static int SubGame;
 
 /**
+ *
  * Whether menus may open during the running sub game.
+ *
  */
 static int MenuOpenFlag;
 
 /**
+ *
  * Whether a sub-game reward could not fit in the inventory.
+ *
  */
 static int ItemOver;
 
 /**
+ *
  * Parameters retained for the running sub game.
+ *
  */
 static SubGameInfo GameInfo;
 
