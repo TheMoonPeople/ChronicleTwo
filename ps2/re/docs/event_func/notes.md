@@ -1,16 +1,40 @@
 # event_func: reverse-engineering notes
 
-`_COPY_CHARA` is accepted native C++ with one scoped `CCharacter2` placement
-row. `LoadMovie` and `_SET_GYORACE_ETC` are also native. Three assembly gaps
-remain: guarded `_ESM_INITIALIZE`, guarded `_COPY_MONS2SCNCHR`, and the
-`CObject` copy constructor emitted by the latter's retail body. The constructor
-gap is an emission dependency, not an independent native promotion. See
-[placement conversion](../satansfiddle/placement-new.md).
+## Status
+824 of the 827 functions in `ps2/src/event_func.cpp` are native C++ definitions and match retail
+(including `_COPY_CHARA`, `LoadMovie`, `_SET_CROSSFADE` and `_SET_GYORACE_ETC`). Two are guarded
+drafts (`#ifdef NONMATCHING` C++ with an `INCLUDE_ASM` fallback): `_ESM_INITIALIZE` and
+`_COPY_MONS2SCNCHR`. One symbol is assembly-only: the compiler-generated
+`CObject::CObject(const CObject &)` (`__ct__7CObjectFRC7CObject`, 0x2804B0, 0xC8 in a 0xD0
+extent), which retail emits from the character copy inside `_COPY_MONS2SCNCHR`; no active native
+caller emits it while that command is guarded, and an explicit copy body or dummy use is not an
+acceptable way to force it. Both guarded functions fail on MWCC's placement-new allocation-result
+schedule: retail tests the allocator's `v0` and copies it into the saved register in the branch
+delay slot, while MWCC copies first and branches on the saved register (see
+[placement conversion](../satansfiddle/placement-new.md)).
 
-`_SET_CROSSFADE` captures the current screen, converts script frames from 60 Hz to 50 Hz
-with a minimum of one frame, then starts an incoming, outgoing, or ordinary crossfade.
-The native function matches with the callee-scoped floating argument calibration
-documented below.
+- `_ESM_INITIALIZE` (0x128 body in a 0x130 extent): the natural source loads the texture-block
+  start and remaining count, adds the decoded offset to the start and calls
+  `CEffectScriptMan::Initialize`; it differs by two words at +0xE8/+0xF0 (the branch pair). The
+  retained draft's `Ident` helper scores zero only as a diagnostic and is inadmissible; without it
+  the direct expression leaves nine register-operand differences (MWCC merges the base load and
+  sum into the `a2` argument before colouring, retail loads the base into `v1` and adds into `a2`).
+- `_COPY_MONS2SCNCHR` (0x754 body at 0x27FD50 in a 0x760 extent; native 0x750): 244/472 words.
+  Retail copy-constructs the local `CCharacter2` snapshot (generated `CObject` copy constructor at
+  +0x190 into `sp+0x60`, then the derived members), not default-construct-then-assign. Beyond
+  the allocation branch pair, the 0xC-byte `shadow_link` (`CCharaFrameMatching`, source offset
+  +0x35C..+0x364) is copied through GPRs in retail but as three FPR loads/stores plus a
+  destination temporary in native (first difference +0x390, no float conversion involved), and
+  retail calls `Copy` through vtable slot +0xEC while the exact-type native snapshot is
+  devirtualized to a direct call. `CCharaFrameMatching` must stay a grouped member with an
+  explicit `Initialize` and no declared constructor (an empty constructor breaks
+  `MenuMonsterBoxInit`). The command is retail LOCAL; a `static` definition gives a LOCAL symbol.
+
+`_COPY_CHARA` (0x26A900, retail LOCAL, 0x2B4 in a 0x2C0 extent) allocates a `CCharacter2` in a
+scene stack (allocation precedes the source-character check, as in retail) and copies the source
+into the assigned slot with its texture block; it accepts one `ARG_DATA` tuple argument or three
+direct stack arguments. It is defined with external linkage like the unit's other native command
+callbacks; a `static` definition also gives a LOCAL FUNC symbol with an unchanged object.
 
 Several decompiled functions in this unit compile to exact retail instruction matches. `CEoh`'s five
 typed pointer names occupy the same union word; its constructor clears each alias in succession.
@@ -40,7 +64,7 @@ declared in this header.
   +0xC, +0x10, +0x14 float volume, +0x18; see `CScene::GetActiveBgmStatus`).
   The original `u8[0x1C]` stub compile checked every STATIC_ASSERT; current
   builds use the real member type.
-- `RS_EXTFUNC_INFO` (row type of `ext_func_info__2` / `esa_ext_func_info`) is declared in
+- `RS_EXTFUNC_INFO` (row type of `ext_func_info` / `esa_ext_func_info`) is declared in
   `runscript_opcodes.hpp`; include it from the .cpp.
 
 ## ED_EVENT_INFO / EdEventInfo (0x1EFD460, 0x12A0, global)
@@ -142,7 +166,7 @@ in the asm across all units (no other base+offset access exists; the addiu users
 |---|---|---|---|
 | EventMarker | 0x37DE7C / 4 | global | `CMarker` (eventsprite; Init/Draw called on it) |
 | SwordEffect | 0x37DE80 / 4 | local | `CSWordAfterImage *` |
-| EventEffectScript | 0x37DE84 / 4 | local | `CEffectScriptMan *` |
+| EventEffectScript | 0x37DE84 / 4 | local | `CEffectScriptMan *` (its symbol must stay reachable for the guarded `_ESM_INITIALIZE` assembly) |
 | p_use_item | 0x37DE88 / 4 | global | `RS_STACKDATA *` (= arg slot `->p` in `_GOTO_USE_ITEM`; `EdEventMenuExit` writes `->i`) |
 | SetWorldCoordFlg | 0x37DE8C / 4 | global | int |
 | PakuAnimEohNo, PakuMotionEohNo | 4 each | global | int handle, -1 none |
@@ -157,7 +181,7 @@ in the asm across all units (no other base+offset access exists; the addiu users
 | Hit_para | 0x6400 | global | `BattleEffectPrim[5][0x40]`, one buffer per HitEffect (+0x20 para ptr, +0x2C max 0x40) |
 | HitEffect | 0x1E0 | global | `CHitEffectImage[5]` (__construct_array 0x60 x5) |
 | PakuAnimName(2), PakuMotionName(2) | 0x40 each | global | char[0x40] |
-| event_snd_buff / event_snd2_buff | 0x8010 / 0x1410 | local | u_long128 buffers for BuffEventSnd(2) |
+| event_snd_buff / event_snd2_buff | 0x8010 / 0x1410 | local | u_long128 buffers (0x801 / 0x141 quadwords) for BuffEventSnd(2) |
 | BuffEventSnd / BuffEventSnd2 | 0x30 each | local | mgCMemory ("Event Snd Buffer"/"Event Snd2 Buffer"); `_SND_LOAD_SOUND` port 8 uses Snd2 |
 | EventDngMap | 0x110 | local | CDngFreeMap (contains mgRect<float> at +0x20 and 8 at +0x40..) |
 | cmr_seq_tbl | 0x6000 | global | `_SEN_CMR_SEQ[0x100]` |
@@ -167,10 +191,10 @@ in the asm across all units (no other base+offset access exists; the addiu users
 | EventSprite2 | 0x1800 | local | `CEventSprite2[0x30]` |
 | EventScriptArg | 0x10 | local | CEventScriptArg |
 | EventScreenEffect | 0x4C | global | CScreenEffect |
-| ext_func__2 | 0x1770 | local | `int (*[0x5DC])(RS_STACKDATA *, int)` |
-| ext_func_info__2 | 0x15C8 .data | local | `RS_EXTFUNC_INFO[]` terminated by func 0 (`SetEventFunc`, numbers 0..0x5DB) |
-| esa_ext_func_info | 0x18 .data | local | `RS_EXTFUNC_INFO[3]` (argument-script functions, numbers 0..2) |
-| vv_3333 | 0x30 .data | local | function-local static |
+| ext_func (symbol file `ext_func__2`) | 0x1770 | local | `static EventFunc ext_func[event_func_slots]` (0x5DC typed `int (*)(RS_STACKDATA *, int)`) |
+| ext_func_info (symbol file `ext_func_info__2`) | 0x15C8 .data | local | `static RS_EXTFUNC_INFO ext_func_info[697]`: 696 typed handlers followed by `{NULL, EVENT_EXT_END}`; `EventExternalCommand` names every retail command number (sparse and out of order); eight-byte zero tail is retail piece padding (`SetEventFunc`, numbers 0..0x5DB) |
+| esa_ext_func_info | 0x18 .data | local | `static RS_EXTFUNC_INFO esa_ext_func_info[3]`: `_DATA`, `_ID_OFFSET` (`EventArgumentCommand`) and the null sentinel |
+| vv (retail `vv$3333`) | 0x30 .data | local | `static float vv[3][4]` inside `_SET_TALK_CAMERA`; it transforms `vv[1]`, the other two rows are retail data |
 
 `Hit_para` holds `BattleEffectPrim` (dng_effect.hpp, 0x50) sparks, the type `HitEffect[n].spark`
 points at: +0x10 pos, +0x20 velocity, +0x34 speed, +0x38 rate, +0x3C life, +0x44 alpha,
@@ -188,149 +212,101 @@ points at: +0x10 pos, +0x20 velocity, +0x34 speed, +0x38 rate, +0x3C life, +0x44
   race number (0–3); tour count (4); fish name (5); formatted race time (6); and prize reload
   (7). The time is clamped to 0–360000 sixtieths, split into hours, minutes and hundredths, and
   assembled from Shift-JIS digit strings plus the separator before being copied into a message
-  name slot. Its current body is native C++; the earlier guarded status predates
-  the accepted source form.
+  name slot.
 - `VectMatMul__FPfPfPA4_f` exists twice: 0x260A70 here (global) and 0x282610 (local, another unit).
 - `_LOAD_CHARA_sub(int,char**,int,u_int*)` is a 0x10 tail call to the 5-argument form with 0.
 - `GetConfigCaptionOff` returns `lb` of SaveData+0x1C5A8 -> `char`.
 - `EdEventStep` returns 1; `EdEventFinish` returns 0 when the scene camera is missing, else 1.
 - `GetLocalFlag` computes a bool but returns `int` (mangling does not include return type).
 - `CommandStreamOpen2` builds the path but never opens it (retail behaviour).
-# Native event object construction
+- `_SET_CROSSFADE` captures the current screen, converts script frames from 60 Hz to 50 Hz with a
+  minimum of one frame, then calls `CrossFadeIn`/`CrossFadeOut` for three arguments, otherwise
+  `CrossFade`.
 
-`_COPY_CHARA` allocates a `CCharacter2` in a scene stack and copies the source
-character into its assigned slot. Its accepted native body uses typed placement
-construction. `_COPY_MONS2SCNCHR` and `_ESM_INITIALIZE` retain guarded natural
-construction drafts for a copied character and effect manager respectively.
+## Data
+All data is native; the unit has no `INCLUDE_RODATA`/`INCLUDE_BSS` markers.
+- The 22 zero-storage objects (event state, flags/counters, mouth-animation names, particle
+  buffers, camera/object sequence entries, sound buffers, dispatch array) are typed definitions
+  with the extents in the table above. `EventStorageExtent` in `event_func.hpp` names
+  `EVENT_LOCAL_NUM` (0x40 words), `PAKU_NAME_SIZE` (0x40 bytes) and `SEQ_NODE_NUM` (0x100
+  entries) for `EventLocalFlag`/`EventLocalCnt`, the four mouth-name arrays and
+  `cmr_seq_tbl`/`obj_seq_tbl`.
+- `FileNameConvLanguage` initializes its four extension pointers (`txt`, `img`, `stb`, `""`) at
+  their use and inlines its two format strings. Every user of the shared empty string writes `""`.
+- Local aggregates with direct initializers: twelve NPC positions/facing angles
+  (`_GET_TRAIN_NPC_POS`, zero-based row, y forced to zero in map 120), 25 three-column NPC
+  training rows (`_GET_NPC_TRAIN_ETC`, requested column, one-based NPC row; the integer
+  template's four-byte tail is alignment), 164 voice-pack lookup rows (`VpkFileNameFromVoiceNo`,
+  group/kind match then resource id/subresource formatting), and `_HIT_EFFECT`'s default upward
+  vector `{0, 1, 0, 1}` initialized at the copy site after reading the position.
+- All string literals are inline at their uses, with Shift-JIS bytes as hexadecimal escapes.
+- Jump tables emitted by native switches: `EventTimeDraw` (`at_1909`, `at_1910`),
+  `_CHK_INTERSECTION_POINT` (`at_3823__2`), `_CHK_INTERSECTION_POINT_PIPE` (`at_3884`),
+  `_SET_GYORACE_ETC` (`at_4272__2`, `at_4273`, `at_4274`), `_GET_GYORACE_ETC` (`at_4291`),
+  `_GET_SAVEDATA_ETC` (`at_4360__2`), `_SET_EVENT_DATA` (`at_4573`), `_SET_MES_ETC`
+  (`at_5264__2`), `_GET_FISHINGTOURNAMENT_ETC` (`at_5424`), `_GET_SND_ID` (`at_6703`),
+  `_GET_EVENT_DATA` (`at_8406`), `_SET_FLOOR_INFO` (`at_8458`), `_GET_FLOOR_INFO` (`at_8480`).
+  Piece tails beyond the declared payload are zero alignment padding.
 
-The retail `_COPY_MONS2SCNCHR` calls the compiler-generated `CObject` copy
-constructor, supplied by the adjacent assembly gap. Earlier natural-copy
-trials emitted that constructor at retail's 0xC8-byte size but missed the
-placement-new branch: retail tested `v0` and moved to `s3` in the delay slot;
-the candidate moved first and tested `s3`. Value initialization, staged
-allocation, reference binding, volatile storage, and alternate assignments
-did not match that schedule. Later measurements below also establish an
-aggregate-copy remainder beyond the null branch.
-## Pending code matches
+## Callback result types
+`CRunScript::ext` tests each callback's integer result and diagnoses zero. These callbacks return
+their final dependency call's integer status (a `void` declaration would hide it): `_FINISH`,
+`_IMG_SET_DRAW`, `_IMG_SET_GET`, `_IMG_SET_PUT`, `_IMG_SET_MOVE`, `_IMG_SET_FADE`,
+`_IMG_SET_COLOR`, `_GEORAMA_FUNC`, `_EOH_SET_STEP`, `_EOH_SET_SHOW`, `_EOH_SET_FRAME_SHOW`,
+`_EOH_SET_SHADOW`, `_EOH_SET_FOOT_SOUND_ID`, `_EOH_SET_FRAME_STATUS`, `_EOH_SET_SOUND_ID`,
+`_EOH_SET_FADE_FLAG`, `_EOH_RESET_DA_POSITION`, `_EOH_SET_SHADOW_FRAME_STATUS`,
+`_EOH_SYNC_GEOSTONE`, `_EOH_NORMAL_DRIVE`, `_EOH_SET_FOOT_SE_ID`, `_MT_TEST`. `_EOH_GET_POS`,
+`_EOH_GET_ROT`, `_EOH_GET_SHOW` and `_EOH_GET_FRAME_POS` return the handle lookup's result, which
+their stack-output calls preserve in `v0`. `_EOH_GET_FRAME_POS` needs the positive
+`if (result != 0)` body with one common return: an early return shortens the body by four bytes
+and moves the branch/call placement.
 
-`_CHK_INTERSECTION_POINT` tests a segment against event collision polygons. An optional
-treasure-box test adds polygons along the segment. The command can return the hit index,
-polygon kind, hit position, reflection, and reflection angle according to its argument count.
-`_CHK_INTERSECTION_POINT_PIPE` performs a swept-radius version of the same test and returns
-the first hit's details. Both native C++ functions pass the full linked-image comparison.
-Their polygon selection uses array indexing through the collision polygon cursor; indexing
-from the original local array changes MWCC register allocation and no longer matches.
+## Source forms the match depends on
+- `_CHK_INTERSECTION_POINT` and `_CHK_INTERSECTION_POINT_PIPE` select polygons by indexing
+  through the collision polygon cursor; indexing from the original local array changes register
+  allocation. (`_CHK_INTERSECTION_POINT` tests a segment against event collision polygons, with an
+  optional treasure-box test that adds polygons along the segment, and returns hit index, polygon
+  kind, position, reflection and reflection angle by argument count; the `_PIPE` form is the
+  swept-radius version returning the first hit.)
+- `_DIST_VECTOR`, `_DIST_VECTOR2`, `_AMG_GET_ATTR_STATUS`: the stack advance past a vector is an
+  integer byte add (`(RS_STACKDATA *) ((int) stack + 0x18/0x30)`) before `SetStack`. Retail keeps
+  the advanced pointer in `s0` (`addiu s0,s0,24; move a0,s0`); `stack += 3`, `&stack[3]` and
+  `SetStack(stack += 3, ...)` fold the add into the argument (`addiu a0,s0,24`) and drop an
+  instruction. `_OBJS_SET_EOH_FRAME_POS` likewise uses `(u8 *) stack + vector_bytes`
+  (`const int vector_bytes = 0x18`); `stack += 3` changes the function size.
+- `_DELETE_CHARA`: `(CEoh *) ((u8 *) &EventObjHandleMother + offset)`; both an
+  `&EventObjHandleMother.eoh[i]` local and direct indexing rotate `a3`/`t0`/`t1` between the
+  offset, the element and the `charaSlot` pointer.
+- `_FUNCTION_MAP_JUMP`: `(char *) (request + 6)` from `&EventScene->map_jump_flags`;
+  `EventScene->map_jump_name` (the same address) reloads `EventScene` and shrinks the function.
+- `_SWE_SET_COLOR`, `_SWE_SET_TEXTURE`, `_SWE_START_EFFECT`: `(CSWordAfterEffect **) ((slot << 2)
+  + (int) chara + chara_sword_after_offset)` (0x570, `CCharacter2::sword_effect`) keeps retail's
+  index-first sum; `&chara->sword_effect[slot]` adds the base first (`addu v0,v0,v1`).
+- `_SWE_INIT`: `chara->sword_effect[slot] = new (scene_stack->Alloc(12)) CSWordAfterEffect` uses
+  the inline constructor for the two colours.
+- `_ESM_INIT_FIX`: `(mgCMemory *) operator new(0x30, ...)` then `Init()`; `new (...) mgCMemory`
+  is one instruction longer (the null test moves after the copy of the result).
+- Handle drives use `(CCharacter2 *) handle->object` locals (base-to-derived downcasts of the
+  handle's `CObject *`); `mgCObject *` locals take `CEoh::object` without an upcast.
+- `_GET_NEAR_TBOX_POS`: `stack += 3` and `&box_manager->box[i]` for `i < TREASURE_BOX_MAX`.
+  `_GET_EVENT_DATA` case 8 reads `event_data->map_event.matrix[3][0..2]` (translation) and
+  `matrix[2][0]`, `matrix[2][2]` (z axis, for the yaw). `_GET_INVENTION_ID` uses
+  `&save->user_data.invent_data` (0x7F30). `_MES_MAKE` stores the text in `ClsMes::text_ptr`
+  (`char *`). Loaded data at API boundaries: `CheckLoadedBGFile` returns the `u_long128` read
+  buffer as a `u32 *` pack, `GetLoadBGBuff` results are viewed as `MDS_HEADER *`, `char *` or
+  `u_char *`, and `CScreenEffect::CaptureSepiaScreen`/`CaptureMonoFlashScreen` walk
+  `texture->image[0]` as RGBA bytes.
 
-Only `_ESM_INITIALIZE` and `_COPY_MONS2SCNCHR` retain `NONMATCHING` function
-drafts here. The copy-constructor gap remains required while the monster-copy
-caller uses assembly, since active C++ use does not otherwise emit it.
-`LoadMovie` and `_COPY_CHARA` have accepted native bodies.
-
-## Crossfade floating argument calibration
-
-`_SET_CROSSFADE__FP12RS_STACKDATAi` captures the screen, converts script frame
-counts from 60 Hz to 50 Hz with a minimum of one, and calls `CrossFadeIn` or
-`CrossFadeOut` for three arguments, otherwise `CrossFade`. Each native call
-passes `1.0f`, but retail evaluates that constant early only for
-`CrossFadeOut__10CFadeInOutFiif`. The `CrossFadeIn__10CFadeInOutFiif` and
-`CrossFade__10CFadeInOutFif` calls retain the false policy.
-
-The verified row selects `event_func.cpp`,
-`_SET_CROSSFADE__FP12RS_STACKDATAi`, `binary32`, IEEE bits `0x3f800000`,
-`callee: CrossFadeOut__10CFadeInOutFiif`, and `evaluate_first: true`.
-A value-only true row changes the sibling calls' register allocation; false
-for all three emits a function four bytes too long. The stable mangled callee
-distinguishes the argument at consumption without occurrence indices. Live
-compiler tracing found direct floating constant nodes at all three calls,
-including a freshly allocated node with an uninitialized evaluate-first byte.
-
-The production mwccgap wrapper, section fixup, and canonical object checker
-prove the `0x158`-byte function's exact bytes and resolved relocations. At that source/profile boundary the unit
-returned to `0x22cc4` bytes, 6888 relocations, and 16 existing issues, with no
-crossfade failure. Those findings included event object-copy functions and
-unrelated data/layout mismatches; this earlier result established the function
-match, not the later complete-unit acceptance. See [MWCC notes](../../../../docs/MWCC.md).
-
-## LoadMovie floating argument calibration
-
-`LoadMovie__FPcP9mgCMemoryb` uses a stable binary32 `0x44000000` (512.0f)
-`evaluate_first: true` selector for caption centering. This prepares the
-horizontal extent before the zero origin in `CalcAutoPosSet`; caption behavior
-is unchanged. With the artificial division primer removed and translation-unit
-helper masks GPR `0x30` / FPR `0`, the complete unit passes canonical instruction
-bytes and resolved relocations: `0x22C7C` checked bytes and 6,920 relocations.
-
-## October 8 integrated-baseline allocation checks
-
-Before the scoped conversion, `_COPY_CHARA` and `_ESM_INITIALIZE` each
-differed by two words under the pinned profile. Their bodies were 0x2B4 and
-0x128 in padded retail extents 0x2C0 and 0x130. Retail tested v0 and copied
-to the saved object register in the delay slot; that MWCC form copied first
-and tested the saved register. `_ESM_INITIALIZE` isolated the pair at
-+0x78/+0x7C. Both were parked at that boundary. `_COPY_CHARA` is now native;
-the effect-manager command remains guarded.
-
-The October 8 midday baseline `c79e57c` does not reproduce the previously
-reported two-word `_COPY_MONS2SCNCHR` miss. It has 248/472 differing words
-and a 0x758 native body in the retail 0x760 extent. Naming the copied
-`CCharacter2` source retains natural copy construction and improves the draft
-to 246/472 with a 0x750 body. The allocation branch at +0x94/+0x98 remains,
-and a separate aggregate-copy difference begins at +0x390. In particular,
-the implicit copy of `shadow_link` at source offsets +0x35C..+0x364 uses
-three FPR loads/stores and a destination-address temporary; retail copies
-the corresponding words individually through a GPR. No floating conversion
-is involved. This changes subsequent scheduling and instruction positions.
-The existing `CCharaFrameMatching` grouping therefore needs further type and
-copy-construction evidence in its owning header; it is not just a null-branch
-park. No shared-header patch or hand-written copy body is proposed here.
-
-The compiler-generated `CObject(const CObject&)` already matches in the
-all-drafts compilation with the current natural class definition. No shared
-header change is required for its bytes or relocations. Its actual emission
-here comes from the character copy inside `_COPY_MONS2SCNCHR`.
-While that caller is guarded, the default build still requires the copy
-constructor assembly fallback. Reconsider its independent promotion when
-an active native caller naturally emits it; an explicit copy body or dummy
-use is not an acceptable way to force emission.
-
-The inherited two-word `_ESM_INITIALIZE` result included the legacy identity-only
-`Ident` scaffold, which was not an acceptable promotion mechanism. Removing
-it in the earlier probe left 11/76 differing words at the same 0x128-byte
-body size: the branch pair plus exchanged s0/s1 lifetimes. Initializing the
-stack number at declaration changed the frame and shortened the body;
-declaration reordering left the 11-word remainder. The default assembly-backed
-object passed without Ident, although the earlier lane's closer-draft rule
-then retained the scaffold. These are historical probe and retention results.
-`Ident` currently remains only in the guarded diagnostic draft; its inherited
-two-word score is not a promotion. An accepted body still requires an admissible
-source lifetime distinction and the correct placement-new branch.
-
-Midday helper-free probes with named texture-buffer arguments, a named base
-texture buffer, a named offset, or direct assignment to `EventEffectScript`
-each retain 11/76. No new helper or source workaround is retained.
-
-Private receipts: `.private/placenew-midday/baseline-native/event_func/`,
-`.private/placenew-midday/probes/monster-copy-initialization/`,
-`monster-named-copy/`, `monster-source-reference/`, and the `effect-*`
-directories under `.private/placenew-midday/probes/`.
-
-## Shared native storage extents
-
-EventStorageExtent exposes the existing source extents in event_func.hpp:
-EVENT_LOCAL_NUM is 0x40 words, PAKU_NAME_SIZE is 0x40 bytes, and SEQ_NODE_NUM
-is 0x100 command entries. EventLocalFlag/EventLocalCnt, the four mouth-name
-arrays, and cmr_seq_tbl/obj_seq_tbl use the same identifiers in declarations
-and definitions. The header enum replaces only the three source-local const
-integers; the existing range checks, initialization calls and native data
-retain their values and layouts.
-
-Receipts: .private/fixes-r0/event-func-final-{build,objects}.log:
-SCES_511.90: OK and 149/149 objects.
-
-## Character-copy callback binding
-
-Retail gives `_COPY_CHARA` LOCAL function binding. With the external command
-table defined in this unit's C++ source, a `static` definition gives a LOCAL
-FUNC symbol with no extra alias and an unchanged object check. It keeps
-external linkage, like the unit's other native command callbacks, until the
-callbacks' retail binding is restored together.
+## Floating argument calibration (satansfiddle rows)
+- `_SET_CROSSFADE__FP12RS_STACKDATAi`: each of the three calls passes `1.0f`, but retail evaluates
+  that constant early only for `CrossFadeOut__10CFadeInOutFiif`. The row selects `event_func.cpp`,
+  this function, `binary32` bits `0x3f800000`, `callee: CrossFadeOut__10CFadeInOutFiif`,
+  `evaluate_first: true`; the `CrossFadeIn__10CFadeInOutFiif` and `CrossFade__10CFadeInOutFif`
+  calls keep the false policy. A value-only true row changes the sibling calls' register
+  allocation; false for all three emits a function four bytes too long. The callee name
+  distinguishes the argument at consumption without occurrence indices. The function is 0x158
+  bytes.
+- `LoadMovie__FPcP9mgCMemoryb`: a `binary32` `0x44000000` (512.0f) `evaluate_first: true` row
+  for caption centering prepares the horizontal extent before the zero origin in
+  `CalcAutoPosSet`. The unit's helper masks are GPR `0x30` / FPR `0`.
+See [MWCC notes](../../../../docs/MWCC.md).
