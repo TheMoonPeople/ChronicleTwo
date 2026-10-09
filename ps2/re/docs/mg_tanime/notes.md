@@ -186,4 +186,3 @@ into a frame buffer), +8 name, +0x38 sceGsTex0 tex0 (TBP0/TBW/PSM/CBP fields use
 The local `divbyzerocheck on`/`reset` pair is redundant with the PS2
 compiler flag. Removing it leaves every section and symbol in this unit's
 object diff unchanged.
-
