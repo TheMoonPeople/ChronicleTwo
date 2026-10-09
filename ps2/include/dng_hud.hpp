@@ -542,7 +542,7 @@ public:
     ClsMes       *mes;   /**< Message window that shows the enemy's name. */
     float         angle; /**< Angle, in radians, by which the marker is turned. */
     char         *name;  /**< Name of the locked-on enemy; NULL when none is shown. */
-    s32           unk_90;
+    s32           message_no;
     u8            unk_94[0xC];
     sceVu0FVECTOR pos; /**< World position of the marker and of the name. */
 

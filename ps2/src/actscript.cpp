@@ -40,11 +40,10 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "userdata.hpp"
-extern ACTION_DAMAGE *LastCInfo2__2;
-extern int (*ext_func__3[256])(RS_STACKDATA *, int);
+ACTION_DAMAGE *LastCInfo2__2;
+int (*ext_func__3[256])(RS_STACKDATA *, int);
 extern float at_1181__3[4];
 extern float at_1417__3[4];
-extern int   at_1597__2[4];
 
 /**
  *
@@ -66,7 +65,14 @@ struct RingColors {
     int rgb[4][3]; /**< Red, green and blue components of each ring colour. */
 };
 
-extern RingColors      at_1774;
+RingColors at_1774 = {
+    {
+     {255, 64, 64},
+     {128, 255, 255},
+     {128, 64, 255},
+     {96, 255, 160},
+     }
+};
 extern RS_EXTFUNC_INFO ext_func_info__3[];
 extern char            at_1118__4[];
 extern char            at_1202__2[];
@@ -85,6 +91,7 @@ extern char            at_1593__4[];
 extern char            at_1594__5[];
 extern char            at_1595__6[];
 extern char            at_1596__3[];
+char                  *at_1597__2[4] = {at_1593__4, at_1594__5, at_1595__6, at_1596__3};
 extern char            at_1637__2[];
 extern char            at_1638[];
 extern char            at_1639[];
@@ -101,23 +108,6 @@ extern char            at_1729__2[];
 extern char            at_1730__2[];
 extern char            at_2004__4[];
 extern char            at_2005__3[];
-
-/**
- *
- * Accumulation effect state accessed by action script commands.
- *
- */
-struct AccumeSlot {
-    mgCFrame *effect; /**< Effect frame. */
-    char      unk_4[0x28C];
-    int       clear[32];
-    int       mode; /**< Effect mode. */
-    int       unk_314;
-    int       unk_318;
-    float     scale; /**< Effect scale. */
-    int       unk_320;
-    int       unk_324;
-};
 
 void ParabolicInitialVector(float *result, float *from, float *to, float gravity, float flight_time);
 
@@ -590,15 +580,15 @@ int _RESET_ACUMU_PAD(RS_STACKDATA *stack, int argc) {
  *
  */
 int _RUN_MAIN_MOVE(RS_STACKDATA *stack, int argc) {
-    int chara_type;
+    int move_type;
 
-    chara_type = action_info.chara->move_type;
+    move_type = action_info.chara->move_type;
 
-    switch (chara_type) {
-        case 0:
+    switch (move_type) {
+        case ACTION_MOVE_HUMAN:
             action_info.chara->HumanMoveIF();
             break;
-        case 3:
+        case ACTION_MOVE_MONSTER:
             action_info.chara->MonsterMoveIF();
             break;
     }
@@ -650,19 +640,19 @@ int _RUN_ROBO_MOVE(RS_STACKDATA *stack, int argc) {
     int input = GetStackInt(stack);
 
     switch (action_info.chara->move_type) {
-        case 1:
-        case 4:
+        case ACTION_MOVE_ROBO_WALK:
+        case ACTION_MOVE_ROBO_WALK2:
             action_info.chara->RoboWalkMoveIF(input);
             break;
-        case 2:
-        case 5:
+        case ACTION_MOVE_ROBO_TANK:
+        case ACTION_MOVE_ROBO_TANK2:
             action_info.chara->RoboTankMoveIF(input);
             break;
-        case 3:
+        case ACTION_MOVE_ROBO_BIKE:
             action_info.chara->RoboBikeMoveIF(input);
             break;
-        case 6:
-        case 7:
+        case ACTION_MOVE_ROBO_AIR:
+        case ACTION_MOVE_ROBO_AIR2:
             action_info.chara->RoboAirMoveIF(1, input);
             break;
     }
@@ -1047,7 +1037,7 @@ int _SET_ACCUME_FX(RS_STACKDATA *stack, int argc) {
     }
 
     action_info.chara->accume.frame = effect;
-    action_info.chara->accume.unk_4 = effect_no;
+    action_info.chara->accume.effect_no = effect_no;
     action_info.chara->accume.active = 0;
     return 1;
 }
@@ -1070,9 +1060,9 @@ int _SET_ACCUME_FLAG(RS_STACKDATA *stack, int argc) {
 
     switch (mode) {
         case 1: {
-            int         i;
-            AccumeSlot *slot = (AccumeSlot *) action_info.chara->accume_effect;
-            slot->effect = action_info.chara->accume.frame;
+            int            i;
+            ACCUME_EFFECT *slot = action_info.chara->accume_effect;
+            slot->frame = action_info.chara->accume.frame;
             slot->mode = 1;
             slot->unk_314 = 0;
             slot->unk_318 = 0;
@@ -1084,7 +1074,7 @@ int _SET_ACCUME_FLAG(RS_STACKDATA *stack, int argc) {
                 slot->clear[i] = 0;
             }
 
-            if (slot->effect == 0) {
+            if (slot->frame == 0) {
                 printf(at_1304__7);
             }
 
@@ -1092,12 +1082,12 @@ int _SET_ACCUME_FLAG(RS_STACKDATA *stack, int argc) {
             break;
         }
         case 0:
-            ((AccumeSlot *) action_info.chara->accume_effect)->mode = mode;
+            action_info.chara->accume_effect->mode = mode;
             action_info.chara->acumu_pad = 0;
             action_info.chara->accume.active = 0;
             break;
         default:
-            ((AccumeSlot *) action_info.chara->accume_effect)->mode = mode;
+            action_info.chara->accume_effect->mode = mode;
 
             if (mode == 3 || mode == 4) {
                 action_info.chara->accume.active = 0;
@@ -1304,7 +1294,7 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *input;
 
     if (nowScene__2 != NULL && (input = &nowScene__2->battle_area) != NULL &&
-        !(input->pause_flag & 0x2000)) {
+        !(input->pause_flag & DNG_PAUSE_WEAPON_DRAW)) {
         action_info.chara->Show(1, 1);
     }
 
@@ -1577,19 +1567,19 @@ void ShotLaserGun(float *position, float *direction, int type) {
 }
 
 int _SET_SHOT(RS_STACKDATA *stack, int argc) {
-    float position[4];
-    float direction[4];
-    int whp[2];
-    int magic_whp[2];
-    int object_no;
-    int wait;
-    float scale;
+    float             position[4];
+    float             direction[4];
+    int               whp[2];
+    int               magic_whp[2];
+    int               object_no;
+    int               wait;
+    float             scale;
     CBattleCharaInfo *info;
-    mgCFrame *muzzle;
-    mgCFrame *grip;
-    CGameDataUsed *equip;
-    int attack_type;
-    int laser;
+    mgCFrame         *muzzle;
+    mgCFrame         *grip;
+    CGameDataUsed    *equip;
+    int               attack_type;
+    int               laser;
 
     if (argc < 4 || argc > 5) {
         return 0;
@@ -1661,6 +1651,7 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 /**
  *
  * Fires a charged magic sword projectile from a named action object.
@@ -1716,29 +1707,30 @@ int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc) {
     info->ClearMagicSwordPow();
     return 1;
 }
+
 int _SHOT(RS_STACKDATA *stack, int argc) {
-    float position[4];
-    float target_pos[4];
-    float direction[4];
+    float            position[4];
+    float            target_pos[4];
+    float            direction[4];
     CanonObjectNames canon;
-    float rocket_target[4];
-    float missile_target[4];
-    float laser_target[4];
-    float beam_target[4];
-    int whp[2];
-    float beam_offset[4];
+    float            rocket_target[4];
+    float            missile_target[4];
+    float            laser_target[4];
+    float            beam_target[4];
+    int              whp[2];
+    float            beam_offset[4];
 
     CBattleCharaInfo *info = GetBattleCharaInfo();
-    int left = GetStackInt(stack);
+    int               left = GetStackInt(stack);
     if (action_info.chara->shot_wait > 0) {
         return 1;
     }
     action_info.chara->shot_wait = 2;
-    int attack_type = info->equip[0].GetAttackType();
+    int        attack_type = info->equip[0].GetAttackType();
     static int sw = 1;
     static int canon_slot = 0;
-    mgCFrame *muzzle;
-    mgCFrame *barrel;
+    mgCFrame  *muzzle;
+    mgCFrame  *barrel;
     if (attack_type != 40) {
         if (attack_type == 90) {
             if (left != 0) {
@@ -1785,7 +1777,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
                 launcher->homing_delay = 2;
                 launcher->homing_time = 30;
                 CColPrim *prim = ColPrimMan.GetPrim();
-                int col_prim_id = -1;
+                int       col_prim_id = -1;
                 if (prim != NULL) {
                     prim->SetDamage(at_1727, 0);
                     prim->SetCoord(position, 10.0f);
@@ -1820,7 +1812,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
                 launcher->SetPos(position, missile_target, direction);
                 launcher->target_chara = action_info.chara->target_no;
                 CColPrim *prim = ColPrimMan.GetPrim();
-                int col_prim_id = -1;
+                int       col_prim_id = -1;
                 if (prim != NULL) {
                     prim->SetDamage(at_1729__2, 0);
                     prim->SetCoord(position, 5.0f);
@@ -1843,7 +1835,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
                 laser->target_chara = action_info.chara->target_no;
                 laser->SetVisualCode(3);
                 CColPrim *prim = ColPrimMan.GetPrim();
-                int col_prim_id = -1;
+                int       col_prim_id = -1;
                 if (prim != NULL) {
                     prim->SetDamage(at_1730__2, 0);
                     prim->SetCoord(position, 5.0f);
@@ -1874,7 +1866,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
                 laser->target_chara = action_info.chara->target_no;
                 laser->SetVisualCode(4);
                 CColPrim *prim = ColPrimMan.GetPrim();
-                int col_prim_id = -1;
+                int       col_prim_id = -1;
                 if (prim != NULL) {
                     prim->SetDamage(at_1730__2, 0);
                     prim->SetCoord(position, 5.0f);
@@ -1896,6 +1888,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 /**
  *
  * Writes the world position of a named action object to script outputs.
@@ -1986,7 +1979,7 @@ int _GET_ATTK_POINT(RS_STACKDATA *stack, int argc) {
 
     int                  index = GetStackInt(stack++);
     BATTLE_WEAPON_PARAM *slots = GetBattleCharaInfo()->weapon_param;
-    SetStack(stack, slots[index].status[0]);
+    SetStack(stack, slots[index].status[WEAPON_STAT_ATTACK]);
     return 1;
 }
 
@@ -2240,7 +2233,7 @@ int _SET_DEFAULT_MOS(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SET_NEBA2(RS_STACKDATA *stack, int argc) {
-    if ((GetBattleCharaInfo())->GetAttr() & 2) {
+    if ((GetBattleCharaInfo())->GetAttr() & (int) CHARA_STATUS_SLOW) {
         action_info.chara->SetStep(0.7f * action_info.chara->GetDefaultStep());
     }
 
@@ -2479,9 +2472,7 @@ void ParabolicInitialVector(float *result, float *from, float *to, float gravity
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1181__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1417__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1597__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1645__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_1774__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", ext_func_info__3__DATA);
 
 // Constants (.rodata)
@@ -2520,8 +2511,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_2004__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/actscript", at_2005__3__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(nowScene__2, 0x4);
-INCLUDE_BSS(LastCInfo2__2, 0x4);
+CScene *nowScene__2;
 INCLUDE_BSS(sw_1617, 0x4);
 INCLUDE_BSS(init_1618, 0x4);
 INCLUDE_BSS(canon_slot_1620, 0x4);
@@ -2530,5 +2520,4 @@ INCLUDE_BSS(cnt_1661, 0x4);
 INCLUDE_BSS(init_1662, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(action_info, 0x10);
-INCLUDE_BSS(ext_func__3, 0x400);
+ACTION_INFO action_info;

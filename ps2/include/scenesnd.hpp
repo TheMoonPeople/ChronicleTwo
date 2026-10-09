@@ -71,7 +71,42 @@ enum MINIMAP_REVEAL {
     MINIMAP_REVEAL_ROOMS   = 1, /**< Unexplored cells are drawn dimmed instead of hidden. */
     MINIMAP_REVEAL_SYMBOLS = 2, /**< Monster and object symbols are drawn in unexplored cells. */
 };
+
 // clang-format on
+
+enum DNG_BGM_STATE {
+    DNG_BGM_MAP = 0,
+    DNG_BGM_FADE_OUT_MAP = 1,
+    DNG_BGM_BATTLE = 2,
+    DNG_BGM_FADE_OUT_BATTLE = 3,
+    DNG_BGM_FADE_IN_MAP = 4,
+};
+
+enum DNG_WEATHER {
+    DNG_WEATHER_NORMAL = 0,
+    DNG_WEATHER_RAIN = 2,
+};
+
+#define DNG_FLOOR_DISABLE_MAX 1
+#define DNG_FLOOR_DISABLE_MONICA 2
+#define DNG_FLOOR_DISABLE_ITEMS 4
+#define DNG_FLOOR_SEAL_MASK 7
+
+#define DNG_PAUSE_MONSTER_AI 0x1
+#define DNG_PAUSE_PLAYER_STEP 0x2
+#define DNG_PAUSE_PLAYER_CONTROL 0x4
+#define DNG_PAUSE_MONSTER_DRAW 0x10
+#define DNG_PAUSE_SKY_DRAW 0x20
+#define DNG_PAUSE_MAP_DRAW 0x80
+#define DNG_PAUSE_MINIMAP 0x100
+#define DNG_PAUSE_PICKUPS 0x200
+#define DNG_PAUSE_PLAYER_STATUS 0x400
+#define DNG_PAUSE_EXIT_HEAL 0x800
+#define DNG_PAUSE_ENEMY_STEP 0x1000
+#define DNG_PAUSE_WEAPON_DRAW 0x2000
+#define DNG_PAUSE_BATTLE_MUSIC 0x4000
+#define DNG_PAUSE_PAD_RESET 0x8000
+#define DNG_PAUSE_MONSTER_NAMES 0x10000
 
 /**
  *

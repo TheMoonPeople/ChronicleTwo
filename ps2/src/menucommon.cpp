@@ -113,7 +113,6 @@ extern s8    mes_cord_conv_1193[16][2];
 
 static inline unsigned int align16_blocks(unsigned int n);
 
-
 int menu_dtype_init(CMenuPosDataForm *form, SPI_STACK *stack, int argc);
 
 extern "C" MENU_FORM_ACTION
@@ -306,7 +305,6 @@ static inline unsigned int align16_blocks(unsigned int n) {
 
 #include "common.h"
 
-
 // Code (.text)
 int GetRandI(int range) {
     return rand() % range;
@@ -420,20 +418,20 @@ void MenuSePlay(int sound_no, unsigned int *bank, mgCMemory *memory) {
     memory->stack_used = 0;
     memory->lock = 0;
     sndInitPort(8);
-    sndSePlay(sndLoadSound(8, bank, memory), sound_no, 0);
+    sndSePlay(sndLoadSound((int) SND_PORT_MENU, bank, memory), sound_no, 0);
     MenuSePlayUsedFlag = 1;
 }
 
 void StopEnvSoundMenu(int event_port) {
-    SndPortVol_Ob = sndGetPortVol(1);
-    SndPortVol_Base = sndGetPortVol(3);
-    sndSetPortVol(1, 0.0f);
-    sndSetPortVol(3, 0.0f);
+    SndPortVol_Ob = sndGetPortVol((int) SND_PORT_OB);
+    SndPortVol_Base = sndGetPortVol((int) SND_PORT_BASE);
+    sndSetPortVol((int) SND_PORT_OB, 0.0f);
+    sndSetPortVol((int) SND_PORT_BASE, 0.0f);
     SndPortCheck_EventPort = event_port;
 
     if (event_port != 0) {
-        SndPortVol_Event = sndGetPortVol(4);
-        sndSetPortVol(4, 0.0f);
+        SndPortVol_Event = sndGetPortVol((int) SND_PORT_EVENT);
+        sndSetPortVol((int) SND_PORT_EVENT, 0.0f);
     }
 
     SndPortCheck_EventPort = event_port;
@@ -442,11 +440,11 @@ void StopEnvSoundMenu(int event_port) {
 }
 
 void ReStartEnvSoundMenu() {
-    sndSetPortVol(1, SndPortVol_Ob);
-    sndSetPortVol(3, SndPortVol_Base);
+    sndSetPortVol((int) SND_PORT_OB, SndPortVol_Ob);
+    sndSetPortVol((int) SND_PORT_BASE, SndPortVol_Base);
 
     if (SndPortCheck_EventPort != 0) {
-        sndSetPortVol(4, SndPortVol_Event);
+        sndSetPortVol((int) SND_PORT_EVENT, SndPortVol_Event);
     }
 
     GetMainScene()->SetEnvBGMVol(SndPortVol_Env);
@@ -945,13 +943,15 @@ int GetDispVolumeForFloat(float volume) {
 float GetFloatCommaValue(float value) {
     return value - (float) fptosi(value);
 }
+
 int CalcScrlBarPutPos(int top, float pos, int length, float pos_max) {
     int y = top;
     if (pos_max != 0.0f) {
-        y = (int)((float)top + length * (pos / pos_max));
+        y = (int) ((float) top + length * (pos / pos_max));
     }
     return y;
 }
+
 void Trans3DPosTo2DPos(mgCCamera *camera, mgCFrame *frame, int *out) {
     float view[4][4];
     float camera_pos[4];

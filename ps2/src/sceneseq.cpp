@@ -1041,9 +1041,10 @@ int scsMoveAHD(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
     owner->ahd_cnt++;
     return 1;
 }
+
 int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
     float angle_delta;
-    int ended;
+    int   ended;
     if (node->mode == SCENE_SEQ_EASE_IN_OUT) {
         ended = owner->ease_frame;
     } else {
@@ -1064,10 +1065,10 @@ int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
         } else if (angle_delta <= -3.1415927f) {
             angle_delta += 6.2831855f;
         }
-        owner->angle_spd = angle_delta / (float)node->frame;
-        owner->height_spd = (node->vec0[1] - owner->height) / (float)node->frame;
-        owner->dist_spd = (node->vec0[2] - owner->dist) / (float)node->frame;
-        owner->ease_frame = (int)(node->frame * node->ease_rate);
+        owner->angle_spd = angle_delta / (float) node->frame;
+        owner->height_spd = (node->vec0[1] - owner->height) / (float) node->frame;
+        owner->dist_spd = (node->vec0[2] - owner->dist) / (float) node->frame;
+        owner->ease_frame = (int) (node->frame * node->ease_rate);
         owner->pos_ease_acc[0] = owner->angle_spd;
         owner->pos_ease_acc[1] = owner->height_spd;
         owner->pos_ease_acc[2] = owner->dist_spd;
@@ -1166,6 +1167,7 @@ int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
     owner->ahd_cnt++;
     return 1;
 }
+
 /**
  *
  * Attaches the camera orbit to a frame of a synchronized object.

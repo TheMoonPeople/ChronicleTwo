@@ -18,25 +18,25 @@
 #include "snd_mngr.hpp"
 #include "userdata.hpp"
 
-extern char       *mes_txt[6][4];
-extern float       AddProj__2;
-extern char        PhotoTitle[];
-extern int         ShowTitleCnt;
-extern u32         CameraTexb;
-extern u32         OpenMenu;
-extern int         ShowLevelUpCnt;
-extern int         ShowTakePhotoCnt;
-extern int         ShutterAnmCnt;
-extern u32         TakePhotoMode;
-static CFont       Font__3;
-extern char       *null_txt;
-extern char        at_852__6[];
-extern mgCTexture *WorkTex;
-extern char        at_1055[];
+extern char *mes_txt[6][4];
+float        AddProj__2;
+char         PhotoTitle[0x80];
+int          ShowTitleCnt;
+u32          CameraTexb;
+u32          OpenMenu;
+int          ShowLevelUpCnt;
+int          ShowTakePhotoCnt;
+int          ShutterAnmCnt;
+u32          TakePhotoMode;
+static CFont Font__3;
+extern char *null_txt;
+extern char  at_852__6[];
+mgCTexture  *WorkTex;
+extern char  at_1055[];
 
 // Code (.text)
 char *GetMesTxt(int message_id) {
-    if (message_id < 0 || message_id >= 4) {
+    if (message_id < 0 || message_id >= (int) PHOTO_MES_NUM) {
         return null_txt;
     }
 
@@ -66,7 +66,7 @@ static void InitPhotoTitle() {
 }
 
 void InitTakePhoto() {
-    TakePhotoMode = 0;
+    TakePhotoMode = (int) TAKE_PHOTO_OFF;
     AddProj__2 = 0;
     InitPhotoTitle();
     ShowTakePhotoCnt = 0;
@@ -87,7 +87,7 @@ void LoadTakePhoto(int tex_block, mgCMemory *memory, u_long128 *buffer) {
 
 void StartTakePhoto() {
     InitTakePhoto();
-    TakePhotoMode = 2;
+    TakePhotoMode = (int) TAKE_PHOTO_AIM;
 }
 
 void EndTakePhoto() {
@@ -95,11 +95,11 @@ void EndTakePhoto() {
 }
 
 int NowTakePhoto() {
-    return (int) TakePhotoMode > 0;
+    return (int) TakePhotoMode > (int) TAKE_PHOTO_OFF;
 }
 
 int IsEnablePhotoMenu() {
-    return TakePhotoMode == 2;
+    return TakePhotoMode == (int) TAKE_PHOTO_AIM;
 }
 
 void HidePhoto() {
@@ -108,8 +108,8 @@ void HidePhoto() {
 
 int GhostPhotoTiming() {
     switch (TakePhotoMode) {
-        case 3:
-        case 5:
+        case (int) TAKE_PHOTO_SHUTTER:
+        case (int) TAKE_PHOTO_STORE:
             return 1;
         default:
             return 0;
@@ -118,7 +118,7 @@ int GhostPhotoTiming() {
 
 void LoopTakePhoto(CPadControl *pad, CInventUserData *user_data) {
     if (user_data != NULL) {
-        if (TakePhotoMode == 2) {
+        if (TakePhotoMode == (int) TAKE_PHOTO_AIM) {
             AddProj__2 += 10.0f * -pad->Analog(3);
 
             if (!(AddProj__2 <= 200.0f)) {
@@ -129,8 +129,8 @@ void LoopTakePhoto(CPadControl *pad, CInventUserData *user_data) {
                 AddProj__2 = -200.0f;
             }
 
-            if (user_data->IsPhotoSpace(NULL) != 0 && pad->Btn(0x33) != 0) {
-                TakePhotoMode = 3;
+            if (user_data->IsPhotoSpace(NULL) != 0 && pad->Btn((int) PAD_BTN_ACTION_SQUARE) != 0) {
+                TakePhotoMode = (int) TAKE_PHOTO_SHUTTER;
             }
 
             ShowTakePhotoCnt -= 1;
@@ -140,22 +140,24 @@ void LoopTakePhoto(CPadControl *pad, CInventUserData *user_data) {
             }
         }
 
-        if (TakePhotoMode == 4) {
+        if (TakePhotoMode == (int) TAKE_PHOTO_AFTERSHOT) {
             ShutterAnmCnt -= 1;
 
             if (ShutterAnmCnt < 0) {
                 ShutterAnmCnt = 0;
-                TakePhotoMode = 2;
+                TakePhotoMode = (int) TAKE_PHOTO_AIM;
             }
         }
 
-        if (TakePhotoMode == 6) {
+        if (TakePhotoMode == (int) TAKE_PHOTO_OPEN_MENU) {
             OpenMenu = 1;
-            TakePhotoMode = 2;
+            TakePhotoMode = (int) TAKE_PHOTO_AIM;
         }
     }
 }
+
 extern char at_997__5[];
+
 int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     int corner_x;
     int corner_y;
@@ -170,19 +172,19 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
         return 0;
     }
     mgCTextureManager *textures = &mgTexManager;
-    textures->ReloadTexture(CameraTexb, (sceVif1Packet *)NULL);
-    u_long128 image[0x240];
-    u_long128 depth[0x40];
+    textures->ReloadTexture(CameraTexb, (sceVif1Packet *) NULL);
+    u_long128   image[0x240];
+    u_long128   depth[0x40];
     mgCDrawPrim prim;
-    int taken = 0;
-    if (TakePhotoMode == 5) {
+    int         taken = 0;
+    if (TakePhotoMode == (int) TAKE_PHOTO_STORE) {
         mgStoreImage(WorkTex, image);
         mgRect<int> area(252, 204, 260, 212);
-        int count = mgStoreZBuffImage(area, depth);
+        int         count = mgStoreZBuffImage(area, depth);
         count *= 4;
-        u_int *pixel = (u_int *)depth;
-        u_int nearest = *pixel;
-        int i = 0;
+        u_int *pixel = (u_int *) depth;
+        u_int  nearest = *pixel;
+        int    i = 0;
         while (i < count) {
             if (nearest < *pixel) {
                 nearest = *pixel;
@@ -199,10 +201,10 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
             taken = 1;
         }
         ShowTakePhotoCnt = 120;
-        TakePhotoMode = 4;
+        TakePhotoMode = (int) TAKE_PHOTO_AFTERSHOT;
         ShutterAnmCnt = 8;
     }
-    if (TakePhotoMode == 3) {
+    if (TakePhotoMode == (int) TAKE_PHOTO_SHUTTER) {
         mgCTexture frame;
         mgGetFrameBuffer(&frame);
         mgCTexture *target = WorkTex;
@@ -222,7 +224,7 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
         capture.Vertex(target->width, target->height, 0);
         capture.End();
         mgSetPkFrameBuffer(-1, -1, -1, -1);
-        TakePhotoMode = 5;
+        TakePhotoMode = (int) TAKE_PHOTO_STORE;
     }
     prim.Initialize(NULL, NULL);
     prim.DepthTestEnable(0);
@@ -273,17 +275,17 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     prim.TextureMapEnable(0);
     prim.AlphaBlend(MG_ALPHA_BLEND_NORMAL);
     prim.AntiAliasing(1);
-    if (TakePhotoMode == 4) {
-        int frame = 8 - ShutterAnmCnt;
+    if (TakePhotoMode == (int) TAKE_PHOTO_AFTERSHOT) {
+        int           frame = 8 - ShutterAnmCnt;
         sceVu0FVECTOR center = {width / 2, height / 2, 0.0f, 1.0f};
-        float radius = mgDistVector(center);
-        float shutter_angle = (1.5707964f * (frame - 1)) / 4.0f;
+        float         radius = mgDistVector(center);
+        float         shutter_angle = (1.5707964f * (frame - 1)) / 4.0f;
         if (shutter_angle > 1.5707964f) {
             shutter_angle = 3.1415927f - shutter_angle;
         }
         for (int i = 0; i < 12; i++) {
-            float spoke_angle = 0.5235988f;
-            float angle = mgAngleLimit(3.1415927f + i * spoke_angle);
+            float         spoke_angle = 0.5235988f;
+            float         angle = mgAngleLimit(3.1415927f + i * spoke_angle);
             sceVu0FVECTOR position;
             sceVu0FVECTOR edge;
             sceVu0FVECTOR rotated;
@@ -327,40 +329,40 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     prim.Vertex(0, mgScreenHeight - 16, 0);
     prim.Vertex(mgScreenWidth, mgScreenHeight, 0);
     prim.End();
-    int x;
+    int   x;
     float arc_radius = 33.0f;
     for (corner = 0; corner < 4; corner++) {
         float angle = 1.5707964f;
         if (corner == 0) {
-                arc_y = arc_x = fptosi(48.0f);
-                corner_x = 0;
-                corner_y = 0;
-                angle = 1.5707964f;
+            arc_y = arc_x = fptosi(48.0f);
+            corner_x = 0;
+            corner_y = 0;
+            angle = 1.5707964f;
         } else if (corner == 1) {
-                arc_x = fptosi(48.0f);
-                corner_x = 0;
-                arc_y = (int)((float)height - 48.0f);
-                angle = 3.1415927f;
-                corner_y = height;
+            arc_x = fptosi(48.0f);
+            corner_x = 0;
+            arc_y = (int) ((float) height - 48.0f);
+            angle = 3.1415927f;
+            corner_y = height;
         } else if (corner == 2) {
-                arc_x = (int)((float)width - 48.0f);
-                corner_x = width;
-                arc_y = (int)((float)height - 48.0f);
-                angle = 4.712389f;
-                corner_y = height;
+            arc_x = (int) ((float) width - 48.0f);
+            corner_x = width;
+            arc_y = (int) ((float) height - 48.0f);
+            angle = 4.712389f;
+            corner_y = height;
         } else if (corner == 3) {
-                arc_x = (int)((float)width - 48.0f);
-                corner_x = width;
-                arc_y = fptosi(48.0f);
-                angle = 0.0f;
-                corner_y = 0;
+            arc_x = (int) ((float) width - 48.0f);
+            corner_x = width;
+            arc_y = fptosi(48.0f);
+            angle = 0.0f;
+            corner_y = 0;
         }
         prim.Begin(MG_PRIM_TRIANGLE_FAN);
         prim.Color(0, 0, 0, 128);
         prim.Vertex(corner_x, corner_y, 0);
         for (step = 0; step < 9; step++) {
-            x = (int)((float)arc_x + arc_radius * cosf(angle));
-            int y = (int)((float)arc_y + -arc_radius * sinf(angle));
+            x = (int) ((float) arc_x + arc_radius * cosf(angle));
+            int y = (int) ((float) arc_y + -arc_radius * sinf(angle));
             angle += 0.19634955f;
             prim.Vertex(x, y, 0);
         }
@@ -375,10 +377,10 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
             }
         }
         mgCTexture *texture = WorkTex;
-        int y = mgScreenHeight - 126;
-        int photo_width = texture->width * 3 / 2;
-        int photo_height = texture->height * 24 / 2;
-        int frame_height = photo_height / 10;
+        int         y = mgScreenHeight - 126;
+        int         photo_width = texture->width * 3 / 2;
+        int         photo_height = texture->height * 24 / 2;
+        int         frame_height = photo_height / 10;
         prim.TextureMapEnable(0);
         prim.Begin(MG_PRIM_SPRITE);
         prim.Color(32, 32, 32, alpha * 2 / 3);
@@ -407,6 +409,7 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     }
     return taken;
 }
+
 void SetTookPhotoData(USER_PICTURE_INFO *photo) {
     InitPhotoTitle();
     char *name = GetPhotoNameCheck(photo);
@@ -444,26 +447,26 @@ void DrawTakePhotoSystem(int texture, CInventUserData *user_data) {
         }
     } else {
         y = mgScreenHeight - 0x29;
-        Font__3.SetStr(GetMesTxt(0));
+        Font__3.SetStr(GetMesTxt((int) PHOTO_MES_CONFIRM));
         Font__3.SetPos(0x28, y);
         Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
         y = mgScreenHeight - 0x29;
-        Font__3.SetStr(GetMesTxt(3));
+        Font__3.SetStr(GetMesTxt((int) PHOTO_MES_ZOOM));
         Font__3.SetPos(0xF0, y);
         Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
         y = mgScreenHeight - 0x15;
-        Font__3.SetStr(GetMesTxt(1));
+        Font__3.SetStr(GetMesTxt((int) PHOTO_MES_TAKE));
         Font__3.SetPos(0x28, y);
         Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
     }
 
-    ConvertFontCode(GetMesTxt(2), title);
+    ConvertFontCode(GetMesTxt((int) PHOTO_MES_LEVEL_UP), title);
     char_width = Font__3.draw_w;
     y = 0xF6;
     y -= (int) ((u32) (char_width * strlen(title)) >> 1) / 2;
 
     if (ShowLevelUpCnt > 0) {
-        Font__3.SetStr(GetMesTxt(2));
+        Font__3.SetStr(GetMesTxt((int) PHOTO_MES_LEVEL_UP));
         Font__3.SetPos(y, 0x140);
         Font__3.DrawDirect(Font__3.str, Font__3.pos_x, Font__3.pos_y);
         ShowLevelUpCnt -= 1;
@@ -519,15 +522,5 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", at_1055__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/photo", null_txt__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(TakePhotoMode, 0x4);
-INCLUDE_BSS(AddProj__2, 0x4);
-INCLUDE_BSS(CameraTexb, 0x4);
-INCLUDE_BSS(WorkTex, 0x4);
-INCLUDE_BSS(ShutterAnmCnt, 0x4);
-INCLUDE_BSS(ShowTakePhotoCnt, 0x4);
-INCLUDE_BSS(OpenMenu, 0x4);
-INCLUDE_BSS(ShowTitleCnt, 0x4);
-INCLUDE_BSS(ShowLevelUpCnt, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(PhotoTitle, 0x80);

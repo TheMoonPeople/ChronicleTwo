@@ -10,8 +10,8 @@
 #include "mg_memory.hpp"
 #include "scriptinterpreter.hpp"
 
-extern CEditPartsInfo *emapNowInfo__2;
-extern mgCMemory      *emapStack__2;
+CEditPartsInfo *emapNowInfo__2;
+mgCMemory      *emapStack__2;
 
 /**
  *
@@ -25,22 +25,22 @@ struct EditMapRect {
     float end[4];   /**< Second endpoint. */
 };
 
-extern EditMapRect *emapRect__2;
-extern int          emapRectType;
-extern int          emapRectNum__2;
-extern int          emapRectIdx__2;
+EditMapRect *emapRect__2;
+int          emapRectType;
+int          emapRectNum__2;
+int          emapRectIdx__2;
 
 const int kPartsGround = 0x07;
 const int kPartsBlock = 0x30;
 const int kPartsRiver = 0x80;
 const int kPartsFence = 0x130;
 
-extern int            emapMatID;
-extern CEditInfoMngr *emapInfo__2;
-extern int            emapIdx__2;
-extern int            emapFixNum__2;
-extern int            emapFixIdx__2;
-extern SPI_TAG_PARAM  emap_tag__2[];
+int                  emapMatID;
+CEditInfoMngr       *emapInfo__2;
+int                  emapIdx__2;
+int                  emapFixNum__2;
+int                  emapFixIdx__2;
+extern SPI_TAG_PARAM emap_tag__2[];
 
 /**
  *
@@ -698,14 +698,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_395__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editinfo", at_396__2__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(emapInfo__2, 0x4);
-INCLUDE_BSS(emapStack__2, 0x4);
-INCLUDE_BSS(emapIdx__2, 0x4);
-INCLUDE_BSS(emapMatID, 0x4);
-INCLUDE_BSS(emapNowInfo__2, 0x4);
-INCLUDE_BSS(emapRectType, 0x4);
-INCLUDE_BSS(emapRect__2, 0x4);
-INCLUDE_BSS(emapRectNum__2, 0x4);
-INCLUDE_BSS(emapRectIdx__2, 0x4);
-INCLUDE_BSS(emapFixNum__2, 0x4);
-INCLUDE_BSS(emapFixIdx__2, 0x4);

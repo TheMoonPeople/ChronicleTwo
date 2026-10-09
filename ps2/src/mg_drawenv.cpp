@@ -107,8 +107,8 @@ void mgRENDER_INFO::SetRenderInfo(float projection, int width, int height, float
                                   float far_dist, int zdepth, float aspect_y) {
     float z_range = 1.67e7f;
     switch (zdepth) {
-    case 16:
-        z_range = 65000.0f;
+        case 16:
+            z_range = 65000.0f;
     }
     if (near_dist < 0.0f) {
         near_dist = clip_min[2];

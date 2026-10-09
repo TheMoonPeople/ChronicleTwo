@@ -50,12 +50,12 @@ void CWaveTable::CreateTexture(mgCTexture *output_texture) {
     prim.AlphaBlendEnable(1);
 
     float position[4];
-    float cell_width = (float)output_texture->width / 23.0f;
-    float cell_height = (float)output_texture->height / 23.0f;
+    float cell_width = (float) output_texture->width / 23.0f;
+    float cell_height = (float) output_texture->height / 23.0f;
     position[3] = 0.0f;
     position[2] = 0.0f;
-    float origin_x = (float)mgScreenOffx;
-    float origin_y = (float)mgScreenOffy;
+    float origin_x = (float) mgScreenOffx;
+    float origin_y = (float) mgScreenOffy;
     prim.Begin2();
 
     float row_offset = 0.0f;
@@ -70,8 +70,8 @@ void CWaveTable::CreateTexture(mgCTexture *output_texture) {
                 sample_column = 0;
             }
             float *line = height[0][row] + current * (WAVE_TABLE_DIM * WAVE_TABLE_DIM);
-            int next_column = (sample_column + 1) % WAVE_TABLE_DIM;
-            float intensity = line[sample_column] - WaveSample(line[next_column]);
+            int    next_column = (sample_column + 1) % WAVE_TABLE_DIM;
+            float  intensity = line[sample_column] - WaveSample(line[next_column]);
             intensity = 40.0f + 540.0f * intensity;
             if (!(intensity <= 200.0f)) {
                 intensity = 200.0f;
@@ -145,8 +145,8 @@ void CWaveTable::GetEffect() {
 
 #ifdef NONMATCHING
 void CWaveTable::Effect() {
-    int row;
-    int column;
+    int    row;
+    int    column;
     float *old;
     float *before = height[1 - current][0];
     float *center;

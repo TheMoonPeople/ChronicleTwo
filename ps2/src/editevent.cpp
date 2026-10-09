@@ -774,7 +774,7 @@ int LoadGeoNPC(GeoFuncParam *param, int mode) {
         rotation[1] = mgAngleLimit(rotation[1] + parts_rotation[1]);
         chara->SetPosition(position);
         chara->SetRotation(rotation);
-        scene->SetActive(1, 8);
+        scene->SetActive(SCENE_DATA_CHARA, 8);
     }
 
     scene->SetCharaNo(8, villager_id);

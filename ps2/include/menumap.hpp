@@ -118,7 +118,7 @@ STATIC_ASSERT(sizeof(WMAP_POS_DATA) == 0x14);
 struct WMAP_AREA_DATA {
     s32            area_no;                /**< Number of the area. */
     WMAP_POS_DATA *pos[WMAP_AREA_POS_MAX]; /**< Places of the area, ending with a null entry. */
-    s16            map_no; /**< Map number represented by the area. */
+    s16            map_no;                 /**< Map number represented by the area. */
     u8             unk_26[0x2];
     s32            x;         /**< Screen x of the area's mark. */
     s32            y;         /**< Screen y of the area's mark. */

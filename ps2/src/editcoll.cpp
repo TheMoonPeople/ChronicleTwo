@@ -140,6 +140,7 @@ float OverlapPoly3AreaXZ(sceVu0FVECTOR *clipped, sceVu0FVECTOR *clipper, mgVu0FB
     }
     return area;
 }
+
 void CEditCollision::Copy(CEditCollision &dest, int plane_no, mgCMemory *memory) {
 
     int     count;
@@ -210,11 +211,11 @@ void CEditCollision::Copy(CEditCollision &dest, int plane_no, mgCMemory *memory)
 
 float CEditCollision::AreaXZ() {
     float total;
-    float (*poly)[4];
+    float(*poly)[4];
     int i;
     int count;
     count = poly_count;
-    poly = (float (*)[4]) this->poly;
+    poly = (float(*)[4]) this->poly;
     total = 0.0f;
 
     for (i = 0; i < count; i++) {
@@ -316,14 +317,14 @@ float CEditCollision::OverlapXZ(CEditCollision &other, float (*matrix)[4], mgVu0
     float     depth;
     mgVu0FBOX tri_box;
     int       started;
-    float (*poly)[4];
+    float(*poly)[4];
     int   i;
     int   count;
     float total;
     i = 0;
     count = other.poly_count;
     total = 0.0f;
-    poly = (float (*)[4]) other.poly;
+    poly = (float(*)[4]) other.poly;
     started = 0;
 
     if (0 < count) {
@@ -360,11 +361,17 @@ int CEditCollision::OverlapPoly3XZ(float (*triangle)[4], float (*matrix)[4], flo
     CCPoly *source = poly;
     int index;
     float total;
-    if (source == NULL) return 0;
+    if (source == NULL) {
+        return 0;
+    }
     mgVectorMaxMin(tri_max, tri_min, triangle[0], triangle[1], triangle[2]);
-    if (area != NULL) *area = 0.0f;
+    if (area != NULL) {
+        *area = 0.0f;
+    }
     mgApplyMatrix(transformed_max, transformed_min, matrix, bbox.max, bbox.min);
-    if (!ClipBoxXZ(tri_max, tri_min, transformed_max, transformed_min)) return 0;
+    if (!ClipBoxXZ(tri_max, tri_min, transformed_max, transformed_min)) {
+        return 0;
+    }
     total = 0.0f;
     for (index = 0; index < poly_count; index++, source++) {
         mgApplyMatrixN(transformed, matrix, source->vertex, 3);
@@ -372,8 +379,12 @@ int CEditCollision::OverlapPoly3XZ(float (*triangle)[4], float (*matrix)[4], flo
             total += mgAbs(OverlapPoly3AreaXZ(triangle, transformed, NULL));
         }
     }
-    if (area != NULL) *area = total;
-    if (!(total <= 0.0f)) return 1;
+    if (area != NULL) {
+        *area = total;
+    }
+    if (!(total <= 0.0f)) {
+        return 1;
+    }
     return 0;
 }
 

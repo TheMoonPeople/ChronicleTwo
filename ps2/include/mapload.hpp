@@ -236,7 +236,7 @@ public:
     char *name; /**< Name the point is searched by, or null. */
     int   type; /**< Kind of point, a FUNC_POINT_TYPE. */
     int   unk_8;
-    int   unk_c;
+    int   flag_no;
     int   enable; /**< Non-zero while the point works. */
     float start;  /**< Hour of the day the point starts working. */
     float end;    /**< Hour of the day the point stops working; equal to start for all day. */
@@ -331,7 +331,7 @@ public:
     mgCFrame     *frame;       /**< Frame of the piece that holds the material. */
     int           material_no; /**< Index of the material in the frame's visual. */
     mgMaterial   *material;    /**< Material whose colour is replaced, or null. */
-    int           unk_c;
+    int           color_no;
     sceVu0FVECTOR color; /**< Colour the material takes while the piece is drawn. */
 
     /**

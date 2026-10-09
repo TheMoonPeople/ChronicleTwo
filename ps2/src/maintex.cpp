@@ -140,14 +140,14 @@ void calcWeaponParamWhp(CActiveMonster *monster, CColPrim *col_prim) {
         old_whp = (float) battle->GetWhpNowVol(0);
         wear = (float) (u_int) monster->whp;
         wear *= 0.5f;
-        wear -= (float) (wear * (0.005 * weapon_param[0].status[1]));
+        wear -= (float) (wear * (0.005 * weapon_param[0].status[WEAPON_STAT_DURABILITY]));
         status = col_prim->status;
 
-        if (status & 0x20) {
+        if (status & WEAPON_SPECIAL_INCREASE_WEAR) {
             wear *= 1.3f;
         }
 
-        if (status & 0x40) {
+        if (status & WEAPON_SPECIAL_REDUCE_WEAR) {
             wear *= 0.8f;
         }
 
@@ -171,13 +171,13 @@ void calcWeaponParam2(int type, int divisor) {
     if (type == DAMAGE_KIND_MAX_GUN || type == DAMAGE_KIND_MONICA_MAGIC) {
         old_whp = (float) battle->GetWhpNowVol(1);
         wear = 1.0f;
-        wear -= (float) (wear * (0.002 * weapon_param[1].status[1]));
+        wear -= (float) (wear * (0.002 * weapon_param[1].status[WEAPON_STAT_DURABILITY]));
 
-        if (status & 0x20) {
+        if (status & WEAPON_SPECIAL_INCREASE_WEAR) {
             wear *= 1.3f;
         }
 
-        if (status & 0x40) {
+        if (status & WEAPON_SPECIAL_REDUCE_WEAR) {
             wear *= 0.8f;
         }
 
@@ -196,9 +196,9 @@ void SetDamageParam(CColPrim *prim, int slot_no) {
     BATTLE_WEAPON_PARAM *weapon_param = info->weapon_param;
 
     if (mode == 3) {
-        prim->damage = weapon_param[slot_no].status[0];
+        prim->damage = weapon_param[slot_no].status[WEAPON_STAT_ATTACK];
     } else {
-        damage = weapon_param[slot_no].status[0];
+        damage = weapon_param[slot_no].status[WEAPON_STAT_ATTACK];
         int attack[2];
         info->GetNowWhp(slot_no, attack);
 
@@ -217,9 +217,9 @@ void SetDamageParam(CColPrim *prim, int slot_no) {
         prim->element[7] = info->weapon_param[slot_no].status[9];
         int status = info->GetSpecialStatus(slot_no);
 
-        if (status & 4) {
+        if (status & WEAPON_SPECIAL_POISON) {
             if (iRand(10) != 1) {
-                status &= ~4;
+                status &= ~WEAPON_SPECIAL_POISON;
             }
         }
 
@@ -361,16 +361,16 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_832__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/maintex", at_936__3__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(TEX_ShadowTexture, 0x4);
-INCLUDE_BSS(TEX_SystenFrame, 0x4);
-INCLUDE_BSS(TEX_SystenFrame2, 0x4);
-INCLUDE_BSS(TEX_StatusIcon, 0x4);
-INCLUDE_BSS(TEX_DummyIcon1, 0x4);
-INCLUDE_BSS(TEX_DummyIcon2, 0x4);
-INCLUDE_BSS(TEX_SystemEffect1, 0x4);
-INCLUDE_BSS(TEX_SystemEffect2, 0x4);
-INCLUDE_BSS(TEX_SystemEffect3, 0x4);
-INCLUDE_BSS(TEX_SystemEffectSw, 0x4);
-INCLUDE_BSS(TEX_ExFx_FIRE, 0x4);
-INCLUDE_BSS(TEX_ExFx_ICE, 0x4);
-INCLUDE_BSS(TEX_ExFx_THUN, 0x4);
+mgCTexture *TEX_ShadowTexture;
+mgCTexture *TEX_SystenFrame;
+mgCTexture *TEX_SystenFrame2;
+mgCTexture *TEX_StatusIcon;
+mgCTexture *TEX_DummyIcon1;
+mgCTexture *TEX_DummyIcon2;
+mgCTexture *TEX_SystemEffect1;
+mgCTexture *TEX_SystemEffect2;
+mgCTexture *TEX_SystemEffect3;
+mgCTexture *TEX_SystemEffectSw;
+mgCTexture *TEX_ExFx_FIRE;
+mgCTexture *TEX_ExFx_ICE;
+mgCTexture *TEX_ExFx_THUN;

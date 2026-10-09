@@ -363,7 +363,9 @@ int sgSystemDrawBuggy(SubGameInfo *info) {
     prim.End();
     return 1;
 }
+
 static inline int BombCPoly(CCPoly *polys, float *bomb, float *pos) { return CreateCharaCPoly(polys, 0x10, bomb, pos, 1.0f, 20.0f); }
+
 /**
  *
  * Steps of the player's bomb pickup, carrying and throwing motions.
@@ -583,7 +585,7 @@ void CharaControl(CScene *scene, CPadControl *pad) {
             }
             EditMoveChara(scene, velocity, &move);
             if (camera != NULL) {
-                camera->SetRotCameraCancel(1);
+                camera->SetRotCameraCancel((int) CAMERA_ROT_CANCEL_BUTTON);
             }
             switch (BombStatus) {
                 case BUGGY_BOMB_RELOAD_START: {
@@ -968,7 +970,7 @@ extern char  at_1316__3[];
  */
 void InitBomb(CScene *scene) {
     BombStatus = 3;
-    scene->SetActive(1, 67);
+    scene->SetActive(SCENE_DATA_CHARA, 67);
     BombChara->SetPosition(-0.8f, 136.5f, -320.0f);
     StarbullPos[0] = 0.0f;
     StarbullPos[1] = 113.0f;
@@ -977,7 +979,6 @@ void InitBomb(CScene *scene) {
     StarbullChara->SetRotation(0.0f, 3.1415927f, 0.0f);
     StarbullChara->SetMotion(at_1316__3, 0);
 }
-
 
 /**
  *
@@ -1079,7 +1080,7 @@ void BombControl(CScene *scene) {
         BombChara->SetPosition(0.0f, 0.0f, 0.0f);
         BombChara->UpdatePosition();
         BombStatus = 2;
-        scene->ResetActive(1, 0x43);
+        scene->ResetActive(SCENE_DATA_CHARA, 0x43);
     } else if (status == 2) {
         float     frame_now = StarbullChara->GetNowFrame();
         float     frame_next = frame_now + StarbullChara->GetStep();
@@ -1095,7 +1096,7 @@ void BombControl(CScene *scene) {
         }
 
         if (!(frame_now < 18.0f)) {
-            scene->SetActive(1, 0x43);
+            scene->SetActive(SCENE_DATA_CHARA, 0x43);
         }
 
         if (frame_now <= 30.9f && !(frame_next <= 30.9f)) {
@@ -1143,7 +1144,7 @@ void BombControl(CScene *scene) {
             BombVelo[2] = -25.0f;
             BombStatus = 7;
             BombCount = 0x28;
-            scene->ResetActive(1, 0x43);
+            scene->ResetActive(SCENE_DATA_CHARA, 0x43);
             BombImpact = 8;
         } else {
             mgVectorMaxMin(box.max, box.min, position, previous);

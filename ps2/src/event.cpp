@@ -359,10 +359,10 @@ int EventLoop() {
             strcat(directory, &EdEventInfo.script_name[index + 1]);
 
             switch (GetNowLoopNo()) {
-                case 1:
+                case (int) LOOP_EDIT:
                     buffer = &ScriptBuffer__2;
                     break;
-                case 2:
+                case (int) LOOP_DUNGEON:
                     buffer = &BuffScriptData;
                     break;
                 default:
@@ -381,7 +381,7 @@ int EventLoop() {
                 SetEventScript(program, NULL, buffer);
                 index = StartEventSyori();
 
-                if (GetNowLoopNo() == 2 && index >= 0) {
+                if (GetNowLoopNo() == (int) LOOP_DUNGEON && index >= 0) {
                     EventScene->event_run = 0;
                     RunEvent(index, DngMainScene);
                 }
@@ -390,7 +390,7 @@ int EventLoop() {
                 SetEventScript(program, NULL, buffer);
                 index = StartEventSyori();
 
-                if (GetNowLoopNo() == 2 && index >= 0) {
+                if (GetNowLoopNo() == (int) LOOP_DUNGEON && index >= 0) {
                     EventScene->event_run = 0;
                     RunEvent(index, DngMainScene);
                 }

@@ -152,22 +152,22 @@ struct BASE_MONSTER_TBL {
     s32   unk_4c;
     s32   life;         /**< Life that the monster starts with. */
     s8    user_mons_id; /**< Monster that the player can turn into to pass as this one; -1 for none. */
-    u16   reward_exp; /**< Experience awarded for defeating this monster. */
+    u16   reward_exp;   /**< Experience awarded for defeating this monster. */
     u16   reward_money; /**< Money awarded for defeating this monster. */
     u16   unk_5a;
-    float whp;            /**< Wear that a melee hit on the monster does to the main character's weapon. */
-    u16   gekirin_num;    /**< Hits that fill the monster's rage. */
-    s8    guard_rate;     /**< Chance out of 100 that the monster guards a hit. */
-    s8    escape_rate0; /**< Chance out of 100 that the monster dodges an attack of its target whose murderous mode is 0. */
-    s8    escape_rate1; /**< Chance out of 100 that the monster dodges an attack of its target whose murderous mode is 1. */
-    u16   attack;         /**< Attack power of the monster. */
-    u8    defense;        /**< Defence that is taken off the attack power of a hit. */
-    s8    stagger;        /**< Stagger that hits must build up to make the monster flinch; 0 to flinch at every hit. */
-    s8    boss;           /**< Nonzero for a boss, whose life is shown across the foot of the screen. */
-    s8    sw_effect_num;  /**< Number of sword after-images that the monster's model carries. */
+    float whp;               /**< Wear that a melee hit on the monster does to the main character's weapon. */
+    u16   gekirin_num;       /**< Hits that fill the monster's rage. */
+    s8    guard_rate;        /**< Chance out of 100 that the monster guards a hit. */
+    s8    escape_rate0;      /**< Chance out of 100 that the monster dodges an attack of its target whose murderous mode is 0. */
+    s8    escape_rate1;      /**< Chance out of 100 that the monster dodges an attack of its target whose murderous mode is 1. */
+    u16   attack;            /**< Attack power of the monster. */
+    u8    defense;           /**< Defence that is taken off the attack power of a hit. */
+    s8    stagger;           /**< Stagger that hits must build up to make the monster flinch; 0 to flinch at every hit. */
+    s8    boss;              /**< Nonzero for a boss, whose life is shown across the foot of the screen. */
+    s8    sw_effect_num;     /**< Number of sword after-images that the monster's model carries. */
     s16   element_resist[8]; /**< Percentages that reduce damage from each element. */
-    s16   ext_param[12]; /**< Percentages that scale the damage of each kind of attack. */
-    u32   flags; /**< Bits that suppress normal damage and knockback reactions. */
+    s16   ext_param[12];     /**< Percentages that scale the damage of each kind of attack. */
+    u32   flags;             /**< Bits that suppress normal damage and knockback reactions. */
     u32   unk_98;
     s32   next_id; /**< Monster kind that is loaded along with this one; -1 for none. */
 
@@ -176,11 +176,11 @@ struct BASE_MONSTER_TBL {
         s16 drop_items[3]; /**< Alternate view of the monster's drop slots. */
     };
 
-    u32 resist_attr; /**< Hit attribute bits that cannot leave statuses on the monster. */
-    s16 status_chance; /**< Base chance used when applying a hit status. */
+    u32 resist_attr;       /**< Hit attribute bits that cannot leave statuses on the monster. */
+    s16 status_chance;     /**< Base chance used when applying a hit status. */
     s16 ratio_damage_rate; /**< Percentage used when scaling ratio-based damage. */
-    s8  area_no; /**< Area number assigned to this monster definition. */
-    s16 memo_index; /**< Index of this monster in the encyclopedia. */
+    s8  area_no;           /**< Area number assigned to this monster definition. */
+    s16 memo_index;        /**< Index of this monster in the encyclopedia. */
     s16 unk_b4;
 };
 
@@ -223,7 +223,7 @@ STATIC_ASSERT(sizeof(MONSTER_STATUS) == 0xC);
  */
 struct MONSTER_REACT {
     s16 kind; /**< DamageKind that the entry is for. */
-    s16 flag; /**< Bits added to the battle area's practice_actions when a hit of this kind lands. */
+    s16 practice_actions;
     s16 blow; /**< Nonzero when a hit of this kind knocks the monster back. */
     s16 pad;
 };
@@ -247,41 +247,41 @@ union ScriptVariable {
  */
 class CActiveMonster : public CActionChara {
 public:
-    sceVu0FVECTOR     place_pos;              /**< Position at which the monster was placed, which its script can move. */
-    CRunScript        mons_script;            /**< Interpreter that runs the monster's script. */
-    BASE_MONSTER_TBL  param;                  /**< Monster's own copy of its kind's parameters, which its script can change. */
-    BASE_MONSTER_TBL *base_tbl;               /**< Entry of the monster table for the monster's kind. */
-    BASE_MONSTER_TBL *tbl;                    /**< Parameters in use: param for a monster on the floor, the table entry for a loaded kind. */
-    s16               refer_no;               /**< Loaded kind slot of the monster manager that the monster was made from. */
-    s16               monster_id;             /**< Number of the monster's kind. */
-    s16               req_prog;               /**< Program for the script to run next, a MONSTER_PROG value. */
-    s16               now_prog;               /**< Program that the script last started. */
-    ScriptVariable    var[MONSTER_VAR_MAX];   /**< Integer or float variables of the monster's script. */
-    ScriptVariable    var2[MONSTER_VAR2_MAX]; /**< Second set of integer or float variables of the monster's script. */
-    CMapParts        *link_parts;             /**< Map part that the monster is linked with; NULL for none. */
-    CMapPiece        *link_piece;             /**< Piece of link_parts that the monster rides on; NULL for none. */
-    s16               link_type;              /**< How the monster is linked with link_parts, a MONSTER_LINK value. */
-    s32               last_hit_kind;          /**< DamageKind of the hit that killed the monster. */
-    s32               last_hit_chara;         /**< Battle character that dealt the killing hit, or -1. */
-    s32               last_hit_source;        /**< Kind of attacker that dealt the killing hit. */
-    u32               last_hit_attr;          /**< Attribute bits of the hit that killed the monster. */
-    CEnemyLifeGage    life_gage;              /**< Life gauge drawn over the monster. */
-    CPiyori           piyori;                 /**< Stars that circle the monster while it is stunned. */
-    CGiftMark         gift_mark;              /**< Mark shown over the monster when it has been given a gift. */
-    s16               att_type;               /**< Kind of the last attack that hit the monster. */
-    MONSTER_SCOOP     scoop;                  /**< When a photo of the monster can be taken. */
-    void             *reserv_img[2];          /**< Images that the monster's script has loaded for later. */
-    s32               reserv_img_size[2];     /**< Sizes, in bytes, of the reserved images. */
-    sceVu0FVECTOR     center_pos;             /**< World position of the monster's first entered object, found each step. */
-    s16               event_no;               /**< Event script that the monster's script asks to run; -1 for none. */
-    s16               target_no;              /**< Scene character number of the monster's target; -1 for none. */
-    s16               view_state;             /**< Whether the monster is in sight, a MONSTER_VIEW value. */
-    float             view_alpha;             /**< Fade, from 0.0 to 1.0, of the monster coming into or going out of sight. */
-    float             camera_alpha;           /**< Fade, from 0.0 to 1.0, that hides the monster when it is too near the camera. */
-    s16               priority;               /**< Rank of the monster by distance to its target, 0 for the nearest; -1 for none. */
-    float             target_dist;            /**< Distance to the target. */
-    float             camera_dist;            /**< Distance to the camera. */
-    float             clip_dist;              /**< Distance within which the monster comes into sight and its life gauge is drawn. */
+    sceVu0FVECTOR     place_pos;                               /**< Position at which the monster was placed, which its script can move. */
+    CRunScript        mons_script;                             /**< Interpreter that runs the monster's script. */
+    BASE_MONSTER_TBL  param;                                   /**< Monster's own copy of its kind's parameters, which its script can change. */
+    BASE_MONSTER_TBL *base_tbl;                                /**< Entry of the monster table for the monster's kind. */
+    BASE_MONSTER_TBL *tbl;                                     /**< Parameters in use: param for a monster on the floor, the table entry for a loaded kind. */
+    s16               refer_no;                                /**< Loaded kind slot of the monster manager that the monster was made from. */
+    s16               monster_id;                              /**< Number of the monster's kind. */
+    s16               req_prog;                                /**< Program for the script to run next, a MONSTER_PROG value. */
+    s16               now_prog;                                /**< Program that the script last started. */
+    ScriptVariable    script_vars[MONSTER_VAR_MAX];            /**< Integer or float variables of the monster's script. */
+    ScriptVariable    secondary_script_vars[MONSTER_VAR2_MAX]; /**< Second set of integer or float variables of the monster's script. */
+    CMapParts        *link_parts;                              /**< Map part that the monster is linked with; NULL for none. */
+    CMapPiece        *link_piece;                              /**< Piece of link_parts that the monster rides on; NULL for none. */
+    s16               link_type;                               /**< How the monster is linked with link_parts, a MONSTER_LINK value. */
+    s32               last_hit_kind;                           /**< DamageKind of the hit that killed the monster. */
+    s32               last_hit_chara;                          /**< Battle character that dealt the killing hit, or -1. */
+    s32               last_hit_source;                         /**< Kind of attacker that dealt the killing hit. */
+    u32               last_hit_attr;                           /**< Attribute bits of the hit that killed the monster. */
+    CEnemyLifeGage    life_gage;                               /**< Life gauge drawn over the monster. */
+    CPiyori           piyori;                                  /**< Stars that circle the monster while it is stunned. */
+    CGiftMark         gift_mark;                               /**< Mark shown over the monster when it has been given a gift. */
+    s16               att_type;                                /**< Kind of the last attack that hit the monster. */
+    MONSTER_SCOOP     scoop;                                   /**< When a photo of the monster can be taken. */
+    void             *reserv_img[2];                           /**< Images that the monster's script has loaded for later. */
+    s32               reserv_img_size[2];                      /**< Sizes, in bytes, of the reserved images. */
+    sceVu0FVECTOR     center_pos;                              /**< World position of the monster's first entered object, found each step. */
+    s16               event_no;                                /**< Event script that the monster's script asks to run; -1 for none. */
+    s16               target_no;                               /**< Scene character number of the monster's target; -1 for none. */
+    s16               view_state;                              /**< Whether the monster is in sight, a MONSTER_VIEW value. */
+    float             view_alpha;                              /**< Fade, from 0.0 to 1.0, of the monster coming into or going out of sight. */
+    float             camera_alpha;                            /**< Fade, from 0.0 to 1.0, that hides the monster when it is too near the camera. */
+    s16               priority;                                /**< Rank of the monster by distance to its target, 0 for the nearest; -1 for none. */
+    float             target_dist;                             /**< Distance to the target. */
+    float             camera_dist;                             /**< Distance to the camera. */
+    float             clip_dist;                               /**< Distance within which the monster comes into sight and its life gauge is drawn. */
     float             unk_1300;
     float             unk_1304;
     s16               unk_1308;
@@ -293,17 +293,17 @@ public:
     float             gekirin;      /**< Hits left before the monster is enraged; -1.0 for a boss. */
     s16               gekirin_time; /**< Steps left of the monster's rage. */
     u16               unk_1322;
-    u16               whp;          /**< Wear that a melee hit on the monster does to the main character's weapon. */
-    u16               defense;      /**< Defence that is taken off the attack power of a hit. */
-    s32               reward_exp;   /**< Weapon experience scattered when the monster dies. */
-    s32               reward_money; /**< Money scattered when the monster dies. */
-    s32               state;        /**< Life state of the monster, an ACTIVE_MONSTER_STATE value. */
-    s32               dead_alpha;   /**< Fade, from 128 down to 0, of a dead monster. */
-    s16               piyori_mark;  /**< Steps left for which the stun stars are shown. */
-    s16               piyori_time;  /**< Steps left of the monster's stun. */
-    MONSTER_STATUS    status;       /**< Statuses that hits have left on the monster. */
-    u32               attrib;       /**< Behaviour bits that the script sets, MONSTER_ATTRIB bits. */
-    s32               message_no; /**< Message parameter associated with the active monster. */
+    u16               whp;             /**< Wear that a melee hit on the monster does to the main character's weapon. */
+    u16               defense;         /**< Defence that is taken off the attack power of a hit. */
+    s32               reward_exp;      /**< Weapon experience scattered when the monster dies. */
+    s32               reward_money;    /**< Money scattered when the monster dies. */
+    s32               state;           /**< Life state of the monster, an ACTIVE_MONSTER_STATE value. */
+    s32               dead_alpha;      /**< Fade, from 128 down to 0, of a dead monster. */
+    s16               piyori_mark;     /**< Steps left for which the stun stars are shown. */
+    s16               piyori_time;     /**< Steps left of the monster's stun. */
+    MONSTER_STATUS    status;          /**< Statuses that hits have left on the monster. */
+    u32               attrib;          /**< Behaviour bits that the script sets, MONSTER_ATTRIB bits. */
+    s32               message_no;      /**< Message parameter associated with the active monster. */
     s32               locate_param;    /**< Value given with the monster in the floor's list of monsters; -1 for none. */
     s16               gate_key;        /**< Gate key that the monster drops when it dies; 0 or less for none. */
     s16               no_damage_cnt;   /**< Hits that did the monster no damage. */
@@ -438,16 +438,16 @@ STATIC_ASSERT(sizeof(CMonsterLocateInfo) == 0x8C);
  */
 class CMonsterMan {
 public:
-    CScene            *scene;                        /**< Scene that the monsters are in. */
-    mgCMemory          memory[MONSTER_ACTIVE_MAX];   /**< Memory for the script stacks of each monster slot. */
-    CActiveMonster    *active[MONSTER_ACTIVE_MAX];   /**< Monster of each slot, which is the scene character 24 slots on. */
-    MONSTER_REFER      refer[MONSTER_REFER_MAX];     /**< Loaded monster kinds. */
-    ScriptVariable     share_var[MONSTER_SHARE_MAX]; /**< Integer or float variables that every monster's script shares; scripts number them from 8. */
-    CEffectScriptMan  *effect_man;                   /**< Effect scripts that the monsters start. */
-    CMonsterLocateInfo locate;                       /**< The floor's list of monsters to place. */
-    s16                priority_limit;               /**< Number of nearest monsters that are let come into sight. */
-    CEnemyLifeGage     boss_life_gage;               /**< Life gauge of the bosses, drawn across the foot of the screen. */
-    s32                boss_max_life;                /**< Sum of the life of every boss placed. */
+    CScene            *scene;                                 /**< Scene that the monsters are in. */
+    mgCMemory          memory[MONSTER_ACTIVE_MAX];            /**< Memory for the script stacks of each monster slot. */
+    CActiveMonster    *active[MONSTER_ACTIVE_MAX];            /**< Monster of each slot, which is the scene character 24 slots on. */
+    MONSTER_REFER      refer[MONSTER_REFER_MAX];              /**< Loaded monster kinds. */
+    ScriptVariable     shared_script_vars[MONSTER_SHARE_MAX]; /**< Integer or float variables that every monster's script shares; scripts number them from 8. */
+    CEffectScriptMan  *effect_man;                            /**< Effect scripts that the monsters start. */
+    CMonsterLocateInfo locate;                                /**< The floor's list of monsters to place. */
+    s16                priority_limit;                        /**< Number of nearest monsters that are let come into sight. */
+    CEnemyLifeGage     boss_life_gage;                        /**< Life gauge of the bosses, drawn across the foot of the screen. */
+    s32                boss_max_life;                         /**< Sum of the life of every boss placed. */
 
     /**
      *

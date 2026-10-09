@@ -448,7 +448,7 @@ int CColFrame::GetWorldBBox(mgVu0FBOX *box) {
 }
 
 CColFrame *LoadCollisionFile(MDS_HEADER *header, mgCMemory *memory) {
-    u_char        *data = (u_char *)header;
+    u_char        *data = (u_char *) header;
     sceVu0FMATRIX  matrix;
     sceVu0FVECTOR  max;
     sceVu0FVECTOR  min;
@@ -461,19 +461,19 @@ CColFrame *LoadCollisionFile(MDS_HEADER *header, mgCMemory *memory) {
     CColFrame     *frame;
     int            offset;
 
-    cursor = (u_char *)header;
+    cursor = (u_char *) header;
     cursor += sizeof(MDS_HEADER);
     if (header->object_num == 0) {
         return 0;
     }
 
-    frames = new ((u_long128 *)memory->Alloc(Align16Blocks(header->object_num * sizeof(CColFrame)) + 2)) CColFrame[header->object_num];
+    frames = new ((u_long128 *) memory->Alloc(Align16Blocks(header->object_num * sizeof(CColFrame)) + 2)) CColFrame[header->object_num];
 
     i = 0;
-    for (offset = 0; i < ((MDS_HEADER *)data)->object_num; offset += sizeof(CColFrame), i++) {
-        object = (MDTOBJ_HEADER *)cursor;
+    for (offset = 0; i < ((MDS_HEADER *) data)->object_num; offset += sizeof(CColFrame), i++) {
+        object = (MDTOBJ_HEADER *) cursor;
         cursor += sizeof(MDTOBJ_HEADER);
-        frame = (CColFrame *)((u_char *)frames + offset);
+        frame = (CColFrame *) ((u_char *) frames + offset);
         frame->Initialize();
 
         for (column = 0; column < 4; column++) {
@@ -492,17 +492,17 @@ CColFrame *LoadCollisionFile(MDS_HEADER *header, mgCMemory *memory) {
         }
 
         if (object->mdt_ofs != 0) {
-            u_int *model = (u_int *)(data + object->mdt_ofs);
+            u_int *model = (u_int *) (data + object->mdt_ofs);
             mgZeroVector(max);
             mgZeroVector(min);
 
             frame->collision = CreateCollisionMDT(model, memory);
             if (frame->collision != 0) {
-                *(u_long128 *)max = *(u_long128 *)frame->collision->bbox.max;
-                *(u_long128 *)min = *(u_long128 *)frame->collision->bbox.min;
+                *(u_long128 *) max = *(u_long128 *) frame->collision->bbox.max;
+                *(u_long128 *) min = *(u_long128 *) frame->collision->bbox.min;
             }
 
-            frame->bound = new ((u_long128 *)memory->Alloc(sizeof(mgCFrame::BoundInfo) / 16 + 2)) mgCFrame::BoundInfo;
+            frame->bound = new ((u_long128 *) memory->Alloc(sizeof(mgCFrame::BoundInfo) / 16 + 2)) mgCFrame::BoundInfo;
             frame->SetBBox(max, min);
         }
     }
@@ -521,7 +521,7 @@ CColFrame::CColFrame() {
 }
 
 CCollisionMDT *CreateCollisionMDT(u_int *model, mgCMemory *memory) {
-    MDT_HEADER    *header = (MDT_HEADER *)model;
+    MDT_HEADER    *header = (MDT_HEADER *) model;
     int            index_count;
     sceVu0FVECTOR *vertices;
     MDT_MATERIAL_ *materials;
@@ -538,16 +538,16 @@ CCollisionMDT *CreateCollisionMDT(u_int *model, mgCMemory *memory) {
     int            polygon_no;
     int            i;
 
-    collision = new ((u_long128 *)memory->Alloc(Align16Blocks(sizeof(CCollisionMDT)) + 2)) CCollisionMDT;
+    collision = new ((u_long128 *) memory->Alloc(Align16Blocks(sizeof(CCollisionMDT)) + 2)) CCollisionMDT;
 
-    vertices = (sceVu0FVECTOR *)((char *)header + header->vertex_ofs);
-    materials = (MDT_MATERIAL_ *)((char *)header + header->material_ofs);
-    faces = (MDT_FACES *)((char *)header + header->faces_ofs);
+    vertices = (sceVu0FVECTOR *) ((char *) header + header->vertex_ofs);
+    materials = (MDT_MATERIAL_ *) ((char *) header + header->material_ofs);
+    faces = (MDT_FACES *) ((char *) header + header->faces_ofs);
     prim_num = faces->prim_num;
-    first_prim = (FACES_ID *)(faces + 1);
+    first_prim = (FACES_ID *) (faces + 1);
 
     poly_count = 0;
-    words = (int *)first_prim;
+    words = (int *) first_prim;
     for (i = 0; i < prim_num; i++) {
         int type = words[0];
         if ((type & 7) == 4) {
@@ -557,29 +557,29 @@ CCollisionMDT *CreateCollisionMDT(u_int *model, mgCMemory *memory) {
             return 0;
         }
         int face_num = words[1];
-        words = (int *)&((FACES_ID *)words)->material;
+        words = (int *) &((FACES_ID *) words)->material;
         words++;
         poly_count += face_num / 3;
         words += face_num;
     }
 
-    polys = (CCPoly *)memory->Alloc(poly_count * sizeof(CCPoly) / 16);
+    polys = (CCPoly *) memory->Alloc(poly_count * sizeof(CCPoly) / 16);
     if (polys == 0) {
         return 0;
     }
 
     polygon_no = 0;
-    words = (int *)first_prim;
+    words = (int *) first_prim;
     for (i = 0; i < prim_num; i++) {
         index_count = words[1];
-        words = (int *)&((FACES_ID *)words)->material;
+        words = (int *) &((FACES_ID *) words)->material;
         material_no = *words++;
 
         for (j = 0; j < index_count; j += 3) {
             poly = &polys[polygon_no++];
-            *(u_long128 *)poly->vertex[0] = *(u_long128 *)vertices[words[0]];
-            *(u_long128 *)poly->vertex[1] = *(u_long128 *)vertices[words[1]];
-            *(u_long128 *)poly->vertex[2] = *(u_long128 *)vertices[words[2]];
+            *(u_long128 *) poly->vertex[0] = *(u_long128 *) vertices[words[0]];
+            *(u_long128 *) poly->vertex[1] = *(u_long128 *) vertices[words[1]];
+            *(u_long128 *) poly->vertex[2] = *(u_long128 *) vertices[words[2]];
             words += 3;
 
             if (material_no >= 0 && materials != 0) {

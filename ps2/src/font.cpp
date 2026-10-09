@@ -294,7 +294,7 @@ void CFont::SetFuchi(s32 style) {
 }
 
 void CFont::SetStr(char *text) {
-    memset(this->str, 0, 0x80);
+    memset(this->str, 0, sizeof(this->str));
 
     if (strlen(text) >= 0x80U) {
         printf(at_936__5);
@@ -473,16 +473,17 @@ int GetFontGaijiHankaku(u16 code) {
 
     return 0;
 }
+
 int GetFontNo(char *text) {
     if (text[0] == '\n') {
         return FONT_NO_NEWLINE;
     }
-    int gaiji = (u16)GetFontGaijiFontNo(text);
+    int gaiji = (u16) GetFontGaijiFontNo(text);
     if (gaiji != 0) {
-        return (u16)gaiji;
+        return (u16) gaiji;
     }
     u8 *table = GetYoyakuTblTop();
-    u16 code = (u8)text[1] + ((u8)text[0] << 8);
+    u16 code = (u8) text[1] + ((u8) text[0] << 8);
     int low = 0;
     int high = GetYoyakuTblNum() - 1;
     u16 first = table[1] + (table[0] << 8);
@@ -490,8 +491,8 @@ int GetFontNo(char *text) {
         return 0;
     }
     u8 *pair = &table[high * 2];
-    u8 first_byte = pair[0];
-    u8 second_byte = pair[1];
+    u8  first_byte = pair[0];
+    u8  second_byte = pair[1];
     u16 end = second_byte + (first_byte << 8);
     if (end == code) {
         return high;
@@ -514,6 +515,7 @@ int GetFontNo(char *text) {
         }
     }
 }
+
 int GetHalfFontNo(char c) {
     char buf[8];
     u16  no = GetAlphabeticalFontNo_uc((unsigned char) c);

@@ -449,7 +449,7 @@ void mgCDrawPrim::DepthTestEnable(int enable) {
         state->enable = 1;
         state->mode = 1;
     } else {
-        DepthTest(1);
+        DepthTest(MG_DEPTH_TEST_GEQUAL);
     }
 }
 

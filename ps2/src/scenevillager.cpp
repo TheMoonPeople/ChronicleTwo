@@ -1196,14 +1196,14 @@ void CScene::SetActiveVillager() {
 
             if (!(unused & 0xFF)) {
                 if (no_map) {
-                    scene->SetActive(1, villager->chara_id);
+                    scene->SetActive(SCENE_DATA_CHARA, villager->chara_id);
                 } else {
                     int chara_id = villager->chara_id;
 
                     if (chara_id >= SCENE_SUB_VILLAGER_SLOT_TOP) {
-                        scene->SetActive(1, chara_id);
+                        scene->SetActive(SCENE_DATA_CHARA, chara_id);
                     } else {
-                        scene->ResetActive(1, chara_id);
+                        scene->ResetActive(SCENE_DATA_CHARA, chara_id);
                     }
                 }
             }

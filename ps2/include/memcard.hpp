@@ -42,6 +42,7 @@ enum MC_FUNC_NO {
     MC_FUNC_MAKE_OMAKE_DIR     = 23, /**< Creates the bonus data directory. */
     MC_FUNC_CONVERT            = 24, /**< Converts old save data; finishes at once. */
 };
+
 // clang-format on
 
 /**
@@ -55,6 +56,7 @@ enum MC_STEP_RESULT {
     MC_STEP_BUSY   = 0,  /**< The operation is still running. */
     MC_STEP_DONE   = 1,  /**< The operation has finished. */
 };
+
 // clang-format on
 
 /**
@@ -73,6 +75,7 @@ enum MC_ERROR_CODE {
     MC_ERROR_NO_CARD     = 8,  /**< The card could not be found. */
     MC_ERROR_COMMAND     = 11, /**< A memory card library command could not be started. */
 };
+
 // clang-format on
 
 /**
@@ -93,6 +96,7 @@ enum MC_DATA_SIZE_TYPE {
     MC_SIZE_OMAKE_TOTAL = 8, /**< Bytes the bonus data directory takes, icons included. */
     MC_SIZE_OMAKE_KB    = 9, /**< Kilobytes the bonus data directory takes, icons included. */
 };
+
 // clang-format on
 
 /**

@@ -1,11 +1,11 @@
 #include "common.h"
 
-#include "runscript.hpp"
-
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
+#include "runscript.hpp"
 
 extern char at_168[];
 extern char at_173[];
@@ -352,6 +352,7 @@ void CRunScript::skip() {
     skip_wait = 1;
     resume();
 }
+
 void CRunScript::exe(vmcode_t *entry) {
     RS_STACKDATA  value;
     RS_STACKDATA  rhs;
@@ -442,7 +443,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (pc->arg1 == RS_CONST_STR) {
                     push_str(code + pc->arg2);
                 } else if (pc->arg1 == RS_CONST_FLOAT) {
-                    push_float(*(float *)&pc->arg2);
+                    push_float(*(float *) &pc->arg2);
                 }
 
                 break;
@@ -777,6 +778,7 @@ void CRunScript::exe(vmcode_t *entry) {
         pc++;
     }
 }
+
 int rsGetStackInt(RS_STACKDATA *data) {
     if (data->type == RS_FLOAT) {
         return (int) data->val.f;

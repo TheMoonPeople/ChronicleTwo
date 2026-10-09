@@ -142,7 +142,7 @@ int FutureMapSelect() {
             arg.event_no = 100;
         }
 
-        NextLoop(1, arg);
+        NextLoop((int) LOOP_EDIT, arg);
         return FUTURE_MAP_SELECT_CHOSEN;
     }
 

@@ -240,15 +240,16 @@ void dbgCJISFont::InitTexture(int full0_id, char *full0_name, int full1_id, char
 void dbgCJISFont::Clear() {
     buffer[0] = 0;
 }
+
 void dbgCJISFont::__putc(unsigned long serno) {
     mgCTextureManager *textures = &mgTexManager;
-    int glyph_width = 16;
-    mgCTexture *texture;
+    int                glyph_width = 16;
+    mgCTexture        *texture;
 
     if (serno < DBG_FONT_SERNO_END) {
         if (serno >= DBG_FONT_SERNO_HALF_WIDTH) {
             if (loaded_texture_id != texture_id[DBG_FONT_SHEET_HALF_WIDTH]) {
-                textures->ReloadTexture(texture_id[DBG_FONT_SHEET_HALF_WIDTH], (sceVif1Packet *)NULL);
+                textures->ReloadTexture(texture_id[DBG_FONT_SHEET_HALF_WIDTH], (sceVif1Packet *) NULL);
             }
             texture = textures->GetTexture(texture_name[DBG_FONT_SHEET_HALF_WIDTH], -1);
             serno -= DBG_FONT_SERNO_HALF_WIDTH;
@@ -256,14 +257,14 @@ void dbgCJISFont::__putc(unsigned long serno) {
             glyph_width = 9;
         } else if (serno >= DBG_FONT_SERNO_SHEET_1) {
             if (loaded_texture_id != texture_id[DBG_FONT_SHEET_FULL_WIDTH_1]) {
-                textures->ReloadTexture(texture_id[DBG_FONT_SHEET_FULL_WIDTH_1], (sceVif1Packet *)NULL);
+                textures->ReloadTexture(texture_id[DBG_FONT_SHEET_FULL_WIDTH_1], (sceVif1Packet *) NULL);
             }
             texture = textures->GetTexture(texture_name[DBG_FONT_SHEET_FULL_WIDTH_1], -1);
             serno -= DBG_FONT_SERNO_SHEET_1;
             loaded_texture_id = texture_id[DBG_FONT_SHEET_FULL_WIDTH_1];
         } else {
             if (loaded_texture_id != texture_id[DBG_FONT_SHEET_FULL_WIDTH_0]) {
-                textures->ReloadTexture(texture_id[DBG_FONT_SHEET_FULL_WIDTH_0], (sceVif1Packet *)NULL);
+                textures->ReloadTexture(texture_id[DBG_FONT_SHEET_FULL_WIDTH_0], (sceVif1Packet *) NULL);
             }
             texture = textures->GetTexture(texture_name[DBG_FONT_SHEET_FULL_WIDTH_0], -1);
             loaded_texture_id = texture_id[DBG_FONT_SHEET_FULL_WIDTH_0];
@@ -322,19 +323,21 @@ void dbgCJISFont::__putc(unsigned long serno) {
         x += 2;
     }
 }
+
 extern "C" int vsprintf(char *, const char *, char *);
+
 void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
-    char text[0x408];
-    char escape[8];
+    char  text[0x408];
+    char  escape[8];
     char *cursor = text;
-    char ch;
-    int length;
+    char  ch;
+    int   length;
 
     x = start_x;
     y = start_y;
     prev_serno = 0;
-    char *args = (char *)__builtin_next_arg(format) - (__builtin_args_info(2) >= 8 ? 0 : (8 - __builtin_args_info(2)) * 8);
-    vsprintf((char *)text, format, args);
+    char *args = (char *) __builtin_next_arg(format) - (__builtin_args_info(2) >= 8 ? 0 : (8 - __builtin_args_info(2)) * 8);
+    vsprintf((char *) text, format, args);
     while ((ch = *cursor) != 0) {
         long code = ch;
         if (!(code & 0x80)) {
@@ -388,9 +391,9 @@ void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
                 __putc(serno);
                 cursor++;
             } else {
-                unsigned long low = (unsigned char)cursor[1];
+                unsigned long low = (unsigned char) cursor[1];
                 unsigned long sjis = low;
-                sjis = (((long)*cursor << 8) & 0xFF00) | sjis;
+                sjis = (((long) *cursor << 8) & 0xFF00) | sjis;
                 cursor += 2;
                 __putc(SjisToSerno(sjis));
             }

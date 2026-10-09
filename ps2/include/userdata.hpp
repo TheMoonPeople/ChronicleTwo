@@ -48,7 +48,7 @@ enum BATTLE_CHARA_TYPE {
  */
 enum CHARA_STATUS_ATTR {
     CHARA_STATUS_POISON = 0x01, /**< Loses a little health every 100 steps while above 1. */
-    CHARA_STATUS_UNK_2 = 0x02,  /**< Timed condition counted down by CHARA_DATA::status_time[1]. */
+    CHARA_STATUS_SLOW = 0x02,   /**< Timed condition counted down by CHARA_DATA::status_time[1]. */
     CHARA_STATUS_UNK_4 = 0x04,
     CHARA_STATUS_UNK_8 = 0x08,  /**< Timed condition that blocks changing character. */
     CHARA_STATUS_POWER = 0x10,  /**< Timed boost that raises attack by half and wards off the first two bits. */
@@ -57,13 +57,20 @@ enum CHARA_STATUS_ATTR {
     CHARA_STATUS_ALL = 0x7F, /**< Every status bit. */
 };
 
+enum BREEDFISH_SEX {
+    BREEDFISH_SEX_MALE = 0,
+    BREEDFISH_SEX_FEMALE = 1,
+};
+
 /**
  *
  * Flags recording special properties of a fish in its owned-item data.
  *
  */
 enum BREEDFISH_FLAGS {
+    BREEDFISH_FLAG_WEIGHT_KNOWN = 0x1,
     BREEDFISH_FLAG_ELECTRIC = 0x2, /**< Marks an electric fish, which is never rubbish. */
+    BREEDFISH_FLAG_FEED_LIMIT_REACHED = 0x80,
 };
 
 /**
@@ -199,8 +206,8 @@ struct WEAPON_USED {
  *
  */
 struct ROBOPART_USED {
-    COMMON_GAGE energy; /**< Energy gauge of the robot part. */
-    COMMON_GAGE whp; /**< Durability gauge. */
+    COMMON_GAGE energy;     /**< Energy gauge of the robot part. */
+    COMMON_GAGE whp;        /**< Durability gauge. */
     s16         status[10]; /**< Status parameters of the part. */
     s16         defence;    /**< Defence the part gives. */
     s16         unk_26;
@@ -208,6 +215,13 @@ struct ROBOPART_USED {
     char        name[0x20]; /**< Name of the part. */
     u8          unk_4c[0x10];
 };
+
+#define BREEDFISH_STAT_BOOST 0
+#define BREEDFISH_STAT_ENDURANCE 1
+#define BREEDFISH_STAT_TENACITY 2
+#define BREEDFISH_STAT_STAMINA 3
+#define BREEDFISH_STAT_BATTLE 4
+#define BREEDFISH_STAT_COUNT 5
 
 /**
  *
@@ -217,23 +231,23 @@ struct ROBOPART_USED {
 struct BREEDFISH_USED {
     char  name[0x15]; /**< Name of the fish. */
     u8    sex;        /**< Sex of the fish, 0 or 1. */
-    u8    kind; /**< Fish variety used to select its displayed name. */
+    u8    kind;       /**< Fish variety used to select its displayed name. */
     u8    unk_17;
     u16   size;   /**< Size of the fish. */
     u16   weight; /**< Weight of the fish. */
     int   unk_1c;
-    int   hp;       /**< Health of the fish, 0 to 100. */
-    u16   fatigue;  /**< Race fatigue counter. */
-    u16   param[5]; /**< Racing parameters of the fish. */
-    u16   timer;    /**< Time left, counted down by the game clock. */
+    int   hp;                          /**< Health of the fish, 0 to 100. */
+    u16   fatigue;                     /**< Race fatigue counter. */
+    u16   param[BREEDFISH_STAT_COUNT]; /**< Racing parameters of the fish. */
+    u16   timer;                       /**< Time left, counted down by the game clock. */
     u8    unk_32[3];
     s8    breed_feeds_remaining; /**< Feedings left before this breeding fish stops eating. */
-    u16   life; /**< Remaining lifetime of the breeding fish. */
-    u16   flags; /**< Flags; 0x2 marks an electric fish, which is never rubbish. */
-    u8    color; /**< Colour variant of the breeding fish. */
+    u16   feeds_remaining;
+    u16   flags;      /**< Flags; 0x2 marks an electric fish, which is never rubbish. */
+    u8    color;      /**< Colour variant of the breeding fish. */
     s8    grow_count; /**< Food eaten towards the next growth; the fish grows past 10. */
     u8    unk_3c;
-    u8    unk_3d;
+    u8    race_placement_flags;
     u8    unk_3e[2];
     int   tank_day;  /**< Day the fish was put into the second aquarium tank. */
     float tank_hour; /**< Hour of the day the fish was put into the second aquarium tank. */
@@ -905,8 +919,8 @@ struct CHARA_DATA {
     s16           status_time[4]; /**< Time left of the CHARA_STATUS_POWER, 0x2, 0x8 and 0x20 conditions. */
     u8            unk_14[0x17];
     u8            keep_costume_on_equip_change; /**< Keeps the selected costume when equipment changes. */
-    CGameDataUsed active_item[3]; /**< Active items. */
-    CGameDataUsed equip[5];       /**< Equipment, by slot; slots 0 and 1 are the two weapons. */
+    CGameDataUsed active_item[3];               /**< Active items. */
+    CGameDataUsed equip[5];                     /**< Equipment, by slot; slots 0 and 1 are the two weapons. */
 };
 
 STATIC_ASSERT(sizeof(CHARA_DATA) == 0x38C);
@@ -985,8 +999,8 @@ public:
     COMMON_GAGE hp;  /**< Health gauge. */
     COMMON_GAGE abs; /**< Absorption gauge; the monster levels up when it fills. */
     u8          unk_1c[0x20];
-    s16         status_time_1;  /**< Time left of the 0x1 condition. */
-    s16         status_time_10; /**< Time left of the CHARA_STATUS_POWER condition. */
+    s16         poison_time; /**< Time left of the 0x1 condition. */
+    s16         power_time;  /**< Time left of the CHARA_STATUS_POWER condition. */
     u8          unk_40[0x7C];
 
     /**
@@ -1113,6 +1127,10 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CMonsterBox) == 0x2F00);
+
+#define AQUARIUM_TANK_MAIN 0
+#define AQUARIUM_TANK_SUB 1
+#define AQUARIUM_TANK_BREED 2
 
 /**
  *
@@ -1333,7 +1351,7 @@ public:
      * @address 0x19C470
      * @size 0x48
      */
-    int EntryFish(int entrant, int fish, int weight);
+    int EntryFish(int item_no, int size, int weight);
 
     /**
      *
@@ -2810,8 +2828,8 @@ STATIC_ASSERT(sizeof(BATTLE_WEAPON_PARAM) == 0x1C);
  */
 class CBattleCharaInfo {
 public:
-    s16                 chr_no; /**< Character being played, a USER_CHARA. */
-    s16                 user_mons_id; /**< Monster form selected for the playable character. */
+    s16                 chr_no;             /**< Character being played, a USER_CHARA. */
+    s16                 user_mons_id;       /**< Monster form selected for the playable character. */
     s16                 now_npc;            /**< Townsperson in the party, or -1. */
     s16                 chara_type;         /**< Kind of status read, a BATTLE_CHARA_TYPE. */
     void               *chara_data;         /**< CHARA_DATA, ROBO_DATA or MOS_CHANGE_PARAM, by chara_type. */
@@ -2831,10 +2849,10 @@ public:
     COMMON_GAGE        *hp;               /**< Health gauge of the character. */
     float               hp_change_frames; /**< Frames the shown health takes to reach the real health. */
     float               hp_change_step;   /**< Change of the shown health each frame. */
-    float               disp_hp_max; /**< Maximum health used by the displayed gauge. */
-    float               disp_hp; /**< Health shown, which follows the real health. */
-    float               prev_hp_max; /**< Maximum health used by the previous gauge state. */
-    float               prev_hp; /**< Health before the last change. */
+    float               disp_hp_max;      /**< Maximum health used by the displayed gauge. */
+    float               disp_hp;          /**< Health shown, which follows the real health. */
+    float               prev_hp_max;      /**< Maximum health used by the previous gauge state. */
+    float               prev_hp;          /**< Health before the last change. */
 
     /**
      *

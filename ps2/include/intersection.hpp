@@ -22,6 +22,7 @@ enum SpherePoly3Contact {
     SPHERE_POLY3_VERTEX = 2, /**< A corner of the triangle lies inside the sphere. */
     SPHERE_POLY3_EDGE   = 3, /**< An edge of the triangle passes through the sphere. */
 };
+
 // clang-format on
 
 /**

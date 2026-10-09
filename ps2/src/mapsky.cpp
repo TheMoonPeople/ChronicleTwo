@@ -13,9 +13,9 @@
 #include "mglib.hpp"
 #include "scriptinterpreter.hpp"
 
-extern MAP_SKY_INFO *skyInfo;
-extern int           skyAnmNum;
-extern int           skybAnmNum;
+MAP_SKY_INFO        *skyInfo;
+int                  skyAnmNum;
+int                  skybAnmNum;
 extern SPI_TAG_PARAM tag__2[];
 extern char          at_386[];
 static s32           CheckSkyID(s32 sky_id);
@@ -87,6 +87,7 @@ void CMapSky::DrawSkyBack(float *camera_pos, float *color1, float *color0) {
     bg->SetScale(1.0f, -1.0f, 1.0f);
     mgDrawDirect(bg);
 }
+
 void CMapSky::DrawSky(float *camera_pos, float *sun_pos, float *moon_pos, int time_band,
                       float *lighting_ratio, float *sun_lighting_ratio) {
     float rotation[4];
@@ -115,7 +116,7 @@ void CMapSky::DrawSky(float *camera_pos, float *sun_pos, float *moon_pos, int ti
     for (int i = 0; i < 4; i++) {
         attr.obj_alpha = lighting_ratio[i];
         if (!(lighting_ratio[i] <= 0.0f) && skyb[i] != NULL) {
-            textures->ReloadTexture(tex_block[i], (sceVif1Packet *)NULL);
+            textures->ReloadTexture(tex_block[i], (sceVif1Packet *) NULL);
             skyb[i]->SetScale(1.0f, 1.0f, 1.0f);
             skyb[i]->SetPosition(camera_pos[0], camera_pos[1], camera_pos[2]);
             skyb[i]->SetRotation(0.0f, skyb_rot[i], 0.0f);
@@ -129,7 +130,7 @@ void CMapSky::DrawSky(float *camera_pos, float *sun_pos, float *moon_pos, int ti
         for (int i = 0; i < 4; i++) {
             attr.obj_alpha = sun_lighting_ratio[i];
             if (!(sun_lighting_ratio[i] <= 0.0f) && sun[i] != NULL) {
-                textures->ReloadTexture(tex_block[i], (sceVif1Packet *)NULL);
+                textures->ReloadTexture(tex_block[i], (sceVif1Packet *) NULL);
                 sun[i]->SetPosition(sun_pos);
                 sun[i]->SetAttrParam(attr, 1, MG_FRAME_ATTR_OBJ_ALPHA);
                 if (!(sun_pos[1] <= camera_pos[1])) {
@@ -146,7 +147,7 @@ void CMapSky::DrawSky(float *camera_pos, float *sun_pos, float *moon_pos, int ti
         for (int i = 0; i < 4; i++) {
             attr.obj_alpha = sun_lighting_ratio[i];
             if (!(sun_lighting_ratio[i] <= 0.0f) && sun[i] != NULL) {
-                textures->ReloadTexture(tex_block[i], (sceVif1Packet *)NULL);
+                textures->ReloadTexture(tex_block[i], (sceVif1Packet *) NULL);
                 sun[i]->SetPosition(moon_pos);
                 sun[i]->SetAttrParam(attr, 1, MG_FRAME_ATTR_OBJ_ALPHA);
                 if (!(moon_pos[1] <= camera_pos[1])) {
@@ -162,7 +163,7 @@ void CMapSky::DrawSky(float *camera_pos, float *sun_pos, float *moon_pos, int ti
     for (int i = 0; i < 4; i++) {
         attr.obj_alpha = lighting_ratio[i];
         if (!(lighting_ratio[i] <= 0.0f) && sky[i] != NULL) {
-            textures->ReloadTexture(tex_block[i], (sceVif1Packet *)NULL);
+            textures->ReloadTexture(tex_block[i], (sceVif1Packet *) NULL);
             sky[i]->SetScale(1.0f, 1.0f, 1.0f);
             sky[i]->SetPosition(camera_pos[0], camera_pos[1], camera_pos[2]);
             sky[i]->SetRotation(0.0f, sky_rot[i], 0.0f);
@@ -173,37 +174,38 @@ void CMapSky::DrawSky(float *camera_pos, float *sun_pos, float *moon_pos, int ti
         }
     }
 }
+
 void CMapSky::LoadPack(unsigned int *pack, int tex_block_base, mgCMemory *memory) {
     if (pack == NULL) {
         return;
     }
     Initialize();
-    int script_size = 0;
-    char *script = (char *)GetPackFile(pack, "info.cfg", &script_size);
+    int          script_size = 0;
+    char        *script = (char *) GetPackFile(pack, "info.cfg", &script_size);
     MAP_SKY_INFO info;
     memset(&info, 0, sizeof(info));
     LoadSkyPack(&info, script, script_size);
     mgCTextureManager *textures = &mgTexManager;
-    mgCFrameAttr attr;
+    mgCFrameAttr       attr;
     attr.alpha_ref = 0;
     attr.z_write = -1;
     for (int i = 0; i < 4; i++) {
-        int image_size;
+        int     image_size;
         u_char *image;
-        int texture_block = tex_block_base + i;
+        int     texture_block = tex_block_base + i;
         textures->DeleteBlock(texture_block);
-        u_int *image_in_pack = GetPackFile(pack, info.img_name[i], &image_size);
+        u_int       *image_in_pack = GetPackFile(pack, info.img_name[i], &image_size);
         unsigned int quadwords;
         if (image_size & 0xF) {
-            quadwords = ((unsigned int)image_size >> 4) + 1;
+            quadwords = ((unsigned int) image_size >> 4) + 1;
         } else {
-            quadwords = (unsigned int)image_size >> 4;
+            quadwords = (unsigned int) image_size >> 4;
         }
-        image = (u_char *)memory->Alloc(quadwords);
+        image = (u_char *) memory->Alloc(quadwords);
         memcpy(image, image_in_pack, image_size);
-        MDS_HEADER *sky_file = (MDS_HEADER *)GetPackFile(pack, info.sky_mds_name[i], NULL);
-        MDS_HEADER *skyb_file = (MDS_HEADER *)GetPackFile(pack, info.skyb_mds_name[i], NULL);
-        MDS_HEADER *sun_file = (MDS_HEADER *)GetPackFile(pack, info.sun_mds_name[i], NULL);
+        MDS_HEADER *sky_file = (MDS_HEADER *) GetPackFile(pack, info.sky_mds_name[i], NULL);
+        MDS_HEADER *skyb_file = (MDS_HEADER *) GetPackFile(pack, info.skyb_mds_name[i], NULL);
+        MDS_HEADER *sun_file = (MDS_HEADER *) GetPackFile(pack, info.sun_mds_name[i], NULL);
         sky_rot_speed[i] = info.sky_rot_speed[i];
         skyb_rot_speed[i] = info.skyb_rot_speed[i];
         if (image != NULL) {
@@ -229,9 +231,12 @@ void CMapSky::LoadPack(unsigned int *pack, int tex_block_base, mgCMemory *memory
             }
         }
     }
-    MDS_HEADER *background_file = (MDS_HEADER *)GetPackFile(pack, info.bg_mds_name, NULL);
+    MDS_HEADER *background_file = (MDS_HEADER *) GetPackFile(pack, info.bg_mds_name, NULL);
     if (background_file != NULL) {
-        mgCreateVisualType visual_types[2] = {{0, at_386}, {MG_VISUAL_CREATE_END, NULL}};
+        mgCreateVisualType visual_types[2] = {
+            {0,                    at_386},
+            {MG_VISUAL_CREATE_END, NULL  }
+        };
         bg = mgLoadMDSFile(background_file, memory, visual_types, NULL);
         if (bg != NULL) {
             mgCFrameAttr *bg_attr = bg->attr;
@@ -240,7 +245,7 @@ void CMapSky::LoadPack(unsigned int *pack, int tex_block_base, mgCMemory *memory
                 bg_attr->clip_enable = 1;
                 bg_attr->fog = 0;
             }
-            bg_visual = (mgCVisualMDT *)bg->visual;
+            bg_visual = (mgCVisualMDT *) bg->visual;
         }
     }
     int next = 0;
@@ -271,6 +276,7 @@ void CMapSky::LoadPack(unsigned int *pack, int tex_block_base, mgCMemory *memory
         }
     }
 }
+
 /**
  *
  * Parses sky configuration tags into the supplied sky information record.
@@ -485,6 +491,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_467__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapsky", at_468__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(skyInfo, 0x4);
-INCLUDE_BSS(skyAnmNum, 0x4);
-INCLUDE_BSS(skybAnmNum, 0x4);

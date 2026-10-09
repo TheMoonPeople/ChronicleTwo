@@ -271,7 +271,7 @@ int MovieViewLoop() {
 
         textures->ReloadTexture(0, (sceVif1Packet *) 0);
         CFont menu_font;
-        char row_text[0x100];
+        char  row_text[0x100];
         menu_font.Init();
         menu_font.SetClearance(0x10, 0x14);
         menu_font.SetFuchi(FUCHI_SHADOW_BLACK_WIDE);

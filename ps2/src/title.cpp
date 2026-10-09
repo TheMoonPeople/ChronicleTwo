@@ -206,7 +206,6 @@ static inline u_int Align16Blocks(u_int size) {
     return size >> 4;
 }
 
-
 // Code (.text)
 /**
  *
@@ -309,7 +308,7 @@ void TitleInit(INIT_LOOP_ARG arg) {
 
     if (area != NULL) {
         area->battle_clear = 1;
-        area->battle_bgm_state = 0;
+        area->battle_bgm_state = (int) DNG_BGM_MAP;
         area->battle_bgm_vol = 0.0f;
         area->camera_mode = 0;
         area->pause_flag = 0;
@@ -320,7 +319,7 @@ void TitleInit(INIT_LOOP_ARG arg) {
         area->subject_counter = 0;
         area->practice_actions = 0;
         area->floor_status = 0;
-        area->weather = 0;
+        area->weather = DNG_WEATHER_NORMAL;
         area->lock_on_mode = 0;
     }
 
@@ -354,7 +353,7 @@ void TitleInit(INIT_LOOP_ARG arg) {
     SetTextureTable(0x73, 0x60, &DataBuffer);
     DataBuffer.Align64();
     TitleInfo = new (DataBuffer.Alloc(0x1C)) TITLE_INFO;
-    GamePad__2.SetAutoRepeat(0x5000, 0xF, 4);
+    GamePad__2.SetAutoRepeat((int) PAD_UP | (int) PAD_DOWN, 0xF, 4);
     GamePad__2.MenuModeOn(0x78);
 
     if (GameBootInit == 0) {
@@ -419,7 +418,7 @@ void TitleBootInit() {
     TitleScene->DeleteMap(0, 1);
     TitleScene->LoadMap(0, &load_info, 0);
     TitleScene->SetNowMapNo(map_no);
-    TitleScene->SetActive(2, 0);
+    TitleScene->SetActive(SCENE_DATA_MAP, 0);
     TitleMap = TitleScene->GetMap(TitleScene->active_map);
     u32 file_size;
     if (LoadFile2(at_1222__4, DataBuffer.stAllocTest(1), (int *) &file_size, 0) != 0) {
@@ -486,7 +485,7 @@ void TitleBootInit() {
     sndWaitTransBd();
     LoadFile2(at_1239__2, sound_buffer, (int *) &file_size, 0);
     sndInitPort(4);
-    TitleEventSound = sndLoadSound(4, (u_int *) sound_buffer, &snd_memory);
+    TitleEventSound = sndLoadSound((int) SND_PORT_EVENT, (u_int *) sound_buffer, &snd_memory);
     DataBuffer.Align64();
     Stack_ReadBuff.stSetBuffer(DataBuffer.stGetTop(), DataBuffer.stGetRest());
     read_buffer = Stack_ReadBuff.stGetTop();
@@ -536,7 +535,7 @@ void TitleExit() {
 }
 
 int TitleLoop() {
-    if (DebugFlag != 0 && GamePad__2.On(0x800) != 0 && GamePad__2.On(0x100) != 0) {
+    if (DebugFlag != 0 && GamePad__2.On(PAD_START) != 0 && GamePad__2.On(PAD_SELECT) != 0) {
         mgCloseFont();
 
         if (TitleInfo->mode == TITLE_MODE_RUSH_MOVIE) {
@@ -613,7 +612,7 @@ int TitleLoop() {
                     InitSaveData();
                     DebugGetItem(NULL, 1);
                     MenuArg.param[0] = 0;
-                    MenuArg.open_type = 0x14;
+                    MenuArg.open_type = (int) MENU_OPEN_COSTUME;
                     GetUserDataMan()->SetChrEquipDirect(1, 0x7F);
                     GetUserDataMan()->SetChrEquipDirect(1, 0x85);
                     GetUserDataMan()->SetChrEquipDirect(1, 0x10A);
@@ -627,11 +626,11 @@ int TitleLoop() {
                 }
 
                 if (result == TITLE_KEY_CONTINUE) {
-                    MenuArg.open_type = 8;
+                    MenuArg.open_type = (int) MENU_OPEN_TITLE_SAVE;
                 }
 
                 if (result == TITLE_KEY_OPTION) {
-                    MenuArg.open_type = 0x12;
+                    MenuArg.open_type = (int) MENU_OPEN_OPTION;
                 }
 
                 result = 0;
@@ -645,7 +644,7 @@ int TitleLoop() {
             if (result == TITLE_KEY_OMAKE) {
                 MenuArg.param[0] = 0;
                 result = 0;
-                MenuArg.open_type = 0x1B;
+                MenuArg.open_type = (int) MENU_OPEN_TITLE_SUBGAME_SAVE;
                 TitleInfo->next_mode = TITLE_MODE_SUBGAME_MENU;
             }
 
@@ -709,7 +708,7 @@ int TitleLoop() {
 
     if (menu_closed != 0) {
         MenuMainExit();
-        GamePad__2.SetAutoRepeat(0x5000, 0xF, 4);
+        GamePad__2.SetAutoRepeat((int) PAD_UP | (int) PAD_DOWN, 0xF, 4);
         GamePad__2.MenuModeOn(0x78);
     }
 
@@ -720,7 +719,7 @@ int TitleLoop() {
         arg.event_no = 0x3F2;
         arg.map_no = 0;
         arg.floor_no = 0x14;
-        NextLoop(2, arg);
+        NextLoop((int) LOOP_DUNGEON, arg);
         PlayTimeCount(1);
         memcpy(&GetSaveData()->config, &TitleInfo->config, sizeof(SV_CONFIG_OPTION));
         CUserDataManager *user = GetUserDataMan();
@@ -1157,7 +1156,7 @@ void TitleModeInit() {
         TitleRushWaitCountBoot = 1;
     }
 
-    TitleCameraPhase = 0;
+    TitleCameraPhase = (int) TITLE_CAMERA_APPROACH;
     TitleProjection = 480.0f;
 
     if (TitleCamera != NULL) {
@@ -1225,7 +1224,7 @@ int TitleModeKey() {
                         TitleMCCheckNow = 0;
                         TitleMCActivePort = 0;
                         TitleMCCheck->port = 0;
-                        TitleMCCheck->SetFuncNo(0);
+                        TitleMCCheck->SetFuncNo(MC_FUNC_SEARCH_TYPE);
                         TitleInfo->omake_select = 0;
                         if (TitlePhase == TITLE_PHASE_OMAKE_MENU) {
                             TitlePhase = TITLE_PHASE_MENU;
@@ -1261,7 +1260,7 @@ int TitleModeKey() {
                 TitleMCActivePort = 0;
             }
             TitleMCCheck->port = TitleMCActivePort;
-            TitleMCCheck->SetFuncNo(0);
+            TitleMCCheck->SetFuncNo(MC_FUNC_SEARCH_TYPE);
         }
     }
     push = ConvertCheckPushButton(MenuCheckPushButton());
@@ -1727,7 +1726,7 @@ void TitleMapDraw() {
     }
 
     switch (TitleCameraPhase) {
-        case 0: {
+        case TITLE_CAMERA_APPROACH: {
             follow->AddDistance(-0.25f);
             float distance = follow->GetDistance();
 
@@ -1751,7 +1750,7 @@ void TitleMapDraw() {
 
             break;
         }
-        case 1:
+        case TITLE_CAMERA_HOLD:
             TitleCameraPhaseCounter++;
 
             if ((u_int) TitleCameraPhaseCounter > 250) {
@@ -1762,7 +1761,7 @@ void TitleMapDraw() {
             }
 
             break;
-        case 2: {
+        case TITLE_CAMERA_ORBIT: {
             float follow_pos[4];
             float follow_ref[4];
             float distance = follow->GetDistance();
@@ -1777,7 +1776,7 @@ void TitleMapDraw() {
 
             if (!(TitleCameraAddAngle < 6.2831855f)) {
                 TitleCameraPhaseCounter = 0;
-                TitleCameraPhase = 1;
+                TitleCameraPhase = (int) TITLE_CAMERA_HOLD;
                 TitleScene->active_camera = 0;
                 follow->FollowOn();
             }
@@ -1968,7 +1967,7 @@ int TitleMCCheckKey() {
                     TitleMCCheckMes->MakeMesWin(0x64);
                 }
             } else {
-                int need_size = TitleMCCheck->GetSaveDataSize(0) / 1024 + 3;
+                int need_size = TitleMCCheck->GetSaveDataSize(MC_SIZE_SAVE_TOTAL) / 1024 + 3;
                 int has_space = 0;
 
                 for (int i = 0; i < 2; i++) {
@@ -2126,7 +2125,7 @@ int TitleCopyRightStep() {
             TitleCopyRightDispPhase = COPYRIGHT_PHASE_MOVIE;
             break;
         case COPYRIGHT_PHASE_MOVIE:
-            if (TitleSkipLogoFlag == 0 && (GamePad__2.Down(0x20) != 0 || GamePad__2.Down(0x800) != 0)) {
+            if (TitleSkipLogoFlag == 0 && (GamePad__2.Down(PAD_CIRCLE) != 0 || GamePad__2.Down(PAD_START) != 0)) {
                 TitleSkipLogoFlag = 1;
                 TitleScene->fade.FadeOut(20, 0.0f, 0.0f, 0.0f);
             }
@@ -2317,11 +2316,11 @@ int TitleHDDInstallKey() {
 
             int old_select = HDDModeSelect;
 
-            if (GamePad__2.Down(0x1000) != 0) {
+            if (GamePad__2.Down(PAD_UP) != 0) {
                 HDDModeSelect--;
             }
 
-            if (GamePad__2.Down(0x4000) != 0) {
+            if (GamePad__2.Down(PAD_DOWN) != 0) {
                 HDDModeSelect++;
             }
 
@@ -2431,7 +2430,7 @@ int TitleHDDInstallKey() {
             break;
         }
         case HDD_PHASE_RESULT:
-            if (GamePad__2.Down(0x20) != 0 || GamePad__2.Down(0x40) != 0) {
+            if (GamePad__2.Down(PAD_CIRCLE) != 0 || GamePad__2.Down(PAD_CROSS) != 0) {
                 next_phase = HDD_PHASE_SELECT;
 
                 if (0 < HDDINFO.connect && 0 < HDDINFO.app_install && HDDINFO.result == 0) {
@@ -2481,7 +2480,7 @@ int TitleHDDInstallKey() {
 
             break;
         case HDD_PHASE_ERROR:
-            if (GamePad__2.Down(0x20) != 0 || GamePad__2.Down(0x40) != 0) {
+            if (GamePad__2.Down(PAD_CIRCLE) != 0 || GamePad__2.Down(PAD_CROSS) != 0) {
                 next_phase = HDD_PHASE_SELECT;
                 MenuSePlay(1);
             }
@@ -2805,7 +2804,7 @@ void TitleLangSelInit(mgCMemory *memory) {
     int file_size;
     u8 *buffer;
 
-    GamePad__2.SetAutoRepeat(0x5000, 0xF, 4);
+    GamePad__2.SetAutoRepeat((int) PAD_UP | (int) PAD_DOWN, 0xF, 4);
     GamePad__2.MenuModeOn(0x78);
     title_lang_select = 0;
     mgFrameRate = 1;
@@ -2814,7 +2813,7 @@ void TitleLangSelInit(mgCMemory *memory) {
     memory->Alloc(file_size / 16 + 1);
     mgTexManager.EnterIMGFile(buffer, 1, NULL, NULL);
     lang_tex = mgTexManager.GetTexture(at_2724, -1);
-    title_lang_phase = 0;
+    title_lang_phase = (int) TITLE_LANG_FADE_IN;
     title_lang_curxy[0] = 100.0f;
     title_lang_fadealpha = 0x80;
     title_lang_curxy[1] = 100.0f;
@@ -2823,7 +2822,7 @@ void TitleLangSelInit(mgCMemory *memory) {
 
 int TitleLangSelKey() {
     switch (title_lang_phase) {
-        case 0:
+        case TITLE_LANG_FADE_IN:
             title_lang_fadealpha -= 6;
 
             if (title_lang_fadealpha <= 0) {
@@ -2832,7 +2831,7 @@ int TitleLangSelKey() {
             }
 
             break;
-        case 1:
+        case TITLE_LANG_SELECT:
             if (GamePad__2.Down(PAD_UP) != 0) {
                 title_lang_select -= 1;
             }
@@ -2849,12 +2848,12 @@ int TitleLangSelKey() {
                 title_lang_select = 0;
             }
 
-            if (GamePad__2.Down(0x40) != 0) {
+            if (GamePad__2.Down(PAD_CROSS) != 0) {
                 title_lang_phase += 1;
             }
 
             break;
-        case 2:
+        case TITLE_LANG_FADE_OUT:
             title_lang_fadealpha += 6;
 
             if (title_lang_fadealpha >= 0x80) {

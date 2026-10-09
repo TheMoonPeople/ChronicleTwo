@@ -17,11 +17,11 @@
 
 class mgCMemory;
 class sndCSeSeqData;
+
 enum SYSTEM_SE {
     SYSTEM_SE_CURSOR = 0,
     SYSTEM_SE_DECIDE = 1,
 };
-
 
 /**
  *
@@ -30,15 +30,18 @@ enum SYSTEM_SE {
  *
  */
 enum sndPORT {
-    SND_PORT_BGM = 0,    /**< Background music; its sequences are played on the voice-capable driver port. */
-    SND_PORT_OB = 1,     /**< Sound effects of map objects. */
+    SND_PORT_BGM = 0, /**< Background music; its sequences are played on the voice-capable driver port. */
+    SND_PORT_OB = 1,  /**< Sound effects of map objects. */
+    SND_PORT_ENV = 2,
     SND_PORT_BASE = 3,   /**< Sound effects of the base map. */
     SND_PORT_EVENT = 4,  /**< Sound effects and sequences of events. */
     SND_PORT_ENEMY = 5,  /**< Sound effects of monsters. */
     SND_PORT_SYSTEM = 6, /**< System sound effects, loaded once at boot. */
-    SND_PORT_MENU = 8,   /**< Sound effects of menus. */
-    SND_PORT_BGM2 = 11,  /**< Second background music port, sharing the first's sequence handling. */
-    SND_PORT_NUM = 16,   /**< Number of game sound ports. */
+    SND_PORT_CHARA = 7,
+    SND_PORT_MENU = 8, /**< Sound effects of menus. */
+    SND_PORT_BATTLE = 9,
+    SND_PORT_BGM2 = 11, /**< Second background music port, sharing the first's sequence handling. */
+    SND_PORT_NUM = 16,  /**< Number of game sound ports. */
 };
 
 /**
@@ -62,6 +65,7 @@ enum sndSE_TYPE {
 enum sndSE_CENTER {
     SND_SE_PITCH_CENTER = 0x2000, /**< Centre pitch bend. */
 };
+
 // clang-format on
 
 /**

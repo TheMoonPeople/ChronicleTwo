@@ -72,6 +72,7 @@ enum {
     ALPHABETICAL_CHARA_LEN   = 5,      /**< Bytes of one row of alphabetical_chara_tbl. */
     FONT_TBL_BIN_SIZE        = 0x1000, /**< Bytes of the loaded font table file. */
 };
+
 // clang-format on
 
 /**
@@ -92,6 +93,7 @@ enum FontFuchi {
     FUCHI_OUTLINE_THICK     = 8, /**< Black outline on eight sides plus two pixels out on four sides. */
     FUCHI_NUM               = 9, /**< Number of styles; larger values draw no outline. */
 };
+
 // clang-format on
 
 /**
@@ -107,6 +109,7 @@ enum FontPreset {
     FONT_PRESET_THICK_2   = 3, /**< Same as FONT_PRESET_THICK. */
     FONT_PRESET_SHADOWED  = 4, /**< Light grey text with a wide black shadow. */
 };
+
 // clang-format on
 
 /**
@@ -175,8 +178,8 @@ public:
     s32        draw_w;      /**< Width a full-width character is drawn at. */
     s32        draw_h;      /**< Height a character is drawn at. */
     s32        mini;        /**< Non-zero to draw with the small font texture. */
-    float      offset_x; /**< Horizontal offset applied to the font draw packet. */
-    float      offset_y; /**< Vertical offset applied to the font draw packet. */
+    float      offset_x;    /**< Horizontal offset applied to the font draw packet. */
+    float      offset_y;    /**< Vertical offset applied to the font draw packet. */
 
     /**
      *

@@ -27,15 +27,15 @@ extern char               at_1020__4[], at_1021__4[], at_1022__3[], at_1023__5[]
 extern char               at_1024__4[], at_1025__5[], at_1026__4[], at_1027__5[];
 extern char               at_1028__10[], at_1029__7[], at_1030__6[], at_1031__7[];
 
-extern MC_DIR_ENTRY     *SaveFileInfoTablePtr;
-extern int               SaveFileInfoTableSizeConvert[];
-extern int               FileListNum;
-extern int               ConvertPhase;
-extern int               ConvertFileNum;
-extern int               ConvertResult;
-extern int               ConvertResultDispTime;
-extern mgCMemory         DataBuffer__3;
-extern mgCMemory         Stack_ReadBuff__3;
+extern MC_DIR_ENTRY *SaveFileInfoTablePtr;
+extern int           SaveFileInfoTableSizeConvert[];
+extern int           FileListNum;
+extern int           ConvertPhase;
+extern int           ConvertFileNum;
+extern int           ConvertResult;
+extern int           ConvertResultDispTime;
+extern mgCMemory     DataBuffer__3;
+extern mgCMemory     Stack_ReadBuff__3;
 
 static void InitSaveFileInfoTablePtr();
 
@@ -247,6 +247,7 @@ static void InitSaveFileInfoTablePtr() {
         SaveFileInfoTableSizeConvert[i] = 0;
     }
 }
+
 int SaveDataConvertLoop() {
     MC_DIR_ENTRY dir_entries[64] __attribute__((aligned(64)));
     MC_DIR_ENTRY inside_entries[32] __attribute__((aligned(64)));
@@ -287,13 +288,13 @@ int SaveDataConvertLoop() {
             break;
         }
         case SAVEDATA_CONVERT_PHASE_CONVERT: {
-            char              dkcl_name[128] = "BESCES-51190dkcl%d";
-            char              album_name[128] = "BESCES-51190dc2album";
-            char              omake_name[128] = "BESCES-51190dc2omake";
-            char              existing_names[64][128];
-            int               existing_numbers[64];
-            char              previous_dir[128];
-            char              new_name[128];
+            char dkcl_name[128] = "BESCES-51190dkcl%d";
+            char album_name[128] = "BESCES-51190dc2album";
+            char omake_name[128] = "BESCES-51190dc2omake";
+            char existing_names[64][128];
+            int  existing_numbers[64];
+            char previous_dir[128];
+            char new_name[128];
             for (int file = 0; file < FileListNum; file++) {
                 strcpy(path, "BESCES-51190*");
                 memset(dir_entries, 0, sizeof(dir_entries));

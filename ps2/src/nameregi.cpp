@@ -43,7 +43,7 @@ struct PositionTable {
     s8 index[3][5][12]; /**< Character grid position for each language, font, and command. */
 };
 
-extern char                 NameRegiTopic[0x40];
+char                        NameRegiTopic[0x40];
 extern s8                   NameRegiCode;
 extern s8                   NameStrSelectModeTable[7][6];
 extern NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[0x2C];
@@ -95,42 +95,42 @@ struct BoardPoint {
     s16 y; /**< Vertical coordinate. */
 };
 
-extern BoardColor     colt_1808[2];
-extern BoardRect      table_1819[][5];
-extern BoardRect      tex_commtbl_1822[][6];
-extern BoardPoint     nameregist_baseboard_upper_table[][12];
-extern s16            get_Htable_1806[3];
-extern char           KIGOU_TABLE_ASCII1[0x20];
-extern char           KIGOU_TABLE_ASCII2[0x100];
-extern char           KIGOU_TABLE1[4];
-extern char           KIGOU_TABLE2[8];
-extern char          *jis_ptr_table[2];
-extern mgCMemory      NameRegiStack;
-extern char           at_1281__6[0x10];
-extern char           at_1282__6[0x10];
-extern char           at_1283__5[0x10];
-extern char           at_1284__6[0x10];
-extern char           at_1285__3[0x10];
-extern char           at_1286__2[0x10];
-extern char           at_1287__3[0x10];
-extern char           at_1288__2[0x10];
-extern mgCTexture    *NameRegiWaku;
-extern mgCTexture    *NameRegiBGTile;
-extern mgCTexture    *NameregiGaiji;
-extern FontTables     NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM];
-extern CNameRegiMenu *NameRegiMenuPtr;
-extern int            OldReloadTexNumber;
-extern s16            LimmitTable_1360[5];
-extern PositionTable  at_1377__5;
-extern s8             NameRegistGyouLimmitTable[5];
-extern s8             Convtable2_1382[2][5][8];
-extern BoardTable     convtbl_1792;
-extern BoardTable     at_1795;
-extern mgCTexture    *NameRegiCursor;
-extern mgCTexture    *NameRegiTex1;
-extern s16            NameRegistMax;
-extern s16            gettbl0_2012[12];
-extern s64            at_2031__3;
+extern BoardColor    colt_1808[2];
+extern BoardRect     table_1819[][5];
+extern BoardRect     tex_commtbl_1822[][6];
+extern BoardPoint    nameregist_baseboard_upper_table[][12];
+extern s16           get_Htable_1806[3];
+extern char          KIGOU_TABLE_ASCII1[0x20];
+extern char          KIGOU_TABLE_ASCII2[0x100];
+extern char          KIGOU_TABLE1[4];
+extern char          KIGOU_TABLE2[8];
+extern char         *jis_ptr_table[2];
+extern mgCMemory     NameRegiStack;
+extern char          at_1281__6[0x10];
+extern char          at_1282__6[0x10];
+extern char          at_1283__5[0x10];
+extern char          at_1284__6[0x10];
+extern char          at_1285__3[0x10];
+extern char          at_1286__2[0x10];
+extern char          at_1287__3[0x10];
+extern char          at_1288__2[0x10];
+mgCTexture          *NameRegiWaku;
+mgCTexture          *NameRegiBGTile;
+extern mgCTexture   *NameregiGaiji;
+extern FontTables    NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM];
+CNameRegiMenu       *NameRegiMenuPtr;
+int                  OldReloadTexNumber;
+extern s16           LimmitTable_1360[5];
+extern PositionTable at_1377__5;
+extern s8            NameRegistGyouLimmitTable[5];
+extern s8            Convtable2_1382[2][5][8];
+extern BoardTable    convtbl_1792;
+extern BoardTable    at_1795;
+mgCTexture          *NameRegiCursor;
+mgCTexture          *NameRegiTex1;
+extern s16           NameRegistMax;
+extern s16           gettbl0_2012[12];
+extern s64           at_2031__3;
 
 // Code (.text)
 void SetEventKeyword(char *target, char *topic, int code) {
@@ -215,6 +215,7 @@ void CNameRegiMenu::CopyAsciiToJis(char *src, char *dst) {
         *dst = 0;
     }
 }
+
 void CNameRegiMenu::CopyJisToAscii(char *src, char *dst) {
     if (src == NULL || dst == NULL) {
         return;
@@ -243,6 +244,7 @@ void CNameRegiMenu::CopyJisToAscii(char *src, char *dst) {
         *dst = 0;
     }
 }
+
 int CheckChronicleKanjiFont(mgCMemory *memory) {
     char name[3];
     int  total;
@@ -678,11 +680,11 @@ void NameRegistInit(mgCMemory *stack, int *tex_block, int open_type) {
             if (Nameregi_Target.item != NULL) {
                 s16 used_type = Nameregi_Target.item->used_type;
 
-                if (used_type != 0) {
+                if (used_type != USED_ITEM_TYPE_NONE) {
                     switch (used_type) {
-                        case 3:
-                        case 5:
-                        case 6:
+                        case USED_ITEM_TYPE_WEAPON:
+                        case USED_ITEM_TYPE_ROBO_PART:
+                        case USED_ITEM_TYPE_FISH:
                             message_no = 1;
                             item_names.name[0] = Nameregi_Target.item->GetName(0);
                             break;
@@ -1446,7 +1448,7 @@ s32 CNameRegiMenu::KeyStep() {
             strcpy(final_name, name);
 
             if (Nameregi_Target.target == NAMEREGI_TARGET_ITEM) {
-                if (LanguageCode > 0 && Nameregi_Target.item != NULL && Nameregi_Target.item->used_type == 3 &&
+                if (LanguageCode > 0 && Nameregi_Target.item != NULL && Nameregi_Target.item->used_type == USED_ITEM_TYPE_WEAPON &&
                     Nameregi_Target.item->IsFishingRod() == 0) {
                     char ascii[0x80];
                     s32  item_no;
@@ -1461,7 +1463,7 @@ s32 CNameRegiMenu::KeyStep() {
                         break;
                     }
 
-                    if (ConvertUsedItemType(GetItemDataType(item_no)) == 3) {
+                    if (ConvertUsedItemType(GetItemDataType(item_no)) == USED_ITEM_TYPE_WEAPON) {
                         Nameregi_Target.item->CopyDataWeapon(item_no);
                     }
                 }
@@ -1526,8 +1528,8 @@ s32 CNameRegiMenu::KeyStep() {
                     password[0x16] = 0;
                     strcpy((char *) key.bytes, Nameregi_Target.item->GetName(0));
                     key_text = key.bytes;
-                    password_valid = DecodePassword(password, (u8 *)decoded, 0x10, (u8 *)key_text, 0x14);
-                    memcpy(header, decoded, 0xE);
+                    password_valid = DecodePassword(password, (u8 *) decoded, 0x10, (u8 *) key_text, 0x14);
+                    memcpy(header, decoded, sizeof(header));
 
                     if (password_valid == 0 || (header[0] & 0x1FF) < 0x136) {
                         mode = NAMEREGI_MODE_MESSAGE;
@@ -1541,7 +1543,7 @@ s32 CNameRegiMenu::KeyStep() {
                         MenuSePlay(5);
                     } else {
                         Nameregi_Target.item->Init();
-                        Nameregi_Target.item->used_type = 6;
+                        Nameregi_Target.item->used_type = USED_ITEM_TYPE_FISH;
                         Nameregi_Target.item->SetName((char *) key_text);
                         Nameregi_Target.item->TransToData((char *) decoded, 0xE);
                         MenuSePlay(1);
@@ -1659,7 +1661,7 @@ s32 CNameRegiMenu::KeyStep() {
         case 0x3E8: {
             if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
                 Nameregi_Target.item->item_no = 0x140;
-                Nameregi_Target.item->used_type = 6;
+                Nameregi_Target.item->used_type = USED_ITEM_TYPE_FISH;
 
                 if (LanguageCode > 0) {
                     char backup[0x40];
@@ -1716,12 +1718,12 @@ s32 CNameRegiMenu::KeyStep() {
 }
 
 void CNameRegiMenu::GetSelectedActiveFont(char *dst) {
-    int font_mode = GetActiveFontMode();
+    int   font_mode = GetActiveFontMode();
     char *first_table = NameRegistFont_Table[font_mode].first;
     char *second_table = NameRegistFont_Table[font_mode].second;
     char *third_table = NameRegistFont_Table[font_mode].third;
     char *table = first_table;
-    s16 cell = select.pos;
+    s16   cell = select.pos;
     if (font_mode == NAMEREGI_FONT_MODE_HIRA || font_mode == NAMEREGI_FONT_MODE_KATA) {
         int rest;
         int column;
@@ -1729,7 +1731,7 @@ void CNameRegiMenu::GetSelectedActiveFont(char *dst) {
         rest = cell % 15;
         column = cell / 15;
         part = rest / 5;
-        char *kana_tables[3] = { first_table, second_table, third_table };
+        char *kana_tables[3] = {first_table, second_table, third_table};
         table = kana_tables[part];
         rest -= part * 5;
         char *glyph = table + (column + 2 * (rest + column * 5));
@@ -1739,7 +1741,7 @@ void CNameRegiMenu::GetSelectedActiveFont(char *dst) {
     if (font_mode == NAMEREGI_FONT_MODE_ALPHA) {
         table = first_table;
         auto column = cell % 13;
-        int line = cell / 13;
+        int  line = cell / 13;
         if (cell >= 26 && cell < 52) {
             table = second_table;
             line -= 2;
@@ -1748,7 +1750,7 @@ void CNameRegiMenu::GetSelectedActiveFont(char *dst) {
             table = third_table;
             line -= 4;
         }
-        __typeof__(line * 13 + column) line_start = line * 13 + column;
+        __typeof__(line * 13 + column)  line_start = line * 13 + column;
         __typeof__(line + (line_start)) glyph_index = line + (line_start);
         dst[0] = table[glyph_index];
     }
@@ -1757,15 +1759,16 @@ void CNameRegiMenu::GetSelectedActiveFont(char *dst) {
     }
     if (font_mode == NAMEREGI_FONT_MODE_KIGOU) {
         __typeof__(cell % 15) column = cell % 15;
-        int line = cell / 15;
+        int                   line = cell / 15;
         if (line >= 2) {
             table = second_table;
             line -= 2;
         }
-        __typeof__((unsigned int)line + (column + (line * 16 - line))) glyph_index = (unsigned int)line + (column + (line * 16 - line));
+        __typeof__((unsigned int) line + (column + (line * 16 - line))) glyph_index = (unsigned int) line + (column + (line * 16 - line));
         dst[0] = table[glyph_index];
     }
 }
+
 void CNameRegiMenu::ChangeFontSelectMode(int mode) {
     if (mode < 0 || mode >= 5) {
         return;
@@ -1899,15 +1902,20 @@ void CNameRegiMenu::DrawBaseBoard() {
         }
     }
 }
+
 void CNameRegiMenu::DrawActiveFont() {
-    struct KanjiMark { int x; int y; };
-    KanjiMark marks[20];
-    char glyphs[20][3];
-    char line[0x40];
-    int mark_num;
-    int y;
-    int font_mode;
-    CFont *font;
+    struct KanjiMark {
+        int x;
+        int y;
+    };
+
+    KanjiMark   marks[20];
+    char        glyphs[20][3];
+    char        line[0x40];
+    int         mark_num;
+    int         y;
+    int         font_mode;
+    CFont      *font;
     mgRect<int> mark_rect;
     FontTables *tables;
     y = 0x104;
@@ -1953,7 +1961,7 @@ void CNameRegiMenu::DrawActiveFont() {
             if (cell < 0x672) {
                 do {
                     char *glyph = &line[column];
-                    int kind = GetNameRegistFontKanjiList(cell, glyph);
+                    int   kind = GetNameRegistFontKanjiList(cell, glyph);
                     if (kind == 0) {
                         column += 2;
                     } else if (kind == 1) {
@@ -2024,58 +2032,60 @@ void CNameRegiMenu::DrawActiveFont() {
             break;
     }
 }
+
 #pragma divbyzerocheck on
+
 void CNameRegiMenu::StepMarkCursor() {
     float target_x = 0.0f;
     float target_y = 0.0f;
     switch (key_arg_no) {
-    case 0: {
-        int button = command_pos;
-        int language = 0;
-        int slot = button;
-        if (LanguageCode > 0) {
-            language = 1;
-            if (button == 2) {
-                slot = 0;
+        case 0: {
+            int button = command_pos;
+            int language = 0;
+            int slot = button;
+            if (LanguageCode > 0) {
+                language = 1;
+                if (button == 2) {
+                    slot = 0;
+                }
+                if (button == 3) {
+                    slot = 4;
+                }
             }
-            if (button == 3) {
-                slot = 4;
+            target_x = (18.0f + (float) nameregist_baseboard_upper_table[language][slot].x) - 32.0f;
+            target_y = 5.0f + (166.0f + (float) nameregist_baseboard_upper_table[language][slot].y);
+            if (button == 0xB) {
+                target_y += 5.0f;
             }
+            break;
         }
-        target_x = (18.0f + (float)nameregist_baseboard_upper_table[language][slot].x) - 32.0f;
-        target_y = 5.0f + (166.0f + (float)nameregist_baseboard_upper_table[language][slot].y);
-        if (button == 0xB) {
-            target_y += 5.0f;
+        case 1: {
+            MENU_SELECT_PARAM *param = &select;
+            int                font_mode = GetActiveFontMode();
+            int                column = param->pos % NameRegistGyouLimmitTable[font_mode];
+            int                line = param->pos / NameRegistGyouLimmitTable[font_mode];
+            if (font_mode == NAMEREGI_FONT_MODE_HIRA || font_mode == NAMEREGI_FONT_MODE_KATA) {
+                target_x = (float) (column * 0x18 + 0x3E + column / 5 * 0x10);
+                target_y = (float) (0x104 + line * 0x18);
+            }
+            if (font_mode == NAMEREGI_FONT_MODE_KANJI) {
+                target_x = (float) (0x34 + 0x16 * column);
+                target_y = (float) (line * 0x18 + 0x104);
+            }
+            if (font_mode == NAMEREGI_FONT_MODE_ALPHA) {
+                target_x = (float) (column * 0x18 + 0x64);
+                target_y = (float) (line * 0x18 + 0x110);
+            }
+            if (NAMEREGI_FONT_MODE_KIGOU == font_mode) {
+                target_x = (float) (column * 0x18 + 0x52);
+                target_y = (float) (line * 0x18 + 0x104);
+            }
+            target_x -= 2.0f;
+            select_box_x = target_x;
+            target_x -= 36.0f;
+            select_box_y = target_y;
+            break;
         }
-        break;
-    }
-    case 1: {
-        MENU_SELECT_PARAM *param = &select;
-        int font_mode = GetActiveFontMode();
-        int column = param->pos % NameRegistGyouLimmitTable[font_mode];
-        int line = param->pos / NameRegistGyouLimmitTable[font_mode];
-        if (font_mode == NAMEREGI_FONT_MODE_HIRA || font_mode == NAMEREGI_FONT_MODE_KATA) {
-            target_x = (float)(column * 0x18 + 0x3E + column / 5 * 0x10);
-            target_y = (float)(0x104 + line * 0x18);
-        }
-        if (font_mode == NAMEREGI_FONT_MODE_KANJI) {
-            target_x = (float)(0x34 + 0x16 * column);
-            target_y = (float)(line * 0x18 + 0x104);
-        }
-        if (font_mode == NAMEREGI_FONT_MODE_ALPHA) {
-            target_x = (float)(column * 0x18 + 0x64);
-            target_y = (float)(line * 0x18 + 0x110);
-        }
-        if (NAMEREGI_FONT_MODE_KIGOU == font_mode) {
-            target_x = (float)(column * 0x18 + 0x52);
-            target_y = (float)(line * 0x18 + 0x104);
-        }
-        target_x -= 2.0f;
-        select_box_x = target_x;
-        target_x -= 36.0f;
-        select_box_y = target_y;
-        break;
-    }
     }
     CalcMenu1(target_x, &cursor_x, 4.0f, 0.0f, cursor_snap);
     CalcMenu1(target_y, &cursor_y, 4.0f, 0.0f, cursor_snap);
@@ -2084,7 +2094,9 @@ void CNameRegiMenu::StepMarkCursor() {
         cursor_cnt++;
     }
 }
+
 #pragma divbyzerocheck reset
+
 void CNameRegiMenu::DrawMarkCursor() {
     float pos[2];
     pos[0] = cursor_x + 6.0f * cosf(mgAngleLimit(0.05235988f * (float) cursor_cnt));
@@ -2225,12 +2237,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nameregi", at_2031__3__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(NameRegiCode, 0x4);
-INCLUDE_BSS(NameRegiMenuPtr, 0x4);
-INCLUDE_BSS(OldReloadTexNumber, 0x4);
-INCLUDE_BSS(NameRegiTex1, 0x4);
-INCLUDE_BSS(NameRegiBGTile, 0x4);
-INCLUDE_BSS(NameRegiCursor, 0x4);
-INCLUDE_BSS(NameRegiWaku, 0x4);
 INCLUDE_BSS(NameregiGaiji, 0x8);
 INCLUDE_BSS(at_1621__3, 0x8);
 INCLUDE_BSS(at_1661__3, 0x8);
@@ -2240,7 +2246,6 @@ INCLUDE_BSS(at_1693__2, 0x8);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(Nameregi_Target, 0x50);
-INCLUDE_BSS(NameRegiTopic, 0x40);
 mgCMemory NameRegiStack;
 INCLUDE_BSS(at_1171__3, 0x10);
 INCLUDE_BSS(at_1669, 0x28);

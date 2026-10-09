@@ -570,7 +570,6 @@ int mgCTextureAnime::SearchGroupName(char *group_name) {
 
 #pragma global_optimizer reset
 
-
 #ifdef NONMATCHING
 CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeData(mgCMemory *stack) {
     CList<mgCTexAnimeData> *node;

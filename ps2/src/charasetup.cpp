@@ -145,13 +145,16 @@ void GetCharacterSnd(CUserDataManager *user_data, int unit, char *path) {
         }
     }
 }
+
 int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, int image_block,
                   CScene *scene, CUserDataManager *user_data, int chara_type, int edit_mode) {
     CActionChara *parts[6];
-    int texture = image_block;
+    int           texture = image_block;
     for (int character_index = 0; character_index < 6; ++character_index) {
-        parts[character_index] = (CActionChara *)scene->GetCharacter(character_index);
-        if (parts[character_index] == NULL) return 0;
+        parts[character_index] = (CActionChara *) scene->GetCharacter(character_index);
+        if (parts[character_index] == NULL) {
+            return 0;
+        }
         parts[character_index]->Initialize(NULL);
     }
     if (chara_type == USER_CHARA_MAX) {
@@ -168,41 +171,47 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
             LoadFile(path, read_buffer, NULL);
         }
         parts[0]->accume_effect = &AccumulateEffect;
-        parts[0]->LoadPack((unsigned int *)read_buffer, at_1002__3, stacks, stacks, stacks, texture, NULL);
+        parts[0]->LoadPack((unsigned int *) read_buffer, at_1002__3, stacks, stacks, stacks, texture, NULL);
         parts[0]->SetPosition(0.0f, 0.0f, 200.0f);
         parts[0]->texture_block = texture;
         CGameDataUsed *equip = user_data->GetCharaDataPtr(chara_type)->equip;
-        char *item_path;
+        char          *item_path;
         LoadFile(GetItemFilePath(equip[4].item_no, 0), read_buffer, NULL);
-        parts[0]->LoadSkin((unsigned int *)read_buffer, at_1002__3, at_1003__3, &stacks[1], texture);
+        parts[0]->LoadSkin((unsigned int *) read_buffer, at_1002__3, at_1003__3, &stacks[1], texture);
         if (!edit_mode) {
             if (equip[0].item_no > 0) {
                 item_path = GetItemFilePath(equip[0].item_no, 0);
                 parts[1]->Initialize(NULL);
                 LoadFile(item_path, read_buffer, NULL);
-                parts[1]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
-                if (!parts[0]->SetRef(parts[1], at_1004__3)) printf(at_1005__3);
+                parts[1]->LoadPack((unsigned int *) read_buffer, at_1002__3, &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
+                if (!parts[0]->SetRef(parts[1], at_1004__3)) {
+                    printf(at_1005__3);
+                }
             }
             if (equip[1].item_no > 0) {
                 item_path = GetItemFilePath(equip[1].item_no, 0);
                 parts[2]->Initialize(NULL);
                 LoadFile(item_path, read_buffer, NULL);
-                parts[2]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[3], &stacks[3], &stacks[3], texture, parts[0]);
-                if (!parts[0]->SetRef(parts[2], at_1006__2)) printf(at_1005__3);
+                parts[2]->LoadPack((unsigned int *) read_buffer, at_1002__3, &stacks[3], &stacks[3], &stacks[3], texture, parts[0]);
+                if (!parts[0]->SetRef(parts[2], at_1006__2)) {
+                    printf(at_1005__3);
+                }
             }
             SetSwordBlurEffect(parts[0], &stacks[2], chara_type);
         }
         item_path = GetItemFilePath(equip[2].item_no, 0);
         parts[3]->Initialize(NULL);
         LoadFile(item_path, read_buffer, NULL);
-        parts[3]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[4], &stacks[4], &stacks[4], texture, parts[0]);
-        if (!parts[0]->SetRef(parts[3], at_1007__2)) printf(at_1005__3);
+        parts[3]->LoadPack((unsigned int *) read_buffer, at_1002__3, &stacks[4], &stacks[4], &stacks[4], texture, parts[0]);
+        if (!parts[0]->SetRef(parts[3], at_1007__2)) {
+            printf(at_1005__3);
+        }
         LoadFile(GetItemFilePath(equip[3].item_no, 0), read_buffer, NULL);
-        parts[0]->LoadSkin((unsigned int *)read_buffer, at_1002__3, at_1003__3, &stacks[5], texture);
+        parts[0]->LoadSkin((unsigned int *) read_buffer, at_1002__3, at_1003__3, &stacks[5], texture);
         if (!edit_mode) {
             int file_size;
             LoadFile(at_1008__3, read_buffer, &file_size);
-            parts[0]->LoadActionFile((char *)read_buffer, file_size, &stacks[6]);
+            parts[0]->LoadActionFile((char *) read_buffer, file_size, &stacks[6]);
             parts[0]->InitScript();
         }
         SetupUnitMan(scene, user_data, 0, NULL);
@@ -223,37 +232,43 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
             LoadFile(path, read_buffer, NULL);
         }
         parts[0]->accume_effect = &AccumulateEffect;
-        parts[0]->LoadPack((unsigned int *)read_buffer, at_1002__3, stacks, stacks, stacks, texture, NULL);
+        parts[0]->LoadPack((unsigned int *) read_buffer, at_1002__3, stacks, stacks, stacks, texture, NULL);
         parts[0]->SetPosition(0.0f, 0.0f, 200.0f);
         parts[0]->texture_block = texture;
         CGameDataUsed *equip = user_data->GetCharaDataPtr(chara_type)->equip;
-        char *item_path;
+        char          *item_path;
         LoadFile(GetItemFilePath(equip[4].item_no, 0), read_buffer, NULL);
-        parts[0]->LoadSkin((unsigned int *)read_buffer, at_1002__3, at_1003__3, &stacks[1], texture);
+        parts[0]->LoadSkin((unsigned int *) read_buffer, at_1002__3, at_1003__3, &stacks[1], texture);
         if (!edit_mode) {
             item_path = GetItemFilePath(equip[0].item_no, 0);
             parts[1]->Initialize(NULL);
             LoadFile(item_path, read_buffer, NULL);
-            parts[1]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
-            if (!parts[0]->SetRef(parts[1], at_1009__2)) printf(at_1005__3);
+            parts[1]->LoadPack((unsigned int *) read_buffer, at_1002__3, &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
+            if (!parts[0]->SetRef(parts[1], at_1009__2)) {
+                printf(at_1005__3);
+            }
             SetSwordBlurEffect(parts[0], &stacks[2], chara_type);
         }
         item_path = GetItemFilePath(equip[1].item_no, 0);
         parts[2]->Initialize(NULL);
         LoadFile(item_path, read_buffer, NULL);
-        parts[2]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[3], &stacks[3], &stacks[3], texture, parts[0]);
-        if (!parts[0]->SetRef(parts[2], at_1010__2)) printf(at_1005__3);
+        parts[2]->LoadPack((unsigned int *) read_buffer, at_1002__3, &stacks[3], &stacks[3], &stacks[3], texture, parts[0]);
+        if (!parts[0]->SetRef(parts[2], at_1010__2)) {
+            printf(at_1005__3);
+        }
         item_path = GetItemFilePath(equip[2].item_no, 0);
         parts[3]->Initialize(NULL);
         LoadFile(item_path, read_buffer, NULL);
-        parts[3]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[4], &stacks[4], &stacks[4], texture, parts[0]);
-        if (!parts[0]->SetRef(parts[3], at_1011__2)) printf(at_1005__3);
+        parts[3]->LoadPack((unsigned int *) read_buffer, at_1002__3, &stacks[4], &stacks[4], &stacks[4], texture, parts[0]);
+        if (!parts[0]->SetRef(parts[3], at_1011__2)) {
+            printf(at_1005__3);
+        }
         LoadFile(GetItemFilePath(equip[3].item_no, 0), read_buffer, NULL);
-        parts[0]->LoadSkin((unsigned int *)read_buffer, at_1002__3, at_1003__3, &stacks[5], texture);
+        parts[0]->LoadSkin((unsigned int *) read_buffer, at_1002__3, at_1003__3, &stacks[5], texture);
         if (!edit_mode) {
             int file_size;
             LoadFile(at_1012__2, read_buffer, &file_size);
-            parts[0]->LoadActionFile((char *)read_buffer, file_size, &stacks[6]);
+            parts[0]->LoadActionFile((char *) read_buffer, file_size, &stacks[6]);
             parts[0]->InitScript();
         }
         SetupUnitMan(scene, user_data, 1, NULL);
@@ -267,26 +282,31 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
         parts[0]->Initialize(NULL);
         sprintf(path, at_1013__2, robo_info->model_name[0]);
         LoadFile(path, read_buffer, NULL);
-        parts[0]->LoadPack((unsigned int *)read_buffer, at_1002__3, stacks, stacks, stacks, texture, NULL);
+        parts[0]->LoadPack((unsigned int *) read_buffer, at_1002__3, stacks, stacks, stacks, texture, NULL);
         parts[0]->texture_block = texture;
         SetupPartStack part_stack = at_919__3;
         for (int i = 1; i < 5; ++i) {
             parts[i]->Initialize(NULL);
-            if (i != 3) sprintf(path, at_1013__2, robo_info->model_name[i]);
-            else sprintf(path, at_1014__2, robo_info->model_name[i]);
+            if (i != 3) {
+                sprintf(path, at_1013__2, robo_info->model_name[i]);
+            } else {
+                sprintf(path, at_1014__2, robo_info->model_name[i]);
+            }
             LoadFile(path, read_buffer, NULL);
-            parts[i]->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[part_stack.stacks[i]],
+            parts[i]->LoadPack((unsigned int *) read_buffer, at_1002__3, &stacks[part_stack.stacks[i]],
                                &stacks[part_stack.stacks[i]], &stacks[part_stack.stacks[i]], texture, parts[0]);
-            if (i == 1) SetSwordBlurEffect(parts[0], &stacks[part_stack.stacks[i]], chara_type);
+            if (i == 1) {
+                SetSwordBlurEffect(parts[0], &stacks[part_stack.stacks[i]], chara_type);
+            }
         }
         CActionChara *part = parts[5];
         part->Initialize(NULL);
         LoadFile(robo_info->hat_file, read_buffer, NULL);
-        part->LoadPack((unsigned int *)read_buffer, at_1002__3, &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
+        part->LoadPack((unsigned int *) read_buffer, at_1002__3, &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
         SetupUnitMan(scene, user_data, 2, robo_info);
         int file_size;
         LoadFile(at_1015__2, read_buffer, &file_size);
-        parts[0]->LoadActionFile((char *)read_buffer, file_size, &stacks[4]);
+        parts[0]->LoadActionFile((char *) read_buffer, file_size, &stacks[4]);
         parts[0]->InitScript();
         parts[0]->move_type = robo_info->move_type;
         parts[0]->attack_type = robo_info->attack_type;
@@ -297,7 +317,7 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
         char monster_info[64];
         char monster_script[64];
         char monster_model[32];
-        int monster_id = user_data->monster_id;
+        int  monster_id = user_data->monster_id;
         GetCharaMemAllocPtr(memory, stacks, 3, edit_mode);
         GetMonsterModelFile(monster_id, 0, monster_model);
         sprintf(monster_path, at_1016__3, monster_model);
@@ -306,13 +326,13 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
         sprintf(monster_script, at_1017__3, monster_model);
         LoadFile(monster_path, read_buffer, NULL);
         parts[0]->Initialize(NULL);
-        parts[0]->LoadPack((unsigned int *)read_buffer, monster_info, stacks, stacks, stacks, texture, NULL);
+        parts[0]->LoadPack((unsigned int *) read_buffer, monster_info, stacks, stacks, stacks, texture, NULL);
         parts[0]->SetPosition(0.0f, 0.0f, 0.0f);
         parts[0]->texture_block = texture;
         SetupUnitMan(scene, user_data, 3, NULL);
         int file_size;
         LoadFile(monster_script, read_buffer, &file_size);
-        parts[0]->LoadActionFile((char *)read_buffer, file_size, &stacks[5]);
+        parts[0]->LoadActionFile((char *) read_buffer, file_size, &stacks[5]);
         parts[0]->InitScript();
         parts[0]->chara_type = ACTION_CHARA_MAX;
         parts[0]->move_type = ACTION_MOVE_MONSTER;
@@ -324,6 +344,7 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
     } while (i < 7);
     return 1;
 }
+
 int GetCharaMemAllocSize() {
     int maximum = 0;
 
@@ -448,7 +469,7 @@ void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INF
  *
  */
 int SetupMints(CScene *scene, CUserDataManager *user_data) {
-    CGameDataUsed *equip = user_data->GetCharaDataPtr(0)->equip;
+    CGameDataUsed *equip = user_data->GetCharaDataPtr(USER_CHARA_MAX)->equip;
     CCharacter2   *characters[5];
 
     for (int slot = 0; slot < 5; slot++) {
@@ -496,7 +517,7 @@ int SetupMints(CScene *scene, CUserDataManager *user_data) {
  *
  */
 int SetupMonica(CScene *scene, CUserDataManager *user_data) {
-    CGameDataUsed *equip = user_data->GetCharaDataPtr(1)->equip;
+    CGameDataUsed *equip = user_data->GetCharaDataPtr(USER_CHARA_MONICA)->equip;
     CCharacter2   *characters[5];
 
     for (int slot = 0; slot < 5; slot++) {
@@ -545,13 +566,13 @@ int SetupMonica(CScene *scene, CUserDataManager *user_data) {
 static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA *robo_info) {
     CActionChara  *parts[6];
     char           arm_joint[64];
-    char           leg_joint[64];
-    CGameDataUsed *leg_part;
+    char           body_joint[64];
+    CGameDataUsed *arm_part;
     user_data->robo_data.parts[1].GetRoboJointName(arm_joint);
-    leg_part = &user_data->robo_data.parts[0];
-    leg_part->GetRoboJointName(leg_joint);
+    arm_part = &user_data->robo_data.parts[0];
+    arm_part->GetRoboJointName(body_joint);
     int leg_type = user_data->robo_data.parts[3].GetRoboInfoType();
-    int arm_type = leg_part->GetRoboInfoType();
+    int arm_type = arm_part->GetRoboInfoType();
 
     for (int i = 0; i < 6; ++i) {
         parts[i] = (CActionChara *) scene->GetCharacter(i);
@@ -569,7 +590,7 @@ static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA 
 
     for (int i = 0; i < 5; ++i) {
         if (i == 0) {
-            parts[0]->SetRef(parts[i + 1], leg_joint);
+            parts[0]->SetRef(parts[i + 1], body_joint);
         } else {
             if (!parts[0]->SetRef(parts[i + 1], joint_names.names[i])) {
                 printf(at_1268, joint_names.names[i]);
@@ -610,7 +631,7 @@ static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA 
     arm->SetTransMatrix(matrix);
     parts[0]->move_type = leg_type;
     parts[0]->attack_type = arm_type;
-    printf(at_1277, leg_joint, arm_joint);
+    printf(at_1277, body_joint, arm_joint);
     parts[0]->chara_type = 2;
     return 1;
 }
@@ -635,7 +656,7 @@ ROBO_INFO_DATA *GetRoboPartsInfo(CUserDataManager *user_data) {
     robo_dat.model_name[ROBO_MODEL_ARM] = r_robo_pname_1282[1];
     robo_dat.model_name[ROBO_MODEL_BODY] = r_robo_pname_1282[2];
     robo_dat.model_name[ROBO_MODEL_BPACK] = r_robo_pname_1282[3];
-    CHARA_DATA *max_data = user_data->GetCharaDataPtr(0);
+    CHARA_DATA *max_data = user_data->GetCharaDataPtr(USER_CHARA_MAX);
     int         costume = max_data->equip[4].item_no;
     costume -= game_data->GetDataTypeStartListNo(5);
 
@@ -672,7 +693,7 @@ ROBO_INFO_DATA *GetRoboPartsInfo(CUserDataManager *user_data) {
         robo_dat.attack_type = user_data->robo_data.parts[0].GetRoboInfoType();
     }
 
-    max_data = user_data->GetCharaDataPtr(0);
+    max_data = user_data->GetCharaDataPtr(USER_CHARA_MAX);
     robo_dat.hat_file = GetItemFilePath(max_data->equip[2].item_no, 0);
     return &robo_dat;
 }

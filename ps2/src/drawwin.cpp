@@ -143,6 +143,7 @@ void MyMenuHelpWinDraw(mgCDrawPrim *prim, RECT rect, int alpha) {
     screen8.Set(right, bottom, 0x18, 0x16);
     set2DSprite(prim, screen8, texture8, &color);
 }
+
 void MyMenuFloatingWinDraw(mgCDrawPrim *prim, RECT win, int point_x, int point_y,
                            RGBAQ_TYPE *frame_color, RGBAQ_TYPE *fill_color) {
     int inside_x;
@@ -196,6 +197,7 @@ void MyMenuFloatingWinDraw(mgCDrawPrim *prim, RECT win, int point_x, int point_y
         DrawWindowTile(prim, point_x - 10, top_y, 0x15, 0x15, 0x91, 0x30, 0x15, 0x15, frame_color);
     }
 }
+
 void DrawVersatileWin_1(mgCDrawPrim *prim, RECT rect, RGBAQ_TYPE *color, int alpha, int opaque) {
     mgRect<int> screen0;
     mgRect<int> texture0;

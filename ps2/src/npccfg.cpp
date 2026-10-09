@@ -139,23 +139,23 @@ char *GetPartyCharaModelName(int chara_no, int type) {
     model = GetNPCModelName(chara_no);
 
     if (model != 0) {
-        if (type == 0) {
+        if (type == (int) NPC_MODEL_PATH_CHARA) {
             strcpy(path_885, at_898__4);
             strcat(path_885, model);
             strcat(path_885, at_899__4);
             return path_885;
         }
 
-        if (type == 1) {
+        if (type == (int) NPC_MODEL_PATH_INFO) {
             return infocfg_886;
         }
 
-        if (type == 2) {
+        if (type == (int) NPC_MODEL_PATH_EVENT_TRAIN) {
             sprintf(path_885, at_900__5, model);
             return path_885;
         }
 
-        if (type == 3) {
+        if (type == (int) NPC_MODEL_PATH_MENU) {
             sprintf(path_885, at_901__3, model);
             return path_885;
         }

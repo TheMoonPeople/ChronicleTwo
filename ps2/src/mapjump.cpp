@@ -28,24 +28,24 @@ struct ScriptPathBuffer {
     char text[0x80]; /**< Script path text. */
 };
 
-extern int                NowMainMapNo;
-extern int                NowSubMapNo;
-extern int                NowInteriorMapNo;
-extern int                OldInteriorMapNo;
-extern mgCMemory         *ScriptBuffer;
-extern int                InteriorFlag;
+int                       NowMainMapNo;
+int                       NowSubMapNo;
+int                       NowInteriorMapNo;
+int                       OldInteriorMapNo;
+mgCMemory                *ScriptBuffer;
+int                       InteriorFlag;
 static MapJumpMapInfo     MainMapInfo__2;
 static MapJumpMapInfo     SubMapInfo;
-extern ScriptPathBuffer   at_912__4;
-extern char               now_script_file[0x40];
-extern char               old_mapname[0x40];
-extern char               PrevInterior[0x40];
-extern char               NowInterior[0x40];
-extern int                old_bgm_no;
-extern sceVu0FVECTOR      OldPos;
-extern sceVu0FVECTOR      OldRot;
-extern sceVu0FVECTOR      OldCamPos;
-extern sceVu0FVECTOR      OldCamRef;
+ScriptPathBuffer          at_912__4;
+char                      now_script_file[0x40];
+char                      old_mapname[0x40];
+char                      PrevInterior[0x40];
+char                      NowInterior[0x40];
+int                       old_bgm_no;
+sceVu0FVECTOR             OldPos;
+sceVu0FVECTOR             OldRot;
+sceVu0FVECTOR             OldCamPos;
+sceVu0FVECTOR             OldCamRef;
 extern CScene::BGM_STATUS OldBgmStatus;
 extern char               at_1047__2[];
 extern char               at_863__3[];
@@ -72,7 +72,7 @@ void ClearSubMapNo() {
 }
 
 MapJumpMapInfo::MapJumpMapInfo() {
-    memset(this, 0, 0x18);
+    memset(this, 0, sizeof(*this));
 }
 
 void SetMainMapInfo(MapJumpMapInfo *info) {
@@ -146,7 +146,7 @@ int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int map_index) {
         return 0;
     }
 
-    scene->SetActive(2, MainMapInfo__2.map_no);
+    scene->SetActive(SCENE_DATA_MAP, MainMapInfo__2.map_no);
     scene->active_map = MainMapInfo__2.map_no;
     CEditMap *map = (CEditMap *) scene->GetMap(scene->active_map);
 
@@ -443,8 +443,8 @@ void GotoInterior(CScene *scene, int interior_no) {
         SaveBeforeInterior(scene);
 
         if (LoadSubMap(scene, interior_no, 0) != 0) {
-            scene->SetActive(2, SubMapInfo.map_no);
-            scene->ResetActive(2, MainMapInfo__2.map_no);
+            scene->SetActive(SCENE_DATA_MAP, SubMapInfo.map_no);
+            scene->ResetActive(SCENE_DATA_MAP, MainMapInfo__2.map_no);
             scene->active_map = SubMapInfo.map_no;
             SetInteriorDoorPos(scene);
         }
@@ -520,13 +520,13 @@ void ExitInterior(CScene *scene, int *map_no) {
         }
 
         if (old_map_no >= 0 && LoadSubMap(scene, old_map_no, 0) != 0) {
-            scene->SetActive(2, SubMapInfo.map_no);
+            scene->SetActive(SCENE_DATA_MAP, SubMapInfo.map_no);
         }
     } else {
         scene->SetNowSubMapNo(-1);
     }
 
-    scene->SetActive(2, MainMapInfo__2.map_no);
+    scene->SetActive(SCENE_DATA_MAP, MainMapInfo__2.map_no);
     scene->active_map = MainMapInfo__2.map_no;
     OldInteriorMapNo = NowInteriorMapNo;
     NowInteriorMapNo = -1;
@@ -549,8 +549,8 @@ void ExitInterior(CScene *scene, int *map_no) {
 
 int InteriorMapJump(CScene *scene, int interior_no) {
     if (LoadSubMap(scene, interior_no, 0) != 0) {
-        scene->SetActive(2, SubMapInfo.map_no);
-        scene->ResetActive(2, MainMapInfo__2.map_no);
+        scene->SetActive(SCENE_DATA_MAP, SubMapInfo.map_no);
+        scene->ResetActive(SCENE_DATA_MAP, MainMapInfo__2.map_no);
         scene->active_map = SubMapInfo.map_no;
         char *map_name = GetMapName(interior_no, NULL);
         strcpy(PrevInterior, NowInterior);
@@ -587,22 +587,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_1047__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapjump", at_1091__2__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(NowMainMapNo, 0x4);
-INCLUDE_BSS(NowSubMapNo, 0x4);
-INCLUDE_BSS(NowInteriorMapNo, 0x4);
-INCLUDE_BSS(OldInteriorMapNo, 0x4);
-INCLUDE_BSS(ScriptBuffer, 0x4);
-INCLUDE_BSS(InteriorFlag, 0x4);
-INCLUDE_BSS(old_bgm_no, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(now_script_file, 0x40);
-INCLUDE_BSS(at_912__4, 0x80);
-INCLUDE_BSS(old_mapname, 0x40);
-INCLUDE_BSS(OldPos, 0x10);
-INCLUDE_BSS(OldRot, 0x10);
-INCLUDE_BSS(OldCamPos, 0x10);
-INCLUDE_BSS(OldCamRef, 0x10);
-INCLUDE_BSS(PrevInterior, 0x40);
-INCLUDE_BSS(NowInterior, 0x40);
 INCLUDE_BSS(OldBgmStatus, 0x20);

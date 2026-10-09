@@ -45,7 +45,6 @@
 #include "sound.hpp"
 #include "water.hpp"
 
-
 /**
  *
  * Vector copied as four floats or one quadword.
@@ -517,7 +516,7 @@ void CRocketLauncher::Draw() {
         sprite.Begin(6);
         sprite.Texture(trail_texture);
         sprite.AlphaTestEnable(1);
-        sprite.SetAlphaBlend(1);
+        sprite.SetAlphaBlend(MG_ALPHA_BLEND_NORMAL);
         sprite.Color(0x80, 0x80, 0x80, 0x80);
         fade = 1.0f;
         size = 6.0f;
@@ -642,37 +641,37 @@ void CMachineGun::Set(float *position, float *direction) {
 }
 
 void CMachineGun::Step() {
-    int i;
+    int bullet;
 
-    for (i = 0; i < 16; i++) {
-        s16 state = active[i];
+    for (bullet = 0; bullet < 16; bullet++) {
+        s16 state = active[bullet];
 
         if (state != 0 && state == 1) {
-            CColPrim *col_prim = ColPrimMan.GetID2Prim(col_prim_id[i]);
+            CColPrim *col_prim = ColPrimMan.GetID2Prim(col_prim_id[bullet]);
             float     previous_pos[4];
             CCPoly    polys[128];
             mgVu0FBOX box;
             float     hit[4];
 
-            sceVu0CopyVector(previous_pos, pos[i]);
-            sceVu0AddVector(pos[i], pos[i], velocity[i]);
+            sceVu0CopyVector(previous_pos, pos[bullet]);
+            sceVu0AddVector(pos[bullet], pos[bullet], velocity[bullet]);
 
             if (col_prim != NULL) {
-                col_prim->SetCoord(previous_pos, pos[i], 5.0f);
+                col_prim->SetCoord(previous_pos, pos[bullet], 5.0f);
             }
 
             box.max[3] = 1.0f;
             box.min[3] = 1.0f;
-            box.max[0] = 20.0f + (40.0f + pos[i][0]);
-            box.min[0] = (pos[i][0] - 40.0f) - 20.0f;
-            box.max[1] = 20.0f + (40.0f + pos[i][1]);
-            box.min[1] = (pos[i][1] - 40.0f) - 20.0f;
-            box.max[2] = 20.0f + (40.0f + pos[i][2]);
-            box.min[2] = (pos[i][2] - 40.0f) - 20.0f;
+            box.max[0] = 20.0f + (40.0f + pos[bullet][0]);
+            box.min[0] = (pos[bullet][0] - 40.0f) - 20.0f;
+            box.max[1] = 20.0f + (40.0f + pos[bullet][1]);
+            box.min[1] = (pos[bullet][1] - 40.0f) - 20.0f;
+            box.max[2] = 20.0f + (40.0f + pos[bullet][2]);
+            box.min[2] = (pos[bullet][2] - 40.0f) - 20.0f;
             int count = ((CMap *) DngMainMap)->GetColPoly(polys, box, 128);
 
-            if (CheckHit(polys, count, pos[i], previous_pos, hit, 1, 4) >= 0) {
-                active[i] = 0;
+            if (CheckHit(polys, count, pos[bullet], previous_pos, hit, 1, 4) >= 0) {
+                active[bullet] = 0;
 
                 if (col_prim != NULL) {
                     col_prim->Delete(-1);
@@ -704,13 +703,13 @@ void CMachineGun::Step() {
                     image->kind = 1;
                 }
             } else if (col_prim != NULL && col_prim->hit_num > 0) {
-                active[i] = 0;
+                active[bullet] = 0;
                 col_prim->Delete(-1);
             } else {
-                life[i]--;
+                life[bullet]--;
 
-                if (life[i] <= 0) {
-                    active[i] = 0;
+                if (life[bullet] <= 0) {
+                    active[bullet] = 0;
 
                     if (col_prim != NULL) {
                         col_prim->Delete(-1);
@@ -1053,7 +1052,7 @@ void CLaserGun::Draw() {
             sprite.Begin(MG_PRIM_SPRITE);
             sprite.Texture(trail_texture);
             sprite.AlphaTestEnable(1);
-            sprite.SetAlphaBlend(2);
+            sprite.SetAlphaBlend(MG_ALPHA_BLEND_ADD);
             sprite.Color(0x80, 0x80, 0x80, 0x80);
             fade = 1.0f;
             size = 6.0f * scale;
@@ -1135,7 +1134,7 @@ void CLaserGun::Draw() {
             attr.color[1] = color[1];
             attr.color[2] = color[2];
             attr.color[3] = 128.0f;
-            model->SetAttrParam(attr, 1, 0x10000);
+            model->SetAttrParam(attr, 1, MG_FRAME_ATTR_COLOR);
             float model_scale = scale;
             ((mgCObject *) model)->SetScale(model_scale, model_scale, model_scale);
             model->SetPosition(pos);
@@ -1269,7 +1268,7 @@ void CPullItem::Draw(mgCTexture *texture) {
         }
 
         if (mgTransWorldPrim3DSprite(quad_a, quad_b, center, width, height, 0) != 0) {
-            sprite.SetAlphaBlend(1);
+            sprite.SetAlphaBlend(MG_ALPHA_BLEND_NORMAL);
             sprite.TextureCrd(draw_u, tex_v);
             sprite.Vertex4(quad_a);
             sprite.TextureCrd(draw_u + tex_w, tex_v + tex_h);
@@ -1279,9 +1278,11 @@ void CPullItem::Draw(mgCTexture *texture) {
         sprite.End();
     }
 }
+
 static inline CMonsterBox *MonsterBox() {
     return &DngUserData->monster_box;
 }
+
 void CPullItem::Step() {
     CCharacter2  *player;
     sceVu0FVECTOR collect_pos;
@@ -1432,7 +1433,7 @@ void CPullItem::Step() {
         }
         if (type == PULL_ITEM_BADGE) {
             CMonsterBox *box = MonsterBox();
-            char **badge_ptr = mons_attr_list[LanguageCode];
+            char       **badge_ptr = mons_attr_list[LanguageCode];
             badge_ptr += item_no;
             char *&badge_name = *badge_ptr;
             if (box->IsChange(item_no) != 0) {
@@ -1559,6 +1560,7 @@ void CPullItem::Step() {
         afterWire[wire_index].SetPos(pos);
     }
 }
+
 void CPullItem::IsGet(float *player_pos) {
     if (state == PULL_ITEM_STATE_FREE || can_get == 0 || get_delay > 0) {
         return;

@@ -23,6 +23,7 @@ enum EzBgmCommand {
     EZBGM_OPEN_FROM_PACK  = 0x80F0, /**< Opens a stream file held in a file pack; the argument is the address of a 64-byte block holding the names. */
     EZBGM_UNK_8A00        = 0x8A00, /**< Takes the address of a 64-byte block as its argument. */
 };
+
 // clang-format on
 
 /**

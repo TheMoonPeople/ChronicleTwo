@@ -11,11 +11,11 @@
 #include "mglib.hpp"
 
 extern "C" {
-extern int                                             old_vsync__2;
-extern int                                             TheadID; /**< Identifier of the controller thread. */
-extern u8                                              pad_dma_buf[0x400];
-extern u8 /**< First controller port's DMA buffer. */  pad_dma_buf2[0x400];
-extern u8 /**< Second controller port's DMA buffer. */ ThreadStack[0x400]; /**< Stack of the controller thread. */
+int old_vsync__2;
+int TheadID;
+u8  pad_dma_buf[0x400];
+u8  pad_dma_buf2[0x400];
+u8  ThreadStack[0x400];
 }
 extern const char at_248[];
 
@@ -257,17 +257,17 @@ static int read_pad(PAD_STATUS *status, int port, int slot) {
 
     if (valid == 0) {
         status->button = 0;
-        status->left_y = 0x80;
-        status->left_x = 0x80;
-        status->right_y = 0x80;
-        status->right_x = 0x80;
+        status->left_y = PAD_ANALOG_CENTER;
+        status->left_x = PAD_ANALOG_CENTER;
+        status->right_y = PAD_ANALOG_CENTER;
+        status->right_x = PAD_ANALOG_CENTER;
     }
 
     if (*pad_mode == PAD_TERMINAL_DIGITAL) {
-        status->left_y = 0x80;
-        status->left_x = 0x80;
-        status->right_y = 0x80;
-        status->right_x = 0x80;
+        status->left_y = PAD_ANALOG_CENTER;
+        status->left_x = PAD_ANALOG_CENTER;
+        status->right_y = PAD_ANALOG_CENTER;
+        status->right_x = PAD_ANALOG_CENTER;
     }
 
     return valid;
@@ -391,15 +391,15 @@ void CGamePad::UpDate() {
 
     if (key_lock2) {
         pad[1].button = 0;
-        pad[1].right_x = 0x80;
-        pad[1].right_y = 0x80;
-        pad[1].left_x = 0x80;
-        pad[1].left_y = 0x80;
+        pad[1].right_x = PAD_ANALOG_CENTER;
+        pad[1].right_y = PAD_ANALOG_CENTER;
+        pad[1].left_x = PAD_ANALOG_CENTER;
+        pad[1].left_y = PAD_ANALOG_CENTER;
         previous_pad[1].button = 0;
-        previous_pad[1].right_x = 0x80;
-        previous_pad[1].right_y = 0x80;
-        previous_pad[1].left_x = 0x80;
-        previous_pad[1].left_y = 0x80;
+        previous_pad[1].right_x = PAD_ANALOG_CENTER;
+        previous_pad[1].right_y = PAD_ANALOG_CENTER;
+        previous_pad[1].left_x = PAD_ANALOG_CENTER;
+        previous_pad[1].left_y = PAD_ANALOG_CENTER;
     }
 
     cnt = !cnt;
@@ -446,7 +446,7 @@ void CGamePad::Step(int elapsed) {
  *
  */
 static int AxisCalibration(int axis) {
-    int calibrated = axis - 0x80;
+    int calibrated = axis - PAD_ANALOG_CENTER;
 
     if (calibrated < 50 && calibrated > -50) {
         return 0;
@@ -828,11 +828,6 @@ INCLUDE_BSS(rpad_256, 0x4);
 INCLUDE_BSS(init_257, 0x4);
 INCLUDE_BSS(cnt_374, 0x4);
 INCLUDE_BSS(init_375, 0x4);
-INCLUDE_BSS(TheadID, 0x4);
 INCLUDE_BSS(GamePad, 0x4);
-INCLUDE_BSS(old_vsync__2, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(pad_dma_buf, 0x400);
-INCLUDE_BSS(pad_dma_buf2, 0x400);
-INCLUDE_BSS(ThreadStack, 0x400);

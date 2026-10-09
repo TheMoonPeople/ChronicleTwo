@@ -28,6 +28,7 @@ enum TakePhotoState {
     TAKE_PHOTO_AFTERSHOT = 4, /**< The shutter animation plays before aiming resumes. */
     TAKE_PHOTO_OPEN_MENU = 6, /**< Raises the open-menu request and returns to aiming. */
 };
+
 // clang-format on
 
 /**
@@ -43,6 +44,7 @@ enum PhotoMessage {
     PHOTO_MES_ZOOM     = 3, /**< Prompt to zoom or go back. */
     PHOTO_MES_NUM      = 4, /**< Number of messages per language. */
 };
+
 // clang-format on
 
 /**

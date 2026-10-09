@@ -564,8 +564,8 @@ STATIC_ASSERT(sizeof(CTreasureBox) == 0x70);
  */
 class CTreasureBoxManager {
 public:
-    s32          tex_block; /**< Texture block of the box model. */
-    CTreasureBox box[TREASURE_BOX_MAX];   /**< Box slots. */
+    s32          tex_block;             /**< Texture block of the box model. */
+    CTreasureBox box[TREASURE_BOX_MAX]; /**< Box slots. */
     s32          unk_A90;
     CCharacter2 *model;     /**< Box model. */
     CColFrame   *col_frame; /**< Collision model of a box ("tbox_a.mds"). */

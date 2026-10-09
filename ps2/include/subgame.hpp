@@ -22,7 +22,7 @@ enum SUBGAME_TYPE {
     SUBGAME_FISHING = 1, /**< Fishing. */
     SUBGAME_GYORACE = 2, /**< The fish race. */
     SUBGAME_BUGGY = 3,   /**< The buggy game. */
-    SUBGAME_UNUSED = 4,   /**< Accepted sub game with no handlers, which ends on its first frame. */
+    SUBGAME_UNUSED = 4,  /**< Accepted sub game with no handlers, which ends on its first frame. */
     SUBGAME_MAX = 5,
 };
 

@@ -21,6 +21,7 @@ enum NpcModelPathType {
     NPC_MODEL_PATH_EVENT_TRAIN = 2, /**< Event model, "event/train/t<model>.chr". */
     NPC_MODEL_PATH_MENU        = 3, /**< Menu model, "menu/npc/t<model>.chr". */
 };
+
 // clang-format on
 
 /**

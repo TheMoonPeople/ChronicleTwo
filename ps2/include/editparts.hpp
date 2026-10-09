@@ -275,8 +275,8 @@ public:
     s32             max_material_num; /**< Largest number of materials any piece of the part recolours. */
     s32             unk_31c;
     s32             allocation_address; /**< Address of the heap allocation that owns this part. */
-    CEditPartsInfo *info;  /**< Definition of the part, or NULL. */
-    CEditHouse     *house; /**< House of villagers the part has, or NULL. */
+    CEditPartsInfo *info;               /**< Definition of the part, or NULL. */
+    CEditHouse     *house;              /**< House of villagers the part has, or NULL. */
     s32             unk_32c;
 
     /**

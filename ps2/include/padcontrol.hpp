@@ -47,6 +47,7 @@ enum PadCtrlButton {
     PAD_BTN_ACTION_HELD    = 0x38,
     PAD_BTN_EDIT_SWITCH    = 0x6C,
 };
+
 // clang-format on
 
 /**
@@ -63,6 +64,7 @@ enum PadCtrlAxis {
     PAD_CTRL_AXIS_RX   = 3, /**< Right stick horizontal position. */
     PAD_CTRL_AXIS_RY   = 4, /**< Right stick vertical position. */
 };
+
 // clang-format on
 
 /**

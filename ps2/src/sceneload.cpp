@@ -193,7 +193,6 @@ void SCN_LOADMAP_INFO2::Initialize() {
     memset(this, 0, sizeof(*this));
 }
 
-
 #ifdef NONMATCHING
 int CScene::LoadChara(int index, u_int *pack, char *name, mgCMemory *model_stack, mgCMemory *motion_stack, mgCMemory *image_stack, int image_block, int no_outline) {
     u_int       *files[1];
@@ -322,6 +321,7 @@ int CScene::LoadMapFromMemory(int map_no, SCN_LOADMAP_INFO2 *info) {
 
     return map_no;
 }
+
 int CScene::LoadMapFromMemory(int map_no, int step, SCN_LOADMAP_INFO2 *info) {
     CMap                        *map;
     mgCMemory                   *stack = info->stack;
@@ -359,7 +359,7 @@ int CScene::LoadMapFromMemory(int map_no, int step, SCN_LOADMAP_INFO2 *info) {
         return SCN_LOADMAP_STEP_DATA;
     }
     if (step == SCN_LOADMAP_STEP_DATA) {
-        CMap *map;
+        CMap                        *map;
         SCN_LOADMAP_INFO2::MapFiles *files;
         int                          add_block_num;
         *(volatile u_int *) timer0_count;
@@ -396,7 +396,7 @@ int CScene::LoadMapFromMemory(int map_no, int step, SCN_LOADMAP_INFO2 *info) {
         if (map->map_info.sky_info != 0 && files->sky_data != NULL && info->sky_tex_block > 0) {
             CMapSky *sky;
             DeleteSky(0);
-            if ((sky = (CMapSky *)operator new(sizeof(CMapSky), stack->Alloc(0x13))) != NULL) {
+            if ((sky = (CMapSky *) operator new(sizeof(CMapSky), stack->Alloc(0x13))) != NULL) {
                 sky->Initialize();
             }
             if (sky != NULL) {
@@ -422,7 +422,7 @@ int CScene::LoadMapFromMemory(int map_no, int step, SCN_LOADMAP_INFO2 *info) {
         return SCN_LOADMAP_STEP_CFG;
     }
     if (step == SCN_LOADMAP_STEP_CFG) {
-        CMap *map;
+        CMap                        *map;
         CSceneMap                   *slot;
         SCN_LOADMAP_INFO2::MapFiles *files;
         map = GetMap(map_no);
@@ -442,13 +442,16 @@ int CScene::LoadMapFromMemory(int map_no, int step, SCN_LOADMAP_INFO2 *info) {
     }
     return -1;
 }
+
 template <>
 void mgCObjectStack<CList<EMAP_MESSAGE> >::Initialize() {
     unk_8 = 0;
 }
+
 CMap::CMap() {
     Initialize();
 }
+
 int CScene::LoadMapBGStep(SCN_LOADMAP_INFO2 *info) {
     int step;
     int result;

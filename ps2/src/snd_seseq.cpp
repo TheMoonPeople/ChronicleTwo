@@ -73,6 +73,7 @@ void sndCSeSeqData::Initialize() {
     event_num = 0;
     event = NULL;
 }
+
 void sndCSeSeqData::LoadSMF(char *smf, int size, mgCMemory *memory) {
     s16            format;
     s16            track_count;
@@ -95,7 +96,7 @@ void sndCSeSeqData::LoadSMF(char *smf, int size, mgCMemory *memory) {
         return;
     }
     BigToLittle(&header_size, smf + 4, 4);
-    cursor = (char *)(header_size + (int)smf + 8);
+    cursor = (char *) (header_size + (int) smf + 8);
     BigToLittle(&format, smf + 8, 2);
     if (format != 0) {
         return;
@@ -108,7 +109,7 @@ void sndCSeSeqData::LoadSMF(char *smf, int size, mgCMemory *memory) {
     BigToLittle(&track_size, cursor + 4, 4);
     cursor += 8;
     track_start = cursor;
-    event = (sndSeSeqEvent *)memory->stAllocTest(1);
+    event = (sndSeSeqEvent *) memory->stAllocTest(1);
     output = event;
     if (output == NULL) {
         return;
@@ -117,7 +118,7 @@ void sndCSeSeqData::LoadSMF(char *smf, int size, mgCMemory *memory) {
     previous_status = -1;
     do {
         cursor = GetDeltaTime(cursor, &delta);
-        status = (u8)*cursor++;
+        status = (u8) *cursor++;
         if ((status & 0x80) == 0) {
             status = previous_status;
             cursor--;
@@ -126,22 +127,22 @@ void sndCSeSeqData::LoadSMF(char *smf, int size, mgCMemory *memory) {
             if (*cursor == SND_MIDI_META_END_OF_TRACK) {
                 break;
             }
-            meta_size = (u8)cursor[1];
+            meta_size = (u8) cursor[1];
             cursor += 2;
             cursor += meta_size;
         } else {
             data_size = 0;
             switch (status & 0xF0) {
-            case SND_MIDI_NOTE_ON:
-            case SND_MIDI_NOTE_OFF:
-            case SND_MIDI_CTRL_CHG:
-            case SND_MIDI_PITCH_BEND:
-                data_size = 2;
-                break;
-            case SND_MIDI_PROG_CHG:
-            case SND_MIDI_CH_PRESSURE:
-                data_size = 1;
-                break;
+                case SND_MIDI_NOTE_ON:
+                case SND_MIDI_NOTE_OFF:
+                case SND_MIDI_CTRL_CHG:
+                case SND_MIDI_PITCH_BEND:
+                    data_size = 2;
+                    break;
+                case SND_MIDI_PROG_CHG:
+                case SND_MIDI_CH_PRESSURE:
+                    data_size = 1;
+                    break;
             }
             if (data_size < 0) {
                 printf("Unknown Message!! %x\n", status);
@@ -468,21 +469,22 @@ int sndTrack::NoteOff(int key, int velocity) {
     note->active = 0;
     return 1;
 }
+
 int sndTrack::CtrlChg(int ctrl, int value) {
     int result = 1;
     switch (ctrl) {
-    case SND_MIDI_CTRL_VOLUME:
-        vol = value;
-        break;
-    case SND_MIDI_CTRL_PAN:
-        pan = value;
-        break;
-    case SND_MIDI_CTRL_EXPRESSION:
-        expression = value;
-        break;
-    default:
-        result = 1;
-        break;
+        case SND_MIDI_CTRL_VOLUME:
+            vol = value;
+            break;
+        case SND_MIDI_CTRL_PAN:
+            pan = value;
+            break;
+        case SND_MIDI_CTRL_EXPRESSION:
+            expression = value;
+            break;
+        default:
+            result = 1;
+            break;
     }
     return result;
 }

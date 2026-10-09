@@ -105,7 +105,7 @@ void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapte
 
     MenuChapterStack.Alloc(blocks);
     sndInitPort(8);
-    MenuChapterSnd_ID = sndLoadSound(8, sound_buffer, &sound_memory);
+    MenuChapterSnd_ID = sndLoadSound((int) SND_PORT_MENU, sound_buffer, &sound_memory);
     strcpy(voice_path, chap_voice_851[chapter]);
     CSnd.StreamOpenFast(1, voice_path);
 

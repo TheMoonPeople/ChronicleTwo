@@ -43,14 +43,14 @@
 
 extern INIT_LOOP_ARG NextInitArg;
 extern INIT_LOOP_ARG PrevInitArg;
-extern int           NextLoopNo;
-extern int           PrevLoopNo;
-extern int           CaptureScreen;
-extern int           PauseSel;
-extern int           PauseMenuMode;
-extern int           exit_start;
-extern float         BlackFade;
-extern float         BlackFade2;
+int                  NextLoopNo;
+int                  PrevLoopNo;
+int                  CaptureScreen;
+int                  PauseSel;
+int                  PauseMenuMode;
+int                  exit_start;
+float                BlackFade;
+float                BlackFade2;
 extern CSaveData     SaveData;
 extern ClsMes        PauseMes;
 extern mgCMemory     SystemSeStack;
@@ -66,44 +66,43 @@ extern void (*LoopExit[])();
 extern PAD_TABLE_ENTRY    pad_table[];
 extern ANALOG_TABLE_ENTRY analog_table[];
 
-
 extern CFont     Font;
 extern mgCMemory MainBuffer;
-extern int       menu_mode;
+int              menu_mode;
 void             InitEventSelect();
 
 extern int SelectArg[32];
 
-extern CSaveData    *ActiveSaveData;
-extern int           CaptureMode;
-extern int           LoopNo;
-extern int           PlayTimeCountFlag;
-extern CSubGameData *SubGameSaveData;
-extern int           event_view;
-extern int           future_sel;
-extern int           hdd_sel;
+CSaveData           *ActiveSaveData;
+int                  CaptureMode;
+int                  LoopNo;
+int                  PlayTimeCountFlag;
+CSubGameData        *SubGameSaveData;
+int                  event_view;
+int                  future_sel;
+int                  hdd_sel;
 extern CScene        MainScene;
 extern INIT_LOOP_ARG InitArg;
 extern mgCMemory     InfoStack;
 
-extern mgCMemory   MenuBuffer;
-extern mgCMemory   buf0_1224;
-extern mgCMemory   buf1_1227;
-extern mgCMemory   dbuf0_1230;
-extern mgCMemory   dbuf1_1233;
-extern s8          init_1225;
-extern s8          init_1228;
-extern s8          init_1231;
-extern s8          init_1234;
-extern mgCTexture *FontTex[1];
-extern TM2_head   *FontDataAdr[1];
-extern char        at_1654[];
-extern char        at_1655[];
-extern char        at_1656[];
-extern u8          font_buff[];
-extern char        at_1657[];
-extern char        at_1296[];
-extern char        at_1856[];
+extern mgCMemory MenuBuffer;
+extern mgCMemory buf0_1224;
+extern mgCMemory buf1_1227;
+extern mgCMemory dbuf0_1230;
+extern mgCMemory dbuf1_1233;
+extern s8        init_1225;
+extern s8        init_1228;
+extern s8        init_1231;
+extern s8        init_1234;
+mgCTexture      *FontTex[1];
+TM2_head        *FontDataAdr[1];
+extern char      at_1654[];
+extern char      at_1655[];
+extern char      at_1656[];
+extern u8        font_buff[];
+extern char      at_1657[];
+extern char      at_1296[];
+extern char      at_1856[];
 
 extern SPI_TAG_PARAM tag__3[];
 extern char          at_2082[];
@@ -620,7 +619,7 @@ void MenuInit(INIT_LOOP_ARG arg) {
     read_buffer = main_stack->stAlloc64(0x186A0);
     mgSetPacketBuffer(&buf0_1224, &buf1_1227);
     mgSetDataBuffer(&dbuf0_1230, &dbuf1_1233, 1);
-    GamePad__2.SetAutoRepeat(0xF000, 0xF, 4);
+    GamePad__2.SetAutoRepeat(PAD_UP | PAD_RIGHT | PAD_DOWN | PAD_LEFT, 0xF, 4);
     mgSetBackGround(0.0f, 0.0f, 0.0f, 0.0f);
     SetTextureTable(0x64, 0x14, &MenuBuffer);
 
@@ -634,6 +633,7 @@ void MenuInit(INIT_LOOP_ARG arg) {
     mgTexManager.EnterIMGFile(GetFontTex2ImgPtr(), 1, NULL, NULL);
     LoadEventViewData(read_buffer, &MenuBuffer);
 }
+
 /**
  *
  * Runs the debug mode selection menu and its configuration screens.
@@ -641,15 +641,15 @@ void MenuInit(INIT_LOOP_ARG arg) {
  */
 static int MenuLoop() {
     mgCTextureManager *textures = &mgTexManager;
-    int map_result;
+    int                map_result;
 
-    textures->ReloadTexture(1, (sceVif1Packet *)NULL);
+    textures->ReloadTexture(1, (sceVif1Packet *) NULL);
     if (DebugFlag == 0) {
         menu_mode = DEBUG_MENU_EVENT_SELECT;
     }
     if (menu_mode == DEBUG_MENU_MAP_SELECT) {
         map_result = MapSelectLoop();
-        if (map_result == 2) {
+        if (map_result == (int) MAP_SELECT_DECIDE) {
             INIT_LOOP_ARG arg;
 
             arg.map_no = -1;
@@ -657,14 +657,14 @@ static int MenuLoop() {
             NextLoop(LOOP_EDIT, arg);
             return 1;
         }
-        if (map_result == 1) {
+        if (map_result == (int) MAP_SELECT_CANCEL) {
             menu_mode = DEBUG_MENU_TOP;
             return 0;
         }
         return 0;
     }
     if (menu_mode == DEBUG_MENU_EVENT_SELECT) {
-        textures->ReloadTexture(1, (sceVif1Packet *)NULL);
+        textures->ReloadTexture(1, (sceVif1Packet *) NULL);
         return EventSelect() != 0;
     }
     if (menu_mode == DEBUG_MENU_SAVE_DATA_EDIT) {
@@ -677,21 +677,19 @@ static int MenuLoop() {
         "game start ", "map        ", "dungeon    ", "title      ",
         "chrview    ", "texview    ", "mapview    ", "sound view ",
         "movie view ", "Language   ", "Item       ", "Save Data  ",
-        "Load cfg   ", "Convert Save Data ", "", NULL
-    };
+        "Load cfg   ", "Convert Save Data ", "", NULL};
     char *language[] = {
         "Japanese", "English", "French", "German",
-        "Italian", "Spanish", "Chinese", "Korean"
-    };
-    char *item_set[] = {"Presentation", "GameStart", "StartDebug", "WeaponOnly"};
-    int   item_set_no[] = {0, 1, 2, 6};
-    char  text[2048];
-    char  config_name[64];
-    int   row = 0;
+        "Italian", "Spanish", "Chinese", "Korean"};
+    char      *item_set[] = {"Presentation", "GameStart", "StartDebug", "WeaponOnly"};
+    int        item_set_no[] = {0, 1, 2, 6};
+    char       text[2048];
+    char       config_name[64];
+    int        row = 0;
     static int select = 0;
-    char *cursor[] = {" ", ">"};
-    int  *menu_arguments = SelectArg;
-    char *text_end;
+    char      *cursor[] = {" ", ">"};
+    int       *menu_arguments = SelectArg;
+    char      *text_end;
 
     if (GamePad__2.Down(PAD_DOWN)) {
         select++;
@@ -817,6 +815,7 @@ static int MenuLoop() {
     }
     return 0;
 }
+
 void MenuExit() {
     GamePad__2.AutoRepeatOff();
     mgCloseFont();
@@ -848,9 +847,8 @@ static int EventSelect() {
         "diorama map               :",
         "HDD                       :",
         "extra                     :",
-        ""
-    };
-    int           result;
+        ""};
+    int result;
 
     if (event_view != 0) {
         result = EventViewLoop();
@@ -885,15 +883,15 @@ static int EventSelect() {
         }
     }
 
-    char          display[1024];
-    char         *subgame_name[3] = { "Spheda", "GyoRace", "Fishing" };
-    int           row = 0;
-    char         *map_name;
-    static int    select = 0;
-    int           loop_no;
-    int           monica;
-    char         *text = display;
-    char         *cursor[2] = { "  ", ">>" };
+    char       display[1024];
+    char      *subgame_name[3] = {"Spheda", "GyoRace", "Fishing"};
+    int        row = 0;
+    char      *map_name;
+    static int select = 0;
+    int        loop_no;
+    int        monica;
+    char      *text = display;
+    char      *cursor[2] = {"  ", ">>"};
 
     if (GamePad__2.Down(PAD_DOWN)) {
         select++;
@@ -949,7 +947,9 @@ static int EventSelect() {
             break;
     }
 
-    text += sprintf(text, "\n\x83\x5F\x81\x5B\x83\x4E\x83\x4E\x83\x8D\x83\x6A\x83\x4E\x83\x8B\x83\x56\x83\x58\x83\x65\x83\x80\x92\xB2\x90\xAE" "ROM %s %s\n", "2003/07/29", "Ver0.334");
+    text += sprintf(text, "\n\x83\x5F\x81\x5B\x83\x4E\x83\x4E\x83\x8D\x83\x6A\x83\x4E\x83\x8B\x83\x56\x83\x58\x83\x65\x83\x80\x92\xB2\x90\xAE"
+                          "ROM %s %s\n",
+                    "2003/07/29", "Ver0.334");
     for (; menu[row][0] != '\0'; row++) {
         text += sprintf(text, "%s%s", cursor[row == select], menu[row]);
         switch (row) {
@@ -987,8 +987,8 @@ static int EventSelect() {
     }
     if (GamePad__2.Down(PAD_CIRCLE)) {
         INIT_LOOP_ARG arg;
-        char config_name[64] = "";
-        char config_path[64];
+        char          config_name[64] = "";
+        char          config_path[64];
 
         loop_no = LOOP_EDIT;
         monica = 0;
@@ -999,69 +999,67 @@ static int EventSelect() {
                 config_name[0] = '\0';
                 break;
             case 1:
-            case 2:
-                {
-                    switch (menu_sel[select]) {
-                        case 0:
-                            arg.floor_no = 1;
-                            loop_no = LOOP_DUNGEON;
-                            arg.map_no = 0;
-                            break;
-                        case 1:
-                            arg.map_no = 15;
-                            arg.event_no = 502;
-                            break;
-                        case 2:
-                            arg.map_no = 54;
-                            arg.event_no = 502;
-                            break;
-                        case 3:
-                            arg.map_no = 83;
-                            arg.event_no = 100;
-                            break;
-                        case 4:
-                            arg.map_no = 87;
-                            arg.event_no = 100;
-                            break;
-                        case 5:
-                            arg.map_no = 110;
-                            arg.event_no = 100;
-                            break;
-                        case 6:
-                            arg.map_no = 109;
-                            arg.event_no = 502;
-                            break;
-                    }
-                    if (menu_sel[select] >= 2) {
-                        monica = 1;
-                    }
-                    if (select == 1) {
-                        sprintf(config_name, "cap%d.cfg", menu_sel[select] + 1);
-                    } else {
-                        sprintf(config_name, "db_cap%d.cfg", menu_sel[select] + 1);
-                    }
-                    break;
+            case 2: {
+                switch (menu_sel[select]) {
+                    case 0:
+                        arg.floor_no = 1;
+                        loop_no = LOOP_DUNGEON;
+                        arg.map_no = 0;
+                        break;
+                    case 1:
+                        arg.map_no = 15;
+                        arg.event_no = 502;
+                        break;
+                    case 2:
+                        arg.map_no = 54;
+                        arg.event_no = 502;
+                        break;
+                    case 3:
+                        arg.map_no = 83;
+                        arg.event_no = 100;
+                        break;
+                    case 4:
+                        arg.map_no = 87;
+                        arg.event_no = 100;
+                        break;
+                    case 5:
+                        arg.map_no = 110;
+                        arg.event_no = 100;
+                        break;
+                    case 6:
+                        arg.map_no = 109;
+                        arg.event_no = 502;
+                        break;
                 }
-            case 3:
-                {
-                    int subgame = menu_sel[select];
-                    switch (subgame) {
-                        case 0:
-                            arg.floor_no = 1;
-                            arg.event_no = 4000;
-                            arg.map_no = 2;
-                            loop_no = LOOP_DUNGEON;
-                            break;
-                        case 1:
-                            arg.map_no = 95;
-                            break;
-                        case 2:
-                            arg.map_no = 65;
-                            break;
-                    }
-                    sprintf(config_name, "sg%d.cfg", subgame);
-                    break;
+                if (menu_sel[select] >= 2) {
+                    monica = 1;
                 }
+                if (select == 1) {
+                    sprintf(config_name, "cap%d.cfg", menu_sel[select] + 1);
+                } else {
+                    sprintf(config_name, "db_cap%d.cfg", menu_sel[select] + 1);
+                }
+                break;
+            }
+            case 3: {
+                int subgame = menu_sel[select];
+                switch (subgame) {
+                    case 0:
+                        arg.floor_no = 1;
+                        arg.event_no = 4000;
+                        arg.map_no = 2;
+                        loop_no = LOOP_DUNGEON;
+                        break;
+                    case 1:
+                        arg.map_no = 95;
+                        break;
+                    case 2:
+                        arg.map_no = 65;
+                        break;
+                }
+                sprintf(config_name, "sg%d.cfg", subgame);
+                break;
+            }
             case 4:
                 sprintf(config_name, "pb.cfg");
                 arg.map_no = 10;
@@ -1100,6 +1098,7 @@ static int EventSelect() {
     }
     return 0;
 }
+
 mgCTexture *GetFontTexture(int page) {
     if ((page < 0) || (page > 0)) {
         return 0;
@@ -1227,11 +1226,11 @@ int PauseMenu() {
         case PAUSE_MENU_SELECT:
             previous_select = PauseSel;
 
-            if (PadCtrl.Btn(9)) {
+            if (PadCtrl.Btn(PAD_BTN_RIGHT)) {
                 PauseSel = 1;
             }
 
-            if (PadCtrl.Btn(10)) {
+            if (PadCtrl.Btn(PAD_BTN_LEFT)) {
                 PauseSel = 0;
             }
 
@@ -1255,7 +1254,7 @@ int PauseMenu() {
                 sndSePlay(GetSystemSndID(), 0, 0);
             }
 
-            if (PadCtrl.Btn(0)) {
+            if (PadCtrl.Btn(PAD_BTN_CONFIRM)) {
                 if (PauseSel == 0) {
                     BlackFade = 0.0f;
                     PauseMenuMode = PAUSE_MENU_FADE_OUT;
@@ -1823,45 +1822,26 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1317__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mainloop", at_1474__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(read_buffer, 0x4);
-INCLUDE_BSS(SystemSND_ID, 0x4);
-INCLUDE_BSS(DebugFlag, 0x4);
-INCLUDE_BSS(DefStartEventNo, 0x4);
-INCLUDE_BSS(LanguageCode, 0x4);
-INCLUDE_BSS(OmakeFlag, 0x4);
-INCLUDE_BSS(MasterDebugCode, 0x4);
-INCLUDE_BSS(LoopNo, 0x4);
-INCLUDE_BSS(NextLoopNo, 0x4);
-INCLUDE_BSS(PrevLoopNo, 0x4);
-INCLUDE_BSS(CaptureMode, 0x4);
-INCLUDE_BSS(CaptureScreen, 0x4);
+u_long128 *read_buffer;
+u32        SystemSND_ID;
+int        DebugFlag;
+int        DefStartEventNo;
+int        LanguageCode;
+int        OmakeFlag;
+int        MasterDebugCode;
 INCLUDE_BSS(CSnd, 0x4);
-INCLUDE_BSS(ActiveSaveData, 0x4);
-INCLUDE_BSS(SubGameSaveData, 0x4);
-INCLUDE_BSS(PlayTimeCountFlag, 0x4);
 INCLUDE_BSS(pmeter_flag_1037, 0x4);
 INCLUDE_BSS(init_1038, 0x4);
 INCLUDE_BSS(pause_1108, 0x4);
 INCLUDE_BSS(init_1109, 0x4);
-INCLUDE_BSS(menu_mode, 0x4);
 INCLUDE_BSS(init_1225, 0x4);
 INCLUDE_BSS(init_1228, 0x4);
 INCLUDE_BSS(init_1231, 0x4);
 INCLUDE_BSS(init_1234, 0x4);
 INCLUDE_BSS(select_1312, 0x4);
 INCLUDE_BSS(init_1313, 0x4);
-INCLUDE_BSS(event_view, 0x4);
-INCLUDE_BSS(future_sel, 0x4);
-INCLUDE_BSS(hdd_sel, 0x4);
 INCLUDE_BSS(select_1469, 0x4);
 INCLUDE_BSS(init_1470, 0x4);
-INCLUDE_BSS(FontTex, 0x4);
-INCLUDE_BSS(FontDataAdr, 0x4);
-INCLUDE_BSS(BlackFade, 0x4);
-INCLUDE_BSS(BlackFade2, 0x4);
-INCLUDE_BSS(exit_start, 0x4);
-INCLUDE_BSS(PauseSel, 0x4);
-INCLUDE_BSS(PauseMenuMode, 0x4);
 
 // Uninitialised data (.bss)
 INCLUDE_BSS(GamePad__2, 0x480);

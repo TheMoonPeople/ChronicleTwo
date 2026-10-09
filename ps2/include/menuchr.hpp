@@ -1299,6 +1299,8 @@ int MonsterBookKey();
  */
 void MonsterBookDraw();
 
+#define MENU_LOAD_TARGET_SCENE 1
+
 /**
  *
  * State of the menus' background model loading.
@@ -1311,7 +1313,7 @@ struct MENU_LOAD_INFO {
     signed char chara_no; /**< Character selected for model loading. */
     signed char request_phase; /**< Requested phase of character model loading. */
     signed char load_phase; /**< Current phase of character model loading. */
-    signed char unk_6[2];
+    signed char target_flags[2];
 };
 
 STATIC_ASSERT(sizeof(MENU_LOAD_INFO) == 8);

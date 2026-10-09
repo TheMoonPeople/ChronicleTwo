@@ -529,7 +529,7 @@ void AnalyzeHeim(CEditData *data, CEditMap *map) {
         target[i] = -1;
     }
 
-    int bit_a = GetSaveData()->GetBitFlag(0x208);
+    int bit_a = GetSaveData()->GetBitFlag((int) SAVE_FLAG_EDIT_BLOCKED);
     int bit_b = GetSaveData()->GetBitFlag(0x218);
     int placed = 0;
     int house_num = GetHouseParts(map, house_nos, parts_list_max);
@@ -631,6 +631,7 @@ void AnalyzeHeim(CEditData *data, CEditMap *map) {
     target[12] = 6;
     data->Analize(3, condition, target);
 }
+
 void AnalyzeMoonFlower(CEditData *data, CEditMap *map) {
     int   condition[analyze_slots];
     int   target[analyze_slots];
@@ -776,6 +777,7 @@ void AnalyzeMoonFlower(CEditData *data, CEditMap *map) {
     condition[11] = map->GetePlacePartsAtInfoID(0x44, parts_nos, parts_list_max) >= 2;
     data->Analize(4, condition, target);
 }
+
 int CheckLiveChara(int map_no, CEditMap *map, int no, int chara) {
     int         parts_nos[parts_list_max];
     float       position[4];

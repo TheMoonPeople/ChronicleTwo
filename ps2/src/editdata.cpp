@@ -120,36 +120,37 @@ void CEditData::InitPlaceData() {
         grid[i] = 0;
     }
 }
+
 static inline int EditHouseIndex(CEditHouse *base, CEditHouse *target) {
     return target - base;
 }
 
 void CEditMap::SaveData(CEditData *data) {
     EditDataParts *saved;
-    int part_no;
-    int i;
-    int savedCount;
-    CEditParts *part;
-    short remap[kEditPartsCount];
-    u8 *out;
-    EditDataGrid *header;
-    int logCount;
-    float local[4];
-    float rot[4];
-    short gridY;
-    CEditGrid *river;
-    short gridZ;
-    int c;
-    int unused;
-    int x;
-    float pos[4];
-    float color[4];
-    int value;
-    float gridPos[4];
-    int z;
-    int unnamed;
-    int k;
-    EditPlaceLog *log;
+    int            part_no;
+    int            i;
+    int            savedCount;
+    CEditParts    *part;
+    short          remap[kEditPartsCount];
+    u8            *out;
+    EditDataGrid  *header;
+    int            logCount;
+    float          local[4];
+    float          rot[4];
+    short          gridY;
+    CEditGrid     *river;
+    short          gridZ;
+    int            c;
+    int            unused;
+    int            x;
+    float          pos[4];
+    float          color[4];
+    int            value;
+    float          gridPos[4];
+    int            z;
+    int            unnamed;
+    int            k;
+    EditPlaceLog  *log;
     if (data == NULL) {
         return;
     }
@@ -229,7 +230,7 @@ void CEditMap::SaveData(CEditData *data) {
     for (k = 0; k < grid_max; k++) {
         river = grid[k];
         if (river != NULL) {
-            header = (EditDataGrid *)out;
+            header = (EditDataGrid *) out;
             header->num_x = river->num_x;
             header->num_z = river->num_z;
             GetEditPos(gridPos, river->origin);
@@ -247,7 +248,7 @@ void CEditMap::SaveData(CEditData *data) {
                     out++;
                 }
             }
-            if ((int)out & 1) {
+            if ((int) out & 1) {
                 out++;
             }
         }
@@ -259,30 +260,31 @@ void CEditMap::SaveData(CEditData *data) {
         }
     }
 }
+
 void CEditMap::LoadData(CEditData *data) {
-    u8 *in;
-    int m;
-    EditDataParts *saved;
-    int no;
-    int remap[kEditPartsCount];
-    short *gridPos;
-    float placePos[4];
-    int changed;
-    float placeRot[4];
-    int i;
-    int j;
-    CEditParts *lower;
-    int k;
-    CEditParts *part;
-    int x;
-    int logCount;
-    float color[4];
+    u8             *in;
+    int             m;
+    EditDataParts  *saved;
+    int             no;
+    int             remap[kEditPartsCount];
+    short          *gridPos;
+    float           placePos[4];
+    int             changed;
+    float           placeRot[4];
+    int             i;
+    int             j;
+    CEditParts     *lower;
+    int             k;
+    CEditParts     *part;
+    int             x;
+    int             logCount;
+    float           color[4];
     CEditPartsInfo *info;
-    EditPlaceLog *log;
-    CEditParts *placed;
-    int unused;
-    CEditGrid *river;
-    int unnamed;
+    EditPlaceLog   *log;
+    CEditParts     *placed;
+    int             unused;
+    CEditGrid      *river;
+    int             unnamed;
     logCount = 0;
     saved = data->parts;
     log = data->place_log;
@@ -309,9 +311,9 @@ void CEditMap::LoadData(CEditData *data) {
                     if (no >= 0) {
                         remap[index] = no;
                         if (saved->state != 0 && saved->state != 0) {
-                            placePos[0] = (float)saved->pos[0];
-                            placePos[1] = (float)saved->pos[1];
-                            placePos[2] = (float)saved->pos[2];
+                            placePos[0] = (float) saved->pos[0];
+                            placePos[1] = (float) saved->pos[1];
+                            placePos[2] = (float) saved->pos[2];
                             placePos[3] = 1.0f;
                             placeRot[0] = placeRot[2] = 0.0f;
                             placeRot[1] = GetEditAngle(saved->angle);
@@ -338,9 +340,9 @@ void CEditMap::LoadData(CEditData *data) {
                                     for (i = 0; i < EDIT_DATA_COLOR_MAX; i++) {
                                         if (saved->color[i][0] > 0 && saved->color[i][1] > 0 &&
                                             saved->color[i][2] > 0) {
-                                            color[0] = (float)saved->color[i][0] / 128.0f;
-                                            color[1] = (float)saved->color[i][1] / 128.0f;
-                                            color[2] = (float)saved->color[i][2] / 128.0f;
+                                            color[0] = (float) saved->color[i][0] / 128.0f;
+                                            color[1] = (float) saved->color[i][1] / 128.0f;
+                                            color[2] = (float) saved->color[i][2] / 128.0f;
                                             color[3] = 128.0f;
                                             placed->SetColor(i, color);
                                         }
@@ -394,7 +396,7 @@ void CEditMap::LoadData(CEditData *data) {
             if (river->num_z != *in++) {
                 break;
             }
-            gridPos = (short *)in;
+            gridPos = (short *) in;
             printf(at_917__3, gridPos[0], gridPos[1], gridPos[2]);
             in += sizeof(EditDataGrid) - 2;
             for (int x = 0; x < river->num_x; ++x) {
@@ -405,12 +407,13 @@ void CEditMap::LoadData(CEditData *data) {
                     in++;
                 }
             }
-            if ((int)in & 1) {
+            if ((int) in & 1) {
                 in++;
             }
         }
     }
 }
+
 /**
  *
  * Returns the culture point value of a placed edit part.
@@ -423,8 +426,9 @@ int GetCulturePoint(CEditParts *parts, int) {
 
     return parts->info->cpoint[1];
 }
+
 int CEditMap::CultureAnalyzeParts(int no, int cpoint_no) {
-    int related[0x200];
+    int         related[0x200];
     CEditParts *parts = GetePlaceParts(no);
 
     if (parts == NULL || parts->info == NULL) {
@@ -435,35 +439,36 @@ int CEditMap::CultureAnalyzeParts(int no, int cpoint_no) {
         return 0;
     }
     switch (parts->info->cpoint[0]) {
-    case 6:
-        return GetCulturePoint(parts, cpoint_no);
-    default:
-        return 0;
-    case 1: {
-        int total = GetCulturePoint(parts, cpoint_no);
-        int count = GetTerritoryParts(no, related, 0x200);
-        for (int i = 0; i < count; i++) {
-            CEditParts *other = GetePlaceParts(related[i]);
-            if (other != NULL && other->info != NULL && other->info->cpoint[0] == 2) {
-                total += GetCulturePoint(other, cpoint_no);
-            }
-        }
-        count = GetChildParts(no, related, 0x200);
-        for (int i = 0; i < count; i++) {
-            CEditParts *other = GetePlaceParts(related[i]);
-            if (other != NULL && other->info != NULL) {
-                switch (other->info->cpoint[0]) {
-                case 3:
-                case 4:
+        case 6:
+            return GetCulturePoint(parts, cpoint_no);
+        default:
+            return 0;
+        case 1: {
+            int total = GetCulturePoint(parts, cpoint_no);
+            int count = GetTerritoryParts(no, related, 0x200);
+            for (int i = 0; i < count; i++) {
+                CEditParts *other = GetePlaceParts(related[i]);
+                if (other != NULL && other->info != NULL && other->info->cpoint[0] == 2) {
                     total += GetCulturePoint(other, cpoint_no);
-                    break;
                 }
             }
+            count = GetChildParts(no, related, 0x200);
+            for (int i = 0; i < count; i++) {
+                CEditParts *other = GetePlaceParts(related[i]);
+                if (other != NULL && other->info != NULL) {
+                    switch (other->info->cpoint[0]) {
+                        case 3:
+                        case 4:
+                            total += GetCulturePoint(other, cpoint_no);
+                            break;
+                    }
+                }
+            }
+            return total;
         }
-        return total;
-    }
     }
 }
+
 int CEditMap::CultureAnalyze(int mode) {
     int total;
     int pass = 0;
@@ -480,11 +485,12 @@ int CEditMap::CultureAnalyze(int mode) {
 
     return total;
 }
+
 int CEditMap::GetOnOffParts(char *name, CMapParts **out_parts, CMapPiece **out_piece, int max) {
     char *piece_cursor;
-    int count;
-    char part_name[0x40];
-    char piece_name[0x40];
+    int   count;
+    char  part_name[0x40];
+    char  piece_name[0x40];
 
     if (name == NULL || max <= 0) {
         return 0;
@@ -540,6 +546,7 @@ int CEditMap::GetOnOffParts(char *name, CMapParts **out_parts, CMapPiece **out_p
     }
     return count;
 }
+
 void CEditMap::PartsOnOff(int map_no, CEditData *data) {
     CMapParts *parts[0x10];
     CMapPiece *pieces[0x10];
@@ -565,13 +572,14 @@ void CEditMap::PartsOnOff(int map_no, CEditData *data) {
         count = GetOnOffParts(request->off_parts, parts, pieces, 0x10);
         for (i = 0; i < count; i++) {
             if (pieces[i] != NULL) {
-                pieces[i]->Show((u8)((flag != 0) ^ 1));
+                pieces[i]->Show((u8) ((flag != 0) ^ 1));
             } else if (parts[i] != NULL) {
-                parts[i]->Show((u8)((flag != 0) ^ 1));
+                parts[i]->Show((u8) ((flag != 0) ^ 1));
             }
         }
     }
 }
+
 int CEditData::GetPartsNumID(int parts_id) {
     int            number = 0;
     EditDataParts *entry = parts;

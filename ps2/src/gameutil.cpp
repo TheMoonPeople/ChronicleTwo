@@ -758,7 +758,7 @@ void DeformMesh(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *frame_info
 }
 
 static void SetKeyFrame(Mot_List *list, FRAME_VECTOR_EX_DATA *keys, mgCMemory *memory) {
-    list->values = (float (*)[4]) memory->Alloc((list->key_count * 16 / 16) + 1);
+    list->values = (float(*)[4]) memory->Alloc((list->key_count * 16 / 16) + 1);
     list->key_frames = (u32 *) memory->Alloc((list->key_count * 4 >> 4) + 1);
     u32 i = 0;
 
@@ -851,10 +851,10 @@ void ChangeWeight(Mot_List *list, mgCMemory *memory, u8 *data, int frame_no, tag
     if (mesh != NULL) {
         src_vertices = (int *) mesh->vertex;
         src_uvs = (int *) mesh->normal;
-        frame_info[frame_no].base_vertices = (float (*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
-        frame_info[frame_no].base_normals = (float (*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
+        frame_info[frame_no].base_vertices = (float(*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
+        frame_info[frame_no].base_normals = (float(*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
         frame_info[frame_no].vertex_refs =
-            (int (*)[12]) memory->Alloc(((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
+            (int(*)[12]) memory->Alloc(((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
         frame_info[frame_no].vertex_count = mesh->vertex_num;
         frame_info[frame_no].normal_count = mesh->normal_num;
         memcpy(frame_info[frame_no].base_vertices, src_vertices, mesh->vertex_num * 16);
@@ -1048,10 +1048,10 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
                         src_vertices = (int *) mesh->vertex;
                         src_uvs = (int *) mesh->normal;
                         frame_info[channel->frame].base_vertices =
-                            (float (*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
+                            (float(*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
                         frame_info[channel->frame].base_normals =
-                            (float (*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
-                        frame_info[channel->frame].vertex_refs = (int (*)[12]) memory->Alloc(
+                            (float(*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
+                        frame_info[channel->frame].vertex_refs = (int(*)[12]) memory->Alloc(
                             ((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
                         frame_info[channel->frame].vertex_count = mesh->vertex_num;
                         frame_info[channel->frame].normal_count = mesh->normal_num;

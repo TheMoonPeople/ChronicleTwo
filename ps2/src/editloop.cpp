@@ -3,8 +3,12 @@
 #include <cstdio>
 #include <cstring>
 
+#define ACTION_CHARA_OUT_OF_LINE_CONSTRUCTOR
 #include "actionchara.hpp"
+#undef ACTION_CHARA_OUT_OF_LINE_CONSTRUCTOR
+#define CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT
 #include "cameracontrol.hpp"
+#undef CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT
 #include "character.hpp"
 #include "dataread.hpp"
 #include "dbg_font.hpp"
@@ -371,7 +375,6 @@ struct EditEffectSpriteState {
     void  *sprite_vtable;
 };
 
-
 #ifdef NONMATCHING
 void EditInit(INIT_LOOP_ARG arg) {
     mgCMemory           *main_stack;
@@ -659,7 +662,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     SetupMainUnit(read_buffer, &ControlCharaBuff, CharaBufs, 70, MainScene__2, GetUserData(), active_chara_no, 1);
     ActiveCharaNo = GetUserData()->active_chr_no;
     ControlCharaID = 0;
-    MainScene__2->SetActive(1, 0);
+    MainScene__2->SetActive(SCENE_DATA_CHARA, 0);
     MainScene__2->player_chara = ControlCharaID;
     NowLoadingBarStep();
 
@@ -776,10 +779,20 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditInit__F13INIT_LOOP_ARG);
  * @address 0x1ACEE0
  * @size 0x60
  */
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __as__15CameraCtrlParamFRC15CameraCtrlParam);
-#ifndef NONMATCHING
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __ct__12CActionCharaFv);
-#endif
+CameraCtrlParam &CameraCtrlParam::operator=(const CameraCtrlParam &source) {
+    min_dist = source.min_dist;
+    max_dist = source.max_dist;
+    near_height = source.near_height;
+    far_height = source.far_height;
+    height = source.height;
+    max_height = source.max_height;
+    min_height = source.min_height;
+    rest_max_height = source.rest_max_height;
+    rest_min_height = source.rest_min_height;
+    ground_space = source.ground_space;
+    no_check = source.no_check;
+    return *this;
+}
 void EditExit() {
     sndSeAllStop(1);
     MainScene__2->InitSeSrc();
@@ -813,7 +826,7 @@ int SubMapLoadStep() {
     if (MainScene__2->LoadMapBGStep(0) != 0) {
         if (SubMapLoadBG != 0) {
             SubMapLoadBG = 0;
-            MainScene__2->SetActive(2, 1);
+            MainScene__2->SetActive(SCENE_DATA_MAP, 1);
             MainScene__2->LoadSubVillager(GetSubMapNo(), 0x5E);
             MainScene__2->PreLoadVillagerEnd();
             char *name = GetMapName(now_load_map_no, 0);
@@ -1772,7 +1785,7 @@ int EditStep() {
         MainScene__2->event_run = 0;
     }
 
-    if (GamePad__2.Down2(0x80) != 0) {
+    if (GamePad__2.Down2(PAD_SQUARE) != 0) {
         InitEvent(MainScene__2);
         ReloadMapScript();
         MainScene__2->before_camera = MainScene__2->active_camera;
@@ -2219,7 +2232,7 @@ int BurnEditParts() {
     int                  i;
     int                  id;
 
-    if (GetSaveData()->GetBitFlag(0x208) != 0) {
+    if (GetSaveData()->GetBitFlag((int) SAVE_FLAG_EDIT_BLOCKED) != 0) {
         return 0;
     }
 
@@ -2470,7 +2483,7 @@ int EditMapJump(int map_no) {
         NowLoadingBarStep();
 
         if (loaded_sub != 0) {
-            MainScene__2->SetActive(2, 1);
+            MainScene__2->SetActive(SCENE_DATA_MAP, 1);
             MainScene__2->LoadSubVillager(GetSubMapNo(), 0x5E);
             EditMapInitEvent(sub_map_no, (CEditMap *) MainScene__2->GetMap(1));
         }
@@ -2620,7 +2633,7 @@ void EditDataSave() {
 
             if ((map != NULL) && (strcmp(map->Iam(), at_2747) == 0) && (map != NULL)) {
                 map->SaveData(edit_data);
-                GetSaveData()->GetBitFlag(0x208);
+                GetSaveData()->GetBitFlag((int) SAVE_FLAG_EDIT_BLOCKED);
                 edit_data->culture_point = map->CultureAnalyze(0);
                 edit_data->save_count += 1;
                 map->GroundBalance(0);

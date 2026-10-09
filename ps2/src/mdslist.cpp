@@ -23,14 +23,14 @@
 #include "scene.hpp"
 #include "scriptinterpreter.hpp"
 
-extern int           now_mds_num;
-extern int           max_mds_num;
-extern CMdsList     *pcpMdsList;
-extern CMdsInfo     *pcpMdsInfo;
-extern CMdsInfo     *pcpNowMdsInfo;
-extern mgCMemory    *pcpStack;
-extern u_int        *pcp_file;
-extern int           pcpAllScissor;
+int                  now_mds_num;
+int                  max_mds_num;
+CMdsList            *pcpMdsList;
+CMdsInfo            *pcpMdsInfo;
+CMdsInfo            *pcpNowMdsInfo;
+mgCMemory           *pcpStack;
+u_int               *pcp_file;
+int                  pcpAllScissor;
 extern SPI_TAG_PARAM pcp_tag[];
 CCharacter2         *CreateChara(u_int *pack, char *config, mgCMemory *memory);
 
@@ -210,11 +210,11 @@ void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
         for (; i < dest.material_num; i++) {
             from = (PieceMaterial *) ((u_char *) material + offset);
             to = (PieceMaterial *) ((u_char *) dest.material + offset);
-            offset += 0x20;
+            offset += sizeof(PieceMaterial);
             to->frame = from->frame;
             to->material_no = from->material_no;
             to->material = from->material;
-            to->unk_c = from->unk_c;
+            to->color_no = from->color_no;
 
             /**
              *
@@ -262,8 +262,8 @@ void CMapPiece::Initialize() {
     col_param = 0;
 
     for (; i < material_num; i++) {
-        memset((u_char *) material + offset, 0, 0x20);
-        offset += 0x20;
+        memset((u_char *) material + offset, 0, sizeof(PieceMaterial));
+        offset += sizeof(PieceMaterial);
     }
 
     time_end = 0;
@@ -743,7 +743,7 @@ int pcpMDS_END(SPI_STACK *stack, int argc) {
 
         mgCFrameAttr attr;
         attr.clip_enable = 1;
-        frame->SetAttrParam(attr, 1, 0x20);
+        frame->SetAttrParam(attr, 1, MG_FRAME_ATTR_CLIP);
     }
 
     pcpNowMdsInfo->frame = frame;
@@ -839,11 +839,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mdslist", __vt__8CMdsInfo__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mdslist", __vt__9CMapPiece__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(now_mds_num, 0x4);
-INCLUDE_BSS(max_mds_num, 0x4);
-INCLUDE_BSS(pcpMdsList, 0x4);
-INCLUDE_BSS(pcpMdsInfo, 0x4);
-INCLUDE_BSS(pcpNowMdsInfo, 0x4);
-INCLUDE_BSS(pcpStack, 0x4);
-INCLUDE_BSS(pcp_file, 0x4);
-INCLUDE_BSS(pcpAllScissor, 0x4);

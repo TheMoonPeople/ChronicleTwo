@@ -5,6 +5,7 @@
 
 #include "character.hpp"
 #include "collision.hpp"
+#include "dng_main.hpp"
 #include "effscript.hpp"
 #include "mainloop.hpp"
 #include "mapparts.hpp"
@@ -16,14 +17,13 @@
 #include "scene.hpp"
 #include "scenesnd.hpp"
 #include "sound.hpp"
-#include "dng_main.hpp"
 
-extern char  at_1196[];
-extern char  at_1323__2[];
-extern char  at_1324[];
-extern char  at_1325__2[];
-extern char  at_1326[];
-extern char  at_1438__4[];
+extern char at_1196[];
+extern char at_1323__2[];
+extern char at_1324[];
+extern char at_1325__2[];
+extern char at_1326[];
+extern char at_1438__4[];
 
 // Code (.text)
 void CalcReflectionVector(float *incoming, float *surface, float *reflected) {
@@ -272,26 +272,26 @@ int CBPot::SetObject2(int kind, CMapParts *map_parts) {
     this->parts = map_parts;
 
     if (kind == 0) {
-        type = 1;
+        type = (int) BPOT_TYPE_BOX;
     } else if (kind == 5) {
-        type = 3;
+        type = (int) BPOT_TYPE_ROCK1;
     } else if (kind > 0 && kind < 5) {
-        type = 2;
+        type = (int) BPOT_TYPE_ROCK0;
     } else if (kind == 6) {
-        type = 2;
+        type = (int) BPOT_TYPE_ROCK0;
     } else {
         return 0;
     }
 
-    if (type == 1) {
+    if (type == (int) BPOT_TYPE_BOX) {
         fragment_num = 12;
         prefix = at_1323__2;
         offset = box_offset;
-    } else if (type == 2) {
+    } else if (type == (int) BPOT_TYPE_ROCK0) {
         fragment_num = 10;
         prefix = at_1324;
         offset = iwa0_offset;
-    } else if (type == 3) {
+    } else if (type == (int) BPOT_TYPE_ROCK1) {
         fragment_num = 9;
         prefix = at_1324;
         offset = iwa1_offset;
@@ -339,7 +339,7 @@ void CBPot::Init() {
     this->frame = NULL;
     InitVector(position);
     timer = 0;
-    type = 0;
+    type = (int) BPOT_TYPE_NONE;
     fragment_num = 0;
 
     for (i = 0; i < BPOT_FRAGMENT_MAX; i++) {
@@ -484,11 +484,11 @@ void CPot::Bakuhatsu(float *position_, float *normal) {
 
         u32 se_handle = GetMainScene()->se_battle_id;
 
-        if (BTsubo2.type == 1) {
+        if (BTsubo2.type == (int) BPOT_TYPE_BOX) {
             sndSePlay(se_handle, 0x39, 0);
-        } else if (BTsubo2.type == 2) {
+        } else if (BTsubo2.type == (int) BPOT_TYPE_ROCK0) {
             sndSePlay(se_handle, 0x3A, 0);
-        } else if (BTsubo2.type == 3) {
+        } else if (BTsubo2.type == (int) BPOT_TYPE_ROCK1) {
             sndSePlay(se_handle, 0x3B, 0);
         }
 
@@ -501,30 +501,30 @@ int CPot::Step() {
     int result;
 
     switch (state) {
-        case 1:
+        case (int) POT_STATE_HOLD:
             HoldStep();
             break;
-        case 2:
+        case (int) POT_STATE_FLY:
             result = FlyStep();
 
-            if (result == 1) {
-                return 1;
+            if (result == (int) POT_STEP_BREAK) {
+                return (int) POT_STEP_BREAK;
             }
 
-            if (result == 2) {
-                return 2;
+            if (result == (int) POT_STEP_TIMEOUT) {
+                return (int) POT_STEP_TIMEOUT;
             }
         default:
             break;
     }
 
-    return 0;
+    return (int) POT_STEP_NONE;
 }
 
 void CPot::Throw() {
     if (parts != NULL) {
         float player_position[4];
-        state = 2;
+        state = (int) POT_STATE_FLY;
         fly_time = 0;
         position[0] = hold_pos[0];
         position[1] = hold_pos[1];
@@ -550,12 +550,12 @@ void CPot::Throw() {
 void CPot::Hold(CMapParts *map_parts) {
     Init(0);
     parts = map_parts;
-    state = 1;
+    state = (int) POT_STATE_HOLD;
     HoldStep();
 }
 
 void CPot::Init(int keep_velocity) {
-    state = 0;
+    state = (int) POT_STATE_NONE;
     parts = NULL;
     InitVector(position);
 

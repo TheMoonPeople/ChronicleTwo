@@ -29,6 +29,48 @@ enum MENU_SWAP_TYPE {
     MENU_SWAP_TYPE_ACTIVE_ESA = 10,
 };
 
+enum ITEM_MENU_VIEW {
+    ITEM_MENU_VIEW_MAX = 0,
+    ITEM_MENU_VIEW_MONICA = 1,
+    ITEM_MENU_VIEW_WEAPON = 2,
+    ITEM_MENU_VIEW_RIDEPOD = 3,
+    ITEM_MENU_VIEW_MONSTER = 4,
+    ITEM_MENU_VIEW_FISHING_ROD = 5,
+};
+
+enum ITEM_MENU_PANEL {
+    ITEM_MENU_PANEL_ACTIVE_ITEMS = 0,
+    ITEM_MENU_PANEL_EQUIPMENT = 1,
+    ITEM_MENU_PANEL_BAG = 2,
+    ITEM_MENU_PANEL_WEAPON = 4,
+    ITEM_MENU_PANEL_WEAPON_STATS = 5,
+    ITEM_MENU_PANEL_RIDEPOD_PARTS = 7,
+    ITEM_MENU_PANEL_FISHING_ROD = 9,
+    ITEM_MENU_PANEL_FISHING_ROD_STATS = 10,
+    ITEM_MENU_PANEL_FISHING_BAIT = 11,
+};
+
+enum ITEM_MENU_COMMAND {
+    ITEM_MENU_COMMAND_EQUIP = 2,
+    ITEM_MENU_COMMAND_REPAIR = 4,
+    ITEM_MENU_COMMAND_SET_ACTIVE_ITEM = 5,
+    ITEM_MENU_COMMAND_SPECTRUMIZE = 9,
+    ITEM_MENU_COMMAND_EQUIP_RIDEPOD_PART = 10,
+    ITEM_MENU_COMMAND_GIFT_BOX_CONTENTS = 13,
+    ITEM_MENU_COMMAND_PUT_IN_AQUARIUM = 14,
+    ITEM_MENU_COMMAND_USE_ON_MAX = 15,
+    ITEM_MENU_COMMAND_USE_ON_MONICA = 16,
+    ITEM_MENU_COMMAND_USE_ON_MONSTER = 18,
+    ITEM_MENU_COMMAND_USE_ON_PRIMARY_WEAPON = 19,
+    ITEM_MENU_COMMAND_USE_ON_SECONDARY_WEAPON = 20,
+    ITEM_MENU_COMMAND_VIEW_BUILD_UP = 23,
+    ITEM_MENU_COMMAND_RENAME = 26,
+    ITEM_MENU_COMMAND_ENABLE_RIDEPOD_VOICE = 34,
+    ITEM_MENU_COMMAND_DISABLE_RIDEPOD_VOICE = 35,
+    ITEM_MENU_COMMAND_BOIL_FISH = 42,
+    ITEM_MENU_COMMAND_VIEW_FISHING_ROD = 46,
+};
+
 class CActionChara;
 class CCharacter2;
 class CDC2Mes;
@@ -92,13 +134,27 @@ enum MENU_PUSH_BUTTON {
     MENU_PUSH_BUTTON_CANCEL   = 0x2,  /**< The button that cancels, which depends on the language. */
     MENU_PUSH_BUTTON_TRIANGLE = 0x4,  /**< The triangle button. */
     MENU_PUSH_BUTTON_SQUARE   = 0x8,  /**< The square button. */
-    MENU_PUSH_BUTTON_SELECT   = 0x10, /**< The select button. */
-    MENU_PUSH_BUTTON_START    = 0x20, /**< The start button. */
+    MENU_PUSH_BUTTON_START    = 0x10,
+    MENU_PUSH_BUTTON_SELECT   = 0x20,
     MENU_PUSH_BUTTON_R3       = 0x40, /**< The right stick button. */
     MENU_PUSH_BUTTON_L3       = 0x80, /**< The left stick button. */
 };
 
 // clang-format on
+
+enum MENU_CURSOR_LIMIT {
+    MENU_CURSOR_LIMIT_CLAMP = 0,
+    MENU_CURSOR_LIMIT_WRAP = 1,
+    MENU_CURSOR_LIMIT_EXIT = 2,
+    MENU_CURSOR_LIMIT_REJECT = 3,
+};
+
+enum MENU_CURSOR_RESULT {
+    MENU_CURSOR_UNCHANGED = 0,
+    MENU_CURSOR_MOVED = 1,
+    MENU_CURSOR_EXIT = 3,
+    MENU_CURSOR_BLOCKED = 4,
+};
 
 /**
  *
@@ -224,7 +280,7 @@ struct ITEMCMD_RET_PARA {
     s8             chara;   /**< Character the item is equipped on. */
     s16            result;  /**< Value the command returned, such as what using the item did. */
     s16            item_no; /**< Item number of the item the command acted on. */
-    s16            unk_8;
+    s16            no_equipped_rod;
     s16            num; /**< Number of items used by the returned command. */
     CGameDataUsed *item;  /**< Item the command acted on. */
     CGameDataUsed *item2; /**< Second item the command acted on. */
@@ -1071,7 +1127,7 @@ STATIC_ASSERT(sizeof(CMenuKeyFunc) == 0x160);
 class CMenuItemInfo : public CBaseMenuClass {
 public:
     s16                 view_mode; /**< Page that is shown: a character, the ridepod or a monster form. */
-    s16                 unk_112;
+    s16                 active_chara_view_mode;
     s16                 sub_view;     /**< Sub-page that is shown within the page. */
     s16                 view_chara;   /**< Character whose model is shown. */
     s16                 load_item_no; /**< Item list the menu loads models for. */
@@ -1692,7 +1748,7 @@ void MenuCheckLine(int *top_line, int cursor, int visible_rows);
  * @address 0x23D630
  * @size 0x180
  */
-int MenuKeySelectCheck(int step, int *cursor, int *scroll, int min, int max, int visible, int mode);
+int MenuKeySelectCheck(int step, int *cursor, int *scroll, int min, int max, int visible, int limit_mode);
 
 /**
  *

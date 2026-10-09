@@ -767,7 +767,7 @@ public:
      * @address 0x263490
      * @size 0x150
      */
-    void StartRaster(float target0, float target1, float target2, int frames);
+    void StartRaster(float target_amplitude, float target_speed, float target_pitch, int frames);
 
     /**
      *
@@ -777,7 +777,7 @@ public:
      * @address 0x2635E0
      * @size 0x150
      */
-    void StopRaster(float target0, float target1, float target2, int frames);
+    void StopRaster(float target_amplitude, float target_speed, float target_pitch, int frames);
 
     /**
      *
@@ -869,7 +869,7 @@ public:
      * @address 0x263E70
      * @size 0x10
      */
-    void StartRaster(float target0, float target1, float target2, int frames);
+    void StartRaster(float target_amplitude, float target_speed, float target_pitch, int frames);
 
     /**
      *
@@ -879,7 +879,7 @@ public:
      * @address 0x263E80
      * @size 0x10
      */
-    void StopRaster(float target0, float target1, float target2, int frames);
+    void StopRaster(float target_amplitude, float target_speed, float target_pitch, int frames);
 
     /**
      *

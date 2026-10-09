@@ -22,19 +22,54 @@ enum USED_ITEM_TYPE {
     USED_ITEM_TYPE_ITEM = 1,      /**< A usable or key item with an entry in the item table. */
     USED_ITEM_TYPE_ATTACH = 2,    /**< An attachment with an entry in the attachment table. */
     USED_ITEM_TYPE_WEAPON = 3,    /**< A weapon with an entry in the weapon table. */
-    USED_ITEM_TYPE_UNK_4 = 4,     /**< The family of item types 5 to 10. */
+    USED_ITEM_TYPE_COSTUME = 4,
     USED_ITEM_TYPE_ROBO_PART = 5, /**< A ridepod part with an entry in the ridepod part table. */
     USED_ITEM_TYPE_FISH = 6,      /**< A fish with an entry in the fish table. */
     USED_ITEM_TYPE_GIFT_BOX = 7,  /**< A gift box with an entry in the item table. */
     USED_ITEM_TYPE_BOILED = 8,    /**< A boiled item with an entry in the item table. */
 };
 
+enum WEAPON_STAT {
+    WEAPON_STAT_ATTACK = 0,
+    WEAPON_STAT_DURABILITY = 1,
+};
+
+enum WEAPON_SPECIAL_FLAG {
+    WEAPON_SPECIAL_POISON = 0x4,
+    WEAPON_SPECIAL_STEAL = 0x10,
+    WEAPON_SPECIAL_INCREASE_WEAR = 0x20,
+    WEAPON_SPECIAL_REDUCE_WEAR = 0x40,
+    WEAPON_SPECIAL_DRAIN_HP = 0x80,
+    WEAPON_SPECIAL_REGENERATE_HP = 0x100,
+    WEAPON_SPECIAL_HP_COST_BOOST = 0x200,
+    WEAPON_SPECIAL_CRITICAL = 0x400,
+};
+
+enum ITEM_ID {
+    ITEM_ID_SPECTOL = 0xB9,
+    ITEM_ID_MELEE_REPAIR = 0x126,
+    ITEM_ID_GUN_REPAIR = 0x12A,
+    ITEM_ID_FISHING_ROD = 0x12E,
+    ITEM_ID_LURE_ROD = 0x12F,
+    ITEM_ID_MAGIC_REPAIR = 0x160,
+    ITEM_ID_RIDEPOD_FUEL = 0x17D,
+};
+
 enum ITEM_DATA_TYPE {
-    ITEM_DATA_ROBO_CORE   = 0xB,
-    ITEM_DATA_ROBO_PART_C = 0xC,
-    ITEM_DATA_ROBO_PART_D = 0xD,
-    ITEM_DATA_ROBO_PART_E = 0xE,
-    ITEM_DATA_ROBO_WEAPON = 0xF,
+    ITEM_DATA_NONE = 0,
+    ITEM_DATA_MAX_MELEE = 1,
+    ITEM_DATA_MAX_GUN = 2,
+    ITEM_DATA_MONICA_MELEE = 3,
+    ITEM_DATA_MONICA_MAGIC = 4,
+    ITEM_DATA_ROBO_CORE = 11,
+    ITEM_DATA_ROBO_BODY = 12,
+    ITEM_DATA_ROBO_ARM = 13,
+    ITEM_DATA_ROBO_LEG = 14,
+    ITEM_DATA_ROBO_ENERGY_PACK = 15,
+    ITEM_DATA_GIFT_BOX = 28,
+    ITEM_DATA_AQUARIUM = 29,
+    ITEM_DATA_FISH = 30,
+    ITEM_DATA_BOILED = 35,
 };
 
 /**
@@ -55,14 +90,17 @@ enum ITEM_ATTRIBUTE {
  */
 // clang-format off
 enum ITEM_USE_FLAG {
+    ITEM_USE_FLAG_RESTORE_HP = 0x100,
+    ITEM_USE_FLAG_REPAIR = 0x400,
+    ITEM_USE_FLAG_FILL_ABS = 0x1000,
     ITEM_USE_FLAG_ADD_STATUS_UNK_8 = 0x4000,       /**< Adds CHARA_STATUS_UNK_8. */
     ITEM_USE_FLAG_CURE_STATUS_UNK_8 = 0x8000,      /**< Cures CHARA_STATUS_UNK_8. */
     ITEM_USE_FLAG_ADD_POISON = 0x10000,            /**< Adds poison. */
     ITEM_USE_FLAG_CURE_POISON = 0x20000,           /**< Cures poison. */
     ITEM_USE_FLAG_ADD_STATUS_UNK_4 = 0x40000,      /**< Adds CHARA_STATUS_UNK_4. */
     ITEM_USE_FLAG_CURE_STATUS_UNK_4 = 0x80000,     /**< Cures CHARA_STATUS_UNK_4. */
-    ITEM_USE_FLAG_ADD_STATUS_UNK_2 = 0x100000,     /**< Adds CHARA_STATUS_UNK_2. */
-    ITEM_USE_FLAG_CURE_STATUS_UNK_2 = 0x200000,    /**< Cures CHARA_STATUS_UNK_2. */
+    ITEM_USE_FLAG_ADD_SLOW = 0x100000,     /**< Adds CHARA_STATUS_SLOW. */
+    ITEM_USE_FLAG_CURE_SLOW = 0x200000,    /**< Cures CHARA_STATUS_SLOW. */
     ITEM_USE_FLAG_ADD_POWER = 0x400000,            /**< Adds the power status. */
     ITEM_USE_FLAG_CURE_ALL = 0x800000,             /**< Expands to the individual status cure effects when loaded. */
     ITEM_USE_FLAG_ADD_STATUS_UNK_20 = 0x02000000,  /**< Adds CHARA_STATUS_UNK_20. */
@@ -70,6 +108,7 @@ enum ITEM_USE_FLAG {
     ITEM_USE_FLAG_ADD_STATUS_UNK_40 = 0x08000000,  /**< Adds CHARA_STATUS_UNK_40. */
     ITEM_USE_FLAG_CURE_STATUS_UNK_40 = 0x10000000, /**< Cures CHARA_STATUS_UNK_40. */
 };
+
 // clang-format on
 
 /**
@@ -209,12 +248,12 @@ public:
     s16 energy; /**< Energy provided by the robot part. */
     s16 unk_4;
     s16 durability; /**< Durability of the robot part. */
-    s16 unk_8;
-    s16 unk_a;
-    s16 unk_c[8];
+    s16 attack;
+    s16 durable;
+    s16 attribute[8];
     s16 defence; /**< Defence provided by the robot part. */
-    s16 info_type_d; /**< Attack type of a part of item type 0xD. */
-    s16 info_type_e; /**< Attack type of a part of item type 0xE. */
+    s16 attack_type;
+    s16 move_type;
     u8  offset_no;   /**< Number of the joint and sound files of the part. */
     u8  unk_23;
 
@@ -596,7 +635,7 @@ u32 GetItemDataAttribute(int item_no);
  * @address 0x197340
  * @size 0xCC
  */
-int ConvertUsedItemType(int item_no);
+int ConvertUsedItemType(int item_type);
 
 /**
  *

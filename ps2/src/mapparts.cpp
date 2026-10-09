@@ -273,7 +273,7 @@ int CMapParts::GetDefColor(int id, float *out_color) {
         for (i = 0; i < material_count; i++) {
             material = piece->GetMaterial(i);
 
-            if (material != NULL && material->material != 0 && id == material->unk_c) {
+            if (material != NULL && material->material != 0 && id == material->color_no) {
                 sceVu0CopyVector(out_color, material->color);
                 return 1;
             }
@@ -302,7 +302,7 @@ void CMapParts::UpdateColor() {
                 for (j = 0; j < material_count; j++) {
                     material = piece->GetMaterial(j);
 
-                    if (material != NULL && material->material != 0 && id == material->unk_c) {
+                    if (material != NULL && material->material != 0 && id == material->color_no) {
                         sceVu0CopyVectorXYZ(material->color, color[id]);
                     }
                 }
@@ -648,9 +648,9 @@ int CMapParts::InsideScreen(COcclusion *occluders, int count) {
         return 0;
     }
 
-    GetLWMatrix((float (*)[4]) matrix);
+    GetLWMatrix((float(*)[4]) matrix);
 
-    if (mgInsideScreen((mgVu0FBOX *) bound_box.max, (float (*)[4]) matrix) == 0) {
+    if (mgInsideScreen((mgVu0FBOX *) bound_box.max, (float(*)[4]) matrix) == 0) {
         return 0;
     }
 
@@ -920,7 +920,7 @@ int CMapTreasureBox::AssignFuncPoint(CFuncPoint *point, CMapParts *owner) {
     }
 
     active = 1;
-    flag_no = point->unk_c;
+    flag_no = point->flag_no;
     item_no = point->event.arg1;
     item_num = point->event.arg2;
 

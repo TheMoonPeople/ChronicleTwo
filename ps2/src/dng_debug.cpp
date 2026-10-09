@@ -70,6 +70,7 @@ extern char *command_str[];
  *
  */
 static void dngDebugExit();
+
 /**
  *
  * Loads a chosen monster kind beside the player, refreshing monster memory on the first load.
@@ -99,6 +100,7 @@ void dngDebugInit() {
     dbFont.Init();
     dbFont.SetClearance(20, 20);
 }
+
 void dngDebugStart() {
     dbinfo.active = 1;
     dbinfo.command = -1;
@@ -109,12 +111,13 @@ void dngDebugStart() {
     command_int[DNG_DEBUG_CMD_SOUND_FLAG * 2] = dbinfo.sound_flag;
     command_int[DNG_DEBUG_CMD_MONSTER_TALK * 2] = dbinfo.monster_talk;
     command_int[DNG_DEBUG_CMD_EFFECT_ID * 2] = dbinfo.effect_id;
-    command_int[DNG_DEBUG_CMD_EFFECT_VOL * 2] = (int)dbinfo.effect_vol;
-    GamePad__2.SetAutoRepeat(0xF000, 15, 4);
+    command_int[DNG_DEBUG_CMD_EFFECT_VOL * 2] = (int) dbinfo.effect_vol;
+    GamePad__2.SetAutoRepeat(PAD_UP | PAD_RIGHT | PAD_DOWN | PAD_LEFT, 15, 4);
     GamePad__2.SetAutoRepeat(PAD_UP | PAD_DOWN, 8, 1);
     dbinfo.saved_pause_flag = BattleAreaScene->pause_flag;
     BattleAreaScene->pause_flag = 15;
 }
+
 void dngDebugDraw() {
     if (dbinfo.active != 0) {
         (mgTexManager).ReloadTexture(0x6C, (sceVif1Packet *) NULL);

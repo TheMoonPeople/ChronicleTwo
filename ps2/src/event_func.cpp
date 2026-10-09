@@ -296,7 +296,6 @@ extern char            at_6834[];
 extern char            at_5726[];
 extern char            at_5736[];
 
-
 // Code (.text)
 CEoh::CEoh() {
     type = EOH_TYPE_NONE;
@@ -920,7 +919,7 @@ int CEohMother::CheckMotionEnd(int slot) {
                 return (chara)->CheckMotionEnd();
             }
 
-            if (chara->seq_state == 4) {
+            if (chara->seq_state == (int) CHARA_SEQ_STATE_END) {
                 return (chara)->CheckMotionEnd();
             }
 
@@ -1376,9 +1375,9 @@ int CEohMother::SetShadow(int slot, int enable) {
     switch (handle->type) {
         case EOH_TYPE_CHARA:
             if (enable != 0) {
-                EventScene->ResetStatus(1, handle->scene_no, status_no_shadow);
+                EventScene->ResetStatus(SCENE_DATA_CHARA, handle->scene_no, status_no_shadow);
             } else {
-                EventScene->SetStatus(1, handle->scene_no, status_no_shadow);
+                EventScene->SetStatus(SCENE_DATA_CHARA, handle->scene_no, status_no_shadow);
             }
 
             return 1;
@@ -2055,6 +2054,7 @@ void CEventScriptArg::BuildArgData(u32 *program) {
     script.run(script_run_id);
     nowScriptArg = NULL;
 }
+
 static inline ARG_LIST *ScriptArgAddList(CEventScriptArg *script) {
     if (script->memory == NULL) {
         return NULL;
@@ -2079,6 +2079,7 @@ static inline ARG_LIST *ScriptArgAddList(CEventScriptArg *script) {
     script->list_num++;
     return created;
 }
+
 static inline void ScriptArgNewData(CEventScriptArg *script, int num, ARG_DATA **out) {
     if (script->memory == NULL) {
         *out = NULL;
@@ -2087,6 +2088,7 @@ static inline void ScriptArgNewData(CEventScriptArg *script, int num, ARG_DATA *
         *out = new (script->memory->Alloc(((size & 0xF) ? (size >> 4) + 1 : size >> 4) + 2)) ARG_DATA[num];
     }
 }
+
 static inline char *ScriptArgNewString(CEventScriptArg *script, char *source) {
     char *copy;
     if (script->memory == NULL) {
@@ -2098,6 +2100,7 @@ static inline char *ScriptArgNewString(CEventScriptArg *script, char *source) {
     }
     return copy;
 }
+
 int _DATA(RS_STACKDATA *stack, int argc) {
     char *source;
     CEventScriptArg *script = nowScriptArg;
@@ -2135,6 +2138,7 @@ int _DATA(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 int _ID_OFFSET(RS_STACKDATA *stack, int arg_count) {
     if (nowScriptArg == 0) {
         return 0;
@@ -2269,27 +2273,27 @@ void CRaster::SetParam(float amplitude, float speed, float pitch) {
     this->pitch = pitch;
 }
 
-void CRaster::StartRaster(float target0, float target1, float target2, int frames) {
+void CRaster::StartRaster(float target_amplitude, float target_speed, float target_pitch, int frames) {
     this->frames = frames;
     frame = 0;
 
     if (this->frames > 1) {
-        state = 1;
+        state = (int) RASTER_START;
 
-        if (target0 != -1.0f) {
-            amplitude_step = (target0 - amplitude) / (float) this->frames;
+        if (target_amplitude != -1.0f) {
+            amplitude_step = (target_amplitude - amplitude) / (float) this->frames;
         } else {
             amplitude_step = 0.0f;
         }
 
-        if (target1 != -1.0f) {
-            speed_step = (target1 - speed) / (float) this->frames;
+        if (target_speed != -1.0f) {
+            speed_step = (target_speed - speed) / (float) this->frames;
         } else {
             speed_step = 0.0f;
         }
 
-        if (target2 != -1.0f) {
-            pitch_step = (target2 - pitch) / (float) this->frames;
+        if (target_pitch != -1.0f) {
+            pitch_step = (target_pitch - pitch) / (float) this->frames;
             return;
         }
 
@@ -2297,42 +2301,42 @@ void CRaster::StartRaster(float target0, float target1, float target2, int frame
         return;
     }
 
-    if (target0 != -1.0f) {
-        amplitude = target0;
+    if (target_amplitude != -1.0f) {
+        amplitude = target_amplitude;
     }
 
-    if (target1 != -1.0f) {
-        speed = target1;
+    if (target_speed != -1.0f) {
+        speed = target_speed;
     }
 
-    if (target2 != -1.0f) {
-        pitch = target2;
+    if (target_pitch != -1.0f) {
+        pitch = target_pitch;
     }
 
-    state = 2;
+    state = (int) RASTER_ON;
 }
 
-void CRaster::StopRaster(float target0, float target1, float target2, int frames) {
+void CRaster::StopRaster(float target_amplitude, float target_speed, float target_pitch, int frames) {
     this->frames = frames;
     frame = 0;
 
     if (this->frames > 1) {
-        state = 3;
+        state = (int) RASTER_STOP;
 
-        if (target0 != -1.0f) {
-            amplitude_step = (target0 - amplitude) / (float) this->frames;
+        if (target_amplitude != -1.0f) {
+            amplitude_step = (target_amplitude - amplitude) / (float) this->frames;
         } else {
             amplitude_step = 0.0f;
         }
 
-        if (target1 != -1.0f) {
-            speed_step = (target1 - speed) / (float) this->frames;
+        if (target_speed != -1.0f) {
+            speed_step = (target_speed - speed) / (float) this->frames;
         } else {
             speed_step = 0.0f;
         }
 
-        if (target2 != -1.0f) {
-            pitch_step = (target2 - pitch) / (float) this->frames;
+        if (target_pitch != -1.0f) {
+            pitch_step = (target_pitch - pitch) / (float) this->frames;
             return;
         }
 
@@ -2340,25 +2344,25 @@ void CRaster::StopRaster(float target0, float target1, float target2, int frames
         return;
     }
 
-    if (target0 != -1.0f) {
-        amplitude = target0;
+    if (target_amplitude != -1.0f) {
+        amplitude = target_amplitude;
     }
 
-    if (target1 != -1.0f) {
-        speed = target1;
+    if (target_speed != -1.0f) {
+        speed = target_speed;
     }
 
-    if (target2 != -1.0f) {
-        pitch = target2;
+    if (target_pitch != -1.0f) {
+        pitch = target_pitch;
     }
 
-    state = 0;
+    state = (int) RASTER_OFF;
 }
 
 void CRaster::StepRaster() {
     switch (state) {
-        case 1:
-        case 3:
+        case RASTER_START:
+        case RASTER_STOP:
             amplitude += amplitude_step;
 
             if (amplitude < 0.0f) {
@@ -2391,18 +2395,18 @@ void CRaster::StepRaster() {
                 frame = 0;
                 this->frames = -1;
 
-                if (state == 1) {
-                    state = 2;
+                if (state == (int) RASTER_START) {
+                    state = (int) RASTER_ON;
                 }
 
-                if (state == 3) {
-                    state = 0;
+                if (state == (int) RASTER_STOP) {
+                    state = (int) RASTER_OFF;
                 }
             }
 
             break;
-        case 2:
-        case 0:
+        case RASTER_ON:
+        case RASTER_OFF:
             break;
     }
 }
@@ -2414,7 +2418,7 @@ void CRaster::DrawRaster() {
     float current_phase;
     float next_y;
 
-    if (state != 0) {
+    if (state != (int) RASTER_OFF) {
         mgCTexture screen;
 
         mgGetFrameBuffer(&screen);
@@ -2536,12 +2540,12 @@ void CScreenEffect::InitRaster(float amplitude, float speed, float pitch) {
     raster.SetParam(amplitude, speed, pitch);
 }
 
-void CScreenEffect::StartRaster(float target0, float target1, float target2, int frames) {
-    raster.StartRaster(target0, target1, target2, frames);
+void CScreenEffect::StartRaster(float target_amplitude, float target_speed, float target_pitch, int frames) {
+    raster.StartRaster(target_amplitude, target_speed, target_pitch, frames);
 }
 
-void CScreenEffect::StopRaster(float target0, float target1, float target2, int frames) {
-    raster.StopRaster(target0, target1, target2, frames);
+void CScreenEffect::StopRaster(float target_amplitude, float target_speed, float target_pitch, int frames) {
+    raster.StopRaster(target_amplitude, target_speed, target_pitch, frames);
 }
 
 void CScreenEffect::SetSepiaTexture(mgCTexture *texture, u_long128 *image) {
@@ -2551,6 +2555,7 @@ void CScreenEffect::SetSepiaTexture(mgCTexture *texture, u_long128 *image) {
         sepia_texture->image[0] = image;
     }
 }
+
 void CScreenEffect::CaptureSepiaScreen(void) {
     if (sepia_texture == NULL) {
         return;
@@ -2558,12 +2563,12 @@ void CScreenEffect::CaptureSepiaScreen(void) {
     mgCTexture screen;
     mgGetFrameBackBuffer(&screen);
     mgStoreImage(&screen, sepia_texture->image[0]);
-    u_char *pixels = (u_char *)sepia_texture->image[0];
+    u_char *pixels = (u_char *) sepia_texture->image[0];
     for (int i = 0; i < mgScreenHeight * mgScreenWidth * 4; i += 4) {
         u_char *red = &pixels[i];
         u_char *green = &pixels[i + 1];
         u_char *blue = &pixels[i + 2];
-        int gray = (u_int)(0.229f * (float)(u_int)*red + 0.587f * (float)(u_int)*green + 0.114f * (float)(u_int)*blue) & 0xFF;
+        int     gray = (u_int) (0.229f * (float) (u_int) *red + 0.587f * (float) (u_int) *green + 0.114f * (float) (u_int) *blue) & 0xFF;
         if (gray > 0x40) {
             *red = (gray - 0x40) * 180 / 191 + 75;
             *green = (gray - 0x40) * 193 / 191 + 62;
@@ -2575,6 +2580,7 @@ void CScreenEffect::CaptureSepiaScreen(void) {
         }
     }
 }
+
 void CScreenEffect::SetSepiaFlag(int enabled) {
     if (sepia_texture != NULL) {
         sepia = enabled;
@@ -2594,6 +2600,7 @@ void CScreenEffect::SetMonoFlashTexture(mgCTexture **textures, u_long128 **vram_
     mono_flash_texture[1] = textures[1];
     mono_flash_texture[1]->image[0] = vram_images[1];
 }
+
 void CScreenEffect::CaptureMonoFlashScreen(void) {
     if (mono_flash_texture[0] == NULL || mono_flash_texture[1] == NULL) {
         return;
@@ -2602,20 +2609,21 @@ void CScreenEffect::CaptureMonoFlashScreen(void) {
     mgGetFrameBackBuffer(&screen);
     mgStoreImage(&screen, mono_flash_texture[0]->image[0]);
     mgStoreImage(&screen, mono_flash_texture[1]->image[0]);
-    u_char *positive = (u_char *)mono_flash_texture[0]->image[0];
-    u_char *negative = (u_char *)mono_flash_texture[1]->image[0];
+    u_char *positive = (u_char *) mono_flash_texture[0]->image[0];
+    u_char *negative = (u_char *) mono_flash_texture[1]->image[0];
     for (int i = 0; i < mgScreenHeight * mgScreenWidth * 4; i += 4) {
         u_char *red = &positive[i];
         u_char *green = &positive[i + 1];
         u_char *blue = &positive[i + 2];
-        *red = *green = *blue = (u_int)(0.229f * (float)*red + 0.587f * (float)*green + 0.114f * (float)*blue);
+        *red = *green = *blue = (u_int) (0.229f * (float) *red + 0.587f * (float) *green + 0.114f * (float) *blue);
         red = &negative[i];
         green = &negative[i + 1];
         blue = &negative[i + 2];
-        char gray = (u_int)(0.229f * (float)*red + 0.587f * (float)*green + 0.114f * (float)*blue);
+        char gray = (u_int) (0.229f * (float) *red + 0.587f * (float) *green + 0.114f * (float) *blue);
         *red = *green = *blue = 255 - gray;
     }
 }
+
 void CScreenEffect::SetMonoFlashFlag(int enabled, int interval) {
     if (mono_flash_texture[0] != NULL || mono_flash_texture[1] != NULL) {
         mono_flash = enabled;
@@ -2894,6 +2902,7 @@ void EdEventInit() {
     EventScriptArg.memory = 0;
     EventScreenEffect.Initialize();
 }
+
 void EventTimeDraw(void) {
     int digit[10];
     int glyph[32];
@@ -3072,13 +3081,13 @@ void EventTimeDraw(void) {
                             break;
                         case 2:
                         case 5:
-                            destination.x = (int)(EdEventInfo.stopwatch_x + 0.75 * texture.width * i - 28.0);
+                            destination.x = (int) (EdEventInfo.stopwatch_x + 0.75 * texture.width * i - 28.0);
                             break;
                         case 3:
-                            destination.x = (int)(8.0 + (EdEventInfo.stopwatch_x + 0.75 * texture.width * i));
+                            destination.x = (int) (8.0 + (EdEventInfo.stopwatch_x + 0.75 * texture.width * i));
                             break;
                         case 4:
-                            destination.x = (int)(EdEventInfo.stopwatch_x + 0.5 * texture.width * i - 28.0);
+                            destination.x = (int) (EdEventInfo.stopwatch_x + 0.5 * texture.width * i - 28.0);
                             break;
                         case 1:
                         default:
@@ -3103,6 +3112,7 @@ void EventTimeDraw(void) {
         prim.End();
     }
 }
+
 void EdEventDraw() {
     int hit_no;
     int sprite_no;
@@ -3638,13 +3648,14 @@ int _LOAD_CHARA_sub(int stack_no, char **name, int chara_no, u32 *pack, int mode
         manager->name_suffix[0] = 0;
     }
 
-    EventScene->SetType(1, chara_no, type_loaded);
+    EventScene->SetType(SCENE_DATA_CHARA, chara_no, type_loaded);
     return result;
 }
 
 int _LOAD_CHARA_sub(int a, char **b, int c, u32 *d) {
     return _LOAD_CHARA_sub(a, b, c, d, 0);
 }
+
 int _LOAD_CHARA(RS_STACKDATA *stack, int argc) {
     char *name[0x20];
     char directory[0x40];
@@ -3704,22 +3715,23 @@ int _LOAD_CHARA(RS_STACKDATA *stack, int argc) {
     }
     return result;
 }
+
 int _CHARA_ACTIVE(RS_STACKDATA *stack, int arg_count) {
     int enable;
     int chara_no;
 
     switch (arg_count) {
         case 1:
-            EventScene->SetActive(1, GetStackInt(stack));
+            EventScene->SetActive(SCENE_DATA_CHARA, GetStackInt(stack));
             return 1;
         case 2:
             enable = GetStackInt(stack++);
             chara_no = GetStackInt(stack);
 
             if (enable != 0) {
-                EventScene->SetActive(1, chara_no);
+                EventScene->SetActive(SCENE_DATA_CHARA, chara_no);
             } else {
-                EventScene->ResetActive(1, chara_no);
+                EventScene->ResetActive(SCENE_DATA_CHARA, chara_no);
             }
 
             return 1;
@@ -3851,7 +3863,7 @@ int _DELETE_CHARA(RS_STACKDATA *stack, int argc) {
     int i;
     int offset;
     for (i = 0, offset = 0; i < 32; i++, offset += 0x10) {
-        CEoh *handle = (CEoh *)((u8 *)&EventObjHandleMother + offset);
+        CEoh *handle = (CEoh *) ((u8 *) &EventObjHandleMother + offset);
         if (handle->type == 0) {
             int *charaSlot = &handle->scene_no;
             if (charaNo == handle->scene_no) {
@@ -4046,6 +4058,7 @@ int _GET_DUN_WORLD_COORD(RS_STACKDATA *stack, int argc) {
 
     return 0;
 }
+
 int _LOAD_IMG(RS_STACKDATA *stack, int argc) {
     int size;
     int stackNo = GetStackInt(stack++);
@@ -4057,13 +4070,13 @@ int _LOAD_IMG(RS_STACKDATA *stack, int argc) {
         return 0;
     }
     int block = base + imageNo;
-    u_char *file = (u_char *)GetLoadBGBuff(fileName, &size);
+    u_char *file = (u_char *) GetLoadBGBuff(fileName, &size);
     if (file == NULL) {
         return 0;
     }
-    mgCMemory *memory = (mgCMemory *)EventScene->GetStack(stackNo);
+    mgCMemory *memory = (mgCMemory *) EventScene->GetStack(stackNo);
     memory->Align64();
-    u_char *image = (u_char *)memory->stAllocTest(size / 16 + 1);
+    u_char *image = (u_char *) memory->stAllocTest(size / 16 + 1);
     if (image == NULL) {
         return 0;
     }
@@ -4079,6 +4092,7 @@ int _LOAD_IMG(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 int _DEL_IMG(RS_STACKDATA *stack, int argc) {
     mgTexManager.DeleteBlock(EventScene->event_texb + GetStackInt(stack));
     return 1;
@@ -4370,7 +4384,7 @@ int _GET_ITEM_TYPE(RS_STACKDATA *stack, int argc) {
     int item_type = GetItemDataType(GetStackInt(stack++));
     int category;
 
-    if (item_type == 0) {
+    if (item_type == ITEM_DATA_NONE) {
         return 0;
     }
 
@@ -4427,6 +4441,7 @@ int GetConfigCaptionOff() {
 
     return caption_off;
 }
+
 int LoadMovie(char *name, mgCMemory *memory, bool skip) {
     CMovie movie __attribute__((aligned(32)));
     int captionWidth;
@@ -4462,7 +4477,7 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
             EdEventInfo.caption_enable = 0;
         }
     }
-    textures->ReloadTexture(movieBlock, (sceVif1Packet *)NULL);
+    textures->ReloadTexture(movieBlock, (sceVif1Packet *) NULL);
     movieTexture = textures->GetTexture(at_2837, movieBlock);
     movie.Play(at_2837);
     movie.SwitchThread();
@@ -4486,7 +4501,7 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
         GamePad__2.UpDate();
         if (movie.EndCheck() != 0 || (DebugFlag != 0 && GamePad__2.Down(PAD_START) != 0)) {
             movie.Term();
-            textures->ReloadTexture(movieBlock, (sceVif1Packet *)NULL);
+            textures->ReloadTexture(movieBlock, (sceVif1Packet *) NULL);
             mgBeginFrame(NULL);
             mgCDrawPrim endDraw;
             endDraw.Initialize(NULL, NULL);
@@ -4517,7 +4532,7 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
             }
             return 1;
         }
-        textures->ReloadTexture(movieBlock, (sceVif1Packet *)NULL);
+        textures->ReloadTexture(movieBlock, (sceVif1Packet *) NULL);
         movie.SwitchThread();
         mgCDrawPrim frameDraw;
         frameDraw.Initialize(NULL, NULL);
@@ -4548,15 +4563,15 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
                         frame <= EdEventInfo.caption_start[i] + EdEventInfo.caption_frames[i]) {
                         char *line = EdEventInfo.caption_text[i];
                         font.CalcDrawWH(line, &captionWidth, &captionHeight);
-                        x = (int)CalcAutoPosSet(0.0f, float(512), (float)captionWidth, 0.5f);
-                        y = fptosi(CalcAutoPosSet(0.0f, 480.0f, (float)captionHeight, 0.95f));
+                        x = (int) CalcAutoPosSet(0.0f, float(512), (float) captionWidth, 0.5f);
+                        y = fptosi(CalcAutoPosSet(0.0f, 480.0f, (float) captionHeight, 0.95f));
                         memset(caption, 0, 0xE1);
                         My_strncpy(caption, EdEventInfo.caption_text[i], (frame - EdEventInfo.caption_start[i]) / 2 * 2);
                         text = caption;
                     }
                 }
                 if (text != NULL) {
-                    textures->ReloadTexture(captionBlock, (sceVif1Packet *)NULL);
+                    textures->ReloadTexture(captionBlock, (sceVif1Packet *) NULL);
                     font.DrawDirect(caption, x, y);
                 }
             }
@@ -4565,6 +4580,7 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
         frame++;
     }
 }
+
 int _LOAD_MOVIE(RS_STACKDATA *stack, int argc) {
     int        stack_no = GetStackInt(stack++);
     char      *name = GetStackString(stack++);
@@ -4701,6 +4717,7 @@ int _TRG_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
 
     return 1;
 }
+
 int _RESET_CAMERA(RS_STACKDATA *stack, int argc) {
     int mode;
     float follow[4];
@@ -4720,8 +4737,8 @@ int _RESET_CAMERA(RS_STACKDATA *stack, int argc) {
     float distance;
     mode = GetStackInt(stack++);
     float angle;
-float height;
-height = angle = 0.0f;
+    float height;
+    height = angle = 0.0f;
     if (argc > 1) {
         angle = GetStackFloat(stack++);
     }
@@ -4730,15 +4747,15 @@ height = angle = 0.0f;
     }
     camera = NULL;
     if (mode == 0) {
-        camera = (CCameraControl *)EventScene->GetCamera(EventScene->active_camera);
+        camera = (CCameraControl *) EventScene->GetCamera(EventScene->active_camera);
     }
     if (mode == 1) {
-        camera = (CCameraControl *)EventScene->GetCamera(EventScene->before_camera);
+        camera = (CCameraControl *) EventScene->GetCamera(EventScene->before_camera);
     }
     if (camera == NULL) {
         return 0;
     }
-    referenceCamera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->before_camera);
+    referenceCamera = (mgCCameraFollow *) EventScene->GetCamera(EventScene->before_camera);
     if (referenceCamera == NULL) {
         return 0;
     }
@@ -4771,8 +4788,8 @@ height = angle = 0.0f;
         camera->SetDistance(distance);
         camera->SetHeight(height);
         camera->SetAngleSoon(angle);
-        beforeCamera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->before_camera);
-        referenceCamera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->active_camera);
+        beforeCamera = (mgCCameraFollow *) EventScene->GetCamera(EventScene->before_camera);
+        referenceCamera = (mgCCameraFollow *) EventScene->GetCamera(EventScene->active_camera);
         *beforeCamera = *referenceCamera;
         SetWorldCoordFlg = 0;
         return 1;
@@ -4811,6 +4828,7 @@ height = angle = 0.0f;
     }
     return 0;
 }
+
 int _GET_ACTIVE_CHR_NO(RS_STACKDATA *stack, int argc) {
     CUserDataManager *user_data = NULL;
     CSaveData        *save = GetSaveData();
@@ -4993,7 +5011,7 @@ int _GOTO_DNG(RS_STACKDATA *stack, int argc) {
         loop_arg.event_no = GetStackInt(stack);
     }
 
-    NextLoop(2, loop_arg);
+    NextLoop((int) LOOP_DUNGEON, loop_arg);
     EdEventInfo.request = exit_start_loop;
     return 1;
 }
@@ -5011,7 +5029,7 @@ int _GOTO_EDIT(RS_STACKDATA *stack, int argc) {
         loop_arg.event_no = GetStackInt(stack);
     }
 
-    NextLoop(1, loop_arg);
+    NextLoop((int) LOOP_EDIT, loop_arg);
     EdEventInfo.request = exit_start_loop;
     return 1;
 }
@@ -5052,9 +5070,9 @@ int _LOAD_CHARA_NPC(RS_STACKDATA *stack, int argc) {
     }
 
     if (kind == 0) {
-        name = GetPartyCharaModelName(chara_no, 0);
+        name = GetPartyCharaModelName(chara_no, (int) NPC_MODEL_PATH_CHARA);
     } else {
-        name = GetPartyCharaModelName(chara_no, 2);
+        name = GetPartyCharaModelName(chara_no, (int) NPC_MODEL_PATH_EVENT_TRAIN);
     }
 
     if (name == NULL) {
@@ -5062,7 +5080,7 @@ int _LOAD_CHARA_NPC(RS_STACKDATA *stack, int argc) {
     }
 
     strcpy(path, name);
-    model_name[0] = GetPartyCharaModelName(chara_no, 1);
+    model_name[0] = GetPartyCharaModelName(chara_no, (int) NPC_MODEL_PATH_INFO);
 
     if (model_name[0] == NULL) {
         return 0;
@@ -5101,7 +5119,7 @@ int _AUTO_SET_MONSTER(RS_STACKDATA *stack, int argc) {
     int   monster_no;
     int   param;
 
-    if (GetNowLoopNo() != 2) {
+    if (GetNowLoopNo() != (int) LOOP_DUNGEON) {
         return 0;
     }
 
@@ -5150,7 +5168,7 @@ int _LOAD_DUNGEON_MAP_FILE(RS_STACKDATA *stack, int argc) {
 }
 
 int _LOAD_MONSTER_FILE(RS_STACKDATA *stack, int argc) {
-    if (GetNowLoopNo() != 2) {
+    if (GetNowLoopNo() != (int) LOOP_DUNGEON) {
         return 0;
     }
 
@@ -5517,7 +5535,7 @@ int _COPY_CHARA(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    EventScene->SetStatus(1, slot, 5);
+    EventScene->SetStatus(SCENE_DATA_CHARA, slot, 5);
     source->Copy(*GetCharacter(dst_no), memory);
     EventScene->SetCharaTexb(dst_no, EventScene->GetCharaTexb(src_no));
     return 1;
@@ -6805,6 +6823,7 @@ int _GOTO_SUBGAME(RS_STACKDATA *stack, int argc) {
     info.texb_num = EventScene->tex_block_count;
     return sgInitSubGame(type, &info) != 0;
 }
+
 int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
     int digit[8];
     char text[0x14];
@@ -6865,10 +6884,10 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
             if (360000.0f <= time) {
                 time = 360000.0f;
             }
-            minutes = (int)(time / 3600.0f);
+            minutes = (int) (time / 3600.0f);
             time -= minutes * 3600.0f;
-            seconds = (int)(time / 60.0f);
-            hundredths = (int)(100.0f * (time - seconds * 60.0f) / 60.0f);
+            seconds = (int) (time / 60.0f);
+            hundredths = (int) (100.0f * (time - seconds * 60.0f) / 60.0f);
             digit[0] = minutes / 10;
             digit[1] = minutes % 10;
             digit[2] = -1;
@@ -6961,6 +6980,7 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 int _GET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
     FISH_PRIZE_INFO info;
     int             race_no;
@@ -7557,6 +7577,7 @@ int _SET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
 
     return 1;
 }
+
 int _STOPWATCH(RS_STACKDATA *stack, int argc) {
     CSaveData *saveData = GetSaveData();
     if (saveData == NULL) {
@@ -7579,9 +7600,9 @@ int _STOPWATCH(RS_STACKDATA *stack, int argc) {
         } else {
             u64 elapsed = saveData->play_time - EdEventInfo.stopwatch_start;
             EdEventInfo.stopwatch_start = 0;
-            SetStack(stack++, (int)(elapsed / 3600));
-            SetStack(stack++, (int)(elapsed % 3600 / 60));
-            SetStack(stack++, (int)(elapsed % 60 * 100 / 60));
+            SetStack(stack++, (int) (elapsed / 3600));
+            SetStack(stack++, (int) (elapsed % 3600 / 60));
+            SetStack(stack++, (int) (elapsed % 60 * 100 / 60));
             SetStack(stack++, elapsed < 7261);
             return 1;
         }
@@ -7598,6 +7619,7 @@ int _STOPWATCH(RS_STACKDATA *stack, int argc) {
     }
     return 0;
 }
+
 int _SET_FUNC_ETC(RS_STACKDATA *stack, int argc) {
     u32 *flags;
 
@@ -8035,7 +8057,7 @@ int _SHADOW_CLIP_OFF(RS_STACKDATA *stack, int argc) {
 
     mgCFrameAttr attr;
     attr.no_cull = clip_off;
-    chara->shadow_frame->SetAttrParam(attr, 1, 0x100000);
+    chara->shadow_frame->SetAttrParam(attr, 1, MG_FRAME_ATTR_NO_CULL);
     return 1;
 }
 
@@ -8599,7 +8621,7 @@ int _CHECK_MES_COMPLETE(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    SetStack(next_slot, mes->State() == 3);
+    SetStack(next_slot, mes->State() == (int) CLSMES_SHOWN);
     return 1;
 }
 
@@ -8614,7 +8636,7 @@ int _CHECK_MES_WAIT(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    SetStack(next_slot, mes->State() == 5);
+    SetStack(next_slot, mes->State() == (int) CLSMES_PAGE_WAIT);
     return 1;
 }
 
@@ -8629,7 +8651,7 @@ int _CHECK_MES(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    SetStack(next_slot, mes->State() == 0);
+    SetStack(next_slot, mes->State() == (int) CLSMES_CLOSED);
     return 1;
 }
 
@@ -8987,7 +9009,7 @@ int _GET_MES_ETC(RS_STACKDATA *stack, int argc) {
                 return 0;
             }
 
-            int fish_num = aquarium->GetAquariumFishNum(0);
+            int fish_num = aquarium->GetAquariumFishNum(AQUARIUM_TANK_MAIN);
             SetStack(value, fish_num);
             break;
         }
@@ -9132,6 +9154,7 @@ int _GET_MES_OKURI(RS_STACKDATA *stack, int argc) {
     SetStack(stack, mes->push_button);
     return 1;
 }
+
 int _GET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
     int shown;
     int i;
@@ -9253,6 +9276,7 @@ int _GET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 int _SET_CHARA_FAR_DIST(RS_STACKDATA *stack, int argc) {
     CCharacter2 *chara = GetChara(GetStackInt(stack++));
 
@@ -10691,7 +10715,7 @@ int _OBJS_SET_EOH_FRAME_POS(RS_STACKDATA *stack, int argc) {
             frameName = GetStackString(stack++);
             GetStackVector(offset, stack);
 
-            stack = (RS_STACKDATA *)((u8 *)stack + vector_bytes);
+            stack = (RS_STACKDATA *) ((u8 *) stack + vector_bytes);
             frames = GetStackInt(stack);
             break;
     }
@@ -10702,6 +10726,7 @@ int _OBJS_SET_EOH_FRAME_POS(RS_STACKDATA *stack, int argc) {
     seq->SetEohFramePos(eohNo, frameName, frames, offset);
     return 1;
 }
+
 int _OBJS_ADD_POS(RS_STACKDATA *stack, int argc) {
     float add[4];
     int index;
@@ -10736,6 +10761,7 @@ int _OBJS_ADD_POS(RS_STACKDATA *stack, int argc) {
     seq->AddPos(add, frame);
     return 1;
 }
+
 int _OBJS_ATTACH_CAMERA(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
     int           slot;
@@ -11638,6 +11664,7 @@ int VpkFileNameFromVoiceNo(char *name, int voice_no) {
 
     return 0;
 }
+
 int _STREAM_OPEN(RS_STACKDATA *stack, int argc) {
     char voicePack[0x80];
     char voicePath[0x80];
@@ -11667,6 +11694,7 @@ int _STREAM_OPEN(RS_STACKDATA *stack, int argc) {
     }
     return 0;
 }
+
 int CommandStreamPlay(int stream, int volume) {
     int reverb = sndGetReverbDepth(1);
     int scaled = (int) ((double) volume - 256.0 * (1.5 * (double) reverb));
@@ -12136,12 +12164,19 @@ int _BGM_PLAY_ENABLE(RS_STACKDATA *stack, int argc) {
     (&EventScene->skip_load_sound)[1] = 0;
     return 1;
 }
+
 int _GET_DEF_BGM_NO(RS_STACKDATA *stack, int argc) {
     int sndId;
     int bgmNo;
     if (argc == 1) {
-        CScene *scene = EventScene; int map = scene->now_map_no; int sub = scene->now_sub_map_no;
-if (0 < sub) { sndId = GetMapSndDataID(sub); } else { sndId = GetMapSndDataID(map); }
+        CScene *scene = EventScene;
+        int     map = scene->now_map_no;
+        int     sub = scene->now_sub_map_no;
+        if (0 < sub) {
+            sndId = GetMapSndDataID(sub);
+        } else {
+            sndId = GetMapSndDataID(map);
+        }
         bgmNo = EventScene->GetDefBgmNo(sndId);
         SetStack(stack, bgmNo);
         return 1;
@@ -12154,6 +12189,7 @@ if (0 < sub) { sndId = GetMapSndDataID(sub); } else { sndId = GetMapSndDataID(ma
     }
     return 0;
 }
+
 int _SET_MOVIE_CC(RS_STACKDATA *stack, int argc) {
     int i;
     int no;
@@ -12194,6 +12230,7 @@ int _SET_MOVIE_CC(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 int _REGISTER_VILLAGER2(RS_STACKDATA *stack, int argc) {
     int        villager_no;
     int        mode;
@@ -12569,6 +12606,7 @@ void _EOH_SET_STEP(RS_STACKDATA *stack, int argc) {
     argc = GetStackInt(stack++);
     EventObjHandleMother.SetStep(argc, GetStackFloat(stack));
 }
+
 int _EOH_SET_TEX_ANIM(RS_STACKDATA *stack, int argc) {
     int no = GetStackInt(stack);
     switch (stack[1].type) {
@@ -12592,6 +12630,7 @@ int _EOH_SET_TEX_ANIM(RS_STACKDATA *stack, int argc) {
     }
     return 0;
 }
+
 int _EOH_SET_SCALE(RS_STACKDATA *stack, int argc) {
     int   no = GetStackInt(stack++);
     float x = GetStackFloat(stack++);
@@ -13560,6 +13599,7 @@ static int _GET_RAND(RS_STACKDATA *stack, int argc) {
 
     return 1;
 }
+
 int _LINE_POINT_DIST(RS_STACKDATA *stack, int argc) {
     float segmentStart[4];
     float segmentEnd[4];
@@ -13586,6 +13626,7 @@ int _LINE_POINT_DIST(RS_STACKDATA *stack, int argc) {
     SetStack(result, mgDistVector(point, direction));
     return 1;
 }
+
 int _CREATE_SWORD_EFFECT(RS_STACKDATA *stack, int argc) {
     int               stack_no = GetStackInt(stack++);
     int               init_param1 = GetStackInt(stack++);
@@ -13964,7 +14005,7 @@ int _SWE_INIT(RS_STACKDATA *stack, int argc) {
     }
 
     CSWordAfterEffect *effect =
-        (CSWordAfterEffect *) operator new(0xA0, scene_stack->Alloc(12));
+        (CSWordAfterEffect *) operator new(sizeof(CSWordAfterEffect), scene_stack->Alloc(12));
 
     if (effect != NULL) {
         effect->color0[0] = 0x80;
@@ -14129,7 +14170,7 @@ int _SET_CHARA_TYPE(RS_STACKDATA *stack, int argc) {
     int chara_no;
 
     chara_no = GetStackInt(stack++);
-    ((CScene *) EventScene)->SetType(1, chara_no, GetStackInt(stack));
+    ((CScene *) EventScene)->SetType(SCENE_DATA_CHARA, chara_no, GetStackInt(stack));
     return 1;
 }
 
@@ -14888,7 +14929,7 @@ int _SET_PULL_ITEM(RS_STACKDATA *stack, int argc) {
 
 int _MENU_CHARA_CHENGE(RS_STACKDATA *stack, int argc) {
     GetStackInt(stack);
-    MenuArg.open_type = 0xE;
+    MenuArg.open_type = (int) MENU_OPEN_CHARA_CHANGE_DUNGEON;
     EdEventInfo.command_mode = 3;
     return 1;
 }
@@ -15064,7 +15105,7 @@ int _DNG_SETUP_MAIN_UNIT(RS_STACKDATA *stack, int argc) {
     }
 
     sndInitPort(7);
-    chara->sound_info.se_bank = sndLoadSound(7, (u32 *) read_buffer, &BaseCharacter[bank]);
+    chara->sound_info.se_bank = sndLoadSound((int) SND_PORT_CHARA, (u32 *) read_buffer, &BaseCharacter[bank]);
     chara->sound_info.se_bank_2 = EventScene->se_battle_id;
     chara->SetSoundInfoCopy();
     chara->effect_man = FxScriptMan;
@@ -15367,6 +15408,7 @@ int _CANCEL_NOW_LOADING(RS_STACKDATA *stack, int argc) {
     CancelNowLoading();
     return 1;
 }
+
 static inline int Ident(int v) {
     return v;
 }
@@ -15379,7 +15421,7 @@ int _ESM_INITIALIZE(RS_STACKDATA *stack, int argc) {
     if (argc >= 2) {
         texbOffset = GetStackInt(stack);
     }
-    if ((memory = (mgCMemory *)EventScene->GetStack(stackNo)) == NULL) {
+    if ((memory = (mgCMemory *) EventScene->GetStack(stackNo)) == NULL) {
         return 0;
     }
     CEffectScriptMan *manager;
@@ -15416,7 +15458,7 @@ int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if ((heap = (mgCMemory *) operator new(0x30, scene_stack->Alloc(5))) != NULL) {
+    if ((heap = (mgCMemory *) operator new(sizeof(mgCMemory), scene_stack->Alloc(5))) != NULL) {
         heap->Init();
     }
 
@@ -15823,6 +15865,7 @@ int _IS_CLEAR_DESTROY(RS_STACKDATA *stack, int argc) {
     SetStack(stack, floor_manager->IsClearMostFastDestroy());
     return 1;
 }
+
 int _IS_CLEAR_PRACTICE(RS_STACKDATA *stack, int argc) {
     if (argc != 3) {
         return 0;
@@ -15866,6 +15909,7 @@ int _IS_CLEAR_PRACTICE(RS_STACKDATA *stack, int argc) {
     SetStack(stack, bonus);
     return 1;
 }
+
 int _IS_PLAY_SUB_GAME(RS_STACKDATA *stack, int argc) {
     CDngFloorManager *floor_manager;
     DNG_BATTLE_AREA  *dng_scene;
@@ -16130,9 +16174,11 @@ int _FUNC_POINT_GET_POS(RS_STACKDATA *stack, int argc) {
     SetStack(stack, pos[2]);
     return 1;
 }
+
 static inline CMap *GetActiveEventMap() {
     return EventScene->GetMap(EventScene->active_map);
 }
+
 int _FUNC_POINT_GET_ROT(RS_STACKDATA *stack, int argc) {
     float rot[4];
     CMap *map;
@@ -16170,7 +16216,7 @@ int _FUNC_POINT_GET_ROT(RS_STACKDATA *stack, int argc) {
     if (funcPoint == NULL) {
         return 0;
     }
-    *(u_long128 *)rot = *(u_long128 *)funcPoint->rotation;
+    *(u_long128 *) rot = *(u_long128 *) funcPoint->rotation;
     switch (argc) {
         case 3:
             SetStack(stack, rot[1]);
@@ -16185,6 +16231,7 @@ int _FUNC_POINT_GET_ROT(RS_STACKDATA *stack, int argc) {
     }
     return 1;
 }
+
 int _ACTCHR_SET_DEF_MOTION(RS_STACKDATA *stack, int argc) {
     int           chara_no;
     int           motion_arg = 0;
@@ -16413,7 +16460,7 @@ int _COPY_MONS2SCNCHR(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    EventScene->SetStatus(1, slot, 5);
+    EventScene->SetStatus(SCENE_DATA_CHARA, slot, 5);
     CCharacter2 *dest = GetCharacter(dst_no);
     CCharacter2 source = ActiveMonster->refer[monster_index].chara;
     source.Copy(*dest, memory);
@@ -16579,7 +16626,7 @@ int _DNG_SET_WEATHER(RS_STACKDATA *stack, int argc) {
     weather = GetStackInt(stack);
     info->weather = weather;
 
-    if (weather == 2) {
+    if (weather == (int) DNG_WEATHER_RAIN) {
         EventScene->AutoChangeEnvOffset(4);
     } else {
         EventScene->AutoChangeEnvOffset(0);
@@ -16670,7 +16717,7 @@ int _GOTO_USE_ITEM2(RS_STACKDATA *stack, int argc) {
 
     p_use_item = (RS_STACKDATA *) stack->val.i;
     stack++;
-    MenuArg.open_type = 9;
+    MenuArg.open_type = (int) MENU_OPEN_USE_ITEM;
     MenuArg.param[0] = GetStackInt(stack++);
 
     for (i = 1; i < argc - 1; i++) {
@@ -16781,6 +16828,7 @@ int _CLEAR_RND_STONE(RS_STACKDATA *stack, int argc) {
     AutoMapGen.ClearRandomStone();
     return 1;
 }
+
 int _GET_FLOOR_STATUS(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
         return 0;
@@ -16789,9 +16837,10 @@ int _GET_FLOOR_STATUS(RS_STACKDATA *stack, int argc) {
     if (info == NULL) {
         return 0;
     }
-    SetStack(stack, (int)((u_int)info->floor_status * 16 / 16));
+    SetStack(stack, (int) ((u_int) info->floor_status * 16 / 16));
     return 1;
 }
+
 int _SET_FLOOR_STATUS(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *info = (&EventScene->battle_area);
     RS_STACKDATA    *args = stack;
@@ -16820,7 +16869,7 @@ int _AMG_GET_ATTR_STATUS(RS_STACKDATA *stack, int argc) {
     }
     GetStackVector(position, stack);
 
-    stack = (RS_STACKDATA *)((u8 *)stack + 0x18);
+    stack = (RS_STACKDATA *) ((u8 *) stack + 0x18);
     SetStack(stack, AutoMapGen.GetAttrStatus(position));
     return 1;
 }

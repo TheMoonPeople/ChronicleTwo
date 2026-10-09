@@ -196,7 +196,7 @@ CMemoryCardManager::CMemoryCardManager() {
 }
 
 void CMemoryCardManager::Initialize(mgCMemory *memory) {
-    memset(this, 0, 0x1100);
+    memset(this, 0, sizeof(*this));
     strcpy(file_name, at_922__4);
     strcpy(game_name, at_923__5);
     port = 0;
@@ -225,10 +225,10 @@ void CMemoryCardManager::Initialize(mgCMemory *memory) {
     total_transferred = 0;
     transfer_result = 0;
     memset(work_buffer, 0, sizeof(work_buffer));
-    memset(&card[0], 0, 0x40);
+    memset(&card[0], 0, sizeof(card));
     InitPlayDataInfo();
     file_exists = 0;
-    memset(&icon[0], 0, 0x78);
+    memset(&icon[0], 0, sizeof(icon));
     card[0].present = 0;
     card[1].present = 0;
 }
@@ -1033,7 +1033,7 @@ int CMemoryCardManager::SaveToMc(int file_no) {
                 strcpy(save_buffer->version, version);
                 save_buffer->costume_bit = 0;
 
-                if (save->GetBitFlag(0x31F)) {
+                if (save->GetBitFlag((int) SAVE_FLAG_COSTUME_UNLOCK)) {
                     save_buffer->costume_bit = user_data->GetCostumeBit();
                 }
 
@@ -1044,7 +1044,7 @@ int CMemoryCardManager::SaveToMc(int file_no) {
                     save_buffer->omake_flag |= 1;
                 }
 
-                if (save->GetBitFlag(0x31F)) {
+                if (save->GetBitFlag((int) SAVE_FLAG_COSTUME_UNLOCK)) {
                     save_buffer->omake_flag |= 0x80;
                     save_buffer->omake_flag |= 2;
                 }
@@ -1375,7 +1375,7 @@ int CMemoryCardManager::SaveAlbum() {
         case 0:
             if (sceMcSync(1, NULL, NULL) != 0) {
                 InitError();
-                transfer_size = GetSaveDataSize(2);
+                transfer_size = GetSaveDataSize(MC_SIZE_ALBUM_FILE);
                 transfer_result = 0;
                 transferred = 0;
                 total_transferred = 0;
@@ -1494,7 +1494,7 @@ int CMemoryCardManager::LoadAlbum() {
         case 0:
             if (sceMcSync(1, NULL, NULL) != 0) {
                 InitError();
-                transfer_size = GetSaveDataSize(2);
+                transfer_size = GetSaveDataSize(MC_SIZE_ALBUM_FILE);
                 memset(album_buffer, 0, transfer_size);
                 transfer_result = 0;
                 transferred = 0;
@@ -1647,7 +1647,7 @@ int CMemoryCardManager::CheckAlbum() {
                     dir_entries = result;
                     unsigned int file_size = dir_table[0].file_size;
 
-                    if (file_size < GetSaveDataSize(2)) {
+                    if (file_size < GetSaveDataSize(MC_SIZE_ALBUM_FILE)) {
                         error_record->code = 3;
                         *album_found = 0;
                     }
@@ -2025,7 +2025,7 @@ int CMemoryCardManager::CheckOmakeFile() {
                     dir_entries = result;
                     unsigned int file_size = dir_table[6].file_size;
 
-                    if (file_size < GetSaveDataSize(7)) {
+                    if (file_size < GetSaveDataSize(MC_SIZE_OMAKE_FILE)) {
                         error_record->code = 3;
                         *album_found = 0;
                     }
@@ -2429,11 +2429,12 @@ int CMemoryCardManager::GetSaveFileInfoFromMc(int index, int *step) {
 
     return 0;
 }
+
 int CMemoryCardManager::GetAllSaveFileInfo() {
     McSaveDirPattern pattern;
-    int result;
-    int command;
-    int sub_step;
+    int              result;
+    int              command;
+    int              sub_step;
 
     result = 0;
     if (init_2291 == 0) {
@@ -2495,6 +2496,7 @@ int CMemoryCardManager::GetAllSaveFileInfo() {
     }
     return 0;
 }
+
 int McCheckMCPs2(MC_CARD_INFO *info) {
     if (info == NULL) {
         return 0;

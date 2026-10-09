@@ -20,7 +20,6 @@
 #include "scene.hpp"
 #include "scenesnd.hpp"
 
-
 /**
  *
  * Effect vector viewed as four floats or a quadword.
@@ -586,7 +585,7 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
         }
     }
 
-    token = work_memory->StartStackMode(3, base->work_size);
+    token = work_memory->StartStackMode((int) MG_STACK_MODE_FIT, base->work_size);
 
     if (token == 0) {
         printf(at_1340__2, work_memory->stack_size - work_memory->stack_used);
@@ -640,7 +639,7 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
     script->origin[2] = 0.0f;
     script->origin[3] = 0.0f;
     script->auto_offset = 0;
-    memset(script->offset_frame, 0, 0x20);
+    memset(script->offset_frame, 0, sizeof(script->offset_frame));
 
     for (int i = 0; i < EFF_SPT_VALUE_MAX; i++) {
         script->value[i].i = 0;
@@ -1094,7 +1093,7 @@ _ES_SPRITE *CEffectScriptMan::AssignSprite(int count) {
     u_int size = count * sizeof(_ES_SPRITE);
     u_int blocks = align16_blocks(size) + 3;
 
-    if (work_memory->StartStackMode(3, blocks) == 0) {
+    if (work_memory->StartStackMode((int) MG_STACK_MODE_FIT, blocks) == 0) {
         printf(at_1655__5, blocks);
         return 0;
     }
@@ -1125,7 +1124,7 @@ int CEffectScriptMan::AssignCharacter(_EFF_SCRIPT *script, int count) {
     }
 
     int        size = count * (script->chara->GetCopySize() + 0x68);
-    u_long128 *token = work_memory->StartStackMode(3, size);
+    u_long128 *token = work_memory->StartStackMode((int) MG_STACK_MODE_FIT, size);
 
     if (token == 0) {
         printf(at_1705, size);
@@ -1541,7 +1540,7 @@ CCharacter2 *CEffectScriptMan::GetCharacter(int group, int slot) {
 #ifdef NONMATCHING
 int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
     int        chara_blocks = (source)->GetCopySize() + 0x68;
-    u_long128 *token = work_memory->StartStackMode(3, chara_blocks);
+    u_long128 *token = work_memory->StartStackMode((int) MG_STACK_MODE_FIT, chara_blocks);
 
     if (token == 0) {
         printf(at_2025__3);
@@ -1642,7 +1641,7 @@ static void DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, sceVu0FVE
     int         component;
     test->bits.zte = 1;
     test->bits.ztst = 2;
-    environment.SetZBuf(-1);
+    environment.SetZBuf(MG_ZBUF_NO_WRITE);
     environment.SetAlpha(alpha);
     renderer->CPSetDrawEnv(&environment);
     renderer->CPSetTexture(texture);
@@ -1659,7 +1658,7 @@ static void DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, sceVu0FVE
                 sceGsTest *next_test = &next_environment.test;
                 next_test->bits.zte = 1;
                 next_test->bits.ztst = 2;
-                next_environment.SetZBuf(-1);
+                next_environment.SetZBuf(MG_ZBUF_NO_WRITE);
                 next_environment.SetAlpha(alpha);
                 renderer->CPSetDrawEnv(&next_environment);
                 renderer->CPSetTexture(texture);

@@ -37,7 +37,7 @@ public:
                                    const CXXRecordDecl *base_record = base.getType()->getAsCXXRecordDecl();
 
                                    return base_record && base_record->hasDefinition() && base_record->isDynamicClass();
-                                      });
+                               });
         const Decl *first_function = nullptr;
         bool        virtual_seen = false;
 

@@ -73,8 +73,8 @@ STATIC_ASSERT(sizeof(DA_BIND_VERTEX) == 0x10);
  *
  */
 struct DA_BOUNDING_BOX {
-    sceVu0FVECTOR min; /**< Minimum corner of the animated bounding box. */
-    sceVu0FVECTOR max; /**< Maximum corner of the animated bounding box. */
+    sceVu0FVECTOR min;      /**< Minimum corner of the animated bounding box. */
+    sceVu0FVECTOR max;      /**< Maximum corner of the animated bounding box. */
     int           frame_id; /**< Index in the frame table of the frame the box belongs to, or -1. */
 };
 

@@ -22,18 +22,18 @@
 #include "scriptinterpreter.hpp"
 #include "water.hpp"
 
-extern CFuncPoint   *mapNowFuncPoint;
-extern int           mapCameraInfoIdx;
-extern int           mapCameraRectIdx;
-extern int           mapFuncPointIdx;
-extern float         mapFarDist;
-extern int           mapFarAlpha;
-extern int           mapShow;
-extern char          mapMapPartsName[0x100];
-extern char          mapPlacePartsName[0x100];
-extern CWaterFrame  *cfgWater;
-extern int           WaterIndex;
-extern int           ReserveFuncFlag;
+CFuncPoint          *mapNowFuncPoint;
+int                  mapCameraInfoIdx;
+int                  mapCameraRectIdx;
+int                  mapFuncPointIdx;
+float                mapFarDist;
+int                  mapFarAlpha;
+int                  mapShow;
+char                 mapMapPartsName[0x100];
+char                 mapPlacePartsName[0x100];
+CWaterFrame         *cfgWater;
+int                  WaterIndex;
+int                  ReserveFuncFlag;
 extern SPI_TAG_PARAM map_tag[];
 extern SPI_TAG_PARAM cfg_tag[];
 extern char          at_1064[];
@@ -125,7 +125,7 @@ int                  cfgWATER_SURFACE_END(SPI_STACK *stack, int argc);
 int                  cfgWATER_DRAW(SPI_STACK *stack, int argc);
 
 /** Non-zero when loading an additional map into the current map. */
-extern int mapAddMode;
+int mapAddMode;
 
 /**
  *
@@ -1063,7 +1063,7 @@ int mapPIECE_MATERIAL(SPI_STACK *stack, int argc) {
     slot->color[1] = spiGetStackFloat(stack++);
     slot->color[2] = spiGetStackFloat(stack++);
     slot->color[3] = spiGetStackFloat(stack++);
-    slot->unk_c = spiGetStackInt(stack);
+    slot->color_no = spiGetStackInt(stack);
     return 1;
 }
 
@@ -1657,7 +1657,7 @@ int mapFUNC_FLAG(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    mapNowFuncPoint->unk_c = spiGetStackInt(stack++);
+    mapNowFuncPoint->flag_no = spiGetStackInt(stack++);
     mapNowFuncPoint->unk_8 = spiGetStackInt(stack++);
     mapNowFuncPoint->start = spiGetStackFloat(stack++);
     mapNowFuncPoint->end = spiGetStackFloat(stack);
@@ -2044,7 +2044,7 @@ int mapFUNC_POS(SPI_STACK *stack, int argc) {
             offset[2] = -12.0f;
         }
 
-        mgUnitMatrix((float (*)[4]) matrix);
+        mgUnitMatrix((float(*)[4]) matrix);
         sceVu0RotMatrixY(matrix, matrix, rot[1]);
         sceVu0ApplyMatrix(offset, matrix, offset);
         mgAddVector(pos, offset);
@@ -2546,22 +2546,8 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", at_1544__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", __vt__17CList_9CMapPiece___DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapload", __vt__17CList_9CMapParts___DATA);
 
-INCLUDE_BSS(mapFarDist, 0x4);
-INCLUDE_BSS(mapFarAlpha, 0x4);
-INCLUDE_BSS(mapShow, 0x4);
-INCLUDE_BSS(mapCameraInfoIdx, 0x4);
-INCLUDE_BSS(mapCameraRectIdx, 0x4);
-INCLUDE_BSS(mapFuncPointIdx, 0x4);
-INCLUDE_BSS(mapNowFuncPoint, 0x4);
-INCLUDE_BSS(mapAddMode, 0x4);
-INCLUDE_BSS(ReserveFuncFlag, 0x4);
-INCLUDE_BSS(WaterIndex, 0x4);
-INCLUDE_BSS(cfgWater, 0x4);
-
 // Uninitialised data (.bss)
-INCLUDE_BSS(mapPlacePartsName, 0x100);
-INCLUDE_BSS(mapMapPartsName, 0x100);
-INCLUDE_BSS(mapMapPartsGroupName, 0x100);
-INCLUDE_BSS(mapPos, 0x10);
-INCLUDE_BSS(mapRot, 0x10);
-INCLUDE_BSS(mapScale, 0x10);
+char          mapMapPartsGroupName[0x100];
+sceVu0FVECTOR mapPos;
+sceVu0FVECTOR mapRot;
+sceVu0FVECTOR mapScale;

@@ -1450,7 +1450,7 @@ void sndSetSeVolf(unsigned int snd_id, int se_no, float vol, int voice) {
 void sndSetSePanf(unsigned int snd_id, int se_no, float pan, int voice) {
     int driver_pan;
 
-    driver_pan = (int)(64.0f * pan) + 64;
+    driver_pan = (int) (64.0f * pan) + 64;
     if (driver_pan < 0) {
         driver_pan = 0;
     }
@@ -1827,7 +1827,7 @@ void sndPortInfo::LoadSeInfoTxt(int bank_no, char *text, int size, mgCMemory *me
         return;
     }
     end = text + size;
-    char        *col[9] = { number, name, description, category, filename, program, key, flag, NULL };
+    char *col[9] = {number, name, description, category, filename, program, key, flag, NULL};
     begin = text;
     bank_info->se_num = 0;
     while (text < end) {

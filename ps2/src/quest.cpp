@@ -17,10 +17,10 @@ static CQuestManager *spi_questman;   /**< Request list currently being read fro
 static mgCMemory     *spi_queststack; /**< Heap used for the request list. */
 static QUEST_INFO    *spi_quest_info; /**< Request currently being filled. */
 
-int quest_NUM(SPI_STACK *stack, int arg_count);
-int quest_NEW(SPI_STACK *stack, int arg_count);
-int quest_COMMENT(SPI_STACK *stack, int arg_count);
-int quest_END(SPI_STACK *stack, int arg_count);
+int                  quest_NUM(SPI_STACK *stack, int arg_count);
+int                  quest_NEW(SPI_STACK *stack, int arg_count);
+int                  quest_COMMENT(SPI_STACK *stack, int arg_count);
+int                  quest_END(SPI_STACK *stack, int arg_count);
 static SPI_TAG_PARAM quest_cmd_tag[] = {
     {"NUM",     quest_NUM    },
     {"NEW",     quest_NEW    },

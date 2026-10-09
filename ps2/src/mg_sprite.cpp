@@ -81,24 +81,24 @@ struct SpriteGifTagBuf {
 extern SpriteGifTagBuf sprite_giftag;
 
 // Code (.text)
-int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4],
+int mgC3DSprite::CreateRenderInfoPacket(u_int         *dest, float (*matrix)[4],
                                         mgRENDER_INFO *render_info) {
-    sceVu0FMATRIX local_screen;
-    sceVu0IVECTOR zero = {0, 0, 0, 0};
-    u_int *packet;
-    float scale_x;
+    sceVu0FMATRIX         local_screen;
+    sceVu0IVECTOR         zero = {0, 0, 0, 0};
+    u_int                *packet;
+    float                 scale_x;
     mg3DSpriteRenderHead *head;
-    u_int flags;
-    float scale_y;
-    float scale_z;
-    mgCFrameAttr *attr;
-    u_int fog_color;
-    int size;
+    u_int                 flags;
+    float                 scale_y;
+    float                 scale_z;
+    mgCFrameAttr         *attr;
+    u_int                 fog_color;
+    int                   size;
     mg3DSpriteRenderTail *tail;
-    float (*view_screen)[4];
+    float(*view_screen)[4];
 
     mgMulMatrix(local_screen, render_info->world_screen, matrix);
-    head = (mg3DSpriteRenderHead *)(packet = (u_int *)GetScrPad());
+    head = (mg3DSpriteRenderHead *) (packet = (u_int *) GetScrPad());
     render_info->GetpLightInfo();
 
     head->dma_tag[0] = MG_DMA_CNT;
@@ -108,18 +108,18 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4],
     head->vif_code[0] = 0;
     head->vif_code[1] = MG_VIF_BASE | 0x3C;
     head->vif_code[2] = MG_VIF_OFFSET | 0xB4;
-    *(u_long128 *)head->unk_20[0] = *(u_long128 *)zero;
-    *(u_long128 *)head->unk_20[1] = *(u_long128 *)zero;
-    *(u_long128 *)head->unk_20[2] = *(u_long128 *)zero;
+    *(u_long128 *) head->unk_20[0] = *(u_long128 *) zero;
+    *(u_long128 *) head->unk_20[1] = *(u_long128 *) zero;
+    *(u_long128 *) head->unk_20[2] = *(u_long128 *) zero;
     head->unk_50[0] = render_info->render_params[3];
-    ((float *)head->unk_50)[1] = ((float *)render_info->render_params)[0];
-    ((float *)head->unk_50)[2] = ((float *)render_info->render_params)[1];
-    ((float *)head->unk_50)[3] = ((float *)render_info->render_params)[2];
+    ((float *) head->unk_50)[1] = ((float *) render_info->render_params)[0];
+    ((float *) head->unk_50)[2] = ((float *) render_info->render_params)[1];
+    ((float *) head->unk_50)[3] = ((float *) render_info->render_params)[2];
     sceVu0CopyMatrix(head->local_screen, local_screen);
     sceVu0CopyMatrix(head->local_world, matrix);
     render_info->scissor = 0;
 
-    tail = (mg3DSpriteRenderTail *)(head + 1);
+    tail = (mg3DSpriteRenderTail *) (head + 1);
     head->fog[0] = render_info->fog.offset;
     head->fog[1] = render_info->fog.near_value;
     head->fog[2] = render_info->fog.far_value;
@@ -128,16 +128,16 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4],
     scale_x = mgDistVector(matrix[0]);
     scale_y = mgDistVector(matrix[1]);
     scale_z = mgDistVector(matrix[2]);
-    *(u_long128 *)tail->view_screen[0] = *(u_long128 *)render_info->view_screen[0];
-    *(u_long128 *)tail->view_screen[1] = *(u_long128 *)render_info->view_screen[1];
-    *(u_long128 *)tail->view_screen[2] = *(u_long128 *)render_info->view_screen[2];
-    *(u_long128 *)tail->view_screen[3] = *(u_long128 *)render_info->view_screen[3];
+    *(u_long128 *) tail->view_screen[0] = *(u_long128 *) render_info->view_screen[0];
+    *(u_long128 *) tail->view_screen[1] = *(u_long128 *) render_info->view_screen[1];
+    *(u_long128 *) tail->view_screen[2] = *(u_long128 *) render_info->view_screen[2];
+    *(u_long128 *) tail->view_screen[3] = *(u_long128 *) render_info->view_screen[3];
     view_screen = tail->view_screen;
     sceVu0ScaleVectorXYZ(view_screen[0], view_screen[0], scale_x);
     sceVu0ScaleVectorXYZ(view_screen[1], view_screen[1], scale_y);
     sceVu0ScaleVectorXYZ(view_screen[2], view_screen[2], scale_z);
 
-    head->vif_code[3] = MG_VIF_UNPACK_V4_32 | ((u_int)((u_int *)tail->program_call - head->vif_code) / 4 -
+    head->vif_code[3] = MG_VIF_UNPACK_V4_32 | ((u_int) ((u_int *) tail->program_call - head->vif_code) / 4 -
                                                1) << MG_VIF_NUM_SHIFT;
     tail->program_call[0] = 0;
     tail->program_call[1] = 0;
@@ -209,7 +209,7 @@ int mgC3DSprite::CreateRenderInfoPacket(u_int *dest, float (*matrix)[4],
     tail->ret_tag[2] = 0;
     tail->ret_tag[3] = 0;
 
-    size = ((u_int *)(tail + 1) - packet) / 4;
+    size = ((u_int *) (tail + 1) - packet) / 4;
     SendDMA(dest, size);
     return size;
 }

@@ -155,7 +155,7 @@ void DrawActiveItemCursor(int x, int y, float alpha) {
     sprite.Bilinear(1);
     sprite.Begin(MG_PRIM_TRIANGLE);
     sprite.Texture(TEX_SystenFrame);
-    sprite.SetAlphaBlend(2);
+    sprite.SetAlphaBlend(MG_ALPHA_BLEND_ADD);
     sprite.Color(0x80, 0x80, 0x80, fptosi(128.0f * alpha));
 
     if (init_1006 == 0) {

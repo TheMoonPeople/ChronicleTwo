@@ -188,11 +188,13 @@ void CEffect::SetEffect(EFFECT_PARAM *param) {
     tex_count = 0;
     memcpy(&this->param, param, sizeof(EFFECT_PARAM));
 }
+
 static inline void GravityAbs(float *step) {
     if (*step < 0.0f) {
         *step = -*step;
     }
 }
+
 static inline void GravityPull(float *pos, float *target, float *step) {
     if (*pos < *target) {
         *pos += *step;
@@ -206,6 +208,7 @@ static inline void GravityPull(float *pos, float *target, float *step) {
         }
     }
 }
+
 void CEffect::Step(int steps) {
     int                channel;
     sceVu0FVECTOR      gravity_step;
@@ -260,111 +263,111 @@ void CEffect::Step(int steps) {
 
     for (channel = 0; channel < 6; channel++) {
         switch (channel) {
-        case 0:
-            change = param.move_type[0];
-            amount = param.move_p1[0];
-            timing = param.move_p2[0];
-            value = &pos[0];
-            break;
-        case 1:
-            change = param.move_type[1];
-            amount = param.move_p1[1];
-            timing = param.move_p2[1];
-            value = &pos[1];
-            break;
-        case 2:
-            change = param.move_type[2];
-            amount = param.move_p1[2];
-            timing = param.move_p2[2];
-            value = &pos[2];
-            break;
-        case 3:
-            change = param.scale_type[0];
-            amount = param.scale_p1[0];
-            timing = param.scale_p2[0];
-            value = &scale[0];
-            break;
-        case 4:
-            change = param.scale_type[1];
-            amount = param.scale_p1[1];
-            timing = param.scale_p2[1];
-            value = &scale[1];
-            break;
-        case 5:
-            change = param.alpha_type;
-            amount = param.alpha_p1;
-            timing = param.alpha_p2;
-            value = &alpha;
-            break;
+            case 0:
+                change = param.move_type[0];
+                amount = param.move_p1[0];
+                timing = param.move_p2[0];
+                value = &pos[0];
+                break;
+            case 1:
+                change = param.move_type[1];
+                amount = param.move_p1[1];
+                timing = param.move_p2[1];
+                value = &pos[1];
+                break;
+            case 2:
+                change = param.move_type[2];
+                amount = param.move_p1[2];
+                timing = param.move_p2[2];
+                value = &pos[2];
+                break;
+            case 3:
+                change = param.scale_type[0];
+                amount = param.scale_p1[0];
+                timing = param.scale_p2[0];
+                value = &scale[0];
+                break;
+            case 4:
+                change = param.scale_type[1];
+                amount = param.scale_p1[1];
+                timing = param.scale_p2[1];
+                value = &scale[1];
+                break;
+            case 5:
+                change = param.alpha_type;
+                amount = param.alpha_p1;
+                timing = param.alpha_p2;
+                value = &alpha;
+                break;
         }
 
         switch (change) {
-        case EFFECT_CHANGE_ADD:
-            life = param.life;
-            if (life > 0.0f) {
-                float per_frame = timing * (amount / life);
-                per_frame *= (float)frame;
-                *value += per_frame;
-            }
-            break;
-        case EFFECT_CHANGE_SUB:
-            life = param.life;
-            if (life > 0.0f) {
-                rate = timing * (amount / life);
-                rate *= (float)frame;
-                *value -= rate;
-            }
-            break;
-        case EFFECT_CHANGE_ADD_HEAD:
-            life = param.life;
-            if (life > 0.0f) {
-                duration = life * timing;
-                rate = amount / duration;
-                if ((float)frame < duration) {
-                    rate *= (float)frame;
-                    *value += rate;
-                } else {
-                    rate *= duration;
-                    *value += rate;
+            case EFFECT_CHANGE_ADD:
+                life = param.life;
+                if (life > 0.0f) {
+                    float per_frame = timing * (amount / life);
+                    per_frame *= (float) frame;
+                    *value += per_frame;
                 }
-            }
-            break;
-        case EFFECT_CHANGE_SUB_TAIL:
-            life = param.life;
-            if (life > 0.0f) {
-                duration = life * timing;
-                rate = amount / duration;
-                if ((float)frame > duration) {
-                    rate *= ((float)frame - duration);
+                break;
+            case EFFECT_CHANGE_SUB:
+                life = param.life;
+                if (life > 0.0f) {
+                    rate = timing * (amount / life);
+                    rate *= (float) frame;
                     *value -= rate;
                 }
-            }
-            break;
-        case EFFECT_CHANGE_ADD_HEAD_TAIL:
-            int total = param.life;
-            life = total;
-            if (life > 0.0f) {
-                duration = life * timing;
-                rate = amount / duration;
-                if ((float)frame < duration) {
-                    rate *= (float)frame;
-                    *value += rate;
-                } else if ((float)frame > life - duration) {
-                    rate *= (float)(total - frame);
-                    *value += rate;
-                } else {
-                    rate *= duration;
-                    *value += rate;
+                break;
+            case EFFECT_CHANGE_ADD_HEAD:
+                life = param.life;
+                if (life > 0.0f) {
+                    duration = life * timing;
+                    rate = amount / duration;
+                    if ((float) frame < duration) {
+                        rate *= (float) frame;
+                        *value += rate;
+                    } else {
+                        rate *= duration;
+                        *value += rate;
+                    }
                 }
-            }
-            break;
-        case EFFECT_CHANGE_SINE:
-            life = param.life;
-            if (life > 0.0f) {
-                duration = life * timing;
-                *value += (float)(amount * sin((frame * (360.0f / duration)) * 0.017453293005625408));
-            }
-            break;
+                break;
+            case EFFECT_CHANGE_SUB_TAIL:
+                life = param.life;
+                if (life > 0.0f) {
+                    duration = life * timing;
+                    rate = amount / duration;
+                    if ((float) frame > duration) {
+                        rate *= ((float) frame - duration);
+                        *value -= rate;
+                    }
+                }
+                break;
+            case EFFECT_CHANGE_ADD_HEAD_TAIL:
+                int total = param.life;
+                life = total;
+                if (life > 0.0f) {
+                    duration = life * timing;
+                    rate = amount / duration;
+                    if ((float) frame < duration) {
+                        rate *= (float) frame;
+                        *value += rate;
+                    } else if ((float) frame > life - duration) {
+                        rate *= (float) (total - frame);
+                        *value += rate;
+                    } else {
+                        rate *= duration;
+                        *value += rate;
+                    }
+                }
+                break;
+            case EFFECT_CHANGE_SINE:
+                life = param.life;
+                if (life > 0.0f) {
+                    duration = life * timing;
+                    *value += (float) (amount * sin((frame * (360.0f / duration)) * 0.017453293005625408));
+                }
+                break;
         }
     }
 
@@ -391,6 +394,7 @@ void CEffect::Step(int steps) {
         tex_rect[3] = param.tex_rect[tex_index][3];
     }
 }
+
 void CEffect::Draw() {
     mgCDrawPrim prim;
     int         corner_a[4];
@@ -1008,7 +1012,7 @@ CEffectCtrl &CEffectCtrl::operator=(const CEffectCtrl &other) {
     alpha_p1_rand_count = other.alpha_p1_rand_count;
     alpha_p2_rand_count = other.alpha_p2_rand_count;
     tex_rect_num = other.tex_rect_num;
-    memcpy(tex_rect, other.tex_rect, 0x80);
+    memcpy(tex_rect, other.tex_rect, sizeof(tex_rect));
     texture = other.texture;
     tex_get_type = other.tex_get_type;
     gravity = other.gravity;

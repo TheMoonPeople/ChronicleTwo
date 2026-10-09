@@ -16,6 +16,7 @@
 #include "mg_math.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
+#include "nd_meswin.hpp"
 #include "prespr.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
@@ -23,8 +24,6 @@
 #include "sound.hpp"
 #include "sysmes.hpp"
 #include "userdata.hpp"
-
-#include "nd_meswin.hpp"
 
 // Code (.text)
 ClsMes *GetSystemMessage() {

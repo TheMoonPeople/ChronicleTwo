@@ -166,7 +166,9 @@ form the frame; the reaction adds 24 pixels to the sixth height, while scoop mod
 eight pixels from the fourth and zeroes the fifth and sixth. The debug overlay reads the
 same quest and scoop records to label their two state bytes. In the quest row, storing both
 the x constant and the `y - 2` position before calling `PrimQuad` gives MWCC the retail
-register assignment. The complete function matches retail with the two initializer gaps.
+register assignment. The function is now active C++ and passes the complete
+object comparison, including resolved relocations. The two initializer gaps
+remain assembly.
 
 ## Compiler flag
 The local `divbyzerocheck on/reset` pair around `CMenuQuestView` is redundant with the

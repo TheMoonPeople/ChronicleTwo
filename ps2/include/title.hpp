@@ -36,6 +36,7 @@ enum TitleMode {
     TITLE_MODE_SUBGAME_MENU = 7,  /**< Mini-game save menu opened from the extras menu. */
     TITLE_MODE_LANG_SELECT  = 8,  /**< Language selection. */
 };
+
 // clang-format on
 
 /**
@@ -58,6 +59,7 @@ enum TitlePhaseNo {
     TITLE_PHASE_OMAKE         = 11, /**< Fading out to the mini-game save menu. */
     TITLE_PHASE_MC_MESSAGE    = 20, /**< Showing a memory card message; tested but never entered. */
 };
+
 // clang-format on
 
 /**
@@ -73,6 +75,7 @@ enum TitleMenuItem {
     TITLE_MENU_OPTION      = 3, /**< Option menu. */
     TITLE_MENU_HDD_INSTALL = 4, /**< Hard disk installer, offered only when TitleHDDCheckFlag is set. */
 };
+
 // clang-format on
 
 /**
@@ -93,6 +96,7 @@ enum TitleKeyResult {
     TITLE_KEY_DEMO_TIMEOUT  = 11,   /**< End the title for a demo disc time-out. */
     TITLE_KEY_OMAKE         = 1000, /**< Open the mini-game save menu. */
 };
+
 // clang-format on
 
 /**
@@ -107,6 +111,7 @@ enum RushPhase {
     RUSH_PHASE_FADE_OUT = 2, /**< Fading out after the movie ended or was skipped. */
     RUSH_PHASE_END      = 3, /**< Ended; the movie is released on the next draw. */
 };
+
 // clang-format on
 
 /**
@@ -129,6 +134,7 @@ enum CopyRightPhase {
     COPYRIGHT_PHASE_MOVIE_END      = 5,   /**< Releasing the logo movie. */
     COPYRIGHT_PHASE_END            = 6,   /**< Finished. */
 };
+
 // clang-format on
 
 /**
@@ -150,6 +156,7 @@ enum HddInstallPhase {
     HDD_PHASE_IMAGE_FADE    = 9,  /**< Fading out the illustrations shown during the installation. */
     HDD_PHASE_ERROR         = 10, /**< Showing why installation is not possible. */
 };
+
 // clang-format on
 
 /**
@@ -163,6 +170,7 @@ enum HddConfirmType {
     HDD_CONFIRM_INSTALL = 0, /**< Whether to install. */
     HDD_CONFIRM_EXIT    = 1, /**< Whether to leave the installer. */
 };
+
 // clang-format on
 
 /**
@@ -181,6 +189,7 @@ enum TitleMcCheckPhase {
     TITLE_MC_PHASE_OMAKE_2 = 5, /**< Reading the mini-game data on the card in port 2. */
     TITLE_MC_PHASE_END     = 6, /**< Both cards checked; showing a message if one is needed. */
 };
+
 // clang-format on
 
 /**
@@ -195,6 +204,7 @@ enum TitleCameraPhaseNo {
     TITLE_CAMERA_HOLD     = 1, /**< Holding still. */
     TITLE_CAMERA_ORBIT    = 2, /**< Turning once around the scene. */
 };
+
 // clang-format on
 
 /**
@@ -208,6 +218,7 @@ enum TitleLangPhase {
     TITLE_LANG_SELECT   = 1, /**< Choosing a language. */
     TITLE_LANG_FADE_OUT = 2, /**< Fading the screen out. */
 };
+
 // clang-format on
 
 /**
@@ -220,6 +231,7 @@ enum OmakeType {
     OMAKE_TYPE_DUNGEON = 0, /**< Extra played in the dungeon mode, starting with event 6000. */
     OMAKE_TYPE_GYORACE = 1, /**< Fish race extra played in the town mode. */
 };
+
 // clang-format on
 
 /**
@@ -233,6 +245,7 @@ enum OmakePlayEnableBit {
     OMAKE_ENABLE_DUNGEON = 0x02, /**< The dungeon extra may be played. */
     OMAKE_ENABLE_COSTUME = 0x80, /**< A new game is given the costumes in CostumeOptionEnv. */
 };
+
 // clang-format on
 
 /**

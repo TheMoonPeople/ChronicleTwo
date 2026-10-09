@@ -34,37 +34,48 @@ enum {
     kDoorPartsLast = kDoorPartsEnd - 1
 };
 
-extern MINIMAP_SYMBOL_INFO symbol_table[];
-extern int                 cax;
-extern int                 cay;
-extern CAutoMapGen        *auto_map;
-extern mgCMemory          *nowPrisetStack;
-extern AUTOMAP_ROOM_INFO  *nowPriset;
-extern int                 nowPrisetNum;
-extern s16                *nowPrisetTable;
-extern SPI_TAG_PARAM       tag__4[];
-extern char                at_1111[];
-extern char                at_2119__2[];
-extern char                at_2125__2[];
-extern char                at_2126__2[];
-extern char                at_2128__2[];
-extern char                at_2270[];
-extern char                at_2347[];
-extern char                at_2348[];
-extern char                at_2349[];
-extern char                at_2289[];
-extern char                at_2290[];
-extern char                at_2377__2[];
-extern char                at_1661[];
-extern char                at_2561[];
-extern char                at_2609[];
-int                        _ROOM_FIXED(SPI_STACK *stack, int arg_count);
-int                        _GRID_SIZE(SPI_STACK *stack, int unused);
-int                        _ROOM_ID(SPI_STACK *stack, int arg_count);
-int                        _ROOM_SIZE(SPI_STACK *stack, int arg_count);
-int                        _ROOM_RATE(SPI_STACK *stack, int arg_count);
-int                        _RD(SPI_STACK *stack, int arg_count);
-int                        _ROOM_END(SPI_STACK *stack, int arg_count);
+MINIMAP_SYMBOL_INFO symbol_table[] = {
+    {MINIMAP_SYMBOL_MONSTER_BLINK, 255, 0,   0,   10, 10, 1, 1},
+    {MINIMAP_SYMBOL_MONSTER,       255, 0,   0,   10, 10, 0, 1},
+    {MINIMAP_SYMBOL_TREASURE_BOX,  96,  64,  0,   10, 10, 0, 1},
+    {MINIMAP_SYMBOL_RANDOM_CIRCLE, 255, 255, 0,   10, 10, 0, 1},
+    {MINIMAP_SYMBOL_GEOSTONE,      255, 0,   180, 10, 10, 0, 1},
+    {MINIMAP_SYMBOL_SPHIDA_6,      255, 0,   0,   10, 10, 1, 0},
+    {MINIMAP_SYMBOL_SPHIDA_7,      0,   0,   255, 10, 10, 1, 0},
+    {MINIMAP_SYMBOL_SPHIDA_4,      255, 0,   0,   14, 14, 0, 0},
+    {MINIMAP_SYMBOL_SPHIDA_5,      0,   64,  255, 14, 14, 0, 0},
+    {MINIMAP_SYMBOL_END,           0,   0,   0,   0,  0,  0, 0},
+};
+extern int                cax;
+extern int                cay;
+extern CAutoMapGen       *auto_map;
+extern mgCMemory         *nowPrisetStack;
+extern AUTOMAP_ROOM_INFO *nowPriset;
+extern int                nowPrisetNum;
+extern s16               *nowPrisetTable;
+extern SPI_TAG_PARAM      tag__4[];
+extern char               at_1111[];
+extern char               at_2119__2[];
+extern char               at_2125__2[];
+extern char               at_2126__2[];
+extern char               at_2128__2[];
+extern char               at_2270[];
+extern char               at_2347[];
+extern char               at_2348[];
+extern char               at_2349[];
+extern char               at_2289[];
+extern char               at_2290[];
+extern char               at_2377__2[];
+extern char               at_1661[];
+extern char               at_2561[];
+extern char               at_2609[];
+int                       _ROOM_FIXED(SPI_STACK *stack, int arg_count);
+int                       _GRID_SIZE(SPI_STACK *stack, int unused);
+int                       _ROOM_ID(SPI_STACK *stack, int arg_count);
+int                       _ROOM_SIZE(SPI_STACK *stack, int arg_count);
+int                       _ROOM_RATE(SPI_STACK *stack, int arg_count);
+int                       _RD(SPI_STACK *stack, int arg_count);
+int                       _ROOM_END(SPI_STACK *stack, int arg_count);
 
 /**
  *
@@ -164,6 +175,7 @@ void CMiniMapSymbol::DrawSymbolClose() {
         blink_cnt = 0;
     }
 }
+
 void CMiniMapSymbol::DrawSymbol(float *pos, int symbol) {
     float delta[4];
 
@@ -173,11 +185,11 @@ void CMiniMapSymbol::DrawSymbol(float *pos, int symbol) {
     sceVu0SubVector(delta, pos, center);
     float sizeX = cell_w;
     float ratio = delta[0] / sizeX;
-    int screen_x = x + (int)(16.0f * ratio);
-    int screen_y = y + (int)(16.0f * (delta[2] / cell_d));
-    int cell_x = (int)((pos[0] + 0.5f * sizeX) / sizeX);
-    int cell_z = (int)((pos[2] + 0.5f * cell_d) / cell_d);
-    int revealed = 0;
+    int   screen_x = x + (int) (16.0f * ratio);
+    int   screen_y = y + (int) (16.0f * (delta[2] / cell_d));
+    int   cell_x = (int) ((pos[0] + 0.5f * sizeX) / sizeX);
+    int   cell_z = (int) ((pos[2] + 0.5f * cell_d) / cell_d);
+    int   revealed = 0;
     if (grid != NULL && (grid + cell_z * grid_w)[cell_x].visible != 0) {
         revealed = 1;
     }
@@ -194,6 +206,7 @@ void CMiniMapSymbol::DrawSymbol(float *pos, int symbol) {
         }
     }
 }
+
 void CMiniMapSymbol::DrawSymbol_Chara(CCharacter2 *chara) {
     float pos[4];
     float rot[4];
@@ -207,9 +220,9 @@ void CMiniMapSymbol::DrawSymbol_Chara(CCharacter2 *chara) {
     chara->GetPosition(pos);
     chara->GetRotation(rot);
     sceVu0SubVector(pos, pos, center);
-    int screen_x = x + (int)(16.0f * (pos[0] / cell_w)) + 8;
-    int screen_y = y + (int)(16.0f * (pos[2] / cell_d)) + 8;
-    float angle = rot[1];
+    int        screen_x = x + (int) (16.0f * (pos[0] / cell_w)) + 8;
+    int        screen_y = y + (int) (16.0f * (pos[2] / cell_d)) + 8;
+    float      angle = rot[1];
     CPreSprite sprite;
     sprite.Initialize(NULL, NULL);
     sprite.Preset2D();
@@ -217,25 +230,26 @@ void CMiniMapSymbol::DrawSymbol_Chara(CCharacter2 *chara) {
     sprite.Color(0x80, 0x80, 0x80, 0x60);
     sprite.Texture(TEX_SystenFrame);
     sprite.SetScirror(x - w / 2, y - h / 2, w, h);
-    int off_x = (int)(-7.0f * sinf(angle) - -6.0f * cosf(angle));
-    int off_y = (int)(-6.0f * sinf(angle) + -7.0f * cosf(angle));
+    int off_x = (int) (-7.0f * sinf(angle) - -6.0f * cosf(angle));
+    int off_y = (int) (-6.0f * sinf(angle) + -7.0f * cosf(angle));
     sprite.TextureCrd(0xC4, 0xF2);
     sprite.Vertex(screen_x + off_x, screen_y + off_y, 0);
-    off_x = (int)(-7.0f * sinf(angle) - 6.0f * cosf(angle));
-    off_y = (int)(6.0f * sinf(angle) + -7.0f * cosf(angle));
+    off_x = (int) (-7.0f * sinf(angle) - 6.0f * cosf(angle));
+    off_y = (int) (6.0f * sinf(angle) + -7.0f * cosf(angle));
     sprite.TextureCrd(0xD0, 0xF2);
     sprite.Vertex(screen_x + off_x, screen_y + off_y, 0);
-    off_x = (int)(7.0f * sinf(angle) - -6.0f * cosf(angle));
-    off_y = (int)(-6.0f * sinf(angle) + 7.0f * cosf(angle));
+    off_x = (int) (7.0f * sinf(angle) - -6.0f * cosf(angle));
+    off_y = (int) (-6.0f * sinf(angle) + 7.0f * cosf(angle));
     sprite.TextureCrd(0xC4, 0x100);
     sprite.Vertex(screen_x + off_x, screen_y + off_y, 0);
-    off_x = (int)(7.0f * sinf(angle) - 6.0f * cosf(angle));
-    off_y = (int)(6.0f * sinf(angle) + 7.0f * cosf(angle));
+    off_x = (int) (7.0f * sinf(angle) - 6.0f * cosf(angle));
+    off_y = (int) (6.0f * sinf(angle) + 7.0f * cosf(angle));
     sprite.TextureCrd(0xD0, 0x100);
     sprite.Vertex(screen_x + off_x, screen_y + off_y, 0);
     sprite.SetScirror(0, 0, mgScreenWidth - 1, mgScreenHeight - 1);
     sprite.End();
 }
+
 void CMiniMapSymbol::Draw(float *pos) {
     if (map == NULL) {
         return;
@@ -254,8 +268,8 @@ void CMiniMapSymbol::Draw(float *pos) {
     }
     CPreSprite sprite;
     CPreSprite spare;
-    float part_pos[4];
-    float delta[4];
+    float      part_pos[4];
+    float      delta[4];
     sprite.Initialize(NULL, NULL);
     sprite.Preset2D();
     sprite.Begin(MG_PRIM_SPRITE);
@@ -263,7 +277,7 @@ void CMiniMapSymbol::Draw(float *pos) {
     sprite.Color(0x80, 0x80, 0x80, 0x60);
     sprite.SetScirror(x - w / 2, y - h / 2, w, h);
     for (int i = 0; i < parts_num; i++) {
-        if ((*(s8 *)parts->name == 0) == 0) {
+        if ((*(s8 *) parts->name == 0) == 0) {
             int tile = parts->minimap_tile;
             if (tile == -1) {
                 parts++;
@@ -273,15 +287,15 @@ void CMiniMapSymbol::Draw(float *pos) {
             int tile_v = (tile / 16) * 16;
             parts->GetPosition(part_pos);
             sceVu0SubVector(delta, part_pos, center);
-            float rate_z = delta[2] / cell_d;
-            float rate_x = delta[0] / cell_w;
-            float screen_x = (float)x + 16.0f * rate_x;
-            float screen_y = y + rate_z * 16.0f;
-            float sizeD = cell_d;
+            float          rate_z = delta[2] / cell_d;
+            float          rate_x = delta[0] / cell_w;
+            float          screen_x = (float) x + 16.0f * rate_x;
+            float          screen_y = y + rate_z * 16.0f;
+            float          sizeD = cell_d;
             CAutoMapParts *cells = grid;
             if (cells != NULL) {
-                s16 width = grid_w;
-                CAutoMapParts *cell = &cells[width * (int)(part_pos[2] / sizeD) + (int)(part_pos[0] / sizeD)];
+                s16            width = grid_w;
+                CAutoMapParts *cell = &cells[width * (int) (part_pos[2] / sizeD) + (int) (part_pos[0] / sizeD)];
                 if (cell->attr & AUTOMAP_ATTR_HIDE) {
                     parts++;
                     continue;
@@ -294,14 +308,15 @@ void CMiniMapSymbol::Draw(float *pos) {
                     sprite.Color(0x30, 0x30, 0x30, 0);
                 }
             }
-            int rect_x = (int)screen_x;
-            sprite.SetIRect(rect_x, (int)screen_y, 16, 16, tile_u, tile_v);
+            int rect_x = (int) screen_x;
+            sprite.SetIRect(rect_x, (int) screen_y, 16, 16, tile_u, tile_v);
         }
         parts++;
     }
     sprite.SetScirror(0, 0, mgScreenWidth - 1, mgScreenHeight - 1);
     sprite.End();
 }
+
 int CHealingPoint::CheckHealingTime() {
     if (enable == 0) {
         return 0;
@@ -311,7 +326,7 @@ int CHealingPoint::CheckHealingTime() {
         return 0;
     }
 
-    HealingEffectMan.SetMode(1);
+    HealingEffectMan.SetMode((int) HEALING_EFFECT_SPENT);
     timer = kHealingCooldown;
     return 1;
 }
@@ -327,7 +342,7 @@ void CHealingPoint::Step() {
         }
 
         if (timer <= 0) {
-            HealingEffectMan.SetMode(2);
+            HealingEffectMan.SetMode((int) HEALING_EFFECT_RECHARGE);
         }
     }
 }
@@ -456,10 +471,11 @@ void CAutoMapGen::SetupRoomInfo(char *name, int length, mgCMemory *mem) {
     interpreter.Run();
     room_info_num = nowPrisetNum;
 }
+
 int CAutoMapGen::CreatRoom(int x, int y, int room_no, int info_no) {
-    int w, h;
-    int pick;
-    s16 *table;
+    int                w, h;
+    int                pick;
+    s16               *table;
     AUTOMAP_ROOM_INFO *info;
     if (info_no == -1) {
         do {
@@ -521,6 +537,7 @@ int CAutoMapGen::CreatRoom(int x, int y, int room_no, int info_no) {
     room[room_no].h = h;
     return 1;
 }
+
 int CAutoMapGen::LinkConnectCheck(int x, int y, int kind, int room_no, int exclude) {
     int sides[4];
     int cell_kind;
@@ -606,22 +623,23 @@ void CAutoMapGen::SetRoadLinkMark(int x, int y, int direction) {
     (grid + ny * grid_w)[nx].link |= (u8) direction;
     (grid + ny * grid_w)[nx].road_link |= (u8) direction;
 }
+
 void CAutoMapGen::RoomLink(int from, int to) {
     ROOM_LINK_POINT starts[64];
-    int dx;
-    s32 steps;
-    AUTOMAP_ROOM *dst;
-    int dy;
-    AUTOMAP_ROOM *src;
-    int joined;
-    int depth;
-    float dist_y;
-    int pick;
-    int x;
-    int side;
-    int src_x;
-    int goal_y;
-    int y;
+    int             dx;
+    s32             steps;
+    AUTOMAP_ROOM   *dst;
+    int             dy;
+    AUTOMAP_ROOM   *src;
+    int             joined;
+    int             depth;
+    float           dist_y;
+    int             pick;
+    int             x;
+    int             side;
+    int             src_x;
+    int             goal_y;
+    int             y;
     src = &room[from];
     dst = &room[to];
 
@@ -629,11 +647,11 @@ void CAutoMapGen::RoomLink(int from, int to) {
     int src_y = src->y + src->h / 2;
     int goal_x = dst->x + dst->w / 2;
     goal_y = dst->y + dst->h / 2;
-    float dist_x = (float)(src_x - goal_x);
+    float dist_x = (float) (src_x - goal_x);
     if (dist_x < 0.0f) {
         dist_x = -dist_x;
     }
-    dist_y = (float)(src_y - goal_y);
+    dist_y = (float) (src_y - goal_y);
     dx = src_x - goal_x;
     dy = src_y - goal_y;
     if (dist_y < 0.0f) {
@@ -723,7 +741,7 @@ void CAutoMapGen::RoomLink(int from, int to) {
     if (dist_x < 0.0f) {
         dist_x = -dist_x;
     }
-    dist_y = (float)dy;
+    dist_y = (float) dy;
     if (dist_y < 0.0f) {
         dist_y = -dist_y;
     }
@@ -732,22 +750,22 @@ void CAutoMapGen::RoomLink(int from, int to) {
         if (dx < 0) {
             side = kStepRight;
         }
-        float d = (float)dx;
+        float d = (float) dx;
         if (d < 0.0f) {
             d = -d;
         }
-        steps = iRand((int)(d - (float)(src->w / 2))) + 1;
+        steps = iRand((int) (d - (float) (src->w / 2))) + 1;
     } else {
         if (dy < 0) {
             side = kStepDown;
         } else {
             side = kStepUp;
         }
-        float d = (float)dy;
+        float d = (float) dy;
         if (d < 0.0f) {
             d = -d;
         }
-        steps = iRand((int)(d - (float)(src->h / 2))) + 1;
+        steps = iRand((int) (d - (float) (src->h / 2))) + 1;
     }
     joined = 0;
     do {
@@ -797,12 +815,12 @@ void CAutoMapGen::RoomLink(int from, int to) {
             } while (steps > 0);
         }
         dx = x - goal_x;
-        dist_x = (float)dx;
+        dist_x = (float) dx;
         if (dist_x < 0.0f) {
             dist_x = -dist_x;
         }
         dy = y - goal_y;
-        dist_y = (float)dy;
+        dist_y = (float) dy;
         if (dist_y < 0.0f) {
             dist_y = -dist_y;
         }
@@ -812,19 +830,20 @@ void CAutoMapGen::RoomLink(int from, int to) {
             } else {
                 side = kStepLeft;
             }
-            float d = (float)dx;
-            steps = iRand((int)(d < 0.0f ? -d : d)) + 1;
+            float d = (float) dx;
+            steps = iRand((int) (d < 0.0f ? -d : d)) + 1;
         } else {
             if (dy < 0) {
                 side = kStepDown;
             } else {
                 side = kStepUp;
             }
-            float d = (float)dy;
-            steps = iRand((int)(d < 0.0f ? -d : d)) + 1;
+            float d = (float) dy;
+            steps = iRand((int) (d < 0.0f ? -d : d)) + 1;
         }
     } while (joined == 0);
 }
+
 void CAutoMapGen::CreatDummyRoot(int room_no) {
     int tries = 0;
     int x;
@@ -847,34 +866,34 @@ void CAutoMapGen::CreatDummyRoot(int room_no) {
     } while (occupied != 0);
 
     AUTOMAP_ROOM *target = &room[iRand(room_num)];
-    int goal_x = target->x + target->w / 2;
-    int goal_y = target->y + target->h / 2;
-    int side;
-    int steps;
-    int dx = x - goal_x;
-    float dist_x = (float)dx;
+    int           goal_x = target->x + target->w / 2;
+    int           goal_y = target->y + target->h / 2;
+    int           side;
+    int           steps;
+    int           dx = x - goal_x;
+    float         dist_x = (float) dx;
     if (dist_x < 0.0f) {
         dist_x = -dist_x;
     }
-    int dy = y - goal_y;
-    float dist_y = (float)dy;
+    int   dy = y - goal_y;
+    float dist_y = (float) dy;
     if (dist_y < 0.0f) {
         dist_y = -dist_y;
     }
     if (!(dist_x <= dist_y)) {
         side = dx < 0 ? kStepRight : kStepLeft;
-        float d = (float)dx;
+        float d = (float) dx;
         if (d < 0.0f) {
             d = -d;
         }
-        steps = iRand((int)d) + 1;
+        steps = iRand((int) d) + 1;
     } else {
         side = dy < 0 ? kStepDown : kStepUp;
-        float d = (float)dy;
+        float d = (float) dy;
         if (d < 0.0f) {
             d = -d;
         }
-        steps = iRand((int)d) + 1;
+        steps = iRand((int) d) + 1;
     }
     if (steps >= 2) {
         steps = 2;
@@ -929,12 +948,12 @@ void CAutoMapGen::CreatDummyRoot(int room_no) {
             } while (steps > 0);
         }
         dx = x - goal_x;
-        dist_x = (float)dx;
+        dist_x = (float) dx;
         if (dist_x < 0.0f) {
             dist_x = -dist_x;
         }
         dy = y - goal_y;
-        dist_y = (float)dy;
+        dist_y = (float) dy;
         if (dist_y < 0.0f) {
             dist_y = -dist_y;
         }
@@ -944,8 +963,8 @@ void CAutoMapGen::CreatDummyRoot(int room_no) {
             } else {
                 side = kStepLeft;
             }
-            float d = (float)dx;
-            steps = iRand((int)(d < 0.0f ? -d : d)) + 1;
+            float d = (float) dx;
+            steps = iRand((int) (d < 0.0f ? -d : d)) + 1;
         } else {
             if (dy < 0) {
                 side = kStepDown;
@@ -953,13 +972,14 @@ void CAutoMapGen::CreatDummyRoot(int room_no) {
                 side = kStepUp;
             }
             float d = dy;
-            steps = iRand((int)(d < 0.0f ? -d : d)) + 1;
+            steps = iRand((int) (d < 0.0f ? -d : d)) + 1;
         }
         if (steps >= 2) {
             steps = 2;
         }
     } while (joined == 0);
 }
+
 void CAutoMapGen::CreatTermParts() {
     CAutoMapParts *grid;
     int            open_dirs;
@@ -1657,20 +1677,21 @@ void CAutoMapGen::CreatFixedMap(int preset_no) {
     room[0].w = preset_width;
     room[0].h = preset_height;
 }
+
 void CAutoMapGen::RandomMapMainProc() {
-    int link;
-    int i;
-    int rooms;
-    int goal;
-    int exits;
-    int seed;
-    int floor_id;
-    int round;
-    int dummy_roots;
-    int failures;
-    int to;
-    int result;
-    int n;
+    int               link;
+    int               i;
+    int               rooms;
+    int               goal;
+    int               exits;
+    int               seed;
+    int               floor_id;
+    int               round;
+    int               dummy_roots;
+    int               failures;
+    int               to;
+    int               result;
+    int               n;
     CDngFloorManager *manager;
     random_map = 1;
     seed = iRand(0xFFFF);
@@ -1763,6 +1784,7 @@ void CAutoMapGen::RandomMapMainProc() {
     }
     IndexToPartsPlace();
 }
+
 void CAutoMapGen::Build() {
     int        floor_no;
     int        room;
@@ -2050,24 +2072,24 @@ float CAutoMapGen::GetNaviDistance(float *pos) {
 }
 
 void CAutoMapGen::UpdateNaviMap(float *pos, int depth) {
-    int steps;
-    int x;
-    u32 wall;
-    int changed;
-    int z;
-    int row;
+    int            steps;
+    int            x;
+    u32            wall;
+    int            changed;
+    int            z;
+    int            row;
     CAutoMapParts *cell;
-    int i;
-    float sizeX;
-    int col;
+    int            i;
+    float          sizeX;
+    int            col;
     if (grid == NULL || navi_enable == 0) {
         return;
     }
     navi_depth = depth;
     sizeX = cell_w;
-    x = (int)((pos[0] + 0.5f * sizeX) / sizeX);
+    x = (int) ((pos[0] + 0.5f * sizeX) / sizeX);
     float sizeZ = cell_d;
-    z = (int)((pos[2] + 0.5f * sizeZ) / sizeZ);
+    z = (int) ((pos[2] + 0.5f * sizeZ) / sizeZ);
     if (x < 0) {
         x = 0;
     }
@@ -2137,7 +2159,6 @@ void CAutoMapGen::UpdateNaviMap(float *pos, int depth) {
 // Initialised data (.data)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", PartsInfoData__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", MiniMapInfoData__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", symbol_table__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", tag__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2125__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/automap", at_2126__2__DATA);

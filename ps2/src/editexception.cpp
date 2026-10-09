@@ -40,20 +40,20 @@ extern char at_1086[];
 extern char at_1385__4[];
 extern char at_1386__3[];
 
-extern int               fade_cnt;
-extern int               next_thunder_cnt;
-extern int               rea_chara_id;
-extern int               rea_mtn_step;
-extern int               sound_cnt;
-extern int               sound_flag;
-extern int               start_thunder;
-extern int               thunder_count;
-extern CGeyserEffect    *GeyserEffect;
-extern int               FirePowderFlag;
-extern FirePowder       *fire_powder;
-extern int               GeyserEffectTexb;
-extern mgCFrame         *GeyserFrame;
-extern int               GeyserRndSeed;
+extern int            fade_cnt;
+extern int            next_thunder_cnt;
+extern int            rea_chara_id;
+extern int            rea_mtn_step;
+extern int            sound_cnt;
+extern int            sound_flag;
+extern int            start_thunder;
+extern int            thunder_count;
+extern CGeyserEffect *GeyserEffect;
+extern int            FirePowderFlag;
+extern FirePowder    *fire_powder;
+extern int            GeyserEffectTexb;
+extern mgCFrame      *GeyserFrame;
+extern int            GeyserRndSeed;
 
 /**
  *
@@ -100,21 +100,21 @@ static inline u32 align16_blocks(u32 bytes) {
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 
-extern s32            rea_chara_id;
-extern s32            rea_mtn_step;
-extern s32            thunder_count;
-extern s32            start_thunder;
-extern s32            next_thunder_cnt;
-extern s32            fade_cnt;
-extern s32            sound_flag;
-extern s32            sound_cnt;
-extern s32            FirePowderFlag;
-extern s32            FirePowderTexb;
-extern mgC3DSprite   *SpriteVis;
-extern mgCFrame      *FirePowFrame;
-extern s32            GeyserEffectFlag;
-extern s32            GeyserEffectTexb;
-extern s32            GeyserRndSeed;
+extern s32          rea_chara_id;
+extern s32          rea_mtn_step;
+extern s32          thunder_count;
+extern s32          start_thunder;
+extern s32          next_thunder_cnt;
+extern s32          fade_cnt;
+extern s32          sound_flag;
+extern s32          sound_cnt;
+extern s32          FirePowderFlag;
+extern s32          FirePowderTexb;
+extern mgC3DSprite *SpriteVis;
+extern mgCFrame    *FirePowFrame;
+extern s32          GeyserEffectFlag;
+extern s32          GeyserEffectTexb;
+extern s32          GeyserRndSeed;
 
 // Code (.text)
 void EditExceptionStep(int map_no, CScene *scene) {
@@ -332,7 +332,7 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
         return;
     }
 
-    if (GetSaveData()->GetBitFlag(0x208) != 0) {
+    if (GetSaveData()->GetBitFlag((int) SAVE_FLAG_EDIT_BLOCKED) != 0) {
         return;
     }
 
@@ -410,8 +410,8 @@ void DrawFirePowder(CScene *scene) {
     mgCDrawEnv   draw_env = *mgGetpDrawEnv(0);
     ((EditGsTest *) &draw_env.test)->zte = 1;
     ((EditGsTest *) &draw_env.test)->ztst = 2;
-    draw_env.SetZBuf(-1);
-    draw_env.SetAlpha(2);
+    draw_env.SetZBuf(MG_ZBUF_NO_WRITE);
+    draw_env.SetAlpha(MG_ALPHA_MACRO_ADD);
     draw_sprite->BeginCreatePacket(0, NULL);
     draw_sprite->CPSetDrawEnv(&draw_env);
     draw_sprite->CPSetTexture(mgTexManager.GetTexture(at_1259, -1));
@@ -599,8 +599,8 @@ void CGeyserEffect::CreatePacket() {
     mgCDrawEnv   draw_env = *mgGetpDrawEnv(0);
     ((EditGsTest *) &draw_env.test)->zte = 1;
     ((EditGsTest *) &draw_env.test)->ztst = 2;
-    draw_env.SetZBuf(-1);
-    draw_env.SetAlpha(2);
+    draw_env.SetZBuf(MG_ZBUF_NO_WRITE);
+    draw_env.SetAlpha(MG_ALPHA_MACRO_ADD);
     draw_sprite->BeginCreatePacket(0, NULL);
     draw_sprite->CPSetDrawEnv(&draw_env);
     draw_sprite->CPSetTexture(texture);

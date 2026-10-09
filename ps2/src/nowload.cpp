@@ -38,41 +38,40 @@ struct PauseState : PAUSE_INFO {
     }
 };
 
-extern int        PauseFlag__2;
-extern int        cancel_now_loading;
-extern int        InitFlag;
+int               PauseFlag__2;
+int               cancel_now_loading;
+int               InitFlag;
 extern PauseState PauseInfo;
-extern float      SeCoreVol;
-extern int        PauseEnableFlag;
-extern int        PauseCancelCnt;
-extern int        ProgBarCnt;
+float             SeCoreVol;
+int               PauseEnableFlag;
+int               PauseCancelCnt;
+int               ProgBarCnt;
 extern int        LoopStep;
-extern int        EndFlag;
-extern int        TheadID__3;
-extern float      NextProgBarWidth;
+int               EndFlag;
+int               TheadID__3;
+float             NextProgBarWidth;
 extern char       at_832__7[];
 extern char       at_863__5[];
 extern char       at_864__3[];
-extern float      ProgBarWidth;
-extern u8         ThreadStack__3[0x1000];
-extern int        load_skip_img;
+float             ProgBarWidth;
+u8                ThreadStack__3[0x1000];
+int               load_skip_img;
 extern char       at_912__6[];
 extern char       at_913__5[];
-extern u8         SkipImage[];
-extern int        start_vcount;
-extern int        PauseTexb;
+int               start_vcount;
+int               PauseTexb;
 extern char       at_920__7[];
-extern int        wave_status;
-extern int        play_time_count;
+int               wave_status;
+int               play_time_count;
 NowLoadingInfo    LoadInfo;
-extern float      ProgBarWidthStep;
+float             ProgBarWidthStep;
 
 #ifdef NONMATCHING
 #include "mg_tanime.hpp"
 #endif
 
-extern int           bgm_status[7];
-extern unsigned char SkipImage[0x2800];
+extern int    bgm_status[7];
+unsigned char SkipImage[0x2800];
 
 // Code (.text)
 void SwitchNowLoadingThread() {
@@ -372,12 +371,12 @@ void PauseEnd() {
         PauseInfo.scene->RePlayBGM();
     }
 
-    if ((wave_status & 0x1000) != 0) {
+    if ((wave_status & (int) SND_STREAM_STATE_PLAYING) != 0) {
         sndStreamRePlay();
     }
 
-    sndPortSqReplay(4);
-    sndPortSqReplay(0);
+    sndPortSqReplay((int) SND_PORT_EVENT);
+    sndPortSqReplay((int) SND_PORT_BGM);
     PlayTimeCount(play_time_count);
 
     if (SeCoreVol >= 0.0f) {
@@ -403,8 +402,8 @@ int PauseLoop() {
         float        zero_local = 0.0f;
         const float &zero_value = zero_local;
         sndMasterVolFadeInOut(1, 15, zero_value, -1.0f);
-        sndPortSqPause(4);
-        sndPortSqPause(0);
+        sndPortSqPause((int) SND_PORT_EVENT);
+        sndPortSqPause((int) SND_PORT_BGM);
         mgCTexture back_buffer;
         mgGetFrameBackBuffer(&back_buffer);
         mgRect<int> source(0, 0, (mgScreenWidth - 1) * 16, (mgScreenHeight - 1) * 16);
@@ -417,7 +416,7 @@ int PauseLoop() {
     if (InitFlag == 15) {
         wave_status = sndStreamGetState();
 
-        if (wave_status & 0x1000) {
+        if (wave_status & (int) SND_STREAM_STATE_PLAYING) {
             sndStreamPause();
             sndSetMasterVol(1, 0.0f);
         }
@@ -444,7 +443,7 @@ int PauseLoop() {
     prim.Begin(MG_PRIM_SPRITE);
     prim.Texture(backdrop);
 
-    if ((signed char) config->unk_35 == 0) {
+    if ((signed char) config->pause_overlay_off == 0) {
         prim.Color(64, 64, 64, 128);
     } else {
         prim.Color(128, 128, 128, 128);
@@ -457,7 +456,7 @@ int PauseLoop() {
     prim.End();
     mgCTexture *skip = tex->GetTexture((char *) "skip", -1);
 
-    if (skip != NULL && (signed char) config->unk_35 == 0) {
+    if (skip != NULL && (signed char) config->pause_overlay_off == 0) {
         int width = 82;
         int height = 22;
 
@@ -487,11 +486,11 @@ int PauseLoop() {
     PadCtrl.Update(&GamePad__2);
     int quit = 0;
 
-    if (InitFlag > 17 && PadCtrl.Btn(21)) {
+    if (InitFlag > 17 && PadCtrl.Btn(PAD_BTN_PAUSE)) {
         quit = 1;
     }
 
-    if (PauseInfo.event_skip == 1 && PadCtrl.Btn(22)) {
+    if (PauseInfo.event_skip == 1 && PadCtrl.Btn(PAD_BTN_EVENT_SKIP)) {
         SkipEventStart();
         quit = 1;
     }
@@ -628,26 +627,7 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", at_1069__6__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/nowload", LoopStep__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(TheadID__3, 0x4);
-INCLUDE_BSS(ProgBarWidth, 0x4);
-INCLUDE_BSS(ProgBarWidthStep, 0x4);
-INCLUDE_BSS(NextProgBarWidth, 0x4);
-INCLUDE_BSS(ProgBarCnt, 0x4);
-INCLUDE_BSS(EndFlag, 0x4);
-INCLUDE_BSS(cancel_now_loading, 0x4);
-INCLUDE_BSS(load_skip_img, 0x4);
-INCLUDE_BSS(PauseFlag__2, 0x4);
-INCLUDE_BSS(PauseEnableFlag, 0x4);
-INCLUDE_BSS(PauseCancelCnt, 0x4);
-INCLUDE_BSS(PauseTexb, 0x4);
 PauseState PauseInfo;
-INCLUDE_BSS(InitFlag, 0x4);
-INCLUDE_BSS(SeCoreVol, 0x4);
-INCLUDE_BSS(play_time_count, 0x4);
-INCLUDE_BSS(wave_status, 0x4);
-INCLUDE_BSS(start_vcount, 0x4);
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(ThreadStack__3, 0x1000);
-INCLUDE_BSS(SkipImage, 0x2800);
 INCLUDE_BSS(bgm_status, 0x20);

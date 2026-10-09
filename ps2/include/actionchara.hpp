@@ -23,6 +23,7 @@ class CMapParts;
 class CColPrim;
 class CEffectScriptMan;
 class CActionChara;
+struct ACCUME_EFFECT;
 
 /**
  *
@@ -124,14 +125,14 @@ STATIC_ASSERT(sizeof(RUN_SCRIPT_ENV) == 0x8);
  *
  */
 struct ACTION_SW_EFFECT {
-    s16   sword_no; /**< Index into the character's sword after-image effects. */
-    char *chara;    /**< Name of the part in the chain whose motion is watched; NULL for the character itself. */
-    char *motion;   /**< Name of the motion that starts the after-image; NULL while the slot is free. */
-    float start;    /**< Motion frame from which the after-image starts. */
-    float end;      /**< Motion frame before which the after-image starts. */
-    char *frame0;   /**< Name of the frame at one end of the blade. */
-    char *frame1;   /**< Name of the frame at the other end of the blade. */
-    s8    length; /**< Maximum number of recorded positions drawn in the sword trail. */
+    s16   sword_no;  /**< Index into the character's sword after-image effects. */
+    char *chara;     /**< Name of the part in the chain whose motion is watched; NULL for the character itself. */
+    char *motion;    /**< Name of the motion that starts the after-image; NULL while the slot is free. */
+    float start;     /**< Motion frame from which the after-image starts. */
+    float end;       /**< Motion frame before which the after-image starts. */
+    char *frame0;    /**< Name of the frame at one end of the blade. */
+    char *frame1;    /**< Name of the frame at the other end of the blade. */
+    s8    length;    /**< Maximum number of recorded positions drawn in the sword trail. */
     s8    hold_time; /**< Steps before the sword trail begins fading. */
     s8    fade_time; /**< Number of steps over which the after-image fades. */
     s8    wait;      /**< Steps left before the after-image can start again. */
@@ -224,7 +225,7 @@ STATIC_ASSERT(sizeof(ACTION_ACCELE) == 0x20);
  */
 struct ACTION_ACCUME {
     mgCFrame *frame; /**< Frame of the object that the charging effect gathers on. */
-    s16       unk_4;
+    s16       effect_no;
     s16       active; /**< 1 once the charging effect has started. */
 };
 
@@ -249,17 +250,17 @@ STATIC_ASSERT(sizeof(ACTION_SHAKE) == 0x8);
  */
 class CActionChara : public CCharacter2 {
 public:
-    sceVu0FVECTOR     old_pos;    /**< Position of the character before this step's move. */
-    s32               chara_type; /**< Kind of character, an ACTION_CHARA_TYPE value. */
-    CActionChara     *parent;     /**< Character that this part is chained onto; NULL for the head of the chain. */
-    CActionChara     *next;       /**< Next part in the chain; NULL for the last. */
+    sceVu0FVECTOR     old_pos;       /**< Position of the character before this step's move. */
+    s32               chara_type;    /**< Kind of character, an ACTION_CHARA_TYPE value. */
+    CActionChara     *parent;        /**< Character that this part is chained onto; NULL for the head of the chain. */
+    CActionChara     *next;          /**< Next part in the chain; NULL for the last. */
     CPalletAnime      script_pallet; /**< Colour animation applied by the character script. */
-    s16               chara_kind;  /**< What the character is in its chain, an ACTION_CHARA_KIND value. */
-    sceVu0FVECTOR     front_vec;   /**< Direction that the character faces. */
-    s32               mask_flag;   /**< Bits that monster scripts set and clear. */
-    s32               attack_type; /**< Attack type that the action script reads. */
-    s32               move_type;   /**< Way of moving, an ACTION_MOVE_TYPE value. */
-    float             max_speed;   /**< Speed at which the ridepod moves at its fastest. */
+    s16               chara_kind;    /**< What the character is in its chain, an ACTION_CHARA_KIND value. */
+    sceVu0FVECTOR     front_vec;     /**< Direction that the character faces. */
+    s32               mask_flag;     /**< Bits that monster scripts set and clear. */
+    s32               attack_type;   /**< Attack type that the action script reads. */
+    s32               move_type;     /**< Way of moving, an ACTION_MOVE_TYPE value. */
+    float             max_speed;     /**< Speed at which the ridepod moves at its fastest. */
     s32               unk_6b0;
     s16               unk_6b4;
     char             *script_buf;     /**< Copy of the action script file that the interpreter runs. */
@@ -273,32 +274,32 @@ public:
     mgCFrame         *hold_frame;     /**< Frame of the character that carries what it holds. */
     s16               release_timing; /**< What has just happened to what the character holds; cleared each step. */
     s16               unk_72a;
-    mgCFrame         *catch_frame; /**< Frame of the character that has caught this one. */
-    s16               catch_state; /**< 1 while another character holds this one, 2 while it flies after being thrown. */
-    s16               no_hit_time; /**< Steps left before this character's body collides again. */
-    CPalletAnime      pallet[3];   /**< Colour flashes over the character's lighting; the first one playing is used. */
-    s16               battle_stance; /**< Non-zero while the character holds its battle stance. */
+    mgCFrame         *catch_frame;        /**< Frame of the character that has caught this one. */
+    s16               catch_state;        /**< 1 while another character holds this one, 2 while it flies after being thrown. */
+    s16               no_hit_time;        /**< Steps left before this character's body collides again. */
+    CPalletAnime      pallet[3];          /**< Colour flashes over the character's lighting; the first one playing is used. */
+    s16               battle_stance;      /**< Non-zero while the character holds its battle stance. */
     float             battle_stance_rate; /**< Blend amount of the character's battle stance. */
-    s16               shot_wait;      /**< Steps left before the character can shoot again. */
-    s32               muteki_time;    /**< Steps left for which the character takes no damage. */
-    s8                menu_flag;      /**< Nonzero while the character may open the menu. */
-    s8                stand_flag;     /**< 1 while the stick is not pushed. */
-    s8                dir_gun;        /**< 1 when the action script has aimed the gun this step. */
-    s16               target_no;      /**< Scene character number of the lock-on target; -1 for none. */
-    s16               lock_on;        /**< 1 while the character is locked on to its target. */
-    s32               murderous_time; /**< Steps left for the character's murderous value. */
-    s32               murderous;      /**< Murderous value that the action script set. */
-    s32               now_status;     /**< Status that the action scripts of other characters read from this one. */
-    ACTION_ACCELE     accele;         /**< How fast the character speeds up and moves. */
-    sceVu0FVECTOR     add_vec;        /**< Direction of a movement added to the character's velocity. */
-    float             add_speed;      /**< Speed of the added movement. */
-    float             add_decel;      /**< Amount taken off the added movement's speed each step. */
-    s32               add_time;       /**< Steps left for the added movement; 0 for none. */
-    float             stick_angle;    /**< Direction of the stick relative to the character. */
-    s32               stick_time;     /**< Steps for which the stick has kept its direction. */
-    float             target_dot;     /**< Cosine of the angle between the character's velocity and its target. */
+    s16               shot_wait;          /**< Steps left before the character can shoot again. */
+    s32               muteki_time;        /**< Steps left for which the character takes no damage. */
+    s8                menu_flag;          /**< Nonzero while the character may open the menu. */
+    s8                stand_flag;         /**< 1 while the stick is not pushed. */
+    s8                dir_gun;            /**< 1 when the action script has aimed the gun this step. */
+    s16               target_no;          /**< Scene character number of the lock-on target; -1 for none. */
+    s16               lock_on;            /**< 1 while the character is locked on to its target. */
+    s32               murderous_time;     /**< Steps left for the character's murderous value. */
+    s32               murderous;          /**< Murderous value that the action script set. */
+    s32               now_status;         /**< Status that the action scripts of other characters read from this one. */
+    ACTION_ACCELE     accele;             /**< How fast the character speeds up and moves. */
+    sceVu0FVECTOR     add_vec;            /**< Direction of a movement added to the character's velocity. */
+    float             add_speed;          /**< Speed of the added movement. */
+    float             add_decel;          /**< Amount taken off the added movement's speed each step. */
+    s32               add_time;           /**< Steps left for the added movement; 0 for none. */
+    float             stick_angle;        /**< Direction of the stick relative to the character. */
+    s32               stick_time;         /**< Steps for which the stick has kept its direction. */
+    float             target_dot;         /**< Cosine of the angle between the character's velocity and its target. */
     s32               unk_7c8;
-    void             *accume_effect; /**< Charging effect that the character's weapon shows; NULL for none. */
+    ACCUME_EFFECT    *accume_effect; /**< Charging effect that the character's weapon shows; NULL for none. */
     ACTION_ACCUME     accume;        /**< Frame that the charging effect gathers on. */
     s32               acumu_pad;     /**< Steps for which the charge button has been held. */
     CEffectScriptMan *effect_man;    /**< Effect scripts that the character starts. */
@@ -311,8 +312,8 @@ public:
     s32               damage_req;    /**< Reaction that damage asks for, an ACTION_DAMAGE_REQ value. */
     s32               unk_be0;
     s32               unk_be4;
-    s32               damage_time; /**< Steps left before the character can be hit again. */
-    s32               melee_hit; /**< Non-zero after the character lands a melee hit. */
+    s32               damage_time;  /**< Steps left before the character can be hit again. */
+    s32               melee_hit;    /**< Non-zero after the character lands a melee hit. */
     s32               guard_flag;   /**< Nonzero while the character guards. */
     s8                stagger;      /**< Stagger built up from recent hits. */
     s8                stagger_time; /**< Steps left before the built-up stagger is cleared. */
@@ -334,9 +335,7 @@ public:
      * @address 0x1ACF40
      * @size 0xC0
      */
-    CActionChara() {
-        memset(&move_check, 0, sizeof(move_check));
-    }
+    CActionChara();
 
     /**
      *
@@ -867,7 +866,7 @@ public:
      * @address 0x170740
      * @size 0x6F8
      */
-    int RoboAirMoveIF(int unk, int mode);
+    int RoboAirMoveIF(int unused, int mode);
 
     /**
      *
@@ -991,3 +990,10 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CActionChara) == 0x1030);
+
+#ifndef ACTION_CHARA_OUT_OF_LINE_CONSTRUCTOR
+inline
+#endif
+    CActionChara::CActionChara() {
+    memset(&move_check, 0, sizeof(move_check));
+}

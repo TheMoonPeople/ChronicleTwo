@@ -14,20 +14,20 @@
 #include "scriptinterpreter.hpp"
 #include "userdata.hpp"
 
-extern CDataCommon   *comdatapt;
-extern int            comdatapt_num;
-extern mgCMemory     *gamedata_build_stack;
-extern CDataCommon    local_com_itemdata[432];
+CDataCommon          *comdatapt;
+int                   comdatapt_num;
+mgCMemory            *gamedata_build_stack;
+CDataCommon           local_com_itemdata[432];
 extern CDataItem      local_itemdata[162];
 extern CDataWeapon    local_weapondata[116];
 extern CDataAttach    local_attachdata[38];
-extern CDataRoboPart  local_robodata[68];
+CDataRoboPart         local_robodata[68];
 extern CDataBreedFish local_fishdata[20];
-extern short          local_guarddata[40];
-extern short          local_itemdatano_converttable[512];
-extern char           gamedata_sysword_buffer_1073[0x2800];
-extern char           filename_1267[0x20];
-extern char           item_file_path_1288[0x80];
+short                 local_guarddata[40];
+short                 local_itemdatano_converttable[512];
+char                  gamedata_sysword_buffer_1073[0x2800];
+char                  filename_1267[0x20];
+char                  item_file_path_1288[0x80];
 extern SPI_TAG_PARAM  gamedata_tag[];
 extern short          msg_offsettbl_1363[3];
 extern signed char    ItemCmdMsgTbl[33][8];
@@ -87,11 +87,11 @@ CDataItem::CDataItem() {
 }
 
 CDataAttach::CDataAttach() {
-    memset(this, 0, 0x18);
+    memset(this, 0, sizeof(*this));
 }
 
 CDataWeapon::CDataWeapon() {
-    memset(this, 0, 0x4C);
+    memset(this, 0, sizeof(*this));
     durability = 0x14;
     levelup_exp = 0x14;
 }
@@ -99,7 +99,7 @@ CDataWeapon::CDataWeapon() {
 int CDataRoboPart::GetOffsetNo() { return this->offset_no; }
 
 CDataBreedFish::CDataBreedFish() {
-    memset(this, 0, 0x14);
+    memset(this, 0, sizeof(*this));
 }
 
 void CGameData::Initialize() {
@@ -130,7 +130,7 @@ int _DATACOMINIT(SPI_STACK *stack, int arg_count) {
     GameItemDataManage.common_num = spiGetStackInt(stack);
     comdatapt_num = 0;
     comdatapt = GameItemDataManage.common_data;
-    memset(local_itemdatano_converttable, -1, 0x400);
+    memset(local_itemdatano_converttable, -1, sizeof(local_itemdatano_converttable));
     return 1;
 }
 
@@ -149,7 +149,7 @@ int _DATACOM(SPI_STACK *stack, int arg_count) {
     comdatapt->stack_num = spiGetStackInt(stack++);
     comdatapt->max_num = spiGetStackInt(stack++);
 
-    if (ConvertUsedItemType(comdatapt->type) == 3) {
+    if (ConvertUsedItemType(comdatapt->type) == USED_ITEM_TYPE_WEAPON) {
         if (comdatapt->max_num > 0x64) {
             comdatapt->max_num = 0x90;
         }
@@ -190,7 +190,7 @@ int _MES_SYS(SPI_STACK *stack, int arg_count) {
 
     if (record != NULL) {
         if ((LanguageCode >= 2) && (LanguageCode < 6)) {
-            memset(converted, 0, 0x100);
+            memset(converted, 0, sizeof(converted));
             ConvertFontCode((char *) text, (char *) converted);
             copy = (int) mgCopyString((char *) converted, gamedata_build_stack);
         } else {
@@ -258,8 +258,8 @@ int _DATAWEP_ST(SPI_STACK *stack, int arg_count) {
         return 0;
     }
 
-    SpiWeaponPt->status[0] = spiGetStackInt(stack);
-    SpiWeaponPt->status[1] = spiGetStackInt(next);
+    SpiWeaponPt->status[WEAPON_STAT_ATTACK] = spiGetStackInt(stack);
+    SpiWeaponPt->status[WEAPON_STAT_DURABILITY] = spiGetStackInt(next);
     return 1;
 }
 
@@ -277,8 +277,8 @@ int _DATAWEP_ST_L(SPI_STACK *stack, int arg_count) {
         return 0;
     }
 
-    SpiWeaponPt->status_max[0] = spiGetStackInt(stack);
-    SpiWeaponPt->status_max[1] = spiGetStackInt(next);
+    SpiWeaponPt->status_max[WEAPON_STAT_ATTACK] = spiGetStackInt(stack);
+    SpiWeaponPt->status_max[WEAPON_STAT_DURABILITY] = spiGetStackInt(next);
     return 1;
 }
 
@@ -406,7 +406,7 @@ int _DATAITEM(SPI_STACK *stack, int arg_count) {
     if (SpiItemPt != 0) {
         flags = spiGetStackInt(stack++);
 
-        if (flags & 0x800000) {
+        if (flags & ITEM_USE_FLAG_CURE_ALL) {
             flags = (flags & 0xFF7FFFFF) | 0x142A8000;
         }
 
@@ -520,18 +520,18 @@ int _DATAROBO_ANALYZE(SPI_STACK *stack, int arg_count) {
         spiGetStackString(stack++);
     } else if (type == 1) {
         SpiRoboPart->durability = spiGetStackInt(stack++);
-        SpiRoboPart->unk_8 = spiGetStackInt(stack++);
-        SpiRoboPart->unk_a = spiGetStackInt(stack++);
+        SpiRoboPart->attack = spiGetStackInt(stack++);
+        SpiRoboPart->durable = spiGetStackInt(stack++);
 
         for (i = 0; i < 8; i++) {
-            SpiRoboPart->unk_c[i] = spiGetStackInt(stack++);
+            SpiRoboPart->attribute[i] = spiGetStackInt(stack++);
         }
 
-        SpiRoboPart->info_type_d = spiGetStackInt(stack++);
+        SpiRoboPart->attack_type = spiGetStackInt(stack++);
         spiGetStackString(stack++);
     } else if (type == 2) {
         SpiRoboPart->unk_4 = spiGetStackInt(stack++);
-        SpiRoboPart->info_type_e = spiGetStackInt(stack++);
+        SpiRoboPart->move_type = spiGetStackInt(stack++);
     } else if (type == 3) {
         SpiRoboPart->energy = spiGetStackInt(stack);
     }
@@ -644,7 +644,7 @@ int CGameData::LoadData() {
     Initialize();
     comdatapt = common_data;
     comdatapt_num = 0;
-    memset(local_itemdatano_converttable, -1, 0x400);
+    memset(local_itemdatano_converttable, -1, sizeof(local_itemdatano_converttable));
     LoadGameDataAnalyze(at_1063);
     LoadGameDataAnalyze(at_1064__2);
     LoadGameDataAnalyze(at_1065);
@@ -675,7 +675,7 @@ int CGameData::LoadItemSystemMes(int language) {
     char *script;
 
     script = (char *) MenuCalcBufAlignment((u_long128 *) buffer);
-    memset(gamedata_sysword_buffer_1073, 0, 0x2800);
+    memset(gamedata_sysword_buffer_1073, 0, sizeof(gamedata_sysword_buffer_1073));
 
     ((mgCMemory *) memory_storage)->Init();
     ((mgCMemory *) memory_storage)->stSetBuffer((u_long128 *) gamedata_sysword_buffer_1073, 0x280);
@@ -751,7 +751,7 @@ CDataWeapon *CGameData::GetWeaponData(int item_no) {
         return 0;
     }
 
-    if (ConvertUsedItemType(record->type) != 3) {
+    if (ConvertUsedItemType(record->type) != USED_ITEM_TYPE_WEAPON) {
         return 0;
     }
 
@@ -781,7 +781,7 @@ CDataItem *CGameData::GetItemData(int item_no) {
 
     type = ConvertUsedItemType(record->type);
 
-    if (type == 1 || type == 7 || type == 8) {
+    if (type == USED_ITEM_TYPE_ITEM || type == USED_ITEM_TYPE_GIFT_BOX || type == USED_ITEM_TYPE_BOILED) {
         return item_data + record->list_no;
     }
 
@@ -808,7 +808,7 @@ CDataAttach *CGameData::GetAttachData(int item_no) {
         return 0;
     }
 
-    if (ConvertUsedItemType(record->type) != 2) {
+    if (ConvertUsedItemType(record->type) != USED_ITEM_TYPE_ATTACH) {
         return 0;
     }
 
@@ -861,7 +861,7 @@ CDataBreedFish *CGameData::GetFishData(int item_no) {
         return 0;
     }
 
-    if (ConvertUsedItemType(record->type) != 6) {
+    if (ConvertUsedItemType(record->type) != USED_ITEM_TYPE_FISH) {
         return 0;
     }
 
@@ -958,7 +958,7 @@ char *GetItemFileName(int item_no, int variant) {
     CSaveData *save_data = GetSaveData();
     u8         type = record->type;
 
-    if ((type == 5 || type == 8) && save_data->GetBitFlag(0x31F) != 0) {
+    if ((type == 5 || type == 8) && save_data->GetBitFlag((int) SAVE_FLAG_COSTUME_UNLOCK) != 0) {
         strcat(filename_1267, at_1283__3);
     }
 
@@ -987,11 +987,11 @@ char *GetItemFilePath(int item_no, int variant) {
         }
 
         switch (type) {
-            case 3:
-            case 4:
+            case USED_ITEM_TYPE_WEAPON:
+            case USED_ITEM_TYPE_COSTUME:
                 strcpy(item_file_path_1288, at_1307__2);
                 break;
-            case 5:
+            case USED_ITEM_TYPE_ROBO_PART:
                 strcpy(item_file_path_1288, at_1308__2);
                 break;
             default:
@@ -1003,12 +1003,12 @@ char *GetItemFilePath(int item_no, int variant) {
         strcat(item_file_path_1288, at_1284__3);
 
         if (variant == 1) {
-            if (type == 3) {
+            if (type == (int) USED_ITEM_TYPE_WEAPON) {
                 sprintf(item_file_path_1288, at_1310__2, name);
             }
         }
 
-        if (variant == 1 && (record->type == 0xD || record->type == 0xE)) {
+        if (variant == 1 && (record->type == (int) ITEM_DATA_ROBO_ARM || record->type == (int) ITEM_DATA_ROBO_LEG)) {
             sprintf(item_file_path_1288, at_1311__2, name);
         }
     }
@@ -1032,29 +1032,29 @@ unsigned int GetItemDataAttribute(int item_no) {
     return 0;
 }
 
-int ConvertUsedItemType(int item_no) {
+int ConvertUsedItemType(int item_type) {
     int type;
 
-    type = 0;
+    type = USED_ITEM_TYPE_NONE;
 
-    if (item_no > 0 && item_no < 5) {
-        type = 3;
-    } else if (item_no >= 5 && item_no < 11) {
-        type = 4;
-    } else if (item_no > 11 && item_no <= 15) {
-        type = 5;
-    } else if ((item_no >= 16 && item_no <= 19) || item_no == 0x22) {
-        type = 2;
-    } else if (item_no == 11 || item_no >= 20) {
-        type = 1;
+    if (item_type > 0 && item_type < 5) {
+        type = USED_ITEM_TYPE_WEAPON;
+    } else if (item_type >= 5 && item_type < 11) {
+        type = USED_ITEM_TYPE_COSTUME;
+    } else if (item_type > 11 && item_type <= 15) {
+        type = USED_ITEM_TYPE_ROBO_PART;
+    } else if ((item_type >= 16 && item_type <= 19) || item_type == 0x22) {
+        type = USED_ITEM_TYPE_ATTACH;
+    } else if (item_type == ITEM_DATA_ROBO_CORE || item_type >= 20) {
+        type = USED_ITEM_TYPE_ITEM;
     }
 
-    if (item_no == 0x1C) {
-        type = 7;
-    } else if (item_no == 0x1E) {
-        type = 6;
-    } else if (item_no == 0x23) {
-        type = 8;
+    if (item_type == ITEM_DATA_GIFT_BOX) {
+        type = USED_ITEM_TYPE_GIFT_BOX;
+    } else if (item_type == ITEM_DATA_FISH) {
+        type = USED_ITEM_TYPE_FISH;
+    } else if (item_type == ITEM_DATA_BOILED) {
+        type = USED_ITEM_TYPE_BOILED;
     }
 
     return type;
@@ -1142,13 +1142,13 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
     type = GetItemDataType(item_no);
 
     switch (type) {
-        case 1:
-        case 2:
-        case 3:
-        case 4:
+        case ITEM_DATA_MAX_MELEE:
+        case ITEM_DATA_MAX_GUN:
+        case ITEM_DATA_MONICA_MELEE:
+        case ITEM_DATA_MONICA_MAGIC:
             count = ItemCmdMsgSet(0, message_list);
 
-            if (item_no == 0x12E || item_no == 0x12F) {
+            if (item_no == (int) ITEM_ID_FISHING_ROD || item_no == (int) ITEM_ID_LURE_ROD) {
                 count = ItemCmdMsgSet(14, message_list);
             }
 
@@ -1172,17 +1172,17 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
         case 17:
             count = ItemCmdMsgSet(5, message_list);
             break;
-        case 11:
+        case ITEM_DATA_ROBO_CORE:
             count = ItemCmdMsgSet(7, message_list);
             break;
-        case 12:
-        case 14:
+        case ITEM_DATA_ROBO_BODY:
+        case ITEM_DATA_ROBO_LEG:
             count = ItemCmdMsgSet(2, message_list);
             break;
-        case 13:
+        case ITEM_DATA_ROBO_ARM:
             count = ItemCmdMsgSet(22, message_list);
             break;
-        case 15:
+        case ITEM_DATA_ROBO_ENERGY_PACK:
             count = ItemCmdMsgSet(16, message_list);
             break;
         case 22:
@@ -1195,11 +1195,11 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
         case 26:
         case 27:
         case 33:
-            if (item_no == 0x126) {
+            if (item_no == (int) ITEM_ID_MELEE_REPAIR) {
                 count = ItemCmdMsgSet(13, message_list);
-            } else if (item_no == 0x12A || item_no == 0x160) {
+            } else if (item_no == (int) ITEM_ID_GUN_REPAIR || item_no == (int) ITEM_ID_MAGIC_REPAIR) {
                 count = ItemCmdMsgSet(17, message_list);
-            } else if (item_no == 0x17D) {
+            } else if (item_no == (int) ITEM_ID_RIDEPOD_FUEL) {
                 count = ItemCmdMsgSet(23, message_list);
             } else if (item_no == 0x128) {
                 count = ItemCmdMsgSet(20, message_list);
@@ -1228,22 +1228,22 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
             }
 
             break;
-        case 29:
+        case ITEM_DATA_AQUARIUM:
             count = ItemCmdMsgSet(9, message_list);
             break;
         case 21:
             count = ItemCmdMsgSet(10, message_list);
             break;
-        case 28:
+        case ITEM_DATA_GIFT_BOX:
             count = ItemCmdMsgSet(11, message_list);
             break;
-        case 30:
+        case ITEM_DATA_FISH:
             count = ItemCmdMsgSet(12, message_list);
             break;
         case 32:
             count = ItemCmdMsgSet(15, message_list);
             break;
-        case 35:
+        case ITEM_DATA_BOILED:
             count = ItemCmdMsgSet(29, message_list);
             break;
     }
@@ -1256,11 +1256,11 @@ int CheckItemEquip(int chara, int item_no) {
         return 0;
     }
 
-    if (item_no == 0x12A) {
+    if (item_no == (int) ITEM_ID_GUN_REPAIR) {
         if (chara != 0) {
             return 0;
         }
-    } else if (item_no == 0x160) {
+    } else if (item_no == (int) ITEM_ID_MAGIC_REPAIR) {
         if (chara != 1) {
             return 0;
         }
@@ -1409,25 +1409,15 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", at_1501__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gamedata", msg_offsettbl_1363__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(gamedata_build_stack, 0x4);
-INCLUDE_BSS(comdatapt, 0x4);
-INCLUDE_BSS(comdatapt_num, 0x4);
-INCLUDE_BSS(SpiWeaponPt, 0x4);
-INCLUDE_BSS(SpiItemPt, 0x4);
-INCLUDE_BSS(SpiAttach, 0x4);
-INCLUDE_BSS(SpiRoboPart, 0x4);
-INCLUDE_BSS(SpiFish, 0x4);
+CDataWeapon    *SpiWeaponPt;
+CDataItem      *SpiItemPt;
+CDataAttach    *SpiAttach;
+CDataRoboPart  *SpiRoboPart;
+CDataBreedFish *SpiFish;
 
 // Uninitialised data (.bss)
-INCLUDE_BSS(GameItemDataManage, 0x30);
-INCLUDE_BSS(local_com_itemdata, 0x4A40);
-CDataItem   local_itemdata[162];
-CDataWeapon local_weapondata[116];
-CDataAttach local_attachdata[38];
-INCLUDE_BSS(local_robodata, 0x990);
+CGameData      GameItemDataManage;
+CDataItem      local_itemdata[162];
+CDataWeapon    local_weapondata[116];
+CDataAttach    local_attachdata[38];
 CDataBreedFish local_fishdata[20];
-INCLUDE_BSS(local_guarddata, 0x50);
-INCLUDE_BSS(local_itemdatano_converttable, 0x400);
-INCLUDE_BSS(gamedata_sysword_buffer_1073, 0x2800);
-INCLUDE_BSS(filename_1267, 0x20);
-INCLUDE_BSS(item_file_path_1288, 0x80);

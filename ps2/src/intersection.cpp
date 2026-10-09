@@ -10,13 +10,13 @@
 int IntersectionPipeYPoly3(float *pipe, float (*poly)[4], float *normal, float (*hits)[4]) {
     /** Zero vector used to seed the plane tangent calculation. */
     static sceVu0FVECTOR at;
-    sceVu0FVECTOR axis;
-    sceVu0FVECTOR offset;
-    sceVu0FVECTOR side0;
-    sceVu0FVECTOR side1;
-    sceVu0FVECTOR flat_pipe;
-    sceVu0FVECTOR flat_poly[3];
-    float radius_squared = pipe[3] * pipe[3];
+    sceVu0FVECTOR        axis;
+    sceVu0FVECTOR        offset;
+    sceVu0FVECTOR        side0;
+    sceVu0FVECTOR        side1;
+    sceVu0FVECTOR        flat_pipe;
+    sceVu0FVECTOR        flat_poly[3];
+    float                radius_squared = pipe[3] * pipe[3];
     *(u_long128 *) axis = *(u_long128 *) at;
     axis[1] = normal[1];
     sceVu0OuterProduct(axis, normal, axis);
@@ -56,6 +56,7 @@ int IntersectionPipeYPoly3(float *pipe, float (*poly)[4], float *normal, float (
     }
     return count;
 }
+
 int IntersectionPipePoly3(float *pipe, float *axis, float (*tri)[4], float *offset, float (*hits_out)[4]) {
     float basis[4][4];
     float inverse[4][4];
@@ -170,11 +171,12 @@ int IntersectionSpherePoly3(float *sphere, float (*tri)[4], float *normal, float
 
     return 0;
 }
+
 int IntersectionBox(float *from, float *to, mgVu0FBOX *box, float (*hits)[4]) {
-    int count;
-    int last_candidate;
-    int axis;
-    int later_index;
+    int           count;
+    int           last_candidate;
+    int           axis;
+    int           later_index;
     sceVu0FVECTOR segment_max;
     sceVu0FVECTOR segment_min;
     sceVu0FVECTOR direction;
@@ -240,6 +242,7 @@ int IntersectionBox(float *from, float *to, mgVu0FBOX *box, float (*hits)[4]) {
     }
     return count;
 }
+
 int IntersectionBox(float *start, float *end, mgVu0FBOX *box, float (*matrix)[4], float (*hits_out)[4]) {
     float local_start[4];
     float local_end[4];

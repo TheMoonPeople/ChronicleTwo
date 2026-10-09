@@ -154,6 +154,7 @@ void CPowGage::Step() {
         }
     }
 }
+
 void CPowGage::Draw() {
     if (texture == NULL) {
         return;
@@ -174,28 +175,29 @@ void CPowGage::Draw() {
     DPrimEnterSprite(&prim, 22, 28, 2, 10, pos_x, pos_y, 325.0f, 10.0f);
     float bar_width = 260.0f * power;
     float bar_x = 104.0f + pos_x - bar_width / 2.0f;
-    if ((u8)POWGAGE_STATE_CHARGE == state) {
+    if ((u8) POWGAGE_STATE_CHARGE == state) {
         DPrimEnterSprite(&prim, 28, 28, 2, 10, bar_x, pos_y, bar_width, 10.0f);
     } else {
         DPrimEnterSprite(&prim, 40, 28, 2, 10, bar_x, pos_y, bar_width, 10.0f);
     }
     float safe_x = 104.0f + pos_x;
-    DPrimEnterSprite(&prim, 20, 38, 14, 6, safe_x, 10.0f + pos_y, 19.5f * (float)safe_level, 10.0f);
+    DPrimEnterSprite(&prim, 20, 38, 14, 6, safe_x, 10.0f + pos_y, 19.5f * (float) safe_level, 10.0f);
     DPrimEnterSprite(&prim, 32, 28, 6, 10, 104.0f + pos_x, pos_y, 6.0f, 10.0f);
     DPrimEnterSprite(&prim, 32, 0, 18, 28, pos_x + 156.0f, pos_y, 18.0f, 28.0f);
     DPrimEnterSprite(&prim, 0, 0, 18, 28, pos_x - 156.0f, pos_y, 18.0f, 28.0f);
     int index = 0;
     if (index < 23) {
         do {
-            DPrimEnterSprite(&prim, 18, 0, 13, 28, 143.0f + pos_x - 13.0f * (float)index, pos_y, 13.0f, 28.0f);
+            DPrimEnterSprite(&prim, 18, 0, 13, 28, 143.0f + pos_x - 13.0f * (float) index, pos_y, 13.0f, 28.0f);
             ++index;
         } while (index < 23);
     }
     DPrimEnterSprite(&prim, 0, 28, 12, 22, 104.0f + pos_x, pos_y, 12.0f, 22.0f);
     DPrimEnterSprite(&prim, 12, 28, 8, 22, pos_x - 26.0f, pos_y, 8.0f, 22.0f);
-    DPrimEnterSprite(&prim, 52, 0, 12, 30, 104.0f + pos_x - 6.5f * (float)count, pos_y, 12.0f, 30.0f);
+    DPrimEnterSprite(&prim, 52, 0, 12, 30, 104.0f + pos_x - 6.5f * (float) count, pos_y, 12.0f, 30.0f);
     prim.End();
 }
+
 void InitSphida() {
     Sphida = 0;
 }
@@ -331,7 +333,7 @@ void CSphida::SetUp(int arg) {
     }
 
     if (RedMarkModel != NULL) {
-        memcpy(&this->red_mark, RedMarkModel, 0x90);
+        memcpy(&this->red_mark, RedMarkModel, sizeof(this->red_mark));
     }
 
     this->tex_bank = arg;
@@ -358,7 +360,7 @@ void CSphida::s17_SetUp(int arg) {
     }
 
     if (RedMarkModel != NULL) {
-        memcpy(&this->red_mark, RedMarkModel, 0x90);
+        memcpy(&this->red_mark, RedMarkModel, sizeof(this->red_mark));
     }
 
     this->tex_bank = arg;
@@ -525,7 +527,7 @@ int CSphida::Step() {
         red_mark.draw_request = 1;
         red_mark.Step();
 
-        if (PadCtrl.Btn(0) != 0 && DngStatus.mode == DNG_STATUS_FIELD) {
+        if (PadCtrl.Btn(PAD_BTN_CONFIRM) != 0 && DngStatus.mode == DNG_STATUS_FIELD) {
             memcpy(&EventCamera__2, &MainCamera, sizeof(mgCCameraFollow));
             DngMainScene->active_camera = 1;
             InitEvent(DngMainScene);
@@ -603,7 +605,7 @@ void CSphida::DrawStatusSprite() {
         return;
     }
     InitStatusSprite();
-    mgTexManager.ReloadTexture(tex_bank, (sceVif1Packet *)NULL);
+    mgTexManager.ReloadTexture(tex_bank, (sceVif1Packet *) NULL);
     pow_gage.Draw();
     mgCTexture *texture = mgTexManager.GetTexture(at_1221__5, -1);
     mgCDrawPrim prim;
@@ -631,7 +633,7 @@ void CSphida::DrawStatusSprite() {
         DPrimEnterSprite(&prim, par_ones * 18 + 332, 212, 18, 20, 454.0f, 33.0f, 18.0f, 20.0f);
         DPrimEnterSprite(&prim, 232, 0, 24, 20, 474.0f, 34.0f, 24.0f, 20.0f);
         DPrimEnterSprite(&prim, 150, 20, 84, 22, 380.0f, 60.0f, 84.0f, 22.0f);
-        int pin_distance = (int)(mgDistVector(pin_pos, ball_pos) / 20.0f);
+        int pin_distance = (int) (mgDistVector(pin_pos, ball_pos) / 20.0f);
         if (pin_distance > 999) {
             pin_distance = 999;
         }
@@ -644,7 +646,7 @@ void CSphida::DrawStatusSprite() {
             if (pin_digits[index] != 0 || pin_shown == 1) {
                 pin_shown = 1;
                 DPrimEnterSprite(&prim, pin_digits[index] * 16 + 352, 192, 16, 20,
-                                 430.0f + (float)(index * 14), 60.0f, 16.0f, 20.0f);
+                                 430.0f + (float) (index * 14), 60.0f, 16.0f, 20.0f);
             }
         }
         DPrimEnterSprite(&prim, 234, 20, 22, 22, 474.0f, 60.0f, 22.0f, 22.0f);
@@ -657,7 +659,7 @@ void CSphida::DrawStatusSprite() {
                          10.0f, 10.0f);
         DPrimEnterSprite(&prim, 278, 88, 52, 16, 460.0f, 382.4f, 52.0f, 16.0f);
         DPrimEnterSprite(&prim, 0, 130, 68, 28, 460.0f, 406.4f, 68.0f, 28.0f);
-        int carry_distance = 0;
+        int            carry_distance = 0;
         GOLF_CLUB_DEF *club = GetSphidaClubDef(club_no);
         if (club != NULL) {
             float landing[4];
@@ -665,11 +667,11 @@ void CSphida::DrawStatusSprite() {
             mgZeroVector(landing);
             mgZeroVector(velocity);
             landing[1] += 3.0f;
-            velocity[0] = (float)((double)(club->power - club->power * carry) * cos((double)carry));
-            velocity[1] = (float)((double)(club->power - club->power * carry) * sin((double)carry));
+            velocity[0] = (float) ((double) (club->power - club->power * carry) * cos((double) carry));
+            velocity[1] = (float) ((double) (club->power - club->power * carry) * sin((double) carry));
             for (index = 0; index < 600; index++) {
                 velocity[0] *= 0.999f;
-                velocity[1] += -0.0045f * (float)(index + 1);
+                velocity[1] += -0.0045f * (float) (index + 1);
                 sceVu0AddVector(landing, landing, velocity);
                 if (landing[1] <= 3.0f) {
                     break;
@@ -678,7 +680,7 @@ void CSphida::DrawStatusSprite() {
             landing[3] = 0.0f;
             landing[2] = 0.0f;
             landing[1] = 0.0f;
-            carry_distance = (int)(mgDistVector(landing) / 20.0f);
+            carry_distance = (int) (mgDistVector(landing) / 20.0f);
         }
         if (carry_distance > 999) {
             carry_distance = 999;
@@ -692,7 +694,7 @@ void CSphida::DrawStatusSprite() {
             if (carry_digits[index] != 0 || carry_shown == 1 || index == 2) {
                 carry_shown = 1;
                 DPrimEnterSprite(&prim, carry_digits[index] * 16 + 352, 192, 16, 20,
-                                 438.0f + 14.0f * (float)index, 406.4f, float(16.0), 20.0f);
+                                 438.0f + 14.0f * (float) index, 406.4f, float(16.0), 20.0f);
             }
         }
         DPrimEnterSprite(&prim, 234, 20, 22, 22, 482.0f, 406.4f, 22.0f, 22.0f);
@@ -707,7 +709,7 @@ void CSphida::DrawStatusSprite() {
         }
         DPrimEnterSprite(&prim, par_ones * 18 + 332, 212, 18, 20, 371.0f, 33.0f, 18.0f, 20.0f);
         DPrimEnterSprite(&prim, 178, 74, 74, 22, 442.0f, 60.0f, 74.0f, 22.0f);
-        int pin_distance = (int)(mgDistVector(pin_pos, ball_pos) / 20.0f);
+        int pin_distance = (int) (mgDistVector(pin_pos, ball_pos) / 20.0f);
         if (pin_distance > 999) {
             pin_distance = 999;
         }
@@ -720,7 +722,7 @@ void CSphida::DrawStatusSprite() {
             if (pin_digits[index] != 0 || pin_shown == 1) {
                 pin_shown = 1;
                 DPrimEnterSprite(&prim, pin_digits[index] * 16 + 352, 192, 16, 20,
-                                 430.0f + (float)(index * 14) - 60.0f, 60.0f, 16.0f, 20.0f);
+                                 430.0f + (float) (index * 14) - 60.0f, 60.0f, 16.0f, 20.0f);
             }
         }
         DPrimEnterSprite(&prim, 0, 50, 80, 80, 60.0f, 344.0f, 80.0f, 80.0f);
@@ -732,7 +734,7 @@ void CSphida::DrawStatusSprite() {
                          10.0f, 10.0f);
         DPrimEnterSprite(&prim, 264, 88, 66, 16, 460.0f, 382.4f, 66.0f, 16.0f);
         DPrimEnterSprite(&prim, 0, 130, 68, 28, 460.0f, 406.4f, float(68.0), float(28.0));
-        int carry_distance = 0;
+        int            carry_distance = 0;
         GOLF_CLUB_DEF *club = GetSphidaClubDef(club_no);
         if (club != NULL) {
             float landing[4];
@@ -740,11 +742,11 @@ void CSphida::DrawStatusSprite() {
             mgZeroVector(landing);
             mgZeroVector(velocity);
             landing[1] += 3.0f;
-            velocity[0] = (float)((double)(club->power - club->power * carry) * cos((double)carry));
-            velocity[1] = (float)((double)(club->power - club->power * carry) * sin((double)carry));
+            velocity[0] = (float) ((double) (club->power - club->power * carry) * cos((double) carry));
+            velocity[1] = (float) ((double) (club->power - club->power * carry) * sin((double) carry));
             for (index = 0; index < 600; index++) {
                 velocity[0] *= 0.999f;
-                velocity[1] += -0.0045f * (float)(index + 1);
+                velocity[1] += -0.0045f * (float) (index + 1);
                 sceVu0AddVector(landing, landing, velocity);
                 if (landing[1] <= 3.0f) {
                     break;
@@ -753,7 +755,7 @@ void CSphida::DrawStatusSprite() {
             landing[3] = 0.0f;
             landing[2] = 0.0f;
             landing[1] = 0.0f;
-            carry_distance = (int)(mgDistVector(landing) / 20.0f);
+            carry_distance = (int) (mgDistVector(landing) / 20.0f);
         }
         if (carry_distance > 999) {
             carry_distance = 999;
@@ -767,7 +769,7 @@ void CSphida::DrawStatusSprite() {
             if (carry_digits[index] != 0 || carry_shown == 1 || index == 2) {
                 carry_shown = 1;
                 DPrimEnterSprite(&prim, carry_digits[index] * 16 + 352, 192, 16, 20,
-                                 438.0f + 14.0f * (float)index, 406.4f, 16.0f, 20.0f);
+                                 438.0f + 14.0f * (float) index, 406.4f, 16.0f, 20.0f);
             }
         }
         DPrimEnterSprite(&prim, 178, 74, 22, 22, 482.0f, 406.4f, 22.0f, float(22.0));
@@ -922,7 +924,7 @@ void CSphida::Draw() {
     } else if (omake_mode == 1 && DngStatus.mode == DNG_STATUS_FIELD) {
         DNG_BATTLE_AREA *area = &DngMainScene->battle_area;
 
-        if (!area->script.running && !(area->pause_flag & 0x100) && config->map != 0) {
+        if (!area->script.running && !(area->pause_flag & DNG_PAUSE_MINIMAP) && config->map != 0) {
             float player_pos[4];
             tex_man->ReloadTexture(0x66, (sceVif1Packet *) NULL);
             CCharacter2 *player = DngMainScene->GetCharacter(0);

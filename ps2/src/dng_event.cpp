@@ -2,6 +2,7 @@
 #include "mw_runtime.h"
 
 #include <cmath>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -81,7 +82,7 @@ static MapJumpMapInfo          MainMapInfo;
 
 // Code (.text)
 void CStartupEpisodeTitle::DrawEpisode(int mes_tex_block, int frame_tex_block) {
-    if (mes == NULL || state == 0) {
+    if (mes == NULL || state == (int) EPISODE_TITLE_OFF) {
         return;
     }
     mgTexManager.ReloadTexture(mes_tex_block, (sceVif1Packet *) NULL);
@@ -123,7 +124,7 @@ void CStartupEpisodeTitle::Switch(int on) {
     u8     *floor_manager;
     int     floor_id;
 
-    floor_manager = (u8 *) &DngMainScene->battle_area + 0x14;
+    floor_manager = (u8 *) &DngMainScene->battle_area + offsetof(DNG_BATTLE_AREA, floor_manager);
     floor_id = DngSaveDataDungeon->floor_id[DngSaveDataDungeon->stage_id];
 
     if (on != 0) {
@@ -145,7 +146,7 @@ void CStartupEpisodeTitle::Switch(int on) {
         reveal = 0;
         slide = 0;
         wait = 0x3C;
-    } else if (state != 0) {
+    } else if (state != (int) EPISODE_TITLE_OFF) {
         current = mes;
         current->draw_speed = current->GetDrawSpeedDef();
         current->mes_no = -1;
@@ -167,7 +168,7 @@ void CStartupEpisodeTitle::Step() {
         return;
     }
 
-    if (state == 1) {
+    if (state == (int) EPISODE_TITLE_FADE_IN) {
         alpha += 0.033333335f;
 
         if (!(alpha < 1.0f)) {
@@ -186,20 +187,20 @@ void CStartupEpisodeTitle::Step() {
             if (!(slide < 1.0f)) {
                 slide = 1.0f;
                 wait = 0x3C;
-                state = 2;
+                state = (int) EPISODE_TITLE_HOLD;
             }
         }
     }
 
-    if (state == 2) {
+    if (state == (int) EPISODE_TITLE_HOLD) {
         wait -= 1;
 
         if (wait < 0) {
-            state = 3;
+            state = (int) EPISODE_TITLE_FADE_OUT;
         }
     }
 
-    if (state == 3) {
+    if (state == (int) EPISODE_TITLE_FADE_OUT) {
         reveal -= 0.05f;
 
         if (reveal <= 0.0f) {
@@ -224,7 +225,7 @@ void CStartupEpisodeTitle::Step() {
                 mes_win->fade = 0.0f;
                 mes_win->fukidashi_centre_x = -1;
                 mes_win->fukidashi_centre_y = -1;
-                state = 0;
+                state = (int) EPISODE_TITLE_OFF;
             }
         }
     }
@@ -242,7 +243,7 @@ void CStartupEpisodeTitle::Step() {
 
 void CStartupEpisodeTitle::Initialize() {
     mes = NULL;
-    state = 0;
+    state = (int) EPISODE_TITLE_OFF;
     wait = 0;
 }
 
@@ -470,7 +471,7 @@ void CGeoStone::DrawMiniMapSymbol(CMiniMapSymbol *symbol_drawer) {
 
     if (this->flag != 0) {
         GetPosition(position);
-        (symbol_drawer)->DrawSymbol(position, 3);
+        (symbol_drawer)->DrawSymbol(position, (int) MINIMAP_SYMBOL_GEOSTONE);
     }
 }
 
@@ -549,7 +550,7 @@ void CRandomCircle::DrawSymbol(CMiniMapSymbol *mini_map) {
 
     do {
         if (active[id] != 0) {
-            mini_map->DrawSymbol(this->pos[id], 2);
+            mini_map->DrawSymbol(this->pos[id], (int) MINIMAP_SYMBOL_RANDOM_CIRCLE);
         }
 
         id += 1;
@@ -726,7 +727,7 @@ void CTreasureBoxManager::PutTreasureBox(int index, float *pos, float rot_y, int
         do {
             chest = &this->box[i];
 
-            if (chest->state == 0) {
+            if (chest->state == (int) TREASURE_BOX_STATE_NONE) {
                 index = i;
                 break;
             }
@@ -740,7 +741,7 @@ void CTreasureBoxManager::PutTreasureBox(int index, float *pos, float rot_y, int
     }
 
     chest = &this->box[index];
-    chest->state = 1;
+    chest->state = (int) TREASURE_BOX_STATE_UNOPENED;
     chest->SetPosition(pos);
     chest->SetRotation(0.0f, rot_y, 0.0f);
     chest->flags = flags;
@@ -759,7 +760,7 @@ int CTreasureBoxManager::CheckArea(float *pos, float radius) {
 loop:
     slot = &this->box[i];
 
-    if (slot->state != 0) {
+    if (slot->state != (int) TREASURE_BOX_STATE_NONE) {
         slot->GetPosition(chest_pos);
 
         if (mgDistVector(chest_pos, pos) < radius) {
@@ -786,9 +787,9 @@ void CTreasureBoxManager::DrawMiniMapSymbol(CMiniMapSymbol *symbol_drawer) {
     do {
         slot = &this->box[i];
 
-        if (slot->state == 1) {
+        if (slot->state == (int) TREASURE_BOX_STATE_UNOPENED) {
             slot->GetPosition(chest_pos);
-            (symbol_drawer)->DrawSymbol(chest_pos, 1);
+            (symbol_drawer)->DrawSymbol(chest_pos, (int) MINIMAP_SYMBOL_TREASURE_BOX);
         }
 
         i += 1;
@@ -804,7 +805,7 @@ void CTreasureBoxManager::Draw(float *view_pos) {
     do {
         slot = &this->box[i];
 
-        if (slot->state != 0) {
+        if (slot->state != (int) TREASURE_BOX_STATE_NONE) {
             (slot)->Draw(view_pos);
         }
 
@@ -831,7 +832,7 @@ void CTreasureBoxManager::DrawShadow(float *view_pos) {
     do {
         slot = &this->box[i];
 
-        if (slot->state != 0) {
+        if (slot->state != (int) TREASURE_BOX_STATE_NONE) {
             slot->DrawShadow(view_pos, shadow_direction);
         }
 
@@ -852,7 +853,7 @@ int CTreasureBoxManager::PickupCollision(float *pos, CCPoly *polys, mgVu0FBOX bo
     do {
         slot = &this->box[i];
 
-        if (slot->state != 0) {
+        if (slot->state != (int) TREASURE_BOX_STATE_NONE) {
             slot->GetPosition(chest_pos);
 
             if (mgDistVector(chest_pos, pos) <= 40.0f) {
@@ -880,7 +881,7 @@ int CTreasureBoxManager::MimicCount() {
     do {
         slot = &this->box[i];
 
-        if (slot->state == 1 && (slot->flags & 0x100)) {
+        if (slot->state == (int) TREASURE_BOX_STATE_UNOPENED && (slot->flags & (int) TREASURE_BOX_FLAG_MIMIC)) {
             count += 1;
         }
 
@@ -904,7 +905,7 @@ int CTreasureBoxManager::CheckEvent(float *pos, float dist) {
     do {
         slot = &this->box[i];
 
-        if (slot->state == 1) {
+        if (slot->state == (int) TREASURE_BOX_STATE_UNOPENED) {
             slot->GetPosition(chest_pos);
             distance = mgDistVector(chest_pos, pos);
 
@@ -983,7 +984,7 @@ int Lamb2WolfManager() {
         return -1;
     }
 
-    if (GetTimeBand(DngMainScene->time) == 2) {
+    if (GetTimeBand(DngMainScene->time) == MAP_TIME_BAND_NIGHT) {
         lamb->SetAttrParamDraw(0, 0);
         wolf->SetAttrParamDraw(1, 0);
         return 1;
@@ -1007,7 +1008,7 @@ void StatusWarningSnd() {
     CBattleCharaInfo *info;
     float             ratio;
 
-    if (!(DngMainScene->battle_area.pause_flag & 0x400)) {
+    if (!(DngMainScene->battle_area.pause_flag & DNG_PAUSE_PLAYER_STATUS)) {
         if (counter_1489 < 0x14) {
             counter_1489 += 1;
         } else {
@@ -1028,7 +1029,7 @@ void StatusWarningSnd() {
 }
 
 void BattleAreaBGMCtrl() {
-    void            *player;
+    CActionChara    *player;
     DNG_BATTLE_AREA *state;
     float            distance;
     int              phase;
@@ -1037,7 +1038,7 @@ void BattleAreaBGMCtrl() {
     CScene          *scene;
 
     state = (&DngMainScene->battle_area);
-    player = DngMainScene->GetCharacter(0);
+    player = (CActionChara *) DngMainScene->GetCharacter(0);
 
     if (dngGetDebugInfo()->sound_flag == 0) {
         sndSeStop(EdEventInfo.snd_id[4], 0, 0);
@@ -1051,33 +1052,33 @@ void BattleAreaBGMCtrl() {
     }
 
     if (distance <= 340.0f) {
-        *(s16 *) ((u8 *) player + 0x75E) = 1;
+        player->battle_stance = 1;
     } else {
-        *(s16 *) ((u8 *) player + 0x75E) = 0;
+        player->battle_stance = 0;
     }
 
-    if (!(state->pause_flag & 0x4000) && state->boss_map == 0) {
+    if (!(state->pause_flag & DNG_PAUSE_BATTLE_MUSIC) && state->boss_map == 0) {
         phase = state->battle_bgm_state;
         fade = state->battle_bgm_vol;
 
-        if (phase == 0) {
+        if (phase == (int) DNG_BGM_MAP) {
             if (!(340.0f < distance)) {
-                state->battle_bgm_state = 1;
+                state->battle_bgm_state = (int) DNG_BGM_FADE_OUT_MAP;
             }
         }
 
-        if (phase == 2) {
+        if (phase == (int) DNG_BGM_BATTLE) {
             if (400.0f <= distance) {
-                state->battle_bgm_state = 3;
+                state->battle_bgm_state = (int) DNG_BGM_FADE_OUT_BATTLE;
             }
         }
 
         switch (phase) {
-            case 1:
+            case DNG_BGM_FADE_OUT_MAP:
                 fade += 0.05f;
 
                 if (!(fade < 1.0f)) {
-                    state->battle_bgm_state = 2;
+                    state->battle_bgm_state = (int) DNG_BGM_BATTLE;
                     fade = 1.0f;
                     sndSePlay(EdEventInfo.snd_id[4], 0, 0);
                     DngMainScene->PauseBGM();
@@ -1088,11 +1089,11 @@ void BattleAreaBGMCtrl() {
                 scene->SetVolfBGM(scene->GetActiveBgmInfo()->volf);
                 state->battle_bgm_vol = fade;
                 return;
-            case 3:
+            case DNG_BGM_FADE_OUT_BATTLE:
                 fade -= 0.016666668f;
 
                 if (fade <= 0.0f) {
-                    state->battle_bgm_state = 4;
+                    state->battle_bgm_state = (int) DNG_BGM_FADE_IN_MAP;
                     fade = 0.0f;
                     sndSeStop(EdEventInfo.snd_id[4], 0, 0);
                     DngMainScene->RePlayBGM();
@@ -1105,12 +1106,12 @@ void BattleAreaBGMCtrl() {
 
                 state->battle_bgm_vol = fade;
                 return;
-            case 4:
+            case DNG_BGM_FADE_IN_MAP:
                 rate = DngMainScene->GetActiveBgmInfo()->master_volf;
                 rate += 0.033333335f;
 
                 if (!(rate < 1.0f)) {
-                    state->battle_bgm_state = 0;
+                    state->battle_bgm_state = (int) DNG_BGM_MAP;
                     rate = 1.0f;
                 }
 
@@ -1144,17 +1145,17 @@ void XChgMapLighting() {
     map = (CMapInfo *) DngMainScene->GetMap(DngMainScene->active_map);
 
     if ((map != NULL) && (map != NULL) && (map->lighting_info_num >= 0x10)) {
-        memset(saved, 0, 0x1D0);
+        memset(saved, 0, sizeof(saved));
         i = 0;
         byte_offset = 0;
 
         do {
-            memcpy(saved, (u8 *) map->lighting_info + byte_offset, 0x1D0);
+            memcpy(saved, (u8 *) map->lighting_info + byte_offset, sizeof(CMapLightingInfo));
             memcpy((u8 *) map->lighting_info + byte_offset,
-                   (u8 *) map->lighting_info + byte_offset + 0xE80, 0x1D0);
-            memcpy((u8 *) map->lighting_info + byte_offset + 0xE80, saved, 0x1D0);
+                   (u8 *) map->lighting_info + byte_offset + 8 * sizeof(CMapLightingInfo), sizeof(CMapLightingInfo));
+            memcpy((u8 *) map->lighting_info + byte_offset + 8 * sizeof(CMapLightingInfo), saved, sizeof(CMapLightingInfo));
             i += 1;
-            byte_offset += 0x1D0;
+            byte_offset += sizeof(CMapLightingInfo);
         } while (i < 8);
     }
 }
@@ -1221,7 +1222,10 @@ int SearchMapEventParts(int kind, CMapParts **parts, float *rotation, int unused
 static inline CMap *ActiveDngMap() {
     return DngMainScene->GetMap(DngMainScene->active_map);
 }
-template <typename T> static inline T Ident(T v) { return v; }
+
+template <typename T>
+static inline T Ident(T v) { return v; }
+
 int SearchMapFlatPosition(float *out_pos, CAutoMapGen *map_gen) {
     float center[4];
     float from[4];
@@ -1331,9 +1335,9 @@ int GetDungeonEventPoint(float *out_pos, float *out_rot, int kind) {
             return 0;
         }
         player->GetPosition(out_pos);
-        out_pos[0] = (int)((80.0f + out_pos[0]) / 160.0f) * 160;
+        out_pos[0] = (int) ((80.0f + out_pos[0]) / 160.0f) * 160;
         out_pos[1] = 0;
-        out_pos[2] = (int)((80.0f + out_pos[2]) / 160.0f) * 160;
+        out_pos[2] = (int) ((80.0f + out_pos[2]) / 160.0f) * 160;
         *out_rot = 0;
     }
     if (kind == DUNGEON_EVENT_POINT_WAY_20) {
@@ -1393,6 +1397,7 @@ int GetDungeonEventPoint(float *out_pos, float *out_rot, int kind) {
     }
     return 1;
 }
+
 /**
  *
  * Begins a treasure box group list for the current floor.
@@ -1669,6 +1674,7 @@ void AutoSetTreasureBox(int id, float *position, float power) {
 }
 
 extern char at_2159[];
+
 void AutoSetTreasureBox(void) {
     DNG_BATTLE_AREA *area = &DngMainScene->battle_area;
     CTreasureBoxManager *manager = DngMainScene->battle_area.treasure_box;
@@ -1691,7 +1697,7 @@ void AutoSetTreasureBox(void) {
     LoadFile(path, BuffReadData, &size);
     stack.stSetBuffer(BuffReadData + size / 16 + 1, 0x4000);
     TRESURE_BOX_FLOOR_INFO *info = new (stack.Alloc(0x1A43)) TRESURE_BOX_FLOOR_INFO;
-    CreatTresuarBoxInfo(info, (char *)BuffReadData, size);
+    CreatTresuarBoxInfo(info, (char *) BuffReadData, size);
     PickupRandomItemCheckMax(info, floor);
 
     for (box = 0; box < 8; box++) {
@@ -1699,7 +1705,7 @@ void AutoSetTreasureBox(void) {
         while (searching) {
             if (SearchMapFlatPosition(pos, &AutoMapGen) && !(mgDistVector(event_pos, pos) <= 320.0f) &&
                 manager->CheckArea(pos, 60.0f)) {
-                angle = (2.0f * (3.1415927f * (float)rand())) / 2.1474836e9f - 3.1415927f;
+                angle = (2.0f * (3.1415927f * (float) rand())) / 2.1474836e9f - 3.1415927f;
                 int flags;
                 int num0 = 1;
                 int item0 = 0;
@@ -1742,7 +1748,7 @@ void AutoSetTreasureBox(void) {
                         kind = 0x80;
                     }
                     flags |= kind;
-                    if (flags & 0x80) {
+                    if (flags & (int) TREASURE_BOX_FLAG_TWO_ITEMS) {
                         TRESURE_BOX_ITEM *item = PickupRandomItem(info, floor, 60);
                         item0 = item->item_no;
                         num0 = item->num;
@@ -1765,13 +1771,13 @@ void AutoSetTreasureBox(void) {
                     num0 += iRand(3) - 1;
                 }
                 if (num0 >= 10) {
-                    num0 = (int)(0.8f * (float)num0 + fRand(0.4f * (float)num0) + 0.5f);
+                    num0 = (int) (0.8f * (float) num0 + fRand(0.4f * (float) num0) + 0.5f);
                 }
                 if (num1 >= 3 && num1 < 10) {
                     num1 += iRand(3) - 1;
                 }
                 if (num1 >= 10) {
-                    num1 = (int)(0.8f * (float)num1 + fRand(0.4f * (float)num1) + 0.5f);
+                    num1 = (int) (0.8f * (float) num1 + fRand(0.4f * (float) num1) + 0.5f);
                 }
                 manager->PutTreasureBox(-1, pos, angle, flags, item0, num0, item1, num1);
                 searching = 0;
@@ -1788,7 +1794,7 @@ void AutoSetTreasureBox(void) {
                 if (SearchMapFlatPosition(mimic_pos, &AutoMapGen) && !(mgDistVector(event_pos, mimic_pos) <= 320.0f) &&
                     CheckObjectPutArea(mimic_pos)) {
                     manager->PutTreasureBox(-1, mimic_pos,
-                                            (2.0f * (3.1415927f * (float)rand())) / 2.1474836e9f - 3.1415927f,
+                                            (2.0f * (3.1415927f * (float) rand())) / 2.1474836e9f - 3.1415927f,
                                             0x101, monster_id, param, -1, 0);
                     placed = 1;
                 }
@@ -1865,8 +1871,8 @@ void AutoSetTreasureBox(void) {
         }
         if (CheckObjectPutArea(pos) && !(mgDistVector(event_pos, pos) <= 320.0f)) {
             AUTOMAP_ROOM *room = &AutoMapGen.room[AutoMapGen.door_room];
-            int x = (int)((pos[0] + 0.5f * AutoMapGen.cell_w) / AutoMapGen.cell_w);
-            int y = (int)((pos[2] + 0.5f * AutoMapGen.cell_d) / AutoMapGen.cell_d);
+            int           x = (int) ((pos[0] + 0.5f * AutoMapGen.cell_w) / AutoMapGen.cell_w);
+            int           y = (int) ((pos[2] + 0.5f * AutoMapGen.cell_d) / AutoMapGen.cell_d);
             if (room->x > x || x >= room->x + room->w || room->y > y || room->y + room->h <= y) {
                 manager->PutTreasureBox(-1, pos, 0.0f, 1, GetKeyDoorIndex(stage, floor), 1, -1, 0);
                 break;
@@ -1874,16 +1880,18 @@ void AutoSetTreasureBox(void) {
         }
     }
 }
+
 int _FLS(SPI_STACK *stack, int argc) {
     FLS_FLOOR_ID = spiGetStackInt(stack++);
     spiGetStackInt(stack);
     int current_floor = DngSaveDataDungeon->floor_id[DngSaveDataDungeon->stage_id];
     int floor = current_floor;
     if (FLS_FLOOR_ID == floor) {
-        ((CMonsterMan *)ActiveMonster)->locate.num = 0;
+        ((CMonsterMan *) ActiveMonster)->locate.num = 0;
     }
     return 1;
 }
+
 int _FL(SPI_STACK *stack, int argc) {
     int i;
     int entry;
@@ -1894,14 +1902,15 @@ int _FL(SPI_STACK *stack, int argc) {
     }
     {
         for (i = 0; i < argc / 2; i++) {
-            entry = ((CMonsterMan *)ActiveMonster)->locate.num;
-            ((CMonsterMan *)ActiveMonster)->locate.monster_id[entry] = spiGetStackInt(stack++);
-            ((CMonsterMan *)ActiveMonster)->locate.param[entry] = spiGetStackInt(stack++);
-            ((CMonsterMan *)ActiveMonster)->locate.num++;
+            entry = ((CMonsterMan *) ActiveMonster)->locate.num;
+            ((CMonsterMan *) ActiveMonster)->locate.monster_id[entry] = spiGetStackInt(stack++);
+            ((CMonsterMan *) ActiveMonster)->locate.param[entry] = spiGetStackInt(stack++);
+            ((CMonsterMan *) ActiveMonster)->locate.num++;
         }
     }
     return 1;
 }
+
 /**
  *
  * Ends the scripted monster placement floor.
@@ -2011,6 +2020,7 @@ void DungeonFloorInit() {
 
 void DungeonFloorFinish() {
 }
+
 extern char at_2446[];
 extern char at_2447[];
 extern char at_2448[];
@@ -2022,6 +2032,7 @@ extern char at_2453[];
 extern char at_2454[];
 extern char at_2455__2[];
 extern char at_2456[];
+
 void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
     mgCMemory *stack;
     u_long128 *image;
@@ -2046,7 +2057,7 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
     DNG_BATTLE_AREA *area = &DngMainScene->battle_area;
     DngMainScene->battle_area.battle_clear = 1;
     area->battle_clear = 1;
-    area->battle_bgm_state = 0;
+    area->battle_bgm_state = (int) DNG_BGM_MAP;
     area->battle_bgm_vol = 0.0f;
     area->camera_mode = 0;
     area->pause_flag = 0;
@@ -2057,9 +2068,9 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
     area->subject_counter = 0;
     area->practice_actions = 0;
     area->floor_status = 0;
-    area->weather = 0;
+    area->weather = DNG_WEATHER_NORMAL;
     area->lock_on_mode = 0;
-    area->pause_flag |= 0x400;
+    area->pause_flag |= DNG_PAUSE_PLAYER_STATUS;
     CheckItemDngKey();
     mgInitLighting();
     DngMainScene->AutoChangeEnvOffset(0);
@@ -2072,9 +2083,9 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
     if (0 < seal) {
         area->floor_status |= 1 << (seal - 1);
     }
-    area->pause_flag |= 0x100;
+    area->pause_flag |= DNG_PAUSE_MINIMAP;
     if (cfg_name != NULL) {
-        area->pause_flag &= ~0x100;
+        area->pause_flag &= ~DNG_PAUSE_MINIMAP;
         if (GetBattleCharaInfo()->GetNowNPC() == 9) {
             area->minimap_reveal |= 1;
         }
@@ -2122,7 +2133,7 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
         MainMapInfo.stack_no = 1;
         MainMapInfo.efp_tex_block = 0xF;
         MainMapInfo.tex_block = 0;
-        MainMapInfo.load_buf = (u8 *)BuffReadData;
+        MainMapInfo.load_buf = (u8 *) BuffReadData;
         SetMainMapInfo(&MainMapInfo);
         GetLoadMapInfo(&load_info, map_no);
         load_info.sky_tex_block = 0x4C;
@@ -2131,13 +2142,13 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
         DngMainScene->DeleteMap(0, 1);
         DngMainScene->LoadMap(0, &load_info, 0);
         DngMainScene->SetNowMapNo(map_no);
-        DngMainScene->SetActive(2, 0);
+        DngMainScene->SetActive(SCENE_DATA_MAP, 0);
         DngMainMap = DngMainScene->GetMap(DngMainScene->active_map);
         stack = DngMainScene->GetStack(1);
         if (stack != NULL && cfg_name != NULL) {
             stack->lock = 0;
             stack->Align64();
-            image = (u_long128 *)stack->stAllocTest(1);
+            image = (u_long128 *) stack->stAllocTest(1);
             if (image != NULL) {
                 textures = &mgTexManager;
                 textures->DeleteBlock(0x66);
@@ -2145,7 +2156,7 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
                 sprintf(image_path, at_2447, map_name);
                 if (LoadFile2(image_path, image, &image_size, 0)) {
                     stack->Alloc(image_size / 16 + 1);
-                    textures->EnterIMGFile((u_char *)image, 0x66, stack, NULL);
+                    textures->EnterIMGFile((u_char *) image, 0x66, stack, NULL);
                 }
             }
         }
@@ -2176,7 +2187,7 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
         }
         stack->lock = 0;
         stack->Align64();
-        stage_image = (u_long128 *)stack->stAllocTest(1);
+        stage_image = (u_long128 *) stack->stAllocTest(1);
         if (stage_image != NULL) {
             char stage_path[0x30];
             if (stage != 4) {
@@ -2189,7 +2200,7 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
             LoadFile(stage_path, stage_image, &stage_size);
             stack->Alloc(stage_size / 16 + 1);
             mgTexManager.DeleteBlock(0x6A);
-            mgTexManager.EnterIMGFile((u_char *)stage_image, 0x6A, stack, NULL);
+            mgTexManager.EnterIMGFile((u_char *) stage_image, 0x6A, stack, NULL);
         }
         stack->lock = 1;
     }
@@ -2222,7 +2233,7 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
         mgCMemory room_stack;
         LoadFile(room_path, BuffReadData, &room_size);
         room_stack.stSetBuffer(BuffReadData + room_size / 16 + 1, 0x8000);
-        AutoMapGen.SetupRoomInfo((char *)BuffReadData, room_size, &room_stack);
+        AutoMapGen.SetupRoomInfo((char *) BuffReadData, room_size, &room_stack);
         AutoMapGen.gen_flag |= gen_flag;
         AutoMapGen.Build();
     }
@@ -2254,6 +2265,7 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
     FxScriptMan->AllClearEffSpt();
     InitS51Thunder();
 }
+
 void MinimapDoorEnable(float *pos) {
     AutoMapGen.MinimapDoorOpen(pos);
     AutoMapGen.UpdateNaviMap(pos, 4);

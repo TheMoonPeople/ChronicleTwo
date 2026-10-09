@@ -31,17 +31,17 @@ int CColPrim::SetDamage(char *name, int owner_id) {
             owner = owner_id;
             damage = param->damage;
             step_count = 0;
-            coord_type = 1;
+            coord_type = COLPRIM_COORD_VECTOR;
             attacker = -1;
             range = 10000.0f;
-            memcpy(element, param->element, 0x10);
+            memcpy(element, param->element, sizeof(element));
             status = param->status;
 
-            if (param->target & 1) {
+            if (param->target & DAMAGE_TARGET_BY_OWNER) {
                 if (owner_id == 0) {
-                    target = 4;
+                    target = DAMAGE_TARGET_MONSTER;
                 } else {
-                    target = 2;
+                    target = DAMAGE_TARGET_PLAYER;
                 }
             } else {
                 target = param->target;
@@ -131,7 +131,7 @@ int CColPrim::IsHit(CScene *scene, int chara_id) {
         return 0;
     }
 
-    int chara_type = scene->GetType(1, chara_id);
+    int chara_type = scene->GetType(SCENE_DATA_CHARA, chara_id);
 
     if (chara_type == 1 && !(self->target & DAMAGE_TARGET_PLAYER)) {
         return 0;

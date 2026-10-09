@@ -46,59 +46,59 @@ struct SaveEditLabels {
     const char *text[2]; /**< Save editor labels. */
 };
 
-extern SaveEditLabels   at_1125;
-extern SaveEditLabels   at_1128__2;
-extern int              MapNameNum;
-extern MAP_NAME_INFO   *map_name;
-extern int              pMapNameBuff;
-extern int              pCharBuff;
-extern char            *CharBuff;
-extern int              now_no;
-extern int              SedSel;
-extern int              SedSelData[SED_ITEM_NUM];
-extern char            *config_str[1];
-extern mgCMemory       *MenuStack;
-extern int              SelectMode;
-extern int              SelectMapType;
-extern int              select_1009;
-extern signed char      init_1010;
-extern int              EventInfoNum;
-extern int              BossEventTop;
-extern int              sel_event;
-extern int              top_event;
-extern char             MapNameBuff[0x8000];
-extern char             SelectMapName[];
-extern char           **SelectMapList[8];
-extern int              SelectMapNum[8];
-extern char            *map_sel_type[8];
-extern int              select__1049[8];
-extern int              top__1050[8];
-extern SPI_TAG_PARAM    tag__7[];
-extern EventListColors  at_1270__4;
-extern LineBreakPair    at_1377__2;
-extern char             at_1040__4[];
-extern char             at_1041__4[];
-extern char             at_1042__3[];
-extern char             at_1043__3[];
-extern char             at_1044__2[];
-extern char             at_1045__3[];
-extern char             at_1103__4[];
-extern char             at_1104__6[];
-extern char             at_1105__3[];
-extern char             at_1323__3[];
-extern char             at_1324__2[];
-extern char             at_1469__4[];
-extern char             at_1470__3[];
-extern char             at_1471__3[];
-extern char             at_842__4[];
-extern char             at_859__3[];
-extern char             at_860__2[];
-int                     mlMAP_NAME_NUM(SPI_STACK *stack, int argc);
-int                     mlMAP_NAME(SPI_STACK *stack, int argc);
-static MAP_NAME_INFO   *GetMapNameInfo(int map_no);
-int                     MapTypeSelect();
-int                     MapSelect();
-static char            *GetLine(char **columns, char *position, char *end);
+extern SaveEditLabels  at_1125;
+extern SaveEditLabels  at_1128__2;
+extern int             MapNameNum;
+extern MAP_NAME_INFO  *map_name;
+extern int             pMapNameBuff;
+extern int             pCharBuff;
+extern char           *CharBuff;
+extern int             now_no;
+extern int             SedSel;
+extern int             SedSelData[SED_ITEM_NUM];
+extern char           *config_str[1];
+extern mgCMemory      *MenuStack;
+extern int             SelectMode;
+extern int             SelectMapType;
+extern int             select_1009;
+extern signed char     init_1010;
+extern int             EventInfoNum;
+extern int             BossEventTop;
+extern int             sel_event;
+extern int             top_event;
+extern char            MapNameBuff[0x8000];
+extern char            SelectMapName[];
+extern char          **SelectMapList[8];
+extern int             SelectMapNum[8];
+extern char           *map_sel_type[8];
+extern int             select__1049[8];
+extern int             top__1050[8];
+extern SPI_TAG_PARAM   tag__7[];
+extern EventListColors at_1270__4;
+extern LineBreakPair   at_1377__2;
+extern char            at_1040__4[];
+extern char            at_1041__4[];
+extern char            at_1042__3[];
+extern char            at_1043__3[];
+extern char            at_1044__2[];
+extern char            at_1045__3[];
+extern char            at_1103__4[];
+extern char            at_1104__6[];
+extern char            at_1105__3[];
+extern char            at_1323__3[];
+extern char            at_1324__2[];
+extern char            at_1469__4[];
+extern char            at_1470__3[];
+extern char            at_1471__3[];
+extern char            at_842__4[];
+extern char            at_859__3[];
+extern char            at_860__2[];
+int                    mlMAP_NAME_NUM(SPI_STACK *stack, int argc);
+int                    mlMAP_NAME(SPI_STACK *stack, int argc);
+static MAP_NAME_INFO  *GetMapNameInfo(int map_no);
+int                    MapTypeSelect();
+int                    MapSelect();
+static char           *GetLine(char **columns, char *position, char *end);
 #ifdef NONMATCHING
 
 static int            MapNameNum;
@@ -421,11 +421,11 @@ int MapTypeSelect() {
         init_1010 = 1;
     }
 
-    if (GamePad__2.Down(0x1000)) {
+    if (GamePad__2.Down(PAD_UP)) {
         select_1009--;
     }
 
-    if (GamePad__2.Down(0x4000)) {
+    if (GamePad__2.Down(PAD_DOWN)) {
         select_1009++;
     }
 
@@ -437,15 +437,15 @@ int MapTypeSelect() {
         select_1009 = 0;
     }
 
-    if (GamePad__2.Down(0x20)) {
+    if (GamePad__2.Down(PAD_CIRCLE)) {
         if (SelectMapNum[select_1009] > 0) {
             SelectMapType = select_1009;
-            SelectMode = 1;
+            SelectMode = (int) MAP_SELECT_MODE_MAP;
         }
     }
 
-    if (GamePad__2.Down(0x40)) {
-        SelectMode = -1;
+    if (GamePad__2.Down(PAD_CROSS)) {
+        SelectMode = (int) MAP_SELECT_MODE_CANCEL;
     }
 
     cursor += sprintf(cursor, at_1040__4);
@@ -488,22 +488,22 @@ int MapSelect() {
     top = &top__1050[SelectMapType];
     offset = *selected - *top;
 
-    if (GamePad__2.Down(0x1000)) {
+    if (GamePad__2.Down(PAD_UP)) {
         (*selected)--;
     }
 
-    if (GamePad__2.Down(0x4000)) {
+    if (GamePad__2.Down(PAD_DOWN)) {
         (*selected)++;
     }
 
     paged = 0;
 
-    if (GamePad__2.Down(4)) {
+    if (GamePad__2.Down(PAD_L1)) {
         paged = 1;
         *top -= 8;
     }
 
-    if (GamePad__2.Down(8)) {
+    if (GamePad__2.Down(PAD_R1)) {
         paged = 1;
         *top += 8;
     }
@@ -581,13 +581,13 @@ int MapSelect() {
 
     GetDebugFont()->DrawDirect(text, 10, 10);
 
-    if (GamePad__2.Down(0x40)) {
-        SelectMode = 0;
+    if (GamePad__2.Down(PAD_CROSS)) {
+        SelectMode = (int) MAP_SELECT_MODE_TYPE;
     }
 
-    if (GamePad__2.Down(0x20)) {
+    if (GamePad__2.Down(PAD_CIRCLE)) {
         strcpy(SelectMapName, SelectMapList[SelectMapType][*selected]);
-        SelectMode = 2;
+        SelectMode = (int) MAP_SELECT_MODE_DECIDE;
     }
 
     return 0;
@@ -595,19 +595,19 @@ int MapSelect() {
 
 int MapSelectLoop() {
     switch (SelectMode) {
-        case -1:
-            return 1;
-        case 0:
+        case MAP_SELECT_MODE_CANCEL:
+            return (int) MAP_SELECT_CANCEL;
+        case MAP_SELECT_MODE_TYPE:
             MapTypeSelect();
             break;
-        case 1:
+        case MAP_SELECT_MODE_MAP:
             MapSelect();
             break;
-        case 2:
-            return 2;
+        case MAP_SELECT_MODE_DECIDE:
+            return (int) MAP_SELECT_DECIDE;
     }
 
-    return 0;
+    return (int) MAP_SELECT_CONTINUE;
 }
 
 void InitSaveDataEdit(mgCMemory *stack) {
@@ -835,19 +835,19 @@ int EventViewLoop() {
 
     GetDebugFont()->DrawDirect(text, 10, 10);
 
-    if (GamePad__2.Down(0x1000)) {
+    if (GamePad__2.Down(PAD_UP)) {
         sel_event--;
     }
 
-    if (GamePad__2.Down(0x4000)) {
+    if (GamePad__2.Down(PAD_DOWN)) {
         sel_event++;
     }
 
-    if (GamePad__2.Down(0x8004)) {
+    if (GamePad__2.Down(PAD_LEFT | PAD_L1)) {
         top_event -= 10;
     }
 
-    if (GamePad__2.Down(0x2008)) {
+    if (GamePad__2.Down(PAD_RIGHT | PAD_R1)) {
         top_event += 10;
     }
 
@@ -871,7 +871,7 @@ int EventViewLoop() {
         sel_event = 0;
     }
 
-    if (GamePad__2.Down(0x20)) {
+    if (GamePad__2.Down(PAD_CIRCLE)) {
         INIT_LOOP_ARG    loop_arg;
         EVENT_VIEW_INFO *chosen = &EventInfo[top_event + sel_event];
 
@@ -881,16 +881,16 @@ int EventViewLoop() {
             loop_arg.event_no = chosen->event_no;
 
             if (chosen->dungeon != 0) {
-                NextLoop(2, loop_arg);
+                NextLoop((int) LOOP_DUNGEON, loop_arg);
             } else {
-                NextLoop(1, loop_arg);
+                NextLoop((int) LOOP_EDIT, loop_arg);
             }
 
             return 1;
         }
     }
 
-    if (GamePad__2.Down(0x40)) {
+    if (GamePad__2.Down(PAD_CROSS)) {
         return 2;
     }
 

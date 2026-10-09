@@ -13,22 +13,22 @@
 #include "mglib.hpp"
 #include "scriptinterpreter.hpp"
 
-extern CDynamicAnime *dynNowDA;
-extern mgCMemory     *dynStack;
-extern mgCFrame      *dynTopFrame;
-extern int            dynFrameCount;
-extern int            dynVertexCount;
-extern int            dynFixVertexCount;
-extern int            dynBindVertexCount;
-extern int            dynBBoxCount;
-extern int            dynColCount;
-extern SPI_TAG_PARAM  dynmc_tag[];
-extern char           at_855__2[];
-extern char           at_976[];
-extern char           at_977[];
-extern char           at_978[];
-extern char           at_979[];
-extern char           at_1025[];
+CDynamicAnime       *dynNowDA;
+mgCMemory           *dynStack;
+mgCFrame            *dynTopFrame;
+int                  dynFrameCount;
+int                  dynVertexCount;
+int                  dynFixVertexCount;
+int                  dynBindVertexCount;
+int                  dynBBoxCount;
+int                  dynColCount;
+extern SPI_TAG_PARAM dynmc_tag[];
+extern char          at_855__2[];
+extern char          at_976[];
+extern char          at_977[];
+extern char          at_978[];
+extern char          at_979[];
+extern char          at_1025[];
 
 /**
  *
@@ -71,7 +71,7 @@ void CDynamicAnime::ResetPosition() {
 
     if (top_frame != 0) {
         top_frame->GetLWMatrix(matrix);
-        mgApplyMatrixN((float (*)[4]) now_vertex, matrix, (float (*)[4]) init_vertex, vertex_num);
+        mgApplyMatrixN((float(*)[4]) now_vertex, matrix, (float(*)[4]) init_vertex, vertex_num);
     }
 
     for (i = 0; i < vertex_num; i++) {
@@ -79,10 +79,12 @@ void CDynamicAnime::ResetPosition() {
         *(u_long128 *) &old_vertex[i] = *(u_long128 *) &now_vertex[i];
     }
 }
+
 static inline float WindRand(int *seed) {
     *seed = *seed * 0x10DCD + 1;
-    return (float)*seed / -2147483648.0f;
+    return (float) *seed / -2147483648.0f;
 }
+
 void CDynamicAnime::Step() {
     sceVu0FMATRIX   matrix;
     sceVu0FVECTOR   pull;
@@ -137,7 +139,7 @@ void CDynamicAnime::Step() {
     PreCollision();
     for (j = 0; j < vertex_num; j++) {
         sceVu0SubVector(velocity[j], now_vertex[j], old_vertex[j]);
-        *(u_long128 *)old_vertex[j] = *(u_long128 *)now_vertex[j];
+        *(u_long128 *) old_vertex[j] = *(u_long128 *) now_vertex[j];
         fixed = &fix_vertex[j];
         if (fixed->weight < 1.0f && fixed->weight > 0.0f) {
             fixed_frame = GetFrame(fixed->frame_id);
@@ -189,6 +191,7 @@ void CDynamicAnime::Step() {
         FramePose(frame[i], &frame_pose[i]);
     }
 }
+
 int CDACollision::CheckHit(float *position) { return 0; }
 
 void CDynamicAnime::SetWind(float power, float *direction) {
@@ -208,17 +211,18 @@ void CDynamicAnime::SetFloor(float height) {
 void CDynamicAnime::ResetFloor() {
     floor_enable = 0;
 }
+
 void CDynamicAnime::FramePose(mgCFrame *frame, DA_FRAME_POSE *pose) {
-    int            across_axis;
-    sceVu0FMATRIX  matrix;
-    float         *v2;
-    int            cross_axis;
-    int            along_axis;
-    int            first_axis;
-    int            second_axis;
-    float         *v3;
-    float         *v0;
-    float         *v1;
+    int           across_axis;
+    sceVu0FMATRIX matrix;
+    float        *v2;
+    int           cross_axis;
+    int           along_axis;
+    int           first_axis;
+    int           second_axis;
+    float        *v3;
+    float        *v0;
+    float        *v1;
 
     if (frame == NULL) {
         return;
@@ -263,13 +267,18 @@ void CDynamicAnime::FramePose(mgCFrame *frame, DA_FRAME_POSE *pose) {
         sceVu0Normalize(matrix[first_axis], matrix[first_axis]);
         sceVu0CopyVector(matrix[3], origin);
         matrix[3][3] = 1.0f;
-        switch (pose->local) { case 0: break; default: if (frame->parent != NULL) {
-            sceVu0FMATRIX parent_matrix;
+        switch (pose->local) {
+            case 0:
+                break;
+            default:
+                if (frame->parent != NULL) {
+                    sceVu0FMATRIX parent_matrix;
 
-            frame->parent->GetLWMatrix(parent_matrix);
-            mgInversMatrix(parent_matrix, parent_matrix);
-            mgMulMatrix(matrix, parent_matrix, matrix);
-        } }
+                    frame->parent->GetLWMatrix(parent_matrix);
+                    mgInversMatrix(parent_matrix, parent_matrix);
+                    mgMulMatrix(matrix, parent_matrix, matrix);
+                }
+        }
         frame->SetTransMatrix(matrix);
         return;
     }
@@ -300,6 +309,7 @@ void CDynamicAnime::FramePose(mgCFrame *frame, DA_FRAME_POSE *pose) {
         frame->SetTransMatrix(matrix);
     }
 }
+
 void CDynamicAnime::PreCollision() {
     int           i;
     CDACollision *col;
@@ -311,8 +321,8 @@ void CDynamicAnime::PreCollision() {
             col->frame = GetFrame(col->frame_id);
 
             if (col->frame != NULL) {
-                col->frame->GetLWMatrix((float (*)[4]) col->lw_matrix);
-                mgInversMatrix((float (*)[4]) col->inverse_matrix, (float (*)[4]) col->lw_matrix);
+                col->frame->GetLWMatrix((float(*)[4]) col->lw_matrix);
+                mgInversMatrix((float(*)[4]) col->inverse_matrix, (float(*)[4]) col->lw_matrix);
             }
         }
     }
@@ -1227,7 +1237,7 @@ int CDAColPipe::CheckHit(float *point) {
     float saved;
 
     point[3] = 1.0f;
-    sceVu0ApplyMatrix(local, (float (*)[4]) inverse_matrix, point);
+    sceVu0ApplyMatrix(local, (float(*)[4]) inverse_matrix, point);
     sceVu0SubVector(offset, local, center);
     offset[0] /= radius[0];
     offset[1] /= radius[1];
@@ -1255,7 +1265,7 @@ int CDAColPipe::CheckHit(float *point) {
     sceVu0AddVector(local, center, offset);
     local[axis] = saved;
     local[3] = 1.0f;
-    sceVu0ApplyMatrix(point, (float (*)[4]) lw_matrix, local);
+    sceVu0ApplyMatrix(point, (float(*)[4]) lw_matrix, local);
     return 1;
 }
 
@@ -1303,12 +1313,3 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", __vt__10CDAColPipe__DATA
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dynamicanime", __vt__12CDACollision__DATA);
 
 // Small uninitialised data (.sbss)
-INCLUDE_BSS(dynNowDA, 0x4);
-INCLUDE_BSS(dynStack, 0x4);
-INCLUDE_BSS(dynTopFrame, 0x4);
-INCLUDE_BSS(dynFrameCount, 0x4);
-INCLUDE_BSS(dynVertexCount, 0x4);
-INCLUDE_BSS(dynFixVertexCount, 0x4);
-INCLUDE_BSS(dynBindVertexCount, 0x4);
-INCLUDE_BSS(dynBBoxCount, 0x4);
-INCLUDE_BSS(dynColCount, 0x4);

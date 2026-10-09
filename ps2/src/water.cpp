@@ -19,13 +19,13 @@
  *
  */
 struct WaterRenderPacket {
-    u_int         dma[4];           /**< DMA count tag. */
-    u_int         vif[4];           /**< Double-buffer setup and unpack codes. */
-    u_long128     clear[3];         /**< Cleared microprogram parameters. */
+    u_int         dma[4];   /**< DMA count tag. */
+    u_int         vif[4];   /**< Double-buffer setup and unpack codes. */
+    u_long128     clear[3]; /**< Cleared microprogram parameters. */
     u_int         render_word;
     float         render_params[3];
-    sceVu0FMATRIX world_screen;     /**< Surface-to-screen transform. */
-    sceVu0FMATRIX world;            /**< Surface-to-world transform. */
+    sceVu0FMATRIX world_screen; /**< Surface-to-screen transform. */
+    sceVu0FMATRIX world;        /**< Surface-to-world transform. */
     u_long128     unk_e0[9];
     sceVu0FVECTOR guard_max;      /**< Upper clip bounds. */
     sceVu0FVECTOR guard_min;      /**< Lower clip bounds. */
@@ -88,7 +88,7 @@ STATIC_ASSERT(sizeof(WaterFinishPacket) == 0x30);
 // Code (.text)
 void CFireRaster::Step(void) {
     FireRasterParticle *free_slot = 0;
-    int i = 0;
+    int                 i = 0;
     FireRasterParticle *particle_slot;
     int                 offset = 0;
 
@@ -114,29 +114,32 @@ void CFireRaster::Step(void) {
         free_slot->life = 30;
     }
 }
+
 struct TextureFields {
-    short block;
-    short width;
-    short height;
-    short bpp;
-    char name[32];
-    int vram_size;
-    int image_blocks;
-    int clut_size;
-    u_long tex0;
-    u_long tex1;
-    u_long clamp;
-    u_long128 *image[4];
-    u_long128 *clut;
-    int swizzled;
+    short       block;
+    short       width;
+    short       height;
+    short       bpp;
+    char        name[32];
+    int         vram_size;
+    int         image_blocks;
+    int         clut_size;
+    u_long      tex0;
+    u_long      tex1;
+    u_long      clamp;
+    u_long128  *image[4];
+    u_long128  *clut;
+    int         swizzled;
     mgCTexture *next;
 };
+
 void CFireRaster::SetTexture(mgCTexture *texture) {
     if (texture != NULL) {
-        *(TextureFields *)&this->texture = *(TextureFields *)texture;
+        *(TextureFields *) &this->texture = *(TextureFields *) texture;
         this->texture.tex0.bits.tcc = 0;
     }
 }
+
 void CFireRaster::Draw(sceVu0FVECTOR position, float *scale) {
     mgCDrawPrim         prim;
     FireRasterParticle *wisp;
@@ -177,7 +180,7 @@ void CFireRaster::Draw(sceVu0FVECTOR position, float *scale) {
             sceVu0AddVector(world_position, position, wisp->position);
             world_position[3] = 1.0f;
             if (mgTransWorldPrim3DSprite(top_left, bottom_right, world_position,
-                                       wisp->size * scale[0], wisp->size * scale[1], 0) != 0) {
+                                         wisp->size * scale[0], wisp->size * scale[1], 0) != 0) {
                 if (top_left[0] < left) {
                     top_left[0] = left;
                 }
@@ -239,6 +242,7 @@ void CFireRaster::Draw(sceVu0FVECTOR position, float *scale) {
     }
     prim.End();
 }
+
 void CFireRaster::Initialize() {
     int index = 0;
 
@@ -254,6 +258,7 @@ void CThunderEffect::Init() {
     unk_94 = 0;
     unk_98 = 0;
 }
+
 void CWater::Hamon() {
     float  coefficient;
     float  center_coefficient;
@@ -290,6 +295,7 @@ void CWater::Hamon() {
         }
     }
 }
+
 void CWater::SetVertex(float *a, float *b) {
     mgVectorMaxMin(max, min, a, b);
 }
@@ -408,9 +414,10 @@ CWater::CWater() {
     surface_param0 = 0;
     surface_param1 = 0;
 }
+
 int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *info) {
     sceVu0FMATRIX      world_screen;
-    sceVu0IVECTOR      clear = { 0, 0, 0, 0 };
+    sceVu0IVECTOR      clear = {0, 0, 0, 0};
     sceVu0FVECTOR      color;
     WaterRenderPacket *render;
     u_int             *end;
@@ -422,7 +429,7 @@ int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_I
     int                size;
 
     mgMulMatrix(world_screen, info->world_screen, matrix);
-    render = (WaterRenderPacket *)(start = (u_int *)GetScrPad());
+    render = (WaterRenderPacket *) (start = (u_int *) GetScrPad());
     info->GetpLightInfo();
     render->dma[0] = MG_DMA_CNT;
     render->dma[1] = 0;
@@ -431,10 +438,10 @@ int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_I
     render->vif[0] = 0;
     render->vif[1] = MG_VIF_BASE | 0x3C;
     render->vif[2] = MG_VIF_OFFSET | 0xB4;
-    render->clear[0] = *(u_long128 *)clear;
-    render->clear[1] = *(u_long128 *)clear;
-    render->clear[2] = *(u_long128 *)clear;
-    float *render_values = (float *)info->render_params;
+    render->clear[0] = *(u_long128 *) clear;
+    render->clear[1] = *(u_long128 *) clear;
+    render->clear[2] = *(u_long128 *) clear;
+    float *render_values = (float *) info->render_params;
     render->render_word = info->render_params[3];
     render->render_params[0] = render_values[0];
     render->render_params[1] = render_values[1];
@@ -442,14 +449,14 @@ int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_I
     sceVu0CopyMatrix(render->world_screen, world_screen);
     sceVu0CopyMatrix(render->world, matrix);
     info->scissor = 0;
-    cursor = (u_int *)render->screen_size;
-    *(u_long128 *)render->guard_max = *(u_long128 *)info->guard_max;
-    *(u_long128 *)render->guard_min = *(u_long128 *)info->guard_min;
+    cursor = (u_int *) render->screen_size;
+    *(u_long128 *) render->guard_max = *(u_long128 *) info->guard_max;
+    *(u_long128 *) render->guard_min = *(u_long128 *) info->guard_min;
     render->guard_min[0] = 1.0f;
     render->guard_max[0] = 4095.0f;
     render->guard_min[1] = 1.0f;
     render->guard_max[1] = 4095.0f;
-    *(u_long128 *)render->fog = *(u_long128 *)info->fog.coef;
+    *(u_long128 *) render->fog = *(u_long128 *) info->fog.coef;
     render->screen_size[0] = mgScreenWidth;
     render->screen_size[1] = mgScreenHeight - 1;
     render->screen_offset[0] = mgScreenOffx;
@@ -458,11 +465,11 @@ int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_I
     color[1] = this->color[1];
     color[2] = this->color[2];
     color[3] = this->color[3];
-    *(u_long128 *)render->color = *(u_long128 *)color;
+    *(u_long128 *) render->color = *(u_long128 *) color;
     color[0] = surface_param0;
     color[1] = surface_param1;
-    *(u_long128 *)render->surface_params = *(u_long128 *)color;
-    render->vif[3] = MG_VIF_UNPACK_V4_32 | (((u_int)(cursor + 16 - render->vif) / 4 - 1) << MG_VIF_NUM_SHIFT);
+    *(u_long128 *) render->surface_params = *(u_long128 *) color;
+    render->vif[3] = MG_VIF_UNPACK_V4_32 | (((u_int) (cursor + 16 - render->vif) / 4 - 1) << MG_VIF_NUM_SHIFT);
     cursor[16] = 0;
     cursor[17] = 0;
     cursor[18] = 0;
@@ -533,7 +540,7 @@ int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_I
     } else {
         env = &info->draw_env[0];
     }
-    cursor += SetDrawEnvGifTag((u_long128 *)cursor, info, env) * 4;
+    cursor += SetDrawEnvGifTag((u_long128 *) cursor, info, env) * 4;
     cursor[0] = MG_DMA_RET;
     cursor[1] = 0;
     cursor[2] = 0;
@@ -542,6 +549,7 @@ int CWater::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_I
     SendDMA(packet, size);
     return size;
 }
+
 int CWater::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_manager) {
     if (draw_manager == NULL) {
         draw_manager = &mgDrawManager;
@@ -571,38 +579,46 @@ int CWater::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_manager) {
 
     return 0;
 }
+
 struct WaterTextureName {
     char text[0x20];
 };
+
 struct WaterTextureImages {
     u_long128 *image[MG_TEXTURE_LEVEL_MAX];
 };
+
 struct WaterTexture {
-    short       block;
-    short       width;
-    short       height;
-    short       bpp;
-    char        name[0x20];
-    int         vram_size;
-    int         image_blocks;
-    int         clut_size;
+    short block;
+    short width;
+    short height;
+    short bpp;
+    char  name[0x20];
+    int   vram_size;
+    int   image_blocks;
+    int   clut_size;
+
     union {
         u_long    tex0_bits;
         sceGsTex0 tex0;
     };
+
     union {
         u_long    tex1_bits;
         sceGsTex1 tex1;
     };
+
     union {
         u_long     clamp_bits;
         sceGsClamp clamp;
     };
+
     u_long128  *image[MG_TEXTURE_LEVEL_MAX];
     u_long128  *clut;
     int         swizzled;
     mgCTexture *next;
 };
+
 u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
     static u_int       prog_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 0x2};
     static u_int       progf_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCNT};
@@ -678,16 +694,16 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
     start = (u_long128 *) (base | MG_UNCACHED);
     end = start;
     if (texture != NULL) {
-        mgCTexture *source = texture;
+        mgCTexture  *source = texture;
         WaterTexture texture_copy;
-        *(WaterTextureName *)texture_copy.name = *(WaterTextureName *)source->name;
+        *(WaterTextureName *) texture_copy.name = *(WaterTextureName *) source->name;
         texture_copy.vram_size = source->vram_size;
         texture_copy.image_blocks = source->image_blocks;
         texture_copy.clut_size = source->clut_size;
         texture_copy.tex0_bits = source->tex0_bits;
         texture_copy.tex1_bits = source->tex1_bits;
         texture_copy.clamp_bits = source->clamp_bits;
-        *(WaterTextureImages *)texture_copy.image = *(WaterTextureImages *)source->image;
+        *(WaterTextureImages *) texture_copy.image = *(WaterTextureImages *) source->image;
         texture_copy.clut = source->clut;
         texture_copy.swizzled = source->swizzled;
         texture_copy.next = source->next;
@@ -791,6 +807,7 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
     packet = base;
     return base;
 }
+
 void CWaterFrame::SetTexture(mgCTexture *texture) {
     CWater *surface = GetWater();
 
@@ -836,7 +853,6 @@ void CWaterFrame::Shake(int x, int z, float amount) {
 void CWaterFrame::CreatePacket() {
     GetWater()->CreatePacket(&mgDrawManager);
 }
-
 
 #ifdef NONMATCHING
 CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgCMemory *memory) {
