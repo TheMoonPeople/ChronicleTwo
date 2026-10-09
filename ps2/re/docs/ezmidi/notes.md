@@ -4,7 +4,7 @@ EE client for the EZMIDI IOP sound server (SIF RPC server number `0x12346`) and 
 EE->IOP SIF DMA helper. Only caller unit is `sound` (`CSound`, `TransHdBd`). No classes are owned
 by this unit (`class_units.tsv` has none).
 
-First game equivalent: the start of `/home/adubbz/development/chronicle/ps2/src/gameutil.cpp`
+First game equivalent: the start of the first game's `gameutil.cpp`
 (`ezMidiInit`, `ezMidi`, `ezTransToIOP`, statics `sbuff[16]`, `gCd`, `transData`). Here they live
 in their own unit and the transfer helper is renamed `ezTransToIOP2`.
 
@@ -27,19 +27,19 @@ The command numbers themselves (e.g. `0x8010`, `0x80F0`, `port + 0x20/0x30/0x40/
 ## Data (all LOCAL in retail -> `static` in the .cpp, no `extern` in the header)
 | Symbol | Address | Size | Type |
 |---|---|---|---|
-| `sbuff__2` (retail local `sbuff`) | 0x3F64C0 | 0x40 | `static s32 sbuff[16]` (RPC send/receive buffer). The `__2` suffix is only a symbol-file disambiguator: other `sbuff` locals exist at 0x3842C0 and 0x1F350C0. |
+| `sbuff` (symbol file `sbuff__2`) | 0x3F64C0 | 0x40 | `static s32 sbuff[16]` (RPC send/receive buffer). The `__2` suffix is only a symbol-file disambiguator: other `sbuff` locals exist at 0x3842C0 and 0x1F350C0. |
 | `gCd` | 0x3F6500 | 0x30 allocation | `static EzMidiClientStorage gCd`: 0x28-byte `sceSifClientData` (`<sifrpc.h>`; `+0x24` = `server`) followed by eight bytes of alignment space. The retail symbol's declared size is 0x28, but the next object starts 0x30 bytes later. |
-| `transData` | 0x3F6530 | 0x10 | `static volatile sceSifDmaData transData` (`<sifdma.h>`); volatile field stores preserve the descriptor's retail write order. |
-| `at_33` | 0x369320 | 0x17 | string literal `"error: sceSifBindRpc \n"` |
+| `transData` | 0x3F6530 | 0x10 | `static volatile sceSifDmaData transData` (`<sifdma.h>`); volatile field stores preserve the descriptor's retail write order. `ezTransToIOP2` passes it as `sceSifSetDma((sceSifDmaData *) &transData, 1)`; the cast strips `volatile` for the SDK declaration. |
+| `at_33` | 0x369320 | 0x17 | string literal `"error: sceSifBindRpc \n"`, inline at its `printf` use in `ezMidiInit` (no data marker) |
 
 The source uses `<sifrpc.h>`, `<sifdma.h>`, `<eekernel.h>` (FlushCache), and `<cstdio>`
 (printf).
 
 ## Matching details
 
-All three functions match their retail instruction streams exactly (objdiff 100%). The build's
-`-O3,p` setting retains the original 8-count `ezMidi` busy loop and its four short-loop padding
-instructions; the former `-opt all` setting removed the empty C++ loop. The transfer function
+All three functions are native and match their retail instruction streams exactly. The build's
+`-O3,p` setting retains the 8-count `ezMidi` busy loop and its four short-loop padding
+instructions; `-opt all` removes the empty C++ loop. The transfer function
 uses the same setting and stores the EE pointer in a `u32`
 local for its final descriptor write. Keeping the initial store as the pointer argument produces
 retail's `sw a1`; saving both uses as a pointer causes MWCC to use `s1` for the first store.
@@ -50,4 +50,4 @@ inline literal there; default MWCC options place this literal in `.data`. The re
 objects are defined in this translation unit. `EzMidiClientStorage` reserves the eight-byte gap
 after the 0x28-byte SDK client, placing `transData` at retail's 0x3F6530. Without the gap,
 `transData` lands at 0x3F6528 and the linked image differs in every section containing references
-to later data. With the gap, `bash build.sh` verifies every linked section against retail.
+to later data.
