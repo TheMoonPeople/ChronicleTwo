@@ -544,3 +544,12 @@ markers are gone.
 The unit's BSS layout is unchanged: whole build `SCES_511.90: OK`, 149/149
 (`menuchr: 0x11C9F bytes, 3835 relocations`). Markers: **36**. Receipts:
 `.private/regsim-r0/ks-static-{build,objects}.log`.
+
+## Placement promotions (October 9)
+
+With `CMenuChrCngMenu::LoadBGNPCModel`, `CMenuCostumeSel::LoadMenuData` and
+`CMosBookMenu::KeyStep` native, their five literals are inline at their uses:
+`at_1361` (`"CHRFADEPRE"`), `at_5051` (`"fukusel.img"`), `at_5052`
+(`"fukusen"`), `at_5053` (`"mnmain"`) and `at_5839` (the standing motion
+name). Their extern declarations and markers are gone, and the inventory rows
+above that call those three methods frozen are superseded. Markers: **31**.

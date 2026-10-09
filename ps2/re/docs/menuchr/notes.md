@@ -1,10 +1,11 @@
 # menuchr: reverse-engineering notes
 
+`CMenuChrCngMenu::LoadBGNPCModel`, `CMenuCostumeSel::LoadMenuData` and
+`CMosBookMenu::KeyStep` are native C++ with three expected-one after-inline
+`CActionChara` rows; see [placement conversion](../satansfiddle/placement-new.md).
 The matching build uses retail gaps for the C++ drafts still guarded by
-`NONMATCHING`, including `CMenuChrCngMenu::LoadBGNPCModel`,
-`MenuCharaChangeInit`, `CMenuCostumeSel::LoadMenuData`,
-and `CMosBookMenu::KeyStep`. The current source also keeps gaps for
-`KeyChangeMain` and `MenuCostumeInit`. `CMenuMosSelect::KeyStep` is native;
+`NONMATCHING`: `KeyChangeMain`, `MenuCharaChangeInit` and `MenuCostumeInit`.
+`CMenuMosSelect::KeyStep` is native;
 see [the KeyStep promotion](night-20261008.md#keystep-promoted) and
 [the round-three review fixes](review-fixes-r3-20261009.md).
 `MenuItemCharaDataLoadEndCheckAfter` is native; see
@@ -56,11 +57,11 @@ argument as `float(16.0)` produces the retail register order, so this function
 now matches as C++, including the complete object and isolated linked image.
 
 
-`CMenuChrCngMenu::LoadBGNPCModel` has a native placement-new draft whose
-compiled body differs in only two instructions: retail branches on the
-allocation result in `v0` and moves it to `s1` in the delay slot, while MWCC
-currently moves first and branches on `s1`. Named locals, assignment chaining,
-parenthesized new expressions, and a same-type cast retain that difference.
+Before placement conversion, `CMenuChrCngMenu::LoadBGNPCModel` had a native
+draft differing in only two instructions: retail branched on allocation result
+`v0` and copied to `s1` in the delay slot, while the draft copied first and
+branched on `s1`. Named locals, assignment chaining, parenthesized new expressions
+and a same-type cast retained that difference. The current row resolves it.
 `MenuMemoryDivide` partitions aligned quadword storage with typed table and
 buffer indexing; its native function, capacity tables, and stack-name literal
 match retail. See [memory partitioning](midday-memory.md).
@@ -68,8 +69,14 @@ match retail. See [memory partitioning](midday-memory.md).
 `CMosBookMenu::Draw` preserves the explicit panel, heading, model, digit, and
 font sequence and matches with its six native drawing tables; see
 [monster-book drawing](midday-book.md).
-`CMenuCostumeSel::LoadMenuData` and `CMosBookMenu::KeyStep` each differ by
-the same two placement-new branch/move instructions as `LoadBGNPCModel`.
+Before their placement rows, `CMenuCostumeSel::LoadMenuData` and
+`CMosBookMenu::KeyStep` each differed by the same two branch/move instructions
+as `LoadBGNPCModel`. Both current bodies are accepted native C++.
+`KeyStep` advances its background scroll in place (`bg_scroll += 0.5f`, then
+subtracts 256 once it reaches zero); computing `bg_scroll + 0.5f` into a local
+first commutes retail's `add.s` operands. Its preview model is placed with
+literal coordinates. The three promoted bodies spell their literals inline, so
+`at_1361`, `at_5051`-`at_5053` and `at_5839` are emitted natively.
 `MenuItemCharaDataLoadEndCheckAfter` returns early through a `switch` on the
 load mode. An equivalent `if` lets MWCC fill the inlined `CScene` constructor's
 message-loop branch delay slot with the `CMdsListSet::Initialize` address, which

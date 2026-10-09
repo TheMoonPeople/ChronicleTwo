@@ -1896,6 +1896,30 @@
         "expected_matches": 1
       },
       {
+        "translation_unit": "menuchr.cpp",
+        "function": "KeyStep__12CMosBookMenuFv",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "LoadBGNPCModel__15CMenuChrCngMenuFi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "LoadMenuData__15CMenuCostumeSelFP9mgCMemoryPi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12CActionCharaFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "menudraw.cpp",
         "function": "GeneratePoly__14CRepairManagerFPfi",
         "allocator": "__nw__FUiP1",

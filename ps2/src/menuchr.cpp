@@ -203,16 +203,41 @@ static inline int MaxPageChars(ClsMes *mes) {
     return max_chars;
 }
 
+/**
+ *
+ * Number of monster memo entries.
+ *
+ */
 const int kMonsterMemoCount = 0x119;
+/**
+ *
+ * Frames waited before starting a monster preview load.
+ *
+ */
 const int kModelDelayFrames = 20;
+/**
+ *
+ * Maximum value of the monster preview display wait counter.
+ *
+ */
 const int kModelFrameCap = 20;
 
+/**
+ *
+ * States used while browsing or fading the monster book menu.
+ *
+ */
 enum {
     kBookBrowsing = 0,
     kBookFadingIn = 1,
     kBookFadingOut = 2
 };
 
+/**
+ *
+ * Commands used to close the monster book or turn its page.
+ *
+ */
 enum {
     kCmdClose = 0xA,
     kCmdTurnPage = 0x64
@@ -599,10 +624,6 @@ static char *monster_jyakuten[LANG_CHINESE + 1][8] = {
  */
 static char menu_infocfgname[10] = "info.cfg";
 
-extern char               at_5051[];
-extern char               at_5052[];
-extern char               at_5053[];
-
 /**
  *
  * Character slots that require costume menu background read requests.
@@ -610,16 +631,12 @@ extern char               at_5053[];
  */
 static int tbl_5016[MENU_CHARA_LOAD_MAX] = {1, 1, 0, 0, 1, 1, 1};
 
-extern char               at_5839[];
-
 /**
  *
  * Character slots that require monster book background read requests.
  *
  */
 static int tbl_5848[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
-
-extern char               at_1361[];
 
 /**
  *
@@ -1549,7 +1566,6 @@ void CMenuChrCngMenu::EnterNPCFaceData() {
 
 #pragma inline_depth(8)
 
-#ifdef NONMATCHING
 int CMenuChrCngMenu::LoadBGNPCModel(int restart_read) {
     mgCMemory *stack = &MenuCharaLoadStack;
     stack->stReset();
@@ -1579,12 +1595,9 @@ int CMenuChrCngMenu::LoadBGNPCModel(int restart_read) {
         npc_chara = NULL;
     }
 
-    ExeScript(at_1361);
+    ExeScript("CHRFADEPRE");
     return size;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", LoadBGNPCModel__15CMenuChrCngMenuFi);
-#endif
 
 #pragma inline_depth reset
 
@@ -6465,7 +6478,6 @@ int CosutmeSelDefaultSet(int costume_id, short *costume_list) {
 
 #pragma inline_depth(8)
 
-#ifdef NONMATCHING
 void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     int                i;
     mgCTextureManager *tex_manager;
@@ -6477,29 +6489,29 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
 
     SetTexBlock(tex_block);
 
-    for (i = 0; i < 7; i++) {
+    for (i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
         MenuActionChara[i] = new (stack->Alloc(0x105)) CActionChara;
         MenuActionChara[i]->Initialize(NULL);
     }
 
     tex_manager = &mgTexManager;
-    buffer = memory_free_top(stack);
-    size = LoadFileMenu(at_5051, (u_long128 *) buffer, 1);
+    buffer = (u8 *) stack->stGetTop();
+    size = LoadFileMenu("fukusel.img", (u_long128 *) buffer, MENU_FILE_LOAD_DIRECT);
     stack->Alloc((int) size / 16 + 0x10);
     stack->Align64();
     mgTexManager.EnterIMGFile(buffer, *tex_block, NULL, NULL);
-    this->tile_tex = mgTexManager.GetTexture(at_5052, -1);
+    this->tile_tex = mgTexManager.GetTexture("fukusen", -1);
     icons = GetMenuMainIMGPtr();
 
     if (icons != NULL) {
         tex_manager->EnterIMGFile(icons, *tex_block, NULL, NULL);
     }
 
-    this->cursor_tex = tex_manager->GetTexture(at_5053, -1);
-    this->cursor_x = 0;
-    this->cursor_y = 0;
-    this->cursor_wave = 0;
-    this->cursor_wave_y = 0;
+    this->cursor_tex = tex_manager->GetTexture("mnmain", -1);
+    this->cursor_x = 0.0f;
+    this->cursor_y = 0.0f;
+    this->cursor_wave = 0.0f;
+    this->cursor_wave_y = 0.0f;
     AttachMessageForm();
     system_mes = GetSystemMesBuffer();
     MenuDCMsg[0]->SetMessData(system_mes, GetMenuMainMessageBuffer());
@@ -6509,21 +6521,21 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     MenuDCMsg[7]->SetMessData(system_mes, GetMenuMainMessageBuffer());
     MenuDCMsg[7]->MsgPreset(0xB);
     MenuDCMsg[7]->SetAbsPos(8);
-    *(int *) &MenuDrawEnv->speed = 0x40000000;
+    MenuDrawEnv->speed = 2.0f;
     MenuBGReadInfo2Malloc(stack, tbl_5016);
     MenuLoadInfo.mode = 3;
     MenuLoadInfo.alternate_model = 1;
     MenuLoadInfo.load_all = 1;
     MenuLoadInfo.load_phase = 0;
     MenuLoadInfo.request_phase = -1;
-    MenuLoadInfo.chara_no = 0;
+    MenuLoadInfo.chara_no = USER_CHARA_MAX;
     MenuLoadInfo.update_scene = 0;
     MenuLoadInfo.unk_6 = 1;
-    free_size = memory_free_size(stack);
-    this->stack.stSetBuffer((u_long128 *) memory_free_top(stack), free_size);
-    MenuMemoryAdjust(&this->stack, &MenuCharaLoadStack, MenuActionCharaBuffer, 0);
+    free_size = stack->stGetRest();
+    this->stack.stSetBuffer(stack->stGetTop(), free_size);
+    MenuMemoryAdjust(&this->stack, &MenuCharaLoadStack, MenuActionCharaBuffer, USER_CHARA_MAX);
     SetMenuLoadItemNo(0);
-    MenuItemCharaDataLoad(&MenuCharaLoadStack, 0, MenuCharaBuild2, 1);
+    MenuItemCharaDataLoad(&MenuCharaLoadStack, USER_CHARA_MAX, MenuCharaBuild2, 1);
 
     do {
     } while (ReadBGSync() == 0);
@@ -6531,9 +6543,6 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     this->load_wait = 0;
     MenuCosutumeLoadPhase = 2;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", LoadMenuData__15CMenuCostumeSelFP9mgCMemoryPi);
-#endif
 
 #pragma inline_depth reset
 
@@ -7358,16 +7367,13 @@ void CMosBookMenu::Draw() {
 
 #pragma inline_depth(8)
 
-#ifdef NONMATCHING
 int CMosBookMenu::KeyStep() {
-    int   select;
-    int   lr;
-    int   push;
-    int   fade;
-    int   cmd;
-    int   i;
-    float scroll;
-    float half;
+    int select;
+    int lr;
+    int push;
+    int fade;
+    int cmd;
+    int i;
 
     select = MenuCommonInfo->CheckSelectKey();
     lr = MenuCommonInfo->CheckLRKey();
@@ -7385,7 +7391,6 @@ int CMosBookMenu::KeyStep() {
 
             break;
         case kBookFadingOut:
-
             if (fade != 0) {
                 DeleteTexBlock();
 
@@ -7398,31 +7403,27 @@ int CMosBookMenu::KeyStep() {
 
             break;
         case kBookBrowsing:
-            if ((lr & 0x10) || (lr & 0x20) || (select & 4) || (select & 8)) {
+            if ((lr & MENU_SELECT_KEY_L1) || (lr & MENU_SELECT_KEY_R1) ||
+                (select & MENU_SELECT_KEY_LEFT) || (select & MENU_SELECT_KEY_RIGHT)) {
                 cmd = kCmdTurnPage;
 
-                if (select & 4) {
-
+                if (select & MENU_SELECT_KEY_LEFT) {
                     this->select -= 1;
                 }
 
-                if (select & 8) {
-
+                if (select & MENU_SELECT_KEY_RIGHT) {
                     this->select += 1;
                 }
 
-                if ((lr & 0x40) || (lr & 0x10)) {
-
+                if ((lr & MENU_SELECT_KEY_L2) || (lr & MENU_SELECT_KEY_L1)) {
                     this->select -= 10;
                 }
 
-                if ((lr & 0x80) || (lr & 0x20)) {
-
+                if ((lr & MENU_SELECT_KEY_R2) || (lr & MENU_SELECT_KEY_R1)) {
                     this->select += 10;
                 }
 
                 if (this->select < 0) {
-
                     this->select = this->list_num - 1;
                 }
 
@@ -7436,18 +7437,18 @@ int CMosBookMenu::KeyStep() {
 
                 this->monster_info = GetMonsterBaseInfo(this->list[this->select]);
                 this->SetMonsterInfo(this->monster_info);
-            } else if (push & 2) {
+            } else if (push & MENU_PUSH_BUTTON_CANCEL) {
                 cmd = kCmdClose;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             } else if (menu_debug_flag != 0) {
-                if (push & 4) {
+                if (push & MENU_PUSH_BUTTON_TRIANGLE) {
                     for (i = 0; i < kMonsterMemoCount; i++) {
                         if (i != 0x30 && i != 0x44) {
                             KillMonsterCount(i, 1);
                         }
                     }
 
-                    MenuSePlay(1);
+                    MenuSePlay(SYSTEM_SE_DECIDE);
                 }
             }
 
@@ -7458,7 +7459,7 @@ int CMosBookMenu::KeyStep() {
         switch (cmd) {
             case kCmdClose:
                 this->mode = kBookFadingOut;
-                ((CBaseMenuClass *) this)->FadeOutMenu(0x3C, 0.0f);
+                FadeOutMenu(0x3C, 0.0f);
                 break;
             case kCmdTurnPage:
                 this->load_phase = 1;
@@ -7487,7 +7488,6 @@ int CMosBookMenu::KeyStep() {
                 this->load_phase += 1;
 
                 if (MenuCharaBuild2[0]->reading == 0) {
-
                     this->load_phase = 0;
                 }
             }
@@ -7500,50 +7500,36 @@ int CMosBookMenu::KeyStep() {
                 this->monster = new (this->stack.Alloc(0x105)) CActionChara;
                 this->monster->Initialize(NULL);
                 MenuMonsterLoadBGCheck(MenuCharaBuild2, &this->monster, this->tex_block_no, -1);
-                float x = -12.8f;
-                float y = -6.6f;
-                float z = 0.0f;
-                x = x;
-                y = y;
-                z = z;
-                this->monster->SetPosition(x, y, z);
-                this->monster->SetMotion(at_5839, 0, 1);
-                MonsterScaleCheck((CCharacter2 *) this->monster);
+                this->monster->SetPosition(-12.8f, -6.6f, 0.0f);
+                this->monster->SetMotion("\x97\xA7\x82\xBF", 0, 1);
+                MonsterScaleCheck(this->monster);
             }
 
             break;
         case 4:
             this->skip_draw ^= 1;
 
-            if (this->skip_draw !=
-                0) {
-                this->monster
-                    ->Step();
+            if (this->skip_draw != 0) {
+                this->monster->Step();
             }
 
             this->show_wait += 1;
 
             if (this->show_wait > kModelFrameCap) {
-
                 this->show_wait = kModelFrameCap;
             }
 
             break;
     }
 
-    half = 0.5f;
-    scroll = this->bg_scroll + half;
-    this->bg_scroll = scroll;
+    this->bg_scroll += 0.5f;
 
-    if (0.0f <= scroll) {
-        this->bg_scroll = scroll - 256.0f;
+    if (0.0f <= this->bg_scroll) {
+        this->bg_scroll -= 256.0f;
     }
 
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", KeyStep__12CMosBookMenuFv);
-#endif
 
 #pragma inline_depth reset
 
@@ -7611,7 +7597,6 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
 };
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_1361__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2003__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2004__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2005__2__DATA);
@@ -7635,10 +7620,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2022__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2023__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2595__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2596__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5051__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5052__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5053__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_5839__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuCostumeSel__DATA);
