@@ -1,15 +1,23 @@
 # mg_tanime: reverse-engineering notes
 
-`mgCTextureAnime::NewTexAnimeData`'s native constructor sequence is still
-fuzzy, so the matching build uses retail assembly and preserves its C++ draft
-under `NONMATCHING`.
-The six differing instructions surround placement-new's generated null check:
+`mgCTextureAnime::NewTexAnimeData` is native C++ with one before-inline
+conversion of its `CList<mgCTexAnimeData>` construction. Complete-object and
+PAL verification pass. No `NONMATCHING` guards or assembly fallbacks remain
+in this unit, and the unit emits its own list vtable. The before-inline timing is the
+measured exception to the other accepted rows; its relationship to this unit's
+`schedule off` pragma remains a hypothesis. See
+[placement conversion](../satansfiddle/placement-new.md).
+
+## Earlier constructor/source controls
+
+Before that conversion policy, the native NewTexAnimeData draft retained its
+assembly guard. Six differing instructions surrounded placement-new's null check:
 retail moves the allocated node into `s0` before the branch and uses `v0` for
-the list vtable address, while MWCC's current C++ expression branches on `v0`,
-then moves the node into `s0` and uses `v1` for the vtable. Direct returns,
-separate allocation storage, constructor parentheses, pointer qualifiers, and
-local optimizer, scheduler, and inline-depth controls retain or worsen this
-difference. No candidate passed isolated linked-image verification.
+the list vtable address, while that MWCC expression branched on `v0`,
+then moved the node into `s0` and used `v1` for the vtable. Direct returns,
+separate allocation storage, constructor parentheses, pointer qualifiers and
+local optimizer, scheduler and inline-depth controls retained or worsened this
+difference. None of those source candidates passed isolated link verification.
 
 The [placement-new report](../funcpoint/placement-new.md) records constructor
 and cross-unit evidence. Complete list specializations, including ordinary
@@ -20,9 +28,9 @@ constructor is independently evidenced by its retail out-of-line symbol.
 Changing either to omit initialization is inconsistent with those constructors.
 The saved and reproduced null-aware result-helper experiment grows the function
 to 0x88 bytes, despite a handoff synopsis describing it as a match; the helper
-is a semantic no-op and inadmissible in either case. The original 6/32-word
-guarded draft is retained. Reconsider when a genuine matching inlined-list
-caller establishes a new constructor or allocation-result lifetime distinction.
+is a semantic no-op and inadmissible in either case. At that stage the
+original 6/32-word guarded draft was retained pending genuine constructor or
+allocation-result lifetime evidence. The later policy does not adopt that helper.
 
 The [Chronicle comparison](../funcpoint/placement-new.md#chronicle--dark-cloud-1-comparison)
 records all 19 matching DC1 placement-new expressions: four scalar sites test
@@ -34,11 +42,12 @@ allocation pointer in DC2's copy-before-`beqz v0` sequence. Naming the placement
 buffer, initializing the destination at declaration, and compiling the original
 draft at `-O2` all leave this target at 6/32 words and 0x7C/0x80 bytes. A direct
 return was reproduced with the same result; that form was already recorded
-above. All experimental source changes were restored; the guarded unit passes
-`draft.sh --promote`, the PAL image passes, and complete objects pass 149/149.
-No source or shared-header patch is validated. A comparable 3.0-011126 inlined
-list caller, or a compiler trace showing where the implicit allocation check
-is bound to its persistent object pointer, is still needed.
+above. That source-form run restored all experimental changes; its guarded
+unit passed `draft.sh --promote`, PAL and 149/149 complete objects. Those checks
+validated restoration, not a new source or shared-header fix. At that stage
+comparable inlined-list evidence or a compiler trace of allocation-result
+binding was still required; the later trace and intentional-policy study below
+supersede that research status.
 
 ## Current TexAnime and optimizer state
 
@@ -164,26 +173,29 @@ The local `divbyzerocheck on`/`reset` pair is redundant with the PS2
 compiler flag. Removing it leaves every section and symbol in this unit's
 object diff unchanged.
 
-## Remaining canonical differences
+## Earlier canonical differences before placement conversion
 
-The focused wrapper build and section fixup check 0x27E0 bytes and 341 relocations.
-`NewTexAnimeData` retains the typed `CList<mgCTexAnimeData>` placement construction.
+The earlier focused wrapper build and fixup checked 0x27E0 bytes and 341
+relocations with NewTexAnimeData still guarded. Its typed
+`CList<mgCTexAnimeData>` placement expression was retained.
 Retail saves the allocation result in its retained register before the null branch
-and returns that register after the branch joins. Current MWCC lowering saves it
-inside the successful branch and returns the unsaved null result on failure. The
+and returns that register after the branch joins. That no-placement-policy
+MWCC lowering saved it inside the successful branch and returned the unsaved
+null result on failure. The
 record constructor and virtual list initialization calls otherwise correspond.
 Disabling the global optimizer does not change this lowering; a manual compiler
 constructor call is unnecessary for the source semantics and is not a native fix.
 
-The other two canonical failures concern `nowTexData`: its declared 0x34-byte record
-occupies a retail 0x40-byte BSS piece, leaving the run twelve bytes short. The
+Two other failures at that earlier boundary concerned `nowTexData`: its
+0x34-byte record occupied a retail 0x40-byte BSS piece, leaving the run twelve
+bytes short before the native BSS padding correction. The
 `CList` node is already correctly sized at 0x40 and its carried record remains
-0x34; enlarging that record would shift the node's vtable. These baseline failures
-are preserved pending a separate analysis of the global object's trailing storage.
+0x34; enlarging that record would shift the node's vtable. These were baseline
+storage failures, separate from allocation-result scheduling.
 
-With the native BSS padding correction applied, the focused object has only the
-`NewTexAnimeData` byte failure. The remaining allocation difference can be isolated
-by disabling peephole optimization: the compiler then saves the allocation result
+After the native BSS padding correction, that earlier focused object had
+only the NewTexAnimeData byte failure. Disabling peephole optimization isolated
+the allocation difference: the compiler saved the allocation result
 before the null branch, matching retail's placement of that move, but tests the
 saved register rather than the original return register and loads the virtual table
 through the argument alias. Default peephole optimization fixes those two aliases,
@@ -204,9 +216,9 @@ level-2 reconstruction documented above supersedes this scoped experiment.
 
 ## Placement construction under Satan's Fiddle (2026-10-08)
 
-The canonical SF wrapper retains the guarded NewTexAnimeData draft at
-**6/32 differing words, 0x7c/0x80 bytes**. Current-source plain wibo emits
-the same selected function. GPR helper seeds 0/0x10/0x30, default float
+The October 8 canonical SF wrapper without placement conversion retained
+NewTexAnimeData's guarded draft at **6/32 differing words, 0x7c/0x80 bytes**.
+Plain wibo emitted the same function from that source snapshot. GPR helper seeds 0/0x10/0x30, default float
 evaluate-first true, and the baseline policy all leave its text unchanged.
 The shared-header and source-form experiments above were not repeated.
 
@@ -224,11 +236,11 @@ for this function. Retail instead saves its allocation pointer before the
 
 Thus this six-word case includes a null-path/result-lifetime difference beyond
 the two-word saved-register guard pattern. Helper/float state did not move the
-copy, and no affected uninitialized compiler input was found. No new natural
-source or SF policy is validated. Reconsider when an evidenced constructor or
-caller takes the early statement-conversion path while preserving the retail
-construction calls and result lifetime, or when an identical-source state
-probe demonstrates an affected state read. Merely forcing control flow into
+copy, and no affected uninitialized compiler input was found. That trace
+validated no new natural source or SF policy. Its reconsideration boundary was
+an evidenced early-conversion constructor/caller preserving retail construction
+and result lifetime, or a demonstrated affected state read. The later proposal
+is an intentional decision override, not an inferred uninitialized-state repair. Merely forcing control flow into
 the constructor would change source semantics or add a codegen no-op.
 
 The [SF placement-new report](../funcpoint/placement-new.md#under-satans-fiddle)
@@ -236,10 +248,11 @@ records the comparison with class-A CMenuInvent/CMenuMoveItem, exact pass
 boundaries and initialized inline classification. Private evidence is in
 `.private/placenew-sf/trace-final-mg_tanime/` (inline classifications,
 original/optimized/expanded IR, PCode and canonical text comparison) and
-`.private/placenew-sf/baseline/native/mg_tanime.*`. No symbol was promoted.
-The lane's canonical image retains i13's three unrelated object failures
-(146/149); all sections except the known 0x2c-byte .text difference pass,
-and coverage remains 6,677 matched / 175 guarded / 15 asm-only / 5 fuzzy.
+`.private/placenew-sf/baseline/native/mg_tanime.*`. No symbol was promoted in
+that trace-only run. Its canonical image retained i13's three unrelated object
+failures (146/149); all sections except the known 0x2c-byte .text difference
+passed, and coverage was 6,677 matched / 175 guarded / 15 asm-only / 5 fuzzy.
+These are that run's acceptance measurements, not current proposal coverage.
 
 ## Constructor-classification follow-up (2026-10-08)
 
@@ -254,7 +267,8 @@ signatures can instead be ineligible (class 0).
 No corresponding array initialization exists in `CList<mgCTexAnimeData>`'s
 retail construction sequence. Its data constructor and virtual list
 initialization must remain; adding a destructor-bearing local or artificial
-control flow supplies no original-source evidence. `NewTexAnimeData` therefore
-retains its existing guard and separate result-lifetime park. Full classifier
-cases, constructor-chain comparison and i15 acceptance receipts are in
+control flow supplies no original-source evidence. NewTexAnimeData retained
+its guard and separate result-lifetime park at that source-only follow-up.
+The current before-inline policy preserves both real initialization calls.
+Full classifier cases, constructor-chain comparison and i15 receipts are in
 [Constructor inline classification](../funcpoint/placement-new.md#constructor-inline-classification).

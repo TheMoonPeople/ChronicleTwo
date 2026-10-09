@@ -612,7 +612,6 @@ int mgCTextureAnime::SearchGroupName(char *group_name) {
     return -1;
 }
 
-#ifdef NONMATCHING
 CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeData(mgCMemory *stack) {
     CList<mgCTexAnimeData> *node;
 
@@ -620,9 +619,6 @@ CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeData(mgCMemory *stack) {
 
     return node;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_tanime", NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory);
-#endif
 
 CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeGroupData(int group, mgCMemory *stack) {
     if (group < 0 || group >= group_num) {
@@ -1110,6 +1106,3 @@ void mgRect<int>::Set(int new_left, int new_top, int new_right, int new_bottom) 
     right = new_right;
     bottom = new_bottom;
 }
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_tanime", __vt__24CList_15mgCTexAnimeData___DATA);
