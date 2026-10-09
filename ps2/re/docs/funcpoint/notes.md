@@ -1,17 +1,21 @@
 # funcpoint: reverse-engineering notes
 
-`CFuncPointMngr::Add(int, mgCMemory*)` is accepted native C++ with one scoped
-placement row for `CList<CFuncPoint>`. No `NONMATCHING` guards or assembly
-fallbacks remain in this unit. See
-[placement conversion](../satansfiddle/placement-new.md).
+## Status
 
-The active native functions in this unit compile to exact retail instruction matches. `GetEventNum`
-tests `CFuncPoint::EventData::flag` at offset 0x20, and `UpdateFlag` stores each point's `Check`
-result in `CFuncPoint::active` at offset 0x1B0 before counting successful checks. The two walk
-functions use `CFuncPointMngr::GetEnd` to clear `now` after traversal.
+Every function in `ps2/src/funcpoint.cpp` is native, including
+`CFuncPointMngr::Add(int, mgCMemory*)`. The unit carries no `NONMATCHING` guards,
+`INCLUDE_ASM`, `INCLUDE_RODATA` or `INCLUDE_BSS` markers. `Add(int, mgCMemory*)` is
+compiled under one scoped placement-conversion row for `CList<CFuncPoint>`; see
+[placement conversion](../satansfiddle/placement-new.md) and
+[placement-new.md](placement-new.md) for the MWCC lowering it works around.
+
+`GetEventNum` tests `CFuncPoint::EventData::flag` at offset 0x20, and `UpdateFlag` stores
+each point's `Check` result in `CFuncPoint::active` at offset 0x1B0 before counting
+successful checks. The two walk functions use `CFuncPointMngr::GetEnd` to clear `now`
+after traversal.
 
 Header: `ps2/include/funcpoint.hpp`. No first-game counterpart: `CFuncPointMngr`, `CObjAnime`,
-`CFuncPointCheck` and `CObjAnimeEnv` do not exist in `/home/adubbz/development/chronicle`.
+`CFuncPointCheck` and `CObjAnimeEnv` do not exist in the first game.
 
 ## Ownership
 - `CFuncPoint` (0x1C0) and `FUNC_POINT_TYPE` (0..9, `FUNC_POINT_TYPE_NUM` = 10) are owned by
@@ -39,6 +43,11 @@ is virtual.
 - `Get` returns `&node->data` (node+0x10); `CList<CFuncPoint>` node is 0x1E0 (`operator new(0x1E0)`
   in `Add(int, mgCMemory*)`, stride 0x1E0 in `Reserve`'s `__construct_new_array`), vptr at node+0x1D0.
 - `Add(int, CList*)` sets `data.type` (node+0x14 = CFuncPoint+0x4) to the kind.
+- `Add(int, mgCMemory*)` allocates the node with `new (stack->Alloc(0x20)) CList<CFuncPoint>`
+  (the `u_long128 *` from `Alloc` is passed without a cast), returns NULL when the allocation
+  fails, calls `data.Initialize()` and dispatches to the node overload. `Reserve` constructs its
+  array the same way.
+- `Search` compares `point->name` (`CFuncPoint`'s first member) with `strcasecmp`.
 - `UpdateFlag` stores `Check()`'s result at CFuncPoint+0x1B0; `EnableFuncNum` counts it (node+0x1C0).
 - `GetEventNum` walks type 6 and tests CFuncPoint+0x20 against the mask (`FUNC_EVENT_FLAG`).
 - `Step` is a bare tail jump to `UpdateFlag`; whether it returns the count cannot be told from the
@@ -91,62 +100,29 @@ in `CMap::AnimeStep` with +0 zeroed first, which is the inline ctor.
 (`Step`); built by callers reached virtually, so its full size is not established and it has no
 STATIC_ASSERT (alignment alone makes it at least 0x20).
 
-## Globals
-None. `sp_3d_1174`, `frame_1203`, `Bound_1206`, `attr_1207` and the `init_*` guards are
-function-local statics (DrawFireEffect / GetLight area); `at_475`, `at_1118` are literals.
+## Data
+No file-scope globals. The unit's data consists of the two switch tables (`OBJ_ANIME_MODE` in
+`Step`, `OBJ_ANIME_PARAM` in `SetParam`/`GetParam`), the `CFuncPointMngr` and
+`CList<CFuncPoint>` vtables, and the function-local statics of `DrawFireEffect`
+(`static mgC3DSprite sp_3d`) and the light area (`static mgCFrame frame`,
+`static mgCFrame::BoundInfo Bound`, `static mgCFrameAttr attr`); MWCC emits their `init$`
+guards itself. All are produced by the native source.
+
+## GetLightAnimeWeight
+
+Reads the point-light flicker depth and period before checking its point type, so fire and
+flare points also perform the period conversion. Point-light mode zero returns one; random
+mode scales a random fraction between `1-depth` and one. The sine mode uses the signed frame
+remainder and a full-turn angle, while the saw mode falls linearly with that remainder. A
+nonpositive period returns one without performing a remainder operation. Fire and flare
+return a random weight between 0.7 and one; other point types return one.
+
+Match-relevant form: the signed remainder `frame % period` is stored in a named `int phase`
+before conversion to float in the sine and saw modes, and the sine angle multiplies that
+phase by the full-turn constant before dividing by the period. The function is wrapped in
+`#pragma divbyzerocheck on` / `#pragma divbyzerocheck reset`; a unit-level pragma is
+redundant with the global compiler flag.
 
 ## Unresolved
 - `Step` return type (see above).
 - `GetLight`'s `mode` and `DrawFireEffect`'s `rate` parameter meanings are inferred from use only loosely.
-
-## Division-check pragma
-
-The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; removing it left the full compiled object identical in objdiff.
-
-## Light-animation native candidate
-
-`GetLightAnimeWeight` reads the point-light flicker depth and period before checking
-its point type; even fire and flare points therefore perform the period conversion.
-Point-light mode zero returns one; random mode scales a random fraction between
-`1-depth` and one. The sine mode uses the signed frame remainder and a full-turn
-angle, while the saw mode falls linearly with that remainder. A nonpositive period
-returns one without performing a remainder operation. Fire and flare return a random
-weight between 0.7 and one; other point types return one.
-
-The original guarded candidate produced 0x228 bytes versus retail's 0x220.
-The native source now gives the signed remainder a named `phase` local before
-converting it to float in the sine and saw modes. The sine angle multiplies that
-phase by the full-turn constant before dividing by the period. The current
-native source is accepted by complete-object and PAL verification; the earlier
-size-equality observation alone did not establish that match.
-
-## Earlier `CFuncPointMngr::Add(int, mgCMemory*)` trials
-
-Before scoped compiler conversion, the typed draft differed only in the null
-branch: retail tested `v0` and copied into `s0` in the delay slot, while MWCC
-copied first and tested `s0`. Node construction and calls agreed, but the
-linked image differed by seven bytes, so that baseline retained assembly.
-Combining allocation with the null test, changing the later branch layout,
-removing the redundant allocator cast, separating the buffer, and changing
-the pointer declaration or constructor parentheses all retained the pair.
-Scheduling and optimizer pragmas left the pair or changed many additional
-instructions. The current accepted caller retains natural construction.
-
-A private trial used the typed allocation pointer without the redundant cast,
-scoped `optimization_level 2` to this function, and restored level 3 immediately
-after it. The rest of the translation unit remained byte-identical, but the
-function grew from retail's 0xA0 to 0xC4 bytes and scored 56.35%. The allocation
-branch then tests the saved register and adds extra copies and nops, so this
-optimization-level change is not a useful match.
-
-The [earlier placement-new report](placement-new.md) preserves the constructor
-evidence and allocation-result issue measured before scoped conversion. Retail's point constructor
-and array-node constructor do not initialize the point's other fields. Adding
-that initialization to the shared constructor changes five complete units and
-fails PAL verification (144/149 object checks pass). Compiler-generated,
-empty, specialized, and source-defined inline constructor variants do not
-reproduce the target's two differing instructions. A matching invented inline
-consumer is retained only as private evidence; it is not admissible source.
-Those trials retained the guarded draft pending genuine constructor and
-allocation-result evidence. The current native caller resolves the schedule
-through the documented compiler conversion without an invented helper.
