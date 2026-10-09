@@ -2474,5 +2474,3 @@ void MenuNPCQuestViewDraw() {
     }
 }
 
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menushop", __vt__14CMenuQuestView__DATA);
