@@ -73,6 +73,11 @@ void                     GuardEffectSet(CScene *scene, float *point, int play_sc
 void                     HitScoreSet(float *pos, int type, int value);
 int                      CheckGiftPack(CActiveMonster *monster, CColPrim *prim);
 
+/**
+ *
+ * Definition of every monster kind, ended by a record whose id is -1.
+ *
+ */
 BASE_MONSTER_TBL base_monster_define[344] = {
     {0, 0, "Sewer Rat", "e201a", "e201a", 0,
      1, 1, 25, 1, 6, 6, 1, 1.0f, 6, 3, 4, 3, 7, 0, 0, 0, 0,
@@ -1162,32 +1167,25 @@ static s16 vs_attk_index[26] = {
 
 /**
  *
- * Stride of the gift-type, accepted-item and unknown value triples.
+ * Gift type, accepted item and unknown value of each gift pack, ended by a negative gift type.
  *
  */
-enum MONSTER_GIFT_ENTRY_SIZE { MONSTER_GIFT_ENTRY_FIELDS = 3 };
-
-/**
- *
- * Gift triples followed by the negative gift-type and item terminator.
- *
- */
-static s16 gift_item_tbl[44] = {
-    0, 269, 1,
-    34, 270, 1,
-    2, 318, 3,
-    37, 314, 3,
-    11, 289, 8,
-    59, 189, 10,
-    18, 225, 6,
-    38, 192, 6,
-    41, 211, 5,
-    31, 234, 7,
-    29, 232, 7,
-    30, 233, 7,
-    28, 235, 7,
-    32, 229, 7,
-    -1, -1
+static s16 gift_item_tbl[16][3] = {
+    {0, 269, 1},
+    {34, 270, 1},
+    {2, 318, 3},
+    {37, 314, 3},
+    {11, 289, 8},
+    {59, 189, 10},
+    {18, 225, 6},
+    {38, 192, 6},
+    {41, 211, 5},
+    {31, 234, 7},
+    {29, 232, 7},
+    {30, 233, 7},
+    {28, 235, 7},
+    {32, 229, 7},
+    {-1, -1}
 };
 
 /**
@@ -2459,20 +2457,20 @@ int CheckGiftPack(CActiveMonster *monster, CColPrim *prim) {
     int row = 0;
     int i;
 
-    while (gift_item_tbl[row * MONSTER_GIFT_ENTRY_FIELDS] != -1) {
-        if (gift_item_tbl[row * MONSTER_GIFT_ENTRY_FIELDS] == key) {
+    while (gift_item_tbl[row][0] != -1) {
+        if (gift_item_tbl[row][0] == key) {
             break;
         }
 
         row++;
     }
 
-    if (gift_item_tbl[row * MONSTER_GIFT_ENTRY_FIELDS] == -1) {
+    if (gift_item_tbl[row][0] == -1) {
         return 0;
     }
 
     for (i = 0; i < 3; i++) {
-        if (prim->gift[i] != gift_item_tbl[row * MONSTER_GIFT_ENTRY_FIELDS + 1]) {
+        if (prim->gift[i] != gift_item_tbl[row][1]) {
             return 0;
         }
     }

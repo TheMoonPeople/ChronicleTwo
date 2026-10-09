@@ -9,7 +9,28 @@ object comparison.
 No first-game counterpart: Dark Cloud has no `CActiveMonster`, `CMonsterMan` or `CMonsterLocateInfo`.
 `CActiveMonster` derives from `CActionChara` (actionchara.hpp, size 0x1030).
 
-## Unresolved / for the next agent
+## Data
+
+- `base_monster_define` is native mutable `BASE_MONSTER_TBL[344]` storage with every record
+  initialized by its typed fields in retail order; the final record is `{-1}`. MWCC initializes
+  an anonymous-union member directly with the member array's braces.
+- The seven language pointers inline the six retail messages (the seventh reuses the English
+  literal); both UV tables are `static int[7][4]`; the attack-kind lookup is `static s16[26]`.
+- `gift_item_tbl` is `static s16[16][3]`: fourteen triples, a `{-1, -1}` terminator row and a
+  zero row, which keeps the retail 0x60-byte extent (`[15][3]` is 0x5A and moves `react_tbl`).
+  The third field of complete rows is unknown.
+- `react_tbl` uses `DamageKind` enumerators; kinds 14 and 21 stay numeric because `colprim.hpp`
+  defines no enumerator for them.
+- `HitScoreSet` has a function-local `static int dmg_sc_cnt = 0`; its counter, guard and the
+  `DrawShadowActMonster` zero initializer are bound to the retail BSS objects by the postprocessor.
+- Hit/guard directions are `float[4]` initializers at the copy sites; the hit texture rectangle is
+  declared after the hit direction to keep its stack position, and is loaded as
+  `HitRectangle copy = *(HitRectangle *) &rect`: `hit->tex_rect = rect` or a typed copy makes
+  `HitEffectSet` 0x324 bytes instead of 0x334 (MWCC drops the intermediate quadword copy), and
+  field aggregate initialization grows it to 0x364. Photo/object effect positions copy a
+  `float[4]` as one quadword through `EffectVector`.
+
+## Unresolved
 - `CMonsterMan::CheckPhoto(CScene::InScreenCharaInfo *)` (0x1DE5E0, size 0x2CC) is NOT declared in
   `monster.hpp`: it needs the complete `CScene` (nested type), whose header `scenesnd.hpp` does not
   exist yet. Add, once it does (include "scenesnd.hpp"):
