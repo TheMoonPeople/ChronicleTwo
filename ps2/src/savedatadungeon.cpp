@@ -6,7 +6,9 @@
 #include "savedatadungeon.hpp"
 
 /**
+ *
  * Number of saved floor records in each dungeon.
+ *
  */
 static short limmit_table[7] = {9, 16, 25, 21, 23, 29, 39};
 
