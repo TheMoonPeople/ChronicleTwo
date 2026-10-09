@@ -529,9 +529,7 @@ int PauseLoop() {
     if (InitFlag == 0) {
         sndSePlay(GetSystemSndID(), 25, 0);
         SeCoreVol = sndGetMasterVol(1);
-        float        zero_local = 0.0f;
-        const float &zero_value = zero_local;
-        sndMasterVolFadeInOut(1, 15, zero_value, -1.0f);
+        sndMasterVolFadeInOut(1, 15, 0.0f, -1.0f);
         sndPortSqPause(4);
         sndPortSqPause(0);
         mgCTexture back_buffer;
