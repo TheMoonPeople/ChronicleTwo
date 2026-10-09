@@ -892,9 +892,86 @@ void CMapParts::CopyFuncPointCheck(CFuncPointCheck &check) {
     }
 }
 
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapparts", Copy__9CMapPartsFR9CMapPartsP9mgCMemory);
+void CMapParts::Copy(CMapParts &dest, mgCMemory *memory) {
+    if (memory != NULL) {
+        dest = *this;
 
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mapparts", AssignFuncAnime__9CMapPartsFP9mgCMemory);
+        CList<CMapPiece> *copies = NULL;
+        CList<CMapPiece> *source = piece_list;
+
+        while (source != NULL) {
+            if (source->data.col_type == 0) {
+                CList<CMapPiece> *copy = new (memory->Alloc((sizeof(CList<CMapPiece>) + 15) / 16 + 2)) CList<CMapPiece>;
+                if (copy == NULL) {
+                    return;
+                }
+                source->data.Copy(copy->data, memory);
+
+                CList<CMapPiece> *last = copies;
+                if (last != NULL) {
+                    CList<CMapPiece> *next;
+                    if (last != NULL) {
+                        do {
+                            next = last->next;
+                            if (next == NULL) {
+                                break;
+                            }
+                            last = next;
+                        } while (next);
+                    }
+                    last->next = copy;
+                    if (copy != NULL) {
+                        copy->prev = last;
+                    }
+                } else {
+                    copies = copy;
+                }
+            }
+            source = source->next;
+        }
+        dest.piece_list = copies;
+        func_point_mngr.Copy(dest.func_point_mngr, memory);
+        dest.AssignFuncAnime(memory);
+    } else {
+        dest = *this;
+    }
+}
+
+int CMapParts::AssignFuncAnime(mgCMemory *memory) {
+    CFuncPoint *point;
+    CList<CObjAnime> *node;
+
+    func_point_mngr.GetStart(FUNC_POINT_ANIME);
+    while ((point = func_point_mngr.Get()) != NULL) {
+        node = new (memory->Alloc((sizeof(CList<CObjAnime>) + 15) / 16 + 2)) CList<CObjAnime>;
+        if (node == NULL) {
+            return 0;
+        }
+        node->Initialize();
+
+        CList<CObjAnime> *last = anime_list;
+        if (last == NULL) {
+            anime_list = node;
+        } else {
+            CList<CObjAnime> *next;
+            if (last != NULL) {
+                do {
+                    next = last->next;
+                    if (next == NULL) {
+                        break;
+                    }
+                    last = next;
+                } while (next);
+            }
+            last->next = node;
+            if (node != NULL) {
+                node->prev = last;
+            }
+        }
+        node->pGetData()->AssignFuncAnime(point, this);
+    }
+    return 1;
+}
 
 template <>
 void CList<CObjAnime>::Initialize() {
@@ -957,9 +1034,6 @@ void CCharacter2::SetPosition(float x, float y, float z) {
 
     SetPosition(new_position);
 }
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mapparts", __vt__17CList_9CObjAnime___DATA);
 
 int CMapPiece::DrawDirect() {
     return DrawSub(1);
