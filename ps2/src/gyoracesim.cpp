@@ -449,9 +449,6 @@ void LaneBattleStep(RACE_FISH_PARAM *fish, int count) {
  *
  * Orders fish by position less velocity and spaces each lane's followers behind their leaders.
  *
- * @mangled CollisionFish__FP15RACE_FISH_PARAMi
- * @address 0x322CD0
- * @size 0x59C
  */
 static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
     int i;
@@ -500,9 +497,6 @@ static void CollisionFish(RACE_FISH_PARAM *fish, int count) {
  *
  * Simulates race steps, records goal times and assigns the final places.
  *
- * @mangled StepGyoRace__FP15RACE_FISH_PARAMP11grRACE_INFO
- * @address 0x323270
- * @size 0x32C
  */
 static int StepGyoRace(RACE_FISH_PARAM *fish, grRACE_INFO *info) {
     int i, j;
