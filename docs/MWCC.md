@@ -188,6 +188,17 @@ class initializers must be generated naturally by the compiler.
   order; argument temporaries, built right to left, and spills follow. A
   `sceVu0FVECTOR` parameter's spill keeps 16-byte alignment (gyorace,
   dng_event).
+- A whole-register store through a cast, `*(u_long *) &env.field = value;`
+  for a `sceGsDispEnv` register or `*(u_long *) &frame` for a `sceGsFrame`,
+  materializes the address and reloads the array index before the next store;
+  a plain member store or a `.value` access keeps the index and address in
+  registers (`mgEndFrame`, `mgSetPkFrameBuffer`, mglib).
+- Two `case` labels with identical bodies (`SCE_GS_PSMCT16` and
+  `SCE_GS_PSMCT16S` both setting `bpp = 16`) schedule differently from one
+  shared fallthrough body (mglib).
+- Clearing a loop's shift counter before an earlier loop, rather than beside
+  the loop that uses it, changes the surrounding schedule
+  (`mgSetPkFrameBuffer`, mglib).
 - `#pragma optimization_level 2` is global CSE without strength reduction or
   loop rotation; level 4 runs the IR optimizer twice and CSE renumbers
   recreated constants lowest (movie).
