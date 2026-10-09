@@ -97,14 +97,44 @@ void CreateSystemMes(int index, int unused) {
 }
 
 // Uninitialised data (.bss)
+/**
+ *
+ * Memory the system message windows allocate from.
+ *
+ */
 mgCMemory SystemMesStack;
 
+/**
+ *
+ * System-text buffer shared by the system message windows.
+ *
+ */
 short SystemMesBuffer[0x6800];
 
+/**
+ *
+ * Message buffer shared by the system message windows.
+ *
+ */
 short SysMesBuffer[0x9C40];
 
+/**
+ *
+ * First system message window.
+ *
+ */
 ClsMes SystemMessage;
 
+/**
+ *
+ * Second system message window.
+ *
+ */
 ClsMes SystemMessage2;
 
+/**
+ *
+ * Third system message window.
+ *
+ */
 ClsMes SystemMessage3;
