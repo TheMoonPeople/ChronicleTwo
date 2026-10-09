@@ -22,13 +22,13 @@ No constructor: `__sinit_editloop_cpp` calls `Reset`. No virtual functions.
 | 0x110 | `return_rot` | Door step 0: character vfunc +0x24 (get rot) into it. |
 | 0x120 | `reload_geo_npc` s32 | House door step 1: 1 when menu end_code 0xD and the part's info id is 0x49 (also fades out); step 2 then FadeIn(0x14) + `LoadGeoNPC(&param, 0)`. |
 | 0x124 | unk | Untouched. |
-| 0x128 | `map_name` char[0x20] | Door step 0 `strcpy(map_name, data.event.unk_38)` (unless it is "exit"); for flag 0x10 a suffix from table `at_920` ("ia","ib","ic","id", indexed by `GetVillagerInfo(npc)->+8 & 3`) or "ia" when no info and strlen<=3. editloop passes EditEvent+0x128 (0x01ECD9F8) to `SearchMapNo`. Reset clears byte 0. 0x20 is the gap to 0x148. |
+| 0x128 | `map_name` char[0x20] | Door step 0 `strcpy(map_name, data.event.unk_38)` (unless it is "exit"); for flag 0x10 a suffix from a local `char *suffix[4] = {"ia", "ib", "ic", "id"}` (indexed by `GetVillagerInfo(npc)->+8 & 3`) or the literal "ia" when no info and strlen<=3. editloop passes EditEvent+0x128 (0x01ECD9F8) to `SearchMapNo`. Reset clears byte 0. 0x20 is the gap to 0x148. |
 | 0x148 | `door_se` s32 | Reset/door step 0 set -1; door step 2 at count 0x14: `SePlayOpenDoor(data.event.unk_30, &matrix[3])` then stores unk_30. |
 | 0x14C | unk | Untouched. |
 
 Offsets inside `data` as Step uses them (EditEvent offset = data offset + 0x20):
 - 0x20 `event.flag` (FUNC_EVENT_FLAG: 0x8 door, 0x10 ed_door, 0x80 close_door, 0x100 fade on open, 0x200 t_box, 0x400 book).
-- 0x28 `event.unk_28`: event number. Door step 3 runs `RunEvent(unk_28, &data)` when >= 1. StartEvent sets it to 0xF9 for a door with FUNC_EVENT_CLOSE_DOOR. (mapload.hpp calls offset +4 `event_no`; the field at +8 is the one used as an event number here.)
+- 0x28 `event.unk_28`: event number. Door step 3 runs `RunEvent(unk_28, &data)` when >= 1. StartEvent sets it to 0xF9 for a door with FUNC_EVENT_CLOSE_DOOR. (mapload.hpp calls offset +4 `event_no`; the field at +8 is the one used as an event number here.) StartEvent reads `data.event.flag` and writes `data.event.point_no` through the event-data type and uses the `FUNC_EVENT_FLAG`, `EditEventState` and `EditEventType` enums.
 - 0x2C `event.unk_2c`: door: < 0 means no open motion (count = 0xE); book: arg 2 of `BookshelfMessageMake`.
 - 0x30 `event.unk_30`: door: open-door sound kind for `SePlayOpenDoor`; book: arg 3.
 - 0x34 `event.unk_34`: book: arg 4.
@@ -64,23 +64,14 @@ Character vtable offsets used (not this unit's class): +0x10 set pos, +0x18 get 
 
 ## Data
 - `MenuInfo` (.sdata 0x0037CC48, LOCAL; another unit has its own `MenuInfo`): `static MENU_INIT_ARG *MenuInfo = &MenuArg;` (menumain.hpp). Used offsets 0x18 scene, 0x28 open_type, 0x3C end_code, 0x58 param[0]. Not in header.
-- `at_920` (.data, 0x10): `const char *[4]` of house suffixes "ia","ib","ic","id" -- compiler-generated, a function-local array initialiser in Step.
+- The house suffix table (.data, 0x10) is the function-local `char *suffix[4]` initializer in
+  `Step`'s door branch, initialized at the point retail copies the template.
 - No plain-named globals, so no externs in the header.
 
-## Draft and promotion status
-All nine functions have named typed C++ drafts. The `Step` draft covers each of the four event
-types and their substeps; its door motion strings are encoded with octal escapes because the
-retail strings use Shift JIS bytes. Its message dismissal uses `ClsMes::Preset(0)` pending
-field-level work on the retail inline close sequence, and its preload and movement timing still
-differ from retail. Keep this draft under `NONMATCHING`.
-
-The standard `decompile.sh` invocation for `Step` stops at the two jump tables named `at_1152`
-and `at_1154`. To inspect its full m2c control flow, temporary copies of its assembly and those
-tables were passed to m2c with `jtbl_` names and label targets. Repository assembly was not
-changed.
-
-One isolated promotion was attempted for each of the nine functions. `Reset` and
-`CheckPlaceBurnParts` produced exact linked images and were promoted. Seven functions remain
-guarded. The `StartEvent` attempt also hit a read-only data binding error at `0x00377788`;
-its compiled draft differs from retail. The default full game build verified byte-identically
-after these attempts.
+## Source status
+All nine functions are native; the unit has no `NONMATCHING` guards, `INCLUDE_ASM` gaps, or
+data markers. The diagnostic, motion, frame and configuration strings are inline literals (the
+Shift-JIS motion names through hexadecimal escapes); the two switch tables of `CEditEvent::Step`
+are emitted by its native switches. In `Step`, `camera` is a `CCameraControl *` assigned once
+from `(CCameraControl *) scene->GetCamera(...)`, so `RotBack`/`CancelRotBack` need no per-call
+downcast. Header `@size` annotations use the retail ELF's declared `STT_FUNC` extents.

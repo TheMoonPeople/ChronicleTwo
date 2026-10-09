@@ -106,7 +106,7 @@ int CEditEvent::StartEvent(CSceneEventData *event_data) {
 /**
  * Menu arguments used by house-door events.
  */
-static MENU_INIT_ARG *MenuInfo__2 = &MenuArg;
+static MENU_INIT_ARG *MenuInfo = &MenuArg;
 
 /**
  *
@@ -330,9 +330,9 @@ int CEditEvent::Step(CScene *scene) {
     } else if (type == EDIT_EVENT_TYPE_HOUSE_DOOR) {
         switch (step) {
             case EDIT_HOUSE_DOOR_STEP_OPEN_MENU:
-                MenuInfo__2->open_type = 0xC;
-                MenuInfo__2->scene = scene;
-                MenuInfo__2->param[0] = data.map_event.parts_no;
+                MenuInfo->open_type = 0xC;
+                MenuInfo->scene = scene;
+                MenuInfo->param[0] = data.map_event.parts_no;
                 camera->CancelRotBack();
                 result = EDIT_EVENT_RESULT_MENU;
                 ++step;
@@ -341,7 +341,7 @@ int CEditEvent::Step(CScene *scene) {
             case EDIT_HOUSE_DOOR_STEP_MENU_END: {
                 mgSetProjection(projection);
 
-                if (MenuInfo__2->end_code == 9) {
+                if (MenuInfo->end_code == 9) {
                     type = EDIT_EVENT_TYPE_DOOR;
                     count = 0;
                     step = 0;
@@ -357,7 +357,7 @@ int CEditEvent::Step(CScene *scene) {
                     info = parts->GetInfoID();
                 }
 
-                if (MenuInfo__2->end_code == 0xD && info == 0x49) {
+                if (MenuInfo->end_code == 0xD && info == 0x49) {
                     scene->fade.FadeOut(0x12, 0.0f, 0.0f, 0.0f);
                     reload_geo_npc = 1;
                 } else {
