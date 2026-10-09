@@ -348,11 +348,7 @@ void CScene::DrawSky(int sky_index) {
 }
 
 void CScene::DrawLensFlare(int flare_type, char *texture, char *alpha_texture) {
-    /**
-     *
-     * Lens-flare color for each map time band.
-     *
-     */
+    // Lens-flare color for each map time band.
     static float col[4][4] __attribute__((aligned(16))) = {
         {128.0f, 128.0f, 128.0f, 128.0f},
         {192.0f, 96.0f, 0.0f, 128.0f},
