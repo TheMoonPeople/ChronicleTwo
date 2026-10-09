@@ -20,14 +20,25 @@ Both are LOCAL in `build/re/local_symbols.tsv` and called only from this unit.
   `[3]`) and any pair of their fence end points (`CEditParts::GetFenceSide(float*, float*)`) is
   closer than 5.0; else 0. Null parts return 0. Called by `CEditMap::PaintFence(CEditParts*)`.
 
-## Data
-All data symbols are compiler-generated, so no `extern` is declared:
-- `cnt_482`, `init_483` (.sbss, 4 bytes each): function-local static counter and its init guard
-  in `CheckEditParts(..., EP_PLACE_INFO*, CEditParts**, int)`; `cnt = (cnt + 1) % 10`.
-- `at_1050__2` (.bss 0x10): local static read as a 64-bit value at the top of
-  `GroundBalance(int)`. Unrelated to `CEditMap` field offset 0x1050 (`balance_moved`).
-- `at_796__4` (.data 0x10), `at_983__3` (.data 0xA), `at_1042..1043`, `at_1127..1130` (.rodata):
-  function-local initialised arrays / float literals.
+## Data and source status
+All 21 functions are native; the unit has no `NONMATCHING` guards or `INCLUDE_ASM` gaps. All
+data symbols are compiler-generated, so no `extern` is declared:
+- `CheckEditParts(..., EP_PLACE_INFO*, CEditParts**, int)` has a function-local
+  `static int cnt = 0` (`cnt = (cnt + 1) % 10`) with its compiler-generated init guard (one byte
+  plus three alignment bytes). These two .sbss pieces are the unit's only remaining markers,
+  `INCLUDE_BSS(cnt_482, 0x4)` / `INCLUDE_BSS(init_483, 0x4)`, kept because the object checker
+  binds MWCC's suffixed local names to retail only through them; the native static and guard
+  instructions match with or without the markers.
+- `GroundBalance(int)` declares four zero-initialized integer weights; MWCC emits their 16-byte
+  zero template in .bss and reads it as a 64-bit value at the top of the function. Unrelated to
+  `CEditMap` field offset 0x1050 (`balance_moved`). Its four model-name literals are inline.
+- The river branch of `GetePlacePartsAtInfoID` initializes a `sceVu0FVECTOR` as `{0, 0, 0, -1}`
+  and passes it directly to `GetRiverNum` (.data template).
+- `UpdateHouse` initializes `char live_name[10] = "npclive"` inside the model loop (where retail
+  copies the template: eight string bytes, two zero bytes, six piece-alignment bytes) and declares
+  its suffix buffer immediately afterwards to keep the stack order; the decimal suffix format is
+  inline and `LanguageCode` comes from `mainloop.hpp`.
+- The remaining .rodata pieces are float literals.
 
 ## PlaneNormalXZ matching status
 The retail body is ten instructions: three `lqc2` loads, two VU0 zeroing
@@ -37,9 +48,7 @@ instruction as unsupported rather than C expressions. The available
 `libvu0.h` exposes callable SDK functions, including `sceVu0OuterProduct`;
 a call introduces an ABI boundary and cannot reproduce this inline body.
 Scalar C++ likewise emits scalar FPU instructions instead of the required
-COP2 opcodes. The function now uses the narrow inline VU0 exception. The
-MWCC body matches all 0x2C retail bytes, and the `editmap2` object passes
-`check_objects.py` with 143 resolved relocations.
+COP2 opcodes. The function uses the narrow inline VU0 exception (0x2C bytes).
 
 ## GetEditPartsAlt with placed parts
 
@@ -47,9 +56,7 @@ MWCC body matches all 0x2C retail bytes, and the `editmap2` object passes
 space, finds horizontal overlap, and raises the best floor height. In retail,
 the `triangle` pointer passed in `a1` to `PlaneNormalXZ` remains in that register
 for `CEditCollision::OverlapPoly3XZ`. Compiling the normal helper in this unit
-preserves that register across the call. The resulting 0x264-byte function
-matches objdiff exactly, and the `editmap2` object passes `check_objects.py`
-with 143 resolved relocations.
+preserves that register across the call (0x264-byte function).
 
 ## GetSeSrcVolPan
 
@@ -59,27 +66,18 @@ offset 0xF54; `sndGetVolPan(float *, float *, float *, float, float)` is a nativ
 C++ overload declared in `snd_mngr.hpp`. Replacing the raw mangled call with
 that overload leaves its call instructions unchanged.
 
-The typed `this->grid[i]` lookup avoids the old byte offset cast. Reusing the
+The typed `this->grid[i]` lookup replaces a byte offset cast. Reusing the
 preceding placed-parts loop index `i` for the river-grid loop preserves the
-retail register assignment; the complete function has a 100% object match.
-Using a new loop index instead exchanges two saved registers in the river pass.
+retail register assignment; a new loop index exchanges two saved registers in
+the river pass.
 
-## GetEditPartsAlt native assessment
+## GetEditPartsAlt details
 
-The m2c output and retail body confirm that this overload transforms each
-`col_area1` triangle into each placed part's frame, computes its XZ normal,
-and queries the part's `col_floor` for overlap. Existing `CEditPartsInfo`,
-`CCPoly`, `CEditCollision`, and `mgVu0FBOX` declarations describe the accessed
-fields, including the 0x50-byte polygon stride and the floor collision at
-0x110. Position and rotation getters are virtual slots 0x18 and 0x24.
-
-The retail call to `OverlapPoly3XZ` retains the triangle address in argument
-register a1 across the preceding file-local VU0 helper. The helper's actual
-body preserves that register; m2c marks it unset because the generic call ABI
-clobbers it. A native candidate must preserve this call sequence and all
-existing unit failures under the canonical comparator before promotion.
-
-The existing native draft produces a shorter body and changes the
-`OverlapPoly3XZ` call location under the deterministic profile. It remains
-guarded; the baseline unit passes canonical comparison with that fallback.
-No native promotion is claimed for this function or the COP2-only helper.
+This overload transforms each `col_area1` triangle into each placed part's
+frame, computes its XZ normal, and queries the part's `col_floor` for overlap.
+`CEditPartsInfo`, `CCPoly`, `CEditCollision`, and `mgVu0FBOX` describe the
+accessed fields, including the 0x50-byte polygon stride and the floor
+collision at 0x110. Position and rotation getters are virtual slots 0x18 and
+0x24. The retail call to `OverlapPoly3XZ` keeps the triangle address in a1
+across the preceding file-local VU0 helper, whose body preserves that
+register; m2c marks it unset because the generic call ABI clobbers it.
