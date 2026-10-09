@@ -4,7 +4,7 @@ Checkpoint `830e48ed` has **7 RODATA / 0 BSS** markers and
 **0/223 matched data bytes** after the warm
 progress refresh.
 
-Vertex-weight diagnostics use their exact literals directly. The source already emits the eight-callback `set_data_func` table, the aligned `MG_VIF_FLUSHA` finish template and the 80-byte `mgCVisualMotionMDT` vtable. Their markers are removed; the native vtable retains the retail symbol referenced by assembly-backed `Copy`.
+Vertex-weight diagnostics use their exact literals directly. The source already emits the eight-callback `set_data_func` table, the aligned `MG_VIF_FLUSHA` finish template and the 80-byte `mgCVisualMotionMDT` vtable. Their markers are removed; the native vtable retains the retail symbol referenced by native `Copy`.
 
 Retained RODATA markers: `prog_vif_532__DATA` and `progf_vif_533__DATA`, the existing aligned four-word `MSCAL(2)` and `MSCNT` local statics. Their paired removal is tested and restored if canonical naming cannot resolve the compiler-local identities. The current naming pass excludes numeric initialized locals without pointer relocations; the same consumer-based identity proposal as `water` applies. No new casts, type-puns or unsupported 128-bit arithmetic initializers are introduced.
 

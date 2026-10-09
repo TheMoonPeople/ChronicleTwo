@@ -16,7 +16,7 @@ struct SubGameInfo;
  *
  * @mangled sgInitBuggy__FP11SubGameInfo
  * @address 0x318B70
- * @size 0x9A0
+ * @size 0x994
  */
 int sgInitBuggy(SubGameInfo *info);
 

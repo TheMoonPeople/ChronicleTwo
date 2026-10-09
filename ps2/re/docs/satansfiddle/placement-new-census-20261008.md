@@ -261,7 +261,7 @@ operator call. Class is a measured runtime classifier when available.
 | `mg_tanime / texTEX_ANIME_DATA_END__FP9SPI_STACKi` | `0x0013E890` | matched | `mgCTextureAnime` | `ps2/include/mg_tanime.hpp:276` | C / out of line | A | n/a (out of line) |
 | `mg_visual / CreateFace__12mgCVisualMDTFP8FACES_IDP9mgCMemoryP9mgCMemoryPP7mgCFace` | `0x0013F7C8` | matched | `mgFACE_GROUP` | `ps2/include/mg_visual.hpp:86` | E / not invoked by allocation | A | n/a (excluded) |
 | `mg_visual / CreateFace__12mgCVisualMDTFP8FACES_IDP9mgCMemoryP9mgCMemoryPP7mgCFace` | `0x0013F850` | matched | `mgFACE_GROUP` | `ps2/include/mg_visual.hpp:86` | E / not invoked by allocation | A | n/a (excluded) |
-| `mg_visual / Copy__15mgCVisualFixMDTFP9mgCMemory` | `0x0014128C` | assembly-only | `mgCVisualFixMDT` | `ps2/include/mg_visual.hpp:382` | C / inline | A | not observed |
+| `mg_visual / Copy__15mgCVisualFixMDTFP9mgCMemory` | `0x0014128C` | matched | `mgCVisualFixMDT` | `ps2/include/mg_visual.hpp:382` | C / inline | A | not observed |
 | `monster / LoadReferMonsterFile__11CMonsterManFiP16BASE_MONSTER_TBLP9mgCMemory` | `0x001DCF28` | matched | `CSWordAfterEffect` | `ps2/include/swordeffect.hpp:41` | C / inline | A | 6 |
 | `movieviewlp / MovieViewInit__F13INIT_LOOP_ARG` | `0x002CBA68` | matched | `CMovie` | `ps2/include/movie.hpp:227` | P / trivial; no implicit construction guard | N | n/a (excluded) |
 | `nameregi / NameRegistInit__FP9mgCMemoryPii` | `0x00310118` | matched | `CNameRegiMenu` | `ps2/include/nameregi.hpp:120` | C / inline | A | 3 |
@@ -283,7 +283,7 @@ operator call. Class is a measured runtime classifier when available.
 | `title / TitleHDDInstallInit__Fv` | `0x002A78B0` | matched | `CDC2Mes` | `ps2/include/menucls1.hpp:68` | C / out of line | A | n/a (out of line) |
 | `title / TitleHDDInstallInit__Fv` | `0x002A78DC` | matched | `CDC2Mes` | `ps2/include/menucls1.hpp:68` | C / out of line | A | n/a (out of line) |
 | `villagermngr / Add__18CVillagerPlaceInfoFP9mgCMemory` | `0x002D1B20` | matched | `CVillagerPlaceInfo::Node` | `ps2/include/villagermngr.hpp:81` | P / trivial; no implicit construction guard | A | n/a (excluded) |
-| `visualmotion / Copy__18mgCVisualMotionMDTFP9mgCMemory` | `0x0028E95C` | assembly-only | `mgCVisualMotionMDT` | `ps2/include/visualmotion.hpp:65` | C / inline | A | not observed |
+| `visualmotion / Copy__18mgCVisualMotionMDTFP9mgCMemory` | `0x0028E95C` | matched | `mgCVisualMotionMDT` | `ps2/include/visualmotion.hpp:65` | C / inline | A | not observed |
 | `water / CreateWaterFrame__FiiPfPfP9mgCMemory` | `0x00187338` | guarded | `CWaterFrame` | `ps2/include/water.hpp:271` | C / inline | A | 6 |
 | `water / CreateWaterFrame__FiiPfPfP9mgCMemory` | `0x00187388` | guarded | `mgCFrameAttr` | `ps2/include/mg_frame.hpp:89` | C / out of line | A | n/a (out of line) |
 | `water / CreateWaterFrame__FiiPfPfP9mgCMemory` | `0x001873D0` | guarded | `CWater` | `ps2/include/water.hpp:138` | C / out of line | A | n/a (out of line) |

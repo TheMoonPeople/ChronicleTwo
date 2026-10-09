@@ -184,7 +184,7 @@ public:
      *
      * @mangled Copy__9CMapPartsFR9CMapPartsP9mgCMemory
      * @address 0x168EB0
-     * @size 0x6B0
+     * @size 0x6AC
      */
     virtual void Copy(CMapParts &dest, mgCMemory *memory);
 
@@ -467,7 +467,7 @@ public:
      *
      * @mangled AssignFuncAnime__9CMapPartsFP9mgCMemory
      * @address 0x169560
-     * @size 0x140
+     * @size 0x138
      */
     int AssignFuncAnime(mgCMemory *memory);
 

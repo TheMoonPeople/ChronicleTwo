@@ -645,7 +645,7 @@ public:
      *
      * @mangled AssignCharacter__16CEffectScriptManFP11_EFF_SCRIPTi
      * @address 0x2E6FA0
-     * @size 0x1B0
+     * @size 0x1A8
      */
     int AssignCharacter(_EFF_SCRIPT *script, int count);
 

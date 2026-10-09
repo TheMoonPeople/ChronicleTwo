@@ -331,7 +331,7 @@ public:
      *
      * @mangled NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory
      * @address 0x13DA40
-     * @size 0x80
+     * @size 0x7C
      */
     CList<mgCTexAnimeData> *NewTexAnimeData(mgCMemory *stack);
 

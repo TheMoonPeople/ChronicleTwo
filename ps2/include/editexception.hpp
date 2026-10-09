@@ -200,7 +200,7 @@ void S51Thunder(CScene *scene);
  *
  * @mangled InitFirePowder__FiP6CSceneiP9mgCMemory
  * @address 0x2FCA30
- * @size 0x360
+ * @size 0x358
  */
 void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory);
 

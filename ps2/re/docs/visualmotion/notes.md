@@ -121,8 +121,8 @@ retail signature is `PUi`; no record struct is declared.
 
 The focused MWCC wrapper build, section fixup and canonical checker pass the complete
 `visualmotion` object: 0x1A00 checked bytes and 101 relocations. This establishes the
-native `Initialize` and `ChangeWeight` corrections while the existing
-`CreateFaceMotionPacket` assembly fallback remains in the linked object.
+native `Initialize` and `ChangeWeight` corrections; `CreateFaceMotionPacket`
+is also native in the linked object.
 - CreateVertexWeight's return value is unused by its only caller; declared `void`.
 
 ## Motion-packet native candidate

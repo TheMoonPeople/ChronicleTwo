@@ -693,7 +693,7 @@ public:
      *
      * @mangled AddPartsGroup__4CMapFPcP9CMapPartsP9mgCMemory
      * @address 0x15DA50
-     * @size 0x100
+     * @size 0xFC
      */
     int AddPartsGroup(char *name, CMapParts *parts, mgCMemory *memory);
 
@@ -833,7 +833,7 @@ public:
      *
      * @mangled CreateDrawRect__4CMapFP9mgCMemoryP9mgVu0FBOXP9mgVu0FBOXi
      * @address 0x15E210
-     * @size 0x1C0
+     * @size 0x1B8
      */
     void CreateDrawRect(mgCMemory *memory, mgVu0FBOX *rect, mgVu0FBOX *clip, int outside);
 

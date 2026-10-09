@@ -698,7 +698,7 @@ public:
      *
      * @mangled KeyStep__12CMosBookMenuFv
      * @address 0x2C3A60
-     * @size 0x550
+     * @size 0x54C
      */
     int KeyStep();
 };

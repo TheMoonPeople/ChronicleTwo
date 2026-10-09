@@ -3,7 +3,7 @@
 The placement-new capability requests MWCC's own statement-conversion path for
 selected scalar constructions. It is an intentional frontend decision override,
 not an established repair of uninitialized compiler state. The accepted source
-and profile produce 34 additional native callers in 21 units, with PAL bytes
+and profile produce 36 additional native callers in 23 units, with PAL bytes
 matching retail and 149/149 complete game objects passing. The caller rows are
 an activation list for those promotions; they do not recover one original global
 compiler policy.
@@ -116,12 +116,13 @@ checks that the compiler is not started and an existing output is preserved.
 
 ## Accepted placement rows
 
-All 34 rows below use allocator `__nw__FUiP1` and exact direct constructors.
+All 36 rows below use allocator `__nw__FUiP1` and exact direct constructors.
 The caller spelling is the profile identity. `after/either` means the checked-in
 policy is after-inline, but both timings reproduce that caller. Only the three
 `after/required` and one `before/required` rows have measured timing necessity.
-The table totals 44 sites across 21 units; multiple sites have the same semantic
-identity and do not use occurrence selectors.
+The table totals 46 sites across 23 units; multiple sites have the same semantic
+identity and do not use occurrence selectors. The two `Copy` rows were validated
+after the 34-row timing study below and are not part of its counts.
 
 | Unit | Mangled caller | Allocated type | Sites | Timing |
 | --- | --- | --- | ---: | --- |
@@ -156,9 +157,11 @@ identity and do not use occurrence selectors.
 | menusys | `MenuItemSelectInit__FP9mgCMemoryPii` | `CItemSelect` | 1 | after/either |
 | menusys | `MenuModeMalloc__13CMenuItemInfoFP9mgCMemory` | `CActionChara` | 2 | after/either |
 | mg_tanime | `NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory` | `CList<mgCTexAnimeData>` | 1 | before/required |
+| mg_visual | `Copy__15mgCVisualFixMDTFP9mgCMemory` | `mgCVisualFixMDT` | 1 | after/either |
 | pbuggy | `sgInitBuggy__FP11SubGameInfo` | `CEffectScriptMan` | 1 | after/either |
 | sceneload | `CopyChara__6CSceneFiiP9mgCMemory` | `CCharacter2` | 1 | after/either |
 | sceneload | `LoadChara__6CSceneFiPUiPcP9mgCMemoryP9mgCMemoryP9mgCMemoryii` | `CCharacter2` | 1 | after/either |
+| visualmotion | `Copy__18mgCVisualMotionMDTFP9mgCMemory` | `mgCVisualMotionMDT` | 1 | after/either |
 
 The exact direct constructor identities for these allocated types are:
 
@@ -179,6 +182,8 @@ The exact direct constructor identities for these allocated types are:
 | `CMapParts` | `__ct__9CMapPartsFv` |
 | `CMapPiece` | `__ct__9CMapPieceFv` |
 | `mgC3DSprite` | `__ct__11mgC3DSpriteFv` |
+| `mgCVisualFixMDT` | `__ct__15mgCVisualFixMDTFv` |
+| `mgCVisualMotionMDT` | `__ct__18mgCVisualMotionMDTFv` |
 
 Changing all rows to after-inline matches 33/34 callers and fails
 `NewTexAnimeData`. Changing all to before-inline matches 31/34 and fails
@@ -249,8 +254,9 @@ the whole owning object and resolved relocation targets pass, and PAL verificati
 and unrelated-object preservation are checked before acceptance.
 
 With all eight added float rows retained, turning placement rows off changes
-exactly the 34 named native callers and no other function's bytes or relocations
-in the 21 promoted units. The 128 other game units are raw-identical to baseline.
+exactly the 36 named native callers, the generated `mgCVisualMDT` assignment
+that `mg_visual` now emits, and no other function's bytes or relocations in the
+23 promoted units. The 126 other game units are raw-identical to baseline.
 An empty placement profile with the original guards preserves the complete
 baseline. The older image rejects the new `placement_new` key even when a current
 unit has no rows; adopting the capability requires an image bump for all builds,

@@ -206,7 +206,7 @@ int sgInitFishing(SubGameInfo *info);
  *
  * @mangled sgRestartFishing__FP11SubGameInfo
  * @address 0x301A00
- * @size 0x560
+ * @size 0x55C
  */
 int sgRestartFishing(SubGameInfo *info);
 

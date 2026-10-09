@@ -397,7 +397,7 @@ int EditNowPlaceAnime();
  *
  * @mangled EditSetPlaceAnime__FiP9CMapParts
  * @address 0x300C40
- * @size 0x270
+ * @size 0x264
  */
 int EditSetPlaceAnime(int kind, CMapParts *parts);
 
