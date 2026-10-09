@@ -3,16 +3,17 @@
 `EditMode` is active native C++ and exact after the October 9 promotion:
 0/1912 differing words, GLOBAL symbol size 0x1DDC. The production profile
 evaluates its three `mgAngleCmp` quarter-turn tolerances first and asserts
-three matches. `LoadEditCursor` is the unit's only remaining guarded function.
-EditMode-owned literals and zero-vector templates are native; the only ten
-data markers are LoadEditCursor strings. The dated probes below describe
-earlier source snapshots; the current result
+three matches. EditMode-owned literals and zero-vector templates are native.
+The dated probes below describe earlier source snapshots; the current result
 and its complete-object/PAL validation are in
 [night-20261008.md](night-20261008.md).
 
-`LoadEditCursor` allocates three `CCharacter2` objects for the paint, removal,
-and shovel cursors. Its C++ draft uses the class constructor; retail assembly
-remains active while the surrounding load and construction code is unmatched.
+`LoadEditCursor` is native C++ and constructs three `CCharacter2` objects for
+the paint, removal and shovel cursors. One after-inline placement row asserts
+those three sites, and its file and frame names are literals in the body;
+complete-object and PAL verification pass. No `NONMATCHING` guards or assembly
+fallbacks remain in this unit. `StartEditModeFromMenu` is also active C++.
+See [placement conversion](../satansfiddle/placement-new.md).
 
 Georama mode (town editor cursor): placing, removing ("RemoveMtn", shovel) and painting parts,
 putting parts against walls, rivers, undo, help line, walk<->edit checks. No class is owned by
@@ -106,33 +107,35 @@ follow settings; the player already inherits `mgCObject`. `EndEditMode` uses
 the typed `CEditMap` returned by the active map slot and calls the player's
 base position setter directly. Removing those base/derived C-style casts
 leaves both functions exact in objdiff.
-# `StartEditModeFromMenu` draft
+## Earlier `StartEditModeFromMenu` draft
 
-The guarded C++ body has six instruction alignment differences in the two
-stores to `PaintCursor2->attr->color[1]` and `[2]`: retail loads the global
-cursor before each colour value, while MWCC schedules that load after the
-value and delays the attribute load. Named cursor and converted-colour locals
-retain the same scheduling. The assembly fallback remains active.
+Before its native promotion, the guarded body had six instruction alignment
+differences in stores to `PaintCursor2->attr->color[1]` and `[2]`: retail loaded
+the global cursor before each colour value, while that draft scheduled the
+load after the value and delayed the attribute load. Named cursor and
+converted-colour locals retained the same scheduling in those probes. These
+are earlier controls; the current function is unguarded C++.
 
 ## October 8 merged-base cursor audit
 
-`LoadEditCursor` remains guarded at 270/368 positional differing words
-(0x5C0/0x5C0 bytes) under the pinned profile, including editmode's existing
-translation-unit row. Its first character construction at +0x170 has the
+Before placement conversion, the merged-base `LoadEditCursor` draft remained
+guarded at 270/368 positional differing words (0x5C0/0x5C0 bytes) under the
+then-pinned profile, including editmode's existing translation-unit row. Its first character construction at +0x170 has the
 known allocation-result mismatch: retail branches on `v0` and copies to
 `s1` in the delay slot; the draft copies first, branches on `s1` and inserts
 a nop. Three character-construction sites shift the later code.
 
-Blocker: placement-new construction scheduling. Reconsider after a natural
-inlined character construction with matching null-result flow is validated,
-then reassess any float-order remainder. No float selector is proposed:
-the constructor blocker prevents the required zero-difference complete-unit
-validation. The excluded `EditMode` body and compiler profile are unchanged.
+Placement-new construction scheduling blocked acceptance at that boundary.
+Float order needed reassessment after the natural character/null-result flow,
+so no float selector was proposed from this nonzero comparison. The then-guarded
+edit left `EditMode` and the compiler profile unchanged. The current cursor row
+and native body pass complete-object validation.
 
 ## Mid-day EditMode source-boundary probes (2026-10-08)
 
-The unit retains the LoadEditCursor and EditMode guards. The canonical
-source-only baseline is 270/368 and 87/1912 differing words respectively.
+The mid-day source/profile baseline retained both LoadEditCursor and EditMode
+guards. Its canonical source-only scores were 270/368 and 87/1912 differing
+words respectively. Neither function is guarded in the current source.
 The three `mgAngleCmp` calls in EditMode need the binary32 quarter-turn
 tolerance (`0x3F490FDB`, 0.7853982f) evaluated first. A private callee-scoped
 row reduces EditMode to 74/1912 without changing its `0x1DDC` body, but

@@ -635,58 +635,45 @@ void EditPreMenuAnime(int max_count) {
     PreMenuCount = 0;
 }
 
-#ifdef NONMATCHING
-extern char at_1067__3[];
-extern char at_1068__3[];
-extern char at_1069__5[];
-extern char at_1070__3[];
-extern char at_1071__3[];
-extern char at_1072__3[];
-extern char at_1073__3[];
-extern char at_1074__3[];
-extern char at_1075__2[];
-extern char at_1076__2[];
 void LoadEditCursor(mgCMemory *memory, int block) {
     mgCTextureManager *textures = &mgTexManager;
-    if (LoadFile2(at_1067__3, read_buffer, NULL, 0) != 0) {
+    if (LoadFile2("etc/gsys.pak", read_buffer, NULL, LOAD_FILE_READ) != 0) {
         u_int *pack = (u_int *)read_buffer;
-        u_int size;
-        u_int *image = GetPackFile(pack, (char *)at_1068__3, (int *)&size);
+        int size;
+        u_int *image = GetPackFile(pack, "etc/g_edit.img", &size);
         if (image != NULL) {
             u_int blocks;
             if (size & 0xF) {
-                blocks = (size >> 4) + 1;
+                blocks = ((u_int)size >> 4) + 1;
             } else {
-                blocks = size >> 4;
+                blocks = (u_int)size >> 4;
             }
             void *copy = memory->Alloc(blocks);
             memcpy(copy, image, size);
             textures->EnterIMGFile((u_char *)copy, block, NULL, NULL);
         }
-        eSysTexture = textures->GetTexture(at_1069__5, block);
+        eSysTexture = textures->GetTexture("haichi_eff", block);
         mgCFrameAttr attr;
         attr.no_light = 1;
         attr.color[0] = 128.0f;
         attr.color[1] = 128.0f;
         attr.color[2] = 128.0f;
         attr.color[3] = 128.0f;
-        u_int *cursor_model = GetPackFile(pack, at_1070__3, NULL);
+        u_int *cursor_model = GetPackFile(pack, "etc/cone.mds", NULL);
         if (cursor_model != NULL) {
             EditCursor[0] = mgLoadMDSFile((MDS_HEADER *)cursor_model, memory, NULL, NULL);
             EditCursor[0]->SetAttrParam(attr, 1, MG_FRAME_ATTR_NO_LIGHT | MG_FRAME_ATTR_COLOR | MG_FRAME_ATTR_BILLBOARD);
         }
         PaintCursor = NULL;
         PaintCursor2 = NULL;
-        CCharacter2 *paint_chr;
-        paint_chr = new ((u_long128 *)memory->Alloc(0x68)) CCharacter2;
-        PaintCurChr = paint_chr;
-        u_int *paint_model = GetPackFile(pack, at_1071__3, NULL);
+        PaintCurChr = new (memory->Alloc(0x68)) CCharacter2;
+        u_int *paint_model = GetPackFile(pack, "etc/hake.chr", NULL);
         if (paint_model != NULL) {
-            PaintCurChr->LoadPackNoLine(paint_model, at_1072__3, memory, memory, memory, block, NULL);
+            PaintCurChr->LoadPackNoLine(paint_model, "info.cfg", memory, memory, memory, block, NULL);
             PaintCursor = PaintCurChr->GetFrame();
             if (PaintCursor != NULL) {
                 PaintCursor->SetAttrParam(attr, 1, MG_FRAME_ATTR_NO_LIGHT | MG_FRAME_ATTR_COLOR | MG_FRAME_ATTR_BILLBOARD);
-                PaintCursor2 = PaintCursor->SearchFrame(at_1073__3);
+                PaintCursor2 = PaintCursor->SearchFrame("hake_1");
             }
             PaintCurChr->SetMotion(0, 0);
         }
@@ -694,12 +681,10 @@ void LoadEditCursor(mgCMemory *memory, int block) {
         ShovelCursor = NULL;
         ShovelCurChr = NULL;
         RemoveCurChr = NULL;
-        CCharacter2 *remove_chr;
-        remove_chr = new ((u_long128 *)memory->Alloc(0x68)) CCharacter2;
-        RemoveCurChr = remove_chr;
-        u_int *remove_model = GetPackFile(pack, at_1074__3, NULL);
+        RemoveCurChr = new (memory->Alloc(0x68)) CCharacter2;
+        u_int *remove_model = GetPackFile(pack, "etc/a_mu.chr", NULL);
         if (remove_model != NULL) {
-            RemoveCurChr->LoadPackNoLine(remove_model, at_1072__3, memory, memory, memory, block, NULL);
+            RemoveCurChr->LoadPackNoLine(remove_model, "info.cfg", memory, memory, memory, block, NULL);
             if (RemoveCurChr != NULL) {
                 RemoveCursor = RemoveCurChr->GetFrame();
                 if (RemoveCursor != NULL) {
@@ -707,12 +692,10 @@ void LoadEditCursor(mgCMemory *memory, int block) {
                 }
             }
         }
-        CCharacter2 *shovel_chr;
-        shovel_chr = new ((u_long128 *)memory->Alloc(0x68)) CCharacter2;
-        ShovelCurChr = shovel_chr;
-        u_int *shovel_model = GetPackFile(pack, at_1075__2, NULL);
+        ShovelCurChr = new (memory->Alloc(0x68)) CCharacter2;
+        u_int *shovel_model = GetPackFile(pack, "etc/sukkopu.chr", NULL);
         if (shovel_model != NULL) {
-            ShovelCurChr->LoadPackNoLine(shovel_model, at_1072__3, memory, memory, memory, block, NULL);
+            ShovelCurChr->LoadPackNoLine(shovel_model, "info.cfg", memory, memory, memory, block, NULL);
             if (ShovelCurChr != NULL) {
                 ShovelCursor = ShovelCurChr->GetFrame();
                 if (ShovelCursor != NULL) {
@@ -720,11 +703,11 @@ void LoadEditCursor(mgCMemory *memory, int block) {
                 }
             }
         }
-        u_int *unit_model = GetPackFile(pack, at_1076__2, NULL);
+        u_int *unit_model = GetPackFile(pack, "cursor.mds", NULL);
         if (unit_model != NULL) {
             UnitCursor = mgLoadMDSFile((MDS_HEADER *)unit_model, memory, NULL, NULL);
             mgCFrameAttr unit_attr;
-            unit_attr.z_write = -1;
+            unit_attr.z_write = MG_ZBUF_NO_WRITE;
             unit_attr.clip_enable = 1;
             unit_attr.color[0] = 128.0f;
             unit_attr.no_light = 1;
@@ -739,9 +722,6 @@ void LoadEditCursor(mgCMemory *memory, int block) {
         Font__2.SetClearance(0xF, 0x18);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editmode", LoadEditCursor__FP9mgCMemoryi);
-#endif
 
 int GetSelPartsInfoID() {
     return PartsInfoID;
@@ -2986,15 +2966,3 @@ int CheckEditToWalk(CScene *scene, float *position) {
 
     return 1;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1067__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1068__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1069__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1070__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1071__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1072__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1073__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1074__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1075__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmode", at_1076__2__DATA);
