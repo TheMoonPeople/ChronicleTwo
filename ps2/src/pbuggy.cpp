@@ -41,27 +41,8 @@ extern sgCPlayVoice PolVoice;
 void                CharaControl(CScene *scene, CPadControl *pad);
 
 extern char              at_962__4[];
-extern char              at_942__4[];
-extern char              at_943__5[];
-extern char              at_944__4[];
-extern char              at_945__6[];
-extern char              at_946__5[];
-extern char              at_947__5[];
-extern char              at_948__5[];
-extern char              at_949__6[];
-extern char              at_950__6[];
-extern char              at_951__5[];
-extern char              at_952__5[];
-extern char              at_953__4[];
-extern char              at_954__4[];
-extern char              at_955__3[];
 extern char              at_956__3[];
-extern char              at_957__3[];
-extern char              at_958__5[];
-extern char              at_959__5[];
-extern char              at_960__3[];
 extern char              at_961__4[];
-extern char              at_963__3[];
 extern char              at_964__3[];
 
 /**
@@ -130,42 +111,42 @@ static int SmokeEffHandle;
 /**
  * Texture block for the buggy character.
  */
-int BuggyTexb;
+static int BuggyTexb;
 
 /**
  * Texture block for Porcuss.
  */
-int PorcussTexb;
+static int PorcussTexb;
 
 /**
  * Texture block for Muccho.
  */
-int MucchoTexb;
+static int MucchoTexb;
 
 /**
  * First texture block for buggy effects.
  */
-int EffectTexb__2;
+static int EffectTexb__2;
 
 /**
  * Number of texture blocks reserved for buggy effects.
  */
-int EffectTexbNum;
+static int EffectTexbNum;
 
 /**
  * Texture block for the bomb character.
  */
-int BombTexb;
+static int BombTexb;
 
 /**
  * Texture block for Starbull.
  */
-int StarbullTexb;
+static int StarbullTexb;
 
 /**
  * Texture block for gun effects.
  */
-int GunEffTexb;
+static int GunEffTexb;
 
 /**
  * Texture block for the buggy HUD.
@@ -185,7 +166,7 @@ static int RunEventNo__2;
 /**
  * Work buffer allocated for the buggy game.
  */
-u8 * WorkBuff;
+static u8 * WorkBuff;
 
 /**
  * Sound-bank identifier for the buggy game.
@@ -282,8 +263,232 @@ static float BuggyVelo[4];
  */
 static float BombVelo[4];
 
+/**
+ *
+ * Scene character slots occupied by the buggy sub game's models and gun effects.
+ *
+ */
+enum BuggySceneChara {
+    BUGGY_CHARA_BUGGY = 0x40,    /**< Buggy model. */
+    BUGGY_CHARA_PORCUSS = 0x41,  /**< Porcuss passenger. */
+    BUGGY_CHARA_MUCCHO = 0x42,   /**< Muccho passenger. */
+    BUGGY_CHARA_BOMB = 0x43,     /**< Bomb model. */
+    BUGGY_CHARA_STARBULL = 0x44, /**< Starbull model. */
+    BUGGY_CHARA_GUN_FIRE = 0x45, /**< Gun muzzle effect. */
+    BUGGY_CHARA_GUN_HIT = 0x46   /**< Gun impact effect. */
+};
+
 // Code (.text)
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/pbuggy", sgInitBuggy__FP11SubGameInfo);
+int sgInitBuggy(SubGameInfo *info) {
+    CScene            *scene;
+    mgCMemory         *stack;
+    int                i;
+    u32               *pack;
+    mgCTextureManager *texture_manager;
+    CCharacter2       *player;
+    int                img_size;
+    CCameraControl    *camera;
+    ClsMes            *message;
+    mgCFrame          *buggy_frame;
+    mgCFrame          *gun_fire_frame;
+    mgCFrame          *porcuss_frame;
+    mgCFrame          *muccho_frame;
+    mgCFrame          *frame;
+    u32               *file;
+    u8                *img_copy;
+    CEffectScriptMan  *effects;
+
+    BuggyTexb = info->texb;
+    EffectTexbNum = 5;
+    PorcussTexb = BuggyTexb + 1;
+    MucchoTexb = PorcussTexb + 1;
+    BombTexb = MucchoTexb + 1;
+    StarbullTexb = BombTexb + 1;
+    GunEffTexb = StarbullTexb + 1;
+    SysTexb = GunEffTexb + 1;
+    EffectTexb__2 = SysTexb + 1;
+    scene = info->scene;
+    player = scene->GetCharacter(scene->player_chara);
+
+    if (player == NULL) {
+        return 0;
+    }
+
+    scene->AssignStack(5);
+    stack = scene->GetStack(5);
+    pack = (u32 *) scene->read_buff;
+    texture_manager = &mgTexManager;
+
+    for (i = 0; i < info->texb_num; i++) {
+        texture_manager->DeleteBlock(info->texb + i);
+    }
+
+    WorkBuff = new (stack->Alloc((160000 + 15) / 16 + 2)) u_char[160000];
+    EffectBuff.SetHeapMem(stack->Alloc(20000), 20000);
+
+    if (LoadFile2("sg/pb/pb.pak", pack, NULL, LOAD_FILE_READ) == 0) {
+        return 0;
+    }
+
+    if ((file = GetPackFile(pack, "b01a_buggy.chr", NULL)) != NULL) {
+        scene->LoadChara(BUGGY_CHARA_BUGGY, file, "b01a_buggy.cfg", stack, stack, stack, BuggyTexb, 0);
+    }
+
+    if ((file = GetPackFile(pack, "b01a_pol.chr", NULL)) != NULL) {
+        scene->LoadChara(BUGGY_CHARA_PORCUSS, file, "b01a_pol.cfg", stack, stack, stack, PorcussTexb, 0);
+    }
+
+    if ((file = GetPackFile(pack, "b01a_macho.chr", NULL)) != NULL) {
+        scene->LoadChara(BUGGY_CHARA_MUCCHO, file, "b01a_macho.cfg", stack, stack, stack, MucchoTexb, 0);
+    }
+
+    if ((file = GetPackFile(pack, "starbre.chr", NULL)) != NULL) {
+        scene->LoadChara(BUGGY_CHARA_STARBULL, file, "info.cfg", stack, stack, stack, StarbullTexb, 0);
+    }
+
+    if ((file = GetPackFile(pack, "bomb.chr", NULL)) != NULL) {
+        scene->LoadChara(BUGGY_CHARA_BOMB, file, "info.cfg", stack, stack, stack, BombTexb, 0);
+    }
+
+    if ((file = GetPackFile(pack, "gun_fire.chr", NULL)) != NULL) {
+        scene->LoadChara(BUGGY_CHARA_GUN_FIRE, file, "info.cfg", stack, stack, stack, GunEffTexb, 1);
+    }
+
+    if ((file = GetPackFile(pack, "gun_hit.chr", NULL)) != NULL) {
+        scene->LoadChara(BUGGY_CHARA_GUN_HIT, file, "info.cfg", stack, stack, stack, GunEffTexb, 1);
+    }
+
+    BuggyChara = scene->GetCharacter(BUGGY_CHARA_BUGGY);
+    PorcussChara = scene->GetCharacter(BUGGY_CHARA_PORCUSS);
+    MucchoChara = scene->GetCharacter(BUGGY_CHARA_MUCCHO);
+    BombChara = scene->GetCharacter(BUGGY_CHARA_BOMB);
+    StarbullChara = scene->GetCharacter(BUGGY_CHARA_STARBULL);
+    GunFireEff = scene->GetCharacter(BUGGY_CHARA_GUN_FIRE);
+    GunHitEff = scene->GetCharacter(BUGGY_CHARA_GUN_HIT);
+    scene->SetActive(1, BUGGY_CHARA_BUGGY);
+    scene->SetCharaTexb(BUGGY_CHARA_BUGGY, BuggyTexb);
+    scene->SetActive(1, BUGGY_CHARA_PORCUSS);
+    scene->SetCharaTexb(BUGGY_CHARA_PORCUSS, PorcussTexb);
+    scene->SetActive(1, BUGGY_CHARA_MUCCHO);
+    scene->SetCharaTexb(BUGGY_CHARA_MUCCHO, MucchoTexb);
+    scene->SetCharaTexb(BUGGY_CHARA_BOMB, BombTexb);
+    scene->SetActive(1, BUGGY_CHARA_STARBULL);
+    scene->SetCharaTexb(BUGGY_CHARA_STARBULL, StarbullTexb);
+    scene->SetActive(1, BUGGY_CHARA_GUN_FIRE);
+    scene->SetCharaTexb(BUGGY_CHARA_GUN_FIRE, GunEffTexb);
+    scene->SetActive(1, BUGGY_CHARA_GUN_HIT);
+    scene->SetCharaTexb(BUGGY_CHARA_GUN_HIT, GunEffTexb);
+
+    if (BuggyChara == NULL || PorcussChara == NULL || MucchoChara == NULL) {
+        return 0;
+    }
+
+    if (BombChara == NULL || StarbullChara == NULL) {
+        return 0;
+    }
+
+    if (GunFireEff == NULL || GunHitEff == NULL) {
+        return 0;
+    }
+
+    buggy_frame = BuggyChara->CObjectFrame::frame;
+    porcuss_frame = PorcussChara->CObjectFrame::frame;
+    muccho_frame = MucchoChara->CObjectFrame::frame;
+    gun_fire_frame = GunFireEff->CObjectFrame::frame;
+
+    if (buggy_frame == NULL || porcuss_frame == NULL || muccho_frame == NULL || gun_fire_frame == NULL) {
+        return 0;
+    }
+
+    porcuss_frame->SetReference(buggy_frame->SearchFrame("polcurse_chair"));
+    muccho_frame->SetReference(buggy_frame->SearchFrame("macho_chair"));
+    gun_fire_frame->SetReference(buggy_frame->SearchFrame("dcol00"));
+    frame = gun_fire_frame->SearchFrame("cyl68");
+
+    if (frame != NULL) {
+        frame->attr->draw = 0;
+    }
+
+    frame = gun_fire_frame->SearchFrame("obj290");
+
+    if (frame != NULL) {
+        frame->attr->draw = 0;
+    }
+
+    if ((file = GetPackFile(pack, "mints_bomb.chr", NULL)) != NULL) {
+        player->LoadPack(file, "info.cfg", stack, stack, stack, 0, 0);
+    }
+
+    stack->Align64();
+
+    if ((file = GetPackFile(pack, "train_hp.img", &img_size)) != NULL) {
+        u32 blocks;
+
+        if (img_size & 0xF) {
+            blocks = ((u32) img_size >> 4) + 1;
+        } else {
+            blocks = (u32) img_size >> 4;
+        }
+
+        img_copy = (u8 *) stack->Alloc(blocks);
+
+        if (img_copy != NULL) {
+            memcpy(img_copy, file, img_size);
+            texture_manager->EnterIMGFile(img_copy, SysTexb, NULL, NULL);
+        }
+    }
+
+    effects = new (stack->Alloc((sizeof(CEffectScriptMan) + 15) / 16 + 2)) CEffectScriptMan;
+
+    effects->Initialize(stack, EffectTexb__2, EffectTexbNum);
+    effects->load_buffer = (u_long128 *) pack;
+    effects->SetWorkBuffer(&EffectBuff);
+    effects->LoadBaseEffSpt("\x94\x9a\x94\xad", NULL, -1);
+    effects->LoadBaseEffSpt("\x83o\x83M\x81[\x8d\xbb\x89\x8c", NULL, -1);
+    scene->AssignEffect(7, effects, NULL);
+    EffectMan__2 = scene->GetEffect(7);
+
+    if (EffectMan__2 == NULL) {
+        return 0;
+    }
+
+    BuggySndID = -1;
+
+    if (LoadFile2("snd2/mon/EN_320.snd", pack, NULL, LOAD_FILE_READ) != 0) {
+        sndInitPort(SND_PORT_ENEMY);
+        BuggySndID = sndLoadSound(SND_PORT_ENEMY, pack, stack);
+    }
+
+    scene->LoadBGM(0xBF, (u_long128 *) pack);
+    scene->PlayBGM(0, -1, 1.0f);
+    InitBuggy(scene);
+    InitBomb(scene);
+    CharaStatus = 0;
+    player->SetMotion("\x83o\x83g\x83\x8b\x97\xa7\x82\xbf", CHARA_MOTION_RESTART);
+    RunEventNo__2 = -1;
+    player->SetPosition(0.0f, 134.0f, -340.0f);
+    player->SetRotation(0.0f, 0.0f, 0.0f);
+    camera = static_cast<CCameraControl *>(scene->GetCamera(scene->active_camera));
+
+    if (camera != NULL) {
+        camera->SetRotate(3.14f);
+        camera->RotBack(2.6415927f);
+        camera->Step(-1);
+    }
+
+    message = scene->GetMessage(1);
+    message->Preset(MES_PRESET_WINDOW);
+    message->SetWindowMode(MES_WIN_VERSATILE_1);
+    message->MakeMesWin(0x7D0);
+    message->fukidashi_pos = 8;
+    IntroHelpMesFlag = 1;
+    PolVoice.step = SG_PLAY_VOICE_IDLE;
+    PolVoice.play = 0;
+    PolVoice.vol_l = 1.0f;
+    PolVoice.vol_r = 1.0f;
+    PolVoice.SetVol(0.6f, -1.0f);
+    return 1;
+}
 
 int sgExitBuggy(SubGameInfo *info) {
     CScene            *scene;
@@ -1380,28 +1585,9 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_1074__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_1193__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_942__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_943__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_944__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_945__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_946__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_947__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_948__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_949__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_950__6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_951__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_952__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_953__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_954__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_955__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_956__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_957__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_958__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_959__5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_960__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_961__4__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_962__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_963__3__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_964__3__DATA);
 
 // Uninitialised data (.bss)
