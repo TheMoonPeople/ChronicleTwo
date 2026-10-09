@@ -1,5 +1,11 @@
 # editeff: reverse-engineering notes
 
+`EditSetPlaceAnime` is native C++ with one after-inline conversion of a
+`CMapParts` placement construction. Its constructor definition is active,
+and no `NONMATCHING` guards or assembly fallbacks remain in this unit.
+Complete-object and PAL verification pass; see
+[placement conversion](../satansfiddle/placement-new.md).
+
 Edit-mode (Georama) effects: star burst on placing a part, paint-drop splash on painting
 (and on placing a river), and the hop/sway/squash/remove animations of placed parts.
 No first-game counterpart (the first game has no `editeff` unit). The header is `ps2/include/editeff.hpp`.
@@ -108,58 +114,66 @@ Other types: first free slot, else greatest frame.
   EditPlaceEffect's CEditParts is passed to CMapParts::GetBBox (CEditParts : CMapParts).
 - Return types: int for every state/bool-returning function (`EditPEffectEndCheck` returns 3 or 0/1).
 
-`EditSetPlaceAnime` allocates a `CMapParts` in the temporary parts stack, then initializes its base objects and frame in retail order. A native placement `new CMapParts` was tested but scored 79.74% because that constructor performs different work and scheduling; the explicit sequence remains pending an exact native form.
+`EditSetPlaceAnime` allocates a `CMapParts` in the temporary parts stack, then
+initializes its base objects and frame in retail order. An earlier native
+placement `new CMapParts` form scored 79.74% because that constructor performed
+different work and scheduling; the explicit sequence was retained at that
+source/profile boundary.
 
-A typed inline placement overload for `mgCFrame*` and native member placement
-construction scores 98.30%: MWCC inserts a second null branch before the
-frame constructor and moves a vtable store into the branch delay slot. The
-exact manual constructor call remains. Typed array indexing of `_StarEffect`
-and `PlaceAnime` changes the increment/address scheduling in three tested
-functions (99.11%, 99.62%, and 99.41%), so those byte-offset expressions
-remain until an exact typed form is found.
+An earlier typed inline placement overload for `mgCFrame*` and native member
+placement construction scored 98.30%: MWCC inserted a second null branch before
+the frame constructor and moved a vtable store into the branch delay slot.
+That trial retained the manual constructor call. Earlier typed array indexing
+of `_StarEffect` and `PlaceAnime` changed increment/address scheduling in three
+tested functions (99.11%, 99.62%, and 99.41%), so those trials retained byte-offset
+expressions. These results describe the earlier forms, not the current typed
+placement-animation body.
 
 ## Native static initialization
 
 Native `_StarEffect[3]` and `CurPartsBuff` globals emit the retail array-construction and memory-initialization calls. The generated 64-byte initializer matches exactly. The existing data/vtable objdiff scores are unchanged from the handwritten initializer.
 
-Further native-constructor trials confirm the remaining obstacle. A placement
-`operator new(size_t, mgCFrame&)` overload returning the member address still
-makes MWCC emit an extra `beqz` before `__ct__8mgCFrameFv` (98.30%). The
+Further earlier native-constructor trials isolated the same obstacle. A placement
+`operator new(size_t, mgCFrame&)` overload returning the member address made
+MWCC emit an extra `beqz` before `__ct__8mgCFrameFv` (98.30%). The
 source expressions `target->frame.mgCFrame()` and
 `target->frame.mgCFrame::mgCFrame()` compile to a temporary at `sp+0x50`,
 not the frame at `target+0xC0`; each scores 99.95% but is semantically wrong.
 The exact retail call passes `target+0xC0` in `a0` and uses the `CMapParts`
 vtable store as the constructor call's delay slot. Restoring the explicit
-constructor alias leaves `EditSetPlaceAnime` and every other function in the
-unit at 100%.
+constructor alias gave `EditSetPlaceAnime` and every other function 100% in
+that earlier comparison. The current body instead uses natural construction.
 ## Constructor call cleanup
 
-`EditSetPlaceAnime` now has an active C++ definition that constructs its
-`mgCFrame` member through typed placement new. Earlier constructor forms
-changed MWCC code generation; the current object requires an integrated
-comparison before the function's matching status can be stated.
+`EditSetPlaceAnime` has an active C++ definition that constructs `CMapParts`
+through natural placement new; that constructor constructs its `mgCFrame`
+member. Earlier member-placement forms changed MWCC code generation. The
+current natural body passes complete-object and PAL verification.
 
 ## Constructor-backed allocations
 
-`EditSetPlaceAnime` uses native placement construction of the temporary `CMapParts` in its guarded draft. The retail assembly remains active because that constructor has not matched the call schedule.
+`EditSetPlaceAnime` uses native placement construction of the temporary
+`CMapParts`. The after-inline conversion reproduces its allocation-result
+branch/copy schedule without changing the constructor operations.
 
 ## October 8 merged-base constructor visibility
 
-The guarded `EditSetPlaceAnime` draft makes the same natural inline
-`CMapParts` constructor definition available that editmap already uses.
-This reduces the pinned-profile comparison from 106/156 differing words
+At the merged-base source/profile boundary before placement conversion, the
+guarded `EditSetPlaceAnime` draft made the same natural inline `CMapParts`
+constructor definition available that editmap used. This reduced the
+pinned-profile comparison from 106/156 differing words
 (0x1FC/0x270 bytes) to 2/156 (0x264/0x270; the retail tail is zero padding).
 All instructions except the allocation-result branch/copy pair at +0xC0
 and +0xC4 agree, including the frame and function-point initialization.
-The constructor definition remains inside `NONMATCHING`, so it has no
-active-unit effect.
+The constructor definition was inside `NONMATCHING` and had no active-unit
+effect in that measurement.
 
-Blocker: placement-new allocation-result scheduling. Keep the draft guarded
-and reconsider when the dedicated constructor lane establishes a natural
-form that branches on `v0` before the saved-pointer copy in the delay slot.
-No shared-header change is required.
+The remaining blocker was placement-new allocation-result scheduling, with
+the draft retained pending evidence for a `v0` guard before the saved-pointer
+copy. No shared-header change was required. The current conversion row resolves
+that schedule and activates the natural constructor and caller.
 
-With this closer draft retained behind its guard, the complete editeff object
-passes with 0x1C80 bytes and 265 resolved relocations; its coverage remains
-27 matched functions and one guarded draft. The integrated allocated ELF
-contents and inherited verifier output remain unchanged.
+With the closer draft still guarded at that earlier boundary, the complete
+editeff object passed with 0x1C80 bytes and 265 resolved relocations, and coverage
+was 27 matched functions and one guarded draft. Integrated allocated ELF
+contents and the inherited verifier output were unchanged by that guarded edit.
