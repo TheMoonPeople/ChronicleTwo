@@ -18,7 +18,7 @@ static int NpcBaseDataTotalNum;
 
 /**
  *
- * Party-character entries loaded from the NPC script.
+ * Party-character entries loaded from the NPC script, kept on a quadword boundary.
  *
  */
 static NPC_BASE_DATA NpcBaseData[180] __attribute__((aligned(16)));
@@ -152,18 +152,10 @@ char *GetNPCName(int chara_no) {
 }
 
 char *GetPartyCharaModelName(int chara_no, int type) {
-    /**
-     *
-     * Buffer holding the requested party-character model path.
-     *
-     */
+    // Buffer holding the requested party-character model path.
     static char path[0x40];
 
-    /**
-     *
-     * Character information script name.
-     *
-     */
+    // Character information script name.
     static char infocfg[] = "info.cfg";
 
     char *model;
