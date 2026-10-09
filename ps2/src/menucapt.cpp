@@ -80,57 +80,23 @@ static int menu_chap_error_check_cnt;
 
 /**
  *
- * Chapter narration wait counter.
- *
- */
-static u32 wait_cnt_918;
-
-/**
- *
- * Whether the chapter narration wait counter has been initialized.
- *
- */
-static signed char init_919;
-
-/**
- *
- * Whether chapter narration has finished or timed out.
- *
- */
-static u32 voiceflag_921;
-
-/**
- *
- * Whether chapter narration completion state has been initialized.
- *
- */
-static signed char init_922;
-
-/**
- *
  * Memory stack reserved for chapter images, sound and display state.
  *
  */
 static mgCMemory MenuChapterStack;
 
-/**
- *
- * Narration stream filenames for the eight chapter titles.
- *
- */
-static char *chap_voice_851[8] = {
-    "0060600.wav",
-    "2070310.wav",
-    "3060260.wav",
-    "4020120.wav",
-    "5000010.wav",
-    "6000360.wav",
-    "7000010.wav",
-    "8000140.wav",
-};
-
 // Code (.text)
 void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapter) {
+    static char *chap_voice[8] = {
+        "0060600.wav",
+        "2070310.wav",
+        "3060260.wav",
+        "4020120.wav",
+        "5000010.wav",
+        "6000360.wav",
+        "7000010.wav",
+        "8000140.wav",
+    };
     char image_path[96];
 
     union {
@@ -185,7 +151,7 @@ void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapte
     MenuChapterStack.Alloc(blocks);
     sndInitPort(8);
     MenuChapterSnd_ID = sndLoadSound(8, sound_buffer, &sound_memory);
-    strcpy(voice_path, chap_voice_851[chapter]);
+    strcpy(voice_path, chap_voice[chapter]);
     CSnd.StreamOpenFast(1, voice_path);
 
     if (CSnd.StreamOpenState() != 0) {
@@ -212,15 +178,8 @@ int MenuChapterKey() {
 
     finished = 0;
 
-    if (init_919 == 0) {
-        wait_cnt_918 = 0;
-        init_919 = 1;
-    }
-
-    if (init_922 == 0) {
-        voiceflag_921 = 0;
-        init_922 = 1;
-    }
+    static u32 wait_cnt = 0;
+    static u32 voiceflag = 0;
 
     fade = &MenuMainScene->fade;
     fade_done = fade->FadeCheck();
@@ -233,7 +192,7 @@ int MenuChapterKey() {
                 if (menu_snd_counter == 2) {
                     CSnd.StreamSetVol(1, 0x7FFF, 0x7FFF);
                     CSnd.StreamPlay(1);
-                    wait_cnt_918 = 0;
+                    wait_cnt = 0;
                 }
 
                 if (CalcMenuAdd(&MenuChapterInfo->logo_alpha, 3.0f, 128.0f) != 0) {
@@ -241,7 +200,7 @@ int MenuChapterKey() {
                     MenuChapterInfo->show_cnt = 0;
                     menu_snd_counter = 0;
                     menu_chap_error_check_cnt = 0;
-                    voiceflag_921 = 0;
+                    voiceflag = 0;
                 }
             }
 
@@ -252,10 +211,10 @@ int MenuChapterKey() {
             voice_state = CSnd.StreamGetState(1);
 
             if (voice_state == 0x8000 || menu_chap_error_check_cnt > 0x5DC) {
-                voiceflag_921 = 1;
+                voiceflag = 1;
             }
 
-            if ((voiceflag_921 != 0) && (voice_state == 0)) {
+            if ((voiceflag != 0) && (voice_state == 0)) {
                 if (menu_snd_counter == 0) {
                     CSnd.StreamStop(1);
                     CSnd.StreamClose(1);
@@ -292,7 +251,6 @@ void MenuChapterDraw() {
     mgCDrawPrim prim;
     mgRect<int> screen;
     mgRect<int> source;
-    mgRect<int> title;
     prim.offset_x = 0;
     prim.offset_y = 0;
     SetSpriteEnv(&prim, 0);
@@ -310,10 +268,7 @@ void MenuChapterDraw() {
         prim.Texture(MenuChapter_Logo);
         prim.Color(128, 128, 128, fptosi(MenuChapterInfo->logo_alpha));
         mgRect<int> title(0, 0, 512, 64);
-        float       height = (float) mgScreenHeight;
-        float       half_height = height / 2.0f;
-        float       top = half_height - 32.0f;
-        PrimQuad(&prim, 0.0f, top - 12.0f, title);
+        PrimQuad(&prim, 0.0f, (float) mgScreenHeight / 2.0f - 32.0f - 12.0f, title);
         prim.Color(128, 128, 128, 128);
         mgRect<int> overlay(0, 64, 512, 64);
         PrimQuad(&prim, 0.0f, 0.0f, overlay);

@@ -20,9 +20,14 @@ counterpart. The unit owns no class (`class_units.tsv` has no entry).
 Defining `MenuChapterStack` as a file-scope `mgCMemory` generates the retail
 `__sinit_menucapt_cpp` initializer automatically. Its instruction stream matches exactly,
 and the object keeps a 0x30-byte BSS section.
-| chap_voice_851 | .data 0x20 | `static char *[8]` local of MenuChapterInit | narration stream names "0060600.wav", "0270310.wav", "0360260.wav", "0420120.wav", "0500010.wav", "0600360.wav", "0700010.wav", "0800140.wav", indexed by `chapter` |
-| wait_cnt_918/init_919 | .sbss | function-local static int in MenuChapterKey | set 0, otherwise unused |
-| voiceflag_921/init_922 | .sbss | function-local static int in MenuChapterKey | set when the stream reports 0x8000 or the timeout passes |
+| chap_voice_851 | .data 0x20 | `static char *chap_voice[8]` local of MenuChapterInit | narration stream names "0060600.wav", "2070310.wav", "3060260.wav", "4020120.wav", "5000010.wav", "6000360.wav", "7000010.wav", "8000140.wav", indexed by `chapter` |
+| wait_cnt_918/init_919 | .sbss | `static u32 wait_cnt = 0` local of MenuChapterKey | only reset, never advanced or read |
+| voiceflag_921/init_922 | .sbss | `static u32 voiceflag = 0` local of MenuChapterKey | set when the stream reports 0x8000 or the 1,500-frame timeout passes |
+
+The two function-local statics are declared after `finished = 0;`: MWCC runs
+their zero-initialisation guards at the declaration point, and retail fills the
+first guard's delay slot with that store. The `init_*` flags have declared size
+one; their three-byte alignment gaps are piece padding.
 
 Strings: "chap%d.img" (fallback "chap0.img"), "chapbg", "chaplogo", "snd2/sp/SP_007.snd".
 
@@ -47,8 +52,16 @@ done -> mode 1), 1 show, 2 fade out (`FadeOut(0x3C, 0,0,0)`; returns 1 once Fade
   from src (0,64,512,64) at (0,0) with full alpha.
 - Uses of `CSnd` (CSound, mainloop) stream channel 1, `MenuMainScene+0x2C70` (CFadeInOut).
 
-## C++ draft status
+## Source forms the match depends on
 
-All three runtime functions now have typed guarded C++ drafts. `MenuChapterStack` is declared as an `mgCMemory` in the guarded branch, so its constructor supplies the static initializer that retail uses to call `mgCMemory::Init`. The default build keeps all four retail assembly bodies. `CSnd` is defined in `mainloop.cpp` and declared with its `CSound` type in `mainloop.hpp`, which `menucapt.cpp` includes. The chapter voice table is an eight-entry pointer array indexed by the chapter number. The first image allocation rounds the loaded byte count up to quadwords, and the sound pack allocation does the same after reserving 0x280 quadwords for the temporary sound memory manager.
+- `MenuChapterInit`: `LoadFile2((char *) "snd2/sp/SP_007.snd", sound_buffer,
+  (int *) &file_size, 0)`. Without the cast on the string literal MWCC sets up
+  `a2` (`&file_size`) before the literal's address in `a0`; retail sets up `a0`
+  first. `file_size` is `u_int` for the unsigned size arithmetic around the
+  call, so `&file_size` keeps its `(int *)` conversion.
+- `MenuChapterInit`: the temporary sound-memory manager is an anonymous
+  `union { mgCMemory sound_memory; }`; a plain `mgCMemory` local changes the
+  frame layout and the stack offsets after +0x1AC.
 
-`draft.sh menucapt` compiles all four drafts: the three runtime functions differ and the compiler-generated static initializer matches retail. Each runtime function received one isolated `--promote-all` attempt and stayed guarded because its typed file-local globals are available only with `NONMATCHING`. A manual initializer-only promotion attempt moved `MenuChapterStack` to the default path; the link then failed because the ctor table could not resolve `__sinit_menucapt_cpp`, so the retail initializer and BSS marker remain on the default path. The default full build passes byte-identical verification.
+All four functions, including the compiler-generated `__sinit_menucapt_cpp`,
+are native and match; no assembly or data markers remain.
