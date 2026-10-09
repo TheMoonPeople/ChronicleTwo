@@ -1,16 +1,17 @@
 # dynamicanime: reverse-engineering notes
 
-## Native source status
+## Source status
 
-`dynCOLLISION` is native C++ with an after-inline placement-conversion row for
-one `CDAColPipe` construction. No `NONMATCHING` guards or assembly fallbacks
-remain in this unit. Complete-object and PAL verification accept the native
-caller; see [placement conversion](../satansfiddle/placement-new.md).
-
-Before that conversion, the guarded-source object passed the canonical
-comparison at 0x2C70 bytes and 366 relocations with retail assembly supplying
-`dynCOLLISION`. `scripts/re/promotion_attempts.tsv` records older isolated
-trials and is not the current match inventory.
+Every function is native C++ with no `NONMATCHING` guards, `INCLUDE_ASM`
+fallbacks or data markers; all data is typed native definitions (the
+`"pipe"` collision-kind string is an inline literal, the 27-entry
+`dynmc_tag` table holds inline tag literals, and both collision vtables are
+emitted natively). `dynCOLLISION` (`dynCOLLISION__FP9SPI_STACKi`, 0x17D0F0,
+LOCAL, 0x130) depends on the placement-new row for `__nw__FUiP1` /
+`__ct__10CDAColPipeFv`, `after_constructor_inline`, `expected_matches: 1`:
+at its `new (stack->Alloc(0x10)) CDAColPipe` retail tests the allocation
+result in the return register, whereas MWCC otherwise tests the saved
+pointer (two words). See [placement conversion](../satansfiddle/placement-new.md).
 
 Cloth/hair simulation ("dynamic anime") driven by a tag script. Owned by `CCharacter2` as an array
 of `CDynamicAnime` (character `+0x130`, count at `+0x12C`, stride 0x90), loaded by `_CLOTH` in
@@ -33,8 +34,8 @@ them `static` in the .cpp. Types for the .cpp:
 - `BindPosition(float *a, float *b, float length, float rate)`: moves a and b along their
   difference so their distance becomes `length`; a takes `(1-rate)` of the error, b `rate`.
 - `dynFixVertex` returns `DA_FIX_VERTEX *` (or null); `FRAME_POSE_Sub` returns `DA_FRAME_POSE *`.
-- Strings: at_855 "not found %s\n", at_976 "bone", at_977 "bone_yx", at_978 "b_cdlr",
-  at_979 "error vertex no %d!!\n", at_1025 "error vertex no %d-%d!!!\n", at_1074 "pipe".
+- Strings (inline literals): "not found %s\n", "bone", "bone_yx", "b_cdlr",
+  "error vertex no %d!!\n", "error vertex no %d-%d!!!\n", "pipe".
 
 ## CDynamicAnime (0x90)
 Size: CCharacter2 stride 0x90 (StepDA/Draw/_CLOTH) and `Alloc(count*9)` in CCharacter2::Copy;
@@ -135,16 +136,17 @@ Step reads the vtable at +0xC0 and calls slot +8 (CheckHit) and reads +4 (fricti
 CDACollision::Initialize zeroes center/radius and sets friction 0.8; CDAColPipe's also sets axis 0
 (it does not call the base).
 The C++ body of `CDACollision::CheckHit` returns 0 for every position and
-matches the retail function; its promotion links byte-identically.
+matches the retail function.
 
-## Constructor-backed allocations
+## Source forms the matches depend on
 
-`dynCOLLISION` allocates a `CDAColPipe`; its C++ constructor naturally initializes
-the `CDACollision` base before the derived volume. The current body retains this
-nested typed placement expression and uses the documented conversion policy.
-
-Before that policy, the native draft scored 97.25%: its only byte difference
-was the allocation null check, where MWCC tested the saved pointer instead of
-the return register used by retail. Splitting `Alloc(16)` into a typed
-`u_long128 *` local produced identical code. Retail assembly supplied the
-caller at that earlier source/profile boundary.
+- `dynCOLLISION` constructs the `CDAColPipe` with a nested typed placement
+  expression; the C++ constructor initialises the `CDACollision` base before
+  the derived volume. Splitting `Alloc(16)` into a typed `u_long128 *` local
+  produces identical code.
+- `CDynamicAnime::ResetPosition`, `PreCollision` and `CDAColPipe::CheckHit`
+  pass `now_vertex`, `init_vertex` (`sceVu0FVECTOR *`) and `lw_matrix`,
+  `inverse_matrix` (`sceVu0FMATRIX`) without casts; the types decay to the
+  parameter type.
+- `(sceVu0FVECTOR *) memory->Alloc(...)` converts fresh stack allocations to
+  the vertex arrays they hold.
