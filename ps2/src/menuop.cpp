@@ -2023,7 +2023,7 @@ int CSaveMenuClass::KeyStep() {
                                 MemoryCardPtr->port = slot;
                                 break;
                             case MENU_PUSH_BUTTON_CANCEL:
-                                MenuSePlay(MENU_SCRIPT_SOUND_CANCEL);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                                 if (save_count <= 0 && chapter8_start == 1) {
                                     step = SAVE_MENU_STEP_NOTICE;
                                     ExeScript("CLR_SV_CONFIRM");
