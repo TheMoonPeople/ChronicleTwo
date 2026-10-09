@@ -1,5 +1,10 @@
 # editmap: reverse-engineering notes
 
+The river, mask, and water part-name callbacks are accepted native C++ callers,
+with one scoped `CMapPiece` placement row each. No `NONMATCHING` guards or
+assembly fallbacks remain in this unit. See
+[placement conversion](../satansfiddle/placement-new.md).
+
 Header: `ps2/include/editmap.hpp`. Owns `CEditMap` (93 members across editmap, editmap2,
 editriver, editdata, editmapeffect, editinfo), its nested `CEditMap::RemoveInfo`, and the
 non-class types `EP_PLACE_INFO`, `EditPlaceLog`, `EditBuildResult` and the capacity enum.
@@ -8,17 +13,19 @@ non-class types `EP_PLACE_INFO`, `EditPlaceLog`, `EditBuildResult` and the capac
 - All 93 `CEditMap` members in `manifest.tsv` are declared. A scratch compile of empty
   definitions of every declared member produced exactly the 93 retail symbols (plus
   `__vt__8CEditMap`), so every signature mangles correctly.
-- The header depends on two headers that do not exist yet:
-  - `editinfo.hpp` for `CEditInfoMngr` (by-value member `info_mngr`, must be 0x18 bytes).
-  - `sceneload.hpp` for `mgCObjectStack<T>` (by-value member `message`, must be 0x14 bytes;
-    `mgCObjectStack<CList<EMAP_MESSAGE>>::Initialize` in sceneload only zeroes +0x8).
-  With stub versions of those two (sizes above) the header and `ps2/src/editmap.cpp` compile,
-  and every field offset below was checked with static asserts. `EMAP_MESSAGE` is only
+- The header depends on `editinfo.hpp` for the by-value 0x18-byte
+  `CEditInfoMngr`, and `sceneload.hpp` for the by-value 0x14-byte
+  `mgCObjectStack<T>`. The message specialization only zeroes +0x8.
+  Both headers now exist. Earlier layout probing used stubs of those sizes
+  and checked every offset below with static asserts. `EMAP_MESSAGE` is only
   forward-declared; no code in this game reads it (its definition belongs with sceneload).
-- `ps2/src/editmap.cpp` now includes `editmap.hpp`; it compiles once the two headers exist.
+- `ps2/src/editmap.cpp` includes `editmap.hpp` and uses the real dependent types.
 
 ## Non-member functions and data (all file-local, so none in the header)
-`local_symbols.tsv` lists every one of these as LOCAL; they go in the `.cpp` as `static`:
+`local_symbols.tsv` lists these as LOCAL in retail. The script callbacks,
+including the three native part-name callbacks, are still defined with
+external linkage; see "Part-name callback binding" below.
+The retail-local callback and data set is:
 - Script callbacks `emapEDIT_RIVER`, `emapRIVER_PARTS_NAME`, `emapMASK_PARTS_NAME`,
   `emapWATER_PARTS_NAME`, `emapEDIT_RIVER_END`, `emapFIX_EPARTS_START/_/_END`,
   `emapINIT_EPARTS_START/_/_END` (all `(SPI_STACK *, int)`), run by `LoadEditInfo` through the
@@ -128,17 +135,26 @@ offset in the first overload remains: `out[count - 1]` and
 
 ## Constructor-backed allocations
 
-`emapRIVER_PARTS_NAME`, `emapMASK_PARTS_NAME`, and `emapWATER_PARTS_NAME` each allocate a `CMapPiece`. The typed drafts use placement construction of that class. Retail assembly remains active pending an exact match.
+`emapRIVER_PARTS_NAME`, `emapMASK_PARTS_NAME`, and `emapWATER_PARTS_NAME`
+each allocate a `CMapPiece` through their active typed placement expressions.
+The scoped compiler conversion preserves retail's null-result schedule.
 
 ## October 8 merged-base allocation audit
 
-Under MWCC 3.0-011126 and the pinned Satan's Fiddle profile, the water,
-mask and river callbacks differ in exactly two instruction words each
-(2/72, 2/96 and 2/104 respectively). Retail branches on `v0` before copying
-it to the saved piece pointer in the branch delay slot; native construction
-copies first and branches on that saved pointer. The water and mask bodies
-omit only zero alignment tails otherwise. Keep all three guarded.
+Before scoped placement conversion, the October 8 MWCC 3.0-011126/profile
+baseline differed in exactly two words per callback: water 2/72, mask 2/96,
+river 2/104. Retail branched on `v0` before copying to the saved pointer in
+the delay slot; that candidate copied first and tested the saved pointer.
+Water and mask otherwise omitted only zero alignment tails. The allocation
+stop rule kept those baseline forms guarded. All three callers are now native;
+[the earlier investigation](../funcpoint/placement-new.md) preserves the
+constructor and null-result evidence.
 
-Blocker: placement-new allocation-result scheduling. Reconsider after a
-validated natural constructor form resolves the same inlined class and
-null-result flow; see `../funcpoint/placement-new.md`.
+## Part-name callback binding
+
+Retail gives `emapRIVER_PARTS_NAME`, `emapMASK_PARTS_NAME`, and
+`emapWATER_PARTS_NAME` LOCAL function binding. With `emap_tag` defined in this
+unit's C++ source, declaring them `static` gives LOCAL FUNC symbols with no
+extra alias and an unchanged object check. They keep external linkage, like
+the unit's other script callbacks, until the callbacks' retail binding is
+restored together.

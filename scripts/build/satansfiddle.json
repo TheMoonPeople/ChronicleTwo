@@ -1693,6 +1693,30 @@
         "constructor": "__ct__9CMapPartsFv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "editmap.cpp",
+        "function": "emapMASK_PARTS_NAME__FP9SPI_STACKi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__9CMapPieceFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "editmap.cpp",
+        "function": "emapRIVER_PARTS_NAME__FP9SPI_STACKi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__9CMapPieceFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "editmap.cpp",
+        "function": "emapWATER_PARTS_NAME__FP9SPI_STACKi",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__9CMapPieceFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
       }
     ]
   }
