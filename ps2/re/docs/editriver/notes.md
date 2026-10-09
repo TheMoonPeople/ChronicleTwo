@@ -2,11 +2,16 @@
 
 Unit holds the river functions of `CEditMap` (declared in `editmap.hpp`, owned by editmap) and
 all of `CEditGrid` and `CGridData` (declared in `ps2/include/editriver.hpp`). No first-game
-counterpart: neither class exists in `/home/adubbz/development/chronicle`.
+counterpart: neither class exists in chronicle.
 
-No global data with plain names: `at_504..507`, `at_590__2..594__2`, `at_799__3` (.data) and
-`at_733__2`, `at_734` (.bss, 0x10 each) are all compiler-generated literals / function-local
-statics, so the header has no `extern`s.
+Every function is native; the unit has no `NONMATCHING` guards, `INCLUDE_ASM` gaps, or data
+markers. No global data with plain names, so the header has no `extern`s: the twelve data
+pieces are automatic aggregate initializer templates in the matched C++:
+- `DrawRiver`: four homogeneous corner vectors (.data).
+- `DrawRiverMask`: center plus four corner vectors (.data).
+- `CEditGrid::UpdateRiver`: two zero-initialized four-int shape/rotation arrays (.bss, 0x10 each).
+- `CEditGrid::GetRiverPoly`: five homogeneous corner vectors (0x50 bytes, .data; the fifth row
+  is the closing corner at the origin) with the grid pitches applied at runtime.
 
 ## CGridData (0x14)
 Size: `__ct__9CGridDataFv` memsets 0x14; `Create` uses `__construct_new_array(.., ctor, 0, 0x14, n)`;
@@ -48,8 +53,8 @@ No vtable, no base class, no static members.
   c0: a=(x-1,z) b=(x,z-1) d=(x-1,z-1); c1: a=(x,z-1) b=(x+1,z) d=(x+1,z-1);
   c2: a=(x+1,z) b=(x,z+1) d=(x+1,z+1); c3: a=(x,z+1) b=(x-1,z) d=(x-1,z+1).
 - Shape = `EditRiverPiece`: a+b==0 -> OUTER, rot (c+2)%4; ==1 -> EDGE, rot (c + (a?1:0))%4;
-  ==2 -> d ? FULL rot 0 : INNER rot c. Shape/rot arrays start as copies of the 16-byte
-  .bss statics `at_733__2` / `at_734` (zero). Variant hash: `h = 0x10DCD`, per quarter
+  ==2 -> d ? FULL rot 0 : INNER rot c. Shape/rot arrays are zero-initialized local `int[4]`
+  arrays (copied from 16-byte .bss zero templates). Variant hash: `h = 0x10DCD`, per quarter
   `h *= (x+c)*(z+c+1)`, +4 when h < 0. The `%4` on a signed value shows as `&3` with a fix-up.
 - `SetRiver(ii)` / `ResetRiver(ii)` call `UpdateRiver` on the cell then on (x-1,z),(x+1,z),(x,z+1),
   (x,z-1),(x-1,z-1),(x+1,z-1),(x+1,z+1),(x-1,z+1) in that order. `ResetRiver(ii)` returns 0 if the
@@ -58,7 +63,7 @@ No vtable, no base class, no static members.
   from the min-cell up to the max-cell); per river cell needs `poly_max >= 8` (compared against
   the argument, never decremented inside) and writes 8 `CCPoly` (two per side, 2000.0 high,
   normal via `mgPlaneNormal`, attributes 0x40..0x4F zeroed by a quadword store of $zero). The
-  side corners come from the .data literal `at_799__3` (4 vectors) with `step_x/z` patched in, and
+  side corners come from the local five-vector initializer with `step_x/z` patched in, and
   each side is pulled in by `margin` where the neighbour has no river. Returns triangles written.
   The caller `CEditMap::GetPoly` passes `CEditMap+0xFF8` (`river_poly_margin`) as margin and sets
   `CCPoly::ignore_mask` (0x46) to 0x10 on the result.
