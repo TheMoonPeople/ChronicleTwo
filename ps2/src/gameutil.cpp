@@ -17,70 +17,50 @@
 #include "mg_visual.hpp"
 #include "mglib.hpp"
 
+// Storage of the assembly-supplied MotionProc2.
+#ifndef NONMATCHING
 /**
+ *
  * Vertex buffer used by the skinning pass.
+ *
  */
-sceVu0FVECTOR * vert_845;
+static sceVu0FVECTOR *vert_845;
 
 /**
+ *
  * Scratch transform of the skinning frame.
+ *
  */
-sceVu0FMATRIX tmp_SkinMatrix_847;
+static sceVu0FMATRIX tmp_SkinMatrix_847;
 
 /**
+ *
  * Inverse world transform of the skinning frame.
+ *
  */
-sceVu0FMATRIX tmp_SkinMatrix_inv_848;
+static sceVu0FMATRIX tmp_SkinMatrix_inv_848;
 
 /**
+ *
  * World transform of the animation root.
+ *
  */
-sceVu0FMATRIX tmp_ChrMatrix_849;
+static sceVu0FMATRIX tmp_ChrMatrix_849;
 
 /**
+ *
  * Bind-pose skinning transform.
+ *
  */
-sceVu0FMATRIX tmp_BaseSkinMatrix_851;
+static sceVu0FMATRIX tmp_BaseSkinMatrix_851;
 
 /**
+ *
  * Inverse bind-pose skinning transform.
+ *
  */
-sceVu0FMATRIX tmp_BaseSkinMatrix_inv_852;
-
-/**
- * Vertex buffer used by the skinning pass.
- */
-static sceVu0FVECTOR * vert_915;
-
-/**
- * Normal buffer used by the skinning pass.
- */
-static sceVu0FVECTOR * nml_916;
-
-/**
- * Scratch transform of the skinning frame.
- */
-static sceVu0FMATRIX tmp_SkinMatrix_917;
-
-/**
- * Inverse world transform of the skinning frame.
- */
-static sceVu0FMATRIX tmp_SkinMatrix_inv_918;
-
-/**
- * World transform of the animation root.
- */
-static sceVu0FMATRIX tmp_ChrMatrix_919;
-
-/**
- * Bind-pose skinning transform.
- */
-static sceVu0FMATRIX tmp_BaseSkinMatrix_921;
-
-/**
- * Inverse bind-pose skinning transform.
- */
-static sceVu0FMATRIX tmp_BaseSkinMatrix_inv_922;
+static sceVu0FMATRIX tmp_BaseSkinMatrix_inv_852;
+#endif
 
 static mgCFrame *OldSkinFrame;
 
@@ -677,6 +657,13 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/gameutil", MotionProc2__FP8mgCFrameP14tagM
 #endif
 
 Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *frame_info, Mot_List *list) {
+    static sceVu0FVECTOR *vert;
+    static sceVu0FVECTOR *nml;
+    static sceVu0FMATRIX  tmp_SkinMatrix;
+    static sceVu0FMATRIX  tmp_SkinMatrix_inv;
+    static sceVu0FMATRIX  tmp_ChrMatrix;
+    static sceVu0FMATRIX  tmp_BaseSkinMatrix;
+    static sceVu0FMATRIX  tmp_BaseSkinMatrix_inv;
     float        deform[4][4];
     float        rotate[4][4];
     float        bone_matrix[4][4];
@@ -700,8 +687,8 @@ Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
     if (OldSkinFrame != skin) {
         OldSkinFrame = root->GetFrame(list->frame);
         mgCVisualMDT *visual = (mgCVisualMDT *) skin->visual;
-        vert_915 = visual->vertex;
-        nml_916 = visual->normal;
+        vert = visual->vertex;
+        nml = visual->normal;
 
         if (frame_info[list->frame].vertex_count > 400) {
             printf("###### MAX_VERTX OVER %d/%d######\n", frame_info[list->frame].vertex_count, 400);
@@ -726,20 +713,20 @@ Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
         }
 
         skin->attr->unk_28 = 1;
-        skin->GetLWMatrix(tmp_SkinMatrix_917);
-        root->GetLWMatrix(tmp_ChrMatrix_919);
-        sceVu0InversMatrix(tmp_SkinMatrix_inv_918, tmp_SkinMatrix_917);
-        mgMulMatrix(tmp_BaseSkinMatrix_921, tmp_ChrMatrix_919, motion->base_matrices[list->frame]);
-        mgInversMatrix(tmp_BaseSkinMatrix_inv_922, tmp_BaseSkinMatrix_921);
+        skin->GetLWMatrix(tmp_SkinMatrix);
+        root->GetLWMatrix(tmp_ChrMatrix);
+        sceVu0InversMatrix(tmp_SkinMatrix_inv, tmp_SkinMatrix);
+        mgMulMatrix(tmp_BaseSkinMatrix, tmp_ChrMatrix, motion->base_matrices[list->frame]);
+        mgInversMatrix(tmp_BaseSkinMatrix_inv, tmp_BaseSkinMatrix);
     }
 
     sceVu0UnitMatrix(bone_matrix);
-    sceVu0UnitMatrix(tmp_SkinMatrix_917);
+    sceVu0UnitMatrix(tmp_SkinMatrix);
     bone->GetLWMatrix(bone_matrix);
-    mgMulMatrix(bone_base, tmp_ChrMatrix_919, motion->base_matrices[list->target]);
-    mgMulMatrix(bone_in_skin, tmp_BaseSkinMatrix_inv_922, bone_base);
+    mgMulMatrix(bone_base, tmp_ChrMatrix, motion->base_matrices[list->target]);
+    mgMulMatrix(bone_in_skin, tmp_BaseSkinMatrix_inv, bone_base);
     mgInversMatrix(bone_in_skin_inv, bone_in_skin);
-    mgMulMatrix(skin_bone, tmp_SkinMatrix_inv_918, bone_matrix);
+    mgMulMatrix(skin_bone, tmp_SkinMatrix_inv, bone_matrix);
     mgMulMatrix(deform, skin_bone, bone_in_skin_inv);
 
     sceVu0CopyMatrix(rotate, deform);
@@ -754,9 +741,9 @@ Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
 
         if (!(weight[0] <= 0.0f)) {
             vertex = list->key_frames[index];
-            testVUnew(deform, frame_info[list->frame].base_vertices[vertex], weight, def_vrtx[vertex], vert_915[vertex]);
+            testVUnew(deform, frame_info[list->frame].base_vertices[vertex], weight, def_vrtx[vertex], vert[vertex]);
             sceVu0ApplyMatrix(normal, rotate, frame_info[list->frame].base_normals[vertex]);
-            sceVu0InterVectorXYZ(nml_916[vertex], normal, frame_info[list->frame].base_normals[vertex], weight[0]);
+            sceVu0InterVectorXYZ(nml[vertex], normal, frame_info[list->frame].base_normals[vertex], weight[0]);
         }
     }
 
@@ -1062,7 +1049,7 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
 
     if (i < frame_num) {
         do {
-            int frame_no = ((int) frame->GetFrame(i)->parent - (int) frame) / (int) sizeof(mgCFrame);
+            int frame_no = frame->GetFrame(i)->parent - frame;
             tagFRAME_INF *info = &frame_info[i];
             i++;
             info->parent = frame_no;
