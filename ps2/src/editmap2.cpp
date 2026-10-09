@@ -60,6 +60,7 @@ static void PlaneNormalXZ(float *normal, float *p0, float *p1, float *p2) {
         sqc2 vf12, 0(normal)
     }
 }
+
 float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, sceVu0FVECTOR pos, float rot_y, CEditParts **parts, int num) {
     sceVu0FMATRIX   parts_matrix;
     sceVu0FMATRIX   invers_matrix;
@@ -122,6 +123,7 @@ float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, sceVu0FVECTOR pos, float r
     }
     return GetEditAlt(alt);
 }
+
 int CEditMap::CheckEditParts(CEditPartsInfo *info, float *pos, float rot_y, EP_PLACE_INFO *place, CEditParts **parts, int num) {
     sceVu0FMATRIX parts_matrix;
     sceVu0FMATRIX invers_matrix;

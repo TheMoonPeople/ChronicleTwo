@@ -171,11 +171,11 @@ int CCollisionMDT::PickUpNearPoly(CCPoly *out, const mgVu0FBOX &box, int max) {
     sceVu0FVECTOR box_min;
     sceVu0FVECTOR poly_max;
     sceVu0FVECTOR poly_min;
-    int i;
-    float *min_ptr;
-    float *max_ptr;
-    int count;
-    CCPoly *polygon;
+    int           i;
+    float        *min_ptr;
+    float        *max_ptr;
+    int           count;
+    CCPoly       *polygon;
 
     if (poly == NULL) {
         return 0;

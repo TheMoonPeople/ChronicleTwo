@@ -128,9 +128,9 @@ struct DNG_BATTLE_AREA {
     u8                   unk_4a[0x2];
     float                statusbar_rate;  /**< How far the status bar is shown, 0 (hidden) to 1 (shown). */
     float                statusbar_speed; /**< Amount statusbar_rate moves by in one frame. */
-    s32                  camera_mode; /**< Camera mode used while a dungeon battle area runs. */
-    s32                  boss_map; /**< Non-zero on a boss floor, where the mini map symbols are hidden. */
-    s32                  battle_clear; /**< Non-zero after a dungeon battle area has been cleared. */
+    s32                  camera_mode;     /**< Camera mode used while a dungeon battle area runs. */
+    s32                  boss_map;        /**< Non-zero on a boss floor, where the mini map symbols are hidden. */
+    s32                  battle_clear;    /**< Non-zero after a dungeon battle area has been cleared. */
     u8                   unk_60[0x4];
     u32                  minimap_reveal; /**< MINIMAP_REVEAL flags set by floor items for the rest of the floor. */
     u8                   unk_68[0x4];
@@ -143,11 +143,11 @@ struct DNG_BATTLE_AREA {
     BattleEffectMan     *battle_effect;    /**< Battle effects of the dungeon. */
     s32                  battle_bgm_state; /**< Step of the battle music change on entering and leaving a fight. */
     float                battle_bgm_vol;   /**< Volume the battle music is played at. */
-    s8                   weather; /**< Weather condition active on this dungeon floor. */
+    s8                   weather;          /**< Weather condition active on this dungeon floor. */
     u8                   unk_8d[0x3];
-    u64                  subject_counter; /**< Play time at which the floor's subject counter was last reset. */
+    u64                  subject_counter;  /**< Play time at which the floor's subject counter was last reset. */
     u32                  practice_actions; /**< Battle actions performed toward the floor goal. */
-    s8                   map_effect_id; /**< Map effect number set by event scripts, or -1. */
+    s8                   map_effect_id;    /**< Map effect number set by event scripts, or -1. */
     u8                   unk_9d;
     s16                  lock_on_mode; /**< How the player picks a target: 0 nearest with lock-on, 2 the RockOn target selection; set by _SET_LOCKON_MODE. */
     s32                  free_texb;    /**< First texture block left free after the dungeon's own textures. */
@@ -248,16 +248,16 @@ public:
      *
      */
     struct BGM_INFO {
-        s32       port;    /**< Sound port the bank is loaded into (sndPORT). */
-        s32       snd_id;  /**< Sound ID of the loaded bank, or -1. */
-        s32       load_no; /**< Number of the music loaded, or -1. */
+        s32       port;        /**< Sound port the bank is loaded into (sndPORT). */
+        s32       snd_id;      /**< Sound ID of the loaded bank, or -1. */
+        s32       load_no;     /**< Number of the music loaded, or -1. */
         float     master_volf; /**< Master volume multiplier applied to this music channel. */
-        s32       vol;        /**< Volume of the music, 0 to 127. */
-        float     volf;       /**< Scale applied to vol. */
-        float     fade_volf;  /**< Fade scale applied to vol, 0 to 1. */
-        float     fade_speed; /**< Amount fade_volf changes by in one frame; zero when no fade runs. */
-        s32       play_no;    /**< Number of the music played, or the music last stopped. */
-        s32       time_vol;   /**< Non-zero when volf follows the lighting of the time of day. */
+        s32       vol;         /**< Volume of the music, 0 to 127. */
+        float     volf;        /**< Scale applied to vol. */
+        float     fade_volf;   /**< Fade scale applied to vol, 0 to 1. */
+        float     fade_speed;  /**< Amount fade_volf changes by in one frame; zero when no fade runs. */
+        s32       play_no;     /**< Number of the music played, or the music last stopped. */
+        s32       time_vol;    /**< Non-zero when volf follows the lighting of the time of day. */
         u8        unk_28[0x8];
         u_long128 buff[0x40]; /**< Memory the bank is loaded into. */
         mgCMemory stack;      /**< Memory stack over buff. */
@@ -279,13 +279,13 @@ public:
      *
      */
     struct BGM_STATUS {
-        s32   state;   /**< Playback state of the music (sndSQ_STATE); 1 plays, 2 pauses and below 1 stops it on restore. */
-        s32   load_no; /**< Number of the music loaded. */
-        s32   play_no; /**< Number of the music played. */
+        s32   state;       /**< Playback state of the music (sndSQ_STATE); 1 plays, 2 pauses and below 1 stops it on restore. */
+        s32   load_no;     /**< Number of the music loaded. */
+        s32   play_no;     /**< Number of the music played. */
         float master_volf; /**< Master volume multiplier applied to this music channel. */
-        s32   vol;      /**< Volume of the music, 0 to 127. */
-        float volf;     /**< Scale applied to vol. */
-        s32   time_vol; /**< Non-zero when the volume follows the lighting of the time of day. */
+        s32   vol;         /**< Volume of the music, 0 to 127. */
+        float volf;        /**< Scale applied to vol. */
+        s32   time_vol;    /**< Non-zero when the volume follows the lighting of the time of day. */
     };
 
     /**
@@ -394,9 +394,9 @@ public:
     CVillagerMngr    villager_mngr;     /**< Villagers placed in the town. */
     s32              villager_time;     /**< Time band the villagers were loaded for, or -1. */
     s32              sub_villager_time; /**< Time band the sub villagers were loaded for, or -1. */
-    s32              tex_block_base; /**< First texture block reserved for the scene. */
-    s32              tex_block_count; /**< Number of texture blocks reserved for the scene. */
-    CThunderEffect   thunder; /**< Thunder effect. */
+    s32              tex_block_base;    /**< First texture block reserved for the scene. */
+    s32              tex_block_count;   /**< Number of texture blocks reserved for the scene. */
+    CThunderEffect   thunder;           /**< Thunder effect. */
     u8               unk_3f0c[0x154];
     s32              snd_file_num;    /**< Number of rows in snd_file. */
     SND_FILE_INFO    snd_file[512];   /**< Sound table, sorted by map number. */

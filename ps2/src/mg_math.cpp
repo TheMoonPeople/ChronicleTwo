@@ -45,9 +45,11 @@ asm void mgCreateBox8(float (*corners)[4], float *max, float *min) {
     jr ra
     sqc2 vf8, 0x30(a0)
 }
+
 void mgZeroVector(float *vector) {
     *reinterpret_cast<u_long128 *>(vector) = 0;
 }
+
 asm void mgZeroVectorW(float *vector) {
     .set noreorder
     jr ra

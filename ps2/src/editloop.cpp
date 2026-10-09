@@ -793,6 +793,7 @@ CameraCtrlParam &CameraCtrlParam::operator=(const CameraCtrlParam &source) {
     no_check = source.no_check;
     return *this;
 }
+
 void EditExit() {
     sndSeAllStop(1);
     MainScene__2->InitSeSrc();

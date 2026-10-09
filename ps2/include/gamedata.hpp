@@ -18,10 +18,10 @@ class CGameDataUsed;
  *
  */
 enum USED_ITEM_TYPE {
-    USED_ITEM_TYPE_NONE = 0,      /**< No item, or a type outside every family. */
-    USED_ITEM_TYPE_ITEM = 1,      /**< A usable or key item with an entry in the item table. */
-    USED_ITEM_TYPE_ATTACH = 2,    /**< An attachment with an entry in the attachment table. */
-    USED_ITEM_TYPE_WEAPON = 3,    /**< A weapon with an entry in the weapon table. */
+    USED_ITEM_TYPE_NONE = 0,   /**< No item, or a type outside every family. */
+    USED_ITEM_TYPE_ITEM = 1,   /**< A usable or key item with an entry in the item table. */
+    USED_ITEM_TYPE_ATTACH = 2, /**< An attachment with an entry in the attachment table. */
+    USED_ITEM_TYPE_WEAPON = 3, /**< A weapon with an entry in the weapon table. */
     USED_ITEM_TYPE_COSTUME = 4,
     USED_ITEM_TYPE_ROBO_PART = 5, /**< A ridepod part with an entry in the ridepod part table. */
     USED_ITEM_TYPE_FISH = 6,      /**< A fish with an entry in the fish table. */
@@ -141,7 +141,7 @@ struct CDataCommon {
     char  file_name[16]; /**< Base name of the item's model files. */
     u8    active_set;    /**< Non-zero when the item can be set as an active item. */
     u8    unk_1d;
-    s16   stack_num; /**< Count of the item one stack can hold. */
+    s16   stack_num;       /**< Count of the item one stack can hold. */
     u8    icon_texture_no; /**< Number of the texture used for the item icon. */
     u8    unk_21[3];
     u32   attribute; /**< ITEM_ATTRIBUTE bits. */
@@ -215,10 +215,10 @@ public:
     u32 special;          /**< Special ability bits the weapon starts with. */
     u8  unk_30[8];
     u8  initial_fusion_point; /**< Synthesis points granted when the weapon is created. */
-    u8  fusion_point;       /**< Synthesis points the weapon gains at each level-up. */
-    s16 buildup_weapon[3];  /**< Item numbers of the weapons this weapon can build up into. */
-    s16 buildup_monster[3]; /**< Monsters that must have been defeated to build up, or negative for none. */
-    u8  pallet_color;       /**< Colour palette of the weapon's model. */
+    u8  fusion_point;         /**< Synthesis points the weapon gains at each level-up. */
+    s16 buildup_weapon[3];    /**< Item numbers of the weapons this weapon can build up into. */
+    s16 buildup_monster[3];   /**< Monsters that must have been defeated to build up, or negative for none. */
+    u8  pallet_color;         /**< Colour palette of the weapon's model. */
     u8  unk_47;
     u8  attack_type; /**< Attack type of the weapon. */
     u8  model_no;    /**< Model number of the weapon. */
@@ -245,7 +245,7 @@ STATIC_ASSERT(sizeof(CDataWeapon) == 0x4C);
 class CDataRoboPart {
 public:
     s16 use_capacity; /**< Energy capacity the part uses when fitted. */
-    s16 energy; /**< Energy provided by the robot part. */
+    s16 energy;       /**< Energy provided by the robot part. */
     s16 unk_4;
     s16 durability; /**< Durability of the robot part. */
     s16 attack;
@@ -254,7 +254,7 @@ public:
     s16 defence; /**< Defence provided by the robot part. */
     s16 attack_type;
     s16 move_type;
-    u8  offset_no;   /**< Number of the joint and sound files of the part. */
+    u8  offset_no; /**< Number of the joint and sound files of the part. */
     u8  unk_23;
 
     /**
@@ -279,11 +279,11 @@ class CDataBreedFish {
 public:
     float size; /**< Standard size of the fish. */
     s16   unk_4;
-    s16   battle; /**< Base battle ability of the fish. */
-    s16   stamina; /**< Base stamina of the fish. */
-    s16   boost; /**< Base boost ability of the fish. */
+    s16   battle;    /**< Base battle ability of the fish. */
+    s16   stamina;   /**< Base stamina of the fish. */
+    s16   boost;     /**< Base boost ability of the fish. */
     s16   endurance; /**< Base endurance of the fish. */
-    s16   tenacity; /**< Base tenacity of the fish. */
+    s16   tenacity;  /**< Base tenacity of the fish. */
     s16   unk_10;
     s16   unk_12;
 

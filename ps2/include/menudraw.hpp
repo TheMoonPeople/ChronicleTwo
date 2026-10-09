@@ -216,10 +216,10 @@ struct MENUFORMPARTS_TYPE {
     u8                         bilinear;    /**< Bit 0 set to sample the texture bilinearly. */
     s8                         alpha_blend; /**< Blend equation the part is drawn with. */
     u8                         unk_1b;
-    float                      x; /**< Position relative to the form. */
-    float                      y; /**< Position relative to the form. */
-    float                      w; /**< Width. */
-    float                      h; /**< Height. */
+    float                      x;             /**< Position relative to the form. */
+    float                      y;             /**< Position relative to the form. */
+    float                      w;             /**< Width. */
+    float                      h;             /**< Height. */
     float                      picture_scale; /**< Scale applied when drawing the part as a picture. */
     int                        etc_info[4];   /**< Extra values whose meaning depends on dtype, such as a number to draw. */
     MENU_PARTS_EFFECT_STRUCT1 *effect;        /**< Animations attached to the part. */
@@ -302,10 +302,10 @@ STATIC_ASSERT(sizeof(MENUFORM_MAKEBRD_LINE) == 0x6);
  *
  */
 struct MENUFORM_MAKEBRD_INFO {
-    MENUFORM_MAKEBRD_LINE line[4];      /**< Lines of the board. */
-    int                   material_num; /**< Number of materials listed. */
-    int                   make_num; /**< Number of objects selected for creation. */
-    int                   make_cursor; /**< Selected row on the building board. */
+    MENUFORM_MAKEBRD_LINE line[4];               /**< Lines of the board. */
+    int                   material_num;          /**< Number of materials listed. */
+    int                   make_num;              /**< Number of objects selected for creation. */
+    int                   make_cursor;           /**< Selected row on the building board. */
     int                   decrease_flash_frames; /**< Frames left in the decrease button flash. */
     int                   increase_flash_frames; /**< Frames left in the increase button flash. */
 };

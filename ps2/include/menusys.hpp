@@ -211,7 +211,7 @@ struct MENU_ASKMODE_PARA {
             int cmd_msg[8];   /**< Message number of each command. */
             u32 cmd_color[8]; /**< Colour each command is drawn in; 0x80202020 marks one that cannot be chosen. */
             s16 cmd_shade[8]; /**< Shading values passed to the item command text builder. */
-            s16 cmd_mark[8]; /**< Non-zero for a command the list marks as ready, such as a weapon that can be built up. */
+            s16 cmd_mark[8];  /**< Non-zero for a command the list marks as ready, such as a weapon that can be built up. */
         };
 
         struct {
@@ -275,13 +275,13 @@ STATIC_ASSERT(sizeof(MENU_ASKMODE_PARA) == 0x94);
  *
  */
 struct ITEMCMD_RET_PARA {
-    s16            cmd; /**< Command that was run, or -1 for none. */
+    s16            cmd;      /**< Command that was run, or -1 for none. */
     s8             menu_cmd; /**< Item menu command returned to the caller. */
-    s8             chara;   /**< Character the item is equipped on. */
-    s16            result;  /**< Value the command returned, such as what using the item did. */
-    s16            item_no; /**< Item number of the item the command acted on. */
+    s8             chara;    /**< Character the item is equipped on. */
+    s16            result;   /**< Value the command returned, such as what using the item did. */
+    s16            item_no;  /**< Item number of the item the command acted on. */
     s16            no_equipped_rod;
-    s16            num; /**< Number of items used by the returned command. */
+    s16            num;   /**< Number of items used by the returned command. */
     CGameDataUsed *item;  /**< Item the command acted on. */
     CGameDataUsed *item2; /**< Second item the command acted on. */
 };
@@ -358,12 +358,12 @@ STATIC_ASSERT(sizeof(MENU_INPUTKEY_ARG) == 0x24);
  */
 class CBaseMenuClass {
 public:
-    s16                mode;   /**< Question that is open. @see MENU_ASK_MODE */
-    s16                step;   /**< Step within the open question. */
-    u8                 opened; /**< Non-zero once the menu has run its opening script. */
+    s16                mode;         /**< Question that is open. @see MENU_ASK_MODE */
+    s16                step;         /**< Step within the open question. */
+    u8                 opened;       /**< Non-zero once the menu has run its opening script. */
     s16                message_type; /**< Message type used by the open question. */
-    char              *script;      /**< Menu command script of the screen. */
-    int                script_size; /**< Size of the menu command script in bytes. */
+    char              *script;       /**< Menu command script of the screen. */
+    int                script_size;  /**< Size of the menu command script in bytes. */
     s32                unk_10;
     s16                key_arg_no;    /**< Cursor layout in use, as an index into the screen's layout table. */
     int                tex_block[16]; /**< Texture blocks the screen uses, ending at the first negative one. */
@@ -371,11 +371,11 @@ public:
     MENU_SWAPITEM_INFO swap_info;     /**< Where the item being moved came from. */
     s16                cmd_arg_pos;   /**< Position of the item that the command list was opened for. */
     s32                unk_F8;
-    s32                make_item_no; /**< Identifier of the item selected for creation. */
-    int                make_num; /**< Number of objects chosen to make. */
+    s32                make_item_no;  /**< Identifier of the item selected for creation. */
+    int                make_num;      /**< Number of objects chosen to make. */
     s32                make_space_no; /**< Free inventory slot for the item being created. */
-    s8                 make_cursor;  /**< Row the cursor is on in the make question; 0 is the number. */
-    s16                make_num_max; /**< Number of objects that can be made at most. */
+    s8                 make_cursor;   /**< Row the cursor is on in the make question; 0 is the number. */
+    s16                make_num_max;  /**< Number of objects that can be made at most. */
 
     /**
      *
@@ -690,7 +690,7 @@ STATIC_ASSERT(sizeof(CBaseMenuClass) == 0x110);
  */
 class CMenuKeyFunc {
 public:
-    u8     frame_parity; /**< Alternates each menu frame to pace updates. */
+    u8     frame_parity;  /**< Alternates each menu frame to pace updates. */
     u8     key_enable;    /**< Non-zero while the menu takes key input. */
     u8     key_input;     /**< Non-zero once a direction key has been pressed. */
     u32    select_key;    /**< Direction keys pressed this frame. @see MENU_SELECT_KEY */
@@ -1133,27 +1133,27 @@ public:
     s16                 load_item_no; /**< Item list the menu loads models for. */
     s16                 mos_id;       /**< Monster form in use when the menu opened. */
     s32                 unk_11C;
-    s16                 equip_list[8];  /**< Item numbers of the equipment of the shown character. */
-    u8                  equip_flag[8];  /**< Flags of the equipment of the shown character. */
-    s16                 load_weapon_no; /**< Item number of the weapon whose model is loaded. */
+    s16                 equip_list[8];    /**< Item numbers of the equipment of the shown character. */
+    u8                  equip_flag[8];    /**< Flags of the equipment of the shown character. */
+    s16                 load_weapon_no;   /**< Item number of the weapon whose model is loaded. */
     u8                  reset_cursor_pos; /**< Non-zero when the item menu cursor must return to its initial position. */
-    sceVu0FVECTOR       camera_ref; /**< Point the menu camera looks at. */
-    sceVu0FVECTOR       camera_pos; /**< Position of the menu camera. */
-    u8                  viewing_weapon; /**< Non-zero while the menu shows a weapon model. */
+    sceVu0FVECTOR       camera_ref;       /**< Point the menu camera looks at. */
+    sceVu0FVECTOR       camera_pos;       /**< Position of the menu camera. */
+    u8                  viewing_weapon;   /**< Non-zero while the menu shows a weapon model. */
     u8                  unk_161[0xB];
-    u8                  repair_running; /**< Non-zero while the weapon repair effect runs. */
-    u8                  effect_pos;   /**< Non-zero once the place of the item effect is known. */
-    u8                  sound_loaded; /**< Non-zero once the shown character's voices are loaded. */
-    u8                  sound_load;   /**< Non-zero when the shown character's voices must be loaded. */
-    u8                  item_consumed; /**< Non-zero after the current item has been consumed. */
-    s16                 equipped_model_no; /**< Model number of the equipped item shown by the menu. */
-    s16                 chara_reload; /**< Non-zero when the displayed character must be reloaded. */
-    s16                 sub_menu;      /**< Screen opened from the item menu that is running, or -1 for the item menu itself. */
-    s16                 next_sub_menu; /**< Screen to open from the item menu, or -1 for none. */
-    CGameDataUsed      *view_weapon;   /**< Weapon whose status is shown. */
-    CMenuPosDataForm   *view_form[6];  /**< Forms of the pages. */
+    u8                  repair_running;     /**< Non-zero while the weapon repair effect runs. */
+    u8                  effect_pos;         /**< Non-zero once the place of the item effect is known. */
+    u8                  sound_loaded;       /**< Non-zero once the shown character's voices are loaded. */
+    u8                  sound_load;         /**< Non-zero when the shown character's voices must be loaded. */
+    u8                  item_consumed;      /**< Non-zero after the current item has been consumed. */
+    s16                 equipped_model_no;  /**< Model number of the equipped item shown by the menu. */
+    s16                 chara_reload;       /**< Non-zero when the displayed character must be reloaded. */
+    s16                 sub_menu;           /**< Screen opened from the item menu that is running, or -1 for the item menu itself. */
+    s16                 next_sub_menu;      /**< Screen to open from the item menu, or -1 for none. */
+    CGameDataUsed      *view_weapon;        /**< Weapon whose status is shown. */
+    CMenuPosDataForm   *view_form[6];       /**< Forms of the pages. */
     s16                 status_check_ready; /**< Non-zero when the special status check can be accepted. */
-    CMenuPosDataForm   *item_board_form; /**< Form of the inventory board. */
+    CMenuPosDataForm   *item_board_form;    /**< Form of the inventory board. */
     s32                 unk_1A0;
     CMenuPosDataForm   *money_form;         /**< Form of the money board. */
     CMenuPosDataForm   *chara_poly_form[2]; /**< Forms behind the two character models. */
@@ -1167,11 +1167,11 @@ public:
     MENUFORMPARTS_TYPE *item_num[2][3];   /**< Item counts of each character page. */
     MENUFORMPARTS_TYPE *voice_part;       /**< Voice part of the ridepod page. */
     CActionChara       *build_up_chara;   /**< Model of the weapon being built up. */
-    s32                 build_loading; /**< Non-zero while a build-up item model is loading. */
+    s32                 build_loading;    /**< Non-zero while a build-up item model is loading. */
     s16                 unk_2FC;
-    s16                 debug_item_no; /**< Item number the debug controls show. */
+    s16                 debug_item_no;    /**< Item number the debug controls show. */
     u8                  debug_item_count; /**< Number of items selected by the debug item controls. */
-    CGameDataUsed       debug_item; /**< Item the debug controls show. */
+    CGameDataUsed       debug_item;       /**< Item the debug controls show. */
 
     /**
      *
@@ -1613,9 +1613,9 @@ STATIC_ASSERT(sizeof(MENU_ITEM_CURSOR_INFO) == 0xC);
  */
 struct BUILDUP_WEAPON_INFO {
     s16            monster_mode; /**< Selects the monster form build-up view. */
-    s8             mode;      /**< Phase of the build-up view. */
-    s8             select_no; /**< Selected build-up choice. */
-    s16            build_up;  /**< Number of available build-up choices. */
+    s8             mode;         /**< Phase of the build-up view. */
+    s8             select_no;    /**< Selected build-up choice. */
+    s16            build_up;     /**< Number of available build-up choices. */
     s16            unk_6;
     int            select_num;   /**< Number of choices returned by CheckBuildUp. */
     int            weapon_no[3]; /**< Weapon IDs offered as build-up results. */

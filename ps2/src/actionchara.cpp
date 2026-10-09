@@ -46,13 +46,13 @@
 #include "swordeffect.hpp"
 #include "userdata.hpp"
 
-extern char    at_1325[];
-extern char    at_1357[];
-extern char    at_1358[];
-extern char    at_1394[];
-extern char    at_1427[];
-extern char    at_1428[];
-void           GuardEffectSet(CScene *scene, float *point);
+extern char at_1325[];
+extern char at_1357[];
+extern char at_1358[];
+extern char at_1394[];
+extern char at_1427[];
+extern char at_1428[];
+void        GuardEffectSet(CScene *scene, float *point);
 
 /**
  *
@@ -1386,14 +1386,14 @@ int Check_LockOn(CScene *scene, float range, int index) {
 }
 
 void CActionChara::CollisionCheck(float *pos, float *velocity, float *out_velocity) {
-    sceVu0FVECTOR      next_position;
-    sceVu0FVECTOR      flat_position;
-    sceVu0FVECTOR      body_position;
-    sceVu0FVECTOR      push_direction;
+    sceVu0FVECTOR       next_position;
+    sceVu0FVECTOR       flat_position;
+    sceVu0FVECTOR       body_position;
+    sceVu0FVECTOR       push_direction;
     CHARA_ENTRY_OBJECT *body;
-    float              distance;
-    float              separation;
-    int                index;
+    float               distance;
+    float               separation;
+    int                 index;
 
     sceVu0CopyVector(out_velocity, velocity);
     next_position[0] = pos[0] + out_velocity[0];
@@ -2062,7 +2062,7 @@ int CActionChara::RoboTankMoveIF(int mode) {
     }
     if (move_type == ACTION_MOVE_ROBO_TANK2) {
         sceVu0FVECTOR wheel_rotation;
-        float speed = mgDistVector(move_velocity);
+        float         speed = mgDistVector(move_velocity);
         wheel_step = 0.034906585f * -speed;
         wheel = SearchObject("rf_tire");
         if (wheel != NULL) {
@@ -2412,7 +2412,7 @@ int CActionChara::RoboAirMoveIF(int unused, int mode) {
         }
         if (move_x != float(0.0) || move_z != 0.0f) {
             sceVu0FVECTOR movement;
-            float angle = atan2f(move_x, move_z);
+            float         angle = atan2f(move_x, move_z);
             SetRotation(0.0f, unitRotation(CObjectFrame::frame, angle, turn_speed), 0.0f);
             movement[0] = move_x;
             movement[1] = 0.0f;
@@ -2740,28 +2740,28 @@ int CheckEquipSetItem(int item_no) {
 }
 
 int CActionChara::CheckDamage() {
-    sceVu0FVECTOR    position;
+    sceVu0FVECTOR     position;
     CBattleCharaInfo *battle;
-    CColPrim        *hit;
-    float            damage;
-    u32              attributes;
-    int              max_hp;
-    int              now_hp;
-    int              damage_points;
-    int              guarded;
-    int              immobilized;
-    int              reaction;
-    int              handled;
-    int              element;
-    int              strongest;
-    int              index;
+    CColPrim         *hit;
+    float             damage;
+    u32               attributes;
+    int               max_hp;
+    int               now_hp;
+    int               damage_points;
+    int               guarded;
+    int               immobilized;
+    int               reaction;
+    int               handled;
+    int               element;
+    int               strongest;
+    int               index;
 
     if (nowScene__2 == NULL) {
         return 0;
     }
     DNG_BATTLE_AREA *battle_area = &nowScene__2->battle_area;
-    u32 battle_sound = nowScene__2->se_battle_id;
-    u32 chara_sound = sound_info.se_bank;
+    u32              battle_sound = nowScene__2->se_battle_id;
+    u32              chara_sound = sound_info.se_bank;
     battle = GetBattleCharaInfo();
     GetPosition(position);
     if (damage_time > 0) {
@@ -2930,29 +2930,29 @@ int CActionChara::CheckDamage() {
             DamageScore2.SetValue(0, damage_points, body_height);
         }
         switch (reaction) {
-        case 0:
-        case 1:
-        case 5:
-            break;
-        case 3:
-            handled = 1;
-            damage_req = ACTION_DAMAGE_REQ_HOLD;
-            break;
-        case 2:
-            stagger += hit->param->stagger;
-            stagger_time = 60;
-            if (stagger >= 2 || (menu_flag != 0 && stand_flag != 0)) {
-                damage_req = ACTION_DAMAGE_REQ_SMALL;
-            }
-            handled = 1;
-            break;
-        case 4:
-            handled = 1;
-            damage_req = ACTION_DAMAGE_REQ_LARGE;
-            break;
-        case 6:
-            handled = 1;
-            break;
+            case 0:
+            case 1:
+            case 5:
+                break;
+            case 3:
+                handled = 1;
+                damage_req = ACTION_DAMAGE_REQ_HOLD;
+                break;
+            case 2:
+                stagger += hit->param->stagger;
+                stagger_time = 60;
+                if (stagger >= 2 || (menu_flag != 0 && stand_flag != 0)) {
+                    damage_req = ACTION_DAMAGE_REQ_SMALL;
+                }
+                handled = 1;
+                break;
+            case 4:
+                handled = 1;
+                damage_req = ACTION_DAMAGE_REQ_LARGE;
+                break;
+            case 6:
+                handled = 1;
+                break;
         }
     }
     if (handled != 0) {
@@ -2995,24 +2995,24 @@ static inline float MoveCheckRadius(float width) {
 }
 
 void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
-    int               pallet_u;
-    int               history;
-    CBattleCharaInfo *battle;
-    CSphida          *sphida;
-    int               count;
-    float             frame;
-    int               effect;
-    int               pallet_no;
-    int               target;
-    int               pallet_v;
-    int               index;
-    int               foot;
-    ACTION_DAMAGE    *entry;
-    DNG_BATTLE_AREA  *area;
-    CColPrim         *reversed;
+    int                  pallet_u;
+    int                  history;
+    CBattleCharaInfo    *battle;
+    CSphida             *sphida;
+    int                  count;
+    float                frame;
+    int                  effect;
+    int                  pallet_no;
+    int                  target;
+    int                  pallet_v;
+    int                  index;
+    int                  foot;
+    ACTION_DAMAGE       *entry;
+    DNG_BATTLE_AREA     *area;
+    CColPrim            *reversed;
     CTreasureBoxManager *treasure;
-    CMap             *map;
-    float             target_distance;
+    CMap                *map;
+    float                target_distance;
 
     nowScene__2 = scene;
     area = &scene->battle_area;
@@ -3024,8 +3024,8 @@ void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
     sceVu0FVECTOR position;
     sceVu0FVECTOR rotation;
     sceVu0FVECTOR new_position;
-    CCPoly polys[128];
-    mgVu0FBOX box;
+    CCPoly        polys[128];
+    mgVu0FBOX     box;
     menu_flag = 0;
     dir_gun = 0;
     history = action_info.chara->pad_history;

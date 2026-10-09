@@ -616,46 +616,49 @@ struct GiftVolumeList {
     int entry[8]; /**< Sound volume for each gift action. */
 };
 
-extern s8               SelectedCmdNo_1415;
-extern s8               init_1416;
-extern NpcNameList      at_1650__2;
-extern NpcCmdMesList    at_1684__2;
-extern GiftVolumeList   at_1806__2;
-extern s8               nextIDtbl_1594[5][8];
-extern s16              msgtbl1_1732[4];
-extern s8               se_sndtbl_1749[3];
-extern char             at_2003__2[];
-extern char             at_2004__3[];
-extern char             at_2005__2[];
-extern char             at_2006__2[];
-extern char             at_2007__2[];
-extern char             at_2008__2[];
-extern char             at_2009[];
-extern char             at_2010[];
-extern char             at_2011[];
-extern char             at_2012[];
-extern char             at_2013[];
-extern char             at_2014[];
-extern char             at_2015[];
-extern char             at_2016[];
-extern char             at_2017[];
-extern char             at_2018__2[];
-extern char             at_2019__2[];
-extern char             at_2020__2[];
-extern char             at_2021__2[];
-extern char             at_2022[];
-extern char             at_2023[];
-extern u8               tilergba_5203[4];
-extern s8               convtbl_5238[3];
-extern float            putw_5262[];
-extern char            *infomsg_5256[];
-extern s8               phasetbl_5119[COSTUME_LIST_NUM];
+extern s8             SelectedCmdNo_1415;
+extern s8             init_1416;
+extern NpcNameList    at_1650__2;
+extern NpcCmdMesList  at_1684__2;
+extern GiftVolumeList at_1806__2;
+extern s8             nextIDtbl_1594[5][8];
+extern s16            msgtbl1_1732[4];
+extern s8             se_sndtbl_1749[3];
+extern char           at_2003__2[];
+extern char           at_2004__3[];
+extern char           at_2005__2[];
+extern char           at_2006__2[];
+extern char           at_2007__2[];
+extern char           at_2008__2[];
+extern char           at_2009[];
+extern char           at_2010[];
+extern char           at_2011[];
+extern char           at_2012[];
+extern char           at_2013[];
+extern char           at_2014[];
+extern char           at_2015[];
+extern char           at_2016[];
+extern char           at_2017[];
+extern char           at_2018__2[];
+extern char           at_2019__2[];
+extern char           at_2020__2[];
+extern char           at_2021__2[];
+extern char           at_2022[];
+extern char           at_2023[];
+extern u8             tilergba_5203[4];
+extern s8             convtbl_5238[3];
+extern float          putw_5262[];
+extern char          *infomsg_5256[];
+extern s8             phasetbl_5119[COSTUME_LIST_NUM];
+
 /**
  *
  * Number of resistance or weakness icons that the monster book can display.
  *
  */
-enum { MOS_BOOK_AFFINITY_NUM = 8 };
+enum {
+    MOS_BOOK_AFFINITY_NUM = 8
+};
 
 /**
  *
@@ -664,7 +667,7 @@ enum { MOS_BOOK_AFFINITY_NUM = 8 };
  */
 static short tiletbl_5573[3][12] = {
     {0x77, 0xBD, 0x26, 0x24, 0x9C, 0xBD, 0x4, 0x24, 0xA1, 0xBD, 0x26, 0x24},
-    {0x77, 0xE1, 0x26, 0xC, 0x9C, 0xE1, 0x4, 0xC, 0xA1, 0xE1, 0x26, 0xC},
+    {0x77, 0xE1, 0x26, 0xC,  0x9C, 0xE1, 0x4, 0xC,  0xA1, 0xE1, 0x26, 0xC },
     {0x77, 0xED, 0x26, 0x24, 0x9C, 0xED, 0x4, 0x24, 0xA1, 0xED, 0x26, 0x24}
 };
 /**
@@ -679,22 +682,22 @@ static short under_brdtbl_5576[12] = {0x93, 0x2D, 0xA, 0x20, 0x9D, 0x2D, 0x2, 0x
  *
  */
 static short put_under_offset_5577[16][2] = {
-    {0xFE, 0xE},
-    {0xFE, 0x1E},
-    {0xFE, 0x40},
-    {0xFE, 0x50},
-    {0xFE, 0x72},
-    {0xFE, 0x82},
-    {0xFE, 0xA4},
-    {0xFE, 0xB4},
-    {0xFE, 0xD6},
-    {0xFE, 0xE6},
-    {0x20, 0x104},
-    {0x20, 0x116},
-    {0x20, 0x13C},
-    {0x20, 0x168},
+    {0xFE,  0xE  },
+    {0xFE,  0x1E },
+    {0xFE,  0x40 },
+    {0xFE,  0x50 },
+    {0xFE,  0x72 },
+    {0xFE,  0x82 },
+    {0xFE,  0xA4 },
+    {0xFE,  0xB4 },
+    {0xFE,  0xD6 },
+    {0xFE,  0xE6 },
+    {0x20,  0x104},
+    {0x20,  0x116},
+    {0x20,  0x13C},
+    {0x20,  0x168},
     {0x104, 0x118},
-    {0x0, 0x0}
+    {0x0,   0x0  }
 };
 /**
  *
@@ -702,14 +705,14 @@ static short put_under_offset_5577[16][2] = {
  *
  */
 static const short ic_5580[MOS_BOOK_AFFINITY_NUM][2] = {
-    {0xA8, 0x0},
-    {0xBE, 0x0},
-    {0xD4, 0x0},
-    {0xEA, 0x0},
+    {0xA8, 0x0 },
+    {0xBE, 0x0 },
+    {0xD4, 0x0 },
+    {0xEA, 0x0 },
     {0xBE, 0x16},
     {0xD4, 0x16},
     {0xEA, 0x16},
-    {0x0, 0x0}
+    {0x0,  0x0 }
 };
 /**
  *
@@ -724,7 +727,7 @@ static short line_5595[12] = {0x0, 0x16, 0xC, 0x14, 0x0, 0x2A, 0xC, 0x4, 0x0, 0x
  */
 static short wakutbl_5600[3][12] = {
     {0x1E, 0xA5, 0x32, 0x36, 0x50, 0xA5, 0x2, 0x36, 0x54, 0xA5, 0x22, 0x36},
-    {0x1E, 0xDA, 0x32, 0x4, 0x50, 0xDA, 0x2, 0x4, 0x54, 0xDA, 0x22, 0x4},
+    {0x1E, 0xDA, 0x32, 0x4,  0x50, 0xDA, 0x2, 0x4,  0x54, 0xDA, 0x22, 0x4 },
     {0x1E, 0xDF, 0x32, 0x32, 0x50, 0xDF, 0x2, 0x32, 0x54, 0xDF, 0x22, 0x32}
 };
 extern char            *monstere_file_template[];
@@ -847,8 +850,7 @@ static void               MenuItemCharaDataLoadPack(int chara_no, CActionChara *
  *
  */
 static const u16 menu_robo_memorytbl[MENU_CHARA_LOAD_MAX] = {
-    0x5240, 0x4514, 0x6E80, 0x1240, 0x05DC, 0, 0
-};
+    0x5240, 0x4514, 0x6E80, 0x1240, 0x05DC, 0, 0};
 
 /**
  *
@@ -856,9 +858,8 @@ static const u16 menu_robo_memorytbl[MENU_CHARA_LOAD_MAX] = {
  *
  */
 static const u16 menu_chr_memorytbl[MENU_CHARA_LOAD_MAX] = {
-    0x1B80, 0x9AC0, 0x1C84, 0x11C0, 0x0BC0, 0x26C0, 0x0708
-};
-int                       ReadBGSync();
+    0x1B80, 0x9AC0, 0x1C84, 0x11C0, 0x0BC0, 0x26C0, 0x0708};
+int ReadBGSync();
 
 // Code (.text)
 void InitMenuBGReadInfo2(MENU_BGREAD_INFO2 *info) {
@@ -946,6 +947,7 @@ void SetMenuLoadItemNo(int who) {
         count++;
     }
 }
+
 /**
  *
  * Partitions character menu memory among its work buffers.
@@ -966,7 +968,7 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
             }
             for (int i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
                 char name[0x20];
-                int size = table[i];
+                int  size = table[i];
                 if (table[i] % 64 != 0) {
                     size = (64 - table[i] % 64) + table[i];
                 }
@@ -986,6 +988,7 @@ static int MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara) {
     }
     return total;
 }
+
 void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffers, int chara) {
     int        free_blocks = pool->stack_size - pool->stack_used;
     MemoryList list = at_1083__2;
@@ -1088,7 +1091,7 @@ void CMenuChrCngMenu::AttachForm() {
 #ifdef NONMATCHING
 void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
     mgCTextureManager *tex_manager = &mgTexManager;
-    int block = tex_block[0];
+    int                block = tex_block[0];
     tex_manager->EnterIMGFile((u_char *) GetPackFile(reinterpret_cast<u_int *>(pack), "chr_bg.img", NULL),
                               block, NULL, NULL);
     int    size;
@@ -1116,6 +1119,7 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
      *
      */
     typedef u8 PaletteColor[4];
+
     /**
      *
      * Components, quantization bands, and command slots of the character-change screen.
@@ -1128,6 +1132,7 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
         PALETTE_BAND_NUM = 32,
         NPC_COMMAND_NUM = 4
     };
+
     PaletteColor *colors = reinterpret_cast<PaletteColor *>(MenuCharaChangeCLUT);
     for (int palette_index = 0; palette_index < CHR_CNG_CLUT_NUM; palette_index++) {
         PaletteColor &color = colors[palette_index];
@@ -2299,7 +2304,10 @@ int CMenuChrCngMenu::KeyChangeMain() {
                      * Capacity of the aquarium-food list supplied by a townsperson.
                      *
                      */
-                    enum { NPC_GIFT_FOOD_CAPACITY = 32 };
+                    enum {
+                        NPC_GIFT_FOOD_CAPACITY = 32
+                    };
+
                     int esa[NPC_GIFT_FOOD_CAPACITY];
                     gift_item = -1;
                     gift_num = 1;
@@ -5573,6 +5581,7 @@ void MenuRoboPartsLightOff(mgCFrame *frame) {
         }
     }
 }
+
 int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no, int restart_read) {
     char model_buffer[0x40];
     char script_buffer[0x40];
@@ -5619,6 +5628,7 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
     }
     return 1;
 }
+
 extern SceneCharaList at_4565;
 extern LoadTargetList at_4585;
 extern LoadStackList  at_4586;
@@ -5831,6 +5841,7 @@ void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
             break;
     }
 }
+
 int ReadMainCharaBG() {
     char model[0x48];
     int  size;
@@ -6890,10 +6901,8 @@ void CMosBookMenu::Draw() {
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_MBase);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[1][0] + 0x16,
-        put_under_offset_5577[1][1] + 0x47, 0x52, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[1][0] + 0x6E,
-        put_under_offset_5577[1][1] + 0x47, 0x52, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[1][0] + 0x16, put_under_offset_5577[1][1] + 0x47, 0x52, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[1][0] + 0x6E, put_under_offset_5577[1][1] + 0x47, 0x52, 0x20), under_brdtbl_5576, 1);
     int box_shift = 0;
     int box_width = 0xB0;
     int last_shift = 0;
@@ -6904,20 +6913,13 @@ void CMosBookMenu::Draw() {
         last_shift = 4;
         last_width = 0xBE;
     }
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[3][0] + 0x16 - box_shift,
-        put_under_offset_5577[3][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[5][0] + 0x16 - box_shift,
-        put_under_offset_5577[5][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[7][0] + 0x16 - box_shift,
-        put_under_offset_5577[7][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift,
-        put_under_offset_5577[9][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift,
-        put_under_offset_5577[9][1] + 0x69, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift,
-        put_under_offset_5577[9][1] + 0x8B, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[11][0] + 0x16 - last_shift,
-        put_under_offset_5577[11][1] + 0x47, last_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[3][0] + 0x16 - box_shift, put_under_offset_5577[3][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[5][0] + 0x16 - box_shift, put_under_offset_5577[5][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[7][0] + 0x16 - box_shift, put_under_offset_5577[7][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift, put_under_offset_5577[9][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift, put_under_offset_5577[9][1] + 0x69, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift, put_under_offset_5577[9][1] + 0x8B, box_width, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[11][0] + 0x16 - last_shift, put_under_offset_5577[11][1] + 0x47, last_width, 0x20), under_brdtbl_5576, 1);
     Menu3DivideTextureDraw(prim, mgRect<int>(0x140, 0x27, 0x9C, 0x20), under_brdtbl_5576, 1);
     prim->End();
     prim->Begin(MG_PRIM_SPRITE);
@@ -6930,23 +6932,23 @@ void CMosBookMenu::Draw() {
     PrimQuad(prim, (float) (base_x + 0xB), (float) (base_y + 0x19), mgRect<int>(0xC, 0x2C, 0xC, 0x10));
     PrimQuad(prim, (float) (base_x + 0x5E), (float) (base_y + 0x15), mgRect<int>(0xC, 0x16, 0x14, 0x16));
     PrimQuad(prim, (float) (put_under_offset_5577[2][0] + 0x16),
-        (float) (put_under_offset_5577[2][1] + 0x47), mgRect<int>(0, 0x94, 0xB0, 0x12));
+             (float) (put_under_offset_5577[2][1] + 0x47), mgRect<int>(0, 0x94, 0xB0, 0x12));
     PrimQuad(prim, (float) (put_under_offset_5577[4][0] + 0x16),
-        (float) (put_under_offset_5577[4][1] + 0x47), mgRect<int>(0, 0xA6, 0xB0, 0x12));
+             (float) (put_under_offset_5577[4][1] + 0x47), mgRect<int>(0, 0xA6, 0xB0, 0x12));
     PrimQuad(prim, (float) (put_under_offset_5577[6][0] + 0x16),
-        (float) (put_under_offset_5577[6][1] + 0x47), mgRect<int>(0, 0xB8, 0xB0, 0x12));
+             (float) (put_under_offset_5577[6][1] + 0x47), mgRect<int>(0, 0xB8, 0xB0, 0x12));
     PrimQuad(prim, (float) (put_under_offset_5577[8][0] + 0x16),
-        (float) (put_under_offset_5577[8][1] + 0x47), mgRect<int>(0, 0xCA, 0xB0, 0x12));
+             (float) (put_under_offset_5577[8][1] + 0x47), mgRect<int>(0, 0xCA, 0xB0, 0x12));
     PrimQuad(prim, (float) (put_under_offset_5577[10][0] + 0x16),
-        (float) (put_under_offset_5577[10][1] + 0x47), mgRect<int>(0, 0xDC, 0xB0, 0x12));
+             (float) (put_under_offset_5577[10][1] + 0x47), mgRect<int>(0, 0xDC, 0xB0, 0x12));
     PrimQuad(prim, (float) (put_under_offset_5577[12][0] + 0x16),
-        (float) (put_under_offset_5577[12][1] + 0x47), mgRect<int>(0, 0xEE, 0xB0, 0x12));
+             (float) (put_under_offset_5577[12][1] + 0x47), mgRect<int>(0, 0xEE, 0xB0, 0x12));
     int icon_x = put_under_offset_5577[4][0] + 0x1D;
     int strong_y = put_under_offset_5577[4][1] + 0x5C;
     for (int i = 0; i < MOS_BOOK_AFFINITY_NUM; i++) {
         if (strong_bit & (1 << i)) {
             PrimQuad(prim, (float) icon_x, (float) strong_y,
-                mgRect<int>(ic_5580[i][0], ic_5580[i][1], 0x16, 0x16));
+                     mgRect<int>(ic_5580[i][0], ic_5580[i][1], 0x16, 0x16));
             icon_x += 0x16;
         }
     }
@@ -6956,7 +6958,7 @@ void CMosBookMenu::Draw() {
     for (; weak_i < MOS_BOOK_AFFINITY_NUM; weak_i++) {
         if (weak_bit & (1 << weak_i)) {
             PrimQuad(prim, (float) icon_x, (float) weak_y,
-                mgRect<int>(ic_5580[weak_i][0], ic_5580[weak_i][1], 0x16, 0x16));
+                     mgRect<int>(ic_5580[weak_i][0], ic_5580[weak_i][1], 0x16, 0x16));
             icon_x += 0x16;
         }
     }
@@ -6997,7 +6999,7 @@ void CMosBookMenu::Draw() {
     prim->End();
     tex_manager->ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
     CMenuFont font;
-    int name_height, name_width;
+    int       name_height, name_width;
     font.SetStr(name);
     font.CalcDrawWH(font.str, &name_width, &name_height);
     int name_x = 0x92 - name_width / 2;
@@ -7029,7 +7031,7 @@ void CMosBookMenu::Draw() {
     font.SetPos(0x11A, 0x175);
     font.DrawDirect(font.str, font.pos_x, font.pos_y);
     char position[0x80];
-    int number = select + 1;
+    int  number = select + 1;
     if (list_num <= 0) {
         number = 0;
     }

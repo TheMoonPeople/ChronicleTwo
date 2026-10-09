@@ -515,17 +515,17 @@ void CFireAfterHit::Step() {
 extern int gb_tbl_1052[3];
 
 void CFireAfterHit::Draw(void) {
-    float vec[4];
-    int i;
-    int middle;
-    int tail_alpha;
-    int k;
-    int newest;
-    int puff0[4];
-    int oldest;
-    int puff1[4];
-    int main0[4];
-    int main1[4];
+    float                 vec[4];
+    int                   i;
+    int                   middle;
+    int                   tail_alpha;
+    int                   k;
+    int                   newest;
+    int                   puff0[4];
+    int                   oldest;
+    int                   puff1[4];
+    int                   main0[4];
+    int                   main1[4];
     FIRE_AFTER_HIT_FLAME *fire;
 
     if (active == 0) {
@@ -535,7 +535,7 @@ void CFireAfterHit::Draw(void) {
         return;
     }
     FIRE_AFTER_HIT_TRAIL *puff = &trail[0][0];
-    CPreSprite prim;
+    CPreSprite            prim;
     prim.Initialize(0, 0);
     prim.Preset2D();
     prim.Coord(1);
@@ -797,7 +797,7 @@ void CThunder::Draw(void) {
     if (live_num <= 0) {
         return;
     }
-    mgC3DSprite sprite;
+    mgC3DSprite  sprite;
     mgC3DSprite *packet = &sprite;
     ClearSprite(&sprite);
     mgCDrawEnv env = *mgGetpDrawEnv(0);
@@ -1751,10 +1751,10 @@ void CHitEffectImage::Draw() {
 
 void CHitEffectImage::DrawBord(void) {
     CPreSprite prim;
-    int corner0[4];
-    int corner_b_r[4];
-    int corner_t_l[4];
-    int corner1[4];
+    int        corner0[4];
+    int        corner_b_r[4];
+    int        corner_t_l[4];
+    int        corner1[4];
 
     prim.Initialize(0, 0);
     prim.Preset2D();
@@ -1767,7 +1767,7 @@ void CHitEffectImage::DrawBord(void) {
     prim.Texture(TEX_SystemEffect1);
     prim.AlphaTestEnable(1);
     BattleEffectPrim *spark = this->spark;
-    int i;
+    int               i;
     for (i = 0; i < spark_num; i++) {
         if (spark->life > 0) {
             prim.Color(0x80, 0x80, 0x80, fptosi(128.0f * spark->alpha));
@@ -1801,9 +1801,9 @@ void CHitEffectImage::DrawBord(void) {
         }
     }
     switch (i) {
-    case 0:
-    default:
-        prim.End();
+        case 0:
+        default:
+            prim.End();
     }
 }
 
@@ -1898,20 +1898,20 @@ void CFlushEffect::Draw() {
 
 void CFlushEffect::Step() {
     switch (active) {
-    case 0:
-        break;
-    default:
-        if (follow != NULL) {
-            follow->GetWorldPosition0(pos);
-        }
-        size += grow;
+        case 0:
+            break;
+        default:
+            if (follow != NULL) {
+                follow->GetWorldPosition0(pos);
+            }
+            size += grow;
             alpha -= (short) fade_speed;
-        if (alpha <= 0) {
-            alpha = 0;
-            active = 0;
-            follow = NULL;
-        }
-        break;
+            if (alpha <= 0) {
+                alpha = 0;
+                active = 0;
+                follow = NULL;
+            }
+            break;
     }
 }
 
@@ -2125,16 +2125,17 @@ void CDeadEffect::Step() {
         }
     }
 }
+
 void CDeadEffect::Draw(void) {
     if (duration <= 0 && live_num <= 0) {
         return;
     }
     CPreSprite prim_draw;
-    float world[4];
-    int   corner0[4];
-    int   corner_b_r[4];
-    int   corner_t_l[4];
-    int   corner1[4];
+    float      world[4];
+    int        corner0[4];
+    int        corner_b_r[4];
+    int        corner_t_l[4];
+    int        corner1[4];
 
     prim_draw.Initialize(0, 0);
     prim_draw.Preset2D();
@@ -2146,9 +2147,9 @@ void CDeadEffect::Draw(void) {
     prim_draw.Begin(3);
     prim_draw.Texture(TEX_SystemEffect1);
     prim_draw.AlphaTestEnable(1);
-    int u;
-    int v;
-    int span;
+    int               u;
+    int               v;
+    int               span;
     BattleEffectPrim *fleck = prim;
     for (int i = 0; i < prim_max; i++) {
         if (fleck->life <= 0) {
@@ -2221,6 +2222,7 @@ void CDeadEffect::Draw(void) {
     }
     prim_draw.End();
 }
+
 void CMapEffect_Sprite::Set(float *spawn_pos) {
     sceVu0CopyVector(pos, spawn_pos);
     sceVu0CopyVector(target, spawn_pos);
@@ -2280,14 +2282,14 @@ void CMapEffect_Sprite::Step(mgCCamera *camera) {
 
 void CMapEffect_Sprite::Draw(mgCCamera *camera, CPreSprite *sprite) {
     float world[4];
-    int corner0[4];
-    int corner_b_r[4];
-    int corner_t_l[4];
-    int corner1[4];
-    int u;
-    int v;
-    int span;
-    int alpha;
+    int   corner0[4];
+    int   corner_b_r[4];
+    int   corner_t_l[4];
+    int   corner1[4];
+    int   u;
+    int   v;
+    int   span;
+    int   alpha;
     float size;
 
     if (life > 0) {
@@ -3319,8 +3321,8 @@ void CWeaponElement::Draw_Fire() {
 void CWeaponElement::Init_Thunder(float *center) {
     float scaled[4];
     float dir[4];
-    int i;
-    int j;
+    int   i;
+    int   j;
 
     count = fptosi(18.0f * power) + 6;
     bolt_count = fptosi(7.0f * power) + 1;
@@ -3402,17 +3404,17 @@ void CWeaponElement::Step_Thunder() {
 }
 
 void CWeaponElement::Draw_Thunder(void) {
-    int quad[4][4];
-    float base[4];
+    int         quad[4][4];
+    float       base[4];
     mgCTexture *tex;
-    int i;
-    int j;
+    int         i;
+    int         j;
 
     tex = mgTexManager.GetTexture(at_2882, -1);
     sceVu0CopyVector(base, *origin);
     CPreSprite prim;
-    int quad_a[4];
-    int quad_b[4];
+    int        quad_a[4];
+    int        quad_b[4];
     prim.Initialize(NULL, NULL);
     prim.Preset2D();
     prim.Coord(1);
@@ -3464,8 +3466,8 @@ void CWeaponElement::Draw_Thunder(void) {
         mgTransWorldPrim(quad[2], head);
         head[1] -= 2.0f;
         mgTransWorldPrim(quad[3], head);
-        int u = bolt_uv[bolt_frame[j]][0];
-        int v = bolt_uv[bolt_frame[j]][1];
+        int   u = bolt_uv[bolt_frame[j]][0];
+        int   v = bolt_uv[bolt_frame[j]][1];
         float bolt_alpha = 1.6f * alpha[bolt_head[j]];
         prim.Color(0x80, 0x80, 0x80, bolt_alpha);
         prim.TextureCrd(u, v);
@@ -3500,9 +3502,9 @@ int CreatSmoothPass(sceVu0FVECTOR *out, sceVu0FVECTOR *ring, int point_num, int 
     sceVu0FMATRIX coefficients;
     sceVu0FMATRIX points;
     sceVu0FMATRIX basis;
-    float powers[4];
-    float result[4];
-    int control[4];
+    float         powers[4];
+    float         result[4];
+    int           control[4];
     if (point_num < 3) {
         return 0;
     }

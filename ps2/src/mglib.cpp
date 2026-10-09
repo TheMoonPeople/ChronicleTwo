@@ -2,13 +2,6 @@
 #include "common.h"
 #include "mw_runtime.h"
 
-#include "mg_drawenv.hpp"
-#include "mg_drawprim.hpp"
-#include "mg_frame.hpp"
-#include "mg_math.hpp"
-#include "mg_memory.hpp"
-#include "mg_texture.hpp"
-#include "mglib.hpp"
 #include <eekernel.h>
 #include <libdev.h>
 #include <sifdev.h>
@@ -16,12 +9,19 @@
 #include <cstdio>
 #include <cstring>
 
+#include "mg_drawenv.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_frame.hpp"
+#include "mg_math.hpp"
+#include "mg_memory.hpp"
 #include "mg_tanime.hpp"
+#include "mg_texture.hpp"
 #include "mg_visual.hpp"
+#include "mglib.hpp"
 
-mgRENDER_INFO mgRenderInfo;
+mgRENDER_INFO     mgRenderInfo;
 mgCTextureManager mgTexManager;
-mgCDrawManager mgDrawManager;
+mgCDrawManager    mgDrawManager;
 
 /**
  * Packet-memory stacks alternated between frames.
@@ -192,11 +192,11 @@ static const u_int dma_tag_call = 0x50000000;
 /**
  * Number of built-in VU1 microprogram upload packets.
  */
-static const int   builtin_vu_prog_count = 3;
+static const int builtin_vu_prog_count = 3;
 /**
  * First identifier in the user VU1 microprogram table.
  */
-static const int   user_vu_prog_base = 0x100;
+static const int user_vu_prog_base = 0x100;
 
 /**
  * GS register addresses used by direct drawing packets.
@@ -223,13 +223,15 @@ enum mgDMA_CHANNEL {
     MG_DMA_CHANNEL_FROM_SPR = 8, /**< DMA channel transferring data from scratchpad memory. */
 };
 
-void              StoreImage(int front_buffer);
-int               VSyncCallBack(int field);
+void StoreImage(int front_buffer);
+int  VSyncCallBack(int field);
 
 /**
  * Dither presets converted to signed three-bit GS coefficients.
  */
-static signed char dimx_281[1][16] = {{10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1}};
+static signed char dimx_281[1][16] = {
+    {10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1}
+};
 
 // Code (.text)
 void mgPerformanceMeter(int enable) {
@@ -333,13 +335,14 @@ static int GetScreenSize(int mode, int *width, int *height, int *left, int *top,
     *bottom = *height + *top;
     return mode;
 }
+
 void mgInit(int screen_mode, int video_mode) {
-    sceDmaEnv          dma_env;
-    u_long128          clear_pixels[8192];
-    sceGsLoadImage     load_image;
-    int                aligned_height;
-    int                buffer;
-    int                i;
+    sceDmaEnv      dma_env;
+    u_long128      clear_pixels[8192];
+    sceGsLoadImage load_image;
+    int            aligned_height;
+    int            buffer;
+    int            i;
 
     font_cons = -1;
     font_draw_flag = 0;
@@ -473,6 +476,7 @@ void mgInit(int screen_mode, int video_mode) {
     mgDIMX[0].bits.dm32 = dimx_281[0][14];
     mgDIMX[0].bits.dm33 = dimx_281[0][15];
 }
+
 void mgInitVif1Packet(u_long128 *buffer_a, u_long128 *buffer_b, int size) {
     packetbuf[0] = (u_int *) buffer_a;
     packetbuf[1] = (u_int *) buffer_b;
@@ -668,7 +672,7 @@ void mgStoreFrameImage() {
 }
 #ifdef NONMATCHING
 void mgEndFrame(mgCDrawManager *manager) {
-    float frame_ticks = (float) (mgFrameRate * 262);
+    float            frame_ticks = (float) (mgFrameRate * 262);
     static int       count = 1;
     static float     cpu_ratio = 0.0f;
     static float     free_ratio = 0.0f;
@@ -924,6 +928,7 @@ void mgBeginDrawShadow(mgCTexture *shadow, mgCTexture *unused) {
         prim.End();
     }
 }
+
 void mgEndDrawShadow(mgCTexture *shadow, mgCTexture *unused) {
     if (shadow != NULL) {
         mgCTexture texture = *shadow;
@@ -1230,7 +1235,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     mgScreenOffx = 0x800 - width / 2;
     mgScreenOffy = 0x800 - height / 2;
     sceGsXyOffset offset;
-    sceGsScissor scissor;
+    sceGsScissor  scissor;
     offset.OFX = (short) mgScreenOffx * 16;
     offset.OFY = (short) mgScreenOffy * 16;
     scissor.SCAX0 = 0;
@@ -1661,7 +1666,7 @@ void mgTransWorldView(float *a, float *b) {
 
 int mgTransZPrim(float z) {
     float pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-    int screen[4];
+    int   screen[4];
     pos[2] = z;
     mgTransViewPrim(screen, pos);
     return screen[2];
@@ -1907,41 +1912,41 @@ void mgCloseFont() {
 }
 
 // Small uninitialised data (.sbss)
-int mgAntialiasing;
-int mgFrameRate;
-float mgNowFrameRate;
-sceDmaChan * DmaCH1;
-sceDmaChan * DmaCH2;
-sceDmaChan * DmaCH8;
-sceVif1Packet * mgVif1Packet;
-int mgClearBackFlag;
-int mgScreenMode;
-int mgScreenWidth;
-int mgScreenHeight;
-int mgScreenNX;
-int mgScreenNY;
-int mgScreenMX;
-int mgScreenMY;
-int mgScreenOffx;
-int mgScreenOffy;
-int mgScreenDepth;
-int mgScreenZDepth;
-int mgScreenLeft;
-int mgScreenRight;
-int mgScreenTop;
-int mgScreenBottom;
-int VSyncField;
-sceGsTex1 mgTEX1_1;
-sceGsTex1 mgTEX1_2;
-sceGsTest mgTEST_1;
-sceGsTest mgTEST_2;
-sceGsZbuf mgZBUF_1;
-sceGsZbuf mgZBUF_2;
-sceGsAlpha mgALPHA_1;
-sceGsAlpha mgALPHA_2;
-sceGsTexa mgTEXA_1;
-sceGsTexa mgTEXA_2;
-sceGsFrame mgFRAME_1;
+int            mgAntialiasing;
+int            mgFrameRate;
+float          mgNowFrameRate;
+sceDmaChan    *DmaCH1;
+sceDmaChan    *DmaCH2;
+sceDmaChan    *DmaCH8;
+sceVif1Packet *mgVif1Packet;
+int            mgClearBackFlag;
+int            mgScreenMode;
+int            mgScreenWidth;
+int            mgScreenHeight;
+int            mgScreenNX;
+int            mgScreenNY;
+int            mgScreenMX;
+int            mgScreenMY;
+int            mgScreenOffx;
+int            mgScreenOffy;
+int            mgScreenDepth;
+int            mgScreenZDepth;
+int            mgScreenLeft;
+int            mgScreenRight;
+int            mgScreenTop;
+int            mgScreenBottom;
+int            VSyncField;
+sceGsTex1      mgTEX1_1;
+sceGsTex1      mgTEX1_2;
+sceGsTest      mgTEST_1;
+sceGsTest      mgTEST_2;
+sceGsZbuf      mgZBUF_1;
+sceGsZbuf      mgZBUF_2;
+sceGsAlpha     mgALPHA_1;
+sceGsAlpha     mgALPHA_2;
+sceGsTexa      mgTEXA_1;
+sceGsTexa      mgTEXA_2;
+sceGsFrame     mgFRAME_1;
 /**
  * Frame counter used by the frame-end performance meter.
  */
@@ -1966,7 +1971,7 @@ static float free_ratio_586;
  * Initialization flag for the idle-time percentage.
  */
 static u_char init_587;
-int ddraw_size;
+int           ddraw_size;
 /**
  * Frame-capture sequence number initialized by StoreImage.
  */
@@ -1977,9 +1982,9 @@ INCLUDE_BSS(image_num_1535, 0x4);
 INCLUDE_BSS(init_1536, 0x4);
 
 // Uninitialised data (.bss)
-sceGifTag mgGiftagAD;
+sceGifTag     mgGiftagAD;
 sceVu0FVECTOR mgBackColor;
-sceGsDBuff mgDBuff;
-MG_PICKZ mgPickZBuff[4];
-u_long128 store_data_614[256];
+sceGsDBuff    mgDBuff;
+MG_PICKZ      mgPickZBuff[4];
+u_long128     store_data_614[256];
 INCLUDE_BSS(gs_simage, 0xA0);

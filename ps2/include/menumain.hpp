@@ -18,10 +18,10 @@
  * Identifies status flags displayed by the internal menu's debug panel.
  */
 enum MENU_DEBUG_BIT_CTRL {
-    MENU_DEBUG_BIT_CTRL_NO_MOVE = 0x01, /**< Displays the movement restriction. */
-    MENU_DEBUG_BIT_CTRL_NO_GEORAMA = 0x02, /**< Displays the georama restriction. */
-    MENU_DEBUG_BIT_CTRL_NO_FISHING = 0x04, /**< Displays the fishing restriction. */
-    MENU_DEBUG_BIT_CTRL_ATRA_OFF = 0x08, /**< Displays the Atra OFF status. */
+    MENU_DEBUG_BIT_CTRL_NO_MOVE = 0x01,      /**< Displays the movement restriction. */
+    MENU_DEBUG_BIT_CTRL_NO_GEORAMA = 0x02,   /**< Displays the georama restriction. */
+    MENU_DEBUG_BIT_CTRL_NO_FISHING = 0x04,   /**< Displays the fishing restriction. */
+    MENU_DEBUG_BIT_CTRL_ATRA_OFF = 0x08,     /**< Displays the Atra OFF status. */
     MENU_DEBUG_BIT_CTRL_BOOT_TREEMAP = 0x10, /**< Displays the Boot Treemap status. */
 };
 

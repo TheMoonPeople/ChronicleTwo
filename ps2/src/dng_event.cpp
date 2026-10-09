@@ -117,6 +117,7 @@ void CStartupEpisodeTitle::DrawEpisode(int mes_tex_block, int frame_tex_block) {
     sprite.SetScirror(0, 0, mgScreenWidth - 1, mgScreenHeight - 1);
     sprite.End();
 }
+
 void CStartupEpisodeTitle::Switch(int on) {
     char   *title;
     ClsMes *current;
@@ -1227,24 +1228,24 @@ template <typename T>
 static inline T Ident(T v) { return v; }
 
 int SearchMapFlatPosition(float *out_pos, CAutoMapGen *map_gen) {
-    float center[4];
-    float from[4];
-    float to[4];
-    CCPoly polys[128];
-    mgVu0FBOX box;
-    int hit_polys[32];
-    float hit_points[32][4];
-    float found[4];
+    float      center[4];
+    float      from[4];
+    float      to[4];
+    CCPoly     polys[128];
+    mgVu0FBOX  box;
+    int        hit_polys[32];
+    float      hit_points[32][4];
+    float      found[4];
     CMapParts *parts;
-    int place_num;
-    int poly_num __attribute__((aligned(16)));
+    int        place_num;
+    int        poly_num __attribute__((aligned(16)));
     CMapParts *place_parts;
-    int tries_left __attribute__((aligned(32)));
-    int attempt __attribute__((aligned(16)));
-    CMap *map __attribute__((aligned(32)));
-    int hit_num __attribute__((aligned(16)));
-    int attr __attribute__((aligned(32)));
-    int axis __attribute__((aligned(32)));
+    int        tries_left __attribute__((aligned(32)));
+    int        attempt __attribute__((aligned(16)));
+    CMap      *map __attribute__((aligned(32)));
+    int        hit_num __attribute__((aligned(16)));
+    int        attr __attribute__((aligned(32)));
+    int        axis __attribute__((aligned(32)));
     map = ActiveDngMap();
     if (map == NULL) {
         return 0;
@@ -1342,8 +1343,8 @@ int GetDungeonEventPoint(float *out_pos, float *out_rot, int kind) {
     }
     if (kind == DUNGEON_EVENT_POINT_WAY_20) {
         CMapParts *parts[8];
-        float rotation[8];
-        CMap *map = DngMainScene->GetMap(DngMainScene->active_map);
+        float      rotation[8];
+        CMap      *map = DngMainScene->GetMap(DngMainScene->active_map);
         if (map == NULL) {
             return 0;
         }
@@ -1360,8 +1361,8 @@ int GetDungeonEventPoint(float *out_pos, float *out_rot, int kind) {
     }
     if (kind == DUNGEON_EVENT_POINT_WAY_24) {
         CMapParts *parts[16];
-        float rotation[16];
-        CMap *map = DngMainScene->GetMap(DngMainScene->active_map);
+        float      rotation[16];
+        CMap      *map = DngMainScene->GetMap(DngMainScene->active_map);
         if (map == NULL) {
             return 0;
         }
@@ -1385,8 +1386,8 @@ int GetDungeonEventPoint(float *out_pos, float *out_rot, int kind) {
         if (boxes == NULL) {
             return 0;
         }
-        int near_box = boxes->near_box;
-        int box_no = near_box;
+        int           near_box = boxes->near_box;
+        int           box_no = near_box;
         CTreasureBox *box = &boxes->box[box_no];
         if (box == NULL) {
             return 0;
@@ -1676,23 +1677,23 @@ void AutoSetTreasureBox(int id, float *position, float power) {
 extern char at_2159[];
 
 void AutoSetTreasureBox(void) {
-    DNG_BATTLE_AREA *area = &DngMainScene->battle_area;
+    DNG_BATTLE_AREA     *area = &DngMainScene->battle_area;
     CTreasureBoxManager *manager = DngMainScene->battle_area.treasure_box;
-    int stage = DngSaveDataDungeon->stage_id;
-    u32 floor = DngSaveDataDungeon->floor_id[stage];
-    float event_pos[4];
-    float event_rot;
-    float angle;
-    int box;
-    int i;
+    int                  stage = DngSaveDataDungeon->stage_id;
+    u32                  floor = DngSaveDataDungeon->floor_id[stage];
+    float                event_pos[4];
+    float                event_rot;
+    float                angle;
+    int                  box;
+    int                  i;
 
     GetDungeonEventPoint(event_pos, &event_rot, 2);
     event_pos[3] = 1.0f;
     mgCMemory stack;
-    char path[0x40];
-    float pos[4];
-    float mimic_pos[4];
-    int size;
+    char      path[0x40];
+    float     pos[4];
+    float     mimic_pos[4];
+    int       size;
     sprintf(path, at_2159, stage + 1);
     LoadFile(path, BuffReadData, &size);
     stack.stSetBuffer(BuffReadData + size / 16 + 1, 0x4000);
@@ -1729,15 +1730,15 @@ void AutoSetTreasureBox(void) {
                         flags = 4;
                     }
                     switch (iRand(3)) {
-                    default:
-                        flags |= 8;
-                        break;
-                    case 1:
-                        flags |= 0x10;
-                        break;
-                    case 2:
-                        flags |= 0x20;
-                        break;
+                        default:
+                            flags |= 8;
+                            break;
+                        case 1:
+                            flags |= 0x10;
+                            break;
+                        case 2:
+                            flags |= 0x20;
+                            break;
                     }
                     roll = iRand(100);
                     int kind = 0x40;
@@ -2034,25 +2035,25 @@ extern char at_2455__2[];
 extern char at_2456[];
 
 void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
-    mgCMemory *stack;
-    u_long128 *image;
-    mgCTextureManager *textures;
-    int new_map;
-    int image_size;
-    CMap *map;
-    int box;
-    mgCCamera *camera;
-    int map_no;
+    mgCMemory           *stack;
+    u_long128           *image;
+    mgCTextureManager   *textures;
+    int                  new_map;
+    int                  image_size;
+    CMap                *map;
+    int                  box;
+    mgCCamera           *camera;
+    int                  map_no;
     CTreasureBoxManager *boxes;
-    int cell;
-    int snd_id;
-    int stage_size;
-    int seal;
-    int step;
-    int bgm_no;
-    int room_size;
-    u_long128 *stage_image;
-    int room;
+    int                  cell;
+    int                  snd_id;
+    int                  stage_size;
+    int                  seal;
+    int                  step;
+    int                  bgm_no;
+    int                  room_size;
+    u_long128           *stage_image;
+    int                  room;
 
     DNG_BATTLE_AREA *area = &DngMainScene->battle_area;
     DngMainScene->battle_area.battle_clear = 1;

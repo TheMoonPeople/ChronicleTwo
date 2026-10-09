@@ -27,3 +27,11 @@ and `-DSATANSFIDDLE_CONFIG=/absolute/path/profile.json`; these cached settings
 take precedence over later environment changes. MWLD still runs under plain `wibo`.
 See [the compiler integration notes](scripts/build/SATANSFIDDLE.md) for the wrapper,
 selectors, and validation commands.
+
+# Formatting
+
+Run `python3 scripts/lint/format.py` to format tracked C/C++ files with the
+project's `.clang-format`. Use `--check` to check without writing. Set
+`CLANG_FORMAT` to select a formatter executable; the current pass uses version
+19.1.7. The script preserves Metrowerks assembly blocks, which clang-format
+cannot parse safely.

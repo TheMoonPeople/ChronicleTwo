@@ -782,12 +782,12 @@ int CMap::PreDraw(float *view_pos) {
             }
 
         hide_parts: {
-                for (rect_entry = rect->parts; rect_entry != NULL; rect_entry = rect_entry->next) {
-                    if (rect_entry->data != NULL) {
-                        rect_entry->data->in_screen = 0;
-                    }
+            for (rect_entry = rect->parts; rect_entry != NULL; rect_entry = rect_entry->next) {
+                if (rect_entry->data != NULL) {
+                    rect_entry->data->in_screen = 0;
                 }
             }
+        }
         }
     }
 
@@ -844,12 +844,12 @@ int CMap::PreDraw(float *view_pos) {
 }
 
 int CMap::GetCharaLight(mgCObject *chara, CFuncPoint *points, int max, int use_parts) {
-    sceVu0FVECTOR    chara_position;
-    sceVu0FVECTOR    direction;
-    sceVu0FVECTOR    color;
-    float            attenuation;
-    int              light_num;
-    int              light_mode;
+    sceVu0FVECTOR chara_position;
+    sceVu0FVECTOR direction;
+    sceVu0FVECTOR color;
+    float         attenuation;
+    int           light_num;
+    int           light_mode;
 
     if (max <= 0) {
         return 0;
@@ -870,41 +870,41 @@ int CMap::GetCharaLight(mgCObject *chara, CFuncPoint *points, int max, int use_p
         light_num = 2;
     }
     {
-    int index;
-    int point_offset;
-    CFuncPoint *point;
-    index = 0;
-    if (0 < light_num) {
-    point_offset = 0;
-    do {
+        int         index;
+        int         point_offset;
+        CFuncPoint *point;
+        index = 0;
+        if (0 < light_num) {
+            point_offset = 0;
+            do {
                 point = (CFuncPoint *) ((u8 *) points + point_offset);
-        sceVu0SubVector(direction, point->position, chara_position);
-        attenuation = point->plight.power;
-        attenuation *= attenuation;
-        attenuation /= mgDistVector2(direction);
-        if (!(attenuation <= 1.0f)) {
-            attenuation = 1.0f;
+                sceVu0SubVector(direction, point->position, chara_position);
+                attenuation = point->plight.power;
+                attenuation *= attenuation;
+                attenuation /= mgDistVector2(direction);
+                if (!(attenuation <= 1.0f)) {
+                    attenuation = 1.0f;
+                }
+                sceVu0ScaleVector(color, point->plight.color, 0.4f * (attenuation * GetLightAnimeWeight(point, anime_frame)));
+                color[3] = 128.0f;
+                sceVu0Normalize(direction, direction);
+                mgSetLight(3 - index, direction, color);
+                index++;
+                point_offset += 0x1C0;
+            } while (index < light_num);
         }
-        sceVu0ScaleVector(color, point->plight.color, 0.4f * (attenuation * GetLightAnimeWeight(point, anime_frame)));
-        color[3] = 128.0f;
-        sceVu0Normalize(direction, direction);
-        mgSetLight(3 - index, direction, color);
-        index++;
-        point_offset += 0x1C0;
-    } while (index < light_num);
-    }
     }
     if (use_parts != 0) {
         CMapParts *parts;
-        int nearest_distance;
-        int index;
-        float distance;
+        int        nearest_distance;
+        int        index;
+        float      distance;
         chara->GetPosition(chara_position);
         chara_position[3] = 1.0f;
         parts = place_parts;
         GetNowTime();
-        CFuncPoint candidate;
-        CFuncPoint nearest;
+        CFuncPoint    candidate;
+        CFuncPoint    nearest;
         sceVu0FVECTOR local_position;
         sceVu0FMATRIX world_matrix;
         sceVu0FMATRIX inverse_matrix;
@@ -1155,9 +1155,9 @@ void CMap::DrawFireRaster() {
 }
 
 void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay) {
-    sceVu0FVECTOR  camera_position;
-    sceVu0FVECTOR  camera_direction;
-    sceVu0FVECTOR  camera_rotation;
+    sceVu0FVECTOR camera_position;
+    sceVu0FVECTOR camera_direction;
+    sceVu0FVECTOR camera_rotation;
 
     int ripple_row;
     int surface_no;
@@ -1194,7 +1194,7 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
             ripple_column = fptosi(32.0f * ((float) rand() / 2147483648.0f));
             float shake_strength = 0.1f;
             (*(CWaterFrame **) ((u8 *) water_surface + surface_offset))->Shake(ripple_row, ripple_column, shake_strength);
-            float speed_value = 0.15f;
+            float        speed_value = 0.15f;
             const float &speed = speed_value;
             (*(CWaterFrame **) ((u8 *) water_surface + surface_offset))->SetParam(speed, 0.0045f, 0.0f, 16.0f);
             (*(CWaterFrame **) ((u8 *) water_surface + surface_offset))->Step();
@@ -1213,11 +1213,11 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
     sceVu0FVECTOR position;
     sceVu0FVECTOR rotation;
     sceVu0FVECTOR scale;
-    CMapWater *placement = water;
-    int placement_no;
-    CWaterFrame *surface;
-    CMapParts *parts;
-    int parts_no;
+    CMapWater    *placement = water;
+    int           placement_no;
+    CWaterFrame  *surface;
+    CMapParts    *parts;
+    int           parts_no;
     mgUnitMatrix(identity);
 
     for (placement_no = 0; placement_no < water_num; placement_no++, placement++) {
@@ -1257,7 +1257,7 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
     }
 
     if (overlay != NULL) {
-        mgCDrawPrim prim;
+        mgCDrawPrim   prim;
         sceVu0FVECTOR overlay_position;
         sceVu0FVECTOR overlay_rotation;
         sceVu0FVECTOR overlay_scale;
@@ -1277,11 +1277,11 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
         prim.Vertex(mgScreenWidth, mgScreenHeight, 0);
         prim.End();
         mgSetPkFrameBuffer(-1, -1, -1, -1);
-        int overlay_no;
+        int          overlay_no;
         CWaterFrame *overlay_surface;
-        int overlay_parts_no;
-        int overlay_parts_offset;
-        CMapWater *overlay_water;
+        int          overlay_parts_no;
+        int          overlay_parts_offset;
+        CMapWater   *overlay_water;
         overlay_water = water;
 
         for (overlay_no = 0; overlay_no < water_num; overlay_no++, overlay_water++) {
@@ -1308,7 +1308,7 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
                     overlay_surface->SetRotation(camera_rotation);
                 }
                 overlay_surface->SetColor(0x80, 0x80, 0x80, 0x20);
-                float overlay_speed_value = 0.15f;
+                float        overlay_speed_value = 0.15f;
                 const float &overlay_speed = overlay_speed_value;
                 overlay_surface->SetParam(overlay_speed, 0.0045f, 0.0f, 300.0f);
                 overlay_surface->SetScale(overlay_scale);
@@ -1469,8 +1469,8 @@ int CMap::GetTrBoxColPoly(CCPoly *polys, float *param, int max) {
 
 int CMap::GetFixCameraPos(sceVu0FVECTOR pos, sceVu0FVECTOR out_camera_pos) {
     CCameraInfo *selected;
-    int camera_no;
-    int rect_no;
+    int          camera_no;
+    int          rect_no;
     CCameraInfo *camera;
 
     float         nearest_distance2;
@@ -1529,7 +1529,7 @@ int CMap::GetFixCameraPos(sceVu0FVECTOR pos, sceVu0FVECTOR out_camera_pos) {
                     }
                 }
                 nearest_projection = projection_num;
-                next_projection:
+            next_projection:
                 projection_num++;
             }
         }

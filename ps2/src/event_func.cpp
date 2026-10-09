@@ -2102,7 +2102,7 @@ static inline char *ScriptArgNewString(CEventScriptArg *script, char *source) {
 }
 
 int _DATA(RS_STACKDATA *stack, int argc) {
-    char *source;
+    char            *source;
     CEventScriptArg *script = nowScriptArg;
     if (script == NULL) {
         return 0;
@@ -2904,8 +2904,8 @@ void EdEventInit() {
 }
 
 void EventTimeDraw(void) {
-    int digit[10];
-    int glyph[32];
+    int        digit[10];
+    int        glyph[32];
     CSaveData *saveData = GetSaveData();
     if (saveData != NULL && EdEventInfo.stopwatch_start != 0) {
         u64 elapsed;
@@ -2952,7 +2952,7 @@ void EventTimeDraw(void) {
         mgCDrawPrim prim;
         if (EdEventInfo.stopwatch_style == 0) {
             prim.Begin(MG_PRIM_SPRITE);
-            RECT window;
+            RECT       window;
             RGBAQ_TYPE windowColor;
             window.width = 0x9E;
             window.height = 0x36;
@@ -2966,7 +2966,7 @@ void EventTimeDraw(void) {
         prim.Begin(MG_PRIM_SPRITE);
         for (int i = 0; i < 32; i++) {
             if (glyph[i] >= 0) {
-                int page;
+                int  page;
                 RECT texture = GetRectFontTex(glyph[i], &page);
                 MySetTex(page, &prim);
                 RECT destination;
@@ -2981,8 +2981,8 @@ void EventTimeDraw(void) {
                 RGBAQ_TYPE color;
                 color.a = color.r = color.g = color.b = 0x80;
                 set2DSpriteEasyFont(&prim,
-                    mgRect<int>(destination.x, destination.y, destination.width, destination.height),
-                    mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+                                    mgRect<int>(destination.x, destination.y, destination.width, destination.height),
+                                    mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
             }
         }
         if (EdEventInfo.stopwatch_style == 1) {
@@ -3000,78 +3000,78 @@ void EventTimeDraw(void) {
                         label[4] = GetFontNo(at_1908);
                         break;
                     case 2:
-                label[0] = GetHalfFontNo('C');
-                label[1] = GetHalfFontNo('h');
-                label[2] = GetHalfFontNo('u');
-                label[3] = GetHalfFontNo('t');
-                label[4] = GetHalfFontNo('e');
-                label[5] = GetHalfFontNo('s');
-                label[6] = GetHalfFontNo(' ');
-                label[7] = GetHalfFontNo('d');
-                label[8] = GetHalfFontNo('e');
-                label[9] = GetHalfFontNo(' ');
-                label[10] = GetHalfFontNo('l');
-                label[11] = GetHalfFontNo('u');
-                label[12] = GetHalfFontNo('n');
-                label[13] = GetHalfFontNo('e');
+                        label[0] = GetHalfFontNo('C');
+                        label[1] = GetHalfFontNo('h');
+                        label[2] = GetHalfFontNo('u');
+                        label[3] = GetHalfFontNo('t');
+                        label[4] = GetHalfFontNo('e');
+                        label[5] = GetHalfFontNo('s');
+                        label[6] = GetHalfFontNo(' ');
+                        label[7] = GetHalfFontNo('d');
+                        label[8] = GetHalfFontNo('e');
+                        label[9] = GetHalfFontNo(' ');
+                        label[10] = GetHalfFontNo('l');
+                        label[11] = GetHalfFontNo('u');
+                        label[12] = GetHalfFontNo('n');
+                        label[13] = GetHalfFontNo('e');
                         break;
                     case 4:
-                label[0] = GetHalfFontNo('L');
-                label[1] = GetHalfFontNo('e');
-                label[2] = GetHalfFontNo(' ');
-                label[3] = GetHalfFontNo('C');
-                label[4] = GetHalfFontNo('a');
-                label[5] = GetHalfFontNo('s');
-                label[6] = GetHalfFontNo('c');
-                label[7] = GetHalfFontNo('a');
-                label[8] = GetHalfFontNo('t');
-                label[9] = GetHalfFontNo('e');
-                label[10] = GetHalfFontNo(' ');
-                label[11] = GetHalfFontNo('d');
-                label[12] = GetHalfFontNo('e');
-                label[13] = GetHalfFontNo('l');
-                label[14] = GetHalfFontNo('l');
-                label[15] = GetHalfFontNo('a');
-                label[16] = GetHalfFontNo(' ');
-                label[17] = GetHalfFontNo('L');
-                label[18] = GetHalfFontNo('u');
-                label[19] = GetHalfFontNo('n');
-                label[20] = GetHalfFontNo('a');
+                        label[0] = GetHalfFontNo('L');
+                        label[1] = GetHalfFontNo('e');
+                        label[2] = GetHalfFontNo(' ');
+                        label[3] = GetHalfFontNo('C');
+                        label[4] = GetHalfFontNo('a');
+                        label[5] = GetHalfFontNo('s');
+                        label[6] = GetHalfFontNo('c');
+                        label[7] = GetHalfFontNo('a');
+                        label[8] = GetHalfFontNo('t');
+                        label[9] = GetHalfFontNo('e');
+                        label[10] = GetHalfFontNo(' ');
+                        label[11] = GetHalfFontNo('d');
+                        label[12] = GetHalfFontNo('e');
+                        label[13] = GetHalfFontNo('l');
+                        label[14] = GetHalfFontNo('l');
+                        label[15] = GetHalfFontNo('a');
+                        label[16] = GetHalfFontNo(' ');
+                        label[17] = GetHalfFontNo('L');
+                        label[18] = GetHalfFontNo('u');
+                        label[19] = GetHalfFontNo('n');
+                        label[20] = GetHalfFontNo('a');
                         break;
                     case 5:
-                label[0] = GetHalfFontNo('C');
-                label[1] = GetHalfFontNo('a');
-                label[2] = GetHalfFontNo('t');
-                label[3] = GetHalfFontNo('a');
-                label[4] = GetHalfFontNo('r');
-                label[5] = GetHalfFontNo('a');
-                label[6] = GetHalfFontNo('t');
-                label[7] = GetHalfFontNo('a');
-                label[8] = GetHalfFontNo('s');
-                label[9] = GetHalfFontNo(' ');
-                label[10] = GetHalfFontNo('L');
-                label[11] = GetHalfFontNo('u');
-                label[12] = GetHalfFontNo('n');
-                label[13] = GetHalfFontNo('a');
+                        label[0] = GetHalfFontNo('C');
+                        label[1] = GetHalfFontNo('a');
+                        label[2] = GetHalfFontNo('t');
+                        label[3] = GetHalfFontNo('a');
+                        label[4] = GetHalfFontNo('r');
+                        label[5] = GetHalfFontNo('a');
+                        label[6] = GetHalfFontNo('t');
+                        label[7] = GetHalfFontNo('a');
+                        label[8] = GetHalfFontNo('s');
+                        label[9] = GetHalfFontNo(' ');
+                        label[10] = GetHalfFontNo('L');
+                        label[11] = GetHalfFontNo('u');
+                        label[12] = GetHalfFontNo('n');
+                        label[13] = GetHalfFontNo('a');
                         break;
                     case 1:
                     case 3:
                     default:
-                label[0] = GetHalfFontNo('M');
-                label[1] = GetHalfFontNo('o');
-                label[2] = GetHalfFontNo('o');
-                label[3] = GetHalfFontNo('n');
-                label[4] = GetHalfFontNo('F');
-                label[5] = GetHalfFontNo('a');
-                label[6] = GetHalfFontNo('l');
-                label[7] = GetHalfFontNo('l');
-                label[8] = GetHalfFontNo('s');
+                        label[0] = GetHalfFontNo('M');
+                        label[1] = GetHalfFontNo('o');
+                        label[2] = GetHalfFontNo('o');
+                        label[3] = GetHalfFontNo('n');
+                        label[4] = GetHalfFontNo('F');
+                        label[5] = GetHalfFontNo('a');
+                        label[6] = GetHalfFontNo('l');
+                        label[7] = GetHalfFontNo('l');
+                        label[8] = GetHalfFontNo('s');
                         break;
                 }
             }
             for (int i = 0; i < 32; i++) {
                 if (label[i] >= 0) {
-                    int page;
+                    int  page;
                     RECT texture = GetRectFontTex(label[i], &page);
                     MySetTex(page, &prim);
                     RECT destination;
@@ -3104,8 +3104,8 @@ void EventTimeDraw(void) {
                     RGBAQ_TYPE color;
                     color.a = color.r = color.g = color.b = 0x80;
                     set2DSpriteEasyFont(&prim,
-                        mgRect<int>(destination.x, destination.y, destination.width, destination.height),
-                        mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+                                        mgRect<int>(destination.x, destination.y, destination.width, destination.height),
+                                        mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
                 }
             }
         }
@@ -3658,11 +3658,11 @@ int _LOAD_CHARA_sub(int a, char **b, int c, u32 *d) {
 
 int _LOAD_CHARA(RS_STACKDATA *stack, int argc) {
     char *name[0x20];
-    char directory[0x40];
-    char fileName[0x20];
-    int stackNo;
-    int charaNo;
-    int mode;
+    char  directory[0x40];
+    char  fileName[0x20];
+    int   stackNo;
+    int   charaNo;
+    int   mode;
     char *path;
     switch (argc) {
         case 1: {
@@ -3698,7 +3698,7 @@ int _LOAD_CHARA(RS_STACKDATA *stack, int argc) {
     if (pack == NULL) {
         return 0;
     }
-    int result = _LOAD_CHARA_sub(stackNo, name, charaNo, pack, mode);
+    int        result = _LOAD_CHARA_sub(stackNo, name, charaNo, pack, mode);
     CSaveData *saveData = GetSaveData();
     if (saveData != NULL) {
         if (saveData->GetBitCtrl() & 8) {
@@ -4060,16 +4060,16 @@ int _GET_DUN_WORLD_COORD(RS_STACKDATA *stack, int argc) {
 }
 
 int _LOAD_IMG(RS_STACKDATA *stack, int argc) {
-    int size;
-    int stackNo = GetStackInt(stack++);
+    int   size;
+    int   stackNo = GetStackInt(stack++);
     char *fileName = GetStackString(stack++);
-    int imageNo = GetStackInt(stack++);
-    int num = EventScene->event_texb_num;
-    int base = EventScene->event_texb;
+    int   imageNo = GetStackInt(stack++);
+    int   num = EventScene->event_texb_num;
+    int   base = EventScene->event_texb;
     if (num <= 0 || num < imageNo) {
         return 0;
     }
-    int block = base + imageNo;
+    int     block = base + imageNo;
     u_char *file = (u_char *) GetLoadBGBuff(fileName, &size);
     if (file == NULL) {
         return 0;
@@ -4443,15 +4443,15 @@ int GetConfigCaptionOff() {
 }
 
 int LoadMovie(char *name, mgCMemory *memory, bool skip) {
-    CMovie movie __attribute__((aligned(32)));
-    int captionWidth;
-    int captionHeight;
-    int captionBlock;
-    int captionOff;
-    int fontBlock;
+    CMovie      movie __attribute__((aligned(32)));
+    int         captionWidth;
+    int         captionHeight;
+    int         captionBlock;
+    int         captionOff;
+    int         fontBlock;
     mgCTexture *movieTexture;
-    int movieBlock;
-    int frame;
+    int         movieBlock;
+    int         frame;
 
     movie.Load(name, memory, 0x200, 0x1A0, true, false, skip);
     printf(at_2836, (memory->stack_size - memory->stack_used) * 0x10 / 0x400);
@@ -4555,9 +4555,9 @@ int LoadMovie(char *name, mgCMemory *memory, bool skip) {
             char *text = NULL;
             if (captionOff == 0) {
                 char caption[0xE1];
-                int i;
-                int x;
-                int y;
+                int  i;
+                int  x;
+                int  y;
                 for (i = 0; i < 18; i++) {
                     if (EdEventInfo.caption_start[i] <= frame &&
                         frame <= EdEventInfo.caption_start[i] + EdEventInfo.caption_frames[i]) {
@@ -4719,22 +4719,22 @@ int _TRG_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
 }
 
 int _RESET_CAMERA(RS_STACKDATA *stack, int argc) {
-    int mode;
-    float follow[4];
-    float followOffset[4];
-    float charaPos[4];
-    float cameraPos[4];
-    float pos[4];
-    float rot[4];
-    float target[4];
-    CCameraControl *camera;
+    int              mode;
+    float            follow[4];
+    float            followOffset[4];
+    float            charaPos[4];
+    float            cameraPos[4];
+    float            pos[4];
+    float            rot[4];
+    float            target[4];
+    CCameraControl  *camera;
     mgCCameraFollow *referenceCamera;
     mgCCameraFollow *beforeCamera;
-    CCharacter2 *chara;
-    float dx;
-    float dy;
-    float dz;
-    float distance;
+    CCharacter2     *chara;
+    float            dx;
+    float            dy;
+    float            dz;
+    float            distance;
     mode = GetStackInt(stack++);
     float angle;
     float height;
@@ -6825,16 +6825,16 @@ int _GOTO_SUBGAME(RS_STACKDATA *stack, int argc) {
 }
 
 int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
-    int digit[8];
-    char text[0x14];
+    int     digit[8];
+    char    text[0x14];
     ClsMes *mes;
-    float time;
-    int minutes;
-    int seconds;
-    int hundredths;
-    int resultNo;
-    int nameNo;
-    int i;
+    float   time;
+    int     minutes;
+    int     seconds;
+    int     hundredths;
+    int     resultNo;
+    int     nameNo;
+    int     i;
     switch (GetStackInt(stack++)) {
         case 0:
             SetGyoRaceAquariumNo(GetStackInt(stack));
@@ -9156,21 +9156,21 @@ int _GET_MES_OKURI(RS_STACKDATA *stack, int argc) {
 }
 
 int _GET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
-    int shown;
-    int i;
-    int weight;
-    char *name;
-    int padding;
-    CFishingTournament *tournament;
-    FISH_PRIZE_INFO prize;
-    float size;
-    ClsMes *mes;
+    int                    shown;
+    int                    i;
+    int                    weight;
+    char                  *name;
+    int                    padding;
+    CFishingTournament    *tournament;
+    FISH_PRIZE_INFO        prize;
+    float                  size;
+    ClsMes                *mes;
     FISH_TOURNAMENT_ENTRY *entry;
-    int j;
-    char text[0x200];
-    char itemName[0x20];
-    char nameColumn[0x20];
-    char sizeColumn[0x28];
+    int                    j;
+    char                   text[0x200];
+    char                   itemName[0x20];
+    char                   nameColumn[0x20];
+    char                   sizeColumn[0x28];
     switch (GetStackInt(stack++)) {
         case 0:
             tournament = GetFishTournament();
@@ -10682,12 +10682,12 @@ int _OBJS_JUMP(RS_STACKDATA *stack, int argc) {
 
 int _OBJS_SET_EOH_FRAME_POS(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
-    float offset[4];
-    int slot;
-    int eohNo;
-    int frames;
-    const int vector_bytes = 0x18;
-    char *frameName;
+    float         offset[4];
+    int           slot;
+    int           eohNo;
+    int           frames;
+    const int     vector_bytes = 0x18;
+    char         *frameName;
 
     frames = 0;
     mgZeroVector(offset);
@@ -10729,8 +10729,8 @@ int _OBJS_SET_EOH_FRAME_POS(RS_STACKDATA *stack, int argc) {
 
 int _OBJS_ADD_POS(RS_STACKDATA *stack, int argc) {
     float add[4];
-    int index;
-    int frame = 1;
+    int   index;
+    int   frame = 1;
     switch (argc) {
         case 1: {
             ARG_DATA *args = FindArgData(GetStackInt(stack));
@@ -12191,12 +12191,12 @@ int _GET_DEF_BGM_NO(RS_STACKDATA *stack, int argc) {
 }
 
 int _SET_MOVIE_CC(RS_STACKDATA *stack, int argc) {
-    int i;
-    int no;
-    int start;
+    int   i;
+    int   no;
+    int   start;
     char *text;
-    int frames;
-    int mode = GetStackInt(stack++);
+    int   frames;
+    int   mode = GetStackInt(stack++);
     switch (mode) {
         case 0:
             EdEventInfo.caption_enable = GetStackInt(stack);
@@ -15414,8 +15414,8 @@ static inline int Ident(int v) {
 }
 #ifdef NONMATCHING
 int _ESM_INITIALIZE(RS_STACKDATA *stack, int argc) {
-    int stackNo;
-    int texbOffset = 0;
+    int        stackNo;
+    int        texbOffset = 0;
     mgCMemory *memory;
     stackNo = GetStackInt(stack++);
     if (argc >= 2) {
@@ -15870,7 +15870,7 @@ int _IS_CLEAR_PRACTICE(RS_STACKDATA *stack, int argc) {
     if (argc != 3) {
         return 0;
     }
-    DNG_BATTLE_AREA *area = &EventScene->battle_area;
+    DNG_BATTLE_AREA  *area = &EventScene->battle_area;
     CDngFloorManager *floorManager = &area->floor_manager;
     if (area == NULL) {
         return 0;
@@ -15878,7 +15878,7 @@ int _IS_CLEAR_PRACTICE(RS_STACKDATA *stack, int argc) {
     if (floorManager == NULL) {
         return 0;
     }
-    int cleared = floorManager->IsClearPractice(GetStackInt(stack++));
+    int        cleared = floorManager->IsClearPractice(GetStackInt(stack++));
     CSaveData *saveData = GetSaveData();
     if (saveData == NULL) {
         return 0;
@@ -16180,8 +16180,8 @@ static inline CMap *GetActiveEventMap() {
 }
 
 int _FUNC_POINT_GET_ROT(RS_STACKDATA *stack, int argc) {
-    float rot[4];
-    CMap *map;
+    float       rot[4];
+    CMap       *map;
     CFuncPoint *funcPoint;
     map = GetActiveEventMap();
     if (map == NULL) {
@@ -16189,8 +16189,8 @@ int _FUNC_POINT_GET_ROT(RS_STACKDATA *stack, int argc) {
     }
     switch (stack->type) {
         case RS_INT: {
-            int partsNo = GetStackInt(stack++);
-            char *name = GetStackString(stack++);
+            int        partsNo = GetStackInt(stack++);
+            char      *name = GetStackString(stack++);
             CMapParts *parts = map->GetPlaceParts(partsNo);
             if (parts == NULL) {
                 return 0;
@@ -16462,7 +16462,7 @@ int _COPY_MONS2SCNCHR(RS_STACKDATA *stack, int argc) {
 
     EventScene->SetStatus(SCENE_DATA_CHARA, slot, 5);
     CCharacter2 *dest = GetCharacter(dst_no);
-    CCharacter2 source = ActiveMonster->refer[monster_index].chara;
+    CCharacter2  source = ActiveMonster->refer[monster_index].chara;
     source.Copy(*dest, memory);
     EventScene->SetCharaTexb(dst_no, monster_index + 0x28);
     return 1;

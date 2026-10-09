@@ -239,8 +239,8 @@ STATIC_ASSERT(sizeof(CHRINFO_EFFECT_IMAGE) == 0x28);
  *
  */
 struct CHARA_ENTRY_OBJECT {
-    mgCFrame *frame; /**< Frame of the model; NULL for a free slot. */
-    float     size; /**< Size used when checking a frame against a character entry. */
+    mgCFrame *frame;  /**< Frame of the model; NULL for a free slot. */
+    float     size;   /**< Size used when checking a frame against a character entry. */
     s32       group;  /**< Group that the frame belongs to; -1 for a free slot. */
     s32       enable; /**< Nonzero while the slot is in use. */
 };
@@ -402,7 +402,7 @@ public:
     s32                   seq_advance;                          /**< Nonzero to let a waiting step move on. */
     tagMOTION_TYPE        motion[CHARA_MOTION_SET_MAX];         /**< Motion data of each motion set of the model. */
     tagMOTION_TYPE        shadow_motion[CHARA_MOTION_SET_MAX];  /**< Motion data of each motion set of the shadow. */
-    s32                   main_frame_info; /**< Frame information used by the character's main model. */
+    s32                   main_frame_info;                      /**< Frame information used by the character's main model. */
     tagFRAME_INF         *shadow_frame_info;                    /**< Skinning data that every motion set of the shadow shares. */
     float                 blend;                                /**< Weight of the motion that plays against the previous one while blending. */
     float                 blend_speed;                          /**< Weight that blend gains each step. */

@@ -2712,7 +2712,7 @@ void TitleHDDInstallDraw() {
 
     if (HDDSysImage != NULL && HDDMesDrawFlag == 0) {
         textures->ReloadTexture(HDDSysImage->block, (sceVif1Packet *) NULL);
-        float       cursor[2] = {160.0f, 180.0f};
+        float cursor[2] = {160.0f, 180.0f};
         PrimQuad(HDDSysImage, cursor[0], cursor[1], mgRect<int>(0x12E, 0x94, 0xD2, 0x36), 0x80, 0x80, 0x80, 0x80);
 
         if (init_2648 == 0) {

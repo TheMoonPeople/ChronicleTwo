@@ -110,19 +110,19 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
     unsigned int count = list->key_count;
     low = 0;
     high = count;
-    int          next;
-    mgCFrame    *frame;
-    unsigned int vertex;
-    int          driven;
-    int          key;
+    int            next;
+    mgCFrame      *frame;
+    unsigned int   vertex;
+    int            driven;
+    int            key;
     sceVu0FVECTOR *vertices;
-    unsigned int key_frame;
-    float        t;
-    float        one_minus_t;
-    float        value[4];
-    float        rotation[4];
-    float        from[4];
-    float        to[4];
+    unsigned int   key_frame;
+    float          t;
+    float          one_minus_t;
+    float          value[4];
+    float          rotation[4];
+    float          from[4];
+    float          to[4];
 
     if (low < high) {
         do {
@@ -529,6 +529,7 @@ Mot_List *MotionProc(mgCFrame *root, unsigned int from_frame, unsigned int to_fr
 }
 
 #pragma global_optimizer off
+
 /**
  *
  * Accumulates a weighted transformed vertex and writes the resulting vertex.
@@ -553,6 +554,7 @@ static void testVUnew(float (*matrix)[4], float *vertex, float *weight, float *a
         sqc2 vf6, 0(out)
     }
 }
+
 #pragma global_optimizer reset
 
 #ifdef NONMATCHING
@@ -1118,23 +1120,24 @@ int CheckHit(CCPoly *polys, int count, float *from, float *to, float *hit_point,
 }
 
 #pragma global_optimizer off
+
 int CheckHit(CollisionInfo *collision, float *from, float *to, float *hit, int closest, int mask) {
-    float point[4];
-    float diff[4];
-    float polyMin[4];
-    float polyMax[4];
-    float segMax[4];
-    float segMin[4];
-    float offset[4];
-    float bestDist;
-    float d0;
-    float d1;
-    float dist;
-    int i;
-    int best;
+    float   point[4];
+    float   diff[4];
+    float   polyMin[4];
+    float   polyMax[4];
+    float   segMax[4];
+    float   segMin[4];
+    float   offset[4];
+    float   bestDist;
+    float   d0;
+    float   d1;
+    float   dist;
+    int     i;
+    int     best;
     CCPoly *poly;
-    int count;
-    int hasBest;
+    int     count;
+    int     hasBest;
 
     if (collision == NULL) {
         return 0;
@@ -1208,6 +1211,7 @@ int CheckHit(CollisionInfo *collision, float *from, float *to, float *hit, int c
     }
     return best;
 }
+
 #pragma global_optimizer reset
 
 int CheckHitVertical(CCPoly *polys, int count, float *from, float height, float *hit_point, int ignore_mask) {
@@ -1636,18 +1640,18 @@ int CheckHitsPipe(CCPoly *polys, int count, sceVu0FVECTOR from, float *to, int m
 }
 
 int CheckHitsSphere(CCPoly *polys, int count, float *sphere, int max_hits, int *hit_polys, sceVu0FVECTOR *hit_points, int sort, int ignore_mask) {
-    float push[4];
-    float poly_min[4];
-    float poly_max[4];
-    float sphere_max[4];
-    float sphere_min[4];
-    float normal[4];
-    float swap[4];
-    int i;
-    int hits;
+    float   push[4];
+    float   poly_min[4];
+    float   poly_max[4];
+    float   sphere_max[4];
+    float   sphere_min[4];
+    float   normal[4];
+    float   swap[4];
+    int     i;
+    int     hits;
     CCPoly *poly;
-    int j;
-    int index;
+    int     j;
+    int     index;
 
     hits = 0;
     float radius = sphere[3];
@@ -1691,7 +1695,9 @@ int CheckHitsSphere(CCPoly *polys, int count, float *sphere, int max_hits, int *
         hits++;
     }
 
-    if (sort == 0) return hits;
+    if (sort == 0) {
+        return hits;
+    }
     {
         if (sort > 0) {
             for (i = 0; i < hits - 1; i++) {
@@ -1735,16 +1741,21 @@ int MoveCheck(float *pos, float *vel, float *out, MoveCheckInfo *info, CCPoly *p
     float start[4];
     float end[4];
     float dir[4];
-    int hitIndex[64];
+    int   hitIndex[64];
     float hitPoint[64][4];
     float scratch[4];
-    union { CCPoly poly; CCPolyCopy copy; } foot;
+
+    union {
+        CCPoly     poly;
+        CCPolyCopy copy;
+    } foot;
+
     float footProbe[4];
     float probe[4];
     float radius;
     float margin;
-    int tries;
-    int wallSides;
+    int   tries;
+    int   wallSides;
 
     radius = info->radius;
     if (radius <= 0.0f) {

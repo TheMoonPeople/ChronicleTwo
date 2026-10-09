@@ -327,9 +327,9 @@ int CSound::Exit() {
 }
 
 void CSound::DEL_PORT(int port) {
-    int        dependent;
-    int        dependent_port;
-    int        stream_port;
+    int          dependent;
+    int          dependent_port;
+    int          stream_port;
     MSIN_BUFFER *buffer;
 
     printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$DEL PORT %d\n", port);
@@ -588,11 +588,11 @@ void CSound::LoadHdBd(int port, int hd, int hd_size, int bd, int bd_size) {
 }
 
 void CSound::LoadHdBd2(int port, int hd, int hd_size, int bd, int bd_size) {
-    int        dependent_port;
-    MIDI_PORT *child;
-    int        stream_port;
+    int          dependent_port;
+    MIDI_PORT   *child;
+    int          stream_port;
     MSIN_BUFFER *buffer;
-    int slot;
+    int          slot;
 
     stream_port = port - MIDI_PORT_MSIN_FIRST;
     if (stream_port >= 0) {

@@ -24,12 +24,12 @@ const int          place_anime_count = 3;
 extern char          at_821__5[];
 extern sceVu0FVECTOR at_1112__3;
 
-extern u32               EffectFlag;
-extern u32               EffectState;
-extern CPaintEffect     *PaintEffect;
-extern CStarEffect       _StarEffect[star_effect_count];
-extern mgCMemory         CurPartsBuff;
-extern CPlaceAnime       PlaceAnime[place_anime_count];
+extern u32           EffectFlag;
+extern u32           EffectState;
+extern CPaintEffect *PaintEffect;
+extern CStarEffect   _StarEffect[star_effect_count];
+extern mgCMemory     CurPartsBuff;
+extern CPlaceAnime   PlaceAnime[place_anime_count];
 
 // Code (.text)
 void EditSetEffectBuffer(mgCMemory *memory) {

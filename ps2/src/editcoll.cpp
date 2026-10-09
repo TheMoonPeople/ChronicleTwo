@@ -42,6 +42,7 @@ int ClipBoxXZ(float *max_a, float *min_a, float *max_b, float *min_b) {
     }
     return (flags & 0x80) == 0;
 }
+
 #pragma global_optimizer reset
 
 float OverlapPoly3AreaXZ(sceVu0FVECTOR *clipped, sceVu0FVECTOR *clipper, mgVu0FBOX *box) {
@@ -353,14 +354,14 @@ float CEditCollision::OverlapXZ(CEditCollision &other, float (*matrix)[4], mgVu0
 }
 
 int CEditCollision::OverlapPoly3XZ(float (*triangle)[4], float (*matrix)[4], float *area) {
-    float tri_max[4];
-    float tri_min[4];
-    float transformed_max[4];
-    float transformed_min[4];
-    float transformed[3][4];
+    float   tri_max[4];
+    float   tri_min[4];
+    float   transformed_max[4];
+    float   transformed_min[4];
+    float   transformed[3][4];
     CCPoly *source = poly;
-    int index;
-    float total;
+    int     index;
+    float   total;
     if (source == NULL) {
         return 0;
     }

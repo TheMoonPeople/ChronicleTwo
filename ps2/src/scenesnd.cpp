@@ -70,6 +70,7 @@ void CScene::InitBGM() {
     info->stack.stSetBuffer(info->buff, 0x40);
     sndInitPort(info->port);
 }
+
 void CScene::InitSeSrc() {
     StopSeSrc();
     sndSeAllStop(4);

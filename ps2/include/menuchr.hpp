@@ -459,11 +459,11 @@ public:
     s16             costume_list[COSTUME_LIST_NUM][COSTUME_LIST_MAX]; /**< Costumes the character has, by kind. */
     s16            *list[COSTUME_LIST_NUM];                           /**< List shown on each line, as an entry of costume_list. */
     s32             unk_220;
-    float           tile_scroll;    /**< Scroll of the background tiles. */
-    mgCMemory       stack;          /**< Memory of the screen's data. */
-    s16             chara;          /**< Character being dressed: 0 for Max, 1 for Monica. */
-    int             monica_enabled; /**< 1 when Monica can be dressed too. */
-    sceVu0FVECTOR   chara_pos;      /**< Position of the character's model. */
+    float           tile_scroll;         /**< Scroll of the background tiles. */
+    mgCMemory       stack;               /**< Memory of the screen's data. */
+    s16             chara;               /**< Character being dressed: 0 for Max, 1 for Monica. */
+    int             monica_enabled;      /**< 1 when Monica can be dressed too. */
+    sceVu0FVECTOR   chara_pos;           /**< Position of the character's model. */
     float           costume_rotation[4]; /**< Rotation restored to the character model while dressing it. */
     s32             unk_280;
     int             cursor_show;  /**< Non-zero while the cursor is drawn. */
@@ -475,13 +475,13 @@ public:
     int             show_help;    /**< Non-zero while the help is drawn. */
     s32             unk_2A8;
     s32             unk_2AC;
-    float           cursor_x;    /**< Screen x of the cursor. */
-    float           cursor_y;    /**< Screen y of the cursor. */
-    float           cursor_wave; /**< Angle that bobs the cursor. */
+    float           cursor_x;      /**< Screen x of the cursor. */
+    float           cursor_y;      /**< Screen y of the cursor. */
+    float           cursor_wave;   /**< Angle that bobs the cursor. */
     float           cursor_wave_y; /**< Phase of the costume cursor's vertical bob. */
-    CHARA_DATA     *chara_data; /**< Status of the character being dressed. */
-    mgCTexture     *tile_tex;   /**< Texture of the background tiles. */
-    mgCTexture     *cursor_tex; /**< Texture of the cursor. */
+    CHARA_DATA     *chara_data;    /**< Status of the character being dressed. */
+    mgCTexture     *tile_tex;      /**< Texture of the background tiles. */
+    mgCTexture     *cursor_tex;    /**< Texture of the cursor. */
 
 #ifdef NONMATCHING
     CMenuCostumeSel() : camera(40.0f, 30.0f, 0.0f, 8.0f) {
@@ -1307,12 +1307,12 @@ void MonsterBookDraw();
  *
  */
 struct MENU_LOAD_INFO {
-    signed char mode; /**< Current loading mode. */
+    signed char mode;            /**< Current loading mode. */
     signed char alternate_model; /**< Selects the alternate character model for loading. */
-    signed char load_all; /**< Non-zero when all character model phases are loaded together. */
-    signed char chara_no; /**< Character selected for model loading. */
-    signed char request_phase; /**< Requested phase of character model loading. */
-    signed char load_phase; /**< Current phase of character model loading. */
+    signed char load_all;        /**< Non-zero when all character model phases are loaded together. */
+    signed char chara_no;        /**< Character selected for model loading. */
+    signed char request_phase;   /**< Requested phase of character model loading. */
+    signed char load_phase;      /**< Current phase of character model loading. */
     signed char target_flags[2];
 };
 
