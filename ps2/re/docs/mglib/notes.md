@@ -101,14 +101,76 @@ slot. The same duplicate-entry pattern appeared in 21 other game units with nati
 ## Current source status
 
 The source has 100 exact functions and one guarded draft, `VSyncCallBack`
-(its `sync`/`ei` pair has no native compiler expression). `mgEndFrame` and
-`mgSetPkFrameBuffer(int,int,int,int)` are exact; see
-[night-20261008.md](night-20261008.md). The complete object passes `0x4D9C`
-checked bytes and 1,248 resolved relocations. Upstream's
-native framebuffer copies and the local native shadow compositor coexist.
-The earlier 43-exact/31-isolated/27-differing inventory describes initial
-source drafting rather than this merged state. Remaining draft measurements
-are in [matching-20261008.md](matching-20261008.md).
+(its `sync`/`ei` pair has no native compiler expression). The complete object
+passes `0x4D9C` checked bytes and 1,248 resolved relocations. The earlier
+43-exact/31-isolated/27-differing inventory describes initial source drafting
+rather than this merged state. Remaining draft measurements are in
+[matching-20261008.md](matching-20261008.md).
+
+## mgEndFrame source forms
+
+- The BGCOLOR, SMODE2 and DISPFB environment stores are whole-register writes,
+  `*(u_long *) &mgDBuff.disp[mgDBuffID].bgcolor = 0;` (the DISPLAY store already
+  was). Retail reloads `mgDBuffID` and recomputes `&mgDBuff.disp[mgDBuffID]` after
+  each of them; plain member stores keep the index and address in registers and
+  differ by 37 words from `+0x6D8` with the body 0xA4C instead of 0xA74. PMODE
+  keeps plain stores because its reload follows the antialiasing branch join. In
+  the real SDK these members are `tGS_*` bitfield registers; this repository's
+  `sceGsDispEnv` declares them `u_long`.
+- DISPFB values are recomputed from the FRAME fields at each use, each field
+  widened before shifting (`(u_long) frame->FBP | ((u_long) frame->FBW << 9) |
+  ((u_long) frame->PSM << 15)`); a 32-bit local sign-extends and is reused.
+- The DISPLAY prefix `(u_long) 0x290 | ((u_long) (offset_y + 72) << 12) |
+  ((u_long) magnification << 23)` is written in full at the environment store and
+  both GS DISPLAY writes: MWCC keeps the common left-associated prefix in `s3` as
+  a CSE temporary coloured after the named locals. A named local for it takes
+  `s1` (33 words).
+- `magnification = mgScreenWidth == 512 ? 4 : 3;` gives `frame` in `s1` and
+  `magnification` in `s2`; `if`/`else` gives 33 words.
+- `offset_y = (524 - mgScreenHeight) / 2;` with `(offset_y + 72) << 12` in the
+  expression reproduces the difference/quotient temporaries; adding 72 in the
+  local leaves 15 words.
+- The frame counter is `count++; if (count > 60 / mgFrameRate)`: the count is
+  stored before the division check and reloaded in the branch delay slot.
+- The depth sample is `u_int *const pixels = store_data; u_int depth = pixels[0];
+  depth &= 0xFFFFFF;` over the typed `static u_int store_data[1024]`
+  (`(u_long128 *) store_data` for `sceGsExecStoreImage`). The top-level `const`
+  keeps the base register for the first sample and the loop, and `&=` gives the
+  AND result the load's register. Indexing `store_data` directly with
+  `int depth = store_data[0] & 0xFFFFFF` folds `[0]` into a direct symbol load
+  (3 words at `+0x560`, two `store_data_614` relocations). This is the
+  `T *const p = array` trait in `docs/MWCC.md`.
+- The performance meter uses `ZMask(MG_Z_MASK_MASKED)` and `Begin(MG_PRIM_SPRITE)`;
+  the `timer0_count - h_count` differences are already `u_int`.
+- The function-local statics `count`, `cpu_ratio`, `free_ratio` (with MWCC's
+  initialization guards) and `store_data` are native; `INCLUDE_BSS` reservations
+  at their retail `.sbss`/`.bss` positions (`count_580` … `init_587`,
+  `store_data_614`, like `image_num_1535`/`init_1536` for `StoreImage`) are
+  bound by the postprocessor by base name and extent, each guard spanning its
+  byte and the following alignment padding. `store_data_614` stays global for
+  the library-data reference in `e_rem_pio2`.
+
+## mgSetPkFrameBuffer source forms
+
+- The packet count is the pointer difference
+  `sceVif1PkReserve(vif, (u_int *) &registers[12] - packet)` over the
+  `(u_long *) &packet[8]` register view: MWCC emits retail's `addiu +0x20`,
+  `addiu +0x60`, `subu`, `sra 2` with the `bgez`/`addiu 3` rounding correction.
+  The constant `32` leaves the packet window six words short (251/424).
+- FRAME is read as a whole register, `*(u_long *) &frame`, like XYOFFSET and
+  SCISSOR, materializing the stack address before the `ld`; `frame.value` loads
+  it directly and differs by 50 words from `+0x31C`. The real SDK `sceGsFrame`
+  has no `value` member.
+- `case SCE_GS_PSMCT16:` and `case SCE_GS_PSMCT16S:` are separate blocks that
+  both set `bpp = 16` (`int`); a shared fallthrough body differs by 46 words
+  from `+0x36C`.
+- Both shift counters are cleared before the first log2 loop
+  (`width_shift = 0; height_shift = 0;`); clearing `height_shift` at its own
+  loop differs by 24 words from `+0x450`.
+- The log2 loops are `for (size = width; size > 1; size >>= 1)`: the entry test
+  fuses into the branch with the `size = width` copy in its delay slot.
+- The frame texture's TEX1 is `SCE_GS_SET_TEX1(1, 0, 1, 1, 1, 0, 0)` (0x261), as
+  `mg_texture.cpp` writes the same register.
 
 Header: `ps2/include/mglib.hpp`. No class is owned by mglib (`class_units.tsv`). Declared here:
 structs `mgFOG_PARAM` (retail name, from `mgSetFogParam__FP11mgFOG_PARAM`) and `MG_PICKZ`
@@ -137,12 +199,11 @@ The built ELF in `build/pal` marks everything GLOBAL; the retail ELF does not. U
   (slot 0xA0), prog_adr 12 (3 pointers).
 
 Round 3 restores these private globals as typed file statics. The stable
-`dimx_281` file-static table replaces the compiler-ordinal local spelling;
-the guarded frame-end local state remains at file scope while its retail
-assembly is active. `store_data_614` retains external linkage because an
-existing generated library-data expression references that symbol. The
-`gs_simage`, `image_num_1535`, and `init_1536` C++ BSS reservations remain for
-the checker/postprocessor limitations documented in the round-3 notes.
+`dimx_281` file-static table replaces the compiler-ordinal local spelling.
+`store_data_614` retains external linkage because an existing generated
+library-data expression references that symbol. `gs_simage` and the
+function-local static reservations are `INCLUDE_BSS` markers bound to the
+native objects by the postprocessor.
 
 ## Global types (evidence)
 - `DmaCH1/2/8` sceDmaChan* (sceDmaGetChan results; CH1 chcr.TTE set). DmaCH2 also used by movie,
@@ -275,10 +336,23 @@ The guarded C++ draft samples GS CSR bit 13, stores the inverse in `VSyncField`,
 
 `mgEndFrame__FP14mgCDrawManager` has retail symbol size `0xA74`; `0xA80`
 is its padded section extent. Its 1024-word `store_data` DMA readback buffer
-now explicitly requires 16-byte alignment, matching the quadword pointer
-accepted by `sceGsExecStoreImage`. The aligned declaration preserves all
-allocated object bytes and resolved relocations; the retained retail marker
-still supplies the exported identity required by library data.
+requires 16-byte alignment, matching the quadword pointer accepted by
+`sceGsExecStoreImage`; the `store_data_614` marker supplies the exported
+identity required by library data.
 
-Receipts: `.private/fixes-r0/mglib-probe-{build,objects}.log` and
-`mglib-final-{build,objects}.log`: `SCES_511.90: OK`, 149/149 objects.
+## Typed access
+
+- `mgWaitFrame`, `mgDrawDirect(mgCVisual *, ...)` and `mgDrawDirect2` use
+  `mgVif1Packet->pCurrent`; `mgDrawDirect2` passes `pCurrent + ddraw_size * 4`.
+- `*(u_long *) &reg` GS register views and `*(u_long128 *) &mgGiftagAD` SDK
+  quadword arguments are the accepted conventions; `*(volatile u_int *)
+  timer0_count`, `*(volatile u_long *) gs_pmode` and the other `static const
+  u_int` addresses are memory-mapped register accesses.
+- `mgFlushRenderInfo` writes the fog floats into VIF packet words as
+  `words[n] = *(u_int *) &mgRenderInfo.fog.x`.
+- `CheckVuProgID` (`global_optimizer off`) keeps `*(int *) ((id << 2) +
+  (int) user_prog_adr - user_vu_prog_base * 4)`: `user_prog_adr[id -
+  user_vu_prog_base]` subtracts before scaling and
+  `(&user_prog_adr[id])[-user_vu_prog_base]` shortens the function.
+- `mgGetFogParam` copies the four colour bytes as one word through
+  `mgFogColor` views.

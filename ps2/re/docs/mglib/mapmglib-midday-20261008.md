@@ -52,8 +52,7 @@ copy construction, and 271 -> 252 for the register declaration scopes.
 The next window emits the DMA/VIF header, GIF tag, and TEXFLUSH, FRAME_1,
 XYOFFSET_1, SCISSOR_1, SCANMSK, TEXFLUSH pairs. Retail derives a signed word
 count from the packet endpoint; the current draft reserves a constant 32
-words and folds away that computation. Reproducing it with address subtraction
-or raw cursor induction would violate lane constraints. Texture width/height/
+words and folds away that computation. Address subtraction and raw cursor induction are excluded by the source rules. Texture width/height/
 bpp remain the documented signed-short members of the 0x70-byte `mgCTexture`;
 VRAM and image block counts are integers, and TEX0/1 have real packed views.
 Later metadata and logarithm/power loops still differ in allocation.
@@ -149,28 +148,3 @@ new Satan's Fiddle row. Promotion additionally requires scrubbing each entire
 body's inherited register type-puns, including GIF-tag/register stores,
 XYOFFSET/SCISSOR views and the display word; those guards are preserved.
 No shared header, profile row, toolchain file or replacement assembly is changed.
-
-## Acceptance receipts
-
-Private receipts are under `.private/mapmglib-receipts/`: `baseline-mglib/`,
-`final-draft-mglib/`, the three `m2c-<symbol>.log` files, and the named
-experiment directories above. `getscreen-local/unit-check.log` independently
-checks the linkage correction with all guards retained. `final-units.log`,
-`final-objects.log`, `final-build.log`, `final-hash-comparison.json` and
-`final-coverage.log` record the final acceptance state.
-
-The complete guarded mglib object passes at 0x4DA8 checked bytes and 1,050
-resolved relocations. Full validation retains 147/149 object passes, the same
-two `nd_meswin/DrawMesWin` and `actscript/_SHOT` failures, and only 0x26 PAL
-`.text` differing bytes. Every other PAL file-backed section and the
-0x01F64A00 memory end pass. Coverage remains 6,741 matched / 119 guarded /
-10 assembly-only / 2 fuzzy. No function promotion is claimed.
-
-All 148 other complete object files have unchanged SHA-256 values. The
-private baseline reconstruction reproduces mglib's original complete-file
-hash exactly. `final-allocated-comparison.json` confirms its 192 allocated
-sections have identical file-backed bytes, sizes, flags and alignment;
-NOBITS sections have identical extents. The symbol binding for
-`GetScreenSize` changes from GLOBAL (1) to LOCAL (0). The final object also
-has exactly the hash of the earlier isolated local-linkage trial, so the
-guarded draft edits introduce no additional object change.

@@ -24,202 +24,286 @@ mgCTextureManager mgTexManager;
 mgCDrawManager mgDrawManager;
 
 /**
+ *
  * Packet-memory stacks alternated between frames.
+ *
  */
 static mgCMemory packet_buf[2];
 
 /**
+ *
  * Draw-data stacks alternated between frames.
+ *
  */
 static mgCMemory data_buf[2];
 
 /**
+ *
  * Texture description of the current frame buffer.
+ *
  */
 static mgCTexture frame_tex;
 
 /**
+ *
  * Texture descriptions laid over the depth buffer.
+ *
  */
 static mgCTexture fixz_tex[2];
 
 /**
+ *
  * Controls drawing of the frame performance meter.
+ *
  */
 static int draw_performance_meter;
 
 /**
+ *
  * Non-zero while the vertical-sync callback runs.
+ *
  */
 static int call_back_active;
 
 /**
+ *
  * Optional secondary callback invoked at vertical sync.
+ *
  */
 static int (*VSyncCallBack2)(int);
 
 /**
+ *
  * Vertical-sync count since graphics initialization.
+ *
  */
 static int vcount;
 
 /**
+ *
  * Ready-queue priority rotated while waiting for vertical sync.
+ *
  */
 static int rot_priority = -1;
 
 /**
+ *
  * Word buffers used by the two VIF1 packet cursors.
+ *
  */
 static u_int *packetbuf[2];
 
 /**
+ *
  * Packet cursors alternated between frames.
+ *
  */
 static sceVif1Packet vifpacket[2];
 
 /**
+ *
  * Capacity of each VIF1 packet buffer.
+ *
  */
 static int packet_size;
 
 /**
+ *
  * Index of the packet and data buffers used by the current frame.
+ *
  */
 static int mgDataID;
 
 /**
+ *
  * Index of the display environment used by the current frame.
+ *
  */
 static int mgDBuffID;
 
 /**
+ *
  * Root-counter value sampled when frame drawing begins.
+ *
  */
 static int h_count;
 
 /**
+ *
  * Non-zero when lighting changes require the render state to be flushed.
+ *
  */
 static int mgChangeLight;
 
 /**
+ *
  * Identifier of the last VU1 microprogram packet submitted.
+ *
  */
 static int now_prog_id = -1;
 
 /**
+ *
  * Upload packets for the built-in VU1 microprograms.
+ *
  */
 static u_long128 *prog_adr[3] = {Vu_prog0, Vu_prog_sdw, Vu_prog_3dsp};
 
 /**
+ *
  * Table of user-provided VU1 microprogram upload packets.
+ *
  */
 static u_long128 **user_prog_adr;
 
 /**
+ *
  * Number of entries in the user VU1 microprogram table.
+ *
  */
 static int user_prog_num;
 
 /**
+ *
  * Development-console handle, or -1 while it is closed.
+ *
  */
 static int font_cons = -1;
 
 /**
+ *
  * Non-zero when the development console should be drawn at frame end.
+ *
  */
 static int font_draw_flag;
 
 /**
+ *
  * Vertical-sync count saved at the end of the previous frame.
+ *
  */
 static int old_vcount;
 
 /**
+ *
  * Non-zero when the frame exceeds its requested vertical-sync interval.
+ *
  */
 static int over_vsync;
 
 /**
+ *
  * Requests a frame capture at the next frame end.
+ *
  */
 static int capture_on;
 
 /**
+ *
  * Frame-capture cadence counter used at the fastest frame rate.
+ *
  */
 static int cap_ture_cnt;
 
 /**
+ *
  * Base page of the first frame buffer in GS memory.
+ *
  */
 static int frame_buf0;
 
 /**
+ *
  * Base page of the second frame buffer in GS memory.
+ *
  */
 static int frame_buf1;
 
 /**
+ *
  * Packed GS dither matrix presets.
+ *
  */
 static sceGsDimx mgDIMX[1];
 
 /**
+ *
  * Zero vector used to initialize the temporary background colour.
+ *
  */
 static sceVu0FVECTOR at_863;
 
 /**
+ *
  * TIMER0 count register sampled for frame timing.
+ *
  */
 static const u_int timer0_count = 0x10000000;
 /**
+ *
  * TIMER0 mode register controlling the frame timer clock and counter enable.
+ *
  */
 static const u_int timer0_mode = 0x10000010;
 /**
+ *
  * GS status register sampled for the displayed interlace field.
+ *
  */
 static const u_int gs_csr = 0x12001000;
 /**
+ *
  * GS PMODE register selecting and blending the display read circuits.
+ *
  */
 static const u_int gs_pmode = 0x12000000;
 /**
+ *
  * GS DISPFB1 register addressing the frame buffer of read circuit 1.
+ *
  */
 static const u_int gs_dispfb1 = 0x12000070;
 /**
+ *
  * GS DISPLAY1 register positioning the display area of read circuit 1.
+ *
  */
 static const u_int gs_display1 = 0x12000080;
 /**
+ *
  * GS DISPFB2 register addressing the frame buffer of read circuit 2.
+ *
  */
 static const u_int gs_dispfb2 = 0x12000090;
 /**
+ *
  * GS DISPLAY2 register positioning the display area of read circuit 2.
+ *
  */
 static const u_int gs_display2 = 0x120000A0;
 /**
+ *
  * DMA CALL tag linking a VU1 microprogram upload packet.
+ *
  */
 static const u_int dma_tag_call = 0x50000000;
 /**
+ *
  * Number of built-in VU1 microprogram upload packets.
+ *
  */
 static const int   builtin_vu_prog_count = 3;
 /**
+ *
  * First identifier in the user VU1 microprogram table.
+ *
  */
 static const int   user_vu_prog_base = 0x100;
 
 /**
+ *
  * GS register addresses used by direct drawing packets.
+ *
  */
 enum {
     gs_prim = 0x00,
@@ -235,7 +319,9 @@ enum {
 };
 
 /**
+ *
  * DMA channel identifiers used by the graphics library.
+ *
  */
 enum mgDMA_CHANNEL {
     MG_DMA_CHANNEL_VIF1 = 1,     /**< VIF1 DMA channel for drawing and microprogram uploads. */
@@ -247,7 +333,9 @@ void              StoreImage(int front_buffer);
 int               VSyncCallBack(int field);
 
 /**
+ *
  * Dither presets converted to signed three-bit GS coefficients.
+ *
  */
 static signed char dimx_281[1][16] = {{10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1}};
 
@@ -263,11 +351,13 @@ int mgGetPerformanceMeterFlag() {
 #pragma global_optimizer off
 #ifdef NONMATCHING
 /**
+ *
  * Updates the displayed interlace field and vertical-sync count and invokes the secondary callback.
  *
  * @mangled VSyncCallBack__Fi
  * @address 0x141870
  * @size 0x7C
+ *
  */
 int VSyncCallBack(int field) {
     call_back_active = 1;
@@ -297,11 +387,13 @@ void mgSetRotateThread(int priority) {
 }
 
 /**
+ *
  * Waits for the requested vertical-sync interval while rotating the selected ready queue.
  *
  * @mangled WaitVSync__Fii
  * @address 0x141910
  * @size 0x64
+ *
  */
 void WaitVSync(int start, int frames) {
 wait:
@@ -319,11 +411,13 @@ int mgGetVSyncCount() {
 }
 
 /**
+ *
  * Returns the normalized screen mode and its dimensions and centered bounds.
  *
  * @mangled GetScreenSize__FiPiPiPiPiPiPi
  * @address 0x141990
  * @size 0xC0
+ *
  */
 static int GetScreenSize(int mode, int *width, int *height, int *left, int *top, int *right, int *bottom) {
     switch (mode) {
@@ -1605,11 +1699,13 @@ mgCTexture *mgGetTextureZ(int index) {
 }
 
 /**
+ *
  * Tests a projected position against the screen and depth clipping bounds.
  *
  * @mangled prim_clip_check__FPf
  * @address 0x145C70
  * @size 0xB0
+ *
  */
 static int prim_clip_check(float *vertex) {
     mgRENDER_INFO *info = &mgRenderInfo;
@@ -1741,11 +1837,13 @@ int mgTransWorldPrim3DSprite(int *top_left, int *bottom_right, float *position, 
 #pragma global_optimizer off
 
 /**
+ *
  * Tests whether a built-in or user VU1 microprogram identifier is available.
  *
  * @mangled CheckVuProgID__Fi
  * @address 0x1461C0
  * @size 0x94
+ *
  */
 static int CheckVuProgID(int id) {
     if (id < user_vu_prog_base) {
@@ -1832,11 +1930,13 @@ void mgSetUserVuProgAdr(int index, u_long128 *adr) {
 #pragma global_optimizer reset
 
 /**
+ *
  * Writes the selected frame buffer to a numbered TGA image on the host device.
  *
  * @mangled StoreImage__Fi
  * @address 0x146390
  * @size 0x284
+ *
  */
 void StoreImage(int front_buffer) {
     static int image_num = 0;
@@ -1954,36 +2054,52 @@ sceGsTexa mgTEXA_1;
 sceGsTexa mgTEXA_2;
 sceGsFrame mgFRAME_1;
 /**
+ *
  * Frame counter used by the frame-end performance meter.
+ *
  */
 INCLUDE_BSS(count_580, 0x4);
 /**
+ *
  * Initialization flag for the performance-meter frame counter.
+ *
  */
 INCLUDE_BSS(init_581, 0x4);
 /**
+ *
  * CPU utilization percentage recorded by the frame-end performance meter.
+ *
  */
 INCLUDE_BSS(cpu_ratio_583, 0x4);
 /**
+ *
  * Initialization flag for the CPU utilization percentage.
+ *
  */
 INCLUDE_BSS(init_584, 0x4);
 /**
+ *
  * Idle-time percentage recorded by the frame-end performance meter.
+ *
  */
 INCLUDE_BSS(free_ratio_586, 0x4);
 /**
+ *
  * Initialization flag for the idle-time percentage.
+ *
  */
 INCLUDE_BSS(init_587, 0x4);
 int ddraw_size;
 /**
+ *
  * Frame-capture sequence number initialized by StoreImage.
+ *
  */
 INCLUDE_BSS(image_num_1535, 0x4);
 /**
+ *
  * Initialization flag for the frame-capture sequence number.
+ *
  */
 INCLUDE_BSS(init_1536, 0x4);
 
