@@ -1,21 +1,19 @@
 # editparts: reverse-engineering notes
 
-## C++ draft status
-All 28 functions have C++ in `ps2/src/editparts.cpp`. 21 are exact and compiled
-by the matching build. 2 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 5 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Source status
+All 28 functions in `ps2/src/editparts.cpp` are native; the unit has no `NONMATCHING` guards,
+`INCLUDE_ASM` gaps, or data markers. The virtual methods emit `__vt__10CEditParts`.
+`CEditParts::CheckTerritory` calls the inherited `CMapParts::GetLWMatrix` on `other` without an
+upcast; `allocation_address` (editparts.hpp) is the `u_long128 *` block that editmap allocates
+and frees.
 
 Header: `ps2/include/editparts.hpp` (included by `ps2/src/editparts.cpp`). Classes owned: `CEditPartsInfo`,
 `CEditHouse`, `CEditParts` (+ nested `CEditParts::WallInfo`). Extra types: `EditPartsMaterial`,
 enums `EditPartsAtr`, `EditPartsType`, `EditPartsState`. No first-game counterpart: the first game's
 editor (`editpartsinfo.hpp`, `editpartsdata.hpp`) is a different, grid-based design.
 
-Build state: `mapparts.hpp` (base of `CEditParts`) includes `funcpoint.hpp`, which does not exist yet, so
-`draft.sh --header ps2/include/editparts.hpp` and `draft.sh editparts` currently fail inside mapparts.hpp.
-With a stub `funcpoint.hpp` (`CFuncPointMngr` 0x40 bytes, `CFuncPointCheck` 8 bytes) the header compiles and
-every size/offset assert below holds (checked with offsetof asserts).
+`mapparts.hpp` (base of `CEditParts`) includes `funcpoint.hpp` (`CFuncPointMngr` 0x40 bytes,
+`CFuncPointCheck` 8 bytes); every size/offset assert below holds.
 
 ## CEditPartsInfo (size 0x280, no vtable)
 - `GetPartsType` checks the 0x40 attribute first (returning type 1), then the river attribute
@@ -82,7 +80,8 @@ every size/offset assert below holds (checked with offsetof asserts).
 - Positions: SetPosition(float*) subtracts `StandardPos(ground.y)` from Y before mgCObject::SetPosition;
   GetPosition adds it back; UpDatePosition (runs when mgCObject 0x40 changed flag set or ground != NULL) adds the
   raw ground Y and sets frame position/rotation(0x20)/scale(0x30) through frame vtable slots 0x10/0x1C/0x28.
-  SetPosition(fff) builds {x,y,z,1} (`at_418` = {0,0,0,1}) and calls the virtual SetPosition(float*).
+  SetPosition(fff) initializes a local `float pos[4] = {0, 0, 0, 1}` (MWCC emits the template at
+  0x33AC30), sets x/y/z and calls the virtual SetPosition(float*).
 - `WallInfo` (0x40, global `WallInfo` in editmode is 0x40): 0x00 plane (normalised normal, W = -dot(n, v0)),
   0x10 center (average of the wall's vertices; W 1.0), 0x20 box (max = {xz dist to max corner, max.y - center.y, 0, 1},
   min = {-xz dist to min corner, min.y - center.y, 0, 1}); StartEditPutWall copies it with mgVu0FBOX::operator=.
@@ -94,4 +93,5 @@ every size/offset assert below holds (checked with offsetof asserts).
 - `EditPartsCmpColor(float*, float*)`: `mgDistVector(a, b) < 0.02`; global.
 
 ## Data
-- `at_418` (0x33AC30, {0,0,0,1.0f}) is a compiler literal; `__vt__10CEditParts`. No named globals.
+- The {0,0,0,1.0f} template at 0x33AC30 is `SetPosition(fff)`'s local initializer;
+  `__vt__10CEditParts`. No named globals.
