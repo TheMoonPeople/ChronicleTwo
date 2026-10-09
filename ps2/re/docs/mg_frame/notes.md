@@ -166,7 +166,7 @@ previous sibling and the model's frame list. `CFrameAttr` -> `mgCFrameAttr`: dif
 but parsed after "--" instead of "__". First game `CObject` (physics) is unrelated to mgCObject;
 this game's `CObject` (object unit) derives from mgCObject.
 
-## Drafts (job mg_frame.1)
+## Source notes
 - Header conflict: mglib.hpp (declares `mgRenderInfo`) and mg_drawenv.hpp (defines `mgRENDER_INFO`)
   both define `mgFOG_PARAM` (fixlist item). mg_frame.cpp renames mglib's copy with a
   `#define mgFOG_PARAM mglib_mgFOG_PARAM` around its include; remove once the fixlist item is fixed.
@@ -212,11 +212,15 @@ this game's `CObject` (object unit) derives from mgCObject.
   `mgRenderInfo` makes MWCC form `world_screen_rel` from the common base and
   reuse that base for both clip bounds. Objdiff scores all 121 instructions of
   the 0x1e4-byte function at 100% (score 0).
-- Promotion: promoting `mgCFrame::mgCFrame` loses `__vt__9mgCObject`; promoting
-  `mgCObject::SetPosition(float*)` (first non-inline virtual) makes the compiler emit the inline
-  virtuals ChangeParam/UseParam/... out of place. Both stay as drafts. mgFrameNameComp needs
-  StrCmp (static, still asm) and stays a draft.
-- Initialize__12mgCFrameBaseFv reports MATCH from the header's inline definition.
+- The compiler emits the exact `mgCFrame`, `mgCFrameBase` and `mgCObject` vtables from the class
+  definitions. The position, rotation and scale scalar overloads initialize their four-float
+  vectors directly (position with homogeneous 1, rotation and scale with homogeneous 0).
+- `GetWorldBBox`'s `bound` is `mgCFrame::BoundInfo *` and `GetLWMatrixTopBottom`'s `parent` is
+  `mgCFrame *`; the attribute copy `*(mgVec4 *) &dst->unk_50[0] = *(mgVec4 *) &attr.unk_50[0]`
+  copies a `float[4]` as one quadword.
+- `at_1118` and `at_1119` are the two zero-vector templates of `GetDrawRect` and remain
+  `INCLUDE_BSS` reservations: initializing ordinary zero vectors at the copy point changes 0x3E
+  text bytes from `GetDrawRect+0x3c` through register allocation.
 
 ## Assembly gaps
 
@@ -227,7 +231,7 @@ screen bounds. It rejects bounds outside the screen or behind the scissor
 threshold, then merges eligible children's rectangles. Objdiff scores all
 320 instructions and the 0x500-byte symbol at 100% (score 0).
 
-`mgCFrame::Draw(u_int*)` has a guarded C++ draft. In its screen clipping path,
+`mgCFrame::Draw(u_int*)` is the unit's only assembly-backed function; it has a guarded C++ draft. In its screen clipping path,
 retail keeps the `test1` output pointers in argument registers `a3` and `a4`
 across the call to `test2`, then passes those registers to `mgClipBoxW`. MWCC
 reloads both pointers from the stack when `test2` is represented only by a C++
