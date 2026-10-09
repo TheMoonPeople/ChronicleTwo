@@ -499,7 +499,7 @@ void stepMain(void *arg) {
     ReadBuf  *ring = readBuf;
     StrFile  *file = &infile;
 
-    static int cnt = 0;
+    static int cnt = 0; // Step counter retained from retail; never read.
 
     stepMainStatus = 0;
 
@@ -978,10 +978,9 @@ int viBufRestartDMA(ViBuf *buf) {
         }
     }
     if (buf->env.d3madr != 0 && buf->env.d3qwc != 0) {
-        const ViBuf *saved = buf;
-        *(u32 *)0x1000B010 = saved->env.d3madr;
-        *(u32 *)0x1000B020 = saved->env.d3qwc;
-        setD3_CHCR(saved->env.d3chcr | 0x100);
+        *(u32 *)0x1000B010 = buf->env.d3madr;
+        *(u32 *)0x1000B020 = buf->env.d3qwc;
+        setD3_CHCR(buf->env.d3chcr | 0x100);
     }
     if (buf->dma_n != 0) {
         ipu_ctrl = (volatile int *)0x10002010;

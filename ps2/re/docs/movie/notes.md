@@ -151,3 +151,52 @@ likewise changes its object when the header offset uses array indexing.
 `vblankHandler` and `handler_endimage` retain guarded C++ drafts and retail
 `INCLUDE_ASM` entries. The promoted versions required inline `sync` and `ei`
 instructions, so they do not count as C++ matches.
+
+## viBufRestartDMA
+
+`viBufRestartDMA` is the third guarded draft. Its blockers are the wrap branch's
+ring-count/mask register pair and the tail's `env.d3madr` reload.
+
+- The function needs the local `optimization_level 4`: level 3 gives 49 words and
+  level 2 over 200. Level 4 runs the IR optimizer twice; round-1 CSE creates the
+  `0x0FFFFFFF` mask temporary between the ring count `n` and `d4madr`, round-2
+  propagation folds it away and round-2 CSE recreates it after every surviving
+  temporary. Retail needs the round-1 temporary to survive (mask coloured before
+  `n`) plus one fewer interference for `n`; no source form tried keeps it.
+- Retail reloads `env.d3madr` and `env.d3qwc` for the stores after testing them.
+  With plain `buf->env` reads MWCC reuses the tested value; the draft differs by
+  62/200 words. A read-only alias `const ViBuf *saved = buf` for the stores (or a
+  `(volatile ViBuf *)` cast) reproduces the reload and leaves 9/200, but both are
+  codegen steering rather than natural source, so the draft keeps the plain form.
+- Statement order in the wrap branch (all 378 legal orders), `DmaAddr(buf->tag +
+  index)`, `const` locals for the count or mask, and every CHCR mask spelling leave
+  9 or more words; `tag_addr = (u32) buf->tag; tag_addr &= mask;` splits the tag
+  web (32).
+
+## Data
+
+All stream state, interrupt flags, decoder records, the output ring, the input
+file and the 0x800-byte silence block are file-local typed definitions; the
+twenty-two diagnostics and path literals are inline. The two `Load` overloads use
+zero-initialized `MoviePools` locals (the 0x18-byte templates). `stepMain` has a
+function-local `static int cnt = 0` that nothing reads (retail `cnt_513`/
+`init_514`). `at_1276__2` and `at_1287__2`, the packed GIF tags of `setImageTag`,
+stay `INCLUDE_RODATA` markers: the 128-bit shift initializer is rejected by MWCC
+(`illegal data size`) and a typed pair of 64-bit words copied with `memcpy`
+changes `setImageTag`.
+
+## Typed access
+
+- `StrFile::fp` ends with the SDK `sceCdlFILE` flag (formerly `unk_20`).
+- `defMain`/`stepMain` are the thread entries directly; `defMain` is `void`.
+- `audioDecBeginPut` keeps `(u8 *) ((int) dec->hdr + dec->hdr_count)`: retail forms
+  `&dec->hdr` first (`addiu t2,a0,4`), while `dec->hdr + dec->hdr_count` adds the
+  count to `dec` first. `viBufAddDMA` keeps `(u8 *) buf->data + n * 0x800`:
+  quadword indexing evaluates the base load and index in the opposite order.
+- `setImageTag` steps its `void *` parameter as `(u8 *) data + 0x400` and passes
+  `*(u_long128 *) &giftag`: retail forms the local's address and loads through it.
+- `videoCallback` and `videoDecPutTs` measure byte positions in raw stream
+  buffers; `iop_buff`/`iop_zero` hold IOP heap addresses as `int`; DMA tags mask
+  addresses with `& 0xFFFFFFF` / `| 0x20000000`.
+- `videoCallback` and `pcmCallback` take `sceMpegCbDataStr *` (part of their
+  mangled names) and are cast to the SDK's `sceMpegCbData *` callback type.
