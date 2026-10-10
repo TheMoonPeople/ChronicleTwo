@@ -416,3 +416,53 @@ None reproduces retail's per-cell index arithmetic. Only a flat
 pairs, an index base at column 1, `0.5f *`, `/ 2`, reverse row loop and
 mixed `before[row * 24 + 22]` operands) leave the nine reversals or grow
 the body.
+
+## Grouped sums, value snapshots and pointer lifetimes
+
+With the squared-coefficient update above, a complete neighbour initializer
+loses the eight-cell unroll. All five binary groupings of the four neighbours,
+all 24 neighbour orders, and block/function accumulator declarations produce
+scalar `0x1F8` bodies. An extra outer pair of parentheses does not rescue them.
+Putting the grouped sum directly in the store retains `0x510`, but the best
+screened form differs in 148 words. This differs from assigning the combined
+update to `sum` before storing it: that is the previously recorded 71-word
+near-miss, rather than a direct-store initializer.
+
+Separate named `up`, `down`, `left` and `right` value loads also produce scalar
+bodies in every declaration order, with either plain or const values, full or
+partial neighbour sums, and direct grouped stores. Naming the current/previous
+heights, or the physical velocity `*center - *old`, likewise loses the unroll.
+Plain/const velocity values and const-reference bindings do not retain a useful
+floating-register constraint.
+
+Representative canonical `draft.sh` checks establish these constraints; all
+four other native functions remain exact:
+
+| Change to the squared-coefficient near-miss | Words / 324 | Body |
+| --- | ---: | ---: |
+| Full grouped initializer, function-scope `sum` | 321 | `0x1F8` |
+| Four named neighbours, partial sum followed by `+= up` | 321 | `0x1F8` |
+| Current/previous height snapshots before the partial sum | 321 | `0x1F8` |
+| Named velocity before the partial sum | 321 | `0x1F8` |
+| Cell-scope `center`, function-scope `old` | 33 | `0x510` |
+| Named seam edges, right loaded before left, `(left + right) * 0.5f` | 51 | `0x510` |
+| Function-scope `old` reused as the seam row pointer | 79 | `0x510` |
+| Entire grouped neighbour sum inside the store | 148 | `0x510` |
+
+Moving only `center` into the cell body ties the 33-word near-miss without
+fixing any residual. Pointer declaration-order changes, assignment reversal,
+other cell-pointer scopes, and row/function accumulator scopes do not improve
+it. Seam value/reference bindings in both declaration orders, row-local
+averages, and separate versus chained stores give 51--80 words. Reusing either
+cell pointer as the seam row pointer gives 79--122 words and leaves the wave
+loop's terminal address discrepancy.
+
+At `+0x140`, the near-miss shifts the terminal offset into `$s3`, forms the
+current-cell pointer in `$s4`, and the previous-cell pointer in `$s5`. Retail
+shifts into `$s4`, forms the current-cell pointer in `$s5`, then reuses `$s4`
+for the previous-cell pointer. This is a coalescing difference with the same
+address schedule. The captured GPR/FPR interference graphs reproduce the
+near-miss's allocation exactly under the local allocator simulator; pointer
+reuse and value snapshots do not supply the required natural lifetime change.
+The original 27-word guarded draft and the structurally closer 33-word update
+therefore remain the retained reference points.
