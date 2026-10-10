@@ -12504,7 +12504,7 @@ int CItemSelect::KeyStep() {
 
                             if (fish == NULL || (fish->flags & 1)) {
                                 MenuArg.result[1] = 0;
-                                goto step_alpha;
+                                break;
                             }
 
                             MenuArg.result[2] = fish->size;
@@ -12547,7 +12547,6 @@ int CItemSelect::KeyStep() {
         }
     }
 
-step_alpha:
     if (alpha_step < 0) {
         CalcMenuAdd(&alpha, alpha_step, 0);
     } else {
