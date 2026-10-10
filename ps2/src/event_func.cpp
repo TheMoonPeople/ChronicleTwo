@@ -15599,34 +15599,27 @@ int _CANCEL_NOW_LOADING(RS_STACKDATA *stack, int argc) {
     CancelNowLoading();
     return 1;
 }
-static inline int Ident(int v) {
-    return v;
-}
-#ifdef NONMATCHING
 int _ESM_INITIALIZE(RS_STACKDATA *stack, int argc) {
-    int stackNo;
-    int texbOffset = 0;
+    int        stack_no;
+    int        texb_offset = 0;
     mgCMemory *memory;
-    stackNo = GetStackInt(stack++);
+
+    stack_no = GetStackInt(stack++);
     if (argc >= 2) {
-        texbOffset = GetStackInt(stack);
+        texb_offset = GetStackInt(stack);
     }
-    if ((memory = (mgCMemory *)EventScene->GetStack(stackNo)) == NULL) {
+    if ((memory = EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
-    CEffectScriptMan *manager;
-    manager = new (memory->Alloc(0x11B)) CEffectScriptMan;
-    EventEffectScript = manager;
+    EventEffectScript = new (memory->Alloc((sizeof(CEffectScriptMan) + 15) / 16 + 2)) CEffectScriptMan;
     if (EventEffectScript == NULL) {
         return 0;
     }
-    EventEffectScript->Initialize(memory, Ident(EventScene->event_texb) + Ident(texbOffset), EventScene->event_texb_num - texbOffset);
+    int texb = EventScene->GetEventTexb();
+    EventEffectScript->Initialize(memory, texb + texb_offset, EventScene->event_texb_num - texb_offset);
     EventEffectScript->load_buffer = read_buffer;
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _ESM_INITIALIZE__FP12RS_STACKDATAi);
-#endif
 int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc) {
     int        stack_no;
     int        heap_size;

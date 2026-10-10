@@ -1,24 +1,27 @@
 # event_func: reverse-engineering notes
 
 ## Status
-824 of the 827 functions in `ps2/src/event_func.cpp` are native C++ definitions and match retail
-(including `_COPY_CHARA`, `LoadMovie`, `_SET_CROSSFADE` and `_SET_GYORACE_ETC`). Two are guarded
-drafts (`#ifdef NONMATCHING` C++ with an `INCLUDE_ASM` fallback): `_ESM_INITIALIZE` and
+825 of the 827 functions in `ps2/src/event_func.cpp` are native C++ definitions and match retail
+(including `_COPY_CHARA`, `_ESM_INITIALIZE`, `LoadMovie`, `_SET_CROSSFADE` and `_SET_GYORACE_ETC`).
+One is a guarded draft (`#ifdef NONMATCHING` C++ with an `INCLUDE_ASM` fallback):
 `_COPY_MONS2SCNCHR`. One symbol is assembly-only: the compiler-generated
 `CObject::CObject(const CObject &)` (`__ct__7CObjectFRC7CObject`, 0x2804B0, 0xC8 in a 0xD0
 extent), which retail emits from the character copy inside `_COPY_MONS2SCNCHR`; no active native
 caller emits it while that command is guarded, and an explicit copy body or dummy use is not an
-acceptable way to force it. Both guarded functions fail on MWCC's placement-new allocation-result
-schedule: retail tests the allocator's `v0` and copies it into the saved register in the branch
-delay slot, while MWCC copies first and branches on the saved register (see
+acceptable way to force it. The guarded command fails on MWCC's placement-new allocation-result
+schedule, among other differences: retail tests the allocator's `v0` and copies it into the saved
+register in the branch delay slot, while MWCC copies first and branches on the saved register (see
 [placement conversion](../satansfiddle/placement-new.md)).
 
-- `_ESM_INITIALIZE` (0x128 body in a 0x130 extent): the natural source loads the texture-block
-  start and remaining count, adds the decoded offset to the start and calls
-  `CEffectScriptMan::Initialize`; it differs by two words at +0xE8/+0xF0 (the branch pair). The
-  retained draft's `Ident` helper scores zero only as a diagnostic and is inadmissible; without it
-  the direct expression leaves nine register-operand differences (MWCC merges the base load and
-  sum into the `a2` argument before colouring, retail loads the base into `v1` and adds into `a2`).
+- `_ESM_INITIALIZE` (0x128 body in a 0x130 extent) reads the scene stack number and an optional
+  texture-block offset, constructs the `CEffectScriptMan` in that stack and stores it in
+  `EventEffectScript`, then initializes it with the event texture blocks starting at the offset.
+  The construction has a `placement_new` row (`__ct__16CEffectScriptManFv`,
+  `after_constructor_inline`, one site) that gives retail's `beqz v0` / delay-slot copy. The
+  texture-block start is read through the inline `CScene::GetEventTexb` into a local before the
+  sum; a direct `event_texb` field read colours the texture offset into `s0` and the stack
+  number/memory into `s1` (retail has the reverse), and the colouring does not change with
+  declaration order, `const` or unsigned locals, block locals, casts or a named manager local.
 - `_COPY_MONS2SCNCHR` (0x754 body at 0x27FD50 in a 0x760 extent; native 0x750): 244/472 words.
   Retail copy-constructs the local `CCharacter2` snapshot (generated `CObject` copy constructor at
   +0x190 into `sp+0x60`, then the derived members), not default-construct-then-assign. Beyond
@@ -166,7 +169,7 @@ in the asm across all units (no other base+offset access exists; the addiu users
 |---|---|---|---|
 | EventMarker | 0x37DE7C / 4 | global | `CMarker` (eventsprite; Init/Draw called on it) |
 | SwordEffect | 0x37DE80 / 4 | local | `CSWordAfterImage *` |
-| EventEffectScript | 0x37DE84 / 4 | local | `CEffectScriptMan *` (its symbol must stay reachable for the guarded `_ESM_INITIALIZE` assembly) |
+| EventEffectScript | 0x37DE84 / 4 | local | `CEffectScriptMan *` |
 | p_use_item | 0x37DE88 / 4 | global | `RS_STACKDATA *` (= arg slot `->p` in `_GOTO_USE_ITEM`; `EdEventMenuExit` writes `->i`) |
 | SetWorldCoordFlg | 0x37DE8C / 4 | global | int |
 | PakuAnimEohNo, PakuMotionEohNo | 4 each | global | int handle, -1 none |

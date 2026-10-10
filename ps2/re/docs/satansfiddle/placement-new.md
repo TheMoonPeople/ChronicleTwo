@@ -2,7 +2,7 @@
 
 The placement-new capability requests MWCC's own statement-conversion path for
 selected scalar constructions. It is an explicit frontend policy override, not
-a repair of uninitialized compiler state. The checked-in profile activates 37
+a repair of uninitialized compiler state. The checked-in profile activates 38
 callers in 24 units; each is native, byte-identical to retail, and its unit
 passes the complete object check. The caller rows are an activation list for
 those matches; they do not recover one original global compiler policy.
@@ -155,8 +155,8 @@ rows for other units, before the compiler is started.
 
 ## Accepted placement rows
 
-All 37 rows use allocator `__nw__FUiP1` and exact direct constructors. The
-caller spelling is the profile identity. The table totals 47 sites across 24
+All 38 rows use allocator `__nw__FUiP1` and exact direct constructors. The
+caller spelling is the profile identity. The table totals 48 sites across 24
 units; multiple sites in one caller have the same semantic identity and need no
 occurrence selectors. `after/either` means the checked-in policy is
 after-inline and both timings reproduce the caller; `required` rows match
@@ -174,6 +174,7 @@ under only that timing.
 | effscript | `AssignCharacter__16CEffectScriptManFP11_EFF_SCRIPTi` | `CCharacter2` | 1 | after/either |
 | effscript | `BuildBase__16CEffectScriptManFiP1iP1iP9mgCMemoryi` | `CCharacter2` | 1 | after/either |
 | event_func | `_COPY_CHARA__FP12RS_STACKDATAi` | `CCharacter2` | 1 | after/either |
+| event_func | `_ESM_INITIALIZE__FP12RS_STACKDATAi` | `CEffectScriptMan` | 1 | after |
 | fishing | `StepDataLoading__FPv` | `CCharacter2` | 7 | after/either |
 | fishing | `sgRestartFishing__FP11SubGameInfo` | `CCharacter2` | 1 | after/either |
 | funcpoint | `Add__14CFuncPointMngrFiP9mgCMemory` | `CList<CFuncPoint>` | 1 | after/either |
@@ -338,8 +339,10 @@ global after-inline in 148 units and before-template conversion in mg_tanime
 reproduces all accepted game objects and the accepted executable byte for
 byte. A paired comparison of that hybrid against the scoped rows over the
 current source preserves every scoped diagnostic zero and adds two guarded
-zeros (`MenuInventInit` and `_ESM_INITIALIZE`) whose drafts retain rejected
-helper and dummy scaffolding; those two remain inactive. The hybrid driver
+zeros, `MenuInventInit` and `_ESM_INITIALIZE`. `_ESM_INITIALIZE` is native
+with natural source and its own row (see
+[event_func notes](../event_func/notes.md)); the `MenuInventInit` draft
+retains rejected helper and dummy scaffolding and remains inactive. The hybrid driver
 uses provisional allocator and name filters, excludes raw `__ct` implicit
 roots, and lacks production's exact ownership, bounded-region and completion
 guarantees. A production global policy would need those checks, supported

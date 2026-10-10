@@ -1971,6 +1971,15 @@ public:
         event_texb_num = num;
     }
 
+    /**
+     *
+     * Returns the first texture block reserved for event images.
+     *
+     */
+    int GetEventTexb() {
+        return event_texb;
+    }
+
     int GetTextureBlockNo(int group, int *out_block, int max) {
         return mds_list_set.GetTextureBlockNo(group, out_block, max);
     }
