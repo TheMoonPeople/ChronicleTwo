@@ -161,6 +161,11 @@ class initializers must be generated naturally by the compiler.
   a shared `return 0` and leave a later `nop` (`CMenuItemInfo::LRCheck`,
   menusys). Sparse case labels sharing one body are compared in reverse
   written order.
+- A function containing `if (a || b) { return; }` changes delay-slot filling
+  throughout: no slot is filled from the fall-through block, a slot filled
+  from the target leaves the original instruction behind the preceding jump,
+  and a target starting with `lui $at` is not used. The nested
+  `if (!a) { if (b) return; ... }` form fills normally (dng_status).
 - A single-case `switch` and the equivalent `if`, or `x = x < 0.0f ? -x : x`
   and `if (x < 0.0f) x = -x;`, fill delay slots differently (menuchr,
   mg_tanime).
