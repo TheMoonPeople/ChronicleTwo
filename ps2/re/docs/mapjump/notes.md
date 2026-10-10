@@ -40,13 +40,14 @@ No vtable, no base. Constructor is out of line (emitted in mapjump, called from 
 | `OldRot` | 0x10 | `float[4]`, player rotation; vfunc +0x24 = GetRot. `ExitInterior` uses `OldRot[1] + PI` (faces back out). |
 | `OldCamPos` / `OldCamRef` | 0x10 each | `float[4]`, `mgCCamera::GetPos/GetRef` saved, `SetPos/SetRef` restored. |
 | `PrevInterior` / `NowInterior` | 0x40 each | `char[64]`, map names of previous and current interior. |
-| `OldBgmStatus` | 0x20 | `CScene::BGM_STATUS` (0x20 bytes), from `GetActiveBgmStatus`. |
+| `OldBgmStatus` | 0x1C | `CScene::BGM_STATUS` from `GetActiveBgmStatus`; its four-byte piece tail is alignment. |
 
 `.data` `at_997__4` (0x40 at 0x35B940) is the initialiser of a `char[0x40]` local in
 `SetInteriorDoorPos`: the default door function point name (Ghidra shows a string starting
 "exit" at 0x35B940), replaced by `PrevInterior` when that is set.
-Note `at_912__4` lives in `.bss`, so `LoadMapScript`'s copied buffer is a function-local static
-array, not a literal.
+`at_912__4` is the zero template for `LoadMapScript`'s stack-local
+`char script[0x80] = ""`. Four 32-byte copies initialize the buffer before
+path concatenation; it is not persistent mutable state.
 
 ## Functions
 All 23 functions are global (only `__sinit_mapjump_cpp` is local). Return types:
