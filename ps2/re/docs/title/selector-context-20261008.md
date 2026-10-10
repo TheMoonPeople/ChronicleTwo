@@ -21,4 +21,5 @@ The accepted pointer and inserted-byte arrays resolve that allocation;
 [matching constraints](matching-constraints.md) records their types, order
 and rejected alternatives. The function body is `0x9BC`, with four bytes of
 alignment to the following retail boundary. Complete-object and PAL
-verification establish the native match. `TitleBootInit` remains guarded.
+verification establish the native match. `TitleBootInit` is native with its
+separate constructor-scoped zero row.

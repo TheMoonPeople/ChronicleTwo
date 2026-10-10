@@ -1862,6 +1862,15 @@
         "value_bits": "0x00000000",
         "evaluate_first": true,
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "title.cpp",
+        "function": "TitleBootInit__Fv",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "__ct__15mgCCameraFollowFffff",
+        "expected_matches": 1,
+        "evaluate_first": true
       }
     ]
   },

@@ -2,8 +2,8 @@
 
 TitleModeKey is native and exact: body `0x9BC` in extent `0x9C0`, with five CalcMenuAdd
 control rows described in [the selector note](selector-context-20261008.md).
-TitleBootInit remains assembly-backed; its retained draft has ten differing words in the
-`0xA90` extent.
+TitleBootInit is native and exact: body `0xA84` in extent `0xA90`; its allocation
+and camera argument requirements are recorded in [notes.md](notes.md#boot-initialization).
 
 ## Memory-card snapshots
 
@@ -48,8 +48,8 @@ before the top pointer for stSetBuffer.
 
 The original draft differed by 56 words. Linkage, size storage and buffer setup reduce
 that to 37; map declarations give 30; map-option order gives 27. A scoped zero argument
-policy gives 21 on that source. These measurements precede the retained ten-word draft
-and describe failed alternatives, not its current score.
+policy gives 21 on that source. These measurements describe rejected source
+alternatives; the native function has zero instruction and resolved-relocation differences.
 
 | Natural source hypothesis | Differing words / 676 |
 | --- | ---: |

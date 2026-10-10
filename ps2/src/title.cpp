@@ -688,8 +688,6 @@ void TitleInit(INIT_LOOP_ARG arg) {
 
     TitleBootInit();
 }
-#ifdef NONMATCHING
-
 #pragma inline_depth(8)
 
 /**
@@ -698,7 +696,7 @@ void TitleInit(INIT_LOOP_ARG arg) {
  *
  */
 static void TitleBootInit() {
-    RushMovie = new ((u_long128 *) DataBuffer.Alloc(0x2396)) CMovie;
+    RushMovie = new ((u_long128 *) DataBuffer.Alloc(Align16Blocks(sizeof(CMovie)) + 2)) CMovie;
     TitleMCFuncFlag = 1;
     TitleMCCheckNow = 0;
     TitleMainMCCheckPhase = 0;
@@ -710,7 +708,7 @@ static void TitleBootInit() {
     mgCTextureManager *textures = &mgTexManager;
     DataBuffer.Align64();
     u_long128 *map_top = DataBuffer.stGetTop();
-    TitleMapBuffer.stSetBuffer(map_top, 0x40000);
+    TitleMapBuffer.stSetBuffer(DataBuffer.stGetTop(), 0x40000);
     DataBuffer.Alloc(0x60000);
     TitleWorkBuffer.stSetBuffer(DataBuffer.stGetTop(), 0x2800);
     DataBuffer.Alloc(0x2800);
@@ -722,8 +720,9 @@ static void TitleBootInit() {
     TitleScene->before_camera = 0;
     TitleScene->SetStack(1, &TitleMapBuffer);
     TitleScene->work_stack = &TitleWorkBuffer;
+    int map_no;
     u8 *map_buffer = (u8 *) DataBuffer.stGetTop();
-    int map_no = SearchMapNo(at_1221__4);
+    map_no = SearchMapNo("s19");
     TitleScene->active_map = 0;
     MapJumpMapInfo    main_map;
     SCN_LOADMAP_INFO2 load_info;
@@ -743,30 +742,31 @@ static void TitleBootInit() {
     TitleScene->SetActive(2, 0);
     TitleMap = TitleScene->GetMap(TitleScene->active_map);
     int file_size;
-    if (LoadFile2(at_1222__4, DataBuffer.stAllocTest(1), &file_size, 0) != 0) {
-        textures->EnterIMGFile((u_char *) DataBuffer.Alloc(Align16Blocks(file_size)), 0x6A, NULL, NULL);
+    int logo_file_size;
+    if (LoadFile2("img/water_ref.img", DataBuffer.stAllocTest(1), &logo_file_size, 0) != 0) {
+        textures->EnterIMGFile((u_char *) DataBuffer.Alloc(Align16Blocks(logo_file_size)), 0x6A, NULL, NULL);
     }
     textures->EnterTexture(0x6A, at_1223__4, NULL, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
     char lang_file[0x40];
-    sprintf(lang_file, at_1224__4, LanguageCode);
+    sprintf(lang_file, "title/title%d.img", LanguageCode);
     LoadFile2(lang_file, map_buffer, &file_size, 0);
     DataBuffer.Alloc(Align16Blocks(file_size));
     textures->EnterIMGFile(map_buffer, 0x40, NULL, NULL);
-    Tex_TitleBG = textures->GetTexture(at_1225__4, -1);
-    Tex_Chronicle = textures->GetTexture(at_1226__4, -1);
-    Tex_Logo = textures->GetTexture(at_1227__3, -1);
-    Tex_Plate = textures->GetTexture(at_1228__3, -1);
-    Tex_TitleLight = textures->GetTexture(at_1229__2, -1);
-    Tex_TitleCursor = textures->GetTexture(at_1230__2, -1);
-    Tex_TrialMsg = textures->GetTexture(at_1231__2, -1);
-    Tex_TitleBG2 = textures->GetTexture(at_1232__2, -1);
+    Tex_TitleBG = textures->GetTexture("bg", -1);
+    Tex_Chronicle = textures->GetTexture("chro", -1);
+    Tex_Logo = textures->GetTexture("moji", -1);
+    Tex_Plate = textures->GetTexture("plate", -1);
+    Tex_TitleLight = textures->GetTexture("kage", -1);
+    Tex_TitleCursor = textures->GetTexture("mnmain", -1);
+    Tex_TrialMsg = textures->GetTexture("tr_mes", -1);
+    Tex_TitleBG2 = textures->GetTexture("bg2", -1);
     DataBuffer.Align64();
     u_long128 *save_pack = &DataBuffer.stGetTop()[0x4100];
-    if (LoadFileMenu(at_1233, save_pack, MENU_FILE_LOAD_DIRECT) != 0) {
+    if (LoadFileMenu("save.pac", save_pack, MENU_FILE_LOAD_DIRECT) != 0) {
         for (int i = 0; i < 3; i++) {
             u_int *icon_file = GetPackFile((u_int *) save_pack, MC_ICON_Data[i].name, &MC_ICON_Data[i].size);
             MC_ICON_Data[i].data = DataBuffer.Alloc(Align16Blocks(MC_ICON_Data[i].size));
-            memcpy(MC_ICON_Data[i].data, icon_file, MC_ICON_Data[i].size);
+            memcpy((void *) MC_ICON_Data[i].data, icon_file, MC_ICON_Data[i].size);
         }
     }
     TitleMCCheck->SetIconData(MC_ICON_Data, 0);
@@ -774,10 +774,10 @@ static void TitleBootInit() {
     RushWork = textures->EnterTexture(0x43, at_1234, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
     DataBuffer.Align64();
     u_long128 *push_start_img = DataBuffer.stGetTop();
-    if (LoadFile2(at_1235, push_start_img, &file_size, 0) != 0) {
+    if (LoadFile2("meswin/pushstart.img", push_start_img, &file_size, 0) != 0) {
         textures->EnterIMGFile((u_char *) push_start_img, 0x43, NULL, NULL);
     }
-    RushStart = textures->GetTexture(at_1236, 0x43);
+    RushStart = textures->GetTexture("pushstart", 0x43);
     DataBuffer.Alloc(Align16Blocks(file_size));
     mgCMemory snd_memory;
     snd_memory.stSetBuffer(DataBuffer.stGetTop(), 0x280);
@@ -792,22 +792,24 @@ static void TitleBootInit() {
     MenuArg.tex_block_top = 0x54;
     MenuArg.tex_block_num = 0x10;
     MenuArg.pack = (u_int *) DataBuffer.stGetTop();
-    file_size = LoadFileMenu(at_1237__2, (u_long128 *) MenuArg.pack, MENU_FILE_LOAD_DIRECT);
+    file_size = LoadFileMenu("men0.pac", (u_long128 *) MenuArg.pack, MENU_FILE_LOAD_DIRECT);
     DataBuffer.Alloc(Align16Blocks(file_size));
     DataBuffer.Align64();
-    CActionChara *chara = new ((u_long128 *) DataBuffer.Alloc(0x105)) CActionChara;
+    CActionChara *chara = new ((u_long128 *) DataBuffer.Alloc(Align16Blocks(sizeof(CActionChara)) + 2)) CActionChara;
     chara->Initialize(NULL);
-    TitleScene->AssignChara(0, chara, at_1238);
+    TitleScene->AssignChara(0, chara, "mm");
     DataBuffer.Align64();
     u_long128 *sound_buffer = DataBuffer.stGetTop();
     TitleScene->LoadSound(0x1F4, sound_buffer);
     TitleScene->StopEnvBGM();
     sndWaitTransBd();
-    LoadFile2(at_1239__2, sound_buffer, &file_size, 0);
+    LoadFile2("snd2/event/EV_600_000.snd", sound_buffer, &file_size, 0);
     sndInitPort(4);
     TitleEventSound = sndLoadSound(4, (u_int *) sound_buffer, &snd_memory);
     DataBuffer.Align64();
-    Stack_ReadBuff.stSetBuffer(DataBuffer.stGetTop(), DataBuffer.stGetRest());
+    int read_capacity = DataBuffer.stGetRest();
+    u_long128 *read_top = DataBuffer.stGetTop();
+    Stack_ReadBuff.stSetBuffer(read_top, read_capacity);
     read_buffer = Stack_ReadBuff.stGetTop();
     TitleScene->read_buff = read_buffer;
     TitleScene->fade.Initialize();
@@ -838,9 +840,6 @@ static void TitleBootInit() {
 }
 
 #pragma inline_depth reset
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/title", TitleBootInit__Fv);
-#endif
 void TitleExit() {
     if (CheckOmakeFlag() != 0) {
         OmakeFlag = 1;
