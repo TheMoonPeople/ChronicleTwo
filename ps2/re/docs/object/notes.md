@@ -6,6 +6,8 @@ The unit holds the out-of-line members of two classes:
 - `CObjectFrame` (owned here, declared in `object.hpp`): 8 members, plus `__vt__12CObjectFrame`.
 
 No global data besides the two vtables; no non-member functions.
+Both vtables are emitted natively by `object.cpp`; no data reservation
+markers remain in this unit.
 
 ## Hierarchy
 `mgCFrame`/`mgCObject` (mg_frame) <- `CObject` (map) <- `CObjectFrame` (object) <- `CMapPiece`
