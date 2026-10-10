@@ -168,3 +168,13 @@ source changes or new failing functions; the pre-merge check retained the
 existing Initialize and ClearStack register-allocation differences. Upstream independently reported
 `CRain::Start` matching in an isolated whole-image check. These results are
 pre-merge evidence, not validation of the merged unit.
+
+
+## Native data and matching constraints
+
+All data are native. Each default-name consumer owns its writable eight-byte `noname[] =
+"no_name"` static. Ripple's Shift-JIS circle glyph and rain's hat frame name are inline.
+GetData's native switch and CScene's vtable supply their own tables. InScreenFunc's
+bounds templates are `{50,50,0,0}` and `{-50,-50,0,0}`, sixteen bytes each; its static
+sun_func owns 0x1C0 bytes plus a one-byte constructor guard. All-consumer relocation
+checking names these objects independently of compiler suffixes.
