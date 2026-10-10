@@ -1768,6 +1768,14 @@
   "placement_new": {
     "statement_conversions": [
       {
+        "translation_unit": "menushop.cpp",
+        "function": "MenuNPCQuestViewInit__FP9mgCMemoryPii",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__14CMenuQuestViewFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "dynamicanime.cpp",
         "function": "dynCOLLISION__FP9SPI_STACKi",
         "allocator": "__nw__FUiP1",

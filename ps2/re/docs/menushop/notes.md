@@ -48,10 +48,11 @@ Native placement construction emits the expected base constructor calls and
 vtable stores without source-level byte offsets. `CShopMenu` clears its two
 `arrow_flash` entries in a constructor loop; that statement-shaped body takes
 MWCC's early inline conversion and gives an exact native `MenuShopInit`.
-`MenuNPCQuestViewInit` remains guarded. It branches on `v0` immediately
-after `__nw__FUiP1` and copies `v0` to `s1` in the delay slot. MWCC branches on `s1` after the
-copy and emits a nop in the delay slot for the native placement-new expression. Explicit
-value initialization and a named placement buffer produce the same instructions.
+`MenuNPCQuestViewInit` uses a genuine empty inline `CMenuQuestView` constructor,
+which calls the base constructor and writes the derived vtable without
+initializing the quest-view members. Its scoped placement conversion selects
+`__ct__14CMenuQuestViewFv` after constructor inlining, retaining the retail
+allocator-result branch with the saved-pointer copy in its delay slot.
 
 `CShop::AnalyzeShopList` constructs its `CScriptInterpreter` local after assigning the four
 shop globals. Declaring that local at the start of the function moves its constructor before
@@ -109,8 +110,8 @@ bag item moves. `shop_mode_prev_1326`/`init_1327` are function-local statics (mo
 The ghidra `KeyStep` copy under `MenuShopKey__Fv.c` is a mis-split; MenuShopKey is a tail call.
 
 ## CMenuQuestView (size 0x190)
-Size: `MenuNPCQuestViewInit` `__nw(400)` (Alloc 0x1B units). Implicit constructor: base ctor +
-vptr only, so no constructor is declared.
+Size: `MenuNPCQuestViewInit` `__nw(400)` (Alloc 0x1B units). The empty inline constructor performs only base construction and the
+compiler-generated derived vtable assignment; no member initialization is supported.
 | 0x110 | s32 | select | MenuKeySelectCheck(…, &select, &top, 0, SelectMax(), 7, 0) |
 | 0x114 | s32 | top | same; scroll bar y |
 | 0x118 | s32[0x1E] | photo_no | InitEnd: -1, or `*(s16*)(GetPhotoInfo(i)+10)` when `*GetPhotoInfo(i)`; never read in this unit |
@@ -180,11 +181,33 @@ unit's global flag: removing it produces an identical complete `menushop.cpp.o`.
 
 ## Current matching status
 
-Twenty-nine functions and the unit's native data match retail. Only
-`MenuNPCQuestViewInit` retains a guarded assembly fallback. Its placement
-construction draft branches on the saved pointer after copying it; retail
-branches on the allocation result and copies in the delay slot.
+All thirty functions and the unit's native data match retail.
+`MenuNPCQuestViewInit` constructs the quest-view menu with an empty inline
+constructor and one scoped placement conversion row. The constructor has no
+retail outline symbol and emits no member stores beyond the inherited base
+initialization and compiler-generated vtable assignment.
 `CShopMenu::KeyStep` uses a natural initialized local static for the previous
 list mode and local script tables for setup, confirmation and refusal.
 The shop initializer keeps the explicit `CShop` placement allocation and
 `memset`; a constructed `new` expression changes the allocation branch.
+
+## Quest-view placement construction
+
+The retail initializer at `0x00299620` allocates a `0x190`-byte menu from
+`MenuLocalStack.Alloc(0x1B)`, constructs `CBaseMenuClass`, and installs the
+`CMenuQuestView` vtable. It separately allocates the eight-byte quest manager
+from three quadwords and calls `Initialize` after an explicit null check.
+The save-data pointers, texture-block setup, and virtual `InitEnd` call follow.
+No quest-view array or cursor-member initialization occurs in the constructor.
+
+An explicit empty inline `CMenuQuestView` constructor supplies a named,
+frontend-witnessed constructor identity to the existing placement policy.
+The implicit constructor has no witnessed eligible root for that mechanism.
+The scoped after-inline row selects only `MenuNPCQuestViewInit`, allocator
+`__nw__FUiP1`, constructor `__ct__14CMenuQuestViewFv`, and one construction.
+Its effect is MWCC's own early statement conversion; all base calls, vtable
+writes, and instructions remain compiler-generated. The complete native
+object has `0x5A50` allocated bytes and 1,335 resolved relocations, all exact.
+The complete 149-unit object check and PAL section/layout verifier pass.
+Refreshed source-only objdiff reports 30/30 exact functions and 100% native
+code and data for menushop; the initializer itself is `0x124` bytes and exact.
