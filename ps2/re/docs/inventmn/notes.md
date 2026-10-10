@@ -6,13 +6,12 @@ the memory-card album, invention recipes and the menu page class. No first-game 
 
 ## Function status
 
-Every function of the unit is native C++ except the guarded draft
-(`#ifdef NONMATCHING` ... `INCLUDE_ASM`) of `CMenuInvent::IsAccessAlbum`.
-There is no assembly-only function. `MenuInventKey`,
+Every function of the unit is native C++ and exact. There is no guarded draft
+or assembly-only function. `MenuInventKey`,
 `CMenuInvent::CalcTex`, `LoadCharaCheck`,
 `IsCreateObject`, `UpdataNetaMemoStr`, `GradationStep`, `CalcCursorPosition`,
-`CInventUserData::ResetAddress` and `MenuInventInit` are native and exact; their
-required source forms are in "Carried-photo pixel storage" and "Matching-dependent source forms"
+`CInventUserData::ResetAddress`, `MenuInventInit` and `IsAccessAlbum` are native
+and exact; their required source forms are in "Carried-photo pixel storage" and "Matching-dependent source forms"
 below.
 
 `decompile.sh` cannot recover the jump tables in `MenuInventKey` and
@@ -45,21 +44,10 @@ effect allocations retain the guarded `Initialize` calls. The inline menu
 constructor owns the three icon-name literals; entry owns its configuration,
 image-form and initial script literals.
 
-### Guarded functions
-
-- `CMenuInvent::IsAccessAlbum` runs the memory-card album dialogue (see "Album
-  access states"). It constructs `CDC2AlbumData` and `CMemoryCardManager` with
-  placement new from `MenuInventMCStack`; the draft copies the allocation result
-  to a saved register before testing it for null, where retail branches on `v0`
-  and copies in the delay slot, and the draft's frame is `0x10` smaller with
-  `this` and the card pointer in exchanged saved registers.
-
 ### Remaining data markers
 
 - `at_3138`: retail's jump table for the load-stage switch in `IsCreateObject`
   (nine `IsCreateObject` targets and a trailing zero word).
-- `at_4354`..`at_4380` except `at_4378`: script and format strings used only by
-  the guarded `IsAccessAlbum`.
 - `INCLUDE_BSS` `at_3739` and `at_3765`: the zero templates of the two
   `ItemNameList2` locals (`names`, `delete_names`) of `IsAskExtend`. Giving each
   its own case scope changes the function prologue, and value initialization
@@ -70,7 +58,7 @@ local aggregates with ordinary initializers (recipe flags, message types, grade
 rows and steps, cursor and gift coordinates, item board positions and names,
 blank name, card colour, grid codes and creation/exit arguments), twenty-eight
 initialized tables, the switch tables and the `CMenuInvent` vtable. The cursor
-seed is `{10, 10, 0, 0}`. Shift-JIS text is written with hex escapes. `Tb_2819`
+seed is `{10, 10, 0, 0}`. Shift-JIS text uses explicit byte escapes. `Tb_2819`
 holds seven pointers (entries one and six share one literal) and is followed by
 three alignment bytes before `jp_conv_lentbl_2835`. The 53 `scoop_table` rows
 keep retail's order and ID/index gaps, with scoop 1015 last. The gift
@@ -247,8 +235,8 @@ at 12 (`BootExtendCommand` sets 12); the inventory extensions 13 and 14 call Pho
 and IsAccessAlbum. The layout mode is `key_arg_no` (INVENT_MENU_MODE, below).
 Offsets:
 - 0x110 photo_only (=1 when MenuCommonInfo+0x50 == 10; runs "picmodeonly"), 0x112 short
-  `unk_112`: 1 while the memory-card album opened from an album button is in use (users
-  are inside the guarded `IsAccessAlbum`, so it is not renamed).
+  `album_open`: 1 while the memory-card album opened from an album button is in use.
+  Closing/cancelling the album clears it; board and notebook navigation tests it.
 - 0x114/118 card cursor/top, 0x11C/120 item, 0x124/128 photo, 0x12C/130 album, 0x134/138 notebook
   (ExitEnd stores all ten and 0x392 into CMenuSystemData 0x20..0x3E).
 - 0x13C MENUFORM_MAKEBRD_INFO (CalcMakeBrd, CalcCommonBrdDrawInfo).
@@ -363,9 +351,8 @@ shifts Y by 26, steps the message and centres it with the updated Y.
 | 250, 300, 301 | Acknowledge cancellation/card/save messages and offer recovery when leaving |
 | 500..503 | Confirm format, search/format, report the result and resume the relevant prompt |
 
-Source forms that reproduce retail's instruction windows for this function (the guarded
-draft does not use all of them): runtime state variables declared at function entry with
-their assignment order kept; the four positive tests on the recover-photo count and the
+Source forms that reproduce retail's instruction windows for this function:
+runtime state variables declared at function entry with their assignment order kept; the four positive tests on the recover-photo count and the
 selected album flag written `0 < value`, and the two up-key cases as `move--` after zero
 initialization (down increments, so both bits cancel); the loading coordinates as one
 `int[2]` passed to the two-reference `GetPutPosXY` with Y used after `StepMsg`; and the
@@ -375,12 +362,26 @@ emits the call before the card capacity load.
 In state 240, insufficient carried-photo space runs the full-photo script and
 leaves the switch immediately; it does not revisit the cursor's cancel test.
 `SetBuff_Album` receives the complete serialized album as `(char *) InventAlbumPtr`.
-The upper slot clamp is `ActiveSlot_3949 > 1`. With the established allocation
-helper and these control-flow forms, a natural draft has 175 differing words
-of the padded 0x13F0 extent. The remaining frame is 0x140 against retail's
-0x150, with exchanged `this`/card registers and different error/answer slots.
-There is no established live aggregate or SDK temporary explaining an extra
-16-byte local; unused padding is not a source solution.
+The upper slot clamp is `ActiveSlot_3949 > 1`. Both placement allocations use
+`align16_blocks(sizeof(T)) + 2`, retaining the allocation-result test and its
+delay-slot pointer copy.
+
+`CMemoryCardManager::GetCardInfo` returns the record of port zero or one and
+returns NULL for other ports; `GetErrorInfo` returns the current error record.
+The inline member calls keep `this` in `s1`, the card pointer in `s0` and the
+port branch/error address order. Direct field expressions exchange the saved
+registers. State 240's answer is declared at entry immediately before the error
+pointer, while its assignment remains in state 240; this gives the 0x150 frame,
+answer slot 0x12C, error slot 0x130 and loading coordinates at 0x148/0x14C.
+Other cursor answers retain their case-local declarations.
+
+The two progress calls use
+`download_base + MCManagerPtr->GetTransferredSize()`. The inline accessor
+returns the manager's signed byte counter and preserves the retail load and
+addition operand order. A direct field expression or scalar snapshot exchanges
+the loads; reversing the direct-field addition restores the loads but exchanges
+the final addition operands. Script and format literals belong to this native
+function.
 
 ## Typed access and code generation
 - `GetInventUserDataPtr` reaches the embedded invention data through the existing
@@ -490,5 +491,4 @@ idea or photo board on left navigation. The remaining values:
   part コルク); opening the notebook selects it and down leads to 9.
 
 Every matched function uses these enumerators in its `key_arg_no` switches,
-comparisons and `NextDifferentMode`/`PrepareNextMode` targets. The guarded
-drafts keep their numbers.
+comparisons and `NextDifferentMode`/`PrepareNextMode` targets.

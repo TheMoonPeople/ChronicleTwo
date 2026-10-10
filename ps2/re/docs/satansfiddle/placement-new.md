@@ -330,8 +330,8 @@ member and base construction. The global after-inline request loses no measured 
 the strongest uniform alternative. Its header-only variant misses the
 source-defined `CMapParts` construction. Forcing a constructor's inline class
 and requesting enclosing-expression conversion are observably different
-policies: only the former zeros `NewTexAnimeData`, and only the latter zeros
-`MenuInventInit` and `GeneratePoly`.
+policies: in those draft comparisons, only the former zeros `NewTexAnimeData`,
+and only the latter zeros `MenuInventInit` and `GeneratePoly`.
 
 A hybrid driver that omits the placement rows, keeps the float rows, applies
 global after-inline in 148 units and before-template conversion in mg_tanime
@@ -347,6 +347,14 @@ uses provisional allocator and name filters, excludes raw `__ct` implicit
 roots, and lacks production's exact ownership, bounded-region and completion
 guarantees. A production global policy would need those checks, supported
 allocator ABIs and defined implicit-constructor handling.
+
+`MenuInventInit` now matches with natural source and the existing scoped
+profile, without an added placement row. Its allocations use the established
+`align16_blocks(sizeof(T)) + 2` form; size-first snapshots through the inline
+byte-buffer member getter restore its saved registers. `IsAccessAlbum` also
+uses that allocation form without a new row. See
+[the inventory source forms](../inventmn/notes.md) for the member accessors and
+local declaration order needed by those functions.
 
 The design choice is therefore explicit: the conservative caller activation
 rows above, or a profile-wide after-inline default with one justified
