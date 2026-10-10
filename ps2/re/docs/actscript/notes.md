@@ -31,8 +31,8 @@ row type `RS_EXTFUNC_INFO` is already declared in `runscript_opcodes.hpp` (inclu
 | `nowScene` | 0x37E44C | 4 | **global** | `CScene *`, extern in header. Set by `CActionChara::RunScript` (`sw $a1, -0x62A4($gp)`); read by actscript (`_CAMERA_QUAKE`: `nowScene+0x2F90` = dng_main's `DNG_BATTLE_AREA`, fields +0x70 float, +0x74 float, +0x78 s16; `_CHECK_PAUSE`, `_GET_MONSTER_NOWSTS`, `_GET_TRG_DISTANCE` -> `GetTargetDist(CScene*)`, ...) and by 12 actionchara members. Another `nowScene` (0x37D4E4) is a runscript_opcodes local. |
 | `action_info` | 0x1F3D170 | 0x10 | **global** | `ACTION_INFO`, extern in header (actionchara writes it). |
 | `LastCInfo2` | 0x37E450 | 4 | local | `static ACTION_DAMAGE *LastCInfo2;` result of `CActionChara::EntryDamage2` in `_SET_DMG2` (null check -> printf "CACT:DMG_ENTRY_ERR %s\n"; writes +0x14). |
-| `ext_func` | 0x1F3D180 | 0x400 | local | `static int (*ext_func[256])(RS_STACKDATA *, int);` |
-| `ext_func_info` | 0x35A800 | 0x298 | local | `static RS_EXTFUNC_INFO ext_func_info[83]`: 82 entries in retail order + `{NULL, ACTION_EXT_END}` terminator (retail has 8 zero alignment bytes after it, supplied by the linker). Static prototypes give the handlers their retail local linkage before the table takes their addresses. |
+| `ext_func` | 0x1F3D180 | 0x400 | local | `static int (*ext_func[ACTION_EXT_FUNC_MAX])(RS_STACKDATA *, int);` (`ACTION_EXT_SIZE`, 256 slots) |
+| `ext_func_info` | 0x35A800 | 0x298 | local | `static RS_EXTFUNC_INFO ext_func_info[]`: 82 entries in retail order + `{NULL, ACTION_EXT_END}` terminator (retail has 8 zero alignment bytes after it, supplied by the linker). Static prototypes give the handlers their retail local linkage before the table takes their addresses. |
 | `sw`, `canon_slot`, `cnt` (+ compiler guards) | .sbss | 4 each | local | function-local statics of `_SHOT`: `static int sw = 1;` (toggles 0/1), `static int canon_slot = 0;` (cycles 0..3, indexes a pair table of 8 pointers on the stack), `static int cnt = 0;` (cycles 0..2). MWCC initialises them lazily through generated guard words. |
 | (string) | 0x375EE0 | | | "chr]same ext_func_no!!!\n" (duplicate-number printf). |
 | (string) | 0x375F00 | | | "ext func over!!" (number outside 0..255). |
@@ -112,9 +112,9 @@ switch emits its own jump table.
   branch, which fixes the retail frame layout.
 - `SetActionScript` keeps the script stack and call data as typed
   `RS_STACKDATA *`/`RS_CALLDATA *` locals cast once from `Alloc`.
-- `_CHECK_CATCH` passes the `int` result of `CheckKeri` through a `char *name`
-  local (`SetStack(stack, (int) name)`); passing the call result directly sets
-  up `a0` before `a1`, whereas retail sets up the cast argument first.
+- `_CHECK_CATCH` stores the `int` result of `CheckKeri` in a named `int found`
+  local before `SetStack`; passing the call result directly sets up `a0` before
+  `a1`, whereas retail sets up the argument first.
 - `(CActiveMonster *)` / `(CCharacter2 *)` casts of held objects are real
   downcasts. The charging effect is accessed through a unit-local `AccumeSlot`
   struct that duplicates the `ACCUME_EFFECT` layout from dng_main.hpp because

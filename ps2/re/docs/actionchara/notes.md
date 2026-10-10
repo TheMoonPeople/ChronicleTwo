@@ -23,6 +23,8 @@ sections directly.
   compiler-generated zero initializer lives in BSS.
 - `hit->param->hit_flags` is read without a cast because the field is `s16`
   (colprim.hpp).
+- The enums `ACTION_DAMAGE_REACTION` (`CheckDamage`'s local `reaction`) and
+  `ACTION_CHARA_SIZE` (table sizes) name the values used by these functions.
 
 Header: `ps2/include/actionchara.hpp`. Owns `CActionChara` (derives `CCharacter2`, unit `character`),
 plus the parameter/table types `RUN_SCRIPT_ENV`, `ACTION_SW_EFFECT`, `ACTION_DAMAGE`, `ACTION_OBJECT`,
@@ -77,7 +79,7 @@ other struct and enum names are ours. No first-game equivalent of `CActionChara`
 - 0x6B8 script_buf: LoadActionFile stAlloc64 + memcpy, then SetActionScript(&script, buf, mem).
 - 0x710 prog_no: RunScript runs program prog_no if present then sets -1; -1 -> resume; script end
   (CRunScript+0x3C, i.e. 0x6F8) -> 200. Values: 100 InitScript, 150 ResetAction, 200, 500/600/550/1400
-  from damage_req 1/2/7/4, 700 from unk_bec, 550 SetHold, 1500 landing (grounded, old vy <= -3.5).
+  from damage_req 1/2/7/4, 700 (ACTION_PROG_MELEE_HIT) from melee_hit, 550 SetHold, 1500 landing (grounded, old vy <= -3.5).
 - 0x712 prog (`_PROG_SET/_PROG_GET`). 0x714 pad_history (|= PadCtrl Btn(0x32); `_GET/_RESET_PAD_HISTORY`).
 - 0x718 default_motion (`_SET_DEFAULT_MOS`; initialized to a Shift-JIS motion name literal).
 - 0x71C hold_type (ACTION_HOLD_*): 1 EntryThrowItem, 3 CheckEnemyCatch (monster), 4 CheckEnemyCatch (stone); 0 on
