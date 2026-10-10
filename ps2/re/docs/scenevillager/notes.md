@@ -2,6 +2,10 @@
 
 The unit owns no class (`class_units.tsv`). All 35 `CScene` members here belong to `CScene`
 (owning unit `scenesnd`) and are declared there, not in `scenevillager.hpp`.
+Native definitions now supply every data object; no RODATA or BSS reservations
+remain. `CharaObjectOnOff` is the sole guarded function. The native
+`GameObjInfo` initializer preserves the four negative-zero Y components in
+retail's placement records.
 
 ## Local (static) functions and data
 Every non-member function and every named datum is LOCAL in retail (`local_symbols.tsv`), so
