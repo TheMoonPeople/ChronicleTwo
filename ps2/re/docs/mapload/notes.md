@@ -1,20 +1,8 @@
 # mapload: header notes
 
-## C++ draft status
-All 118 functions have C++ in `ps2/src/mapload.cpp`. 19 are exact and compiled
-by the matching build. 68 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 31 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Matching status
 
-Header: `ps2/include/mapload.hpp`. Includes `mg_drawenv.hpp` (mgPOINT_LIGHT, mgFOG_PARAM, mgVu0FBOX
-by value) and `mg_frame.hpp` (mgCFrame by value). It must not include `map.hpp` or `funcpoint.hpp`:
-`mapinfo.hpp` includes `mapload.hpp` and `map.hpp` includes `mapinfo.hpp` (cycle). Note
-`mglib.hpp` also declares `mgFOG_PARAM`; a unit including both `mglib.hpp` and `mg_drawenv.hpp`
-will see a redefinition (not this unit's to fix).
-
-Classes owned (class_units.tsv): CMapLightingInfo, CFuncPoint, PieceMaterial, CCameraDrawInfo,
-plus CList<CMapParts>/CList<CMapPiece> (template already in `mg_tanime.hpp`; nothing to declare).
+All functions are native; no assembly function fallback remains.
 
 ## Method used for layouts
 Compiler-generated copy plans were reproduced with MWCC (wibo + `tools/compilers/mw/3.0-011126`)
@@ -150,3 +138,39 @@ also does for the generated CameraCtrlParam, sceGsTex0, and mgCVisualMDT copy
 assignments. The non-const-reference mgCDrawEnv assignment instead has ordinary
 GLOBAL binding. This provides additional evidence that the map-light copy is a
 compiler-generated member rather than an authored operator body.
+
+
+## Native data and matching constraints
+
+All data are native. `map_tag[88]` and `cfg_tag[17]` are mutable `SPI_TAG_PARAM` tables
+with null terminators. The first 35 map rows are `{"d", mapDummy}`; the repeated
+`FUNC_FIRE_DATA` and `FUNC_DATA` spellings dispatch distinct handlers and must remain
+repeated. `cfg_tag`'s eight-byte tail is alignment. Public
+`mapMapPartsGroupName[0x100]`, `mapPos`, `mapRot` and `mapScale` retain their header
+types; parser state is file-local.
+
+The compiler emits the 12-byte `CList<CMapPiece>` and `CList<CMapParts>` vtables at
+0x37B608 and 0x37B618. Each contains two zero words and its Initialize pointer. The
+first table receives four verified alignment bytes; the terminal tail belongs to the
+linker. The sun initializer is `{0.0f, -1900.0f, 700.0f, 1.0f}`.
+
+`mapFUNC_EFFECT_NAME` uses the `effect.name`/`effect.index` union members at 0x20/0x24.
+`cfgOCCLUSION_PLANE` writes homogeneous W as 1.0f; `cfgWATER_DRAW` reads the name and
+follower digits through character indexing.
+
+The inherited quadword copies remain exact. Natural alternatives fail with these masked
+instruction-word differences:
+
+| Function | memcpy | Components | Loop |
+| --- | ---: | ---: | ---: |
+| GetLightInfo | 76 | 99 | 100 |
+| mapFUNC_FIRE_DATA | 36 | 85 | 85 |
+| mapFUNC_PLIGHT_DATA | 73 | 149 | 149 |
+| CFuncPoint::SetScale | 19 | 12 | 12 |
+| CFuncPoint::SetRotation | 19 | 12 | 12 |
+| CFuncPoint::SetPosition | 19 | 12 | 12 |
+
+The setters are 0x1C bytes plus four alignment bytes. Components grow them to 0x34,
+memcpy to 0x4C, and sceVu0CopyVector to 0x48; the SDK SetScale variant differs by 18
+words. An aligned-vector parameter keeps float-pointer mangling but does not change
+these results.
