@@ -54,3 +54,6 @@ The source now declares and calls the callback by its native static C++ name.
 `VSyncCallBack__Fi__2` body, which keeps the retail callback address and
 removes the source-level C-linkage alias. The linked game compiles with this
 binding; `init` remains a 100% object match.
+
+The ten IOP module paths and the shared counter format are inline literals.
+No assembly data markers remain in this unit.
