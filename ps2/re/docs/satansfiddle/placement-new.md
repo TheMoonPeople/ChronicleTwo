@@ -341,8 +341,8 @@ current source preserves every scoped diagnostic zero and adds two guarded
 zeros, `MenuInventInit` and `_ESM_INITIALIZE`. `_ESM_INITIALIZE` is native
 without a row: writing its allocation size with the statement-inlined
 `align16_blocks` gives retail's `beqz v0` test (see
-[event_func notes](../event_func/notes.md)). The `MenuInventInit` draft
-retains rejected helper and dummy scaffolding and remains inactive. The hybrid driver
+[event_func notes](../event_func/notes.md)). The `MenuInventInit` draft used
+for that census retained rejected helper and dummy scaffolding. The hybrid driver
 uses provisional allocator and name filters, excludes raw `__ct` implicit
 roots, and lacks production's exact ownership, bounded-region and completion
 guarantees. A production global policy would need those checks, supported
