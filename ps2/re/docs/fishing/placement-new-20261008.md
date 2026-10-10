@@ -97,3 +97,26 @@ regresses other native functions. Scoped `defer_codegen on`, alone or with
 `inline_bottom_up on`, alongside smart depth also retains 24/280. These
 policies do not recover the player-first temporary numbering required by the
 interference graph. No inline policy or allocation-source edit is retained.
+
+## Reference-bound characters
+
+A watchpoint on MWCC's GPR virtual-register counter over the block-count
+draft numbers `scene` 32, then the inline-expansion temporaries (33-37), the
+placement temporary `@1467` (38), and the named locals in reverse declaration
+order: `camera` 39 up to `chara` 44 and `tex_manager` 45. `fish_chara` is
+given no node: copy propagation keeps the placement temporary. A colouring
+simulation of the captured graph reproduces retail's registers only if the
+player numbers between 32 and 38, or the fish between `chara` and
+`tex_manager`, which is the position a surviving function-scope `fish_chara`
+would take.
+
+Copying a single-use `T *const &` binding into a named local keeps the named
+local and drops the reference temporary. Copying a placement or inline
+temporary into a named local keeps the temporary instead. The following
+therefore all retain **24/280**: `CCharacter2 *const &player` bound to the
+`GetCharacter` result and copied into `chara`; a reference bound to the
+constructed fish and copied into function-scope `fish_chara` (numbered 46,
+then removed), alone or before the `FishChara` store; a block-scope
+`CCharacter2 *const` fish; `fish_chara = FishChara = new ...`; and a reference
+bound to `FishChara = new ...`. A single-use fish reference followed by
+`FishChara->Initialize()` reloads `FishChara` (200/280).
