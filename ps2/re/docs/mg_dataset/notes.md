@@ -222,3 +222,26 @@ the typed version matches retail at 100% (0x274 bytes).
 allocation count and iteration index. Its serialized-file offsets and the earlier
 placement-new measurements (superseded by the block-count helper above) are in
 [matching-20261008.md](matching-20261008.md).
+
+## Smart and deferred frame-copy inlining
+
+For `CopyFrameSub`, scoped `inline_depth(smart)` preserves the optimizer-off
+**11/68** residual (unfolded block count and missing early frame copy) and
+the level-2 **13/68** saved-register exchange. Keeping smart depth active
+through the next declaration leaves the level-2 result unchanged. Deferred
+inlining (`-inline deferred`) gives **15/68** with the optimizer off and
+**13/68** at level 2, while changing other native functions. Scoped
+`defer_codegen on` with smart depth gives the same optimizer-off 11/68
+instructions even inside the level-2 region; adding `inline_bottom_up on`
+leaves that result unchanged. `inline_bottom_up on` without deferred code
+generation retains the level-2 13/68 register exchange. Neither policy resolves
+both folding and frame/source colouring. The existing function pragmas and guard
+are retained.
+
+Holding level 2, smart depth and deferred/bottom-up policies through
+`mgCopyFrame`'s declaration, then restoring its original policies immediately
+inside its body, recovers the folded allocation and early saved-pointer copy.
+`CopyFrameSub` still has exactly the thirteen `s0`/`s1` register-field
+exchanges; all forty other draft functions remain exact. The declaration
+boundary therefore explains the scoped deferred 11/68 result, but supplies
+no matching frame/source numbering.
