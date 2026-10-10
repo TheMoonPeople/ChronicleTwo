@@ -557,38 +557,25 @@ void PreExitLoop(CScene *scene) {
     EdEventTermination();
 }
 
-struct EditSubInfo {
-    CScene    *scene;
-    int        texb;
-    int        texb_num;
-    int        unk_c;
-    mgCMemory *menu_buff;
-    int        dungeon;
-    int        no_map_event;
-    int        record_check;
-    int        rod_no;
-    int        esa_no;
-    int        keep_bgm;
-    mgCMemory *load_buff;
-
-    EditSubInfo() {
-        record_check = 0;
-        no_map_event = 0;
-        load_buff = menu_buff = 0;
-        dungeon = 0;
-        keep_bgm = 0;
-        scene = 0;
-    }
-};
-
 struct EditEffectSpriteState {
     u_char padding[0x30];
     u_char sprite[0x1C];
     void  *sprite_vtable;
 };
 
+/**
+ *
+ * Rounds a byte count up to a number of 16-byte allocation blocks.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
 
-#ifdef NONMATCHING
+    return size >> 4;
+}
+
 void EditInit(INIT_LOOP_ARG arg) {
     mgCMemory           *main_stack;
     u_long128           *script_data;
@@ -608,9 +595,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     u_int                water_qwords;
     int                  event_no;
     int                  active_chara_no;
-    int                  fishing_item;
     int                  i;
-    static sceVu0FVECTOR initial_position;
 
     DataPktMode = -1;
     MainScene = GetMainScene();
@@ -743,7 +728,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     EditSetEffectBuffer(&TotalDataBuff);
     TreasureBox = NULL;
     if (LoadFile2("map/itembox.chr", read_buffer, NULL, 0) != 0) {
-        TreasureBox = new (TotalDataBuff.Alloc(sizeof(CMapTreasureBox) / 16 + 2)) CMapTreasureBox;
+        TreasureBox = new (TotalDataBuff.Alloc(align16_blocks(sizeof(CMapTreasureBox)) + 2)) CMapTreasureBox;
         textures->DeleteBlock(173);
         TreasureBox->LoadPackNoLine((u_int *) read_buffer, "info.cfg", &TotalDataBuff, &TotalDataBuff, &TotalDataBuff, 173, NULL);
     }
@@ -779,16 +764,14 @@ void EditInit(INIT_LOOP_ARG arg) {
     NowLoadingBarStep();
     MainScene->Initialize();
     MainScene->chara_texb = 70;
-    MainScene->villager_texb = 78;
-    MainScene->villager_texb_num = 56;
-    MainScene->event_texb = 160;
-    MainScene->event_texb_num = 2;
-    CScene::BGM_INFO *const bgm = MainScene->GetActiveBgmInfo();
-    bgm->master_volf = 1.0f;
-    MainScene->SetVolfBGM(MainScene->GetActiveBgmInfo()->volf);
+    MainScene->SetVillagerTexb(78, 56);
+    MainScene->SetEventTexb(160, 2);
+    CScene *scene = MainScene;
+    scene->GetActiveBgmInfo()->master_volf = 1.0f;
+    scene->SetVolfBGM(scene->GetActiveBgmInfo()->volf);
     MainScene->tex_block_base = 185;
     MainScene->tex_block_count = 21;
-    effects = new (TotalDataBuff.Alloc(sizeof(CEffectScriptMan) / 16 + 2)) CEffectScriptMan;
+    effects = new (TotalDataBuff.Alloc(align16_blocks(sizeof(CEffectScriptMan)) + 2)) CEffectScriptMan;
     effects->Initialize(&TotalDataBuff, 174, 11);
     effects->load_buffer = read_buffer;
     effects->SetWorkBuffer(&ChrEffBuffer);
@@ -811,7 +794,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     }
     NowLoadingBarStep();
 
-    characters = new (TotalDataBuff.Alloc(sizeof(CActionChara) * 8 / 16 + 2)) CActionChara[8];
+    characters = new (TotalDataBuff.Alloc(align16_blocks(sizeof(CActionChara) * 8) + 2)) CActionChara[8];
     for (i = 0; i < 8; i++) {
         MainScene->AssignChara(i, &characters[i], NULL);
     }
@@ -822,11 +805,11 @@ void EditInit(INIT_LOOP_ARG arg) {
     MainScene->AssignMessage(2, GetSystemMessage(1), NULL);
     GetSystemMessage(2)->texture_block = 154;
     MainScene->AssignMessage(3, GetSystemMessage(2), NULL);
-    Camera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
-    EventCamera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
-    FixCamera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
-    EditCamera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
-    debug_camera = new (TotalDataBuff.Alloc(sizeof(CCameraControl) / 16 + 2)) CCameraControl;
+    Camera = new (TotalDataBuff.Alloc(align16_blocks(sizeof(CCameraControl)) + 2)) CCameraControl;
+    EventCamera = new (TotalDataBuff.Alloc(align16_blocks(sizeof(CCameraControl)) + 2)) CCameraControl;
+    FixCamera = new (TotalDataBuff.Alloc(align16_blocks(sizeof(CCameraControl)) + 2)) CCameraControl;
+    EditCamera = new (TotalDataBuff.Alloc(align16_blocks(sizeof(CCameraControl)) + 2)) CCameraControl;
+    debug_camera = new (TotalDataBuff.Alloc(align16_blocks(sizeof(CCameraControl)) + 2)) CCameraControl;
     MainScene->AssignCamera(0, Camera, NULL);
     MainScene->AssignCamera(1, EventCamera, NULL);
     MainScene->AssignCamera(2, FixCamera, NULL);
@@ -837,7 +820,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     Camera->GetActiveParam()->near_height = 10.0f;
     Camera->GetActiveParam()->far_height = 10.0f;
     Camera->GetActiveParam()->ground_space = 30.0f;
-    Camera->default_param = *Camera->GetActiveParam();
+    Camera->SetDefaultParam();
     MainScene->player_chara = 0;
 
     textures->EnterTexture(156, "work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
@@ -855,9 +838,9 @@ void EditInit(INIT_LOOP_ARG arg) {
 
     TotalDataBuff.Align64();
     TotalDataBuff.lock = 1;
-    ControlCharaBuff.stSetBuffer(&TotalDataBuff.stack[TotalDataBuff.stack_used], TotalDataBuff.stack_size - TotalDataBuff.stack_used);
-    ControlCharaBuff.stack_used = 0;
-    ControlCharaBuff.lock = 0;
+    data_size = TotalDataBuff.stGetRest();
+    ControlCharaBuff.stSetBuffer(TotalDataBuff.stGetTop(), data_size);
+    ControlCharaBuff.stReset();
     MainScene->SetStack(0, &ControlCharaBuff);
     MainScene->SetStack(1, &MainDataBuff);
     MainScene->SetStack(2, &MainCharaBuff);
@@ -870,8 +853,8 @@ void EditInit(INIT_LOOP_ARG arg) {
     MainScene->work_stack = &WorkBuffer;
     ControlCharaBuff.stAlloc64(GetCharaMemAllocSize());
     ControlCharaBuff.Align64();
-    FixCharaBuffSize = ControlCharaBuff.stack_used;
     ControlCharaBuff.lock = 1;
+    FixCharaBuffSize = ControlCharaBuff.stGetUsed();
     active_chara_no = GetUserData()->active_chr_no;
     SetupMainUnit(read_buffer, &ControlCharaBuff, CharaBufs, 70, MainScene, GetUserData(), active_chara_no, 1);
     ActiveCharaNo = GetUserData()->active_chr_no;
@@ -911,12 +894,11 @@ void EditInit(INIT_LOOP_ARG arg) {
     }
     MainCharaBuff.Align64();
     MainCharaBuff.lock = 1;
-    SubDataBuff.stSetBuffer(&MainCharaBuff.stack[MainCharaBuff.stack_used], MainCharaBuff.stack_size - MainCharaBuff.stack_used);
-    SubDataBuff.stack_used = 0;
-    SubDataBuff.lock = 0;
+    data_size = MainCharaBuff.stGetRest();
+    SubDataBuff.stSetBuffer(MainCharaBuff.stGetTop(), data_size);
+    SubDataBuff.stReset();
     SetCurrentDir(NULL);
-    sceVu0FVECTOR position;
-    *(u_long128 *) position = *(u_long128 *) initial_position;
+    sceVu0FVECTOR position = {0.0f, 0.0f, 0.0f, 0.0f};
     player = MainScene->GetCharacter(MainScene->player_chara);
     map = MainScene->GetMap(0);
     if (player != NULL && map != NULL) {
@@ -965,38 +947,18 @@ void EditInit(INIT_LOOP_ARG arg) {
     InitLightingEdit();
     EditEvent.Reset();
     InitSubGame(MainScene);
-    EdDebugInfo.rod_no = fishing_item;
-    EdDebugInfo.menu_buff = NULL;
-    EdDebugInfo.esa_no = fishing_item;
-    EdDebugInfo.texb = 185;
-    EdDebugInfo.texb_num = 21;
-    EdDebugInfo.load_buff = NULL;
+    SubGameInfo info;
+    info.scene = MainScene;
+    info.texb = 185;
+    info.texb_num = 21;
+    info.unk_c = 154;
+    (SubGameInfo &) EdDebugInfo = info;
     EdDebugInfo.jump_map_no = -1;
-    EdDebugInfo.unk_c = 154;
-    EdDebugInfo.dungeon = 0;
-    EdDebugInfo.no_map_event = 0;
-    EdDebugInfo.record_check = 0;
-    EdDebugInfo.keep_bgm = 0;
-    EdDebugInfo.scene = MainScene;
     InitPauseMenu(154);
     NowLoadingBarSteEnd();
     DeleteNowLoading();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditInit__F13INIT_LOOP_ARG);
-#endif
-/**
- *
- * Copies every camera distance and height limit from another parameter set.
- *
- * @mangled __as__15CameraCtrlParamFRC15CameraCtrlParam
- * @address 0x1ACEE0
- * @size 0x60
- */
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __as__15CameraCtrlParamFRC15CameraCtrlParam);
-#ifndef NONMATCHING
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", __ct__12CActionCharaFv);
-#endif
+
 void EditExit() {
     sndSeAllStop(1);
     MainScene->InitSeSrc();
@@ -2916,39 +2878,9 @@ void LoadMap() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1045__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1053__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1528__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1395__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1396__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1397__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1398__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1399__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1400__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1401__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1402__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1403__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1404__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1405__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1406__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1407__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1408__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1409__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1410__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1411__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1412__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1413__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1414__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1415__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1416__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1417__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1418__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1419__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1420__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1421__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1422__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2125__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2126__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2127__DATA);
@@ -2987,4 +2919,3 @@ CEditEvent    EditEvent;
 EditDebugInfo EdDebugInfo;
 mgCVisualMDT  TestVisual;
 mgCFrame      TestFrame;
-INCLUDE_BSS(at_1077, 0x10);
