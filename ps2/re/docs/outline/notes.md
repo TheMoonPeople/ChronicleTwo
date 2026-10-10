@@ -4,7 +4,8 @@ Unit owns one class, `COutLineDraw` (4 members, all in this unit). No first-game
 (Dark Cloud has no outline unit). No vtable. No named globals: the unit's data are all
 compiler-generated (`at_299__2`, `at_300__2`, `at_325`, `at_395`, `at_396`, `at_398`, `at_399`
 in .bss; `at_338` in .data = `{0x80, 0x80, 0x80, 0}` int RGBA used as the composite colour in
-`Draw(float, float)`). The globals `outline_flag`, `outline_start`, `outline_start_tex`,
+`Draw(float, float)`). The matched local initializers supply these templates;
+no assembly data markers remain. The globals `outline_flag`, `outline_start`, `outline_start_tex`,
 `outline_tex_id` are LOCAL to `character` (used by `_OUTLINE`), not this unit.
 
 ## COutLineDraw (size 0x70)
@@ -48,7 +49,12 @@ declared in the header as `COutLineDraw() { next = NULL; Initialize(); }`. `_OUT
     32x32px tiles (rounded to 0x200 boundaries), four sprites per tile shifted by +x, -x, +y, -y
     `offset`; constant qword halves come from `at_395/396/398/399` (bss, zero). `DirectData(0x10)`.
 
-## Draft coverage and isolated checks
-All four remaining functions now have named, typed C++ drafts guarded by `NONMATCHING`; the normal game build still selects retail assembly. `Draw(float*,float,float)` copies the world position before delegating. `Draw(float,float)` handles the empty/disabled cases, clears the frame's projected rectangle in the off-screen texture, draws the frame, then composites a four-direction edge and the unshifted body. The two local helpers divide the source rectangle into sprites so the drawing primitive does not cross their tile boundaries.
+## Current source status
 
-All four drafts compiled under MWCC. `draft_check.py` could not compare their combined object because `Elf.__init__` indexed past its function-name list when a weak template section was emitted. The one isolated promotion attempt for `Draw(float,float)` hit the same parser error. The two local helper attempts failed `mwccgap`'s source-symbol lookup after their static definitions were selected. `Draw(float*,float,float)` compiled and linked in its isolated trial but the image differed from retail. No outline function was promoted; all four retain assembly fallbacks.
+All four functions and their compiler-generated initializer data are native
+C++ and the complete object matches retail. `Draw(float*, float, float)`
+copies the world position before delegating. `Draw(float, float)` handles
+empty or disabled cases, clears the projected rectangle in the off-screen
+texture, draws the frame, then composites four edge directions and the body.
+The two local helpers divide the source rectangle into sprites at tile
+boundaries.
