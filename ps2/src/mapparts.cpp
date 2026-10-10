@@ -369,7 +369,7 @@ int CMapParts::DrawSub(int direct) {
         if ((point = func_point_mngr.Get()) != NULL) {
             do {
                 if (!point->active) {
-                    goto next_light;
+                    continue;
                 }
 
                 if (!lighting_set) {
@@ -423,8 +423,6 @@ int CMapParts::DrawSub(int direct) {
                         mgSetAmbient(ambient);
                         break;
                 }
-
-            next_light:;
             } while ((point = func_point_mngr.Get()) != NULL);
         }
     }
@@ -707,7 +705,7 @@ CFuncPoint *CMapParts::InScreenFunc(InScreenFuncInfo *info) {
     if ((point = func_point_mngr.Get()) != NULL) {
         do {
             if (!point->Check(NULL)) {
-                goto next_point;
+                continue;
             }
 
             point->frame.SetReference(parts_frame);
@@ -757,7 +755,6 @@ CFuncPoint *CMapParts::InScreenFunc(InScreenFuncInfo *info) {
 
         release_point:
             point->frame.DeleteReference();
-        next_point:;
         } while ((point = func_point_mngr.Get()) != NULL);
     }
 
@@ -789,7 +786,7 @@ void CMapParts::DrawScreenFunc(mgCFrame *marker) {
     if ((point = func_point_mngr.Get()) != NULL) {
         do {
             if (!point->Check(NULL)) {
-                goto next_point;
+                continue;
             }
 
             point->frame.SetReference(parts_frame);
@@ -817,7 +814,7 @@ void CMapParts::DrawScreenFunc(mgCFrame *marker) {
                 }
 
                 if (!(mgGetDistFromCamera(point_matrix[3]) <= 4.0f * range)) {
-                    goto next_point;
+                    continue;
                 }
 
                 mgMulMatrix(marker_matrix, point_matrix, box_matrix);
@@ -826,7 +823,6 @@ void CMapParts::DrawScreenFunc(mgCFrame *marker) {
             }
 
             point->frame.DeleteReference();
-        next_point:;
         } while ((point = func_point_mngr.Get()) != NULL);
     }
 

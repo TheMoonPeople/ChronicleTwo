@@ -551,18 +551,13 @@ void CRandomCircle::DrawSymbol(CMiniMapSymbol *mini_map) {
 int CRandomCircle::CheckArea(float *pos, float radius) {
     int id;
 
-    id = 0;
-loop:
-    if (active[id] != 0 && mgDistVector(this->pos[id], pos) < radius) {
-        return 0;
-    }
-    id += 1;
-
-    if (id >= 3) {
-        return 1;
+    for (id = 0; id < 3; id++) {
+        if (active[id] != 0 && mgDistVector(this->pos[id], pos) < radius) {
+            return 0;
+        }
     }
 
-    goto loop;
+    return 1;
 }
 
 int CRandomCircle::GetPosition(float *out_pos, int index) {
@@ -586,40 +581,30 @@ int CRandomCircle::GetPosition(float *out_pos, int index) {
 int CRandomCircle::CheckEvent(float *pos) {
     int id;
 
-    id = 0;
-next_circle:
-    if (active[id] != 0 && mgDistVector(this->pos[id], pos) <= 20.0f) {
-        hit = id;
-        return id;
-    }
-    id += 1;
-
-    if (id >= 3) {
-        hit = -1;
-        return -1;
+    for (id = 0; id < 3; id++) {
+        if (active[id] != 0 && mgDistVector(this->pos[id], pos) <= 20.0f) {
+            hit = id;
+            return id;
+        }
     }
 
-    goto next_circle;
+    hit = -1;
+    return -1;
 }
 
 int CRandomCircle::SetCircle(float *pos) {
     int id;
 
-    id = 0;
-loop:
-    if (active[id] == 0) {
-        sceVu0CopyVector(this->pos[id], pos);
-        this->pos[id][3] = 1.0f;
-        this->active[id] = 1;
-        return id;
-    }
-    id += 1;
-
-    if (id >= 3) {
-        return -1;
+    for (id = 0; id < 3; id++) {
+        if (active[id] == 0) {
+            sceVu0CopyVector(this->pos[id], pos);
+            this->pos[id][3] = 1.0f;
+            this->active[id] = 1;
+            return id;
+        }
     }
 
-    goto loop;
+    return -1;
 }
 
 void CRandomCircle::Clear() {
@@ -747,25 +732,19 @@ int CTreasureBoxManager::CheckArea(float *pos, float radius) {
     int           i;
     CTreasureBox *slot;
 
-    i = 0;
-loop:
-    slot = &this->box[i];
+    for (i = 0; i < 0x18; i++) {
+        slot = &this->box[i];
 
-    if (slot->state != (int) TREASURE_BOX_STATE_NONE) {
-        slot->GetPosition(chest_pos);
+        if (slot->state != (int) TREASURE_BOX_STATE_NONE) {
+            slot->GetPosition(chest_pos);
 
-        if (mgDistVector(chest_pos, pos) < radius) {
-            return 0;
+            if (mgDistVector(chest_pos, pos) < radius) {
+                return 0;
+            }
         }
     }
 
-    i += 1;
-
-    if (i >= 0x18) {
-        return 1;
-    }
-
-    goto loop;
+    return 1;
 }
 
 void CTreasureBoxManager::DrawMiniMapSymbol(CMiniMapSymbol *symbol_drawer) {
@@ -1591,22 +1570,23 @@ TRESURE_BOX_ITEM *PickupRandomItem(TRESURE_BOX_FLOOR_INFO *table, int floor_inde
         group = table->group;
         i = 0;
 
-        do {
+        for (;;) {
             if (group->group_id == id) {
-                goto found;
+                break;
             }
 
             i++;
             group++;
-        } while (i < table->group_num);
 
-        printf("ERR:GROUP_ID OVER!! %d\n", i);
+            if (i >= table->group_num) {
+                printf("ERR:GROUP_ID OVER!! %d\n", i);
 
-        while (1) {
+                while (1) {
+                }
+            }
         }
 
-    found:
-        entry = &group->item[iRand(group->item_num)];
+        entry =&group->item[iRand(group->item_num)];
 
         if (want_higher) {
             if (entry->rank >= value) {
