@@ -196,12 +196,12 @@ public:
      *
      */
     struct EventData {
-        u32  flag;     /**< FUNC_EVENT_FLAG bits. */
-        int  event_no; /**< Event the point starts, used when above zero. */
-        int  point_no; /**< Event point number, or treasure-box index for a box point. */
-        int  arg1; /**< First integer argument of the event point. */
-        int  arg2; /**< Second integer argument of the event point. */
-        int  arg3; /**< Third integer argument of the event point. */
+        u32  flag;       /**< FUNC_EVENT_FLAG bits. */
+        int  event_no;   /**< Event the point starts, used when above zero. */
+        int  point_no;   /**< Event point number, or treasure-box index for a box point. */
+        int  arg1;       /**< First integer argument of the event point. */
+        int  arg2;       /**< Second integer argument of the event point. */
+        int  arg3;       /**< Third integer argument of the event point. */
         char target[16]; /**< Name of the event point's target. */
     };
 
@@ -211,9 +211,9 @@ public:
      *
      */
     struct SoundData {
-        int           se_no; /**< Sound effect played. */
+        int           se_no;     /**< Sound effect played. */
         float         near_dist; /**< Distance at which the sound starts its spatial falloff. */
-        float         far_dist; /**< Distance at which the sound ends its spatial falloff. */
+        float         far_dist;  /**< Distance at which the sound ends its spatial falloff. */
         float         unk_2c;
         int           shape; /**< 1 to sound along the line from start to end rather than from the point's position. */
         sceVu0FVECTOR start; /**< First end of the sounding line, in the point's space. */
@@ -236,7 +236,7 @@ public:
     char *name; /**< Name the point is searched by, or null. */
     int   type; /**< Kind of point, a FUNC_POINT_TYPE. */
     int   unk_8;
-    int   unk_c;
+    int   flag_no;
     int   enable; /**< Non-zero while the point works. */
     float start;  /**< Hour of the day the point starts working. */
     float end;    /**< Hour of the day the point stops working; equal to start for all day. */
@@ -331,7 +331,7 @@ public:
     mgCFrame     *frame;       /**< Frame of the piece that holds the material. */
     int           material_no; /**< Index of the material in the frame's visual. */
     mgMaterial   *material;    /**< Material whose colour is replaced, or null. */
-    int           unk_c;
+    int           color_no;
     sceVu0FVECTOR color; /**< Colour the material takes while the piece is drawn. */
 
     /**

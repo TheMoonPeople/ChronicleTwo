@@ -31,7 +31,9 @@ struct AlbumFile {
  * Number of costumes tracked by the persistent costume flags.
  *
  */
-enum { MC_COSTUME_COUNT = 34 };
+enum {
+    MC_COSTUME_COUNT = 34
+};
 
 /**
  *
@@ -39,30 +41,30 @@ enum { MC_COSTUME_COUNT = 34 };
  *
  */
 static COSBIT_INFO cosbit_table[MC_COSTUME_COUNT] = {
-    {0x6F, 0, 0},
-    {0x70, 1, 0},
-    {0x71, 2, 0},
-    {0x72, 3, 0},
-    {0x73, 4, 0},
-    {0x74, 5, 0},
-    {0x75, 6, 0},
-    {0x76, 7, 0},
-    {0x77, 8, 0},
-    {0x78, 9, 0},
-    {0x79, 10, 0},
-    {0x7A, 11, 0},
-    {0x7B, 12, 0},
-    {0x7C, 13, 0},
-    {0x7D, 14, 0},
-    {0x7E, 15, 0},
-    {0x7F, 16, 0},
-    {0x80, 17, 0},
-    {0x81, 18, 0},
-    {0x82, 19, 0},
-    {0x83, 20, 0},
-    {0x84, 21, 0},
-    {0x85, 22, 0},
-    {0x86, 23, 0},
+    {0x6F,  0,  0},
+    {0x70,  1,  0},
+    {0x71,  2,  0},
+    {0x72,  3,  0},
+    {0x73,  4,  0},
+    {0x74,  5,  0},
+    {0x75,  6,  0},
+    {0x76,  7,  0},
+    {0x77,  8,  0},
+    {0x78,  9,  0},
+    {0x79,  10, 0},
+    {0x7A,  11, 0},
+    {0x7B,  12, 0},
+    {0x7C,  13, 0},
+    {0x7D,  14, 0},
+    {0x7E,  15, 0},
+    {0x7F,  16, 0},
+    {0x80,  17, 0},
+    {0x81,  18, 0},
+    {0x82,  19, 0},
+    {0x83,  20, 0},
+    {0x84,  21, 0},
+    {0x85,  22, 0},
+    {0x86,  23, 0},
     {0x102, 24, 0},
     {0x103, 25, 0},
     {0x104, 26, 0},
@@ -83,9 +85,38 @@ extern char       at_1954[0x2B];
  *
  */
 static const char *MCBrowsetName[3][4] = {
-    {"\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B", "\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B\x83" "A\x83\x8B\x83o\x83\x80\x83" "f\x81[\x83^", "\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B\x82\xA8\x82\xDC\x82\xAF\x83" "f\x81[\x83^", "\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B\x81m%s\x81n"},
-    {"\x82" "c\x82\x81\x82\x92\x82\x8B\x81@\x82" "b\x82\x8C\x82\x8F\x82\x95\x82\x84\x82Q", "\x82" "c\x82\x81\x82\x92\x82\x8B\x81@\x82" "b\x82\x8C\x82\x8F\x82\x95\x82\x84\x82Q\x81@\x82`\x82\x8C\x82\x82\x82\x95\x82\x8D", "\x82" "c\x82\x81\x82\x92\x82\x8B\x81@\x82" "b\x82\x8C\x82\x8F\x82\x95\x82\x84\x82Q\x81@\x82" "d\x82\x98\x82\x94\x82\x92\x82\x81", "\x82" "c\x82\x81\x82\x92\x82\x8B\x81@\x82" "b\x82\x8C\x82\x8F\x82\x95\x82\x84\x82Q\x81m%s\x81n"},
-    {"\x82" "c\x82\x81\x82\x92\x82\x8B\x81@\x82" "b\x82\x88\x82\x92\x82\x8F\x82\x8E\x82\x89\x82\x83\x82\x8C\x82\x85", "\x82" "c\x82\x81\x82\x92\x82\x8B\x81@\x82" "b\x82\x88\x82\x92\x82\x8F\x82\x8E\x82\x89\x82\x83\x82\x8C\x82\x85\x81@\x82`\x82\x8C\x82\x82\x82\x95\x82\x8D", "\x82" "c\x82\x81\x82\x92\x82\x8B\x81@\x82" "b\x82\x88\x82\x92\x82\x8F\x82\x8E\x82\x89\x82\x83\x82\x8C\x82\x85\x81@\x82" "d\x82\x98\x82\x94\x82\x92\x82\x81", "\x82" "c\x82\x81\x82\x92\x82\x8B\x81@\x82" "b\x82\x88\x82\x92\x82\x8F\x82\x8E\x82\x89\x82\x83\x82\x8C\x82\x85\x81m%s\x81n"},
+    {"\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B",                         "\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B\x83"
+                                                       "A\x83\x8B\x83o\x83\x80\x83"
+                                                       "f\x81[\x83^",
+     "\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B\x82\xA8\x82\xDC\x82\xAF\x83"
+     "f\x81[\x83^",
+     "\x83_\x81[\x83N\x83N\x83\x8D\x83j\x83N\x83\x8B\x81m%s\x81n"                   },
+    {"\x82"
+     "c\x82\x81\x82\x92\x82\x8B\x81@\x82"
+     "b\x82\x8C\x82\x8F\x82\x95\x82\x84\x82Q",
+     "\x82"
+     "c\x82\x81\x82\x92\x82\x8B\x81@\x82"
+     "b\x82\x8C\x82\x8F\x82\x95\x82\x84\x82Q\x81@\x82`\x82\x8C\x82\x82\x82\x95\x82\x8D",
+     "\x82"
+     "c\x82\x81\x82\x92\x82\x8B\x81@\x82"
+     "b\x82\x8C\x82\x8F\x82\x95\x82\x84\x82Q\x81@\x82"
+     "d\x82\x98\x82\x94\x82\x92\x82\x81",
+     "\x82"
+     "c\x82\x81\x82\x92\x82\x8B\x81@\x82"
+     "b\x82\x8C\x82\x8F\x82\x95\x82\x84\x82Q\x81m%s\x81n"                           },
+    {"\x82"
+     "c\x82\x81\x82\x92\x82\x8B\x81@\x82"
+     "b\x82\x88\x82\x92\x82\x8F\x82\x8E\x82\x89\x82\x83\x82\x8C\x82\x85",
+     "\x82"
+     "c\x82\x81\x82\x92\x82\x8B\x81@\x82"
+     "b\x82\x88\x82\x92\x82\x8F\x82\x8E\x82\x89\x82\x83\x82\x8C\x82\x85\x81@\x82`\x82\x8C\x82\x82\x82\x95\x82\x8D",
+     "\x82"
+     "c\x82\x81\x82\x92\x82\x8B\x81@\x82"
+     "b\x82\x88\x82\x92\x82\x8F\x82\x8E\x82\x89\x82\x83\x82\x8C\x82\x85\x81@\x82"
+     "d\x82\x98\x82\x94\x82\x92\x82\x81",
+     "\x82"
+     "c\x82\x81\x82\x92\x82\x8B\x81@\x82"
+     "b\x82\x88\x82\x92\x82\x8F\x82\x8E\x82\x89\x82\x83\x82\x8C\x82\x85\x81m%s\x81n"},
 };
 
 /**
@@ -172,7 +203,7 @@ CMemoryCardManager::CMemoryCardManager() {
 }
 
 void CMemoryCardManager::Initialize(mgCMemory *memory) {
-    memset(this, 0, 0x1100);
+    memset(this, 0, sizeof(*this));
     strcpy(file_name, "BESCES-51190dkcl%d");
     strcpy(game_name, "darkclonicle");
     port = 0;
@@ -201,10 +232,10 @@ void CMemoryCardManager::Initialize(mgCMemory *memory) {
     total_transferred = 0;
     transfer_result = 0;
     memset(work_buffer, 0, sizeof(work_buffer));
-    memset(&card[0], 0, 0x40);
+    memset(&card[0], 0, sizeof(card));
     InitPlayDataInfo();
     file_exists = 0;
-    memset(&icon[0], 0, 0x78);
+    memset(&icon[0], 0, sizeof(icon));
     card[0].present = 0;
     card[1].present = 0;
 }
@@ -271,19 +302,19 @@ void CMemoryCardManager::SetIconData(MC_ICON_DATA *icon_data, int index) {
     memcpy(&icon[1], &icon_data[1], sizeof(MC_ICON_DATA));
     memcpy(&icon[2], &icon_data[2], sizeof(MC_ICON_DATA));
     sceMcColor bg_colors[4] = {
-        {128, 0, 64, 0},
-        {0, 128, 0, 0},
-        {0, 0, 128, 0},
+        {128, 0,   64,  0},
+        {0,   128, 0,   0},
+        {0,   0,   128, 0},
         {128, 128, 128, 0},
     };
     sceMcVu0FVECTOR light_dirs[3] = {
-        {0.5f, 0.5f, 0.5f, 0.0f},
-        {0.0f, -0.4f, -0.1f, 0.0f},
-        {-0.5f, -0.5f, 0.5f, 0.0f},
+        {0.5f,  0.5f,  0.5f,  0.0f},
+        {0.0f,  -0.4f, -0.1f, 0.0f},
+        {-0.5f, -0.5f, 0.5f,  0.0f},
     };
     sceMcColorF light_colors[3] = {
         {0.48f, 0.48f, 0.03f, 0.0f},
-        {0.5f, 0.33f, 0.2f, 0.0f},
+        {0.5f,  0.33f, 0.2f,  0.0f},
         {0.14f, 0.14f, 0.38f, 0.0f},
     };
     sceMcColorF ambient_color = {0.5f, 0.5f, 0.5f, 0.0f};
@@ -572,7 +603,7 @@ char *CMemoryCardManager::GetVersion() {
 
 int CMemoryCardManager::SearchMcType() {
     /** Format state before the current card-type query. */
-    static int old_format;
+    static int    old_format;
     int           command;
     int           result;
     MC_CARD_INFO *card;
@@ -959,7 +990,7 @@ int GetCostumeList(unsigned long mask, int type, short *list) {
     }
 
     int           count = 0;
-    COSBIT_INFO *row = cosbit_table;
+    COSBIT_INFO  *row = cosbit_table;
     unsigned long bit = 1;
 
     for (unsigned long i = 0; i < MC_COSTUME_COUNT; i++) {
@@ -1009,7 +1040,7 @@ int CMemoryCardManager::SaveToMc(int file_no) {
                 strcpy(save_buffer->version, version);
                 save_buffer->costume_bit = 0;
 
-                if (save->GetBitFlag(0x31F)) {
+                if (save->GetBitFlag((int) SAVE_FLAG_COSTUME_UNLOCK)) {
                     save_buffer->costume_bit = user_data->GetCostumeBit();
                 }
 
@@ -1020,7 +1051,7 @@ int CMemoryCardManager::SaveToMc(int file_no) {
                     save_buffer->omake_flag |= 1;
                 }
 
-                if (save->GetBitFlag(0x31F)) {
+                if (save->GetBitFlag((int) SAVE_FLAG_COSTUME_UNLOCK)) {
                     save_buffer->omake_flag |= 0x80;
                     save_buffer->omake_flag |= 2;
                 }
@@ -1351,7 +1382,7 @@ int CMemoryCardManager::SaveAlbum() {
         case 0:
             if (sceMcSync(1, NULL, NULL) != 0) {
                 InitError();
-                transfer_size = GetSaveDataSize(2);
+                transfer_size = GetSaveDataSize(MC_SIZE_ALBUM_FILE);
                 transfer_result = 0;
                 transferred = 0;
                 total_transferred = 0;
@@ -1470,7 +1501,7 @@ int CMemoryCardManager::LoadAlbum() {
         case 0:
             if (sceMcSync(1, NULL, NULL) != 0) {
                 InitError();
-                transfer_size = GetSaveDataSize(2);
+                transfer_size = GetSaveDataSize(MC_SIZE_ALBUM_FILE);
                 memset(album_buffer, 0, transfer_size);
                 transfer_result = 0;
                 transferred = 0;
@@ -1623,7 +1654,7 @@ int CMemoryCardManager::CheckAlbum() {
                     dir_entries = result;
                     unsigned int file_size = dir_table[0].file_size;
 
-                    if (file_size < GetSaveDataSize(2)) {
+                    if (file_size < GetSaveDataSize(MC_SIZE_ALBUM_FILE)) {
                         error_record->code = 3;
                         *album_found = 0;
                     }
@@ -2001,7 +2032,7 @@ int CMemoryCardManager::CheckOmakeFile() {
                     dir_entries = result;
                     unsigned int file_size = dir_table[6].file_size;
 
-                    if (file_size < GetSaveDataSize(7)) {
+                    if (file_size < GetSaveDataSize(MC_SIZE_OMAKE_FILE)) {
                         error_record->code = 3;
                         *album_found = 0;
                     }
@@ -2151,8 +2182,8 @@ int CMemoryCardManager::Format() {
 }
 
 int CMemoryCardManager::DeleteFile(int index) {
-    int        result;
-    int        command;
+    int result;
+    int command;
 
     switch (step) {
         case 0:
@@ -2404,6 +2435,7 @@ int CMemoryCardManager::GetSaveFileInfoFromMc(int index, int *step) {
 
     return 0;
 }
+
 int CMemoryCardManager::GetAllSaveFileInfo() {
     int result;
     int command;
@@ -2412,16 +2444,19 @@ int CMemoryCardManager::GetAllSaveFileInfo() {
     result = 0;
     /** Save slot whose header is currently being read. */
     static int ReadFileNo = 0;
+
     switch (step) {
         case 0:
             if (sceMcSync(1, NULL, NULL) != 0) {
                 InitSaveFileInfoTable();
                 total_transferred = 0;
                 char pattern[0x80] = "/BESCES-51190dkcl??";
+
                 if (sceMcGetDir(port, 1, pattern, 0, 0x11, dir_table) == 0) {
                     step++;
                 }
             }
+
             break;
         case 1:
             if (sceMcSync(1, &command, &result) != 0) {
@@ -2432,41 +2467,55 @@ int CMemoryCardManager::GetAllSaveFileInfo() {
                         McError(result);
                         return 1;
                 }
+
                 ReadFileNo = 0;
                 dir_entries = 0;
+
                 if (result >= 0) {
                     dir_entries = result;
+
                     for (int i = 0; i < 13; i++) {
                         strlen(dir_table[i].name);
                     }
+
                     step++;
                     break;
                 }
+
                 MC_ERROR_INFO *errors = &error;
+
                 if (result == -2) {
                     errors->code = MC_ERROR_UNFORMATTED;
                 }
+
                 errors->func_no = GetFuncNo();
                 errors->step = step;
                 return -1;
             }
+
             break;
         default:
             sub_step = step - 2;
             int finished = GetSaveFileInfoFromMc(ReadFileNo, &sub_step);
             step = sub_step + 2;
+
             if (finished != 0) {
                 ReadFileNo++;
             }
+
             if (ReadFileNo >= 13) {
                 for (int i = 0; i < 13; i++) {
                 }
+
                 return 1;
             }
+
             break;
     }
+
     return 0;
 }
+
 int McCheckMCPs2(MC_CARD_INFO *info) {
     if (info == NULL) {
         return 0;

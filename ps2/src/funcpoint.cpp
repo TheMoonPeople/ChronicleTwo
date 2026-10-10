@@ -18,7 +18,6 @@
 #include "sound.hpp"
 #include "water.hpp"
 
-
 // Code (.text)
 int CheckTime(float time, float start, float end) {
     int outside;
@@ -80,7 +79,7 @@ void CFuncPoint::Initialize() {
     name = NULL;
     type = FUNC_POINT_NONE;
     unk_8 = 0;
-    unk_c = 0;
+    flag_no = 0;
     enable = 1;
     start = end = 0.0f;
     memset(data, 0, sizeof(data));
@@ -492,11 +491,14 @@ int CObjAnime::AssignFuncAnime(CFuncPoint *point, CMapParts *map_parts) {
     SetParam(initial_value);
     return 1;
 }
+
 CFuncPoint *CFuncPointMngr::Add(int type, mgCMemory *stack) {
     CList<CFuncPoint> *node = new (stack->Alloc(0x20)) CList<CFuncPoint>;
+
     if (node == NULL) {
         return NULL;
     }
+
     node->data.Initialize();
     return Add(type, node);
 }
@@ -535,20 +537,25 @@ CFuncPoint *CFuncPointMngr::Add(int type, CList<CFuncPoint> *node) {
     node->data.type = type;
     return &node->data;
 }
+
 static inline u_int Align16Blocks(u_int n) {
     if (n & 0xF) {
         return (n >> 4) + 1;
     }
+
     return n >> 4;
 }
+
 void CFuncPointMngr::Reserve(int num, mgCMemory *stack) {
     CList<CFuncPoint> *nodes = new (stack->Alloc(Align16Blocks(num * sizeof(CList<CFuncPoint>)) + 2)) CList<CFuncPoint>[num];
+
     if (num > 0) {
         for (int index = 0; index < num; index++) {
             Add(FUNC_POINT_NONE, &nodes[index]);
         }
     }
 }
+
 template <>
 void CList<CFuncPoint>::Initialize() {
     prev = NULL;
@@ -724,33 +731,39 @@ CFuncPoint *CFuncPointMngr::Search(char *name) {
 
     return NULL;
 }
+
 int CFuncPointMngr::GetLight(float *sphere, CFuncPoint *out_lights, int max, CFuncPointCheck *check, int mode) {
-    float distance[64];
-    int count;
-    int skip_unlit;
+    float       distance[64];
+    int         count;
+    int         skip_unlit;
     CFuncPoint *point;
     CFuncPoint *next;
-    int i;
+    int         i;
     CFuncPoint *candidate[64];
-    int j;
+    int         j;
     CFuncPoint *first;
 
     if (max <= 0) {
         return 0;
     }
+
     count = 0;
     skip_unlit = 0;
+
     if (mode & 1) {
         skip_unlit = 1;
     }
+
     GetStart(FUNC_POINT_PLIGHT);
     first = Get();
     point = first;
+
     if (first != NULL) {
         do {
             if (count >= 0x40) {
                 break;
             }
+
             if (point->active != 0 && point->plight.light_type == FUNC_PLIGHT_POINT) {
                 if (skip_unlit) {
                     if (point->plight.light_chara == 0) {
@@ -759,73 +772,91 @@ int CFuncPointMngr::GetLight(float *sphere, CFuncPoint *out_lights, int max, CFu
                 } else if (point->plight.no_map_light != 0) {
                     goto next_plight;
                 }
+
                 float dist = mgDistVector(sphere, point->position);
+
                 if (dist < point->plight.range + sphere[3]) {
                     distance[count] = dist;
                     candidate[count] = point;
                     count++;
                 }
             }
+
         next_plight:
             next = Get();
             point = next;
         } while (next != NULL);
     }
+
     GetEnd();
+
     if ((mode & 3) == 3) {
         GetStart(FUNC_POINT_FIRE);
         first = Get();
         point = first;
+
         if (first != NULL) {
             do {
                 if (count >= 0x40) {
                     break;
                 }
+
                 if (point->fire.cast_light != 0 && point->active != 0) {
                     float dist = mgDistVector(sphere, point->position);
+
                     if (dist <= 300.0f) {
                         distance[count] = dist;
                         candidate[count] = point;
                         count++;
                     }
                 }
+
                 next = Get();
                 point = next;
             } while (next != NULL);
         }
+
         GetEnd();
         GetStart(FUNC_POINT_FLARE);
         first = Get();
         point = first;
+
         if (first != NULL) {
             do {
                 if (count >= 0x40) {
                     break;
                 }
+
                 if (point->fire.cast_light != 0 && point->active != 0) {
                     float dist = mgDistVector(sphere, point->position);
+
                     if (dist <= 300.0f) {
                         distance[count] = dist;
                         candidate[count] = point;
                         count++;
                     }
                 }
+
                 next = Get();
                 point = next;
             } while (next != NULL);
         }
+
         GetEnd();
     }
+
     if (count <= 0) {
         return 0;
     }
+
     if (count < max) {
         max = count;
     }
+
     for (i = 0; i < max; i++) {
         for (j = i + 1; j < count; j++) {
             if (!(distance[i] <= distance[j])) {
-                float swap_distance = distance[i];
+                float       swap_distance = distance[i];
                 CFuncPoint *swap_point = candidate[i];
                 distance[i] = distance[j];
                 candidate[i] = candidate[j];
@@ -834,10 +865,12 @@ int CFuncPointMngr::GetLight(float *sphere, CFuncPoint *out_lights, int max, CFu
             }
         }
     }
+
     for (i = 0; i < max; i++) {
         CFuncPoint *light = candidate[i];
         CFuncPoint *out = &out_lights[i];
-        float *color = light->fire.color;
+        float      *color = light->fire.color;
+
         switch (light->type) {
             case FUNC_POINT_PLIGHT:
                 *out = *light;
@@ -859,8 +892,10 @@ int CFuncPointMngr::GetLight(float *sphere, CFuncPoint *out_lights, int max, CFu
             }
         }
     }
+
     return max;
 }
+
 void CFuncPointMngr::Step(int i, CFuncPointCheck *c) { this->UpdateFlag(i, c); }
 
 int CFuncPointMngr::UpdateFlag(int type, CFuncPointCheck *check) {
@@ -972,7 +1007,7 @@ int CFuncPointMngr::Copy(CFuncPointMngr &dest, mgCMemory *stack) {
             copy->name = source->name;
             copy->type = source->type;
             copy->unk_8 = source->unk_8;
-            copy->unk_c = source->unk_c;
+            copy->flag_no = source->flag_no;
             copy->enable = source->enable;
             copy->start = source->start;
             copy->end = source->end;
@@ -1267,37 +1302,45 @@ int GetSeSrcVolPan(
 
     return n;
 }
+
 #pragma divbyzerocheck on
+
 float GetLightAnimeWeight(CFuncPoint *point, int frame) {
     float depth = point->plight.flicker_depth;
-    int period = fptosi(point->plight.flicker_period);
+    int   period = fptosi(point->plight.flicker_period);
     float weight = 1.0f;
-    int phase;
+    int   phase;
+
     switch (point->type) {
         case FUNC_POINT_PLIGHT:
             switch (point->plight.flicker_type) {
                 case FUNC_PLIGHT_FLICKER_NONE:
                     return weight;
                 case FUNC_PLIGHT_FLICKER_RANDOM:
-                    return weight * (1.0f - depth + depth * (float)rand() / 2147483648.0f);
+                    return weight * (1.0f - depth + depth * (float) rand() / 2147483648.0f);
                 case FUNC_PLIGHT_FLICKER_SINE:
                     if (period > 0) {
                         phase = frame % period;
-                        return weight * (1.0f - 0.5f * depth * (1.0f + sinf(6.2831855f * (float)phase / (float)period)));
+                        return weight * (1.0f - 0.5f * depth * (1.0f + sinf(6.2831855f * (float) phase / (float) period)));
                     }
+
                     return weight;
                 case FUNC_PLIGHT_FLICKER_SAW:
                     if (period > 0) {
                         phase = frame % period;
-                        return weight * (1.0f - depth * (float)phase / (float)period);
+                        return weight * (1.0f - depth * (float) phase / (float) period);
                     }
+
                     return weight;
             }
+
             break;
         case FUNC_POINT_FIRE:
         case FUNC_POINT_FLARE:
-            return 0.7f + 0.3f * (float)rand() / 2147483648.0f;
+            return 0.7f + 0.3f * (float) rand() / 2147483648.0f;
     }
+
     return weight;
 }
+
 #pragma divbyzerocheck reset

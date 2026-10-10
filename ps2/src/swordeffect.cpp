@@ -19,12 +19,14 @@ int CreatSmoothPassSW(float (*out)[4], float (*ring)[4], int point_num, int divi
     sceVu0FMATRIX coefficients;
     sceVu0FMATRIX points;
     sceVu0FMATRIX basis;
-    float powers[4];
-    float result[4];
-    int control[4];
+    float         powers[4];
+    float         result[4];
+    int           control[4];
+
     if (point_num < 3) {
         return 0;
     }
+
     float quarter = 0.25f;
     float half;
     half = 0.5f;
@@ -45,6 +47,7 @@ int CreatSmoothPassSW(float (*out)[4], float (*ring)[4], int point_num, int divi
     basis[2][3] = 0.0f;
     basis[3][3] = 0.0f;
     int written = 0;
+
     for (int segment = 0; segment < point_num - 1; segment++) {
         if (segment > 0 && segment < point_num - 2) {
             control[0] = segment - 1;
@@ -58,6 +61,7 @@ int CreatSmoothPassSW(float (*out)[4], float (*ring)[4], int point_num, int divi
                 control[2] = 1;
                 control[3] = 2;
             }
+
             if (segment >= point_num - 2) {
                 control[0] = segment - 1;
                 control[1] = segment;
@@ -65,15 +69,19 @@ int CreatSmoothPassSW(float (*out)[4], float (*ring)[4], int point_num, int divi
                 control[3] = segment + 1;
             }
         }
+
         for (int row = 0; row < 4; row++) {
             control[row] += start;
+
             if (control[row] >= ring_size) {
                 control[row] -= ring_size;
             }
+
             if (control[row] < 0) {
                 control[row] += ring_size;
             }
         }
+
         float *p0 = ring[control[0]];
         float *p1 = ring[control[1]];
         float *p2 = ring[control[2]];
@@ -97,36 +105,57 @@ int CreatSmoothPassSW(float (*out)[4], float (*ring)[4], int point_num, int divi
         sceVu0MulMatrix(coefficients, points, basis);
         float t = 0.0f;
         float step;
+
         while (t < 1.0f - (step = 1.0f / (division - 1.0f))) {
             powers[0] = t * (t * t);
             powers[3] = 1.0f;
             powers[1] = t * t;
             powers[2] = t;
             sceVu0ApplyMatrix(result, coefficients, powers);
+
             for (int j = 0; j < 3; j++) {
                 out[written][j] = result[j];
             }
+
             out[written][3] = 1.0f;
             t += step;
             written++;
         }
     }
+
     return written;
 }
 
 void CSWordAfterEffect::Draw() {
-    if (!active) return;
-    if (point_num <= 0) return;
-    int projected[4];
+    if (!active) {
+        return;
+    }
+
+    if (point_num <= 0) {
+        return;
+    }
+
+    int   projected[4];
     float alpha_step;
     float opacity = alpha;
-    int count = (int)((float)length * opacity);
-    if (smooth_num < count) count = smooth_num;
-    if (count <= 0) return;
-    alpha_step = opacity / (float)count;
-    mgCDrawPrim prim;
+    int   count = (int) ((float) length * opacity);
+
+    if (smooth_num < count) {
+        count = smooth_num;
+    }
+
+    if (count <= 0) {
+        return;
+    }
+
+    alpha_step = opacity / (float) count;
+    mgCDrawPrim        prim;
     mgCTextureManager *textures = &mgTexManager;
-    if (texture != NULL) textures->ReloadTexture(tex_block, (sceVif1Packet *)NULL);
+
+    if (texture != NULL) {
+        textures->ReloadTexture(tex_block, (sceVif1Packet *) NULL);
+    }
+
     prim.Initialize(NULL, NULL);
     prim.AlphaBlendEnable(1);
     prim.AlphaBlend(MG_ALPHA_BLEND_ADD);
@@ -134,51 +163,66 @@ void CSWordAfterEffect::Draw() {
     prim.AlphaTest(1, 0);
     prim.ZMask(MG_Z_MASK_MASKED);
     prim.Bilinear(1);
+
     if (texture != NULL) {
         prim.TextureMapEnable(1);
     } else {
         prim.TextureMapEnable(0);
     }
+
     prim.Coord(1);
     prim.Shading(1);
     prim.DepthTestEnable(1);
     prim.DepthTest(MG_DEPTH_TEST_GEQUAL);
     prim.Begin(MG_PRIM_TRIANGLE_STRIP);
-    if (texture != NULL) prim.Texture(texture);
-    float u = (float)tex_u;
-    float u_step = (float)tex_w / (float)count;
+
+    if (texture != NULL) {
+        prim.Texture(texture);
+    }
+
+    float u = (float) tex_u;
+    float u_step = (float) tex_w / (float) count;
+
     if (texture == NULL) {
         for (int point = 0; point < count; ++point) {
             if (mgTransWorldPrim(projected, smooth0[point])) {
-                prim.Color(color0[0], color0[1], color0[2], (int)((float)color0[3] * opacity));
+                prim.Color(color0[0], color0[1], color0[2], (int) ((float) color0[3] * opacity));
                 prim.Vertex4(projected);
             }
+
             if (mgTransWorldPrim(projected, smooth1[point])) {
-                prim.Color(color1[0], color1[1], color1[2], (int)((float)color1[3] * opacity));
+                prim.Color(color1[0], color1[1], color1[2], (int) ((float) color1[3] * opacity));
                 prim.Vertex4(projected);
             }
+
             opacity -= alpha_step;
         }
     } else {
         int texel_u;
+
         for (int point = 0; point < count; ++point) {
-            texel_u = (int)u;
+            texel_u = (int) u;
+
             if (mgTransWorldPrim(projected, smooth0[point])) {
-                prim.Color(color0[0], color0[1], color0[2], (int)((float)color0[3] * opacity));
+                prim.Color(color0[0], color0[1], color0[2], (int) ((float) color0[3] * opacity));
                 prim.TextureCrd(texel_u, tex_v);
                 prim.Vertex4(projected);
             }
+
             if (mgTransWorldPrim(projected, smooth1[point])) {
-                prim.Color(color0[0], color0[1], color0[2], (int)((float)color0[3] * opacity));
+                prim.Color(color0[0], color0[1], color0[2], (int) ((float) color0[3] * opacity));
                 prim.TextureCrd(texel_u, tex_v + tex_h);
                 prim.Vertex4(projected);
             }
+
             u += u_step;
             opacity -= alpha_step;
         }
     }
+
     prim.End();
 }
+
 void CSWordAfterEffect::CreatPointList() {
     if (active != 0 && point_num > 0) {
         smooth_num =

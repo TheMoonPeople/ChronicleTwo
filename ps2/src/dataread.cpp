@@ -505,13 +505,13 @@ void BreakReadBG() {
 
 void InitCDFile() {
     sceCdlFILE file;
-    int fd;
-    int header_size;
-    int base;
-    int i;
-    int offset;
-    char *name;
-    s8    c;
+    int        fd;
+    int        header_size;
+    int        base;
+    int        i;
+    int        offset;
+    char      *name;
+    s8         c;
     packfile_buff = 0;
 
     do {
@@ -689,11 +689,11 @@ int LoadFile(char *path, void *buffer, int *out_size) {
 }
 
 int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
-    FILE_CACHE     *cache;
-    DATA_HEADER    *header;
-    int             dev;
-    int             size;
-    int             result;
+    FILE_CACHE  *cache;
+    DATA_HEADER *header;
+    int          dev;
+    int          size;
+    int          result;
 
     if (out_size) {
         *out_size = 0;
@@ -715,7 +715,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
         return 1;
     }
 
-    char full_path[256] = "";
+    char            full_path[256] = "";
     struct sce_stat stat;
 
     dev = GetFullPath(path, full_path);
@@ -859,7 +859,7 @@ int LoadFile2(char *path, void *buffer, int *out_size, int mode) {
  */
 static int CDRead(char *path, u_int *buffer, int *out_size) {
     DATA_HEADER *entry;
-    sceCdRMode mode;
+    sceCdRMode   mode;
     printf("Load %s\n", path);
     entry = SearchFile(path);
 
@@ -1220,10 +1220,10 @@ loop:
 }
 
 void DivPathName(char *path, char *out_dir, char *out_name) {
-    int last = strlen(path) - 1;
+    int   last = strlen(path) - 1;
     char *out = out_dir;
     char *in;
-    int i;
+    int   i;
 
     if (last >= 0) {
         do {

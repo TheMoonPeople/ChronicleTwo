@@ -24,6 +24,7 @@ enum NowLoadingStep {
     NOW_LOADING_STEP_DRAW  = 1,  /**< Drawing the progress bar each frame. */
     NOW_LOADING_STEP_END   = 2,  /**< Bar full and ending requested; the thread only yields. */
 };
+
 // clang-format on
 
 /**

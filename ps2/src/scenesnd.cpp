@@ -55,23 +55,28 @@ void CScene::InitBGM() {
     info->stack.stSetBuffer(info->buff, 0x40);
     sndInitPort(info->port);
 }
+
 void CScene::InitSeSrc() {
     StopSeSrc();
     sndSeAllStop(4);
     sndSeAllStop(1);
     sndDeletePort(4);
     sndDeletePort(1);
+
     for (int i = 0; i < 16; i++) {
         se_src_id[i] = -1;
         se_src_no[i] = -1;
     }
+
     se_src_stack.stSetBuffer(se_src_buff, 0x40);
     sndInitPort(4);
     sndInitPort(1);
+
     for (int i = 0; i < 4; i++) {
         se_src_play_no[i] = -1;
         se_src_play_flag[i] = 0;
     }
+
     PrePlaySeSrc();
 }
 
@@ -135,28 +140,36 @@ void CScene::InitLooSeMngr() {
 CScene::BGM_INFO *CScene::GetActiveBgmInfo() {
     return &bgm[bgm_no];
 }
+
 void CScene::PlayBGM(int bgm_no, int vol, float volf) {
     if (skip_play_bgm != 0) {
         skip_play_bgm = 0;
     } else {
         BGM_INFO *info = GetActiveBgmInfo();
+
         if (info->play_no != bgm_no) {
             StopBGM(info->play_no);
         }
+
         info->vol = vol;
         info->volf = volf;
+
         if (info->vol < 0) {
             info->vol = sndGetSeDefVol(info->snd_id, bgm_no);
         }
-        int play_vol = sndVolLimit((int)((float)info->vol * volf));
+
+        int play_vol = sndVolLimit((int) ((float) info->vol * volf));
+
         if (play_vol < 0) {
             play_vol = 1;
         }
+
         sndSePlayV(info->snd_id, bgm_no, play_vol, 0);
         info->play_no = bgm_no;
         info->fade_speed = 0.0f;
     }
 }
+
 void CScene::PauseBGM() {
     BGM_INFO *info = GetActiveBgmInfo();
 
@@ -704,7 +717,7 @@ slot_found:
     if (slot < 0) {
         return 0;
     }
-    se_src_id[slot] = sndLoadSound(1, buffer, &se_src_stack);
+    se_src_id[slot] = sndLoadSound((int) SND_PORT_OB, buffer, &se_src_stack);
     se_src_no[slot] = pack_no;
     return 1;
 }
@@ -717,7 +730,7 @@ int CScene::LoadSeEnvPack(int pack_no, u32 *buffer) {
     se_env_stack.stack_used = 0;
     se_env_stack.lock = 0;
     InitSeEnv();
-    se_env_id = sndLoadSound(2, buffer, &se_env_stack);
+    se_env_id = sndLoadSound((int) SND_PORT_ENV, buffer, &se_env_stack);
 
     if (se_env_id < 0) {
         return 0;
@@ -733,7 +746,7 @@ int CScene::LoadSeBattlePack(int pack_no, u32 *buffer) {
     }
 
     InitSeBattle();
-    se_battle_id = sndLoadSound(9, buffer, &se_battle_stack);
+    se_battle_id = sndLoadSound((int) SND_PORT_BATTLE, buffer, &se_battle_stack);
 
     if (se_battle_id < 0) {
         return 0;
@@ -749,7 +762,7 @@ int CScene::LoadSeBasePack(int pack_no, u32 *buffer) {
     }
 
     InitSeBas();
-    se_base_id = sndLoadSound(3, buffer, &se_base_stack);
+    se_base_id = sndLoadSound((int) SND_PORT_BASE, buffer, &se_base_stack);
 
     if (se_base_id < 0) {
         return 0;
@@ -1021,9 +1034,11 @@ void CScene::SePlayFoot(int ground, int foot, float *position) {
  *
  */
 static char *GetLine(char **lines, char *cursor, char *end) {
-    LineBreakPair line_break = {{'\r', '\n'}};
-    int           line_index;
-    int           length;
+    LineBreakPair line_break = {
+        {'\r', '\n'}
+    };
+    int line_index;
+    int length;
 
     if (cursor < end) {
         line_index = 0;

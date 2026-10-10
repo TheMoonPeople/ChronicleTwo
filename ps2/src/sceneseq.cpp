@@ -1036,38 +1036,45 @@ static int scsMoveAHD(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
     owner->ahd_cnt++;
     return 1;
 }
+
 static int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
     float angle_delta;
-    int ended;
+    int   ended;
+
     if (node->mode == SCENE_SEQ_EASE_IN_OUT) {
         ended = owner->ease_frame;
     } else {
         ended = owner->ease_frame / 2;
     }
+
     if (owner->ahd_cnt >= node->frame + ended) {
         owner->ahd_cnt = 0;
         return 0;
     }
+
     if (owner->ahd_cnt <= 0) {
         if (owner->sync != 0) {
             angle_delta = node->vec0[0] - owner->sync_angle;
         } else {
             angle_delta = node->vec0[0] - owner->angle;
         }
+
         if (angle_delta > 3.1415927f) {
             angle_delta -= 6.2831855f;
         } else if (angle_delta <= -3.1415927f) {
             angle_delta += 6.2831855f;
         }
-        owner->angle_spd = angle_delta / (float)node->frame;
-        owner->height_spd = (node->vec0[1] - owner->height) / (float)node->frame;
-        owner->dist_spd = (node->vec0[2] - owner->dist) / (float)node->frame;
-        owner->ease_frame = (int)(node->frame * node->ease_rate);
+
+        owner->angle_spd = angle_delta / (float) node->frame;
+        owner->height_spd = (node->vec0[1] - owner->height) / (float) node->frame;
+        owner->dist_spd = (node->vec0[2] - owner->dist) / (float) node->frame;
+        owner->ease_frame = (int) (node->frame * node->ease_rate);
         owner->pos_ease_acc[0] = owner->angle_spd;
         owner->pos_ease_acc[1] = owner->height_spd;
         owner->pos_ease_acc[2] = owner->dist_spd;
         owner->pos_ease_acc[3] = 1.0f;
         sceVu0DivVector(owner->pos_ease_acc, owner->pos_ease_acc, owner->ease_frame);
+
         if (node->mode != SCENE_SEQ_EASE_OUT) {
             sceVu0CopyVector(owner->pos_ease_spd, owner->pos_ease_acc);
         } else {
@@ -1078,86 +1085,106 @@ static int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
         }
     } else if (owner->sync != 0) {
         int moved = 0;
+
         if (owner->ahd_cnt < owner->ease_frame &&
             (node->mode == SCENE_SEQ_EASE_IN_OUT || node->mode == SCENE_SEQ_EASE_IN)) {
             sceVu0AddVector(owner->pos_ease_spd, owner->pos_ease_spd, owner->pos_ease_acc);
             owner->sync_angle += owner->pos_ease_spd[0];
+
             if (owner->sync_angle > 3.1415927f) {
                 owner->sync_angle -= 6.2831855f;
             } else if (owner->sync_angle <= -3.1415927f) {
                 owner->sync_angle += 6.2831855f;
             }
+
             moved = 1;
             owner->sync_height += owner->pos_ease_spd[1];
             owner->sync_dist += owner->pos_ease_spd[2];
         }
+
         if ((node->mode == SCENE_SEQ_EASE_OUT && owner->ahd_cnt >= node->frame - owner->ease_frame / 2) ||
             (node->mode == SCENE_SEQ_EASE_IN_OUT && owner->ahd_cnt >= node->frame)) {
             sceVu0SubVector(owner->pos_ease_spd, owner->pos_ease_spd, owner->pos_ease_acc);
             owner->sync_angle += owner->pos_ease_spd[0];
+
             if (owner->sync_angle > 3.1415927f) {
                 owner->sync_angle -= 6.2831855f;
             } else if (owner->sync_angle <= -3.1415927f) {
                 owner->sync_angle += 6.2831855f;
             }
+
             moved = 1;
             owner->sync_height += owner->pos_ease_spd[1];
             owner->sync_dist += owner->pos_ease_spd[2];
             owner->pos[3] = 1.0f;
         }
+
         if (moved == 0) {
             owner->sync_angle += owner->angle_spd;
+
             if (owner->sync_angle > 3.1415927f) {
                 owner->sync_angle -= 6.2831855f;
             } else if (owner->sync_angle <= -3.1415927f) {
                 owner->sync_angle += 6.2831855f;
             }
+
             owner->sync_height += owner->height_spd;
             owner->sync_dist += owner->dist_spd;
         }
     } else {
         int moved = 0;
+
         if (owner->ahd_cnt < owner->ease_frame &&
             (node->mode == SCENE_SEQ_EASE_IN_OUT || node->mode == SCENE_SEQ_EASE_IN)) {
             sceVu0AddVector(owner->pos_ease_spd, owner->pos_ease_spd, owner->pos_ease_acc);
             owner->angle += owner->pos_ease_spd[0];
+
             if (owner->angle > 3.1415927f) {
                 owner->angle -= 6.2831855f;
             } else if (owner->angle <= -3.1415927f) {
                 owner->angle += 6.2831855f;
             }
+
             moved = 1;
             owner->height += owner->pos_ease_spd[1];
             owner->dist += owner->pos_ease_spd[2];
         }
+
         if ((node->mode == SCENE_SEQ_EASE_OUT && owner->ahd_cnt >= node->frame - owner->ease_frame / 2) ||
             (node->mode == SCENE_SEQ_EASE_IN_OUT && owner->ahd_cnt >= node->frame)) {
             sceVu0SubVector(owner->pos_ease_spd, owner->pos_ease_spd, owner->pos_ease_acc);
             owner->angle += owner->pos_ease_spd[0];
+
             if (owner->angle > 3.1415927f) {
                 owner->angle -= 6.2831855f;
             } else if (owner->angle <= -3.1415927f) {
                 owner->angle += 6.2831855f;
             }
+
             moved = 1;
             owner->height += owner->pos_ease_spd[1];
             owner->dist += owner->pos_ease_spd[2];
             owner->pos[3] = 1.0f;
         }
+
         if (moved == 0) {
             owner->angle += owner->angle_spd;
+
             if (owner->angle > 3.1415927f) {
                 owner->angle -= 6.2831855f;
             } else if (owner->angle <= -3.1415927f) {
                 owner->angle += 6.2831855f;
             }
+
             owner->height += owner->height_spd;
             owner->dist += owner->dist_spd;
         }
+
         owner->pos[0] = owner->ref[0] + owner->dist * sinf(owner->angle);
         owner->pos[1] = owner->height + owner->ref[1];
         owner->pos[2] = owner->ref[2] + owner->dist * cosf(owner->angle);
     }
+
     owner->ahd_cnt++;
     return 1;
 }

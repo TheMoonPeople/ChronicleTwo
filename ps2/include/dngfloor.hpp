@@ -95,6 +95,17 @@ enum DNGMAP_PRACTICE_RESULT {
     DNGMAP_PRACTICE_CLEAR_AGAIN = 3, /**< The practice condition is met again after an earlier clear. */
 };
 
+enum DNG_PRACTICE_ACTION {
+    DNG_PRACTICE_ACTION_ITEM = 0x01,
+    DNG_PRACTICE_ACTION_MAX_MELEE = 0x02,
+    DNG_PRACTICE_ACTION_MAX_GUN = 0x04,
+    DNG_PRACTICE_ACTION_MONICA_MELEE = 0x08,
+    DNG_PRACTICE_ACTION_MONICA_MAGIC = 0x10,
+    DNG_PRACTICE_ACTION_RIDEPOD = 0x20,
+    DNG_PRACTICE_ACTION_MONSTER = 0x40,
+    DNG_PRACTICE_ACTION_HEAL = 0x80,
+};
+
 /**
  *
  * Special values of the floor manager.
@@ -155,9 +166,9 @@ struct DNGMAP_ROOM_INFO {
     s16   offset_y;               /**< Vertical offset the room is drawn at. */
     s8    tex_no;                 /**< Picture the room is drawn with. */
     u8    unk_43;
-    s8    selectable;             /**< 1 once the room may take the tree-map cursor. */
-    u8    visited; /**< Non-zero once the floor has been entered. */
-    u8    mark;    /**< Non-zero to draw the bobbing mark over the room. */
+    s8    selectable; /**< 1 once the room may take the tree-map cursor. */
+    u8    visited;    /**< Non-zero once the floor has been entered. */
+    u8    mark;       /**< Non-zero to draw the bobbing mark over the room. */
     u8    unk_47;
     float mark_phase; /**< Angle, in radians, of the bobbing mark's motion. */
     s32   unk_4c;

@@ -66,13 +66,14 @@ STATIC_ASSERT(sizeof(mgMaterial) == 0x30);
  */
 class mgCFace {
 public:
-    u_short   type;         /**< Primitive bits, from mgFaceType. */
-    short     index_stride; /**< Number of indices that make one vertex. */
-    short     material;     /**< Index of the material the primitive is drawn with. */
-    short     index_num;    /**< Number of indices, index_stride for each vertex. */
-    short     vertex_num;   /**< Number of vertices in the primitive. */
-    int      *index;        /**< Vertex indices: position, then normal, texture coordinate and colour as the type gives them. */
-    mgCFace  *next;         /**< Following primitive of the same material, or NULL. */
+    u_short  type;         /**< Primitive bits, from mgFaceType. */
+    short    index_stride; /**< Number of indices that make one vertex. */
+    short    material;     /**< Index of the material the primitive is drawn with. */
+    short    index_num;    /**< Number of indices, index_stride for each vertex. */
+    short    vertex_num;   /**< Number of vertices in the primitive. */
+    int     *index;        /**< Vertex indices: position, then normal, texture coordinate and colour as the type gives them. */
+    mgCFace *next;         /**< Following primitive of the same material, or NULL. */
+
     union {
         u_long128 packet_tag;         /**< DMA tag that calls the primitive's prebuilt packet, in a model whose packets are built at load time. */
         u_int     packet_tag_word[4]; /**< The same DMA tag as its four 32-bit words. */

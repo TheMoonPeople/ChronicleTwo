@@ -18,10 +18,10 @@
  * Identifies status flags displayed by the internal menu's debug panel.
  */
 enum MENU_DEBUG_BIT_CTRL {
-    MENU_DEBUG_BIT_CTRL_NO_MOVE = 0x01, /**< Displays the movement restriction. */
-    MENU_DEBUG_BIT_CTRL_NO_GEORAMA = 0x02, /**< Displays the georama restriction. */
-    MENU_DEBUG_BIT_CTRL_NO_FISHING = 0x04, /**< Displays the fishing restriction. */
-    MENU_DEBUG_BIT_CTRL_ATRA_OFF = 0x08, /**< Displays the Atra OFF status. */
+    MENU_DEBUG_BIT_CTRL_NO_MOVE = 0x01,      /**< Displays the movement restriction. */
+    MENU_DEBUG_BIT_CTRL_NO_GEORAMA = 0x02,   /**< Displays the georama restriction. */
+    MENU_DEBUG_BIT_CTRL_NO_FISHING = 0x04,   /**< Displays the fishing restriction. */
+    MENU_DEBUG_BIT_CTRL_ATRA_OFF = 0x08,     /**< Displays the Atra OFF status. */
     MENU_DEBUG_BIT_CTRL_BOOT_TREEMAP = 0x10, /**< Displays the Boot Treemap status. */
 };
 
@@ -80,6 +80,7 @@ enum MenuModeID {
     MENU_MODE_SPHIDA_SCORE_VIEW = 29, /**< Spheda score view. */
     MENU_MODE_NUM               = 30, /**< Number of entries in the key and draw function tables. */
 };
+
 // clang-format on
 
 /**
@@ -122,6 +123,7 @@ enum MenuOpenType {
     MENU_OPEN_NUM                     = 30, /**< Number of open requests. */
     MENU_OPEN_ITEM_OVER               = 16, /**< Added to a top-menu request when items overflow. */
 };
+
 // clang-format on
 
 /**
@@ -134,6 +136,7 @@ enum MenuLoopType {
     MENU_LOOP_TOWN    = 0, /**< Opened in a town; the world map is offered. */
     MENU_LOOP_DUNGEON = 1, /**< Opened in a dungeon; the floor map is offered. */
 };
+
 // clang-format on
 
 /**
@@ -148,6 +151,7 @@ enum MenuInterStep {
     MENU_INTER_STEP_CLOSE   = 2,  /**< The menu frame closes before the menu ends. */
     MENU_INTER_STEP_MESSAGE = 13, /**< A message says that the chosen sub-menu cannot be used. */
 };
+
 // clang-format on
 
 /**
@@ -161,6 +165,7 @@ enum MenuInterBGReadStep {
     MENU_INTER_BG_READ_BUSY = 1, /**< The file is being read. */
     MENU_INTER_BG_READ_DONE = 2, /**< The file is in memory, or there is none. */
 };
+
 // clang-format on
 
 /**

@@ -22,6 +22,7 @@ enum MenuChapterModeID {
     MENU_CHAPTER_MODE_SHOW     = 1, /**< Title shown while the narration and the sound effect play. */
     MENU_CHAPTER_MODE_FADE_OUT = 2, /**< Screen fades out; the title ends once the fade is done. */
 };
+
 // clang-format on
 
 /**

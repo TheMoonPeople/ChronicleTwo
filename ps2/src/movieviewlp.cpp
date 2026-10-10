@@ -152,7 +152,7 @@ static int _MOVIE(SPI_STACK *stack, int argument_count) {
  */
 static SPI_TAG_PARAM tag_movie[2] = {
     {"MOVIE", _MOVIE},
-    {NULL, NULL},
+    {NULL,    NULL  },
 };
 
 void MovieViewInit(INIT_LOOP_ARG arg) {
@@ -340,12 +340,14 @@ int MovieViewLoop() {
 
         textures->ReloadTexture(0, (sceVif1Packet *) 0);
         CFont menu_font;
-        char row_text[0x100];
+        char  row_text[0x100];
         menu_font.Init();
         menu_font.SetClearance(0x10, 0x14);
         menu_font.SetFuchi(FUCHI_SHADOW_BLACK_WIDE);
         menu_font.SetColor(0x80686A6BU);
-        sprintf(row_text, "  :%18s     %s", "\x89" "f\x91\x9c  ", "BGMID");
+        sprintf(row_text, "  :%18s     %s", "\x89"
+                                            "f\x91\x9c  ",
+                "BGMID");
         i = MovieLine;
         row_y = 0x28;
 

@@ -113,8 +113,9 @@ STATIC_ASSERT(sizeof(mgLIGHT_INFO) == 0x150);
  *
  */
 struct mgFOG_PARAM {
-    float  near_dist; /**< Distance at which the fog takes its near value. */
-    float  far_dist;  /**< Distance at which the fog takes its far value. */
+    float near_dist; /**< Distance at which the fog takes its near value. */
+    float far_dist;  /**< Distance at which the fog takes its far value. */
+
     union {
         struct {
             u_char r; /**< Red component of the fog colour. */
@@ -276,13 +277,13 @@ public:
     int           plight_enable;    /**< Non-zero lights objects with the point lights. */
     int           lighting_enabled; /**< Non-zero when object lighting is applied. */
     u_int         render_params[4]; /**< Values passed to sprite and shadow rendering packets. */
-    int           clip;         /**< Non-zero while the visible object being drawn is not wholly inside the GS drawing range. */
-    int           scissor;      /**< Non-zero while the object being drawn needs scissoring, as its attributes or all_scissor ask. */
-    int           plight_hit;   /**< Non-zero while a point light reaches the object being drawn. */
-    mgCFrameAttr *attr;         /**< Attributes of the object being drawn. */
-    mgFOG_PARAM   fog;          /**< Fog settings. */
-    sceVu0FVECTOR object_color; /**< Colour of the object being drawn. */
-    int           motion;       /**< Non-zero while the object being drawn is a motion model. */
+    int           clip;             /**< Non-zero while the visible object being drawn is not wholly inside the GS drawing range. */
+    int           scissor;          /**< Non-zero while the object being drawn needs scissoring, as its attributes or all_scissor ask. */
+    int           plight_hit;       /**< Non-zero while a point light reaches the object being drawn. */
+    mgCFrameAttr *attr;             /**< Attributes of the object being drawn. */
+    mgFOG_PARAM   fog;              /**< Fog settings. */
+    sceVu0FVECTOR object_color;     /**< Colour of the object being drawn. */
+    int           motion;           /**< Non-zero while the object being drawn is a motion model. */
 
     /**
      *

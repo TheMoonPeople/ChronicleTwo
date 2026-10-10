@@ -242,9 +242,13 @@ int CEditEvent::Step(CScene *scene) {
 
                         if (argument_1 >= 0) {
                             if (flags & FUNC_EVENT_CLOSE_DOOR) {
-                                character->SetMotion("\x83h\x83""A\x8AJ\x82\xA9\x82\xC8\x82\xA2", 2);
+                                character->SetMotion("\x83h\x83"
+                                                     "A\x8AJ\x82\xA9\x82\xC8\x82\xA2",
+                                                     2);
                             } else {
-                                character->SetMotion("\x83h\x83""A\x8AJ\x82\xAF", 2);
+                                character->SetMotion("\x83h\x83"
+                                                     "A\x8AJ\x82\xAF",
+                                                     2);
                             }
                         } else {
                             count = 0xE;
@@ -754,7 +758,7 @@ int LoadGeoNPC(GeoFuncParam *param, int mode) {
         rotation[1] = mgAngleLimit(rotation[1] + parts_rotation[1]);
         chara->SetPosition(position);
         chara->SetRotation(rotation);
-        scene->SetActive(1, 8);
+        scene->SetActive(SCENE_DATA_CHARA, 8);
     }
 
     scene->SetCharaNo(8, villager_id);

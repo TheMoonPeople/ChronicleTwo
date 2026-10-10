@@ -45,7 +45,6 @@
 #include "sound.hpp"
 #include "water.hpp"
 
-
 /**
  *
  * Vector copied as four floats or one quadword.
@@ -517,7 +516,7 @@ void CRocketLauncher::Draw() {
         sprite.Begin(6);
         sprite.Texture(trail_texture);
         sprite.AlphaTestEnable(1);
-        sprite.SetAlphaBlend(1);
+        sprite.SetAlphaBlend(MG_ALPHA_BLEND_NORMAL);
         sprite.Color(0x80, 0x80, 0x80, 0x80);
         fade = 1.0f;
         size = 6.0f;
@@ -642,37 +641,37 @@ void CMachineGun::Set(float *position, float *direction) {
 }
 
 void CMachineGun::Step() {
-    int i;
+    int bullet;
 
-    for (i = 0; i < 16; i++) {
-        s16 state = active[i];
+    for (bullet = 0; bullet < 16; bullet++) {
+        s16 state = active[bullet];
 
         if (state != 0 && state == 1) {
-            CColPrim *col_prim = ColPrimMan.GetID2Prim(col_prim_id[i]);
+            CColPrim *col_prim = ColPrimMan.GetID2Prim(col_prim_id[bullet]);
             float     previous_pos[4];
             CCPoly    polys[128];
             mgVu0FBOX box;
             float     hit[4];
 
-            sceVu0CopyVector(previous_pos, pos[i]);
-            sceVu0AddVector(pos[i], pos[i], velocity[i]);
+            sceVu0CopyVector(previous_pos, pos[bullet]);
+            sceVu0AddVector(pos[bullet], pos[bullet], velocity[bullet]);
 
             if (col_prim != NULL) {
-                col_prim->SetCoord(previous_pos, pos[i], 5.0f);
+                col_prim->SetCoord(previous_pos, pos[bullet], 5.0f);
             }
 
             box.max[3] = 1.0f;
             box.min[3] = 1.0f;
-            box.max[0] = 20.0f + (40.0f + pos[i][0]);
-            box.min[0] = (pos[i][0] - 40.0f) - 20.0f;
-            box.max[1] = 20.0f + (40.0f + pos[i][1]);
-            box.min[1] = (pos[i][1] - 40.0f) - 20.0f;
-            box.max[2] = 20.0f + (40.0f + pos[i][2]);
-            box.min[2] = (pos[i][2] - 40.0f) - 20.0f;
+            box.max[0] = 20.0f + (40.0f + pos[bullet][0]);
+            box.min[0] = (pos[bullet][0] - 40.0f) - 20.0f;
+            box.max[1] = 20.0f + (40.0f + pos[bullet][1]);
+            box.min[1] = (pos[bullet][1] - 40.0f) - 20.0f;
+            box.max[2] = 20.0f + (40.0f + pos[bullet][2]);
+            box.min[2] = (pos[bullet][2] - 40.0f) - 20.0f;
             int count = ((CMap *) DngMainMap)->GetColPoly(polys, box, 128);
 
-            if (CheckHit(polys, count, pos[i], previous_pos, hit, 1, 4) >= 0) {
-                active[i] = 0;
+            if (CheckHit(polys, count, pos[bullet], previous_pos, hit, 1, 4) >= 0) {
+                active[bullet] = 0;
 
                 if (col_prim != NULL) {
                     col_prim->Delete(-1);
@@ -704,13 +703,13 @@ void CMachineGun::Step() {
                     image->kind = 1;
                 }
             } else if (col_prim != NULL && col_prim->hit_num > 0) {
-                active[i] = 0;
+                active[bullet] = 0;
                 col_prim->Delete(-1);
             } else {
-                life[i]--;
+                life[bullet]--;
 
-                if (life[i] <= 0) {
-                    active[i] = 0;
+                if (life[bullet] <= 0) {
+                    active[bullet] = 0;
 
                     if (col_prim != NULL) {
                         col_prim->Delete(-1);
@@ -1053,7 +1052,7 @@ void CLaserGun::Draw() {
             sprite.Begin(MG_PRIM_SPRITE);
             sprite.Texture(trail_texture);
             sprite.AlphaTestEnable(1);
-            sprite.SetAlphaBlend(2);
+            sprite.SetAlphaBlend(MG_ALPHA_BLEND_ADD);
             sprite.Color(0x80, 0x80, 0x80, 0x80);
             fade = 1.0f;
             size = 6.0f * scale;
@@ -1135,7 +1134,7 @@ void CLaserGun::Draw() {
             attr.color[1] = color[1];
             attr.color[2] = color[2];
             attr.color[3] = 128.0f;
-            model->SetAttrParam(attr, 1, 0x10000);
+            model->SetAttrParam(attr, 1, MG_FRAME_ATTR_COLOR);
             float model_scale = scale;
             ((mgCObject *) model)->SetScale(model_scale, model_scale, model_scale);
             model->SetPosition(pos);
@@ -1269,7 +1268,7 @@ void CPullItem::Draw(mgCTexture *texture) {
         }
 
         if (mgTransWorldPrim3DSprite(quad_a, quad_b, center, width, height, 0) != 0) {
-            sprite.SetAlphaBlend(1);
+            sprite.SetAlphaBlend(MG_ALPHA_BLEND_NORMAL);
             sprite.TextureCrd(draw_u, tex_v);
             sprite.Vertex4(quad_a);
             sprite.TextureCrd(draw_u + tex_w, tex_v + tex_h);
@@ -1279,9 +1278,11 @@ void CPullItem::Draw(mgCTexture *texture) {
         sprite.End();
     }
 }
+
 static inline CMonsterBox *MonsterBox() {
     return &DngUserData->monster_box;
 }
+
 void CPullItem::Step() {
     CCharacter2  *player;
     sceVu0FVECTOR collect_pos;
@@ -1310,22 +1311,29 @@ void CPullItem::Step() {
     if (state == PULL_ITEM_STATE_FREE) {
         return;
     }
+
     player = DngMainScene->GetCharacter(0);
+
     if (player == NULL) {
         return;
     }
+
     player->GetPosition(player_pos);
     player->GetPosition(collect_pos);
     collect_pos[1] += player->body_height;
+
     if (type == PULL_ITEM_MONEY || type == PULL_ITEM_WEAPON_EXP) {
         anim_frame++;
+
         if (anim_frame >= 16) {
             anim_frame = 0;
         }
     }
+
     if (can_get != 0 && get_delay > 0) {
         get_delay--;
     }
+
     if (state == PULL_ITEM_STATE_FALL) {
         bounds.max[0] = 60.0f + pos[0];
         bounds.min[0] = pos[0] - 60.0f;
@@ -1341,73 +1349,93 @@ void CPullItem::Step() {
         poly_count = DngMainScene->GetColPoly(polys, bounds, 128);
         sceVu0CopyVector(from, pos);
         sceVu0AddVector(to, pos, velocity);
+
         if (CheckHit(polys, poly_count, from, to, hit_pos, 1, 0x4) > 0) {
             pos[0] = hit_pos[0];
             pos[2] = hit_pos[2];
             velocity[0] *= -0.6f;
             velocity[2] *= -0.6f;
         }
+
         sceVu0AddVector(pos, pos, velocity);
+
         if (velocity[1] > -3.0f) {
             velocity[1] -= 0.3f;
         }
+
         sceVu0CopyVector(from, pos);
         sceVu0CopyVector(to, pos);
         from[1] += 5.0f;
         to[1] -= 20.0f;
+
         if (CheckHit(polys, poly_count, from, to, hit_pos, 1, 0x4) >= 0) {
             ground_dist = pos[1] - hit_pos[1];
+
             if (ground_dist <= 1.0f) {
                 can_get = 1;
                 velocity[1] *= -0.6f;
+
                 if (ground_dist <= 0.0f) {
                     pos[1] = hit_pos[1];
                 }
+
                 if (velocity[1] < 1.0f) {
                     state = PULL_ITEM_STATE_LAND;
                 }
             }
         }
+
         fall_time--;
+
         if (fall_time <= 0) {
             state = PULL_ITEM_STATE_FADE;
             wait_time = 30;
         }
     }
+
     if (state == PULL_ITEM_STATE_LAND) {
         if (wait_time > 0) {
             wait_time--;
         }
+
         if (wait_time == 0) {
             wait_time = 30;
             state = PULL_ITEM_STATE_FADE;
         }
     }
+
     if (state == PULL_ITEM_STATE_FADE) {
         wait_time--;
         alpha -= 4.266667f;
+
         if (wait_time <= 0) {
             state = PULL_ITEM_STATE_FREE;
+
             if (wire_index >= 0) {
                 afterWire[wire_index].SetMode(0);
                 wire_index = -1;
             }
         }
     }
+
     if (state == PULL_ITEM_STATE_GOT) {
         sceVu0CopyVector(pos, collect_pos);
         get_delay--;
+
         if (get_delay <= 0) {
             state = PULL_ITEM_STATE_FREE;
         }
+
         if (angle < 2.3561945f) {
             angle += 0.1308997f;
         }
     }
+
     if (state == PULL_ITEM_STATE_FLOAT) {
         if (get_delay > 0) {
             get_delay--;
             angle += 0.20943952f;
+
             if (angle >= 3.1415927f) {
                 angle -= 6.2831855f;
             }
@@ -1416,6 +1444,7 @@ void CPullItem::Step() {
             angle = 0.0f;
         }
     }
+
     if (state == PULL_ITEM_STATE_COLLECT) {
         if (type == PULL_ITEM_MONEY || type == PULL_ITEM_MONEY_LARGE) {
             angle += 0.15707964f;
@@ -1424,29 +1453,34 @@ void CPullItem::Step() {
             sceVu0ScaleVectorXYZ(money_direction, money_direction, 2.5f);
             sceVu0AddVector(pos, pos, money_direction);
             distance = mgDistVector(player_pos, pos);
+
             if (angle >= 3.1415927f || distance <= 5.0f) {
                 DngUserData->AddMoney(item_no);
                 state = PULL_ITEM_STATE_FREE;
                 sndSePlay(DngMainScene->se_battle_id, 3, 0);
             }
         }
+
         if (type == PULL_ITEM_BADGE) {
             CMonsterBox *box = MonsterBox();
-            char **badge_ptr = mons_attr_list[LanguageCode];
+            char       **badge_ptr = mons_attr_list[LanguageCode];
             badge_ptr += item_no;
             char *&badge_name = *badge_ptr;
+
             if (box->IsChange(item_no) != 0) {
                 sprintf(badge_message, dung_progtxt_badge_already[LanguageCode], badge_name);
                 MsgTaskMan.Print(badge_message, 90, 8, 0);
                 state = PULL_ITEM_STATE_FREE;
             } else {
                 angle += 0.15707964f;
+
                 if (angle >= 3.1415927f) {
                     sprintf(badge_message, dung_progtxt_badge_get[LanguageCode], badge_name);
                     MsgTaskMan.Print(badge_message, 60, 8, 0);
                     DngUserData->monster_box.EnableChange(item_no);
                     state = PULL_ITEM_STATE_FREE;
                 }
+
                 sceVu0CopyVector(badge_spark, draw_pos);
                 badge_spark[0] += fRand(10.0f) - 5.0f;
                 badge_spark[1] -= fRand(3.0f);
@@ -1454,6 +1488,7 @@ void CPullItem::Step() {
                 MiniEffPrimMan.CreatPrim(badge_spark, 0);
             }
         }
+
         if (type == PULL_ITEM_ITEM || type == PULL_ITEM_ITEM2) {
             if (mgDistVector(collect_pos, pos) > 5.0f) {
                 angle += 0.15707964f;
@@ -1462,16 +1497,20 @@ void CPullItem::Step() {
                 sceVu0ScaleVectorXYZ(item_direction, item_direction, 2.5f);
                 sceVu0AddVector(pos, pos, item_direction);
             }
+
             sceVu0CopyVector(item_spark, draw_pos);
             item_spark[0] += fRand(10.0f) - 5.0f;
             item_spark[1] -= fRand(3.0f);
             item_spark[2] += fRand(10.0f) - 5.0f;
             MiniEffPrimMan.CreatPrim(item_spark, 0);
+
             if (angle >= 3.1415927f) {
                 angle = 0.0f;
                 num = 1;
+
                 if (CheckGetItemLimmitOver(item_no, num) < num) {
                     item_count = num;
+
                     if (LanguageCode == 0) {
                         sprintf(item_message, dung_progtxt_getitem_overnum[0][1], GetItemMessage(item_no), item_count);
                     } else if (item_count < 2) {
@@ -1479,6 +1518,7 @@ void CPullItem::Step() {
                     } else {
                         sprintf(item_message, dung_progtxt_getitem_overnum[LanguageCode][1], num, GetItemMessage(item_no));
                     }
+
                     MsgTaskMan.Print(item_message, 90, 8, 0);
                     state = PULL_ITEM_STATE_LAND;
                     can_get = 1;
@@ -1486,6 +1526,7 @@ void CPullItem::Step() {
                     wait_time = 300;
                 } else {
                     item_count = num;
+
                     if (LanguageCode == 0) {
                         sprintf(item_message, dung_progtxt_getitem[0][1], GetItemMessage(item_no), item_count);
                     } else if (item_count < 2) {
@@ -1493,12 +1534,14 @@ void CPullItem::Step() {
                     } else {
                         sprintf(item_message, dung_progtxt_getitem[LanguageCode][1], num, GetItemMessage(item_no));
                     }
+
                     MsgTaskMan.Print(item_message, 45, 8, 0);
                     DngUserData->GetItem(item_no, 1);
                     state = PULL_ITEM_STATE_FREE;
                 }
             }
         }
+
         if (type == PULL_ITEM_GATE_KEY) {
             if (mgDistVector(collect_pos, pos) > 5.0f + pull_speed) {
                 pull_speed += pull_accel;
@@ -1517,6 +1560,7 @@ void CPullItem::Step() {
                 bob_height = 30.0f;
             }
         }
+
         if (type == PULL_ITEM_STOLEN) {
             if (mgDistVector(collect_pos, pos) > 5.0f + pull_speed) {
                 pull_speed += pull_accel;
@@ -1535,6 +1579,7 @@ void CPullItem::Step() {
                 bob_height = 30.0f;
             }
         }
+
         if (type == PULL_ITEM_WEAPON_EXP) {
             if (mgDistVector(collect_pos, pos) > 5.0f + pull_speed) {
                 pull_speed += pull_accel;
@@ -1548,6 +1593,7 @@ void CPullItem::Step() {
                 AddExpWeaponParam(exp, exp_param, item_no);
                 sndSePlay(DngMainScene->se_battle_id, 4, 0);
                 state = PULL_ITEM_STATE_FREE;
+
                 if (wire_index >= 0) {
                     afterWire[wire_index].SetMode(0);
                     wire_index = -1;
@@ -1555,10 +1601,12 @@ void CPullItem::Step() {
             }
         }
     }
+
     if (wire_index >= 0) {
         afterWire[wire_index].SetPos(pos);
     }
 }
+
 void CPullItem::IsGet(float *player_pos) {
     if (state == PULL_ITEM_STATE_FREE || can_get == 0 || get_delay > 0) {
         return;

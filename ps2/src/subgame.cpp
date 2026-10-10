@@ -62,11 +62,11 @@ void InitSubGame(CScene *scene) {
             tex_manager->DeleteBlock(scene->tex_block_base + i);
         }
 
-        for (int j = 0; j < 0x28; j++) {
-            scene->DeleteChara(j + 0x40);
+        for (int j = 0; j < SUBGAME_CHARA_NUM; j++) {
+            scene->DeleteChara(j + SUBGAME_CHARA_BASE);
         }
 
-        scene->DeleteEffect(7);
+        scene->DeleteEffect(SUBGAME_EFFECT_SLOT);
     }
 }
 
@@ -373,30 +373,30 @@ void sgCPlayVoice::Play() {
 int sgCPlayVoice::Step() {
     char name[0x80];
 
-    if (step <= 0) {
+    if (step <= SG_PLAY_VOICE_IDLE) {
         return 0;
     }
 
     switch (step) {
-        case 1:
+        case SG_PLAY_VOICE_OPEN:
             sprintf(name, "%d.wav", file_no);
             sndStreamOpenFast(name);
             step++;
             break;
-        case 2:
+        case SG_PLAY_VOICE_OPENING:
             if (sndStreamOpenState() == 0) {
                 sndStreamStandBy();
                 step++;
             }
 
             break;
-        case 3:
+        case SG_PLAY_VOICE_STANDBY:
             if (sndStreamOpenState() == 0) {
                 step++;
             }
 
             break;
-        case 4:
+        case SG_PLAY_VOICE_READY:
             if (play != 0) {
                 sndStreamSetVol(vol_l, vol_r);
                 sndStreamPlay();
@@ -404,10 +404,10 @@ int sgCPlayVoice::Step() {
             }
 
             break;
-        case 5:
-            if (sndStreamGetState() != 0x1000) {
+        case SG_PLAY_VOICE_PLAYING:
+            if (sndStreamGetState() != SND_STREAM_STATE_PLAYING) {
                 sndStreamClose();
-                step = 0;
+                step = SG_PLAY_VOICE_IDLE;
                 return 0;
             }
 
@@ -418,8 +418,8 @@ int sgCPlayVoice::Step() {
 }
 
 void sgCPlayVoice::Close() {
-    if (step > 0) {
+    if (step > SG_PLAY_VOICE_IDLE) {
         sndStreamClose();
-        step = 0;
+        step = SG_PLAY_VOICE_IDLE;
     }
 }

@@ -159,7 +159,7 @@ void ClearSubMapNo() {
 }
 
 MapJumpMapInfo::MapJumpMapInfo() {
-    memset(this, 0, 0x18);
+    memset(this, 0, sizeof(*this));
 }
 
 void SetMainMapInfo(MapJumpMapInfo *info) {
@@ -233,7 +233,7 @@ int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int map_index) {
         return 0;
     }
 
-    scene->SetActive(2, MainMapInfo.map_no);
+    scene->SetActive(SCENE_DATA_MAP, MainMapInfo.map_no);
     scene->active_map = MainMapInfo.map_no;
     CEditMap *map = (CEditMap *) scene->GetMap(scene->active_map);
 
@@ -530,8 +530,8 @@ void GotoInterior(CScene *scene, int interior_no) {
         SaveBeforeInterior(scene);
 
         if (LoadSubMap(scene, interior_no, 0) != 0) {
-            scene->SetActive(2, SubMapInfo.map_no);
-            scene->ResetActive(2, MainMapInfo.map_no);
+            scene->SetActive(SCENE_DATA_MAP, SubMapInfo.map_no);
+            scene->ResetActive(SCENE_DATA_MAP, MainMapInfo.map_no);
             scene->active_map = SubMapInfo.map_no;
             SetInteriorDoorPos(scene);
         }
@@ -607,13 +607,13 @@ void ExitInterior(CScene *scene, int *map_no) {
         }
 
         if (old_map_no >= 0 && LoadSubMap(scene, old_map_no, 0) != 0) {
-            scene->SetActive(2, SubMapInfo.map_no);
+            scene->SetActive(SCENE_DATA_MAP, SubMapInfo.map_no);
         }
     } else {
         scene->SetNowSubMapNo(-1);
     }
 
-    scene->SetActive(2, MainMapInfo.map_no);
+    scene->SetActive(SCENE_DATA_MAP, MainMapInfo.map_no);
     scene->active_map = MainMapInfo.map_no;
     OldInteriorMapNo = NowInteriorMapNo;
     NowInteriorMapNo = -1;
@@ -636,8 +636,8 @@ void ExitInterior(CScene *scene, int *map_no) {
 
 int InteriorMapJump(CScene *scene, int interior_no) {
     if (LoadSubMap(scene, interior_no, 0) != 0) {
-        scene->SetActive(2, SubMapInfo.map_no);
-        scene->ResetActive(2, MainMapInfo.map_no);
+        scene->SetActive(SCENE_DATA_MAP, SubMapInfo.map_no);
+        scene->ResetActive(SCENE_DATA_MAP, MainMapInfo.map_no);
         scene->active_map = SubMapInfo.map_no;
         char *map_name = GetMapName(interior_no, NULL);
         strcpy(PrevInterior, NowInterior);

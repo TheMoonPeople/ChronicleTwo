@@ -44,6 +44,7 @@ enum VersatileWinPart {
     VWIN_TOP4_R         = 20, /**< Top-right corner of the fourth style. */
     VWIN_PART_MAX       = 21, /**< Rows of data. */
 };
+
 // clang-format on
 
 /**

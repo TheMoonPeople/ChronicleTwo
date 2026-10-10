@@ -29,6 +29,7 @@ enum NAMEREGI_TARGET {
     NAMEREGI_TARGET_FISH    = 3, /**< Naming a fish of the fish race, or typing a fish password. */
     NAMEREGI_TARGET_SPHIDA  = 4, /**< Naming a Spheda course; the name is left in NAMEREGI_TARGET_INFO::keyword. */
 };
+
 // clang-format on
 
 /**
@@ -45,6 +46,7 @@ enum NAMEREGI_FONT_MODE {
     NAMEREGI_FONT_MODE_KIGOU = 4, /**< Symbols. */
     NAMEREGI_FONT_MODE_NUM   = 5, /**< Number of character sets. */
 };
+
 // clang-format on
 
 /**
@@ -59,6 +61,7 @@ enum NAMEREGI_MODE {
     NAMEREGI_MODE_CLOSE   = 2,  /**< The screen is fading out to close. */
     NAMEREGI_MODE_MESSAGE = 13, /**< A question or a notice is open in the message window. */
 };
+
 // clang-format on
 
 /**

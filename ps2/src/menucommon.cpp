@@ -244,13 +244,7 @@ int _MENU_EXE_MSGSETBUFF(SPI_STACK *stack, int argc);
 static signed char sort_table[0x24] = {
     sort_type_count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
     11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
-    23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 0
-};
-
-
-
-
-
+    23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 0};
 
 /**
  *
@@ -258,69 +252,67 @@ static signed char sort_table[0x24] = {
  *
  */
 static SPI_TAG_PARAM menu_analyze_tag[] = {
-    {"ETCINFO_MALLOC", _ETCINFO_MALLOC},
-    {"ETCINFO_OFFSET", _MENU_ETCINFO_OFFSET},
-    {"ETCINFO", _MENU_ETCINFO},
-    {"ETCINFO_CLEAR", _MENU_ETCINFO_CLEAR},
-    {"ETCINFO2_MALLOC", _ETCINFO2_MALLOC},
-    {"ETCINFO2_OFFSET", _MENU_ETCINFO2_OFFSET},
-    {"ETCINFO2", _MENU_ETCINFO2},
-    {"ETCINFO2_CLEAR", _MENU_ETCINFO2_CLEAR},
-    {"RESET_TEXINFO", _MENU_RESET_TEXINFO},
-    {"INIT_DRAWLIST", _MENU_INIT_DRAWLIST},
-    {"TEXDATA_CLEAR", _MENU_TEXDATA_CLEAR},
-    {"TEXDATA_MALLOC", _MENU_TEXDATA_MALLOC},
-    {"TEXNAME", _MENU_TEXNAME},
-    {"TEXDATA_OFFSET", _MENU_TEXDATA_OFFSET},
-    {"TEXDATA", _MENU_TEXDATA},
-    {"TD", _MENU_TEXDATA},
-    {"FORM_CLEAR", _MENU_FORM_CLEAR},
-    {"FORM_MALLOC", _MENU_FORM_MALLOC},
-    {"FORM_OFFSET_NO", _MENU_FORM_OFFSET_NO},
-    {"FORM_SET", _MENU_FORM_SET},
-    {"FORM_PARTNUM", _MENU_FORM_PARTNUM},
-    {"FORM_DTYPE", _MENU_FORM_DTYPE},
-    {"FORM_MTYPE", _MENU_FORM_MTYPE},
-    {"FORM_DRAWFLG", _MENU_FORM_DRAWFLG},
-    {"FORM_VIBECNT", _MENU_FORM_VIBECNT},
-    {"FORM_MOVERATE", _MENU_FORM_MOVERATE},
-    {"FORM_PUTXY", _MENU_FORM_PUTXY},
-    {"FORM_RGBA", _MENU_FORM_RGBA},
-    {"FORM_RGBABIT", _MENU_FORM_RGBA_BIT},
-    {"FORM_ACTTBL", _MENU_ACTION_TABLE_NUM},
-    {"FORM_ACTDEF", _MENU_ACTION_DEF},
-    {"FORM_SETACT", _MENU_ACTION_SETACTION},
-    {"PARTVIBECNT", _MENU_PARTVIBECNT},
-    {"PARTVIBER", _MENU_PARTVIBER},
-    {"SHADOW", _MENU_SHADOW_ONOFF},
-    {"CLIP", _CLIP_WH},
-    {"PARTRGBA", _MENU_PARTRGBA},
-    {"PARTALP_BLEND", _MENU_PART_ALPHA_BLEND},
-    {"PART_ETCINFO", _MENU_PART_ETCINFO},
-    {"PART_BILINEAR", _MENU_PART_BILINEAR},
-    {"PART_DTYPE", _MENU_PART_DTYPE},
-    {"NORMAL", _MENU_NORMAL},
-    {"NRL", _MENU_NORMAL},
-    {"NORMAL2", _MENU_NORMAL2},
-    {"CURSOR", _MENU_CURSOR},
-    {"FUNCINFO", _MENU_FUNCINFO},
-    {"NUMBER1", _MENU_NUMBER1},
-    {"NUMBER2", _MENU_NUMBER2},
-    {"FRMIMG", _MENU_FRMIMG},
-    {"FORM", _MENU_FORM},
-    {"FORM_SETEND", _MENU_FORM_SETEND},
-    {"ITEM", _MENU_ITEM},
-    {"ITEM_MARK", _MENU_ITEM_CHECKMARK},
-    {"FILLBOX", _MENU_FILLBOX},
-    {"FILLBOXINFO", _MENU_FILLBOXINFO},
-    {"WAKU_RECT", _MENU_WAKU_RECT},
-    {"WAKU_CIRCLE", _MENU_WAKU_CIRCLE},
-    {"PARTS_EFF_NUM", _MENU_PARTS_EFF_NUM},
-    {"PARTS_EFFECT", _MENU_PARTS_EFFECT},
-    {NULL, NULL},
+    {"ETCINFO_MALLOC",  _ETCINFO_MALLOC       },
+    {"ETCINFO_OFFSET",  _MENU_ETCINFO_OFFSET  },
+    {"ETCINFO",         _MENU_ETCINFO         },
+    {"ETCINFO_CLEAR",   _MENU_ETCINFO_CLEAR   },
+    {"ETCINFO2_MALLOC", _ETCINFO2_MALLOC      },
+    {"ETCINFO2_OFFSET", _MENU_ETCINFO2_OFFSET },
+    {"ETCINFO2",        _MENU_ETCINFO2        },
+    {"ETCINFO2_CLEAR",  _MENU_ETCINFO2_CLEAR  },
+    {"RESET_TEXINFO",   _MENU_RESET_TEXINFO   },
+    {"INIT_DRAWLIST",   _MENU_INIT_DRAWLIST   },
+    {"TEXDATA_CLEAR",   _MENU_TEXDATA_CLEAR   },
+    {"TEXDATA_MALLOC",  _MENU_TEXDATA_MALLOC  },
+    {"TEXNAME",         _MENU_TEXNAME         },
+    {"TEXDATA_OFFSET",  _MENU_TEXDATA_OFFSET  },
+    {"TEXDATA",         _MENU_TEXDATA         },
+    {"TD",              _MENU_TEXDATA         },
+    {"FORM_CLEAR",      _MENU_FORM_CLEAR      },
+    {"FORM_MALLOC",     _MENU_FORM_MALLOC     },
+    {"FORM_OFFSET_NO",  _MENU_FORM_OFFSET_NO  },
+    {"FORM_SET",        _MENU_FORM_SET        },
+    {"FORM_PARTNUM",    _MENU_FORM_PARTNUM    },
+    {"FORM_DTYPE",      _MENU_FORM_DTYPE      },
+    {"FORM_MTYPE",      _MENU_FORM_MTYPE      },
+    {"FORM_DRAWFLG",    _MENU_FORM_DRAWFLG    },
+    {"FORM_VIBECNT",    _MENU_FORM_VIBECNT    },
+    {"FORM_MOVERATE",   _MENU_FORM_MOVERATE   },
+    {"FORM_PUTXY",      _MENU_FORM_PUTXY      },
+    {"FORM_RGBA",       _MENU_FORM_RGBA       },
+    {"FORM_RGBABIT",    _MENU_FORM_RGBA_BIT   },
+    {"FORM_ACTTBL",     _MENU_ACTION_TABLE_NUM},
+    {"FORM_ACTDEF",     _MENU_ACTION_DEF      },
+    {"FORM_SETACT",     _MENU_ACTION_SETACTION},
+    {"PARTVIBECNT",     _MENU_PARTVIBECNT     },
+    {"PARTVIBER",       _MENU_PARTVIBER       },
+    {"SHADOW",          _MENU_SHADOW_ONOFF    },
+    {"CLIP",            _CLIP_WH              },
+    {"PARTRGBA",        _MENU_PARTRGBA        },
+    {"PARTALP_BLEND",   _MENU_PART_ALPHA_BLEND},
+    {"PART_ETCINFO",    _MENU_PART_ETCINFO    },
+    {"PART_BILINEAR",   _MENU_PART_BILINEAR   },
+    {"PART_DTYPE",      _MENU_PART_DTYPE      },
+    {"NORMAL",          _MENU_NORMAL          },
+    {"NRL",             _MENU_NORMAL          },
+    {"NORMAL2",         _MENU_NORMAL2         },
+    {"CURSOR",          _MENU_CURSOR          },
+    {"FUNCINFO",        _MENU_FUNCINFO        },
+    {"NUMBER1",         _MENU_NUMBER1         },
+    {"NUMBER2",         _MENU_NUMBER2         },
+    {"FRMIMG",          _MENU_FRMIMG          },
+    {"FORM",            _MENU_FORM            },
+    {"FORM_SETEND",     _MENU_FORM_SETEND     },
+    {"ITEM",            _MENU_ITEM            },
+    {"ITEM_MARK",       _MENU_ITEM_CHECKMARK  },
+    {"FILLBOX",         _MENU_FILLBOX         },
+    {"FILLBOXINFO",     _MENU_FILLBOXINFO     },
+    {"WAKU_RECT",       _MENU_WAKU_RECT       },
+    {"WAKU_CIRCLE",     _MENU_WAKU_CIRCLE     },
+    {"PARTS_EFF_NUM",   _MENU_PARTS_EFF_NUM   },
+    {"PARTS_EFFECT",    _MENU_PARTS_EFFECT    },
+    {NULL,              NULL                  },
 };
-
-
 
 /**
  *
@@ -328,38 +320,38 @@ static SPI_TAG_PARAM menu_analyze_tag[] = {
  *
  */
 static SPI_TAG_PARAM menu_execommand_analyze_tag[] = {
-    {"EXE_NAME", _MENU_EXE_COMMAND_NAME},
-    {"FRM_DRAWFLG", _MENU_EXE_FORM_DRAWFLAG},
-    {"FRM_RGBA", _MENU_EXE_FORM_RGBA},
-    {"FRM_CALCRGBA", _MENU_EXE_FORM_CALCRGBAPARAM},
-    {"FRM_FADE", _MENU_EXE_FORM_FADE},
-    {"FRM_SETPOS", _MENU_EXE_FORM_SETPOS},
-    {"FRM_SETACTION", _MENU_EXE_FORM_SETACTION},
-    {"FRM_PARTSONOFF", _MENU_EXE_FORM_PARTSONOFF},
+    {"EXE_NAME",        _MENU_EXE_COMMAND_NAME       },
+    {"FRM_DRAWFLG",     _MENU_EXE_FORM_DRAWFLAG      },
+    {"FRM_RGBA",        _MENU_EXE_FORM_RGBA          },
+    {"FRM_CALCRGBA",    _MENU_EXE_FORM_CALCRGBAPARAM },
+    {"FRM_FADE",        _MENU_EXE_FORM_FADE          },
+    {"FRM_SETPOS",      _MENU_EXE_FORM_SETPOS        },
+    {"FRM_SETACTION",   _MENU_EXE_FORM_SETACTION     },
+    {"FRM_PARTSONOFF",  _MENU_EXE_FORM_PARTSONOFF    },
     {"FRM_PARTSONOFFG", _MENU_EXE_FORM_PARTSONOFF_GRP},
-    {"FRM_PTSONOFF", _MENU_EXE_FORM_PARTSONOFF},
-    {"FRM_PTSONOFFG", _MENU_EXE_FORM_PARTSONOFF_GRP},
-    {"FRM_SWAP", _MENU_EXE_FORM_SWAP},
-    {"FRM_SWAP_G", _MENU_EXE_FORM_GROUP_SWAP},
-    {"INIT_DRAWLIST", _MENU_EXE_INIT_DRAWLIST},
-    {"RESET_TEXINFO", _MENU_EXE_RESET_TEXINFO},
-    {"MSG_ENV", _MENU_EXE_MSGENV},
-    {"MSG_MAKEMSG", _MENU_EXE_MAKEMSG},
-    {"MSG_ABSPOS", _MENU_EXE_SETABSPOS},
-    {"MSG_SYSBUF", _MENU_EXE_MSGSETSYSTEMBUFF},
-    {"MSG_BUF", _MENU_EXE_MSGSETBUFF},
-    {"MSG_FUCHI", _MENU_EXE_MSGSETFUCHI},
-    {"MSG_SETCUR", _MENU_EXE_MSGSETCURSOR},
-    {"MSG_SETGYOU", _MENU_SET_QUESTIONGYOU},
-    {"MSG_SPD", _MENU_SET_OPENSPEED},
-    {"IN_KEY", _MENU_INPUT_KEY},
-    {"CURSOR_ONOFF", _MENU_CURSOR_ONOFF},
-    {"CURSOR_FADE", _MENU_CURSOR_FADE},
-    {"SET_WAKU", _MENU_WAKUTYPE},
-    {"SCN_FADE", _MENU_SCENE_FADE},
-    {"SE_ON", _MENU_SE_PLAY},
-    {"PRINT", _MENU_DEBUG_PRINTF},
-    {NULL, NULL},
+    {"FRM_PTSONOFF",    _MENU_EXE_FORM_PARTSONOFF    },
+    {"FRM_PTSONOFFG",   _MENU_EXE_FORM_PARTSONOFF_GRP},
+    {"FRM_SWAP",        _MENU_EXE_FORM_SWAP          },
+    {"FRM_SWAP_G",      _MENU_EXE_FORM_GROUP_SWAP    },
+    {"INIT_DRAWLIST",   _MENU_EXE_INIT_DRAWLIST      },
+    {"RESET_TEXINFO",   _MENU_EXE_RESET_TEXINFO      },
+    {"MSG_ENV",         _MENU_EXE_MSGENV             },
+    {"MSG_MAKEMSG",     _MENU_EXE_MAKEMSG            },
+    {"MSG_ABSPOS",      _MENU_EXE_SETABSPOS          },
+    {"MSG_SYSBUF",      _MENU_EXE_MSGSETSYSTEMBUFF   },
+    {"MSG_BUF",         _MENU_EXE_MSGSETBUFF         },
+    {"MSG_FUCHI",       _MENU_EXE_MSGSETFUCHI        },
+    {"MSG_SETCUR",      _MENU_EXE_MSGSETCURSOR       },
+    {"MSG_SETGYOU",     _MENU_SET_QUESTIONGYOU       },
+    {"MSG_SPD",         _MENU_SET_OPENSPEED          },
+    {"IN_KEY",          _MENU_INPUT_KEY              },
+    {"CURSOR_ONOFF",    _MENU_CURSOR_ONOFF           },
+    {"CURSOR_FADE",     _MENU_CURSOR_FADE            },
+    {"SET_WAKU",        _MENU_WAKUTYPE               },
+    {"SCN_FADE",        _MENU_SCENE_FADE             },
+    {"SE_ON",           _MENU_SE_PLAY                },
+    {"PRINT",           _MENU_DEBUG_PRINTF           },
+    {NULL,              NULL                         },
 };
 
 /**
@@ -631,20 +623,20 @@ void MenuSePlay(int sound_no, unsigned int *bank, mgCMemory *memory) {
     memory->stack_used = 0;
     memory->lock = 0;
     sndInitPort(8);
-    sndSePlay(sndLoadSound(8, bank, memory), sound_no, 0);
+    sndSePlay(sndLoadSound((int) SND_PORT_MENU, bank, memory), sound_no, 0);
     MenuSePlayUsedFlag = 1;
 }
 
 void StopEnvSoundMenu(int event_port) {
-    SndPortVol_Ob = sndGetPortVol(1);
-    SndPortVol_Base = sndGetPortVol(3);
-    sndSetPortVol(1, 0.0f);
-    sndSetPortVol(3, 0.0f);
+    SndPortVol_Ob = sndGetPortVol((int) SND_PORT_OB);
+    SndPortVol_Base = sndGetPortVol((int) SND_PORT_BASE);
+    sndSetPortVol((int) SND_PORT_OB, 0.0f);
+    sndSetPortVol((int) SND_PORT_BASE, 0.0f);
     SndPortCheck_EventPort = event_port;
 
     if (event_port != 0) {
-        SndPortVol_Event = sndGetPortVol(4);
-        sndSetPortVol(4, 0.0f);
+        SndPortVol_Event = sndGetPortVol((int) SND_PORT_EVENT);
+        sndSetPortVol((int) SND_PORT_EVENT, 0.0f);
     }
 
     SndPortCheck_EventPort = event_port;
@@ -653,11 +645,11 @@ void StopEnvSoundMenu(int event_port) {
 }
 
 void ReStartEnvSoundMenu() {
-    sndSetPortVol(1, SndPortVol_Ob);
-    sndSetPortVol(3, SndPortVol_Base);
+    sndSetPortVol((int) SND_PORT_OB, SndPortVol_Ob);
+    sndSetPortVol((int) SND_PORT_BASE, SndPortVol_Base);
 
     if (SndPortCheck_EventPort != 0) {
-        sndSetPortVol(4, SndPortVol_Event);
+        sndSetPortVol((int) SND_PORT_EVENT, SndPortVol_Event);
     }
 
     GetMainScene()->SetEnvBGMVol(SndPortVol_Env);
@@ -894,8 +886,8 @@ u_long128 *MenuCalcBufAlignment(u_long128 *buffer) {
 
 int LoadFileMenu(char *name, u_long128 *buffer, int mode) {
     static char *langdirpathTable[7] = {"0/", "1/", "2/", "3/", "4/", "5/", "1/"};
-    char path[0x8C];
-    int  size;
+    char         path[0x8C];
+    int          size;
 
     if (name == NULL || buffer == NULL) {
         return -1;
@@ -919,10 +911,22 @@ int LoadFileMenu(char *name, u_long128 *buffer, int mode) {
 void ConvertFontCode(char *source, char *destination) {
     // Hexadecimal digits and their nibble values for bracketed font codes.
     static s8 mes_cord_conv[16][2] = {
-        {'0', 0}, {'1', 1}, {'2', 2}, {'3', 3},
-        {'4', 4}, {'5', 5}, {'6', 6}, {'7', 7},
-        {'8', 8}, {'9', 9}, {'a', 10}, {'b', 11},
-        {'c', 12}, {'d', 13}, {'e', 14}, {'f', 15}
+        {'0', 0 },
+        {'1', 1 },
+        {'2', 2 },
+        {'3', 3 },
+        {'4', 4 },
+        {'5', 5 },
+        {'6', 6 },
+        {'7', 7 },
+        {'8', 8 },
+        {'9', 9 },
+        {'a', 10},
+        {'b', 11},
+        {'c', 12},
+        {'d', 13},
+        {'e', 14},
+        {'f', 15}
     };
 
     if (source != NULL) {
@@ -1164,13 +1168,17 @@ int GetDispVolumeForFloat(float volume) {
 float GetFloatCommaValue(float value) {
     return value - (float) fptosi(value);
 }
+
 int CalcScrlBarPutPos(int top, float pos, int length, float pos_max) {
     int y = top;
+
     if (pos_max != 0.0f) {
-        y = (int)((float)top + length * (pos / pos_max));
+        y = (int) ((float) top + length * (pos / pos_max));
     }
+
     return y;
 }
+
 void Trans3DPosTo2DPos(mgCCamera *camera, mgCFrame *frame, int *out) {
     float view[4][4];
     float camera_pos[4];
@@ -1746,33 +1754,33 @@ int menu_dtype_init(CMenuPosDataForm *form, SPI_STACK *stack, int argc) {
 int _MENU_FORM_DTYPE(SPI_STACK *stack, int argc) {
     // Drawing-type keywords accepted by the menu form script.
     static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
-        {"normal", MENUFORM_DTYPE_NORMAL},
-        {"itembrd", MENUFORM_DTYPE_ITEMBRD},
-        {"giftview", MENUFORM_DTYPE_GIFTVIEW},
-        {"msgform", MENUFORM_DTYPE_MSGFORM},
-        {"poly", MENUFORM_DTYPE_POLY},
-        {"mappart", MENUFORM_DTYPE_MAPPART},
-        {"combrd", MENUFORM_DTYPE_COMBRD},
+        {"normal",    MENUFORM_DTYPE_NORMAL   },
+        {"itembrd",   MENUFORM_DTYPE_ITEMBRD  },
+        {"giftview",  MENUFORM_DTYPE_GIFTVIEW },
+        {"msgform",   MENUFORM_DTYPE_MSGFORM  },
+        {"poly",      MENUFORM_DTYPE_POLY     },
+        {"mappart",   MENUFORM_DTYPE_MAPPART  },
+        {"combrd",    MENUFORM_DTYPE_COMBRD   },
         {"createbrd", MENUFORM_DTYPE_CREATEBRD},
-        {"list", MENUFORM_DTYPE_LIST},
-        {"bg_tile", MENUFORM_DTYPE_BG_TILE},
-        {"dload", MENUFORM_DTYPE_DLOAD},
-        {"mainfrm", MENUFORM_DTYPE_MAINFRM},
-        {"mainimg", MENUFORM_DTYPE_MAINIMG},
-        {"chrstar", MENUFORM_DTYPE_CHRSTAR},
-        {"inv_card", MENUFORM_DTYPE_INV_CARD},
-        {"geolist", MENUFORM_DTYPE_GEOLIST},
-        {"geotitle", MENUFORM_DTYPE_GEOTITLE},
-        {"geoana", MENUFORM_DTYPE_GEOANA},
-        {"shoplist", MENUFORM_DTYPE_SHOPLIST},
-        {"clip", MENUFORM_DTYPE_CLIP},
-        {"wmap", MENUFORM_DTYPE_WMAP},
-        {"buildup", MENUFORM_DTYPE_BUILDUP},
-        {"mosbaji", MENUFORM_DTYPE_MOSBAJI},
-        {"savelist", MENUFORM_DTYPE_SAVELIST},
-        {"infocur", MENUFORM_DTYPE_INFOCUR},
-        {"house", MENUFORM_DTYPE_HOUSE},
-        {NULL, -1},
+        {"list",      MENUFORM_DTYPE_LIST     },
+        {"bg_tile",   MENUFORM_DTYPE_BG_TILE  },
+        {"dload",     MENUFORM_DTYPE_DLOAD    },
+        {"mainfrm",   MENUFORM_DTYPE_MAINFRM  },
+        {"mainimg",   MENUFORM_DTYPE_MAINIMG  },
+        {"chrstar",   MENUFORM_DTYPE_CHRSTAR  },
+        {"inv_card",  MENUFORM_DTYPE_INV_CARD },
+        {"geolist",   MENUFORM_DTYPE_GEOLIST  },
+        {"geotitle",  MENUFORM_DTYPE_GEOTITLE },
+        {"geoana",    MENUFORM_DTYPE_GEOANA   },
+        {"shoplist",  MENUFORM_DTYPE_SHOPLIST },
+        {"clip",      MENUFORM_DTYPE_CLIP     },
+        {"wmap",      MENUFORM_DTYPE_WMAP     },
+        {"buildup",   MENUFORM_DTYPE_BUILDUP  },
+        {"mosbaji",   MENUFORM_DTYPE_MOSBAJI  },
+        {"savelist",  MENUFORM_DTYPE_SAVELIST },
+        {"infocur",   MENUFORM_DTYPE_INFOCUR  },
+        {"house",     MENUFORM_DTYPE_HOUSE    },
+        {NULL,        -1                      },
     };
 
     char *name;
@@ -2247,13 +2255,15 @@ void MakePartsName(SPI_STACK *stack, MENUFORMPARTS_TYPE *part) {
 int _MENU_PART_DTYPE(SPI_STACK *stack, int argc) {
     // Additional drawing-type keywords accepted by the menu part script.
     static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
-        {"clut_reload", MENUFORMPARTS_DTYPE_CLUT_RELOAD},
-        {"\x94\xAD\x96\xBE\x83l\x83^", MENUFORMPARTS_DTYPE_IDEA_BOARD},
-        {"\x83" "A\x83\x8B\x83o\x83\x80", MENUFORMPARTS_DTYPE_ALBUM},
+        {"clut_reload",                      MENUFORMPARTS_DTYPE_CLUT_RELOAD},
+        {"\x94\xAD\x96\xBE\x83l\x83^",       MENUFORMPARTS_DTYPE_IDEA_BOARD },
+        {"\x83"
+         "A\x83\x8B\x83o\x83\x80",
+         MENUFORMPARTS_DTYPE_ALBUM                                          },
         {"\x82\xB2\x82\xBF\x82\xE1\x90\xFC", MENUFORMPARTS_DTYPE_RANDOM_LINE},
-        {"font", MENUFORMPARTS_DTYPE_FONT},
-        {"\x83l\x83^\x92\xA0", MENUFORMPARTS_DTYPE_IDEA_MEMO},
-        {NULL, -1},
+        {"font",                             MENUFORMPARTS_DTYPE_FONT       },
+        {"\x83l\x83^\x92\xA0",               MENUFORMPARTS_DTYPE_IDEA_MEMO  },
+        {NULL,                               -1                             },
     };
 
     MENUFORMPARTS_TYPE *part;
@@ -2431,9 +2441,9 @@ int _MENU_NUMBER2(SPI_STACK *stack, int argc) {
 int _MENU_FRMIMG(SPI_STACK *stack, int argc) {
     // Frame-image drawing keywords accepted by the menu script.
     static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
-        {"bg", MENUFORMPARTS_DTYPE_BG},
+        {"bg",   MENUFORMPARTS_DTYPE_BG  },
         {"beta", MENUFORMPARTS_DTYPE_BETA},
-        {NULL, -1},
+        {NULL,   -1                      },
     };
 
     MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
@@ -2481,9 +2491,9 @@ int _MENU_FORM(SPI_STACK *stack, int argc) {
 int _MENU_ITEM(SPI_STACK *stack, int argc) {
     // Item-icon drawing keywords accepted by the menu script.
     static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
-        {"trs", MENUFORMPARTS_DTYPE_TRS},
+        {"trs",  MENUFORMPARTS_DTYPE_TRS },
         {"neta", MENUFORMPARTS_DTYPE_NETA},
-        {NULL, -1},
+        {NULL,   -1                      },
     };
 
     MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
@@ -2541,7 +2551,7 @@ int _MENU_FILLBOX(SPI_STACK *stack, int argc) {
     // Filled-box drawing keywords accepted by the menu script.
     static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
         {"sq_beta", MENUFORMPARTS_DTYPE_SQ_BETA},
-        {NULL, -1},
+        {NULL,      -1                         },
     };
 
     MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
@@ -2654,13 +2664,13 @@ int _MENU_PARTS_EFF_NUM(SPI_STACK *stack, int argc) {
 int _MENU_PARTS_EFFECT(SPI_STACK *stack, int argc) {
     // Animation-effect keywords accepted by the menu part script.
     static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
-        {"blink", MENU_PARTS_EFFECT_BLINK},
-        {"rot", MENU_PARTS_EFFECT_ROT},
-        {"huriko", MENU_PARTS_EFFECT_HURIKO},
-        {"stretch", MENU_PARTS_EFFECT_STRETCH},
+        {"blink",       MENU_PARTS_EFFECT_BLINK      },
+        {"rot",         MENU_PARTS_EFFECT_ROT        },
+        {"huriko",      MENU_PARTS_EFFECT_HURIKO     },
+        {"stretch",     MENU_PARTS_EFFECT_STRETCH    },
         {"stretch_rep", MENU_PARTS_EFFECT_STRETCH_REP},
         {"stretch_sin", MENU_PARTS_EFFECT_STRETCH_SIN},
-        {NULL, 0},
+        {NULL,          0                            },
     };
 
     MENU_PARTS_EFFECT_STRUCT1 *effect;
@@ -3026,27 +3036,27 @@ int _MENU_EXE_FORM_GROUP_SWAP(SPI_STACK *stack, int argc) {
 int _MENU_EXE_MSGENV(SPI_STACK *stack, int argc) {
     // Message preset keywords accepted by menu command scripts.
     static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
-        {"default", MENU_SCRIPT_MES_DEFAULT},
-        {"default_black", MENU_SCRIPT_MES_DEFAULT_BLACK},
-        {"no_win", MENU_SCRIPT_MES_NO_WIN},
-        {"system", MENU_SCRIPT_MES_SYSTEM},
-        {"name", MENU_SCRIPT_MES_NAME},
-        {"name_black", MENU_SCRIPT_MES_NAME_BLACK},
-        {"itemcmd", MENU_SCRIPT_MES_ITEMCMD},
-        {"invent", MENU_SCRIPT_MES_INVENT},
-        {"geo", MENU_SCRIPT_MES_GEO},
-        {"msgdic", MENU_SCRIPT_MES_MSGDIC},
-        {"general", MENU_SCRIPT_MES_GENERAL},
-        {"general_2", MENU_SCRIPT_MES_GENERAL_2},
-        {"yesno", MENU_SCRIPT_MES_YESNO},
-        {"brd3", MENU_SCRIPT_MES_BRD3},
-        {"helpwin", MENU_SCRIPT_MES_HELPWIN},
-        {"makebrd", MENU_SCRIPT_MES_MAKEBRD},
-        {"itemmsg", MENU_SCRIPT_MES_ITEMMSG},
+        {"default",              MENU_SCRIPT_MES_DEFAULT             },
+        {"default_black",        MENU_SCRIPT_MES_DEFAULT_BLACK       },
+        {"no_win",               MENU_SCRIPT_MES_NO_WIN              },
+        {"system",               MENU_SCRIPT_MES_SYSTEM              },
+        {"name",                 MENU_SCRIPT_MES_NAME                },
+        {"name_black",           MENU_SCRIPT_MES_NAME_BLACK          },
+        {"itemcmd",              MENU_SCRIPT_MES_ITEMCMD             },
+        {"invent",               MENU_SCRIPT_MES_INVENT              },
+        {"geo",                  MENU_SCRIPT_MES_GEO                 },
+        {"msgdic",               MENU_SCRIPT_MES_MSGDIC              },
+        {"general",              MENU_SCRIPT_MES_GENERAL             },
+        {"general_2",            MENU_SCRIPT_MES_GENERAL_2           },
+        {"yesno",                MENU_SCRIPT_MES_YESNO               },
+        {"brd3",                 MENU_SCRIPT_MES_BRD3                },
+        {"helpwin",              MENU_SCRIPT_MES_HELPWIN             },
+        {"makebrd",              MENU_SCRIPT_MES_MAKEBRD             },
+        {"itemmsg",              MENU_SCRIPT_MES_ITEMMSG             },
         {"itemmsg_defaultfuchi", MENU_SCRIPT_MES_ITEMMSG_DEFAULTFUCHI},
-        {"volmsg", MENU_SCRIPT_MES_VOLMSG},
-        {"talk", MENU_SCRIPT_MES_TALK},
-        {NULL, MENU_SCRIPT_MES_DEFAULT},
+        {"volmsg",               MENU_SCRIPT_MES_VOLMSG              },
+        {"talk",                 MENU_SCRIPT_MES_TALK                },
+        {NULL,                   MENU_SCRIPT_MES_DEFAULT             },
     };
 
     SPI_STACK *next_slot = stack + 1;
@@ -3155,9 +3165,9 @@ int _MENU_EXE_MSGSETFUCHI(SPI_STACK *stack, int argc) {
     // Font-outline keywords accepted by menu command scripts.
     static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
         {"default", FUCHI_SHADOW_BLACK_WIDE},
-        {"none", FUCHI_NONE},
-        {"ol2", FUCHI_OUTLINE_THICK},
-        {NULL, FUCHI_NONE},
+        {"none",    FUCHI_NONE             },
+        {"ol2",     FUCHI_OUTLINE_THICK    },
+        {NULL,      FUCHI_NONE             },
     };
 
     SPI_STACK *next_slot = stack + 1;
@@ -3357,9 +3367,9 @@ int _MENU_SCENE_FADE(SPI_STACK *stack, int argc) {
 int _MENU_SE_PLAY(SPI_STACK *stack, int argc) {
     // System sound keywords accepted by menu command scripts.
     static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
-        {"OK", SYSTEM_SE_DECIDE},
+        {"OK",     SYSTEM_SE_DECIDE},
         {"CANCEL", SYSTEM_SE_CANCEL},
-        {NULL, -1},
+        {NULL,     -1              },
     };
 
     if (SpiMenuExeCommandFlag == 0) {

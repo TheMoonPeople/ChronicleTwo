@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+#define PAD_ANALOG_CENTER 0x80
+
 /**
  * @file
  * Declares the game controller manager, which reads both controller ports,

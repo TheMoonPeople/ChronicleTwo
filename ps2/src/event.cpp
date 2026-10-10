@@ -129,8 +129,8 @@ int EventDoorLoop(int frame, int use_scene_se) {
      */
     static float vv[3][4] __attribute__((aligned(16))) = {
         {-94.0f, 35.5f, -106.5f, 1.0f},
-        {105.0f, 32.5f, -28.5f, 1.0f},
-        {113.0f, 34.5f, 82.5f, 1.0f}
+        {105.0f, 32.5f, -28.5f,  1.0f},
+        {113.0f, 34.5f, 82.5f,   1.0f}
     };
 
     float         character_pos[4];
@@ -383,10 +383,10 @@ int EventLoop() {
             strcat(directory, &EdEventInfo.script_name[index + 1]);
 
             switch (GetNowLoopNo()) {
-                case 1:
+                case (int) LOOP_EDIT:
                     buffer = &ScriptBuffer__2;
                     break;
-                case 2:
+                case (int) LOOP_DUNGEON:
                     buffer = &BuffScriptData;
                     break;
                 default:
@@ -405,7 +405,7 @@ int EventLoop() {
                 SetEventScript(program, NULL, buffer);
                 index = StartEventSyori();
 
-                if (GetNowLoopNo() == 2 && index >= 0) {
+                if (GetNowLoopNo() == (int) LOOP_DUNGEON && index >= 0) {
                     EventScene->event_run = 0;
                     RunEvent(index, DngMainScene);
                 }
@@ -414,7 +414,7 @@ int EventLoop() {
                 SetEventScript(program, NULL, buffer);
                 index = StartEventSyori();
 
-                if (GetNowLoopNo() == 2 && index >= 0) {
+                if (GetNowLoopNo() == (int) LOOP_DUNGEON && index >= 0) {
                     EventScene->event_run = 0;
                     RunEvent(index, DngMainScene);
                 }

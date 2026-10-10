@@ -21,6 +21,7 @@ enum FutureMapSelectResult {
     FUTURE_MAP_SELECT_CHOSEN   = 1, /**< A map was chosen and the next loop has been started. */
     FUTURE_MAP_SELECT_CLOSED   = 2, /**< The menu was cancelled. */
 };
+
 // clang-format on
 
 /**
@@ -34,6 +35,7 @@ enum HDDMenuResult {
     HDD_MENU_CONTINUE = 0, /**< The menu stays open. */
     HDD_MENU_CLOSED   = 1, /**< The menu was cancelled. */
 };
+
 // clang-format on
 
 /**
@@ -48,6 +50,7 @@ enum HDDMenuItem {
     HDD_MENU_INSTALL   = 1, /**< Installs the game onto the hard disk. */
     HDD_MENU_MOUNT     = 2, /**< Switches file reads between the disc and the hard disk. */
 };
+
 // clang-format on
 
 /**

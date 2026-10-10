@@ -168,13 +168,13 @@ static int select__1049[16] = {0};
  * Stores the first visible map row for each map category.
  *
  */
-static int top__1050[16] = {0};
-int                     mlMAP_NAME_NUM(SPI_STACK *stack, int argc);
-int                     mlMAP_NAME(SPI_STACK *stack, int argc);
-static MAP_NAME_INFO   *GetMapNameInfo(int map_no);
-int                     MapTypeSelect();
-int                     MapSelect();
-static char            *GetLine(char **columns, char *position, char *end);
+static int            top__1050[16] = {0};
+int                   mlMAP_NAME_NUM(SPI_STACK *stack, int argc);
+int                   mlMAP_NAME(SPI_STACK *stack, int argc);
+static MAP_NAME_INFO *GetMapNameInfo(int map_no);
+int                   MapTypeSelect();
+int                   MapSelect();
+static char          *GetLine(char **columns, char *position, char *end);
 
 /**
  *
@@ -182,8 +182,7 @@ static char            *GetLine(char **columns, char *position, char *end);
  *
  */
 static char *map_sel_type[MAP_SEL_TYPE_NUM] = {
-    "New", "Georama", "PalmBlinks", "Submap", "Future", "Dungeon", "Event", "Special"
-};
+    "New", "Georama", "PalmBlinks", "Submap", "Future", "Dungeon", "Event", "Special"};
 
 /**
  *
@@ -272,8 +271,8 @@ int mlMAP_NAME(SPI_STACK *stack, int argc) {
  */
 static SPI_TAG_PARAM tag[3] = {
     {"MAP_NAME_NUM", mlMAP_NAME_NUM},
-    {"MAP_NAME", mlMAP_NAME},
-    {NULL, NULL}
+    {"MAP_NAME",     mlMAP_NAME    },
+    {NULL,           NULL          }
 };
 
 void LoadMapName(int language, u_long128 *buffer) {
@@ -500,11 +499,11 @@ int MapTypeSelect() {
 
     static int select = 0;
 
-    if (GamePad__2.Down(0x1000)) {
+    if (GamePad__2.Down(PAD_UP)) {
         select--;
     }
 
-    if (GamePad__2.Down(0x4000)) {
+    if (GamePad__2.Down(PAD_DOWN)) {
         select++;
     }
 
@@ -516,15 +515,15 @@ int MapTypeSelect() {
         select = 0;
     }
 
-    if (GamePad__2.Down(0x20)) {
+    if (GamePad__2.Down(PAD_CIRCLE)) {
         if (SelectMapNum[select] > 0) {
             SelectMapType = select;
-            SelectMode = 1;
+            SelectMode = (int) MAP_SELECT_MODE_MAP;
         }
     }
 
-    if (GamePad__2.Down(0x40)) {
-        SelectMode = -1;
+    if (GamePad__2.Down(PAD_CROSS)) {
+        SelectMode = (int) MAP_SELECT_MODE_CANCEL;
     }
 
     cursor += sprintf(cursor, "\n\n");
@@ -567,22 +566,22 @@ int MapSelect() {
     top = &top__1050[SelectMapType];
     offset = *selected - *top;
 
-    if (GamePad__2.Down(0x1000)) {
+    if (GamePad__2.Down(PAD_UP)) {
         (*selected)--;
     }
 
-    if (GamePad__2.Down(0x4000)) {
+    if (GamePad__2.Down(PAD_DOWN)) {
         (*selected)++;
     }
 
     paged = 0;
 
-    if (GamePad__2.Down(4)) {
+    if (GamePad__2.Down(PAD_L1)) {
         paged = 1;
         *top -= 8;
     }
 
-    if (GamePad__2.Down(8)) {
+    if (GamePad__2.Down(PAD_R1)) {
         paged = 1;
         *top += 8;
     }
@@ -660,13 +659,13 @@ int MapSelect() {
 
     GetDebugFont()->DrawDirect(text, 10, 10);
 
-    if (GamePad__2.Down(0x40)) {
-        SelectMode = 0;
+    if (GamePad__2.Down(PAD_CROSS)) {
+        SelectMode = (int) MAP_SELECT_MODE_TYPE;
     }
 
-    if (GamePad__2.Down(0x20)) {
+    if (GamePad__2.Down(PAD_CIRCLE)) {
         strcpy(SelectMapName, SelectMapList[SelectMapType][*selected]);
-        SelectMode = 2;
+        SelectMode = (int) MAP_SELECT_MODE_DECIDE;
     }
 
     return 0;
@@ -674,19 +673,19 @@ int MapSelect() {
 
 int MapSelectLoop() {
     switch (SelectMode) {
-        case -1:
-            return 1;
-        case 0:
+        case MAP_SELECT_MODE_CANCEL:
+            return (int) MAP_SELECT_CANCEL;
+        case MAP_SELECT_MODE_TYPE:
             MapTypeSelect();
             break;
-        case 1:
+        case MAP_SELECT_MODE_MAP:
             MapSelect();
             break;
-        case 2:
-            return 2;
+        case MAP_SELECT_MODE_DECIDE:
+            return (int) MAP_SELECT_DECIDE;
     }
 
-    return 0;
+    return (int) MAP_SELECT_CONTINUE;
 }
 
 void InitSaveDataEdit(mgCMemory *stack) {
@@ -700,8 +699,12 @@ int SaveDataEditLoop() {
     GAME_PROGRESS_INFO *progress;
     const char         *progress_name;
     SV_CONFIG_OPTION   *config = save->GetConfig();
-    SaveEditLabels      marker = {{"  ", ">>"}};
-    SaveEditLabels      on_off = {{"OFF", "ON"}};
+    SaveEditLabels      marker = {
+        {"  ", ">>"}
+    };
+    SaveEditLabels on_off = {
+        {"OFF", "ON"}
+    };
     progress = GetGameProgressInfo(SedSelData[SED_PROGRESS]);
     SedSelData[SED_PLAY_TIME] = GetPlayTimeCountFlag();
     s8 *caption[1] = {&config->caption_off};
@@ -882,8 +885,8 @@ int SaveDataEditLoop() {
 }
 
 int EventViewLoop() {
-    char            text[0x400];
-    char           *cursor = text;
+    char  text[0x400];
+    char *cursor = text;
     cursor += sprintf(cursor, "\nEvent \n");
 
     if (BossBattleSelFlag != 0) {
@@ -894,9 +897,11 @@ int EventViewLoop() {
         BossBattleSelFlag = 0;
     }
 
-    int index = top_event;
-    int last = index + 10;
-    SaveEditLabels marker = {{"  ", ">>"}};
+    int            index = top_event;
+    int            last = index + 10;
+    SaveEditLabels marker = {
+        {"  ", ">>"}
+    };
 
     if (last >= EventInfoNum) {
         last = EventInfoNum;
@@ -913,19 +918,19 @@ int EventViewLoop() {
 
     GetDebugFont()->DrawDirect(text, 10, 10);
 
-    if (GamePad__2.Down(0x1000)) {
+    if (GamePad__2.Down(PAD_UP)) {
         sel_event--;
     }
 
-    if (GamePad__2.Down(0x4000)) {
+    if (GamePad__2.Down(PAD_DOWN)) {
         sel_event++;
     }
 
-    if (GamePad__2.Down(0x8004)) {
+    if (GamePad__2.Down(PAD_LEFT | PAD_L1)) {
         top_event -= 10;
     }
 
-    if (GamePad__2.Down(0x2008)) {
+    if (GamePad__2.Down(PAD_RIGHT | PAD_R1)) {
         top_event += 10;
     }
 
@@ -949,7 +954,7 @@ int EventViewLoop() {
         sel_event = 0;
     }
 
-    if (GamePad__2.Down(0x20)) {
+    if (GamePad__2.Down(PAD_CIRCLE)) {
         INIT_LOOP_ARG    loop_arg;
         EVENT_VIEW_INFO *chosen = &EventInfo[top_event + sel_event];
 
@@ -959,16 +964,16 @@ int EventViewLoop() {
             loop_arg.event_no = chosen->event_no;
 
             if (chosen->dungeon != 0) {
-                NextLoop(2, loop_arg);
+                NextLoop((int) LOOP_DUNGEON, loop_arg);
             } else {
-                NextLoop(1, loop_arg);
+                NextLoop((int) LOOP_EDIT, loop_arg);
             }
 
             return 1;
         }
     }
 
-    if (GamePad__2.Down(0x40)) {
+    if (GamePad__2.Down(PAD_CROSS)) {
         return 2;
     }
 
@@ -1042,9 +1047,11 @@ void LoadEventViewData(u_long128 *buffer, mgCMemory *stack) {
  *
  */
 static char *GetLine(char **columns, char *position, char *end) {
-    LineBreakPair line_break_pair = {{'\r', '\n'}};
-    int           field;
-    int           length;
+    LineBreakPair line_break_pair = {
+        {'\r', '\n'}
+    };
+    int field;
+    int length;
 
     if (position < end) {
         field = 0;

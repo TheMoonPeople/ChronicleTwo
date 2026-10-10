@@ -64,131 +64,131 @@ CSceneEventData LadderData;
 /**
  * End of the ladder the player entered.
  */
-static int                      LadderMode;
+static int LadderMode;
 /**
  * Stage of climbing the ladder.
  */
-static int                      LadderStep;
+static int LadderStep;
 /**
  * Special movement motion in progress.
  */
-static int                      CharaMotionMode;
+static int CharaMotionMode;
 /**
  * Frames left in the landing motion.
  */
-static int                      CharaMotionModeCnt;
+static int CharaMotionModeCnt;
 /**
  * Consecutive frames without ground contact.
  */
-static int                      CharaFallFlag;
+static int CharaFallFlag;
 /**
  * Whether a target heading is set.
  */
-static int                      CharaAngleTargetFlag;
+static int CharaAngleTargetFlag;
 /**
  * Target heading state.
  */
-static int                      CharaAngleTarget;
+static int CharaAngleTarget;
 /**
  * Fixed-camera mode for this frame.
  */
-static int                      FixCameraFlag;
+static int FixCameraFlag;
 /**
  * Frames since the fixed-camera position was sampled.
  */
-static int                      FixCameraChgCnt;
+static int FixCameraChgCnt;
 /**
  * Rejects one request to enter eye view.
  */
-static int                      EyeViewCancelOnce;
+static int EyeViewCancelOnce;
 /**
  * Walking, eye-view or photo view.
  */
-static int                      ViewMode;
+static int ViewMode;
 /**
  * Whether the saved follow-camera position is valid.
  */
-static int                      InitEyeViewFlag;
+static int InitEyeViewFlag;
 /**
  * Photo shutter frame counter.
  */
-static int                      ShutterCnt;
+static int ShutterCnt;
 /**
  * Character movement state.
  */
-static int                      move_chara;
+static int move_chara;
 /**
  * First-person camera yaw.
  */
-static float                    viewAngleH;
+static float viewAngleH;
 /**
  * First-person camera pitch.
  */
-static float                    viewAngleV;
+static float viewAngleV;
 /**
  * First-person projection adjustment.
  */
-static float                    AddProj;
+static float AddProj;
 /**
  * Camera used during ladder climbing.
  */
-static mgCCamera               *LadderCamera;
+static mgCCamera *LadderCamera;
 /**
  * Height of the next ladder rung.
  */
-static float                    LdrNext;
+static float LdrNext;
 /**
  * Heading toward the ladder.
  */
-static float                    LdrRot;
+static float LdrRot;
 /**
  * Motion ratio at the previous ladder step.
  */
-static float                    OldMtnRate;
+static float OldMtnRate;
 /**
  * Ladder footstep sound set.
  */
-static int                      LdrSound;
+static int LdrSound;
 /**
  * Footstep set at the ladder bottom.
  */
-static int                      LdrBtmFoot;
+static int LdrBtmFoot;
 /**
  * Footstep set at the ladder top.
  */
-static int                      LdrTopFoot;
+static int LdrTopFoot;
 /**
  * Cached fixed-camera eye position.
  */
-static sceVu0FVECTOR            OldFixCameraPos;
+static sceVu0FVECTOR OldFixCameraPos;
 /**
  * Follow-camera position saved before eye view.
  */
-static sceVu0FVECTOR            OldCameraPos;
+static sceVu0FVECTOR OldCameraPos;
 /**
  * Origin of the ladder.
  */
-static sceVu0FVECTOR            LdrPos;
+static sceVu0FVECTOR LdrPos;
 /**
  * Position where the player approaches the ladder.
  */
-static sceVu0FVECTOR            StdPos;
+static sceVu0FVECTOR StdPos;
 /**
  * Landing at the bottom of the ladder.
  */
-static sceVu0FVECTOR            LdrBottomPos;
+static sceVu0FVECTOR LdrBottomPos;
 /**
  * Landing at the top of the ladder.
  */
-static sceVu0FVECTOR            LdrTopPos;
+static sceVu0FVECTOR LdrTopPos;
 /**
  * Walk-off position at the top of the ladder.
  */
-static sceVu0FVECTOR            LdrTopWalk;
+static sceVu0FVECTOR LdrTopWalk;
 /**
  * Camera eye position for ladder climbing.
  */
-static sceVu0FVECTOR            LdrCamPos;
+static sceVu0FVECTOR LdrCamPos;
 
 static void LadderControl(CScene *scene, CPadControl *pad);
 static void CharaControl(CScene *scene, CPadControl *pad);
@@ -232,7 +232,7 @@ int IsWalkMode() {
 
 void EditControlInit(CScene *scene) {
     CCameraControl *camera;
-    memset(&MoveInfo, 0, 0x110);
+    memset(&MoveInfo, 0, sizeof(MoveInfo));
     EyeViewCancelOnce = 0;
     ViewMode = 0;
     InitEyeViewFlag = 0;
@@ -241,7 +241,7 @@ void EditControlInit(CScene *scene) {
     AddProj = 0;
     ShutterCnt = 0;
     move_chara = 0;
-    scene->ResetStatus(1, scene->player_chara, 0x10);
+    scene->ResetStatus(SCENE_DATA_CHARA, scene->player_chara, 0x10);
     CharaAngleTarget = 0;
     CharaAngleTargetFlag = 0;
     FixCameraFlag = 0;
@@ -300,14 +300,36 @@ char *GetFootEffName(int index) {
         "\x91\xAB\x8E\xC5\x90\xB6",
     };
     static EditFootEffect name_id[30] = {
-        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_GRASS, EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,
-        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_SAND,
-        EDIT_FOOT_EFFECT_SAND,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_WATER,
-        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_SAND,  EDIT_FOOT_EFFECT_SAND,  EDIT_FOOT_EFFECT_NONE,
-        EDIT_FOOT_EFFECT_SAND,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_WATER, EDIT_FOOT_EFFECT_NONE,
-        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_WATER, EDIT_FOOT_EFFECT_NONE,
-        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,
-        EDIT_FOOT_EFFECT_NONE,  EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_GRASS,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_SAND,
+        EDIT_FOOT_EFFECT_SAND,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_WATER,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_SAND,
+        EDIT_FOOT_EFFECT_SAND,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_SAND,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_WATER,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_WATER,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
+        EDIT_FOOT_EFFECT_NONE,
     };
 
     if (index < 0 || index >= 30) {
@@ -580,7 +602,7 @@ void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
     /**
      * Follow-camera distance used when selecting the fixed reference.
      */
-    static float reference = 30.0f;
+    static float    reference = 30.0f;
     int             debug_camera;
     int             fixed;
     CCharacter2    *character;
@@ -745,25 +767,25 @@ void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
     camera->AddAngle(frame_rate * (0.03f * -GamePad__2.GetRXf()));
     camera->SetSpeed(4, 2);
 
-    if (GamePad__2.On(0x200)) {
+    if (GamePad__2.On(PAD_L3)) {
         camera->AddDistance(frame_rate * (3.0f * GamePad__2.GetRYf()));
     } else {
         camera->AddHeight(frame_rate * (-2.0f * GamePad__2.GetRYf()));
     }
 
-    if (GamePad__2.On(0x1000)) {
+    if (GamePad__2.On(PAD_UP)) {
         reference += 3.0f * frame_rate;
     }
 
-    if (GamePad__2.On(0x4000)) {
+    if (GamePad__2.On(PAD_DOWN)) {
         reference -= 3.0f * frame_rate;
     }
 
-    if (GamePad__2.On(0x4)) {
+    if (GamePad__2.On(PAD_L1)) {
         camera->AddAngle(0.04f * frame_rate);
     }
 
-    if (GamePad__2.On(0x8)) {
+    if (GamePad__2.On(PAD_R1)) {
         camera->AddAngle(-0.04f * frame_rate);
     }
 
@@ -781,7 +803,7 @@ void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
     static int camera_dist_mode = 0;
     float      camera_distances[3] = {30.0f, 130.0f, 250.0f};
 
-    if (GamePad__2.Down(0x800)) {
+    if (GamePad__2.Down(PAD_START)) {
         camera_dist_mode++;
 
         if (camera_dist_mode >= 3) {
@@ -873,12 +895,12 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
     }
 
     if (DebugInfo.chara_move) {
-        if (GamePad__2.On(0x1)) {
+        if (GamePad__2.On(PAD_L2)) {
             speed_x *= 3.0f;
             speed_z *= 3.0f;
         }
 
-        if (ViewMode == EDIT_VIEW_MODE_WALK && PadCtrl.Btn(1)) {
+        if (ViewMode == EDIT_VIEW_MODE_WALK && PadCtrl.Btn(PAD_BTN_CANCEL)) {
             velocity[1] = 8.0f * frame_rate;
         }
     } else if (CharaFallFlag) {
@@ -1069,8 +1091,9 @@ void CameraControl(CScene *scene, CPadControl *pad) {
                                     camera->ControlOff();
                                     camera->FollowOff();
                                     InitEyeCamera(chara, camera);
-                                    EyeCamera(camera, chara, 0);
-                                    scene->SetStatus(1, scene->player_chara, 0x10);
+                                    EyeCamera(
+                                        camera, chara, 0);
+                                    scene->SetStatus(SCENE_DATA_CHARA, scene->player_chara, 0x10);
                                     scene->EyeViewDrawOnOff(1);
                                     goto done;
                                 }
@@ -1150,7 +1173,7 @@ void ResetViewMode(CScene *scene) {
         camera->Step(-1);
     }
 
-    scene->ResetStatus(1, scene->player_chara, 0x10);
+    scene->ResetStatus(SCENE_DATA_CHARA, scene->player_chara, 0x10);
     EndTakePhoto();
 }
 
@@ -1586,7 +1609,7 @@ void EditDrawChara(CScene *scene) {
     scene->DrawChara(scene->player_chara, 0);
 
     for (slot = 8; slot < 64; slot++) {
-        if (scene->GetType(1, slot) != 4) {
+        if (scene->GetType(SCENE_DATA_CHARA, slot) != 4) {
             scene->DrawChara(slot, 1);
         }
     }
@@ -1596,7 +1619,7 @@ void EditDrawEffectChara(CScene *scene) {
     int slot;
 
     for (slot = 8; slot < 64; slot++) {
-        if (scene->GetType(1, slot) == 4) {
+        if (scene->GetType(SCENE_DATA_CHARA, slot) == 4) {
             scene->DrawChara(slot, 2);
         }
     }

@@ -128,19 +128,19 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
     unsigned int count = list->key_count;
     low = 0;
     high = count;
-    int          next;
-    mgCFrame    *frame;
-    unsigned int vertex;
-    int          driven;
-    int          key;
+    int            next;
+    mgCFrame      *frame;
+    unsigned int   vertex;
+    int            driven;
+    int            key;
     sceVu0FVECTOR *vertices;
-    unsigned int key_frame;
-    float        t;
-    float        one_minus_t;
-    float        value[4];
-    float        rotation[4];
-    float        from[4];
-    float        to[4];
+    unsigned int   key_frame;
+    float          t;
+    float          one_minus_t;
+    float          value[4];
+    float          rotation[4];
+    float          from[4];
+    float          to[4];
 
     if (low < high) {
         do {
@@ -220,27 +220,34 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
         case MOTION_KEY_VERTEX: {
             driven = list->frame;
             vertices = ((mgCVisualMDT *) frame->visual)->vertex;
+
             do {
                 if (!(t <= 0.001f) && t < 0.999f) {
                     Mot_List *node = list;
+
                     while (driven == node->frame) {
                         vertex = (unsigned int) list->target - 1;
                         sceVu0InterVectorXYZ(value, list->values[next], list->values[key], t);
                         sceVu0CopyVectorXYZ(vertices[vertex], value);
                         list = list->next;
+
                         if (list != NULL) {
                             node = list;
                         } else {
                             return NULL;
                         }
                     }
+
                     break;
                 }
+
                 if (t <= 0.001f) {
                     Mot_List *node = list;
+
                     while (driven == node->frame) {
                         sceVu0CopyVectorXYZ(vertices[list->target - 1], list->values[key]);
                         list = list->next;
+
                         if (list != NULL) {
                             node = list;
                         } else {
@@ -248,11 +255,14 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
                         }
                     }
                 }
+
                 if (!(t < 0.999f)) {
                     Mot_List *node = list;
+
                     while (driven == node->frame) {
                         sceVu0CopyVectorXYZ(vertices[list->target - 1], list->values[next]);
                         list = list->next;
+
                         if (list != NULL) {
                             node = list;
                         } else {
@@ -261,6 +271,7 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
                     }
                 }
             } while (0);
+
             return list;
         }
         case MOTION_KEY_CAMERA_POSITION:
@@ -547,6 +558,7 @@ Mot_List *MotionProc(mgCFrame *root, unsigned int from_frame, unsigned int to_fr
 }
 
 #pragma global_optimizer off
+
 /**
  *
  * Accumulates a weighted transformed vertex and writes the resulting vertex.
@@ -571,6 +583,7 @@ static void testVUnew(float (*matrix)[4], float *vertex, float *weight, float *a
         sqc2 vf6, 0(out)
     }
 }
+
 #pragma global_optimizer reset
 
 #ifdef NONMATCHING
@@ -664,18 +677,18 @@ Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
     static sceVu0FMATRIX  tmp_ChrMatrix;
     static sceVu0FMATRIX  tmp_BaseSkinMatrix;
     static sceVu0FMATRIX  tmp_BaseSkinMatrix_inv;
-    float        deform[4][4];
-    float        rotate[4][4];
-    float        bone_matrix[4][4];
-    float        bone_in_skin[4][4];
-    float        skin_bone[4][4];
-    float        bone_in_skin_inv[4][4];
-    float        bone_base[4][4];
-    float        normal[4];
-    mgCFrame    *bone;
-    mgCFrame    *skin;
-    int          vertex;
-    unsigned int i;
+    float                 deform[4][4];
+    float                 rotate[4][4];
+    float                 bone_matrix[4][4];
+    float                 bone_in_skin[4][4];
+    float                 skin_bone[4][4];
+    float                 bone_in_skin_inv[4][4];
+    float                 bone_base[4][4];
+    float                 normal[4];
+    mgCFrame             *bone;
+    mgCFrame             *skin;
+    int                   vertex;
+    unsigned int          i;
 
     if (list->type != MOTION_KEY_SKIN_WEIGHTED) {
         return list->next;
@@ -783,7 +796,7 @@ void DeformMesh(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *frame_info
 }
 
 static void SetKeyFrame(Mot_List *list, FRAME_VECTOR_EX_DATA *keys, mgCMemory *memory) {
-    list->values = (float (*)[4]) memory->Alloc((list->key_count * 16 / 16) + 1);
+    list->values = (float(*)[4]) memory->Alloc((list->key_count * 16 / 16) + 1);
     list->key_frames = (u32 *) memory->Alloc((list->key_count * 4 >> 4) + 1);
     u32 i = 0;
 
@@ -876,8 +889,8 @@ void ChangeWeight(Mot_List *list, mgCMemory *memory, u8 *data, int frame_no, tag
     if (mesh != NULL) {
         src_vertices = mesh->vertex;
         src_normals = mesh->normal;
-        frame_info[frame_no].base_vertices = (float (*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
-        frame_info[frame_no].base_normals = (float (*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
+        frame_info[frame_no].base_vertices = (float(*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
+        frame_info[frame_no].base_normals = (float(*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
         frame_info[frame_no].vertex_refs =
             (FrameLinkRecord *) memory->Alloc(((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
         frame_info[frame_no].vertex_count = mesh->vertex_num;
@@ -1049,7 +1062,7 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
 
     if (i < frame_num) {
         do {
-            int frame_no = frame->GetFrame(i)->parent - frame;
+            int           frame_no = frame->GetFrame(i)->parent - frame;
             tagFRAME_INF *info = &frame_info[i];
             i++;
             info->parent = frame_no;
@@ -1071,9 +1084,9 @@ int AnimeDataInit(mgCFrame *frame, tagMOTION_TYPE *motion, mgCMemory *memory,
                         src_vertices = mesh->vertex;
                         src_normals = mesh->normal;
                         frame_info[channel->frame].base_vertices =
-                            (float (*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
+                            (float(*)[4]) memory->Alloc((mesh->vertex_num * 16U / 16) + 1);
                         frame_info[channel->frame].base_normals =
-                            (float (*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
+                            (float(*)[4]) memory->Alloc(((u32) mesh->normal_num * 16 / 16) + 1);
                         frame_info[channel->frame].vertex_refs = (FrameLinkRecord *) memory->Alloc(
                             ((u32) (mesh->vertex_num * 0x30) >> 4) + 1);
                         frame_info[channel->frame].vertex_count = mesh->vertex_num;
@@ -1141,57 +1154,63 @@ int CheckHit(CCPoly *polys, int count, float *from, float *to, float *hit_point,
 }
 
 #pragma global_optimizer off
+
 int CheckHit(CollisionInfo *collision, float *from, float *to, float *hit, int closest, int mask) {
-    float point[4];
-    float diff[4];
-    float polyMin[4];
-    float polyMax[4];
-    float segMax[4];
-    float segMin[4];
-    float offset[4];
-    float bestDist;
-    float d0;
-    float d1;
-    float dist;
-    int i;
-    int best;
+    float   point[4];
+    float   diff[4];
+    float   poly_min[4];
+    float   poly_max[4];
+    float   seg_max[4];
+    float   seg_min[4];
+    float   offset[4];
+    float   best_dist;
+    float   d0;
+    float   d1;
+    float   dist;
+    int     i;
+    int     best;
     CCPoly *poly;
-    int count;
-    int hasBest;
+    int     count;
+    int     has_best;
 
     if (collision == NULL) {
         return 0;
     }
+
     best = -1;
-    hasBest = 0;
-    mgVectorMaxMin(segMax, segMin, from, to);
+    has_best = 0;
+    mgVectorMaxMin(seg_max, seg_min, from, to);
 
     {
-        float *minPtr;
-        float *maxPtr;
-        maxPtr = segMax;
-        minPtr = segMin;
+        float *min_ptr;
+        float *max_ptr;
+        max_ptr = seg_max;
+        min_ptr = seg_min;
         asm {
-            lqc2 vf10, 0(maxPtr)
-            lqc2 vf11, 0(minPtr)
+            lqc2 vf10, 0(max_ptr)
+            lqc2 vf11, 0(min_ptr)
         }
     }
     poly = collision->polys;
     count = collision->count;
+
     if (poly == NULL || count == 0) {
         return -1;
     }
+
     for (i = 0; i < count; i++, poly++) {
         if (poly->ignore_mask & mask) {
             continue;
         }
 
-        mgVectorMaxMin(polyMax, polyMin, poly->vertex[0], poly->vertex[1], poly->vertex[2]);
-        if (segMax[0] < polyMin[0] || segMax[1] < polyMin[1] || segMax[2] < polyMin[2]) {
+        mgVectorMaxMin(poly_max, poly_min, poly->vertex[0], poly->vertex[1], poly->vertex[2]);
+
+        if (seg_max[0] < poly_min[0] || seg_max[1] < poly_min[1] || seg_max[2] < poly_min[2]) {
             continue;
         }
-        if (!(segMin[0] <= polyMax[0]) || !(segMin[1] <= polyMax[1]) ||
-            !(segMin[2] <= polyMax[2])) {
+
+        if (!(seg_min[0] <= poly_max[0]) || !(seg_min[1] <= poly_max[1]) ||
+            !(seg_min[2] <= poly_max[2])) {
             continue;
         }
 
@@ -1199,38 +1218,47 @@ int CheckHit(CollisionInfo *collision, float *from, float *to, float *hit, int c
         d0 = sceVu0InnerProduct(poly->normal, offset);
         sceVu0SubVector(offset, to, poly->vertex[0]);
         d1 = sceVu0InnerProduct(poly->normal, offset);
+
         if (!(d0 <= 0.0f || d1 <= 0.0f)) {
             continue;
         }
+
         if (d0 < 0.0f && d1 < 0.0f) {
             continue;
         }
+
         if (mgIntersectionPoint_line_poly3(from, to, poly->vertex[0], poly->vertex[1],
                                            poly->vertex[2], poly->normal, point) == 0) {
             continue;
         }
+
         if (closest == 0) {
             best = i;
             sceVu0CopyVector(hit, point);
             break;
         }
+
         diff[0] = from[0] - point[0];
         diff[1] = from[1] - point[1];
         diff[2] = from[2] - point[2];
         dist = (diff[0] * diff[0]) + (diff[1] * diff[1]) + (diff[2] * diff[2]);
-        if (hasBest == 0) {
-            bestDist = dist;
+
+        if (has_best == 0) {
+            best_dist = dist;
             best = i;
             sceVu0CopyVector(hit, point);
-        } else if (!(bestDist <= dist)) {
-            bestDist = dist;
+        } else if (!(best_dist <= dist)) {
+            best_dist = dist;
             best = i;
             sceVu0CopyVector(hit, point);
         }
-        hasBest = 1;
+
+        has_best = 1;
     }
+
     return best;
 }
+
 #pragma global_optimizer reset
 
 int CheckHitVertical(CCPoly *polys, int count, float *from, float height, float *hit_point, int ignore_mask) {
@@ -1659,18 +1687,18 @@ int CheckHitsPipe(CCPoly *polys, int count, sceVu0FVECTOR from, float *to, int m
 }
 
 int CheckHitsSphere(CCPoly *polys, int count, float *sphere, int max_hits, int *hit_polys, sceVu0FVECTOR *hit_points, int sort, int ignore_mask) {
-    float push[4];
-    float poly_min[4];
-    float poly_max[4];
-    float sphere_max[4];
-    float sphere_min[4];
-    float normal[4];
-    float swap[4];
-    int i;
-    int hits;
+    float   push[4];
+    float   poly_min[4];
+    float   poly_max[4];
+    float   sphere_max[4];
+    float   sphere_min[4];
+    float   normal[4];
+    float   swap[4];
+    int     i;
+    int     hits;
     CCPoly *poly;
-    int j;
-    int index;
+    int     j;
+    int     index;
 
     hits = 0;
     float radius = sphere[3];
@@ -1714,7 +1742,10 @@ int CheckHitsSphere(CCPoly *polys, int count, float *sphere, int max_hits, int *
         hits++;
     }
 
-    if (sort == 0) return hits;
+    if (sort == 0) {
+        return hits;
+    }
+
     {
         if (sort > 0) {
             for (i = 0; i < hits - 1; i++) {
@@ -1758,21 +1789,28 @@ int MoveCheck(float *pos, float *vel, float *out, MoveCheckInfo *info, CCPoly *p
     float start[4];
     float end[4];
     float dir[4];
-    int hitIndex[64];
-    float hitPoint[64][4];
+    int   hit_index[64];
+    float hit_point[64][4];
     float scratch[4];
-    union { CCPoly poly; CCPolyCopy copy; } foot;
-    float footProbe[4];
+
+    union {
+        CCPoly     poly;
+        CCPolyCopy copy;
+    } foot;
+
+    float foot_probe[4];
     float probe[4];
     float radius;
     float margin;
-    int tries;
-    int wallSides;
+    int   tries;
+    int   wall_sides;
 
     radius = info->radius;
+
     if (radius <= 0.0f) {
         radius = 15.0f;
     }
+
     out[0] = pos[0];
     out[1] = pos[1];
     out[2] = pos[2];
@@ -1787,8 +1825,9 @@ int MoveCheck(float *pos, float *vel, float *out, MoveCheckInfo *info, CCPoly *p
     start[3] = 4.0f;
     sceVu0AddVector(scratch, end, dir);
     tries = 0;
+
     do {
-        if (CheckHitsPipe(polys, count, start, end, 0x40, hitIndex, hitPoint, 1, mask) <= 0) {
+        if (CheckHitsPipe(polys, count, start, end, 0x40, hit_index, hit_point, 1, mask) <= 0) {
             start[0] = end[0];
             start[1] = end[1];
             start[2] = end[2];
@@ -1797,6 +1836,7 @@ int MoveCheck(float *pos, float *vel, float *out, MoveCheckInfo *info, CCPoly *p
             end[2] = start[2];
             break;
         }
+
         vel[0] *= 0.5f;
         vel[2] *= 0.5f;
         tries++;
@@ -1804,26 +1844,32 @@ int MoveCheck(float *pos, float *vel, float *out, MoveCheckInfo *info, CCPoly *p
         end[1] = start[1] + vel[1];
         end[2] = start[2] + vel[2];
     } while (tries < 2);
+
     info->ground_found = 0;
     info->landed = 0;
     margin = 4.0f;
+
     if (vel[1] > 0.1f) {
         margin = 0.0f;
     }
-    sceVu0CopyVector(footProbe, start);
+
+    sceVu0CopyVector(foot_probe, start);
+
     if (info->skip_ground == 0) {
-        if (GetFootPoly(footProbe, 20.0f, &foot.poly, point, polys, count, mask)) {
+        if (GetFootPoly(foot_probe, 20.0f, &foot.poly, point, polys, count, mask)) {
             sceVu0Normalize(foot.copy.normal, foot.copy.normal);
             *reinterpret_cast<CCPolyCopy *>(&info->ground_poly) = foot.copy;
             *reinterpret_cast<CCPolyCopy *>(&info->second_poly) = foot.copy;
             info->ground_found = 1;
             info->landed = 0;
             *reinterpret_cast<u_long128 *>(info->ground_point) = *reinterpret_cast<u_long128 *>(point);
+
             if (!(point[1] <= start[1] + vel[1] - 10.0f - margin)) {
                 info->landed = 1;
             }
         }
     }
+
     if (info->landed) {
         out[0] = point[0];
         out[1] = point[1];
@@ -1833,15 +1879,19 @@ int MoveCheck(float *pos, float *vel, float *out, MoveCheckInfo *info, CCPoly *p
         out[1] = end[1];
         out[2] = end[2];
     }
+
     *reinterpret_cast<u_long128 *>(probe) = *reinterpret_cast<u_long128 *>(out);
     probe[1] += 5.0f;
-    wallSides = CheckWidth(polys, count, probe, radius, end, mask);
-    info->width_result = wallSides;
-    if (wallSides) {
+    wall_sides = CheckWidth(polys, count, probe, radius, end, mask);
+    info->width_result = wall_sides;
+
+    if (wall_sides) {
         probe[0] = end[0];
         probe[2] = end[2];
     }
+
     probe[3] = 4.0f;
+
     if (CheckWidthPipe(polys, count, probe, radius, end, mask)) {
         out[0] = end[0];
         out[2] = end[2];
@@ -1849,15 +1899,19 @@ int MoveCheck(float *pos, float *vel, float *out, MoveCheckInfo *info, CCPoly *p
         out[0] = probe[0];
         out[2] = probe[2];
     }
+
     if (info->skip_ground == 0) {
-        sceVu0CopyVector(footProbe, start);
-        if (GetFootPoly(footProbe, 20.0f, &foot.poly, point, polys, count, mask)) {
+        sceVu0CopyVector(foot_probe, start);
+
+        if (GetFootPoly(foot_probe, 20.0f, &foot.poly, point, polys, count, mask)) {
             *reinterpret_cast<u_long128 *>(info->ground_point) = *reinterpret_cast<u_long128 *>(point);
+
             if (!(point[1] <= start[1] + vel[1] - 10.0f - margin)) {
                 out[1] = point[1];
             }
         }
     }
+
     GetCPolyAttr(info, pos, out, 34.0f, polys, count, mask);
     return 0;
 }

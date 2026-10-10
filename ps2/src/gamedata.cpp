@@ -15,260 +15,258 @@
 #include "userdata.hpp"
 
 s8 etcitem_spectol_table[0x1A9][2] = {
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
     {11, 2},
     {11, 2},
     {11, 2},
-    {0, 2},
+    {0,  2},
     {11, 2},
     {11, 2},
-    {6, 2},
-    {3, 2},
-    {2, 2},
-    {6, 2},
+    {6,  2},
+    {3,  2},
+    {2,  2},
+    {6,  2},
     {11, 2},
-    {5, 2},
-    {2, 2},
-    {1, 2},
-    {5, 2},
-    {1, 2},
+    {5,  2},
+    {2,  2},
+    {1,  2},
+    {5,  2},
+    {1,  2},
     {11, 2},
     {11, 2},
     {10, 2},
-    {4, 2},
-    {3, 2},
-    {0, 2},
-    {2, 2},
-    {4, 2},
-    {0, 2},
-    {1, 2},
-    {1, 2},
-    {4, 2},
+    {4,  2},
+    {3,  2},
+    {0,  2},
+    {2,  2},
+    {4,  2},
+    {0,  2},
+    {1,  2},
+    {1,  2},
+    {4,  2},
     {11, 2},
     {10, 2},
-    {4, 2},
-    {5, 2},
-    {1, 1},
-    {1, 1},
-    {4, 2},
-    {0, 2},
-    {4, 2},
+    {4,  2},
+    {5,  2},
+    {1,  1},
+    {1,  1},
+    {4,  2},
+    {0,  2},
+    {4,  2},
     {10, 2},
     {10, 2},
-    {2, 2},
-    {3, 2},
-    {5, 2},
-    {0, 2},
-    {0, 2},
-    {4, 2},
-    {4, 2},
-    {1, 2},
-    {4, 2},
-    {3, 2},
-    {3, 2},
-    {6, 2},
-    {3, 2},
+    {2,  2},
+    {3,  2},
+    {5,  2},
+    {0,  2},
+    {0,  2},
+    {4,  2},
+    {4,  2},
+    {1,  2},
+    {4,  2},
+    {3,  2},
+    {3,  2},
+    {6,  2},
+    {3,  2},
     {11, 2},
-    {1, 1},
-    {0, 2},
-    {0, 2},
-    {0, 2},
-    {3, 2},
-    {4, 2},
-    {4, 2},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {3, 2},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {4, 2},
-    {4, 2},
-    {4, 2},
-    {3, 2},
-    {6, 2},
-    {0, 2},
-    {1, 2},
-    {5, 2},
+    {1,  1},
+    {0,  2},
+    {0,  2},
+    {0,  2},
+    {3,  2},
+    {4,  2},
+    {4,  2},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {3,  2},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {4,  2},
+    {4,  2},
+    {4,  2},
+    {3,  2},
+    {6,  2},
+    {0,  2},
+    {1,  2},
+    {5,  2},
     {11, 2},
-    {5, 2},
-    {0, 2},
-    {0, 2},
-    {2, 2},
-    {3, 2},
-    {2, 2},
-    {2, 2},
-    {2, 2},
-    {2, 2},
-    {5, 2},
-    {5, 2},
-    {4, 2},
-    {1, 2},
-    {1, 2},
-    {2, 2},
-    {3, 2},
-    {0, 2},
+    {5,  2},
+    {0,  2},
+    {0,  2},
+    {2,  2},
+    {3,  2},
+    {2,  2},
+    {2,  2},
+    {2,  2},
+    {2,  2},
+    {5,  2},
+    {5,  2},
+    {4,  2},
+    {1,  2},
+    {1,  2},
+    {2,  2},
+    {3,  2},
+    {0,  2},
     {11, 2},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {6, 2},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {11, 2},
-    {11, 2},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {6,  2},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
     {11, 2},
     {11, 2},
     {11, 2},
@@ -282,164 +280,166 @@ s8 etcitem_spectol_table[0x1A9][2] = {
     {11, 2},
     {11, 2},
     {11, 2},
-    {0, 2},
-    {6, 2},
-    {6, 2},
-    {1, 2},
-    {0, 2},
+    {11, 2},
+    {11, 2},
+    {0,  2},
+    {6,  2},
+    {6,  2},
+    {1,  2},
+    {0,  2},
     {11, 2},
     {10, 1},
-    {7, 2},
-    {5, 2},
-    {1, 2},
-    {7, 2},
+    {7,  2},
+    {5,  2},
+    {1,  2},
+    {7,  2},
     {11, 2},
-    {0, 2},
-    {4, 2},
-    {0, 2},
-    {1, 2},
-    {2, 2},
-    {3, 2},
-    {5, 2},
-    {7, 2},
-    {4, 2},
-    {6, 2},
-    {0, 2},
+    {0,  2},
+    {4,  2},
+    {0,  2},
+    {1,  2},
+    {2,  2},
+    {3,  2},
+    {5,  2},
+    {7,  2},
+    {4,  2},
+    {6,  2},
+    {0,  2},
     {10, 0},
     {11, 2},
-    {5, 2},
+    {5,  2},
     {11, 2},
     {10, 1},
     {11, 2},
-    {6, 2},
+    {6,  2},
     {11, 2},
     {11, 2},
     {11, 2},
-    {3, 2},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {0, 2},
-    {1, 1},
-    {1, 1},
-    {7, 2},
-    {1, 1},
-    {6, 2},
-    {6, 2},
-    {7, 2},
-    {4, 2},
-    {0, 2},
-    {6, 2},
-    {6, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {2, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {7, 2},
-    {0, 2},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {0, 2},
-    {0, 3},
-    {4, 2},
-    {4, 2},
-    {4, 2},
-    {0, 2},
-    {0, 2},
-    {0, 2},
-    {4, 2},
-    {4, 2},
-    {4, 2},
+    {3,  2},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {0,  2},
+    {1,  1},
+    {1,  1},
+    {7,  2},
+    {1,  1},
+    {6,  2},
+    {6,  2},
+    {7,  2},
+    {4,  2},
+    {0,  2},
+    {6,  2},
+    {6,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {2,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {7,  2},
+    {0,  2},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {0,  2},
+    {0,  3},
+    {4,  2},
+    {4,  2},
+    {4,  2},
+    {0,  2},
+    {0,  2},
+    {0,  2},
+    {4,  2},
+    {4,  2},
+    {4,  2},
     {10, 2},
     {10, 2},
     {10, 2},
     {10, 2},
     {10, 2},
     {10, 2},
-    {2, 2},
-    {2, 2},
-    {2, 2},
-    {3, 2},
-    {3, 2},
-    {3, 2},
-    {5, 2},
-    {5, 2},
-    {5, 2},
-    {0, 2},
-    {0, 2},
-    {0, 2},
-    {0, 2},
-    {0, 2},
-    {0, 2},
-    {1, 1},
-    {1, 1},
-    {1, 1},
-    {1, 2},
+    {2,  2},
+    {2,  2},
+    {2,  2},
+    {3,  2},
+    {3,  2},
+    {3,  2},
+    {5,  2},
+    {5,  2},
+    {5,  2},
+    {0,  2},
+    {0,  2},
+    {0,  2},
+    {0,  2},
+    {0,  2},
+    {0,  2},
+    {1,  1},
+    {1,  1},
+    {1,  1},
+    {1,  2},
 };
 
 /**
@@ -537,39 +537,39 @@ static short local_itemdatano_converttable[512];
  *
  */
 static signed char ItemCmdMsgTbl[33][8] = {
-    {2, 3, 4, 9, 23, 26, 1, -1},
-    {9, 3, 1, -1, 0, 0, 0, 0},
-    {10, 9, 26, 1, -1, 0, 0, 0},
-    {15, 16, 5, 9, 1, -1, 0, 0},
-    {5, 9, 1, -1, 0, 0, 0, 0},
-    {30, 3, 1, -1, 0, 0, 0, 0},
-    {2, 3, 9, 1, -1, 0, 0, 0},
-    {3, 26, 34, -1, 0, 0, 0, 0},
-    {2, 9, 1, -1, 0, 0, 0, 0},
-    {11, -1, 0, 0, 0, 0, 0, 0},
-    {12, -1, 0, 0, 0, 0, 0, 0},
-    {13, 5, 1, -1, 0, 0, 0, 0},
-    {14, 45, 42, 9, 26, 1, -1, 0},
-    {19, 5, 9, 1, -1, 0, 0, 0},
-    {2, 3, 46, 26, 1, -1, 0, 0},
-    {25, 9, 1, -1, -1, 0, 0, 0},
-    {10, 22, 9, 26, 1, -1, 0, 0},
-    {20, 5, 9, 1, -1, 0, 0, 0},
-    {15, -1, 0, 0, 0, 0, 0, 0},
-    {16, -1, 0, 0, 0, 0, 0, 0},
-    {15, 16, -1, 0, 0, 0, 0, 0},
-    {29, -1, 0, 0, 0, 0, 0, 0},
-    {10, 3, 4, 9, 26, 1, -1, 0},
-    {22, 9, 1, -1, 0, 0, 0, 0},
-    {9, 1, -1, 0, 0, 0, 0, 0},
-    {37, 9, 1, -1, 0, 0, 0, 0},
-    {38, -1, 0, 0, 0, 0, 0, 0},
-    {43, 9, 1, -1, 0, 0, 0, 0},
-    {44, 9, 1, -1, 0, 0, 0, 0},
-    {15, 16, 1, -1, 0, 0, 0, 0},
-    {47, -1, 0, 0, 0, 0, 0, 0},
-    {19, 20, 9, 1, -1, 0, 0, 0},
-    {48, -1, 0, 0, 0, 0, 0, 0},
+    {2,  3,  4,  9,  23, 26, 1,  -1},
+    {9,  3,  1,  -1, 0,  0,  0,  0 },
+    {10, 9,  26, 1,  -1, 0,  0,  0 },
+    {15, 16, 5,  9,  1,  -1, 0,  0 },
+    {5,  9,  1,  -1, 0,  0,  0,  0 },
+    {30, 3,  1,  -1, 0,  0,  0,  0 },
+    {2,  3,  9,  1,  -1, 0,  0,  0 },
+    {3,  26, 34, -1, 0,  0,  0,  0 },
+    {2,  9,  1,  -1, 0,  0,  0,  0 },
+    {11, -1, 0,  0,  0,  0,  0,  0 },
+    {12, -1, 0,  0,  0,  0,  0,  0 },
+    {13, 5,  1,  -1, 0,  0,  0,  0 },
+    {14, 45, 42, 9,  26, 1,  -1, 0 },
+    {19, 5,  9,  1,  -1, 0,  0,  0 },
+    {2,  3,  46, 26, 1,  -1, 0,  0 },
+    {25, 9,  1,  -1, -1, 0,  0,  0 },
+    {10, 22, 9,  26, 1,  -1, 0,  0 },
+    {20, 5,  9,  1,  -1, 0,  0,  0 },
+    {15, -1, 0,  0,  0,  0,  0,  0 },
+    {16, -1, 0,  0,  0,  0,  0,  0 },
+    {15, 16, -1, 0,  0,  0,  0,  0 },
+    {29, -1, 0,  0,  0,  0,  0,  0 },
+    {10, 3,  4,  9,  26, 1,  -1, 0 },
+    {22, 9,  1,  -1, 0,  0,  0,  0 },
+    {9,  1,  -1, 0,  0,  0,  0,  0 },
+    {37, 9,  1,  -1, 0,  0,  0,  0 },
+    {38, -1, 0,  0,  0,  0,  0,  0 },
+    {43, 9,  1,  -1, 0,  0,  0,  0 },
+    {44, 9,  1,  -1, 0,  0,  0,  0 },
+    {15, 16, 1,  -1, 0,  0,  0,  0 },
+    {47, -1, 0,  0,  0,  0,  0,  0 },
+    {19, 20, 9,  1,  -1, 0,  0,  0 },
+    {48, -1, 0,  0,  0,  0,  0,  0 },
 };
 
 // Code (.text)
@@ -586,11 +586,11 @@ CDataItem::CDataItem() {
 }
 
 CDataAttach::CDataAttach() {
-    memset(this, 0, sizeof(CDataAttach));
+    memset(this, 0, sizeof(*this));
 }
 
 CDataWeapon::CDataWeapon() {
-    memset(this, 0, sizeof(CDataWeapon));
+    memset(this, 0, sizeof(*this));
     durability = 0x14;
     levelup_exp = 0x14;
 }
@@ -598,7 +598,7 @@ CDataWeapon::CDataWeapon() {
 int CDataRoboPart::GetOffsetNo() { return this->offset_no; }
 
 CDataBreedFish::CDataBreedFish() {
-    memset(this, 0, sizeof(CDataBreedFish));
+    memset(this, 0, sizeof(*this));
 }
 
 void CGameData::Initialize() {
@@ -629,7 +629,7 @@ int _DATACOMINIT(SPI_STACK *stack, int arg_count) {
     GameItemDataManage.common_num = spiGetStackInt(stack);
     comdatapt_num = 0;
     comdatapt = GameItemDataManage.common_data;
-    memset(local_itemdatano_converttable, -1, 0x400);
+    memset(local_itemdatano_converttable, -1, sizeof(local_itemdatano_converttable));
     return 1;
 }
 
@@ -648,7 +648,7 @@ int _DATACOM(SPI_STACK *stack, int arg_count) {
     comdatapt->stack_num = spiGetStackInt(stack++);
     comdatapt->max_num = spiGetStackInt(stack++);
 
-    if (ConvertUsedItemType(comdatapt->type) == 3) {
+    if (ConvertUsedItemType(comdatapt->type) == USED_ITEM_TYPE_WEAPON) {
         if (comdatapt->max_num > 0x64) {
             comdatapt->max_num = 0x90;
         }
@@ -689,7 +689,7 @@ int _MES_SYS(SPI_STACK *stack, int arg_count) {
 
     if (record != NULL) {
         if ((LanguageCode >= 2) && (LanguageCode < 6)) {
-            memset(converted, 0, 0x100);
+            memset(converted, 0, sizeof(converted));
             ConvertFontCode(text, converted);
             copy = mgCopyString(converted, gamedata_build_stack);
         } else {
@@ -757,8 +757,8 @@ int _DATAWEP_ST(SPI_STACK *stack, int arg_count) {
         return 0;
     }
 
-    SpiWeaponPt->status[0] = spiGetStackInt(stack);
-    SpiWeaponPt->status[1] = spiGetStackInt(next);
+    SpiWeaponPt->status[WEAPON_STAT_ATTACK] = spiGetStackInt(stack);
+    SpiWeaponPt->status[WEAPON_STAT_DURABILITY] = spiGetStackInt(next);
     return 1;
 }
 
@@ -776,8 +776,8 @@ int _DATAWEP_ST_L(SPI_STACK *stack, int arg_count) {
         return 0;
     }
 
-    SpiWeaponPt->status_max[0] = spiGetStackInt(stack);
-    SpiWeaponPt->status_max[1] = spiGetStackInt(next);
+    SpiWeaponPt->status_max[WEAPON_STAT_ATTACK] = spiGetStackInt(stack);
+    SpiWeaponPt->status_max[WEAPON_STAT_DURABILITY] = spiGetStackInt(next);
     return 1;
 }
 
@@ -905,7 +905,7 @@ int _DATAITEM(SPI_STACK *stack, int arg_count) {
     if (SpiItemPt != 0) {
         flags = spiGetStackInt(stack++);
 
-        if (flags & 0x800000) {
+        if (flags & ITEM_USE_FLAG_CURE_ALL) {
             flags = (flags & 0xFF7FFFFF) | 0x142A8000;
         }
 
@@ -1019,18 +1019,18 @@ int _DATAROBO_ANALYZE(SPI_STACK *stack, int arg_count) {
         spiGetStackString(stack++);
     } else if (type == 1) {
         SpiRoboPart->durability = spiGetStackInt(stack++);
-        SpiRoboPart->unk_8 = spiGetStackInt(stack++);
-        SpiRoboPart->unk_a = spiGetStackInt(stack++);
+        SpiRoboPart->attack = spiGetStackInt(stack++);
+        SpiRoboPart->durable = spiGetStackInt(stack++);
 
         for (i = 0; i < 8; i++) {
-            SpiRoboPart->unk_c[i] = spiGetStackInt(stack++);
+            SpiRoboPart->attribute[i] = spiGetStackInt(stack++);
         }
 
-        SpiRoboPart->info_type_d = spiGetStackInt(stack++);
+        SpiRoboPart->attack_type = spiGetStackInt(stack++);
         spiGetStackString(stack++);
     } else if (type == 2) {
         SpiRoboPart->unk_4 = spiGetStackInt(stack++);
-        SpiRoboPart->info_type_e = spiGetStackInt(stack++);
+        SpiRoboPart->move_type = spiGetStackInt(stack++);
     } else if (type == 3) {
         SpiRoboPart->energy = spiGetStackInt(stack);
     }
@@ -1117,31 +1117,31 @@ int _DATAGAURD(SPI_STACK *stack, int arg_count) {
  *
  */
 static SPI_TAG_PARAM gamedata_tag[25] = {
-    {"COMINIT", _DATACOMINIT},
-    {"COM", _DATACOM},
-    {"WEPNUM", _DATAWEPNUM},
-    {"WEP", _DATAWEP},
-    {"WEP_ST", _DATAWEP_ST},
-    {"WEP_ST_L", _DATAWEP_ST_L},
-    {"WEP_ST2", _DATAWEP2_ST},
-    {"WEP_ST2_L", _DATAWEP2_ST_L},
-    {"WEP_SPE", _DATAWEP_SPE},
-    {"WEP_BUILD", _DATAWEP_BUILDUP},
-    {"ITEMINIT", _DATAITEMINIT},
-    {"ITEM", _DATAITEM},
-    {"AT_INIT", _DATAATTACHINIT},
-    {"AT_ST", _DATAATTACH_ST},
-    {"AT_ST2", _DATAATTACH_ST2},
-    {"AT_ST_SP", _DATAATTACH_ST_SP},
-    {"ROBOINIT", _DATAROBOINIT},
-    {"RB_PARTS", _DATAROBO_ANALYZE},
-    {"GRDNUM", _DATAGAURDNUM},
-    {"GRD", _DATAGAURD},
-    {"FISHINIT", _DATAFISHINIT},
-    {"FISH", _DATAFISH},
-    {"MES_SYS", _MES_SYS},
-    {"MES_SYSSPE", _MES_SYS_SPECTOL},
-    {NULL, NULL},
+    {"COMINIT",    _DATACOMINIT     },
+    {"COM",        _DATACOM         },
+    {"WEPNUM",     _DATAWEPNUM      },
+    {"WEP",        _DATAWEP         },
+    {"WEP_ST",     _DATAWEP_ST      },
+    {"WEP_ST_L",   _DATAWEP_ST_L    },
+    {"WEP_ST2",    _DATAWEP2_ST     },
+    {"WEP_ST2_L",  _DATAWEP2_ST_L   },
+    {"WEP_SPE",    _DATAWEP_SPE     },
+    {"WEP_BUILD",  _DATAWEP_BUILDUP },
+    {"ITEMINIT",   _DATAITEMINIT    },
+    {"ITEM",       _DATAITEM        },
+    {"AT_INIT",    _DATAATTACHINIT  },
+    {"AT_ST",      _DATAATTACH_ST   },
+    {"AT_ST2",     _DATAATTACH_ST2  },
+    {"AT_ST_SP",   _DATAATTACH_ST_SP},
+    {"ROBOINIT",   _DATAROBOINIT    },
+    {"RB_PARTS",   _DATAROBO_ANALYZE},
+    {"GRDNUM",     _DATAGAURDNUM    },
+    {"GRD",        _DATAGAURD       },
+    {"FISHINIT",   _DATAFISHINIT    },
+    {"FISH",       _DATAFISH        },
+    {"MES_SYS",    _MES_SYS         },
+    {"MES_SYSSPE", _MES_SYS_SPECTOL },
+    {NULL,         NULL             },
 };
 
 /**
@@ -1150,10 +1150,10 @@ static SPI_TAG_PARAM gamedata_tag[25] = {
  *
  */
 int LoadGameDataAnalyze(char *name) {
-    int   size;
+    int       size;
     u_long128 buffer[0x780];
-    char  path[0x40];
-    char *script;
+    char      path[0x40];
+    char     *script;
 
     script = (char *) MenuCalcBufAlignment(buffer);
     SetCurrentDir(NULL);
@@ -1176,7 +1176,7 @@ int CGameData::LoadData() {
     Initialize();
     comdatapt = common_data;
     comdatapt_num = 0;
-    memset(local_itemdatano_converttable, -1, 0x400);
+    memset(local_itemdatano_converttable, -1, sizeof(local_itemdatano_converttable));
     LoadGameDataAnalyze("comdat.cfg");
     LoadGameDataAnalyze("wepdat.cfg");
     LoadGameDataAnalyze("itemdat.cfg");
@@ -1200,9 +1200,9 @@ int CGameData::LoadData() {
 }
 
 int CGameData::LoadItemSystemMes(int language) {
-    int   size;
+    int       size;
     u_long128 buffer[0x780];
-    char *script;
+    char     *script;
 
     static u_long128 gamedata_sysword_buffer[0x280];
 
@@ -1210,7 +1210,7 @@ int CGameData::LoadItemSystemMes(int language) {
     memset(gamedata_sysword_buffer, 0, 0x2800);
 
     mgCMemory memory;
-    char path[0x40];
+    char      path[0x40];
     memory.stSetBuffer(gamedata_sysword_buffer, 0x280);
     gamedata_build_stack = &memory;
     sprintf(path, "menu/cfg7/comdatmes%d.cfg", language);
@@ -1284,7 +1284,7 @@ CDataWeapon *CGameData::GetWeaponData(int item_no) {
         return 0;
     }
 
-    if (ConvertUsedItemType(record->type) != 3) {
+    if (ConvertUsedItemType(record->type) != USED_ITEM_TYPE_WEAPON) {
         return 0;
     }
 
@@ -1314,7 +1314,7 @@ CDataItem *CGameData::GetItemData(int item_no) {
 
     type = ConvertUsedItemType(record->type);
 
-    if (type == 1 || type == 7 || type == 8) {
+    if (type == USED_ITEM_TYPE_ITEM || type == USED_ITEM_TYPE_GIFT_BOX || type == USED_ITEM_TYPE_BOILED) {
         return item_data + record->list_no;
     }
 
@@ -1341,7 +1341,7 @@ CDataAttach *CGameData::GetAttachData(int item_no) {
         return 0;
     }
 
-    if (ConvertUsedItemType(record->type) != 2) {
+    if (ConvertUsedItemType(record->type) != USED_ITEM_TYPE_ATTACH) {
         return 0;
     }
 
@@ -1394,7 +1394,7 @@ CDataBreedFish *CGameData::GetFishData(int item_no) {
         return 0;
     }
 
-    if (ConvertUsedItemType(record->type) != 6) {
+    if (ConvertUsedItemType(record->type) != USED_ITEM_TYPE_FISH) {
         return 0;
     }
 
@@ -1493,7 +1493,7 @@ char *GetItemFileName(int item_no, int variant) {
     CSaveData *save_data = GetSaveData();
     u8         type = record->type;
 
-    if ((type == 5 || type == 8) && save_data->GetBitFlag(0x31F) != 0) {
+    if ((type == 5 || type == 8) && save_data->GetBitFlag((int) SAVE_FLAG_COSTUME_UNLOCK) != 0) {
         strcat(filename, "t");
     }
 
@@ -1524,11 +1524,11 @@ char *GetItemFilePath(int item_no, int variant) {
         }
 
         switch (type) {
-            case 3:
-            case 4:
+            case USED_ITEM_TYPE_WEAPON:
+            case USED_ITEM_TYPE_COSTUME:
                 strcpy(item_file_path, "mainchr/");
                 break;
-            case 5:
+            case USED_ITEM_TYPE_ROBO_PART:
                 strcpy(item_file_path, "dungeon/robo/");
                 break;
             default:
@@ -1540,12 +1540,12 @@ char *GetItemFilePath(int item_no, int variant) {
         strcat(item_file_path, ".chr");
 
         if (variant == 1) {
-            if (type == 3) {
+            if (type == (int) USED_ITEM_TYPE_WEAPON) {
                 sprintf(item_file_path, "wep_t/%s_item.chr", name);
             }
         }
 
-        if (variant == 1 && (record->type == 0xD || record->type == 0xE)) {
+        if (variant == 1 && (record->type == (int) ITEM_DATA_ROBO_ARM || record->type == (int) ITEM_DATA_ROBO_LEG)) {
             sprintf(item_file_path, "wep_t/%s.chr", name);
         }
     }
@@ -1569,29 +1569,29 @@ unsigned int GetItemDataAttribute(int item_no) {
     return 0;
 }
 
-int ConvertUsedItemType(int item_no) {
+int ConvertUsedItemType(int item_type) {
     int type;
 
-    type = 0;
+    type = USED_ITEM_TYPE_NONE;
 
-    if (item_no > 0 && item_no < 5) {
-        type = 3;
-    } else if (item_no >= 5 && item_no < 11) {
-        type = 4;
-    } else if (item_no > 11 && item_no <= 15) {
-        type = 5;
-    } else if ((item_no >= 16 && item_no <= 19) || item_no == 0x22) {
-        type = 2;
-    } else if (item_no == 11 || item_no >= 20) {
-        type = 1;
+    if (item_type > 0 && item_type < 5) {
+        type = USED_ITEM_TYPE_WEAPON;
+    } else if (item_type >= 5 && item_type < 11) {
+        type = USED_ITEM_TYPE_COSTUME;
+    } else if (item_type > 11 && item_type <= 15) {
+        type = USED_ITEM_TYPE_ROBO_PART;
+    } else if ((item_type >= 16 && item_type <= 19) || item_type == 0x22) {
+        type = USED_ITEM_TYPE_ATTACH;
+    } else if (item_type == ITEM_DATA_ROBO_CORE || item_type >= 20) {
+        type = USED_ITEM_TYPE_ITEM;
     }
 
-    if (item_no == 0x1C) {
-        type = 7;
-    } else if (item_no == 0x1E) {
-        type = 6;
-    } else if (item_no == 0x23) {
-        type = 8;
+    if (item_type == ITEM_DATA_GIFT_BOX) {
+        type = USED_ITEM_TYPE_GIFT_BOX;
+    } else if (item_type == ITEM_DATA_FISH) {
+        type = USED_ITEM_TYPE_FISH;
+    } else if (item_type == ITEM_DATA_BOILED) {
+        type = USED_ITEM_TYPE_BOILED;
     }
 
     return type;
@@ -1680,13 +1680,13 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
     type = GetItemDataType(item_no);
 
     switch (type) {
-        case 1:
-        case 2:
-        case 3:
-        case 4:
+        case ITEM_DATA_MAX_MELEE:
+        case ITEM_DATA_MAX_GUN:
+        case ITEM_DATA_MONICA_MELEE:
+        case ITEM_DATA_MONICA_MAGIC:
             count = ItemCmdMsgSet(0, message_list);
 
-            if (item_no == 0x12E || item_no == 0x12F) {
+            if (item_no == (int) ITEM_ID_FISHING_ROD || item_no == (int) ITEM_ID_LURE_ROD) {
                 count = ItemCmdMsgSet(14, message_list);
             }
 
@@ -1710,17 +1710,17 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
         case 17:
             count = ItemCmdMsgSet(5, message_list);
             break;
-        case 11:
+        case ITEM_DATA_ROBO_CORE:
             count = ItemCmdMsgSet(7, message_list);
             break;
-        case 12:
-        case 14:
+        case ITEM_DATA_ROBO_BODY:
+        case ITEM_DATA_ROBO_LEG:
             count = ItemCmdMsgSet(2, message_list);
             break;
-        case 13:
+        case ITEM_DATA_ROBO_ARM:
             count = ItemCmdMsgSet(22, message_list);
             break;
-        case 15:
+        case ITEM_DATA_ROBO_ENERGY_PACK:
             count = ItemCmdMsgSet(16, message_list);
             break;
         case 22:
@@ -1733,11 +1733,11 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
         case 26:
         case 27:
         case 33:
-            if (item_no == 0x126) {
+            if (item_no == (int) ITEM_ID_MELEE_REPAIR) {
                 count = ItemCmdMsgSet(13, message_list);
-            } else if (item_no == 0x12A || item_no == 0x160) {
+            } else if (item_no == (int) ITEM_ID_GUN_REPAIR || item_no == (int) ITEM_ID_MAGIC_REPAIR) {
                 count = ItemCmdMsgSet(17, message_list);
-            } else if (item_no == 0x17D) {
+            } else if (item_no == (int) ITEM_ID_RIDEPOD_FUEL) {
                 count = ItemCmdMsgSet(23, message_list);
             } else if (item_no == 0x128) {
                 count = ItemCmdMsgSet(20, message_list);
@@ -1766,22 +1766,22 @@ int GetMenuCommandMsg(int item_no, int *message_list) {
             }
 
             break;
-        case 29:
+        case ITEM_DATA_AQUARIUM:
             count = ItemCmdMsgSet(9, message_list);
             break;
         case 21:
             count = ItemCmdMsgSet(10, message_list);
             break;
-        case 28:
+        case ITEM_DATA_GIFT_BOX:
             count = ItemCmdMsgSet(11, message_list);
             break;
-        case 30:
+        case ITEM_DATA_FISH:
             count = ItemCmdMsgSet(12, message_list);
             break;
         case 32:
             count = ItemCmdMsgSet(15, message_list);
             break;
-        case 35:
+        case ITEM_DATA_BOILED:
             count = ItemCmdMsgSet(29, message_list);
             break;
     }
@@ -1794,11 +1794,11 @@ int CheckItemEquip(int chara, int item_no) {
         return 0;
     }
 
-    if (item_no == 0x12A) {
+    if (item_no == (int) ITEM_ID_GUN_REPAIR) {
         if (chara != 0) {
             return 0;
         }
-    } else if (item_no == 0x160) {
+    } else if (item_no == (int) ITEM_ID_MAGIC_REPAIR) {
         if (chara != 1) {
             return 0;
         }

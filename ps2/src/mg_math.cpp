@@ -45,9 +45,11 @@ asm void mgCreateBox8(float (*corners)[4], float *max, float *min) {
     jr ra
     sqc2 vf8, 0x30(a0)
 }
+
 void mgZeroVector(float *vector) {
     *reinterpret_cast<u_long128 *>(vector) = 0;
 }
+
 asm void mgZeroVectorW(float *vector) {
     .set noreorder
     jr ra
@@ -143,7 +145,26 @@ int mgClipInBoxW(float *max0, float *min0, float *max1, float *min1) {
     return 1;
 }
 #else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgClipInBoxW__FPfPfPfPf);
+asm int mgClipInBoxW(float *max0, float *min0, float *max1, float *min1) {
+    .set noreorder
+    lqc2 vf10, 0x0(a0)
+    lqc2 vf11, 0x0(a1)
+    lqc2 vf1, 0x0(a2)
+    lqc2 vf2, 0x0(a3)
+    ctc2.ni zero, vi16
+    vsub.xyw vf25, vf1, vf10
+    vsub.xyw vf25, vf11, vf2
+    vnop
+    vnop
+    vnop
+    vnop
+    vnop
+    cfc2.ni v0, vi16
+    andi v0, v0, 0x80
+    xor v0, v0, zero
+    jr ra
+    sltiu v0, v0, 0x1
+}
 #endif
 asm void mgAddVector(float *vector, float *add) {
     .set noreorder
@@ -651,7 +672,58 @@ static void MulMatrix3(float (*matrix)[4], float (*second)[4], float (*third)[4]
     mgMulMatrix(matrix, intermediate, third);
 }
 #else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", MulMatrix3__FPA4_fPA4_fPA4_f);
+static asm void MulMatrix3(float (*matrix)[4], float (*second)[4], float (*third)[4]) {
+    .set noreorder
+    lqc2 vf1, 0x0(a0)
+    lqc2 vf2, 0x10(a0)
+    lqc2 vf3, 0x20(a0)
+    lqc2 vf4, 0x30(a0)
+    lqc2 vf5, 0x0(a1)
+    lqc2 vf6, 0x10(a1)
+    lqc2 vf7, 0x20(a1)
+    lqc2 vf8, 0x30(a1)
+    lqc2 vf9, 0x0(a2)
+    lqc2 vf10, 0x10(a2)
+    lqc2 vf11, 0x20(a2)
+    lqc2 vf12, 0x30(a2)
+    vmulax.xyzw ACC, vf1, vf5x
+    vmadday.xyzw ACC, vf2, vf5y
+    vmaddaz.xyzw ACC, vf3, vf5z
+    vmaddw.xyzw vf20, vf4, vf5w
+    vmulax.xyzw ACC, vf1, vf6x
+    vmadday.xyzw ACC, vf2, vf6y
+    vmaddaz.xyzw ACC, vf3, vf6z
+    vmaddw.xyzw vf21, vf4, vf6w
+    vmulax.xyzw ACC, vf1, vf7x
+    vmadday.xyzw ACC, vf2, vf7y
+    vmaddaz.xyzw ACC, vf3, vf7z
+    vmaddw.xyzw vf22, vf4, vf7w
+    vmulax.xyzw ACC, vf1, vf8x
+    vmadday.xyzw ACC, vf2, vf8y
+    vmaddaz.xyzw ACC, vf3, vf8z
+    vmaddw.xyzw vf23, vf4, vf8w
+    vmulax.xyzw ACC, vf20, vf9x
+    vmadday.xyzw ACC, vf21, vf9y
+    vmaddaz.xyzw ACC, vf22, vf9z
+    vmaddw.xyzw vf1, vf23, vf9w
+    vmulax.xyzw ACC, vf20, vf10x
+    vmadday.xyzw ACC, vf21, vf10y
+    vmaddaz.xyzw ACC, vf22, vf10z
+    vmaddw.xyzw vf2, vf23, vf10w
+    vmulax.xyzw ACC, vf20, vf11x
+    vmadday.xyzw ACC, vf21, vf11y
+    vmaddaz.xyzw ACC, vf22, vf11z
+    vmaddw.xyzw vf3, vf23, vf11w
+    vmulax.xyzw ACC, vf20, vf12x
+    vmadday.xyzw ACC, vf21, vf12y
+    vmaddaz.xyzw ACC, vf22, vf12z
+    vmaddw.xyzw vf4, vf23, vf12w
+    sqc2 vf1, 0x0(a0)
+    sqc2 vf2, 0x10(a0)
+    sqc2 vf3, 0x20(a0)
+    jr ra
+    sqc2 vf4, 0x30(a0)
+}
 #endif
 #ifdef NONMATCHING
 void mgMulMatrix(float (*product)[4], float (*left_matrix)[4], float (*right_matrix)[4]) {
@@ -671,7 +743,38 @@ void mgMulMatrix(float (*product)[4], float (*left_matrix)[4], float (*right_mat
     }
 }
 #else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgMulMatrix__FPA4_fPA4_fPA4_f);
+asm void mgMulMatrix(float (*product)[4], float (*left_matrix)[4], float (*right_matrix)[4]) {
+    .set noreorder
+    lqc2 vf1, 0x0(a1)
+    lqc2 vf2, 0x10(a1)
+    lqc2 vf3, 0x20(a1)
+    lqc2 vf4, 0x30(a1)
+    lqc2 vf5, 0x0(a2)
+    lqc2 vf6, 0x10(a2)
+    lqc2 vf7, 0x20(a2)
+    lqc2 vf8, 0x30(a2)
+    vmulax.xyzw ACC, vf1, vf5x
+    vmadday.xyzw ACC, vf2, vf5y
+    vmaddaz.xyzw ACC, vf3, vf5z
+    vmaddw.xyzw vf20, vf4, vf5w
+    vmulax.xyzw ACC, vf1, vf6x
+    vmadday.xyzw ACC, vf2, vf6y
+    vmaddaz.xyzw ACC, vf3, vf6z
+    vmaddw.xyzw vf21, vf4, vf6w
+    vmulax.xyzw ACC, vf1, vf7x
+    vmadday.xyzw ACC, vf2, vf7y
+    vmaddaz.xyzw ACC, vf3, vf7z
+    vmaddw.xyzw vf22, vf4, vf7w
+    vmulax.xyzw ACC, vf1, vf8x
+    vmadday.xyzw ACC, vf2, vf8y
+    vmaddaz.xyzw ACC, vf3, vf8z
+    vmaddw.xyzw vf23, vf4, vf8w
+    sqc2 vf20, 0x0(a0)
+    sqc2 vf21, 0x10(a0)
+    sqc2 vf22, 0x20(a0)
+    jr ra
+    sqc2 vf23, 0x30(a0)
+}
 #endif
 #ifdef NONMATCHING
 void mgInversMatrix(float (*inverse)[4], float (*matrix)[4]) {
@@ -705,7 +808,70 @@ void mgInversMatrix(float (*inverse)[4], float (*matrix)[4]) {
     }
 }
 #else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgInversMatrix__FPA4_fPA4_f);
+asm void mgInversMatrix(float (*inverse)[4], float (*matrix)[4]) {
+    .set noreorder
+    lqc2 vf1, 0x0(a1)
+    lqc2 vf2, 0x10(a1)
+    lqc2 vf3, 0x20(a1)
+    lqc2 vf4, 0x30(a1)
+    vmuly.x vf5, vf1, vf2y
+    vmuly.x vf6, vf3, vf1y
+    vmuly.x vf7, vf2, vf3y
+    vmuly.x vf8, vf1, vf3y
+    vmuly.x vf9, vf2, vf1y
+    vmuly.x vf10, vf3, vf2y
+    vmulaz.x ACC, vf5, vf3z
+    vmaddaz.x ACC, vf6, vf2z
+    vmaddaz.x ACC, vf7, vf1z
+    vmsubaz.x ACC, vf8, vf2z
+    vmsubaz.x ACC, vf9, vf3z
+    vmsubz.x vf15, vf10, vf1z
+    vsub.xyzw vf5, vf5, vf5
+    vsub.xyzw vf6, vf6, vf6
+    vsub.xyzw vf7, vf7, vf7
+    vaddx.xyzw vf8, vf0, vf0x
+    vdiv Q, vf0w, vf15x
+    vmulaz.y ACC, vf2, vf3z
+    vmsubz.y vf10, vf3, vf2z
+    vmulaz.y ACC, vf3, vf1z
+    vmsubz.y vf11, vf1, vf3z
+    vmulaz.y ACC, vf1, vf2z
+    vmsubz.y vf12, vf2, vf1z
+    vmulax.z ACC, vf2, vf3x
+    vmsubx.z vf10, vf3, vf2x
+    vmulax.z ACC, vf3, vf1x
+    vmsubx.z vf11, vf1, vf3x
+    vmulax.z ACC, vf1, vf2x
+    vmsubx.z vf12, vf2, vf1x
+    vmulay.x ACC, vf2, vf3y
+    vmsuby.x vf10, vf3, vf2y
+    vmulay.x ACC, vf3, vf1y
+    vmsuby.x vf11, vf1, vf3y
+    vmulay.x ACC, vf1, vf2y
+    vmsuby.x vf12, vf2, vf1y
+    vaddy.x vf5, vf5, vf10y
+    vaddy.y vf5, vf5, vf11y
+    vaddy.z vf5, vf5, vf12y
+    vaddz.x vf6, vf6, vf10z
+    vaddz.y vf6, vf6, vf11z
+    vaddz.z vf6, vf6, vf12z
+    vaddx.x vf7, vf7, vf10x
+    vaddx.y vf7, vf7, vf11x
+    vaddx.z vf7, vf7, vf12x
+    vmulq.xyzw vf5, vf5, Q
+    vmulq.xyzw vf6, vf6, Q
+    vmulq.xyzw vf7, vf7, Q
+    vmulax.xyzw ACC, vf5, vf4x
+    vmadday.xyzw ACC, vf6, vf4y
+    vmaddz.xyzw vf8, vf7, vf4z
+    vsub.xyz vf8, vf0, vf8
+    vaddx.w vf8, vf0, vf0x
+    sqc2 vf5, 0x0(a0)
+    sqc2 vf6, 0x10(a0)
+    sqc2 vf7, 0x20(a0)
+    jr ra
+    sqc2 vf8, 0x30(a0)
+}
 #endif
 
 void mgRotMatrixX(float (*matrix)[4], float angle_x) {
@@ -857,7 +1023,30 @@ void mgApplyMatrixN(float (*out)[4], float (*matrix)[4], float (*in)[4], int cou
     }
 }
 #else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgApplyMatrixN__FPA4_fPA4_fPA4_fi);
+asm void mgApplyMatrixN(float (*out)[4], float (*matrix)[4], float (*in)[4], int count) {
+    .set noreorder
+    addi a3, a3, -0x1
+    lqc2 vf16, 0x0(a2)
+    lqc2 vf10, 0x0(a1)
+    lqc2 vf11, 0x10(a1)
+    lqc2 vf12, 0x20(a1)
+    lqc2 vf13, 0x30(a1)
+    nop
+transform_vectors:
+    vmulax.xyzw ACC, vf10, vf16x
+    vmadday.xyzw ACC, vf11, vf16y
+    vmaddaz.xyzw ACC, vf12, vf16z
+    vmaddw.xyzw vf17, vf13, vf16w
+    addi a3, a3, -0x1
+    addi a0, a0, 0x10
+    addi a2, a2, 0x10
+    sqc2 vf17, -0x10(a0)
+    lqc2 vf16, 0x0(a2)
+    bgez a3, transform_vectors
+    vnop
+    jr ra
+    nop
+}
 #endif
 #pragma global_optimizer reset
 #pragma schedule reset
@@ -882,7 +1071,44 @@ void mgApplyMatrixN_MaxMin(float (*out)[4], float (*matrix)[4], float (*in)[4], 
     }
 }
 #else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgApplyMatrixN_MaxMin__FPA4_fPA4_fPA4_fiPfPf);
+asm void mgApplyMatrixN_MaxMin(float (*out)[4], float (*matrix)[4], float (*in)[4], int count,
+                           float *max, float *min) {
+    .set noreorder
+    addi a3, a3, -0x1
+    lqc2 vf16, 0x0(a2)
+    lqc2 vf10, 0x0(a1)
+    lqc2 vf11, 0x10(a1)
+    lqc2 vf12, 0x20(a1)
+    lqc2 vf13, 0x30(a1)
+    vmulax.xyzw ACC, vf10, vf16x
+    vmadday.xyzw ACC, vf11, vf16y
+    vmaddaz.xyzw ACC, vf12, vf16z
+    vmaddw.xyzw vf17, vf13, vf16w
+    addi a3, a3, -0x1
+    addi a0, a0, 0x10
+    addi a2, a2, 0x10
+    sqc2 vf17, -0x10(a0)
+    lqc2 vf16, 0x0(a2)
+    vaddx.xyzw vf20, vf17, vf0x
+    vaddx.xyzw vf21, vf17, vf0x
+transform_and_bound_vectors:
+    vmulax.xyzw ACC, vf10, vf16x
+    vmadday.xyzw ACC, vf11, vf16y
+    vmaddaz.xyzw ACC, vf12, vf16z
+    vmaddw.xyzw vf17, vf13, vf16w
+    addi a3, a3, -0x1
+    addi a0, a0, 0x10
+    addi a2, a2, 0x10
+    sqc2 vf17, -0x10(a0)
+    lqc2 vf16, 0x0(a2)
+    vmax.xyzw vf20, vf20, vf17
+    bgez a3, transform_and_bound_vectors
+    vmini.xyzw vf21, vf21, vf17
+    nop
+    sqc2 vf20, 0x0(t0)
+    jr ra
+    sqc2 vf21, 0x0(t1)
+}
 #endif
 #pragma global_optimizer reset
 #pragma global_optimizer off
@@ -904,7 +1130,32 @@ void mgVectorMinMaxN(float *max, float *min, float (*vectors)[4], int count) {
     }
 }
 #else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_math", mgVectorMinMaxN__FPfPfPA4_fi);
+asm void mgVectorMinMaxN(float *max, float *min, float (*vectors)[4], int count) {
+    .set noreorder
+    addi a3, a3, -0x1
+    lqc2 vf10, 0x0(a2)
+    vmove.xyzw vf11, vf10
+    lqc2 vf16, 0x10(a2)
+    vnop
+    vnop
+    vnop
+update_bounds:
+    vmax.xyzw vf10, vf10, vf16
+    vmini.xyzw vf11, vf11, vf16
+    addi a3, a3, -0x1
+    addi a2, a2, 0x10
+    lqc2 vf16, 0x0(a2)
+    vnop
+    bgez a3, update_bounds
+    nop
+    nop
+    vnop
+    vnop
+    vnop
+    sqc2 vf10, 0x0(a0)
+    jr ra
+    sqc2 vf11, 0x0(a1)
+}
 #endif
 #pragma global_optimizer reset
 

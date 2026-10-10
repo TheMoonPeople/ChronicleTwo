@@ -25,6 +25,29 @@ class mgCDrawPrim;
 class mgCTexture;
 class CMenuPosDataForm;
 
+enum MENU_NUMBER_ALIGN {
+    MENU_NUMBER_ALIGN_RIGHT = 0,
+    MENU_NUMBER_ALIGN_CENTER = 1,
+    MENU_NUMBER_ALIGN_LEFT = 2,
+};
+
+enum MENU_ITEM_ICON_FLAG {
+    MENU_ITEM_ICON_HIGHLIGHT = 1,
+    MENU_ITEM_ICON_BUILD_UP = 2,
+};
+
+enum MENU_ITEM_NEED {
+    MENU_ITEM_NEED_RESTORE_HP = 0x1,
+    MENU_ITEM_NEED_REPAIR_MELEE = 0x2,
+    MENU_ITEM_NEED_REPAIR_GUN = 0x4,
+    MENU_ITEM_NEED_REPAIR_MAGIC = 0x8,
+    MENU_ITEM_NEED_REFUEL_RIDEPOD = 0x80,
+    MENU_ITEM_NEED_CURE_POISON = 0x100,
+    MENU_ITEM_NEED_CURE_SLOW = 0x200,
+    MENU_ITEM_NEED_REPAIR_RIDEPOD = 0x8000,
+    MENU_ITEM_NEED_RIDEPOD_SHIELD_KIT = 0x10000,
+};
+
 /**
  *
  * Kind of drawing a form performs, as the dtype keyword of a menu layout
@@ -207,10 +230,10 @@ struct MENUFORMPARTS_TYPE {
     u8                         bilinear;    /**< Bit 0 set to sample the texture bilinearly. */
     s8                         alpha_blend; /**< Blend equation the part is drawn with. */
     u8                         unk_1b;
-    float                      x; /**< Position relative to the form. */
-    float                      y; /**< Position relative to the form. */
-    float                      w; /**< Width. */
-    float                      h; /**< Height. */
+    float                      x;             /**< Position relative to the form. */
+    float                      y;             /**< Position relative to the form. */
+    float                      w;             /**< Width. */
+    float                      h;             /**< Height. */
     float                      picture_scale; /**< Scale applied when drawing the part as a picture. */
     int                        etc_info[4];   /**< Extra values whose meaning depends on dtype, such as a number to draw. */
     MENU_PARTS_EFFECT_STRUCT1 *effect;        /**< Animations attached to the part. */
@@ -293,10 +316,10 @@ STATIC_ASSERT(sizeof(MENUFORM_MAKEBRD_LINE) == 0x6);
  *
  */
 struct MENUFORM_MAKEBRD_INFO {
-    MENUFORM_MAKEBRD_LINE line[4];      /**< Lines of the board. */
-    int                   material_num; /**< Number of materials listed. */
-    int                   make_num; /**< Number of objects selected for creation. */
-    int                   make_cursor; /**< Selected row on the building board. */
+    MENUFORM_MAKEBRD_LINE line[4];               /**< Lines of the board. */
+    int                   material_num;          /**< Number of materials listed. */
+    int                   make_num;              /**< Number of objects selected for creation. */
+    int                   make_cursor;           /**< Selected row on the building board. */
     int                   decrease_flash_frames; /**< Frames left in the decrease button flash. */
     int                   increase_flash_frames; /**< Frames left in the increase button flash. */
 };
@@ -381,7 +404,7 @@ public:
     float               rate_x;          /**< Horizontal speed or divisor of the movement. */
     float               rate_y;          /**< Vertical speed or divisor of the movement. */
     s16                 chara_tex_block; /**< Texture block of the model drawn by a poly form, or below 1 to draw its frame directly. */
-    s16                 unk_36;
+    s16                 secondary_tex_block;
     CActionChara       *chara; /**< Model drawn by a poly form. */
     u8                  unk_3c[0x4];
     float               ambient[4];     /**< Ambient light a poly form is drawn with, unused when negative. */
@@ -1456,7 +1479,7 @@ public:
      * @address 0x231050
      * @size 0x1C0
      */
-    void Generate(float *center, float range, float unk);
+    void Generate(float *center, float range, float height);
 
     /**
      *
@@ -1794,7 +1817,7 @@ void MenuPresentBoxView(int x, int y, int &tex_block, mgCTexture *tex, mgCTextur
  * @address 0x223BE0
  * @size 0xB0
  */
-void PrimDrawNumber(mgCDrawPrim *prim, int number, int digit_count, int x, int y, mgRect<int> texture_rect, int spacing, int mode);
+void PrimDrawNumber(mgCDrawPrim *prim, int number, int alignment, int x, int y, mgRect<int> texture_rect, int spacing, int vertical_spacing);
 
 /**
  *
@@ -1805,7 +1828,7 @@ void PrimDrawNumber(mgCDrawPrim *prim, int number, int digit_count, int x, int y
  * @address 0x223C90
  * @size 0xB0
  */
-void PrimDrawNumber2(mgCDrawPrim *prim, int number, int digit_count, int x, int y, mgRect<int> texture_rect, int spacing, int mode);
+void PrimDrawNumber2(mgCDrawPrim *prim, int number, int digit_count, int x, int y, mgRect<int> texture_rect, int spacing, int vertical_spacing);
 
 /**
  *
@@ -1977,7 +2000,7 @@ void MenuCursorDraw(mgCTexture *tex, float *pos, float value, int flag);
  * @address 0x226010
  * @size 0x1C0
  */
-void DrawMenuTilePattern(mgCDrawPrim *prim, mgCTexture *tex, float x, float y, mgRect<int> tex_rect, int unk, u8 *rgba);
+void DrawMenuTilePattern(mgCDrawPrim *prim, mgCTexture *tex, float x, float y, mgRect<int> tex_rect, int unused, u8 *rgba);
 
 /**
  *
@@ -2007,7 +2030,7 @@ int GetMenuMainFrameEndFlag();
  * @address 0x2262C0
  * @size 0x10
  */
-float *GetMenuMainFrameLeftTopPos(int unk);
+float *GetMenuMainFrameLeftTopPos(int frame);
 
 /**
  *
@@ -2137,7 +2160,7 @@ void Func_SetPartEffectInfo(MENU_PARTS_EFFECT_STRUCT1 *effect, unsigned int kind
  * @address 0x229020
  * @size 0x60
  */
-void MenuItemBrdSetInfo(int unk, int pos, int max_line, int view_line);
+void MenuItemBrdSetInfo(int unused, int pos, int max_line, int view_line);
 
 /**
  *
@@ -2167,7 +2190,7 @@ void MenuItemBrdDraw(float *pos, mgRect<int> clip_rect, int &tex_block, int a, i
  * @address 0x22A030
  * @size 0x810
  */
-void MenuItemModeItemDraw(int &tex_block, mgRect<int> clip_rect, float *pos, MENUFORMPARTS_TYPE *parts, mgCTexture *cursor_tex, mgRect<int> cursor_rect, int unk);
+void MenuItemModeItemDraw(int &tex_block, mgRect<int> clip_rect, float *pos, MENUFORMPARTS_TYPE *parts, mgCTexture *num_tex, mgRect<int> num_rect, int unused_arg);
 
 /**
  *
@@ -2308,7 +2331,7 @@ void MenuItemBrdItemIconEffectMalloc(mgCMemory *memory, MENUFORMPARTS_TYPE *part
  * @address 0x22EDC0
  * @size 0x3B0
  */
-int MenuCapture(int tex_block, mgCMemory *stack, int unk);
+int MenuCapture(int block, mgCMemory *stack, int draw);
 
 /**
  *

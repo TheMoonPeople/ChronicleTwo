@@ -47,20 +47,20 @@ static int texBUG_PATCH(SPI_STACK *stack, int argc);
  *
  */
 static SPI_TAG_PARAM tex_tag[] = {
-    {"TEX_ANIME", texTEX_ANIME},
-    {"TEX_ANIME_DATA", texTEX_ANIME_DATA},
-    {"SRC_TEX", texSRC_TEX},
-    {"DEST_TEX", texDEST_TEX},
-    {"SCROLL", texSCROLL},
-    {"CLUT_COPY", texCLUT_COPY},
-    {"COLOR", texCOLOR},
-    {"ALPHA_BLEND", texALPHA_BLEND},
-    {"ALPHA_TEST", texALPHA_TEST},
-    {"WAIT", texWAIT},
+    {"TEX_ANIME",          texTEX_ANIME         },
+    {"TEX_ANIME_DATA",     texTEX_ANIME_DATA    },
+    {"SRC_TEX",            texSRC_TEX           },
+    {"DEST_TEX",           texDEST_TEX          },
+    {"SCROLL",             texSCROLL            },
+    {"CLUT_COPY",          texCLUT_COPY         },
+    {"COLOR",              texCOLOR             },
+    {"ALPHA_BLEND",        texALPHA_BLEND       },
+    {"ALPHA_TEST",         texALPHA_TEST        },
+    {"WAIT",               texWAIT              },
     {"TEX_ANIME_DATA_END", texTEX_ANIME_DATA_END},
-    {"TEX_ANIME_END", texTEX_ANIME_END},
-    {"BUG_PATCH", texBUG_PATCH},
-    {NULL, NULL},
+    {"TEX_ANIME_END",      texTEX_ANIME_END     },
+    {"BUG_PATCH",          texBUG_PATCH         },
+    {NULL,                 NULL                 },
 };
 
 /**
@@ -184,10 +184,10 @@ void mgCTexAnimeData::Initialize() {
 }
 
 void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
-    int                      i;
-    int                      group;
-    CList<mgCTexAnimeData>  *node;
-    mgCTexAnimeData         *data;
+    int                     i;
+    int                     group;
+    CList<mgCTexAnimeData> *node;
+    mgCTexAnimeData        *data;
 
     if (packet == NULL) {
         packet = mgVif1Packet;
@@ -205,8 +205,10 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
     for (i = 0; i < group_num; i++) {
         if (enable[i] != 0) {
             CList<mgCTexAnimeData> *linked_node = now[i];
+
             if (linked_node != NULL) {
                 mgCTexAnimeData *linked_data = linked_node->pGetData();
+
                 if (linked_data != NULL && linked_data->link_group >= 0) {
                     Enable(linked_data->link_group);
                 }
@@ -228,14 +230,18 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
         if (enable[group] == 0) {
             continue;
         }
+
         if (now[group] == NULL) {
             continue;
         }
+
         node = now[group];
         data = node->pGetData();
+
         if (data == NULL || data->src_tex == NULL || data->dest_tex == NULL) {
             continue;
         }
+
         if (data->src_tex->block != texb || data->dest_tex->block != texb) {
             continue;
         }
@@ -248,12 +254,14 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                 } else {
                     prim.Bilinear(0);
                 }
+
                 if (data->alpha_blend != MG_TEX_ANIME_ALPHA_BLEND_OFF) {
                     prim.AlphaBlendEnable(1);
                     prim.AlphaBlend(data->alpha_blend);
                 } else {
                     prim.AlphaBlendEnable(0);
                 }
+
                 if (data->alpha_test != MG_TEX_ANIME_ALPHA_TEST_OFF) {
                     prim.AlphaTestEnable(1);
                     prim.AlphaTest(data->alpha_test, data->alpha_ref);
@@ -263,6 +271,7 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
             }
 
             mgCTexture *src = data->src_tex;
+
             if (src->bpp == MG_TEX_ANIME_BPP_INDEXED && data->dest_tex->bpp == MG_TEX_ANIME_BPP_INDEXED &&
                 (data->clut_copy != 0 || (data->src_w == src->width && data->src_h == src->height))) {
                 // Copy the source palette over the destination's, each treated as a 16x16 image.
@@ -289,9 +298,11 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                 } else {
                     int height = dest->height;
                     int rem = height % MG_TEX_ANIME_FRAME_ALIGN;
+
                     if (rem != 0) {
                         height += MG_TEX_ANIME_FRAME_ALIGN - rem;
                     }
+
                     sceGsTex0 *tex = &dest->tex0;
                     mgSetPkFrameBuffer((int) tex->TBP0 / 32, (int) (tex->TBW * 64), height, dest->tex0.PSM);
                     prim.Begin(MG_PRIM_SPRITE);
@@ -357,30 +368,39 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                     src_split_y = src_top + src_height - offset_y - 1;
                     dest_split_x = dest_left + offset_x + 1;
                     dest_split_y = dest_top + offset_y + 1;
+
                     if (src_split_x < src_left) {
                         src_split_x = src_left;
                     }
+
                     if (src_split_y < src_top) {
                         src_split_y = src_top;
                     }
+
                     if (dest_split_x < dest_left) {
                         dest_split_x = dest_left;
                     }
+
                     if (dest_split_y < dest_top) {
                         dest_split_y = dest_top;
                     }
+
                     if (src_split_x > src_end_x) {
                         src_split_x = src_end_x;
                     }
+
                     if (src_split_y > src_end_y) {
                         src_split_y = src_end_y;
                     }
+
                     if (dest_split_x > dest_end_x) {
                         dest_split_x = dest_end_x;
                     }
+
                     if (dest_split_y > dest_end_y) {
                         dest_split_y = dest_end_y;
                     }
+
                     src_split_x *= MG_TEX_ANIME_SUBTEXEL;
                     src_split_y *= MG_TEX_ANIME_SUBTEXEL;
                     dest_split_x *= MG_TEX_ANIME_SUBTEXEL;
@@ -433,33 +453,42 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                     mgRect<int> dest_rect(0, 0, 0, 0);
 
                     src_rect.Set(data->src_x, data->src_y, src_split_x, src_split_y);
+
                     if (src_rect.right - src_rect.left + 1 > 0 && src_rect.bottom - src_rect.top + 1 > 0) {
                         mgSetPkMoveImage(&data->src_tex->tex0, src_rect, &data->dest_tex->tex0,
                                          dest_split_x - MG_TEX_ANIME_SUBTEXEL, dest_split_y - MG_TEX_ANIME_SUBTEXEL, 0);
                     }
+
                     src_rect.Set(data->src_x, src_split_y, src_split_x, src_end_y - MG_TEX_ANIME_SUBTEXEL);
+
                     if (src_rect.right - src_rect.left + 1 > 0 && src_rect.bottom - src_rect.top + 1 > 0) {
                         mgSetPkMoveImage(&data->src_tex->tex0, src_rect, &data->dest_tex->tex0,
                                          dest_split_x - MG_TEX_ANIME_SUBTEXEL, data->dest_y, 0);
                     }
+
                     src_rect.Set(src_split_x, data->src_y, src_end_x - MG_TEX_ANIME_SUBTEXEL, src_split_y);
+
                     if (src_rect.right - src_rect.left + 1 > 0 && src_rect.bottom - src_rect.top + 1 > 0) {
                         mgSetPkMoveImage(&data->src_tex->tex0, src_rect, &data->dest_tex->tex0, data->dest_x,
                                          dest_split_y - MG_TEX_ANIME_SUBTEXEL, 0);
                     }
+
                     src_rect.Set(src_split_x, src_split_y, src_end_x - MG_TEX_ANIME_SUBTEXEL,
                                  src_end_y - MG_TEX_ANIME_SUBTEXEL);
+
                     if (src_rect.right - src_rect.left + 1 > 0 && src_rect.bottom - src_rect.top + 1 > 0) {
                         mgSetPkMoveImage(&data->src_tex->tex0, src_rect, &data->dest_tex->tex0, data->dest_x,
                                          data->dest_y, 0);
                     }
                 } else {
                     mgCTexture *dest = data->dest_tex;
-                    int height = dest->height;
-                    int rem = height % MG_TEX_ANIME_FRAME_ALIGN;
+                    int         height = dest->height;
+                    int         rem = height % MG_TEX_ANIME_FRAME_ALIGN;
+
                     if (rem != 0) {
                         height += MG_TEX_ANIME_FRAME_ALIGN - rem;
                     }
+
                     sceGsTex0 *tex = &dest->tex0;
                     mgSetPkFrameBuffer((int) tex->TBP0 / 32, (int) (tex->TBW * 64), height, dest->tex0.PSM);
                     prim.Begin(MG_PRIM_SPRITE);
@@ -498,24 +527,29 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                     if (data->period_x != 0) {
                         if (data->period_x > 0) {
                             data->phase_x++;
+
                             if (data->phase_x >= data->period_x) {
                                 data->phase_x = 0;
                             }
                         } else {
                             data->phase_x--;
+
                             if (data->phase_x <= 0) {
                                 data->phase_x = -data->period_x;
                             }
                         }
                     }
+
                     if (data->period_y != 0) {
                         if (data->period_y > 0) {
                             data->phase_y++;
+
                             if (data->phase_y >= data->period_y) {
                                 data->phase_y = 0;
                             }
                         } else {
                             data->phase_y--;
+
                             if (data->phase_y <= 0) {
                                 data->phase_y = -data->period_y;
                             }
@@ -527,6 +561,7 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
             if (data->wait != 0 || node->next == NULL) {
                 break;
             }
+
             node = node->next;
             data = node->pGetData();
         }
@@ -534,7 +569,9 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
         if (stop_anime == 0) {
             frame[group]++;
         }
+
         int wait = data->wait;
+
         if (wait < 0) {
             frame[group] = 0;
         } else if (data->bug_patch != 0) {
@@ -542,6 +579,7 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                 frame[group] = 0;
                 CList<mgCTexAnimeData> *next = node->next;
                 now[group] = next;
+
                 if (now[group] == NULL) {
                     now[group] = list[group];
                 }
@@ -551,6 +589,7 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                 frame[group] = 0;
                 CList<mgCTexAnimeData> *next = node->next;
                 now[group] = next;
+
                 if (now[group] == NULL) {
                     now[group] = list[group];
                 }

@@ -33,22 +33,22 @@
  *
  */
 float p[16][2] = {
-    {0.5f, 0.5f},
-    {0.02f, 0.29f},
+    {0.5f,         0.5f },
+    {0.02f,        0.29f},
     {0.099999994f, 0.14f},
-    {0.22f, 0.03f},
-    {0.51f, 0.06f},
-    {0.73f, 0.0f},
-    {0.92f, 0.1f},
-    {0.98f, 0.36f},
-    {0.98f, 0.74f},
-    {0.9f, 0.91f},
-    {0.7f, 0.99f},
-    {0.43f, 0.91f},
-    {0.2f, 0.97f},
-    {0.03f, 0.8f},
-    {0.0f, 0.52f},
-    {0.02f, 0.29f},
+    {0.22f,        0.03f},
+    {0.51f,        0.06f},
+    {0.73f,        0.0f },
+    {0.92f,        0.1f },
+    {0.98f,        0.36f},
+    {0.98f,        0.74f},
+    {0.9f,         0.91f},
+    {0.7f,         0.99f},
+    {0.43f,        0.91f},
+    {0.2f,         0.97f},
+    {0.03f,        0.8f },
+    {0.0f,         0.52f},
+    {0.02f,        0.29f},
 };
 
 /**
@@ -57,14 +57,14 @@ float p[16][2] = {
  *
  */
 s32 waku_data[WAKU_DATA_MAX][4] = {
-    {0, 0, 0, 0},
+    {0,  0,  0,  0 },
     {30, 24, 30, 24},
     {12, 12, 12, 10},
     {12, 12, 12, 10},
     {28, 28, 28, 28},
     {24, 27, 23, 63},
     {16, 16, 16, 14},
-    {0, 0, 0, 0},
+    {0,  0,  0,  0 },
     {16, 16, 16, 14},
 };
 
@@ -223,37 +223,41 @@ void FillRect(int x, int y, int w, int h, int r, int g, int b, int a) {
     drawer.Vertex(x + w, y + h, 0);
     drawer.End();
 }
+
 static inline void SetPrimOffset(mgCDrawPrim *prim, int x, int y) {
     prim->offset_x = x * 16;
     prim->offset_y = y * 16;
 }
+
 void ClsMes::DrawFukidashi_sub(mgCDrawPrim *prim, int dx, int dy, int layer) {
-    int left_y;
-    int point;
-    float hit_x;
-    int left_x;
-    int outline[16][2];
-    float width;
-    float height;
-    float hit_y;
-    int origin_x;
-    int origin_y;
+    int    left_y;
+    int    point;
+    float  hit_x;
+    int    left_x;
+    int    outline[16][2];
+    float  width;
+    float  height;
+    float  hit_y;
+    int    origin_x;
+    int    origin_y;
     u_char shade;
     u_char opacity;
-    int vertex_x;
-    int vertex_y;
-    int tip_x;
-    int tip_y;
-    int right_x;
-    int right_y;
+    int    vertex_x;
+    int    vertex_y;
+    int    tip_x;
+    int    tip_y;
+    int    right_x;
+    int    right_y;
 
     if (fukidashi_centre_x < 0 || fukidashi_centre_y < 0) {
         return;
     }
+
     width = fukidashi_w * fade;
     height = fukidashi_h * fade;
     SetPrimOffset(prim, (int) draw_off_x, (int) draw_off_y);
     prim->Begin(MG_PRIM_TRIANGLE_FAN);
+
     if (layer == MES_FUKIDASHI_OUTLINE) {
         shade = 0x40;
         opacity = (alpha * 0x40 / 128) & 0xFF;
@@ -263,9 +267,11 @@ void ClsMes::DrawFukidashi_sub(mgCDrawPrim *prim, int dx, int dy, int layer) {
         opacity = 0x80;
         prim->Shading(1);
     }
-    prim->Color(shade, (u_int)shade, (u_char)shade, opacity);
+
+    prim->Color(shade, (u_int) shade, (u_char) shade, opacity);
     origin_x = (int) LinerInterpolation(fukidashi_centre_x, fukidashi_x, fade);
     origin_y = (int) LinerInterpolation(fukidashi_centre_y, fukidashi_y, fade) + 1;
+
     for (point = 0; point < 16; point++) {
         vertex_x = (int) (width * (1.0f - p[point][0]));
         vertex_y = (int) (height * (1.0f - p[point][1]));
@@ -273,6 +279,7 @@ void ClsMes::DrawFukidashi_sub(mgCDrawPrim *prim, int dx, int dy, int layer) {
         vertex_y += origin_y;
         vertex_x += dx;
         vertex_y += dy;
+
         if (layer != MES_FUKIDASHI_OUTLINE) {
             if (point == 0) {
                 prim->Color(0xFA, 0xFA, 0xFA, 0x80);
@@ -280,11 +287,14 @@ void ClsMes::DrawFukidashi_sub(mgCDrawPrim *prim, int dx, int dy, int layer) {
                 prim->Color(0xC8, 0xC8, 0xC8, 0x80);
             }
         }
+
         outline[point][0] = vertex_x;
         outline[point][1] = vertex_y;
         prim->Vertex(vertex_x, vertex_y, 0);
     }
+
     prim->End();
+
     if (tail_on != 0) {
         tip_x = (int) LinerInterpolation(fukidashi_centre_x, tail_tip_x, fade);
         tip_y = (int) LinerInterpolation(fukidashi_centre_y, tail_tip_y, fade);
@@ -298,6 +308,7 @@ void ClsMes::DrawFukidashi_sub(mgCDrawPrim *prim, int dx, int dy, int layer) {
         right_y = (int) LinerInterpolation(fukidashi_centre_y, tail_right_y, fade);
         right_x += dx;
         right_y += dy;
+
         for (int k = 1; k <= 14; k++) {
             if (CalcIntersectionPoint2PAnd2P(tip_x, tip_y, left_x, left_y,
                                              outline[k][0], outline[k][1], outline[k + 1][0], outline[k + 1][1], &hit_x, &hit_y)) {
@@ -306,6 +317,7 @@ void ClsMes::DrawFukidashi_sub(mgCDrawPrim *prim, int dx, int dy, int layer) {
                 break;
             }
         }
+
         for (int k = 1; k <= 14; k++) {
             if (CalcIntersectionPoint2PAnd2P(tip_x, tip_y, right_x, right_y,
                                              outline[k][0], outline[k][1], outline[k + 1][0], outline[k + 1][1], &hit_x, &hit_y)) {
@@ -314,19 +326,23 @@ void ClsMes::DrawFukidashi_sub(mgCDrawPrim *prim, int dx, int dy, int layer) {
                 break;
             }
         }
+
         SetPrimOffset(prim, (int) draw_off_x, (int) draw_off_y);
         prim->Begin(MG_PRIM_TRIANGLE);
+
         if (layer == MES_FUKIDASHI_OUTLINE) {
             prim->Color(0x40, 0x40, 0x40, 0x80);
         } else {
             prim->Color(0xC8, 0xC8, 0xC8, 0x80);
         }
+
         prim->Vertex(tip_x, tip_y, 0);
         prim->Vertex(left_x, left_y, 0);
         prim->Vertex(right_x, right_y, 0);
         prim->End();
     }
 }
+
 void ClsMes::DrawFukidashi(int a, int b, int c) {
     mgCDrawPrim drawer;
     drawer.Initialize(NULL, NULL);
@@ -1160,7 +1176,7 @@ void ClsMes::StepNpcName() {
     MakeMesWin(0x11);
 
     for (chara_index = 0; chara_index < 0x38; chara_index++) {
-        if (GetMainScene()->IsActive(1, chara_index + 8) != 0) {
+        if (GetMainScene()->IsActive(SCENE_DATA_CHARA, chara_index + 8) != 0) {
             CCharacter2 *chara = GetMainScene()->GetCharacter(chara_index + 8);
 
             if (chara != 0 && chara->CheckDraw() != 0) {
@@ -1189,6 +1205,7 @@ void ClsMes::StepNpcName() {
         }
     }
 }
+
 void ClsMes::StepNormal() {
     float centre[2];
     float left[2];
@@ -1205,12 +1222,14 @@ void ClsMes::StepNormal() {
             return;
         }
     }
+
     if (fade_speed == 0.0f) {
         fade = 1.0f;
     } else if (open != 0) {
         if (fade < 1.0f) {
             fade += fade_speed;
         }
+
         if (1.0f < fade) {
             fade = 1.0f;
         }
@@ -1218,39 +1237,44 @@ void ClsMes::StepNormal() {
         if (0.0f < fade) {
             fade -= fade_speed;
         }
+
         if (fade < 0.0f) {
             fade = 0.0f;
         }
     }
+
     if (tail_on != 0) {
         centre[0] = tail_root_x;
         centre[1] = tail_root_y;
-        angle = atan2((float)(tail_target_x - tail_root_x), (float)(tail_target_y - tail_root_y));
+        angle = atan2((float) (tail_target_x - tail_root_x), (float) (tail_target_y - tail_root_y));
         left[0] = tail_root_x - tail_half_w;
         left[1] = tail_root_y;
         RollPos(centre, left, angle, left_rotated);
-        tail_left_x = (int)left_rotated[0];
-        tail_left_y = (int)left_rotated[1];
+        tail_left_x = (int) left_rotated[0];
+        tail_left_y = (int) left_rotated[1];
         right[0] = tail_root_x + tail_half_w;
         right[1] = tail_root_y;
         RollPos(centre, right, angle, right_rotated);
-        tail_right_x = (int)right_rotated[0];
-        tail_right_y = (int)right_rotated[1];
+        tail_right_x = (int) right_rotated[0];
+        tail_right_y = (int) right_rotated[1];
         dx = tail_target_x - tail_root_x;
         dy = tail_target_y - tail_root_y;
         distance = sqrt(dx * dx + dy * dy);
+
         if (distance > 0.0f) {
             float tip_y = tail_length * dy / distance;
             float tip_x = tail_length * dx / distance;
-            tail_tip_x = (int)tip_x + tail_root_x;
-            tail_tip_y = (int)tip_y + tail_root_y;
+            tail_tip_x = (int) tip_x + tail_root_x;
+            tail_tip_y = (int) tip_y + tail_root_y;
         } else {
             tail_tip_x = tail_root_x;
             tail_tip_y = tail_root_y;
         }
     }
+
     MyTextureMake();
 }
+
 void ClsMes::Step() {
     if (close_time > 0) {
         close_time -= 1;
@@ -1336,22 +1360,22 @@ int ClsMes::State() {
     float progress = fade;
 
     if (progress <= 0.0f) {
-        return 0;
+        return (int) CLSMES_CLOSED;
     }
 
     if (0.0f < progress && progress < 1.0f) {
-        return open != 0 ? 1 : 4;
+        return open != 0 ? (int) CLSMES_OPENING : (int) CLSMES_CLOSING;
     }
 
     if (page_wait != 0) {
-        return 5;
+        return (int) CLSMES_PAGE_WAIT;
     }
 
     if (reveal_num >= char_num) {
-        return 3;
+        return (int) CLSMES_SHOWN;
     }
 
-    return scroll_wait != 0 ? 6 : 2;
+    return scroll_wait != 0 ? (int) CLSMES_SCROLLING : (int) CLSMES_REVEALING;
 }
 
 void ClsMes::GoNextPage() {
@@ -1652,277 +1676,360 @@ void ClsMes::MakeMesWinTbl_value(int value_no, int *x, int *y) {
         }
     }
 }
+
 void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
-    int length;
-    int position;
-    int tag_no;
-    char *suffix;
-    int font_no;
+    int            length;
+    int            position;
+    int            tag_no;
+    char          *suffix;
+    int            font_no;
     unsigned short gaiji_no;
 
     length = strlen(str);
     position = 0;
+
     while (position < length) {
         if (strncmp(&str[position], "//", 2) == 0) {
             position += 2;
+
             for (;;) {
                 if (GetHalfFontNo(str[position]) == -2) {
                     position++;
                     break;
                 }
+
                 position++;
             }
+
             continue;
         }
+
         if (strncmp(&str[position], "[\x90\x94\x92l", 5) == 0) {
             position += 5;
             tag_no = 0;
             suffix = &str[position];
+
             if (strncmp(suffix, "\x82P]", 3) == 0) {
                 tag_no = 1;
             }
+
             if (strncmp(suffix, "\x82Q]", 3) == 0) {
                 tag_no = 2;
             }
+
             if (strncmp(suffix, "\x82R]", 3) == 0) {
                 tag_no = 3;
             }
+
             if (strncmp(suffix, "\x82S]", 3) == 0) {
                 tag_no = 4;
             }
+
             if (strncmp(suffix, "\x82T]", 3) == 0) {
                 tag_no = 5;
             }
+
             if (strncmp(suffix, "\x82U]", 3) == 0) {
                 tag_no = 6;
             }
+
             if (strncmp(suffix, "\x82V]", 3) == 0) {
                 tag_no = 7;
             }
+
             if (strncmp(suffix, "\x82W]", 3) == 0) {
                 tag_no = 8;
             }
+
             if (strncmp(suffix, "\x82X]", 3) == 0) {
                 tag_no = 9;
             }
+
             if (strncmp(suffix, "\x82P\x82O]", 5) == 0) {
                 tag_no = 10;
             }
+
             if (tag_no != 0) {
                 MakeMesWinTbl_value(tag_no - 1, x, y);
+
                 if (tag_no < 10) {
                     position += 3;
                 } else {
                     position += 5;
                 }
+
                 continue;
             }
         }
+
         if (strncmp(&str[position], "[Number", 7) == 0) {
             position += 7;
             tag_no = 0;
             suffix = &str[position];
+
             if (strncmp(suffix, "1]", 2) == 0) {
                 tag_no = 1;
             }
+
             if (strncmp(suffix, "2]", 2) == 0) {
                 tag_no = 2;
             }
+
             if (strncmp(suffix, "3]", 2) == 0) {
                 tag_no = 3;
             }
+
             if (strncmp(suffix, "4]", 2) == 0) {
                 tag_no = 4;
             }
+
             if (strncmp(suffix, "5]", 2) == 0) {
                 tag_no = 5;
             }
+
             if (strncmp(suffix, "6]", 2) == 0) {
                 tag_no = 6;
             }
+
             if (strncmp(suffix, "7]", 2) == 0) {
                 tag_no = 7;
             }
+
             if (strncmp(suffix, "8]", 2) == 0) {
                 tag_no = 8;
             }
+
             if (strncmp(suffix, "9]", 2) == 0) {
                 tag_no = 9;
             }
+
             if (strncmp(suffix, "10]", 3) == 0) {
                 tag_no = 10;
             }
+
             if (tag_no != 0) {
                 MakeMesWinTbl_value(tag_no - 1, x, y);
+
                 if (tag_no < 10) {
                     position += 2;
                 } else {
                     position += 3;
                 }
+
                 continue;
             }
         }
-        if (strncmp(&str[position], "[\x83" "A\x83" "C\x83" "e\x83\x80", 9) == 0) {
+
+        if (strncmp(&str[position], "[\x83"
+                                    "A\x83"
+                                    "C\x83"
+                                    "e\x83\x80",
+                    9) == 0) {
             position += 9;
             tag_no = 0;
             suffix = &str[position];
+
             if (strncmp(suffix, "\x82P]", 3) == 0) {
                 tag_no = 1;
                 MakeMesWinTbl_item(MES_CODE_ITEM_FIRST, x, y);
             }
+
             if (strncmp(suffix, "\x82Q]", 3) == 0) {
                 tag_no = 2;
                 MakeMesWinTbl_item(0xFBFD, x, y);
             }
+
             if (strncmp(suffix, "\x82R]", 3) == 0) {
                 tag_no = 3;
                 MakeMesWinTbl_item(0xFBFC, x, y);
             }
+
             if (strncmp(suffix, "\x82S]", 3) == 0) {
                 tag_no = 4;
                 MakeMesWinTbl_item(0xFBFB, x, y);
             }
+
             if (strncmp(suffix, "\x82T]", 3) == 0) {
                 tag_no = 5;
                 MakeMesWinTbl_item(0xFBF2, x, y);
             }
+
             if (strncmp(suffix, "\x82U]", 3) == 0) {
                 tag_no = 6;
                 MakeMesWinTbl_item(0xFBF1, x, y);
             }
+
             if (strncmp(suffix, "\x82V]", 3) == 0) {
                 tag_no = 7;
                 MakeMesWinTbl_item(0xFBF0, x, y);
             }
+
             if (strncmp(suffix, "\x82W]", 3) == 0) {
                 tag_no = 8;
                 MakeMesWinTbl_item(0xFBEF, x, y);
             }
+
             if (strncmp(suffix, "\x82X]", 3) == 0) {
                 tag_no = 9;
                 MakeMesWinTbl_item(0xFBEE, x, y);
             }
+
             if (strncmp(suffix, "\x82P\x82O]", 5) == 0) {
                 tag_no = 10;
                 MakeMesWinTbl_item(0xFBED, x, y);
             }
+
             if (strncmp(suffix, "\x82P\x82P]", 5) == 0) {
                 tag_no = 11;
                 MakeMesWinTbl_item(0xFBEC, x, y);
             }
+
             if (strncmp(suffix, "\x82P\x82Q]", 5) == 0) {
                 tag_no = 12;
                 MakeMesWinTbl_item(0xFBEB, x, y);
             }
+
             if (strncmp(suffix, "\x82P\x82R]", 5) == 0) {
                 tag_no = 13;
                 MakeMesWinTbl_item(0xFBEA, x, y);
             }
+
             if (strncmp(suffix, "\x82P\x82S]", 5) == 0) {
                 tag_no = 14;
                 MakeMesWinTbl_item(0xFBE9, x, y);
             }
+
             if (strncmp(suffix, "\x82P\x82T]", 5) == 0) {
                 tag_no = 15;
                 MakeMesWinTbl_item(0xFBE8, x, y);
             }
+
             if (strncmp(suffix, "\x82P\x82U]", 5) == 0) {
                 tag_no = 16;
                 MakeMesWinTbl_item(MES_CODE_ITEM_LAST, x, y);
             }
+
             if (tag_no != 0) {
                 if (tag_no < 10) {
                     position += 3;
                 } else {
                     position += 5;
                 }
+
                 continue;
             }
         }
+
         if (strncmp(&str[position], "[\x95\xB6\x8E\x9A\x97\xF1", 7) == 0) {
             position += 7;
             tag_no = 0;
             suffix = &str[position];
+
             if (strncmp(suffix, "\x82P]", 3) == 0) {
                 tag_no = 1;
             }
+
             if (strncmp(suffix, "\x82Q]", 3) == 0) {
                 tag_no = 2;
             }
+
             if (strncmp(suffix, "\x82R]", 3) == 0) {
                 tag_no = 3;
             }
+
             if (strncmp(suffix, "\x82S]", 3) == 0) {
                 tag_no = 4;
             }
+
             if (strncmp(suffix, "\x82T]", 3) == 0) {
                 tag_no = 5;
             }
+
             if (strncmp(suffix, "\x82U]", 3) == 0) {
                 tag_no = 6;
             }
+
             if (strncmp(suffix, "\x82V]", 3) == 0) {
                 tag_no = 7;
             }
+
             if (strncmp(suffix, "\x82W]", 3) == 0) {
                 tag_no = 8;
             }
+
             if (strncmp(suffix, "\x82X]", 3) == 0) {
                 tag_no = 9;
             }
+
             if (strncmp(suffix, "\x82P\x82O]", 5) == 0) {
                 tag_no = 10;
             }
+
             if (strncmp(suffix, "\x82P\x82P]", 5) == 0) {
                 tag_no = 11;
             }
+
             if (strncmp(suffix, "\x82P\x82Q]", 5) == 0) {
                 tag_no = 12;
             }
+
             if (strncmp(suffix, "\x82P\x82R]", 5) == 0) {
                 tag_no = 13;
             }
+
             if (strncmp(suffix, "\x82P\x82S]", 5) == 0) {
                 tag_no = 14;
             }
+
             if (strncmp(suffix, "\x82P\x82T]", 5) == 0) {
                 tag_no = 15;
             }
+
             if (strncmp(suffix, "\x82P\x82U]", 5) == 0) {
                 tag_no = 16;
             }
+
             if (tag_no != 0) {
                 MakeMesWinTbl_str(tag_no - 1, x, y);
+
                 if (tag_no < 10) {
                     position += 3;
                 } else {
                     position += 5;
                 }
+
                 continue;
             }
         }
+
         suffix = &str[position];
         gaiji_no = GetAlphabeticalFontNo_cp(suffix);
+
         if (0 < gaiji_no) {
             SetMesWinTbl(gaiji_no, *x, *y);
-            *x += (int)(font_w * half_font_w_percent);
+            *x += (int) (font_w * half_font_w_percent);
             position += 9;
             continue;
         }
+
         gaiji_no = GetFontGaijiFontNo(suffix);
+
         if (gaiji_no) {
             SetMesWinTbl(gaiji_no, *x, *y);
             *x += font_w;
             position += 2;
             continue;
         }
+
         gaiji_no = GetGaijiFontNo(suffix);
+
         if (0 < gaiji_no) {
             SetMesWinTbl(gaiji_no, *x, *y);
             *x += GetGaijiW(gaiji_no);
             position += GetGaijiLen(gaiji_no);
             continue;
         }
+
         if (strncmp(suffix, "<page>", 6) == 0) {
             SetMesWinTbl(MES_CODE_PAGE, *x, *y);
             *x = 0;
@@ -1930,7 +2037,9 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
             *y = 0;
             continue;
         }
+
         font_no = GetHalfFontNo(*suffix);
+
         if (font_no == -2) {
             SetMesWinTbl(MES_CODE_NEWLINE, *x, *y);
             *x = 0;
@@ -1938,18 +2047,23 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
             *y += font_h;
         } else if (CheckHalfFont(font_no) != 0) {
             SetMesWinTbl(font_no, *x, *y);
+
             if (font_no == GetHalfFontNo(' ')) {
                 *x += font_w / 2;
             } else {
-                *x += (int)(font_w * half_font_w_percent);
+                *x += (int) (font_w * half_font_w_percent);
             }
+
             position++;
         } else {
             font_no = GetFontNo(suffix);
+
             if (font_no == -1) {
                 font_no = GetFontNo("\x81H");
             }
+
             SetMesWinTbl(font_no, *x, *y);
+
             if (CheckKanjiFont(font_no) != 0) {
                 *x += font_w;
             } else if (CheckKanjiFont(GetFontNo(suffix + 2)) != 0) {
@@ -1957,10 +2071,12 @@ void ClsMes::MakeMesWinTbl_str(char *str, int *x, int *y) {
             } else {
                 *x += font_w;
             }
+
             position += 2;
         }
     }
 }
+
 void ClsMes::MakeMesWinTbl_str(int name_no, int *x, int *y) {
     MakeMesWinTbl_str(name[name_no], x, y);
 }
@@ -2128,52 +2244,63 @@ int ClsMes::MakeMesWinTbl_item(int ref_code, int *x, int *y) {
         }
     }
 }
+
 int ClsMes::GetMesWidth_system(int mes_no) {
-    int inserted_width;
+    int             inserted_width;
     unsigned short *text;
-    int code;
-    int width;
-    int maximum;
+    int             code;
+    int             width;
+    int             maximum;
 
     if (mes_no < 0) {
         return -1;
     }
+
     if (buff_system == NULL) {
         return -1;
     }
+
     text = GetTextLineDataTop_system(mes_no);
     width = 0;
+
     if (text == NULL) {
         return -1;
     }
+
     maximum = 0;
+
     while (1) {
         code = *text++;
+
         switch (code) {
             case MES_CODE_END:
                 if (maximum < width) {
                     maximum = width;
                 }
+
                 return maximum;
             case MES_CODE_NEWLINE:
                 if (maximum < width) {
                     maximum = width;
                 }
+
                 width = 0;
                 continue;
         }
+
         if (code >= 0xFAEA && code <= 0xFAF9) {
             inserted_width = GetStrWidth(0xFAF9 - code);
+
             if (inserted_width != -1) {
                 width += inserted_width;
             }
         } else if (code >= 0xFFA0 && code <= 0xFFFF) {
-            width += (int)(font_w * half_font_w_percent);
+            width += (int) (font_w * half_font_w_percent);
         } else if (code >= 0xFDE0 && code < 0xFDF8) {
             if (GetFontGaijiHankaku(code) != 0) {
-                width += (int)(font_w * half_font_w_percent);
+                width += (int) (font_w * half_font_w_percent);
             } else {
-                width += (int)(2.0f * (font_w * half_font_w_percent));
+                width += (int) (2.0f * (font_w * half_font_w_percent));
             }
         } else if (code >= MES_CODE_GAIJI && code < 0xFD32) {
             width += GetGaijiW(code);
@@ -2183,7 +2310,7 @@ int ClsMes::GetMesWidth_system(int mes_no) {
             if (code == GetHalfFontNo(' ')) {
                 width += font_w / 2;
             } else {
-                width += (int)(font_w * half_font_w_percent);
+                width += (int) (font_w * half_font_w_percent);
             }
         } else if (CheckKanjiFont(code) != 0) {
             width += font_w;
@@ -2194,6 +2321,7 @@ int ClsMes::GetMesWidth_system(int mes_no) {
         }
     }
 }
+
 u16 *ClsMes::GetTextLineDataTop(int line_id) {
     short *table = buff;
     int    i;
@@ -2303,38 +2431,43 @@ int ClsMes::SetMesWinTbl(int code, short x, short y) {
 
     return 1;
 }
+
 int ClsMes::CalcSpaceW(int width, int char_width, unsigned short *text) {
     unsigned short *p;
-    int code;
-    int used_width;
-    int spaces;
+    int             code;
+    int             used_width;
+    int             spaces;
 
     used_width = 0;
     spaces = 0;
     p = text;
+
     while (1) {
         code = *p++;
+
         switch (code) {
-        case MES_CODE_NEWLINE:
-        case MES_CODE_PAGE:
-        case MES_CODE_END:
-            if (spaces > 0) {
-                return (width - used_width) / spaces;
-            }
-            return -1;
-        case MES_CODE_SPACE:
-            spaces++;
-            continue;
+            case MES_CODE_NEWLINE:
+            case MES_CODE_PAGE:
+            case MES_CODE_END:
+                if (spaces > 0) {
+                    return (width - used_width) / spaces;
+                }
+
+                return -1;
+            case MES_CODE_SPACE:
+                spaces++;
+                continue;
         }
+
         if (code >= MES_CODE_GAIJI && code < 0xFD32) {
             used_width += GetGaijiW(code);
         } else if (code >= 0xFFA0 && code < 0x10000) {
-            used_width += (int)(char_width * half_font_w_percent);
+            used_width += (int) (char_width * half_font_w_percent);
         } else if (code >= 0xFDE0 && code < 0xFDF8) {
             if (GetFontGaijiHankaku(code) != 0) {
-                used_width += (int)(font_w * half_font_w_percent);
+                used_width += (int) (font_w * half_font_w_percent);
             } else {
-                used_width += (int)(2.0f * (font_w * half_font_w_percent));
+                used_width += (int) (2.0f * (font_w * half_font_w_percent));
             }
         } else if (code >= MES_CODE_MOVE_X && code < 0xFA00) {
             used_width += code - MES_CODE_MOVE_X;
@@ -2348,7 +2481,7 @@ int ClsMes::CalcSpaceW(int width, int char_width, unsigned short *text) {
             continue;
         } else if (code >= MES_CODE_COLOR_A && code <= 0xF2FF) {
             continue;
-        } else if ((unsigned)(code - MES_CODE_VOICE_1) <= 1) {
+        } else if ((unsigned) (code - MES_CODE_VOICE_1) <= 1) {
             continue;
         } else if (code == MES_CODE_VOICE_2) {
             continue;
@@ -2356,13 +2489,14 @@ int ClsMes::CalcSpaceW(int width, int char_width, unsigned short *text) {
             if (code == GetHalfFontNo(' ')) {
                 used_width += char_width / 2;
             } else {
-                used_width += (int)(char_width * half_font_w_percent);
+                used_width += (int) (char_width * half_font_w_percent);
             }
         } else {
             used_width += char_width;
         }
     }
 }
+
 int ClsMes::MakeMesWinTbl(int mes_no) {
     unsigned short *text;
     short          *registered_name;
@@ -2374,51 +2508,60 @@ int ClsMes::MakeMesWinTbl(int mes_no) {
     if (buff == NULL) {
         return 0;
     }
+
     text = GetTextLineDataTop(mes_no);
+
     if (text == NULL) {
         return 0;
     }
+
     InitMesWinTbl();
     draw_speed = GetDrawSpeedDef();
     x = 0;
     y = 0;
+
     while (1) {
         code = *text++;
+
         if (code == MES_CODE_NEWLINE || code == MES_CODE_PAGE || code == MES_CODE_END) {
             space_w = -1;
             justify_w = -1;
         }
+
         switch (code) {
-        case MES_CODE_END:
-            SetMesWinTbl(MES_CODE_END, x, y);
-            return 1;
-        case MES_CODE_NEWLINE:
-            SetMesWinTbl(MES_CODE_NEWLINE, x, y);
-            x = 0;
-            y += font_h;
-            continue;
-        case MES_CODE_PAGE:
-            SetMesWinTbl(MES_CODE_PAGE, x, y);
-            x = 0;
-            y = 0;
-            continue;
-        case MES_CODE_VOICE_1:
-        case MES_CODE_VOICE_0:
-        case MES_CODE_VOICE_2:
-            SetMesWinTbl(code, x, y);
-            continue;
-        case MES_CODE_SPACE:
-            SetMesWinTbl(MES_CODE_SPACE, x, y);
-            if (justify_w >= 0 || space_w >= 0) {
-                x += space_w;
-            } else {
-                x += font_w / 2;
-            }
-            continue;
+            case MES_CODE_END:
+                SetMesWinTbl(MES_CODE_END, x, y);
+                return 1;
+            case MES_CODE_NEWLINE:
+                SetMesWinTbl(MES_CODE_NEWLINE, x, y);
+                x = 0;
+                y += font_h;
+                continue;
+            case MES_CODE_PAGE:
+                SetMesWinTbl(MES_CODE_PAGE, x, y);
+                x = 0;
+                y = 0;
+                continue;
+            case MES_CODE_VOICE_1:
+            case MES_CODE_VOICE_0:
+            case MES_CODE_VOICE_2:
+                SetMesWinTbl(code, x, y);
+                continue;
+            case MES_CODE_SPACE:
+                SetMesWinTbl(MES_CODE_SPACE, x, y);
+
+                if (justify_w >= 0 || space_w >= 0) {
+                    x += space_w;
+                } else {
+                    x += font_w / 2;
+                }
+
+                continue;
         }
+
         if (code >= 0xFFA0 && code < 0x10000) {
             SetMesWinTbl(GetAlphabeticalFontNo_us(code), x, y);
-            x += (int)(font_w * half_font_w_percent);
+            x += (int) (font_w * half_font_w_percent);
         } else if (code >= 0xFDE0 && code < 0xFDF8) {
             SetMesWinTbl(GetFontNoFromFontGaijiCode(code), x, y);
             x += font_w;
@@ -2444,10 +2587,13 @@ int ClsMes::MakeMesWinTbl(int mes_no) {
             x += code - MES_CODE_MOVE_X;
         } else if (code >= 0xFAFA && code < 0xFB00) {
             registered_name = SetAndGetNameRegistTbl(code - 0xFAFA);
+
             if (registered_name != NULL) {
                 name_code = *registered_name;
+
                 while (name_code != MES_CODE_NEWLINE && name_code != MES_CODE_END) {
                     SetMesWinTbl(name_code, x, y);
+
                     if (CheckKanjiFont(name_code) != 0) {
                         x += font_w;
                     } else if (CheckKanjiFont(registered_name[1]) != 0) {
@@ -2455,6 +2601,7 @@ int ClsMes::MakeMesWinTbl(int mes_no) {
                     } else {
                         x += font_w;
                     }
+
                     registered_name++;
                     name_code = *registered_name;
                 }
@@ -2469,11 +2616,12 @@ int ClsMes::MakeMesWinTbl(int mes_no) {
             MakeMesWinTbl_value(0xEE - (code - 0xFB00), &x, &y);
         } else if (MakeMesWinTbl_item(code, &x, &y) == 0) {
             SetMesWinTbl(code, x, y);
+
             if (CheckHalfFont(code) != 0) {
                 if (code == GetHalfFontNo(' ')) {
                     x += font_w / 2;
                 } else {
-                    x += (int)(font_w * half_font_w_percent);
+                    x += (int) (font_w * half_font_w_percent);
                 }
             } else if (CheckKanjiFont(code) != 0) {
                 x += font_w;
@@ -2485,6 +2633,7 @@ int ClsMes::MakeMesWinTbl(int mes_no) {
         }
     }
 }
+
 int ClsMes::MakeMesWinTbl(char *text) {
     if (text == NULL) {
         return 0;
@@ -2572,6 +2721,7 @@ void ClsMes::AddPage(int end, int page) {
         }
     }
 }
+
 void ClsMes::NeedMesWinWH(int mes_no) {
     unsigned short *text;
     int             y;
@@ -2588,58 +2738,71 @@ void ClsMes::NeedMesWinWH(int mes_no) {
     if (buff == NULL) {
         return;
     }
+
     text = GetTextLineDataTop(mes_no);
+
     if (text == NULL) {
         return;
     }
+
     text_h = 0;
     y = 0;
     line = 0;
     page_index = 0;
+
     while (1) {
         code = *text++;
+
         if (code == MES_CODE_NEWLINE || code == MES_CODE_PAGE || code == MES_CODE_END) {
             space_w = -1;
             justify_w = -1;
         }
+
         switch (code) {
-        case MES_CODE_END:
-            AddPage(line, page_index);
-            text_h += font_h;
-            text_w = 0;
-            for (i = 0; i < MES_LINE_MAX; i++) {
-                if (line_w[i] >= 0 && text_w < line_w[i]) {
-                    text_w = line_w[i];
+            case MES_CODE_END:
+                AddPage(line, page_index);
+                text_h += font_h;
+                text_w = 0;
+
+                for (i = 0; i < MES_LINE_MAX; i++) {
+                    if (line_w[i] >= 0 && text_w < line_w[i]) {
+                        text_w = line_w[i];
+                    }
                 }
-            }
-            for (int n = 0; n < MES_LINE_MAX; n++) {
-                line_indent[n] = (text_w - line_w[n]) / 2;
-            }
-            page_num = page_index + 1;
-            return;
-        case MES_CODE_SPACE:
-            if (justify_w >= 0 || space_w >= 0) {
-                AddYokoHaba(line, space_w);
-            } else {
-                AddYokoHaba(line, font_w / 2);
-            }
-            continue;
-        case MES_CODE_NEWLINE:
-            line++;
-            SetYokoHaba(line, 0);
-            y += font_h;
-            if (text_h < y) {
-                text_h = y;
-            }
-            continue;
-        case MES_CODE_PAGE:
-            AddPage(line, page_index);
-            line++;
-            SetYokoHaba(line, 0);
-            y = 0;
-            page_index++;
-            continue;
+
+                for (int n = 0; n < MES_LINE_MAX; n++) {
+                    line_indent[n] = (text_w - line_w[n]) / 2;
+                }
+
+                page_num = page_index + 1;
+                return;
+            case MES_CODE_SPACE:
+                if (justify_w >= 0 || space_w >= 0) {
+                    AddYokoHaba(line, space_w);
+                } else {
+                    AddYokoHaba(line, font_w / 2);
+                }
+
+                continue;
+            case MES_CODE_NEWLINE:
+                line++;
+                SetYokoHaba(line, 0);
+                y += font_h;
+
+                if (text_h < y) {
+                    text_h = y;
+                }
+
+                continue;
+            case MES_CODE_PAGE:
+                AddPage(line, page_index);
+                line++;
+                SetYokoHaba(line, 0);
+                y = 0;
+                page_index++;
+                continue;
         }
+
         if ((code < MES_CODE_WAIT || code > 0xFEFF) &&
             (code < MES_CODE_COLOR_DEFAULT || code > 0xFCFF) &&
             (code < MES_CODE_COLOR_R || code > 0xF5FF) &&
@@ -2653,73 +2816,93 @@ void ClsMes::NeedMesWinWH(int mes_no) {
                 space_w = CalcSpaceW(justify_w, font_w, text - 1);
                 continue;
             }
+
             if (code >= MES_CODE_SPACE_W && code < MES_CODE_MOVE_X) {
                 space_w = code - MES_CODE_SPACE_W;
                 continue;
             }
+
             if (code >= MES_CODE_MOVE_X && code < 0xFA00) {
                 AddYokoHaba(line, code - MES_CODE_MOVE_X);
                 continue;
             }
+
             index = code - 0xFB00;
+
             if (index == 0xFF) {
                 char number[0x80];
+
                 if (value_zero != 0 || value != 0) {
                     if (value_sign != 0 && value > 0) {
                         sprintf(number, "+%d\n", value);
                     } else {
                         sprintf(number, "%d\n", value);
                     }
+
                     digits = strlen(number) - 1;
+
                     if (value_half != 0) {
                         AddYokoHaba(line, digits * font_w / 2);
                     } else {
                         AddYokoHaba(line, digits * font_w);
                     }
                 }
+
                 continue;
             }
+
             if (index >= 0xF3 && index < 0xFB) {
                 char number[0x80];
                 index = 0xFA - index;
+
                 if (value_zero != 0 || values[index] != 0) {
                     if (value_sign != 0 && values[index] > 0) {
                         sprintf(number, "+%d\n", values[index]);
                     } else {
                         sprintf(number, "%d\n", values[index]);
                     }
+
                     digits = strlen(number) - 1;
+
                     if (value_half != 0) {
                         AddYokoHaba(line, digits * font_w / 2);
                     } else {
                         AddYokoHaba(line, digits * font_w);
                     }
                 }
+
                 continue;
             }
+
             if (code >= 0xFBDF && code < MES_CODE_ITEM_LAST) {
                 char number[0x80];
                 index = 0xEE - index;
+
                 if (value_zero != 0 || values[index] != 0) {
                     if (value_sign != 0 && values[index] > 0) {
                         sprintf(number, "+%d\n", values[index]);
                     } else {
                         sprintf(number, "%d\n", values[index]);
                     }
+
                     digits = strlen(number) - 1;
+
                     if (value_half != 0) {
                         AddYokoHaba(line, digits * font_w / 2);
                     } else {
                         AddYokoHaba(line, digits * font_w);
                     }
                 }
+
                 continue;
             }
+
             if (code == MES_CODE_ITEM_LAST || code == 0xFBE8 || code == 0xFBE9 || code == 0xFBEA ||
                 code == 0xFBEB || code == 0xFBEC || code == 0xFBED || code == 0xFBEE ||
                 code == 0xFBEF || code == 0xFBF0 || code == 0xFBF1 || code == 0xFBF2 ||
                 code == 0xFBFB || code == 0xFBFC || code == 0xFBFD || code == MES_CODE_ITEM_FIRST) {
                 item_no = GetItemNoFromFontNo(code);
+
                 if (item_no <= 0) {
                     message = -1;
                 } else if (item_no > 16) {
@@ -2727,42 +2910,53 @@ void ClsMes::NeedMesWinWH(int mes_no) {
                 } else {
                     message = item_mes[item_no - 1];
                 }
+
                 width = GetMesWidth_system(message);
+
                 if (width != -1) {
                     AddYokoHaba(line, width);
                 }
+
                 continue;
             }
+
             if (code >= 0xFAEA && code <= 0xFAF9) {
                 width = GetStrWidth(0xFAF9 - code);
+
                 if (width != -1) {
                     AddYokoHaba(line, width);
                 }
+
                 continue;
             }
+
             if (code >= 0xFFA0 && code < 0x10000) {
-                AddYokoHaba(line, (int)(font_w * half_font_w_percent));
+                AddYokoHaba(line, (int) (font_w * half_font_w_percent));
                 continue;
             }
+
             if (code >= 0xFDE0 && code < 0xFDF8) {
                 if (code == 0xFDF3) {
-                    AddYokoHaba(line, (int)(2.0f * (font_w * half_font_w_percent)));
+                    AddYokoHaba(line, (int) (2.0f * (font_w * half_font_w_percent)));
                 } else if (GetFontGaijiHankaku(code) != 0) {
-                    AddYokoHaba(line, (int)(font_w * half_font_w_percent));
+                    AddYokoHaba(line, (int) (font_w * half_font_w_percent));
                 } else {
-                    AddYokoHaba(line, (int)(2.0f * (font_w * half_font_w_percent)));
+                    AddYokoHaba(line, (int) (2.0f * (font_w * half_font_w_percent)));
                 }
+
                 continue;
             }
+
             if (code >= MES_CODE_GAIJI && code < 0xFD32) {
                 AddYokoHaba(line, GetGaijiW(code));
                 continue;
             }
+
             if (CheckHalfFont(code) != 0) {
                 if (code == GetHalfFontNo(' ')) {
                     AddYokoHaba(line, font_w / 2);
                 } else {
-                    AddYokoHaba(line, (int)(font_w * half_font_w_percent));
+                    AddYokoHaba(line, (int) (font_w * half_font_w_percent));
                 }
             } else if (CheckKanjiFont(code) != 0) {
                 AddYokoHaba(line, font_w);
@@ -2774,6 +2968,7 @@ void ClsMes::NeedMesWinWH(int mes_no) {
         }
     }
 }
+
 void ClsMes::NeedMesWinWH(char *text) {
     char  message[mes_buffer_size];
     char  value_text[0x80];
@@ -2939,7 +3134,11 @@ void ClsMes::NeedMesWinWH(char *text) {
                 }
             }
 
-            if (strncmp(message + position, "[\x83" "A\x83" "C\x83" "e\x83\x80", 9) == 0) {
+            if (strncmp(message + position, "[\x83"
+                                            "A\x83"
+                                            "C\x83"
+                                            "e\x83\x80",
+                        9) == 0) {
                 position += 9;
                 tag_text = message + position;
                 code = -1;
@@ -3222,16 +3421,21 @@ void ClsMes::MakeMesWin_init(int reset_fade) {
         line_alpha[index] = -1;
     }
 }
+
 static inline int PageCharTotal(ClsMes *mes, int pages) {
     if (pages <= 0) {
         return 0;
     }
+
     int total = 0;
+
     for (int i = 0; i < pages; i++) {
         total += mes->page_chars[i];
     }
+
     return total;
 }
+
 void ClsMes::MakeMesWin(int message) {
     int extra_width;
     int current_page;
@@ -3241,8 +3445,10 @@ void ClsMes::MakeMesWin(int message) {
         if (mes_no == -2) {
             open = 1;
         }
+
         return;
     }
+
     if (mes_no == message) {
         if (GetPageAutoFlg() == 0) {
             open = 1;
@@ -3252,27 +3458,34 @@ void ClsMes::MakeMesWin(int message) {
         mes_no = message;
         MakeMesWin_init(1);
         NeedMesWinWH(message);
+
         if (text_w < 45) {
             fukidashi_w = 105;
         } else {
             extra_width = 0;
             fukidashi_w = text_w + 60;
+
             for (current_page = 0; current_page < page_num; current_page++) {
                 character_count = PageCharTotal(this, current_page + 1);
+
                 if (text_w <= line_w[character_count - 1]) {
                     extra_width = 1;
                 }
             }
+
             if (extra_width != 0) {
                 fukidashi_w += 20;
             }
         }
+
         fukidashi_h = text_h + 48;
+
         if (MakeMesWinTbl(message) != 0) {
             char_num = tbl_num;
         }
     }
 }
+
 void PreMesMake(char *source, char *buffer) {
     signed char *src = (signed char *) source;
     int          length = 0;
@@ -3315,6 +3528,7 @@ void PreMesMake(char *source, char *buffer) {
         }
     } while (length < mes_buffer_size);
 }
+
 void ClsMes::MakeMesWin(char *str, int open, int reset_fade) {
     char text[512];
     int  extra_width;
@@ -3327,27 +3541,34 @@ void ClsMes::MakeMesWin(char *str, int open, int reset_fade) {
         MakeMesWin_init(reset_fade);
         this->open = open;
         NeedMesWinWH(text);
+
         if (text_w < 45) {
             fukidashi_w = 105;
         } else {
             extra_width = 0;
             fukidashi_w = text_w + 60;
+
             for (current_page = 0; current_page < page_num; current_page++) {
                 character_count = PageCharTotal(this, current_page + 1);
+
                 if (text_w <= line_w[character_count - 1]) {
                     extra_width = 1;
                 }
             }
+
             if (extra_width != 0) {
                 fukidashi_w += 20;
             }
         }
+
         fukidashi_h = text_h + 48;
+
         if (MakeMesWinTbl(text) != 0) {
             char_num = tbl_num;
         }
     }
 }
+
 int ClsMes::MakeAnd3DPosSet(char *text, float *world_position, int offset_x, int offset_y) {
     int screen_position[4];
 
@@ -3396,11 +3617,11 @@ void ClsMes::DrawFukidashiShadow() {
         return;
     }
 
-    float             scale = fade;
-    float             width = (float) fukidashi_w * scale;
-    float             height = (float) fukidashi_h * scale;
-    mgCDrawPrim       drawer;
-    mgCDrawPrim      *prim = &drawer;
+    float        scale = fade;
+    float        width = (float) fukidashi_w * scale;
+    float        height = (float) fukidashi_h * scale;
+    mgCDrawPrim  drawer;
+    mgCDrawPrim *prim = &drawer;
     prim->Initialize(NULL, NULL);
     prim->AlphaTestEnable(0);
     prim->DepthTestEnable(0);
@@ -3452,28 +3673,30 @@ void DrawYesNo(mgCDrawPrim *prim, int yes_x, int yes_y, int no_x, int no_y, RGBA
 }
 
 void GetPos_AbsPosSet(RECT screen, int width, int height, int bubble_pos, int *x, int *y) {
-    message_anchor_table anchor = {{
-        {0.17f, 0.17f},
-        {0.5f, 0.17f},
-        {0.83f, 0.17f},
-        {0.17f, 0.5f},
-        {0.5f, 0.5f},
-        {0.83f, 0.5f},
-        {0.17f, 0.83f},
-        {0.5f, 0.83f},
-        {0.83f, 0.83f},
-        {0.0f, 0.0f},
-        {0.5f, 0.0f},
-        {1.0f, 0.0f},
-        {0.0f, 0.5f},
-        {1.0f, 0.5f},
-        {0.0f, 1.0f},
-        {0.5f, 1.0f},
-        {1.0f, 1.0f},
-        {0.5f, 0.42f},
-        {0.5f, 0.375f},
-    }};
-    int                  pos_x = fptosi(screen.width * anchor.point[bubble_pos - 1][0]);
+    message_anchor_table anchor = {
+        {
+         {0.17f, 0.17f},
+         {0.5f, 0.17f},
+         {0.83f, 0.17f},
+         {0.17f, 0.5f},
+         {0.5f, 0.5f},
+         {0.83f, 0.5f},
+         {0.17f, 0.83f},
+         {0.5f, 0.83f},
+         {0.83f, 0.83f},
+         {0.0f, 0.0f},
+         {0.5f, 0.0f},
+         {1.0f, 0.0f},
+         {0.0f, 0.5f},
+         {1.0f, 0.5f},
+         {0.0f, 1.0f},
+         {0.5f, 1.0f},
+         {1.0f, 1.0f},
+         {0.5f, 0.42f},
+         {0.5f, 0.375f},
+         }
+    };
+    int pos_x = fptosi(screen.width * anchor.point[bubble_pos - 1][0]);
     pos_x -= width / 2;
     int pos_y = fptosi(screen.height * anchor.point[bubble_pos - 1][1]);
     pos_y -= height / 2;
@@ -3681,7 +3904,7 @@ void ClsMes::DrawFont() {
                 }
 
                 prim.Direct(SCE_GS_SCISSOR_1, (unsigned long) left | ((unsigned long) right << 16) |
-                                      ((unsigned long) top << 32) | ((unsigned long) bottom << 48));
+                                                  ((unsigned long) top << 32) | ((unsigned long) bottom << 48));
             }
 
             x += text_x;
@@ -3732,7 +3955,7 @@ void ClsMes::DrawFont() {
 
         if (scissor_on != 0 && line_pos_on[line] == 0) {
             prim.Direct(SCE_GS_SCISSOR_1, ((unsigned long) (mgScreenWidth - 1) << 16) |
-                                  ((unsigned long) (mgScreenHeight - 1) << 48));
+                                              ((unsigned long) (mgScreenHeight - 1) << 48));
         }
     }
 
@@ -3749,36 +3972,45 @@ void ClsMes::SetGoalCursorXY() {
     if (select < 0) {
         return;
     }
+
     if (window_mode == MES_WIN_YESNO) {
         if (choice_pos[select][0] < 0 || choice_pos[select][1] < 0) {
             return;
         }
-        goal_cursor_x = (int)((choice_pos[select][0] - 20) - draw_off_x);
-        goal_cursor_y = (int)(choice_pos[select][1] - draw_off_y);
+
+        goal_cursor_x = (int) ((choice_pos[select][0] - 20) - draw_off_x);
+        goal_cursor_y = (int) (choice_pos[select][1] - draw_off_y);
     } else {
         goal_cursor_x = text_x - 40 - font_w / 2;
         goal_cursor_y = text_y + font_h * select + cursor_off_y + draw_h / 2 - 12;
         CalcCenteringXY(&dx, &dy);
         goal_cursor_x += dx;
         goal_cursor_y += dy;
+
         if (line_indent_on != 0 && cursor_centering != 0) {
             count = 0;
+
             for (line = 0; line < MES_LINE_MAX; line++) {
                 if (line_w[line] < 0) {
                     break;
                 }
+
                 count++;
             }
+
             width = 0;
+
             for (int row = select_top; row < count; row++) {
                 if (width < line_w[row]) {
                     width = line_w[row];
                 }
             }
+
             goal_cursor_x += (text_w - width) / 2;
         }
     }
 }
+
 void ClsMes::StepSelectCursor(int steps) {
     int i;
 
@@ -3862,12 +4094,13 @@ void ClsMes::DrawSelectCursor(mgCDrawPrim *prim) {
     cursor_dst.Set(x, y, cursor_w, cursor_h);
     set2DSprite(prim, cursor_dst, cursor_src, &cursor_color);
 }
+
 void ClsMes::DrawEquipment(mgCDrawPrim *prim) {
-    RECT       at = {191, 82, 9, 16};
-    RGBAQ_TYPE color;
+    RECT        at = {191, 82, 9, 16};
+    RGBAQ_TYPE  color;
     mgRect<int> xy;
     mgRect<int> uv;
-    int        line;
+    int         line;
 
     for (line = 0; line < MES_LINE_MAX; line++) {
         if (equip_on[line] != 0) {
@@ -3878,20 +4111,22 @@ void ClsMes::DrawEquipment(mgCDrawPrim *prim) {
                 color.r = color.g = color.b = 0x80;
                 color.a = alpha * 128 / 128;
             }
+
             unsigned int uv_y = at.y;
             uv.Set(at.x, uv_y, at.width, at.height);
-            xy.Set((int)(draw_off_x + (line_pos[line][0] + equip_x[line])),
-                           (int)(draw_off_y + (line_pos[line][1] + equip_y[line])), at.width, at.height);
+            xy.Set((int) (draw_off_x + (line_pos[line][0] + equip_x[line])),
+                   (int) (draw_off_y + (line_pos[line][1] + equip_y[line])), at.width, at.height);
             set2DSprite(prim, xy, uv, &color);
         }
     }
 }
+
 void ClsMes::DrawCross(mgCDrawPrim *prim) {
-    RECT       at = {132, 104, 10, 16};
-    RGBAQ_TYPE color;
+    RECT        at = {132, 104, 10, 16};
+    RGBAQ_TYPE  color;
     mgRect<int> xy;
     mgRect<int> uv;
-    int        line;
+    int         line;
 
     for (line = 0; line < MES_LINE_MAX; line++) {
         if (cross_on[line] != 0) {
@@ -3902,20 +4137,22 @@ void ClsMes::DrawCross(mgCDrawPrim *prim) {
                 color.r = color.g = color.b = 0x80;
                 color.a = alpha * 128 / 128;
             }
+
             unsigned int uv_y = at.y;
             uv.Set(at.x, uv_y, at.width, at.height);
-            xy.Set((int)(draw_off_x + (line_pos[line][0] + cross_x[line])),
-                           (int)(draw_off_y + (line_pos[line][1] + cross_y[line])), at.width, at.height);
+            xy.Set((int) (draw_off_x + (line_pos[line][0] + cross_x[line])),
+                   (int) (draw_off_y + (line_pos[line][1] + cross_y[line])), at.width, at.height);
             set2DSprite(prim, xy, uv, &color);
         }
     }
 }
+
 void ClsMes::DrawRightDelta(mgCDrawPrim *prim) {
-    RECT       at = {158, 240, 10, 16};
-    RGBAQ_TYPE color;
+    RECT        at = {158, 240, 10, 16};
+    RGBAQ_TYPE  color;
     mgRect<int> xy;
     mgRect<int> uv;
-    int        line;
+    int         line;
 
     for (line = 0; line < MES_LINE_MAX; line++) {
         if (delta_on[line] != 0) {
@@ -3926,29 +4163,32 @@ void ClsMes::DrawRightDelta(mgCDrawPrim *prim) {
                 color.r = color.g = color.b = 0x80;
                 color.a = alpha * 128 / 128;
             }
+
             unsigned int uv_y = at.y;
             uv.Set(at.x, uv_y, at.width, at.height);
-            xy.Set((int)(draw_off_x + (line_pos[line][0] + delta_x[line])),
-                           (int)(draw_off_y + (line_pos[line][1] + delta_y[line])), at.width, font_h - 2);
+            xy.Set((int) (draw_off_x + (line_pos[line][0] + delta_x[line])),
+                   (int) (draw_off_y + (line_pos[line][1] + delta_y[line])), at.width, font_h - 2);
             set2DSprite(prim, xy, uv, &color);
         }
     }
 }
+
 static inline int Ident(int v) {
     return v;
 }
+
 void ClsMes::DrawDigit(mgCDrawPrim *prim, int digit, int x, int y, int alpha, RGBAQ_TYPE *color) {
-    RECT at = {176, 140, 16, 20};
+    RECT        at = {176, 140, 16, 20};
     mgRect<int> xy;
-    int h;
+    int         h;
     mgRect<int> uv;
-    int w;
+    int         w;
 
     at.x += digit % 5 * at.width;
     at.y = Ident(digit / 5 * at.height + at.y);
     color->a = alpha * 128 / 128;
     uv.Set(at.x, at.y, w = at.width, h = at.height);
-    xy.Set(x, (int)(y + 2.0), w, h);
+    xy.Set(x, (int) (y + 2.0), w, h);
     set2DSpriteEasy(prim, xy, uv, color);
 }
 
@@ -3958,15 +4198,15 @@ void ClsMes::DrawDigit(mgCDrawPrim *prim, int digit, int x, int y, int alpha, RG
  *
  */
 static RECT data_4206[10] = {
-    {56, 198, 24, 18},
-    {80, 198, 24, 18},
+    {56,  198, 24, 18},
+    {80,  198, 24, 18},
     {104, 198, 24, 18},
-    {80, 198, 24, 18},
-    {128, 90, 20, 20},
-    {148, 90, 20, 20},
-    {168, 90, 20, 20},
-    {188, 90, 20, 20},
-    {88, 116, 16, 16},
+    {80,  198, 24, 18},
+    {128, 90,  20, 20},
+    {148, 90,  20, 20},
+    {168, 90,  20, 20},
+    {188, 90,  20, 20},
+    {88,  116, 16, 16},
     {104, 116, 18, 16},
 };
 
@@ -4123,15 +4363,19 @@ void CalcWindowInRectFromOutRect(int type, RECT outer, RECT *inner) {
     inner->width = outer.width - (waku_data[type][0] + waku_data[type][2]);
     inner->height = outer.height - (waku_data[type][1] + waku_data[type][3]);
 }
+
 static inline int BottomPos(float max, int size) {
-    return (int)CalcAutoPosSet(0.0f, max, size, 0.95f);
+    return (int) CalcAutoPosSet(0.0f, max, size, 0.95f);
 }
+
 static inline int CentrePos(float max, int size) {
-    return (int)CalcAutoPosSet(0.0f, max, size, 0.5f);
+    return (int) CalcAutoPosSet(0.0f, max, size, 0.5f);
 }
+
 static inline int CentrePosX(float max, int size) {
-    return (int)CalcAutoPosSet(float(0.0), max, size, 0.5f);
+    return (int) CalcAutoPosSet(float(0.0), max, size, 0.5f);
 }
+
 void ClsMes::DrawMesWin() {
     RGBAQ_TYPE color;
     RGBAQ_TYPE shadow_color;
@@ -4149,21 +4393,23 @@ void ClsMes::DrawMesWin() {
     shadow_color.a = alpha * 0x40 / 128;
     mgCDrawPrim frame_prim;
     mgCDrawPrim sprite_prim;
-    RECT       inner;
-    RECT       outer;
-    RECT       shadow;
-    RECT       help_scaled;
-    RECT       versatile_1_scaled;
-    RECT       yesno_scaled;
-    RECT       versatile_3_scaled;
-    RECT       versatile_4_scaled;
-    int        dx;
-    int        dy;
-    int        select_y;
+    RECT        inner;
+    RECT        outer;
+    RECT        shadow;
+    RECT        help_scaled;
+    RECT        versatile_1_scaled;
+    RECT        yesno_scaled;
+    RECT        versatile_3_scaled;
+    RECT        versatile_4_scaled;
+    int         dx;
+    int         dy;
+    int         select_y;
     MySetPrim(&sprite_prim, MES_PRIM_SPRITE, 0);
+
     if (mes_no == -1) {
         return;
     }
+
     CalcCenteringXY(&dx, &dy);
     inner.x = text_x + dx;
     inner.y = text_y + dy;
@@ -4177,6 +4423,7 @@ void ClsMes::DrawMesWin() {
     shadow.y = outer.y + 5;
     shadow.width = outer.width;
     shadow.height = outer.height;
+
     switch (window_mode) {
         case MES_WIN_FUKIDASHI:
             outer.x = fukidashi_x;
@@ -4195,39 +4442,39 @@ void ClsMes::DrawMesWin() {
             break;
         case MES_WIN_HELP:
             CalcRectScale(outer, fade, &help_scaled);
-            help_scaled.x = (int)(help_scaled.x + draw_off_x);
+            help_scaled.x = (int) (help_scaled.x + draw_off_x);
             help_scaled.y += draw_off_y;
             MyMenuHelpWinDraw(&sprite_prim, help_scaled, alpha);
             break;
         case MES_WIN_FLOATING:
-            shadow.x = (int)(shadow.x + draw_off_x);
-            shadow.y = (int)(shadow.y + draw_off_y);
+            shadow.x = (int) (shadow.x + draw_off_x);
+            shadow.y = (int) (shadow.y + draw_off_y);
             MyMenuFloatingWinDraw(&frame_prim, shadow, shadow.x + point_x, shadow.y + point_y,
                                   &shadow_color, &shadow_color);
-            outer.x = (int)(outer.x + draw_off_x);
-            outer.y = (int)(outer.y + draw_off_y);
+            outer.x = (int) (outer.x + draw_off_x);
+            outer.y = (int) (outer.y + draw_off_y);
             MyMenuFloatingWinDraw(&frame_prim, outer, outer.x + point_x, outer.y + point_y,
                                   &color, &win_color);
             break;
         case MES_WIN_VERSATILE_1:
             CalcRectScale(shadow, fade, &versatile_1_scaled);
-            versatile_1_scaled.x = (int)(versatile_1_scaled.x + draw_off_x);
-            versatile_1_scaled.y = (int)(versatile_1_scaled.y + draw_off_y);
+            versatile_1_scaled.x = (int) (versatile_1_scaled.x + draw_off_x);
+            versatile_1_scaled.y = (int) (versatile_1_scaled.y + draw_off_y);
             DrawVersatileWin_1(&frame_prim, versatile_1_scaled, &shadow_color, alpha, bg_opaque);
             CalcRectScale(outer, fade, &versatile_1_scaled);
-            versatile_1_scaled.x = (int)(versatile_1_scaled.x + draw_off_x);
-            versatile_1_scaled.y = (int)(versatile_1_scaled.y + draw_off_y);
+            versatile_1_scaled.x = (int) (versatile_1_scaled.x + draw_off_x);
+            versatile_1_scaled.y = (int) (versatile_1_scaled.y + draw_off_y);
             DrawVersatileWin_1(&frame_prim, versatile_1_scaled, &color, alpha, bg_opaque);
             break;
         case MES_WIN_YESNO:
             OffsetYesNoWin(&outer, &shadow);
             CalcRectScale(shadow, fade, &yesno_scaled);
-            yesno_scaled.x = (int)(yesno_scaled.x + draw_off_x);
-            yesno_scaled.y = (int)(yesno_scaled.y + draw_off_y);
+            yesno_scaled.x = (int) (yesno_scaled.x + draw_off_x);
+            yesno_scaled.y = (int) (yesno_scaled.y + draw_off_y);
             DrawVersatileWin_yesno(&frame_prim, yesno_scaled, &shadow_color, alpha, bg_opaque);
             CalcRectScale(outer, fade, &yesno_scaled);
-            yesno_scaled.x = (int)(yesno_scaled.x + draw_off_x);
-            yesno_scaled.y = (int)(yesno_scaled.y + draw_off_y);
+            yesno_scaled.x = (int) (yesno_scaled.x + draw_off_x);
+            yesno_scaled.y = (int) (yesno_scaled.y + draw_off_y);
             DrawVersatileWin_yesno(&frame_prim, yesno_scaled, &color, alpha, bg_opaque);
             SetSelectCursorPos(yesno_scaled);
             DrawYesNo(&frame_prim, choice_pos[0][0], choice_pos[0][1], choice_pos[1][0], choice_pos[1][1], &color);
@@ -4236,48 +4483,51 @@ void ClsMes::DrawMesWin() {
             CalcRectScale(shadow, fade, &versatile_3_scaled);
             select_y = inner.y + font_h * select_top + 7;
             int half = versatile_3_scaled.height / 2;
-            int diff = select_y - ((int)versatile_3_scaled.y + (int)half);
-            select_y = (int)(diff * fade);
-            select_y = select_y + versatile_3_scaled.y + (int)half;
-            versatile_3_scaled.x = (int)(versatile_3_scaled.x + draw_off_x);
-            versatile_3_scaled.y = (int)(versatile_3_scaled.y + draw_off_y);
+            int diff = select_y - ((int) versatile_3_scaled.y + (int) half);
+            select_y = (int) (diff * fade);
+            select_y = select_y + versatile_3_scaled.y + (int) half;
+            versatile_3_scaled.x = (int) (versatile_3_scaled.x + draw_off_x);
+            versatile_3_scaled.y = (int) (versatile_3_scaled.y + draw_off_y);
             DrawVersatileWin_3(&frame_prim, versatile_3_scaled, select_y, &shadow_color, alpha, bg_opaque);
             CalcRectScale(outer, fade, &versatile_3_scaled);
-            versatile_3_scaled.x = (int)(versatile_3_scaled.x + draw_off_x);
-            versatile_3_scaled.y = (int)(versatile_3_scaled.y + draw_off_y);
+            versatile_3_scaled.x = (int) (versatile_3_scaled.x + draw_off_x);
+            versatile_3_scaled.y = (int) (versatile_3_scaled.y + draw_off_y);
             DrawVersatileWin_3(&frame_prim, versatile_3_scaled, select_y, &color, alpha, bg_opaque);
             break;
         case MES_WIN_VERSATILE_4:
             CalcRectScale(shadow, fade, &versatile_4_scaled);
-            versatile_4_scaled.x = (int)(versatile_4_scaled.x + draw_off_x);
-            versatile_4_scaled.y = (int)(versatile_4_scaled.y + draw_off_y);
+            versatile_4_scaled.x = (int) (versatile_4_scaled.x + draw_off_x);
+            versatile_4_scaled.y = (int) (versatile_4_scaled.y + draw_off_y);
             DrawVersatileWin_4(&frame_prim, versatile_4_scaled, &shadow_color, alpha, bg_opaque);
             CalcRectScale(outer, fade, &versatile_4_scaled);
-            versatile_4_scaled.x = (int)(versatile_4_scaled.x + draw_off_x);
-            versatile_4_scaled.y = (int)(versatile_4_scaled.y + draw_off_y);
+            versatile_4_scaled.x = (int) (versatile_4_scaled.x + draw_off_x);
+            versatile_4_scaled.y = (int) (versatile_4_scaled.y + draw_off_y);
             DrawVersatileWin_4(&frame_prim, versatile_4_scaled, &color, alpha, bg_opaque);
             break;
         case MES_WIN_DQ_FUKIDASHI:
         case MES_WIN_DQ_FUKIDASHI_2:
             text_x = CentrePos(512.0f, text_w);
-            text_y = (int)CalcAutoPosSet(0.0f, 480.0f, text_h, float(0.95));
+            text_y = (int) CalcAutoPosSet(0.0f, 480.0f, text_h, float(0.95));
             outer.x = text_x - (font_w + 8);
             outer.y = text_y - 13;
             outer.width = font_w + (font_w + 16 + text_w);
             outer.height = text_h + 26;
             point_x = tail_target_x - text_x;
             point_y = -10;
-            outer.x = (int)(outer.x + draw_off_x);
-            outer.y = (int)(outer.y + draw_off_y);
+            outer.x = (int) (outer.x + draw_off_x);
+            outer.y = (int) (outer.y + draw_off_y);
             DrawDQFukidashi(&frame_prim, outer, outer.x + point_x, outer.y + point_y, &color, tail_on, window_mode);
             break;
         case MES_WIN_CENTRE:
             break;
     }
+
     if (window_mode == MES_WIN_FUKIDASHI && open != 0 && fade < 1.0f) {
         return;
     }
+
     page_time++;
+
     if (0 <= abs_win.x) {
         if (0 <= abs_text_off_x) {
             text_x = abs_win.x + abs_text_off_x;
@@ -4289,6 +4539,7 @@ void ClsMes::DrawMesWin() {
     } else {
         text_x = inner.x;
     }
+
     if (0 <= abs_win.y) {
         if (0 <= abs_text_off_y) {
             text_y = abs_win.y + abs_text_off_y;
@@ -4300,32 +4551,39 @@ void ClsMes::DrawMesWin() {
     } else {
         text_y = inner.y;
     }
+
     if (window_mode == MES_WIN_BOTTOM || window_mode == MES_WIN_DQ_FUKIDASHI ||
         window_mode == MES_WIN_DQ_FUKIDASHI_2) {
-        text_x = (int)CalcAutoPosSet(float(0.0), 512.0f, text_w, float(0.5));
+        text_x = (int) CalcAutoPosSet(float(0.0), 512.0f, text_w, float(0.5));
         text_y = BottomPos(float(480.0), text_h);
     }
+
     if (window_mode == MES_WIN_CENTRE) {
         text_x = CentrePosX(512.0f, text_w);
         text_y = CentrePos(480.0f, text_h);
     }
+
     if (scissor_on == 1) {
         scissor.x = text_x;
         scissor.y = text_y - 1;
+
         if (abs_win.width > 0) {
             scissor.width = abs_win.width;
         } else {
             scissor.width = text_w;
         }
+
         if (abs_win.height > 0) {
             scissor.height = abs_win.height;
         } else {
             scissor.height = text_h;
         }
     }
+
     if (GetCaptionOff() != 0 && window_mode == MES_WIN_BOTTOM && EdEventInfo.stream_playing != 0) {
         return;
     }
+
     DrawFont();
     StepSelectCursor(1);
     DrawSelectCursor(&sprite_prim);
@@ -4334,6 +4592,7 @@ void ClsMes::DrawMesWin() {
     DrawCross(&sprite_prim);
     DrawRightDelta(&sprite_prim);
 }
+
 void Parametric(float *a, float *b, float *out) {
     sceVu0SubVector(out, b, a);
     out[3] = 1.0f;
@@ -4455,10 +4714,12 @@ void MyStrCpyLineFeed(char *dst, char *src) {
 
     in = (signed char *) src;
     out = (signed char *) dst;
+
     for (;;) {
         if (*in == 0xA) {
             break;
         }
+
         if (strncmp((char *) in, "\\n", 2) == 0) {
             in += 2;
             *out = 0xA;
@@ -4468,8 +4729,8 @@ void MyStrCpyLineFeed(char *dst, char *src) {
             in += 1;
             out += 1;
         }
-
     }
+
     *out = 0;
 }
 
@@ -4586,12 +4847,12 @@ void MovieCCInit(char *text, int size, int id) {
     }
 }
 
-s32 MesAbsDrawOff;
-s32 MovieCCCnt;
-s32 MovieCCW;
-s32 MovieCCH;
+s32   MesAbsDrawOff;
+s32   MovieCCCnt;
+s32   MovieCCW;
+s32   MovieCCH;
 short NameRegistTbl[NAME_REGIST_MAX][NAME_REGIST_LEN];
 CFont MovieCCFont;
-s32 MovieCCStart[MOVIE_CC_MAX];
-s32 MovieCCClear[MOVIE_CC_MAX];
-char MovieCCStr[MOVIE_CC_MAX][MOVIE_CC_LEN];
+s32   MovieCCStart[MOVIE_CC_MAX];
+s32   MovieCCClear[MOVIE_CC_MAX];
+char  MovieCCStr[MOVIE_CC_MAX][MOVIE_CC_LEN];

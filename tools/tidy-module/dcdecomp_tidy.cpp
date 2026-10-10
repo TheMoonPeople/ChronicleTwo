@@ -1,5 +1,6 @@
 #include "clang-tidy/ClangTidyCheck.h"
 #include "clang-tidy/ClangTidyModule.h"
+#include "clang-tidy/ClangTidyModuleRegistry.h"
 #include "clang/AST/DeclCXX.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Lex/Lexer.h"
@@ -37,7 +38,7 @@ public:
                                    const CXXRecordDecl *base_record = base.getType()->getAsCXXRecordDecl();
 
                                    return base_record && base_record->hasDefinition() && base_record->isDynamicClass();
-                                      });
+                               });
         const Decl *first_function = nullptr;
         bool        virtual_seen = false;
 

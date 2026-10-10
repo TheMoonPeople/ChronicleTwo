@@ -239,8 +239,8 @@ STATIC_ASSERT(sizeof(CHRINFO_EFFECT_IMAGE) == 0x28);
  *
  */
 struct CHARA_ENTRY_OBJECT {
-    mgCFrame *frame; /**< Frame of the model; NULL for a free slot. */
-    float     size; /**< Size used when checking a frame against a character entry. */
+    mgCFrame *frame;  /**< Frame of the model; NULL for a free slot. */
+    float     size;   /**< Size used when checking a frame against a character entry. */
     s32       group;  /**< Group that the frame belongs to; -1 for a free slot. */
     s32       enable; /**< Nonzero while the slot is in use. */
 };

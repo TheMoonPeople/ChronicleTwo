@@ -24,12 +24,12 @@ class sndCSeSeqData;
  *
  */
 enum SYSTEM_SE {
-    SYSTEM_SE_CURSOR   = 0,    /**< Moves the menu cursor. */
-    SYSTEM_SE_DECIDE   = 1,    /**< Accepts the current menu selection. */
-    SYSTEM_SE_CANCEL   = 5,    /**< Cancels or rejects the current menu selection. */
-    SYSTEM_SE_IDEA     = 0xE,  /**< Announces that a photo has captured an idea. */
-    SYSTEM_SE_WINDOW   = 0x13, /**< Accompanies a menu window or panel being opened or switched. */
-    SYSTEM_SE_MAGNET   = 0x15, /**< A Georama part first snaps to a nearby part. */
+    SYSTEM_SE_CURSOR = 0,      /**< Moves the menu cursor. */
+    SYSTEM_SE_DECIDE = 1,      /**< Accepts the current menu selection. */
+    SYSTEM_SE_CANCEL = 5,      /**< Cancels or rejects the current menu selection. */
+    SYSTEM_SE_IDEA = 0xE,      /**< Announces that a photo has captured an idea. */
+    SYSTEM_SE_WINDOW = 0x13,   /**< Accompanies a menu window or panel being opened or switched. */
+    SYSTEM_SE_MAGNET = 0x15,   /**< A Georama part first snaps to a nearby part. */
     SYSTEM_SE_COMPLETE = 0x1F, /**< Announces that a memory card operation, a download or an install has finished. */
 };
 
@@ -40,15 +40,18 @@ enum SYSTEM_SE {
  *
  */
 enum sndPORT {
-    SND_PORT_BGM = 0,    /**< Background music; its sequences are played on the voice-capable driver port. */
-    SND_PORT_OB = 1,     /**< Sound effects of map objects. */
+    SND_PORT_BGM = 0, /**< Background music; its sequences are played on the voice-capable driver port. */
+    SND_PORT_OB = 1,  /**< Sound effects of map objects. */
+    SND_PORT_ENV = 2,
     SND_PORT_BASE = 3,   /**< Sound effects of the base map. */
     SND_PORT_EVENT = 4,  /**< Sound effects and sequences of events. */
     SND_PORT_ENEMY = 5,  /**< Sound effects of monsters. */
     SND_PORT_SYSTEM = 6, /**< System sound effects, loaded once at boot. */
-    SND_PORT_MENU = 8,   /**< Sound effects of menus. */
-    SND_PORT_BGM2 = 11,  /**< Second background music port, sharing the first's sequence handling. */
-    SND_PORT_NUM = 16,   /**< Number of game sound ports. */
+    SND_PORT_CHARA = 7,
+    SND_PORT_MENU = 8, /**< Sound effects of menus. */
+    SND_PORT_BATTLE = 9,
+    SND_PORT_BGM2 = 11, /**< Second background music port, sharing the first's sequence handling. */
+    SND_PORT_NUM = 16,  /**< Number of game sound ports. */
 };
 
 /**
@@ -72,6 +75,7 @@ enum sndSE_TYPE {
 enum sndSE_CENTER {
     SND_SE_PITCH_CENTER = 0x2000, /**< Centre pitch bend. */
 };
+
 // clang-format on
 
 /**

@@ -261,10 +261,11 @@ void CFont::SetFuchi(s32 style) {
 }
 
 void CFont::SetStr(char *text) {
-    memset(this->str, 0, 0x80);
+    memset(this->str, 0, sizeof(this->str));
 
     if (strlen(text) >= 0x80U) {
-        printf("ERR:\x95\xB6\x8E\x9A\x90\x94\x82\xAA\x91\xBD\x82\xB7\x82\xAC\x82\xDC\x82\xB7\x81" "B\n");
+        printf("ERR:\x95\xB6\x8E\x9A\x90\x94\x82\xAA\x91\xBD\x82\xB7\x82\xAC\x82\xDC\x82\xB7\x81"
+               "B\n");
         return;
     }
 
@@ -313,17 +314,74 @@ int GetGaijiLen(u16 code) {
 }
 
 u16 GetAlphabeticalFontNo_uc(u8 ch) {
-    HankakuKanaTable table = {{
-        0xA1, 0xAA, 0xB0, 0xBA, 0xBF, 0xC0, 0xC1, 0xC2,
-        0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8, 0xC9, 0xCA,
-        0xCB, 0xCC, 0xCD, 0xCE, 0xCF, 0xD1, 0xD2, 0xD3,
-        0xD4, 0xD5, 0xD6, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD,
-        0xDF, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6,
-        0xE7, 0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED, 0xEE,
-        0xEF, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF9,
-        0xFA, 0xFB, 0xFC, 0xFD, 0xFF, 0xBD, 0xBE,
-    }};
-    int              i;
+    HankakuKanaTable table = {
+        {
+         0xA1,
+         0xAA,
+         0xB0,
+         0xBA,
+         0xBF,
+         0xC0,
+         0xC1,
+         0xC2,
+         0xC3,
+         0xC4,
+         0xC5,
+         0xC6,
+         0xC7,
+         0xC8,
+         0xC9,
+         0xCA,
+         0xCB,
+         0xCC,
+         0xCD,
+         0xCE,
+         0xCF,
+         0xD1,
+         0xD2,
+         0xD3,
+         0xD4,
+         0xD5,
+         0xD6,
+         0xD9,
+         0xDA,
+         0xDB,
+         0xDC,
+         0xDD,
+         0xDF,
+         0xE0,
+         0xE1,
+         0xE2,
+         0xE3,
+         0xE4,
+         0xE5,
+         0xE6,
+         0xE7,
+         0xE8,
+         0xE9,
+         0xEA,
+         0xEB,
+         0xEC,
+         0xED,
+         0xEE,
+         0xEF,
+         0xF1,
+         0xF2,
+         0xF3,
+         0xF4,
+         0xF5,
+         0xF6,
+         0xF9,
+         0xFA,
+         0xFB,
+         0xFC,
+         0xFD,
+         0xFF,
+         0xBD,
+         0xBE,
+         }
+    };
+    int i;
 
     if (LanguageCode == 1) {
         return 0;
@@ -408,17 +466,74 @@ u16 GetFontGaijiFontNo(char *text) {
 }
 
 u16 GetAlphabeticalFontNo_us(u16 code) {
-    HankakuKanaWideTable table = {{
-        0xFFA1, 0xFFAA, 0xFFB0, 0xFFBA, 0xFFBF, 0xFFC0, 0xFFC1, 0xFFC2,
-        0xFFC3, 0xFFC4, 0xFFC5, 0xFFC6, 0xFFC7, 0xFFC8, 0xFFC9, 0xFFCA,
-        0xFFCB, 0xFFCC, 0xFFCD, 0xFFCE, 0xFFCF, 0xFFD1, 0xFFD2, 0xFFD3,
-        0xFFD4, 0xFFD5, 0xFFD6, 0xFFD9, 0xFFDA, 0xFFDB, 0xFFDC, 0xFFDD,
-        0xFFDF, 0xFFE0, 0xFFE1, 0xFFE2, 0xFFE3, 0xFFE4, 0xFFE5, 0xFFE6,
-        0xFFE7, 0xFFE8, 0xFFE9, 0xFFEA, 0xFFEB, 0xFFEC, 0xFFED, 0xFFEE,
-        0xFFEF, 0xFFF1, 0xFFF2, 0xFFF3, 0xFFF4, 0xFFF5, 0xFFF6, 0xFFF9,
-        0xFFFA, 0xFFFB, 0xFFFC, 0xFFFD, 0xFFFF, 0xFFBD, 0xFFBE,
-    }};
-    int                  i;
+    HankakuKanaWideTable table = {
+        {
+         0xFFA1,
+         0xFFAA,
+         0xFFB0,
+         0xFFBA,
+         0xFFBF,
+         0xFFC0,
+         0xFFC1,
+         0xFFC2,
+         0xFFC3,
+         0xFFC4,
+         0xFFC5,
+         0xFFC6,
+         0xFFC7,
+         0xFFC8,
+         0xFFC9,
+         0xFFCA,
+         0xFFCB,
+         0xFFCC,
+         0xFFCD,
+         0xFFCE,
+         0xFFCF,
+         0xFFD1,
+         0xFFD2,
+         0xFFD3,
+         0xFFD4,
+         0xFFD5,
+         0xFFD6,
+         0xFFD9,
+         0xFFDA,
+         0xFFDB,
+         0xFFDC,
+         0xFFDD,
+         0xFFDF,
+         0xFFE0,
+         0xFFE1,
+         0xFFE2,
+         0xFFE3,
+         0xFFE4,
+         0xFFE5,
+         0xFFE6,
+         0xFFE7,
+         0xFFE8,
+         0xFFE9,
+         0xFFEA,
+         0xFFEB,
+         0xFFEC,
+         0xFFED,
+         0xFFEE,
+         0xFFEF,
+         0xFFF1,
+         0xFFF2,
+         0xFFF3,
+         0xFFF4,
+         0xFFF5,
+         0xFFF6,
+         0xFFF9,
+         0xFFFA,
+         0xFFFB,
+         0xFFFC,
+         0xFFFD,
+         0xFFFF,
+         0xFFBD,
+         0xFFBE,
+         }
+    };
+    int i;
 
     if (LanguageCode == 1) {
         return 0;
@@ -434,12 +549,35 @@ u16 GetAlphabeticalFontNo_us(u16 code) {
 }
 
 u16 GetFontNoFromFontGaijiCode(u16 code) {
-    GaijiCodeTable table = {{
-        0xFDE0, 0xFDE1, 0xFDE2, 0xFDE3, 0xFDE4, 0xFDE5, 0xFDE6, 0xFDE7,
-        0xFDE8, 0xFDE9, 0xFDEA, 0xFDEB, 0xFDEC, 0xFDED, 0xFDEE, 0xFDEF,
-        0xFDF0, 0xFDF1, 0xFDF2, 0xFDF3, 0xFDF4, 0xFDF5, 0xFDF6, 0xFDF7,
-    }};
-    int            i;
+    GaijiCodeTable table = {
+        {
+         0xFDE0,
+         0xFDE1,
+         0xFDE2,
+         0xFDE3,
+         0xFDE4,
+         0xFDE5,
+         0xFDE6,
+         0xFDE7,
+         0xFDE8,
+         0xFDE9,
+         0xFDEA,
+         0xFDEB,
+         0xFDEC,
+         0xFDED,
+         0xFDEE,
+         0xFDEF,
+         0xFDF0,
+         0xFDF1,
+         0xFDF2,
+         0xFDF3,
+         0xFDF4,
+         0xFDF5,
+         0xFDF6,
+         0xFDF7,
+         }
+    };
+    int i;
 
     if (LanguageCode == 1) {
         return 0;
@@ -462,35 +600,44 @@ int GetFontGaijiHankaku(u16 code) {
 
     return 0;
 }
+
 int GetFontNo(char *text) {
     if (text[0] == '\n') {
         return FONT_NO_NEWLINE;
     }
-    int gaiji = (u16)GetFontGaijiFontNo(text);
+
+    int gaiji = (u16) GetFontGaijiFontNo(text);
+
     if (gaiji != 0) {
-        return (u16)gaiji;
+        return (u16) gaiji;
     }
+
     u8 *table = GetYoyakuTblTop();
-    u16 code = (u8)text[1] + ((u8)text[0] << 8);
+    u16 code = (u8) text[1] + ((u8) text[0] << 8);
     int low = 0;
     int high = GetYoyakuTblNum() - 1;
     u16 first = table[1] + (table[0] << 8);
+
     if (first == code) {
         return 0;
     }
+
     u8 *pair = &table[high * 2];
-    u8 first_byte = pair[0];
-    u8 second_byte = pair[1];
+    u8  first_byte = pair[0];
+    u8  second_byte = pair[1];
     u16 end = second_byte + (first_byte << 8);
+
     if (end == code) {
         return high;
     }
+
     while (1) {
         int mid = (low + high) / 2;
         pair = &table[mid * 2];
         first_byte = pair[0];
         second_byte = pair[1];
         u16 entry = second_byte + (first_byte << 8);
+
         if (code < entry) {
             high = mid;
         } else if (entry < code) {
@@ -498,11 +645,13 @@ int GetFontNo(char *text) {
         } else {
             return mid;
         }
+
         if (high == low + 1) {
             return -1;
         }
     }
 }
+
 int GetHalfFontNo(char c) {
     char buf[8];
     u16  no = GetAlphabeticalFontNo_uc((unsigned char) c);
@@ -1002,57 +1151,57 @@ void CFont::Init() {
  *
  */
 GAIJI_DATA GaijiDataTbl[GAIJI_DATA_NUM] = {
-    {0xFD00, 12, 176, 86, 22, 0, -4},
-    {0xFD01, 0, 154, 110, 22, 0, -4},
-    {0xFD02, 32, 132, 32, 22, 0, -4},
-    {0xFD03, 64, 132, 32, 22, 0, -4},
-    {0xFD04, 0, 132, 32, 22, 0, -4},
-    {0xFD05, 96, 132, 32, 22, 0, -4},
-    {0xFD06, 0, 22, 22, 22, -1, -3},
-    {0xFD07, 22, 22, 22, 22, -1, -3},
-    {0xFD08, 66, 22, 22, 22, -1, -3},
-    {0xFD09, 44, 22, 22, 22, -1, -3},
-    {0xFD0A, 0, 66, 22, 22, -2, -2},
-    {0xFD0B, 22, 66, 22, 22, -2, -2},
-    {0xFD0C, 44, 66, 22, 22, -2, -2},
-    {0xFD0D, 0, 88, 22, 22, -2, -4},
-    {0xFD0E, 22, 88, 22, 22, -2, -4},
-    {0xFD0F, 44, 88, 22, 22, -2, -4},
-    {0xFD10, 66, 66, 22, 22, -2, -4},
-    {0xFD11, 66, 88, 22, 22, -2, -4},
-    {0xFD12, 0, 204, 26, 26, 0, -4},
-    {0xFD13, 26, 204, 26, 26, 0, -4},
-    {0xFD14, 0, 230, 26, 26, 0, -4},
-    {0xFD15, 26, 230, 26, 26, 0, -4},
-    {0xFD16, 230, 118, 26, 26, 0, -4},
-    {0xFD17, 22, 110, 66, 22, 8, 0},
-    {0xFD18, 0, 44, 56, 22, 0, 0},
-    {0xFD19, 88, 224, 40, 32, 0, 0},
-    {0xFD1A, 88, 22, 22, 22, -2, -4},
-    {0xFD1B, 0, 0, 0, 0, 0, 0},
-    {0xFD1C, 0, 0, 0, 0, 0, 0},
-    {0xFD1D, 0, 0, 0, 0, 0, 0},
-    {0xFD1E, 0, 0, 0, 0, 0, 0},
-    {0xFD1F, 0, 0, 0, 0, 0, 0},
-    {0xFD20, 0, 0, 0, 0, 0, 0},
-    {0xFD21, 100, 44, 12, 18, -6, -3},
-    {0xFD22, 168, 232, 16, 24, 0, 0},
-    {0xFD23, 184, 232, 8, 24, 0, 0},
-    {0xFD24, 132, 104, 10, 16, 0, 0},
-    {0xFD25, 158, 240, 10, 16, 0, 0},
-    {0xFD26, 128, 122, 26, 18, 0, 0},
-    {0xFD27, 154, 122, 26, 18, 0, 0},
-    {0xFD28, 132, 238, 26, 18, 0, 0},
-    {0xFD29, 136, 200, 28, 30, 0, -4},
-    {0xFD2A, 164, 200, 28, 30, 0, -4},
-    {0xFD2B, 224, 144, 16, 22, 0, -2},
-    {0xFD2C, 240, 144, 16, 22, 0, -2},
-    {0xFD2D, 176, 170, 16, 30, 0, 0},
-    {0xFD2E, 204, 118, 26, 26, 0, -3},
-    {0xFD2F, 148, 110, 28, 30, 0, 0},
-    {0xFD30, 176, 110, 28, 30, 0, 0},
-    {0xFD31, 208, 144, 16, 20, 0, 0},
-    {0xFFFF, 222, 118, 34, 32, 0, 0},
+    {0xFD00, 12,  176, 86,  22, 0,  -4},
+    {0xFD01, 0,   154, 110, 22, 0,  -4},
+    {0xFD02, 32,  132, 32,  22, 0,  -4},
+    {0xFD03, 64,  132, 32,  22, 0,  -4},
+    {0xFD04, 0,   132, 32,  22, 0,  -4},
+    {0xFD05, 96,  132, 32,  22, 0,  -4},
+    {0xFD06, 0,   22,  22,  22, -1, -3},
+    {0xFD07, 22,  22,  22,  22, -1, -3},
+    {0xFD08, 66,  22,  22,  22, -1, -3},
+    {0xFD09, 44,  22,  22,  22, -1, -3},
+    {0xFD0A, 0,   66,  22,  22, -2, -2},
+    {0xFD0B, 22,  66,  22,  22, -2, -2},
+    {0xFD0C, 44,  66,  22,  22, -2, -2},
+    {0xFD0D, 0,   88,  22,  22, -2, -4},
+    {0xFD0E, 22,  88,  22,  22, -2, -4},
+    {0xFD0F, 44,  88,  22,  22, -2, -4},
+    {0xFD10, 66,  66,  22,  22, -2, -4},
+    {0xFD11, 66,  88,  22,  22, -2, -4},
+    {0xFD12, 0,   204, 26,  26, 0,  -4},
+    {0xFD13, 26,  204, 26,  26, 0,  -4},
+    {0xFD14, 0,   230, 26,  26, 0,  -4},
+    {0xFD15, 26,  230, 26,  26, 0,  -4},
+    {0xFD16, 230, 118, 26,  26, 0,  -4},
+    {0xFD17, 22,  110, 66,  22, 8,  0 },
+    {0xFD18, 0,   44,  56,  22, 0,  0 },
+    {0xFD19, 88,  224, 40,  32, 0,  0 },
+    {0xFD1A, 88,  22,  22,  22, -2, -4},
+    {0xFD1B, 0,   0,   0,   0,  0,  0 },
+    {0xFD1C, 0,   0,   0,   0,  0,  0 },
+    {0xFD1D, 0,   0,   0,   0,  0,  0 },
+    {0xFD1E, 0,   0,   0,   0,  0,  0 },
+    {0xFD1F, 0,   0,   0,   0,  0,  0 },
+    {0xFD20, 0,   0,   0,   0,  0,  0 },
+    {0xFD21, 100, 44,  12,  18, -6, -3},
+    {0xFD22, 168, 232, 16,  24, 0,  0 },
+    {0xFD23, 184, 232, 8,   24, 0,  0 },
+    {0xFD24, 132, 104, 10,  16, 0,  0 },
+    {0xFD25, 158, 240, 10,  16, 0,  0 },
+    {0xFD26, 128, 122, 26,  18, 0,  0 },
+    {0xFD27, 154, 122, 26,  18, 0,  0 },
+    {0xFD28, 132, 238, 26,  18, 0,  0 },
+    {0xFD29, 136, 200, 28,  30, 0,  -4},
+    {0xFD2A, 164, 200, 28,  30, 0,  -4},
+    {0xFD2B, 224, 144, 16,  22, 0,  -2},
+    {0xFD2C, 240, 144, 16,  22, 0,  -2},
+    {0xFD2D, 176, 170, 16,  30, 0,  0 },
+    {0xFD2E, 204, 118, 26,  26, 0,  -3},
+    {0xFD2F, 148, 110, 28,  30, 0,  0 },
+    {0xFD30, 176, 110, 28,  30, 0,  0 },
+    {0xFD31, 208, 144, 16,  20, 0,  0 },
+    {0xFFFF, 222, 118, 34,  32, 0,  0 },
 };
 /**
  *
@@ -1060,52 +1209,52 @@ GAIJI_DATA GaijiDataTbl[GAIJI_DATA_NUM] = {
  *
  */
 FCONV_CODE FconvCodeTbl[FCONV_CODE_NUM] = {
-    {"[select]", 8, 0xFD00},
-    {"[start]", 7, 0xFD01},
-    {"[l1]", 4, 0xFD02},
-    {"[r1]", 4, 0xFD03},
-    {"[l2]", 4, 0xFD04},
-    {"[r2]", 4, 0xFD05},
-    {"(O)", 3, 0xFD06},
-    {"(A)", 3, 0xFD07},
-    {"(X)", 3, 0xFD08},
-    {"(#)", 3, 0xFD09},
-    {"[+]", 3, 0xFD0A},
-    {"[-]", 3, 0xFD0B},
-    {"[|]", 3, 0xFD0C},
-    {"[!]", 3, 0xFD0D},
-    {"[heart]", 7, 0xFD0E},
-    {"[clef]", 6, 0xFD0F},
-    {"[dame]", 6, 0xFD10},
-    {"[sita]", 6, 0xFD11},
-    {"[weapon]", 8, 0xFD12},
+    {"[select]",    8,  0xFD00},
+    {"[start]",     7,  0xFD01},
+    {"[l1]",        4,  0xFD02},
+    {"[r1]",        4,  0xFD03},
+    {"[l2]",        4,  0xFD04},
+    {"[r2]",        4,  0xFD05},
+    {"(O)",         3,  0xFD06},
+    {"(A)",         3,  0xFD07},
+    {"(X)",         3,  0xFD08},
+    {"(#)",         3,  0xFD09},
+    {"[+]",         3,  0xFD0A},
+    {"[-]",         3,  0xFD0B},
+    {"[|]",         3,  0xFD0C},
+    {"[!]",         3,  0xFD0D},
+    {"[heart]",     7,  0xFD0E},
+    {"[clef]",      6,  0xFD0F},
+    {"[dame]",      6,  0xFD10},
+    {"[sita]",      6,  0xFD11},
+    {"[weapon]",    8,  0xFD12},
     {"[protector]", 11, 0xFD13},
-    {"[material]", 10, 0xFD14},
-    {"[tool]", 6, 0xFD15},
-    {"[parts]", 7, 0xFD16},
-    {"[hari]", 6, 0xFD17},
-    {"[button]", 8, 0xFD18},
-    {"[fish]", 6, 0xFD19},
-    {"[(!)]", 5, 0xFD1A},
-    {"[bulb]", 6, 0xFD21},
-    {"[*]", 3, 0xFD22},
-    {"[|~]", 4, 0xFD23},
-    {"[cross]", 7, 0xFD24},
-    {"[|>]", 4, 0xFD25},
-    {"[hp]", 4, 0xFD26},
-    {"[mp]", 4, 0xFD27},
-    {"[lv]", 4, 0xFD28},
-    {"(L)", 3, 0xFD29},
-    {"(R)", 3, 0xFD2A},
-    {"[bulb2]", 7, 0xFD2B},
-    {"[bulb3]", 7, 0xFD2C},
-    {"[tuck]", 6, 0xFD2D},
-    {"[spectrum]", 10, 0xFD2E},
-    {"(L3)", 4, 0xFD2F},
-    {"(R3)", 4, 0xFD30},
-    {"(regi)", 6, 0xFD31},
-    {NULL, 0, 0x0000},
-    {NULL, 0, 0x0000},
+    {"[material]",  10, 0xFD14},
+    {"[tool]",      6,  0xFD15},
+    {"[parts]",     7,  0xFD16},
+    {"[hari]",      6,  0xFD17},
+    {"[button]",    8,  0xFD18},
+    {"[fish]",      6,  0xFD19},
+    {"[(!)]",       5,  0xFD1A},
+    {"[bulb]",      6,  0xFD21},
+    {"[*]",         3,  0xFD22},
+    {"[|~]",        4,  0xFD23},
+    {"[cross]",     7,  0xFD24},
+    {"[|>]",        4,  0xFD25},
+    {"[hp]",        4,  0xFD26},
+    {"[mp]",        4,  0xFD27},
+    {"[lv]",        4,  0xFD28},
+    {"(L)",         3,  0xFD29},
+    {"(R)",         3,  0xFD2A},
+    {"[bulb2]",     7,  0xFD2B},
+    {"[bulb3]",     7,  0xFD2C},
+    {"[tuck]",      6,  0xFD2D},
+    {"[spectrum]",  10, 0xFD2E},
+    {"(L3)",        4,  0xFD2F},
+    {"(R3)",        4,  0xFD30},
+    {"(regi)",      6,  0xFD31},
+    {NULL,          0,  0x0000},
+    {NULL,          0,  0x0000},
 };
 /**
  *
@@ -1119,24 +1268,32 @@ FCONV_CODE FontGaijiConvTbl[FONT_GAIJI_CONV_NUM] = {
     {"\x81\xAB", 2, 0xFDE3},
     {"\x81\xA9", 2, 0xFDE4},
     {"\x81\xA8", 2, 0xFDE5},
-    {"\x82O", 2, 0xFDE6},
-    {"\x82P", 2, 0xFDE7},
-    {"\x82Q", 2, 0xFDE8},
-    {"\x82R", 2, 0xFDE9},
-    {"\x82S", 2, 0xFDEA},
-    {"\x82T", 2, 0xFDEB},
-    {"\x82U", 2, 0xFDEC},
-    {"\x82V", 2, 0xFDED},
-    {"\x82W", 2, 0xFDEE},
-    {"\x82X", 2, 0xFDEF},
-    {"\x81" "F", 2, 0xFDF0},
-    {"\x81{", 2, 0xFDF1},
-    {"\x81|", 2, 0xFDF2},
-    {"\x81" "E", 2, 0xFDF3},
-    {"\x81g", 2, 0xFDF4},
-    {"\x81h", 2, 0xFDF5},
-    {"\x81" "e", 2, 0xFDF6},
-    {"\x81" "f", 2, 0xFDF7},
+    {"\x82O",    2, 0xFDE6},
+    {"\x82P",    2, 0xFDE7},
+    {"\x82Q",    2, 0xFDE8},
+    {"\x82R",    2, 0xFDE9},
+    {"\x82S",    2, 0xFDEA},
+    {"\x82T",    2, 0xFDEB},
+    {"\x82U",    2, 0xFDEC},
+    {"\x82V",    2, 0xFDED},
+    {"\x82W",    2, 0xFDEE},
+    {"\x82X",    2, 0xFDEF},
+    {"\x81"
+     "F",
+     2,             0xFDF0},
+    {"\x81{",    2, 0xFDF1},
+    {"\x81|",    2, 0xFDF2},
+    {"\x81"
+     "E",
+     2,             0xFDF3},
+    {"\x81g",    2, 0xFDF4},
+    {"\x81h",    2, 0xFDF5},
+    {"\x81"
+     "e",
+     2,             0xFDF6},
+    {"\x81"
+     "f",
+     2,             0xFDF7},
 };
 /**
  *

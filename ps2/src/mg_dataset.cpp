@@ -16,9 +16,9 @@
 #include "mg_visual.hpp"
 #include "mglib.hpp"
 #include "visualmotion.hpp"
-extern char   at_550[];
+extern char at_550[];
 
-void CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table);
+void      CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table);
 mgCFrame *CopyFrameSub(mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table);
 
 /**
@@ -170,29 +170,37 @@ int conv_new_text(char *dst, char *src) {
 
 static int htoi(char *text) {
     char *end = text;
-    s32 length = 0;
-    s32 value = 0;
+    s32   length = 0;
+    s32   value = 0;
+
     while (*end++ != 0) {
         length++;
     }
+
     s32 i;
     s32 place = 1;
+
     for (i = 0; i < length; i++) {
         s32 back = length - i;
-        s32 ch = ((u8 *)(back + (s32)text))[-1];
+        s32 ch = ((u8 *) (back + (s32) text))[-1];
         s32 digit = 0;
+
         if (ch >= '0' && ch <= '9') {
             digit = ch - '0';
         }
+
         if (ch >= 'a' && ch <= 'f') {
             digit = ch - 'a' + 10;
         }
+
         if (ch >= 'A' && ch <= 'F') {
             digit = ch - 'A' + 10;
         }
+
         value += digit * place;
         place <<= 4;
     }
+
     return value;
 }
 
@@ -550,7 +558,7 @@ static int CreateFrameVisual(mgCFrame *input_frame, mgCMemory *input_memory, mgC
 
     frame->bound = (mgCFrame::BoundInfo *) memory->Alloc(sizeof(mgCFrame::BoundInfo) / 16);
     const int vertex_num = mdt->vertex_num;
-    float (*vertices)[4] = (float (*)[4])((char *) mdt + mdt->vertex_ofs);
+    float(*vertices)[4] = (float(*)[4])((char *) mdt + mdt->vertex_ofs);
     mgCreateBBoxSphere(max, min, sphere, vertices, vertex_num);
 
     if (type == MG_VISUAL_CREATE_MDT) {
@@ -669,7 +677,7 @@ mgCFrame *mgLoadMDSFile(mgLoadData *load) {
     mgCFrame      *frames;
     MDTOBJ_HEADER *current;
     mgCFrame      *frame;
-    float (*matrix_table)[4][4];
+    float(*matrix_table)[4][4];
     mgCFrame          **frame_table;
     mgCMemory          *memory;
     mgCMemory          *work_memory;
@@ -808,9 +816,9 @@ void mgCreateBBoxSphere(float *max, float *min, float *sphere, float (*vertex)[4
         return;
     }
 
-    s32        i;
-    float     *point = vertex[0];
-    float      center[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    s32    i;
+    float *point = vertex[0];
+    float  center[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     sceVu0CopyVector(max, vertex[0]);
     sceVu0CopyVector(min, vertex[0]);
 
@@ -894,7 +902,7 @@ void CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual,
     mgCFrame::BoundInfo *source_bound = (mgCFrame::BoundInfo *) src->bound;
 
     if (source_bound != 0) {
-        mgCFrame::BoundInfo *bound = (mgCFrame::BoundInfo *) operator new(0xB0, memory->Alloc(0xD));
+        mgCFrame::BoundInfo *bound = (mgCFrame::BoundInfo *) operator new(sizeof(mgCFrame::BoundInfo), memory->Alloc(0xD));
         *(mgCFrame::BoundCorners *) bound->corner = *(mgCFrame::BoundCorners *) source_bound->corner;
         *(mgVec4 *) bound->max = *(mgVec4 *) source_bound->max;
         *(mgVec4 *) bound->min = *(mgVec4 *) source_bound->min;
@@ -1091,11 +1099,11 @@ void mgCMDTBuilder::End(mgCFrame *frame, mgCVisualMDT *visual, mgLoadData *load)
     }
 
     MDT_HEADER *mdt = block;
-    float (*points)[4] = (float (*)[4])((u8 *) block + mdt->vertex_ofs);
+    float(*points)[4] = (float(*)[4])((u8 *) block + mdt->vertex_ofs);
     mgCreateBBoxSphere(box_max, box_min, sphere, points, (u_int) mdt->vertex_num);
     visual->Initialize();
     visual->DataAssignMDT(block, load->memory, textures);
-    frame->bound = (mgCFrame::BoundInfo *) operator new(0xB0, load->memory->Alloc(0xD));
+    frame->bound = (mgCFrame::BoundInfo *) operator new(sizeof(mgCFrame::BoundInfo), load->memory->Alloc(0xD));
     frame->SetVisual(visual);
     frame->SetBBox(box_max, box_min);
     frame->SetBSphere(sphere, sphere[3]);
@@ -1285,6 +1293,7 @@ void mgCMDTBuilder::EndPrim() {
 
 #pragma optimization_level reset
 #pragma schedule off
+
 // Defined inline in mg_visual.hpp.
 
 int mgCVisualMDT::Iam() {

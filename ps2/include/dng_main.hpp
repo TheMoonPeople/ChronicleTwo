@@ -135,11 +135,15 @@ STATIC_ASSERT(sizeof(DNG_STATUS) == 0x1C);
  */
 struct ACCUME_EFFECT {
     mgCFrame *frame; /**< Frame that the effect gathers on. */
-    u8        unk_4[0x30C];
+    u8        unk_4[0x28C];
+    int       clear[32];
     int       mode; /**< Stage of the effect that the action script set. */
-    u8        unk_314[0xC];
+    int       unk_314;
+    int       unk_318;
+    float     scale;
     s32       unk_320;
-    u8        unk_324[0xC];
+    int       unk_324;
+    u8        unk_328[0x8];
 };
 
 STATIC_ASSERT(sizeof(ACCUME_EFFECT) == 0x330);

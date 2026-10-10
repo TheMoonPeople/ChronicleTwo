@@ -5,6 +5,7 @@
 
 #include "character.hpp"
 #include "collision.hpp"
+#include "dng_main.hpp"
 #include "effscript.hpp"
 #include "mainloop.hpp"
 #include "mapparts.hpp"
@@ -16,7 +17,6 @@
 #include "scene.hpp"
 #include "scenesnd.hpp"
 #include "sound.hpp"
-#include "dng_main.hpp"
 
 // Code (.text)
 void CalcReflectionVector(float *incoming, float *surface, float *reflected) {
@@ -493,30 +493,30 @@ int CPot::Step() {
     int result;
 
     switch (state) {
-        case 1:
+        case (int) POT_STATE_HOLD:
             HoldStep();
             break;
-        case 2:
+        case (int) POT_STATE_FLY:
             result = FlyStep();
 
-            if (result == 1) {
-                return 1;
+            if (result == (int) POT_STEP_BREAK) {
+                return (int) POT_STEP_BREAK;
             }
 
-            if (result == 2) {
-                return 2;
+            if (result == (int) POT_STEP_TIMEOUT) {
+                return (int) POT_STEP_TIMEOUT;
             }
         default:
             break;
     }
 
-    return 0;
+    return (int) POT_STEP_NONE;
 }
 
 void CPot::Throw() {
     if (parts != NULL) {
         float player_position[4];
-        state = 2;
+        state = (int) POT_STATE_FLY;
         fly_time = 0;
         position[0] = hold_pos[0];
         position[1] = hold_pos[1];
@@ -542,12 +542,12 @@ void CPot::Throw() {
 void CPot::Hold(CMapParts *map_parts) {
     Init(0);
     parts = map_parts;
-    state = 1;
+    state = (int) POT_STATE_HOLD;
     HoldStep();
 }
 
 void CPot::Init(int keep_velocity) {
-    state = 0;
+    state = (int) POT_STATE_NONE;
     parts = NULL;
     InitVector(position);
 
@@ -573,18 +573,18 @@ void CPot::Init(int keep_velocity) {
  *
  */
 float box_offset[12][4] __attribute__((aligned(16))) = {
-    {-5.2f, 9.2f, -5.2f, 1.0f},
-    {5.0f, 9.4f, 5.2f, 1.0f},
-    {-5.2f, 0.0f, 5.2f, 1.0f},
-    {-5.2f, 0.0f, -5.2f, 1.0f},
-    {5.2f, 5.0f, 0.0f, 1.0f},
-    {0.0f, 5.0f, -5.2f, 1.0f},
-    {5.6f, 5.0f, 3.0f, 1.0f},
-    {-3.0f, 5.6f, 2.2f, 1.0f},
-    {3.1999998f, 6.8f, 3.6000001f, 1.0f},
-    {-3.6000001f, 0.0f, -2.8f, 1.0f},
-    {-4.0f, 3.0f, 3.0f, 1.0f},
-    {5.6f, 5.0f, -3.1999998f, 1.0f}
+    {-5.2f,       9.2f, -5.2f,       1.0f},
+    {5.0f,        9.4f, 5.2f,        1.0f},
+    {-5.2f,       0.0f, 5.2f,        1.0f},
+    {-5.2f,       0.0f, -5.2f,       1.0f},
+    {5.2f,        5.0f, 0.0f,        1.0f},
+    {0.0f,        5.0f, -5.2f,       1.0f},
+    {5.6f,        5.0f, 3.0f,        1.0f},
+    {-3.0f,       5.6f, 2.2f,        1.0f},
+    {3.1999998f,  6.8f, 3.6000001f,  1.0f},
+    {-3.6000001f, 0.0f, -2.8f,       1.0f},
+    {-4.0f,       3.0f, 3.0f,        1.0f},
+    {5.6f,        5.0f, -3.1999998f, 1.0f}
 };
 
 /**
@@ -593,16 +593,16 @@ float box_offset[12][4] __attribute__((aligned(16))) = {
  *
  */
 float iwa0_offset[10][4] __attribute__((aligned(16))) = {
-    {-4.4f, 11.2f, 4.2f, 1.0f},
-    {-3.7f, 10.8f, -2.3999999f, 1.0f},
-    {-4.6f, 4.7999997f, 4.0f, 1.0f},
-    {-2.2f, 2.0f, 2.0f, 1.0f},
-    {-4.6f, 3.8f, -2.6f, 1.0f},
-    {2.0f, 10.8f, 4.0f, 1.0f},
-    {2.8f, 11.0f, -3.0f, 1.0f},
-    {2.0f, 4.0f, 4.0f, 1.0f},
+    {-4.4f,      11.2f,      4.2f,        1.0f},
+    {-3.7f,      10.8f,      -2.3999999f, 1.0f},
+    {-4.6f,      4.7999997f, 4.0f,        1.0f},
+    {-2.2f,      2.0f,       2.0f,        1.0f},
+    {-4.6f,      3.8f,       -2.6f,       1.0f},
+    {2.0f,       10.8f,      4.0f,        1.0f},
+    {2.8f,       11.0f,      -3.0f,       1.0f},
+    {2.0f,       4.0f,       4.0f,        1.0f},
     {3.1999998f, 4.7999997f, -3.1999998f, 1.0f},
-    {2.0f, 2.0f, -3.0f, 1.0f}
+    {2.0f,       2.0f,       -3.0f,       1.0f}
 };
 
 /**
@@ -611,13 +611,13 @@ float iwa0_offset[10][4] __attribute__((aligned(16))) = {
  *
  */
 float iwa1_offset[9][4] __attribute__((aligned(16))) = {
-    {-4.364f, 12.022f, 0.022f, 1.0f},
-    {-0.844f, 12.524f, 3.802f, 1.0f},
-    {3.512f, 12.996f, 1.848f, 1.0f},
-    {2.762f, 12.198f, 3.0379999f, 1.0f},
-    {-2.33f, 11.232f, -3.3000002f, 1.0f},
-    {2.216f, 5.976f, 0.168f, 1.0f},
-    {-2.112f, 2.664f, -1.778f, 1.0f},
-    {1.562f, 1.33f, 0.49199998f, 1.0f},
-    {-1.768f, 4.292f, -1.7939999f, 1.0f}
+    {-4.364f, 12.022f, 0.022f,      1.0f},
+    {-0.844f, 12.524f, 3.802f,      1.0f},
+    {3.512f,  12.996f, 1.848f,      1.0f},
+    {2.762f,  12.198f, 3.0379999f,  1.0f},
+    {-2.33f,  11.232f, -3.3000002f, 1.0f},
+    {2.216f,  5.976f,  0.168f,      1.0f},
+    {-2.112f, 2.664f,  -1.778f,     1.0f},
+    {1.562f,  1.33f,   0.49199998f, 1.0f},
+    {-1.768f, 4.292f,  -1.7939999f, 1.0f}
 };

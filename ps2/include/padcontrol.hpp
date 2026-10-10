@@ -65,6 +65,7 @@ enum PadCtrlButton {
     PAD_BTN_EDIT_SWITCH        = 0x6C,
     PAD_BTN_EDIT_MAGNET        = 0x6D, /**< Square: toggles Georama part snapping. */
 };
+
 // clang-format on
 
 /**
@@ -73,8 +74,8 @@ enum PadCtrlButton {
  *
  */
 enum PadCtrlAnalog {
-    PAD_ANALOG_LEFT_X  = 0, /**< Left stick horizontal position. */
-    PAD_ANALOG_LEFT_Y  = 1, /**< Left stick vertical position. */
+    PAD_ANALOG_LEFT_X = 0,  /**< Left stick horizontal position. */
+    PAD_ANALOG_LEFT_Y = 1,  /**< Left stick vertical position. */
     PAD_ANALOG_RIGHT_X = 2, /**< Right stick horizontal position. */
     PAD_ANALOG_RIGHT_Y = 3, /**< Right stick vertical position. */
 };
@@ -93,6 +94,7 @@ enum PadCtrlAxis {
     PAD_CTRL_AXIS_RX   = 3, /**< Right stick horizontal position. */
     PAD_CTRL_AXIS_RY   = 4, /**< Right stick vertical position. */
 };
+
 // clang-format on
 
 /**

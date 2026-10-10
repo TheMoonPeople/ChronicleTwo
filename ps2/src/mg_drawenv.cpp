@@ -106,16 +106,20 @@ void mgRENDER_INFO::Initialize() {
 void mgRENDER_INFO::SetRenderInfo(float projection, int width, int height, float near_dist,
                                   float far_dist, int zdepth, float aspect_y) {
     float z_range = 1.67e7f;
+
     switch (zdepth) {
-    case 16:
-        z_range = 65000.0f;
+        case 16:
+            z_range = 65000.0f;
     }
+
     if (near_dist < 0.0f) {
         near_dist = clip_min[2];
     }
+
     if (far_dist < 0.0f) {
         far_dist = clip_max[2];
     }
+
     float z_min = 0.0f;
     float depth_offset = (near_dist * far_dist * (z_range - z_min)) / (far_dist - near_dist);
     float depth_z = -(z_range * near_dist - z_min * far_dist) / (far_dist - near_dist);

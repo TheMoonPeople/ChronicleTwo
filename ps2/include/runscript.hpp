@@ -142,7 +142,7 @@ struct RS_STACKDATA {
         int           i; /**< Value of an integer. */
         char         *s; /**< Value of a string. */
         RS_STACKDATA *p; /**< Stack slot a reference points at. */
-    } val; /**< Value held by this stack slot. */
+    } val;               /**< Value held by this stack slot. */
 };
 
 STATIC_ASSERT(sizeof(RS_STACKDATA) == 0x8);

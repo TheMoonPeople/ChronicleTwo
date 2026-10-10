@@ -142,11 +142,11 @@ void CCameraControl::MoveCamera(CPadControl *pad, float *target, CCPoly *polys, 
     if (pad != NULL) {
         float turn = 0.0f;
 
-        if (!(rot_cancel & 2)) {
+        if (!(rot_cancel & (int) CAMERA_ROT_CANCEL_ANALOG)) {
             turn = 0.05f * -pad->Analog(6);
         }
 
-        if (!(rot_cancel & 1)) {
+        if (!(rot_cancel & (int) CAMERA_ROT_CANCEL_BUTTON)) {
             if (pad->Btn(PAD_BTN_L1_HELD) != 0) {
                 turn = 0.05f;
             }
@@ -261,7 +261,7 @@ void CCameraControl::MoveCamera(Control *control, float *target, CCPoly *polys, 
     next_pos[1] = next_ref[1] + param->height;
     mgAddVector(next_pos, correction);
 
-    if (control->rot_back != 0 && !(rot_cancel & 0x40)) {
+    if (control->rot_back != 0 && !(rot_cancel & (int) CAMERA_ROT_CANCEL_ROT_BACK)) {
         RotBack(target[1] - 3.1415927f);
     }
 
@@ -277,7 +277,7 @@ void CCameraControl::MoveCamera(Control *control, float *target, CCPoly *polys, 
     if (param->no_check == 0) {
         CheckGround(polys, poly_count);
 
-        if (turn != 0.0f || (rot_cancel & 0x80)) {
+        if (turn != 0.0f || (rot_cancel & (int) CAMERA_ROT_CANCEL_AUTO_MOVE)) {
             CheckCollision(polys, poly_count);
             return;
         }

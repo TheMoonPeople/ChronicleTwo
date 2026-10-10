@@ -210,7 +210,7 @@ void CFadeInOut::Initialize() {
     b = 0.0f;
     g = 0.0f;
     r = 0.0f;
-    mode = 0;
+    mode = (int) FADE_MODE_NONE;
     speed = 0.0f;
     end = 0;
     cross = 0;
@@ -219,17 +219,17 @@ void CFadeInOut::Initialize() {
 }
 
 void CFadeInOut::ResetFade() {
-    mode = 0;
+    mode = (int) FADE_MODE_NONE;
     alpha = 0.0f;
     cross = 0;
 }
 
 void CFadeInOut::FadeIn(int frames, float r, float g, float b) {
-    if ((mode == 0) || (frames < 0)) {
+    if ((mode == (int) FADE_MODE_NONE) || (frames < 0)) {
         alpha = 128.0f;
     }
 
-    mode = 1;
+    mode = (int) FADE_MODE_IN;
     end = 0;
 
     if (frames < 0) {
@@ -245,7 +245,7 @@ void CFadeInOut::FadeIn(int frames, float r, float g, float b) {
 }
 
 void CFadeInOut::FadeIn(int frames) {
-    if (mode >= 0) {
+    if (mode >= (int) FADE_MODE_NONE) {
         FadeIn(frames, 0.0f, 0.0f, 0.0f);
     } else {
         FadeIn(frames, r, g, b);
@@ -253,11 +253,11 @@ void CFadeInOut::FadeIn(int frames) {
 }
 
 void CFadeInOut::FadeOut(int frames, float r, float g, float b) {
-    if ((mode == 0) || (frames < 0)) {
+    if ((mode == (int) FADE_MODE_NONE) || (frames < 0)) {
         alpha = 0.0f;
     }
 
-    mode = -1;
+    mode = (int) FADE_MODE_OUT;
     end = 0;
 
     if (frames < 0) {
@@ -273,7 +273,7 @@ void CFadeInOut::FadeOut(int frames, float r, float g, float b) {
 }
 
 void CFadeInOut::CrossFade(int duration, float alpha) {
-    CrossFadeIn(0, duration, alpha);
+    CrossFadeIn((int) CROSS_FADE_DISSOLVE, duration, alpha);
 }
 
 void CFadeInOut::CrossFadeIn(int mode, int frames, float value) {
@@ -294,20 +294,20 @@ void CFadeInOut::CrossFadeOut(int mode, int frames, float value) {
 int CFadeInOut::FadeCheck() { return this->end; }
 
 int CFadeInOut::NowFade() {
-    return mode != 0;
+    return mode != (int) FADE_MODE_NONE;
 }
 
 int CFadeInOut::FadeStep() {
-    if (mode == 0) {
+    if (mode == (int) FADE_MODE_NONE) {
         return 1;
     }
 
-    if (mode > 0) {
+    if (mode > (int) FADE_MODE_NONE) {
         alpha -= speed;
 
         if (alpha <= 0.0f) {
             alpha = 0.0f;
-            mode = 0;
+            mode = (int) FADE_MODE_NONE;
             end = 1;
         }
     } else {
@@ -344,17 +344,19 @@ void CFadeInOut::CaptureScreen() {
     mgGetFrameBackBuffer(&back_buffer);
     mgStoreImage(&back_buffer, cross_texture->image[0]);
 }
+
 void DivSpriteScreen(mgCDrawPrim &prim) {
-    int           x;
-    int           y;
+    int x;
+    int y;
 
     prim.BeginPrim2(MG_PRIM_SPRITE, 0x43, 0, 2);
-    sceVu0IVECTOR offset = { mgScreenOffx * 16, mgScreenOffy * 16, 0, 0 };
-    sceVu0IVECTOR vertex = { 0, 0, 0, 0 };
-    sceVu0IVECTOR uv = { 0, 0, 0, 0 };
+    sceVu0IVECTOR offset = {mgScreenOffx * 16, mgScreenOffy * 16, 0, 0};
+    sceVu0IVECTOR vertex = {0, 0, 0, 0};
+    sceVu0IVECTOR uv = {0, 0, 0, 0};
+
     for (x = 0; x < mgScreenWidth; x += 64) {
         for (y = 0; y < mgScreenHeight; y += 32) {
-            *(u_long128 *)vertex = *(u_long128 *)offset;
+            *(u_long128 *) vertex = *(u_long128 *) offset;
             uv[0] = x * 16;
             uv[1] = y * 16;
             prim.Data(uv);
@@ -369,48 +371,58 @@ void DivSpriteScreen(mgCDrawPrim &prim) {
             prim.Data(vertex);
         }
     }
+
     prim.EndPrim2();
 }
+
 void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int jagged_left) {
-    int           row_height;
-    int           row;
+    int row_height;
+    int row;
 
     prim.BeginPrim2(MG_PRIM_TRIANGLE_STRIP, 0x43, 0, 2);
-    sceVu0IVECTOR offset = { mgScreenOffx * 16, mgScreenOffy * 16, 0, 0 };
+    sceVu0IVECTOR offset = {mgScreenOffx * 16, mgScreenOffy * 16, 0, 0};
     row_height = mgScreenHeight / 16;
-    sceVu0IVECTOR vertex = { 0, 0, 0, 0 };
-    sceVu0IVECTOR uv = { 0, 0, 0, 0 };
-    int           edge_offset[2] = { -10, 10 };
+    sceVu0IVECTOR vertex = {0, 0, 0, 0};
+    sceVu0IVECTOR uv = {0, 0, 0, 0};
+    int           edge_offset[2] = {-10, 10};
+
     for (row = 0; row < 17; row++) {
         if (jagged_left) {
             uv[0] = (left + edge_offset[row % 2]) * 16;
         } else {
             uv[0] = left * 16;
         }
+
         if (uv[0] < 0) {
             uv[0] = 0;
         }
+
         uv[1] = row * row_height * 16;
         prim.Data(uv);
         vertex[0] = uv[0] + offset[0];
         vertex[1] = uv[1] + offset[1];
         prim.Data(vertex);
+
         if (!jagged_left) {
             uv[0] = (right + edge_offset[row % 2]) * 16;
         } else {
             uv[0] = right * 16;
         }
+
         if (uv[0] < 0) {
             uv[0] = 0;
         }
+
         uv[1] = row * row_height * 16;
         prim.Data(uv);
         vertex[0] = uv[0] + offset[0];
         vertex[1] = uv[1] + offset[1];
         prim.Data(vertex);
     }
+
     prim.EndPrim2();
 }
+
 void CFadeInOut::Draw() {
     if (alpha > 0.0f) {
         mgCDrawPrim prim;

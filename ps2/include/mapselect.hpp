@@ -31,6 +31,7 @@ enum MapSelType {
     MAP_SEL_SPECIAL     = 7, /**< "Special". */
     MAP_SEL_TYPE_NUM    = 8, /**< Number of categories. */
 };
+
 // clang-format on
 
 /**
@@ -45,6 +46,7 @@ enum MapSelectMode {
     MAP_SELECT_MODE_MAP    = 1,  /**< Choosing a map of the chosen category. */
     MAP_SELECT_MODE_DECIDE = 2,  /**< A map was chosen and its name stored in SelectMapName. */
 };
+
 // clang-format on
 
 /**
@@ -58,6 +60,7 @@ enum MapSelectResult {
     MAP_SELECT_CANCEL   = 1, /**< The selection was left without choosing a map. */
     MAP_SELECT_DECIDE   = 2, /**< A map was chosen. */
 };
+
 // clang-format on
 
 /**
@@ -75,6 +78,7 @@ enum SaveDataEditItem {
     SED_CONFIG    = 5, /**< Caption setting of the configuration. */
     SED_ITEM_NUM  = 6, /**< Number of rows. */
 };
+
 // clang-format on
 
 /**
@@ -88,6 +92,7 @@ enum EventViewResult {
     EVENT_VIEW_START    = 1, /**< An event was chosen and its mode entered. */
     EVENT_VIEW_CANCEL   = 2, /**< The event list was left. */
 };
+
 // clang-format on
 
 /**
@@ -101,6 +106,7 @@ enum {
     SELECT_MAP_MAX     = 0x80,  /**< Maps one category of the map selection can list. */
     EVENT_VIEW_MAX     = 0x200, /**< Events the event viewer can list. */
 };
+
 // clang-format on
 
 /**

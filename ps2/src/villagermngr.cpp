@@ -185,144 +185,183 @@ int CVillagerMngr::CheckStay(int chara_id) {
 
     return villager->stay;
 }
+
 union VillagerVector {
-    float v[4];
+    float     v[4];
     u_long128 qw;
 };
 
 void CVillagerMngr::Step() {
-    float camera_direction[4];
+    float          camera_direction[4];
     VillagerVector target;
     VillagerVector current;
-    float direction[4];
+    float          direction[4];
+
     for (int index = 0; index < data_num; ++index) {
         CVillagerData *villager = GetData(index);
+
         if (villager != NULL && villager->vlgr_id >= 0) {
             CVillagerPlaceInfo *place = villager->place;
+
             if (place != NULL) {
                 if (villager->ex_mode != 0) {
                     switch (villager->ex_step) {
-                    case VLGR_EX_STEP_START:
-                        villager->ex_step = VLGR_EX_STEP_IN;
-                        villager->req_motion = VLGR_MOTION_CAMERA_IN;
-                        villager->motion_flag = 2;
-                        villager->parts_mode = 1;
-                        break;
-                    case VLGR_EX_STEP_IN:
-                        villager->req_motion = VLGR_MOTION_NONE;
-                        if (villager->motion_end != 0) {
-                            villager->req_motion = VLGR_MOTION_CAMERA;
-                            villager->motion_flag = 4;
-                            villager->ex_step = VLGR_EX_STEP_HOLD;
-                        }
-                        break;
-                    case VLGR_EX_STEP_HOLD:
-                        villager->req_motion = VLGR_MOTION_CAMERA;
-                        if (villager->ex_time > 3) {
-                            villager->ex_step = VLGR_EX_STEP_OUT;
-                            villager->parts_mode = 2;
-                            villager->req_motion = VLGR_MOTION_CAMERA_OUT;
+                        case VLGR_EX_STEP_START:
+                            villager->ex_step = VLGR_EX_STEP_IN;
+                            villager->req_motion = VLGR_MOTION_CAMERA_IN;
                             villager->motion_flag = 2;
-                        }
-                        break;
-                    case VLGR_EX_STEP_OUT:
-                        if (villager->motion_end != 0) {
-                            villager->ex_step = VLGR_EX_STEP_RESTORE;
-                            villager->req_motion = villager->place->motion;
-                        }
-                        break;
-                    case VLGR_EX_STEP_RESTORE:
-                        villager->ex_step = VLGR_EX_STEP_END;
-                        villager->parts_mode = 2;
-                        break;
-                    case VLGR_EX_STEP_END:
-                        villager->ex_mode = 0;
-                        villager->parts_mode = 0;
-                        break;
-                    }
-                    switch (villager->ex_step) {
-                    case VLGR_EX_STEP_IN:
-                    case VLGR_EX_STEP_OUT:
-                        int motion = villager->now_motion;
-                        if (motion != VLGR_MOTION_CAMERA_OUT && motion != VLGR_MOTION_CAMERA && motion != VLGR_MOTION_CAMERA_IN) {
+                            villager->parts_mode = 1;
+                            break;
+                        case VLGR_EX_STEP_IN:
+                            villager->req_motion = VLGR_MOTION_NONE;
+
+                            if (villager->motion_end != 0) {
+                                villager->req_motion = VLGR_MOTION_CAMERA;
+                                villager->motion_flag = 4;
+                                villager->ex_step = VLGR_EX_STEP_HOLD;
+                            }
+
+                            break;
+                        case VLGR_EX_STEP_HOLD:
+                            villager->req_motion = VLGR_MOTION_CAMERA;
+
+                            if (villager->ex_time > 3) {
+                                villager->ex_step = VLGR_EX_STEP_OUT;
+                                villager->parts_mode = 2;
+                                villager->req_motion = VLGR_MOTION_CAMERA_OUT;
+                                villager->motion_flag = 2;
+                            }
+
+                            break;
+                        case VLGR_EX_STEP_OUT:
+                            if (villager->motion_end != 0) {
+                                villager->ex_step = VLGR_EX_STEP_RESTORE;
+                                villager->req_motion = villager->place->motion;
+                            }
+
+                            break;
+                        case VLGR_EX_STEP_RESTORE:
                             villager->ex_step = VLGR_EX_STEP_END;
-                        }
-                        break;
+                            villager->parts_mode = 2;
+                            break;
+                        case VLGR_EX_STEP_END:
+                            villager->ex_mode = 0;
+                            villager->parts_mode = 0;
+                            break;
                     }
+
+                    switch (villager->ex_step) {
+                        case VLGR_EX_STEP_IN:
+                        case VLGR_EX_STEP_OUT:
+                            int motion = villager->now_motion;
+
+                            if (motion != VLGR_MOTION_CAMERA_OUT && motion != VLGR_MOTION_CAMERA && motion != VLGR_MOTION_CAMERA_IN) {
+                                villager->ex_step = VLGR_EX_STEP_END;
+                            }
+
+                            break;
+                    }
+
                     if (villager->ex_time == 0) {
                         mgGetDirFromCamera(camera_direction, villager->pos);
                         villager->rot[1] = mgAngleInterpolate(villager->rot[1], mgAngleLimit(atan2f(camera_direction[0], camera_direction[2]) - 3.1415927f), 4.0f, MG_INTERPOLATE_FRACTION);
                     }
+
                     ++villager->ex_time;
                 } else if (villager->stay <= 0 && stop == 0) {
                     CVillagerPlaceInfo::Node *route = place->route;
+
                     if (route == NULL) {
                         villager->rot[1] = mgAngleInterpolate(villager->rot[1], place->pos[3], 8.0f, MG_INTERPOLATE_FRACTION);
+
                         if (mgAngleCmp(villager->rot[1], villager->place->pos[3], 0.1f) == 0) {
                             villager->req_motion = villager->place->motion;
                             villager->rot[1] = villager->place->pos[3];
-                        } else villager->req_motion = VLGR_MOTION_WALK;
+                        } else {
+                            villager->req_motion = VLGR_MOTION_WALK;
+                        }
                     } else {
                         if (villager->route == NULL) {
                             villager->route = route;
                             villager->route_time = 0;
                         }
+
                         CVillagerPlaceInfo::Node *node;
                         goto check_route;
-                        route_step:
-                            switch (node->type) {
+                    route_step:
+                        switch (node->type) {
                             case VLGR_ROUTE_WAIT: {
-                                if (villager->route_time == 0) villager->req_motion = node->wait.motion;
+                                if (villager->route_time == 0) {
+                                    villager->req_motion = node->wait.motion;
+                                }
+
                                 ++villager->route_time;
                                 node = villager->route;
                                 int done = villager->route_time > node->wait.time;
+
                                 switch (node->wait.motion_end) {
-                                case 1:
-                                    if (villager->motion_end != 0) done = 1;
-                                    break;
+                                    case 1:
+                                        if (villager->motion_end != 0) {
+                                            done = 1;
+                                        }
+
+                                        break;
                                 }
+
                                 switch (done) {
-                                case 0:
-                                    break;
-                                default:
-                                    villager->route = node->next;
-                                    villager->route_time = 0;
+                                    case 0:
+                                        break;
+                                    default:
+                                        villager->route = node->next;
+                                        villager->route_time = 0;
                                 }
+
                                 break;
                             }
                             case VLGR_ROUTE_MOVE: {
-                                target = *(VillagerVector *)node->pos;
-                                current = *(VillagerVector *)villager->pos;
+                                target = *(VillagerVector *) node->pos;
+                                current = *(VillagerVector *) villager->pos;
                                 float facing = villager->rot[1];
                                 sceVu0SubVector(direction, target.v, current.v);
+
                                 if (mgDistVectorXZ(direction) < 10.0f) {
                                     villager->route = villager->route->next;
                                     villager->route_time = 0;
                                 }
+
                                 sceVu0Normalize(direction, direction);
                                 float next_angle = mgAngleInterpolate(facing, mgAngleLimit(atan2f(direction[0], direction[2])), 8.0f, MG_INTERPOLATE_FRACTION);
                                 float speed = villager->place->move_speed;
-                                if (speed <= 0.0f) speed = 0.8f;
+
+                                if (speed <= 0.0f) {
+                                    speed = 0.8f;
+                                }
+
                                 sceVu0ScaleVector(direction, direction, speed);
                                 direction[3] = 0.0f;
                                 mgAddVector(current.v, direction);
-                                *(VillagerVector *)villager->pos = current;
+                                *(VillagerVector *) villager->pos = current;
                                 villager->rot[1] = next_angle;
                                 villager->req_motion = villager->place->move_motion;
                                 break;
                             }
-                            }
+                        }
                         goto next_villager;
-                        check_route:
+                    check_route:
                         node = villager->route;
-                        if (node != NULL) goto route_step;
+
+                        if (node != NULL) {
+                            goto route_step;
+                        }
                     }
                 }
             }
         }
-        next_villager:;
+
+    next_villager:;
     }
 }
+
 int CVillagerMngr::GetAppearVlgr(int progress, int time, int map_no, int *villager_ids,
                                  CVillagerPlaceInfo **places) {
     int                           table_count;

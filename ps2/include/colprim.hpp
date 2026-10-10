@@ -73,6 +73,13 @@ enum DamageKind {
 
 // clang-format on
 
+enum DamageHitFlag {
+    DAMAGE_HIT_STUN = 0x1,
+    DAMAGE_HIT_KNOCKDOWN = 0x2,
+    DAMAGE_HIT_NO_STAGGER = 0x4,
+    DAMAGE_HIT_IGNORE_GUARD = 0x8,
+};
+
 /**
  *
  * Ways in which a collision primitive takes its position each step.

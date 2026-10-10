@@ -31,14 +31,14 @@ static char *motion_name[] = {
     "\x97\xa7\x82\xbf",
     "\x95\xe0\x82\xab",
     "\x91\x96\x82\xe8",
-    "\x89\xef\x98" "b",
+    "\x89\xef\x98"
+    "b",
     "\x8d\xc0\x82\xe8",
     "\x83J\x83\x81\x83\x89\x93\xfc\x82\xe8",
     "\x83J\x83\x81\x83\x89",
     "\x83J\x83\x81\x83\x89\x96\xdf\x82\xe8",
     "\x93\xc1\x95\xca",
-    NULL
-};
+    NULL};
 
 /**
  *
@@ -46,114 +46,41 @@ static char *motion_name[] = {
  *
  */
 static GAMEOBJ_INFO GameObjInfo[] = {
-    {0, GAMEOBJ_TYPE_TG_RED, 1, 0, {
-        {{-697.8f, -0.0f, -1087.4f}, 0.22f}
-    }},
-    {25, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {
-        {{107.5f, 24.7f, 1527.8f}, -2.85f}
-    }},
-    {1, GAMEOBJ_TYPE_TG_RED, 1, 0, {
-        {{-741.2f, 1.0f, -709.9f}, -2.59f}
-    }},
-    {26, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {
-        {{-620.5f, 151.0f, -899.2f}, 0.5f}
-    }},
-    {2, GAMEOBJ_TYPE_TG_RED, 1, 0, {
-        {{-138.5f, 166.0f, 1863.7f}, -3.08f}
-    }},
-    {82, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {
-        {{160.5f, 287.0f, 1850.2f}, 0.5f}
-    }},
-    {3, GAMEOBJ_TYPE_TG_RED, 1, 0, {
-        {{1770.9f, 1.0f, -417.5f}, -1.7f}
-    }},
-    {102, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {
-        {{0.0f, 0.0f, 0.0f}, 0.0f}
-    }},
-    {10, GAMEOBJ_TYPE_SAVEPOINT, 4, 0, {
-        {{559.3f, 4.1f, 120.1f}, 1.58f},
-        {{2094.2f, 0.0f, 2066.3f}, 0.17f},
-        {{-4241.7f, 353.0f, 2876.7f}, 3.04f},
-        {{-3796.3f, 359.4f, -1639.8f}, 1.63f}
-    }},
-    {17, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{2100.2f, 0.0f, 2248.6f}, 2.89f}
-    }},
-    {22, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{-112.3f, 104.0f, -160.7f}, -0.69f}
-    }},
-    {86, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{40.3f, 24.7f, -70.8f}, -2.25f}
-    }},
-    {34, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{-240.6f, 35.8f, 177.2f}, -2.78f}
-    }},
-    {23, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{33.9f, 36.1f, -102.7f}, 3.07f}
-    }},
-    {16, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{-769.7f, 0.0f, -78.7f}, 1.05f}
-    }},
-    {65, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{2805.7f, 0.0f, 1630.3f}, -1.77f}
-    }},
-    {54, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{-387.7f, 0.0f, -209.7f}, -2.15f}
-    }},
-    {1, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{1961.2f, 0.0f, -189.0f}, 1.46f}
-    }},
-    {83, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{-1861.1f, 29.2f, -336.5f}, 2.8f}
-    }},
-    {2, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{1835.6f, -6.3f, -425.0f}, 2.34f}
-    }},
-    {87, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{2394.5f, 0.0f, 1511.4f}, 2.76f}
-    }},
-    {3, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{-1378.5f, 0.0f, -1369.0f}, -2.39f}
-    }},
-    {24, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{85.6f, -0.0f, 213.5f}, 3.04f}
-    }},
-    {76, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{94.9f, 38.0f, 2816.2f}, 3.14f}
-    }},
-    {81, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{184.3f, 57.9f, 1249.0f}, -1.62f}
-    }},
-    {61, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{971.7f, 49.3f, -15.5f}, -0.2f}
-    }},
-    {84, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{43.6f, -18.1f, 1007.0f}, -2.66f}
-    }},
-    {90, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{1875.3f, -0.0f, -338.6f}, 0.26f}
-    }},
-    {88, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{-2268.1f, -0.0f, 2502.4f}, -2.91f}
-    }},
-    {92, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{-88.1f, -30.0f, 1727.0f}, -1.82f}
-    }},
-    {187, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{70.1f, 140.0f, -865.0f}, 0.0f}
-    }},
-    {103, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{-71.1f, -268.0f, 3166.0f}, 0.0f}
-    }},
-    {72, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{96.0f, 0.0f, 3451.0f}, 0.0f}
-    }},
-    {4, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{78.0f, 0.0f, 1338.0f}, 3.14f}
-    }},
-    {109, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {
-        {{54.0f, 280.0f, -607.0f}, 0.0f}
-    }},
+    {0, GAMEOBJ_TYPE_TG_RED, 1, 0, {{{-697.8f, -0.0f, -1087.4f}, 0.22f}}},
+    {25, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {{{107.5f, 24.7f, 1527.8f}, -2.85f}}},
+    {1, GAMEOBJ_TYPE_TG_RED, 1, 0, {{{-741.2f, 1.0f, -709.9f}, -2.59f}}},
+    {26, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {{{-620.5f, 151.0f, -899.2f}, 0.5f}}},
+    {2, GAMEOBJ_TYPE_TG_RED, 1, 0, {{{-138.5f, 166.0f, 1863.7f}, -3.08f}}},
+    {82, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {{{160.5f, 287.0f, 1850.2f}, 0.5f}}},
+    {3, GAMEOBJ_TYPE_TG_RED, 1, 0, {{{1770.9f, 1.0f, -417.5f}, -1.7f}}},
+    {102, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {{{0.0f, 0.0f, 0.0f}, 0.0f}}},
+    {10, GAMEOBJ_TYPE_SAVEPOINT, 4, 0, {{{559.3f, 4.1f, 120.1f}, 1.58f}, {{2094.2f, 0.0f, 2066.3f}, 0.17f}, {{-4241.7f, 353.0f, 2876.7f}, 3.04f}, {{-3796.3f, 359.4f, -1639.8f}, 1.63f}}},
+    {17, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{2100.2f, 0.0f, 2248.6f}, 2.89f}}},
+    {22, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-112.3f, 104.0f, -160.7f}, -0.69f}}},
+    {86, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{40.3f, 24.7f, -70.8f}, -2.25f}}},
+    {34, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-240.6f, 35.8f, 177.2f}, -2.78f}}},
+    {23, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{33.9f, 36.1f, -102.7f}, 3.07f}}},
+    {16, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-769.7f, 0.0f, -78.7f}, 1.05f}}},
+    {65, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{2805.7f, 0.0f, 1630.3f}, -1.77f}}},
+    {54, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-387.7f, 0.0f, -209.7f}, -2.15f}}},
+    {1, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{1961.2f, 0.0f, -189.0f}, 1.46f}}},
+    {83, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-1861.1f, 29.2f, -336.5f}, 2.8f}}},
+    {2, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{1835.6f, -6.3f, -425.0f}, 2.34f}}},
+    {87, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{2394.5f, 0.0f, 1511.4f}, 2.76f}}},
+    {3, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-1378.5f, 0.0f, -1369.0f}, -2.39f}}},
+    {24, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{85.6f, -0.0f, 213.5f}, 3.04f}}},
+    {76, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{94.9f, 38.0f, 2816.2f}, 3.14f}}},
+    {81, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{184.3f, 57.9f, 1249.0f}, -1.62f}}},
+    {61, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{971.7f, 49.3f, -15.5f}, -0.2f}}},
+    {84, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{43.6f, -18.1f, 1007.0f}, -2.66f}}},
+    {90, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{1875.3f, -0.0f, -338.6f}, 0.26f}}},
+    {88, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-2268.1f, -0.0f, 2502.4f}, -2.91f}}},
+    {92, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-88.1f, -30.0f, 1727.0f}, -1.82f}}},
+    {187, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{70.1f, 140.0f, -865.0f}, 0.0f}}},
+    {103, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-71.1f, -268.0f, 3166.0f}, 0.0f}}},
+    {72, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{96.0f, 0.0f, 3451.0f}, 0.0f}}},
+    {4, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{78.0f, 0.0f, 1338.0f}, 3.14f}}},
+    {109, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{54.0f, 280.0f, -607.0f}, 0.0f}}},
     {-1, GAMEOBJ_TYPE_NONE, 0, 0},
 };
 
@@ -255,6 +182,7 @@ void CScene::GetCharaLighting(float (*lights)[4], float *ambient) {
         }
 
         sceVu0FVECTOR limit = {255.0f, 255.0f, 255.0f, 128.0f};
+
         for (i = 0; i < 4; i++) {
             sceVu0ScaleVectorXYZ(lights[i], lights[i], light_scale);
             mgVectorMin(lights[i], lights[i], limit);
@@ -774,10 +702,10 @@ int CScene::LoadVillager(int map_no, int texb) {
             continue;
         }
 
-        u_int     *buffer = (u_int *) read_buff;
-        int        rest_before;
-        int        block = texb + loaded;
-        int        slot;
+        u_int *buffer = (u_int *) read_buff;
+        int    rest_before;
+        int    block = texb + loaded;
+        int    slot;
         tex_manager->DeleteBlock(block);
         int copy_from = SearchCopyModel(chara_nos[i]);
         slot = -1;
@@ -851,10 +779,10 @@ int CScene::LoadSubVillager(int map_no, int texb) {
             continue;
         }
 
-        u_int     *buffer = (u_int *) read_buff;
-        int        rest_before;
-        int        block = texb + loaded;
-        int        slot;
+        u_int *buffer = (u_int *) read_buff;
+        int    rest_before;
+        int    block = texb + loaded;
+        int    slot;
         tex_manager->DeleteBlock(block);
         slot = -1;
         int copy_from = SearchCopyModel(chara_nos[i]);
@@ -1293,14 +1221,14 @@ void CScene::SetActiveVillager() {
 
             if (!(unused & 0xFF)) {
                 if (no_map) {
-                    scene->SetActive(1, villager->chara_id);
+                    scene->SetActive(SCENE_DATA_CHARA, villager->chara_id);
                 } else {
                     int chara_id = villager->chara_id;
 
                     if (chara_id >= SCENE_SUB_VILLAGER_SLOT_TOP) {
-                        scene->SetActive(1, chara_id);
+                        scene->SetActive(SCENE_DATA_CHARA, chara_id);
                     } else {
-                        scene->ResetActive(1, chara_id);
+                        scene->ResetActive(SCENE_DATA_CHARA, chara_id);
                     }
                 }
             }

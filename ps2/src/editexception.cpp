@@ -75,17 +75,17 @@ static int FirePowderTexb;
 /**
  * Sprite visual used for fire-powder rendering.
  */
-static mgC3DSprite * SpriteVis;
+static mgC3DSprite *SpriteVis;
 
 /**
  * Frame that owns the fire-powder sprite visual.
  */
-static mgCFrame * FirePowFrame;
+static mgCFrame *FirePowFrame;
 
 /**
  * Fire-powder particles active in the scene.
  */
-static FirePowder * fire_powder;
+static FirePowder *fire_powder;
 
 /**
  * Whether geyser rendering is enabled.
@@ -100,7 +100,7 @@ static int GeyserEffectTexb;
 /**
  * Frame that owns the geyser particle visual.
  */
-static mgCFrame * GeyserFrame;
+static mgCFrame *GeyserFrame;
 
 /**
  * Random seed stored when geyser effects are initialized.
@@ -110,7 +110,7 @@ static int GeyserRndSeed;
 /**
  * Array of geyser emitters shared by placed geyser parts.
  */
-static CGeyserEffect * GeyserEffect;
+static CGeyserEffect *GeyserEffect;
 
 /**
  *
@@ -361,17 +361,17 @@ void S51Thunder(CScene *scene) {
 }
 
 void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
-    int          i;
-    FirePowder  *particle;
-    int          size;
-    u_char      *image;
+    int         i;
+    FirePowder *particle;
+    int         size;
+    u_char     *image;
     FirePowderFlag = 0;
 
     if (map_no != 3 && map_no != 0x57 && map_no != 0x55) {
         return;
     }
 
-    if (GetSaveData()->GetBitFlag(0x208) != 0) {
+    if (GetSaveData()->GetBitFlag((int) SAVE_FLAG_EDIT_BLOCKED) != 0) {
         return;
     }
 
@@ -444,8 +444,8 @@ void DrawFirePowder(CScene *scene) {
     mgCDrawEnv   draw_env = *mgGetpDrawEnv(0);
     ((EditGsTest *) &draw_env.test)->zte = 1;
     ((EditGsTest *) &draw_env.test)->ztst = 2;
-    draw_env.SetZBuf(-1);
-    draw_env.SetAlpha(2);
+    draw_env.SetZBuf(MG_ZBUF_NO_WRITE);
+    draw_env.SetAlpha(MG_ALPHA_MACRO_ADD);
     draw_sprite->BeginCreatePacket(0, NULL);
     draw_sprite->CPSetDrawEnv(&draw_env);
     draw_sprite->CPSetTexture(mgTexManager.GetTexture("firerain", -1));
@@ -633,16 +633,24 @@ void CGeyserEffect::CreatePacket() {
     mgCDrawEnv   draw_env = *mgGetpDrawEnv(0);
     ((EditGsTest *) &draw_env.test)->zte = 1;
     ((EditGsTest *) &draw_env.test)->ztst = 2;
-    draw_env.SetZBuf(-1);
-    draw_env.SetAlpha(2);
+    draw_env.SetZBuf(MG_ZBUF_NO_WRITE);
+    draw_env.SetAlpha(MG_ALPHA_MACRO_ADD);
     draw_sprite->BeginCreatePacket(0, NULL);
     draw_sprite->CPSetDrawEnv(&draw_env);
     draw_sprite->CPSetTexture(texture);
     draw_sprite->BeginCPSprite();
-    mgVec4 size = {{5.0f, 5.0f, 0.0f, 0.0f}};
-    mgVec4 uv0 = {{0.0f, 0.0f, 0.0f, 0.0f}};
-    mgVec4 uv1 = {{64.0f, 64.0f, 0.0f, 0.0f}};
-    mgVec4 color = {{128.0f, 128.0f, 128.0f, 50.0f}};
+    mgVec4 size = {
+        {5.0f, 5.0f, 0.0f, 0.0f}
+    };
+    mgVec4 uv0 = {
+        {0.0f, 0.0f, 0.0f, 0.0f}
+    };
+    mgVec4 uv1 = {
+        {64.0f, 64.0f, 0.0f, 0.0f}
+    };
+    mgVec4 color = {
+        {128.0f, 128.0f, 128.0f, 50.0f}
+    };
 
     for (i = 0; i < point_num; ++i) {
         CGeyserEffectPoint &particle = point[i];

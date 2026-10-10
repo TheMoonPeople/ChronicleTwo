@@ -44,6 +44,24 @@ struct MENUFORMPARTS_TYPE;
  */
 #define OPTION_BUTTON_NUM 3
 
+enum OPTION_ITEM {
+    OPTION_ITEM_CURSOR_MEMORY = 0,
+    OPTION_ITEM_VIBRATION = 1,
+    OPTION_ITEM_MESSAGE_SPEED = 2,
+    OPTION_ITEM_SOUND_MODE = 3,
+    OPTION_ITEM_TIME_SPEED = 4,
+    OPTION_ITEM_MINIMAP = 5,
+    OPTION_ITEM_DAMAGE_NUMBERS = 6,
+    OPTION_ITEM_ENEMY_HP = 7,
+    OPTION_ITEM_ANGER_COUNTER = 8,
+    OPTION_ITEM_MONSTER_NAME = 10,
+    OPTION_ITEM_DEPTH_OF_FIELD = 11,
+    OPTION_ITEM_CAPTIONS = 12,
+    OPTION_ITEM_PAUSE_OVERLAY = 13,
+    OPTION_ITEM_CAMERA_VERTICAL = 14,
+    OPTION_ITEM_CAMERA_ROTATION = 15,
+};
+
 /**
  *
  * Steps of the manual menu, as CBaseMenuClass::key_arg_no holds them.
@@ -410,9 +428,11 @@ public:
         unk_154 = 0;
         dl_tex = NULL;
         title_form = NULL;
+
         for (int i = 0; i < 2; i++) {
             slot_form[i] = NULL;
         }
+
         cursor_form = NULL;
         list_form = NULL;
         scrlbar_form = NULL;

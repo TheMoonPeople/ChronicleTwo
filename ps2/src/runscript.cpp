@@ -1,11 +1,11 @@
 #include "common.h"
 
-#include "runscript.hpp"
-
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
+#include "runscript.hpp"
 
 // Code (.text)
 /**
@@ -736,6 +736,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 break;
             case RS_OP_SKIP_END:
                 skip_end_count++;
+
                 if (skip_wait) {
                     skip_wait = 0;
                     pc++;

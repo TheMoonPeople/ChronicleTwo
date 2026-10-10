@@ -128,18 +128,18 @@ typedef int (*EventFunc)(RS_STACKDATA *, int);
  */
 static CEventScriptArg *nowScriptArg;
 
-extern CEventScriptArg   EventScriptArg;
+extern CEventScriptArg EventScriptArg;
 /**
  * Dispatch slots for event script external commands.
  */
 static EventFunc ext_func[0x5DC];
 
-extern CEventSprite2     EventSprite2[0x30];
-extern CSceneObjSeq      ObjectSeq[32];
-extern CSceneCmrSeq      CameraSeq;
-extern mgCMemory         BuffEventSnd;
-extern mgCMemory         BuffEventSnd2;
-extern CDngFreeMap       EventDngMap;
+extern CEventSprite2 EventSprite2[0x30];
+extern CSceneObjSeq  ObjectSeq[32];
+extern CSceneCmrSeq  CameraSeq;
+extern mgCMemory     BuffEventSnd;
+extern mgCMemory     BuffEventSnd2;
+extern CDngFreeMap   EventDngMap;
 /**
  * Effect script manager controlled by the event script.
  */
@@ -198,27 +198,27 @@ static u_long128 event_snd2_buff[event_snd2_buffer_size];
  */
 static u_long128 event_snd_buff[event_snd_buffer_size];
 
-const int              memory_name_max = 0x10;
-const int              pack_file_max = 0x80;
-const int              type_loaded = 2;
-const int              event_func_slots = 0x5DC;
-const int              object_seq_num = 32;
-const int              exit_edit_mode = 17;
-const int              event_stream = 1;
-const int              stream_max_volume = 0x7FFF;
-const int              vpk_entry_count = 164;
-const int              chara_sword_after_offset = 0x570;
-const int              menu_dng_map = 3;
-const int              menu_select_party = 4;
-const int              menu_use_item = 9;
-const int              menu_draw_chapter = 11;
-const int              exit_start_loop = EVENT_REQUEST_GOTO;
-const int              exit_enter_interior = EVENT_REQUEST_INTERIOR;
-const int              exit_leave_interior = EVENT_REQUEST_OUTSIDE;
-const int              exit_map_jump = EVENT_REQUEST_MAP_JUMP;
-const int              request_menu = EVENT_COMMAND_SUB_MODE;
-const int              request_door = EVENT_COMMAND_DOOR;
-const int              event_sprite2_size = 0x80;
+const int memory_name_max = 0x10;
+const int pack_file_max = 0x80;
+const int type_loaded = 2;
+const int event_func_slots = 0x5DC;
+const int object_seq_num = 32;
+const int exit_edit_mode = 17;
+const int event_stream = 1;
+const int stream_max_volume = 0x7FFF;
+const int vpk_entry_count = 164;
+const int chara_sword_after_offset = 0x570;
+const int menu_dng_map = 3;
+const int menu_select_party = 4;
+const int menu_use_item = 9;
+const int menu_draw_chapter = 11;
+const int exit_start_loop = EVENT_REQUEST_GOTO;
+const int exit_enter_interior = EVENT_REQUEST_INTERIOR;
+const int exit_leave_interior = EVENT_REQUEST_OUTSIDE;
+const int exit_map_jump = EVENT_REQUEST_MAP_JUMP;
+const int request_menu = EVENT_COMMAND_SUB_MODE;
+const int request_door = EVENT_COMMAND_DOOR;
+const int event_sprite2_size = 0x80;
 
 // Code (.text)
 CEoh::CEoh() {
@@ -843,7 +843,7 @@ int CEohMother::CheckMotionEnd(int slot) {
                 return (chara)->CheckMotionEnd();
             }
 
-            if (chara->seq_state == 4) {
+            if (chara->seq_state == (int) CHARA_SEQ_STATE_END) {
                 return (chara)->CheckMotionEnd();
             }
 
@@ -1299,9 +1299,9 @@ int CEohMother::SetShadow(int slot, int enable) {
     switch (handle->type) {
         case EOH_TYPE_CHARA:
             if (enable != 0) {
-                EventScene->ResetStatus(1, handle->scene_no, status_no_shadow);
+                EventScene->ResetStatus(SCENE_DATA_CHARA, handle->scene_no, status_no_shadow);
             } else {
-                EventScene->SetStatus(1, handle->scene_no, status_no_shadow);
+                EventScene->SetStatus(SCENE_DATA_CHARA, handle->scene_no, status_no_shadow);
             }
 
             return 1;
@@ -1866,10 +1866,12 @@ int CEohMother::SetFootSeId(int slot, int stamp) {
 }
 
 void FileNameConvLanguage(char *name) {
-    ExtensionTable extension = {{"txt", "img", "stb", ""}};
-    char           marker[32];
-    char          *found;
-    int            i;
+    ExtensionTable extension = {
+        {"txt", "img", "stb", ""}
+    };
+    char  marker[32];
+    char *found;
+    int   i;
 
     for (i = 0; i < 3; i++) {
         sprintf(marker, "_1.%s", extension.name[i]);
@@ -1947,9 +1949,9 @@ static int _ID_OFFSET(RS_STACKDATA *stack, int argc);
  * External handlers available to event argument scripts.
  */
 static RS_EXTFUNC_INFO esa_ext_func_info[3] = {
-    {_DATA, EVENT_ARG_DATA},
+    {_DATA,      EVENT_ARG_DATA     },
     {_ID_OFFSET, EVENT_ARG_ID_OFFSET},
-    {NULL, EVENT_ARG_DATA},
+    {NULL,       EVENT_ARG_DATA     },
 };
 
 void CEventScriptArg::BuildArgData(u32 *program) {
@@ -1997,30 +1999,39 @@ void CEventScriptArg::BuildArgData(u32 *program) {
     script.run(script_run_id);
     nowScriptArg = NULL;
 }
+
 static inline ARG_LIST *ScriptArgAddList(CEventScriptArg *script) {
     if (script->memory == NULL) {
         return NULL;
     }
+
     ARG_LIST *created = new (script->memory->Alloc(3)) ARG_LIST;
+
     if (created == NULL) {
         return NULL;
     }
+
     created->id = script->next_id;
     created->args = NULL;
     created->next = NULL;
+
     if (script->list_num <= 0) {
         script->list = created;
     } else {
         ARG_LIST *last = script->list;
+
         while (last->next != NULL) {
             last = last->next;
         }
+
         last->next = created;
     }
+
     script->next_id++;
     script->list_num++;
     return created;
 }
+
 static inline void ScriptArgNewData(CEventScriptArg *script, int num, ARG_DATA **out) {
     if (script->memory == NULL) {
         *out = NULL;
@@ -2029,8 +2040,10 @@ static inline void ScriptArgNewData(CEventScriptArg *script, int num, ARG_DATA *
         *out = new (script->memory->Alloc(((size & 0xF) ? (size >> 4) + 1 : size >> 4) + 2)) ARG_DATA[num];
     }
 }
+
 static inline char *ScriptArgNewString(CEventScriptArg *script, char *source) {
     char *copy;
+
     if (script->memory == NULL) {
         copy = NULL;
     } else {
@@ -2038,27 +2051,37 @@ static inline char *ScriptArgNewString(CEventScriptArg *script, char *source) {
         copy = new (script->memory->Alloc(((length & 0xF) ? (length >> 4) + 1 : length >> 4) + 2)) char[strlen(source) + 1];
         strcpy(copy, source);
     }
+
     return copy;
 }
+
 int _DATA(RS_STACKDATA *stack, int argc) {
-    char *source;
+    char            *source;
     CEventScriptArg *script = nowScriptArg;
+
     if (script == NULL) {
         return 0;
     }
+
     ARG_LIST *node = ScriptArgAddList(script);
+
     if (node == NULL) {
         return 0;
     }
+
     ARG_DATA *args __attribute__((aligned(16)));
     ScriptArgNewData(nowScriptArg, argc, &args);
+
     if (args == NULL) {
         return 0;
     }
+
     node->args = args;
     node->arg_num = argc;
+
     for (int i = 0; i < argc; i++) {
         args[i].type = stack->type;
+
         switch (stack->type) {
             case RS_INT:
                 args[i].i = GetStackInt(stack++);
@@ -2075,8 +2098,10 @@ int _DATA(RS_STACKDATA *stack, int argc) {
                 break;
         }
     }
+
     return 1;
 }
+
 int _ID_OFFSET(RS_STACKDATA *stack, int arg_count) {
     if (nowScriptArg == 0) {
         return 0;
@@ -2211,27 +2236,27 @@ void CRaster::SetParam(float amplitude, float speed, float pitch) {
     this->pitch = pitch;
 }
 
-void CRaster::StartRaster(float target0, float target1, float target2, int frames) {
+void CRaster::StartRaster(float target_amplitude, float target_speed, float target_pitch, int frames) {
     this->frames = frames;
     frame = 0;
 
     if (this->frames > 1) {
-        state = 1;
+        state = (int) RASTER_START;
 
-        if (target0 != -1.0f) {
-            amplitude_step = (target0 - amplitude) / (float) this->frames;
+        if (target_amplitude != -1.0f) {
+            amplitude_step = (target_amplitude - amplitude) / (float) this->frames;
         } else {
             amplitude_step = 0.0f;
         }
 
-        if (target1 != -1.0f) {
-            speed_step = (target1 - speed) / (float) this->frames;
+        if (target_speed != -1.0f) {
+            speed_step = (target_speed - speed) / (float) this->frames;
         } else {
             speed_step = 0.0f;
         }
 
-        if (target2 != -1.0f) {
-            pitch_step = (target2 - pitch) / (float) this->frames;
+        if (target_pitch != -1.0f) {
+            pitch_step = (target_pitch - pitch) / (float) this->frames;
             return;
         }
 
@@ -2239,42 +2264,42 @@ void CRaster::StartRaster(float target0, float target1, float target2, int frame
         return;
     }
 
-    if (target0 != -1.0f) {
-        amplitude = target0;
+    if (target_amplitude != -1.0f) {
+        amplitude = target_amplitude;
     }
 
-    if (target1 != -1.0f) {
-        speed = target1;
+    if (target_speed != -1.0f) {
+        speed = target_speed;
     }
 
-    if (target2 != -1.0f) {
-        pitch = target2;
+    if (target_pitch != -1.0f) {
+        pitch = target_pitch;
     }
 
-    state = 2;
+    state = (int) RASTER_ON;
 }
 
-void CRaster::StopRaster(float target0, float target1, float target2, int frames) {
+void CRaster::StopRaster(float target_amplitude, float target_speed, float target_pitch, int frames) {
     this->frames = frames;
     frame = 0;
 
     if (this->frames > 1) {
-        state = 3;
+        state = (int) RASTER_STOP;
 
-        if (target0 != -1.0f) {
-            amplitude_step = (target0 - amplitude) / (float) this->frames;
+        if (target_amplitude != -1.0f) {
+            amplitude_step = (target_amplitude - amplitude) / (float) this->frames;
         } else {
             amplitude_step = 0.0f;
         }
 
-        if (target1 != -1.0f) {
-            speed_step = (target1 - speed) / (float) this->frames;
+        if (target_speed != -1.0f) {
+            speed_step = (target_speed - speed) / (float) this->frames;
         } else {
             speed_step = 0.0f;
         }
 
-        if (target2 != -1.0f) {
-            pitch_step = (target2 - pitch) / (float) this->frames;
+        if (target_pitch != -1.0f) {
+            pitch_step = (target_pitch - pitch) / (float) this->frames;
             return;
         }
 
@@ -2282,25 +2307,25 @@ void CRaster::StopRaster(float target0, float target1, float target2, int frames
         return;
     }
 
-    if (target0 != -1.0f) {
-        amplitude = target0;
+    if (target_amplitude != -1.0f) {
+        amplitude = target_amplitude;
     }
 
-    if (target1 != -1.0f) {
-        speed = target1;
+    if (target_speed != -1.0f) {
+        speed = target_speed;
     }
 
-    if (target2 != -1.0f) {
-        pitch = target2;
+    if (target_pitch != -1.0f) {
+        pitch = target_pitch;
     }
 
-    state = 0;
+    state = (int) RASTER_OFF;
 }
 
 void CRaster::StepRaster() {
     switch (state) {
-        case 1:
-        case 3:
+        case RASTER_START:
+        case RASTER_STOP:
             amplitude += amplitude_step;
 
             if (amplitude < 0.0f) {
@@ -2333,18 +2358,18 @@ void CRaster::StepRaster() {
                 frame = 0;
                 this->frames = -1;
 
-                if (state == 1) {
-                    state = 2;
+                if (state == (int) RASTER_START) {
+                    state = (int) RASTER_ON;
                 }
 
-                if (state == 3) {
-                    state = 0;
+                if (state == (int) RASTER_STOP) {
+                    state = (int) RASTER_OFF;
                 }
             }
 
             break;
-        case 2:
-        case 0:
+        case RASTER_ON:
+        case RASTER_OFF:
             break;
     }
 }
@@ -2356,7 +2381,7 @@ void CRaster::DrawRaster() {
     float current_phase;
     float next_y;
 
-    if (state != 0) {
+    if (state != (int) RASTER_OFF) {
         mgCTexture screen;
 
         mgGetFrameBuffer(&screen);
@@ -2478,12 +2503,12 @@ void CScreenEffect::InitRaster(float amplitude, float speed, float pitch) {
     raster.SetParam(amplitude, speed, pitch);
 }
 
-void CScreenEffect::StartRaster(float target0, float target1, float target2, int frames) {
-    raster.StartRaster(target0, target1, target2, frames);
+void CScreenEffect::StartRaster(float target_amplitude, float target_speed, float target_pitch, int frames) {
+    raster.StartRaster(target_amplitude, target_speed, target_pitch, frames);
 }
 
-void CScreenEffect::StopRaster(float target0, float target1, float target2, int frames) {
-    raster.StopRaster(target0, target1, target2, frames);
+void CScreenEffect::StopRaster(float target_amplitude, float target_speed, float target_pitch, int frames) {
+    raster.StopRaster(target_amplitude, target_speed, target_pitch, frames);
 }
 
 void CScreenEffect::SetSepiaTexture(mgCTexture *texture, u_long128 *image) {
@@ -2493,19 +2518,23 @@ void CScreenEffect::SetSepiaTexture(mgCTexture *texture, u_long128 *image) {
         sepia_texture->image[0] = image;
     }
 }
-void CScreenEffect::CaptureSepiaScreen(void) {
+
+void CScreenEffect::CaptureSepiaScreen() {
     if (sepia_texture == NULL) {
         return;
     }
+
     mgCTexture screen;
     mgGetFrameBackBuffer(&screen);
     mgStoreImage(&screen, sepia_texture->image[0]);
-    u_char *pixels = (u_char *)sepia_texture->image[0];
+    u_char *pixels = (u_char *) sepia_texture->image[0];
+
     for (int i = 0; i < mgScreenHeight * mgScreenWidth * 4; i += 4) {
         u_char *red = &pixels[i];
         u_char *green = &pixels[i + 1];
         u_char *blue = &pixels[i + 2];
-        int gray = (u_int)(0.229f * (float)(u_int)*red + 0.587f * (float)(u_int)*green + 0.114f * (float)(u_int)*blue) & 0xFF;
+        int     gray = (u_int) (0.229f * (float) (u_int) *red + 0.587f * (float) (u_int) *green + 0.114f * (float) (u_int) *blue) & 0xFF;
+
         if (gray > 0x40) {
             *red = (gray - 0x40) * 180 / 191 + 75;
             *green = (gray - 0x40) * 193 / 191 + 62;
@@ -2517,6 +2546,7 @@ void CScreenEffect::CaptureSepiaScreen(void) {
         }
     }
 }
+
 void CScreenEffect::SetSepiaFlag(int enabled) {
     if (sepia_texture != NULL) {
         sepia = enabled;
@@ -2536,28 +2566,32 @@ void CScreenEffect::SetMonoFlashTexture(mgCTexture **textures, u_long128 **vram_
     mono_flash_texture[1] = textures[1];
     mono_flash_texture[1]->image[0] = vram_images[1];
 }
-void CScreenEffect::CaptureMonoFlashScreen(void) {
+
+void CScreenEffect::CaptureMonoFlashScreen() {
     if (mono_flash_texture[0] == NULL || mono_flash_texture[1] == NULL) {
         return;
     }
+
     mgCTexture screen;
     mgGetFrameBackBuffer(&screen);
     mgStoreImage(&screen, mono_flash_texture[0]->image[0]);
     mgStoreImage(&screen, mono_flash_texture[1]->image[0]);
-    u_char *positive = (u_char *)mono_flash_texture[0]->image[0];
-    u_char *negative = (u_char *)mono_flash_texture[1]->image[0];
+    u_char *positive = (u_char *) mono_flash_texture[0]->image[0];
+    u_char *negative = (u_char *) mono_flash_texture[1]->image[0];
+
     for (int i = 0; i < mgScreenHeight * mgScreenWidth * 4; i += 4) {
         u_char *red = &positive[i];
         u_char *green = &positive[i + 1];
         u_char *blue = &positive[i + 2];
-        *red = *green = *blue = (u_int)(0.229f * (float)*red + 0.587f * (float)*green + 0.114f * (float)*blue);
+        *red = *green = *blue = (u_int) (0.229f * (float) *red + 0.587f * (float) *green + 0.114f * (float) *blue);
         red = &negative[i];
         green = &negative[i + 1];
         blue = &negative[i + 2];
-        char gray = (u_int)(0.229f * (float)*red + 0.587f * (float)*green + 0.114f * (float)*blue);
+        char gray = (u_int) (0.229f * (float) *red + 0.587f * (float) *green + 0.114f * (float) *blue);
         *red = *green = *blue = 255 - gray;
     }
 }
+
 void CScreenEffect::SetMonoFlashFlag(int enabled, int interval) {
     if (mono_flash_texture[0] != NULL || mono_flash_texture[1] != NULL) {
         mono_flash = enabled;
@@ -2836,23 +2870,28 @@ void EdEventInit() {
     EventScriptArg.memory = 0;
     EventScreenEffect.Initialize();
 }
-void EventTimeDraw(void) {
-    int digit[10];
-    int glyph[32];
-    CSaveData *saveData = GetSaveData();
-    if (saveData != NULL && EdEventInfo.stopwatch_start != 0) {
+
+void EventTimeDraw() {
+    int        digit[10];
+    int        glyph[32];
+    CSaveData *save_data = GetSaveData();
+
+    if (save_data != NULL && EdEventInfo.stopwatch_start != 0) {
         u64 elapsed;
+
         if (EdEventInfo.stopwatch_style == 1) {
             elapsed = EdEventInfo.stopwatch_limit - 2;
             EdEventInfo.stopwatch_limit = elapsed;
         } else if (EdEventInfo.stopwatch_limit != 0) {
-            elapsed = EdEventInfo.stopwatch_limit - (saveData->play_time - EdEventInfo.stopwatch_start);
+            elapsed = EdEventInfo.stopwatch_limit - (save_data->play_time - EdEventInfo.stopwatch_start);
         } else {
-            elapsed = saveData->play_time - EdEventInfo.stopwatch_start;
+            elapsed = save_data->play_time - EdEventInfo.stopwatch_start;
         }
+
         if (0x57E40 <= elapsed) {
             elapsed = 0x57E40;
         }
+
         int hours = elapsed / 3600;
         int minutes = elapsed % 3600 / 60;
         int hundredths = elapsed % 60 * 100 / 60;
@@ -2866,15 +2905,18 @@ void EventTimeDraw(void) {
         digit[7] = GetHalfFontNo('7');
         digit[8] = GetHalfFontNo('8');
         digit[9] = GetHalfFontNo('9');
+
         for (int i = 0; i < 32; i++) {
             glyph[i] = -1;
         }
+
         glyph[0] = digit[hours / 10];
         glyph[1] = digit[hours % 10];
         glyph[3] = digit[minutes / 10];
         glyph[4] = digit[minutes % 10];
         glyph[6] = digit[hundredths / 10];
         glyph[7] = digit[hundredths % 10];
+
         if (EdEventInfo.stopwatch_style == 1) {
             glyph[2] = GetHalfFontNo(':');
             glyph[5] = GetHalfFontNo(':');
@@ -2882,47 +2924,56 @@ void EventTimeDraw(void) {
             glyph[2] = GetHalfFontNo('m');
             glyph[5] = GetHalfFontNo('s');
         }
+
         mgCDrawPrim prim;
+
         if (EdEventInfo.stopwatch_style == 0) {
             prim.Begin(MG_PRIM_SPRITE);
-            RECT window;
-            RGBAQ_TYPE windowColor;
+            RECT       window;
+            RGBAQ_TYPE window_color;
             window.width = 0x9E;
             window.height = 0x36;
-            windowColor.r = windowColor.g = windowColor.b = windowColor.a = 0x80;
+            window_color.r = window_color.g = window_color.b = window_color.a = 0x80;
             window.x = EdEventInfo.stopwatch_x - 0x10;
             window.y = EdEventInfo.stopwatch_y - 0x12;
-            DrawVersatileWin_4(&prim, window, &windowColor, 0x80);
+            DrawVersatileWin_4(&prim, window, &window_color, 0x80);
             prim.End();
         }
+
         MySetPrim(&prim, 1, 0);
         prim.Begin(MG_PRIM_SPRITE);
+
         for (int i = 0; i < 32; i++) {
             if (glyph[i] >= 0) {
-                int page;
+                int  page;
                 RECT texture = GetRectFontTex(glyph[i], &page);
                 MySetTex(page, &prim);
                 RECT destination;
                 destination.x = EdEventInfo.stopwatch_x + texture.width * i;
                 destination.y = EdEventInfo.stopwatch_y;
+
                 if (EdEventInfo.stopwatch_style == 1) {
                     destination.y += 0x40;
                 }
+
                 destination.width = texture.width;
                 destination.height = texture.height;
                 set2DSprite_Fuchi(&prim, destination, texture, 8, 0x80);
                 RGBAQ_TYPE color;
                 color.a = color.r = color.g = color.b = 0x80;
                 set2DSpriteEasyFont(&prim,
-                    mgRect<int>(destination.x, destination.y, destination.width, destination.height),
-                    mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+                                    mgRect<int>(destination.x, destination.y, destination.width, destination.height),
+                                    mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
             }
         }
+
         if (EdEventInfo.stopwatch_style == 1) {
             int label[32];
+
             for (int i = 0; i < 32; i++) {
                 label[i] = -1;
             }
+
             if (EdEventInfo.stopwatch_style == 1) {
                 switch (LanguageCode) {
                     case 0:
@@ -2933,118 +2984,125 @@ void EventTimeDraw(void) {
                         label[4] = GetFontNo("\x82\xC5");
                         break;
                     case 2:
-                label[0] = GetHalfFontNo('C');
-                label[1] = GetHalfFontNo('h');
-                label[2] = GetHalfFontNo('u');
-                label[3] = GetHalfFontNo('t');
-                label[4] = GetHalfFontNo('e');
-                label[5] = GetHalfFontNo('s');
-                label[6] = GetHalfFontNo(' ');
-                label[7] = GetHalfFontNo('d');
-                label[8] = GetHalfFontNo('e');
-                label[9] = GetHalfFontNo(' ');
-                label[10] = GetHalfFontNo('l');
-                label[11] = GetHalfFontNo('u');
-                label[12] = GetHalfFontNo('n');
-                label[13] = GetHalfFontNo('e');
+                        label[0] = GetHalfFontNo('C');
+                        label[1] = GetHalfFontNo('h');
+                        label[2] = GetHalfFontNo('u');
+                        label[3] = GetHalfFontNo('t');
+                        label[4] = GetHalfFontNo('e');
+                        label[5] = GetHalfFontNo('s');
+                        label[6] = GetHalfFontNo(' ');
+                        label[7] = GetHalfFontNo('d');
+                        label[8] = GetHalfFontNo('e');
+                        label[9] = GetHalfFontNo(' ');
+                        label[10] = GetHalfFontNo('l');
+                        label[11] = GetHalfFontNo('u');
+                        label[12] = GetHalfFontNo('n');
+                        label[13] = GetHalfFontNo('e');
                         break;
                     case 4:
-                label[0] = GetHalfFontNo('L');
-                label[1] = GetHalfFontNo('e');
-                label[2] = GetHalfFontNo(' ');
-                label[3] = GetHalfFontNo('C');
-                label[4] = GetHalfFontNo('a');
-                label[5] = GetHalfFontNo('s');
-                label[6] = GetHalfFontNo('c');
-                label[7] = GetHalfFontNo('a');
-                label[8] = GetHalfFontNo('t');
-                label[9] = GetHalfFontNo('e');
-                label[10] = GetHalfFontNo(' ');
-                label[11] = GetHalfFontNo('d');
-                label[12] = GetHalfFontNo('e');
-                label[13] = GetHalfFontNo('l');
-                label[14] = GetHalfFontNo('l');
-                label[15] = GetHalfFontNo('a');
-                label[16] = GetHalfFontNo(' ');
-                label[17] = GetHalfFontNo('L');
-                label[18] = GetHalfFontNo('u');
-                label[19] = GetHalfFontNo('n');
-                label[20] = GetHalfFontNo('a');
+                        label[0] = GetHalfFontNo('L');
+                        label[1] = GetHalfFontNo('e');
+                        label[2] = GetHalfFontNo(' ');
+                        label[3] = GetHalfFontNo('C');
+                        label[4] = GetHalfFontNo('a');
+                        label[5] = GetHalfFontNo('s');
+                        label[6] = GetHalfFontNo('c');
+                        label[7] = GetHalfFontNo('a');
+                        label[8] = GetHalfFontNo('t');
+                        label[9] = GetHalfFontNo('e');
+                        label[10] = GetHalfFontNo(' ');
+                        label[11] = GetHalfFontNo('d');
+                        label[12] = GetHalfFontNo('e');
+                        label[13] = GetHalfFontNo('l');
+                        label[14] = GetHalfFontNo('l');
+                        label[15] = GetHalfFontNo('a');
+                        label[16] = GetHalfFontNo(' ');
+                        label[17] = GetHalfFontNo('L');
+                        label[18] = GetHalfFontNo('u');
+                        label[19] = GetHalfFontNo('n');
+                        label[20] = GetHalfFontNo('a');
                         break;
                     case 5:
-                label[0] = GetHalfFontNo('C');
-                label[1] = GetHalfFontNo('a');
-                label[2] = GetHalfFontNo('t');
-                label[3] = GetHalfFontNo('a');
-                label[4] = GetHalfFontNo('r');
-                label[5] = GetHalfFontNo('a');
-                label[6] = GetHalfFontNo('t');
-                label[7] = GetHalfFontNo('a');
-                label[8] = GetHalfFontNo('s');
-                label[9] = GetHalfFontNo(' ');
-                label[10] = GetHalfFontNo('L');
-                label[11] = GetHalfFontNo('u');
-                label[12] = GetHalfFontNo('n');
-                label[13] = GetHalfFontNo('a');
+                        label[0] = GetHalfFontNo('C');
+                        label[1] = GetHalfFontNo('a');
+                        label[2] = GetHalfFontNo('t');
+                        label[3] = GetHalfFontNo('a');
+                        label[4] = GetHalfFontNo('r');
+                        label[5] = GetHalfFontNo('a');
+                        label[6] = GetHalfFontNo('t');
+                        label[7] = GetHalfFontNo('a');
+                        label[8] = GetHalfFontNo('s');
+                        label[9] = GetHalfFontNo(' ');
+                        label[10] = GetHalfFontNo('L');
+                        label[11] = GetHalfFontNo('u');
+                        label[12] = GetHalfFontNo('n');
+                        label[13] = GetHalfFontNo('a');
                         break;
                     case 1:
                     case 3:
                     default:
-                label[0] = GetHalfFontNo('M');
-                label[1] = GetHalfFontNo('o');
-                label[2] = GetHalfFontNo('o');
-                label[3] = GetHalfFontNo('n');
-                label[4] = GetHalfFontNo('F');
-                label[5] = GetHalfFontNo('a');
-                label[6] = GetHalfFontNo('l');
-                label[7] = GetHalfFontNo('l');
-                label[8] = GetHalfFontNo('s');
+                        label[0] = GetHalfFontNo('M');
+                        label[1] = GetHalfFontNo('o');
+                        label[2] = GetHalfFontNo('o');
+                        label[3] = GetHalfFontNo('n');
+                        label[4] = GetHalfFontNo('F');
+                        label[5] = GetHalfFontNo('a');
+                        label[6] = GetHalfFontNo('l');
+                        label[7] = GetHalfFontNo('l');
+                        label[8] = GetHalfFontNo('s');
                         break;
                 }
             }
+
             for (int i = 0; i < 32; i++) {
                 if (label[i] >= 0) {
-                    int page;
+                    int  page;
                     RECT texture = GetRectFontTex(label[i], &page);
                     MySetTex(page, &prim);
                     RECT destination;
+
                     switch (LanguageCode) {
                         case 0:
                             destination.x = EdEventInfo.stopwatch_x + texture.width * i + 0x18;
                             break;
                         case 2:
                         case 5:
-                            destination.x = (int)(EdEventInfo.stopwatch_x + 0.75 * texture.width * i - 28.0);
+                            destination.x = (int) (EdEventInfo.stopwatch_x + 0.75 * texture.width * i - 28.0);
                             break;
                         case 3:
-                            destination.x = (int)(8.0 + (EdEventInfo.stopwatch_x + 0.75 * texture.width * i));
+                            destination.x = (int) (8.0 + (EdEventInfo.stopwatch_x + 0.75 * texture.width * i));
                             break;
                         case 4:
-                            destination.x = (int)(EdEventInfo.stopwatch_x + 0.5 * texture.width * i - 28.0);
+                            destination.x = (int) (EdEventInfo.stopwatch_x + 0.5 * texture.width * i - 28.0);
                             break;
                         case 1:
                         default:
                             destination.x = EdEventInfo.stopwatch_x + texture.width * i - 4;
                             break;
                     }
+
                     destination.y = EdEventInfo.stopwatch_y - 0x18;
+
                     if (EdEventInfo.stopwatch_style == 1) {
                         destination.y += 0x40;
                     }
+
                     destination.width = texture.width;
                     destination.height = texture.height;
                     set2DSprite_Fuchi(&prim, destination, texture, 8, 0x80);
                     RGBAQ_TYPE color;
                     color.a = color.r = color.g = color.b = 0x80;
                     set2DSpriteEasyFont(&prim,
-                        mgRect<int>(destination.x, destination.y, destination.width, destination.height),
-                        mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
+                                        mgRect<int>(destination.x, destination.y, destination.width, destination.height),
+                                        mgRect<int>(texture.x, texture.y, texture.width, texture.height), &color);
                 }
             }
         }
+
         prim.End();
     }
 }
+
 void EdEventDraw() {
     int hit_no;
     int sprite_no;
@@ -3580,88 +3638,99 @@ int _LOAD_CHARA_sub(int stack_no, char **name, int chara_no, u32 *pack, int mode
         manager->name_suffix[0] = 0;
     }
 
-    EventScene->SetType(1, chara_no, type_loaded);
+    EventScene->SetType(SCENE_DATA_CHARA, chara_no, type_loaded);
     return result;
 }
 
 int _LOAD_CHARA_sub(int a, char **b, int c, u32 *d) {
     return _LOAD_CHARA_sub(a, b, c, d, 0);
 }
+
 int _LOAD_CHARA(RS_STACKDATA *stack, int argc) {
     char *name[0x20];
-    char directory[0x40];
-    char fileName[0x20];
-    int stackNo;
-    int charaNo;
-    int mode;
+    char  directory[0x40];
+    char  file_name[0x20];
+    int   stack_no;
+    int   chara_no;
+    int   mode;
     char *path;
+
     switch (argc) {
         case 1: {
             ARG_DATA *args = FindArgData(GetStackInt(stack));
+
             if (args == NULL) {
                 return 0;
             }
-            stackNo = GetArgInt(args++);
+
+            stack_no = GetArgInt(args++);
             path = GetArgString(args++);
             name[0] = GetArgString(args++);
-            charaNo = GetArgInt(args);
+            chara_no = GetArgInt(args);
             mode = 0;
             break;
         }
         case 4:
-            stackNo = GetStackInt(stack++);
+            stack_no = GetStackInt(stack++);
             path = GetStackString(stack++);
             name[0] = GetStackString(stack++);
-            charaNo = GetStackInt(stack);
+            chara_no = GetStackInt(stack);
             mode = 0;
             break;
         case 5:
-            stackNo = GetStackInt(stack++);
+            stack_no = GetStackInt(stack++);
             path = GetStackString(stack++);
             name[0] = GetStackString(stack++);
-            charaNo = GetStackInt(stack++);
+            chara_no = GetStackInt(stack++);
             mode = GetStackInt(stack);
             break;
         default:
             return 0;
     }
+
     u32 *pack = GetLoadBGBuff(path, NULL);
+
     if (pack == NULL) {
         return 0;
     }
-    int result = _LOAD_CHARA_sub(stackNo, name, charaNo, pack, mode);
-    CSaveData *saveData = GetSaveData();
-    if (saveData != NULL) {
-        if (saveData->GetBitCtrl() & 8) {
+
+    int        result = _LOAD_CHARA_sub(stack_no, name, chara_no, pack, mode);
+    CSaveData *save_data = GetSaveData();
+
+    if (save_data != NULL) {
+        if (save_data->GetBitCtrl() & 8) {
             if (result > 0) {
-                CCharacter2 *chara = GetCharacter(charaNo);
-                DivPathName(path, directory, fileName);
-                if (strcmp(fileName, "c01_base.chr") == 0) {
+                CCharacter2 *chara = GetCharacter(chara_no);
+                DivPathName(path, directory, file_name);
+
+                if (strcmp(file_name, "c01_base.chr") == 0) {
                     AtraMiriaOnOff(0, chara, 0);
-                } else if (strcmp(fileName, "c02_base.chr") == 0) {
+                } else if (strcmp(file_name, "c02_base.chr") == 0) {
                     AtraMiriaOnOff(1, chara, 0);
                 }
             }
         }
     }
+
     return result;
 }
+
 int _CHARA_ACTIVE(RS_STACKDATA *stack, int arg_count) {
     int enable;
     int chara_no;
 
     switch (arg_count) {
         case 1:
-            EventScene->SetActive(1, GetStackInt(stack));
+            EventScene->SetActive(SCENE_DATA_CHARA, GetStackInt(stack));
             return 1;
         case 2:
             enable = GetStackInt(stack++);
             chara_no = GetStackInt(stack);
 
             if (enable != 0) {
-                EventScene->SetActive(1, chara_no);
+                EventScene->SetActive(SCENE_DATA_CHARA, chara_no);
             } else {
-                EventScene->ResetActive(1, chara_no);
+                EventScene->ResetActive(SCENE_DATA_CHARA, chara_no);
             }
 
             return 1;
@@ -3775,30 +3844,37 @@ int _CHANGE_DIR(RS_STACKDATA *stack, int argc) {
 }
 
 int _DELETE_CHARA(RS_STACKDATA *stack, int argc) {
-    int charaNo;
-    int deleteTexture = 1;
-    charaNo = GetStackInt(stack++);
-    if (argc >= 2) {
-        deleteTexture = GetStackInt(stack);
-    }
-    int texBlock = EventScene->GetCharaTexb(charaNo);
+    int chara_no;
+    int delete_texture = 1;
+    chara_no = GetStackInt(stack++);
 
-    if (texBlock >= 0) {
+    if (argc >= 2) {
+        delete_texture = GetStackInt(stack);
+    }
+
+    int tex_block = EventScene->GetCharaTexb(chara_no);
+
+    if (tex_block >= 0) {
         mgCTextureManager *manager = &mgTexManager;
-        if (deleteTexture == 1) {
-            manager->DeleteBlock(texBlock);
+
+        if (delete_texture == 1) {
+            manager->DeleteBlock(tex_block);
         }
     }
-    EventScene->DeleteChara(charaNo);
+
+    EventScene->DeleteChara(chara_no);
     int i;
     int offset;
+
     for (i = 0, offset = 0; i < 32; i++, offset += 0x10) {
-        CEoh *handle = (CEoh *)((u8 *)&EventObjHandleMother + offset);
+        CEoh *handle = (CEoh *) ((u8 *) &EventObjHandleMother + offset);
+
         if (handle->type == 0) {
-            int *charaSlot = &handle->scene_no;
-            if (charaNo == handle->scene_no) {
+            int *chara_slot = &handle->scene_no;
+
+            if (chara_no == handle->scene_no) {
                 handle->type = -1;
-                *charaSlot = -1;
+                *chara_slot = -1;
                 handle->world_coord = 1;
                 handle->object = NULL;
                 handle->object = NULL;
@@ -3808,6 +3884,7 @@ int _DELETE_CHARA(RS_STACKDATA *stack, int argc) {
             }
         }
     }
+
     return 1;
 }
 
@@ -3991,39 +4068,49 @@ int _GET_DUN_WORLD_COORD(RS_STACKDATA *stack, int argc) {
 
     return 0;
 }
+
 int _LOAD_IMG(RS_STACKDATA *stack, int argc) {
-    int size;
-    int stackNo = GetStackInt(stack++);
-    char *fileName = GetStackString(stack++);
-    int imageNo = GetStackInt(stack++);
-    int num = EventScene->event_texb_num;
-    int base = EventScene->event_texb;
-    if (num <= 0 || num < imageNo) {
+    int   size;
+    int   stack_no = GetStackInt(stack++);
+    char *file_name = GetStackString(stack++);
+    int   image_no = GetStackInt(stack++);
+    int   num = EventScene->event_texb_num;
+    int   base = EventScene->event_texb;
+
+    if (num <= 0 || num < image_no) {
         return 0;
     }
-    int block = base + imageNo;
-    u_char *file = (u_char *)GetLoadBGBuff(fileName, &size);
+
+    int     block = base + image_no;
+    u_char *file = (u_char *) GetLoadBGBuff(file_name, &size);
+
     if (file == NULL) {
         return 0;
     }
-    mgCMemory *memory = EventScene->GetStack(stackNo);
+
+    mgCMemory *memory = EventScene->GetStack(stack_no);
     memory->Align64();
-    u_char *image = (u_char *)memory->stAllocTest(size / 16 + 1);
+    u_char *image = (u_char *) memory->stAllocTest(size / 16 + 1);
+
     if (image == NULL) {
         return 0;
     }
+
     memory->stAlloc64(size / 16 + 1);
     memcpy(image, file, size);
     mgTexManager.EnterIMGFile(image, block, memory, NULL);
+
     if (argc == 3) {
-        if (esMother.Set(imageNo, block) == 0) {
+        if (esMother.Set(image_no, block) == 0) {
             return 0;
         }
     } else if (argc == 4) {
         SetStack(stack, block);
     }
+
     return 1;
 }
+
 int _DEL_IMG(RS_STACKDATA *stack, int argc) {
     mgTexManager.DeleteBlock(EventScene->event_texb + GetStackInt(stack));
     return 1;
@@ -4315,7 +4402,7 @@ int _GET_ITEM_TYPE(RS_STACKDATA *stack, int argc) {
     int item_type = GetItemDataType(GetStackInt(stack++));
     int category;
 
-    if (item_type == 0) {
+    if (item_type == ITEM_DATA_NONE) {
         return 0;
     }
 
@@ -4372,144 +4459,166 @@ int GetConfigCaptionOff() {
 
     return caption_off;
 }
+
 int LoadMovie(char *name, mgCMemory *memory, bool skip) {
-    CMovie movie __attribute__((aligned(32)));
-    int captionWidth;
-    int captionHeight;
-    int captionBlock;
-    int captionOff;
-    int fontBlock;
-    mgCTexture *movieTexture;
-    int movieBlock;
-    int frame;
+    CMovie      movie __attribute__((aligned(32)));
+    int         caption_width;
+    int         caption_height;
+    int         caption_block;
+    int         caption_off;
+    int         font_block;
+    mgCTexture *movie_texture;
+    int         movie_block;
+    int         frame;
 
     movie.Load(name, memory, 0x200, 0x1A0, true, false, skip);
     printf("/////////////////// SIZE REMAIN = %dn /////////////////", (memory->stack_size - memory->stack_used) * 0x10 / 0x400);
-    movieBlock = EventScene->event_texb;
+    movie_block = EventScene->event_texb;
+
     if (EventScene->event_texb_num <= 0) {
         return 0;
     }
+
     mgCTextureManager *textures = &mgTexManager;
-    textures->DeleteBlock(movieBlock);
-    textures->EnterTexture(movieBlock, "moviework", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
-    captionBlock = movieBlock + 1;
-    captionOff = GetConfigCaptionOff();
-    fontBlock = -1;
-    if (EdEventInfo.caption_enable != 0 && captionOff == 0) {
-        mgCTexture *fontTexture = textures->GetTexture("gaiji", fontBlock);
-        if (fontTexture != NULL) {
-            fontBlock = fontTexture->block;
-            textures->DeleteBlock(fontBlock);
-            textures->EnterTexture(captionBlock, "movieworkte", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
-            ReLoadFontTexture(captionBlock);
-            textures->EnterIMGFile(GetFontTex2ImgPtr(), captionBlock, NULL, NULL);
+    textures->DeleteBlock(movie_block);
+    textures->EnterTexture(movie_block, "moviework", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
+    caption_block = movie_block + 1;
+    caption_off = GetConfigCaptionOff();
+    font_block = -1;
+
+    if (EdEventInfo.caption_enable != 0 && caption_off == 0) {
+        mgCTexture *font_texture = textures->GetTexture("gaiji", font_block);
+
+        if (font_texture != NULL) {
+            font_block = font_texture->block;
+            textures->DeleteBlock(font_block);
+            textures->EnterTexture(caption_block, "movieworkte", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0LL, 0);
+            ReLoadFontTexture(caption_block);
+            textures->EnterIMGFile(GetFontTex2ImgPtr(), caption_block, NULL, NULL);
         } else {
             EdEventInfo.caption_enable = 0;
         }
     }
-    textures->ReloadTexture(movieBlock, (sceVif1Packet *)NULL);
-    movieTexture = textures->GetTexture("moviework", movieBlock);
+
+    textures->ReloadTexture(movie_block, (sceVif1Packet *) NULL);
+    movie_texture = textures->GetTexture("moviework", movie_block);
     movie.Play("moviework");
     movie.SwitchThread();
+
     while (movie.IsStarted() == 0) {
         movie.SwitchThread();
     }
+
     movie.SwitchThread();
     CFont font;
+
     if (EdEventInfo.caption_enable != 0) {
-        if (captionOff == 0) {
+        if (caption_off == 0) {
             font.Init();
             font.Preset(7);
             font.SetFuchi(8);
         }
     }
+
     frame = 0;
+
     while (true) {
         if (frame != 0) {
             mgBeginFrame(NULL);
         }
+
         GamePad__2.UpDate();
+
         if (movie.EndCheck() != 0 || (DebugFlag != 0 && GamePad__2.Down(PAD_START) != 0)) {
             movie.Term();
-            textures->ReloadTexture(movieBlock, (sceVif1Packet *)NULL);
+            textures->ReloadTexture(movie_block, (sceVif1Packet *) NULL);
             mgBeginFrame(NULL);
-            mgCDrawPrim endDraw;
-            endDraw.Initialize(NULL, NULL);
-            endDraw.AlphaTestEnable(0);
-            endDraw.TextureMapEnable(1);
-            endDraw.Begin(MG_PRIM_SPRITE);
-            endDraw.Color(0, 0, 0, 0x80);
-            endDraw.Vertex(0, 0, 0);
-            endDraw.Vertex(mgScreenWidth, mgScreenHeight, 0);
-            endDraw.Texture(movieTexture);
-            endDraw.Color(0x80, 0x80, 0x80, 0x80);
-            endDraw.TextureCrd(1, 1);
-            endDraw.Vertex(0, 0, 0);
-            endDraw.TextureCrd(0x1FE, 0x19E);
-            endDraw.Vertex(mgScreenWidth, mgScreenHeight, 0);
-            endDraw.End();
+            mgCDrawPrim end_draw;
+            end_draw.Initialize(NULL, NULL);
+            end_draw.AlphaTestEnable(0);
+            end_draw.TextureMapEnable(1);
+            end_draw.Begin(MG_PRIM_SPRITE);
+            end_draw.Color(0, 0, 0, 0x80);
+            end_draw.Vertex(0, 0, 0);
+            end_draw.Vertex(mgScreenWidth, mgScreenHeight, 0);
+            end_draw.Texture(movie_texture);
+            end_draw.Color(0x80, 0x80, 0x80, 0x80);
+            end_draw.TextureCrd(1, 1);
+            end_draw.Vertex(0, 0, 0);
+            end_draw.TextureCrd(0x1FE, 0x19E);
+            end_draw.Vertex(mgScreenWidth, mgScreenHeight, 0);
+            end_draw.End();
             EventScene->fade.FadeOut(1, 0.0f, 0.0f, 0.0f);
             mgEndFrame(NULL);
             mgBeginFrame(NULL);
             memory->stack_used = 0;
             memory->lock = 0;
-            textures->DeleteBlock(movieBlock);
-            if (EdEventInfo.caption_enable != 0 && captionOff == 0) {
-                textures->DeleteBlock(captionBlock);
-                textures->EnterIMGFile(GetGaijiImgPtr(), fontBlock, NULL, NULL);
-                ReLoadFontTexture(fontBlock);
-                textures->EnterIMGFile(GetFontTex2ImgPtr(), fontBlock, NULL, NULL);
+            textures->DeleteBlock(movie_block);
+
+            if (EdEventInfo.caption_enable != 0 && caption_off == 0) {
+                textures->DeleteBlock(caption_block);
+                textures->EnterIMGFile(GetGaijiImgPtr(), font_block, NULL, NULL);
+                ReLoadFontTexture(font_block);
+                textures->EnterIMGFile(GetFontTex2ImgPtr(), font_block, NULL, NULL);
             }
+
             return 1;
         }
-        textures->ReloadTexture(movieBlock, (sceVif1Packet *)NULL);
+
+        textures->ReloadTexture(movie_block, (sceVif1Packet *) NULL);
         movie.SwitchThread();
-        mgCDrawPrim frameDraw;
-        frameDraw.Initialize(NULL, NULL);
-        frameDraw.AlphaTestEnable(0);
-        frameDraw.TextureMapEnable(1);
-        frameDraw.Begin(MG_PRIM_SPRITE);
-        frameDraw.Color(0, 0, 0, 0x80);
-        frameDraw.Vertex(0, 0, 0);
-        frameDraw.Vertex(mgScreenWidth, mgScreenHeight, 0);
-        frameDraw.Texture(movieTexture);
-        frameDraw.Color(0x80, 0x80, 0x80, 0x80);
-        frameDraw.TextureCrd(1, 1);
-        frameDraw.Vertex(0, 0, 0);
-        frameDraw.TextureCrd(0x1FE, 0x19E);
-        frameDraw.Vertex(mgScreenWidth, mgScreenHeight, 0);
-        frameDraw.End();
+        mgCDrawPrim frame_draw;
+        frame_draw.Initialize(NULL, NULL);
+        frame_draw.AlphaTestEnable(0);
+        frame_draw.TextureMapEnable(1);
+        frame_draw.Begin(MG_PRIM_SPRITE);
+        frame_draw.Color(0, 0, 0, 0x80);
+        frame_draw.Vertex(0, 0, 0);
+        frame_draw.Vertex(mgScreenWidth, mgScreenHeight, 0);
+        frame_draw.Texture(movie_texture);
+        frame_draw.Color(0x80, 0x80, 0x80, 0x80);
+        frame_draw.TextureCrd(1, 1);
+        frame_draw.Vertex(0, 0, 0);
+        frame_draw.TextureCrd(0x1FE, 0x19E);
+        frame_draw.Vertex(mgScreenWidth, mgScreenHeight, 0);
+        frame_draw.End();
         EventScene->fade.Draw();
         EventScene->fade.FadeStep();
+
         if (EdEventInfo.caption_enable != 0) {
             char *text = NULL;
-            if (captionOff == 0) {
+
+            if (caption_off == 0) {
                 char caption[0xE1];
-                int i;
-                int x;
-                int y;
+                int  i;
+                int  x;
+                int  y;
+
                 for (i = 0; i < 18; i++) {
                     if (EdEventInfo.caption_start[i] <= frame &&
                         frame <= EdEventInfo.caption_start[i] + EdEventInfo.caption_frames[i]) {
                         char *line = EdEventInfo.caption_text[i];
-                        font.CalcDrawWH(line, &captionWidth, &captionHeight);
-                        x = (int)CalcAutoPosSet(0.0f, float(512), (float)captionWidth, 0.5f);
-                        y = fptosi(CalcAutoPosSet(0.0f, 480.0f, (float)captionHeight, 0.95f));
+                        font.CalcDrawWH(line, &caption_width, &caption_height);
+                        x = (int) CalcAutoPosSet(0.0f, float(512), (float) caption_width, 0.5f);
+                        y = fptosi(CalcAutoPosSet(0.0f, 480.0f, (float) caption_height, 0.95f));
                         memset(caption, 0, 0xE1);
                         My_strncpy(caption, EdEventInfo.caption_text[i], (frame - EdEventInfo.caption_start[i]) / 2 * 2);
                         text = caption;
                     }
                 }
+
                 if (text != NULL) {
-                    textures->ReloadTexture(captionBlock, (sceVif1Packet *)NULL);
+                    textures->ReloadTexture(caption_block, (sceVif1Packet *) NULL);
                     font.DrawDirect(caption, x, y);
                 }
             }
         }
+
         mgEndFrame(NULL);
         frame++;
     }
 }
+
 int _LOAD_MOVIE(RS_STACKDATA *stack, int argc) {
     int        stack_no = GetStackInt(stack++);
     char      *name = GetStackString(stack++);
@@ -4646,92 +4755,113 @@ int _TRG_PAKU_ANIM(RS_STACKDATA *stack, int argc) {
 
     return 1;
 }
+
 int _RESET_CAMERA(RS_STACKDATA *stack, int argc) {
-    int mode;
-    float follow[4];
-    float followOffset[4];
-    float charaPos[4];
-    float cameraPos[4];
-    float pos[4];
-    float rot[4];
-    float target[4];
-    CCameraControl *camera;
-    mgCCameraFollow *referenceCamera;
-    mgCCameraFollow *beforeCamera;
-    CCharacter2 *chara;
-    float dx;
-    float dy;
-    float dz;
-    float distance;
+    int              mode;
+    float            follow[4];
+    float            follow_offset[4];
+    float            chara_pos[4];
+    float            camera_pos[4];
+    float            pos[4];
+    float            rot[4];
+    float            target[4];
+    CCameraControl  *camera;
+    mgCCameraFollow *reference_camera;
+    mgCCameraFollow *before_camera;
+    CCharacter2     *chara;
+    float            dx;
+    float            dy;
+    float            dz;
+    float            distance;
     mode = GetStackInt(stack++);
     float angle;
-float height;
-height = angle = 0.0f;
+    float height;
+    height = angle = 0.0f;
+
     if (argc > 1) {
         angle = GetStackFloat(stack++);
     }
+
     if (argc > 2) {
         height = GetStackFloat(stack);
     }
+
     camera = NULL;
+
     if (mode == 0) {
-        camera = (CCameraControl *)EventScene->GetCamera(EventScene->active_camera);
+        camera = (CCameraControl *) EventScene->GetCamera(EventScene->active_camera);
     }
+
     if (mode == 1) {
-        camera = (CCameraControl *)EventScene->GetCamera(EventScene->before_camera);
+        camera = (CCameraControl *) EventScene->GetCamera(EventScene->before_camera);
     }
+
     if (camera == NULL) {
         return 0;
     }
-    referenceCamera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->before_camera);
-    if (referenceCamera == NULL) {
+
+    reference_camera = (mgCCameraFollow *) EventScene->GetCamera(EventScene->before_camera);
+
+    if (reference_camera == NULL) {
         return 0;
     }
-    referenceCamera->GetFollow(follow);
-    referenceCamera->GetFollowOffset(followOffset);
+
+    reference_camera->GetFollow(follow);
+    reference_camera->GetFollowOffset(follow_offset);
+
     if (mode == 0) {
         chara = EventScene->GetCharacter(0);
+
         if (chara == NULL) {
             return 0;
         }
-        chara->GetPosition(charaPos);
+
+        chara->GetPosition(chara_pos);
         SetCamWorldCoord(camera);
-        camera->GetPos(cameraPos);
-        dx = cameraPos[0] - charaPos[0];
-        dy = cameraPos[1] - charaPos[1];
-        dz = cameraPos[2] - charaPos[2];
+        camera->GetPos(camera_pos);
+        dx = camera_pos[0] - chara_pos[0];
+        dy = camera_pos[1] - chara_pos[1];
+        dz = camera_pos[2] - chara_pos[2];
         distance = sqrtf(dx * dx + dz * dz);
+
         if (argc < 3) {
-            height = dy - followOffset[1];
+            height = dy - follow_offset[1];
         }
+
         if (argc < 2) {
             angle = atan2f(dx, dz);
         }
-        float fx = charaPos[0];
-        float fy = charaPos[1];
-        float fz = charaPos[2];
+
+        float fx = chara_pos[0];
+        float fy = chara_pos[1];
+        float fz = chara_pos[2];
         camera->FollowOn();
         camera->SetFollow(fx, fy, fz);
-        camera->SetFollowOffset(followOffset[0], followOffset[1], followOffset[2]);
+        camera->SetFollowOffset(follow_offset[0], follow_offset[1], follow_offset[2]);
         camera->SetDistance(distance);
         camera->SetHeight(height);
         camera->SetAngleSoon(angle);
-        beforeCamera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->before_camera);
-        referenceCamera = (mgCCameraFollow *)EventScene->GetCamera(EventScene->active_camera);
-        *beforeCamera = *referenceCamera;
+        before_camera = (mgCCameraFollow *) EventScene->GetCamera(EventScene->before_camera);
+        reference_camera = (mgCCameraFollow *) EventScene->GetCamera(EventScene->active_camera);
+        *before_camera = *reference_camera;
         SetWorldCoordFlg = 0;
         return 1;
     }
+
     if (mode == 1) {
         camera->FollowOff();
         distance = camera->GetDistance();
+
         if (argc < 3) {
             height = camera->GetHeight();
         }
+
         chara = EventScene->GetCharacter(0);
+
         if (chara == NULL) {
             return 0;
         }
+
         chara->GetPosition(pos);
         chara->GetRotation(rot);
         CalcPosWorldCoord(pos);
@@ -4744,7 +4874,7 @@ height = angle = 0.0f;
         camera->ControlOff();
         camera->FollowOn();
         camera->SetFollow(target[0], target[1], target[2]);
-        camera->SetFollowOffset(followOffset[0], followOffset[1], followOffset[2]);
+        camera->SetFollowOffset(follow_offset[0], follow_offset[1], follow_offset[2]);
         camera->SetDistance(distance);
         camera->SetHeight(height);
         camera->SetAngleSoon(rot[1] + angle);
@@ -4754,8 +4884,10 @@ height = angle = 0.0f;
         SetWorldCoordFlg = 0;
         return 1;
     }
+
     return 0;
 }
+
 int _GET_ACTIVE_CHR_NO(RS_STACKDATA *stack, int argc) {
     CUserDataManager *user_data = NULL;
     CSaveData        *save = GetSaveData();
@@ -4938,7 +5070,7 @@ int _GOTO_DNG(RS_STACKDATA *stack, int argc) {
         loop_arg.event_no = GetStackInt(stack);
     }
 
-    NextLoop(2, loop_arg);
+    NextLoop((int) LOOP_DUNGEON, loop_arg);
     EdEventInfo.request = exit_start_loop;
     return 1;
 }
@@ -4956,7 +5088,7 @@ int _GOTO_EDIT(RS_STACKDATA *stack, int argc) {
         loop_arg.event_no = GetStackInt(stack);
     }
 
-    NextLoop(1, loop_arg);
+    NextLoop((int) LOOP_EDIT, loop_arg);
     EdEventInfo.request = exit_start_loop;
     return 1;
 }
@@ -4997,9 +5129,9 @@ int _LOAD_CHARA_NPC(RS_STACKDATA *stack, int argc) {
     }
 
     if (kind == 0) {
-        name = GetPartyCharaModelName(chara_no, 0);
+        name = GetPartyCharaModelName(chara_no, (int) NPC_MODEL_PATH_CHARA);
     } else {
-        name = GetPartyCharaModelName(chara_no, 2);
+        name = GetPartyCharaModelName(chara_no, (int) NPC_MODEL_PATH_EVENT_TRAIN);
     }
 
     if (name == NULL) {
@@ -5007,7 +5139,7 @@ int _LOAD_CHARA_NPC(RS_STACKDATA *stack, int argc) {
     }
 
     strcpy(path, name);
-    model_name[0] = GetPartyCharaModelName(chara_no, 1);
+    model_name[0] = GetPartyCharaModelName(chara_no, (int) NPC_MODEL_PATH_INFO);
 
     if (model_name[0] == NULL) {
         return 0;
@@ -5046,7 +5178,7 @@ int _AUTO_SET_MONSTER(RS_STACKDATA *stack, int argc) {
     int   monster_no;
     int   param;
 
-    if (GetNowLoopNo() != 2) {
+    if (GetNowLoopNo() != (int) LOOP_DUNGEON) {
         return 0;
     }
 
@@ -5095,7 +5227,7 @@ int _LOAD_DUNGEON_MAP_FILE(RS_STACKDATA *stack, int argc) {
 }
 
 int _LOAD_MONSTER_FILE(RS_STACKDATA *stack, int argc) {
-    if (GetNowLoopNo() != 2) {
+    if (GetNowLoopNo() != (int) LOOP_DUNGEON) {
         return 0;
     }
 
@@ -5212,21 +5344,23 @@ int _GET_LOCAL_CNT2(RS_STACKDATA *stack, int argc) {
 }
 
 int _GET_TRAIN_NPC_POS(RS_STACKDATA *stack, int argc) {
-    TrainNpcTable table = {{
-        {-40.0f, 55.0f, 60.0f, 1.57f},
-        {40.0f, 55.0f, 60.0f, -1.57f},
-        {-40.0f, 55.0f, -60.0f, 1.57f},
-        {40.0f, 55.0f, -60.0f, -1.57f},
-        {-40.0f, 55.0f, 115.0f, 1.57f},
-        {40.0f, 55.0f, 115.0f, -1.57f},
-        {-40.0f, 55.0f, -115.0f, 1.57f},
-        {40.0f, 55.0f, -115.0f, -1.57f},
-        {-40.0f, 55.0f, 170.0f, 1.57f},
-        {40.0f, 55.0f, 170.0f, -1.57f},
-        {-40.0f, 55.0f, -170.0f, 1.57f},
-        {40.0f, 55.0f, -170.0f, -1.57f},
-    }};
-    int           index = GetStackInt(stack++);
+    TrainNpcTable table = {
+        {
+         {-40.0f, 55.0f, 60.0f, 1.57f},
+         {40.0f, 55.0f, 60.0f, -1.57f},
+         {-40.0f, 55.0f, -60.0f, 1.57f},
+         {40.0f, 55.0f, -60.0f, -1.57f},
+         {-40.0f, 55.0f, 115.0f, 1.57f},
+         {40.0f, 55.0f, 115.0f, -1.57f},
+         {-40.0f, 55.0f, -115.0f, 1.57f},
+         {40.0f, 55.0f, -115.0f, -1.57f},
+         {-40.0f, 55.0f, 170.0f, 1.57f},
+         {40.0f, 55.0f, 170.0f, -1.57f},
+         {-40.0f, 55.0f, -170.0f, 1.57f},
+         {40.0f, 55.0f, -170.0f, -1.57f},
+         }
+    };
+    int index = GetStackInt(stack++);
 
     if (index < 0 || index >= 12) {
         return 0;
@@ -5353,8 +5487,8 @@ int _SET_TALK_CAMERA(RS_STACKDATA *stack, int argc) {
      */
     static float vv[3][4] = {
         {-94.0f, 35.5f, -106.5f, 1.0f},
-        {105.0f, 32.5f, -28.5f, 1.0f},
-        {113.0f, 34.5f, 82.5f, 1.0f},
+        {105.0f, 32.5f, -28.5f,  1.0f},
+        {113.0f, 34.5f, 82.5f,   1.0f},
     };
 
     float middle[4];
@@ -5487,7 +5621,7 @@ int _COPY_CHARA(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    EventScene->SetStatus(1, slot, 5);
+    EventScene->SetStatus(SCENE_DATA_CHARA, slot, 5);
     source->Copy(*GetCharacter(dst_no), memory);
     EventScene->SetCharaTexb(dst_no, EventScene->GetCharaTexb(src_no));
     return 1;
@@ -6772,17 +6906,19 @@ int _GOTO_SUBGAME(RS_STACKDATA *stack, int argc) {
     info.texb_num = EventScene->tex_block_count;
     return sgInitSubGame(type, &info) != 0;
 }
+
 int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
-    int digit[8];
-    char text[0x14];
+    int     digit[8];
+    char    text[0x14];
     ClsMes *mes;
-    float time;
-    int minutes;
-    int seconds;
-    int hundredths;
-    int resultNo;
-    int nameNo;
-    int i;
+    float   time;
+    int     minutes;
+    int     seconds;
+    int     hundredths;
+    int     result_no;
+    int     name_no;
+    int     i;
+
     switch (GetStackInt(stack++)) {
         case 0:
             SetGyoRaceAquariumNo(GetStackInt(stack));
@@ -6797,45 +6933,57 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
             SetGyoRaceNo(GetStackInt(stack));
             break;
         case 4: {
-            CSaveData *saveData = GetSaveData();
-            if (saveData == NULL) {
+            CSaveData *save_data = GetSaveData();
+
+            if (save_data == NULL) {
                 return 0;
             }
-            saveData->AddTourCountEtc(1);
+
+            save_data->AddTourCountEtc(1);
             break;
         }
         case 5:
             mes = GetEventMessage(GetStackInt(stack++));
+
             if (mes == NULL) {
                 return 0;
             }
-            nameNo = GetStackInt(stack++);
-            resultNo = GetStackInt(stack);
-            if (&fish_game_data[resultNo] == NULL) {
+
+            name_no = GetStackInt(stack++);
+            result_no = GetStackInt(stack);
+
+            if (&fish_game_data[result_no] == NULL) {
                 return 0;
             }
-            if (&fish_game_data[resultNo] != NULL) {
-                strcpy(mes->name[nameNo - 1], fish_game_data[resultNo].name);
+
+            if (&fish_game_data[result_no] != NULL) {
+                strcpy(mes->name[name_no - 1], fish_game_data[result_no].name);
             }
+
             break;
         case 6:
             mes = GetEventMessage(GetStackInt(stack++));
+
             if (mes == NULL) {
                 return 0;
             }
-            nameNo = GetStackInt(stack++);
-            resultNo = GetStackInt(stack);
-            time = fish_game_data[resultNo].time;
+
+            name_no = GetStackInt(stack++);
+            result_no = GetStackInt(stack);
+            time = fish_game_data[result_no].time;
+
             if (time < 0.0f) {
                 time = 0.0f;
             }
+
             if (360000.0f <= time) {
                 time = 360000.0f;
             }
-            minutes = (int)(time / 3600.0f);
+
+            minutes = (int) (time / 3600.0f);
             time -= minutes * 3600.0f;
-            seconds = (int)(time / 60.0f);
-            hundredths = (int)(100.0f * (time - seconds * 60.0f) / 60.0f);
+            seconds = (int) (time / 60.0f);
+            hundredths = (int) (100.0f * (time - seconds * 60.0f) / 60.0f);
             digit[0] = minutes / 10;
             digit[1] = minutes % 10;
             digit[2] = -1;
@@ -6845,6 +6993,7 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
             digit[6] = hundredths / 10;
             digit[7] = hundredths % 10;
             memset(text, 0, 0x14);
+
             switch (digit[0]) {
                 case 0:
                     sprintf(text, "\x82\x4F");
@@ -6880,6 +7029,7 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
                     sprintf(text, "\x81\x46");
                     break;
             }
+
             for (i = 1; i < 8; i++) {
                 switch (digit[i]) {
                     case 0:
@@ -6917,7 +7067,8 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
                         break;
                 }
             }
-            strcpy(mes->name[nameNo - 1], text);
+
+            strcpy(mes->name[name_no - 1], text);
             break;
         case 7:
             InitFishPrize();
@@ -6926,8 +7077,10 @@ int _SET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
         default:
             return 0;
     }
+
     return 1;
 }
+
 int _GET_GYORACE_ETC(RS_STACKDATA *stack, int argc) {
     FISH_PRIZE_INFO info;
     int             race_no;
@@ -7406,35 +7559,37 @@ int _GET_CHAPTER(RS_STACKDATA *stack, int argc) {
 }
 
 int _GET_NPC_TRAIN_ETC(RS_STACKDATA *stack, int argc) {
-    NpcTrainTable table = {{
-        {1, 1, 39},
-        {1, 0, 45},
-        {1, 2, 45},
-        {1, 3, 45},
-        {3, 5, 45},
-        {1, 5, 45},
-        {1, 6, 45},
-        {1, 7, 45},
-        {1, 8, 45},
-        {2, 0, 45},
-        {2, 1, 45},
-        {2, 2, 45},
-        {2, 3, 45},
-        {2, 4, 45},
-        {2, 5, 39},
-        {2, 6, 45},
-        {2, 7, 45},
-        {3, 0, 45},
-        {3, 1, 45},
-        {3, 2, 45},
-        {3, 3, 45},
-        {3, 4, 45},
-        {1, 4, 45},
-        {3, 6, 45},
-        {3, 7, 45},
-    }};
-    int           column = GetStackInt(stack++);
-    int           row = GetStackInt(stack++) - 1;
+    NpcTrainTable table = {
+        {
+         {1, 1, 39},
+         {1, 0, 45},
+         {1, 2, 45},
+         {1, 3, 45},
+         {3, 5, 45},
+         {1, 5, 45},
+         {1, 6, 45},
+         {1, 7, 45},
+         {1, 8, 45},
+         {2, 0, 45},
+         {2, 1, 45},
+         {2, 2, 45},
+         {2, 3, 45},
+         {2, 4, 45},
+         {2, 5, 39},
+         {2, 6, 45},
+         {2, 7, 45},
+         {3, 0, 45},
+         {3, 1, 45},
+         {3, 2, 45},
+         {3, 3, 45},
+         {3, 4, 45},
+         {1, 4, 45},
+         {3, 6, 45},
+         {3, 7, 45},
+         }
+    };
+    int column = GetStackInt(stack++);
+    int row = GetStackInt(stack++) - 1;
     SetStack(stack, table.value[row][column]);
     return 1;
 }
@@ -7553,47 +7708,58 @@ int _SET_EVENT_DATA(RS_STACKDATA *stack, int argc) {
 
     return 1;
 }
+
 int _STOPWATCH(RS_STACKDATA *stack, int argc) {
-    CSaveData *saveData = GetSaveData();
-    if (saveData == NULL) {
+    CSaveData *save_data = GetSaveData();
+
+    if (save_data == NULL) {
         return 0;
     }
+
     int mode = GetStackInt(stack++);
+
     if (mode == 0) {
         PlayTimeCount(1);
-        EdEventInfo.stopwatch_start = saveData->play_time;
+        EdEventInfo.stopwatch_start = save_data->play_time;
+
         if (EdEventInfo.stopwatch_start == 0) {
             EdEventInfo.stopwatch_start = 1;
         }
+
         return 1;
     }
+
     if (mode == 1) {
         if (EdEventInfo.stopwatch_start == 0) {
             EdEventInfo.stopwatch_start = 0;
             SetStack(stack, -1);
             return 1;
         } else {
-            u64 elapsed = saveData->play_time - EdEventInfo.stopwatch_start;
+            u64 elapsed = save_data->play_time - EdEventInfo.stopwatch_start;
             EdEventInfo.stopwatch_start = 0;
-            SetStack(stack++, (int)(elapsed / 3600));
-            SetStack(stack++, (int)(elapsed % 3600 / 60));
-            SetStack(stack++, (int)(elapsed % 60 * 100 / 60));
+            SetStack(stack++, (int) (elapsed / 3600));
+            SetStack(stack++, (int) (elapsed % 3600 / 60));
+            SetStack(stack++, (int) (elapsed % 60 * 100 / 60));
             SetStack(stack++, elapsed < 7261);
             return 1;
         }
     }
+
     if (mode == 2) {
         EdEventInfo.stopwatch_limit = GetStackInt(stack);
         return 1;
     }
+
     if (mode == 3) {
         EdEventInfo.stopwatch_x = GetStackInt(stack++);
         EdEventInfo.stopwatch_y = GetStackInt(stack++);
         EdEventInfo.stopwatch_style = GetStackInt(stack);
         return 1;
     }
+
     return 0;
 }
+
 int _SET_FUNC_ETC(RS_STACKDATA *stack, int argc) {
     u32 *flags;
 
@@ -8031,7 +8197,7 @@ int _SHADOW_CLIP_OFF(RS_STACKDATA *stack, int argc) {
 
     mgCFrameAttr attr;
     attr.no_cull = clip_off;
-    chara->shadow_frame->SetAttrParam(attr, 1, 0x100000);
+    chara->shadow_frame->SetAttrParam(attr, 1, MG_FRAME_ATTR_NO_CULL);
     return 1;
 }
 
@@ -8595,7 +8761,7 @@ int _CHECK_MES_COMPLETE(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    SetStack(next_slot, mes->State() == 3);
+    SetStack(next_slot, mes->State() == (int) CLSMES_SHOWN);
     return 1;
 }
 
@@ -8610,7 +8776,7 @@ int _CHECK_MES_WAIT(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    SetStack(next_slot, mes->State() == 5);
+    SetStack(next_slot, mes->State() == (int) CLSMES_PAGE_WAIT);
     return 1;
 }
 
@@ -8625,7 +8791,7 @@ int _CHECK_MES(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    SetStack(next_slot, mes->State() == 0);
+    SetStack(next_slot, mes->State() == (int) CLSMES_CLOSED);
     return 1;
 }
 
@@ -8983,7 +9149,7 @@ int _GET_MES_ETC(RS_STACKDATA *stack, int argc) {
                 return 0;
             }
 
-            int fish_num = aquarium->GetAquariumFishNum(0);
+            int fish_num = aquarium->GetAquariumFishNum(AQUARIUM_TANK_FIRST);
             SetStack(value, fish_num);
             break;
         }
@@ -9128,43 +9294,52 @@ int _GET_MES_OKURI(RS_STACKDATA *stack, int argc) {
     SetStack(stack, mes->push_button);
     return 1;
 }
+
 int _GET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
-    int shown;
-    int i;
-    int weight;
-    char *name;
-    int padding;
-    CFishingTournament *tournament;
-    FISH_PRIZE_INFO prize;
-    float size;
-    ClsMes *mes;
+    int                    shown;
+    int                    i;
+    int                    weight;
+    char                  *name;
+    int                    padding;
+    CFishingTournament    *tournament;
+    FISH_PRIZE_INFO        prize;
+    float                  size;
+    ClsMes                *mes;
     FISH_TOURNAMENT_ENTRY *entry;
-    int j;
-    char text[0x200];
-    char itemName[0x20];
-    char nameColumn[0x20];
-    char sizeColumn[0x28];
+    int                    j;
+    char                   text[0x200];
+    char                   item_name[0x20];
+    char                   name_column[0x20];
+    char                   size_column[0x28];
+
     switch (GetStackInt(stack++)) {
         case 0:
             tournament = GetFishTournament();
             shown = 0;
+
             if (tournament == NULL) {
                 return 0;
             }
+
             for (i = 0; i < 10; i++) {
                 entry = tournament->GetRecord(i);
+
                 if (entry != NULL) {
                     name = GetItemMessage(entry->item_no);
+
                     if (name != NULL) {
-                        strcpy(itemName, name);
+                        strcpy(item_name, name);
                         size = entry->size / 10.0f;
                         weight = entry->weight;
-                        sprintf(nameColumn, "%s", itemName);
-                        padding = 0x16 - strlen(itemName);
+                        sprintf(name_column, "%s", item_name);
+                        padding = 0x16 - strlen(item_name);
+
                         for (j = 0; j < padding / 2; j++) {
-                            strcat(nameColumn, "\x81\x40");
+                            strcat(name_column, "\x81\x40");
                         }
-                        sprintf(sizeColumn, "%4.1fcm\x81\x40%5dg", size, weight);
+
+                        sprintf(size_column, "%4.1fcm\x81\x40%5dg", size, weight);
+
                         switch (shown) {
                             case 0:
                                 strcpy(text, "\x81\x40\x82\x50\x81\x41");
@@ -9199,56 +9374,71 @@ int _GET_FISHINGTOURNAMENT_ETC(RS_STACKDATA *stack, int argc) {
                             default:
                                 return 0;
                         }
+
                         shown++;
-                        strcat(text, nameColumn);
-                        strcat(text, sizeColumn);
+                        strcat(text, name_column);
+                        strcat(text, size_column);
+
                         if (i < 9) {
                             strcat(text, "\n");
                         }
                     }
                 }
             }
+
             mes = GetMes(GetStackInt(stack));
+
             if (mes == NULL) {
                 return 0;
             }
+
             if (0 < shown) {
                 mes->MakeMesWin(text, 0, 1);
             }
+
             break;
         case 1:
             if (GetFishPrize(0, GetStackInt(stack++) - 1, &prize) == 0) {
                 return 0;
             }
+
             SetStack(stack++, prize.unk_0);
             SetStack(stack, prize.unk_4);
             break;
         case 2:
             tournament = GetFishTournament();
+
             if (tournament == NULL) {
                 return 0;
             }
+
             SetStack(stack, tournament->EntryRemain());
             break;
         case 3:
             tournament = GetFishTournament();
+
             if (tournament == NULL) {
                 return 0;
             }
+
             SetStack(stack, tournament->CalcTopWeight());
             break;
         case 4:
             tournament = GetFishTournament();
+
             if (tournament == NULL) {
                 return 0;
             }
+
             SetStack(stack, tournament->rank);
             break;
         default:
             return 0;
     }
+
     return 1;
 }
+
 int _SET_CHARA_FAR_DIST(RS_STACKDATA *stack, int argc) {
     CCharacter2 *chara = GetChara(GetStackInt(stack++));
 
@@ -10672,60 +10862,68 @@ int _OBJS_JUMP(RS_STACKDATA *stack, int argc) {
 
 int _OBJS_SET_EOH_FRAME_POS(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
-    float offset[4];
-    int slot;
-    int eohNo;
-    int frames;
-    const int vector_bytes = 0x18;
-    char *frameName;
+    float         offset[4];
+    int           slot;
+    int           eoh_no;
+    int           frames;
+    const int     vector_bytes = 0x18;
+    char         *frame_name;
 
     frames = 0;
     mgZeroVector(offset);
+
     switch (argc) {
         case 3:
             slot = GetStackInt(stack++);
-            eohNo = GetStackInt(stack++);
-            frameName = GetStackString(stack);
+            eoh_no = GetStackInt(stack++);
+            frame_name = GetStackString(stack);
             break;
         case 4:
             slot = GetStackInt(stack++);
-            eohNo = GetStackInt(stack++);
-            frameName = GetStackString(stack++);
+            eoh_no = GetStackInt(stack++);
+            frame_name = GetStackString(stack++);
             frames = GetStackInt(stack);
             break;
         case 6:
             slot = GetStackInt(stack++);
-            eohNo = GetStackInt(stack++);
-            frameName = GetStackString(stack++);
+            eoh_no = GetStackInt(stack++);
+            frame_name = GetStackString(stack++);
             GetStackVector(offset, stack);
             break;
         case 7:
             slot = GetStackInt(stack++);
-            eohNo = GetStackInt(stack++);
-            frameName = GetStackString(stack++);
+            eoh_no = GetStackInt(stack++);
+            frame_name = GetStackString(stack++);
             GetStackVector(offset, stack);
 
-            stack = (RS_STACKDATA *)((u8 *)stack + vector_bytes);
+            stack = (RS_STACKDATA *) ((u8 *) stack + vector_bytes);
             frames = GetStackInt(stack);
             break;
     }
+
     seq = GetObjSeq(slot);
+
     if (seq == NULL) {
         return 0;
     }
-    seq->SetEohFramePos(eohNo, frameName, frames, offset);
+
+    seq->SetEohFramePos(eoh_no, frame_name, frames, offset);
     return 1;
 }
+
 int _OBJS_ADD_POS(RS_STACKDATA *stack, int argc) {
     float add[4];
-    int index;
-    int frame = 1;
+    int   index;
+    int   frame = 1;
+
     switch (argc) {
         case 1: {
             ARG_DATA *args = FindArgData(GetStackInt(stack));
+
             if (args == NULL) {
                 return 0;
             }
+
             index = GetArgInt(args++);
             GetArgVector(add, args);
             frame = GetArgInt(args += 3);
@@ -10736,20 +10934,26 @@ int _OBJS_ADD_POS(RS_STACKDATA *stack, int argc) {
             index = GetStackInt(stack++);
             GetStackVector(add, stack);
             stack += 3;
+
             if (argc >= 5) {
                 frame = GetStackInt(stack++);
             }
+
             break;
         default:
             return 0;
     }
+
     CSceneObjSeq *seq = GetObjSeq(index);
+
     if (seq == NULL) {
         return 0;
     }
+
     seq->AddPos(add, frame);
     return 1;
 }
+
 int _OBJS_ATTACH_CAMERA(RS_STACKDATA *stack, int argc) {
     CSceneObjSeq *seq;
     int           slot;
@@ -11641,172 +11845,174 @@ int VpkFileNameFromVoiceNo(char *name, int voice_no) {
             break;
     }
 
-    VpkTable table = {{
-        {1, 0, 0, 100},
-        {1, 1, 0, 106},
-        {1, 2, 0, 105},
-        {2, 0, 0, 110},
-        {3, 0, 0, 115},
-        {4, 0, 0, 120},
-        {5, 0, 0, 125},
-        {6, 0, 100, 100},
-        {50, 0, 0, 130},
-        {60, 0, 0, 180},
-        {61, 0, 0, 185},
-        {100, 0, 100, 105},
-        {101, 0, 100, 110},
-        {102, 0, 100, 115},
-        {103, 0, 100, 120},
-        {104, 0, 100, 125},
-        {105, 0, 0, 135},
-        {105, 1, 0, 140},
-        {105, 2, 0, 145},
-        {106, 0, 0, 150},
-        {107, 0, 100, 130},
-        {108, 0, 100, 135},
-        {108, 1, 100, 136},
-        {108, 2, 100, 137},
-        {109, 0, 0, 155},
-        {109, 1, 0, 160},
-        {110, 0, 100, 140},
-        {111, 0, 100, 145},
-        {201, 0, 100, 150},
-        {202, 0, 100, 155},
-        {203, 0, 300, 100},
-        {204, 0, 10, 100},
-        {205, 0, 10, 105},
-        {206, 0, 10, 110},
-        {207, 0, 10, 115},
-        {208, 0, 10, 120},
-        {209, 0, 10, 125},
-        {215, 0, 110, 100},
-        {220, 0, 110, 105},
-        {230, 0, 110, 110},
-        {235, 0, 110, 115},
-        {240, 0, 110, 120},
-        {245, 0, 110, 125},
-        {247, 0, 10, 130},
-        {250, 0, 10, 135},
-        {253, 0, 10, 140},
-        {255, 0, 110, 130},
-        {255, 1, 110, 135},
-        {256, 0, 110, 140},
-        {257, 0, 110, 145},
-        {260, 0, 110, 150},
-        {270, 0, 10, 145},
-        {272, 0, 10, 150},
-        {275, 0, 10, 155},
-        {277, 0, 10, 160},
-        {280, 0, 10, 165},
-        {283, 0, 10, 170},
-        {285, 0, 10, 180},
-        {290, 0, 110, 155},
-        {300, 0, 15, 100},
-        {302, 0, 15, 105},
-        {304, 0, 15, 110},
-        {305, 0, 0, 165},
-        {306, 0, 15, 115},
-        {307, 0, 115, 100},
-        {308, 0, 115, 105},
-        {312, 0, 115, 110},
-        {314, 0, 115, 115},
-        {315, 0, 115, 120},
-        {316, 0, 115, 125},
-        {317, 0, 115, 130},
-        {320, 0, 15, 120},
-        {324, 0, 15, 125},
-        {328, 0, 15, 130},
-        {330, 0, 15, 135},
-        {332, 0, 115, 135},
-        {336, 0, 115, 140},
-        {340, 0, 115, 145},
-        {344, 0, 0, 170},
-        {348, 0, 115, 150},
-        {352, 0, 115, 155},
-        {356, 0, 115, 160},
-        {360, 0, 15, 140},
-        {364, 0, 15, 145},
-        {368, 0, 15, 150},
-        {372, 0, 15, 155},
-        {376, 0, 15, 160},
-        {400, 0, 20, 100},
-        {402, 0, 20, 105},
-        {404, 0, 20, 110},
-        {406, 0, 120, 100},
-        {408, 0, 120, 105},
-        {410, 0, 120, 110},
-        {412, 0, 20, 115},
-        {414, 0, 20, 120},
-        {416, 0, 120, 115},
-        {420, 0, 120, 120},
-        {424, 0, 0, 175},
-        {428, 0, 20, 125},
-        {432, 0, 120, 125},
-        {434, 0, 120, 130},
-        {436, 0, 120, 135},
-        {438, 0, 120, 140},
-        {440, 0, 120, 145},
-        {444, 0, 120, 150},
-        {448, 0, 20, 130},
-        {452, 0, 20, 135},
-        {456, 0, 20, 140},
-        {460, 0, 20, 145},
-        {464, 0, 20, 150},
-        {468, 0, 20, 155},
-        {500, 0, 25, 100},
-        {504, 0, 25, 105},
-        {508, 0, 25, 110},
-        {512, 0, 125, 100},
-        {516, 0, 125, 105},
-        {520, 0, 125, 110},
-        {522, 0, 125, 115},
-        {523, 0, 125, 120},
-        {524, 0, 25, 115},
-        {526, 0, 125, 125},
-        {528, 0, 125, 130},
-        {532, 0, 125, 135},
-        {536, 0, 125, 140},
-        {540, 0, 25, 120},
-        {548, 0, 25, 125},
-        {552, 0, 25, 130},
-        {556, 0, 25, 135},
-        {560, 0, 25, 140},
-        {600, 0, 20, 160},
-        {600, 1, 20, 161},
-        {604, 0, 30, 100},
-        {608, 0, 130, 100},
-        {610, 0, 130, 105},
-        {612, 0, 130, 110},
-        {616, 0, 40, 100},
-        {624, 0, 110, 160},
-        {628, 0, 115, 165},
-        {632, 0, 120, 155},
-        {636, 0, 125, 145},
-        {640, 0, 40, 105},
-        {640, 1, 40, 106},
-        {640, 2, 40, 107},
-        {648, 0, 40, 110},
-        {700, 0, 30, 105},
-        {702, 0, 130, 115},
-        {704, 0, 30, 110},
-        {708, 0, 130, 120},
-        {712, 0, 130, 125},
-        {716, 0, 130, 130},
-        {720, 0, 130, 135},
-        {724, 0, 130, 140},
-        {728, 0, 130, 145},
-        {732, 0, 130, 150},
-        {736, 0, 130, 160},
-        {744, 0, 30, 115},
-        {748, 0, 30, 120},
-        {800, 0, 0, 190},
-        {804, 0, 0, 195},
-        {808, 0, 150, 100},
-        {812, 0, 150, 105},
-        {816, 0, 150, 110},
-        {820, 0, 150, 115},
-        {824, 0, 50, 100},
-    }};
+    VpkTable table = {
+        {
+         {1, 0, 0, 100},
+         {1, 1, 0, 106},
+         {1, 2, 0, 105},
+         {2, 0, 0, 110},
+         {3, 0, 0, 115},
+         {4, 0, 0, 120},
+         {5, 0, 0, 125},
+         {6, 0, 100, 100},
+         {50, 0, 0, 130},
+         {60, 0, 0, 180},
+         {61, 0, 0, 185},
+         {100, 0, 100, 105},
+         {101, 0, 100, 110},
+         {102, 0, 100, 115},
+         {103, 0, 100, 120},
+         {104, 0, 100, 125},
+         {105, 0, 0, 135},
+         {105, 1, 0, 140},
+         {105, 2, 0, 145},
+         {106, 0, 0, 150},
+         {107, 0, 100, 130},
+         {108, 0, 100, 135},
+         {108, 1, 100, 136},
+         {108, 2, 100, 137},
+         {109, 0, 0, 155},
+         {109, 1, 0, 160},
+         {110, 0, 100, 140},
+         {111, 0, 100, 145},
+         {201, 0, 100, 150},
+         {202, 0, 100, 155},
+         {203, 0, 300, 100},
+         {204, 0, 10, 100},
+         {205, 0, 10, 105},
+         {206, 0, 10, 110},
+         {207, 0, 10, 115},
+         {208, 0, 10, 120},
+         {209, 0, 10, 125},
+         {215, 0, 110, 100},
+         {220, 0, 110, 105},
+         {230, 0, 110, 110},
+         {235, 0, 110, 115},
+         {240, 0, 110, 120},
+         {245, 0, 110, 125},
+         {247, 0, 10, 130},
+         {250, 0, 10, 135},
+         {253, 0, 10, 140},
+         {255, 0, 110, 130},
+         {255, 1, 110, 135},
+         {256, 0, 110, 140},
+         {257, 0, 110, 145},
+         {260, 0, 110, 150},
+         {270, 0, 10, 145},
+         {272, 0, 10, 150},
+         {275, 0, 10, 155},
+         {277, 0, 10, 160},
+         {280, 0, 10, 165},
+         {283, 0, 10, 170},
+         {285, 0, 10, 180},
+         {290, 0, 110, 155},
+         {300, 0, 15, 100},
+         {302, 0, 15, 105},
+         {304, 0, 15, 110},
+         {305, 0, 0, 165},
+         {306, 0, 15, 115},
+         {307, 0, 115, 100},
+         {308, 0, 115, 105},
+         {312, 0, 115, 110},
+         {314, 0, 115, 115},
+         {315, 0, 115, 120},
+         {316, 0, 115, 125},
+         {317, 0, 115, 130},
+         {320, 0, 15, 120},
+         {324, 0, 15, 125},
+         {328, 0, 15, 130},
+         {330, 0, 15, 135},
+         {332, 0, 115, 135},
+         {336, 0, 115, 140},
+         {340, 0, 115, 145},
+         {344, 0, 0, 170},
+         {348, 0, 115, 150},
+         {352, 0, 115, 155},
+         {356, 0, 115, 160},
+         {360, 0, 15, 140},
+         {364, 0, 15, 145},
+         {368, 0, 15, 150},
+         {372, 0, 15, 155},
+         {376, 0, 15, 160},
+         {400, 0, 20, 100},
+         {402, 0, 20, 105},
+         {404, 0, 20, 110},
+         {406, 0, 120, 100},
+         {408, 0, 120, 105},
+         {410, 0, 120, 110},
+         {412, 0, 20, 115},
+         {414, 0, 20, 120},
+         {416, 0, 120, 115},
+         {420, 0, 120, 120},
+         {424, 0, 0, 175},
+         {428, 0, 20, 125},
+         {432, 0, 120, 125},
+         {434, 0, 120, 130},
+         {436, 0, 120, 135},
+         {438, 0, 120, 140},
+         {440, 0, 120, 145},
+         {444, 0, 120, 150},
+         {448, 0, 20, 130},
+         {452, 0, 20, 135},
+         {456, 0, 20, 140},
+         {460, 0, 20, 145},
+         {464, 0, 20, 150},
+         {468, 0, 20, 155},
+         {500, 0, 25, 100},
+         {504, 0, 25, 105},
+         {508, 0, 25, 110},
+         {512, 0, 125, 100},
+         {516, 0, 125, 105},
+         {520, 0, 125, 110},
+         {522, 0, 125, 115},
+         {523, 0, 125, 120},
+         {524, 0, 25, 115},
+         {526, 0, 125, 125},
+         {528, 0, 125, 130},
+         {532, 0, 125, 135},
+         {536, 0, 125, 140},
+         {540, 0, 25, 120},
+         {548, 0, 25, 125},
+         {552, 0, 25, 130},
+         {556, 0, 25, 135},
+         {560, 0, 25, 140},
+         {600, 0, 20, 160},
+         {600, 1, 20, 161},
+         {604, 0, 30, 100},
+         {608, 0, 130, 100},
+         {610, 0, 130, 105},
+         {612, 0, 130, 110},
+         {616, 0, 40, 100},
+         {624, 0, 110, 160},
+         {628, 0, 115, 165},
+         {632, 0, 120, 155},
+         {636, 0, 125, 145},
+         {640, 0, 40, 105},
+         {640, 1, 40, 106},
+         {640, 2, 40, 107},
+         {648, 0, 40, 110},
+         {700, 0, 30, 105},
+         {702, 0, 130, 115},
+         {704, 0, 30, 110},
+         {708, 0, 130, 120},
+         {712, 0, 130, 125},
+         {716, 0, 130, 130},
+         {720, 0, 130, 135},
+         {724, 0, 130, 140},
+         {728, 0, 130, 145},
+         {732, 0, 130, 150},
+         {736, 0, 130, 160},
+         {744, 0, 30, 115},
+         {748, 0, 30, 120},
+         {800, 0, 0, 190},
+         {804, 0, 0, 195},
+         {808, 0, 150, 100},
+         {812, 0, 150, 105},
+         {816, 0, 150, 110},
+         {820, 0, 150, 115},
+         {824, 0, 50, 100},
+         }
+    };
 
     for (int i = 0; i < vpk_entry_count; i++) {
         if (group == table.entry[i].group && kind == table.entry[i].kind) {
@@ -11817,21 +12023,25 @@ int VpkFileNameFromVoiceNo(char *name, int voice_no) {
 
     return 0;
 }
+
 int _STREAM_OPEN(RS_STACKDATA *stack, int argc) {
-    char voicePack[0x80];
-    char voicePath[0x80];
+    char voice_pack[0x80];
+    char voice_path[0x80];
     GetStackInt(stack++);
+
     switch (argc) {
         case 2:
             switch (stack->type) {
                 case RS_INT: {
                     EdEventInfo.stream_from_fpl = 1;
-                    int voiceNo = GetStackInt(stack++);
-                    if (VpkFileNameFromVoiceNo(voicePack, voiceNo) == 0) {
+                    int voice_no = GetStackInt(stack++);
+
+                    if (VpkFileNameFromVoiceNo(voice_pack, voice_no) == 0) {
                         return 0;
                     }
-                    sprintf(voicePath, "%07d", voiceNo);
-                    CommandStreamOpenFromFPL(1, voicePack, voicePath);
+
+                    sprintf(voice_path, "%07d", voice_no);
+                    CommandStreamOpenFromFPL(1, voice_pack, voice_path);
                 }
                 case RS_STR:
                     EdEventInfo.stream_from_fpl = 0;
@@ -11844,8 +12054,10 @@ int _STREAM_OPEN(RS_STACKDATA *stack, int argc) {
             CommandStreamOpenFromFPL(1, GetStackString(stack++), GetStackString(stack));
             return 0;
     }
+
     return 0;
 }
+
 int CommandStreamPlay(int stream, int volume) {
     int reverb = sndGetReverbDepth(1);
     int scaled = (int) ((double) volume - 256.0 * (1.5 * (double) reverb));
@@ -12315,34 +12527,49 @@ int _BGM_PLAY_ENABLE(RS_STACKDATA *stack, int argc) {
     (&EventScene->skip_load_sound)[1] = 0;
     return 1;
 }
+
 int _GET_DEF_BGM_NO(RS_STACKDATA *stack, int argc) {
-    int sndId;
-    int bgmNo;
+    int snd_id;
+    int bgm_no;
+
     if (argc == 1) {
-        CScene *scene = EventScene; int map = scene->now_map_no; int sub = scene->now_sub_map_no;
-if (0 < sub) { sndId = GetMapSndDataID(sub); } else { sndId = GetMapSndDataID(map); }
-        bgmNo = EventScene->GetDefBgmNo(sndId);
-        SetStack(stack, bgmNo);
+        CScene *scene = EventScene;
+        int     map = scene->now_map_no;
+        int     sub = scene->now_sub_map_no;
+
+        if (0 < sub) {
+            snd_id = GetMapSndDataID(sub);
+        } else {
+            snd_id = GetMapSndDataID(map);
+        }
+
+        bgm_no = EventScene->GetDefBgmNo(snd_id);
+        SetStack(stack, bgm_no);
         return 1;
     }
+
     if (argc == 2) {
-        sndId = GetMapSndDataID(GetStackInt(stack++));
-        bgmNo = EventScene->GetDefBgmNo(sndId);
-        SetStack(stack, bgmNo);
+        snd_id = GetMapSndDataID(GetStackInt(stack++));
+        bgm_no = EventScene->GetDefBgmNo(snd_id);
+        SetStack(stack, bgm_no);
         return 1;
     }
+
     return 0;
 }
+
 int _SET_MOVIE_CC(RS_STACKDATA *stack, int argc) {
-    int i;
-    int no;
-    int start;
+    int   i;
+    int   no;
+    int   start;
     char *text;
-    int frames;
-    int mode = GetStackInt(stack++);
+    int   frames;
+    int   mode = GetStackInt(stack++);
+
     switch (mode) {
         case 0:
             EdEventInfo.caption_enable = GetStackInt(stack);
+
             if (EdEventInfo.caption_enable == 0) {
                 for (i = 0; i < 18; i++) {
                     EdEventInfo.caption_start[i] = 0;
@@ -12350,18 +12577,22 @@ int _SET_MOVIE_CC(RS_STACKDATA *stack, int argc) {
                     EdEventInfo.caption_frames[i] = 0;
                 }
             }
+
             break;
         case 1:
             no = GetStackInt(stack++);
             start = GetStackInt(stack++);
             text = GetStackString(stack++);
             frames = GetStackInt(stack);
+
             if (no < 0) {
                 return 0;
             }
+
             if (no >= 18) {
                 return 0;
             }
+
             start = start * 50 / 60;
             frames = frames * 50 / 60;
             EdEventInfo.caption_start[no] = start;
@@ -12371,8 +12602,10 @@ int _SET_MOVIE_CC(RS_STACKDATA *stack, int argc) {
         default:
             return 0;
     }
+
     return 1;
 }
+
 int _REGISTER_VILLAGER2(RS_STACKDATA *stack, int argc) {
     int        villager_no;
     int        mode;
@@ -12765,29 +12998,36 @@ int _EOH_SET_STEP(RS_STACKDATA *stack, int argc) {
     argc = GetStackInt(stack++);
     return EventObjHandleMother.SetStep(argc, GetStackFloat(stack));
 }
+
 int _EOH_SET_TEX_ANIM(RS_STACKDATA *stack, int argc) {
     int no = GetStackInt(stack);
+
     switch (stack[1].type) {
         case RS_INT:
             if (argc == 2) {
                 return EventObjHandleMother.SetTexAnim(no, 0, NULL);
             }
+
             if (argc == 3) {
                 int result = EventObjHandleMother.SetTexAnim(no, GetStackInt(stack + 1), GetStackString(stack + 2));
                 return result;
             }
+
             return 0;
         case RS_STR: {
             if (argc == 2) {
                 return EventObjHandleMother.SetTexAnim(no, 1, GetStackString(stack + 1));
             }
-            char *offName = GetStackString(stack + 1);
-            char *onName = GetStackString(stack + 2);
-            return EventObjHandleMother.SetTexAnim(no, 0, offName) ? EventObjHandleMother.SetTexAnim(no, 1, onName) : 0;
+
+            char *off_name = GetStackString(stack + 1);
+            char *on_name = GetStackString(stack + 2);
+            return EventObjHandleMother.SetTexAnim(no, 0, off_name) ? EventObjHandleMother.SetTexAnim(no, 1, on_name) : 0;
         }
     }
+
     return 0;
 }
+
 int _EOH_SET_SCALE(RS_STACKDATA *stack, int argc) {
     int   no = GetStackInt(stack++);
     float x = GetStackFloat(stack++);
@@ -13807,32 +14047,36 @@ static int _GET_RAND(RS_STACKDATA *stack, int argc) {
 
     return 1;
 }
+
 int _LINE_POINT_DIST(RS_STACKDATA *stack, int argc) {
-    float segmentStart[4];
-    float segmentEnd[4];
+    float segment_start[4];
+    float segment_end[4];
     float point[4];
-    float toPoint[4];
+    float to_point[4];
     float direction[4];
-    float segmentLength;
+    float segment_length;
     float projection;
-    GetStackVector(segmentStart, stack);
-    GetStackVector(segmentEnd, stack + 3);
+    GetStackVector(segment_start, stack);
+    GetStackVector(segment_end, stack + 3);
     GetStackVector(point, stack + 6);
     RS_STACKDATA *result = stack += 9;
-    segmentLength = mgDistVector(segmentStart, segmentEnd);
-    sceVu0SubVector(toPoint, point, segmentStart);
-    sceVu0SubVector(direction, segmentEnd, segmentStart);
+    segment_length = mgDistVector(segment_start, segment_end);
+    sceVu0SubVector(to_point, point, segment_start);
+    sceVu0SubVector(direction, segment_end, segment_start);
     sceVu0Normalize(direction, direction);
-    projection = sceVu0InnerProduct(toPoint, direction);
-    if (projection < 0.0f || projection > segmentLength) {
+    projection = sceVu0InnerProduct(to_point, direction);
+
+    if (projection < 0.0f || projection > segment_length) {
         SetStack(result, -1.0f);
         return 1;
     }
+
     sceVu0ScaleVector(direction, direction, projection);
-    sceVu0AddVector(direction, segmentStart, direction);
+    sceVu0AddVector(direction, segment_start, direction);
     SetStack(result, mgDistVector(point, direction));
     return 1;
 }
+
 int _CREATE_SWORD_EFFECT(RS_STACKDATA *stack, int argc) {
     int               stack_no = GetStackInt(stack++);
     int               init_param1 = GetStackInt(stack++);
@@ -14362,7 +14606,7 @@ int _SET_CHARA_TYPE(RS_STACKDATA *stack, int argc) {
     int chara_no;
 
     chara_no = GetStackInt(stack++);
-    EventScene->SetType(1, chara_no, GetStackInt(stack));
+    EventScene->SetType(SCENE_DATA_CHARA, chara_no, GetStackInt(stack));
     return 1;
 }
 
@@ -15120,7 +15364,7 @@ int _SET_PULL_ITEM(RS_STACKDATA *stack, int argc) {
 
 int _MENU_CHARA_CHENGE(RS_STACKDATA *stack, int argc) {
     GetStackInt(stack);
-    MenuArg.open_type = 0xE;
+    MenuArg.open_type = (int) MENU_OPEN_CHARA_CHANGE_DUNGEON;
     EdEventInfo.command_mode = 3;
     return 1;
 }
@@ -15296,7 +15540,7 @@ int _DNG_SETUP_MAIN_UNIT(RS_STACKDATA *stack, int argc) {
     }
 
     sndInitPort(7);
-    chara->sound_info.se_bank = sndLoadSound(7, (u32 *) read_buffer, &BaseCharacter[bank]);
+    chara->sound_info.se_bank = sndLoadSound((int) SND_PORT_CHARA, (u32 *) read_buffer, &BaseCharacter[bank]);
     chara->sound_info.se_bank_2 = EventScene->se_battle_id;
     chara->SetSoundInfoCopy();
     chara->effect_man = FxScriptMan;
@@ -15599,19 +15843,20 @@ int _CANCEL_NOW_LOADING(RS_STACKDATA *stack, int argc) {
     CancelNowLoading();
     return 1;
 }
+
 static inline int Ident(int v) {
     return v;
 }
 #ifdef NONMATCHING
 int _ESM_INITIALIZE(RS_STACKDATA *stack, int argc) {
-    int stackNo;
-    int texbOffset = 0;
+    int        stackNo;
+    int        texbOffset = 0;
     mgCMemory *memory;
     stackNo = GetStackInt(stack++);
     if (argc >= 2) {
         texbOffset = GetStackInt(stack);
     }
-    if ((memory = (mgCMemory *)EventScene->GetStack(stackNo)) == NULL) {
+    if ((memory = (mgCMemory *) EventScene->GetStack(stackNo)) == NULL) {
         return 0;
     }
     CEffectScriptMan *manager;
@@ -15648,7 +15893,7 @@ int _ESM_INIT_FIX(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    if ((heap = (mgCMemory *) operator new(0x30, scene_stack->Alloc(5))) != NULL) {
+    if ((heap = (mgCMemory *) operator new(sizeof(mgCMemory), scene_stack->Alloc(5))) != NULL) {
         heap->Init();
     }
 
@@ -16055,35 +16300,48 @@ int _IS_CLEAR_DESTROY(RS_STACKDATA *stack, int argc) {
     SetStack(stack, floor_manager->IsClearMostFastDestroy());
     return 1;
 }
+
 int _IS_CLEAR_PRACTICE(RS_STACKDATA *stack, int argc) {
     if (argc != 3) {
         return 0;
     }
-    DNG_BATTLE_AREA *area = &EventScene->battle_area;
-    CDngFloorManager *floorManager = &area->floor_manager;
+
+    DNG_BATTLE_AREA  *area = &EventScene->battle_area;
+    CDngFloorManager *floor_manager = &area->floor_manager;
+
     if (area == NULL) {
         return 0;
     }
-    if (floorManager == NULL) {
+
+    if (floor_manager == NULL) {
         return 0;
     }
-    int cleared = floorManager->IsClearPractice(GetStackInt(stack++));
-    CSaveData *saveData = GetSaveData();
-    if (saveData == NULL) {
+
+    int        cleared = floor_manager->IsClearPractice(GetStackInt(stack++));
+    CSaveData *save_data = GetSaveData();
+
+    if (save_data == NULL) {
         return 0;
     }
-    CSaveDataDungeon *dungeon = &saveData->save_dungeon;
+
+    CSaveDataDungeon *dungeon = &save_data->save_dungeon;
+
     if (dungeon == NULL) {
         return 0;
     }
-    DNGMAP_ROOM_INFO *info = floorManager->GetDngMapFloorInfo(dungeon->floor_id[dungeon->stage_id]);
+
+    DNGMAP_ROOM_INFO *info = floor_manager->GetDngMapFloorInfo(dungeon->floor_id[dungeon->stage_id]);
+
     if (info == NULL) {
         return 0;
     }
+
     int bonus = info->practice_type;
+
     switch (bonus) {
         case 2: {
             int param = info->practice_param;
+
             switch (param) {
                 case 1:
                 case 2:
@@ -16094,10 +16352,12 @@ int _IS_CLEAR_PRACTICE(RS_STACKDATA *stack, int argc) {
             }
         }
     }
+
     SetStack(stack++, cleared);
     SetStack(stack, bonus);
     return 1;
 }
+
 int _IS_PLAY_SUB_GAME(RS_STACKDATA *stack, int argc) {
     CDngFloorManager *floor_manager;
     DNG_BATTLE_AREA  *dng_scene;
@@ -16362,47 +16622,60 @@ int _FUNC_POINT_GET_POS(RS_STACKDATA *stack, int argc) {
     SetStack(stack, pos[2]);
     return 1;
 }
+
 static inline CMap *GetActiveEventMap() {
     return EventScene->GetMap(EventScene->active_map);
 }
+
 int _FUNC_POINT_GET_ROT(RS_STACKDATA *stack, int argc) {
-    float rot[4];
-    CMap *map;
-    CFuncPoint *funcPoint;
+    float       rot[4];
+    CMap       *map;
+    CFuncPoint *func_point;
     map = GetActiveEventMap();
+
     if (map == NULL) {
         return 0;
     }
+
     switch (stack->type) {
         case RS_INT: {
-            int partsNo = GetStackInt(stack++);
-            char *name = GetStackString(stack++);
-            CMapParts *parts = map->GetPlaceParts(partsNo);
+            int        parts_no = GetStackInt(stack++);
+            char      *name = GetStackString(stack++);
+            CMapParts *parts = map->GetPlaceParts(parts_no);
+
             if (parts == NULL) {
                 return 0;
             }
-            funcPoint = parts->func_point_mngr.Search(name);
+
+            func_point = parts->func_point_mngr.Search(name);
             break;
         }
         case RS_STR: {
-            char *placeName = GetStackString(stack++);
+            char *place_name = GetStackString(stack++);
             char *name = GetStackString(stack++);
-            if (strcmp(placeName, "") != 0) {
-                CMapParts *parts = map->GetPlaceParts(placeName);
+
+            if (strcmp(place_name, "") != 0) {
+                CMapParts *parts = map->GetPlaceParts(place_name);
+
                 if (parts == NULL) {
                     return 0;
                 }
-                funcPoint = parts->func_point_mngr.Search(name);
+
+                func_point = parts->func_point_mngr.Search(name);
             } else {
-                funcPoint = map->func_point.Search(name);
+                func_point = map->func_point.Search(name);
             }
+
             break;
         }
     }
-    if (funcPoint == NULL) {
+
+    if (func_point == NULL) {
         return 0;
     }
-    *(u_long128 *)rot = *(u_long128 *)funcPoint->rotation;
+
+    *(u_long128 *) rot = *(u_long128 *) func_point->rotation;
+
     switch (argc) {
         case 3:
             SetStack(stack, rot[1]);
@@ -16415,8 +16688,10 @@ int _FUNC_POINT_GET_ROT(RS_STACKDATA *stack, int argc) {
         default:
             return 0;
     }
+
     return 1;
 }
+
 int _ACTCHR_SET_DEF_MOTION(RS_STACKDATA *stack, int argc) {
     int           chara_no;
     int           motion_arg = 0;
@@ -16645,17 +16920,20 @@ int _COPY_MONS2SCNCHR(RS_STACKDATA *stack, int argc) {
         return 0;
     }
 
-    EventScene->SetStatus(1, slot, 5);
+    EventScene->SetStatus(SCENE_DATA_CHARA, slot, 5);
     CCharacter2 *dest = GetCharacter(dst_no);
-    CCharacter2 source = ActiveMonster->refer[monster_index].chara;
+    CCharacter2  source = ActiveMonster->refer[monster_index].chara;
     source.Copy(*dest, memory);
     EventScene->SetCharaTexb(dst_no, monster_index + 0x28);
     return 1;
 }
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _COPY_MONS2SCNCHR__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", __ct__7CObjectFRC7CObject);
 #endif
+
+CObject::CObject(const CObject &other)
+    : mgCObject(other), far_dist(other.far_dist), fade(other.fade), fade_alpha(other.fade_alpha),
+      fade_speed(other.fade_speed), near_dist(other.near_dist), show(other.show), draw_off(other.draw_off) {}
 
 int _UNLOCK_STACK(RS_STACKDATA *stack, int argc) {
     mgCMemory *scene_stack = EventScene->GetStack(GetStackInt(stack));
@@ -16811,7 +17089,7 @@ int _DNG_SET_WEATHER(RS_STACKDATA *stack, int argc) {
     weather = GetStackInt(stack);
     info->weather = weather;
 
-    if (weather == 2) {
+    if (weather == (int) DNG_WEATHER_RAIN) {
         EventScene->AutoChangeEnvOffset(4);
     } else {
         EventScene->AutoChangeEnvOffset(0);
@@ -16902,7 +17180,7 @@ int _GOTO_USE_ITEM2(RS_STACKDATA *stack, int argc) {
 
     p_use_item = stack->val.p;
     stack++;
-    MenuArg.open_type = 9;
+    MenuArg.open_type = (int) MENU_OPEN_USE_ITEM;
     MenuArg.param[0] = GetStackInt(stack++);
 
     for (i = 1; i < argc - 1; i++) {
@@ -17013,17 +17291,22 @@ int _CLEAR_RND_STONE(RS_STACKDATA *stack, int argc) {
     AutoMapGen.ClearRandomStone();
     return 1;
 }
+
 int _GET_FLOOR_STATUS(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
         return 0;
     }
+
     DNG_BATTLE_AREA *info = &EventScene->battle_area;
+
     if (info == NULL) {
         return 0;
     }
-    SetStack(stack, (int)((u_int)info->floor_status * 16 / 16));
+
+    SetStack(stack, (int) ((u_int) info->floor_status * 16 / 16));
     return 1;
 }
+
 int _SET_FLOOR_STATUS(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *info = (&EventScene->battle_area);
     RS_STACKDATA    *args = stack;
@@ -17050,9 +17333,10 @@ int _AMG_GET_ATTR_STATUS(RS_STACKDATA *stack, int argc) {
     if (argc != 4) {
         return 0;
     }
+
     GetStackVector(position, stack);
 
-    stack = (RS_STACKDATA *)((u8 *)stack + 0x18);
+    stack = (RS_STACKDATA *) ((u8 *) stack + 0x18);
     SetStack(stack, AutoMapGen.GetAttrStatus(position));
     return 1;
 }
@@ -17340,703 +17624,703 @@ int _FORCE_BOOT_TOUR(RS_STACKDATA *stack, int argc) {
  * External event script handlers in command-table order.
  */
 static RS_EXTFUNC_INFO ext_func_info[697] = {
-    {_GET_PADON, EVENT_EXT_GET_PADON},
-    {_GET_PADDOWN, EVENT_EXT_GET_PADDOWN},
-    {_GET_PADUP, EVENT_EXT_GET_PADUP},
-    {_GET_APAD, EVENT_EXT_GET_APAD},
-    {_GOTO_INTERIOR, EVENT_EXT_GOTO_INTERIOR},
-    {_INITIALIZE, EVENT_EXT_INITIALIZE},
-    {_GOTO_OUTSIDE, EVENT_EXT_GOTO_OUTSIDE},
-    {_LOAD_CHARA, EVENT_EXT_LOAD_CHARA},
-    {_CHARA_ACTIVE, EVENT_EXT_CHARA_ACTIVE},
-    {_CLEAR_STACK, EVENT_EXT_CLEAR_STACK},
-    {_ASSIGN_STACK, EVENT_EXT_ASSIGN_STACK},
-    {_SET_FLAG, EVENT_EXT_SET_FLAG},
-    {_GET_FLAG, EVENT_EXT_GET_FLAG},
-    {_SET_CNT, EVENT_EXT_SET_CNT},
-    {_GET_CNT, EVENT_EXT_GET_CNT},
-    {_SET_CURRENT_DIR, EVENT_EXT_SET_CURRENT_DIR},
-    {_DELETE_CHARA, EVENT_EXT_DELETE_CHARA},
-    {_LOAD_MOTION, EVENT_EXT_LOAD_MOTION},
-    {_MAP_JUMP, EVENT_EXT_MAP_JUMP},
-    {_SET_RAIN, EVENT_EXT_SET_RAIN},
-    {_DEL_EXT_MOTION, EVENT_EXT_DEL_EXT_MOTION},
-    {_SET_MARKER, EVENT_EXT_SET_MARKER},
-    {_SET_WORLD_COORD, EVENT_EXT_SET_WORLD_COORD},
-    {_FINISH, EVENT_EXT_FINISH},
-    {_GET_DUN_WORLD_COORD, EVENT_EXT_GET_DUN_WORLD_COORD},
-    {_LOAD_IMG, EVENT_EXT_LOAD_IMG},
-    {_DEL_IMG, EVENT_EXT_DEL_IMG},
-    {_SET_DNG_MAP, EVENT_EXT_SET_DNG_MAP},
-    {_LOAD_ITEM, EVENT_EXT_LOAD_ITEM},
-    {_GOTO_USE_ITEM, EVENT_EXT_GOTO_USE_ITEM},
-    {_SET_LOCAL_FLAG, EVENT_EXT_SET_LOCAL_FLAG},
-    {_GET_LOCAL_FLAG, EVENT_EXT_GET_LOCAL_FLAG},
-    {_GOTO_SELECT_PARTY, EVENT_EXT_GOTO_SELECT_PARTY},
-    {_SET_LOADBG_FILE, EVENT_EXT_SET_LOADBG_FILE},
-    {_CHECK_LOADBG_FILE, EVENT_EXT_CHECK_LOADBG_FILE},
-    {_GET_TB_ITEMNO, EVENT_EXT_GET_TB_ITEMNO},
-    {_SET_TB_STATUS, EVENT_EXT_SET_TB_STATUS},
-    {_SET_TB_ANGLE, EVENT_EXT_SET_TB_ANGLE},
-    {_ADD_ITEM, EVENT_EXT_ADD_ITEM},
-    {_GET_ITEM_TYPE, EVENT_EXT_GET_ITEM_TYPE},
-    {_GET_ITEM_SPACE, EVENT_EXT_GET_ITEM_SPACE},
-    {_GET_ADJUST_POLYGON_SCALE, EVENT_EXT_GET_ADJUST_POLYGON_SCALE},
-    {_LOAD_MOVIE, EVENT_EXT_LOAD_MOVIE},
-    {_INIT_LOCAL_CNT, EVENT_EXT_INIT_LOCAL_CNT},
-    {_SET_CROSSFADE, EVENT_EXT_SET_CROSSFADE},
-    {_SET_TIME, EVENT_EXT_SET_TIME},
-    {_SET_ACTIVE_LIGHT, EVENT_EXT_SET_ACTIVE_LIGHT},
-    {_SET_PAKU_ANIM, EVENT_EXT_SET_PAKU_ANIM},
-    {_RESET_PAKU_ANIM, EVENT_EXT_RESET_PAKU_ANIM},
-    {_TRG_PAKU_ANIM, EVENT_EXT_TRG_PAKU_ANIM},
-    {_RESET_CAMERA, EVENT_EXT_RESET_CAMERA},
-    {_GET_ACTIVE_CHR_NO, EVENT_EXT_GET_ACTIVE_CHR_NO},
-    {_SET_ACTIVE_CHR_NO, EVENT_EXT_SET_ACTIVE_CHR_NO},
-    {_DNG_SET_FLOOR_ID, EVENT_EXT_DNG_SET_FLOOR_ID},
-    {_DNG_GET_FLOOR_ID, EVENT_EXT_DNG_GET_FLOOR_ID},
-    {_SET_PAKU_MOTION, EVENT_EXT_SET_PAKU_MOTION},
-    {_RESET_PAKU_MOTION, EVENT_EXT_RESET_PAKU_MOTION},
-    {_TRG_PAKU_MOTION, EVENT_EXT_TRG_PAKU_MOTION},
-    {_SET_BG_COLOR, EVENT_EXT_SET_BG_COLOR},
-    {_GOTO_DNG_MAP, EVENT_EXT_GOTO_DNG_MAP},
-    {_GOTO_DNG, EVENT_EXT_GOTO_DNG},
-    {_GOTO_EDIT, EVENT_EXT_GOTO_EDIT},
-    {_GET_MENU_PARAM, EVENT_EXT_GET_MENU_PARAM},
-    {_LOAD_CHARA_NPC, EVENT_EXT_LOAD_CHARA_NPC},
-    {_AUTO_SET_TREASURE_BOX, EVENT_EXT_AUTO_SET_TREASURE_BOX},
-    {_AUTO_SET_MONSTER, EVENT_EXT_AUTO_SET_MONSTER},
-    {_LOAD_DUNGEON_MAP_FILE, EVENT_EXT_LOAD_DUNGEON_MAP_FILE},
-    {_LOAD_MONSTER_FILE, EVENT_EXT_LOAD_MONSTER_FILE},
-    {_GET_NPC_STATUS, EVENT_EXT_GET_NPC_STATUS},
-    {_SET_NPC_STATUS, EVENT_EXT_SET_NPC_STATUS},
-    {_GET_NOW_PARTY_CHARA, EVENT_EXT_GET_NOW_PARTY_CHARA},
-    {_SET_LOCAL_CNT, EVENT_EXT_SET_LOCAL_CNT},
-    {_GET_LOCAL_CNT, EVENT_EXT_GET_LOCAL_CNT},
-    {_GET_LOCAL_CNT2, EVENT_EXT_GET_LOCAL_CNT2},
-    {_GET_TRAIN_NPC_POS, EVENT_EXT_GET_TRAIN_NPC_POS},
-    {_GOTO_DRAW_CHAPTER, EVENT_EXT_GOTO_DRAW_CHAPTER},
-    {_SET_PROJECTION, EVENT_EXT_SET_PROJECTION},
-    {_GET_PROJECTION, EVENT_EXT_GET_PROJECTION},
-    {_SET_FADE_IN, EVENT_EXT_SET_FADE_IN},
-    {_SET_FADE_OUT, EVENT_EXT_SET_FADE_OUT},
-    {_DNG_DEBUG_COMMAND, EVENT_EXT_DNG_DEBUG_COMMAND},
-    {_CD_SEEK, EVENT_EXT_CD_SEEK},
-    {_GET_ROT_LOOK_POS, EVENT_EXT_GET_ROT_LOOK_POS},
-    {_SET_MOTION_BLUR, EVENT_EXT_SET_MOTION_BLUR},
-    {_LOAD_SCRIPT, EVENT_EXT_LOAD_SCRIPT},
-    {_SET_TALK_CAMERA, EVENT_EXT_SET_TALK_CAMERA},
-    {_HIT_EFFECT, EVENT_EXT_HIT_EFFECT},
-    {_COPY_CHARA, EVENT_EXT_COPY_CHARA},
-    {_GET_START_BUTTON, EVENT_EXT_GET_START_BUTTON},
-    {_MOVE_INTERIOR, EVENT_EXT_MOVE_INTERIOR},
-    {_GET_MONSTER_TALK_DATA, EVENT_EXT_GET_MONSTER_TALK_DATA},
-    {_FUNC_POINT_SHOW, EVENT_EXT_FUNC_POINT_SHOW},
-    {_GET_NOW_MAP_NO, EVENT_EXT_GET_NOW_MAP_NO},
-    {_GET_NOW_SUBMAP_NO, EVENT_EXT_GET_NOW_SUBMAP_NO},
-    {_GET_OLD_MAP_NO, EVENT_EXT_GET_OLD_MAP_NO},
-    {_GET_OLD_SUBMAP_NO, EVENT_EXT_GET_OLD_SUBMAP_NO},
-    {_SET_RAIN_CHARA_NO, EVENT_EXT_SET_RAIN_CHARA_NO},
-    {_GET_EDIT_PARTS_POS, EVENT_EXT_GET_EDIT_PARTS_POS},
-    {_GET_CHARA_POS, EVENT_EXT_GET_CHARA_POS},
-    {_GET_CHARA_TALK_POS, EVENT_EXT_GET_CHARA_TALK_POS},
-    {_TURN_CHARA, EVENT_EXT_TURN_CHARA},
-    {_SET_CHARA_POS, EVENT_EXT_SET_CHARA_POS},
-    {_SET_CHARA_ROT, EVENT_EXT_SET_CHARA_ROT},
-    {_GET_CHARA_ROT, EVENT_EXT_GET_CHARA_ROT},
-    {_SET_MOTION, EVENT_EXT_SET_MOTION},
-    {_SET_STEP, EVENT_EXT_SET_STEP},
-    {_SET_TEX_ANIM, EVENT_EXT_SET_TEX_ANIM},
-    {_SET_SCALE, EVENT_EXT_SET_SCALE},
-    {_SET_REFERENCE, EVENT_EXT_SET_REFERENCE},
-    {_DEL_REFERENCE, EVENT_EXT_DEL_REFERENCE},
-    {_SHADOW_CLIP_OFF, EVENT_EXT_SHADOW_CLIP_OFF},
-    {_GET_COORDINATE_ANGLE, EVENT_EXT_GET_COORDINATE_ANGLE},
-    {_GET_CHARA_WIDTH, EVENT_EXT_GET_CHARA_WIDTH},
-    {_GET_CHARA_HEIGHT, EVENT_EXT_GET_CHARA_HEIGHT},
-    {_GET_CHARA_WEIGHT, EVENT_EXT_GET_CHARA_WEIGHT},
-    {_SET_CHARA_SHOW, EVENT_EXT_SET_CHARA_SHOW},
-    {_GET_CHARA_SHOW, EVENT_EXT_GET_CHARA_SHOW},
-    {_CHARA_DA_ENABLE, EVENT_EXT_CHARA_DA_ENABLE},
-    {_GET_MOT_NOW_WAIT, EVENT_EXT_GET_MOT_NOW_WAIT},
-    {_CHECK_MOTION_END, EVENT_EXT_CHECK_MOTION_END},
-    {_ACTCHR_SET_MOTION, EVENT_EXT_ACTCHR_SET_MOTION},
-    {_SET_CHARA_EX_SOUNDID, EVENT_EXT_SET_CHARA_EX_SOUNDID},
-    {_ACTCHR_SOUND_INFO_COPY, EVENT_EXT_ACTCHR_SOUND_INFO_COPY},
-    {_MES_MAKE, EVENT_EXT_MES_MAKE},
-    {_MES_CLOSE, EVENT_EXT_MES_CLOSE},
-    {_MES_NEXTPAGE, EVENT_EXT_MES_NEXTPAGE},
-    {_SET_MES_AUTOSET, EVENT_EXT_SET_MES_AUTOSET},
-    {_SET_MES_SHIPPO, EVENT_EXT_SET_MES_SHIPPO},
-    {_SET_MES_POS, EVENT_EXT_SET_MES_POS},
-    {_SET_MES_DRAWSPEED, EVENT_EXT_SET_MES_DRAWSPEED},
-    {_SET_MES_CURSOR, EVENT_EXT_SET_MES_CURSOR},
-    {_SET_MES_OKURI, EVENT_EXT_SET_MES_OKURI},
-    {_SET_MES_FUKIDASHI, EVENT_EXT_SET_MES_FUKIDASHI},
-    {_CHECK_MES_COMPLETE, EVENT_EXT_CHECK_MES_COMPLETE},
-    {_CHECK_MES_WAIT, EVENT_EXT_CHECK_MES_WAIT},
-    {_CHECK_MES, EVENT_EXT_CHECK_MES},
-    {_SET_MES_WIN_FLAG, EVENT_EXT_SET_MES_WIN_FLAG},
-    {_SET_CAMERA_POS, EVENT_EXT_SET_CAMERA_POS},
-    {_GET_CAMERA_POS, EVENT_EXT_GET_CAMERA_POS},
-    {_SET_CAMERA_REF, EVENT_EXT_SET_CAMERA_REF},
-    {_GET_CAMERA_REF, EVENT_EXT_GET_CAMERA_REF},
-    {_SET_CAMERA_SPEED, EVENT_EXT_SET_CAMERA_SPEED},
-    {_CAMERA_STEP, EVENT_EXT_CAMERA_STEP},
-    {_SET_MES_WINDOW_MODE, EVENT_EXT_SET_MES_WINDOW_MODE},
-    {_SET_MES_PRESET, EVENT_EXT_SET_MES_PRESET},
-    {_SET_MES_ITEM_DIRECT, EVENT_EXT_SET_MES_ITEM_DIRECT},
-    {_SET_MES_ITEM, EVENT_EXT_SET_MES_ITEM},
-    {_SET_MES_VALUE, EVENT_EXT_SET_MES_VALUE},
-    {_GET_MES_STATUS, EVENT_EXT_GET_MES_STATUS},
-    {_GET_PARTY_CHARA_MES_NO, EVENT_EXT_GET_PARTY_CHARA_MES_NO},
-    {_MES_SET_BUFF, EVENT_EXT_MES_SET_BUFF},
-    {_GET_MES_WINDOW_MODE, EVENT_EXT_GET_MES_WINDOW_MODE},
-    {_GET_MES_VOICE, EVENT_EXT_GET_MES_VOICE},
-    {_SET_MES_QUESTION_GYOU, EVENT_EXT_SET_MES_QUESTION_GYOU},
-    {_GET_MES_QUESTION_GYOU, EVENT_EXT_GET_MES_QUESTION_GYOU},
-    {_SET_MES_CLOSE_CNT, EVENT_EXT_SET_MES_CLOSE_CNT},
-    {_SET_MES_ETC, EVENT_EXT_SET_MES_ETC},
-    {_GET_MES_ETC, EVENT_EXT_GET_MES_ETC},
-    {_LOAD_MES, EVENT_EXT_LOAD_MES},
-    {_MES_SE_PLAY, EVENT_EXT_MES_SE_PLAY},
-    {_SET_MES_STR, EVENT_EXT_SET_MES_STR},
-    {_GET_MES_OKURI, EVENT_EXT_GET_MES_OKURI},
-    {_ASQ_INIT, EVENT_EXT_ASQ_INIT},
-    {_ASQ_SYNC_CHARA, EVENT_EXT_ASQ_SYNC_CHARA},
-    {_ASQ_SET_POS, EVENT_EXT_ASQ_SET_POS},
-    {_ASQ_MOVE, EVENT_EXT_ASQ_MOVE},
-    {_ASQ_MOVE_STEP, EVENT_EXT_ASQ_MOVE_STEP},
-    {_ASQ_ROT_REF, EVENT_EXT_ASQ_ROT_REF},
-    {_ASQ_CLEAR_ROT, EVENT_EXT_ASQ_CLEAR_ROT},
-    {_ASQ_WAIT_ROT, EVENT_EXT_ASQ_WAIT_ROT},
-    {_ASQ_ROT_MOVE, EVENT_EXT_ASQ_ROT_MOVE},
-    {_ASQ_ROT_ANGLE, EVENT_EXT_ASQ_ROT_ANGLE},
-    {_ASQ_SET_ROT, EVENT_EXT_ASQ_SET_ROT},
-    {_ASQ_DELAY_ROT, EVENT_EXT_ASQ_DELAY_ROT},
-    {_ASQ_CHECK, EVENT_EXT_ASQ_CHECK},
-    {_ASQ_MOTION_TRG, EVENT_EXT_ASQ_MOTION_TRG},
-    {_ASQ_MOTION_PLAY, EVENT_EXT_ASQ_MOTION_PLAY},
-    {_ASQ_MOTION_STOP, EVENT_EXT_ASQ_MOTION_STOP},
-    {_ASQ_MOTION_NEXT, EVENT_EXT_ASQ_MOTION_NEXT},
-    {_ASQ_ANIME_TRG, EVENT_EXT_ASQ_ANIME_TRG},
-    {_ASQ_ANIME, EVENT_EXT_ASQ_ANIME},
-    {_ASQ_SE_PLAY, EVENT_EXT_ASQ_SE_PLAY},
-    {_IMG_SET_DRAW, EVENT_EXT_IMG_SET_DRAW},
-    {_IMG_SET_GET, EVENT_EXT_IMG_SET_GET},
-    {_IMG_SET_PUT, EVENT_EXT_IMG_SET_PUT},
-    {_IMG_SET_NAME, EVENT_EXT_IMG_SET_NAME},
-    {_IMG_SET_MOVE, EVENT_EXT_IMG_SET_MOVE},
-    {_IMG_SET_FADE, EVENT_EXT_IMG_SET_FADE},
-    {_IMG_SET_COLOR, EVENT_EXT_IMG_SET_COLOR},
-    {_SPRITE_INIT, EVENT_EXT_SPRITE_INIT},
-    {_SPRITE_SET_DRAW, EVENT_EXT_SPRITE_SET_DRAW},
-    {_SPRITE_SET_TYPE, EVENT_EXT_SPRITE_SET_TYPE},
-    {_SPRITE_SET_TEXTURE, EVENT_EXT_SPRITE_SET_TEXTURE},
-    {_SPRITE_SET_POS, EVENT_EXT_SPRITE_SET_POS},
-    {_SPRITE_SET_PUTSIZE, EVENT_EXT_SPRITE_SET_PUTSIZE},
-    {_SPRITE_SET_UVSIZE, EVENT_EXT_SPRITE_SET_UVSIZE},
-    {_SPRITE_SET_COLOR, EVENT_EXT_SPRITE_SET_COLOR},
-    {_SPRITE_SET_SCALE, EVENT_EXT_SPRITE_SET_SCALE},
-    {_SPRITE_SET_ALPHAB, EVENT_EXT_SPRITE_SET_ALPHAB},
-    {_CMRS_CHECK, EVENT_EXT_CMRS_CHECK},
-    {_CMRS_INIT, EVENT_EXT_CMRS_INIT},
-    {_CMRS_PRDELAY, EVENT_EXT_CMRS_PRDELAY},
-    {_CMRS_SET_POS, EVENT_EXT_CMRS_SET_POS},
-    {_CMRS_SET_REF, EVENT_EXT_CMRS_SET_REF},
-    {_CMRS_MOVE, EVENT_EXT_CMRS_MOVE},
-    {_CMRS_MOVE_REF, EVENT_EXT_CMRS_MOVE_REF},
-    {_CMRS_INIT_PAS, EVENT_EXT_CMRS_INIT_PAS},
-    {_CMRS_SET_PAS_FRM, EVENT_EXT_CMRS_SET_PAS_FRM},
-    {_CMRS_ADD_PAS, EVENT_EXT_CMRS_ADD_PAS},
-    {_CMRS_START_PAS, EVENT_EXT_CMRS_START_PAS},
-    {_CMRS_PR_SLOWING, EVENT_EXT_CMRS_PR_SLOWING},
-    {_CMRS_PR_KEEP, EVENT_EXT_CMRS_PR_KEEP},
-    {_CMRS_PR_RETURN, EVENT_EXT_CMRS_PR_RETURN},
-    {_CMRS_AHDDELAY, EVENT_EXT_CMRS_AHDDELAY},
-    {_CMRS_SET_ANGLE, EVENT_EXT_CMRS_SET_ANGLE},
-    {_CMRS_SET_HEIGHT, EVENT_EXT_CMRS_SET_HEIGHT},
-    {_CMRS_SET_DIST, EVENT_EXT_CMRS_SET_DIST},
-    {_CMRS_SET_AHD, EVENT_EXT_CMRS_SET_AHD},
-    {_CMRS_MOVE_AHD, EVENT_EXT_CMRS_MOVE_AHD},
-    {_CMRS_SYNC_OBJ, EVENT_EXT_CMRS_SYNC_OBJ},
-    {_CMRS_RELEASE_OBJ, EVENT_EXT_CMRS_RELEASE_OBJ},
-    {_CMRS_AHD_SLOWING, EVENT_EXT_CMRS_AHD_SLOWING},
-    {_CMRS_AHD_KEEP, EVENT_EXT_CMRS_AHD_KEEP},
-    {_CMRS_AHD_RETURN, EVENT_EXT_CMRS_AHD_RETURN},
-    {_CMRS_FADE_DELAY, EVENT_EXT_CMRS_FADE_DELAY},
-    {_CMRS_FADE_INIT, EVENT_EXT_CMRS_FADE_INIT},
-    {_CMRS_FADE_IN, EVENT_EXT_CMRS_FADE_IN},
-    {_CMRS_FADE_OUT, EVENT_EXT_CMRS_FADE_OUT},
-    {_CMRS_QUAKE_DELAY, EVENT_EXT_CMRS_QUAKE_DELAY},
-    {_CMRS_QUAKE, EVENT_EXT_CMRS_QUAKE},
-    {_CMRS_MOVE2, EVENT_EXT_CMRS_MOVE2},
-    {_CMRS_MOVE_AHD2, EVENT_EXT_CMRS_MOVE_AHD2},
-    {_CMRS_CHARA_DELAY, EVENT_EXT_CMRS_CHARA_DELAY},
-    {_CMRS_CHARA_ATTACH, EVENT_EXT_CMRS_CHARA_ATTACH},
-    {_CMRS_MOVE_POS, EVENT_EXT_CMRS_MOVE_POS},
-    {_CMRS_QUAKE2, EVENT_EXT_CMRS_QUAKE2},
-    {_OBJS_CHECK, EVENT_EXT_OBJS_CHECK},
-    {_OBJS_INIT, EVENT_EXT_OBJS_INIT},
-    {_OBJS_SYNC_OBJ, EVENT_EXT_OBJS_SYNC_OBJ},
-    {_OBJS_POS_DELAY, EVENT_EXT_OBJS_POS_DELAY},
-    {_OBJS_SET_POS, EVENT_EXT_OBJS_SET_POS},
-    {_OBJS_MOVE, EVENT_EXT_OBJS_MOVE},
-    {_OBJS_MOVE2, EVENT_EXT_OBJS_MOVE2},
-    {_OBJS_INIT_PAS, EVENT_EXT_OBJS_INIT_PAS},
-    {_OBJS_SET_PAS_FRM, EVENT_EXT_OBJS_SET_PAS_FRM},
-    {_OBJS_ADD_PAS, EVENT_EXT_OBJS_ADD_PAS},
-    {_OBJS_START_PAS, EVENT_EXT_OBJS_START_PAS},
-    {_OBJS_JUMP, EVENT_EXT_OBJS_JUMP},
-    {_OBJS_SET_EOH_FRAME_POS, EVENT_EXT_OBJS_SET_EOH_FRAME_POS},
-    {_OBJS_ADD_POS, EVENT_EXT_OBJS_ADD_POS},
-    {_OBJS_ATTACH_CAMERA, EVENT_EXT_OBJS_ATTACH_CAMERA},
-    {_OBJS_ROT_DELAY, EVENT_EXT_OBJS_ROT_DELAY},
-    {_OBJS_SET_ROT, EVENT_EXT_OBJS_SET_ROT},
-    {_OBJS_ROTATION, EVENT_EXT_OBJS_ROTATION},
-    {_OBJS_ROTATION2, EVENT_EXT_OBJS_ROTATION2},
-    {_OBJS_REFERENCE, EVENT_EXT_OBJS_REFERENCE},
-    {_OBJS_MOTION_DELAY, EVENT_EXT_OBJS_MOTION_DELAY},
-    {_OBJS_SET_MOTION, EVENT_EXT_OBJS_SET_MOTION},
-    {_OBJS_NEXT_MOTION, EVENT_EXT_OBJS_NEXT_MOTION},
-    {_OBJS_MOTION_WAIT, EVENT_EXT_OBJS_MOTION_WAIT},
-    {_OBJS_SET_STEP, EVENT_EXT_OBJS_SET_STEP},
-    {_OBJS_CHENGE_STEP, EVENT_EXT_OBJS_CHENGE_STEP},
-    {_OBJS_SEQ_MOT_TRG, EVENT_EXT_OBJS_SEQ_MOT_TRG},
-    {_OBJS_SEQ_MOT_TRG_WAIT, EVENT_EXT_OBJS_SEQ_MOT_TRG_WAIT},
-    {_OBJS_RESET_MOTION, EVENT_EXT_OBJS_RESET_MOTION},
-    {_OBJS_SET_MOTION_NOW_TIME, EVENT_EXT_OBJS_SET_MOTION_NOW_TIME},
-    {_OBJS_SET_MOTION_WAIT_TIME, EVENT_EXT_OBJS_SET_MOTION_WAIT_TIME},
-    {_OBJS_TEXA_DELAY, EVENT_EXT_OBJS_TEXA_DELAY},
-    {_OBJS_TEX_ANIME, EVENT_EXT_OBJS_TEX_ANIME},
-    {_OBJS_COLOR_DELAY, EVENT_EXT_OBJS_COLOR_DELAY},
-    {_OBJS_SET_COLOR, EVENT_EXT_OBJS_SET_COLOR},
-    {_OBJS_SCALE_DELAY, EVENT_EXT_OBJS_SCALE_DELAY},
-    {_OBJS_SET_SCALE, EVENT_EXT_OBJS_SET_SCALE},
-    {_OBJS_SE_DELAY, EVENT_EXT_OBJS_SE_DELAY},
-    {_OBJS_SE_PLAY, EVENT_EXT_OBJS_SE_PLAY},
-    {_OBJS_RESET_DA_POSITION, EVENT_EXT_OBJS_RESET_DA_POSITION},
-    {_OBJS_NORMAL_DRIVE, EVENT_EXT_OBJS_NORMAL_DRIVE},
-    {_GET_CONTENTS_POS, EVENT_EXT_GET_CONTENTS_POS},
-    {_GET_BPOT_POS, EVENT_EXT_GET_BPOT_POS},
-    {_GET_BPOT_STATUS, EVENT_EXT_GET_BPOT_STATUS},
-    {_GET_PERSON_STATUS, EVENT_EXT_GET_PERSON_STATUS},
-    {_GET_CONTROL_CHRID, EVENT_EXT_GET_CONTROL_CHRID},
-    {_GET_BEFORE_CAMERA_POS, EVENT_EXT_GET_BEFORE_CAMERA_POS},
-    {_GET_BEFORE_CAMERA_REF, EVENT_EXT_GET_BEFORE_CAMERA_REF},
-    {_SET_CAMERA_NEXT_REF, EVENT_EXT_SET_CAMERA_NEXT_REF},
-    {_GOTO_MENU, EVENT_EXT_GOTO_MENU},
-    {_GET_MENU_STATUS, EVENT_EXT_GET_MENU_STATUS},
-    {_LOAD_EQUIP, EVENT_EXT_LOAD_EQUIP},
-    {_GET_EQUIP_ITEMNO, EVENT_EXT_GET_EQUIP_ITEMNO},
-    {_SET_TIME_STEP_ENABLE, EVENT_EXT_SET_TIME_STEP_ENABLE},
-    {_SET_DOOR_MATERIAL, EVENT_EXT_SET_DOOR_MATERIAL},
-    {_INIT_DRAMA_SCENE, EVENT_EXT_INIT_DRAMA_SCENE},
-    {_SET_ACTIVE_CMRID, EVENT_EXT_SET_ACTIVE_CMRID},
-    {_SET_BEFORE_CMRID, EVENT_EXT_SET_BEFORE_CMRID},
-    {_DNGMAP_LOAD, EVENT_EXT_DNGMAP_LOAD},
-    {_DNGMAP_DELETE, EVENT_EXT_DNGMAP_DELETE},
-    {_DNGMAP_MOVE_PIECE, EVENT_EXT_DNGMAP_MOVE_PIECE},
-    {_DNGMAP_ONOFF, EVENT_EXT_DNGMAP_ONOFF},
-    {_DNGMAP_SET_FADE, EVENT_EXT_DNGMAP_SET_FADE},
-    {_GET_BEFORE_CAMERA_NEXT_POS, EVENT_EXT_GET_BEFORE_CAMERA_NEXT_POS},
-    {_GET_BEFORE_CAMERA_NEXT_REF, EVENT_EXT_GET_BEFORE_CAMERA_NEXT_REF},
-    {_SET_CAMERA_NEXT_POS, EVENT_EXT_SET_CAMERA_NEXT_POS},
-    {_CHK_INTERSECTION_POINT, EVENT_EXT_CHK_INTERSECTION_POINT},
-    {_SET_FCAMERA_FOLLOW, EVENT_EXT_SET_FCAMERA_FOLLOW},
-    {_SET_FCAMERA_FOLLOW_A, EVENT_EXT_SET_FCAMERA_FOLLOW_A},
-    {_SET_FCAMERA_FOLLOW_OFS, EVENT_EXT_SET_FCAMERA_FOLLOW_OFS},
-    {_SET_FCAMERA_FOLLOW_FLAG, EVENT_EXT_SET_FCAMERA_FOLLOW_FLAG},
-    {_FCAMERA_STEP, EVENT_EXT_FCAMERA_STEP},
-    {_SET_FCAMERA_ANGLE, EVENT_EXT_SET_FCAMERA_ANGLE},
-    {_SET_FCAMERA_HEIGHT, EVENT_EXT_SET_FCAMERA_HEIGHT},
-    {_SET_FCAMERA_DIST, EVENT_EXT_SET_FCAMERA_DIST},
-    {_GET_REF_ANGLE, EVENT_EXT_GET_REF_ANGLE},
-    {_DNG_SET_STAGE_ID, EVENT_EXT_DNG_SET_STAGE_ID},
-    {_DNG_GET_STAGE_ID, EVENT_EXT_DNG_GET_STAGE_ID},
-    {_SET_CAMERA_CTRL, EVENT_EXT_SET_CAMERA_CTRL},
-    {_GET_FCAMERA_ANGLE, EVENT_EXT_GET_FCAMERA_ANGLE},
-    {_GET_FCAMERA_HEIGHT, EVENT_EXT_GET_FCAMERA_HEIGHT},
-    {_GET_FCAMERA_DIST, EVENT_EXT_GET_FCAMERA_DIST},
-    {_GET_INVENTION_ID, EVENT_EXT_GET_INVENTION_ID},
-    {_FUNCTION_MAP_JUMP, EVENT_EXT_FUNCTION_MAP_JUMP},
-    {_FUNCTION_DOOR_MODE, EVENT_EXT_FUNCTION_DOOR_MODE},
-    {_GET_MONEY, EVENT_EXT_GET_MONEY},
-    {_ADD_MONEY, EVENT_EXT_ADD_MONEY},
-    {_GET_ITEM_NUM, EVENT_EXT_GET_ITEM_NUM},
-    {_CHECK_BUTTON, EVENT_EXT_CHECK_BUTTON},
-    {_GET_LANGUAGE, EVENT_EXT_GET_LANGUAGE},
-    {_CHECK_INVENT_ITEM, EVENT_EXT_CHECK_INVENT_ITEM},
-    {_SET_AI, EVENT_EXT_SET_AI},
-    {_CHECK_INVENT_PHOTO, EVENT_EXT_CHECK_INVENT_PHOTO},
-    {_GET_PHOTO_NUM, EVENT_EXT_GET_PHOTO_NUM},
-    {_SET_CONTENTS_ETC, EVENT_EXT_SET_CONTENTS_ETC},
-    {_SET_STATUS, EVENT_EXT_SET_STATUS},
-    {_GOTO_SUBGAME, EVENT_EXT_GOTO_SUBGAME},
-    {_SET_GYORACE_ETC, EVENT_EXT_SET_GYORACE_ETC},
-    {_GET_GYORACE_ETC, EVENT_EXT_GET_GYORACE_ETC},
-    {_SET_SAVEDATA_ETC, EVENT_EXT_SET_SAVEDATA_ETC},
-    {_GET_SAVEDATA_ETC, EVENT_EXT_GET_SAVEDATA_ETC},
-    {_DEL_MONSTER, EVENT_EXT_DEL_MONSTER},
-    {_SET_MENU_ETC, EVENT_EXT_SET_MENU_ETC},
-    {_GET_MENU_ETC, EVENT_EXT_GET_MENU_ETC},
-    {_GET_ANALYZE, EVENT_EXT_GET_ANALYZE},
-    {_GET_DIORAMA_PERCENT, EVENT_EXT_GET_DIORAMA_PERCENT},
-    {_GEORAMA_FUNC, EVENT_EXT_GEORAMA_FUNC},
-    {_GET_CHARA_ID, EVENT_EXT_GET_CHARA_ID},
-    {_SET_LOADBG_FILE_MONS_TALK, EVENT_EXT_SET_LOADBG_FILE_MONS_TALK},
-    {_LOAD_MES_MONS_TALK, EVENT_EXT_LOAD_MES_MONS_TALK},
-    {_GOTO_EDITMODE, EVENT_EXT_GOTO_EDITMODE},
-    {_GET_CHAPTER, EVENT_EXT_GET_CHAPTER},
-    {_GET_NPC_TRAIN_ETC, EVENT_EXT_GET_NPC_TRAIN_ETC},
-    {_REGISTER_VILLAGER, EVENT_EXT_REGISTER_VILLAGER},
-    {_EYE_VIEW_DRAW_ON_OFF, EVENT_EXT_EYE_VIEW_DRAW_ON_OFF},
-    {_SET_QUEST_ETC, EVENT_EXT_SET_QUEST_ETC},
-    {_GET_QUEST_ETC, EVENT_EXT_GET_QUEST_ETC},
-    {_CHK_INTERSECTION_POINT_PIPE, EVENT_EXT_CHK_INTERSECTION_POINT_PIPE},
-    {_GET_OLD_INTERIOR_MAP_NO, EVENT_EXT_GET_OLD_INTERIOR_MAP_NO},
-    {_SET_EVENT_DATA, EVENT_EXT_SET_EVENT_DATA},
-    {_STOPWATCH, EVENT_EXT_STOPWATCH},
-    {_SET_FUNC_ETC, EVENT_EXT_SET_FUNC_ETC},
-    {_GET_FISHINGTOURNAMENT_ETC, EVENT_EXT_GET_FISHINGTOURNAMENT_ETC},
-    {_SET_CHARA_FAR_DIST, EVENT_EXT_SET_CHARA_FAR_DIST},
-    {_SET_MODEL_LIGHT_SWITCH, EVENT_EXT_SET_MODEL_LIGHT_SWITCH},
-    {_SET_MODEL_LIGHT_COLOR, EVENT_EXT_SET_MODEL_LIGHT_COLOR},
-    {_GET_OMAKE_FLAG, EVENT_EXT_GET_OMAKE_FLAG},
-    {_SET_WIND, EVENT_EXT_SET_WIND},
-    {_SET_OMAKE_FLAG, EVENT_EXT_SET_OMAKE_FLAG},
-    {_SND_INIT_PORT, EVENT_EXT_SND_INIT_PORT},
-    {_SND_LOAD_SOUND, EVENT_EXT_SND_LOAD_SOUND},
-    {_SND_SE_PLAY, EVENT_EXT_SND_SE_PLAY},
-    {_GET_SND_ID, EVENT_EXT_GET_SND_ID},
-    {_SND_SE_PAUSE, EVENT_EXT_SND_SE_PAUSE},
-    {_SND_SE_STOP, EVENT_EXT_SND_SE_STOP},
-    {_SND_SET_SE_VOL, EVENT_EXT_SND_SET_SE_VOL},
-    {_SND_SET_SE_PAN, EVENT_EXT_SND_SET_SE_PAN},
-    {_SND_SET_SE_PITCH, EVENT_EXT_SND_SET_SE_PITCH},
-    {_SND_SE_ALL_STOP, EVENT_EXT_SND_SE_ALL_STOP},
-    {_LOAD_BGM, EVENT_EXT_LOAD_BGM},
-    {_PLAY_BGM, EVENT_EXT_PLAY_BGM},
-    {_STOP_BGM, EVENT_EXT_STOP_BGM},
-    {_STREAM_OPEN, EVENT_EXT_STREAM_OPEN},
-    {_STREAM_PLAY, EVENT_EXT_STREAM_PLAY},
-    {_STREAM_STOP, EVENT_EXT_STREAM_STOP},
-    {_STREAM_STANDBY, EVENT_EXT_STREAM_STANDBY},
-    {_STREAM_GET_STATUS, EVENT_EXT_STREAM_GET_STATUS},
-    {_GET_SYS_SND_ID, EVENT_EXT_GET_SYS_SND_ID},
-    {_STREAM_OPEN_CHECK, EVENT_EXT_STREAM_OPEN_CHECK},
-    {_LOAD_SE_ENV, EVENT_EXT_LOAD_SE_ENV},
-    {_PLAY_ENV_BGM, EVENT_EXT_PLAY_ENV_BGM},
-    {_SYS_SE_PLAY, EVENT_EXT_SYS_SE_PLAY},
-    {_INIT_SE_SRC, EVENT_EXT_INIT_SE_SRC},
-    {_INIT_SE_ENV, EVENT_EXT_INIT_SE_ENV},
-    {_INIT_SE_BAS, EVENT_EXT_INIT_SE_BAS},
-    {_LOAD_SE_SRC, EVENT_EXT_LOAD_SE_SRC},
-    {_LOAD_SE_FOOT, EVENT_EXT_LOAD_SE_FOOT},
-    {_LOAD_SE_DOOR, EVENT_EXT_LOAD_SE_DOOR},
-    {_LOAD_SE_BOX, EVENT_EXT_LOAD_SE_BOX},
-    {_LOAD_SE_BATTLE, EVENT_EXT_LOAD_SE_BATTLE},
-    {_SND_DELETE_PORT, EVENT_EXT_SND_DELETE_PORT},
-    {_STOP_ENV_BGM, EVENT_EXT_STOP_ENV_BGM},
-    {_FADE_IN_BGM, EVENT_EXT_FADE_IN_BGM},
-    {_FADE_OUT_BGM, EVENT_EXT_FADE_OUT_BGM},
-    {_SET_BGM_VOL, EVENT_EXT_SET_BGM_VOL},
-    {_SND_SET_REVERB, EVENT_EXT_SND_SET_REVERB},
-    {_SND_SET_ENV_VOL, EVENT_EXT_SND_SET_ENV_VOL},
-    {_STREAM_SILENT_CHECK, EVENT_EXT_STREAM_SILENT_CHECK},
-    {_AUTO_CHANGE_ENV, EVENT_EXT_AUTO_CHANGE_ENV},
-    {_BGM_LOAD_CANCEL, EVENT_EXT_BGM_LOAD_CANCEL},
-    {_SOUND_LOAD_CANCEL, EVENT_EXT_SOUND_LOAD_CANCEL},
-    {_BGM_LOAD_ENABLE, EVENT_EXT_BGM_LOAD_ENABLE},
-    {_SOUND_LOAD_ENABLE, EVENT_EXT_SOUND_LOAD_ENABLE},
-    {_LOAD_SE_BASE, EVENT_EXT_LOAD_SE_BASE},
-    {_LOAD_SOUND, EVENT_EXT_LOAD_SOUND},
-    {_STREAM_CLOSE, EVENT_EXT_STREAM_CLOSE},
-    {_STREAM_OPEN2, EVENT_EXT_STREAM_OPEN2},
-    {_LOAD_BGM_PACK, EVENT_EXT_LOAD_BGM_PACK},
-    {_GET_BGM_NO, EVENT_EXT_GET_BGM_NO},
-    {_GET_MASTER_VOL, EVENT_EXT_GET_MASTER_VOL},
-    {_SET_MASTER_VOL, EVENT_EXT_SET_MASTER_VOL},
-    {_GET_BTL_BGM_VOL, EVENT_EXT_GET_BTL_BGM_VOL},
-    {_SET_BTL_BGM_VOL, EVENT_EXT_SET_BTL_BGM_VOL},
-    {_SND_IN_REVERB, EVENT_EXT_SND_IN_REVERB},
-    {_SND_STOP_SRC, EVENT_EXT_SND_STOP_SRC},
-    {_SND_PAUSE_BGM, EVENT_EXT_SND_PAUSE_BGM},
-    {_STREAM_OPEN3, EVENT_EXT_STREAM_OPEN3},
-    {_GET_ACTIVE_BGM_STATUS, EVENT_EXT_GET_ACTIVE_BGM_STATUS},
-    {_SET_ACTIVE_BGM_STATUS, EVENT_EXT_SET_ACTIVE_BGM_STATUS},
-    {_GET_BGM_STATUS_NOW_NO, EVENT_EXT_GET_BGM_STATUS_NOW_NO},
-    {_GET_SE_STATUS, EVENT_EXT_GET_SE_STATUS},
-    {_SE_ALL_STOP, EVENT_EXT_SE_ALL_STOP},
-    {_SOUND_ALL_STOP, EVENT_EXT_SOUND_ALL_STOP},
-    {_BGM_PLAY_CANCEL, EVENT_EXT_BGM_PLAY_CANCEL},
-    {_BGM_PLAY_ENABLE, EVENT_EXT_BGM_PLAY_ENABLE},
-    {_GET_DEF_BGM_NO, EVENT_EXT_GET_DEF_BGM_NO},
-    {_SET_MOVIE_CC, EVENT_EXT_SET_MOVIE_CC},
-    {_REGISTER_VILLAGER2, EVENT_EXT_REGISTER_VILLAGER2},
-    {_SET_FISHINGTOURNAMENT_ETC, EVENT_EXT_SET_FISHINGTOURNAMENT_ETC},
-    {_EOH_SYNC_CHARA, EVENT_EXT_EOH_SYNC_CHARA},
-    {_EOH_SYNC_OBJ, EVENT_EXT_EOH_SYNC_OBJ},
-    {_EOH_SET_POS, EVENT_EXT_EOH_SET_POS},
-    {_EOH_SET_ROT, EVENT_EXT_EOH_SET_ROT},
-    {_EOH_GET_POS, EVENT_EXT_EOH_GET_POS},
-    {_EOH_GET_ROT, EVENT_EXT_EOH_GET_ROT},
-    {_EOH_SET_MOTION, EVENT_EXT_EOH_SET_MOTION},
-    {_EOH_SET_STEP, EVENT_EXT_EOH_SET_STEP},
-    {_EOH_SET_TEX_ANIM, EVENT_EXT_EOH_SET_TEX_ANIM},
-    {_EOH_SET_SCALE, EVENT_EXT_EOH_SET_SCALE},
-    {_EOH_SET_SHOW, EVENT_EXT_EOH_SET_SHOW},
-    {_EOH_GET_SHOW, EVENT_EXT_EOH_GET_SHOW},
-    {_EOH_SET_FRAME_SHOW, EVENT_EXT_EOH_SET_FRAME_SHOW},
-    {_EOH_SET_SHADOW, EVENT_EXT_EOH_SET_SHADOW},
-    {_EOH_SET_TRANSLATE, EVENT_EXT_EOH_SET_TRANSLATE},
-    {_EOH_SYNC_SPRITE, EVENT_EXT_EOH_SYNC_SPRITE},
-    {_EOH_SET_FOOT_SOUND_ID, EVENT_EXT_EOH_SET_FOOT_SOUND_ID},
-    {_EOH_SET_FRAME_STATUS, EVENT_EXT_EOH_SET_FRAME_STATUS},
-    {_EOH_GET_FRAME_POS, EVENT_EXT_EOH_GET_FRAME_POS},
-    {_EOH_SET_SOUND_ID, EVENT_EXT_EOH_SET_SOUND_ID},
-    {_EOH_GET_FRAME_STATUS, EVENT_EXT_EOH_GET_FRAME_STATUS},
-    {_EOH_SYNC_CHROBJ, EVENT_EXT_EOH_SYNC_CHROBJ},
-    {_EOH_SET_FADE_FLAG, EVENT_EXT_EOH_SET_FADE_FLAG},
-    {_EOH_RESET_DA_POSITION, EVENT_EXT_EOH_RESET_DA_POSITION},
-    {_EOH_SET_SHADOW_FRAME_STATUS, EVENT_EXT_EOH_SET_SHADOW_FRAME_STATUS},
-    {_EOH_SYNC_GEOSTONE, EVENT_EXT_EOH_SYNC_GEOSTONE},
-    {_EOH_SYNC_SEARCH_CHARA, EVENT_EXT_EOH_SYNC_SEARCH_CHARA},
-    {_EOH_NORMAL_DRIVE, EVENT_EXT_EOH_NORMAL_DRIVE},
-    {_EOH_SYNC_EDIT_OBJ, EVENT_EXT_EOH_SYNC_EDIT_OBJ},
-    {_EOH_SET_FRAME_ALPHA, EVENT_EXT_EOH_SET_FRAME_ALPHA},
-    {_EOH_SYNC_FUNCP, EVENT_EXT_EOH_SYNC_FUNCP},
-    {_EOH_SET_FOOT_SE_ID, EVENT_EXT_EOH_SET_FOOT_SE_ID},
-    {_EOH_SYNC_DOOR_PARTS, EVENT_EXT_EOH_SYNC_DOOR_PARTS},
-    {_SPHIDA_INIT, EVENT_EXT_SPHIDA_INIT},
-    {_SPHIDA_SET_UP, EVENT_EXT_SPHIDA_SET_UP},
-    {_SPHIDA_SET_PLAY_FLAG, EVENT_EXT_SPHIDA_SET_PLAY_FLAG},
-    {_SPHIDA_SET_MINIMAP_FLAG, EVENT_EXT_SPHIDA_SET_MINIMAP_FLAG},
-    {_SPHIDA_SET_MM_LINE_FLAG, EVENT_EXT_SPHIDA_SET_MM_LINE_FLAG},
-    {_SPHIDA_SET_MM_LINE_POS, EVENT_EXT_SPHIDA_SET_MM_LINE_POS},
-    {_SPHIDA_SET_PIN_POS, EVENT_EXT_SPHIDA_SET_PIN_POS},
-    {_SPHIDA_GET_PIN_POS, EVENT_EXT_SPHIDA_GET_PIN_POS},
-    {_SPHIDA_SET_BALL_POS, EVENT_EXT_SPHIDA_SET_BALL_POS},
-    {_SPHIDA_GET_BALL_POS, EVENT_EXT_SPHIDA_GET_BALL_POS},
-    {_SPHIDA_SET_PIN_COL, EVENT_EXT_SPHIDA_SET_PIN_COL},
-    {_SPHIDA_GET_PIN_COL, EVENT_EXT_SPHIDA_GET_PIN_COL},
-    {_SPHIDA_SET_BALL_COL, EVENT_EXT_SPHIDA_SET_BALL_COL},
-    {_SPHIDA_GET_BALL_COL, EVENT_EXT_SPHIDA_GET_BALL_COL},
-    {_SPHIDA_SET_PAR_COUNT, EVENT_EXT_SPHIDA_SET_PAR_COUNT},
-    {_SPHIDA_GET_PAR_COUNT, EVENT_EXT_SPHIDA_GET_PAR_COUNT},
-    {_SPHIDA_GET_MINI_LEVEL, EVENT_EXT_SPHIDA_GET_MINI_LEVEL},
-    {_SPHIDA_GET_TEXB, EVENT_EXT_SPHIDA_GET_TEXB},
-    {_SPHIDA_SET_STATUS_FLAG, EVENT_EXT_SPHIDA_SET_STATUS_FLAG},
-    {_SPHIDA_RESET_POWGAGE, EVENT_EXT_SPHIDA_RESET_POWGAGE},
-    {_SPHIDA_START_POWGAGE, EVENT_EXT_SPHIDA_START_POWGAGE},
-    {_SPHIDA_TRIGGER_POWGAGE, EVENT_EXT_SPHIDA_TRIGGER_POWGAGE},
-    {_SPHIDA_GET_SHOT_POW, EVENT_EXT_SPHIDA_GET_SHOT_POW},
-    {_SPHIDA_GET_POWGAGE_CODE, EVENT_EXT_SPHIDA_GET_POWGAGE_CODE},
+    {_GET_PADON,                     EVENT_EXT_GET_PADON                    },
+    {_GET_PADDOWN,                   EVENT_EXT_GET_PADDOWN                  },
+    {_GET_PADUP,                     EVENT_EXT_GET_PADUP                    },
+    {_GET_APAD,                      EVENT_EXT_GET_APAD                     },
+    {_GOTO_INTERIOR,                 EVENT_EXT_GOTO_INTERIOR                },
+    {_INITIALIZE,                    EVENT_EXT_INITIALIZE                   },
+    {_GOTO_OUTSIDE,                  EVENT_EXT_GOTO_OUTSIDE                 },
+    {_LOAD_CHARA,                    EVENT_EXT_LOAD_CHARA                   },
+    {_CHARA_ACTIVE,                  EVENT_EXT_CHARA_ACTIVE                 },
+    {_CLEAR_STACK,                   EVENT_EXT_CLEAR_STACK                  },
+    {_ASSIGN_STACK,                  EVENT_EXT_ASSIGN_STACK                 },
+    {_SET_FLAG,                      EVENT_EXT_SET_FLAG                     },
+    {_GET_FLAG,                      EVENT_EXT_GET_FLAG                     },
+    {_SET_CNT,                       EVENT_EXT_SET_CNT                      },
+    {_GET_CNT,                       EVENT_EXT_GET_CNT                      },
+    {_SET_CURRENT_DIR,               EVENT_EXT_SET_CURRENT_DIR              },
+    {_DELETE_CHARA,                  EVENT_EXT_DELETE_CHARA                 },
+    {_LOAD_MOTION,                   EVENT_EXT_LOAD_MOTION                  },
+    {_MAP_JUMP,                      EVENT_EXT_MAP_JUMP                     },
+    {_SET_RAIN,                      EVENT_EXT_SET_RAIN                     },
+    {_DEL_EXT_MOTION,                EVENT_EXT_DEL_EXT_MOTION               },
+    {_SET_MARKER,                    EVENT_EXT_SET_MARKER                   },
+    {_SET_WORLD_COORD,               EVENT_EXT_SET_WORLD_COORD              },
+    {_FINISH,                        EVENT_EXT_FINISH                       },
+    {_GET_DUN_WORLD_COORD,           EVENT_EXT_GET_DUN_WORLD_COORD          },
+    {_LOAD_IMG,                      EVENT_EXT_LOAD_IMG                     },
+    {_DEL_IMG,                       EVENT_EXT_DEL_IMG                      },
+    {_SET_DNG_MAP,                   EVENT_EXT_SET_DNG_MAP                  },
+    {_LOAD_ITEM,                     EVENT_EXT_LOAD_ITEM                    },
+    {_GOTO_USE_ITEM,                 EVENT_EXT_GOTO_USE_ITEM                },
+    {_SET_LOCAL_FLAG,                EVENT_EXT_SET_LOCAL_FLAG               },
+    {_GET_LOCAL_FLAG,                EVENT_EXT_GET_LOCAL_FLAG               },
+    {_GOTO_SELECT_PARTY,             EVENT_EXT_GOTO_SELECT_PARTY            },
+    {_SET_LOADBG_FILE,               EVENT_EXT_SET_LOADBG_FILE              },
+    {_CHECK_LOADBG_FILE,             EVENT_EXT_CHECK_LOADBG_FILE            },
+    {_GET_TB_ITEMNO,                 EVENT_EXT_GET_TB_ITEMNO                },
+    {_SET_TB_STATUS,                 EVENT_EXT_SET_TB_STATUS                },
+    {_SET_TB_ANGLE,                  EVENT_EXT_SET_TB_ANGLE                 },
+    {_ADD_ITEM,                      EVENT_EXT_ADD_ITEM                     },
+    {_GET_ITEM_TYPE,                 EVENT_EXT_GET_ITEM_TYPE                },
+    {_GET_ITEM_SPACE,                EVENT_EXT_GET_ITEM_SPACE               },
+    {_GET_ADJUST_POLYGON_SCALE,      EVENT_EXT_GET_ADJUST_POLYGON_SCALE     },
+    {_LOAD_MOVIE,                    EVENT_EXT_LOAD_MOVIE                   },
+    {_INIT_LOCAL_CNT,                EVENT_EXT_INIT_LOCAL_CNT               },
+    {_SET_CROSSFADE,                 EVENT_EXT_SET_CROSSFADE                },
+    {_SET_TIME,                      EVENT_EXT_SET_TIME                     },
+    {_SET_ACTIVE_LIGHT,              EVENT_EXT_SET_ACTIVE_LIGHT             },
+    {_SET_PAKU_ANIM,                 EVENT_EXT_SET_PAKU_ANIM                },
+    {_RESET_PAKU_ANIM,               EVENT_EXT_RESET_PAKU_ANIM              },
+    {_TRG_PAKU_ANIM,                 EVENT_EXT_TRG_PAKU_ANIM                },
+    {_RESET_CAMERA,                  EVENT_EXT_RESET_CAMERA                 },
+    {_GET_ACTIVE_CHR_NO,             EVENT_EXT_GET_ACTIVE_CHR_NO            },
+    {_SET_ACTIVE_CHR_NO,             EVENT_EXT_SET_ACTIVE_CHR_NO            },
+    {_DNG_SET_FLOOR_ID,              EVENT_EXT_DNG_SET_FLOOR_ID             },
+    {_DNG_GET_FLOOR_ID,              EVENT_EXT_DNG_GET_FLOOR_ID             },
+    {_SET_PAKU_MOTION,               EVENT_EXT_SET_PAKU_MOTION              },
+    {_RESET_PAKU_MOTION,             EVENT_EXT_RESET_PAKU_MOTION            },
+    {_TRG_PAKU_MOTION,               EVENT_EXT_TRG_PAKU_MOTION              },
+    {_SET_BG_COLOR,                  EVENT_EXT_SET_BG_COLOR                 },
+    {_GOTO_DNG_MAP,                  EVENT_EXT_GOTO_DNG_MAP                 },
+    {_GOTO_DNG,                      EVENT_EXT_GOTO_DNG                     },
+    {_GOTO_EDIT,                     EVENT_EXT_GOTO_EDIT                    },
+    {_GET_MENU_PARAM,                EVENT_EXT_GET_MENU_PARAM               },
+    {_LOAD_CHARA_NPC,                EVENT_EXT_LOAD_CHARA_NPC               },
+    {_AUTO_SET_TREASURE_BOX,         EVENT_EXT_AUTO_SET_TREASURE_BOX        },
+    {_AUTO_SET_MONSTER,              EVENT_EXT_AUTO_SET_MONSTER             },
+    {_LOAD_DUNGEON_MAP_FILE,         EVENT_EXT_LOAD_DUNGEON_MAP_FILE        },
+    {_LOAD_MONSTER_FILE,             EVENT_EXT_LOAD_MONSTER_FILE            },
+    {_GET_NPC_STATUS,                EVENT_EXT_GET_NPC_STATUS               },
+    {_SET_NPC_STATUS,                EVENT_EXT_SET_NPC_STATUS               },
+    {_GET_NOW_PARTY_CHARA,           EVENT_EXT_GET_NOW_PARTY_CHARA          },
+    {_SET_LOCAL_CNT,                 EVENT_EXT_SET_LOCAL_CNT                },
+    {_GET_LOCAL_CNT,                 EVENT_EXT_GET_LOCAL_CNT                },
+    {_GET_LOCAL_CNT2,                EVENT_EXT_GET_LOCAL_CNT2               },
+    {_GET_TRAIN_NPC_POS,             EVENT_EXT_GET_TRAIN_NPC_POS            },
+    {_GOTO_DRAW_CHAPTER,             EVENT_EXT_GOTO_DRAW_CHAPTER            },
+    {_SET_PROJECTION,                EVENT_EXT_SET_PROJECTION               },
+    {_GET_PROJECTION,                EVENT_EXT_GET_PROJECTION               },
+    {_SET_FADE_IN,                   EVENT_EXT_SET_FADE_IN                  },
+    {_SET_FADE_OUT,                  EVENT_EXT_SET_FADE_OUT                 },
+    {_DNG_DEBUG_COMMAND,             EVENT_EXT_DNG_DEBUG_COMMAND            },
+    {_CD_SEEK,                       EVENT_EXT_CD_SEEK                      },
+    {_GET_ROT_LOOK_POS,              EVENT_EXT_GET_ROT_LOOK_POS             },
+    {_SET_MOTION_BLUR,               EVENT_EXT_SET_MOTION_BLUR              },
+    {_LOAD_SCRIPT,                   EVENT_EXT_LOAD_SCRIPT                  },
+    {_SET_TALK_CAMERA,               EVENT_EXT_SET_TALK_CAMERA              },
+    {_HIT_EFFECT,                    EVENT_EXT_HIT_EFFECT                   },
+    {_COPY_CHARA,                    EVENT_EXT_COPY_CHARA                   },
+    {_GET_START_BUTTON,              EVENT_EXT_GET_START_BUTTON             },
+    {_MOVE_INTERIOR,                 EVENT_EXT_MOVE_INTERIOR                },
+    {_GET_MONSTER_TALK_DATA,         EVENT_EXT_GET_MONSTER_TALK_DATA        },
+    {_FUNC_POINT_SHOW,               EVENT_EXT_FUNC_POINT_SHOW              },
+    {_GET_NOW_MAP_NO,                EVENT_EXT_GET_NOW_MAP_NO               },
+    {_GET_NOW_SUBMAP_NO,             EVENT_EXT_GET_NOW_SUBMAP_NO            },
+    {_GET_OLD_MAP_NO,                EVENT_EXT_GET_OLD_MAP_NO               },
+    {_GET_OLD_SUBMAP_NO,             EVENT_EXT_GET_OLD_SUBMAP_NO            },
+    {_SET_RAIN_CHARA_NO,             EVENT_EXT_SET_RAIN_CHARA_NO            },
+    {_GET_EDIT_PARTS_POS,            EVENT_EXT_GET_EDIT_PARTS_POS           },
+    {_GET_CHARA_POS,                 EVENT_EXT_GET_CHARA_POS                },
+    {_GET_CHARA_TALK_POS,            EVENT_EXT_GET_CHARA_TALK_POS           },
+    {_TURN_CHARA,                    EVENT_EXT_TURN_CHARA                   },
+    {_SET_CHARA_POS,                 EVENT_EXT_SET_CHARA_POS                },
+    {_SET_CHARA_ROT,                 EVENT_EXT_SET_CHARA_ROT                },
+    {_GET_CHARA_ROT,                 EVENT_EXT_GET_CHARA_ROT                },
+    {_SET_MOTION,                    EVENT_EXT_SET_MOTION                   },
+    {_SET_STEP,                      EVENT_EXT_SET_STEP                     },
+    {_SET_TEX_ANIM,                  EVENT_EXT_SET_TEX_ANIM                 },
+    {_SET_SCALE,                     EVENT_EXT_SET_SCALE                    },
+    {_SET_REFERENCE,                 EVENT_EXT_SET_REFERENCE                },
+    {_DEL_REFERENCE,                 EVENT_EXT_DEL_REFERENCE                },
+    {_SHADOW_CLIP_OFF,               EVENT_EXT_SHADOW_CLIP_OFF              },
+    {_GET_COORDINATE_ANGLE,          EVENT_EXT_GET_COORDINATE_ANGLE         },
+    {_GET_CHARA_WIDTH,               EVENT_EXT_GET_CHARA_WIDTH              },
+    {_GET_CHARA_HEIGHT,              EVENT_EXT_GET_CHARA_HEIGHT             },
+    {_GET_CHARA_WEIGHT,              EVENT_EXT_GET_CHARA_WEIGHT             },
+    {_SET_CHARA_SHOW,                EVENT_EXT_SET_CHARA_SHOW               },
+    {_GET_CHARA_SHOW,                EVENT_EXT_GET_CHARA_SHOW               },
+    {_CHARA_DA_ENABLE,               EVENT_EXT_CHARA_DA_ENABLE              },
+    {_GET_MOT_NOW_WAIT,              EVENT_EXT_GET_MOT_NOW_WAIT             },
+    {_CHECK_MOTION_END,              EVENT_EXT_CHECK_MOTION_END             },
+    {_ACTCHR_SET_MOTION,             EVENT_EXT_ACTCHR_SET_MOTION            },
+    {_SET_CHARA_EX_SOUNDID,          EVENT_EXT_SET_CHARA_EX_SOUNDID         },
+    {_ACTCHR_SOUND_INFO_COPY,        EVENT_EXT_ACTCHR_SOUND_INFO_COPY       },
+    {_MES_MAKE,                      EVENT_EXT_MES_MAKE                     },
+    {_MES_CLOSE,                     EVENT_EXT_MES_CLOSE                    },
+    {_MES_NEXTPAGE,                  EVENT_EXT_MES_NEXTPAGE                 },
+    {_SET_MES_AUTOSET,               EVENT_EXT_SET_MES_AUTOSET              },
+    {_SET_MES_SHIPPO,                EVENT_EXT_SET_MES_SHIPPO               },
+    {_SET_MES_POS,                   EVENT_EXT_SET_MES_POS                  },
+    {_SET_MES_DRAWSPEED,             EVENT_EXT_SET_MES_DRAWSPEED            },
+    {_SET_MES_CURSOR,                EVENT_EXT_SET_MES_CURSOR               },
+    {_SET_MES_OKURI,                 EVENT_EXT_SET_MES_OKURI                },
+    {_SET_MES_FUKIDASHI,             EVENT_EXT_SET_MES_FUKIDASHI            },
+    {_CHECK_MES_COMPLETE,            EVENT_EXT_CHECK_MES_COMPLETE           },
+    {_CHECK_MES_WAIT,                EVENT_EXT_CHECK_MES_WAIT               },
+    {_CHECK_MES,                     EVENT_EXT_CHECK_MES                    },
+    {_SET_MES_WIN_FLAG,              EVENT_EXT_SET_MES_WIN_FLAG             },
+    {_SET_CAMERA_POS,                EVENT_EXT_SET_CAMERA_POS               },
+    {_GET_CAMERA_POS,                EVENT_EXT_GET_CAMERA_POS               },
+    {_SET_CAMERA_REF,                EVENT_EXT_SET_CAMERA_REF               },
+    {_GET_CAMERA_REF,                EVENT_EXT_GET_CAMERA_REF               },
+    {_SET_CAMERA_SPEED,              EVENT_EXT_SET_CAMERA_SPEED             },
+    {_CAMERA_STEP,                   EVENT_EXT_CAMERA_STEP                  },
+    {_SET_MES_WINDOW_MODE,           EVENT_EXT_SET_MES_WINDOW_MODE          },
+    {_SET_MES_PRESET,                EVENT_EXT_SET_MES_PRESET               },
+    {_SET_MES_ITEM_DIRECT,           EVENT_EXT_SET_MES_ITEM_DIRECT          },
+    {_SET_MES_ITEM,                  EVENT_EXT_SET_MES_ITEM                 },
+    {_SET_MES_VALUE,                 EVENT_EXT_SET_MES_VALUE                },
+    {_GET_MES_STATUS,                EVENT_EXT_GET_MES_STATUS               },
+    {_GET_PARTY_CHARA_MES_NO,        EVENT_EXT_GET_PARTY_CHARA_MES_NO       },
+    {_MES_SET_BUFF,                  EVENT_EXT_MES_SET_BUFF                 },
+    {_GET_MES_WINDOW_MODE,           EVENT_EXT_GET_MES_WINDOW_MODE          },
+    {_GET_MES_VOICE,                 EVENT_EXT_GET_MES_VOICE                },
+    {_SET_MES_QUESTION_GYOU,         EVENT_EXT_SET_MES_QUESTION_GYOU        },
+    {_GET_MES_QUESTION_GYOU,         EVENT_EXT_GET_MES_QUESTION_GYOU        },
+    {_SET_MES_CLOSE_CNT,             EVENT_EXT_SET_MES_CLOSE_CNT            },
+    {_SET_MES_ETC,                   EVENT_EXT_SET_MES_ETC                  },
+    {_GET_MES_ETC,                   EVENT_EXT_GET_MES_ETC                  },
+    {_LOAD_MES,                      EVENT_EXT_LOAD_MES                     },
+    {_MES_SE_PLAY,                   EVENT_EXT_MES_SE_PLAY                  },
+    {_SET_MES_STR,                   EVENT_EXT_SET_MES_STR                  },
+    {_GET_MES_OKURI,                 EVENT_EXT_GET_MES_OKURI                },
+    {_ASQ_INIT,                      EVENT_EXT_ASQ_INIT                     },
+    {_ASQ_SYNC_CHARA,                EVENT_EXT_ASQ_SYNC_CHARA               },
+    {_ASQ_SET_POS,                   EVENT_EXT_ASQ_SET_POS                  },
+    {_ASQ_MOVE,                      EVENT_EXT_ASQ_MOVE                     },
+    {_ASQ_MOVE_STEP,                 EVENT_EXT_ASQ_MOVE_STEP                },
+    {_ASQ_ROT_REF,                   EVENT_EXT_ASQ_ROT_REF                  },
+    {_ASQ_CLEAR_ROT,                 EVENT_EXT_ASQ_CLEAR_ROT                },
+    {_ASQ_WAIT_ROT,                  EVENT_EXT_ASQ_WAIT_ROT                 },
+    {_ASQ_ROT_MOVE,                  EVENT_EXT_ASQ_ROT_MOVE                 },
+    {_ASQ_ROT_ANGLE,                 EVENT_EXT_ASQ_ROT_ANGLE                },
+    {_ASQ_SET_ROT,                   EVENT_EXT_ASQ_SET_ROT                  },
+    {_ASQ_DELAY_ROT,                 EVENT_EXT_ASQ_DELAY_ROT                },
+    {_ASQ_CHECK,                     EVENT_EXT_ASQ_CHECK                    },
+    {_ASQ_MOTION_TRG,                EVENT_EXT_ASQ_MOTION_TRG               },
+    {_ASQ_MOTION_PLAY,               EVENT_EXT_ASQ_MOTION_PLAY              },
+    {_ASQ_MOTION_STOP,               EVENT_EXT_ASQ_MOTION_STOP              },
+    {_ASQ_MOTION_NEXT,               EVENT_EXT_ASQ_MOTION_NEXT              },
+    {_ASQ_ANIME_TRG,                 EVENT_EXT_ASQ_ANIME_TRG                },
+    {_ASQ_ANIME,                     EVENT_EXT_ASQ_ANIME                    },
+    {_ASQ_SE_PLAY,                   EVENT_EXT_ASQ_SE_PLAY                  },
+    {_IMG_SET_DRAW,                  EVENT_EXT_IMG_SET_DRAW                 },
+    {_IMG_SET_GET,                   EVENT_EXT_IMG_SET_GET                  },
+    {_IMG_SET_PUT,                   EVENT_EXT_IMG_SET_PUT                  },
+    {_IMG_SET_NAME,                  EVENT_EXT_IMG_SET_NAME                 },
+    {_IMG_SET_MOVE,                  EVENT_EXT_IMG_SET_MOVE                 },
+    {_IMG_SET_FADE,                  EVENT_EXT_IMG_SET_FADE                 },
+    {_IMG_SET_COLOR,                 EVENT_EXT_IMG_SET_COLOR                },
+    {_SPRITE_INIT,                   EVENT_EXT_SPRITE_INIT                  },
+    {_SPRITE_SET_DRAW,               EVENT_EXT_SPRITE_SET_DRAW              },
+    {_SPRITE_SET_TYPE,               EVENT_EXT_SPRITE_SET_TYPE              },
+    {_SPRITE_SET_TEXTURE,            EVENT_EXT_SPRITE_SET_TEXTURE           },
+    {_SPRITE_SET_POS,                EVENT_EXT_SPRITE_SET_POS               },
+    {_SPRITE_SET_PUTSIZE,            EVENT_EXT_SPRITE_SET_PUTSIZE           },
+    {_SPRITE_SET_UVSIZE,             EVENT_EXT_SPRITE_SET_UVSIZE            },
+    {_SPRITE_SET_COLOR,              EVENT_EXT_SPRITE_SET_COLOR             },
+    {_SPRITE_SET_SCALE,              EVENT_EXT_SPRITE_SET_SCALE             },
+    {_SPRITE_SET_ALPHAB,             EVENT_EXT_SPRITE_SET_ALPHAB            },
+    {_CMRS_CHECK,                    EVENT_EXT_CMRS_CHECK                   },
+    {_CMRS_INIT,                     EVENT_EXT_CMRS_INIT                    },
+    {_CMRS_PRDELAY,                  EVENT_EXT_CMRS_PRDELAY                 },
+    {_CMRS_SET_POS,                  EVENT_EXT_CMRS_SET_POS                 },
+    {_CMRS_SET_REF,                  EVENT_EXT_CMRS_SET_REF                 },
+    {_CMRS_MOVE,                     EVENT_EXT_CMRS_MOVE                    },
+    {_CMRS_MOVE_REF,                 EVENT_EXT_CMRS_MOVE_REF                },
+    {_CMRS_INIT_PAS,                 EVENT_EXT_CMRS_INIT_PAS                },
+    {_CMRS_SET_PAS_FRM,              EVENT_EXT_CMRS_SET_PAS_FRM             },
+    {_CMRS_ADD_PAS,                  EVENT_EXT_CMRS_ADD_PAS                 },
+    {_CMRS_START_PAS,                EVENT_EXT_CMRS_START_PAS               },
+    {_CMRS_PR_SLOWING,               EVENT_EXT_CMRS_PR_SLOWING              },
+    {_CMRS_PR_KEEP,                  EVENT_EXT_CMRS_PR_KEEP                 },
+    {_CMRS_PR_RETURN,                EVENT_EXT_CMRS_PR_RETURN               },
+    {_CMRS_AHDDELAY,                 EVENT_EXT_CMRS_AHDDELAY                },
+    {_CMRS_SET_ANGLE,                EVENT_EXT_CMRS_SET_ANGLE               },
+    {_CMRS_SET_HEIGHT,               EVENT_EXT_CMRS_SET_HEIGHT              },
+    {_CMRS_SET_DIST,                 EVENT_EXT_CMRS_SET_DIST                },
+    {_CMRS_SET_AHD,                  EVENT_EXT_CMRS_SET_AHD                 },
+    {_CMRS_MOVE_AHD,                 EVENT_EXT_CMRS_MOVE_AHD                },
+    {_CMRS_SYNC_OBJ,                 EVENT_EXT_CMRS_SYNC_OBJ                },
+    {_CMRS_RELEASE_OBJ,              EVENT_EXT_CMRS_RELEASE_OBJ             },
+    {_CMRS_AHD_SLOWING,              EVENT_EXT_CMRS_AHD_SLOWING             },
+    {_CMRS_AHD_KEEP,                 EVENT_EXT_CMRS_AHD_KEEP                },
+    {_CMRS_AHD_RETURN,               EVENT_EXT_CMRS_AHD_RETURN              },
+    {_CMRS_FADE_DELAY,               EVENT_EXT_CMRS_FADE_DELAY              },
+    {_CMRS_FADE_INIT,                EVENT_EXT_CMRS_FADE_INIT               },
+    {_CMRS_FADE_IN,                  EVENT_EXT_CMRS_FADE_IN                 },
+    {_CMRS_FADE_OUT,                 EVENT_EXT_CMRS_FADE_OUT                },
+    {_CMRS_QUAKE_DELAY,              EVENT_EXT_CMRS_QUAKE_DELAY             },
+    {_CMRS_QUAKE,                    EVENT_EXT_CMRS_QUAKE                   },
+    {_CMRS_MOVE2,                    EVENT_EXT_CMRS_MOVE2                   },
+    {_CMRS_MOVE_AHD2,                EVENT_EXT_CMRS_MOVE_AHD2               },
+    {_CMRS_CHARA_DELAY,              EVENT_EXT_CMRS_CHARA_DELAY             },
+    {_CMRS_CHARA_ATTACH,             EVENT_EXT_CMRS_CHARA_ATTACH            },
+    {_CMRS_MOVE_POS,                 EVENT_EXT_CMRS_MOVE_POS                },
+    {_CMRS_QUAKE2,                   EVENT_EXT_CMRS_QUAKE2                  },
+    {_OBJS_CHECK,                    EVENT_EXT_OBJS_CHECK                   },
+    {_OBJS_INIT,                     EVENT_EXT_OBJS_INIT                    },
+    {_OBJS_SYNC_OBJ,                 EVENT_EXT_OBJS_SYNC_OBJ                },
+    {_OBJS_POS_DELAY,                EVENT_EXT_OBJS_POS_DELAY               },
+    {_OBJS_SET_POS,                  EVENT_EXT_OBJS_SET_POS                 },
+    {_OBJS_MOVE,                     EVENT_EXT_OBJS_MOVE                    },
+    {_OBJS_MOVE2,                    EVENT_EXT_OBJS_MOVE2                   },
+    {_OBJS_INIT_PAS,                 EVENT_EXT_OBJS_INIT_PAS                },
+    {_OBJS_SET_PAS_FRM,              EVENT_EXT_OBJS_SET_PAS_FRM             },
+    {_OBJS_ADD_PAS,                  EVENT_EXT_OBJS_ADD_PAS                 },
+    {_OBJS_START_PAS,                EVENT_EXT_OBJS_START_PAS               },
+    {_OBJS_JUMP,                     EVENT_EXT_OBJS_JUMP                    },
+    {_OBJS_SET_EOH_FRAME_POS,        EVENT_EXT_OBJS_SET_EOH_FRAME_POS       },
+    {_OBJS_ADD_POS,                  EVENT_EXT_OBJS_ADD_POS                 },
+    {_OBJS_ATTACH_CAMERA,            EVENT_EXT_OBJS_ATTACH_CAMERA           },
+    {_OBJS_ROT_DELAY,                EVENT_EXT_OBJS_ROT_DELAY               },
+    {_OBJS_SET_ROT,                  EVENT_EXT_OBJS_SET_ROT                 },
+    {_OBJS_ROTATION,                 EVENT_EXT_OBJS_ROTATION                },
+    {_OBJS_ROTATION2,                EVENT_EXT_OBJS_ROTATION2               },
+    {_OBJS_REFERENCE,                EVENT_EXT_OBJS_REFERENCE               },
+    {_OBJS_MOTION_DELAY,             EVENT_EXT_OBJS_MOTION_DELAY            },
+    {_OBJS_SET_MOTION,               EVENT_EXT_OBJS_SET_MOTION              },
+    {_OBJS_NEXT_MOTION,              EVENT_EXT_OBJS_NEXT_MOTION             },
+    {_OBJS_MOTION_WAIT,              EVENT_EXT_OBJS_MOTION_WAIT             },
+    {_OBJS_SET_STEP,                 EVENT_EXT_OBJS_SET_STEP                },
+    {_OBJS_CHENGE_STEP,              EVENT_EXT_OBJS_CHENGE_STEP             },
+    {_OBJS_SEQ_MOT_TRG,              EVENT_EXT_OBJS_SEQ_MOT_TRG             },
+    {_OBJS_SEQ_MOT_TRG_WAIT,         EVENT_EXT_OBJS_SEQ_MOT_TRG_WAIT        },
+    {_OBJS_RESET_MOTION,             EVENT_EXT_OBJS_RESET_MOTION            },
+    {_OBJS_SET_MOTION_NOW_TIME,      EVENT_EXT_OBJS_SET_MOTION_NOW_TIME     },
+    {_OBJS_SET_MOTION_WAIT_TIME,     EVENT_EXT_OBJS_SET_MOTION_WAIT_TIME    },
+    {_OBJS_TEXA_DELAY,               EVENT_EXT_OBJS_TEXA_DELAY              },
+    {_OBJS_TEX_ANIME,                EVENT_EXT_OBJS_TEX_ANIME               },
+    {_OBJS_COLOR_DELAY,              EVENT_EXT_OBJS_COLOR_DELAY             },
+    {_OBJS_SET_COLOR,                EVENT_EXT_OBJS_SET_COLOR               },
+    {_OBJS_SCALE_DELAY,              EVENT_EXT_OBJS_SCALE_DELAY             },
+    {_OBJS_SET_SCALE,                EVENT_EXT_OBJS_SET_SCALE               },
+    {_OBJS_SE_DELAY,                 EVENT_EXT_OBJS_SE_DELAY                },
+    {_OBJS_SE_PLAY,                  EVENT_EXT_OBJS_SE_PLAY                 },
+    {_OBJS_RESET_DA_POSITION,        EVENT_EXT_OBJS_RESET_DA_POSITION       },
+    {_OBJS_NORMAL_DRIVE,             EVENT_EXT_OBJS_NORMAL_DRIVE            },
+    {_GET_CONTENTS_POS,              EVENT_EXT_GET_CONTENTS_POS             },
+    {_GET_BPOT_POS,                  EVENT_EXT_GET_BPOT_POS                 },
+    {_GET_BPOT_STATUS,               EVENT_EXT_GET_BPOT_STATUS              },
+    {_GET_PERSON_STATUS,             EVENT_EXT_GET_PERSON_STATUS            },
+    {_GET_CONTROL_CHRID,             EVENT_EXT_GET_CONTROL_CHRID            },
+    {_GET_BEFORE_CAMERA_POS,         EVENT_EXT_GET_BEFORE_CAMERA_POS        },
+    {_GET_BEFORE_CAMERA_REF,         EVENT_EXT_GET_BEFORE_CAMERA_REF        },
+    {_SET_CAMERA_NEXT_REF,           EVENT_EXT_SET_CAMERA_NEXT_REF          },
+    {_GOTO_MENU,                     EVENT_EXT_GOTO_MENU                    },
+    {_GET_MENU_STATUS,               EVENT_EXT_GET_MENU_STATUS              },
+    {_LOAD_EQUIP,                    EVENT_EXT_LOAD_EQUIP                   },
+    {_GET_EQUIP_ITEMNO,              EVENT_EXT_GET_EQUIP_ITEMNO             },
+    {_SET_TIME_STEP_ENABLE,          EVENT_EXT_SET_TIME_STEP_ENABLE         },
+    {_SET_DOOR_MATERIAL,             EVENT_EXT_SET_DOOR_MATERIAL            },
+    {_INIT_DRAMA_SCENE,              EVENT_EXT_INIT_DRAMA_SCENE             },
+    {_SET_ACTIVE_CMRID,              EVENT_EXT_SET_ACTIVE_CMRID             },
+    {_SET_BEFORE_CMRID,              EVENT_EXT_SET_BEFORE_CMRID             },
+    {_DNGMAP_LOAD,                   EVENT_EXT_DNGMAP_LOAD                  },
+    {_DNGMAP_DELETE,                 EVENT_EXT_DNGMAP_DELETE                },
+    {_DNGMAP_MOVE_PIECE,             EVENT_EXT_DNGMAP_MOVE_PIECE            },
+    {_DNGMAP_ONOFF,                  EVENT_EXT_DNGMAP_ONOFF                 },
+    {_DNGMAP_SET_FADE,               EVENT_EXT_DNGMAP_SET_FADE              },
+    {_GET_BEFORE_CAMERA_NEXT_POS,    EVENT_EXT_GET_BEFORE_CAMERA_NEXT_POS   },
+    {_GET_BEFORE_CAMERA_NEXT_REF,    EVENT_EXT_GET_BEFORE_CAMERA_NEXT_REF   },
+    {_SET_CAMERA_NEXT_POS,           EVENT_EXT_SET_CAMERA_NEXT_POS          },
+    {_CHK_INTERSECTION_POINT,        EVENT_EXT_CHK_INTERSECTION_POINT       },
+    {_SET_FCAMERA_FOLLOW,            EVENT_EXT_SET_FCAMERA_FOLLOW           },
+    {_SET_FCAMERA_FOLLOW_A,          EVENT_EXT_SET_FCAMERA_FOLLOW_A         },
+    {_SET_FCAMERA_FOLLOW_OFS,        EVENT_EXT_SET_FCAMERA_FOLLOW_OFS       },
+    {_SET_FCAMERA_FOLLOW_FLAG,       EVENT_EXT_SET_FCAMERA_FOLLOW_FLAG      },
+    {_FCAMERA_STEP,                  EVENT_EXT_FCAMERA_STEP                 },
+    {_SET_FCAMERA_ANGLE,             EVENT_EXT_SET_FCAMERA_ANGLE            },
+    {_SET_FCAMERA_HEIGHT,            EVENT_EXT_SET_FCAMERA_HEIGHT           },
+    {_SET_FCAMERA_DIST,              EVENT_EXT_SET_FCAMERA_DIST             },
+    {_GET_REF_ANGLE,                 EVENT_EXT_GET_REF_ANGLE                },
+    {_DNG_SET_STAGE_ID,              EVENT_EXT_DNG_SET_STAGE_ID             },
+    {_DNG_GET_STAGE_ID,              EVENT_EXT_DNG_GET_STAGE_ID             },
+    {_SET_CAMERA_CTRL,               EVENT_EXT_SET_CAMERA_CTRL              },
+    {_GET_FCAMERA_ANGLE,             EVENT_EXT_GET_FCAMERA_ANGLE            },
+    {_GET_FCAMERA_HEIGHT,            EVENT_EXT_GET_FCAMERA_HEIGHT           },
+    {_GET_FCAMERA_DIST,              EVENT_EXT_GET_FCAMERA_DIST             },
+    {_GET_INVENTION_ID,              EVENT_EXT_GET_INVENTION_ID             },
+    {_FUNCTION_MAP_JUMP,             EVENT_EXT_FUNCTION_MAP_JUMP            },
+    {_FUNCTION_DOOR_MODE,            EVENT_EXT_FUNCTION_DOOR_MODE           },
+    {_GET_MONEY,                     EVENT_EXT_GET_MONEY                    },
+    {_ADD_MONEY,                     EVENT_EXT_ADD_MONEY                    },
+    {_GET_ITEM_NUM,                  EVENT_EXT_GET_ITEM_NUM                 },
+    {_CHECK_BUTTON,                  EVENT_EXT_CHECK_BUTTON                 },
+    {_GET_LANGUAGE,                  EVENT_EXT_GET_LANGUAGE                 },
+    {_CHECK_INVENT_ITEM,             EVENT_EXT_CHECK_INVENT_ITEM            },
+    {_SET_AI,                        EVENT_EXT_SET_AI                       },
+    {_CHECK_INVENT_PHOTO,            EVENT_EXT_CHECK_INVENT_PHOTO           },
+    {_GET_PHOTO_NUM,                 EVENT_EXT_GET_PHOTO_NUM                },
+    {_SET_CONTENTS_ETC,              EVENT_EXT_SET_CONTENTS_ETC             },
+    {_SET_STATUS,                    EVENT_EXT_SET_STATUS                   },
+    {_GOTO_SUBGAME,                  EVENT_EXT_GOTO_SUBGAME                 },
+    {_SET_GYORACE_ETC,               EVENT_EXT_SET_GYORACE_ETC              },
+    {_GET_GYORACE_ETC,               EVENT_EXT_GET_GYORACE_ETC              },
+    {_SET_SAVEDATA_ETC,              EVENT_EXT_SET_SAVEDATA_ETC             },
+    {_GET_SAVEDATA_ETC,              EVENT_EXT_GET_SAVEDATA_ETC             },
+    {_DEL_MONSTER,                   EVENT_EXT_DEL_MONSTER                  },
+    {_SET_MENU_ETC,                  EVENT_EXT_SET_MENU_ETC                 },
+    {_GET_MENU_ETC,                  EVENT_EXT_GET_MENU_ETC                 },
+    {_GET_ANALYZE,                   EVENT_EXT_GET_ANALYZE                  },
+    {_GET_DIORAMA_PERCENT,           EVENT_EXT_GET_DIORAMA_PERCENT          },
+    {_GEORAMA_FUNC,                  EVENT_EXT_GEORAMA_FUNC                 },
+    {_GET_CHARA_ID,                  EVENT_EXT_GET_CHARA_ID                 },
+    {_SET_LOADBG_FILE_MONS_TALK,     EVENT_EXT_SET_LOADBG_FILE_MONS_TALK    },
+    {_LOAD_MES_MONS_TALK,            EVENT_EXT_LOAD_MES_MONS_TALK           },
+    {_GOTO_EDITMODE,                 EVENT_EXT_GOTO_EDITMODE                },
+    {_GET_CHAPTER,                   EVENT_EXT_GET_CHAPTER                  },
+    {_GET_NPC_TRAIN_ETC,             EVENT_EXT_GET_NPC_TRAIN_ETC            },
+    {_REGISTER_VILLAGER,             EVENT_EXT_REGISTER_VILLAGER            },
+    {_EYE_VIEW_DRAW_ON_OFF,          EVENT_EXT_EYE_VIEW_DRAW_ON_OFF         },
+    {_SET_QUEST_ETC,                 EVENT_EXT_SET_QUEST_ETC                },
+    {_GET_QUEST_ETC,                 EVENT_EXT_GET_QUEST_ETC                },
+    {_CHK_INTERSECTION_POINT_PIPE,   EVENT_EXT_CHK_INTERSECTION_POINT_PIPE  },
+    {_GET_OLD_INTERIOR_MAP_NO,       EVENT_EXT_GET_OLD_INTERIOR_MAP_NO      },
+    {_SET_EVENT_DATA,                EVENT_EXT_SET_EVENT_DATA               },
+    {_STOPWATCH,                     EVENT_EXT_STOPWATCH                    },
+    {_SET_FUNC_ETC,                  EVENT_EXT_SET_FUNC_ETC                 },
+    {_GET_FISHINGTOURNAMENT_ETC,     EVENT_EXT_GET_FISHINGTOURNAMENT_ETC    },
+    {_SET_CHARA_FAR_DIST,            EVENT_EXT_SET_CHARA_FAR_DIST           },
+    {_SET_MODEL_LIGHT_SWITCH,        EVENT_EXT_SET_MODEL_LIGHT_SWITCH       },
+    {_SET_MODEL_LIGHT_COLOR,         EVENT_EXT_SET_MODEL_LIGHT_COLOR        },
+    {_GET_OMAKE_FLAG,                EVENT_EXT_GET_OMAKE_FLAG               },
+    {_SET_WIND,                      EVENT_EXT_SET_WIND                     },
+    {_SET_OMAKE_FLAG,                EVENT_EXT_SET_OMAKE_FLAG               },
+    {_SND_INIT_PORT,                 EVENT_EXT_SND_INIT_PORT                },
+    {_SND_LOAD_SOUND,                EVENT_EXT_SND_LOAD_SOUND               },
+    {_SND_SE_PLAY,                   EVENT_EXT_SND_SE_PLAY                  },
+    {_GET_SND_ID,                    EVENT_EXT_GET_SND_ID                   },
+    {_SND_SE_PAUSE,                  EVENT_EXT_SND_SE_PAUSE                 },
+    {_SND_SE_STOP,                   EVENT_EXT_SND_SE_STOP                  },
+    {_SND_SET_SE_VOL,                EVENT_EXT_SND_SET_SE_VOL               },
+    {_SND_SET_SE_PAN,                EVENT_EXT_SND_SET_SE_PAN               },
+    {_SND_SET_SE_PITCH,              EVENT_EXT_SND_SET_SE_PITCH             },
+    {_SND_SE_ALL_STOP,               EVENT_EXT_SND_SE_ALL_STOP              },
+    {_LOAD_BGM,                      EVENT_EXT_LOAD_BGM                     },
+    {_PLAY_BGM,                      EVENT_EXT_PLAY_BGM                     },
+    {_STOP_BGM,                      EVENT_EXT_STOP_BGM                     },
+    {_STREAM_OPEN,                   EVENT_EXT_STREAM_OPEN                  },
+    {_STREAM_PLAY,                   EVENT_EXT_STREAM_PLAY                  },
+    {_STREAM_STOP,                   EVENT_EXT_STREAM_STOP                  },
+    {_STREAM_STANDBY,                EVENT_EXT_STREAM_STANDBY               },
+    {_STREAM_GET_STATUS,             EVENT_EXT_STREAM_GET_STATUS            },
+    {_GET_SYS_SND_ID,                EVENT_EXT_GET_SYS_SND_ID               },
+    {_STREAM_OPEN_CHECK,             EVENT_EXT_STREAM_OPEN_CHECK            },
+    {_LOAD_SE_ENV,                   EVENT_EXT_LOAD_SE_ENV                  },
+    {_PLAY_ENV_BGM,                  EVENT_EXT_PLAY_ENV_BGM                 },
+    {_SYS_SE_PLAY,                   EVENT_EXT_SYS_SE_PLAY                  },
+    {_INIT_SE_SRC,                   EVENT_EXT_INIT_SE_SRC                  },
+    {_INIT_SE_ENV,                   EVENT_EXT_INIT_SE_ENV                  },
+    {_INIT_SE_BAS,                   EVENT_EXT_INIT_SE_BAS                  },
+    {_LOAD_SE_SRC,                   EVENT_EXT_LOAD_SE_SRC                  },
+    {_LOAD_SE_FOOT,                  EVENT_EXT_LOAD_SE_FOOT                 },
+    {_LOAD_SE_DOOR,                  EVENT_EXT_LOAD_SE_DOOR                 },
+    {_LOAD_SE_BOX,                   EVENT_EXT_LOAD_SE_BOX                  },
+    {_LOAD_SE_BATTLE,                EVENT_EXT_LOAD_SE_BATTLE               },
+    {_SND_DELETE_PORT,               EVENT_EXT_SND_DELETE_PORT              },
+    {_STOP_ENV_BGM,                  EVENT_EXT_STOP_ENV_BGM                 },
+    {_FADE_IN_BGM,                   EVENT_EXT_FADE_IN_BGM                  },
+    {_FADE_OUT_BGM,                  EVENT_EXT_FADE_OUT_BGM                 },
+    {_SET_BGM_VOL,                   EVENT_EXT_SET_BGM_VOL                  },
+    {_SND_SET_REVERB,                EVENT_EXT_SND_SET_REVERB               },
+    {_SND_SET_ENV_VOL,               EVENT_EXT_SND_SET_ENV_VOL              },
+    {_STREAM_SILENT_CHECK,           EVENT_EXT_STREAM_SILENT_CHECK          },
+    {_AUTO_CHANGE_ENV,               EVENT_EXT_AUTO_CHANGE_ENV              },
+    {_BGM_LOAD_CANCEL,               EVENT_EXT_BGM_LOAD_CANCEL              },
+    {_SOUND_LOAD_CANCEL,             EVENT_EXT_SOUND_LOAD_CANCEL            },
+    {_BGM_LOAD_ENABLE,               EVENT_EXT_BGM_LOAD_ENABLE              },
+    {_SOUND_LOAD_ENABLE,             EVENT_EXT_SOUND_LOAD_ENABLE            },
+    {_LOAD_SE_BASE,                  EVENT_EXT_LOAD_SE_BASE                 },
+    {_LOAD_SOUND,                    EVENT_EXT_LOAD_SOUND                   },
+    {_STREAM_CLOSE,                  EVENT_EXT_STREAM_CLOSE                 },
+    {_STREAM_OPEN2,                  EVENT_EXT_STREAM_OPEN2                 },
+    {_LOAD_BGM_PACK,                 EVENT_EXT_LOAD_BGM_PACK                },
+    {_GET_BGM_NO,                    EVENT_EXT_GET_BGM_NO                   },
+    {_GET_MASTER_VOL,                EVENT_EXT_GET_MASTER_VOL               },
+    {_SET_MASTER_VOL,                EVENT_EXT_SET_MASTER_VOL               },
+    {_GET_BTL_BGM_VOL,               EVENT_EXT_GET_BTL_BGM_VOL              },
+    {_SET_BTL_BGM_VOL,               EVENT_EXT_SET_BTL_BGM_VOL              },
+    {_SND_IN_REVERB,                 EVENT_EXT_SND_IN_REVERB                },
+    {_SND_STOP_SRC,                  EVENT_EXT_SND_STOP_SRC                 },
+    {_SND_PAUSE_BGM,                 EVENT_EXT_SND_PAUSE_BGM                },
+    {_STREAM_OPEN3,                  EVENT_EXT_STREAM_OPEN3                 },
+    {_GET_ACTIVE_BGM_STATUS,         EVENT_EXT_GET_ACTIVE_BGM_STATUS        },
+    {_SET_ACTIVE_BGM_STATUS,         EVENT_EXT_SET_ACTIVE_BGM_STATUS        },
+    {_GET_BGM_STATUS_NOW_NO,         EVENT_EXT_GET_BGM_STATUS_NOW_NO        },
+    {_GET_SE_STATUS,                 EVENT_EXT_GET_SE_STATUS                },
+    {_SE_ALL_STOP,                   EVENT_EXT_SE_ALL_STOP                  },
+    {_SOUND_ALL_STOP,                EVENT_EXT_SOUND_ALL_STOP               },
+    {_BGM_PLAY_CANCEL,               EVENT_EXT_BGM_PLAY_CANCEL              },
+    {_BGM_PLAY_ENABLE,               EVENT_EXT_BGM_PLAY_ENABLE              },
+    {_GET_DEF_BGM_NO,                EVENT_EXT_GET_DEF_BGM_NO               },
+    {_SET_MOVIE_CC,                  EVENT_EXT_SET_MOVIE_CC                 },
+    {_REGISTER_VILLAGER2,            EVENT_EXT_REGISTER_VILLAGER2           },
+    {_SET_FISHINGTOURNAMENT_ETC,     EVENT_EXT_SET_FISHINGTOURNAMENT_ETC    },
+    {_EOH_SYNC_CHARA,                EVENT_EXT_EOH_SYNC_CHARA               },
+    {_EOH_SYNC_OBJ,                  EVENT_EXT_EOH_SYNC_OBJ                 },
+    {_EOH_SET_POS,                   EVENT_EXT_EOH_SET_POS                  },
+    {_EOH_SET_ROT,                   EVENT_EXT_EOH_SET_ROT                  },
+    {_EOH_GET_POS,                   EVENT_EXT_EOH_GET_POS                  },
+    {_EOH_GET_ROT,                   EVENT_EXT_EOH_GET_ROT                  },
+    {_EOH_SET_MOTION,                EVENT_EXT_EOH_SET_MOTION               },
+    {_EOH_SET_STEP,                  EVENT_EXT_EOH_SET_STEP                 },
+    {_EOH_SET_TEX_ANIM,              EVENT_EXT_EOH_SET_TEX_ANIM             },
+    {_EOH_SET_SCALE,                 EVENT_EXT_EOH_SET_SCALE                },
+    {_EOH_SET_SHOW,                  EVENT_EXT_EOH_SET_SHOW                 },
+    {_EOH_GET_SHOW,                  EVENT_EXT_EOH_GET_SHOW                 },
+    {_EOH_SET_FRAME_SHOW,            EVENT_EXT_EOH_SET_FRAME_SHOW           },
+    {_EOH_SET_SHADOW,                EVENT_EXT_EOH_SET_SHADOW               },
+    {_EOH_SET_TRANSLATE,             EVENT_EXT_EOH_SET_TRANSLATE            },
+    {_EOH_SYNC_SPRITE,               EVENT_EXT_EOH_SYNC_SPRITE              },
+    {_EOH_SET_FOOT_SOUND_ID,         EVENT_EXT_EOH_SET_FOOT_SOUND_ID        },
+    {_EOH_SET_FRAME_STATUS,          EVENT_EXT_EOH_SET_FRAME_STATUS         },
+    {_EOH_GET_FRAME_POS,             EVENT_EXT_EOH_GET_FRAME_POS            },
+    {_EOH_SET_SOUND_ID,              EVENT_EXT_EOH_SET_SOUND_ID             },
+    {_EOH_GET_FRAME_STATUS,          EVENT_EXT_EOH_GET_FRAME_STATUS         },
+    {_EOH_SYNC_CHROBJ,               EVENT_EXT_EOH_SYNC_CHROBJ              },
+    {_EOH_SET_FADE_FLAG,             EVENT_EXT_EOH_SET_FADE_FLAG            },
+    {_EOH_RESET_DA_POSITION,         EVENT_EXT_EOH_RESET_DA_POSITION        },
+    {_EOH_SET_SHADOW_FRAME_STATUS,   EVENT_EXT_EOH_SET_SHADOW_FRAME_STATUS  },
+    {_EOH_SYNC_GEOSTONE,             EVENT_EXT_EOH_SYNC_GEOSTONE            },
+    {_EOH_SYNC_SEARCH_CHARA,         EVENT_EXT_EOH_SYNC_SEARCH_CHARA        },
+    {_EOH_NORMAL_DRIVE,              EVENT_EXT_EOH_NORMAL_DRIVE             },
+    {_EOH_SYNC_EDIT_OBJ,             EVENT_EXT_EOH_SYNC_EDIT_OBJ            },
+    {_EOH_SET_FRAME_ALPHA,           EVENT_EXT_EOH_SET_FRAME_ALPHA          },
+    {_EOH_SYNC_FUNCP,                EVENT_EXT_EOH_SYNC_FUNCP               },
+    {_EOH_SET_FOOT_SE_ID,            EVENT_EXT_EOH_SET_FOOT_SE_ID           },
+    {_EOH_SYNC_DOOR_PARTS,           EVENT_EXT_EOH_SYNC_DOOR_PARTS          },
+    {_SPHIDA_INIT,                   EVENT_EXT_SPHIDA_INIT                  },
+    {_SPHIDA_SET_UP,                 EVENT_EXT_SPHIDA_SET_UP                },
+    {_SPHIDA_SET_PLAY_FLAG,          EVENT_EXT_SPHIDA_SET_PLAY_FLAG         },
+    {_SPHIDA_SET_MINIMAP_FLAG,       EVENT_EXT_SPHIDA_SET_MINIMAP_FLAG      },
+    {_SPHIDA_SET_MM_LINE_FLAG,       EVENT_EXT_SPHIDA_SET_MM_LINE_FLAG      },
+    {_SPHIDA_SET_MM_LINE_POS,        EVENT_EXT_SPHIDA_SET_MM_LINE_POS       },
+    {_SPHIDA_SET_PIN_POS,            EVENT_EXT_SPHIDA_SET_PIN_POS           },
+    {_SPHIDA_GET_PIN_POS,            EVENT_EXT_SPHIDA_GET_PIN_POS           },
+    {_SPHIDA_SET_BALL_POS,           EVENT_EXT_SPHIDA_SET_BALL_POS          },
+    {_SPHIDA_GET_BALL_POS,           EVENT_EXT_SPHIDA_GET_BALL_POS          },
+    {_SPHIDA_SET_PIN_COL,            EVENT_EXT_SPHIDA_SET_PIN_COL           },
+    {_SPHIDA_GET_PIN_COL,            EVENT_EXT_SPHIDA_GET_PIN_COL           },
+    {_SPHIDA_SET_BALL_COL,           EVENT_EXT_SPHIDA_SET_BALL_COL          },
+    {_SPHIDA_GET_BALL_COL,           EVENT_EXT_SPHIDA_GET_BALL_COL          },
+    {_SPHIDA_SET_PAR_COUNT,          EVENT_EXT_SPHIDA_SET_PAR_COUNT         },
+    {_SPHIDA_GET_PAR_COUNT,          EVENT_EXT_SPHIDA_GET_PAR_COUNT         },
+    {_SPHIDA_GET_MINI_LEVEL,         EVENT_EXT_SPHIDA_GET_MINI_LEVEL        },
+    {_SPHIDA_GET_TEXB,               EVENT_EXT_SPHIDA_GET_TEXB              },
+    {_SPHIDA_SET_STATUS_FLAG,        EVENT_EXT_SPHIDA_SET_STATUS_FLAG       },
+    {_SPHIDA_RESET_POWGAGE,          EVENT_EXT_SPHIDA_RESET_POWGAGE         },
+    {_SPHIDA_START_POWGAGE,          EVENT_EXT_SPHIDA_START_POWGAGE         },
+    {_SPHIDA_TRIGGER_POWGAGE,        EVENT_EXT_SPHIDA_TRIGGER_POWGAGE       },
+    {_SPHIDA_GET_SHOT_POW,           EVENT_EXT_SPHIDA_GET_SHOT_POW          },
+    {_SPHIDA_GET_POWGAGE_CODE,       EVENT_EXT_SPHIDA_GET_POWGAGE_CODE      },
     {_SPHIDA_SET_POWGAGE_SAFE_LEVEL, EVENT_EXT_SPHIDA_SET_POWGAGE_SAFE_LEVEL},
-    {_SPHIDA_GET_CULB_DEF, EVENT_EXT_SPHIDA_GET_CULB_DEF},
-    {_SPHIDA_SET_SPIN_MARK_POS, EVENT_EXT_SPHIDA_SET_SPIN_MARK_POS},
-    {_SPHIDA_SET_CULB_NO, EVENT_EXT_SPHIDA_SET_CULB_NO},
-    {_SPHIDA_CALC_CARRY, EVENT_EXT_SPHIDA_CALC_CARRY},
-    {_SPHIDA_GET_PG_CURSOR_POS, EVENT_EXT_SPHIDA_GET_PG_CURSOR_POS},
-    {_SPHIDA_SET_COL_MODEL, EVENT_EXT_SPHIDA_SET_COL_MODEL},
-    {_SPHIDA_GET_PRIZE, EVENT_EXT_SPHIDA_GET_PRIZE},
-    {_SPHIDA_SET_LAST_CHALLENGE, EVENT_EXT_SPHIDA_SET_LAST_CHALLENGE},
-    {_SPHIDA_GET_LAST_CHALLENGE, EVENT_EXT_SPHIDA_GET_LAST_CHALLENGE},
-    {_SPHIDA_GET_OMAKE_MODE, EVENT_EXT_SPHIDA_GET_OMAKE_MODE},
-    {_SPHIDA_SET_NOW_HOLE, EVENT_EXT_SPHIDA_SET_NOW_HOLE},
-    {_SPHIDA_GET_NOW_HOLE, EVENT_EXT_SPHIDA_GET_NOW_HOLE},
-    {_SPHIDA_SET_SCORE, EVENT_EXT_SPHIDA_SET_SCORE},
-    {_SPHIDA_GET_SCORE, EVENT_EXT_SPHIDA_GET_SCORE},
-    {_ZERO_VECTOR, EVENT_EXT_ZERO_VECTOR},
-    {_NORMAL_VECTOR, EVENT_EXT_NORMAL_VECTOR},
-    {_COPY_VECTOR, EVENT_EXT_COPY_VECTOR},
-    {_ADD_VECTOR, EVENT_EXT_ADD_VECTOR},
-    {_SUB_VECTOR, EVENT_EXT_SUB_VECTOR},
-    {_SCALE_VECTOR, EVENT_EXT_SCALE_VECTOR},
-    {_DIV_VECTOR, EVENT_EXT_DIV_VECTOR},
-    {_DIST_VECTOR, EVENT_EXT_DIST_VECTOR},
-    {_DIST_VECTOR2, EVENT_EXT_DIST_VECTOR2},
-    {_SQRT, EVENT_EXT_SQRT},
-    {_ATAN2F, EVENT_EXT_ATAN2F},
-    {_ANGLE_CMP, EVENT_EXT_ANGLE_CMP},
-    {_ANGLE_LIMIT, EVENT_EXT_ANGLE_LIMIT},
-    {_GET_RAND, EVENT_EXT_GET_RAND},
-    {_LINE_POINT_DIST, EVENT_EXT_LINE_POINT_DIST},
-    {_CREATE_SWORD_EFFECT, EVENT_EXT_CREATE_SWORD_EFFECT},
-    {_DELETE_SWORD_EFFECT, EVENT_EXT_DELETE_SWORD_EFFECT},
-    {_SWORD_EFFECT_COLOR, EVENT_EXT_SWORD_EFFECT_COLOR},
-    {_SWORD_EFFECT_ADD_POINT, EVENT_EXT_SWORD_EFFECT_ADD_POINT},
-    {_ADD_CHARA_POS, EVENT_EXT_ADD_CHARA_POS},
-    {_ADD_CHARA_ROT, EVENT_EXT_ADD_CHARA_ROT},
-    {_POST_TREASURE_BOX, EVENT_EXT_POST_TREASURE_BOX},
-    {_GET_PARTS_ORIGIN, EVENT_EXT_GET_PARTS_ORIGIN},
-    {_CTRLC_STEP, EVENT_EXT_CTRLC_STEP},
-    {_CTRLC_SET_ROTATE, EVENT_EXT_CTRLC_SET_ROTATE},
-    {_CTRLC_MOVE_CAMERA, EVENT_EXT_CTRLC_MOVE_CAMERA},
-    {_CTRLC_SET_ROT_CANCEL, EVENT_EXT_CTRLC_SET_ROT_CANCEL},
-    {_CTRLC_MOVE_RANGE, EVENT_EXT_CTRLC_MOVE_RANGE},
-    {_GET_NEAR_TBOX_POS, EVENT_EXT_GET_NEAR_TBOX_POS},
-    {_CONV_CHRNO_S2L, EVENT_EXT_CONV_CHRNO_S2L},
-    {_SWE_INIT, EVENT_EXT_SWE_INIT},
-    {_SWE_SET_COLOR, EVENT_EXT_SWE_SET_COLOR},
-    {_SWE_SET_TEXTURE, EVENT_EXT_SWE_SET_TEXTURE},
-    {_SWE_START_EFFECT, EVENT_EXT_SWE_START_EFFECT},
-    {_SET_CHARA_TYPE, EVENT_EXT_SET_CHARA_TYPE},
-    {_GET_EVENT_DATA, EVENT_EXT_GET_EVENT_DATA},
-    {_DNG_SET_PREV_FLOOR, EVENT_EXT_DNG_SET_PREV_FLOOR},
-    {_DNG_GET_PREV_FLOOR, EVENT_EXT_DNG_GET_PREV_FLOOR},
-    {_DNG_SET_FAST_FLOOR, EVENT_EXT_DNG_SET_FAST_FLOOR},
-    {_SET_FLOOR_INFO, EVENT_EXT_SET_FLOOR_INFO},
-    {_GET_FLOOR_INFO, EVENT_EXT_GET_FLOOR_INFO},
-    {_GET_NEXT_FLOOR, EVENT_EXT_GET_NEXT_FLOOR},
-    {_PAD_AUTO_REPEAT_OFF, EVENT_EXT_PAD_AUTO_REPEAT_OFF},
-    {_PAD_SET_AUTO_REPEAT, EVENT_EXT_PAD_SET_AUTO_REPEAT},
-    {_DNG_PAUSE, EVENT_EXT_DNG_PAUSE},
-    {_DNG_CHECK_PAUSE, EVENT_EXT_DNG_CHECK_PAUSE},
-    {_DNG_RESET_TIMER, EVENT_EXT_DNG_RESET_TIMER},
-    {_DNG_GET_TIMER, EVENT_EXT_DNG_GET_TIMER},
-    {_LOAD_SKIN, EVENT_EXT_LOAD_SKIN},
-    {_CHK_CAMERA_COL, EVENT_EXT_CHK_CAMERA_COL},
-    {_GET_PARTS_FUNC_POS, EVENT_EXT_GET_PARTS_FUNC_POS},
-    {_RANDOM_CIRCLE_GET_POS, EVENT_EXT_RANDOM_CIRCLE_GET_POS},
-    {_RANDOM_CIRCLE_OFF, EVENT_EXT_RANDOM_CIRCLE_OFF},
-    {_DNG_XCHG_MAP_LIGHT, EVENT_EXT_DNG_XCHG_MAP_LIGHT},
-    {_GEOSTONE_ANIME_OFF, EVENT_EXT_GEOSTONE_ANIME_OFF},
-    {_GEOSTONE_SET_FLAG, EVENT_EXT_GEOSTONE_SET_FLAG},
-    {_GEOSTONE_SET_REFERENCE, EVENT_EXT_GEOSTONE_SET_REFERENCE},
-    {_GEOSTONE_DEL_REFERENCE, EVENT_EXT_GEOSTONE_DEL_REFERENCE},
-    {_GET_ROBO_MOVE_TYPE, EVENT_EXT_GET_ROBO_MOVE_TYPE},
-    {_SET_EXIT_FLAG, EVENT_EXT_SET_EXIT_FLAG},
-    {_GET_EXIT_FLAG, EVENT_EXT_GET_EXIT_FLAG},
-    {_GET_E3_VERSION, EVENT_EXT_GET_E3_VERSION},
-    {_CHK_PAD_CTRL, EVENT_EXT_CHK_PAD_CTRL},
-    {_CTRLC_STAY, EVENT_EXT_CTRLC_STAY},
-    {_BSCN_SET_BLIGHT_RATE, EVENT_EXT_BSCN_SET_BLIGHT_RATE},
-    {_GET_RND_CIRCLE_TRAPID, EVENT_EXT_GET_RND_CIRCLE_TRAPID},
-    {_SET_RND_CIRCLE_STATUS, EVENT_EXT_SET_RND_CIRCLE_STATUS},
-    {_SET_STATUSBAR_SHOW, EVENT_EXT_SET_STATUSBAR_SHOW},
-    {_SET_PULL_ITEM, EVENT_EXT_SET_PULL_ITEM},
-    {_MENU_CHARA_CHENGE, EVENT_EXT_MENU_CHARA_CHENGE},
-    {_GET_EVENT_INFO_SNDID, EVENT_EXT_GET_EVENT_INFO_SNDID},
-    {_GET_PARTS_POS, EVENT_EXT_GET_PARTS_POS},
-    {_CANCEL_DRAMA_SCENE, EVENT_EXT_CANCEL_DRAMA_SCENE},
-    {_GET_RNDC_MOT_NOWT, EVENT_EXT_GET_RNDC_MOT_NOWT},
-    {_SET_CHARA_MOT_NOWT, EVENT_EXT_SET_CHARA_MOT_NOWT},
-    {_CHARA_NORMAL_DRIVE, EVENT_EXT_CHARA_NORMAL_DRIVE},
-    {_CHARA_RESET_DA, EVENT_EXT_CHARA_RESET_DA},
-    {_DNG_SETUP_MAIN_UNIT, EVENT_EXT_DNG_SETUP_MAIN_UNIT},
-    {_JOIN_PARTY_MEMBER, EVENT_EXT_JOIN_PARTY_MEMBER},
-    {_SET_CHARA_CHANGE_FLAG, EVENT_EXT_SET_CHARA_CHANGE_FLAG},
-    {_SET_CHARA_CHANGE_MASK, EVENT_EXT_SET_CHARA_CHANGE_MASK},
-    {_CHANGE_DIR, EVENT_EXT_CHANGE_DIR},
-    {_SUB_ITEM, EVENT_EXT_SUB_ITEM},
-    {_SET_CHARA_EQUIP, EVENT_EXT_SET_CHARA_EQUIP},
-    {_LOAD_PACK_FILE, EVENT_EXT_LOAD_PACK_FILE},
-    {_SET_BIT_CTRL, EVENT_EXT_SET_BIT_CTRL},
-    {_GET_BIT_CTRL, EVENT_EXT_GET_BIT_CTRL},
-    {_LOAD_ARG, EVENT_EXT_LOAD_ARG},
-    {_GET_ITEM_HAVE_NUM, EVENT_EXT_GET_ITEM_HAVE_NUM},
-    {_SET_SKIP_BOTTON, EVENT_EXT_SET_SKIP_BOTTON},
-    {_SET_SKIP_FCOL, EVENT_EXT_SET_SKIP_FCOL},
-    {_GET_DEBUG_MODE, EVENT_EXT_GET_DEBUG_MODE},
-    {_GET_MAP_TYPE, EVENT_EXT_GET_MAP_TYPE},
-    {_DNG_COLLISION_ALL_CLR, EVENT_EXT_DNG_COLLISION_ALL_CLR},
-    {_SET_MAP_DRAW, EVENT_EXT_SET_MAP_DRAW},
-    {_CHECK_MC_LOAD, EVENT_EXT_CHECK_MC_LOAD},
-    {_SET_NOW_MAP_NO, EVENT_EXT_SET_NOW_MAP_NO},
-    {_GET_TBOX_PARAM, EVENT_EXT_GET_TBOX_PARAM},
-    {_CANCEL_LOAD_VILLAGER, EVENT_EXT_CANCEL_LOAD_VILLAGER},
-    {_CANCEL_NOW_LOADING, EVENT_EXT_CANCEL_NOW_LOADING},
-    {_ESM_INITIALIZE, EVENT_EXT_ESM_INITIALIZE},
-    {_ESM_INIT_FIX, EVENT_EXT_ESM_INIT_FIX},
-    {_ESM_CLEAR, EVENT_EXT_ESM_CLEAR},
-    {_ESM_LOAD_BASE, EVENT_EXT_ESM_LOAD_BASE},
-    {_ESM_CREATE, EVENT_EXT_ESM_CREATE},
-    {_ESM_FINISH, EVENT_EXT_ESM_FINISH},
-    {_ESM_DELETE, EVENT_EXT_ESM_DELETE},
-    {_ESM_SET_VECT1, EVENT_EXT_ESM_SET_VECT1},
-    {_ESM_SET_VECT2, EVENT_EXT_ESM_SET_VECT2},
-    {_ESM_SET_TARGET_ID, EVENT_EXT_ESM_SET_TARGET_ID},
-    {_ESM_LOAD_BASE_PACK, EVENT_EXT_ESM_LOAD_BASE_PACK},
-    {_ESM_SET_VALUE, EVENT_EXT_ESM_SET_VALUE},
-    {_SET_CHARA_CONDITION, EVENT_EXT_SET_CHARA_CONDITION},
-    {_ADD_WHP, EVENT_EXT_ADD_WHP},
-    {_ADD_HP_RATE, EVENT_EXT_ADD_HP_RATE},
-    {_GET_TIME, EVENT_EXT_GET_TIME},
-    {_CHECK_GET_ITEM_LIMIT, EVENT_EXT_CHECK_GET_ITEM_LIMIT},
-    {_CHECK_ITEM_OVER, EVENT_EXT_CHECK_ITEM_OVER},
-    {_GET_NOW_LOOP_NO, EVENT_EXT_GET_NOW_LOOP_NO},
-    {_IS_CLEAR_DESTROY, EVENT_EXT_IS_CLEAR_DESTROY},
-    {_IS_CLEAR_PRACTICE, EVENT_EXT_IS_CLEAR_PRACTICE},
-    {_IS_PLAY_SUB_GAME, EVENT_EXT_IS_PLAY_SUB_GAME},
-    {_RESET_SUBJECT_COUNTER, EVENT_EXT_RESET_SUBJECT_COUNTER},
-    {_SCR_EFF_INIT_RASTER, EVENT_EXT_SCR_EFF_INIT_RASTER},
-    {_SCR_EFF_START_RASTER, EVENT_EXT_SCR_EFF_START_RASTER},
-    {_SCR_EFF_STOP_RASTER, EVENT_EXT_SCR_EFF_STOP_RASTER},
-    {_SET_MPCHARA_MOTION, EVENT_EXT_SET_MPCHARA_MOTION},
-    {_FUNC_POINT_POS, EVENT_EXT_FUNC_POINT_POS},
-    {_CTRLC_ROT_BACK, EVENT_EXT_CTRLC_ROT_BACK},
-    {_PARTS_NAME_STRCMP, EVENT_EXT_PARTS_NAME_STRCMP},
-    {_GET_TRIAL_VERSION, EVENT_EXT_GET_TRIAL_VERSION},
-    {_SET_FLOOR_EPISODE, EVENT_EXT_SET_FLOOR_EPISODE},
-    {_FUNC_POINT_GET_POS, EVENT_EXT_FUNC_POINT_GET_POS},
-    {_FUNC_POINT_GET_ROT, EVENT_EXT_FUNC_POINT_GET_ROT},
-    {_ACTCHR_SET_DEF_MOTION, EVENT_EXT_ACTCHR_SET_DEF_MOTION},
-    {_ADD_FUSION_POINT, EVENT_EXT_ADD_FUSION_POINT},
-    {_GET_DEBUG_FLAG, EVENT_EXT_GET_DEBUG_FLAG},
-    {_MINIMAP_DOOR_ENABLE, EVENT_EXT_MINIMAP_DOOR_ENABLE},
-    {_DNG_CHECK_BOSS_MAP, EVENT_EXT_DNG_CHECK_BOSS_MAP},
-    {_DNG_RUN_EVENT, EVENT_EXT_DNG_RUN_EVENT},
-    {_CHECK_ENABLE_CHARA_CHANGE, EVENT_EXT_CHECK_ENABLE_CHARA_CHANGE},
-    {_INIT_SEPIA, EVENT_EXT_INIT_SEPIA},
-    {_START_SEPIA, EVENT_EXT_START_SEPIA},
-    {_END_SEPIA, EVENT_EXT_END_SEPIA},
-    {_COPY_MONS2SCNCHR, EVENT_EXT_COPY_MONS2SCNCHR},
-    {_UNLOCK_STACK, EVENT_EXT_UNLOCK_STACK},
-    {_RESET_EVENT_TRG, EVENT_EXT_RESET_EVENT_TRG},
-    {_SET_CHARA_NO, EVENT_EXT_SET_CHARA_NO},
-    {_GET_CHARA_NO, EVENT_EXT_GET_CHARA_NO},
-    {_SEARCH_CHARA_NO, EVENT_EXT_SEARCH_CHARA_NO},
-    {_GET_NEAR_RANDOM_STONE_POS, EVENT_EXT_GET_NEAR_RANDOM_STONE_POS},
-    {_INIT_MONO_FLASH, EVENT_EXT_INIT_MONO_FLASH},
-    {_START_MONO_FLASH, EVENT_EXT_START_MONO_FLASH},
-    {_END_MONO_FLASH, EVENT_EXT_END_MONO_FLASH},
-    {_DELETE_VILLAGER, EVENT_EXT_DELETE_VILLAGER},
-    {_DNG_SET_WEATHER, EVENT_EXT_DNG_SET_WEATHER},
-    {_SET_CHARA_MAXHP, EVENT_EXT_SET_CHARA_MAXHP},
-    {_SET_CHARA_DEFENCE, EVENT_EXT_SET_CHARA_DEFENCE},
-    {_PLACE_PARTS_NAME_STRCMP, EVENT_EXT_PLACE_PARTS_NAME_STRCMP},
-    {_GOTO_USE_ITEM2, EVENT_EXT_GOTO_USE_ITEM2},
-    {_DBG_SET_ANALYZE_FLAG, EVENT_EXT_DBG_SET_ANALYZE_FLAG},
-    {_ATRAMIRIA_ON_OFF, EVENT_EXT_ATRAMIRIA_ON_OFF},
-    {_ADD_YARIKOMI_MEDAL, EVENT_EXT_ADD_YARIKOMI_MEDAL},
-    {_SET_MAP_EFFECT_ID, EVENT_EXT_SET_MAP_EFFECT_ID},
-    {_GET_MAP_EFFECT_ID, EVENT_EXT_GET_MAP_EFFECT_ID},
-    {_DNG_FLOOR_INIT, EVENT_EXT_DNG_FLOOR_INIT},
-    {_DNG_FLOOR_FINISH, EVENT_EXT_DNG_FLOOR_FINISH},
-    {_CLEAR_RND_STONE, EVENT_EXT_CLEAR_RND_STONE},
-    {_GET_FLOOR_STATUS, EVENT_EXT_GET_FLOOR_STATUS},
-    {_SET_FLOOR_STATUS, EVENT_EXT_SET_FLOOR_STATUS},
-    {_AMG_GET_ATTR_STATUS, EVENT_EXT_AMG_GET_ATTR_STATUS},
-    {_SET_NEAR_DIST, EVENT_EXT_SET_NEAR_DIST},
-    {_SET_KEEP_TIME, EVENT_EXT_SET_KEEP_TIME},
-    {_GET_KEEP_TIME, EVENT_EXT_GET_KEEP_TIME},
-    {_GET_DOOR_PARTS_ID, EVENT_EXT_GET_DOOR_PARTS_ID},
-    {_CHECK_EQUEP_CHANGE, EVENT_EXT_CHECK_EQUEP_CHANGE},
-    {_ADD_HP_RATE2, EVENT_EXT_ADD_HP_RATE2},
-    {_DNG_EFFECT_ALL_CLEAR, EVENT_EXT_DNG_EFFECT_ALL_CLEAR},
-    {_AUTO_CHENGE_BGM_VOL, EVENT_EXT_AUTO_CHENGE_BGM_VOL},
-    {_UDATA_GET_WHP, EVENT_EXT_UDATA_GET_WHP},
-    {_UDATA_ADD_WHP, EVENT_EXT_UDATA_ADD_WHP},
-    {_UDATA_GET_ABS, EVENT_EXT_UDATA_GET_ABS},
-    {_UDATA_ADD_ABS, EVENT_EXT_UDATA_ADD_ABS},
-    {_DNG_CREATE_EFFECT, EVENT_EXT_DNG_CREATE_EFFECT},
-    {_LEAVE_MONICA_ITEM_CHECK, EVENT_EXT_LEAVE_MONICA_ITEM_CHECK},
-    {_PAUSE_ENABLE_FLAG, EVENT_EXT_PAUSE_ENABLE_FLAG},
-    {_FORCE_BOOT_TOUR, EVENT_EXT_FORCE_BOOT_TOUR},
-    {_MT_TEST, EVENT_EXT_MT_TEST},
-    {_TEST, EVENT_EXT_TEST},
-    {NULL, EVENT_EXT_END},
+    {_SPHIDA_GET_CULB_DEF,           EVENT_EXT_SPHIDA_GET_CULB_DEF          },
+    {_SPHIDA_SET_SPIN_MARK_POS,      EVENT_EXT_SPHIDA_SET_SPIN_MARK_POS     },
+    {_SPHIDA_SET_CULB_NO,            EVENT_EXT_SPHIDA_SET_CULB_NO           },
+    {_SPHIDA_CALC_CARRY,             EVENT_EXT_SPHIDA_CALC_CARRY            },
+    {_SPHIDA_GET_PG_CURSOR_POS,      EVENT_EXT_SPHIDA_GET_PG_CURSOR_POS     },
+    {_SPHIDA_SET_COL_MODEL,          EVENT_EXT_SPHIDA_SET_COL_MODEL         },
+    {_SPHIDA_GET_PRIZE,              EVENT_EXT_SPHIDA_GET_PRIZE             },
+    {_SPHIDA_SET_LAST_CHALLENGE,     EVENT_EXT_SPHIDA_SET_LAST_CHALLENGE    },
+    {_SPHIDA_GET_LAST_CHALLENGE,     EVENT_EXT_SPHIDA_GET_LAST_CHALLENGE    },
+    {_SPHIDA_GET_OMAKE_MODE,         EVENT_EXT_SPHIDA_GET_OMAKE_MODE        },
+    {_SPHIDA_SET_NOW_HOLE,           EVENT_EXT_SPHIDA_SET_NOW_HOLE          },
+    {_SPHIDA_GET_NOW_HOLE,           EVENT_EXT_SPHIDA_GET_NOW_HOLE          },
+    {_SPHIDA_SET_SCORE,              EVENT_EXT_SPHIDA_SET_SCORE             },
+    {_SPHIDA_GET_SCORE,              EVENT_EXT_SPHIDA_GET_SCORE             },
+    {_ZERO_VECTOR,                   EVENT_EXT_ZERO_VECTOR                  },
+    {_NORMAL_VECTOR,                 EVENT_EXT_NORMAL_VECTOR                },
+    {_COPY_VECTOR,                   EVENT_EXT_COPY_VECTOR                  },
+    {_ADD_VECTOR,                    EVENT_EXT_ADD_VECTOR                   },
+    {_SUB_VECTOR,                    EVENT_EXT_SUB_VECTOR                   },
+    {_SCALE_VECTOR,                  EVENT_EXT_SCALE_VECTOR                 },
+    {_DIV_VECTOR,                    EVENT_EXT_DIV_VECTOR                   },
+    {_DIST_VECTOR,                   EVENT_EXT_DIST_VECTOR                  },
+    {_DIST_VECTOR2,                  EVENT_EXT_DIST_VECTOR2                 },
+    {_SQRT,                          EVENT_EXT_SQRT                         },
+    {_ATAN2F,                        EVENT_EXT_ATAN2F                       },
+    {_ANGLE_CMP,                     EVENT_EXT_ANGLE_CMP                    },
+    {_ANGLE_LIMIT,                   EVENT_EXT_ANGLE_LIMIT                  },
+    {_GET_RAND,                      EVENT_EXT_GET_RAND                     },
+    {_LINE_POINT_DIST,               EVENT_EXT_LINE_POINT_DIST              },
+    {_CREATE_SWORD_EFFECT,           EVENT_EXT_CREATE_SWORD_EFFECT          },
+    {_DELETE_SWORD_EFFECT,           EVENT_EXT_DELETE_SWORD_EFFECT          },
+    {_SWORD_EFFECT_COLOR,            EVENT_EXT_SWORD_EFFECT_COLOR           },
+    {_SWORD_EFFECT_ADD_POINT,        EVENT_EXT_SWORD_EFFECT_ADD_POINT       },
+    {_ADD_CHARA_POS,                 EVENT_EXT_ADD_CHARA_POS                },
+    {_ADD_CHARA_ROT,                 EVENT_EXT_ADD_CHARA_ROT                },
+    {_POST_TREASURE_BOX,             EVENT_EXT_POST_TREASURE_BOX            },
+    {_GET_PARTS_ORIGIN,              EVENT_EXT_GET_PARTS_ORIGIN             },
+    {_CTRLC_STEP,                    EVENT_EXT_CTRLC_STEP                   },
+    {_CTRLC_SET_ROTATE,              EVENT_EXT_CTRLC_SET_ROTATE             },
+    {_CTRLC_MOVE_CAMERA,             EVENT_EXT_CTRLC_MOVE_CAMERA            },
+    {_CTRLC_SET_ROT_CANCEL,          EVENT_EXT_CTRLC_SET_ROT_CANCEL         },
+    {_CTRLC_MOVE_RANGE,              EVENT_EXT_CTRLC_MOVE_RANGE             },
+    {_GET_NEAR_TBOX_POS,             EVENT_EXT_GET_NEAR_TBOX_POS            },
+    {_CONV_CHRNO_S2L,                EVENT_EXT_CONV_CHRNO_S2L               },
+    {_SWE_INIT,                      EVENT_EXT_SWE_INIT                     },
+    {_SWE_SET_COLOR,                 EVENT_EXT_SWE_SET_COLOR                },
+    {_SWE_SET_TEXTURE,               EVENT_EXT_SWE_SET_TEXTURE              },
+    {_SWE_START_EFFECT,              EVENT_EXT_SWE_START_EFFECT             },
+    {_SET_CHARA_TYPE,                EVENT_EXT_SET_CHARA_TYPE               },
+    {_GET_EVENT_DATA,                EVENT_EXT_GET_EVENT_DATA               },
+    {_DNG_SET_PREV_FLOOR,            EVENT_EXT_DNG_SET_PREV_FLOOR           },
+    {_DNG_GET_PREV_FLOOR,            EVENT_EXT_DNG_GET_PREV_FLOOR           },
+    {_DNG_SET_FAST_FLOOR,            EVENT_EXT_DNG_SET_FAST_FLOOR           },
+    {_SET_FLOOR_INFO,                EVENT_EXT_SET_FLOOR_INFO               },
+    {_GET_FLOOR_INFO,                EVENT_EXT_GET_FLOOR_INFO               },
+    {_GET_NEXT_FLOOR,                EVENT_EXT_GET_NEXT_FLOOR               },
+    {_PAD_AUTO_REPEAT_OFF,           EVENT_EXT_PAD_AUTO_REPEAT_OFF          },
+    {_PAD_SET_AUTO_REPEAT,           EVENT_EXT_PAD_SET_AUTO_REPEAT          },
+    {_DNG_PAUSE,                     EVENT_EXT_DNG_PAUSE                    },
+    {_DNG_CHECK_PAUSE,               EVENT_EXT_DNG_CHECK_PAUSE              },
+    {_DNG_RESET_TIMER,               EVENT_EXT_DNG_RESET_TIMER              },
+    {_DNG_GET_TIMER,                 EVENT_EXT_DNG_GET_TIMER                },
+    {_LOAD_SKIN,                     EVENT_EXT_LOAD_SKIN                    },
+    {_CHK_CAMERA_COL,                EVENT_EXT_CHK_CAMERA_COL               },
+    {_GET_PARTS_FUNC_POS,            EVENT_EXT_GET_PARTS_FUNC_POS           },
+    {_RANDOM_CIRCLE_GET_POS,         EVENT_EXT_RANDOM_CIRCLE_GET_POS        },
+    {_RANDOM_CIRCLE_OFF,             EVENT_EXT_RANDOM_CIRCLE_OFF            },
+    {_DNG_XCHG_MAP_LIGHT,            EVENT_EXT_DNG_XCHG_MAP_LIGHT           },
+    {_GEOSTONE_ANIME_OFF,            EVENT_EXT_GEOSTONE_ANIME_OFF           },
+    {_GEOSTONE_SET_FLAG,             EVENT_EXT_GEOSTONE_SET_FLAG            },
+    {_GEOSTONE_SET_REFERENCE,        EVENT_EXT_GEOSTONE_SET_REFERENCE       },
+    {_GEOSTONE_DEL_REFERENCE,        EVENT_EXT_GEOSTONE_DEL_REFERENCE       },
+    {_GET_ROBO_MOVE_TYPE,            EVENT_EXT_GET_ROBO_MOVE_TYPE           },
+    {_SET_EXIT_FLAG,                 EVENT_EXT_SET_EXIT_FLAG                },
+    {_GET_EXIT_FLAG,                 EVENT_EXT_GET_EXIT_FLAG                },
+    {_GET_E3_VERSION,                EVENT_EXT_GET_E3_VERSION               },
+    {_CHK_PAD_CTRL,                  EVENT_EXT_CHK_PAD_CTRL                 },
+    {_CTRLC_STAY,                    EVENT_EXT_CTRLC_STAY                   },
+    {_BSCN_SET_BLIGHT_RATE,          EVENT_EXT_BSCN_SET_BLIGHT_RATE         },
+    {_GET_RND_CIRCLE_TRAPID,         EVENT_EXT_GET_RND_CIRCLE_TRAPID        },
+    {_SET_RND_CIRCLE_STATUS,         EVENT_EXT_SET_RND_CIRCLE_STATUS        },
+    {_SET_STATUSBAR_SHOW,            EVENT_EXT_SET_STATUSBAR_SHOW           },
+    {_SET_PULL_ITEM,                 EVENT_EXT_SET_PULL_ITEM                },
+    {_MENU_CHARA_CHENGE,             EVENT_EXT_MENU_CHARA_CHENGE            },
+    {_GET_EVENT_INFO_SNDID,          EVENT_EXT_GET_EVENT_INFO_SNDID         },
+    {_GET_PARTS_POS,                 EVENT_EXT_GET_PARTS_POS                },
+    {_CANCEL_DRAMA_SCENE,            EVENT_EXT_CANCEL_DRAMA_SCENE           },
+    {_GET_RNDC_MOT_NOWT,             EVENT_EXT_GET_RNDC_MOT_NOWT            },
+    {_SET_CHARA_MOT_NOWT,            EVENT_EXT_SET_CHARA_MOT_NOWT           },
+    {_CHARA_NORMAL_DRIVE,            EVENT_EXT_CHARA_NORMAL_DRIVE           },
+    {_CHARA_RESET_DA,                EVENT_EXT_CHARA_RESET_DA               },
+    {_DNG_SETUP_MAIN_UNIT,           EVENT_EXT_DNG_SETUP_MAIN_UNIT          },
+    {_JOIN_PARTY_MEMBER,             EVENT_EXT_JOIN_PARTY_MEMBER            },
+    {_SET_CHARA_CHANGE_FLAG,         EVENT_EXT_SET_CHARA_CHANGE_FLAG        },
+    {_SET_CHARA_CHANGE_MASK,         EVENT_EXT_SET_CHARA_CHANGE_MASK        },
+    {_CHANGE_DIR,                    EVENT_EXT_CHANGE_DIR                   },
+    {_SUB_ITEM,                      EVENT_EXT_SUB_ITEM                     },
+    {_SET_CHARA_EQUIP,               EVENT_EXT_SET_CHARA_EQUIP              },
+    {_LOAD_PACK_FILE,                EVENT_EXT_LOAD_PACK_FILE               },
+    {_SET_BIT_CTRL,                  EVENT_EXT_SET_BIT_CTRL                 },
+    {_GET_BIT_CTRL,                  EVENT_EXT_GET_BIT_CTRL                 },
+    {_LOAD_ARG,                      EVENT_EXT_LOAD_ARG                     },
+    {_GET_ITEM_HAVE_NUM,             EVENT_EXT_GET_ITEM_HAVE_NUM            },
+    {_SET_SKIP_BOTTON,               EVENT_EXT_SET_SKIP_BOTTON              },
+    {_SET_SKIP_FCOL,                 EVENT_EXT_SET_SKIP_FCOL                },
+    {_GET_DEBUG_MODE,                EVENT_EXT_GET_DEBUG_MODE               },
+    {_GET_MAP_TYPE,                  EVENT_EXT_GET_MAP_TYPE                 },
+    {_DNG_COLLISION_ALL_CLR,         EVENT_EXT_DNG_COLLISION_ALL_CLR        },
+    {_SET_MAP_DRAW,                  EVENT_EXT_SET_MAP_DRAW                 },
+    {_CHECK_MC_LOAD,                 EVENT_EXT_CHECK_MC_LOAD                },
+    {_SET_NOW_MAP_NO,                EVENT_EXT_SET_NOW_MAP_NO               },
+    {_GET_TBOX_PARAM,                EVENT_EXT_GET_TBOX_PARAM               },
+    {_CANCEL_LOAD_VILLAGER,          EVENT_EXT_CANCEL_LOAD_VILLAGER         },
+    {_CANCEL_NOW_LOADING,            EVENT_EXT_CANCEL_NOW_LOADING           },
+    {_ESM_INITIALIZE,                EVENT_EXT_ESM_INITIALIZE               },
+    {_ESM_INIT_FIX,                  EVENT_EXT_ESM_INIT_FIX                 },
+    {_ESM_CLEAR,                     EVENT_EXT_ESM_CLEAR                    },
+    {_ESM_LOAD_BASE,                 EVENT_EXT_ESM_LOAD_BASE                },
+    {_ESM_CREATE,                    EVENT_EXT_ESM_CREATE                   },
+    {_ESM_FINISH,                    EVENT_EXT_ESM_FINISH                   },
+    {_ESM_DELETE,                    EVENT_EXT_ESM_DELETE                   },
+    {_ESM_SET_VECT1,                 EVENT_EXT_ESM_SET_VECT1                },
+    {_ESM_SET_VECT2,                 EVENT_EXT_ESM_SET_VECT2                },
+    {_ESM_SET_TARGET_ID,             EVENT_EXT_ESM_SET_TARGET_ID            },
+    {_ESM_LOAD_BASE_PACK,            EVENT_EXT_ESM_LOAD_BASE_PACK           },
+    {_ESM_SET_VALUE,                 EVENT_EXT_ESM_SET_VALUE                },
+    {_SET_CHARA_CONDITION,           EVENT_EXT_SET_CHARA_CONDITION          },
+    {_ADD_WHP,                       EVENT_EXT_ADD_WHP                      },
+    {_ADD_HP_RATE,                   EVENT_EXT_ADD_HP_RATE                  },
+    {_GET_TIME,                      EVENT_EXT_GET_TIME                     },
+    {_CHECK_GET_ITEM_LIMIT,          EVENT_EXT_CHECK_GET_ITEM_LIMIT         },
+    {_CHECK_ITEM_OVER,               EVENT_EXT_CHECK_ITEM_OVER              },
+    {_GET_NOW_LOOP_NO,               EVENT_EXT_GET_NOW_LOOP_NO              },
+    {_IS_CLEAR_DESTROY,              EVENT_EXT_IS_CLEAR_DESTROY             },
+    {_IS_CLEAR_PRACTICE,             EVENT_EXT_IS_CLEAR_PRACTICE            },
+    {_IS_PLAY_SUB_GAME,              EVENT_EXT_IS_PLAY_SUB_GAME             },
+    {_RESET_SUBJECT_COUNTER,         EVENT_EXT_RESET_SUBJECT_COUNTER        },
+    {_SCR_EFF_INIT_RASTER,           EVENT_EXT_SCR_EFF_INIT_RASTER          },
+    {_SCR_EFF_START_RASTER,          EVENT_EXT_SCR_EFF_START_RASTER         },
+    {_SCR_EFF_STOP_RASTER,           EVENT_EXT_SCR_EFF_STOP_RASTER          },
+    {_SET_MPCHARA_MOTION,            EVENT_EXT_SET_MPCHARA_MOTION           },
+    {_FUNC_POINT_POS,                EVENT_EXT_FUNC_POINT_POS               },
+    {_CTRLC_ROT_BACK,                EVENT_EXT_CTRLC_ROT_BACK               },
+    {_PARTS_NAME_STRCMP,             EVENT_EXT_PARTS_NAME_STRCMP            },
+    {_GET_TRIAL_VERSION,             EVENT_EXT_GET_TRIAL_VERSION            },
+    {_SET_FLOOR_EPISODE,             EVENT_EXT_SET_FLOOR_EPISODE            },
+    {_FUNC_POINT_GET_POS,            EVENT_EXT_FUNC_POINT_GET_POS           },
+    {_FUNC_POINT_GET_ROT,            EVENT_EXT_FUNC_POINT_GET_ROT           },
+    {_ACTCHR_SET_DEF_MOTION,         EVENT_EXT_ACTCHR_SET_DEF_MOTION        },
+    {_ADD_FUSION_POINT,              EVENT_EXT_ADD_FUSION_POINT             },
+    {_GET_DEBUG_FLAG,                EVENT_EXT_GET_DEBUG_FLAG               },
+    {_MINIMAP_DOOR_ENABLE,           EVENT_EXT_MINIMAP_DOOR_ENABLE          },
+    {_DNG_CHECK_BOSS_MAP,            EVENT_EXT_DNG_CHECK_BOSS_MAP           },
+    {_DNG_RUN_EVENT,                 EVENT_EXT_DNG_RUN_EVENT                },
+    {_CHECK_ENABLE_CHARA_CHANGE,     EVENT_EXT_CHECK_ENABLE_CHARA_CHANGE    },
+    {_INIT_SEPIA,                    EVENT_EXT_INIT_SEPIA                   },
+    {_START_SEPIA,                   EVENT_EXT_START_SEPIA                  },
+    {_END_SEPIA,                     EVENT_EXT_END_SEPIA                    },
+    {_COPY_MONS2SCNCHR,              EVENT_EXT_COPY_MONS2SCNCHR             },
+    {_UNLOCK_STACK,                  EVENT_EXT_UNLOCK_STACK                 },
+    {_RESET_EVENT_TRG,               EVENT_EXT_RESET_EVENT_TRG              },
+    {_SET_CHARA_NO,                  EVENT_EXT_SET_CHARA_NO                 },
+    {_GET_CHARA_NO,                  EVENT_EXT_GET_CHARA_NO                 },
+    {_SEARCH_CHARA_NO,               EVENT_EXT_SEARCH_CHARA_NO              },
+    {_GET_NEAR_RANDOM_STONE_POS,     EVENT_EXT_GET_NEAR_RANDOM_STONE_POS    },
+    {_INIT_MONO_FLASH,               EVENT_EXT_INIT_MONO_FLASH              },
+    {_START_MONO_FLASH,              EVENT_EXT_START_MONO_FLASH             },
+    {_END_MONO_FLASH,                EVENT_EXT_END_MONO_FLASH               },
+    {_DELETE_VILLAGER,               EVENT_EXT_DELETE_VILLAGER              },
+    {_DNG_SET_WEATHER,               EVENT_EXT_DNG_SET_WEATHER              },
+    {_SET_CHARA_MAXHP,               EVENT_EXT_SET_CHARA_MAXHP              },
+    {_SET_CHARA_DEFENCE,             EVENT_EXT_SET_CHARA_DEFENCE            },
+    {_PLACE_PARTS_NAME_STRCMP,       EVENT_EXT_PLACE_PARTS_NAME_STRCMP      },
+    {_GOTO_USE_ITEM2,                EVENT_EXT_GOTO_USE_ITEM2               },
+    {_DBG_SET_ANALYZE_FLAG,          EVENT_EXT_DBG_SET_ANALYZE_FLAG         },
+    {_ATRAMIRIA_ON_OFF,              EVENT_EXT_ATRAMIRIA_ON_OFF             },
+    {_ADD_YARIKOMI_MEDAL,            EVENT_EXT_ADD_YARIKOMI_MEDAL           },
+    {_SET_MAP_EFFECT_ID,             EVENT_EXT_SET_MAP_EFFECT_ID            },
+    {_GET_MAP_EFFECT_ID,             EVENT_EXT_GET_MAP_EFFECT_ID            },
+    {_DNG_FLOOR_INIT,                EVENT_EXT_DNG_FLOOR_INIT               },
+    {_DNG_FLOOR_FINISH,              EVENT_EXT_DNG_FLOOR_FINISH             },
+    {_CLEAR_RND_STONE,               EVENT_EXT_CLEAR_RND_STONE              },
+    {_GET_FLOOR_STATUS,              EVENT_EXT_GET_FLOOR_STATUS             },
+    {_SET_FLOOR_STATUS,              EVENT_EXT_SET_FLOOR_STATUS             },
+    {_AMG_GET_ATTR_STATUS,           EVENT_EXT_AMG_GET_ATTR_STATUS          },
+    {_SET_NEAR_DIST,                 EVENT_EXT_SET_NEAR_DIST                },
+    {_SET_KEEP_TIME,                 EVENT_EXT_SET_KEEP_TIME                },
+    {_GET_KEEP_TIME,                 EVENT_EXT_GET_KEEP_TIME                },
+    {_GET_DOOR_PARTS_ID,             EVENT_EXT_GET_DOOR_PARTS_ID            },
+    {_CHECK_EQUEP_CHANGE,            EVENT_EXT_CHECK_EQUEP_CHANGE           },
+    {_ADD_HP_RATE2,                  EVENT_EXT_ADD_HP_RATE2                 },
+    {_DNG_EFFECT_ALL_CLEAR,          EVENT_EXT_DNG_EFFECT_ALL_CLEAR         },
+    {_AUTO_CHENGE_BGM_VOL,           EVENT_EXT_AUTO_CHENGE_BGM_VOL          },
+    {_UDATA_GET_WHP,                 EVENT_EXT_UDATA_GET_WHP                },
+    {_UDATA_ADD_WHP,                 EVENT_EXT_UDATA_ADD_WHP                },
+    {_UDATA_GET_ABS,                 EVENT_EXT_UDATA_GET_ABS                },
+    {_UDATA_ADD_ABS,                 EVENT_EXT_UDATA_ADD_ABS                },
+    {_DNG_CREATE_EFFECT,             EVENT_EXT_DNG_CREATE_EFFECT            },
+    {_LEAVE_MONICA_ITEM_CHECK,       EVENT_EXT_LEAVE_MONICA_ITEM_CHECK      },
+    {_PAUSE_ENABLE_FLAG,             EVENT_EXT_PAUSE_ENABLE_FLAG            },
+    {_FORCE_BOOT_TOUR,               EVENT_EXT_FORCE_BOOT_TOUR              },
+    {_MT_TEST,                       EVENT_EXT_MT_TEST                      },
+    {_TEST,                          EVENT_EXT_TEST                         },
+    {NULL,                           EVENT_EXT_END                          },
 };
 
 void SetEventFunc(CRunScript *script) {
@@ -18093,7 +18377,7 @@ inline CScreenEffect::CScreenEffect() {
     Initialize();
 }
 
-CEohMother         EventObjHandleMother;
+CEohMother EventObjHandleMother;
 
 CEventSpriteMother esMother;
 
@@ -18101,7 +18385,7 @@ u32 EventLocalFlag[EVENT_LOCAL_NUM];
 
 int EventLocalCnt[EVENT_LOCAL_NUM];
 
-CRain   EventRain;
+CRain EventRain;
 
 CMarker EventMarker;
 
@@ -18131,7 +18415,7 @@ char PakuMotionName2[PAKU_NAME_SIZE];
 
 mgCMemory BuffEventSnd;
 
-mgCMemory   BuffEventSnd2;
+mgCMemory BuffEventSnd2;
 
 CDngFreeMap EventDngMap;
 
@@ -18141,10 +18425,10 @@ CSceneCmrSeq CameraSeq;
 
 _SEN_OBJ_SEQ obj_seq_tbl[SEQ_NODE_NUM];
 
-CSceneObjSeq    ObjectSeq[32];
+CSceneObjSeq ObjectSeq[32];
 
-CEventSprite2   EventSprite2[48];
+CEventSprite2 EventSprite2[48];
 
 CEventScriptArg EventScriptArg;
 
-CScreenEffect   EventScreenEffect;
+CScreenEffect EventScreenEffect;

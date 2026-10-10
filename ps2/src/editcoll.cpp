@@ -42,6 +42,7 @@ int ClipBoxXZ(float *max_a, float *min_a, float *max_b, float *min_b) {
     }
     return (flags & 0x80) == 0;
 }
+
 #pragma global_optimizer reset
 
 float OverlapPoly3AreaXZ(sceVu0FVECTOR *clipped, sceVu0FVECTOR *clipper, mgVu0FBOX *box) {
@@ -80,28 +81,35 @@ float OverlapPoly3AreaXZ(sceVu0FVECTOR *clipped, sceVu0FVECTOR *clipper, mgVu0FB
     boundary[2][1] = 0.0f;
     *(u_long128 *) boundary[3] = *(u_long128 *) clipper[0];
     boundary[3][1] = 0.0f;
+
     for (edge = 0; edge < 3; edge++) {
         sceVu0SubVector(edge_delta, boundary[edge + 1], boundary[edge]);
         output_count = 0;
+
         for (index = 0; index < count; index++) {
             sceVu0SubVector(segment_delta, vertices[source][index + 1], vertices[source][index]);
             first_inside = 0;
             second_inside = 0;
             sceVu0SubVector(first_offset, vertices[source][index], boundary[edge]);
             sceVu0SubVector(second_offset, vertices[source][index + 1], boundary[edge]);
+
             if (!(-edge_delta[0] * first_offset[2] + edge_delta[2] * first_offset[0] < 0.0f)) {
                 *(u_long128 *) vertices[!source][output_count] = *(u_long128 *) vertices[source][index];
                 output_count++;
                 first_inside = 1;
             }
+
             if (!(-edge_delta[0] * second_offset[2] + edge_delta[2] * second_offset[0] < 0.0f)) {
                 second_inside = 1;
             }
+
             if ((first_inside != 0 && second_inside != 0) || (first_inside == 0 && second_inside == 0)) {
                 continue;
             }
+
             sceVu0SubVector(first_offset, vertices[source][index], boundary[edge]);
             float denominator = segment_delta[0] * edge_delta[2] - segment_delta[2] * edge_delta[0];
+
             if (0.0f != denominator) {
                 float ratio = edge_delta[0] * first_offset[2] - edge_delta[2] * first_offset[0];
                 ratio /= denominator;
@@ -111,26 +119,34 @@ float OverlapPoly3AreaXZ(sceVu0FVECTOR *clipped, sceVu0FVECTOR *clipper, mgVu0FB
                 output_count++;
             }
         }
+
         source = !source;
         count = output_count;
         *(u_long128 *) vertices[source][count] = *(u_long128 *) vertices[source][0];
     }
+
     if (count < 3) {
         return 0.0f;
     }
+
     area = 0.0f;
+
     for (int k = 0; k < count; k++) {
         area += -vertices[source][k][0] * vertices[source][k + 1][2] + vertices[source][k + 1][0] * vertices[source][k][2];
     }
+
     area *= 0.5f;
+
     if (box != NULL) {
         sceVu0SubVector(normal_first, clipper[1], clipper[0]);
         sceVu0SubVector(normal_second, clipper[2], clipper[1]);
         sceVu0OuterProduct(normal, normal_first, normal_second);
         normal[3] = -sceVu0InnerProduct(normal, clipper[0]);
+
         for (int n = 0; n < count; n++) {
             *(u_long128 *) vertex = *(u_long128 *) vertices[source][n];
             vertices[source][n][1] = -(vertex[0] * normal[0] + vertex[2] * normal[2] + normal[3]) / normal[1];
+
             if (n == 0) {
                 *(u_long128 *) box->min = *(u_long128 *) box->max = *(u_long128 *) vertices[source][n];
             } else {
@@ -138,8 +154,10 @@ float OverlapPoly3AreaXZ(sceVu0FVECTOR *clipped, sceVu0FVECTOR *clipper, mgVu0FB
             }
         }
     }
+
     return area;
 }
+
 void CEditCollision::Copy(CEditCollision &dest, int plane_no, mgCMemory *memory) {
 
     int     count;
@@ -203,10 +221,10 @@ void CEditCollision::Copy(CEditCollision &dest, int plane_no, mgCMemory *memory)
 }
 
 float CEditCollision::AreaXZ() {
-    float total;
+    float   total;
     CCPoly *poly;
-    int i;
-    int count;
+    int     i;
+    int     count;
     count = poly_count;
     poly = this->poly;
     total = 0.0f;
@@ -311,9 +329,9 @@ float CEditCollision::OverlapXZ(CEditCollision &other, float (*matrix)[4], mgVu0
     mgVu0FBOX tri_box;
     int       started;
     CCPoly   *poly;
-    int   i;
-    int   count;
-    float total;
+    int       i;
+    int       count;
+    float     total;
     i = 0;
     count = other.poly_count;
     total = 0.0f;
@@ -346,28 +364,49 @@ float CEditCollision::OverlapXZ(CEditCollision &other, float (*matrix)[4], mgVu0
 }
 
 int CEditCollision::OverlapPoly3XZ(float (*triangle)[4], float (*matrix)[4], float *area) {
-    float tri_max[4];
-    float tri_min[4];
-    float transformed_max[4];
-    float transformed_min[4];
-    float transformed[3][4];
+    float   tri_max[4];
+    float   tri_min[4];
+    float   transformed_max[4];
+    float   transformed_min[4];
+    float   transformed[3][4];
     CCPoly *source = poly;
-    int index;
-    float total;
-    if (source == NULL) return 0;
+    int     index;
+    float   total;
+
+    if (source == NULL) {
+        return 0;
+    }
+
     mgVectorMaxMin(tri_max, tri_min, triangle[0], triangle[1], triangle[2]);
-    if (area != NULL) *area = 0.0f;
+
+    if (area != NULL) {
+        *area = 0.0f;
+    }
+
     mgApplyMatrix(transformed_max, transformed_min, matrix, bbox.max, bbox.min);
-    if (!ClipBoxXZ(tri_max, tri_min, transformed_max, transformed_min)) return 0;
+
+    if (!ClipBoxXZ(tri_max, tri_min, transformed_max, transformed_min)) {
+        return 0;
+    }
+
     total = 0.0f;
+
     for (index = 0; index < poly_count; index++, source++) {
         mgApplyMatrixN(transformed, matrix, source->vertex, 3);
+
         if (!mgAbs(transformed[0][1] > 0.1f) && !mgAbs(transformed[1][1] > 0.1f) && !mgAbs(transformed[2][1] > 0.1f)) {
             total += mgAbs(OverlapPoly3AreaXZ(triangle, transformed, NULL));
         }
     }
-    if (area != NULL) *area = total;
-    if (!(total <= 0.0f)) return 1;
+
+    if (area != NULL) {
+        *area = total;
+    }
+
+    if (!(total <= 0.0f)) {
+        return 1;
+    }
+
     return 0;
 }
 

@@ -126,9 +126,9 @@ void CGamePad::Close() {
  *
  */
 static int pad_button_read(PAD_STATUS *status, int port, int slot) {
-    u8          data[32];
-    int         extended_id;
-    int         button;
+    u8  data[32];
+    int extended_id;
+    int button;
 
     /**
      *
@@ -288,17 +288,17 @@ static int read_pad(PAD_STATUS *status, int port, int slot) {
 
     if (valid == 0) {
         status->button = 0;
-        status->left_y = 0x80;
-        status->left_x = 0x80;
-        status->right_y = 0x80;
-        status->right_x = 0x80;
+        status->left_y = PAD_ANALOG_CENTER;
+        status->left_x = PAD_ANALOG_CENTER;
+        status->right_y = PAD_ANALOG_CENTER;
+        status->right_x = PAD_ANALOG_CENTER;
     }
 
     if (*pad_mode == PAD_TERMINAL_DIGITAL) {
-        status->left_y = 0x80;
-        status->left_x = 0x80;
-        status->right_y = 0x80;
-        status->right_x = 0x80;
+        status->left_y = PAD_ANALOG_CENTER;
+        status->left_x = PAD_ANALOG_CENTER;
+        status->right_y = PAD_ANALOG_CENTER;
+        status->right_x = PAD_ANALOG_CENTER;
     }
 
     return valid;
@@ -335,8 +335,8 @@ int CGamePad::Connect() {
 }
 
 void CGamePad::UpDate() {
-    int         i;
-    int         j;
+    int i;
+    int j;
 
     /**
      *
@@ -422,15 +422,15 @@ void CGamePad::UpDate() {
 
     if (key_lock2) {
         pad[1].button = 0;
-        pad[1].right_x = 0x80;
-        pad[1].right_y = 0x80;
-        pad[1].left_x = 0x80;
-        pad[1].left_y = 0x80;
+        pad[1].right_x = PAD_ANALOG_CENTER;
+        pad[1].right_y = PAD_ANALOG_CENTER;
+        pad[1].left_x = PAD_ANALOG_CENTER;
+        pad[1].left_y = PAD_ANALOG_CENTER;
         previous_pad[1].button = 0;
-        previous_pad[1].right_x = 0x80;
-        previous_pad[1].right_y = 0x80;
-        previous_pad[1].left_x = 0x80;
-        previous_pad[1].left_y = 0x80;
+        previous_pad[1].right_x = PAD_ANALOG_CENTER;
+        previous_pad[1].right_y = PAD_ANALOG_CENTER;
+        previous_pad[1].left_x = PAD_ANALOG_CENTER;
+        previous_pad[1].left_y = PAD_ANALOG_CENTER;
     }
 
     cnt = !cnt;
@@ -477,7 +477,7 @@ void CGamePad::Step(int elapsed) {
  *
  */
 static int AxisCalibration(int axis) {
-    int calibrated = axis - 0x80;
+    int calibrated = axis - PAD_ANALOG_CENTER;
 
     if (calibrated < 50 && calibrated > -50) {
         return 0;

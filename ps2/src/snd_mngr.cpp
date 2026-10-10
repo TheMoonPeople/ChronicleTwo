@@ -979,34 +979,47 @@ unsigned int sndLoadSound(int port_no, unsigned int *pack, mgCMemory *memory) {
     if (EnableSndMngr == 0) {
         return -1;
     }
+
     info = GetPortInfo(port_no);
+
     if (info == NULL) {
         return -1;
     }
+
     initial_vol = -1;
+
     if (GetCSndPortNo(port_no, &info->port, &info->sq_port, &initial_vol) == 0) {
         return -1;
     }
+
     sound_id = (port_no & 0xFF) << 24;
+
     if (GetPackFileExt(pack, "cfg", &config, 1, &config_size, NULL) <= 0) {
         return -1;
     }
+
     if (GetPackFileExt(pack, "vol", &volume, 1, &volume_size, NULL) <= 0) {
         return -1;
     }
+
     bank_no = info->bank_num;
+
     if (GetPackFileExt(pack, "bd", &bd, 1, &bd_size, NULL) <= 0) {
         bd_size = 0;
     }
+
     if (GetPackFileExt(pack, "hd", &hd, 1, &hd_size, NULL) <= 0) {
         hd_size = 0;
     }
+
     sndWaitSema();
     CSndStepWait();
+
     if (info->bank_num == 0) {
         if (bd_size != 0 && hd_size != 0) {
             CSnd.LoadHdBd(info->port, (int) hd, hd_size, (int) bd, bd_size);
         }
+
         sndWaitTransBd();
         info->bank_num++;
     } else {
@@ -1014,53 +1027,69 @@ unsigned int sndLoadSound(int port_no, unsigned int *pack, mgCMemory *memory) {
             sndSignalSema();
             return -1;
         }
+
         if (bd_size != 0 && hd_size != 0) {
             CSnd.LoadHdBdAdd(info->port, (int) hd, hd_size, (int) bd, bd_size);
         }
+
         sndWaitTransBd();
         info->bank_num++;
     }
+
     sound_id |= (bank_no & 0xFF) << 16;
     bank = info->GetBank(bank_no);
+
     if (bank == NULL) {
         sndSignalSema();
         return -1;
     }
+
     if (port_no == SND_PORT_BGM || port_no == SND_PORT_BGM2 || port_no == 2 || port_no == SND_PORT_EVENT) {
         bank->sq_num = GetPackFileExt(pack, "sq", sq, 32, sq_size, sq_name);
         size = bank->sq_num * sizeof(char *);
+
         if (size & 0xF) {
             quadwords = (size >> 4) + 1;
         } else {
             quadwords = size >> 4;
         }
+
         bank->sq_name = new (memory->Alloc(quadwords + 2)) char *[bank->sq_num];
+
         for (i = 0; i < bank->sq_num; i++) {
             bank->sq_name[i] = NULL;
             CSnd.LoadSeq(info->sq_port, (int) sq[i], sq_size[i]);
             bank->sq_name[i] = mgCopyString(sq_name[i], memory);
         }
     }
+
     bank->seseq_num = GetPackFileExt(pack, "mid", mid, 48, mid_size, mid_name);
+
     if (bank->seseq_num > 0) {
         size = bank->seseq_num * sizeof(sndCSeSeqData);
+
         if (size & 0xF) {
             quadwords = (size >> 4) + 1;
         } else {
             quadwords = size >> 4;
         }
+
         bank->seseq = new (memory->Alloc(quadwords + 2)) sndCSeSeqData[bank->seseq_num];
     }
+
     for (i = 0; i < bank->seseq_num; i++) {
         bank->seseq[i].name = mgCopyString(mid_name[i], memory);
         bank->seseq[i].LoadSMF((char *) mid[i], mid_size[i], memory);
     }
+
     if (initial_vol >= 0) {
         CSnd.SetVol(info->port, initial_vol);
+
         if (port_no >= 0 && port_no <= 16) {
             PortVolf[port_no] = 1.0f;
         }
     }
+
     info->LoadSeInfoTxt(bank_no, (char *) config, config_size, memory);
     info->LoadVolInfoTxt(bank_no, (char *) volume, volume_size);
     sndSignalSema();
@@ -1543,13 +1572,16 @@ void sndSetSeVolf(unsigned int snd_id, int se_no, float vol, int voice) {
 void sndSetSePanf(unsigned int snd_id, int se_no, float pan, int voice) {
     int driver_pan;
 
-    driver_pan = (int)(64.0f * pan) + 64;
+    driver_pan = (int) (64.0f * pan) + 64;
+
     if (driver_pan < 0) {
         driver_pan = 0;
     }
+
     if (driver_pan > 127) {
         driver_pan = 127;
     }
+
     sndSetSePan(snd_id, se_no, driver_pan, voice);
 }
 
@@ -1916,78 +1948,104 @@ void sndPortInfo::LoadSeInfoTxt(int bank_no, char *text, int size, mgCMemory *me
     int          core;
 
     bank_info = GetBank(bank_no);
+
     if (bank_info == NULL) {
         return;
     }
+
     end = text + size;
-    char        *col[9] = { number, name, description, category, filename, program, key, flag, NULL };
+    char *col[9] = {number, name, description, category, filename, program, key, flag, NULL};
     begin = text;
     bank_info->se_num = 0;
+
     while (text < end) {
         text = GetLine(col, text, end);
+
         if (strcmp(col[0], "END") == 0) {
             break;
         }
+
         bank_info->se_num++;
     }
+
     se_count = bank_info->se_num;
     bytes = se_count * sizeof(sndSeInfo);
+
     if (bytes & 0xF) {
         quadwords = (bytes >> 4) + 1;
     } else {
         quadwords = bytes >> 4;
     }
+
     bank_info->se = new (memory->Alloc(quadwords + 2)) sndSeInfo[se_count];
     text = begin;
     count = 0;
+
     while (text < end) {
         if (!(count < bank_info->se_num)) {
             break;
         }
+
         text = GetLine(col, text, end);
+
         if (strcmp(col[0], "END") == 0) {
             break;
         }
+
         if (strcmp(col[0], "REVERBE") == 0) {
             reverb_type = SND_REVERB_OFF;
+
             if (strcmp(col[1], "Room") == 0) {
                 reverb_type = SND_REVERB_ROOM;
             }
+
             if (strcmp(col[1], "Studio_A") == 0) {
                 reverb_type = SND_REVERB_STUDIO_A;
             }
+
             if (strcmp(col[1], "Studio_B") == 0) {
                 reverb_type = SND_REVERB_STUDIO_B;
             }
+
             if (strcmp(col[1], "Studio_C") == 0) {
                 reverb_type = SND_REVERB_STUDIO_C;
             }
+
             if (strcmp(col[1], "Hall") == 0) {
                 reverb_type = SND_REVERB_HALL;
             }
+
             if (strcmp(col[1], "Space") == 0) {
                 reverb_type = SND_REVERB_SPACE;
             }
+
             if (strcmp(col[1], "Echo") == 0) {
                 reverb_type = SND_REVERB_ECHO;
             }
+
             if (strcmp(col[1], "Delay") == 0) {
                 reverb_type = SND_REVERB_DELAY;
             }
+
             if (strcmp(col[1], "Pipe") == 0) {
                 reverb_type = SND_REVERB_PIPE;
             }
+
             if (strcmp(col[1], "Max") == 0) {
                 reverb_type = SND_REVERB_MAX;
             }
+
             depth = atoi(col[2]);
             core = -1;
+
             if (port == 0) {
                 core = 0;
             }
+
             if (port == 7) {
                 core = 1;
             }
+
             if (core >= 0) {
                 CSnd.SetReverb(core, reverb_type, depth);
             }
@@ -1997,12 +2055,15 @@ void sndPortInfo::LoadSeInfoTxt(int bank_no, char *text, int size, mgCMemory *me
             memset(entry, 0, sizeof(sndSeInfo));
             entry->type = bank_info->SearchSeq(filename, &index);
             entry->prog = atoi(program);
+
             if (entry->type == SND_SE_TYPE_SQ) {
                 entry->prog = index;
             }
+
             if (entry->type == SND_SE_TYPE_SESEQ) {
                 entry->prog = index;
             }
+
             entry->key = atoi(key);
             entry->unk_7 = flag[0] != '\0';
             entry->def_vol = 64;

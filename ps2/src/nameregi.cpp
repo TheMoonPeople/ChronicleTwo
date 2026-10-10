@@ -64,12 +64,12 @@ static s8 NameRegiCode;
  */
 static s8 NameStrSelectModeTable[7][6] = {
     {NAMEREGI_FONT_MODE_KATA, NAMEREGI_FONT_MODE_HIRA, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, NAMEREGI_FONT_MODE_KANJI, -1},
-    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
-    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
-    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
-    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
-    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1},
-    {-1, -1, NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1, -1}
+    {-1,                      -1,                      NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1,                       -1},
+    {-1,                      -1,                      NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1,                       -1},
+    {-1,                      -1,                      NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1,                       -1},
+    {-1,                      -1,                      NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1,                       -1},
+    {-1,                      -1,                      NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1,                       -1},
+    {-1,                      -1,                      NAMEREGI_FONT_MODE_ALPHA, NAMEREGI_FONT_MODE_KIGOU, -1,                       -1}
 };
 
 /**
@@ -123,8 +123,7 @@ static NAMEREGI_KANJI_INDEX NameRegiSearchKanjiIndexTable[46] = {
     {{0x98, 0x43}},
     {{0x98, 0x60}},
     {{0x98, 0x73}},
-    {{0x00, 0x00}}
-};
+    {{0x00, 0x00}}};
 
 /**
  *
@@ -268,7 +267,7 @@ struct BoardPoint {
  *
  */
 static BoardColor colt_1808[2] = {
-    {0, 0, 0, 32},
+    {0,   0,   0,   32 },
     {128, 128, 128, 128}
 };
 
@@ -278,55 +277,41 @@ static BoardColor colt_1808[2] = {
  *
  */
 static BoardRect table_1819[7][5] = {
-    {
-        {176, 324, 54, 30},
-        {88, 324, 88, 30},
-        {0, 324, 88, 30},
-        {188, 354, 70, 30},
-        {230, 324, 54, 30}
-    },
-    {
-        {0, 294, 132, 30},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {132, 294, 132, 30}
-    },
-    {
-        {0, 294, 132, 30},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {132, 294, 132, 30}
-    },
-    {
-        {0, 294, 132, 30},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {132, 294, 132, 30}
-    },
-    {
-        {0, 294, 132, 30},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {132, 294, 132, 30}
-    },
-    {
-        {0, 294, 132, 30},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {132, 294, 132, 30}
-    },
-    {
-        {0, 294, 132, 30},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {132, 294, 132, 30}
-    }
+    {{176, 324, 54, 30},
+     {88, 324, 88, 30},
+     {0, 324, 88, 30},
+     {188, 354, 70, 30},
+     {230, 324, 54, 30} },
+    {{0, 294, 132, 30},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {132, 294, 132, 30}},
+    {{0, 294, 132, 30},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {132, 294, 132, 30}},
+    {{0, 294, 132, 30},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {132, 294, 132, 30}},
+    {{0, 294, 132, 30},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {132, 294, 132, 30}},
+    {{0, 294, 132, 30},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {132, 294, 132, 30}},
+    {{0, 294, 132, 30},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {0, 0, 0, 0},
+     {132, 294, 132, 30}}
 };
 
 /**
@@ -335,62 +320,48 @@ static BoardRect table_1819[7][5] = {
  *
  */
 static BoardRect tex_commtbl_1822[7][6] = {
-    {
-        {0, 354, 36, 30},
-        {36, 354, 36, 30},
-        {184, 294, 58, 30},
-        {72, 354, 58, 30},
-        {130, 354, 58, 30},
-        {0, 294, 92, 30}
-    },
-    {
-        {0, 354, 36, 30},
-        {36, 354, 36, 30},
-        {0, 324, 88, 30},
-        {72, 354, 88, 30},
-        {160, 354, 88, 30},
-        {0, 294, 92, 30}
-    },
-    {
-        {0, 354, 36, 30},
-        {36, 354, 36, 30},
-        {0, 324, 88, 30},
-        {72, 354, 88, 30},
-        {160, 354, 88, 30},
-        {0, 294, 92, 30}
-    },
-    {
-        {0, 354, 36, 30},
-        {36, 354, 36, 30},
-        {0, 324, 88, 30},
-        {72, 354, 88, 30},
-        {160, 354, 88, 30},
-        {0, 294, 92, 30}
-    },
-    {
-        {0, 354, 36, 30},
-        {36, 354, 36, 30},
-        {0, 324, 88, 30},
-        {72, 354, 88, 30},
-        {160, 354, 88, 30},
-        {0, 294, 92, 30}
-    },
-    {
-        {0, 354, 36, 30},
-        {36, 354, 36, 30},
-        {0, 324, 88, 30},
-        {72, 354, 88, 30},
-        {160, 354, 88, 30},
-        {0, 294, 92, 30}
-    },
-    {
-        {0, 354, 36, 30},
-        {36, 354, 36, 30},
-        {0, 324, 88, 30},
-        {72, 354, 88, 30},
-        {160, 354, 88, 30},
-        {0, 294, 92, 30}
-    }
+    {{0, 354, 36, 30},
+     {36, 354, 36, 30},
+     {184, 294, 58, 30},
+     {72, 354, 58, 30},
+     {130, 354, 58, 30},
+     {0, 294, 92, 30}},
+    {{0, 354, 36, 30},
+     {36, 354, 36, 30},
+     {0, 324, 88, 30},
+     {72, 354, 88, 30},
+     {160, 354, 88, 30},
+     {0, 294, 92, 30}},
+    {{0, 354, 36, 30},
+     {36, 354, 36, 30},
+     {0, 324, 88, 30},
+     {72, 354, 88, 30},
+     {160, 354, 88, 30},
+     {0, 294, 92, 30}},
+    {{0, 354, 36, 30},
+     {36, 354, 36, 30},
+     {0, 324, 88, 30},
+     {72, 354, 88, 30},
+     {160, 354, 88, 30},
+     {0, 294, 92, 30}},
+    {{0, 354, 36, 30},
+     {36, 354, 36, 30},
+     {0, 324, 88, 30},
+     {72, 354, 88, 30},
+     {160, 354, 88, 30},
+     {0, 294, 92, 30}},
+    {{0, 354, 36, 30},
+     {36, 354, 36, 30},
+     {0, 324, 88, 30},
+     {72, 354, 88, 30},
+     {160, 354, 88, 30},
+     {0, 294, 92, 30}},
+    {{0, 354, 36, 30},
+     {36, 354, 36, 30},
+     {0, 324, 88, 30},
+     {72, 354, 88, 30},
+     {160, 354, 88, 30},
+     {0, 294, 92, 30}}
 };
 
 /**
@@ -399,90 +370,78 @@ static BoardRect tex_commtbl_1822[7][6] = {
  *
  */
 static BoardPoint nameregist_baseboard_upper_table[6][12] = {
-    {
-        {21, 16},
-        {107, 16},
-        {193, 16},
-        {245, 16},
-        {297, 16},
-        {29, 44},
-        {66, 44},
-        {107, 44},
-        {163, 44},
-        {219, 44},
-        {275, 44},
-        {369, 22}
-    },
-    {
-        {21, 16},
-        {0, 0},
-        {0, 0},
-        {0, 0},
-        {150, 16},
-        {29, 44},
-        {66, 44},
-        {279, 44},
-        {107, 44},
-        {193, 44},
-        {279, 16},
-        {369, 22}
-    },
-    {
-        {21, 16},
-        {0, 0},
-        {0, 0},
-        {0, 0},
-        {150, 16},
-        {29, 44},
-        {66, 44},
-        {279, 44},
-        {107, 44},
-        {193, 44},
-        {279, 16},
-        {369, 22}
-    },
-    {
-        {21, 16},
-        {0, 0},
-        {0, 0},
-        {0, 0},
-        {150, 16},
-        {29, 44},
-        {66, 44},
-        {279, 44},
-        {107, 44},
-        {193, 44},
-        {279, 16},
-        {369, 22}
-    },
-    {
-        {21, 16},
-        {0, 0},
-        {0, 0},
-        {0, 0},
-        {150, 16},
-        {29, 44},
-        {66, 44},
-        {279, 44},
-        {107, 44},
-        {193, 44},
-        {279, 16},
-        {369, 22}
-    },
-    {
-        {21, 16},
-        {0, 0},
-        {0, 0},
-        {0, 0},
-        {150, 16},
-        {29, 44},
-        {66, 44},
-        {279, 44},
-        {107, 44},
-        {193, 44},
-        {279, 16},
-        {369, 22}
-    }
+    {{21, 16},
+     {107, 16},
+     {193, 16},
+     {245, 16},
+     {297, 16},
+     {29, 44},
+     {66, 44},
+     {107, 44},
+     {163, 44},
+     {219, 44},
+     {275, 44},
+     {369, 22}},
+    {{21, 16},
+     {0, 0},
+     {0, 0},
+     {0, 0},
+     {150, 16},
+     {29, 44},
+     {66, 44},
+     {279, 44},
+     {107, 44},
+     {193, 44},
+     {279, 16},
+     {369, 22}},
+    {{21, 16},
+     {0, 0},
+     {0, 0},
+     {0, 0},
+     {150, 16},
+     {29, 44},
+     {66, 44},
+     {279, 44},
+     {107, 44},
+     {193, 44},
+     {279, 16},
+     {369, 22}},
+    {{21, 16},
+     {0, 0},
+     {0, 0},
+     {0, 0},
+     {150, 16},
+     {29, 44},
+     {66, 44},
+     {279, 44},
+     {107, 44},
+     {193, 44},
+     {279, 16},
+     {369, 22}},
+    {{21, 16},
+     {0, 0},
+     {0, 0},
+     {0, 0},
+     {150, 16},
+     {29, 44},
+     {66, 44},
+     {279, 44},
+     {107, 44},
+     {193, 44},
+     {279, 16},
+     {369, 22}},
+    {{21, 16},
+     {0, 0},
+     {0, 0},
+     {0, 0},
+     {150, 16},
+     {29, 44},
+     {66, 44},
+     {279, 44},
+     {107, 44},
+     {193, 44},
+     {279, 16},
+     {369, 22}}
 };
 
 /**
@@ -541,10 +500,10 @@ static mgCTexture *NameregiGaiji;
  */
 static FontTables NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM] = {
     {ALPHA_TABLE1, ALPHA_TABLE2, STR_NUM_TABLE},
-    {HIRA_TABLE1, HIRA_TABLE2, HIRA_TABLE3},
-    {KATA_TABLE1, KATA_TABLE2, KATA_TABLE3},
-    {NULL, NULL, NULL},
-    {KIGOU_TABLE1, KIGOU_TABLE2, NULL}
+    {HIRA_TABLE1,  HIRA_TABLE2,  HIRA_TABLE3  },
+    {KATA_TABLE1,  KATA_TABLE2,  KATA_TABLE3  },
+    {NULL,         NULL,         NULL         },
+    {KIGOU_TABLE1, KIGOU_TABLE2, NULL         }
 };
 
 /**
@@ -581,20 +540,16 @@ static s8 NameRegistGyouLimmitTable[5] = {13, 15, 15, 19, 15};
  *
  */
 static s8 Convtable2_1382[2][5][8] = {
-    {
-        {0, 1, 3, 5, 8, 11, 12, 0},
-        {1, 2, 5, 7, 9, 11, 13, 0},
-        {1, 2, 5, 7, 9, 11, 13, 0},
-        {1, 3, 5, 7, 11, 15, 20, 0},
-        {0, 1, 2, 3, 5, 7, 9, 14}
-    },
-    {
-        {0, 1, 3, 5, 8, 11, 12, 0},
-        {1, 2, 5, 7, 9, 11, 13, 0},
-        {1, 2, 5, 7, 9, 11, 13, 0},
-        {1, 3, 5, 7, 11, 15, 20, 0},
-        {0, 2, 5, 5, 9, 12, 9, 14}
-    }
+    {{0, 1, 3, 5, 8, 11, 12, 0},
+     {1, 2, 5, 7, 9, 11, 13, 0},
+     {1, 2, 5, 7, 9, 11, 13, 0},
+     {1, 3, 5, 7, 11, 15, 20, 0},
+     {0, 1, 2, 3, 5, 7, 9, 14} },
+    {{0, 1, 3, 5, 8, 11, 12, 0},
+     {1, 2, 5, 7, 9, 11, 13, 0},
+     {1, 2, 5, 7, 9, 11, 13, 0},
+     {1, 3, 5, 7, 11, 15, 20, 0},
+     {0, 2, 5, 5, 9, 12, 9, 14}}
 };
 
 /**
@@ -602,7 +557,9 @@ static s8 Convtable2_1382[2][5][8] = {
  * Maps character sets to buttons on the Japanese name entry board.
  *
  */
-static BoardTable convtbl_1792 = {{2, 1, 0, 4, 3}};
+static BoardTable convtbl_1792 = {
+    {2, 1, 0, 4, 3}
+};
 
 /**
  *
@@ -727,34 +684,43 @@ void CNameRegiMenu::CopyAsciiToJis(char *src, char *dst) {
         *dst = 0;
     }
 }
+
 void CNameRegiMenu::CopyJisToAscii(char *src, char *dst) {
     if (src == NULL || dst == NULL) {
         return;
     }
+
     if (CheckNowEurope() != 0) {
         strcpy(dst, src);
     } else {
         char *text = src;
+
         while ((s8) *text != 0) {
             long high = *text;
             int  matched_index = -1;
             int  table_index = 0;
+
             while ((s8) jis_table[table_index] != 0) {
                 if (high == jis_table[table_index] && text[1] == jis_table[table_index + 1]) {
                     matched_index = table_index;
                     break;
                 }
+
                 table_index += 2;
             }
+
             if (0 <= matched_index) {
                 *dst = ascii_code_table[matched_index / 2];
                 dst++;
             }
+
             text += 2;
         }
+
         *dst = 0;
     }
 }
+
 int CheckChronicleKanjiFont(mgCMemory *memory) {
     char name[3];
     int  total;
@@ -896,7 +862,9 @@ union NameRegiWindowPosition {
 void AdjustWaku(CDC2Mes *message, RECT *frame) {
     message->StepMsg();
     int                    width = message->line_w[0];
-    NameRegiWindowPosition position = {{0, 36}};
+    NameRegiWindowPosition position = {
+        {0, 36}
+    };
     position.coordinates[0] = (mgScreenWidth - width) >> 1;
     message->SetPutPos(position.coordinates);
     frame->x = position.coordinates[0] - 20;
@@ -910,7 +878,13 @@ void AdjustWaku(CDC2Mes *message, RECT *frame) {
  * Stores the Shift-JIS counterparts of the ASCII name conversion characters.
  *
  */
-static s8 txt_table2[117] = "\x82O\x82P\x82Q\x82R\x82S\x82T\x82U\x82V\x82W\x82X\x82\x81\x82\x82\x82\x83\x82\x84\x82\x85\x82\x86\x82\x87\x82\x88\x82\x89\x82\x8A\x82\x8B\x82\x8D\x82\x8E\x82\x90\x82\x91\x82\x92\x82\x93\x82\x94\x82\x95\x82\x96\x82\x97\x82\x98\x82\x99\x82\x9A\x82`\x82" "a\x82" "b\x82" "c\x82" "d\x82" "e\x82" "f\x82g\x82i\x82j\x82k\x82l\x82m\x82o\x82p\x82q\x82r\x82s\x82t\x82u\x82v\x82w\x82x\x82y";
+static s8 txt_table2[117] = "\x82O\x82P\x82Q\x82R\x82S\x82T\x82U\x82V\x82W\x82X\x82\x81\x82\x82\x82\x83\x82\x84\x82\x85\x82\x86\x82\x87\x82\x88\x82\x89\x82\x8A\x82\x8B\x82\x8D\x82\x8E\x82\x90\x82\x91\x82\x92\x82\x93\x82\x94\x82\x95\x82\x96\x82\x97\x82\x98\x82\x99\x82\x9A\x82`\x82"
+                            "a\x82"
+                            "b\x82"
+                            "c\x82"
+                            "d\x82"
+                            "e\x82"
+                            "f\x82g\x82i\x82j\x82k\x82l\x82m\x82o\x82p\x82q\x82r\x82s\x82t\x82u\x82v\x82w\x82x\x82y";
 
 /**
  *
@@ -1184,18 +1158,20 @@ void NameRegistInit(mgCMemory *stack, int *tex_block, int open_type) {
     message->push_button = 0;
     message->fade_speed = 1.0f;
     int               message_no = 0;
-    NameRegiItemNames item_names = {{NULL, NULL, NULL}};
+    NameRegiItemNames item_names = {
+        {NULL, NULL, NULL}
+    };
 
     switch (Nameregi_Target.target) {
         case NAMEREGI_TARGET_ITEM:
             if (Nameregi_Target.item != NULL) {
                 s16 used_type = Nameregi_Target.item->used_type;
 
-                if (used_type != 0) {
+                if (used_type != USED_ITEM_TYPE_NONE) {
                     switch (used_type) {
-                        case 3:
-                        case 5:
-                        case 6:
+                        case USED_ITEM_TYPE_WEAPON:
+                        case USED_ITEM_TYPE_ROBO_PART:
+                        case USED_ITEM_TYPE_FISH:
                             message_no = 1;
                             item_names.name[0] = Nameregi_Target.item->GetName(0);
                             break;
@@ -1376,30 +1352,24 @@ void CNameRegiMenu::ConvertPositionNameRegi(int mode) {
 
     if (mode == 0) {
         int           col = command_pos;
-        PositionTable table = {{
-            {
-                {0, 0, 7, 9, 11, 0, 0, 2, 4, 6, 8, 12},
-                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
-                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
-                {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
-                {0, 0, 8, 10, 11, 0, 0, 2, 4, 7, 9, 14}
-            },
-            {
-                {0, 0, 5, 8, 0, 0, 0, 9, 1, 5, 8, 12},
-                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
-                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
-                {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
-                {0, 0, 8, 10, 11, 0, 0, 9, 2, 6, 9, 13}
-            },
-            {
-                {0, 0, 7, 9, 11, 0, 0, 2, 4, 6, 8, 12},
-                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
-                {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
-                {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
-                {0, 0, 8, 10, 11, 0, 0, 11, 2, 6, 9, 13}
-            }
-        }};
-        int           language = LanguageCode;
+        PositionTable table = {
+            {{{0, 0, 7, 9, 11, 0, 0, 2, 4, 6, 8, 12},
+              {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+              {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+              {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+              {0, 0, 8, 10, 11, 0, 0, 2, 4, 7, 9, 14}},
+             {{0, 0, 5, 8, 0, 0, 0, 9, 1, 5, 8, 12},
+              {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+              {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+              {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+              {0, 0, 8, 10, 11, 0, 0, 9, 2, 6, 9, 13}},
+             {{0, 0, 7, 9, 11, 0, 0, 2, 4, 6, 8, 12},
+              {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+              {0, 1, 3, 8, 10, 0, 1, 3, 5, 7, 9, 12},
+              {0, 0, 9, 10, 11, 0, 1, 3, 6, 8, 12, 15},
+              {0, 0, 8, 10, 11, 0, 0, 11, 2, 6, 9, 13}}}
+        };
+        int language = LanguageCode;
 
         if (language > 0) {
             language = 1;
@@ -1534,8 +1504,7 @@ static s8 convTbl_1579[5] = {2, 1, 0, 4, 3};
  *
  */
 static char *Sfida_default_Name[7] = {
-    "\x83\x86\x83\x8A\x83X", "Max", "Max", "Max", "Max", "Max", "Max"
-};
+    "\x83\x86\x83\x8A\x83X", "Max", "Max", "Max", "Max", "Max", "Max"};
 
 s32 CNameRegiMenu::KeyStep() {
     s32      keys;
@@ -1685,9 +1654,13 @@ s32 CNameRegiMenu::KeyStep() {
 
             switch (key_arg_no) {
                 case 0: {
-                    NameCommandTable japanese_navigation = {{-1, 5, 11, 1, -1, 7, 0, 2, -1, 8, 1, 3, -1, 10, 2, 4, -1, 10, 3, 11, 0, -2, 11, 6, 0, -2, 5, 7, 1, -2, 6, 8, 1, -2, 7, 9, 2, -2, 8, 10, 3, -2, 9, 11, -1, -2, 4, 0}};
-                    NameCommandTable localized_navigation = {{-1, -1, -1, -1, -1, -1, -1, -1, -1, 5, 11, 3, -1, 8, 2, 10, -1, -1, -1, -1, 2, -2, 11, 6, 2, -2, 5, 8, 10, -2, 9, 11, 2, -2, 6, 9, 3, -2, 8, 7, -1, 7, 3, 11, -1, -2, 10, 2}};
-                    s8              *row = &japanese_navigation.bytes[command_pos * 4];
+                    NameCommandTable japanese_navigation = {
+                        {-1, 5, 11, 1, -1, 7, 0, 2, -1, 8, 1, 3, -1, 10, 2, 4, -1, 10, 3, 11, 0, -2, 11, 6, 0, -2, 5, 7, 1, -2, 6, 8, 1, -2, 7, 9, 2, -2, 8, 10, 3, -2, 9, 11, -1, -2, 4, 0}
+                    };
+                    NameCommandTable localized_navigation = {
+                        {-1, -1, -1, -1, -1, -1, -1, -1, -1, 5, 11, 3, -1, 8, 2, 10, -1, -1, -1, -1, 2, -2, 11, 6, 2, -2, 5, 8, 10, -2, 9, 11, 2, -2, 6, 9, 3, -2, 8, 7, -1, 7, 3, 11, -1, -2, 10, 2}
+                    };
+                    s8 *row = &japanese_navigation.bytes[command_pos * 4];
 
                     if (LanguageCode > 0) {
                         row = &localized_navigation.bytes[command_pos * 4];
@@ -1732,13 +1705,13 @@ s32 CNameRegiMenu::KeyStep() {
                     }
 
                     s16 command_table[12][2] = {
-                        {20, 2},
-                        {20, 2},
-                        {20, 2},
-                        {20, 2},
-                        {20, 2},
-                        {70, 2},
-                        {71, 2},
+                        {20,  2},
+                        {20,  2},
+                        {20,  2},
+                        {20,  2},
+                        {20,  2},
+                        {70,  2},
+                        {71,  2},
                         {100, 2},
                         {110, 2},
                         {120, 2},
@@ -1955,7 +1928,9 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetAbsPos(5);
                 message->SetMsgCursor(0);
                 message->MakeMsg(0x1007);
-                NameMessageArguments arguments = {{NULL, NULL}};
+                NameMessageArguments arguments = {
+                    {NULL, NULL}
+                };
 
                 if (Nameregi_Target.target == NAMEREGI_TARGET_ITEM) {
                     arguments.name[0] = GetItemMessage(Nameregi_Target.item->item_no);
@@ -2007,7 +1982,7 @@ s32 CNameRegiMenu::KeyStep() {
             strcpy(final_name, name);
 
             if (Nameregi_Target.target == NAMEREGI_TARGET_ITEM) {
-                if (LanguageCode > 0 && Nameregi_Target.item != NULL && Nameregi_Target.item->used_type == 3 &&
+                if (LanguageCode > 0 && Nameregi_Target.item != NULL && Nameregi_Target.item->used_type == USED_ITEM_TYPE_WEAPON &&
                     Nameregi_Target.item->IsFishingRod() == 0) {
                     char ascii[0x80];
                     s32  item_no;
@@ -2022,7 +1997,7 @@ s32 CNameRegiMenu::KeyStep() {
                         break;
                     }
 
-                    if (ConvertUsedItemType(GetItemDataType(item_no)) == 3) {
+                    if (ConvertUsedItemType(GetItemDataType(item_no)) == USED_ITEM_TYPE_WEAPON) {
                         Nameregi_Target.item->CopyDataWeapon(item_no);
                     }
                 }
@@ -2055,7 +2030,9 @@ s32 CNameRegiMenu::KeyStep() {
             message->MsgPreset(0xA);
             message->SetAbsPos(5);
             message->MakeMsg(0x1006);
-            NameMessageArguments arguments = {{NULL, NULL}};
+            NameMessageArguments arguments = {
+                {NULL, NULL}
+            };
             arguments.name[0] = old_name;
             arguments.name[1] = final_name;
             message->SetMsgItemNo(arguments.name, 2);
@@ -2086,8 +2063,8 @@ s32 CNameRegiMenu::KeyStep() {
                     password[0x16] = 0;
                     strcpy((char *) key.bytes, Nameregi_Target.item->GetName(0));
                     key_text = key.bytes;
-                    password_valid = DecodePassword(password, (u8 *)decoded, 0x10, (u8 *)key_text, 0x14);
-                    memcpy(header, decoded, 0xE);
+                    password_valid = DecodePassword(password, (u8 *) decoded, 0x10, (u8 *) key_text, 0x14);
+                    memcpy(header, decoded, sizeof(header));
 
                     if (password_valid == 0 || (header[0] & 0x1FF) < 0x136) {
                         mode = NAMEREGI_MODE_MESSAGE;
@@ -2101,7 +2078,7 @@ s32 CNameRegiMenu::KeyStep() {
                         MenuSePlay(SYSTEM_SE_CANCEL);
                     } else {
                         Nameregi_Target.item->Init();
-                        Nameregi_Target.item->used_type = 6;
+                        Nameregi_Target.item->used_type = USED_ITEM_TYPE_FISH;
                         Nameregi_Target.item->SetName((char *) key_text);
                         Nameregi_Target.item->TransToData((char *) decoded, 0xE);
                         MenuSePlay(SYSTEM_SE_DECIDE);
@@ -2139,7 +2116,9 @@ s32 CNameRegiMenu::KeyStep() {
                     message->SetAbsPos(5);
                     message->SetMsgCursor(0);
                     message->MakeMsg(0xFDC);
-                    NameMessageArguments arguments = {{NULL, NULL}};
+                    NameMessageArguments arguments = {
+                        {NULL, NULL}
+                    };
                     arguments.name[0] = old_name;
                     message->SetMsgItemNo(arguments.name, 2);
                     MenuSePlay(SYSTEM_SE_DECIDE);
@@ -2159,7 +2138,9 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetAbsPos(5);
                 message->SetMsgCursor(1);
                 message->MakeMsg(message_id);
-                NameMessageArguments arguments = {{NULL, NULL}};
+                NameMessageArguments arguments = {
+                    {NULL, NULL}
+                };
                 arguments.name[0] = name;
 
                 if (LanguageCode > 0) {
@@ -2196,7 +2177,9 @@ s32 CNameRegiMenu::KeyStep() {
                 message->SetAbsPos(5);
                 message->SetMsgCursor(1);
                 message->MakeMsg(0xFDC);
-                NameMessageArguments arguments = {{NULL, NULL}};
+                NameMessageArguments arguments = {
+                    {NULL, NULL}
+                };
                 arguments.name[0] = old_name;
                 message->SetMsgItemNo(arguments.name, 1);
                 MenuSePlay(SYSTEM_SE_CANCEL);
@@ -2218,7 +2201,7 @@ s32 CNameRegiMenu::KeyStep() {
         case 0x3E8: {
             if (Nameregi_Target.target == NAMEREGI_TARGET_FISH) {
                 Nameregi_Target.item->item_no = 0x140;
-                Nameregi_Target.item->used_type = 6;
+                Nameregi_Target.item->used_type = USED_ITEM_TYPE_FISH;
 
                 if (LanguageCode > 0) {
                     char backup[0x40];
@@ -2275,12 +2258,13 @@ s32 CNameRegiMenu::KeyStep() {
 }
 
 void CNameRegiMenu::GetSelectedActiveFont(char *dst) {
-    int font_mode = GetActiveFontMode();
+    int   font_mode = GetActiveFontMode();
     char *first_table = NameRegistFont_Table[font_mode].first;
     char *second_table = NameRegistFont_Table[font_mode].second;
     char *third_table = NameRegistFont_Table[font_mode].third;
     char *table = first_table;
-    s16 cell = select.pos;
+    s16   cell = select.pos;
+
     if (font_mode == NAMEREGI_FONT_MODE_HIRA || font_mode == NAMEREGI_FONT_MODE_KATA) {
         int rest;
         int column;
@@ -2288,43 +2272,52 @@ void CNameRegiMenu::GetSelectedActiveFont(char *dst) {
         rest = cell % 15;
         column = cell / 15;
         part = rest / 5;
-        char *kana_tables[3] = { first_table, second_table, third_table };
+        char *kana_tables[3] = {first_table, second_table, third_table};
         table = kana_tables[part];
         rest -= part * 5;
         char *glyph = table + (column + 2 * (rest + column * 5));
         dst[0] = glyph[0];
         dst[1] = glyph[1];
     }
+
     if (font_mode == NAMEREGI_FONT_MODE_ALPHA) {
         table = first_table;
         auto column = cell % 13;
-        int line = cell / 13;
+        int  line = cell / 13;
+
         if (cell >= 26 && cell < 52) {
             table = second_table;
             line -= 2;
         }
+
         if (cell >= 52) {
             table = third_table;
             line -= 4;
         }
-        __typeof__(line * 13 + column) line_start = line * 13 + column;
+
+        __typeof__(line * 13 + column)  line_start = line * 13 + column;
         __typeof__(line + (line_start)) glyph_index = line + (line_start);
         dst[0] = table[glyph_index];
     }
+
     if (font_mode == NAMEREGI_FONT_MODE_KANJI) {
         GetNameRegistFontKanjiList(select.pos + select.row * 0x13, dst);
     }
+
     if (font_mode == NAMEREGI_FONT_MODE_KIGOU) {
         __typeof__(cell % 15) column = cell % 15;
-        int line = cell / 15;
+        int                   line = cell / 15;
+
         if (line >= 2) {
             table = second_table;
             line -= 2;
         }
-        __typeof__((unsigned int)line + (column + (line * 16 - line))) glyph_index = (unsigned int)line + (column + (line * 16 - line));
+
+        __typeof__((unsigned int) line + (column + (line * 16 - line))) glyph_index = (unsigned int) line + (column + (line * 16 - line));
         dst[0] = table[glyph_index];
     }
 }
+
 void CNameRegiMenu::ChangeFontSelectMode(int mode) {
     if (mode < 0 || mode >= 5) {
         return;
@@ -2359,7 +2352,9 @@ int ConvertNameRegiBaseBoardTable(int index) {
     int result = convtbl_1792.slot[index];
 
     if (LanguageCode > 0) {
-        BoardTable alternate = {{0, 0, 0, 0, 4}};
+        BoardTable alternate = {
+            {0, 0, 0, 0, 4}
+        };
         result = alternate.slot[index];
     }
 
@@ -2458,27 +2453,36 @@ void CNameRegiMenu::DrawBaseBoard() {
         }
     }
 }
+
 void CNameRegiMenu::DrawActiveFont() {
-    struct KanjiMark { int x; int y; };
-    KanjiMark marks[20];
-    char glyphs[20][3];
-    char line[0x40];
-    int mark_num;
-    int y;
-    int font_mode;
-    CFont *font;
+    struct KanjiMark {
+        int x;
+        int y;
+    };
+
+    KanjiMark   marks[20];
+    char        glyphs[20][3];
+    char        line[0x40];
+    int         mark_num;
+    int         y;
+    int         font_mode;
+    CFont      *font;
     mgRect<int> mark_rect;
     FontTables *tables;
     y = 0x104;
     font_mode = GetActiveFontMode();
+
     if (NameregiGaiji != NULL) {
         MenuReloadTexture(OldReloadTexNumber, NameregiGaiji->block);
     }
+
     font = &grid_font[0];
     tables = &NameRegistFont_Table[font_mode];
+
     if (key_arg_no == 1) {
         DrawMenuFillBox(select_box_x, select_box_y, 14.0f, 21.0f, 0x40, 0x80, 0x20, 0x20);
     }
+
     switch (font_mode) {
         case NAMEREGI_FONT_MODE_HIRA:
         case NAMEREGI_FONT_MODE_KATA:
@@ -2509,10 +2513,12 @@ void CNameRegiMenu::DrawActiveFont() {
             line[0x26] = 0;
             int column = 0;
             line[0x27] = 0;
+
             if (cell < 0x672) {
                 do {
                     char *glyph = &line[column];
-                    int kind = GetNameRegistFontKanjiList(cell, glyph);
+                    int   kind = GetNameRegistFontKanjiList(cell, glyph);
+
                     if (kind == 0) {
                         column += 2;
                     } else if (kind == 1) {
@@ -2532,21 +2538,26 @@ void CNameRegiMenu::DrawActiveFont() {
                         font->DrawDirect(font->str, font->pos_x, font->pos_y);
                         break;
                     }
+
                     cell++;
+
                     if (column >= 0x26) {
                         font->SetStr(line);
                         font->SetPos(0x34, y);
                         font->DrawDirect(font->str, font->pos_x, font->pos_y);
                         y += 0x18;
                         column = 0;
+
                         if (y >= 0x194) {
                             break;
                         }
                     }
                 } while (cell < 0x672);
             }
+
             MenuReloadTexture(OldReloadTexNumber, NameRegiTex1->block);
             int mark = 0;
+
             if (0 < mark_num) {
                 do {
                     mgRect<int> mark_tex;
@@ -2556,10 +2567,12 @@ void CNameRegiMenu::DrawActiveFont() {
                     mark++;
                 } while (mark < mark_num);
             }
+
             if (NameregiGaiji != NULL) {
                 MenuReloadTexture(OldReloadTexNumber, NameregiGaiji->block);
                 int i = 0;
                 int glyph_x;
+
                 if (0 < mark_num) {
                     do {
                         int glyph_y = marks[i].y + 3;
@@ -2571,6 +2584,7 @@ void CNameRegiMenu::DrawActiveFont() {
                     } while (i < mark_num);
                 }
             }
+
             break;
         }
         case NAMEREGI_FONT_MODE_KIGOU:
@@ -2583,67 +2597,85 @@ void CNameRegiMenu::DrawActiveFont() {
             break;
     }
 }
+
 #pragma divbyzerocheck on
+
 void CNameRegiMenu::StepMarkCursor() {
     float target_x = 0.0f;
     float target_y = 0.0f;
+
     switch (key_arg_no) {
-    case 0: {
-        int button = command_pos;
-        int language = 0;
-        int slot = button;
-        if (LanguageCode > 0) {
-            language = 1;
-            if (button == 2) {
-                slot = 0;
+        case 0: {
+            int button = command_pos;
+            int language = 0;
+            int slot = button;
+
+            if (LanguageCode > 0) {
+                language = 1;
+
+                if (button == 2) {
+                    slot = 0;
+                }
+
+                if (button == 3) {
+                    slot = 4;
+                }
             }
-            if (button == 3) {
-                slot = 4;
+
+            target_x = (18.0f + (float) nameregist_baseboard_upper_table[language][slot].x) - 32.0f;
+            target_y = 5.0f + (166.0f + (float) nameregist_baseboard_upper_table[language][slot].y);
+
+            if (button == 0xB) {
+                target_y += 5.0f;
             }
+
+            break;
         }
-        target_x = (18.0f + (float)nameregist_baseboard_upper_table[language][slot].x) - 32.0f;
-        target_y = 5.0f + (166.0f + (float)nameregist_baseboard_upper_table[language][slot].y);
-        if (button == 0xB) {
-            target_y += 5.0f;
+        case 1: {
+            MENU_SELECT_PARAM *param = &select;
+            int                font_mode = GetActiveFontMode();
+            int                column = param->pos % NameRegistGyouLimmitTable[font_mode];
+            int                line = param->pos / NameRegistGyouLimmitTable[font_mode];
+
+            if (font_mode == NAMEREGI_FONT_MODE_HIRA || font_mode == NAMEREGI_FONT_MODE_KATA) {
+                target_x = (float) (column * 0x18 + 0x3E + column / 5 * 0x10);
+                target_y = (float) (0x104 + line * 0x18);
+            }
+
+            if (font_mode == NAMEREGI_FONT_MODE_KANJI) {
+                target_x = (float) (0x34 + 0x16 * column);
+                target_y = (float) (line * 0x18 + 0x104);
+            }
+
+            if (font_mode == NAMEREGI_FONT_MODE_ALPHA) {
+                target_x = (float) (column * 0x18 + 0x64);
+                target_y = (float) (line * 0x18 + 0x110);
+            }
+
+            if (NAMEREGI_FONT_MODE_KIGOU == font_mode) {
+                target_x = (float) (column * 0x18 + 0x52);
+                target_y = (float) (line * 0x18 + 0x104);
+            }
+
+            target_x -= 2.0f;
+            select_box_x = target_x;
+            target_x -= 36.0f;
+            select_box_y = target_y;
+            break;
         }
-        break;
     }
-    case 1: {
-        MENU_SELECT_PARAM *param = &select;
-        int font_mode = GetActiveFontMode();
-        int column = param->pos % NameRegistGyouLimmitTable[font_mode];
-        int line = param->pos / NameRegistGyouLimmitTable[font_mode];
-        if (font_mode == NAMEREGI_FONT_MODE_HIRA || font_mode == NAMEREGI_FONT_MODE_KATA) {
-            target_x = (float)(column * 0x18 + 0x3E + column / 5 * 0x10);
-            target_y = (float)(0x104 + line * 0x18);
-        }
-        if (font_mode == NAMEREGI_FONT_MODE_KANJI) {
-            target_x = (float)(0x34 + 0x16 * column);
-            target_y = (float)(line * 0x18 + 0x104);
-        }
-        if (font_mode == NAMEREGI_FONT_MODE_ALPHA) {
-            target_x = (float)(column * 0x18 + 0x64);
-            target_y = (float)(line * 0x18 + 0x110);
-        }
-        if (NAMEREGI_FONT_MODE_KIGOU == font_mode) {
-            target_x = (float)(column * 0x18 + 0x52);
-            target_y = (float)(line * 0x18 + 0x104);
-        }
-        target_x -= 2.0f;
-        select_box_x = target_x;
-        target_x -= 36.0f;
-        select_box_y = target_y;
-        break;
-    }
-    }
+
     CalcMenu1(target_x, &cursor_x, 4.0f, 0.0f, cursor_snap);
     CalcMenu1(target_y, &cursor_y, 4.0f, 0.0f, cursor_snap);
     cursor_snap = 0;
+
     if (mode != NAMEREGI_MODE_MESSAGE) {
         cursor_cnt++;
     }
 }
+
 #pragma divbyzerocheck reset
+
 void CNameRegiMenu::DrawMarkCursor() {
     float pos[2];
     pos[0] = cursor_x + 6.0f * cosf(mgAngleLimit(0.05235988f * (float) cursor_cnt));

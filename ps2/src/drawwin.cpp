@@ -11,26 +11,26 @@
  */
 s32 data[VWIN_PART_MAX][4] = {
     {208, 25, 23, 25},
-    {231, 25, 2, 25},
+    {231, 25, 2,  25},
     {233, 25, 23, 25},
-    {208, 50, 23, 2},
-    {231, 50, 2, 2},
-    {233, 50, 23, 2},
+    {208, 50, 23, 2 },
+    {231, 50, 2,  2 },
+    {233, 50, 23, 2 },
     {208, 52, 23, 14},
-    {231, 52, 2, 14},
+    {231, 52, 2,  14},
     {233, 52, 23, 14},
-    {208, 66, 23, 2},
-    {231, 66, 2, 2},
-    {233, 66, 23, 2},
+    {208, 66, 23, 2 },
+    {231, 66, 2,  2 },
+    {233, 66, 23, 2 },
     {208, 68, 23, 25},
-    {231, 68, 2, 25},
+    {231, 68, 2,  25},
     {233, 68, 23, 25},
     {208, 93, 23, 25},
-    {231, 93, 2, 25},
+    {231, 93, 2,  25},
     {233, 93, 23, 25},
-    {208, 0, 23, 25},
-    {231, 0, 2, 25},
-    {233, 0, 23, 25},
+    {208, 0,  23, 25},
+    {231, 0,  2,  25},
+    {233, 0,  23, 25},
 };
 
 #define DrawWindowPart(prim, part, x, y, width, height, color)                   \
@@ -170,6 +170,7 @@ void MyMenuHelpWinDraw(mgCDrawPrim *prim, RECT rect, int alpha) {
     screen8.Set(right, bottom, 0x18, 0x16);
     set2DSprite(prim, screen8, texture8, &color);
 }
+
 void MyMenuFloatingWinDraw(mgCDrawPrim *prim, RECT win, int point_x, int point_y,
                            RGBAQ_TYPE *frame_color, RGBAQ_TYPE *fill_color) {
     int inside_x;
@@ -209,6 +210,7 @@ void MyMenuFloatingWinDraw(mgCDrawPrim *prim, RECT win, int point_x, int point_y
     DrawWindowTile(prim, inside_x, bottom_y, inside_width, 9, 0x77, 0x27, 0x22, 0x9, frame_color);
     DrawWindowTile(prim, right_x, bottom_y, 7, 9, 0x99, 0x27, 0x7, 0x9, frame_color);
     MySetPrim(prim, 4, 0);
+
     if (point_x < win.x) {
         DrawWindowTile(prim, win.x - 13, point_y - 10, 0x15, 0x15, 0xA6, 0x45, 0x15, 0x15, fill_color);
         DrawWindowTile(prim, win.x - 13, point_y - 10, 0x15, 0x15, 0xA6, 0x30, 0x15, 0x15, frame_color);
@@ -223,6 +225,7 @@ void MyMenuFloatingWinDraw(mgCDrawPrim *prim, RECT win, int point_x, int point_y
         DrawWindowTile(prim, point_x - 10, top_y, 0x15, 0x15, 0x91, 0x30, 0x15, 0x15, frame_color);
     }
 }
+
 void DrawVersatileWin_1(mgCDrawPrim *prim, RECT rect, RGBAQ_TYPE *color, int alpha, int opaque) {
     mgRect<int> screen0;
     mgRect<int> texture0;

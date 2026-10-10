@@ -166,7 +166,7 @@ struct INIT_LOOP_ARG {
     s8  unk_4[0x40];
     int floor_no; /**< Dungeon floor to start on, or -1 for the saved one. */
     int event_no; /**< Event to run on entry, or -1 for none. */
-    int mc_load; /**< Memory card load state passed to the entry event. */
+    int mc_load;  /**< Memory card load state passed to the entry event. */
 
     INIT_LOOP_ARG() { memset(this, 0, sizeof(*this)); }
 };

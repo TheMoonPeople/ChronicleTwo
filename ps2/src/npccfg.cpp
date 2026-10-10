@@ -83,9 +83,9 @@ static int _NPC_INFO(SPI_STACK *stack, int argument_count) {
  *
  */
 static SPI_TAG_PARAM npc_spitag[3] = {
-    {"NPC_NUM", _NPC_NUM},
+    {"NPC_NUM",  _NPC_NUM },
     {"NPC_INFO", _NPC_INFO},
-    {NULL, NULL},
+    {NULL,       NULL     },
 };
 
 void LoadNPCCfg() {

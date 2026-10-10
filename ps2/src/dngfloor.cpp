@@ -96,18 +96,18 @@ static int _ROOM_TITLE(SPI_STACK *stack, int argument_count);
  * Dungeon grid and floor-property script tags.
  */
 static SPI_TAG_PARAM tree_map_tag[] = {
-    {"TREE_INFO", _TREE_MAPINFO},
-    {"GI", _GLID_INFO},
-    {"RT", _ROOT_INFO},
-    {"RI", _ROOM_INFO},
-    {"RI_LINK", _ROOM_LINK},
-    {"RI_OP", _ROOM_OPTION},
-    {"RI_TEX", _ROOM_TEXNO},
-    {"RI_KEYROOM", _ROOM_KEYROOM},
-    {"RF_INFO", _ROOM_FLOOR_INFO},
-    {"RF_INFO2", _ROOM_FLOOR_INFO2},
-    {"RI_TITLE", _ROOM_TITLE},
-    {NULL, NULL},
+    {"TREE_INFO",  _TREE_MAPINFO    },
+    {"GI",         _GLID_INFO       },
+    {"RT",         _ROOT_INFO       },
+    {"RI",         _ROOM_INFO       },
+    {"RI_LINK",    _ROOM_LINK       },
+    {"RI_OP",      _ROOM_OPTION     },
+    {"RI_TEX",     _ROOM_TEXNO      },
+    {"RI_KEYROOM", _ROOM_KEYROOM    },
+    {"RF_INFO",    _ROOM_FLOOR_INFO },
+    {"RF_INFO2",   _ROOM_FLOOR_INFO2},
+    {"RI_TITLE",   _ROOM_TITLE      },
+    {NULL,         NULL             },
 };
 
 /**
@@ -171,8 +171,8 @@ static int _GLID_INFO(SPI_STACK *stack, int argc) {
     DNGMAP_ROOM_INFO *info = &tree_glid_info->room;
     tree_spi_rootinfo = (DNGMAP_ROOT_INFO *) info;
     tree_spi_roominfo = info;
-    memset(info, 0, 0x50);
-    memset(tree_spi_rootinfo, 0, 5);
+    memset(info, 0, sizeof(*info));
+    memset(tree_spi_rootinfo, 0, sizeof(*tree_spi_rootinfo));
     tree_glid_info += 1;
     menu_dng_debug_glidcnt += 1;
     return 1;
@@ -207,7 +207,7 @@ static int _ROOM_INFO(SPI_STACK *stack, int argc) {
 
     tree_spi_roominfo->selectable = 0;
     tree_spi_roominfo->visited = 0;
-    tree_spi_roominfo->flag = 1;
+    tree_spi_roominfo->flag = (int) DNGMAP_ROOM_FLAG_ROOM;
     tree_spi_roominfo->offset_y = 0;
     tree_spi_roominfo->offset_x = 0;
     tree_spi_roominfo->practice_type = -1;
@@ -235,14 +235,16 @@ static int _ROOM_LINK(SPI_STACK *stack, int count) {
  *
  */
 static int _ROOM_OPTION(SPI_STACK *stack, int argc) {
-    RoomOptions options = {{
-        {"start", DNGMAP_ROOM_FLAG_START},
-        {"exit", DNGMAP_ROOM_FLAG_EXIT},
-        {"boss", DNGMAP_ROOM_FLAG_BOSS},
-        {"sub", DNGMAP_ROOM_FLAG_SUB},
-        {NULL, 0},
-    }};
-    int         flags = 1;
+    RoomOptions options = {
+        {
+         {"start", DNGMAP_ROOM_FLAG_START},
+         {"exit", DNGMAP_ROOM_FLAG_EXIT},
+         {"boss", DNGMAP_ROOM_FLAG_BOSS},
+         {"sub", DNGMAP_ROOM_FLAG_SUB},
+         {NULL, 0},
+         }
+    };
+    int flags = (int) DNGMAP_ROOM_FLAG_ROOM;
 
     for (int i = 0; i < argc; i++) {
         flags |= menu_spi_analyze_func_strcut1(options.entries, spiGetStackString(stack++));
@@ -250,7 +252,7 @@ static int _ROOM_OPTION(SPI_STACK *stack, int argc) {
 
     tree_spi_roominfo->flag |= flags;
 
-    if ((tree_spi_roominfo->flag & 0x10) || (tree_spi_roominfo->flag & 8)) {
+    if ((tree_spi_roominfo->flag & (int) DNGMAP_ROOM_FLAG_SUB) || (tree_spi_roominfo->flag & (int) DNGMAP_ROOM_FLAG_BOSS)) {
         tree_spi_roominfo->offset_x = 0;
         tree_spi_roominfo->offset_y = -0x1A;
 
@@ -486,11 +488,11 @@ int CDngFloorManager::IsPlaySubGame() {
     }
 
     if (info->fishing != 0) {
-        games |= 2;
+        games |= (int) DNGMAP_SUB_GAME_FISHING;
     }
 
     if (info->spheda != 0) {
-        games |= 1;
+        games |= (int) DNGMAP_SUB_GAME_SPHEDA;
     }
 
     return games;
@@ -500,7 +502,7 @@ int CDngFloorManager::IsSealFloor(int floor) {
     CSaveDataDungeon *dungeon = menu_GetSaveDataDungeon();
 
     if (dungeon == NULL) {
-        return 0;
+        return (int) DNGMAP_SEAL_NONE;
     }
 
     if (floor < 0) {
@@ -510,14 +512,14 @@ int CDngFloorManager::IsSealFloor(int floor) {
     DNGMAP_ROOM_INFO *info = GetDngMapFloorInfo(floor);
 
     if (info == NULL) {
-        return 0;
+        return (int) DNGMAP_SEAL_NONE;
     }
 
     DNG_FLOOR_SAVE *saved = dungeon->GetFloorInfoPtr(dungeon->stage_id, floor);
     int             seal = info->seal;
 
     if (saved != NULL && (saved->flag & DNG_FLOOR_FLAG_SEAL_CLEAR)) {
-        seal = 0;
+        seal = (int) DNGMAP_SEAL_NONE;
     }
 
     CUserDataManager *user = GetUserDataMan();
@@ -525,12 +527,12 @@ int CDngFloorManager::IsSealFloor(int floor) {
     if (user != NULL) {
         int members = user->GetNowPartyMember();
 
-        if (seal == 1 && !(members & 2)) {
-            seal = 0;
+        if (seal == (int) DNGMAP_SEAL_MONICA && !(members & 2)) {
+            seal = (int) DNGMAP_SEAL_NONE;
         }
 
-        if (seal == 2 && !(members & 1)) {
-            seal = 0;
+        if (seal == (int) DNGMAP_SEAL_MAX && !(members & 1)) {
+            seal = (int) DNGMAP_SEAL_NONE;
         }
     }
 
@@ -543,7 +545,7 @@ int CDngFloorManager::IsClearMostFastDestroy() {
     CSaveDataDungeon *dungeon = &save->save_dungeon;
 
     if (dungeon == NULL || scene == NULL) {
-        return 0;
+        return (int) DNGMAP_FAST_DESTROY_NONE;
     }
 
     int               floor = dungeon->floor_id[dungeon->stage_id];
@@ -551,22 +553,22 @@ int CDngFloorManager::IsClearMostFastDestroy() {
     DNG_FLOOR_SAVE   *saved = dungeon->GetFloorInfoPtr(dungeon->stage_id, floor);
 
     if (info == NULL || saved == NULL) {
-        return 0;
+        return (int) DNGMAP_FAST_DESTROY_NONE;
     }
 
     int elapsed = ((int) save->play_time - (int) scene->subject_counter) * 6 / 5;
-    int result = 0;
+    int result = (int) DNGMAP_FAST_DESTROY_NONE;
 
     if (saved->fast_destroy_time == 0) {
         if (elapsed < info->fast_destroy_time) {
             saved->fast_destroy_time = elapsed;
-            result = 1;
+            result = (int) DNGMAP_FAST_DESTROY_FIRST;
             GetUserDataMan()->AddYarikomiMedal(result);
-            saved->flag |= 0x10;
+            saved->flag |= (int) DNG_FLOOR_FLAG_FAST_DESTROY_CLEAR;
         }
     } else if (elapsed < saved->fast_destroy_time) {
         saved->fast_destroy_time = elapsed;
-        result = 2;
+        result = (int) DNGMAP_FAST_DESTROY_RECORD;
     }
 
     return result;
@@ -588,9 +590,9 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
         {0, 0, 0, 0, 0, 1, 0},
     };
     static u16 check_bittable[3][6] = {
-        {0x2, 0x4, 0x8, 0x10, 0x20, 0x40},
-        {0x1, 0x2, 0x4, 0x8, 0x10, 0x40},
-        {0x20, 0x2, 0x4, 0x8, 0x10, 0x1},
+        {0x2,  0x4, 0x8, 0x10, 0x20, 0x40},
+        {0x1,  0x2, 0x4, 0x8,  0x10, 0x40},
+        {0x20, 0x2, 0x4, 0x8,  0x10, 0x1 },
     };
     int result;
     int mask;
@@ -611,7 +613,7 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
     }
 
     active = scene->battle_clear;
-    result = 0;
+    result = DNGMAP_PRACTICE_NONE;
 
     if (diff_conditiontable[difficulty][practice_type] == 0) {
         return 0;
@@ -628,7 +630,7 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
         case 0:
             if (active != 0) {
                 if (scene->timer < info->practice_param) {
-                    result = 2;
+                    result = DNGMAP_PRACTICE_CLEAR;
                 }
             }
 
@@ -665,14 +667,14 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
                 }
 
                 if (practice_type == 2) {
-                    if ((mask & 0x1) || (mask & 0x20) || (mask & 0x40)) {
+                    if ((mask & DNG_PRACTICE_ACTION_ITEM) || (mask & DNG_PRACTICE_ACTION_RIDEPOD) || (mask & DNG_PRACTICE_ACTION_MONSTER)) {
                         found = 1;
                     } else {
                         static u16 cbit[4][5] = {
                             {0x4, 0x8, 0x10, 0x20, 0x40},
                             {0x2, 0x8, 0x10, 0x20, 0x40},
                             {0x2, 0x4, 0x10, 0x20, 0x40},
-                            {0x2, 0x4, 0x8, 0x20, 0x40},
+                            {0x2, 0x4, 0x8,  0x20, 0x40},
                         };
 
                         r = info->practice_param - 1;
@@ -686,16 +688,16 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
                 }
 
                 if ((mask & (1 << info->practice_param)) && found == 0) {
-                    result = 2;
+                    result = DNGMAP_PRACTICE_CLEAR;
                 }
             }
 
             break;
         case 5:
-            result = 2;
+            result = DNGMAP_PRACTICE_CLEAR;
 
-            if (mask & 0x80) {
-                result = 1;
+            if (mask & DNG_PRACTICE_ACTION_HEAL) {
+                result = DNGMAP_PRACTICE_FAILED;
             }
 
             break;
@@ -703,17 +705,17 @@ int CDngFloorManager::IsClearPractice(int difficulty) {
             break;
     }
 
-    if (result == 2) {
+    if (result == DNGMAP_PRACTICE_CLEAR) {
         if (saved->flag & DNG_FLOOR_FLAG_PRACTICE_CLEAR) {
-            result = 3;
+            result = DNGMAP_PRACTICE_CLEAR_AGAIN;
         }
     }
 
-    if (result == 2 || result == 3) {
+    if (result == DNGMAP_PRACTICE_CLEAR || result == DNGMAP_PRACTICE_CLEAR_AGAIN) {
         saved->flag |= DNG_FLOOR_FLAG_PRACTICE_CLEAR;
     }
 
-    if (result == 2) {
+    if (result == DNGMAP_PRACTICE_CLEAR) {
         GetUserDataMan()->AddYarikomiMedal(1);
     }
 
@@ -909,26 +911,26 @@ GLID_INFO *CDngFloorManager::GetNextGlid(GLID_INFO *glid, int *index) {
 
     if (dng_no == 2) {
         static int search_tbl[GLID_DIR_NUM][3] = {
-            {GLID_DIR_UP, GLID_DIR_LEFT, GLID_DIR_RIGHT},
-            {GLID_DIR_DOWN, GLID_DIR_RIGHT, GLID_DIR_LEFT},
-            {GLID_DIR_LEFT, GLID_DIR_DOWN, GLID_DIR_UP},
-            {GLID_DIR_RIGHT, GLID_DIR_UP, GLID_DIR_DOWN},
+            {GLID_DIR_UP,    GLID_DIR_LEFT,  GLID_DIR_RIGHT},
+            {GLID_DIR_DOWN,  GLID_DIR_RIGHT, GLID_DIR_LEFT },
+            {GLID_DIR_LEFT,  GLID_DIR_DOWN,  GLID_DIR_UP   },
+            {GLID_DIR_RIGHT, GLID_DIR_UP,    GLID_DIR_DOWN },
         };
         row = search_tbl[current];
     } else if (dng_no == 3) {
         static int search_tbl[GLID_DIR_NUM][3] = {
-            {GLID_DIR_UP, GLID_DIR_LEFT, GLID_DIR_RIGHT},
-            {GLID_DIR_DOWN, GLID_DIR_RIGHT, GLID_DIR_LEFT},
-            {GLID_DIR_LEFT, GLID_DIR_UP, GLID_DIR_DOWN},
-            {GLID_DIR_RIGHT, GLID_DIR_UP, GLID_DIR_DOWN},
+            {GLID_DIR_UP,    GLID_DIR_LEFT,  GLID_DIR_RIGHT},
+            {GLID_DIR_DOWN,  GLID_DIR_RIGHT, GLID_DIR_LEFT },
+            {GLID_DIR_LEFT,  GLID_DIR_UP,    GLID_DIR_DOWN },
+            {GLID_DIR_RIGHT, GLID_DIR_UP,    GLID_DIR_DOWN },
         };
         row = search_tbl[current];
     } else {
         static int search_tbl[GLID_DIR_NUM][3] = {
-            {GLID_DIR_UP, GLID_DIR_LEFT, GLID_DIR_RIGHT},
-            {GLID_DIR_DOWN, GLID_DIR_LEFT, GLID_DIR_RIGHT},
-            {GLID_DIR_LEFT, GLID_DIR_UP, GLID_DIR_DOWN},
-            {GLID_DIR_RIGHT, GLID_DIR_UP, GLID_DIR_DOWN},
+            {GLID_DIR_UP,    GLID_DIR_LEFT, GLID_DIR_RIGHT},
+            {GLID_DIR_DOWN,  GLID_DIR_LEFT, GLID_DIR_RIGHT},
+            {GLID_DIR_LEFT,  GLID_DIR_UP,   GLID_DIR_DOWN },
+            {GLID_DIR_RIGHT, GLID_DIR_UP,   GLID_DIR_DOWN },
         };
         row = search_tbl[current];
     }
@@ -970,10 +972,10 @@ GLID_INFO *CDngFloorManager::GetNextRoom(int floor, int dir, GLID_INFO *glid, in
     }
 
     int dirs[GLID_DIR_NUM][3] = {
-        {GLID_DIR_UP, GLID_DIR_LEFT, GLID_DIR_RIGHT},
-        {GLID_DIR_DOWN, GLID_DIR_RIGHT, GLID_DIR_LEFT},
-        {GLID_DIR_LEFT, GLID_DIR_UP, GLID_DIR_DOWN},
-        {GLID_DIR_RIGHT, GLID_DIR_DOWN, GLID_DIR_DOWN},
+        {GLID_DIR_UP,    GLID_DIR_LEFT,  GLID_DIR_RIGHT},
+        {GLID_DIR_DOWN,  GLID_DIR_RIGHT, GLID_DIR_LEFT },
+        {GLID_DIR_LEFT,  GLID_DIR_UP,    GLID_DIR_DOWN },
+        {GLID_DIR_RIGHT, GLID_DIR_DOWN,  GLID_DIR_DOWN },
     };
     row = dirs[dir];
     info = &room->room;

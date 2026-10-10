@@ -12,8 +12,8 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 
-extern u_char              at_1118[];
-extern u_char              at_1119[];
+extern u_char at_1118[];
+extern u_char at_1119[];
 
 static mgCFrameAttr dmy_attr;
 
@@ -346,8 +346,9 @@ int mgInsideScreen(float (*corners)[4], float (*matrix)[4]) {
 }
 
 #pragma global_optimizer off
+
 int mgInsideScreen(float (*corners)[4], float (*matrix)[4], float *out_max, float *out_min) {
-    mgRENDER_INFO *render_info = &mgRenderInfo;
+    mgRENDER_INFO  *render_info = &mgRenderInfo;
     register float *screen = &render_info->world_screen_rel[0][0];
     register float *m = &matrix[0][0];
     register float *in = &corners[0][0];
@@ -474,6 +475,7 @@ int mgInsideScreen(float (*corners)[4], float (*matrix)[4], float *out_max, floa
 
     return mgClipBoxW(out_max, out_min, render_info->screen_box_max, render_info->screen_box_min);
 }
+
 #pragma global_optimizer reset
 
 void mgCObject::SetPosition(float *position) {
@@ -836,9 +838,11 @@ void mgCFrame::ClearChildFlag() {
 #pragma schedule reset
 
 #pragma global_optimizer off
+
 void mgCFrame::GetLocalMatrix(float (*matrix)[4]) {
     if (use_srt) {
-        float (*destination)[4] = matrix;
+        float(*destination)[4] = matrix;
+
         asm {
             addiu v1, this, 0xB0
             addiu v0, this, 0x30
@@ -861,17 +865,21 @@ void mgCFrame::GetLocalMatrix(float (*matrix)[4]) {
             sceVu0CopyVector(translation, matrix[3]);
             mgZeroVectorW(matrix[3]);
         }
+
         if (rot_type & MG_FRAME_ROT_APPLY) {
             if (rotation[0] != 0.0f) {
                 sceVu0RotMatrixX(matrix, matrix, rotation[0]);
             }
+
             if (rotation[1] != 0.0f) {
                 sceVu0RotMatrixY(matrix, matrix, rotation[1]);
             }
+
             if (rotation[2] != 0.0f) {
                 sceVu0RotMatrixZ(matrix, matrix, rotation[2]);
             }
         }
+
         if (rot_type & MG_FRAME_ROT_LOCAL_ORIGIN) {
             sceVu0AddVector(matrix[3], translation, position);
             matrix[3][3] = 1.0f;
@@ -883,12 +891,14 @@ void mgCFrame::GetLocalMatrix(float (*matrix)[4]) {
         sceVu0CopyMatrix(matrix, trans_matrix);
     }
 }
+
 #pragma global_optimizer reset
 
 #pragma global_optimizer off
+
 void mgCFrame::GetBBoardMatrix(int mode, float (*matrix)[4], mgRENDER_INFO *info) {
     float position[4];
-    float toEye[4];
+    float to_eye[4];
     float scale[4];
     float world[4][4];
     float pitch[4][4];
@@ -898,6 +908,7 @@ void mgCFrame::GetBBoardMatrix(int mode, float (*matrix)[4], mgRENDER_INFO *info
     scale[2] = mgDistVector(world[0]);
     *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(world[3]);
     sceVu0UnitMatrix(matrix);
+
     if (mode & 2) {
         sceVu0SubVector(matrix[2], info->camera_pos, position);
         matrix[2][1] = 0.0f;
@@ -908,18 +919,19 @@ void mgCFrame::GetBBoardMatrix(int mode, float (*matrix)[4], mgRENDER_INFO *info
         matrix[2][0] = matrix[2][0];
         matrix[2][2] = matrix[2][2];
     }
+
     if (mode & 1) {
         sceVu0UnitMatrix(pitch);
-        sceVu0SubVector(toEye, info->camera_pos, position);
-        sceVu0Normalize(toEye, toEye);
-        float eyeY = toEye[1];
-        toEye[3] = 0.0f;
-        toEye[1] = 0.0f;
-        float horizontal = mgDistVector(toEye);
+        sceVu0SubVector(to_eye, info->camera_pos, position);
+        sceVu0Normalize(to_eye, to_eye);
+        float eye_y = to_eye[1];
+        to_eye[3] = 0.0f;
+        to_eye[1] = 0.0f;
+        float horizontal = mgDistVector(to_eye);
         pitch[1][1] = horizontal;
         pitch[2][2] = horizontal;
-        pitch[1][2] = -eyeY;
-        pitch[2][1] = eyeY;
+        pitch[1][2] = -eye_y;
+        pitch[2][1] = eye_y;
         sceVu0SubVector(matrix[2], info->camera_pos, position);
         matrix[2][1] = 0.0f;
         matrix[2][3] = 0.0f;
@@ -928,9 +940,10 @@ void mgCFrame::GetBBoardMatrix(int mode, float (*matrix)[4], mgRENDER_INFO *info
         matrix[0][2] = -matrix[2][0];
         mgMulMatrix(matrix, matrix, pitch);
     }
-    float *scaleVec = scale;
+
+    float *scale_vec = scale;
     asm {
-        lqc2 vf10, 0(scaleVec)
+        lqc2 vf10, 0(scale_vec)
         lqc2 vf1, 0x0(matrix)
         lqc2 vf2, 0x10(matrix)
         lqc2 vf3, 0x20(matrix)
@@ -951,37 +964,49 @@ void mgCFrame::GetBBoardMatrix(int mode, float (*matrix)[4], mgRENDER_INFO *info
     changed = 0;
     ClearChildFlag();
 }
+
 #pragma global_optimizer reset
 
 #pragma optimization_level 3
 #pragma global_optimizer off
+
 void mgCFrame::GetLWMatrix(float (*matrix)[4]) {
     float parent_matrix[4][4];
     float local_matrix[4][4];
+
     if (reference != 0) {
         changed = 1;
     }
+
     if (changed == 0) {
         mgCFrame *frame = parent;
+
         if (frame == NULL) {
             sceVu0CopyMatrix(matrix, lw_matrix);
             return;
         }
+
         mgCFrame *node = frame;
+
         while (node != NULL) {
             if (node->changed != 0) {
                 break;
             }
+
             frame = node->parent;
+
             if (frame == NULL) {
                 sceVu0CopyMatrix(matrix, lw_matrix);
                 return;
             }
+
             node = frame;
         }
     }
+
     ClearChildFlag();
     GetLocalMatrix(local_matrix);
+
     if (parent == NULL) {
         sceVu0CopyMatrix(lw_matrix, local_matrix);
         sceVu0CopyMatrix(matrix, lw_matrix);
@@ -1038,37 +1063,44 @@ void mgCFrame::GetLWMatrix(float (*matrix)[4]) {
 #pragma global_optimizer reset
 
 #pragma global_optimizer off
+
 void mgCFrame::GetLWMatrixTopBottom(float (*matrix)[4]) {
-    float parentMatrix[4][4];
-    float localMatrix[4][4];
+    float parent_matrix[4][4];
+    float local_matrix[4][4];
+
     if (reference != 0) {
         GetLWMatrix(matrix);
         return;
     }
+
     if (changed == 0) {
-        mgCFrame *parentFrame = parent;
-        if (parentFrame == 0) {
+        mgCFrame *parent_frame = parent;
+
+        if (parent_frame == 0) {
             sceVu0CopyMatrix(matrix, lw_matrix);
             return;
         }
-        if (parentFrame->changed == 0) {
+
+        if (parent_frame->changed == 0) {
             sceVu0CopyMatrix(matrix, lw_matrix);
             return;
         }
     }
+
     ClearChildFlag();
-    GetLocalMatrix(localMatrix);
+    GetLocalMatrix(local_matrix);
     mgCFrame *parent = this->parent;
+
     if (parent == 0) {
-        sceVu0CopyMatrix(lw_matrix, localMatrix);
+        sceVu0CopyMatrix(lw_matrix, local_matrix);
         sceVu0CopyMatrix(matrix, lw_matrix);
     } else {
-        sceVu0CopyMatrix(parentMatrix, parent->lw_matrix);
+        sceVu0CopyMatrix(parent_matrix, parent->lw_matrix);
         float(*b)[4];
         float(*a)[4];
         float(*dst)[4];
-        a = parentMatrix;
-        b = localMatrix;
+        a = parent_matrix;
+        b = local_matrix;
         dst = lw_matrix;
         asm {
             lqc2 vf5, 0(b)
@@ -1105,8 +1137,10 @@ void mgCFrame::GetLWMatrixTopBottom(float (*matrix)[4]) {
             sqc2 vf23, 0x30(matrix)
         }
     }
+
     changed = 0;
 }
+
 #pragma global_optimizer reset
 
 void mgCFrame::GetInverseMatrix(float (*matrix)[4]) {
@@ -1563,31 +1597,33 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_frame", Draw__8mgCFrameFPUi);
 #endif
 
 #pragma global_optimizer off
+
 int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
-    sceVu0FMATRIX   lw;
-    sceVu0FVECTOR   rect_max;
-    sceVu0FVECTOR   rect_min;
-    sceVu0FMATRIX   screen_matrix;
-    mgVu0FBOX       child_rect;
-    mgCFrameAttr   *draw_attr;
-    int             visible;
-    mgRENDER_INFO  *info;
-    mgCFrame       *frame;
-    register float *lo;
-    register float *hi;
-    register float *matrix;
-    register float *corners;
-    float           left;
-    float           top;
-    int             billboard;
-    int             draw_child;
+    sceVu0FMATRIX       lw;
+    sceVu0FVECTOR       rect_max;
+    sceVu0FVECTOR       rect_min;
+    sceVu0FMATRIX       screen_matrix;
+    mgVu0FBOX           child_rect;
+    mgCFrameAttr       *draw_attr;
+    int                 visible;
+    mgRENDER_INFO      *info;
+    mgCFrame           *frame;
+    register float     *lo;
+    register float     *hi;
+    register float     *matrix;
+    register float     *corners;
+    float               left;
+    float               top;
+    int                 billboard;
+    int                 draw_child;
     register u_long128 *copy_min;
-    register u_long128 copy_value;
+    register u_long128  copy_value;
     register u_long128 *copy_max;
 
     if (manager == NULL) {
         manager = &mgDrawManager;
     }
+
     info = manager->render_info;
     copy_max = reinterpret_cast<u_long128 *>(rect_max);
     copy_value = *reinterpret_cast<u_long128 *>(at_1118);
@@ -1596,14 +1632,17 @@ int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
     *copy_min = *reinterpret_cast<u_long128 *>(at_1119);
 
     draw_attr = attr;
+
     if (draw_attr == NULL) {
         draw_attr = &dmy_attr;
     }
 
     billboard = MG_FRAME_BILLBOARD_NONE;
+
     if (attr != NULL) {
         billboard = this->attr->billboard;
     }
+
     if (billboard != MG_FRAME_BILLBOARD_NONE) {
         GetBBoardMatrix(billboard, lw, info);
     } else {
@@ -1611,15 +1650,20 @@ int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
     }
 
     visible = 0;
+
     if (draw_attr->draw & MG_FRAME_DRAW_VISIBLE) {
         visible = 1;
     }
+
     if (visual == NULL || bound == NULL) {
         visible = 0;
     }
 
     do {
-        if (!visible) break;
+        if (!visible) {
+            break;
+        }
+
         mgMulMatrix(screen_matrix, info->world_screen_rel, lw);
         corners = &bound->corner[0][0];
         matrix = &screen_matrix[0][0];
@@ -1741,6 +1785,7 @@ int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
         top = 0.5f * -mgScreenHeight;
         float right = left + mgScreenWidth;
         float bottom = top + mgScreenHeight;
+
         if (rect_min[0] <= right && rect_max[0] >= left &&
             rect_min[1] <= bottom && rect_max[1] >= top && rect_max[3] >= info->clip_min[2]) {
             visible = 1;
@@ -1755,15 +1800,18 @@ int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
         sceVu0CopyVector(rect->max, rect_max);
         sceVu0CopyVector(rect->min, rect_min);
     }
+
     if (draw_attr->draw & MG_FRAME_DRAW_SKIP_CHILDREN) {
         return visible;
     }
 
     for (frame = child; frame != NULL; frame = frame->brother) {
         draw_child = 1;
+
         if (frame->attr != NULL && (frame->attr->draw & MG_FRAME_DRAW_SKIP_BY_PARENT)) {
             draw_child = 0;
         }
+
         if (draw_child && frame->GetDrawRect(&child_rect, NULL)) {
             if (!visible) {
                 sceVu0CopyVector(rect_max, child_rect.max);
@@ -1771,6 +1819,7 @@ int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
             } else {
                 mgVectorMaxMin(rect_max, rect_min, rect_max, rect_min, child_rect.max, child_rect.min);
             }
+
             visible = 1;
         }
     }
@@ -1779,6 +1828,7 @@ int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
     sceVu0CopyVector(rect->min, rect_min);
     return visible;
 }
+
 #pragma global_optimizer reset
 
 mgCFrame &mgCFrame::operator=(mgCFrame &other) {

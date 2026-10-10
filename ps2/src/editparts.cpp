@@ -1,18 +1,12 @@
 #include "common.h"
 #include "mw_runtime.h"
 
+#include "editeff.hpp"
 #include "editparts.hpp"
 #include "mdslist.hpp"
 #include "mg_math.hpp"
 #include "mg_memory.hpp"
 
-const int kPartsInfoWallValueOffset = 0x1A4;
-const int kFenceEndAOffset = 0xA0;
-const int kFenceEndBOffset = 0xB0;
-const int kFenceFlagOffset = 0x230;
-const int kTerritoryCenterOffset = 0x260;
-const int kTerritoryRadiusOffset = 0x270;
-const int kTerritoryHeightOffset = 0x274;
 const int kNoTerritoryFlags = 0xAC2;
 
 // Code (.text)
@@ -23,7 +17,7 @@ void CEditPartsInfo::Initialize() {
     comment = 0;
     parts_name = 0;
     parts = 0;
-    place_anime = 0;
+    place_anime = (int) EDIT_PLACE_ANIME_NONE;
     bury_depth = 0;
     col_area1.Initialize();
     col_floor.Initialize();
@@ -134,7 +128,7 @@ void CEditParts::Initialize() {
     piece_list = 0;
     anime_list = 0;
     info = 0;
-    state = 0;
+    state = (int) EDIT_PARTS_STATE_NONE;
     house = 0;
     ground = 0;
     max_material_num = 0;
@@ -247,7 +241,7 @@ int CEditParts::IsFence() {
         return 0;
     }
 
-    return (river_info->attr & 0x130) == 0x130;
+    return (river_info->attr & (int) EDIT_PARTS_ATR_FENCE) == (int) EDIT_PARTS_ATR_FENCE;
 }
 
 int CEditParts::IsBurn() {
@@ -259,7 +253,7 @@ int CEditParts::IsBurn() {
         return 0;
     }
 
-    return (river_info->attr & 0x1000) != 0;
+    return (river_info->attr & (int) EDIT_PARTS_ATR_BURN) != 0;
 }
 
 int CEditParts::GetFenceSide(float *end_a, float *end_b) {

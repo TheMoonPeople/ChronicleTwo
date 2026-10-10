@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+
 #include "snd_mngr.hpp"
 
 /**
@@ -38,26 +39,26 @@ enum MenuFileLoadMode {
  *
  */
 enum MenuScriptMessagePreset {
-    MENU_SCRIPT_MES_DEFAULT = 0, /**< Script preset "default". */
-    MENU_SCRIPT_MES_DEFAULT_BLACK = 1, /**< Script preset "default_black". */
-    MENU_SCRIPT_MES_NO_WIN = 2, /**< Script preset "no_win". */
-    MENU_SCRIPT_MES_SYSTEM = 3, /**< Script preset "system". */
-    MENU_SCRIPT_MES_NAME = 4, /**< Script preset "name". */
-    MENU_SCRIPT_MES_NAME_BLACK = 5, /**< Script preset "name_black". */
-    MENU_SCRIPT_MES_ITEMCMD = 6, /**< Script preset "itemcmd". */
-    MENU_SCRIPT_MES_INVENT = 7, /**< Script preset "invent". */
-    MENU_SCRIPT_MES_GEO = 8, /**< Script preset "geo". */
-    MENU_SCRIPT_MES_MSGDIC = 9, /**< Script preset "msgdic". */
-    MENU_SCRIPT_MES_GENERAL = 10, /**< Script preset "general". */
-    MENU_SCRIPT_MES_GENERAL_2 = 18, /**< Script preset "general_2". */
-    MENU_SCRIPT_MES_YESNO = 11, /**< Script preset "yesno". */
-    MENU_SCRIPT_MES_BRD3 = 12, /**< Script preset "brd3". */
-    MENU_SCRIPT_MES_HELPWIN = 13, /**< Script preset "helpwin". */
-    MENU_SCRIPT_MES_MAKEBRD = 14, /**< Script preset "makebrd". */
-    MENU_SCRIPT_MES_ITEMMSG = 15, /**< Script preset "itemmsg". */
+    MENU_SCRIPT_MES_DEFAULT = 0,               /**< Script preset "default". */
+    MENU_SCRIPT_MES_DEFAULT_BLACK = 1,         /**< Script preset "default_black". */
+    MENU_SCRIPT_MES_NO_WIN = 2,                /**< Script preset "no_win". */
+    MENU_SCRIPT_MES_SYSTEM = 3,                /**< Script preset "system". */
+    MENU_SCRIPT_MES_NAME = 4,                  /**< Script preset "name". */
+    MENU_SCRIPT_MES_NAME_BLACK = 5,            /**< Script preset "name_black". */
+    MENU_SCRIPT_MES_ITEMCMD = 6,               /**< Script preset "itemcmd". */
+    MENU_SCRIPT_MES_INVENT = 7,                /**< Script preset "invent". */
+    MENU_SCRIPT_MES_GEO = 8,                   /**< Script preset "geo". */
+    MENU_SCRIPT_MES_MSGDIC = 9,                /**< Script preset "msgdic". */
+    MENU_SCRIPT_MES_GENERAL = 10,              /**< Script preset "general". */
+    MENU_SCRIPT_MES_GENERAL_2 = 18,            /**< Script preset "general_2". */
+    MENU_SCRIPT_MES_YESNO = 11,                /**< Script preset "yesno". */
+    MENU_SCRIPT_MES_BRD3 = 12,                 /**< Script preset "brd3". */
+    MENU_SCRIPT_MES_HELPWIN = 13,              /**< Script preset "helpwin". */
+    MENU_SCRIPT_MES_MAKEBRD = 14,              /**< Script preset "makebrd". */
+    MENU_SCRIPT_MES_ITEMMSG = 15,              /**< Script preset "itemmsg". */
     MENU_SCRIPT_MES_ITEMMSG_DEFAULTFUCHI = 16, /**< Script preset "itemmsg_defaultfuchi". */
-    MENU_SCRIPT_MES_VOLMSG = 17, /**< Script preset "volmsg". */
-    MENU_SCRIPT_MES_TALK = 19, /**< Script preset "talk". */
+    MENU_SCRIPT_MES_VOLMSG = 17,               /**< Script preset "volmsg". */
+    MENU_SCRIPT_MES_TALK = 19,                 /**< Script preset "talk". */
 };
 
 /**

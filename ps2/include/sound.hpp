@@ -69,9 +69,9 @@ struct MIDI_PORT {
     s32       bank_count;                         /**< Number of banks loaded. */
     s32       spu_address;                        /**< Sound processor address the port's first bank body loads to. */
     s32       ezmidi_param;                       /**< Value sent with the port's EZMIDI 0xA0 message after a bank loads. */
-    s32       spu_next_address;            /**< Sound processor address the port's next bank body loads at. */
-    void     *sequence[MIDI_PORT_SEQ_MAX]; /**< IOP address of each loaded sequence. */
-    void     *resident_sequence;           /**< IOP address of the sequence the sequencer is given for the port, kept when the port is deleted. */
+    s32       spu_next_address;                   /**< Sound processor address the port's next bank body loads at. */
+    void     *sequence[MIDI_PORT_SEQ_MAX];        /**< IOP address of each loaded sequence. */
+    void     *resident_sequence;                  /**< IOP address of the sequence the sequencer is given for the port, kept when the port is deleted. */
     s32       unk_CC[MIDI_PORT_SEQ_MAX];
     s32       sequence_count; /**< Number of sequences loaded. */
     MIDI_FADE fade[2];        /**< The port's two volume fades. */

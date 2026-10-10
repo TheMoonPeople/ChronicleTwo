@@ -2,13 +2,6 @@
 #include "common.h"
 #include "mw_runtime.h"
 
-#include "mg_drawenv.hpp"
-#include "mg_drawprim.hpp"
-#include "mg_frame.hpp"
-#include "mg_math.hpp"
-#include "mg_memory.hpp"
-#include "mg_texture.hpp"
-#include "mglib.hpp"
 #include <eekernel.h>
 #include <libdev.h>
 #include <sifdev.h>
@@ -16,12 +9,19 @@
 #include <cstdio>
 #include <cstring>
 
+#include "mg_drawenv.hpp"
+#include "mg_drawprim.hpp"
+#include "mg_frame.hpp"
+#include "mg_math.hpp"
+#include "mg_memory.hpp"
 #include "mg_tanime.hpp"
+#include "mg_texture.hpp"
 #include "mg_visual.hpp"
+#include "mglib.hpp"
 
-mgRENDER_INFO mgRenderInfo;
+mgRENDER_INFO     mgRenderInfo;
 mgCTextureManager mgTexManager;
-mgCDrawManager mgDrawManager;
+mgCDrawManager    mgDrawManager;
 
 /**
  *
@@ -292,13 +292,13 @@ static const u_int dma_tag_call = 0x50000000;
  * Number of built-in VU1 microprogram upload packets.
  *
  */
-static const int   builtin_vu_prog_count = 3;
+static const int builtin_vu_prog_count = 3;
 /**
  *
  * First identifier in the user VU1 microprogram table.
  *
  */
-static const int   user_vu_prog_base = 0x100;
+static const int user_vu_prog_base = 0x100;
 
 /**
  *
@@ -329,15 +329,17 @@ enum mgDMA_CHANNEL {
     MG_DMA_CHANNEL_FROM_SPR = 8, /**< DMA channel transferring data from scratchpad memory. */
 };
 
-void              StoreImage(int front_buffer);
-int               VSyncCallBack(int field);
+void StoreImage(int front_buffer);
+int  VSyncCallBack(int field);
 
 /**
  *
  * Dither presets converted to signed three-bit GS coefficients.
  *
  */
-static signed char dimx_281[1][16] = {{10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1}};
+static signed char dimx_281[1][16] = {
+    {10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1}
+};
 
 // Code (.text)
 void mgPerformanceMeter(int enable) {
@@ -349,7 +351,7 @@ int mgGetPerformanceMeterFlag() {
 }
 
 #pragma global_optimizer off
-#ifdef NONMATCHING
+
 /**
  *
  * Updates the displayed interlace field and vertical-sync count and invokes the secondary callback.
@@ -362,20 +364,28 @@ int mgGetPerformanceMeterFlag() {
 int VSyncCallBack(int field) {
     call_back_active = 1;
     u_long csr = *(volatile u_long *) gs_csr;
-    VSyncField = (((csr >> 13) & 1) == 0);
+    VSyncField = !((csr >> 13) & 1);
+
     if (VSyncCallBack2 != 0) {
         VSyncCallBack2(field);
     }
+
     ++vcount;
+
     if (vcount < 0) {
         vcount = 0;
     }
+
     call_back_active = 0;
+
+    asm {
+        sync
+        ei
+    }
+
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mglib", VSyncCallBack__Fi);
-#endif
+
 #pragma global_optimizer reset
 
 void mgInitVSyncCallBack(int (*callback)(int)) {
@@ -447,13 +457,14 @@ static int GetScreenSize(int mode, int *width, int *height, int *left, int *top,
     *bottom = *height + *top;
     return mode;
 }
+
 void mgInit(int screen_mode, int video_mode) {
-    sceDmaEnv          dma_env;
-    u_long128          clear_pixels[8192];
-    sceGsLoadImage     load_image;
-    int                aligned_height;
-    int                buffer;
-    int                i;
+    sceDmaEnv      dma_env;
+    u_long128      clear_pixels[8192];
+    sceGsLoadImage load_image;
+    int            aligned_height;
+    int            buffer;
+    int            i;
 
     font_cons = -1;
     font_draw_flag = 0;
@@ -478,9 +489,11 @@ void mgInit(int screen_mode, int video_mode) {
     mgGiftagAD.REGS0 = SCE_GIF_PACKED_AD;
     mgScreenMode = GetScreenSize(screen_mode, &mgScreenWidth, &mgScreenHeight, &mgScreenNX, &mgScreenNY, &mgScreenMX, &mgScreenMY);
     aligned_height = mgScreenHeight;
+
     if (mgScreenHeight % 32 != 0) {
         aligned_height += 32 - aligned_height % 32;
     }
+
     mgScreenOffx = 0x800 - mgScreenWidth / 2;
     mgScreenOffy = 0x800 - mgScreenHeight / 2;
     mgScreenLeft = mgScreenOffx;
@@ -490,14 +503,17 @@ void mgInit(int screen_mode, int video_mode) {
     mgScreenDepth = 32;
     mgScreenZDepth = 32;
     sceGsResetGraph(0, SCE_GS_INTERLACE, video_mode, 0);
+
     for (i = 0; i < 8192; i++) {
         clear_pixels[i] = 0;
     }
+
     for (buffer = 0; buffer < 32; buffer++) {
         sceGsSetDefLoadImage(&load_image, buffer * 0x200, 2, SCE_GS_PSMCT32, 0, 0, 128, 256);
         FlushCache(0);
         sceGsExecLoadImage(&load_image, clear_pixels);
     }
+
     sceGsSetDefDBuff(&mgDBuff, SCE_GS_PSMCT32, (short) mgScreenWidth, (short) mgScreenHeight, SCE_GS_ZGEQUAL, SCE_GS_PSMZ24, 0);
     frame_buf0 = 0;
     frame_buf1 = mgScreenDepth * (mgScreenWidth * aligned_height / 2048) / 32;
@@ -557,19 +573,24 @@ void mgInit(int screen_mode, int video_mode) {
     sceGsSwapDBuff(&mgDBuff, 0);
     sceDmaSync(DmaCH2, 0, 0);
     mgCreateSinTable();
+
     for (int preset = 0; preset < 1; preset++) {
         for (int cell = 0; cell < 16; cell++) {
             dimx_281[preset][cell] = dimx_281[preset][cell] / 2 - 4;
         }
     }
+
     for (int preset = 0; preset < 1; preset++) {
         u_long packed_dimx = 0;
+
         for (int cell = 0; cell < 16; cell++) {
             // The shift uses 32 bits, so cells 8-15 wrap onto the low word.
             packed_dimx |= (dimx_281[preset][cell] & 0x7) << (cell * 4);
         }
+
         mgDIMX[preset].value = packed_dimx;
     }
+
     mgDIMX[0].bits.dm00 = dimx_281[0][0];
     mgDIMX[0].bits.dm01 = dimx_281[0][1];
     mgDIMX[0].bits.dm02 = dimx_281[0][2];
@@ -587,6 +608,7 @@ void mgInit(int screen_mode, int video_mode) {
     mgDIMX[0].bits.dm32 = dimx_281[0][14];
     mgDIMX[0].bits.dm33 = dimx_281[0][15];
 }
+
 void mgInitVif1Packet(u_long128 *buffer_a, u_long128 *buffer_b, int size) {
     packetbuf[0] = (u_int *) buffer_a;
     packetbuf[1] = (u_int *) buffer_b;
@@ -780,24 +802,26 @@ void mgEndDraw(int mode, mgCDrawManager *manager) {
 void mgStoreFrameImage() {
     StoreImage(0);
 }
+
 void mgEndFrame(mgCDrawManager *manager) {
-    float frame_ticks = (float) (mgFrameRate * 262);
-    static int       count = 1;
-    static float     cpu_ratio = 0.0f;
-    static float     free_ratio = 0.0f;
-    static u_int     store_data[1024] __attribute__((aligned(16)));
-    sceGsFrame      *frame;
-    float            packet_free;
-    float            data_free;
-    int              wait_start;
-    int              sample;
-    int              top;
-    int              magnification;
-    int              offset_y;
+    float        frame_ticks = (float) (mgFrameRate * 262);
+    static int   count = 1;
+    static float cpu_ratio = 0.0f;
+    static float free_ratio = 0.0f;
+    static u_int store_data[1024] __attribute__((aligned(16)));
+    sceGsFrame  *frame;
+    float        packet_free;
+    float        data_free;
+    int          wait_start;
+    int          sample;
+    int          top;
+    int          magnification;
+    int          offset_y;
 
     cpu_ratio = 100.0f * ((*(volatile u_int *) timer0_count - h_count) / frame_ticks);
     mgWaitFrame();
     wait_start = *(volatile u_int *) timer0_count;
+
     if (draw_performance_meter != 0) {
         packet_free = 100.0f * (float) (mgDrawManager.packet_memory->stack_size - mgDrawManager.packet_memory->stack_used) / (float) mgDrawManager.packet_memory->stack_size;
         data_free = 100.0f * (float) (mgDrawManager.data_memory->stack_size - mgDrawManager.data_memory->stack_used) / (float) mgDrawManager.data_memory->stack_size;
@@ -812,15 +836,18 @@ void mgEndFrame(mgCDrawManager *manager) {
         prim.Begin(MG_PRIM_SPRITE);
         prim.Color(128, 128, 128, 128);
         top = mgScreenHeight - 40;
+
         if (free_ratio <= 0.0f) {
             prim.Color(255, 0, 0, 64);
         } else {
             prim.Color(128, 128, 128, 64);
         }
+
         prim.Vertex(mgScreenWidth, top, 0);
         prim.Vertex(mgScreenWidth - 100, top + 8, 0);
         prim.Vertex(mgScreenWidth, top + 12, 0);
         prim.Vertex(mgScreenWidth - 100, top + 16, 0);
+
         if (!(cpu_ratio <= 100.0f)) {
             prim.Color(255, 0, 0, 64);
         } else if (!(cpu_ratio <= 50.0f)) {
@@ -828,6 +855,7 @@ void mgEndFrame(mgCDrawManager *manager) {
         } else {
             prim.Color(0, 0, 128, 64);
         }
+
         prim.Vertex(mgScreenWidth, top, 0);
         prim.Vertex((float) mgScreenWidth - cpu_ratio, (float) (top + 8), 0.0f);
         prim.Vertex((float) mgScreenWidth - (100.0f - free_ratio), (float) (top + 12), 0.0f);
@@ -839,7 +867,9 @@ void mgEndFrame(mgCDrawManager *manager) {
         prim.Vertex((float) mgScreenWidth - data_free, (float) (top + 32), 0.0f);
         prim.End();
     }
+
     mgEndPacket(NULL);
+
     for (sample = 0; sample < 4; sample++) {
         if (mgPickZBuff[sample].enable != 0) {
             if (mgPickZBuff[sample].x < 4 || mgScreenWidth - 4 < mgPickZBuff[sample].x) {
@@ -853,23 +883,29 @@ void mgEndFrame(mgCDrawManager *manager) {
                 sceGsExecStoreImage(&store_image, (u_long128 *) store_data);
                 sceGsSyncPath(0, 0);
                 u_int *const pixels = store_data;
-                u_int depth = pixels[0];
+                u_int        depth = pixels[0];
                 depth &= 0xFFFFFF;
+
                 for (int pixel = 0; pixel < 64; pixel++) {
                     if ((int) (pixels[pixel] & 0xFFFFFF) < (int) depth) {
                         depth = pixels[pixel] & 0xFFFFFF;
                     }
                 }
+
                 mgPickZBuff[sample].z = depth;
             }
         }
     }
+
     over_vsync = 0;
+
     if (vcount - old_vcount >= mgFrameRate) {
         over_vsync = 1;
     }
+
     WaitVSync(old_vcount, mgFrameRate);
     old_vcount = vcount;
+
     if (capture_on != 0) {
         if (mgFrameRate == 1) {
             if (cap_ture_cnt % 2 != 0) {
@@ -878,22 +914,29 @@ void mgEndFrame(mgCDrawManager *manager) {
         } else {
             StoreImage(0);
         }
+
         cap_ture_cnt++;
     }
+
     capture_on = 0;
+
     if (font_draw_flag != 0 && font_cons >= 0) {
         if (font_cons >= 0) {
             sceDevConsAttribute(font_cons, 7);
         }
+
         sceDevConsDraw(font_cons);
     }
+
     font_draw_flag = 0;
+
     if (mgAntialiasing != 0) {
         mgDBuff.disp[mgDBuffID].pmode = 0x7F23;
     } else {
         *(volatile u_long *) gs_pmode = 0xFF23;
         mgDBuff.disp[mgDBuffID].pmode = 0xFF23;
     }
+
     *(u_long *) &mgDBuff.disp[mgDBuffID].bgcolor = 0;
     *(u_long *) &mgDBuff.disp[mgDBuffID].smode2 = 1;
     frame = mgDBuffID != 0 ? &mgDBuff.draw1.frame1 : &mgDBuff.draw0.frame1;
@@ -909,19 +952,24 @@ void mgEndFrame(mgCDrawManager *manager) {
     *(volatile u_long *) gs_dispfb2 = (u_long) frame->FBP | ((u_long) frame->FBW << 9) | ((u_long) frame->PSM << 15);
     *(volatile u_long *) gs_display2 = (u_long) 0x290 | ((u_long) (offset_y + 72) << 12) | ((u_long) magnification << 23) | ((u_long) (mgScreenWidth * (magnification + 1) - 1) << 32) | ((u_long) (mgScreenHeight - 2) << 44);
     mgNowFrameRate = (*(volatile u_int *) timer0_count - h_count) / 262.0f;
+
     if (!(mgNowFrameRate - (float) mgFrameRate <= 1.0f)) {
         free_ratio = 0.0f;
         mgNowFrameRate = 1.0f + (float) mgFrameRate;
     } else {
         free_ratio = 100.0f * ((*(volatile u_int *) timer0_count - wait_start) / frame_ticks);
     }
+
     count++;
+
     if (count > 60 / mgFrameRate) {
         count = 0;
     }
+
     mgSendPacket(NULL);
     mgDBuffID = !mgDBuffID;
 }
+
 void mgSendPacket(mgCDrawManager *manager) {
     DmaCH1 = sceDmaGetChan(MG_DMA_CHANNEL_VIF1);
     DmaCH1->chcr.TTE = 1;
@@ -1029,6 +1077,7 @@ void mgBeginDrawShadow(mgCTexture *shadow, mgCTexture *unused) {
         prim.End();
     }
 }
+
 void mgEndDrawShadow(mgCTexture *shadow, mgCTexture *unused) {
     if (shadow != NULL) {
         mgCTexture texture = *shadow;
@@ -1303,19 +1352,25 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     int            bit;
 
     default_frame = mgDBuffID != 0 ? &mgDBuff.draw0.frame1 : &mgDBuff.draw1.frame1;
+
     if (fbp < 0) {
         fbp = default_frame->FBP;
     }
+
     if (psm < 0) {
         psm = default_frame->PSM;
     }
+
     GetScreenSize(mgScreenMode, &screen_width, &screen_height, &mgScreenNX, &mgScreenNY, &mgScreenMX, &mgScreenMY);
+
     if (width < 0) {
         width = screen_width;
     }
+
     if (height < 0) {
         height = screen_height;
     }
+
     mgScreenWidth = width;
     mgScreenHeight = height;
     mgScreenNX = -width / 2;
@@ -1323,9 +1378,11 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     mgScreenMX = mgScreenNX + width;
     mgScreenMY = mgScreenNY + height;
     aligned_width = width;
+
     if (aligned_width % 64 != 0) {
         aligned_width += 64 - aligned_width % 64;
     }
+
     sceGsFrame frame = *default_frame;
     frame.FBP = fbp;
     frame.FBW = aligned_width / 64;
@@ -1335,7 +1392,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     mgScreenOffx = 0x800 - width / 2;
     mgScreenOffy = 0x800 - height / 2;
     sceGsXyOffset offset;
-    sceGsScissor scissor;
+    sceGsScissor  scissor;
     offset.OFX = (short) mgScreenOffx * 16;
     offset.OFY = (short) mgScreenOffy * 16;
     scissor.SCAX0 = 0;
@@ -1368,6 +1425,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     registers[11] = SCE_GS_TEXFLUSH;
     sceVif1PkReserve(vif, (u_int *) &registers[12] - packet);
     bpp = 0;
+
     switch (psm) {
         case SCE_GS_PSMCT32:
             bpp = 32;
@@ -1382,6 +1440,7 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
             bpp = 16;
             break;
     }
+
     frame_tex.Initialize();
     frame_tex.width = width;
     frame_tex.height = height;
@@ -1395,26 +1454,35 @@ void mgSetPkFrameBuffer(int fbp, int width, int height, int psm) {
     frame_tex.tex0.PSM = psm;
     width_shift = 0;
     height_shift = 0;
+
     for (size = width; size > 1; size >>= 1) {
         width_shift++;
     }
+
     size = 1;
+
     for (bit = 0; bit < width_shift; bit++) {
         size *= 2;
     }
+
     if (width != size) {
         width_shift++;
     }
+
     for (size = height; size > 1; size >>= 1) {
         height_shift++;
     }
+
     size = 1;
+
     for (bit = 0; bit < height_shift; bit++) {
         size *= 2;
     }
+
     if (height != size) {
         height_shift++;
     }
+
     frame_tex.tex0.bits.tw = width_shift;
     frame_tex.tex0.bits.th = height_shift;
     frame_tex.tex0.bits.tcc = 1;
@@ -1768,7 +1836,7 @@ void mgTransWorldView(float *a, float *b) {
 
 int mgTransZPrim(float z) {
     float pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-    int screen[4];
+    int   screen[4];
     pos[2] = z;
     mgTransViewPrim(screen, pos);
     return screen[2];
@@ -2018,41 +2086,41 @@ void mgCloseFont() {
 }
 
 // Small uninitialised data (.sbss)
-int mgAntialiasing;
-int mgFrameRate;
-float mgNowFrameRate;
-sceDmaChan * DmaCH1;
-sceDmaChan * DmaCH2;
-sceDmaChan * DmaCH8;
-sceVif1Packet * mgVif1Packet;
-int mgClearBackFlag;
-int mgScreenMode;
-int mgScreenWidth;
-int mgScreenHeight;
-int mgScreenNX;
-int mgScreenNY;
-int mgScreenMX;
-int mgScreenMY;
-int mgScreenOffx;
-int mgScreenOffy;
-int mgScreenDepth;
-int mgScreenZDepth;
-int mgScreenLeft;
-int mgScreenRight;
-int mgScreenTop;
-int mgScreenBottom;
-int VSyncField;
-sceGsTex1 mgTEX1_1;
-sceGsTex1 mgTEX1_2;
-sceGsTest mgTEST_1;
-sceGsTest mgTEST_2;
-sceGsZbuf mgZBUF_1;
-sceGsZbuf mgZBUF_2;
-sceGsAlpha mgALPHA_1;
-sceGsAlpha mgALPHA_2;
-sceGsTexa mgTEXA_1;
-sceGsTexa mgTEXA_2;
-sceGsFrame mgFRAME_1;
+int            mgAntialiasing;
+int            mgFrameRate;
+float          mgNowFrameRate;
+sceDmaChan    *DmaCH1;
+sceDmaChan    *DmaCH2;
+sceDmaChan    *DmaCH8;
+sceVif1Packet *mgVif1Packet;
+int            mgClearBackFlag;
+int            mgScreenMode;
+int            mgScreenWidth;
+int            mgScreenHeight;
+int            mgScreenNX;
+int            mgScreenNY;
+int            mgScreenMX;
+int            mgScreenMY;
+int            mgScreenOffx;
+int            mgScreenOffy;
+int            mgScreenDepth;
+int            mgScreenZDepth;
+int            mgScreenLeft;
+int            mgScreenRight;
+int            mgScreenTop;
+int            mgScreenBottom;
+int            VSyncField;
+sceGsTex1      mgTEX1_1;
+sceGsTex1      mgTEX1_2;
+sceGsTest      mgTEST_1;
+sceGsTest      mgTEST_2;
+sceGsZbuf      mgZBUF_1;
+sceGsZbuf      mgZBUF_2;
+sceGsAlpha     mgALPHA_1;
+sceGsAlpha     mgALPHA_2;
+sceGsTexa      mgTEXA_1;
+sceGsTexa      mgTEXA_2;
+sceGsFrame     mgFRAME_1;
 /**
  *
  * Frame counter used by the frame-end performance meter.
@@ -2104,9 +2172,9 @@ INCLUDE_BSS(image_num_1535, 0x4);
 INCLUDE_BSS(init_1536, 0x4);
 
 // Uninitialised data (.bss)
-sceGifTag mgGiftagAD;
+sceGifTag     mgGiftagAD;
 sceVu0FVECTOR mgBackColor;
-sceGsDBuff mgDBuff;
-MG_PICKZ mgPickZBuff[4];
+sceGsDBuff    mgDBuff;
+MG_PICKZ      mgPickZBuff[4];
 INCLUDE_BSS(store_data_614, 0x1000);
 INCLUDE_BSS(gs_simage, 0xA0);

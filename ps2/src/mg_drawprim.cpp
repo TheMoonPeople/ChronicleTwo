@@ -284,8 +284,9 @@ void mgCDrawPrim::Vertex(float x, float y, float z) {
 }
 
 #pragma global_optimizer off
+
 void mgCDrawPrim::Vertex(float *pos) {
-    int converted[4] __attribute__((aligned(16)));
+    int  converted[4] __attribute__((aligned(16)));
     int *result = converted;
     asm {
         lqc2 vf10, 0(pos)
@@ -295,6 +296,7 @@ void mgCDrawPrim::Vertex(float *pos) {
     }
     Vertex4(converted[0], converted[1], converted[2]);
 }
+
 #pragma global_optimizer reset
 
 void mgCDrawPrim::Vertex4(int x, int y, int z) {
@@ -320,8 +322,9 @@ void mgCDrawPrim::Color(int r, int g, int b, int a) {
 }
 
 #pragma global_optimizer off
+
 void mgCDrawPrim::Color(float *color) {
-    int converted[4] __attribute__((aligned(16)));
+    int  converted[4] __attribute__((aligned(16)));
     int *result = converted;
     asm {
         lqc2 vf10, 0(color)
@@ -330,6 +333,7 @@ void mgCDrawPrim::Color(float *color) {
     }
     Color(converted[0], converted[1], converted[2], converted[3]);
 }
+
 #pragma global_optimizer reset
 
 void mgCDrawPrim::TextureCrd4(int u, int v) {
@@ -429,7 +433,7 @@ void mgCDrawPrim::DepthTestEnable(int enable) {
         test->bits.zte = 1;
         test->bits.ztst = 1;
     } else {
-        DepthTest(1);
+        DepthTest(MG_DEPTH_TEST_GEQUAL);
     }
 }
 

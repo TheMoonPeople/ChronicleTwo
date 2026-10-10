@@ -88,7 +88,7 @@ void CLevelupInfo::Draw() {
                 sprite.SetIRect(x, y, 70, 12, 0, 0xA2);
                 sprite.SetIRect(x - 0x10, y - 3, 0x10, 0x10, 0x30, 0x40);
                 pulse = sinf(3.1415927f * progress);
-                sprite.SetAlphaBlend(2);
+                sprite.SetAlphaBlend(MG_ALPHA_BLEND_ADD);
                 sprite.Color(0x80, 0x80, 0x80, fptosi(32.0f * pulse));
 
                 for (i = 0; i < 4; i++) {
@@ -369,7 +369,7 @@ void CEnemyGekirin::Draw(CPreSprite *sprite, int x, int y) {
         sprite->SetIRect(x, y - gekirin_anim[frame] * 4, 8, 8, 0x78, 0xCA);
 
         if (state == GEKIRIN_STATE_BREAK) {
-            sprite->SetAlphaBlend(2);
+            sprite->SetAlphaBlend(MG_ALPHA_BLEND_ADD);
             sprite->Color(0x80, 0x80, 0x80, 0x40);
             sprite->SetIStretch(x - 4, y - gekirin_anim[frame] * 4 - 4, 0x10, 0x10, 0x78, 0xCA, 8,
                                 8);
@@ -588,7 +588,7 @@ void CEnemyLifeGage::Initialize(int gekirin_num) {
 void CDamageScore::SetValue(float *pos, int value) {
     sceVu0CopyVector(this->pos, pos);
     alpha = 0;
-    phase = 0;
+    phase = (int) DAMAGE_SCORE_PHASE_APPEAR;
     active = 1;
     sprite = 0;
     sprintf(text, at_1221__2, value);
@@ -608,7 +608,7 @@ void CDamageScore::SetColor(s16 red, s16 green, s16 blue) {
 void CDamageScore::SetSprite(float *pos, int u0, int v0, int u1, int v1) {
     sceVu0CopyVector(this->pos, pos);
     alpha = 0;
-    phase = 0;
+    phase = (int) DAMAGE_SCORE_PHASE_APPEAR;
     active = 1;
     sprite = 1;
     bounce[0] = 3.1415927f;
@@ -678,12 +678,12 @@ void CDamageScore::Draw() {
 void CDamageScore::Step() {
     if (active != 0) {
         if (sprite != 0) {
-            if (phase == 0) {
+            if (phase == (int) DAMAGE_SCORE_PHASE_APPEAR) {
                 bounce[0] = bounce[0] - 0.3926991f;
 
                 if (bounce[0] < -3.1415927f) {
                     bounce[0] = -3.1415927f;
-                    phase = 1;
+                    phase = (int) DAMAGE_SCORE_PHASE_FADE;
                 }
 
                 if (alpha < 0x80) {
@@ -691,7 +691,7 @@ void CDamageScore::Step() {
                 }
             }
 
-            if (phase == 1) {
+            if (phase == (int) DAMAGE_SCORE_PHASE_FADE) {
                 alpha -= 4;
 
                 if (alpha < 0) {
@@ -701,7 +701,7 @@ void CDamageScore::Step() {
         }
 
         if (sprite == 0) {
-            if (phase == 0) {
+            if (phase == (int) DAMAGE_SCORE_PHASE_APPEAR) {
                 for (int i = 0; i < length; i++) {
                     bounce[i] = bounce[i] - (3.1415927f / (10.0f + (2.0f * (float) i)));
 
@@ -709,7 +709,7 @@ void CDamageScore::Step() {
                         bounce[i] = -3.1415927f;
 
                         if (i == length - 1) {
-                            phase = 1;
+                            phase = (int) DAMAGE_SCORE_PHASE_FADE;
                         }
                     }
                 }
@@ -719,7 +719,7 @@ void CDamageScore::Step() {
                 }
             }
 
-            if (phase == 1) {
+            if (phase == (int) DAMAGE_SCORE_PHASE_FADE) {
                 alpha -= 6;
 
                 if (alpha < 0) {
@@ -734,7 +734,7 @@ void CDamageScore2::SetValue(int slot, int value, float height) {
     chara_no = slot;
     alpha = 0;
     this->value = value;
-    phase = 1;
+    phase = (int) DAMAGE_SCORE2_PHASE_JUMP;
     offset_y = 0;
     this->height = 2.0f * height;
     progress = 0;
@@ -881,9 +881,9 @@ void CLockOnModel::Draw() {
             message += 5000;
         }
 
-        unk_90 = message;
+        message_no = message;
     } else {
-        unk_90 = -1;
+        message_no = -1;
     }
 
     if (player->lock_on == 0) {

@@ -272,7 +272,7 @@ int CMapParts::GetDefColor(int id, float *out_color) {
         for (i = 0; i < material_count; i++) {
             material = piece->GetMaterial(i);
 
-            if (material != NULL && material->material != 0 && id == material->unk_c) {
+            if (material != NULL && material->material != 0 && id == material->color_no) {
                 sceVu0CopyVector(out_color, material->color);
                 return 1;
             }
@@ -301,7 +301,7 @@ void CMapParts::UpdateColor() {
                 for (j = 0; j < material_count; j++) {
                     material = piece->GetMaterial(j);
 
-                    if (material != NULL && material->material != 0 && id == material->unk_c) {
+                    if (material != NULL && material->material != 0 && id == material->color_no) {
                         sceVu0CopyVectorXYZ(material->color, color[id]);
                     }
                 }
@@ -902,24 +902,32 @@ void CMapParts::Copy(CMapParts &dest, mgCMemory *memory) {
         while (source != NULL) {
             if (source->data.col_type == 0) {
                 CList<CMapPiece> *copy = new (memory->Alloc((sizeof(CList<CMapPiece>) + 15) / 16 + 2)) CList<CMapPiece>;
+
                 if (copy == NULL) {
                     return;
                 }
+
                 source->data.Copy(copy->data, memory);
 
                 CList<CMapPiece> *last = copies;
+
                 if (last != NULL) {
                     CList<CMapPiece> *next;
+
                     if (last != NULL) {
                         do {
                             next = last->next;
+
                             if (next == NULL) {
                                 break;
                             }
+
                             last = next;
                         } while (next);
                     }
+
                     last->next = copy;
+
                     if (copy != NULL) {
                         copy->prev = last;
                     }
@@ -927,8 +935,10 @@ void CMapParts::Copy(CMapParts &dest, mgCMemory *memory) {
                     copies = copy;
                 }
             }
+
             source = source->next;
         }
+
         dest.piece_list = copies;
         func_point_mngr.Copy(dest.func_point_mngr, memory);
         dest.AssignFuncAnime(memory);
@@ -938,38 +948,49 @@ void CMapParts::Copy(CMapParts &dest, mgCMemory *memory) {
 }
 
 int CMapParts::AssignFuncAnime(mgCMemory *memory) {
-    CFuncPoint *point;
+    CFuncPoint       *point;
     CList<CObjAnime> *node;
 
     func_point_mngr.GetStart(FUNC_POINT_ANIME);
+
     while ((point = func_point_mngr.Get()) != NULL) {
         node = new (memory->Alloc((sizeof(CList<CObjAnime>) + 15) / 16 + 2)) CList<CObjAnime>;
+
         if (node == NULL) {
             return 0;
         }
+
         node->Initialize();
 
         CList<CObjAnime> *last = anime_list;
+
         if (last == NULL) {
             anime_list = node;
         } else {
             CList<CObjAnime> *next;
+
             if (last != NULL) {
                 do {
                     next = last->next;
+
                     if (next == NULL) {
                         break;
                     }
+
                     last = next;
                 } while (next);
             }
+
             last->next = node;
+
             if (node != NULL) {
                 node->prev = last;
             }
         }
+
         node->pGetData()->AssignFuncAnime(point, this);
     }
+
     return 1;
 }
 
@@ -996,7 +1017,7 @@ int CMapTreasureBox::AssignFuncPoint(CFuncPoint *point, CMapParts *owner) {
     }
 
     active = 1;
-    flag_no = point->unk_c;
+    flag_no = point->flag_no;
     item_no = point->event.arg1;
     item_num = point->event.arg2;
 

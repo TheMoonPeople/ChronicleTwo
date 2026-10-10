@@ -70,7 +70,7 @@ void CEditMap::CreateGrid(float *upper, float *lower, mgCMemory *mem, float *off
             }
 
             for (int turn = 0; turn < 4; turn++) {
-                mgUnitMatrix((float (*)[4]) matrix);
+                mgUnitMatrix((float(*)[4]) matrix);
 
                 if (turn == 3) {
                     matrix[10] = 0.0f;
@@ -91,7 +91,7 @@ void CEditMap::CreateGrid(float *upper, float *lower, mgCMemory *mem, float *off
                     matrix[8] = -1.0f;
                 }
 
-                sceVu0CopyMatrix(this->grid[i]->rot[turn], (float (*)[4]) matrix);
+                sceVu0CopyMatrix(this->grid[i]->rot[turn], (float(*)[4]) matrix);
             }
 
             return;

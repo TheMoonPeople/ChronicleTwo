@@ -48,27 +48,27 @@
  */
 static s16 TitleOmakeFlag;
 
-extern TITLE_INFO      *TitleInfo;
-extern float            TitleProjection;
-void                    TitleMCCheckDraw();
-void                    TitleCopyRightDraw();
-void                    RushMovieDraw();
-void                    TitleModeDraw();
-void                    TitleMapDraw();
-s32                     DCTitleStep(s32 phase);
-int                     TitleMCCheckKey();
-static int              TitleModeKey();
-void                    TitleCopyRightInit();
-int                     TitleCopyRightStep();
-void                    TitleHDDInstallInit();
-int                     TitleHDDInstallKey();
-int                     CheckHDDInstall();
-int                     RushMovieKey();
-void                    TitleDraw();
-void                    DrawMenuDl(int x, int y, int width, int alpha, float rate);
-int                     GetSelectLanguageNo();
-void                    TitleHDDInstallDraw();
-extern CScene          *TitleScene;
+extern TITLE_INFO *TitleInfo;
+extern float       TitleProjection;
+void               TitleMCCheckDraw();
+void               TitleCopyRightDraw();
+void               RushMovieDraw();
+void               TitleModeDraw();
+void               TitleMapDraw();
+s32                DCTitleStep(s32 phase);
+int                TitleMCCheckKey();
+static int         TitleModeKey();
+void               TitleCopyRightInit();
+int                TitleCopyRightStep();
+void               TitleHDDInstallInit();
+int                TitleHDDInstallKey();
+int                CheckHDDInstall();
+int                RushMovieKey();
+void               TitleDraw();
+void               DrawMenuDl(int x, int y, int width, int alpha, float rate);
+int                GetSelectLanguageNo();
+void               TitleHDDInstallDraw();
+extern CScene     *TitleScene;
 
 /**
  *
@@ -241,9 +241,9 @@ static HDD_INFO HDDINFO;
  * Memory stack reserved for the language selection screen.
  *
  */
-static mgCMemory lang_stack;
-extern CMovie          *RushMovie;
-extern mgCTexture      *RushWork;
+static mgCMemory   lang_stack;
+extern CMovie     *RushMovie;
+extern mgCTexture *RushWork;
 
 /**
  *
@@ -259,7 +259,7 @@ static RUSH_INFO RushInfo;
  */
 static s8 debug_start_drawflag;
 
-extern char             at_1234[];
+extern char at_1234[];
 
 /**
  *
@@ -630,7 +630,7 @@ void TitleInit(INIT_LOOP_ARG arg) {
 
     if (area != NULL) {
         area->battle_clear = 1;
-        area->battle_bgm_state = 0;
+        area->battle_bgm_state = (int) DNG_BGM_MAP;
         area->battle_bgm_vol = 0.0f;
         area->camera_mode = 0;
         area->pause_flag = 0;
@@ -641,7 +641,7 @@ void TitleInit(INIT_LOOP_ARG arg) {
         area->subject_counter = 0;
         area->practice_actions = 0;
         area->floor_status = 0;
-        area->weather = 0;
+        area->weather = DNG_WEATHER_NORMAL;
         area->lock_on_mode = 0;
     }
 
@@ -675,7 +675,7 @@ void TitleInit(INIT_LOOP_ARG arg) {
     SetTextureTable(0x73, 0x60, &DataBuffer);
     DataBuffer.Align64();
     TitleInfo = new (DataBuffer.Alloc(0x1C)) TITLE_INFO;
-    GamePad__2.SetAutoRepeat(0x5000, 0xF, 4);
+    GamePad__2.SetAutoRepeat((int) PAD_UP | (int) PAD_DOWN, 0xF, 4);
     GamePad__2.MenuModeOn(0x78);
 
     if (GameBootInit == 0) {
@@ -740,7 +740,7 @@ static void TitleBootInit() {
     TitleScene->DeleteMap(0, 1);
     TitleScene->LoadMap(0, &load_info, 0);
     TitleScene->SetNowMapNo(map_no);
-    TitleScene->SetActive(2, 0);
+    TitleScene->SetActive(SCENE_DATA_MAP, 0);
     TitleMap = TitleScene->GetMap(TitleScene->active_map);
     int file_size;
     if (LoadFile2(at_1222__4, DataBuffer.stAllocTest(1), &file_size, 0) != 0) {
@@ -805,7 +805,7 @@ static void TitleBootInit() {
     sndWaitTransBd();
     LoadFile2(at_1239__2, sound_buffer, &file_size, 0);
     sndInitPort(4);
-    TitleEventSound = sndLoadSound(4, (u_int *) sound_buffer, &snd_memory);
+    TitleEventSound = sndLoadSound((int) SND_PORT_EVENT, (u_int *) sound_buffer, &snd_memory);
     DataBuffer.Align64();
     Stack_ReadBuff.stSetBuffer(DataBuffer.stGetTop(), DataBuffer.stGetRest());
     read_buffer = Stack_ReadBuff.stGetTop();
@@ -855,7 +855,7 @@ void TitleExit() {
 }
 
 int TitleLoop() {
-    if (DebugFlag != 0 && GamePad__2.On(0x800) != 0 && GamePad__2.On(0x100) != 0) {
+    if (DebugFlag != 0 && GamePad__2.On(PAD_START) != 0 && GamePad__2.On(PAD_SELECT) != 0) {
         mgCloseFont();
 
         if (TitleInfo->mode == TITLE_MODE_RUSH_MOVIE) {
@@ -932,7 +932,7 @@ int TitleLoop() {
                     InitSaveData();
                     DebugGetItem(NULL, 1);
                     MenuArg.param[0] = 0;
-                    MenuArg.open_type = 0x14;
+                    MenuArg.open_type = (int) MENU_OPEN_COSTUME;
                     GetUserDataMan()->SetChrEquipDirect(1, 0x7F);
                     GetUserDataMan()->SetChrEquipDirect(1, 0x85);
                     GetUserDataMan()->SetChrEquipDirect(1, 0x10A);
@@ -946,11 +946,11 @@ int TitleLoop() {
                 }
 
                 if (result == TITLE_KEY_CONTINUE) {
-                    MenuArg.open_type = 8;
+                    MenuArg.open_type = (int) MENU_OPEN_TITLE_SAVE;
                 }
 
                 if (result == TITLE_KEY_OPTION) {
-                    MenuArg.open_type = 0x12;
+                    MenuArg.open_type = (int) MENU_OPEN_OPTION;
                 }
 
                 result = 0;
@@ -964,7 +964,7 @@ int TitleLoop() {
             if (result == TITLE_KEY_OMAKE) {
                 MenuArg.param[0] = 0;
                 result = 0;
-                MenuArg.open_type = 0x1B;
+                MenuArg.open_type = (int) MENU_OPEN_TITLE_SUBGAME_SAVE;
                 TitleInfo->next_mode = TITLE_MODE_SUBGAME_MENU;
             }
 
@@ -1028,7 +1028,7 @@ int TitleLoop() {
 
     if (menu_closed != 0) {
         MenuMainExit();
-        GamePad__2.SetAutoRepeat(0x5000, 0xF, 4);
+        GamePad__2.SetAutoRepeat((int) PAD_UP | (int) PAD_DOWN, 0xF, 4);
         GamePad__2.MenuModeOn(0x78);
     }
 
@@ -1039,7 +1039,7 @@ int TitleLoop() {
         arg.event_no = 0x3F2;
         arg.map_no = 0;
         arg.floor_no = 0x14;
-        NextLoop(2, arg);
+        NextLoop((int) LOOP_DUNGEON, arg);
         PlayTimeCount(1);
         memcpy(&GetSaveData()->config, &TitleInfo->config, sizeof(SV_CONFIG_OPTION));
         CUserDataManager *user = GetUserDataMan();
@@ -1476,7 +1476,7 @@ void TitleModeInit() {
         TitleRushWaitCountBoot = 1;
     }
 
-    TitleCameraPhase = 0;
+    TitleCameraPhase = (int) TITLE_CAMERA_APPROACH;
     TitleProjection = 480.0f;
 
     if (TitleCamera != NULL) {
@@ -1509,16 +1509,20 @@ static int TitleModeKey() {
     int push;
     int result = TITLE_KEY_NONE;
     int step = DCTitleStep(1);
+
     if (TitleInfo->idle_count > TitleRushWaitCount || step == 2) {
         if (TitleScene->fade.FadeCheck() != 0) {
             result = TITLE_KEY_RUSH_MOVIE;
         }
+
         return result;
     }
+
     if (step == 1) {
         TitleScene->fade.FadeOut(0x28, 0.0f, 0.0f, 0.0f);
         return TITLE_KEY_NONE;
     }
+
     if (TitlePhase <= TITLE_PHASE_MENU || TitlePhase == TITLE_PHASE_PUSH_START || TitlePhase == TITLE_PHASE_OMAKE_MENU ||
         TitlePhase == TITLE_PHASE_MC_MESSAGE) {
         CMemoryCardManager *card_manager = TitleMCCheck;
@@ -1528,6 +1532,7 @@ static int TitleModeKey() {
         cards[1] = &card_manager->card[1];
         inport[0] = TitleMCCheckInport[0];
         inport[1] = TitleMCCheckInport[1];
+
         if (TitleMCCheckNow != 0) {
             switch (TitleMainMCCheckPhase) {
                 case 0:
@@ -1542,91 +1547,116 @@ static int TitleModeKey() {
                         TitleMCCheck->port = 0;
                         TitleMCCheck->SetFuncNo(MC_FUNC_SEARCH_TYPE);
                         TitleInfo->omake_select = 0;
+
                         if (TitlePhase == TITLE_PHASE_OMAKE_MENU) {
                             TitlePhase = TITLE_PHASE_MENU;
                             TitleInfo->select = TITLE_MENU_OMAKE;
                             TitleInfo->omake_alpha = 0.0f;
                         }
                     }
+
                     break;
             }
+
             return TITLE_KEY_NONE;
         }
+
         int port_done = card_manager->Step();
         int card_lost = 0;
+
         if (inport[0] != McCheckMCPs2(cards[0])) {
             TitleMCCheckInport[0] = 0;
             card_lost = 1;
         }
+
         if (inport[1] != McCheckMCPs2(cards[1])) {
             memset(cards[1], 0, sizeof(MC_CARD_INFO));
             TitleMCCheckInport[1] = 0;
             card_lost = 1;
         }
+
         if (card_lost != 0) {
             TitleMainMCCheckPhase = 0;
             TitleMCCheckNow = 1;
             TitleMCActivePort = 0;
             return TITLE_KEY_NONE;
         }
+
         if (port_done != 0) {
             if (TitleMCActivePort == 0) {
                 TitleMCActivePort = 1;
             } else {
                 TitleMCActivePort = 0;
             }
+
             TitleMCCheck->port = TitleMCActivePort;
             TitleMCCheck->SetFuncNo(MC_FUNC_SEARCH_TYPE);
         }
     }
+
     push = ConvertCheckPushButton(MenuCheckPushButton());
+
     if (TitlePhase <= TITLE_PHASE_PUSH_START) {
         TitleInfo->idle_count++;
     }
+
     start = push & MENU_PUSH_BUTTON_START;
     start_pushed = 0;
+
     if (start != 0) {
         start_pushed = 1;
     }
+
     int fade_done = TitleScene->fade.FadeCheck();
+
     switch (TitlePhase) {
         case TITLE_PHASE_WAIT:
             TitlePushStart_AlphaPlus = 0;
+
             if (start_pushed != 0) {
                 TitlePhase = TITLE_PHASE_PUSH_START;
                 TitleInfo->title_alpha = 128.0f;
                 TitlePushStart_AlphaPlus = 1;
                 sndSePlay(TitleEventSound, 0, 0);
             }
+
             TitleInfo->wait_count--;
+
             if (TitleInfo->wait_count <= 0) {
                 TitlePhase = TITLE_PHASE_FADE_IN;
             }
+
             break;
         case TITLE_PHASE_FADE_IN:
             TitlePushStart_AlphaPlus = 0;
+
             if (TitleInfo->title_alpha < 128.0f) {
                 CalcMenuAdd(&TitleInfo->title_alpha, 0.53f, 128.0f);
             }
+
             if (start_pushed != 0) {
                 sndSePlay(TitleEventSound, 0, 0);
                 TitleInfo->title_alpha = 128.0f;
             }
+
             if (128.0f <= TitleInfo->title_alpha) {
                 TitlePhase = TITLE_PHASE_PUSH_START;
                 TitlePushStart_AlphaPlus = 1;
             }
+
             break;
         case TITLE_PHASE_PUSH_START:
             CalcMenuAdd(&TitleInfo->menu_alpha, -12.0f, 0.0f);
             CalcMenuAdd(&TitleInfo->cursor_alpha, -12.0f, 0.0f);
             CalcMenuAdd(&TitleInfo->title_alpha, 8.0f, 128.0f);
             CalcMenuAdd(&TitleInfo->omake_alpha, -8.0f, 0.0f);
+
             if (start_pushed != 0) {
                 sndSePlay(TitleEventSound, 0, 0);
                 TitlePhase = TITLE_PHASE_MENU;
                 TitleInfo->idle_count = 0;
             }
+
             break;
         case TITLE_PHASE_MENU: {
             TitlePushStart_AlphaPlus = 0;
@@ -1634,15 +1664,19 @@ static int TitleModeKey() {
             CalcMenuAdd(&TitleInfo->title_alpha, -8.0f, 0.0f);
             CalcMenuAdd(&TitleInfo->menu_alpha, 12.0f, 128.0f);
             CalcMenuAdd(&TitleInfo->cursor_alpha, 12.0f, 128.0f);
+
             if (GamePad__2.Down(PAD_UP) != 0) {
                 TitleInfo->select--;
             }
+
             if (GamePad__2.Down(PAD_DOWN) != 0) {
                 TitleInfo->select++;
             }
+
             if (TitleInfo->select < 0) {
                 TitleInfo->select = 0;
             }
+
             if (TitleHDDCheckFlag != 0) {
                 if (TitleInfo->select > TITLE_MENU_HDD_INSTALL) {
                     TitleInfo->select = TITLE_MENU_HDD_INSTALL;
@@ -1652,10 +1686,12 @@ static int TitleModeKey() {
                     TitleInfo->select = TITLE_MENU_OPTION;
                 }
             }
+
             if (old_select != TitleInfo->select) {
                 MenuSePlay(SYSTEM_SE_CURSOR);
                 TitleInfo->idle_count = 0;
             }
+
             if ((push & MENU_PUSH_BUTTON_DECIDE) || start != 0) {
                 if (TitleInfo->select == TITLE_MENU_NEW_GAME) {
                     TitlePhase = TITLE_PHASE_NEW_GAME;
@@ -1686,14 +1722,17 @@ static int TitleModeKey() {
                     TitleInfo->omake_num = 0;
                     TitleInfo->omake_dungeon = 0;
                     TitleInfo->omake_gyorace = 0;
+
                     if (OmakePlayEnableAttr & OMAKE_ENABLE_DUNGEON) {
                         TitleInfo->omake_num++;
                         TitleInfo->omake_dungeon = 1;
                     }
+
                     if (OmakePlayEnableAttr & OMAKE_ENABLE_GYORACE) {
                         TitleInfo->omake_num++;
                         TitleInfo->omake_gyorace = 1;
                     }
+
                     MenuSePlay(SYSTEM_SE_DECIDE);
                 } else {
                     MenuSePlay(SYSTEM_SE_CANCEL);
@@ -1702,60 +1741,76 @@ static int TitleModeKey() {
                 TitlePhase = TITLE_PHASE_PUSH_START;
                 MenuSePlay(SYSTEM_SE_CANCEL);
             }
+
             break;
         }
         case TITLE_PHASE_NEW_GAME:
             TitlePushStart_AlphaPlus = 0;
+
             if (fade_done != 0) {
                 return TITLE_KEY_NEW_GAME;
             }
+
             break;
         case TITLE_PHASE_CONTINUE:
             TitlePushStart_AlphaPlus = 0;
+
             if (fade_done != 0) {
                 return TITLE_KEY_CONTINUE;
             }
+
             break;
         case TITLE_PHASE_OPTION:
         case TITLE_PHASE_UNUSED_6:
         case TITLE_PHASE_OMAKE:
             TitlePushStart_AlphaPlus = 0;
+
             if (fade_done != 0) {
                 if (TitlePhase == TITLE_PHASE_OPTION) {
                     return TITLE_KEY_OPTION;
                 }
+
                 if (TitlePhase == TITLE_PHASE_OMAKE) {
                     return TITLE_KEY_OMAKE;
                 }
             }
+
             break;
         case TITLE_PHASE_HDD_INSTALL:
             TitlePushStart_AlphaPlus = 0;
+
             if (fade_done != 0) {
                 return TITLE_KEY_HDD_INSTALL;
             }
+
             break;
         case TITLE_PHASE_OMAKE_MENU: {
             TitlePushStart_AlphaPlus = 0;
             CalcMenuAdd(&TitleInfo->menu_alpha, -8.0f, 0.0f);
             CalcMenuAdd(&TitleInfo->cursor_alpha, 3.0f, 128.0f);
             int old_select = TitleInfo->omake_select;
+
             if (GamePad__2.Down(PAD_UP) != 0) {
                 TitleInfo->omake_select--;
             }
+
             if (GamePad__2.Down(PAD_DOWN) != 0) {
                 TitleInfo->omake_select++;
             }
+
             if (TitleInfo->omake_select < 0) {
                 TitleInfo->omake_select = 0;
             }
+
             if (TitleInfo->omake_num <= TitleInfo->omake_select) {
                 TitleInfo->omake_select = TitleInfo->omake_num - 1;
             }
+
             if (old_select != TitleInfo->omake_select) {
                 MenuSePlay(SYSTEM_SE_CURSOR);
                 TitleInfo->idle_count = 0;
             }
+
             if (push & MENU_PUSH_BUTTON_DECIDE) {
                 MenuSePlay(SYSTEM_SE_DECIDE);
                 TitlePhase = TITLE_PHASE_OMAKE;
@@ -1765,6 +1820,7 @@ static int TitleModeKey() {
                 TitleInfo->omake_alpha = 0.0f;
                 MenuSePlay(SYSTEM_SE_CANCEL);
             }
+
             break;
         }
         case TITLE_PHASE_MC_MESSAGE:
@@ -1773,14 +1829,19 @@ static int TitleModeKey() {
                 TitleMCCheckMes = NULL;
                 MenuSePlay(SYSTEM_SE_CANCEL);
             }
+
             break;
     }
+
     CalcPushAlpha(0, &TitleInfo->push_alpha);
+
     if (TitleInfo->idle_count == TitleRushWaitCount) {
         TitleScene->fade.FadeOut(0x1E, 0.0f, 0.0f, 0.0f);
     }
+
     return TITLE_KEY_NONE;
 }
+
 void TitleModeDraw() {
     // PUSH START texture rectangles indexed by the selected language.
     static MENU_SHORT_RECT start_button_tbl[7] = {
@@ -1795,8 +1856,8 @@ void TitleModeDraw() {
 
     // Texture origins for the five title menu rows.
     static s16 btn_tblxy[5][2] = {
-        {302, 40},
-        {302, 94},
+        {302, 40 },
+        {302, 94 },
         {302, 256},
         {302, 204},
         {302, 148},
@@ -2059,7 +2120,7 @@ void TitleMapDraw() {
     }
 
     switch (TitleCameraPhase) {
-        case 0: {
+        case TITLE_CAMERA_APPROACH: {
             follow->AddDistance(-0.25f);
             float distance = follow->GetDistance();
 
@@ -2083,7 +2144,7 @@ void TitleMapDraw() {
 
             break;
         }
-        case 1:
+        case TITLE_CAMERA_HOLD:
             TitleCameraPhaseCounter++;
 
             if ((u_int) TitleCameraPhaseCounter > 250) {
@@ -2094,7 +2155,7 @@ void TitleMapDraw() {
             }
 
             break;
-        case 2: {
+        case TITLE_CAMERA_ORBIT: {
             float follow_pos[4];
             float follow_ref[4];
             float distance = follow->GetDistance();
@@ -2109,7 +2170,7 @@ void TitleMapDraw() {
 
             if (!(TitleCameraAddAngle < 6.2831855f)) {
                 TitleCameraPhaseCounter = 0;
-                TitleCameraPhase = 1;
+                TitleCameraPhase = (int) TITLE_CAMERA_HOLD;
                 TitleScene->active_camera = 0;
                 follow->FollowOn();
             }
@@ -2303,7 +2364,7 @@ int TitleMCCheckKey() {
                     TitleMCCheckMes->MakeMesWin(0x64);
                 }
             } else {
-                int need_size = TitleMCCheck->GetSaveDataSize(0) / 1024 + 3;
+                int need_size = TitleMCCheck->GetSaveDataSize(MC_SIZE_SAVE_TOTAL) / 1024 + 3;
                 int has_space = 0;
 
                 for (int i = 0; i < 2; i++) {
@@ -2461,7 +2522,7 @@ int TitleCopyRightStep() {
             TitleCopyRightDispPhase = COPYRIGHT_PHASE_MOVIE;
             break;
         case COPYRIGHT_PHASE_MOVIE:
-            if (TitleSkipLogoFlag == 0 && (GamePad__2.Down(0x20) != 0 || GamePad__2.Down(0x800) != 0)) {
+            if (TitleSkipLogoFlag == 0 && (GamePad__2.Down(PAD_CIRCLE) != 0 || GamePad__2.Down(PAD_START) != 0)) {
                 TitleSkipLogoFlag = 1;
                 TitleScene->fade.FadeOut(20, 0.0f, 0.0f, 0.0f);
             }
@@ -2652,11 +2713,11 @@ int TitleHDDInstallKey() {
 
             int old_select = HDDModeSelect;
 
-            if (GamePad__2.Down(0x1000) != 0) {
+            if (GamePad__2.Down(PAD_UP) != 0) {
                 HDDModeSelect--;
             }
 
-            if (GamePad__2.Down(0x4000) != 0) {
+            if (GamePad__2.Down(PAD_DOWN) != 0) {
                 HDDModeSelect++;
             }
 
@@ -2766,7 +2827,7 @@ int TitleHDDInstallKey() {
             break;
         }
         case HDD_PHASE_RESULT:
-            if (GamePad__2.Down(0x20) != 0 || GamePad__2.Down(0x40) != 0) {
+            if (GamePad__2.Down(PAD_CIRCLE) != 0 || GamePad__2.Down(PAD_CROSS) != 0) {
                 next_phase = HDD_PHASE_SELECT;
 
                 if (0 < HDDINFO.connect && 0 < HDDINFO.app_install && HDDINFO.result == 0) {
@@ -2816,7 +2877,7 @@ int TitleHDDInstallKey() {
 
             break;
         case HDD_PHASE_ERROR:
-            if (GamePad__2.Down(0x20) != 0 || GamePad__2.Down(0x40) != 0) {
+            if (GamePad__2.Down(PAD_CIRCLE) != 0 || GamePad__2.Down(PAD_CROSS) != 0) {
                 next_phase = HDD_PHASE_SELECT;
                 MenuSePlay(SYSTEM_SE_DECIDE);
             }
@@ -2988,7 +3049,7 @@ int TitleHDDInstallKey() {
 void DrawMenuDl(int x, int y, int width, int alpha, float rate) {
     // Left, center and right texture rectangles for the three installation panel rows.
     static short table[3][12] = {
-        {0, 0, 32, 32, 32, 0, 32, 32, 64, 0, 32, 32},
+        {0, 0,  32, 32, 32, 0,  32, 32, 64, 0,  32, 32},
         {0, 32, 32, 16, 32, 32, 32, 16, 64, 32, 32, 16},
         {0, 48, 32, 76, 32, 48, 32, 76, 64, 48, 32, 76},
     };
@@ -3066,7 +3127,7 @@ void TitleHDDInstallDraw() {
 
     if (HDDSysImage != NULL && HDDMesDrawFlag == 0) {
         textures->ReloadTexture(HDDSysImage->block, (sceVif1Packet *) NULL);
-        float       cursor[2] = {160.0f, 180.0f};
+        float cursor[2] = {160.0f, 180.0f};
         PrimQuad(HDDSysImage, cursor[0], cursor[1], mgRect<int>(0x12E, 0x94, 0xD2, 0x36), 0x80, 0x80, 0x80, 0x80);
 
         static int count = 0;
@@ -3108,6 +3169,7 @@ void TitleHDDInstallDraw() {
             font.SetStr(infomsg[LanguageCode]);
             font.SetPos(0xA6, 0xAE);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
+
             if (HDDMes2 != NULL) {
                 HDDMes2->StepMsg();
                 HDDMes2->DrawMsg();
@@ -3156,7 +3218,7 @@ void TitleLangSelInit(mgCMemory *memory) {
     int file_size;
     u8 *buffer;
 
-    GamePad__2.SetAutoRepeat(0x5000, 0xF, 4);
+    GamePad__2.SetAutoRepeat((int) PAD_UP | (int) PAD_DOWN, 0xF, 4);
     GamePad__2.MenuModeOn(0x78);
     title_lang_select = 0;
     mgFrameRate = 1;
@@ -3165,7 +3227,7 @@ void TitleLangSelInit(mgCMemory *memory) {
     memory->Alloc(file_size / 16 + 1);
     mgTexManager.EnterIMGFile(buffer, 1, NULL, NULL);
     lang_tex = mgTexManager.GetTexture("lang_select", -1);
-    title_lang_phase = 0;
+    title_lang_phase = (int) TITLE_LANG_FADE_IN;
     title_lang_curxy[0] = 100.0f;
     title_lang_fadealpha = 0x80;
     title_lang_curxy[1] = 100.0f;
@@ -3174,7 +3236,7 @@ void TitleLangSelInit(mgCMemory *memory) {
 
 int TitleLangSelKey() {
     switch (title_lang_phase) {
-        case 0:
+        case TITLE_LANG_FADE_IN:
             title_lang_fadealpha -= 6;
 
             if (title_lang_fadealpha <= 0) {
@@ -3183,7 +3245,7 @@ int TitleLangSelKey() {
             }
 
             break;
-        case 1:
+        case TITLE_LANG_SELECT:
             if (GamePad__2.Down(PAD_UP) != 0) {
                 title_lang_select -= 1;
             }
@@ -3200,12 +3262,12 @@ int TitleLangSelKey() {
                 title_lang_select = 0;
             }
 
-            if (GamePad__2.Down(0x40) != 0) {
+            if (GamePad__2.Down(PAD_CROSS) != 0) {
                 title_lang_phase += 1;
             }
 
             break;
-        case 2:
+        case TITLE_LANG_FADE_OUT:
             title_lang_fadealpha += 6;
 
             if (title_lang_fadealpha >= 0x80) {

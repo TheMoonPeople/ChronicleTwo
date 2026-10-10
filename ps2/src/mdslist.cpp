@@ -738,7 +738,7 @@ int pcpMDS_END(SPI_STACK *stack, int argc) {
 
         mgCFrameAttr attr;
         attr.clip_enable = 1;
-        frame->SetAttrParam(attr, 1, 0x20);
+        frame->SetAttrParam(attr, 1, MG_FRAME_ATTR_CLIP);
     }
 
     pcpNowMdsInfo->frame = frame;

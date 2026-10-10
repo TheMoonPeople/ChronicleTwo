@@ -42,13 +42,14 @@ void InitVector(float *vector) {
     vector[2] = 0.0f;
     vector[3] = 1.0f;
 }
+
 float RandXYinViewArea(float min_dist, float max_dist, float view_angle, float *x, float *z) {
-    float position[4];
-    float reference[4];
-    float direction[4];
-    float heading;
-    float distance;
-    CScene *scene = GetMainScene();
+    float      position[4];
+    float      reference[4];
+    float      direction[4];
+    float      heading;
+    float      distance;
+    CScene    *scene = GetMainScene();
     mgCCamera *camera = scene->GetCamera(scene->active_camera);
 
     camera->GetPos(position);
@@ -68,6 +69,7 @@ float RandXYinViewArea(float min_dist, float max_dist, float view_angle, float *
     height += position[1];
     return height;
 }
+
 int CRipple::Birth(float *position) {
     if (active != 0) {
         return 0;
@@ -235,11 +237,12 @@ int CParticle::Step() {
     pos[2] += speed[2];
     return 1;
 }
-void CParticle::Draw(void) {
+
+void CParticle::Draw() {
     if (active != 0) {
         mgCDrawPrim prim;
-        float camera_pos[4];
-        int vertex[4];
+        float       camera_pos[4];
+        int         vertex[4];
 
         prim.Initialize(0, 0);
         prim.AlphaBlendEnable(1);
@@ -257,24 +260,29 @@ void CParticle::Draw(void) {
         prim.AlphaBlend(MG_ALPHA_BLEND_ADD);
         prim.AntiAliasing(1);
         prim.Begin(MG_PRIM_POINT);
-        CScene *scene = GetMainScene();
+        CScene    *scene = GetMainScene();
         mgCCamera *camera = scene->GetCamera(scene->active_camera);
+
         if (camera != NULL) {
             camera->GetPos(camera_pos);
             float dx = pos[0] - camera_pos[0];
             float dz = pos[2] - camera_pos[2];
             float distance = sqrtf(dx * dx + dz * dz);
             float alpha = 128.0f + -0.42666668f * distance;
+
             if (!(alpha <= 0.0f)) {
-                prim.Color(128, 128, 128, (int)alpha);
+                prim.Color(128, 128, 128, (int) alpha);
+
                 if (mgTransWorldPrim(vertex, pos) != 0) {
                     prim.Vertex4(vertex);
                 }
+
                 prim.End();
             }
         }
     }
 }
+
 void CParticle::Init() {
     active = 0;
     InitVector(pos);
@@ -780,44 +788,59 @@ void CScene::InitAllData() {
     skip_load_sub_villager = 0;
 }
 
-void CScene::Initialize(void) {
+void CScene::Initialize() {
     int index;
-
     stack_num = 12;
     stack_no = 0;
+
     for (index = 0; index < stack_num; index++) {
         stack[index] = NULL;
     }
+
     work_stack = NULL;
     read_buff = NULL;
     chara_num = 128;
+
     for (index = 0; index < chara_num; index++) {
         chara[index].Initialize();
     }
+
     camera_num = 8;
+
     for (index = 0; index < camera_num; index++) {
         camera[index].Initialize();
     }
+
     message_num = 8;
+
     for (index = 0; index < message_num; index++) {
         message[index].Initialize();
     }
+
     map_num = 4;
+
     for (index = 0; index < map_num; index++) {
         map[index].Initialize();
     }
+
     sky_num = 4;
+
     for (index = 0; index < sky_num; index++) {
         sky[index].Initialize();
     }
+
     gameobj_num = 4;
+
     for (index = 0; index < sky_num; index++) {
         gameobj[index].Initialize();
     }
+
     effect_num = 8;
+
     for (index = 0; index < effect_num; index++) {
         effect[index].Initialize();
     }
+
     bg_load_step = 0;
     mds_list_set.Initialize();
     fade.Initialize();
@@ -872,16 +895,20 @@ void CScene::ClearStack(int index) {
     int i;
 
     int offset = index * 4;
+
     for (i = index; i < stack_num; i++) {
-        mgCMemory **slot = (mgCMemory **)((u8 *)this + offset + 8);
-        mgCMemory *stack = *slot;
+        mgCMemory **slot = (mgCMemory **) ((u8 *) this + offset + 8);
+        mgCMemory  *stack = *slot;
+
         if (stack != NULL) {
             stack->stack_used = 0;
             stack->lock = 0;
+
             if (index < i) {
                 (*slot)->stSetBuffer(NULL, 0);
             }
         }
+
         offset += 4;
     }
 }
@@ -970,7 +997,7 @@ int CScene::CheckIMGName(int excluded_map, char *filename) {
             CMapInfo *map_info;
             CMap     *loaded_map = GetMap(map_index);
 
-            if ((map_info = (CMapInfo *)loaded_map) != NULL && loaded_map != NULL) {
+            if ((map_info = (CMapInfo *) loaded_map) != NULL && loaded_map != NULL) {
                 name_index = 0;
 
                 for (;;) {
@@ -1000,7 +1027,7 @@ int CScene::CheckMDSName(int excluded_map, char *filename) {
             CMapInfo *map_info;
             CMap     *loaded_map = GetMap(map_index);
 
-            if ((map_info = (CMapInfo *)loaded_map) != NULL && loaded_map != NULL) {
+            if ((map_info = (CMapInfo *) loaded_map) != NULL && loaded_map != NULL) {
                 name_index = 0;
 
                 for (;;) {
@@ -1071,7 +1098,6 @@ int CScene::AssignCamera(int index, mgCCamera *camera, char *camera_name) {
     }
 
     static char noname[8] = "no_name";
-
 
     if (camera_name == NULL) {
         camera_name = noname;
@@ -1162,7 +1188,6 @@ int CScene::AssignMessage(int index, ClsMes *message_data, char *message_name) {
 
     static char noname[8] = "no_name";
 
-
     if (message_name == NULL) {
         message_name = noname;
     }
@@ -1219,7 +1244,6 @@ int CScene::AssignChara(int index, CCharacter2 *character_data, char *character_
     }
 
     static char noname[8] = "no_name";
-
 
     if (character_name == NULL) {
         character_name = noname;
@@ -1297,7 +1321,6 @@ int CScene::AssignMap(int index, CMap *map_data, char *map_name) {
     }
 
     static char noname[8] = "no_name";
-
 
     if (map_name == NULL) {
         map_name = noname;
@@ -1514,7 +1537,7 @@ void CScene::DrawScreenFunc(mgCFrame *frame) {
     for (int i = 0; i < map_num; i++) {
         CMap *map = GetMap(i);
 
-        if (IsActive(2, i) != 0 && map != NULL) {
+        if (IsActive(SCENE_DATA_MAP, i) != 0 && map != NULL) {
             map->DrawScreenFunc(frame);
         }
     }
@@ -1550,7 +1573,6 @@ int CScene::AssignSky(int index, CMapSky *sky_data, char *sky_name) {
 
     static char noname[8] = "no_name";
 
-
     if (sky_name == NULL) {
         sky_name = noname;
     }
@@ -1583,7 +1605,6 @@ int CScene::AssignEffect(int index, CEffectScriptMan *effect, char *effect_name)
     }
 
     static char noname[8] = "no_name";
-
 
     if (effect_name == NULL) {
         effect_name = noname;
@@ -1744,7 +1765,7 @@ int CScene::GetActiveMap(CMap **map, int max_count) {
             break;
         }
 
-        if (IsActive(2, i) != 0) {
+        if (IsActive(SCENE_DATA_MAP, i) != 0) {
             map[count++] = GetMap(i);
         }
     }

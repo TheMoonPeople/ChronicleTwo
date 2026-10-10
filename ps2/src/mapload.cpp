@@ -1094,7 +1094,7 @@ int mapPIECE_MATERIAL(SPI_STACK *stack, int argc) {
     slot->color[1] = spiGetStackFloat(stack++);
     slot->color[2] = spiGetStackFloat(stack++);
     slot->color[3] = spiGetStackFloat(stack++);
-    slot->unk_c = spiGetStackInt(stack);
+    slot->color_no = spiGetStackInt(stack);
     return 1;
 }
 
@@ -1688,7 +1688,7 @@ int mapFUNC_FLAG(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    mapNowFuncPoint->unk_c = spiGetStackInt(stack++);
+    mapNowFuncPoint->flag_no = spiGetStackInt(stack++);
     mapNowFuncPoint->unk_8 = spiGetStackInt(stack++);
     mapNowFuncPoint->start = spiGetStackFloat(stack++);
     mapNowFuncPoint->end = spiGetStackFloat(stack);

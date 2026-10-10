@@ -501,12 +501,12 @@ void PauseEnd() {
         PauseInfo.scene->RePlayBGM();
     }
 
-    if ((wave_status & 0x1000) != 0) {
+    if ((wave_status & (int) SND_STREAM_STATE_PLAYING) != 0) {
         sndStreamRePlay();
     }
 
-    sndPortSqReplay(4);
-    sndPortSqReplay(0);
+    sndPortSqReplay((int) SND_PORT_EVENT);
+    sndPortSqReplay((int) SND_PORT_BGM);
     PlayTimeCount(play_time_count);
 
     if (SeCoreVol >= 0.0f) {
@@ -529,9 +529,10 @@ int PauseLoop() {
     if (InitFlag == 0) {
         sndSePlay(GetSystemSndID(), 25, 0);
         SeCoreVol = sndGetMasterVol(1);
+
         sndMasterVolFadeInOut(1, 15, 0.0f, -1.0f);
-        sndPortSqPause(4);
-        sndPortSqPause(0);
+        sndPortSqPause((int) SND_PORT_EVENT);
+        sndPortSqPause((int) SND_PORT_BGM);
         mgCTexture back_buffer;
         mgGetFrameBackBuffer(&back_buffer);
         mgRect<int> source(0, 0, (mgScreenWidth - 1) * 16, (mgScreenHeight - 1) * 16);
@@ -544,7 +545,7 @@ int PauseLoop() {
     if (InitFlag == 15) {
         wave_status = sndStreamGetState();
 
-        if (wave_status & 0x1000) {
+        if (wave_status & (int) SND_STREAM_STATE_PLAYING) {
             sndStreamPause();
             sndSetMasterVol(1, 0.0f);
         }
@@ -571,7 +572,7 @@ int PauseLoop() {
     prim.Begin(MG_PRIM_SPRITE);
     prim.Texture(backdrop);
 
-    if (config->unk_35 == 0) {
+    if (config->pause_overlay_off == 0) {
         prim.Color(64, 64, 64, 128);
     } else {
         prim.Color(128, 128, 128, 128);
@@ -584,7 +585,7 @@ int PauseLoop() {
     prim.End();
     mgCTexture *skip = tex->GetTexture("skip", -1);
 
-    if (skip != NULL && config->unk_35 == 0) {
+    if (skip != NULL && config->pause_overlay_off == 0) {
         int width = 82;
         int height = 22;
 
@@ -614,11 +615,11 @@ int PauseLoop() {
     PadCtrl.Update(&GamePad__2);
     int quit = 0;
 
-    if (InitFlag > 17 && PadCtrl.Btn(21)) {
+    if (InitFlag > 17 && PadCtrl.Btn(PAD_BTN_PAUSE)) {
         quit = 1;
     }
 
-    if (PauseInfo.event_skip == 1 && PadCtrl.Btn(22)) {
+    if (PauseInfo.event_skip == 1 && PadCtrl.Btn(PAD_BTN_EVENT_SKIP)) {
         SkipEventStart();
         quit = 1;
     }

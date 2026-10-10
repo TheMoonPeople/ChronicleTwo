@@ -211,6 +211,8 @@ public:
      */
     CObject() { Initialize(); }
 
+    CObject(const CObject &other);
+
     /**
      *
      * Draws the object. The base object draws nothing.
@@ -438,7 +440,7 @@ STATIC_ASSERT(sizeof(CMapWater) == 0xA0);
  */
 class CMap {
 public:
-    CMapInfo          map_info; /**< File information and environmental settings for the loaded map. */
+    CMapInfo          map_info;                         /**< File information and environmental settings for the loaded map. */
     CMdsListSet      *mds_list_set;                     /**< Model lists the map's parts are taken from. */
     CList<CMapParts> *parts_list;                       /**< First of the parts the map can place. */
     s32               parts_group_max;                  /**< Number of slots in parts_group. */

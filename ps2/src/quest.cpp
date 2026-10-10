@@ -130,11 +130,11 @@ static int quest_END(SPI_STACK *stack, int arg_count) {
  *
  */
 static SPI_TAG_PARAM quest_cmd_tag[] = {
-    {"NUM", quest_NUM},
-    {"NEW", quest_NEW},
+    {"NUM",    quest_NUM    },
+    {"NEW",    quest_NEW    },
     {"COMENT", quest_COMMENT},
-    {"END", quest_END},
-    {NULL, NULL}
+    {"END",    quest_END    },
+    {NULL,     NULL         }
 };
 
 void CQuestManager::LoadCfg(mgCMemory *memory, char *script, int length) {

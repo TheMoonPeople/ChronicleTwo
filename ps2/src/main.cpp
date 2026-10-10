@@ -31,7 +31,20 @@ static int          VSyncCallBack(int event);
  * @address 0x15D470
  * @size 0x2C
  */
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/main", VSyncCallBack__Fi__2);
+static int VSyncCallBack(int event) {
+    vcount++;
+
+    if (vcount < 0) {
+        vcount = 0;
+    }
+
+    asm {
+        sync
+        ei
+    }
+
+    return 0;
+}
 
 /**
  *

@@ -49,10 +49,10 @@ struct Vec4 {
     float v[4]; /**< Vector components. */
 };
 
-static void             StepDataLoading(void *arg);
-extern char             at_932__4[];
-extern char             at_2197__3[];
-extern char             at_2198__3[];
+static void StepDataLoading(void *arg);
+extern char at_932__4[];
+extern char at_2197__3[];
+extern char at_2198__3[];
 
 enum {
     kFishShapeCount = 5,
@@ -96,36 +96,36 @@ enum {
     kFishAxisSide = 5,
 };
 
-int              InitUkiWait(CScene *scene);
-int              InitFalse(CScene *scene);
-int              InitBattle(CScene *scene);
-int              InitSuccess(CScene *scene);
-void             DrawHamon(float *pos, float scale);
-void             SetNextMode(int mode);
-float            GetFishDist(CScene *scene);
-void             EsaInit();
-int              GetMotionCount(CCharacter2 *chara, char *name, int min_count, int max_count, int min_speed);
-void             DeleteEsa();
-int              EndSelectCastingPoint(CScene *scene);
+int                InitUkiWait(CScene *scene);
+int                InitFalse(CScene *scene);
+int                InitBattle(CScene *scene);
+int                InitSuccess(CScene *scene);
+void               DrawHamon(float *pos, float scale);
+void               SetNextMode(int mode);
+float              GetFishDist(CScene *scene);
+void               EsaInit();
+int                GetMotionCount(CCharacter2 *chara, char *name, int min_count, int max_count, int min_speed);
+void               DeleteEsa();
+int                EndSelectCastingPoint(CScene *scene);
 static FISH_PARAM *GetFishParam(int index);
-int              GetUkiWaitTime(FISH_DATA *fish, CScene *scene, float *position, int rod_no, int bait_no);
-int              GetUkiPokeTime(FISH_DATA *fish);
-int              GetUkiPullTime(FISH_DATA *fish);
-int              FishLoadBG(FISH_DATA *fish, u_long128 *buffer);
-float            GetRandamNumber(float center, float high, float floor);
-void             DrawSplash(float *pos, float scale);
-void             LineTensionStep(FISH_DATA *fish, int reel);
-void             ExitFishing(CScene *scene);
-int              LoadExMotionBG(SubGameInfo *info, u_long128 *buffer);
-void             ReplayPrevBGM(CScene *scene);
-int              LoadExMotionStep(SubGameInfo *info, mgCMemory *memory);
-int              InitDataLoading();
-int              switch_thread();
-int              CreateLoadThread(mgCMemory *memory);
-int              StepLoadThread();
-void             DeleteLoadThread();
-void             DrawNumber(mgCDrawPrim *prim, int digit, int x, int y);
-int              InitCasting(CScene *scene);
+int                GetUkiWaitTime(FISH_DATA *fish, CScene *scene, float *position, int rod_no, int bait_no);
+int                GetUkiPokeTime(FISH_DATA *fish);
+int                GetUkiPullTime(FISH_DATA *fish);
+int                FishLoadBG(FISH_DATA *fish, u_long128 *buffer);
+float              GetRandamNumber(float center, float high, float floor);
+void               DrawSplash(float *pos, float scale);
+void               LineTensionStep(FISH_DATA *fish, int reel);
+void               ExitFishing(CScene *scene);
+int                LoadExMotionBG(SubGameInfo *info, u_long128 *buffer);
+void               ReplayPrevBGM(CScene *scene);
+int                LoadExMotionStep(SubGameInfo *info, mgCMemory *memory);
+int                InitDataLoading();
+int                switch_thread();
+int                CreateLoadThread(mgCMemory *memory);
+int                StepLoadThread();
+void               DeleteLoadThread();
+void               DrawNumber(mgCDrawPrim *prim, int digit, int x, int y);
+int                InitCasting(CScene *scene);
 
 enum {
     kPadButtonDebugJump = 1,
@@ -133,8 +133,8 @@ enum {
     kPadButtonCast = 0x78
 };
 
-int                       InitSelectCastingPoint(CScene *scene);
-int                       CheckCasting(CScene *scene, float *position, float *direction);
+int InitSelectCastingPoint(CScene *scene);
+int CheckCasting(CScene *scene, float *position, float *direction);
 
 /**
  *
@@ -142,196 +142,25 @@ int                       CheckCasting(CScene *scene, float *position, float *di
  *
  */
 static FISH_PARAM FishParam[19] = {
-    {
-        "\x89\x65\x2F\x83\x7B\x83\x45\x83\x59", "f00", FISH_ITEM_NONE,
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        {
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE}
-    },
-    {
-        "\x83\x6E\x83\x4F\x83\x6E\x83\x4F", "f19", FISH_ITEM_HAGUHAGU,
-        145.0f, 50.0f, 80.0f, 133.0f, 60.0f, 0.8f, 0.8f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x83\x7B\x81\x5B\x83\x7B\x81\x5B", "f01", FISH_ITEM_BOUBOU,
-        89.0f, 50.0f, 106.0f, 160.0f, 60.0f, 1.0f, 1.0f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x83\x4B\x83\x75\x83\x89", "f02", FISH_ITEM_GABURA,
-        98.0f, 60.0f, 120.0f, 186.0f, 50.0f, 1.2f, 1.2f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x83\x6D\x83\x93\x83\x4C\x81\x5B", "f03", FISH_ITEM_NONKII,
-        130.0f, 50.0f, 130.0f, 200.0f, 45.0f, 1.1f, 1.1f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x83\x4A\x83\x57\x81\x5B", "f04", FISH_ITEM_KAJII,
-        175.0f, 80.0f, 145.0f, 153.0f, 60.0f, 1.5f, 1.5f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE}
-    },
-    {
-        "\x83\x6F\x83\x4E\x83\x6F\x83\x4E", "f05", FISH_ITEM_BAKUBAKU,
-        145.0f, 60.0f, 100.0f, 46.0f, 50.0f, 1.3f, 1.3f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x83\x7D\x81\x5B\x83\x5F\x83\x93\x83\x4B\x83\x89\x83\x84\x83\x93", "f06", FISH_ITEM_MAADANGARAYAN,
-        105.0f, 40.0f, 80.0f, 130.0f, 80.0f, 4.0f, 1.5f,
-        {
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NONE, FISH_AFFINITY_HIGH, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW}
-    },
-    {
-        "\x83\x4F\x83\x7E\x81\x5B", "f07", FISH_ITEM_GUMII,
-        100.0f, 40.0f, 50.0f, 70.0f, 30.0f, 0.5f, 0.5f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x83\x6A\x83\x89\x81\x5B", "f08", FISH_ITEM_NIIRAA,
-        100.0f, 40.0f, 65.0f, 80.0f, 40.0f, 1.0f, 1.0f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x83\x45\x83\x7D\x83\x5F\x83\x4A\x83\x89", "f10", FISH_ITEM_UMADAKARA,
-        105.0f, 60.0f, 90.0f, 100.0f, 60.0f, 1.4f, 1.4f,
-        {
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_HIGH}
-    },
-    {
-        "\x83\x5E\x81\x5B\x83\x67\x83\x93", "f11", FISH_ITEM_TAATON,
-        100.0f, 40.0f, 80.0f, 100.0f, 60.0f, 0.9f, 0.9f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x83\x73\x83\x62\x83\x52\x83\x8A\x81\x5B", "f12", FISH_ITEM_PIKKORII,
-        100.0f, 40.0f, 50.0f, 70.0f, 20.0f, 0.7f, 0.7f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE}
-    },
-    {
-        "\x83\x7B\x83\x93", "f13", FISH_ITEM_BON,
-        80.0f, 50.0f, 80.0f, 100.0f, 40.0f, 0.8f, 0.8f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x83\x6E\x83\x7D\x83\x6E\x83\x7D", "f14", FISH_ITEM_HAMAHAMA,
-        105.0f, 50.0f, 106.0f, 130.0f, 50.0f, 1.4f, 1.4f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE}
-    },
-    {
-        "\x83\x6C\x83\x57\x81\x5B", "f15", FISH_ITEM_NEJII,
-        100.0f, 40.0f, 50.0f, 80.0f, 30.0f, 0.8f, 0.8f,
-        {
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW}
-    },
-    {
-        "\x83\x66\x83\x93", "f16", FISH_ITEM_DEN,
-        100.0f, 50.0f, 80.0f, 100.0f, 60.0f, 1.0f, 1.0f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL,
-            FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x83\x71\x83\x43\x83\x89", "f17", FISH_ITEM_HIIRA,
-        100.0f, 40.0f, 50.0f, 80.0f, 30.0f, 0.7f, 0.7f,
-        {
-            FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW,
-            FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE
-        },
-        {FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}
-    },
-    {
-        "\x92\x6A\x8E\xDD\x83\x4B\x83\x89\x83\x84\x83\x93", "f18", FISH_ITEM_DANSHAKU_GARAYAN,
-        105.0f, 80.0f, 90.0f, 100.0f, 70.0f, 2.0f, 2.0f,
-        {
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE,
-            FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL
-        },
-        {FISH_AFFINITY_HIGH, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW}
-    }
+    {"\x89\x65\x2F\x83\x7B\x83\x45\x83\x59",                             "f00", FISH_ITEM_NONE,             0.0f,   0.0f,  0.0f,   0.0f,   0.0f,  0.0f, 0.0f, {FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},          {FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE}        },
+    {"\x83\x6E\x83\x4F\x83\x6E\x83\x4F",                                 "f19", FISH_ITEM_HAGUHAGU,         145.0f, 50.0f, 80.0f,  133.0f, 60.0f, 0.8f, 0.8f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},                 {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL}   },
+    {"\x83\x7B\x81\x5B\x83\x7B\x81\x5B",                                 "f01", FISH_ITEM_BOUBOU,           89.0f,  50.0f, 106.0f, 160.0f, 60.0f, 1.0f, 1.0f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},           {FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}   },
+    {"\x83\x4B\x83\x75\x83\x89",                                         "f02", FISH_ITEM_GABURA,           98.0f,  60.0f, 120.0f, 186.0f, 50.0f, 1.2f, 1.2f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE},               {FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL}      },
+    {"\x83\x6D\x83\x93\x83\x4C\x81\x5B",                                 "f03", FISH_ITEM_NONKII,           130.0f, 50.0f, 130.0f, 200.0f, 45.0f, 1.1f, 1.1f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},     {FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL}      },
+    {"\x83\x4A\x83\x57\x81\x5B",                                         "f04", FISH_ITEM_KAJII,            175.0f, 80.0f, 145.0f, 153.0f, 60.0f, 1.5f, 1.5f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE},         {FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE}       },
+    {"\x83\x6F\x83\x4E\x83\x6F\x83\x4E",                                 "f05", FISH_ITEM_BAKUBAKU,         145.0f, 60.0f, 100.0f, 46.0f,  50.0f, 1.3f, 1.3f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE},        {FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL}      },
+    {"\x83\x7D\x81\x5B\x83\x5F\x83\x93\x83\x4B\x83\x89\x83\x84\x83\x93", "f06", FISH_ITEM_MAADANGARAYAN,    105.0f, 40.0f, 80.0f,  130.0f, 80.0f, 4.0f, 1.5f, {FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},        {FISH_AFFINITY_NONE, FISH_AFFINITY_HIGH, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW}          },
+    {"\x83\x4F\x83\x7E\x81\x5B",                                         "f07", FISH_ITEM_GUMII,            100.0f, 40.0f, 50.0f,  70.0f,  30.0f, 0.5f, 0.5f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},     {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}},
+    {"\x83\x6A\x83\x89\x81\x5B",                                         "f08", FISH_ITEM_NIIRAA,           100.0f, 40.0f, 65.0f,  80.0f,  40.0f, 1.0f, 1.0f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},   {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}},
+    {"\x83\x45\x83\x7D\x83\x5F\x83\x4A\x83\x89",                         "f10", FISH_ITEM_UMADAKARA,        105.0f, 60.0f, 90.0f,  100.0f, 60.0f, 1.4f, 1.4f, {FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},        {FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_HIGH}          },
+    {"\x83\x5E\x81\x5B\x83\x67\x83\x93",                                 "f11", FISH_ITEM_TAATON,           100.0f, 40.0f, 80.0f,  100.0f, 60.0f, 0.9f, 0.9f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},         {FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL}      },
+    {"\x83\x73\x83\x62\x83\x52\x83\x8A\x81\x5B",                         "f12", FISH_ITEM_PIKKORII,         100.0f, 40.0f, 50.0f,  70.0f,  20.0f, 0.7f, 0.7f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},              {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE}    },
+    {"\x83\x7B\x83\x93",                                                 "f13", FISH_ITEM_BON,              80.0f,  50.0f, 80.0f,  100.0f, 40.0f, 0.8f, 0.8f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE}, {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}},
+    {"\x83\x6E\x83\x7D\x83\x6E\x83\x7D",                                 "f14", FISH_ITEM_HAMAHAMA,         105.0f, 50.0f, 106.0f, 130.0f, 50.0f, 1.4f, 1.4f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE},            {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE}    },
+    {"\x83\x6C\x83\x57\x81\x5B",                                         "f15", FISH_ITEM_NEJII,            100.0f, 40.0f, 50.0f,  80.0f,  30.0f, 0.8f, 0.8f, {FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE},       {FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW}   },
+    {"\x83\x66\x83\x93",                                                 "f16", FISH_ITEM_DEN,              100.0f, 50.0f, 80.0f,  100.0f, 60.0f, 1.0f, 1.0f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},          {FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}   },
+    {"\x83\x71\x83\x43\x83\x89",                                         "f17", FISH_ITEM_HIIRA,            100.0f, 40.0f, 50.0f,  80.0f,  30.0f, 0.7f, 0.7f, {FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE},                  {FISH_AFFINITY_NORMAL, FISH_AFFINITY_LOW, FISH_AFFINITY_NORMAL, FISH_AFFINITY_NORMAL}   },
+    {"\x92\x6A\x8E\xDD\x83\x4B\x83\x89\x83\x84\x83\x93",                 "f18", FISH_ITEM_DANSHAKU_GARAYAN, 105.0f, 80.0f, 90.0f,  100.0f, 70.0f, 2.0f, 2.0f, {FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NONE, FISH_AFFINITY_NORMAL},        {FISH_AFFINITY_HIGH, FISH_AFFINITY_LOW, FISH_AFFINITY_NONE, FISH_AFFINITY_LOW}          }
 };
 
 /**
@@ -342,8 +171,7 @@ static FISH_PARAM FishParam[19] = {
 static int EsaInfo[18] = {
     0x11F, 0x120, 0x121, 0x122, 0x123, 0x124,
     0x138, 0x139, 0x13A, 0x13B, 0x13C, 0x13D, 0x13E, 0x13F,
-    0x179, 0x17A, 0x17B, 0x17C
-};
+    0x179, 0x17A, 0x17B, 0x17C};
 
 /**
  *
@@ -423,11 +251,11 @@ static int fpFISH_MAP_END(SPI_STACK *args, int arg_count);
  */
 static SPI_TAG_PARAM tag[6] = {
     {"FISH_MAP_NUM", fpFISH_MAP_NUM},
-    {"FISH_MAP", fpFISH_MAP},
-    {"FISH_PLACE", fpFISH_PLACE},
-    {"FISH", fpFISH},
+    {"FISH_MAP",     fpFISH_MAP    },
+    {"FISH_PLACE",   fpFISH_PLACE  },
+    {"FISH",         fpFISH        },
     {"FISH_MAP_END", fpFISH_MAP_END},
-    {NULL, NULL}
+    {NULL,           NULL          }
 };
 
 /**
@@ -1316,8 +1144,9 @@ int sgInitFishing(SubGameInfo *info) {
     info->record_check = info->dungeon;
     return 1;
 }
+
 int sgRestartFishing(SubGameInfo *info) {
-    CScene *scene = info->scene;
+    CScene    *scene = info->scene;
     u_long128 *buffer = ReadBuffer;
 
     mgTexManager.DeleteBlock(EsaTexb);
@@ -1325,58 +1154,73 @@ int sgRestartFishing(SubGameInfo *info) {
     LocalEsaNo = -1;
     EsaStack.lock = 0;
     EsaChara = NULL;
+
     for (int i = 0; i < 18; i++) {
         if (info->esa_no == EsaInfo[i]) {
             LocalEsaNo = i;
             break;
         }
     }
-    if (info->rod_no == 0x12F) {
+
+    if (info->rod_no == (int) ITEM_ID_LURE_ROD) {
         SetFishingMode(kFishingModeLure);
         EsaChara = NULL;
         char lure_path[0x40] = "sg/fish/";
-        int lure_no = LocalEsaNo - 14;
+        int  lure_no = LocalEsaNo - 14;
+
         if (lure_no >= 4) {
             lure_no = -1;
         }
+
         LureFrame = NULL;
+
         if (lure_no >= 0) {
             strcat(lure_path, lure_file[lure_no]);
+
             if (LoadFile2(lure_path, buffer, NULL, LOAD_FILE_READ) != 0) {
-                Lure->LoadPackNoLine((u_int *)buffer, "info.cfg", &EsaStack, &EsaStack, &EsaStack, EsaTexb, NULL);
+                Lure->LoadPackNoLine((u_int *) buffer, "info.cfg", &EsaStack, &EsaStack, &EsaStack, EsaTexb, NULL);
             }
+
             LureFrame = Lure->CObjectFrame::frame;
         }
+
         InitLureObj(lure_no, LureFrame);
+
         if (lure_no < 0) {
             LureFrame = NULL;
             Lure->Initialize();
         }
+
         LureNo = lure_no;
     } else {
         SetFishingMode(kFishingModeFloat);
         char *esa_path = GetItemFilePath(info->esa_no, 0);
+
         if (esa_path != NULL) {
             if (*esa_path != 0 && LocalEsaNo >= 0) {
                 CCharacter2 *esa_chara;
                 esa_chara = new (EsaStack.Alloc(0x68)) CCharacter2;
                 EsaChara = esa_chara;
                 EsaChara->Initialize();
+
                 if (LoadFile2(esa_path, buffer, NULL, LOAD_FILE_READ) != 0) {
-                    EsaChara->LoadPackNoLine((u_int *)buffer, "info.cfg", &EsaStack, &EsaStack, &EsaStack, EsaTexb, NULL);
+                    EsaChara->LoadPackNoLine((u_int *) buffer, "info.cfg", &EsaStack, &EsaStack, &EsaStack, EsaTexb, NULL);
                 } else {
                     EsaChara = NULL;
                 }
             }
         }
     }
+
     sndSeAllStop(SND_PORT_ENEMY);
     sndSeAllStop(SND_PORT_MENU);
+
     if (sndSeCheck(FanSnd, 0) == 0) {
         mgCMemory sound_memory;
-        int sound_size = MotionBuff.stGetRest();
+        int       sound_size = MotionBuff.stGetRest();
         sound_memory.stSetBuffer(MotionBuff.stGetTop(), sound_size);
-        u_int *sound_buffer = (u_int *)sound_memory.stAlloc64(0x4000);
+        u_int *sound_buffer = (u_int *) sound_memory.stAlloc64(0x4000);
+
         if (sound_buffer != NULL && LoadFile2("snd2/sp/SP_006.snd", sound_buffer, NULL, LOAD_FILE_READ) != 0) {
             sndInitPort(SND_PORT_MENU);
             SndStack.stack_used = 0;
@@ -1384,15 +1228,18 @@ int sgRestartFishing(SubGameInfo *info) {
             FanSnd = sndLoadSound(SND_PORT_MENU, sound_buffer, &SndStack);
         }
     }
+
     MardanEventMap = 0;
     MardanEventPlace = 0;
     CSaveData *save_data = GetSaveData();
+
     if (scene->now_map_no == 0x41) {
         if (save_data->GetBitFlag(0xEB) != 0 && save_data->GetBitFlag(0xF0) == 0) {
             MardanEventPlace = 0;
             MardanEventMap = 1;
         }
     }
+
     int rod_status[5];
     save_data->user_data.GetRodStatus(rod_status);
     RodData.status[0] = rod_status[0];
@@ -1400,16 +1247,17 @@ int sgRestartFishing(SubGameInfo *info) {
     RodData.status[2] = rod_status[2];
     RodData.status[3] = rod_status[3];
     RodData.status[4] = rod_status[4];
-    float rate = 0.2f * ((float)RodData.status[3] / 100.0f);
+    float rate = 0.2f * ((float) RodData.status[3] / 100.0f);
     rate += 0.8f;
-    RodData.status[0] = (int)(0.5f + (float)RodData.status[0] * rate);
-    RodData.status[1] = (int)(0.5f + (float)RodData.status[1] * rate);
-    RodData.status[2] = (int)(0.5f + (float)RodData.status[2] * rate);
-    RodData.status4_rate = (float)RodData.status[4] / 100.0f;
+    RodData.status[0] = (int) (0.5f + (float) RodData.status[0] * rate);
+    RodData.status[1] = (int) (0.5f + (float) RodData.status[1] * rate);
+    RodData.status[2] = (int) (0.5f + (float) RodData.status[2] * rate);
+    RodData.status4_rate = (float) RodData.status[4] / 100.0f;
     CastDist = 160.0f;
     SetWaterLevel(-100000.0f);
     return 1;
 }
+
 /**
  *
  * Resets fishing loading state and captures the active BGM status.
@@ -1445,7 +1293,7 @@ int InitDataLoading() {
     }
 
     EffectMan = scene->GetEffect(0);
-    CharaMode = 0;
+    CharaMode = (int) FISHING_CHARA_MODE_CONTROL;
     NextCharaMode = -1;
     RunEventNo = -1;
     CastOKFlag = 0;
@@ -1531,41 +1379,48 @@ void DeleteLoadThread() {
         ThreadRunning = 0;
     }
 }
+
 /**
  *
  * Loads the fishing models, textures, sounds and scene configuration in the worker thread.
  *
  */
 static void StepDataLoading(void *arg) {
-    char path[0x80];
-    char bgm_path[0x80];
-    int file_size;
-    int pack_size;
+    char               path[0x80];
+    char               bgm_path[0x80];
+    int                file_size;
+    int                pack_size;
     mgCTextureManager *tex_manager = &mgTexManager;
-    u_long128 *buffer = ReadBuffer;
-    SubGameInfo *info = GetNowSubGameInfo();
-    CScene *scene = info->scene;
-    mgCMemory *memory = info->load_buff;
+    u_long128         *buffer = ReadBuffer;
+    SubGameInfo       *info = GetNowSubGameInfo();
+    CScene            *scene = info->scene;
+    mgCMemory         *memory = info->load_buff;
 
     if (memory == NULL) {
         memory = scene->GetStack(5);
     }
+
     if (LoadFile2("sg/fish/fishing.cfg", buffer, &file_size, LOAD_FILE_READ) != 0) {
-        LoadFishPlaceData((char *)buffer, file_size, memory);
+        LoadFishPlaceData((char *) buffer, file_size, memory);
     }
+
     StartReadBG();
+
     if (LanguageCode >= 2) {
         sprintf(path, "sg/fish/fishing2_%d.pak", LanguageCode);
     } else {
         strcpy(path, "sg/fish/fishing2.pak");
     }
+
     if (LoadFileBG(path, buffer, &pack_size) == 0) {
         step_end_flag = 1;
         return;
     }
+
     while (ReadBGSync() != 0) {
         switch_thread();
     }
+
     CCharacter2 *chara;
     chara = new (memory->Alloc(0x68)) CCharacter2;
     UkiRod = chara;
@@ -1591,96 +1446,128 @@ static void StepDataLoading(void *arg) {
     CursorChara[0]->Initialize();
     CursorChara[1]->Initialize();
     BG_READ_INFO *read_info = GetReadBGFile(0);
+
     if (read_info == NULL) {
         step_end_flag = 1;
         return;
     }
-    u_int *pack = (u_int *)read_info->buffer;
-    int bgm_no = scene->GetDefBgmNo(0x205);
+
+    u_int *pack = (u_int *) read_info->buffer;
+    int    bgm_no = scene->GetDefBgmNo(0x205);
+
     if (scene->CheckLoadBGM(bgm_no) != 0) {
         scene->GetBgmFile(bgm_path, bgm_no);
         u_int *bgm_pack = GetPackFile(pack, bgm_path, NULL);
+
         if (bgm_pack != NULL) {
             BgmReadFlag = 1;
             scene->LoadBGMPack(bgm_no, bgm_pack);
         }
     }
+
     switch_thread();
     scene->PlayBGM(0, -1, 1.0f);
-    if (info->rod_no == 0x12F) {
+
+    if (info->rod_no == (int) ITEM_ID_LURE_ROD) {
         u_int *rod_pack;
+
         if ((rod_pack = GetPackFile(pack, "f_rod2.chr", NULL)) != NULL) {
             UkiRod->LoadPackNoLine(rod_pack, "info.cfg", memory, memory, memory, FishingTexb, NULL);
         }
     } else {
         u_int *rod_pack;
+
         if ((rod_pack = GetPackFile(pack, "f_rod.chr", NULL)) != NULL) {
             UkiRod->LoadPackNoLine(rod_pack, "info.cfg", memory, memory, memory, FishingTexb, NULL);
         }
     }
+
     if (UkiRod->CObjectFrame::frame == NULL) {
         step_end_flag = 1;
         return;
     }
+
     u_int *cursor_pack = GetPackFile(pack, "c_point.chr", NULL);
+
     if (cursor_pack != NULL) {
         CursorChara[0]->LoadPackNoLine(cursor_pack, "info.cfg", memory, memory, memory, FishingTexb, NULL);
     }
+
     u_int *system_pack;
+
     if ((system_pack = GetPackFile(pack, "fish_juji.img", &pack_size)) != NULL) {
         int qwords;
-        if ((u_int)pack_size & 0xF) {
-            qwords = ((u_int)pack_size >> 4) + 1;
+
+        if ((u_int) pack_size & 0xF) {
+            qwords = ((u_int) pack_size >> 4) + 1;
         } else {
-            qwords = (u_int)pack_size >> 4;
+            qwords = (u_int) pack_size >> 4;
         }
-        u_char *copy = (u_char *)memory->Alloc(qwords);
+
+        u_char *copy = (u_char *) memory->Alloc(qwords);
+
         if (copy != NULL) {
             memcpy(copy, system_pack, pack_size);
             tex_manager->EnterIMGFile(copy, SystemTexb, NULL, NULL);
         }
     }
+
     u_int *fish_pack;
+
     if ((fish_pack = GetPackFile(pack, "linetens.img", &pack_size)) != NULL) {
         int qwords;
-        if ((u_int)pack_size & 0xF) {
-            qwords = ((u_int)pack_size >> 4) + 1;
+
+        if ((u_int) pack_size & 0xF) {
+            qwords = ((u_int) pack_size >> 4) + 1;
         } else {
-            qwords = (u_int)pack_size >> 4;
+            qwords = (u_int) pack_size >> 4;
         }
-        u_char *copy = (u_char *)memory->Alloc(qwords);
+
+        u_char *copy = (u_char *) memory->Alloc(qwords);
+
         if (copy != NULL) {
             memcpy(copy, fish_pack, pack_size);
             tex_manager->EnterIMGFile(copy, SystemTexb, NULL, NULL);
         }
     }
+
     u_int *uki_pack = GetPackFile(pack, "uki.chr", NULL);
+
     if (uki_pack != NULL) {
         Uki->LoadPackNoLine(uki_pack, "info.cfg", memory, memory, memory, FishingTexb, NULL);
     }
+
     u_int *hari_pack;
+
     if ((hari_pack = GetPackFile(pack, "hari.chr", NULL)) != NULL) {
         Hari->LoadPackNoLine(hari_pack, "info.cfg", memory, memory, memory, FishingTexb, NULL);
     }
+
     mgCFrame *uki_frame = Uki->CObjectFrame::frame;
     UkiFrame = uki_frame;
     mgCFrame *hari_frame = Hari->CObjectFrame::frame;
     HariFrame = hari_frame;
+
     if (uki_frame == NULL || hari_frame == NULL) {
         step_end_flag = 1;
         return;
     }
+
     CCharacter2 *main_chara;
     MainChara = main_chara = scene->GetCharacter(scene->player_chara);
+
     if (main_chara == NULL || main_chara->CObjectFrame::frame == NULL) {
         step_end_flag = 1;
         return;
     }
+
     RodHand = main_chara->CObjectFrame::frame->SearchFrame("gun_hand");
+
     if (RodHand == NULL) {
         step_end_flag = 1;
         return;
     }
+
     UkiRod->CObjectFrame::frame->SetReference(RodHand);
     InitRodPoint(RodHand, UkiRod->CObjectFrame::frame);
     InitUkiObj(0, UkiFrame, HariFrame);
@@ -1688,25 +1575,30 @@ static void StepDataLoading(void *arg) {
     FishSnd = -1;
     FanSnd = -1;
     SndStack.stSetBuffer(memory->Alloc(100), 100);
+
     if (LoadFile2("snd2/mon/EN_901.snd", buffer, NULL, LOAD_FILE_READ) != 0) {
         sndInitPort(SND_PORT_ENEMY);
-        FishSnd = sndLoadSound(SND_PORT_ENEMY, (u_int *)buffer, memory);
+        FishSnd = sndLoadSound(SND_PORT_ENEMY, (u_int *) buffer, memory);
     }
+
     if (LoadFile2("snd2/sp/SP_006.snd", buffer, NULL, LOAD_FILE_READ) != 0) {
         sndInitPort(SND_PORT_MENU);
         SndStack.stack_used = 0;
         SndStack.lock = 0;
-        FanSnd = sndLoadSound(SND_PORT_MENU, (u_int *)buffer, &SndStack);
+        FanSnd = sndLoadSound(SND_PORT_MENU, (u_int *) buffer, &SndStack);
     }
+
     if (info->dungeon != 0) {
         if (LoadFile2("chara/c01_fishing.chr", buffer, NULL, LOAD_FILE_READ) != 0) {
-            MainChara->LoadPack((u_int *)buffer, "info.cfg", memory, memory, memory, 0, NULL);
+            MainChara->LoadPack((u_int *) buffer, "info.cfg", memory, memory, memory, 0, NULL);
         }
     }
+
     sgRestartFishing(info);
     printf("fg remain = %dkb\n", (memory->stack_size - memory->stack_used) * 16 / 1024);
     step_end_flag = 1;
 }
+
 int sgBreakFishing() {
     DeleteLoadThread();
     sgExitFishing(GetNowSubGameInfo());
@@ -1737,21 +1629,25 @@ int sgExitFishing(SubGameInfo *info) {
     BgmReadFlag = 0;
     return 1;
 }
+
 int sgLoopFishing(SubGameInfo *info) {
-    CScene *scene = info->scene;
+    CScene      *scene = info->scene;
     CCharacter2 *chara = scene->GetCharacter(scene->player_chara);
 
     if (fgLoopMode == 0) {
         fgLoopCnt++;
         CharaControl(scene, NULL);
+
         switch (fgLoopStep) {
             case 0:
                 if (fgLoopCnt < 3) {
                     return 0;
                 }
+
                 while (0 < scene->bg_load_step) {
                     return 0;
                 }
+
                 fgLoopStep++;
             case 1:
                 InitDataLoading();
@@ -1765,6 +1661,7 @@ int sgLoopFishing(SubGameInfo *info) {
                 if (StepLoadThread() != 0) {
                     return 0;
                 }
+
                 fgLoopStep++;
             case 4:
                 scene->fade.CaptureScreen();
@@ -1777,6 +1674,7 @@ int sgLoopFishing(SubGameInfo *info) {
                     chara->UpdatePosition();
                     chara->Step();
                 }
+
                 DeleteLoadThread();
                 fgLoopStep = 0;
                 fgLoopMode = 1;
@@ -1788,55 +1686,69 @@ int sgLoopFishing(SubGameInfo *info) {
                 return RetCode;
         }
     }
+
     CPadControl *pad = &PadCtrl;
     sgSetMenuOpenEnableFlag(0);
+
     switch (CharaMode) {
-        case 0:
+        case (int) FISHING_CHARA_MODE_CONTROL:
             CharaControl(scene, pad);
             break;
-        case 1:
+        case (int) FISHING_CHARA_MODE_SELECT_POINT:
             SelectCastingPoint(scene, pad);
             break;
-        case 2:
+        case (int) FISHING_CHARA_MODE_CASTING:
             CastingLoop(scene, pad);
             break;
-        case 3:
+        case (int) FISHING_CHARA_MODE_UKI_WAIT:
             UkiWaitLoop(scene, pad);
             break;
-        case 5:
+        case (int) FISHING_CHARA_MODE_BATTLE:
             BattleLoop(scene, pad);
             break;
-        case 6:
+        case (int) FISHING_CHARA_MODE_FALSE:
             FalseLoop(scene, pad);
             break;
-        case 7:
+        case (int) FISHING_CHARA_MODE_SUCCESS:
             SuccessLoop(scene, pad);
+
             if (FishChara != NULL) {
                 FishChara->Step();
             }
+
             break;
     }
+
     oldPadRx = pad->Analog(5);
     oldPadRy = pad->Analog(4);
+
     if (NextCharaMode >= 0) {
         CharaMode = NextCharaMode;
     }
-    if (CharaMode == 0) {
+
+    if (CharaMode == (int) FISHING_CHARA_MODE_CONTROL) {
         sgSetMenuOpenEnableFlag(1);
     }
+
     DrawHit--;
+
     if (DrawHit < 0) {
         DrawHit = 0;
     }
+
     DrawCongra--;
+
     if (DrawCongra < 0) {
         DrawCongra = 0;
     }
+
     if (RetCode != 0) {
         sgExitFishing(info);
     }
+
     return RetCode;
 }
+
 int sgLoopFishing2(SubGameInfo *info) {
     CScene *scene;
 
@@ -1854,7 +1766,7 @@ int sgLoopFishing2(SubGameInfo *info) {
     UkiRod->CObjectFrame::frame->SetReference(RodHand);
     RodStep(scene, poly_buffer);
 
-    if (CharaMode == kCharaModeReel || CharaMode == kCharaModeReel2) {
+    if (CharaMode == FISHING_CHARA_MODE_FALSE || CharaMode == FISHING_CHARA_MODE_SUCCESS) {
         chara = scene->GetCharacter(scene->player_chara);
 
         if (chara != NULL) {
@@ -1876,6 +1788,7 @@ int sgLoopFishing2(SubGameInfo *info) {
 
     return 0;
 }
+
 int sgDrawFishing(SubGameInfo *info) {
     sceVu0FMATRIX uki_matrix;
     sceVu0FMATRIX lure_matrix;
@@ -1883,75 +1796,91 @@ int sgDrawFishing(SubGameInfo *info) {
     if (fgLoopMode == 0) {
         return 0;
     }
+
     mgCTextureManager *textures = &mgTexManager;
-    textures->ReloadTexture(FishingTexb, (sceVif1Packet *)NULL);
+    textures->ReloadTexture(FishingTexb, (sceVif1Packet *) NULL);
     UkiRod->DrawDirect();
     float hook_offset[4] = {0.0f, -3.5f, 1.0f, 0.0f};
+
     if (LureFrame != NULL && SetLurePose(LureFrame) != 0) {
         if (GetShowHari() != 0) {
-            textures->ReloadTexture(EsaTexb, (sceVif1Packet *)NULL);
+            textures->ReloadTexture(EsaTexb, (sceVif1Packet *) NULL);
             mgDrawDirect(LureFrame);
         }
+
         LureFrame->GetLWMatrix(uki_matrix);
         sceVu0FVECTOR lure_swap_row;
-        *(u_long128 *)lure_swap_row = *(u_long128 *)uki_matrix[0];
-        *(u_long128 *)uki_matrix[0] = *(u_long128 *)uki_matrix[2];
-        *(u_long128 *)uki_matrix[2] = *(u_long128 *)lure_swap_row;
+        *(u_long128 *) lure_swap_row = *(u_long128 *) uki_matrix[0];
+        *(u_long128 *) uki_matrix[0] = *(u_long128 *) uki_matrix[2];
+        *(u_long128 *) uki_matrix[2] = *(u_long128 *) lure_swap_row;
         sceVu0ScaleVector(uki_matrix[2], uki_matrix[2], -1.0f);
-        *(u_long128 *)lure_matrix[0] = *(u_long128 *)uki_matrix[0];
-        *(u_long128 *)lure_matrix[1] = *(u_long128 *)uki_matrix[1];
-        *(u_long128 *)lure_matrix[2] = *(u_long128 *)uki_matrix[2];
-        *(u_long128 *)lure_matrix[3] = *(u_long128 *)uki_matrix[3];
+        *(u_long128 *) lure_matrix[0] = *(u_long128 *) uki_matrix[0];
+        *(u_long128 *) lure_matrix[1] = *(u_long128 *) uki_matrix[1];
+        *(u_long128 *) lure_matrix[2] = *(u_long128 *) uki_matrix[2];
+        *(u_long128 *) lure_matrix[3] = *(u_long128 *) uki_matrix[3];
         LureFrame->GetWorldPosition(lure_matrix[3], hook_offset);
     }
-    textures->ReloadTexture(FishingTexb, (sceVif1Packet *)NULL);
+
+    textures->ReloadTexture(FishingTexb, (sceVif1Packet *) NULL);
+
     if (SetUkiPose(UkiFrame, HariFrame) != 0) {
         mgDrawDirect(UkiFrame);
+
         if (GetShowHari() != 0) {
             mgDrawDirect(HariFrame);
         }
+
         HariFrame->GetLWMatrix(uki_matrix);
         sceVu0FVECTOR hari_swap_row;
-        *(u_long128 *)hari_swap_row = *(u_long128 *)uki_matrix[1];
-        *(u_long128 *)uki_matrix[1] = *(u_long128 *)uki_matrix[2];
-        *(u_long128 *)uki_matrix[2] = *(u_long128 *)hari_swap_row;
+        *(u_long128 *) hari_swap_row = *(u_long128 *) uki_matrix[1];
+        *(u_long128 *) uki_matrix[1] = *(u_long128 *) uki_matrix[2];
+        *(u_long128 *) uki_matrix[2] = *(u_long128 *) hari_swap_row;
         sceVu0ScaleVector(uki_matrix[0], uki_matrix[0], -1.0f);
-        *(u_long128 *)lure_matrix[0] = *(u_long128 *)uki_matrix[0];
-        *(u_long128 *)lure_matrix[1] = *(u_long128 *)uki_matrix[1];
-        *(u_long128 *)lure_matrix[2] = *(u_long128 *)uki_matrix[2];
-        *(u_long128 *)lure_matrix[3] = *(u_long128 *)uki_matrix[3];
+        *(u_long128 *) lure_matrix[0] = *(u_long128 *) uki_matrix[0];
+        *(u_long128 *) lure_matrix[1] = *(u_long128 *) uki_matrix[1];
+        *(u_long128 *) lure_matrix[2] = *(u_long128 *) uki_matrix[2];
+        *(u_long128 *) lure_matrix[3] = *(u_long128 *) uki_matrix[3];
         HariFrame->GetWorldPosition(lure_matrix[3], hook_offset);
     }
-    if (CharaMode == 1) {
+
+    if (CharaMode == (int) FISHING_CHARA_MODE_SELECT_POINT) {
         char *cursor_motion[2] = {"NG", "OK"};
         CursorChara[0]->SetMotion(cursor_motion[CastOKFlag], 0);
         CursorChara[0]->SetPosition(CastPointCur.v);
         CursorChara[0]->Step();
         CursorChara[0]->DrawDirect();
     }
+
     if (EsaChara != NULL && FishChara == NULL) {
-        textures->ReloadTexture(EsaTexb, (sceVif1Packet *)NULL);
+        textures->ReloadTexture(EsaTexb, (sceVif1Packet *) NULL);
         EsaChara->SetPosition(lure_matrix[3]);
         mgZeroVectorW(lure_matrix[3]);
+
         if (EsaChara->CObjectFrame::frame != NULL) {
             EsaChara->CObjectFrame::frame->SetTransMatrix(lure_matrix);
         }
+
         if (GetShowHari() != 0) {
             EsaChara->DrawDirect();
         }
     }
+
     if (FishChara != NULL) {
-        textures->ReloadTexture(FishTexb, (sceVif1Packet *)NULL);
+        textures->ReloadTexture(FishTexb, (sceVif1Packet *) NULL);
         FishChara->SetPosition(uki_matrix[3]);
         mgZeroVectorW(uki_matrix[3]);
+
         if (FishChara->CObjectFrame::frame != NULL) {
             FishChara->CObjectFrame::frame->SetTransMatrix(uki_matrix);
         }
+
         FishChara->DrawDirect();
     }
+
     DrawFishingLine();
     return 0;
 }
+
 /**
  *
  * Draws one digit of a fishing interface number.
@@ -2004,7 +1933,7 @@ int sgSystemDrawFishing(SubGameInfo *info) {
     prim.Bilinear(1);
     prim.TextureMapEnable(0);
 
-    if (CharaMode == 5) {
+    if (CharaMode == (int) FISHING_CHARA_MODE_BATTLE) {
         top = mgScreenHeight - 0x47;
         prim.Begin(MG_PRIM_SPRITE);
         prim.Color(0x15, 0x29, 0x47, 0x60);
@@ -2194,7 +2123,7 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
             move_z *= 3.5f;
 
             if (DebugInfo.chara_move != 0) {
-                if (GamePad__2.On(1) != 0) {
+                if (GamePad__2.On(PAD_L2) != 0) {
                     move_x *= 3.0f;
                     move_z *= 3.0f;
                 }
@@ -2252,7 +2181,7 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
                 ShowHelpMes(0x65, 1);
 
                 if (pad->Btn(kPadButtonCast) != 0 && InitSelectCastingPoint(scene) != 0) {
-                    SetNextMode(1);
+                    SetNextMode((int) FISHING_CHARA_MODE_SELECT_POINT);
                 }
             }
 
@@ -2439,7 +2368,7 @@ void SelectCastingPoint(CScene *scene, CPadControl *pad) {
     target[0] = position[0];
     target[2] = position[2];
     saved_cancel = camera->rot_cancel;
-    camera->BitSetRotCameraCancel(0x80);
+    camera->BitSetRotCameraCancel((int) CAMERA_ROT_CANCEL_AUTO_MOVE);
     EditCameraControl(scene, pad, NULL);
     camera->SetRotCameraCancel(saved_cancel);
     castable = CheckCasting(scene, position, cast_dir);
@@ -2486,13 +2415,13 @@ void SelectCastingPoint(CScene *scene, CPadControl *pad) {
 
     if (CastOKFlag != 0 && pad->Btn(kPadButtonCast) != 0) {
         if (InitCasting(scene) != 0) {
-            SetNextMode(2);
+            SetNextMode((int) FISHING_CHARA_MODE_CASTING);
         }
     } else if (pad->Btn(kPadButtonCancel) != 0) {
         BreakReadBG();
 
         if (EndSelectCastingPoint(scene) != 0) {
-            SetNextMode(0);
+            SetNextMode((int) FISHING_CHARA_MODE_CONTROL);
         }
     }
 }
@@ -2505,7 +2434,9 @@ void SelectCastingPoint(CScene *scene, CPadControl *pad) {
 void DrawHamon(float *pos, float scale) {
     if (EffectMan != NULL) {
         float pos_vec[4];
-        Vec4 scale_vec = {{0.0f, 0.0f, 0.0f, 0.0f}};
+        Vec4  scale_vec = {
+            {0.0f, 0.0f, 0.0f, 0.0f}
+        };
         scale_vec.v[0] = scale;
         scale_vec.v[1] = scale;
         scale_vec.v[2] = scale;
@@ -2525,7 +2456,9 @@ void DrawHamon(float *pos, float scale) {
 void DrawSplash(float *pos, float scale) {
     if (EffectMan != NULL) {
         float pos_vec[4];
-        Vec4 scale_vec = {{0.0f, 0.0f, 0.0f, 0.0f}};
+        Vec4  scale_vec = {
+            {0.0f, 0.0f, 0.0f, 0.0f}
+        };
         scale_vec.v[0] = scale;
         scale_vec.v[1] = scale;
         scale_vec.v[2] = scale;
@@ -2647,7 +2580,7 @@ void CastingLoop(CScene *scene, CPadControl *pad) {
                 EndCastingLure();
 
                 if (InitUkiWait(scene) != 0) {
-                    SetNextMode(3);
+                    SetNextMode((int) FISHING_CHARA_MODE_UKI_WAIT);
                 }
             }
         }
@@ -2734,7 +2667,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
                 chara->SetMotion("\x82\xC2\x82\xE8\x8A\xC6\x8E\x9D\x82\xBF\x97\xA7\x82\xBF", 4);
             }
 
-            SetNextMode(0);
+            SetNextMode((int) FISHING_CHARA_MODE_CONTROL);
         }
 
         return;
@@ -2840,7 +2773,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
 
         switch (UkiMode) {
             case kUkiStart:
-                scene->ResetStatus(1, scene->player_chara, 0x20);
+                scene->ResetStatus(SCENE_DATA_CHARA, scene->player_chara, 0x20);
                 UkiModeCnt = GetUkiWaitTime(&FishData, scene, hari_now, RodNo, LocalEsaNo);
                 boze_cnt = 0;
                 UkiMode = kUkiWaitBite;
@@ -2895,7 +2828,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
                 if (FishData.fish_no <= 0) {
                     UkiMode = kUkiStart;
                 } else {
-                    scene->SetStatus(1, scene->player_chara, 0x20);
+                    scene->SetStatus(SCENE_DATA_CHARA, scene->player_chara, 0x20);
 
                     if (pushed != 0) {
                         caught = 1;
@@ -2917,7 +2850,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
 
         switch (UkiMode) {
             case kUkiStart:
-                scene->ResetStatus(1, scene->player_chara, 0x20);
+                scene->ResetStatus(SCENE_DATA_CHARA, scene->player_chara, 0x20);
                 RodActionPoint = GetUkiWaitTime(&FishData, scene, hari_now, RodNo, LocalEsaNo);
                 act_count = 0;
                 UkiMode = kUkiCharge;
@@ -2961,7 +2894,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
                     caught = 1;
                 }
 
-                scene->SetStatus(1, scene->player_chara, 0x20);
+                scene->SetStatus(SCENE_DATA_CHARA, scene->player_chara, 0x20);
                 GamePad__2.SetVibration(1, 0x96, 4);
 
                 if (UkiModeCnt <= 0) {
@@ -2980,7 +2913,7 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
         UkiModeCnt = 0;
     }
 
-    camera->SetRotCameraCancel(0x80);
+    camera->SetRotCameraCancel((int) CAMERA_ROT_CANCEL_AUTO_MOVE);
 
     if (caught == 0 && GetFishingMode() == kFishingModeFloat) {
         GetUkiPos(camera_target[0], uki_pos2);
@@ -3023,11 +2956,11 @@ void UkiWaitLoop(CScene *scene, CPadControl *pad) {
 
     if (caught != 0) {
         ResetUkiCamera(camera);
-        scene->ResetStatus(1, scene->player_chara, 0x20);
+        scene->ResetStatus(SCENE_DATA_CHARA, scene->player_chara, 0x20);
 
         if (InitBattle(scene) != 0) {
             GamePad__2.SetVibration(0, 1, 5);
-            SetNextMode(5);
+            SetNextMode((int) FISHING_CHARA_MODE_BATTLE);
             sndSePlay(FishSnd, 0x12, 0);
 
             if (MardanEventMap != 0 && MardanEventPlace != 0) {
@@ -3275,7 +3208,7 @@ void BattleLoop(CScene *scene, CPadControl *pad) {
     if (!(LineTension < 1.0f)) {
         if (InitFalse(scene) != 0) {
             EndFishBattle();
-            SetNextMode(6);
+            SetNextMode((int) FISHING_CHARA_MODE_FALSE);
             sndSePlay(FishSnd, 0x13, 0);
             scene->StopBGM(0);
         }
@@ -3283,11 +3216,11 @@ void BattleLoop(CScene *scene, CPadControl *pad) {
         if (LoadFishFlag == 0) {
             if (InitFalse(scene) != 0) {
                 EndFishBattle();
-                SetNextMode(6);
+                SetNextMode((int) FISHING_CHARA_MODE_FALSE);
             }
         } else if (InitSuccess(scene) != 0) {
             EndFishBattle();
-            SetNextMode(7);
+            SetNextMode((int) FISHING_CHARA_MODE_SUCCESS);
             sndSePlay(FishSnd, 0x14, 0);
             scene->StopBGM(0);
         }
@@ -3434,7 +3367,7 @@ void FalseLoop(CScene *scene, CPadControl *pad) {
         ExtendLine(-1000.0f);
         ResetLineVelo();
         EndSelectCastingPoint(scene);
-        SetNextMode(0);
+        SetNextMode((int) FISHING_CHARA_MODE_CONTROL);
         camera->RotBack(mgAngleLimit(3.1415927f + chara_rot[1]));
         scene->PlayBGM(0, -1, 1.0f);
     }
@@ -3725,7 +3658,7 @@ void SuccessLoop(CScene *scene, CPadControl *pad) {
         ExtendLine(-1000.0f);
         ResetLineVelo();
         EndSelectCastingPoint(scene);
-        SetNextMode(0);
+        SetNextMode((int) FISHING_CHARA_MODE_CONTROL);
         FishChara = NULL;
         mgTexManager.DeleteBlock(FishTexb);
         camera->RotBack(mgAngleLimit(3.1415927f + chara_rot[1]));
@@ -3770,20 +3703,21 @@ int CheckFishing(float *pos, CCPoly *polys, int count) {
 
     return 0;
 }
+
 int CheckCasting(CScene *scene, float *position, float *direction) {
     mgVu0FBOX box;
-    CCPoly poly_buffer[0x400];
-    float end[4];
-    float move_dir[4];
-    float step_point[4];
-    float from[4];
-    float to[4];
-    float point_a[4];
-    float point_b[4];
-    float point_dir[4];
-    float probe[4];
-    float hit_point[32][4];
-    int hit_index[32];
+    CCPoly    poly_buffer[0x400];
+    float     end[4];
+    float     move_dir[4];
+    float     step_point[4];
+    float     from[4];
+    float     to[4];
+    float     point_a[4];
+    float     point_b[4];
+    float     point_dir[4];
+    float     probe[4];
+    float     hit_point[32][4];
+    int       hit_index[32];
 
     mgVectorMaxMin(box.max, box.min, position, direction);
     box.max[0] += 40.0f;
@@ -3795,41 +3729,50 @@ int CheckCasting(CScene *scene, float *position, float *direction) {
     box.min[1] -= 2000.0f;
     box.min[2] -= 40.0f;
     CCPoly *polys = poly_buffer;
-    int poly_count = scene->GetColPoly(polys, box, 0x400);
+    int     poly_count = scene->GetColPoly(polys, box, 0x400);
     direction[1] = 40.0f + position[1];
     sceVu0SubVector(move_dir, direction, position);
     move_dir[1] = 0.0f;
-    *(u_long128 *)end = *(u_long128 *)direction;
-    *(u_long128 *)from = *(u_long128 *)position;
-    *(u_long128 *)to = *(u_long128 *)direction;
+    *(u_long128 *) end = *(u_long128 *) direction;
+    *(u_long128 *) from = *(u_long128 *) position;
+    *(u_long128 *) to = *(u_long128 *) direction;
     from[1] = direction[1];
     from[3] = 1.0f;
-    *(u_long128 *)point_b = *(u_long128 *)direction;
+    *(u_long128 *) point_b = *(u_long128 *) direction;
+
     if (CheckFishing(direction, polys, poly_count) == 0) {
         return 0;
     }
+
     to[1] = 1.0f + (direction[1] + from[3]);
     mgNormalizeVector(step_point, move_dir, 80.0f);
     mgAddVector(step_point, position);
     step_point[1] = end[1];
-    *(u_long128 *)point_a = *(u_long128 *)step_point;
+    *(u_long128 *) point_a = *(u_long128 *) step_point;
+
     if (CheckFishing(step_point, polys, poly_count) == 0) {
         return 0;
     }
+
     sceVu0SubVector(point_dir, point_b, point_a);
     point_dir[1] = 0.0f;
     mgNormalizeVector(point_dir, point_dir, 10.0f);
     int steps = fptosi(mgDistVectorXZ(point_a, point_b) / 10.0f);
     mgAddVector(point_a, point_dir);
+
     for (int i = 1; i < steps; i++) {
-        *(u_long128 *)probe = *(u_long128 *)point_a;
+        *(u_long128 *) probe = *(u_long128 *) point_a;
+
         if (CheckFishing(probe, polys, poly_count) == 0) {
             return 0;
         }
+
         mgAddVector(point_a, point_dir);
     }
+
     return CheckHits(polys, poly_count, from, to, 32, hit_index, hit_point, 0, 9) <= 0;
 }
+
 /**
  *
  * Selects a random size value with a lower bound.
@@ -3845,30 +3788,38 @@ float GetRandamNumber(float center, float high, float floor) {
 
     return value;
 }
+
 int GetUkiWaitTime(FISH_DATA *fish, CScene *scene, float *position, int rod_no, int bait_no) {
     FISH_PLACE place[16];
-    int i;
-    int picked;
+    int        i;
+    int        picked;
+
     if (bait_no < 0) {
         fish->fish_no = -1;
         return 100;
     }
-    int time_band = GetTimeBand(scene->time);
-    int place_num = GetAppearFish(scene->GetMainMapNo(), position, place, 16);
-    int candidate_num = 0;
+
+    int   time_band = GetTimeBand(scene->time);
+    int   place_num = GetAppearFish(scene->GetMainMapNo(), position, place, 16);
+    int   candidate_num = 0;
     float rate_sum = 0.0f;
+
     for (i = 0; i < place_num; i++) {
         FISH_PARAM *param = GetFishParam(place[i].fish_no);
         FISH_PLACE *entry = &place[i];
+
         if (param == NULL) {
             continue;
         }
+
         int bait_affinity;
+
         if (bait_no < 0 || bait_no >= 18) {
             bait_affinity = 0;
         } else {
             bait_affinity = param->bait_affinity[bait_no];
         }
+
         if (entry->fish_no > 0) {
             switch (bait_affinity) {
                 case FISH_AFFINITY_NONE:
@@ -3883,12 +3834,15 @@ int GetUkiWaitTime(FISH_DATA *fish, CScene *scene, float *position, int rod_no, 
                     entry->rate *= 1.5f;
                     break;
             }
+
             int time_affinity;
+
             if (time_band < 0 || time_band >= 4) {
                 time_affinity = 0;
             } else {
                 time_affinity = param->time_band_affinity[time_band];
             }
+
             switch (time_affinity) {
                 case FISH_AFFINITY_NONE:
                     entry->rate = 0.0f;
@@ -3903,44 +3857,55 @@ int GetUkiWaitTime(FISH_DATA *fish, CScene *scene, float *position, int rod_no, 
                     break;
             }
         }
+
         if (entry->fish_no == 0) {
             entry->rate *= 1.0f - 0.5f * RodData.status4_rate;
         }
+
         rate_sum += entry->rate;
+
         if (!(entry->rate <= 0.0f)) {
             candidate_num++;
         }
     }
+
     float roll = mgRnd();
     float cumulative;
     cumulative = 0.0f;
+
     for (i = 0; i < place_num; i++) {
         FISH_PLACE *entry = &place[i];
         entry->rate /= rate_sum;
+
         if (entry->rate <= 0.0f) {
             continue;
         }
+
         cumulative += entry->rate;
+
         if (!(cumulative <= roll)) {
             break;
         }
     }
+
     picked = i;
-    int fish_no = place[picked].fish_no;
+    int   fish_no = place[picked].fish_no;
     float pull_strength = 0.5f;
     float size = 100.0f;
     float length_scale = 1.0f;
-    int wait_base = 240;
+    int   wait_base = 240;
     FavoredEsa = 0;
-    int fishing_point = 0;
+    int   fishing_point = 0;
     float vigour_recovery = 0.01f;
-    int wait_extra = 240;
+    int   wait_extra = 240;
     float width_scale = 1.0f;
     float weight;
-    int wait_time;
+    int   wait_time;
+
     if (MardanEventMap != 0 && bait_no == 4 && position[0] < 1000.0f && position[2] < -300.0f) {
         MardanEventPlace = 1;
     }
+
     if (MardanEventPlace != 0) {
         fish->vigour_recovery = 0.005f;
         pull_strength = 0.5f;
@@ -3952,68 +3917,89 @@ int GetUkiWaitTime(FISH_DATA *fish, CScene *scene, float *position, int rod_no, 
         if (candidate_num <= 0) {
             return 100;
         }
+
         if (fish_no == 0) {
             fish->fish_no = -1;
             return 100;
         }
+
         float wait_bias = 0.0f;
+
         if (fish_no > 0) {
             FISH_PARAM *param = GetFishParam(fish_no);
-            int favored;
+            int         favored;
+
             if (bait_no < 0 || bait_no >= 18) {
                 favored = 0;
             } else {
                 favored = param->bait_affinity[bait_no];
             }
+
             FavoredEsa = favored;
             wait_bias = place[picked].wait_bias;
+
             if (!(wait_bias <= 2.0f)) {
                 wait_bias = 2.0f;
             }
+
             if (wait_bias < -2.0f) {
                 wait_bias = -2.0f;
             }
+
             float min_size = param->min_size * CastDistSizeRate;
             float max_size = param->max_size * CastDistSizeRate;
             size = GetRandamNumber(min_size, max_size, min_size / 2.0f);
+
             if (GetCaptureMode() != 0) {
                 size = float(60.0);
             }
+
             length_scale = size / param->base_size;
             length_scale *= float(1.05);
+
             if (!(length_scale <= float(4.0))) {
                 length_scale = float(4.0);
             }
+
             float width_rate = GetRandamNumber(1.0f, 1.3f, float(0.6));
+
             if (!(width_rate <= 1.3f)) {
                 width_rate = 1.3f;
             }
+
             width_scale = length_scale * width_rate;
             weight = width_rate * (size * param->weight_rate);
             vigour_recovery = 0.01f;
             pull_strength = param->pull_rate * (size / 80.0f * width_rate);
-            fishing_point = (int)(width_rate * (param->fishing_point_rate * size));
+            fishing_point = (int) (width_rate * (param->fishing_point_rate * size));
+
             if (GetFishingMode() == 2) {
                 fishing_point *= 2;
             }
         }
-        if (rod_no == 0x12F) {
+
+        if (rod_no == (int) ITEM_ID_LURE_ROD) {
             wait_base /= 2;
             wait_extra /= 2;
         }
+
         if (!(wait_bias < 0.0f)) {
-            wait_time = (int)(wait_base / (1.0f + wait_bias));
-            wait_extra = (int)(wait_extra / (1.0f + wait_bias));
+            wait_time = (int) (wait_base / (1.0f + wait_bias));
+            wait_extra = (int) (wait_extra / (1.0f + wait_bias));
         } else {
-            wait_time = (int)(wait_base * (1.0f - wait_bias));
-            wait_extra = (int)(wait_extra / (1.0f - wait_bias));
+            wait_time = (int) (wait_base * (1.0f - wait_bias));
+            wait_extra = (int) (wait_extra / (1.0f - wait_bias));
         }
-        wait_time += (int)(wait_extra * mgRnd());
+
+        wait_time += (int) (wait_extra * mgRnd());
     }
+
     int rod_power = RodData.status[2] - 10;
+
     if (rod_power < 0) {
         rod_power = 0;
     }
+
     fish->fish_no = fish_no;
     pull_strength /= 1.0f + 2.0f * (rod_power / 90.0f);
     fish->size = size;
@@ -4026,6 +4012,7 @@ int GetUkiWaitTime(FISH_DATA *fish, CScene *scene, float *position, int rod_no, 
     fish->fishing_point = fishing_point;
     return wait_time;
 }
+
 /**
  *
  * Returns a float poke delay based on bait affinity.
@@ -4078,40 +4065,51 @@ int FishLoadBG(FISH_DATA *fish, u_long128 *buffer) {
     sprintf(path, "sg/fish/%sa.chr", param->file_name);
     return LoadFileBG(path, buffer, 0) != 0;
 }
+
 void LineTensionStep(FISH_DATA *fish, int reel) {
     float tension_rate;
-    int left_vibration;
-    int right_vibration;
+    int   left_vibration;
+    int   right_vibration;
     float pull;
 
     pull = fish->pull_strength * (1.0f + 0.5f * fish->vigour);
     int action_count = ActionCount;
     tension_rate = -0.004f;
+
     if (action_count > 5) {
-        tension_rate = -0.004f + 0.01f * (float)(action_count - 5) / 15.0f;
+        tension_rate = -0.004f + 0.01f * (float) (action_count - 5) / 15.0f;
     }
+
     if (action_count > 20) {
         tension_rate = 0.2f;
     }
+
     left_vibration = 0;
+
     if (!(tension_rate <= 0.0f)) {
         tension_rate *= pull;
     }
+
     right_vibration = 0x96;
+
     if (reel > 0) {
         LineTension *= 0.9f;
     }
+
     if (reel < 0) {
         pull *= 2.0f;
-        fish->vigour -= 0.05f * (3.0f * ((float)RodData.status[1] / 100.0f));
+        fish->vigour -= 0.05f * (3.0f * ((float) RodData.status[1] / 100.0f));
     }
+
     switch (RodStatus) {
         case 0:
             fish->vigour += fish->vigour_recovery;
+
             if (tension_rate < 0.0f) {
                 right_vibration = 0;
                 left_vibration = 0;
             }
+
             break;
         case 1:
             tension_rate += 0.03f * pull;
@@ -4123,42 +4121,56 @@ void LineTensionStep(FISH_DATA *fish, int reel) {
             tension_rate -= 0.008f;
             break;
     }
+
     if (WindReel != 0) {
         tension_rate += 0.03f * pull;
     }
+
     if (!(fish->vigour <= 1.0f)) {
         fish->vigour = 1.0f;
     }
+
     if (fish->vigour < -1.0f) {
         fish->vigour = -1.0f;
     }
+
     MinLineTension += 0.0001f;
+
     if (!(MinLineTension <= 1.0f)) {
         MinLineTension = 1.0f;
     }
+
     LineTension += tension_rate;
     addLineTension = tension_rate;
+
     if (LineTension < MinLineTension) {
         LineTension = MinLineTension;
     }
+
     if (!(LineTension <= 1.0f)) {
         LineTension = 1.0f;
     }
+
     if (!(tension_rate <= 0.001f)) {
         left_vibration = 1;
     }
+
     GamePad__2.SetVibration(1, right_vibration, 4);
     GamePad__2.SetVibration(0, left_vibration, 4);
     static int snd_cnt = 0;
+
     if (!(LineTension <= 0.7f) && snd_cnt == 0) {
         sndSePlay(FishSnd, 0x10, 0);
         snd_cnt = 0x14;
     }
+
     snd_cnt--;
+
     if (snd_cnt < 0) {
         snd_cnt = 0;
     }
 }
+
 int GetAppearFish(int map_no, float *pos, FISH_PLACE *places, int max_places) {
     FISH_PLACE_MAP *map;
     int             i;
