@@ -219,3 +219,16 @@ arithmetic coefficients to const references in the typed row-cursor candidate
 loses its unroll and emits `0x2F0` bytes with **321/324** words, in either
 neighbor/self declaration order. Coefficient references therefore do not
 recover the required unrolled schedule. All four other functions remain exact.
+
+## Sequenced arithmetic and normalized indices
+
+Joining the neighbour scaling and self/previous contribution with the comma
+operator preserves their evaluation order but leaves the flat diagnostic at
+**27/324**. It does not change the coefficient colours.
+
+A bounded source that derives a linear cell index and reconstructs each
+actual row/column with division and remainder by 24 emits a scalar `0x368`
+body with **315/324** differing words. MWCC retains division/remainder work
+rather than folding the normalized indices back into retail's linear address
+calculation. The other four functions remain exact. No source or profile
+change is activated.
