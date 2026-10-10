@@ -74,7 +74,7 @@ form produces three complete-object check problems in `ConvertCharaLoadDataPhase
 including its address calculations and relocated destinations.
 `MenuItemChrLoad` retains `(char *) &info->path` at its two path uses:
 replacing it with `info->path` changes six instruction bytes at function
-offset `+0xAC` and fails one complete-object check. 
+offset `+0xAC` and fails one complete-object check.
 
 ## Plain initializer probes
 
@@ -104,7 +104,7 @@ retain their zeros, and text buffers retain their exact strings.
 The three `DebugLine` buffers use `{0}`. The earlier empty-string trial
 produced an unmatched eight-byte `at_2232` template; that negative form is
 not repeated. The zero-array form preserves the complete unit's data and
-resolved references. 
+resolved references.
 
 
 ## Main-scene load state
