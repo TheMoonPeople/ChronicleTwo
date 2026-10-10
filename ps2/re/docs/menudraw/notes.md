@@ -298,3 +298,11 @@ and dimensions. SetSpriteEnv's 0/1 mode has no established shared enum;
 line->kind indexes the two-entry on/off board table. Other literals are
 screen/texture coordinates and color channels. Its declared retail body
 is 0xDD8 at 0x224F10.
+
+## Persistent state ownership
+
+MenuPresentBoxView owns its float curpos static inside the visible-cursor
+branch, while MenuMainFrameStep owns its signed-byte MainFrameStepFlag at
+the frame-step point. C++ emits both initialization guards; no explicit
+compiler latch is needed in the source. Their localized forms preserve the
+complete unit's bytes, data extents and resolved relocations.

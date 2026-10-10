@@ -292,16 +292,6 @@ static int MenuDl_TotalSize;
 static int MenuDl_ProcessSize;
 
 /**
- * Tracks the interpolated gift-box cursor position.
- */
-static float curpos_1393;
-
-/**
- * Marks initialization of the gift-box cursor position.
- */
-static signed char init_1394;
-
-/**
  * Gives the Geostone download and completion text for each language.
  */
 static char *tbl_1689[7][2] = {
@@ -318,16 +308,6 @@ static char *tbl_1689[7][2] = {
  * Holds the top-left position of the main menu frame.
  */
 static float MenuMainFrame_LeftTop_Pos[2];
-
-/**
- * Tracks the current main menu frame movement step.
- */
-static signed char MainFrameStepFlag_2092;
-
-/**
- * Marks initialization of the main menu frame step.
- */
-static signed char init_2093;
 
 /**
  * Tracks the missing-material quantity blink phase.
@@ -1691,24 +1671,21 @@ void MenuPresentBoxView(int x, int y, int &tex_block, mgCTexture *tex, mgCTextur
         }
 
         if (GiftBoxViewFlag != 0 && cursor_tex != NULL) {
-            if (init_1394 == 0) {
-                curpos_1393 = 0.0f;
-                init_1394 = 1;
+            static float curpos = 0.0f;
+
+            curpos += (Pos_ItemInGiftBox[NowGiftBoxSelect][0] - curpos) / 4.0f;
+
+            if (curpos < Pos_ItemInGiftBox[0][0]) {
+                curpos = Pos_ItemInGiftBox[0][0];
             }
 
-            curpos_1393 += (Pos_ItemInGiftBox[NowGiftBoxSelect][0] - curpos_1393) / 4.0f;
-
-            if (curpos_1393 < Pos_ItemInGiftBox[0][0]) {
-                curpos_1393 = Pos_ItemInGiftBox[0][0];
-            }
-
-            if (curpos_1393 > Pos_ItemInGiftBox[2][0]) {
-                curpos_1393 = Pos_ItemInGiftBox[2][0];
+            if (curpos > Pos_ItemInGiftBox[2][0]) {
+                curpos = Pos_ItemInGiftBox[2][0];
             }
 
             MenuReloadTexture(tex_block, cursor_tex->block);
             cursor_put_pos cursor = {{0.0f, 0.0f}};
-            cursor.pos[0] = curpos_1393 - 32.0f;
+            cursor.pos[0] = curpos - 32.0f;
             cursor.pos[1] = Pos_ItemInGiftBox[NowGiftBoxSelect][1];
             MenuCursorDraw(cursor_tex, cursor.pos, 0.0f, 0x80);
         }
@@ -2392,10 +2369,7 @@ void MenuMainFrameStep(void) {
     screen.Set(0, 0, 0x2C0, 0x1A0);
     float progress = MenuMainFrame_Display_Mode_Cnt / 10.0f;
     float scale = 1.5f - 0.5f * progress;
-    if (init_2093 == 0) {
-        MainFrameStepFlag_2092 = 0;
-        init_2093 = 1;
-    }
+    static signed char MainFrameStepFlag = 0;
     switch (MenuMainFrame_Display_Mode) {
         case 0:
         case 1: {
@@ -2408,9 +2382,9 @@ void MenuMainFrameStep(void) {
                     } else {
                         CalcMenuAdd(&MenuMainFrame_Display_Mode_Cnt_Rate, -0.3f, 0.6f);
                     }
-                    MainFrameStepFlag_2092 = 0;
+                    MainFrameStepFlag = 0;
                 } else {
-                    MainFrameStepFlag_2092 = 0;
+                    MainFrameStepFlag = 0;
                     MenuMainFrame_Display_Mode_Cnt = 10.0f;
                     MenuMainFrame_ActionEndFlag = 1;
                 }
@@ -2420,7 +2394,7 @@ void MenuMainFrameStep(void) {
                 if (0.0f < MenuMainFrame_Display_Mode_Cnt) {
                     MenuMainFrame_Display_Mode_Cnt -= 1.0f;
                 }
-                if (MainFrameStepFlag_2092 > 0) {
+                if (MainFrameStepFlag > 0) {
                     MenuMainFrame_ActionEndFlag = 1;
                 }
                 if (MenuMainFrame_Display_Mode_Cnt < 0.0f) {
@@ -2456,7 +2430,7 @@ void MenuMainFrameStep(void) {
             }
             if (image->left < 9) {
                 image->left = 0;
-                MainFrameStepFlag_2092++;
+                MainFrameStepFlag++;
             }
             break;
         }
