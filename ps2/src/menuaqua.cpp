@@ -4312,7 +4312,7 @@ void CAquarium::SettingAqua() {
     mes.SettingAquaMes(aqua_no);
     InitSelFish();
     mes.cursor_draw = 0;
-    mode = 0;
+    mode = AQUARIUM_MODE_VIEW;
     mes.help_draw = 1;
 }
 
@@ -6353,7 +6353,7 @@ void MenuAquaInit(mgCMemory *memory, int *tex_block, int) {
     aqua_memory.stSetBuffer(memory->stGetTop(), rest);
     Aquarium.Clear();
     Aquarium.Initialize(&aqua_memory, tex_block);
-    AquaCameraCtrlMode = 0;
+    AquaCameraCtrlMode = AQUA_CAMERA_CTRL_FREE;
     Camera__2->SetDistance(140.0f);
     Camera__2->SetAngle(0.0f);
     Camera__2->SetHeight(0.0f);
