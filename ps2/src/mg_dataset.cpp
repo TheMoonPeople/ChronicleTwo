@@ -16,7 +16,6 @@
 #include "mg_visual.hpp"
 #include "mglib.hpp"
 #include "visualmotion.hpp"
-extern char   at_550[];
 
 void CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table);
 mgCFrame *CopyFrameSub(mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table);
@@ -529,7 +528,7 @@ static int CreateFrameVisual(mgCFrame *input_frame, mgCMemory *input_memory, mgC
 
     name = (char *) memory->Alloc((len + 1) / 16 + 1);
 
-    if (MG_ADDRESS_CHECK(name, at_550) == NULL) {
+    if (MG_ADDRESS_CHECK(name, "mgLoadMDSFile") == NULL) {
         return 0;
     }
 
@@ -1381,9 +1380,6 @@ void mgCVisual::Draw(float (*matrix)[4], mgCDrawManager *manager) {
 }
 
 #pragma optimization_level reset
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", at_550__DATA);
 
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", __vt__15mgCShadowFixMDT__DATA);
