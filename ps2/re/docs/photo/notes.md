@@ -57,3 +57,15 @@ No first-game counterpart (Dark Cloud has no camera).
   LevelCheck(picture)).
 - `DrawTakePhoto` (0xE10) only skimmed for globals; its draw body (overlay texture `at_997`, preview
   quad sized from WorkTex's width/height shorts) is not analysed.
+
+
+## Native data and matching constraints
+
+All data are native. `mes_txt[6][PHOTO_MES_NUM]` holds four messages in each of six
+languages, preserving font-code tokens, punctuation and pooled strings. Shift-JIS uses
+fixed-width octal escapes. `PhotoTitle` is char[128]; the native CFont supplies the
+single static initializer.
+
+`null_txt` is a native four-byte pointer to an inline empty string. Its R_MIPS_32
+relocation establishes the otherwise ambiguous one-byte literal's identity after
+subtracting compiled addends and target-symbol offsets.
