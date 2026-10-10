@@ -203,8 +203,10 @@ accepted placement rows and their scope are documented in
 
 `IsAskExtend` controls the extended item-description prompt and a temporary
 character preview. Its natural constructor form still differs from retail:
-the closest measured draft has 170 differing words in a 668-word layout and
-is four bytes larger than the `0xA68` retail symbol. The cancellation close
+the current draft with the committed profile has 528 differing words out of
+668 and a raw body of `0xA68` bytes. An earlier private placement/scheduling
+trial reaches 170 differing words but is four bytes larger than retail.
+The cancellation close
 request, message/name register lifetimes and a late branch delay slot account
 for the principal residual. The guard remains until a complete object match
 is possible without invented state.
@@ -270,10 +272,28 @@ its literals and jump table; the `CMenuItemInfo` and `CBaseMenuClass`
 vtables remain assembly suppliers. The `at_6424` debug dispatch table is
 also still assembly supplied. No `INCLUDE_BSS` markers remain in the unit.
 
-Ten persistent counters or flags use natural function-local statics, including
+Twelve native persistent counters or flags use natural function-local statics, including
 `cmd_counter`, `sndflag`, `count_time`, `checkmoveFlag`, `fusion_blinkcnt`,
-`diffent_weapon_dispflag`, `counter`, `count`, `old_viewmode` and `old_chrid`.
+`diffent_weapon_dispflag`, `counter`, `count`, `old_viewmode`, `old_chrid`,
+and the debug `cnt` and `testcnt` states.
 `MenuListKeyCheck` initializes separate two-by-two direction and wrap arrays.
+
+Thirty-seven initialized tables and the remembered `Save_AskParamInfo`
+pointer belong to their owning functions under bare retail names. The
+guarded `IsAskExtend` draft also uses initialized local `Effect_Counter`
+and `BuildEndFlag` states; the normal assembly path retains its four
+associated state and guard suppliers.
+
+`SameviewmodeTable_8406` retains its existing file-local identity. A natural
+local declaration preserves the native instructions and linked PAL image,
+but anonymous-data inference rejects its folded GPREL16 base addend of
+`-15` from `table[msg_item - 15]`. The inference requires the base addend to
+lie inside the declared four-byte payload; supplying the known base passes
+the complete consumer proof. Retaining the existing identity keeps the
+strict checker and profile unchanged.
+
+The current complete menusys object compares `0x1B09C` allocated bytes and
+6,130 resolved relocations without findings.
 
 ## Item-menu pages and fields still unnamed
 
