@@ -385,17 +385,11 @@ Mot_List *MotionProc(mgCFrame *root, unsigned int from_frame, unsigned int to_fr
                         sceVu0CopyVectorXYZ(vertices[vertex], value);
                         list = list->next;
 
-                        do {
-                            if (list == NULL) {
-                                break;
-                            }
-
+                        if (list != NULL) {
                             node = list;
-                            goto blend_nonnull0;
-                        } while (0);
-
-                        return NULL;
-                    blend_nonnull0:;
+                        } else {
+                            return NULL;
+                        }
                     }
 
                     break;
