@@ -124,16 +124,11 @@ PieceMaterial *CMapPiece::GetMaterial(int index) {
         return NULL;
     }
 
-    if (index >= 0) {
-        if (index < material_num) {
-            goto found;
-        }
+    if (index < 0 || index >= material_num) {
+        return NULL;
     }
 
-    return NULL;
-
-found:
-    return list + index;
+    return &list[index];
 }
 
 void CMapPiece::Step() {
@@ -292,16 +287,11 @@ CMdsList *CMdsListSet::SearchMdsList(char *name) {
 }
 
 CMdsList *CMdsListSet::GetMdsList(int index) {
-    if (index >= 0) {
-        if (index <= mds_list_num) {
-            goto found;
-        }
+    if (index < 0 || index > mds_list_num) {
+        return NULL;
     }
 
-    return NULL;
-
-found:
-    return mds_list + index;
+    return &mds_list[index];
 }
 
 CMdsInfo *CMdsListSet::SearchMDS(char *name) {
@@ -523,16 +513,11 @@ void CMdsListSet::Initialize() {
 }
 
 CMdsInfo *CMdsList::GetList(int index) {
-    if (index >= 0) {
-        if (index < num) {
-            goto found;
-        }
+    if (index < 0 || index >= num) {
+        return NULL;
     }
 
-    return NULL;
-
-found:
-    return list + index;
+    return &list[index];
 }
 
 int CMdsList::GetListID(char *name) {

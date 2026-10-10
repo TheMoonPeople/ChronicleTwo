@@ -3597,14 +3597,7 @@ int SubGameSaveKey() {
             card = GetSubGameCard(MemoryCardPtr);
 
             if (step_result != 0) {
-                if (McCheckMCPs2(card) == 0) {
-                    goto format_error;
-                }
-
-                next = SUB_SAVE_DIR_MAKING;
-
-                if (card != NULL && card->formatted == 0) {
-                format_error:
+                if (McCheckMCPs2(card) == 0 || (card != NULL && card->formatted == 0)) {
                     next = SUB_SAVE_CARD_ERROR;
                 } else {
                     next = SUB_SAVE_DIR_MAKING;

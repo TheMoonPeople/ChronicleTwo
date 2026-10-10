@@ -385,17 +385,11 @@ Mot_List *MotionProc(mgCFrame *root, unsigned int from_frame, unsigned int to_fr
                         sceVu0CopyVectorXYZ(vertices[vertex], value);
                         list = list->next;
 
-                        do {
-                            if (list == NULL) {
-                                break;
-                            }
-
+                        if (list != NULL) {
                             node = list;
-                            goto blend_nonnull0;
-                        } while (0);
-
-                        return NULL;
-                    blend_nonnull0:;
+                        } else {
+                            return NULL;
+                        }
                     }
 
                     break;
@@ -408,17 +402,11 @@ Mot_List *MotionProc(mgCFrame *root, unsigned int from_frame, unsigned int to_fr
                         sceVu0CopyVectorXYZ(vertices[list->target - 1], list->values[key]);
                         list = list->next;
 
-                        do {
-                            if (list == NULL) {
-                                break;
-                            }
-
+                        if (list != NULL) {
                             node = list;
-                            goto blend_nonnull1;
-                        } while (0);
-
-                        return NULL;
-                    blend_nonnull1:;
+                        } else {
+                            return NULL;
+                        }
                     }
                 }
 
@@ -429,17 +417,11 @@ Mot_List *MotionProc(mgCFrame *root, unsigned int from_frame, unsigned int to_fr
                         sceVu0CopyVectorXYZ(vertices[list->target - 1], list->values[next]);
                         list = list->next;
 
-                        do {
-                            if (list == NULL) {
-                                break;
-                            }
-
+                        if (list != NULL) {
                             node = list;
-                            goto blend_nonnull2;
-                        } while (0);
-
-                        return NULL;
-                    blend_nonnull2:;
+                        } else {
+                            return NULL;
+                        }
                     }
                 }
             } while (0);

@@ -697,23 +697,28 @@ int CScene::LoadBGMPack(int load_no, u32 *buff) {
     return 1;
 }
 
+/**
+ *
+ * Returns the first free map object sound effect bank slot of a scene, or -1 when all are used.
+ *
+ */
+static inline int SearchFreeSeSrc(CScene *scene) {
+    for (int index = 0; index < 16; index++) {
+        if (scene->se_src_no[index] < 0) {
+            return index;
+        }
+    }
+
+    return -1;
+}
+
 int CScene::LoadSeSrcPack(int pack_no, u32 *buffer) {
     if (CheckLoadSeSrc(pack_no) == 0) {
         return 0;
     }
 
-    int slot;
-    int index;
+    int slot = SearchFreeSeSrc(this);
 
-    for (index = 0; index < 16; index++) {
-        if (se_src_no[index] < 0) {
-            slot = index;
-            goto slot_found;
-        }
-    }
-
-    slot = -1;
-slot_found:
     if (slot < 0) {
         return 0;
     }
