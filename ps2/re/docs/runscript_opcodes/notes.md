@@ -1,16 +1,8 @@
 # runscript_opcodes: notes
 
-## C++ draft status
-All 183 functions have C++ in `ps2/src/runscript_opcodes.cpp`. 12 are exact and
-compiled by the matching build. 95 more compile to retail's bytes in isolation
-but stay under `NONMATCHING`. 76 differ from retail and keep the `INCLUDE_ASM`
-fallback. Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Matching status
 
-Monster-script external functions (`_XXX(RS_STACKDATA *, int)`), their argument helpers, the
-monster external-function table, and `CMonsterMan::RunScript`. First-game counterpart:
-`chronicle/ps2/include/runscript_opcodes.hpp` / `src/runscript_opcodes.cpp` (there the setup pair is
-`BtSetEventScript` / `BtSetEventExtendTable` and the opcode set is entirely different).
+All functions are native; no assembly function fallback remains.
 
 ## Owned types
 `class_units.tsv` lists no class owned by this unit. Script VM types (`RS_STACKDATA`, `CRunScript`,
@@ -128,3 +120,21 @@ before calling integer `SetStack`. Their existing draft `return result` values
 therefore must not be preserved in a future native promotion. The vector getters
 and second vector setter return zero for an argument count other than four;
 the first vector setter and identifier wrappers have no such count guard.
+
+
+## Native data and matching constraints
+
+All data are native. nowScene, LastCInfo2 and ext_func[256] have local linkage;
+nowMonster remains public. Their sizes are four, four, 0x400 and four bytes.
+ext_func_info has 174 RS_EXTFUNC_INFO rows: 173 callbacks and `{NULL,-1}`, extent 0x570.
+
+_ESM_FINISH, _ESM_DELETE and _ESM_GET_TARGET_ID return their manager's existing integer
+status, matching the table's callback signature. The last helper's later SetStack call
+does not clobber v0. _SET_DEAD_OFF creates death effects and weapon-experience pickups,
+whereas _SET_DEAD_START handles item/money drops.
+
+The native `{0,0,1,0}` vector initializers precede scratch matrix declarations to retain
+stack slots: _GET_ANGLE_INNER uses 0x30/0x40 rather than 0xB0/0xC0. SDK alignment alone
+does not determine that ordering. Stack helpers use val.f/val.s/val.p according to
+RS_STACK_TYPE; output-reference users check RS_PTR. Header @size uses declared function
+extents without alignment.
