@@ -1387,4 +1387,3 @@ void mgCVisual::Draw(float (*matrix)[4], mgCDrawManager *manager) {
 #pragma optimization_level reset
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_dataset", __vt__15mgCShadowFixMDT__DATA);

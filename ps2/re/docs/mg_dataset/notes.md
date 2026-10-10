@@ -13,8 +13,8 @@ retail adds the text address to the position (`addu v1,v1,a0`), while both
 - The sphere-centre and scalar `SetData` overloads initialize their four-float vectors
   directly; normal data writes zero to the homogeneous component using `MG_MDT_DATA_NORMAL`.
 - `CreateFrameVisual` passes its `MG_ADDRESS_CHECK` site name as the inline literal
-  `"mgLoadMDSFile"`, the unit's only `.rodata` string. One `INCLUDE_RODATA` marker remains:
-  `__vt__15mgCShadowFixMDT__DATA` is the shadow-visual vtable that no native source in this unit emits.
+  `"mgLoadMDSFile"`, the unit's only `.rodata` string. The shadow-visual vtable `__vt__15mgCShadowFixMDT` is emitted by the compiler from the inline
+  construction in `CreateFrameVisual`.
 
 ## Typed access
 
