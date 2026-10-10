@@ -1,15 +1,10 @@
 # water: reverse-engineering notes
 
-`CreateWaterFrame`'s typed native constructor sequence remains fuzzy. Its
-matching build path uses retail assembly and retains the C++ draft under
-`NONMATCHING`.
-
 `CFireRaster::Step` advances 20 wisp particles, expires spent particles and respawns the last free slot. Its sway phase is twice the loop counter. Typed particle indexing, phase expressions `i * 2`, and advancing the particle index before the counter reproduce the complete 460-byte PAL function, including relocations. The free slot is passed as its `position` member.
 
 ## Matching status
 
-`CreateWaterFrame` is the sole assembly-backed function; its typed draft remains
-guarded. All other functions are native.
+All functions are native and exact.
 
 Header: `ps2/include/water.hpp`. Types: `FireRasterParticle` (neutral name, no retail symbol),
 `CFireRaster`, `CThunderEffect`, `CWater`, `CWaterFrame`. One free function `CreateWaterFrame`
@@ -136,59 +131,23 @@ source base names, exact extents and bytes, and complete retail consumers establ
 identity without numeric suffixes. MWCC rejects native 128-bit shift initializers with
 `illegal data size`, so the word-array representation is retained.
 
-## Construction lowering constraints
+## Allocation-size inline
 
-`CreateWaterFrame` has one measured class-6 direct `CWaterFrame`
-construction. Its exact `__ct__11CWaterFrameFv` row consumes one site;
-`mgCFrameAttr` and `CWater` are class 0 and cannot use this capability.
-After-inline conversion matches the frame construction but leaves **46/104**
-words differing, starting at the outlined water construction's copied-pointer
-null test. Combining water allocation with its explicit null condition does
-not change that result.
+`CreateWaterFrame` writes every allocation as
+`memory->Alloc(align16_blocks(sizeof(T)) + 2)`, using the file-local rounding inline that
+other units also define. Retail's constants (0x14, 0xB, 0xA, 0xD for 0x120, 0x90, 0x80
+and 0xB0 bytes) equal that expression. The inline's `if` and early return put it in
+MWCC's class 3, so the compiler statement-inlines it. That natively requests statement
+conversion for each allocation statement, which gives the early construction form with
+no `placement_new` row:
 
-Initializing a `CWater *const` local beside its construction reduces the
-private row-enabled draft to **1/104** words, with a `0x198` body inside the
-retail `0x1A0` extent. Retail passes the outlined `CWater` constructor its
-saved pointer in `s6`; the candidate passes the equal allocator result in
-`v0` at function offset `0xF4`. Both frame-row timings retain this residual.
-Direct pointer initialization, explicit `CWater()` construction, an inherited
-`mgCVisual` pointer with typed downcasts, and a same-type result cast also
-retain that one-word receiver difference. A const reference to the pointer
-result instead requires a `0x90` frame and leaves 47 words differing. All
-24 other functions remain exact in these source-only comparisons. No row or
-source change is activated.
+- For the outlined `CWater` constructor, `beqz v0` tests the allocator result, the delay
+  slot copies it into the named pointer's `s6`, the constructor receives `s6`, and its
+  result replaces `s6`.
+- For the inline `CWaterFrame` construction, the same form applies.
 
-### Native class-3 statement conversion
-
-Retail's `CWater` sequence is the early construction form with the
-allocation result held in the named pointer: `beqz v0` tests the allocator
-result, the delay slot copies it to `s6`, the outlined constructor receives
-`s6`, and its result replaces `s6`. Plain MWCC lowers an outlined
-(class-0) construction into a non-const pointer as the late form
-(`move s6,v0; beqz s6`), and into a `const` pointer as a separate temporary
-that passes `v0`. Retail `EditInit` shows the same early form for its local
-`CCameraControl` construction, also with an outlined constructor.
-
-MWCC produces the early form for an outlined construction when the same
-statement expands an inline function that the classifier puts in class 3
-(it contains a retained `if` or loop). Its native class-3 path sets the
-statement-conversion request, so the whole statement is re-lowered. A
-constant argument folds the callee away, so it leaves no instructions. A
-ternary, a local variable or a final `return` alone keeps the callee in
-class 6 and has no effect. Confirmed results:
-
-- The source's plain `CWater *water` pointer and an `if`-bearing
-  allocation-size inline in the `CWater` statement, together with the
-  `CWaterFrame` row, give an exact 104-word body.
-- The same inline in all four allocation statements, with no water row and
-  the checked-in profile, also gives an exact body. With a row added, the
-  placement hook rejects compilation because the region has a non-expression
-  inline callee body.
-- Removing funcpoint's row and adding such a callee to
-  `CFuncPointMngr::Add`'s allocation statement changes it from 2/40 to exact.
-
-No such inline exists in the headers `water.cpp` includes, and the retail
-binary cannot show which inline the original source used. These are
-diagnostic probes only. The function stays guarded, no helper or row is
-added, and the open question is whether original allocation statements
-shared such a callee.
+`sizeof(T) / 16 + 2` folds to the same constants but leaves the statement unconverted. An
+outlined construction then lowers as the late form (`move s6,v0; beqz s6`) into a
+non-const pointer. Into a `const` pointer, it lowers as a separate temporary that passes
+`v0` to the constructor. Retail `EditInit` shows the same early form for its local
+`CCameraControl` construction.
