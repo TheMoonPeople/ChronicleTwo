@@ -53,3 +53,35 @@ retain that result. The helper's statement-inline body is not an eligible
 expression-inline site for the one-site conversion row; combining them is
 rejected rather than producing an object. No helper or profile change is
 activated while the function remains guarded.
+
+## Saved-register numbering
+
+A capture of MWCC's GPR interference graph for the block-count draft,
+replayed by colouring simulation, reproduces the draft's colours exactly.
+The texture manager, player and constructed fish all interfere and
+simplification is blocked, so their relative node numbers decide the
+saved registers. Retail's `s0`/`s1`/`s2` order needs the fish numbered
+between the texture manager and the player, or the player numbered below
+the fish.
+
+Named function-scope locals are numbered downward in declaration order.
+The constructed fish is never a named web: copy propagation replaces
+`fish_chara` with the construction temporary, which belongs to the
+`LoadFishFlag` block and is numbered after every function-scope local.
+Moving the `fish_chara` declaration therefore changes nothing. Scopes are
+numbered in pre-order, so a player declared in an outer block still numbers
+above the fish. Temporaries created by inline expansion number below the
+frontend's construction temporary.
+
+| Player source form | Result |
+|---|---|
+| Same-type cast, assignment inside the null test, `!chara`, `= NULL` initializer | unchanged colours |
+| Player in a block enclosing its uses | unchanged colours |
+| `CCharacter2 *const &` bound to the call result | retail colours, but the temporary is spilled (`0x70` frame) |
+| `static inline` scene-to-player accessor, this function only | **0/280** in the draft |
+| The same accessor at all 19 player fetches in the unit | five matched functions regress |
+
+The accessor works only because it makes the player an inline temporary.
+It is not a unit-wide idiom: the other player fetches need the direct
+call. No existing header inline returns the player character, so the
+function stays guarded.

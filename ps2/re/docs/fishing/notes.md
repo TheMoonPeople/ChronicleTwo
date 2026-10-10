@@ -22,7 +22,7 @@ the copy) remain coupled in the original draft: retail keeps `fish_chara` as its
 distinct from the allocation-result temporary, while the compiled draft lets
 copy propagation replace the named local with that temporary. A measured
 placement row restores the branch but leaves the saved-register exchange;
-see [construction eligibility](placement-new-20261008.md#caught-fish-construction-eligibility). Declaration
+see [construction eligibility](placement-new-20261008.md#caught-fish-construction-eligibility) and [saved-register numbering](placement-new-20261008.md#saved-register-numbering). Declaration
 order, scope, direct assignment to `FishChara`, `opt_lifetimes`,
 `opt_dead_assignments` and `optimization_level 4` do not change the result;
 `opt_propagation off`, `global_optimizer off`, `opt_common_subs off` and
