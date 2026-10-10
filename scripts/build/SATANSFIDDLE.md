@@ -303,3 +303,15 @@ complete-object checking, unchanged unrelated artifacts and PAL verification.
 Zero masked instruction words alone do not establish a matching decompilation.
 Rows and guard removal belong in the same buildable change because an
 assembly-backed caller has zero eligible constructions and fails its assertion.
+
+## Continuous verification
+
+The [compiler workflow](../../.github/workflows/compiler.yml) rebuilds the
+pinned toolchain and runs the genuine-compiler fixtures on pull requests,
+master pushes and manual dispatches. It runs thirteen fixtures with the
+production and fault-enabled executables; the legacy two-compiler fixture
+is excluded because it additionally requires MWCC 2.3.3. The same workflow
+runs the object/data/provenance and profile-adapter unit tests. These checks
+require the tracked compiler but no retail executable or private assets.
+The trusted progress workflow separately performs game-image verification
+when private retail access is available.
