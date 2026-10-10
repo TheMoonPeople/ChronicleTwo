@@ -1555,18 +1555,16 @@ int CMemoryCardManager::LoadAlbum() {
                 int chunk;
                 int left;
 
-                if (done < total) {
-                    goto read;
+                if (done >= total) {
+                    if (sceMcClose(fd) == 0) {
+                        step++;
+                        break;
+                    }
+
+                    errors->code = 3;
+                    return 1;
                 }
 
-                if (sceMcClose(fd) == 0) {
-                    step++;
-                    break;
-                }
-
-                errors->code = 3;
-                return 1;
-            read:
                 left = total - done;
                 chunk = 0x1000;
 
