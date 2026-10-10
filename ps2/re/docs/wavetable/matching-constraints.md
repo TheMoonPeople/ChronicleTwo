@@ -251,3 +251,17 @@ native functions exact. The eighteen coefficient-register exchanges and nine
 seam-addition operand reversals remain. `Effect` has no call for either
 inline policy to expand, and these policies supply no bounded-grid or
 arithmetic correction. No source or compiler-policy change is retained.
+
+## Floating-point interference graph
+
+A capture of the floating-point interference graph for the 27-word draft,
+replayed by a simplify/select model, reproduces every `$f` colour MWCC assigns.
+The three coefficients are the only high-degree nodes (106 interferences each)
+and are coloured first in descending number: 0.0196 (`$f0`), 1.9216 (`$f1`),
+0.0015 (`$f2`). Swapping only the numbers of the 0.0196 and 1.9216 temporaries
+gives retail's colours with every other node unchanged, for any numbering in
+which 1.9216 is above 0.0196 and both are above 0.0015. No interference needs to
+change, so the unrolled-body residual is purely CSE creation order.
+
+Local `optimization_level` 1 and 2 lose the unroll (323/324 words); level 4 keeps
+the 27-word residual, so the second IR round does not renumber these constants.
