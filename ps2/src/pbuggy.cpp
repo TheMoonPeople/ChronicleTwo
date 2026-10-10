@@ -62,8 +62,12 @@ union BuggyQuad {
     u_long128 quadword;  /**< The same components as one quadword. */
 };
 
-static BuggyQuad at_1193 = {{0.0f, 0.0f, 400.0f, 1.0f}};
-static BuggyQuad at_1074__4 = {{0.0f, 0.0f, 1.0f, 0.0f}};
+static BuggyQuad at_1193 = {
+    {0.0f, 0.0f, 400.0f, 1.0f}
+};
+static BuggyQuad at_1074__4 = {
+    {0.0f, 0.0f, 1.0f, 0.0f}
+};
 
 /**
  *

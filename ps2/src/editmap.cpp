@@ -30,7 +30,9 @@ union EditVector {
     u_long128 quad;      /**< Quadword copy view. */
 };
 
-static EditVector at_1837__2 = {{0.0f, 1.0f, 0.0f, 0.0f}};
+static EditVector at_1837__2 = {
+    {0.0f, 1.0f, 0.0f, 0.0f}
+};
 
 const int kRiverPolyFlag = 0x10;
 const int kEditPartsPolyFlag = 0x1000;

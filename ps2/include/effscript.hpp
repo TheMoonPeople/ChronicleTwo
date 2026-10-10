@@ -287,7 +287,6 @@ union EFF_SPT_VALUE {
  *
  */
 struct _EFF_SCRIPT {
-    _EFF_SCRIPT() {}
     u_long128    *work;                             /**< Work memory block that holds the effect. */
     u_long128    *chara_work;                       /**< Work memory block of a character copied in by the starter, or NULL. */
     CCharacter2  *chara;                            /**< Copy of the base's model that the effect moves, or NULL. */

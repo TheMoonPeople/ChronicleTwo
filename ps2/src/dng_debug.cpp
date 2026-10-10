@@ -61,17 +61,28 @@ extern CFont dbFont;
 #include "userdata.hpp"
 
 static int command_int[23] = {
-    100, 0,
-    0, 0,
-    0, 0,
-    0, 0,
-    0, 0,
-    0, 0,
-    1, 0,
-    0, 0,
-    1, 0,
-    0, 0,
-    0, 0,
+    100,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
     0,
 };
 
@@ -475,5 +486,5 @@ void DrawDebugWindow() {
 }
 
 // Uninitialised data (.bss)
-CFont dbFont;
+CFont          dbFont;
 DNG_DEBUG_INFO dbinfo;

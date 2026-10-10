@@ -206,7 +206,9 @@ struct aqua_col_point {
 
 STATIC_ASSERT(sizeof(aqua_col_point) == 0x20);
 
-static aqua_vector at_1346 = {{0.0f, 0.0f, 1.0f, 1.0f}};
+static aqua_vector at_1346 = {
+    {0.0f, 0.0f, 1.0f, 1.0f}
+};
 
 /**
  *
@@ -220,10 +222,18 @@ struct aqua_light_env {
     int           plight_enable;     /**< Whether the point light is enabled. */
 };
 
-static aqua_vector at_3290 = {{0.0f, 0.0f, 1.0f, 1.0f}};
-static aqua_vector at_3291__3 = {{0.0f, 0.0f, 0.0f, 1.0f}};
-static aqua_vector at_3310 = {{0.0f, 0.0f, 1.0f, 1.0f}};
-static aqua_vector at_3311 = {{0.0f, 0.0f, 0.0f, 1.0f}};
+static aqua_vector at_3290 = {
+    {0.0f, 0.0f, 1.0f, 1.0f}
+};
+static aqua_vector at_3291__3 = {
+    {0.0f, 0.0f, 0.0f, 1.0f}
+};
+static aqua_vector at_3310 = {
+    {0.0f, 0.0f, 1.0f, 1.0f}
+};
+static aqua_vector at_3311 = {
+    {0.0f, 0.0f, 0.0f, 1.0f}
+};
 
 extern int menu_debug_flag;
 
@@ -8614,7 +8624,6 @@ void DrawSubGameUnderLine(mgCTexture *texture, int x, int y, int width) {
     Menu3DivideTextureDraw(prim, rect, pl_s, 1);
     prim->End();
 }
-
 
 // Uninitialised data (.bss)
 mgCMemory Aquarium_NameregistStack;

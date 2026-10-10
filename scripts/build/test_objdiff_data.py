@@ -47,6 +47,84 @@ def record(index, entries):
     return result
 
 
+class ReferenceConstantTests(unittest.TestCase):
+    def fixture(self, name='D_12000', index=0):
+        code = NS(name='.text', sh_flags=6, sh_link=0,
+                  data=struct.pack('<II', 0x3C050000, 0x25430000))
+        relocations = record(1, [(0, 5, 0), (4, 6, 0)])
+        obj = elf([NS(name='', sh_flags=0), code], [symbol(name, index)], [relocations])
+        words = {0x100000: 0x3C050001, 0x100004: 0x25432000}
+        ctx = NS(layout=NS(sections=lambda unit: [('.text', 0x100000, 0x100008)]),
+                 retail=NS(base=0x100000, relocations={}, word=words.__getitem__))
+        return obj, ctx, words
+
+    def test_only_reference_constant_fields_are_resolved(self):
+        obj, ctx, _words = self.fixture()
+        d.restore_reference_constants(obj, 'unit', ctx)
+        self.assertEqual(obj.sections[1].data, struct.pack('<II', 0x3C050001, 0x25432000))
+        self.assertEqual(obj.relocations[0].relocations, [])
+        self.assertEqual(obj.symtab.symbols[0].name, 'D_12000')
+
+    def test_actual_relocations_remain_symbolic(self):
+        obj, ctx, _words = self.fixture()
+        ctx.retail.relocations[0x100000] = 5
+        d.restore_reference_constants(obj, 'unit', ctx)
+        self.assertEqual([(entry.r_offset, entry.reloc_type)
+                          for entry in obj.relocations[0].relocations], [(0, 5), (4, 6)])
+        self.assertEqual(obj.sections[1].data[:4], struct.pack('<I', 0x3C050000))
+
+    def test_split_records_cannot_partially_resolve_a_real_symbol(self):
+        obj, ctx, _words = self.fixture()
+        obj.relocations = [record(1, [(0, 5, 0)]), record(1, [(4, 6, 0)])]
+        ctx.retail.relocations[0x100000] = 5
+        before = d.code_snapshot(obj)
+        d.restore_reference_constants(obj, 'unit', ctx)
+        self.assertEqual(d.code_snapshot(obj), before)
+
+    def test_split_records_cannot_partially_resolve_an_addend(self):
+        obj, ctx, _words = self.fixture()
+        obj.relocations = [record(1, [(0, 5, 0)]), record(1, [(4, 6, 0)])]
+        obj.sections[1].data = struct.pack('<II', 0x3C050000, 0x25430001)
+        before = d.code_snapshot(obj)
+        d.restore_reference_constants(obj, 'unit', ctx)
+        self.assertEqual(d.code_snapshot(obj), before)
+
+    def test_data_addresses_defined_symbols_and_ordinary_names_are_untouched(self):
+        for name, index in [('D_200000', 0), ('D_12000', 1), ('real_constant', 0)]:
+            with self.subTest(name=name, index=index):
+                obj, ctx, _words = self.fixture(name, index)
+                before = d.code_snapshot(obj)
+                d.restore_reference_constants(obj, 'unit', ctx)
+                self.assertEqual(d.code_snapshot(obj), before)
+
+    def test_addends_and_wrong_immediate_values_are_not_erased(self):
+        obj, ctx, words = self.fixture()
+        obj.sections[1].data = struct.pack('<II', 0x3C050010, 0x25430000)
+        words[0x100004] = 0x25433000
+        before = d.code_snapshot(obj)
+        d.restore_reference_constants(obj, 'unit', ctx)
+        self.assertEqual(d.code_snapshot(obj), before)
+
+    def test_nonrelocated_instruction_bits_cannot_be_replaced(self):
+        obj, ctx, words = self.fixture()
+        words[0x100000] = 0x3C060001
+        with self.assertRaisesRegex(ValueError, 'changes instruction'):
+            d.restore_reference_constants(obj, 'unit', ctx)
+
+    def test_data_sections_and_unsupported_relocations_are_untouched(self):
+        for flags, kind in [(3, 5), (6, 4)]:
+            with self.subTest(flags=flags, kind=kind):
+                obj, ctx, _words = self.fixture()
+                obj.sections[1].sh_flags = flags
+                obj.relocations[0].relocations = [Relocation(0, kind)]
+                before = d.code_snapshot(obj)
+                data = obj.sections[1].data
+                d.restore_reference_constants(obj, 'unit', ctx)
+                self.assertEqual(d.code_snapshot(obj), before)
+                self.assertEqual(obj.sections[1].data, data)
+                self.assertEqual(obj.relocations[0].relocations[0].reloc_type, kind)
+
+
 class ReferenceDataTests(unittest.TestCase):
     def fixture(self):
         symbols = [symbol('packed_short_guess'), symbol('real_pointer')]

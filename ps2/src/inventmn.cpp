@@ -226,39 +226,6 @@ struct ItemNameList2 {
     char *name[2]; /**< Item name in each slot. */
 };
 
-extern const char at_4354[] = "ActiveSlot:%d\n";
-extern const char at_4355[] = "MCLOAD_BEGIN";
-extern const char at_4356[] = "\x46\x4F\x52\x4D\x41\x54\x8A\x6D\x94\x46";
-extern const char at_4357[] = "IS_SAVE";
-extern const char at_4358[] = "LOADING";
-extern const char at_4359[] = "SAVE_PRECHECK";
-extern const char at_4360[] = "IS_SAVE2";
-extern const char at_4361[] = "SAVE_BEGIN";
-extern const char at_4362[] = "\x96\xDF\x82\xB7\x8A\x6D\x94\x46";
-extern const char at_4363[] = "\x8E\xCA\x90\x5E\x88\xEA\x94\x74";
-extern const char at_4364[] = "\x46\x4F\x52\x4D\x41\x54\x92\x86";
-extern const char at_4365[] = "FORMAT_END";
-extern const char at_4366[] = "FORMAT_FAIL";
-extern const char at_4367__2[] = "NEWALBUMSYS_SAVE";
-extern const char at_4368__2[] = "SAVING";
-extern const char at_4369[] = "SAVE_END";
-extern const char at_4370[] = "\x90\x56\x8B\x4B\x41\x4C\x42\x55\x4D";
-extern const char at_4371[] = "NOTPS2MC";
-extern const char at_4372[] = "\x4E\x45\x57\x41\x4C\x42\x55\x4D\x5F\x53\x49\x5A\x45\x95\x73\x91\xAB";
-extern const char at_4373[] = "NOT_SAVE";
-extern const char at_4374[] = "LOAD_MISS";
-extern const char at_4375[] = "LOADEND3";
-extern const char at_4376[] = "LOADEND2";
-extern const char at_4377[] = "LOADEND";
-extern const char at_4379[] = "COMBACK_SLOTSEL";
-extern const char at_4380[] = "\x49\x53\x5F\x4D\x43\x41\x43\x43\x45\x53\x53\x5F\x8E\xE6\x8F\xC1";
-extern const char at_5011[] = "dc2album.ico";
-extern const char at_5012[] = "dc2album_c.ico";
-extern const char at_5013[] = "dc2album_d.ico";
-extern const char at_5014[] = "photo_bg1.pac";
-extern const char at_5015[] = "mainpureimage";
-extern const char at_5016[] = "\x92\xCA\x8F\xED\x82\xCC\x82\xDD\x8F\x89\x8A\xFA\x89\xBB";
-
 extern mgCMemory     MenuInventCharaStack;
 extern mgCMemory     MenuInventMCStack;
 static ItemNameList2 at_3739;
@@ -1015,7 +982,7 @@ USER_PICTURE_INFO *CInventUserData::GetPhotoInfo(int slot) {
 }
 
 char *CInventUserData::GetPhototWorkAdr() {
-    return &photo_work[0][0];
+    return (char *) &photo_work[0][0];
 }
 
 USER_PICTURE_INFO *CInventUserData::IsPhotoSpace(int *slot) {
@@ -1023,7 +990,7 @@ USER_PICTURE_INFO *CInventUserData::IsPhotoSpace(int *slot) {
 
     for (i = 0; i < 30; i++) {
         if (photo[i].used == 0) {
-            photo[i].image = &photo_work[i][0];
+            photo[i].image = (char *) &photo_work[i][0];
 
             if (slot != NULL) {
                 *slot = i;
@@ -2192,16 +2159,6 @@ void CMenuInvent::AttachFormInfo() {
  */
 static inline int StackBlocks(int bytes) {
     return (bytes + 15) / 16 + 2;
-}
-
-/**
- *
- * Constructs an action character in the inventory memory stack.
- *
- */
-
-static inline CActionChara *NewInventActionChara(mgCMemory *stack) {
-    return new (stack->Alloc(StackBlocks(sizeof(CActionChara)))) CActionChara;
 }
 
 void CMenuInvent::LoadCharaCheck() {
@@ -4805,7 +4762,7 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
                 CheckPhotoFlag();
                 InventUserDataPtr->PhotoCheckEnd();
 
-                if (photo_only == 1 && card_album_mode == 0) {
+                if (photo_only == 1 && album_open == 0) {
                     UpdataRecordBoard();
                 }
 
@@ -4872,64 +4829,104 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
 CStarDust::CStarDust() {
     this->active = 0;
 }
-#ifdef NONMATCHING
+
+/**
+ *
+ * Rounds a byte count up to a number of 16-byte allocation blocks.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
 
 void CMenuInvent::IsAccessAlbum() {
-    CDC2Mes *message = MenuDCMsg[4];
+    MC_CARD_INFO  *card;
+    CDC2Mes       *message;
+    int            keys;
+    int            button;
+    int            done;
+    int            back_to_photo;
+    int            finish;
+    int            access;
+    int            cancel;
+    int            loaded;
+    int            check_space;
+    int            card_removed;
+    int            no_card;
+    int            card_full;
+    int            card_error;
+    int            read_error;
+    int            answer;
+    MC_ERROR_INFO *error;
+
+    message = MenuDCMsg[4];
+
     if (message == NULL) {
         return;
     }
-    int            keys = MenuCommonInfo->CheckSelectKey();
-    int            button = MenuCommonInfo->CheckPushButton();
-    MC_ERROR_INFO *error = NULL;
-    MC_CARD_INFO  *card = NULL;
-    int            done = 0;
+
+    keys = MenuCommonInfo->CheckSelectKey();
+    button = MenuCommonInfo->CheckPushButton();
+    error = NULL;
+    card = NULL;
+    done = 0;
+
     if (MCManagerPtr != NULL) {
         MCManagerPtr->GetFuncNo();
         done = MCManagerPtr->Step();
         CMemoryCardManager *manager = MCManagerPtr;
-        int                 port = manager->port;
-        if (port == 0 || port == 1) {
-            card = &manager->card[port];
-        }
-        error = &manager->error;
+        card = manager->GetCardInfo();
+        error = manager->GetErrorInfo();
     }
-    int back_to_photo = 0;
-    int finish = 0;
-    int access = -2;
-    int cancel = 0;
-    int loaded = 0;
-    int check_space = 0;
-    int card_removed = 0;
-    int no_card = 0;
-    int card_full = 0;
-    int card_error = 0;
-    int read_error = 0;
+
+    back_to_photo = 0;
+    finish = 0;
+    access = -2;
+    cancel = 0;
+    loaded = 0;
+    check_space = 0;
+    card_removed = 0;
+    no_card = 0;
+    card_full = 0;
+    card_error = 0;
+    read_error = 0;
+
     if (init_3950 == 0) {
         ActiveSlot_3949 = 0;
         init_3950 = 1;
     }
+
     switch (step) {
         case 0: {
             int move = 0;
+
             if (keys & MENU_SELECT_KEY_UP) {
-                move = -1;
+                move--;
             }
+
             if (keys & MENU_SELECT_KEY_DOWN) {
                 move++;
             }
+
             if (message->AddMsgCursor(move, 1, 2, 1) != 0) {
                 MenuSePlay(SYSTEM_SE_CURSOR);
             }
+
             switch (button) {
-                case 1:
+                case MENU_PUSH_BUTTON_DECIDE:
                     ActiveSlot_3949 = message->GetMsgCursor() - 1;
                     printf("ActiveSlot:%d\n", ActiveSlot_3949);
                     chara_load_step = -1;
                     poly_chr_form[0]->SetActionCharaPtr(NULL, -1, -1);
                     ExeScript("MCLOAD_BEGIN");
+
                     while (CancelNetaCircle(0) >= 0) {
                     }
+
                     InitPhotoNetaBoardToAlbum(0);
                     MenuInventCharaStack.stack_used = 0;
                     MenuInventCharaStack.lock = 0;
@@ -4938,22 +4935,23 @@ void CMenuInvent::IsAccessAlbum() {
                     step = 1;
                     album_scroll_reset = 1;
                     break;
-                case 2:
-                    card_album_mode = 0;
+                case MENU_PUSH_BUTTON_CANCEL:
+                    album_open = 0;
                     cancel = 1;
                     break;
             }
+
             break;
         }
         case 1:
             MenuInventMCStack.stack_used = 0;
             MenuInventMCStack.lock = 0;
             MenuInventMCStack.Align64();
-            InventAlbumPtr = new ((u_long128 *) MenuInventMCStack.Alloc(0x64CD)) CDC2AlbumData;
-            MCManagerPtr = new ((u_long128 *) MenuInventMCStack.Alloc(0x112)) CMemoryCardManager;
+            InventAlbumPtr = new (MenuInventMCStack.Alloc(align16_blocks(sizeof(CDC2AlbumData)) + 2)) CDC2AlbumData;
+            MCManagerPtr = new (MenuInventMCStack.Alloc(align16_blocks(sizeof(CMemoryCardManager)) + 2)) CMemoryCardManager;
             MCManagerPtr->Initialize(NULL);
             MCManagerPtr->InitForMC();
-            MCManagerPtr->SetBuff_Album(InventAlbumPtr->photo_work[0]);
+            MCManagerPtr->SetBuff_Album((char *) InventAlbumPtr);
             MCManagerPtr->SetIconData(icon_data, 1);
             MCManagerPtr->port = ActiveSlot_3949;
             MCManagerPtr->SetFuncNo(MC_FUNC_SEARCH_TYPE);
@@ -4966,7 +4964,7 @@ void CMenuInvent::IsAccessAlbum() {
                 } else if (card->formatted == 0) {
                     if (album_save_mode == 1) {
                         step = 500;
-                        ExeScript("\x46\x4F\x52\x4D\x41\x54\x8A\x6D\x94\x46");
+                        ExeScript("FORMAT\212m\224F");
                     } else {
                         loaded = 2;
                     }
@@ -4978,13 +4976,14 @@ void CMenuInvent::IsAccessAlbum() {
                     ExeScript("IS_SAVE");
                 }
             }
+
             break;
         case 3:
             if (done != 0) {
                 if (McCheckMCPs2(card) == 0) {
                     loaded = 2;
                 } else if (MCManagerPtr->file_exists != 0) {
-                    if (error->code != 0) {
+                    if (error->code != MC_ERROR_NONE) {
                         read_error = 1;
                     } else {
                         step = 5;
@@ -4992,6 +4991,7 @@ void CMenuInvent::IsAccessAlbum() {
                         InitMenuDl(GetMenuDlTexture(), MCManagerPtr->GetSaveDataSize(MC_SIZE_ALBUM_FILE));
                         download_base = 0;
                         ExeScript("LOADING");
+
                         if (MenuDCMsg[4] != NULL) {
                             MenuDCMsg[4]->SetMsgVolumeNoOne(ActiveSlot_3949 + 1);
                         }
@@ -5000,19 +5000,23 @@ void CMenuInvent::IsAccessAlbum() {
                     loaded = 2;
                 }
             }
+
             break;
         case 5:
-            StepMenuDl2(download_base + MCManagerPtr->total_transferred);
+            StepMenuDl2(download_base + MCManagerPtr->GetTransferredSize());
+
             if (done != 0) {
                 InitMenuDl(NULL, 0);
+
                 if (McCheckMCPs2(card) == 0) {
                     read_error = 1;
-                } else if (error->code == 3) {
+                } else if (error->code == MC_ERROR_BROKEN) {
                     read_error = 1;
                 } else {
                     loaded = 1;
                 }
             }
+
             break;
         case 6:
             if (button != 0) {
@@ -5020,6 +5024,7 @@ void CMenuInvent::IsAccessAlbum() {
                 cursor_snap = 1;
                 MenuSePlay(SYSTEM_SE_DECIDE);
             }
+
             break;
         case 231:
             if (done != 0) {
@@ -5030,9 +5035,11 @@ void CMenuInvent::IsAccessAlbum() {
                     step = 232;
                 }
             }
+
             break;
         case 232:
             StepMenuDl2(MCManagerPtr->total_transferred);
+
             if (done != 0) {
                 if (McCheckMCPs2(card) == 0) {
                     card_removed = 1;
@@ -5041,57 +5048,69 @@ void CMenuInvent::IsAccessAlbum() {
                     step = 205;
                 }
             }
+
             break;
         case 110:
             if (button != 0) {
                 loaded = -1;
             }
+
             break;
         case 100:
             if (button != 0) {
                 MenuSePlay(SYSTEM_SE_DECIDE);
                 loaded = 2;
             }
+
             break;
         case 201: {
             int move = 0;
+
             if (keys & MENU_SELECT_KEY_UP) {
-                move = -1;
+                move--;
             }
+
             if (keys & MENU_SELECT_KEY_DOWN) {
                 move++;
             }
+
             if (message->AddMsgCursor(move, 2, 3, 1) != 0) {
                 MenuSePlay(SYSTEM_SE_CURSOR);
             }
+
             switch (button) {
-                case 1:
+                case MENU_PUSH_BUTTON_DECIDE:
                     ActiveSlot_3949 = message->GetMsgCursor() - 2;
+
                     if (ActiveSlot_3949 < 0) {
                         ActiveSlot_3949 = 0;
                     }
-                    if (ActiveSlot_3949 >= 2) {
+
+                    if (ActiveSlot_3949 > 1) {
                         ActiveSlot_3949 = 1;
                     }
+
                     step = 2;
                     ExeScript("SAVE_PRECHECK");
                     MCManagerPtr->port = ActiveSlot_3949;
                     MCManagerPtr->SetFuncNo(MC_FUNC_SEARCH_TYPE);
                     break;
-                case 2:
+                case MENU_PUSH_BUTTON_CANCEL:
                     step = 220;
                     ExeScript("IS_SAVE2");
                     break;
             }
+
             break;
         }
         case 200: {
             int answer = message->YesNoCursor();
+
             if (McCheckMCPs2(card) == 0) {
                 no_card = 1;
             } else {
                 switch (button) {
-                    case 1:
+                    case MENU_PUSH_BUTTON_DECIDE:
                         if (answer == 0) {
                             step = 202;
                             MCManagerPtr->port = ActiveSlot_3949;
@@ -5099,12 +5118,13 @@ void CMenuInvent::IsAccessAlbum() {
                             ExeScript("SAVE_BEGIN");
                             break;
                         }
-                    case 2:
+                    case MENU_PUSH_BUTTON_CANCEL:
                         step = 220;
                         ExeScript("IS_SAVE2");
                         break;
                 }
             }
+
             break;
         }
         case 202:
@@ -5112,7 +5132,7 @@ void CMenuInvent::IsAccessAlbum() {
                 if (McCheckMCPs2(card) != 0) {
                     if (card->formatted == 0) {
                         step = 500;
-                        ExeScript("\x46\x4F\x52\x4D\x41\x54\x8A\x6D\x94\x46");
+                        ExeScript("FORMAT\212m\224F");
                     } else {
                         step = 203;
                         MCManagerPtr->SetFuncNo(MC_FUNC_CHECK_ALBUM);
@@ -5121,6 +5141,7 @@ void CMenuInvent::IsAccessAlbum() {
                     card_removed = 1;
                 }
             }
+
             break;
         case 203:
             if (done != 0) {
@@ -5133,9 +5154,11 @@ void CMenuInvent::IsAccessAlbum() {
                     check_space = 1;
                 }
             }
+
             break;
         case 205:
-            StepMenuDl2(download_base + MCManagerPtr->total_transferred);
+            StepMenuDl2(download_base + MCManagerPtr->GetTransferredSize());
+
             if (done != 0) {
                 if (McCheckMCPs2(card) == 0) {
                     card_removed = 1;
@@ -5145,74 +5168,90 @@ void CMenuInvent::IsAccessAlbum() {
                     step = 206;
                 }
             }
+
             break;
         case 206:
             if (button != 0) {
                 MenuSePlay(SYSTEM_SE_DECIDE);
                 finish = 1;
             }
+
             break;
         case 220: {
             int answer = message->YesNoCursor2(0);
+
             if (answer == 1) {
                 MenuSePlay(SYSTEM_SE_DECIDE);
-                if (CheckRecoverPhotoNum() > 0) {
-                    ExeScript("\x96\xDF\x82\xB7\x8A\x6D\x94\x46");
+
+                if (0 < CheckRecoverPhotoNum()) {
+                    ExeScript("\226\337\202\267\212m\224F");
                     step = 240;
                 } else {
                     finish = 1;
                 }
             }
+
             if (answer == 2) {
                 cancel = 1;
             }
+
             break;
         }
         case 230: {
             int answer = message->YesNoCursor();
+
             if (McCheckMCPs2(card) == 0) {
                 no_card = 1;
             } else {
                 switch (button) {
-                    case 1:
+                    case MENU_PUSH_BUTTON_DECIDE:
                         if (answer == 0) {
                             access = -1;
                             step = 231;
                             break;
                         }
-                    case 2:
+                    case MENU_PUSH_BUTTON_CANCEL:
                         cancel = 1;
                         break;
                 }
             }
+
             break;
         }
         case 240: {
-            int answer = message->YesNoCursor2(0);
+            answer = message->YesNoCursor2(0);
+
             if (answer == 1) {
                 int space = 0;
+
                 for (int i = 0; i < 50; i++) {
                     USER_PICTURE_INFO *photo = InventUserDataPtr->GetPhotoInfo(i);
-                    if (photo != NULL && *(s8 *) &photo->used == 0) {
+
+                    if (photo != NULL && photo->used == 0) {
                         space++;
                     }
                 }
+
                 int recover = 0;
+
                 for (int i = 0; i < 50; i++) {
-                    if (album_flag[i] > 0) {
+                    if (0 < album_flag[i]) {
                         recover++;
                     }
                 }
+
                 if (space < recover) {
                     step = 241;
-                    ExeScript("\x8E\xCA\x90\x5E\x88\xEA\x94\x74");
-                    MenuSePlay(5);
+                    ExeScript("\216\312\220^\210\352\224t");
+                    MenuSePlay(SYSTEM_SE_CANCEL);
+                    break;
                 } else {
                     for (int i = 0; i < 50; i++) {
-                        if (album_flag[i] > 0) {
+                        if (0 < album_flag[i]) {
                             album_flag[i] = -1;
                             USER_PICTURE_INFO *photo = InventUserDataPtr->IsPhotoSpace(NULL);
                             USER_PICTURE_INFO *album = InventAlbumPtr->GetAlbumPhotoInfo(i);
+
                             if (photo != NULL && album != NULL) {
                                 Copy_USER_PICTURE_INFO(album, photo);
                                 memcpy(photo->image, album->image, 0x2000);
@@ -5221,48 +5260,58 @@ void CMenuInvent::IsAccessAlbum() {
                             }
                         }
                     }
+
                     AttachPictTex(tex_block[3], photo_tex, InventUserDataPtr->GetPhotoInfo(0), 30);
                     finish = 1;
                     MenuSePlay(12);
                 }
             }
+
             if (answer == 2) {
                 finish = 1;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
+
             break;
         }
         case 241:
             if (button != 0) {
                 back_to_photo = 1;
             }
+
             break;
         case 250:
             if (button != 0) {
                 cancel = 1;
             }
+
             break;
         case 300:
             if (button != 0) {
                 step = 301;
                 ExeScript("IS_SAVE2");
             }
+
             break;
         case 301: {
             int answer = message->YesNoCursor2(0);
+
             if (answer == 1) {
                 MenuSePlay(SYSTEM_SE_DECIDE);
-                if (CheckRecoverPhotoNum() > 0) {
-                    ExeScript("\x96\xDF\x82\xB7\x8A\x6D\x94\x46");
+
+                if (0 < CheckRecoverPhotoNum()) {
+                    ExeScript("\226\337\202\267\212m\224F");
                     step = 240;
                 } else {
                     finish = 1;
                 }
             }
+
             if (answer == 2) {
                 cancel = 1;
-                MenuSePlay(5);
+                MenuSePlay(SYSTEM_SE_CANCEL);
             }
+
             break;
         }
         case 500:
@@ -5270,23 +5319,26 @@ void CMenuInvent::IsAccessAlbum() {
                 no_card = 1;
             } else {
                 int answer = message->YesNoCursor2(0);
+
                 if (answer == 1) {
-                    ExeScript("\x46\x4F\x52\x4D\x41\x54\x92\x86");
+                    ExeScript("FORMAT\222\206");
                     MCManagerPtr->SetFuncNo(MC_FUNC_SEARCH_TYPE);
                     MenuDCMsg[4]->SetMsgVolumeNoOne(ActiveSlot_3949 + 1);
                     step = 501;
                 }
+
                 if (answer == 2) {
                     back_to_photo = 1;
                 }
             }
+
             break;
         case 501:
             if (done != 0) {
                 if (McCheckMCPs2(card) == 1) {
                     if (card->formatted == 1) {
                         ExeScript("FORMAT_END");
-                        MenuSePlay(31);
+                        MenuSePlay(SYSTEM_SE_COMPLETE);
                         step = 503;
                     } else {
                         MCManagerPtr->SetFuncNo(MC_FUNC_FORMAT);
@@ -5296,10 +5348,12 @@ void CMenuInvent::IsAccessAlbum() {
                     no_card = 1;
                 }
             }
+
             break;
         case 502:
             if (done != 0) {
                 step = 503;
+
                 if (McCheckMCPs2(card) == 1 && card->formatted == 1) {
                     ExeScript("FORMAT_END");
                     access = -1;
@@ -5308,14 +5362,17 @@ void CMenuInvent::IsAccessAlbum() {
                     ExeScript("FORMAT_FAIL");
                 }
             }
+
             break;
         case 503:
             if (button != 0) {
                 back_to_photo = 1;
                 check_space = 1;
             }
+
             break;
     }
+
     switch (access) {
         case -1:
             ExeScript("NEWALBUMSYS_SAVE");
@@ -5329,6 +5386,7 @@ void CMenuInvent::IsAccessAlbum() {
                 MCManagerPtr->SetFuncNo(MC_FUNC_MAKE_ALBUM_DIR);
                 InitMenuDl(GetMenuDlTexture(), MCManagerPtr->GetSaveDataSize(MC_SIZE_ALBUM_TOTAL));
             }
+
             break;
         case 1:
             if (McCheckMCPs2(card) == 0) {
@@ -5338,12 +5396,13 @@ void CMenuInvent::IsAccessAlbum() {
                 download_base = MCManagerPtr->total_transferred;
             } else if (card->formatted == 0) {
                 step = 500;
-                ExeScript("\x46\x4F\x52\x4D\x41\x54\x8A\x6D\x94\x46");
-            } else if (error->code == 4) {
+                ExeScript("FORMAT\212m\224F");
+            } else if (error->code == MC_ERROR_FULL) {
                 card_full = 1;
             } else {
                 card_error = 1;
             }
+
             break;
         case 2:
             if (McCheckMCPs2(card) == 0) {
@@ -5353,103 +5412,129 @@ void CMenuInvent::IsAccessAlbum() {
                 MCManagerPtr->SetFuncNo(MC_FUNC_SAVE_ALBUM);
                 InitMenuDl(GetMenuDlTexture(), MCManagerPtr->GetSaveDataSize(MC_SIZE_ALBUM_FILE));
                 ExeScript("SAVING");
+
                 if (MenuDCMsg[4] != NULL) {
                     MenuDCMsg[4]->SetMsgVolumeNoOne(ActiveSlot_3949 + 1);
                 }
             }
+
             break;
         case 3:
-            if (error->code == 0) {
+            if (error->code == MC_ERROR_NONE) {
                 InitMenuDl(NULL, 0);
                 ExeScript("SAVE_END");
-                MenuSePlay(31);
-            } else if (error->code == 4) {
+                MenuSePlay(SYSTEM_SE_COMPLETE);
+            } else if (error->code == MC_ERROR_FULL) {
                 card_full = 1;
             } else {
                 card_error = 1;
             }
+
             break;
     }
+
     if (check_space != 0) {
         if (card->type == 2 && card->present == 1) {
             if (card->formatted == 0) {
                 step = 500;
-                ExeScript("\x46\x4F\x52\x4D\x41\x54\x8A\x6D\x94\x46");
-            } else if (card->free_size < MCManagerPtr->GetSaveDataSize(MC_SIZE_SAVE_KB) + 2) {
+                ExeScript("FORMAT\212m\224F");
+            } else if (MCManagerPtr->GetSaveDataSize(MC_SIZE_SAVE_KB) + 2 > card->free_size) {
                 card_full = 1;
             } else {
                 if (album_save_mode == 1) {
                     step = 230;
                 }
-                ExeScript("\x90\x56\x8B\x4B\x41\x4C\x42\x55\x4D");
+
+                ExeScript("\220V\213KALBUM");
             }
         } else {
             no_card = 1;
         }
     }
+
     if (no_card != 0) {
         InitMenuDl(NULL, 0);
+
         if (album_save_mode == 0) {
             step = 110;
         }
+
         if (album_save_mode == 1) {
             step = 300;
         }
+
         ExeScript("NOTPS2MC");
     }
+
     if (card_full != 0) {
         InitMenuDl(NULL, 0);
+
         if (album_save_mode == 0) {
             step = 100;
         }
+
         if (album_save_mode == 1) {
             step = 300;
         }
-        ExeScript("\x4E\x45\x57\x41\x4C\x42\x55\x4D\x5F\x53\x49\x5A\x45\x95\x73\x91\xAB");
+
+        ExeScript("NEWALBUM_SIZE\225s\221\253");
         MenuDCMsg[4]->SetMsgVolumeNoOne(ActiveSlot_3949 + 1);
     }
+
     if (card_error == 1) {
         InitMenuDl(NULL, 0);
         ExeScript("NOT_SAVE");
+
         if (album_save_mode == 0) {
             step = 100;
         }
+
         if (album_save_mode == 1) {
             step = 300;
         }
     }
+
     if (read_error != 0) {
         ExeScript("LOAD_MISS");
         step = 110;
     }
+
     if (card_removed != 0) {
         InitMenuDl(NULL, 0);
         ExeScript("NOT_SAVE");
         step = 300;
     }
+
     if (loaded != 0) {
         InventAlbumPtr->RelateAlbumPicData();
         AttachPictTex(tex_block[4], album_tex, InventAlbumPtr->GetAlbumPhotoInfo(0), 50);
+
         if (loaded == 3) {
             ExeScript("LOADEND3");
             MenuDCMsg[6]->SetMsgVolumeNoOne(ActiveSlot_3949 + 1);
         }
+
         if (loaded == 2) {
             ExeScript("LOADEND2");
         }
+
         if (loaded == 1) {
             ExeScript("LOADEND");
-            MenuSePlay(31);
+            MenuSePlay(SYSTEM_SE_COMPLETE);
         }
+
         cursor_snap = 1;
         step = 6;
+
         if (loaded < 0) {
             step = 0;
             ExeScript("IS_MCACCESS");
+
             if (LanguageCode > 0 && LanguageCode < 6) {
                 MenuDCMsg[4]->SetMsgCursor(1);
                 MenuDCMsg[4]->select_top = 1;
             }
+
             ExeScript("COMBACK_SLOTSEL");
             chara_load_step = 0;
             StartReadBG();
@@ -5460,17 +5545,20 @@ void CMenuInvent::IsAccessAlbum() {
             return;
         }
     }
+
     if (finish != 0) {
         MenuMesForm[4]->draw_flag = 0;
-        int next_mode = 0;
+        int next_mode = INVENT_MODE_THINK;
+
         if (photo_only == 1) {
-            next_mode = 6;
+            next_mode = INVENT_MODE_PHOTO_VIEW;
         }
+
         PrepareNextMode(next_mode);
         mode = 0;
         step = 0;
         chara_load_step = 0;
-        card_album_mode = 0;
+        album_open = 0;
         MCManagerPtr->FinishForMC();
         MCManagerPtr = NULL;
         MenuCharaLoadStack.stack_used = 0;
@@ -5478,29 +5566,29 @@ void CMenuInvent::IsAccessAlbum() {
         StartReadBG();
         return;
     }
+
     if (back_to_photo != 0) {
-        PrepareNextMode(5);
+        PrepareNextMode(INVENT_MODE_ALBUM_VIEW);
         mode = 0;
         step = 0;
-        ExeScript("\x49\x53\x5F\x4D\x43\x41\x43\x43\x45\x53\x53\x5F\x8E\xE6\x8F\xC1");
+        ExeScript("IS_MCACCESS_\216\346\217\301");
     }
+
     if (cancel != 0) {
         mode = 0;
         step = 0;
-        ExeScript("\x49\x53\x5F\x4D\x43\x41\x43\x43\x45\x53\x53\x5F\x8E\xE6\x8F\xC1");
+        ExeScript("IS_MCACCESS_\216\346\217\301");
     }
+
     if (dload_form != NULL) {
-        int x;
-        int y;
-        dload_form->GetPutPosXY(NULL, x, y);
-        y += 26;
+        int pos[2];
+        dload_form->GetPutPosXY(NULL, pos[0], pos[1]);
+        pos[1] += 26;
         MenuDCMsg[6]->StepMsg();
-        MenuDCMsg[6]->SetMovePosCenteringGyou(0, mgScreenWidth >> 1, y);
+        MenuDCMsg[6]->SetMovePosCenteringGyou(0, mgScreenWidth >> 1, pos[1]);
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", IsAccessAlbum__11CMenuInventFv);
-#endif
+
 void CMenuInvent::GetNetaBoardCursorPosition(int slot, int *pos) {
     pos[0] = (int) photo_pos[slot][0];
     pos[1] = (int) photo_pos[slot][1];
@@ -6085,7 +6173,7 @@ inline CMenuInvent::CMenuInvent() {
     memo_cursor = 0;
     memo_top = 0;
     card_scroll_dir = 0;
-    card_album_mode = 0;
+    album_open = 0;
 
     for (i = 0; i < 3; i++) {
         neta_select_index[i] = -1;
@@ -6163,51 +6251,52 @@ inline CMenuInvent::CMenuInvent() {
     Init_MENUFORM_MAKEBRD_INFO(&make_board);
 }
 
-static inline u8 *StackBytes(mgCMemory *m) { return m->stack_bytes; }
-
-static inline int StackSize(mgCMemory *m) { return m->stack_size; }
-
-static inline int StackUsed(mgCMemory *m) { return m->stack_used; }
-
-#ifdef NONMATCHING
 int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
-    int size = StackSize(memory);
-    u8 *pack = StackBytes(memory);
+    int size = memory->stGetSize();
+    u8 *pack = memory->stGetBuffer();
     MenuInventStack.stSetBuffer((u_long128 *) pack, size);
-    MenuInventStack.stAlloc64(StackUsed(memory));
+    MenuInventStack.stAlloc64(memory->stGetUsed());
     mgCMemory *stack = &MenuInventStack;
     debug_invent_successflag = 0;
     InventAlbumPtr = NULL;
     InventUserDataPtr = NULL;
-    CMenuInventPt = new ((u_long128 *) stack->Alloc(StackBlocks(sizeof(CMenuInvent)))) CMenuInvent;
+    CMenuInventPt = new (stack->Alloc(align16_blocks(sizeof(CMenuInvent)) + 2)) CMenuInvent;
     CMenuInventPt->SetTexBlock(tex_block);
     InventUserDataPtr = GetInventUserDataPtr();
     InventManagePt = &InventManageMan;
     InventManagePt->Clear();
-    if (MenuCommonInfo->open_type == (int) MENU_OPEN_INVENT) {
+
+    if (MenuCommonInfo->open_type == MENU_OPEN_INVENT) {
         CMenuInventPt->photo_only = 1;
     }
+
     MCManagerPtr = NULL;
     MenuBGReadInfo2Malloc(stack, tbl_4782);
-    MenuActionChara[0] = NewInventActionChara(stack);
+    MenuActionChara[0] = new (stack->Alloc(align16_blocks(sizeof(CActionChara)) + 2)) CActionChara;
     MenuActionChara[1] = NULL;
     MenuActionChara[2] = NULL;
-    MenuActionChara[3] = NewInventActionChara(stack);
-    MenuActionChara[4] = NewInventActionChara(stack);
+    MenuActionChara[3] = new (stack->Alloc(align16_blocks(sizeof(CActionChara)) + 2)) CActionChara;
+    MenuActionChara[4] = new (stack->Alloc(align16_blocks(sizeof(CActionChara)) + 2)) CActionChara;
     MenuActionChara[5] = NULL;
     MenuActionChara[0]->Initialize(NULL);
     MenuActionChara[3]->Initialize(NULL);
     MenuActionChara[4]->Initialize(NULL);
     CMenuEffect *effect;
-    if ((effect = (CMenuEffect *) operator new(sizeof(CMenuEffect), stack->Alloc(StackBlocks(sizeof(CMenuEffect))))) != NULL) {
+
+    if ((effect = (CMenuEffect *) operator new(sizeof(CMenuEffect),
+                                               stack->Alloc(align16_blocks(sizeof(CMenuEffect)) + 2))) != NULL) {
         effect->Initialize();
     }
+
     MenuEffect[0] = effect;
-    if ((effect = (CMenuEffect *) operator new(sizeof(CMenuEffect), stack->Alloc(StackBlocks(sizeof(CMenuEffect))))) != NULL) {
+
+    if ((effect = (CMenuEffect *) operator new(sizeof(CMenuEffect),
+                                               stack->Alloc(align16_blocks(sizeof(CMenuEffect)) + 2))) != NULL) {
         effect->Initialize();
     }
+
     MenuEffect[1] = effect;
-    MenuMoveItemPtr = new ((u_long128 *) stack->Alloc(StackBlocks(sizeof(CMenuMoveItem)))) CMenuMoveItem;
+    MenuMoveItemPtr = new (stack->Alloc(align16_blocks(sizeof(CMenuMoveItem)) + 2)) CMenuMoveItem;
     menu_randam_line_draw_postbl = &CMenuInventPt->line_pos[0][0];
     InventTeigiStack.stSetBuffer(stack->stGetTop(), 0x210);
     stack->Alloc(0x210);
@@ -6218,14 +6307,18 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
     u_long128 *data_top = stack->stGetTop();
     CMenuInventPt->data_stack.stSetBuffer(data_top, 0x1310);
     stack->Alloc(0x1310);
+
     if (CMenuInventPt->photo_only == 0) {
         CMenuInventPt->EnterDataMenu(pack);
     }
+
     StartReadBG();
+
     if (CMenuInventPt->photo_only == 1) {
         u_int size = LoadFileMenu("photo_bg1.pac", stack->stGetTop(), 0);
         stack->Alloc((size & 0xF) ? (size >> 4) + 1 : size >> 4);
     }
+
     InventSubDataReadBGInfo = (unsigned int) GetReadBGFile(0);
     u_long128 *chara_top = stack->stGetTop();
     MenuInventMCStack.stSetBuffer(chara_top, stack->stGetRest());
@@ -6244,11 +6337,13 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
     MenuActionCharaBuffer[2].stSetBuffer(NULL, 0);
     MenuActionCharaBuffer[3].stSetBuffer(NULL, 0);
     MenuActionCharaBuffer[6].stSetBuffer(NULL, 0);
+
     if (CMenuInventPt->photo_only == 1) {
         CMenuInventPt->chara_stack.stSetBuffer(stack->stGetTop(), 0x1680);
         stack->Alloc(0x1680);
         stack->Align64();
     }
+
     MenuInventCharaStack.stSetBuffer(chara_top, 0xC200);
     stack->Align64();
     int rest = stack->stGetRest();
@@ -6256,23 +6351,26 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
     MenuCharaLoadStack.stack_used = 0;
     MenuCharaLoadStack.lock = 0;
     CMenuInventPt->LoadCharaCheck();
+
     switch (CMenuInventPt->photo_only) {
         case 1:
-            CMenuInventPt->key_arg_no = 6;
+            CMenuInventPt->key_arg_no = INVENT_MODE_PHOTO_VIEW;
             MenuMainFrameModeSet(1, 1);
             ReturnMenuIntern(1);
             MenuMesForm[0]->draw_flag = 0;
             CMenuPosDataForm *image_form = MenuPosData->GetFormInfo("mainpureimage");
+
             if (image_form != NULL) {
                 image_form->draw_flag = 1;
                 image_form->x = 0.0f;
                 image_form->y = 0.0f;
             }
+
             CMenuInventPt->GradationSet(0);
             break;
         case 0:
-            CMenuInventPt->key_arg_no = 2;
-            CMenuInventPt->ExeScript("\x92\xCA\x8F\xED\x82\xCC\x82\xDD\x8F\x89\x8A\xFA\x89\xBB");
+            CMenuInventPt->key_arg_no = INVENT_MODE_CARD_LIST;
+            CMenuInventPt->ExeScript("\x92\xca\x8f\xed\x82\xcc\x82\xdd\x8f\x89\x8a\xfa\x89\xbb");
             CMenuInventPt->poly_chr_form[0]->counter = 0;
             CMenuInventPt->ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68"
                                      "0");
@@ -6282,10 +6380,13 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
             SetSpectolInfo(NULL, NULL);
             break;
     }
+
     MenuCamInit(1.0f);
     itemmenu_chr_rotflag = 1;
+
     if (CursorSaveOptionState()) {
         CMenuSystemData *sys = GetMenuSysData();
+
         if (sys != NULL) {
             CMenuInventPt->item_cursor = sys->invent_item.select;
             CMenuInventPt->item_top = sys->invent_item.top;
@@ -6300,6 +6401,7 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
             CMenuInventPt->memo_sort_mode = sys->invent_memo_sort_mode;
         }
     }
+
     CMenuInvent *menu = CMenuInventPt;
     MenuItemBrdSetInfo(menu->item_cursor, menu->item_top, GetNowBagMax(0) / 6, 5);
     MenuCommonInfo->cursor = 0;
@@ -6312,9 +6414,6 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
     SetModeMenuDrawItemBoard(0);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", MenuInventInit__FP9mgCMemoryPii);
-#endif
 
 void CMenuInvent::NextDifferentMode(int next, int arg) {
     switch (next) {
@@ -6666,7 +6765,7 @@ int MenuInventPushKey(int pad, int pushed) {
                         next = INVENT_MODE_PHOTO_VIEW;
                     }
 
-                    if (CMenuInventPt->card_album_mode == 1) {
+                    if (CMenuInventPt->album_open == 1) {
                         next = INVENT_MODE_THINK_WITH_ALBUM;
                     }
 
@@ -6812,7 +6911,7 @@ int MenuInventPushKey(int pad, int pushed) {
                             CMenuInventPt->mode = 14;
                             CMenuInventPt->step = 0;
                             CMenuInventPt->album_save_mode = 0;
-                            CMenuInventPt->card_album_mode = 1;
+                            CMenuInventPt->album_open = 1;
                             break;
                         case 2:
                             next_mode = 2;
@@ -6905,7 +7004,7 @@ int MenuInventPushKey(int pad, int pushed) {
                             command = K_COMMAND_RETURN_ITEM;
                         }
 
-                        if (CMenuInventPt->card_album_mode == 1) {
+                        if (CMenuInventPt->album_open == 1) {
                             command = K_COMMAND_QUIT;
                         }
                     }
@@ -6926,7 +7025,7 @@ int MenuInventPushKey(int pad, int pushed) {
                                 command = K_COMMAND_RETURN_ITEM;
                             }
 
-                            if (CMenuInventPt->card_album_mode == 1) {
+                            if (CMenuInventPt->album_open == 1) {
                                 CMenuInventPt->mode = 14;
                                 CMenuInventPt->step = 201;
                                 CMenuInventPt->album_save_mode = 1;
@@ -6955,7 +7054,7 @@ int MenuInventPushKey(int pad, int pushed) {
                             command = K_COMMAND_SET_CIRCLE;
 
                             if (CMenuInventPt->photo_only == 1 ||
-                                CMenuInventPt->card_album_mode == 1) {
+                                CMenuInventPt->album_open == 1) {
                                 command = K_COMMAND_REJECT;
                             }
 
@@ -7417,7 +7516,7 @@ int MenuInventKey() {
                         MakeMsgNetaName(name_message, MenuMesForm[7],
                                         InventAlbumPtr->GetAlbumPhotoInfo(CMenuInventPt->album_cursor), item_pos, 1);
                     }
-                } else if (key != INVENT_MODE_PHOTO_VIEW && CMenuInventPt->card_album_mode == 0 && CMenuInventPt->photo_only == 0) {
+                } else if (key != INVENT_MODE_PHOTO_VIEW && CMenuInventPt->album_open == 0 && CMenuInventPt->photo_only == 0) {
                     for (index = 0; index < 3; index++) {
                         CMenuPosDataForm *name_form = CMenuInventPt->neta_name_form[index];
 
@@ -7542,8 +7641,6 @@ void MenuInventDraw() {
         MenuInventDebugDraw();
     }
 }
-
-
 
 // Uninitialised data (.bss)
 static mgCMemory MenuInventStack;

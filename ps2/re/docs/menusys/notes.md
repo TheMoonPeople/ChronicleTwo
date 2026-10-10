@@ -8,7 +8,9 @@ and PAL verification pass; see
 emit their own path literals, analog-input zero templates, the `dbox_path`
 local static and the `CItemSelect` vtable, so no data markers remain for them.
 
-Only `CMenuItemInfo::IsAskExtend` retains a `NONMATCHING` assembly fallback.
+`CMenuItemInfo::IsAskExtend` is also native. Its temporary `CActionChara`
+allocation uses the file-local block-count helper and needs no placement row.
+All 165 functions match retail.
 
 Header: `ps2/include/menusys.hpp`. All offsets and sizes below were checked by compiling a test
 against the header (offsets of the key fields and every `sizeof`).
@@ -164,8 +166,11 @@ Only non-local symbols get externs (the rest are `static` in the .cpp per `local
 - `menu_chara_activeItem_limmit_check` is `u8[6]`: three active-slot limit flags for each of two
   characters. `CheckEnableHaveItemNum` writes it and `MenuItemCharaActWepInfoDraw` reads it.
 - `BuildUpNameXY` is s16[3][2] (x, y per name).
-- `BUILDUP_WEAPON_INFO`: 0x00 s16 mode, 0x02 s8 select active, 0x03 s8 cursor, 0x08 int count. Its address
-  +0x8, +0xC, +0x18 and +0x2C is also taken and +0x24 is read (not resolved: `unk_4`, `unk_C[0x38]`).
+- `BUILDUP_WEAPON_INFO`: 0x00 s16 `monster_mode`, 0x02 s8 `mode`, 0x03 s8
+  `select_no`, 0x04 s16 `build_up`, 0x08 int `select_num`, 0x0C int
+  `weapon_no[3]`, 0x18 int `enable[3]`, 0x24 `CGameDataUsed *weapon`, and
+  0x2C `CDataWeapon *weapon_data[3]`. The remaining fields are `unk_6`,
+  `unk_28` and `unk_38[3]`; the total size is 0x44.
 - `MENU_ITEM_CURSOR_INFO`: byte 0 enable, bytes 1..3 (loop of 3) and 4, 5 are arrows, byte 6 is the
   character mark, and the int at 8 is a counter that wraps above 0x18.
 
@@ -190,29 +195,51 @@ Only non-local symbols get externs (the rest are `static` in the .cpp per `local
 
 ## Current matching status
 
-All functions in this unit are native C++ except `CMenuItemInfo::IsAskExtend`,
-which retains its `NONMATCHING` assembly fallback. The native functions include
-`MenuModeMalloc`, `MenuItemDebugKey`, `MenuItemSelectInit`,
-`MenuItemSelectDiffer`, `CommonSetMoveItemClass`, `MenuDataSwap`,
-`MenuPosFormValueSetCharaRobo`, `CMenuItemInfo::CalcTex`,
-`CMenuItemInfo::LRCheck`, `MenuItemDebugDraw` and
-`CheckEnableHaveItemNum`. The three allocation callers construct their
-`CActionChara` or `CItemSelect` objects through placement construction. The
-accepted placement rows and their scope are documented in
-[placement-new.md](../satansfiddle/placement-new.md).
+All 165 functions in this unit are native C++ and exact. The four allocation
+callers `MenuModeMalloc`, `MenuItemDebugKey`, `MenuItemSelectInit` and
+`CMenuItemInfo::IsAskExtend` construct their `CActionChara` or `CItemSelect`
+objects through placement construction. The first three use scoped placement
+rows; `IsAskExtend` uses the natural allocation block-count helper. The
+accepted rows and their scope are documented in [placement-new.md](../satansfiddle/placement-new.md).
 
-`IsAskExtend` controls the extended item-description prompt and a temporary
-character preview. Its natural constructor form still differs from retail:
-the current draft with the committed profile has 528 differing words out of
-668 and a raw body of `0xA68` bytes. An earlier private placement/scheduling
-trial reaches 170 differing words but is four bytes larger than retail.
-The cancellation close
-request, message/name register lifetimes and a late branch delay slot account
-for the principal residual. The guard remains until a complete object match
-is possible without invented state.
+`IsAskExtend` dispatches the extended prompt through repair and weapon
+build-up states. Repair starts background resource loading, creates the
+repair effect and optional character palette animation once loading ends,
+then restores the cursor when the effect finishes.
+
+Build-up selection clamps the signed-byte cursor to the candidate range,
+updates the weapon status form, and checks both candidate eligibility and
+monster requirements before confirmation. Confirmation starts the model and
+sound reads, reserving each byte count plus 0x800 rounded to quadwords.
+The loaded sound receives a 0x1C0-quadword stack. The temporary preview
+character occupies a 0x1030-byte class in a 0x105-quadword allocation, uses
+the original character position and 1.5 scale, and disables its frame's
+Z test through the retained attribute object.
+
+During the preview, frames above 28 hide the old character and frames above
+34 set its polygon form counter to -6. Once reading finishes and the frame
+exceeds 40, the selected weapon is transformed and its displayed model is
+reloaded with the menu texture suffix. Motion completion opens the completion
+message. Dismissal clears the extended question, step and menu mode;
+rejection returns to selection. State writes preceding the cancel or decide
+sound calls preserve the retail order. `Effect_Counter` and `BuildEndFlag`
+are natural initialized function-local statics.
 
 ## Source forms needed for native matches
 
+- `IsAskExtend` declares its build-up close request before the info and
+  message pointers, then initializes it after the message locals. The info
+  address precedes the `BuildEndFlag` initializer. The upper-bound test is
+  written `select_num <= select_no`. A retained frame-attribute pointer
+  avoids reloading it after the Z-test store. The texture-manager pointer is
+  assigned again for the transformed model and captured in a const receiver;
+  its two value lifetimes produce the retail spill and register allocation.
+  Inline depth eight exposes the real constructor chain. Its allocation uses
+  `align16_blocks(sizeof(CActionChara)) + 2`; the file-local early-return
+  helper rounds bytes to quadwords and statement-inlines, preserving retail
+  allocation-result lifetimes without a compiler-profile row. The constant
+  folds to 0x105 quadwords. The frame is 0x170 bytes and the body is 0xA68
+  bytes.
 - `CommonSetMoveItemClass` copies four integers with a `table[i][j]` loop,
   then names the row pointer. The explicit `move->from[2] == 0` comparison
   avoids an extra sign-extension pair.
@@ -265,11 +292,12 @@ asserting unverified gameplay effects. The local `CItemSelect::Draw` colour
 initializer is a four-byte array whose alpha is replaced at draw time.
 
 Most strings, aggregate zero templates, state objects and tables are native.
-Four direct string aliases (`at_3895`, `at_3924`, `at_5882`, `at_5883`)
-remain assembly supplied because isolated inline forms change the identity of
-`at_5774` and shift resolved references. The extended-prompt guard retains
-its literals and jump table; the `CMenuItemInfo` and `CBaseMenuClass`
-vtables remain assembly suppliers. The `at_6424` debug dispatch table is
+Direct string aliases, including `at_3895`, `at_3924`, `at_5882` and
+`at_5883`, remain assembly supplied because isolated inline forms change the identity of
+`at_5774` and shift resolved references. The extended prompt emits its eight literals, six-entry switch table and
+local static state and guards naturally. Its shared `info.cfg` literal is
+inlined at all callers. The `CMenuItemInfo` and `CBaseMenuClass` vtables
+remain assembly suppliers. The `at_6424` debug dispatch table is
 also still assembly supplied. No `INCLUDE_BSS` markers remain in the unit.
 
 Twelve native persistent counters or flags use natural function-local statics, including
@@ -279,10 +307,9 @@ and the debug `cnt` and `testcnt` states.
 `MenuListKeyCheck` initializes separate two-by-two direction and wrap arrays.
 
 Thirty-seven initialized tables and the remembered `Save_AskParamInfo`
-pointer belong to their owning functions under bare retail names. The
-guarded `IsAskExtend` draft also uses initialized local `Effect_Counter`
-and `BuildEndFlag` states; the normal assembly path retains its four
-associated state and guard suppliers.
+pointer belong to their owning functions under bare retail names.
+`IsAskExtend` also owns its initialized local `Effect_Counter` and
+`BuildEndFlag` states and their compiler-generated initialization guards.
 
 `SameviewmodeTable_8406` retains its existing file-local identity. A natural
 local declaration preserves the native instructions and linked PAL image,
@@ -292,8 +319,8 @@ lie inside the declared four-byte payload; supplying the known base passes
 the complete consumer proof. Retaining the existing identity keeps the
 strict checker and profile unchanged.
 
-The current complete menusys object compares `0x1B09C` allocated bytes and
-6,130 resolved relocations without findings.
+The current complete menusys object compares `0x1B094` allocated bytes and
+6,153 resolved relocations without findings.
 
 ## Item-menu pages and fields still unnamed
 

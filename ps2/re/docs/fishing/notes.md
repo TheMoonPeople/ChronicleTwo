@@ -18,9 +18,11 @@ success message. Retail keeps the player character in `s2` and constructs the
 fish in `s1`; the draft exchanges those saved registers. The exchange and the
 allocation-result branch (retail tests the call result in `v0` and copies it
 into the saved register in the delay slot; the draft copies first and tests
-the copy) have one cause: retail keeps `fish_chara` as its own named web,
+the copy) remain coupled in the original draft: retail keeps `fish_chara` as its own named web,
 distinct from the allocation-result temporary, while the compiled draft lets
-copy propagation replace the named local with that temporary. Declaration
+copy propagation replace the named local with that temporary. A measured
+placement row restores the branch but leaves the saved-register exchange;
+see [construction eligibility](placement-new-20261008.md#caught-fish-construction-eligibility) and [saved-register numbering](placement-new-20261008.md#saved-register-numbering). Declaration
 order, scope, direct assignment to `FishChara`, `opt_lifetimes`,
 `opt_dead_assignments` and `optimization_level 4` do not change the result;
 `opt_propagation off`, `global_optimizer off`, `opt_common_subs off` and

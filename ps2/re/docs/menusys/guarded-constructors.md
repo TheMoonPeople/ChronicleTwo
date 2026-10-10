@@ -1,10 +1,12 @@
 # Menu construction boundaries
 
-`MenuModeMalloc`, `MenuItemDebugKey` and `MenuItemSelectInit` are native and
-exact. Their scalar construction sites use the documented
-[placement policy](../satansfiddle/placement-new.md). Only
-`CMenuItemInfo::IsAskExtend` remains guarded; its current source residual is
-described in [unit notes](notes.md).
+`MenuModeMalloc`, `MenuItemDebugKey`, `MenuItemSelectInit` and
+`CMenuItemInfo::IsAskExtend` are native and exact. The first three use the
+documented [placement policy](../satansfiddle/placement-new.md); `IsAskExtend`
+uses `Alloc(align16_blocks(sizeof(CActionChara)) + 2)` with the file-local
+early-return block-count helper and needs no placement row.
+The extended prompt's retained source lifetimes are described in
+[unit notes](notes.md).
 
 ## Action-character chain
 
@@ -23,7 +25,7 @@ null-test/copy path.
 
 Before the policy, a natural MenuModeMalloc candidate fits 0x3BC but still
 differs in the allocator-result branch/delay slot, second construction and
-effect argument setup. IsAskExtend additionally differs in prompt dispatch
+effect argument setup. An earlier IsAskExtend form additionally differs in prompt dispatch
 and register assignment. Applying depth eight alone to an earlier
 MenuItemDebugKey candidate does not improve its 1208-word residual. These
 controls distinguish inlining depth from the construction policy.

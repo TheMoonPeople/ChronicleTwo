@@ -1,8 +1,6 @@
 # mg_dataset: reverse-engineering notes
 
-The native drafts of `CreateFrameVisual`, `CopyFrame`, `CopyFrameSub`, and `mgCMDTBuilder::End(mgCFrame*, mgCVisualMDT*,
-mgLoadData*)` remain behind `NONMATCHING` with retail assembly fallbacks.
-Every other function, including `htoi` and `mgSetFrameAttr`, is native C++ and
+Every function, including `htoi` and `mgSetFrameAttr`, is native C++ and
 byte-identical. `htoi` reads digits from the end as `((u8 *) (back + (s32) text))[-1]`:
 retail adds the text address to the position (`addu v1,v1,a0`), while both
 `(text + back)[-1]` and `(back + text)[-1]` put the pointer first.
@@ -14,9 +12,9 @@ retail adds the text address to the position (`addu v1,v1,a0`), while both
   one-byte initialization guard. The empty string is inline at `SearchVisualType` as well.
 - The sphere-centre and scalar `SetData` overloads initialize their four-float vectors
   directly; normal data writes zero to the homogeneous component using `MG_MDT_DATA_NORMAL`.
-- Two `INCLUDE_RODATA` markers remain: `at_550__DATA` is the `"mgLoadMDSFile"` diagnostic
-  referenced by the assembly-backed `CreateFrameVisual`, and `__vt__15mgCShadowFixMDT__DATA`
-  is the shadow-visual vtable that no native source in this unit emits.
+- `CreateFrameVisual` passes its `MG_ADDRESS_CHECK` site name as the inline literal
+  `"mgLoadMDSFile"`, the unit's only `.rodata` string. One `INCLUDE_RODATA` marker remains:
+  `__vt__15mgCShadowFixMDT__DATA` is the shadow-visual vtable that no native source in this unit emits.
 
 ## Typed access
 
@@ -72,7 +70,13 @@ The typed-view `htoi` experiment above emits `base,index` rather than retail's
 `index,base` in one commutative address addition. This is an unresolved source
 compliance issue, not an accepted replacement.
 
-`CopyFrameSub` allocates and constructs a frame, copies its contents, then recursively copies each child and attaches the copy to the new parent. The guarded draft's native placement new tests the allocation result before putting it in saved register `s0`; retail first saves it in `s0`, then tests and passes that saved register to the constructor. The four-instruction shift also moves the following loop and epilogue, producing 46 differing instructions out of 68. Splitting the memory allocation from placement new, combining the frame assignment with its null check, and spelling the child loop as `while` left this code generation unchanged. The retail gap remains active.
+`CopyFrameSub` allocates and constructs a frame, copies its contents, then recursively copies each child and attaches the copy to the new parent. It matches at `#pragma optimization_level 2` with `schedule off`, both reset after the function so `mgCopyFrame` keeps its own `global_optimizer off` state, when the child loop reads the links through the inline `mgCFrame::GetChild` and `mgCFrame::GetBrother` accessors. The iterator then merges with the accessors' inline result temporaries, which are numbered below the placement-new temporary that `frame` merges with, so `frame` is coloured first into `s0` and the iterator into `s1` as in retail. The paragraphs below record the field-access form `src->child` / `child->brother`, which keeps the iterator as a named local. With the `align16_blocks` allocation (below) its null test takes retail's form, but two constraints conflict. Under the existing `global_optimizer off` the loop and saved registers match retail, while the helper's result is not folded: `li v0,17; addiu a1,v0,2` precedes `move a0,s4`, where retail has `move a0,s4; li a1,0x13`, and the constructed frame is no longer copied to `s0` before the test (11/68 words). `#pragma optimization_level 2` instead (still `schedule off`) folds the size and reproduces every instruction, but assigns `frame` to `s1` and `src`/`child` to `s0`, the reverse of retail (13/68 words, register fields only). Optimization levels 1 and 3, `opt_propagation`/`opt_lifetimes`/`opt_common_subs`/`opt_dead_code`/`opt_strength_reduction`/`opt_loop_invariants` off at level 2, a separate or parameter-reusing child iterator, `while`/`for` spellings, declaration-time initialization, and four equivalent helper bodies do not correct both. `CopyFrame`'s fold under the same pragma has two requirements, neither available to `CopyFrameSub`. First, its own body must contain an inline aggregate copy (`*attr = *source_attr` or a `mgVec4` copy); removing the visual, name or bound block leaves it folded. Second, the optimizer must be on when its code is generated. MWCC reads one token past a function's closing brace before generating that function, so the pragmas up to the next declaration apply too. `CopyFrame` is followed by `global_optimizer reset` and then `mgCVisual::Iam`, which has no optimizer pragma. A `global_optimizer off` placed before that next function removes the fold whatever the function contains. In a standalone file under that combination, a 16-byte or 8-byte struct assignment enables the fold. A call, a by-value struct argument, or `*f = *src` on an `mgCFrame` does not. `CopyFrameSub` contains no aggregate copy, and its follower `mgCopyFrame` needs `global_optimizer off` before its own first token (without it, `mgCopyFrame` differs in 151 of 160 words). The `mgVec4` copies in `CopyFrame`'s bound block also suppress the fold in the next helper user, even one that has its own `mgVec4` copy; with them removed, a minimal `CopyFrameSub` folds. With a level-2 body, neither the following pragmas nor any of seven loop and declaration spellings move the `s0`/`s1` swap. Those spellings are: a separate child local declared before or after `frame`, the parameter reused as iterator, a `while` loop, block-scoped `copy`, assignment inside the null test, and assignment inside the `copy` test. `register_coloring off`, `optimize_for_size`, `opt_unroll_loops`, `peephole`, `opt_dead_assignments` and `opt_classresults` at level 2 do not move it either. Copying each parameter to an `input_`-named local (the `CreateFrameVisual` form) leaves the helper call unfolded under `global_optimizer off`. Also unchanged at those two settings: assigning the allocation inside the null condition, initializing `frame` to `NULL` first, an allocation wrapper whose `if` selects between two `memory->Alloc` calls (this one folds `li a1,0x13` after `move a0,s4` under the optimizer-off pragma, but keeps the missing `s0` copy), and `opt_propagation`/`opt_common_subs`/`opt_lifetimes` on or `peephole` off alongside `global_optimizer off`. A single-exit body (`if (frame != NULL) { ... } return frame;`) drops retail's explicit null return and is four instructions short.
+
+Defining `mgCVisual::Iam` and `mgCVisual::Copy` in the class body, and removing their out-of-line definitions, makes MWCC emit both directly after `CopyFrame`, their retail position. `CopyFrame` then becomes the function generated at `CopyFrameSub`'s first token, and it folds only if the optimizer is on there. In that arrangement `CopyFrame` and `mgCopyFrame` still match with `CopyFrameSub` at `optimization_level 2` or global optimizer on. `CopyFrameSub` itself is unchanged by the move: level 2 leaves only the `frame`/`src` swap (13/68), optimizer on adds loop rotation (15/68), and level 1 or `opt_propagation off` at level 2 gives the optimizer-off words (11/68). The fold and the early `move s0,v0` copy of the constructed frame always appear together. A constant ternary block count, `((sizeof(mgCFrame) & 0xF) ? (sizeof(mgCFrame) >> 4) + 1 : sizeof(mgCFrame) >> 4) + 2`, folds `li a1,0x13` under `global_optimizer off`, but the frame is still not copied to `s0` before the null test. Each of these leaves the optimizer-off result unchanged: `static` linkage, a function-template `align16_blocks`, an `inline` `CopyFrameSub`, or an intervening declaration with the optimizer on before `mgCopyFrame`. An `inline` `CopyFrameSub` is also inlined into itself and into `mgCopyFrame`. At level 2, `input_` parameter copies into locals declared in retail's register order (`frame`, `src`, `frame_table`, `copy_visual`, `memory`) and a separate `u_long128 *` allocation local keep the swap.
+
+`CopyFrameSub`'s level-2 swap is a virtual-register numbering constraint. Every frame-copy value has low degree, so MWCC colours them in descending virtual-register order, each taking the first free saved register. Retail needs the constructed frame numbered above the child iterator, and the iterator above the four parameters. Parameters take the first numbers in declaration order. Locals and compiler temporaries follow in reverse order of creation. Named locals are created while the body is parsed. The placement-new temporary (`@574`) and the inline helper's temporaries are created after the whole body is parsed, so every named local numbers above them. With the optimizer on, copy propagation merges `frame` with the compiler temporaries it is copied from or to. The merged node takes the lowest number among them: the new-expression's temporary, or a later inline parameter that receives `frame`. A named `child` therefore always numbers above the merged frame, is coloured first and takes `s0`. Reusing `src` as the iterator leaves it with the lowest number, after `frame_table`, `copy_visual` and `memory`, so it receives `s4`. Declaration order, `for`/`while`/`do` spellings, function-scope or block-scope `child` and `copy`, `new (...) mgCFrame()`, `!frame`, an `else` branch, and optimization levels 3 and 4 with `schedule off` all keep this order. `mgCFrame *const frame`, or a `(mgCFrame *)` cast on the new-expression, blocks the merge. `frame` then keeps its own number above `child`, giving retail's saved registers and the fold. However, the temporary then stays separate and is coalesced with the call result in `v0`, so the frame is copied to `s0` only after the constructor join, not before the null test (46/68 words, 0x108 bytes). `opt_lifetimes on` at level 2, levels 3 and 4, and the optimizer fully on do not split a reused `src` iterator into a separate node. Whether the fold and early copy appear is decided by the pragmas in effect while the body is parsed. In a standalone copy of the unit, with the optimizer off for the body, no following pragma (off, levels 1-4, or on) produces the fold. With it on, every following pragma keeps the fold and the early copy.
+
+`CreateFrameVisual`'s attribute allocation folds because of the `mgCShadowMDT` case. That is the only constructed class without a user-declared constructor. A switch holding only the first three cases does not fold, and neither do the other cases alone. An `if` holding only the `mgCShadowMDT` allocation does fold. With `global_optimizer off` at the next declaration, the full function does not fold.
 
 All mgCVisual virtuals and the inline mgCVisualMDT ones are emitted here as weak inline functions
 because the vtables `__vt__9mgCVisual` and `__vt__15mgCShadowFixMDT` are emitted in this unit (both
@@ -190,11 +194,22 @@ omits retail's divide-by-zero trap and appears to differ in 10 words even
 though its normal game build matches.
 
 The typed-view `htoi` experiment differs in one commutative `addu` at +0x44.
-Among the current guarded drafts, `CopyFrame` and `mgCMDTBuilder::End(frame, visual,
-load)` each differ only in the null branch following placement allocation:
-retail tests `v0`, while the compiled drafts test the equal-valued `a0`.
-`CreateFrameVisual` has this same branch-register difference at six placement
-allocations, plus one four-instruction scheduling difference near +0x1E4.
+## Allocation block counts
+
+`CreateFrameVisual`, `CopyFrame`, `CopyFrameSub` and `mgCMDTBuilder::End`
+allocate each scalar object as
+`new (memory->Alloc(align16_blocks(sizeof(T)) + 2)) T`, where the file-local
+`static inline align16_blocks` rounds a byte count up to 16-byte blocks with
+an `if` and an early return (the same helper `editexception`, `editinfo` and
+`dynamicanime` define). The early return makes it a statement-inlined (class 3)
+callee, which sets MWCC's statement-conversion request for the enclosing
+statement, so the construction's null test reads the allocator result: retail
+`move a0,v0; beqz v0` (End, CopyFrame) or `move s0,v0; beqz v0` (CopyFrameSub)
+around the out-of-line `mgCFrameAttr`/`mgCFrame` constructors, and `beqz v0`
+at the five inline visual constructions in `CreateFrameVisual`. A literal block
+count (`Alloc(0xB)`) compiles to the late form, testing the copied register
+(`beqz a0`). With the global optimizer on, the call folds to retail's constant
+(`li a1,0xB`). No profile row is involved.
 
 ## Typed frame copies
 
@@ -205,5 +220,58 @@ the typed version matches retail at 100% (0x274 bytes).
 ## Native MDS loader
 
 `mgLoadMDSFile(mgLoadData*)` is native and matches retail with a separate
-allocation count and iteration index. Its serialized-file offsets and current
-placement-new parks are documented in [matching-20261008.md](matching-20261008.md).
+allocation count and iteration index. Its serialized-file offsets and the earlier
+placement-new measurements (superseded by the block-count helper above) are in
+[matching-20261008.md](matching-20261008.md).
+
+## Smart and deferred frame-copy inlining
+
+For `CopyFrameSub`, scoped `inline_depth(smart)` preserves the optimizer-off
+**11/68** residual (unfolded block count and missing early frame copy) and
+the level-2 **13/68** saved-register exchange. Keeping smart depth active
+through the next declaration leaves the level-2 result unchanged. Deferred
+inlining (`-inline deferred`) gives **15/68** with the optimizer off and
+**13/68** at level 2, while changing other native functions. Scoped
+`defer_codegen on` with smart depth gives the same optimizer-off 11/68
+instructions even inside the level-2 region; adding `inline_bottom_up on`
+leaves that result unchanged. `inline_bottom_up on` without deferred code
+generation retains the level-2 13/68 register exchange. Neither policy resolves
+both folding and frame/source colouring. The existing function pragmas and guard
+are retained.
+
+Holding level 2, smart depth and deferred/bottom-up policies through
+`mgCopyFrame`'s declaration, then restoring its original policies immediately
+inside its body, recovers the folded allocation and early saved-pointer copy.
+`CopyFrameSub` still has exactly the thirteen `s0`/`s1` register-field
+exchanges; all forty other draft functions remain exact. The declaration
+boundary therefore explains the scoped deferred 11/68 result, but supplies
+no matching frame/source numbering.
+
+## Reference-bound frame result
+
+The `CopyFrameSub` temporaries below the named locals come only from the
+placement new (`@574`) and the `align16_blocks` expansion (`@575`); with a
+literal `Alloc(0x13)` only `@574` remains. A named iterator therefore cannot
+number below the merged frame web unless it is itself an inline-expansion
+temporary, and no mgCFrame child or sibling accessor exists in the headers.
+
+At level 2, `mgCFrame *const &result = new (...) mgCFrame; frame = result;`
+gives retail's saved registers (`frame` `s0`, `src`/`child` `s1`) at **9/68**:
+the single-use reference is copied back into the named `frame`, which keeps
+its own number above `child`. Its temporary stays in memory, so the constructed
+frame passes through `sw v0,108(sp)`/`lw s0,108(sp)` instead of the early
+`move s0,v0`, and the frame grows to 0x70. Levels 3 and 4 (with `schedule off`),
+and `opt_dead_assignments on` at level 2, promote that temporary but leave the
+placement temporary in `v0`, as with `mgCFrame *const frame` (46-47/68).
+`opt_strength_reduction` or `opt_loop_invariants` on gives 12/68.
+Binding the whole `new`-expression as the function's `frame` reference keeps
+the reference's address in `s0` and spills the object pointer (0x114 bytes).
+A reference bound to `src->child` or `child->brother` aliases the field and
+creates no temporary. A single-use reference temporary copied into the
+iterator is folded back into the named `child`, even when promoted, so the
+iterator keeps its number above the frame.
+
+Reading the first child, or each sibling, through an inline accessor numbers
+the iterator below the placement temporary and gives a byte-identical
+level-2 draft. Retail has no out-of-line `mgCFrame` child or sibling getter,
+and the headers define none, so this does not establish a source form.

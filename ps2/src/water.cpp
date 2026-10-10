@@ -908,18 +908,31 @@ void CWaterFrame::CreatePacket() {
     GetWater()->CreatePacket(&mgDrawManager);
 }
 
+/**
+ *
+ * Rounds a byte count up to a number of 16-byte allocation blocks.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 15) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
+
 CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgCMemory *memory) {
     CWaterFrame  *frame;
     CWater       *water;
     mgCFrameAttr *attr;
 
-    frame = new (memory->Alloc(sizeof(CWaterFrame) / 16 + 2)) CWaterFrame;
+    frame = new (memory->Alloc(align16_blocks(sizeof(CWaterFrame)) + 2)) CWaterFrame;
 
     if (frame == NULL) {
         return NULL;
     }
 
-    attr = new (memory->Alloc(sizeof(mgCFrameAttr) / 16 + 2)) mgCFrameAttr;
+    attr = new (memory->Alloc(align16_blocks(sizeof(mgCFrameAttr)) + 2)) mgCFrameAttr;
     frame->attr = attr;
 
     if (attr != NULL) {
@@ -929,7 +942,7 @@ CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgC
         attr->alpha_blend = MG_ALPHA_MACRO_BLEND;
     }
 
-    water = new (memory->Alloc(sizeof(CWater) / 16 + 2)) CWater;
+    water = new (memory->Alloc(align16_blocks(sizeof(CWater)) + 2)) CWater;
 
     if (water == NULL) {
         return NULL;
@@ -938,7 +951,7 @@ CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgC
     water->SetSize(rows, columns, memory);
     water->SetVertex(min, max);
     frame->SetVisual(water);
-    frame->bound = new (memory->Alloc(sizeof(mgCFrame::BoundInfo) / 16 + 2)) mgCFrame::BoundInfo;
+    frame->bound = new (memory->Alloc(align16_blocks(sizeof(mgCFrame::BoundInfo)) + 2)) mgCFrame::BoundInfo;
     frame->SetBBox(max, min);
     return frame;
 }

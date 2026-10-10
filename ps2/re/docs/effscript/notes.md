@@ -4,37 +4,32 @@ Effect script manager. No counterpart in the first game's decompilation (nothing
 EffectScript / EFF_SCRIPT / ES_SPRITE there).
 
 ## Status
-183 of the 185 functions in `ps2/src/effscript.cpp` are native C++ definitions and match retail.
-Two are guarded drafts (`#ifdef NONMATCHING` C++ with an `INCLUDE_ASM` fallback):
-`CEffectScriptMan::CreateEffSpt(int, int, int)` (0x2E5D60, 0x500) and
-`CEffectScriptMan::SetCharacter(CCharacter2 *, int, int)` (0x2A0 extent, 0x29C body). Both fail
-on MWCC's placement-new allocation-result schedule: retail tests the allocator's `v0` and copies it
-into the saved register in the branch delay slot, while MWCC copies first and branches on the
-saved register (see [placement conversion](../satansfiddle/placement-new.md)).
+All 185 functions in `ps2/src/effscript.cpp` are native C++ definitions and match retail.
 `BuildBase(int, ...)` and `AssignCharacter` are native with one scoped `CCharacter2` placement
-row each; `CObjectFrame`/`ColPrimMan` come from their owning headers (`dng_main.hpp` for
-`ColPrimMan`).
+row each; `CreateEffSpt` and `SetCharacter` need no row (see below). `CObjectFrame`/`ColPrimMan`
+come from their owning headers (`dng_main.hpp` for `ColPrimMan`).
 
-- `CreateEffSpt`: the natural draft constructs the whole `_EFF_SCRIPT` with
-  `new (work_memory->Alloc(sizeof(_EFF_SCRIPT) / 16 + 2)) _EFF_SCRIPT` (0x17 quadwords), so the
-  compiler constructs the `CRunScript` member at +0x50; the character allocation is
-  `sizeof(CCharacter2) / 16 + 2` (0x68). The body is 0x500 like retail and differs by 206/320
-  words: retail and native agree through +0x190; at +0x194 retail branches on `v0`, copies to
-  `s2` in the delay slot, calls `CRunScript` at +0x19C with `run` computed in the call delay
-  slot, while native copies first, branches on `s2`, calls at +0x1A0 with a nop delay slot;
-  +0x1A4..+0x4C8 matches at offset +4 except the same branch/copy pair for the character
-  allocation at +0x1F8/+0x1FC; retail's final join nop at +0x4CC is absent. Script stays in
-  `s2` and the work token in `s3` in both. The not-loaded-base diagnostic (0x3773D0, contains
-  `[%d]`) takes `base_no` as its variadic argument. Member placement overloads, split
-  allocation, an explicit `script->run.CRunScript()` call (constructs a temporary on the
-  stack) and dummy wrappers all score worse and are not solutions.
-- `SetCharacter`: 24/168 words. In the slot path the mutable table entry and the new
-  character exchange `s1` and `s2` (20 words), plus the two allocation-result branch pairs
-  (+0xD4/+0xD8, +0x1AC/+0x1B0). Typed slot access `slot[group][slot]` keeps the address but
-  reverses both commutative `addu` operands (+0x9C/+0xA0); `_EFF_SCRIPT **entry =
-  &this->slot[group][slot]` adds two words; staging the row first leaves one reversed `addu`.
-  The entry's script is reloaded after allocation and the virtual `Copy`, and `now` is reloaded
-  in the negative-slot branch; caching either changes behaviour. The manager layout it uses:
+- `CreateEffSpt(int, int, int)` (0x2E5D60, 0x500) finds the loaded base, optionally reserves a
+  free column of the owner's slot row, opens a work-memory stack block of `base->work_size`
+  quadwords, constructs the whole `_EFF_SCRIPT` there (its implicit constructor builds the
+  `CRunScript` member at +0x50), copies the base character into a new `CCharacter2` when the
+  base has one, sets up the script and inserts the effect into the list ordered by `texb`. The
+  not-loaded-base diagnostic takes `base_no` as its variadic argument. Both allocation sizes are
+  written `align16_blocks(sizeof(T)) + 2` (0x17 and 0x68 quadwords): the early-return helper is
+  statement-inlined, which gives retail's `beqz v0` / delay-slot copies at +0x194 and +0x1F8
+  without `placement_new` rows; `sizeof(T) / 16 + 2` copies first and tests the saved register.
+  Member placement overloads, split allocation, an explicit `script->run.CRunScript()` call
+  (constructs a temporary on the stack) and dummy wrappers are not solutions.
+- `SetCharacter(CCharacter2 *, int, int)` (0x2A0 extent, 0x29C body) opens a work-memory stack
+  block of the source's copy size plus the character's own 0x68 quadwords, then copies the
+  source into a new `CCharacter2` of the effect in the given slot (or of `now` for a negative
+  slot) and records the block as its `chara_work`. The slot path repeats
+  `this->slot[group][slot]` for each access: MWCC keeps the entry address as a CSE temporary
+  and reloads the entry after the allocation and the virtual `Copy` (+0xEC), as retail does; a
+  named `_EFF_SCRIPT **entry` (pointer, reference or row-staged) exchanges `s1`/`s2` with the new
+  character and reverses the row `addu`. The negative-slot path likewise reloads `now`. Both
+  allocation sizes are `align16_blocks(sizeof(CCharacter2)) + 2`, which gives retail's
+  `beqz v0` allocation-result tests without a `placement_new` row. The manager layout it uses:
   `work_memory` +0x4, `slot[128][8]` +0x184, `now` +0x1184; `_EFF_SCRIPT::chara_work` +0x4,
   `chara` +0x8; `CCharacter2` is 0x660 with virtual `Copy` +0xEC and `GetCopySize` +0xF0.
 
@@ -140,8 +135,7 @@ Unseen: 0x08, 0x54, 0xC4, 0xE4, 0x108.
   Initialize). `EffScriptMan` (.sbss, CEffectScriptMan*, set in Step) global.
 - Local (static in the .cpp, not in the header): `now_script` (_EFF_SCRIPT* executing external
   commands), `ext_func` (symbol file `ext_func__4`; 0x400 = 256 typed `int (RS_STACKDATA *, int)`
-  callbacks, passed to `CRunScript::ext_func` with 0x100; its retail symbol must stay reachable
-  for the guarded `CreateEffSpt` assembly), `ext_func_info` (symbol file `ext_func_info__4`;
+  callbacks, passed to `CRunScript::ext_func` with 0x100), `ext_func_info` (symbol file `ext_func_info__4`;
   `RS_EXTFUNC_INFO[129]`, see runscript_opcodes.hpp: 128 typed callbacks followed by
   `{NULL, EFF_EXT_END}`; `EffectExternalCommand` names the retail command numbers; initializer
   order is retail's, including 252/253 and 157/158 before 155/156; declared extent 0x408, retail
@@ -160,11 +154,8 @@ Unseen: 0x08, 0x54, 0xC4, 0xE4, 0x108.
   `ClearBaseFromLevel`, and the command diagnostics (sprite-work exhaustion, collision polygon
   limits, unavailable collision primitives, command coordinates, effect creation failures,
   duplicate command numbers, dispatch capacity exhaustion), with Shift-JIS bytes as hex escapes.
-- Seven `INCLUDE_RODATA` markers remain: `at_1336__2`..`at_1340__2` (`CreateEffSpt`
-  diagnostics), `at_1341__2` (the shared empty string, also used by native code) and `at_2025__3`
-  (`SetCharacter` diagnostic). Each is referenced by an active `INCLUDE_ASM` body under its retail
-  symbol, so the markers stay while those two functions are guarded; the native `""` users of
-  `at_1341__2` keep the extern until then.
+- The `CreateEffSpt` and `SetCharacter` diagnostics and the shared empty string are inline
+  literals; no `INCLUDE_RODATA` markers remain.
 - All non-member functions (GetEffSptBaseDefPtr, DrawEffSptSprite, GetSpritePtr, GetStack*,
   SetStack*, every `_XXX(RS_STACKDATA*, int)` script function, SetEffectScript,
   SetEffectScriptFunc) are LOCAL in retail: define them `static` in the .cpp.

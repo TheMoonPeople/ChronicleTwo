@@ -53,6 +53,9 @@ Size: `operator=` memcpy 0x110; mgLoadMDSFile array stride 0x110 (`__construct_n
 | 0x100 | rot_type (int) | SetRotType; bit1 apply rotation, bit2 rotate about own origin (forces bit1) |
 | 0x104-0x10f | (padding) | never accessed by mg_frame; covered by memcpy only. Left as natural padding. |
 
+`GetChild` and `GetBrother` are inline accessors for `child` and `brother` with no retail
+symbol. `CopyFrameSub` (mg_dataset) walks the children through them; see that unit's notes.
+
 ### BoundInfo (0xB0)
 `operator new(0xb0)` in mapFUNC_EFFECT_NAME and mgCMDTBuilder::End; Alloc(0xb) qwords in
 CreateFrameVisual. corner[8] 0x00 (SetBBox: bit0 picks x, bit1 y, bit2 z from max(+0x80) vs
@@ -231,10 +234,10 @@ screen bounds. It rejects bounds outside the screen or behind the scissor
 threshold, then merges eligible children's rectangles. Objdiff scores all
 320 instructions and the 0x500-byte symbol at 100% (score 0).
 
-`mgCFrame::Draw(u_int*)` is the unit's only assembly-backed function; it has a guarded C++ draft. In its screen clipping path,
-retail keeps the `test1` output pointers in argument registers `a3` and `a4`
-across the call to `test2`, then passes those registers to `mgClipBoxW`. MWCC
-reloads both pointers from the stack when `test2` is represented only by a C++
-declaration and an assembly gap, adding two instructions. The draft scores
-97.99574% in objdiff; the retail build therefore retains `INCLUDE_ASM` for
-this function until the register sequence can be produced from C++.
+`mgCFrame::Draw(u_int*)` is native C++ and byte-identical (0x3AC bytes of
+code in a 0x3B0 extent). In its screen clipping path retail keeps the `test1`
+output pointers in `a3`/`t0` across the call and passes them on as `test2`'s
+arguments, then keeps `a0`/`a1` across `test2` for `mgClipBoxW`. MWCC does this
+only when `test1` and `test2` are file-local (`static asm void`), matching their
+LOCAL retail binding: it then knows their register use. With external linkage
+it rematerializes both stack addresses after each call (two extra instructions).

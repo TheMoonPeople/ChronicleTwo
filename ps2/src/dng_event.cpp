@@ -54,18 +54,18 @@
 #include "userdata.hpp"
 #include "water.hpp"
 
-static int FLS_FLOOR_ID;
-static float at_1082__2[4] = {0.0f, -99999.0f, 0.0f, 1.0f};
-static float at_1248[4] = {0.0f, 1.0f, 0.0f, 0.0f};
-static int gatekey_index[7] = {337, 339, 341, 342, 344, 348, 350};
-static int keydoor_key_index[7] = {338, 340, -1, 343, 346, 349, 351};
-static int counter_1489;
-static float xchg_rot_list[4] = {0.0f, -1.5707964f, 3.1415927f, 1.5707964f};
+static int                     FLS_FLOOR_ID;
+static float                   at_1082__2[4] = {0.0f, -99999.0f, 0.0f, 1.0f};
+static float                   at_1248[4] = {0.0f, 1.0f, 0.0f, 0.0f};
+static int                     gatekey_index[7] = {337, 339, 341, 342, 344, 348, 350};
+static int                     keydoor_key_index[7] = {338, 340, -1, 343, 346, 349, 351};
+static int                     counter_1489;
+static float                   xchg_rot_list[4] = {0.0f, -1.5707964f, 3.1415927f, 1.5707964f};
 static TRESURE_BOX_FLOOR_INFO *nowTbFloor;
-static int nowTboxGroup;
-static int nowTboxItemCnt;
-static float at_1936__2[4] = {0.0f, 20.0f, 80.0f, 1.0f};
-static MapJumpMapInfo MainMapInfo;
+static int                     nowTboxGroup;
+static int                     nowTboxItemCnt;
+static float                   at_1936__2[4] = {0.0f, 20.0f, 80.0f, 1.0f};
+static MapJumpMapInfo          MainMapInfo;
 
 // Code (.text)
 void CStartupEpisodeTitle::DrawEpisode(int mes_tex_block, int frame_tex_block) {
@@ -1508,11 +1508,11 @@ int _FLOOR(SPI_STACK *stack, int argc) {
 
 static SPI_TAG_PARAM tag__5[] = {
     {"GROUP_START", _GROUP_START},
-    {"GROUP", _GROUP},
-    {"ITEM", _ITEM},
+    {"GROUP",       _GROUP      },
+    {"ITEM",        _ITEM       },
     {"FLOOR_START", _FLOOR_START},
-    {"FLOOR", _FLOOR},
-    {NULL, NULL},
+    {"FLOOR",       _FLOOR      },
+    {NULL,          NULL        },
 };
 
 void CreatTresuarBoxInfo(TRESURE_BOX_FLOOR_INFO *table, char *script, int length) {
@@ -1995,9 +1995,9 @@ int _FLE(SPI_STACK *stack, int argc) {
 
 static SPI_TAG_PARAM tag2[] = {
     {"FLS", _FLS},
-    {"FL", _FL},
+    {"FL",  _FL },
     {"FLE", _FLE},
-    {NULL, NULL},
+    {NULL,  NULL},
 };
 
 void CreatMonsterFloorInfo(char *script, int length) {

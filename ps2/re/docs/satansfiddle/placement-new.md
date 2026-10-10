@@ -2,8 +2,8 @@
 
 The placement-new capability requests MWCC's own statement-conversion path for
 selected scalar constructions. It is an explicit frontend policy override, not
-a repair of uninitialized compiler state. The checked-in profile activates 36
-callers in 23 units; each is native, byte-identical to retail, and its unit
+a repair of uninitialized compiler state. The checked-in profile activates 37
+callers in 24 units; each is native, byte-identical to retail, and its unit
 passes the complete object check. The caller rows are an activation list for
 those matches; they do not recover one original global compiler policy.
 
@@ -155,8 +155,8 @@ rows for other units, before the compiler is started.
 
 ## Accepted placement rows
 
-All 36 rows use allocator `__nw__FUiP1` and exact direct constructors. The
-caller spelling is the profile identity. The table totals 46 sites across 23
+All 37 rows use allocator `__nw__FUiP1` and exact direct constructors. The
+caller spelling is the profile identity. The table totals 47 sites across 24
 units; multiple sites in one caller have the same semantic identity and need no
 occurrence selectors. `after/either` means the checked-in policy is
 after-inline and both timings reproduce the caller; `required` rows match
@@ -194,6 +194,7 @@ under only that timing.
 | menusys | `MenuItemDebugKey__Fv` | `CActionChara` | 1 | after/either |
 | menusys | `MenuItemSelectInit__FP9mgCMemoryPii` | `CItemSelect` | 1 | after/either |
 | menusys | `MenuModeMalloc__13CMenuItemInfoFP9mgCMemory` | `CActionChara` | 2 | after/either |
+| menushop | `MenuNPCQuestViewInit__FP9mgCMemoryPii` | `CMenuQuestView` | 1 | after |
 | mg_tanime | `NewTexAnimeData__15mgCTextureAnimeFP9mgCMemory` | `CList<mgCTexAnimeData>` | 1 | before/required |
 | mg_visual | `Copy__15mgCVisualFixMDTFP9mgCMemory` | `mgCVisualFixMDT` | 1 | after/either |
 | pbuggy | `sgInitBuggy__FP11SubGameInfo` | `CEffectScriptMan` | 1 | after/either |
@@ -217,11 +218,18 @@ The exact direct constructor identities for these allocated types are:
 | `CList<PartsGroupData>` | `__ct__23CList<14PartsGroupData>Fv` |
 | `CList<mgCTexAnimeData>` | `__ct__24CList<15mgCTexAnimeData>Fv` |
 | `CManualMenu` | `__ct__11CManualMenuFv` |
+| `CMenuQuestView` | `__ct__14CMenuQuestViewFv` |
 | `CMapParts` | `__ct__9CMapPartsFv` |
 | `CMapPiece` | `__ct__9CMapPieceFv` |
 | `mgC3DSprite` | `__ct__11mgC3DSpriteFv` |
 | `mgCVisualFixMDT` | `__ct__15mgCVisualFixMDTFv` |
 | `mgCVisualMotionMDT` | `__ct__18mgCVisualMotionMDTFv` |
+
+`CMenuQuestView` has a genuine empty inline constructor that emits only base
+construction and the derived vtable assignment. It supplies a named eligible
+root that the implicit constructor lacks; its current row and exact unit
+verification are documented in [menushop notes](../menushop/notes.md#quest-view-placement-construction).
+The timing studies below describe the original 36-row calibration set.
 
 ## Timing study
 
@@ -322,20 +330,31 @@ member and base construction. The global after-inline request loses no measured 
 the strongest uniform alternative. Its header-only variant misses the
 source-defined `CMapParts` construction. Forcing a constructor's inline class
 and requesting enclosing-expression conversion are observably different
-policies: only the former zeros `NewTexAnimeData`, and only the latter zeros
-`MenuInventInit` and `GeneratePoly`.
+policies: in those draft comparisons, only the former zeros `NewTexAnimeData`,
+and only the latter zeros `MenuInventInit` and `GeneratePoly`.
 
 A hybrid driver that omits the placement rows, keeps the float rows, applies
 global after-inline in 148 units and before-template conversion in mg_tanime
 reproduces all accepted game objects and the accepted executable byte for
 byte. A paired comparison of that hybrid against the scoped rows over the
 current source preserves every scoped diagnostic zero and adds two guarded
-zeros (`MenuInventInit` and `_ESM_INITIALIZE`) whose drafts retain rejected
-helper and dummy scaffolding; those two remain inactive. The hybrid driver
+zeros, `MenuInventInit` and `_ESM_INITIALIZE`. `_ESM_INITIALIZE` is native
+without a row: writing its allocation size with the statement-inlined
+`align16_blocks` gives retail's `beqz v0` test (see
+[event_func notes](../event_func/notes.md)). The `MenuInventInit` draft used
+for that census retained rejected helper and dummy scaffolding. The hybrid driver
 uses provisional allocator and name filters, excludes raw `__ct` implicit
 roots, and lacks production's exact ownership, bounded-region and completion
 guarantees. A production global policy would need those checks, supported
 allocator ABIs and defined implicit-constructor handling.
+
+`MenuInventInit` now matches with natural source and the existing scoped
+profile, without an added placement row. Its allocations use the established
+`align16_blocks(sizeof(T)) + 2` form; size-first snapshots through the inline
+byte-buffer member getter restore its saved registers. `IsAccessAlbum` also
+uses that allocation form without a new row. See
+[the inventory source forms](../inventmn/notes.md) for the member accessors and
+local declaration order needed by those functions.
 
 The design choice is therefore explicit: the conservative caller activation
 rows above, or a profile-wide after-inline default with one justified

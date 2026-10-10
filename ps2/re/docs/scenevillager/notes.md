@@ -3,7 +3,7 @@
 The unit owns no class (`class_units.tsv`). All 35 `CScene` members here belong to `CScene`
 (owning unit `scenesnd`) and are declared there, not in `scenevillager.hpp`.
 Native definitions now supply every data object; no RODATA or BSS reservations
-remain. `CharaObjectOnOff` is the sole guarded function. The native
+remain. All functions are native C++ and byte-identical to retail. The native
 `GameObjInfo` initializer preserves the four negative-zero Y components in
 retail's placement records.
 
@@ -97,12 +97,15 @@ Bits 1/2/4 are SCENE_DATA_STATUS (scene.hpp). If `scenesnd` declares these bits 
 
 ## CharaObjectOnOff
 The scene looks up the named frames in a villager's show and hide lists. It allocates an
-`mgCFrameAttr` when a frame lacks one, then sets `draw` to 1 for show or 2 for hide. The guarded C++
-draft scored 97.59% against retail; the matching build selects its
-`INCLUDE_ASM` gap. In the hide loop, retail branches on the
-placement-new result in `v0` while moving it to `a0` in the delay slot; MWCC moves it first,
-branches on `a0`, and emits a nop. Assigning the constructed attribute directly to the frame
-adds a reload and lowers the score to 93.66%.
+`mgCFrameAttr` when a frame lacks one, then sets `draw` to 1 for show or 2 for hide.
+Both scalar allocations reserve `align16_blocks(sizeof(mgCFrameAttr)) + 2`
+quadwords: nine for the 0x90-byte attribute and two additional blocks. The
+file-local helper rounds bytes up with an `if` and an early return. MWCC
+statement-inlines that helper and folds the size to eleven blocks, allowing
+retail's hide-loop `beqz v0` with the pointer copy to `a0` in its delay slot.
+The constructor remains an out-of-line call to `__ct__12mgCFrameAttrFv`;
+no placement-conversion profile row is required. Both loops, the complete
+unit's bytes and resolved relocations, and the linked PAL image match.
 - GetTalkEvent memsets a local `CSceneEventData` (0xD0) and writes `+0x8 = slot-8`,
   `chara_no`, `chara_slot` into the caller's.
 - No first-game counterpart for these types was identified.
@@ -117,6 +120,6 @@ IEEE payload; 6's evaluation byte was uninitialized and nonzero while
 21's was zero. Initializer-only selectors did not control the fresh nodes.
 The consumer hook's binary32 evaluate-first selector for 6 (`0x40C00000`)
 now reproduces all instruction and relocation bytes. Whole-unit checks
-retain only the existing CharaObjectOnOff allocation constructor problems.
+pass with the native CharaObjectOnOff block-count allocations.
 `DrawGameObject` remains an exact native 604-byte function after the typed
 indexed-place change. No source workaround was introduced for time checking.

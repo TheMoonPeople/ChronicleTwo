@@ -1,10 +1,9 @@
 # title: reverse-engineering notes
 
-`TitleBootInit` retains a C++ draft under `NONMATCHING`; the matching build uses its
-retail `INCLUDE_ASM` gap. `TitleModeKey` matches with five `CalcMenuAdd__FPfff` control
-selectors (see [matching constraints](matching-constraints.md)). `TitleHDDInstallDraw`
+`TitleBootInit` is native and exact. `TitleModeKey` matches with five
+`CalcMenuAdd__FPfff` control selectors (see [matching constraints](matching-constraints.md)). `TitleHDDInstallDraw`
 is source-supplied and matches retail, including the complete title object and linked
-PAL image. The unit has 36 matched functions and one guarded draft.
+PAL image. The unit has 37 matched functions.
 
 The title main-loop mode (`LOOP_TITLE`). No class is owned by this unit (`class_units.tsv`
 has none); the header declares the unit's own structs and enums, the 8 global functions and
@@ -197,9 +196,8 @@ the short values at `table_2611` offsets 4 and 0x20.
 
 ## Matching constraints
 
-TitleModeKey is native and exact. TitleBootInit is the sole assembly-backed function;
-its retained draft has ten differing words. [The matching note](matching-constraints.md)
-records the array snapshots, boot source requirements and rejected alternatives.
+TitleModeKey and TitleBootInit are native and exact.
+[The matching note](matching-constraints.md) records the array snapshots, boot source requirements and rejected alternatives.
 
 ## Title drawing floating argument calibration
 
@@ -222,10 +220,10 @@ the shared START/SELECT enum names are corrected by the header owner.
 
 ## Native title data
 
-TitleBootInit is the sole assembly-backed function. Its 22 initialized-data and 27 BSS
-markers retain the exact icon, boot string, projection, HDD-check and boot-state symbols
-referenced by the fallback. Other state and data are native. Byte/halfword flags retain
-actual access widths; RushInfo owns 0x18 bytes with a tail to 0x20. Installer
+The 22 initialized-data and 27 BSS markers retain the exact icon, boot string,
+projection, HDD-check and boot-state symbols. TitleBootInit uses inline literals
+for its exclusive strings and the retained declarations for shared boot strings.
+Other state and data are native. Byte/halfword flags retain actual access widths; RushInfo owns 0x18 bytes with a tail to 0x20. Installer
 texture/alpha arrays have ten elements (0x28) with eight alignment bytes. The language
 phase owns four bytes although its reservation is eight.
 
@@ -239,7 +237,7 @@ title/installer jump tables with real function-offset relocations.
 
 TitleHDDInstallDraw owns static count and its compiler guard within the controls branch.
 Constructor definition order remains unchanged. Shared boot strings keep their retail
-fallback declarations even where another function uses them.
+assembly-owned declarations even where another function uses them.
 
 ## Input constants
 
@@ -248,3 +246,29 @@ unavailable menu entries, menu and extras cancellation, and dismissing the
 memory-card message. DCTitleStep results 1/2, TitleMainMCCheckPhase 0/1,
 TitleMCCheckInit(0), CalcPushAlpha's mode 0 and event-bank sound 0 have no
 established wider enum domain. Fade values express frame counts.
+
+## Boot initialization
+
+TitleBootInit constructs the movie player, card manager, two cameras, water table
+and action character in DataBuffer. It loads map s19, title textures, save icons,
+menu resources and the title event sound bank, then assigns the remaining buffer
+to scene reads. Boot event 1 selects attract playback; event 0 either initializes
+the first-boot card check and optional HDD check or restores the title menu.
+
+`Align16Blocks(sizeof(CMovie)) + 2` gives 0x2396 quadwords, and the same
+expression for CActionChara gives 0x105. The helper's early-return form makes
+MWCC statement-inline the action-character allocation size; the constructor
+null test uses v0 with the saved-pointer copy in the delay slot. No placement
+conversion row is needed.
+
+The map-top pointer is captured for the scene, while stSetBuffer takes
+DataBuffer.stGetTop() directly. Separate logo file-size storage, map_no declared
+before map_buffer, and read capacity acquired before read top preserve the
+retail frame and register lifetimes. The explicit void-pointer icon destination
+cast preserves its load before the size load.
+
+The camera-follow constructor has one callee-scoped binary32 zero
+(`0x00000000`) evaluate-first row for `__ct__15mgCCameraFollowFffff`, asserting
+one match. The native body is 0xA84 bytes in the 0xA90 retail extent, with zero
+alignment padding. Its instruction score is 0/676; the complete object verifies
+bytes and resolved relocations with the existing data and BSS ownership.

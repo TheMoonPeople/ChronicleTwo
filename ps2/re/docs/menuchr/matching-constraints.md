@@ -1,7 +1,6 @@
 # Character-menu matching constraints
 
-Only MenuCharaChangeInit and MenuCostumeInit remain assembly-backed. Other functions are
-native and exact. The constructor controls are documented in [party-change
+Every function is native and exact. The constructor controls are documented in [party-change
 construction](placement-new-change-natural.md) and [costume
 construction](placement-new-costume-natural.md).
 
@@ -128,8 +127,7 @@ drafts, uses the field name. The layout stays eight bytes.
 ## Rejected controls on earlier source forms
 
 These measurements refer to earlier source candidates, rather than current
-native scores. All functions discussed here are exact except the two guarded
-initializers identified above. They retain useful negative controls without
+native scores. All functions discussed here are exact. They retain useful negative controls without
 implying an unresolved mismatch in a promoted function.
 
 | Function / concern | Rejected natural forms and observed consequence |

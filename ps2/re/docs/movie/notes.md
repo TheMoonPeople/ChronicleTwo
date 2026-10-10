@@ -154,24 +154,51 @@ instructions, so they do not count as C++ matches.
 
 ## viBufRestartDMA
 
-`viBufRestartDMA` is the third guarded draft. Its blockers are the wrap branch's
-ring-count/mask register pair and the tail's `env.d3madr` reload.
+`viBufRestartDMA` is the third guarded draft. It compiles at the unit's default
+optimization level (`-O3`), with the two ring-position tests written as the
+repeated `IsInRegion`-style expression and a `volatile int *const` IPU control
+pointer for the first busy-wait. Its only blocker is the tail's `env.d3madr`
+reload: the draft differs by **53/200 words** (`0x318` against `0x320`), all in
+the channel-3 restoration and the code it shifts.
 
-- The function needs the local `optimization_level 4`: level 3 gives 49 words and
-  level 2 over 200. Level 4 runs the IR optimizer twice; round-1 CSE creates the
-  `0x0FFFFFFF` mask temporary between the ring count `n` and `d4madr`, round-2
-  propagation folds it away and round-2 CSE recreates it after every surviving
-  temporary. Retail needs the round-1 temporary to survive (mask coloured before
-  `n`) plus one fewer interference for `n`; no source form tried keeps it.
-- Retail reloads `env.d3madr` and `env.d3qwc` for the stores after testing them.
-  With plain `buf->env` reads MWCC reuses the tested value; the draft differs by
-  62/200 words. A read-only alias `const ViBuf *saved = buf` for the stores (or a
-  `(volatile ViBuf *)` cast) reproduces the reload and leaves 9/200, but both are
-  codegen steering rather than natural source, so the draft keeps the plain form.
-- Statement order in the wrap branch (all 378 legal orders), `DmaAddr(buf->tag +
-  index)`, `const` locals for the count or mask, and every CHCR mask spelling leave
-  9 or more words; `tag_addr = (u32) buf->tag; tag_addr &= mask;` splits the tag
-  web (32).
+- Ring count and address mask. Under the interference-graph capture the ring
+  count `n` (a CSE temporary of `buf->n`) has exactly 25 interferences, so it is
+  only simplified early when a lower-numbered neighbour goes first. Retail's
+  colouring (mask `a2`, count `a3`) needs the `0x0FFFFFFF` CSE temporary numbered
+  between `n` and the `d4madr`/`data` temporaries, and one of `n`'s neighbours
+  (the ring position or the wrap `mode`) numbered below `n`.
+- A named `pos` is a named local and numbers above every CSE temporary. Writing
+  each ring test as the repeated expression (`0 > (n - start) % n || (n - start)
+  % n >= dma_n`, likewise `fifo_index + n - start` in the other branch) makes the
+  position a CSE temporary created after `n`, so it numbers below it.
+- The local `optimization_level 4` is what moved the mask: its second IR round
+  propagates the round-1 mask temporary away and recreates it below every other
+  temporary. At `-O3` the round-1 numbering survives. With level 4 and the
+  expression form the residual stays at nine words; with `-O3` and a named `pos`
+  the wrap branch is wrong again.
+- At `-O3` a plain `ipu_ctrl` local is propagated into the first busy-wait's
+  address (`lui at` inside the loop); retail keeps the address in `v1` before the
+  loop, which a `volatile int *const` local reproduces. The second wait reads the
+  register address directly.
+- Channel-3 reload. MWCC's load CSE distinguishes the qualification of the base
+  pointer type: a read through `const ViBuf *` (or `volatile ViBuf *`) is not
+  merged with a read through `ViBuf *`. Retail's reload of `d3madr` (and the
+  unfilled delay slot before it) therefore needs the test and the restoration
+  reads to go through differently qualified `ViBuf` pointers. A `const ViBuf *`
+  inline restoration helper, a `const ViBuf *` alias or a `(const ViBuf *)` cast
+  on either side gives 0/200 together with the forms above; each is an invented
+  access path, so none is used. Qualifiers on the environment instead
+  (`const sceIpuDmaEnv &`/`*` views, or `const ViBuf *` parameters of inline
+  helpers that only test) are propagated and merged, or keep a separate base.
+  No existing function supplies such a path: every retail `viBuf*` symbol and
+  `getFIFOindex__FP5ViBufPv` mangle a non-const `ViBuf *`, and `getFIFOindex`
+  is called out of line (a `const ViBuf *` parameter renames the symbol and
+  leaves the draft at 53/200). The other callees (`DmaAddr`, `setD3_CHCR`,
+  `setD4_CHCR`, the semaphore calls) take no `ViBuf`.
+- Declaring `ViBuf::env` `volatile` reproduces the whole tail, but volatile loads
+  keep source order: retail's prologue loads `d4chcr` first yet colours it as the
+  last-created value, which only the non-volatile schedule gives (14 words at best,
+  with a single read of `d4madr` in the wrap test).
 
 ## Data
 
@@ -200,3 +227,83 @@ changes `setImageTag`.
   addresses with `& 0xFFFFFFF` / `| 0x20000000`.
 - `videoCallback` and `pcmCallback` take `sceMpegCbDataStr *` (part of their
   mangled names) and are cast to the SDK's `sceMpegCbData *` callback type.
+
+## Saved-state restoration and current draft
+
+The measurements below were taken with the earlier local optimization level
+4 and a named ring position (62/200 words); see
+[viBufRestartDMA](#vibufrestartdma) for the current draft.
+
+Fresh m2c output from `decompile.sh` continues to shift the apparent `ViBuf`
+field offsets and loses the caller state around the two FIFO-index calls.
+The existing layout remains authoritative: `env` begins at `0x1C`, the saved
+channel-3 address/count are at `0x2C`/`0x30`, and the semaphore is at `0x40`.
+Retail tests the two saved channel-3 words and reloads both before restoring
+MADR/QWC. The plain source lets MWCC reuse the tested address. Changing
+hardware-store volatility does not make that saved-state load volatile.
+
+The following source forms do not resolve these constraints under the
+canonical MWCC 3.0-011126 profile and the local optimization level 4:
+
+- Reference-bound capacity or tag addresses preserve the 62-word residual;
+  reference-bound byte extents or shared masks worsen it. Void/const-void
+  tag argument views preserve it, while signed CHCR masks and shift-based
+  mask expressions worsen it.
+- Volatile MMIO stores, including the individual channel-3 stores, and
+  typed `sceDmaChan` register accesses preserve the residual. Hardware-store
+  volatility does not require the saved environment to be reloaded.
+- Signed integer, void-pointer and byte-pointer MADR restoration stores
+  preserve the residual. References to the saved address/count fields do
+  not match, nor does a const environment view used throughout the function.
+- Negated-disjunction, boolean-cast and nested channel-3 validity tests,
+  and pointer endpoint comparisons through the byte-array view, preserve
+  the residual.
+
+A const `sceIpuDmaEnv` reference used only for the channel-3 restoration
+stores produces a `0x320` body with twelve differing words.
+The twelve-word saved-environment-reference result consists of the same
+nine count/mask register exchanges plus three restoration differences:
+`+0x224` computes a separate environment base in the branch delay slot,
+and `+0x234`/`+0x240` address the reloads from that base instead of the
+`ViBuf` base. This form establishes a reload mechanism but does not match
+retail. A pointer/reference view is therefore insufficient evidence for
+promotion; neither it nor a volatile buffer cast is retained as an alias
+workaround.
+
+## SDK sample comparison
+
+The restart is Sony's EE MPEG sample `viBufRestartDMA` (`vibuf.c` in the
+mpegstr/mpegvu1 samples; the mpegvu1 form reads the saved state before
+`WaitSema`, as retail does). Its exact statement structure, with separate
+`fp`/`ifc` counts, the `DATA_ADDR`/`TAG_ADDR`/`WRAP_ADDR` address forms, the
+`IsInRegion` macro expansion, the `else if` with both FIFO-index assignments
+in its condition, plain `&&` channel-3 test and volatile register stores,
+compiles to the same 62/200-word body as the retained draft. The sample
+source therefore does not explain either the count/mask exchange or the
+channel-3 reload.
+
+Under local `optimization_level 4`, adding `peephole off` gives 125 words,
+`optimize_for_size on` 65, and `register_coloring off`, `opt_lifetimes`,
+`opt_common_subs on`, `opt_propagation on`, `opt_loop_invariants on`,
+`opt_strength_reduction(_strict) on`, `opt_dead_assignments on` and
+`optimize_for_size off` all retain 62. `opt_common_subs off` grows the body
+to `0x350`. Returning `int` from `getFIFOindex` (the sample's type) leaves
+every function unchanged. Spelling `DmaAddr` as the sample's masking macro
+gives 67 words, and `inline_depth(0)` at levels 3 or 4 grows the body to
+`0x330`.
+
+Retail keeps the first FIFO index in `a2` across the second
+`getFIFOindex` call, so the allocator relies on that file-local callee's
+register use; the draft reproduces this. The sample's channel-3 restoration
+needs no `volatile` saved state, while retail's unfilled delay slot and
+reloads are reproduced only by volatile reads of those two fields.
+
+## Interrupt-handler exit
+
+The sample handlers end with the SDK's `ExitHandler()`, which `eekernel.h`
+defines as GCC inline assembly (`sync.l; ei`); this is the source of the
+retail `sync; ei` in `handler_endimage` and both `vblankHandler` exits. The
+pinned compiler's per-instruction intrinsics include `__I_c0`, `__I_mtc0`
+and `__I_eret` but no `__I_sync` or `__I_ei`, and no source in the tree uses
+`__I_*` intrinsics. Without an accepted non-assembly form the handlers stay
+guarded.

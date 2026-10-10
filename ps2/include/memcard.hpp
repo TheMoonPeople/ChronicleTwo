@@ -330,6 +330,39 @@ public:
 
     /**
      *
+     * Returns the error record for the current operation.
+     *
+     */
+    MC_ERROR_INFO *GetErrorInfo() {
+        return &error;
+    }
+
+    /**
+     *
+     * Returns the card record for the current port, or NULL for an invalid port.
+     *
+     */
+    MC_CARD_INFO *GetCardInfo() {
+        int current_port = port;
+
+        if (current_port == 0 || current_port == 1) {
+            return &card[current_port];
+        }
+
+        return NULL;
+    }
+
+    /**
+     *
+     * Returns the bytes moved by the current operation.
+     *
+     */
+    int GetTransferredSize() {
+        return total_transferred;
+    }
+
+    /**
+     *
      * Starts the memory card library, and returns one if it fails to start.
      *
      * @mangled InitForMC__18CMemoryCardManagerFv

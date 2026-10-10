@@ -2,41 +2,26 @@
 
 ## Source status
 
-Native (plain C++ definitions): every game function in the unit except the
-three below, including `EditLoop` (0x1AD120, symbol size 0x22CC inside a
-0x22D0 comparison extent that holds a trailing alignment nop), `EditDraw`
-(0xD6C body in a 0xD70 extent) and `EditStep` (0x33C).
+Every game function in the unit is native (plain C++ definitions), including
+`EditInit` (0x1AB320, symbol size 0x1BB8 inside a 0x1BC0 extent),
+`EditLoop` (0x1AD120, symbol size 0x22CC inside a 0x22D0 extent), `EditDraw`
+(0xD6C body in a 0xD70 extent) and `EditStep` (0x33C); each extent ends in
+alignment nops.
 
-Guarded draft (`#ifdef NONMATCHING` with an `INCLUDE_ASM` fallback):
-`EditInit` (0x1AB320, symbol size 0x1BB8 inside a 0x1BC0 extent). The draft
-differs by about 1,223/1,776 words; see "EditInit" below for why.
+`EditInit` also makes the object emit two compiler-generated members that
+follow it in retail order, both with retail's processor-specific symbol
+binding 13:
+- `CameraCtrlParam::operator=` (0x1ACEE0, 0x60), the implicit copy
+  assignment, outlined from `CCameraControl::SetDefaultParam`. It copies ten
+  float limits and the integer `no_check`.
+- `CActionChara::CActionChara()` (0x1ACF40, 0xC0), the header constructor,
+  emitted as the array-constructor callback of `EditInit`'s character array.
 
-Assembly-only (`INCLUDE_ASM` with no draft):
-- `CameraCtrlParam::operator=` (0x1ACEE0, 0x60): owned by cameracontrol;
-  caller `CCameraControl::CCameraControl`. It is the compiler-generated copy
-  assignment (retail gives the symbol the processor-specific binding 13 of a
-  generated member, `readelf -s` on SCES_511.90), so a hand-written definition
-  would be `GLOBAL` and is ruled out by `docs/MWCC.md` ("Natural C++
-  definitions"). The implicit assignment from the existing class definition
-  reproduces all 24 words when emitted from a real caller; its only caller in
-  this unit is the guarded `EditInit`, so it stays assembly until `EditInit`
-  is native. It copies ten float limits and the integer `no_check`.
-  `cameracontrol.hpp` declares the retail member only under
-  `CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT`.
-- `CActionChara::CActionChara()` (0x1ACF40, 0xC0): owned by actionchara;
-  caller `InitDungeonMain` (dng_main). The header constructor emitted as the
-  array-constructor callback of `EditInit`'s character array matches all 48
-  words, so the `INCLUDE_ASM` is wrapped in `#ifndef NONMATCHING` and the
-  `NONMATCHING` build emits it naturally from the draft `EditInit`.
-
-Data markers still in the source: `INCLUDE_RODATA` for `at_1045`, `at_1053`
-(EditInit material and image-path arrays), `at_1528` (camera vector),
-`at_1395__2`..`at_1422` (EditInit diagnostics, paths and object names) and
-`at_2125`..`at_2136` (loop diagnostics and object names), plus `INCLUDE_BSS`
-`at_1077` (0x10, EditInit's zero-vector template). None is referenced by
-native code. All other data is typed: `MenuInfo` is a `MENU_INIT_ARG *`
-initialised to `&MenuArg`, `DataPktMode` starts at -1 (no packet mode
-allocated), `MenuDataSize` is the loaded menu file's byte count,
+Data markers still in the source: `INCLUDE_RODATA` for `at_1528` (camera
+vector) and `at_2125`..`at_2136` (loop diagnostics and object names). All
+other data is typed or emitted by `EditInit` itself: `MenuInfo` is a
+`MENU_INIT_ARG *` initialised to `&MenuArg`, `DataPktMode` starts at -1 (no
+packet mode allocated), `MenuDataSize` is the loaded menu file's byte count,
 `FixCharaBuffSize` is in allocator quadwords, and the blur ranges are pairs
 of floats (1000/2000 and 3000/4000), not doubles.
 
@@ -184,7 +169,7 @@ bytes exist.
 - The photo idea sound is `SYSTEM_SE_IDEA` (system bank 14, snd_mngr.hpp),
   played only when a photo subject yields an idea (`idea_no > 0`).
 
-## EditInit (guarded draft)
+## EditInit
 
 The initialization partitions the main stack into packet, script, town-data,
 menu/read and work buffers. Its `data_size` is the free quadword count before
@@ -206,9 +191,9 @@ image-path initializers belong at their use sites. The load descriptor is
 | `CScene` | texture assignment uses `tex_block_base` and `tex_block_count` |
 | `BGM_INFO` | master multiplier `master_volf` at +0xC, current volume `volf` at +0x14 |
 | `NowLoadingInfo` | texture block, `unk_4`, then step count are assigned in that order |
-| `mgFrameAttr` | billboard RGB components are set before the alpha |
+| `mgCFrameAttr` | billboard RGB components are set before the alpha |
 
-Forms the draft keeps because they reproduce retail instruction sequences:
+Forms the source keeps because they reproduce retail instruction sequences:
 - Billboard RGB stores before the 128.0f alpha store (reproduces
   +0x6D8..+0x70C around `SetAttrParam`).
 - The water image quadword count is rounded with an explicit branch on the
@@ -219,17 +204,42 @@ Forms the draft keeps because they reproduce retail instruction sequences:
   `master_volf` is set to one; the second lookup is independent and supplies
   `volf` to `SetVolfBGM`.
 
-Why it does not match:
-- Retail expands the complete `CMapTreasureBox` constructor chain inline at
-  its placement-new call (+0x774 onwards). The shared header only declares the
-  constructor and `map.cpp` defines it out of line, so the first 0x748 bytes
-  compare exactly and the branch at +0x748 is the first difference. Defining
-  the constructor inline in the header is a shared change that needs
-  whole-object checks for every consumer.
-- The retail epilogue writes the incoming, otherwise unassigned saved `s4`
-  value to both debug fishing-item fields; the draft's uninitialised
-  `fishing_item` local is stored from `s2`. A fabricated default would change
-  the executable.
-- Effect and camera construction differ in allocation-result/null branches,
-  and saved-register allocation, scene-pointer lifetimes and allocation
-  argument order differ later.
+- `CMapTreasureBox() { Initialize(); }` is defined in `mapparts.hpp` (map.cpp
+  no longer defines it out of line), so its five-level constructor chain
+  expands inline at the placement-new site (+0x774 onwards) as in retail.
+- All eight placement-new sizes use the early-return `align16_blocks` helper
+  (chest 0x6A quadwords, effect manager 0x11B, eight action characters 0x81A,
+  each camera 0x21), which recovers the allocator-result null tests.
+- `Camera->SetDefaultParam()` (`default_param = *GetActiveParam()` inside
+  `CCameraControl`). MWCC inlines the implicit `CameraCtrlParam` assignment
+  only when it appears directly in the function being compiled; inside an
+  inline wrapper it is called out of line, which emits the member and gives
+  retail's call at +0x12B0. A plain assignment in `EditInit` stays inlined.
+  `#pragma inline_depth(smart)` behaves like the default depth; an explicit
+  `inline_depth(N)` inlines the assignment through N levels.
+- `SetVillagerTexb(78, 56)` and `SetEventTexb(160, 2)` for the scene texture
+  blocks, and a `CScene *scene = MainScene` local supplying both
+  `GetActiveBgmInfo` calls (`master_volf` set to 1.0f, then `volf` passed to
+  `SetVolfBGM`).
+- Both stack splits compute the remaining count first, then set and reset
+  the buffer: `data_size = X.stGetRest(); Y.stSetBuffer(X.stGetTop(),
+  data_size); Y.stReset();`. `ControlCharaBuff.lock = 1` precedes the
+  `FixCharaBuffSize` read.
+- `sceVu0FVECTOR position = {0.0f, 0.0f, 0.0f, 0.0f};`: the compiler emits the
+  zero template itself, so `at_1077` is not separate data.
+- The `EdDebugInfo` epilogue builds a local `SubGameInfo`, sets `scene`,
+  `texb`, `texb_num` and `unk_c`, copies it over the base part of
+  `EdDebugInfo`, then sets `jump_map_no` to -1. The constructor leaves
+  `rod_no` and `esa_no` unset; their scalar-replaced temporaries colour `s4`,
+  which retail stores to both fields. A named uninitialised `int` instead
+  takes `s2`/`s3` for the whole function and moves the character-loop
+  registers (retail: `characters` in `s2`, `i` in `s3`, the offset in `s0`).
+- The constructor's chained `load_buff = menu_buff = 0` leaves the two
+  pointer zeros in registers (`daddu $2/$3,$0,$0`) through the scalar-replaced
+  copy, while separate `= 0` statements fold to `sw $zero`; with the register
+  zeros the scheduler gives retail's interleaved store order. Separate
+  statements, casts, `0L`, locals, setters, constructed temporaries and
+  `memcpy` all fold. Keeping the constructor's statement order otherwise
+  unchanged keeps `__sinit_subgame_cpp`, `__sinit_editloop_cpp` and the
+  `EditLoop` fishing local exact; moving `record_check`/`no_map_event` first
+  changes the latter two.

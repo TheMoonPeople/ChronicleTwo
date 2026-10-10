@@ -38,8 +38,9 @@ Names 0x14-0x28 are descriptive (no retail names). `EditDebugInfo` (editdebug.hp
 
 **Inline ctor**: `__sinit_subgame_cpp` zeroes 0x0,0x10,0x14,0x18,0x1C,0x28,0x2C (store order
 0x28,0x14,0x0,0x10,0x2C,0x18,0x1C); `_GOTO_SUBGAME` and EditLoop/LoopDungeonMain stack locals get the
-same set zeroed (scene's store removed as dead). 0x4/0x8/0xC/0x20/0x24 not initialised. The ctor's
-statement order in the header is offset order; adjust if __sinit does not match.
+same set zeroed (scene's store removed as dead). 0x4/0x8/0xC/0x20/0x24 not initialised. The header
+ctor follows that store order and clears the pointers as `load_buff = menu_buff = 0`, which EditInit's
+scalar-replaced copy into `EdDebugInfo` needs (register zeros for both pointers).
 
 sgInitSubGame copies fields individually (not struct assign): scene, then 0xC..0x2C, then texb/texb_num
 from `GameInfo.scene`+0x3E68/0x3E6C. Returns the sub game's init result; 0 -> SubGame reset to 0.

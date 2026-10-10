@@ -2,7 +2,8 @@
 
 The current Satan's Fiddle translation-unit row uses GPR helper mask `0x30`
 and FPR mask `0`. The existing `DrawMenuTopic` selector remains unchanged.
-`MenuMainInit` retains its assembly fallback.
+`MenuMainInit` is native; see
+[user-data-colouring-20261010.md](user-data-colouring-20261010.md).
 
 ## MenuInternSelectDraw float-order calibration
 
@@ -29,19 +30,6 @@ function is native.
 ## MenuMainInit
 
 `MenuMainInit__FP13MENU_INIT_ARG` configures menu work areas, camera and scene
-state, message objects, and the requested initial menu mode. The current SF
-draft emits `0xEB4` bytes against retail's padded `0xED0` extent, with 792 of
-948 words differing. These counts include shifted instructions after the
-constructor gaps; they are not independent semantic errors.
-
-The first unsupported sequence is at offset `0xBC`: retail branches on the
-placement allocator's `v0` result and copies it to `s1` in the delay slot;
-native construction copies first and branches on `s1`. The typed
-`MENU_DRAW_ENV` already constructs its camera with 8.0f. No missing camera
-constructor or float-order selector is established at this point.
-
-This function is parked under the documented
-[placement-new blocker](../funcpoint/placement-new.md). Reconsider when the
-dedicated compiler/constructor investigation supplies a natural fix, then
-remeasure later constructors and argument scheduling rather than attributing
-all downstream instruction shifts to that first branch.
+state, message objects, and the requested initial menu mode. It is native and
+byte-identical; the allocation, constructor and save-data constraints are in
+[user-data-colouring-20261010.md](user-data-colouring-20261010.md).

@@ -2121,11 +2121,11 @@ sceGsAlpha     mgALPHA_2;
 sceGsTexa      mgTEXA_1;
 sceGsTexa      mgTEXA_2;
 sceGsFrame     mgFRAME_1;
-int ddraw_size;
+int            ddraw_size;
 
 // Uninitialised data (.bss)
-sceGifTag     mgGiftagAD;
-sceVu0FVECTOR mgBackColor;
-sceGsDBuff    mgDBuff;
-MG_PICKZ      mgPickZBuff[4];
+sceGifTag       mgGiftagAD;
+sceVu0FVECTOR   mgBackColor;
+sceGsDBuff      mgDBuff;
+MG_PICKZ        mgPickZBuff[4];
 sceGsStoreImage gs_simage;

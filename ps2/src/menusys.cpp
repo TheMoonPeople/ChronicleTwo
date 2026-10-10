@@ -150,24 +150,17 @@ enum ItemMenuCommand {
     kCmdBuildUpInfo = 0x78
 };
 
-void        MenuAquaInit(mgCMemory *memory, int *data, int arg);
-void        NameRegistInit(mgCMemory *memory, int *data, int arg);
-void        MenuNPCQuestViewInit(mgCMemory *memory, int *data, int arg);
-int         GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *param, int slot, int arg);
-int         GetItemCommandMsg(CGameDataUsed *item, int *cmds, u32 *colors, short *values, short *marks, int type,
-                              int arg);
-void        MenuFormUpdataAttachInfo(CMenuPosDataForm *form, CGameDataUsed *item, int item_no, int reset,
-                                     short *b);
-void        SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int chara_no);
-void        SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INFO_DATA *robo);
-void        InitSpectol();
-extern const char at_4950[] = "\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x81\x48";
-extern const char at_4951[] = "\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x4E\x47";
-extern const char at_4952[] = "menu/eff/buildup.chr";
-extern const char at_4953[] = "snd2/sp/SP_045.snd";
-extern const char at_4955[] = "\x94\xAD\x93\xAE";
-extern const char at_4956[] = "_mn";
-extern const char at_4957[] = "\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x8F\x49\x97\xB9";
+void MenuAquaInit(mgCMemory *memory, int *data, int arg);
+void NameRegistInit(mgCMemory *memory, int *data, int arg);
+void MenuNPCQuestViewInit(mgCMemory *memory, int *data, int arg);
+int  GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *param, int slot, int arg);
+int  GetItemCommandMsg(CGameDataUsed *item, int *cmds, u32 *colors, short *values, short *marks, int type,
+                       int arg);
+void MenuFormUpdataAttachInfo(CMenuPosDataForm *form, CGameDataUsed *item, int item_no, int reset,
+                              short *b);
+void SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int chara_no);
+void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INFO_DATA *robo);
+void InitSpectol();
 
 static void MenuItemDebugKey();
 
@@ -666,36 +659,6 @@ s16 BuildUpNameXY[3][2];
  *
  */
 static float MonicaRotationData[4];
-
-#ifndef NONMATCHING
-/**
- *
- * Counter of the extended weapon build-up effect.
- *
- */
-static int Effect_Counter_4682;
-
-/**
- *
- * Initialization latch of the extended build-up effect counter.
- *
- */
-static s8 init_4683;
-
-/**
- *
- * Non-zero when the extended weapon build-up finishes.
- *
- */
-static u8 BuildEndFlag_4703;
-
-/**
- *
- * Initialization latch of the build-up completion state.
- *
- */
-static s8 init_4704;
-#endif
 
 /**
  *
@@ -6345,7 +6308,55 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
     return 1;
 }
 
-#ifdef NONMATCHING
+/**
+ *
+ * Extended item-menu question handled by the weapon preview.
+ *
+ */
+enum MENU_ITEM_EXTEND_KIND {
+    MENU_ITEM_EXTEND_NONE = 0,     /**< No extended question is active. */
+    MENU_ITEM_EXTEND_REPAIR = 1,   /**< Repair animation is running. */
+    MENU_ITEM_EXTEND_BUILD_UP = 2, /**< Weapon build-up is being selected or shown. */
+};
+
+/**
+ *
+ * Stages of the item-menu repair animation.
+ *
+ */
+enum MENU_REPAIR_STEP {
+    MENU_REPAIR_LOAD = 0,     /**< Starts loading the repair resources. */
+    MENU_REPAIR_GENERATE = 1, /**< Creates the repair effect after loading. */
+    MENU_REPAIR_ANIMATE = 2,  /**< Waits for the repair animation to finish. */
+};
+
+/**
+ *
+ * Stages of the item-menu weapon build-up preview.
+ *
+ */
+enum MENU_BUILD_UP_STEP {
+    MENU_BUILD_UP_SELECT = 0,  /**< Selects a prospective build-up weapon. */
+    MENU_BUILD_UP_CONFIRM = 1, /**< Asks whether to perform the build-up. */
+    MENU_BUILD_UP_LOAD = 2,    /**< Creates the build-up character after loading. */
+    MENU_BUILD_UP_ANIMATE = 3, /**< Transforms the weapon during the preview animation. */
+    MENU_BUILD_UP_FINISH = 4,  /**< Waits for dismissal of the completion message. */
+    MENU_BUILD_UP_BLOCKED = 5, /**< Waits for dismissal of a failed condition message. */
+};
+
+/**
+ *
+ * Rounds a byte count up to a number of 16-byte allocation blocks.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
+
 #pragma inline_depth(8)
 
 int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
@@ -6363,110 +6374,133 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
     int                reading = ReadBGSync();
     float              position[4];
     int                size;
+
     switch (para->ask_mode) {
-        case 0:
+        case MENU_ITEM_EXTEND_NONE:
             break;
-        case 1:
+        case MENU_ITEM_EXTEND_REPAIR:
             switch (step) {
-                case 0:
+                case MENU_REPAIR_LOAD:
                     MenuRepairMan->LoadDataBG(load_stack);
                     step++;
                     break;
-                case 1:
+                case MENU_REPAIR_GENERATE:
                     if (reading == 0) {
                         int repair_tex_block = tex_block[2];
                         MenuRepairMan->CheckDataBG(repair_tex_block);
                         MenuActionChara[0]->GetPosition(position);
+
                         if (repair_running) {
                             MenuRepairMan->GeneratePoly(position, repair_tex_block);
+
                             if (MenuActionChara[0] != NULL) {
                                 MenuActionChara[0]->pallet[0].SetAnim(0xEB, 0xEB, 0x3C, 1, 0x29, 0);
                             }
                         }
+
                         MenuRepairMan->Generate(MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
                         step++;
                     }
+
                     break;
-                case 2:
+                case MENU_REPAIR_ANIMATE:
                     if (repair_running == 0 || (repair_running == 1 && !MenuRepairMan->IsRun())) {
                         if (MenuCommonInfo->cursor_form != NULL) {
                             MenuCommonInfo->cursor_form->draw_flag = 1;
                         }
+
                         repair_running = 0;
-                        step = 0;
-                        para->ask_mode = 0;
+                        step = MENU_REPAIR_LOAD;
+                        para->ask_mode = MENU_ITEM_EXTEND_NONE;
                         mode = MENU_ASK_MODE_NONE;
                     }
+
                     break;
             }
+
             break;
-        case 2: {
+        case MENU_ITEM_EXTEND_BUILD_UP: {
+            int                  close;
+            BUILDUP_WEAPON_INFO *info = &BuildUpWeaponInfo;
             /**
              *
              * Non-zero when the extended weapon build-up finishes.
              *
              */
-            static u8            BuildEndFlag = 0;
-            BUILDUP_WEAPON_INFO *info = &BuildUpWeaponInfo;
-            CActionChara        *chara = MenuActionChara[0];
-            CDC2Mes             *name_message = MenuDCMsg[6];
-            CDC2Mes             *message = MenuDCMsg[7];
-            int                  close = 0;
+            static u8     BuildEndFlag = 0;
+            CActionChara *chara = MenuActionChara[0];
+            CDC2Mes      *name_message = MenuDCMsg[6];
+            CDC2Mes      *message = MenuDCMsg[7];
+            close = 0;
+
             switch (step) {
-                case 0: {
+                case MENU_BUILD_UP_SELECT: {
                     int old_select = info->select_no;
+
                     if (select_key & MENU_SELECT_KEY_UP) {
                         info->select_no--;
                     }
+
                     if (select_key & MENU_SELECT_KEY_DOWN) {
                         info->select_no++;
                     }
+
                     if (info->select_no < 0) {
                         info->select_no = 0;
                     }
-                    if (info->select_no >= info->select_num) {
+
+                    if (info->select_num <= info->select_no) {
                         info->select_no = info->select_num - 1;
                     }
+
                     int          select = info->select_no;
                     CDataWeapon *data = info->weapon_data[select];
+
                     if (old_select != select) {
                         MenuSePlay(SYSTEM_SE_CURSOR);
                     }
+
                     MenuWeaponStatusInfoFormSet(info->weapon, data);
+
                     switch (push_button) {
-                        case 1:
-                        case 4:
-                        case 8:
+                        case MENU_PUSH_BUTTON_DECIDE:
+                        case MENU_PUSH_BUTTON_TRIANGLE:
+                        case MENU_PUSH_BUTTON_SQUARE:
                             if (info->enable[select] == 1) {
                                 if (CheckBuildUpMonsterCondition(data)) {
                                     ExeScript("\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x81\x48");
+
                                     if (name_message->name[select + 1] != NULL) {
                                         strcpy(message->name[0], name_message->name[select + 1]);
                                     }
+
                                     message->StepMsg();
                                     step++;
                                 } else {
-                                    ExeScript("\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x4E\x47");
-                                    step = 5;
+                                    ExeScript("\x83\x72\x83\x8b\x83\x68\x83\x41\x83\x62\x83\x76\x4e\x47");
+                                    step = MENU_BUILD_UP_BLOCKED;
                                 }
                             } else {
-                                MenuSePlay(5);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                             }
+
                             break;
                         case MENU_PUSH_BUTTON_CANCEL:
                             info->mode = 0;
-                            MenuSePlay(5);
                             close = 1;
+                            MenuSePlay(SYSTEM_SE_CANCEL);
                             break;
                     }
+
                     break;
                 }
-                case 1: {
+                case MENU_BUILD_UP_CONFIRM: {
                     int choice = message->YesNoCursor();
+
                     switch (push_button) {
-                        case 1:
-                        case 4:
-                        case 8:
+                        case MENU_PUSH_BUTTON_DECIDE:
+                        case MENU_PUSH_BUTTON_TRIANGLE:
+                        case MENU_PUSH_BUTTON_SQUARE:
                             if (choice == 0) {
                                 MenuSePlay(SYSTEM_SE_DECIDE);
                                 BuildEndFlag = 0;
@@ -6488,31 +6522,36 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                             if (MenuCommonInfo->cursor_form != NULL) {
                                 MenuCommonInfo->cursor_form->draw_flag = 1;
                             }
-                            MenuSePlay(5);
-                            step = 0;
+
+                            step = MENU_BUILD_UP_SELECT;
+                            MenuSePlay(SYSTEM_SE_CANCEL);
                             break;
                     }
+
                     if (push_button != 0) {
                         mes_form->draw_flag = 0;
                     }
+
                     break;
                 }
-                case 2:
+                case MENU_BUILD_UP_LOAD:
                     if (reading == 0) {
                         BG_READ_INFO *model_file = GetReadBGFile(0);
                         BG_READ_INFO *sound_file = GetReadBGFile(1);
+
                         if (sound_file != NULL) {
                             mgCMemory sound_stack;
                             sound_stack.stSetBuffer(load_stack->stGetTop(), 0x1C0);
                             load_stack->Alloc(0x1C0);
                             MenuSePlay(0, (u_int *) sound_file->buffer, &sound_stack);
                         }
+
                         chara->GetPosition(position);
                         tex_manager->DeleteBlock(tex_block[2]);
                         load_stack->Align64();
                         int rest = load_stack->stGetRest();
                         work.stSetBuffer(load_stack->stGetTop(), rest);
-                        build_up_chara = new (work.Alloc(0x105)) CActionChara;
+                        build_up_chara = new (work.Alloc(align16_blocks(sizeof(CActionChara)) + 2)) CActionChara;
                         build_up_chara->Initialize(NULL);
                         build_up_chara->LoadPack((u_int *) model_file->buffer, "info.cfg", &work, &work, &work, tex_block[2], NULL);
                         build_up_chara->SetScale(1.5f, 1.5f, 1.5f);
@@ -6520,10 +6559,16 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         build_up_chara->SetMotion("\x94\xAD\x93\xAE", 0, 1);
                         build_up_chara->Step();
                         mgCFrame *frame = build_up_chara->CObjectFrame::frame;
-                        if (frame != NULL && frame->attr != NULL) {
-                            frame->attr->z_test = -1;
-                            frame->SetAttrParam(*frame->attr, 1, MG_FRAME_ATTR_Z_TEST);
+
+                        if (frame != NULL) {
+                            mgCFrameAttr *const attr = frame->attr;
+
+                            if (attr != NULL) {
+                                attr->z_test = -1;
+                                frame->SetAttrParam(*attr, 1, MG_FRAME_ATTR_Z_TEST);
+                            }
                         }
+
                         work.Alloc(0x100);
                         BuildEndFlag = 0;
                         char *path = GetItemFilePath(name_message->item_mes[info->select_no + 1], 1);
@@ -6534,23 +6579,29 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         build_loading = 1;
                         step++;
                     }
+
                     break;
-                case 3: {
+                case MENU_BUILD_UP_ANIMATE: {
                     build_up_chara->Step();
+
                     if (!BuildEndFlag) {
                         float frame_no = build_up_chara->GetNowFrame(NULL);
+
                         if (28.0f < frame_no) {
                             chara->Show(0, 1);
                         }
+
                         if (34.0f < frame_no) {
                             chara_poly_form[0]->counter = -6;
                         }
+
                         if (reading == 0 && 40.0f < frame_no) {
                             BG_READ_INFO *file = GetReadBGFile(0);
                             int           new_item_no = name_message->item_mes[info->select_no + 1];
                             BuildUpWeaponTrans(info->weapon, new_item_no);
-                            int                weapon_tex_block = tex_block[1];
-                            mgCTextureManager *textures = tex_manager;
+                            int weapon_tex_block = tex_block[1];
+                            tex_manager = &mgTexManager;
+                            mgCTextureManager *const textures = tex_manager;
                             textures->DeleteBlock(weapon_tex_block);
                             strcpy(textures->name_suffix, "_mn");
                             MenuActionCharaBuffer[0].stReset();
@@ -6562,52 +6613,60 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                             BuildEndFlag = 1;
                         }
                     }
+
                     if (BuildEndFlag == 1 && build_up_chara->CheckMotionEnd(NULL)) {
                         build_loading = 0;
                         build_up_chara = NULL;
                         ExeScript("\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x8F\x49\x97\xB9");
+
                         if (name_message->name[info->select_no + 1] != NULL) {
                             strcpy(message->name[0], name_message->name[info->select_no + 1]);
                         }
+
                         step++;
                     }
+
                     break;
                 }
-                case 4:
+                case MENU_BUILD_UP_FINISH:
                     if (push_button != 0) {
                         close = 1;
                         mes_form->draw_flag = 0;
-                        MenuSePlay(SYSTEM_SE_DECIDE);
                         itemmenu_chr_rotflag = 1;
+                        MenuSePlay(SYSTEM_SE_DECIDE);
                     }
+
                     break;
-                case 5:
+                case MENU_BUILD_UP_BLOCKED:
                     if (push_button != 0) {
                         mes_form->draw_flag = 0;
+
                         if (MenuCommonInfo->cursor_form != NULL) {
                             MenuCommonInfo->cursor_form->draw_flag = 1;
                         }
-                        MenuSePlay(5);
-                        step = 0;
+
+                        step = MENU_BUILD_UP_SELECT;
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     }
+
                     break;
             }
+
             if (close == 1) {
                 MenuWeaponStatusInfoFormSet(NULL, NULL);
-                step = 0;
+                step = MENU_BUILD_UP_SELECT;
                 mode = MENU_ASK_MODE_NONE;
-                para->ask_mode = 0;
+                para->ask_mode = MENU_ITEM_EXTEND_NONE;
             }
+
             break;
         }
     }
+
     return 0;
 }
 
 #pragma inline_depth reset
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsAskExtend__13CMenuItemInfoFii);
-#endif
 
 void MenuMoveItemPos(int *item, int *pos, int phase) {
     /**
@@ -12762,8 +12821,6 @@ void MenuItemSelectDraw() {
         ItemSelectPtr->Draw();
     }
 }
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4958__DATA);
 
 // Uninitialised data (.bss)
 MENU_ASKMODE_PARA MenuAskParam;

@@ -58,7 +58,7 @@ union CopyVector {
 static float at_1112[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 static float at_1240__3[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 static float anim_1410;
-static s8 init_1411;
+static s8    init_1411;
 
 #include <libvu0.h>
 
@@ -200,64 +200,64 @@ static char *dung_progtxt_steal[7] = {
 
 static char *dung_progtxt_getitem_overnum[7][2] = {
     {
-        "\201w%s\201x\202\252\223\374\202\301\202\304\202\242\202\351\201B\n\202\265\202\251\202\265\202\261\202\352\210\310\217\343\201A\202\261\202\314\203A\203C\203e\203\200\202\360\216\235\202\302\202\261\202\306\202\252\202\305\202\253\202\310\202\242\201B",
-        "\201w%s\201x\202\252%d\214\302\201A\223\374\202\301\202\304\202\242\202\351\201B\n\202\265\202\251\202\265\202\261\202\352\210\310\217\343\201A\202\261\202\314\203A\203C\203e\203\200\202\360\216\235\202\302\202\261\202\306\202\252\202\305\202\253\202\310\202\242\201B",
-    },
+     "\201w%s\201x\202\252\223\374\202\301\202\304\202\242\202\351\201B\n\202\265\202\251\202\265\202\261\202\352\210\310\217\343\201A\202\261\202\314\203A\203C\203e\203\200\202\360\216\235\202\302\202\261\202\306\202\252\202\305\202\253\202\310\202\242\201B",
+     "\201w%s\201x\202\252%d\214\302\201A\223\374\202\301\202\304\202\242\202\351\201B\n\202\265\202\251\202\265\202\261\202\352\210\310\217\343\201A\202\261\202\314\203A\203C\203e\203\200\202\360\216\235\202\302\202\261\202\306\202\252\202\305\202\253\202\310\202\242\201B",
+     },
     {
-        "%s inside. \n But you can't carry any more items!",
-        "%d %s inside. \n But you can't carry any more items!",
-    },
+     "%s inside. \n But you can't carry any more items!",
+     "%d %s inside. \n But you can't carry any more items!",
+     },
     {
-        "Contient %s. \n Mais tu ne peux rien porter d'autre !",
-        "Contient %d %s. \n Mais tu ne peux rien porter d'autre !",
-    },
+     "Contient %s. \n Mais tu ne peux rien porter d'autre !",
+     "Contient %d %s. \n Mais tu ne peux rien porter d'autre !",
+     },
     {
-        "%s enthalten. \nAber du kannst nicht mehr davon tragen!",
-        "%d %s enthalten. \nAber du kannst nicht mehr davon tragen!",
-    },
+     "%s enthalten. \nAber du kannst nicht mehr davon tragen!",
+     "%d %s enthalten. \nAber du kannst nicht mehr davon tragen!",
+     },
     {
-        "%s caricato. \nMa non puoi portare con te altri oggetti!",
-        "%d %s caricato. \nMa non puoi portare con te altri oggetti!",
-    },
+     "%s caricato. \nMa non puoi portare con te altri oggetti!",
+     "%d %s caricato. \nMa non puoi portare con te altri oggetti!",
+     },
     {
-        "Hay %s. \n [UNI00a1]Pero no puedes llevar m[UNI00e1]s objetos!",
-        "Hay %d %s. \n [UNI00a1]Pero no puedes llevar m[UNI00e1]s objetos!",
-    },
+     "Hay %s. \n [UNI00a1]Pero no puedes llevar m[UNI00e1]s objetos!",
+     "Hay %d %s. \n [UNI00a1]Pero no puedes llevar m[UNI00e1]s objetos!",
+     },
     {
-        "%s inside. \n But you can't carry any more items!",
-        "%d %s inside. \n But you can't carry any more items!",
-    },
+     "%s inside. \n But you can't carry any more items!",
+     "%d %s inside. \n But you can't carry any more items!",
+     },
 };
 
 static char *dung_progtxt_getitem[7][2] = {
     {
-        "\201w%s\201x\202\360%d\214\302\201A\216\350\202\311\223\374\202\352\202\275\201B",
-        "\201w%s\201x\202\360%d\214\302\201A\216\350\202\311\223\374\202\352\202\275\201B",
-    },
+     "\201w%s\201x\202\360%d\214\302\201A\216\350\202\311\223\374\202\352\202\275\201B",
+     "\201w%s\201x\202\360%d\214\302\201A\216\350\202\311\223\374\202\352\202\275\201B",
+     },
     {
-        "You found %s.",
-        "You found %d %s.",
-    },
+     "You found %s.",
+     "You found %d %s.",
+     },
     {
-        "Tu as trouv[UNI00e9] %s.",
-        "Tu as trouv[UNI00e9] %d %s.",
-    },
+     "Tu as trouv[UNI00e9] %s.",
+     "Tu as trouv[UNI00e9] %d %s.",
+     },
     {
-        "%s gefunden.",
-        "%d %s gefunden.",
-    },
+     "%s gefunden.",
+     "%d %s gefunden.",
+     },
     {
-        "Hai trovato %s.",
-        "Hai trovato %d %s.",
-    },
+     "Hai trovato %s.",
+     "Hai trovato %d %s.",
+     },
     {
-        "Has encontrado %s.",
-        "Has encontrado %d %s.",
-    },
+     "Has encontrado %s.",
+     "Has encontrado %d %s.",
+     },
     {
-        "You found %s.",
-        "You found %d %s.",
-    },
+     "You found %s.",
+     "You found %d %s.",
+     },
 };
 
 static char **mons_attr_list[8] = {

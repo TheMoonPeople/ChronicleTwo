@@ -361,6 +361,97 @@
         "expected_matches": 2
       },
       {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SetNextRef__9mgCCameraFfff",
+        "value_bits": "0x00000000",
+        "control": {
+          "kind": "switch",
+          "values": [
+            0
+          ]
+        },
+        "evaluate_first": true,
+        "expected_matches": 2
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SetPos__9mgCCameraFfff",
+        "value_bits": "0x43280000",
+        "control": {
+          "kind": "switch",
+          "values": [
+            1
+          ]
+        },
+        "evaluate_first": true,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SetPos__9mgCCameraFfff",
+        "value_bits": "0xc1200000",
+        "control": {
+          "kind": "switch",
+          "values": [
+            4
+          ]
+        },
+        "evaluate_first": false,
+        "evaluate_before": 2,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SetNextPos__9mgCCameraFfff",
+        "value_bits": "0x43280000",
+        "control": {
+          "kind": "switch",
+          "values": [
+            1
+          ]
+        },
+        "evaluate_first": true,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SetNextPos__9mgCCameraFfff",
+        "value_bits": "0xc1200000",
+        "control": {
+          "kind": "switch",
+          "values": [
+            4
+          ]
+        },
+        "evaluate_first": false,
+        "evaluate_before": 2,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SethitEffect__15CHitEffectImageFPfPfffffii",
+        "value_bits": "0xbdcccccd",
+        "argument": {
+          "argument_index": 3,
+          "value_type": "binary32",
+          "value_bits": "0x41200000"
+        },
+        "evaluate_first": true,
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "gyoracesim.cpp",
         "function": "CharacterBonus__FP12grFISH_PARAMP15RACE_FISH_PARAMi",
         "value_type": "binary32",
@@ -492,6 +583,15 @@
         "value_type": "binary32",
         "value_bits": "0x43960000",
         "evaluate_first": true
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "MenuCostumeInit__FP9mgCMemoryPii",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "__ct__15mgCCameraFollowFffff",
+        "evaluate_first": true,
+        "expected_matches": 1
       },
       {
         "translation_unit": "menuchr.cpp",
@@ -1764,18 +1864,26 @@
         "expected_matches": 1
       },
       {
-        "translation_unit": "menuchr.cpp",
-        "function": "MenuCostumeInit__FP9mgCMemoryPii",
+        "translation_unit": "title.cpp",
+        "function": "TitleBootInit__Fv",
         "value_type": "binary32",
         "value_bits": "0x00000000",
         "callee": "__ct__15mgCCameraFollowFffff",
-        "evaluate_first": true,
-        "expected_matches": 1
+        "expected_matches": 1,
+        "evaluate_first": true
       }
     ]
   },
   "placement_new": {
     "statement_conversions": [
+      {
+        "translation_unit": "menushop.cpp",
+        "function": "MenuNPCQuestViewInit__FP9mgCMemoryPii",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__14CMenuQuestViewFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
       {
         "translation_unit": "dynamicanime.cpp",
         "function": "dynCOLLISION__FP9SPI_STACKi",
@@ -2063,94 +2171,6 @@
         "constructor": "__ct__18mgCVisualMotionMDTFv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
-      },
-      {
-        "translation_unit": "menushop.cpp",
-        "function": "MenuNPCQuestViewInit__FP9mgCMemoryPii",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__14CMenuQuestViewFv",
-        "conversion": "after_constructor_inline",
-        "expected_matches": 1
-      },
-      {
-        "translation_unit": "mg_dataset.cpp",
-        "function": "End__13mgCMDTBuilderFP8mgCFrameP12mgCVisualMDTP10mgLoadData",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__12mgCFrameAttrFv",
-        "conversion": "after_constructor_walk",
-        "expected_matches": 1
-      },
-      {
-        "translation_unit": "mg_dataset.cpp",
-        "function": "CopyFrame__FP8mgCFrameP8mgCFrameP9mgCMemoryiPP8mgCFrame",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__12mgCFrameAttrFv",
-        "conversion": "after_constructor_walk",
-        "expected_matches": 1
-      },
-      {
-        "translation_unit": "scenevillager.cpp",
-        "function": "CharaObjectOnOff__6CSceneFiP9mgCMemory",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__12mgCFrameAttrFv",
-        "conversion": "after_constructor_walk",
-        "expected_matches": 2
-      },
-      {
-        "translation_unit": "water.cpp",
-        "function": "CreateWaterFrame__FiiPfPfP9mgCMemory",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__11CWaterFrameFv",
-        "conversion": "after_constructor_inline",
-        "expected_matches": 1
-      },
-      {
-        "translation_unit": "water.cpp",
-        "function": "CreateWaterFrame__FiiPfPfP9mgCMemory",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__6CWaterFv",
-        "conversion": "after_constructor_walk",
-        "expected_matches": 1
-      },
-      {
-        "translation_unit": "effscript.cpp",
-        "function": "CreateEffSpt__16CEffectScriptManFiii",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__11_EFF_SCRIPTFv",
-        "conversion": "after_constructor_inline",
-        "expected_matches": 1
-      },
-      {
-        "translation_unit": "effscript.cpp",
-        "function": "CreateEffSpt__16CEffectScriptManFiii",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__11CCharacter2Fv",
-        "conversion": "after_constructor_inline",
-        "expected_matches": 1
-      },
-      {
-        "translation_unit": "editloop.cpp",
-        "function": "EditInit__F13INIT_LOOP_ARG",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__15CMapTreasureBoxFv",
-        "conversion": "after_constructor_inline",
-        "expected_matches": 1
-      },
-      {
-        "translation_unit": "editloop.cpp",
-        "function": "EditInit__F13INIT_LOOP_ARG",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__16CEffectScriptManFv",
-        "conversion": "after_constructor_inline",
-        "expected_matches": 1
-      },
-      {
-        "translation_unit": "editloop.cpp",
-        "function": "EditInit__F13INIT_LOOP_ARG",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__14CCameraControlFv",
-        "conversion": "after_constructor_walk",
-        "expected_matches": 5
       }
     ]
   }

@@ -1,34 +1,32 @@
 # event_func: reverse-engineering notes
 
 ## Status
-824 of the 827 functions in `ps2/src/event_func.cpp` are native C++ definitions and match retail
-(including `_COPY_CHARA`, `LoadMovie`, `_SET_CROSSFADE` and `_SET_GYORACE_ETC`). Two are guarded
-drafts (`#ifdef NONMATCHING` C++ with an `INCLUDE_ASM` fallback): `_ESM_INITIALIZE` and
-`_COPY_MONS2SCNCHR`. One symbol is assembly-only: the compiler-generated
-`CObject::CObject(const CObject &)` (`__ct__7CObjectFRC7CObject`, 0x2804B0, 0xC8 in a 0xD0
-extent), which retail emits from the character copy inside `_COPY_MONS2SCNCHR`; no active native
-caller emits it while that command is guarded, and an explicit copy body or dummy use is not an
-acceptable way to force it. Both guarded functions fail on MWCC's placement-new allocation-result
-schedule: retail tests the allocator's `v0` and copies it into the saved register in the branch
-delay slot, while MWCC copies first and branches on the saved register (see
-[placement conversion](../satansfiddle/placement-new.md)).
+All 827 functions in `ps2/src/event_func.cpp` match retail (including `_COPY_CHARA`,
+`_COPY_MONS2SCNCHR`, `_ESM_INITIALIZE`, `LoadMovie`, `_SET_CROSSFADE` and `_SET_GYORACE_ETC`).
+826 are native C++ definitions. The compiler-generated `CObject::CObject(const CObject &)`
+(`__ct__7CObjectFRC7CObject`, 0x2804B0, 0xC8 in a 0xD0 extent) has no source definition: MWCC
+emits it from the character copy inside `_COPY_MONS2SCNCHR`.
 
-- `_ESM_INITIALIZE` (0x128 body in a 0x130 extent): the natural source loads the texture-block
-  start and remaining count, adds the decoded offset to the start and calls
-  `CEffectScriptMan::Initialize`; it differs by two words at +0xE8/+0xF0 (the branch pair). The
-  retained draft's `Ident` helper scores zero only as a diagnostic and is inadmissible; without it
-  the direct expression leaves nine register-operand differences (MWCC merges the base load and
-  sum into the `a2` argument before colouring, retail loads the base into `v1` and adds into `a2`).
-- `_COPY_MONS2SCNCHR` (0x754 body at 0x27FD50 in a 0x760 extent; native 0x750): 244/472 words.
-  Retail copy-constructs the local `CCharacter2` snapshot (generated `CObject` copy constructor at
-  +0x190 into `sp+0x60`, then the derived members), not default-construct-then-assign. Beyond
-  the allocation branch pair, the 0xC-byte `shadow_link` (`CCharaFrameMatching`, source offset
-  +0x35C..+0x364) is copied through GPRs in retail but as three FPR loads/stores plus a
-  destination temporary in native (first difference +0x390, no float conversion involved), and
-  retail calls `Copy` through vtable slot +0xEC while the exact-type native snapshot is
-  devirtualized to a direct call. `CCharaFrameMatching` must stay a grouped member with an
-  explicit `Initialize` and no declared constructor (an empty constructor breaks
-  `MenuMonsterBoxInit`). The command is retail LOCAL; a `static` definition gives a LOCAL symbol.
+- `_ESM_INITIALIZE` (0x128 body in a 0x130 extent) reads the scene stack number and an optional
+  texture-block offset, constructs the `CEffectScriptMan` in that stack and stores it in
+  `EventEffectScript`, then initializes it with the event texture blocks starting at the offset.
+  The allocation size is `align16_blocks(sizeof(CEffectScriptMan)) + 2` (0x11B quadwords); the
+  file-local `align16_blocks` returns early, so MWCC statement-inlines it, and that gives
+  retail's `beqz v0` / delay-slot copy of the allocation result without a `placement_new` row
+  (`(sizeof(CEffectScriptMan) + 15) / 16 + 2` copies first and tests the saved register). The
+  texture-block start is read through the inline `CScene::GetEventTexb` into a local before the
+  sum; a direct `event_texb` field read colours the texture offset into `s0` and the stack
+  number/memory into `s1` (retail has the reverse), and the colouring does not change with
+  declaration order, `const` or unsigned locals, block locals, casts or a named manager local.
+- `_COPY_MONS2SCNCHR` (0x754 body at 0x27FD50 in a 0x760 extent) copy-constructs a temporary
+  `CCharacter2` snapshot of the monster's character (generated `CObject` copy constructor at
+  +0x190 into `sp+0x60`, then the derived members, not default-construct-then-assign) and calls
+  `Copy` on it through vtable slot +0xEC. The `align16_blocks(sizeof(CCharacter2)) + 2`
+  allocation gives retail's `beqz v0` test without a placement row, and
+  `CCharacter2(ActiveMonster->refer[monster_index].chara).Copy(*dest, memory)` keeps the
+  virtual call (a named local snapshot is devirtualized to a direct call). The snapshot's
+  `shadow_link` words are copied through GPRs because `CCharaFrameMatching` declares a default
+  constructor (see below).
 
 `_COPY_CHARA` (0x26A900, retail LOCAL, 0x2B4 in a 0x2C0 extent) allocates a `CCharacter2` in a
 scene stack (allocation precedes the source-character check, as in retail) and copies the source
@@ -54,6 +52,40 @@ idea -- this game's block is 0x12A0 and laid out differently.
 
 `CObject::CObject(const CObject &)` (0x2804B0) is emitted here but CObject is owned by `map`; not
 declared in this header.
+
+## Shadow-link construction and assignment constraints
+
+`CCharaFrameMatching` contains the count at +0, source-frame array at +4, and
+shadow-frame array at +8. Its storage is `CCharacter2::shadow_link` at +0x35C.
+Retail snapshot construction uses GPR `lw`/`sw` for all three words at
+0x280114..0x280128. In contrast, the implicit character assignment
+`__as__11CCharacter2FRC11CCharacter2` in `actionchara` uses FPR `lwc1`/`swc1`
+for the same storage at 0x173EBC..0x173ED0. The matching type must preserve
+this construction-versus-assignment distinction; volatile fields or a
+memberwise assignment operator are not supported by these consumers.
+
+Compiler specimens show that MWCC block-copies an aggregate member through FPRs when the
+member's class declares no constructor; a destructor, a user copy assignment, private members
+or a base class keep the FPR copy. A user-declared default constructor makes the generated
+copy constructor copy the member word by word through GPRs, as retail does. The empty
+`CCharaFrameMatching()` therefore gives the exact snapshot copy, while the implicit character
+assignment keeps its FPR copy.
+
+The retail default-construction consumers keep the shadow initialization in
+`CCharacter2`'s constructor body. `__ct__14CActiveMonsterFv` writes the
+`CCharacter2` vtable, then clears the count, destination pointer and source
+pointer in that order. `__sinit_dng_main_cpp` schedules the count clear before
+the vtable store for its static characters, and the two pointer clears after
+it. Member initializers or an `Initialize()` call in the matching's constructor
+change both of these consumers, so the constructor stays empty.
+
+`MenuMonsterBoxInit__FP9mgCMemoryPii` calls `CObjectFrame`'s constructor and
+`Initialize__19CCharaFrameMatchingFv` for each of the menu's two characters,
+at the same inline depth below the menu constructor as the matching's
+constructor. A numeric inline depth cannot produce this: depth 3 calls the
+empty constructor too (the body grows from 0x620 to 0x630), and depth 4 inlines
+`CObjectFrame` and `Initialize`. menuchr's `#pragma inline_depth(smart)` inlines
+the empty constructor away while keeping both calls (see the menuchr notes).
 
 ## Header dependencies
 - `dng_effect.hpp` (CHitEffectImage, by-value array `HitEffect[5]`), `sceneseq.hpp`
@@ -166,7 +198,7 @@ in the asm across all units (no other base+offset access exists; the addiu users
 |---|---|---|---|
 | EventMarker | 0x37DE7C / 4 | global | `CMarker` (eventsprite; Init/Draw called on it) |
 | SwordEffect | 0x37DE80 / 4 | local | `CSWordAfterImage *` |
-| EventEffectScript | 0x37DE84 / 4 | local | `CEffectScriptMan *` (its symbol must stay reachable for the guarded `_ESM_INITIALIZE` assembly) |
+| EventEffectScript | 0x37DE84 / 4 | local | `CEffectScriptMan *` |
 | p_use_item | 0x37DE88 / 4 | global | `RS_STACKDATA *` (= arg slot `->p` in `_GOTO_USE_ITEM`; `EdEventMenuExit` writes `->i`) |
 | SetWorldCoordFlg | 0x37DE8C / 4 | global | int |
 | PakuAnimEohNo, PakuMotionEohNo | 4 each | global | int handle, -1 none |

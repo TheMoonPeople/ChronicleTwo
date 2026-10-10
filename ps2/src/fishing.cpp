@@ -49,7 +49,7 @@ struct Vec4 {
     float v[4]; /**< Vector components. */
 };
 
-static void StepDataLoading(void *arg);
+static void       StepDataLoading(void *arg);
 extern const char at_2197__3[] = "\x92\xDE\x82\xEA\x82\xBD\x8E\x9E";
 extern const char at_2198__3[] = "\x92\xDE\x82\xE8\x8F\xE3\x82\xB0\x8A\xEC\x82\xD1";
 

@@ -276,20 +276,6 @@ int               SetEffectScript(CRunScript *script, char *program, mgCMemory *
 void              SetEffectScriptFunc();
 static void       DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, float *offset, mgC3DSprite *renderer, CMapLightingInfo *lighting);
 
-static const char at_1336__2[] = "--- effect script (non base)!!! ---\n";
-
-static const char at_1337__2[] = "--- effect script (not load base[%d])!!! ---\n";
-
-static const char at_1338__2[] = "--- effect script (non work stack)!!! ---\n";
-
-static const char at_1339__3[] = "--- effect script (ent_tbl max)!!! ---\n";
-
-static const char at_1340__2[] = "--- effect script work max[%d]!!! ---\n";
-
-static const char at_1341__2[] = "";
-
-extern const char at_2025__3[] = "------- es work max!! (set character) ---------\n";
-
 /**
  *
  * Rounds a byte count up to a number of 16-byte blocks.
@@ -718,7 +704,7 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
     base = NULL;
 
     if (base_num <= 0) {
-        printf(at_1336__2);
+        printf("--- effect script (non base)!!! ---\n");
         return NULL;
     }
 
@@ -730,13 +716,13 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
     }
 
     if (base == NULL) {
-        printf(at_1337__2);
+        printf("--- effect script (not load base[%d])!!! ---\n", base_no);
         now = NULL;
         return NULL;
     }
 
     if (work_memory == NULL) {
-        printf(at_1338__2);
+        printf("--- effect script (non work stack)!!! ---\n");
         now = NULL;
         return NULL;
     }
@@ -757,7 +743,7 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
         }
 
         if (slot == EFF_SPT_OWNER_SLOT_MAX) {
-            printf(at_1339__3);
+            printf("--- effect script (ent_tbl max)!!! ---\n");
             now = NULL;
             return NULL;
         }
@@ -765,26 +751,26 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
 
     token = work_memory->StartStackMode((int) MG_STACK_MODE_FIT, base->work_size);
 
-    if (token == 0) {
-        printf(at_1340__2, work_memory->stack_size - work_memory->stack_used);
+    if (token == NULL) {
+        printf("--- effect script work max[%d]!!! ---\n", work_memory->stack_size - work_memory->stack_used);
         now = NULL;
         return NULL;
     }
 
-    script = new (work_memory->Alloc(0x17)) _EFF_SCRIPT;
+    script = new (work_memory->Alloc(align16_blocks(sizeof(_EFF_SCRIPT)) + 2)) _EFF_SCRIPT;
 
     script->work = token;
     script->texb = base->texb;
     script->level = base->level;
     script->sprite = NULL;
     script->sprite_num = 0;
-    strcpy(script->tex_name, at_1341__2);
+    strcpy(script->tex_name, "");
     script->chara_work = NULL;
 
     if (base->chara != NULL) {
         CCharacter2 *chara;
 
-        chara = new (work_memory->Alloc(0x68)) CCharacter2;
+        chara = new (work_memory->Alloc(align16_blocks(sizeof(CCharacter2)) + 2)) CCharacter2;
 
         script->chara = chara;
         script->chara->Initialize();
@@ -792,14 +778,14 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
         base->work_size = base->chara->GetCopySize();
         base->work_size = base->work_size + 0x7D;
         base->work_size = base->work_size + 0x24;
-        ((CCharacter2 *) script->chara)->SetPosition(0.0f, -10000.0f, 0.0f);
-        ((CCharacter2 *) script->chara)->SetRotation(0.0f, 0.0f, 0.0f);
+        script->chara->SetPosition(0.0f, -10000.0f, 0.0f);
+        script->chara->SetRotation(0.0f, 0.0f, 0.0f);
     } else {
         script->chara = NULL;
     }
 
-    ((&script->run))->ext_func(ext_func, 0x100);
-    SetEffectScript(&script->run, base->script, (mgCMemory *) work_memory);
+    script->run.ext_func(ext_func, 0x100);
+    SetEffectScript(&script->run, base->script, work_memory);
     script->prog_no = 200;
     script->user_id = group;
     script->slot = slot;
@@ -1132,7 +1118,7 @@ void CEffectScriptMan::Draw() {
                         sceVu0FVECTOR character_position;
                         character->GetPosition(character_position);
 
-                        if (strcmp(script->offset_frame, at_1341__2) != 0) {
+                        if (strcmp(script->offset_frame, "") != 0) {
                             mgCFrame *frame = character->CObjectFrame::frame;
 
                             if (frame != NULL) {
@@ -1211,7 +1197,7 @@ void CEffectScriptMan::Draw() {
                         sceVu0FVECTOR character_position;
                         character->GetPosition(character_position);
 
-                        if (strcmp(script->offset_frame, at_1341__2) != 0) {
+                        if (strcmp(script->offset_frame, "") != 0) {
                             mgCFrame *frame = character->CObjectFrame::frame;
 
                             if (frame != NULL) {
@@ -1704,39 +1690,29 @@ CCharacter2 *CEffectScriptMan::GetCharacter(int group, int slot) {
     return 0;
 }
 
-#ifdef NONMATCHING
 int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
-    int        chara_blocks = (source)->GetCopySize() + 0x68;
-    u_long128 *token = work_memory->StartStackMode((int) MG_STACK_MODE_FIT, chara_blocks);
+    u_long128 *token = work_memory->StartStackMode(3, source->GetCopySize() + align16_blocks(sizeof(CCharacter2)) + 2);
 
-    if (token == 0) {
-        printf(at_2025__3);
+    if (token == NULL) {
+        printf("------- es work max!! (set character) ---------\n");
         return 0;
     }
-
-    CCharacter2 *chara;
 
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
 
-        _EFF_SCRIPT **entry = (_EFF_SCRIPT **) ((slot << 2) + ((group << 5) + (int) this) + 0x184);
-
-        if (*entry == 0) {
+        if (this->slot[group][slot] == NULL) {
             return 0;
         }
 
-        chara = new (work_memory->Alloc(0x68)) CCharacter2;
-
-        (*entry)->chara = chara;
-        source->Copy(*(*entry)->chara, work_memory);
-        (*entry)->chara_work = token;
+        this->slot[group][slot]->chara = new (work_memory->Alloc(align16_blocks(sizeof(CCharacter2)) + 2)) CCharacter2;
+        source->Copy(*this->slot[group][slot]->chara, work_memory);
+        this->slot[group][slot]->chara_work = token;
     } else {
-        if (now != 0) {
-            chara = new (work_memory->Alloc(0x68)) CCharacter2;
-
-            now->chara = chara;
+        if (now != NULL) {
+            now->chara = new (work_memory->Alloc(align16_blocks(sizeof(CCharacter2)) + 2)) CCharacter2;
             source->Copy(*now->chara, work_memory);
             now->chara_work = token;
         } else {
@@ -1748,9 +1724,6 @@ int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
     work_memory->EndStackMode();
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", SetCharacter__16CEffectScriptManFP11CCharacter2ii);
-#endif
 
 int CEffectScriptMan::SetTexb(int texb, int group, int slot) {
     if (slot >= 0) {
@@ -1789,7 +1762,7 @@ EFF_SPT_BASE_DEF *GetEffSptBaseDefPtr(int index) {
     }
 
     EFF_SPT_BASE_DEF *base = eff_spt_base_def + index;
-    return strcmp(base->name, at_1341__2) == 0 ? 0 : base;
+    return strcmp(base->name, "") == 0 ? 0 : base;
 }
 
 /**
@@ -2354,7 +2327,7 @@ int _AUTO_SET_OFFSET(RS_STACKDATA *stack, int argument_count) {
     if (name != 0) {
         strcpy(now_script->offset_frame, name);
     } else {
-        strcpy(now_script->offset_frame, at_1341__2);
+        strcpy(now_script->offset_frame, "");
     }
 
     return 1;

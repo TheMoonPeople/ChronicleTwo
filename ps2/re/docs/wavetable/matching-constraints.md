@@ -196,3 +196,273 @@ reassigned to `0.5f` for the seam, stays at 27 for each of 0.0196, 1.9216 and 0.
 Each use is reached by one constant definition, which is still propagated before CSE.
 The same per-definition propagation defeats multi-definition constant locals in
 `sgLoopGyoRace`.
+
+## Bounded cursor induction
+
+Two new cursor forms retain the declared plane/row arrays and keep all
+pointers within their owning arrays. Four float cursors, initialized to column
+1 of the above/current/below/previous rows and incremented through column 23,
+emit a scalar `0x340` body with **321/324** differing words. Two typed row
+cursors, initialized to row 1 and incremented through row 23, address vertical
+neighbours as `now_row[-1][column]` and `now_row[1][column]`. They recover the
+eight-cell interior unroll but emit `0x528` bytes, exceeding retail's `0x510`.
+They use sequential cell-address preparation without retail's saved-register
+frame and keep the plane-base calculations inside the seam loop. Moving the
+center/old cell pointers to function scope leaves the same `0x528` body.
+All four existing native functions remain exact; no candidate is retained.
+
+A relative three-row window formed inside the inner loop, using constant row
+subscripts 0/1/2 and bounded horizontal cell accesses, remains scalar at
+`0x218` bytes and **319/324** words. References to the complete plane arrays
+likewise remain scalar at `0x208` and **321/324** words. Binding the three
+arithmetic coefficients to const references in the typed row-cursor candidate
+loses its unroll and emits `0x2F0` bytes with **321/324** words, in either
+neighbor/self declaration order. Coefficient references therefore do not
+recover the required unrolled schedule. All four other functions remain exact.
+
+## Sequenced arithmetic and normalized indices
+
+Joining the neighbour scaling and self/previous contribution with the comma
+operator preserves their evaluation order but leaves the flat diagnostic at
+**27/324**. It does not change the coefficient colours.
+
+A bounded source that derives a linear cell index and reconstructs each
+actual row/column with division and remainder by 24 emits a scalar `0x368`
+body with **315/324** differing words. MWCC retains division/remainder work
+rather than folding the normalized indices back into retail's linear address
+calculation. The other four functions remain exact. No source or profile
+change is activated.
+
+## Function-scope self term
+
+The self/previous term `1.9216f * *center - *old` computed first into a
+function-scope `float`, which the seam then reuses for the right edge,
+keeps the eight-cell unroll and gives retail's coefficient registers
+(1.9216 `$f0`, 0.0196 `$f1`, 0.0015 `$f2`). It also materialises 1.9216
+first and moves the neighbour sum to `$f5`, so the cell schedule diverges:
+**193/324** words. Retail needs 0.0196 materialised first, so a statement
+that computes 1.9216 ahead of the neighbour scaling cannot match.
+
+## Smart and deferred inline policies
+
+Scoped `inline_depth(smart)` and deferred inlining (`-inline deferred`)
+each preserve the **27/324** residual and `0x510` body, with all four other
+native functions exact. The eighteen coefficient-register exchanges and nine
+seam-addition operand reversals remain. `Effect` has no call for either
+inline policy to expand, and these policies supply no bounded-grid or
+arithmetic correction. No source or compiler-policy change is retained.
+
+## Floating-point interference graph
+
+A capture of the floating-point interference graph for the 27-word draft,
+replayed by a simplify/select model, reproduces every `$f` colour MWCC assigns.
+The three coefficients are the only high-degree nodes (106 interferences each)
+and are coloured first in descending number: 0.0196 (`$f0`), 1.9216 (`$f1`),
+0.0015 (`$f2`). Swapping only the numbers of the 0.0196 and 1.9216 temporaries
+gives retail's colours with every other node unchanged, for any numbering in
+which 1.9216 is above 0.0196 and both are above 0.0015. No interference needs to
+change, so the unrolled-body residual is purely CSE creation order.
+
+Local `optimization_level` 1 and 2 lose the unroll (323/324 words); level 4 keeps
+the 27-word residual, so the second IR round does not renumber these constants.
+
+## Coefficient reference bindings
+
+The 27-word flat diagnostic still uses immediate coefficient materialisation.
+Its captured floating-point graph has three degree-106 coefficient nodes:
+0.0196 is numbered 59 and coloured `$f0`, 1.9216 is numbered 58 and coloured
+`$f1`, and 0.0015 is numbered 55 and coloured `$f2`. The simplify/select
+simulator reproduces all floating-point colours in every binding probe below.
+
+Binding 1.9216 and 0.0196 to function-scope `const float &` locals, in either
+declaration order, does not retain those immediate values as higher-numbered
+scalar locals. MWCC pools the reference targets and emits their addresses and
+`lwc1` loads in the wave loop. The eight-cell unroll survives, but the function
+has a `0x540` body and a `0x80` stack frame instead of retail's `0x510` body and
+`0x60` frame. Only the unreferenced damping coefficient remains a high-degree
+immediate node (number 55, degree 120, `$f0`). Reversing the declarations does
+not repair the graph or schedule.
+
+| Coefficient binding | Body bytes |
+| --- | ---: |
+| One literal reference, function or row scope (each of the three coefficients) | `0x51C` |
+| One literal reference, cell scope (each coefficient; scalar wave loop) | `0x1F8` |
+| Both literals through function-scope references | `0x540` |
+| Both literals through static references | `0x560` |
+| References to separately named const values: local, local-static, file-static or class-static | `0x548` |
+| References to separately named non-const local values | `0x558` |
+
+The two-coefficient cases give the same extent in both neighbor/self declaration
+orders. Named const targets likewise retain coefficient memory loads. Naming
+ordinary function-scope `const float` or `static const float` values without
+references still propagates them into literals: both declaration orders keep
+all floating-point colours and the original **27/324** residual.
+
+Canonical `draft.sh` confirms the `0x540` direct-reference and `0x548`
+local-static-target failures, and the scalar cell-reference failure. All four
+other native functions remain exact in those checks. Restoring the source
+recovers the original 27-word draft. No reference, constant, header, layout or
+compiler-policy change is retained; the bounded-indexing and seam constraints
+remain unresolved. A reference binding therefore supplies no evidence for
+renumbering the existing immediate-coefficient graph alone.
+
+## Single-statement update with an in-statement neighbour add
+
+The draft's coefficient numbering can be reproduced without names or
+references. The final neighbour addition has to move into the update
+statement:
+
+```cpp
+float sum = center[24] + (center[-1] + center[1]);
+*old = (sum += center[-24]) * 0.0196f + (1.9216f * *center - *old)
+     - 0.0015f * (*center - *old);
+```
+
+This form gives **41/324** words and a `0x510` body. Canonical `draft.sh`
+confirms the score, and all four other native functions stay exact. The
+row-loop head now matches retail exactly: 0.0196 is materialised first,
+1.9216 takes `$f0` and 0.0196 takes `$f1`. Every floating-point register
+in the unrolled cells also matches. Because `*center` and `*old` repeat
+inside the statement, the self term is as cheap as `(sum += U) * k`. The
+tie evaluates the left operand first and scans the right one first. That
+is the order retail needs.
+
+Two kinds of difference remain, besides the nine seam reversals:
+
+- The neighbour add is emitted as `sum + U` (`add.s $f4,$f4,$f3`), but
+  retail has `U + sum`.
+- The product is emitted as `0.0196 * n` (`mul.s $f4,$f1,$f4`), but
+  retail has `n * 0.0196`.
+
+There are also small schedule differences in the address arithmetic at
+`+0x140`, in the last unrolled cell, and in the remainder loop. Changing
+the operand order breaks something else in every form tested:
+
+| Variant | Words / 324 | Effect |
+| --- | ---: | --- |
+| Same, assigned to `sum` and then stored | 48 | same operand orders, more remainder-loop drift |
+| `(sum = center[-24] + sum)` (`U + sum` order) | 65-71 | the result becomes a temporary in `$f3`; a direct store is scalar |
+| `float sum = center[-24]; (sum += D + (L + R))` | 125 | add order correct, neighbour web in `$f6` |
+| `(sum += U) * (c * c)`, `float c = 0.14f` | 81 | `n * k` order, but 1.9216 materialised first and 0.0196 in `$f0` |
+| `((sum += U) *= 0.0196f)` in the statement | 80 | `n * k` and coefficient colours, but 1.9216 materialised first |
+| Full neighbour sum, `sum * (c * c) + self - damping` | 71 | coefficients and `n * k` correct, but the sum is dead before the self term (`$f3`) |
+| Named `float`/`const float k = 0.0196f` in the 41-word form | 41 | propagated like the literal |
+| Self term nested as `(wave = 1.9216f * *center - *old)` beside `(sum *= 0.0196f)` | 60-82 | 1.9216 still materialised first |
+| The same nested self term after a separate `sum *= 0.0196f` | 36 | 0.0196 numbered first |
+
+A 198-case screen covered the add form, the multiply form, the self-term
+order, the statement shape and the `sum` scope. It found no form below 41.
+Retail's `U + sum` and in-place `n * k` together point to the
+draft's separate `sum *= 0.0196f`, which numbers 0.0196 first. Double
+literals do not help: `sum *= 0.0196` is identical to the float form,
+while double 1.9216 or 0.0015 literals emit double arithmetic.
+
+### Squared coefficient
+
+0.0196 is bit-identical to `0.14f * 0.14f`, and 1.9216 to `2 - 4 * 0.14²`. If
+the product is written as `sum * (c * c)` with `float c = 0.14f`, the
+multiply keeps retail's `n * k` order. Combined with a separate `sum +=
+center[-24]`, this gives **33/324** words and a `0x510` body. Canonical
+`draft.sh` confirms the score, and all four other native functions stay
+exact:
+
+```cpp
+float sum = center[24] + (center[-1] + center[1]);
+sum += center[-24];
+*old = sum * (c * c) + (1.9216f * *center - *old) - 0.0015f * (*center - *old);
+```
+
+The prologue, the coefficient colours, every unrolled multiply and the
+`adda`/`msub` sequence all match. Differences remain in four places:
+
+- the `sum + U` operand order of the final neighbour add, in all eight cells;
+- three address instructions at `+0x140`;
+- the last unrolled cell's load order;
+- five remainder-loop words.
+
+The nine seam reversals also remain. `U + sum` is not
+available here: `+=` always emits the variable first, while `sum =
+center[-24] + sum` starts a new value. That value takes `U`'s register
+(`$f3`) instead of the partial sum's `$f4`, giving 65 words. The `U + sum`
+order is reached only by `float sum = U + (D + (L + R))`. With a temporary
+product, that sum dies before the self term and also takes `$f3`; that
+form gives 71 words.
+
+| `c * c` variant | Words / 324 |
+| --- | ---: |
+| `const float c` (folded like the literal) | 41 |
+| `c` declared inside the cell | `0x1F8`, scalar |
+| 1.9216 written as `2.0f - 4.0f * c * c` or `2.0f - 4.0f * (c * c)` | `0x1F8`, scalar |
+| Self term evaluated first (`self + sum * (c * c)`, or the damping moved out of the statement) | 67-81, 1.9216 materialised first |
+| `sum *= c * c` as its own statement (draft structure) | 27, 0.0196 numbered first |
+| `(center[-24] + sum) * (c * c)` in one statement | 67-81 |
+
+## Row cursors and reference bindings
+
+Retail recomputes every cell address as `base + ((column + k) + row * 24)
+* 4`. Typed row cursors strength-reduce the column address to a pointer
+with constant offsets instead:
+
+| Cursor form | Words / 324 | Body |
+| --- | ---: | ---: |
+| `float (*now)[24]` cursor advanced per row, function-scope `center`/`old` | 322 | `0x528` |
+| Same with block-scope `float *const &center`/`old` | 324 | `0x300`, scalar |
+| `float *const &` row bindings (`above`, `line`, `below`, `prev`) | 357 | `0x598`, bindings spilled to the frame |
+| `&now[row][column]` with `center[±24]` neighbours (crosses rows) | 324 | `0x438`, pointer induction |
+| Plain `now[row][column]` neighbours | 324 | `0x208`, scalar |
+
+None reproduces retail's per-cell index arithmetic. Only a flat
+`row * 24 + column` index does, and the seam forms tested here (pointer
+pairs, an index base at column 1, `0.5f *`, `/ 2`, reverse row loop and
+mixed `before[row * 24 + 22]` operands) leave the nine reversals or grow
+the body.
+
+## Grouped sums, value snapshots and pointer lifetimes
+
+With the squared-coefficient update above, a complete neighbour initializer
+loses the eight-cell unroll. All five binary groupings of the four neighbours,
+all 24 neighbour orders, and block/function accumulator declarations produce
+scalar `0x1F8` bodies. An extra outer pair of parentheses does not rescue them.
+Putting the grouped sum directly in the store retains `0x510`, but the best
+screened form differs in 148 words. This differs from assigning the combined
+update to `sum` before storing it: that is the previously recorded 71-word
+near-miss, rather than a direct-store initializer.
+
+Separate named `up`, `down`, `left` and `right` value loads also produce scalar
+bodies in every declaration order, with either plain or const values, full or
+partial neighbour sums, and direct grouped stores. Naming the current/previous
+heights, or the physical velocity `*center - *old`, likewise loses the unroll.
+Plain/const velocity values and const-reference bindings do not retain a useful
+floating-register constraint.
+
+Representative canonical `draft.sh` checks establish these constraints; all
+four other native functions remain exact:
+
+| Change to the squared-coefficient near-miss | Words / 324 | Body |
+| --- | ---: | ---: |
+| Full grouped initializer, function-scope `sum` | 321 | `0x1F8` |
+| Four named neighbours, partial sum followed by `+= up` | 321 | `0x1F8` |
+| Current/previous height snapshots before the partial sum | 321 | `0x1F8` |
+| Named velocity before the partial sum | 321 | `0x1F8` |
+| Cell-scope `center`, function-scope `old` | 33 | `0x510` |
+| Named seam edges, right loaded before left, `(left + right) * 0.5f` | 51 | `0x510` |
+| Function-scope `old` reused as the seam row pointer | 79 | `0x510` |
+| Entire grouped neighbour sum inside the store | 148 | `0x510` |
+
+Moving only `center` into the cell body ties the 33-word near-miss without
+fixing any residual. Pointer declaration-order changes, assignment reversal,
+other cell-pointer scopes, and row/function accumulator scopes do not improve
+it. Seam value/reference bindings in both declaration orders, row-local
+averages, and separate versus chained stores give 51--80 words. Reusing either
+cell pointer as the seam row pointer gives 79--122 words and leaves the wave
+loop's terminal address discrepancy.
+
+At `+0x140`, the near-miss shifts the terminal offset into `$s3`, forms the
+current-cell pointer in `$s4`, and the previous-cell pointer in `$s5`. Retail
+shifts into `$s4`, forms the current-cell pointer in `$s5`, then reuses `$s4`
+for the previous-cell pointer. This is a coalescing difference with the same
+address schedule. The captured GPR/FPR interference graphs reproduce the
+near-miss's allocation exactly under the local allocator simulator; pointer
+reuse and value snapshots do not supply the required natural lifetime change.
+The original 27-word guarded draft and the structurally closer 33-word update
+therefore remain the retained reference points.

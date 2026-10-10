@@ -99,7 +99,7 @@ static void QuatToMat(float *quaternion, float (*matrix)[4]) {
 static float projected_corners[8][4];
 
 static void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *out_max,
-           float *out_min) {
+                  float *out_min) {
     float combined[4][4];
     for (int column = 0; column < 4; column++) {
         for (int row = 0; row < 4; row++) {
@@ -217,7 +217,7 @@ static asm void test1(float (*corners)[4], float (*left)[4], float (*right)[4], 
 }
 #endif
 static void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *out_max,
-           float *out_min);
+                  float *out_min);
 // clang-format on
 // clang-format off
 /**
@@ -1507,6 +1507,7 @@ int mgCFrame::Draw(unsigned int *packet) {
     mgRENDER_INFO *info = &mgRenderInfo;
     int            words = 0;
     sceVu0FMATRIX  world;
+
     if (attr == NULL) {
         GetLWMatrixTopBottom(world);
     } else {
@@ -1520,22 +1521,28 @@ int mgCFrame::Draw(unsigned int *packet) {
             if (visual == NULL) {
                 break;
             }
+
             if (!attr->no_cull && bound != NULL) {
                 sceVu0FVECTOR box_max;
                 sceVu0FVECTOR box_min;
                 test1(bound->corner, info->world_screen_rel, world, box_max, box_min);
+
                 if (box_max[3] < info->clip_min[2]) {
                     break;
                 }
+
                 test2(box_max, box_min);
+
                 if (!mgClipBoxW(box_max, box_min, info->screen_box_max, info->screen_box_min)) {
                     break;
                 }
+
                 if (mgClipInBoxW(box_max, box_min, info->gs_box_max, info->gs_box_min)) {
                     info->clip = 0;
                     info->scissor = 0;
                 } else {
                     info->clip = 1;
+
                     if (attr->program_mode & 2) {
                         info->scissor = attr->clip_enable != 0;
                     } else {
@@ -1543,9 +1550,11 @@ int mgCFrame::Draw(unsigned int *packet) {
                     }
                 }
             }
+
             info->attr = attr;
             sceVu0CopyVector(info->object_color, attr->color);
             info->plight_hit = 0;
+
             if (info->plight_enable && attr->point_light && !attr->no_light && bound != NULL) {
                 sceVu0FMATRIX transposed;
                 sceVu0TransposeMatrix(transposed, world);
@@ -1560,9 +1569,11 @@ int mgCFrame::Draw(unsigned int *packet) {
                 center[3] = 1.0f;
                 sceVu0ApplyMatrix(center, world, center);
                 mgLIGHT_INFO *light = info->GetpLightInfo();
+
                 for (int i = 0; i < 4; i++) {
                     if (!(light->point_light[i].power <= 0.0f)) {
                         float reach = radius + light->point_light[i].range;
+
                         if (!(reach <= mgDistVector(light->point_light[i].pos, center))) {
                             info->plight_hit = 1;
                             break;
@@ -1570,22 +1581,28 @@ int mgCFrame::Draw(unsigned int *packet) {
                     }
                 }
             }
+
             words += visual->Draw(packet, world, NULL);
             break;
         }
+
         if (attr->draw & MG_FRAME_DRAW_SKIP_CHILDREN) {
             return words;
         }
     }
+
     for (mgCFrame *node = child; node != NULL; node = node->brother) {
         int use = 1;
+
         if (node->attr != NULL && (node->attr->draw & MG_FRAME_DRAW_SKIP_BY_PARENT)) {
             use = 0;
         }
+
         if (use) {
             words += node->Draw(packet + words * 4);
         }
     }
+
     return words;
 }
 

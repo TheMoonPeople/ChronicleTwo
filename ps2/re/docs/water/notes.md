@@ -1,15 +1,10 @@
 # water: reverse-engineering notes
 
-`CreateWaterFrame`'s typed native constructor sequence remains fuzzy. Its
-matching build path uses retail assembly and retains the C++ draft under
-`NONMATCHING`.
-
 `CFireRaster::Step` advances 20 wisp particles, expires spent particles and respawns the last free slot. Its sway phase is twice the loop counter. Typed particle indexing, phase expressions `i * 2`, and advancing the particle index before the counter reproduce the complete 460-byte PAL function, including relocations. The free slot is passed as its `position` member.
 
 ## Matching status
 
-`CreateWaterFrame` is the sole assembly-backed function; its typed draft remains
-guarded. All other functions are native.
+All functions are native and exact.
 
 Header: `ps2/include/water.hpp`. Types: `FireRasterParticle` (neutral name, no retail symbol),
 `CFireRaster`, `CThunderEffect`, `CWater`, `CWaterFrame`. One free function `CreateWaterFrame`
@@ -135,3 +130,24 @@ All data are native; no assembly data markers remain. The compiler emits the 0x3
 source base names, exact extents and bytes, and complete retail consumers establish
 identity without numeric suffixes. MWCC rejects native 128-bit shift initializers with
 `illegal data size`, so the word-array representation is retained.
+
+## Allocation-size inline
+
+`CreateWaterFrame` writes every allocation as
+`memory->Alloc(align16_blocks(sizeof(T)) + 2)`, using the file-local rounding inline that
+other units also define. Retail's constants (0x14, 0xB, 0xA, 0xD for 0x120, 0x90, 0x80
+and 0xB0 bytes) equal that expression. The inline's `if` and early return put it in
+MWCC's class 3, so the compiler statement-inlines it. That natively requests statement
+conversion for each allocation statement, which gives the early construction form with
+no `placement_new` row:
+
+- For the outlined `CWater` constructor, `beqz v0` tests the allocator result, the delay
+  slot copies it into the named pointer's `s6`, the constructor receives `s6`, and its
+  result replaces `s6`.
+- For the inline `CWaterFrame` construction, the same form applies.
+
+`sizeof(T) / 16 + 2` folds to the same constants but leaves the statement unconverted. An
+outlined construction then lowers as the late form (`move s6,v0; beqz s6`) into a
+non-const pointer. Into a `const` pointer, it lowers as a separate temporary that passes
+`v0` to the constructor. Retail `EditInit` shows the same early form for its local
+`CCameraControl` construction.

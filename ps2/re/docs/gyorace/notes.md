@@ -19,14 +19,9 @@ counterpart (Dark Cloud 1 has no fish race).
 
 ## Matching status
 
-Nine of the ten functions are native; `sgInitGyoRace` and `sgSysDrawGyoRace` are exact.
-`sgLoopGyoRace` is the only guarded draft (`#ifdef NONMATCHING` with `INCLUDE_ASM`); see
-"Race loop" below for why it does not match.
-
-The remaining markers are the `INCLUDE_RODATA` strings and vector templates used only by the
-guarded `sgLoopGyoRace` (`at_1481__4`, `at_1524__2`, `at_1547`, `at_1548`, `at_1380__2`,
-`at_1696__2`..`at_1703`) and the two `INCLUDE_BSS` zero vector templates `at_1775`/`at_1776`
-that `DivSpriteScreen` copies (see "Retained data markers").
+All ten functions are native and exact. The only remaining markers are the two
+`INCLUDE_BSS` zero vector templates `at_1775`/`at_1776` that `DivSpriteScreen` copies (see
+"Retained data markers").
 
 ## SubGameInfo (subgame.hpp, not owned here)
 `+0` CScene*; `+4` is the first texture block number for fish characters (`CharaTexb = info->texb`).
@@ -85,7 +80,7 @@ Work, then `camera0`.
 | 0x08 | fish_no | -1 or index passed to `CGyoraceFishData::GetRaceFish`; copied to result +0x1C |
 | 0x0C | rank | computed per frame from progress (+1 per fish ahead or already goaled); used for place sprite x = rank*0x18 |
 | 0x10 | lap | u32 (`fptoui(pos/8)`, unsigned compare); 2 laps of 8 course units |
-| 0x14 | unk_14 | written 0 by sgInit, set to 1 entering lap 1 (with `lap_start`), never read; not renamed while its second writer is inside the guarded sgLoop draft |
+| 0x14 | unk_14 | written 0 by sgInit, set to 1 entering lap 1 (with `lap_start`), never read |
 | 0x18 | lap_start | race_cnt on entering lap 1 |
 | 0x1C | unk_1c | never accessed in this unit |
 | 0x20 | time | race_cnt*20 (or goal time*20 from RaceInfo+0x1C4[i]) for hero_no only |
@@ -160,35 +155,32 @@ as evaluate-first for `SetRef__9mgCCameraFfff` and `SetNextRef__9mgCCameraFfff` 
 matches each). Retail transfers zero to `f13` before materializing 222 in both terminal
 camera reference calls; other camera callees keep their ordinary schedule.
 
-## Race loop (`sgLoopGyoRace`, guarded)
+## Race loop (`sgLoopGyoRace`)
 
 The loop replays simulated progress, computes places, updates lap timing, maps each fish onto
 the two straight sections and circular course ends, spawns splash effects and updates the
 tracking camera. Completed races save the ordered fish results and restore the ambient
-lighting and scene state. Retail's six-case switch jump table is `at_1703` (0x18 bytes at
-0x3787C0); its targets are loop offsets 0x68, 0x2B4, 0x4B8, 0x4B8, 0x1028 and 0x1598.
+lighting and scene state. The compiler emits the six-case switch jump table `at_1703`; its
+targets are loop offsets 0x68, 0x2B4, 0x4B8, 0x4B8, 0x1028 and 0x1598.
 
-The guarded draft occupies retail's 0x1A30 extent but cannot match from source alone:
+- The splash rectangle is set through `CHitEffectImage::SetTexRect`, an inline member taking
+  `mgRect<int>` by value. Retail copies the constructed rectangle into a second 16-byte
+  aligned argument temporary (`lq`/`sq`) before storing its four edges, and reserves a 0x3F0
+  frame. Plain assignment (the implicit reference `operator=`) and named-local copies are
+  folded and give a 0x3E0 frame without the copy. A general by-value `mgRect::operator=`
+  changes other matched units and is rejected (see the shared assignment evaluation).
+- Six camera/splash argument orders use exact `sgLoopGyoRace` floating-expression rows in
+  `scripts/build/satansfiddle.json`. These are the ready mode's `SetNextRef` zero before 222
+  (switch value 0, two sites); mode 1's `SetPos`/`SetNextPos` Z (168) first; mode 4's
+  `SetPos`/`SetNextPos` Z (-10) after X but before Y; and the non-battle splash gravity
+  `-0.1f` (selected by its sibling spread argument 10.0f). Retail materializes that gravity
+  into `$f20` before the `mgDistVector`/`fptosi` calls. Literal, double, local and
+  negated-local gravity forms are folded or leave an unfolded `neg.s`.
+- The motion, gate part/piece/frame names, blank result name and result diagnostic are
+  inline string literals. The direction, rotation, ambient-colour and camera-position
+  templates are `RaceVector` local initializers that the compiler emits as `.data` templates.
 
-- Retail copies the constructed splash rectangle into a second 16-byte aligned argument
-  temporary (`lq`/`sq`) before storing its four edges into `CHitEffectImage::tex_rect`, and
-  reserves a 0x3F0 frame; the draft's implicit `mgRect<int>` assignment takes a reference and
-  reserves 0x3E0. That copy is the code of an assignment taking `mgRect<int>` by value. A
-  general by-value `mgRect::operator=` changes code in other matched units (menumap `Draw`,
-  dngmenu `DrawRoot`, menudraw `CMenuEffect::Draw`, screeneffect), and an inline by-value
-  operator on a dedicated `tex_rect` type renumbers MWCC's `@NNN` locals in every unit that
-  includes `dng_effect.hpp`. The member must remain an `mgRect<int>` or a class derived from
-  it because `CHitEffectImage`'s constructor calls `Set__9mgRect_i_Fiiii` on it. A workable
-  shape needs a by-value assignment on a derived `tex_rect` type defined where only its three
-  users see it, or regenerated local-symbol names for the including units.
-- Six camera/splash argument orders need evaluate-first rows that are not in the profile:
-  the ready mode's `SetNextRef` zero before 222; mode 1's `SetPos`/`SetNextPos` Z (168)
-  before X/Y; mode 4's `SetPos`/`SetNextPos` Z (-10) after X but before Y; and the non-battle
-  splash gravity `-0.1f`, which retail materializes into `$f20` before the
-  `mgDistVector`/`fptosi` calls. Literal, double, local and negated-local gravity forms are
-  folded or leave an unfolded `neg.s`.
-
-Source forms that reproduce retail inside the draft:
+Source forms the match depends on:
 
 - The hero's time is stored and read through one `float *total` declared before the goal
   test and assigned `&state->time` in each branch. With two definitions it is not
@@ -257,13 +249,6 @@ filled field by field stores the offsets directly and reorders the function's op
 
 ## Retained data markers
 
-- `INCLUDE_RODATA` for the thirteen objects only the guarded `sgLoopGyoRace` uses:
-  `at_1481__4`, `at_1524__2`, `at_1547`, `at_1548` (direction, rotation, ambient-colour and
-  camera-position templates); `at_1380__2` (ordinary swim motion, Shift-JIS) and `at_1700__2`
-  (battle motion); `at_1696__2`, `at_1697__3`, `at_1698__3`, `at_1699__3` (gate map part,
-  piece and left/right frame names); `at_1701`, `at_1702` (blank result name and result
-  diagnostic); `at_1703` (the switch jump table). The draft declares them `extern` inside the
-  function.
 - `INCLUDE_BSS(at_1775, 0x10)` / `INCLUDE_BSS(at_1776, 0x10)` with `extern RaceVector
   at_1775/at_1776`: the two zero vector templates `DivSpriteScreen` copies into `uv` and `xy`.
   SDK integer-vector zero initializers with a memcpy of the origin, or a typed aggregate

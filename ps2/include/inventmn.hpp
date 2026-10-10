@@ -325,8 +325,8 @@ STATIC_ASSERT(sizeof(CInventDataManage) == 0x8);
  */
 class CMenuInvent : public CBaseMenuClass {
 public:
-    short                 photo_only; /**< 1 when the menu was opened to show the photos alone. */
-    short                 card_album_mode;
+    short                 photo_only;         /**< 1 when the menu was opened to show the photos alone. */
+    short                 album_open;         /**< 1 while the memory-card album workflow is active. */
     int                   card_cursor;        /**< Invention card under the cursor. */
     int                   card_top;           /**< Invention card at the top of the list. */
     int                   item_cursor;        /**< Carried item under the cursor. */

@@ -51,6 +51,19 @@
  */
 static u_int *MenuCharaChangePosDataCfgBuffer;
 
+/**
+ *
+ * Rounds a byte count up to the number of 16-byte memory blocks it occupies.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
+
 inline CMenuChrCngMenu::CMenuChrCngMenu() {
     change_phase = (int) CHR_CNG_PHASE_NONE;
     change_chara = -1;
@@ -65,6 +78,7 @@ inline CMenuChrCngMenu::CMenuChrCngMenu() {
     item_brd_select = 0;
     item_brd_pos = 0;
     open_wait = -1;
+    set_cursor = 1;
     cursor_wave = 0;
     form = NULL;
     npc_sub_form2 = NULL;
@@ -817,16 +831,6 @@ static short monster_load_id = -1;
  *
  */
 static CMenuChrCngMenu *ChrChangMenuPt;
-
-/**
- *
- * Character slots that require party menu background read requests.
- *
- */
-static int tbl_2483[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
-
-extern const char at_2595__2[] = "chrchg0.pac";
-extern const char at_2596__3[] = "JOININIT";
 
 /**
  *
@@ -3269,7 +3273,6 @@ void MenuCharaChangeStarDraw() {
     prim->End();
 }
 
-#ifdef NONMATCHING
 int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     u_long128       *buffer;
     int              size;
@@ -3279,6 +3282,7 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     int              i;
     CCharacter2     *chara;
     short            party_chara;
+    static int       tbl[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
 
     buffer = stack->stack;
 
@@ -3293,7 +3297,7 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuChangeMemory.stSetBuffer(stack->stGetTop(), size);
     MenuChangeMemory.Alloc(0x100);
 
-    menu = new (MenuChangeMemory.Alloc(0x1FA)) CMenuChrCngMenu;
+    menu = new (MenuChangeMemory.Alloc(align16_blocks(sizeof(CMenuChrCngMenu)) + 2)) CMenuChrCngMenu;
 
     ChrChangMenuPt = menu;
     menu->SetTexBlock(tex_block);
@@ -3301,7 +3305,7 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     ChrChangMenuPt->last_select = party_chara;
     ChrChangMenuPt->select = party_chara;
 
-    repair = new (MenuChangeMemory.Alloc(0x21)) CRepairManager;
+    repair = new (MenuChangeMemory.Alloc(align16_blocks(sizeof(CRepairManager)) + 2)) CRepairManager;
 
     MenuRepairMan = repair;
     repair->Initialize();
@@ -3317,7 +3321,7 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
         MenuActionChara[i] = static_cast<CActionChara *>(chara);
     }
 
-    MenuBGReadInfo2Malloc(&MenuChangeMemory, tbl_2483);
+    MenuBGReadInfo2Malloc(&MenuChangeMemory, tbl);
     MenuCharaChangeCLUT_Tex = 0;
     MenuMainFrameModeSet(4, 1);
     ChrChangMenuPt->EnterDataMenu((u8 *) stack->stack);
@@ -3353,14 +3357,11 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     }
 
     MenuCommonInfo->key_enable = 0;
-    (&MenuCommonInfo->cursor)[0] = 0;
+    MenuCommonInfo->cursor = 0;
     MenuGetPartySeFlag = 0;
     MenuDCMsg[0]->MsgPreset(3);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuCharaChangeInit__FP9mgCMemoryPii);
-#endif
 
 int MenuCharaChangeKey() {
     int               result;
@@ -4203,7 +4204,7 @@ inline CMenuMosSelect::CMenuMosSelect() {
     model_form = NULL;
 }
 
-#pragma inline_depth(3)
+#pragma inline_depth(smart)
 
 void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     /**
@@ -7373,11 +7374,13 @@ inline CMenuCostumeSel::CMenuCostumeSel() : camera(40.0f, 30.0f, 0.0f, 8.0f) {
     costume_rotation[1] = 0.1f;
     costume_rotation[2] = 0.0f;
     costume_rotation[3] = 1.0f;
+
     for (int i = 0; i < COSTUME_LIST_MAX; i++) {
         costume_list[0][i] = 0;
         costume_list[1][i] = 0;
         costume_list[2][i] = 0;
     }
+
     list[0] = costume_list[1];
     list[1] = costume_list[0];
     list[2] = costume_list[2];
@@ -7393,14 +7396,16 @@ inline CMenuCostumeSel::CMenuCostumeSel() : camera(40.0f, 30.0f, 0.0f, 8.0f) {
 }
 
 void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
-    int buffer_quadwords = stack->stGetRest();
-    MenuChangeMemory.stSetBuffer(stack->stGetTop(), buffer_quadwords);
+    int rest = stack->stGetRest();
+    MenuChangeMemory.stSetBuffer(stack->stGetTop(), rest);
     MenuCosPtr = new (MenuChangeMemory.Alloc(0x2F)) CMenuCostumeSel;
     CostumeAttr = 0x1274521CBULL;
+
     if (MenuArg.param[0] == 1) {
         MenuCosPtr->monica_enabled = 1;
         CostumeAttr |= CostumeOptionEnv;
     }
+
     MenuCosPtr->UpdateCostumeList(0, CostumeAttr);
     MenuCosPtr->LoadMenuData(&MenuChangeMemory, tex_block);
     MenuCosPtr->FadeInMenu(0x28, 0.0f);

@@ -122,10 +122,10 @@ int         EventScriptSetup(SYSTEM_SCRIPT_INFO *script);
 int         ChangeSetUnit(int dir);
 void        InitEyeCamera(CActionChara *chara);
 int         IsRunDeadEvent(CActionChara *chara);
-static int debug_cursor;
-static int debug_mons_no;
-static int debug_mons_cur;
-static int debug_mons_num;
+static int  debug_cursor;
+static int  debug_mons_no;
+static int  debug_mons_cur;
+static int  debug_mons_num;
 
 // Uninitialised data (.bss)
 mgCMemory             BuffPaketList[2];
@@ -183,7 +183,6 @@ CThunder              thunder[6];
 CTornado              tornado[6];
 CChillAfterHit        chillAfterHit[6];
 CFireAfterHit         fireAfterHit[6];
-
 
 // Code (.text)
 CWeaponElement *GetWeaponEffect() {

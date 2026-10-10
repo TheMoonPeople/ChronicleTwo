@@ -1990,20 +1990,20 @@ static int PageConv32to8(int width, int height, u_char *src, u_char *dst) {
  */
 static int Conv32To8(int width, int height, u_char *image) {
     static u_char conv_work[0x10000];
-    u_char  work8[0x2000];
-    u_char  work32[0x2000];
-    int     k;
-    int     pages_x;
-    int     row_count;
-    int     row_bytes;
-    int     j;
-    int     i;
-    int     pages_y;
-    u_char *source_cursor;
-    int     size;
-    u_char *work_cursor;
-    int     page_width;
-    u_char *destination_cursor;
+    u_char        work8[0x2000];
+    u_char        work32[0x2000];
+    int           k;
+    int           pages_x;
+    int           row_count;
+    int           row_bytes;
+    int           j;
+    int           i;
+    int           pages_y;
+    u_char       *source_cursor;
+    int           size;
+    u_char       *work_cursor;
+    int           page_width;
+    u_char       *destination_cursor;
 
     size = width * height;
 

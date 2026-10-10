@@ -575,6 +575,20 @@ public:
 
     /**
      *
+     * Returns the frame's first child, or null.
+     *
+     */
+    mgCFrame *GetChild() { return child; }
+
+    /**
+     *
+     * Returns the frame's next sibling, or null.
+     *
+     */
+    mgCFrame *GetBrother() { return brother; }
+
+    /**
+     *
      * Unlinks the frame from its parent and siblings.
      *
      * @mangled DeleteParent__8mgCFrameFv

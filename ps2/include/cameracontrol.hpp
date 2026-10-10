@@ -154,6 +154,13 @@ public:
 
     /**
      *
+     * Makes the limits in use the ones that the camera starts with.
+     *
+     */
+    void SetDefaultParam() { default_param = *GetActiveParam(); }
+
+    /**
+     *
      * Sets the CameraRotCancel bits that stop ways the camera moves.
      *
      * @mangled SetRotCameraCancel__14CCameraControlFi

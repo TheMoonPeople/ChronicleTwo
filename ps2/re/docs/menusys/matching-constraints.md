@@ -1,10 +1,10 @@
 # Item-menu source controls
 
-All functions are native and exact except CMenuItemInfo::IsAskExtend. The
-[current unit notes](notes.md) describe accepted source and types; the
+All 165 functions are native and exact. The [current unit notes](notes.md)
+describe accepted source and types; the
 [constructor controls](guarded-constructors.md) and
-[placement conversion](../satansfiddle/placement-new.md) distinguish its
-remaining draft from the exact allocation callers.
+[placement conversion](../satansfiddle/placement-new.md) describe the four
+exact allocation callers.
 
 The following controls concern earlier unmatched source forms. Their measured
 scores do not describe the current native functions.

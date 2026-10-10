@@ -42,7 +42,7 @@
 #include "userdata.hpp"
 #include "water.hpp"
 
-static int gekirin_anim[16] = {0, 3, 6, 5, 4, 3, 2, 1, 3, 4, 3, 2, 1, 2, 1, 0};
+static int        gekirin_anim[16] = {0, 3, 6, 5, 4, 3, 2, 1, 3, 4, 3, 2, 1, 2, 1, 0};
 static const char at_1221__2[] = "%d";
 
 // Code (.text)

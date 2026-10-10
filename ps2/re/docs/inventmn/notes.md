@@ -6,51 +6,48 @@ the memory-card album, invention recipes and the menu page class. No first-game 
 
 ## Function status
 
-Every function of the unit is native C++ except three guarded drafts
-(`#ifdef NONMATCHING` ... `INCLUDE_ASM`): `CInventUserData::ResetAddress`,
-`CMenuInvent::IsAccessAlbum` and `MenuInventInit`. There is no assembly-only
-function. `MenuInventKey`, `CMenuInvent::CalcTex`, `LoadCharaCheck`,
-`IsCreateObject`, `UpdataNetaMemoStr`, `GradationStep` and `CalcCursorPosition`
-are native and exact; the forms their matches depend on are in
-"Matching-dependent source forms" below.
+Every function of the unit is native C++ and exact. There is no guarded draft
+or assembly-only function. `MenuInventKey`,
+`CMenuInvent::CalcTex`, `LoadCharaCheck`,
+`IsCreateObject`, `UpdataNetaMemoStr`, `GradationStep`, `CalcCursorPosition`,
+`CInventUserData::ResetAddress`, `MenuInventInit` and `IsAccessAlbum` are native
+and exact; their required source forms are in "Carried-photo pixel storage" and "Matching-dependent source forms"
+below.
 
 `decompile.sh` cannot recover the jump tables in `MenuInventKey` and
 `IsCreateObject` (assembly lines 176 and 861); analysis of those switches uses
 the retail instructions directly.
 
-### Guarded functions
+### Inventory entry (`MenuInventInit`, 0x20AFB0)
 
-- `CInventUserData::ResetAddress` points each of the thirty `USER_PICTURE_INFO`
-  records at its `0x2000`-byte row of `photo_work`. Retail recomputes the
-  invariant `this + 0xD60` row base inside the eight-way unrolled loop body and
-  again before the two-photo remainder; the typed row-pointer draft computes it
-  once before the induction setup, so its base setup and two-photo tail differ.
-  Only a cast on the decayed `photo_work` array (`(char *) photo_work + index *
-  0x2000` or a same-type `(char (*)[0x2000])` cast) keeps the base opaque enough
-  to reproduce retail, and such a no-op cast is not accepted as source.
-- `CMenuInvent::IsAccessAlbum` runs the memory-card album dialogue (see "Album
-  access states"). It constructs `CDC2AlbumData` and `CMemoryCardManager` with
-  placement new from `MenuInventMCStack`; the draft copies the allocation result
-  to a saved register before testing it for null, where retail branches on `v0`
-  and copies in the delay slot, and the draft's frame is `0x10` smaller with
-  `this` and the card pointer in exchanged saved registers.
-- `MenuInventInit` builds `CMenuInvent` and the menu's `CActionChara` objects
-  on `MenuInventStack`, loads the inventory configuration and starts the item
-  board. The `CMenuInvent` placement expression and the two effect allocations
-  already have retail's branch-before-copy shape; the three character
-  allocations copy the result before the branch, as in `IsAccessAlbum`.
+`MenuInventInit` copies the incoming memory region into `MenuInventStack`,
+reserves its used prefix, constructs the menu page and character/effect objects,
+and loads the inventory configuration. Photo-only entry instead reads
+`photo_bg1.pac`, shows the plain image form and allocates its camera character
+region. Entry restores remembered list positions when cursor saving is enabled,
+then configures the item board, input frame and loading display. Its third
+integer argument is unused.
+
+The size snapshot precedes the byte-buffer snapshot:
+`int size = memory->stGetSize(); u8 *pack = memory->stGetBuffer();`.
+The inline byte getter belongs beside `mgCMemory::stSetBuffer` and returns
+`stack_bytes`. This retains retail's pack in `s0` and texture-block argument in
+`s1`; a quadword-returning getter followed by a cast or a direct byte-field
+snapshot exchanges those registers.
+
+The file-local `align16_blocks` tests the low four bits and returns early for a
+partial quadword. Placement allocations use
+`stack->Alloc(align16_blocks(sizeof(T)) + 2)`, retaining retail's `v0` null test
+and pointer copy in the delay slot without another placement profile row.
+The three action characters use direct scalar placement expressions. The two
+effect allocations retain the guarded `Initialize` calls. The inline menu
+constructor owns the three icon-name literals; entry owns its configuration,
+image-form and initial script literals.
 
 ### Remaining data markers
 
 - `at_3138`: retail's jump table for the load-stage switch in `IsCreateObject`
   (nine `IsCreateObject` targets and a trailing zero word).
-- `at_4354`..`at_4380` except `at_4378`: script and format strings used only by
-  the guarded `IsAccessAlbum`.
-- `at_5011`..`at_5013`: the three memory-card icon names copied by the inline
-  `CMenuInvent` constructor; the constructor is inlined only into the guarded
-  `MenuInventInit`, so no native literal is emitted for them.
-- `at_5014`..`at_5016`: the configuration file name, image form name and script
-  name used only by the guarded `MenuInventInit`.
 - `INCLUDE_BSS` `at_3739` and `at_3765`: the zero templates of the two
   `ItemNameList2` locals (`names`, `delete_names`) of `IsAskExtend`. Giving each
   its own case scope changes the function prologue, and value initialization
@@ -61,7 +58,7 @@ local aggregates with ordinary initializers (recipe flags, message types, grade
 rows and steps, cursor and gift coordinates, item board positions and names,
 blank name, card colour, grid codes and creation/exit arguments), twenty-eight
 initialized tables, the switch tables and the `CMenuInvent` vtable. The cursor
-seed is `{10, 10, 0, 0}`. Shift-JIS text is written with hex escapes. `Tb_2819`
+seed is `{10, 10, 0, 0}`. Shift-JIS text uses explicit byte escapes. `Tb_2819`
 holds seven pointers (entries one and six share one literal) and is followed by
 three alignment bytes before `jp_conv_lentbl_2835`. The 53 `scoop_table` rows
 keep retail's order and ID/index gaps, with scoop 1015 last. The gift
@@ -72,6 +69,41 @@ Header `@size` values are the retail symbol sizes from
 `ps2/config/pal/main.symbols.txt`, excluding padding before the next function
 (`LoadCharaCheck` 0x4D8, `IsCreateObject` 0x1588, `IsAccessAlbum` 0x13E8,
 `UpdataNetaMemoStr` 0x194, `MenuInventKey` 0x824, `CalcTex` 0x139C).
+
+## Carried-photo pixel storage
+
+`CInventUserData::photo_work` contains thirty 64x64 images of packed unsigned
+16-bit pixels, represented by `u_short[30][64 * 64]`. `LoadTakePhoto` creates
+the capture texture with width/height 64 and bits-per-pixel 16, and
+`DrawTakePhoto` copies exactly 0x2000 captured bytes into the selected record.
+`AttachPictTex` creates the same 64x64/16-bit texture for each carried or album
+photo and assigns the record's image pointer as its transfer source. These
+m2c-confirmed calls establish pixel width independently of the row stride.
+
+The storage begins at `CInventUserData + 0xD60`, with a 0x2000-byte row stride;
+the object remains 0x3CE60 bytes. The thirty metadata records start at +0x408,
+have a 0x18-byte stride, and hold their byte-oriented image pointer at +0x14.
+`GetPhototWorkAdr` exposes the first row as bytes for photo sorting;
+`IsPhotoSpace` exposes the selected row as bytes without changing any pixels.
+The album's existing byte-storage representation and image-pointer ABI remain
+applicable to their transfer and memory-card interfaces.
+
+`ResetAddress` reconnects all thirty metadata records to their corresponding
+pixel rows after initialization, menu entry or sorting. Its explicit
+`char (*)[0x2000]` view converts the 16-bit storage to byte rows before indexing.
+MWCC preserves the retail base calculation after the three zeroed loop
+inductions and repeats it
+before the scalar tail. The eight-way unrolled loop assigns rows 0..23; the
+scalar tail assigns rows 24..29. The routine reads no metadata or pixels and
+writes only the image pointers.
+
+Casting each selected 16-bit row to `char *` instead of converting the array
+before indexing changes register allocation and loses the match. A named
+byte-row pointer keeps the unrolled body but hoists the base calculation across
+the tail. Array and pointer reference forms also fail to recover that repeated
+calculation. The native byte-row view matches all 48 words of the 0xC0-byte
+routine under the committed profile; the complete unit matches 0xFF08 bytes
+and 2,878 resolved relocations. No compiler-profile change is required.
 
 ## Header dependencies
 `inventmn.hpp` includes, for by-value types:
@@ -155,7 +187,7 @@ the first byte (`known`) only when `GetScoopInfo` finds the requested scoop.
 8 short neta_id[0x200]; 0x408 USER_PICTURE_INFO photo[30]; 0x6D8 INVENT_CREATED_ITEM[0x100]
 (Initialize zeroes both shorts; only item_id is read); 0xAD8 CScoopDataManager
 (`ScoopMan` = savedata + 0x25CA8, CShopMenu passes userdata + 0x8A08); 0xCD8..0xD60 unseen;
-0xD60 photo_work[30][0x2000] (Initialize memsets 0x3C000).
+0xD60 `u_short photo_work[30][64*64]` (0x2000-byte image rows; Initialize memsets 0x3C000).
 0x3CD60..0x3CE60 unseen (unk_3cd60). Size 0x3CE60 is inferred from the containing
 CUserDataManager: its next field (party_member) is at 0x44D90 = 0x7F30 + 0x3CE60 and nothing
 there touches the 0x100 bytes in between; no inventmn code reaches past 0x3CD60.
@@ -203,8 +235,8 @@ at 12 (`BootExtendCommand` sets 12); the inventory extensions 13 and 14 call Pho
 and IsAccessAlbum. The layout mode is `key_arg_no` (INVENT_MENU_MODE, below).
 Offsets:
 - 0x110 photo_only (=1 when MenuCommonInfo+0x50 == 10; runs "picmodeonly"), 0x112 short
-  `unk_112`: 1 while the memory-card album opened from an album button is in use (users
-  are inside the guarded `IsAccessAlbum`, so it is not renamed).
+  `album_open`: 1 while the memory-card album opened from an album button is in use.
+  Closing/cancelling the album clears it; board and notebook navigation tests it.
 - 0x114/118 card cursor/top, 0x11C/120 item, 0x124/128 photo, 0x12C/130 album, 0x134/138 notebook
   (ExitEnd stores all ten and 0x392 into CMenuSystemData 0x20..0x3E).
 - 0x13C MENUFORM_MAKEBRD_INFO (CalcMakeBrd, CalcCommonBrdDrawInfo).
@@ -319,14 +351,37 @@ shifts Y by 26, steps the message and centres it with the updated Y.
 | 250, 300, 301 | Acknowledge cancellation/card/save messages and offer recovery when leaving |
 | 500..503 | Confirm format, search/format, report the result and resume the relevant prompt |
 
-Source forms that reproduce retail's instruction windows for this function (the guarded
-draft does not use all of them): runtime state variables declared at function entry with
-their assignment order kept; the four positive tests on the recover-photo count and the
+Source forms that reproduce retail's instruction windows for this function:
+runtime state variables declared at function entry with their assignment order kept; the four positive tests on the recover-photo count and the
 selected album flag written `0 < value`, and the two up-key cases as `move--` after zero
 initialization (down increments, so both bits cancel); the loading coordinates as one
 `int[2]` passed to the two-reference `GetPutPosXY` with Y used after `StepMsg`; and the
 capacity test `MCManagerPtr->GetSaveDataSize(MC_SIZE_SAVE_KB) + 2 > card->free_size`, which
 emits the call before the card capacity load.
+
+In state 240, insufficient carried-photo space runs the full-photo script and
+leaves the switch immediately; it does not revisit the cursor's cancel test.
+`SetBuff_Album` receives the complete serialized album as `(char *) InventAlbumPtr`.
+The upper slot clamp is `ActiveSlot_3949 > 1`. Both placement allocations use
+`align16_blocks(sizeof(T)) + 2`, retaining the allocation-result test and its
+delay-slot pointer copy.
+
+`CMemoryCardManager::GetCardInfo` returns the record of port zero or one and
+returns NULL for other ports; `GetErrorInfo` returns the current error record.
+The inline member calls keep `this` in `s1`, the card pointer in `s0` and the
+port branch/error address order. Direct field expressions exchange the saved
+registers. State 240's answer is declared at entry immediately before the error
+pointer, while its assignment remains in state 240; this gives the 0x150 frame,
+answer slot 0x12C, error slot 0x130 and loading coordinates at 0x148/0x14C.
+Other cursor answers retain their case-local declarations.
+
+The two progress calls use
+`download_base + MCManagerPtr->GetTransferredSize()`. The inline accessor
+returns the manager's signed byte counter and preserves the retail load and
+addition operand order. A direct field expression or scalar snapshot exchanges
+the loads; reversing the direct-field addition restores the loads but exchanges
+the final addition operands. Script and format literals belong to this native
+function.
 
 ## Typed access and code generation
 - `GetInventUserDataPtr` reaches the embedded invention data through the existing
@@ -403,7 +458,6 @@ MWCC register-web facts (see docs/MWCC.md "Register allocation"):
 ## Unresolved
 - Meaning of most unk_ fields of CMenuInvent.
 - Exact sizes of CInventUserData and CScoopDataManager.
-- MenuInventInit third parameter unused in what Ghidra shows.
 - LevelCheck / CheckMakeItem / LoadAnalyzeInventFile / GetPhotoNameStr look bool-returning in
   Ghidra; declared int.
 - `neta_select_type` 0/1 and `neta_select_state` -1/0/1 appear in nine other functions; an
@@ -437,5 +491,4 @@ idea or photo board on left navigation. The remaining values:
   part コルク); opening the notebook selects it and down leads to 9.
 
 Every matched function uses these enumerators in its `key_arg_no` switches,
-comparisons and `NextDifferentMode`/`PrepareNextMode` targets. The guarded
-drafts keep their numbers.
+comparisons and `NextDifferentMode`/`PrepareNextMode` targets.

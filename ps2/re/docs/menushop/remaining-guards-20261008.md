@@ -1,8 +1,13 @@
-# Native quest-view drawing and remaining initializer guards
+# Native quest-view drawing and initializer analysis
 
-The current Satan's Fiddle row for `menushop.cpp` uses GPR helper mask `0x30`
+The October 8 Satan's Fiddle row for `menushop.cpp` uses GPR helper mask `0x30`
 and FPR mask `0`. No floating-point expression override or header change is
 needed for the drawing function.
+
+The retained initializer analysis below describes the implicit-constructor draft.
+The current initializer is native: an empty explicit inline `CMenuQuestView`
+constructor gives the placement mechanism a witnessed root. The exact source
+form and complete-object evidence are in [notes.md](notes.md#quest-view-placement-construction).
 
 ## MenuNPCQuestViewDraw
 

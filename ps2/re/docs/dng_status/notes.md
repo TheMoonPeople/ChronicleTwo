@@ -63,29 +63,11 @@ owned (`class_units.tsv` lists none for this unit). No first-game counterpart (D
 
 ## Current C++ status
 
-Six functions have active C++ definitions. `DrawMainUnitStatusBord__Ff` remains
-behind `NONMATCHING` with its assembly fallback. `PrintV` uses a stack digit
-array, `CPreSprite`, and a glyph rectangle passed by value. The durability and
-absorption getters write current and maximum values into adjacent integers.
-The boards use typed battle, status, gauge, and user-data records.
-
-The main-board draft's two native sprite constructors belong immediately after
-the flash `sinf`, at retail +0x1E4/+0x1EC, before the first Initialize. Moving
-the declarations to this point reduces its checked-in-profile differences from
-1126/1192 words to 1124/1192, with code size still 0x1240 versus retail 0x12A0.
-This closer natural correction is retained with the guard. Scalar flash and
-durability ratios, or moving render-only glyph/table/absorption buffers after
-the sprites, do not improve that result and are not retained.
-
-Remaining differences begin at +0x74 with position-register allocation and
-include different spills, branch scheduling and sprite stack slots. The current
-sprite locals follow the early buffers in the frame; retail uses sp+0x110 and
-sp+0x240, with durability values at sp+0x480. This is a local-lifetime and
-stack-layout blocker; no isolated float-order selector has been demonstrated.
-Reconsider when a natural rendering scope and buffer declaration arrangement
-recovers those retail slots and lifetimes without fake scalar alignments or
-constructor-suppression helpers. The linked unit continues to pass with the
-main-board assembly fallback.
+All seven functions are matched C++. The four main-board tables are local
+array initialisers in `DrawMainUnitStatusBord`, so the unit's `.data` comes
+from the compiler and no `INCLUDE_RODATA` remains. The `.sbss` statics stay
+as `INCLUDE_BSS` entries with extern function-scope declarations, as in the
+other boards.
 
 ## Number glyph calls
 
@@ -97,39 +79,40 @@ The unit-level `divbyzerocheck` pragma was redundant with the global MWCC flag; 
 
 ## Native primitive constructors
 
-The former `MG_DRAWPRIM_MANUAL_CTOR` macro suppressed normal `mgCDrawPrim` construction throughout this unit. Removing it and the explicit constructor aliases makes `PrintV`, `DrawDrumCounter`, the active-item cursor, and the status boards construct their `CPreSprite` locals through C++. `DrawRoboUnitStatusBord` declares its two sprites immediately before first use, after calculating gauge colours, so the calls retain retail order; the already active functions continue to match; the main board retains its guarded checkpoint above.
+The former `MG_DRAWPRIM_MANUAL_CTOR` macro suppressed normal `mgCDrawPrim` construction throughout this unit. Removing it and the explicit constructor aliases makes `PrintV`, `DrawDrumCounter`, the active-item cursor, and the status boards construct their `CPreSprite` locals through C++. `DrawRoboUnitStatusBord` declares its two sprites immediately before first use, after calculating gauge colours, so the calls retain retail order.
 
-## Mid-day scoped positions and item receivers (October 8)
+## Main board matching constraints
 
-The main-board guarded draft now differs in 1,117/1,192 words, compared with
-1,124/1,192 at lane entry. Its native body grows from 0x1240 to 0x1248, closer
-to the 0x12A0 retail extent. Declaring `weapon_y` and its initial `hp_y` copy
-at their calculation restores the initial position-register assignment and
-reduces the entry draft to 1,121 words. Named pointers to the second and third
-active items preserve the indexed receivers across the first icon query/draw;
-in combination with those scoped positions they give the retained 1,117-word
-checkpoint. These are real item records at `active_items[1]` and `[2]`, each
-0x6C bytes, with no pointer-to-byte casts or constructor replacement.
-
-Both durability outputs and both absorption outputs remain separate. Retail
-passes sp+0x480 and sp+0x488 to the two `GetNowWhp` calls, then sp+0x490 and
-sp+0x498 to the two `GetNowAbs` calls. A reused absorption buffer reduces a
-positional word count, but does not recover those distinct retail destinations
-and is not retained. Splitting all four output pairs into separate named arrays
-and adding the same position/item scopes gives 1,115 words but shrinks the body
-to 0x1230, farther from the retail extent; the closer extent and original
-output-array layout are retained instead.
-
-A nested rendering scope with later table/glyph declarations still gives
-1,124 words. Explicit `fptosi` calls for the two initial position conversions
-give 1,134 words. Parallel or paired position arrays give 1,102 words with a
-0x1230 body and fail to recover the scalar receiver/spill layout. No compiler
-profile row or header change is justified by these trials.
-
-The guard remains. Retail's sprite slots at sp+0x110/+0x240 and output buffers
-at sp+0x480..0x49C still differ from the native frame, and position/spill and
-branch scheduling differences remain throughout the function. The native
-canonical comparison fails; the default assembly-backed unit continues to
-pass. Receipts are under `.private/midday/probes/dng_status/`, with the retained
-body in `scoped-item-positions/`; integrated validation is recorded in
-`.private/midday-final-build.log` and `.private/midday-final-objects.log`.
+- The tail is `if (rate < 1.0f || SubGameRunning() != 0) { return; }`
+  followed by the unconditional `WarningGage2` writes. An `||` condition
+  ending in `return` makes MWCC emit `beqz v0, body; b exit; ld ra` and
+  changes delay-slot filling for the whole function: conditional branches
+  are not filled from the fall-through block, a slot filled from the branch
+  target leaves the original instruction in place, and target blocks that
+  start with `lui $at` are not used as fills. A nested
+  `if (rate >= 1.0f) { if (SubGameRunning() != 0) return; ... }` produces
+  `bnez v0, exit`, fills those slots, and is 0x38 bytes short.
+- Named locals take frame slots in declaration order. `weapon_x` and
+  `second_weapon_x` precede `hp_max`/`hp_now`, then the four separate
+  durability and absorption output pairs (sp+0x480..0x49C). `int x[2]`
+  arrays go after other aggregates; `int x[2][2]` keeps declaration order.
+- The seven number glyphs are `mgRect<int>(0, 0xE8, 12, 12)` temporaries
+  passed straight to `PrintV`; retail calls `Set` on the argument slot.
+  These temporaries change how the next function compiles: with them in
+  place, `DrawRoboUnitStatusBord` must pass its named glyph rectangles,
+  because temporaries there add a second `Set` call per glyph.
+- The charge-pip and status-icon loops use block-scoped `int i` counters.
+  The shared `index` stays for the item loop; giving that loop its own
+  counter moves the position registers.
+- The magic-sword and status-icon rows pass `(int) (128.0f * rate)`
+  directly to `Color`; MWCC keeps the single conversion in `v0`, spills it,
+  and reloads it for the second row. A named alpha local reloads it for the
+  first row as well.
+- Each gauge computes its width first, `width = (int) (95.0f * ratio);`,
+  then `gauge_left = x + offset; gauge_right = gauge_left + width;`. This
+  places the `weapon_x` reload after the `fptosi` call.
+- `element` is declared before `charge_now`, `weapon_no` is loaded before
+  `second_weapon_no`, and both weapon numbers are `int`. The colour blocks
+  set `color.a = 0x80` inside each branch.
+- `x > 211` and `GetNum() > 1` give retail's `slti at` branches; `>= 212`
+  and `>= 2` build the comparison in `v0`.

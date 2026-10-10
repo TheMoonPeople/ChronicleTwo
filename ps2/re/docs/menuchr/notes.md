@@ -2,12 +2,12 @@
 
 `CMenuChrCngMenu::LoadBGNPCModel`, `CMenuCostumeSel::LoadMenuData` and
 `CMosBookMenu::KeyStep` are native C++ with three expected-one after-inline
-`CActionChara` rows; see [placement conversion](../satansfiddle/placement-new.md). The
-matching build uses retail gaps for the C++ drafts still guarded by `NONMATCHING`:
-`MenuCharaChangeInit` and `MenuCostumeInit`. `CMenuMosSelect::KeyStep` is native; see
+`CActionChara` rows; see [placement conversion](../satansfiddle/placement-new.md). Every
+function is native. `MenuCostumeInit` is described in
+[costume construction](placement-new-costume-natural.md) and `MenuCharaChangeInit` in
+[party-change construction](placement-new-change-natural.md). `CMenuMosSelect::KeyStep` is native; see
 [the KeyStep promotion](matching-constraints.md) and [the monster-box command notes](#monster-box-pages-and-command-steps). `MenuItemCharaDataLoadEndCheckAfter` is native; see
-[the temporary-scene notes](matching-constraints.md). Only unguarded functions are
-active C++ decompilations. `MenuMemoryDivide` and `CMosBookMenu::Draw` are native,
+[the temporary-scene notes](matching-constraints.md). `MenuMemoryDivide` and `CMosBookMenu::Draw` are native,
 including their capacity and drawing tables. `CMenuChrCngMenu::EnterDataMenu` is native;
 its palette and command-loop findings are in [matching constraints](matching-constraints.md). `MenuCharaChangeStarDraw` is native;
 `mgRect<short>` is the generic template (see [the star notes](matching-constraints.md)).
@@ -112,7 +112,8 @@ Slot order is the base's: `IsCreateObject`, `IsMakeObject`, `IsAskExtend`, `Item
 ### CMenuChrCngMenu (0x1F80)
 - Size: `__nw__FUiP1(0x1F80, ...)` in `MenuCharaChangeInit`; instance kept in `ChrChangMenuPt`.
 - Inline ctor in `MenuCharaChangeInit`: `Init` on 0x194/0x1C4 (two `mgCMemory`), clears/sets most
-  fields (0x122 = -1 change_chara, 0x11C = -1 then 0x11E = 1, 0x24C/0x24E = -1 sub_menu(s),
+  fields (0x122 = -1 change_chara, 0x11C = -1 open_wait, 0x11E = 1 set_cursor (reset to 0
+  later in the same constructor), 0x24C/0x24E = -1 sub_menu(s),
   0x200 = -1 face_state, 0x202 = -1 face_chara), calls `InitStarInfo`, then
   `memset(this+0x1A80, 0, 0x500)`.
 - 0x1A80 `clut[256]`: `EnterDataMenu` sets `MenuCharaChangeCLUT = this+0x1A80`, `memcpy`s 0x400
@@ -143,12 +144,12 @@ Slot order is the base's: `IsCreateObject`, `IsMakeObject`, `IsAskExtend`, `Item
 ### CMenuCostumeSel (0x2D0)
 - `MenuCostumeInit` constructs the camera and menu in 0x2F quadwords from the caller's stack,
   sets the default outfit bitset to `0x1274521CB`, includes the optional costume bits when
-  `MenuArg.param[0]` is one, loads form data and begins a 40-frame fade. Its guarded constructor
-  and initializer are behavioral drafts; normal builds still use the retail assembly.
+  `MenuArg.param[0]` is one, loads form data and begins a 40-frame fade. The constructor is an out-of-class inline
+  definition immediately before its sole caller; it emits no standalone symbol.
 - Size: `__nw__FUiP1(0x2D0, ...)` in `MenuCostumeInit`; instance in `MenuCosPtr`.
 - Inline ctor: `mgCCameraFollow(40, 30, 0, 8)` at 0x110 (0xC0 -> 0x1D0), `mgCMemory` Init at 0x228,
-  0x2C0 = `GetCharaDataPtr(.., 0)`, 0x260 = 15.0f, 0x268 = 4.0f (chara_pos x/z), zeroes
-  0x1DE..0x1E2 (costume_select) and 0x284..0x2A4.
+  resets `MenuCosutumeLoadPhase`, 0x2C0 = `GetCharaDataPtr(.., 0)`, 0x260 = 15.0f,
+  0x268 = 4.0f (chara_pos x/z), zeroes 0x1DE..0x1E2 (costume_select) and 0x284..0x2A4.
 - `costume_list[3][8]` s16 at 0x1E4, `list[3]` s16* at 0x214.
 - Unresolved: `unk_1D4`, `unk_220`, `unk_270[4]`, `unk_280`, `unk_2A8`, `unk_2AC`, `unk_2BC`.
 
@@ -255,13 +256,16 @@ array indexing and member calls use the declared C++ types.
 
 `CMenuMosSelect` initializes its badge and message window fields in its native
 constructor. Its two `CActionChara` members contain `CCharaFrameMatching`
-objects. `CCharaFrameMatching` has no user-declared constructor: PAL contains
-no constructor calls for these members, and each character retains its
-explicit `Initialize__19CCharaFrameMatchingFv` call. An explicitly empty
-constructor added two calls absent from PAL. The menu constructor is inlined
-into `MenuMonsterBoxInit` at inline depth 3, which matches PAL with trivial
-default construction; every other unit including `character.hpp` keeps its
-object bytes and relocations.
+objects, whose empty default constructor gives `_COPY_MONS2SCNCHR`'s
+word-by-word snapshot copy (event_func notes). PAL contains no constructor
+calls for these members, while each character still calls its
+`CObjectFrame` constructor and `Initialize__19CCharaFrameMatchingFv`. All three
+sit at the same depth below `MenuMonsterBoxInit`, through the inlined menu,
+action-character and character constructors. `#pragma inline_depth(smart)`
+around `MenuMonsterBoxInit` inlines the empty constructor away and keeps both
+calls. Numeric depths do not: depth 3 also calls the empty constructor,
+growing the body from 0x620 to 0x630, and depth 4 inlines `CObjectFrame` and
+`Initialize`.
 
 `SetMenuLoadItemNo` reads Max's or Monica's five `CHARA_DATA::equip` item numbers. For the ridepod, the displayed order is parts 3, 0, 1, an empty slot, and part 2. Typed access to `ROBO_DATA::parts` and `CGameDataUsed::item_no` preserves its exact PAL object code.
 
@@ -389,9 +393,9 @@ and inventmn accesses use the named field. Byte +6 remains unidentified; see
 
 ## Native character-menu data
 
-The only retained data markers are at_2595__2 (twelve-byte filename literal), at_2596__3
-(nine-byte info.cfg), the two costume/character-change vtables owned by the guarded
-initializers, and the distinct four-byte D_01F3C7FC BSS piece. Removing that boundary
+The only retained data marker is the distinct four-byte D_01F3C7FC BSS piece. The
+party-change filename `chrchg0.pac` and script label `JOININIT` are compiler literals, and
+both menu vtables are compiler-emitted. Removing that BSS boundary
 shifts following objects; MenuCharaBuild2 owns seven pointers and must not absorb it
 through an eighth element.
 
@@ -482,8 +486,7 @@ unnamed across their shared consumers.
 Thirty-two single-consumer statics use their bare retail names inside their
 owning functions. `MenuMonsterBoxInit` has two separate `tbl` objects: slot
 request flags inside its allocation loop and localized help at function
-scope. The background request table `tbl_2483` and its two associated
-literals remain file-local because `MenuCharaChangeInit` is guarded.
+scope. `MenuCharaChangeInit` owns its all-ones background request `tbl`.
 Shared `menu_debug_select__2` also stays file-local.
 
 The longest-page calculations in `CMenuChrCngMenu::KeyChangeMain` use direct

@@ -2320,6 +2320,9 @@ int CMenuQuestView::KeyStep() {
     return 0;
 }
 
+inline CMenuQuestView::CMenuQuestView() {
+}
+
 void MenuNPCQuestViewInit(mgCMemory *stack, int *tex_block, int view_mode) {
     Menu_Memo_ViewMode = 0;
 
