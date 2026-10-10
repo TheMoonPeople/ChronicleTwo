@@ -291,3 +291,60 @@ It is not an isolated emission solution. Restoring the incoming state with
 returns to the default all-site result: 1,215 words, 0x1B6C, a matching
 0xC0 action constructor and no emitted camera assignment. These forms do not
 justify replacing either assembly-only supplier.
+
+## EditInit residual under the SF profile
+
+Measured with the Satan's Fiddle profile (the committed build flags) rather
+than plain `draft.sh`. Combining the forms below leaves 35 of 1,776 words
+differing, all in the `EdDebugInfo` epilogue from +0x1B00, with a 0x1BB0 body
+against retail's 0x1BB8:
+- `CMapTreasureBox() { Initialize(); }` defined in `mapparts.hpp`, with the
+  out-of-line body removed from `map.cpp` (the map object is unchanged under
+  the draft profile), plus `align16_blocks` at all eight placement sites.
+  These expand the five-level constructor chain inline exactly as retail does.
+- A camera member `void SetDefaultParam() { default_param = *GetActiveParam(); }`
+  defined in `CCameraControl`. At the default inline depth, the
+  compiler-generated `CameraCtrlParam` assignment is inlined only when it
+  appears directly in the function being compiled. Inside any inline wrapper
+  it is called out of line. With this member, `EditInit` calls the assignment
+  at +0x12B0 and the object emits `EditInit`, `__as__15CameraCtrlParam...`
+  (24/24 words) and `__ct__12CActionCharaFv` (48/48), in retail order and with
+  binding 13. Writing the plain assignment in `EditInit` keeps it inlined
+  (590 differing words). `#pragma inline_depth(smart)` behaves exactly like the
+  default depth, with or without the wrapper. An explicit `inline_depth(N)`
+  inlines the generated assignment through N levels.
+- `MainScene->SetVillagerTexb(78, 56); MainScene->SetEventTexb(160, 2);` for the
+  scene texture blocks.
+- A `CScene *scene = MainScene` local supplying both `GetActiveBgmInfo` calls.
+  It sets `master_volf` to 1.0f, then passes `volf` to `SetVolfBGM`.
+- For both stack splits, the remaining count is computed first, then the
+  buffer is set and reset:
+  `data_size = X.stGetRest(); Y.stSetBuffer(X.stGetTop(), data_size); Y.stReset();`.
+  `ControlCharaBuff.lock = 1` precedes the `FixCharaBuffSize` read.
+- `sceVu0FVECTOR position = {0.0f, 0.0f, 0.0f, 0.0f};`. The compiler emits the
+  zero template itself, so `at_1077` is not separate data.
+- The fishing fields come from a local `SubGameInfo` whose constructor leaves
+  `rod_no` and `esa_no` unset. The local is copied over the base part of
+  `EdDebugInfo`, then `jump_map_no` is set to -1. The scalar-replaced unset
+  fields are low-numbered temporaries that colour `s4`, as in retail.
+  A named uninitialised `int` local is numbered among the named locals. It
+  then occupies `s2`/`s3` for the whole function and pushes the
+  character-loop registers off retail: retail has `characters` in `s2`, `i` in
+  `s3` and the strength-reduced offset in `s0`.
+
+The register-allocation simulator confirms the loop result. With a named
+uninitialised local, retail colouring needs the loop offset numbered above
+`characters`, which no declaration order, pointer form or inline helper gives.
+
+Remaining epilogue difference: retail stores the 13 fields in source order
+(rod, menu buffer, esa, texb, texb count, load buffer, jump map, `unk_c`,
+dungeon, no-map event, record check, keep BGM, scene). It also materialises
+the two `mgCMemory *` zeros as `daddu $2/$3,$0,$0` register copies, while the
+integer zeros use `$zero`. The structure copy stores in field-offset order
+instead. Every single-definition NULL folds to `sw $zero`. Tested spellings:
+casts, `0L`, locals, references, inline returns and setters, chained
+assignment, and copying from a constructed local. Register zeros appear only
+when the pointer has two reaching definitions, both NULL, whose join the
+backend later removes. An example is a NULL local reassigned NULL under an
+unrelated condition: it reproduces retail's registers and store order except
+for one slot of `li a0,154`. That is not a natural source form.
