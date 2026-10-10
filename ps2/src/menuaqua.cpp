@@ -363,7 +363,7 @@ static int             AquaCameraCtrlMode;
  * Camera that follows the aquarium view.
  *
  */
-static mgCCameraFollow *Camera__2;
+static mgCCameraFollow *Camera;
 
 /**
  *
@@ -1257,43 +1257,6 @@ static float aqua_bubble_generate_pos[3][3][4] = {
 
 /**
  *
- * Stores the rise speeds selected by a bubble wobble pattern.
- *
- */
-static float up_tbl_996[5] = {0.0500000007f, 0.100000001f, 0.150000006f, 0.200000003f, 0.25f};
-
-/**
- *
- * Stores the horizontal wobble amplitudes selected by a bubble pattern.
- *
- */
-static float amptbl_997[5][2] = {
-    {0.0199999996f, 0.0199999996f},
-    {0.00999999978f, 0.0199999996f},
-    {0.0399999991f, 0.00999999978f},
-    {0.0199999996f, 0.00999999978f},
-    {0.00999999978f, 0.0399999991f}
-};
-
-/**
- *
- * Stores turn directions for the two aquarium circling orientations.
- *
- */
-static float dirtbl_1242[2][4] = {
-    {1.57079637f, -3.1101768f, 0.0f, -1.57079637f},
-    {0.0f, 1.57079637f, -1.57079637f, -3.1101768f}
-};
-
-/**
- *
- * Stores the duration of each aquarium fish effect.
- *
- */
-static int max_tbl_1484[6] = {0, 250, 250, 25000, 250, 0};
-
-/**
- *
  * Associates each fish item with its image model and sex-dependent colours.
  *
  */
@@ -1318,148 +1281,6 @@ static aqua_fish_info aquafish_info[19] = {
     {FISH_ITEM_HAGUHAGU, "f19a", 1, 14},
     {-1}
 };
-
-/**
- *
- * Stores the three texture strips of the fish parameter board.
- *
- */
-static short u_brdtbl_2493[12] = {226, 76, 10, 24, 236, 76, 10, 24, 246, 76, 10, 24};
-
-/**
- *
- * Stores the translated texture rectangles of fish parameter labels and units.
- *
- */
-static aqua_param_icon get_paraxtbl_2494[7][10] = {
-    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {186, 202, 58}, {232, 184, 12}, {186, 220, 12}},
-    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 60}, {58, 184, 56}, {116, 184, 62}, {178, 184, 70}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
-    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
-    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
-    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
-    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
-    {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {186, 202, 58}, {232, 184, 12}, {204, 220, 12}}
-};
-
-/**
- *
- * Stores translated fish name and sex-label positions and widths.
- *
- */
-static s16 ptbl_2495[6][6] = {
-    {242, 56, 252, 34, 34, 34},
-    {232, 64, 239, 52, 52, 18},
-    {235, 64, 242, 52, 52, 18},
-    {235, 64, 242, 52, 52, 18},
-    {235, 64, 242, 52, 52, 18},
-    {235, 64, 242, 52, 52, 21}
-};
-
-/**
- *
- * Stores the translated texture positions of the four fish-kind labels.
- *
- */
-static u8 chrtbl_2503[7][4][2] = {
-    {
-        {34, 202},
-        {110, 202},
-        {34, 220},
-        {110, 220}
-    },
-    {
-        {52, 202},
-        {128, 202},
-        {52, 220},
-        {128, 220}
-    },
-    {
-        {52, 202},
-        {128, 202},
-        {52, 220},
-        {128, 220}
-    },
-    {
-        {52, 202},
-        {128, 202},
-        {52, 220},
-        {128, 220}
-    },
-    {
-        {52, 202},
-        {128, 202},
-        {52, 220},
-        {128, 220}
-    },
-    {
-        {52, 202},
-        {128, 202},
-        {52, 220},
-        {128, 220}
-    },
-    {
-        {52, 202},
-        {128, 202},
-        {52, 220},
-        {128, 220}
-    }
-};
-
-/**
- *
- * Stores confirm and cancel button masks for Japanese and other languages.
- *
- */
-static int langTbl_3630[2][2] = {
-    {PAD_CIRCLE, PAD_CROSS},
-    {PAD_CROSS, PAD_CIRCLE}
-};
-
-/**
- *
- * Stores the aquarium menu command for each tank and cursor slot.
- *
- */
-static s8 menu_id_tbl_3721[3][6] = {
-    {0, 1, 2, 3, 4, 5},
-    {0, 3, 4, 5, -1, -1},
-    {0, 3, 4, 5, -1, -1},
-};
-
-/**
- *
- * Stores the reference position of an aquarium reflection wall.
- *
- */
-static float v1orig_4373[4] = {0.0f, 16.5f, 21.0f, 1.0f};
-
-/**
- *
- * Stores the reference position of an aquarium reflection wall.
- *
- */
-static float v2orig_4374[4] = {0.0f, 16.5f, -21.0f, 1.0f};
-
-/**
- *
- * Stores the reference position of an aquarium reflection wall.
- *
- */
-static float v3orig_4375[4] = {34.0f, 16.5f, 0.0f, 1.0f};
-
-/**
- *
- * Stores the reference position of an aquarium reflection wall.
- *
- */
-static float v4orig_4376[4] = {-34.0f, 16.5f, 0.0f, 1.0f};
-
-/**
- *
- * Stores the three texture strips of the aquarium title frame.
- *
- */
-static short t_4408[12] = {170, 0, 36, 76, 206, 0, 14, 76, 220, 0, 36, 76};
 
 /**
  *
@@ -1515,55 +1336,6 @@ char *Mitouroku[7] = {
 
 /**
  *
- * Stores the six tactics message-item numbers of a saved racer.
- *
- */
-static int vol_5253[6] = {5020, 5021, 5022, 5023, 5024, 5025};
-
-/**
- *
- * Stores texture strips for a small subgame title.
- *
- */
-static short pl_s_5630[12] = {172, 54, 24, 46, 196, 54, 10, 46, 206, 54, 24, 46};
-
-/**
- *
- * Stores texture strips for a large subgame title.
- *
- */
-static short pl_b_5631[12] = {172, 0, 24, 54, 196, 0, 10, 54, 206, 0, 24, 54};
-
-/**
- *
- * Stores texture strips for a fixed subgame list frame.
- *
- */
-static short tbl_5644[36] = {0, 0, 28, 28, 28, 0, 10, 28, 38, 0, 28, 28, 0, 28, 28, 10, 28, 28, 10, 10, 38, 28, 28, 10, 0, 38, 28, 28, 28, 38, 10, 28, 38, 38, 28, 28};
-
-/**
- *
- * Stores texture strips for a scrolling subgame list frame.
- *
- */
-static short tbl_5669[36] = {0, 0, 28, 28, 28, 0, 10, 28, 66, 0, 40, 28, 0, 28, 28, 10, 28, 28, 10, 10, 66, 28, 40, 10, 0, 38, 28, 28, 28, 38, 10, 28, 66, 38, 40, 28};
-
-/**
- *
- * Stores texture strips for a subgame scrollbar thumb.
- *
- */
-static short bart_5670[12] = {248, 0, 8, 10, 248, 10, 8, 10, 248, 20, 8, 10};
-
-/**
- *
- * Stores texture strips for a subgame underline.
- *
- */
-static short pl_s_5699[12] = {0, 66, 10, 6, 10, 66, 10, 6, 20, 66, 10, 6};
-
-/**
- *
  * Stores the number of active collision points in each aquarium.
  *
  */
@@ -1599,101 +1371,10 @@ static int AQUA_TITLE_H = 66;
 
 /**
  *
- * Stores the texture column positions of the fish parameter panel.
- *
- */
-static u8 xtbl_2468[5] = {0, 50, 64, 78, 92};
-
-/**
- *
- * Stores the texture row positions of the fish parameter panel.
- *
- */
-static u8 ytbl_2469[5] = {0, 44, 58, 72, 86};
-
-/**
- *
- * Stores the widths of the fish parameter panel texture columns.
- *
- */
-static u8 wtbl_2470[5] = {50, 14, 14, 14, 50};
-
-/**
- *
- * Stores the heights of the fish parameter panel texture rows.
- *
- */
-static u8 htbl_2471[5] = {44, 14, 14, 14, 44};
-
-/**
- *
- * Stores the shadow and foreground colours of the fish parameter panel.
- *
- */
-static u8 coltbl_2472[2][4] = {
-    {0, 0, 0, 48},
-    {128, 128, 128, 128}
-};
-
-/**
- *
- * Stores the texture row offsets of the two fish sex marks.
- *
- */
-static s8 offtbl_2496[2] = {0, 18};
-
-/**
- *
- * Stores the fish name horizontal offset for each translated menu.
- *
- */
-static s8 poffset_2511[7] = {79, 72, 72, 72, 72, 74, 79};
-
-/**
- *
  * Stores the aquarium pending a tank change.
  *
  */
 static short m_next_aqua_no = -1;
-
-/**
- *
- * Stores aquarium model memory reservations in quadwords.
- *
- */
-static u16 aqua_frame_sizetbl_2934[3] = {26965, 36965, 36965};
-
-/**
- *
- * Stores the two fish effects selected by aquarium collisions.
- *
- */
-static u8 tbl_3505[2] = {2, 1};
-
-/**
- *
- * Stores the two destination aquariums for each active tank.
- *
- */
-static s8 another_aquarium_Notbl_3642[3][2] = {
-    {1, 2},
-    {0, 2},
-    {0, 1}
-};
-
-/**
- *
- * Stores the number of menu commands in each aquarium.
- *
- */
-static s8 menu_max_tbl_3720[3] = {6, 4, 4};
-
-/**
- *
- * Stores the fish-race and fishing-tournament prize script paths.
- *
- */
-static char *filename_4899[2] = {"gyop.cfg", "uofp.cfg"};
 
 // Code (.text)
 /**
@@ -1834,6 +1515,26 @@ void CBubble::SetTexture(mgCTexture *image, int u, int v) {
 }
 
 void CBubble::Step() {
+    /**
+     *
+     * Stores the rise speeds selected by a bubble wobble pattern.
+     *
+     */
+    static float up_tbl[5] = {0.0500000007f, 0.100000001f, 0.150000006f, 0.200000003f, 0.25f};
+
+    /**
+     *
+     * Stores the horizontal wobble amplitudes selected by a bubble pattern.
+     *
+     */
+    static float amptbl[5][2] = {
+        {0.0199999996f, 0.0199999996f},
+        {0.00999999978f, 0.0199999996f},
+        {0.0399999991f, 0.00999999978f},
+        {0.0199999996f, 0.00999999978f},
+        {0.00999999978f, 0.0399999991f}
+    };
+
     unsigned int finished;
     unsigned int index;
     AQUA_BUBBLE *particle;
@@ -1855,8 +1556,8 @@ void CBubble::Step() {
             float spread;
             float jitter;
 
-            particle->pos[1] = particle->pos[1] + (0.18f * depth + up_tbl_996[particle->pattern]);
-            amp = amptbl_997[particle->pattern];
+            particle->pos[1] = particle->pos[1] + (0.18f * depth + up_tbl[particle->pattern]);
+            amp = amptbl[particle->pattern];
             wobble = (0.5f * depth + GetRandF(1.0f)) * sinf(particle->phase);
             depth *= 0.14f;
             spread = depth;
@@ -2095,9 +1796,9 @@ void CAquaFish::GetPosition2D(int *out) {
     int   screen_int[4];
     float screen[4];
 
-    if (Camera__2 != NULL) {
-        Camera__2->GetCameraMatrix(view);
-        Camera__2->GetPos(camera_pos);
+    if (Camera != NULL) {
+        Camera->GetCameraMatrix(view);
+        Camera->GetPos(camera_pos);
         mgSetViewMatrix(view, camera_pos);
         GetPosition(screen);
         mgTransWorldScreen(screen_int, screen);
@@ -2271,6 +1972,16 @@ void CAquaFish::NextRootNormal() {
 #pragma optimization_level 4
 
 void CAquaFish::MoveActionRound() {
+    /**
+     *
+     * Stores turn directions for the two aquarium circling orientations.
+     *
+     */
+    static float dirtbl[2][4] = {
+        {1.57079637f, -3.1101768f, 0.0f, -1.57079637f},
+        {0.0f, 1.57079637f, -1.57079637f, -3.1101768f}
+    };
+
     float  pos[4];
     float *turn;
     float  yaw;
@@ -2278,7 +1989,7 @@ void CAquaFish::MoveActionRound() {
     GetPosition(pos);
     sceVu0FVECTOR dir = {0.0f, 0.0f, 0.0f, 1.0f};
     yaw = target_rot[1];
-    turn = dirtbl_1242[round.dir];
+    turn = dirtbl[round.dir];
 
     if (pos[0] < -31.0f * round.width) {
         if (pos[2] < -18.0f * round.depth) {
@@ -2744,8 +2455,15 @@ void CAquaFishEff::Initialize() {
 }
 
 void CAquaFishEff::StartFishEffect(int effect_kind) {
+    /**
+     *
+     * Stores the duration of each aquarium fish effect.
+     *
+     */
+    static int max_tbl[6] = {0, 250, 250, 25000, 250, 0};
+
     type = (short) effect_kind;
-    timer = max_tbl_1484[type];
+    timer = max_tbl[type];
 }
 
 void CAquaFishEff::Step() {
@@ -3648,6 +3366,144 @@ int FishIMGReplace(u_long128 *data, CCharacter2 *character, int item_no, BREEDFI
 }
 
 void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data) {
+    /**
+     *
+     * Stores the three texture strips of the fish parameter board.
+     *
+     */
+    static short u_brdtbl[12] = {226, 76, 10, 24, 236, 76, 10, 24, 246, 76, 10, 24};
+
+    /**
+     *
+     * Stores the translated texture rectangles of fish parameter labels and units.
+     *
+     */
+    static aqua_param_icon get_paraxtbl[7][10] = {
+        {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {186, 202, 58}, {232, 184, 12}, {186, 220, 12}},
+        {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 60}, {58, 184, 56}, {116, 184, 62}, {178, 184, 70}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
+        {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
+        {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
+        {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
+        {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {0, 148, 58}, {204, 202, 12}, {204, 220, 12}},
+        {{58, 166, 58}, {116, 166, 58}, {174, 166, 58}, {0, 184, 58}, {58, 184, 58}, {116, 184, 58}, {174, 184, 58}, {186, 202, 58}, {232, 184, 12}, {204, 220, 12}}
+    };
+
+    /**
+     *
+     * Stores translated fish name and sex-label positions and widths.
+     *
+     */
+    static s16 ptbl[6][6] = {
+        {242, 56, 252, 34, 34, 34},
+        {232, 64, 239, 52, 52, 18},
+        {235, 64, 242, 52, 52, 18},
+        {235, 64, 242, 52, 52, 18},
+        {235, 64, 242, 52, 52, 18},
+        {235, 64, 242, 52, 52, 21}
+    };
+
+    /**
+     *
+     * Stores the translated texture positions of the four fish-kind labels.
+     *
+     */
+    static u8 chrtbl[7][4][2] = {
+        {
+            {34, 202},
+            {110, 202},
+            {34, 220},
+            {110, 220}
+        },
+        {
+            {52, 202},
+            {128, 202},
+            {52, 220},
+            {128, 220}
+        },
+        {
+            {52, 202},
+            {128, 202},
+            {52, 220},
+            {128, 220}
+        },
+        {
+            {52, 202},
+            {128, 202},
+            {52, 220},
+            {128, 220}
+        },
+        {
+            {52, 202},
+            {128, 202},
+            {52, 220},
+            {128, 220}
+        },
+        {
+            {52, 202},
+            {128, 202},
+            {52, 220},
+            {128, 220}
+        },
+        {
+            {52, 202},
+            {128, 202},
+            {52, 220},
+            {128, 220}
+        }
+    };
+
+    /**
+     *
+     * Stores the texture column positions of the fish parameter panel.
+     *
+     */
+    static u8 xtbl[5] = {0, 50, 64, 78, 92};
+
+    /**
+     *
+     * Stores the texture row positions of the fish parameter panel.
+     *
+     */
+    static u8 ytbl[5] = {0, 44, 58, 72, 86};
+
+    /**
+     *
+     * Stores the widths of the fish parameter panel texture columns.
+     *
+     */
+    static u8 wtbl[5] = {50, 14, 14, 14, 50};
+
+    /**
+     *
+     * Stores the heights of the fish parameter panel texture rows.
+     *
+     */
+    static u8 htbl[5] = {44, 14, 14, 14, 44};
+
+    /**
+     *
+     * Stores the shadow and foreground colours of the fish parameter panel.
+     *
+     */
+    static u8 coltbl[2][4] = {
+        {0, 0, 0, 48},
+        {128, 128, 128, 128}
+    };
+
+    /**
+     *
+     * Stores the texture row offsets of the two fish sex marks.
+     *
+     */
+    static s8 offtbl[2] = {0, 18};
+
+    /**
+     *
+     * Stores the fish name horizontal offset for each translated menu.
+     *
+     */
+    static s8 poffset[7] = {79, 72, 72, 72, 72, 74, 79};
+
     float fx;
     float fy;
     int   pass;
@@ -3667,10 +3523,10 @@ void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data) {
     breed = &data->data.fish;
     fx = x;
     fy = y;
-    int center_w = (0x14A - wtbl_2470[0] - wtbl_2470[2] - wtbl_2470[4]) >> 1;
-    int center_h = (0x8C - htbl_2471[0] - htbl_2471[2] - htbl_2471[4]) >> 1;
-    int w[5] = {wtbl_2470[0], center_w, wtbl_2470[2], center_w, wtbl_2470[4]};
-    int h[5] = {htbl_2471[0], center_h, htbl_2471[2], center_h, htbl_2471[4]};
+    int center_w = (0x14A - wtbl[0] - wtbl[2] - wtbl[4]) >> 1;
+    int center_h = (0x8C - htbl[0] - htbl[2] - htbl[4]) >> 1;
+    int w[5] = {wtbl[0], center_w, wtbl[2], center_w, wtbl[4]};
+    int h[5] = {htbl[0], center_h, htbl[2], center_h, htbl[4]};
     int params[6] = {0};
     if (data->item_no > 1) {
         params[1] = breed->param[4];
@@ -3685,11 +3541,11 @@ void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data) {
     pen->Begin(MG_PRIM_SPRITE);
     pen->Texture(tex);
     for (pass = 0; pass < 2; pass++) {
-        pen->Color(coltbl_2472[pass][0], coltbl_2472[pass][1], coltbl_2472[pass][2], coltbl_2472[pass][3]);
+        pen->Color(coltbl[pass][0], coltbl[pass][1], coltbl[pass][2], coltbl[pass][3]);
         for (cy = 0, row = 0; row < 5; cy += h[row], row++) {
             for (cx = 0, col = 0; col < 5; cx += w[col], col++) {
                 PrimQuad(pen, mgRect<int>((int) (fx + cx), (int) (fy + cy), w[col], h[row]),
-                         mgRect<int>(xtbl_2468[col], ytbl_2469[row], wtbl_2470[col], htbl_2471[row]));
+                         mgRect<int>(xtbl[col], ytbl[row], wtbl[col], htbl[row]));
             }
         }
         fx -= 4.0f;
@@ -3706,29 +3562,29 @@ void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data) {
     pen->Begin(MG_PRIM_SPRITE);
     pen->Texture(tex);
     pen->Color(0x80, 0x80, 0x80, 0x80);
-    PrimQuad(pen, fx + ptbl_2495[lang][5], 24.0f + fy, label_rect);
-    bx = (int) (fx + ptbl_2495[lang][0]);
+    PrimQuad(pen, fx + ptbl[lang][5], 24.0f + fy, label_rect);
+    bx = (int) (fx + ptbl[lang][0]);
     by = (int) (22.0f + fy);
-    Menu3DivideTextureDraw(pen, mgRect<int>(bx, by, ptbl_2495[lang][1], u_brdtbl_2493[3]),
-                           u_brdtbl_2493, 1);
+    Menu3DivideTextureDraw(pen, mgRect<int>(bx, by, ptbl[lang][1], u_brdtbl[3]),
+                           u_brdtbl, 1);
     int name_y = (int) (22.0f + fy);
     {
         s8 sex = breed->sex;
-        PrimQuad(pen, fx + ptbl_2495[lang][2], 24.0f + fy,
-                 mgRect<int>(0, offtbl_2496[sex] + 0xCA, ptbl_2495[lang][3 + sex], 0x12));
+        PrimQuad(pen, fx + ptbl[lang][2], 24.0f + fy,
+                 mgRect<int>(0, offtbl[sex] + 0xCA, ptbl[lang][3 + sex], 0x12));
     }
     cx = 0x16;
     cy = 0x2C;
     for (int i = 0; i < 6; i++) {
         bx = (int) (fx + cx);
         by = (int) (fy + cy);
-        Menu3DivideTextureDraw(pen, mgRect<int>(bx, by, 0x5C, u_brdtbl_2493[3]), u_brdtbl_2493, 1);
+        Menu3DivideTextureDraw(pen, mgRect<int>(bx, by, 0x5C, u_brdtbl[3]), u_brdtbl, 1);
         if (i == 0) {
-            u8 *kind = chrtbl_2503[lang][breed->kind];
+            u8 *kind = chrtbl[lang][breed->kind];
 
             PrimQuad(pen, bx + 8, by + 2, mgRect<int>(kind[0], kind[1], 0x4C, 0x12));
         } else {
-            aqua_param_icon *icon = &get_paraxtbl_2494[lang][i];
+            aqua_param_icon *icon = &get_paraxtbl[lang][i];
 
             PrimQuad(pen, bx + 2, by + 2, mgRect<int>(icon->x, icon->y, icon->w, 0x12));
             PrimDrawNumber(pen, params[i], 0, bx + 0x56, by + 3, digit_rect, -2, 0);
@@ -3743,7 +3599,7 @@ void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data) {
     cy += 0x16;
     bx = (int) (fx + cx);
     by = (int) (fy + cy);
-    Menu3DivideTextureDraw(pen, mgRect<int>(bx, by, 0x8A, u_brdtbl_2493[3]), u_brdtbl_2493, 1);
+    Menu3DivideTextureDraw(pen, mgRect<int>(bx, by, 0x8A, u_brdtbl[3]), u_brdtbl, 1);
     PrimQuad(pen, bx + 2, by + 2, mgRect<int>(0x78, 0xEE, 0x82, 0x12));
     int size_high = breed->size / 10;
     int size_low = breed->size % 10;
@@ -3753,16 +3609,16 @@ void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data) {
     bx = (int) (fx + cx);
     by = (int) (fy + cy);
     int wy = by + 2;
-    Menu3DivideTextureDraw(pen, mgRect<int>(bx, by, 0x8A, u_brdtbl_2493[3]), u_brdtbl_2493, 1);
+    Menu3DivideTextureDraw(pen, mgRect<int>(bx, by, 0x8A, u_brdtbl[3]), u_brdtbl, 1);
     PrimQuad(pen, bx + 0x78, wy,
-             mgRect<int>(get_paraxtbl_2494[lang][8].x, get_paraxtbl_2494[lang][8].y, get_paraxtbl_2494[lang][8].w, 0x12));
+             mgRect<int>(get_paraxtbl[lang][8].x, get_paraxtbl[lang][8].y, get_paraxtbl[lang][8].w, 0x12));
     bx = (int) (2.0f + (fx + cx));
     PrimQuad(pen, bx, wy,
-             mgRect<int>(get_paraxtbl_2494[lang][7].x, get_paraxtbl_2494[lang][7].y, get_paraxtbl_2494[lang][7].w, 0x12));
+             mgRect<int>(get_paraxtbl[lang][7].x, get_paraxtbl[lang][7].y, get_paraxtbl[lang][7].w, 0x12));
     if (data->data.fish.flags & BREEDFISH_FLAG_RAISED) {
         PrimDrawNumber(pen, breed->weight, 0, (int) (138.0f + (fx + cx) - 18.0f - 2.0f), wy, digit_rect, -1, 0);
     } else {
-        aqua_param_icon *unknown = &get_paraxtbl_2494[lang][9];
+        aqua_param_icon *unknown = &get_paraxtbl[lang][9];
         bx = (int) (69.0f + (fx + cx) - 2.0f);
         PrimQuad(pen, bx, wy, mgRect<int>(unknown->x, unknown->y, unknown->w, 0x12));
         PrimQuad(pen, bx + 0xE, wy, mgRect<int>(unknown->x, unknown->y, unknown->w, 0x12));
@@ -3770,7 +3626,7 @@ void DrawFishParam(int x, int y, mgCTexture *tex, CGameDataUsed *data) {
     }
     pen->End();
     mgTexManager.ReloadTexture(MenuArg.mes_tex_block, (sceVif1Packet *) NULL);
-    name_x = (int) (fx + poffset_2511[lang]);
+    name_x = (int) (fx + poffset[lang]);
     if (LanguageCode >= LANG_FRENCH && LanguageCode < LANG_CHINESE) {
         name_y = (int) (24.0f + fy);
     }
@@ -4067,6 +3923,13 @@ int CAquarium::LoadFish(int no, CGameDataUsed *data) {
 }
 
 void CAquarium::SettingAqua() {
+    /**
+     *
+     * Stores aquarium model memory reservations in quadwords.
+     *
+     */
+    static u16 aqua_frame_sizetbl[3] = {26965, 36965, 36965};
+
     int                fish_num = aquarium_fish_maxtbl[m_aquarium_para->active_tank];
     int                aqua_no = m_aquarium_para->active_tank;
     mgCTextureManager *textures = &mgTexManager;
@@ -4097,8 +3960,8 @@ void CAquarium::SettingAqua() {
     AquaBattleBubble_Generate_Wait = 0;
     AquaBattleBubble_Generate_Counter = 0;
     AquaBattleBubble = NULL;
-    u_long128 *frame_top = m_aquarium_limmit_adr - aqua_frame_sizetbl_2934[aqua_no];
-    aqua_stack.stSetBuffer(frame_top, aqua_frame_sizetbl_2934[aqua_no]);
+    u_long128 *frame_top = m_aquarium_limmit_adr - aqua_frame_sizetbl[aqua_no];
+    aqua_stack.stSetBuffer(frame_top, aqua_frame_sizetbl[aqua_no]);
 
     for (int i = 0; i < fish_num; i++) {
         fish_stack[i].stSetBuffer(aqua_stack.stGetTop() - (i + 1) * 0x319C, 0x319C);
@@ -4868,6 +4731,13 @@ void CAquarium::Thinking(int no) {
 }
 
 int CAquarium::ColCheck(int no) {
+    /**
+     *
+     * Stores the two fish effects selected by aquarium collisions.
+     *
+     */
+    static u8 tbl[2] = {2, 1};
+
     aqua_col_point       *point;
     int                   i;
     CAquaFishActionParam *action;
@@ -5011,7 +4881,7 @@ int CAquarium::ColCheck(int no) {
                 effect->timer = -1;
             }
             int pick = GetRandI(2);
-            AquaFishEff[no]->StartFishEffect(tbl_3505[pick]);
+            AquaFishEff[no]->StartFishEffect(tbl[pick]);
             if (me->eat_item == 0x168) {
                 target_fish = no;
                 result |= AQUA_FISH_RESULT_ELECTRIC_FOOD_EATEN;
@@ -5126,8 +4996,8 @@ void CAquarium::SelFishSetCursor() {
     float screen[4];
 
     if (sel_fish >= 0 && fish[sel_fish] != NULL) {
-        Camera__2->GetCameraMatrix(view);
-        Camera__2->GetPos(camera_pos);
+        Camera->GetCameraMatrix(view);
+        Camera->GetPos(camera_pos);
         mgSetViewMatrix(view, camera_pos);
         ((CAquaFish *) fish[sel_fish])->GetPosition(fish_pos);
         mgTransWorldScreen(screen_int, fish_pos);
@@ -5141,6 +5011,45 @@ void CAquarium::SelFishSetCursor() {
 }
 
 int CAquarium::Step() {
+    /**
+     *
+     * Stores confirm and cancel button masks for Japanese and other languages.
+     *
+     */
+    static int langTbl[2][2] = {
+        {PAD_CIRCLE, PAD_CROSS},
+        {PAD_CROSS, PAD_CIRCLE}
+    };
+
+    /**
+     *
+     * Stores the aquarium menu command for each tank and cursor slot.
+     *
+     */
+    static s8 menu_id_tbl[3][6] = {
+        {0, 1, 2, 3, 4, 5},
+        {0, 3, 4, 5, -1, -1},
+        {0, 3, 4, 5, -1, -1},
+    };
+
+    /**
+     *
+     * Stores the two destination aquariums for each active tank.
+     *
+     */
+    static s8 another_aquarium_Notbl[3][2] = {
+        {1, 2},
+        {0, 2},
+        {0, 1}
+    };
+
+    /**
+     *
+     * Stores the number of menu commands in each aquarium.
+     *
+     */
+    static s8 menu_max_tbl[3] = {6, 4, 4};
+
     int       key = 0;
     int       next;
     int       lang;
@@ -5155,7 +5064,7 @@ int CAquarium::Step() {
     if (lang > LANG_JAPANESE) {
         lang = 1;
     }
-    int *keys = langTbl_3630[lang];
+    int *keys = langTbl[lang];
     if (GamePad__2.Down(keys[0])) {
         key = MENU_PUSH_BUTTON_DECIDE;
     } else if (GamePad__2.Down(keys[1])) {
@@ -5312,7 +5221,7 @@ int CAquarium::Step() {
                 } else if (GamePad__2.Down(PAD_DOWN)) {
                     step++;
                 }
-                if (menu->AddMenuCursor(step, menu_max_tbl_3720[aqua_no]) != 0) {
+                if (menu->AddMenuCursor(step, menu_max_tbl[aqua_no]) != 0) {
                     MenuSePlay(SYSTEM_SE_CURSOR);
                 }
                 if (key & MENU_PUSH_BUTTON_CANCEL) {
@@ -5320,7 +5229,7 @@ int CAquarium::Step() {
                     next = AQUARIUM_MODE_VIEW;
                 } else if (key & MENU_PUSH_BUTTON_DECIDE) {
                     i = menu->menu_cursor;
-                    switch (menu_id_tbl_3721[aqua_no][i]) {
+                    switch (menu_id_tbl[aqua_no][i]) {
                         case AQUARIUM_COMMAND_FISH_INFO:
                             if (InitSelFish() != 0) {
                                 MenuSePlay(SYSTEM_SE_CANCEL);
@@ -5600,7 +5509,7 @@ int CAquarium::Step() {
                 food->GetPosition(pos);
                 lx = GamePad__2.GetLXf();
                 ly = GamePad__2.GetLYf();
-                angle = Camera__2->GetAngle();
+                angle = Camera->GetAngle();
                 pos[0] += lx * cosf(angle) + ly * sinf(angle);
                 pos[2] += -lx * sinf(angle) + ly * cosf(angle);
                 local_aquarium_limmit_check(pos, 0.0f, 0, 0.0f);
@@ -5704,7 +5613,7 @@ int CAquarium::Step() {
                     sel_sift_fish_select = -1;
                 } else if (key & MENU_PUSH_BUTTON_DECIDE) {
                     i = menu->question_cursor;
-                    int            tank = another_aquarium_Notbl_3642[m_aquarium_para->active_tank][i];
+                    int            tank = another_aquarium_Notbl[m_aquarium_para->active_tank][i];
                     int            space = m_aquarium_para->SearchAqua1NotUsed(tank);
                     CGameDataUsed *data;
 
@@ -5764,7 +5673,7 @@ int CAquarium::Step() {
                     next = AQUARIUM_MODE_COMMAND;
                 } else if (key & MENU_PUSH_BUTTON_DECIDE) {
                     i = menu->question_cursor;
-                    m_next_aqua_no = another_aquarium_Notbl_3642[m_aquarium_para->active_tank][i];
+                    m_next_aqua_no = another_aquarium_Notbl[m_aquarium_para->active_tank][i];
                     AquaMode = AQUA_MENU_TANK_FADE_OUT_WAIT;
                     mes.menu_cursor = 0;
                     mes.cursor_snap = 1;
@@ -6001,6 +5910,41 @@ int CAquarium::Step() {
 }
 
 void CAquarium::Draw() {
+    /**
+     *
+     * Stores the reference position of an aquarium reflection wall.
+     *
+     */
+    static float v1orig[4] = {0.0f, 16.5f, 21.0f, 1.0f};
+
+    /**
+     *
+     * Stores the reference position of an aquarium reflection wall.
+     *
+     */
+    static float v2orig[4] = {0.0f, 16.5f, -21.0f, 1.0f};
+
+    /**
+     *
+     * Stores the reference position of an aquarium reflection wall.
+     *
+     */
+    static float v3orig[4] = {34.0f, 16.5f, 0.0f, 1.0f};
+
+    /**
+     *
+     * Stores the reference position of an aquarium reflection wall.
+     *
+     */
+    static float v4orig[4] = {-34.0f, 16.5f, 0.0f, 1.0f};
+
+    /**
+     *
+     * Stores the three texture strips of the aquarium title frame.
+     *
+     */
+    static short t[12] = {170, 0, 36, 76, 206, 0, 14, 76, 220, 0, 36, 76};
+
     mgCTextureManager *textures = &mgTexManager;
     int                i;
     float water_ambient[4] = {64.0f, 92.0f, 128.0f, 128.0f};
@@ -6081,7 +6025,7 @@ void CAquarium::Draw() {
         mgCTexture *reflect;
         int         wall;
 
-        Camera__2->GetPos(camera_pos);
+        Camera->GetPos(camera_pos);
         if (camera_pos[1] < 47.0f) {
             water->SetPosition(-34.0f, float(46.8), -21.5f);
         } else {
@@ -6104,7 +6048,7 @@ void CAquarium::Draw() {
         prim.AlphaTestEnable(0);
         float dir[4];
         float flat_dir[4];
-        Camera__2->GetDir(dir);
+        Camera->GetDir(dir);
         sceVu0Normalize(flat_dir, dir);
         dir[1] = 0.0f;
         sceVu0Normalize(dir, dir);
@@ -6177,28 +6121,28 @@ void CAquarium::Draw() {
                         continue;
                     }
                     quad = wall0;
-                    sceVu0SubVector(offset, v1orig_4373, camera_pos);
+                    sceVu0SubVector(offset, v1orig, camera_pos);
                     break;
                 case 1:
                     if (!(camera_pos[2] <= -21.0f)) {
                         continue;
                     }
                     quad = wall1;
-                    sceVu0SubVector(offset, v2orig_4374, camera_pos);
+                    sceVu0SubVector(offset, v2orig, camera_pos);
                     break;
                 case 2:
                     if (camera_pos[0] < 34.0f) {
                         continue;
                     }
                     quad = wall2;
-                    sceVu0SubVector(offset, v3orig_4375, camera_pos);
+                    sceVu0SubVector(offset, v3orig, camera_pos);
                     break;
                 case 3:
                     if (!(camera_pos[0] <= -34.0f)) {
                         continue;
                     }
                     quad = wall3;
-                    sceVu0SubVector(offset, v4orig_4376, camera_pos);
+                    sceVu0SubVector(offset, v4orig, camera_pos);
                     break;
             }
             sceVu0Normalize(offset, offset);
@@ -6256,7 +6200,7 @@ void CAquarium::Draw() {
         title_prim.Begin(6);
         title_prim.Texture(Tex_Aqualium);
         title_prim.Color(0x80, 0x80, 0x80, 0x80);
-        Menu3DivideTextureDraw(&title_prim, mgRect<int>(AQUA_TITLE_X, AQUA_TITLE_Y, AQUA_TITLE_W, AQUA_TITLE_H), t_4408, 1);
+        Menu3DivideTextureDraw(&title_prim, mgRect<int>(AQUA_TITLE_X, AQUA_TITLE_Y, AQUA_TITLE_W, AQUA_TITLE_H), t, 1);
         title_prim.End();
     }
     mes.DrawTitleMes();
@@ -6346,7 +6290,7 @@ void MenuAquaInit(mgCMemory *memory, int *tex_block, int) {
     }
 
     m_next_aqua_no = -1;
-    Camera__2 = new ((u_long128 *) memory->Alloc(sizeof(mgCCameraFollow) / 16 + 2)) mgCCameraFollow(40.0f, 30.0f, 0.0f, 8.0f);
+    Camera = new ((u_long128 *) memory->Alloc(sizeof(mgCCameraFollow) / 16 + 2)) mgCCameraFollow(40.0f, 30.0f, 0.0f, 8.0f);
     aqua_old_env = (aqua_light_env *) memory->Alloc(sizeof(aqua_light_env) / 16);
     mgCMemory aqua_memory;
     int       rest = memory->stGetRest();
@@ -6354,12 +6298,12 @@ void MenuAquaInit(mgCMemory *memory, int *tex_block, int) {
     Aquarium.Clear();
     Aquarium.Initialize(&aqua_memory, tex_block);
     AquaCameraCtrlMode = AQUA_CAMERA_CTRL_FREE;
-    Camera__2->SetDistance(140.0f);
-    Camera__2->SetAngle(0.0f);
-    Camera__2->SetHeight(0.0f);
-    Camera__2->SetSpeed(4.0f, -1.0f);
-    Camera__2->SetFollow(0.0f, 35.0f, 0.0f);
-    Camera__2->Step(-1);
+    Camera->SetDistance(140.0f);
+    Camera->SetAngle(0.0f);
+    Camera->SetHeight(0.0f);
+    Camera->SetSpeed(4.0f, -1.0f);
+    Camera->SetFollow(0.0f, 35.0f, 0.0f);
+    Camera->Step(-1);
     AquaScene->fade.FadeIn(30);
     AquaMode = AQUA_MENU_INIT;
     mgGetPlight(0, &aqua_old_env->plight);
@@ -6383,42 +6327,42 @@ int MenuAquaKey() {
             break;
         case AQUA_MENU_ACTIVE:
             if (AquaCameraCtrlMode == 0) {
-                Camera__2->AddAngle(0.04f * -GamePad__2.GetRXf());
-                Camera__2->AddAngle(0.04f * -GamePad__2.GetLXf());
-                Camera__2->AddHeight(-2.0f * GamePad__2.GetRYf());
-                Camera__2->AddDistance(2.0f * GamePad__2.GetLYf());
+                Camera->AddAngle(0.04f * -GamePad__2.GetRXf());
+                Camera->AddAngle(0.04f * -GamePad__2.GetLXf());
+                Camera->AddHeight(-2.0f * GamePad__2.GetRYf());
+                Camera->AddDistance(2.0f * GamePad__2.GetLYf());
 
-                if (Camera__2->GetHeight() < -20.0f) {
-                    Camera__2->SetHeight(-20.0f);
-                } else if (!(Camera__2->GetHeight() <= 90.0f)) {
-                    Camera__2->SetHeight(90.0f);
+                if (Camera->GetHeight() < -20.0f) {
+                    Camera->SetHeight(-20.0f);
+                } else if (!(Camera->GetHeight() <= 90.0f)) {
+                    Camera->SetHeight(90.0f);
                 }
 
-                if (Camera__2->GetDistance() < 130.0f) {
-                    Camera__2->SetDistance(130.0f);
-                } else if (!(Camera__2->GetDistance() <= 262.0f)) {
-                    Camera__2->SetDistance(262.0f);
+                if (Camera->GetDistance() < 130.0f) {
+                    Camera->SetDistance(130.0f);
+                } else if (!(Camera->GetDistance() <= 262.0f)) {
+                    Camera->SetDistance(262.0f);
                 }
 
                 float pos_speed = 2.0f;
-                Camera__2->SetSpeed(pos_speed, -1.0f);
+                Camera->SetSpeed(pos_speed, -1.0f);
             }
 
             if (AquaCameraCtrlMode == 1) {
-                Camera__2->AddAngle(0.04f * -GamePad__2.GetRXf());
-                Camera__2->AddHeight(-2.0f * GamePad__2.GetRYf());
+                Camera->AddAngle(0.04f * -GamePad__2.GetRXf());
+                Camera->AddHeight(-2.0f * GamePad__2.GetRYf());
 
-                if (Camera__2->GetHeight() < -20.0f) {
-                    Camera__2->SetHeight(-20.0f);
-                } else if (!(Camera__2->GetHeight() <= 90.0f)) {
-                    Camera__2->SetHeight(90.0f);
+                if (Camera->GetHeight() < -20.0f) {
+                    Camera->SetHeight(-20.0f);
+                } else if (!(Camera->GetHeight() <= 90.0f)) {
+                    Camera->SetHeight(90.0f);
                 }
 
-                Camera__2->SetDistance(150.0f);
-                Camera__2->SetSpeed(2.0f, -1.0f);
+                Camera->SetDistance(150.0f);
+                Camera->SetSpeed(2.0f, -1.0f);
             }
 
-            Camera__2->Step(1);
+            Camera->Step(1);
 
             if (Aquarium.Step() != 0) {
                 AquaScene->fade.FadeOut(30, 0.0f, 0.0f, 0.0f);
@@ -6510,8 +6454,8 @@ void MenuAquaDraw() {
         NameRegistDraw();
     } else {
         mgSetLight(light_dir, light_color[m_aquarium_para->active_tank]);
-        Camera__2->GetCameraMatrix(view);
-        Camera__2->GetPos(position);
+        Camera->GetCameraMatrix(view);
+        Camera->GetPos(position);
         mgSetViewMatrix(view, position);
         Aquarium.Draw();
     }
@@ -6994,6 +6938,13 @@ int LoadFishPrize(int goods_type) {
 #pragma optimization_level reset
 
 int LoadFishPrize(int goods_type, mgCMemory *pool) {
+    /**
+     *
+     * Stores the fish-race and fishing-tournament prize script paths.
+     *
+     */
+    static char *filename[2] = {"gyop.cfg", "uofp.cfg"};
+
     u8    buffer[0x2800];
     int   size;
     void *script;
@@ -7006,7 +6957,7 @@ int LoadFishPrize(int goods_type, mgCMemory *pool) {
         FishTournamentGoodsType = 0;
     }
 
-    if (LoadFile2(filename_4899[FishTournamentGoodsType], script, &size, 0) != 0) {
+    if (LoadFile2(filename[FishTournamentGoodsType], script, &size, 0) != 0) {
         fish_prize_buildstack = pool;
         CScriptInterpreter interpreter;
         interpreter.SetTag(gyoprize_tag);
@@ -7378,6 +7329,13 @@ static inline void SetHaveName(CDC2Mes *mes, int k, char *name) {
 }
 
 int GyoraceMenuKey() {
+    /**
+     *
+     * Stores the six tactics message-item numbers of a saved racer.
+     *
+     */
+    static int vol[6] = {5020, 5021, 5022, 5023, 5024, 5025};
+
     /** Stores the fish being renamed while the name-entry menu is open. */
     static CGameDataUsed *local_gdata = NULL;
     CDC2Mes              *ask = MenuDCMsg[0];
@@ -7573,7 +7531,7 @@ int GyoraceMenuKey() {
                     list_update = 1;
                     GyoraceFishTacMesDrawFlag = list_update;
                     GyoraceCFGAnalyze("\x8d\xec\x90\xed\x91\x49\x91\xf0");
-                    tactics_mes->SetMsgItemNo(vol_5253, 6);
+                    tactics_mes->SetMsgItemNo(vol, 6);
                     tactics_mes->select_top = list_update;
                     tactics_mes->SetWindowBgOpaqueFlg(list_update);
                     GyoraceNowMode = GYORACE_MENU_SELECT_TACTICS;
@@ -8184,12 +8142,26 @@ void GyoraceMenuDraw() {
 }
 
 void DrawSubGameTitle(mgCTexture *texture, int large, int x, int y, int width) {
+    /**
+     *
+     * Stores texture strips for a small subgame title.
+     *
+     */
+    static short pl_s[12] = {172, 54, 24, 46, 196, 54, 10, 46, 206, 54, 24, 46};
+
+    /**
+     *
+     * Stores texture strips for a large subgame title.
+     *
+     */
+    static short pl_b[12] = {172, 0, 24, 54, 196, 0, 10, 54, 206, 0, 24, 54};
+
     mgRect<int> shadow;
     mgRect<int> frame;
-    short      *table = pl_s_5630;
+    short      *table = pl_s;
 
     if (large == 1) {
-        table = pl_b_5631;
+        table = pl_b;
     }
 
     mgCDrawPrim *prim = GetMenuPrim();
@@ -8206,6 +8178,17 @@ void DrawSubGameTitle(mgCTexture *texture, int large, int x, int y, int width) {
 }
 
 void DrawSubGameListFix(mgCTexture *texture, int x, int y, int width, int height) {
+    /**
+     *
+     * Stores texture strips for a fixed subgame list frame.
+     *
+     */
+    static short tbl[3][12] = {
+        {0, 0, 28, 28, 28, 0, 10, 28, 38, 0, 28, 28},
+        {0, 28, 28, 10, 28, 28, 10, 10, 38, 28, 28, 10},
+        {0, 38, 28, 28, 28, 38, 10, 28, 38, 38, 28, 28}
+    };
+
     mgRect<int>  shadow_top;
     mgRect<int>  shadow_mid;
     mgRect<int>  shadow_bottom;
@@ -8220,23 +8203,41 @@ void DrawSubGameListFix(mgCTexture *texture, int x, int y, int width, int height
     prim->Color(0, 0, 0, 0x40);
     int shadow_x = x + 4;
     int shadow_y = y + 4;
-    shadow_top.Set(shadow_x, shadow_y, width, tbl_5644[3]);
-    Menu3DivideTextureDraw(prim, shadow_top, tbl_5644, 1);
-    shadow_mid.Set(shadow_x, shadow_y + tbl_5644[3], width, mid_height);
-    Menu3DivideTextureDraw(prim, shadow_mid, tbl_5644 + 12, 1);
-    shadow_bottom.Set(shadow_x, mid_height + (shadow_y + tbl_5644[3]), width, tbl_5644[27]);
-    Menu3DivideTextureDraw(prim, shadow_bottom, tbl_5644 + 24, 1);
+    shadow_top.Set(shadow_x, shadow_y, width, tbl[0][3]);
+    Menu3DivideTextureDraw(prim, shadow_top, tbl[0], 1);
+    shadow_mid.Set(shadow_x, shadow_y + tbl[0][3], width, mid_height);
+    Menu3DivideTextureDraw(prim, shadow_mid, tbl[1], 1);
+    shadow_bottom.Set(shadow_x, mid_height + (shadow_y + tbl[0][3]), width, tbl[2][3]);
+    Menu3DivideTextureDraw(prim, shadow_bottom, tbl[2], 1);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    frame_top.Set(x, y, width, tbl_5644[3]);
-    Menu3DivideTextureDraw(prim, frame_top, tbl_5644, 1);
-    frame_mid.Set(x, y + tbl_5644[3], width, mid_height);
-    Menu3DivideTextureDraw(prim, frame_mid, tbl_5644 + 12, 1);
-    frame_bottom.Set(x, mid_height + (y + tbl_5644[3]), width, tbl_5644[27]);
-    Menu3DivideTextureDraw(prim, frame_bottom, tbl_5644 + 24, 1);
+    frame_top.Set(x, y, width, tbl[0][3]);
+    Menu3DivideTextureDraw(prim, frame_top, tbl[0], 1);
+    frame_mid.Set(x, y + tbl[0][3], width, mid_height);
+    Menu3DivideTextureDraw(prim, frame_mid, tbl[1], 1);
+    frame_bottom.Set(x, mid_height + (y + tbl[0][3]), width, tbl[2][3]);
+    Menu3DivideTextureDraw(prim, frame_bottom, tbl[2], 1);
     prim->End();
 }
 
 void DrawSubGameScrlList(mgCTexture *texture, int *box, int *thumb) {
+    /**
+     *
+     * Stores texture strips for a scrolling subgame list frame.
+     *
+     */
+    static short tbl[3][12] = {
+        {0, 0, 28, 28, 28, 0, 10, 28, 66, 0, 40, 28},
+        {0, 28, 28, 10, 28, 28, 10, 10, 66, 28, 40, 10},
+        {0, 38, 28, 28, 28, 38, 10, 28, 66, 38, 40, 28}
+    };
+
+    /**
+     *
+     * Stores texture strips for a subgame scrollbar thumb.
+     *
+     */
+    static short bart[12] = {248, 0, 8, 10, 248, 10, 8, 10, 248, 20, 8, 10};
+
     mgRect<int>  unused_rect;
     mgRect<int>  shadow_top;
     mgRect<int>  shadow_mid;
@@ -8256,34 +8257,41 @@ void DrawSubGameScrlList(mgCTexture *texture, int *box, int *thumb) {
     prim->Color(0, 0, 0, 0x40);
     int shadow_x = x + 4;
     int shadow_y = y + 4;
-    shadow_top.Set(shadow_x, shadow_y, width, tbl_5669[3]);
-    Menu3DivideTextureDraw(prim, shadow_top, tbl_5669, 1);
-    shadow_mid.Set(shadow_x, shadow_y + tbl_5669[3], width, mid_height);
-    Menu3DivideTextureDraw(prim, shadow_mid, tbl_5669 + 12, 1);
-    shadow_bottom.Set(shadow_x, mid_height + (shadow_y + tbl_5669[3]), width, tbl_5669[27]);
-    Menu3DivideTextureDraw(prim, shadow_bottom, tbl_5669 + 24, 1);
+    shadow_top.Set(shadow_x, shadow_y, width, tbl[0][3]);
+    Menu3DivideTextureDraw(prim, shadow_top, tbl[0], 1);
+    shadow_mid.Set(shadow_x, shadow_y + tbl[0][3], width, mid_height);
+    Menu3DivideTextureDraw(prim, shadow_mid, tbl[1], 1);
+    shadow_bottom.Set(shadow_x, mid_height + (shadow_y + tbl[0][3]), width, tbl[2][3]);
+    Menu3DivideTextureDraw(prim, shadow_bottom, tbl[2], 1);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    frame_top.Set(x, y, width, tbl_5669[3]);
-    Menu3DivideTextureDraw(prim, frame_top, tbl_5669, 1);
-    frame_mid.Set(x, y + tbl_5669[3], width, mid_height);
-    Menu3DivideTextureDraw(prim, frame_mid, tbl_5669 + 12, 1);
-    frame_bottom.Set(x, mid_height + (y + tbl_5669[3]), width, tbl_5669[27]);
-    Menu3DivideTextureDraw(prim, frame_bottom, tbl_5669 + 24, 1);
+    frame_top.Set(x, y, width, tbl[0][3]);
+    Menu3DivideTextureDraw(prim, frame_top, tbl[0], 1);
+    frame_mid.Set(x, y + tbl[0][3], width, mid_height);
+    Menu3DivideTextureDraw(prim, frame_mid, tbl[1], 1);
+    frame_bottom.Set(x, mid_height + (y + tbl[0][3]), width, tbl[2][3]);
+    Menu3DivideTextureDraw(prim, frame_bottom, tbl[2], 1);
     unused_rect.Set(0xF8, 0, 8, 0x1E);
     bar_rect.Set((x + width) - 0xF, box[1] + thumb[0] + 8, 8, thumb[1]);
-    Menu3DivideTextureDraw(prim, bar_rect, bart_5670, 0);
+    Menu3DivideTextureDraw(prim, bar_rect, bart, 0);
     prim->End();
 }
 
 void DrawSubGameUnderLine(mgCTexture *texture, int x, int y, int width) {
+    /**
+     *
+     * Stores texture strips for a subgame underline.
+     *
+     */
+    static short pl_s[12] = {0, 66, 10, 6, 10, 66, 10, 6, 20, 66, 10, 6};
+
     mgRect<int>  rect;
     mgCDrawPrim *prim = GetMenuPrim();
     SetSpriteEnv(prim, 0);
     prim->Begin(6);
     prim->Texture(texture);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    rect.Set(x, y, width, pl_s_5699[3]);
-    Menu3DivideTextureDraw(prim, rect, pl_s_5699, 1);
+    rect.Set(x, y, width, pl_s[3]);
+    Menu3DivideTextureDraw(prim, rect, pl_s, 1);
     prim->End();
 }
 
