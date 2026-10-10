@@ -20,9 +20,7 @@ No counterpart in the first game's headers. No vtable (no `__vt__16CSaveDataDung
   otherwise.
 
 ## Functions
-- All three functions have named C++ drafts. `SetFloorID` was promoted after its object and
-  the linked game image matched retail. `GetFloorInfoPtr` and `Initialize` compile but differ
-  from retail and remain behind `NONMATCHING` with assembly fallbacks.
+- All three functions are native C++ and the complete object matches retail.
 - `GetFloorInfoPtr(stage, floor)`: null if stage outside 0..6 or floor outside 0..limmit_table[stage]-1;
   otherwise `&floor_info[sum(limmit_table[0..stage-1]) + floor]`. The unrolled-by-8 loop in the asm
   is MWCC's unrolling of a simple summing loop.
@@ -30,13 +28,13 @@ No counterpart in the first game's headers. No vtable (no `__vt__16CSaveDataDung
   then prev_floor_id[] = -1, floor_id[] = 1, stage_id = 0. Note order in asm: prev (0x20..0x38) first,
   then floor_id, then stage_id.
 - `SetFloorID(floor)`: `prev_floor_id[stage_id] = floor_id[stage_id]; floor_id[stage_id] = floor;
-  printf(at_79, stage_id, prev_floor_id[stage_id], floor)` as a tail call (`j printf`). Return type
+  printf("[%d] FLOOR :::    %d ----->> %d \n", stage_id, prev_floor_id[stage_id], floor)` as a tail call (`j printf`). Return type
   void (no caller uses a result).
 
 ## Globals
 - `limmit_table` (0x361670, .data, 0xE bytes) is LOCAL in retail -> `static s16 limmit_table[7] =
   {9, 16, 25, 21, 23, 29, 39};` in the .cpp, not in the header. Floors per dungeon.
-- `at_79` (.rodata) is the printf string `"[%d] FLOOR :::    %d ----->> %d \n"`.
+- The floor-transition diagnostic is an inline string literal.
 
 ## DNG_FLOOR_SAVE (0x14) -- name is ours
 Retail name unknown. `DNG_FLOOR_SAVE` was already forward-declared by dng_main.hpp for
