@@ -1,15 +1,8 @@
 # snd_mngr: reverse-engineering notes
 
-## C++ draft status
-All 104 functions have C++ in `ps2/src/snd_mngr.cpp`. 31 are exact and compiled
-by the matching build. 24 more compile to retail's bytes in isolation but stay
-under `NONMATCHING`. 49 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Matching status
 
-Sound manager layered over `CSound` (unit `sound`, global `CSnd`, gp-0x7588). No first-game
-counterpart: the first game's sound wrapper (`snd.hpp`, `SndInitialize`/`SndBgm*`) is a different
-design. All driver calls are bracketed by `sndWaitSema()`/`sndSignalSema()`.
+All functions are native; no assembly function fallback remains.
 
 ## File-local symbols (all of the unit's data is LOCAL)
 Every data symbol of the unit is local in retail (`build/re/local_symbols.tsv`), so the header
@@ -139,3 +132,21 @@ sndSqStop/sndSqRePlay ignore sq_no. sndStep's float is passed to sndCSeSeq::Step
 sndGetSeDefVol returns s8 (lb). sndGetMasterVol/sndGetPortVol return float.
 sndMasterVolFadeInOut(core, frames > 1, target, start (<0 = current MasterVol)); no fade when
 |target - start| < 0.01.
+
+
+## Native data and matching constraints
+
+All data are native. The line reader's CR/LF object owns two bytes, with a four-byte
+section piece and no terminator. Nine- and four-pointer col initializers own 0x24/0x10
+bytes; the first receives twelve alignment bytes. init_snd owns four bytes with a
+four-byte padding tail. Listener vectors retain SDK alignment; the sequencer and port
+arrays contain thirty-two 0xB0-byte and sixteen 0x29C-byte records.
+
+PortInfo retains external linkage. A generated SDK numeric table inferred PortInfo+0x15E
+from an unrelocated word at 0x3658E0 (value 0x3F669E). Library words without genuine
+relocation metadata are emitted numerically by the splitter; inferred numeric
+coincidences must not establish pointer consumers.
+
+Replacing sndSetMicPos's quadword casts with memcpy grows its declared size from 0x24 to
+0x4C and changes eight words within retail's extent, so the inherited copies remain.
+Header sizes are declared STT_FUNC extents without alignment.
