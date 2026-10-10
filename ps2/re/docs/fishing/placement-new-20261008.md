@@ -27,3 +27,10 @@ object, a const reference to its pointer result, and an inherited
 `CObjectFrame` pointer with a typed downcast all retain the same 24-word
 exchange. These forms do not recover a separately coloured fish local.
 No row or source change is activated.
+
+A player reference bound after the existing null check, both global/local
+assignment-chain orders for the constructed fish, and explicit same-type
+casts of either character result also retain the 24-word exchange under the
+one-site after-inline row. The assignment chains preserve the same single
+eligible construction. These tests isolate the remaining pointer-web
+colouring from the already-correct allocation guard.
