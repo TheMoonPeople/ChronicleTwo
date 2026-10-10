@@ -134,3 +134,15 @@ unrelated class; nothing was carried over. No first-game equivalent of CMapTreas
 CCharacter2 inline members emitted in this unit (GetMotionStatus ... SetPosition) belong to
 `character.hpp`; CMapPiece::Draw/DrawDirect (emitted here, 0x10 each) belong to `mdslist.hpp`;
 `CList<CObjAnime>::Initialize` comes from the CList template in `mg_tanime.hpp`.
+
+
+## Native data and matching constraints
+
+The unit has no assembly data markers. `CCharacter2::SetPosition`'s `{0,0,0,1}`
+initializer supplies the 16-byte position template. Native vtables have extents 0xF8 for
+`CMapTreasureBox` and 0x84 for `CMapParts`.
+
+MWCC emits a vtable in the unit defining its first non-inline virtual function.
+`CMapParts::Draw` and `DrawDirect` are weak inline bodies in map at 0x15F7E0/0x15F7F0.
+The first non-inline virtual is `Initialize` at 0x167660, so mapparts emits
+`__vt__9CMapParts` at 0x37B740. Native AssignFuncAnime emits the CList<CObjAnime> table.
