@@ -200,3 +200,49 @@ changes `setImageTag`.
   addresses with `& 0xFFFFFFF` / `| 0x20000000`.
 - `videoCallback` and `pcmCallback` take `sceMpegCbDataStr *` (part of their
   mangled names) and are cast to the SDK's `sceMpegCbData *` callback type.
+
+## Saved-state restoration and current draft
+
+At PR15 (`13b4079f`), the retained natural `viBufRestartDMA` draft differs
+by **62/200 words**, with a `0x318` body against retail's `0x320`. This is
+not the nine-word diagnostic source used in the earlier matching waves:
+that diagnostic used a separate read-only `ViBuf` alias for the channel-3
+restoration stores. The retained source deliberately omits that alias.
+The earlier nine-word measurements therefore describe the isolated
+wrap-branch blocker, not the current guarded body as written.
+
+Fresh m2c output from `decompile.sh` continues to shift the apparent `ViBuf`
+field offsets and loses the caller state around the two FIFO-index calls.
+The existing layout remains authoritative: `env` begins at `0x1C`, the saved
+channel-3 address/count are at `0x2C`/`0x30`, and the semaphore is at `0x40`.
+Retail tests the two saved channel-3 words and reloads both before restoring
+MADR/QWC. The plain source lets MWCC reuse the tested address. Changing
+hardware-store volatility does not make that saved-state load volatile.
+
+The following source forms do not resolve these constraints under the
+canonical MWCC 3.0-011126 profile and the local optimization level 4:
+
+- Reference-bound capacity or tag addresses preserve the 62-word residual;
+  reference-bound byte extents or shared masks worsen it. Void/const-void
+  tag argument views preserve it, while signed CHCR masks and shift-based
+  mask expressions worsen it.
+- Volatile MMIO stores, including the individual channel-3 stores, and
+  typed `sceDmaChan` register accesses preserve the residual. Hardware-store
+  volatility does not require the saved environment to be reloaded.
+- Signed integer, void-pointer and byte-pointer MADR restoration stores
+  preserve the residual. References to the saved address/count fields do
+  not match, nor does a const environment view used throughout the function.
+- Negated-disjunction, boolean-cast and nested channel-3 validity tests,
+  and pointer endpoint comparisons through the byte-array view, preserve
+  the residual.
+
+A const `sceIpuDmaEnv` reference used only for the channel-3 restoration
+stores produces a `0x320` body with twelve differing words.
+The twelve-word saved-environment-reference result consists of the same
+nine count/mask register exchanges plus three restoration differences:
+`+0x224` computes a separate environment base in the branch delay slot,
+and `+0x234`/`+0x240` address the reloads from that base instead of the
+`ViBuf` base. This form establishes a reload mechanism but does not match
+retail. A pointer/reference view is therefore insufficient evidence for
+promotion; neither it nor a volatile buffer cast is retained as an alias
+workaround.
