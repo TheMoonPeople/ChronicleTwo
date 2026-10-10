@@ -2,13 +2,12 @@
 
 `CMenuChrCngMenu::LoadBGNPCModel`, `CMenuCostumeSel::LoadMenuData` and
 `CMosBookMenu::KeyStep` are native C++ with three expected-one after-inline
-`CActionChara` rows; see [placement conversion](../satansfiddle/placement-new.md). The
-matching build uses a retail gap only for the C++ draft still guarded by `NONMATCHING`:
-`MenuCharaChangeInit`. `MenuCostumeInit` is native; see
-[costume construction](placement-new-costume-natural.md). `CMenuMosSelect::KeyStep` is native; see
+`CActionChara` rows; see [placement conversion](../satansfiddle/placement-new.md). Every
+function is native. `MenuCostumeInit` is described in
+[costume construction](placement-new-costume-natural.md) and `MenuCharaChangeInit` in
+[party-change construction](placement-new-change-natural.md). `CMenuMosSelect::KeyStep` is native; see
 [the KeyStep promotion](matching-constraints.md) and [the monster-box command notes](#monster-box-pages-and-command-steps). `MenuItemCharaDataLoadEndCheckAfter` is native; see
-[the temporary-scene notes](matching-constraints.md). Only unguarded functions are
-active C++ decompilations. `MenuMemoryDivide` and `CMosBookMenu::Draw` are native,
+[the temporary-scene notes](matching-constraints.md). `MenuMemoryDivide` and `CMosBookMenu::Draw` are native,
 including their capacity and drawing tables. `CMenuChrCngMenu::EnterDataMenu` is native;
 its palette and command-loop findings are in [matching constraints](matching-constraints.md). `MenuCharaChangeStarDraw` is native;
 `mgRect<short>` is the generic template (see [the star notes](matching-constraints.md)).
@@ -113,7 +112,8 @@ Slot order is the base's: `IsCreateObject`, `IsMakeObject`, `IsAskExtend`, `Item
 ### CMenuChrCngMenu (0x1F80)
 - Size: `__nw__FUiP1(0x1F80, ...)` in `MenuCharaChangeInit`; instance kept in `ChrChangMenuPt`.
 - Inline ctor in `MenuCharaChangeInit`: `Init` on 0x194/0x1C4 (two `mgCMemory`), clears/sets most
-  fields (0x122 = -1 change_chara, 0x11C = -1 then 0x11E = 1, 0x24C/0x24E = -1 sub_menu(s),
+  fields (0x122 = -1 change_chara, 0x11C = -1 open_wait, 0x11E = 1 set_cursor (reset to 0
+  later in the same constructor), 0x24C/0x24E = -1 sub_menu(s),
   0x200 = -1 face_state, 0x202 = -1 face_chara), calls `InitStarInfo`, then
   `memset(this+0x1A80, 0, 0x500)`.
 - 0x1A80 `clut[256]`: `EnterDataMenu` sets `MenuCharaChangeCLUT = this+0x1A80`, `memcpy`s 0x400
@@ -390,8 +390,9 @@ and inventmn accesses use the named field. Byte +6 remains unidentified; see
 
 ## Native character-menu data
 
-The only retained data markers are at_2595__2 (twelve-byte filename literal), at_2596__3
-(nine-byte info.cfg), the character-change vtable owned by the guarded initializer, and the distinct four-byte D_01F3C7FC BSS piece. Removing that boundary
+The only retained data marker is the distinct four-byte D_01F3C7FC BSS piece. The
+party-change filename `chrchg0.pac` and script label `JOININIT` are compiler literals, and
+both menu vtables are compiler-emitted. Removing that BSS boundary
 shifts following objects; MenuCharaBuild2 owns seven pointers and must not absorb it
 through an eighth element.
 
@@ -482,8 +483,7 @@ unnamed across their shared consumers.
 Thirty-two single-consumer statics use their bare retail names inside their
 owning functions. `MenuMonsterBoxInit` has two separate `tbl` objects: slot
 request flags inside its allocation loop and localized help at function
-scope. The background request table `tbl_2483` and its two associated
-literals remain file-local because `MenuCharaChangeInit` is guarded.
+scope. `MenuCharaChangeInit` owns its all-ones background request `tbl`.
 Shared `menu_debug_select__2` also stays file-local.
 
 The longest-page calculations in `CMenuChrCngMenu::KeyChangeMain` use direct

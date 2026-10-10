@@ -32,5 +32,6 @@ fields.
 Five exclusive strings are compiler literals: `CHRFADEPRE`, `fukusel.img`, `fukusen`,
 `mnmain`, and Shift-JIS `立ち` (bytes 97 A7 82 BF). Their old external aliases and
 assembly data pieces are removed. Retail padded sizes are respectively 0x10, 0x10, 0x8,
-0x10 and 0x8; the postprocessor preserves those pieces with LOCAL literal binding. Other
-guarded callers retain their existing memory-helper definitions.
+0x10 and 0x8; the postprocessor preserves those pieces with LOCAL literal binding. The
+party-change initializer needs no placement row; see
+[party-change construction](placement-new-change-natural.md).

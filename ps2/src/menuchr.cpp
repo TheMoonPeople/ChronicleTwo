@@ -48,6 +48,19 @@
  */
 static u_int *MenuCharaChangePosDataCfgBuffer;
 
+/**
+ *
+ * Rounds a byte count up to the number of 16-byte memory blocks it occupies.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
+
 inline CMenuChrCngMenu::CMenuChrCngMenu() {
     change_phase = 0;
     change_chara = -1;
@@ -62,6 +75,7 @@ inline CMenuChrCngMenu::CMenuChrCngMenu() {
     item_brd_select = 0;
     item_brd_pos = 0;
     open_wait = -1;
+    set_cursor = 1;
     cursor_wave = 0;
     form = NULL;
     npc_sub_form2 = NULL;
@@ -723,16 +737,6 @@ static short monster_load_id = -1;
  *
  */
 static CMenuChrCngMenu   *ChrChangMenuPt;
-
-/**
- *
- * Character slots that require party menu background read requests.
- *
- */
-static int tbl_2483[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
-
-extern char               at_2595__2[];
-extern char               at_2596__3[];
 
 /**
  *
@@ -2920,7 +2924,6 @@ void MenuCharaChangeStarDraw() {
     prim->End();
 }
 
-#ifdef NONMATCHING
 int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     u_long128       *buffer;
     int              size;
@@ -2930,11 +2933,12 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     int              i;
     CCharacter2     *chara;
     short            party_chara;
+    static int       tbl[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
 
     buffer = stack->stack;
 
     if (mode == 4 || mode == 0xE) {
-        file_size = LoadFileMenu(at_2595__2, buffer, 1);
+        file_size = LoadFileMenu("chrchg0.pac", buffer, 1);
         stack->Alloc((file_size & 0xF) ? (file_size >> 4) + 1 : file_size >> 4);
         stack->Align64();
     }
@@ -2944,7 +2948,7 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuChangeMemory.stSetBuffer(stack->stGetTop(), size);
     MenuChangeMemory.Alloc(0x100);
 
-    menu = new (MenuChangeMemory.Alloc(0x1FA)) CMenuChrCngMenu;
+    menu = new (MenuChangeMemory.Alloc(align16_blocks(sizeof(CMenuChrCngMenu)) + 2)) CMenuChrCngMenu;
 
     ChrChangMenuPt = menu;
     menu->SetTexBlock(tex_block);
@@ -2952,7 +2956,7 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     ChrChangMenuPt->last_select = party_chara;
     ChrChangMenuPt->select = party_chara;
 
-    repair = new (MenuChangeMemory.Alloc(0x21)) CRepairManager;
+    repair = new (MenuChangeMemory.Alloc(align16_blocks(sizeof(CRepairManager)) + 2)) CRepairManager;
 
     MenuRepairMan = repair;
     repair->Initialize();
@@ -2968,7 +2972,7 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
         MenuActionChara[i] = static_cast<CActionChara *>(chara);
     }
 
-    MenuBGReadInfo2Malloc(&MenuChangeMemory, tbl_2483);
+    MenuBGReadInfo2Malloc(&MenuChangeMemory, tbl);
     MenuCharaChangeCLUT_Tex = 0;
     MenuMainFrameModeSet(4, 1);
     ChrChangMenuPt->EnterDataMenu((u8 *) stack->stack);
@@ -2997,21 +3001,18 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
         }
 
         ChrChangMenuPt->FadeOutMenu(0x1E, 0.0f);
-        ChrChangMenuPt->ExeScript(at_2596__3);
+        ChrChangMenuPt->ExeScript("JOININIT");
     } else {
         MenuMainScene->fade.FadeIn(1);
         MenuMainScene->fade.FadeStep();
     }
 
     MenuCommonInfo->key_enable = 0;
-    (&MenuCommonInfo->cursor)[0] = 0;
+    MenuCommonInfo->cursor = 0;
     MenuGetPartySeFlag = 0;
     MenuDCMsg[0]->MsgPreset(3);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuCharaChangeInit__FP9mgCMemoryPii);
-#endif
 
 int MenuCharaChangeKey() {
     int               result;
@@ -7557,13 +7558,6 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
     {6, 124, 116, 120, 128},
     {9, 224, 236, 228, 240},
 };
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2595__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2596__3__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuChrCngMenu__DATA);
 
 // Small uninitialised data (.sbss)
 mgCMemory *MorattaStack;
