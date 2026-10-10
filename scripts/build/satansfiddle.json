@@ -1965,14 +1965,6 @@
       },
       {
         "translation_unit": "event_func.cpp",
-        "function": "_ESM_INITIALIZE__FP12RS_STACKDATAi",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__16CEffectScriptManFv",
-        "conversion": "after_constructor_inline",
-        "expected_matches": 1
-      },
-      {
-        "translation_unit": "event_func.cpp",
         "function": "_COPY_CHARA__FP12RS_STACKDATAi",
         "allocator": "__nw__FUiP1",
         "constructor": "__ct__11CCharacter2Fv",

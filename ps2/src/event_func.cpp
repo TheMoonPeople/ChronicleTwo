@@ -15599,6 +15599,19 @@ int _CANCEL_NOW_LOADING(RS_STACKDATA *stack, int argc) {
     CancelNowLoading();
     return 1;
 }
+/**
+ *
+ * Rounds a byte count up to a number of 16-byte blocks.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
+
 int _ESM_INITIALIZE(RS_STACKDATA *stack, int argc) {
     int        stack_no;
     int        texb_offset = 0;
@@ -15611,7 +15624,7 @@ int _ESM_INITIALIZE(RS_STACKDATA *stack, int argc) {
     if ((memory = EventScene->GetStack(stack_no)) == NULL) {
         return 0;
     }
-    EventEffectScript = new (memory->Alloc((sizeof(CEffectScriptMan) + 15) / 16 + 2)) CEffectScriptMan;
+    EventEffectScript = new (memory->Alloc(align16_blocks(sizeof(CEffectScriptMan)) + 2)) CEffectScriptMan;
     if (EventEffectScript == NULL) {
         return 0;
     }

@@ -16,8 +16,10 @@ register in the branch delay slot, while MWCC copies first and branches on the s
 - `_ESM_INITIALIZE` (0x128 body in a 0x130 extent) reads the scene stack number and an optional
   texture-block offset, constructs the `CEffectScriptMan` in that stack and stores it in
   `EventEffectScript`, then initializes it with the event texture blocks starting at the offset.
-  The construction has a `placement_new` row (`__ct__16CEffectScriptManFv`,
-  `after_constructor_inline`, one site) that gives retail's `beqz v0` / delay-slot copy. The
+  The allocation size is `align16_blocks(sizeof(CEffectScriptMan)) + 2` (0x11B quadwords); the
+  file-local `align16_blocks` returns early, so MWCC statement-inlines it, and that gives
+  retail's `beqz v0` / delay-slot copy of the allocation result without a `placement_new` row
+  (`(sizeof(CEffectScriptMan) + 15) / 16 + 2` copies first and tests the saved register). The
   texture-block start is read through the inline `CScene::GetEventTexb` into a local before the
   sum; a direct `event_texb` field read colours the texture offset into `s0` and the stack
   number/memory into `s1` (retail has the reverse), and the colouring does not change with

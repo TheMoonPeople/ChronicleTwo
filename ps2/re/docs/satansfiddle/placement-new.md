@@ -177,7 +177,6 @@ row whose before-inline timing has not been tested.
 | effscript | `CreateEffSpt__16CEffectScriptManFiii` | `_EFF_SCRIPT` | 1 | after |
 | effscript | `CreateEffSpt__16CEffectScriptManFiii` | `CCharacter2` | 1 | after |
 | event_func | `_COPY_CHARA__FP12RS_STACKDATAi` | `CCharacter2` | 1 | after/either |
-| event_func | `_ESM_INITIALIZE__FP12RS_STACKDATAi` | `CEffectScriptMan` | 1 | after |
 | fishing | `StepDataLoading__FPv` | `CCharacter2` | 7 | after/either |
 | fishing | `sgRestartFishing__FP11SubGameInfo` | `CCharacter2` | 1 | after/either |
 | funcpoint | `Add__14CFuncPointMngrFiP9mgCMemory` | `CList<CFuncPoint>` | 1 | after/either |
@@ -348,8 +347,9 @@ reproduces all accepted game objects and the accepted executable byte for
 byte. A paired comparison of that hybrid against the scoped rows over the
 current source preserves every scoped diagnostic zero and adds two guarded
 zeros, `MenuInventInit` and `_ESM_INITIALIZE`. `_ESM_INITIALIZE` is native
-with natural source and its own row (see
-[event_func notes](../event_func/notes.md)); the `MenuInventInit` draft
+without a row: writing its allocation size with the statement-inlined
+`align16_blocks` gives retail's `beqz v0` test (see
+[event_func notes](../event_func/notes.md)). The `MenuInventInit` draft
 retains rejected helper and dummy scaffolding and remains inactive. The hybrid driver
 uses provisional allocator and name filters, excludes raw `__ct` implicit
 roots, and lacks production's exact ownership, bounded-region and completion
