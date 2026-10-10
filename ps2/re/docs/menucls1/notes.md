@@ -163,3 +163,19 @@ assembly remains the default until object-code matching is complete.
 The nested local `divbyzerocheck on/reset` directives around the number-glyph
 helpers are redundant with the unit's global flag: removing them produces an
 identical complete `menucls1.cpp.o`.
+
+
+## Native data and matching constraints
+
+All data are native. GetHatena owns its question-mark string-pointer statics and
+compiler guards. The seven-word st_bittable has declared size 0x1C with four alignment
+bytes. Its native identity requires a mutable .data definition, exact declared
+bytes/extent and complete consumers with resolved relocations. ASCII digit pointers and
+strings identify one another through their real relocation fields; zero initializer
+templates retain their declared sizes.
+
+MenuBigNum is a forty-byte table of ten full-width digit pointers. SetMenuBigNum owns a
+ten-pointer ASCII digit table; both use char pointers. The mutable seven-mask status
+table uses CHARA_STATUS_ATTR in ascending bit order. A const definition emits .rodata
+instead of retail .data and must be rejected rather than rewritten. Message-preset
+switches, two-volume and four-unavailable-item initializers supply their own templates.
