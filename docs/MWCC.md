@@ -193,6 +193,11 @@ class initializers must be generated naturally by the compiler.
   substituted. A call result used before the next call stays in `v0`, so a
   `v0` test beside a spill store needs the looked-up value in a separate
   `const` local (dng_event).
+- Load CSE distinguishes the base pointer's qualification: a field read
+  through a `const T *` inline-helper parameter is not merged with the same
+  read through `T *`, so the helper reloads it (and an earlier test of it
+  leaves an unfilled delay slot). Qualifying a member's struct instead
+  (`const Env *` of `&p->env`) is merged (`viBufRestartDMA`, movie).
 - Binding a computed scalar to a used `const T &` can stop one-use forward
   substitution into call arguments without adding storage or instructions.
   EditLoop's remaining fishing capacity uses this form; ordinary value snapshots

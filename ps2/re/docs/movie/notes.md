@@ -154,12 +154,18 @@ instructions, so they do not count as C++ matches.
 
 ## viBufRestartDMA
 
-`viBufRestartDMA` is the third guarded draft. It compiles at the unit's default
-optimization level (`-O3`), with the two ring-position tests written as the
-repeated `IsInRegion`-style expression and a `volatile int *const` IPU control
-pointer for the first busy-wait. Its only blocker is the tail's `env.d3madr`
-reload: the draft differs by **53/200 words** (`0x318` against `0x320`), all in
-the channel-3 restoration and the code it shifts.
+`viBufRestartDMA` is matched. It compiles at the unit's default optimization
+level (`-O3`), with the two ring-position tests written as the repeated
+`IsInRegion`-style expression and a `volatile int *const` IPU control pointer
+for the first busy-wait. The channel-3 restoration is a file-local
+`static inline void viBufRestartD3(const ViBuf *buf)` called inside the plain
+`buf->env.d3madr != 0 && buf->env.d3qwc != 0` test. Reading the saved
+environment through the `const ViBuf *` parameter keeps MWCC's load CSE from
+merging the restoration reads with the test's reads, which gives retail's
+reload of `d3madr` and the unfilled delay slot before it. A helper taking
+`const sceIpuDmaEnv *` (53/200) or one containing the test as well (27/200)
+does not match. Tag and FIFO addresses use `DmaAddr(&buf->tag[index])` and
+`&buf->data_bytes[index << 11]` without changing the code.
 
 - Ring count and address mask. Under the interference-graph capture the ring
   count `n` (a CSE temporary of `buf->n`) has exactly 25 interferences, so it is
@@ -185,9 +191,9 @@ the channel-3 restoration and the code it shifts.
   merged with a read through `ViBuf *`. Retail's reload of `d3madr` (and the
   unfilled delay slot before it) therefore needs the test and the restoration
   reads to go through differently qualified `ViBuf` pointers. A `const ViBuf *`
-  inline restoration helper, a `const ViBuf *` alias or a `(const ViBuf *)` cast
-  on either side gives 0/200 together with the forms above; each is an invented
-  access path, so none is used. Qualifiers on the environment instead
+  inline restoration helper (the retained form), a `const ViBuf *` alias or a
+  `(const ViBuf *)` cast on either side gives 0/200 together with the forms
+  above. Qualifiers on the environment instead
   (`const sceIpuDmaEnv &`/`*` views, or `const ViBuf *` parameters of inline
   helpers that only test) are propagated and merged, or keep a separate base.
   No existing function supplies such a path: every retail `viBuf*` symbol and

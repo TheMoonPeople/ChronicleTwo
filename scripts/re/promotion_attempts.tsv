@@ -1768,3 +1768,4 @@ mg_frame	GetDrawRect__8mgCFrameFP9mgVu0FBOXP14mgCDrawManager	checker
 sound	Init__6CSoundFiiii	checker
 mg_frame	Draw__8mgCFrameFPUi	checker
 fishing	InitSuccess__FP6CScene	checker
+movie	viBufRestartDMA__FP5ViBuf	checker
