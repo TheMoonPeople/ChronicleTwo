@@ -79,6 +79,69 @@ enum ACTION_HOLD_TYPE {
 
 /**
  *
+ * Whether another character holds an action character, as its catch_state holds it.
+ *
+ */
+enum ACTION_CATCH_STATE {
+    ACTION_CATCH_NONE = 0,   /**< Nothing holds the character. */
+    ACTION_CATCH_HELD = 1,   /**< Another character holds the character. */
+    ACTION_CATCH_THROWN = 2, /**< The character flies after being thrown. */
+};
+
+/**
+ *
+ * What has just happened to what an action character holds, as its release_timing holds it.
+ *
+ */
+enum ACTION_RELEASE_TIMING {
+    ACTION_RELEASE_NONE = 0,        /**< Nothing has happened this step. */
+    ACTION_RELEASE_CATCH = 1,       /**< The character has caught a monster or picked up a stone. */
+    ACTION_RELEASE_THROW_ENEMY = 2, /**< The character has thrown the monster that it held. */
+    ACTION_RELEASE_THROW_STONE = 3, /**< The character has let go of the stone that it held. */
+    ACTION_RELEASE_KICK = 5,        /**< The character has kicked a stone. */
+};
+
+/**
+ *
+ * Kinds of body collision that an action character's body_col slots hold.
+ *
+ */
+enum ACTION_BODY_COL_TYPE {
+    ACTION_BODY_COL_NONE = 0,   /**< The slot is free. */
+    ACTION_BODY_COL_SPHERE = 2, /**< A sphere around one of the character's objects. */
+};
+
+/**
+ *
+ * Ways in which CheckDamage decides that an action character reacts to a hit.
+ *
+ */
+enum ACTION_DAMAGE_REACTION {
+    ACTION_REACTION_GUARD = 0,     /**< The character guarded the hit. */
+    ACTION_REACTION_NONE = 1,      /**< The hit does not stagger the character. */
+    ACTION_REACTION_STAGGER = 2,   /**< The hit adds to the character's stagger. */
+    ACTION_REACTION_HOLD = 3,      /**< A status condition holds the character in place. */
+    ACTION_REACTION_KNOCKDOWN = 4, /**< The hit knocks the character down. */
+    ACTION_REACTION_UNUSED = 5,    /**< Reaction that no hit gives. */
+    ACTION_REACTION_DEAD = 6,      /**< The hit has used up the character's health. */
+};
+
+/**
+ *
+ * Numbers of slots in the tables that an action character keeps for its action script.
+ *
+ */
+enum ACTION_CHARA_SIZE {
+    ACTION_PALLET_MAX = 3,     /**< Colour flashes over the character's lighting. */
+    ACTION_OBJECT_MAX = 8,     /**< Frames that the action script refers to by number. */
+    ACTION_SW_EFFECT_MAX = 9,  /**< Sword after-images that the character's motions start. */
+    ACTION_SOUND_MAX = 10,     /**< Sounds that the character's motions play. */
+    ACTION_DAMAGE_MAX = 11,    /**< Damage entries that the character's motions deal. */
+    ACTION_BODY_COL_MAX = 16,  /**< Body collision spheres of the character. */
+};
+
+/**
+ *
  * Reactions that damage asks the action script for, as an action character's damage_req holds them.
  *
  */
@@ -87,6 +150,7 @@ enum ACTION_DAMAGE_REQ {
     ACTION_DAMAGE_REQ_SMALL = 1, /**< Runs ACTION_PROG_DAMAGE_SMALL. */
     ACTION_DAMAGE_REQ_LARGE = 2, /**< Runs ACTION_PROG_DAMAGE_LARGE. */
     ACTION_DAMAGE_REQ_DEAD = 4,  /**< Runs ACTION_PROG_DEAD. */
+    ACTION_DAMAGE_REQ_THROWN = 6, /**< Marks a monster that the player has thrown. */
     ACTION_DAMAGE_REQ_HOLD = 7,  /**< Runs ACTION_PROG_HOLD. */
 };
 
@@ -103,6 +167,7 @@ enum ACTION_PROG {
     ACTION_PROG_DAMAGE_SMALL = 500, /**< Reacts to a small hit. */
     ACTION_PROG_HOLD = 550,         /**< Holds the character in place. */
     ACTION_PROG_DAMAGE_LARGE = 600, /**< Reacts to a large hit. */
+    ACTION_PROG_MELEE_HIT = 700,    /**< Follows up a melee hit that the character has landed. */
     ACTION_PROG_DEAD = 1400,        /**< Runs the character's death. */
     ACTION_PROG_LAND = 1500,        /**< Lands the character after a fall. */
 };
@@ -146,7 +211,7 @@ STATIC_ASSERT(sizeof(ACTION_SW_EFFECT) == 0x20);
  *
  */
 struct ACTION_DAMAGE {
-    s8        use;         /**< 1 while the slot holds a damage entry. */
+    s8        use;         /**< Non-zero while the slot holds a damage entry. */
     char     *chara;       /**< Name of the part in the chain whose motion is watched; NULL for the character itself. */
     mgCFrame *frame0;      /**< Frame at one end of the damaging capsule. */
     mgCFrame *frame1;      /**< Frame at the other end of the damaging capsule. */
@@ -179,7 +244,7 @@ STATIC_ASSERT(sizeof(ACTION_OBJECT) == 0x20);
  *
  */
 struct ACTION_BODY_COL {
-    s32   type;   /**< 0 while the slot is free; 2 for a sphere around an object. */
+    s32   type;   /**< Kind of collision, an ACTION_BODY_COL_TYPE value. */
     s32   object; /**< Index of the object whose frame the sphere sits on. */
     float radius; /**< Radius of the sphere. */
     s32   unk_c[5];
@@ -225,8 +290,8 @@ STATIC_ASSERT(sizeof(ACTION_ACCELE) == 0x20);
  */
 struct ACTION_ACCUME {
     mgCFrame *frame; /**< Frame of the object that the charging effect gathers on. */
-    s16       effect_no;
-    s16       active; /**< 1 once the charging effect has started. */
+    s16       effect_no; /**< Number of the charging effect that the action script chose. */
+    s16       active; /**< Non-zero once the charging effect has started. */
 };
 
 STATIC_ASSERT(sizeof(ACTION_ACCUME) == 0x8);
@@ -272,21 +337,21 @@ public:
     s16               hold_type;      /**< What the character holds, an ACTION_HOLD_TYPE value. */
     CMapParts        *hold_parts;     /**< Stone that the character holds. */
     mgCFrame         *hold_frame;     /**< Frame of the character that carries what it holds. */
-    s16               release_timing; /**< What has just happened to what the character holds; cleared each step. */
+    s16               release_timing; /**< What has just happened to what the character holds, an ACTION_RELEASE_TIMING value; cleared each step. */
     s16               unk_72a;
     mgCFrame         *catch_frame;        /**< Frame of the character that has caught this one. */
-    s16               catch_state;        /**< 1 while another character holds this one, 2 while it flies after being thrown. */
+    s16               catch_state;        /**< Whether another character holds this one, an ACTION_CATCH_STATE value. */
     s16               no_hit_time;        /**< Steps left before this character's body collides again. */
-    CPalletAnime      pallet[3];          /**< Colour flashes over the character's lighting; the first one playing is used. */
+    CPalletAnime      pallet[ACTION_PALLET_MAX];          /**< Colour flashes over the character's lighting; the first one playing is used. */
     s16               battle_stance;      /**< Non-zero while the character holds its battle stance. */
     float             battle_stance_rate; /**< Blend amount of the character's battle stance. */
     s16               shot_wait;          /**< Steps left before the character can shoot again. */
     s32               muteki_time;        /**< Steps left for which the character takes no damage. */
     s8                menu_flag;          /**< Nonzero while the character may open the menu. */
-    s8                stand_flag;         /**< 1 while the stick is not pushed. */
-    s8                dir_gun;            /**< 1 when the action script has aimed the gun this step. */
+    s8                stand_flag;         /**< Non-zero while the stick is not pushed. */
+    s8                dir_gun;            /**< Non-zero when the action script has aimed the gun this step. */
     s16               target_no;          /**< Scene character number of the lock-on target; -1 for none. */
-    s16               lock_on;            /**< 1 while the character is locked on to its target. */
+    s16               lock_on;            /**< Non-zero while the character is locked on to its target. */
     s32               murderous_time;     /**< Steps left for the character's murderous value. */
     s32               murderous;          /**< Murderous value that the action script set. */
     s32               now_status;         /**< Status that the action scripts of other characters read from this one. */
@@ -304,10 +369,10 @@ public:
     s32               acumu_pad;     /**< Steps for which the charge button has been held. */
     CEffectScriptMan *effect_man;    /**< Effect scripts that the character starts. */
     s8                throw_effect;  /**< Effect script of the item about to be thrown; below 0 for none. */
-    ACTION_SW_EFFECT  sw_effect[9];  /**< Sword after-images that the character's motions start. */
+    ACTION_SW_EFFECT  sw_effect[ACTION_SW_EFFECT_MAX];  /**< Sword after-images that the character's motions start. */
     s8                sw_effect_num; /**< Number of sword after-images entered. */
     MoveCheckInfo     move_check;    /**< Result of checking the character's move against the map. */
-    ACTION_DAMAGE     damage[11];    /**< Damage that the character's motions deal. */
+    ACTION_DAMAGE     damage[ACTION_DAMAGE_MAX];    /**< Damage that the character's motions deal. */
     s8                damage_num;    /**< Number of damage entries entered. */
     s32               damage_req;    /**< Reaction that damage asks for, an ACTION_DAMAGE_REQ value. */
     s32               unk_be0;
@@ -318,14 +383,14 @@ public:
     s8                stagger;      /**< Stagger built up from recent hits. */
     s8                stagger_time; /**< Steps left before the built-up stagger is cleared. */
     ACTION_SHAKE      shake;        /**< Shaking after a hit. */
-    ACTION_OBJECT     object[8];    /**< Frames that the action script refers to by number. */
-    ACTION_BODY_COL   body_col[16]; /**< Body collision spheres of the character. */
+    ACTION_OBJECT     object[ACTION_OBJECT_MAX];    /**< Frames that the action script refers to by number. */
+    ACTION_BODY_COL   body_col[ACTION_BODY_COL_MAX]; /**< Body collision spheres of the character. */
     sceVu0FVECTOR     blow_vec;     /**< Direction in which the character is knocked back. */
     float             blow_rate;    /**< Multiplier on the speed of a knock-back. */
     float             blow_speed;   /**< Speed of the knock-back. */
     float             blow_decel;   /**< Amount taken off the knock-back speed each step. */
     s32               blow_time;    /**< Steps left for the knock-back; 0 for none. */
-    ACTION_SOUND      sound[10];    /**< Sounds that the character's motions play. */
+    ACTION_SOUND      sound[ACTION_SOUND_MAX];    /**< Sounds that the character's motions play. */
 
     /**
      *
@@ -417,7 +482,7 @@ public:
      * @address 0x16BA30
      * @size 0x8C
      */
-    ACTION_BODY_COL *EntryBodyCol(int index, float value);
+    ACTION_BODY_COL *EntryBodyCol(int index, float radius);
 
     /**
      *
@@ -427,7 +492,7 @@ public:
      * @address 0x16BAC0
      * @size 0x194
      */
-    ACTION_DAMAGE *EntryDamage2(char *frame_name_a, char *frame_name_b, char *hit_name, float power, char *motion, float start, float end, char *chara);
+    ACTION_DAMAGE *EntryDamage2(char *frame_name_a, char *frame_name_b, char *hit_name, float radius, char *motion, float start_ratio, float end_ratio, char *chara_name);
 
     /**
      *
@@ -437,7 +502,7 @@ public:
      * @address 0x16BC60
      * @size 0x160
      */
-    ACTION_DAMAGE *EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, char *hit_name, float power, char *motion, float start, float end, char *chara);
+    ACTION_DAMAGE *EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, char *hit_name, float radius, char *motion, float start_ratio, float end_ratio, char *chara_name);
 
     /**
      *
@@ -511,7 +576,7 @@ public:
 
     /**
      *
-     * Shows or hides the character, and with all set every part in the chain.
+     * Shows or hides the character, and with chain set every part in the chain.
      *
      * @mangled Show__12CActionCharaFii
      * @address 0x16BFB0
@@ -537,7 +602,7 @@ public:
      * @address 0x16C070
      * @size 0xCC
      */
-    int CheckKeri(char *name, int flag);
+    int CheckKeri(char *name, int kick);
 
     /**
      *
@@ -597,11 +662,11 @@ public:
      * @address 0x16CB30
      * @size 0x60
      */
-    virtual void SetMotion(int no, int param);
+    virtual void SetMotion(int motion_no, int param);
 
     /**
      *
-     * Sets the named motion on the character, and with all set on every part in the chain.
+     * Sets the named motion on the character, and with chain set on every part in the chain.
      *
      * @mangled SetMotion__12CActionCharaFPcii
      * @address 0x16CB90
@@ -667,7 +732,7 @@ public:
      * @address 0x16CA40
      * @size 0xE8
      */
-    float GetWaitToFrame(char *motion, float ratio, char *chara);
+    float GetWaitToFrame(char *motion, float ratio, char *chara_name);
 
     /**
      *
@@ -938,7 +1003,7 @@ public:
      * @address 0x172DD0
      * @size 0x30
      */
-    int CheckReleaseTimming(int id);
+    int CheckReleaseTimming(int hold_kind);
 
     /**
      *

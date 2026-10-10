@@ -230,7 +230,7 @@ void CActionChara::CalcCollision() {
     } while (index < 8);
 }
 
-ACTION_BODY_COL *CActionChara::EntryBodyCol(int index, float value) {
+ACTION_BODY_COL *CActionChara::EntryBodyCol(int index, float radius) {
     int i;
 
     if (index < 0 || index >= 8) {
@@ -245,7 +245,7 @@ ACTION_BODY_COL *CActionChara::EntryBodyCol(int index, float value) {
         if (body_col[i].type == 0) {
             body_col[i].type = 2;
             body_col[i].object = index;
-            body_col[i].radius = value;
+            body_col[i].radius = radius;
             return &body_col[i];
         }
     }
@@ -253,7 +253,7 @@ ACTION_BODY_COL *CActionChara::EntryBodyCol(int index, float value) {
     return NULL;
 }
 
-ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b, char *hit_name, float power,
+ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b, char *hit_name, float radius,
                                           char *motion, float start_ratio, float end_ratio, char *chara_name) {
     mgCFrame *frame_a;
     mgCFrame *frame_b;
@@ -292,7 +292,7 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b
             damage[i].start_frame = start_frame;
             damage[i].end_frame = end_frame;
             damage[i].chara = chara_name;
-            damage[i].radius = power;
+            damage[i].radius = radius;
             damage[i].power_rate = 1.0f;
             damage_num++;
             return &damage[i];
@@ -302,7 +302,7 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b
     return NULL;
 }
 
-ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, char *hit_name, float power,
+ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, char *hit_name, float radius,
                                           char *motion, float start_ratio, float end_ratio, char *chara_name) {
     int   i;
     float start_frame;
@@ -328,7 +328,7 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, 
             damage[i].start_frame = start_frame;
             damage[i].end_frame = end_frame;
             damage[i].chara = chara_name;
-            damage[i].radius = power;
+            damage[i].radius = radius;
             damage[i].power_rate = 1.0f;
             damage_num++;
             return &damage[i];
@@ -469,7 +469,7 @@ int CActionChara::GetShow(char *name) {
     return show;
 }
 
-int CActionChara::CheckKeri(char *name, int flag) {
+int CActionChara::CheckKeri(char *name, int kick) {
     mgCFrame  *object;
     CMapParts *stone;
     CMapPiece *piece;
@@ -486,14 +486,14 @@ int CActionChara::CheckKeri(char *name, int flag) {
     pos[3] = 1.0f;
     radius = 30.0f;
 
-    if (flag != 0) {
+    if (kick != 0) {
         radius = 40.0f;
     }
 
     stone = AutoMapGen.SearchRandomStone(pos, radius);
 
     if (stone != NULL) {
-        if (flag != 0) {
+        if (kick != 0) {
             piece = stone->SearchPiece("rnd_obj01-a");
 
             if (piece != NULL) {
@@ -3472,12 +3472,12 @@ void CActionChara::RunScript(CScene *scene, RUN_SCRIPT_ENV *env) {
     }
 }
 
-int CActionChara::CheckReleaseTimming(int id) {
-    if (id == -1) {
+int CActionChara::CheckReleaseTimming(int hold_kind) {
+    if (hold_kind == -1) {
         return release_timing;
     }
 
-    if (id == hold_type) {
+    if (hold_kind == hold_type) {
         return release_timing;
     }
 
