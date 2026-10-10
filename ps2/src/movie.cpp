@@ -921,13 +921,11 @@ int viBufStopDMA(ViBuf *buf) {
 
 #pragma optimization_level reset
 #ifdef NONMATCHING
-#pragma optimization_level 4
 enum {
     MOVIE_ADDR_MASK = 0xFFFFFFF,
 };
 int viBufRestartDMA(ViBuf *buf) {
     int fifo_bits;
-    volatile int *ipu_ctrl;
     u32 tag_addr;
     u32 madr;
     int mode;
@@ -935,7 +933,6 @@ int viBufRestartDMA(ViBuf *buf) {
     u32 ipubp;
     int fifo_index;
     int size;
-    int pos;
     u32 chcr;
     int fifo_quads;
     int index;
@@ -956,8 +953,7 @@ int viBufRestartDMA(ViBuf *buf) {
         madr += size;
         mode = (buf->env.d4madr == (u32)buf->data || buf->env.d4madr == (u32)buf->data + size) ? 0 : 3;
         chcr = (buf->env.d4chcr & MOVIE_ADDR_MASK) | (mode << 28) | 0x100;
-        pos = (buf->n - buf->dma_start) % buf->n;
-        if (0 > pos || pos >= buf->dma_n) {
+        if (0 > (buf->n - buf->dma_start) % buf->n || (buf->n - buf->dma_start) % buf->n >= buf->dma_n) {
             buf->dma_start = buf->n - 1;
             buf->dma_n++;
         }
@@ -970,8 +966,7 @@ int viBufRestartDMA(ViBuf *buf) {
             mode = ((u32)buf->data + (buf->env.d4madr - (u32)buf->data) % (buf->n << 11) ==
                 (u32)buf->data + ((buf->dma_start + buf->dma_n) % buf->n << 11)) ? 0 : 3;
             chcr = (buf->env.d4chcr & MOVIE_ADDR_MASK) | (mode << 28) | 0x100;
-            pos = (fifo_index + buf->n - buf->dma_start) % buf->n;
-            if (0 > pos || pos >= buf->dma_n) {
+            if (0 > (fifo_index + buf->n - buf->dma_start) % buf->n || (fifo_index + buf->n - buf->dma_start) % buf->n >= buf->dma_n) {
                 buf->dma_start = fifo_index;
                 buf->dma_n++;
             }
@@ -983,7 +978,7 @@ int viBufRestartDMA(ViBuf *buf) {
         setD3_CHCR(buf->env.d3chcr | 0x100);
     }
     if (buf->dma_n != 0) {
-        ipu_ctrl = (volatile int *)0x10002010;
+        volatile int *const ipu_ctrl = (volatile int *)0x10002010;
         while (*ipu_ctrl < 0) {
         }
         *(int *)0x10002000 = fifo_bits;
@@ -1001,7 +996,6 @@ int viBufRestartDMA(ViBuf *buf) {
     SignalSema(buf->sema);
     return 1;
 }
-#pragma optimization_level reset
 #else
 INCLUDE_ASM("ps2/asm/pal/nonmatchings/movie", viBufRestartDMA__FP5ViBuf);
 #endif

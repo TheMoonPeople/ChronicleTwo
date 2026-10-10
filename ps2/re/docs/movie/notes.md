@@ -154,24 +154,46 @@ instructions, so they do not count as C++ matches.
 
 ## viBufRestartDMA
 
-`viBufRestartDMA` is the third guarded draft. Its blockers are the wrap branch's
-ring-count/mask register pair and the tail's `env.d3madr` reload.
+`viBufRestartDMA` is the third guarded draft. It compiles at the unit's default
+optimization level (`-O3`), with the two ring-position tests written as the
+repeated `IsInRegion`-style expression and a `volatile int *const` IPU control
+pointer for the first busy-wait. Its only blocker is the tail's `env.d3madr`
+reload: the draft differs by **53/200 words** (`0x318` against `0x320`), all in
+the channel-3 restoration and the code it shifts.
 
-- The function needs the local `optimization_level 4`: level 3 gives 49 words and
-  level 2 over 200. Level 4 runs the IR optimizer twice; round-1 CSE creates the
-  `0x0FFFFFFF` mask temporary between the ring count `n` and `d4madr`, round-2
-  propagation folds it away and round-2 CSE recreates it after every surviving
-  temporary. Retail needs the round-1 temporary to survive (mask coloured before
-  `n`) plus one fewer interference for `n`; no source form tried keeps it.
-- Retail reloads `env.d3madr` and `env.d3qwc` for the stores after testing them.
-  With plain `buf->env` reads MWCC reuses the tested value; the draft differs by
-  62/200 words. A read-only alias `const ViBuf *saved = buf` for the stores (or a
-  `(volatile ViBuf *)` cast) reproduces the reload and leaves 9/200, but both are
-  codegen steering rather than natural source, so the draft keeps the plain form.
-- Statement order in the wrap branch (all 378 legal orders), `DmaAddr(buf->tag +
-  index)`, `const` locals for the count or mask, and every CHCR mask spelling leave
-  9 or more words; `tag_addr = (u32) buf->tag; tag_addr &= mask;` splits the tag
-  web (32).
+- Ring count and address mask. Under the interference-graph capture the ring
+  count `n` (a CSE temporary of `buf->n`) has exactly 25 interferences, so it is
+  only simplified early when a lower-numbered neighbour goes first. Retail's
+  colouring (mask `a2`, count `a3`) needs the `0x0FFFFFFF` CSE temporary numbered
+  between `n` and the `d4madr`/`data` temporaries, and one of `n`'s neighbours
+  (the ring position or the wrap `mode`) numbered below `n`.
+- A named `pos` is a named local and numbers above every CSE temporary. Writing
+  each ring test as the repeated expression (`0 > (n - start) % n || (n - start)
+  % n >= dma_n`, likewise `fifo_index + n - start` in the other branch) makes the
+  position a CSE temporary created after `n`, so it numbers below it.
+- The local `optimization_level 4` is what moved the mask: its second IR round
+  propagates the round-1 mask temporary away and recreates it below every other
+  temporary. At `-O3` the round-1 numbering survives. With level 4 and the
+  expression form the residual stays at nine words; with `-O3` and a named `pos`
+  the wrap branch is wrong again.
+- At `-O3` a plain `ipu_ctrl` local is propagated into the first busy-wait's
+  address (`lui at` inside the loop); retail keeps the address in `v1` before the
+  loop, which a `volatile int *const` local reproduces. The second wait reads the
+  register address directly.
+- Channel-3 reload. MWCC's load CSE distinguishes the qualification of the base
+  pointer type: a read through `const ViBuf *` (or `volatile ViBuf *`) is not
+  merged with a read through `ViBuf *`. Retail's reload of `d3madr` (and the
+  unfilled delay slot before it) therefore needs the test and the restoration
+  reads to go through differently qualified `ViBuf` pointers. A `const ViBuf *`
+  inline restoration helper, a `const ViBuf *` alias or a `(const ViBuf *)` cast
+  on either side gives 0/200 together with the forms above; each is an invented
+  access path, so none is used. Qualifiers on the environment instead
+  (`const sceIpuDmaEnv &`/`*` views, or `const ViBuf *` parameters of inline
+  helpers that only test) are propagated and merged, or keep a separate base.
+- Declaring `ViBuf::env` `volatile` reproduces the whole tail, but volatile loads
+  keep source order: retail's prologue loads `d4chcr` first yet colours it as the
+  last-created value, which only the non-volatile schedule gives (14 words at best,
+  with a single read of `d4madr` in the wrap test).
 
 ## Data
 
@@ -203,13 +225,9 @@ changes `setImageTag`.
 
 ## Saved-state restoration and current draft
 
-At PR15 (`13b4079f`), the retained natural `viBufRestartDMA` draft differs
-by **62/200 words**, with a `0x318` body against retail's `0x320`. This is
-not the nine-word diagnostic source used in the earlier matching waves:
-that diagnostic used a separate read-only `ViBuf` alias for the channel-3
-restoration stores. The retained source deliberately omits that alias.
-The earlier nine-word measurements therefore describe the isolated
-wrap-branch blocker, not the current guarded body as written.
+The measurements below were taken with the earlier local optimization level
+4 and a named ring position (62/200 words); see
+[viBufRestartDMA](#vibufrestartdma) for the current draft.
 
 Fresh m2c output from `decompile.sh` continues to shift the apparent `ViBuf`
 field offsets and loses the caller state around the two FIFO-index calls.
