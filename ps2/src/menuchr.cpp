@@ -3850,7 +3850,7 @@ inline CMenuMosSelect::CMenuMosSelect() {
     model_form = NULL;
 }
 
-#pragma inline_depth(3)
+#pragma inline_depth(smart)
 
 void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     /**

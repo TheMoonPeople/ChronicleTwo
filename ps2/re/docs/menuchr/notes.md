@@ -256,13 +256,16 @@ array indexing and member calls use the declared C++ types.
 
 `CMenuMosSelect` initializes its badge and message window fields in its native
 constructor. Its two `CActionChara` members contain `CCharaFrameMatching`
-objects. `CCharaFrameMatching` has no user-declared constructor: PAL contains
-no constructor calls for these members, and each character retains its
-explicit `Initialize__19CCharaFrameMatchingFv` call. An explicitly empty
-constructor added two calls absent from PAL. The menu constructor is inlined
-into `MenuMonsterBoxInit` at inline depth 3, which matches PAL with trivial
-default construction; every other unit including `character.hpp` keeps its
-object bytes and relocations.
+objects, whose empty default constructor gives `_COPY_MONS2SCNCHR`'s
+word-by-word snapshot copy (event_func notes). PAL contains no constructor
+calls for these members, while each character still calls its
+`CObjectFrame` constructor and `Initialize__19CCharaFrameMatchingFv`. All three
+sit at the same depth below `MenuMonsterBoxInit`, through the inlined menu,
+action-character and character constructors. `#pragma inline_depth(smart)`
+around `MenuMonsterBoxInit` inlines the empty constructor away and keeps both
+calls. Numeric depths do not: depth 3 also calls the empty constructor,
+growing the body from 0x620 to 0x630, and depth 4 inlines `CObjectFrame` and
+`Initialize`.
 
 `SetMenuLoadItemNo` reads Max's or Monica's five `CHARA_DATA::equip` item numbers. For the ridepod, the displayed order is parts 3, 0, 1, an empty slot, and part 2. Typed access to `ROBO_DATA::parts` and `CGameDataUsed::item_no` preserves its exact PAL object code.
 

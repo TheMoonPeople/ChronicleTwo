@@ -259,7 +259,15 @@ callers, while default depth inlines it. The same depth outlines the implicit
 `sceGsTex0` and `mgCVisualMDT` assignments, but changes their callers or nested
 base/constructor calls; those units still need exact source and type work.
 `dont_inline` does not outline the implicit TEX0 assignment in the tested
-compiler. Do not hand-write these generated assignments or compensate with
+compiler.
+
+`#pragma inline_depth(smart)` is not equivalent to any numeric depth. At the
+depth where it first leaves ordinary inline functions as calls, it still inlines
+an empty constructor away (`MenuMonsterBoxInit`, menuchr). A numeric depth
+either calls that constructor too or inlines the neighbouring calls. A
+user-declared default constructor, even an empty one, makes MWCC's generated
+copy constructor copy that member word by word through GPRs instead of
+block-copying it through FPRs (`CCharaFrameMatching`, event_func). Do not hand-write these generated assignments or compensate with
 function-specific compiler hooks.
 
 Compare complete objects as well as individual functions: emitted inline

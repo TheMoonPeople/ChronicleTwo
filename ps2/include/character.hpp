@@ -274,6 +274,13 @@ public:
 
     /**
      *
+     * Makes a matching that its owner empties.
+     *
+     */
+    CCharaFrameMatching() {}
+
+    /**
+     *
      * Empties the matching.
      *
      * @mangled Initialize__19CCharaFrameMatchingFv

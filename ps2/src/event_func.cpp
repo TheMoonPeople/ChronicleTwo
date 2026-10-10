@@ -16622,7 +16622,6 @@ int _END_SEPIA(RS_STACKDATA *stack, int argc) {
     return 1;
 }
 
-#ifdef NONMATCHING
 int _COPY_MONS2SCNCHR(RS_STACKDATA *stack, int argc) {
     if (ActiveMonster == NULL) {
         return 0;
@@ -16657,10 +16656,6 @@ int _COPY_MONS2SCNCHR(RS_STACKDATA *stack, int argc) {
     EventScene->SetCharaTexb(dst_no, monster_index + 0x28);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", _COPY_MONS2SCNCHR__FP12RS_STACKDATAi);
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/event_func", __ct__7CObjectFRC7CObject);
-#endif
 
 int _UNLOCK_STACK(RS_STACKDATA *stack, int argc) {
     mgCMemory *scene_stack = EventScene->GetStack(GetStackInt(stack));
