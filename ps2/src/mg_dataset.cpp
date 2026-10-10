@@ -1384,5 +1384,3 @@ void mgCVisual::Draw(float (*matrix)[4], mgCDrawManager *manager) {
 }
 
 #pragma optimization_level reset
-
-// Virtual tables (.vtables)

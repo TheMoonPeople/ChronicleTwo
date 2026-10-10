@@ -8090,8 +8090,6 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
     {9, 224, 236, 228, 240},
 };
 
-// Virtual tables (.vtables)
-
 mgCMemory *MorattaStack;
 
 MENU_LOAD_INFO MenuLoadInfo;
