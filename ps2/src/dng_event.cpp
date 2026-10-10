@@ -551,18 +551,13 @@ void CRandomCircle::DrawSymbol(CMiniMapSymbol *mini_map) {
 int CRandomCircle::CheckArea(float *pos, float radius) {
     int id;
 
-    id = 0;
-loop:
-    if (active[id] != 0 && mgDistVector(this->pos[id], pos) < radius) {
-        return 0;
-    }
-    id += 1;
-
-    if (id >= 3) {
-        return 1;
+    for (id = 0; id < 3; id++) {
+        if (active[id] != 0 && mgDistVector(this->pos[id], pos) < radius) {
+            return 0;
+        }
     }
 
-    goto loop;
+    return 1;
 }
 
 int CRandomCircle::GetPosition(float *out_pos, int index) {
