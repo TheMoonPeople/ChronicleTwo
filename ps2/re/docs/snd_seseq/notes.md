@@ -1,16 +1,13 @@
 # snd_seseq: reverse-engineering notes
 
-## C++ draft status
-All 28 functions have C++ in `ps2/src/snd_seseq.cpp`. 23 are exact and compiled
-by the matching build. 5 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Current source status
+All 28 functions are native C++ and the complete object matches retail.
 
 Sound-effect sequencer: SMF (format 0) data converted to a 6-byte event list (`sndCSeSeqData`),
 played by `sndCSeSeq` (32 instances in `SeSequencer`, owned by snd_mngr), one `sndTrack` per
 MIDI channel. No first-game counterpart (the first game's `snd.hpp` has no sequencer classes).
-No vtables. No plain-named globals in this unit; rodata is `at_295` ("MThd"), `at_296` ("MTrk"),
-`at_297` ("Unknown Message!..." printf format).
+No vtables or plain-named globals occur in this unit. `LoadSMF` supplies the
+`MThd` and `MTrk` signatures and its unknown-message diagnostic as literals.
 
 ## File-local functions (static, keep in the .cpp)
 `BigToLittle__FPvPvi` and `GetDeltaTime__FPcPi` are LOCAL in retail (local_symbols.tsv).
@@ -32,7 +29,7 @@ LoadSMF: requires "MThd", format (s16 at +8) == 0, "MTrk" at `smf + hdrlen + 8`,
 `+hdrlen+0xC`; events start at `+hdrlen+0x10`. Running status supported (status byte reused when
 bit 7 clear). Meta 0xFF: 0x2F ends the loop, others skipped by `p[1] + 2`. Data byte counts:
 0xC0/0xD0 -> 1; 0x80/0x90/0xB0/0xE0 -> 2; others 0 per Ghidra, yet a `count < 0` branch
-printing `at_297` with the status exists in the asm: check the disassembly for how the default
+printing `Unknown Message!! %x` with the status exists in the asm: check the disassembly for how the default
 count is set before writing the body. The `size` parameter appears unused in
 Ghidra output (verify in asm when writing the body). Terminator: `status = 0` written to the next
 slot.
