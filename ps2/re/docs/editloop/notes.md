@@ -208,7 +208,7 @@ image-path initializers belong at their use sites. The load descriptor is
 | `CScene` | texture assignment uses `tex_block_base` and `tex_block_count` |
 | `BGM_INFO` | master multiplier `master_volf` at +0xC, current volume `volf` at +0x14 |
 | `NowLoadingInfo` | texture block, `unk_4`, then step count are assigned in that order |
-| `mgFrameAttr` | billboard RGB components are set before the alpha |
+| `mgCFrameAttr` | billboard RGB components are set before the alpha |
 
 Forms the draft keeps because they reproduce retail instruction sequences:
 - Billboard RGB stores before the 128.0f alpha store (reproduces
@@ -226,8 +226,10 @@ Why it does not match:
   its placement-new call (+0x774 onwards). The shared header only declares the
   constructor and `map.cpp` defines it out of line, so the first 0x748 bytes
   compare exactly and the branch at +0x748 is the first difference. Defining
-  the constructor inline in the header is a shared change that needs
-  whole-object checks for every consumer.
+  the constructor inline in `mapparts.hpp` requires removing its body from
+  `map.cpp` to avoid a same-unit redefinition, followed by whole-object checks
+  for every consumer. An inline declaration alone cannot expose its body;
+  conditional class definitions per caller are not a valid replacement.
 - The retail epilogue writes the incoming, otherwise unassigned saved `s4`
   value to both debug fishing-item fields; the draft's uninitialised
   `fishing_item` local is stored from `s2`. A fabricated default would change
@@ -255,3 +257,37 @@ Small MWCC retention controls do not emit an unreferenced in-class constructor:
 all leave the constructor absent. `force_active` around a genuine assignment
 caller or its class likewise does not retain an inlined implicit assignment.
 These controls cannot replace the real construction or outlining demand.
+
+No native editloop caller constructs a `CActionChara`; the guarded `EditInit`
+array construction is the genuine callback demand. Emission in another unit
+does not replace this object-owned helper. The retail `CMapTreasureBox`
+constructor, `CActionChara` constructor and implicit `CameraCtrlParam`
+assignment all have processor-specific symbol binding 13.
+
+## Allocation block-count form
+
+The existing early-return `align16_blocks` helper used by `editinfo` and
+other allocation units applies to EditInit's typed allocations. The chest
+uses 0x6A quadwords, the effect manager 0x11B, eight action characters 0x81A
+and each camera 0x21. Array rounding covers the eight objects, excluding the
+placement-new array cookie. The helper statement-inlines and folds to the
+same constant reservation while changing the allocation-result lifetime.
+
+Using this form for all eight placement sites gives 1,215/1,776 differing
+words and a 0x1B6C body under the committed profile; changing only the five
+cameras gives 1,249 words and 0x1B70. The all-site form preserves the exact
+prefix through +0x748 and recovers the cameras' allocator-result null tests.
+It does not expose the treasure-box constructor or emit the implicit camera
+assignment, so no native promotion follows from the lower positional score.
+The guarded source retains its existing allocation expressions.
+
+Depth zero around the real `EditInit` caller, followed by `inline_depth
+reset`, emits the implicit camera assignment with all 24 words matching.
+That form also changes `EditInit` to 1,277 differing words with a 0x17AC
+body, shortens the action-character constructor to 0x4C with 47/48 words
+differing, and changes `EditLoop`, `EditDraw` and the static initializer.
+It is not an isolated emission solution. Restoring the incoming state with
+`push`/`pop`, either around the function or only its assignment expression,
+returns to the default all-site result: 1,215 words, 0x1B6C, a matching
+0xC0 action constructor and no emitted camera assignment. These forms do not
+justify replacing either assembly-only supplier.
