@@ -1095,6 +1095,13 @@ public:
      * @size 0x1C0
      */
     void DrawSpark(float size);
+
+    /**
+     *
+     * Sets the texture position and size of a quad spark.
+     *
+     */
+    void SetTexRect(mgRect<int> rect) { tex_rect = rect; }
 };
 
 STATIC_ASSERT(sizeof(CHitEffectImage) == 0x60);

@@ -361,6 +361,97 @@
         "expected_matches": 2
       },
       {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SetNextRef__9mgCCameraFfff",
+        "value_bits": "0x00000000",
+        "control": {
+          "kind": "switch",
+          "values": [
+            0
+          ]
+        },
+        "evaluate_first": true,
+        "expected_matches": 2
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SetPos__9mgCCameraFfff",
+        "value_bits": "0x43280000",
+        "control": {
+          "kind": "switch",
+          "values": [
+            1
+          ]
+        },
+        "evaluate_first": true,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SetPos__9mgCCameraFfff",
+        "value_bits": "0xc1200000",
+        "control": {
+          "kind": "switch",
+          "values": [
+            4
+          ]
+        },
+        "evaluate_first": false,
+        "evaluate_before": 2,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SetNextPos__9mgCCameraFfff",
+        "value_bits": "0x43280000",
+        "control": {
+          "kind": "switch",
+          "values": [
+            1
+          ]
+        },
+        "evaluate_first": true,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SetNextPos__9mgCCameraFfff",
+        "value_bits": "0xc1200000",
+        "control": {
+          "kind": "switch",
+          "values": [
+            4
+          ]
+        },
+        "evaluate_first": false,
+        "evaluate_before": 2,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "gyorace.cpp",
+        "function": "sgLoopGyoRace__FP11SubGameInfo",
+        "value_type": "binary32",
+        "callee": "SethitEffect__15CHitEffectImageFPfPfffffii",
+        "value_bits": "0xbdcccccd",
+        "argument": {
+          "argument_index": 3,
+          "value_type": "binary32",
+          "value_bits": "0x41200000"
+        },
+        "evaluate_first": true,
+        "expected_matches": 1
+      },
+      {
         "translation_unit": "gyoracesim.cpp",
         "function": "CharacterBonus__FP12grFISH_PARAMP15RACE_FISH_PARAMi",
         "value_type": "binary32",

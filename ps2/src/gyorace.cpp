@@ -608,20 +608,7 @@ int sgInitGyoRace(SubGameInfo *info) {
     return 1;
 }
 
-#ifdef NONMATCHING
 int sgLoopGyoRace(SubGameInfo *info) {
-    extern char                at_1380__2__DATA[];
-    extern char                at_1696__2__DATA[];
-    extern char                at_1697__3__DATA[];
-    extern char                at_1698__3__DATA[];
-    extern char                at_1699__3__DATA[];
-    extern char                at_1700__2__DATA[];
-    extern char                at_1701__DATA[];
-    extern char                at_1702__DATA[];
-    extern RaceVector          at_1481__4;
-    extern RaceVector          at_1524__2;
-    extern RaceVector          at_1547;
-    extern RaceVector          at_1548;
     CScene                    *scene = info->scene;
     switch ((unsigned int) race_mode) {
         case 0:
@@ -633,7 +620,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
             camera0.SetSpeed(0.0f, 0.0f);
             for (int fish = 0; fish < 6; fish++) {
                 CCharacter2 *character = scene->GetCharacter(fish_inf[fish].chara_no);
-                character->SetMotion(at_1380__2__DATA, 0);
+                character->SetMotion("\x92\xCA\x8F\xED", 0);
                 character->SetStep(0.3f);
             }
             race_proc_cnt--;
@@ -663,8 +650,8 @@ int sgLoopGyoRace(SubGameInfo *info) {
             camera0.SetRef(222.0f, 0.0f, 0.0f);
             camera0.SetNextRef(222.0f, 0.0f, 0.0f);
             camera0.SetSpeed(0.0f, 0.0f);
-            mgCFrame *gate = scene->GetMap(scene->active_map)->GetParts(at_1696__2__DATA)->SearchPiece(at_1697__3__DATA)->frame;
-            mgCFrame *left = gate->SearchFrame(at_1698__3__DATA);
+            mgCFrame *gate = scene->GetMap(scene->active_map)->GetParts("p03_i03h05")->SearchPiece("i03h05_03-m")->frame;
+            mgCFrame *left = gate->SearchFrame("saku1");
             left->SetRotType(2);
             float rotation[4];
             left->GetRotation(rotation);
@@ -673,7 +660,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 rotation[1] = 1.5707964f;
             }
             left->SetRotation(rotation[0], rotation[1], rotation[2]);
-            mgCFrame *right = gate->SearchFrame(at_1699__3__DATA);
+            mgCFrame *right = gate->SearchFrame("saku2");
             right->SetRotType(2);
             right->GetRotation(rotation);
             rotation[1] -= 0.20943952f;
@@ -812,7 +799,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 float hit_dir[4];
                 character->GetRotation(rotation);
                 character->GetPosition(previous);
-                RaceVector       direction = at_1481__4;
+                RaceVector       direction = {{0.0f, -0.5f, 0.0f, 1.0f}};
                 CHitEffectImage *image = &battle_effect[effect_cnt];
                 sceVu0SubVector(hit_dir, previous, position);
                 sceVu0Normalize(hit_dir, hit_dir);
@@ -821,14 +808,14 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 if (progress.state == GR_RACE_STATE_BATTLE) {
                     image->SethitEffect(position, direction.f, 150.0f, 30.0f, 0.4f, -0.05f, 20, 32);
                     image->sprite_size = 1.2f + 0.1f * (10.0f * mgRnd());
-                    character->SetMotion(at_1700__2__DATA, 0);
+                    character->SetMotion("\x83o\x83g\x83\x8B\x81i\x8C\xB3\x8B" "C\x81j", 0);
                 } else {
                     image->SethitEffect(position, direction.f, 10.0f, 30.0f, 0.4f, -0.1f, 20, (int) mgDistVector(position, previous));
                     image->sprite_size = 0.6f + 0.1f * (10.0f * mgRnd());
-                    character->SetMotion(at_1380__2__DATA, 0);
+                    character->SetMotion("\x92\xCA\x8F\xED", 0);
                 }
                 image->kind = 0;
-                image->tex_rect = mgRect<int>(425, 85, 42, 42);
+                image->SetTexRect(mgRect<int>(425, 85, 42, 42));
                 effect_cnt++;
                 if (effect_cnt >= 96) {
                     effect_cnt = 0;
@@ -912,7 +899,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 }
                 position[1] = -15.0f;
                 character->SetPosition(position);
-                RaceVector rotation = at_1524__2;
+                RaceVector rotation = {{0.0f, 3.1415927f, 0.0f, 1.0f}};
                 character->SetRotation(rotation.f);
                 character->SetRotation(rotation.f);
                 character->SetStep(0.0f);
@@ -933,7 +920,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
             for (int fish = 0; fish < 6; fish++) {
                 CCharacter2      *character = scene->GetCharacter(fish_inf[fish].chara_no);
                 textures->DeleteBlock(character->texture_block);
-                strcpy(fish_game_data[RaceInfo.rank[fish] - 1].name, at_1701__DATA);
+                strcpy(fish_game_data[RaceInfo.rank[fish] - 1].name, "                  ");
                 char *name = game_data[fish]->data.fish.name;
                 strncpy(fish_game_data[RaceInfo.rank[fish] - 1].name, name, strlen(name));
                 fish_game_data[RaceInfo.rank[fish] - 1].time = 20.0f * RaceInfo.goal_time[fish];
@@ -943,7 +930,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 sndSeStop(gyore_snd_id, fish + 9, fish + 9);
             }
             for (int place = 0; place < 6; place++) {
-                printf(at_1702__DATA, place + 1, fish_game_data[place].name);
+                printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@GYO RACE %d\x88\xCA\x81@%s \n", place + 1, fish_game_data[place].name);
             }
             sndSeStop(gyore_snd_id, 2, 0);
             textures->DeleteBlock(WindowTexb);
@@ -966,9 +953,9 @@ int sgLoopGyoRace(SubGameInfo *info) {
     for (int fish = 0; fish < 6; fish++) {
         scene->GetCharacter(fish_inf[fish].chara_no)->Step();
     }
-    RaceVector ambient = at_1547;
+    RaceVector ambient = {{16.0f, 16.0f, 128.0f, 128.0f}};
     float      camera_matrix[4][4];
-    RaceVector camera_pos = at_1548;
+    RaceVector camera_pos = {{0.0f, 0.0f, 100.0f, 0.0f}};
     camera0.Step(1);
     camera0.GetCameraMatrix(camera_matrix);
     camera0.GetPos(camera_pos.f);
@@ -1005,9 +992,6 @@ int sgLoopGyoRace(SubGameInfo *info) {
     }
     return 0;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gyorace", sgLoopGyoRace__FP11SubGameInfo);
-#endif
 
 void AutoCam(SubGameInfo *info) {
     CScene *scene = info->scene;
@@ -1692,23 +1676,6 @@ int Jikkyou(SubGameInfo *info) {
 
     return 0;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1481__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1524__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1547__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1548__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1380__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1696__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1697__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1698__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1699__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1700__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1701__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1702__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/gyorace", at_1703__DATA);
 
 // Uninitialised data (.bss)
 /**
