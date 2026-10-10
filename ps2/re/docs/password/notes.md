@@ -60,7 +60,7 @@ by this unit (`class_units.tsv` has none).
   name, 0x14)`, then copies 0xE bytes and checks `(u16 at 0) & 0x1FF >= 0x136`.
 
 ## First game
-No `password` unit in Dark Cloud 1 (`/home/adubbz/development/chronicle`); nothing to compare.
+No corresponding `password` unit was found in Dark Cloud 1.
 
 ## Unresolved
 - Exact signedness of `random_seed` and the return type of `GetCRC`/`random` (unsigned vs int);
