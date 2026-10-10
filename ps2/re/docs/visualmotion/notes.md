@@ -125,17 +125,17 @@ native `Initialize` and `ChangeWeight` corrections; `CreateFaceMotionPacket`
 is also native in the linked object.
 - CreateVertexWeight's return value is unused by its only caller; declared `void`.
 
-## Motion-packet native candidate
+## Motion-packet loop types
 
-The existing `CreateFaceMotionPacket` source candidate compiles to 0x5A4 bytes,
-versus retail's 0x590. This comparison also exposes native function-local static
-identities (`prog_vif_316` and `progf_vif_317`) that differ from retail's generated
-suffixes; the two VIF command quadwords contain the documented MSCAL/MSCNT values.
-Their compiler-generated names are not evidence of game logic differences.
+CreateFaceMotionPacket is native and exact. The decompiler's halfword temporaries do not
+justify making every batch counter short: that change adds truncations and grows the
+body to 0x5E8. Packed GIF-tag fields and the face's short vertex count have distinct
+arithmetic roles.
 
-The decompiler's signed-halfword temporaries do not justify changing all batch
-counters to `short`: doing so introduces truncations and grows the native function
-to 0x5E8. The packed GIF-tag fields and the face's short vertex count must be
-distinguished from the loop's arithmetic before revising these local types. The
-existing assembly fallback and the exact native initialization/remapping functions
-remain intact.
+## Native data
+
+The unit has no assembly data markers. The callback table, 0x50-byte motion vtable,
+aligned finish template, and local four-word `prog_vif`/`progf_vif` commands are native.
+The command arrays encode MSCAL(2) and MSCNT. Their identity depends on source base
+names, exact declared extents and bytes, and complete retail consumers; numeric compiler
+suffixes do not prove identity.
