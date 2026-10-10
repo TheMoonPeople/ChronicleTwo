@@ -135,3 +135,25 @@ All data are native; no assembly data markers remain. The compiler emits the 0x3
 source base names, exact extents and bytes, and complete retail consumers establish
 identity without numeric suffixes. MWCC rejects native 128-bit shift initializers with
 `illegal data size`, so the word-array representation is retained.
+
+## Construction lowering constraints
+
+`CreateWaterFrame` has one measured class-6 direct `CWaterFrame`
+construction. Its exact `__ct__11CWaterFrameFv` row consumes one site;
+`mgCFrameAttr` and `CWater` are class 0 and cannot use this capability.
+After-inline conversion matches the frame construction but leaves **46/104**
+words differing, starting at the outlined water construction's copied-pointer
+null test. Combining water allocation with its explicit null condition does
+not change that result.
+
+Initializing a `CWater *const` local beside its construction reduces the
+private row-enabled draft to **1/104** words, with a `0x198` body inside the
+retail `0x1A0` extent. Retail passes the outlined `CWater` constructor its
+saved pointer in `s6`; the candidate passes the equal allocator result in
+`v0` at function offset `0xF4`. Both frame-row timings retain this residual.
+Direct pointer initialization, explicit `CWater()` construction, an inherited
+`mgCVisual` pointer with typed downcasts, and a same-type result cast also
+retain that one-word receiver difference. A const reference to the pointer
+result instead requires a `0x90` frame and leaves 47 words differing. All
+24 other functions remain exact in these source-only comparisons. No row or
+source change is activated.
