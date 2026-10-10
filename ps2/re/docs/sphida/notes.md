@@ -8,6 +8,9 @@ All twenty unit functions now match as native C++, including status-sprite
 drawing. The current selector and whole-PAL acceptance evidence is in
 [the October 8 night assessment](night-20261008.md). Dated guarded results
 below retain their historical compiler and source baselines.
+All initialized data and BSS storage are native; the unit has no data
+reservation markers. The seven-entry `GolfClubDef` table occupies 0x54 bytes
+within a 0x60-byte aligned piece, whose tail is supplied by object preparation.
 
 ## CPowGage (size 0x24, asserted)
 Size: it is the first member of CSphida, and CSphida's next field (`tex_bank`) is at 0x24.
