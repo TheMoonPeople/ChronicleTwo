@@ -1046,8 +1046,8 @@ void CEffectScriptMan::Step() {
                     sprite->rotz = mgAngleLimit(sprite->rotz);
                     sprite->velo_rotz += sprite->acc_rotz;
 
-                    if (!(sprite->velo_rotz <= 6.2831855f)) {
-                        sprite->velo_rotz = 6.2831855f;
+                    if (!(sprite->velo_rotz <= TWO_PI)) {
+                        sprite->velo_rotz = TWO_PI;
                     }
 
                     sceVu0AddVector(sprite->color, sprite->color, sprite->velo_col);

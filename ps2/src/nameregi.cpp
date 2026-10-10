@@ -2246,8 +2246,8 @@ s32 CNameRegiMenu::KeyStep() {
 
     wave_angle += 0.06981317f;
 
-    if (!(wave_angle <= 3.1415927f)) {
-        wave_angle -= 6.2831855f;
+    if (!(wave_angle <= PI)) {
+        wave_angle -= TWO_PI;
     }
 
     StepMarkCursor();

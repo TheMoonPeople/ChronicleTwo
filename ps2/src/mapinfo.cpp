@@ -585,7 +585,7 @@ static int mapSKY_INFO(SPI_STACK *stack, int argument_count) {
     MapInfo->sky_height = spiGetStackFloat(stack++);
 
     if (argument_count >= 3) {
-        MapInfo->sun_angle = mgAngleLimit(3.1415927f * spiGetStackFloat(stack) / 180.0f);
+        MapInfo->sun_angle = mgAngleLimit(PI * spiGetStackFloat(stack) / 180.0f);
     }
 
     return 1;

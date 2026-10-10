@@ -162,13 +162,13 @@ void DrawActiveItemCursor(int x, int y, float alpha) {
     sprite.Color(0x80, 0x80, 0x80, fptosi(128.0f * alpha));
 
     if (init_1006 == 0) {
-        cur_ang_1005 = -3.1415927f;
+        cur_ang_1005 = -PI;
         init_1006 = 1;
     }
 
-    cur_ang_1005 += 0.017453292f;
+    cur_ang_1005 += DEG_TO_RAD;
 
-    if (!(cur_ang_1005 <= 3.1415927f)) {
+    if (!(cur_ang_1005 <= PI)) {
         cur_ang_1005 -= 25.132742f;
     }
 
@@ -288,7 +288,7 @@ void DrawMainUnitStatusBord(float rate) {
     palanim_1023 += 0.19634955f;
 
     if (!(palanim_1023 <= 0.0f)) {
-        palanim_1023 -= 3.1415927f;
+        palanim_1023 -= PI;
     }
 
     flash[0] = sinf(palanim_1023);
@@ -661,7 +661,7 @@ void DrawRoboUnitStatusBord(float rate) {
     palanim_1222 += 0.19634955f;
 
     if (!(palanim_1222 <= 0.0f)) {
-        palanim_1222 -= 3.1415927f;
+        palanim_1222 -= PI;
     }
 
     flash = sinf(palanim_1222);

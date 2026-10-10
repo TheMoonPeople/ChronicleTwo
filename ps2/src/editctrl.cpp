@@ -687,7 +687,7 @@ void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
             strcmp(scene->GetMapName(scene->active_map), "s38") == 0) {
             camera->ControlOff();
             camera->FollowOn();
-            camera->SetAngleSoon(3.1415927f);
+            camera->SetAngleSoon(PI);
             camera->SetHeight(120.0f);
             camera->SetDistance(100.0f);
             camera->Step(-1);
@@ -697,7 +697,7 @@ void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
         if (strcmp(scene->GetMapName(scene->active_map), "s37") == 0) {
             camera->ControlOff();
             camera->FollowOn();
-            camera->SetAngleSoon(3.1415927f);
+            camera->SetAngleSoon(PI);
             camera->SetHeight(60.0f);
             camera->SetDistance(100.0f);
             camera->Step(-1);
@@ -1211,16 +1211,16 @@ static void EyeCamera(mgCCamera *camera, CCharacter2 *chara, int use_right_stick
     if (stick_x > 0.0f) {
         viewAngleH -= stick_x * turn_speed;
 
-        if (viewAngleH < -3.1415927f) {
-            viewAngleH += 6.2831855f;
+        if (viewAngleH < -PI) {
+            viewAngleH += TWO_PI;
         }
     }
 
     if (stick_x < 0.0f) {
         viewAngleH -= stick_x * turn_speed;
 
-        if (viewAngleH > 3.1415927f) {
-            viewAngleH -= 6.2831855f;
+        if (viewAngleH > PI) {
+            viewAngleH -= TWO_PI;
         }
     }
 
@@ -1311,7 +1311,7 @@ static void InitLadder(int mode, CScene *scene, CSceneEventData *event) {
 
     sceVu0AddVector(LdrTopWalk, LdrTopPos, walk_offset);
     LdrRot = atan2f(matrix[2][0], matrix[2][2]);
-    LdrRot = mgAngleLimit(3.1415927f + LdrRot);
+    LdrRot = mgAngleLimit(PI + LdrRot);
     LadderCamera = scene->GetCamera(scene->active_camera);
     OldMtnRate = 0.0f;
     LdrCamPos[1] = LdrTopPos[1];

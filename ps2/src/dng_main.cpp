@@ -389,7 +389,7 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     MainCamera.SetDistance(test_dist);
     MainCamera.SetFollowOffset(0.0f, 30.0f, 0.0f);
     MainCamera.SetHeight(5.0f);
-    MainCamera.SetAngle(3.1415927f);
+    MainCamera.SetAngle(PI);
     MainCamera.SetSpeed(6.0f, -1.0f);
     MainCamera.Step(10);
     MainCamera.ControlOn();
@@ -2494,12 +2494,12 @@ int DngMainKey() {
                     float now = MainCamera.GetAngle();
                     float angle = atan2f(diff[0], diff[2]) - now;
 
-                    if (angle > 3.1415927f) {
-                        angle -= 6.2831855f;
+                    if (angle > PI) {
+                        angle -= TWO_PI;
                     }
 
-                    if (angle <= -3.1415927f) {
-                        angle += 6.2831855f;
+                    if (angle <= -PI) {
+                        angle += TWO_PI;
                     }
 
                     if (angle > 0.0f) {
@@ -2580,10 +2580,10 @@ int DngMainKey() {
                     }
                 }
 
-                angle += 3.1415927f;
+                angle += PI;
 
-                if (angle > 3.1415927f) {
-                    angle -= 6.2831855f;
+                if (angle > PI) {
+                    angle -= TWO_PI;
                 }
 
                 camera->RotBack(angle);
@@ -2610,7 +2610,7 @@ int DngMainKey() {
             sceVu0SubVector(eye, chara_pos, boss_pos);
             eye[3] = 1.0f;
             mgDistVector(eye);
-            float height = atan2f(sqrt(eye[0] * eye[0] + eye[2] * eye[2]), eye[1]) / 3.1415927f / 2.0f;
+            float height = atan2f(sqrt(eye[0] * eye[0] + eye[2] * eye[2]), eye[1]) / PI / 2.0f;
 
             if (sqrt(eye[0] * eye[0] + eye[2] * eye[2]) < 20.0) {
                 MainCamera.GetPos(eye);
@@ -2716,10 +2716,10 @@ int DngMainKey() {
                     }
                 }
 
-                angle += 3.1415927f;
+                angle += PI;
 
-                if (angle > 3.1415927f) {
-                    angle -= 6.2831855f;
+                if (angle > PI) {
+                    angle -= TWO_PI;
                 }
 
                 camera->RotBack(angle);
@@ -3243,16 +3243,16 @@ static void EyeCamera(mgCCamera *camera, CCharacter2 *chara, int mode) {
     if (lx > 0.0f) {
         viewAngleH__2 -= lx * speed;
 
-        if (viewAngleH__2 < -3.1415927f) {
-            viewAngleH__2 += 6.2831855f;
+        if (viewAngleH__2 < -PI) {
+            viewAngleH__2 += TWO_PI;
         }
     }
 
     if (lx < 0.0f) {
         viewAngleH__2 -= lx * speed;
 
-        if (viewAngleH__2 > 3.1415927f) {
-            viewAngleH__2 -= 6.2831855f;
+        if (viewAngleH__2 > PI) {
+            viewAngleH__2 -= TWO_PI;
         }
     }
 

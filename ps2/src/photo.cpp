@@ -402,15 +402,15 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
         int           frame = 8 - ShutterAnmCnt;
         sceVu0FVECTOR center = {width / 2, height / 2, 0.0f, 1.0f};
         float         radius = mgDistVector(center);
-        float         shutter_angle = (1.5707964f * (frame - 1)) / 4.0f;
+        float         shutter_angle = (HALF_PI * (frame - 1)) / 4.0f;
 
-        if (shutter_angle > 1.5707964f) {
-            shutter_angle = 3.1415927f - shutter_angle;
+        if (shutter_angle > HALF_PI) {
+            shutter_angle = PI - shutter_angle;
         }
 
         for (int i = 0; i < 12; i++) {
-            float         spoke_angle = 0.5235988f;
-            float         angle = mgAngleLimit(3.1415927f + i * spoke_angle);
+            float         spoke_angle = (PI / 6.0f);
+            float         angle = mgAngleLimit(PI + i * spoke_angle);
             sceVu0FVECTOR position;
             sceVu0FVECTOR edge;
             sceVu0FVECTOR rotated;
@@ -459,24 +459,24 @@ int DrawTakePhoto(USER_PICTURE_INFO *picture, float *distance) {
     float arc_radius = 33.0f;
 
     for (corner = 0; corner < 4; corner++) {
-        float angle = 1.5707964f;
+        float angle = HALF_PI;
 
         if (corner == 0) {
             arc_y = arc_x = fptosi(48.0f);
             corner_x = 0;
             corner_y = 0;
-            angle = 1.5707964f;
+            angle = HALF_PI;
         } else if (corner == 1) {
             arc_x = fptosi(48.0f);
             corner_x = 0;
             arc_y = (int) ((float) height - 48.0f);
-            angle = 3.1415927f;
+            angle = PI;
             corner_y = height;
         } else if (corner == 2) {
             arc_x = (int) ((float) width - 48.0f);
             corner_x = width;
             arc_y = (int) ((float) height - 48.0f);
-            angle = 4.712389f;
+            angle = (PI + HALF_PI);
             corner_y = height;
         } else if (corner == 3) {
             arc_x = (int) ((float) width - 48.0f);

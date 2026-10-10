@@ -1366,8 +1366,8 @@ int SetModeMenuDrawItemBoard(int mode) {
 void EnableUseItemAlphaStep() {
     use_item_enable_alpha_angle += 0.052359879f;
 
-    if (use_item_enable_alpha_angle >= 3.1415927f) {
-        use_item_enable_alpha_angle -= 6.2831855f;
+    if (use_item_enable_alpha_angle >= PI) {
+        use_item_enable_alpha_angle -= TWO_PI;
     }
 
     use_item_enable_alpha = (int) (48.0f + 32.0f * sinf(use_item_enable_alpha_angle));
@@ -1383,8 +1383,8 @@ void InitSpectolRasterTable(mgCMemory *memory) {
     for (row = 0, offset = 0; row < 0x9C; row++) {
         angle = 0.0418879f * (float) row;
 
-        while (3.1415927f < angle) {
-            angle -= 6.2831855f;
+        while (PI < angle) {
+            angle -= TWO_PI;
         }
 
         for (column = 0; column < 0x20; column++) {
@@ -1538,7 +1538,7 @@ void DrawOneItem(mgCDrawPrim *prim, mgRect<float> rect, int item, int mode, MENU
                     u8    blue;
                     int   raster = (int) effect->param[0] * 32;
                     u8    red;
-                    float hue = mgAngleLimit(0.017453292f * effect[1].param[0]);
+                    float hue = mgAngleLimit(DEG_TO_RAD * effect[1].param[0]);
                     int   line_v = uv.top;
                     float line_y = rect.top;
                     u8    green;
@@ -1878,7 +1878,7 @@ void GenarateRandamLine(int *origin, int width, int height, int *points, int cou
         }
 
         sway = GetRandI(width) - width / 2;
-        points[i * 2] = origin[0] + sway * sinf(3.1415927f * progress);
+        points[i * 2] = origin[0] + sway * sinf(PI * progress);
         points[i * 2 + 1] = origin[1] + offset;
         int step = GetRandI(15);
 
@@ -2462,7 +2462,7 @@ void MenuMainFrameModeSet(int mode, int restart) {
     MenuMainFrame_MoveRate_Cnt = 0.0f;
 
     if (MenuMainFrame_Display_Mode >= 4) {
-        MenuMainFrame_MoveRate_Cnt = 0.2617994f;
+        MenuMainFrame_MoveRate_Cnt = (PI / 12.0f);
     }
 }
 
@@ -2684,15 +2684,15 @@ void MenuMainFrameDraw(int &loaded_tex, int unused) {
             break;
     }
 
-    turn = 0.7853982f * progress;
-    angle = -0.5235988f + turn;
+    turn = QUARTER_PI * progress;
+    angle = -(PI / 6.0f) + turn;
     radius_x *= scale;
     radius_y = 120.0f * scale;
     x0 = MenuMainFrame_Lenze_Pos[0] - radius_x * cosf(angle);
     y0 = MenuMainFrame_Lenze_Pos[1] - radius_x * sinf(angle);
-    x1 = MenuMainFrame_Lenze_Pos[0] - radius_y * cosf(angle - 0.2617994f);
-    y1 = MenuMainFrame_Lenze_Pos[1] - radius_y * sinf(angle - 0.2617994f);
-    angle += 0.7853982f;
+    x1 = MenuMainFrame_Lenze_Pos[0] - radius_y * cosf(angle - (PI / 12.0f));
+    y1 = MenuMainFrame_Lenze_Pos[1] - radius_y * sinf(angle - (PI / 12.0f));
+    angle += QUARTER_PI;
     x3 = MenuMainFrame_Lenze_Pos[0] - radius_x * cosf(angle);
     y3 = MenuMainFrame_Lenze_Pos[1] - radius_x * sinf(angle);
     angle = 0.24166098f + angle;
@@ -2774,10 +2774,10 @@ void DrawMenuWakuStep() {
         }
     }
 
-    MenuWakuRotCnt -= 3.1415927f / 220.0f;
+    MenuWakuRotCnt -= PI / 220.0f;
 
-    if (MenuWakuRotCnt <= -3.1415927f) {
-        MenuWakuRotCnt += 6.2831855f;
+    if (MenuWakuRotCnt <= -PI) {
+        MenuWakuRotCnt += TWO_PI;
     }
 }
 
@@ -2897,7 +2897,7 @@ void DrawWakuCircle(mgCDrawPrim *prim, mgCTexture *tex, mgRect<float> rect, mgRe
         pos[1] = center_y + radius * sinf(rot);
         prim->TextureCrd((int) uv.corner[i][0], (int) uv.corner[i][1]);
         prim->Vertex(pos);
-        rot += 1.5707964f;
+        rot += HALF_PI;
     }
 
     prim->End();
@@ -3146,11 +3146,11 @@ void CMenuPosDataForm::GetPutPosXY(char *part_name, float &out_x, float &out_y) 
     put_y = y;
 
     if (vibe_cnt[0] != 0) {
-        put_x += 10.0f * cosf((3.1415927f / vibe_cnt[0]) * counter);
+        put_x += 10.0f * cosf((PI / vibe_cnt[0]) * counter);
     }
 
     if (vibe_cnt[1] != 0) {
-        put_y += 8.0f * sinf((3.1415927f / vibe_cnt[1]) * counter);
+        put_y += 8.0f * sinf((PI / vibe_cnt[1]) * counter);
     }
 
     if (part_name == NULL) {
@@ -3177,11 +3177,11 @@ void CMenuPosDataForm::GetPutPosXY(char *part_name, float &out_x, float &out_y) 
                     put_y += parts[i].y;
 
                     if (parts[i].vibe_cnt[0] != 0) {
-                        put_x += parts[i].viber[0] * cosf(counter * (3.1415927f / parts[i].vibe_cnt[0]));
+                        put_x += parts[i].viber[0] * cosf(counter * (PI / parts[i].vibe_cnt[0]));
                     }
 
                     if (parts[i].vibe_cnt[1] != 0) {
-                        put_y += parts[i].viber[1] * sinf(counter * (3.1415927f / parts[i].vibe_cnt[1]));
+                        put_y += parts[i].viber[1] * sinf(counter * (PI / parts[i].vibe_cnt[1]));
                     }
 
                     break;
@@ -3254,7 +3254,7 @@ int CMenuPosDataForm::GetNowPosRGBA(MENUFORMPARTS_TYPE *part, MENU_BASETEXINFO *
             }
         } else if (effect->type == MENU_PARTS_EFFECT_BLINK) {
             for (k = 0; k < 4; k++) {
-                color = rgba[k] + (int) (effect->param[2] * cosf((6.2831855f / effect->param[1]) * effect->param[0]));
+                color = rgba[k] + (int) (effect->param[2] * cosf((TWO_PI / effect->param[1]) * effect->param[0]));
                 rgba[k] = color;
             }
         } else if (effect->type == MENU_PARTS_EFFECT_ROT || effect->type == MENU_PARTS_EFFECT_HURIKO) {
@@ -3272,10 +3272,10 @@ int CMenuPosDataForm::GetNowPosRGBA(MENUFORMPARTS_TYPE *part, MENU_BASETEXINFO *
             }
 
             if (effect->param[4] != 0.0f) {
-                angle = (6.2831855f / effect->param[4]) * phase;
+                angle = (TWO_PI / effect->param[4]) * phase;
             }
 
-            angle += 6.2831855f / effect->param[5];
+            angle += TWO_PI / effect->param[5];
             cos_angle = cosf(angle);
             sin_angle = sinf(angle);
 
@@ -3313,7 +3313,7 @@ int CMenuPosDataForm::GetNowPosRGBA(MENUFORMPARTS_TYPE *part, MENU_BASETEXINFO *
             pos[6] = center_x + part->w / 2.0f * scale_x;
             pos[7] = center_y + part->h / 2.0f * scale_y;
         } else if (effect->type == MENU_PARTS_EFFECT_STRETCH_SIN) {
-            sin_angle = sinf(6.2831855f * effect->param[0] / effect->param[1]);
+            sin_angle = sinf(TWO_PI * effect->param[0] / effect->param[1]);
             sway[0][0] = -sin_angle;
             sway[0][1] = -sin_angle;
             sway[1][0] = sin_angle;
@@ -3457,7 +3457,7 @@ static void DrawItemIconEffect2(mgCDrawPrim *prim, mgCTexture *tex, MENUFORMPART
                 angle = 0.34906587f * effect->param[6];
                 sin_angle = sinf(angle);
                 cos_angle = cosf(angle);
-                alpha = (int) (64.0f * sinf((3.1415927f / effect->param[1]) * effect->param[0]));
+                alpha = (int) (64.0f * sinf((PI / effect->param[1]) * effect->param[0]));
                 color = &star_color_table[(int) (3.0f * effect->param[4])];
                 prim->Color(color[0], color[1], color[2], alpha);
 
@@ -3922,8 +3922,8 @@ void MenuItemModeItemDraw(int &tex_block, mgRect<int> clip_rect, float *pos, MEN
 
     item_board_counter += 0.06829549f;
 
-    if (item_board_counter > 3.1415927f) {
-        item_board_counter -= 6.2831855f;
+    if (item_board_counter > PI) {
+        item_board_counter -= TWO_PI;
     }
 
     ResetMenuScissor();
@@ -4197,12 +4197,12 @@ void CMenuPosDataForm::MenuFormDrawNormal(int x, int y, float sway_x, float sway
         put.Set(sway_x + part->x, sway_y + part->y, part->w, part->h);
 
         if (part->vibe_cnt[0] != 0) {
-            put.left += (u_int) part->viber[0] * cosf(3.1415927f / part->vibe_cnt[0] * counter);
+            put.left += (u_int) part->viber[0] * cosf(PI / part->vibe_cnt[0] * counter);
             put.left = (int) put.left;
         }
 
         if (part->vibe_cnt[1] != 0) {
-            put.top += (u_int) part->viber[1] * sinf(3.1415927f / part->vibe_cnt[1] * counter);
+            put.top += (u_int) part->viber[1] * sinf(PI / part->vibe_cnt[1] * counter);
             put.top = (int) put.top;
         }
 
@@ -4499,11 +4499,11 @@ void CMenuPosDataForm::MenuFormDraw(int x, int y, int &tex_block) {
     float draw_y = y;
 
     if (vibe_cnt[0] != 0) {
-        draw_x += 10.0f * cosf(3.1415927f / vibe_cnt[0] * counter);
+        draw_x += 10.0f * cosf(PI / vibe_cnt[0] * counter);
     }
 
     if (vibe_cnt[1] != 0) {
-        draw_y += 8.0f * sinf(3.1415927f / vibe_cnt[1] * counter);
+        draw_y += 8.0f * sinf(PI / vibe_cnt[1] * counter);
     }
 
     mgCTextureManager *textures = &mgTexManager;
@@ -6301,7 +6301,7 @@ void CRepairManager::Step() {
         model->SetScale(scale, scale, scale);
         model->Step();
 
-        if (scale < 0.46f && 1.5707964f < angle) {
+        if (scale < 0.46f && HALF_PI < angle) {
             model->Show(0, 1);
         }
 
@@ -6684,8 +6684,8 @@ void CEffVerticalLine::Step() {
     phase = line->angle + phase;
     line->angle = phase;
 
-    if (3.1415927f <= phase) {
-        line->angle = 3.1415927f;
+    if (PI <= phase) {
+        line->angle = PI;
     }
 }
 
@@ -6748,7 +6748,7 @@ void InitInitBuildUpInfoEffectPos() {
     for (i = 0; i < MenuVerticalLineNum; i++) {
         MenuVerticalLine[i].Generate(MenuVerticalLineCharaPos, MenuVerticalRange, 20.0f);
         MenuVerticalLine[i].pos[1] = MenuVerticalLineCharaPos[1] + GetRandF(8.0f);
-        MenuVerticalLine[i].angle = GetRandF(3.1415927f);
+        MenuVerticalLine[i].angle = GetRandF(PI);
     }
 }
 
@@ -6802,7 +6802,7 @@ void StepBuildUpInfoEffect() {
             MenuVerticalLine[i].Step();
             line = &MenuVerticalLine[i];
 
-            if (3.1415927f <= line->angle || 19.0f <= line->pos[1]) {
+            if (PI <= line->angle || 19.0f <= line->pos[1]) {
                 MenuVerticalLine[i].Generate(MenuVerticalLineCharaPos, MenuVerticalRange, 20.0f);
             }
         }
@@ -7270,7 +7270,7 @@ void CMenuEffect::Step() {
                     for (i = 0; i < info_num; i++, particle++) {
                         if (particle->unk_24 > 0.0f) {
                             float radius = particle->unk_1c;
-                            float angle = 3.1415927f / particle->unk_18 * particle->unk_0;
+                            float angle = PI / particle->unk_18 * particle->unk_0;
                             particle->x = base_info[0] + radius * cosf(angle);
                             particle->y = base_info[1] + radius * sinf(angle);
                             particle->unk_1c += particle->unk_20;
@@ -7424,13 +7424,13 @@ void CMenuEffect::Step() {
                         }
 
                         if (particle->unk_24 > 0.0f) {
-                            float angle = 3.1415927f / particle->unk_18 * particle->unk_0;
+                            float angle = PI / particle->unk_18 * particle->unk_0;
                             float radius = particle->unk_1c;
                             particle->x = base_info[0] + radius * cosf(angle);
                             particle->y = base_info[1] + radius * sinf(angle);
-                            int dx = particle->unk_30 * sinf(3.1415927f * particle->unk_0 / particle->unk_38);
+                            int dx = particle->unk_30 * sinf(PI * particle->unk_0 / particle->unk_38);
                             particle->x += dx;
-                            int dy = particle->unk_34 * sinf(3.1415927f * particle->unk_0 / particle->unk_38);
+                            int dy = particle->unk_34 * sinf(PI * particle->unk_0 / particle->unk_38);
                             particle->y += dy;
                             particle->unk_1c += particle->unk_20;
                             particle->unk_0 += 1.0f;
@@ -7462,8 +7462,8 @@ void CMenuEffect::Step() {
                     break;
                 case 21:
                     particle->unk_0 += 1.0f;
-                    particle->x = base_info[0] + particle->unk_14 * sinf(GetRandF(6.2831855f));
-                    particle->y = base_info[1] + particle->unk_14 * sinf(GetRandF(6.2831855f));
+                    particle->x = base_info[0] + particle->unk_14 * sinf(GetRandF(TWO_PI));
+                    particle->y = base_info[1] + particle->unk_14 * sinf(GetRandF(TWO_PI));
 
                     if ((int) particle->unk_0 % 2 != 0) {
                         particle->unk_14 *= particle->unk_18;
@@ -7814,10 +7814,10 @@ void CMenuEffect::Draw() {
                 color[3] = (int) particle->unk_1c;
             } else if (type == 10) {
                 uv = corner_uv[(int) particle->unk_8];
-                float angle = 0.3926991f * particle->unk_0;
+                float angle = (PI / 8.0f) * particle->unk_0;
 
-                while (3.1415927f <= angle) {
-                    angle -= 6.2831855f;
+                while (PI <= angle) {
+                    angle -= TWO_PI;
                 }
 
                 rect.right = rect.bottom = 32.0f + particle->unk_3c * sinf(angle);

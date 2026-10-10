@@ -60,7 +60,7 @@ static float                   at_1248[4] = {0.0f, 1.0f, 0.0f, 0.0f};
 static int                     gatekey_index[7] = {337, 339, 341, 342, 344, 348, 350};
 static int                     keydoor_key_index[7] = {338, 340, -1, 343, 346, 349, 351};
 static int                     counter_1489;
-static float                   xchg_rot_list[4] = {0.0f, -1.5707964f, 3.1415927f, 1.5707964f};
+static float                   xchg_rot_list[4] = {0.0f, -HALF_PI, PI, HALF_PI};
 static TRESURE_BOX_FLOOR_INFO *nowTbFloor;
 static int                     nowTboxGroup;
 static int                     nowTboxItemCnt;
@@ -431,7 +431,7 @@ void CRedMarkModel::Step() {
     next = angle;
 
     if (!(next <= 0.0f)) {
-        angle = next - 3.1415927f;
+        angle = next - PI;
     }
 }
 
@@ -485,8 +485,8 @@ void CGeoStone::GeoStep() {
         this->angle += 0.05235988f;
         next = this->angle;
 
-        if (!(next <= 3.1415927f)) {
-            this->angle = next - 6.2831855f;
+        if (!(next <= PI)) {
+            this->angle = next - TWO_PI;
         }
     }
 }
@@ -643,7 +643,7 @@ void CTreasureBox::Draw(float *view_pos) {
     if (this->frame != NULL) {
         this->GetPosition(position);
         this->GetRotation(rotation);
-        this->lid_frame->SetRotation(45.0f * (-3.1415927f * this->lid_open / 180.0f), 0.0f, 0.0f);
+        this->lid_frame->SetRotation(45.0f * (-PI * this->lid_open / 180.0f), 0.0f, 0.0f);
         this->lid_frame->SetPosition(0.0f, 9.0f, -7.4f);
 
         if (mgDistVector(view_pos, position) < 1000.0f) {
@@ -1690,7 +1690,7 @@ float ScanEyePoint(float *eye_pos) {
         }
 
         printf("-------------------------> hit %.2f,%.2f\n", position[0], position[2]);
-        angle += 0.3926991f;
+        angle += (PI / 8.0f);
         angle = mgAngleLimit(angle);
         i++;
 
@@ -1735,7 +1735,7 @@ void AutoSetTreasureBox() {
         while (searching) {
             if (SearchMapFlatPosition(pos, &AutoMapGen) && !(mgDistVector(event_pos, pos) <= 320.0f) &&
                 manager->CheckArea(pos, 60.0f)) {
-                angle = (2.0f * (3.1415927f * (float) rand())) / 2.1474836e9f - 3.1415927f;
+                angle = (2.0f * (PI * (float) rand())) / 2.1474836e9f - PI;
                 int flags;
                 int num0 = 1;
                 int item0 = 0;
@@ -1844,7 +1844,7 @@ void AutoSetTreasureBox() {
                 if (SearchMapFlatPosition(mimic_pos, &AutoMapGen) && !(mgDistVector(event_pos, mimic_pos) <= 320.0f) &&
                     CheckObjectPutArea(mimic_pos)) {
                     manager->PutTreasureBox(-1, mimic_pos,
-                                            (2.0f * (3.1415927f * (float) rand())) / 2.1474836e9f - 3.1415927f,
+                                            (2.0f * (PI * (float) rand())) / 2.1474836e9f - PI,
                                             0x101, monster_id, param, -1, 0);
                     placed = 1;
                 }

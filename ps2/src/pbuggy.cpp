@@ -979,7 +979,7 @@ void CharaControl(CScene *scene, CPadControl *pad) {
                     BuggyChara->GetPosition(buggy_position);
                     camera->RotBack(mgAngleLimit(atan2f(buggy_position[0] - player_position[0],
                                                         buggy_position[2] - player_position[2]) -
-                                                 3.1415927f));
+                                                 PI));
                     break;
                 case BUGGY_CHARA_THROWING:
                     if (frame_now <= 44.0f && !(frame_next <= 44.0f)) {
@@ -1457,7 +1457,7 @@ void InitBomb(CScene *scene) {
     StarbullPos[1] = 113.0f;
     StarbullPos[2] = -300.0f;
     StarbullChara->SetPosition(StarbullPos);
-    StarbullChara->SetRotation(0.0f, 3.1415927f, 0.0f);
+    StarbullChara->SetRotation(0.0f, PI, 0.0f);
     StarbullChara->SetMotion("\x97\xa7\x82\xbf", 0);
 }
 

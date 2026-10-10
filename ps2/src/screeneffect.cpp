@@ -262,12 +262,12 @@ void LensFlare(sceVu0IVECTOR screen, sceVu0FVECTOR color, int bank, char *textur
     float angle = 0.0f;
     int   radius_index = 0;
 
-    while (angle < 6.2831855f) {
+    while (angle < TWO_PI) {
         int x = (int) ((float) radii[radius_index] * sinf(angle));
         int y = (int) ((float) radii[radius_index] * cosf(angle));
         prim.Vertex4(x + centre_x, y + centre_y, 0);
         radius_index = !radius_index;
-        angle += 0.2617994f;
+        angle += (PI / 12.0f);
     }
 
     prim.Vertex4(centre_x, centre_y - radii[radius_index], 0);

@@ -4064,7 +4064,7 @@ void ClsMes::DrawSelectCursor(mgCDrawPrim *prim) {
     int offset_y;
 
     if (window_mode == 1) {
-        offset_x = fptosi(12.0f * mgSinf(3.1415927f * (float) cursor_time / 20.0f));
+        offset_x = fptosi(12.0f * mgSinf(PI * (float) cursor_time / 20.0f));
 
         if (0 < offset_x) {
             offset_x = -offset_x;
@@ -4073,8 +4073,8 @@ void ClsMes::DrawSelectCursor(mgCDrawPrim *prim) {
         offset_x += 8;
         offset_y = 0;
     } else {
-        offset_x = fptosi(6.0f * mgCosf(3.1415927f * (float) cursor_time / 60.0f));
-        offset_y = fptosi(4.0f * mgSinf(3.1415927f * (float) cursor_time / 30.0f));
+        offset_x = fptosi(6.0f * mgCosf(PI * (float) cursor_time / 60.0f));
+        offset_y = fptosi(4.0f * mgSinf(PI * (float) cursor_time / 30.0f));
     }
 
     if (window_mode != 1) {

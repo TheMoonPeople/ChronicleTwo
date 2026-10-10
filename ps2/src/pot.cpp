@@ -135,12 +135,12 @@ void CFragment::Step(CCPoly *polys, int poly_count) {
         rotation[2] -= 0.0625f * delta_z;
 
         for (axis = 0; axis < 3; axis++) {
-            if (rotation[axis] < -3.1415927f) {
-                rotation[axis] += 6.2831855f;
+            if (rotation[axis] < -PI) {
+                rotation[axis] += TWO_PI;
             }
 
-            if (3.1415927f < rotation[axis]) {
-                rotation[axis] -= 6.2831855f;
+            if (PI < rotation[axis]) {
+                rotation[axis] -= TWO_PI;
             }
         }
     }

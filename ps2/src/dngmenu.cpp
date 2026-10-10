@@ -915,8 +915,8 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
     SetSpriteEnv(prim, 0);
     room->mark_phase += stepCntTbl_1501[mode];
 
-    if (room->mark_phase > 3.1415927f) {
-        room->mark_phase -= 6.2831855f;
+    if (room->mark_phase > PI) {
+        room->mark_phase -= TWO_PI;
     }
 
     int r = 192, g = 192, b = 192;
@@ -924,12 +924,12 @@ void CDngFreeMap::DrawRoomOne(mgRect<float> rect, DNGMAP_ROOM_INFO *room, unsign
     if (room->mark != 0) {
         float phase = room->mark_phase;
 
-        while (phase > 3.1415927f) {
-            phase -= 6.2831855f;
+        while (phase > PI) {
+            phase -= TWO_PI;
         }
 
-        while (phase < -3.1415927f) {
-            phase += 6.2831855f;
+        while (phase < -PI) {
+            phase += TWO_PI;
         }
 
         if (phase > 0.0f) {
@@ -1204,8 +1204,8 @@ void DrawDngRoomInfo(DNGMAP_ROOM_INFO *room) {
             static float AlphaRate = 0.0f;
             AlphaRate += 0.034906585f;
 
-            if (3.1415927f <= AlphaRate) {
-                AlphaRate -= 3.1415927f;
+            if (PI <= AlphaRate) {
+                AlphaRate -= PI;
             }
 
             float seal_alpha = (float) alpha * sinf(AlphaRate);
@@ -3770,8 +3770,8 @@ void CMenuTreeMap::Draw() {
 
                 TreeMapSaveHopCount += 0.06829549f;
 
-                if (3.1415927f <= TreeMapSaveHopCount) {
-                    TreeMapSaveHopCount -= 3.1415927f;
+                if (PI <= TreeMapSaveHopCount) {
+                    TreeMapSaveHopCount -= PI;
                 }
 
                 MenuDCMsg[6]->SetMovePosGyou(1, MenuDCMsg[6]->line_pos[1][0],

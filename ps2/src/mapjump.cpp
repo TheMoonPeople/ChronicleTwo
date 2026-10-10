@@ -507,7 +507,7 @@ void SetInteriorDoorPos(CScene *scene) {
             *(u_long128 *) rotation = *(u_long128 *) point->rotation;
             rotation[2] = 0.0f;
             rotation[0] = 0.0f;
-            rotation[1] = mgAngleLimit(3.1415927f + rotation[1]);
+            rotation[1] = mgAngleLimit(PI + rotation[1]);
             chara->SetPosition(position);
             chara->SetRotation(rotation);
             mgCCamera *camera = scene->GetCamera(scene->active_camera);
@@ -579,7 +579,7 @@ void ExitInterior(CScene *scene, int *map_no) {
     if (chara != NULL) {
         chara->SetMotion("\x97\xa7\x82\xbf", 4);
         chara->SetPosition(OldPos);
-        chara->SetRotation(0.0f, mgAngleLimit(3.1415927f + OldRot[1]), 0.0f);
+        chara->SetRotation(0.0f, mgAngleLimit(PI + OldRot[1]), 0.0f);
         chara->ResetDAPosition();
         chara->Step();
         chara->StepDA(10);

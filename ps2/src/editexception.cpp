@@ -259,7 +259,7 @@ void EditExceptionStep(int map_no, CScene *scene) {
             }
 
             attr->obj_alpha = alpha;
-            frame08->SetAttrParamObjAlpha((1.0f + sinf(6.2831855f * ((float) data->phase_y / (float) data->period_y))) / 0.5f, 1);
+            frame08->SetAttrParamObjAlpha((1.0f + sinf(TWO_PI * ((float) data->phase_y / (float) data->period_y))) / 0.5f, 1);
             break;
         }
     }
@@ -424,8 +424,8 @@ void StepFirePowder(CScene *scene) {
 
         particle.pos[3] += particle.phase_speed;
 
-        if (particle.pos[3] > 3.1415927f) {
-            particle.pos[3] -= 6.2831855f;
+        if (particle.pos[3] > PI) {
+            particle.pos[3] -= TWO_PI;
         }
     }
 }
@@ -579,8 +579,8 @@ void CGeyserEffect::Step() {
         effect_point.scale += 0.1f;
         effect_point.pos[3] += effect_point.phase_speed;
 
-        if (effect_point.pos[3] > 3.1415927f) {
-            effect_point.pos[3] -= 6.2831855f;
+        if (effect_point.pos[3] > PI) {
+            effect_point.pos[3] -= TWO_PI;
         }
 
         if (effect_point.alpha < 0.0f) {

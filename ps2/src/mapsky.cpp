@@ -425,7 +425,7 @@ static s32 _SKY_MDS(SPI_STACK *stack, s32 arg_count) {
         strcpy(skyInfo->sky_mds_name[sky_id], name);
     }
 
-    skyInfo->sky_rot_speed[sky_id] = spiGetStackFloat(stack) * 3.14159265358979323846f / 180.0f;
+    skyInfo->sky_rot_speed[sky_id] = spiGetStackFloat(stack) * PI / 180.0f;
     return 1;
 }
 
@@ -470,7 +470,7 @@ static s32 _SKYB_MDS(SPI_STACK *stack, s32 arg_count) {
         strcpy(skyInfo->skyb_mds_name[sky_id], name);
     }
 
-    skyInfo->skyb_rot_speed[sky_id] = spiGetStackFloat(stack) * 3.14159265358979323846f / 180.0f;
+    skyInfo->skyb_rot_speed[sky_id] = spiGetStackFloat(stack) * PI / 180.0f;
     return 1;
 }
 
@@ -512,7 +512,7 @@ static int _SKY_ANIME(SPI_STACK *stack, int argument_count) {
         strcpy(skyInfo->sky_anime_name[skyAnmNum], name);
     }
 
-    skyInfo->sky_anime_speed[skyAnmNum] = 3.1415927f * spiGetStackFloat(stack) / 180.0f;
+    skyInfo->sky_anime_speed[skyAnmNum] = PI * spiGetStackFloat(stack) / 180.0f;
     ++skyAnmNum;
     return 1;
 }
@@ -540,7 +540,7 @@ static int _SKYB_ANIME(SPI_STACK *stack, int argument_count) {
         strcpy(skyInfo->skyb_anime_name[skybAnmNum], name);
     }
 
-    skyInfo->skyb_anime_speed[skybAnmNum] = 3.1415927f * spiGetStackFloat(stack) / 180.0f;
+    skyInfo->skyb_anime_speed[skybAnmNum] = PI * spiGetStackFloat(stack) / 180.0f;
     ++skybAnmNum;
     return 1;
 }

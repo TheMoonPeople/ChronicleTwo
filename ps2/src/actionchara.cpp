@@ -1575,17 +1575,17 @@ int CActionChara::HumanMoveIF() {
     stick_direction = atan2f(move_x, move_z);
     angle_change = old_angle - stick_direction;
 
-    if (angle_change > 3.1415927f) {
-        angle_change -= 6.2831855f;
+    if (angle_change > PI) {
+        angle_change -= TWO_PI;
     }
 
-    if (angle_change < -3.1415927f) {
-        angle_change += 6.2831855f;
+    if (angle_change < -PI) {
+        angle_change += TWO_PI;
     }
 
     angle_change = mgAbs(angle_change);
     old_angle = stick_direction;
-    turn_penalty = 1.5f * (angle_change / 3.1415927f);
+    turn_penalty = 1.5f * (angle_change / PI);
 
     if (turn_penalty > 1.0f) {
         turn_penalty = 1.0f;
@@ -1602,27 +1602,27 @@ int CActionChara::HumanMoveIF() {
     move_velocity[2] = acceleration * ((float) mgFrameRate * (move_z * move_speed));
     relative_angle = atan2f(move_x, move_z) - rotation[1];
 
-    if (relative_angle > 3.1415927f) {
-        relative_angle -= 6.2831855f;
+    if (relative_angle > PI) {
+        relative_angle -= TWO_PI;
     }
 
-    if (relative_angle < -3.1415927f) {
-        relative_angle += 6.2831855f;
+    if (relative_angle < -PI) {
+        relative_angle += TWO_PI;
     }
 
     angle_change = stick_angle - relative_angle;
 
-    if (angle_change > 3.1415927f) {
-        angle_change -= 6.2831855f;
+    if (angle_change > PI) {
+        angle_change -= TWO_PI;
     }
 
-    if (angle_change < -3.1415927f) {
-        angle_change += 6.2831855f;
+    if (angle_change < -PI) {
+        angle_change += TWO_PI;
     }
 
     angle_change = mgAbs(angle_change);
 
-    if (angle_change / 3.1415927f < 0.3f) {
+    if (angle_change / PI < 0.3f) {
         stick_time++;
     } else {
         stick_time = 0;
@@ -1666,12 +1666,12 @@ int CActionChara::HumanMoveIF() {
             if (move_x != 0.0f || move_z != 0.0f) {
                 relative_angle = facing - atan2f(move_x, move_z);
 
-                if (relative_angle < -3.1415927f) {
-                    relative_angle += 6.2831855f;
+                if (relative_angle < -PI) {
+                    relative_angle += TWO_PI;
                 }
 
-                if (relative_angle > 3.1415927f) {
-                    relative_angle -= 6.2831855f;
+                if (relative_angle > PI) {
+                    relative_angle -= TWO_PI;
                 }
 
                 if (mgAbs(move_x) > mgAbs(move_z)) {
@@ -1992,12 +1992,12 @@ int CActionChara::RoboWalkMoveIF(int mode) {
             GetRotation(rotation);
             target_angle -= rotation[1];
 
-            if (target_angle < -3.1415927f) {
-                target_angle += 6.2831855f;
+            if (target_angle < -PI) {
+                target_angle += TWO_PI;
             }
 
-            if (target_angle > 3.1415927f) {
-                target_angle -= 6.2831855f;
+            if (target_angle > PI) {
+                target_angle -= TWO_PI;
             }
 
             arm = SearchChara("arm");
@@ -2114,12 +2114,12 @@ int CActionChara::RoboTankMoveIF(int mode) {
             GetRotation(rotation);
             target_angle -= rotation[1];
 
-            if (target_angle < -3.1415927f) {
-                target_angle += 6.2831855f;
+            if (target_angle < -PI) {
+                target_angle += TWO_PI;
             }
 
-            if (target_angle > 3.1415927f) {
-                target_angle -= 6.2831855f;
+            if (target_angle > PI) {
+                target_angle -= TWO_PI;
             }
 
             arm = SearchChara("arm");
@@ -2328,12 +2328,12 @@ int CActionChara::RoboBikeMoveIF(int mode) {
             GetRotation(target_rotation);
             target_angle -= target_rotation[1];
 
-            if (target_angle < -3.1415927f) {
-                target_angle += 6.2831855f;
+            if (target_angle < -PI) {
+                target_angle += TWO_PI;
             }
 
-            if (target_angle > 3.1415927f) {
-                target_angle -= 6.2831855f;
+            if (target_angle > PI) {
+                target_angle -= TWO_PI;
             }
 
             arm = SearchChara("arm");
@@ -2552,12 +2552,12 @@ int CActionChara::RoboAirMoveIF(int unused, int mode) {
             GetRotation(rotation);
             target_angle -= rotation[1];
 
-            if (target_angle < -3.1415927f) {
-                target_angle += 6.2831855f;
+            if (target_angle < -PI) {
+                target_angle += TWO_PI;
             }
 
-            if (target_angle > 3.1415927f) {
-                target_angle -= 6.2831855f;
+            if (target_angle > PI) {
+                target_angle -= TWO_PI;
             }
 
             arm = SearchChara("arm");
@@ -2666,17 +2666,17 @@ int CActionChara::MonsterMoveIF() {
     stick_direction = atan2f(move_x, move_z);
     angle_change = old_angle - stick_direction;
 
-    if (angle_change > 3.1415927f) {
-        angle_change -= 6.2831855f;
+    if (angle_change > PI) {
+        angle_change -= TWO_PI;
     }
 
-    if (angle_change < -3.1415927f) {
-        angle_change += 6.2831855f;
+    if (angle_change < -PI) {
+        angle_change += TWO_PI;
     }
 
     angle_change = angle_change < 0.0f ? -angle_change : angle_change;
     old_angle = stick_direction;
-    turn_penalty = 1.5f * (angle_change / 3.1415927f);
+    turn_penalty = 1.5f * (angle_change / PI);
 
     if (turn_penalty > 1.0f) {
         turn_penalty = 1.0f;
@@ -2693,27 +2693,27 @@ int CActionChara::MonsterMoveIF() {
     move_velocity[2] = acceleration * ((float) mgFrameRate * (move_z * move_speed));
     relative_angle = atan2f(move_x, move_z) - rotation[1];
 
-    if (relative_angle > 3.1415927f) {
-        relative_angle -= 6.2831855f;
+    if (relative_angle > PI) {
+        relative_angle -= TWO_PI;
     }
 
-    if (relative_angle < -3.1415927f) {
-        relative_angle += 6.2831855f;
+    if (relative_angle < -PI) {
+        relative_angle += TWO_PI;
     }
 
     angle_change = stick_angle - relative_angle;
 
-    if (angle_change > 3.1415927f) {
-        angle_change -= 6.2831855f;
+    if (angle_change > PI) {
+        angle_change -= TWO_PI;
     }
 
-    if (angle_change < -3.1415927f) {
-        angle_change += 6.2831855f;
+    if (angle_change < -PI) {
+        angle_change += TWO_PI;
     }
 
     angle_change = angle_change < 0.0f ? -angle_change : angle_change;
 
-    if (angle_change / 3.1415927f < 0.3f) {
+    if (angle_change / PI < 0.3f) {
         stick_time++;
     } else {
         stick_time = 0;
@@ -3504,12 +3504,12 @@ void CActionChara::StepParam() {
             target->GetRotation(target_rot);
             self_rot[1] += target_rot[1];
 
-            if (!(self_rot[1] <= 3.1415927f)) {
-                self_rot[1] -= 6.2831855f;
+            if (!(self_rot[1] <= PI)) {
+                self_rot[1] -= TWO_PI;
             }
 
-            if (self_rot[1] < -3.1415927f) {
-                self_rot[1] += 6.2831855f;
+            if (self_rot[1] < -PI) {
+                self_rot[1] += TWO_PI;
             }
 
             ActionVector forward = {

@@ -1197,12 +1197,12 @@ float mgAngleInterpolate(float from, float to, float step, int mode) {
     // Angles are kept in (-pi, pi]; one whole turn brings a sum or difference back into range.
     delta = to - from;
 
-    if (delta > 3.1415927f) {
-        delta -= 6.2831855f;
+    if (delta > PI) {
+        delta -= TWO_PI;
     }
 
-    if (delta <= -3.1415927f) {
-        delta += 6.2831855f;
+    if (delta <= -PI) {
+        delta += TWO_PI;
     }
 
     offset = 0.0f;
@@ -1237,12 +1237,12 @@ float mgAngleInterpolate(float from, float to, float step, int mode) {
 
     result = from + offset;
 
-    if (result > 3.1415927f) {
-        result -= 6.2831855f;
+    if (result > PI) {
+        result -= TWO_PI;
     }
 
-    if (result <= -3.1415927f) {
-        result += 6.2831855f;
+    if (result <= -PI) {
+        result += TWO_PI;
     }
 
     return result;
@@ -1257,12 +1257,12 @@ int mgAngleCmp(float a, float b, float tolerance) {
         return 0;
     }
 
-    if (delta > 3.1415927f) {
-        delta -= 6.2831855f;
+    if (delta > PI) {
+        delta -= TWO_PI;
     }
 
-    if (delta < -3.1415927f) {
-        delta += 6.2831855f;
+    if (delta < -PI) {
+        delta += TWO_PI;
     }
 
     if (delta > tolerance) {
@@ -1277,18 +1277,18 @@ int mgAngleCmp(float a, float b, float tolerance) {
 }
 
 float mgAngleLimit(float angle) {
-    if (angle < 3.1415927f && angle > -3.1415927f) {
+    if (angle < PI && angle > -PI) {
         return angle;
     }
 
-    angle -= 6.2831855f * (int) (angle / 6.2831855f);
+    angle -= TWO_PI * (int) (angle / TWO_PI);
 
-    if (angle > 3.1415927f) {
-        angle -= 6.2831855f;
+    if (angle > PI) {
+        angle -= TWO_PI;
     }
 
-    if (angle < -3.1415927f) {
-        angle += 6.2831855f;
+    if (angle < -PI) {
+        angle += TWO_PI;
     }
 
     return angle;
@@ -1310,7 +1310,7 @@ void mgCreateSinTable() {
     sin_table_unit_1 = 162.97466f;
 
     for (i = 0; i < 1024; i++) {
-        SinTable[i] = sinf(3.1415927f * (2.0f * (float) i) / sin_table_num);
+        SinTable[i] = sinf(PI * (2.0f * (float) i) / sin_table_num);
     }
 }
 
@@ -1323,7 +1323,7 @@ float mgSinf(float angle) {
 }
 
 float mgCosf(float angle) {
-    return mgSinf(1.5707964f + angle);
+    return mgSinf(HALF_PI + angle);
 }
 
 float sin_table_num = 1024.0f;

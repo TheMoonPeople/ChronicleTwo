@@ -213,7 +213,7 @@ int CEditEvent::Step(CScene *scene) {
                             }
                         }
 
-                        camera->RotBack(mgAngleLimit(3.1415927f + atan2f(data.map_event.matrix[2][0], data.map_event.matrix[2][2])));
+                        camera->RotBack(mgAngleLimit(PI + atan2f(data.map_event.matrix[2][0], data.map_event.matrix[2][2])));
                     }
 
                     door_se = -1;

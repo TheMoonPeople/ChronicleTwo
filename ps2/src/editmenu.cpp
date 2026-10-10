@@ -1603,7 +1603,7 @@ void MenuGeoramaTitleDraw(int &tex_block, float *pos, int alpha) {
             float cursor_pos[2];
             cursor_pos[0] = menu_georama_title_pos[0] - 22.0f;
             cursor_pos[1] = 34.0f + menu_georama_title_pos[1];
-            MenuCursorDraw(cursor_tex, cursor_pos, -0.5235988f, 0, alpha, 0.7f);
+            MenuCursorDraw(cursor_tex, cursor_pos, -(PI / 6.0f), 0, alpha, 0.7f);
         }
     }
 }

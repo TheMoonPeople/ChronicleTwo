@@ -2729,8 +2729,8 @@ void CMenuChrCngMenu::CalcTex() {
 
     cursor_wave += 0.0581776425f;
 
-    if (!(cursor_wave < 3.1415927f)) {
-        cursor_wave -= 6.2831855f;
+    if (!(cursor_wave < PI)) {
+        cursor_wave -= TWO_PI;
     }
 
     sprintf(name, "fc%d", last_select);
@@ -2761,20 +2761,20 @@ void CMenuChrCngMenu::CalcTex() {
 
     star_wave += 0.07853982f;
 
-    if (!(star_wave < 6.2831855f)) {
-        star_wave -= 6.2831855f;
+    if (!(star_wave < TWO_PI)) {
+        star_wave -= TWO_PI;
     }
 
     star_pulse += 0.02617994f;
 
-    if (!(star_pulse < 6.2831855f)) {
-        star_pulse -= 6.2831855f;
+    if (!(star_pulse < TWO_PI)) {
+        star_pulse -= TWO_PI;
     }
 
     star_angle += 0.06283186f;
 
-    if (!(star_angle < 3.1415927f)) {
-        star_angle -= 6.2831855f;
+    if (!(star_angle < PI)) {
+        star_angle -= TWO_PI;
     }
 
     if (mode == 2) {
@@ -2796,10 +2796,10 @@ void CMenuChrCngMenu::CalcTex() {
                 star->life -= 1.0f;
             } else if ((0 < spawn && mode != 2) || star_spawn != 0) {
                 star->life = 30.0f + GetRandF(8.0f);
-                float spread = radius * (0.95f + 0.1f * sinf(GetRandF(6.2831855f)));
+                float spread = radius * (0.95f + 0.1f * sinf(GetRandF(TWO_PI)));
                 star->x = center + spread * cosf(angle);
                 star->y = center + spread * sinf(angle);
-                star->alpha = star_alpha * (1.05f + 0.2f * cosf(GetRandF(3.1415927f)));
+                star->alpha = star_alpha * (1.05f + 0.2f * cosf(GetRandF(PI)));
                 spawn--;
             }
 
@@ -2808,7 +2808,7 @@ void CMenuChrCngMenu::CalcTex() {
             }
         }
 
-        angle += 3.1415927f;
+        angle += PI;
     }
 
     if (star_stop_wait > 0) {
@@ -3211,7 +3211,7 @@ void MenuCharaChangeStarDraw() {
         prim->TextureCrd((int) uv[i][0], (int) uv[i][1]);
         float x = 1.0f + (center[0] + size * cosf(angle));
         prim->Vertex(x, center[1] + 1.1538461f * (size * sinf(angle)), 0.0f);
-        angle += 1.5707964f;
+        angle += HALF_PI;
     }
 
     prim->End();
@@ -3244,8 +3244,8 @@ void MenuCharaChangeStarDraw() {
                        mgRect<float>(center[0] + x - 0.5f * circle,
                                      6.0f + (center[1] + 1.1538461f * (y - 0.5f * circle)), circle, circle),
                        waku_rect, wave, size, (int) pulse_alpha, 0x80, 0x80, 0x80);
-        angle += 3.1415927f;
-        wave += 3.1415927f;
+        angle += PI;
+        wave += PI;
     }
 
     if (MenuCharaChangeStar_Tex == NULL) {
@@ -7299,12 +7299,12 @@ void CMenuCostumeSel::Draw() {
         cursor_wave += 0.05235988f;
         cursor_wave_y += 0.10471976f;
 
-        if (!(cursor_wave < 3.1415927f)) {
-            cursor_wave -= 6.2831855f;
+        if (!(cursor_wave < PI)) {
+            cursor_wave -= TWO_PI;
         }
 
-        if (!(cursor_wave_y < 3.1415927f)) {
-            cursor_wave_y -= 6.2831855f;
+        if (!(cursor_wave_y < PI)) {
+            cursor_wave_y -= TWO_PI;
         }
     }
 

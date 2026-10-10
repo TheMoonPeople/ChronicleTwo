@@ -386,7 +386,7 @@ void CMap::GetSunPoint(float *out_pos) {
     sceVu0FMATRIX matrix;
 
     mgUnitMatrix(matrix);
-    sceVu0RotMatrixZ(matrix, matrix, mgAngleLimit((GetNowTime() * 6.2831855f) / 24.0f));
+    sceVu0RotMatrixZ(matrix, matrix, mgAngleLimit((GetNowTime() * TWO_PI) / 24.0f));
     sceVu0RotMatrixY(matrix, matrix, map_info.sun_angle);
     sceVu0ApplyMatrix(out_pos, matrix, sun);
 }
@@ -1850,7 +1850,7 @@ int mapFUNC_INVENT_DATA(SPI_STACK *stack, int argc) {
     invent->box.max[3] = 1.0f;
     invent->unk_24 = spiGetStackInt(stack++);
     invent->range = spiGetStackFloat(stack++);
-    invent->angle = 3.1415927f * spiGetStackFloat(stack) / 180.0f;
+    invent->angle = PI * spiGetStackFloat(stack) / 180.0f;
     return 1;
 }
 

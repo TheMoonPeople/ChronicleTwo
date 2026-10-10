@@ -1481,7 +1481,7 @@ void CBubble::Generate(int index) {
     particle->pos[2] = origin[2] + particle->drift_z;
     particle->pos[3] = 1.0f;
     particle->state = 0;
-    particle->phase = GetRandF(3.1415927f);
+    particle->phase = GetRandF(PI);
     particle->pattern = GetRandI(5);
     particle->drift_x = 0.1f * particle->drift_x;
     particle->drift_z = 0.1f * particle->drift_z;
@@ -1910,7 +1910,7 @@ void CAquaFish::NextRootNormal() {
     grid_x = GetRandI(8) + 1;
     grid_z = GetRandI(5) + 1;
     level = GetRandI(4);
-    sway = GetRandF(3.1415927f) - 1.5707964f;
+    sway = GetRandF(PI) - HALF_PI;
     route_num = GetRandI(10) + 16;
 
     for (i = 0; i < route_num; i++) {
@@ -1975,8 +1975,8 @@ void CAquaFish::MoveActionRound() {
      *
      */
     static float dirtbl[2][4] = {
-        {1.57079637f, -3.1101768f, 0.0f,         -1.57079637f},
-        {0.0f,        1.57079637f, -1.57079637f, -3.1101768f }
+        {HALF_PI, -3.1101768f, 0.0f,         -HALF_PI},
+        {0.0f,        HALF_PI, -HALF_PI, -3.1101768f }
     };
 
     float  pos[4];
@@ -2005,9 +2005,9 @@ void CAquaFish::MoveActionRound() {
 
         if (wall_time > 200) {
             if ((round.dir == 0 && 0.0f <= pos[2]) || (round.dir == 1 && pos[2] < 0.0f)) {
-                yaw = -1.5707964f;
+                yaw = -HALF_PI;
             } else {
-                yaw = 1.5707964f;
+                yaw = HALF_PI;
             }
 
             wall_time = 0;
@@ -2078,12 +2078,12 @@ void CAquaFish::MoveActionBattle() {
             angle += 0.10471976f;
             charge_angle = angle;
 
-            if (3.1415927f < angle) {
-                charge_angle = 3.1415927f;
+            if (PI < angle) {
+                charge_angle = PI;
                 *(u_long128 *) target_pos = *(u_long128 *) foe_pos;
             }
 
-            if (charge_angle < 3.1415927f) {
+            if (charge_angle < PI) {
                 charge_angle += 0.10471976f;
                 delta = charge_angle - 2.9321532f;
 
@@ -2097,7 +2097,7 @@ void CAquaFish::MoveActionBattle() {
                     eff->timer = 0xFA0;
                 }
 
-                amount = 0.5f * sinf(mgAngleLimit(1.5707964f + charge_angle));
+                amount = 0.5f * sinf(mgAngleLimit(HALF_PI + charge_angle));
                 GetPosition(pos);
                 sceVu0SubVector(offset.v, foe_pos, pos);
                 sceVu0Normalize(offset.v, offset.v);
@@ -2158,9 +2158,9 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
                 think_timer = 0;
 
                 if (GetRandI(101) < 95) {
-                    yaw = GetRandF(1.5707964f) - 0.7853982f;
+                    yaw = GetRandF(HALF_PI) - QUARTER_PI;
                 } else {
-                    yaw = 3.1415927f + (GetRandF(1.5707964f) - 0.7853982f);
+                    yaw = PI + (GetRandF(HALF_PI) - QUARTER_PI);
                 }
 
                 mgAngleLimit(yaw);
@@ -2219,7 +2219,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
                     action.speed *= 0.5f;
                 }
 
-                round.wave = GetRandF(6.2831855f) - 3.1415927f;
+                round.wave = GetRandF(TWO_PI) - PI;
                 turn[1] = 50.0f + GetRandF(5.0f) - 2.5f;
                 think_timer = 0;
             }
@@ -2573,8 +2573,8 @@ void CFishFood::Drop() {
     sway = 2.5f + GetRandF(1.6f);
     fall_time = 0;
     sway_phase = 0;
-    spin[0] = 0.015707964f + GetRandF(3.1415927f) / 34.0f;
-    spin[2] = 0.015707964f + GetRandF(3.1415927f) / 34.0f;
+    spin[0] = 0.015707964f + GetRandF(PI) / 34.0f;
+    spin[2] = 0.015707964f + GetRandF(PI) / 34.0f;
 }
 
 void CFishFood::Step() {
@@ -2628,8 +2628,8 @@ void CFishFood::Step() {
 
         sway_phase += 0.10471976f;
 
-        if (!(sway_phase <= 3.1415927f)) {
-            sway_phase -= 6.2831855f;
+        if (!(sway_phase <= PI)) {
+            sway_phase -= TWO_PI;
         }
 
         sway_x = sway * sinf(sway_phase) - 0.5f * sway;
@@ -3895,7 +3895,7 @@ int CAquarium::LoadFish(int no, CGameDataUsed *data) {
 
             aqua_fish->SetLiveParam(data);
             rot[0] = 0.0f;
-            rot[1] = GetRandF(6.2831855f) - 3.1415927f;
+            rot[1] = GetRandF(TWO_PI) - PI;
             rot[2] = 0.0f;
             aqua_fish->SetPosition(pos);
             aqua_fish->SetRotation(rot);
@@ -4331,7 +4331,7 @@ void CAquarium::CombineFish(int no1, int no2) {
 
         fish[no1]->SetPosition(center);
         rot[0] = 0.0f;
-        rot[1] = GetRandF(6.2831855f) - 3.1415927f;
+        rot[1] = GetRandF(TWO_PI) - PI;
         rot[2] = 0.0f;
         fish[no1]->SetRotation(rot);
         fish[no1]->think_mode = AQUA_FISH_THINK_REST;
@@ -4930,7 +4930,7 @@ int CAquarium::ColCheck(int no) {
     }
 
     me->GetRotation(rot);
-    rot[1] = mgAngleInterpolate(rot[1], me->target_rot[1], 3.1415927f / me->turn[1], 0);
+    rot[1] = mgAngleInterpolate(rot[1], me->target_rot[1], PI / me->turn[1], 0);
     rot[0] = mgAngleInterpolate(rot[0], me->target_rot[0], me->turn[0], 0);
 
     if (0.31415927f < rot[0]) {

@@ -63,7 +63,7 @@ float RandXYinViewArea(float min_dist, float max_dist, float view_angle, float *
     *x += position[0];
     *z += position[2];
     float pitch = -1.0f * camera->GetAngleV();
-    pitch += 0.7853982f;
+    pitch += QUARTER_PI;
     float height = distance * atanf(pitch);
     height += position[1];
     return height;
@@ -291,7 +291,7 @@ void CParticle::Init() {
 }
 
 void CRainDrop::Birth(int drop_type) {
-    float view_angle = 0.7853982f;
+    float view_angle = QUARTER_PI;
     int   i;
 
     if (active != 0) {
@@ -448,7 +448,7 @@ void CRain::Stop() {
 
 void CRain::Start() {
     int   i;
-    float view_angle = 0.7853982f;
+    float view_angle = QUARTER_PI;
     float position[4];
 
     active = 1;
@@ -520,8 +520,8 @@ void CRain::Step() {
             }
 
             frame->GetWorldPosition0(hand_pos);
-            float yaw = f_rand(-3.1415927f, 3.1415927f);
-            float pitch = f_rand(0.0f, 1.5707964f);
+            float yaw = f_rand(-PI, PI);
+            float pitch = f_rand(0.0f, HALF_PI);
             velocity[1] = 4.0f * sinf(pitch);
             float radius = 4.0f * cosf(pitch);
             velocity[0] = radius * cosf(yaw);
@@ -537,7 +537,7 @@ void CRain::Step() {
     for (i = 0; i < RAIN_RIPPLE_NUM; i++) {
         if (ripple[i].Step() == -1) {
             ripple[i].active = 0;
-            RandXYinViewArea(110.0f, 600.0f, 0.7853982f, &splash_pos[0], &splash_pos[2]);
+            RandXYinViewArea(110.0f, 600.0f, QUARTER_PI, &splash_pos[0], &splash_pos[2]);
             splash_pos[1] = 5.0f;
             splash_pos[3] = 1.0f;
             ripple[i].Birth(splash_pos);

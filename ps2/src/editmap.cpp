@@ -530,7 +530,7 @@ int CEditMap::GetEditAngle90(int step) {
 
 float CEditMap::GetEditAngle(int step) {
     step = step % 24;
-    return mgAngleLimit(6.2831855f * (float) step / 24.0f);
+    return mgAngleLimit(TWO_PI * (float) step / 24.0f);
 }
 
 int CEditMap::ConvEditAngle(float angle) {
@@ -538,10 +538,10 @@ int CEditMap::ConvEditAngle(float angle) {
     int   whole;
 
     if (angle < 0.0f) {
-        angle += 6.2831855f;
+        angle += TWO_PI;
     }
 
-    steps = angle / 0.2617994f;
+    steps = angle / (PI / 12.0f);
     whole = fptosi(steps);
 
     if (!(steps - (float) whole <= 0.5f)) {
@@ -2042,7 +2042,7 @@ int CEditMap::DrawSub(int mode) {
             if (i == focus_parts) {
                 float boost;
                 mgGetAmbient(ambient);
-                boost = 48.0f * (1.0f + sinf(6.2831855f * (float) (frame % 30) / 30.0f));
+                boost = 48.0f * (1.0f + sinf(TWO_PI * (float) (frame % 30) / 30.0f));
 
                 for (channel = 0; channel < 3; channel++) {
                     pulsed[channel] = boost + ambient[channel];
