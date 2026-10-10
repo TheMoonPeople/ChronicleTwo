@@ -1071,7 +1071,7 @@ static int _SW_EFFECT(RS_STACKDATA *stack, int argc) {
 
     int sword_no = GetStackInt(stack++);
 
-    if (sword_no < 0 || sword_no > 2) {
+    if (sword_no < 0 || sword_no > CHARA_SWORD_EFFECT_MAX - 1) {
         return false;
     }
 
@@ -1482,7 +1482,7 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
             }
 
             chara_no++;
-        } while (chara_no <= 0x2F);
+        } while (chara_no <= MONSTER_ACTIVE_MAX * 2 - 1);
     }
 
     if (action_info.chara->hold_type == ACTION_HOLD_STONE) {
@@ -2436,7 +2436,7 @@ int _SET_DEFAULT_MOS(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SET_NEBA2(RS_STACKDATA *stack, int argc) {
-    if ((GetBattleCharaInfo())->GetAttr() & (int) CHARA_STATUS_SLOW) {
+    if (GetBattleCharaInfo()->GetAttr() & CHARA_STATUS_SLOW) {
         action_info.chara->SetStep(0.7f * action_info.chara->GetDefaultStep());
     }
 

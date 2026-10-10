@@ -128,6 +128,18 @@ enum ACTION_DAMAGE_REACTION {
 
 /**
  *
+ * Results of CActionChara::UsedItemAction that the action script reads.
+ *
+ */
+enum ACTION_ITEM_RESULT {
+    ACTION_ITEM_NONE = 0,  /**< The active item cannot be used. */
+    ACTION_ITEM_USED = 1,  /**< The active item has been used on the character. */
+    ACTION_ITEM_THROW = 2, /**< The active item has been put into the character's hands to throw. */
+    ACTION_ITEM_EMPTY = 3, /**< No active item is selected. */
+};
+
+/**
+ *
  * Numbers of slots in the tables that an action character keeps for its action script.
  *
  */
@@ -626,7 +638,7 @@ public:
 
     /**
      *
-     * Uses the active item: 1 when used, 2 when it is to be thrown, 3 when there is none, 0 otherwise.
+     * Uses the active item, or readies it for throwing, and gives an ACTION_ITEM_RESULT value.
      *
      * @mangled UsedItemAction__12CActionCharaFv
      * @address 0x16C430

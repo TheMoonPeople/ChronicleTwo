@@ -225,8 +225,8 @@ void CActionChara::CalcCollision() {
             frame->GetWorldPosition0(entry->pos);
         }
 
-        index += 1;
-        entry = &entry[1];
+        index++;
+        entry++;
     } while (index < ACTION_OBJECT_MAX);
 }
 
@@ -362,8 +362,8 @@ ACTION_SW_EFFECT *CActionChara::GetSwEffectPtr() {
             return slot;
         }
 
-        i += 1;
-        slot = &slot[1];
+        i++;
+        slot++;
     } while (i < ACTION_SW_EFFECT_MAX);
 
     return NULL;
@@ -615,13 +615,13 @@ int CActionChara::UsedItemAction() {
     CGameDataUsed    *item;
     s16               item_no;
     CDataItem        *info;
-    int               healing;
+    int               effect_kind;
 
     battle_info = GetBattleCharaInfo();
     item = &battle_info->GetActiveItemInfo(0)[DngStatus.active_item];
 
     if (DngStatus.active_item == 3) {
-        return 3;
+        return ACTION_ITEM_EMPTY;
     }
 
     item_no = item->item_no;
@@ -630,37 +630,37 @@ int CActionChara::UsedItemAction() {
     if (info != NULL) {
         if (info->status_flags & 6) {
             EntryThrowItem();
-            return 2;
+            return ACTION_ITEM_THROW;
         }
 
         if (info->status_flags & 0x19) {
             if (battle_info->UseActiveItem(item) != 0) {
                 if (info->status_flags & 0x18) {
-                    healing = 0;
+                    effect_kind = 0;
 
                     if (item_no == 0x112) {
-                        healing = 1;
+                        effect_kind = 1;
                     }
 
-                    if (healing == 0) {
+                    if (effect_kind == 0) {
                         pallet[0].SetAnim(0x60, 0xB4, 0xFF, 1, 0x2D, 0);
                     }
 
-                    if (healing == 1) {
+                    if (effect_kind == 1) {
                         pallet[0].SetAnim(0xFF, 0xDC, 0x40, 1, 0x2D, 0);
                     }
 
                     effect_man->CreateEffSpt("\x92\xCA\x8F\xED\x89\xF1\x95\x9C", 0, 0);
                     effect_man->SetScriptTargetId(0, -1, -1);
-                    effect_man->SetValue(0, healing, 0, -1);
+                    effect_man->SetValue(0, effect_kind, 0, -1);
                 }
             }
 
-            return 1;
+            return ACTION_ITEM_USED;
         }
     }
 
-    return 0;
+    return ACTION_ITEM_NONE;
 }
 
 void CActionChara::EntryThrowItem() {
@@ -1545,7 +1545,7 @@ int CActionChara::HumanMoveIF() {
     move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
     move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
 
-    if (GetBattleCharaInfo()->GetAttr() & (int) CHARA_STATUS_SLOW) {
+    if (GetBattleCharaInfo()->GetAttr() & CHARA_STATUS_SLOW) {
         move_x *= 0.5f;
         move_z *= 0.5f;
     }
@@ -1794,7 +1794,7 @@ int CActionChara::HumanShrowMoveIF() {
     move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
     move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
 
-    if (GetBattleCharaInfo()->GetAttr() & (int) CHARA_STATUS_SLOW) {
+    if (GetBattleCharaInfo()->GetAttr() & CHARA_STATUS_SLOW) {
         move_x *= 0.5f;
         move_z *= 0.5f;
     }
@@ -2635,7 +2635,7 @@ int CActionChara::MonsterMoveIF() {
     move_x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
     move_z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
 
-    if (GetBattleCharaInfo()->GetAttr() & (int) CHARA_STATUS_SLOW) {
+    if (GetBattleCharaInfo()->GetAttr() & CHARA_STATUS_SLOW) {
         move_x *= 0.5f;
         move_z *= 0.5f;
     }
@@ -2894,7 +2894,7 @@ int CheckAmuletAvoid(int item_no) {
                 }
 
                 i++;
-                item = &item[1];
+                item++;
             } while (i < 3);
 
             return false;
@@ -2928,7 +2928,7 @@ int CheckEquipSetItem(int item_no) {
                 }
 
                 i++;
-                item = &item[1];
+                item++;
             } while (i < 3);
 
             return false;
@@ -3486,7 +3486,7 @@ int CActionChara::CheckReleaseTimming(int hold_kind) {
         return release_timing;
     }
 
-    return 0;
+    return ACTION_RELEASE_NONE;
 }
 
 void CActionChara::StepParam() {

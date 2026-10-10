@@ -23,8 +23,9 @@ sections directly.
   compiler-generated zero initializer lives in BSS.
 - `hit->param->hit_flags` is read without a cast because the field is `s16`
   (colprim.hpp).
-- The enums `ACTION_DAMAGE_REACTION` (`CheckDamage`'s local `reaction`) and
-  `ACTION_CHARA_SIZE` (table sizes) name the values used by these functions.
+- The enums `ACTION_DAMAGE_REACTION` (`CheckDamage`'s local `reaction`),
+  `ACTION_ITEM_RESULT` (`UsedItemAction`'s return value) and `ACTION_CHARA_SIZE` (table sizes)
+  name the values used by these functions.
 
 Header: `ps2/include/actionchara.hpp`. Owns `CActionChara` (derives `CCharacter2`, unit `character`),
 plus the parameter/table types `RUN_SCRIPT_ENV`, `ACTION_SW_EFFECT`, `ACTION_DAMAGE`, `ACTION_OBJECT`,
