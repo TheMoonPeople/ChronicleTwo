@@ -40,3 +40,16 @@ type of `mgCMemory::Alloc` and the placement-new overload's buffer type, also
 retains **24/280** words. The exact after-inline row still consumes one site.
 Separating allocation from construction therefore does not separate the
 player and constructed-fish register colours.
+
+## Block-count allocation expression
+
+`sizeof(CCharacter2)` is `0x660`, so the existing early-return
+`align16_blocks` helper gives 102 blocks and adding two reproduces retail's
+`Alloc(0x68)`. Writing that expression inside placement new restores the
+retail allocation-result test with the production profile and **no new row**,
+but still leaves the same **24/280** saved-register exchange and `0x458` body.
+A construction-local const pointer and direct assignment to `FishChara`
+retain that result. The helper's statement-inline body is not an eligible
+expression-inline site for the one-site conversion row; combining them is
+rejected rather than producing an object. No helper or profile change is
+activated while the function remains guarded.
