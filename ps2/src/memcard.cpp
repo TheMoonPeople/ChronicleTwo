@@ -1449,17 +1449,15 @@ int CMemoryCardManager::SaveAlbum() {
                 int chunk;
                 int left;
 
-                if (done < total) {
-                    goto write;
+                if (done >= total) {
+                    if (sceMcClose(fd) == 0) {
+                        step++;
+                        break;
+                    }
+
+                    return -1;
                 }
 
-                if (sceMcClose(fd) == 0) {
-                    step++;
-                    break;
-                }
-
-                return -1;
-            write:
                 left = total - done;
                 chunk = 0xC00;
 
