@@ -28,7 +28,7 @@ The 0x80 assert depends on `CObject` being 16-byte aligned (mgCObject's position
 vectors at 0x10/0x20/0x30). CObject's own last field is at 0x68 (copy ctor in event_func copies
 0x50..0x68), so CObject's sizeof is 0x70 and `frame` lands at 0x70 without explicit padding.
 
-CObject offsets used by CObjectFrame code (named by the map agent): 0x10 position, 0x20 rotation,
+CObject offsets used by CObjectFrame code: 0x10 position, 0x20 rotation,
 0x30 scale (UpDatePosition passes these to the frame's SetPosition(float*)/SetRotation(float*)/
 SetScale(float*), mgCObject vtable slots 0x10/0x1C/0x28); 0x54 int flag that enables alpha fade
 in PreDraw; 0x58 float reset to -1.0 by Copy; 0x64 show flag and 0x68 flag checked by
