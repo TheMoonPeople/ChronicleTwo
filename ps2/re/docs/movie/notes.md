@@ -246,3 +246,41 @@ and `+0x234`/`+0x240` address the reloads from that base instead of the
 retail. A pointer/reference view is therefore insufficient evidence for
 promotion; neither it nor a volatile buffer cast is retained as an alias
 workaround.
+
+## SDK sample comparison
+
+The restart is Sony's EE MPEG sample `viBufRestartDMA` (`vibuf.c` in the
+mpegstr/mpegvu1 samples; the mpegvu1 form reads the saved state before
+`WaitSema`, as retail does). Its exact statement structure, with separate
+`fp`/`ifc` counts, the `DATA_ADDR`/`TAG_ADDR`/`WRAP_ADDR` address forms, the
+`IsInRegion` macro expansion, the `else if` with both FIFO-index assignments
+in its condition, plain `&&` channel-3 test and volatile register stores,
+compiles to the same 62/200-word body as the retained draft. The sample
+source therefore does not explain either the count/mask exchange or the
+channel-3 reload.
+
+Under local `optimization_level 4`, adding `peephole off` gives 125 words,
+`optimize_for_size on` 65, and `register_coloring off`, `opt_lifetimes`,
+`opt_common_subs on`, `opt_propagation on`, `opt_loop_invariants on`,
+`opt_strength_reduction(_strict) on`, `opt_dead_assignments on` and
+`optimize_for_size off` all retain 62. `opt_common_subs off` grows the body
+to `0x350`. Returning `int` from `getFIFOindex` (the sample's type) leaves
+every function unchanged. Spelling `DmaAddr` as the sample's masking macro
+gives 67 words, and `inline_depth(0)` at levels 3 or 4 grows the body to
+`0x330`.
+
+Retail keeps the first FIFO index in `a2` across the second
+`getFIFOindex` call, so the allocator relies on that file-local callee's
+register use; the draft reproduces this. The sample's channel-3 restoration
+needs no `volatile` saved state, while retail's unfilled delay slot and
+reloads are reproduced only by volatile reads of those two fields.
+
+## Interrupt-handler exit
+
+The sample handlers end with the SDK's `ExitHandler()`, which `eekernel.h`
+defines as GCC inline assembly (`sync.l; ei`); this is the source of the
+retail `sync; ei` in `handler_endimage` and both `vblankHandler` exits. The
+pinned compiler's per-instruction intrinsics include `__I_c0`, `__I_mtc0`
+and `__I_eret` but no `__I_sync` or `__I_ei`, and no source in the tree uses
+`__I_*` intrinsics. Without an accepted non-assembly form the handlers stay
+guarded.
