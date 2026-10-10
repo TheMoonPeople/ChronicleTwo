@@ -8,10 +8,8 @@ One is a guarded draft (`#ifdef NONMATCHING` C++ with an `INCLUDE_ASM` fallback)
 `CObject::CObject(const CObject &)` (`__ct__7CObjectFRC7CObject`, 0x2804B0, 0xC8 in a 0xD0
 extent), which retail emits from the character copy inside `_COPY_MONS2SCNCHR`; no active native
 caller emits it while that command is guarded, and an explicit copy body or dummy use is not an
-acceptable way to force it. The guarded command fails on MWCC's placement-new allocation-result
-schedule, among other differences: retail tests the allocator's `v0` and copies it into the saved
-register in the branch delay slot, while MWCC copies first and branches on the saved register (see
-[placement conversion](../satansfiddle/placement-new.md)).
+acceptable way to force it. The guarded command's allocation-result schedule is exact with
+`align16_blocks`; its remaining mismatch is the shadow-link member's copy construction.
 
 - `_ESM_INITIALIZE` (0x128 body in a 0x130 extent) reads the scene stack number and an optional
   texture-block offset, constructs the `CEffectScriptMan` in that stack and stores it in
@@ -35,15 +33,16 @@ register in the branch delay slot, while MWCC copies first and branches on the s
   (`CCharaFrameMatching`, +0x35C..+0x364): retail copies its three words through GPRs like
   scalar members, native copies it as a block through three FPRs plus a destination address
   temporary (one extra word, so everything after +0x390 is shifted by four bytes). Compiler
-  specimens show that every trivially copyable struct member (8, 12 or 16 bytes, single,
-  one-element array or repeated, with or without a destructor or user copy assignment) is
-  block-copied through FPRs; only a user-declared memberwise copy constructor gives the GPR
-  copy. MWCC then rejects default construction of the member without a declared default
-  constructor ("cannot construct ... direct member"). Both default constructors break other
-  units: an empty one adds calls to `MenuMonsterBoxInit` (menuchr notes), and
-  `{ Initialize(); }` with the explicit `shadow_link.Initialize()` removed from `CCharacter2()`
-  fails `dng_main` (`CActiveMonster` constructor, `__sinit_dng_main_cpp`) and `menuchr`. The
-  command is retail LOCAL; a `static` definition gives a LOCAL symbol.
+  specimens with aggregate members (8, 12 or 16 bytes, single, one-element array or repeated,
+  including destructor and user copy-assignment variants) retain FPR block copies. A
+  user-declared memberwise copy constructor gives the GPR copy,
+  but MWCC rejects default construction without a declared default constructor ("cannot
+  construct ... direct member"). An empty default constructor alone also gives the exact
+  snapshot copy through the compiler-generated copy constructor; no user copy constructor is
+  necessary for this effect. With the command enabled, this default-only form passes the
+  canonical complete-object comparison for `event_func` (0x22C4C bytes, 6939 relocations) and
+  `dng_main` (0x9AC4 bytes, 3584 relocations), but fails `menuchr`. The command is retail LOCAL;
+  a `static` definition gives a LOCAL symbol.
 
 `_COPY_CHARA` (0x26A900, retail LOCAL, 0x2B4 in a 0x2C0 extent) allocates a `CCharacter2` in a
 scene stack (allocation precedes the source-character check, as in retail) and copies the source
@@ -69,6 +68,49 @@ idea -- this game's block is 0x12A0 and laid out differently.
 
 `CObject::CObject(const CObject &)` (0x2804B0) is emitted here but CObject is owned by `map`; not
 declared in this header.
+
+## Shadow-link construction and assignment constraints
+
+`CCharaFrameMatching` contains the count at +0, source-frame array at +4, and
+shadow-frame array at +8. Its storage is `CCharacter2::shadow_link` at +0x35C.
+Retail snapshot construction uses GPR `lw`/`sw` for all three words at
+0x280114..0x280128. In contrast, the implicit character assignment
+`__as__11CCharacter2FRC11CCharacter2` in `actionchara` uses FPR `lwc1`/`swc1`
+for the same storage at 0x173EBC..0x173ED0. The matching type must preserve
+this construction-versus-assignment distinction; volatile fields or a
+memberwise assignment operator are not supported by these consumers.
+
+The retail default-construction consumers keep the shadow initialization in
+`CCharacter2`'s constructor body. `__ct__14CActiveMonsterFv` writes the
+`CCharacter2` vtable, then clears the count, destination pointer and source
+pointer in that order. `__sinit_dng_main_cpp` schedules the count clear before
+the vtable store for its static characters, and the two pointer clears after
+it. `MenuMonsterBoxInit__FP9mgCMemoryPii` calls
+`Initialize__19CCharaFrameMatchingFv` after the character vtable is prepared:
+0x2BB318 with the vtable store in its delay slot for the two-element
+character array, and 0x2BB37C with the same delay-slot store for the additional
+character. The surrounding menu constructor is inlined at depth 3.
+
+An explicit empty default constructor, whether in-class or out-of-class
+`inline`, adds two constructor calls to `MenuMonsterBoxInit`: its body grows
+from 0x620 to 0x630. The canonical object also gains an unowned constructor
+piece and changes compiler-generated local symbol numbering. A nested
+12-byte pair-storage class with an empty default constructor and scalar copy
+constructor gives exact event drafts but retains the same menu-call
+regression through the outer class's synthesized default constructor.
+Scoped `always_inline` and `side_effects` pragmas on the empty constructor do
+not remove those calls. `block_assign off` scoped to the snapshot function
+or the matching class leaves the original 0x758-byte draft.
+
+A default constructor with `num(0), src_frame(0), dst_frame(0)` member
+initializers, retaining the character body's explicit `Initialize()`, also
+gives the 0x630-byte menu body and changes the `CActiveMonster` constructor;
+the static `dng_main` initializer remains draft-exact. Moving initialization
+entirely into `{ Initialize(); }` changes both the active-monster constructor
+and the static initializer as well as the menu consumer. The unresolved
+constraint is eliminating the new empty constructor calls at the menu's
+inline-depth boundary while preserving the retail body initialization and
+implicit assignment.
 
 ## Header dependencies
 - `dng_effect.hpp` (CHitEffectImage, by-value array `HitEffect[5]`), `sceneseq.hpp`
