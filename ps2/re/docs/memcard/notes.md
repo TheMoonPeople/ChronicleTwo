@@ -146,3 +146,28 @@ writes item numbers and a -1 terminator. The struct name COSBIT_INFO is not reta
 ## Return types chosen
 Mangling does not carry them: Step int (bool-like), CheckMaxUniqueCounter u_long, CheckOmake u32,
 CheckDebugCode s16, GetCosInfo COSBIT_INFO*, CopyMCBrowserName char* (strcpy result), FinishForMC int (1).
+
+
+## Native data and matching constraints
+
+All BSS are native; `at_1315__3` and `at_1954` remain assembly-supplied filename
+literals because inlining changes call-argument scheduling. The differences are two
+masked words per caller: Write +0x48/+0x4C, SaveOamkeFile +0x2A4/+0x2AC, LoadOmakeFile
++0xDC/+0xE4, CheckOmakeFile +0x144/+0x14C. Their extents stay 0xFC, 0x4F8, 0x2C0 and
+0x308. Filename pointer locals, indexed literal addresses, const pointers and SDK flag
+spellings do not resolve that scheduling difference.
+
+`cosbit_table[34]` has 0x88 declared bytes with an eight-byte padding tail: items
+0x6F-0x86 map to bits 0-23, and 0x102-0x10B to bits 24-33. Browser titles and offsets
+are 3-by-4 region/category tables; Shift-JIS bytes use octal escapes. `DngTreeSaveFlag`
+and `NowProgramLoopNo` own two bytes each, with two-byte alignment tails.
+
+Natural filename buffers have extents 20/19 bytes in MakeMemoryCardFileName, 64 in
+DeleteFile, and 128 in GetAllSaveFileInfo. Icon templates use SDK color/vector types
+with extents 64/48/48/16. SetIconData copies only 16 bytes from each into the cleared
+descriptor; remaining entries stay zero.
+
+SearchMcType, MakeDir, SaveToMc and GetAllSaveFileInfo own static old_format, iconNo,
+test_write_num and ReadFileNo. MWCC supplies their guards. Removing GetAllSaveFileInfo's
+empty thirteen-iteration completion loop shrinks 0x244 to 0x1F4 and loses retail
+instructions, so the loop remains.
