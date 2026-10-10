@@ -12,15 +12,18 @@ count is unsigned, rounded up to quadwords, and the rounded block count is
 assigned in both branches as retail does.
 
 ## Source status
-`SendDMA` is the unit's only assembly-backed function (`INCLUDE_ASM`, no
-draft). Its retail body starts with a handwritten wait: while `start_dma` is
-set it spins on `bc0f` (the COP0 DMA-completion condition) between six `nop`s.
-No C++ construct emits `bc0f`, and `sceDmaSync` is a different call, so the
-function stays assembly-backed. The rest of the body is ordinary code: it
-masks the packet address with `& 0x0FFFFFFF`, writes `0x100` to D_STAT
-(`0x1000E010`), sets `DmaCH8`'s `sadr` (masked `GetScrPad()`), `madr` and
-`qwc`, sets `chcr.STR`, sets `start_dma` and flips `buff_id` with `!buff_id`.
-Every other function is native C++ and byte-identical.
+`SendDMA` keeps two inline `asm` blocks. While `start_dma` is set it spins on
+`bc0f` (the COP0 DMA-completion condition) between six `nop`s; no C++
+construct emits `bc0f`, and `sceDmaSync` is a different call. The packet
+address mask is an `and packet, packet, address_mask` block: retail copies the
+parameter to `s1` and masks it in place in the delay slot of the `start_dma`
+test. Every C spelling tried (`packet = (void *) ((u_int) packet & mask)`, a
+separate `u_int` address with `&=` or `&`, with or without a mask local)
+changes the function from its second instruction onward. The
+rest of the body is C++: it writes `0x100` to D_STAT (`0x1000E010`), sets
+`DmaCH8`'s `sadr` (masked `GetScrPad()`), `madr` and `qwc`, sets `chcr.STR`,
+sets `start_dma` and flips `buff_id` with `!buff_id`. Every other function is
+native C++ and byte-identical.
 
 Ten `INCLUDE_RODATA` markers remain. `set_tex0_dma`, `set_tex0_giftag`,
 `set_texa_dma`, `set_texa_giftag`, `mat_vif`, `mat_vif_dif`, `mat_vif_d` and
