@@ -104,7 +104,7 @@ after their first use or ordinary out-of-line definitions -- the header declares
   geyser parts); emitter index = ((id * 0x10DE8 + 1) >> 16) % 4 (signed). Calls parts vtbl+0x18
   to get a position/matrix into a 16-byte buffer, frame vtbl+0x10 to set it, `mgDrawDirect`.
 - Map numbers (2, 3, 9, 0x55, 0x57) and 0x4C (place-parts info id) have no enum yet in the tree;
-  left as literals for the body agent to wrap if an enum appears.
+  remain literals until their value domain is established.
 
 ## Unresolved
 - Retail name of the fire rain particle struct (`FirePowder` is neutral).
