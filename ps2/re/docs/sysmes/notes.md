@@ -5,8 +5,8 @@ constructors generate the 68-byte retail `__sinit_sysmes_cpp` in declaration ord
 
 ## Types
 No class is owned by `sysmes` (`build/re/class_units.tsv`). The unit uses:
-- `ClsMes` (owner `nd_meswin`; `nd_meswin.hpp` did not exist when this header was written, so it
-  is forward-declared). Retail symbol sizes of `SystemMessage*` give `sizeof(ClsMes) == 0x2958`;
+- `ClsMes` (owner `nd_meswin`; forward-declared in this header). Retail symbol
+  sizes of `SystemMessage*` give `sizeof(ClsMes) == 0x2958`;
   each object occupies 0x2960 in .bss (16-byte alignment padding).
 - `mgCMemory` (`mg_memory.hpp`, size 0x30) for `SystemMesStack`. `__sinit_sysmes_cpp` calls
   `mgCMemory::Init()`, i.e. the inline default constructor `mgCMemory() { Init(); }`.
@@ -22,8 +22,8 @@ No class is owned by `sysmes` (`build/re/class_units.tsv`). The unit uses:
 `build/re/local_symbols.tsv` lists `SystemMesBuffer`, `SysMesBuffer`, `SystemMessage`,
 `SystemMessage2`, `SystemMessage3` as LOCAL objects (not `SystemMesStack`). They are only accessed
 from this unit (other units go through the getters), so they are NOT declared in `sysmes.hpp`:
-they become `static` definitions in `sysmes.cpp` (with the types in the table) when the data is
-migrated. Only `SystemMesStack` (global binding) is `extern` in the header.
+they are `static` definitions in `sysmes.cpp` with the types in the table.
+Only `SystemMesStack` (global binding) is `extern` in the header.
 `SysMesNo`/`SysMesCnt` (also local, near `IntiSystemMes__Fv` at 0x2DD920) belong to another unit.
 
 ## Functions
@@ -45,14 +45,16 @@ migrated. Only `SystemMesStack` (global binding) is `extern` in the header.
   `SetBuff_system(GetSystemMesBuffer())`, each re-fetching the window via `GetSystemMessage(index)`.
 
 ## First game
-The first game's `sysmes.hpp` (`/home/adubbz/development/chronicle`) has a single
+The first game's `sysmes.hpp` has a single
 `ClsMes SystemMessage` plus display-state globals and message helpers; this game's unit is a
 different, smaller design (three windows, two buffers, getters) and shares nothing beyond the
 `SystemMessage` name.
 
-## Draft and promotion results
-- `GetSystemMessage()` and `GetSystemMessage(int)` match retail exactly and were promoted after isolated linked-image verification. The two buffer getters also match and were promoted.
-- `LoadSystemMes()` has a typed draft behind `NONMATCHING`. It selects the correct language-specific file pair and preserves the first call's size out-parameter. Its isolated build failed in `postprocess_object.py` because the compiler's string data differed from the retail placeholder at address `0x01EB01EA`; the assembly remains active.
-- `CreateSystemMes(int, int)` has a typed draft that calls the existing inline `ClsMes::Init()`, followed by `Preset`, `SetBuff`, and `SetBuff_system`. Its isolated image differed by 127 text bytes; the assembly remains active. The second argument is unused.
-- `__sinit_sysmes_cpp` has a typed draft that initializes `SystemMesStack` and constructs each of the three `ClsMes` instances in order. The explicit placement-new form compiled but changed image layout, so the assembly remains active.
-- All seven remaining functions were processed with `decompile.sh` for this pass. m2c could not follow `LoadSystemMes()`'s jump table because it did not recognize the table label; its existing m2c output and disassembly in the function record supplied the control flow.
+## Current source status
+
+All functions and the compiler-generated initializer are native C++ and the
+complete object matches retail. `LoadSystemMes` selects the language-specific
+message files and preserves the first load's size output. `CreateSystemMes`
+initializes the requested message window, then presets it and attaches the
+system and ordinary buffers. The two buffer getters and both message getters
+use the native storage described above. No assembly data markers remain.
