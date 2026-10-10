@@ -29,7 +29,7 @@ exactly 0x00..0xCF into `CScene+0x2E90`, and the next CScene field is at `+0x2F6
 | 0xC8 | `s32 gameobj_no` | `GetGameObjectEvent`: index of the position within the `GameObjInfo` entry (for slot 0x7A objects). `_GET_EVENT_DATA` case 15. |
 | 0xCC | `s32 unk_cc` | Only copied (and `LoadIntNPC` touches `CScene+0x2F5C`; not analysed). |
 
-### Copy codegen (for the body-writing agent)
+### Copy code generation
 - `RunEvent` copies the struct with `lwc1/swc1` for 0x00..0x27 and 0x30..0x5F, `lq/sq` for
   0x60..0xBF, `lw/sw` for 0xC0..0xCF: a per-member copy (assignment of the whole struct,
   `this->event_data = *data`, is the first thing to try).
@@ -67,22 +67,21 @@ exactly 0x00..0xCF into `CScene+0x2E90`, and the next CScene field is at `+0x2F6
 - `EffectStep` steps every active map and then the scene's fire raster.
 - `RunEvent` refuses to replace running event 100. Other requests set the running event number, copy the optional event description, and mark the event active; a request made during another running event prints `start event running!!`.
 
-## Draft and matching status (2026-10-06)
+## Matching status
 
-All 14 functions have named, typed C++ bodies. One isolated promotion attempt was made for each.
-The following six were promoted into the default game build after a byte-identical linked
-comparison: `RunEvent`, `FixCameraPartsOnOff`, `EyeViewDrawOnOff`, `GetSunPosition`,
-`GetMoonPosition`, and `EffectStep`.
+All functions are native; no assembly function fallback remains.
 
-`UpDateMapInfo`, `GetColPoly`, `GetCameraPoly`, `GetMapEvent`, `GetFixCameraPos`,
-`DrawSky`, `DrawLensFlare`, and `DrawEffect` remain guarded with their retail assembly
-fallbacks. The two polygon gatherers differ by 0xE bytes each near their final
-capacity test. The drafts of `UpDateMapInfo`, `GetMapEvent`, `DrawSky`, and
-`DrawLensFlare` still differ in ordering or logic. `DrawLensFlare` also creates a
-local datum that differs from retail. The `DrawEffect` trial did not link because
-the currently declared `mgSetPkMoveImage` overload resolves to a different
-symbol spelling from the retail object. These are matching gaps; the default
-build retains assembly for all eight functions.
+## Native data and matching constraints
 
-The guarded draft compiles, and the full default PAL build verifies every section
-byte-identical with 0 unmatched functions.
+The flare palette is DrawLensFlare's aligned `static float col[4][4]`; script and
+resource strings are inline. The `{0,0,0,78}` base flare initializer remains
+`at_1013__4` because natural aggregate copies change register allocation: MWCC retains
+ratio[0] across the copy where retail reloads it.
+
+Float-array, aligned-vector and union aggregate initializers do not match. Copying a
+static union adds an implicit assignment helper. memcpy variants outline the copy; the
+best differs by 29/156 masked words at 0x26C bytes within the 0x270 piece. CopyVector
+with inline_depth(8) removes the extra helper but gives 0x268 bytes and 106/155
+differences over retail's declared extent. Moving sun/screen buffers into the
+conditional restores stack order only. A scoped O2 variant grows to 0x280 and differs by
+143/160 words. These forms and their pragmas remain rejected.
