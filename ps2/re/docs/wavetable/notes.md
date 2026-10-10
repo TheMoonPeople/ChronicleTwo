@@ -1,12 +1,12 @@
 # wavetable: reverse-engineering notes
 
-The current 27/324 guarded baseline and the additional bounded-cell probes are
-documented in [the night assessment](matching-constraints.md).
+The earlier near-misses and bounded-cell probes are documented in
+[the matching constraints](matching-constraints.md).
 
 ## Matching status
 
-The assembly-backed functions are `Effect__10CWaveTableFv`. Their C++ drafts remain
-guarded; all other functions are native.
+All five functions are native and exact. `Effect__10CWaveTableFv` matched last; see
+[Effect match](#effect-match) below.
 
 ## CWaveTable (size 0x1208)
 No counterpart in the first game's headers.
@@ -18,7 +18,7 @@ constructed in `__sinit_*` with `__register_global_object(..., __dt__10CWaveTabl
 
 | Offset | Field | Evidence |
 |---|---|---|
-| 0x0000 | `float height[2][24][24]` | ctor zeroes 24 rows x 24 cols at `+0` and `+0x900` (row stride 0x60, buffer stride 0x900); every other function indexes `this + current*0x900 + row*0x60 + col*4` with `lwc1` |
+| 0x0000 | `float height[2][24][24]`, unioned with `float cells[2][576]` | ctor zeroes 24 rows x 24 cols at `+0` and `+0x900` (row stride 0x60, buffer stride 0x900); every other function indexes `this + current*0x900 + row*0x60 + col*4` with `lwc1` |
 | 0x1200 | `int current` | ctor sets 0; `GetEffect` flips `current = 1 - current` after `Effect()` |
 | 0x1204 | vtable pointer | ctor/dtor store `__vt__10CWaveTable` here (MWCC puts the vptr after the data members of the first polymorphic class) |
 
@@ -139,3 +139,59 @@ Blocker category: arithmetic expression/register allocation and bounded grid
 indexing. The guard and draft remain unchanged. Reconsider with a natural,
 bounded representation that retains retail's eight-cell/eight-row unrolling
 and explains the coefficient coloring and seam operand order together.
+
+## Unroll size gate and tie-statement constraints (2026-10-10)
+
+`Effect` stays guarded at 27/324. These results are new.
+
+**Unroll gate.** MWCC's inner-loop unroll is gated by `opt_unroll_instr_count`, measured before dead-code removal and forward substitution. The draft unrolls at 100 (the default behaves the same) but not at 64. A single-use or dead float local in the cell (a named self term, a dummy `1.9216f * *center`) is still substituted or removed before CSE. It only enlarges the pre-optimisation size, so the loop stays scalar. At `opt_unroll_instr_count 127` those forms unroll again and collapse to the draft's 27 words. Constant-valued locals are propagated without counting.
+
+**Materialisation versus numbering.** Coefficients are materialised in IR evaluation order and numbered in CSE scan order. Retail needs 0.0196 materialised first but 1.9216 numbered first, so both must sit in one statement with equal-cost operands. In every such form the neighbour sum `n` dies at its multiply before `1.9216f * *center` is formed. Its bias then moves it to U's register (`$f3`), where retail keeps it in `$f4`. Retail's `n` stays live across that product, which only an in-place `sum *= k` gives. A 140-case screen found that every in-place multiply (`(sum *= 0.0196f)`, `(sum *= k)`, `(sum *= c * c)`, `(sum = sum * k)`, `(sum = k * sum)`), placed in the same statement as any of five spellings of the self term, evaluates the self term first. 1.9216 is then materialised first. Best result 71.
+
+| Form | Words |
+| --- | ---: |
+| Function-scope `sum` reused by the seam; `sum = U + (D + (L + R)); *old = sum * k + Y - Z;` (`float k = 0.0196f` or `c * c`): coefficient materialisation, colours, `U + n` and `n * k` all match; only `n`'s register differs | 97 |
+| The same with the left-associated sum `center[-1] + center[1] + center[24] + center[-24]` (canonicalised to retail's tree) | 97 |
+| `float sum = D + (L + R); sum += U; *old = sum * k + Y - Z;` (block scope) | 33 |
+| `*old = (sum += U) * k + Y - Z;` (`k * n` operand order) | 41 |
+| `*old = (U + sum) * k + Y - Z;` with function-scope partial `sum` | 97 |
+| `sum = N * (c * c) + Y; *old = sum - Z;` with seam reuse (the neighbour product is heavier, so 0.0196 is numbered first) | 106 |
+| `sum = (sum *= 0.0196f) + (self = Y);` (colours and in-place `n` correct, self term evaluated first) | 60 |
+| Comma expressions joining the scale and the self term (linearised as separate statements; scalar at default, 27 or 36 at 127) | 27-321 |
+| 368-case screen over neighbour, multiply, Y/Z spelling, scope and direct/split store | best 33 |
+
+**Other exclusions.** Scoped pragmas `opt_lifetimes`, `opt_propagation`, `opt_common_subs`, `opt_dead_assignments`, `opt_loop_invariants`, `opt_strength_reduction(_strict)`, `opt_pointer_analysis`, `opt_vectorize_loops`, `peephole`, `schedule`, `usefloatacc`, `stdc_fp_contract`, `irocseglobaladdresses`, `float_constants`, `optimize_for_size` and `opt_unroll_loops` give no result below 27. A private Satan's Fiddle profile with `evaluate_first` on any one coefficient or 0.5 leaves the object unchanged in both the draft and the tie forms, so that flag does not order arithmetic here. Do-while, while, `<=`, `!=` and pre-increment loop forms all give 27 or a scalar loop. So do unused functions or types placed before `Effect`, and coefficient variables with two reaching definitions (which stop propagation but move materialisation out of the row loop). Seam spellings that make the right edge heavier (`before[row * 24 + 22]`, `* 1.0f`, `-(-x)`, unary `+`, `(&line[22])[0]`) are folded or CSE'd back to the 45-word order.
+
+## Effect match
+
+`Effect` matches with three source forms. Each one was needed:
+
+- **Flat plane view.** `CWaveTable` unions `height[2][24][24]` with `cells[2][576]`.
+  `Effect` takes `now = cells[current]`, `before = cells[1 - current]` and the cell
+  pointers `center = &now[row * 24 + column]` / `old = &before[row * 24 + column]`,
+  and reads neighbours as `center[±24]` and `center[±1]`, which always stay inside one
+  plane. This is retail's per-cell address shape `((column + k) + row * 24) << 2`, and
+  its pre-optimisation size (95) is under MWCC's unroll limit (100–104), so the column
+  loop unrolls by eight. Typed `[row][column]` indexing is strength-reduced to a
+  byte-offset counter instead, and direct `now[index ± k]` indexing measures 105–118,
+  so the loop stays scalar.
+- **One statement per cell.**
+  `*old = (scaled = (sum = U + (D + (L + R))) *= 0.0196f) + (1.9216f * *center - *old) - 0.0015f * (*center - *old);`
+  - Assigning the whole neighbour sum with `=` gives retail's `U + rest` add order.
+  - Multiplying it in place keeps the sum alive in `$f4` across the 1.9216 product.
+  - Assigning the product to a second local, `scaled`, gives it the same weight as
+    the self term. 0.0196 is then materialised first while 1.9216 is CSE-numbered
+    first and takes `$f0`.
+  - The first-occurrence neighbour loads in the left operand make it heavier than the
+    damping term, so 0.0015 is numbered last.
+  - A no-op `(float)` cast in place of `scaled` also matches. Without either one the
+    function scores 63/324.
+- **Seam.** `line[22] = line[1] = (line[1] + WaveAt(line, 22)) * 0.5f;`, where
+  `WaveAt` reads through a `const float *` parameter. That makes the right operand
+  heavier, so column 22 is loaded first and the add is `line[1] + line[22]`. It adds
+  no float temporary.
+
+Ruled out along the way: every compiler setting for the whole file or the whole game
+(a game-wide unroll limit above 101 breaks 3–7 matched functions), state carried
+between files in a single MWCC invocation (all 49 units up to `wavetable` compiled in
+one run give the same code), and uncalled functions placed before `Effect`.

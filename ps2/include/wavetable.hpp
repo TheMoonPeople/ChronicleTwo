@@ -26,7 +26,10 @@ enum {
  */
 class CWaveTable {
 public:
-    float height[2][WAVE_TABLE_DIM][WAVE_TABLE_DIM]; /**< Two ripple height fields: the current one and the one from the step before. */
+    union {
+        float height[2][WAVE_TABLE_DIM][WAVE_TABLE_DIM]; /**< Two ripple height fields: the current one and the one from the step before. */
+        float cells[2][WAVE_TABLE_DIM * WAVE_TABLE_DIM]; /**< Each height field as one row-major array of grid points. */
+    };
     int   current;                                   /**< Index (0 or 1) of the height field that holds the current heights. */
 
     /**

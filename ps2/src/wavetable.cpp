@@ -151,29 +151,32 @@ void CWaveTable::GetEffect() {
     current = 1 - current;
 }
 
-#ifdef NONMATCHING
+static inline float WaveAt(const float *line, int column) { return line[column]; }
+
 void CWaveTable::Effect() {
     int    row;
     int    column;
     float *old;
-    float *before = height[1 - current][0];
+    float *before = cells[1 - current];
     float *center;
-    float *now = &height[current][0][0];
+    float *now = cells[current];
     for (row = 1; row < 23; row++) {
         for (column = 1; column < 23; column++) {
             center = &now[row * 24 + column];
             old = &before[row * 24 + column];
-            float sum = center[-24] + (center[24] + (center[-1] + center[1]));
-            sum *= 0.0196f;
-            sum += 1.9216f * *center - *old;
-            *old = sum - 0.0015f * (*center - *old);
+            float sum;
+            float scaled;
+            // Damped wave equation: the neighbour average drives the cell,
+            // its own momentum carries it on, and a small term damps it.
+            *old = (scaled = (sum = center[-24] + (center[24] + (center[-1] + center[1]))) *= 0.0196f) + (1.9216f * *center - *old) -
+                   0.0015f * (*center - *old);
         }
     }
+
+    // Columns 1 and 22 meet at the seam of the tiled texture, so both take
+    // their average.
     for (row = 1; row < 23; row++) {
         float *line = &before[row * 24];
-        line[22] = line[1] = (line[22] + line[1]) * 0.5f;
+        line[22] = line[1] = (line[1] + WaveAt(line, 22)) * 0.5f;
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/wavetable", Effect__10CWaveTableFv);
-#endif

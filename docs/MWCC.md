@@ -242,12 +242,19 @@ class initializers must be generated naturally by the compiler.
   folds an inline helper's constant result (`li a1,0x13`) and keeps the
   constructed object in its variable's register, but only if the optimizer
   is back on at the next declaration (mg_dataset).
+- Loop unrolling is gated by `opt_unroll_instr_count`, counted before forward substitution and dead-code removal. A single-use or dead local in the body can stop an unroll that the optimised body would fit, while constant-valued locals do not count (wavetable).
 - `asm volatile { ... }` makes MWCC skip global optimization for the whole
   function but keeps the optimizer's address forms: `p[i].field` with a
   nonzero offset adds the scaled index first, and a global array folds the
   offset into its relocation (`%hi(sym+4)`). `#pragma global_optimizer off`
   with a plain `asm` block schedules alike but adds the base first; a plain
   `asm` block alone is fully optimized (`CheckHits`, `MotionProc2`, gameutil).
+- In an expression tie, an in-place compound assignment such as `(sum = n) *= k`
+  costs less than a binary term of the same shape, so the other operand is evaluated
+  first. Assigning it to another local (`(scaled = (sum = n) *= k)`) or wrapping it in
+  a no-op `(float)` cast raises it to a tie: the left operand is then evaluated
+  (constants materialised) first, while the right operand's constants are CSE-numbered
+  first and coloured lower (`Effect`, wavetable).
 
 ## Data extents and alignment
 
