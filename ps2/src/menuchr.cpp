@@ -187,24 +187,6 @@ static inline unsigned int blocks_for(unsigned int size) {
 
 /**
  *
- * Returns the character count of a message's longest page.
- *
- */
-static inline int MaxPageChars(ClsMes *mes) {
-    if (mes->page_num <= 0) {
-        return 0;
-    }
-    int max_chars = 0;
-    for (int i = 0; i < mes->page_num; i++) {
-        if (max_chars < mes->page_chars[i]) {
-            max_chars = mes->page_chars[i];
-        }
-    }
-    return max_chars;
-}
-
-/**
- *
  * Number of monster memo entries.
  *
  */
@@ -224,17 +206,6 @@ const int kModelFrameCap = 20;
 
 /**
  *
- * States used while browsing or fading the monster book menu.
- *
- */
-enum {
-    kBookBrowsing = 0,
-    kBookFadingIn = 1,
-    kBookFadingOut = 2
-};
-
-/**
- *
  * Commands used to close the monster book or turn its page.
  *
  */
@@ -247,13 +218,6 @@ enum {
     kEnvStepSunMoon = 0x38,
     kTimeBandNight = 2
 };
-
-/**
- *
- * Loading phase of each playable character and equipment part.
- *
- */
-static short tbl_992[USER_CHARA_NUM * 5] = {2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 1, 2, 4, 0, 0, 0, 0, 0, 0, 0};
 
 /**
  *
@@ -368,27 +332,6 @@ enum {
 
 /**
  *
- * Total columns and rows of the monster badge grid.
- *
- */
-static int max_3170[2] = {MOS_SELECT_GRID_COLUMNS, MOS_SELECT_GRID_ROWS};
-
-/**
- *
- * Visible columns and rows of the monster badge grid.
- *
- */
-static int viewnum_3171[2] = {MOS_SELECT_GRID_COLUMNS, MOS_SELECT_GRID_ROWS};
-
-/**
- *
- * Directional edge overrides of the monster badge grid.
- *
- */
-static int overcode_3172[4] = {0, 0, 0, 0};
-
-/**
- *
  * Active monster selection menu.
  *
  */
@@ -457,8 +400,6 @@ static u_int             *MenuPartyNPCModelReadBuffer;
  */
 static short              MenuCosutumeLoadPhase;
 
-extern mgCMemory          MenuChangeMemory;
-
 /**
  *
  * Bit mask of costumes available to the costume menu.
@@ -472,8 +413,6 @@ static unsigned long      CostumeAttr;
  *
  */
 static CMenuCostumeSel   *MenuCosPtr;
-
-extern mgCMemory          MosBookStack;
 
 /**
  *
@@ -516,13 +455,6 @@ static mgCTexture        *Tex_MBook;
  *
  */
 static mgCTexture        *Tex_MBg;
-
-/**
- *
- * Resistance and weakness display bits of each monster property.
- *
- */
-static u32 stand_bit_5472[14] = {1, 4, 16, 8, 2, 32, 64, 64, 64, 64, 0, 0, 0, 0};
 
 /**
  *
@@ -626,45 +558,10 @@ static char menu_infocfgname[10] = "info.cfg";
 
 /**
  *
- * Character slots that require costume menu background read requests.
- *
- */
-static int tbl_5016[MENU_CHARA_LOAD_MAX] = {1, 1, 0, 0, 1, 1, 1};
-
-/**
- *
- * Character slots that require monster book background read requests.
- *
- */
-static int tbl_5848[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
-
-/**
- *
- * Scene character slot supplied by each party member loading slot.
- *
- */
-static s8 convtbl_4621[USER_CHARA_NUM][MENU_CHARA_LOAD_MAX] = {
-    {0, 2, 3, 4, 5, 6, -1},
-    {0, 2, 3, 4, 5, 6, -1},
-    {0, 1, 2, 3, 4, 5, -1},
-    {0, -1, -1, -1, -1, -1, -1}
-};
-
-extern mgCMemory          MenuMonChangeLoadStack;
-
-/**
- *
  * Background read requests for the monster menu character slots.
  *
  */
 static MENU_BGREAD_INFO2 *MenuMonsterBGInfo[MENU_CHARA_LOAD_MAX];
-
-/**
- *
- * Character model path category selected by alternate model mode.
- *
- */
-static s8 pathtbl_3836[2] = {4, 5};
 
 /**
  *
@@ -684,20 +581,6 @@ static char *menu_chara_chrtbl[2] = {
 static char *menu_chara_cfg_chrtbl[2] = {
     "c01.stb",
     "c02.stb",
-};
-
-/**
- *
- * Model directories indexed by character background path category.
- *
- */
-static char *menu_load_chrpathtbl_3811[6] = {
-    "menu/chara4/",
-    "mainchr/",
-    "mainchr/",
-    "mainchr/",
-    "mainchr/",
-    "chara/",
 };
 
 /**
@@ -744,49 +627,11 @@ static CHR_CNG_CLUT_COLOR *MenuCharaChangeCLUT;
 
 /**
  *
- * Character slots that require monster menu background read requests.
- *
- */
-static int tbl_3186[MENU_CHARA_LOAD_MAX] = {1, 0, 0, 0, 0, 1, 0};
-
-/**
- *
- * Default camera position for the monster selection menu.
- *
- */
-static sceVu0FVECTOR posdef_3194 = {0.0f, 0.0f, 100.0f, 1.0f};
-
-/**
- *
- * Default camera target for the monster selection menu.
- *
- */
-static sceVu0FVECTOR refdef_3195 = {0.0f, 9.0f, 0.0f, 1.0f};
-
-/**
- *
- * Localized help messages for monster transformation selection.
- *
- */
-static char *tbl_3196[LANG_CHINESE + 1] = {
-    ":",
-    "[l1][r1]:View same type of monster",
-    "[l1][r1]: voir m[UNI00ea]me type de monstre",
-    "[l1][r1]: Selbe Monster anzeigen.",
-    "[l1][r1]: Vis. stesso tipo di mostro",
-    "[l1][r1]: Ver mismo tipo de monstruo",
-    "[l1][r1]:View same type of monster",
-};
-
-/**
- *
  * Background texture of the monster selection menu.
  *
  */
 static mgCTexture        *MenuMosTexture;
 
-extern mgCMemory          MenuMosLoadStack;
-extern sceVu0FVECTOR      menu_old_chara_position;
 
 /**
  *
@@ -818,157 +663,10 @@ static s8                 menu_debug_npcselect;
 
 /**
  *
- * Selection the character cursor moves to, eight directions (up, then clockwise)
- * for each of the five selections, read as [select * 8 + direction].
- *
- */
-static s8 nextIDtbl_1594[40] = {
-    0, 0, 2, 2, 2, 1, 1, 0,
-    3, 0, 0, 1, 4, 4, 3, 3,
-    0, 0, 2, 2, 2, 2, 0, 0,
-    3, 3, 1, 1, 1, 3, 3, 3,
-    1, 1, 1, 1, 4, 4, 4, 4
-};
-
-/**
- *
- * Party character message numbers used by character change commands.
- *
- */
-static s16 msgtbl1_1732[USER_CHARA_NUM] = {410, 411, 412, 413};
-
-/**
- *
- * Sounds selected by the party change action outcome.
- *
- */
-static s8 se_sndtbl_1749[3] = {1, 1, 15};
-
-/**
- *
- * Red, green, blue and alpha of the costume menu background tiles.
- *
- */
-static u8 tilergba_5203[4] = {108, 108, 108, 128};
-
-/**
- *
- * Equipment slot displayed by each costume list.
- *
- */
-static s8 convtbl_5238[COSTUME_LIST_NUM] = {2, 4, 3};
-
-/**
- *
- * Help panel width of the costume menu for each supported language.
- *
- */
-static float putw_5262[LANG_CHINESE + 1] = {246.0f, 206.0f, 270.0f, 234.0f, 236.0f, 246.0f, 256.0f};
-
-/**
- *
- * Localized costume selection help text.
- *
- */
-static char *infomsg_5256[LANG_CHINESE + 1] = {
-    " ",
-    "(R)L/R:Turn (R)U/D:Zoom",
-    "(R)G/D: tourner (R)H/B: avancer",
-    "(R)L/R: drehen (R)O/U: bew.",
-    "(R)S/D: gira (R)S/G: sposta",
-    "(R)I/D: girar (R)A/AB: zoom",
-    "(R)L/R:Turn (R)U/D:Zoom",
-};
-
-/**
- *
- * Background load phase associated with each costume list.
- *
- */
-static s8 phasetbl_5119[COSTUME_LIST_NUM] = {4, 1, 5};
-
-/**
- *
  * Number of resistance or weakness icons that the monster book can display.
  *
  */
 enum { MOS_BOOK_AFFINITY_NUM = 8 };
-
-/**
- *
- * Texture rectangles of the three monster-book background strips.
- *
- */
-static short tiletbl_5573[3][12] = {
-    {0x77, 0xBD, 0x26, 0x24, 0x9C, 0xBD, 0x4, 0x24, 0xA1, 0xBD, 0x26, 0x24},
-    {0x77, 0xE1, 0x26, 0xC, 0x9C, 0xE1, 0x4, 0xC, 0xA1, 0xE1, 0x26, 0xC},
-    {0x77, 0xED, 0x26, 0x24, 0x9C, 0xED, 0x4, 0x24, 0xA1, 0xED, 0x26, 0x24}
-};
-
-/**
- *
- * Texture rectangles of the monster-book description underboards.
- *
- */
-static short under_brdtbl_5576[12] = {0x93, 0x2D, 0xA, 0x20, 0x9D, 0x2D, 0x2, 0x20, 0xA1, 0x2D, 0xA, 0x20};
-
-/**
- *
- * Positions of the monster-book headings and description panels.
- *
- */
-static short put_under_offset_5577[16][2] = {
-    {0xFE, 0xE},
-    {0xFE, 0x1E},
-    {0xFE, 0x40},
-    {0xFE, 0x50},
-    {0xFE, 0x72},
-    {0xFE, 0x82},
-    {0xFE, 0xA4},
-    {0xFE, 0xB4},
-    {0xFE, 0xD6},
-    {0xFE, 0xE6},
-    {0x20, 0x104},
-    {0x20, 0x116},
-    {0x20, 0x13C},
-    {0x20, 0x168},
-    {0x104, 0x118},
-    {0x0, 0x0}
-};
-
-/**
- *
- * Texture coordinates of the eight monster affinity icon slots.
- *
- */
-static const short ic_5580[MOS_BOOK_AFFINITY_NUM][2] = {
-    {0xA8, 0x0},
-    {0xBE, 0x0},
-    {0xD4, 0x0},
-    {0xEA, 0x0},
-    {0xBE, 0x16},
-    {0xD4, 0x16},
-    {0xEA, 0x16},
-    {0x0, 0x0}
-};
-
-/**
- *
- * Texture rectangles of the monster-book vertical divider.
- *
- */
-static short line_5595[12] = {0x0, 0x16, 0xC, 0x14, 0x0, 0x2A, 0xC, 0x4, 0x0, 0x2E, 0xC, 0x14};
-
-/**
- *
- * Texture rectangles of the three monster-model frame strips.
- *
- */
-static short wakutbl_5600[3][12] = {
-    {0x1E, 0xA5, 0x32, 0x36, 0x50, 0xA5, 0x2, 0x36, 0x54, 0xA5, 0x22, 0x36},
-    {0x1E, 0xDA, 0x32, 0x4, 0x50, 0xDA, 0x2, 0x4, 0x54, 0xDA, 0x22, 0x4},
-    {0x1E, 0xDF, 0x32, 0x32, 0x50, 0xDF, 0x2, 0x32, 0x54, 0xDF, 0x22, 0x32}
-};
 
 /**
  *
@@ -983,26 +681,6 @@ static char *monstere_file_template[LANG_CHINESE + 1] = {
     "  File  %3d/%3d",
     "Archivo %3d/%3d",
     "  File  %3d/%3d",
-};
-
-/**
- *
- * Monster badge item-number label part names.
- *
- */
-static char *tbl_3725[MOS_SELECT_BADGE_NUM] = {
-    "  %d:Beast   %d",
-    "  %d:Machine %d",
-    "  %d:Aquatic %d",
-    "  %d:Plant   %d",
-    "  %d:Magical %d",
-    "  %d:Devil   %d",
-    "  %d:Dragon  %d",
-    "  %d:Element %d",
-    "  %d:Undead  %d",
-    "  %d:Card    %d",
-    "  %d:Sun     %d",
-    "  %d:Moon    %d",
 };
 
 /**
@@ -1041,20 +719,6 @@ static short monster_load_id = -1;
 
 /**
  *
- * Current and maximum gauge label part names of the party menu.
- *
- */
-static char *partt_2332[6] = {
-    "hp_now0",
-    "hp_max0",
-    "hp_now1",
-    "hp_max1",
-    "hp_now2",
-    "hp_max2",
-};
-
-/**
- *
  * Active party change menu.
  *
  */
@@ -1072,19 +736,11 @@ extern char               at_2596__3[];
 
 /**
  *
- * Cursor reversal flag for each party menu selection.
- *
- */
-static u8 cursor_revtbl_2237[USER_CHARA_NUM + 1] = {1, 0, 0, 0, 0};
-
-/**
- *
  * Non-zero after the party acquisition sound has played.
  *
  */
 static u8                 MenuGetPartySeFlag;
 
-extern mgCMemory          ChrChangeInitTextureStack;
 short                     GetCostumeList(unsigned long chara_flag, int kind, short *list);
 int                       GetDngMapNo(int dungeon_no);
 static int                MenuMemoryDivide(mgCMemory *memory, mgCMemory **list, int chara);
@@ -1141,7 +797,14 @@ void MenuBGReadInfo2Malloc(mgCMemory *memory, int *wanted) {
 }
 
 short ConvertCharaLoadDataPhase(int a0, int a1) {
-    return tbl_992[a1 + a0 * 5];
+    /**
+     *
+     * Loading phase of each playable character and equipment part.
+     *
+     */
+    static short tbl[USER_CHARA_NUM * 5] = {2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 1, 2, 4, 0, 0, 0, 0, 0, 0, 0};
+
+    return tbl[a1 + a0 * 5];
 }
 
 int CheckBattleLoop() {
@@ -1639,6 +1302,34 @@ void EditCharaPrepare() {
 }
 
 int CMenuChrCngMenu::KeyChangeMain() {
+    /**
+     *
+     * Selection the character cursor moves to, eight directions (up, then clockwise)
+     * for each of the five selections, read as [select * 8 + direction].
+     *
+     */
+    static s8 nextIDtbl[40] = {
+        0, 0, 2, 2, 2, 1, 1, 0,
+        3, 0, 0, 1, 4, 4, 3, 3,
+        0, 0, 2, 2, 2, 2, 0, 0,
+        3, 3, 1, 1, 1, 3, 3, 3,
+        1, 1, 1, 1, 4, 4, 4, 4
+    };
+
+    /**
+     *
+     * Party character message numbers used by character change commands.
+     *
+     */
+    static s16 msgtbl1[USER_CHARA_NUM] = {410, 411, 412, 413};
+
+    /**
+     *
+     * Sounds selected by the party change action outcome.
+     *
+     */
+    static s8 se_sndtbl[3] = {1, 1, 15};
+
     CMenuKeyFunc *keyFunc = MenuCommonInfo;
     keyFunc->SelDataInit();
     int            keys = keyFunc->CheckSelectKey();
@@ -1733,7 +1424,18 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 case 3:
                     break;
                 case 10: {
-                    int widest = MaxPageChars(npcMes);
+                    int widest;
+                    if (npcMes->page_num <= 0) {
+                        widest = 0;
+                    } else {
+                        int max_chars = 0;
+                        for (int i = 0; i < npcMes->page_num; i++) {
+                            if (max_chars < npcMes->page_chars[i]) {
+                                max_chars = npcMes->page_chars[i];
+                            }
+                        }
+                        widest = max_chars;
+                    }
                     int cursor = npcMes->AddMsgCursor2(widest - 2, widest - 1, 1);
                     switch (buttons) {
                         case MENU_PUSH_BUTTON_DECIDE:
@@ -1966,7 +1668,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     }
                     int next = -1;
                     if (dir >= 0) {
-                        next = nextIDtbl_1594[select * 8 + dir];
+                        next = nextIDtbl[select * 8 + dir];
                     }
                     if (next >= 0) {
                         select = next;
@@ -2204,7 +1906,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
             }
             key_arg_no = 1;
             ExeScript("\x83\x4C\x83\x83\x83\x89\x83\x60\x83\x46\x83\x93\x83\x57\x8A\x6D\x94\x46");
-            cmdMes->MakeMsg(msgtbl1_1732[select]);
+            cmdMes->MakeMsg(msgtbl1[select]);
             npc_chara = NULL;
             for (int i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
                 InitMenuBGReadInfo2(MenuCharaBuild2[i]);
@@ -2258,7 +1960,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 0);
             }
             last_select = select;
-            MenuSePlay(se_sndtbl_1749[select]);
+            MenuSePlay(se_sndtbl[select]);
             if (MenuLoadInfo.alternate_model == 1) {
                 EditCharaPrepare();
             }
@@ -2354,7 +2056,19 @@ int CMenuChrCngMenu::KeyChangeMain() {
             {
                 npcMes->MakeMsg(GetPartyCharaMessage(npc_no, 6, 0) + SelectedCmdNo);
                 npcMes->StepMsg();
-                int widest = MaxPageChars(npcMes);
+                int widest;
+                if (npcMes->page_num <= 0) {
+                    widest = 0;
+                } else {
+                    int i;
+                    int max_chars = 0;
+                    for (i = 0; i < npcMes->page_num; i++) {
+                        if (max_chars < npcMes->page_chars[i]) {
+                            max_chars = npcMes->page_chars[i];
+                        }
+                    }
+                    widest = max_chars;
+                }
                 npcMes->SetMsgCursor(widest - 1);
                 npcMes->draw_speed = 0.0f;
                 AdjustNPCTalk(npcMes, npc_chara);
@@ -2887,6 +2601,13 @@ int CMenuChrCngMenu::CheckChrChange() {
 }
 
 int CMenuChrCngMenu::MenuLocalLoop() {
+    /**
+     *
+     * Cursor reversal flag for each party menu selection.
+     *
+     */
+    static u8 cursor_revtbl[USER_CHARA_NUM + 1] = {1, 0, 0, 0, 0};
+
     char           name[0x20];
     int            cursor[2];
     int            result;
@@ -2913,7 +2634,7 @@ int CMenuChrCngMenu::MenuLocalLoop() {
     } else {
         sprintf(name, "cur%d", select);
         form->GetPutPosXY(name, cursor[0], cursor[1]);
-        MenuCursorReverseFlag = cursor_revtbl_2237[select];
+        MenuCursorReverseFlag = cursor_revtbl[select];
     }
 
     MenuCommonInfo->MenuPosStep(cursor, step);
@@ -3065,6 +2786,20 @@ void CMenuChrCngMenu::InitStarInfo() {
 }
 
 void CMenuChrCngMenu::UpdataLife() {
+    /**
+     *
+     * Current and maximum gauge label part names of the party menu.
+     *
+     */
+    static char *partt[6] = {
+        "hp_now0",
+        "hp_max0",
+        "hp_now1",
+        "hp_max1",
+        "hp_now2",
+        "hp_max2",
+    };
+
     int i;
 
     i = 0;
@@ -3073,8 +2808,8 @@ void CMenuChrCngMenu::UpdataLife() {
     gauge[2] = &MenuUserParam.robo->hp;
 
     do {
-        form->SetNumber(partt_2332[i * 2], GetDispVolumeForFloat(gauge[i]->now));
-        form->SetNumber(partt_2332[i * 2 + 1], fptosi(gauge[i]->max));
+        form->SetNumber(partt[i * 2], GetDispVolumeForFloat(gauge[i]->now));
+        form->SetNumber(partt[i * 2 + 1], fptosi(gauge[i]->max));
 
         if (gauge_part[i] != NULL && gauge[i] != NULL) {
             gauge_part[i]->w = GetDispVolumeForFloat(66.0f * gauge[i]->GetRate());
@@ -4028,8 +3763,29 @@ void CMenuMosSelect::CalcTex() {
 }
 
 int CMenuMosSelect::KeyNormalMode(int keys, int a, int b) {
+    /**
+     *
+     * Total columns and rows of the monster badge grid.
+     *
+     */
+    static int max[2] = {MOS_SELECT_GRID_COLUMNS, MOS_SELECT_GRID_ROWS};
+
+    /**
+     *
+     * Visible columns and rows of the monster badge grid.
+     *
+     */
+    static int viewnum[2] = {MOS_SELECT_GRID_COLUMNS, MOS_SELECT_GRID_ROWS};
+
+    /**
+     *
+     * Directional edge overrides of the monster badge grid.
+     *
+     */
+    static int overcode[4] = {0, 0, 0, 0};
+
     int old_cursor = select;
-    MenuGlidKeyCheck(keys, &select, &top, max_3170, viewnum_3171, overcode_3172,
+    MenuGlidKeyCheck(keys, &select, &top, max, viewnum, overcode,
                      0xC);
 
     if (old_cursor != select) {
@@ -4096,6 +3852,35 @@ inline CMenuMosSelect::CMenuMosSelect() {
 #pragma inline_depth(3)
 
 void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
+    /**
+     *
+     * Default camera position for the monster selection menu.
+     *
+     */
+    static sceVu0FVECTOR posdef = {0.0f, 0.0f, 100.0f, 1.0f};
+
+    /**
+     *
+     * Default camera target for the monster selection menu.
+     *
+     */
+    static sceVu0FVECTOR refdef = {0.0f, 9.0f, 0.0f, 1.0f};
+
+    /**
+     *
+     * Localized help messages for monster transformation selection.
+     *
+     */
+    static char *tbl[LANG_CHINESE + 1] = {
+        ":",
+        "[l1][r1]:View same type of monster",
+        "[l1][r1]: voir m[UNI00ea]me type de monstre",
+        "[l1][r1]: Selbe Monster anzeigen.",
+        "[l1][r1]: Vis. stesso tipo di mostro",
+        "[l1][r1]: Ver mismo tipo de monstruo",
+        "[l1][r1]:View same type of monster",
+    };
+
     CMenuMosSelect *menu;
     CActionChara   *chara;
     int             i;
@@ -4113,9 +3898,16 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuMosSelectPtr->FadeInMenu(40, 0.0f);
 
     for (i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
+        /**
+         *
+         * Character slots that require monster menu background read requests.
+         *
+         */
+        static int tbl[MENU_CHARA_LOAD_MAX] = {1, 0, 0, 0, 0, 1, 0};
+
         MenuMonsterBGInfo[i] = NULL;
 
-        if (tbl_3186[i]) {
+        if (tbl[i]) {
             MenuMonsterBGInfo[i] = (MENU_BGREAD_INFO2 *) stack->Alloc(8);
             InitMenuBGReadInfo2(MenuMonsterBGInfo[i]);
         }
@@ -4123,10 +3915,10 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
 
     *(CameraPoint *) MenuMosSelectPtr->camera_pos = *(CameraPoint *) MenuDrawEnv->pos;
     *(CameraPoint *) MenuMosSelectPtr->camera_ref = *(CameraPoint *) MenuDrawEnv->ref;
-    sceVu0CopyVector(MenuDrawEnv->pos, posdef_3194);
-    sceVu0CopyVector(MenuDrawEnv->ref, refdef_3195);
-    MenuDrawEnv->camera.SetPos(posdef_3194);
-    MenuDrawEnv->camera.SetRef(refdef_3195);
+    sceVu0CopyVector(MenuDrawEnv->pos, posdef);
+    sceVu0CopyVector(MenuDrawEnv->ref, refdef);
+    MenuDrawEnv->camera.SetPos(posdef);
+    MenuDrawEnv->camera.SetRef(refdef);
     stack->Align64();
     u_int *pack = (u_int *) stack->stGetTop();
     size = LoadFileMenu("mosbox.pac", (u_long128 *) pack, 1);
@@ -4144,7 +3936,7 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuMosSelectPtr->mes.SetMessData(GetSystemMesBuffer(), MenuMosSelectPtr->mes_data);
     MenuMosSelectPtr->info_win.SetBuff_system(GetSystemMesBuffer());
     MenuMosSelectPtr->info_win.SetBuff(MenuMosSelectPtr->mes_data);
-    MenuMosSelectPtr->info_win.MakeMesWin(tbl_3196[LanguageCode], 1, 1);
+    MenuMosSelectPtr->info_win.MakeMesWin(tbl[LanguageCode], 1, 1);
     char *cfg = (char *) GetPackFile(pack, "mosbox.cfg", &size);
     MenuDataAnalyze(cfg, size, stack);
     MenuMosSelectPtr->script = (char *) GetPackFile(pack, "mosbox_com.cfg", &MenuMosSelectPtr->script_size);
@@ -4839,6 +4631,26 @@ int MenuMonsterBoxKey() {
 }
 
 void MenuMonsterBoxDraw() {
+    /**
+     *
+     * Monster badge item-number label part names.
+     *
+     */
+    static char *tbl[MOS_SELECT_BADGE_NUM] = {
+        "  %d:Beast   %d",
+        "  %d:Machine %d",
+        "  %d:Aquatic %d",
+        "  %d:Plant   %d",
+        "  %d:Magical %d",
+        "  %d:Devil   %d",
+        "  %d:Dragon  %d",
+        "  %d:Element %d",
+        "  %d:Undead  %d",
+        "  %d:Card    %d",
+        "  %d:Sun     %d",
+        "  %d:Moon    %d",
+    };
+
     MenuPosData->FormDraw();
     mgCTextureManager *tex_manager = &mgTexManager;
     tex_manager->ReloadTexture(MenuMosSelectPtr->mes.texture_block, (sceVif1Packet *) NULL);
@@ -4871,7 +4683,7 @@ void MenuMonsterBoxDraw() {
         GetUserDataMan();
 
         for (int i = 0; i < MOS_SELECT_BADGE_NUM; i++) {
-            strcpy(text, tbl_3725[i]);
+            strcpy(text, tbl[i]);
 
             if (i == menu_debug_select__2) {
                 text[0] = '>';
@@ -4936,6 +4748,27 @@ void MenuWeaponRealStepEnvFunc(CActionChara *chara, int step) {
 }
 
 int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **info, int restart_read) {
+    /**
+     *
+     * Character model path category selected by alternate model mode.
+     *
+     */
+    static s8 pathtbl[2] = {4, 5};
+
+    /**
+     *
+     * Model directories indexed by character background path category.
+     *
+     */
+    static char *menu_load_chrpathtbl[6] = {
+        "menu/chara4/",
+        "mainchr/",
+        "mainchr/",
+        "mainchr/",
+        "mainchr/",
+        "chara/",
+    };
+
     char           name[MENU_CHARA_LOAD_MAX][0x40];
     int            i;
 
@@ -4995,7 +4828,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
 
             break;
         case 2:
-            path_kind[0] = pathtbl_3836[MenuLoadInfo.alternate_model];
+            path_kind[0] = pathtbl[MenuLoadInfo.alternate_model];
 
             if (MenuLoadInfo.alternate_model == 0) {
                 path_kind[0] = 4;
@@ -5045,7 +4878,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
         }
 
         if (MenuLoadInfo.load_all == 1 || (MenuLoadInfo.load_all == 0 && i == MenuLoadInfo.load_phase)) {
-            strcpy(info[i]->path, menu_load_chrpathtbl_3811[path_kind[i]]);
+            strcpy(info[i]->path, menu_load_chrpathtbl[path_kind[i]]);
             info[i]->chara = NULL;
             strcpy(info[i]->name, name[i]);
             strcat(info[i]->path, info[i]->name);
@@ -5459,14 +5292,14 @@ int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMem
     return 0;
 }
 
-/**
- *
- * Background loading phase associated with each ridepod part.
- *
- */
-static s8 convItoPhase_4229[6] = {0, 1, 2, 2, 4, 2};
-
 int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart_read) {
+    /**
+     *
+     * Background loading phase associated with each ridepod part.
+     *
+     */
+    static s8 convItoPhase[6] = {0, 1, 2, 2, 4, 2};
+
     int i;
     int size;
     int load;
@@ -5495,7 +5328,7 @@ int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart
 
         if (MenuLoadInfo.mode == 2) {
             load = 1;
-        } else if (MenuLoadInfo.load_phase == convItoPhase_4229[i] || MenuLoadInfo.load_all == 1) {
+        } else if (MenuLoadInfo.load_phase == convItoPhase[i] || MenuLoadInfo.load_all == 1) {
             load = 1;
         }
 
@@ -5982,6 +5815,18 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
 #pragma inline_depth(8)
 
 void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no) {
+    /**
+     *
+     * Scene character slot supplied by each party member loading slot.
+     *
+     */
+    static s8 convtbl[USER_CHARA_NUM][MENU_CHARA_LOAD_MAX] = {
+        {0, 2, 3, 4, 5, 6, -1},
+        {0, 2, 3, 4, 5, 6, -1},
+        {0, 1, 2, 3, 4, 5, -1},
+        {0, -1, -1, -1, -1, -1, -1}
+    };
+
     CUserDataManager *userData = MenuUserDataManPtr;
     ROBO_INFO_DATA   *robo = GetRoboPartsInfo(userData);
     if (MenuLoadInfo.update_scene != 0) {
@@ -5995,7 +5840,7 @@ void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no) 
     CCharacter2 *chara;
     for (int i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
         chara = NULL;
-        int slot = convtbl_4621[chara_no][i];
+        int slot = convtbl[chara_no][i];
         if (0 <= slot && info[slot] != NULL) {
             chara = info[slot]->chara;
         }
@@ -6415,6 +6260,13 @@ int CosutmeSelDefaultSet(int costume_id, short *costume_list) {
 #pragma inline_depth(8)
 
 void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
+    /**
+     *
+     * Character slots that require costume menu background read requests.
+     *
+     */
+    static int tbl[MENU_CHARA_LOAD_MAX] = {1, 1, 0, 0, 1, 1, 1};
+
     int                i;
     mgCTextureManager *tex_manager;
     u8                *buffer;
@@ -6458,7 +6310,7 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     MenuDCMsg[7]->MsgPreset(0xB);
     MenuDCMsg[7]->SetAbsPos(8);
     MenuDrawEnv->speed = 2.0f;
-    MenuBGReadInfo2Malloc(stack, tbl_5016);
+    MenuBGReadInfo2Malloc(stack, tbl);
     MenuLoadInfo.mode = 3;
     MenuLoadInfo.alternate_model = 1;
     MenuLoadInfo.load_all = 1;
@@ -6483,6 +6335,13 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
 #pragma inline_depth reset
 
 int CMenuCostumeSel::KeyStep() {
+    /**
+     *
+     * Background load phase associated with each costume list.
+     *
+     */
+    static s8 phasetbl[COSTUME_LIST_NUM] = {4, 1, 5};
+
     CActionChara *model = MenuActionChara[0];
     CDC2Mes      *ask = MenuDCMsg[7];
     sceVu0FVECTOR pos;
@@ -6623,7 +6482,7 @@ int CMenuCostumeSel::KeyStep() {
 
                             GetUserDataMan()->SetChrEquipDirect(chara, list[select][costume_select[select]]);
                             MenuCosutumeLoadPhase = 1;
-                            MenuLoadInfo.load_phase = phasetbl_5119[select];
+                            MenuLoadInfo.load_phase = phasetbl[select];
                         } else {
                             move_x = 0;
                         }
@@ -6790,6 +6649,42 @@ int CMenuCostumeSel::KeyStep() {
 }
 
 void CMenuCostumeSel::Draw() {
+    /**
+     *
+     * Red, green, blue and alpha of the costume menu background tiles.
+     *
+     */
+    static u8 tilergba[4] = {108, 108, 108, 128};
+
+    /**
+     *
+     * Equipment slot displayed by each costume list.
+     *
+     */
+    static s8 convtbl[COSTUME_LIST_NUM] = {2, 4, 3};
+
+    /**
+     *
+     * Help panel width of the costume menu for each supported language.
+     *
+     */
+    static float putw[LANG_CHINESE + 1] = {246.0f, 206.0f, 270.0f, 234.0f, 236.0f, 246.0f, 256.0f};
+
+    /**
+     *
+     * Localized costume selection help text.
+     *
+     */
+    static char *infomsg[LANG_CHINESE + 1] = {
+        " ",
+        "(R)L/R:Turn (R)U/D:Zoom",
+        "(R)G/D: tourner (R)H/B: avancer",
+        "(R)L/R: drehen (R)O/U: bew.",
+        "(R)S/D: gira (R)S/G: sposta",
+        "(R)I/D: girar (R)A/AB: zoom",
+        "(R)L/R:Turn (R)U/D:Zoom",
+    };
+
     sceVu0FMATRIX view;
     sceVu0FVECTOR eye;
 
@@ -6803,7 +6698,7 @@ void CMenuCostumeSel::Draw() {
     tex_manager->ReloadTexture(tile_tex->block, (sceVif1Packet *) NULL);
     mgCDrawPrim *prim = GetMenuPrim();
     DrawMenuTilePattern(prim, tile_tex, tile_scroll, tile_scroll, mgRect<int>(0x100, 0, 0x100, 0x100), 0,
-                        tilergba_5203);
+                        tilergba);
     PrimQuad(prim, tile_tex, 24.0f, 24.0f, mgRect<int>(0, 0xEA, 0xC8, 0x16), 0x80, 0x80, 0x80, 0x80);
     if (MenuCosutumeLoadPhase == 4) {
         tex_manager->ReloadTexture(tex_block[3], (sceVif1Packet *) NULL);
@@ -6902,7 +6797,7 @@ void CMenuCostumeSel::Draw() {
     if (chara_data != NULL) {
         CMenuFont font;
         for (i = 0; i < COSTUME_LIST_NUM; i++) {
-            char *name = chara_data->equip[convtbl_5238[i]].GetName(1);
+            char *name = chara_data->equip[convtbl[i]].GetName(1);
             if (name != NULL) {
                 font.SetStr(name);
                 font.SetPos(0x4E, name_y);
@@ -6920,10 +6815,10 @@ void CMenuCostumeSel::Draw() {
         MenuDCMsg[7]->DrawMsg();
     }
     if (show_help && !loading && !wait_load) {
-        DrawMenuFillBox(36.0f, (float) mgScreenHeight - 40.0f - 8.0f, putw_5262[LanguageCode], 32.0f, 0x40, 0, 0,
+        DrawMenuFillBox(36.0f, (float) mgScreenHeight - 40.0f - 8.0f, putw[LanguageCode], 32.0f, 0x40, 0, 0,
                         0);
         CMenuFont help;
-        help.DrawDirect(infomsg_5256[LanguageCode], 0x28, mgScreenHeight - 0x28);
+        help.DrawDirect(infomsg[LanguageCode], 0x28, mgScreenHeight - 0x28);
     }
 }
 
@@ -6992,6 +6887,13 @@ void CMosBookMenu::InitMonsterInfo() {
 }
 
 void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
+    /**
+     *
+     * Resistance and weakness display bits of each monster property.
+     *
+     */
+    static u32 stand_bit[14] = {1, 4, 16, 8, 2, 32, 64, 64, 64, 64, 0, 0, 0, 0};
+
     char  *area;
     char **type_names;
     char  *message;
@@ -7052,11 +6954,11 @@ void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
 
         for (j = 0; j < 12; j++) {
             if (monster->ext_param[j] >= 101) {
-                this->strong_bit = this->strong_bit | stand_bit_5472[j];
+                this->strong_bit = this->strong_bit | stand_bit[j];
             }
 
             if (monster->ext_param[j] < 51) {
-                this->weak_bit = this->weak_bit | stand_bit_5472[j];
+                this->weak_bit = this->weak_bit | stand_bit[j];
             }
         }
 
@@ -7123,6 +7025,81 @@ void CMosBookMenu::InitEnd() {
 }
 
 void CMosBookMenu::Draw() {
+    /**
+     *
+     * Texture rectangles of the three monster-book background strips.
+     *
+     */
+    static short tiletbl[3][12] = {
+        {0x77, 0xBD, 0x26, 0x24, 0x9C, 0xBD, 0x4, 0x24, 0xA1, 0xBD, 0x26, 0x24},
+        {0x77, 0xE1, 0x26, 0xC, 0x9C, 0xE1, 0x4, 0xC, 0xA1, 0xE1, 0x26, 0xC},
+        {0x77, 0xED, 0x26, 0x24, 0x9C, 0xED, 0x4, 0x24, 0xA1, 0xED, 0x26, 0x24}
+    };
+
+    /**
+     *
+     * Texture rectangles of the monster-book description underboards.
+     *
+     */
+    static short under_brdtbl[12] = {0x93, 0x2D, 0xA, 0x20, 0x9D, 0x2D, 0x2, 0x20, 0xA1, 0x2D, 0xA, 0x20};
+
+    /**
+     *
+     * Positions of the monster-book headings and description panels.
+     *
+     */
+    static short put_under_offset[16][2] = {
+        {0xFE, 0xE},
+        {0xFE, 0x1E},
+        {0xFE, 0x40},
+        {0xFE, 0x50},
+        {0xFE, 0x72},
+        {0xFE, 0x82},
+        {0xFE, 0xA4},
+        {0xFE, 0xB4},
+        {0xFE, 0xD6},
+        {0xFE, 0xE6},
+        {0x20, 0x104},
+        {0x20, 0x116},
+        {0x20, 0x13C},
+        {0x20, 0x168},
+        {0x104, 0x118},
+        {0x0, 0x0}
+    };
+
+    /**
+     *
+     * Texture coordinates of the monster book resistance and weakness icons.
+     *
+     */
+    static short ic[][2] = {
+        {0xA8, 0x0},
+        {0xBE, 0x0},
+        {0xD4, 0x0},
+        {0xEA, 0x0},
+        {0xBE, 0x16},
+        {0xD4, 0x16},
+        {0xEA, 0x16}
+    };
+
+    /**
+     *
+     * Texture rectangles of the monster-book vertical divider.
+     *
+     */
+    static short line[12] = {0x0, 0x16, 0xC, 0x14, 0x0, 0x2A, 0xC, 0x4, 0x0, 0x2E, 0xC, 0x14};
+
+    /**
+     *
+     * Texture rectangles of the three monster-model frame strips.
+     *
+     */
+    static short wakutbl[3][12] = {
+        {0x1E, 0xA5, 0x32, 0x36, 0x50, 0xA5, 0x2, 0x36, 0x54, 0xA5, 0x22, 0x36},
+        {0x1E, 0xDA, 0x32, 0x4, 0x50, 0xDA, 0x2, 0x4, 0x54, 0xDA, 0x22, 0x4},
+        {0x1E, 0xDF, 0x32, 0x32, 0x50, 0xDF, 0x2, 0x32, 0x54, 0xDF, 0x22, 0x32}
+    };
+
     if (Tex_MBg == NULL || Tex_MBook == NULL || Tex_MBase == NULL) {
         return;
     }
@@ -7135,13 +7112,13 @@ void CMosBookMenu::Draw() {
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_MBase);
     prim->Color(0, 0, 0, 0x40);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x1A, 0x4B, 0x1CC, 0x24), tiletbl_5573[0], 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x1A, 0x6F, 0x1CC, 0x116), tiletbl_5573[1], 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x1A, 0x185, 0x1CC, 0x24), tiletbl_5573[2], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x1A, 0x4B, 0x1CC, 0x24), tiletbl[0], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x1A, 0x6F, 0x1CC, 0x116), tiletbl[1], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x1A, 0x185, 0x1CC, 0x24), tiletbl[2], 1);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x16, 0x47, 0x1CC, 0x24), tiletbl_5573[0], 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x16, 0x6B, 0x1CC, 0x116), tiletbl_5573[1], 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x16, 0x181, 0x1CC, 0x24), tiletbl_5573[2], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x16, 0x47, 0x1CC, 0x24), tiletbl[0], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x16, 0x6B, 0x1CC, 0x116), tiletbl[1], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x16, 0x181, 0x1CC, 0x24), tiletbl[2], 1);
     prim->End();
     int model_width = 0xB6;
     if (CheckNowEurope()) {
@@ -7152,10 +7129,10 @@ void CMosBookMenu::Draw() {
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_MBase);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[1][0] + 0x16,
-        put_under_offset_5577[1][1] + 0x47, 0x52, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[1][0] + 0x6E,
-        put_under_offset_5577[1][1] + 0x47, 0x52, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset[1][0] + 0x16,
+        put_under_offset[1][1] + 0x47, 0x52, 0x20), under_brdtbl, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset[1][0] + 0x6E,
+        put_under_offset[1][1] + 0x47, 0x52, 0x20), under_brdtbl, 1);
     int box_shift = 0;
     int box_width = 0xB0;
     int last_shift = 0;
@@ -7166,63 +7143,63 @@ void CMosBookMenu::Draw() {
         last_shift = 4;
         last_width = 0xBE;
     }
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[3][0] + 0x16 - box_shift,
-        put_under_offset_5577[3][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[5][0] + 0x16 - box_shift,
-        put_under_offset_5577[5][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[7][0] + 0x16 - box_shift,
-        put_under_offset_5577[7][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift,
-        put_under_offset_5577[9][1] + 0x47, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift,
-        put_under_offset_5577[9][1] + 0x69, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[9][0] + 0x16 - box_shift,
-        put_under_offset_5577[9][1] + 0x8B, box_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset_5577[11][0] + 0x16 - last_shift,
-        put_under_offset_5577[11][1] + 0x47, last_width, 0x20), under_brdtbl_5576, 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x140, 0x27, 0x9C, 0x20), under_brdtbl_5576, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset[3][0] + 0x16 - box_shift,
+        put_under_offset[3][1] + 0x47, box_width, 0x20), under_brdtbl, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset[5][0] + 0x16 - box_shift,
+        put_under_offset[5][1] + 0x47, box_width, 0x20), under_brdtbl, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset[7][0] + 0x16 - box_shift,
+        put_under_offset[7][1] + 0x47, box_width, 0x20), under_brdtbl, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset[9][0] + 0x16 - box_shift,
+        put_under_offset[9][1] + 0x47, box_width, 0x20), under_brdtbl, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset[9][0] + 0x16 - box_shift,
+        put_under_offset[9][1] + 0x69, box_width, 0x20), under_brdtbl, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset[9][0] + 0x16 - box_shift,
+        put_under_offset[9][1] + 0x8B, box_width, 0x20), under_brdtbl, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(put_under_offset[11][0] + 0x16 - last_shift,
+        put_under_offset[11][1] + 0x47, last_width, 0x20), under_brdtbl, 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x140, 0x27, 0x9C, 0x20), under_brdtbl, 1);
     prim->End();
     prim->Begin(MG_PRIM_SPRITE);
     prim->Color(0x80, 0x80, 0x80, 0x80);
     prim->Texture(Tex_MBook);
     PrimQuad(prim, 18.0f, 16.0f, mgRect<int>(0, 0, 0xA8, 0x16));
-    int base_x = put_under_offset_5577[0][0] + 0x16;
-    int base_y = put_under_offset_5577[0][1] + 0x47;
-    PrimQuad(prim, (float) base_x, (float) (put_under_offset_5577[0][1] + 0x47), mgRect<int>(0, 0x82, 0xB0, 0x12));
+    int base_x = put_under_offset[0][0] + 0x16;
+    int base_y = put_under_offset[0][1] + 0x47;
+    PrimQuad(prim, (float) base_x, (float) (put_under_offset[0][1] + 0x47), mgRect<int>(0, 0x82, 0xB0, 0x12));
     PrimQuad(prim, (float) (base_x + 0xB), (float) (base_y + 0x19), mgRect<int>(0xC, 0x2C, 0xC, 0x10));
     PrimQuad(prim, (float) (base_x + 0x5E), (float) (base_y + 0x15), mgRect<int>(0xC, 0x16, 0x14, 0x16));
-    PrimQuad(prim, (float) (put_under_offset_5577[2][0] + 0x16),
-        (float) (put_under_offset_5577[2][1] + 0x47), mgRect<int>(0, 0x94, 0xB0, 0x12));
-    PrimQuad(prim, (float) (put_under_offset_5577[4][0] + 0x16),
-        (float) (put_under_offset_5577[4][1] + 0x47), mgRect<int>(0, 0xA6, 0xB0, 0x12));
-    PrimQuad(prim, (float) (put_under_offset_5577[6][0] + 0x16),
-        (float) (put_under_offset_5577[6][1] + 0x47), mgRect<int>(0, 0xB8, 0xB0, 0x12));
-    PrimQuad(prim, (float) (put_under_offset_5577[8][0] + 0x16),
-        (float) (put_under_offset_5577[8][1] + 0x47), mgRect<int>(0, 0xCA, 0xB0, 0x12));
-    PrimQuad(prim, (float) (put_under_offset_5577[10][0] + 0x16),
-        (float) (put_under_offset_5577[10][1] + 0x47), mgRect<int>(0, 0xDC, 0xB0, 0x12));
-    PrimQuad(prim, (float) (put_under_offset_5577[12][0] + 0x16),
-        (float) (put_under_offset_5577[12][1] + 0x47), mgRect<int>(0, 0xEE, 0xB0, 0x12));
-    int icon_x = put_under_offset_5577[4][0] + 0x1D;
-    int strong_y = put_under_offset_5577[4][1] + 0x5C;
+    PrimQuad(prim, (float) (put_under_offset[2][0] + 0x16),
+        (float) (put_under_offset[2][1] + 0x47), mgRect<int>(0, 0x94, 0xB0, 0x12));
+    PrimQuad(prim, (float) (put_under_offset[4][0] + 0x16),
+        (float) (put_under_offset[4][1] + 0x47), mgRect<int>(0, 0xA6, 0xB0, 0x12));
+    PrimQuad(prim, (float) (put_under_offset[6][0] + 0x16),
+        (float) (put_under_offset[6][1] + 0x47), mgRect<int>(0, 0xB8, 0xB0, 0x12));
+    PrimQuad(prim, (float) (put_under_offset[8][0] + 0x16),
+        (float) (put_under_offset[8][1] + 0x47), mgRect<int>(0, 0xCA, 0xB0, 0x12));
+    PrimQuad(prim, (float) (put_under_offset[10][0] + 0x16),
+        (float) (put_under_offset[10][1] + 0x47), mgRect<int>(0, 0xDC, 0xB0, 0x12));
+    PrimQuad(prim, (float) (put_under_offset[12][0] + 0x16),
+        (float) (put_under_offset[12][1] + 0x47), mgRect<int>(0, 0xEE, 0xB0, 0x12));
+    int icon_x = put_under_offset[4][0] + 0x1D;
+    int strong_y = put_under_offset[4][1] + 0x5C;
     for (int i = 0; i < MOS_BOOK_AFFINITY_NUM; i++) {
         if (strong_bit & (1 << i)) {
             PrimQuad(prim, (float) icon_x, (float) strong_y,
-                mgRect<int>(ic_5580[i][0], ic_5580[i][1], 0x16, 0x16));
+                mgRect<int>(ic[i][0], ic[i][1], 0x16, 0x16));
             icon_x += 0x16;
         }
     }
     int weak_i = 0;
-    icon_x = put_under_offset_5577[4][0] + 0x1D;
-    int weak_y = put_under_offset_5577[4][1] + 0x8E;
+    icon_x = put_under_offset[4][0] + 0x1D;
+    int weak_y = put_under_offset[4][1] + 0x8E;
     for (; weak_i < MOS_BOOK_AFFINITY_NUM; weak_i++) {
         if (weak_bit & (1 << weak_i)) {
             PrimQuad(prim, (float) icon_x, (float) weak_y,
-                mgRect<int>(ic_5580[weak_i][0], ic_5580[weak_i][1], 0x16, 0x16));
+                mgRect<int>(ic[weak_i][0], ic[weak_i][1], 0x16, 0x16));
             icon_x += 0x16;
         }
     }
-    Menu3DivideTextureDraw(prim, mgRect<int>(0xFB, 0x55, 0xC, 0x13C), line_5595, 0);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0xFB, 0x55, 0xC, 0x13C), line, 0);
     prim->End();
     sceVu0FMATRIX view;
     sceVu0FVECTOR eye;
@@ -7245,9 +7222,9 @@ void CMosBookMenu::Draw() {
     prim->Begin(MG_PRIM_SPRITE);
     prim->Texture(Tex_MBase);
     prim->Color(0x80, 0x80, 0x80, 0x80);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x55, frame_width, 0x36), wakutbl_5600[0], 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x8B, frame_width, 0x92), wakutbl_5600[1], 1);
-    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x11D, frame_width, 0x32), wakutbl_5600[2], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x55, frame_width, 0x36), wakutbl[0], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x8B, frame_width, 0x92), wakutbl[1], 1);
+    Menu3DivideTextureDraw(prim, mgRect<int>(0x20, 0x11D, frame_width, 0x32), wakutbl[2], 1);
     prim->End();
     mgRect<int> digit_rect(0, 0x14A, 0xC, 0xD);
     prim->Begin(MG_PRIM_SPRITE);
@@ -7318,15 +7295,15 @@ int CMosBookMenu::KeyStep() {
     cmd = -1;
 
     switch (this->mode) {
-        case kBookFadingIn:
+        case MENU_ASK_MODE_OPEN:
             if (fade != 0) {
-                this->mode = kBookBrowsing;
+                this->mode = MENU_ASK_MODE_NONE;
                 MenuCommonInfo->key_enable = 1;
                 this->load_phase = 1;
             }
 
             break;
-        case kBookFadingOut:
+        case MENU_ASK_MODE_CLOSE:
             if (fade != 0) {
                 DeleteTexBlock();
 
@@ -7338,7 +7315,7 @@ int CMosBookMenu::KeyStep() {
             }
 
             break;
-        case kBookBrowsing:
+        case MENU_ASK_MODE_NONE:
             if ((lr & MENU_SELECT_KEY_L1) || (lr & MENU_SELECT_KEY_R1) ||
                 (select & MENU_SELECT_KEY_LEFT) || (select & MENU_SELECT_KEY_RIGHT)) {
                 cmd = kCmdTurnPage;
@@ -7394,7 +7371,7 @@ int CMosBookMenu::KeyStep() {
     if (0 <= cmd) {
         switch (cmd) {
             case kCmdClose:
-                this->mode = kBookFadingOut;
+                this->mode = MENU_ASK_MODE_CLOSE;
                 FadeOutMenu(0x3C, 0.0f);
                 break;
             case kCmdTurnPage:
@@ -7470,6 +7447,13 @@ int CMosBookMenu::KeyStep() {
 #pragma inline_depth reset
 
 void MonsterBookInit(mgCMemory *stack, int *tex_block, int mode) {
+    /**
+     *
+     * Character slots that require monster book background read requests.
+     *
+     */
+    static int tbl[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
+
     CMosBookMenu *book;
     int           size;
 
@@ -7482,7 +7466,7 @@ void MonsterBookInit(mgCMemory *stack, int *tex_block, int mode) {
     book->SetTexBlock(tex_block);
     MonsterBookPtr = (u8 *) &GetSaveData()->monster_book;
     MonsterBookBootMode = mode;
-    MenuBGReadInfo2Malloc(&MosBookStack, tbl_5848);
+    MenuBGReadInfo2Malloc(&MosBookStack, tbl);
     MenuLoadInfo.mode = 4;
     MenuLoadInfo.load_all = 1;
     MenuLoadInfo.update_scene = 0;

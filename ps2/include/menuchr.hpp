@@ -224,7 +224,7 @@ public:
      *
      * @mangled AttachForm__15CMenuChrCngMenuFv
      * @address 0x2B4920
-     * @size 0x180
+     * @size 0x17C
      */
     void AttachForm();
 
@@ -244,7 +244,7 @@ public:
      *
      * @mangled LoadNPCFaceData__15CMenuChrCngMenuFP9mgCMemoryi
      * @address 0x2B50B0
-     * @size 0x100
+     * @size 0xF4
      */
     void LoadNPCFaceData(mgCMemory *memory, int mode);
 
@@ -254,7 +254,7 @@ public:
      *
      * @mangled EnterNPCFaceData__15CMenuChrCngMenuFv
      * @address 0x2B51B0
-     * @size 0x90
+     * @size 0x84
      */
     void EnterNPCFaceData();
 
@@ -274,7 +274,7 @@ public:
      *
      * @mangled CheckBGNPCModel__15CMenuChrCngMenuFv
      * @address 0x2B5420
-     * @size 0x2D0
+     * @size 0x2C8
      */
     int CheckBGNPCModel();
 
@@ -294,7 +294,7 @@ public:
      *
      * @mangled CalcTex__15CMenuChrCngMenuFv
      * @address 0x2B7900
-     * @size 0x9C0
+     * @size 0x9B8
      */
     void CalcTex();
 
@@ -304,7 +304,7 @@ public:
      *
      * @mangled CheckChrChange__15CMenuChrCngMenuFv
      * @address 0x2B82C0
-     * @size 0x1F0
+     * @size 0x1E4
      */
     int CheckChrChange();
 
@@ -314,7 +314,7 @@ public:
      *
      * @mangled MenuLocalLoop__15CMenuChrCngMenuFv
      * @address 0x2B84B0
-     * @size 0x4E0
+     * @size 0x4D4
      */
     int MenuLocalLoop();
 
@@ -324,7 +324,7 @@ public:
      *
      * @mangled InitStarInfo__15CMenuChrCngMenuFv
      * @address 0x2B8990
-     * @size 0x80
+     * @size 0x74
      */
     void InitStarInfo();
 
@@ -334,7 +334,7 @@ public:
      *
      * @mangled UpdataLife__15CMenuChrCngMenuFv
      * @address 0x2B8A10
-     * @size 0x180
+     * @size 0x178
      */
     void UpdataLife();
 };
@@ -403,7 +403,7 @@ public:
      *
      * @mangled AttachForm__14CMenuMosSelectFv
      * @address 0x2BA570
-     * @size 0x100
+     * @size 0xF4
      */
     void AttachForm();
 
@@ -413,7 +413,7 @@ public:
      *
      * @mangled CheckLoadBGMonster__14CMenuMosSelectFv
      * @address 0x2BAA10
-     * @size 0x410
+     * @size 0x40C
      */
     int CheckLoadBGMonster();
 
@@ -423,7 +423,7 @@ public:
      *
      * @mangled CalcCursorPosition__14CMenuMosSelectFv
      * @address 0x2BAE80
-     * @size 0xD0
+     * @size 0xC8
      */
     void CalcCursorPosition();
 
@@ -433,7 +433,7 @@ public:
      *
      * @mangled CalcTex__14CMenuMosSelectFv
      * @address 0x2BAF50
-     * @size 0x260
+     * @size 0x25C
      */
     void CalcTex();
 
@@ -569,7 +569,7 @@ public:
      *
      * @mangled KeyStep__15CMenuCostumeSelFv
      * @address 0x2C0FF0
-     * @size 0x9E0
+     * @size 0x9D8
      */
     int KeyStep();
 
@@ -658,7 +658,7 @@ public:
      *
      * @mangled InitMonsterInfo__12CMosBookMenuFv
      * @address 0x2C2610
-     * @size 0x40
+     * @size 0x34
      */
     void InitMonsterInfo();
 
@@ -668,7 +668,7 @@ public:
      *
      * @mangled SetMonsterInfo__12CMosBookMenuFP16BASE_MONSTER_TBL
      * @address 0x2C2650
-     * @size 0x310
+     * @size 0x308
      */
     void SetMonsterInfo(BASE_MONSTER_TBL *monster);
 
@@ -678,7 +678,7 @@ public:
      *
      * @mangled InitEnd__12CMosBookMenuFv
      * @address 0x2C2960
-     * @size 0x230
+     * @size 0x224
      */
     virtual void InitEnd();
 
@@ -688,7 +688,7 @@ public:
      *
      * @mangled Draw__12CMosBookMenuFv
      * @address 0x2C2B90
-     * @size 0xED0
+     * @size 0xEC4
      */
     void Draw();
 
@@ -777,6 +777,41 @@ extern s16 MenuLoadItemNo[MENU_LOAD_ITEM_MAX];
 
 /**
  *
+ * Memory containing the party change menu models.
+ *
+ */
+extern mgCMemory MenuChangeMemory;
+
+/**
+ *
+ * Memory containing the monster book menu and its resources.
+ *
+ */
+extern mgCMemory MosBookStack;
+
+/**
+ *
+ * Memory containing monster model background loads for the menu.
+ *
+ */
+extern mgCMemory MenuMonChangeLoadStack;
+
+/**
+ *
+ * Memory remaining for monster selection menu background loads.
+ *
+ */
+extern mgCMemory MenuMosLoadStack;
+
+/**
+ *
+ * Memory containing the initial party change menu textures.
+ *
+ */
+extern mgCMemory ChrChangeInitTextureStack;
+
+/**
+ *
  * Memory the party change screen reads the townsperson's face into.
  *
  */
@@ -795,7 +830,7 @@ extern mgCMemory SwordEffectStack;
  *
  * @mangled InitMenuBGReadInfo2__FP17MENU_BGREAD_INFO2
  * @address 0x2B41F0
- * @size 0x20
+ * @size 0x14
  */
 void InitMenuBGReadInfo2(MENU_BGREAD_INFO2 *info);
 
@@ -805,7 +840,7 @@ void InitMenuBGReadInfo2(MENU_BGREAD_INFO2 *info);
  *
  * @mangled MenuLoadFileCheck__FPP17MENU_BGREAD_INFO2
  * @address 0x2B4210
- * @size 0x50
+ * @size 0x48
  */
 int MenuLoadFileCheck(MENU_BGREAD_INFO2 **slots);
 
@@ -815,7 +850,7 @@ int MenuLoadFileCheck(MENU_BGREAD_INFO2 **slots);
  *
  * @mangled MenuBGReadInfo2Malloc__FP9mgCMemoryPi
  * @address 0x2B4260
- * @size 0xA0
+ * @size 0x9C
  */
 void MenuBGReadInfo2Malloc(mgCMemory *memory, int *wanted);
 
@@ -825,7 +860,7 @@ void MenuBGReadInfo2Malloc(mgCMemory *memory, int *wanted);
  *
  * @mangled ConvertCharaLoadDataPhase__Fii
  * @address 0x2B4300
- * @size 0x30
+ * @size 0x24
  */
 s16 ConvertCharaLoadDataPhase(int a0, int a1);
 
@@ -835,7 +870,7 @@ s16 ConvertCharaLoadDataPhase(int a0, int a1);
  *
  * @mangled SetMenuLoadItemNo__Fi
  * @address 0x2B4380
- * @size 0x120
+ * @size 0x114
  */
 void SetMenuLoadItemNo(int who);
 
@@ -855,7 +890,7 @@ void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffer, int c
  *
  * @mangled DeleteMonsterEffect__Fv
  * @address 0x2B4760
- * @size 0x60
+ * @size 0x54
  */
 void DeleteMonsterEffect();
 
@@ -865,7 +900,7 @@ void DeleteMonsterEffect();
  *
  * @mangled SetMessagePositionNPCForm__FP16CMenuPosDataFormP7CDC2Mes
  * @address 0x2B47C0
- * @size 0xF0
+ * @size 0xE4
  */
 void SetMessagePositionNPCForm(CMenuPosDataForm *form, CDC2Mes *mes);
 
@@ -875,7 +910,7 @@ void SetMessagePositionNPCForm(CMenuPosDataForm *form, CDC2Mes *mes);
  *
  * @mangled AdjustNPCTalk__FP7CDC2MesP11CCharacter2
  * @address 0x2B48B0
- * @size 0x70
+ * @size 0x6C
  */
 void AdjustNPCTalk(CDC2Mes *mes, CCharacter2 *npc);
 
@@ -905,7 +940,7 @@ int MenuCharaChangeInit(mgCMemory *memory, int *tex_block, int mode);
  *
  * @mangled MenuCharaChangeKey__Fv
  * @address 0x2B9640
- * @size 0x300
+ * @size 0x2F8
  */
 int MenuCharaChangeKey();
 
@@ -935,7 +970,7 @@ char *GetMonsterName(int monster_no);
  *
  * @mangled get_gajji_id_from_monster_progress_table__FiPi
  * @address 0x2BA120
- * @size 0x90
+ * @size 0x88
  */
 int get_gajji_id_from_monster_progress_table(int progress_no, int *column_out);
 
@@ -945,7 +980,7 @@ int get_gajji_id_from_monster_progress_table(int progress_no, int *column_out);
  *
  * @mangled GetMonsterProgressTableNo__Fii
  * @address 0x2BA1B0
- * @size 0x50
+ * @size 0x4C
  */
 int GetMonsterProgressTableNo(int column, int value);
 
@@ -955,7 +990,7 @@ int GetMonsterProgressTableNo(int column, int value);
  *
  * @mangled get_monster_tbl_bajjilevel__FPiiii
  * @address 0x2BA200
- * @size 0x180
+ * @size 0x178
  */
 int get_monster_tbl_bajjilevel(int *list, int monster_id, int value, int column);
 
@@ -965,7 +1000,7 @@ int get_monster_tbl_bajjilevel(int *list, int monster_id, int value, int column)
  *
  * @mangled get_default_monster_progresstbl__Fi
  * @address 0x2BA380
- * @size 0x50
+ * @size 0x44
  */
 int get_default_monster_progresstbl(int id);
 
@@ -975,7 +1010,7 @@ int get_default_monster_progresstbl(int id);
  *
  * @mangled GetMonsterModelFile__FiiPc
  * @address 0x2BA3D0
- * @size 0x1A0
+ * @size 0x198
  */
 int GetMonsterModelFile(int monster_id, int kind, char *file_name);
 
@@ -985,7 +1020,7 @@ int GetMonsterModelFile(int monster_id, int kind, char *file_name);
  *
  * @mangled MonsterScaleCheck__FP11CCharacter2
  * @address 0x2BA670
- * @size 0x70
+ * @size 0x68
  */
 void MonsterScaleCheck(CCharacter2 *chara);
 
@@ -1006,7 +1041,7 @@ int MonsterEffectRead(mgCMemory *stack, int monster_no, int background);
  *
  * @mangled MonsterEffectEnter__FP6CSceneP1i
  * @address 0x2BA8F0
- * @size 0x120
+ * @size 0x11C
  */
 int MonsterEffectEnter(CScene *scene, u_long128 *buffer, int tex_block);
 int MonsterEffectEnter(CScene *scene, u_long128 *buffer);
@@ -1027,7 +1062,7 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode);
  *
  * @mangled MenuMonsterBoxKey__Fv
  * @address 0x2BD280
- * @size 0x10
+ * @size 0x8
  */
 int MenuMonsterBoxKey();
 
@@ -1037,7 +1072,7 @@ int MenuMonsterBoxKey();
  *
  * @mangled MenuMonsterBoxDraw__Fv
  * @address 0x2BD290
- * @size 0x230
+ * @size 0x22C
  */
 void MenuMonsterBoxDraw();
 
@@ -1047,7 +1082,7 @@ void MenuMonsterBoxDraw();
  *
  * @mangled MenuTimeStepEnvFunc__FP6CSceneP12CActionCharai
  * @address 0x2BD4C0
- * @size 0xF0
+ * @size 0xEC
  */
 void MenuTimeStepEnvFunc(CScene *scene, CActionChara *chara, int step);
 
@@ -1057,7 +1092,7 @@ void MenuTimeStepEnvFunc(CScene *scene, CActionChara *chara, int step);
  *
  * @mangled MenuWeaponRealStepEnvFunc__FP12CActionCharai
  * @address 0x2BD5B0
- * @size 0xA0
+ * @size 0x94
  */
 void MenuWeaponRealStepEnvFunc(CActionChara *chara, int step);
 
@@ -1067,7 +1102,7 @@ void MenuWeaponRealStepEnvFunc(CActionChara *chara, int step);
  *
  * @mangled MenuItemCharaDataLoad__FP9mgCMemoryiPP17MENU_BGREAD_INFO2i
  * @address 0x2BD650
- * @size 0x4B0
+ * @size 0x4AC
  */
 int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **info, int restart_read);
 
@@ -1077,7 +1112,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
  *
  * @mangled MenuItemCharaDataLoadEndCheck__FPP17MENU_BGREAD_INFO2P9mgCMemoryPP12CActionCharaiii
  * @address 0x2BDE50
- * @size 0x650
+ * @size 0x644
  */
 int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CActionChara **chara, int chara_no,
                                   int tex_block, int scene_tex_block);
@@ -1088,7 +1123,7 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
  *
  * @mangled MenuCharaSoundLoad__FP9mgCMemoryii
  * @address 0x2BE4A0
- * @size 0x100
+ * @size 0xFC
  */
 u32 MenuCharaSoundLoad(mgCMemory *stack, int chara_no, int background);
 
@@ -1108,7 +1143,7 @@ void MenuCharaSoundEnter(CScene *scene, CActionChara *chara, int open_port);
  *
  * @mangled MenuItemChrLoad__FP9mgCMemoryiiP17MENU_BGREAD_INFO2i
  * @address 0x2BE660
- * @size 0x120
+ * @size 0x11C
  */
 u32 MenuItemChrLoad(mgCMemory *stack, int item_no, int variant, MENU_BGREAD_INFO2 *info, int restart_read);
 
@@ -1118,7 +1153,7 @@ u32 MenuItemChrLoad(mgCMemory *stack, int item_no, int variant, MENU_BGREAD_INFO
  *
  * @mangled MenuItemChrLoadEndCheck__FP17MENU_BGREAD_INFO2P12CActionCharaP9mgCMemoryi
  * @address 0x2BE780
- * @size 0x100
+ * @size 0xF8
  */
 int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMemory *memory, int tex_block);
 
@@ -1128,7 +1163,7 @@ int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMem
  *
  * @mangled MenuItemRoboDataLoad__FP9mgCMemoryPP17MENU_BGREAD_INFO2i
  * @address 0x2BE880
- * @size 0x320
+ * @size 0x31C
  */
 int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart_read);
 
@@ -1169,7 +1204,7 @@ void MenuRoboPartsLightOff(mgCFrame *frame);
  *
  * @mangled MenuMonsterLoadBG__FP9mgCMemoryPP17MENU_BGREAD_INFO2ii
  * @address 0x2BF490
- * @size 0x1F0
+ * @size 0x1E4
  */
 int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no, int restart_read);
 
@@ -1199,7 +1234,7 @@ void MenuItemCharaDataLoadEndCheckAfter(MENU_BGREAD_INFO2 **info, int chara_no);
  *
  * @mangled InitMainCharaBG__FiP9mgCMemoryi
  * @address 0x2BFD30
- * @size 0x4D0
+ * @size 0x4C4
  */
 void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode);
 
@@ -1219,7 +1254,7 @@ int ReadMainCharaBG();
  *
  * @mangled KeyMainCharaBG__Fv
  * @address 0x2C06D0
- * @size 0xF0
+ * @size 0xE8
  */
 int KeyMainCharaBG();
 
@@ -1229,7 +1264,7 @@ int KeyMainCharaBG();
  *
  * @mangled DrawMainCharaBG__Fv
  * @address 0x2C07C0
- * @size 0x110
+ * @size 0x10C
  */
 void DrawMainCharaBG();
 
@@ -1239,7 +1274,7 @@ void DrawMainCharaBG();
  *
  * @mangled MenuNPCModelLoad__FP9mgCMemoryii
  * @address 0x2C08D0
- * @size 0xD0
+ * @size 0xCC
  */
 int MenuNPCModelLoad(mgCMemory *memory, int chara_no, int background);
 
@@ -1249,7 +1284,7 @@ int MenuNPCModelLoad(mgCMemory *memory, int chara_no, int background);
  *
  * @mangled MenuNPCLoadCheck__FP12CActionCharaP9mgCMemoryi
  * @address 0x2C09A0
- * @size 0xE0
+ * @size 0xD8
  */
 int MenuNPCLoadCheck(CActionChara *chara, mgCMemory *memory, int tex_block);
 
@@ -1259,7 +1294,7 @@ int MenuNPCLoadCheck(CActionChara *chara, mgCMemory *memory, int tex_block);
  *
  * @mangled MenuCostumeInit__FP9mgCMemoryPii
  * @address 0x2C22B0
- * @size 0x2E0
+ * @size 0x2D8
  */
 void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode);
 
@@ -1269,7 +1304,7 @@ void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode);
  *
  * @mangled MenuCostumeKey__Fv
  * @address 0x2C2590
- * @size 0x10
+ * @size 0x8
  */
 int MenuCostumeKey();
 
@@ -1279,7 +1314,7 @@ int MenuCostumeKey();
  *
  * @mangled MenuCostumeDraw__Fv
  * @address 0x2C25A0
- * @size 0x10
+ * @size 0x8
  */
 void MenuCostumeDraw();
 
@@ -1289,7 +1324,7 @@ void MenuCostumeDraw();
  *
  * @mangled MonsterBookInit__FP9mgCMemoryPii
  * @address 0x2C3FB0
- * @size 0x1E0
+ * @size 0x1D8
  */
 void MonsterBookInit(mgCMemory *memory, int *tex_block, int mode);
 
@@ -1299,7 +1334,7 @@ void MonsterBookInit(mgCMemory *memory, int *tex_block, int mode);
  *
  * @mangled MonsterBookKey__Fv
  * @address 0x2C4190
- * @size 0x10
+ * @size 0x8
  */
 int MonsterBookKey();
 
@@ -1309,7 +1344,7 @@ int MonsterBookKey();
  *
  * @mangled MonsterBookDraw__Fv
  * @address 0x2C41A0
- * @size 0xA0
+ * @size 0x94
  */
 void MonsterBookDraw();
 
