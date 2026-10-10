@@ -1,13 +1,8 @@
 # runscript: reverse-engineering notes
 
-## C++ draft status
-All 28 functions have C++ in `ps2/src/runscript.cpp`. 25 are exact and compiled
-by the matching build. 3 differ from retail and keep the `INCLUDE_ASM` fallback.
-Each function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Matching status
 
-Script stack VM. Same design as the first game's `runscript` (`/home/adubbz/development/chronicle/ps2/include/runscript.hpp`,
-`ps2/src/runscript.cpp`, fully matched there); use it as the model for bodies. Differences are listed below.
+All functions are native; no assembly function fallback remains.
 
 ## CRunScript (size 0x54)
 Size: `EventScript` (event unit) is a `CRunScript` with symbol size 0x54; exe writes up to 0x50.
@@ -79,3 +74,17 @@ jump tables / float consts). No extern globals for this unit.
 ## Users
 CActionChara (+0x6bc), CActiveMonster (+0x6bc in ctor; monster code uses nowMonster+0x1040), `EventScript` (event),
 SetMonsterScript (runscript_opcodes), SetActionScript (actscript), SetEffectScript (effscript), SetEventFunc (event_func).
+
+
+## Native data and matching constraints
+
+All data are native. Error and external-call diagnostics preserve exact capitalization,
+newline and Shift-JIS bytes. The exe opcode and integer/float comparison switches
+generate their own branch tables.
+
+push and the store opcode assign RS_STACKDATA::val directly; MWCC emits the retail float
+load/store pair for the union copy. An anonymous integer/float vmcode_t operand union
+matches PAL but changes three other objects' metadata (eventedit, userdata, charasetup),
+so the existing serialized representation remains. memcpy into a float operand local
+expands exe from 0x145C to 0x146C and differs by 980 masked words. Function @size
+annotations use declared STT_FUNC extents, excluding alignment.
