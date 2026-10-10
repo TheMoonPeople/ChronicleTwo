@@ -232,3 +232,13 @@ body with **315/324** differing words. MWCC retains division/remainder work
 rather than folding the normalized indices back into retail's linear address
 calculation. The other four functions remain exact. No source or profile
 change is activated.
+
+## Function-scope self term
+
+The self/previous term `1.9216f * *center - *old` computed first into a
+function-scope `float`, which the seam then reuses for the right edge,
+keeps the eight-cell unroll and gives retail's coefficient registers
+(1.9216 `$f0`, 0.0196 `$f1`, 0.0015 `$f2`). It also materialises 1.9216
+first and moves the neighbour sum to `$f5`, so the cell schedule diverges:
+**193/324** words. Retail needs 0.0196 materialised first, so a statement
+that computes 1.9216 ahead of the neighbour scaling cannot match.
