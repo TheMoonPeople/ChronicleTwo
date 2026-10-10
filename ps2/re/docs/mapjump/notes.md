@@ -95,9 +95,7 @@ produced a 64-byte frame and a function 12 bytes shorter than retail.
 The verified profile row selects `mapjump.cpp`, `ExitInterior__FP6CScenePi`,
 `binary32`, IEEE bits `0x00000000`, and `evaluate_first: true`. It applies to
 both matching zero arguments without occurrence indices or a source change.
-The full mwccgap wrapper followed by section fixup and the canonical object
-checker restores all function bytes and resolved relocations. The unit returns
-to its original `0x1200` bytes and 372 relocations, with four existing data-layout
-issues: `MainMapInfo__2` and `SubMapInfo` symbol extents, and the following
-`SubMapInfo` and `at_912__4` BSS positions. This proves the function match,
-not resolution of those data issues. See [MWCC notes](../../../../docs/MWCC.md).
+The selected row preserves the retail function bytes and resolved relocations.
+The map state objects now have native declared extents and source names;
+`MainMapInfo` is file-local in this unit. See
+[MWCC notes](../../../../docs/MWCC.md).
