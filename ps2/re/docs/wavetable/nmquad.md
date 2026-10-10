@@ -1,0 +1,54 @@
+# Seam edges and reused wave sums
+
+Retail's inner-loop addresses are `now + ((column + row * 24) << 2)` with `row * 24`
+strength-reduced in the outer loop, and the neighbours are `-4/+4/±0x60` offsets from
+that cell. That is a flat `float *` index across the declared `[24][24]` rows; a typed
+`[row][column]` form would compute `row * 0x60 + column * 4`. No bounded form can
+therefore reproduce the retail loop without a different declared type for `height`.
+
+Retail's seam loads `line[22]` first but adds `line[1] + line[22]`. Holding the right
+edge in the wave loop's `sum`, declared at function scope and reused (`sum = line[22];
+line[22] = line[1] = (line[1] + sum) * 0.5f;`), reproduces both the load order and the
+operand order, but the 0.5 constant and the `line[1]` value exchange `$f0`/`$f1` in
+every seam copy:
+
+| Seam form (wave loop unchanged) | Words |
+|---|---:|
+| Existing draft | 27 |
+| Reused `sum` edge, chained stores | 59 |
+| The same with two stores, with `0.5f *` first, `sum` declared first or after the plane pointers, or `sum = line[1] + sum` | 59 |
+| `sum = (line[1] + sum) * 0.5f;` then two stores | 65 |
+| `sum += line[1]` then the scaled store | 61 |
+| Divided by `2.0f` | `0x518` |
+
+The eighteen coefficient-register differences are unchanged in all of them.
+
+## Coefficient priority in the combined update
+
+The recorded combined update (`sum = sum * 0.0196f + (1.9216f * *center - *old);`, 77
+words) does give retail's coefficient registers: 1.9216 `$f0`, 0.0196 `$f1`, 0.0015
+`$f2`. It loses because MWCC evaluates the parenthesised self term first. 1.9216 is then
+also materialised first (`lui t1,0x3ff5` at `+0x50`), and the neighbour sum and self
+term exchange `$f3`/`$f4` in every cell, with `0.0196f * sum` operand order. Retail
+combines the four-statement schedule and cell registers with the combined form's
+coefficient priority. Breaking the combined statement across two to four lines leaves 77
+words, so line positions do not order the schedule. Named `float` or `const float`
+coefficients declared before the loops in either priority order also give 77 with the
+combined update, and 27 with the four statements: they are propagated as literals.
+
+Further four-statement forms leave retail's coefficient registers exchanged in every
+case:
+
+| Four-statement change | Words |
+|---|---:|
+| `*center * 1.9216f`, `(*center - *old) * 0.0015f`, or both | 27 |
+| `sum = sum * 0.0196f;` or `sum = 0.0196f * sum;` | 63 |
+| Neighbour sum scaled in its declaration (`0.0196f * (...)` or `(...) * 0.0196f`) | 63 |
+| `sum -= *old - 1.9216f * *center;` | 45 |
+| `sum += 1.9216f * *center; sum -= *old;` | 71 |
+| `sum += -*old + 1.9216f * *center;` | `0x530` |
+| `sum = sum * 0.0196f; sum = sum + (...);` | `0x1F8`, no unroll |
+| Combined `sum = (1.9216f * *center - *old) + sum * 0.0196f` (either product order) | 77 |
+
+Non-compound scaling gives `0.0196f * sum` operand order, as in the combined update;
+only `sum *= 0.0196f` keeps retail's `sum * 0.0196f`.
