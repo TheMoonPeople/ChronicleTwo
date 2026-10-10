@@ -157,3 +157,38 @@ retain that one-word receiver difference. A const reference to the pointer
 result instead requires a `0x90` frame and leaves 47 words differing. All
 24 other functions remain exact in these source-only comparisons. No row or
 source change is activated.
+
+### Native class-3 statement conversion
+
+Retail's `CWater` sequence is the early construction form with the
+allocation result held in the named pointer: `beqz v0` tests the allocator
+result, the delay slot copies it to `s6`, the outlined constructor receives
+`s6`, and its result replaces `s6`. Plain MWCC lowers an outlined
+(class-0) construction into a non-const pointer as the late form
+(`move s6,v0; beqz s6`), and into a `const` pointer as a separate temporary
+that passes `v0`. Retail `EditInit` shows the same early form for its local
+`CCameraControl` construction, also with an outlined constructor.
+
+MWCC produces the early form for an outlined construction when the same
+statement expands an inline function that the classifier puts in class 3
+(it contains a retained `if` or loop). Its native class-3 path sets the
+statement-conversion request, so the whole statement is re-lowered. A
+constant argument folds the callee away, so it leaves no instructions. A
+ternary, a local variable or a final `return` alone keeps the callee in
+class 6 and has no effect. Confirmed results:
+
+- The source's plain `CWater *water` pointer and an `if`-bearing
+  allocation-size inline in the `CWater` statement, together with the
+  `CWaterFrame` row, give an exact 104-word body.
+- The same inline in all four allocation statements, with no water row and
+  the checked-in profile, also gives an exact body. With a row added, the
+  placement hook rejects compilation because the region has a non-expression
+  inline callee body.
+- Removing funcpoint's row and adding such a callee to
+  `CFuncPointMngr::Add`'s allocation statement changes it from 2/40 to exact.
+
+No such inline exists in the headers `water.cpp` includes, and the retail
+binary cannot show which inline the original source used. These are
+diagnostic probes only. The function stays guarded, no helper or row is
+added, and the open question is whether original allocation statements
+shared such a callee.
