@@ -163,8 +163,8 @@ notice messages and page transitions. The quest-fish and ordinary successful
 load paths join for one `MenuSePlay(SYSTEM_SE_DECIDE)` call; a quest file
 without fish instead enters the notice phase.
 
-`CSaveMenuClass::KeyStep` currently declares an unused `form_pos[9][2]` local.
-It supplies stack space needed for the exact 0x1A0-byte frame, but does not
-represent observed game state. A natural source form that preserves the frame
-and retail instruction order remains a source cleanup blocker. Keep the exact
-match for review while searching for that form.
+`CSaveMenuClass::KeyStep` declares `form_pos[9][2]`, but accesses only row zero
+for menu message coordinates. The other eight rows supply stack space needed
+for the exact 0x1A0-byte frame and have no observed use. A natural source form
+that preserves the frame and retail instruction order remains a source cleanup
+blocker. Keep the exact match for review while searching for that form.
