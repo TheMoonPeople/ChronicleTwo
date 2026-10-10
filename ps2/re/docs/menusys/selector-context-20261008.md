@@ -1,8 +1,7 @@
 # Debug-panel context and ordinary-walk selectors
 
 Historical probe record. Current exact matches and guarded remainders are
-listed in [notes.md](notes.md); later promotions are documented in
-[night-20261008.md](night-20261008.md).
+listed in [notes.md](notes.md).
 
 `MenuItemDebugDraw__Fv` at `0x002494E0` draws the debug item grid and the
 selected character/weapon information page. The established menu/font/item
@@ -41,8 +40,8 @@ is consumed in either residual region. The prior source-form trials are
 not repeated under this promotion-only assignment.
 
 The function then remained guarded and none of the partial rows was committed.
-The night run commits all seven rows with the native promotion; the two
-source residuals are resolved in [night-20261008.md](night-20261008.md).
+The native promotion uses all seven rows; the two source forms are described
+in [notes.md](notes.md).
 The complete-wrapper probe checks `0x1B0D0` bytes and 5,905 relocations,
 with only target bytes failing at `0x00249672`. All other unit bytes and
 resolved relocations pass.

@@ -1,8 +1,7 @@
 # menusys round-one matching status — October 8, 2026
 
 Historical probe record. Current exact matches and guarded remainders are
-listed in [notes.md](notes.md); later promotions are in
-[night-20261008.md](night-20261008.md).
+listed in [notes.md](notes.md).
 
 Lane base: `55e7ed3`, the midday integration containing upstream `d8bf13c`
 and the round-zero `PushKey` promotion. At that checkpoint this superseded

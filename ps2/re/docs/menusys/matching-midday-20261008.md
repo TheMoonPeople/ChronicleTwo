@@ -1,8 +1,7 @@
 # menusys midday matching status — October 8, 2026
 
 Historical probe record. Current exact matches and guarded remainders are
-listed in [notes.md](notes.md); later promotions are documented in
-[night-20261008.md](night-20261008.md).
+listed in [notes.md](notes.md).
 
 Lane base: `c79e57c`, the validated `73fa582` integration plus the wrapper
 dependency fix. Compiler: MWCC 3.0-011126, canonical `-O3,p` flags and the

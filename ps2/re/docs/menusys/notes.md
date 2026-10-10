@@ -188,130 +188,100 @@ Only non-local symbols get externs (the rest are `static` in the .cpp per `local
   GetDebugInputKey, FadeInMenu, IsItemUseNum, MenuItemInit, ItemCmdAfter...) was checked by compiling stub
   definitions.
 
-## First game
-The first game has no counterpart to any of these classes (no CBaseMenuClass, CMenuKeyFunc or item menu
-classes in `chronicle/ps2/include`).
-# Build-up weapon transfer
+## Current matching status
 
-`BuildUpWeaponTrans` changes an owned weapon to a new item number and type,
-retaining its absorption gauge percentage as the next weapon's level-up
-requirement replaces the maximum. It resets the weapon level, adds ten percent
-of the next weapon's base status and attribute values, combines special ability
-bits, limits parameters, and sets save bit 0x31. It replaces the custom name
-only when the old name still equals the old item's default message. Its active
-C++ matches retail.
+All functions in this unit are native C++ except `CMenuItemInfo::IsAskExtend`,
+which retains its `NONMATCHING` assembly fallback. The native functions include
+`MenuModeMalloc`, `MenuItemDebugKey`, `MenuItemSelectInit`,
+`MenuItemSelectDiffer`, `CommonSetMoveItemClass`, `MenuDataSwap`,
+`MenuPosFormValueSetCharaRobo`, `CMenuItemInfo::CalcTex`,
+`CMenuItemInfo::LRCheck`, `MenuItemDebugDraw` and
+`CheckEnableHaveItemNum`. The three allocation callers construct their
+`CActionChara` or `CItemSelect` objects through placement construction. The
+accepted placement rows and their scope are documented in
+[placement-new.md](../satansfiddle/placement-new.md).
 
-## Question parameter copy layout
+`IsAskExtend` controls the extended item-description prompt and a temporary
+character preview. Its natural constructor form still differs from retail:
+the closest measured draft has 170 differing words in a 668-word layout and
+is four bytes larger than the `0xA68` retail symbol. The cancellation close
+request, message/name register lifetimes and a late branch delay slot account
+for the principal residual. The guard remains until a complete object match
+is possible without invented state.
 
-`CBaseMenuClass::SetAskParam` copies three overlapping runs from `MENU_ASKMODE_PARA`:
-16 words beginning at `cmd_msg`, 16 words beginning at `cmd_color`, and 16 shorts
-beginning at `unk_48`. The named overlay arrays in the header keep each run
-inside its declared bounds while preserving the existing message, colour and
-mark fields. The function separately copies the selected argument and item
-pointer fields; it leaves `unk_6`, `unk_72`, `unk_8C` and `unk_90` untouched.
+## Source forms needed for native matches
 
-## Compiler flag cleanup
+- `CommonSetMoveItemClass` copies four integers with a `table[i][j]` loop,
+  then names the row pointer. The explicit `move->from[2] == 0` comparison
+  avoids an extra sign-extension pair.
+- `MenuDataSwap` looks up the source result before initializing its local
+  two-byte result array. The destination presence flag is declared first;
+  the array initializer produces the retail halfword copy. Its result mapping
+  is detailed in [swap-results.md](swap-results.md).
+- `MenuItemDebugDraw` uses `page * 64 + 1 + row * 8 + col`, reuses the
+  attribute-loop index for the later build-name loop, and uses seven
+  `DrawMenuFillBox` argument scheduling rows. The debug title accesses the
+  same controller object throughout.
+- `MenuPosFormValueSetCharaRobo` copies the initial red value to green and
+  updates both from the blink value. The green and red declaration positions
+  preserve the retail register pairing.
+- `CalcTex` gives its equipment search a separate function-scope counter,
+  declares the held item type in its branch, and retains unsigned arithmetic
+  for `slot_mes[key_no - 4U]`. The rotation flag is a signed byte.
+- `LRCheck` uses a shoulder-button `switch` in L1, R1, L2, R2 source order.
+  The default jump claims the shared zero-return delay slot before the later
+  item rejection branch, matching retail's branch slots.
+- `CheckEnableHaveItemNum` keeps the active-slot counter at function scope,
+  uses one named active-record pointer for all its calls, and has a separate
+  gift-slot counter. The bag pass and final flag loop share their counter.
+- `BuildUpWeaponTrans` preserves the absorption-gauge percentage while the
+  next weapon's level-up requirement replaces the maximum. It resets the
+  level, adds ten percent of the new base parameters, combines special
+  ability bits and replaces a custom name only when it was the old default.
+- `CBaseMenuClass::SetAskParam` copies three overlapping runs: 16 words
+  from `cmd_msg`, 16 words from `cmd_color` and 16 shorts from `unk_48`.
+  The header overlays keep these runs within declared bounds. It leaves
+  `unk_6`, `unk_72`, `unk_8C` and `unk_90` unchanged.
 
-The four local `divbyzerocheck on`/`reset` pairs are redundant with the PS2
-compiler flag. Removing them leaves every section and symbol in this unit's
-object diff unchanged.
+## Native data and remaining assembly suppliers
 
-## Pending menu function matches
+The native state has retail declared extents rather than padded section
+reservations: `ITEMCMD_RET_PARA` is 0x14 bytes and `MenuEffect[2]` is 8 bytes;
+`MenuCharaReadBuffers`, `MENU_ITEM_CURSOR_INFO` and `BuildUpNameXY` are each
+0xC; `BUILDUP_WEAPON_INFO` is 0x44; `CLevelUpEffectManager` is 0x190.
+The saved fusion parameters contain twelve shorts, and both build-up part
+pointer arrays contain twelve entries. The incomplete `MenuEffect[]` header
+declaration is required for the current complete-object build: giving it a
+`[2]` bound changes `inventmn` object layout.
 
-`CMenuItemInfo::MenuModeMalloc` is native and accepted with its two-site
-CActionChara conversion row. Its earlier guarded draft differed in code and
-size; that source/profile baseline used retail assembly. `MenuItemInfoCursorSet` now
-matches exactly as C++, including its linked image.
-`CMenuItemInfo::PushKey` is now an exact native match. Its typed tuning bases and
-branch-local automatic objects are documented in [pushkey.md](pushkey.md).
-`MenuWeaponBuildUpDraw` was already promoted in the midday lane base.
+The ridepod equipment table contains four signed bytes; the confirm/cancel
+mapping is `int[2][2]`; the active-weapon part names are `char *[3][2]`;
+and the palette-effect table is `int[2][5]` for colour, pulse count and
+duration. `stchar_6508[13]` contains twelve weapon ability names and a null
+terminator. The `MENU_WEAPON_ABILITY` mask names match the label order, without
+asserting unverified gameplay effects. The local `CItemSelect::Draw` colour
+initializer is a four-byte array whose alpha is replaced at draw time.
 
-## October 2026 menu draft promotions
+Most strings, aggregate zero templates, state objects and tables are native.
+Four direct string aliases (`at_3895`, `at_3924`, `at_5882`, `at_5883`)
+remain assembly supplied because isolated inline forms change the identity of
+`at_5774` and shift resolved references. The extended-prompt guard retains
+its literals and jump table; the `CMenuItemInfo` and `CBaseMenuClass`
+vtables remain assembly suppliers. The `at_6424` debug dispatch table is
+also still assembly supplied. No `INCLUDE_BSS` markers remain in the unit.
 
-- `CBaseMenuClass::MenuItemCommandSelect` is an exact C++ match when compiled alone through mwccgap. Its dispatch selects an item command from a key and button pair, including ask mode handling.
-- `MenuItemSelectDiffer` is an exact C++ match when compiled alone through mwccgap. It tests whether an item selection differs from the currently selected item.
-- Both functions passed the isolated linked-image verification. `MenuWeaponBuildUpDraw` initially differed in four instructions in the linked image despite the whole-unit draft comparison reporting a match; the verified-profile result below supersedes that earlier trial. `CMenuItemInfo::LRCheck` then differed in two branch-delay-slot words at offsets 0x264 and 0x268; the shoulder-button `switch` documented in [night-20261008.md](night-20261008.md) resolves them.
+Ten persistent counters or flags use natural function-local statics, including
+`cmd_counter`, `sndflag`, `count_time`, `checkmoveFlag`, `fusion_blinkcnt`,
+`diffent_weapon_dispflag`, `counter`, `count`, `old_viewmode` and `old_chrid`.
+`MenuListKeyCheck` initializes separate two-by-two direction and wrap arrays.
 
-## Constructor-backed allocations
+## Item-menu pages and fields still unnamed
 
-`IsAskExtend` retains a guarded draft using direct `CActionChara` placement
-construction. `MenuModeMalloc` uses the same natural constructor chain in its
-accepted native body. The earlier constructor analysis and selector boundaries
-are documented in [guarded-constructors.md](guarded-constructors.md).
-
-## Remaining matching blockers
-
-The [round-one matching status](matching-round1-20261008.md) records the historical
-scores, source hypotheses, and validation receipts from that round. In that round `MenuDataSwap`
-improved to 34/228 differing words, and both swap-result tables gained exact
-C++ data definitions; see [swap-results.md](swap-results.md).
-The [midday matching status](matching-midday-20261008.md) records the eleven
-guards retained in that round and the earlier round-zero experiments.
-The [morning matching status](matching-status-20261008.md) is a historical
-snapshot from before the lane base and includes the subsequently promoted
-`MenuWeaponBuildUpDraw`.
-
-The [night near-miss run](night-20261008.md) promotes `CommonSetMoveItemClass`,
-`MenuDataSwap`, `MenuPosFormValueSetCharaRobo`, `CMenuItemInfo::CalcTex`,
-`CMenuItemInfo::LRCheck`, `MenuItemDebugDraw` (with its seven control
-selectors) and `CheckEnableHaveItemNum`, and records the source facts that
-close each one.
-The earlier residual descriptions of those functions in the dated notes are
-superseded.
-
-`CheckEnableHaveItemNum` is an exact native C++ match (0/212 words,
-declared size `0x34C`). Its final `for` loop resolves the former `t0`/`a3`
-offset exchange. The first active-slot pass also matches when its slot counter
-`k` is function-scoped and every active-record call uses the named pointer;
-its gift-slot counter remains separately scoped. Both source facts are needed
-together to resolve the former `s1`/`s3` exchange. The round-two promotion and
-full validation are in [night-20261008.md](night-20261008.md#round-2--checkenablehaveitemnum-promoted).
-
-Before placement conversion, the null-branch blocker occurred in
-`MenuItemSelectInit`, `MenuModeMalloc`, `IsAskExtend` and `MenuItemDebugKey`.
-Retail branched on `v0` and copied the returned pointer in its delay slot;
-those drafts copied first and branched on the saved register. Depth-eight
-native action-character construction preserved the retail base/derived
-operations but retained the allocation schedule difference. Three callers
-now pass with the documented rows and natural source; `IsAskExtend` remains
-guarded with independent residuals.
-
-## Weapon buildup drawing under the verified profile
-
-`MenuWeaponBuildUpDraw__FRi` passes an isolated production-wrapper build
-with the existing Satan's Fiddle profile, GPR `0x30` / FPR `0`. The former
-four-word bottom-bar argument discrepancy at +0x960..+0x970 is absent:
-the binary32 256.0f (`0x43800000`) X argument and computed Y argument to
-`PrimQuad__FP11mgCDrawPrimff9mgRect<i>` have the retail temporary registers.
-No new selector or source-body change is required. Removing only the guard
-passes all `0x1B0E8` allocated unit bytes and 5,764 resolved relocations.
-
-## October 8 near-miss wave
-
-[nearmiss-20261008.md](nearmiss-20261008.md) records the new linkage,
-width, initialization-order, indexed item-limit and compiler-control probes.
-At that point LRCheck, CalcTex and CheckEnableHaveItemNum remained at 2/220,
-7/832 and 13/212 words; the night run later promoted all three functions.
-
-## Ridepod attribute layout residual
-
-`ROBOPART_USED` currently stores ten halfwords in `status` at +0x10: two
-parameters followed by eight attributes at +0x14. `MenuItemDebugKey`'s typed
-attribute view and index temporaries are required by the matching native form;
-replacing them with direct `status[status_index]` changes the function and local
-static numbering. This is a recorded layout residual, not evidence that all ten
-entries are the same kind of parameter.
-
-A private header-only layout probe splits `status[2]` and `attribute[8]` without
-changing the 0x5C record size or unrelated defence types. Its source uses direct
-attribute operations and preserves the retail cap of the following parameter:
-`status[1]` at cursor zero, `attribute[0]` at cursor one. Compilation and section
-fixup succeed, but the LOCAL function grows to 0x16D8 bytes beyond retail's
-0x16D0 padded extent (0x16CC body). The matching ten-entry view remains active.
-
-The earlier split/direct zero retained cross-array cap accesses and unmigrated
-producer writes, and also changed an unrelated defence field; it does not prove
-a safe complete layout correction. A future owning-header change must migrate
-`CopyDataRoboPart`'s attribute stores and preserve the cross-group cap explicitly.
-The safe proposal includes those producer changes, but this caller probe does
-not compile or validate the producer.
+`MENU_ITEM_VIEW` covers Max, Monica, the weapon preview, ridepod, monster and
+fishing-rod pages in `CalcTex`; `LRCheck` uses the corresponding party pages.
+The cursor layout values in `item_menu_argtbl[12]` and the move-slot kinds in
+`MENU_ITEM_MOVE_INFO::from[0]` have no established retail enum names. The
+ridepod weapon attributes still use a ten-halfword `status` view in the
+matching debug function. Splitting the first two status parameters from the
+eight attributes changes its object extent; the producer writes in
+`CopyDataRoboPart` also need a consistent layout before that type can change.
