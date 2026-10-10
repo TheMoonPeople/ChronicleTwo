@@ -133,6 +133,14 @@ class initializers must be generated naturally by the compiler.
   second web is coloured after both. Direct indexing (`table[i].x`) can make
   the row address a CSE temporary instead of a named local, which colours it
   differently from a pointer local to the row (gyorace, gyoracesim).
+- GPR virtual registers number the parameters first, in order. Locals and
+  compiler temporaries follow in reverse order of creation, then code
+  generation temporaries. Low-degree nodes take the first free register in
+  descending number, so a higher number wins the lower register. Named locals
+  are created during parsing. Placement-new and inline-call temporaries are
+  created afterwards and number below every named local. A single-use named
+  local is copy-propagated into its source, but a `T *const &` binding or a
+  `const` pointer local survives (menumain, mg_dataset).
 - A loop's own index, and a variable's first use, are coloured before the loop
   optimizer's derived offsets; a later use is coloured after them, wherever the
   variable is declared. Assigning to a loop index after its loop changes the
