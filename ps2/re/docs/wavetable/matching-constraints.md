@@ -242,3 +242,12 @@ keeps the eight-cell unroll and gives retail's coefficient registers
 first and moves the neighbour sum to `$f5`, so the cell schedule diverges:
 **193/324** words. Retail needs 0.0196 materialised first, so a statement
 that computes 1.9216 ahead of the neighbour scaling cannot match.
+
+## Smart and deferred inline policies
+
+Scoped `inline_depth(smart)` and deferred inlining (`-inline deferred`)
+each preserve the **27/324** residual and `0x510` body, with all four other
+native functions exact. The eighteen coefficient-register exchanges and nine
+seam-addition operand reversals remain. `Effect` has no call for either
+inline policy to expand, and these policies supply no bounded-grid or
+arithmetic correction. No source or compiler-policy change is retained.
