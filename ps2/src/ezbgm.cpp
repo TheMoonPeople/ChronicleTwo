@@ -21,7 +21,6 @@ static int sbuff[16] __attribute__((aligned(16)));
  */
 static sceSifClientData gCd2 __attribute__((aligned(16)));
 
-// Code (.text)
 #ifdef NONMATCHING
 int ezBgmInit() {
     printf("EZ_BGMINIT START \n");

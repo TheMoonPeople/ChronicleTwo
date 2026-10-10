@@ -27,7 +27,6 @@
 #include "scene.hpp"
 #include "scenesnd.hpp"
 
-// Code (.text)
 float f_rand(float min_value, float max_value) {
     return min_value + (((max_value - min_value) * (float) rand()) / 2147483648.0f);
 }

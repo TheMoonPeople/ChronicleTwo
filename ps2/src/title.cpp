@@ -513,7 +513,6 @@ static s16 TitleMCCheckFileFind[2] = {0, 0};
  */
 static u8 TitleMCCheckInport[2] = {0, 0};
 
-// Code (.text)
 /**
  *
  * Seeds title-screen random choices from the current vertical sync count.

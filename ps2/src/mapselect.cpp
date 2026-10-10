@@ -197,7 +197,6 @@ EVENT_VIEW_INFO *EventInfo;
  */
 int BossBattleSelFlag;
 
-// Code (.text)
 /**
  *
  * Reserves map name records and string storage from the scripted record count.

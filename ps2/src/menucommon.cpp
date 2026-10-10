@@ -510,7 +510,6 @@ static inline unsigned int align16_blocks(unsigned int n) {
 
 #include "common.h"
 
-// Code (.text)
 int GetRandI(int range) {
     return rand() % range;
 }

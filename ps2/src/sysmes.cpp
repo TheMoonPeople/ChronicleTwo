@@ -25,7 +25,6 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-// Code (.text)
 ClsMes *GetSystemMessage() {
     return GetSystemMessage(0);
 }
@@ -95,7 +94,6 @@ void CreateSystemMes(int index, int unused) {
     GetSystemMessage(index)->SetBuff_system(GetSystemMesBuffer());
 }
 
-// Uninitialised data (.bss)
 /**
  *
  * Memory the system message windows allocate from.

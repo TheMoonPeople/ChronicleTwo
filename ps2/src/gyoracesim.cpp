@@ -100,7 +100,6 @@ void         LaneBattleStep(RACE_FISH_PARAM *fish, int count);
 grFISH_DATA *GetFishData(int fish_no);
 static float nrnd();
 
-// Code (.text)
 int grGyoRaceSimulate(grRACE_INFO *race) {
     RACE_FISH_PARAM fish[6];
     u_int           hash = 0;

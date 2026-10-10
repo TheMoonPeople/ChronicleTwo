@@ -44,7 +44,6 @@ static s8    init_1223;
 #include "scenesnd.hpp"
 #include "subgame.hpp"
 
-// Code (.text)
 void PrintV(int x, int y, int value, mgCTexture *texture, mgRect<int> rect, int digit_count,
             int right_align, int spacing, SP_RGBA *color) {
     int digits[6];

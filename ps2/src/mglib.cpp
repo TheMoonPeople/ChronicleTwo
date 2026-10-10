@@ -341,7 +341,6 @@ static signed char dimx_281[1][16] = {
     {10, 4, 6, 8, 12, 0, 2, 14, 7, 9, 11, 5, 3, 15, 13, 1}
 };
 
-// Code (.text)
 void mgPerformanceMeter(int enable) {
     draw_performance_meter = enable;
 }
@@ -2085,7 +2084,6 @@ void mgCloseFont() {
     font_draw_flag = 0;
 }
 
-// Small uninitialised data (.sbss)
 int            mgAntialiasing;
 int            mgFrameRate;
 float          mgNowFrameRate;
@@ -2123,7 +2121,6 @@ sceGsTexa      mgTEXA_2;
 sceGsFrame     mgFRAME_1;
 int            ddraw_size;
 
-// Uninitialised data (.bss)
 sceGifTag       mgGiftagAD;
 sceVu0FVECTOR   mgBackColor;
 sceGsDBuff      mgDBuff;

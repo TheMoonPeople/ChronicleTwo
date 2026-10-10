@@ -9,7 +9,6 @@
 
 const int kNoTerritoryFlags = 0xAC2;
 
-// Code (.text)
 void CEditPartsInfo::Initialize() {
     id = -999;
     attr = 0;

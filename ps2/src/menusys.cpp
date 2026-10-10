@@ -847,7 +847,6 @@ static s8 MenuDebugModel_AdjustFlag = 1;
  */
 static s8 SameviewmodeTable_8406[4] = {0, 1, 3, 4};
 
-// Code (.text)
 /**
  *
  * Advances and draws the active message windows in the trash menu.
@@ -12822,7 +12821,6 @@ void MenuItemSelectDraw() {
     }
 }
 
-// Uninitialised data (.bss)
 MENU_ASKMODE_PARA MenuAskParam;
 
 CMENU_USERPARAM MenuUserParam;

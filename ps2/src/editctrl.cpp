@@ -196,7 +196,6 @@ static void EyeCamera(mgCCamera *camera, CCharacter2 *chara, int use_right_stick
 void        InitEyeCamera(CCharacter2 *chara, CCameraControl *camera);
 static void InitLadder(int mode, CScene *scene, CSceneEventData *event);
 
-// Code (.text)
 /**
  *
  * Returns the player data of the active save, or NULL when there is no save.

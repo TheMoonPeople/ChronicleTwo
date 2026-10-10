@@ -43,7 +43,6 @@ union PartsVector {
 
 #include "intersection.hpp"
 
-// Code (.text)
 void CMapParts::Initialize() {
     int i;
 

@@ -371,7 +371,6 @@ enum BuggySceneChara {
     BUGGY_CHARA_GUN_HIT = 0x46   /**< Gun impact effect. */
 };
 
-// Code (.text)
 int sgInitBuggy(SubGameInfo *info) {
     CScene            *scene;
     mgCMemory         *stack;

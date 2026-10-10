@@ -250,8 +250,6 @@ static RS_EXTFUNC_INFO ext_func_info[83] = {
 
 void ParabolicInitialVector(float *result, float *from, float *to, float gravity, float flight_time);
 
-// Code (.text)
-
 /**
  *
  * Reads an action script value as an integer, converting a float slot when needed.

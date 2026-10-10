@@ -203,7 +203,6 @@ static u8 SkipImage[0x2800];
  */
 static int bgm_status[7];
 
-// Code (.text)
 void SwitchNowLoadingThread() {
     RotateThreadReadyQueue(10);
 }

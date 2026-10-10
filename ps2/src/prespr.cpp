@@ -14,7 +14,6 @@ struct SpriteGsPacket {
 
 STATIC_ASSERT(sizeof(SpriteGsPacket) == 0x10);
 
-// Code (.text)
 void CPreSprite::Preset2D() {
     AlphaBlendEnable(1);
     AlphaBlend(MG_ALPHA_BLEND_NORMAL);

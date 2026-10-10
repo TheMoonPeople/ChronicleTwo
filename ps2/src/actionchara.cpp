@@ -81,7 +81,6 @@ void         HitEffectSet(CScene *scene, float *point);
 int          CheckAmuletAvoid(int item_no);
 int          CheckEquipSetItem(int item_no);
 
-// Code (.text)
 void CActionChara::ResetAccele() {
     accele.accele[2] = 0;
     accele.accele[1] = 0;

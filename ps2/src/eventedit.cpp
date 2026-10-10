@@ -88,7 +88,6 @@ static int g_chara_pas_selno;
 void       DrawBox(float (*corners)[4], int r, int g, int b);
 void       MoveChara(CCharacter2 *chara, mgCCamera *camera, mgCMemory *memory);
 
-// Code (.text)
 /**
  *
  * Writes event character and camera placement data to a file.

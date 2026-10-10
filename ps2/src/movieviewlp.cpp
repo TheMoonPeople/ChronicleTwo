@@ -114,7 +114,6 @@ static mgCMemory DataBuffer__2;
  */
 static mgCMemory Stack_ReadBuff__2;
 
-// Code (.text)
 /**
  *
  * Adds one configured movie and its optional music to the viewer list.

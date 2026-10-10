@@ -253,7 +253,6 @@ static CMenuTreeMap *CMenuTreePt;
  */
 static CDC2Mes *MenuDngMes[DNG_TREE_MAP_MES_MAX];
 
-// Code (.text)
 void CDngFreeMap::Initialize() {
     active = 1;
     unk_9 = 0;
@@ -4080,11 +4079,9 @@ void mgRect<float>::Set(float new_left, float new_top, float new_right, float ne
     bottom = new_bottom;
 }
 
-// Constants (.rodata)
 const mgRect<int> dng_light_circle(388, 304, 124, 80);
 const mgRect<int> dngfreemap_num(0, 0, 12, 18);
 
-// Uninitialised data (.bss)
 mgRect<float> treemap_root_put;
 mgRect<int>   Floor_Info(0, 238, 256, 18);
 mgCMemory     MenuTreeMapStack;

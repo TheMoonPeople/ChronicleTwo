@@ -45,7 +45,6 @@
 static int        gekirin_anim[16] = {0, 3, 6, 5, 4, 3, 2, 1, 3, 4, 3, 2, 1, 2, 1, 0};
 static const char at_1221__2[] = "%d";
 
-// Code (.text)
 void CLevelupInfo::SetLevelUpInfo(int screen_x, int screen_y, int source, int value) {
     unk_00 = 0;
     unk_04 = 0;

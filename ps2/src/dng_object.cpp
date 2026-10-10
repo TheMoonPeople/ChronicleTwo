@@ -271,7 +271,6 @@ static char **mons_attr_list[8] = {
     mons_attr_tbl6,
 };
 
-// Code (.text)
 void CRocketLauncher::SetPos(float *pos, float *muzzle_vec, float *direction_vec) {
     int i;
     Initialize();

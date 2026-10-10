@@ -15,7 +15,6 @@
 
 int mgCCamera::StopCamera;
 
-// Code (.text)
 void mgCCamera::Step(int frames) {
     mgCCamera *self = this;
     float      dir[4];

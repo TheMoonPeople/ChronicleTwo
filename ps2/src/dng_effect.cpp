@@ -48,7 +48,6 @@ static int        chill_tex_rect_910[6][3] = {
     {0,  64, 64},
 };
 
-// Code (.text)
 /**
  *
  * Converts an effect strength byte to a float capped at one.

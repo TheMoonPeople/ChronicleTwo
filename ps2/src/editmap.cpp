@@ -115,7 +115,6 @@ static ePlaceData *emapFix;
  */
 static ePlaceData *emapInit;
 
-// Code (.text)
 char *CEditMap::Iam() {
     return CEditMapName;
 }

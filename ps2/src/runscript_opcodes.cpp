@@ -85,7 +85,6 @@ struct RangeEntry {
     int   id;       /**< Entry identifier. */
 };
 
-// Code (.text)
 void CMonsterMan::RunScript(int index) {
     int script;
 

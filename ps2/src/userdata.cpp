@@ -255,7 +255,6 @@ static float BattleParamater_Time;
  */
 static int BattleParamater_TimeBand;
 
-// Code (.text)
 CUserDataManager *GetUserDataMan() {
     CSaveData *save = GetSaveData();
     return save != NULL ? &save->user_data : NULL;
@@ -6874,5 +6873,4 @@ void DebugGetItem(CUserDataManager *user_data, int mode) {
     }
 }
 
-// Uninitialised data (.bss)
 CBattleCharaInfo BattleParamater;

@@ -14,7 +14,6 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 
-// Code (.text)
 int CCollision::InsidePoint(float *point) {
     return mgClipBoxVertex(point, bbox.max, bbox.min) != 0;
 }

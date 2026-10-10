@@ -11,7 +11,6 @@
 int         Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2);
 static void MulMatrix3(float (*matrix)[4], float (*second)[4], float (*third)[4]);
 
-// Code (.text)
 asm void mgFotI4(int *out, float *in) {
     .set noreorder
     lqc2 vf1, 0x0(a1)
@@ -1327,10 +1326,8 @@ float mgCosf(float angle) {
     return mgSinf(1.5707964f + angle);
 }
 
-// Small initialised data (.sdata)
 float sin_table_num = 1024.0f;
 
 float sin_table_unit_1 = 162.97466f;
 
-// Uninitialised data (.bss)
 float SinTable[1024];

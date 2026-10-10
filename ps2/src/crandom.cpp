@@ -2,7 +2,6 @@
 
 #include "crandom.hpp"
 
-// Code (.text)
 float CRandom::nget() {
     float sum = 0.0f;
 

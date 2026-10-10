@@ -9,7 +9,6 @@
 #include "mglib.hpp"
 #include "screeneffect.hpp"
 
-// Code (.text)
 struct DepthTextureName {
     char text[0x20];
 };

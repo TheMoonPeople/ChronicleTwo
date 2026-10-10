@@ -1374,7 +1374,6 @@ static int AQUA_TITLE_H = 66;
  */
 static short m_next_aqua_no = -1;
 
-// Code (.text)
 /**
  *
  * Finds an aquarium grid cell, falling back to the first cell for an invalid index.
@@ -8625,7 +8624,6 @@ void DrawSubGameUnderLine(mgCTexture *texture, int x, int y, int width) {
     prim->End();
 }
 
-// Uninitialised data (.bss)
 mgCMemory Aquarium_NameregistStack;
 CAquarium Aquarium;
 mgCMemory GyoraceFishSelStack;

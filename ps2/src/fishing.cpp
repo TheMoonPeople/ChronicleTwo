@@ -988,7 +988,6 @@ static mgCMemory FishingBuff;
  */
 static mgCMemory FishStack;
 
-// Code (.text)
 /**
  *
  * Returns the fish parameter record for a valid fish index.

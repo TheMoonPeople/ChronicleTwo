@@ -18,7 +18,6 @@
 #include "scenesnd.hpp"
 #include "sound.hpp"
 
-// Code (.text)
 void CalcReflectionVector(float *incoming, float *surface, float *reflected) {
     float normal[4];
     float dx;
@@ -566,7 +565,6 @@ void CPot::Init(int keep_velocity) {
     fly_time = 0;
 }
 
-// Initialised data (.data)
 /**
  *
  * Starting offsets of the twelve pieces of a broken box.

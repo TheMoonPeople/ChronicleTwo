@@ -37,7 +37,6 @@ mgCTexture *TEX_ExFx_FIRE;
 mgCTexture *TEX_ExFx_ICE;
 mgCTexture *TEX_ExFx_THUN;
 
-// Code (.text)
 void GetTextureInfo(CScene *scene) {
     TEX_ShadowTexture = mgTexManager.GetTexture("work", -1);
     TEX_SystenFrame = mgTexManager.GetTexture("frame", -1);

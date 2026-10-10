@@ -17,7 +17,6 @@
 static int         LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred);
 static const u_int timer0_count = 0x10000000;
 
-// Code (.text)
 /**
  *
  * Loads each enabled map file into the scene stack, optionally through background I/O.

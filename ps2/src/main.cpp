@@ -22,7 +22,6 @@
 static volatile int vcount;
 static int          VSyncCallBack(int event);
 
-// Code (.text)
 /**
  *
  * Counts vertical blank interrupts and resets the count if it wraps negative.

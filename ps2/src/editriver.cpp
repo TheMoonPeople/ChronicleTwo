@@ -13,7 +13,6 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 
-// Code (.text)
 int CEditMap::PlaceRiver(float *pos) {
     for (int i = 0; i < grid_max; i++) {
         CEditGrid *grid = this->grid[i];

@@ -12,8 +12,6 @@
  */
 static short limmit_table[7] = {9, 16, 25, 21, 23, 29, 39};
 
-// Code (.text)
-
 DNG_FLOOR_SAVE *CSaveDataDungeon::GetFloorInfoPtr(int dungeon, int floor) {
     if (dungeon < 0 || dungeon >= 7) {
         return NULL;

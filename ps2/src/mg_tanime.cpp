@@ -143,7 +143,6 @@ static int texBugPatch;
 /** Record the script is building. */
 static mgCTexAnimeData nowTexData;
 
-// Code (.text)
 #pragma schedule off
 #pragma optimization_level 2
 

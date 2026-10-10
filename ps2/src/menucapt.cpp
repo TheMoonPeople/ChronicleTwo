@@ -85,7 +85,6 @@ static int menu_chap_error_check_cnt;
  */
 static mgCMemory MenuChapterStack;
 
-// Code (.text)
 void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapter) {
     static char *chap_voice[8] = {
         "0060600.wav",

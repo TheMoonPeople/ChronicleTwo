@@ -11,7 +11,6 @@
  * the easily confused l, o, I and O.
  *
  */
-// Initialised data (.data)
 static char txt_table__2[] = "0123456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 
 /**
@@ -19,11 +18,9 @@ static char txt_table__2[] = "0123456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQR
  * Holds the state of the scrambling generator.
  *
  */
-// Small initialised data (.sdata)
 static unsigned int random_seed = 1;
 
 #pragma optimization_level 0
-// Code (.text)
 #pragma unsigned_char off
 
 /**

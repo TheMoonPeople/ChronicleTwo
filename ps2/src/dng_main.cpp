@@ -75,7 +75,6 @@ extern CWeaponElement wep_effect[8];
 #include "sysmes.hpp"
 #include "wavetable.hpp"
 
-// Small uninitialised data (.sbss)
 mgCMemory           *MainBuffer;
 u_long128           *BuffReadData;
 static int           debag_param;
@@ -127,7 +126,6 @@ static int  debug_mons_no;
 static int  debug_mons_cur;
 static int  debug_mons_num;
 
-// Uninitialised data (.bss)
 mgCMemory             BuffPaketList[2];
 mgCMemory             BuffPaketData[2];
 mgCMemory             BuffStageMain;
@@ -184,7 +182,6 @@ CTornado              tornado[6];
 CChillAfterHit        chillAfterHit[6];
 CFireAfterHit         fireAfterHit[6];
 
-// Code (.text)
 CWeaponElement *GetWeaponEffect() {
     CWeaponElement *effect = &wep_effect[wep_effect_cnt++];
 

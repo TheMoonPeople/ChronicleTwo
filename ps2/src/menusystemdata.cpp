@@ -25,7 +25,6 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
-// Code (.text)
 CMenuSystemData::CMenuSystemData() {
     MenuSystemDataInit();
 }

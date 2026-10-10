@@ -859,7 +859,6 @@ static const u16 menu_chr_memorytbl[MENU_CHARA_LOAD_MAX] = {
     0x1B80, 0x9AC0, 0x1C84, 0x11C0, 0x0BC0, 0x26C0, 0x0708};
 int ReadBGSync();
 
-// Code (.text)
 void InitMenuBGReadInfo2(MENU_BGREAD_INFO2 *info) {
     info->reading = 0;
     info->chara = NULL;
@@ -8069,7 +8068,6 @@ void MonsterBookDraw() {
     }
 }
 
-// Initialised data (.data)
 s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] = {
     {0, 0,   1,   2,   3  },
     {0, 0,   1,   22,  23 },
@@ -8092,12 +8090,9 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
     {9, 224, 236, 228, 240},
 };
 
-// Constants (.rodata)
-
 // Virtual tables (.vtables)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuChrCngMenu__DATA);
 
-// Small uninitialised data (.sbss)
 mgCMemory *MorattaStack;
 
 MENU_LOAD_INFO MenuLoadInfo;
@@ -8110,7 +8105,6 @@ mgCTexture *MenuCharaChangeStar_Tex;
 
 u32 *CharaSndBuffer;
 
-// Uninitialised data (.bss)
 MENU_BGREAD_INFO2 *MenuCharaBuild2[MENU_CHARA_LOAD_MAX];
 
 CActionChara *MenuActionChara[MENU_CHARA_LOAD_MAX];

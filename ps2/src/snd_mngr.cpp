@@ -159,7 +159,6 @@ static void  CSndStepWait();
 static char *GetLine(char **col, char *text, char *end);
 #endif
 
-// Code (.text)
 int CLoopSeMngr::Create(int sequence_count, mgCMemory *memory) {
     unsigned int byte_count;
     unsigned int quadwords;

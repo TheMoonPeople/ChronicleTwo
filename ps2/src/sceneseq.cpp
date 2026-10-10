@@ -25,7 +25,6 @@
         }                                \
     }
 
-// Code (.text)
 /**
  *
  * Clears a spline key before camera or character path setup.

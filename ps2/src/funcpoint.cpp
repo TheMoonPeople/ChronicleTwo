@@ -18,7 +18,6 @@
 #include "sound.hpp"
 #include "water.hpp"
 
-// Code (.text)
 int CheckTime(float time, float start, float end) {
     int outside;
 

@@ -673,7 +673,6 @@ static InventCommandList modecmdtbl_3636[12] = {
 static u8 jp_conv_lentbl_2835[12] = {
     2, 2, 2, 4, 4, 8, 6, 4, 6, 14, 10, 6};
 
-// Code (.text)
 CInventUserData *GetInventUserDataPtr() {
     CSaveData *save = GetSaveData();
 
@@ -7642,7 +7641,6 @@ void MenuInventDraw() {
     }
 }
 
-// Uninitialised data (.bss)
 static mgCMemory MenuInventStack;
 static mgCMemory MenuInventCharaStack;
 static mgCMemory MenuInventMCStack;

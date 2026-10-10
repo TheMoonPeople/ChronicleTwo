@@ -888,7 +888,6 @@ DAMAGE_PARAM Damage_Param_Table[DAMAGE_PARAM_MAX] = {
     {"\x83\x82\x83\x93\x83X\x83^\x81[\x8C\x95",            DAMAGE_SHAPE_LINE,                       {0}, DAMAGE_TARGET_BY_OWNER,                       DAMAGE_KIND_MONSTER,       {0}, 0,  0, 0, 1, 0, 0,   0x0,  -1, {0, 0, 0, 0, 0, 0, 0, 0},   8, 0x0,      10, 1},
 };
 
-// Code (.text)
 int CColPrim::SetDamage(char *name, int owner_id) {
     int           index = 0;
     DAMAGE_PARAM *param = Damage_Param_Table;

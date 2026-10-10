@@ -117,7 +117,6 @@ static SPI_TAG_PARAM tree_map_tag[] = {
  */
 static int offsetTable_911[] = {0, 4, 8, 12, 16};
 
-// Code (.text)
 void CDngFloorManager::Initialize() {
     dng_no = 0;
     glid_info = NULL;

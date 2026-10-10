@@ -4,7 +4,6 @@
 #include "mg_memory.hpp"
 #include "mglib.hpp"
 
-// Code (.text)
 mgCDrawPrim::mgCDrawPrim() {
     memory = NULL;
     vif_packet = NULL;

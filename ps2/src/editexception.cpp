@@ -157,7 +157,6 @@ static inline u32 align16_blocks(u32 bytes) {
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 
-// Code (.text)
 void EditExceptionStep(int map_no, CScene *scene) {
     int quarter;
     int frame;

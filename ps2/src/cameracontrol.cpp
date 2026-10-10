@@ -16,7 +16,6 @@
 #include "mglib.hpp"
 #include "padcontrol.hpp"
 
-// Code (.text)
 void CameraCtrlParam::SetFixHeight(float height) {
     max_height = height;
     min_height = height;

@@ -19,7 +19,6 @@
 void DivSpriteScreen(mgCDrawPrim &prim);
 void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int mode);
 
-// Code (.text)
 void CEffectList::LoadEFPFile(char *name, u_int *pack, int block, mgCMemory *stack) {
     int                sizes[64];
     u_int             *files[64];

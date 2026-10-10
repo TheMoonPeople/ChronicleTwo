@@ -124,7 +124,6 @@ const int mes_page_break = 0xFF03;
 #include "common.h"
 #include "mw_runtime.h"
 
-// Code (.text)
 void MySetPrim(mgCDrawPrim *prim, int mode, int bilinear) {
     prim->Initialize(NULL, NULL);
 

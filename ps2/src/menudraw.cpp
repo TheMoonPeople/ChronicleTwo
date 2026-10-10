@@ -951,7 +951,6 @@ static short xyoffset_4192[2] = {20, 43};
  */
 static short actpos_4193[2] = {44, 16};
 
-// Code (.text)
 void AttachMessageForm() {
     char name[32];
 
@@ -7872,7 +7871,6 @@ void PrimQuad_i_(mgCDrawPrim *prim, mgRect_i_ rect, mgRect_i_ tex_rect) {
     }
 }
 
-// Small uninitialised data (.sbss)
 int MenuDrawItemInfoNum;
 
 CGameDataUsed *NowGiftBoxPtr;
@@ -7895,7 +7893,6 @@ CMenuPosDataManage *MenuPosData;
 
 mgCTexture *MenuFrameTex;
 
-// Uninitialised data (.bss)
 u8 menu_limmit_displayflag[0x9C];
 
 CMenuPosDataForm *MenuMesForm[9];

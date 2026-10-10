@@ -14,7 +14,6 @@
 
 static mgCFrameAttr dmy_attr;
 
-// Code (.text)
 void mgCFrameAttr::Initialize() {
     memset(this, 0, sizeof(mgCFrameAttr));
     mgCVisualAttr::Initialize();

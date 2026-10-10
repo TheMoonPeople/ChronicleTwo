@@ -66,7 +66,6 @@ static int eaPERCENT(SPI_STACK *stack, int argc);
 static int eaEND_ANALYZE(SPI_STACK *stack, int argc);
 static int eaEND_GEO_ANALYZE(SPI_STACK *stack, int argc);
 
-// Code (.text)
 void EditAnalyzeDataSrc::Init() {
     message = NULL;
     percent = 0;

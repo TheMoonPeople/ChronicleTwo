@@ -29,7 +29,6 @@ float def_vrtx[800][4];
 
 static float def_nml[1][4];
 
-// Code (.text)
 /**
  *
  * Blends rotation quaternion keys and writes the resulting rotation.

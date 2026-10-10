@@ -147,7 +147,6 @@ static int ShowLevelUpCnt;
  */
 static char PhotoTitle[128];
 
-// Code (.text)
 char *GetMesTxt(int message_id) {
     if (message_id < 0 || message_id >= PHOTO_MES_NUM) {
         return null_txt;

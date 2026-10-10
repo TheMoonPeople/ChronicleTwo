@@ -363,7 +363,6 @@ static float old_ambient[4];
  */
 GYORACE_FISH_INF fish_inf[6];
 
-// Code (.text)
 int sgInitGyoRace(SubGameInfo *info) {
     mgCTextureManager *textures;
     CScene            *scene = info->scene;
@@ -1851,9 +1850,6 @@ int Jikkyou(SubGameInfo *info) {
     return 0;
 }
 
-// Constants (.rodata)
-
-// Uninitialised data (.bss)
 /**
  *
  * Camera the fish race scene is viewed through.

@@ -45,7 +45,6 @@ static int g_eff_entry_flag;
  */
 static char g_tmp_eff_name[0x20];
 
-// Code (.text)
 /**
  *
  * Draws a uniform random value around a center.

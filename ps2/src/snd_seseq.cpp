@@ -8,7 +8,6 @@
 #include "snd_mngr.hpp"
 #include "snd_seseq.hpp"
 
-// Code (.text)
 /**
  *
  * Copies a big-endian field into little-endian byte order.

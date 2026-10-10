@@ -750,7 +750,6 @@ int MenuBGTextureBlock = -1;
  */
 int MenuItemIconTextureBlock = -1;
 
-// Code (.text)
 void MenuScreenBlackBeltSet(int enable) {
 }
 
@@ -2797,5 +2796,3 @@ void BookshelfMessageMake(ClsMes *message, int base_window, int item_no, int mon
         message->MakeMesWin(window_no);
     }
 }
-
-// Constants (.rodata)

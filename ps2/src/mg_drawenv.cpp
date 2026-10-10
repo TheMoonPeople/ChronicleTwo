@@ -6,7 +6,6 @@
 #include "mg_drawenv.hpp"
 #include "mg_math.hpp"
 
-// Code (.text)
 mgCDrawEnv::mgCDrawEnv() {
     Initialize(0);
 }

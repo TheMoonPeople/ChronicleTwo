@@ -109,7 +109,6 @@ static void dngDebugExit();
  *
  */
 
-// Code (.text)
 DNG_DEBUG_INFO *dngGetDebugInfo() { return &dbinfo; }
 
 void dngDebugInit() {
@@ -485,6 +484,5 @@ void DrawDebugWindow() {
     }
 }
 
-// Uninitialised data (.bss)
 CFont          dbFont;
 DNG_DEBUG_INFO dbinfo;

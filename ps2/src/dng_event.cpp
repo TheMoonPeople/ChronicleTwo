@@ -67,7 +67,6 @@ static int                     nowTboxItemCnt;
 static float                   at_1936__2[4] = {0.0f, 20.0f, 80.0f, 1.0f};
 static MapJumpMapInfo          MainMapInfo;
 
-// Code (.text)
 void CStartupEpisodeTitle::DrawEpisode(int mes_tex_block, int frame_tex_block) {
     if (mes == NULL || state == (int) EPISODE_TITLE_OFF) {
         return;

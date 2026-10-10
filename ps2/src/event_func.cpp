@@ -220,7 +220,6 @@ const int request_menu = EVENT_COMMAND_SUB_MODE;
 const int request_door = EVENT_COMMAND_DOOR;
 const int event_sprite2_size = 0x80;
 
-// Code (.text)
 CEoh::CEoh() {
     type = EOH_TYPE_NONE;
     scene_no = -1;
@@ -18366,7 +18365,6 @@ void SetEventFunc(CRunScript *script) {
     script->ext_func(ext_func, event_func_slots);
 }
 
-// Uninitialised data (.bss)
 ED_EVENT_INFO EdEventInfo;
 
 inline CEventScriptArg::CEventScriptArg() {

@@ -61,7 +61,6 @@ static SPI_TAG_PARAM tag[] = {
     {NULL,         NULL       },
 };
 
-// Code (.text)
 void CMapSky::Initialize() {
     for (int band = 0; band < 4; band++) {
         sky[band] = NULL;

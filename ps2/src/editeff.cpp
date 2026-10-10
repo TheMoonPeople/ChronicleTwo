@@ -59,7 +59,6 @@ static CPaintEffect *PaintEffect;
 extern CStarEffect _StarEffect[star_effect_count];
 extern mgCMemory   CurPartsBuff;
 
-// Code (.text)
 void EditSetEffectBuffer(mgCMemory *memory) {
     mgCTexture *texture = mgTexManager.GetTexture("haichi_eff", -1);
     int         i;
@@ -774,7 +773,6 @@ int EditPlaceAnimeEndCheck() {
 
 CStarEffect::CStarEffect() {}
 
-// Uninitialised data (.bss)
 CStarEffect _StarEffect[star_effect_count];
 mgCMemory   CurPartsBuff;
 

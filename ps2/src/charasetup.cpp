@@ -100,7 +100,6 @@ struct SetupPartOrder {
 
 static int SetupRobo(CScene *scene, CUserDataManager *user_data, ROBO_INFO_DATA *robo_info);
 
-// Code (.text)
 void GetCharacterSnd(CUserDataManager *user_data, int unit, char *path) {
     CHARA_DATA    *chara = user_data->GetCharaDataPtr(unit);
     CGameDataUsed *equip = chara->equip;

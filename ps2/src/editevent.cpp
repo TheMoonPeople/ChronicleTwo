@@ -37,7 +37,6 @@ const int kEventNumberF9 = 0xF9;
 
 static int CheckPlaceBurnParts(GeoFuncParam *param, RS_STACKDATA *args, int argc);
 
-// Code (.text)
 void CEditEvent::Reset() {
     state = EDIT_EVENT_STATE_IDLE;
     unk_c = 0;

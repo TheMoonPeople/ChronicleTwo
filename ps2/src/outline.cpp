@@ -8,7 +8,6 @@
 #include "mglib.hpp"
 #include "outline.hpp"
 
-// Code (.text)
 void COutLineDraw::Initialize() {
     mgZeroVector(unk_10.max);
     mgZeroVector(unk_10.min);

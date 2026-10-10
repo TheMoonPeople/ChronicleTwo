@@ -8,7 +8,6 @@
 #include "villagermngr.hpp"
 #include "vlgr_info.hpp"
 
-// Code (.text)
 void CVillagerPlace::ProgressInfo::Init() {
     progress = 0;
     place[0][1] = NULL;

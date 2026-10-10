@@ -412,7 +412,6 @@ static sceVu0FVECTOR now_balance_h;
  */
 static CFont Font__2;
 
-// Code (.text)
 /**
  *
  * Returns the current editor control lock count.

@@ -208,7 +208,6 @@ sceVu0FVECTOR mapRot;
  */
 sceVu0FVECTOR mapScale;
 
-// Code (.text)
 MAP_TIME_BAND GetTimeBand(float time) {
     MAP_TIME_BAND band = MAP_TIME_BAND_NIGHT;
 

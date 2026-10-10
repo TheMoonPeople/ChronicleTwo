@@ -276,7 +276,6 @@ static SPI_TAG_PARAM menu_shop_tag[3] = {
     {NULL,    NULL         }
 };
 
-// Code (.text)
 int GetDonyShopLineUp(int *item_list, int *status) {
     CInventUserData *invent_data = GetInventUserDataPtr();
     CMenuSystemData *system_data = GetMenuSysData();

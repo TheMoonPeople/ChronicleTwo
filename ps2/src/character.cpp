@@ -280,7 +280,6 @@ static SPI_TAG_PARAM skin_tag[] = {
     {NULL,      NULL         },
 };
 
-// Code (.text)
 void CCharacter2::SetPosition(float *pos) {
     mgCObject::SetPosition(pos);
 }

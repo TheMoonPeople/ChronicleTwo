@@ -46,7 +46,6 @@ struct HankakuKanaTable {
  */
 static u8 FontTblBinBuff[FONT_TBL_BIN_SIZE];
 
-// Code (.text)
 int GetGaijiW(int code) {
     if (code >= GAIJI_CODE_TOP && code < GAIJI_CODE_END) {
 
@@ -1144,7 +1143,6 @@ void CFont::Init() {
     offset_y = 0.0f;
 }
 
-// Initialised data (.data)
 /**
  *
  * Gives the texture rectangle and drawing offset of each external glyph.

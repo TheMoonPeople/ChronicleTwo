@@ -30,8 +30,6 @@ static NPC_BASE_DATA NpcBaseData[180] __attribute__((aligned(16)));
  */
 static u8 npc_spi_count_num;
 
-// Code (.text)
-
 /**
  *
  * Records the number of party characters declared by the NPC script.

@@ -29,7 +29,6 @@ static mgCMemory *spi_queststack;
  */
 static QUEST_INFO *spi_quest_info;
 
-// Code (.text)
 /**
  *
  * Returns the saved quest progress when save data is available.

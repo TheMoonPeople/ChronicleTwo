@@ -10,7 +10,6 @@
 #include "mg_shadow.hpp"
 #include "mg_visual.hpp"
 
-// Code (.text)
 #pragma schedule off
 
 /**

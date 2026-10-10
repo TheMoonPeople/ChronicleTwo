@@ -50,7 +50,6 @@ static GOLF_CLUB_DEF GolfClubDef[7] = {
  */
 CSphida *Sphida;
 
-// Code (.text)
 GOLF_CLUB_DEF *GetSphidaClubDef(int club) {
     if (club < 9 || club > 14) {
         return 0;

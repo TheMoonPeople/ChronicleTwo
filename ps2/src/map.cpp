@@ -39,7 +39,6 @@ enum {
  */
 char *CMapName = "CMap";
 
-// Code (.text)
 int CMapFlagData::SetFlag(int no, int on) {
     u32 mask;
     u32 old_flag;

@@ -318,7 +318,6 @@ static inline u_int align16_blocks(u_int n) {
 
 #pragma schedule off
 
-// Code (.text)
 /**
  *
  * Gives the VRAM block address of the Z buffer and stores the GS blocks

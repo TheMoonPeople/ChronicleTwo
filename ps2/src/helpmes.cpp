@@ -53,7 +53,6 @@ static ClsMes HelpMes;
  */
 static HELP_MES_INFO HelpMesInfo;
 
-// Code (.text)
 void LoadHelpMes(u_long128 *scratch) {
     char path[0x4C];
     int  size;

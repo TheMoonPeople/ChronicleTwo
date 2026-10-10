@@ -145,7 +145,6 @@ static char NowInterior[0x40];
  */
 static CScene::BGM_STATUS OldBgmStatus;
 
-// Code (.text)
 int GetMainMapNo() {
     return NowMainMapNo;
 }

@@ -289,7 +289,6 @@ static inline u_int align16_blocks(u_int size) {
     return size >> 4;
 }
 
-// Code (.text)
 void CEffectScriptMan::Initialize(mgCMemory *memory, int texb_start, int texb_num) {
     int                i;
     int                j;
@@ -5744,7 +5743,6 @@ void SetEffectScriptFunc() {
     }
 }
 
-// Small uninitialised data (.sbss)
 CScene *now_scene;
 
 CEffectScriptMan *EffScriptMan;

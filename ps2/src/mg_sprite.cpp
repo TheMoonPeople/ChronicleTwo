@@ -81,7 +81,6 @@ static SpriteGifTagBuf sprite_giftag __attribute__((aligned(16))) = {
     0,
 };
 
-// Code (.text)
 int mgC3DSprite::CreateRenderInfoPacket(u_int         *dest, float (*matrix)[4],
                                         mgRENDER_INFO *render_info) {
     sceVu0FMATRIX         local_screen;

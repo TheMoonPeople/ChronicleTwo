@@ -85,7 +85,6 @@ struct WaterFinishPacket {
 
 STATIC_ASSERT(sizeof(WaterFinishPacket) == 0x30);
 
-// Code (.text)
 void CFireRaster::Step() {
     FireRasterParticle *free_slot = 0;
     int                 i = 0;

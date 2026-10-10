@@ -8,7 +8,6 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 
-// Code (.text)
 void CEditMap::DrawFireEffect(int tex_block) {
     CMap::DrawFireEffect(tex_block);
     CFuncPointCheck check;

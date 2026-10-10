@@ -572,7 +572,6 @@ static signed char ItemCmdMsgTbl[33][8] = {
     {48, -1, 0,  0,  0,  0,  0,  0 },
 };
 
-// Code (.text)
 CGameData *GetGameDataPt() {
     return &GameItemDataManage;
 }

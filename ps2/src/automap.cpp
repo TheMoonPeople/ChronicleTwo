@@ -371,7 +371,6 @@ static MINIMAP_SYMBOL_INFO symbol_table[] = {
     {MINIMAP_SYMBOL_END,           0,   0,   0,   0,  0,  0, 0}
 };
 
-// Small uninitialised data (.sbss)
 /**
  *
  * Floor generator whose room script is running.
@@ -431,7 +430,6 @@ struct ROOM_LINK_POINT {
     int y; /**< Vertical grid position. */
 };
 
-// Code (.text)
 void CMiniMapSymbol::SetMapInfo(CMap *new_map, CAutoMapParts *new_auto_map_parts, int width, int height,
                                 float cell_width, float cell_depth) {
     if (new_map == 0) {
