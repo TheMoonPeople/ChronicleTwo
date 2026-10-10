@@ -2,7 +2,9 @@
 
 The unit owns no classes (`class_units.tsv` has none). It holds two global, non-member functions
 and four compiler-generated `.sbss` literals (`at_205`, `at_206`, `at_283__2`, `at_292__2`, all
-local), so the header has no `extern` data.
+local), so the header has no `extern` data. They are the native zero
+templates for the depth, alpha, texture-pointer and radius arrays in the
+matched function bodies; no assembly data markers remain.
 
 ## DepthOfField(int levels, float *depths, mgCTexture *work_texture, float strength) -- 0x17F760
 - Callers: `EditDraw__Fv` (editloop) passes `(1 or 2, float[1|2] literal, texture got by name from
