@@ -4972,14 +4972,12 @@ void CPosDataManage::InitDrawList() {
 }
 
 CMenuPosDataForm *CPosDataManage::GetDrawTopList() {
-
     CMenuPosDataForm *next;
     CMenuPosDataForm *form;
 
     form = GetFormInfo(0);
 
-    if (form != NULL) {
-    loop_1:
+    while (form != NULL) {
         next = form->prev;
 
         if (next == NULL) {
@@ -4987,15 +4985,8 @@ CMenuPosDataForm *CPosDataManage::GetDrawTopList() {
         }
 
         form = next;
-
-        if (next == NULL) {
-            goto block_4;
-        }
-
-        goto loop_1;
     }
 
-block_4:
     return NULL;
 }
 
