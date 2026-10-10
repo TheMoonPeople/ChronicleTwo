@@ -4,13 +4,15 @@ Event-scene sequencers. `CSceneCmrSeq` (one global, `CameraSeq` in event_func) a
 (32 of them, `ObjectSeq` in event_func) hold queues of commands built by the event script
 (`_CMRS_*` / `_OBJS_*` in event_func) and run them every frame in `Play`. No first-game
 counterpart exists (nothing in `/home/adubbz/development/chronicle` mentions these types).
+Both dispatch tables and all other data are native; no RODATA or BSS
+reservations remain.
 
 ## Linkage
 - Local (static, belong in the .cpp): `InitSplineKey`, `InitSceneCmrSeq`, `InitSceneObjSeq`,
   all 75 `scs*` handlers, and the tables `ScsCmrSeqCallTbl` / `ScsObjSeqCallTbl`
   (`build/re/local_symbols.tsv`). The header therefore has no free functions and no externs.
-- `at_1527__2` (16 zero bytes, .rodata) is the empty string `""` passed to strcpy/strcmp.
-- `at_2863` is the jump table of the `switch` in `CSceneObjSeq::Play` (track select, 7 cases).
+- Empty-string arguments are inline. The `CSceneObjSeq::Play` seven-track
+  switch emits its jump table directly.
 - No virtual functions in any class; no vtables.
 
 ## Command tables
