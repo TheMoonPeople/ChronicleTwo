@@ -100,22 +100,22 @@ void CActionChara::ResetAction() {
         }
 
         i++;
-    } while (i < 3);
+    } while (i < CHARA_SWORD_EFFECT_MAX);
 
-    hold_type = 0;
+    hold_type = ACTION_HOLD_NONE;
     add_speed = 0.0f;
     add_time = 0;
     blow_speed = 0.0f;
     blow_time = 0;
-    accume.frame = 0;
+    accume.frame = NULL;
     action_info.chara = this;
     action_info.env = NULL;
 
-    if (this->script.check_program(0x96) != 0) {
-        this->script.run(0x96);
+    if (this->script.check_program(ACTION_PROG_RESET) != 0) {
+        this->script.run(ACTION_PROG_RESET);
     }
 
-    prog_no = 0xC8;
+    prog_no = ACTION_PROG_MAIN;
 }
 
 void CActionChara::ResetScript() {
@@ -125,17 +125,17 @@ void CActionChara::ResetScript() {
     int l;
     int m;
 
-    for (i = 0; i < 8; i++) {
-        object[i].frame = 0;
+    for (i = 0; i < ACTION_OBJECT_MAX; i++) {
+        object[i].frame = NULL;
     }
 
-    for (j = 0; j < 16; j++) {
-        body_col[j].type = 0;
+    for (j = 0; j < ACTION_BODY_COL_MAX; j++) {
+        body_col[j].type = ACTION_BODY_COL_NONE;
         body_col[j].unk_20 = -1;
     }
 
-    for (k = 0; k < 11; k++) {
-        damage[k].use = 0;
+    for (k = 0; k < ACTION_DAMAGE_MAX; k++) {
+        damage[k].use = false;
         damage[k].chara = NULL;
         damage[k].frame0 = NULL;
         damage[k].frame1 = NULL;
@@ -145,29 +145,29 @@ void CActionChara::ResetScript() {
 
     damage_num = 0;
 
-    for (l = 0; l < 10; l++) {
+    for (l = 0; l < ACTION_SOUND_MAX; l++) {
         sound[l].se_no = -1;
     }
 
-    for (m = 0; m < 3; m++) {
+    for (m = 0; m < CHARA_SWORD_EFFECT_MAX; m++) {
         if (sword_effect[m] != NULL) {
             sword_effect[m]->Clear();
         }
     }
 
-    hold_type = 0;
+    hold_type = ACTION_HOLD_NONE;
     add_speed = 0.0f;
     add_time = 0;
     blow_speed = 0.0f;
     blow_time = 0;
-    accume.frame = 0;
+    accume.frame = NULL;
 }
 
 s32 CActionChara::CheckRunEvent() {
     s32 can_run = menu_flag;
 
-    if (hold_type != 0) {
-        can_run = 0;
+    if (hold_type != ACTION_HOLD_NONE) {
+        can_run = false;
     }
 
     return can_run;
@@ -188,7 +188,7 @@ ACTION_OBJECT *CActionChara::EntryObject(char *name, int no) {
     entry_frame = SearchObject(name);
 
     if (entry_frame == NULL) {
-        return 0;
+        return NULL;
     }
 
     index = 0;
@@ -201,8 +201,8 @@ ACTION_OBJECT *CActionChara::EntryObject(char *name, int no) {
         return &object[no];
     }
 
-    for (; index < 8; index++) {
-        if (object[index].frame == 0) {
+    for (; index < ACTION_OBJECT_MAX; index++) {
+        if (object[index].frame == NULL) {
             object[index].frame = entry_frame;
             object[index].pos[2] = 0.0f;
             object[index].pos[1] = 0.0f;
@@ -211,7 +211,7 @@ ACTION_OBJECT *CActionChara::EntryObject(char *name, int no) {
         }
     }
 
-    return 0;
+    return NULL;
 }
 
 void CActionChara::CalcCollision() {
@@ -227,23 +227,23 @@ void CActionChara::CalcCollision() {
 
         index += 1;
         entry = &entry[1];
-    } while (index < 8);
+    } while (index < ACTION_OBJECT_MAX);
 }
 
 ACTION_BODY_COL *CActionChara::EntryBodyCol(int index, float radius) {
     int i;
 
-    if (index < 0 || index >= 8) {
+    if (index < 0 || index >= ACTION_OBJECT_MAX) {
         return NULL;
     }
 
-    if (object[index].frame == 0) {
+    if (object[index].frame == NULL) {
         return NULL;
     }
 
-    for (i = 0; i < 16; i++) {
-        if (body_col[i].type == 0) {
-            body_col[i].type = 2;
+    for (i = 0; i < ACTION_BODY_COL_MAX; i++) {
+        if (body_col[i].type == ACTION_BODY_COL_NONE) {
+            body_col[i].type = ACTION_BODY_COL_SPHERE;
             body_col[i].object = index;
             body_col[i].radius = radius;
             return &body_col[i];
@@ -261,7 +261,7 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b
     float     start_frame;
     float     end_frame;
 
-    if (damage_num >= 11) {
+    if (damage_num >= ACTION_DAMAGE_MAX) {
         return NULL;
     }
 
@@ -276,8 +276,8 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b
         frame_b = SearchObject(frame_name_b);
     }
 
-    for (i = 0; i < 11; i++) {
-        if (damage[i].use == 0) {
+    for (i = 0; i < ACTION_DAMAGE_MAX; i++) {
+        if (!damage[i].use) {
             start_frame = GetWaitToFrame(motion, start_ratio, chara_name);
             end_frame = GetWaitToFrame(motion, end_ratio, chara_name);
 
@@ -285,7 +285,7 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(char *frame_name_a, char *frame_name_b
                 return NULL;
             }
 
-            damage[i].use = 1;
+            damage[i].use = true;
             damage[i].frame0 = frame_a;
             damage[i].frame1 = frame_b;
             damage[i].damage = hit_name;
@@ -308,12 +308,12 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, 
     float start_frame;
     float end_frame;
 
-    if (damage_num >= 11) {
+    if (damage_num >= ACTION_DAMAGE_MAX) {
         return NULL;
     }
 
-    for (i = 0; i < 11; i++) {
-        if (damage[i].use == 0) {
+    for (i = 0; i < ACTION_DAMAGE_MAX; i++) {
+        if (!damage[i].use) {
             start_frame = GetWaitToFrame(motion, start_ratio, chara_name);
             end_frame = GetWaitToFrame(motion, end_ratio, chara_name);
 
@@ -321,7 +321,7 @@ ACTION_DAMAGE *CActionChara::EntryDamage2(mgCFrame *frame_a, mgCFrame *frame_b, 
                 return NULL;
             }
 
-            damage[i].use = 1;
+            damage[i].use = true;
             damage[i].frame0 = frame_a;
             damage[i].frame1 = frame_b;
             damage[i].damage = hit_name;
@@ -342,7 +342,7 @@ void CActionChara::AllDeleteDamage() {
     int i;
 
     for (i = 0; i < damage_num; i++) {
-        if (damage[i].use != 0) {
+        if (damage[i].use) {
             if (damage[i].prim != NULL) {
                 damage[i].prim->Delete(-1);
             }
@@ -358,13 +358,13 @@ ACTION_SW_EFFECT *CActionChara::GetSwEffectPtr() {
     i = 0;
 
     do {
-        if (slot->motion == 0) {
+        if (slot->motion == NULL) {
             return slot;
         }
 
         i += 1;
         slot = &slot[1];
-    } while (i < 9);
+    } while (i < ACTION_SW_EFFECT_MAX);
 
     return NULL;
 }
@@ -479,7 +479,7 @@ int CActionChara::CheckKeri(char *name, int kick) {
     object = SearchObject(name);
 
     if (object == NULL) {
-        return 0;
+        return false;
     }
 
     object->GetWorldPosition0(pos);
@@ -500,14 +500,14 @@ int CActionChara::CheckKeri(char *name, int kick) {
                 piece->Show(0);
             }
 
-            release_timing = 5;
+            release_timing = ACTION_RELEASE_KICK;
             hold_parts = stone;
         }
 
-        return 1;
+        return true;
     }
 
-    return 0;
+    return false;
 }
 
 int CActionChara::CheckEnemyCatch(char *name) {
@@ -523,16 +523,16 @@ int CActionChara::CheckEnemyCatch(char *name) {
     object = SearchObject(name);
 
     if (object == NULL) {
-        return 0;
+        return false;
     }
 
-    if (hold_type != 0) {
-        return 0;
+    if (hold_type != ACTION_HOLD_NONE) {
+        return false;
     }
 
     if (ActiveMonster->CheckThrowTarget(object) != NULL) {
-        hold_type = 3;
-        release_timing = 1;
+        hold_type = ACTION_HOLD_ENEMY;
+        release_timing = ACTION_RELEASE_CATCH;
         other = SearchChara("sword");
 
         if (other != NULL) {
@@ -541,7 +541,7 @@ int CActionChara::CheckEnemyCatch(char *name) {
 
         battle_info = GetBattleCharaInfo();
 
-        if (battle_info->chr_no == 0) {
+        if (battle_info->chr_no == USER_CHARA_MAX) {
             other = SearchChara("shot");
 
             if (other != NULL) {
@@ -550,7 +550,7 @@ int CActionChara::CheckEnemyCatch(char *name) {
         }
 
         battle_info->AddHp_Rate(-0.05f, 3, one);
-        return 1;
+        return true;
     }
 
     object->GetWorldPosition0(pos);
@@ -564,17 +564,17 @@ int CActionChara::CheckEnemyCatch(char *name) {
             piece->Show(0);
         }
 
-        release_timing = 1;
+        release_timing = ACTION_RELEASE_CATCH;
         hold_frame = object;
         hold_parts = stone;
-        hold_type = 4;
+        hold_type = ACTION_HOLD_STONE;
         other = SearchChara("sword");
 
         if (other != NULL) {
             other->Show(0, 0);
         }
 
-        if ((GetBattleCharaInfo())->chr_no == 0) {
+        if (GetBattleCharaInfo()->chr_no == USER_CHARA_MAX) {
             other = SearchChara("shot");
 
             if (other != NULL) {
@@ -582,10 +582,10 @@ int CActionChara::CheckEnemyCatch(char *name) {
             }
         }
 
-        return 1;
+        return true;
     }
 
-    return 0;
+    return false;
 }
 
 void CActionChara::ThrowItemObject() {
@@ -593,7 +593,7 @@ void CActionChara::ThrowItemObject() {
     float          position[4];
     CGameDataUsed *item;
 
-    if (hold_type != 0) {
+    if (hold_type != ACTION_HOLD_NONE) {
         if (throw_effect >= 0) {
             effect_man->SetScriptProgNo(0x12C, 0, throw_effect);
             sceVu0CopyVector(target, front_vec);
@@ -601,7 +601,7 @@ void CActionChara::ThrowItemObject() {
             sceVu0ScaleVector(target, target, 120.0f);
             sceVu0AddVector(target, target, position);
             effect_man->SetScriptVect1(target, 0, throw_effect);
-            hold_type = 0;
+            hold_type = ACTION_HOLD_NONE;
 
             item = GetBattleCharaInfo()->GetActiveItemInfo(0);
             item = &item[DngStatus.active_item];
@@ -716,23 +716,23 @@ void CActionChara::EntryThrowItem() {
         }
     }
 
-    hold_type = 1;
+    hold_type = ACTION_HOLD_ITEM;
 }
 
 void CActionChara::RemoveThrowItem() {
     s8 effect_no;
 
-    if (hold_type != 0) {
+    if (hold_type != ACTION_HOLD_NONE) {
         GetBattleCharaInfo();
 
-        if (hold_type == 1) {
+        if (hold_type == ACTION_HOLD_ITEM) {
             effect_no = throw_effect;
 
             if (effect_no >= 0) {
                 effect_man->DeleteEffSpt(0, effect_no);
             }
 
-            hold_type = 0;
+            hold_type = ACTION_HOLD_NONE;
         }
     }
 }
@@ -962,7 +962,7 @@ int CActionChara::DrawDirect() {
         }
 
         i++;
-    } while (i < 3);
+    } while (i < ACTION_PALLET_MAX);
 
     if (this != NULL) {
         do {
@@ -1113,25 +1113,25 @@ int CActionChara::SetRef(CActionChara *other, char *name) {
     CActionChara *following;
 
     if (other == NULL) {
-        return 0;
+        return false;
     }
 
     other_frame = other->CObjectFrame::frame;
 
     if (other_frame == NULL) {
-        return 0;
+        return false;
     }
 
     object = SearchObject(name);
 
     if (object == NULL) {
-        return 0;
+        return false;
     }
 
     other_frame->DeleteReference();
     other_frame->SetReference(object);
     tail = this;
-    other->chara_kind = (int) ACTION_KIND_PART;
+    other->chara_kind = ACTION_KIND_PART;
 
     for (;;) {
         following = tail->next;
@@ -1145,7 +1145,7 @@ int CActionChara::SetRef(CActionChara *other, char *name) {
         tail = following;
     }
 
-    return 1;
+    return true;
 }
 
 float CActionChara::GetTargetDist(CScene *scene) {
@@ -1190,9 +1190,9 @@ int RockOn_TargetSel(CScene *scene, int index) {
 
             target = static_cast<CActiveMonster *>(scene->GetCharacter(index));
 
-            if (target != NULL && target->chara_kind == (int) ACTION_KIND_SCRIPT && target->state == (int) ACTIVE_MONSTER_LIVE &&
-                target->catch_state != 1 &&
-                !(target->attrib & (int) MONSTER_ATTRIB_NO_LOCK_ON)) {
+            if (target != NULL && target->chara_kind == ACTION_KIND_SCRIPT && target->state == ACTIVE_MONSTER_LIVE &&
+                target->catch_state != ACTION_CATCH_HELD &&
+                !(target->attrib & MONSTER_ATTRIB_NO_LOCK_ON)) {
                 return index;
             }
         }
@@ -1203,9 +1203,9 @@ int RockOn_TargetSel(CScene *scene, int index) {
     for (tries = 0; tries < MONSTER_ACTIVE_MAX; tries++) {
         target = static_cast<CActiveMonster *>(scene->GetCharacter(tries + MONSTER_ACTIVE_MAX));
 
-        if (target != NULL && target->chara_kind == (int) ACTION_KIND_SCRIPT && target->state == (int) ACTIVE_MONSTER_LIVE &&
-            target->catch_state != 1 &&
-            !(target->attrib & (int) MONSTER_ATTRIB_NO_LOCK_ON)) {
+        if (target != NULL && target->chara_kind == ACTION_KIND_SCRIPT && target->state == ACTIVE_MONSTER_LIVE &&
+            target->catch_state != ACTION_CATCH_HELD &&
+            !(target->attrib & MONSTER_ATTRIB_NO_LOCK_ON)) {
             return tries + MONSTER_ACTIVE_MAX;
         }
     }
@@ -1233,10 +1233,10 @@ int DistCheck_Action2(CScene *scene, float unused, float range, float *out_dist,
     int             best;
     float           best_dist;
     float           dist;
-    int             a;
-    int             min;
-    int             b;
-    float           key;
+    int             sorted;
+    int             nearest;
+    int             other;
+    float           other_dist;
     int             tmp_id;
     float           tmp_dist;
 
@@ -1253,9 +1253,9 @@ int DistCheck_Action2(CScene *scene, float unused, float range, float *out_dist,
     do {
         target = static_cast<CActiveMonster *>(scene->GetCharacter(i + MONSTER_ACTIVE_MAX));
 
-        if (target != NULL && target->chara_kind == (int) ACTION_KIND_SCRIPT && target->state == (int) ACTIVE_MONSTER_LIVE &&
-            target->catch_state != 1 &&
-            !(target->attrib & (int) MONSTER_ATTRIB_NO_LOCK_ON)) {
+        if (target != NULL && target->chara_kind == ACTION_KIND_SCRIPT && target->state == ACTIVE_MONSTER_LIVE &&
+            target->catch_state != ACTION_CATCH_HELD &&
+            !(target->attrib & MONSTER_ATTRIB_NO_LOCK_ON)) {
             target->GetEntryObjectPos(0, 0, entry_pos);
             dist = target->target_dist;
 
@@ -1288,26 +1288,26 @@ int DistCheck_Action2(CScene *scene, float unused, float range, float *out_dist,
         return best + MONSTER_ACTIVE_MAX;
     }
 
-    for (a = 0; a < count; a++) {
-        min = a;
+    for (sorted = 0; sorted < count; sorted++) {
+        nearest = sorted;
 
-        for (b = a; b < count; b++) {
-            if (b != a) {
-                key = dists[b];
+        for (other = sorted; other < count; other++) {
+            if (other != sorted) {
+                other_dist = dists[other];
 
-                if (!(key < 0.0f) && !(dists[min] <= key)) {
-                    min = b;
+                if (!(other_dist < 0.0f) && !(dists[nearest] <= other_dist)) {
+                    nearest = other;
                 }
             }
         }
 
-        if (a != min) {
-            tmp_dist = dists[a];
-            tmp_id = ids[a];
-            dists[a] = dists[min];
-            ids[a] = ids[min];
-            dists[min] = tmp_dist;
-            ids[min] = tmp_id;
+        if (sorted != nearest) {
+            tmp_dist = dists[sorted];
+            tmp_id = ids[sorted];
+            dists[sorted] = dists[nearest];
+            ids[sorted] = ids[nearest];
+            dists[nearest] = tmp_dist;
+            ids[nearest] = tmp_id;
         }
     }
 
@@ -1334,46 +1334,46 @@ int Check_LockOn(CScene *scene, float range, int index) {
     float           target_pos[4];
     CActionChara   *player;
     CActiveMonster *target;
-    int             farther;
+    int             out_of_range;
 
     player = static_cast<CActionChara *>(scene->GetCharacter(0));
     player->GetPosition(own_pos);
     target = static_cast<CActiveMonster *>(scene->GetCharacter(index));
 
     if (target == NULL) {
-        return 0;
+        return false;
     }
 
-    if (target->chara_kind != (int) ACTION_KIND_SCRIPT) {
-        return 0;
+    if (target->chara_kind != ACTION_KIND_SCRIPT) {
+        return false;
     }
 
-    if (target->state != 1) {
-        return 0;
+    if (target->state != ACTIVE_MONSTER_LIVE) {
+        return false;
     }
 
-    if (target->attrib & (int) MONSTER_ATTRIB_NO_LOCK_ON) {
-        return 0;
+    if (target->attrib & MONSTER_ATTRIB_NO_LOCK_ON) {
+        return false;
     }
 
-    if (target->catch_state == 1) {
-        return 0;
+    if (target->catch_state == ACTION_CATCH_HELD) {
+        return false;
     }
 
     if (target->tbl->boss != 0) {
-        return 1;
+        return true;
     }
 
     target->GetEntryObjectPos(0, 0, target_pos);
     own_pos[3] = 1.0f;
     target_pos[3] = 1.0f;
-    farther = 1;
+    out_of_range = true;
 
     if (target->target_dist <= range) {
-        farther = 0;
+        out_of_range = false;
     }
 
-    return farther = farther ^ 1;
+    return out_of_range = out_of_range ^ 1;
 }
 
 void CActionChara::CollisionCheck(float *pos, float *velocity, float *out_velocity) {
@@ -1394,13 +1394,13 @@ void CActionChara::CollisionCheck(float *pos, float *velocity, float *out_veloci
     sceVu0CopyVector(flat_position, next_position);
     flat_position[1] = 0.0f;
 
-    for (index = 24; index < 48; index++) {
-        CActiveMonster *monster = (CActiveMonster *) nowScene__2->GetCharacter(index);
+    for (index = MONSTER_ACTIVE_MAX; index < MONSTER_ACTIVE_MAX * 2; index++) {
+        CActiveMonster *monster = static_cast<CActiveMonster *>(nowScene__2->GetCharacter(index));
 
         if (monster == NULL || monster->chara_kind != ACTION_KIND_SCRIPT ||
             monster->state == ACTIVE_MONSTER_NONE ||
             (monster->state == ACTIVE_MONSTER_DEAD && monster->alpha < 0.6f) ||
-            monster->catch_state == 1 || monster->no_hit_time > 0 ||
+            monster->catch_state == ACTION_CATCH_HELD || monster->no_hit_time > 0 ||
             (monster->attrib & MONSTER_ATTRIB_NO_BODY_HIT) != 0) {
             continue;
         }
@@ -1477,7 +1477,7 @@ void CActionChara::RockOn() {
         if (lock_on != 0) {
             if (target_dot < -0.2f) {
                 sndSePlay(SystemSND_ID, 0x1B, 0);
-                lock_on = 0;
+                lock_on = false;
                 return;
             }
 
@@ -1510,7 +1510,7 @@ void CActionChara::RockOn() {
             }
         } else if (target_no != -1) {
             sndSePlay(SystemSND_ID, 0x1A, 0);
-            lock_on = 1;
+            lock_on = true;
         }
     }
 }
