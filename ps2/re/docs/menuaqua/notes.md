@@ -14,8 +14,7 @@ and menu overlays in retail order. Its native body is exact.
 `GyoraceMenuDraw` is native and exact.
 
 `CAquarium::Step`, `DrawFishParam` and `CAquarium::ColCheck` are native and
-exact; see [night-20261008.md](night-20261008.md). `GyoraceMenuKey` is native
-and exact.
+exact. `GyoraceMenuKey` is native and exact.
 
 `CAquaFish::SetAdjustScale` (0x20F0E0, size 0x8C) is native and exact. It
 computes a size-dependent scale, applies it to all three axes, and derives the
@@ -240,112 +239,26 @@ AQUA_EVENT_PHASE names its breeding and electric-food transitions.
 - AQUA_BUBBLE byte 0 doubles as wobble-table row (0..4) while rising and countdown (10..19) while
   popping.
 
-## Stable fish-food call argument order
+## Compiler-selected float arguments
 
-The `menuaqua.cpp` profile row for `Step__9CFishFoodFv` selects `binary32`
-`0x00000000` (0.0f) with `evaluate_first: true`. It applies to every
-identical literal in that function, without an occurrence counter or callee
-restriction. At `local_aquarium_limmit_check`, this prepares the zero final
-argument before the 1.3f collision margin, preserving retail's float
-argument registers. The function still integrates food movement, limits it
-to the aquarium, updates its drop/entry/sink state, and submits its position
-and rotation to the character.
+`CFishFood::Step` uses an evaluate-first binary32 zero in the aquarium limit
+check. This prepares the final zero argument before the 1.3f collision margin
+and preserves retail's float argument registers.
 
-The native 1,044-byte body has zero differing instruction words or relocation
-fields after the canonical wrapper build and `fixup_sections.sh` pass. The
-current consumer-hook validation checks `0x11C80` allocated unit bytes and
-2,927 relocations; the unrelated existing `SetAdjustScale` and `MenuAquaInit`
-differences were present in that earlier validation; the current zero selector
-for `MenuAquaInit` is verified below.
+`MenuAquaInit` uses an evaluate-first binary32 zero for its camera constructor.
+The arguments are materialized in the retail order 40.0f, 0.0f, 30.0f, 8.0f.
+`DrawEsaDropRoot` uses an evaluate-first binary32 1.0f for
+`mgTransWorldPrim3DSprite`, preparing the sprite width before its 0.3f height.
+These selectors are scoped to their respective functions and calls in the
+checked-in compiler profile.
 
-## Aquarium camera constructor floating argument calibration
+## Current source status
 
-`MenuAquaInit__FP9mgCMemoryPii` uses stable binary32 `0x00000000` (0.0f)
-`evaluate_first: true` to restore camera constructor argument materialization
-in the order 40.0f, zero, 30.0f, 8.0f. The function now matches canonical bytes
-and resolved relocations. With the division primer removed and helper masks
-GPR `0x30` / FPR `0`, validation checks `0x11C50` bytes and 2,970 relocations.
-Before the float-order selector below, `DrawEsaDropRoot` had seven issues;
-their masked instruction bytes and resolved relocation targets/addends were
-unchanged by the camera constructor selector.
-
-## DrawEsaDropRoot sprite-call float order
-
-The retail call to `mgTransWorldPrim3DSprite` prepares the `1.0f` width before
-the `0.3f` height. The default MWCC argument scheduling evaluates the `0.3f`
-argument first, moving its constant setup and float-register transfer ahead of
-the width. A private profile row selecting binary32 `0x3f800000`
-(`1.0f`) with `evaluate_first: true`, scoped to
-`mgTransWorldPrim3DSprite__FPiPiPfffi`, restores the retail instruction order.
-The tracked profile also has three existing menuaqua selectors; the candidate
-was tested with all three preserved and the new row appended. The full wrapper
-build and canonical checker then pass the whole unit (`0x11C54` bytes and
-2,970 relocations). A direct source-only MWCC object also scores 100% for this
-function after mapping compiler-local `count$978` and `init$979` to the retail
-`count_1612` and `init_1613` symbols in a temporary objdiff project. Without
-those diagnostic aliases, objdiff reports only those three relocation names;
-the canonical checker confirms their resolved values. The shared compiler profile preserves the existing selectors and adds this
-callee-scoped row.
-
-Canonical normal and objdiff-base targets also pass after integration: the
-whole-unit checker reports 0x11C54 bytes and 2,970 relocations, and the standard
-project objdiff reports 100% for the native 316-byte DrawEsaDropRoot.
-
-## Historical ColCheck lifetime probes (superseded by promotion)
-
-`ColCheck`'s private baseline compiles to 0x6F8 bytes and scores 99.31615%: 386 instructions
-match and 60 have argument mismatches, with no instruction insertions or deletions. The first
-mismatch swaps the saved-register roles of the selected fish pointer and loop index. Moving the
-fish-pointer initialization to the first local worsens the score to 98.86996% (353 matches, 93
-argument mismatches); it still emits no structural instruction differences. The native AquaMode
-range predicate is already reproduced by the existing source condition.
-Swapping only the declaration positions of `me` and `i`, while keeping `me = fish[no]` in its
-original statement, yields 98.99327% (361 matching instructions, 85 argument mismatches). This is
-closer than first-local initialization but below the unchanged baseline.
-Giving the fish, obstacle, and effect-clear loops distinct local indices scores 99.06054% for
-ColCheck (366 matching instructions, 80 argument mismatches); the whole unit still has the single
-ColCheck byte mismatch. This improves on the declaration-position swap but remains below baseline.
-
-## Earlier SettingAqua measurement
-
-Before the scoped conversion and floating-argument rows, `SettingAqua__9CAquariumFv`
-differed in **2/752 words**, with **0xBB4** compiled bytes in retail's **0xBC0**
-extent. At **+0xA00/+0xA04**, retail branched on `v0` and copied to `s3` in the
-delay slot; that earlier MWCC form copied first and branched on `s3`. The
-placement-new stop rule kept that source/profile baseline guarded. The current
-caller is native.
-
-## Current status and historical measurements
-
-- `ColCheck__9CAquariumFi` is native and exact: its declared retail and
-  native symbol sizes are **0x6F8** in a **0x700** aligned reservation. The
-  slot null check before binding the selected fish resolves the old `s2`/`s3`
-  exchange; the typed collision-point element walk preserves the exact body.
-  See [night-20261008.md](night-20261008.md) for promotion and complete-object
-  verification. Earlier guarded probes gave **60/448** words, **76** with
-  separate loop indices, and **89** with early pointer initialization; these
-  historical negative results do not describe the current implementation.
-
-- `DrawFishParam__FiiP10mgCTextureP13CGameDataUsed` (now exact; the forms that
-  match are in [night-20261008.md](night-20261008.md)). Earlier state: **652/704 words**, compiled
-  **0xAA4**, retail extent **0xB00**. Retail uses a **0x450** stack frame;
-  draft uses **0x430**. Fresh rectangle temporaries for the three unknown-weight
-  glyphs restore the frame size but still leave **651** differing words and
-  the same body length. Retail also preloads six dimension-table bytes before
-  copying the width/height initializer templates; draft interleaves template
-  copies and loads. Separate zero initialization and entry assignments leave
-  **669** differing words with **0xAD4** compiled bytes. Reconsider with the
-  original initializer/lifetime structure established from the retail loads,
-  stores, and rectangle stack slots. Both probes are reverted.
-
-- `Step__9CAquariumFv` is native and exact: its declared symbol is 0x1B04
-  bytes in a 0x1B10 aligned reservation. A separate function-scope fish
-  counter declared before menu/result and an ordinary cursor assignment
-  before the menu switch resolve the old 39/1732 remainder. Its switch
-  tables, local statics and initialization guard are now emitted entirely
-  by C++. The state/result enums and signed field types preserve every
-  byte and resolved relocation; see [night-20261008.md](night-20261008.md)
-  and [review-fixes-20261008.md](review-fixes-20261008.md).
+`CAquarium::ColCheck`, `CAquarium::Step`, `CAquarium::SettingAqua`, and
+`DrawFishParam` are native and exact. `ColCheck` tests the selected fish slot
+for null before retaining its pointer; `Step` keeps its fish counter separate
+from the menu and result locals. Their switch tables, function statics and
+initialization guards are emitted by C++.
 
 ## Aquarium menu identifiers
 
