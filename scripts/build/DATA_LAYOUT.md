@@ -223,8 +223,18 @@ those gaps' compiler or linker cause.
 
 Reservation arrays and every retained data-marker piece are excluded from the
 source comparison, including coincidental compiler copies. No fallback payload
-is imported. Function bytes, declared sizes and relocation fields remain intact;
-function names use the existing template/initializer projection. CMake tracks
+is imported. Native function bytes, declared sizes and relocation fields remain
+intact; function names use the existing template/initializer projection.
+Reference copies resolve splat's undefined `D_<hex>` constant guesses below the
+retail image base only for zero-addend HI16/LO16 fields. The retail relocation
+table must contain no real reference to that symbol in the code section, the
+retail immediate must equal the numeric guess, and all other instruction bits
+must agree. Real relocations, data addresses, addends and disagreeing values
+remain visible. For example, the `0x12000` induction increment in
+`CInventUserData::ResetAddress` is a numeric constant, although splat emits
+`%hi(D_12000)`; its reference comparison uses the original retail immediate.
+This preparation never reads native code to decide the reference value.
+CMake tracks
 both raw sides, sources, retail metadata and preparation tools; comparison copies
 and receipts are declared byproducts. Linked C++ objects also track the
 postprocessor's shared data proofs in `objdiff_data.py` and linker extents in

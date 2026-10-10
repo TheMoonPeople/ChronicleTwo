@@ -1,9 +1,10 @@
-"""Prepare source-only data comparisons without importing assembly fallbacks.
+"""Prepare source-only comparisons without importing assembly fallbacks.
 
 The raw objdiff objects remain compiler/assembler output. Comparison copies use
 the linker's data extents, actual retail relocations, and verified native data
-identities. Code bytes, extents and relocation fields retain their raw form;
-function names use the existing template/initializer name projection.
+identities. Spurious constant relocations below the retail image are resolved
+only in reference copies; native code retains its raw bytes and relocations.
+Function names use the existing template/initializer name projection.
 """
 
 import bisect
@@ -85,6 +86,59 @@ def code_snapshot(elf):
              [entry.pack() for record in elf.relocations
               if record.sh_info == index for entry in record.relocations])
             for index in sorted(code)]
+
+
+def restore_reference_constants(elf, unit, ctx):
+    """Resolve splat's non-relocated, zero-addend small integer guesses."""
+    bases = {index: lo for index, section in enumerate(elf.sections)
+             for name, lo, _hi in ctx.layout.sections(unit) if section.name == name}
+    records = {}
+    for record in elf.relocations:
+        records.setdefault(record.sh_info, []).append(record)
+    for section_index, section_records in records.items():
+        section = elf.sections[section_index]
+        base = bases.get(section_index)
+        if base is None or not section.sh_flags & p.SHF_EXECINSTR:
+            continue
+        data = bytearray(section.data)
+        groups = {}
+        for record in section_records:
+            for entry in record.relocations:
+                groups.setdefault(entry.symbol_index, []).append(entry)
+        resolved = set()
+        for index, entries in groups.items():
+            symbol = elf.symtab.symbols[index]
+            numeric = re.fullmatch(r'D_([0-9A-Fa-f]{1,8})', symbol.name)
+            if (symbol.st_shndx != 0 or numeric is None
+                    or int(numeric.group(1), 16) >= ctx.retail.base
+                    or any(entry.reloc_type not in (p.R_MIPS_HI16, p.R_MIPS_LO16)
+                           or base + entry.r_offset in ctx.retail.relocations
+                           for entry in entries)):
+                continue
+            value = int(numeric.group(1), 16)
+            replacements = []
+            for entry in entries:
+                offset = entry.r_offset
+                if offset % 4 or offset + 4 > len(data):
+                    raise ValueError(f'{unit}: invalid constant relocation offset')
+                raw, = struct.unpack_from('<I', data, offset)
+                retail = ctx.retail.word(base + offset)
+                immediate = ((value + 0x8000) >> 16 if entry.reloc_type == p.R_MIPS_HI16
+                             else value) & 0xFFFF
+                # Keep the entire symbol group if an addend or value disagrees.
+                if raw & 0xFFFF or retail & 0xFFFF != immediate:
+                    break
+                if raw & ~0xFFFF != retail & ~0xFFFF:
+                    raise ValueError(f'{unit}: constant relocation changes instruction')
+                replacements.append((offset, retail))
+            else:
+                for offset, retail in replacements:
+                    struct.pack_into('<I', data, offset, retail)
+                resolved.add(index)
+        section.data = bytes(data)
+        for record in section_records:
+            record.relocations = [entry for entry in record.relocations
+                                  if entry.symbol_index not in resolved]
 
 
 def restore_reference_data(elf, unit, ctx):
@@ -478,6 +532,8 @@ def comparison_copy(source, output, unit, ctx, native):
             return
     elf = p.Elf(raw)
     p.name_sections(elf)
+    if not native:
+        restore_reference_constants(elf, unit, ctx)
     before = code_snapshot(elf)
     if native:
         prepare_native_data(elf, unit, ctx)
