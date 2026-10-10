@@ -369,7 +369,7 @@ int CMapParts::DrawSub(int direct) {
         if ((point = func_point_mngr.Get()) != NULL) {
             do {
                 if (!point->active) {
-                    goto next_light;
+                    continue;
                 }
 
                 if (!lighting_set) {
@@ -423,8 +423,6 @@ int CMapParts::DrawSub(int direct) {
                         mgSetAmbient(ambient);
                         break;
                 }
-
-            next_light:;
             } while ((point = func_point_mngr.Get()) != NULL);
         }
     }
