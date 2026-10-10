@@ -705,7 +705,7 @@ CFuncPoint *CMapParts::InScreenFunc(InScreenFuncInfo *info) {
     if ((point = func_point_mngr.Get()) != NULL) {
         do {
             if (!point->Check(NULL)) {
-                goto next_point;
+                continue;
             }
 
             point->frame.SetReference(parts_frame);
@@ -755,7 +755,6 @@ CFuncPoint *CMapParts::InScreenFunc(InScreenFuncInfo *info) {
 
         release_point:
             point->frame.DeleteReference();
-        next_point:;
         } while ((point = func_point_mngr.Get()) != NULL);
     }
 
