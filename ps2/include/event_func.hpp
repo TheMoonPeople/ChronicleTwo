@@ -44,7 +44,9 @@ enum EventStorageExtent {
 };
 
 /**
+ *
  * Numeric identifiers of external event script commands.
+ *
  */
 enum EventExternalCommand {
     EVENT_EXT_GET_PADON = 0,                       /**< Runs the _GET_PADON command. */
@@ -747,7 +749,9 @@ enum EventExternalCommand {
 };
 
 /**
+ *
  * Numeric identifiers of commands in event argument scripts.
+ *
  */
 enum EventArgumentCommand {
     EVENT_ARG_DATA = 0,      /**< Records one argument list. */
