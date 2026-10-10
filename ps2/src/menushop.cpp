@@ -640,31 +640,23 @@ void CShopMenu::UpdataScrlBar() {
     }
 }
 
-/**
- *
- * Image packs loaded for shop items and their special icons.
- *
- */
-static char *imglist_1267[4] = {
-    "allitem.img",
-    "spectre.img",
-    "img.img",
-    NULL
-};
-
-/**
- *
- * Opening shop script selected by currency.
- *
- */
-static char *extbl_1278[4] = {
-    "\x92\xCA\x8F\xED",
-    "\x83\x58\x83\x5E\x81\x5B\x83\x75\x83\x8B",
-    "\x83\x6A\x81\x5B\x83\x68",
-    "\x83\x68\x83\x6A\x81\x5B"
-};
-
 void CShopMenu::InitEnd() {
+    // Opening shop script selected by currency.
+    static char *extbl[4] = {
+        "\x92\xCA\x8F\xED",
+        "\x83\x58\x83\x5E\x81\x5B\x83\x75\x83\x8B",
+        "\x83\x6A\x81\x5B\x83\x68",
+        "\x83\x68\x83\x6A\x81\x5B"
+    };
+
+    // Image packs loaded for shop items and their special icons.
+    static char *imglist[4] = {
+        "allitem.img",
+        "spectre.img",
+        "img.img",
+        NULL
+    };
+
     mgCTextureManager *textures = &mgTexManager;
     int                size;
     int                shop_name_no;
@@ -693,7 +685,7 @@ void CShopMenu::InitEnd() {
         }
 
         for (int image = 0; image < 3; image++) {
-            textures->EnterIMGFile((u_char *) GetPackFile(shop_pack, imglist_1267[image], &size), texture_block, NULL, NULL);
+            textures->EnterIMGFile((u_char *) GetPackFile(shop_pack, imglist[image], &size), texture_block, NULL, NULL);
         }
 
         Tex_Shop = textures->GetTexture("shop", -1);
@@ -733,63 +725,23 @@ void CShopMenu::InitEnd() {
     MenuCommonInfo->InitHaveData();
     MenuCommonInfo->SetHaveItemInfo(0, 0);
     ExeScript("INIT");
-    ExeScript(extbl_1278[NowSellMode]);
+    ExeScript(extbl[NowSellMode]);
     CDC2Mes *message = MenuDCMsg[1];
     shop_name_no = CShopPtr->shop_id;
     message->SetMsgItemNo(&shop_name_no, 1);
     shop_name_ofs_x = message->GetMesWidth_system(shop_name_no) >> 1;
     shop_name_ofs_y = 2;
 }
-/**
- *
- * Shop list mode restored after a quantity selection or error message.
- *
- */
-static s16 shop_mode_prev_1326;
-
-/**
- *
- * Whether the previous shop list mode is initialized.
- *
- */
-static s8 init_1327;
-/**
- *
- * Purchase setup script selected by currency.
- *
- */
-static char *exe_tbl_1509[4] = {
-    "\x82\xA9\x82\xA4\x90\xDD\x92\xE8",
-    "\x82\xA9\x82\xA4\x90\xDD\x92\xE8\x52\x4F\x42\x4F",
-    "\x82\xA9\x82\xA4\x90\xDD\x92\xE8\x83\x81\x83\x5F\x83\x8B",
-    "\x82\xE0\x82\xE7\x82\xA4\x90\xDD\x92\xE8"
-};
-
-/**
- *
- * Purchase confirmation script selected by currency.
- *
- */
-static char *extbl_1573[4] = {
-    "\x82\xA9\x82\xA4\x81\x48",
-    "\x82\xA9\x82\xA4\x81\x48\x52\x4F\x42\x4F",
-    "\x82\xA9\x82\xA4\x81\x48\x83\x81\x83\x5F\x83\x8B",
-    "\x82\xA9\x82\xA4\x81\x48"
-};
-
-/**
- *
- * Insufficient currency script selected by currency.
- *
- */
-static char *extbl_1589[4] = {
-    "\x82\xA8\x8B\xE0\x95\x73\x91\xAB",
-    "\x45\x58\x45\x95\x73\x91\xAB",
-    "\x83\x81\x83\x5F\x83\x8B\x95\x73\x91\xAB",
-    "\x82\xA8\x8B\xE0\x95\x73\x91\xAB"
-};
 
 int CShopMenu::KeyStep() {
+    // Purchase setup script selected by currency.
+    static char *exe_tbl[4] = {
+        "\x82\xA9\x82\xA4\x90\xDD\x92\xE8",
+        "\x82\xA9\x82\xA4\x90\xDD\x92\xE8\x52\x4F\x42\x4F",
+        "\x82\xA9\x82\xA4\x90\xDD\x92\xE8\x83\x81\x83\x5F\x83\x8B",
+        "\x82\xE0\x82\xE7\x82\xA4\x90\xDD\x92\xE8"
+    };
+
     int ret = 0;
     MenuCommonInfo->CheckSelectKey();
     int lr;
@@ -823,10 +775,8 @@ int CShopMenu::KeyStep() {
             }
             return 0;
         }
-        if (init_1327 == 0) {
-            shop_mode_prev_1326 = 0;
-            init_1327 = 1;
-        }
+        // Shop list mode restored after a quantity selection or error message.
+        static s16 shop_mode_prev = 0;
         int command = 0;
         MENU_SWAPITEM_INFO swap;
         swap.Set(-1, 0, -1, 0);
@@ -875,7 +825,7 @@ int CShopMenu::KeyStep() {
                 case 1:
                 case 4:
                     command = 0x3E8;
-                    shop_mode_prev_1326 = key_arg_no;
+                    shop_mode_prev = key_arg_no;
                     break;
                 case 2:
                     command = 0x32;
@@ -910,7 +860,7 @@ int CShopMenu::KeyStep() {
                         break;
                     }
                     command = 0x3F2;
-                    shop_mode_prev_1326 = key_arg_no;
+                    shop_mode_prev = key_arg_no;
                     break;
                 case 4:
                     command = 0x14;
@@ -1143,7 +1093,7 @@ int CShopMenu::KeyStep() {
             CShopPtr->GetPrice(SearchNowPosItemExist(), &buy_price, NULL);
             trade_brd->SetNumber("\x92\x50\x95\x69", buy_price);
             num = 1;
-            ExeScript(exe_tbl_1509[NowSellMode]);
+            ExeScript(exe_tbl[NowSellMode]);
             count_mes->SetMsgItemNo(&item_name, 1);
             if (item_no == 0x1A6) {
                 ExeScript("VOICEON");
@@ -1250,11 +1200,18 @@ int CShopMenu::KeyStep() {
         case 0x3E9:
         case 0x3F3:
             if (key_arg_no == 2) {
+                // Purchase confirmation script selected by currency.
+                static char *extbl[4] = {
+                    "\x82\xA9\x82\xA4\x81\x48",
+                    "\x82\xA9\x82\xA4\x81\x48\x52\x4F\x42\x4F",
+                    "\x82\xA9\x82\xA4\x81\x48\x83\x81\x83\x5F\x83\x8B",
+                    "\x82\xA9\x82\xA4\x81\x48"
+                };
                 if (NowSellMode != SHOP_SELL_MODE_DONY && total > CShopPtr->CheckMoney()) {
                     refuse = 1;
                     break;
                 }
-                ExeScript(extbl_1573[NowSellMode]);
+                ExeScript(extbl[NowSellMode]);
                 key_arg_no = 4;
             }
             if (key_arg_no == 3) {
@@ -1288,7 +1245,7 @@ int CShopMenu::KeyStep() {
         case 0x44C:
             ExeScript("\x83\x41\x83\x43\x83\x65\x83\x80\x91\x49\x91\xF0\x82\xC9\x82\xE0\x82\xC7\x82\xE9");
             error = -1;
-            key_arg_no = shop_mode_prev_1326;
+            key_arg_no = shop_mode_prev;
             SetMenuKeyCtrlEnv(0);
             break;
         }
@@ -1297,10 +1254,18 @@ int CShopMenu::KeyStep() {
             ask_mes->ClsMes::mes_no = -1;
         }
         switch (refuse) {
-        case 1:
+        case 1: {
+            // Insufficient currency script selected by currency.
+            static char *extbl[4] = {
+                "\x82\xA8\x8B\xE0\x95\x73\x91\xAB",
+                "\x45\x58\x45\x95\x73\x91\xAB",
+                "\x83\x81\x83\x5F\x83\x8B\x95\x73\x91\xAB",
+                "\x82\xA8\x8B\xE0\x95\x73\x91\xAB"
+            };
             key_arg_no = 6;
-            ExeScript(extbl_1589[NowSellMode]);
+            ExeScript(extbl[NowSellMode]);
             break;
+        }
         case 2:
             key_arg_no = 6;
             ExeScript("\x8B\xF3\x82\xAB\x83\x58\x83\x79\x81\x5B\x83\x58\x96\xB3\x82\xB5");
@@ -1506,30 +1471,6 @@ struct CursorPoint {
 
 /**
  *
- * Cursor frame offset for the shop goods list.
- *
- */
-static CursorPoint t_offxy_1832 = {0, 0};
-
-/**
- *
- * Cursor frame offset for the player's bag.
- *
- */
-static CursorPoint cursor_offsetxy_1836 = {-46, 18};
-
-/**
- *
- * Quantity and cancellation cursor part names.
- *
- */
-static char *cursortbl_1838[2] = {
-    "0",
-    "1"
-};
-
-/**
- *
  * Sets a shop menu form's position from integer screen coordinates.
  *
  */
@@ -1539,10 +1480,22 @@ static inline void SetFormPoint(CMenuPosDataForm *form, int x, int y) {
 }
 
 void CShopMenu::CalcCursorPosition() {
+    // Quantity and cancellation cursor part names.
+    static char *cursortbl[2] = {
+        "0",
+        "1"
+    };
+
+    // Cursor frame offset for the player's bag.
+    static CursorPoint cursor_offsetxy = {-46, 18};
+
+    // Cursor frame offset for the shop goods list.
+    static CursorPoint t_offxy = {0, 0};
+
     CursorPoint  position = {0, 0};
     CursorPoint  bag_point;
     int          waku_type = -1;
-    CursorPoint *offset = &t_offxy_1832;
+    CursorPoint *offset = &t_offxy;
 
     switch (key_arg_no) {
         case SHOP_MENU_MODE_BUY_LIST:
@@ -1552,13 +1505,13 @@ void CShopMenu::CalcCursorPosition() {
         case SHOP_MENU_MODE_BAG:
             MenuPosData->GetPosMenuItemOnItemBrd(&bag_point.x, bag_pos, 1);
             waku_type = 0;
-            offset = &cursor_offsetxy_1836;
+            offset = &cursor_offsetxy;
             position.x = bag_point.x - 8;
             position.y = bag_point.y - 10;
             break;
         default:
             if (trade_brd != NULL) {
-                trade_brd->GetPutPosXY(cursortbl_1838[num_cursor], position.x, position.y);
+                trade_brd->GetPutPosXY(cursortbl[num_cursor], position.x, position.y);
             }
 
             break;
@@ -1609,14 +1562,10 @@ CGameDataUsed *CShopMenu::SearchNowPosItemExist() {
 
     return NULL;
 }
-/**
- *
- * Neutral item icon color used in the shop list.
- *
- */
-static u8 rgba_1897[4] = {128, 128, 128, 128};
-
 void ShopSellListDraw(int &tex_block, float *pos) {
+    // Neutral item icon color used in the shop list.
+    static u8 rgba[4] = {128, 128, 128, 128};
+
     mgCTexture *icon_tex = MenuPosData->item_icon_tex[0][0];
     int line;
     if (icon_tex == NULL) {
@@ -1714,7 +1663,7 @@ void ShopSellListDraw(int &tex_block, float *pos) {
             PrimQuad(prim, icon_rect, robo_icon);
             prim->End();
         } else {
-            DrawOneItem(prim, icon_rect, item_no, 0, NULL, rgba_1897, 0);
+            DrawOneItem(prim, icon_rect, item_no, 0, NULL, rgba, 0);
         }
     }
 }
@@ -1862,22 +1811,18 @@ int CMenuQuestView::SelectMax() {
 
 /**
  *
- * Resource pack for each quest memo mode.
- *
- */
-static char *packname_2171[2] = {
-    "quest.pac",
-    "scoop.pac"
-};
-
-/**
- *
  * Interpolation divisor for quest memo list and cursor movement.
  *
  */
 static float QuestMoveRate = 1.0f;
 
 void CMenuQuestView::InitEnd() {
+    // Package names for the quest and memo view.
+    static char *packname[2] = {
+        "quest.pac",
+        "scoop.pac"
+    };
+
     select = 0;
     top = 0;
     int              line;
@@ -1897,7 +1842,7 @@ void CMenuQuestView::InitEnd() {
 
     MenuLocalStack.Align64();
     u_int *pack = (u_int *) MenuLocalStack.stGetTop();
-    int    size = LoadFileMenu(packname_2171[Menu_Memo_ViewMode], (u_long128 *) pack, 1);
+    int    size = LoadFileMenu(packname[Menu_Memo_ViewMode], (u_long128 *) pack, 1);
 
     if (0 < size) {
         unsigned int quadwords;
@@ -2182,22 +2127,18 @@ static s8 randam_checktbl[60] = {
     0, 1, 2, 3, 1, 3, 2, 1, 0, 3, 0, 1, 3, 2, 1, 0, 2, 0, 3, 1, 0, 1, 2, 3, 1, 3, 2, 1, 0, 3, 0, 1, 3, 2, 1, 0, 2, 0, 3, 1, 0, 1, 2, 3, 1, 3, 2, 1, 0, 3, 0, 1, 3, 2, 1, 0, 2, 0, 3, 1
 };
 
-/**
- *
- * Three-part texture coordinates for the seven quest comment frame strips.
- *
- */
-static short tbl_2469[7][12] = {
-    {0, 0, 26, 26, 26, 0, 6, 26, 32, 0, 26, 26},
-    {0, 26, 26, 4, 26, 26, 6, 4, 32, 26, 26, 4},
-    {0, 30, 26, 14, 26, 30, 6, 14, 32, 30, 26, 14},
-    {0, 44, 26, 4, 26, 44, 6, 4, 32, 44, 26, 4},
-    {0, 48, 26, 14, 26, 48, 6, 14, 32, 48, 26, 14},
-    {0, 62, 26, 4, 26, 62, 6, 4, 32, 62, 26, 4},
-    {0, 66, 26, 26, 26, 66, 6, 26, 32, 66, 26, 26}
-};
-
 void MenuNPCQuestViewDraw() {
+    // Quest board texture rows.
+    static short tbl[7][12] = {
+        {0, 0, 26, 26, 26, 0, 6, 26, 32, 0, 26, 26},
+        {0, 26, 26, 4, 26, 26, 6, 4, 32, 26, 26, 4},
+        {0, 30, 26, 14, 26, 30, 6, 14, 32, 30, 26, 14},
+        {0, 44, 26, 4, 26, 44, 6, 4, 32, 44, 26, 4},
+        {0, 48, 26, 14, 26, 48, 6, 14, 32, 48, 26, 14},
+        {0, 62, 26, 4, 26, 62, 6, 4, 32, 62, 26, 4},
+        {0, 66, 26, 26, 26, 66, 6, 26, 32, 66, 26, 26}
+    };
+
     int mark_u;
     if (Tex_QuestMemo == NULL) {
         return;
@@ -2370,7 +2311,7 @@ void MenuNPCQuestViewDraw() {
         prim->Texture(Tex_QuestMemo);
         prim->Color(0x80, 0x80, 0x80, 0x80);
         for (int part = 0; part < 7; part++) {
-            Menu3DivideTextureDraw(prim, mgRect<int>(box_x, box_y, 0x18C, heights[part]), tbl_2469[part], 1);
+            Menu3DivideTextureDraw(prim, mgRect<int>(box_x, box_y, 0x18C, heights[part]), tbl[part], 1);
             box_y += heights[part];
         }
         prim->End();

@@ -5,16 +5,12 @@ Unit: town shop menu (`CShop`, `CShopMenu`) and the NPC quest / scoop memo viewe
 `SHOP_ITEMLIST`) is a different design; nothing carries over.
 
 ## Header dependencies
-- `CShopMenu`, `CMenuQuestView : CBaseMenuClass` -> `menusys.hpp` (missing when written).
+- `CShopMenu`, `CMenuQuestView : CBaseMenuClass` -> `menusys.hpp`.
   Base is 0x110 with its vptr at 0x10C (see dngmenu notes).
-- `CScene::BGM_STATUS bgm_status` by value -> `scenesnd.hpp` (missing). BGM_STATUS is 0x1C
+- `CScene::BGM_STATUS bgm_status` by value -> `scenesnd.hpp`. BGM_STATUS is 0x1C
   (`CScene::GetActiveBgmStatus` writes +0x0..+0x18).
-- `CGameDataUsed shop_item` by value -> `userdata.hpp` (exists, asserts size 0x6C; it includes
-  `inventmn.hpp`, which needs the missing `memcard.hpp` and `menusys.hpp`).
+- `CGameDataUsed shop_item` by value -> `userdata.hpp` (size 0x6C).
 - Forward-declared: `CMenuPosDataForm`, `mgCMemory`, `MENUFORMPARTS_TYPE` (menudraw).
-- Verified to compile (and all sizes/offsets asserted) against stub `menusys.hpp`
-  (CBaseMenuClass 0x110, vptr 0x10C), `scenesnd.hpp` (BGM_STATUS 0x1C) and `userdata.hpp`
-  (CGameDataUsed 0x6C).
 
 ## CShop (size 0x120C, no vtable, no constructor)
 Size: `MenuShopInit` `__nw(0x120C)` then `memset(p, 0, 0x120C)`; then `shop_id` =
@@ -132,7 +128,12 @@ SelectMax: `*QuestMan` (CQuestManager count, first s32) in quest mode, 0x35 in s
 - `ShopSellListDraw(int&, float*)`: called from `CMenuPosDataForm::MenuFormDraw` for form part
   type 0x27 with `(tex_block, form+0xC)`.
 
-## Data (all local in retail: static in the .cpp, none declared in the header)
+## Data identities and storage
+The tables below are native. Tables carrying a numeric retail suffix in this
+list are function-local statics in the source; state objects have file-local
+linkage. The shop mode restored after an error is a natural initialized
+local static in `CShopMenu::KeyStep`.
+
 `.data`: `dony_shoplist` DONY_SHOP_ITEM[8] (7 items 0xBD,0x73,0xCD,0x7A,0x105,0x1AC,0x1AB at
 levels 1..7, then item -1); `menu_shop_tag` SPI_TAG_PARAM[3] {"SHOP",_SHOP_ANALYZE},
 {"PRICE",_PRICE}, {0,0}; `imglist_1267` char*[4] (allitem/spectre/img.img, 0);
@@ -140,7 +141,7 @@ levels 1..7, then item -1); `menu_shop_tag` SPI_TAG_PARAM[3] {"SHOP",_SHOP_ANALY
 `exe_tbl_1509` (かう設定...), `extbl_1573` (かう？...), `extbl_1589` (お金不足/EXE不足/メダル不足)
 char*[4] by sell mode; `randam_checktbl` u8[0x3C]; `tbl_2469` (0xA8) / `at_2470` (0x18)
 MenuNPCQuestViewDraw tables of s16.
-`.sdata`: `t_offxy_1832` int[2] {0,0}, `cursor_offsetxy_1836` int[2] {-46,18},
+`.sdata`: `t_offxy_1832` CursorPoint {0,0}, `cursor_offsetxy_1836` CursorPoint {-46,18},
 `cursortbl_1838` char*[2] {"0","1"}, `rgba_1897` u8[4] 0x80, `QuestMoveRate` float 1.0,
 `packname_2171` char*[2] {"quest.pac","scoop.pac"}.
 `.sbss`: `NowSellMode` s16 (SHOP_SELL_MODE), `CShopPtr` CShop*, `Tex_Shop`/`Tex_Mt0`
@@ -148,9 +149,9 @@ mgCTexture*, `Now_ShopListNum` s16, `Now_ShopDataReadPtr` s32*, `Now_Shop_ID` s1
 `Spi_PriceList` SHOP_PRICE_INFO*, `CShopMenuPt` CShopMenu*, `QuestMan` CQuestManager*,
 `QuestDataPtr` CQuestData* (SaveData+0x62A40), `Tex_QuestMemo` mgCTexture*, `QuestMenuMes`
 CDC2Mes*, `ActiveQuestInfo` pointer (GetQuestInfo result), `QuestTilePatternXY` float (sym size
-4, 8 bytes reserved), `QuestCursorPos` float[2], `QuestListTopY`, `QuestCommentWinX` int,
+4, 8 bytes reserved), `QuestCursorPos` float[2], `QuestListTopY`, `QuestCommentWinX` float,
 `QuestScrlBarY`/`QuestScrlBarH` float, `QuestViewCommentFlag` u8, `QuestReactionCommentGyouNum`
-s16, `ScoopMan` CScoopDataManager* (SaveData+0x25CA8), `ScmFlagCtrl` s16* (GetScoopDataTableIndex),
+s16, `ScoopMan` CScoopDataManager* (SaveData+0x25CA8), `ScmFlagCtrl` SCOOP_DATA* (GetScoopDataTableIndex),
 `menu_debug_questselect` int, `Menu_Memo_ViewMode` s8 (QUEST_VIEW_MODE), `MenuQuestView`
 CMenuQuestView*.
 `.bss`: `MenuLocalStack` mgCMemory (0x30), `QuestCommentMes` CDC2Mes*[3].
@@ -166,7 +167,8 @@ form the frame; the reaction adds 24 pixels to the sixth height, while scoop mod
 eight pixels from the fourth and zeroes the fifth and sixth. The debug overlay reads the
 same quest and scoop records to label their two state bytes. In the quest row, storing both
 the x constant and the `y - 2` position before calling `PrimQuad` gives MWCC the retail
-register assignment. The complete function matches retail with the two initializer gaps.
+register assignment. The complete function matches retail with native local
+initializers for the frame heights and texture rows.
 
 ## Compiler flag
 The local `divbyzerocheck on/reset` pair around `CMenuQuestView` is redundant with the
@@ -176,28 +178,13 @@ unit's global flag: removing it produces an identical complete `menushop.cpp.o`.
 
 `_SHOP_ANALYZE` ignores a script row unless its first integer identifies the currently selected shop. Matching rows set the remaining argument count as `Now_ShopListNum`, select robot-ABS selling for shop 23 or 28, medal selling for shop 32, and Donny selling for shop 33, then copy each following script integer into the typed item-number array. Ordinary shops retain the existing sell mode and use the local remaining argument count. One function-scoped item index is shared by the mutually exclusive copy loops; this preserves the PAL saved-register allocation in all four branches. The native 432-byte function now passes the object checker with zero instruction or relocation differences.
 
-## Constructor inline classification (2026-10-08)
+## Current matching status
 
-The constructor loop initializes the actual two-element `arrow_flash` array
-with the same two zero stores at object offsets 0x1D0 and 0x1D4. It fully
-unrolls, retaining all base/member constructor calls and other initialization
-operations. Signature-checked compiler observation reads inline class 3 for
-`CShopMenu`; the original IR puts allocation assignment inside the null
-conditional. The retail `beqz v0` at caller +0x58 now has `move s1,v0` in its
-delay slot. No wrapper, extra check, pragma or compiler policy is involved.
-
-Canonical native measurement has 0/312 differing words with identical
-relocation kinds (0x4D4 body and a zero tail to the retail 0x4E0 extent). The
-plain-wibo `draft.sh --diff` check also has zero differences. Only
-`MenuShopInit__FP9mgCMemoryPii` changes in the complete native draft object.
-Its guard and assembly fallback are removed manually.
-
-The shared-header build preserves all 149 final object hashes before
-promotion. After promotion, only `menushop.cpp.o` changes its full-file hash;
-all 149 allocated-section inventories remain identical. The full PAL
-verifier retains i15's 0x26-byte .text difference, other sections and BSS end
-are OK, and complete objects pass 147/149, failing only nd_meswin and
-actscript with their unchanged problem lists. Coverage increases from
-6,681/174/15/2 to 6,682 matched / 173 guarded / 15 asm-only / 2 fuzzy.
-Private receipts: `.private/receipts/ctor-final/{shop-loop,shop-promoted}/`.
-See [the classifier rules](../funcpoint/placement-new.md#constructor-inline-classification).
+Twenty-nine functions and the unit's native data match retail. Only
+`MenuNPCQuestViewInit` retains a guarded assembly fallback. Its placement
+construction draft branches on the saved pointer after copying it; retail
+branches on the allocation result and copies in the delay slot.
+`CShopMenu::KeyStep` uses a natural initialized local static for the previous
+list mode and local script tables for setup, confirmation and refusal.
+The shop initializer keeps the explicit `CShop` placement allocation and
+`memset`; a constructed `new` expression changes the allocation branch.
