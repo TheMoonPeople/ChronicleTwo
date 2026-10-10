@@ -1205,11 +1205,15 @@ int GetPackFileNum(u_int *pack) {
     int   index;
 
     index = 0;
-loop:
-    if (GetPackFile(pack, index, &name, &size) != 0) {
-        index += 1;
-        goto loop;
+
+    for (;;) {
+        if (GetPackFile(pack, index, &name, &size) == 0) {
+            break;
+        }
+
+        index++;
     }
+
     return index;
 }
 
