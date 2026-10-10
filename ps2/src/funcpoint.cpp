@@ -766,10 +766,10 @@ int CFuncPointMngr::GetLight(float *sphere, CFuncPoint *out_lights, int max, CFu
             if (point->active != 0 && point->plight.light_type == FUNC_PLIGHT_POINT) {
                 if (skip_unlit) {
                     if (point->plight.light_chara == 0) {
-                        goto next_plight;
+                        continue;
                     }
                 } else if (point->plight.no_map_light != 0) {
-                    goto next_plight;
+                    continue;
                 }
 
                 float dist = mgDistVector(sphere, point->position);
@@ -780,11 +780,7 @@ int CFuncPointMngr::GetLight(float *sphere, CFuncPoint *out_lights, int max, CFu
                     count++;
                 }
             }
-
-        next_plight:
-            next = Get();
-            point = next;
-        } while (next != NULL);
+        } while ((point = Get()) != NULL);
     }
 
     GetEnd();
