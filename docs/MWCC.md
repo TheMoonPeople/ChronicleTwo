@@ -175,6 +175,12 @@ class initializers must be generated naturally by the compiler.
   substituted. A call result used before the next call stays in `v0`, so a
   `v0` test beside a spill store needs the looked-up value in a separate
   `const` local (dng_event).
+- Binding a computed scalar to a used `const T &` can stop one-use forward
+  substitution into call arguments without adding storage or instructions.
+  EditLoop's remaining fishing capacity uses this form; ordinary value snapshots
+  move the capacity calculation into the pointer-first argument walk. The exact
+  source and six-word value-local residual are in
+  [the unit note](../ps2/re/docs/editloop/notes.md).
 - `T *const p = array;` keeps the base in a register; `x = load; x &= mask;`
   gives the AND result the load's register (`mgEndFrame`, mglib).
 - `*write++ = q;` reuses the dead argument register; a separate cursor local
