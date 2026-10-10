@@ -247,121 +247,10 @@ static signed char sort_table[0x24] = {
     23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 0
 };
 
-/**
- *
- * Hexadecimal digits and their nibble values for bracketed font codes.
- *
- */
-static s8 mes_cord_conv_1193[16][2] = {
-    {'0', 0}, {'1', 1}, {'2', 2}, {'3', 3},
-    {'4', 4}, {'5', 5}, {'6', 6}, {'7', 7},
-    {'8', 8}, {'9', 9}, {'a', 10}, {'b', 11},
-    {'c', 12}, {'d', 13}, {'e', 14}, {'f', 15}
-};
 
-/**
- *
- * Drawing-type keywords accepted by the menu form script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_1728[] = {
-    {"normal", MENUFORM_DTYPE_NORMAL},
-    {"itembrd", MENUFORM_DTYPE_ITEMBRD},
-    {"giftview", MENUFORM_DTYPE_GIFTVIEW},
-    {"msgform", MENUFORM_DTYPE_MSGFORM},
-    {"poly", MENUFORM_DTYPE_POLY},
-    {"mappart", MENUFORM_DTYPE_MAPPART},
-    {"combrd", MENUFORM_DTYPE_COMBRD},
-    {"createbrd", MENUFORM_DTYPE_CREATEBRD},
-    {"list", MENUFORM_DTYPE_LIST},
-    {"bg_tile", MENUFORM_DTYPE_BG_TILE},
-    {"dload", MENUFORM_DTYPE_DLOAD},
-    {"mainfrm", MENUFORM_DTYPE_MAINFRM},
-    {"mainimg", MENUFORM_DTYPE_MAINIMG},
-    {"chrstar", MENUFORM_DTYPE_CHRSTAR},
-    {"inv_card", MENUFORM_DTYPE_INV_CARD},
-    {"geolist", MENUFORM_DTYPE_GEOLIST},
-    {"geotitle", MENUFORM_DTYPE_GEOTITLE},
-    {"geoana", MENUFORM_DTYPE_GEOANA},
-    {"shoplist", MENUFORM_DTYPE_SHOPLIST},
-    {"clip", MENUFORM_DTYPE_CLIP},
-    {"wmap", MENUFORM_DTYPE_WMAP},
-    {"buildup", MENUFORM_DTYPE_BUILDUP},
-    {"mosbaji", MENUFORM_DTYPE_MOSBAJI},
-    {"savelist", MENUFORM_DTYPE_SAVELIST},
-    {"infocur", MENUFORM_DTYPE_INFOCUR},
-    {"house", MENUFORM_DTYPE_HOUSE},
-    {NULL, -1},
-};
 
-/**
- *
- * Movement keywords ordered by their MENUFORM_MTYPE value plus one.
- *
- */
-static char *tbl_1759[6] = {"n", "d", "l", "i", "ir", NULL};
 
-/**
- *
- * Additional drawing-type keywords accepted by the menu part script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_1994[] = {
-    {"clut_reload", MENUFORMPARTS_DTYPE_CLUT_RELOAD},
-    {"\x94\xAD\x96\xBE\x83l\x83^", MENUFORMPARTS_DTYPE_IDEA_BOARD},
-    {"\x83" "A\x83\x8B\x83o\x83\x80", MENUFORMPARTS_DTYPE_ALBUM},
-    {"\x82\xB2\x82\xBF\x82\xE1\x90\xFC", MENUFORMPARTS_DTYPE_RANDOM_LINE},
-    {"font", MENUFORMPARTS_DTYPE_FONT},
-    {"\x83l\x83^\x92\xA0", MENUFORMPARTS_DTYPE_IDEA_MEMO},
-    {NULL, -1},
-};
 
-/**
- *
- * Frame-image drawing keywords accepted by the menu script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2060[] = {
-    {"bg", MENUFORMPARTS_DTYPE_BG},
-    {"beta", MENUFORMPARTS_DTYPE_BETA},
-    {NULL, -1},
-};
-
-/**
- *
- * Item-icon drawing keywords accepted by the menu script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2074[] = {
-    {"trs", MENUFORMPARTS_DTYPE_TRS},
-    {"neta", MENUFORMPARTS_DTYPE_NETA},
-    {NULL, -1},
-};
-
-/**
- *
- * Filled-box drawing keywords accepted by the menu script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2090[] = {
-    {"sq_beta", MENUFORMPARTS_DTYPE_SQ_BETA},
-    {NULL, -1},
-};
-
-/**
- *
- * Animation-effect keywords accepted by the menu part script.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2144[] = {
-    {"blink", MENU_PARTS_EFFECT_BLINK},
-    {"rot", MENU_PARTS_EFFECT_ROT},
-    {"huriko", MENU_PARTS_EFFECT_HURIKO},
-    {"stretch", MENU_PARTS_EFFECT_STRETCH},
-    {"stretch_rep", MENU_PARTS_EFFECT_STRETCH_REP},
-    {"stretch_sin", MENU_PARTS_EFFECT_STRETCH_SIN},
-    {NULL, 0},
-};
 
 /**
  *
@@ -431,57 +320,7 @@ static SPI_TAG_PARAM menu_analyze_tag[] = {
     {NULL, NULL},
 };
 
-/**
- *
- * Message preset keywords accepted by menu command scripts.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2369[] = {
-    {"default", MENU_SCRIPT_MES_DEFAULT},
-    {"default_black", MENU_SCRIPT_MES_DEFAULT_BLACK},
-    {"no_win", MENU_SCRIPT_MES_NO_WIN},
-    {"system", MENU_SCRIPT_MES_SYSTEM},
-    {"name", MENU_SCRIPT_MES_NAME},
-    {"name_black", MENU_SCRIPT_MES_NAME_BLACK},
-    {"itemcmd", MENU_SCRIPT_MES_ITEMCMD},
-    {"invent", MENU_SCRIPT_MES_INVENT},
-    {"geo", MENU_SCRIPT_MES_GEO},
-    {"msgdic", MENU_SCRIPT_MES_MSGDIC},
-    {"general", MENU_SCRIPT_MES_GENERAL},
-    {"general_2", MENU_SCRIPT_MES_GENERAL_2},
-    {"yesno", MENU_SCRIPT_MES_YESNO},
-    {"brd3", MENU_SCRIPT_MES_BRD3},
-    {"helpwin", MENU_SCRIPT_MES_HELPWIN},
-    {"makebrd", MENU_SCRIPT_MES_MAKEBRD},
-    {"itemmsg", MENU_SCRIPT_MES_ITEMMSG},
-    {"itemmsg_defaultfuchi", MENU_SCRIPT_MES_ITEMMSG_DEFAULTFUCHI},
-    {"volmsg", MENU_SCRIPT_MES_VOLMSG},
-    {"talk", MENU_SCRIPT_MES_TALK},
-    {NULL, MENU_SCRIPT_MES_DEFAULT},
-};
 
-/**
- *
- * Font-outline keywords accepted by menu command scripts.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2422[] = {
-    {"default", FUCHI_SHADOW_BLACK_WIDE},
-    {"none", FUCHI_NONE},
-    {"ol2", FUCHI_OUTLINE_THICK},
-    {NULL, FUCHI_NONE},
-};
-
-/**
- *
- * System sound keywords accepted by menu command scripts.
- *
- */
-static MENU_SPI_ANALYZE_STRUCT1 tbl_2516[] = {
-    {"OK", SYSTEM_SE_DECIDE},
-    {"CANCEL", SYSTEM_SE_CANCEL},
-    {NULL, -1},
-};
 
 /**
  *
@@ -1078,6 +917,14 @@ int LoadFileMenu(char *name, u_long128 *buffer, int mode) {
 }
 
 void ConvertFontCode(char *source, char *destination) {
+    // Hexadecimal digits and their nibble values for bracketed font codes.
+    static s8 mes_cord_conv[16][2] = {
+        {'0', 0}, {'1', 1}, {'2', 2}, {'3', 3},
+        {'4', 4}, {'5', 5}, {'6', 6}, {'7', 7},
+        {'8', 8}, {'9', 9}, {'a', 10}, {'b', 11},
+        {'c', 12}, {'d', 13}, {'e', 14}, {'f', 15}
+    };
+
     if (source != NULL) {
         if (destination == NULL) {
             return;
@@ -1093,15 +940,15 @@ void ConvertFontCode(char *source, char *destination) {
                     s8 character_code = 0;
 
                     for (int index = 0; index < 16; index++) {
-                        if ((s8) source[6] == mes_cord_conv_1193[index][0]) {
-                            character_code = mes_cord_conv_1193[index][1] << 4;
+                        if ((s8) source[6] == mes_cord_conv[index][0]) {
+                            character_code = mes_cord_conv[index][1] << 4;
                             break;
                         }
                     }
 
                     for (int index = 0; index < 16; index++) {
-                        if ((s8) source[7] == mes_cord_conv_1193[index][0]) {
-                            character_code += mes_cord_conv_1193[index][1];
+                        if ((s8) source[7] == mes_cord_conv[index][0]) {
+                            character_code += mes_cord_conv[index][1];
                             break;
                         }
                     }
@@ -1112,15 +959,15 @@ void ConvertFontCode(char *source, char *destination) {
                     s8 character_code = 0;
 
                     for (int index = 0; index < 16; index++) {
-                        if ((s8) source[6] == mes_cord_conv_1193[index][0]) {
-                            character_code = mes_cord_conv_1193[index][1] << 4;
+                        if ((s8) source[6] == mes_cord_conv[index][0]) {
+                            character_code = mes_cord_conv[index][1] << 4;
                             break;
                         }
                     }
 
                     for (int index = 0; index < 16; index++) {
-                        if ((s8) source[7] == mes_cord_conv_1193[index][0]) {
-                            character_code += mes_cord_conv_1193[index][1];
+                        if ((s8) source[7] == mes_cord_conv[index][0]) {
+                            character_code += mes_cord_conv[index][1];
                             break;
                         }
                     }
@@ -1897,6 +1744,37 @@ int menu_dtype_init(CMenuPosDataForm *form, SPI_STACK *stack, int argc) {
  *
  */
 int _MENU_FORM_DTYPE(SPI_STACK *stack, int argc) {
+    // Drawing-type keywords accepted by the menu form script.
+    static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
+        {"normal", MENUFORM_DTYPE_NORMAL},
+        {"itembrd", MENUFORM_DTYPE_ITEMBRD},
+        {"giftview", MENUFORM_DTYPE_GIFTVIEW},
+        {"msgform", MENUFORM_DTYPE_MSGFORM},
+        {"poly", MENUFORM_DTYPE_POLY},
+        {"mappart", MENUFORM_DTYPE_MAPPART},
+        {"combrd", MENUFORM_DTYPE_COMBRD},
+        {"createbrd", MENUFORM_DTYPE_CREATEBRD},
+        {"list", MENUFORM_DTYPE_LIST},
+        {"bg_tile", MENUFORM_DTYPE_BG_TILE},
+        {"dload", MENUFORM_DTYPE_DLOAD},
+        {"mainfrm", MENUFORM_DTYPE_MAINFRM},
+        {"mainimg", MENUFORM_DTYPE_MAINIMG},
+        {"chrstar", MENUFORM_DTYPE_CHRSTAR},
+        {"inv_card", MENUFORM_DTYPE_INV_CARD},
+        {"geolist", MENUFORM_DTYPE_GEOLIST},
+        {"geotitle", MENUFORM_DTYPE_GEOTITLE},
+        {"geoana", MENUFORM_DTYPE_GEOANA},
+        {"shoplist", MENUFORM_DTYPE_SHOPLIST},
+        {"clip", MENUFORM_DTYPE_CLIP},
+        {"wmap", MENUFORM_DTYPE_WMAP},
+        {"buildup", MENUFORM_DTYPE_BUILDUP},
+        {"mosbaji", MENUFORM_DTYPE_MOSBAJI},
+        {"savelist", MENUFORM_DTYPE_SAVELIST},
+        {"infocur", MENUFORM_DTYPE_INFOCUR},
+        {"house", MENUFORM_DTYPE_HOUSE},
+        {NULL, -1},
+    };
+
     char *name;
 
     if (menu_formPt == NULL) {
@@ -1909,7 +1787,7 @@ int _MENU_FORM_DTYPE(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    menu_formPt->dtype = menu_spi_analyze_func_strcut1(tbl_1728, name);
+    menu_formPt->dtype = menu_spi_analyze_func_strcut1(tbl, name);
     menu_dtype_init(menu_formPt, stack, argc);
     return 1;
 }
@@ -1920,12 +1798,15 @@ int _MENU_FORM_DTYPE(SPI_STACK *stack, int argc) {
  *
  */
 int _MENU_FORM_MTYPE(SPI_STACK *stack, int argc) {
+    // Movement keywords ordered by their MENUFORM_MTYPE value plus one.
+    static char *tbl[6] = {"n", "d", "l", "i", "ir", NULL};
+
     char *name = spiGetStackString(stack);
     int   type = -1;
     int   i = 0;
     char *entry;
 
-    while ((entry = tbl_1759[i]) != 0) {
+    while ((entry = tbl[i]) != 0) {
         if (strcmp(name, entry) == 0) {
             type = i - 1;
             break;
@@ -2364,6 +2245,17 @@ void MakePartsName(SPI_STACK *stack, MENUFORMPARTS_TYPE *part) {
  *
  */
 int _MENU_PART_DTYPE(SPI_STACK *stack, int argc) {
+    // Additional drawing-type keywords accepted by the menu part script.
+    static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
+        {"clut_reload", MENUFORMPARTS_DTYPE_CLUT_RELOAD},
+        {"\x94\xAD\x96\xBE\x83l\x83^", MENUFORMPARTS_DTYPE_IDEA_BOARD},
+        {"\x83" "A\x83\x8B\x83o\x83\x80", MENUFORMPARTS_DTYPE_ALBUM},
+        {"\x82\xB2\x82\xBF\x82\xE1\x90\xFC", MENUFORMPARTS_DTYPE_RANDOM_LINE},
+        {"font", MENUFORMPARTS_DTYPE_FONT},
+        {"\x83l\x83^\x92\xA0", MENUFORMPARTS_DTYPE_IDEA_MEMO},
+        {NULL, -1},
+    };
+
     MENUFORMPARTS_TYPE *part;
     int                 i;
 
@@ -2373,7 +2265,7 @@ int _MENU_PART_DTYPE(SPI_STACK *stack, int argc) {
 
     part = menu_formPt->GetEnableEnterPart();
     menu_form_part = part;
-    part->dtype = menu_spi_analyze_func_strcut1(tbl_1994, spiGetStackString(stack++));
+    part->dtype = menu_spi_analyze_func_strcut1(tbl, spiGetStackString(stack++));
     MakePartsName(stack++, part);
 
     if (part->dtype == 'O') {
@@ -2537,9 +2429,16 @@ int _MENU_NUMBER2(SPI_STACK *stack, int argc) {
  *
  */
 int _MENU_FRMIMG(SPI_STACK *stack, int argc) {
+    // Frame-image drawing keywords accepted by the menu script.
+    static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
+        {"bg", MENUFORMPARTS_DTYPE_BG},
+        {"beta", MENUFORMPARTS_DTYPE_BETA},
+        {NULL, -1},
+    };
+
     MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
     menu_form_part = part;
-    part->dtype = menu_spi_analyze_func_strcut1(tbl_2060, spiGetStackString(stack++));
+    part->dtype = menu_spi_analyze_func_strcut1(tbl, spiGetStackString(stack++));
     part->tex_info_no = MenuPosData->GetTexGetInfoTblNo(spiGetStackString(stack++));
     MakePartsName(stack++, part);
     part->x = spiGetStackInt(stack++);
@@ -2580,9 +2479,16 @@ int _MENU_FORM(SPI_STACK *stack, int argc) {
  *
  */
 int _MENU_ITEM(SPI_STACK *stack, int argc) {
+    // Item-icon drawing keywords accepted by the menu script.
+    static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
+        {"trs", MENUFORMPARTS_DTYPE_TRS},
+        {"neta", MENUFORMPARTS_DTYPE_NETA},
+        {NULL, -1},
+    };
+
     MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
     menu_form_part = part;
-    part->dtype = menu_spi_analyze_func_strcut1(tbl_2074, spiGetStackString(stack++));
+    part->dtype = menu_spi_analyze_func_strcut1(tbl, spiGetStackString(stack++));
     part->etc_info[1] = 0;
     MakePartsName(stack++, part);
     part->x = spiGetStackInt(stack++);
@@ -2632,9 +2538,15 @@ int _MENU_ITEM_CHECKMARK(SPI_STACK *stack, int argc) {
  *
  */
 int _MENU_FILLBOX(SPI_STACK *stack, int argc) {
+    // Filled-box drawing keywords accepted by the menu script.
+    static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
+        {"sq_beta", MENUFORMPARTS_DTYPE_SQ_BETA},
+        {NULL, -1},
+    };
+
     MENUFORMPARTS_TYPE *part = menu_formPt->GetEnableEnterPart();
     menu_form_part = part;
-    part->dtype = menu_spi_analyze_func_strcut1(tbl_2090, spiGetStackString(stack++));
+    part->dtype = menu_spi_analyze_func_strcut1(tbl, spiGetStackString(stack++));
     MakePartsName(stack++, part);
     part->x = spiGetStackInt(stack++);
     part->y = spiGetStackInt(stack++);
@@ -2740,6 +2652,17 @@ int _MENU_PARTS_EFF_NUM(SPI_STACK *stack, int argc) {
  *
  */
 int _MENU_PARTS_EFFECT(SPI_STACK *stack, int argc) {
+    // Animation-effect keywords accepted by the menu part script.
+    static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
+        {"blink", MENU_PARTS_EFFECT_BLINK},
+        {"rot", MENU_PARTS_EFFECT_ROT},
+        {"huriko", MENU_PARTS_EFFECT_HURIKO},
+        {"stretch", MENU_PARTS_EFFECT_STRETCH},
+        {"stretch_rep", MENU_PARTS_EFFECT_STRETCH_REP},
+        {"stretch_sin", MENU_PARTS_EFFECT_STRETCH_SIN},
+        {NULL, 0},
+    };
+
     MENU_PARTS_EFFECT_STRUCT1 *effect;
     char                      *name;
     int                        i;
@@ -2750,7 +2673,7 @@ int _MENU_PARTS_EFFECT(SPI_STACK *stack, int argc) {
         return 0;
     }
 
-    effect->type = menu_spi_analyze_func_strcut1(tbl_2144, name);
+    effect->type = menu_spi_analyze_func_strcut1(tbl, name);
     effect->active = 1;
     effect->repeat = 1;
 
@@ -3101,6 +3024,31 @@ int _MENU_EXE_FORM_GROUP_SWAP(SPI_STACK *stack, int argc) {
  *
  */
 int _MENU_EXE_MSGENV(SPI_STACK *stack, int argc) {
+    // Message preset keywords accepted by menu command scripts.
+    static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
+        {"default", MENU_SCRIPT_MES_DEFAULT},
+        {"default_black", MENU_SCRIPT_MES_DEFAULT_BLACK},
+        {"no_win", MENU_SCRIPT_MES_NO_WIN},
+        {"system", MENU_SCRIPT_MES_SYSTEM},
+        {"name", MENU_SCRIPT_MES_NAME},
+        {"name_black", MENU_SCRIPT_MES_NAME_BLACK},
+        {"itemcmd", MENU_SCRIPT_MES_ITEMCMD},
+        {"invent", MENU_SCRIPT_MES_INVENT},
+        {"geo", MENU_SCRIPT_MES_GEO},
+        {"msgdic", MENU_SCRIPT_MES_MSGDIC},
+        {"general", MENU_SCRIPT_MES_GENERAL},
+        {"general_2", MENU_SCRIPT_MES_GENERAL_2},
+        {"yesno", MENU_SCRIPT_MES_YESNO},
+        {"brd3", MENU_SCRIPT_MES_BRD3},
+        {"helpwin", MENU_SCRIPT_MES_HELPWIN},
+        {"makebrd", MENU_SCRIPT_MES_MAKEBRD},
+        {"itemmsg", MENU_SCRIPT_MES_ITEMMSG},
+        {"itemmsg_defaultfuchi", MENU_SCRIPT_MES_ITEMMSG_DEFAULTFUCHI},
+        {"volmsg", MENU_SCRIPT_MES_VOLMSG},
+        {"talk", MENU_SCRIPT_MES_TALK},
+        {NULL, MENU_SCRIPT_MES_DEFAULT},
+    };
+
     SPI_STACK *next_slot = stack + 1;
     int        msg_no;
     int        preset;
@@ -3110,7 +3058,7 @@ int _MENU_EXE_MSGENV(SPI_STACK *stack, int argc) {
     }
 
     msg_no = spiGetStackInt(stack);
-    preset = menu_spi_analyze_func_strcut1(tbl_2369, spiGetStackString(next_slot));
+    preset = menu_spi_analyze_func_strcut1(tbl, spiGetStackString(next_slot));
     MenuDCMsg[msg_no]->MsgPreset(preset, LanguageCode);
     return 1;
 }
@@ -3204,6 +3152,14 @@ int _MENU_EXE_MSGSETBUFF(SPI_STACK *stack, int argc) {
  *
  */
 int _MENU_EXE_MSGSETFUCHI(SPI_STACK *stack, int argc) {
+    // Font-outline keywords accepted by menu command scripts.
+    static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
+        {"default", FUCHI_SHADOW_BLACK_WIDE},
+        {"none", FUCHI_NONE},
+        {"ol2", FUCHI_OUTLINE_THICK},
+        {NULL, FUCHI_NONE},
+    };
+
     SPI_STACK *next_slot = stack + 1;
     int        message;
     char      *text;
@@ -3215,7 +3171,7 @@ int _MENU_EXE_MSGSETFUCHI(SPI_STACK *stack, int argc) {
 
     message = spiGetStackInt(stack);
     text = spiGetStackString(next_slot);
-    type = menu_spi_analyze_func_strcut1(tbl_2422, text);
+    type = menu_spi_analyze_func_strcut1(tbl, text);
     MenuDCMsg[message]->fuchi = type;
     return 1;
 }
@@ -3399,11 +3355,18 @@ int _MENU_SCENE_FADE(SPI_STACK *stack, int argc) {
  *
  */
 int _MENU_SE_PLAY(SPI_STACK *stack, int argc) {
+    // System sound keywords accepted by menu command scripts.
+    static MENU_SPI_ANALYZE_STRUCT1 tbl[] = {
+        {"OK", SYSTEM_SE_DECIDE},
+        {"CANCEL", SYSTEM_SE_CANCEL},
+        {NULL, -1},
+    };
+
     if (SpiMenuExeCommandFlag == 0) {
         return 1;
     }
 
-    MenuSePlay(menu_spi_analyze_func_strcut1(tbl_2516, spiGetStackString(stack)));
+    MenuSePlay(menu_spi_analyze_func_strcut1(tbl, spiGetStackString(stack)));
     return 1;
 }
 

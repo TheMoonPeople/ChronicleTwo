@@ -43,7 +43,7 @@ corners set to 1.0.
   >=4 -> v-2; null -> -1.
 - `MenuCalcBufAlignment`: same as the first game's (u_long128* rounded up to 64). Retail mangles
   `u_long128*` as `P1`.
-- `LoadFileMenu(char*, u_long128*, int mode)`: path = `at_1173` + `langdirpathTable_1161[LanguageCode]`
+- `LoadFileMenu(char*, u_long128*, int mode)`: path = `"menu/"` + `langdirpathTable[LanguageCode]`
   + name; mode 0 -> `LoadFileBG(path, buf, &size)`, 1 -> `LoadFile2(path, buf, &size, 0)`; returns
   size, -1 for null args. Callers pass only 0 or 1 (enum `MenuFileLoadMode`).
   The function-local `langdirpathTable` has seven entries: "0/", "1/", "2/",
@@ -60,7 +60,8 @@ corners set to 1.0.
   `char **` cursor scores 86.47%. All three compile to the same 0xC4-byte
   function but change register selection or scheduling.
 - `ConvertFontCode(src, dst)`: if not `CheckNowEurope()` plain strcpy. Else `[xxxx0HL]`/`[xxxx1HL]`
-  9-char codes become one byte from two hex digits looked up in `mes_cord_conv_1193` (16 pairs
+  9-char codes become one byte from two hex digits looked up in the function-local
+  `mes_cord_conv` table (16 pairs
   {char, nibble}); type 1 maps 'R' -> 0xBD, 'S' -> 0xBE.
 - `CheckNowEurope`: 1 when 0 < LanguageCode < 6 (see `LanguageCodeNo` in mainloop.hpp).
 - `MenuWorkTextureEnter(block, name, w, h, bpp)`: rounds w,h up to 64, `EnterTexture(block, name,
@@ -82,8 +83,9 @@ corners set to 1.0.
 ## Structs
 - `MENU_SPI_ANALYZE_STRUCT1` (retail name, from the mangled `menu_spi_analyze_func_strcut1`): 8 bytes
   `{char *name; int value;}`, from `menu_spi_analyze_func_strcut1` (stride 8, name at +0, value at
-  +4, NULL-name terminator). Tables: `tbl_1728`, `tbl_1994`, `tbl_2060`, `tbl_2074`, `tbl_2090`,
-  `tbl_2144`, `tbl_2369`, `tbl_2422`, `tbl_2516` (function-local statics).
+  +4, NULL-name terminator). Each keyword table is a function-local static
+  named `tbl`; the retail symbols include `tbl_1728`, `tbl_1994`, `tbl_2060`,
+  `tbl_2074`, `tbl_2090`, `tbl_2144`, `tbl_2369`, `tbl_2422` and `tbl_2516`.
 - `MENU_COMMAND_ANALYZE_INFO` (**not a retail name**; retail gives only the variable name). Size
   0x68 from the symbol size. +0x00 char[0x48] command name (strcpy/strcmp in MenuCommandAnalyze /
   `_MENU_EXE_COMMAND_NAME`); +0x48 short*[4] (`_MENU_EXE_MSGSETSYSTEMBUFF` indexes it, falls back to
@@ -107,6 +109,13 @@ Local (keep static in .cpp):
   string copied into it, +0x10 holds a pointer); `SpiMenuExeCommandFlag` u8;
   `MenuSpiTextureName` char[0x20].
 - `menu_analyze_tag` SPI_TAG_PARAM[0x3C], `menu_execommand_analyze_tag` SPI_TAG_PARAM[0x20].
+
+The two native dispatch tables include their null terminators. The message
+preset table has twenty entries plus a terminator and uses
+`MenuScriptMessagePreset`; the sound keyword table maps `OK` and `CANCEL` to
+`SYSTEM_SE_DECIDE` and `SYSTEM_SE_CANCEL`. `sort_table` stays writable because
+the sorting pass updates its ranks. All 129 functions and the complete object
+match retail; no assembly data markers remain.
 
 ## Types owned elsewhere (forward-declared / not declared here)
 - `MENUFORMPARTS_TYPE` (size 0x48 from `_MENU_FORM_PARTNUM` stride; +0x0 name char*, +0xB/+0xC u8,
@@ -133,17 +142,12 @@ global flag: removing them produces an identical complete `menucommon.cpp.o`.
 The `fptosi` conversion used by this unit is the CodeWarrior runtime helper declared in
 `mw_runtime.h`; using that header preserves the complete object.
 
-## CalcScrlBarPutPos canonical check (2026-10-07)
+## Matching source forms
 
-`decompile.sh CalcScrlBarPutPos__Fifif` confirms a signed pixel result, calculated
-as `top + length * (pos / pos_max)` in single precision and converted with
-`fptosi`; zero `pos_max` returns `top`. Retail is 0x50 bytes. The current C++
-draft compiles to 0x58 bytes: the result coalesces with the input `top` in `$a0`,
-requiring moves around the helper, whereas retail initializes `$v0` in the
-comparison branch delay slot and retains the helper result there. Inlining the
-ratio reduces the native function to 0x54 but also changes floating allocation
-and helper placement. Early return and explicit alternative-result assignment
-produce 0x5c. Ordinary C++ conversion and the explicit helper call have the same
-remaining differences. The fallback remains; no nonzero-score promotion was
-accepted. Reversing the zero comparison to `0.0f != pos_max` also retains
-the original 0x58-byte mismatch.
+`_MENU_FORM_MALLOC` retains the explicit placement `operator new[]` call.
+Spelling the allocation as `new (block) CMenuPosDataForm[count]` removes the
+live byte count, shrinks the frame from 0x30 to 0x20 and changes the object.
+`MenuCommonReadData` keeps its byte-offset walk over the name-pointer list;
+typed pointer indexing exchanges the saved registers and fails the exact
+match. `CalcScrlBarPutPos` is native and returns `top` when `pos_max` is zero;
+otherwise it computes `top + length * (pos / pos_max)` in single precision.
