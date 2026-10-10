@@ -85,3 +85,15 @@ The accessor works only because it makes the player an inline temporary.
 It is not a unit-wide idiom: the other player fetches need the direct
 call. No existing header inline returns the player character, so the
 function stays guarded.
+
+## Smart and deferred inline policies
+
+With the block-count allocation, scoped `inline_depth(smart)` retains
+**24/280** differing words and the `0x458` body: the player/fish saved-register
+exchange remains. Leaving smart depth active through the next declaration
+also retains that result, so an immediate depth reset does not hide a
+numbering correction. `-inline deferred` retains the same target score and
+regresses other native functions. Scoped `defer_codegen on`, alone or with
+`inline_bottom_up on`, alongside smart depth also retains 24/280. These
+policies do not recover the player-first temporary numbering required by the
+interference graph. No inline policy or allocation-source edit is retained.
