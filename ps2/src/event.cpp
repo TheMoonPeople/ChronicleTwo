@@ -48,7 +48,6 @@ static CRunScript EventScript;
  */
 CScene *EventScene;
 
-// Code (.text)
 int LoadNpcTalkMes(mgCMemory *memory) {
     char path[0x4C];
     int  size;

@@ -137,7 +137,6 @@ static u16 MCBrowserName_Offset[3][4] = {
  */
 static short DngTreeSaveFlag;
 
-// Code (.text)
 void CopyMCBrowserName(int index, char *name, u16 *offset) {
     int region = 0;
 
@@ -2548,8 +2547,6 @@ COSBIT_INFO *GetCosInfo(int costume_no) {
     return NULL;
 }
 
-// Small initialised data (.sdata)
 s16 NowProgramLoopNo = -1;
 
-// Small uninitialised data (.sbss)
 char *SubGameOmakeTempBuffer;

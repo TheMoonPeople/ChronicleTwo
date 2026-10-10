@@ -177,7 +177,6 @@ static SPI_TAG_PARAM menu_wmap_analyze_tag[] = {
     {NULL,       NULL         },
 };
 
-// Code (.text)
 int _WMAP_POSNUM(SPI_STACK *stack, int) {
     unsigned int bytes;
     unsigned int blocks;

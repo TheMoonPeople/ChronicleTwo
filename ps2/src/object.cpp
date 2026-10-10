@@ -7,7 +7,6 @@
 #include "mglib.hpp"
 #include "object.hpp"
 
-// Code (.text)
 void CObject::GetMatrix(float (*out_matrix)[4]) {
     mgUnitMatrix(out_matrix);
     out_matrix[0][0] = scale[0];

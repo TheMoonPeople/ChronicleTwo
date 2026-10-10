@@ -18,7 +18,6 @@
 #include "scenesnd.hpp"
 #include "sound.hpp"
 
-// Code (.text)
 void CalcReflectionVector(float *incoming, float *surface, float *reflected) {
     float normal[4];
     float dx;
@@ -136,12 +135,12 @@ void CFragment::Step(CCPoly *polys, int poly_count) {
         rotation[2] -= 0.0625f * delta_z;
 
         for (axis = 0; axis < 3; axis++) {
-            if (rotation[axis] < -3.1415927f) {
-                rotation[axis] += 6.2831855f;
+            if (rotation[axis] < -PI) {
+                rotation[axis] += TWO_PI;
             }
 
-            if (3.1415927f < rotation[axis]) {
-                rotation[axis] -= 6.2831855f;
+            if (PI < rotation[axis]) {
+                rotation[axis] -= TWO_PI;
             }
         }
     }
@@ -566,7 +565,6 @@ void CPot::Init(int keep_velocity) {
     fly_time = 0;
 }
 
-// Initialised data (.data)
 /**
  *
  * Starting offsets of the twelve pieces of a broken box.

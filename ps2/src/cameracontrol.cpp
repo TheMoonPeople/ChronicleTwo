@@ -16,7 +16,6 @@
 #include "mglib.hpp"
 #include "padcontrol.hpp"
 
-// Code (.text)
 void CameraCtrlParam::SetFixHeight(float height) {
     max_height = height;
     min_height = height;
@@ -262,7 +261,7 @@ void CCameraControl::MoveCamera(Control *control, float *target, CCPoly *polys, 
     mgAddVector(next_pos, correction);
 
     if (control->rot_back != 0 && !(rot_cancel & (int) CAMERA_ROT_CANCEL_ROT_BACK)) {
-        RotBack(target[1] - 3.1415927f);
+        RotBack(target[1] - PI);
     }
 
     if (rot_back != 0) {

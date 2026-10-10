@@ -280,7 +280,6 @@ static SPI_TAG_PARAM skin_tag[] = {
     {NULL,      NULL         },
 };
 
-// Code (.text)
 void CCharacter2::SetPosition(float *pos) {
     mgCObject::SetPosition(pos);
 }
@@ -1056,7 +1055,7 @@ void CCharacter2::Step() {
     if (reset_dynamic_anime == 0) {
         entry_angle = atan2f(matrix[2][0], matrix[2][2]);
 
-        if (mgAngleCmp(entry_angle, atan2f(entry_matrix[2][0], entry_matrix[2][2]), 0.7853982f) != 0) {
+        if (mgAngleCmp(entry_angle, atan2f(entry_matrix[2][0], entry_matrix[2][2]), QUARTER_PI) != 0) {
             reset_dynamic_anime = 1;
         }
     }

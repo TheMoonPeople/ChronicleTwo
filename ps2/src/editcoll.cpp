@@ -19,7 +19,6 @@ struct CollisionRow {
 #pragma global_optimizer off
 #include <libvu0.h>
 
-// Code (.text)
 int ClipBoxXZ(float *max_a, float *min_a, float *max_b, float *min_b) {
     int flags;
     asm {

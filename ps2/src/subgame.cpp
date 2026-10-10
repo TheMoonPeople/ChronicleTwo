@@ -49,7 +49,6 @@ static int ItemOver;
  */
 static SubGameInfo GameInfo;
 
-// Code (.text)
 void InitSubGame(CScene *scene) {
     SubGame = SUBGAME_NONE;
     MenuOpenFlag = 0;

@@ -15,7 +15,6 @@
 
 int mgCCamera::StopCamera;
 
-// Code (.text)
 void mgCCamera::Step(int frames) {
     mgCCamera *self = this;
     float      dir[4];
@@ -266,12 +265,12 @@ void mgCCameraFollow::Step(int frames) {
             return;
         }
 
-        if (!(next_angle <= 6.2831855f)) {
-            next_angle -= 6.2831855f;
+        if (!(next_angle <= TWO_PI)) {
+            next_angle -= TWO_PI;
         }
 
         if (next_angle < 0.0f) {
-            next_angle += 6.2831855f;
+            next_angle += TWO_PI;
         }
 
         i = 0;

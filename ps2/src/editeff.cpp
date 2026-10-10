@@ -59,7 +59,6 @@ static CPaintEffect *PaintEffect;
 extern CStarEffect _StarEffect[star_effect_count];
 extern mgCMemory   CurPartsBuff;
 
-// Code (.text)
 void EditSetEffectBuffer(mgCMemory *memory) {
     mgCTexture *texture = mgTexManager.GetTexture("haichi_eff", -1);
     int         i;
@@ -285,7 +284,7 @@ void CStarEffect::ParamInit(float *spread, int count) {
 
     for (i = 0; i < particle_max; i++) {
         radius = 0.5f * spread[0] * (1.0f + mgRnd());
-        theta = 6.2831855f * mgRnd();
+        theta = TWO_PI * mgRnd();
         p[0] = radius * sinf(theta);
         p[1] = spread[1] * mgRnd();
         p[2] = radius * cosf(theta);
@@ -650,9 +649,9 @@ void CPlaceAnime::Step() {
             height_speed = 0.0f;
         }
 
-        rotation[0] = 0.4f * power * sinf(6.2831855f * ((float) frame / 30.0f));
+        rotation[0] = 0.4f * power * sinf(TWO_PI * ((float) frame / 30.0f));
         rotation[2] =
-            0.4f * power * cosf(6.2831855f * ((float) frame / 30.0f) + 1.5707964f * power);
+            0.4f * power * cosf(TWO_PI * ((float) frame / 30.0f) + HALF_PI * power);
         frame++;
         power = 0.92f * power;
 
@@ -671,7 +670,7 @@ void CPlaceAnime::Step() {
 
                     case 1:
                         height = 0.0f;
-                        squash = 1.0f + 0.2f * power * sinf(6.2831855f * ((float) frame / 30.0f));
+                        squash = 1.0f + 0.2f * power * sinf(TWO_PI * ((float) frame / 30.0f));
                         scale[2] = squash;
                         scale[0] = squash;
                         scale[1] = 2.0f - squash;
@@ -774,7 +773,6 @@ int EditPlaceAnimeEndCheck() {
 
 CStarEffect::CStarEffect() {}
 
-// Uninitialised data (.bss)
 CStarEffect _StarEffect[star_effect_count];
 mgCMemory   CurPartsBuff;
 

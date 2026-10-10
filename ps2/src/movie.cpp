@@ -182,7 +182,6 @@ static int voBufIsFull(VoBuf *buf);
 static u_int at_1276__2[4] __attribute__((aligned(16))) = {0, 0x10000000, 0xE, 0};
 static u_int at_1287__2[4] __attribute__((aligned(16))) = {0x8000, 0x10000000, 0xE, 0};
 
-// Code (.text)
 static inline void *DmaAddr(void *addr) {
     return (void *) ((u32) addr & 0xFFFFFFF);
 }
@@ -671,10 +670,7 @@ int vblankHandler(int irq) {
         if (tag == NULL) {
             frd++;
 
-            asm {
-                sync
-                ei
-            }
+            ExitHandler();
 
             return 0;
         } else {
@@ -690,10 +686,7 @@ int vblankHandler(int irq) {
             Cb ^= 1;
         }
     }
-    asm {
-        sync
-        ei
-    }
+    ExitHandler();
     return 0;
 }
 
@@ -705,10 +698,7 @@ int handler_endimage(int irq) {
         isFrameEnd = 0;
     }
 
-    asm {
-        sync
-        ei
-    }
+    ExitHandler();
 
     return 0;
 }

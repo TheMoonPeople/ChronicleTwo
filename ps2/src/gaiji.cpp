@@ -4,7 +4,6 @@
 #include "gaiji.hpp"
 #include "mainloop.hpp"
 
-// Code (.text)
 /** Optional destination for the second font texture image. */
 static u_char *FontTex_2_Buff;
 /** Buffer holding the language-specific gaiji image. */

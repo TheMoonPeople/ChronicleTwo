@@ -6,7 +6,6 @@
 #include "mg_drawenv.hpp"
 #include "mg_math.hpp"
 
-// Code (.text)
 int IntersectionPipeYPoly3(float *pipe, float (*poly)[4], float *normal, float (*hits)[4]) {
     /** Zero vector used to seed the plane tangent calculation. */
     static sceVu0FVECTOR at;

@@ -596,7 +596,6 @@ static s16 gettbl0_2012[12] = {0, 148, 42, 64, 42, 148, 16, 64, 58, 148, 42, 64}
  */
 static mgCMemory NameRegiStack;
 
-// Code (.text)
 void SetEventKeyword(char *target, char *topic, int code) {
     Nameregi_Target.keyword[0] = 0;
     Nameregi_Target.keyword[1] = 0;
@@ -2247,8 +2246,8 @@ s32 CNameRegiMenu::KeyStep() {
 
     wave_angle += 0.06981317f;
 
-    if (!(wave_angle <= 3.1415927f)) {
-        wave_angle -= 6.2831855f;
+    if (!(wave_angle <= PI)) {
+        wave_angle -= TWO_PI;
     }
 
     StepMarkCursor();
@@ -2748,7 +2747,6 @@ void CNameRegiMenu::DrawMessage() {
     }
 }
 
-// Uninitialised data (.bss)
 /**
  *
  * Stores the target and keyword for the name entry screen.

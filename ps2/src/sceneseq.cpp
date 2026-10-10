@@ -25,7 +25,6 @@
         }                                \
     }
 
-// Code (.text)
 /**
  *
  * Clears a spline key before camera or character path setup.
@@ -547,14 +546,14 @@ void CCharaPas::Step(float *pos, float *angle) {
     }
 
     heading = atan2f(delta[0], delta[2]);
-    heading -= 3.1415927f * (2.0f * (float) (int) (heading / 6.2831855f));
+    heading -= PI * (2.0f * (float) (int) (heading / TWO_PI));
 
-    if (heading > 3.1415927f) {
-        heading -= 6.2831855f;
+    if (heading > PI) {
+        heading -= TWO_PI;
     }
 
-    if (heading <= -3.1415927f) {
-        heading += 6.2831855f;
+    if (heading <= -PI) {
+        heading += TWO_PI;
     }
 
     *angle = heading;
@@ -994,10 +993,10 @@ static int scsMoveAHD(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
             angle_delta = node->vec0[0] - owner->angle;
         }
 
-        if (angle_delta > 3.1415927f) {
-            angle_delta -= 6.2831855f;
-        } else if (angle_delta <= -3.1415927f) {
-            angle_delta += 6.2831855f;
+        if (angle_delta > PI) {
+            angle_delta -= TWO_PI;
+        } else if (angle_delta <= -PI) {
+            angle_delta += TWO_PI;
         }
 
         owner->angle_spd = angle_delta / (float) node->frame;
@@ -1009,10 +1008,10 @@ static int scsMoveAHD(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
     } else if (owner->sync != 0) {
         owner->sync_angle += owner->angle_spd;
 
-        if (owner->sync_angle > 3.1415927f) {
-            owner->sync_angle -= 6.2831855f;
-        } else if (owner->sync_angle <= -3.1415927f) {
-            owner->sync_angle += 6.2831855f;
+        if (owner->sync_angle > PI) {
+            owner->sync_angle -= TWO_PI;
+        } else if (owner->sync_angle <= -PI) {
+            owner->sync_angle += TWO_PI;
         }
 
         owner->sync_height += owner->height_spd;
@@ -1020,10 +1019,10 @@ static int scsMoveAHD(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
     } else {
         owner->angle += owner->angle_spd;
 
-        if (owner->angle > 3.1415927f) {
-            owner->angle -= 6.2831855f;
-        } else if (owner->angle <= -3.1415927f) {
-            owner->angle += 6.2831855f;
+        if (owner->angle > PI) {
+            owner->angle -= TWO_PI;
+        } else if (owner->angle <= -PI) {
+            owner->angle += TWO_PI;
         }
 
         owner->height += owner->height_spd;
@@ -1059,10 +1058,10 @@ static int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
             angle_delta = node->vec0[0] - owner->angle;
         }
 
-        if (angle_delta > 3.1415927f) {
-            angle_delta -= 6.2831855f;
-        } else if (angle_delta <= -3.1415927f) {
-            angle_delta += 6.2831855f;
+        if (angle_delta > PI) {
+            angle_delta -= TWO_PI;
+        } else if (angle_delta <= -PI) {
+            angle_delta += TWO_PI;
         }
 
         owner->angle_spd = angle_delta / (float) node->frame;
@@ -1091,10 +1090,10 @@ static int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
             sceVu0AddVector(owner->pos_ease_spd, owner->pos_ease_spd, owner->pos_ease_acc);
             owner->sync_angle += owner->pos_ease_spd[0];
 
-            if (owner->sync_angle > 3.1415927f) {
-                owner->sync_angle -= 6.2831855f;
-            } else if (owner->sync_angle <= -3.1415927f) {
-                owner->sync_angle += 6.2831855f;
+            if (owner->sync_angle > PI) {
+                owner->sync_angle -= TWO_PI;
+            } else if (owner->sync_angle <= -PI) {
+                owner->sync_angle += TWO_PI;
             }
 
             moved = 1;
@@ -1107,10 +1106,10 @@ static int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
             sceVu0SubVector(owner->pos_ease_spd, owner->pos_ease_spd, owner->pos_ease_acc);
             owner->sync_angle += owner->pos_ease_spd[0];
 
-            if (owner->sync_angle > 3.1415927f) {
-                owner->sync_angle -= 6.2831855f;
-            } else if (owner->sync_angle <= -3.1415927f) {
-                owner->sync_angle += 6.2831855f;
+            if (owner->sync_angle > PI) {
+                owner->sync_angle -= TWO_PI;
+            } else if (owner->sync_angle <= -PI) {
+                owner->sync_angle += TWO_PI;
             }
 
             moved = 1;
@@ -1122,10 +1121,10 @@ static int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
         if (moved == 0) {
             owner->sync_angle += owner->angle_spd;
 
-            if (owner->sync_angle > 3.1415927f) {
-                owner->sync_angle -= 6.2831855f;
-            } else if (owner->sync_angle <= -3.1415927f) {
-                owner->sync_angle += 6.2831855f;
+            if (owner->sync_angle > PI) {
+                owner->sync_angle -= TWO_PI;
+            } else if (owner->sync_angle <= -PI) {
+                owner->sync_angle += TWO_PI;
             }
 
             owner->sync_height += owner->height_spd;
@@ -1139,10 +1138,10 @@ static int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
             sceVu0AddVector(owner->pos_ease_spd, owner->pos_ease_spd, owner->pos_ease_acc);
             owner->angle += owner->pos_ease_spd[0];
 
-            if (owner->angle > 3.1415927f) {
-                owner->angle -= 6.2831855f;
-            } else if (owner->angle <= -3.1415927f) {
-                owner->angle += 6.2831855f;
+            if (owner->angle > PI) {
+                owner->angle -= TWO_PI;
+            } else if (owner->angle <= -PI) {
+                owner->angle += TWO_PI;
             }
 
             moved = 1;
@@ -1155,10 +1154,10 @@ static int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
             sceVu0SubVector(owner->pos_ease_spd, owner->pos_ease_spd, owner->pos_ease_acc);
             owner->angle += owner->pos_ease_spd[0];
 
-            if (owner->angle > 3.1415927f) {
-                owner->angle -= 6.2831855f;
-            } else if (owner->angle <= -3.1415927f) {
-                owner->angle += 6.2831855f;
+            if (owner->angle > PI) {
+                owner->angle -= TWO_PI;
+            } else if (owner->angle <= -PI) {
+                owner->angle += TWO_PI;
             }
 
             moved = 1;
@@ -1170,10 +1169,10 @@ static int scsMoveAHD2(_SEN_CMR_SEQ *node, CSceneCmrSeq *owner) {
         if (moved == 0) {
             owner->angle += owner->angle_spd;
 
-            if (owner->angle > 3.1415927f) {
-                owner->angle -= 6.2831855f;
-            } else if (owner->angle <= -3.1415927f) {
-                owner->angle += 6.2831855f;
+            if (owner->angle > PI) {
+                owner->angle -= TWO_PI;
+            } else if (owner->angle <= -PI) {
+                owner->angle += TWO_PI;
             }
 
             owner->height += owner->height_spd;
@@ -1251,10 +1250,10 @@ static int scsAHDSlowing(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
     if (owner->sync != 0) {
         owner->sync_angle += owner->ahd_vel[0];
 
-        if (owner->sync_angle > 3.1415927f) {
-            owner->sync_angle -= 6.2831855f;
-        } else if (owner->sync_angle <= -3.1415927f) {
-            owner->sync_angle += 6.2831855f;
+        if (owner->sync_angle > PI) {
+            owner->sync_angle -= TWO_PI;
+        } else if (owner->sync_angle <= -PI) {
+            owner->sync_angle += TWO_PI;
         }
 
         owner->sync_height += owner->ahd_vel[1];
@@ -1262,10 +1261,10 @@ static int scsAHDSlowing(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
     } else {
         owner->angle += owner->ahd_vel[0];
 
-        if (owner->angle > 3.1415927f) {
-            owner->angle -= 6.2831855f;
-        } else if (owner->angle <= -3.1415927f) {
-            owner->angle += 6.2831855f;
+        if (owner->angle > PI) {
+            owner->angle -= TWO_PI;
+        } else if (owner->angle <= -PI) {
+            owner->angle += TWO_PI;
         }
 
         owner->height += owner->ahd_vel[1];
@@ -1941,10 +1940,10 @@ void CSceneCmrSeq::Play() {
                     EventObjHandleMother.GetRot(sync_obj, object_rot);
                     yaw += object_rot[1];
 
-                    if (yaw > 3.1415927f) {
-                        yaw -= 6.2831855f;
-                    } else if (yaw <= -3.1415927f) {
-                        yaw += 6.2831855f;
+                    if (yaw > PI) {
+                        yaw -= TWO_PI;
+                    } else if (yaw <= -PI) {
+                        yaw += TWO_PI;
                     }
 
                     break;
@@ -1959,10 +1958,10 @@ void CSceneCmrSeq::Play() {
             EventObjHandleMother.GetRot(sync_obj, frame_rot);
             yaw += frame_rot[1];
 
-            if (yaw > 3.1415927f) {
-                yaw -= 6.2831855f;
-            } else if (yaw <= -3.1415927f) {
-                yaw += 6.2831855f;
+            if (yaw > PI) {
+                yaw -= TWO_PI;
+            } else if (yaw <= -PI) {
+                yaw += TWO_PI;
             }
 
             pos[0] = ref[0] + sync_dist * sinf(yaw);
@@ -3025,10 +3024,10 @@ static int scsRotation(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
         for (i = 0; i < 3; i++) {
             owner->rot[i] += seq->vec[i];
 
-            if (owner->rot[i] > 3.1415927f) {
-                owner->rot[i] -= 6.2831855f;
-            } else if (owner->rot[i] <= -3.1415927f) {
-                owner->rot[i] += 6.2831855f;
+            if (owner->rot[i] > PI) {
+                owner->rot[i] -= TWO_PI;
+            } else if (owner->rot[i] <= -PI) {
+                owner->rot[i] += TWO_PI;
             }
         }
     } else {
@@ -3042,10 +3041,10 @@ static int scsRotation(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
             for (j = 0; j < 3; j++) {
                 delta = seq->vec[j] - owner->rot[j];
 
-                if (delta > 3.1415927f) {
-                    delta -= 6.2831855f;
-                } else if (delta <= -3.1415927f) {
-                    delta += 6.2831855f;
+                if (delta > PI) {
+                    delta -= TWO_PI;
+                } else if (delta <= -PI) {
+                    delta += TWO_PI;
                 }
 
                 owner->rot_spd[j] = delta / seq->frame;
@@ -3054,10 +3053,10 @@ static int scsRotation(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
             for (k = 0; k < 3; k++) {
                 owner->rot[k] += owner->rot_spd[k];
 
-                if (owner->rot[k] > 3.1415927f) {
-                    owner->rot[k] -= 6.2831855f;
-                } else if (owner->rot[k] <= -3.1415927f) {
-                    owner->rot[k] += 6.2831855f;
+                if (owner->rot[k] > PI) {
+                    owner->rot[k] -= TWO_PI;
+                } else if (owner->rot[k] <= -PI) {
+                    owner->rot[k] += TWO_PI;
                 }
             }
         }
@@ -3110,10 +3109,10 @@ static int scsRotation2(_SEN_OBJ_SEQ *node, CSceneObjSeq *owner) {
             sceVu0AddVector(owner->rot_ease_spd, owner->rot_ease_spd, owner->rot_ease_acc);
             sceVu0AddVector(owner->rot, owner->rot, owner->rot_ease_spd);
 
-            if (owner->rot[1] > 3.1415927f) {
-                owner->rot[1] -= 6.2831855f;
-            } else if (owner->rot[1] <= -3.1415927f) {
-                owner->rot[1] += 6.2831855f;
+            if (owner->rot[1] > PI) {
+                owner->rot[1] -= TWO_PI;
+            } else if (owner->rot[1] <= -PI) {
+                owner->rot[1] += TWO_PI;
             }
 
             moved = 1;
@@ -3125,10 +3124,10 @@ static int scsRotation2(_SEN_OBJ_SEQ *node, CSceneObjSeq *owner) {
             sceVu0SubVector(owner->rot_ease_spd, owner->rot_ease_spd, owner->rot_ease_acc);
             sceVu0AddVector(owner->rot, owner->rot, owner->rot_ease_spd);
 
-            if (owner->rot[1] > 3.1415927f) {
-                owner->rot[1] -= 6.2831855f;
-            } else if (owner->rot[1] <= -3.1415927f) {
-                owner->rot[1] += 6.2831855f;
+            if (owner->rot[1] > PI) {
+                owner->rot[1] -= TWO_PI;
+            } else if (owner->rot[1] <= -PI) {
+                owner->rot[1] += TWO_PI;
             }
 
             moved = 1;
@@ -3138,10 +3137,10 @@ static int scsRotation2(_SEN_OBJ_SEQ *node, CSceneObjSeq *owner) {
         if (moved == 0) {
             sceVu0AddVector(owner->rot, owner->rot, owner->rot_spd);
 
-            if (owner->rot[1] > 3.1415927f) {
-                owner->rot[1] -= 6.2831855f;
-            } else if (owner->rot[1] <= -3.1415927f) {
-                owner->rot[1] += 6.2831855f;
+            if (owner->rot[1] > PI) {
+                owner->rot[1] -= TWO_PI;
+            } else if (owner->rot[1] <= -PI) {
+                owner->rot[1] += TWO_PI;
             }
 
             owner->rot[3] = 1.0f;
@@ -3188,20 +3187,20 @@ static int scsReference(_SEN_OBJ_SEQ *seq, CSceneObjSeq *owner) {
         sceVu0CopyVector(seq->vec, target);
         delta = seq->vec[1] - owner->rot[1];
 
-        if (delta > 3.1415927f) {
-            delta -= 6.2831855f;
-        } else if (delta <= -3.1415927f) {
-            delta += 6.2831855f;
+        if (delta > PI) {
+            delta -= TWO_PI;
+        } else if (delta <= -PI) {
+            delta += TWO_PI;
         }
 
         owner->rot_spd[1] = delta / seq->frame;
     } else {
         owner->rot[1] += owner->rot_spd[1];
 
-        if (owner->rot[1] > 3.1415927f) {
-            owner->rot[1] -= 6.2831855f;
-        } else if (owner->rot[1] <= -3.1415927f) {
-            owner->rot[1] += 6.2831855f;
+        if (owner->rot[1] > PI) {
+            owner->rot[1] -= TWO_PI;
+        } else if (owner->rot[1] <= -PI) {
+            owner->rot[1] += TWO_PI;
         }
     }
 

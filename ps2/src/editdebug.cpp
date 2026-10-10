@@ -167,7 +167,6 @@ static int LightSel[LIGHTING_EDIT_PAGE_COUNT] = {0, 0, 0, 0};
  */
 static int LightListNum[LIGHTING_EDIT_PAGE_COUNT] = {11, 8, 9, 3};
 
-// Code (.text)
 void EditDebugInit() {
     EditDebugFlag = 0;
     Select = 0;

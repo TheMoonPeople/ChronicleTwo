@@ -13,7 +13,6 @@ static int  SkipSpace(input_str &in);
 static u8   CheckChar(char c);
 static void PreProcess(input_str &in);
 
-// Code (.text)
 int input_str::GetLine(char *line, int line_size, char *terminator) {
     char crlf[] = "\r\n";
     int  length;

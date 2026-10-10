@@ -82,7 +82,6 @@ static MIDI_BANK gBank;
  */
 void *iop_bd_addr;
 
-// Code (.text)
 void CSound::StopVoice(int core) {
     sceSdRemote(1, rSdSetSwitch, core | SD_S_KOFF, 0xFFFFFF);
     printf("voice completed Core=%d\n", core);

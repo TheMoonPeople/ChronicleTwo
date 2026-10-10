@@ -14,7 +14,6 @@
 #include "mglib.hpp"
 #include "visualmotion.hpp"
 
-// Code (.text)
 void mgCVisualMotionMDT::Initialize() {
     mgCVisualMDT::Initialize();
 

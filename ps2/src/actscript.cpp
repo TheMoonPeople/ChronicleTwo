@@ -250,8 +250,6 @@ static RS_EXTFUNC_INFO ext_func_info[83] = {
 
 void ParabolicInitialVector(float *result, float *from, float *to, float gravity, float flight_time);
 
-// Code (.text)
-
 /**
  *
  * Reads an action script value as an integer, converting a float slot when needed.
@@ -894,10 +892,10 @@ int _CHECK_BACK_KEY(RS_STACKDATA *stack, int argc) {
     float stick_y = GamePad__2.GetLYf();
     float x = stick_x * cosf(camera_angle) + stick_y * sinf(camera_angle);
     float z = -stick_x * sinf(camera_angle) + stick_y * cosf(camera_angle);
-    float back = rot[1] - 3.1415927f;
+    float back = rot[1] - PI;
 
-    if (back < -3.1415927f) {
-        back += 6.2831855f;
+    if (back < -PI) {
+        back += TWO_PI;
     }
 
     if (x != 0.0f && z != 0.0f && mgAngleCmp(back, atan2f(x, z), 1.2566371f) == 0) {
@@ -943,18 +941,18 @@ int _SET_BLOW_MOVE(RS_STACKDATA *stack, int argc) {
     float yaw = 0.0f;
 
     if (argc == 4) {
-        yaw = 0.017453292f * GetStackFloat(stack);
+        yaw = DEG_TO_RAD * GetStackFloat(stack);
     }
 
     action_info.chara->GetRotation(rot);
     yaw += rot[1];
 
-    if (yaw > 3.1415927f) {
-        yaw -= 6.2831855f;
+    if (yaw > PI) {
+        yaw -= TWO_PI;
     }
 
-    if (yaw < -3.1415927f) {
-        yaw += 6.2831855f;
+    if (yaw < -PI) {
+        yaw += TWO_PI;
     }
 
     float dir[4] = {0.0f, 0.0f, 1.0f, 1.0f};

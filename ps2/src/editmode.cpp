@@ -412,7 +412,6 @@ static sceVu0FVECTOR now_balance_h;
  */
 static CFont Font__2;
 
-// Code (.text)
 /**
  *
  * Returns the current editor control lock count.
@@ -1519,17 +1518,17 @@ void EditMode(CScene *scene) {
                 axis_sin = 0.0f;
                 axis_cos = 1.0f;
 
-                if (mgAngleCmp(angle, 1.5707964f, 0.7853982f) == 0) {
+                if (mgAngleCmp(angle, HALF_PI, QUARTER_PI) == 0) {
                     axis_sin = 1.0f;
                     axis_cos = 0.0f;
                 }
 
-                if (mgAngleCmp(angle, 3.1415927f, 0.7853982f) == 0) {
+                if (mgAngleCmp(angle, PI, QUARTER_PI) == 0) {
                     axis_sin = 0.0f;
                     axis_cos = -1.0f;
                 }
 
-                if (mgAngleCmp(angle, -1.5707964f, 0.7853982f) == 0) {
+                if (mgAngleCmp(angle, -HALF_PI, QUARTER_PI) == 0) {
                     axis_sin = -1.0f;
                     axis_cos = 0.0f;
                 }
@@ -2102,7 +2101,7 @@ void EditMode(CScene *scene) {
                                 side_mode = EDIT_PUT_SIDE_MOVE;
                                 NowSelectWallParts = parts_no;
                                 SelectWallGroup = 0;
-                                eDirCurRot[1] = mgAngleLimit(3.1415927f + camera->GetAngle());
+                                eDirCurRot[1] = mgAngleLimit(PI + camera->GetAngle());
                                 eDirCurLen = 200.0f;
                                 eDirCurRot[0] = 0.0f;
                             }
@@ -2229,7 +2228,7 @@ void DrawEditCursorParts(CScene *scene) {
         rotation[1] = ePartsCurNowRot[1];
         float ambient[4];
         mgGetAmbient(ambient);
-        float pulse = 32.0f * sinf(6.2831855f * (float) cnt / 60.0f);
+        float pulse = 32.0f * sinf(TWO_PI * (float) cnt / 60.0f);
         cnt++;
 
         if (PlacePartsFlag != 0) {

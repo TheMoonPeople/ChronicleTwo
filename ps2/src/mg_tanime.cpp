@@ -143,7 +143,6 @@ static int texBugPatch;
 /** Record the script is building. */
 static mgCTexAnimeData nowTexData;
 
-// Code (.text)
 #pragma schedule off
 #pragma optimization_level 2
 
@@ -426,11 +425,11 @@ void mgCTextureAnime::TexAnime(int texb, sceVif1Packet *packet) {
                     } else {
                         offset_x = (float) data->dest_w *
                                    ((float) data->amplitude_x *
-                                    ((1.0f + sinf(6.2831855f * (float) data->phase_x / (float) data->period_x)) / 2.0f) /
+                                    ((1.0f + sinf(TWO_PI * (float) data->phase_x / (float) data->period_x)) / 2.0f) /
                                     MG_TEX_ANIME_AMPLITUDE_FULL);
                         offset_y = (float) data->dest_h *
                                    ((float) data->amplitude_y *
-                                    ((1.0f + sinf(6.2831855f * (float) data->phase_y / (float) data->period_y)) / 2.0f) /
+                                    ((1.0f + sinf(TWO_PI * (float) data->phase_y / (float) data->period_y)) / 2.0f) /
                                     MG_TEX_ANIME_AMPLITUDE_FULL);
                     }
 

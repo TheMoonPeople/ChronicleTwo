@@ -8,7 +8,6 @@
 #include "villagermngr.hpp"
 #include "vlgr_info.hpp"
 
-// Code (.text)
 void CVillagerPlace::ProgressInfo::Init() {
     progress = 0;
     place[0][1] = NULL;
@@ -264,7 +263,7 @@ void CVillagerMngr::Step() {
 
                     if (villager->ex_time == 0) {
                         mgGetDirFromCamera(camera_direction, villager->pos);
-                        villager->rot[1] = mgAngleInterpolate(villager->rot[1], mgAngleLimit(atan2f(camera_direction[0], camera_direction[2]) - 3.1415927f), 4.0f, MG_INTERPOLATE_FRACTION);
+                        villager->rot[1] = mgAngleInterpolate(villager->rot[1], mgAngleLimit(atan2f(camera_direction[0], camera_direction[2]) - PI), 4.0f, MG_INTERPOLATE_FRACTION);
                     }
 
                     ++villager->ex_time;

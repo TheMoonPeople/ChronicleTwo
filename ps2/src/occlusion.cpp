@@ -3,7 +3,6 @@
 #include "mg_math.hpp"
 #include "occlusion.hpp"
 
-// Code (.text)
 void COcclusion::Setup(float (*view_matrix)[4]) {
     float points[4][4];
     float origin[4];

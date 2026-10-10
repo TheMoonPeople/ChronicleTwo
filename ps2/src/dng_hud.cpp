@@ -45,7 +45,6 @@
 static int        gekirin_anim[16] = {0, 3, 6, 5, 4, 3, 2, 1, 3, 4, 3, 2, 1, 2, 1, 0};
 static const char at_1221__2[] = "%d";
 
-// Code (.text)
 void CLevelupInfo::SetLevelUpInfo(int screen_x, int screen_y, int source, int value) {
     unk_00 = 0;
     unk_04 = 0;
@@ -76,7 +75,7 @@ void CLevelupInfo::Draw() {
 
         switch (phase) {
             case LEVELUP_INFO_PHASE_APPEAR: {
-                int rise = fptosi(32.0f * sinf(4.712389f * progress - 1.5707964f));
+                int rise = fptosi(32.0f * sinf((PI + HALF_PI) * progress - HALF_PI));
                 sprite.Color(0x80, 0x80, 0x80, fptosi(128.0f * progress));
                 sprite.SetIRect(x, y - rise, 70, 12, 0, 0xA2);
                 sprite.SetIRect(x - 0x10, y - rise - 3, 0x10, 0x10, 0x30, 0x40);
@@ -87,7 +86,7 @@ void CLevelupInfo::Draw() {
                 sprite.Color(0x80, 0x80, 0x80, 0x80);
                 sprite.SetIRect(x, y, 70, 12, 0, 0xA2);
                 sprite.SetIRect(x - 0x10, y - 3, 0x10, 0x10, 0x30, 0x40);
-                pulse = sinf(3.1415927f * progress);
+                pulse = sinf(PI * progress);
                 sprite.SetAlphaBlend(MG_ALPHA_BLEND_ADD);
                 sprite.Color(0x80, 0x80, 0x80, fptosi(32.0f * pulse));
 
@@ -107,7 +106,7 @@ void CLevelupInfo::Draw() {
                 break;
             case LEVELUP_INFO_PHASE_FADE:
 
-                sinf(4.712389f * progress - 1.5707964f);
+                sinf((PI + HALF_PI) * progress - HALF_PI);
                 sprite.Color(0x80, 0x80, 0x80, 0x80 - fptosi(128.0f * progress));
                 sprite.SetIRect(x, y, 70, 12, 0, 0xA2);
                 sprite.SetIRect(x - 0x10, y - 3, 0x10, 0x10, 0x30, 0x40);
@@ -164,7 +163,7 @@ void CPiyori::Set(mgCObject *object, float height, float radius, s16 life) {
         circle_angle = 0.0f;
 
         for (i = 0; i < 3; i++) {
-            star_angle[i] = fRand(6.2831855f) - 3.1415927f;
+            star_angle[i] = fRand(TWO_PI) - PI;
         }
 
         se_wait = 0;
@@ -269,8 +268,8 @@ void CPiyori::Step() {
             a += 0.10471976f;
             circle_angle = a;
 
-            if (a > 3.1415927f) {
-                circle_angle = a - 6.2831855f;
+            if (a > PI) {
+                circle_angle = a - TWO_PI;
             }
         }
 
@@ -279,8 +278,8 @@ void CPiyori::Step() {
             a += 0.20943952f;
             star_angle[i] = a;
 
-            if (a > 3.1415927f) {
-                star_angle[i] = a - 6.2831855f;
+            if (a > PI) {
+                star_angle[i] = a - TWO_PI;
             }
         }
     }
@@ -343,8 +342,8 @@ void CGiftMark::Step() {
     if (active != 0) {
         angle += 0.1308997f;
 
-        if (angle > 3.1415927f) {
-            angle -= 3.1415927f;
+        if (angle > PI) {
+            angle -= PI;
         }
 
         time += 1;
@@ -595,7 +594,7 @@ void CDamageScore::SetValue(float *pos, int value) {
     length = strlen(text);
 
     for (int i = 0; i < length; i++) {
-        bounce[i] = 3.1415927f;
+        bounce[i] = PI;
     }
 }
 
@@ -611,7 +610,7 @@ void CDamageScore::SetSprite(float *pos, int u0, int v0, int u1, int v1) {
     phase = (int) DAMAGE_SCORE_PHASE_APPEAR;
     active = 1;
     sprite = 1;
-    bounce[0] = 3.1415927f;
+    bounce[0] = PI;
     sprite_w = u1;
     sprite_h = v1;
     sprite_u = u0;
@@ -679,10 +678,10 @@ void CDamageScore::Step() {
     if (active != 0) {
         if (sprite != 0) {
             if (phase == (int) DAMAGE_SCORE_PHASE_APPEAR) {
-                bounce[0] = bounce[0] - 0.3926991f;
+                bounce[0] = bounce[0] - (PI / 8.0f);
 
-                if (bounce[0] < -3.1415927f) {
-                    bounce[0] = -3.1415927f;
+                if (bounce[0] < -PI) {
+                    bounce[0] = -PI;
                     phase = (int) DAMAGE_SCORE_PHASE_FADE;
                 }
 
@@ -703,10 +702,10 @@ void CDamageScore::Step() {
         if (sprite == 0) {
             if (phase == (int) DAMAGE_SCORE_PHASE_APPEAR) {
                 for (int i = 0; i < length; i++) {
-                    bounce[i] = bounce[i] - (3.1415927f / (10.0f + (2.0f * (float) i)));
+                    bounce[i] = bounce[i] - (PI / (10.0f + (2.0f * (float) i)));
 
-                    if (bounce[i] < -3.1415927f) {
-                        bounce[i] = -3.1415927f;
+                    if (bounce[i] < -PI) {
+                        bounce[i] = -PI;
 
                         if (i == length - 1) {
                             phase = (int) DAMAGE_SCORE_PHASE_FADE;
@@ -948,8 +947,8 @@ void CLockOnModel::DrawMess(int tex_block) {
 void CLockOnModel::Step() {
     angle += 0.06981317f;
 
-    if (angle > 3.1415927f) {
-        angle -= 6.2831855f;
+    if (angle > PI) {
+        angle -= TWO_PI;
     }
 }
 

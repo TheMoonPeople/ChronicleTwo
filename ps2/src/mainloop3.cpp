@@ -112,7 +112,6 @@ static int error_code;
  */
 static u_long128 *inst_work;
 
-// Code (.text)
 int FutureMapSelect() {
     // Selected row of the future-map debug menu.
     static int select = 0;

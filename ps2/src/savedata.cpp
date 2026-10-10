@@ -8,7 +8,6 @@
 #include "menusystemdata.hpp"
 #include "savedata.hpp"
 
-// Code (.text)
 void InitSV_CONFIG_OPTION(SV_CONFIG_OPTION *config) {
     if (config != NULL) {
         memset(config, 0, sizeof(SV_CONFIG_OPTION));

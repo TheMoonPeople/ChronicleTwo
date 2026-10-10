@@ -25,7 +25,6 @@ static const int   kPartsTypeRiver = 0xB;
 static const int   kNpcLiveLength = 7;
 static const int   kChildIdMax = 0x200;
 
-// Code (.text)
 /**
  *
  * Calculates a normal for a triangle projected onto the horizontal plane.

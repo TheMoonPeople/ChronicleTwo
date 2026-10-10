@@ -78,7 +78,6 @@ struct RangeEntry {
     int   id;       /**< Entry identifier. */
 };
 
-// Code (.text)
 void CMonsterMan::RunScript(int index) {
     int script;
 
@@ -2687,8 +2686,8 @@ int _GET_REF_DIR(RS_STACKDATA *args, int argc) {
     float angle = atan2f(target_position[0], target_position[2]);
     angle -= front_angle;
 
-    if (angle < -3.1415927f) {
-        angle += 6.2831855f;
+    if (angle < -PI) {
+        angle += TWO_PI;
     }
 
     direction = 0;

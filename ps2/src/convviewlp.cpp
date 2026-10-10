@@ -81,7 +81,6 @@ int SaveFileInfoTableSizeConvert[128];
 
 static void InitSaveFileInfoTablePtr();
 
-// Code (.text)
 void SVConvViewInit(INIT_LOOP_ARG arg) {
     MovieScene = GetMainScene();
     MovieScene->Initialize();

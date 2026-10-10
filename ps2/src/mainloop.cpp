@@ -319,7 +319,6 @@ static SPI_TAG_PARAM tag__3[] = {
     {NULL,            NULL           },
 };
 
-// Code (.text)
 CFont *GetDebugFont() {
     return &Font;
 }
@@ -1977,10 +1976,8 @@ CEditData::CEditData() {
     Initialize();
 }
 
-// Small initialised data (.sdata)
 int MainThreadPriority = 1;
 
-// Small uninitialised data (.sbss)
 u_long128 *read_buffer;
 u32        SystemSND_ID;
 int        DebugFlag;
@@ -1990,7 +1987,6 @@ int        OmakeFlag;
 int        MasterDebugCode;
 CSound     CSnd;
 
-// Uninitialised data (.bss)
 CGamePad    GamePad__2;
 CPadControl PadCtrl;
 DEBUG_INFO  DebugInfo;

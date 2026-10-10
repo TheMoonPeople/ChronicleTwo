@@ -54,7 +54,6 @@ static CGamePad *GamePad;
 
 static int read_pad(PAD_STATUS *status, int port, int slot);
 
-// Code (.text)
 void CGamePad::Init() {
     key_lock = 0;
     key_lock2 = 0;

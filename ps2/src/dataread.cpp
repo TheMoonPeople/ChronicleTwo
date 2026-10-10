@@ -127,7 +127,6 @@ static FILE_CACHE  *GetNewFileCache();
 static int          EntryFileCache(char *path, u_long128 *address, int size);
 static FILE_CACHE  *SearchFileCache(char *path);
 
-// Code (.text)
 int size_to_sector(int size) {
     int sectors;
 

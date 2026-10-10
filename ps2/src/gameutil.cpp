@@ -29,7 +29,6 @@ float def_vrtx[800][4];
 
 static float def_nml[1][4];
 
-// Code (.text)
 /**
  *
  * Blends rotation quaternion keys and writes the resulting rotation.
@@ -262,14 +261,14 @@ Mot_List *MotionProc(mgCFrame *root, float time, Mot_List *list, mgCCamera *came
         case MOTION_KEY_CAMERA_ROLL:
             if (camera != NULL) {
                 one_minus_t = 1.0f - t;
-                camera->SetRoll(-((one_minus_t * list->values[key][0] + t * list->values[next][0]) / 180.0f * 3.1415927f));
+                camera->SetRoll(-((one_minus_t * list->values[key][0] + t * list->values[next][0]) / 180.0f * PI));
             }
 
             break;
         case MOTION_KEY_CAMERA_FOV:
             if (camera != NULL) {
                 one_minus_t = 1.0f - t;
-                mgSetProjection(1.0f / tanf((one_minus_t * list->values[key][0] + t * list->values[next][0]) * 0.5f / 180.0f * 3.1415927f) * 480.0f * 0.5f);
+                mgSetProjection(1.0f / tanf((one_minus_t * list->values[key][0] + t * list->values[next][0]) * 0.5f / 180.0f * PI) * 480.0f * 0.5f);
             }
 
             break;
@@ -462,14 +461,14 @@ Mot_List *MotionProc(mgCFrame *root, unsigned int from_frame, unsigned int to_fr
         case MOTION_KEY_CAMERA_ROLL:
             if (camera != NULL) {
                 one_minus_blend = 1.0f - blend;
-                camera->SetRoll(-((one_minus_blend * list->values[key][0] + blend * list->values[next][0]) / 180.0f * 3.1415927f));
+                camera->SetRoll(-((one_minus_blend * list->values[key][0] + blend * list->values[next][0]) / 180.0f * PI));
             }
 
             break;
         case MOTION_KEY_CAMERA_FOV:
             if (camera != NULL) {
                 one_minus_blend = 1.0f - blend;
-                mgSetProjection(1.0f / tanf((one_minus_blend * list->values[key][0] + blend * list->values[next][0]) * 0.5f / 180.0f * 3.1415927f) * 480.0f * 0.5f);
+                mgSetProjection(1.0f / tanf((one_minus_blend * list->values[key][0] + blend * list->values[next][0]) * 0.5f / 180.0f * PI) * 480.0f * 0.5f);
             }
 
             break;

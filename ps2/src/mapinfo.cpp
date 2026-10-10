@@ -40,7 +40,6 @@ static int mapCHARA_LIGHT_ADJUST(SPI_STACK *stack, int argument_count);
 static int amapIMG(SPI_STACK *stack, int argument_count);
 static int amapPCP(SPI_STACK *stack, int argument_count);
 
-// Initialised data (.data)
 /**
  *
  * Tags of a map's configuration script and the routines that read them.
@@ -84,7 +83,6 @@ static SPI_TAG_PARAM add_mapinfo_tag[] = {
     {NULL,  NULL   },
 };
 
-// Small uninitialised data (.sbss)
 /**
  *
  * Map settings being filled in by the running configuration script.
@@ -120,7 +118,6 @@ static int now_pcp_num;
  */
 static CMapLightingInfo *LightingInfo;
 
-// Code (.text)
 void CCameraInfo::Initialize() {
     int i;
     int j;
@@ -588,7 +585,7 @@ static int mapSKY_INFO(SPI_STACK *stack, int argument_count) {
     MapInfo->sky_height = spiGetStackFloat(stack++);
 
     if (argument_count >= 3) {
-        MapInfo->sun_angle = mgAngleLimit(3.1415927f * spiGetStackFloat(stack) / 180.0f);
+        MapInfo->sun_angle = mgAngleLimit(PI * spiGetStackFloat(stack) / 180.0f);
     }
 
     return 1;

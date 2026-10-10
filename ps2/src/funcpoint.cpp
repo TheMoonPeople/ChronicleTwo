@@ -18,7 +18,6 @@
 #include "sound.hpp"
 #include "water.hpp"
 
-// Code (.text)
 int CheckTime(float time, float start, float end) {
     int outside;
 
@@ -239,8 +238,8 @@ void CObjAnime::Step(CObjAnimeEnv *env) {
                     target[2] -= parts->position[2];
                 }
 
-                param[1] = 180.0f * atan2f(target[0], target[2]) / 3.1415927f;
-                param[0] = 180.0f * -atan2f(target[1], sqrtf(target[0] * target[0] + target[2] * target[2])) / 3.1415927f;
+                param[1] = 180.0f * atan2f(target[0], target[2]) / PI;
+                param[0] = 180.0f * -atan2f(target[1], sqrtf(target[0] * target[0] + target[2] * target[2])) / PI;
 
                 for (int axis = 0; axis < 3; axis++) {
                     if (param[axis] <= settings->param[axis]) {
@@ -370,9 +369,9 @@ void CObjAnime::SetParam(float *value) {
                     param[2] += 360000.0f;
                 }
 
-                param[0] = mgAngleLimit(3.1415927f * param[0] / 180.0f);
-                param[1] = mgAngleLimit(3.1415927f * param[1] / 180.0f);
-                param[2] = mgAngleLimit(3.1415927f * param[2] / 180.0f);
+                param[0] = mgAngleLimit(PI * param[0] / 180.0f);
+                param[1] = mgAngleLimit(PI * param[1] / 180.0f);
+                param[2] = mgAngleLimit(PI * param[2] / 180.0f);
                 param[3] = 0.0f;
                 target->SetRotation(param);
                 break;
@@ -429,9 +428,9 @@ void CObjAnime::GetParam(float *out_value) {
         case OBJ_ANIME_PARAM_POSITION:
             break;
         case OBJ_ANIME_PARAM_ROTATION:
-            out_value[0] = 180.0f * out_value[0] / 3.1415927f;
-            out_value[1] = 180.0f * out_value[1] / 3.1415927f;
-            out_value[2] = 180.0f * out_value[2] / 3.1415927f;
+            out_value[0] = 180.0f * out_value[0] / PI;
+            out_value[1] = 180.0f * out_value[1] / PI;
+            out_value[2] = 180.0f * out_value[2] / PI;
             out_value[3] = 0.0f;
             break;
         case OBJ_ANIME_PARAM_SCALE:
@@ -1321,7 +1320,7 @@ float GetLightAnimeWeight(CFuncPoint *point, int frame) {
                 case FUNC_PLIGHT_FLICKER_SINE:
                     if (period > 0) {
                         phase = frame % period;
-                        return weight * (1.0f - 0.5f * depth * (1.0f + sinf(6.2831855f * (float) phase / (float) period)));
+                        return weight * (1.0f - 0.5f * depth * (1.0f + sinf(TWO_PI * (float) phase / (float) period)));
                     }
 
                     return weight;

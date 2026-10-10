@@ -378,7 +378,6 @@ void editLoadSound(int map_no);
  */
 u_long128 *read_buffer_end;
 
-// Code (.text)
 /**
  *
  * Returns the user data manager from the current save.
@@ -3166,7 +3165,6 @@ void LoadMap() {
     LoadComVillaager();
 }
 
-// Uninitialised data (.bss)
 CWaveTable    WaveTable;
 sceVu0FVECTOR CharaOldPos;
 ClsMes        EventMes1;

@@ -14,7 +14,6 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 
-// Code (.text)
 int CCollision::InsidePoint(float *point) {
     return mgClipBoxVertex(point, bbox.max, bbox.min) != 0;
 }
@@ -273,17 +272,12 @@ int CColFrame::InsidePoint(float *point) {
     return collision->InsidePoint(local_point);
 }
 
-/**
- *
- * Loads a matrix into the vector unit's registers vf10-vf13 for the
- * transforms trance_normal makes.
- *
- */
 #pragma force_active on
 #pragma global_optimizer off
 /**
  *
- * Loads the matrix used to transform collision normals into VU0 registers.
+ * Loads a matrix into the vector unit's registers vf10-vf13 for the
+ * transforms trance_normal makes.
  *
  */
 static asm void pre_trance_normal(float (*matrix)[4]) {

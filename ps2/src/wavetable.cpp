@@ -9,7 +9,6 @@
 #include "mglib.hpp"
 #include "wavetable.hpp"
 
-// Code (.text)
 CWaveTable::CWaveTable() {
     int row;
     int col;

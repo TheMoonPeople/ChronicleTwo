@@ -34,7 +34,6 @@ int            MenuUsedItemNo;
 u32            MenuUsedItemType;
 int            MenuUsedNotErrorCode;
 
-// Code (.text)
 char *GetHatena() {
     /**
      * Full-width placeholder for an unidentified item name.

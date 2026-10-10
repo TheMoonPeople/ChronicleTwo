@@ -97,7 +97,6 @@ static GAMEOBJ_INFO GameObjInfo[] = {
     {-1, GAMEOBJ_TYPE_NONE, 0, 0},
 };
 
-// Code (.text)
 int GetChrFileSize(u32 *pack, int file_size) {
     u32 *files[8];
     int  sizes[8];

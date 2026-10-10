@@ -48,7 +48,6 @@ static int        chill_tex_rect_910[6][3] = {
     {0,  64, 64},
 };
 
-// Code (.text)
 /**
  *
  * Converts an effect strength byte to a float capped at one.
@@ -141,8 +140,8 @@ void CChillAfterHit::SetPos(float *pos, float size, int strength) {
         p->fade_speed = iRand(8) + 9;
         p->rect = iRand(5);
         p->move_time = iRand(8) + 16;
-        p->angle = fRand(6.2831855f) - 3.1415927f;
-        p->spin = 3.1415927f / (9.0f + 2.0f * fRand(rate));
+        p->angle = fRand(TWO_PI) - PI;
+        p->spin = PI / (9.0f + 2.0f * fRand(rate));
 
         if (iRand(10) % 2 != 0) {
             p->spin = -p->spin;
@@ -253,13 +252,13 @@ int LocalTransWorldPrimPos(int (*corners)[4], float *pos, float width, float hei
     half_h *= inv_w;
     half_w *= 0.5f;
     half_h *= 0.5f;
-    angle += 1.5707964f;
+    angle += HALF_PI;
     LocalPrimCorner(corners[0], corner[0], screen, half_w, half_h, angle, 1.0f);
-    angle = mgAngleLimit(angle - 1.5707964f);
+    angle = mgAngleLimit(angle - HALF_PI);
     LocalPrimCorner(corners[1], corner[1], screen, half_w, half_h, angle, 1.0f);
-    angle = mgAngleLimit(angle - 1.5707964f);
+    angle = mgAngleLimit(angle - HALF_PI);
     LocalPrimCorner(corners[2], corner[2], screen, half_w, half_h, angle, 1.0f);
-    float last = mgAngleLimit(angle - 1.5707964f);
+    float last = mgAngleLimit(angle - HALF_PI);
     LocalPrimCorner(corners[3], corner[3], screen, half_w, half_h, last, 1.0f);
 
     if (corner[0][0] < 0.0f || !(corner[0][0] <= 4095.0f)) {
@@ -665,7 +664,7 @@ void CTornado::SetPos(float *pos, float size, float strength) {
         sceVu0CopyVector(p->pos, center);
         p->pos[1] += fRand(0.5f * size);
         p->life = iRand(15) + 15;
-        p->angle = fRand(6.2831855f) - 3.1415927f;
+        p->angle = fRand(TWO_PI) - PI;
         p->alpha = 1.0f;
         p->scale = 0.1f * size;
         p->rise = 0.05f * size;
@@ -794,8 +793,8 @@ void CThunder::SetPos(float *pos, float width, float power) {
         bolt->velocity[2] = fRand(1.0f) - 0.5f;
         bolt->velocity[3] = 0.0f;
         bolt->life = (float) (iRand(5) + 20);
-        bolt->spin = fRand(0.3926991f);
-        bolt->angle = fRand(3.1415927f);
+        bolt->spin = fRand((PI / 8.0f));
+        bolt->angle = fRand(PI);
         bolt->frame = iRand(6);
         bolt->scale = 1.0f;
         bolt++;
@@ -1156,7 +1155,7 @@ int CPalletAnime::CreatPallet(float *out, float *base) {
 
     float ratio = (float) (elapsed % period);
     ratio = ratio / (float) period;
-    float blend = sinf(3.1415927f * ratio);
+    float blend = sinf(PI * ratio);
     out[0] = base[0] + blend * ((float) red - base[0]);
     out[1] = base[1] + blend * ((float) green - base[1]);
     out[2] = base[2] + blend * ((float) blue - base[2]);
@@ -1316,18 +1315,18 @@ void CHealingEffectMan::Step() {
         for (int i = 0; i < HEALING_LIGHT_MAX; i++, particle++) {
             particle->angle += particle->spin;
 
-            if (!(particle->angle <= 3.1415927f)) {
-                particle->angle -= 6.2831855f;
+            if (!(particle->angle <= PI)) {
+                particle->angle -= TWO_PI;
             }
 
-            if (particle->angle < -3.1415927f) {
-                particle->angle += 6.2831855f;
+            if (particle->angle < -PI) {
+                particle->angle += TWO_PI;
             }
 
             particle->bob_phase += particle->bob_speed;
 
-            if (!(particle->bob_phase <= 3.1415927f)) {
-                particle->bob_phase -= 6.2831855f;
+            if (!(particle->bob_phase <= PI)) {
+                particle->bob_phase -= TWO_PI;
             }
         }
     }
@@ -1358,11 +1357,11 @@ void CHealingEffectMan::Initialize() {
             particle->radius += 20.0f;
         }
 
-        particle->angle = fRand(3.1415927f);
+        particle->angle = fRand(PI);
         particle->bob_height = fRand(8.0f);
-        particle->bob_phase = fRand(3.1415927f / 32.0f);
-        particle->bob_speed = fRand(3.1415927f / 32.0f);
-        particle->spin = fRand(3.1415927f / 48.0f) - 3.1415927f / 96.0f;
+        particle->bob_phase = fRand(PI / 32.0f);
+        particle->bob_speed = fRand(PI / 32.0f);
+        particle->spin = fRand(PI / 48.0f) - PI / 96.0f;
     }
 }
 
@@ -1442,8 +1441,8 @@ void CSwordLuminous::Step() {
 
     pulse += 0.10471976f;
 
-    if (pulse > 3.1415927f) {
-        pulse -= 3.1415927f;
+    if (pulse > PI) {
+        pulse -= PI;
     }
 }
 
@@ -2228,7 +2227,7 @@ void CDeadEffect::Draw() {
 
         sceVu0AddVector(world, fleck->pos, pos);
         world[3] = 1.0f;
-        float fade = sinf(3.1415927f * ((float) fleck->life / (float) fleck->life_max));
+        float fade = sinf(PI * ((float) fleck->life / (float) fleck->life_max));
 
         if (mgTransWorldPrim3DSprite(corner0, corner1, world, 15.0f * fleck->size,
                                      1.5f * (12.0f * fleck->size), 0) != 0) {
@@ -2324,8 +2323,8 @@ void CMapEffect_Sprite::Step(mgCCamera *camera) {
         pos[2] += move[2];
         bob_angle += 0.05235988f;
 
-        if (!(bob_angle <= 3.1415927f)) {
-            bob_angle -= 6.2831855f;
+        if (!(bob_angle <= PI)) {
+            bob_angle -= TWO_PI;
         }
 
         if (mgDistVector(target, pos) < 2.0f) {
@@ -3085,7 +3084,7 @@ void CWeaponElement::Init_Wind(float *center) {
         sceVu0CopyVector(&velocity[j][0], &offset[j][0]);
         sceVu0Normalize(&velocity[j][0], &velocity[j][0]);
         sceVu0ScaleVector(&velocity[j][0], &velocity[j][0], (0.3f * (float) rand()) / 2.1474836e9f);
-        spin[j] = (2.0f * (3.1415927f * (float) rand())) / 2.1474836e9f - 3.1415927f;
+        spin[j] = (2.0f * (PI * (float) rand())) / 2.1474836e9f - PI;
         spin_speed[j] = 0.09817477f + (0.19634955f * (float) rand()) / 2.1474836e9f;
         frame[j] = fptosi((5.0f * (float) rand()) / 2.1474836e9f) * 0x30;
     }
@@ -3123,8 +3122,8 @@ void CWeaponElement::Step_Wind() {
 
             spin[i] += spin_speed[i];
 
-            if (!(spin[i] <= 3.1415927f)) {
-                spin[i] -= 6.2831855f;
+            if (!(spin[i] <= PI)) {
+                spin[i] -= TWO_PI;
             }
 
             offset[i][0] += velocity[i][0];
@@ -3160,7 +3159,7 @@ void CWeaponElement::Step_Wind() {
                     sceVu0Normalize(&velocity[j][0], &velocity[j][0]);
                     sceVu0ScaleVector(&velocity[j][0], &velocity[j][0],
                                       (0.3f * (float) rand()) / 2.1474836e9f);
-                    spin[j] = (2.0f * (3.1415927f * (float) rand())) / 2.1474836e9f - 3.1415927f;
+                    spin[j] = (2.0f * (PI * (float) rand())) / 2.1474836e9f - PI;
                     spin_speed[j] = 0.09817477f + (0.19634955f * (float) rand()) / 2.1474836e9f;
                     frame[j] = fptosi((5.0f * (float) rand()) / 2.1474836e9f) * 0x30;
                     spawn_delay = fptosi(((float) spawn_delay_max * (float) rand()) / 2.1474836e9f) + 1;
@@ -3711,27 +3710,27 @@ float unitRotation(mgCFrame *frame, float target, float speed) {
         abs_diff = -1.0f * diff;
     }
 
-    if (abs_diff <= 3.1415927f) {
-        if (abs_diff <= 3.1415927f / speed) {
+    if (abs_diff <= PI) {
+        if (abs_diff <= PI / speed) {
             diff = 0.0f;
         }
-    } else if (6.2831855f - abs_diff <= 3.1415927f / speed) {
+    } else if (TWO_PI - abs_diff <= PI / speed) {
         diff = 0.0f;
     }
 
     if (!(diff <= 0.0f)) {
-        if (diff <= 3.1415927f) {
-            rot[1] += 3.1415927f / (2.0f * speed);
+        if (diff <= PI) {
+            rot[1] += PI / (2.0f * speed);
         } else {
-            rot[1] -= 3.1415927f / speed;
+            rot[1] -= PI / speed;
         }
     }
 
     if (diff < 0.0f) {
-        if (!(diff < -3.1415927f)) {
-            rot[1] -= 3.1415927f / (2.0f * speed);
+        if (!(diff < -PI)) {
+            rot[1] -= PI / (2.0f * speed);
         } else {
-            rot[1] += 3.1415927f / speed;
+            rot[1] += PI / speed;
         }
     }
 
@@ -3739,12 +3738,12 @@ float unitRotation(mgCFrame *frame, float target, float speed) {
         rot[1] = target;
     }
 
-    if (rot[1] <= -3.1415927f) {
-        rot[1] += 6.2831855f;
+    if (rot[1] <= -PI) {
+        rot[1] += TWO_PI;
     }
 
-    if (!(rot[1] < 3.1415927f)) {
-        rot[1] -= 6.2831855f;
+    if (!(rot[1] < PI)) {
+        rot[1] -= TWO_PI;
     }
 
     return rot[1];

@@ -14,7 +14,6 @@
 
 static mgCFrameAttr dmy_attr;
 
-// Code (.text)
 void mgCFrameAttr::Initialize() {
     memset(this, 0, sizeof(mgCFrameAttr));
     mgCVisualAttr::Initialize();
@@ -89,50 +88,14 @@ static void QuatToMat(float *quaternion, float (*matrix)[4]) {
     matrix[3][3] = 1.0f;
 }
 
+// clang-format off
 /**
  *
  * Transforms eight corners by the product of two matrices, leaving the results in VU0
  * registers vf10-vf17, and gets the box around them.
  *
  */
-#ifdef NONMATCHING
-static float projected_corners[8][4];
-
-static void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *out_max,
-                  float *out_min) {
-    float combined[4][4];
-    for (int column = 0; column < 4; column++) {
-        for (int row = 0; row < 4; row++) {
-            combined[column][row] = screen[0][row] * matrix[column][0] +
-                                    screen[1][row] * matrix[column][1] +
-                                    screen[2][row] * matrix[column][2] +
-                                    screen[3][row] * matrix[column][3];
-        }
-    }
-
-    for (int corner = 0; corner < 8; corner++) {
-        for (int row = 0; row < 4; row++) {
-            float value = combined[0][row] * corners[corner][0] +
-                          combined[1][row] * corners[corner][1] +
-                          combined[2][row] * corners[corner][2] +
-                          combined[3][row] * corners[corner][3];
-            projected_corners[corner][row] = value;
-            if (corner == 0) {
-                out_max[row] = value;
-                out_min[row] = value;
-            } else {
-                if (value > out_max[row]) {
-                    out_max[row] = value;
-                }
-                if (value < out_min[row]) {
-                    out_min[row] = value;
-                }
-            }
-        }
-    }
-}
-#else
-static asm void test1(float (*corners)[4], float (*left)[4], float (*right)[4], float *out_max, float *out_min) {
+static asm void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *out_max, float *out_min) {
     lqc2    vf11, 0(a1)
     lqc2    vf12, 16(a1)
     lqc2    vf13, 32(a1)
@@ -215,45 +178,13 @@ static asm void test1(float (*corners)[4], float (*left)[4], float (*right)[4], 
     jr      ra
     sqc2    vf19, 0(t0)
 }
-#endif
-static void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *out_max,
-                  float *out_min);
-// clang-format on
-// clang-format off
+
 /**
  *
  * Divides the eight corners that test1 left in vf10-vf17 through by their depth and gets
  * the screen-space box around them.
  *
  */
-#ifdef NONMATCHING
-static void test2(float *out_max, float *out_min) {
-    for (int corner = 0; corner < 8; corner++) {
-        float depth = projected_corners[corner][3];
-        if (depth < 0.0f) {
-            depth = -depth;
-        }
-        float x = projected_corners[corner][0] / depth;
-        float y = projected_corners[corner][1] / depth;
-        if (corner == 0) {
-            out_max[0] = out_min[0] = x;
-            out_max[1] = out_min[1] = y;
-            out_max[2] = out_min[2] = projected_corners[corner][2];
-            out_max[3] = out_min[3] = projected_corners[corner][3];
-        } else {
-            float values[4] = {x, y, projected_corners[corner][2], projected_corners[corner][3]};
-            for (int axis = 0; axis < 4; axis++) {
-                if (values[axis] > out_max[axis]) {
-                    out_max[axis] = values[axis];
-                }
-                if (values[axis] < out_min[axis]) {
-                    out_min[axis] = values[axis];
-                }
-            }
-        }
-    }
-}
-#else
 static asm void test2(float *out_max, float *out_min) {
     vabs.w  vf20, vf10
     vabs.w  vf21, vf11
@@ -305,8 +236,6 @@ static asm void test2(float *out_max, float *out_min) {
     jr      ra
     sqc2    vf15, 0(a1)
 }
-#endif
-static void test2(float *out_max, float *out_min);
 // clang-format on
 
 int mgInsideScreen(mgVu0FBOX *box) {
@@ -839,15 +768,18 @@ void mgCFrame::ClearChildFlag() {
 void mgCFrame::GetLocalMatrix(float (*matrix)[4]) {
     if (use_srt) {
         float(*destination)[4] = matrix;
+        float *scale_vec;
+        float(*source)[4];
+
+        source = trans_matrix;
+        scale_vec = scale;
 
         asm {
-            addiu v1, this, 0xB0
-            addiu v0, this, 0x30
-            lqc2 vf10, 0(v0)
-            lqc2 vf1, 0(v1)
-            lqc2 vf2, 16(v1)
-            lqc2 vf3, 32(v1)
-            lqc2 vf4, 48(v1)
+            lqc2 vf10, 0(scale_vec)
+            lqc2 vf1, 0(source)
+            lqc2 vf2, 16(source)
+            lqc2 vf3, 32(source)
+            lqc2 vf4, 48(source)
             vmul.xyzw vf1, vf1, vf10
             vmul.xyzw vf2, vf2, vf10
             vmul.xyzw vf3, vf3, vf10

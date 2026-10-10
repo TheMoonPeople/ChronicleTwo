@@ -5,7 +5,6 @@
 
 #include "mg_memory.hpp"
 
-// Code (.text)
 void *MG_ADDRESS_CHECK(void *address, char *where) {
     if (address == NULL) {
         printf("stack over at %s\n", where);

@@ -271,7 +271,6 @@ static char **mons_attr_list[8] = {
     mons_attr_tbl6,
 };
 
-// Code (.text)
 void CRocketLauncher::SetPos(float *pos, float *muzzle_vec, float *direction_vec) {
     int i;
     Initialize();
@@ -1206,7 +1205,7 @@ void CPullItem::Draw(mgCTexture *texture) {
             init_1411 = 1;
         }
 
-        if (anim_1410 > 3.1415927f) {
+        if (anim_1410 > PI) {
             anim_1410 = 0.0f;
         } else {
             anim_1410 += 0.20943952f;
@@ -1395,8 +1394,8 @@ void CPullItem::Step() {
             get_delay--;
             angle += 0.20943952f;
 
-            if (angle >= 3.1415927f) {
-                angle -= 6.2831855f;
+            if (angle >= PI) {
+                angle -= TWO_PI;
             }
         } else {
             can_get = 1;
@@ -1413,7 +1412,7 @@ void CPullItem::Step() {
             sceVu0AddVector(pos, pos, money_direction);
             distance = mgDistVector(player_pos, pos);
 
-            if (angle >= 3.1415927f || distance <= 5.0f) {
+            if (angle >= PI || distance <= 5.0f) {
                 DngUserData->AddMoney(item_no);
                 state = PULL_ITEM_STATE_FREE;
                 sndSePlay(DngMainScene->se_battle_id, 3, 0);
@@ -1433,7 +1432,7 @@ void CPullItem::Step() {
             } else {
                 angle += 0.15707964f;
 
-                if (angle >= 3.1415927f) {
+                if (angle >= PI) {
                     sprintf(badge_message, dung_progtxt_badge_get[LanguageCode], badge_name);
                     MsgTaskMan.Print(badge_message, 60, 8, 0);
                     DngUserData->monster_box.EnableChange(item_no);
@@ -1463,7 +1462,7 @@ void CPullItem::Step() {
             item_spark[2] += fRand(10.0f) - 5.0f;
             MiniEffPrimMan.CreatPrim(item_spark, 0);
 
-            if (angle >= 3.1415927f) {
+            if (angle >= PI) {
                 angle = 0.0f;
                 num = 1;
 

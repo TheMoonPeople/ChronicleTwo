@@ -85,7 +85,6 @@ struct WaterFinishPacket {
 
 STATIC_ASSERT(sizeof(WaterFinishPacket) == 0x30);
 
-// Code (.text)
 void CFireRaster::Step() {
     FireRasterParticle *free_slot = 0;
     int                 i = 0;
@@ -101,8 +100,8 @@ void CFireRaster::Step() {
             memset(particle_slot, 0, sizeof(FireRasterParticle));
         } else {
             particle_slot->position[1] += 1.2f;
-            particle_slot->position[0] = 10.0f * sinf(3.1415927f * ((float) (particle_slot->time + i * 2) / 10.0f));
-            particle_slot->position[2] = 10.0f * sinf(3.1415927f * ((float) (particle_slot->time + i * 2 + 10) / 8.0f));
+            particle_slot->position[0] = 10.0f * sinf(PI * ((float) (particle_slot->time + i * 2) / 10.0f));
+            particle_slot->position[2] = 10.0f * sinf(PI * ((float) (particle_slot->time + i * 2 + 10) / 8.0f));
             particle_slot->size -= 0.1f;
             particle_slot->time++;
         }

@@ -243,6 +243,14 @@ class initializers must be generated naturally by the compiler.
   constructed object in its variable's register, but only if the optimizer
   is back on at the next declaration (mg_dataset).
 - Loop unrolling is gated by `opt_unroll_instr_count`, counted before forward substitution and dead-code removal. A single-use or dead local in the body can stop an unroll that the optimised body would fit, while constant-valued locals do not count (wavetable).
+- MWCC accepts the SDK's GCC-style string form: `ExitHandler()`, defined in
+  `eekernel.h` as `asm volatile("sync.l; ei")`, emits `sync` and `ei` in place
+  of a plain `asm { sync ei }` block (`VSyncCallBack`, main and mglib;
+  `vblankHandler`, `handler_endimage`, movie).
+- C locals naming `asm` operands take registers by declaration order and are
+  computed in assignment order: declaring `scale_vec` before `source` and
+  assigning `source` first gives retail's `addiu v1,..,0xB0` then
+  `addiu v0,..,0x30` (`mgCFrame::GetLocalMatrix`, mg_frame).
 - `asm volatile { ... }` makes MWCC skip global optimization for the whole
   function but keeps the optimizer's address forms: `p[i].field` with a
   nonzero offset adds the scaled index first, and a global array folds the

@@ -181,7 +181,7 @@ const int              script_stack_slots = 0x20;
 const int              script_call_slots = script_stack_slots;
 const int              script_func_slots = 3;
 const int              script_run_id = 0x64;
-const float            raster_max = 3.1415927f;
+const float            raster_max = PI;
 const int              prim_sprite = 6;
 const int              half_color = 0x80;
 const int              hit_spark_num = 0x40;
@@ -220,7 +220,6 @@ const int request_menu = EVENT_COMMAND_SUB_MODE;
 const int request_door = EVENT_COMMAND_DOOR;
 const int event_sprite2_size = 0x80;
 
-// Code (.text)
 CEoh::CEoh() {
     type = EOH_TYPE_NONE;
     scene_no = -1;
@@ -18357,7 +18356,6 @@ void SetEventFunc(CRunScript *script) {
     script->ext_func(ext_func, event_func_slots);
 }
 
-// Uninitialised data (.bss)
 ED_EVENT_INFO EdEventInfo;
 
 inline CEventScriptArg::CEventScriptArg() {

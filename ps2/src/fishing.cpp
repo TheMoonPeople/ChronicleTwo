@@ -988,7 +988,6 @@ static mgCMemory FishingBuff;
  */
 static mgCMemory FishStack;
 
-// Code (.text)
 /**
  *
  * Returns the fish parameter record for a valid fish index.
@@ -2341,7 +2340,7 @@ void SelectCastingPoint(CScene *scene, CPadControl *pad) {
     chara->GetPosition(position);
     chara->GetRotation(rotation);
     mgCreateMatrixPY(matrix, position, rotation[1]);
-    angle_diff = mgAngleLimit(rotation[1] - mgAngleLimit(camera->GetAngle() - 3.1415927f));
+    angle_diff = mgAngleLimit(rotation[1] - mgAngleLimit(camera->GetAngle() - PI));
     turn = 0.0f;
 
     if (!(angle_diff <= 0.4f)) {
@@ -3022,7 +3021,7 @@ int InitBattle(CScene *scene) {
     param->min_dist = 80.0f;
     param->near_height = 12.0f;
     param->far_height = 12.0f;
-    camera->RotBack(mgAngleLimit(3.1415927f + chara_rot[1] - 0.2f));
+    camera->RotBack(mgAngleLimit(PI + chara_rot[1] - 0.2f));
     camera->Step(-1);
     InitFishBattle();
     LineTension = 0;
@@ -3387,7 +3386,7 @@ void FalseLoop(CScene *scene, CPadControl *pad) {
         ResetLineVelo();
         EndSelectCastingPoint(scene);
         SetNextMode((int) FISHING_CHARA_MODE_CONTROL);
-        camera->RotBack(mgAngleLimit(3.1415927f + chara_rot[1]));
+        camera->RotBack(mgAngleLimit(PI + chara_rot[1]));
         scene->PlayBGM(0, -1, 1.0f);
     }
 }
@@ -3676,7 +3675,7 @@ void SuccessLoop(CScene *scene, CPadControl *pad) {
         SetNextMode((int) FISHING_CHARA_MODE_CONTROL);
         FishChara = NULL;
         mgTexManager.DeleteBlock(FishTexb);
-        camera->RotBack(mgAngleLimit(3.1415927f + chara_rot[1]));
+        camera->RotBack(mgAngleLimit(PI + chara_rot[1]));
         SetShowHari(1);
         scene->PlayBGM(0, -1, 1.0f);
 

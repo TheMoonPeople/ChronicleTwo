@@ -48,7 +48,6 @@ struct CopyEventWords {
 
 static sceVu0FVECTOR at_1013__4 = {0.0f, 0.0f, 0.0f, 78.0f};
 
-// Code (.text)
 void CScene::UpDateMapInfo() {
     CMap             *active_maps[4];
     CMapLightingInfo *lighting;

@@ -60,7 +60,6 @@ s32 data[VWIN_PART_MAX][4] = {
 
 #define WindowFillAlpha(alpha, opaque) ((opaque) ? 0x80 : (alpha) * 0x36 / 128)
 
-// Code (.text)
 void CalcSelectCursorPos(RECT rect, int *out) {
     int left = rect.x + 0x17;
     int inner = rect.width - 0x2E;

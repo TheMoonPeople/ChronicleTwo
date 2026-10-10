@@ -78,7 +78,6 @@ static inline u_int align16_blocks(u_int size) {
     return size >> 4;
 }
 
-// Code (.text)
 int CMapPiece::AssignMds(CMdsInfo *info) {
     if (info == NULL) {
         return 0;

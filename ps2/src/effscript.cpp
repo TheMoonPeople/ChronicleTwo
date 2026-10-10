@@ -289,7 +289,6 @@ static inline u_int align16_blocks(u_int size) {
     return size >> 4;
 }
 
-// Code (.text)
 void CEffectScriptMan::Initialize(mgCMemory *memory, int texb_start, int texb_num) {
     int                i;
     int                j;
@@ -1047,8 +1046,8 @@ void CEffectScriptMan::Step() {
                     sprite->rotz = mgAngleLimit(sprite->rotz);
                     sprite->velo_rotz += sprite->acc_rotz;
 
-                    if (!(sprite->velo_rotz <= 6.2831855f)) {
-                        sprite->velo_rotz = 6.2831855f;
+                    if (!(sprite->velo_rotz <= TWO_PI)) {
+                        sprite->velo_rotz = TWO_PI;
                     }
 
                     sceVu0AddVector(sprite->color, sprite->color, sprite->velo_col);
@@ -5744,7 +5743,6 @@ void SetEffectScriptFunc() {
     }
 }
 
-// Small uninitialised data (.sbss)
 CScene *now_scene;
 
 CEffectScriptMan *EffScriptMan;

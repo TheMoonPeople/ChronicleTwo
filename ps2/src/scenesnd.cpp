@@ -20,7 +20,6 @@ struct LineBreakPair {
     s8 chars[2]; /**< Line break characters. */
 };
 
-// Code (.text)
 void CScene::BGM_INFO::Init() {
     snd_id = -1;
     load_no = -1;

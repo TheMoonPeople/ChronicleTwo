@@ -98,7 +98,6 @@ mgCTexture *prev_tex;
  */
 u_long128 mat_pw = 3;
 
-// Code (.text)
 u_int *GetScrPad() {
     return (u_int *) (buff_id ? 0x70002000 : 0x70000000);
 }
@@ -1590,7 +1589,6 @@ int mgCVisualFixMDT::Iam() {
     return 2;
 }
 
-// Initialised data (.data)
 u_int set_tex0_dma[4] __attribute__((aligned(16))) = {MG_DMA_CNT | 3, 0, 0, MG_VIF_DIRECT | 3};
 u_int set_tex0_giftag[4] __attribute__((aligned(16))) = {MG_GIFTAG_EOP | 2, 1u << MG_GIFTAG_NREG_SHIFT, SCE_GIF_PACKED_AD, 0};
 u_int set_texa_dma[4] __attribute__((aligned(16))) = {MG_DMA_CNT | 4, 0, 0, MG_VIF_DIRECT | 4};

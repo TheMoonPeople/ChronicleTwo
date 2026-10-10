@@ -17,7 +17,6 @@
 #include "padcontrol.hpp"
 #include "scene.hpp"
 
-// Code (.text)
 float ParabolicInitialVectorY(float start_y, float end_y, float gravity, float frames) {
     return ((2.0f * (end_y - start_y)) - (frames * (gravity * frames))) / (2.0f * frames);
 }

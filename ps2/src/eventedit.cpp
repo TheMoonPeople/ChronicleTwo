@@ -88,7 +88,6 @@ static int g_chara_pas_selno;
 void       DrawBox(float (*corners)[4], int r, int g, int b);
 void       MoveChara(CCharacter2 *chara, mgCCamera *camera, mgCMemory *memory);
 
-// Code (.text)
 /**
  *
  * Writes event character and camera placement data to a file.
@@ -151,10 +150,10 @@ void OutPutFile() {
     sceWrite(file, text, strlen(text));
     angle -= EdEventInfo.world_coord_rot[1];
 
-    if (angle > 3.1415927f) {
-        angle -= 6.2831855f;
-    } else if (angle <= -3.1415927f) {
-        angle += 6.2831855f;
+    if (angle > PI) {
+        angle -= TWO_PI;
+    } else if (angle <= -PI) {
+        angle += TWO_PI;
     }
 
     sprintf(text, "angle = %1.2f\n", (double) angle);
@@ -474,12 +473,12 @@ void MoveChara(CCharacter2 *chara, mgCCamera *camera, mgCMemory *memory) {
         rotation[1] += 0.12f;
     }
 
-    if (rotation[1] > 3.1415927f) {
-        rotation[1] -= 6.2831855f;
+    if (rotation[1] > PI) {
+        rotation[1] -= TWO_PI;
     }
 
-    if (rotation[1] < -3.1415927f) {
-        rotation[1] += 6.2831855f;
+    if (rotation[1] < -PI) {
+        rotation[1] += TWO_PI;
     }
 
     move[0] = right * cosf(angle) + forward * sinf(angle);
@@ -1021,10 +1020,10 @@ void DrawEventEdit() {
                         JisFont.PrintDirect(0x10, y += 0x12, "  z = %1.2f\n", (double) look[2]);
                         angle -= EdEventInfo.world_coord_rot[1];
 
-                        if (angle > 3.1415927f) {
-                            angle -= 6.2831855f;
-                        } else if (angle <= -3.1415927f) {
-                            angle += 6.2831855f;
+                        if (angle > PI) {
+                            angle -= TWO_PI;
+                        } else if (angle <= -PI) {
+                            angle += TWO_PI;
                         }
 
                         JisFont.PrintDirect(0x10, y += 0x12, " Angle = %1.2f\n", (double) angle);

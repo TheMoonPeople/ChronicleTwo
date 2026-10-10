@@ -39,7 +39,6 @@ static inline u_int align16_blocks(u_int size) {
  * after it in the form mgSetFrameAttr reads, and returns the length of the result with its end.
  *
  */
-// Code (.text)
 #pragma schedule off
 #pragma opt_loop_invariants off
 #pragma global_optimizer off

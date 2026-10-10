@@ -90,7 +90,6 @@ static inline u32 align16_blocks(u32 n) {
     return n >> 4;
 }
 
-// Code (.text)
 void CEditInfoMngr::Initialize() {
     parts_info_num = 0;
     parts_info = NULL;

@@ -7,7 +7,6 @@
 
 #include "runscript.hpp"
 
-// Code (.text)
 /**
  *
  * Reports a script execution error and stops the process.

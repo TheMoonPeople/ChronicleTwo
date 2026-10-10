@@ -534,7 +534,6 @@ static SPI_TAG_PARAM mos_data_anlyze_tag[2] = {
     {NULL,   NULL         }
 };
 
-// Code (.text)
 int CActiveMonster::IsDraw(int view_state) {
     if (chara_kind != (int) ACTION_KIND_SCRIPT) {
         return 0;

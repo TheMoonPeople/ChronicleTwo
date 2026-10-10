@@ -11,7 +11,6 @@
 int         Check_Point_Poly3(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2);
 static void MulMatrix3(float (*matrix)[4], float (*second)[4], float (*third)[4]);
 
-// Code (.text)
 asm void mgFotI4(int *out, float *in) {
     .set noreorder
     lqc2 vf1, 0x0(a1)
@@ -134,17 +133,6 @@ asm int mgClipInBox(float *max0, float *min0, float *max1, float *min1) {
     jr ra
     sltiu v0, v0, 0x1
 }
-#ifdef NONMATCHING
-int mgClipInBoxW(float *max0, float *min0, float *max1, float *min1) {
-    for (int axis = 0; axis < 3; ++axis) {
-        int i = axis == 2 ? 3 : axis;
-        if (max1[i] - max0[i] < 0.0f || min0[i] - min1[i] < 0.0f) {
-            return 0;
-        }
-    }
-    return 1;
-}
-#else
 asm int mgClipInBoxW(float *max0, float *min0, float *max1, float *min1) {
     .set noreorder
     lqc2 vf10, 0x0(a0)
@@ -165,7 +153,6 @@ asm int mgClipInBoxW(float *max0, float *min0, float *max1, float *min1) {
     jr ra
     sltiu v0, v0, 0x1
 }
-#endif
 asm void mgAddVector(float *vector, float *add) {
     .set noreorder
     lqc2 vf15, 0x0(a0)
@@ -665,13 +652,6 @@ asm void mgZeroMatrix(float (*matrix)[4]) {
  * Multiplies a matrix in place by two further matrices.
  *
  */
-#ifdef NONMATCHING
-static void MulMatrix3(float (*matrix)[4], float (*second)[4], float (*third)[4]) {
-    float intermediate[4][4];
-    mgMulMatrix(intermediate, matrix, second);
-    mgMulMatrix(matrix, intermediate, third);
-}
-#else
 static asm void MulMatrix3(float (*matrix)[4], float (*second)[4], float (*third)[4]) {
     .set noreorder
     lqc2 vf1, 0x0(a0)
@@ -724,25 +704,6 @@ static asm void MulMatrix3(float (*matrix)[4], float (*second)[4], float (*third
     jr ra
     sqc2 vf4, 0x30(a0)
 }
-#endif
-#ifdef NONMATCHING
-void mgMulMatrix(float (*product)[4], float (*left_matrix)[4], float (*right_matrix)[4]) {
-    float result[4][4];
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            result[i][j] = 0.0f;
-            for (int k = 0; k < 4; ++k) {
-                result[i][j] += left_matrix[i][k] * right_matrix[k][j];
-            }
-        }
-    }
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            product[i][j] = result[i][j];
-        }
-    }
-}
-#else
 asm void mgMulMatrix(float (*product)[4], float (*left_matrix)[4], float (*right_matrix)[4]) {
     .set noreorder
     lqc2 vf1, 0x0(a1)
@@ -775,39 +736,6 @@ asm void mgMulMatrix(float (*product)[4], float (*left_matrix)[4], float (*right
     jr ra
     sqc2 vf23, 0x30(a0)
 }
-#endif
-#ifdef NONMATCHING
-void mgInversMatrix(float (*inverse)[4], float (*matrix)[4]) {
-    float cof[3][3];
-    for (int i = 0; i < 3; ++i) {
-        int i1 = (i + 1) % 3, i2 = (i + 2) % 3;
-        for (int j = 0; j < 3; ++j) {
-            int j1 = (j + 1) % 3, j2 = (j + 2) % 3;
-            cof[i][j] = matrix[i1][j1] * matrix[i2][j2] - matrix[i1][j2] * matrix[i2][j1];
-        }
-    }
-    float det = matrix[0][0] * cof[0][0] + matrix[0][1] * cof[0][1] + matrix[0][2] * cof[0][2];
-    float inv_det = 1.0f / det;
-    float result[4][4];
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            result[i][j] = cof[j][i] * inv_det;
-        }
-    }
-    for (int i = 0; i < 3; ++i) {
-        result[i][3] = 0.0f;
-    }
-    for (int j = 0; j < 3; ++j) {
-        result[3][j] = -(matrix[3][0] * result[0][j] + matrix[3][1] * result[1][j] + matrix[3][2] * result[2][j]);
-    }
-    result[3][3] = 1.0f;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            inverse[i][j] = result[i][j];
-        }
-    }
-}
-#else
 asm void mgInversMatrix(float (*inverse)[4], float (*matrix)[4]) {
     .set noreorder
     lqc2 vf1, 0x0(a1)
@@ -872,7 +800,6 @@ asm void mgInversMatrix(float (*inverse)[4], float (*matrix)[4]) {
     jr ra
     sqc2 vf8, 0x30(a0)
 }
-#endif
 
 void mgRotMatrixX(float (*matrix)[4], float angle_x) {
     mgUnitMatrix(matrix);
@@ -1013,16 +940,6 @@ void mgShadowMatrix(float (*matrix)[4], float *light_direction, float *on_plane,
 #pragma optimization_level reset
 #pragma schedule off
 #pragma global_optimizer off
-#ifdef NONMATCHING
-void mgApplyMatrixN(float (*out)[4], float (*matrix)[4], float (*in)[4], int count) {
-    for (int i = 0; i < count; ++i) {
-        float vector[4] = {in[i][0], in[i][1], in[i][2], in[i][3]};
-        for (int axis = 0; axis < 4; ++axis) {
-            out[i][axis] = matrix[0][axis] * vector[0] + matrix[1][axis] * vector[1] + matrix[2][axis] * vector[2] + matrix[3][axis] * vector[3];
-        }
-    }
-}
-#else
 asm void mgApplyMatrixN(float (*out)[4], float (*matrix)[4], float (*in)[4], int count) {
     .set noreorder
     addi a3, a3, -0x1
@@ -1047,30 +964,9 @@ transform_vectors:
     jr ra
     nop
 }
-#endif
 #pragma global_optimizer reset
 #pragma schedule reset
 #pragma global_optimizer off
-#ifdef NONMATCHING
-void mgApplyMatrixN_MaxMin(float (*out)[4], float (*matrix)[4], float (*in)[4], int count,
-                           float *max, float *min) {
-    mgApplyMatrixN(out, matrix, in, count);
-    for (int axis = 0; axis < 4; ++axis) {
-        max[axis] = out[0][axis];
-        min[axis] = out[0][axis];
-    }
-    for (int i = 1; i < count; ++i) {
-        for (int axis = 0; axis < 4; ++axis) {
-            if (max[axis] < out[i][axis]) {
-                max[axis] = out[i][axis];
-            }
-            if (min[axis] > out[i][axis]) {
-                min[axis] = out[i][axis];
-            }
-        }
-    }
-}
-#else
 asm void mgApplyMatrixN_MaxMin(float (*out)[4], float (*matrix)[4], float (*in)[4], int count,
                            float *max, float *min) {
     .set noreorder
@@ -1109,27 +1005,8 @@ transform_and_bound_vectors:
     jr ra
     sqc2 vf21, 0x0(t1)
 }
-#endif
 #pragma global_optimizer reset
 #pragma global_optimizer off
-#ifdef NONMATCHING
-void mgVectorMinMaxN(float *max, float *min, float (*vectors)[4], int count) {
-    for (int axis = 0; axis < 4; ++axis) {
-        max[axis] = vectors[0][axis];
-        min[axis] = vectors[0][axis];
-    }
-    for (int i = 1; i < count; ++i) {
-        for (int axis = 0; axis < 4; ++axis) {
-            if (max[axis] < vectors[i][axis]) {
-                max[axis] = vectors[i][axis];
-            }
-            if (min[axis] > vectors[i][axis]) {
-                min[axis] = vectors[i][axis];
-            }
-        }
-    }
-}
-#else
 asm void mgVectorMinMaxN(float *max, float *min, float (*vectors)[4], int count) {
     .set noreorder
     addi a3, a3, -0x1
@@ -1156,7 +1033,6 @@ update_bounds:
     jr ra
     sqc2 vf11, 0x0(a1)
 }
-#endif
 #pragma global_optimizer reset
 
 void mgApplyMatrix(float *max, float *min, float (*matrix)[4], float *box_max, float *box_min) {
@@ -1198,12 +1074,12 @@ float mgAngleInterpolate(float from, float to, float step, int mode) {
     // Angles are kept in (-pi, pi]; one whole turn brings a sum or difference back into range.
     delta = to - from;
 
-    if (delta > 3.1415927f) {
-        delta -= 6.2831855f;
+    if (delta > PI) {
+        delta -= TWO_PI;
     }
 
-    if (delta <= -3.1415927f) {
-        delta += 6.2831855f;
+    if (delta <= -PI) {
+        delta += TWO_PI;
     }
 
     offset = 0.0f;
@@ -1238,12 +1114,12 @@ float mgAngleInterpolate(float from, float to, float step, int mode) {
 
     result = from + offset;
 
-    if (result > 3.1415927f) {
-        result -= 6.2831855f;
+    if (result > PI) {
+        result -= TWO_PI;
     }
 
-    if (result <= -3.1415927f) {
-        result += 6.2831855f;
+    if (result <= -PI) {
+        result += TWO_PI;
     }
 
     return result;
@@ -1258,12 +1134,12 @@ int mgAngleCmp(float a, float b, float tolerance) {
         return 0;
     }
 
-    if (delta > 3.1415927f) {
-        delta -= 6.2831855f;
+    if (delta > PI) {
+        delta -= TWO_PI;
     }
 
-    if (delta < -3.1415927f) {
-        delta += 6.2831855f;
+    if (delta < -PI) {
+        delta += TWO_PI;
     }
 
     if (delta > tolerance) {
@@ -1278,18 +1154,18 @@ int mgAngleCmp(float a, float b, float tolerance) {
 }
 
 float mgAngleLimit(float angle) {
-    if (angle < 3.1415927f && angle > -3.1415927f) {
+    if (angle < PI && angle > -PI) {
         return angle;
     }
 
-    angle -= 6.2831855f * (int) (angle / 6.2831855f);
+    angle -= TWO_PI * (int) (angle / TWO_PI);
 
-    if (angle > 3.1415927f) {
-        angle -= 6.2831855f;
+    if (angle > PI) {
+        angle -= TWO_PI;
     }
 
-    if (angle < -3.1415927f) {
-        angle += 6.2831855f;
+    if (angle < -PI) {
+        angle += TWO_PI;
     }
 
     return angle;
@@ -1311,7 +1187,7 @@ void mgCreateSinTable() {
     sin_table_unit_1 = 162.97466f;
 
     for (i = 0; i < 1024; i++) {
-        SinTable[i] = sinf(3.1415927f * (2.0f * (float) i) / sin_table_num);
+        SinTable[i] = sinf(PI * (2.0f * (float) i) / sin_table_num);
     }
 }
 
@@ -1324,13 +1200,11 @@ float mgSinf(float angle) {
 }
 
 float mgCosf(float angle) {
-    return mgSinf(1.5707964f + angle);
+    return mgSinf(HALF_PI + angle);
 }
 
-// Small initialised data (.sdata)
 float sin_table_num = 1024.0f;
 
 float sin_table_unit_1 = 162.97466f;
 
-// Uninitialised data (.bss)
 float SinTable[1024];

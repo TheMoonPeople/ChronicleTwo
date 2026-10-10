@@ -363,7 +363,6 @@ static float old_ambient[4];
  */
 GYORACE_FISH_INF fish_inf[6];
 
-// Code (.text)
 int sgInitGyoRace(SubGameInfo *info) {
     mgCTextureManager *textures;
     CScene            *scene = info->scene;
@@ -622,7 +621,7 @@ int sgInitGyoRace(SubGameInfo *info) {
         sceVu0FVECTOR position = {0.0f, -15.0f, 0.0f, 1.0f};
         position[0] = 190.0f + 15.0f * (float) progress->lane;
         position[2] = character->body_height / 4.0f;
-        sceVu0FVECTOR   rotation = {0.0f, 3.1415927f, 0.0f, 1.0f};
+        sceVu0FVECTOR   rotation = {0.0f, PI, 0.0f, 1.0f};
         BREEDFISH_USED *data = &(*item)->data.fish;
         CDataBreedFish *breed = GetBreedFishInfoData((*item)->item_no);
         float           scale = (float) data->size / breed->size;
@@ -731,8 +730,8 @@ int sgLoopGyoRace(SubGameInfo *info) {
             left->GetRotation(rotation);
             rotation[1] += 0.20943952f;
 
-            if (!(rotation[1] <= 1.5707964f)) {
-                rotation[1] = 1.5707964f;
+            if (!(rotation[1] <= HALF_PI)) {
+                rotation[1] = HALF_PI;
             }
 
             left->SetRotation(rotation[0], rotation[1], rotation[2]);
@@ -741,8 +740,8 @@ int sgLoopGyoRace(SubGameInfo *info) {
             right->GetRotation(rotation);
             rotation[1] -= 0.20943952f;
 
-            if (rotation[1] < -1.5707964f) {
-                rotation[1] = -1.5707964f;
+            if (rotation[1] < -HALF_PI) {
+                rotation[1] = -HALF_PI;
             }
 
             right->SetRotation(rotation[0], rotation[1], rotation[2]);
@@ -883,7 +882,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                     position[0] = 190.0f + 15.0f * progress.lane_pos;
                     position[2] = 0.0f;
                     sceVu0UnitMatrix(matrix);
-                    sceVu0RotMatrixY(matrix, matrix, 1.5707964f * (distance - 1.0f));
+                    sceVu0RotMatrixY(matrix, matrix, HALF_PI * (distance - 1.0f));
                     sceVu0ApplyMatrix(position, matrix, position);
                     position[2] -= 345.0f;
                 }
@@ -892,7 +891,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                     position[0] = -190.0f - 15.0f * progress.lane_pos;
                     position[2] = 0.0f;
                     sceVu0UnitMatrix(matrix);
-                    sceVu0RotMatrixY(matrix, matrix, 1.5707964f * (distance - 5.0f));
+                    sceVu0RotMatrixY(matrix, matrix, HALF_PI * (distance - 5.0f));
                     sceVu0ApplyMatrix(position, matrix, position);
                     position[2] += 345.0f;
                 }
@@ -1010,7 +1009,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                     position[0] = 190.0f + 15.0f * progress.lane_pos;
                     position[2] = 0.0f;
                     sceVu0UnitMatrix(matrix);
-                    sceVu0RotMatrixY(matrix, matrix, 1.5707964f * (distance - 1.0f));
+                    sceVu0RotMatrixY(matrix, matrix, HALF_PI * (distance - 1.0f));
                     sceVu0ApplyMatrix(position, matrix, position);
                     position[2] -= 345.0f;
                 }
@@ -1019,7 +1018,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                     position[0] = -190.0f - 15.0f * progress.lane_pos;
                     position[2] = 0.0f;
                     sceVu0UnitMatrix(matrix);
-                    sceVu0RotMatrixY(matrix, matrix, 1.5707964f * (distance - 5.0f));
+                    sceVu0RotMatrixY(matrix, matrix, HALF_PI * (distance - 5.0f));
                     sceVu0ApplyMatrix(position, matrix, position);
                     position[2] += 345.0f;
                 }
@@ -1027,7 +1026,7 @@ int sgLoopGyoRace(SubGameInfo *info) {
                 position[1] = -15.0f;
                 character->SetPosition(position);
                 RaceVector rotation = {
-                    {0.0f, 3.1415927f, 0.0f, 1.0f}
+                    {0.0f, PI, 0.0f, 1.0f}
                 };
                 character->SetRotation(rotation.f);
                 character->SetRotation(rotation.f);
@@ -1288,8 +1287,8 @@ static void DivSpriteScreen(mgCDrawPrim &prim) {
 
     ras_off_1762 += 0.0004363323f;
 
-    if (!(ras_off_1762 <= 6.2831855f)) {
-        ras_off_1762 = -6.2831855f;
+    if (!(ras_off_1762 <= TWO_PI)) {
+        ras_off_1762 = -TWO_PI;
     }
 
     prim.EndPrim2();
@@ -1851,9 +1850,6 @@ int Jikkyou(SubGameInfo *info) {
     return 0;
 }
 
-// Constants (.rodata)
-
-// Uninitialised data (.bss)
 /**
  *
  * Camera the fish race scene is viewed through.

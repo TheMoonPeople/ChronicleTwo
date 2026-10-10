@@ -27,7 +27,6 @@ static inline char *VaStart(char *stack_arguments, int named_arguments) {
     return stack_arguments - register_bytes;
 }
 
-// Code (.text)
 /**
  *
  * Converts a Shift JIS character code to a JIS character code.
@@ -418,5 +417,4 @@ void dbgCJISFont::PrintDirect(int start_x, int start_y, char *format, ...) {
     loaded_texture_id = -1;
 }
 
-// Uninitialised data (.bss)
 dbgCJISFont JisFont __attribute__((aligned(16)));

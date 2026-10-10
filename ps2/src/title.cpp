@@ -513,7 +513,6 @@ static s16 TitleMCCheckFileFind[2] = {0, 0};
  */
 static u8 TitleMCCheckInport[2] = {0, 0};
 
-// Code (.text)
 /**
  *
  * Seeds title-screen random choices from the current vertical sync count.
@@ -2163,7 +2162,7 @@ void TitleMapDraw() {
             follow->SetRef(follow_ref);
             TitleCameraAddAngle += 0.0008726647f;
 
-            if (!(TitleCameraAddAngle < 6.2831855f)) {
+            if (!(TitleCameraAddAngle < TWO_PI)) {
                 TitleCameraPhaseCounter = 0;
                 TitleCameraPhase = (int) TITLE_CAMERA_HOLD;
                 TitleScene->active_camera = 0;

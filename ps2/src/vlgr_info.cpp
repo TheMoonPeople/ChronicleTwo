@@ -236,7 +236,6 @@ static SPI_TAG_PARAM gi_tag[] = {
     {NULL,        NULL       },
 };
 
-// Code (.text)
 CVillagerPlaceInfo *GetVlgrPlaceInfo(int index) {
     if (index < 0 || index >= PlaceInfoNum) {
         return NULL;

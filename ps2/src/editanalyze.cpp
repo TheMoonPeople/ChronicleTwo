@@ -17,7 +17,6 @@ const int info_fence = 0x2F;
 const int analyze_slots = 64;
 const int parts_list_max = 0x200;
 
-// Code (.text)
 void AnalyzeEditMap(int chara_no, CEditMap *map) {
     CEditData *data;
 

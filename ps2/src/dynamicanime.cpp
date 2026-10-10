@@ -71,7 +71,6 @@ static inline u_int align16_blocks(u_int size) {
     return size >> 4;
 }
 
-// Code (.text)
 /**
  *
  * Pulls two bound points toward their target separation.

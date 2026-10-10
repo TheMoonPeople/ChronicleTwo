@@ -847,7 +847,6 @@ static s8 MenuDebugModel_AdjustFlag = 1;
  */
 static s8 SameviewmodeTable_8406[4] = {0, 1, 3, 4};
 
-// Code (.text)
 /**
  *
  * Advances and draws the active message windows in the trash menu.
@@ -2798,13 +2797,13 @@ void SpectolFrameCalc(CActionChara *chara, int active) {
         chara->GetScale(scale);
         chara->GetRotation(rot);
         float jitter = 0.25f * SpectolFramePosValue;
-        pos[0] = MenuWeaponBasePos[0] + jitter * sinf(GetRandF(6.2831855f));
-        pos[1] = MenuWeaponBasePos[1] + jitter * sinf(GetRandF(6.2831855f));
-        pos[2] = MenuWeaponBasePos[2] + jitter * sinf(GetRandF(6.2831855f));
+        pos[0] = MenuWeaponBasePos[0] + jitter * sinf(GetRandF(TWO_PI));
+        pos[1] = MenuWeaponBasePos[1] + jitter * sinf(GetRandF(TWO_PI));
+        pos[2] = MenuWeaponBasePos[2] + jitter * sinf(GetRandF(TWO_PI));
         chara->SetPosition(pos);
-        pos[0] = MenuWeaponBasePos[0] + SpectolFramePosValue * sinf(GetRandF(6.2831855f));
-        pos[1] = MenuWeaponBasePos[1] + SpectolFramePosValue * sinf(GetRandF(6.2831855f));
-        pos[2] = MenuWeaponBasePos[2] + SpectolFramePosValue * sinf(GetRandF(6.2831855f));
+        pos[0] = MenuWeaponBasePos[0] + SpectolFramePosValue * sinf(GetRandF(TWO_PI));
+        pos[1] = MenuWeaponBasePos[1] + SpectolFramePosValue * sinf(GetRandF(TWO_PI));
+        pos[2] = MenuWeaponBasePos[2] + SpectolFramePosValue * sinf(GetRandF(TWO_PI));
         SpectolFrame->SetPosition(pos);
         SpectolFramePosValue *= 0.98f;
         SpectolFrame->SetScale(scale[0], scale[0], scale[0]);
@@ -7217,10 +7216,10 @@ void CMenuItemInfo::CalcTex() {
                     chara->GetRotation(rotation);
 
                     if (reference_no == 2) {
-                        if (rotation[1] < 3.1415927f) {
+                        if (rotation[1] < PI) {
                             rotation[1] += 0.15707964f;
                         } else {
-                            rotation[1] = 3.1415927f;
+                            rotation[1] = PI;
                         }
                     } else {
                         if (rotation[1] > 0.0f) {
@@ -8076,22 +8075,22 @@ static void MenuItemDebugKey() {
                         rotation[0] += y;
                     }
 
-                    if (rotation[0] > 3.1415927f) {
-                        rotation[0] -= 6.2831855f;
-                    } else if (rotation[0] < -3.1415927f) {
-                        rotation[0] += 6.2831855f;
+                    if (rotation[0] > PI) {
+                        rotation[0] -= TWO_PI;
+                    } else if (rotation[0] < -PI) {
+                        rotation[0] += TWO_PI;
                     }
 
-                    if (rotation[1] > 3.1415927f) {
-                        rotation[1] -= 6.2831855f;
-                    } else if (rotation[1] < -3.1415927f) {
-                        rotation[1] += 6.2831855f;
+                    if (rotation[1] > PI) {
+                        rotation[1] -= TWO_PI;
+                    } else if (rotation[1] < -PI) {
+                        rotation[1] += TWO_PI;
                     }
 
-                    if (rotation[2] > 3.1415927f) {
-                        rotation[2] -= 6.2831855f;
-                    } else if (rotation[2] < -3.1415927f) {
-                        rotation[2] += 6.2831855f;
+                    if (rotation[2] > PI) {
+                        rotation[2] -= TWO_PI;
+                    } else if (rotation[2] < -PI) {
+                        rotation[2] += TWO_PI;
                     }
 
                     MenuDebugItemModel->SetRotation(rotation);
@@ -12023,8 +12022,8 @@ int CMenuItemInfo::KeyStep() {
     StepBuildUpInfoEffect();
     WeaponWarningCounter += 0.09817477f;
 
-    if (!(WeaponWarningCounter <= 3.1415927f)) {
-        WeaponWarningCounter -= 3.1415927f;
+    if (!(WeaponWarningCounter <= PI)) {
+        WeaponWarningCounter -= PI;
     }
 
     MenuItemCursorInfo.counter++;
@@ -12821,7 +12820,6 @@ void MenuItemSelectDraw() {
     }
 }
 
-// Uninitialised data (.bss)
 MENU_ASKMODE_PARA MenuAskParam;
 
 CMENU_USERPARAM MenuUserParam;
