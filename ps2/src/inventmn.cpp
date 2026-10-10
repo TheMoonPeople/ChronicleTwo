@@ -2204,16 +2204,6 @@ static inline int StackBlocks(int bytes) {
     return (bytes + 15) / 16 + 2;
 }
 
-/**
- *
- * Constructs an action character in the inventory memory stack.
- *
- */
-
-static inline CActionChara *NewInventActionChara(mgCMemory *stack) {
-    return new (stack->Alloc(StackBlocks(sizeof(CActionChara)))) CActionChara;
-}
-
 void CMenuInvent::LoadCharaCheck() {
     CActionChara *chara = MenuActionChara[0];
     mgCMemory    *load_stack = &MenuCharaLoadStack;
@@ -4695,6 +4685,20 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
 CStarDust::CStarDust() {
     this->active = 0;
 }
+
+/**
+ *
+ * Rounds a byte count up to a number of 16-byte allocation blocks.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
+
 #ifdef NONMATCHING
 
 void CMenuInvent::IsAccessAlbum() {
@@ -5898,12 +5902,6 @@ static int tbl_4782[7] = {
     1, 1, 0, 0, 1, 1, 0
 };
 
-extern char at_5011[];
-extern char at_5012[];
-extern char at_5013[];
-extern char at_5014[];
-extern char at_5015[];
-extern char at_5016[];
 extern int *menu_randam_line_draw_postbl;
 
 inline CMenuInvent::CMenuInvent() {
@@ -5987,57 +5985,52 @@ inline CMenuInvent::CMenuInvent() {
     chara_make_pos[1] = -28.0f;
     chara_make_pos[2] = 20.0f;
     chara_make_pos[3] = 1.0f;
-    strcpy(icon_data[0].name, at_5011);
-    strcpy(icon_data[1].name, at_5012);
-    strcpy(icon_data[2].name, at_5013);
+    strcpy(icon_data[0].name, "dc2album.ico");
+    strcpy(icon_data[1].name, "dc2album_c.ico");
+    strcpy(icon_data[2].name, "dc2album_d.ico");
     Init_MENUFORM_MAKEBRD_INFO(&make_board);
 }
 
-static inline u8 *StackBytes(mgCMemory *m) { return m->stack_bytes; }
-
-static inline int StackSize(mgCMemory *m) { return m->stack_size; }
-
-static inline int StackUsed(mgCMemory *m) { return m->stack_used; }
-
-#ifdef NONMATCHING
 int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
-    int size = StackSize(memory);
-    u8 *pack = StackBytes(memory);
+    int size = memory->stGetSize();
+    u8 *pack = memory->stGetBuffer();
     MenuInventStack.stSetBuffer((u_long128 *) pack, size);
-    MenuInventStack.stAlloc64(StackUsed(memory));
+    MenuInventStack.stAlloc64(memory->stGetUsed());
     mgCMemory *stack = &MenuInventStack;
     debug_invent_successflag = 0;
     InventAlbumPtr = NULL;
     InventUserDataPtr = NULL;
-    CMenuInventPt = new ((u_long128 *) stack->Alloc(StackBlocks(sizeof(CMenuInvent)))) CMenuInvent;
+    CMenuInventPt = new (stack->Alloc(align16_blocks(sizeof(CMenuInvent)) + 2)) CMenuInvent;
     CMenuInventPt->SetTexBlock(tex_block);
     InventUserDataPtr = GetInventUserDataPtr();
     InventManagePt = &InventManageMan;
     InventManagePt->Clear();
-    if (MenuCommonInfo->open_type == 10) {
+    if (MenuCommonInfo->open_type == MENU_OPEN_INVENT) {
         CMenuInventPt->photo_only = 1;
     }
     MCManagerPtr = NULL;
     MenuBGReadInfo2Malloc(stack, tbl_4782);
-    MenuActionChara[0] = NewInventActionChara(stack);
+    MenuActionChara[0] = new (stack->Alloc(align16_blocks(sizeof(CActionChara)) + 2)) CActionChara;
     MenuActionChara[1] = NULL;
     MenuActionChara[2] = NULL;
-    MenuActionChara[3] = NewInventActionChara(stack);
-    MenuActionChara[4] = NewInventActionChara(stack);
+    MenuActionChara[3] = new (stack->Alloc(align16_blocks(sizeof(CActionChara)) + 2)) CActionChara;
+    MenuActionChara[4] = new (stack->Alloc(align16_blocks(sizeof(CActionChara)) + 2)) CActionChara;
     MenuActionChara[5] = NULL;
     MenuActionChara[0]->Initialize(NULL);
     MenuActionChara[3]->Initialize(NULL);
     MenuActionChara[4]->Initialize(NULL);
     CMenuEffect *effect;
-    if ((effect = (CMenuEffect *) operator new(sizeof(CMenuEffect), stack->Alloc(StackBlocks(sizeof(CMenuEffect))))) != NULL) {
+    if ((effect = (CMenuEffect *) operator new(sizeof(CMenuEffect),
+                                             stack->Alloc(align16_blocks(sizeof(CMenuEffect)) + 2))) != NULL) {
         effect->Initialize();
     }
     MenuEffect[0] = effect;
-    if ((effect = (CMenuEffect *) operator new(sizeof(CMenuEffect), stack->Alloc(StackBlocks(sizeof(CMenuEffect))))) != NULL) {
+    if ((effect = (CMenuEffect *) operator new(sizeof(CMenuEffect),
+                                             stack->Alloc(align16_blocks(sizeof(CMenuEffect)) + 2))) != NULL) {
         effect->Initialize();
     }
     MenuEffect[1] = effect;
-    MenuMoveItemPtr = new ((u_long128 *) stack->Alloc(StackBlocks(sizeof(CMenuMoveItem)))) CMenuMoveItem;
+    MenuMoveItemPtr = new (stack->Alloc(align16_blocks(sizeof(CMenuMoveItem)) + 2)) CMenuMoveItem;
     menu_randam_line_draw_postbl = &CMenuInventPt->line_pos[0][0];
     InventTeigiStack.stSetBuffer(stack->stGetTop(), 0x210);
     stack->Alloc(0x210);
@@ -6053,7 +6046,7 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
     }
     StartReadBG();
     if (CMenuInventPt->photo_only == 1) {
-        u_int size = LoadFileMenu(at_5014, stack->stGetTop(), 0);
+        u_int size = LoadFileMenu("photo_bg1.pac", stack->stGetTop(), 0);
         stack->Alloc((size & 0xF) ? (size >> 4) + 1 : size >> 4);
     }
     InventSubDataReadBGInfo = (unsigned int) GetReadBGFile(0);
@@ -6088,11 +6081,11 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
     CMenuInventPt->LoadCharaCheck();
     switch (CMenuInventPt->photo_only) {
         case 1:
-            CMenuInventPt->key_arg_no = 6;
+            CMenuInventPt->key_arg_no = INVENT_MODE_PHOTO_VIEW;
             MenuMainFrameModeSet(1, 1);
             ReturnMenuIntern(1);
             MenuMesForm[0]->draw_flag = 0;
-            CMenuPosDataForm *image_form = MenuPosData->GetFormInfo(at_5015);
+            CMenuPosDataForm *image_form = MenuPosData->GetFormInfo("mainpureimage");
             if (image_form != NULL) {
                 image_form->draw_flag = 1;
                 image_form->x = 0.0f;
@@ -6101,8 +6094,8 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
             CMenuInventPt->GradationSet(0);
             break;
         case 0:
-            CMenuInventPt->key_arg_no = 2;
-            CMenuInventPt->ExeScript(at_5016);
+            CMenuInventPt->key_arg_no = INVENT_MODE_CARD_LIST;
+            CMenuInventPt->ExeScript("\x92\xca\x8f\xed\x82\xcc\x82\xdd\x8f\x89\x8a\xfa\x89\xbb");
             CMenuInventPt->poly_chr_form[0]->counter = 0;
             CMenuInventPt->ExeScript("\x8d\x6c\x82\xa6\x83\x82\x81\x5b\x83\x68" "0");
             CMenuInventPt->PrepareNextMode(CMenuInventPt->key_arg_no);
@@ -6141,10 +6134,6 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
     SetModeMenuDrawItemBoard(0);
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", MenuInventInit__FP9mgCMemoryPii);
-#endif
-
 void CMenuInvent::NextDifferentMode(int next, int arg) {
     switch (next) {
         case 0:
@@ -7364,12 +7353,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4376__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4377__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4379__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_4380__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5011__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5012__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5013__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5014__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5015__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/inventmn", at_5016__DATA);
 
 // Small uninitialised data (.sbss)
 INCLUDE_BSS(at_3509, 0x8);

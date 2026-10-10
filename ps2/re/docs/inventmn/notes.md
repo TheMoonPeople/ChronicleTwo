@@ -6,18 +6,44 @@ the memory-card album, invention recipes and the menu page class. No first-game 
 
 ## Function status
 
-Every function of the unit is native C++ except two guarded drafts
-(`#ifdef NONMATCHING` ... `INCLUDE_ASM`): `CMenuInvent::IsAccessAlbum` and
-`MenuInventInit`. There is no assembly-only function. `MenuInventKey`,
+Every function of the unit is native C++ except the guarded draft
+(`#ifdef NONMATCHING` ... `INCLUDE_ASM`) of `CMenuInvent::IsAccessAlbum`.
+There is no assembly-only function. `MenuInventKey`,
 `CMenuInvent::CalcTex`, `LoadCharaCheck`,
-`IsCreateObject`, `UpdataNetaMemoStr`, `GradationStep`, `CalcCursorPosition`
-and `CInventUserData::ResetAddress` are native and exact; their required source
-forms are in "Carried-photo pixel storage" and "Matching-dependent source forms"
+`IsCreateObject`, `UpdataNetaMemoStr`, `GradationStep`, `CalcCursorPosition`,
+`CInventUserData::ResetAddress` and `MenuInventInit` are native and exact; their
+required source forms are in "Carried-photo pixel storage" and "Matching-dependent source forms"
 below.
 
 `decompile.sh` cannot recover the jump tables in `MenuInventKey` and
 `IsCreateObject` (assembly lines 176 and 861); analysis of those switches uses
 the retail instructions directly.
+
+### Inventory entry (`MenuInventInit`, 0x20AFB0)
+
+`MenuInventInit` copies the incoming memory region into `MenuInventStack`,
+reserves its used prefix, constructs the menu page and character/effect objects,
+and loads the inventory configuration. Photo-only entry instead reads
+`photo_bg1.pac`, shows the plain image form and allocates its camera character
+region. Entry restores remembered list positions when cursor saving is enabled,
+then configures the item board, input frame and loading display. Its third
+integer argument is unused.
+
+The size snapshot precedes the byte-buffer snapshot:
+`int size = memory->stGetSize(); u8 *pack = memory->stGetBuffer();`.
+The inline byte getter belongs beside `mgCMemory::stSetBuffer` and returns
+`stack_bytes`. This retains retail's pack in `s0` and texture-block argument in
+`s1`; a quadword-returning getter followed by a cast or a direct byte-field
+snapshot exchanges those registers.
+
+The file-local `align16_blocks` tests the low four bits and returns early for a
+partial quadword. Placement allocations use
+`stack->Alloc(align16_blocks(sizeof(T)) + 2)`, retaining retail's `v0` null test
+and pointer copy in the delay slot without another placement profile row.
+The three action characters use direct scalar placement expressions. The two
+effect allocations retain the guarded `Initialize` calls. The inline menu
+constructor owns the three icon-name literals; entry owns its configuration,
+image-form and initial script literals.
 
 ### Guarded functions
 
@@ -27,11 +53,6 @@ the retail instructions directly.
   to a saved register before testing it for null, where retail branches on `v0`
   and copies in the delay slot, and the draft's frame is `0x10` smaller with
   `this` and the card pointer in exchanged saved registers.
-- `MenuInventInit` builds `CMenuInvent` and the menu's `CActionChara` objects
-  on `MenuInventStack`, loads the inventory configuration and starts the item
-  board. The `CMenuInvent` placement expression and the two effect allocations
-  already have retail's branch-before-copy shape; the three character
-  allocations copy the result before the branch, as in `IsAccessAlbum`.
 
 ### Remaining data markers
 
@@ -39,11 +60,6 @@ the retail instructions directly.
   (nine `IsCreateObject` targets and a trailing zero word).
 - `at_4354`..`at_4380` except `at_4378`: script and format strings used only by
   the guarded `IsAccessAlbum`.
-- `at_5011`..`at_5013`: the three memory-card icon names copied by the inline
-  `CMenuInvent` constructor; the constructor is inlined only into the guarded
-  `MenuInventInit`, so no native literal is emitted for them.
-- `at_5014`..`at_5016`: the configuration file name, image form name and script
-  name used only by the guarded `MenuInventInit`.
 - `INCLUDE_BSS` `at_3739` and `at_3765`: the zero templates of the two
   `ItemNameList2` locals (`names`, `delete_names`) of `IsAskExtend`. Giving each
   its own case scope changes the function prologue, and value initialization
@@ -356,6 +372,16 @@ initialization (down increments, so both bits cancel); the loading coordinates a
 capacity test `MCManagerPtr->GetSaveDataSize(MC_SIZE_SAVE_KB) + 2 > card->free_size`, which
 emits the call before the card capacity load.
 
+In state 240, insufficient carried-photo space runs the full-photo script and
+leaves the switch immediately; it does not revisit the cursor's cancel test.
+`SetBuff_Album` receives the complete serialized album as `(char *) InventAlbumPtr`.
+The upper slot clamp is `ActiveSlot_3949 > 1`. With the established allocation
+helper and these control-flow forms, a natural draft has 175 differing words
+of the padded 0x13F0 extent. The remaining frame is 0x140 against retail's
+0x150, with exchanged `this`/card registers and different error/answer slots.
+There is no established live aggregate or SDK temporary explaining an extra
+16-byte local; unused padding is not a source solution.
+
 ## Typed access and code generation
 - `GetInventUserDataPtr` reaches the embedded invention data through the existing
   `CSaveData::GetUserDataManager()` and `CUserDataManager::GetInventUserData()` accessors.
@@ -431,7 +457,6 @@ MWCC register-web facts (see docs/MWCC.md "Register allocation"):
 ## Unresolved
 - Meaning of most unk_ fields of CMenuInvent.
 - Exact sizes of CInventUserData and CScoopDataManager.
-- MenuInventInit third parameter unused in what Ghidra shows.
 - LevelCheck / CheckMakeItem / LoadAnalyzeInventFile / GetPhotoNameStr look bool-returning in
   Ghidra; declared int.
 - `neta_select_type` 0/1 and `neta_select_state` -1/0/1 appear in nine other functions; an

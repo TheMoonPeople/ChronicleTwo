@@ -233,6 +233,15 @@ public:
      * @size 0x10
      */
     void stSetBuffer(u_long128 *buffer, int size);
+
+    /**
+     *
+     * Returns the stack region as bytes.
+     *
+     */
+    u8 *stGetBuffer() {
+        return stack_bytes;
+    }
 };
 
 STATIC_ASSERT(sizeof(mgCMemory) == 0x30);
