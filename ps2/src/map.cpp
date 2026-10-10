@@ -756,28 +756,18 @@ int CMap::PreDraw(float *view_pos) {
                     continue;
                 }
 
-                do {
-                    if (!(view_pos[2] <= rect->area.max[2])) {
-                        break;
-                    }
-
-                    goto hide_parts;
-                } while (0);
-
+                if (!(view_pos[2] <= rect->area.max[2])) {
+                    continue;
+                }
+            } else if (!(view_pos[0] <= rect->area.min[0]) && !(view_pos[1] <= rect->area.min[1]) && !(view_pos[2] <= rect->area.min[2]) && view_pos[0] < rect->area.max[0] && view_pos[1] < rect->area.max[1] && view_pos[2] < rect->area.max[2]) {
                 continue;
             }
 
-            if (!(view_pos[0] <= rect->area.min[0]) && !(view_pos[1] <= rect->area.min[1]) && !(view_pos[2] <= rect->area.min[2]) && view_pos[0] < rect->area.max[0] && view_pos[1] < rect->area.max[1] && view_pos[2] < rect->area.max[2]) {
-                continue;
-            }
-
-        hide_parts: {
             for (rect_entry = rect->parts; rect_entry != NULL; rect_entry = rect_entry->next) {
                 if (rect_entry->data != NULL) {
                     rect_entry->data->in_screen = 0;
                 }
             }
-        }
         }
     }
 
