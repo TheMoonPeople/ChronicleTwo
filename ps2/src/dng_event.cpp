@@ -732,25 +732,19 @@ int CTreasureBoxManager::CheckArea(float *pos, float radius) {
     int           i;
     CTreasureBox *slot;
 
-    i = 0;
-loop:
-    slot = &this->box[i];
+    for (i = 0; i < 0x18; i++) {
+        slot = &this->box[i];
 
-    if (slot->state != (int) TREASURE_BOX_STATE_NONE) {
-        slot->GetPosition(chest_pos);
+        if (slot->state != (int) TREASURE_BOX_STATE_NONE) {
+            slot->GetPosition(chest_pos);
 
-        if (mgDistVector(chest_pos, pos) < radius) {
-            return 0;
+            if (mgDistVector(chest_pos, pos) < radius) {
+                return 0;
+            }
         }
     }
 
-    i += 1;
-
-    if (i >= 0x18) {
-        return 1;
-    }
-
-    goto loop;
+    return 1;
 }
 
 void CTreasureBoxManager::DrawMiniMapSymbol(CMiniMapSymbol *symbol_drawer) {
