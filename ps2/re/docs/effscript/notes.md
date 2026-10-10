@@ -4,15 +4,10 @@ Effect script manager. No counterpart in the first game's decompilation (nothing
 EffectScript / EFF_SCRIPT / ES_SPRITE there).
 
 ## Status
-184 of the 185 functions in `ps2/src/effscript.cpp` are native C++ definitions and match retail.
-One is a guarded draft (`#ifdef NONMATCHING` C++ with an `INCLUDE_ASM` fallback):
-`CEffectScriptMan::SetCharacter(CCharacter2 *, int, int)` (0x2A0 extent, 0x29C body). It fails
-on MWCC's placement-new allocation-result schedule, among other differences: retail tests the
-allocator's `v0` and copies it into the saved register in the branch delay slot, while MWCC copies
-first and branches on the saved register (see [placement conversion](../satansfiddle/placement-new.md)).
+All 185 functions in `ps2/src/effscript.cpp` are native C++ definitions and match retail.
 `BuildBase(int, ...)` and `AssignCharacter` are native with one scoped `CCharacter2` placement
-row each; `CObjectFrame`/`ColPrimMan` come from their owning headers (`dng_main.hpp` for
-`ColPrimMan`).
+row each; `CreateEffSpt` and `SetCharacter` need no row (see below). `CObjectFrame`/`ColPrimMan`
+come from their owning headers (`dng_main.hpp` for `ColPrimMan`).
 
 - `CreateEffSpt(int, int, int)` (0x2E5D60, 0x500) finds the loaded base, optionally reserves a
   free column of the owner's slot row, opens a work-memory stack block of `base->work_size`
@@ -25,13 +20,16 @@ row each; `CObjectFrame`/`ColPrimMan` come from their owning headers (`dng_main.
   without `placement_new` rows; `sizeof(T) / 16 + 2` copies first and tests the saved register.
   Member placement overloads, split allocation, an explicit `script->run.CRunScript()` call
   (constructs a temporary on the stack) and dummy wrappers are not solutions.
-- `SetCharacter`: 24/168 words. In the slot path the mutable table entry and the new
-  character exchange `s1` and `s2` (20 words), plus the two allocation-result branch pairs
-  (+0xD4/+0xD8, +0x1AC/+0x1B0). Typed slot access `slot[group][slot]` keeps the address but
-  reverses both commutative `addu` operands (+0x9C/+0xA0); `_EFF_SCRIPT **entry =
-  &this->slot[group][slot]` adds two words; staging the row first leaves one reversed `addu`.
-  The entry's script is reloaded after allocation and the virtual `Copy`, and `now` is reloaded
-  in the negative-slot branch; caching either changes behaviour. The manager layout it uses:
+- `SetCharacter(CCharacter2 *, int, int)` (0x2A0 extent, 0x29C body) opens a work-memory stack
+  block of the source's copy size plus the character's own 0x68 quadwords, then copies the
+  source into a new `CCharacter2` of the effect in the given slot (or of `now` for a negative
+  slot) and records the block as its `chara_work`. The slot path repeats
+  `this->slot[group][slot]` for each access: MWCC keeps the entry address as a CSE temporary
+  and reloads the entry after the allocation and the virtual `Copy` (+0xEC), as retail does; a
+  named `_EFF_SCRIPT **entry` (pointer, reference or row-staged) exchanges `s1`/`s2` with the new
+  character and reverses the row `addu`. The negative-slot path likewise reloads `now`. Both
+  allocation sizes are `align16_blocks(sizeof(CCharacter2)) + 2`, which gives retail's
+  `beqz v0` allocation-result tests without a `placement_new` row. The manager layout it uses:
   `work_memory` +0x4, `slot[128][8]` +0x184, `now` +0x1184; `_EFF_SCRIPT::chara_work` +0x4,
   `chara` +0x8; `CCharacter2` is 0x660 with virtual `Copy` +0xEC and `GetCopySize` +0xF0.
 
@@ -156,9 +154,8 @@ Unseen: 0x08, 0x54, 0xC4, 0xE4, 0x108.
   `ClearBaseFromLevel`, and the command diagnostics (sprite-work exhaustion, collision polygon
   limits, unavailable collision primitives, command coordinates, effect creation failures,
   duplicate command numbers, dispatch capacity exhaustion), with Shift-JIS bytes as hex escapes.
-- The `CreateEffSpt` diagnostics and the shared empty string are inline literals. One
-  `INCLUDE_RODATA` marker remains: `at_2025__3` (`SetCharacter` diagnostic), referenced by the
-  active `INCLUDE_ASM` body under its retail symbol while that function is guarded.
+- The `CreateEffSpt` and `SetCharacter` diagnostics and the shared empty string are inline
+  literals; no `INCLUDE_RODATA` markers remain.
 - All non-member functions (GetEffSptBaseDefPtr, DrawEffSptSprite, GetSpritePtr, GetStack*,
   SetStack*, every `_XXX(RS_STACKDATA*, int)` script function, SetEffectScript,
   SetEffectScriptFunc) are LOCAL in retail: define them `static` in the .cpp.

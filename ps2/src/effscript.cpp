@@ -270,8 +270,6 @@ int                    SetEffectScript(CRunScript *script, char *program, mgCMem
 void                   SetEffectScriptFunc();
 static void            DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, float *offset, mgC3DSprite *renderer, CMapLightingInfo *lighting);
 
-extern char at_2025__3[];
-
 /**
  *
  * Rounds a byte count up to a number of 16-byte blocks.
@@ -1686,39 +1684,29 @@ CCharacter2 *CEffectScriptMan::GetCharacter(int group, int slot) {
     return 0;
 }
 
-#ifdef NONMATCHING
 int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
-    int        chara_blocks = (source)->GetCopySize() + 0x68;
-    u_long128 *token = work_memory->StartStackMode(3, chara_blocks);
+    u_long128 *token = work_memory->StartStackMode(3, source->GetCopySize() + align16_blocks(sizeof(CCharacter2)) + 2);
 
-    if (token == 0) {
-        printf(at_2025__3);
+    if (token == NULL) {
+        printf("------- es work max!! (set character) ---------\n");
         return 0;
     }
-
-    CCharacter2 *chara;
 
     if (slot >= 0) {
         if (group < 0 || group >= EFF_SPT_OWNER_MAX || slot >= EFF_SPT_OWNER_SLOT_MAX) {
             return 0;
         }
 
-        _EFF_SCRIPT **entry = (_EFF_SCRIPT **) ((slot << 2) + ((group << 5) + (int) this) + 0x184);
-
-        if (*entry == 0) {
+        if (this->slot[group][slot] == NULL) {
             return 0;
         }
 
-        chara = new (work_memory->Alloc(0x68)) CCharacter2;
-
-        (*entry)->chara = chara;
-        source->Copy(*(*entry)->chara, work_memory);
-        (*entry)->chara_work = token;
+        this->slot[group][slot]->chara = new (work_memory->Alloc(align16_blocks(sizeof(CCharacter2)) + 2)) CCharacter2;
+        source->Copy(*this->slot[group][slot]->chara, work_memory);
+        this->slot[group][slot]->chara_work = token;
     } else {
-        if (now != 0) {
-            chara = new (work_memory->Alloc(0x68)) CCharacter2;
-
-            now->chara = chara;
+        if (now != NULL) {
+            now->chara = new (work_memory->Alloc(align16_blocks(sizeof(CCharacter2)) + 2)) CCharacter2;
             source->Copy(*now->chara, work_memory);
             now->chara_work = token;
         } else {
@@ -1730,9 +1718,6 @@ int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
     work_memory->EndStackMode();
     return 1;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", SetCharacter__16CEffectScriptManFP11CCharacter2ii);
-#endif
 
 int CEffectScriptMan::SetTexb(int texb, int group, int slot) {
     if (slot >= 0) {
@@ -5754,7 +5739,6 @@ void SetEffectScriptFunc() {
 }
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2025__3__DATA);
 
 // Small uninitialised data (.sbss)
 CScene *now_scene;
