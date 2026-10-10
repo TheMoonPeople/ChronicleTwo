@@ -2,7 +2,7 @@
 
 The placement-new capability requests MWCC's own statement-conversion path for
 selected scalar constructions. It is an explicit frontend policy override, not
-a repair of uninitialized compiler state. The checked-in profile activates 38
+a repair of uninitialized compiler state. The checked-in profile activates 39
 callers in 24 units; each is native, byte-identical to retail, and its unit
 passes the complete object check. The caller rows are an activation list for
 those matches; they do not recover one original global compiler policy.
@@ -155,8 +155,8 @@ rows for other units, before the compiler is started.
 
 ## Accepted placement rows
 
-All 38 rows use allocator `__nw__FUiP1` and exact direct constructors. The
-caller spelling is the profile identity. The table totals 48 sites across 24
+All 40 rows use allocator `__nw__FUiP1` and exact direct constructors. The
+caller spelling is the profile identity. The table totals 50 sites across 24
 units; multiple sites in one caller have the same semantic identity and need no
 occurrence selectors. `after/either` means the checked-in policy is
 after-inline and both timings reproduce the caller; `required` rows match
@@ -173,6 +173,8 @@ under only that timing.
 | editmode | `LoadEditCursor__FP9mgCMemoryi` | `CCharacter2` | 3 | after/either |
 | effscript | `AssignCharacter__16CEffectScriptManFP11_EFF_SCRIPTi` | `CCharacter2` | 1 | after/either |
 | effscript | `BuildBase__16CEffectScriptManFiP1iP1iP9mgCMemoryi` | `CCharacter2` | 1 | after/either |
+| effscript | `CreateEffSpt__16CEffectScriptManFiii` | `_EFF_SCRIPT` | 1 | after |
+| effscript | `CreateEffSpt__16CEffectScriptManFiii` | `CCharacter2` | 1 | after |
 | event_func | `_COPY_CHARA__FP12RS_STACKDATAi` | `CCharacter2` | 1 | after/either |
 | event_func | `_ESM_INITIALIZE__FP12RS_STACKDATAi` | `CEffectScriptMan` | 1 | after |
 | fishing | `StepDataLoading__FPv` | `CCharacter2` | 7 | after/either |
@@ -225,11 +227,15 @@ The exact direct constructor identities for these allocated types are:
 | `mgC3DSprite` | `__ct__11mgC3DSpriteFv` |
 | `mgCVisualFixMDT` | `__ct__15mgCVisualFixMDTFv` |
 | `mgCVisualMotionMDT` | `__ct__18mgCVisualMotionMDTFv` |
+| `_EFF_SCRIPT` | `__ct__11_EFF_SCRIPTFv` |
 
 `CMenuQuestView` has a genuine empty inline constructor that emits only base
 construction and the derived vtable assignment. It supplies a named eligible
 root that the implicit constructor lacks; its current row and exact unit
 verification are documented in [menushop notes](../menushop/notes.md#quest-view-placement-construction).
+`_EFF_SCRIPT` likewise has a genuine empty inline constructor whose only work
+is constructing its `CRunScript` member; `CreateEffSpt` has one row for it and
+one for its `CCharacter2` allocation (see [effscript notes](../effscript/notes.md)).
 The timing studies below describe the original 36-row calibration set.
 
 ## Timing study
