@@ -41,8 +41,9 @@ fi
 
 # The image holds only the toolchain, so it is built once and reused; the tree
 # is mounted rather than copied in, which is what keeps the extracted disc
-# (rom/), the split (ps2/asm/) and every object (build/) between runs. Set
-# REBUILD_IMAGE=1 after editing the Dockerfile.
+# (rom/), the split (ps2/asm/) and every object (build/) between runs. The image
+# is rebuilt automatically when the Dockerfile or its patches change;
+# REBUILD_IMAGE=1 forces a rebuild.
 require_builder
 ensure_image
 report_parallelism

@@ -119,21 +119,47 @@ require_builder() {
     exit 1
 }
 
-# Build the image only if it is missing. Set REBUILD_IMAGE=1 to force one,
-# which is what you want after editing the Dockerfile.
+# A sha256 hex digest over the files that feed the dev image: the Dockerfile
+# and each patch in scripts/build/patches/, in name order. Each file's path is
+# hashed along with its contents, so a rename changes the digest. Prints only
+# the digest.
+image_inputs_hash() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256=sha256sum
+    else
+        sha256="shasum -a 256"
+    fi
+    {
+        printf '%s\n' Dockerfile
+        ls scripts/build/patches | LC_ALL=C sort | sed 's|^|scripts/build/patches/|'
+    } | while IFS= read -r file; do
+        printf '%s\n' "$file"
+        cat "$file"
+    done | $sha256 | cut -d' ' -f1
+}
+
+# Build the dev image when it is missing, or when the Dockerfile or
+# scripts/build/patches/ have changed since it was built; the hash of those
+# inputs is recorded in its chronicletwo.inputs label. Set REBUILD_IMAGE=1 to
+# force a build, e.g. after a change the hash cannot see, such as a new
+# upstream base image.
 ensure_image() {
     if in_container; then
         return
     fi
     require_builder
 
+    hash=$(image_inputs_hash)
     if [ "${REBUILD_IMAGE:-0}" != 1 ] \
-       && "$BUILDER" image inspect "$IMAGE" >/dev/null 2>&1; then
-        return
+       && label=$("$BUILDER" image inspect --format '{{ index .Config.Labels "chronicletwo.inputs" }}' "$IMAGE" 2>/dev/null); then
+        if [ "$label" = "$hash" ]; then
+            return
+        fi
+        echo "The Dockerfile or scripts/build/patches/ changed since the dev image ($IMAGE) was built; rebuilding it."
+    else
+        echo "Building the dev image ($IMAGE); this takes a while, once."
     fi
-
-    echo "Building the dev image ($IMAGE); this takes a while, once."
-    "$BUILDER" build -t "$IMAGE" --target dev .
+    "$BUILDER" build --label "chronicletwo.inputs=$hash" -t "$IMAGE" --target dev .
 }
 
 # How much of the machine the build gets. podman and colima run the build in
