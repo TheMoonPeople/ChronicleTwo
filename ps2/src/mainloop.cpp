@@ -93,11 +93,11 @@ u_long128            main_buffer[0x1A0000];
 /**
  * Memory backing the system sound-effect loader.
  */
-u_long128            SystemSeBuff[400];
+static u_long128     SystemSeBuff[400];
 /**
  * Memory backing configuration and villager data.
  */
-u_long128            InfoBuff[5000];
+static u_long128     InfoBuff[5000];
 static void MenuInit(INIT_LOOP_ARG arg);
 static void MenuExit();
 static int           MenuLoop();
@@ -266,7 +266,7 @@ static TM2_head   *FontDataAdr[1];
 /**
  * Image storage used when loading font texture pages.
  */
-u8                 font_buff[0xD000];
+static u8            font_buff[0xD000];
 
 static int gcMAP_NO(SPI_STACK *stack, int argument_count);
 static int gcPROGRESS(SPI_STACK *stack, int argument_count);

@@ -16,10 +16,11 @@ InitEventSelect, EventSelect and every `gc*` tag function. These go in the .cpp 
 Data: pad_table, analog_table, SelectArg, LoopNo, NextLoopNo, PrevLoopNo, CaptureMode,
 CaptureScreen, ActiveSaveData, SubGameSaveData, PlayTimeCountFlag, menu_mode, event_view,
 future_sel, hdd_sel, FontTex, FontDataAdr, BlackFade, BlackFade2, exit_start, PauseSel,
-PauseMenuMode, Font, InitArg, NextInitArg, PrevInitArg, main_buffer, MainBuffer, MainScene,
+PauseMenuMode, Font, InitArg, NextInitArg, PrevInitArg, MainBuffer, MainScene,
 SystemSeBuff, SystemSeStack, InfoBuff, InfoStack, SaveData, MenuBuffer, font_buff, PauseMes;
 the `name_NNN` symbols are function-local statics; `tag__3` is LoadGameConfig's local static
 `tag` (SPI_TAG_PARAM[23], last row null).
+`main_buffer` retains external linkage because the SDK DMA and MPEG objects reference it.
 Global (extern'd in the header): LoopInit/LoopMain/LoopExit, MainThreadPriority (.sdata, =1,
 main() writes 10), read_buffer, SystemSND_ID, DebugFlag, DefStartEventNo, LanguageCode,
 OmakeFlag, MasterDebugCode, GamePad (`GamePad__2` in main.symbols.txt; the other `GamePad` at
