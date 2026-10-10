@@ -1091,6 +1091,7 @@ STATIC_ASSERT(sizeof(CMenuKeyFunc) == 0x160);
  * Pages of the item menu, as CMenuItemInfo::view_mode holds them.
  *
  */
+// clang-format off
 enum MENU_ITEM_VIEW {
     MENU_ITEM_VIEW_MAX = 0,         /**< Max's equipment. */
     MENU_ITEM_VIEW_MONICA = 1,      /**< Monica's equipment. */
@@ -1099,6 +1100,7 @@ enum MENU_ITEM_VIEW {
     MENU_ITEM_VIEW_MONSTER = 4,     /**< The monster Monica has transformed into. */
     MENU_ITEM_VIEW_FISHING_ROD = 5, /**< The fishing rod being viewed. */
 };
+// clang-format on
 
 /**
  *

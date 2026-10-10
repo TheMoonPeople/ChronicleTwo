@@ -661,6 +661,7 @@ s16 BuildUpNameXY[3][2];
  */
 static float MonicaRotationData[4];
 
+#ifndef NONMATCHING
 /**
  *
  * Counter of the extended weapon build-up effect.
@@ -688,41 +689,7 @@ static u8 BuildEndFlag_4703;
  *
  */
 static s8 init_4704;
-
-/**
- *
- * Counter of the debug character-status selection.
- *
- */
-static int cnt_6161;
-
-/**
- *
- * Initialization latch of the debug character-status counter.
- *
- */
-static s8 init_6162;
-
-/**
- *
- * Counter of the debug spectrumisation effect test.
- *
- */
-static int testcnt_6298;
-
-/**
- *
- * Initialization latch of the debug spectrumisation test counter.
- *
- */
-static s8 init_6299;
-
-/**
- *
- * Temporary command parameters saved while handling item-menu input.
- *
- */
-static void *Save_AskParamInfo_7099;
+#endif
 
 /**
  *
@@ -737,43 +704,6 @@ static char *WepStatusInfoStrTable[10] = {"index0", "index1", "index2", "index3"
  *
  */
 static char *WepStatusInfoStatusVolStrTable[10] = {"st0", "st1", "el0", "el1", "el2", "el3", "el4", "el5", "el6", "el7"};
-
-/**
- *
- * Phase increments of the fusion preview colour oscillation.
- *
- */
-static float addtbl_2178[4] = {0.0981747732f, 0.0897597894f, 0.08267349f, 0.0668423995f};
-
-/**
- *
- * Held-item cursor, count, icon and shadow parts.
- *
- */
-static char *n_2667[4] = {"cursor0", "item0num", "item0", "item0sdw"};
-
-/**
- *
- * Paired item-use command offsets for each target character.
- *
- */
-static s8 human_tbl_2871[5][2] = {
-    {15, 16},
-    {16, 15},
-    {17, -1},
-    {16, 15},
-    {-1, -1}
-};
-
-/**
- *
- * Confirm and cancel actions for each language button layout.
- *
- */
-static int padtbl_3359[2][2] = {
-    {MENU_PUSH_BUTTON_DECIDE, MENU_PUSH_BUTTON_CANCEL},
-    {MENU_PUSH_BUTTON_CANCEL, MENU_PUSH_BUTTON_DECIDE}
-};
 
 /**
  *
@@ -811,13 +741,6 @@ static MENU_INPUTKEY_ARG item_menu_argtbl[12] = {
 
 /**
  *
- * Item-use status scripts for each character preview.
- *
- */
-static char *exename_4332[4] = {NULL, "\x8E\xF4\x82\xA2", "\x92\xE2\x8E\x7E", "\x90\xCE\x89\xBB"};
-
-/**
- *
  * Forms of the item-menu preview pages.
  *
  */
@@ -829,227 +752,6 @@ static char *ItemMenuFormNameTbl[6] = {"form_view00", "form_view01", "form_view1
  *
  */
 static char *local_over_flow_baseposname[3] = {"item0", "item1", "item2"};
-
-/**
- *
- * Forms displaying the two characters and the ridepod during item movement.
- *
- */
-static char *tbl_4981[3] = {"form_view00", "form_view01", "form_view2"};
-
-/**
- *
- * Part-name formats for item movement slots.
- *
- */
-static char *plist_4982[3] = {"item%d", "wep%d", "esa0"};
-
-/**
- *
- * Background-read reservation mode for each menu memory area.
- *
- */
-static int tbl_5293[7] = {1, 1, 1, 1, 1, 1, 1};
-
-/**
- *
- * Cursor frame width and height for each key layout.
- *
- */
-static s8 waku_infotbl_5836[12][2] = {
-    {72, 72},
-    {82, 82},
-    {36, 42},
-    {0, 0},
-    {0, 0},
-    {80, 40},
-    {0, 0},
-    {72, 72},
-    {0, 0},
-    {0, 0},
-    {0, 0},
-    {66, 66}
-};
-
-/**
- *
- * Cursor frame type for each key layout.
- *
- */
-static s8 wakutypeTbl_5837[12] = {1, 1, 0, -1, -1, -1, -1, 1, -1, -1, -1, 1};
-
-/**
- *
- * Character-status flags offered by the debug preview.
- *
- */
-static u32 table_6164[7] = {CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8, CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40};
-
-/**
- *
- * Character-status labels of the debug preview.
- *
- */
-static char *attrtable_6472[7] = {"Poison,", "Slowly,", "Curse,", "Stop,", "Binbin,", "Stone", "Dry"};
-
-/**
- *
- * Weapon special-ability labels of the debug preview.
- *
- */
-static char *stchar_6508[13] = {"Rich", "Poor", "Poison", "Stop", "Steal", "Break Easy", "Break Hard", "Drain", "Heal", "Dark", "Critical", "ABS2", NULL};
-
-/**
- *
- * Durability and warning-mark parts for each active weapon.
- *
- */
-static char *whptbl_7376[3][2] = {
-    {"whp00", "whp01"},
-    {"whp10", "whp11"},
-    {"batu0", "batu1"}
-};
-
-/**
- *
- * Horizontal texture coordinates of the build-up board tiles.
- *
- */
-static s16 backboard_table_x_7625[5] = {150, 176, 204, 238, 266};
-
-/**
- *
- * Horizontal tile repeats of the monster build-up board.
- *
- */
-static s16 mos_repeat_table_x_7694[5] = {1, 3, 1, 3, 1};
-
-/**
- *
- * Enemy requirement messages for each menu language.
- *
- */
-static char *strtbl_7727[7] = {" ", "Defeat these enemies.", "Tu dois tuer les\nennemis ci-avant.", "T[UNI00f6]te obige Gegner.", "Devi uccidere questi nemici.", "Mata a estos enemigos.", "Defeat these enemies."};
-
-/**
- *
- * Destination key layout for each preview page and inventory row.
- *
- */
-static s8 argtblno_7927[6][6] = {
-    {0, 3, 3, 3, 3, 3},
-    {0, 3, 3, 3, 3, 3},
-    {4, 4, 4, 5, 5, 5},
-    {6, 6, 6, 6, 7, 7},
-    {8, 8, 8, 8, 8, 8},
-    {9, 9, 9, 10, 10, 10}
-};
-
-/**
- *
- * Destination cursor selection for each preview page and inventory row.
- *
- */
-static s8 sel_7928[6][6] = {
-    {2, 2, 0, 0, 1, 1},
-    {2, 2, 0, 0, 1, 1},
-    {0, 0, 0, 1, 1, 3},
-    {0, 0, 0, 1, 1, 1},
-    {0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0}
-};
-
-/**
- *
- * Inventory row offset associated with each previous key layout.
- *
- */
-static s8 conv_7932[12] = {0, 4, 1, 2, 2, 3, 2, 4, 2, 2, 3, 0};
-
-/**
- *
- * Ridepod preview position for each core height offset.
- *
- */
-static float robo_stand_pos_8151[11][3] = {
-    {-44.0f, -20.0f, -180.0f},
-    {-44.0f, -20.0f, -180.0f},
-    {-44.0f, -22.0f, -180.0f},
-    {-44.0f, -29.0f, -180.0f},
-    {-44.0f, -24.0f, -180.0f},
-    {-44.0f, -21.0f, -180.0f},
-    {-44.0f, -21.0f, -180.0f},
-    {-44.0f, -21.0f, -180.0f},
-    {-44.0f, -26.0f, -180.0f},
-    {-44.0f, -26.0f, -180.0f},
-    {-44.0f, -20.0f, -180.0f}
-};
-
-/**
- *
- * Colour, pulse count and duration of the cure and power-up palette effects.
- *
- */
-static int effparamtbl_8275[2][5] = {
-    {96, 180, 255, 1, 45},
-    {250, 220, 64, 1, 45}
-};
-
-/**
- *
- * Character-status masks controlling the displayed icons.
- *
- */
-static u32 status_table_8427[7] = {CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8, CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40};
-
-/**
- *
- * Texture coordinates of the character-status icons.
- *
- */
-static s8 xytable_8428[7][2] = {
-    {0, 0},
-    {24, 24},
-    {48, 0},
-    {0, 24},
-    {24, 0},
-    {48, 24},
-    {72, 0}
-};
-
-/**
- *
- * Texture coordinates of the weapon special-ability icons.
- *
- */
-static s8 xytable_wep_8429[12][2] = {
-    {0, 48},
-    {20, 48},
-    {40, 48},
-    {60, 48},
-    {80, 48},
-    {100, 48},
-    {0, 68},
-    {20, 68},
-    {40, 68},
-    {60, 68},
-    {80, 68},
-    {100, 68}
-};
-
-/**
- *
- * Weapon special-ability masks controlling the displayed icons.
- *
- */
-static u32 draw_tbl_8453[12] = {MENU_WEAPON_ABILITY_RICH, MENU_WEAPON_ABILITY_POOR, MENU_WEAPON_ABILITY_POISON, MENU_WEAPON_ABILITY_STOP, MENU_WEAPON_ABILITY_STEAL, MENU_WEAPON_ABILITY_BREAK_EASY, MENU_WEAPON_ABILITY_BREAK_HARD, MENU_WEAPON_ABILITY_DRAIN, MENU_WEAPON_ABILITY_HEAL, MENU_WEAPON_ABILITY_DARK, MENU_WEAPON_ABILITY_CRITICAL, MENU_WEAPON_ABILITY_ABS2};
-
-/**
- *
- * Texture package entries of the item selector.
- *
- */
-static char *imgtbl_8945[4] = {"img.img", "allitem.img", "edmenu.img", NULL};
 
 /**
  *
@@ -1085,20 +787,6 @@ static s16 MenuItemBoardTotalLine = 90;
  *
  */
 static s16 MenuWeaponEnvSetListNo = -1;
-
-/**
- *
- * Message pointer horizontal position for each equipment cursor.
- *
- */
-static s8 wakutbl_1411[2] = {16, 30};
-
-/**
- *
- * Message box horizontal offset for each equipment cursor.
- *
- */
-static s8 tartbl_1412[2] = {16, 0};
 
 /**
  *
@@ -1144,17 +832,10 @@ static s8 menu_camera_reference_no = -1;
 
 /**
  *
- * Ridepod equipment slots eligible for spectrum fusion.
- *
- */
-static s8 tbl_4094[2] = {2, 0};
-
-/**
- *
  * Initial preview page for each player-character selection.
  *
  */
-static s8 menuitem_initviewtbl[4] = {0, 1, 3, 4};
+static s8 menuitem_initviewtbl[4] = {MENU_ITEM_VIEW_MAX, MENU_ITEM_VIEW_MONICA, MENU_ITEM_VIEW_ROBO, MENU_ITEM_VIEW_MONSTER};
 
 /**
  *
@@ -1172,52 +853,10 @@ static char *OverFlowFormName = "overitem";
 
 /**
  *
- * View-page number associated with each preview form.
- *
- */
-static u8 itemmenu_calcmode_tbl_5410[6] = {0, 1, 2, 3, 4, 5};
-
-/**
- *
  * Non-zero when debug model adjustments are enabled.
  *
  */
 static s8 MenuDebugModel_AdjustFlag = 1;
-
-/**
- *
- * Vertical texture coordinates of the build-up board tiles.
- *
- */
-static u8 backboard_table_y_7626[3] = {150, 178, 206};
-
-/**
- *
- * Widths of the build-up board tiles.
- *
- */
-static s8 backboard_table_w_7627[5] = {26, 28, 34, 28, 26};
-
-/**
- *
- * Horizontal repeat count of each build-up board tile column.
- *
- */
-static s8 backboard_x_repeat_drawnum_7628[5] = {1, 7, 1, 7, 1};
-
-/**
- *
- * Vertical repeat count of each build-up board tile row.
- *
- */
-static s8 backboard_y_repeat_drawnum_7629[3] = {1, 5, 1};
-
-/**
- *
- * Preview-form animation counter for each view page.
- *
- */
-static s8 cnttbl_8130[6] = {-10, -10, -10, -7, -7, -7};
 
 /**
  *
@@ -1743,6 +1382,20 @@ int CBaseMenuClass::MenuItemCommandSelect(int select_key, int push_button) {
 }
 
 void CBaseMenuClass::SetItemCmdMsgPos(int *item_pos) {
+    /**
+     *
+     * Message box horizontal offset for each equipment cursor.
+     *
+     */
+    static s8 tartbl[2] = {16, 0};
+
+    /**
+     *
+     * Message pointer horizontal position for each equipment cursor.
+     *
+     */
+    static s8 wakutbl[2] = {16, 30};
+
     int pos[2] = {item_pos[0] + 4, item_pos[1] + 0x2A};
     int cmd_num = ask_para.cmd_num;
     int width = 0;
@@ -1799,8 +1452,8 @@ void CBaseMenuClass::SetItemCmdMsgPos(int *item_pos) {
             pos[1] = item_pos[1] - height - 0x14;
             {
                 int cursor = MenuCommonInfo->cursor;
-                message->point_x = wakutbl_1411[cursor];
-                pos[0] += tartbl_1412[cursor];
+                message->point_x = wakutbl[cursor];
+                pos[0] += tartbl[cursor];
             }
             message->point_y = height * 2;
             break;
@@ -3043,6 +2696,13 @@ int AfterSpectolFusion(CGameDataUsed *item, CGameDataUsed *part) {
 }
 
 void FusionColor(int type, int step, float *color) {
+    /**
+     *
+     * Phase increments of the fusion preview colour oscillation.
+     *
+     */
+    static float addtbl[4] = {0.0981747732f, 0.0897597894f, 0.08267349f, 0.0668423995f};
+
     if (type == 1) {
         fusion_ambient[0] = 128.0f + fusion_color_val * sinf(fusion_color_ang[0]);
         fusion_ambient[1] = 128.0f + fusion_color_val * sinf(fusion_color_ang[1]);
@@ -3055,7 +2715,7 @@ void FusionColor(int type, int step, float *color) {
         }
 
         for (int i = 0; i < 4; i++) {
-            fusion_color_ang[i] += addtbl_2178[i];
+            fusion_color_ang[i] += addtbl[i];
             fusion_color_ang[i] = mgAngleLimit(fusion_color_ang[i]);
         }
     } else {
@@ -3502,13 +3162,6 @@ enum MENU_SWAP_RESULT {
 
 /**
  *
- * Selects the general exchange result from the source slot's original item presence.
- *
- */
-s8 ret_tbl1_2511[2] = {MENU_SWAP_RESULT_NORMAL, MENU_SWAP_RESULT_DESTINATION_EMPTY};
-
-/**
- *
  * Exchanges menu items through gift-box, bait, stacking and aquarium handling.
  *
  * @mangled MenuDataSwap__FP13CGameDataUsedP13CGameDataUsedi
@@ -3516,6 +3169,13 @@ s8 ret_tbl1_2511[2] = {MENU_SWAP_RESULT_NORMAL, MENU_SWAP_RESULT_DESTINATION_EMP
  * @size 0x38C
  */
 static int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int quantity) {
+    /**
+     *
+     * Selects the general exchange result from the source slot's original item presence.
+     *
+     */
+    static s8 ret_tbl1[2] = {MENU_SWAP_RESULT_NORMAL, MENU_SWAP_RESULT_DESTINATION_EMPTY};
+
     int          dst_type;
     int          dst_no;
     CDataCommon *src_common;
@@ -3580,7 +3240,7 @@ static int MenuDataSwap(CGameDataUsed *destination, CGameDataUsed *source, int q
         if (src_no > 0) {
             had_src = 1;
         }
-        result = ret_tbl1_2511[had_src];
+        result = ret_tbl1[had_src];
         s8 results[2] = {MENU_SWAP_RESULT_FAILED, MENU_SWAP_RESULT_DESTINATION_OCCUPIED};
         results[0] = result;
         result = results[had_dst];
@@ -3774,6 +3434,13 @@ void CMenuKeyFunc::SetVibeCnt(int count, int rate) {
 }
 
 void CMenuKeyFunc::SetVibeR(int strength, int speed) {
+    /**
+     *
+     * Held-item cursor, count, icon and shadow parts.
+     *
+     */
+    static char *n[4] = {"cursor0", "item0num", "item0", "item0sdw"};
+
     int                 i;
     MENUFORMPARTS_TYPE *part;
 
@@ -3781,7 +3448,7 @@ void CMenuKeyFunc::SetVibeR(int strength, int speed) {
         i = 0;
 
         do {
-            part = cursor_form->GetPartInfo(n_2667[i]);
+            part = cursor_form->GetPartInfo(n[i]);
 
             if (part == NULL) {
                 break;
@@ -4081,6 +3748,20 @@ int GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *param, int slot, i
  */
 int GetItemCommandMsg(CGameDataUsed *item, int *cmds, u32 *colors, short *values, short *marks, int type,
                       int arg) {
+    /**
+     *
+     * Paired item-use command offsets for each target character.
+     *
+     */
+    static s8 human_tbl[5][2] = {
+        {15, 16},
+        {16, 15},
+        {17, -1},
+        {16, 15},
+        {-1, -1}
+    };
+
+
     int item_no = item->item_no;
     int num = GetMenuCommandMsg(item_no, cmds);
     MenuUserDataManPtr->GetNowPartyMember();
@@ -4125,9 +3806,9 @@ int GetItemCommandMsg(CGameDataUsed *item, int *cmds, u32 *colors, short *values
                 }
 
                 if (arg < 2 && cmds[i] >= 0x1397 && cmds[i] <= 0x1398) {
-                    cmds[i] = human_tbl_2871[arg][0] + 5000;
+                    cmds[i] = human_tbl[arg][0] + 5000;
                     i++;
-                    cmds[i] = human_tbl_2871[arg][1] + 5000;
+                    cmds[i] = human_tbl[arg][1] + 5000;
                 }
             }
 
@@ -4143,9 +3824,9 @@ int GetItemCommandMsg(CGameDataUsed *item, int *cmds, u32 *colors, short *values
         case 3:
             while (i < num) {
                 if (arg != 2 && human && cmds[i] >= 0x1397 && cmds[i] <= 0x1398) {
-                    cmds[i] = human_tbl_2871[arg][0] + 5000;
+                    cmds[i] = human_tbl[arg][0] + 5000;
                     i++;
-                    cmds[i] = human_tbl_2871[arg][1] + 5000;
+                    cmds[i] = human_tbl[arg][1] + 5000;
                 }
 
                 if (item->item_type == 15 && cmds[i] == 0x139E) {
@@ -4663,14 +4344,24 @@ int CMenuKeyFunc::CheckLRKey() {
 }
 
 int MenuCheckPushButton() {
+    /**
+     *
+     * Confirm and cancel actions for each language button layout.
+     *
+     */
+    static int padtbl[2][2] = {
+        {MENU_PUSH_BUTTON_DECIDE, MENU_PUSH_BUTTON_CANCEL},
+        {MENU_PUSH_BUTTON_CANCEL, MENU_PUSH_BUTTON_DECIDE}
+    };
+
     int  pushed;
     int *table;
 
     pushed = 0;
-    table = padtbl_3359[0];
+    table = padtbl[0];
 
     if (LanguageCode > 0) {
-        table = padtbl_3359[1];
+        table = padtbl[1];
     }
 
     if (GamePad__2.Down(0x20) != 0) {
@@ -5558,6 +5249,13 @@ int CMenuItemInfo::CheckSoundLoad() {
 }
 
 CGameDataUsed *CMenuItemInfo::SearchNowPosItemExist() {
+    /**
+     *
+     * Ridepod equipment slots eligible for spectrum fusion.
+     *
+     */
+    static s8 tbl[2] = {2, 0};
+
     int            cursor = MenuCommonInfo->cursor;
     CHARA_DATA    *chara = MenuUserParam.chara[sub_view];
     CGameDataUsed *item = NULL;
@@ -5575,7 +5273,7 @@ CGameDataUsed *CMenuItemInfo::SearchNowPosItemExist() {
     } else if (key_arg_no == 1) {
         item = &chara->equip[cursor];
     } else if (key_arg_no == 7) {
-        item = &MenuUserParam.robo->parts[tbl_4094[cursor]];
+        item = &MenuUserParam.robo->parts[tbl[cursor]];
     } else if (key_arg_no == 4) {
         item = view_weapon;
     } else if (key_arg_no == 9) {
@@ -5937,6 +5635,13 @@ void CMenuItemInfo::CheckLoadInfo(int chara) {
 extern CGameDataUsed MenuMoveTempGameDataUsed;
 
 int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
+    /**
+     *
+     * Item-use status scripts for each character preview.
+     *
+     */
+    static char *exename[4] = {NULL, "\x8E\xF4\x82\xA2", "\x92\xE2\x8E\x7E", "\x90\xCE\x89\xBB"};
+
     switch (step) {
         case 0: {
             if (ret->menu_cmd < -1) {
@@ -5960,7 +5665,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                 case 2:
                     if (MenuItemCmdRet.result < 0) {
                         if (MenuItemCmdRet.item_no > 0) {
-                            ExeScript(exename_4332[MenuItemCmdRet.item_no]);
+                            ExeScript(exename[MenuItemCmdRet.item_no]);
                             step = 1;
                         }
 
@@ -6539,10 +6244,12 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
     mgCMemory         *load_stack = &MenuCharaLoadStack;
     mgCMemory          work;
     MENU_ASKMODE_PARA *para = &ask_para;
-    if (!init_4683) {
-        Effect_Counter_4682 = 0;
-        init_4683 = 1;
-    }
+    /**
+     *
+     * Counter of the extended weapon build-up effect.
+     *
+     */
+    static int Effect_Counter = 0;
     mgCTextureManager *tex_manager = &mgTexManager;
     CMenuPosDataForm  *mes_form = MenuMesForm[7];
     int                reading = ReadBGSync();
@@ -6586,10 +6293,12 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
             }
             break;
         case 2: {
-            if (!init_4704) {
-                BuildEndFlag_4703 = 0;
-                init_4704 = 1;
-            }
+            /**
+             *
+             * Non-zero when the extended weapon build-up finishes.
+             *
+             */
+            static u8 BuildEndFlag = 0;
             BUILDUP_WEAPON_INFO *info = &BuildUpWeaponInfo;
             CActionChara        *chara = MenuActionChara[0];
             CDC2Mes             *name_message = MenuDCMsg[6];
@@ -6652,7 +6361,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         case 8:
                             if (choice == 0) {
                                 MenuSePlay(SYSTEM_SE_DECIDE);
-                                BuildEndFlag_4703 = 0;
+                                BuildEndFlag = 0;
                                 info->mode = 0;
                                 load_stack->stReset();
                                 load_stack->Align64();
@@ -6708,7 +6417,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                             frame->SetAttrParam(*frame->attr, 1, MG_FRAME_ATTR_Z_TEST);
                         }
                         work.Alloc(0x100);
-                        BuildEndFlag_4703 = 0;
+                        BuildEndFlag = 0;
                         char *path = GetItemFilePath(name_message->item_mes[info->select_no + 1], 1);
                         work.Align64();
                         u_long128 *buffer = work.stGetTop();
@@ -6720,7 +6429,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                     break;
                 case 3: {
                     build_up_chara->Step();
-                    if (!BuildEndFlag_4703) {
+                    if (!BuildEndFlag) {
                         float frame_no = build_up_chara->GetNowFrame(NULL);
                         if (28.0f < frame_no) {
                             chara->Show(0, 1);
@@ -6742,10 +6451,10 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                                             MenuActionCharaBuffer, weapon_tex_block, NULL);
                             textures->name_suffix[0] = 0;
                             WeaponBuildCheck(chara, new_item_no, weapon_tex_block);
-                            BuildEndFlag_4703 = 1;
+                            BuildEndFlag = 1;
                         }
                     }
-                    if (BuildEndFlag_4703 == 1 && build_up_chara->CheckMotionEnd(NULL)) {
+                    if (BuildEndFlag == 1 && build_up_chara->CheckMotionEnd(NULL)) {
                         build_loading = 0;
                         build_up_chara = NULL;
                         ExeScript(at_4957);
@@ -6792,6 +6501,20 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsAskExtend__13CMenuItemInfoFii)
 #endif
 
 void MenuMoveItemPos(int *item, int *pos, int phase) {
+    /**
+     *
+     * Forms displaying the two characters and the ridepod during item movement.
+     *
+     */
+    static char *tbl[3] = {"form_view00", "form_view01", "form_view2"};
+
+    /**
+     *
+     * Part-name formats for item movement slots.
+     *
+     */
+    static char *plist[3] = {"item%d", "wep%d", "esa0"};
+
     char part_name[0x20];
 
     if (phase == 0) {
@@ -6799,12 +6522,12 @@ void MenuMoveItemPos(int *item, int *pos, int phase) {
 
         if (kind == 0) {
             if (item[2] == 0 || item[2] == 1 || item[2] == 2) {
-                sprintf(part_name, plist_4982[item[2]], item[3]);
+                sprintf(part_name, plist[item[2]], item[3]);
             } else {
                 strcpy(part_name, "chara");
             }
 
-            ((CMenuPosDataForm *) MenuPosData->GetFormInfo(tbl_4981[item[1]]))
+            ((CMenuPosDataForm *) MenuPosData->GetFormInfo(tbl[item[1]]))
                 ->GetPutPosXY(part_name, pos[0], pos[1]);
         } else if (kind == 1) {
             (MenuPosData)->GetPosMenuItemOnItemBrd(pos, item[3], 0);
@@ -6814,7 +6537,7 @@ void MenuMoveItemPos(int *item, int *pos, int phase) {
             ((CMenuPosDataForm *) MenuPosData->GetFormInfo(OverFlowFormName))
                 ->GetPutPosXY(local_over_flow_baseposname[item[3]], pos[0], pos[1]);
         } else if (kind == 5) {
-            ((CMenuPosDataForm *) MenuPosData->GetFormInfo(tbl_4981[0]))
+            ((CMenuPosDataForm *) MenuPosData->GetFormInfo(tbl[0]))
                 ->GetPutPosXY("esa0", pos[0], pos[1]);
         }
     }
@@ -7121,6 +6844,13 @@ void CMenuItemInfo::AttachFormInfo() {
 
 #pragma inline_depth(8)
 void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
+    /**
+     *
+     * Background-read reservation mode for each menu memory area.
+     *
+     */
+    static int tbl[7] = {1, 1, 1, 1, 1, 1, 1};
+
     int             i;
     CMenuMoveItem  *move_item;
     CMenuEffect    *effect;
@@ -7135,7 +6865,7 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
         MenuActionChara[i]->Initialize(NULL);
     }
 
-    MenuBGReadInfo2Malloc(&MenuItemMemory2, tbl_5293);
+    MenuBGReadInfo2Malloc(&MenuItemMemory2, tbl);
 
     move_item = new (MenuItemMemory2.Alloc(0x13)) CMenuMoveItem;
 
@@ -7169,6 +6899,13 @@ void CMenuItemInfo::MenuModeMalloc(mgCMemory *stack) {
 #pragma inline_depth reset
 
 void CMenuItemInfo::CalcTex() {
+    /**
+     *
+     * View-page number associated with each preview form.
+     *
+     */
+    static u8 itemmenu_calcmode_tbl[6] = {0, 1, 2, 3, 4, 5};
+
     int slot;
     Func_MenuItemBrdPosStep(MenuItem_ItemBoardTopLine);
     int cursor = MenuCommonInfo->cursor;
@@ -7182,7 +6919,7 @@ void CMenuItemInfo::CalcTex() {
     int check_move = MenuMoveItemPtr->CheckMove();
     int view_flag[6];
     for (i = 0; i < 6; i++) {
-        if (itemmenu_calcmode_tbl_5410[i] != view_mode) {
+        if (itemmenu_calcmode_tbl[i] != view_mode) {
             view_form[i]->SetAction("\x8A\x4F\x82\xD6");
         } else {
             view_form[i]->SetAction("\x92\x86\x82\xD6");
@@ -7497,6 +7234,33 @@ extern char at_5882[];
 extern char at_5883[];
 
 void CMenuItemInfo::CalcCursorPosition() {
+    /**
+     *
+     * Cursor frame type for each key layout.
+     *
+     */
+    static s8 wakutypeTbl[12] = {1, 1, 0, -1, -1, -1, -1, 1, -1, -1, -1, 1};
+
+    /**
+     *
+     * Cursor frame width and height for each key layout.
+     *
+     */
+    static s8 waku_infotbl[12][2] = {
+        {72, 72},
+        {82, 82},
+        {36, 42},
+        {0, 0},
+        {0, 0},
+        {80, 40},
+        {0, 0},
+        {72, 72},
+        {0, 0},
+        {0, 0},
+        {0, 0},
+        {66, 66}
+    };
+
     if (mode == MENU_ASK_MODE_CLOSE) {
         MenuCommonInfo->SetWakuType(-1);
         return;
@@ -7622,8 +7386,8 @@ void CMenuItemInfo::CalcCursorPosition() {
     }
 
     if (waku_no >= 0) {
-        MenuCommonInfo->SetWakuWH(wakutypeTbl_5837[arg_no], waku_infotbl_5836[waku_no][0], waku_infotbl_5836[waku_no][1]);
-        MenuCommonInfo->SetWakuType(wakutypeTbl_5837[arg_no]);
+        MenuCommonInfo->SetWakuWH(wakutypeTbl[arg_no], waku_infotbl[waku_no][0], waku_infotbl[waku_no][1]);
+        MenuCommonInfo->SetWakuType(wakutypeTbl[arg_no]);
     } else {
         MenuCommonInfo->SetWakuType(-1);
     }
@@ -7849,6 +7613,13 @@ extern mgCMemory     MenuDebugStack;
  *
  */
 static void MenuItemDebugKey(void) {
+    /**
+     *
+     * Character-status flags offered by the debug preview.
+     *
+     */
+    static u32 table[7] = {CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8, CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40};
+
     /**
      *
      * Fallback model path used when the selected item has no model.
@@ -8133,15 +7904,17 @@ static void MenuItemDebugKey(void) {
                     "num", MenuUserDataManPtr->AddMoney(0));
             }
             if (buttons & MENU_PUSH_BUTTON_SQUARE) {
-                if (init_6162 == 0) {
-                    cnt_6161 = 0;
-                    init_6162 = 1;
-                }
+                /**
+                 *
+                 * Counter of the debug character-status selection.
+                 *
+                 */
+                static int cnt = 0;
                 MenuUserDataManPtr->SetCharaStatusAttirbuteVol(
-                    CMenuItemInfoPt->sub_view, table_6164[cnt_6161], 0x78);
-                cnt_6161 += 1;
-                if (cnt_6161 > 6) {
-                    cnt_6161 = 0;
+                    CMenuItemInfoPt->sub_view, table[cnt], 0x78);
+                cnt += 1;
+                if (cnt > 6) {
+                    cnt = 0;
                 }
             }
             return;
@@ -8402,18 +8175,20 @@ static void MenuItemDebugKey(void) {
                     item->data.weapon.attribute[7] = info->attribute[7];
                 }
                 if (GamePad__2.Down(PAD_R1)) {
-                    if (init_6299 == 0) {
-                        testcnt_6298 = 0;
-                        init_6299 = 1;
-                    }
+                    /**
+                     *
+                     * Counter of the debug spectrumisation effect test.
+                     *
+                     */
+                    static int testcnt = 0;
 
                     u32 mask = 0;
 
-                    mask |= 1 << testcnt_6298;
+                    mask |= 1 << testcnt;
                     item->data.weapon.special = CheckWeaponAttribute(item->data.weapon.special, mask);
-                    testcnt_6298 += 1;
-                    if (testcnt_6298 >= 0xC) {
-                        testcnt_6298 = 0;
+                    testcnt += 1;
+                    if (testcnt >= 0xC) {
+                        testcnt = 0;
                     }
                 }
             }
@@ -8431,6 +8206,20 @@ static void MenuItemDebugKey(void) {
  * @size 0x13A4
  */
 static void MenuItemDebugDraw(void) {
+    /**
+     *
+     * Character-status labels of the debug preview.
+     *
+     */
+    static char *attrtable[7] = {"Poison,", "Slowly,", "Curse,", "Stop,", "Binbin,", "Stone", "Dry"};
+
+    /**
+     *
+     * Weapon special-ability labels of the debug preview.
+     *
+     */
+    static char *stchar[13] = {"Rich", "Poor", "Poison", "Stop", "Steal", "Break Easy", "Break Hard", "Drain", "Heal", "Dark", "Critical", "ABS2", NULL};
+
     CMenuFont          menu_font;
     mgCTextureManager *tex_manager = &mgTexManager;
     CMenuFont         *font = &menu_font;
@@ -8614,7 +8403,7 @@ static void MenuItemDebugDraw(void) {
                     if (count == 3) {
                         strcat(status, "\n         ");
                     }
-                    strcat(status, attrtable_6472[i]);
+                    strcat(status, attrtable[i]);
                     count++;
                 }
             }
@@ -8697,9 +8486,9 @@ static void MenuItemDebugDraw(void) {
             char special[0x100];
             special[0] = '\0';
             int count = 0;
-            for (int i = 0; i < 12 && stchar_6508[i] != NULL; i++) {
+            for (int i = 0; i < 12 && stchar[i] != NULL; i++) {
                 if (weapon->data.weapon.special & (1 << i)) {
-                    strcat(special, stchar_6508[i]);
+                    strcat(special, stchar[i]);
                     count++;
                     if (count % 4 == 3) {
                         strcat(special, "\n");
@@ -8761,6 +8550,13 @@ static void MenuItemDebugDraw(void) {
 }
 
 int CMenuItemInfo::PushKey(int pad, int trigger) {
+    /**
+     *
+     * Temporary command parameters saved while handling item-menu input.
+     *
+     */
+    static void *Save_AskParamInfo;
+
     int               leaving = 0;
     CHARA_DATA       *chara;
     short             held_item_no;
@@ -9568,7 +9364,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         SetEffectSpectolBreak(load_stack, MenuEffect[0], (this->ask_para.item)->item_no);
                         MenuCommonInfo->FadeOutMenuBGMVol(-6, 0x18);
                         MenuSePlay(0, MenuItemSpectolTransSoundBuffer, load_stack);
-                        Save_AskParamInfo_7099 = (void *) this->ask_para.item;
+                        Save_AskParamInfo = (void *) this->ask_para.item;
                     }
 
                     if (extend_result == 3) {
@@ -9664,7 +9460,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                             SetBuildUpInfoChara((CCharacter2 *) chara, ActiveMenuWeaponCharaRange);
                         }
 
-                        if (this->view_mode != 2 || diffent_weapon_dispflag == 1) {
+                        if (this->view_mode != MENU_ITEM_VIEW_WEAPON || diffent_weapon_dispflag == 1) {
                             this->key_arg_no = 4;
                             this->view_mode = 2;
                             MenuCommonInfo->key_arg = &item_menu_argtbl[this->key_arg_no];
@@ -9759,7 +9555,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
 
                 if (state == kStateSpectolBreak) {
                     if (extend_result == 4 && this->view_mode == 2 &&
-                        (void *) this->view_weapon == Save_AskParamInfo_7099) {
+                        (void *) this->view_weapon == Save_AskParamInfo) {
                         this->ReturnActiveCharaViewMode(0);
                     }
                 }
@@ -9812,6 +9608,17 @@ void local_item_infoview_set(MENUFORMPARTS_TYPE *part, CGameDataUsed *item) {
  *
  */
 void MenuItemCharaActWepInfoDraw(CMenuPosDataForm *form, CGameDataUsed *equip, int chara_no, int flag) {
+    /**
+     *
+     * Durability and warning-mark parts for each active weapon.
+     *
+     */
+    static char *whptbl[3][2] = {
+        {"whp00", "whp01"},
+        {"whp10", "whp11"},
+        {"batu0", "batu1"}
+    };
+
     CGameDataUsed      *weapon;
     MENUFORMPARTS_TYPE *icon;
     int                 blink;
@@ -9868,8 +9675,8 @@ void MenuItemCharaActWepInfoDraw(CMenuPosDataForm *form, CGameDataUsed *equip, i
         icon->item_flag = 0;
         icon->item_flag = CheckItemUseVariable(&MenuCommonInfo->have_item, &target);
         WEAPON_USED *data = &weapon->data.weapon;
-        form->SetNumber(whptbl_7376[i][0], whp[0]);
-        form->SetNumber(whptbl_7376[i][1], whp[1]);
+        form->SetNumber(whptbl[i][0], whp[0]);
+        form->SetNumber(whptbl[i][1], whp[1]);
         char name[0x20];
         sprintf(name, "whp%d", i);
         bar = form->GetPartInfo(name);
@@ -10176,6 +9983,55 @@ void BuildUpWeaponNameBoardDraw(mgCDrawPrim *prim, float x, float y, int width) 
 }
 
 void MenuWeaponBuildUpDraw(int &tex_block) {
+    /**
+     *
+     * Enemy requirement messages for each menu language.
+     *
+     */
+    static char *strtbl[7] = {" ", "Defeat these enemies.", "Tu dois tuer les\nennemis ci-avant.", "T[UNI00f6]te obige Gegner.", "Devi uccidere questi nemici.", "Mata a estos enemigos.", "Defeat these enemies."};
+
+    /**
+     *
+     * Horizontal repeat count of each build-up board tile column.
+     *
+     */
+    static s8 backboard_x_repeat_drawnum[5] = {1, 7, 1, 7, 1};
+
+    /**
+     *
+     * Horizontal texture coordinates of the build-up board tiles.
+     *
+     */
+    static s16 backboard_table_x[5] = {150, 176, 204, 238, 266};
+
+    /**
+     *
+     * Horizontal tile repeats of the monster build-up board.
+     *
+     */
+    static s16 mos_repeat_table_x[5] = {1, 3, 1, 3, 1};
+
+    /**
+     *
+     * Vertical repeat count of each build-up board tile row.
+     *
+     */
+    static s8 backboard_y_repeat_drawnum[3] = {1, 5, 1};
+
+    /**
+     *
+     * Vertical texture coordinates of the build-up board tiles.
+     *
+     */
+    static u8 backboard_table_y[3] = {150, 178, 206};
+
+    /**
+     *
+     * Widths of the build-up board tiles.
+     *
+     */
+    static s8 backboard_table_w[5] = {26, 28, 34, 28, 26};
+
     if (BuildUpWeaponInfo.mode == 0) {
         return;
     }
@@ -10206,13 +10062,13 @@ void MenuWeaponBuildUpDraw(int &tex_block) {
     int row;
     int col;
     for (row = 0; row < 3; row++) {
-        for (int n = 0; n < backboard_y_repeat_drawnum_7629[row]; n++) {
+        for (int n = 0; n < backboard_y_repeat_drawnum[row]; n++) {
             int k;
             int x = 20;
             for (col = 0; col < 5; col++) {
-                mgRect<int> tile(backboard_table_x_7625[col], backboard_table_y_7626[row],
-                                 backboard_table_w_7627[col], 28);
-                for (k = 0; k < backboard_x_repeat_drawnum_7628[col]; k++) {
+                mgRect<int> tile(backboard_table_x[col], backboard_table_y[row],
+                                 backboard_table_w[col], 28);
+                for (k = 0; k < backboard_x_repeat_drawnum[col]; k++) {
                     PrimQuad(prim, x, y, tile);
                     x += tile.right;
                 }
@@ -10333,9 +10189,9 @@ void MenuWeaponBuildUpDraw(int &tex_block) {
                     int k;
                     int x = 232;
                     for (col = 0; col < 5; col++) {
-                        mgRect<int> tile(backboard_table_x_7625[col], backboard_table_y_7626[row],
-                                         backboard_table_w_7627[col], 28);
-                        for (k = 0; k < mos_repeat_table_x_7694[col]; k++) {
+                        mgRect<int> tile(backboard_table_x[col], backboard_table_y[row],
+                                         backboard_table_w[col], 28);
+                        for (k = 0; k < mos_repeat_table_x[col]; k++) {
                             PrimQuad(prim, x, board_y, tile);
                             x += tile.right;
                         }
@@ -10377,13 +10233,13 @@ void MenuWeaponBuildUpDraw(int &tex_block) {
             if (LanguageCode == 1) {
                 note_x += 0x12;
             } else if (CheckNowEurope()) {
-                font.SetStr(strtbl_7727[LanguageCode]);
+                font.SetStr(strtbl[LanguageCode]);
                 int h;
                 int w;
                 font.CalcDrawWH(font.str, &w, &h);
                 note_x = 0x167 - w / 2;
             }
-            font.SetStr(strtbl_7727[LanguageCode]);
+            font.SetStr(strtbl[LanguageCode]);
             font.SetPos(note_x, note_y);
             font.DrawDirect(font.str, font.pos_x, font.pos_y);
         }
@@ -10454,6 +10310,41 @@ void MenuWeaponStatusInfoFormSet(CGameDataUsed *item, CDataWeapon *data) {
 }
 
 int MenuItemSelectDiffer(int select) {
+    /**
+     *
+     * Destination cursor selection for each preview page and inventory row.
+     *
+     */
+    static s8 sel[6][6] = {
+        {2, 2, 0, 0, 1, 1},
+        {2, 2, 0, 0, 1, 1},
+        {0, 0, 0, 1, 1, 3},
+        {0, 0, 0, 1, 1, 1},
+        {0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0}
+    };
+
+    /**
+     *
+     * Destination key layout for each preview page and inventory row.
+     *
+     */
+    static s8 argtblno[6][6] = {
+        {0, 3, 3, 3, 3, 3},
+        {0, 3, 3, 3, 3, 3},
+        {4, 4, 4, 5, 5, 5},
+        {6, 6, 6, 6, 7, 7},
+        {8, 8, 8, 8, 8, 8},
+        {9, 9, 9, 10, 10, 10}
+    };
+
+    /**
+     *
+     * Inventory row offset associated with each previous key layout.
+     *
+     */
+    static s8 conv[12] = {0, 4, 1, 2, 2, 3, 2, 4, 2, 2, 3, 0};
+
     if (CMenuItemInfoPt->viewing_weapon) {
         return 0;
     }
@@ -10467,16 +10358,16 @@ int MenuItemSelectDiffer(int select) {
     switch (prev_arg_no) {
         case 2: {
             s16 line = key->cursor / item_menu_argtbl[2].disp_columns - key->top_line;
-            select = argtblno_7927[CMenuItemInfoPt->view_mode][line];
+            select = argtblno[CMenuItemInfoPt->view_mode][line];
             key->key_arg = &item_menu_argtbl[select];
             key->top_line = 0;
-            key->cursor = sel_7928[CMenuItemInfoPt->view_mode][line];
+            key->cursor = sel[CMenuItemInfoPt->view_mode][line];
             break;
         }
         default:
             switch (select) {
                 case 2: {
-                    int line_offset = conv_7932[prev_arg_no];
+                    int line_offset = conv[prev_arg_no];
                     key->top_line = MenuItem_ItemBoardTopLine;
                     key->cursor = key->key_arg->disp_columns * (key->top_line + line_offset);
                     break;
@@ -10708,6 +10599,32 @@ void CMenuItemInfo::WeaponBuildCheck(CActionChara *chara, int chara_no, int tex_
 }
 
 int CMenuItemInfo::ModelReadEndCheck() {
+    /**
+     *
+     * Preview-form animation counter for each view page.
+     *
+     */
+    static s8 cnttbl[6] = {-10, -10, -10, -7, -7, -7};
+
+    /**
+     *
+     * Ridepod preview position for each core height offset.
+     *
+     */
+    static float robo_stand_pos[11][3] = {
+        {-44.0f, -20.0f, -180.0f},
+        {-44.0f, -20.0f, -180.0f},
+        {-44.0f, -22.0f, -180.0f},
+        {-44.0f, -29.0f, -180.0f},
+        {-44.0f, -24.0f, -180.0f},
+        {-44.0f, -21.0f, -180.0f},
+        {-44.0f, -21.0f, -180.0f},
+        {-44.0f, -21.0f, -180.0f},
+        {-44.0f, -26.0f, -180.0f},
+        {-44.0f, -26.0f, -180.0f},
+        {-44.0f, -20.0f, -180.0f}
+    };
+
     int loaded = MenuLoadFileCheck(MenuCharaBuild2);
     int result = 0;
 
@@ -10755,7 +10672,7 @@ int CMenuItemInfo::ModelReadEndCheck() {
         CActionChara *chara = MenuCharaBuild2[0]->chara;
 
         if (ready) {
-            chara_poly_form[0]->counter = cnttbl_8130[view_mode];
+            chara_poly_form[0]->counter = cnttbl[view_mode];
         } else {
             chara_poly_form[0]->counter = 13;
             chara->SetScale(1.0f, 1.0f, 1.0f);
@@ -10791,8 +10708,8 @@ int CMenuItemInfo::ModelReadEndCheck() {
                         offset_no = core->GetOffsetNo();
                     }
 
-                    chara->SetPosition(robo_stand_pos_8151[offset_no][0], robo_stand_pos_8151[offset_no][1],
-                                       robo_stand_pos_8151[offset_no][2]);
+                    chara->SetPosition(robo_stand_pos[offset_no][0], robo_stand_pos[offset_no][1],
+                                       robo_stand_pos[offset_no][2]);
                     MenuRoboPartsLightOff(MenuActionChara[2]->CObjectFrame::frame);
                     break;
                 }
@@ -10876,6 +10793,16 @@ void CMenuItemInfo::SearchEffectDisplayPosition(int *position, CGameDataUsed *it
 }
 
 void CMenuItemInfo::SetItemEffect() {
+    /**
+     *
+     * Colour, pulse count and duration of the cure and power-up palette effects.
+     *
+     */
+    static int effparamtbl[2][5] = {
+        {96, 180, 255, 1, 45},
+        {250, 220, 64, 1, 45}
+    };
+
     CCharacter2 *field_chara = MenuMainScene->GetCharacter(0);
     int          item_no = MenuUsedItemNo;
     int          target_type = MenuUsedTarget.type;
@@ -10933,7 +10860,7 @@ void CMenuItemInfo::SetItemEffect() {
                 param_no = 1;
             }
 
-            int *param = effparamtbl_8275[param_no];
+            int *param = effparamtbl[param_no];
             MenuActionChara[0]->pallet[0].SetAnim(param[0], param[1], param[2], param[3], param[4], 0);
             FxScriptMan->SetValue(0, param_no, 0, -1);
         }
@@ -11138,6 +11065,55 @@ void MenuItemInfoCursorSet(int mode) {
 }
 
 void MenuCharaStatusDraw(int &tex_block) {
+    /**
+     *
+     * Character-status masks controlling the displayed icons.
+     *
+     */
+    static u32 status_table[7] = {CHARA_STATUS_POISON, CHARA_STATUS_UNK_2, CHARA_STATUS_UNK_4, CHARA_STATUS_UNK_8, CHARA_STATUS_POWER, CHARA_STATUS_UNK_20, CHARA_STATUS_UNK_40};
+
+    /**
+     *
+     * Texture coordinates of the character-status icons.
+     *
+     */
+    static s8 xytable[7][2] = {
+        {0, 0},
+        {24, 24},
+        {48, 0},
+        {0, 24},
+        {24, 0},
+        {48, 24},
+        {72, 0}
+    };
+
+    /**
+     *
+     * Texture coordinates of the weapon special-ability icons.
+     *
+     */
+    static s8 xytable_wep[12][2] = {
+        {0, 48},
+        {20, 48},
+        {40, 48},
+        {60, 48},
+        {80, 48},
+        {100, 48},
+        {0, 68},
+        {20, 68},
+        {40, 68},
+        {60, 68},
+        {80, 68},
+        {100, 68}
+    };
+
+    /**
+     *
+     * Weapon special-ability masks controlling the displayed icons.
+     *
+     */
+    static u32 draw_tbl[12] = {MENU_WEAPON_ABILITY_RICH, MENU_WEAPON_ABILITY_POOR, MENU_WEAPON_ABILITY_POISON, MENU_WEAPON_ABILITY_STOP, MENU_WEAPON_ABILITY_STEAL, MENU_WEAPON_ABILITY_BREAK_EASY, MENU_WEAPON_ABILITY_BREAK_HARD, MENU_WEAPON_ABILITY_DRAIN, MENU_WEAPON_ABILITY_HEAL, MENU_WEAPON_ABILITY_DARK, MENU_WEAPON_ABILITY_CRITICAL, MENU_WEAPON_ABILITY_ABS2};
+
     if (MenuStatusTex == NULL) {
         return;
     }
@@ -11154,9 +11130,9 @@ void MenuCharaStatusDraw(int &tex_block) {
                 float y = form->y - 200.0f;
 
                 for (int i = 0; i < 7; i++) {
-                    if (status & status_table_8427[i]) {
+                    if (status & status_table[i]) {
                         mgRect<int> rect;
-                        rect.Set(xytable_8428[i][0], xytable_8428[i][1], 24, 24);
+                        rect.Set(xytable[i][0], xytable[i][1], 24, 24);
                         PrimQuad(MenuStatusTex, x, y, rect, form->rgba[3], 0x80, 0x80, 0x80);
                         x += 24.0f;
                     }
@@ -11180,9 +11156,9 @@ void MenuCharaStatusDraw(int &tex_block) {
                 float y = form->y - 42.0f;
 
                 for (int i = 0; i < 12; i++) {
-                    if (special & draw_tbl_8453[i]) {
+                    if (special & draw_tbl[i]) {
                         mgRect<int> rect;
-                        rect.Set(xytable_wep_8429[i][0], xytable_wep_8429[i][1], 21, 21);
+                        rect.Set(xytable_wep[i][0], xytable_wep[i][1], 21, 21);
                         PrimQuad(MenuStatusTex, x, y, rect, form->rgba[3], 0x80, 0x80, 0x80);
                         x += 24.0f;
                     }
@@ -11916,6 +11892,13 @@ void CItemSelect::CheckUse(CGameDataUsed *item) {
 }
 
 int CItemSelect::KeyStep() {
+    /**
+     *
+     * Texture package entries of the item selector.
+     *
+     */
+    static char *imgtbl[4] = {"img.img", "allitem.img", "edmenu.img", NULL};
+
     int end = 0;
 
     switch (mode) {
@@ -11928,8 +11911,8 @@ int CItemSelect::KeyStep() {
                 if (file != NULL) {
                     MenuMainImageDataEnter(tex_block[1]);
 
-                    for (int i = 0; imgtbl_8945[i] != NULL; i++) {
-                        tex_manager->EnterIMGFile((u8 *) GetPackFile((u_int *) file->buffer, imgtbl_8945[i], NULL),
+                    for (int i = 0; imgtbl[i] != NULL; i++) {
+                        tex_manager->EnterIMGFile((u8 *) GetPackFile((u_int *) file->buffer, imgtbl[i], NULL),
                                                   tex_block[1], NULL, NULL);
                     }
 
