@@ -154,11 +154,6 @@ static int          PlaySeSeq(unsigned int snd_id, sndCSeSeqData *data, int vol)
 static void         SetVolSeSeq(int index, int vol);
 static int          GetPortBankNo(unsigned int snd_id, int *port, int *bank);
 
-#ifdef NONMATCHING
-static void  CSndStepWait();
-static char *GetLine(char **col, char *text, char *end);
-#endif
-
 // Code (.text)
 int CLoopSeMngr::Create(int sequence_count, mgCMemory *memory) {
     unsigned int byte_count;

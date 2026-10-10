@@ -67,38 +67,6 @@ retry:
 }
 #endif
 
-#ifdef NONMATCHING
-int ezBgm(int command, int argument) {
-    switch (command & EZBGM_COMMAND_MASK) {
-        case EZBGM_PRELOAD:
-            if (sceSifCheckStatRpc(&gCd2)) {
-                printf("########### Rpc is bussy2!! \n");
-                return 0;
-            }
-            sbuff[0] = argument;
-            sceSifCallRpc(&gCd2, command, 1, sbuff, 0x10, sbuff, 0x40, 0, 0);
-            break;
-        case EZBGM_OPEN_FROM_PACK:
-        case EZBGM_UNK_8A00:
-        case EZBGM_OPEN:
-            if (sceSifCheckStatRpc(&gCd2)) {
-                printf("########### Rpc is bussy1!! \n");
-                return 0;
-            }
-            sceSifCallRpc(&gCd2, command, 1, (void *) argument, 0x40, sbuff, 0x40, 0, 0);
-            break;
-        default:
-            if (sceSifCheckStatRpc(&gCd2)) {
-                printf("########### Rpc is bussy3!! \n");
-                return 0;
-            }
-            sbuff[0] = argument;
-            sceSifCallRpc(&gCd2, command, 0, sbuff, 0x10, sbuff, 0x40, 0, 0);
-            break;
-    }
-    return sbuff[0];
-}
-#else
 int ezBgm(int command, int argument) {
     switch (command & EZBGM_COMMAND_MASK) {
         case EZBGM_OPEN:
@@ -136,7 +104,6 @@ int ezBgm(int command, int argument) {
 
     return sbuff[0];
 }
-#endif
 
 int CSound::StreamOpenState() {
     return sceSifCheckStatRpc(&gCd2);
