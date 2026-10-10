@@ -13,14 +13,16 @@ differs by about 1,223/1,776 words; see "EditInit" below for why.
 
 Assembly-only (`INCLUDE_ASM` with no draft):
 - `CameraCtrlParam::operator=` (0x1ACEE0, 0x60): owned by cameracontrol;
-  caller `CCameraControl::CCameraControl`. It is the compiler-generated copy
+  callers `CCameraControl::CCameraControl` and `EditInit` (direct call at
+  0x1AC5D0 after changing the active limits). It is the compiler-generated copy
   assignment (retail gives the symbol the processor-specific binding 13 of a
   generated member, `readelf -s` on SCES_511.90), so a hand-written definition
   would be `GLOBAL` and is ruled out by `docs/MWCC.md` ("Natural C++
   definitions"). The implicit assignment from the existing class definition
-  reproduces all 24 words when emitted from a real caller; its only caller in
-  this unit is the guarded `EditInit`, so it stays assembly until `EditInit`
-  is native. It copies ten float limits and the integer `no_check`.
+  reproduces all 24 words when outlined from a real caller. The guarded
+  `EditInit` draft currently inlines the assignment instead of emitting this
+  member; native promotion alone does not establish outline emission. It copies
+  ten float limits and the integer `no_check`.
   `cameracontrol.hpp` declares the retail member only under
   `CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT`.
 - `CActionChara::CActionChara()` (0x1ACF40, 0xC0): owned by actionchara;
@@ -233,3 +235,23 @@ Why it does not match:
 - Effect and camera construction differ in allocation-result/null branches,
   and saved-register allocation, scene-pointer lifetimes and allocation
   argument order differ later.
+
+## Emitted-member constraints
+
+The committed-profile `EditInit` draft differs in 1,223 of 1,776 words, with
+a 0x1B74 body against the 0x1BC0 comparison extent. The const-reference
+fishing-capacity form and six-word value-local residual above belong to the
+already native `EditLoop`, not this initialization function.
+
+`EditMapJump` restores all eleven `CameraCtrlParam` fields. Expressing that
+restore as `*param = camera->default_param` preserves its masked instructions
+and relocation map, but the implicit assignment remains inlined and has no
+standalone body. Scoped `force_active` around this real caller also leaves
+the assignment absent. A depth-zero caller would add an outline call where
+retail performs the field copies inline.
+
+Small MWCC retention controls do not emit an unreferenced in-class constructor:
+`force_active`, `export`, `lib_export` and `nosyminline` around its definition
+all leave the constructor absent. `force_active` around a genuine assignment
+caller or its class likewise does not retain an inlined implicit assignment.
+These controls cannot replace the real construction or outlining demand.
