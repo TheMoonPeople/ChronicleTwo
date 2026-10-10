@@ -90,3 +90,16 @@ Ctor store order: +0,+4,+8,+0x10,+0xC,+0x18,+0x14.
 - `GetVillagerModelName` returns 0/1 (`int`). `GetGameChapter` returns the s16 chapter; declared `int`.
 - The table-size enum names (`VLGR_PLACE_MAX`, `GAME_PROGRESS_MAX`) and `VLGR_HOUSE_TYPE` values
   are not retail names.
+
+
+## Native data and linkage
+
+All initialized data and BSS are native. Parser state is file-local; `ProgressInfo` and
+`VlgrPlace` retain external linkage for generated VU-data references. The progress table
+has extent 0xC00. Script tables `ni_tag`, `tag` and `gi_tag` contain 10, 12 and 2 rows
+respectively, including null terminators. The progress condition's Shift-JIS bytes are
+`88 C8 8C E3`, represented by octal escapes.
+
+The file-scope parser `tag` matches the retail object. A local `tag` inside the consumer
+gives an unresolved compiler-generated identity despite matching the final executable;
+the linker deduplication suffix does not prove local-static storage.
