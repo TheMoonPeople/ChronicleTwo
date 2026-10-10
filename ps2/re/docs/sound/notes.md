@@ -41,7 +41,7 @@
   (0x3000 mono / 0x4000 stereo), 0x8020 open, 0x80B0 state, 0x80C0 (0x10 mono / 0 stereo),
   0x80D0 standby info (bit 0 = stereo), 0x80E0 level, 0x80F0 open from FPL.
 - EZMIDI commands used (arg `port + cmd`): 0x00 play, 0x20 stop, 0x30 (before play), 0x40 set
-  sequence, 0xA0 (value `unk_98`), 0xB0 volume (`vol==256 ? 256 : (int)(vol*2.015748f)`),
+  sequence, 0xA0 (value `ezmidi_param`), 0xB0 volume (`vol==256 ? 256 : (int)(vol*2.015748f)`),
   0x9050 load bank (`&gBank`), 0x8010 (Init: returns IOP MSIn buffer address, arg 0x4000), 0x80F0 (Exit), 0xC0 stereo mode.
 
 ## MIDI_PORT (0x124) / MIDI_STATE (0x1240)
@@ -58,7 +58,7 @@
 | 0x50 | void*[16] | bank | IOP hd addresses (`gBank.hd_address`), freed with sceSifFreeSysMemory. |
 | 0x90 | s32 | bank_count | `< 0x10` check in LoadHdBdAdd; SE_* require > 0. |
 | 0x94 | s32 | spu_address | Init: ports 0,3 = 0x5210; 1,2,8,10,14,15 = 0x7D210; 7,12,13 = 0x18AE20; 9 = 0x1E0000; 11 = 0x1A82E0. Not zeroed in the generic loop. |
-| 0x98 | s32 | unk_98 | Sent with EZMIDI 0xA0 after LoadHdBd2. Init: 0x3040 (0,3), 0x3032 (1), 0x3039 (2,14), 0x3010 (7), 0x3035 (8), 0x3038 (9), 0x3037 (10), 0x3033 (11), 0x3034 (12), 0x3036 (13), 0x3031 (15). |
+| 0x98 | s32 | ezmidi_param | Sent with EZMIDI 0xA0 after LoadHdBd2. Init: 0x3040 (0,3), 0x3032 (1), 0x3039 (2,14), 0x3010 (7), 0x3035 (8), 0x3038 (9), 0x3037 (10), 0x3033 (11), 0x3034 (12), 0x3036 (13), 0x3031 (15). |
 | 0x9C | s32 | spu_next_address | Init = spu_address; upward: load at it then += bd_size+0x10; downward: -= bd_size+0x10 and load there. |
 | 0xA0 | void*[10] | sequence | LoadSeq stores `[count]`; SQ_Play reads `[seq_no]` (seq_no < count). Init zeroes 10 (8 unrolled + 2). |
 | 0xC8 | void* | resident_sequence | LoadSeq when count==0: ezMidi(port+0x40, addr), frees old, stores addr. DEL_PORT/LoadHdBd2 re-send it, free sequence[1..]. |
@@ -96,58 +96,13 @@
 - TransHdBd checks "SYS AREA HAKAI?" when the destination range straddles 0x18AE20.
 - Port roles (BGM, SE, ...) are not established from this unit; no port enum was declared.
 
-## CSound::Init guarded draft — scheduling blocker
+## CSound::Init
 
-Superseded by [night-20261008.md](night-20261008.md): the function matches with
-the configuration assignments in the common port order.
-
-`Init__6CSoundFiiii` (0x18A410, retail extent 0x780) remains guarded. The
-natural draft has 12/480 relocated-field-masked instruction differences, down
-from 190/480 at 0abce37. Its body is 0x77C bytes; retail's final four bytes are
-alignment padding. The other 36 sound functions match in the draft check.
-
-The common success return reproduces retail's final zero return and register
-allocation. Chained SPU assignments write next address before current address.
-The CSL null statements appear as extmod, callBack, conf in source, reproducing
-retail's stores to context offsets 0x10, 0x0C, 0x08. The port setup is grouped
-by field; its shared configuration IDs precede its singleton IDs in source.
-
-The remaining instruction differences occupy function offsets 0x518..0x548
-(0x18A928..0x18A958). Retail stores the configuration values for ports 10, 8,
-1 and 15 at 0x518, 0x524, 0x530 and 0x53C, then writes port11.unk_00 = 0
-at 0x548, in the load-immediate scheduling slot for port13's 0x3036. The draft
-writes port11.unk_00 at 0x518, shifting those four configuration stores to
-0x520, 0x52C, 0x538 and 0x544. Both streams realign at 0x54C. The remaining
-MIDI_STATE stores have the retail widths, source registers and field addends;
-the masked score alone does not check those addends.
-
-Useful exclusions:
-
-- Moving just port11's zero past the first four configuration statements makes
-  an allocation-direction byte store advance into the early slot. Moving the
-  entire direction group later makes a linked-port store advance instead.
-  Splitting directions between the two configuration subgroups also fails.
-- Moving the first singleton configuration group before the final kinds,
-  directions, relationships or addresses disrupts constant allocation or
-  scheduling. Separate SPU-address statements also disrupt allocation.
-- Chained equal configuration IDs and a four-field chain for the shared
-  0x5210 base have no effect. A twelve-field 0x7D210 chain worsens the schedule.
-- A fixed-index local const configuration array survives as stack initialization
-  and loads. Retail uses immediates here. A named port reference likewise adds
-  pointers and saved registers.
-- Retail uses word stores for kinds/configuration IDs and byte stores for
-  directions; narrowing the word fields contradicts those stores. Direction is
-  unsigned: changing it to s8 leaves Init unchanged but changes two loads each
-  in LoadHdBd2/Add from retail's lbu to lb.
-
-Reconsider when there is evidence for the original special-port assignment
-ordering/grouping, or a documented MWCC scheduling rule that explains delaying
-port11's zero without advancing a direction or relationship store. No runtime
-helper, volatile qualifier or artificial dependency is justified by this code.
-
-`CSound::LoadHdBd2` uses the native body. Its port and bank-data values must retain
-the retail saved-register allocation; an earlier guarded draft exchanged those
-registers.
+Init is native and exact: body `0x77C` in a `0x780` extent. Configuration assignments
+follow the common special-port order; [the scheduling note](matching-constraints.md)
+explains the zero store and records alternatives. Types retain word stores for
+configuration/kinds and unsigned byte accesses for allocation direction.
+CSound::LoadHdBd2 is also native and exact.
 
 ## CSound::SQ_Play
 
@@ -194,58 +149,35 @@ are discarded. The full 512-byte record is transferred, and length is cleared
 regardless of transfer status. The active native body accesses fade members directly through the port array.
 Caching a MIDI_FADE pointer changes retail's separate field-address allocation.
 
-## Init compiler-policy exclusion
+## Rejected Init alternatives
 
-`Init__6CSoundFiiii` contains no floating-point instructions or floating call
-arguments. Its remaining +0x518..+0x548 discrepancy is integer global-store
-scheduling: the zero store to port 11's `unk_00` occupies the configuration
-store slot, and the streams realign at +0x54C. There is no IEEE-valued argument
-consumer for an evaluate-first selector to identify.
+Init contains no floating call arguments. Changing the GPR helper seed from `0x30` to
+`0x10` did not repair the old store schedule and broke SQ_Play and Step. Per-port
+regrouping scored 119–123 differing words; a fixed-index local configuration array added
+stack stores/loads, and named port references changed register allocation.
+Configuration/kind narrowing contradicts retail word stores; signed direction bytes
+change LoadHdBd2/Add loads from lbu to lb.
 
-The canonical Satan's Fiddle build with GPR helper mask `0x30` / FPR `0`
-retains 12/480 differing instruction words and eight resolved-relocation
-errors in Init. GPR `0x10` / FPR `0` leaves those Init differences unchanged
-and additionally breaks `SQ_Play__6CSoundFiii` and `Step__6CSoundFv`. This mask
-is unsuitable for the complete sound unit; no new profile row is accepted.
+## Native data and matching constraints
 
-Blocker category: integer store scheduling, rather than floating argument
-order or the measured helper-history alternatives. The guard remains.
-Reconsider with a natural special-port assignment grouping that delays the
-port-11 zero without advancing another direction/relationship store.
+All data are native. Only iop_bd_addr has public linkage; CSL state and bank records are
+file-local with extents 0x14, 0x48 and 0x44. CSound::Init owns load_m_flg and its
+compiler guard. MSIN_BUFFER[9] owns 0x1200 bytes, MIDI_STATE owns 0x1240, and the
+terminal 0x30-byte MIDI gap is linker padding.
 
-## Guarded sweep: per-port initialization groups (October 8)
+Unrelocated library byte-table words at 0x363F5C/0x363FE4 numerically resemble
+msinBf+0x141/+0x40; they are not live buffer references. Likewise the unrelocated
+0x3F3F6C word at 0x361600 in memcard data is not pointer evidence. Removing that phantom
+boundary lets msinCtx own its full zero tail to msinBfGrp. Numeric address guesses,
+unsupported expressions and conflicting relocated bytes must remain rejected.
 
-The refreshed `6be9e34` sweep confirms `Init__6CSoundFiiii` at 12/480
-relocation-masked words, with a 0x77C body in the 0x780 retail extent.
-Fresh `decompile.sh` output and the complete zero-word-preserving instruction
-comparison retain the same +0x518..+0x548 discrepancy. The decompiler flattens
-the composite MIDI state into guessed fields; the existing 0x124-byte
-`MIDI_PORT` layout and retail load/store widths remain the type authority.
+## MIDI initialization constants
 
-The new hypothesis groups each port's existing kind, direction, dependency,
-address and configuration assignments together, instead of grouping by field.
-No assignment value or destination changes. Three port traversals test the
-retail setup order, numeric index order and common-memory grouping. Each is
-also measured with configuration immediately after kind within a port.
-
-| New source grouping | Differing words / 480 | Native bytes |
-| --- | ---: | ---: |
-| Existing field groups | 12 | 0x77C |
-| Port groups in retail setup order | 121 | 0x77C |
-| Same, configuration after kind | 120 | 0x77C |
-| Port groups in numeric index order | 121 | 0x77C |
-| Same, configuration after kind | 119 | 0x77C |
-| Port groups by common memory region | 120 | 0x77C |
-| Same, configuration after kind | 123 | 0x77C |
-
-These forms do not recover the special zero-store schedule and disrupt other
-already matching initialization instructions. All candidates remain private;
-the source, header and compiler profile are unchanged. The retained blocker
-is still integer global-store scheduling, with no admissible floating-argument
-selector or helper-policy improvement.
-
-Receipts are `.private/sweep-midday/sound-init-m2c.cpp`,
-`sound-init-baseline-diff.txt`, `sound-port-probes.log` and the per-candidate
-sources, compile logs and metrics under `sound-port-probes/`. The lane-wide
-baseline is recorded in `baseline-build.log` and `baseline-objects.log` in
-that same private root.
+CSound::Init initializes MIDI_PORT unk_00, unk_CC, unk_118, unk_11C and
+unk_120 without an established later purpose. unk_98 is sent with EZMIDI
+command 0xA0, whose semantics remain unknown. 0x8010 combines
+EZMIDI_RESPONSE and command 0x10; the command vocabulary is not yet named
+across the unit. Driver ports 0-15 differ from sndPORT game ports.
+The ezMidi result is converted from integer to pointer. The shared SDK
+interface supplies no established mode constant for the sys-memory
+allocation's value 1. The retail Init body is 0x77C at 0x18A410.
