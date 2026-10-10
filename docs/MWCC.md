@@ -213,7 +213,10 @@ class initializers must be generated naturally by the compiler.
   `optimization_level 2` / `optimization_level reset` pair around such a
   function therefore does not apply to it, and the reset lands on the
   functions that follow instead; mg_tanime sets `#pragma optimization_level 2`
-  for the whole unit.
+  for the whole unit. Ordinary functions also read the global-optimizer
+  state there: under `global_optimizer off`, a function containing an inline
+  aggregate copy folds an inline helper's constant result (`li a1,0x13`)
+  only if the optimizer is back on at the next declaration (mg_dataset).
 
 ## Data extents and alignment
 
