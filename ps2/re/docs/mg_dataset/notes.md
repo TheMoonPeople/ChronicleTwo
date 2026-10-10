@@ -247,3 +247,32 @@ inside its body, recovers the folded allocation and early saved-pointer copy.
 exchanges; all forty other draft functions remain exact. The declaration
 boundary therefore explains the scoped deferred 11/68 result, but supplies
 no matching frame/source numbering.
+
+## Reference-bound frame result
+
+The `CopyFrameSub` temporaries below the named locals come only from the
+placement new (`@574`) and the `align16_blocks` expansion (`@575`); with a
+literal `Alloc(0x13)` only `@574` remains. A named iterator therefore cannot
+number below the merged frame web unless it is itself an inline-expansion
+temporary, and no mgCFrame child or sibling accessor exists in the headers.
+
+At level 2, `mgCFrame *const &result = new (...) mgCFrame; frame = result;`
+gives retail's saved registers (`frame` `s0`, `src`/`child` `s1`) at **9/68**:
+the single-use reference is copied back into the named `frame`, which keeps
+its own number above `child`. Its temporary stays in memory, so the constructed
+frame passes through `sw v0,108(sp)`/`lw s0,108(sp)` instead of the early
+`move s0,v0`, and the frame grows to 0x70. Levels 3 and 4 (with `schedule off`),
+and `opt_dead_assignments on` at level 2, promote that temporary but leave the
+placement temporary in `v0`, as with `mgCFrame *const frame` (46-47/68).
+`opt_strength_reduction` or `opt_loop_invariants` on gives 12/68.
+Binding the whole `new`-expression as the function's `frame` reference keeps
+the reference's address in `s0` and spills the object pointer (0x114 bytes).
+A reference bound to `src->child` or `child->brother` aliases the field and
+creates no temporary. A single-use reference temporary copied into the
+iterator is folded back into the named `child`, even when promoted, so the
+iterator keeps its number above the frame.
+
+Reading the first child, or each sibling, through an inline accessor numbers
+the iterator below the placement temporary and gives a byte-identical
+level-2 draft. Retail has no out-of-line `mgCFrame` child or sibling getter,
+and the headers define none, so this does not establish a source form.
