@@ -513,16 +513,11 @@ void CMdsListSet::Initialize() {
 }
 
 CMdsInfo *CMdsList::GetList(int index) {
-    if (index >= 0) {
-        if (index < num) {
-            goto found;
-        }
+    if (index < 0 || index >= num) {
+        return NULL;
     }
 
-    return NULL;
-
-found:
-    return list + index;
+    return &list[index];
 }
 
 int CMdsList::GetListID(char *name) {
