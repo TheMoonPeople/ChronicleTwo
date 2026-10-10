@@ -124,16 +124,11 @@ PieceMaterial *CMapPiece::GetMaterial(int index) {
         return NULL;
     }
 
-    if (index >= 0) {
-        if (index < material_num) {
-            goto found;
-        }
+    if (index < 0 || index >= material_num) {
+        return NULL;
     }
 
-    return NULL;
-
-found:
-    return list + index;
+    return &list[index];
 }
 
 void CMapPiece::Step() {
