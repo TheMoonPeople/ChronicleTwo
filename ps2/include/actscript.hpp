@@ -109,6 +109,15 @@ enum ACTION_EXT_NUMBER {
 
 /**
  *
+ * Number of slots in the action external-function table.
+ *
+ */
+enum ACTION_EXT_SIZE {
+    ACTION_EXT_FUNC_MAX = 256, /**< External function numbers that the table can hold. */
+};
+
+/**
+ *
  * The character whose action script is running, and what its external functions work with.
  *
  */
