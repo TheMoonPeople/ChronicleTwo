@@ -154,24 +154,5 @@ policy. Function-wide coordinate policies leave at least four differing
 words; named coordinate locals, assignments and double literal spelling
 also leave those four under the private collision-height policy.
 
-Both the source-only probe and the production mwccgap probe match all 620
-instruction words. After section fixup, the complete promoted unit passes
-`check_objects`: `0x34BC` bytes and 779 resolved relocations. This dated comparison included
-the then-assembly-backed `sgInitBuggy`; the simpler draft checker reported
-its split assembly relocations differently and was not the acceptance
-authority. The current `sgInitBuggy` body is native. Receipts are in
-`.private/floatsel/pbuggy/enum-production/` and
-`.private/floatsel/pbuggy/object-reference-production/`.
-
-That October 8 canonical target rebuild compiled the promoted production object
-and its objdiff base with the then-checked-in profile. All 148 other game
-objects retained their baseline SHA-256 hashes; no header changed. Its PAL
-link had allocated sections byte-identical to that baseline. The checker was
-147/149, failing the inherited nd_meswin and actscript bodies; the verifier
-retained exactly `0x26` differing text bytes, with other sections and memory
-end unchanged. Coverage at that boundary was 6,687 matched / 168 guarded /
-15 assembly-only / 2 fuzzy. These are dated measurements, not the current
-night-run totals. Final receipts:
-`.private/floatsel/final-target-build.log`, `final-check.log`, `final-verify.log`,
-`final-coverage.txt`, `baseline-hashes.json`, `final-hashes.json` and
-`validation-summary.json`. Apply the profile and source commits together.
+CharaControl is native and exact: body `0x9AC` within extent `0x9B0`.
+The whole unit, including the native sgInitBuggy, passes complete-object checking.
