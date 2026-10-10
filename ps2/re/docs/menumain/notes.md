@@ -180,3 +180,11 @@ the null-board branch and declaration order. Opening points are {50,40}, {-260,0
 {20,40}; the selection cursor starts {0,0}. Constructor-bearing definition order is
 MenuMainStack, MenuMainStack_Next, MenuPrimFix, MenuMainTextureReadBuf, MenuSoundBuffer,
 TopicFont; the primitive pointer follows its builder declaration.
+
+## Persistent state ownership
+
+MenuMainKey owns its signed-byte refresh_cnt static at the refresh point,
+so MWCC emits its initialization guard and the twenty-five-frame cadence.
+The saved player position is declared in menumain.hpp and shared with the
+character-menu consumer through that header. Both definitions preserve
+complete-object bytes and resolved relocations.

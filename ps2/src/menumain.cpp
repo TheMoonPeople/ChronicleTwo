@@ -680,20 +680,6 @@ static u8 MenuDoubleDrawCheck;
 
 /**
  *
- * Frames elapsed since the last player-data refresh.
- *
- */
-static signed char refresh_cnt_1523;
-
-/**
- *
- * Whether the player-data refresh counter is initialized.
- *
- */
-static signed char init_1524;
-
-/**
- *
  * Topic message category selected for the ticker.
  *
  */
@@ -1431,15 +1417,12 @@ int MenuMainKey() {
     MenuCommonInfo->StepMenuBGM();
     MenuDrawParamStep();
 
-    if (init_1524 == 0) {
-        refresh_cnt_1523 = 0;
-        init_1524 = 1;
-    }
+    static signed char refresh_cnt = 0;
 
-    refresh_cnt_1523++;
+    refresh_cnt++;
 
-    if (refresh_cnt_1523 >= 25) {
-        refresh_cnt_1523 = 0;
+    if (refresh_cnt >= 25) {
+        refresh_cnt = 0;
         UserDataRefresh();
     }
 

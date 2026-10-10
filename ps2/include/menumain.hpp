@@ -736,3 +736,10 @@ extern mgCMemory MenuSoundBuffer;
 
 /** Arguments the main menu uses when a game loop passes none. */
 extern MENU_INIT_ARG MenuArg;
+
+/**
+ *
+ * Saved position of the active character while the menu preview is open.
+ *
+ */
+extern float menu_old_chara_position[4];
