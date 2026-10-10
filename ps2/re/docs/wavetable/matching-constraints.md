@@ -265,3 +265,43 @@ change, so the unrolled-body residual is purely CSE creation order.
 
 Local `optimization_level` 1 and 2 lose the unroll (323/324 words); level 4 keeps
 the 27-word residual, so the second IR round does not renumber these constants.
+
+## Coefficient reference bindings
+
+The 27-word flat diagnostic still uses immediate coefficient materialisation.
+Its captured floating-point graph has three degree-106 coefficient nodes:
+0.0196 is numbered 59 and coloured `$f0`, 1.9216 is numbered 58 and coloured
+`$f1`, and 0.0015 is numbered 55 and coloured `$f2`. The simplify/select
+simulator reproduces all floating-point colours in every binding probe below.
+
+Binding 1.9216 and 0.0196 to function-scope `const float &` locals, in either
+declaration order, does not retain those immediate values as higher-numbered
+scalar locals. MWCC pools the reference targets and emits their addresses and
+`lwc1` loads in the wave loop. The eight-cell unroll survives, but the function
+has a `0x540` body and a `0x80` stack frame instead of retail's `0x510` body and
+`0x60` frame. Only the unreferenced damping coefficient remains a high-degree
+immediate node (number 55, degree 120, `$f0`). Reversing the declarations does
+not repair the graph or schedule.
+
+| Coefficient binding | Body bytes |
+| --- | ---: |
+| One literal reference, function or row scope (each of the three coefficients) | `0x51C` |
+| One literal reference, cell scope (each coefficient; scalar wave loop) | `0x1F8` |
+| Both literals through function-scope references | `0x540` |
+| Both literals through static references | `0x560` |
+| References to separately named const values: local, local-static, file-static or class-static | `0x548` |
+| References to separately named non-const local values | `0x558` |
+
+The two-coefficient cases give the same extent in both neighbor/self declaration
+orders. Named const targets likewise retain coefficient memory loads. Naming
+ordinary function-scope `const float` or `static const float` values without
+references still propagates them into literals: both declaration orders keep
+all floating-point colours and the original **27/324** residual.
+
+Canonical `draft.sh` confirms the `0x540` direct-reference and `0x548`
+local-static-target failures, and the scalar cell-reference failure. All four
+other native functions remain exact in those checks. Restoring the source
+recovers the original 27-word draft. No reference, constant, header, layout or
+compiler-policy change is retained; the bounded-indexing and seam constraints
+remain unresolved. A reference binding therefore supplies no evidence for
+renumbering the existing immediate-coefficient graph alone.
