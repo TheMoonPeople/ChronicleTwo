@@ -158,3 +158,18 @@ The following unscoped binary32 selectors set `evaluate_first: true`:
 | `SphidaScoreViewDraw__Fv` | `0x43d70000` | 430.0f |
 
 They preserve the debug box, movement constants, and score-label arguments. The complete unit passes canonical verification: `0x49AC` allocated bytes and 1,190 relocations, including `SphidaCursorY`. The unused long-division primer is replaced by GPR helper mask `0x30`, FPR mask `0`, preserving allocated bytes and relocation identities.
+
+
+## Native data and matching constraints
+
+All data are native. The world-map command table has five SPI_TAG_PARAM rows, including
+its terminator. `KeyStep` owns `geo_table[11] = {"", "", "g01", "g02", "g03", "g04", "",
+"g05", "", "", ""}`. Code consumers identify the 44-byte pointer table and its four-byte
+alignment tail; real R_MIPS_32 fields identify the pooled empty string and g01-g05
+literals. The names, put_pos and clear_names initializers own four, eight and eight
+bytes.
+
+Retail SphidaMenuTexbk owns 0x20 bytes (`int[8]`), but SphidaMenuInit copies sixteen
+integers and writes -1 at index 15. That address is table base+0x3C in adjacent menuchr
+storage after MenuCharaBuild2. The source preserves this retail overflow without
+extending the table or claiming the adjacent storage.
