@@ -670,10 +670,7 @@ int vblankHandler(int irq) {
         if (tag == NULL) {
             frd++;
 
-            asm {
-                sync
-                ei
-            }
+            ExitHandler();
 
             return 0;
         } else {
@@ -689,10 +686,7 @@ int vblankHandler(int irq) {
             Cb ^= 1;
         }
     }
-    asm {
-        sync
-        ei
-    }
+    ExitHandler();
     return 0;
 }
 
@@ -704,10 +698,7 @@ int handler_endimage(int irq) {
         isFrameEnd = 0;
     }
 
-    asm {
-        sync
-        ei
-    }
+    ExitHandler();
 
     return 0;
 }
