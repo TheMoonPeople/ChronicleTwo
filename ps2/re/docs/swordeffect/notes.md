@@ -1,9 +1,11 @@
 # swordeffect: reverse-engineering notes
 
 Unit owns `CSWordAfterEffect` (weapon swing trail) and the global `CreatSmoothPassSW`.
-No first-game counterpart (nothing similar in `/home/adubbz/development/chronicle`). The closest
+No first-game counterpart was found. The closest
 relative is `CSWordAfterImage` in `ps2/include/dng_effect.hpp` (event sword trail, same
 ring-plus-smoothing design, similar field order 0x00-0x58); field naming follows it.
+`StartEffect` emits its `start !!\n` diagnostic as an inline literal; the unit
+has no assembly data markers.
 
 ## CSWordAfterEffect (size 0xA0, no vtable, no constructor symbol)
 
