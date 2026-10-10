@@ -16,18 +16,15 @@ row each; `CObjectFrame`/`ColPrimMan` come from their owning headers (`dng_main.
 
 - `CreateEffSpt(int, int, int)` (0x2E5D60, 0x500) finds the loaded base, optionally reserves a
   free column of the owner's slot row, opens a work-memory stack block of `base->work_size`
-  quadwords, constructs the whole `_EFF_SCRIPT` there with
-  `new (work_memory->Alloc(sizeof(_EFF_SCRIPT) / 16 + 2)) _EFF_SCRIPT` (0x17 quadwords; the
-  constructor builds the `CRunScript` member at +0x50), copies the base character into a new
-  `CCharacter2` (`sizeof(CCharacter2) / 16 + 2`, 0x68 quadwords) when the base has one, sets up
-  the script and inserts the effect into the list ordered by `texb`. The not-loaded-base
-  diagnostic takes `base_no` as its variadic argument. `_EFF_SCRIPT` declares an empty inline
-  constructor, a named eligible root that the implicit constructor lacks (as `CMenuQuestView`
-  does); with it, two `placement_new` rows (`__ct__11_EFF_SCRIPTFv` and
-  `__ct__11CCharacter2Fv`, `after_constructor_inline`, one site each) give retail's
-  `beqz v0` / delay-slot copies at +0x194 and +0x1F8. Member placement overloads, split
-  allocation, an explicit `script->run.CRunScript()` call (constructs a temporary on the stack)
-  and dummy wrappers are not solutions.
+  quadwords, constructs the whole `_EFF_SCRIPT` there (its implicit constructor builds the
+  `CRunScript` member at +0x50), copies the base character into a new `CCharacter2` when the
+  base has one, sets up the script and inserts the effect into the list ordered by `texb`. The
+  not-loaded-base diagnostic takes `base_no` as its variadic argument. Both allocation sizes are
+  written `align16_blocks(sizeof(T)) + 2` (0x17 and 0x68 quadwords): the early-return helper is
+  statement-inlined, which gives retail's `beqz v0` / delay-slot copies at +0x194 and +0x1F8
+  without `placement_new` rows; `sizeof(T) / 16 + 2` copies first and tests the saved register.
+  Member placement overloads, split allocation, an explicit `script->run.CRunScript()` call
+  (constructs a temporary on the stack) and dummy wrappers are not solutions.
 - `SetCharacter`: 24/168 words. In the slot path the mutable table entry and the new
   character exchange `s1` and `s2` (20 words), plus the two allocation-result branch pairs
   (+0xD4/+0xD8, +0x1AC/+0x1B0). Typed slot access `slot[group][slot]` keeps the address but

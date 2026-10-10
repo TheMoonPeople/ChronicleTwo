@@ -753,7 +753,7 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
         return NULL;
     }
 
-    script = new (work_memory->Alloc(sizeof(_EFF_SCRIPT) / 16 + 2)) _EFF_SCRIPT;
+    script = new (work_memory->Alloc(align16_blocks(sizeof(_EFF_SCRIPT)) + 2)) _EFF_SCRIPT;
 
     script->work = token;
     script->texb = base->texb;
@@ -766,7 +766,7 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
     if (base->chara != NULL) {
         CCharacter2 *chara;
 
-        chara = new (work_memory->Alloc(sizeof(CCharacter2) / 16 + 2)) CCharacter2;
+        chara = new (work_memory->Alloc(align16_blocks(sizeof(CCharacter2)) + 2)) CCharacter2;
 
         script->chara = chara;
         script->chara->Initialize();

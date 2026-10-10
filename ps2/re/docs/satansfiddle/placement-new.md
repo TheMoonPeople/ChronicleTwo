@@ -174,8 +174,6 @@ row whose before-inline timing has not been tested.
 | editmode | `LoadEditCursor__FP9mgCMemoryi` | `CCharacter2` | 3 | after/either |
 | effscript | `AssignCharacter__16CEffectScriptManFP11_EFF_SCRIPTi` | `CCharacter2` | 1 | after/either |
 | effscript | `BuildBase__16CEffectScriptManFiP1iP1iP9mgCMemoryi` | `CCharacter2` | 1 | after/either |
-| effscript | `CreateEffSpt__16CEffectScriptManFiii` | `_EFF_SCRIPT` | 1 | after |
-| effscript | `CreateEffSpt__16CEffectScriptManFiii` | `CCharacter2` | 1 | after |
 | event_func | `_COPY_CHARA__FP12RS_STACKDATAi` | `CCharacter2` | 1 | after/either |
 | fishing | `StepDataLoading__FPv` | `CCharacter2` | 7 | after/either |
 | fishing | `sgRestartFishing__FP11SubGameInfo` | `CCharacter2` | 1 | after/either |
@@ -228,15 +226,11 @@ The exact direct constructor identities for these allocated types are:
 | `mgC3DSprite` | `__ct__11mgC3DSpriteFv` |
 | `mgCVisualFixMDT` | `__ct__15mgCVisualFixMDTFv` |
 | `mgCVisualMotionMDT` | `__ct__18mgCVisualMotionMDTFv` |
-| `_EFF_SCRIPT` | `__ct__11_EFF_SCRIPTFv` |
 
 `CMenuQuestView` has a genuine empty inline constructor that emits only base
 construction and the derived vtable assignment. It supplies a named eligible
 root that the implicit constructor lacks; its current row and exact unit
 verification are documented in [menushop notes](../menushop/notes.md#quest-view-placement-construction).
-`_EFF_SCRIPT` likewise has a genuine empty inline constructor whose only work
-is constructing its `CRunScript` member; `CreateEffSpt` has one row for it and
-one for its `CCharacter2` allocation (see [effscript notes](../effscript/notes.md)).
 The timing studies below describe the original 36-row calibration set.
 
 ## Timing study
