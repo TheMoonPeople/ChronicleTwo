@@ -710,7 +710,7 @@ public:
      * Creates the menu system state cleared.
      *
      */
-    CMenuKeyFunc() {
+    CMenuKeyFunc() : rect(0, 0, 0, 0) {
         have_swap.Set(-1, 0, -1, 0);
         Initialize();
     }

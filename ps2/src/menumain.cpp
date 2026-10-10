@@ -908,13 +908,41 @@ void DisablePadReset(int disable) {
         }
     }
 }
-#ifdef NONMATCHING
 void         MakeMenuTopic();
 int          MenuInternInit(mgCMemory *, int, int);
-extern float light_1062[4][4];
-extern float lightcolor_1063[4][4];
+
+/**
+ *
+ * Rounds a byte count up to a number of 16-byte allocation blocks.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
 
 int MenuMainInit(MENU_INIT_ARG *arg) {
+    /**
+     * Directions of the menu lighting sources.
+     */
+    static float light[4][4] = {
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {0.5f, 0.8f, 0.0f, 0.0f},
+        {0.75f, 0.6f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+    };
+    /**
+     * Colors of the menu lighting sources.
+     */
+    static float lightcolor[4][4] = {
+        {90.0f, 90.0f, 90.0f, 64.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f},
+    };
     MENU_INIT_ARG *init_arg = arg;
     if (arg == NULL) {
         init_arg = &MenuArg;
@@ -928,7 +956,7 @@ int MenuMainInit(MENU_INIT_ARG *arg) {
     menu_debug_flag = 0;
     MenuMainStack.stSetBuffer(init_arg->stack->stGetTop(), init_arg->stack->stGetSize());
     MenuMainStack_Next.stReset();
-    MENU_DRAW_ENV *draw_env = new (MenuMainStack.Alloc(15)) MENU_DRAW_ENV;
+    MENU_DRAW_ENV *draw_env = new (MenuMainStack.Alloc(align16_blocks(sizeof(MENU_DRAW_ENV)) + 2)) MENU_DRAW_ENV;
     MenuDrawEnv = draw_env;
     draw_env->camera.Resume();
     MenuCamInit(1.0f);
@@ -938,10 +966,10 @@ int MenuMainInit(MENU_INIT_ARG *arg) {
     MenuDrawEnv->ambient[1] = 80.0f;
     MenuDrawEnv->ambient[2] = 80.0f;
     MenuDrawEnv->ambient[3] = 128.0f;
-    mgSetLight(light_1062, lightcolor_1063);
-    MenuPosData = new (MenuMainStack.Alloc(0x5E)) CMenuPosDataManage;
+    mgSetLight(light, lightcolor);
+    MenuPosData = new (MenuMainStack.Alloc(align16_blocks(sizeof(CMenuPosDataManage)) + 2)) CMenuPosDataManage;
     MenuPosData->InitializeCMenuPosDataManage();
-    CMenuKeyFunc *common = new (MenuMainStack.Alloc(0x18)) CMenuKeyFunc;
+    CMenuKeyFunc *common = new (MenuMainStack.Alloc(align16_blocks(sizeof(CMenuKeyFunc)) + 2)) CMenuKeyFunc;
     MenuCommonInfo = common;
     memset(MenuCommonInfo, 0, sizeof(CMenuKeyFunc));
     MenuCommonInfo->next_mode = -1;
@@ -972,13 +1000,16 @@ int MenuMainInit(MENU_INIT_ARG *arg) {
     MenuSaveDataDungeonPtr = NULL;
     MenuFishAquarium = NULL;
     if (MenuActiveSaveData != NULL) {
-        user = MenuActiveSaveData->GetUserDataManager();
+        user = &MenuActiveSaveData->user_data;
         MenuUserDataManPtr = user;
         MenuConfigPtr = MenuActiveSaveData->GetConfig();
-        MenuSystemDataPtr = &MenuActiveSaveData->menu_system_data;
-        MenuSaveDataDungeonPtr = &MenuActiveSaveData->save_dungeon;
+        CMenuSystemData *const &system = &MenuActiveSaveData->menu_system_data;
+        MenuSystemDataPtr = system;
+        CSaveDataDungeon *const &dungeon = &MenuActiveSaveData->save_dungeon;
+        MenuSaveDataDungeonPtr = dungeon;
+        CFishAquarium *const &aquarium = &user->aquarium;
         int active_chara_no = user->active_chr_no;
-        MenuFishAquarium = &user->aquarium;
+        MenuFishAquarium = aquarium;
         MenuArg.active_chara_no = active_chara_no;
     }
     MenuCommonInfo->user_data = MenuUserDataManPtr;
@@ -1034,7 +1065,7 @@ int MenuMainInit(MENU_INIT_ARG *arg) {
     short *menu_messages = GetMenuMainMessageBuffer();
     for (int i = 0; i < 9; i++) {
         MenuMainStack.Align64();
-        MenuDCMsg[i] = new (MenuMainStack.Alloc(0x2A7)) CDC2Mes;
+        MenuDCMsg[i] = new (MenuMainStack.Alloc(align16_blocks(sizeof(CDC2Mes)) + 2)) CDC2Mes;
         CDC2Mes *message = MenuDCMsg[i];
         message->Init();
         message->texture_block = MenuArg.mes_tex_block;
@@ -1222,9 +1253,6 @@ int MenuMainInit(MENU_INIT_ARG *arg) {
     MenuSePlay(sound);
     return MenuCommonInfo->open_type;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menumain", MenuMainInit__FP13MENU_INIT_ARG);
-#endif
 int MenuMainExit() {
     CCharacter2 *chara;
     int          i;
@@ -2583,10 +2611,7 @@ void BookshelfMessageMake(ClsMes *message, int base_window, int item_no, int mon
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", light_1062__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", lightcolor_1063__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_basedgRef__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_basedgCamPos__DATA);
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1440__2__DATA);

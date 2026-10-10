@@ -9,7 +9,7 @@ the scrolling "topic" ticker, and closes (`MenuMainExit`). No first-game counter
 Functions: `DisablePadReset`, `MenuWorldTrans`, `MenuPolygonSetEnv`, `MenuPolygonEnvReset`,
 `CheckEventDay`, `MakeMenuTopic`, `DrawMenuTopic`, `MenuInternInit`, `MenuInternSelectKey`,
 `MenuInternSelectDraw`, `MenuDebugModeDraw`.
-Data: `light_1062`, `lightcolor_1063` (function-local float[4][4] in MenuMainInit),
+Data: `light`, `lightcolor` (function-local static float[4][4] in MenuMainInit, retail `light_1062`/`lightcolor_1063`),
 `menu_keyfunctbl` (int(*[30])()), `menu_drawfunctbl` (void(*[30])()), `menu_basedgRef`,
 `menu_basedgCamPos` (sceVu0FVECTOR; (0,0,-100,1) ref), `CommonMenuModeID` (int[2][8], -1
 terminated: town {2,4,5,6,7,8}, dungeon {2,4,5,11,7,8}), `menu_maintopic_colortbl[_shadow]`
@@ -162,8 +162,11 @@ The unscoped binary32 selector for `DrawMenuTopic__Fv`, `36.0f` (`0x42100000`), 
 
 ## Native data and matching constraints
 
-MenuMainInit remains assembly-backed, with light_1062, lightcolor_1063 and at_1440__2
-supplying its lighting and branch tables. menu_basedgRef and menu_basedgCamPos also
+MenuMainInit is native. Its function-local `light` and `lightcolor` tables emit retail's
+`light_1062`/`lightcolor_1063`, and its switch emits the `at_1440__2` jump table. The
+save-data block's register assignment is described in
+[user-data-colouring-20261010.md](user-data-colouring-20261010.md).
+menu_basedgRef and menu_basedgCamPos
 retain markers: natural SDK vectors plus memcpy grow MenuCamInit from 0x44 to 0x6C and
 add call relocations. All BSS are native.
 
