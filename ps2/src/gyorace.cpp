@@ -1182,20 +1182,6 @@ int sgEffectDrawGyoRace(SubGameInfo *info) {
     return 0;
 }
 
-/**
- *
- * Draws one sprite of the race window atlas from its screen and texel rectangles.
- *
- */
-#define DrawRaceSprite(tex, x, y, width, height, tex_x, tex_y, tex_width, tex_height, alpha) \
-    do {                                                                                     \
-        mgRect<int> screen;                                                                  \
-        mgRect<int> texture;                                                                 \
-        screen.Set(x, y, width, height);                                                     \
-        texture.Set(tex_x, tex_y, tex_width, tex_height);                                    \
-        PrimQuad(tex, screen, texture, 0x80, 0x80, 0x80, alpha);                             \
-    } while (0)
-
 int sgSysDrawGyoRace(SubGameInfo *info) {
     static int lap_inf[2][5];
     static int lap_inf2[5];
@@ -1230,7 +1216,13 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
     }
     textures->ReloadTexture(WindowTexb, (sceVif1Packet *) NULL);
     wind_tex = textures->GetTexture("grt1", -1);
-    DrawRaceSprite(wind_tex, 0x15, 0x13, 0x1D6, 0x54, 0, 0, 0x1D6, 0x54, 0x80);
+    {
+        mgRect<int> screen;
+        mgRect<int> texture;
+        screen.Set(0x15, 0x13, 0x1D6, 0x54);
+        texture.Set(0, 0, 0x1D6, 0x54);
+        PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+    }
     grRACE_PROGRESS progress;
     i = 0;
     do {
@@ -1267,21 +1259,87 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
         j = 0;
         k = 0;
         do {
-            DrawRaceSprite(wind_tex, k + 0x1A2, j + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
-            DrawRaceSprite(wind_tex, k + 0x1B0, j + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
-            DrawRaceSprite(wind_tex, k + 0x1BA, j + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
-            DrawRaceSprite(wind_tex, k + 0x1C9, j + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
-            DrawRaceSprite(wind_tex, k + 0x1D3, j + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+            {
+                mgRect<int> screen;
+                mgRect<int> texture;
+                screen.Set(k + 0x1A2, j + 0x41, 0xC, 0xC);
+                texture.Set(0x138, 0x62, 0xC, 0xC);
+                PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+            }
+            {
+                mgRect<int> screen;
+                mgRect<int> texture;
+                screen.Set(k + 0x1B0, j + 0x41, 0xC, 0xC);
+                texture.Set(0x138, 0x62, 0xC, 0xC);
+                PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+            }
+            {
+                mgRect<int> screen;
+                mgRect<int> texture;
+                screen.Set(k + 0x1BA, j + 0x41, 0xC, 0xC);
+                texture.Set(0x138, 0x62, 0xC, 0xC);
+                PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+            }
+            {
+                mgRect<int> screen;
+                mgRect<int> texture;
+                screen.Set(k + 0x1C9, j + 0x41, 0xC, 0xC);
+                texture.Set(0x138, 0x62, 0xC, 0xC);
+                PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+            }
+            {
+                mgRect<int> screen;
+                mgRect<int> texture;
+                screen.Set(k + 0x1D3, j + 0x41, 0xC, 0xC);
+                texture.Set(0x138, 0x62, 0xC, 0xC);
+                PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+            }
             row += 1;
             j += 0x10;
             k += 2;
         } while (row < 2);
-        DrawRaceSprite(wind_tex, 0x1CB, 0x1B, 0x18, 0x20, 0xA8, 0x54, 0x18, 0x20, 0x80);
-        DrawRaceSprite(wind_tex, 0x176, 0x2B, 0x10, 0xE, 0x160, 0x54, 0x10, 0xE, 0x80);
-        DrawRaceSprite(wind_tex, 0x189, 0x2B, 0x10, 0xE, 0x160, 0x54, 0x10, 0xE, 0x80);
-        DrawRaceSprite(wind_tex, 0x197, 0x2B, 0x10, 0xE, 0x160, 0x54, 0x10, 0xE, 0x80);
-        DrawRaceSprite(wind_tex, 0x1AB, 0x2B, 0x10, 0xE, 0x160, 0x54, 0x10, 0xE, 0x80);
-        DrawRaceSprite(wind_tex, 0x1B9, 0x2B, 0x10, 0xE, 0x160, 0x54, 0x10, 0xE, 0x80);
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x1CB, 0x1B, 0x18, 0x20);
+            texture.Set(0xA8, 0x54, 0x18, 0x20);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x176, 0x2B, 0x10, 0xE);
+            texture.Set(0x160, 0x54, 0x10, 0xE);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x189, 0x2B, 0x10, 0xE);
+            texture.Set(0x160, 0x54, 0x10, 0xE);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x197, 0x2B, 0x10, 0xE);
+            texture.Set(0x160, 0x54, 0x10, 0xE);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x1AB, 0x2B, 0x10, 0xE);
+            texture.Set(0x160, 0x54, 0x10, 0xE);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x1B9, 0x2B, 0x10, 0xE);
+            texture.Set(0x160, 0x54, 0x10, 0xE);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
     } else {
         lap_frames = fish_inf[hero_no].lap_time[lap = fish_inf[hero_no].lap];
         i = (int) (lap_frames / 3600.0f);
@@ -1299,17 +1357,77 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
         int lap_x = 0;
         do {
             if ((int) fish_inf[hero_no].lap < lap_no) {
-                DrawRaceSprite(wind_tex, lap_x + 0x1A2, lap_y + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
-                DrawRaceSprite(wind_tex, lap_x + 0x1B0, lap_y + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
-                DrawRaceSprite(wind_tex, lap_x + 0x1BA, lap_y + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
-                DrawRaceSprite(wind_tex, lap_x + 0x1C9, lap_y + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
-                DrawRaceSprite(wind_tex, lap_x + 0x1D3, lap_y + 0x41, 0xC, 0xC, 0x138, 0x62, 0xC, 0xC, 0x80);
+                {
+                    mgRect<int> screen;
+                    mgRect<int> texture;
+                    screen.Set(lap_x + 0x1A2, lap_y + 0x41, 0xC, 0xC);
+                    texture.Set(0x138, 0x62, 0xC, 0xC);
+                    PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+                }
+                {
+                    mgRect<int> screen;
+                    mgRect<int> texture;
+                    screen.Set(lap_x + 0x1B0, lap_y + 0x41, 0xC, 0xC);
+                    texture.Set(0x138, 0x62, 0xC, 0xC);
+                    PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+                }
+                {
+                    mgRect<int> screen;
+                    mgRect<int> texture;
+                    screen.Set(lap_x + 0x1BA, lap_y + 0x41, 0xC, 0xC);
+                    texture.Set(0x138, 0x62, 0xC, 0xC);
+                    PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+                }
+                {
+                    mgRect<int> screen;
+                    mgRect<int> texture;
+                    screen.Set(lap_x + 0x1C9, lap_y + 0x41, 0xC, 0xC);
+                    texture.Set(0x138, 0x62, 0xC, 0xC);
+                    PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+                }
+                {
+                    mgRect<int> screen;
+                    mgRect<int> texture;
+                    screen.Set(lap_x + 0x1D3, lap_y + 0x41, 0xC, 0xC);
+                    texture.Set(0x138, 0x62, 0xC, 0xC);
+                    PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+                }
             } else {
-                DrawRaceSprite(wind_tex, lap_x + 0x1A2, lap_y + 0x41, 0xC, 0xC, (lap_inf[lap_no][0] * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
-                DrawRaceSprite(wind_tex, lap_x + 0x1B0, lap_y + 0x41, 0xC, 0xC, (lap_inf[lap_no][1] * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
-                DrawRaceSprite(wind_tex, lap_x + 0x1BA, lap_y + 0x41, 0xC, 0xC, (lap_inf[lap_no][2] * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
-                DrawRaceSprite(wind_tex, lap_x + 0x1C9, lap_y + 0x41, 0xC, 0xC, (lap_inf[lap_no][3] * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
-                DrawRaceSprite(wind_tex, lap_x + 0x1D3, lap_y + 0x41, 0xC, 0xC, (lap_inf[lap_no][4] * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
+                {
+                    mgRect<int> screen;
+                    mgRect<int> texture;
+                    screen.Set(lap_x + 0x1A2, lap_y + 0x41, 0xC, 0xC);
+                    texture.Set((lap_inf[lap_no][0] * 12) + 0xC0, 0x62, 0xC, 0xC);
+                    PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+                }
+                {
+                    mgRect<int> screen;
+                    mgRect<int> texture;
+                    screen.Set(lap_x + 0x1B0, lap_y + 0x41, 0xC, 0xC);
+                    texture.Set((lap_inf[lap_no][1] * 12) + 0xC0, 0x62, 0xC, 0xC);
+                    PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+                }
+                {
+                    mgRect<int> screen;
+                    mgRect<int> texture;
+                    screen.Set(lap_x + 0x1BA, lap_y + 0x41, 0xC, 0xC);
+                    texture.Set((lap_inf[lap_no][2] * 12) + 0xC0, 0x62, 0xC, 0xC);
+                    PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+                }
+                {
+                    mgRect<int> screen;
+                    mgRect<int> texture;
+                    screen.Set(lap_x + 0x1C9, lap_y + 0x41, 0xC, 0xC);
+                    texture.Set((lap_inf[lap_no][3] * 12) + 0xC0, 0x62, 0xC, 0xC);
+                    PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+                }
+                {
+                    mgRect<int> screen;
+                    mgRect<int> texture;
+                    screen.Set(lap_x + 0x1D3, lap_y + 0x41, 0xC, 0xC);
+                    texture.Set((lap_inf[lap_no][4] * 12) + 0xC0, 0x62, 0xC, 0xC);
+                    PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+                }
             }
             lap_y += 0x10;
             lap_x += 2;
@@ -1327,22 +1445,82 @@ int sgSysDrawGyoRace(SubGameInfo *info) {
         total_centi_tens = (int) (0.1f * (float) total_centi);
         lap_inf2[3] = total_centi_tens;
         lap_inf2[4] = total_centi - (total_centi_tens * 10);
-        DrawRaceSprite(wind_tex, 0x176, 0x2B, 0x10, 0xE, (lap_inf2[0] * 16) + 0xC0, 0x54, 0x10, 0xE, 0x80);
-        DrawRaceSprite(wind_tex, 0x189, 0x2B, 0x10, 0xE, (lap_inf2[1] * 16) + 0xC0, 0x54, 0x10, 0xE, 0x80);
-        DrawRaceSprite(wind_tex, 0x197, 0x2B, 0x10, 0xE, (lap_inf2[2] * 16) + 0xC0, 0x54, 0x10, 0xE, 0x80);
-        DrawRaceSprite(wind_tex, 0x1AB, 0x2B, 0x10, 0xE, (lap_inf2[3] * 16) + 0xC0, 0x54, 0x10, 0xE, 0x80);
-        DrawRaceSprite(wind_tex, 0x1B9, 0x2B, 0x10, 0xE, (lap_inf2[4] * 16) + 0xC0, 0x54, 0x10, 0xE, 0x80);
-        DrawRaceSprite(wind_tex, 0x1CB, 0x1B, 0x18, 0x20, fish_inf[hero_no].rank * 0x18, 0x54, 0x18, 0x20, 0x80);
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x176, 0x2B, 0x10, 0xE);
+            texture.Set((lap_inf2[0] * 16) + 0xC0, 0x54, 0x10, 0xE);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x189, 0x2B, 0x10, 0xE);
+            texture.Set((lap_inf2[1] * 16) + 0xC0, 0x54, 0x10, 0xE);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x197, 0x2B, 0x10, 0xE);
+            texture.Set((lap_inf2[2] * 16) + 0xC0, 0x54, 0x10, 0xE);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x1AB, 0x2B, 0x10, 0xE);
+            texture.Set((lap_inf2[3] * 16) + 0xC0, 0x54, 0x10, 0xE);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x1B9, 0x2B, 0x10, 0xE);
+            texture.Set((lap_inf2[4] * 16) + 0xC0, 0x54, 0x10, 0xE);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x1CB, 0x1B, 0x18, 0x20);
+            texture.Set(fish_inf[hero_no].rank * 0x18, 0x54, 0x18, 0x20);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
     }
     grRACE_PROGRESS hero_progress;
     scene->GetCharacter(fish_inf[hero_no].chara_no);
     grGetFishProgress(&RaceInfo, hero_no, race_cnt, &hero_progress);
     if (hero_progress.state == GR_RACE_STATE_GOAL) {
-        DrawRaceSprite(wind_tex, 0x178, 0x1C, 0xC, 0xC, 0xD8, 0x62, 0xC, 0xC, 0x80);
-        DrawRaceSprite(wind_tex, 0x187, 0x1C, 0xC, 0xC, 0xD8, 0x62, 0xC, 0xC, 0x80);
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x178, 0x1C, 0xC, 0xC);
+            texture.Set(0xD8, 0x62, 0xC, 0xC);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x187, 0x1C, 0xC, 0xC);
+            texture.Set(0xD8, 0x62, 0xC, 0xC);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
     } else {
-        DrawRaceSprite(wind_tex, 0x178, 0x1C, 0xC, 0xC, ((int) fish_inf[hero_no].lap * 12) + 0xC0, 0x62, 0xC, 0xC, 0x80);
-        DrawRaceSprite(wind_tex, 0x187, 0x1C, 0xC, 0xC, 0xD8, 0x62, 0xC, 0xC, 0x80);
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x178, 0x1C, 0xC, 0xC);
+            texture.Set(((int) fish_inf[hero_no].lap * 12) + 0xC0, 0x62, 0xC, 0xC);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
+        {
+            mgRect<int> screen;
+            mgRect<int> texture;
+            screen.Set(0x187, 0x1C, 0xC, 0xC);
+            texture.Set(0xD8, 0x62, 0xC, 0xC);
+            PrimQuad(wind_tex, screen, texture, 0x80, 0x80, 0x80, 0x80);
+        }
     }
     return 0;
 }
