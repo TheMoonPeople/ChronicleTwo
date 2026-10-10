@@ -168,9 +168,10 @@ fields in `menuchr.hpp`. The exact native match is recorded in
 - Its native `Draw` function draws the scrolling background, layered panels, attribute icons,
   monster model, three numeric stats and the monster's names and item drops. The model is clipped
   to the central panel after load phase 4 and 17 frames of display. The list counter at offset
-  0x7E8 supplies the final page indicator; m2c mislabels it as `abs`. The `ic_5580` table has
-  eight coordinate pairs: seven explicit icon positions and a final zero pair
-  used for the eighth attribute bit. The exact match and declared table extent
+  0x7E8 supplies the final page indicator; m2c mislabels it as `abs`. The local `ic` table has
+  seven coordinate pairs; its declared retail payload is `0x1C` bytes.
+  The following four zero bytes are section-alignment padding.
+  The exact match and declared table extent
   are documented in [midday-book.md](midday-book.md).
 - Size: `__nw__FUiP1(0x980, ...)` in `MonsterBookInit`; instance in `MonsterBookPtr` /
   `MenuMosBookPtr`.
@@ -474,3 +475,25 @@ and ITEM_DATA_UNK_22. Transform/status/class-change sounds 0x10, 2 and 0x1E
 retain numeric IDs because their wider meanings are unestablished.
 MENU_LOAD_INFO mode values and GetPartyCharaMessage type values also remain
 unnamed across their shared consumers.
+
+
+## Function-local data ownership
+
+Thirty-two single-consumer statics use their bare retail names inside their
+owning functions. `MenuMonsterBoxInit` has two separate `tbl` objects: slot
+request flags inside its allocation loop and localized help at function
+scope. The background request table `tbl_2483` and its two associated
+literals remain file-local because `MenuCharaChangeInit` is guarded.
+Shared `menu_debug_select__2` also stays file-local.
+
+The longest-page calculations in `CMenuChrCngMenu::KeyChangeMain` use direct
+scans with their established declaration order. The five menu memory
+objects are declared in `menuchr.hpp`; saved character position is declared
+by its owning `menumain.hpp`. Header size tags use the exact declared retail
+function sizes. Monster-book prompt state uses the shared `MENU_ASK_MODE`
+values.
+
+The current menuchr object compares 0x11C9B allocated bytes and 4,010 resolved
+relocations without findings. The monster-book icon extent and the
+unreachable eighth-bit scan arm are described in
+[the drawing analysis](midday-book.md).
