@@ -13,9 +13,9 @@ Members emitted here but owned elsewhere: `CScene::*` (8, owner `scenesnd.hpp`) 
 `CMap::CMap()` (map.hpp, already declared there). The CEditMap constructor is inlined into
 `CScene::LoadMapFromMemory(int,int,SCN_LOADMAP_INFO2*)`.
 
-`mgCObjectStack<CList<EMAP_MESSAGE>>::Initialize` is already an active C++
-specialization and matches retail. `CMap::CMap` is also active native C++ on
-the October 8 midday baseline `c79e57c` and matches retail. The current
+`mgCObjectStack<CList<EMAP_MESSAGE>>::Initialize` is an active C++
+specialization and matches retail. `CMap::CMap` is also active native C++ and
+matches retail. The current
 `map_info` member model in `map.hpp` supersedes the older base-class
 interpretation and its nine-word constructor miss; that is not a remaining
 placement-new target.
