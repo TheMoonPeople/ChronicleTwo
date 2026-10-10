@@ -287,16 +287,11 @@ CMdsList *CMdsListSet::SearchMdsList(char *name) {
 }
 
 CMdsList *CMdsListSet::GetMdsList(int index) {
-    if (index >= 0) {
-        if (index <= mds_list_num) {
-            goto found;
-        }
+    if (index < 0 || index > mds_list_num) {
+        return NULL;
     }
 
-    return NULL;
-
-found:
-    return mds_list + index;
+    return &mds_list[index];
 }
 
 CMdsInfo *CMdsListSet::SearchMDS(char *name) {
