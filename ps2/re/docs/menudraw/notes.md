@@ -1,9 +1,8 @@
 # menudraw: reverse-engineering notes
 
-`CommonBoardDraw` matches. Its row loop colours `left`, `top`, the row-UV
-base and the inline bottom-edge subexpression in retail's order only
-without no-op `(int)` casts and without a named bottom-edge local; see
-[the night assessment](night-20261008.md#common-board-drawing-match-round-1).
+`CommonBoardDraw` matches. Its row loop colours `left`, `top`, the row-UV base and the
+inline bottom-edge subexpression in retail's order only without no-op `(int)` casts and
+without a named bottom-edge local; see [the night assessment](matching-constraints.md).
 
 `CRepairManager::GeneratePoly` is accepted native C++ with one scoped
 `CActionChara` placement conversion after constructor inlining. This timing is
@@ -253,3 +252,49 @@ with a direct label spelling, so that trial retained assembly. An earlier
 declared before `progress`, but the final periodic y-coordinate exchange
 allocated different integer registers. These rejected forms predate the
 active native implementations of both functions.
+
+
+## Native data and matching constraints
+
+MenuCursorReverseFlag is the sole retained data marker: retail declares one byte while
+the public header exposes extern int. Its four-byte reservation contains three alignment
+bytes. Other state and initialized data are native, including GeneratePoly's inline
+literals.
+
+Exported extents are nine forms, 150 item pointers, three gift-box position pairs, five
+creation-board floats and 156 display-limit bytes. Counters and flags retain their
+declared widths: use_trans_rect and boiled-fish counters are two bytes;
+MenuMainFrame_MoveRate_Cnt and MenuWakuRotCnt are floats; MenuPosData is a pointer;
+CommonBoardDrawInfo is 0x2C. Marker reservations must not enlarge these objects.
+
+Compiler initializer ownership includes DrawMenuWakuStep's six-float move (0x18), two
+ten-short icon arrays (0x14 each), Func_MenuItemBrdPosStep's {0,24} position (8),
+GetPutPosXY's float pair (8), GetNextMovePos's integer pair (8),
+Menu3DivideTextureDraw's int[2][4] (0x20), ten-short zero sparkle (0x14), and four
+four-byte corner RGBA arrays. The last size-row element is an implicit zero.
+CommonBoardDraw and MenuItemBrdFrameDraw emit their row heights, blink colors,
+scroll/layer arrays and twelve-pointer frame-parts templates; native switches generate
+their own jump tables.
+
+Spectrum tables contain sixteen triples of short pairs and sixteen rows of six binary32
+angles. Rectangles use MENU_SHORT_RECT's final width/height components. Paint has nine
+RGBA rows, spectrum raster forty signed bytes, gift-box coordinates thirty-six shorts,
+frame-mode counts eight floats, star colors nine components, fish-bounce rates three
+floats, icon offsets twenty-three pairs, and language movement offsets three-by-eighteen
+pairs. Geostone text has seven pointer pairs, preserving [UNI00e9], pooled space/English
+strings and real pointer relocations.
+
+GetMenuItemIconTexInfo reads typed item_icon_tex[4][2] members; its four-pointer
+initializer owns sixteen bytes. DrawMenuWakuRect's second edge initializer must remain a
+call-argument temporary after the named edge record: moving a named initializer to its
+use exchanges stack slots (eight word differences at 0x518 bytes); value initialization
+grows to 0x538 with 118 differences. The direct scissor rectangle yields retail's
+0x518-byte body without extra storage or profile rows.
+
+## Common-board constants
+
+CommonBoardDraw's integer casts convert floating positions, blink values
+and dimensions. SetSpriteEnv's 0/1 mode has no established shared enum;
+line->kind indexes the two-entry on/off board table. Other literals are
+screen/texture coordinates and color channels. Its declared retail body
+is 0xDD8 at 0x224F10.
