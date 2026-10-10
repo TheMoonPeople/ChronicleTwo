@@ -190,6 +190,11 @@ the channel-3 restoration and the code it shifts.
   access path, so none is used. Qualifiers on the environment instead
   (`const sceIpuDmaEnv &`/`*` views, or `const ViBuf *` parameters of inline
   helpers that only test) are propagated and merged, or keep a separate base.
+  No existing function supplies such a path: every retail `viBuf*` symbol and
+  `getFIFOindex__FP5ViBufPv` mangle a non-const `ViBuf *`, and `getFIFOindex`
+  is called out of line (a `const ViBuf *` parameter renames the symbol and
+  leaves the draft at 53/200). The other callees (`DmaAddr`, `setD3_CHCR`,
+  `setD4_CHCR`, the semaphore calls) take no `ViBuf`.
 - Declaring `ViBuf::env` `volatile` reproduces the whole tail, but volatile loads
   keep source order: retail's prologue loads `d4chcr` first yet colours it as the
   last-created value, which only the non-volatile schedule gives (14 words at best,
