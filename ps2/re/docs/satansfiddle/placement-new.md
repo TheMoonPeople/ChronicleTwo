@@ -160,7 +160,8 @@ caller spelling is the profile identity. The table totals 50 sites across 24
 units; multiple sites in one caller have the same semantic identity and need no
 occurrence selectors. `after/either` means the checked-in policy is
 after-inline and both timings reproduce the caller; `required` rows match
-under only that timing.
+under only that timing. `after/tested` records an accepted after-inline
+row whose before-inline timing has not been tested.
 
 | Unit | Mangled caller | Allocated type | Sites | Timing |
 | --- | --- | --- | ---: | --- |
@@ -194,6 +195,7 @@ under only that timing.
 | menuchr | `LoadMenuData__15CMenuCostumeSelFP9mgCMemoryPi` | `CActionChara` | 1 | after/either |
 | menudraw | `GeneratePoly__14CRepairManagerFPfi` | `CActionChara` | 1 | after/required |
 | menuop | `MenuManualInit__FP9mgCMemoryPii` | `CManualMenu` | 1 | after/either |
+| menusys | `IsAskExtend__13CMenuItemInfoFii` | `CActionChara` | 1 | after/tested |
 | menusys | `MenuItemDebugKey__Fv` | `CActionChara` | 1 | after/either |
 | menusys | `MenuItemSelectInit__FP9mgCMemoryPii` | `CItemSelect` | 1 | after/either |
 | menusys | `MenuModeMalloc__13CMenuItemInfoFP9mgCMemory` | `CActionChara` | 2 | after/either |

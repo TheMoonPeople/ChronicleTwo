@@ -181,7 +181,6 @@ void                         MenuWeaponStatusInfoFormSet(CGameDataUsed *item, CD
 extern mgCMemory             MainCharaReadStack;
 extern char                  at_3924[];
 extern CGamePad              GamePad__2;
-extern char                  at_4954[];
 extern char                  at_4672[];
 extern mgCMemory             MenuItemMemory;
 extern mgCMemory             MenuItemMemory2;
@@ -661,35 +660,6 @@ s16 BuildUpNameXY[3][2];
  */
 static float MonicaRotationData[4];
 
-#ifndef NONMATCHING
-/**
- *
- * Counter of the extended weapon build-up effect.
- *
- */
-static int Effect_Counter_4682;
-
-/**
- *
- * Initialization latch of the extended build-up effect counter.
- *
- */
-static s8 init_4683;
-
-/**
- *
- * Non-zero when the extended weapon build-up finishes.
- *
- */
-static u8 BuildEndFlag_4703;
-
-/**
- *
- * Initialization latch of the build-up completion state.
- *
- */
-static s8 init_4704;
-#endif
 
 /**
  *
@@ -6231,14 +6201,42 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
     return 1;
 }
 
-extern char at_4950[];
-extern char at_4951[];
-extern char at_4952[];
-extern char at_4953[];
-extern char at_4955[];
-extern char at_4956[];
-extern char at_4957[];
-#ifdef NONMATCHING
+/**
+ *
+ * Extended item-menu question handled by the weapon preview.
+ *
+ */
+enum MENU_ITEM_EXTEND_KIND {
+    MENU_ITEM_EXTEND_NONE = 0,     /**< No extended question is active. */
+    MENU_ITEM_EXTEND_REPAIR = 1,   /**< Repair animation is running. */
+    MENU_ITEM_EXTEND_BUILD_UP = 2, /**< Weapon build-up is being selected or shown. */
+};
+
+/**
+ *
+ * Stages of the item-menu repair animation.
+ *
+ */
+enum MENU_REPAIR_STEP {
+    MENU_REPAIR_LOAD = 0,     /**< Starts loading the repair resources. */
+    MENU_REPAIR_GENERATE = 1, /**< Creates the repair effect after loading. */
+    MENU_REPAIR_ANIMATE = 2,  /**< Waits for the repair animation to finish. */
+};
+
+/**
+ *
+ * Stages of the item-menu weapon build-up preview.
+ *
+ */
+enum MENU_BUILD_UP_STEP {
+    MENU_BUILD_UP_SELECT = 0,  /**< Selects a prospective build-up weapon. */
+    MENU_BUILD_UP_CONFIRM = 1, /**< Asks whether to perform the build-up. */
+    MENU_BUILD_UP_LOAD = 2,    /**< Creates the build-up character after loading. */
+    MENU_BUILD_UP_ANIMATE = 3, /**< Transforms the weapon during the preview animation. */
+    MENU_BUILD_UP_FINISH = 4,  /**< Waits for dismissal of the completion message. */
+    MENU_BUILD_UP_BLOCKED = 5, /**< Waits for dismissal of a failed condition message. */
+};
+
 #pragma inline_depth(8)
 int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
     mgCMemory         *load_stack = &MenuCharaLoadStack;
@@ -6256,15 +6254,15 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
     float              position[4];
     int                size;
     switch (para->ask_mode) {
-        case 0:
+        case MENU_ITEM_EXTEND_NONE:
             break;
-        case 1:
+        case MENU_ITEM_EXTEND_REPAIR:
             switch (step) {
-                case 0:
+                case MENU_REPAIR_LOAD:
                     MenuRepairMan->LoadDataBG(load_stack);
                     step++;
                     break;
-                case 1:
+                case MENU_REPAIR_GENERATE:
                     if (reading == 0) {
                         int repair_tex_block = tex_block[2];
                         MenuRepairMan->CheckDataBG(repair_tex_block);
@@ -6279,33 +6277,34 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         step++;
                     }
                     break;
-                case 2:
+                case MENU_REPAIR_ANIMATE:
                     if (repair_running == 0 || (repair_running == 1 && !MenuRepairMan->IsRun())) {
                         if (MenuCommonInfo->cursor_form != NULL) {
                             MenuCommonInfo->cursor_form->draw_flag = 1;
                         }
                         repair_running = 0;
-                        step = 0;
-                        para->ask_mode = 0;
+                        step = MENU_REPAIR_LOAD;
+                        para->ask_mode = MENU_ITEM_EXTEND_NONE;
                         mode = MENU_ASK_MODE_NONE;
                     }
                     break;
             }
             break;
-        case 2: {
+        case MENU_ITEM_EXTEND_BUILD_UP: {
+            int close;
+            BUILDUP_WEAPON_INFO *info = &BuildUpWeaponInfo;
             /**
              *
              * Non-zero when the extended weapon build-up finishes.
              *
              */
             static u8 BuildEndFlag = 0;
-            BUILDUP_WEAPON_INFO *info = &BuildUpWeaponInfo;
             CActionChara        *chara = MenuActionChara[0];
             CDC2Mes             *name_message = MenuDCMsg[6];
             CDC2Mes             *message = MenuDCMsg[7];
-            int                  close = 0;
+            close = 0;
             switch (step) {
-                case 0: {
+                case MENU_BUILD_UP_SELECT: {
                     int old_select = info->select_no;
                     if (select_key & MENU_SELECT_KEY_UP) {
                         info->select_no--;
@@ -6316,7 +6315,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                     if (info->select_no < 0) {
                         info->select_no = 0;
                     }
-                    if (info->select_no >= info->select_num) {
+                    if (info->select_num <= info->select_no) {
                         info->select_no = info->select_num - 1;
                     }
                     int          select = info->select_no;
@@ -6326,39 +6325,39 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                     }
                     MenuWeaponStatusInfoFormSet(info->weapon, data);
                     switch (push_button) {
-                        case 1:
-                        case 4:
-                        case 8:
+                        case MENU_PUSH_BUTTON_DECIDE:
+                        case MENU_PUSH_BUTTON_TRIANGLE:
+                        case MENU_PUSH_BUTTON_SQUARE:
                             if (info->enable[select] == 1) {
                                 if (CheckBuildUpMonsterCondition(data)) {
-                                    ExeScript(at_4950);
+                                    ExeScript("\x83\x72\x83\x8b\x83\x68\x83\x41\x83\x62\x83\x76\x81\x48");
                                     if (name_message->name[select + 1] != NULL) {
                                         strcpy(message->name[0], name_message->name[select + 1]);
                                     }
                                     message->StepMsg();
                                     step++;
                                 } else {
-                                    ExeScript(at_4951);
-                                    step = 5;
+                                    ExeScript("\x83\x72\x83\x8b\x83\x68\x83\x41\x83\x62\x83\x76\x4e\x47");
+                                    step = MENU_BUILD_UP_BLOCKED;
                                 }
                             } else {
-                                MenuSePlay(5);
+                                MenuSePlay(SYSTEM_SE_CANCEL);
                             }
                             break;
                         case MENU_PUSH_BUTTON_CANCEL:
                             info->mode = 0;
-                            MenuSePlay(5);
                             close = 1;
+                            MenuSePlay(SYSTEM_SE_CANCEL);
                             break;
                     }
                     break;
                 }
-                case 1: {
+                case MENU_BUILD_UP_CONFIRM: {
                     int choice = message->YesNoCursor();
                     switch (push_button) {
-                        case 1:
-                        case 4:
-                        case 8:
+                        case MENU_PUSH_BUTTON_DECIDE:
+                        case MENU_PUSH_BUTTON_TRIANGLE:
+                        case MENU_PUSH_BUTTON_SQUARE:
                             if (choice == 0) {
                                 MenuSePlay(SYSTEM_SE_DECIDE);
                                 BuildEndFlag = 0;
@@ -6367,10 +6366,10 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                                 load_stack->Align64();
                                 u_long128 *buffer = load_stack->stGetTop();
                                 StartReadBG();
-                                LoadFileBG(at_4952, buffer, &size);
+                                LoadFileBG("menu/eff/buildup.chr", buffer, &size);
                                 load_stack->Alloc(QuadwordsFor(size + 0x800));
                                 load_stack->Align64();
-                                LoadFileBG(at_4953, load_stack->stGetTop(), &size);
+                                LoadFileBG("snd2/sp/SP_045.snd", load_stack->stGetTop(), &size);
                                 load_stack->Alloc(QuadwordsFor(size + 0x800));
                                 itemmenu_chr_rotflag = 0;
                                 step++;
@@ -6380,8 +6379,8 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                             if (MenuCommonInfo->cursor_form != NULL) {
                                 MenuCommonInfo->cursor_form->draw_flag = 1;
                             }
-                            MenuSePlay(5);
-                            step = 0;
+                            step = MENU_BUILD_UP_SELECT;
+                            MenuSePlay(SYSTEM_SE_CANCEL);
                             break;
                     }
                     if (push_button != 0) {
@@ -6389,7 +6388,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                     }
                     break;
                 }
-                case 2:
+                case MENU_BUILD_UP_LOAD:
                     if (reading == 0) {
                         BG_READ_INFO *model_file = GetReadBGFile(0);
                         BG_READ_INFO *sound_file = GetReadBGFile(1);
@@ -6404,17 +6403,20 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         load_stack->Align64();
                         int rest = load_stack->stGetRest();
                         work.stSetBuffer(load_stack->stGetTop(), rest);
-                        build_up_chara = new (work.Alloc(0x105)) CActionChara;
+                        build_up_chara = new (work.Alloc(sizeof(CActionChara) / 16 + 2)) CActionChara;
                         build_up_chara->Initialize(NULL);
-                        build_up_chara->LoadPack((u_int *) model_file->buffer, at_4954, &work, &work, &work, tex_block[2], NULL);
+                        build_up_chara->LoadPack((u_int *) model_file->buffer, "info.cfg", &work, &work, &work, tex_block[2], NULL);
                         build_up_chara->SetScale(1.5f, 1.5f, 1.5f);
                         build_up_chara->SetPosition(position);
-                        build_up_chara->SetMotion(at_4955, 0, 1);
+                        build_up_chara->SetMotion("\x94\xad\x93\xae", 0, 1);
                         build_up_chara->Step();
                         mgCFrame *frame = build_up_chara->CObjectFrame::frame;
-                        if (frame != NULL && frame->attr != NULL) {
-                            frame->attr->z_test = -1;
-                            frame->SetAttrParam(*frame->attr, 1, MG_FRAME_ATTR_Z_TEST);
+                        if (frame != NULL) {
+                            mgCFrameAttr *const attr = frame->attr;
+                            if (attr != NULL) {
+                                attr->z_test = -1;
+                                frame->SetAttrParam(*attr, 1, MG_FRAME_ATTR_Z_TEST);
+                            }
                         }
                         work.Alloc(0x100);
                         BuildEndFlag = 0;
@@ -6427,7 +6429,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         step++;
                     }
                     break;
-                case 3: {
+                case MENU_BUILD_UP_ANIMATE: {
                     build_up_chara->Step();
                     if (!BuildEndFlag) {
                         float frame_no = build_up_chara->GetNowFrame(NULL);
@@ -6442,12 +6444,13 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                             int           new_item_no = name_message->item_mes[info->select_no + 1];
                             BuildUpWeaponTrans(info->weapon, new_item_no);
                             int                weapon_tex_block = tex_block[1];
-                            mgCTextureManager *textures = tex_manager;
+                            tex_manager = &mgTexManager;
+                            mgCTextureManager *const textures = tex_manager;
                             textures->DeleteBlock(weapon_tex_block);
-                            strcpy(textures->name_suffix, at_4956);
+                            strcpy(textures->name_suffix, "_mn");
                             MenuActionCharaBuffer[0].stReset();
                             chara->Initialize(NULL);
-                            chara->LoadPack((u_int *) file->buffer, at_4954, MenuActionCharaBuffer, MenuActionCharaBuffer,
+                            chara->LoadPack((u_int *) file->buffer, "info.cfg", MenuActionCharaBuffer, MenuActionCharaBuffer,
                                             MenuActionCharaBuffer, weapon_tex_block, NULL);
                             textures->name_suffix[0] = 0;
                             WeaponBuildCheck(chara, new_item_no, weapon_tex_block);
@@ -6457,7 +6460,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                     if (BuildEndFlag == 1 && build_up_chara->CheckMotionEnd(NULL)) {
                         build_loading = 0;
                         build_up_chara = NULL;
-                        ExeScript(at_4957);
+                        ExeScript("\x83\x72\x83\x8b\x83\x68\x83\x41\x83\x62\x83\x76\x8f\x49\x97\xb9");
                         if (name_message->name[info->select_no + 1] != NULL) {
                             strcpy(message->name[0], name_message->name[info->select_no + 1]);
                         }
@@ -6465,30 +6468,30 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                     }
                     break;
                 }
-                case 4:
+                case MENU_BUILD_UP_FINISH:
                     if (push_button != 0) {
                         close = 1;
                         mes_form->draw_flag = 0;
-                        MenuSePlay(SYSTEM_SE_DECIDE);
                         itemmenu_chr_rotflag = 1;
+                        MenuSePlay(SYSTEM_SE_DECIDE);
                     }
                     break;
-                case 5:
+                case MENU_BUILD_UP_BLOCKED:
                     if (push_button != 0) {
                         mes_form->draw_flag = 0;
                         if (MenuCommonInfo->cursor_form != NULL) {
                             MenuCommonInfo->cursor_form->draw_flag = 1;
                         }
-                        MenuSePlay(5);
-                        step = 0;
+                        step = MENU_BUILD_UP_SELECT;
+                        MenuSePlay(SYSTEM_SE_CANCEL);
                     }
                     break;
             }
             if (close == 1) {
                 MenuWeaponStatusInfoFormSet(NULL, NULL);
-                step = 0;
+                step = MENU_BUILD_UP_SELECT;
                 mode = MENU_ASK_MODE_NONE;
-                para->ask_mode = 0;
+                para->ask_mode = MENU_ITEM_EXTEND_NONE;
             }
             break;
         }
@@ -6496,9 +6499,6 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
     return 0;
 }
 #pragma inline_depth reset
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menusys", IsAskExtend__13CMenuItemInfoFii);
-#endif
 
 void MenuMoveItemPos(int *item, int *pos, int phase) {
     /**
@@ -6720,7 +6720,7 @@ void CMenuItemInfo::ExitEnd() {
         AccumulateEffect.unk_320 = 0;
         AccumulateEffect.mode = 0;
         chara->accume_effect = &AccumulateEffect;
-        chara->LoadPack(MainCharaReadBuffer.model, at_4954, MorattaStack, MorattaStack, MorattaStack,
+        chara->LoadPack(MainCharaReadBuffer.model, "info.cfg", MorattaStack, MorattaStack, MorattaStack,
                         MenuArg.chara_tex_block, 0);
         SwordEffectStack.stack_used = 0;
         SwordEffectStack.lock = 0;
@@ -6731,13 +6731,13 @@ void CMenuItemInfo::ExitEnd() {
         mgCTextureManager *textures = &mgTexManager;
         textures->DeleteTexAnime(MenuArg.chara_tex_block);
         ((CCharacter2 *) chara)
-            ->LoadSkin(MainCharaReadBuffer.skin, at_4954, "", MorattaStack + 1,
+            ->LoadSkin(MainCharaReadBuffer.skin, "info.cfg", "", MorattaStack + 1,
                        MenuArg.chara_tex_block);
         stack = MorattaStack;
         stack[5].stack_used = 0;
         stack[5].lock = 0;
         ((CCharacter2 *) chara)
-            ->LoadSkin(MainCharaReadBuffer.outline, at_4954, "skin3", MorattaStack + 5,
+            ->LoadSkin(MainCharaReadBuffer.outline, "info.cfg", "skin3", MorattaStack + 5,
                        MenuArg.chara_tex_block);
         SetupUnitMan(MenuMainScene, (CUserDataManager *) GetUserDataMan(), chara_no, NULL);
         chara->effect_man = FxScriptMan;
@@ -12320,15 +12320,6 @@ INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_1493__2__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3895__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3924__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4672__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4950__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4951__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4952__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4953__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4954__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4955__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4956__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4957__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4958__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5882__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5883__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6424__DATA);
