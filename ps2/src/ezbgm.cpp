@@ -22,50 +22,28 @@ static int sbuff[16] __attribute__((aligned(16)));
 static sceSifClientData gCd2 __attribute__((aligned(16)));
 
 // Code (.text)
-#ifdef NONMATCHING
 int ezBgmInit() {
-    printf("EZ_BGMINIT START \n");
-    sceSifInitRpc(0);
-    do {
-        if (sceSifBindRpc(&gCd2, 0x12345, 0) < 0) {
-            printf("error: sceSifBindRpc \n");
-            for (;;) {
-            }
-        }
-        int wait = 10000;
-        do {
-            wait--;
-        } while (wait >= 0);
-    } while (gCd2.server == 0);
-    return 1;
-}
-#else
-int ezBgmInit() {
-    int previous;
     int delay;
 
     printf("EZ_BGMINIT START \n");
     sceSifInitRpc(0);
-retry:
-    if (sceSifBindRpc(&gCd2, 0x12345, 0) < 0) {
-        printf("error: sceSifBindRpc \n");
-    hang:
-        goto hang;
-    }
-    delay = 0x2710;
 
     do {
-        previous = delay;
-        delay -= 1;
-    } while (previous != 0);
+        if (sceSifBindRpc(&gCd2, 0x12345, 0) < 0) {
+            printf("error: sceSifBindRpc \n");
 
-    if (gCd2.server != 0) {
-        return 1;
-    }
+            while (true) {
+            }
+        }
 
-    goto retry;
+        delay = 10000;
+
+        while (delay--) {
+        }
+    } while (gCd2.server == 0);
+
+    return 1;
 }
-#endif
 
 int ezBgm(int command, int argument) {
     switch (command & EZBGM_COMMAND_MASK) {
