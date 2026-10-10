@@ -1,7 +1,7 @@
 # mapselect notes
 
-No class is owned by this unit (`class_units.tsv` has none). No first-game counterpart was found
-(`SearchMapNo`, `MapSelectLoop` etc. do not occur in `/home/adubbz/development/chronicle`).
+No class is owned by this unit (`class_units.tsv` has none). All functions and
+data in the unit are native C++ and the complete object matches retail.
 
 ## Mangling
 - `P1` in `LoadMapName__FiP1` and `LoadEventViewData__FP1P9mgCMemory` is `u_long128 *` (as in
@@ -31,7 +31,7 @@ No class is owned by this unit (`class_units.tsv` has none). No first-game count
 - `static int MapNameNum; static MAP_NAME_INFO *map_name; static int pMapNameBuff` (offset in
   quadwords into MapNameBuff); `static int pCharBuff` (byte offset into CharBuff);
   `static char *CharBuff; static int now_no` (next MAP_NAME row).
-- `char MapNameBuff[0x8000]` (the mixed record/string arena; indexed in bytes as `MapNameBuff + p*16`). Its global linkage is retained for generated VU data references.
+- `static char MapNameBuff[0x8000]` (the mixed record/string arena; indexed in bytes as `MapNameBuff + p*16`). It has file-local linkage.
   `mlMAP_NAME_NUM` puts `(n+1)` MAP_NAME_INFO rows at quadword `pMapNameBuff`, advances by
   `(n+1)*0x1C/16 + 1`, and CharBuff follows; LoadMapName then advances by `pCharBuff/16 + 1`.
 - `static SPI_TAG_PARAM tag[3]` (the LoadMapName command dispatch table): `{"MAP_NAME_NUM",
@@ -42,8 +42,12 @@ No class is owned by this unit (`class_units.tsv` has none). No first-game count
   for an out-of-range map number.
 - `static char **SelectMapList[8]; static int SelectMapNum[8]`: per category, `new (Alloc(0x22))
   char*[0x80]` (placement `__nwa__FUiP1`, 0x200 bytes, zeroed), filled with `mgCopyString` names.
-- `static int select[16], top[16]` (function-local in MapSelect, `select__1049`/`top__1050`,
-  0x40 each, indexed by SelectMapType 0..7): cursor and first visible row, 8 rows shown.
+- `select__1049[16]` and `top__1050[16]` are 0x40-byte cursor and first-visible-row
+  arrays indexed by `SelectMapType` (eight rows shown). They remain file-scope
+  statics: moving them into `MapSelect` makes MWCC emit
+  `select__1049_479` and `top__1050_480`, leaving their retail data pieces
+  unresolved and changing the function's object. Their suffixes are a
+  documented matching exception pending a natural local source form.
 - `select_1009`/`init_1010` (u8 guard): function-local static `select` of MapTypeSelect.
 - `static int SedSelData[6]` (0x18; file holds 0x20): indexed like `SaveDataEditItem`:
   [0] progress (mirrors CSaveData+0x1A08), [1] unused, [2] flag number, [3] geo comp town,
@@ -104,8 +108,7 @@ also CScene::SetTime), +0x1C5A8 config caption byte (toggled by CIRCLE). `DAT_00
 Called by charasetup `SetupUnitMan(scene, user, chara_type, ...)` with chara_type when save bit 8
 is set; so `type` is that chara_type.
 
-## Complete C++ draft pass
-All 22 assembly-backed functions in the unit have typed, named C++ drafts.
+## Current function behavior
 The map script handlers populate `MAP_NAME_INFO` records in `MapNameBuff` and
 copy their strings into the adjacent character buffer. The map selector builds
 per-category lists from `map/map.lst`, while the save editor changes story
@@ -114,11 +117,3 @@ The event viewer reads `event/view_pal.txt` as tab-separated records and
 passes a selected town or dungeon event to `NextLoop`. `AtraMiriaOnOff`
 changes the draw flags of three named model frames according to character
 type.
-
-The draft comparison covers 23 of 23 functions, including the preexisting
-`InitSaveDataEdit`: five match and 18 differ. The four matching new drafts are
-`LoadMapName`, `GetMapNameInfo`, `GetMapName`, and `SearchMapNo`. Each of the
-22 guarded functions received one isolated promotion trial. Those isolated
-trials could not compile without the unit's guarded typed state and includes,
-so every new function keeps its retail `INCLUDE_ASM` fallback. The normal
-full build remained byte-identical after the draft pass.

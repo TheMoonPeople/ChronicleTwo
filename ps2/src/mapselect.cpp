@@ -138,7 +138,7 @@ static int top_event;
  * Stores map records and their variable-length strings in one arena.
  *
  */
-char MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
+static char MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
 /**
  *
  * Stores the map name selected for the next edit loop.
