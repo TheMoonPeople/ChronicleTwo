@@ -2,7 +2,7 @@
 
 The placement-new capability requests MWCC's own statement-conversion path for
 selected scalar constructions. It is an explicit frontend policy override, not
-a repair of uninitialized compiler state. The checked-in profile activates 39
+a repair of uninitialized compiler state. The checked-in profile activates 40
 callers in 24 units; each is native, byte-identical to retail, and its unit
 passes the complete object check. The caller rows are an activation list for
 those matches; they do not recover one original global compiler policy.
@@ -155,8 +155,8 @@ rows for other units, before the compiler is started.
 
 ## Accepted placement rows
 
-All 40 rows use allocator `__nw__FUiP1` and exact direct constructors. The
-caller spelling is the profile identity. The table totals 50 sites across 24
+All 41 rows use allocator `__nw__FUiP1` and exact direct constructors. The
+caller spelling is the profile identity. The table totals 51 sites across 24
 units; multiple sites in one caller have the same semantic identity and need no
 occurrence selectors. `after/either` means the checked-in policy is
 after-inline and both timings reproduce the caller; `required` rows match
