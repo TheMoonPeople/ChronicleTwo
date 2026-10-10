@@ -2,13 +2,6 @@
 #include "mw_runtime.h"
 
 #include "runscript_opcodes.hpp"
-#ifdef NONMATCHING
-#include "dng_object.hpp"
-#include "gameutil.hpp"
-#include "mdslist.hpp"
-#include "mg_camera.hpp"
-#include "mg_drawenv.hpp"
-#endif
 #include <libvu0.h>
 
 #include <cmath>

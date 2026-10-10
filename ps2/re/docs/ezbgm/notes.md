@@ -19,9 +19,9 @@ First game: no equivalent. The structure mirrors this game's `ezmidi` unit (see
 `sceSifCheckStatRpc` is declared in `ps2/include/sce/sifrpc.h` with a
 `sceSifClientData*` parameter and `int` return.
 
-All three functions are native and match the linked retail image. `ezBgmInit` and `ezBgm` compile
-from their `#else` definitions; the `#ifdef NONMATCHING` branches hold alternative drafts that do
-not match. The compiled `ezBgm` switch names its cases with `EzBgmCommand` values. The five
+All three functions are native and match the linked retail image. `ezBgmInit` retries
+`sceSifBindRpc` until the server is bound, with a 10000-iteration delay loop; `ezBgm` dispatches on
+the command. The compiled `ezBgm` switch names its cases with `EzBgmCommand` values. The five
 diagnostic strings are inline at their `printf` uses (exact spaces, spelling and newlines); the
 unit has no data markers.
 

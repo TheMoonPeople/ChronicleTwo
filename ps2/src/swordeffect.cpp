@@ -11,10 +11,6 @@
 #include "mglib.hpp"
 #include "swordeffect.hpp"
 
-#ifdef NONMATCHING
-
-#endif
-
 int CreatSmoothPassSW(float (*out)[4], float (*ring)[4], int point_num, int division, int start, int ring_size) {
     sceVu0FMATRIX coefficients;
     sceVu0FMATRIX points;

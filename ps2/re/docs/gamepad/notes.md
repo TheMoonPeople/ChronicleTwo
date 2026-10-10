@@ -3,11 +3,9 @@
 ## Status
 
 Every function in `ps2/src/gamepad.cpp` is native and the unit carries no `INCLUDE_ASM`,
-`INCLUDE_RODATA` or `INCLUDE_BSS` markers. `CGamePad::Capture` is written as an
-`#ifdef NONMATCHING ... #else ... #endif` pair of two native forms: the `NONMATCHING` branch
-is the typed `PAD_CAPTURE_FRAME *frame` version, and the active branch walks the capture
-buffer as `u8 *entry` offset by `frame * sizeof(PAD_CAPTURE_FRAME)` and stores the button as
-`s16` and the four axes as bytes. Only the active byte-walk form reproduces retail's stores.
+`INCLUDE_RODATA` or `INCLUDE_BSS` markers. `CGamePad::Capture` stores a `PAD_CAPTURE_FRAME`
+at the `capture_frame` index through a typed frame pointer, with `index` as a local copy of
+`capture_frame` and `capture_frame` incremented afterwards.
 
 First-game counterpart: `CGamePad` in the first game's `gamepad.hpp`.
 The layout up to 0x45C is the same; this game adds `debug_key_lock`, `vibration_elapsed` and

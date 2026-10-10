@@ -45,10 +45,6 @@ struct PauseState : PAUSE_INFO {
  */
 static NowLoadingInfo LoadInfo;
 
-#ifdef NONMATCHING
-#include "mg_tanime.hpp"
-#endif
-
 /**
  *
  * Current stage of the loading-screen thread.

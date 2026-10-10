@@ -1904,21 +1904,12 @@ static float GetStackFloat(RS_STACKDATA *stack) {
 
     return stack->val.f;
 }
-#ifdef NONMATCHING
 static void GetStackVector(float *vector, RS_STACKDATA *stack) {
     vector[0] = GetStackFloat(stack++);
     vector[1] = GetStackFloat(stack++);
     vector[2] = GetStackFloat(stack);
     vector[3] = 1.0f;
 }
-#else
-static void GetStackVector(float *vector, RS_STACKDATA *stack) {
-    vector[0] = GetStackFloat(stack++);
-    vector[1] = GetStackFloat(stack++);
-    vector[2] = GetStackFloat(stack);
-    vector[3] = 1.0f;
-}
-#endif
 static char *GetStackString(RS_STACKDATA *stack) {
     return stack->val.s;
 }
