@@ -82,8 +82,8 @@ local_symbols.tsv).
 `at_1323__2` "box", `at_1324` "rock", `at_1325__2` "rnd_obj02-m0", `at_1326` "%s%02d",
 `at_1438__4` "rnd_obj01-a", `at_1196` splash effect name.
 
-## BPOT_TYPE use (2026-10-09)
+## BPOT_TYPE use
 
 `CBPot::SetObject2`, `CBPot::Init` and `CPot::Bakuhatsu` name the broken-object
-kinds with `BPOT_TYPE_*` like `CPot::Break`; the object is unchanged
-(`.private/fixes-r3c/b3-*.log`).
+kinds with `BPOT_TYPE_*` like `CPot::Break`. The offset tables retain their
+actual binary32 values, including values close to 3.2 and 3.6.
