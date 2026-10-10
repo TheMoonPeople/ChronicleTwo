@@ -17,51 +17,6 @@
 #include "mg_visual.hpp"
 #include "mglib.hpp"
 
-// Storage of the assembly-supplied MotionProc2.
-#ifndef NONMATCHING
-/**
- *
- * Vertex buffer used by the skinning pass.
- *
- */
-static sceVu0FVECTOR *vert_845;
-
-/**
- *
- * Scratch transform of the skinning frame.
- *
- */
-static sceVu0FMATRIX tmp_SkinMatrix_847;
-
-/**
- *
- * Inverse world transform of the skinning frame.
- *
- */
-static sceVu0FMATRIX tmp_SkinMatrix_inv_848;
-
-/**
- *
- * World transform of the animation root.
- *
- */
-static sceVu0FMATRIX tmp_ChrMatrix_849;
-
-/**
- *
- * Bind-pose skinning transform.
- *
- */
-static sceVu0FMATRIX tmp_BaseSkinMatrix_851;
-
-/**
- *
- * Inverse bind-pose skinning transform.
- *
- */
-static sceVu0FMATRIX tmp_BaseSkinMatrix_inv_852;
-#endif
-
 static mgCFrame *OldSkinFrame;
 
 struct CCPolyCopy {
@@ -586,7 +541,6 @@ static void testVUnew(float (*matrix)[4], float *vertex, float *weight, float *a
 
 #pragma global_optimizer reset
 
-#ifdef NONMATCHING
 Mot_List *MotionProc2(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *frame_info, Mot_List *list) {
     static sceVu0FVECTOR *vert;
     static sceVu0FMATRIX  tmp_SkinMatrix;
@@ -594,17 +548,16 @@ Mot_List *MotionProc2(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
     static sceVu0FMATRIX  tmp_ChrMatrix;
     static sceVu0FMATRIX  tmp_BaseSkinMatrix;
     static sceVu0FMATRIX  tmp_BaseSkinMatrix_inv;
+    float                 deform[4][4];
+    float                 bone_matrix[4][4];
+    float                 bone_in_skin[4][4];
+    float                 skin_bone[4][4];
+    float                 bone_in_skin_inv[4][4];
+    float                 bone_base[4][4];
+    float                 moved[4];
+    float                 weight[4];
     mgCFrame             *bone;
     mgCFrame             *skin;
-    tagFRAME_INF         *info;
-    sceVu0FMATRIX         bone_matrix;
-    sceVu0FMATRIX         bone_base;
-    sceVu0FMATRIX         bone_in_skin;
-    sceVu0FMATRIX         bone_in_skin_inv;
-    sceVu0FMATRIX         skin_bone;
-    sceVu0FMATRIX         deform;
-    sceVu0FVECTOR         moved;
-    sceVu0FVECTOR         weight;
     unsigned int          i;
     int                   vertex;
 
@@ -614,17 +567,24 @@ Mot_List *MotionProc2(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
 
     bone = root->GetFrame(list->target);
     skin = root->GetFrame(list->frame);
-    info = &frame_info[list->frame];
 
     if (OldSkinFrame != skin) {
         OldSkinFrame = root->GetFrame(list->frame);
         vert = ((mgCVisualMDT *) skin->visual)->vertex;
 
-        for (vertex = 0; vertex < (int) info->vertex_count; vertex++) {
-            def_vrtx[vertex][0] = 0.0f;
-            def_vrtx[vertex][1] = 0.0f;
-            def_vrtx[vertex][2] = 0.0f;
-            def_vrtx[vertex][3] = 1.0f;
+        {
+            int    remaining;
+            float (*accum)[4];
+
+            remaining = frame_info[list->frame].vertex_count;
+            accum = def_vrtx;
+
+            // vf0 always holds (0, 0, 0, 1); store it into each accumulator.
+            for (; remaining > 0; remaining--, accum++) {
+                asm volatile {
+                    sqc2 vf0, 0(accum)
+                }
+            }
         }
 
         skin->GetLWMatrix(tmp_SkinMatrix);
@@ -644,13 +604,13 @@ Mot_List *MotionProc2(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
     mgMulMatrix(deform, skin_bone, bone_in_skin_inv);
 
     for (i = 0; i < list->key_count; i++) {
-        weight[0] = list->values[i][0] * 0.01f;
+        weight[0] = 0.01f * list->values[i][0];
         vertex = list->key_frames[i];
 
         if (list->type == MOTION_KEY_SKIN_WEIGHTED) {
-            testVUnew(deform, info->base_vertices[vertex], weight, def_vrtx[vertex], vert[vertex]);
+            testVUnew(deform, frame_info[list->frame].base_vertices[vertex], weight, def_vrtx[vertex], vert[vertex]);
         } else {
-            sceVu0ApplyMatrix(moved, deform, info->base_vertices[vertex]);
+            sceVu0ApplyMatrix(moved, deform, frame_info[list->frame].base_vertices[vertex]);
             moved[3] = 0.0f;
             def_vrtx[vertex][0] += moved[0];
             def_vrtx[vertex][1] += moved[1];
@@ -665,9 +625,6 @@ Mot_List *MotionProc2(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *fram
 
     return list->next;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gameutil", MotionProc2__FP8mgCFrameP14tagMOTION_TYPEP12tagFRAME_INFP8Mot_List);
-#endif
 
 Mot_List *MotionProc3(mgCFrame *root, tagMOTION_TYPE *motion, tagFRAME_INF *frame_info, Mot_List *list) {
     static sceVu0FVECTOR *vert;
@@ -1329,25 +1286,36 @@ int CheckHits(CCPoly *polys, int count, float *from, float *to, int max_hits, in
     return CheckHits(&info, from, to, max_hits, hit_polys, hit_points, sort, ignore_mask);
 }
 
-#ifdef NONMATCHING
 int CheckHits(CollisionInfo *info, float *from, float *to, int max_hits, int *hit_polys, float (*hit_points)[4], int sort, int ignore_mask) {
-    sceVu0FVECTOR point;
-    sceVu0FVECTOR poly_max;
-    sceVu0FVECTOR poly_min;
-    sceVu0FVECTOR line_max;
-    sceVu0FVECTOR line_min;
-    sceVu0FVECTOR offset;
-    sceVu0FVECTOR swap;
-    CCPoly       *poly;
-    int           count;
-    int           i;
-    int           j;
-    int           hits;
-    float         from_side;
-    float         to_side;
+    float   point[4];
+    float   poly_min[4];
+    float   poly_max[4];
+    float   seg_max[4];
+    float   seg_min[4];
+    float   offset[4];
+    float   swap[4];
+    float   d0;
+    float   d1;
+    int     i;
+    int     j;
+    int     hits;
+    int     index;
+    CCPoly *poly;
+    int     count;
 
     hits = 0;
-    mgVectorMaxMin(line_max, line_min, from, to);
+    mgVectorMaxMin(seg_max, seg_min, from, to);
+
+    {
+        float *min_ptr;
+        float *max_ptr;
+        max_ptr = seg_max;
+        min_ptr = seg_min;
+        asm volatile {
+            lqc2 vf10, 0(max_ptr)
+            lqc2 vf11, 0(min_ptr)
+        }
+    }
     poly = info->polys;
     count = info->count;
 
@@ -1358,28 +1326,30 @@ int CheckHits(CollisionInfo *info, float *from, float *to, int max_hits, int *hi
 
         mgVectorMaxMin(poly_max, poly_min, poly->vertex[0], poly->vertex[1], poly->vertex[2]);
 
-        if (poly_min[0] > line_max[0] || poly_min[1] > line_max[1] || poly_min[2] > line_max[2]) {
+        if (seg_max[0] < poly_min[0] || seg_max[1] < poly_min[1] || seg_max[2] < poly_min[2]) {
             continue;
         }
 
-        if (line_min[0] > poly_max[0] || line_min[1] > poly_max[1] || line_min[2] > poly_max[2]) {
+        if (!(seg_min[0] <= poly_max[0]) || !(seg_min[1] <= poly_max[1]) ||
+            !(seg_min[2] <= poly_max[2])) {
             continue;
         }
 
         sceVu0SubVector(offset, from, poly->vertex[0]);
-        from_side = sceVu0InnerProduct(poly->normal, offset);
+        d0 = sceVu0InnerProduct(poly->normal, offset);
         sceVu0SubVector(offset, to, poly->vertex[0]);
-        to_side = sceVu0InnerProduct(poly->normal, offset);
+        d1 = sceVu0InnerProduct(poly->normal, offset);
 
-        if (from_side > 0.0f && to_side > 0.0f) {
+        if (!(d0 <= 0.0f || d1 <= 0.0f)) {
             continue;
         }
 
-        if (from_side < 0.0f && to_side < 0.0f) {
+        if (d0 < 0.0f && d1 < 0.0f) {
             continue;
         }
 
-        if (mgIntersectionPoint_line_poly3(from, to, poly->vertex[0], poly->vertex[1], poly->vertex[2], poly->normal, point) == 0) {
+        if (mgIntersectionPoint_line_poly3(from, to, poly->vertex[0], poly->vertex[1],
+                                           poly->vertex[2], poly->normal, point) == 0) {
             continue;
         }
 
@@ -1393,36 +1363,36 @@ int CheckHits(CollisionInfo *info, float *from, float *to, int max_hits, int *hi
         hits++;
     }
 
-    if (sort != 0) {
-        if (sort > 0) {
-            for (i = 0; i < hits - 1; i++) {
-                for (j = i + 1; j < hits; j++) {
-                    if (hit_points[j][3] < hit_points[i][3]) {
-                        int index = hit_polys[i];
+    if (sort == 0) {
+        return hits;
+    }
 
-                        hit_polys[i] = hit_polys[j];
-                        hit_polys[j] = index;
-                        sceVu0CopyVector(swap, hit_points[i]);
-                        sceVu0CopyVector(hit_points[i], hit_points[j]);
-                        sceVu0CopyVector(hit_points[j], swap);
-                    }
+    if (sort > 0) {
+        for (i = 0; i < hits - 1; i++) {
+            for (j = i + 1; j < hits; j++) {
+                if (!(hit_points[i][3] <= hit_points[j][3])) {
+                    index = hit_polys[i];
+                    hit_polys[i] = hit_polys[j];
+                    hit_polys[j] = index;
+                    sceVu0CopyVector(swap, hit_points[i]);
+                    sceVu0CopyVector(hit_points[i], hit_points[j]);
+                    sceVu0CopyVector(hit_points[j], swap);
                 }
             }
         }
+    }
 
-        // A descending sort was never written; it sorts ascending as well.
-        if (sort < 0) {
-            for (i = 0; i < hits - 1; i++) {
-                for (j = i + 1; j < hits; j++) {
-                    if (hit_points[j][3] < hit_points[i][3]) {
-                        int index = hit_polys[i];
-
-                        hit_polys[i] = hit_polys[j];
-                        hit_polys[j] = index;
-                        sceVu0CopyVector(swap, hit_points[i]);
-                        sceVu0CopyVector(hit_points[i], hit_points[j]);
-                        sceVu0CopyVector(hit_points[j], swap);
-                    }
+    // A descending sort was never written; it sorts ascending as well.
+    if (sort < 0) {
+        for (i = 0; i < hits - 1; i++) {
+            for (j = i + 1; j < hits; j++) {
+                if (!(hit_points[i][3] <= hit_points[j][3])) {
+                    index = hit_polys[i];
+                    hit_polys[i] = hit_polys[j];
+                    hit_polys[j] = index;
+                    sceVu0CopyVector(swap, hit_points[i]);
+                    sceVu0CopyVector(hit_points[i], hit_points[j]);
+                    sceVu0CopyVector(hit_points[j], swap);
                 }
             }
         }
@@ -1430,9 +1400,6 @@ int CheckHits(CollisionInfo *info, float *from, float *to, int max_hits, int *hi
 
     return hits;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/gameutil", CheckHits__FP13CollisionInfoPfPfiPiPA4_fii);
-#endif
 
 int CheckHitsPipeY(CCPoly *polys, int count, float *from, float height, int max_hits, int *hit_polys, sceVu0FVECTOR *hit_points, int sort, int ignore_mask) {
     float   best[4];

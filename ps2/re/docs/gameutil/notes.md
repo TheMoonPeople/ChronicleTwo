@@ -1,10 +1,9 @@
 # gameutil: reverse-engineering notes
 
 ## Status
-35 of the 37 functions are native, including `testVUnew` and
-`CheckHit(CollisionInfo*, ...)`, which use the narrow inline VU0 exception.
-`MotionProc2` and `CheckHits(CollisionInfo*, ...)` are guarded drafts
-(`NONMATCHING`) supplied by retail assembly; both use VU0 macro code.
+All 37 functions are native. `testVUnew`, `CheckHit(CollisionInfo*, ...)`,
+`CheckHits(CollisionInfo*, ...)` and `MotionProc2` use the narrow inline VU0
+exception.
 
 Header: `ps2/include/gameutil.hpp`. No class in `class_units.tsv` is owned by gameutil; the header
 declares the plain structs and enums the unit's code uses.
@@ -20,9 +19,7 @@ declares the plain structs and enums the unit's code uses.
   `vert` (sceVu0FVECTOR* into the visual's vertices), `nml` (normals), `tmp_SkinMatrix`,
   `tmp_SkinMatrix_inv`, `tmp_ChrMatrix`, `tmp_BaseSkinMatrix` and `tmp_BaseSkinMatrix_inv`
   (sceVu0FMATRIX). `MotionProc3` declares its set inside the function (retail `vert_915`,
-  `nml_916`, `tmp_*_917..922`); `MotionProc2`'s set (`vert_845`, `tmp_*_847..852`) is defined
-  at file scope under the retail names because the assembly-supplied function references
-  them, and the guarded draft declares its own. The per-key weight vector and the overflow
+  `nml_916`, `tmp_*_917..922`); `MotionProc2` declares its own set in the same way (retail `vert_845`, `tmp_*_847..852`). The per-key weight vector and the overflow
   diagnostics ("MAX_VERTX OVER %d/%d", "MAX_NORMAL OVER %d/%d", limits 400 and 800) are
   native initializers and literals. No `extern`s in header.
 - MotionProc2 / MotionProc3 / testVUnew use VU0 macro code (`lqc2`, `vmulabc`...).
@@ -123,14 +120,35 @@ At least 0x110 here (larger than the first game's 0xD0): 0x00 float radius (<=0 
   In the vertex-key case, each consumed list advances to the next entry; a null next entry
   returns null immediately, expressed with an ordinary null check and assignment.
 
-## Assembly gaps
+## Inline VU0 code
 
-`testVUnew` uses the narrow inline VU0 exception: it transforms a vertex,
-weights its xyz lanes, adds it to the accumulated vertex, and writes the
-result to both destinations. `CheckHit(CollisionInfo*, ...)` uses two inline
-VU loads to retain the segment bounds in vf10/vf11 before testing polygons.
-`MotionProc2` and `CheckHits(CollisionInfo*, ...)` retain C++ drafts under
-`NONMATCHING` and use `INCLUDE_ASM` in retail builds.
+`testVUnew` transforms a vertex, weights its xyz lanes, adds it to the
+accumulated vertex, and writes the result to both destinations.
+`CheckHit(CollisionInfo*, ...)` uses `#pragma global_optimizer off` and a plain
+`asm` block that loads the segment bounds into vf10/vf11.
+
+`CheckHits(CollisionInfo*, ...)` and `MotionProc2` use `asm volatile` blocks
+and no pragma. A volatile asm block makes MWCC skip global optimization of the
+whole function (no strength reduction, loop-invariant motion or cross-call
+CSE) while keeping the optimizer's address forms: `hit_points[i][3]` and
+`frame_info[list->frame].base_vertices` add the scaled index first
+(`addu t, idx, base`), and `def_vrtx[vertex][k]` folds `4 * k` into the
+`def_vrtx` relocation. `#pragma global_optimizer off` with a plain `asm` block
+gives the same schedule but adds the base first and keeps the offset in the
+load (5 and 72 differing instructions). A plain `asm` block without the pragma
+is fully optimized. Index syntax (`i[p]`, `(*(p + i))[3]`, enum or `1 + 2`
+subscripts), parameter spellings (`sceVu0FVECTOR *`, `float p[][4]`, `const`),
+`register` locals and `optimization_level`/`opt_*`/`peephole` pragma
+combinations did not change the operand order; only an integer form
+`(i << 4) + (int) p` did, which is raw pointer arithmetic.
+
+- `CheckHits`: the vectors are declared in frame order (point, poly_min,
+  poly_max, seg_max, seg_min, offset, swap); the two box tests and side tests
+  use the `CheckHit` comparison spellings; `sort == 0` returns early.
+- `MotionProc2`: vf0 is (0, 0, 0, 1), so the accumulator reset stores it once
+  per vertex through a `float (*)[4]` cursor while a signed count runs down
+  from `vertex_count`. `i` is declared before `vertex` so that `i` takes `s0`
+  and `vertex` takes `s3`. The frame-info row is indexed directly at each use.
 
 ## MotionProc(float)
 

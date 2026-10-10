@@ -242,6 +242,12 @@ class initializers must be generated naturally by the compiler.
   folds an inline helper's constant result (`li a1,0x13`) and keeps the
   constructed object in its variable's register, but only if the optimizer
   is back on at the next declaration (mg_dataset).
+- `asm volatile { ... }` makes MWCC skip global optimization for the whole
+  function but keeps the optimizer's address forms: `p[i].field` with a
+  nonzero offset adds the scaled index first, and a global array folds the
+  offset into its relocation (`%hi(sym+4)`). `#pragma global_optimizer off`
+  with a plain `asm` block schedules alike but adds the base first; a plain
+  `asm` block alone is fully optimized (`CheckHits`, `MotionProc2`, gameutil).
 
 ## Data extents and alignment
 
