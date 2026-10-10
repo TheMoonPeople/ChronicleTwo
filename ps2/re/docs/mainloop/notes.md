@@ -1,9 +1,9 @@
 # mainloop: reverse-engineering notes
 
-## C++ draft status
-All 62 functions in `ps2/src/mainloop.cpp` now build from C++ and match retail
-at the function level. `EventSelect` also passes an isolated full-image check.
-Promotion attempts are recorded in `scripts/re/promotion_attempts.tsv`.
+## Current source status
+All 62 functions in `ps2/src/mainloop.cpp` build from C++ and match retail.
+The menu row tables, selection values and VU program address table are native
+function-local statics in their owning loop functions.
 
 No class in `build/re/class_units.tsv` is owned by mainloop. The unit emits the out-of-line
 constructors `CUserDataManager::CUserDataManager()` (owner userdata) and `CEditData::CEditData()`
@@ -44,7 +44,7 @@ OmakeFlag, MasterDebugCode, GamePad (`GamePad__2` in main.symbols.txt; the other
   accesses to `[page]` scores 92.95%. The exact offset form remains in source.
 - SelectArg: `int[32]` (0x80); debug-menu row values, row index = loop number for rows 1..8;
   [9] language, [10] item set (index into {0,1,2,6}), [12] cfg number; gcMAP_NO writes [1].
-- menu_sel_1452: `int[11]` EventSelect row values. at_1529: 64-byte char initializer (cfg name
+- `EventSelect::menu_sel` (retail `menu_sel_1452`): `int[11]` row values. at_1529: 64-byte char initializer (cfg name
   buffer local of EventSelect, sits right after the INIT_LOOP_ARG local, NOT inside it).
 - ActiveSaveData: `CSaveData *`; SubGameSaveData: `CSubGameData *` (set to main_buffer when the
   title or an omake mode starts).
@@ -69,7 +69,7 @@ LoopInit/LoopMain/LoopExit index (enum MainLoopMode):
 3 Title{Init,Loop,Exit}, 4 CharaViewer, 5 TextuerViewer, 6 MapView, 7 SoundViewer, 8 MovieView,
 9 SVConvView. MainLoop ends (closes the pad, stops sound, returns) when LoopNo is outside 0..9.
 Loop main functions return non-zero to leave. MainLoop forces LoopNo 3 when DebugFlag==0 and
-LoopNo==0. Debug menu row names (menu_1281): game start, map, dungeon, title, chrview, texview,
+LoopNo==0. Debug menu row names (`MenuLoop::menu`, retail `menu_1281`): game start, map, dungeon, title, chrview, texview,
 mapview, sound view, movie view, Language, Item, Save Data, Load cfg, Convert Save Data.
 
 ## DEBUG_INFO (DebugInfo, 0x14 = symbol size)
@@ -107,7 +107,7 @@ analog_table: ANALOG_TABLE_ENTRY {no, axis} rows {0,1},{1,2},{2,3},{3,4},{4,2},{
 - MasterDebugCode 0x5D44 when pad buttons 8,2,4,1 (L1,R2,R1,L2) are held at boot; title checks it.
 - InitPauseMenu(value): value is stored into PauseMes.unk_22a4 (ClsMes); EditInit passes 0x9A,
   InitDungeonMain 0x6C. Meaning unknown, hence the neutral parameter name.
-- EventSelect rows (menu_1457): beginning, chapter(normal) cap%d.cfg, chapter(debug) db_cap%d.cfg,
+- EventSelect rows (`menu`, retail `menu_1457`): beginning, chapter(normal) cap%d.cfg, chapter(debug) db_cap%d.cfg,
   sub game sg%d.cfg (Spheda/GyoRace/Fishing), PalmBrink's pb.cfg, event, boss battle, future map,
   diorama map geo.cfg, HDD, extra (InitOmakeEnv). Configs are loaded from dbg/.
 
@@ -123,6 +123,3 @@ analog_table: ANALOG_TABLE_ENTRY {no, axis} rows {0,1},{1,2},{2,3},{3,4},{4,2},{
 - Save data offsets seen: +0x1A00 s64 play time, +0x1A08 progress (2 = forces time 22.0),
   +0x1A10 float time of day, +0x1A14 copied to CScene+0x2F68, +0x1C578 vibration off,
   +0x1C59C.. option values (MonsterName/Map/EnemyHP/AngerCounter).
-## Pending code matches
-
-`EventSelect` now builds from C++ and passes full-image verification. Its initialized menu table remains in its existing data gap.

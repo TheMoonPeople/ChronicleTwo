@@ -280,7 +280,6 @@ static int gcGET_ITEM(SPI_STACK *stack, int argument_count);
 static int gcGET_N_ITEM(SPI_STACK *stack, int argument_count);
 static int gcEQUIP(SPI_STACK *stack, int argument_count);
 static int gcDEFENSE(SPI_STACK *stack, int argument_count);
-static int gcDEFENSE(SPI_STACK *stack, int argument_count);
 static int gcHP(SPI_STACK *stack, int argument_count);
 static int gcALL_GEO_PARTS(SPI_STACK *stack, int argument_count);
 static int gcPARAM_DRAW(SPI_STACK *stack, int argument_count);
@@ -319,44 +318,6 @@ static SPI_TAG_PARAM tag__3[] = {
     {"ACTIVE_CHARA", gcACTIVE_CHARA},
     {NULL, NULL},
 };
-
-/**
- * Rows displayed by the main debug menu.
- */
-static char *menu_1281[] = {
-        "game start ", "map        ", "dungeon    ", "title      ",
-        "chrview    ", "texview    ", "mapview    ", "sound view ",
-        "movie view ", "Language   ", "Item       ", "Save Data  ",
-        "Load cfg   ", "Convert Save Data ", ""
-    };
-
-/**
- * Rows displayed by the chapter and event debug menu.
- */
-static char *menu_1457[12] = {
-        "It begins in the beginning:",
-        "From each chapter(normal) :",
-        "From each chapter(debug)  :",
-        "sub game                  :",
-        "PalmBrink's               :",
-        "event                     :",
-        "boss battle               :",
-        "future map                :",
-        "diorama map               :",
-        "HDD                       :",
-        "extra                     :",
-        ""
-    };
-
-/**
- * Persistent row values selected by the chapter and event debug menu.
- */
-static int menu_sel_1452[11] = {0};
-
-/**
- * Microprogram addresses loaded when the main game loop starts.
- */
-static u_long128 *vu_prog_1048[16];
 
 // Code (.text)
 CFont *GetDebugFont() {
@@ -509,6 +470,9 @@ void LanguageChange(int language, u_long128 *buffer) {
 }
 
 void MainLoop() {
+    // Microprogram addresses loaded when the main game loop starts.
+    static u_long128 *vu_prog[16];
+
     mgCMemory        *memory;
     mgCMemory        *read_memory;
     CUserDataManager *user_data;
@@ -559,7 +523,7 @@ void MainLoop() {
     GamePad__2.UpDate();
     sceGsSyncV(0);
     GamePad__2.UpDate();
-    mgSetUserVuProg(vu_prog_1048, 16);
+    mgSetUserVuProg(vu_prog, 16);
     mgSetUserVuProgAdr(0, Vu_prog_wtr);
     InitPadTable(LanguageCode);
     GameItemDataManage.LoadData();
@@ -895,6 +859,14 @@ void MenuInit(INIT_LOOP_ARG arg) {
  *
  */
 static int MenuLoop() {
+    // Rows displayed by the main debug menu.
+    static char *menu[] = {
+        "game start ", "map        ", "dungeon    ", "title      ",
+        "chrview    ", "texview    ", "mapview    ", "sound view ",
+        "movie view ", "Language   ", "Item       ", "Save Data  ",
+        "Load cfg   ", "Convert Save Data ", ""
+    };
+
     mgCTextureManager *textures = &mgTexManager;
     int map_result;
 
@@ -1009,15 +981,15 @@ static int MenuLoop() {
     if (CaptureMode > CAPTURE_PLAY_SCREEN) {
         CaptureMode = CAPTURE_OFF;
     }
-    while (menu_1281[row][0] != '\0') {
+    while (menu[row][0] != '\0') {
         if (row == DEBUG_ROW_ITEM_SET) {
-            text_end += sprintf(text_end, "%s%s%s\n", cursor[row == select], menu_1281[row], item_set[menu_arguments[row]]);
+            text_end += sprintf(text_end, "%s%s%s\n", cursor[row == select], menu[row], item_set[menu_arguments[row]]);
         } else if (row == DEBUG_ROW_LANGUAGE) {
-            text_end += sprintf(text_end, "%s%s%s (now %s)\n", cursor[row == select], menu_1281[row], language[menu_arguments[row]], language[LanguageCode]);
+            text_end += sprintf(text_end, "%s%s%s (now %s)\n", cursor[row == select], menu[row], language[menu_arguments[row]], language[LanguageCode]);
         } else if (row <= 0) {
-            text_end += sprintf(text_end, "%s%s\n", cursor[row == select], menu_1281[row]);
+            text_end += sprintf(text_end, "%s%s\n", cursor[row == select], menu[row]);
         } else {
-            text_end += sprintf(text_end, "%s%s%d\n", cursor[row == select], menu_1281[row], menu_arguments[row]);
+            text_end += sprintf(text_end, "%s%s%d\n", cursor[row == select], menu[row], menu_arguments[row]);
         }
         if (++row >= DEBUG_ROW_NUM) {
             break;
@@ -1087,6 +1059,25 @@ void InitEventSelect() {
  *
  */
 static int EventSelect() {
+    // Persistent row values selected by the chapter and event debug menu.
+    static int menu_sel[11] = {0};
+
+    // Rows displayed by the chapter and event debug menu.
+    static char *menu[12] = {
+        "It begins in the beginning:",
+        "From each chapter(normal) :",
+        "From each chapter(debug)  :",
+        "sub game                  :",
+        "PalmBrink's               :",
+        "event                     :",
+        "boss battle               :",
+        "future map                :",
+        "diorama map               :",
+        "HDD                       :",
+        "extra                     :",
+        ""
+    };
+
     int           result;
 
     if (event_view != 0) {
@@ -1145,61 +1136,61 @@ static int EventSelect() {
         select = 0;
     }
     if (GamePad__2.Down(PAD_RIGHT)) {
-        menu_sel_1452[select]++;
+        menu_sel[select]++;
     }
     if (GamePad__2.Down(PAD_LEFT)) {
-        menu_sel_1452[select]--;
+        menu_sel[select]--;
     }
     switch (select) {
         case 1:
         case 2:
-            if (menu_sel_1452[select] < 0) {
-                menu_sel_1452[select] = 0;
+            if (menu_sel[select] < 0) {
+                menu_sel[select] = 0;
             }
-            if (menu_sel_1452[select] > 6) {
-                menu_sel_1452[select] = 6;
+            if (menu_sel[select] > 6) {
+                menu_sel[select] = 6;
             }
             break;
         case 3:
-            if (menu_sel_1452[select] < 0) {
-                menu_sel_1452[select] = 0;
+            if (menu_sel[select] < 0) {
+                menu_sel[select] = 0;
             }
-            if (menu_sel_1452[select] > 2) {
-                menu_sel_1452[select] = 2;
+            if (menu_sel[select] > 2) {
+                menu_sel[select] = 2;
             }
             break;
         case 8:
-            if (menu_sel_1452[select] < 0) {
-                menu_sel_1452[select] = 0;
+            if (menu_sel[select] < 0) {
+                menu_sel[select] = 0;
             }
-            if (menu_sel_1452[select] > 4) {
-                menu_sel_1452[select] = 4;
+            if (menu_sel[select] > 4) {
+                menu_sel[select] = 4;
             }
             break;
         case 10:
-            if (menu_sel_1452[select] < 0) {
-                menu_sel_1452[select] = 0;
+            if (menu_sel[select] < 0) {
+                menu_sel[select] = 0;
             }
-            if (menu_sel_1452[select] > 1) {
-                menu_sel_1452[select] = 1;
+            if (menu_sel[select] > 1) {
+                menu_sel[select] = 1;
             }
             break;
     }
 
     text += sprintf(text, "\n\x83\x5F\x81\x5B\x83\x4E\x83\x4E\x83\x8D\x83\x6A\x83\x4E\x83\x8B\x83\x56\x83\x58\x83\x65\x83\x80\x92\xB2\x90\xAE" "ROM %s %s\n", "2003/07/29", "Ver0.334");
-    for (; menu_1457[row][0] != '\0'; row++) {
-        text += sprintf(text, "%s%s", cursor[row == select], menu_1457[row]);
+    for (; menu[row][0] != '\0'; row++) {
+        text += sprintf(text, "%s%s", cursor[row == select], menu[row]);
         switch (row) {
             case 1:
             case 2:
-                text += sprintf(text, "%d\x8F\xCD", menu_sel_1452[row] + 1);
+                text += sprintf(text, "%d\x8F\xCD", menu_sel[row] + 1);
                 break;
             case 3:
             case 10:
-                text += sprintf(text, "%s", subgame_name[menu_sel_1452[row]]);
+                text += sprintf(text, "%s", subgame_name[menu_sel[row]]);
                 break;
             case 8:
-                if (GetMapName(menu_sel_1452[row], &map_name)) {
+                if (GetMapName(menu_sel[row], &map_name)) {
                     text += sprintf(text, "%s", map_name);
                 }
                 break;
@@ -1238,7 +1229,7 @@ static int EventSelect() {
             case 1:
             case 2:
                 {
-                    switch (menu_sel_1452[select]) {
+                    switch (menu_sel[select]) {
                         case 0:
                             arg.floor_no = 1;
                             loop_no = LOOP_DUNGEON;
@@ -1269,19 +1260,19 @@ static int EventSelect() {
                             arg.event_no = 502;
                             break;
                     }
-                    if (menu_sel_1452[select] >= 2) {
+                    if (menu_sel[select] >= 2) {
                         monica = 1;
                     }
                     if (select == 1) {
-                        sprintf(config_name, "cap%d.cfg", menu_sel_1452[select] + 1);
+                        sprintf(config_name, "cap%d.cfg", menu_sel[select] + 1);
                     } else {
-                        sprintf(config_name, "db_cap%d.cfg", menu_sel_1452[select] + 1);
+                        sprintf(config_name, "db_cap%d.cfg", menu_sel[select] + 1);
                     }
                     break;
                 }
             case 3:
                 {
-                    int subgame = menu_sel_1452[select];
+                    int subgame = menu_sel[select];
                     switch (subgame) {
                         case 0:
                             arg.floor_no = 1;
@@ -1312,7 +1303,7 @@ static int EventSelect() {
                 future_sel = 1;
                 return 0;
             case 8:
-                arg.map_no = menu_sel_1452[select];
+                arg.map_no = menu_sel[select];
                 sprintf(config_name, "geo.cfg");
                 break;
             case 9:
@@ -1321,7 +1312,7 @@ static int EventSelect() {
                 return 0;
             case 10:
                 InitSaveData();
-                InitOmakeEnv(menu_sel_1452[select], &arg, &loop_no);
+                InitOmakeEnv(menu_sel[select], &arg, &loop_no);
                 NextLoop(loop_no, arg);
                 return 1;
         }
