@@ -76,8 +76,8 @@ static COSBIT_INFO cosbit_table[MC_COSTUME_COUNT] = {
     {0x10A, 32, 0},
     {0x10B, 33, 0},
 };
-extern const char at_1315__3[5];
-extern char       at_1954[0x2B];
+static const char at_1315__3[] = "test";
+static const char at_1954[] = "/BESCES-51190dc2omake/BESCES-51190dc2omake";
 
 /**
  *
@@ -2557,10 +2557,6 @@ COSBIT_INFO *GetCosInfo(int costume_no) {
 
     return NULL;
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1315__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/memcard", at_1954__DATA);
 
 // Small initialised data (.sdata)
 s16 NowProgramLoopNo = -1;

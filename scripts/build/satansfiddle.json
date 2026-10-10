@@ -1762,6 +1762,15 @@
         "value_bits": "0x00000000",
         "evaluate_first": true,
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "menuchr.cpp",
+        "function": "MenuCostumeInit__FP9mgCMemoryPii",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "__ct__15mgCCameraFollowFffff",
+        "evaluate_first": true,
+        "expected_matches": 1
       }
     ]
   },
@@ -2054,6 +2063,94 @@
         "constructor": "__ct__18mgCVisualMotionMDTFv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
+      },
+      {
+        "translation_unit": "menushop.cpp",
+        "function": "MenuNPCQuestViewInit__FP9mgCMemoryPii",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__14CMenuQuestViewFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "mg_dataset.cpp",
+        "function": "End__13mgCMDTBuilderFP8mgCFrameP12mgCVisualMDTP10mgLoadData",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12mgCFrameAttrFv",
+        "conversion": "after_constructor_walk",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "mg_dataset.cpp",
+        "function": "CopyFrame__FP8mgCFrameP8mgCFrameP9mgCMemoryiPP8mgCFrame",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12mgCFrameAttrFv",
+        "conversion": "after_constructor_walk",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "scenevillager.cpp",
+        "function": "CharaObjectOnOff__6CSceneFiP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__12mgCFrameAttrFv",
+        "conversion": "after_constructor_walk",
+        "expected_matches": 2
+      },
+      {
+        "translation_unit": "water.cpp",
+        "function": "CreateWaterFrame__FiiPfPfP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CWaterFrameFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "water.cpp",
+        "function": "CreateWaterFrame__FiiPfPfP9mgCMemory",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__6CWaterFv",
+        "conversion": "after_constructor_walk",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "effscript.cpp",
+        "function": "CreateEffSpt__16CEffectScriptManFiii",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11_EFF_SCRIPTFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "effscript.cpp",
+        "function": "CreateEffSpt__16CEffectScriptManFiii",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__11CCharacter2Fv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "editloop.cpp",
+        "function": "EditInit__F13INIT_LOOP_ARG",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__15CMapTreasureBoxFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "editloop.cpp",
+        "function": "EditInit__F13INIT_LOOP_ARG",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__16CEffectScriptManFv",
+        "conversion": "after_constructor_inline",
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "editloop.cpp",
+        "function": "EditInit__F13INIT_LOOP_ARG",
+        "allocator": "__nw__FUiP1",
+        "constructor": "__ct__14CCameraControlFv",
+        "conversion": "after_constructor_walk",
+        "expected_matches": 5
       }
     ]
   }

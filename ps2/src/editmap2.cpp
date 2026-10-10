@@ -997,7 +997,3 @@ int CEditMap::GetSeSrcVolPan(int *se_no, float *vol, float *pan, int max) {
 
     return count;
 }
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(cnt_482, 0x4);
-INCLUDE_BSS(init_483, 0x4);

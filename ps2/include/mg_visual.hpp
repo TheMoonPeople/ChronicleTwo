@@ -170,6 +170,17 @@ public:
 
     /**
      *
+     * Returns one of the model's materials, or NULL when the model has no materials or the index
+     * is out of range.
+     *
+     * @mangled GetMaterial__12mgCVisualMDTFi
+     * @address 0x13F5D0
+     * @size 0x4C
+     */
+    virtual mgMaterial *GetMaterial(int index);
+
+    /**
+     *
      * Returns the kind of this visual.
      *
      * @mangled Iam__12mgCVisualMDTFv
@@ -197,17 +208,6 @@ public:
      * @size 0xC
      */
     virtual mgMaterial *GetpMaterial();
-
-    /**
-     *
-     * Returns one of the model's materials, or NULL when the model has no materials or the index
-     * is out of range.
-     *
-     * @mangled GetMaterial__12mgCVisualMDTFi
-     * @address 0x13F5D0
-     * @size 0x4C
-     */
-    virtual mgMaterial *GetMaterial(int index);
 
     /**
      *
@@ -471,16 +471,6 @@ public:
 
     /**
      *
-     * Returns the kind of this visual.
-     *
-     * @mangled Iam__13mgCVisualPrimFv
-     * @address 0x13C2F0
-     * @size 0x8
-     */
-    virtual int Iam();
-
-    /**
-     *
      * Writes and sends the packet that sets up drawing the primitives: the GS modes and the draw
      * environment adjusted by the visual's settings, and returns its length in quadwords.
      *
@@ -489,6 +479,16 @@ public:
      * @size 0x11C
      */
     virtual int CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *info);
+
+    /**
+     *
+     * Returns the kind of this visual.
+     *
+     * @mangled Iam__13mgCVisualPrimFv
+     * @address 0x13C2F0
+     * @size 0x8
+     */
+    virtual int Iam();
 
     /**
      *
@@ -704,7 +704,7 @@ extern mgVisualGifTag giftag;
  * @address 0x338330
  * @size 0x10
  */
-extern u_long128 set_tex0_dma;
+extern u_int set_tex0_dma[4];
 
 /**
  *
@@ -714,7 +714,7 @@ extern u_long128 set_tex0_dma;
  * @address 0x338340
  * @size 0x10
  */
-extern u_long128 set_tex0_giftag;
+extern u_int set_tex0_giftag[4];
 
 /**
  *
@@ -724,7 +724,7 @@ extern u_long128 set_tex0_giftag;
  * @address 0x338350
  * @size 0x10
  */
-extern u_long128 set_texa_dma;
+extern u_int set_texa_dma[4];
 
 /**
  *
@@ -734,7 +734,7 @@ extern u_long128 set_texa_dma;
  * @address 0x338360
  * @size 0x10
  */
-extern u_long128 set_texa_giftag;
+extern u_int set_texa_giftag[4];
 
 /**
  *
@@ -744,7 +744,7 @@ extern u_long128 set_texa_giftag;
  * @address 0x3383A0
  * @size 0x10
  */
-extern u_long128 mat_vif;
+extern u_int mat_vif[4];
 
 /**
  *
@@ -754,7 +754,7 @@ extern u_long128 mat_vif;
  * @address 0x3383B0
  * @size 0x10
  */
-extern u_long128 mat_vif_dif;
+extern u_int mat_vif_dif[4];
 
 /**
  *
@@ -764,7 +764,7 @@ extern u_long128 mat_vif_dif;
  * @address 0x3383C0
  * @size 0x10
  */
-extern u_long128 mat_vif_d;
+extern u_int mat_vif_d[4];
 
 /**
  *
@@ -784,7 +784,7 @@ extern u_long128 mat_pw;
  * @address 0x3383E0
  * @size 0x10
  */
-extern u_long128 mat_vif_d_tex;
+extern u_int mat_vif_d_tex[4];
 
 /**
  *

@@ -38,11 +38,15 @@
 #include "snd_seseq.hpp"
 #include "water.hpp"
 
-extern char at_2882[];
-extern char at_1107__2[];
-extern int  chill_tex_rect_910[6][3];
-extern char at_1051[];
-extern char at_1214__2[];
+static const char at_1107__2[] = "br = %.2f\n";
+static int chill_tex_rect_910[6][3] = {
+    {0, 0, 32},
+    {32, 0, 32},
+    {0, 32, 32},
+    {32, 32, 32},
+    {64, 0, 64},
+    {0, 64, 64},
+};
 
 // Code (.text)
 /**
@@ -517,7 +521,7 @@ void CFireAfterHit::Step() {
     }
 }
 
-extern int gb_tbl_1052[3];
+static int gb_tbl_1052[3] = {86, 48, 32};
 
 void CFireAfterHit::Draw() {
     float                 vec[4];
@@ -798,8 +802,22 @@ void CThunder::SetPos(float *pos, float width, float power) {
     }
 }
 
-extern float thn_tbl[6][4];
-extern float thn_uv[6][4];
+static float thn_tbl[6][4] = {
+    {4.0f, 3.0f, 0.0f, 0.0f},
+    {4.0f, 3.0f, 0.0f, 0.0f},
+    {4.0f, 3.0f, 0.0f, 0.0f},
+    {3.0f, 2.0f, 0.0f, 0.0f},
+    {3.0f, 2.0f, 0.0f, 0.0f},
+    {4.5f, 3.5f, 0.0f, 0.0f},
+};
+static float thn_uv[6][4] = {
+    {0.0f, 0.0f, 32.0f, 32.0f},
+    {32.0f, 0.0f, 32.0f, 32.0f},
+    {0.0f, 32.0f, 32.0f, 32.0f},
+    {32.0f, 32.0f, 32.0f, 32.0f},
+    {0.0f, 64.0f, 32.0f, 32.0f},
+    {0.0f, 96.0f, 64.0f, 32.0f},
+};
 
 static inline void ClearSprite(mgC3DSprite *sprite) {
     sprite->packet = 0;
@@ -2996,7 +3014,7 @@ void CWeaponElement::Draw_Cold() {
     mgCTexture *tex;
     int         i;
 
-    tex = mgTexManager.GetTexture(at_2882, -1);
+    tex = mgTexManager.GetTexture("effect02", -1);
     sceVu0CopyVector(base, *origin);
     pos.w = 0x3F800000;
 
@@ -3168,7 +3186,7 @@ void CWeaponElement::Draw_Wind() {
     mgCTexture *tex;
     int         i;
 
-    tex = mgTexManager.GetTexture(at_2882, -1);
+    tex = mgTexManager.GetTexture("effect02", -1);
     sceVu0CopyVector(base, *origin);
     pos.w = 0x3F800000;
 
@@ -3338,7 +3356,7 @@ void CWeaponElement::Draw_Fire() {
     mgCTexture *tex;
     int         i;
 
-    tex = mgTexManager.GetTexture(at_2882, -1);
+    tex = mgTexManager.GetTexture("effect02", -1);
     sceVu0CopyVector(base, fire_pos);
     pos.w = 0x3F800000;
 
@@ -3476,7 +3494,7 @@ void CWeaponElement::Draw_Thunder() {
     int         i;
     int         j;
 
-    tex = mgTexManager.GetTexture(at_2882, -1);
+    tex = mgTexManager.GetTexture("effect02", -1);
     sceVu0CopyVector(base, *origin);
     CPreSprite prim;
     int        quad_a[4];
@@ -3739,21 +3757,3 @@ int iRand(int limit) {
 float fRand(float limit) {
     return (limit * (float) rand()) / 2.1474836e9f;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_effect", chill_tex_rect_910__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_effect", gb_tbl_1052__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_effect", thn_tbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_effect", thn_uv__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_effect", at_1215__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_effect", at_1216__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_effect", at_3214__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_effect", at_1107__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_effect", at_1981__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_effect", at_2882__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1051, 0x10);
-INCLUDE_BSS(at_1214__2, 0x10);

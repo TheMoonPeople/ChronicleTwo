@@ -605,7 +605,6 @@ int GetObjectNameList(char *names, CCharacter2 *chara, mgCFrame **frames, int ma
     return count;
 }
 
-#ifdef NONMATCHING
 void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
     mgCFrame        *frames[16];
     CVillagerInfo   *info;
@@ -666,9 +665,6 @@ void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenevillager", CharaObjectOnOff__6CSceneFiP9mgCMemory);
-#endif
 
 int CScene::LoadVillager(int map_no, int texb) {
     int                 chara_nos[32];

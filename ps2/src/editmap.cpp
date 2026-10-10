@@ -30,14 +30,13 @@ union EditVector {
     u_long128 quad;      /**< Quadword copy view. */
 };
 
+static EditVector at_1837__2 = {{0.0f, 1.0f, 0.0f, 0.0f}};
+
 const int kRiverPolyFlag = 0x10;
 const int kEditPartsPolyFlag = 0x1000;
 const int kMaxInfoId = 0x100;
 const int kInfoFixedFlag = 0x1;
 const int kInfoRiverRelatedFlag = 0x80000;
-
-extern EditVector at_1837__2;
-extern EditVector at_426;
 
 /**
  * Class name returned by the editor map object.
@@ -220,7 +219,8 @@ void CEditMap::ClearAllParts() {
 
     for (; k < info_mngr.fix_parts_num; k++) {
         initial = (ePlaceData *) ((u8 *) info_mngr.fix_parts + initial_offset);
-        *(EditVector *) rotation = at_426;
+        static EditVector zero_rotation;
+        *(EditVector *) rotation = zero_rotation;
         rotation[1] = GetEditAngle(initial->angle);
         info = info_mngr.GetePartsInfoAtID(initial->id);
         placed = 0;
@@ -2549,9 +2549,3 @@ void CEditMap::LoadEditInfo(char *script, int size, mgCMemory *stack) {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmap", at_1837__2__DATA);
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_426, 0x10);

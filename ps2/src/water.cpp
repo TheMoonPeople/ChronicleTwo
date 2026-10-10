@@ -908,7 +908,6 @@ void CWaterFrame::CreatePacket() {
     GetWater()->CreatePacket(&mgDrawManager);
 }
 
-#ifdef NONMATCHING
 CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgCMemory *memory) {
     CWaterFrame  *frame;
     CWater       *water;
@@ -943,9 +942,6 @@ CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgC
     frame->SetBBox(max, min);
     return frame;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/water", CreateWaterFrame__FiiPfPfP9mgCMemory);
-#endif
 
 void CWaterFrame::Initialize() {
     unk_110 = 0;

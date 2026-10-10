@@ -206,7 +206,7 @@ struct aqua_col_point {
 
 STATIC_ASSERT(sizeof(aqua_col_point) == 0x20);
 
-extern "C" aqua_vector at_1346;
+static aqua_vector at_1346 = {{0.0f, 0.0f, 1.0f, 1.0f}};
 
 /**
  *
@@ -220,10 +220,10 @@ struct aqua_light_env {
     int           plight_enable;     /**< Whether the point light is enabled. */
 };
 
-extern "C" aqua_vector at_3290;
-extern "C" aqua_vector at_3291__3;
-extern "C" aqua_vector at_3310;
-extern "C" aqua_vector at_3311;
+static aqua_vector at_3290 = {{0.0f, 0.0f, 1.0f, 1.0f}};
+static aqua_vector at_3291__3 = {{0.0f, 0.0f, 0.0f, 1.0f}};
+static aqua_vector at_3310 = {{0.0f, 0.0f, 1.0f, 1.0f}};
+static aqua_vector at_3311 = {{0.0f, 0.0f, 0.0f, 1.0f}};
 
 extern int menu_debug_flag;
 
@@ -8615,12 +8615,6 @@ void DrawSubGameUnderLine(mgCTexture *texture, int x, int y, int width) {
     prim->End();
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_1346__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3290__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3291__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3310__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuaqua", at_3311__DATA);
 
 // Uninitialised data (.bss)
 mgCMemory Aquarium_NameregistStack;

@@ -42,8 +42,8 @@
 #include "userdata.hpp"
 #include "water.hpp"
 
-extern int            gekirin_anim[16];
-extern "C" const char at_1221__2[];
+static int gekirin_anim[16] = {0, 3, 6, 5, 4, 3, 2, 1, 3, 4, 3, 2, 1, 2, 1, 0};
+static const char at_1221__2[] = "%d";
 
 // Code (.text)
 void CLevelupInfo::SetLevelUpInfo(int screen_x, int screen_y, int source, int value) {
@@ -1047,12 +1047,3 @@ void CLockOnModel::Initialize(CScene *scene) {
     this->scene = scene;
     name = NULL;
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_hud", gekirin_anim__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_hud", at_1221__2__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_hud", __vt__12CLockOnModel__DATA);

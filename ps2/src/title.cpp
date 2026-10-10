@@ -48,8 +48,8 @@
  */
 static s16 TitleOmakeFlag;
 
-extern TITLE_INFO *TitleInfo;
-extern float       TitleProjection;
+static TITLE_INFO *TitleInfo;
+static float TitleProjection = 480.0f;
 void               TitleMCCheckDraw();
 void               TitleCopyRightDraw();
 void               RushMovieDraw();
@@ -68,7 +68,7 @@ void               TitleDraw();
 void               DrawMenuDl(int x, int y, int width, int alpha, float rate);
 int                GetSelectLanguageNo();
 void               TitleHDDInstallDraw();
-extern CScene     *TitleScene;
+static CScene     *TitleScene;
 
 /**
  *
@@ -149,49 +149,53 @@ static int TitleCameraPhase;
 
 extern u8               TitleMCFuncFlag;
 extern u8               TitleMCCheckNow;
-extern s16              TitleMainMCCheckPhase;
-extern mgCCameraFollow *TitleCamera;
-extern mgCCamera       *TitleCamera2;
-extern CWaveTable      *WaveTable__3;
-extern CMap            *TitleMap;
+static s16              TitleMainMCCheckPhase;
+static mgCCameraFollow *TitleCamera;
+static mgCCamera       *TitleCamera2;
+static CWaveTable      *WaveTable__3;
+static CMap            *TitleMap;
 extern s8               DCRuncherMode;
-extern int              DCRuncherCounter;
-extern u_int            TitleEventSound;
-extern mgCTexture      *Tex_TitleBG;
-extern mgCTexture      *Tex_Chronicle;
-extern mgCTexture      *Tex_Logo;
-extern mgCTexture      *Tex_Plate;
-extern mgCTexture      *Tex_TitleLight;
-extern mgCTexture      *Tex_TitleCursor;
-extern mgCTexture      *Tex_TrialMsg;
-extern mgCTexture      *Tex_TitleBG2;
-extern char             at_1221__4[];
-extern char             at_1222__4[];
-extern char             at_1223__4[];
-extern char             at_1224__4[];
-extern char             at_1225__4[];
-extern char             at_1226__4[];
-extern char             at_1227__3[];
-extern char             at_1228__3[];
-extern char             at_1229__2[];
-extern char             at_1230__2[];
-extern char             at_1231__2[];
-extern char             at_1232__2[];
-extern char             at_1233[];
-extern char             at_1235[];
-extern char             at_1236[];
-extern char             at_1237__2[];
-extern char             at_1238[];
-extern char             at_1239__2[];
-extern MC_ICON_DATA     MC_ICON_Data[3];
+static int              DCRuncherCounter;
+static u_int            TitleEventSound;
+static mgCTexture      *Tex_TitleBG;
+static mgCTexture      *Tex_Chronicle;
+static mgCTexture      *Tex_Logo;
+static mgCTexture      *Tex_Plate;
+static mgCTexture      *Tex_TitleLight;
+static mgCTexture      *Tex_TitleCursor;
+static mgCTexture      *Tex_TrialMsg;
+static mgCTexture      *Tex_TitleBG2;
+extern const char at_1221__4[] = "s19";
+extern const char at_1222__4[] = "img/water_ref.img";
+extern const char at_1224__4[] = "title/title%d.img";
+extern const char at_1225__4[] = "bg";
+extern const char at_1226__4[] = "chro";
+extern const char at_1227__3[] = "moji";
+extern const char at_1228__3[] = "plate";
+extern const char at_1229__2[] = "kage";
+extern const char at_1230__2[] = "mnmain";
+extern const char at_1231__2[] = "tr_mes";
+extern const char at_1232__2[] = "bg2";
+extern const char at_1233[] = "save.pac";
+extern const char at_1235[] = "meswin/pushstart.img";
+extern const char at_1236[] = "pushstart";
+extern const char at_1237__2[] = "men0.pac";
+extern const char at_1238[] = "mm";
+extern const char at_1239__2[] = "snd2/event/EV_600_000.snd";
+
+static MC_ICON_DATA MC_ICON_Data[3] = {
+    {"dc2_ic.ico", NULL, 0},
+    {"dc2_ic_c.ico", NULL, 0},
+    {"dc2_ic_d.ico", NULL, 0},
+};
 void                    TitleModeInit();
 void                    CalcPushAlpha(int index, float *alpha);
 void                    TitleMCCheckInit(int boot_mode);
 int                     CheckAppInstallForTitle();
-extern mgCTexture      *RushStart;
+static mgCTexture      *RushStart;
 extern s8               TitleBootEventNo;
 extern u8               GameBootInit;
-extern u8               TitleHDDCheckFlag;
+static u8 TitleHDDCheckFlag = 1;
 static void             TitleBootInit();
 
 /**
@@ -242,8 +246,8 @@ static HDD_INFO HDDINFO;
  *
  */
 static mgCMemory   lang_stack;
-extern CMovie     *RushMovie;
-extern mgCTexture *RushWork;
+static CMovie     *RushMovie;
+static mgCTexture *RushWork;
 
 /**
  *
@@ -258,8 +262,6 @@ static RUSH_INFO RushInfo;
  *
  */
 static s8 debug_start_drawflag;
-
-extern char at_1234[];
 
 /**
  *
@@ -408,7 +410,7 @@ static s8 TitleSkipLogoFlag;
  */
 static ClsMes *TitleMCCheckMes;
 
-extern CMemoryCardManager *TitleMCCheck;
+static CMemoryCardManager *TitleMCCheck;
 
 /**
  *
@@ -722,8 +724,9 @@ static void TitleBootInit() {
     TitleScene->before_camera = 0;
     TitleScene->SetStack(1, &TitleMapBuffer);
     TitleScene->work_stack = &TitleWorkBuffer;
+    int map_no;
     u8 *map_buffer = (u8 *) DataBuffer.stGetTop();
-    int map_no = SearchMapNo(at_1221__4);
+    map_no = SearchMapNo("s19");
     TitleScene->active_map = 0;
     MapJumpMapInfo    main_map;
     SCN_LOADMAP_INFO2 load_info;
@@ -743,26 +746,27 @@ static void TitleBootInit() {
     TitleScene->SetActive(SCENE_DATA_MAP, 0);
     TitleMap = TitleScene->GetMap(TitleScene->active_map);
     int file_size;
-    if (LoadFile2(at_1222__4, DataBuffer.stAllocTest(1), &file_size, 0) != 0) {
-        textures->EnterIMGFile((u_char *) DataBuffer.Alloc(Align16Blocks(file_size)), 0x6A, NULL, NULL);
+    int water_file_size;
+    if (LoadFile2("img/water_ref.img", DataBuffer.stAllocTest(1), &water_file_size, 0) != 0) {
+        textures->EnterIMGFile((u_char *) DataBuffer.Alloc(Align16Blocks(water_file_size)), 0x6A, NULL, NULL);
     }
-    textures->EnterTexture(0x6A, at_1223__4, NULL, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
+    textures->EnterTexture(0x6A, "water_work", NULL, mgScreenWidth, mgScreenHeight, 0x20, 0, 0, 0);
     char lang_file[0x40];
-    sprintf(lang_file, at_1224__4, LanguageCode);
+    sprintf(lang_file, "title/title%d.img", LanguageCode);
     LoadFile2(lang_file, map_buffer, &file_size, 0);
     DataBuffer.Alloc(Align16Blocks(file_size));
     textures->EnterIMGFile(map_buffer, 0x40, NULL, NULL);
-    Tex_TitleBG = textures->GetTexture(at_1225__4, -1);
-    Tex_Chronicle = textures->GetTexture(at_1226__4, -1);
-    Tex_Logo = textures->GetTexture(at_1227__3, -1);
-    Tex_Plate = textures->GetTexture(at_1228__3, -1);
-    Tex_TitleLight = textures->GetTexture(at_1229__2, -1);
-    Tex_TitleCursor = textures->GetTexture(at_1230__2, -1);
-    Tex_TrialMsg = textures->GetTexture(at_1231__2, -1);
-    Tex_TitleBG2 = textures->GetTexture(at_1232__2, -1);
+    Tex_TitleBG = textures->GetTexture("bg", -1);
+    Tex_Chronicle = textures->GetTexture("chro", -1);
+    Tex_Logo = textures->GetTexture("moji", -1);
+    Tex_Plate = textures->GetTexture("plate", -1);
+    Tex_TitleLight = textures->GetTexture("kage", -1);
+    Tex_TitleCursor = textures->GetTexture("mnmain", -1);
+    Tex_TrialMsg = textures->GetTexture("tr_mes", -1);
+    Tex_TitleBG2 = textures->GetTexture("bg2", -1);
     DataBuffer.Align64();
     u_long128 *save_pack = &DataBuffer.stGetTop()[0x4100];
-    if (LoadFileMenu(at_1233, save_pack, MENU_FILE_LOAD_DIRECT) != 0) {
+    if (LoadFileMenu("save.pac", save_pack, MENU_FILE_LOAD_DIRECT) != 0) {
         for (int i = 0; i < 3; i++) {
             u_int *icon_file = GetPackFile((u_int *) save_pack, MC_ICON_Data[i].name, &MC_ICON_Data[i].size);
             MC_ICON_Data[i].data = DataBuffer.Alloc(Align16Blocks(MC_ICON_Data[i].size));
@@ -771,13 +775,13 @@ static void TitleBootInit() {
     }
     TitleMCCheck->SetIconData(MC_ICON_Data, 0);
     textures->DeleteBlock(0x43);
-    RushWork = textures->EnterTexture(0x43, at_1234, NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
+    RushWork = textures->EnterTexture(0x43, "moviework", NULL, mgScreenWidth, mgScreenHeight, mgScreenDepth, 0, 0, 0);
     DataBuffer.Align64();
     u_long128 *push_start_img = DataBuffer.stGetTop();
-    if (LoadFile2(at_1235, push_start_img, &file_size, 0) != 0) {
+    if (LoadFile2("meswin/pushstart.img", push_start_img, &file_size, 0) != 0) {
         textures->EnterIMGFile((u_char *) push_start_img, 0x43, NULL, NULL);
     }
-    RushStart = textures->GetTexture(at_1236, 0x43);
+    RushStart = textures->GetTexture("pushstart", 0x43);
     DataBuffer.Alloc(Align16Blocks(file_size));
     mgCMemory snd_memory;
     snd_memory.stSetBuffer(DataBuffer.stGetTop(), 0x280);
@@ -792,22 +796,23 @@ static void TitleBootInit() {
     MenuArg.tex_block_top = 0x54;
     MenuArg.tex_block_num = 0x10;
     MenuArg.pack = (u_int *) DataBuffer.stGetTop();
-    file_size = LoadFileMenu(at_1237__2, (u_long128 *) MenuArg.pack, MENU_FILE_LOAD_DIRECT);
+    file_size = LoadFileMenu("men0.pac", (u_long128 *) MenuArg.pack, MENU_FILE_LOAD_DIRECT);
     DataBuffer.Alloc(Align16Blocks(file_size));
     DataBuffer.Align64();
     CActionChara *chara = new ((u_long128 *) DataBuffer.Alloc(0x105)) CActionChara;
     chara->Initialize(NULL);
-    TitleScene->AssignChara(0, chara, at_1238);
+    TitleScene->AssignChara(0, chara, "mm");
     DataBuffer.Align64();
     u_long128 *sound_buffer = DataBuffer.stGetTop();
     TitleScene->LoadSound(0x1F4, sound_buffer);
     TitleScene->StopEnvBGM();
     sndWaitTransBd();
-    LoadFile2(at_1239__2, sound_buffer, &file_size, 0);
+    LoadFile2("snd2/event/EV_600_000.snd", sound_buffer, &file_size, 0);
     sndInitPort(4);
     TitleEventSound = sndLoadSound((int) SND_PORT_EVENT, (u_int *) sound_buffer, &snd_memory);
     DataBuffer.Align64();
-    Stack_ReadBuff.stSetBuffer(DataBuffer.stGetTop(), DataBuffer.stGetRest());
+    int read_buffer_size = DataBuffer.stGetRest();
+    Stack_ReadBuff.stSetBuffer(DataBuffer.stGetTop(), read_buffer_size);
     read_buffer = Stack_ReadBuff.stGetTop();
     TitleScene->read_buff = read_buffer;
     TitleScene->fade.Initialize();
@@ -1308,7 +1313,7 @@ void InitRushMovie(int movie_no) {
     u_long128 *buffer = Stack_ReadBuff.stGetTop();
     memory.stSetBuffer(buffer, remaining);
     RushMovie->Load("RUSH.PSS", &memory, 512, 416, true, false);
-    RushMovie->Play(at_1234);
+    RushMovie->Play("moviework");
     RushMovie->SwitchThread();
 
     while (RushMovie->IsStarted() == 0) {
@@ -2110,7 +2115,7 @@ void TitleMapDraw() {
     }
 
     mgSetPkTextureRepeat(0);
-    mgCTexture      *screen = textures->GetTexture(at_1223__4, 0x6A);
+    mgCTexture      *screen = textures->GetTexture("water_work", 0x6A);
     mgCTexture      *overlay = textures->GetTexture("ref", 0x6A);
     mgCCameraFollow *follow = (mgCCameraFollow *) camera;
     mgCCamera       *water_camera = TitleScene->GetCamera(TitleScene->active_camera);
@@ -2506,7 +2511,7 @@ int TitleCopyRightStep() {
                 memory.stSetBuffer(buffer, remaining);
                 DrawMenuFillBox(0x80, 0, 0, 0);
                 RushMovie->Load("L5LOGO.PSS", &memory, 512, 416, true, false);
-                RushMovie->Play(at_1234);
+                RushMovie->Play("moviework");
                 RushMovie->SwitchThread();
 
                 while (RushMovie->IsStarted() == 0) {
@@ -3336,59 +3341,9 @@ void TitleLangSelDraw() {
     }
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", MC_ICON_Data__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1221__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1222__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1223__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1224__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1225__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1226__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1227__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1228__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1229__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1230__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1231__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1232__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1233__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1234__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1235__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1236__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1237__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1238__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", at_1239__2__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleProjection__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/title", TitleHDDCheckFlag__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(TitleSelectInit, 0x4);
-INCLUDE_BSS(TitleMap, 0x4);
-INCLUDE_BSS(TitleCamera, 0x4);
-INCLUDE_BSS(TitleCamera2, 0x4);
-INCLUDE_BSS(WaveTable__3, 0x4);
+int TitleSelectInit;
 INCLUDE_BSS(GameBootInit, 0x4);
 INCLUDE_BSS(TitleBootEventNo, 0x4);
 INCLUDE_BSS(DCRuncherMode, 0x4);
-INCLUDE_BSS(DCRuncherCounter, 0x4);
-INCLUDE_BSS(TitleInfo, 0x4);
 INCLUDE_BSS(TitleMCFuncFlag, 0x4);
 INCLUDE_BSS(TitleMCCheckNow, 0x4);
-INCLUDE_BSS(TitleMainMCCheckPhase, 0x4);
-INCLUDE_BSS(TitleMCCheck, 0x4);
-INCLUDE_BSS(Tex_TitleBG, 0x4);
-INCLUDE_BSS(Tex_Chronicle, 0x4);
-INCLUDE_BSS(Tex_Logo, 0x4);
-INCLUDE_BSS(Tex_Plate, 0x4);
-INCLUDE_BSS(Tex_TitleLight, 0x4);
-INCLUDE_BSS(Tex_TitleCursor, 0x4);
-INCLUDE_BSS(Tex_TrialMsg, 0x4);
-INCLUDE_BSS(Tex_TitleBG2, 0x4);
-INCLUDE_BSS(RushMovie, 0x4);
-INCLUDE_BSS(RushStart, 0x4);
-INCLUDE_BSS(RushWork, 0x4);
-INCLUDE_BSS(TitleScene, 0x4);
-INCLUDE_BSS(TitleEventSound, 0x4);

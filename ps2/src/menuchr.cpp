@@ -825,8 +825,8 @@ static CMenuChrCngMenu *ChrChangMenuPt;
  */
 static int tbl_2483[MENU_CHARA_LOAD_MAX] = {1, 1, 1, 1, 1, 1, 1};
 
-extern char at_2595__2[];
-extern char at_2596__3[];
+extern const char at_2595__2[] = "chrchg0.pac";
+extern const char at_2596__3[] = "JOININIT";
 
 /**
  *
@@ -3283,7 +3283,7 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     buffer = stack->stack;
 
     if (mode == 4 || mode == 0xE) {
-        file_size = LoadFileMenu(at_2595__2, buffer, 1);
+        file_size = LoadFileMenu("chrchg0.pac", buffer, 1);
         stack->Alloc((file_size & 0xF) ? (file_size >> 4) + 1 : file_size >> 4);
         stack->Align64();
     }
@@ -3346,7 +3346,7 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
         }
 
         ChrChangMenuPt->FadeOutMenu(0x1E, 0.0f);
-        ChrChangMenuPt->ExeScript(at_2596__3);
+        ChrChangMenuPt->ExeScript("JOININIT");
     } else {
         MenuMainScene->fade.FadeIn(1);
         MenuMainScene->fade.FadeStep();
@@ -7345,12 +7345,57 @@ void CMenuCostumeSel::Draw() {
     }
 }
 
-#ifdef NONMATCHING
-void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
-    MenuChangeMemory.stSetBuffer(stack->stGetTop(), stack->stGetRest());
-    MenuCosPtr = new (MenuChangeMemory.Alloc(0x2F)) CMenuCostumeSel;
+inline CMenuCostumeSel::CMenuCostumeSel() : camera(40.0f, 30.0f, 0.0f, 8.0f) {
+    select = 0;
     MenuCosutumeLoadPhase = 0;
-    MenuCosPtr->chara_data = GetUserDataMan()->GetCharaDataPtr(USER_CHARA_MAX);
+    tile_scroll = 0.0f;
+    chara_data = GetUserDataMan()->GetCharaDataPtr(USER_CHARA_MAX);
+    costume_select[0] = 0;
+    costume_select[1] = 0;
+    costume_select[2] = 0;
+    line_wave[0] = 0.0f;
+    line_wave[1] = 0.0f;
+    line_wave[2] = 0.0f;
+    load_wait = 0;
+    loading = 0;
+    wait_load = 0;
+    show_help = 0;
+    cursor_show = 0;
+    chara = 0;
+    monica_enabled = 0;
+    tile_tex = NULL;
+    cursor_tex = NULL;
+    chara_pos[0] = 15.0f;
+    chara_pos[1] = -14.0f;
+    chara_pos[2] = 4.0f;
+    chara_pos[3] = 1.0f;
+    costume_rotation[0] = 0.0f;
+    costume_rotation[1] = 0.1f;
+    costume_rotation[2] = 0.0f;
+    costume_rotation[3] = 1.0f;
+    for (int i = 0; i < COSTUME_LIST_MAX; i++) {
+        costume_list[0][i] = 0;
+        costume_list[1][i] = 0;
+        costume_list[2][i] = 0;
+    }
+    list[0] = costume_list[1];
+    list[1] = costume_list[0];
+    list[2] = costume_list[2];
+    unk_220 = 0;
+    unk_280 = 0;
+    change_chara = 0;
+    camera.SetDistance(100.0f);
+    camera.SetAngle(0.0f);
+    camera.SetHeight(3.0f);
+    camera.SetSpeed(4.0f, -1.0f);
+    camera.SetFollow(0.0f, 0.0f, 0.0f);
+    camera.Step(-1);
+}
+
+void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
+    int buffer_quadwords = stack->stGetRest();
+    MenuChangeMemory.stSetBuffer(stack->stGetTop(), buffer_quadwords);
+    MenuCosPtr = new (MenuChangeMemory.Alloc(0x2F)) CMenuCostumeSel;
     CostumeAttr = 0x1274521CBULL;
     if (MenuArg.param[0] == 1) {
         MenuCosPtr->monica_enabled = 1;
@@ -7365,9 +7410,6 @@ void MenuCostumeInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuArg.result[2] = 0;
     MenuCamInit(1.0f);
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menuchr", MenuCostumeInit__FP9mgCMemoryPii);
-#endif
 
 int MenuCostumeKey() {
     return MenuCosPtr->KeyStep();
@@ -8046,11 +8088,8 @@ s16 monster_progress_tbl[MONSTER_PROGRESS_NUM][1 + MONSTER_PROGRESS_LEVEL_NUM] =
 };
 
 // Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2595__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", at_2596__3__DATA);
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuCostumeSel__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menuchr", __vt__15CMenuChrCngMenu__DATA);
 
 // Small uninitialised data (.sbss)
@@ -8069,7 +8108,6 @@ u32 *CharaSndBuffer;
 // Uninitialised data (.bss)
 MENU_BGREAD_INFO2 *MenuCharaBuild2[MENU_CHARA_LOAD_MAX];
 
-INCLUDE_BSS(D_01F3C7FC, 0x4);
 CActionChara *MenuActionChara[MENU_CHARA_LOAD_MAX];
 
 mgCMemory MenuActionCharaBuffer[MENU_CHARA_LOAD_MAX];

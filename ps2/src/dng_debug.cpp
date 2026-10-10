@@ -37,22 +37,21 @@
 #include "snd_mngr.hpp"
 #include "snd_seseq.hpp"
 
-extern char *command_str[13];
-extern char  at_1103[];
-extern char  at_1104[];
-extern char  at_1105[];
-extern char  at_1106[];
-extern char  at_1107[];
-extern char  at_1132__2[];
-extern char  at_1133__2[];
-extern char  at_968[];
-extern char  at_969[];
-extern char  at_970[];
-extern char  at_971[];
-extern char  at_972[];
-extern char  at_973__2[];
-extern char  at_974__2[];
-extern char  at_975[];
+static char *command_str[] = {
+    "RunEvent      ",
+    "EnemyLoader   ",
+    "DebugCamera   ",
+    "CharaMove     ",
+    "EnemyReset    ",
+    "LockOnMode    ",
+    "Infomation    ",
+    "SkipFloor     ",
+    "Sound Flag    ",
+    "Monster Talk  ",
+    "Effect_id     ",
+    "Effect_Vol    ",
+    NULL,
+};
 extern CFont dbFont;
 
 #include "colprim.hpp"
@@ -61,8 +60,20 @@ extern CFont dbFont;
 #include "scenesnd.hpp"
 #include "userdata.hpp"
 
-extern int   command_int[];
-extern char *command_str[];
+static int command_int[23] = {
+    100, 0,
+    0, 0,
+    0, 0,
+    0, 0,
+    0, 0,
+    0, 0,
+    1, 0,
+    0, 0,
+    1, 0,
+    0, 0,
+    0, 0,
+    0,
+};
 
 /**
  *
@@ -135,39 +146,39 @@ void dngDebugDraw() {
         sprite.Vertex(0x104, 0x14C, 0);
         sprite.End();
         cursor = text;
-        cursor += sprintf(cursor, at_968);
+        cursor += sprintf(cursor, "--== DEBUG MENU ==--\n");
 
         for (i = 0; command_str[i] != NULL; i++) {
             if (i == dbinfo.cursor) {
-                cursor += sprintf(cursor, at_969);
+                cursor += sprintf(cursor, "->");
             } else {
-                cursor += sprintf(cursor, at_970);
+                cursor += sprintf(cursor, "  ");
             }
 
             cursor += sprintf(cursor, command_str[i]);
-            cursor += sprintf(cursor, at_971, command_int[i * 2]);
+            cursor += sprintf(cursor, "%d\n", command_int[i * 2]);
         }
 
         if (dbinfo.cursor == 1) {
-            cursor += sprintf(cursor, at_972);
+            cursor += sprintf(cursor, "\n");
             int selected = command_int[2];
             int k = 0;
             int found = -1;
 
             for (; base_monster_define[k].id != -1; k++) {
                 if (selected == base_monster_define[k].id) {
-                    cursor += sprintf(cursor, at_973__2, base_monster_define[k].grade, base_monster_define[k].name);
+                    cursor += sprintf(cursor, "[G%d]%s\n", base_monster_define[k].grade, base_monster_define[k].name);
                     found = k;
                     break;
                 }
             }
 
             if (found == -1) {
-                sprintf(cursor, at_974__2, command_int[2]);
+                sprintf(cursor, "[%d]--------\n", command_int[2]);
             } else if (base_monster_define[found].grade > 0) {
                 for (i = 0; base_monster_define[i].id != -1; i++) {
                     if (base_monster_define[i].gift_type == base_monster_define[found].gift_type) {
-                        sprintf(cursor, at_975, base_monster_define[i].name);
+                        sprintf(cursor, "BASE > %s\n", base_monster_define[i].name);
                         break;
                     }
                 }
@@ -381,15 +392,15 @@ void DrawSystemParamInfo() {
     sprite.End();
     cursor = text;
     DngMainScene->GetCharacter(0)->GetPosition(position);
-    cursor += sprintf(cursor, at_1103, position[0], position[1], position[2]);
-    cursor += sprintf(cursor, at_1104, ColPrimMan.ActivePrimNum(), 0x40);
+    cursor += sprintf(cursor, "POS %.1f %.1f %.1f\n", position[0], position[1], position[2]);
+    cursor += sprintf(cursor, "PRIM %d/%d\n", ColPrimMan.ActivePrimNum(), 0x40);
     mgCMemory *map_stack = (mgCMemory *) DngMainScene->GetStack(1);
     mgCMemory *monster_stack = (mgCMemory *) DngMainScene->GetStack(3);
     DngMainScene->GetStack(4);
     mgCMemory *event_stack = (mgCMemory *) DngMainScene->GetStack(5);
-    cursor += sprintf(cursor, at_1105, (map_stack->stack_used << 4) / 1024);
-    cursor += sprintf(cursor, at_1106, (monster_stack->stack_used << 4) / 1024);
-    sprintf(cursor, at_1107,
+    cursor += sprintf(cursor, "STACK:MAP\t %d\n", (map_stack->stack_used << 4) / 1024);
+    cursor += sprintf(cursor, "STACK:MOMS\t %d\n", (monster_stack->stack_used << 4) / 1024);
+    sprintf(cursor, "STACK:EVENT  %d/%d\n",
             ((event_stack->stack_size - event_stack->stack_used) << 4) / 1024,
             (event_stack->stack_size << 4) / 1024);
     dbFont.DrawDirect(text, 0x10, 0x118);
@@ -432,22 +443,22 @@ void DrawSystemParamInfo2() {
         }
     }
 
-    cursor += sprintf(cursor, at_1103, position[0], position[1], position[2]);
+    cursor += sprintf(cursor, "POS %.1f %.1f %.1f\n", position[0], position[1], position[2]);
 
     if (chara->lock_on != 0) {
-        cursor += sprintf(cursor, at_1132__2, monster_position[0], monster_position[1],
+        cursor += sprintf(cursor, "MONS POS %.1f %.1f %.1f\n", monster_position[0], monster_position[1],
                           monster_position[2]);
-        cursor += sprintf(cursor, at_1133__2, monster_height, monster_width);
+        cursor += sprintf(cursor, "MONS HIGH %.1f   WIDTH %.1f\n", monster_height, monster_width);
     }
 
-    cursor += sprintf(cursor, at_1104, ColPrimMan.ActivePrimNum(), 0x40);
+    cursor += sprintf(cursor, "PRIM %d/%d\n", ColPrimMan.ActivePrimNum(), 0x40);
     mgCMemory *map_stack = (mgCMemory *) DngMainScene->GetStack(1);
     mgCMemory *monster_stack = (mgCMemory *) DngMainScene->GetStack(3);
     DngMainScene->GetStack(4);
     mgCMemory *event_stack = (mgCMemory *) DngMainScene->GetStack(5);
-    cursor += sprintf(cursor, at_1105, (map_stack->stack_used << 4) / 1024);
-    cursor += sprintf(cursor, at_1106, (monster_stack->stack_used << 4) / 1024);
-    sprintf(cursor, at_1107,
+    cursor += sprintf(cursor, "STACK:MAP\t %d\n", (map_stack->stack_used << 4) / 1024);
+    cursor += sprintf(cursor, "STACK:MOMS\t %d\n", (monster_stack->stack_used << 4) / 1024);
+    sprintf(cursor, "STACK:EVENT  %d/%d\n",
             ((event_stack->stack_size - event_stack->stack_used) << 4) / 1024,
             (event_stack->stack_size << 4) / 1024);
     dbFont.DrawDirect(text, 0x10, 0xB4);
@@ -463,39 +474,6 @@ void DrawDebugWindow() {
     }
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", command_str__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", command_int__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_871__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_872__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_873__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_874__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_875__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_876__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_877__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_878__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_879__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_880__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_881__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_882__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_968__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_969__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_970__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_971__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_972__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_973__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_974__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_975__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_1103__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_1104__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_1105__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_1106__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_1107__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_1132__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_debug", at_1133__2__DATA);
-
 // Uninitialised data (.bss)
 CFont dbFont;
-INCLUDE_BSS(dbinfo, 0x20);
+DNG_DEBUG_INFO dbinfo;

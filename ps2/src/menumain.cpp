@@ -278,8 +278,8 @@ static char *fname_1858[2] = {
 static int loopnumtbl_2360[2] = {
     3, 2};
 
-extern u8 menu_basedgRef[16];
-extern u8 menu_basedgCamPos[16];
+static float menu_basedgRef[4] = {0.0f, 0.0f, -100.0f, 1.0f};
+static float menu_basedgCamPos[4] = {0.0f, 0.0f, 100.0f, 1.0f};
 
 /**
  *
@@ -903,11 +903,22 @@ void DisablePadReset(int disable) {
         }
     }
 }
+static float light_1062[4][4] = {
+    {0.0f, 0.0f, 0.0f, 0.0f},
+    {0.5f, 0.8f, 0.0f, 0.0f},
+    {0.75f, 0.6f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f, 0.0f},
+};
+static float lightcolor_1063[4][4] = {
+    {90.0f, 90.0f, 90.0f, 64.0f},
+    {0.0f, 0.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 0.0f, 0.0f},
+};
+
 #ifdef NONMATCHING
-void         MakeMenuTopic();
-int          MenuInternInit(mgCMemory *, int, int);
-extern float light_1062[4][4];
-extern float lightcolor_1063[4][4];
+void MakeMenuTopic();
+int MenuInternInit(mgCMemory *, int, int);
 
 int MenuMainInit(MENU_INIT_ARG *arg) {
     MENU_INIT_ARG *init_arg = arg;
@@ -2726,12 +2737,6 @@ void BookshelfMessageMake(ClsMes *message, int base_window, int item_no, int mon
         message->MakeMesWin(window_no);
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", light_1062__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", lightcolor_1063__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_basedgRef__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", menu_basedgCamPos__DATA);
 
 // Constants (.rodata)
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menumain", at_1440__2__DATA);

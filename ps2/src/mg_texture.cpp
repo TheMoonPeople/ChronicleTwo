@@ -308,8 +308,6 @@ static int block_table32_1267[32] __attribute__((aligned(16))) = {
     31,
 };
 
-extern u_char conv_work_1306[0x10000];
-
 static inline u_int align16_blocks(u_int n) {
     if (n & 0xF) {
         return (n >> 4) + 1;
@@ -1991,6 +1989,7 @@ static int PageConv32to8(int width, int height, u_char *src, u_char *dst) {
  *
  */
 static int Conv32To8(int width, int height, u_char *image) {
+    static u_char conv_work[0x10000];
     u_char  work8[0x2000];
     u_char  work32[0x2000];
     int     k;
@@ -2045,7 +2044,7 @@ static int Conv32To8(int width, int height, u_char *image) {
             }
 
             PageConv32to8(128, 64, work32, work8);
-            destination_cursor = conv_work_1306 + i * (pages_x * (width * 64)) + width * j;
+            destination_cursor = conv_work + i * (pages_x * (width * 64)) + width * j;
             work_cursor = work8;
 
             for (k = 0; k < height; k++) {
@@ -2056,12 +2055,9 @@ static int Conv32To8(int width, int height, u_char *image) {
         }
     }
 
-    memcpy(image, conv_work_1306, size);
+    memcpy(image, conv_work, size);
     return 1;
 }
 
 #pragma optimization_level reset
 #pragma schedule reset
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(conv_work_1306, 0x10000);

@@ -4072,16 +4072,6 @@ void DngTreeMapDraw() {
     }
 }
 
-int CBaseMenuClass::IsCreateObject(int select_key, int push_button) { return 1; }
-
-int CBaseMenuClass::IsMakeObject(int select_key, int push_button) { return 0; }
-
-int CBaseMenuClass::IsAskExtend(int select_key, int push_button) { return 0; }
-
-int CBaseMenuClass::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) { return 0; }
-
-void CBaseMenuClass::ExitEnd() {}
-
 template <>
 void mgRect<float>::Set(float new_left, float new_top, float new_right, float new_bottom) {
     left = new_left;

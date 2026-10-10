@@ -422,6 +422,8 @@ STATIC_ASSERT(sizeof(CShopMenu) == 0x210);
  */
 class CMenuQuestView : public CBaseMenuClass {
 public:
+    CMenuQuestView() : CBaseMenuClass() {}
+
     s32 select;                         /**< Line under the cursor. */
     s32 top;                            /**< First line shown. */
     s32 photo_no[QUEST_VIEW_PHOTO_MAX]; /**< Photo held in each album slot, or -1 when the slot is empty. */

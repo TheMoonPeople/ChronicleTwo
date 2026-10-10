@@ -44,9 +44,9 @@ struct CopyEventWords {
     int value[16]; /**< Event data words. */
 };
 
-extern float at_1013__4[4];
-
 #include "mg_tanime.hpp"
+
+static sceVu0FVECTOR at_1013__4 = {0.0f, 0.0f, 0.0f, 78.0f};
 
 // Code (.text)
 void CScene::UpDateMapInfo() {
@@ -373,7 +373,7 @@ void CScene::DrawLensFlare(int flare_type, char *texture, char *alpha_texture) {
     map->GetLightingFlareRatio(ratio);
 
     if (ratio[0] != 0.0f || ratio[1] != 0.0f || ratio[3] != 0.0f) {
-        *(CopyVector *) color = *(CopyVector *) at_1013__4;
+        *(CopyVector *) color = *(const CopyVector *) at_1013__4;
         color[0] += col[0][0] * ratio[0];
         color[1] += col[0][1] * ratio[0];
         color[2] += col[0][2] * ratio[0];
@@ -452,6 +452,3 @@ void CScene::DrawEffect(int tex_block) {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/sceneevent", at_1013__4__DATA);

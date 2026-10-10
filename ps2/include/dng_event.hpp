@@ -286,16 +286,6 @@ public:
 
     /**
      *
-     * Clears the draw request, the bob and the frame.
-     *
-     * @mangled Initialize__13CRedMarkModelFv
-     * @address 0x1CF560
-     * @size 0x10
-     */
-    virtual void Initialize();
-
-    /**
-     *
      * Draws the marker raised by its bob when a draw was requested.
      *
      * @mangled Draw__13CRedMarkModelFv
@@ -303,6 +293,16 @@ public:
      * @size 0xA0
      */
     virtual void Draw();
+
+    /**
+     *
+     * Clears the draw request, the bob and the frame.
+     *
+     * @mangled Initialize__13CRedMarkModelFv
+     * @address 0x1CF560
+     * @size 0x10
+     */
+    virtual void Initialize();
 
     /**
      *

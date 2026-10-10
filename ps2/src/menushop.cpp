@@ -2320,7 +2320,6 @@ int CMenuQuestView::KeyStep() {
     return 0;
 }
 
-#ifdef NONMATCHING
 void MenuNPCQuestViewInit(mgCMemory *stack, int *tex_block, int view_mode) {
     Menu_Memo_ViewMode = 0;
 
@@ -2347,9 +2346,6 @@ void MenuNPCQuestViewInit(mgCMemory *stack, int *tex_block, int view_mode) {
     MenuQuestView->SetTexBlock(tex_block);
     MenuQuestView->InitEnd();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/menushop", MenuNPCQuestViewInit__FP9mgCMemoryPii);
-#endif
 
 int MenuNPCQuestViewKey() {
     return MenuQuestView->KeyStep();

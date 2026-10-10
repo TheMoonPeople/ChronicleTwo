@@ -2019,8 +2019,6 @@ void CMap::CreateTrBox(CMapTreasureBox *model, int tex_block, mgCMemory *stack) 
     }
 }
 
-CMapTreasureBox::CMapTreasureBox() { Initialize(); }
-
 CMapTreasureBox *CMap::GetTrBox(int index) {
     if (index < 0 || index > tr_box_num || tr_box == NULL) {
         return NULL;

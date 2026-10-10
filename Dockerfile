@@ -35,6 +35,9 @@ RUN git apply --check /tmp/satansfiddle-control-context.patch \
 COPY scripts/build/patches/satansfiddle-placement-new.patch /tmp/satansfiddle-placement-new.patch
 RUN git apply --check /tmp/satansfiddle-placement-new.patch \
     && git apply /tmp/satansfiddle-placement-new.patch
+COPY scripts/build/patches/satansfiddle-external-constructors.patch /tmp/satansfiddle-external-constructors.patch
+RUN git apply --check /tmp/satansfiddle-external-constructors.patch \
+    && git apply /tmp/satansfiddle-external-constructors.patch
 # Rust 1.85 can place native libraries before the LLDB C++ archive. Stage-local
 # flags supply trailing libraries to the CLI, Cargo test runners and dependency
 # build scripts. The explicit search path lets their trailing -llldb resolve

@@ -55,11 +55,10 @@ union CopyVector {
     u_long128 word; /**< The same components as a quadword. */
 };
 
-extern float at_1112[4];
-extern float at_1240__3[4];
-extern char  at_1291__3[];
-extern float anim_1410;
-extern s8    init_1411;
+static float at_1112[4] = {0.0f, 1.0f, 0.0f, 1.0f};
+static float at_1240__3[4] = {0.0f, 1.0f, 0.0f, 1.0f};
+static float anim_1410;
+static s8 init_1411;
 
 #include <libvu0.h>
 
@@ -69,12 +68,6 @@ extern s8    init_1411;
 #include "scene.hpp"
 #include "userdata.hpp"
 
-#ifdef NONMATCHING
-/**
- *
- * Japanese names of monster badge families.
- *
- */
 static char *mons_attr_tbl[12] = {
     "",
     "\203P\203\202\203m",
@@ -90,11 +83,6 @@ static char *mons_attr_tbl[12] = {
     NULL,
 };
 
-/**
- *
- * English names of monster badge families.
- *
- */
 static char *mons_attr_tbl2[12] = {
     "",
     "Beast",
@@ -110,11 +98,6 @@ static char *mons_attr_tbl2[12] = {
     NULL,
 };
 
-/**
- *
- * French names of monster badge families.
- *
- */
 static char *mons_attr_tbl3[12] = {
     "",
     "Beast",
@@ -130,11 +113,6 @@ static char *mons_attr_tbl3[12] = {
     "Carte",
 };
 
-/**
- *
- * German names of monster badge families.
- *
- */
 static char *mons_attr_tbl4[12] = {
     "",
     "Tier",
@@ -150,11 +128,6 @@ static char *mons_attr_tbl4[12] = {
     NULL,
 };
 
-/**
- *
- * Italian names of monster badge families.
- *
- */
 static char *mons_attr_tbl5[12] = {
     "",
     "Bestia",
@@ -170,11 +143,6 @@ static char *mons_attr_tbl5[12] = {
     NULL,
 };
 
-/**
- *
- * Spanish names of monster badge families.
- *
- */
 static char *mons_attr_tbl6[12] = {
     "",
     "Bestia",
@@ -190,12 +158,7 @@ static char *mons_attr_tbl6[12] = {
     NULL,
 };
 
-/**
- *
- * Messages displayed when a monster badge is already owned.
- *
- */
-static char *dung_progtxt_badge_already[8] = {
+static char *dung_progtxt_badge_already[7] = {
     "\203\202\203\223\203X\203^\201[\202\326\202\361\202\260\203o\203b\203W\201i%s\201j\202\360\n\214\251\202\302\202\257\202\275\201A\202\265\202\251\202\265\202\267\202\305\202\311\223\374\216\350\202\265\202\304\202\242\202\351",
     "You got a Monster Transformation\201i%s\201jBadge,\nbut you already have it.",
     "Tu as re[UNI00e7]u un [UNI00e9]cusson de monstromorphisme (%s),\nmais tu l'as d[UNI00e9]j[UNI00e0].",
@@ -203,15 +166,9 @@ static char *dung_progtxt_badge_already[8] = {
     "Hai ottenuto uno Stemma Mutazione in (%s) Mostro,\nma ce l\201fhai gi[UNI00e0].",
     "Has conseguido una Insignia de monstruomorfosis(%s),\npero ya la ten[UNI00ed]as.",
     "You got a Monster Transformation (%s) Badge,\nbut you already have it.",
-    NULL,
 };
 
-/**
- *
- * Messages displayed when a monster badge is acquired.
- *
- */
-static char *dung_progtxt_badge_get[8] = {
+static char *dung_progtxt_badge_get[7] = {
     "\203\202\203\223\203X\203^\201[\202\326\202\361\202\260\203o\203b\203W\201i%s\201j\202\360\n\216\350\202\311\223\374\202\352\202\275",
     "You got a Monster Transformation\201i%s\201jBadge.",
     "Tu as re[UNI00e7]u un [UNI00e9]cusson \nde monstromorphisme (%s).",
@@ -219,15 +176,9 @@ static char *dung_progtxt_badge_get[8] = {
     "Hai ottenuto uno Stemma Mutazione\nin (%s) Mostro.",
     "Has conseguido una Insignia de monstruomorfosis (%s).",
     "You got a Monster Transformation (%s)Badge.",
-    NULL,
 };
 
-/**
- *
- * Messages displayed when the gate key is acquired.
- *
- */
-static char *dung_progtxt_gkey_get[8] = {
+static char *dung_progtxt_gkey_get[7] = {
     "\203Q\201[\203g\203L\201[\201u%s\201v\202\360\216\350\202\311\223\374\202\352\202\275",
     "You got the '%s'.",
     "Tu as trouv[UNI00e9] '%s'.",
@@ -235,15 +186,9 @@ static char *dung_progtxt_gkey_get[8] = {
     "Hai trovato '%s'.",
     "Has conseguido '%s'.",
     "You got the '%s'.",
-    NULL,
 };
 
-/**
- *
- * Messages displayed when a stolen item is recovered.
- *
- */
-static char *dung_progtxt_steal[8] = {
+static char *dung_progtxt_steal[7] = {
     "\223G\202\251\202\347\201u%s\201v\202\360\223\220\202\335\216\346\202\301\202\275",
     "Stolen '%s' from the enemy.",
     "A d[UNI00e9]rob[UNI00e9] '%s' [UNI00e0] l'ennemi.",
@@ -251,46 +196,70 @@ static char *dung_progtxt_steal[8] = {
     "Hai rubato '%s' al nemico.",
     "Has robado '%s' al enemigo.",
     "Stolen '%s' from the enemy.",
-    NULL,
 };
 
-/**
- *
- * Singular and plural messages displayed when an item cannot fit.
- *
- */
-static char *dung_progtxt_getitem_overnum[8][2] = {
-    {"\201w%s\201x\202\252\223\374\202\301\202\304\202\242\202\351\201B\n\202\265\202\251\202\265\202\261\202\352\210\310\217\343\201A\202\261\202\314\203A\203C\203e\203\200\202\360\216\235\202\302\202\261\202\306\202\252\202\305\202\253\202\310\202\242\201B", "\201w%s\201x\202\252%d\214\302\201A\223\374\202\301\202\304\202\242\202\351\201B\n\202\265\202\251\202\265\202\261\202\352\210\310\217\343\201A\202\261\202\314\203A\203C\203e\203\200\202\360\216\235\202\302\202\261\202\306\202\252\202\305\202\253\202\310\202\242\201B"},
-    {"%s inside. \n But you can't carry any more items!",                                                                                                                                                                                                            "%d %s inside. \n But you can't carry any more items!"                                                                                                                                                                                                                       },
-    {"Contient %s. \n Mais tu ne peux rien porter d'autre !",                                                                                                                                                                                                        "Contient %d %s. \n Mais tu ne peux rien porter d'autre !"                                                                                                                                                                                                                   },
-    {"%s enthalten. \nAber du kannst nicht mehr davon tragen!",                                                                                                                                                                                                      "%d %s enthalten. \nAber du kannst nicht mehr davon tragen!"                                                                                                                                                                                                                 },
-    {"%s caricato. \nMa non puoi portare con te altri oggetti!",                                                                                                                                                                                                     "%d %s caricato. \nMa non puoi portare con te altri oggetti!"                                                                                                                                                                                                                },
-    {"Hay %s. \n [UNI00a1]Pero no puedes llevar m[UNI00e1]s objetos!",                                                                                                                                                                                               "Hay %d %s. \n [UNI00a1]Pero no puedes llevar m[UNI00e1]s objetos!"                                                                                                                                                                                                          },
-    {"%s inside. \n But you can't carry any more items!",                                                                                                                                                                                                            "%d %s inside. \n But you can't carry any more items!"                                                                                                                                                                                                                       },
-    {NULL,                                                                                                                                                                                                                                                           NULL                                                                                                                                                                                                                                                                         },
+static char *dung_progtxt_getitem_overnum[7][2] = {
+    {
+        "\201w%s\201x\202\252\223\374\202\301\202\304\202\242\202\351\201B\n\202\265\202\251\202\265\202\261\202\352\210\310\217\343\201A\202\261\202\314\203A\203C\203e\203\200\202\360\216\235\202\302\202\261\202\306\202\252\202\305\202\253\202\310\202\242\201B",
+        "\201w%s\201x\202\252%d\214\302\201A\223\374\202\301\202\304\202\242\202\351\201B\n\202\265\202\251\202\265\202\261\202\352\210\310\217\343\201A\202\261\202\314\203A\203C\203e\203\200\202\360\216\235\202\302\202\261\202\306\202\252\202\305\202\253\202\310\202\242\201B",
+    },
+    {
+        "%s inside. \n But you can't carry any more items!",
+        "%d %s inside. \n But you can't carry any more items!",
+    },
+    {
+        "Contient %s. \n Mais tu ne peux rien porter d'autre !",
+        "Contient %d %s. \n Mais tu ne peux rien porter d'autre !",
+    },
+    {
+        "%s enthalten. \nAber du kannst nicht mehr davon tragen!",
+        "%d %s enthalten. \nAber du kannst nicht mehr davon tragen!",
+    },
+    {
+        "%s caricato. \nMa non puoi portare con te altri oggetti!",
+        "%d %s caricato. \nMa non puoi portare con te altri oggetti!",
+    },
+    {
+        "Hay %s. \n [UNI00a1]Pero no puedes llevar m[UNI00e1]s objetos!",
+        "Hay %d %s. \n [UNI00a1]Pero no puedes llevar m[UNI00e1]s objetos!",
+    },
+    {
+        "%s inside. \n But you can't carry any more items!",
+        "%d %s inside. \n But you can't carry any more items!",
+    },
 };
 
-/**
- *
- * Singular and plural messages displayed when an item is acquired.
- *
- */
-static char *dung_progtxt_getitem[8][2] = {
-    {"\201w%s\201x\202\360%d\214\302\201A\216\350\202\311\223\374\202\352\202\275\201B", "\201w%s\201x\202\360%d\214\302\201A\216\350\202\311\223\374\202\352\202\275\201B"},
-    {"You found %s.",                                                                    "You found %d %s."                                                                },
-    {"Tu as trouv[UNI00e9] %s.",                                                         "Tu as trouv[UNI00e9] %d %s."                                                     },
-    {"%s gefunden.",                                                                     "%d %s gefunden."                                                                 },
-    {"Hai trovato %s.",                                                                  "Hai trovato %d %s."                                                              },
-    {"Has encontrado %s.",                                                               "Has encontrado %d %s."                                                           },
-    {"You found %s.",                                                                    "You found %d %s."                                                                },
-    {NULL,                                                                               NULL                                                                              },
+static char *dung_progtxt_getitem[7][2] = {
+    {
+        "\201w%s\201x\202\360%d\214\302\201A\216\350\202\311\223\374\202\352\202\275\201B",
+        "\201w%s\201x\202\360%d\214\302\201A\216\350\202\311\223\374\202\352\202\275\201B",
+    },
+    {
+        "You found %s.",
+        "You found %d %s.",
+    },
+    {
+        "Tu as trouv[UNI00e9] %s.",
+        "Tu as trouv[UNI00e9] %d %s.",
+    },
+    {
+        "%s gefunden.",
+        "%d %s gefunden.",
+    },
+    {
+        "Hai trovato %s.",
+        "Hai trovato %d %s.",
+    },
+    {
+        "Has encontrado %s.",
+        "Has encontrado %d %s.",
+    },
+    {
+        "You found %s.",
+        "You found %d %s.",
+    },
 };
 
-/**
- *
- * Monster badge family names selected by the current language.
- *
- */
 static char **mons_attr_list[8] = {
     mons_attr_tbl,
     mons_attr_tbl2,
@@ -301,16 +270,6 @@ static char **mons_attr_list[8] = {
     mons_attr_tbl6,
     mons_attr_tbl6,
 };
-#endif
-#ifndef NONMATCHING
-extern char **mons_attr_list[8];
-extern char  *dung_progtxt_badge_already[8];
-extern char  *dung_progtxt_badge_get[8];
-extern char  *dung_progtxt_gkey_get[8];
-extern char  *dung_progtxt_steal[8];
-extern char  *dung_progtxt_getitem_overnum[8][2];
-extern char  *dung_progtxt_getitem[8][2];
-#endif
 
 // Code (.text)
 void CRocketLauncher::SetPos(float *pos, float *muzzle_vec, float *direction_vec) {
@@ -906,7 +865,7 @@ void CLaserGun::Step() {
                 flash_color[3] *= 1.2f;
                 flash_color[3] *= 1.2f;
                 flash_color[3] = 240.0f;
-                FxScriptMan->CreateEffSpt(at_1291__3, 0, -1);
+                FxScriptMan->CreateEffSpt("\202x\203r\201[\203\200\202g", 0, -1);
                 FxScriptMan->SetScriptVect1(flash_pos, -1, -1);
                 FxScriptMan->SetScriptVect2(&gun->color[0], -1, -1);
                 FxScriptMan->SetValue(0, 1.8f, -1, -1);
@@ -931,7 +890,7 @@ void CLaserGun::Step() {
                 flash_color2[3] *= 1.4f;
                 flash_color2[3] *= 1.4f;
                 flash_color2[3] = 240.0f;
-                FxScriptMan->CreateEffSpt(at_1291__3, 0, -1);
+                FxScriptMan->CreateEffSpt("\202x\203r\201[\203\200\202g", 0, -1);
                 FxScriptMan->SetScriptVect1(flash_pos2, -1, -1);
                 FxScriptMan->SetScriptVect2(&gun->color[0], -1, -1);
                 FxScriptMan->SetValue(0, 1.8f, -1, -1);
@@ -1965,145 +1924,3 @@ void CRoboVoiceSystem::Step() {
             break;
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_923__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1112__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1240__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", mons_attr_tbl__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", mons_attr_tbl2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", mons_attr_tbl3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", mons_attr_tbl4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", mons_attr_tbl5__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", mons_attr_tbl6__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", mons_attr_list__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", dung_progtxt_badge_already__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", dung_progtxt_badge_get__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", dung_progtxt_gkey_get__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", dung_progtxt_steal__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", dung_progtxt_getitem_overnum__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", dung_progtxt_getitem__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1800__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1801__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1802__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1803__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1806__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_961__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1291__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1428__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1429__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1430__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1431__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1432__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1433__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1434__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1435__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1436__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1437__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1438__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1439__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1440__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1441__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1442__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1443__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1444__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1445__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1446__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1447__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1448__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1449__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1450__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1451__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1452__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1453__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1454__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1455__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1456__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1457__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1458__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1459__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1460__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1461__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1462__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1463__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1464__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1465__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1466__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1467__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1468__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1469__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1470__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1471__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1472__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1473__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1474__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1475__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1476__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1477__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1478__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1479__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1480__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1481__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1482__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1483__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1484__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1485__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1486__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1487__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1488__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1489__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1490__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1491__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1492__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1493__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1494__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1495__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1496__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1497__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1498__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1499__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1500__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1501__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1502__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1503__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1504__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1505__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1506__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1507__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1508__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1509__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1510__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1511__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1512__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1513__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1514__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1515__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1516__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1517__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1518__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1519__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1520__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1521__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1522__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1523__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1524__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1525__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1526__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1527__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1528__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1529__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1530__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1531__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1736__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1853__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1854__DATA);
-
-// Small initialised data (.sdata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1804__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_object", at_1805__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(anim_1410, 0x4);
-INCLUDE_BSS(init_1411, 0x4);

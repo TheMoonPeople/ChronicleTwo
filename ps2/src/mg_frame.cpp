@@ -12,9 +12,6 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 
-extern u_char at_1118[];
-extern u_char at_1119[];
-
 static mgCFrameAttr dmy_attr;
 
 // Code (.text)
@@ -101,7 +98,7 @@ static void QuatToMat(float *quaternion, float (*matrix)[4]) {
 #ifdef NONMATCHING
 static float projected_corners[8][4];
 
-void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *out_max,
+static void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *out_max,
            float *out_min) {
     float combined[4][4];
     for (int column = 0; column < 4; column++) {
@@ -135,7 +132,7 @@ void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *o
     }
 }
 #else
-asm void test1(float (*corners)[4], float (*left)[4], float (*right)[4], float *out_max, float *out_min) {
+static asm void test1(float (*corners)[4], float (*left)[4], float (*right)[4], float *out_max, float *out_min) {
     lqc2    vf11, 0(a1)
     lqc2    vf12, 16(a1)
     lqc2    vf13, 32(a1)
@@ -219,7 +216,7 @@ asm void test1(float (*corners)[4], float (*left)[4], float (*right)[4], float *
     sqc2    vf19, 0(t0)
 }
 #endif
-void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *out_max,
+static void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *out_max,
            float *out_min);
 // clang-format on
 // clang-format off
@@ -230,7 +227,7 @@ void test1(float (*corners)[4], float (*screen)[4], float (*matrix)[4], float *o
  *
  */
 #ifdef NONMATCHING
-void test2(float *out_max, float *out_min) {
+static void test2(float *out_max, float *out_min) {
     for (int corner = 0; corner < 8; corner++) {
         float depth = projected_corners[corner][3];
         if (depth < 0.0f) {
@@ -257,7 +254,7 @@ void test2(float *out_max, float *out_min) {
     }
 }
 #else
-asm void test2(float *out_max, float *out_min) {
+static asm void test2(float *out_max, float *out_min) {
     vabs.w  vf20, vf10
     vabs.w  vf21, vf11
     vabs.w  vf22, vf12
@@ -309,7 +306,7 @@ asm void test2(float *out_max, float *out_min) {
     sqc2    vf15, 0(a1)
 }
 #endif
-void test2(float *out_max, float *out_min);
+static void test2(float *out_max, float *out_min);
 // clang-format on
 
 int mgInsideScreen(mgVu0FBOX *box) {
@@ -1506,7 +1503,6 @@ void mgCFrame::SetAttrParamDraw(int value, int recurse) {
     }
 }
 
-#ifdef NONMATCHING
 int mgCFrame::Draw(unsigned int *packet) {
     mgRENDER_INFO *info = &mgRenderInfo;
     int            words = 0;
@@ -1592,9 +1588,6 @@ int mgCFrame::Draw(unsigned int *packet) {
     }
     return words;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_frame", Draw__8mgCFrameFPUi);
-#endif
 
 #pragma global_optimizer off
 
@@ -1626,10 +1619,12 @@ int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
 
     info = manager->render_info;
     copy_max = reinterpret_cast<u_long128 *>(rect_max);
-    copy_value = *reinterpret_cast<u_long128 *>(at_1118);
+    static sceVu0FVECTOR empty_max;
+    copy_value = *reinterpret_cast<u_long128 *>(empty_max);
     *copy_max = copy_value;
     copy_min = reinterpret_cast<u_long128 *>(rect_min);
-    *copy_min = *reinterpret_cast<u_long128 *>(at_1119);
+    static sceVu0FVECTOR empty_min;
+    *copy_min = *reinterpret_cast<u_long128 *>(empty_min);
 
     draw_attr = attr;
 
@@ -1874,7 +1869,3 @@ int mgCObject::DrawDirect() {
 int mgCObject::Draw() {
     return 0;
 }
-
-// Uninitialised data (.bss)
-INCLUDE_BSS(at_1118, 0x10);
-INCLUDE_BSS(at_1119, 0x10);

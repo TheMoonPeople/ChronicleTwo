@@ -161,6 +161,14 @@ void        MenuFormUpdataAttachInfo(CMenuPosDataForm *form, CGameDataUsed *item
 void        SetSwordBlurEffect(CCharacter2 *chara, mgCMemory *stack, int chara_no);
 void        SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INFO_DATA *robo);
 void        InitSpectol();
+extern const char at_4950[] = "\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x81\x48";
+extern const char at_4951[] = "\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x4E\x47";
+extern const char at_4952[] = "menu/eff/buildup.chr";
+extern const char at_4953[] = "snd2/sp/SP_045.snd";
+extern const char at_4955[] = "\x94\xAD\x93\xAE";
+extern const char at_4956[] = "_mn";
+extern const char at_4957[] = "\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x8F\x49\x97\xB9";
+
 static void MenuItemDebugKey();
 
 /**
@@ -177,14 +185,10 @@ struct MenuCharaReadBuffers {
 extern CDC2Mes      *MenuDCMsg[9];
 extern CGameDataUsed SpectolTransBefore;
 extern CGameDataUsed SpectolInfoStay;
-extern char          at_1493__2[];
 extern CMenuItemInfo class_menu_item_info;
 void                 MenuWeaponStatusInfoFormSet(CGameDataUsed *item, CDataWeapon *data);
 extern mgCMemory     MainCharaReadStack;
-extern char          at_3924[];
 extern CGamePad      GamePad__2;
-extern char          at_4954[];
-extern char          at_4672[];
 extern mgCMemory     MenuItemMemory;
 extern mgCMemory     MenuItemMemory2;
 extern mgCMemory     MenuItemMainMemory;
@@ -1677,7 +1681,7 @@ int MenuHowMuchNumSelect(int key, CGameDataUsed *item, int limit) {
         changed = 1;
     }
 
-    MenuCommonInfo->how_much_form->SetNumber(at_1493__2, MenuHowHaveMuchNum);
+    MenuCommonInfo->how_much_form->SetNumber("num", MenuHowHaveMuchNum);
     return changed;
 }
 
@@ -1714,7 +1718,7 @@ void CBaseMenuClass::MenuItemAskMode_HowMuch(int select_key, int push_button) {
         MenuCommonInfo->MenuPosPlay();
     }
 
-    MenuCommonInfo->how_much_form->SetNumber(at_1493__2, MenuHowHaveMuchNum);
+    MenuCommonInfo->how_much_form->SetNumber("num", MenuHowHaveMuchNum);
 }
 
 CGameDataUsed *CheckTrushWeapon(CGameDataUsed *item) {
@@ -5098,8 +5102,6 @@ void MenuPosFormValueSetWeapon(CGameDataUsed *item) {
     }
 }
 
-extern char at_3895[];
-
 /**
  *
  * Updates an attachment or weapon form with current and changed status values.
@@ -5181,7 +5183,7 @@ void MenuFormUpdataAttachInfo(CMenuPosDataForm *form, CGameDataUsed *item, int i
             }
         }
 
-        MENUFORMPARTS_TYPE *part = form->GetPartInfo(at_3895);
+        MENUFORMPARTS_TYPE *part = form->GetPartInfo("item");
 
         if (part != NULL) {
             part->draw_flag = 1;
@@ -5220,7 +5222,7 @@ void MenuPosFormValueSetFishingRod(CGameDataUsed *item) {
         values[4] = item->data.weapon.attribute[4];
 
         do {
-            sprintf(name, at_3924, i);
+            sprintf(name, "fps%d", i);
             form->SetNumber(name, values[i]);
             i += 1;
         } while (i < 5);
@@ -6255,7 +6257,7 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
                     mode = MENU_ASK_MODE_ITEM_COMMAND;
                     int pos[2];
                     MenuPosData->GetPosMenuItemOnItemBrd(pos, MenuCommonInfo->cursor, 0);
-                    InitFishBoiledEffect(pos, (mgCTexture *) mgTexManager.GetTexture(at_4672, -1));
+                    InitFishBoiledEffect(pos, (mgCTexture *) mgTexManager.GetTexture("menueff0", -1));
                     break;
                 }
             }
@@ -6343,13 +6345,6 @@ int CMenuItemInfo::ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) {
     return 1;
 }
 
-extern char at_4950[];
-extern char at_4951[];
-extern char at_4952[];
-extern char at_4953[];
-extern char at_4955[];
-extern char at_4956[];
-extern char at_4957[];
 #ifdef NONMATCHING
 #pragma inline_depth(8)
 
@@ -6444,14 +6439,14 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         case 8:
                             if (info->enable[select] == 1) {
                                 if (CheckBuildUpMonsterCondition(data)) {
-                                    ExeScript(at_4950);
+                                    ExeScript("\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x81\x48");
                                     if (name_message->name[select + 1] != NULL) {
                                         strcpy(message->name[0], name_message->name[select + 1]);
                                     }
                                     message->StepMsg();
                                     step++;
                                 } else {
-                                    ExeScript(at_4951);
+                                    ExeScript("\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x4E\x47");
                                     step = 5;
                                 }
                             } else {
@@ -6480,10 +6475,10 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                                 load_stack->Align64();
                                 u_long128 *buffer = load_stack->stGetTop();
                                 StartReadBG();
-                                LoadFileBG(at_4952, buffer, &size);
+                                LoadFileBG("menu/eff/buildup.chr", buffer, &size);
                                 load_stack->Alloc(QuadwordsFor(size + 0x800));
                                 load_stack->Align64();
-                                LoadFileBG(at_4953, load_stack->stGetTop(), &size);
+                                LoadFileBG("snd2/sp/SP_045.snd", load_stack->stGetTop(), &size);
                                 load_stack->Alloc(QuadwordsFor(size + 0x800));
                                 itemmenu_chr_rotflag = 0;
                                 step++;
@@ -6519,10 +6514,10 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         work.stSetBuffer(load_stack->stGetTop(), rest);
                         build_up_chara = new (work.Alloc(0x105)) CActionChara;
                         build_up_chara->Initialize(NULL);
-                        build_up_chara->LoadPack((u_int *) model_file->buffer, at_4954, &work, &work, &work, tex_block[2], NULL);
+                        build_up_chara->LoadPack((u_int *) model_file->buffer, "info.cfg", &work, &work, &work, tex_block[2], NULL);
                         build_up_chara->SetScale(1.5f, 1.5f, 1.5f);
                         build_up_chara->SetPosition(position);
-                        build_up_chara->SetMotion(at_4955, 0, 1);
+                        build_up_chara->SetMotion("\x94\xAD\x93\xAE", 0, 1);
                         build_up_chara->Step();
                         mgCFrame *frame = build_up_chara->CObjectFrame::frame;
                         if (frame != NULL && frame->attr != NULL) {
@@ -6557,10 +6552,10 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                             int                weapon_tex_block = tex_block[1];
                             mgCTextureManager *textures = tex_manager;
                             textures->DeleteBlock(weapon_tex_block);
-                            strcpy(textures->name_suffix, at_4956);
+                            strcpy(textures->name_suffix, "_mn");
                             MenuActionCharaBuffer[0].stReset();
                             chara->Initialize(NULL);
-                            chara->LoadPack((u_int *) file->buffer, at_4954, MenuActionCharaBuffer, MenuActionCharaBuffer,
+                            chara->LoadPack((u_int *) file->buffer, "info.cfg", MenuActionCharaBuffer, MenuActionCharaBuffer,
                                             MenuActionCharaBuffer, weapon_tex_block, NULL);
                             textures->name_suffix[0] = 0;
                             WeaponBuildCheck(chara, new_item_no, weapon_tex_block);
@@ -6570,7 +6565,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                     if (BuildEndFlag == 1 && build_up_chara->CheckMotionEnd(NULL)) {
                         build_loading = 0;
                         build_up_chara = NULL;
-                        ExeScript(at_4957);
+                        ExeScript("\x83\x72\x83\x8B\x83\x68\x83\x41\x83\x62\x83\x76\x8F\x49\x97\xB9");
                         if (name_message->name[info->select_no + 1] != NULL) {
                             strcpy(message->name[0], name_message->name[info->select_no + 1]);
                         }
@@ -6757,7 +6752,7 @@ void CMenuItemInfo::EnterDataMenu(unsigned int *pack) {
     textures->DeleteBlock(block);
     textures->EnterIMGFile(item_image, block, NULL, NULL);
     MenuPosData->ResetTextureInfoAll();
-    money_form->SetNumber(at_1493__2, MenuUserDataManPtr->money);
+    money_form->SetNumber("num", MenuUserDataManPtr->money);
     Tex_BuildUpBoard = textures->GetTexture("item0", -1);
     MenuItemSpectolTransSoundBuffer = GetPackFile(pack, "SP_002.snd", &sound_size);
 
@@ -6844,7 +6839,7 @@ void CMenuItemInfo::ExitEnd() {
         AccumulateEffect.unk_320 = 0;
         AccumulateEffect.mode = 0;
         chara->accume_effect = &AccumulateEffect;
-        chara->LoadPack(MainCharaReadBuffer.model, at_4954, MorattaStack, MorattaStack, MorattaStack,
+        chara->LoadPack(MainCharaReadBuffer.model, "info.cfg", MorattaStack, MorattaStack, MorattaStack,
                         MenuArg.chara_tex_block, 0);
         SwordEffectStack.stack_used = 0;
         SwordEffectStack.lock = 0;
@@ -6855,13 +6850,13 @@ void CMenuItemInfo::ExitEnd() {
         mgCTextureManager *textures = &mgTexManager;
         textures->DeleteTexAnime(MenuArg.chara_tex_block);
         ((CCharacter2 *) chara)
-            ->LoadSkin(MainCharaReadBuffer.skin, at_4954, "", MorattaStack + 1,
+            ->LoadSkin(MainCharaReadBuffer.skin, "info.cfg", "", MorattaStack + 1,
                        MenuArg.chara_tex_block);
         stack = MorattaStack;
         stack[5].stack_used = 0;
         stack[5].lock = 0;
         ((CCharacter2 *) chara)
-            ->LoadSkin(MainCharaReadBuffer.outline, at_4954, "skin3", MorattaStack + 5,
+            ->LoadSkin(MainCharaReadBuffer.outline, "info.cfg", "skin3", MorattaStack + 5,
                        MenuArg.chara_tex_block);
         SetupUnitMan(MenuMainScene, (CUserDataManager *) GetUserDataMan(), chara_no, NULL);
         chara->effect_man = FxScriptMan;
@@ -7429,9 +7424,6 @@ void CMenuItemInfo::CalcTex() {
     EffectDrawCheck(item_board_form);
 }
 
-extern char at_5882[];
-extern char at_5883[];
-
 void CMenuItemInfo::CalcCursorPosition() {
     /**
      *
@@ -7534,7 +7526,7 @@ void CMenuItemInfo::CalcCursorPosition() {
         } else if (arg_no == 3 || arg_no == 6 || arg_no == 8) {
             form->GetPutPosXY("chr_cur", pos[0], pos[1]);
         } else if (arg_no == 11) {
-            form->GetPutPosXY(at_5882, pos[0], pos[1]);
+            form->GetPutPosXY("esac", pos[0], pos[1]);
         }
 
         msg_pos[0] = pos[0];
@@ -7574,7 +7566,7 @@ void CMenuItemInfo::CalcCursorPosition() {
     int cursor_offset[2] = {0, 0};
 
     if (arg_no < 12) {
-        sprintf(name, at_5883, arg_no);
+        sprintf(name, "cur_off%d", arg_no);
         MenuPosData->GetEtcTblValue(name, cursor_offset[0], cursor_offset[1]);
     }
 
@@ -11326,7 +11318,7 @@ void CMenuItemInfo::SetItemEffect() {
         MenuLevelUpMan.Generate(who, MenuRepairTargetWeaponPos[0], MenuRepairTargetWeaponPos[1]);
 
         if (weapon_effect) {
-            MenuLevelUpMan.spark_tex = mgTexManager.GetTexture(at_4672, -1);
+            MenuLevelUpMan.spark_tex = mgTexManager.GetTexture("menueff0", -1);
             MenuLevelUpMan.Generate(who, (CCharacter2 *) MenuActionChara[0]);
         }
     }
@@ -12771,27 +12763,7 @@ void MenuItemSelectDraw() {
     }
 }
 
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_1493__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3895__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_3924__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4672__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4950__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4951__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4952__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4953__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4954__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4955__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4956__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4957__DATA);
 INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_4958__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5882__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_5883__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", at_6424__DATA);
-
-// Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", __vt__13CMenuItemInfo__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/menusys", __vt__14CBaseMenuClass__DATA);
 
 // Uninitialised data (.bss)
 MENU_ASKMODE_PARA MenuAskParam;

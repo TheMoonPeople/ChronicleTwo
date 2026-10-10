@@ -50,9 +50,8 @@ struct Vec4 {
 };
 
 static void StepDataLoading(void *arg);
-extern char at_932__4[];
-extern char at_2197__3[];
-extern char at_2198__3[];
+extern const char at_2197__3[] = "\x92\xDE\x82\xEA\x82\xBD\x8E\x9E";
+extern const char at_2198__3[] = "\x92\xDE\x82\xE8\x8F\xE3\x82\xB0\x8A\xEC\x82\xD1";
 
 enum {
     kFishShapeCount = 5,
@@ -1072,7 +1071,7 @@ int LoadExMotionStep(SubGameInfo *info, mgCMemory *memory) {
     chara = scene->GetCharacter(scene->player_chara);
 
     if (chara != NULL) {
-        chara->LoadPack((u_int *) ex_mtn_buff, at_932__4, memory, memory, memory, 0, NULL);
+        chara->LoadPack((u_int *) ex_mtn_buff, "info.cfg", memory, memory, memory, 0, NULL);
     }
 
     LoadExMotionFlag = 0;
@@ -3418,18 +3417,18 @@ int InitSuccess(CScene *scene) {
         FishChara = fish_chara;
         fish_chara->Initialize();
         tex_manager->DeleteBlock(FishTexb);
-        FishChara->LoadPack((u_int *) ReadBuffer, at_932__4, &FishStack, &FishStack, &FishStack,
+        FishChara->LoadPack((u_int *) ReadBuffer, "info.cfg", &FishStack, &FishStack, &FishStack,
                             FishTexb, NULL);
         FishChara->SetScale(FishData.width_scale, FishData.width_scale, FishData.length_scale);
-        FishChara->SetMotion(at_2197__3, 0);
+        FishChara->SetMotion("\x92\xDE\x82\xEA\x82\xBD\x8E\x9E", 0);
     }
 
     ExtendLine(-1000.0f);
     ExtendLine(20.0f);
     ResetLineVelo();
     FalseStep = 0;
-    chara->SetMotion(at_2198__3, 6);
-    FalseMotionCount = GetMotionCount(chara, at_2198__3, 20, 300, 0);
+    chara->SetMotion("\x92\xDE\x82\xE8\x8F\xE3\x82\xB0\x8A\xEC\x82\xD1", 6);
+    FalseMotionCount = GetMotionCount(chara, "\x92\xDE\x82\xE8\x8F\xE3\x82\xB0\x8A\xEC\x82\xD1", 20, 300, 0);
     save_data = GetSaveData();
 
     if (GetFishingMode() == kFishingModeFloat) {
@@ -4406,10 +4405,3 @@ void LoadFishPlaceData(char *script, int size, mgCMemory *stack) {
     interpreter.SetScript(script, size);
     interpreter.Run();
 }
-
-// Initialised data (.data)
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_932__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2197__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/fishing", at_2198__3__DATA);

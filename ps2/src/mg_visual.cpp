@@ -1591,15 +1591,13 @@ int mgCVisualFixMDT::Iam() {
 }
 
 // Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", set_tex0_dma__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", set_tex0_giftag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", set_texa_dma__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", set_texa_giftag__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", mat_vif__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", mat_vif_dif__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", mat_vif_d__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", mat_vif_d_tex__DATA);
+u_int set_tex0_dma[4] __attribute__((aligned(16))) = {MG_DMA_CNT | 3, 0, 0, MG_VIF_DIRECT | 3};
+u_int set_tex0_giftag[4] __attribute__((aligned(16))) = {MG_GIFTAG_EOP | 2, 1u << MG_GIFTAG_NREG_SHIFT, SCE_GIF_PACKED_AD, 0};
+u_int set_texa_dma[4] __attribute__((aligned(16))) = {MG_DMA_CNT | 4, 0, 0, MG_VIF_DIRECT | 4};
+u_int set_texa_giftag[4] __attribute__((aligned(16))) = {MG_GIFTAG_EOP | 3, 1u << MG_GIFTAG_NREG_SHIFT, SCE_GIF_PACKED_AD, 0};
+u_int mat_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_UNPACK_V4_32 | (4 << 16) | 40};
+u_int mat_vif_dif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_UNPACK_V4_32 | (1 << 16) | 40};
+u_int mat_vif_d[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_DIRECT | 2};
+u_int mat_vif_d_tex[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_DIRECT | 4};
 
 // Virtual tables (.vtables)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", __vt__13mgCVisualPrim__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/mg_visual", __vt__12mgCVisualMDT__DATA);

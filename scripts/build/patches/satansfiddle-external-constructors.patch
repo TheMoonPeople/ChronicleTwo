@@ -1,0 +1,235 @@
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -33,6 +33,7 @@
+ pub enum PlacementConversion {
+     BeforeConstructorInline,
+     AfterConstructorInline,
++    AfterConstructorWalk,
+ }
+
+ #[derive(Debug, Serialize, Deserialize)]
+--- a/src/placement.rs
++++ b/src/placement.rs
+@@ -52,7 +52,7 @@
+     statement: u32,
+     objects: [u32; 3],
+     constructor_call: u32,
+-    inline_seen: bool,
++    constructor_verified: bool,
+     applied: bool,
+     converted: bool,
+ }
+@@ -120,6 +120,27 @@
+     mangled[start..].find("__").map_or(mangled, |end| &mangled[..start + end])
+ }
+
++fn constructor_scope(process: &SBProcess, object: u32) -> Result<Option<String>> {
++    let mut scope = hooks::u32_at(process, object as u64 + 4)?;
++    let mut seen = HashSet::new();
++    let mut name = None;
++    while scope != 0 {
++        ensure!(seen.insert(scope) && seen.len() <= 32, "cyclic/deep constructor scope");
++        let identifier = hooks::u32_at(process, scope as u64 + 4)?;
++        if identifier != 0 {
++            if name.is_some() { return Ok(None); }
++            let text = hooks::cstring(process, identifier as u64 + 10)?;
++            if text.is_empty() { return Ok(None); }
++            for byte in text.bytes() {
++                if !byte.is_ascii_alphanumeric() && byte != b'_' { return Ok(None); }
++            }
++            name = Some(format!("__ct__{}{}F", text.len(), text));
++        }
++        scope = hooks::u32_at(process, scope as u64)?;
++    }
++    Ok(name)
++}
++
+ impl State {
+     pub fn begin_unit(&mut self, unit: &str) -> Result<()> {
+         self.check_live_complete()?;
+@@ -166,7 +187,7 @@
+             && self.conversions.is_empty(), "placement frontend walk did not complete");
+         self.validate_witnesses()?;
+         for record in self.records.values() {
+-            ensure!(record.applied && record.converted && record.inline_seen,
++            ensure!(record.applied && record.converted && record.constructor_verified,
+                 "selected placement construction did not complete its conversion");
+             ensure!(record.objects.iter().all(|object| self.names.contains_key(object)),
+                 "selected placement construction has unresolved mangled identities");
+@@ -230,22 +251,41 @@
+                 direct_call(process, hooks::u32_at(process, node as u64 + 0x18)?)?,
+                 direct_call(process, constructor_call)?,
+             ) {
+-                // Class 6 is a policy eligibility condition, independent of
+-                // when MWCC publishes the constructor's mangled identity.
+                 let info = hooks::u32_at(process, constructor as u64 + 0x28)?;
+                 let class = if info == 0 { 0 } else {
+                     hooks::read(process, info as u64 + 0x64, 1)?[0]
+                 };
+-                if class == 6 {
++                if class == 6 || info == 0 {
+                     let objects = [caller, allocator, constructor];
+                     let names = objects.iter().map(|&object| self.name(process, object))
+                         .collect::<Result<Vec<_>>>()?;
+-                    let candidates = config::placement_new().statement_conversions.iter().enumerate()
+-                        .filter(|(_, row)| row.translation_unit == self.unit)
+-                        .filter(|(_, row)| names.iter().zip([&row.function,&row.allocator,&row.constructor])
+-                            .all(|((name, exact), wanted)| if *exact { name == wanted }
+-                                else { name == raw_stem(wanted) }))
+-                        .map(|(index, _)| index).collect::<Vec<_>>();
++                    let mut candidates = Vec::new();
++                    for (index, row) in config::placement_new().statement_conversions.iter().enumerate() {
++                        if row.translation_unit != self.unit { continue; }
++                        if row.conversion == PlacementConversion::AfterConstructorWalk {
++                            if info != 0 { continue; }
++                        } else if class != 6 { continue; }
++                        let mut matched = true;
++                        for ((name, known), wanted) in names.iter()
++                            .zip([&row.function, &row.allocator, &row.constructor]) {
++                            let same = if *known { name == wanted } else { name == raw_stem(wanted) };
++                            if !same {
++                                matched = false;
++                            }
++                        }
++                        if !matched { continue; }
++                        if row.conversion == PlacementConversion::AfterConstructorWalk && !names[2].1 {
++                            match constructor_scope(process, constructor)? {
++                                Some(prefix) if row.constructor.starts_with(&prefix) => {}
++                                _ => continue,
++                            }
++                        }
++                        candidates.push(index);
++                    }
++                    if candidates.is_empty() && class != 6
++                        && std::env::var_os("SATANSFIDDLE_VERIFY").is_some() {
++                        eprintln!("satansfiddle: placement ignored ineligible constructor inline class {class}");
++                    }
+                     ensure!(candidates.len() <= 1,
+                         "placement raw identities cannot uniquely select a conversion row");
+                     if let Some(&index) = candidates.first() {
+@@ -267,7 +307,7 @@
+                                 "placement construction identity was reused with different ownership");
+                         } else {
+                             self.records.insert(id, Record { row: index, statement: scope.statement,
+-                                objects, constructor_call, inline_seen: false, applied: false, converted: false });
++                                objects, constructor_call, constructor_verified: false, applied: false, converted: false });
+                         }
+                         if std::env::var_os("SATANSFIDDLE_VERIFY").is_some() {
+                             eprintln!("satansfiddle: placement-candidate {}/{} constructor={} names={names:?}",
+@@ -296,7 +336,7 @@
+                         "selected direct placement constructor changed inline class");
+                     ensure!(direct_call(process, call)? == object,
+                         "placement inline read does not belong to the direct constructor");
+-                    record.inline_seen = true;
++                    record.constructor_verified = true;
+                     if config::placement_new().statement_conversions[record.row].conversion
+                         == PlacementConversion::BeforeConstructorInline {
+                         let value = (hooks::reg(frame, "eax")? & !255) | 3;
+@@ -313,9 +353,17 @@
+             ensure!(construction.sp == frame.sp(), "placement construction frame mismatch");
+             if let Some(key) = construction.key {
+                 let record = self.records.get_mut(&key).ok_or_else(|| anyhow!("missing placement record"))?;
+-                ensure!(record.inline_seen, "selected placement direct constructor was not inlined");
++                let timing = config::placement_new().statement_conversions[record.row].conversion;
++                if timing == PlacementConversion::AfterConstructorWalk {
++                    ensure!(hooks::u32_at(process, record.objects[2] as u64 + 0x28)? == 0,
++                        "selected out-of-line constructor gained inline metadata");
++                    ensure!(direct_call(process, record.constructor_call)? == Some(record.objects[2]),
++                        "selected out-of-line constructor call changed identity");
++                    record.constructor_verified = true;
++                }
++                ensure!(record.constructor_verified, "selected placement direct constructor was not verified");
+                 if config::placement_new().statement_conversions[record.row].conversion
+-                    == PlacementConversion::AfterConstructorInline {
++                    != PlacementConversion::BeforeConstructorInline {
+                     let address = CONVERSION_REQUEST;
+                     #[cfg(feature = "hook-test-faults")]
+                     let address = if std::env::var_os("SATANSFIDDLE_TEST_FAIL_PLACEMENT_WRITE").is_some()
+--- a/tests/compiler_cli.rs
++++ b/tests/compiler_cli.rs
+@@ -1253,3 +1253,85 @@
+             .to_string_lossy().starts_with(".satansfiddle-")));
+     }
+ }
++
++#[test]
++#[ignore = "requires SATANSFIDDLE_TEST_COMPILER_300 plus debug-symbol wibo"]
++fn real_placement_external_constructor_conversion() {
++    let compiler = PathBuf::from(env::var_os("SATANSFIDDLE_TEST_COMPILER_300").unwrap());
++    let work = Workspace::new();
++    let input = work.0.join("placement.cpp");
++    let config = work.0.join("config.json");
++    let output = work.0.join("selected.o");
++    let source = PLACEMENT_SOURCE
++        .replace("Thing() : value(7) {}", "Thing();")
++        .replace("Other() : value(11) {}", "Other();");
++    fs::write(&input, &source).unwrap();
++    let mut baseline_profile: serde_json::Value = serde_json::from_str(&compiler_config(&compiler, "")).unwrap();
++    let options = baseline_profile["compiler_options"].as_str().unwrap().to_owned();
++    baseline_profile["compiler_options"] = format!("{options} -lang c++").into();
++    fs::write(&config, serde_json::to_string(&baseline_profile).unwrap()).unwrap();
++    assert_success(&cli(&input, &output, &config));
++    let baseline = fs::read(&output).unwrap();
++    let profile = placement_config(&compiler, "selected__FPvi", "__ct__5ThingFv",
++        "after_constructor_walk", 1);
++    fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++    assert_success(&cli(&input, &output, &config));
++    let selected = fs::read(&output).unwrap();
++    assert_ne!(function_bytes(&baseline, "selected__FPvi"), function_bytes(&selected, "selected__FPvi"));
++    for function in ["unselected__FPvi", "mixed__FPvPvi", "duplicate__FPvPvi"] {
++        assert_eq!(function_bytes(&baseline, function), function_bytes(&selected, function));
++    }
++    assert_success(&cli(&input, &output, &config));
++    assert_eq!(selected, fs::read(&output).unwrap());
++    for (function, count) in [("mixed__FPvPvi", 1), ("duplicate__FPvPvi", 2)] {
++        let profile = placement_config(&compiler, function, "__ct__5ThingFv",
++            "after_constructor_walk", count);
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        let result = cli_command(&input, &output, &config).env("SATANSFIDDLE_VERIFY", "1").output().unwrap();
++        assert_success(&result);
++        assert!(String::from_utf8_lossy(&result.stderr).contains(&format!("expected={count} actual={count}")));
++        let changed = fs::read(&output).unwrap();
++        assert_eq!(function_bytes(&baseline, "unselected__FPvi"), function_bytes(&changed, "unselected__FPvi"));
++    }
++    for (function, constructor, timing, count) in [
++        ("selected__FPvi", "__ct__5ThingFv", "after_constructor_walk", 2),
++        ("duplicate__FPvPvi", "__ct__5ThingFv", "after_constructor_walk", 1),
++        ("selected__FPvi", "__ct__5OtherFv", "after_constructor_walk", 1),
++        ("selected__FPvi", "__ct__5ThingFv", "after_constructor_inline", 1),
++        ("selected__FPvi", "__ct__5ThingFv", "before_constructor_inline", 1),
++    ] {
++        let profile = placement_config(&compiler, function, constructor, timing, count);
++        fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++        fs::write(&output, b"original object sentinel").unwrap();
++        let result = cli(&input, &output, &config);
++        assert!(!result.status.success());
++        assert_eq!(fs::read(&output).unwrap(), b"original object sentinel");
++    }
++    let grouped = source.replace("extern void use(Thing *);", "extern void use(Thing *); extern int combine(Thing *, Thing *);")
++        + "\nvoid grouped(void *a, void *b) { combine(new(a) Thing, new(b) Thing); }\n";
++    fs::write(&input, grouped).unwrap();
++    let grouped_profile = placement_config(&compiler, "grouped__FPvPv", "__ct__5ThingFv",
++        "after_constructor_walk", 2);
++    fs::write(&config, serde_json::to_string(&grouped_profile).unwrap()).unwrap();
++    fs::write(&output, b"original object sentinel").unwrap();
++    let result = cli(&input, &output, &config);
++    assert!(!result.status.success());
++    assert!(String::from_utf8_lossy(&result.stderr).contains("multiple selected constructions"));
++    assert_eq!(fs::read(&output).unwrap(), b"original object sentinel");
++    let overloaded = source.replace("Thing();", "Thing(int);").replace("new(buffer) Thing", "new(buffer) Thing(7)")
++        .replace("new(first) Thing", "new(first) Thing(7)").replace("new(second) Thing", "new(second) Thing(7)");
++    fs::write(&input, overloaded).unwrap();
++    fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++    fs::write(&output, b"original object sentinel").unwrap();
++    let result = cli(&input, &output, &config);
++    assert!(!result.status.success());
++    assert!(String::from_utf8_lossy(&result.stderr).contains("ambiguous placement identity"));
++    assert_eq!(fs::read(&output).unwrap(), b"original object sentinel");
++    fs::write(&input, PLACEMENT_SOURCE).unwrap();
++    fs::write(&config, serde_json::to_string(&profile).unwrap()).unwrap();
++    fs::write(&output, b"original object sentinel").unwrap();
++    let result = cli(&input, &output, &config);
++    assert!(!result.status.success());
++    assert!(String::from_utf8_lossy(&result.stderr).contains("matched 0"));
++    assert_eq!(fs::read(&output).unwrap(), b"original object sentinel");
++}

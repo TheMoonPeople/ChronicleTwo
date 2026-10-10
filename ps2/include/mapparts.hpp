@@ -531,7 +531,7 @@ public:
      * @address 0x161970
      * @size 0xC0
      */
-    CMapTreasureBox();
+    CMapTreasureBox() { Initialize(); }
 
     /**
      *

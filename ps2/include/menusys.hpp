@@ -409,7 +409,7 @@ public:
      * @address 0x1F3D00
      * @size 0x8
      */
-    virtual int IsCreateObject(int select_key, int push_button);
+    virtual int IsCreateObject(int select_key, int push_button) { return 1; }
 
     /**
      *
@@ -419,7 +419,7 @@ public:
      * @address 0x1F3D10
      * @size 0x8
      */
-    virtual int IsMakeObject(int select_key, int push_button);
+    virtual int IsMakeObject(int select_key, int push_button) { return 0; }
 
     /**
      *
@@ -429,7 +429,7 @@ public:
      * @address 0x1F3D20
      * @size 0x8
      */
-    virtual int IsAskExtend(int select_key, int push_button);
+    virtual int IsAskExtend(int select_key, int push_button) { return 0; }
 
     /**
      *
@@ -439,7 +439,7 @@ public:
      * @address 0x1F3D30
      * @size 0x8
      */
-    virtual int ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret);
+    virtual int ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret) { return 0; }
 
     /**
      *
@@ -449,7 +449,7 @@ public:
      * @address 0x1FF8D0
      * @size 0x8
      */
-    virtual void InitEnd();
+    virtual void InitEnd() {}
 
     /**
      *
@@ -459,7 +459,7 @@ public:
      * @address 0x1F3D40
      * @size 0x8
      */
-    virtual void ExitEnd();
+    virtual void ExitEnd() {}
 
     /**
      *
@@ -1206,16 +1206,6 @@ public:
 
     /**
      *
-     * Opens the question of an item command that the item menu adds.
-     *
-     * @mangled IsAskExtend__13CMenuItemInfoFii
-     * @address 0x2444C0
-     * @size 0xA68
-     */
-    virtual int IsAskExtend(int select_key, int push_button);
-
-    /**
-     *
      * Acts on the outcome of an item command after it has run.
      *
      * @mangled ItemCmdAfter__13CMenuItemInfoFiP16ITEMCMD_RET_PARA
@@ -1223,6 +1213,16 @@ public:
      * @size 0x11D8
      */
     virtual int ItemCmdAfter(int cmd_ret, ITEMCMD_RET_PARA *ret);
+
+    /**
+     *
+     * Opens the question of an item command that the item menu adds.
+     *
+     * @mangled IsAskExtend__13CMenuItemInfoFii
+     * @address 0x2444C0
+     * @size 0xA68
+     */
+    virtual int IsAskExtend(int select_key, int push_button);
 
     /**
      *

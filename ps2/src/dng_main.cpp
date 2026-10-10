@@ -43,31 +43,10 @@
 #include "water.hpp"
 
 extern int            wep_effect_cnt;
-extern char           at_3602[];
-extern char           at_1063__3[];
-extern char           at_1064__3[];
-extern char           at_1065__2[];
-extern char           at_1066__2[];
-extern char           at_1067__2[];
-extern char           at_1068__2[];
-extern char           at_1069__3[];
-extern char           at_1070__2[];
-extern char           at_1071__2[];
-extern char           at_1072[];
-extern char           at_1073__2[];
-extern char           at_1074__2[];
-extern char           at_1075[];
-extern char           at_1076[];
-extern char           at_1077__2[];
-extern char           at_1078[];
-extern char           at_1079__2[];
-extern char           at_1080__2[];
-extern char           at_1940[];
 extern "C" float      backup_pos[4];
 extern "C" int        init_camera;
 extern "C" float      viewAngleH__2;
 extern "C" float      viewAngleV__2;
-extern char           at_3589[];
 extern CWeaponElement wep_effect[8];
 #include "charasetup.hpp"
 #include "collision.hpp"
@@ -143,10 +122,10 @@ int         EventScriptSetup(SYSTEM_SCRIPT_INFO *script);
 int         ChangeSetUnit(int dir);
 void        InitEyeCamera(CActionChara *chara);
 int         IsRunDeadEvent(CActionChara *chara);
-extern int  debug_cursor;
-extern int  debug_mons_no;
-extern int  debug_mons_cur;
-extern int  debug_mons_num;
+static int debug_cursor;
+static int debug_mons_no;
+static int debug_mons_cur;
+static int debug_mons_num;
 
 // Uninitialised data (.bss)
 mgCMemory             BuffPaketList[2];
@@ -195,7 +174,6 @@ CLaserGunMan          LaserGun;
 CCharacter2           LaserGunModel;
 CPullItem             PullItem[72];
 static NowLoadingInfo nowload;
-INCLUDE_BSS(at_941__2, 0x10);
 static CWaveTable     WaveTable;
 mgCFrame             *SparcModel[3];
 static CSwordLuminous SwordLuminous;
@@ -206,10 +184,6 @@ CTornado              tornado[6];
 CChillAfterHit        chillAfterHit[6];
 CFireAfterHit         fireAfterHit[6];
 
-INCLUDE_BSS(stack_1823, 0x30);
-INCLUDE_BSS(at_1994, 0x10);
-INCLUDE_BSS(at_2001, 0x10);
-INCLUDE_BSS(chk_pos_2870, 0x10);
 
 // Code (.text)
 CWeaponElement *GetWeaponEffect() {
@@ -554,7 +528,26 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
                                  MainBuffer, NULL, NULL);
     NowLoadingBarStep();
     LoadFile("dungeon/articles/item01b.chr", BuffReadData, NULL);
-    char *item_file[20] = {at_1063__3, at_1064__3, at_1065__2, at_1066__2, at_1067__2, at_1068__2, at_1069__3, at_1070__2, at_1071__2, at_1072, at_1073__2, at_1074__2, at_1075, at_1076, at_1077__2, at_1078, at_1079__2, at_1080__2};
+    char *item_file[20] = {
+        "seisui.chr",
+        "bom.chr",
+        "isi.chr",
+        "maseki_hi.chr",
+        "maseki_rei.chr",
+        "maseki_rai.chr",
+        "maseki_kaze.chr",
+        "maseki_sei.chr",
+        "tokimeki.chr",
+        "isi_berry.chr",
+        "neba_momo.chr",
+        "bom_nattu.chr",
+        "dokuring.chr",
+        "m_banana.chr",
+        "gift_cp.chr",
+        "bom_kai.chr",
+        "f_bom.chr",
+        "denkou.chr",
+    };
 
     for (int i = 0; i < 18; i++) {
         if (item_file[i] != NULL) {
@@ -1063,7 +1056,7 @@ int LoopDungeonMain() {
                         sgRestartSubGame(&info);
                     }
 
-                    MainChara__2->SearchChara(at_1940)->Show(0, 0);
+                    MainChara__2->SearchChara("shot")->Show(0, 0);
                 }
 
                 ResetEyeView(MainChara__2);
@@ -3147,7 +3140,7 @@ void InitEyeCamera(CActionChara *chara) {
     chara->GetRotation(rot);
 
     if (info->chr_no == USER_CHARA_ROBO) {
-        arm = MainChara__2->SearchChara(at_3589);
+        arm = MainChara__2->SearchChara("arm");
 
         if (arm != NULL) {
             arm->GetRotation(arm_rot);
@@ -3179,13 +3172,13 @@ void CheckWeaponEnable() {
     CActionChara *weapon;
 
     if (BattleAreaScene->pause_flag & DNG_PAUSE_WEAPON_DRAW) {
-        weapon = MainChara__2->SearchChara(at_3602);
+        weapon = MainChara__2->SearchChara("sword");
 
         if (weapon != NULL) {
             weapon->Show(0, 0);
         }
 
-        weapon = MainChara__2->SearchChara(at_1940);
+        weapon = MainChara__2->SearchChara("shot");
 
         if (weapon != NULL) {
             weapon->Show(0, 0);
@@ -3394,55 +3387,3 @@ void DBGCMD_RunScript(int no) {
         DngMainScene->before_camera = 0;
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", cam_table_3000__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", cam_table_dist_3001__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1063__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1064__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1065__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1066__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1067__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1068__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1069__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1070__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1071__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1072__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1073__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1074__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1075__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1076__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1077__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1078__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1079__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1080__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_1940__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3589__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_main", at_3602__DATA);
-
-// Virtual tables (.vtables)
-
-// Small initialised data (.sdata)
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(init_1824, 0x4);
-INCLUDE_BSS(water_cnt_2619, 0x4);
-INCLUDE_BSS(init_2620, 0x4);
-INCLUDE_BSS(water_cnt2_2681, 0x4);
-INCLUDE_BSS(init_2682, 0x4);
-INCLUDE_BSS(erate_2867, 0x4);
-INCLUDE_BSS(init_2868, 0x4);
-INCLUDE_BSS(camera_default_dist_2991, 0x4);
-INCLUDE_BSS(init_2992, 0x4);
-INCLUDE_BSS(reference_3008, 0x4);
-INCLUDE_BSS(init_3009, 0x4);
-INCLUDE_BSS(time_step_3092, 0x4);
-INCLUDE_BSS(init_3093, 0x4);
-INCLUDE_BSS(npc_heal_cnt_3352, 0x4);
-INCLUDE_BSS(init_3353, 0x4);
-INCLUDE_BSS(debug_cursor, 0x4);
-INCLUDE_BSS(debug_mons_no, 0x4);
-INCLUDE_BSS(debug_mons_cur, 0x4);
-INCLUDE_BSS(debug_mons_num, 0x4);

@@ -499,49 +499,7 @@ public:
     mgCTexture     *tile_tex;      /**< Texture of the background tiles. */
     mgCTexture     *cursor_tex;    /**< Texture of the cursor. */
 
-#ifdef NONMATCHING
-    CMenuCostumeSel() : camera(40.0f, 30.0f, 0.0f, 8.0f) {
-        select = 0;
-        tile_scroll = 0.0f;
-        chara = 0;
-        monica_enabled = 0;
-        memset(costume_num, 0, sizeof(costume_num));
-        memset(costume_select, 0, sizeof(costume_select));
-        memset(costume_list, 0, sizeof(costume_list));
-        list[0] = costume_list[1];
-        list[1] = costume_list[0];
-        list[2] = costume_list[2];
-        unk_220 = 0;
-        unk_280 = 0;
-        cursor_show = 0;
-        change_chara = 0;
-        memset(line_wave, 0, sizeof(line_wave));
-        load_wait = 0;
-        loading = 0;
-        wait_load = 0;
-        show_help = 0;
-        cursor_x = 0.0f;
-        cursor_y = 0.0f;
-        cursor_wave = 0.0f;
-        chara_data = NULL;
-        tile_tex = NULL;
-        cursor_tex = NULL;
-        chara_pos[0] = 15.0f;
-        chara_pos[1] = -14.0f;
-        chara_pos[2] = 4.0f;
-        chara_pos[3] = 1.0f;
-        costume_rotation[0] = 0.0f;
-        costume_rotation[1] = 0.1f;
-        costume_rotation[2] = 0.0f;
-        costume_rotation[3] = 1.0f;
-        camera.SetDistance(100.0f);
-        camera.SetAngle(0.0f);
-        camera.SetHeight(3.0f);
-        camera.SetSpeed(4.0f, -1.0f);
-        camera.SetFollow(0.0f, 0.0f, 0.0f);
-        camera.Step(-1);
-    }
-#endif
+    CMenuCostumeSel();
 
     /**
      *

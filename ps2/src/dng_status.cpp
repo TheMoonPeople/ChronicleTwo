@@ -33,8 +33,12 @@
 #include "snd_seseq.hpp"
 #include "userdata.hpp"
 
-extern float cur_ang_1005;
-extern s8    init_1006;
+static float cur_ang_1005;
+static s8    init_1006;
+static float palanim_1023;
+static s8    init_1024;
+static float palanim_1222;
+static s8    init_1223;
 
 #include "actionchara.hpp"
 #include "scenesnd.hpp"
@@ -205,58 +209,45 @@ void DrawActiveItemCursor(int x, int y, float alpha) {
     sprite.Vertex(corner);
     sprite.End();
 }
+
+struct charge_position_data {
+    int value[7][2];
+};
+
+struct charge_glyph_data {
+    int value[4][2];
+};
+
+struct status_mask_data {
+    int value[7];
+};
+
+struct status_glyph_data {
+    s16 value[7][2];
+};
+
+static charge_position_data at_1048__2 = {{{270, 18}, {266, 33}, {270, 48}, {281, 59}, {296, 63}, {311, 59}, {322, 48}}};
+
+static charge_glyph_data at_1049 = {{{218, 206}, {228, 206}, {218, 216}, {228, 216}}};
+
+static status_mask_data at_1058__2 = {{1, 2, 8, 4, 16, 32, 64}};
+
+static status_glyph_data at_1059__2 = {{{0, 0}, {24, 24}, {0, 24}, {48, 0}, {24, 0}, {48, 24}, {72, 0}}};
+
 #ifdef NONMATCHING
 void DrawMainUnitStatusBord(float rate) {
     SP_RGBA           color;
-    extern float      palanim_1023;
-    extern s8         init_1024;
     CActionChara     *character;
     CBattleCharaInfo *info;
     CGameDataUsed    *active_items;
     int               hp_max;
     int               hp_now;
 
-    /**
-     *
-     * Screen positions of the charge display elements.
-     *
-     */
-    struct charge_position_data {
-        int value[7][2]; /**< Position pairs. */
-    };
-
     charge_position_data charge_position;
-
-    /**
-     *
-     * Glyph coordinates of the charge display.
-     *
-     */
-    struct charge_glyph_data {
-        int value[4][2]; /**< Glyph coordinate pairs. */
-    };
 
     charge_glyph_data charge_glyph;
 
-    /**
-     *
-     * Mask values used by the dungeon status display.
-     *
-     */
-    struct status_mask_data {
-        int value[7]; /**< Status mask values. */
-    };
-
     status_mask_data status_mask;
-
-    /**
-     *
-     * Glyph coordinates of the dungeon status display.
-     *
-     */
-    struct status_glyph_data {
-        s16 value[7][2]; /**< Glyph coordinate pairs. */
-    };
 
     status_glyph_data status_glyph;
     mgRect<int>       item_glyph;
@@ -379,10 +370,8 @@ void DrawMainUnitStatusBord(float rate) {
     charge_max = info->GetMagicSwordCounterMax();
     element = info->GetMagicSwordElem();
     charge_now = info->GetMagicSwordCounterNow();
-    extern charge_position_data at_1048__2__DATA;
-    charge_position = at_1048__2__DATA;
-    extern charge_glyph_data at_1049__DATA;
-    charge_glyph = at_1049__DATA;
+    charge_position = at_1048__2;
+    charge_glyph = at_1049;
 
     sprite.Initialize(NULL, NULL);
     sprite.Preset2D();
@@ -400,10 +389,8 @@ void DrawMainUnitStatusBord(float rate) {
     }
     sprite.End();
     status_attr = info->GetAttr();
-    extern status_mask_data at_1058__2__DATA;
-    status_mask = at_1058__2__DATA;
-    extern status_glyph_data at_1059__2__DATA;
-    status_glyph = at_1059__2__DATA;
+    status_mask = at_1058__2;
+    status_glyph = at_1059__2;
 
     if (status_attr != 0) {
         status_x = 24;
@@ -621,8 +608,6 @@ INCLUDE_ASM("ps2/asm/pal/nonmatchings/dng_status", DrawMainUnitStatusBord__Ff);
 
 void DrawRoboUnitStatusBord(float rate) {
     int               color[4];
-    extern float      palanim_1222;
-    extern s8         init_1223;
     CBattleCharaInfo *info;
     int               hp_max;
     int               hp_now;
@@ -954,17 +939,3 @@ void DrawStatusBord() {
             break;
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_status", at_1048__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_status", at_1049__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_status", at_1058__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/dng_status", at_1059__2__DATA);
-
-// Small uninitialised data (.sbss)
-INCLUDE_BSS(cur_ang_1005, 0x4);
-INCLUDE_BSS(init_1006, 0x4);
-INCLUDE_BSS(palanim_1023, 0x4);
-INCLUDE_BSS(init_1024, 0x4);
-INCLUDE_BSS(palanim_1222, 0x4);
-INCLUDE_BSS(init_1223, 0x4);

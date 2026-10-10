@@ -95,12 +95,8 @@ BSS_RETAIL_RESERVATIONS = {
         ('.sbss', 0x0037eacc, 0x1, 'init_823', 0x0037ead0, 0x1, (1,)),
     ('convviewlp', 'init_823'):
         ('.sbss', 0x0037ead0, 0x1, 'init_826', 0x0037ead4, 0x1, (1,)),
-    ('dng_debug', 'dbFont'):
-        ('.bss', 0x01ecdc30, 0xb8, 'dbinfo', 0x01ecdcf0, 0x20, (None,)),
     ('dng_main', 'init_1107'):
-        ('.sbss', 0x0037d470, 0x1, 'init_1824', 0x0037d474, 0x1, (None, 1)),
-    ('dng_main', 'nowload'):
-        ('.bss', 0x01ee5210, 0x3c, 'at_941__2', 0x01ee5250, 0xc, (None,)),
+        ('.sbss', 0x0037d470, 0x1, 'init_1824', 0x0037d474, 0x1, (1,)),
     ('dngmenu', 'dngfloor_infoview'):
         ('.sbss', 0x0037d52c, 0x1, 'dngfloor_backdraw', 0x0037d530, 0x1, (1,)),
     ('dngmenu', 'DngInfoFishOkFlag'):
@@ -365,12 +361,8 @@ BSS_RETAIL_RESERVATIONS = {
         ('.sbss', 0x0037e444, 0x1, 'init_801', 0x0037e448, 0x1, (1,)),
     ('sound', 'msinBfCtx'):
         ('.bss', 0x003f3f80, 0x48, 'msinBf', 0x003f4000, 0x1200, (16,)),
-    ('title', 'TitleRushWaitCountBoot'):
-        ('.sbss', 0x0037dfd4, 0x1, 'TitleSelectInit', 0x0037dfd8, 0x4, (None,)),
     ('title', 'MasterDebugModeOn'):
         ('.sbss', 0x0037dffc, 0x1, 'TitleBootEventNo', 0x0037e000, 0x1, (None,)),
-    ('title', 'DCSelectedMovie'):
-        ('.sbss', 0x0037e008, 0x1, 'DCRuncherCounter', 0x0037e00c, 0x4, (None,)),
     ('title', 'TitleMCActivePort'):
         ('.sbss', 0x0037e024, 0x2, 'TitleMCCheckNow', 0x0037e028, 0x1, (None,)),
     ('title', 'TitlePhase'):
@@ -379,8 +371,6 @@ BSS_RETAIL_RESERVATIONS = {
         ('.sbss', 0x0037e044, 0x1, 'TitleCopyRightDispCounter', 0x0037e048, 0x2, (2,)),
     ('title', 'TitleCopyRightDispCounter'):
         ('.sbss', 0x0037e048, 0x2, 'TitleSkipLogoFlag', 0x0037e04c, 0x1, (1,)),
-    ('title', 'TitleSkipLogoFlag'):
-        ('.sbss', 0x0037e04c, 0x1, 'Tex_TitleBG', 0x0037e050, 0x4, (None,)),
     ('title', 'debug_start_drawflag'):
         ('.sbss', 0x0037e098, 0x1, 'HDDPhase', 0x0037e09c, 0x2, (2,)),
     ('title', 'HDDPhase'):

@@ -52,11 +52,6 @@ static sgCPlayVoice PolVoice __attribute__((aligned(16)));
 
 void CharaControl(CScene *scene, CPadControl *pad);
 
-extern char at_962__4[];
-extern char at_956__3[];
-extern char at_961__4[];
-extern char at_964__3[];
-
 /**
  *
  * Buggy effect vector viewed as floats or a quadword.
@@ -67,8 +62,8 @@ union BuggyQuad {
     u_long128 quadword;  /**< The same components as one quadword. */
 };
 
-extern BuggyQuad at_1193;
-extern BuggyQuad at_1074__4;
+static BuggyQuad at_1193 = {{0.0f, 0.0f, 400.0f, 1.0f}};
+static BuggyQuad at_1074__4 = {{0.0f, 0.0f, 1.0f, 0.0f}};
 
 /**
  *
@@ -932,7 +927,7 @@ void CharaControl(CScene *scene, CPadControl *pad) {
             velocity[0] = speed_x;
             velocity[2] = speed_z;
             velocity[1] -= 0.6f;
-            idle_motion = at_964__3;
+            idle_motion = "\203\157\203\147\203\213\227\247\202\277";
             walk_motion = "\x83o\x83g\x83\x8b\x95\xe0\x82\xab";
             run_motion = "\x83o\x83g\x83\x8b\x91\x96\x82\xe8";
             carry_idle_motion = "\x8e\x9d\x82\xbf\x8f\xe3\x82\xb0\x92\xe2\x8e~";
@@ -1114,7 +1109,7 @@ void InitBuggy(CScene *scene) {
     BuggySidePos = 1;
     BuggyStatus = BUGGY_STATE_DRIVE;
     BuggyStatusStep = 0;
-    SmokeEffHandle = EffectMan->CreateEffSpt(at_962__4, 0x40, 1);
+    SmokeEffHandle = EffectMan->CreateEffSpt("\203\157\203\115\201\133\215\273\211\214", 0x40, 1);
     BuggyHP = 3;
     BuggyHPf = 3.0f;
     TrainHP = 1.0f;
@@ -1185,7 +1180,7 @@ void BuggyControl(CScene *scene) {
 
     BuggyChara->GetPosition(position);
     poly_count = 0;
-    mgCFrame *muzzle = BuggyChara->CObjectFrame::frame->SearchFrame(at_956__3);
+    mgCFrame *muzzle = BuggyChara->CObjectFrame::frame->SearchFrame("dcol00");
     *(BuggyQuad *) muzzle_end = at_1193;
 
     if (muzzle != NULL) {
@@ -1618,7 +1613,7 @@ void BombControl(CScene *scene) {
 
         if (BombCount <= 0) {
             BombChara->GetPosition(effect_position);
-            BombEffHandle = EffectMan->CreateEffSpt(at_961__4, 0x43, 1);
+            BombEffHandle = EffectMan->CreateEffSpt("\224\232\224\255", 0x43, 1);
             CCharacter2 *effect = EffectMan->GetCharacter(0x43, BombEffHandle);
 
             if (effect != NULL) {
@@ -1723,13 +1718,3 @@ void BombCheck(CScene *scene) {
         }
     }
 }
-
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_1074__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_1193__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_956__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_961__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_962__4__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/pbuggy", at_964__3__DATA);

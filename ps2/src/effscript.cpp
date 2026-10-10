@@ -276,19 +276,19 @@ int               SetEffectScript(CRunScript *script, char *program, mgCMemory *
 void              SetEffectScriptFunc();
 static void       DrawEffSptSprite(_EFF_SCRIPT *script, mgCTexture *texture, float *offset, mgC3DSprite *renderer, CMapLightingInfo *lighting);
 
-extern char at_1336__2[];
+static const char at_1336__2[] = "--- effect script (non base)!!! ---\n";
 
-extern char at_1337__2[];
+static const char at_1337__2[] = "--- effect script (not load base[%d])!!! ---\n";
 
-extern char at_1338__2[];
+static const char at_1338__2[] = "--- effect script (non work stack)!!! ---\n";
 
-extern char at_1339__3[];
+static const char at_1339__3[] = "--- effect script (ent_tbl max)!!! ---\n";
 
-extern char at_1340__2[];
+static const char at_1340__2[] = "--- effect script work max[%d]!!! ---\n";
 
-extern char at_1341__2[];
+static const char at_1341__2[] = "";
 
-extern char at_2025__3[];
+extern const char at_2025__3[] = "------- es work max!! (set character) ---------\n";
 
 /**
  *
@@ -710,7 +710,6 @@ int CEffectScriptMan::GetNeedFilePath(char *name, char *path, char *pack) {
     return GetNeedFilePath(SearchBaseNo(name), path, pack);
 }
 
-#ifdef NONMATCHING
 _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register_in_group) {
     EFF_SPT_BASE *base;
     int           slot;
@@ -882,9 +881,6 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
     now = script;
     return script;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/effscript", CreateEffSpt__16CEffectScriptManFiii);
-#endif
 
 int CEffectScriptMan::CreateEffSpt(char *name, int user_id, int use_slot) {
     _EFF_SCRIPT *effect = CreateEffSpt(SearchBaseNo(name), user_id, use_slot);
@@ -5774,15 +5770,6 @@ void SetEffectScriptFunc() {
         }
     }
 }
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1336__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1337__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1338__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1339__3__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1340__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_1341__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/effscript", at_2025__3__DATA);
 
 // Small uninitialised data (.sbss)
 CScene *now_scene;

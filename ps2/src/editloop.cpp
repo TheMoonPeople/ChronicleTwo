@@ -591,7 +591,6 @@ struct EditEffectSpriteState {
     void  *sprite_vtable;
 };
 
-#ifdef NONMATCHING
 void EditInit(INIT_LOOP_ARG arg) {
     mgCMemory           *main_stack;
     u_long128           *script_data;
@@ -611,9 +610,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     u_int                water_qwords;
     int                  event_no;
     int                  active_chara_no;
-    int                  fishing_item;
     int                  i;
-    static sceVu0FVECTOR initial_position;
 
     DataPktMode = -1;
     MainScene = GetMainScene();
@@ -782,13 +779,12 @@ void EditInit(INIT_LOOP_ARG arg) {
     NowLoadingBarStep();
     MainScene->Initialize();
     MainScene->chara_texb = 70;
-    MainScene->villager_texb = 78;
-    MainScene->villager_texb_num = 56;
-    MainScene->event_texb = 160;
-    MainScene->event_texb_num = 2;
-    CScene::BGM_INFO *const bgm = MainScene->GetActiveBgmInfo();
-    bgm->master_volf = 1.0f;
-    MainScene->SetVolfBGM(MainScene->GetActiveBgmInfo()->volf);
+    MainScene->SetVillagerTexb(78, 56);
+    MainScene->SetEventTexb(160, 2);
+    CScene *bgm_scene = MainScene;
+    float master_volume = 1.0f;
+    bgm_scene->GetActiveBgmInfo()->master_volf = master_volume;
+    bgm_scene->SetVolfBGM(bgm_scene->GetActiveBgmInfo()->volf);
     MainScene->tex_block_base = 185;
     MainScene->tex_block_count = 21;
     effects = new (TotalDataBuff.Alloc(sizeof(CEffectScriptMan) / 16 + 2)) CEffectScriptMan;
@@ -840,7 +836,8 @@ void EditInit(INIT_LOOP_ARG arg) {
     Camera->GetActiveParam()->near_height = 10.0f;
     Camera->GetActiveParam()->far_height = 10.0f;
     Camera->GetActiveParam()->ground_space = 30.0f;
-    Camera->default_param = *Camera->GetActiveParam();
+    CCameraControl *camera = Camera;
+    camera->default_param = *camera->GetActiveParam();
     MainScene->player_chara = 0;
 
     textures->EnterTexture(156, "work", NULL, mgScreenWidth, mgScreenHeight, 32, NULL, 0, 0);
@@ -858,7 +855,8 @@ void EditInit(INIT_LOOP_ARG arg) {
 
     TotalDataBuff.Align64();
     TotalDataBuff.lock = 1;
-    ControlCharaBuff.stSetBuffer(&TotalDataBuff.stack[TotalDataBuff.stack_used], TotalDataBuff.stack_size - TotalDataBuff.stack_used);
+    int control_size = TotalDataBuff.stGetRest();
+    ControlCharaBuff.stSetBuffer(TotalDataBuff.stGetTop(), control_size);
     ControlCharaBuff.stack_used = 0;
     ControlCharaBuff.lock = 0;
     MainScene->SetStack(0, &ControlCharaBuff);
@@ -873,8 +871,8 @@ void EditInit(INIT_LOOP_ARG arg) {
     MainScene->work_stack = &WorkBuffer;
     ControlCharaBuff.stAlloc64(GetCharaMemAllocSize());
     ControlCharaBuff.Align64();
-    FixCharaBuffSize = ControlCharaBuff.stack_used;
     ControlCharaBuff.lock = 1;
+    FixCharaBuffSize = ControlCharaBuff.stGetUsed();
     active_chara_no = GetUserData()->active_chr_no;
     SetupMainUnit(read_buffer, &ControlCharaBuff, CharaBufs, 70, MainScene, GetUserData(), active_chara_no, 1);
     ActiveCharaNo = GetUserData()->active_chr_no;
@@ -914,12 +912,12 @@ void EditInit(INIT_LOOP_ARG arg) {
     }
     MainCharaBuff.Align64();
     MainCharaBuff.lock = 1;
-    SubDataBuff.stSetBuffer(&MainCharaBuff.stack[MainCharaBuff.stack_used], MainCharaBuff.stack_size - MainCharaBuff.stack_used);
+    int sub_size = MainCharaBuff.stGetRest();
+    SubDataBuff.stSetBuffer(MainCharaBuff.stGetTop(), sub_size);
     SubDataBuff.stack_used = 0;
     SubDataBuff.lock = 0;
     SetCurrentDir(NULL);
-    sceVu0FVECTOR position;
-    *(u_long128 *) position = *(u_long128 *) initial_position;
+    sceVu0FVECTOR position = {0.0f, 0.0f, 0.0f, 0.0f};
     player = MainScene->GetCharacter(MainScene->player_chara);
     map = MainScene->GetMap(0);
     if (player != NULL && map != NULL) {
@@ -968,12 +966,13 @@ void EditInit(INIT_LOOP_ARG arg) {
     InitLightingEdit();
     EditEvent.Reset();
     InitSubGame(MainScene);
-    EdDebugInfo.rod_no = fishing_item;
-    EdDebugInfo.menu_buff = NULL;
-    EdDebugInfo.esa_no = fishing_item;
+    EditSubInfo debug_info;
+    EdDebugInfo.rod_no = debug_info.rod_no;
+    EdDebugInfo.menu_buff = debug_info.menu_buff;
+    EdDebugInfo.esa_no = debug_info.esa_no;
     EdDebugInfo.texb = 185;
     EdDebugInfo.texb_num = 21;
-    EdDebugInfo.load_buff = NULL;
+    EdDebugInfo.load_buff = debug_info.load_buff;
     EdDebugInfo.jump_map_no = -1;
     EdDebugInfo.unk_c = 154;
     EdDebugInfo.dungeon = 0;
@@ -985,9 +984,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     NowLoadingBarSteEnd();
     DeleteNowLoading();
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/editloop", EditInit__F13INIT_LOOP_ARG);
-#endif
+
 /**
  *
  * Copies every camera distance and height limit from another parameter set.
@@ -3190,52 +3187,6 @@ void LoadMap() {
     LoadComVillaager();
 }
 
-// Initialised data (.data)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1045__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1053__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1528__DATA);
-
-// Constants (.rodata)
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1395__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1396__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1397__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1398__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1399__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1400__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1401__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1402__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1403__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1404__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1405__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1406__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1407__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1408__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1409__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1410__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1411__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1412__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1413__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1414__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1415__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1416__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1417__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1418__2__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1419__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1420__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1421__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_1422__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2125__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2126__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2127__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2128__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2129__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2130__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2131__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2132__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2133__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2134__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editloop", at_2136__DATA);
-
 // Uninitialised data (.bss)
 CWaveTable    WaveTable;
 sceVu0FVECTOR CharaOldPos;
@@ -3262,4 +3213,3 @@ CEditEvent    EditEvent;
 EditDebugInfo EdDebugInfo;
 mgCVisualMDT  TestVisual;
 mgCFrame      TestFrame;
-INCLUDE_BSS(at_1077, 0x10);

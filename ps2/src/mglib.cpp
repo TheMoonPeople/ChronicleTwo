@@ -2121,60 +2121,11 @@ sceGsAlpha     mgALPHA_2;
 sceGsTexa      mgTEXA_1;
 sceGsTexa      mgTEXA_2;
 sceGsFrame     mgFRAME_1;
-/**
- *
- * Frame counter used by the frame-end performance meter.
- *
- */
-INCLUDE_BSS(count_580, 0x4);
-/**
- *
- * Initialization flag for the performance-meter frame counter.
- *
- */
-INCLUDE_BSS(init_581, 0x4);
-/**
- *
- * CPU utilization percentage recorded by the frame-end performance meter.
- *
- */
-INCLUDE_BSS(cpu_ratio_583, 0x4);
-/**
- *
- * Initialization flag for the CPU utilization percentage.
- *
- */
-INCLUDE_BSS(init_584, 0x4);
-/**
- *
- * Idle-time percentage recorded by the frame-end performance meter.
- *
- */
-INCLUDE_BSS(free_ratio_586, 0x4);
-/**
- *
- * Initialization flag for the idle-time percentage.
- *
- */
-INCLUDE_BSS(init_587, 0x4);
 int ddraw_size;
-/**
- *
- * Frame-capture sequence number initialized by StoreImage.
- *
- */
-INCLUDE_BSS(image_num_1535, 0x4);
-/**
- *
- * Initialization flag for the frame-capture sequence number.
- *
- */
-INCLUDE_BSS(init_1536, 0x4);
 
 // Uninitialised data (.bss)
 sceGifTag     mgGiftagAD;
 sceVu0FVECTOR mgBackColor;
 sceGsDBuff    mgDBuff;
 MG_PICKZ      mgPickZBuff[4];
-INCLUDE_BSS(store_data_614, 0x1000);
-INCLUDE_BSS(gs_simage, 0xA0);
+sceGsStoreImage gs_simage;
