@@ -210,3 +210,12 @@ They use sequential cell-address preparation without retail's saved-register
 frame and keep the plane-base calculations inside the seam loop. Moving the
 center/old cell pointers to function scope leaves the same `0x528` body.
 All four existing native functions remain exact; no candidate is retained.
+
+A relative three-row window formed inside the inner loop, using constant row
+subscripts 0/1/2 and bounded horizontal cell accesses, remains scalar at
+`0x218` bytes and **319/324** words. References to the complete plane arrays
+likewise remain scalar at `0x208` and **321/324** words. Binding the three
+arithmetic coefficients to const references in the typed row-cursor candidate
+loses its unroll and emits `0x2F0` bytes with **321/324** words, in either
+neighbor/self declaration order. Coefficient references therefore do not
+recover the required unrolled schedule. All four other functions remain exact.
