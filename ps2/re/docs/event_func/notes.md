@@ -24,16 +24,26 @@ register in the branch delay slot, while MWCC copies first and branches on the s
   sum; a direct `event_texb` field read colours the texture offset into `s0` and the stack
   number/memory into `s1` (retail has the reverse), and the colouring does not change with
   declaration order, `const` or unsigned locals, block locals, casts or a named manager local.
-- `_COPY_MONS2SCNCHR` (0x754 body at 0x27FD50 in a 0x760 extent; native 0x750): 244/472 words.
-  Retail copy-constructs the local `CCharacter2` snapshot (generated `CObject` copy constructor at
-  +0x190 into `sp+0x60`, then the derived members), not default-construct-then-assign. Beyond
-  the allocation branch pair, the 0xC-byte `shadow_link` (`CCharaFrameMatching`, source offset
-  +0x35C..+0x364) is copied through GPRs in retail but as three FPR loads/stores plus a
-  destination temporary in native (first difference +0x390, no float conversion involved), and
-  retail calls `Copy` through vtable slot +0xEC while the exact-type native snapshot is
-  devirtualized to a direct call. `CCharaFrameMatching` must stay a grouped member with an
-  explicit `Initialize` and no declared constructor (an empty constructor breaks
-  `MenuMonsterBoxInit`). The command is retail LOCAL; a `static` definition gives a LOCAL symbol.
+- `_COPY_MONS2SCNCHR` (0x754 body at 0x27FD50 in a 0x760 extent; draft 0x758). Retail
+  copy-constructs a temporary `CCharacter2` snapshot of the monster's character (generated
+  `CObject` copy constructor at +0x190 into `sp+0x60`, then the derived members, not
+  default-construct-then-assign) and calls `Copy` on it through vtable slot +0xEC. The draft's
+  `align16_blocks(sizeof(CCharacter2)) + 2` allocation gives retail's `beqz v0` test without a
+  row, and `CCharacter2(ActiveMonster->refer[monster_index].chara).Copy(*dest, memory)` keeps the
+  virtual call (a named local snapshot is devirtualized to a direct call). The draft then agrees
+  with retail through +0x38C. The one remaining cause is the 0xC-byte `shadow_link`
+  (`CCharaFrameMatching`, +0x35C..+0x364): retail copies its three words through GPRs like
+  scalar members, native copies it as a block through three FPRs plus a destination address
+  temporary (one extra word, so everything after +0x390 is shifted by four bytes). Compiler
+  specimens show that every trivially copyable struct member (8, 12 or 16 bytes, single,
+  one-element array or repeated, with or without a destructor or user copy assignment) is
+  block-copied through FPRs; only a user-declared memberwise copy constructor gives the GPR
+  copy. MWCC then rejects default construction of the member without a declared default
+  constructor ("cannot construct ... direct member"). Both default constructors break other
+  units: an empty one adds calls to `MenuMonsterBoxInit` (menuchr notes), and
+  `{ Initialize(); }` with the explicit `shadow_link.Initialize()` removed from `CCharacter2()`
+  fails `dng_main` (`CActiveMonster` constructor, `__sinit_dng_main_cpp`) and `menuchr`. The
+  command is retail LOCAL; a `static` definition gives a LOCAL symbol.
 
 `_COPY_CHARA` (0x26A900, retail LOCAL, 0x2B4 in a 0x2C0 extent) allocates a `CCharacter2` in a
 scene stack (allocation precedes the source-character check, as in retail) and copies the source

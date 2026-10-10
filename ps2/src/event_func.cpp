@@ -16638,7 +16638,7 @@ int _COPY_MONS2SCNCHR(RS_STACKDATA *stack, int argc) {
     int          dst_no = GetStackInt(stack);
     CCharacter2 *copy;
 
-    copy = new (memory->Alloc(0x68)) CCharacter2;
+    copy = new (memory->Alloc(align16_blocks(sizeof(CCharacter2)) + 2)) CCharacter2;
 
     if (copy == NULL) {
         return 0;
@@ -16653,8 +16653,7 @@ int _COPY_MONS2SCNCHR(RS_STACKDATA *stack, int argc) {
 
     EventScene->SetStatus(1, slot, 5);
     CCharacter2 *dest = GetCharacter(dst_no);
-    CCharacter2 source = ActiveMonster->refer[monster_index].chara;
-    source.Copy(*dest, memory);
+    CCharacter2(ActiveMonster->refer[monster_index].chara).Copy(*dest, memory);
     EventScene->SetCharaTexb(dst_no, monster_index + 0x28);
     return 1;
 }
