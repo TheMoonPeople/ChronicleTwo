@@ -268,15 +268,9 @@ int LoadFileBG(char *name, u_long128 *buffer, int *out_size) {
         device = DefaultFileDev;
     }
 
-    i = 0;
-    info = bg_read_info;
-search:
-    if (info->busy != 0) {
-        i++;
-        info++;
-
-        if (i < 32) {
-            goto search;
+    for (i = 0, info = bg_read_info; i < 32; i++, info++) {
+        if (info->busy == 0) {
+            break;
         }
     }
 
