@@ -49,7 +49,9 @@ enum EffSptBaseType {
 // clang-format on
 
 /**
+ *
  * Numeric identifiers of external effect script commands.
+ *
  */
 enum EffectExternalCommand {
     EFF_EXT_ZERO_VECTOR = 0,              /**< Runs the _ZERO_VECTOR command. */
