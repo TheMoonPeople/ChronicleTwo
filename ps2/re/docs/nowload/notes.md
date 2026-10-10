@@ -100,3 +100,12 @@ dependencies are available only in the draft branch. The generated static
 initializer matches in the grouped draft. Its single normal-build promotion
 trial failed at mwccgap's source lookup for `__sinit_nowload_cpp`, so the
 assembly initializer remains selected. The normal full build is byte-identical.
+
+
+## Native data
+
+The unit has no assembly data markers. Loading/pause state, the 0x1000-byte thread stack
+and 0x2800-byte skip-image buffer are native file-local definitions. `bgm_status` has
+seven words (0x1C declared bytes); PauseEnd reads only word zero. The six remaining
+words have no established meanings, and the following four zero bytes are alignment.
+Resource paths and texture names are inline literals.
