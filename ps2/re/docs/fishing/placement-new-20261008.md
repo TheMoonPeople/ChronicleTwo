@@ -34,3 +34,9 @@ casts of either character result also retain the 24-word exchange under the
 one-site after-inline row. The assignment chains preserve the same single
 eligible construction. These tests isolate the remaining pointer-web
 colouring from the already-correct allocation guard.
+
+An explicit `u_long128 *` allocation-buffer local, using the declared return
+type of `mgCMemory::Alloc` and the placement-new overload's buffer type, also
+retains **24/280** words. The exact after-inline row still consumes one site.
+Separating allocation from construction therefore does not separate the
+player and constructed-fish register colours.
