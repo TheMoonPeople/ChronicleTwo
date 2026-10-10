@@ -6,12 +6,10 @@ matching build path uses retail assembly and retains the C++ draft under
 
 `CFireRaster::Step` advances 20 wisp particles, expires spent particles and respawns the last free slot. Its sway phase is twice the loop counter. Typed particle indexing, phase expressions `i * 2`, and advancing the particle index before the counter reproduce the complete 460-byte PAL function, including relocations. The free slot is passed as its `position` member.
 
-## C++ draft status
-All 25 functions have C++ in `ps2/src/water.cpp`. 13 are exact and compiled by
-the matching build. 2 more compile to retail's bytes in isolation but stay under
-`NONMATCHING`. 10 differ from retail and keep the `INCLUDE_ASM` fallback. Each
-function tried has its one promotion attempt recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Matching status
+
+`CreateWaterFrame` is the sole assembly-backed function; its typed draft remains
+guarded. All other functions are native.
 
 Header: `ps2/include/water.hpp`. Types: `FireRasterParticle` (neutral name, no retail symbol),
 `CFireRaster`, `CThunderEffect`, `CWater`, `CWaterFrame`. One free function `CreateWaterFrame`
@@ -127,3 +125,13 @@ counterpart.
 The local `divbyzerocheck on`/`reset` pair around `CWater::Shake` is redundant
 with the PS2 compiler flag. Removing it leaves every section and symbol in
 the water unit's object diff unchanged.
+
+
+## Native data
+
+All data are native; no assembly data markers remain. The compiler emits the 0x38-byte
+`CWater` vtable, 0x54-byte `CWaterFrame` vtable and 16-byte zero-vector initializer.
+`CWater::CreatePacket` owns the aligned four-word MSCAL(2)/MSCNT command arrays. Their
+source base names, exact extents and bytes, and complete retail consumers establish
+identity without numeric suffixes. MWCC rejects native 128-bit shift initializers with
+`illegal data size`, so the word-array representation is retained.
