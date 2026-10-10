@@ -1570,22 +1570,23 @@ TRESURE_BOX_ITEM *PickupRandomItem(TRESURE_BOX_FLOOR_INFO *table, int floor_inde
         group = table->group;
         i = 0;
 
-        do {
+        for (;;) {
             if (group->group_id == id) {
-                goto found;
+                break;
             }
 
             i++;
             group++;
-        } while (i < table->group_num);
 
-        printf("ERR:GROUP_ID OVER!! %d\n", i);
+            if (i >= table->group_num) {
+                printf("ERR:GROUP_ID OVER!! %d\n", i);
 
-        while (1) {
+                while (1) {
+                }
+            }
         }
 
-    found:
-        entry = &group->item[iRand(group->item_num)];
+        entry =&group->item[iRand(group->item_num)];
 
         if (want_higher) {
             if (entry->rank >= value) {
