@@ -966,20 +966,6 @@ static float menu_georama_title_pos[2];
 
 /**
  *
- * Selected quantity of the Georama part being removed.
- *
- */
-extern int DestroyNum_3583;
-
-/**
- *
- * Display name of the selected Georama part being removed.
- *
- */
-extern char *DestroyPartsName_3587;
-
-/**
- *
  * Active villager removal menu.
  *
  */
@@ -4510,7 +4496,9 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
     form = MenuMesForm[3];
 
     static CEditPartsInfo *edparts_info = NULL;
+    static int             DestroyNum[1] = {0};
     static short           DestroyMaxNum = 0;
+    static char           *DestroyPartsName[1] = {NULL};
 
     switch (menu->sub_step) {
         case 0:
@@ -4544,15 +4532,15 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                     if (edparts_info == NULL) {
                         MenuSePlay(5);
                     } else {
-                        DestroyPartsName_3587 = edparts_info->edit_name;
-                        DestroyNum_3583 = 1;
+                        DestroyPartsName[0] = edparts_info->edit_name;
+                        DestroyNum[0] = 1;
                         DestroyMaxNum = 1;
 
-                        if (DestroyPartsName_3587 != NULL) {
+                        if (DestroyPartsName[0] != NULL) {
                             int j = 0;
 
                             for (; j < menu->stock_num; j++) {
-                                if (strcmp(DestroyPartsName_3587,
+                                if (strcmp(DestroyPartsName[0],
                                            menu->stock_list[j].name) == 0) {
                                     DestroyMaxNum = menu->stock_list[j].num;
                                     break;
@@ -4586,7 +4574,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                             MenuCommonInfo->cursor_form->draw_flag = 0;
                         }
 
-                        msg->SetMsgVolumeNoOne(DestroyNum_3583);
+                        msg->SetMsgVolumeNoOne(DestroyNum[0]);
                     }
 
                     break;
@@ -4608,7 +4596,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
             int flags = edparts_info->attr;
 
             if (cursor == 1 && !(flags & kPlaceHidden)) {
-                int old_num = DestroyNum_3583;
+                int old_num = DestroyNum[0];
                 int delta = 0;
 
                 if (buttons_held & kKeyLeft) {
@@ -4631,22 +4619,22 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                     delta = 0;
                 }
 
-                DestroyNum_3583 += delta;
+                DestroyNum[0] += delta;
 
-                if (DestroyNum_3583 <= 0) {
-                    DestroyNum_3583 = 1;
+                if (DestroyNum[0] <= 0) {
+                    DestroyNum[0] = 1;
                 }
 
-                if (DestroyMaxNum < DestroyNum_3583) {
-                    DestroyNum_3583 = DestroyMaxNum;
+                if (DestroyMaxNum < DestroyNum[0]) {
+                    DestroyNum[0] = DestroyMaxNum;
                 }
 
-                if (old_num != DestroyNum_3583) {
+                if (old_num != DestroyNum[0]) {
                     MenuSePlay(0x1D);
                 }
             }
 
-            msg->SetMsgVolumeNoOne(DestroyNum_3583);
+            msg->SetMsgVolumeNoOne(DestroyNum[0]);
 
             switch (buttons_pressed) {
                 case 1:
@@ -4708,8 +4696,8 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                             form->draw_flag = 0;
                             menu->sub_step = 2;
                             menu->ExeScript("\x82\xB1\x82\xED\x82\xB7\x81H");
-                            msg->SetMsgItemNo(&DestroyPartsName_3587, 1);
-                            msg->SetMsgVolumeNoOne(DestroyNum_3583);
+                            msg->SetMsgItemNo(DestroyPartsName, 1);
+                            msg->SetMsgVolumeNoOne(DestroyNum[0]);
                         }
                     }
 
@@ -4725,7 +4713,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
             int choice = msg->YesNoCursor2(0);
 
             if (choice == 1) {
-                GetSaveData()->AddBuildPartsNum(edparts_info->id, -DestroyNum_3583);
+                GetSaveData()->AddBuildPartsNum(edparts_info->id, -DestroyNum[0]);
 
                 for (int k = 0; k < 4; k++) {
                     EditPartsMaterial *material = edparts_info->GetMaterial(k);
@@ -4739,7 +4727,7 @@ int MenuGeoramaPlacePush(CMenuGeorama *menu, int buttons_held, int buttons_press
                                 amount[k] = amount[k] / 2;
                             }
 
-                            amount[k] = DestroyNum_3583 * amount[k];
+                            amount[k] = DestroyNum[0] * amount[k];
                         }
 
                         GetUserDataMan()->GetItemNotOver(item_no[k], amount[k]);
@@ -5876,6 +5864,3 @@ int MenuRemovalKey() {
 void MenuRemovalDraw() {
     MenuPosData->FormDraw();
 }
-
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyNum_3583__DATA);
-INCLUDE_RODATA("ps2/asm/pal/nonmatchings/editmenu", DestroyPartsName_3587__DATA);

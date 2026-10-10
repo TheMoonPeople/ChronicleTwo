@@ -183,18 +183,16 @@ Function-local statics (retail `name$NNNN`; the owning function holds each defin
 | `msgtbl` (`$2587`) | `CMenuGeorama::InitEnd` | s8[5] initial list message offsets |
 | `dmychar` / `init` (`$3207`/`$3208`) | `MakeMsgPartsItemInfo` | blank display name for unused list rows and its guard |
 | `edparts_info` / `init` (`$3580`/`$3581`) | `MenuGeoramaPlacePush` | definition of the placed part selected for removal and its guard |
-| `DestroyNum` (`$3583`) | `MenuGeoramaPlacePush` | selected removal quantity |
+| `DestroyNum` (`$3583`) | `MenuGeoramaPlacePush` | `int[1]` selected removal quantity |
 | `DestroyMaxNum` / `init` (`$3584`/`$3585`) | `MenuGeoramaPlacePush` | maximum removable quantity and its guard |
-| `DestroyPartsName` (`$3587`) | `MenuGeoramaPlacePush` | selected removal part-name pointer |
+| `DestroyPartsName` (`$3587`) | `MenuGeoramaPlacePush` | `char *[1]` selected removal part name, passed to `SetMsgItemNo` |
 | `fname` (`$4292`) | `MenuRemovalInit` | `char *[2] = {"npcmove.pac", NULL}` |
 
-`DestroyNum` and `DestroyPartsName` are four-byte zero objects in retail `.sdata` at 0x37C890 and
-0x37C894 with no initialization guard. An ordinary `= 0` / `= {0}` / `= {NULL}` scalar
-definition emits `.sbss`, which postprocessing cannot convert to `.sdata`; a runtime-initialized
-local static adds a guard byte (retail's `wavetable` pair `cnt$302`/`init$303` and `menuop` pair
-`ManualMovieFadeCount$1253`/`init$1254` show that pattern). A wrapper or one-element array used
-only to change section placement, a nonzero value or the `explicit_zero_data` pragma are not
-accepted spellings.
+`DestroyNum` and `DestroyPartsName` are one-element arrays, zero-initialized, in retail `.sdata` at
+0x37C890 and 0x37C894 with no initialization guard. MWCC gives every scalar local static with an
+initializer a one-byte `init` guard and `.sbss` storage, while a constant-initialized local aggregate
+is emitted directly into `.sdata` without a guard; the part name array is passed as the `char **`
+list of `CDC2Mes::SetMsgItemNo`.
 
 Anonymous `.bss`/`.sbss` templates are compiler-created zero templates for local aggregates, not
 runtime variables; the natural initializers supply them:
