@@ -1,0 +1,92 @@
+# Native status-sprite drawing
+
+The source retains the language layouts, par and pin-distance digit loops, spin marker,
+club label, projectile integration and carry-digit loops already documented in
+[notes.md](notes.md). Fresh m2c output agrees with that analysis. No dependency type or
+drawing API changes.
+
+## Semantic selector precedence
+
+The earlier [36-row candidate](selector-context-20261008.md) reaches 20 words. It
+deliberately excludes broad rows overridden by narrower Japanese policies. The upstream
+wrapper supports this composition: the greatest source-identity specificity wins, while
+contradictory policies at equal greatest specificity are rejected.
+
+Every new row uses the real unit `sphida.cpp`, enclosing function
+`DrawStatusSprite__7CSphidaFv`, binary32 value and callee
+`DPrimEnterSprite__FP11mgCDrawPrimiiiiffff`. `JP` is the actual `LanguageCode ==
+LANG_JAPANESE` condition, represented by `control: {kind: condition, values: [0]}`. Each
+sibling is a real formal floating argument. No source position, occurrence ordinal,
+instruction address, new call or arithmetic-operand selector is used.
+
+Seven rows supplement the earlier candidate:
+
+| Selected value / bits | Context | Sibling argument / bits | Policy |
+| --- | --- | --- | --- |
+| 384 / `0x43c00000` | JP | 7 = 58 / `0x42680000` | Ordinary |
+| 60 / `0x42700000` | JP | 6 = 384 / `0x43c00000` | First |
+| 406.4 / `0x43cb3333` | JP | 7 = 68 / `0x42880000` | Ordinary |
+| 28 / `0x41e00000` | JP | 7 = 68 / `0x42880000` | Ordinary |
+| 406.4 / `0x43cb3333` | JP | 5 = 482 / `0x43f10000` | Ordinary |
+| 20 / `0x41a00000` | Any | 6 = 406.4 / `0x43cb3333` | Before 7 |
+| 20 / `0x41a00000` | JP | 6 = 406.4 / `0x43cb3333` | Ordinary |
+
+`Ordinary` means `evaluate_first: false`, without `evaluate_before`. `Before 7` means
+`evaluate_first: false, evaluate_before: 7`. Every new row asserts `expected_matches:
+1`.
+
+The old Japanese early rows for X=460 and X=482 are removed; their default ordinary
+schedules are required. Four retained broad early rows now assert one match instead of
+two: Y=384 selected by width=58, gauge Y=406.4 and height=28 selected by width=68, and
+suffix Y=406.4 selected by X=482. Their Japanese arguments are consumed by the narrower
+ordinary rows; their other-language arguments retain early evaluation. The remaining
+repeated identities keep the counts in the prior notes.
+
+The resulting profile contains **41 rows**, with 48 asserted argument matches per
+compiler invocation. Both canonical wrapper passes accept every assertion. The two
+removed explicit ordinary X rows would yield 43 rows with identical game and source-only
+object hashes.
+
+The four corrected schedules are:
+
+- Japanese `(60, 384, 58, 16)`: X, width, height, Y.
+- Japanese `(460, 406.4, 68, 28)`: width, X, Y, height.
+- Japanese `(482, 406.4, 22, 22)`: size, X, Y.
+- Other-language carry digits: height=20 before width=16, while the
+  Japanese width-before-Y schedule stays intact.
+
+## New experiments
+
+Scores below start from the earlier 20-word candidate and change only the stated
+identities.
+
+| Variant | Differing words / 1,096 |
+| --- | ---: |
+| Japanese label Y ordinary only | 22 |
+| Label Y ordinary and X first | 16 |
+| Gauge Y ordinary | 19 |
+| Gauge Y and height ordinary | 18 |
+| Gauge X and Y ordinary | 23 |
+| Gauge X, Y and height ordinary | 14 |
+| Suffix Y ordinary | 18 |
+| Suffix X and Y ordinary | 14 |
+| Carry height first only outside Japanese | 33 |
+| Carry height before width only outside Japanese | 16 |
+| Combined corrections with gauge X still first | 4 |
+| Combined corrections with gauge X ordinary | **0** |
+| Remove the two redundant explicit ordinary X rows | **0** |
+
+## Source and data hygiene
+
+DrawStatusSprite is native and exact. The function uses ordinary C++ calls, typed arrays
+and existing fields throughout; no assembly, vtable store, steering helper, dummy local,
+pointer walk or type pun is introduced.
+
+The status-bar name is the eleven-byte zero-terminated `"sphida_bar"` at `0x00377728`,
+followed by five zero alignment bytes. All three unit uses now inline that literal,
+replacing its extern declaration and assembly rodata marker. `InitStatusSprite` and
+`DrawParCounter` remain exact. The other existing unit data owners are unchanged.
+
+Retail binds the promoted symbol GLOBAL and gives its body size as `0x111C` at
+`0x002EF390`. The header now records that size; the `0x1120` comparison extent includes
+four zero alignment bytes.

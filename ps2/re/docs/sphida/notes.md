@@ -4,13 +4,13 @@ Sphida is the golf-like minigame on dungeon floors. Event scripts (`_SPHIDA_*` i
 create and drive it; `dng_main` steps/draws it; `actionchara`/`editctrl` collide against its pin.
 No corresponding class in the first game.
 
-All twenty unit functions now match as native C++, including status-sprite
-drawing. The current selector and whole-PAL acceptance evidence is in
-[the October 8 night assessment](night-20261008.md). Dated guarded results
-below retain their historical compiler and source baselines.
-All initialized data and BSS storage are native; the unit has no data
-reservation markers. The seven-entry `GolfClubDef` table occupies 0x54 bytes
-within a 0x60-byte aligned piece, whose tail is supplied by object preparation.
+All twenty unit functions now match as native C++, including status-sprite drawing. The
+current selector and whole-PAL acceptance evidence is in [the October 8 night
+assessment](matching-constraints.md). Dated guarded results below retain their
+historical compiler and source baselines. All initialized data and BSS storage are
+native; the unit has no data reservation markers. The seven-entry `GolfClubDef` table
+occupies 0x54 bytes within a 0x60-byte aligned piece, whose tail is supplied by object
+preparation.
 
 ## CPowGage (size 0x24, asserted)
 Size: it is the first member of CSphida, and CSphida's next field (`tex_bank`) is at 0x24.
@@ -123,96 +123,18 @@ against RandomCircle in retail, even though it is choosing the ball.
 
 Merged source had one canonical mismatch at 0x002EE3A8. Retail prepares the sprite height 28.0f before the width 18.0f on the side caps. A stable Satan’s Fiddle selector for Draw__8CPowGageFv, binary32 bits 0x41e00000, evaluate_first true reproduces the argument order across all matching sprite calls without source changes, ordinals or compiler register tricks. The prepared isolated unit passes all 0x3134 allocated bytes and 438 resolved relocations.
 
-## DrawStatusSprite on the 73f8e75 merged base
+## DrawStatusSprite selector limits
 
-`DrawStatusSprite__7CSphidaFv` is the unit's only guarded function. Its existing
-source is retained: 193 of 1,096 words differ under the pinned profile, versus
-168 instructions with the plain-wibo draft helper. The native extent is 0x111C
-against retail 0x1120. The helper's disassembly display omits zero padding and
-symbol-label fragments, so canonical word counts are the retained-draft metric.
+DrawStatusSprite is native and exact; [the matching constraints](matching-constraints.md)
+record its 41-row profile and source identities. Callee-only floating policies left
+134 of 1,096 words different because calls sharing constants need different schedules.
+Individual extra-literal policies did not improve that score. Source condition and
+sibling argument identities distinguish the required schedules without call ordinals.
 
-m2c and retail establish the two language branches, par and distance digit
-loops, spin marker and club carry simulation. Projectile vectors start at zero,
-raise the landing height by 3, use the club power/carry and double-precision
-trigonometric helpers, then integrate up to 600 steps with horizontal damping
-0.999 and vertical acceleration -0.0045*(step+1). The matched region does not
-need a replacement helper or COP2 inline code.
+## Status-sprite argument types
 
-Using f-suffixed literals instead of explicit casts, naming the carry-digit X
-position before the sprite call, and using SDK vector typedefs each leave 193
-words unchanged. Replacing `par - par_tens * 10` with `par % 10` worsens the
-count to 281 because MWCC emits a separate integer division/remainder. These
-source experiments were reverted.
-
-Private stable float-value selectors reduce the count to 134 words. Each row
-uses translation unit `sphida.cpp`, function `DrawStatusSprite__7CSphidaFv`,
-value_type `binary32`, evaluate_first `true`, and no callee restriction. The
-candidate IEEE identities are `0x42040000`, `0x43e30000`, `0x41b00000`, `0x43bf3333`, `0x42500000`, `0x42880000`, `0x42940000`, `0x43b98000`, `0x43b18000`, `0x43ed0000`, `0x43be0000`.
-
-The exact JSON rows are saved privately in
-`.private/receipts/bigfn-sphida/proposed-rows.json`; the complete candidate
-profile and per-row measurements are in that same receipt directory. The rows
-are exploratory proposals, not accepted calibration: the complete canonical
-unguarded probe fails only this function, with bytes at 0x002EF545 and a
-`DPrimEnterSprite__FP11mgCDrawPrimiiiiffff` relocation at function offset 0x8E4
-resolving differently from retail. The repository profile is unchanged.
-
-Retail materialization evidence includes 33.0f before the tens-digit arithmetic
-at 0x002EF55C..0x002EF568, the 454.0f ones-digit position at 0x002EF5A0, and the
-382.4f/406.4f carry labels and digit calls in both language branches. Scoped and
-unscoped 33.0f selectors alone each reduce 193 to 188; the complete set's
-interaction must be validated across every identical-value sprite call.
-
-**Park category:** floating argument evaluation/scheduling. **Reconsider when:**
-a stable semantic selector or natural argument-expression structure reproduces
-the remaining 134 private-profile words and restores the +0x8E4 relocation,
-with a complete-unit pass. Per-occurrence or instruction-address selectors are
-not acceptable. No improved source draft was retained, and the guard remains.
-
-The final unchanged-profile build comparison is
-`.private/receipts/bigfn-final/`; target native coverage is still guarded.
-
-Final guarded validation is identical to i9 in verifier, complete object-check
-output and coverage. All three lane units pass; the inherited failing set stays
-mg_texture, nd_meswin, actionchara and actscript (145/149 pass). Coverage stays
-6,666 matched / 184 guarded / 15 assembly-only / 7 fuzzy. No target is promoted.
-Comparison receipt: `.private/receipts/bigfn-final/comparison.json`.
-
-## Mid-day scoped sprite-policy audit (2026-10-08)
-
-DrawStatusSprite remains the unit's sole guard. The canonical source-only
-baseline reproduces 193/1096 differing words and the previous eleven-row
-private profile reproduces 134/1096. Additional callee-scoped evaluate-first
-rows for `DPrimEnterSprite__FP11mgCDrawPrimiiiiffff`, tested on that private
-profile, give:
-
-| Literal | Differing words | Literal | Differing words |
-|---:|---:|---:|---:|
-| 18 | 160 | 20 | 187 |
-| 438 | 134 | 60 | 142 |
-| 54 | 142 | 58 | 136 |
-| 16 | 164 | 336 | 134 |
-| 85 | 134 | 34 | 141 |
-| 102 | 138 | 406.4 | 137 |
-| 460 | 144 | 355 | 134 |
-| 371 | 134 | 442 | 140 |
-| 80 | 134 | 40 | 134 |
-| 30 | 134 | 304 | 140 |
-| 384 | 134 | | |
-
-No additional row improves the 134-word result. The parameter order differs
-between sprite calls sharing a literal; the carry-digit call also remains
-four bytes shorter, moving its relocation. The sprite calls have direct
-constants and arithmetic arguments, including inline integer-to-float
-conversion. They have no actual sibling nested call for the upstream SF
-selectors. New calls or per-occurrence identities are not introduced.
-
-No profile row or source trial is retained. The full evidence ledger is
-`.private/floatsel/sphida-calibration-ledger.json`, with profiles and compiler
-logs alongside it and the base/private-profile instruction comparisons
-under `.private/floatsel/sphida/`. The fresh m2c output remains in that
-receipt root and confirms the existing type/function analysis.
-
-The fresh isolated production probe confirms 134/1096 words, a byte problem
-at `0x002EF545` and the displaced sprite relocation at `+0x8E4`. Other native
-functions remain exact. Receipt: `.private/floatsel/sphida/sprite-best-production/`.
+CSphida::DrawStatusSprite uses (sceVif1Packet *) NULL to select the
+ReloadTexture overload. Its float(...) literals perform double-to-float
+conversion and participate in the documented floating scheduling rows;
+cos/sin and division casts likewise change type. The retail body is 0x111C
+at 0x2EF390.
