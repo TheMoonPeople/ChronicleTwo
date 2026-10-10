@@ -53,3 +53,10 @@ case:
 
 Non-compound scaling gives `0.0196f * sum` operand order, as in the combined update;
 only `sum *= 0.0196f` keeps retail's `sum * 0.0196f`.
+
+Moving the final neighbour add into the update statement, `(sum += center[-24]) *
+0.0196f + ... - 0.0015f * (...)`, gives retail's coefficient priority and cell
+registers. Its neighbour-add and coefficient-multiply operands are reversed.
+A separate `sum += center[-24]` with `sum * (c * c)` (`float c = 0.14f`)
+also restores `n * k`, which leaves 33 words; see
+[the single-statement constraints](matching-constraints.md#single-statement-update-with-an-in-statement-neighbour-add).

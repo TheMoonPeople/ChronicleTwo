@@ -305,3 +305,114 @@ recovers the original 27-word draft. No reference, constant, header, layout or
 compiler-policy change is retained; the bounded-indexing and seam constraints
 remain unresolved. A reference binding therefore supplies no evidence for
 renumbering the existing immediate-coefficient graph alone.
+
+## Single-statement update with an in-statement neighbour add
+
+The draft's coefficient numbering can be reproduced without names or
+references. The final neighbour addition has to move into the update
+statement:
+
+```cpp
+float sum = center[24] + (center[-1] + center[1]);
+*old = (sum += center[-24]) * 0.0196f + (1.9216f * *center - *old)
+     - 0.0015f * (*center - *old);
+```
+
+This form gives **41/324** words and a `0x510` body. Canonical `draft.sh`
+confirms the score, and all four other native functions stay exact. The
+row-loop head now matches retail exactly: 0.0196 is materialised first,
+1.9216 takes `$f0` and 0.0196 takes `$f1`. Every floating-point register
+in the unrolled cells also matches. Because `*center` and `*old` repeat
+inside the statement, the self term is as cheap as `(sum += U) * k`. The
+tie evaluates the left operand first and scans the right one first. That
+is the order retail needs.
+
+Two kinds of difference remain, besides the nine seam reversals:
+
+- The neighbour add is emitted as `sum + U` (`add.s $f4,$f4,$f3`), but
+  retail has `U + sum`.
+- The product is emitted as `0.0196 * n` (`mul.s $f4,$f1,$f4`), but
+  retail has `n * 0.0196`.
+
+There are also small schedule differences in the address arithmetic at
+`+0x140`, in the last unrolled cell, and in the remainder loop. Changing
+the operand order breaks something else in every form tested:
+
+| Variant | Words / 324 | Effect |
+| --- | ---: | --- |
+| Same, assigned to `sum` and then stored | 48 | same operand orders, more remainder-loop drift |
+| `(sum = center[-24] + sum)` (`U + sum` order) | 65-71 | the result becomes a temporary in `$f3`; a direct store is scalar |
+| `float sum = center[-24]; (sum += D + (L + R))` | 125 | add order correct, neighbour web in `$f6` |
+| `(sum += U) * (c * c)`, `float c = 0.14f` | 81 | `n * k` order, but 1.9216 materialised first and 0.0196 in `$f0` |
+| `((sum += U) *= 0.0196f)` in the statement | 80 | `n * k` and coefficient colours, but 1.9216 materialised first |
+| Full neighbour sum, `sum * (c * c) + self - damping` | 71 | coefficients and `n * k` correct, but the sum is dead before the self term (`$f3`) |
+| Named `float`/`const float k = 0.0196f` in the 41-word form | 41 | propagated like the literal |
+| Self term nested as `(wave = 1.9216f * *center - *old)` beside `(sum *= 0.0196f)` | 60-82 | 1.9216 still materialised first |
+| The same nested self term after a separate `sum *= 0.0196f` | 36 | 0.0196 numbered first |
+
+A 198-case screen covered the add form, the multiply form, the self-term
+order, the statement shape and the `sum` scope. It found no form below 41.
+Retail's `U + sum` and in-place `n * k` together point to the
+draft's separate `sum *= 0.0196f`, which numbers 0.0196 first. Double
+literals do not help: `sum *= 0.0196` is identical to the float form,
+while double 1.9216 or 0.0015 literals emit double arithmetic.
+
+### Squared coefficient
+
+0.0196 is bit-identical to `0.14f * 0.14f`, and 1.9216 to `2 - 4 * 0.14²`. If
+the product is written as `sum * (c * c)` with `float c = 0.14f`, the
+multiply keeps retail's `n * k` order. Combined with a separate `sum +=
+center[-24]`, this gives **33/324** words and a `0x510` body. Canonical
+`draft.sh` confirms the score, and all four other native functions stay
+exact:
+
+```cpp
+float sum = center[24] + (center[-1] + center[1]);
+sum += center[-24];
+*old = sum * (c * c) + (1.9216f * *center - *old) - 0.0015f * (*center - *old);
+```
+
+The prologue, the coefficient colours, every unrolled multiply and the
+`adda`/`msub` sequence all match. Differences remain in four places:
+
+- the `sum + U` operand order of the final neighbour add, in all eight cells;
+- three address instructions at `+0x140`;
+- the last unrolled cell's load order;
+- five remainder-loop words.
+
+The nine seam reversals also remain. `U + sum` is not
+available here: `+=` always emits the variable first, while `sum =
+center[-24] + sum` starts a new value. That value takes `U`'s register
+(`$f3`) instead of the partial sum's `$f4`, giving 65 words. The `U + sum`
+order is reached only by `float sum = U + (D + (L + R))`. With a temporary
+product, that sum dies before the self term and also takes `$f3`; that
+form gives 71 words.
+
+| `c * c` variant | Words / 324 |
+| --- | ---: |
+| `const float c` (folded like the literal) | 41 |
+| `c` declared inside the cell | `0x1F8`, scalar |
+| 1.9216 written as `2.0f - 4.0f * c * c` or `2.0f - 4.0f * (c * c)` | `0x1F8`, scalar |
+| Self term evaluated first (`self + sum * (c * c)`, or the damping moved out of the statement) | 67-81, 1.9216 materialised first |
+| `sum *= c * c` as its own statement (draft structure) | 27, 0.0196 numbered first |
+| `(center[-24] + sum) * (c * c)` in one statement | 67-81 |
+
+## Row cursors and reference bindings
+
+Retail recomputes every cell address as `base + ((column + k) + row * 24)
+* 4`. Typed row cursors strength-reduce the column address to a pointer
+with constant offsets instead:
+
+| Cursor form | Words / 324 | Body |
+| --- | ---: | ---: |
+| `float (*now)[24]` cursor advanced per row, function-scope `center`/`old` | 322 | `0x528` |
+| Same with block-scope `float *const &center`/`old` | 324 | `0x300`, scalar |
+| `float *const &` row bindings (`above`, `line`, `below`, `prev`) | 357 | `0x598`, bindings spilled to the frame |
+| `&now[row][column]` with `center[±24]` neighbours (crosses rows) | 324 | `0x438`, pointer induction |
+| Plain `now[row][column]` neighbours | 324 | `0x208`, scalar |
+
+None reproduces retail's per-cell index arithmetic. Only a flat
+`row * 24 + column` index does, and the seam forms tested here (pointer
+pairs, an index base at column 1, `0.5f *`, `/ 2`, reverse row loop and
+mixed `before[row * 24 + 22]` operands) leave the nine reversals or grow
+the body.
