@@ -1,8 +1,10 @@
 # Menu construction boundaries
 
 `MenuModeMalloc`, `MenuItemDebugKey`, `MenuItemSelectInit` and
-`CMenuItemInfo::IsAskExtend` are native and exact. Their scalar construction
-sites use the documented [placement policy](../satansfiddle/placement-new.md).
+`CMenuItemInfo::IsAskExtend` are native and exact. The first three use the
+documented [placement policy](../satansfiddle/placement-new.md); `IsAskExtend`
+uses `Alloc(align16_blocks(sizeof(CActionChara)) + 2)` with the file-local
+early-return block-count helper and needs no placement row.
 The extended prompt's retained source lifetimes are described in
 [unit notes](notes.md).
 

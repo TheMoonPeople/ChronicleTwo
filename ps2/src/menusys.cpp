@@ -6237,6 +6237,19 @@ enum MENU_BUILD_UP_STEP {
     MENU_BUILD_UP_BLOCKED = 5, /**< Waits for dismissal of a failed condition message. */
 };
 
+/**
+ *
+ * Rounds a byte count up to a number of 16-byte allocation blocks.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
+
 #pragma inline_depth(8)
 int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
     mgCMemory         *load_stack = &MenuCharaLoadStack;
@@ -6403,7 +6416,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         load_stack->Align64();
                         int rest = load_stack->stGetRest();
                         work.stSetBuffer(load_stack->stGetTop(), rest);
-                        build_up_chara = new (work.Alloc(sizeof(CActionChara) / 16 + 2)) CActionChara;
+                        build_up_chara = new (work.Alloc(align16_blocks(sizeof(CActionChara)) + 2)) CActionChara;
                         build_up_chara->Initialize(NULL);
                         build_up_chara->LoadPack((u_int *) model_file->buffer, "info.cfg", &work, &work, &work, tex_block[2], NULL);
                         build_up_chara->SetScale(1.5f, 1.5f, 1.5f);

@@ -2162,14 +2162,6 @@
         "constructor": "__ct__18mgCVisualMotionMDTFv",
         "conversion": "after_constructor_inline",
         "expected_matches": 1
-      },
-      {
-        "translation_unit": "menusys.cpp",
-        "function": "IsAskExtend__13CMenuItemInfoFii",
-        "allocator": "__nw__FUiP1",
-        "constructor": "__ct__12CActionCharaFv",
-        "conversion": "after_constructor_inline",
-        "expected_matches": 1
       }
     ]
   }

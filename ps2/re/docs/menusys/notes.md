@@ -8,8 +8,9 @@ and PAL verification pass; see
 emit their own path literals, analog-input zero templates, the `dbox_path`
 local static and the `CItemSelect` vtable, so no data markers remain for them.
 
-`CMenuItemInfo::IsAskExtend` is also native, with one after-inline placement
-row for its temporary `CActionChara`. All 165 functions match retail.
+`CMenuItemInfo::IsAskExtend` is also native. Its temporary `CActionChara`
+allocation uses the file-local block-count helper and needs no placement row.
+All 165 functions match retail.
 
 Header: `ps2/include/menusys.hpp`. All offsets and sizes below were checked by compiling a test
 against the header (offsets of the key fields and every `sizeof`).
@@ -197,8 +198,9 @@ Only non-local symbols get externs (the rest are `static` in the .cpp per `local
 All 165 functions in this unit are native C++ and exact. The four allocation
 callers `MenuModeMalloc`, `MenuItemDebugKey`, `MenuItemSelectInit` and
 `CMenuItemInfo::IsAskExtend` construct their `CActionChara` or `CItemSelect`
-objects through placement construction. The accepted rows and their scope
-are documented in [placement-new.md](../satansfiddle/placement-new.md).
+objects through placement construction. The first three use scoped placement
+rows; `IsAskExtend` uses the natural allocation block-count helper. The
+accepted rows and their scope are documented in [placement-new.md](../satansfiddle/placement-new.md).
 
 `IsAskExtend` dispatches the extended prompt through repair and weapon
 build-up states. Repair starts background resource loading, creates the
@@ -232,9 +234,12 @@ are natural initialized function-local statics.
   avoids reloading it after the Z-test store. The texture-manager pointer is
   assigned again for the transformed model and captured in a const receiver;
   its two value lifetimes produce the retail spill and register allocation.
-  Inline depth eight and one count-checked after-inline placement conversion
-  expose the real constructor chain. The frame is 0x170 bytes and the body
-  is 0xA68 bytes.
+  Inline depth eight exposes the real constructor chain. Its allocation uses
+  `align16_blocks(sizeof(CActionChara)) + 2`; the file-local early-return
+  helper rounds bytes to quadwords and statement-inlines, preserving retail
+  allocation-result lifetimes without a compiler-profile row. The constant
+  folds to 0x105 quadwords. The frame is 0x170 bytes and the body is 0xA68
+  bytes.
 - `CommonSetMoveItemClass` copies four integers with a `table[i][j]` loop,
   then names the row pointer. The explicit `move->from[2] == 0` comparison
   avoids an extra sign-extension pair.
