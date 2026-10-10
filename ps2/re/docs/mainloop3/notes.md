@@ -15,7 +15,7 @@ functions and 3 enums. Every data symbol of the unit is LOCAL in retail
 | `__sinit_mainloop3_cpp` | static init | calls `mgCMemory::Init()` on the five 0x30-byte bss `mgCMemory` objects |
 
 Five file-scope `mgCMemory` definitions in BSS generate the retail initializer in that
-order. `Stack__2` has external linkage because another assembled unit refers to it.
+order. The texture-table `Stack` has file-local linkage.
 The native `__sinit_mainloop3_cpp` instructions match exactly, with one 0x30-byte
 section per object.
 
@@ -76,6 +76,6 @@ No direct first-game counterpart is identified.
 The unit's functions and initializer are native C++ and its complete object
 matches retail. `emergency_mes` holds the Shift-JIS repair instructions and
 English error message. Seven hard-disk status variables are file-local;
-`Stack__2` retains external linkage for assembled references. `FutureMapSelect`
+`Stack` has file-local linkage. `FutureMapSelect`
 uses initialized function-local selection statics, while `EmergencyMessage`
 uses an initialized color counter and an uninitialized text pointer.
