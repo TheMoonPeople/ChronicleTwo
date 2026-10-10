@@ -1420,7 +1420,11 @@ static int langTbl_3630[2][2] = {
  * Stores the aquarium menu command for each tank and cursor slot.
  *
  */
-static s8 menu_id_tbl_3721[18] = {0, 1, 2, 3, 4, 5, 0, 3, 4, 5, -1, -1, 0, 3, 4, 5, -1, -1};
+static s8 menu_id_tbl_3721[3][6] = {
+    {0, 1, 2, 3, 4, 5},
+    {0, 3, 4, 5, -1, -1},
+    {0, 3, 4, 5, -1, -1},
+};
 
 /**
  *
@@ -5315,9 +5319,8 @@ int CAquarium::Step() {
                     MenuSePlay(SYSTEM_SE_CANCEL);
                     next = AQUARIUM_MODE_VIEW;
                 } else if (key & MENU_PUSH_BUTTON_DECIDE) {
-                    const s8 *ids = &menu_id_tbl_3721[aqua_no * 6];
                     i = menu->menu_cursor;
-                    switch (ids[i]) {
+                    switch (menu_id_tbl_3721[aqua_no][i]) {
                         case AQUARIUM_COMMAND_FISH_INFO:
                             if (InitSelFish() != 0) {
                                 MenuSePlay(SYSTEM_SE_CANCEL);

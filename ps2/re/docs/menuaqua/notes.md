@@ -346,3 +346,10 @@ caller is native.
   by C++. The state/result enums and signed field types preserve every
   byte and resolved relocation; see [night-20261008.md](night-20261008.md)
   and [review-fixes-20261008.md](review-fixes-20261008.md).
+
+## Aquarium menu identifiers
+
+`menu_id_tbl_3721` has three rows of six signed-byte action IDs. The current
+aquarium number selects a row and the menu cursor selects a column; the last
+two entries in the second and third rows are unavailable (`-1`). The typed
+`[3][6]` definition and direct row indexing preserve the retail object.
