@@ -5,6 +5,12 @@
 without source-level virtual-table writes. No `NONMATCHING` guards or assembly
 fallbacks remain in this unit. See
 [placement conversion](../satansfiddle/placement-new.md).
+All BSS reservations have native definitions. Six data reservations remain:
+`at_1074__4__DATA` and `at_1193__DATA` preserve the retail vector layout,
+while `at_956__3__DATA`, `at_961__4__DATA`, `at_962__4__DATA`, and
+`at_964__3__DATA` preserve named string symbols used by native code.
+Replacing the first vector with a natural initialization changes instructions
+in `CharaControl`; replacing the second changes instructions in `BuggyControl`.
 Its scene character slots 0x40-0x46 are named by `BuggySceneChara`. Because
 native code now uses the texture-block slots and `WorkBuff`, they are `static`
 like every other data object here, matching retail's LOCAL bindings; their
