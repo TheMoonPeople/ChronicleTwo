@@ -581,20 +581,15 @@ int CRandomCircle::GetPosition(float *out_pos, int index) {
 int CRandomCircle::CheckEvent(float *pos) {
     int id;
 
-    id = 0;
-next_circle:
-    if (active[id] != 0 && mgDistVector(this->pos[id], pos) <= 20.0f) {
-        hit = id;
-        return id;
-    }
-    id += 1;
-
-    if (id >= 3) {
-        hit = -1;
-        return -1;
+    for (id = 0; id < 3; id++) {
+        if (active[id] != 0 && mgDistVector(this->pos[id], pos) <= 20.0f) {
+            hit = id;
+            return id;
+        }
     }
 
-    goto next_circle;
+    hit = -1;
+    return -1;
 }
 
 int CRandomCircle::SetCircle(float *pos) {
