@@ -70,16 +70,12 @@ debug font.
 pad 0x10 is down. Passed by value to `NextLoop(1, arg)`. Layout belongs to mainloop's header.
 
 ## First game
-No counterpart found in `/home/adubbz/development/chronicle` (HDD install is new here).
+No direct first-game counterpart is identified.
 
-## Draft and promotion status
-All four remaining functions have named C++ drafts under `NONMATCHING`. The default
-build retains their retail assembly. `FutureMapSelect`, `HDDMenuLoop`, and
-`EmergencyMessage` compile but differ from retail by 227/284, 255/284, and
-159/176 words respectively in the isolated draft comparison. Each had one
-promotion attempt and remained guarded. `HDDMenuLoop` also generated a different
-literal at `0x003791C0` during its promotion attempt; its title spelling was
-corrected afterward. The initializer draft compiles, but `mwccgap` could not find
-the unmangled local `__sinit_mainloop3_cpp` symbol for its isolated promotion.
-It remains guarded. The promotion attempts are recorded in
-`scripts/re/promotion_attempts.tsv`.
+## Current source status
+The unit's functions and initializer are native C++ and its complete object
+matches retail. `emergency_mes` holds the Shift-JIS repair instructions and
+English error message. Seven hard-disk status variables are file-local;
+`Stack__2` retains external linkage for assembled references. `FutureMapSelect`
+uses initialized function-local selection statics, while `EmergencyMessage`
+uses an initialized color counter and an uninitialized text pointer.
