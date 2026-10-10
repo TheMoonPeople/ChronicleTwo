@@ -6,8 +6,10 @@ All 31 functions have active C++ bodies. `CMapPiece::Copy` and the file-local
 `CreateChara` are accepted native callers with one scoped `CCharacter2`
 placement row each. No `NONMATCHING` guards or assembly fallbacks remain.
 See [placement conversion](../satansfiddle/placement-new.md).
-Earlier promotion attempts in `scripts/re/promotion_attempts.tsv` describe
-prior source/profile boundaries.
+The writable `pcp_tag` table has `MDS`, `TYPE`, `FAR_CLIP` and `MDS_END`
+handlers plus a null terminator; its declared size is 40 bytes, followed by
+eight bytes of section alignment. The parser-state objects and both class
+vtables are native.
 
 The unit loads PCP pack files (lists of MDS model / collision / character data driven by an
 `info.cfg` script inside the pack), records IMG texture files, and implements `CMapPiece`, the
