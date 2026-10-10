@@ -929,16 +929,16 @@ int CMap::GetCharaLight(mgCObject *chara, CFuncPoint *points, int max, int use_p
 }
 
 int CMap::SetFuncPLight(float *pos, CFuncPointCheck *check) {
-    static CFuncPoint points[8];
+    static CFuncPoint ft[8];
     sceVu0FVECTOR     color;
     CFuncPoint       *point;
     int               light_num;
     int               index;
 
-    light_num = func_point.GetLight(pos, points, 3, check, 0);
+    light_num = func_point.GetLight(pos, ft, 3, check, 0);
 
     for (index = 0; index < light_num; index++) {
-        point = &points[index];
+        point = &ft[index];
         sceVu0ScaleVector(color, point->plight.color, GetLightAnimeWeight(point, anime_frame));
         mgSetPlight(3 - index, point->position, color, point->plight.power, point->plight.range);
     }
