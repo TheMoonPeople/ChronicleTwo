@@ -57,7 +57,7 @@ and its configuration payload as characters.
 Both functions have retail-sized native bodies (`0x12AC` and `0x9B4`). The
 promotion checkpoint compared `0x11C44` allocated bytes and 3,218
 relocations with both functions native. The current review build compares
-`0x11C10` allocated bytes and 3,340 resolved relocations with zero findings.
+`0x11C04` allocated bytes and 3,349 resolved relocations with zero findings.
 
 ## Aquarium drawing
 
@@ -137,7 +137,7 @@ finding; standard objdiff scores its `0xE80` body at 100%.
 
 ## CAquaFishEff
 0 fish (vtable 0x18 GetPosition in Draw), 4 texture (`Tex_FishEffect`), 8 s16 type 1..5 (texture
-rows in Draw; `max_tbl_1484` gives each type's time), 0xC timer (-1 = forever).
+rows in Draw; its local `max_tbl` gives each type's time), 0xC timer (-1 = forever).
 
 ## CFishFood (0x660..0x6A0)
 0x660 spin (x,z used), 0x670 pos, 0x680 item_no (s16), 0x684 fall_time, 0x688 sway, 0x68C
@@ -187,7 +187,7 @@ buffer, 0x32 per line), 0x225C/0x2278/0x228C (cursor), 0x258C/0x2590 widths.
   CAquaFishEff*[6]; `AquaBattleBubble` CBubble* (array of battle emitters, stride 0x40);
   `AquaBattleBubble_Pos` float[4]; `aquarium_xz_table`/`aquarium_y_table` new float[0x3C][4];
   `aquarium_paul_table` new {float* xz; float* y}[0x3C] (60 grid points, 10 x 6);
-  `Camera__2` mgCCameraFollow* (0xC0, Alloc 0xE); `aqua_old_env` float[4][4]* (12 quadwords:
+  `Camera` mgCCameraFollow* (0xC0, Alloc 0xE); `aqua_old_env` float[4][4]* (12 quadwords:
   light matrices + point light + enable); `Tex_Aqualium`/`Tex_FishEffect` mgCTexture*;
   `m_aquarium_para` CFishAquarium*; `AquaScene` CScene*.
 - Data tables (all local): `esa_info` rows of 10 bytes {s16 item; s8 +2 -> breed+0x3B counter;
@@ -262,7 +262,25 @@ initialization guards are emitted by C++.
 
 ## Aquarium menu identifiers
 
-`menu_id_tbl_3721` has three rows of six signed-byte action IDs. The current
+The local `menu_id_tbl` has three rows of six signed-byte action IDs. The current
 aquarium number selects a row and the menu cursor selects a column; the last
 two entries in the second and third rows are unavailable (`-1`). The typed
 `[3][6]` definition and direct row indexing preserve the retail object.
+
+## Function-local tables and subgame rectangles
+
+Thirty-four single-consumer tables belong inside their fourteen owning
+functions as local statics with bare retail names. The compiler emits their
+numbered storage identities naturally. The `filename` table belongs to the
+`LoadFishPrize(int, mgCMemory *)` overload. `Camera` remains file-local
+because multiple functions consume it.
+
+Both subgame frame tables contain three twelve-short texture-strip rows.
+Their `[3][12]` definitions and row indexing preserve the retail extents
+without explicit row-stride arithmetic.
+
+`DrawSubGameScrlList` initializes a separate rectangle to `(248, 0, 8, 30)`
+through an out-of-line `mgRect<int>::Set` call. No subsequent retail call
+reads that rectangle. The initialization is present in retail and remains
+in source. Removing it produces 47 differing words out of 166 and reduces
+the body from retail's `0x298` bytes to `0x280`; retaining it matches exactly.
