@@ -117,3 +117,24 @@ The event viewer reads `event/view_pal.txt` as tab-separated records and
 passes a selected town or dungeon event to `NextLoop`. `AtraMiriaOnOff`
 changes the draw flags of three named model frames according to character
 type.
+
+
+## Native data and matching constraints
+
+All data are native. `MapNameBuff` is a file-local 0x8000-byte character arena
+containing variable numbers of 0x1C-byte records followed by strings. `select__1049[16]`
+and `top__1050[16]` each own 0x40 bytes, although only eight categories are indexed.
+Both retain file-scope definitions: moving them to natural function-local names changes
+compiler symbols, leaves retail data targets unresolved and fails complete-object
+checking.
+
+`MapTypeSelect` owns a four-byte static selection and one-byte compiler guard. The
+guard's four-byte retail reservation includes alignment. `SelectMapName[0x100]`, eight
+category-name pointers, `tag[3]`, six save-editor values and the one-pointer
+configuration caption retain their declared sizes; extra zero tails are padding.
+
+The cursor aggregates contain string pointers (`"  "`, `">>"`), not colors; OFF/ON uses
+the same pointer-pair type. Their strings must migrate with the aggregate to preserve
+pooling and layout. Migrating the cursor aggregate alone produces two extra read-only
+pieces and grows PAL by 0x80. `GetLine`'s CR/LF pair owns exactly two bytes without a
+terminator.
