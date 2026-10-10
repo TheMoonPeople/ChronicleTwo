@@ -23,10 +23,13 @@ sections directly.
   compiler-generated zero initializer lives in BSS.
 - `hit->param->hit_flags` is read without a cast because the field is `s16`
   (colprim.hpp).
+- The enums `ACTION_DAMAGE_REACTION` (`CheckDamage`'s local `reaction`),
+  `ACTION_ITEM_RESULT` (`UsedItemAction`'s return value) and `ACTION_CHARA_SIZE` (table sizes)
+  name the values used by these functions.
 
 Header: `ps2/include/actionchara.hpp`. Owns `CActionChara` (derives `CCharacter2`, unit `character`),
 plus the parameter/table types `RUN_SCRIPT_ENV`, `ACTION_SW_EFFECT`, `ACTION_DAMAGE`, `ACTION_OBJECT`,
-`ACTION_BODY_COL`, `ACTION_SOUND`, `ACTION_ACCELE`, `ACTION_ACCUME`, `ACTION_SHAKE` and six enums.
+`ACTION_BODY_COL`, `ACTION_SOUND`, `ACTION_ACCELE`, `ACTION_ACCUME`, `ACTION_SHAKE` and twelve enums.
 Only `RUN_SCRIPT_ENV` is a retail name (from `RunScript__12CActionCharaFP6CSceneP14RUN_SCRIPT_ENV`); the
 other struct and enum names are ours. No first-game equivalent of `CActionChara` exists.
 
@@ -77,16 +80,16 @@ other struct and enum names are ours. No first-game equivalent of `CActionChara`
 - 0x6B8 script_buf: LoadActionFile stAlloc64 + memcpy, then SetActionScript(&script, buf, mem).
 - 0x710 prog_no: RunScript runs program prog_no if present then sets -1; -1 -> resume; script end
   (CRunScript+0x3C, i.e. 0x6F8) -> 200. Values: 100 InitScript, 150 ResetAction, 200, 500/600/550/1400
-  from damage_req 1/2/7/4, 700 from unk_bec, 550 SetHold, 1500 landing (grounded, old vy <= -3.5).
+  from damage_req 1/2/7/4, 700 (ACTION_PROG_MELEE_HIT) from melee_hit, 550 SetHold, 1500 landing (grounded, old vy <= -3.5).
 - 0x712 prog (`_PROG_SET/_PROG_GET`). 0x714 pad_history (|= PadCtrl Btn(0x32); `_GET/_RESET_PAD_HISTORY`).
 - 0x718 default_motion (`_SET_DEFAULT_MOS`; initialized to a Shift-JIS motion name literal).
-- 0x71C hold_type: 1 EntryThrowItem, 3 CheckEnemyCatch (monster), 4 CheckEnemyCatch (stone); 0 on
+- 0x71C hold_type (ACTION_HOLD_*): 1 EntryThrowItem, 3 CheckEnemyCatch (monster), 4 CheckEnemyCatch (stone); 0 on
   release. 2 never seen. 0x720 hold_parts (CMapParts*), 0x724 hold_frame (mgCFrame*): Step carries the
   stone to hold_frame while hold_type==4.
-- 0x728 release_timing: 1 caught, 2 enemy thrown (`_RELEASE_OBJ`), 3 stone released, 5 stone kicked
+- 0x728 release_timing (ACTION_RELEASE_*): 1 caught, 2 enemy thrown (`_RELEASE_OBJ`), 3 stone released, 5 stone kicked
   (CheckKeri); cleared each StepParam. Read by CheckReleaseTimming. 0x72A s16 init -1, unused.
 - 0x72C catch_frame, 0x730 catch_state, 0x732 no_hit_time: written on the *monster* by `_RELEASE_OBJ`
-  (frame ptr passed to GetWorldPosition0; state 0/2; time 5); collision/lock-on skip catch_state==1;
+  (frame ptr passed to GetWorldPosition0; state 0/2; time 5); collision/lock-on skip catch_state==1 (ACTION_CATCH_HELD);
   StepParam: state 2 -> velocity = blow_vec, blow_vec.y -= 0.6.
 - 0x734 pallet[3]: Initialize/Step/CreatPallet per element; SetAnim from UsedItemAction, CheckDamage, `_SET_PALLET`.
 - 0x75E s16 / 0x760 float: StepParam ramps 0x760 to 1 (or 0) by 1/60 while 0x75E !=0 (==0);
@@ -124,7 +127,7 @@ other struct and enum names are ours. No first-game equivalent of `CActionChara`
   while >6); 0xBEC -> prog 700 in RunScript (no writer found); 0xBF0 guard_flag (`_SET_GUARD_FLAG`).
 - 0xBF4 stagger (+= damage data +0x22), 0xBF5 stagger_time (60). 0xBF8 shake {s16 time, float offset}.
 - 0xC00 object[8]: EntryObject (by name, slot -1 = first free), CalcCollision fills +0x10 world pos;
-  `_SET_SHOT` reads pos. 0xD00 body_col[16]: EntryBodyCol sets type 2/object/radius; ResetScript sets
+  `_SET_SHOT` reads pos. 0xD00 body_col[16]: EntryBodyCol sets type 2 (ACTION_BODY_COL_SPHERE)/object/radius; ResetScript sets
   +0x20 = -1. Readers of body_col are not in this unit.
 - 0xF40..0xF5C blow_*: CheckDamage (vec from hit prim +0xF0, speed 4, rate 1, decel 0, time 5) and
   `_BLOW_START(speed, decel, time)` (speed *= blow_rate).

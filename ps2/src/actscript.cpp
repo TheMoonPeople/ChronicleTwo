@@ -42,7 +42,7 @@
 #include "userdata.hpp"
 /**
  *
- * Most recently entered collision-damage window for the action script.
+ * Damage entry that _SET_DMG2 entered last.
  *
  */
 static ACTION_DAMAGE *LastCInfo2;
@@ -51,7 +51,7 @@ static ACTION_DAMAGE *LastCInfo2;
  * Dispatch slots used by action-script external calls.
  *
  */
-static int (*ext_func[256])(RS_STACKDATA *, int);
+static int (*ext_func[ACTION_EXT_FUNC_MAX])(RS_STACKDATA *, int);
 
 CScene     *nowScene__2;
 ACTION_INFO action_info;
@@ -162,7 +162,7 @@ static int _ESM_SET_VALUE(RS_STACKDATA *stack, int argc);
  * Associates action-script external function numbers with their handlers.
  *
  */
-static RS_EXTFUNC_INFO ext_func_info[83] = {
+static RS_EXTFUNC_INFO ext_func_info[] = {
     {_INIT_SCRIPT,        ACTION_EXT_INIT_SCRIPT       },
     {_PROG_SET,           ACTION_EXT_PROG_SET          },
     {_PROG_GET,           ACTION_EXT_PROG_GET          },
@@ -314,7 +314,7 @@ static void SetStack(RS_STACKDATA *slot, float value) {
  */
 int _INIT_SCRIPT(RS_STACKDATA *stack, int argc) {
     action_info.chara->ResetScript();
-    return 1;
+    return true;
 }
 
 /**
@@ -324,11 +324,11 @@ int _INIT_SCRIPT(RS_STACKDATA *stack, int argc) {
  */
 int _PROG_SET(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     action_info.chara->prog = GetStackInt(stack);
-    return 1;
+    return true;
 }
 
 /**
@@ -338,11 +338,11 @@ int _PROG_SET(RS_STACKDATA *stack, int argc) {
  */
 int _PROG_GET(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, action_info.chara->prog);
-    return 1;
+    return true;
 }
 
 /**
@@ -352,11 +352,11 @@ int _PROG_GET(RS_STACKDATA *stack, int argc) {
  */
 int _GET_ATTK_TYPE(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, action_info.chara->attack_type);
-    return 1;
+    return true;
 }
 
 /**
@@ -366,11 +366,11 @@ int _GET_ATTK_TYPE(RS_STACKDATA *stack, int argc) {
  */
 int _GET_MOVE_TYPE(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, action_info.chara->move_type);
-    return 1;
+    return true;
 }
 
 /**
@@ -380,7 +380,7 @@ int _GET_MOVE_TYPE(RS_STACKDATA *stack, int argc) {
  */
 int _SET_MOVE_SPEED(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     float speed = GetStackFloat(stack);
@@ -390,7 +390,7 @@ int _SET_MOVE_SPEED(RS_STACKDATA *stack, int argc) {
     }
 
     action_info.chara->accele.move_speed = speed;
-    return 1;
+    return true;
 }
 
 /**
@@ -400,7 +400,7 @@ int _SET_MOVE_SPEED(RS_STACKDATA *stack, int argc) {
  */
 int _SET_PALLET(RS_STACKDATA *stack, int argc) {
     if (argc < 5 || argc > 6) {
-        return 0;
+        return false;
     }
 
     int red = GetStackInt(stack++);
@@ -415,7 +415,7 @@ int _SET_PALLET(RS_STACKDATA *stack, int argc) {
     }
 
     action_info.chara->pallet[0].SetAnim(red, green, blue, pulses, duration, repeats);
-    return 1;
+    return true;
 }
 
 /**
@@ -425,13 +425,13 @@ int _SET_PALLET(RS_STACKDATA *stack, int argc) {
  */
 int _CHECK_EQUIP(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
-        return 0;
+        return false;
     }
 
     int            slot = GetStackInt(stack++);
     CGameDataUsed *equip = DngUserData->GetCharaDataPtr(action_info.chara->chara_type)->equip;
     SetStack(stack, equip[slot].item_no);
-    return 1;
+    return true;
 }
 
 /**
@@ -443,7 +443,7 @@ static int _CAMERA_QUAKE(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *area = &nowScene__2->battle_area;
 
     if (area == NULL) {
-        return 0;
+        return false;
     }
 
     float power = GetStackFloat(stack++);
@@ -451,7 +451,7 @@ static int _CAMERA_QUAKE(RS_STACKDATA *stack, int argc) {
     area->quake_power = power;
     area->quake_step = area->quake_power / (float) duration;
     area->quake_count = duration;
-    return 1;
+    return true;
 }
 
 /**
@@ -463,17 +463,17 @@ static int _CHECK_PAUSE(RS_STACKDATA *stack, int argc) {
     DNG_BATTLE_AREA *pause;
 
     if (argc != 2) {
-        return 0;
+        return false;
     }
 
     pause = &nowScene__2->battle_area;
 
     if (pause == NULL) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, static_cast<int>(pause->pause_flag & GetStackInt(stack++)));
-    return 1;
+    return true;
 }
 
 /**
@@ -483,12 +483,12 @@ static int _CHECK_PAUSE(RS_STACKDATA *stack, int argc) {
  */
 int _GET_STATUS_ATTR(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     int attributes = GetBattleCharaInfo()->GetAttr();
     SetStack(stack, attributes);
-    return 1;
+    return true;
 }
 
 /**
@@ -498,7 +498,7 @@ int _GET_STATUS_ATTR(RS_STACKDATA *stack, int argc) {
  */
 int _SE_PLAY(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
-        return 0;
+        return false;
     }
 
     int requested_bank = GetStackInt(stack++);
@@ -510,11 +510,11 @@ int _SE_PLAY(RS_STACKDATA *stack, int argc) {
     }
 
     if (bank == -1) {
-        return 0;
+        return false;
     }
 
     sndSePlay(bank, sound, 0);
-    return 1;
+    return true;
 }
 
 /**
@@ -524,7 +524,7 @@ int _SE_PLAY(RS_STACKDATA *stack, int argc) {
  */
 int _SE_LOOP_PLAY(RS_STACKDATA *stack, int argc) {
     if (argc != 3) {
-        return 0;
+        return false;
     }
 
     int requested_bank = GetStackInt(stack++);
@@ -537,7 +537,7 @@ int _SE_LOOP_PLAY(RS_STACKDATA *stack, int argc) {
     }
 
     if (bank == -1) {
-        return 0;
+        return false;
     }
 
     CLoopSeMngr *sounds = action_info.chara->sound_info.loop_se;
@@ -546,7 +546,7 @@ int _SE_LOOP_PLAY(RS_STACKDATA *stack, int argc) {
         sounds->SeLoopPlayStop(bank, sound, loop, 13);
     }
 
-    return 1;
+    return true;
 }
 
 /**
@@ -556,12 +556,12 @@ int _SE_LOOP_PLAY(RS_STACKDATA *stack, int argc) {
  */
 int _GET_SHOT_TYPE(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     int attack_type = GetBattleCharaInfo()->equip[1].GetAttackType();
     SetStack(stack, attack_type);
-    return 1;
+    return true;
 }
 
 /**
@@ -571,7 +571,7 @@ int _GET_SHOT_TYPE(RS_STACKDATA *stack, int argc) {
  */
 int _GET_MONS_ID(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     int monster_id = -1;
@@ -592,7 +592,7 @@ int _GET_FRONT_VEC(RS_STACKDATA *stack, int argc) {
     sceVu0FVECTOR front;
 
     if (argc != 3) {
-        return 0;
+        return false;
     }
 
     sceVu0CopyVector(front, action_info.chara->front_vec);
@@ -608,11 +608,11 @@ int _GET_FRONT_VEC(RS_STACKDATA *stack, int argc) {
  */
 static int _GET_PADON(RS_STACKDATA *stack, int argc) {
     if (argc <= 0) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, GamePad__2.GetPadOn());
-    return 1;
+    return true;
 }
 
 /**
@@ -622,11 +622,11 @@ static int _GET_PADON(RS_STACKDATA *stack, int argc) {
  */
 static int _GET_PADDOWN(RS_STACKDATA *stack, int argc) {
     if (argc <= 0) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, GamePad__2.GetPadDown());
-    return 1;
+    return true;
 }
 
 /**
@@ -636,11 +636,11 @@ static int _GET_PADDOWN(RS_STACKDATA *stack, int argc) {
  */
 static int _GET_PADUP(RS_STACKDATA *stack, int argc) {
     if (argc <= 0) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, GamePad__2.GetPadUp());
-    return 1;
+    return true;
 }
 
 /**
@@ -650,11 +650,11 @@ static int _GET_PADUP(RS_STACKDATA *stack, int argc) {
  */
 int _GET_BTN(RS_STACKDATA *stack, int argc) {
     if (argc <= 0) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, PadCtrl.Btn(GetStackInt(stack++)));
-    return 1;
+    return true;
 }
 
 /**
@@ -664,11 +664,11 @@ int _GET_BTN(RS_STACKDATA *stack, int argc) {
  */
 int _GET_PAD_HISTORY(RS_STACKDATA *stack, int argc) {
     if (argc <= 0) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, static_cast<int>(action_info.chara->pad_history));
-    return 1;
+    return true;
 }
 
 /**
@@ -678,27 +678,27 @@ int _GET_PAD_HISTORY(RS_STACKDATA *stack, int argc) {
  */
 int _RESET_PAD_HISTORY(RS_STACKDATA *stack, int argc) {
     action_info.chara->pad_history = 0;
-    return 1;
+    return true;
 }
 
 /**
  *
- * Returns the accumulated gamepad input for the action character.
+ * Returns the number of steps for which the charge button has been held.
  *
  */
 int _GET_ACUMU_PAD(RS_STACKDATA *stack, int argc) {
     SetStack(stack, action_info.chara->acumu_pad);
-    return 1;
+    return true;
 }
 
 /**
  *
- * Clears the accumulated gamepad input for the action character.
+ * Clears the count of steps for which the charge button has been held.
  *
  */
 int _RESET_ACUMU_PAD(RS_STACKDATA *stack, int argc) {
     action_info.chara->acumu_pad = 0;
-    return 1;
+    return true;
 }
 
 /**
@@ -720,42 +720,42 @@ int _RUN_MAIN_MOVE(RS_STACKDATA *stack, int argc) {
             break;
     }
 
-    return 1;
+    return true;
 }
 
 /**
  *
- * Runs the human throw movement handler.
+ * Moves the character on foot while it holds something to throw.
  *
  */
 int _RUN_SHROW_MOVE(RS_STACKDATA *stack, int argc) {
     action_info.chara->HumanShrowMoveIF();
-    return 1;
+    return true;
 }
 
 /**
  *
- * Runs the human taming movement handler.
+ * Moves the character on foot while it charges an attack.
  *
  */
 int _RUN_TAME_MOVE(RS_STACKDATA *stack, int argc) {
     action_info.chara->HumanTameMoveIF();
-    return 1;
+    return true;
 }
 
 /**
  *
- * Runs human gun movement using two named motion resources.
+ * Moves the character on foot while it aims a gun, with the given standing and moving motions.
  *
  */
 int _RUN_HOLD_MOVE(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
-        return 0;
+        return false;
     }
 
-    char *first = GetStackString(stack++);
-    action_info.chara->HumanGunMoveIF(first, GetStackString(stack));
-    return 1;
+    char *stand_motion = GetStackString(stack++);
+    action_info.chara->HumanGunMoveIF(stand_motion, GetStackString(stack));
+    return true;
 }
 
 /**
@@ -784,21 +784,21 @@ int _RUN_ROBO_MOVE(RS_STACKDATA *stack, int argc) {
             break;
     }
 
-    return 1;
+    return true;
 }
 
 /**
  *
- * Sets the action character menu state flag.
+ * Sets whether the character may open the menu.
  *
  */
 int _SET_MENU_FLAG(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
-    action_info.chara->menu_flag = (s8) GetStackInt(stack);
-    return 1;
+    action_info.chara->menu_flag = GetStackInt(stack);
+    return true;
 }
 
 /**
@@ -810,14 +810,14 @@ static int _GET_POS(RS_STACKDATA *stack, int argc) {
     float pos[4];
 
     if (argc != 3) {
-        return 0;
+        return false;
     }
 
     action_info.chara->GetPosition(pos);
     SetStack(stack++, pos[0]);
     SetStack(stack++, pos[1]);
     SetStack(stack, pos[2]);
-    return 1;
+    return true;
 }
 
 /**
@@ -829,14 +829,14 @@ static int _GET_ROT(RS_STACKDATA *stack, int argc) {
     float rot[4];
 
     if (argc != 3) {
-        return 0;
+        return false;
     }
 
     action_info.chara->GetRotation(rot);
     SetStack(stack++, rot[0]);
     SetStack(stack++, rot[1]);
     SetStack(stack, rot[2]);
-    return 1;
+    return true;
 }
 
 /**
@@ -852,7 +852,7 @@ int _CHECK_FRONT_KEY(RS_STACKDATA *stack, int argc) {
     float camera_angle;
 
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     camera_angle = action_info.camera->GetAngle();
@@ -866,7 +866,7 @@ int _CHECK_FRONT_KEY(RS_STACKDATA *stack, int argc) {
     sceVu0Normalize(stick, stick);
     sceVu0Normalize(facing, facing);
     SetStack(stack, sceVu0InnerProduct(facing, stick));
-    return 1;
+    return true;
 }
 
 /**
@@ -878,12 +878,12 @@ int _CHECK_BACK_KEY(RS_STACKDATA *stack, int argc) {
     float rot[4];
 
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     if (action_info.chara->lock_on == 0) {
         SetStack(stack, 0);
-        return 1;
+        return true;
     }
 
     action_info.chara->GetRotation(rot);
@@ -900,11 +900,11 @@ int _CHECK_BACK_KEY(RS_STACKDATA *stack, int argc) {
 
     if (x != 0.0f && z != 0.0f && mgAngleCmp(back, atan2f(x, z), 1.2566371f) == 0) {
         SetStack(stack, 1);
-        return 1;
+        return true;
     }
 
     SetStack(stack, 0);
-    return 1;
+    return true;
 }
 
 /**
@@ -914,13 +914,13 @@ int _CHECK_BACK_KEY(RS_STACKDATA *stack, int argc) {
  */
 int _SET_BLOW_ANGLE(RS_STACKDATA *stack, int argc) {
     if (argc != 0) {
-        return 0;
+        return false;
     }
 
     CActionChara *chara = action_info.chara;
     float         angle = atan2f(-chara->blow_vec[0], -chara->blow_vec[2]);
     action_info.chara->SetRotation(0.0f, angle, 0.0f);
-    return 1;
+    return true;
 }
 
 /**
@@ -932,7 +932,7 @@ int _SET_BLOW_MOVE(RS_STACKDATA *stack, int argc) {
     float rot[4];
 
     if (argc > 4) {
-        return 0;
+        return false;
     }
 
     action_info.chara->add_speed = GetStackFloat(stack++);
@@ -961,7 +961,7 @@ int _SET_BLOW_MOVE(RS_STACKDATA *stack, int argc) {
     sceVu0RotMatrixY(matrix, matrix, yaw);
     sceVu0ApplyMatrix(dir, matrix, dir);
     sceVu0CopyVector(action_info.chara->add_vec, dir);
-    return 1;
+    return true;
 }
 
 /**
@@ -971,7 +971,7 @@ int _SET_BLOW_MOVE(RS_STACKDATA *stack, int argc) {
  */
 static int _BLOW_START(RS_STACKDATA *stack, int argc) {
     if (argc != 3) {
-        return 0;
+        return false;
     }
 
     action_info.chara->blow_speed = GetStackFloat(stack++);
@@ -979,43 +979,43 @@ static int _BLOW_START(RS_STACKDATA *stack, int argc) {
         action_info.chara->blow_speed * action_info.chara->blow_rate;
     action_info.chara->blow_decel = GetStackFloat(stack++);
     action_info.chara->blow_time = GetStackInt(stack);
-    return 1;
+    return true;
 }
 
 /**
  *
- * Registers a named damage attack and sets its power rate.
+ * Enters damage dealt between two named frames while a motion plays, and sets its power rate.
  *
  */
 static int _SET_DMG2(RS_STACKDATA *stack, int argc) {
     if (argc < 8 || argc > 9) {
-        return 0;
+        return false;
     }
 
-    char *first = GetStackString(stack++);
-    char *second = GetStackString(stack++);
-    char *attack = GetStackString(stack++);
-    float damage = 2.0f * GetStackFloat(stack++);
-    float rate = GetStackFloat(stack++);
-    char *hit_effect = GetStackString(stack++);
-    float knockback = GetStackFloat(stack++);
-    float lift = GetStackFloat(stack++);
-    char *extra = NULL;
+    char *frame_name_a = GetStackString(stack++);
+    char *frame_name_b = GetStackString(stack++);
+    char *hit_name = GetStackString(stack++);
+    float radius = 2.0f * GetStackFloat(stack++);
+    float power_rate = GetStackFloat(stack++);
+    char *motion = GetStackString(stack++);
+    float start_ratio = GetStackFloat(stack++);
+    float end_ratio = GetStackFloat(stack++);
+    char *chara_name = NULL;
 
     if (argc == 9) {
-        extra = GetStackString(stack);
+        chara_name = GetStackString(stack);
     }
 
     LastCInfo2 = action_info.chara->EntryDamage2(
-        first, second, attack, damage, hit_effect, knockback, lift, extra);
+        frame_name_a, frame_name_b, hit_name, radius, motion, start_ratio, end_ratio, chara_name);
 
     if (LastCInfo2 == NULL) {
-        printf("CACT:DMG_ENTRY_ERR %s\n", attack);
-        return 0;
+        printf("CACT:DMG_ENTRY_ERR %s\n", hit_name);
+        return false;
     }
 
-    LastCInfo2->power_rate = rate;
-    return 1;
+    LastCInfo2->power_rate = power_rate;
+    return true;
 }
 
 /**
@@ -1025,7 +1025,7 @@ static int _SET_DMG2(RS_STACKDATA *stack, int argc) {
  */
 static int _SET_OBJ(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
-        return 0;
+        return false;
     }
 
     int   number = GetStackInt(stack++);
@@ -1033,20 +1033,20 @@ static int _SET_OBJ(RS_STACKDATA *stack, int argc) {
 
     if (action_info.chara->EntryObject(name, number) == 0) {
         printf("not found %s\n", name);
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
 /**
  *
- * Registers a body collision primitive for the action character.
+ * Enters a body collision sphere around one of the character's entered objects.
  *
  */
 static int _SET_BODY(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
-        return 0;
+        return false;
     }
 
     int number = GetStackInt(stack++);
@@ -1060,52 +1060,52 @@ static int _SET_BODY(RS_STACKDATA *stack, int argc) {
  */
 static int _SW_EFFECT(RS_STACKDATA *stack, int argc) {
     if (argc < 9 || argc > 10) {
-        return 0;
+        return false;
     }
 
     ACTION_SW_EFFECT *effect = action_info.chara->GetSwEffectPtr();
 
     if (effect == NULL) {
-        return 0;
+        return false;
     }
 
-    int slot = GetStackInt(stack++);
+    int sword_no = GetStackInt(stack++);
 
-    if (slot < 0 || slot > 2) {
-        return 0;
+    if (sword_no < 0 || sword_no > CHARA_SWORD_EFFECT_MAX - 1) {
+        return false;
     }
 
-    if (action_info.chara->sword_effect[slot] == NULL) {
-        return 0;
+    if (action_info.chara->sword_effect[sword_no] == NULL) {
+        return false;
     }
 
-    char *name = GetStackString(stack++);
+    char *motion = GetStackString(stack++);
     float start = GetStackFloat(stack++);
     float end = GetStackFloat(stack++);
-    char *first = GetStackString(stack++);
-    char *second = GetStackString(stack++);
-    int   flag_a = GetStackInt(stack++);
-    int   flag_b = GetStackInt(stack++);
-    int   flag_c = GetStackInt(stack++);
-    char *extra = NULL;
+    char *frame0 = GetStackString(stack++);
+    char *frame1 = GetStackString(stack++);
+    int   length = GetStackInt(stack++);
+    int   hold_time = GetStackInt(stack++);
+    int   fade_time = GetStackInt(stack++);
+    char *chara_name = NULL;
 
     if (argc == 10) {
-        extra = GetStackString(stack);
+        chara_name = GetStackString(stack);
     }
 
-    effect->sword_no = slot;
-    effect->motion = name;
-    effect->chara = extra;
+    effect->sword_no = sword_no;
+    effect->motion = motion;
+    effect->chara = chara_name;
     effect->start = start;
     effect->end = end;
-    effect->frame0 = first;
-    effect->frame1 = second;
-    effect->length = flag_a;
-    effect->hold_time = flag_b;
-    effect->fade_time = flag_c;
+    effect->frame0 = frame0;
+    effect->frame1 = frame1;
+    effect->length = length;
+    effect->hold_time = hold_time;
+    effect->fade_time = fade_time;
     effect->wait = 0;
     action_info.chara->sw_effect_num++;
-    return 1;
+    return true;
 }
 
 /**
@@ -1114,30 +1114,30 @@ static int _SW_EFFECT(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SET_SND(RS_STACKDATA *stack, int argc) {
-    int   sound_id = GetStackInt(stack++);
+    int   se_no = GetStackInt(stack++);
     char *motion = GetStackString(stack++);
-    float start_time = GetStackFloat(stack++);
-    float end_time = GetStackFloat(stack++);
-    char *wait = NULL;
+    float start_ratio = GetStackFloat(stack++);
+    float end_ratio = GetStackFloat(stack++);
+    char *chara_name = NULL;
 
     if (argc > 4) {
-        wait = GetStackString(stack);
+        chara_name = GetStackString(stack);
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < ACTION_SOUND_MAX; i++) {
         if (action_info.chara->sound[i].se_no == -1) {
-            action_info.chara->sound[i].se_no = sound_id;
+            action_info.chara->sound[i].se_no = se_no;
             action_info.chara->sound[i].start_frame =
-                action_info.chara->GetWaitToFrame(motion, start_time, wait);
+                action_info.chara->GetWaitToFrame(motion, start_ratio, chara_name);
             action_info.chara->sound[i].end_frame =
-                action_info.chara->GetWaitToFrame(motion, end_time, wait);
-            action_info.chara->sound[i].chara = wait;
+                action_info.chara->GetWaitToFrame(motion, end_ratio, chara_name);
+            action_info.chara->sound[i].chara = chara_name;
             action_info.chara->sound[i].unk_c = 0;
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
 /**
@@ -1147,25 +1147,25 @@ int _SET_SND(RS_STACKDATA *stack, int argc) {
  */
 int _SET_ACCUME_FX(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
-        return 0;
+        return false;
     }
 
     if (action_info.chara->accume_effect == NULL) {
-        return 0;
+        return false;
     }
 
-    int       index = GetStackInt(stack++);
+    int       object_no = GetStackInt(stack++);
     int       effect_no = GetStackInt(stack);
-    mgCFrame *effect = action_info.chara->object[index].frame;
+    mgCFrame *frame = action_info.chara->object[object_no].frame;
 
-    if (effect == 0) {
-        return 0;
+    if (frame == NULL) {
+        return false;
     }
 
-    action_info.chara->accume.frame = effect;
+    action_info.chara->accume.frame = frame;
     action_info.chara->accume.effect_no = effect_no;
-    action_info.chara->accume.active = 0;
-    return 1;
+    action_info.chara->accume.active = false;
+    return true;
 }
 
 /**
@@ -1175,11 +1175,11 @@ int _SET_ACCUME_FX(RS_STACKDATA *stack, int argc) {
  */
 int _SET_ACCUME_FLAG(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     if (action_info.chara->accume_effect == NULL) {
-        return 0;
+        return false;
     }
 
     int mode = GetStackInt(stack);
@@ -1187,42 +1187,42 @@ int _SET_ACCUME_FLAG(RS_STACKDATA *stack, int argc) {
     switch (mode) {
         case 1: {
             int            i;
-            ACCUME_EFFECT *slot = action_info.chara->accume_effect;
-            slot->frame = action_info.chara->accume.frame;
-            slot->mode = 1;
-            slot->unk_314 = 0;
-            slot->unk_318 = 0;
-            slot->unk_320 = 0;
-            slot->unk_324 = 0;
-            slot->scale = 3.0f;
+            ACCUME_EFFECT *effect = action_info.chara->accume_effect;
+            effect->frame = action_info.chara->accume.frame;
+            effect->mode = 1;
+            effect->unk_314 = 0;
+            effect->unk_318 = 0;
+            effect->unk_320 = 0;
+            effect->unk_324 = 0;
+            effect->scale = 3.0f;
 
             for (i = 0; i < 32; i++) {
-                slot->clear[i] = 0;
+                effect->clear[i] = 0;
             }
 
-            if (slot->frame == 0) {
+            if (effect->frame == NULL) {
                 printf("err1\n");
             }
 
-            action_info.chara->accume.active = 1;
+            action_info.chara->accume.active = true;
             break;
         }
         case 0:
             action_info.chara->accume_effect->mode = mode;
             action_info.chara->acumu_pad = 0;
-            action_info.chara->accume.active = 0;
+            action_info.chara->accume.active = false;
             break;
         default:
             action_info.chara->accume_effect->mode = mode;
 
             if (mode == 3 || mode == 4) {
-                action_info.chara->accume.active = 0;
+                action_info.chara->accume.active = false;
             }
 
             break;
     }
 
-    return 1;
+    return true;
 }
 
 /**
@@ -1232,14 +1232,14 @@ int _SET_ACCUME_FLAG(RS_STACKDATA *stack, int argc) {
  */
 int _GET_MONSTER_NOWSTS(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     int status = 0;
     int monster_no = action_info.chara->target_no;
 
     if (monster_no != -1) {
-        CActionChara *monster = (CActionChara *) nowScene__2->GetCharacter(monster_no);
+        CActionChara *monster = static_cast<CActionChara *>(nowScene__2->GetCharacter(monster_no));
 
         if (monster != NULL) {
             status = monster->now_status;
@@ -1247,7 +1247,7 @@ int _GET_MONSTER_NOWSTS(RS_STACKDATA *stack, int argc) {
     }
 
     SetStack(stack, status);
-    return 1;
+    return true;
 }
 
 /**
@@ -1257,12 +1257,12 @@ int _GET_MONSTER_NOWSTS(RS_STACKDATA *stack, int argc) {
  */
 int _SET_MURDEROUS(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
-        return 0;
+        return false;
     }
 
     action_info.chara->murderous = GetStackInt(stack++);
     action_info.chara->murderous_time = GetStackInt(stack);
-    return 1;
+    return true;
 }
 
 /**
@@ -1272,11 +1272,11 @@ int _SET_MURDEROUS(RS_STACKDATA *stack, int argc) {
  */
 int _GET_TRG_DISTANCE(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, action_info.chara->GetTargetDist(nowScene__2));
-    return 1;
+    return true;
 }
 
 /**
@@ -1291,7 +1291,7 @@ int _SET_TRG_ANGLE(RS_STACKDATA *stack, int argc) {
     float radius;
 
     if (argc != 2) {
-        return 0;
+        return false;
     }
 
     radius = GetStackFloat(stack++);
@@ -1299,10 +1299,10 @@ int _SET_TRG_ANGLE(RS_STACKDATA *stack, int argc) {
     int target_no = action_info.chara->target_no;
 
     if (target_no == -1) {
-        return 1;
+        return true;
     }
 
-    CActiveMonster *target = (CActiveMonster *) nowScene__2->GetCharacter(target_no);
+    CActiveMonster *target = static_cast<CActiveMonster *>(nowScene__2->GetCharacter(target_no));
 
     if (target != NULL) {
         if (target->target_dist < (radius + radius) + target->GetBodyWidth()) {
@@ -1318,7 +1318,7 @@ int _SET_TRG_ANGLE(RS_STACKDATA *stack, int argc) {
         }
     }
 
-    return 1;
+    return true;
 }
 
 /**
@@ -1328,11 +1328,11 @@ int _SET_TRG_ANGLE(RS_STACKDATA *stack, int argc) {
  */
 int _SET_GUARD_FLAG(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     action_info.chara->guard_flag = GetStackInt(stack);
-    return 1;
+    return true;
 }
 
 /**
@@ -1342,11 +1342,11 @@ int _SET_GUARD_FLAG(RS_STACKDATA *stack, int argc) {
  */
 static int _SET_MUTEKI(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     action_info.chara->muteki_time = GetStackInt(stack);
-    return 1;
+    return true;
 }
 
 /**
@@ -1356,7 +1356,7 @@ static int _SET_MUTEKI(RS_STACKDATA *stack, int argc) {
  */
 int _CHECK_HAND_OBJ(RS_STACKDATA *stack, int argc) {
     SetStack(stack, action_info.chara->hold_type);
-    return 1;
+    return true;
 }
 
 /**
@@ -1366,7 +1366,7 @@ int _CHECK_HAND_OBJ(RS_STACKDATA *stack, int argc) {
  */
 int _SET_ITEM_USED(RS_STACKDATA *stack, int argc) {
     SetStack(stack, action_info.chara->UsedItemAction());
-    return 1;
+    return true;
 }
 
 /**
@@ -1376,12 +1376,12 @@ int _SET_ITEM_USED(RS_STACKDATA *stack, int argc) {
  */
 int _THROW_HAND_OBJECT(RS_STACKDATA *stack, int argc) {
     action_info.chara->ThrowItemObject();
-    return 1;
+    return true;
 }
 
 /**
  *
- * Checks whether the action character can catch an enemy or perform a kick.
+ * Catches a monster or picks up a stone at the named frame, or with three arguments kicks or looks for a stone to kick.
  *
  */
 int _CHECK_CATCH(RS_STACKDATA *stack, int argc) {
@@ -1392,12 +1392,12 @@ int _CHECK_CATCH(RS_STACKDATA *stack, int argc) {
     }
 
     if (argc == 3) {
-        int target = GetStackInt(stack++);
-        name = (char *) action_info.chara->CheckKeri(name, target);
-        SetStack(stack, (int) name);
+        int kick = GetStackInt(stack++);
+        int found = action_info.chara->CheckKeri(name, kick);
+        SetStack(stack, found);
     }
 
-    return 1;
+    return true;
 }
 
 /**
@@ -1416,33 +1416,33 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
         throw_it = GetStackInt(stack);
     }
 
-    DNG_BATTLE_AREA *input;
+    DNG_BATTLE_AREA *area;
 
-    if (nowScene__2 != NULL && (input = &nowScene__2->battle_area) != NULL &&
-        !(input->pause_flag & DNG_PAUSE_WEAPON_DRAW)) {
+    if (nowScene__2 != NULL && (area = &nowScene__2->battle_area) != NULL &&
+        !(area->pause_flag & DNG_PAUSE_WEAPON_DRAW)) {
         action_info.chara->Show(1, 1);
     }
 
-    if (action_info.chara->hold_type == 1 && throw_it == 0) {
+    if (action_info.chara->hold_type == ACTION_HOLD_ITEM && throw_it == 0) {
         action_info.chara->RemoveThrowItem();
     }
 
-    int chara_no = 0x18;
+    int chara_no = MONSTER_ACTIVE_MAX;
 
-    if (action_info.chara->hold_type == 3) {
+    if (action_info.chara->hold_type == ACTION_HOLD_ENEMY) {
         do {
-            CActionChara *held = (CActionChara *) nowScene__2->GetCharacter(chara_no);
+            CActionChara *held = static_cast<CActionChara *>(nowScene__2->GetCharacter(chara_no));
 
-            if (held != NULL && held->catch_state == 1) {
+            if (held != NULL && held->catch_state == ACTION_CATCH_HELD) {
                 held->catch_frame->GetWorldPosition0(held_pos);
                 held->CObjectFrame::frame->DeleteReference();
                 held->SetPosition(held_pos);
 
                 if (throw_it == 0) {
                     held->catch_frame = NULL;
-                    held->catch_state = 0;
+                    held->catch_state = ACTION_CATCH_NONE;
                     held->no_hit_time = 5;
-                    ((CActiveMonster *) held)->req_prog = 0x4B0;
+                    static_cast<CActiveMonster *>(held)->req_prog = MONSTER_PROG_LAND;
                 } else {
 
                     (action_info.chara)->GetPosition(start_pos);
@@ -1451,8 +1451,8 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
                     float distance = 100.0f;
 
                     if (action_info.chara->lock_on != 0) {
-                        CActionChara *target = (CActionChara *) nowScene__2->GetCharacter(
-                            action_info.chara->target_no);
+                        CActionChara *target = static_cast<CActionChara *>(nowScene__2->GetCharacter(
+                            action_info.chara->target_no));
 
                         if (target != NULL) {
                             target->GetEntryObjectPos(0, 0, target_pos);
@@ -1470,29 +1470,29 @@ int _RELEASE_OBJ(RS_STACKDATA *stack, int argc) {
                     sceVu0ScaleVectorXYZ(direction, direction, distance);
                     sceVu0AddVector(direction, direction, start_pos);
 
-                    ParabolicInitialVector(&held->blow_vec[0], start_pos, direction, 0.6f, 10.0f);
+                    ParabolicInitialVector(held->blow_vec, start_pos, direction, 0.6f, 10.0f);
                     held->catch_frame = NULL;
-                    held->catch_state = 2;
+                    held->catch_state = ACTION_CATCH_THROWN;
                     held->no_hit_time = 5;
-                    held->damage_req = 6;
+                    held->damage_req = ACTION_DAMAGE_REQ_THROWN;
                     float offset[4] = {0.0f, 0.0f, 0.0f, 1.0f};
                     sceVu0CopyVector(held->velocity, offset);
-                    action_info.chara->release_timing = 2;
+                    action_info.chara->release_timing = ACTION_RELEASE_THROW_ENEMY;
                 }
             }
 
             chara_no++;
-        } while (chara_no <= 0x2F);
+        } while (chara_no <= MONSTER_ACTIVE_MAX * 2 - 1);
     }
 
-    if (action_info.chara->hold_type == 4) {
-        action_info.chara->hold_parts = 0;
-        action_info.chara->hold_frame = 0;
-        action_info.chara->release_timing = 3;
+    if (action_info.chara->hold_type == ACTION_HOLD_STONE) {
+        action_info.chara->hold_parts = NULL;
+        action_info.chara->hold_frame = NULL;
+        action_info.chara->release_timing = ACTION_RELEASE_THROW_STONE;
     }
 
-    action_info.chara->hold_type = 0;
-    return 1;
+    action_info.chara->hold_type = ACTION_HOLD_NONE;
+    return true;
 }
 
 /**
@@ -1504,8 +1504,7 @@ void ShotMonicaMagic(float *position, float *direction, float scale) {
     char *effect_name;
     char *unused_name;
     int   effect_power;
-    ((GetBattleCharaInfo()->equip + 1))
-        ->GetEffectReadType(&effect_name, &unused_name, &effect_power);
+    GetBattleCharaInfo()->equip[1].GetEffectReadType(&effect_name, &unused_name, &effect_power);
     action_info.chara->effect_man->CreateEffSpt(effect_name, 0, 0);
     action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
     action_info.chara->effect_man->SetScriptVect2(direction, 0, -1);
@@ -1704,6 +1703,11 @@ void ShotLaserGun(float *position, float *direction, int type) {
     sndSePlay(action_info.chara->sound_info.se_bank, 5, 0);
 }
 
+/**
+ *
+ * Fires Max's gun or Monica's magic from one of the character's entered objects.
+ *
+*/
 int _SET_SHOT(RS_STACKDATA *stack, int argc) {
     float             position[4];
     float             direction[4];
@@ -1717,10 +1721,10 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
     mgCFrame         *grip;
     CGameDataUsed    *equip;
     int               attack_type;
-    int               laser;
+    int               laser_type;
 
     if (argc < 4 || argc > 5) {
-        return 0;
+        return false;
     }
 
     object_no = GetStackInt(stack++);
@@ -1734,11 +1738,11 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
     }
 
     info = GetBattleCharaInfo();
-    int chara = info->chr_no;
+    int chr_no = info->chr_no;
     sceVu0CopyVector(direction, action_info.chara->front_vec);
     sceVu0CopyVector(position, action_info.chara->object[object_no].pos);
 
-    if (chara == USER_CHARA_MAX) {
+    if (chr_no == USER_CHARA_MAX) {
         info->GetNowWhp(1, whp);
         muzzle = action_info.chara->SearchObject("sp");
         grip = action_info.chara->SearchObject("gcol00");
@@ -1756,7 +1760,7 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
         if (whp[0] > 0) {
             if (attack_type == 0 || attack_type == 11) {
                 if (action_info.chara->shot_wait > 0) {
-                    return 1;
+                    return true;
                 }
 
                 action_info.chara->shot_wait = wait;
@@ -1772,30 +1776,30 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
             }
 
             if (attack_type == 20) {
-                laser = 0;
+                laser_type = 0;
 
                 if (equip[1].item_no == 0x1F) {
-                    laser = 0;
+                    laser_type = 0;
                 }
 
                 if (equip[1].item_no == 0x20) {
-                    laser = 1;
+                    laser_type = 1;
                 }
 
                 if (equip[1].item_no == 0x22) {
-                    laser = 2;
+                    laser_type = 2;
                 }
 
-                ShotLaserGun(position, direction, laser);
+                ShotLaserGun(position, direction, laser_type);
             }
         } else {
             sndSePlay(action_info.chara->sound_info.se_bank, 4, 0);
         }
     }
 
-    if (chara == USER_CHARA_MONICA) {
+    if (chr_no == USER_CHARA_MONICA) {
         if (action_info.chara->shot_wait > 0) {
-            return 1;
+            return true;
         }
 
         action_info.chara->shot_wait = wait;
@@ -1806,7 +1810,7 @@ int _SET_SHOT(RS_STACKDATA *stack, int argc) {
         }
     }
 
-    return 1;
+    return true;
 }
 
 /**
@@ -1820,25 +1824,25 @@ int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc) {
     float direction[4];
 
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     char             *object_name = GetStackString(stack);
     CBattleCharaInfo *info = GetBattleCharaInfo();
 
     if (info->GetMagicSwordCounterNow() <= 0) {
-        return 1;
+        return true;
     }
 
     if (action_info.chara->shot_wait > 0) {
-        return 1;
+        return true;
     }
 
     action_info.chara->shot_wait = 5;
     mgCFrame *object = action_info.chara->SearchObject(object_name);
 
-    if (object == 0) {
-        return 0;
+    if (object == NULL) {
+        return false;
     }
 
     sceVu0CopyVector(facing, action_info.chara->front_vec);
@@ -1861,9 +1865,14 @@ int _SET_SPECIAL_SHOT(RS_STACKDATA *stack, int argc) {
     }
 
     info->ClearMagicSwordPow();
-    return 1;
+    return true;
 }
 
+/**
+ *
+ * Fires the ridepod's weapon from its muzzle frames.
+ *
+*/
 int _SHOT(RS_STACKDATA *stack, int argc) {
     float position[4];
     float target_pos[4];
@@ -1873,7 +1882,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
     int               left = GetStackInt(stack);
 
     if (action_info.chara->shot_wait > 0) {
-        return 1;
+        return true;
     }
 
     action_info.chara->shot_wait = 2;
@@ -1899,7 +1908,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
         }
 
         if (muzzle == NULL) {
-            return 0;
+            return false;
         }
 
         muzzle->GetWorldPosition0(position);
@@ -1919,7 +1928,7 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
         }
 
         if (muzzle == NULL || barrel == NULL) {
-            return 0;
+            return false;
         }
 
         muzzle->GetWorldPosition0(position);
@@ -2071,15 +2080,15 @@ int _SHOT(RS_STACKDATA *stack, int argc) {
                 action_info.chara->effect_man->SetScriptVect1(position, 0, -1);
                 action_info.chara->effect_man->SetValue(0, 1, 0, -1);
                 action_info.chara->effect_man->SetValue(1, 128.0f, 0, -1);
-                action_info.chara->effect_man->SetValue(2, float(64.0), 0, -1);
-                action_info.chara->effect_man->SetValue(3, float(0.0), 0, -1);
-                action_info.chara->effect_man->SetValue(4, float(160.0), 0, -1);
+                action_info.chara->effect_man->SetValue(2, 64.0f, 0, -1);
+                action_info.chara->effect_man->SetValue(3, 0.0f, 0, -1);
+                action_info.chara->effect_man->SetValue(4, 160.0f, 0, -1);
                 action_info.chara->shot_wait = 4;
             }
         }
     }
 
-    return 1;
+    return true;
 }
 
 /**
@@ -2091,21 +2100,21 @@ int _GET_OBJECT_POS(RS_STACKDATA *stack, int argc) {
     float pos[4];
 
     if (argc != 4) {
-        return 0;
+        return false;
     }
 
-    RS_STACKDATA *next = stack + 1;
+    RS_STACKDATA *next = &stack[1];
     mgCFrame     *object = action_info.chara->SearchObject(GetStackString(stack));
 
-    if (object == 0) {
-        return 0;
+    if (object == NULL) {
+        return false;
     }
 
     object->GetWorldPosition0(pos);
     SetStack(next++, pos[0]);
     SetStack(next++, pos[1]);
     SetStack(next, pos[2]);
-    return 1;
+    return true;
 }
 
 /**
@@ -2114,8 +2123,8 @@ int _GET_OBJECT_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SET_DIR_GUN(RS_STACKDATA *stack, int argc) {
-    action_info.chara->dir_gun = 1;
-    return 1;
+    action_info.chara->dir_gun = true;
+    return true;
 }
 
 /**
@@ -2125,14 +2134,14 @@ int _SET_DIR_GUN(RS_STACKDATA *stack, int argc) {
  */
 int _GET_NOW_HP_RATE(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     CBattleCharaInfo *info = GetBattleCharaInfo();
     int               now_hp = info->GetNowHp_i();
     int               rate = now_hp / info->GetMaxHp_i();
     SetStack(stack, (float) rate);
-    return 1;
+    return true;
 }
 
 /**
@@ -2142,7 +2151,7 @@ int _GET_NOW_HP_RATE(RS_STACKDATA *stack, int argc) {
  */
 int _SET_BOMB(RS_STACKDATA *stack, int argc) {
     GetBattleCharaInfo()->SetHpRate(0.05f);
-    return 1;
+    return true;
 }
 
 /**
@@ -2152,12 +2161,12 @@ int _SET_BOMB(RS_STACKDATA *stack, int argc) {
  */
 int _GET_ACTION_CODE(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
-    argc = GetBattleCharaInfo()->GetEquipTablePtr(0)->GetModelNo();
-    SetStack(stack, argc);
-    return 1;
+    int model_no = GetBattleCharaInfo()->GetEquipTablePtr(0)->GetModelNo();
+    SetStack(stack, model_no);
+    return true;
 }
 
 /**
@@ -2167,13 +2176,13 @@ int _GET_ACTION_CODE(RS_STACKDATA *stack, int argc) {
  */
 int _GET_ATTK_POINT(RS_STACKDATA *stack, int argc) {
     if (argc != 2) {
-        return 0;
+        return false;
     }
 
     int                  index = GetStackInt(stack++);
     BATTLE_WEAPON_PARAM *slots = GetBattleCharaInfo()->weapon_param;
     SetStack(stack, slots[index].status[WEAPON_STAT_ATTACK]);
-    return 1;
+    return true;
 }
 
 /**
@@ -2187,23 +2196,22 @@ int _GET_RING_COLOR(RS_STACKDATA *stack, int argc) {
     int   effect_power;
 
     if (argc != 3) {
-        return 0;
+        return false;
     }
 
-    int type = ((GetBattleCharaInfo()->equip + 1))
-                   ->GetEffectReadType(&effect_name, &unused_name, &effect_power);
+    int ring_type = GetBattleCharaInfo()->equip[1].GetEffectReadType(&effect_name, &unused_name, &effect_power);
 
-    if (type < 0 || type > 3) {
-        return 0;
+    if (ring_type < 0 || ring_type > 3) {
+        return false;
     }
 
     RingColors colors = {
         {{255, 64, 64}, {128, 255, 255}, {128, 64, 255}, {96, 255, 160}}
     };
-    SetStack(stack++, colors.rgb[type][0]);
-    SetStack(stack++, colors.rgb[type][1]);
-    SetStack(stack, colors.rgb[type][2]);
-    return 1;
+    SetStack(stack++, colors.rgb[ring_type][0]);
+    SetStack(stack++, colors.rgb[ring_type][1]);
+    SetStack(stack, colors.rgb[ring_type][2]);
+    return true;
 }
 
 /**
@@ -2219,7 +2227,7 @@ static int _SET_MOS(RS_STACKDATA *stack, int argc) {
     CActionChara *target;
 
     if (argc <= 0 || argc > 4) {
-        return 0;
+        return false;
     }
 
     if (argc > 0) {
@@ -2239,7 +2247,7 @@ static int _SET_MOS(RS_STACKDATA *stack, int argc) {
     }
 
     if (motion == NULL) {
-        return 0;
+        return false;
     }
 
     target = action_info.chara;
@@ -2248,7 +2256,7 @@ static int _SET_MOS(RS_STACKDATA *stack, int argc) {
         target = target->SearchChara(chara_name);
 
         if (target == NULL) {
-            return 0;
+            return false;
         }
     }
 
@@ -2258,7 +2266,7 @@ static int _SET_MOS(RS_STACKDATA *stack, int argc) {
         target->SetStep(speed);
     }
 
-    return 1;
+    return true;
 }
 
 /**
@@ -2270,47 +2278,47 @@ static int _CHECK_MOS_END(RS_STACKDATA *stack, int argc) {
     float result;
 
     if (argc == 1) {
-        result = action_info.chara->CheckMotionEnd(0);
+        result = action_info.chara->CheckMotionEnd(NULL);
     }
 
     if (argc == 2) {
-        char *name = GetStackString(stack + 1);
+        char *name = GetStackString(&stack[1]);
 
         if (name == NULL) {
-            return 0;
+            return false;
         }
 
         result = action_info.chara->CheckMotionEnd(name);
     }
 
     SetStack(stack, result);
-    return 1;
+    return true;
 }
 
 /**
  *
- * Returns the remaining frame wait of the current or named motion.
+ * Returns how far through its motion the character, or the named part, is.
  *
  */
 static int _NOW_MOS_WAIT(RS_STACKDATA *stack, int argc) {
     float result;
 
     if (argc == 1) {
-        result = action_info.chara->GetNowFrameWait(0);
+        result = action_info.chara->GetNowFrameWait(NULL);
     }
 
     if (argc == 2) {
-        char *name = GetStackString(stack + 1);
+        char *name = GetStackString(&stack[1]);
 
         if (name == NULL) {
-            return 0;
+            return false;
         }
 
         result = action_info.chara->GetNowFrameWait(name);
     }
 
     SetStack(stack, result);
-    return 1;
+    return true;
 }
 
 /**
@@ -2320,11 +2328,11 @@ static int _NOW_MOS_WAIT(RS_STACKDATA *stack, int argc) {
  */
 int _NOW_MOS_CHGWAIT(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     SetStack(stack, action_info.chara->GetChgStepWait());
-    return 1;
+    return true;
 }
 
 /**
@@ -2340,17 +2348,17 @@ static int _GET_MOS_STATUS(RS_STACKDATA *stack, int argc) {
     }
 
     if (argc == 2) {
-        char *name = GetStackString(stack + 1);
+        char *name = GetStackString(&stack[1]);
 
         if (name == NULL) {
-            return 0;
+            return false;
         }
 
         status = action_info.chara->GetMotionStatus(name);
     }
 
     SetStack(stack, status);
-    return 1;
+    return true;
 }
 
 /**
@@ -2360,18 +2368,18 @@ static int _GET_MOS_STATUS(RS_STACKDATA *stack, int argc) {
  */
 int _SET_XCHG_STEP(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
-    float         value = GetStackFloat(stack);
+    float         blend_speed = GetStackFloat(stack);
     CActionChara *chara = action_info.chara;
-    chara->blend_speed = value;
+    chara->blend_speed = blend_speed;
 
-    if (value >= 1.0f) {
+    if (blend_speed >= 1.0f) {
         chara->blend = 1.0f;
     }
 
-    return 1;
+    return true;
 }
 
 /**
@@ -2381,11 +2389,11 @@ int _SET_XCHG_STEP(RS_STACKDATA *stack, int argc) {
  */
 int _SET_MOS_STEP(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     action_info.chara->SetStep(GetStackFloat(stack));
-    return 1;
+    return true;
 }
 
 /**
@@ -2394,8 +2402,8 @@ int _SET_MOS_STEP(RS_STACKDATA *stack, int argc) {
  *
  */
 int _TRG_ON_MOS(RS_STACKDATA *stack, int argc) {
-    action_info.chara->seq_advance = 1;
-    return 1;
+    action_info.chara->seq_advance = true;
+    return true;
 }
 
 /**
@@ -2405,7 +2413,7 @@ int _TRG_ON_MOS(RS_STACKDATA *stack, int argc) {
  */
 int _RESET_MOS(RS_STACKDATA *stack, int argc) {
     action_info.chara->ResetMotion();
-    return 1;
+    return true;
 }
 
 /**
@@ -2415,24 +2423,24 @@ int _RESET_MOS(RS_STACKDATA *stack, int argc) {
  */
 int _SET_DEFAULT_MOS(RS_STACKDATA *stack, int argc) {
     if (argc != 1) {
-        return 0;
+        return false;
     }
 
     action_info.chara->default_motion = GetStackString(stack);
-    return 1;
+    return true;
 }
 
 /**
  *
- * Slows motion playback when the battle character has the selected status attribute.
+ * Slows the character's motion while its status condition slows it.
  *
  */
 int _SET_NEBA2(RS_STACKDATA *stack, int argc) {
-    if ((GetBattleCharaInfo())->GetAttr() & (int) CHARA_STATUS_SLOW) {
+    if (GetBattleCharaInfo()->GetAttr() & CHARA_STATUS_SLOW) {
         action_info.chara->SetStep(0.7f * action_info.chara->GetDefaultStep());
     }
 
-    return 1;
+    return true;
 }
 
 /**
@@ -2442,7 +2450,7 @@ int _SET_NEBA2(RS_STACKDATA *stack, int argc) {
  */
 static int _ESM_CREATE(RS_STACKDATA *stack, int argc) {
     if (action_info.chara->effect_man == NULL) {
-        return 0;
+        return false;
     }
 
     char *name = GetStackString(stack++);
@@ -2455,7 +2463,7 @@ static int _ESM_CREATE(RS_STACKDATA *stack, int argc) {
             int id = action_info.chara->effect_man->CreateEffSpt(name, 0, 1);
 
             if (id <= -1) {
-                return 0;
+                return false;
             }
 
             SetStack(stack, id);
@@ -2463,7 +2471,7 @@ static int _ESM_CREATE(RS_STACKDATA *stack, int argc) {
         }
     }
 
-    return 1;
+    return true;
 }
 
 /**
@@ -2475,7 +2483,7 @@ static int _ESM_SET_VECT1(RS_STACKDATA *stack, int argc) {
     float vect[4];
 
     if (action_info.chara->effect_man == NULL) {
-        return 0;
+        return false;
     }
 
     int index = GetStackInt(stack++);
@@ -2500,7 +2508,7 @@ static int _ESM_SET_VECT2(RS_STACKDATA *stack, int argc) {
     float vect[4];
 
     if (action_info.chara->effect_man == NULL) {
-        return 0;
+        return false;
     }
 
     int index = GetStackInt(stack++);
@@ -2528,17 +2536,17 @@ static int _ESM_FINISH(RS_STACKDATA *stack, int argc) {
     effect_id = GetStackInt(stack);
 
     if (effect_id < 0) {
-        return 0;
+        return false;
     }
 
     effect_script = action_info.chara->effect_man;
 
     if (effect_script == NULL) {
-        return 0;
+        return false;
     }
 
     effect_script->SetScriptProgNo(0x12C, 0, effect_id);
-    return 1;
+    return true;
 }
 
 /**
@@ -2553,17 +2561,17 @@ static int _ESM_DELETE(RS_STACKDATA *stack, int argc) {
     effect_id = GetStackInt(stack);
 
     if (effect_id < 0) {
-        return 0;
+        return false;
     }
 
     effect_script = action_info.chara->effect_man;
 
     if (effect_script == NULL) {
-        return 0;
+        return false;
     }
 
     effect_script->DeleteEffSpt(0, effect_id);
-    return 1;
+    return true;
 }
 
 /**
@@ -2573,23 +2581,23 @@ static int _ESM_DELETE(RS_STACKDATA *stack, int argc) {
  */
 static int _ESM_SET_VALUE(RS_STACKDATA *stack, int argc) {
     if (argc != 3) {
-        return 0;
+        return false;
     }
 
-    int prog_no = GetStackInt(stack++);
+    int effect_id = GetStackInt(stack++);
     int value_no = GetStackInt(stack++);
     int result;
 
     switch (stack->type) {
-        case 0:
-            result = action_info.chara->effect_man->SetValue(value_no, GetStackInt(stack), 0, prog_no);
+        case RS_INT:
+            result = action_info.chara->effect_man->SetValue(value_no, GetStackInt(stack), 0, effect_id);
             break;
-        case 1:
+        case RS_FLOAT:
             result =
-                action_info.chara->effect_man->SetValue(value_no, GetStackFloat(stack), 0, prog_no);
+                action_info.chara->effect_man->SetValue(value_no, GetStackFloat(stack), 0, effect_id);
             break;
         default:
-            return 0;
+            return false;
     }
 
     return result;
@@ -2601,11 +2609,11 @@ static int _ESM_SET_VALUE(RS_STACKDATA *stack, int argc) {
  *
  */
 int SetActionScript(CRunScript *script, char *program, mgCMemory *memory) {
-    RS_STACKDATA *stack = (RS_STACKDATA *) memory->Alloc(0x40);
-    RS_CALLDATA  *call_data = (RS_CALLDATA *) memory->Alloc(0x180);
-    script->load((RS_PROG_HEADER *) program, stack, 0x80, call_data, 0x200);
-    script->ext_func(ext_func, 0x100);
-    return 1;
+    RS_STACKDATA *stack = reinterpret_cast<RS_STACKDATA *>(memory->Alloc(0x40));
+    RS_CALLDATA  *call_data = reinterpret_cast<RS_CALLDATA *>(memory->Alloc(0x180));
+    script->load(reinterpret_cast<RS_PROG_HEADER *>(program), stack, 0x80, call_data, 0x200);
+    script->ext_func(ext_func, ACTION_EXT_FUNC_MAX);
+    return true;
 }
 
 /**
@@ -2617,7 +2625,7 @@ void SetActionExtendTable() {
     int i;
     int j;
 
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < ACTION_EXT_FUNC_MAX; i++) {
         ext_func[i] = NULL;
     }
 
@@ -2641,7 +2649,7 @@ void SetActionExtendTable() {
             } while (j < i);
         }
 
-        if (ext_func_info[i].no < 0 || ext_func_info[i].no >= 256) {
+        if (ext_func_info[i].no < 0 || ext_func_info[i].no >= ACTION_EXT_FUNC_MAX) {
             printf("ext func over!!");
         } else {
             ext_func[ext_func_info[i].no] = ext_func_info[i].func;
