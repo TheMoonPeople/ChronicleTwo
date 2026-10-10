@@ -769,15 +769,18 @@ void mgCFrame::ClearChildFlag() {
 void mgCFrame::GetLocalMatrix(float (*matrix)[4]) {
     if (use_srt) {
         float(*destination)[4] = matrix;
+        float *scale_vec;
+        float(*source)[4];
+
+        source = trans_matrix;
+        scale_vec = scale;
 
         asm {
-            addiu v1, this, 0xB0
-            addiu v0, this, 0x30
-            lqc2 vf10, 0(v0)
-            lqc2 vf1, 0(v1)
-            lqc2 vf2, 16(v1)
-            lqc2 vf3, 32(v1)
-            lqc2 vf4, 48(v1)
+            lqc2 vf10, 0(scale_vec)
+            lqc2 vf1, 0(source)
+            lqc2 vf2, 16(source)
+            lqc2 vf3, 32(source)
+            lqc2 vf4, 48(source)
             vmul.xyzw vf1, vf1, vf10
             vmul.xyzw vf2, vf2, vf10
             vmul.xyzw vf3, vf3, vf10
