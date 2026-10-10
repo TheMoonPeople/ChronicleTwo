@@ -1,7 +1,7 @@
 # Character-menu matching constraints
 
-Only MenuCharaChangeInit and MenuCostumeInit remain assembly-backed. Other functions are
-native and exact. The constructor controls are documented in [party-change
+Only MenuCharaChangeInit remains assembly-backed. Other functions are native and
+exact. The constructor controls are documented in [party-change
 construction](placement-new-change-natural.md) and [costume
 construction](placement-new-costume-natural.md).
 

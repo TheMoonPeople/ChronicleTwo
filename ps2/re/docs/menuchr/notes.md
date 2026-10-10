@@ -3,8 +3,9 @@
 `CMenuChrCngMenu::LoadBGNPCModel`, `CMenuCostumeSel::LoadMenuData` and
 `CMosBookMenu::KeyStep` are native C++ with three expected-one after-inline
 `CActionChara` rows; see [placement conversion](../satansfiddle/placement-new.md). The
-matching build uses retail gaps for the C++ drafts still guarded by `NONMATCHING`:
-`MenuCharaChangeInit` and `MenuCostumeInit`. `CMenuMosSelect::KeyStep` is native; see
+matching build uses a retail gap only for the C++ draft still guarded by `NONMATCHING`:
+`MenuCharaChangeInit`. `MenuCostumeInit` is native; see
+[costume construction](placement-new-costume-natural.md). `CMenuMosSelect::KeyStep` is native; see
 [the KeyStep promotion](matching-constraints.md) and [the monster-box command notes](#monster-box-pages-and-command-steps). `MenuItemCharaDataLoadEndCheckAfter` is native; see
 [the temporary-scene notes](matching-constraints.md). Only unguarded functions are
 active C++ decompilations. `MenuMemoryDivide` and `CMosBookMenu::Draw` are native,
@@ -143,12 +144,12 @@ Slot order is the base's: `IsCreateObject`, `IsMakeObject`, `IsAskExtend`, `Item
 ### CMenuCostumeSel (0x2D0)
 - `MenuCostumeInit` constructs the camera and menu in 0x2F quadwords from the caller's stack,
   sets the default outfit bitset to `0x1274521CB`, includes the optional costume bits when
-  `MenuArg.param[0]` is one, loads form data and begins a 40-frame fade. Its guarded constructor
-  and initializer are behavioral drafts; normal builds still use the retail assembly.
+  `MenuArg.param[0]` is one, loads form data and begins a 40-frame fade. The constructor is an out-of-class inline
+  definition immediately before its sole caller; it emits no standalone symbol.
 - Size: `__nw__FUiP1(0x2D0, ...)` in `MenuCostumeInit`; instance in `MenuCosPtr`.
 - Inline ctor: `mgCCameraFollow(40, 30, 0, 8)` at 0x110 (0xC0 -> 0x1D0), `mgCMemory` Init at 0x228,
-  0x2C0 = `GetCharaDataPtr(.., 0)`, 0x260 = 15.0f, 0x268 = 4.0f (chara_pos x/z), zeroes
-  0x1DE..0x1E2 (costume_select) and 0x284..0x2A4.
+  resets `MenuCosutumeLoadPhase`, 0x2C0 = `GetCharaDataPtr(.., 0)`, 0x260 = 15.0f,
+  0x268 = 4.0f (chara_pos x/z), zeroes 0x1DE..0x1E2 (costume_select) and 0x284..0x2A4.
 - `costume_list[3][8]` s16 at 0x1E4, `list[3]` s16* at 0x214.
 - Unresolved: `unk_1D4`, `unk_220`, `unk_270[4]`, `unk_280`, `unk_2A8`, `unk_2AC`, `unk_2BC`.
 
@@ -390,8 +391,7 @@ and inventmn accesses use the named field. Byte +6 remains unidentified; see
 ## Native character-menu data
 
 The only retained data markers are at_2595__2 (twelve-byte filename literal), at_2596__3
-(nine-byte info.cfg), the two costume/character-change vtables owned by the guarded
-initializers, and the distinct four-byte D_01F3C7FC BSS piece. Removing that boundary
+(nine-byte info.cfg), the character-change vtable owned by the guarded initializer, and the distinct four-byte D_01F3C7FC BSS piece. Removing that boundary
 shifts following objects; MenuCharaBuild2 owns seven pointers and must not absorb it
 through an eighth element.
 

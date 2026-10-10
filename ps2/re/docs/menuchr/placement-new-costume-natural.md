@@ -1,9 +1,7 @@
-# Costume initializer constructor candidate
+# Costume initializer construction
 
-`MenuCostumeInit__FP9mgCMemoryPii` remains assembly-backed. A natural exact candidate
-changes the source-owned CMenuCostumeSel constructor and one camera argument policy
-together. The candidate has complete-object and PAL evidence, but the constructor/header
-change is not present in the retained source.
+`MenuCostumeInit__FP9mgCMemoryPii` is native and exact. It uses the source-owned
+CMenuCostumeSel constructor and one camera argument policy.
 
 ## Constructor behavior and source boundary
 
@@ -15,15 +13,16 @@ special member is changed.
 Retail resets the source-owned `MenuCosutumeLoadPhase` and obtains Max's character data
 inside the successful constructor guard. The inherited caller performs both operations
 after construction, outside that guard. The actual constructor clears three costume
-selections and three line-wave values, then clears the real `costume_list[3][8]` by
-column: rows zero, one and two for each of eight columns. The ordinary typed loop
-unrolls to the observed 24 halfword stores. Retail does not contain the inherited
+selections and then three line-wave values in separate loops, then clears the real
+`costume_list[3][8]` by column: rows zero, one and two for each of eight columns. A
+column loop with three explicit row stores unrolls to the observed 24 halfword stores.
+A nested row loop unrolls only the inner loop and keeps an eight-iteration column loop;
+one combined selection/line-wave loop interleaves their stores (four words). Retail does not contain the inherited
 constructor's extra costume-count or cursor-coordinate/wave initialization.
 
-The exact proposal moves this existing user-declared constructor from its guarded header
-body to an out-of-class inline definition immediately before its sole allocation caller,
-following the unit's existing constructor style. The owning header receives a documented
-declaration. This lets the real source-owned phase operation remain in its source unit;
+The constructor is an out-of-class inline definition immediately before its sole
+allocation caller, following the unit's existing constructor style. The owning header
+holds its documented declaration. This lets the real source-owned phase operation remain in its source unit;
 no steering helper or manual compiler special member is introduced. No standalone
 constructor symbol is emitted, matching the retail symbol inventory.
 
@@ -66,10 +65,9 @@ unselected.
 
 
 The retail GLOBAL/FUNC body is `0x2D8` within extent `0x2E0`; all 44 relocations resolve
-to retail. The candidate's native costume vtable has binding 13, size `0x20`, alignment
-16 and six matching targets. Its shared header has nine consumers. Validation of this
-candidate alone preserved all 148 other game objects; activating it alongside other
-header changes requires fresh complete-game validation.
+to retail. The native costume vtable is a weak `0x20`-byte object with six matching targets; its
+former assembly data marker is removed. The complete menuchr object, the 149-unit object
+check and the PAL verifier pass.
 
 Construction selector semantics are documented in [the compiler
 design](../satansfiddle/placement-new.md).

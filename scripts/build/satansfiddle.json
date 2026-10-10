@@ -495,6 +495,15 @@
       },
       {
         "translation_unit": "menuchr.cpp",
+        "function": "MenuCostumeInit__FP9mgCMemoryPii",
+        "value_type": "binary32",
+        "value_bits": "0x00000000",
+        "callee": "__ct__15mgCCameraFollowFffff",
+        "evaluate_first": true,
+        "expected_matches": 1
+      },
+      {
+        "translation_unit": "menuchr.cpp",
         "function": "MonsterBookDraw__Fv",
         "value_type": "binary32",
         "value_bits": "0x41c00000",
