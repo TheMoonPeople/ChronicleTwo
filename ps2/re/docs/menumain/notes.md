@@ -158,3 +158,25 @@ Name not retail. Only written: +0 = MenuArg.mes_tex_block, +4 = GetTexture("mnma
 ## Topic rectangle argument order
 
 The unscoped binary32 selector for `DrawMenuTopic__Fv`, `36.0f` (`0x42100000`), sets `evaluate_first: true`. It preserves the vertical-origin assignment through all four rectangle constructor calls. Canonical verification passes the complete unit: `0x4F98` allocated bytes and 1,389 relocations. The unused long-division primer is replaced by GPR helper mask `0x30`, FPR mask `0`, preserving all allocated bytes and relocation identities.
+
+
+## Native data and matching constraints
+
+MenuMainInit remains assembly-backed, with light_1062, lightcolor_1063 and at_1440__2
+supplying its lighting and branch tables. menu_basedgRef and menu_basedgCamPos also
+retain markers: natural SDK vectors plus memcpy grow MenuCamInit from 0x44 to 0x6C and
+add call relocations. All BSS are native.
+
+MENU_INIT_ARG, CMenuItemUse and CMenuInter own 0x98, 0x1C and 0x18 bytes; their tails to
+0xA0/0x20/0x20 are alignment. Refresh counter and flag are signed bytes with a
+twenty-five-frame interval. Thirty-entry key/draw callback arrays include the unused
+null slot; their eight-byte tails are alignment. Topic color/shadow tables are mutable
+float[4][4]. Topic messages are seven-by-three pointers, the resource table has
+seventeen pointers sharing its empty literal, and monster_table has eleven name/message
+pairs including its zero terminator.
+
+Page, board and opening aggregates initialize at their original copy points, preserving
+the null-board branch and declaration order. Opening points are {50,40}, {-260,0},
+{20,40}; the selection cursor starts {0,0}. Constructor-bearing definition order is
+MenuMainStack, MenuMainStack_Next, MenuPrimFix, MenuMainTextureReadBuf, MenuSoundBuffer,
+TopicFont; the primitive pointer follows its builder declaration.
