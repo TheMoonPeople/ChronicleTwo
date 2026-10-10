@@ -47,6 +47,11 @@ int DIntr(void);
 /** Restores interrupt handling. */
 int EIntr(...);
 
+/**
+ * Waits for pending memory accesses and re-enables interrupts at the end of an interrupt handler.
+ */
+#define ExitHandler() asm volatile("sync.l; ei")
+
 /** Registers a handler for an EE interrupt source. */
 int AddIntcHandler(int cause, int (*handler)(int), int next);
 

@@ -378,10 +378,7 @@ int VSyncCallBack(int field) {
 
     call_back_active = 0;
 
-    asm {
-        sync
-        ei
-    }
+    ExitHandler();
 
     return 0;
 }

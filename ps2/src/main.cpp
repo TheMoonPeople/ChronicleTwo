@@ -38,10 +38,7 @@ static int VSyncCallBack(int event) {
         vcount = 0;
     }
 
-    asm {
-        sync
-        ei
-    }
+    ExitHandler();
 
     return 0;
 }
