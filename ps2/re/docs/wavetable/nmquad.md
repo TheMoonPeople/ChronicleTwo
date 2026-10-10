@@ -3,8 +3,9 @@
 Retail's inner-loop addresses are `now + ((column + row * 24) << 2)` with `row * 24`
 strength-reduced in the outer loop, and the neighbours are `-4/+4/±0x60` offsets from
 that cell. That is a flat `float *` index across the declared `[24][24]` rows; a typed
-`[row][column]` form would compute `row * 0x60 + column * 4`. No bounded form can
-therefore reproduce the retail loop without a different declared type for `height`.
+`[row][column]` form would compute `row * 0x60 + column * 4`. The tested direct indexing forms do not reproduce that address calculation.
+Bounded typed row-cursor induction recovers the unroll but changes the address
+schedule and body extent; see [cursor constraints](matching-constraints.md#bounded-cursor-induction).
 
 Retail's seam loads `line[22]` first but adds `line[1] + line[22]`. Holding the right
 edge in the wave loop's `sum`, declared at function scope and reused (`sum = line[22];

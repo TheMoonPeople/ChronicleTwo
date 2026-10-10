@@ -196,3 +196,17 @@ reassigned to `0.5f` for the seam, stays at 27 for each of 0.0196, 1.9216 and 0.
 Each use is reached by one constant definition, which is still propagated before CSE.
 The same per-definition propagation defeats multi-definition constant locals in
 `sgLoopGyoRace`.
+
+## Bounded cursor induction
+
+Two new cursor forms retain the declared plane/row arrays and keep all
+pointers within their owning arrays. Four float cursors, initialized to column
+1 of the above/current/below/previous rows and incremented through column 23,
+emit a scalar `0x340` body with **321/324** differing words. Two typed row
+cursors, initialized to row 1 and incremented through row 23, address vertical
+neighbours as `now_row[-1][column]` and `now_row[1][column]`. They recover the
+eight-cell interior unroll but emit `0x528` bytes, exceeding retail's `0x510`.
+They use sequential cell-address preparation without retail's saved-register
+frame and keep the plane-base calculations inside the seam loop. Moving the
+center/old cell pointers to function scope leaves the same `0x528` body.
+All four existing native functions remain exact; no candidate is retained.
