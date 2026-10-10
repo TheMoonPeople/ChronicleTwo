@@ -1,5 +1,9 @@
 # Villager frame attributes — October 8 midday
 
+The literal-allocation negatives below describe the earlier guarded draft.
+The native block-count allocation form and exact match are documented in
+[notes.md](notes.md#charaobjectonoff).
+
 On baseline `c79e57c`, the canonical native `CharaObjectOnOff` draft differs
 in 6/112 words, with a 0x1C0 body matching retail's extent. It finds the
 villager's named show and hide frames, allocates missing `mgCFrameAttr`

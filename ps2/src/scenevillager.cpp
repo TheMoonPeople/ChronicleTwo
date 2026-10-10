@@ -24,6 +24,19 @@
 
 /**
  *
+ * Rounds a byte count up to the number of 16-byte memory blocks it occupies.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
+
+/**
+ *
  * Villager motion names indexed by VILLAGER_MOTION.
  *
  */
@@ -677,7 +690,6 @@ int GetObjectNameList(char *names, CCharacter2 *chara, mgCFrame **frames, int ma
     return count;
 }
 
-#ifdef NONMATCHING
 void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
     mgCFrame        *frames[16];
     CVillagerInfo   *info;
@@ -709,7 +721,7 @@ void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
             mgCFrameAttr *attr = frames[i]->attr;
 
             if (attr == NULL && memory != NULL) {
-                attr = new (memory->Alloc(0xB)) mgCFrameAttr;
+                attr = new (memory->Alloc(align16_blocks(sizeof(mgCFrameAttr)) + 2)) mgCFrameAttr;
 
                 frames[i]->attr = attr;
             }
@@ -727,7 +739,7 @@ void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
             mgCFrameAttr *attr = frames[j]->attr;
 
             if (attr == NULL && memory != NULL) {
-                attr = new (memory->Alloc(0xB)) mgCFrameAttr;
+                attr = new (memory->Alloc(align16_blocks(sizeof(mgCFrameAttr)) + 2)) mgCFrameAttr;
 
                 frames[j]->attr = attr;
             }
@@ -738,9 +750,6 @@ void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
         }
     }
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/scenevillager", CharaObjectOnOff__6CSceneFiP9mgCMemory);
-#endif
 
 int CScene::LoadVillager(int map_no, int texb) {
     int                 chara_nos[32];
