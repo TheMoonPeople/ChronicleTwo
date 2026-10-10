@@ -6,13 +6,14 @@ the memory-card album, invention recipes and the menu page class. No first-game 
 
 ## Function status
 
-Every function of the unit is native C++ except three guarded drafts
-(`#ifdef NONMATCHING` ... `INCLUDE_ASM`): `CInventUserData::ResetAddress`,
-`CMenuInvent::IsAccessAlbum` and `MenuInventInit`. There is no assembly-only
-function. `MenuInventKey`, `CMenuInvent::CalcTex`, `LoadCharaCheck`,
-`IsCreateObject`, `UpdataNetaMemoStr`, `GradationStep` and `CalcCursorPosition`
-are native and exact; the forms their matches depend on are in
-"Matching-dependent source forms" below.
+Every function of the unit is native C++ except two guarded drafts
+(`#ifdef NONMATCHING` ... `INCLUDE_ASM`): `CMenuInvent::IsAccessAlbum` and
+`MenuInventInit`. There is no assembly-only function. `MenuInventKey`,
+`CMenuInvent::CalcTex`, `LoadCharaCheck`,
+`IsCreateObject`, `UpdataNetaMemoStr`, `GradationStep`, `CalcCursorPosition`
+and `CInventUserData::ResetAddress` are native and exact; their required source
+forms are in "Carried-photo pixel storage" and "Matching-dependent source forms"
+below.
 
 `decompile.sh` cannot recover the jump tables in `MenuInventKey` and
 `IsCreateObject` (assembly lines 176 and 861); analysis of those switches uses
@@ -20,14 +21,6 @@ the retail instructions directly.
 
 ### Guarded functions
 
-- `CInventUserData::ResetAddress` points each of the thirty `USER_PICTURE_INFO`
-  records at its `0x2000`-byte row of `photo_work`. Retail recomputes the
-  invariant `this + 0xD60` row base inside the eight-way unrolled loop body and
-  again before the two-photo remainder; the typed row-pointer draft computes it
-  once before the induction setup, so its base setup and two-photo tail differ.
-  Only a cast on the decayed `photo_work` array (`(char *) photo_work + index *
-  0x2000` or a same-type `(char (*)[0x2000])` cast) keeps the base opaque enough
-  to reproduce retail, and such a no-op cast is not accepted as source.
 - `CMenuInvent::IsAccessAlbum` runs the memory-card album dialogue (see "Album
   access states"). It constructs `CDC2AlbumData` and `CMemoryCardManager` with
   placement new from `MenuInventMCStack`; the draft copies the allocation result
@@ -72,6 +65,41 @@ Header `@size` values are the retail symbol sizes from
 `ps2/config/pal/main.symbols.txt`, excluding padding before the next function
 (`LoadCharaCheck` 0x4D8, `IsCreateObject` 0x1588, `IsAccessAlbum` 0x13E8,
 `UpdataNetaMemoStr` 0x194, `MenuInventKey` 0x824, `CalcTex` 0x139C).
+
+## Carried-photo pixel storage
+
+`CInventUserData::photo_work` contains thirty 64x64 images of packed unsigned
+16-bit pixels, represented by `u_short[30][64 * 64]`. `LoadTakePhoto` creates
+the capture texture with width/height 64 and bits-per-pixel 16, and
+`DrawTakePhoto` copies exactly 0x2000 captured bytes into the selected record.
+`AttachPictTex` creates the same 64x64/16-bit texture for each carried or album
+photo and assigns the record's image pointer as its transfer source. These
+m2c-confirmed calls establish pixel width independently of the row stride.
+
+The storage begins at `CInventUserData + 0xD60`, with a 0x2000-byte row stride;
+the object remains 0x3CE60 bytes. The thirty metadata records start at +0x408,
+have a 0x18-byte stride, and hold their byte-oriented image pointer at +0x14.
+`GetPhototWorkAdr` exposes the first row as bytes for photo sorting;
+`IsPhotoSpace` exposes the selected row as bytes without changing any pixels.
+The album's existing byte-storage representation and image-pointer ABI remain
+applicable to their transfer and memory-card interfaces.
+
+`ResetAddress` reconnects all thirty metadata records to their corresponding
+pixel rows after initialization, menu entry or sorting. Its explicit
+`char (*)[0x2000]` view converts the 16-bit storage to byte rows before indexing.
+MWCC preserves the retail base calculation after the three zeroed loop
+inductions and repeats it
+before the scalar tail. The eight-way unrolled loop assigns rows 0..23; the
+scalar tail assigns rows 24..29. The routine reads no metadata or pixels and
+writes only the image pointers.
+
+Casting each selected 16-bit row to `char *` instead of converting the array
+before indexing changes register allocation and loses the match. A named
+byte-row pointer keeps the unrolled body but hoists the base calculation across
+the tail. Array and pointer reference forms also fail to recover that repeated
+calculation. The native byte-row view matches all 48 words of the 0xC0-byte
+routine under the committed profile; the complete unit matches 0xFF08 bytes
+and 2,878 resolved relocations. No compiler-profile change is required.
 
 ## Header dependencies
 `inventmn.hpp` includes, for by-value types:
@@ -155,7 +183,7 @@ the first byte (`known`) only when `GetScoopInfo` finds the requested scoop.
 8 short neta_id[0x200]; 0x408 USER_PICTURE_INFO photo[30]; 0x6D8 INVENT_CREATED_ITEM[0x100]
 (Initialize zeroes both shorts; only item_id is read); 0xAD8 CScoopDataManager
 (`ScoopMan` = savedata + 0x25CA8, CShopMenu passes userdata + 0x8A08); 0xCD8..0xD60 unseen;
-0xD60 photo_work[30][0x2000] (Initialize memsets 0x3C000).
+0xD60 `u_short photo_work[30][64*64]` (0x2000-byte image rows; Initialize memsets 0x3C000).
 0x3CD60..0x3CE60 unseen (unk_3cd60). Size 0x3CE60 is inferred from the containing
 CUserDataManager: its next field (party_member) is at 0x44D90 = 0x7F30 + 0x3CE60 and nothing
 there touches the 0x100 bytes in between; no inventmn code reaches past 0x3CD60.

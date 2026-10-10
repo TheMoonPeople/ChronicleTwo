@@ -1000,19 +1000,13 @@ void CInventUserData::Initialize() {
     ResetAddress();
 }
 
-#ifdef NONMATCHING
 void CInventUserData::ResetAddress() {
-    char (*work)[0x2000];
     int index = 0;
-    work = photo_work;
     for (; index < 30; index++) {
-        photo[index].image = work[index];
+        // Image pointers expose byte rows of the packed 16-bit pixel storage.
+        photo[index].image = ((char (*)[0x2000]) photo_work)[index];
     }
 }
-
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/inventmn", ResetAddress__15CInventUserDataFv);
-#endif
 
 void CInventUserData::PhotoCheckEnd() {
     int i;
@@ -1031,7 +1025,7 @@ USER_PICTURE_INFO *CInventUserData::GetPhotoInfo(int slot) {
 }
 
 char *CInventUserData::GetPhototWorkAdr() {
-    return &photo_work[0][0];
+    return (char *) &photo_work[0][0];
 }
 
 USER_PICTURE_INFO *CInventUserData::IsPhotoSpace(int *slot) {
@@ -1039,7 +1033,7 @@ USER_PICTURE_INFO *CInventUserData::IsPhotoSpace(int *slot) {
 
     for (i = 0; i < 30; i++) {
         if (photo[i].used == 0) {
-            photo[i].image = &photo_work[i][0];
+            photo[i].image = (char *) &photo_work[i][0];
 
             if (slot != NULL) {
                 *slot = i;

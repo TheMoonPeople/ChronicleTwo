@@ -1429,7 +1429,7 @@ struct USER_PICTURE_INFO {
     short unk_8;
     short neta_id; /**< Idea (under 1000) or scoop (1000 and over) the photo shows, or 0 or less for none. */
     u8    unk_c[8];
-    char *image; /**< 64x64 pixels of the photo. */
+    char *image; /**< Byte view of the photo's 64x64 packed 16-bit pixels. */
 };
 
 STATIC_ASSERT(sizeof(USER_PICTURE_INFO) == 0x18);
@@ -1533,7 +1533,7 @@ public:
     INVENT_CREATED_ITEM created_item[0x100]; /**< Invention cards made. */
     CScoopDataManager   scoop;               /**< Records of the scoops. */
     u8                  unk_cd8[0x88];
-    char                photo_work[30][0x2000]; /**< Pixels of the photos carried. */
+    u_short             photo_work[30][64 * 64]; /**< Packed 16-bit pixels of the carried 64x64 photos. */
     u8                  unk_3cd60[0x100];
 
     CScoopDataManager *GetScoopData() {
