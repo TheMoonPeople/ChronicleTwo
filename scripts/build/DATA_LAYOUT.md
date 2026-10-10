@@ -75,6 +75,10 @@ gap. The postprocessor extends a correctly sized native initialized object by
 fewer than 16 bytes to its piece boundary; initialized padding must be zero
 in retail. A native NOBITS object keeps its original compiler extent; a reservation
 requires unique, exactly sized native ownership and a unique next retail object.
+MWCC may report the padded extent as the ELF symbol's `st_size`: the seven-pointer
+`langdirpathTable` in `menucommon` is 0x1C bytes in source and retail symbols,
+but its native ELF symbol reports 0x20. An object-size check cannot distinguish
+an extra zero pointer from that padding; the source array bound must be checked.
 The ordinary alignment path uses that following native object's original
 `sh_addralign`, captured before naming or padding. Its declared extent, section
 kind and flags must agree with retail. Rounding the current object's end to
