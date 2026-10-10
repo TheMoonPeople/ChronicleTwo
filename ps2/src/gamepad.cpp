@@ -750,36 +750,20 @@ void CGamePad::CapturePlay() {
     capture_mode = PAD_CAPTURE_PLAY;
 }
 
-#ifdef NONMATCHING
 void CGamePad::Capture(PAD_STATUS *status) {
-    PAD_CAPTURE_FRAME *frame;
-    if (capture_frame < PAD_CAPTURE_FRAME_MAX) {
-        frame = PAD_CAPTURE_BUFFER;
-        frame += capture_frame;
+    PAD_CAPTURE_FRAME *frame = PAD_CAPTURE_BUFFER;
+    u32                index = capture_frame;
+
+    if (index < PAD_CAPTURE_FRAME_MAX) {
+        frame += index;
         frame->button = status->button;
         frame->left_y = status->left_y;
         frame->left_x = status->left_x;
         frame->right_y = status->right_y;
         frame->right_x = status->right_x;
-        capture_frame++;
-    }
-}
-#else
-void CGamePad::Capture(PAD_STATUS *pad) {
-    u8 *entry = (u8 *) PAD_CAPTURE_BUFFER;
-    u32 frame = capture_frame;
-
-    if (frame < PAD_CAPTURE_FRAME_MAX) {
-        entry += frame * sizeof(PAD_CAPTURE_FRAME);
-        *(s16 *) entry = pad->button;
-        entry[2] = pad->left_y;
-        entry[3] = pad->left_x;
-        entry[4] = pad->right_y;
-        entry[5] = pad->right_x;
         capture_frame = capture_frame + 1;
     }
 }
-#endif
 
 void CGamePad::Play(PAD_STATUS *status) {
     PAD_CAPTURE_FRAME *frame;
