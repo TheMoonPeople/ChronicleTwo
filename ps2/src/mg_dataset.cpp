@@ -935,9 +935,8 @@ mgCVisual *mgCVisual::Copy(mgCMemory *memory) {
  *
  */
 #pragma schedule off
-#pragma global_optimizer off
+#pragma optimization_level 2
 
-#ifdef NONMATCHING
 mgCFrame *CopyFrameSub(mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table) {
     mgCFrame *frame;
 
@@ -949,7 +948,7 @@ mgCFrame *CopyFrameSub(mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFra
 
     CopyFrame(frame, src, memory, copy_visual, frame_table);
 
-    for (mgCFrame *child = src->child; child != 0; child = child->brother) {
+    for (mgCFrame *child = src->GetChild(); child != 0; child = child->GetBrother()) {
         mgCFrame *copy = CopyFrameSub(child, memory, copy_visual, frame_table);
 
         if (copy != 0) {
@@ -959,11 +958,8 @@ mgCFrame *CopyFrameSub(mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFra
 
     return frame;
 }
-#else
-INCLUDE_ASM("ps2/asm/pal/nonmatchings/mg_dataset", CopyFrameSub__FP8mgCFrameP9mgCMemoryiPP8mgCFrame);
-#endif
 
-#pragma global_optimizer reset
+#pragma optimization_level reset
 #pragma schedule reset
 
 #pragma schedule off

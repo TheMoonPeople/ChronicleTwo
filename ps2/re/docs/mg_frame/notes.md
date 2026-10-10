@@ -53,6 +53,9 @@ Size: `operator=` memcpy 0x110; mgLoadMDSFile array stride 0x110 (`__construct_n
 | 0x100 | rot_type (int) | SetRotType; bit1 apply rotation, bit2 rotate about own origin (forces bit1) |
 | 0x104-0x10f | (padding) | never accessed by mg_frame; covered by memcpy only. Left as natural padding. |
 
+`GetChild` and `GetBrother` are inline accessors for `child` and `brother` with no retail
+symbol. `CopyFrameSub` (mg_dataset) walks the children through them; see that unit's notes.
+
 ### BoundInfo (0xB0)
 `operator new(0xb0)` in mapFUNC_EFFECT_NAME and mgCMDTBuilder::End; Alloc(0xb) qwords in
 CreateFrameVisual. corner[8] 0x00 (SetBBox: bit0 picks x, bit1 y, bit2 z from max(+0x80) vs
