@@ -1590,14 +1590,8 @@ int CMemoryCardManager::LoadAlbum() {
                 AlbumFile *album = (AlbumFile *) album_buffer;
                 int        stored_digit = album->checksum;
 
-                if (stored_digit == 0) {
-                    if (album->trailer != 0) {
-                        goto verify;
-                    }
-                } else {
-                verify:
-                    if (stored_digit !=
-                        MakeCheckDigit(0, album->digit_data, sizeof(album->digit_data))) {
+                if (stored_digit != 0 || album->trailer != 0) {
+                    if (stored_digit != MakeCheckDigit(0, album->digit_data, sizeof(album->digit_data))) {
                         errors->code = 3;
                     }
                 }
