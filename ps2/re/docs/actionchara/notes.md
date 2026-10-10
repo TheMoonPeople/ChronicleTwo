@@ -29,7 +29,7 @@ sections directly.
 
 Header: `ps2/include/actionchara.hpp`. Owns `CActionChara` (derives `CCharacter2`, unit `character`),
 plus the parameter/table types `RUN_SCRIPT_ENV`, `ACTION_SW_EFFECT`, `ACTION_DAMAGE`, `ACTION_OBJECT`,
-`ACTION_BODY_COL`, `ACTION_SOUND`, `ACTION_ACCELE`, `ACTION_ACCUME`, `ACTION_SHAKE` and six enums.
+`ACTION_BODY_COL`, `ACTION_SOUND`, `ACTION_ACCELE`, `ACTION_ACCUME`, `ACTION_SHAKE` and twelve enums.
 Only `RUN_SCRIPT_ENV` is a retail name (from `RunScript__12CActionCharaFP6CSceneP14RUN_SCRIPT_ENV`); the
 other struct and enum names are ours. No first-game equivalent of `CActionChara` exists.
 
