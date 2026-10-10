@@ -1,7 +1,6 @@
 # mg_dataset: reverse-engineering notes
 
-The native drafts of `CreateFrameVisual`, `CopyFrame`, `CopyFrameSub`, and `mgCMDTBuilder::End(mgCFrame*, mgCVisualMDT*,
-mgLoadData*)` remain behind `NONMATCHING` with retail assembly fallbacks.
+`CopyFrameSub` remains behind `NONMATCHING` with its retail assembly fallback.
 Every other function, including `htoi` and `mgSetFrameAttr`, is native C++ and
 byte-identical. `htoi` reads digits from the end as `((u8 *) (back + (s32) text))[-1]`:
 retail adds the text address to the position (`addu v1,v1,a0`), while both
@@ -15,7 +14,7 @@ retail adds the text address to the position (`addu v1,v1,a0`), while both
 - The sphere-centre and scalar `SetData` overloads initialize their four-float vectors
   directly; normal data writes zero to the homogeneous component using `MG_MDT_DATA_NORMAL`.
 - Two `INCLUDE_RODATA` markers remain: `at_550__DATA` is the `"mgLoadMDSFile"` diagnostic
-  referenced by the assembly-backed `CreateFrameVisual`, and `__vt__15mgCShadowFixMDT__DATA`
+  referenced by `CreateFrameVisual`, and `__vt__15mgCShadowFixMDT__DATA`
   is the shadow-visual vtable that no native source in this unit emits.
 
 ## Typed access
@@ -72,7 +71,7 @@ The typed-view `htoi` experiment above emits `base,index` rather than retail's
 `index,base` in one commutative address addition. This is an unresolved source
 compliance issue, not an accepted replacement.
 
-`CopyFrameSub` allocates and constructs a frame, copies its contents, then recursively copies each child and attaches the copy to the new parent. The guarded draft's native placement new tests the allocation result before putting it in saved register `s0`; retail first saves it in `s0`, then tests and passes that saved register to the constructor. The four-instruction shift also moves the following loop and epilogue, producing 46 differing instructions out of 68. Splitting the memory allocation from placement new, combining the frame assignment with its null check, and spelling the child loop as `while` left this code generation unchanged. The retail gap remains active.
+`CopyFrameSub` allocates and constructs a frame, copies its contents, then recursively copies each child and attaches the copy to the new parent. With the `align16_blocks` allocation (below) its null test takes retail's form, but two constraints conflict. Under the existing `global_optimizer off` the loop and saved registers match retail, while the helper's result is not folded: `li v0,17; addiu a1,v0,2` precedes `move a0,s4`, where retail has `move a0,s4; li a1,0x13`, and the constructed frame is no longer copied to `s0` before the test (11/68 words). `#pragma optimization_level 2` instead (still `schedule off`) folds the size and reproduces every instruction, but assigns `frame` to `s1` and `src`/`child` to `s0`, the reverse of retail (13/68 words, register fields only). Optimization levels 1 and 3, `opt_propagation`/`opt_lifetimes`/`opt_common_subs`/`opt_dead_code`/`opt_strength_reduction`/`opt_loop_invariants` off at level 2, a separate or parameter-reusing child iterator, `while`/`for` spellings, declaration-time initialization, and four equivalent helper bodies do not correct both. The same helper folds inside the larger optimizer-off `CopyFrame`; removing any one of its statement groups also stops the fold there, so the fold depends on the caller's body rather than on the call.
 
 All mgCVisual virtuals and the inline mgCVisualMDT ones are emitted here as weak inline functions
 because the vtables `__vt__9mgCVisual` and `__vt__15mgCShadowFixMDT` are emitted in this unit (both
@@ -190,11 +189,22 @@ omits retail's divide-by-zero trap and appears to differ in 10 words even
 though its normal game build matches.
 
 The typed-view `htoi` experiment differs in one commutative `addu` at +0x44.
-Among the current guarded drafts, `CopyFrame` and `mgCMDTBuilder::End(frame, visual,
-load)` each differ only in the null branch following placement allocation:
-retail tests `v0`, while the compiled drafts test the equal-valued `a0`.
-`CreateFrameVisual` has this same branch-register difference at six placement
-allocations, plus one four-instruction scheduling difference near +0x1E4.
+## Allocation block counts
+
+`CreateFrameVisual`, `CopyFrame`, `CopyFrameSub` and `mgCMDTBuilder::End`
+allocate each scalar object as
+`new (memory->Alloc(align16_blocks(sizeof(T)) + 2)) T`, where the file-local
+`static inline align16_blocks` rounds a byte count up to 16-byte blocks with
+an `if` and an early return (the same helper `editexception`, `editinfo` and
+`dynamicanime` define). The early return makes it a statement-inlined (class 3)
+callee, which sets MWCC's statement-conversion request for the enclosing
+statement, so the construction's null test reads the allocator result: retail
+`move a0,v0; beqz v0` (End, CopyFrame) or `move s0,v0; beqz v0` (CopyFrameSub)
+around the out-of-line `mgCFrameAttr`/`mgCFrame` constructors, and `beqz v0`
+at the five inline visual constructions in `CreateFrameVisual`. A literal block
+count (`Alloc(0xB)`) compiles to the late form, testing the copied register
+(`beqz a0`). With the global optimizer on, the call folds to retail's constant
+(`li a1,0xB`). No profile row is involved.
 
 ## Typed frame copies
 
@@ -205,5 +215,6 @@ the typed version matches retail at 100% (0x274 bytes).
 ## Native MDS loader
 
 `mgLoadMDSFile(mgLoadData*)` is native and matches retail with a separate
-allocation count and iteration index. Its serialized-file offsets and current
-placement-new parks are documented in [matching-20261008.md](matching-20261008.md).
+allocation count and iteration index. Its serialized-file offsets and the earlier
+placement-new measurements (superseded by the block-count helper above) are in
+[matching-20261008.md](matching-20261008.md).
