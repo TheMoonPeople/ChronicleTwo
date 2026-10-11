@@ -1,9 +1,8 @@
 {
 	"name": "Dev",
 	"build": {
-		"context": "..",
-		"dockerfile": "../Dockerfile",
-		"target": "dev"
+		"context": "../tools/kazarov/image",
+		"dockerfile": "../tools/kazarov/image/Dockerfile"
 	},
 	"features": {
 		"ghcr.io/devcontainers/features/common-utils:2": {
@@ -14,10 +13,9 @@
 			"ohMyZshTheme": "devcontainers"
 		}
 	},
-	// The same mount point as build.sh, run.sh and dev.sh use, so a build
-	// directory configured by one is usable from the others.
-	"workspaceMount": "source=${localWorkspaceFolder},target=/chronicletwo,type=bind",
-	"workspaceFolder": "/chronicletwo",
+	// The mount point the Kazarov driver uses for this project.
+	"workspaceMount": "source=${localWorkspaceFolder},target=/work/chronicletwo,type=bind",
+	"workspaceFolder": "/work/chronicletwo",
 	"customizations": {
 		"vscode": {
 			"settings": {

@@ -19,30 +19,22 @@ jobs:
           persist-credentials: false
           submodules: true
 
-      - name: Prepare pinned mwccgap reader
-        run: python3 scripts/build/setup_mwccgap.py
-
-      - name: Build toolchain and unit tests
-        run: docker build -t chronicletwo_compiler_tests --target dev .
+      - name: Build toolchain image
+        run: tools/kazarov/bin/kazarov image
 
       - name: Test pinned compiler hooks
         run: |
-          docker run --rm \
-            -v "$PWD:/chronicletwo:ro" -w /chronicletwo \
-            -e HOME=/tmp \
-            -e SATANSFIDDLE_TEST_COMPILER_300=/chronicletwo/tools/compilers/mw/3.0-011126/mwccps2.exe \
-            -e SATANSFIDDLE_TEST_EXECUTABLE=/usr/local/bin/satansfiddle \
-            -e SATANSFIDDLE_TEST_FAULT_EXECUTABLE=/usr/local/libexec/satansfiddle-tests/satansfiddle-fault-test \
-            chronicletwo_compiler_tests sh -ec '
-              /usr/local/libexec/satansfiddle-tests/compiler_cli-* \
-                --ignored --skip real_compilers_repeatability_float_policies_and_failure \
-                --test-threads=1
-            '
+          tools/kazarov/bin/kazarov shell sh -ec '
+            export SATANSFIDDLE_TEST_COMPILER_300=/work/chronicletwo/tools/compilers/mw/3.0-011126/mwccps2.exe
+            export SATANSFIDDLE_TEST_EXECUTABLE=/usr/local/bin/satansfiddle
+            export SATANSFIDDLE_TEST_FAULT_EXECUTABLE=/usr/local/libexec/satansfiddle-tests/satansfiddle-fault-test
+            /usr/local/libexec/satansfiddle-tests/compiler_cli-* \
+              --ignored --skip real_compilers_repeatability_float_policies_and_failure \
+              --test-threads=1
+          '
 
       - name: Test object and profile verification
         run: |
-          docker run --rm \
-            -v "$PWD:/chronicletwo:ro" -w /chronicletwo \
-            -e HOME=/tmp \
-            chronicletwo_compiler_tests \
-            python3 -m unittest discover -s scripts/build -p 'test_*.py'
+          tools/kazarov/bin/kazarov shell sh -ec '
+            python3 -m unittest discover -s scripts/build -p "test_*.py"
+          '

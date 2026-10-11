@@ -31,7 +31,7 @@ jobs:
 
       - name: Check out build submodule
         if: env.HAS_PRIVATE == 'true'
-        run: git submodule update --init tools/mwccgap
+        run: git submodule update --init tools/kazarov
 
       - name: Check out private assets
         if: env.HAS_PRIVATE == 'true'
@@ -53,17 +53,12 @@ jobs:
 
       - name: Build toolchain image
         if: env.HAS_PRIVATE == 'true'
-        run: docker build -t chronicletwo_dev --target dev .
+        run: tools/kazarov/bin/kazarov image
 
       - name: Build and generate objdiff report
         if: env.HAS_PRIVATE == 'true'
         run: |
-          docker run --rm \
-            -v "$PWD:/chronicletwo" -w /chronicletwo -e HOME=/tmp \
-            chronicletwo_dev sh -ec '
-              scripts/build/cmake.sh elf objdiff
-              python3 scripts/build/progress_report.py
-            '
+          ./build.sh ps2-pal elf objdiff && tools/kazarov/bin/kazarov shell python3 scripts/build/progress_report.py
 
       - name: Summarize progress
         if: env.HAS_PRIVATE == 'true'
