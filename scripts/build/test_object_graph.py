@@ -28,7 +28,7 @@ class ObjectGraphTests(unittest.TestCase):
         self.write('scripts/build/fixup_sections.sh', 'exit 0\n')
         self.write('compiler/mwccps2.py',
                    'import pathlib,sys\n'
-                   'pathlib.Path(sys.argv[sys.argv.index("-o")+1]).write_bytes(b"compiled")\n')
+                   'pathlib.Path(sys.argv[sys.argv.index("-o")+1]).write_bytes(b"compiled");pathlib.Path(pathlib.Path(sys.argv[-1]).stem+\".d\").write_text(\"x.o: \"+sys.argv[-1]+\"\\n\")\n')
         self.write('ObjectLists.cmake', (ROOT / 'ps2/cmake/ObjectLists.cmake').read_text())
         self.write('CMakeLists.txt', f'''cmake_minimum_required(VERSION 3.20)
 project(graph NONE)

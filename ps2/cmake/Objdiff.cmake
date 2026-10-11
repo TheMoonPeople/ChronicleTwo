@@ -50,8 +50,8 @@ endforeach()
 kz_object_dirs(${OBJDIFF_OBJS})
 
 # Source cuts and function/fallback classification affect the global split.
-# Ninja's restat avoids rebuilding the split when this file keeps its timestamp.
-set(SOURCE_CUTS ${BUILD_DIR}/source_cuts.txt)
+# Kept beside the split stamp so a clean build does not re-split; restat keeps its timestamp when unchanged.
+set(SOURCE_CUTS ps2/asm/pal.source-cuts.txt)
 add_custom_command(
     OUTPUT ${CMAKE_SOURCE_DIR}/${SOURCE_CUTS}
     COMMAND ${PYTHON} ${SCRIPTS_DIR}/build/source_cuts.py

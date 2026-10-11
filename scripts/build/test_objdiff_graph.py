@@ -35,7 +35,7 @@ class ObjdiffGraphFixture(unittest.TestCase):
             self.write(f'asm/{unit}.s', '')
         self.write('scripts/build/prepare_objdiff_target.py', '')
         self.write('compiler/mwccps2.py',
-                   'import pathlib,sys\np=pathlib.Path(sys.argv[sys.argv.index("-o")+1]);p.write_bytes(b"base")\n')
+                   'import pathlib,sys\np=pathlib.Path(sys.argv[sys.argv.index("-o")+1]);p.write_bytes(b"base");pathlib.Path(pathlib.Path(sys.argv[-1]).stem+\".d\").write_text(\"x.o: \"+sys.argv[-1]+\"\\n\")\n')
         self.write('assemble.py',
                    'import pathlib,sys,time\ntime.sleep(0.1)\np=pathlib.Path(sys.argv[sys.argv.index("-o")+1]);p.write_bytes(b"target")\n')
         self.write('scripts/build/objdiff_config.py', '''import pathlib,sys
