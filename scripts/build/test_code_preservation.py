@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 import objdiff_data as d
-from mwccgap.elf import Relocation
+from kazarov_elf import Relocation
 from test_objdiff_data import symbol
 
 

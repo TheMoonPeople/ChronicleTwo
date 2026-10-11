@@ -16,8 +16,8 @@ import sys
 
 import layout
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "mwccgap"))
-from mwccgap.elf import Elf
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "kazarov" / "python"))
+from kazarov_elf import Elf
 
 
 def switch_labels(source):

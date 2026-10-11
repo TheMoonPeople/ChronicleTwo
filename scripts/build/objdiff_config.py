@@ -133,7 +133,7 @@ def config(build_dir):
     return {
         "min_version": "3.7.3",
         "custom_make": "sh",
-        "custom_args": ["-c", "exec scripts/build/build_objdiff.sh"],
+        "custom_args": ["-c", "exec ./build.sh ps2-pal objdiff"],
         "build_target": False,
         "build_base": True,
         "watch_patterns": [

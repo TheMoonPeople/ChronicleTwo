@@ -4,9 +4,9 @@ import sys
 from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / 'tools/mwccgap'))
+sys.path.insert(0, str(ROOT / 'tools/kazarov/python'))
 
-from mwccgap.elf import Elf
+from kazarov_elf import Elf
 from postprocess_object import (discard_dead_code_records, discard_unused_literals,
                                 name_sections, project_name, rename_dng_main_local_static)
 

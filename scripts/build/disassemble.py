@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 """Split the retail executable into the assembly the build reads.
 
-    disassemble.py              run splat, then write every game unit's
-                                per-symbol files
-    disassemble.py --no-splat   only write the per-symbol files
+    disassemble.py              run splat, then fix up its output
+    disassemble.py --no-splat   only fix up the files already split
 
 splat (run from ps2/config/<region>, as main.yaml expects) writes the
-whole-unit file `ps2/asm/<region>/<unit>.s` for every unit. This script adds
-each game unit's static initialiser to `ps2/asm/<region>/nonmatchings/<unit>/`:
-the `.sinit` subsegment, linked as `.init`, cut out of the whole-unit file,
-since splat writes no file of its own for it.
+whole-unit file `ps2/asm/<region>/<unit>.s` for every unit.
 
 A unit's run of a data section is cut at every symbol main.symbols.txt lists
 in it, and at every unnamed address (`D_<ADDR8>`) that splat's assembly refers
@@ -27,7 +23,6 @@ branches to (`twin_branched_labels`).
 import argparse
 import os
 import re
-import shutil
 import sys
 from pathlib import Path
 
@@ -37,9 +32,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import layout  # noqa: E402
 
 CODE_SECTIONS = (".text", ".init")
-
-NONMATCHINGS = layout.ASM / "nonmatchings"
-MATCHINGS = layout.ASM / "matchings"
 
 R_MIPS_32 = 2
 
@@ -229,50 +221,10 @@ class Resolver:
         return name if offset == 0 else f"{name} + 0x{offset:X}"
 
 
-def sinit_files(lay, unit):
-    """{name: assembly} for the functions of the unit's `.init` run."""
-    text = (ROOT / lay.reference(unit)).read_text(encoding="utf-8").splitlines()
-    out = {}
-    section = None
-    current = None
-    for line in text:
-        m = SECTION_LINE.match(line)
-        if m:
-            section = m.group(1)
-            current = None
-            continue
-        if section != ".init":
-            continue
-        m = GLABEL.match(line)
-        if m:
-            current = m.group(1)
-            out[current] = []
-        if current is not None:
-            out[current].append(line)
-    return {name: HEADER + "\n".join(lines).rstrip() + "\n" for name, lines in out.items()}
-
-
 def write_if_changed(path, text):
     if path.is_file() and path.read_text(encoding="utf-8") == text:
         return
     path.write_text(text, encoding="utf-8")
-
-
-def write_unit_files(pieces, unit):
-    lay = pieces.layout
-    directory = ROOT / NONMATCHINGS / unit
-    directory.mkdir(parents=True, exist_ok=True)
-    count = 0
-    for section, run in pieces.unit(unit):
-        if section == ".init":
-            expected = {name for name, _s, _e in run}
-            files = sinit_files(lay, unit)
-            if set(files) != expected:
-                raise ValueError(f"{unit}: .init holds {sorted(files)}, expected {sorted(expected)}")
-            for name, text in files.items():
-                write_if_changed(directory / f"{name}.s", text)
-                count += 1
-    return count
 
 
 VU_WORD = re.compile(
@@ -371,11 +323,6 @@ def run_splat():
 
     CommonSegC.split = split_unit
 
-    # A function moves between nonmatchings/ and matchings/ as it is
-    # decompiled, and splat leaves the stale copy behind.
-    for path in (ROOT / NONMATCHINGS, ROOT / MATCHINGS):
-        shutil.rmtree(path, ignore_errors=True)
-
     cwd = os.getcwd()
     os.chdir(ROOT / layout.CONFIG)
     try:
@@ -387,8 +334,7 @@ def run_splat():
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--no-splat", action="store_true",
-                    help="only write the per-symbol files splat does not")
-    ap.add_argument("units", nargs="*", help="game units to write (default: all)")
+                    help="only fix up the files splat already wrote")
     args = ap.parse_args()
 
     os.chdir(ROOT)
@@ -396,15 +342,7 @@ def main():
         run_splat()
         twin_split_files()
 
-    lay = layout.Layout()
-    retail = layout.Retail()
-    restore_raw_vu_words(lay, retail)
-    pieces = Pieces(lay)
-    units = args.units or lay.units("cpp")
-    total = 0
-    for unit in units:
-        total += write_unit_files(pieces, unit)
-    print(f"wrote {total} files for {len(units)} units")
+    restore_raw_vu_words(layout.Layout(), layout.Retail())
     return 0
 
 

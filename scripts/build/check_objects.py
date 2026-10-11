@@ -36,10 +36,10 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "tools" / "mwccgap"))
+sys.path.insert(0, str(ROOT / "tools" / "kazarov" / "python"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from mwccgap.elf import Elf, SHT_NOBITS  # noqa: E402
+from kazarov_elf import Elf, SHT_NOBITS  # noqa: E402
 
 import disassemble  # noqa: E402
 import layout  # noqa: E402
@@ -64,7 +64,7 @@ NAMED_ADDRESS = re.compile(r"(?:D_|\.L)([0-9A-F]{8})")
 
 
 def name_sections(elf):
-    """Name every section; mwccgap's reader leaves its `.text` sections unnamed."""
+    """Name every section; the ELF reader leaves its `.text` sections unnamed."""
     for section in elf.sections:
         section.name = elf.shstrtab.get_symbol_by_index(section.sh_name)
 

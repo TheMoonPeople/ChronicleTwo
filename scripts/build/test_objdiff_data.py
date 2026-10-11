@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 import objdiff_data as d
-from mwccgap.elf import Relocation, RelocationRecord, Symbol
+from kazarov_elf import Relocation, RelocationRecord, Symbol
 
 
 def symbol(name, index=0, size=0, value=0, info=0x10):

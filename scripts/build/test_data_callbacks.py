@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import objdiff_data as d
-from mwccgap.elf import Section
+from kazarov_elf import Section
 from test_objdiff_data import elf, record, symbol
 
 

@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 import objdiff_data as d
-from mwccgap import elf as mwccgap_elf
+import kazarov_elf
 
 
 class ComparisonCacheTests(unittest.TestCase):
@@ -98,7 +98,7 @@ class ContextFingerprintTests(unittest.TestCase):
             self.assertNotEqual(d.Context().fingerprint, first)
 
     def test_elf_reader_and_global_cuts_are_proof_inputs(self):
-        reader = Path(mwccgap_elf.__file__)
+        reader = Path(kazarov_elf.__file__)
         contents = [b'first reader']
         defined = [[(0x3000, 'D_00003000')]]
         pieces = NS(defined=lambda: defined[0])

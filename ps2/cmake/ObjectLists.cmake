@@ -22,62 +22,56 @@ function(layout_rows flag out_var)
         message(FATAL_ERROR "scripts/build/layout.py ${flag} failed (${status})")
     endif()
     # Rows are tab-separated, and a list element cannot hold a `;`.
-    string(REPLACE ";" "\\;" rows "${rows}")
+    string(REPLACE ";" "\;" rows "${rows}")
     string(REPLACE "\n" ";" rows "${rows}")
     set_property(GLOBAL PROPERTY ${key} "${rows}")
     set(${out_var} "${rows}" PARENT_SCOPE)
-endfunction()
-
-# Create the directory of every object up front; neither the assembler nor
-# MWCC creates one.
-function(make_object_dirs objs)
-    set(dirs "")
-    foreach(obj IN LISTS objs)
-        get_filename_component(dir ${CMAKE_SOURCE_DIR}/${obj} DIRECTORY)
-        list(APPEND dirs ${dir})
-    endforeach()
-    list(REMOVE_DUPLICATES dirs)
-    foreach(dir IN LISTS dirs)
-        file(MAKE_DIRECTORY ${dir})
-    endforeach()
 endfunction()
 
 # Assemble one file splat wrote: a library unit's whole-unit file, or one
 # section of a data-only unit. `fixup_args` are the objcopy arguments
 # fixup_sections.sh applies (each section's retail alignment).
 function(add_asm_object obj src fixup_args)
-    add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/${obj}
-        COMMAND ${AS} ${AS_FLAGS} -o ${obj} ${src}
-        COMMAND sh ${SCRIPTS_DIR}/build/fixup_sections.sh ${obj} ${fixup_args}
-        DEPENDS ${CMAKE_SOURCE_DIR}/${src}
-                ${CMAKE_SOURCE_DIR}/${INCLUDE_DIR}/macro.inc
-                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/fixup_sections.sh
-                ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMENT "AS ${src}"
-        VERBATIM)
+    kz_asm_object(${obj} ${src}
+        POST COMMAND sh ${SCRIPTS_DIR}/build/fixup_sections.sh ${obj} ${fixup_args}
+        DEPENDS ${INCLUDE_DIR}/macro.inc
+                ${SCRIPTS_DIR}/build/fixup_sections.sh
+                ${KZ_SPLIT_STAMP})
 endfunction()
 
-# Compile one game unit with MWCC. Every object depends on the split.
+# Compile one game unit with MWCC through Satan's Fiddle. The compile is also the
+# objdiff base, the source alone, so it lands in objdiff/base; the linked object is that
+# compile, copied and postprocessed. The two share one compile.
 function(add_cpp_object obj src unit)
+    get_filename_component(logical_source "${src}" NAME)
+    if(src MATCHES "\\.c$")
+        set(lang c)
+    else()
+        set(lang c++)
+    endif()
+
+    set(base ${BUILD_DIR}/objdiff/base/${unit}.cpp.o)
+    kz_mwcc_object(${base} ${src}
+        FLAGS -lang ${lang} ${CC_FLAGS} ${UNIT_CC_FLAGS_${unit}}
+        ENV SATANSFIDDLE=${SATANSFIDDLE} SATANSFIDDLE_CONFIG=${SATANSFIDDLE_CONFIG}
+            SATANSFIDDLE_TRANSLATION_UNIT=${logical_source}
+        DEPENDS ${SATANSFIDDLE_DEPENDENCIES}
+        COMMENT "CC ${src}")
+
+    kz_absolute_path(${obj} obj_abs)
+    kz_absolute_path(${base} base_abs)
     add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/${obj}
-        COMMAND ${CMAKE_COMMAND} -E env
-                MW_DIR=${MW_CC_DIR} MIPS_TOOL_PREFIX=${MIPS_TOOL_PREFIX}
-                SATANSFIDDLE=${SATANSFIDDLE} SATANSFIDDLE_CONFIG=${SATANSFIDDLE_CONFIG}
-                sh ${SCRIPTS_DIR}/build/mwccgap.sh ${obj} ${obj}.d ${src}
-                ${CC_FLAGS} ${UNIT_CC_FLAGS_${unit}} ${CC_DEP_FLAGS}
-        COMMAND sh ${SCRIPTS_DIR}/build/fixup_sections.sh ${obj}
-        DEPENDS ${CMAKE_SOURCE_DIR}/${src}
-                ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
-                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/mwccgap.sh
+        OUTPUT ${obj_abs}
+        COMMAND ${CMAKE_COMMAND} -E copy ${base_abs} ${obj_abs}
+        COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${KZ_PYTHONPATH}
+                ${PYTHON} ${SCRIPTS_DIR}/build/postprocess_object.py ${obj}
+        COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${KZ_PYTHONPATH}
+                sh ${SCRIPTS_DIR}/build/fixup_sections.sh ${obj}
+        DEPENDS ${base_abs}
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/postprocess_object.py
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/fixup_sections.sh
-                ${MWCCGAP_SOURCES}
-                ${SATANSFIDDLE_DEPENDENCIES}
-        DEPFILE ${CMAKE_SOURCE_DIR}/${obj}.d
+                ${KZ_PYTHONPATH}/kazarov_elf/__init__.py
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMENT "CC ${src}"
+        COMMENT "POST ${src}"
         VERBATIM)
 endfunction()

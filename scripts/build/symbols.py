@@ -121,7 +121,7 @@ if __name__ == "__main__":
                         help="fail if the checked-in list is out of date")
     args = parser.parse_args()
     if not ELF_PATH.exists():
-        sys.exit(f"{ELF_PATH} does not exist; run scripts/build/extract.py first")
+        sys.exit(f"{ELF_PATH} does not exist; run ./build.sh first")
     text = symbol_list()
     if args.check:
         if not OUT_PATH.exists() or OUT_PATH.read_text() != text:

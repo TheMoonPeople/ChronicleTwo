@@ -52,17 +52,15 @@ class VuWordTests(unittest.TestCase):
         self.assertEqual(d.raw_unrelocated_vu_words(self.text.rstrip('\n'), self.retail),
                          self.expected.rstrip('\n'))
 
-    def test_restoration_precedes_piece_boundary_discovery(self):
+    def test_main_restores_raw_vu_words_after_splat(self):
         events = []
-        pieces = SimpleNamespace(defined=lambda: [], unit=lambda unit: [])
         with patch.object(d, 'run_splat'), patch.object(d, 'twin_split_files'), \
              patch.object(d.layout, 'Layout', return_value=SimpleNamespace(units=lambda kind: [])), \
              patch.object(d.layout, 'Retail', return_value=self.retail), \
              patch.object(d, 'restore_raw_vu_words', side_effect=lambda *args: events.append('restore')), \
-             patch.object(d, 'Pieces', side_effect=lambda *args: events.append('pieces') or pieces), \
              patch('sys.argv', ['disassemble.py']):
             d.main()
-        self.assertEqual(events, ['restore', 'pieces'])
+        self.assertEqual(events, ['restore'])
 
     def test_explicit_source_identifiers_keep_their_boundaries(self):
         self.assertEqual(d.source_addresses('u8 D_01F628BC[4];\nuse(D_0034ABCD);'),

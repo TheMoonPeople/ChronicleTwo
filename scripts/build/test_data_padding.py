@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import postprocess_object as p
 import objdiff_data as d
-from mwccgap.elf import BssSection, Section
+from kazarov_elf import BssSection, Section
 from test_objdiff_data import elf, record, symbol
 
 

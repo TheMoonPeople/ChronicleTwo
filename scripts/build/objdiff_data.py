@@ -18,8 +18,8 @@ import disassemble
 import layout
 import lcf
 import postprocess_object as p
-from mwccgap import elf as mwccgap_elf
-from mwccgap.elf import Relocation, RelocationRecord, Symbol
+import kazarov_elf
+from kazarov_elf import Relocation, RelocationRecord, Symbol
 
 
 class Context:
@@ -38,7 +38,7 @@ class Context:
         self.linker = lcf.Generator()
         inputs = [Path(__file__), Path(p.__file__), Path(disassemble.__file__),
                   Path(layout.__file__), Path(lcf.__file__), layout.YAML,
-                  layout.SYMBOLS, layout.ELF_PATH, Path(mwccgap_elf.__file__)]
+                  layout.SYMBOLS, layout.ELF_PATH, Path(kazarov_elf.__file__)]
         digest = hashlib.sha256()
         for path in inputs:
             contents = path.read_bytes()

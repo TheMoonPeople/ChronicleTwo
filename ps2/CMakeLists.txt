@@ -1,5 +1,5 @@
 # The PS2 build: compiles every game unit with MWCC through Satan's Fiddle,
-# assembles the libraries and data-only units from the split, links the
+# assembles the library and data-only units from the split, links the
 # executable with MWLD and verifies it against retail.
 #
 # Targets:
@@ -9,7 +9,6 @@
 #   build (default)   elf, then verify it against retail
 #   verify_extracted  check the files extracted from the disc
 #   iso               master <build>/Dark Chronicle (PAL Build).iso
-#   run               boot that image in PCSX2
 #   objdiff, ctx      objdiff's configuration and m2c's context (cmake/Objdiff.cmake)
 
 set(BASENAME SCES_511.90)
@@ -20,7 +19,6 @@ set(SRC_DIR ps2/src)
 set(INCLUDE_DIR ps2/include)
 set(CONFIG_DIR ps2/config/${RELEASE_DIR})
 set(ASM_DIR ps2/asm/${RELEASE_DIR})
-set(TOOLS_DIR tools)
 set(SCRIPTS_DIR scripts)
 set(ROM_DIR rom/${RELEASE_DIR})
 set(RETAIL_ISO "${ROM_DIR}/Dark Chronicle (${RELEASE}).iso")
@@ -30,10 +28,6 @@ set(EXTRACTED_ELF ${EXTRACTED_DIR}/${BASENAME})
 file(RELATIVE_PATH BUILD_DIR ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 set(OUTPUT ${BUILD_DIR}/${BASENAME})
 set(BUILT_ISO "${BUILD_DIR}/Dark Chronicle (${RELEASE} Build).iso")
-set(STAMP_DIR ${BUILD_DIR}/stamps)
-set(ROM_STAMP ${STAMP_DIR}/rom.verified)
-set(EXTRACT_STAMP ${STAMP_DIR}/extracted)
-set(SPLIT_STAMP ${STAMP_DIR}/disassembled)
 
 if(NOT EXISTS "${CMAKE_SOURCE_DIR}/${RETAIL_ISO}"
    AND NOT EXISTS "${CMAKE_SOURCE_DIR}/${EXTRACTED_ELF}")
@@ -43,24 +37,58 @@ if(NOT EXISTS "${CMAKE_SOURCE_DIR}/${RETAIL_ISO}"
 endif()
 
 find_program(PYTHON NAMES python3 python REQUIRED HINTS $ENV{VIRTUAL_ENV}/bin)
-set(WIBO wibo)
+
+#
+# Compiler and linker, for tools/kazarov/cmake/Kazarov.cmake
+#
+
+# Satan's Fiddle controls the compiler's state. The runner is an absolute path:
+# kz-mwcc-exec runs the compiler in a private directory.
+if(DEFINED ENV{SATANSFIDDLE})
+    set(SATANSFIDDLE_DEFAULT "$ENV{SATANSFIDDLE}")
+else()
+    set(SATANSFIDDLE_DEFAULT satansfiddle)
+endif()
+set(SATANSFIDDLE "${SATANSFIDDLE_DEFAULT}"
+    CACHE STRING "Satan's Fiddle executable or command")
+if(DEFINED ENV{SATANSFIDDLE_CONFIG})
+    set(SATANSFIDDLE_CONFIG_DEFAULT "$ENV{SATANSFIDDLE_CONFIG}")
+else()
+    set(SATANSFIDDLE_CONFIG_DEFAULT "${CMAKE_SOURCE_DIR}/scripts/build/satansfiddle.json")
+endif()
+set(SATANSFIDDLE_CONFIG "${SATANSFIDDLE_CONFIG_DEFAULT}"
+    CACHE FILEPATH "Satan's Fiddle JSON compiler profile")
+
+set(KZ_MWCC tools/compilers/mw/3.0-011126/mwccps2.exe)
+set(KZ_MWLD tools/compilers/mw/2.4-001213/mwldps2.exe)
+set(KZ_MWCC_RUNNER ${PYTHON} ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/satansfiddle-wibo.py)
+set(KZ_LIB_INCLUDE_DIRS ps2/include/std ps2/include/sce)
+set(KZ_AS_FLAGS -EL -march=r5900 -mabi=eabi -mno-pdr -non_shared -G0 -I ${INCLUDE_DIR})
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-include(Toolchain)
-include(ObjectLists)
+include(${CMAKE_SOURCE_DIR}/tools/kazarov/cmake/Kazarov.cmake)
 
-# Configure reads main.yaml through layout.py, so either changing re-runs it.
-# scripts/build/globs.sh rewrites globbed.txt when a source or header is added
-# or removed; CONFIGURE_DEPENDS globs would re-check on every build instead.
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-    ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/main.yaml
-    ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/layout.py)
-if(EXISTS ${CMAKE_BINARY_DIR}/globbed.txt)
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-        ${CMAKE_BINARY_DIR}/globbed.txt)
-endif()
+# MWLD runs under wibo and links the executable from every object in
+# <build>/main_o_files, placed by the linker script.
+set(LD_FLAGS -map -nostdlib -m ENTRYPOINT -nodead -g)
+set(LD_SCRIPT ${CONFIG_DIR}/${BASENAME}.lcf)
 
-set(MWCCGAP_SOURCES ${CMAKE_SOURCE_DIR}/${TOOLS_DIR}/mwccgap/mwccgap/elf.py)
+# Flags for the game units, in the order the compiler reads them. Each
+# UNIT_CC_FLAGS_<unit> list is appended after CC_FLAGS, so its options
+# override CC_FLAGS'.
+set(CC_FLAGS -O3,p -strings readonly -c -Cpp_exceptions off -RTTI off
+    -pragma "divbyzerocheck on" -i ${INCLUDE_DIR})
+set(UNIT_CC_FLAGS_mg_dataset -O2,p)
+set(UNIT_CC_FLAGS_mg_shadow -O2,p)
+set(UNIT_CC_FLAGS_mg_tanime -O2,p)
+set(UNIT_CC_FLAGS_mg_texture -O2,p)
+set(UNIT_CC_FLAGS_password -O0)
+set(UNIT_CC_FLAGS_scriptinterpreter -inline off)
+
+# The compiler flags, for the diffing and decompiling tools.
+string(JOIN " " CC_FLAGS_TEXT ${CC_FLAGS})
+file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/compiler_flags.txt
+     CONTENT "${CC_FLAGS_TEXT}\n")
 
 set(SATANSFIDDLE_DEPENDENCIES
     ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/satansfiddle-wibo.py
@@ -69,6 +97,53 @@ find_program(SATANSFIDDLE_EXECUTABLE NAMES "${SATANSFIDDLE}" NO_CACHE)
 if(SATANSFIDDLE_EXECUTABLE)
     list(APPEND SATANSFIDDLE_DEPENDENCIES ${SATANSFIDDLE_EXECUTABLE})
 endif()
+
+# Configure reads main.yaml through layout.py, so either changing re-runs it.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/main.yaml
+    ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/layout.py)
+
+include(ObjectLists)
+
+#
+# Setup: the disc, what is extracted from it, and the split
+#
+
+# ps2/asm/ is never committed. It is split from the executable extracted from the
+# disc, which is checked against rom/pal/extracted.sha256 first.
+set(TOOLS_DIR tools)
+file(GLOB SPLAT_EXTENSIONS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/${TOOLS_DIR}/splat_ext/*.py)
+
+# The files the objects are assembled from are named as the split's byproducts,
+# so a build of any target knows the split makes them.
+layout_rows(--list-assembled assembled_rows)
+set(SPLIT_FILES "")
+foreach(row IN LISTS assembled_rows)
+    string(REPLACE "\t" ";" parts "${row}")
+    list(GET parts 1 reference)
+    list(APPEND SPLIT_FILES ${CMAKE_SOURCE_DIR}/${reference})
+endforeach()
+
+kz_disc_setup(
+    ISO "${RETAIL_ISO}"
+    ISO_CHECKSUM ${ROM_DIR}/checksum.sha256
+    EXTRACT_DIR ${ROM_DIR}/extracted
+    INPUTS ${EXTRACTED_ELF}
+    INPUTS_CHECKSUM ${ROM_DIR}/extracted.sha256
+    INPUTS_CHECKSUM_DIR rom
+    SPLIT_DIR ${ASM_DIR}
+    SPLIT_STAMP ${ASM_DIR}.split-stamp
+    SPLIT_COMMAND
+        COMMAND ${PYTHON} -u ${SCRIPTS_DIR}/build/symbols.py --check
+        COMMAND ${PYTHON} -u ${SCRIPTS_DIR}/build/disassemble.py
+    SPLIT_DEPENDS
+        ${CONFIG_DIR}/main.yaml
+        ${CONFIG_DIR}/main.symbols.txt
+        ${SCRIPTS_DIR}/build/symbols.py
+        ${SCRIPTS_DIR}/build/disassemble.py
+        ${SCRIPTS_DIR}/build/layout.py
+        ${SPLAT_EXTENSIONS}
+    SPLIT_BYPRODUCTS ${SPLIT_FILES})
 
 #
 # Objects
@@ -98,10 +173,8 @@ if(MISSING_SOURCES)
 endif()
 
 # Library units and data-only units, assembled from the split.
-layout_rows(--list-assembled assembled_rows)
 set(ASM_OBJS "")
 set(DATA_OBJS "")
-set(SPLIT_FILES "")
 foreach(row IN LISTS assembled_rows)
     string(REPLACE "\t" ";" parts "${row}")
     list(GET parts 0 kind)
@@ -119,7 +192,6 @@ foreach(row IN LISTS assembled_rows)
     else()
         list(APPEND ASM_OBJS ${obj})
     endif()
-    list(APPEND SPLIT_FILES ${CMAKE_SOURCE_DIR}/${reference})
     add_asm_object(${obj} ${reference} "${fixup_args}")
 endforeach()
 
@@ -142,7 +214,7 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/${LD_SCRIPT})
 endif()
 
 set(ALL_OBJS ${CPP_OBJS} ${ASM_OBJS} ${DATA_OBJS})
-make_object_dirs("${ALL_OBJS}")
+kz_object_dirs(${ALL_OBJS})
 
 #
 # Link
@@ -170,7 +242,7 @@ endforeach()
 
 add_custom_command(
     OUTPUT ${CMAKE_SOURCE_DIR}/${OUTPUT}
-    COMMAND ${LD} ${LD_FLAGS} -o ${OUTPUT} ${LD_SCRIPT} @${MAIN_O_FILES}
+    COMMAND ${KZ_LD} ${LD_FLAGS} -o ${OUTPUT} ${LD_SCRIPT} @${MAIN_O_FILES}
     DEPENDS ${ABS_OBJS}
             ${CMAKE_SOURCE_DIR}/${LD_SCRIPT}
             ${CMAKE_SOURCE_DIR}/${MAIN_O_FILES}
@@ -179,11 +251,6 @@ add_custom_command(
     VERBATIM)
 
 add_custom_target(elf DEPENDS ${CMAKE_SOURCE_DIR}/${OUTPUT})
-
-# The compiler flags, for the diffing and decompiling tools.
-string(JOIN " " CC_FLAGS_TEXT ${CC_FLAGS})
-file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/compiler_flags.txt
-     CONTENT "${CC_FLAGS_TEXT}\n")
 
 #
 # Verification
@@ -207,77 +274,6 @@ add_custom_target(verify_extracted
     VERBATIM)
 
 #
-# Setup: the disc, what is extracted from it, and the split
-#
-
-# ps2/asm/ is never committed; it is split from the executable extracted from
-# the disc, which is checked against rom/pal/extracted.sha256 first. The disc
-# itself is checked and extracted only when it is present.
-if(EXISTS "${CMAKE_SOURCE_DIR}/${RETAIL_ISO}")
-    add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/${ROM_STAMP}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${STAMP_DIR}
-        COMMAND ${CMAKE_COMMAND} -E chdir ${ROM_DIR} sha256sum -c checksum.sha256
-        COMMAND ${CMAKE_COMMAND} -E touch ${ROM_STAMP}
-        DEPENDS "${CMAKE_SOURCE_DIR}/${RETAIL_ISO}"
-                ${CMAKE_SOURCE_DIR}/${ROM_DIR}/checksum.sha256
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMENT "Checking the retail disc image"
-        USES_TERMINAL
-        VERBATIM)
-
-    add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/${EXTRACT_STAMP}
-        COMMAND ${PYTHON} -u ${SCRIPTS_DIR}/build/extract.py
-        COMMAND ${CMAKE_COMMAND} -E touch ${EXTRACT_STAMP}
-        DEPENDS ${CMAKE_SOURCE_DIR}/${ROM_STAMP}
-                ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/extract.py
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMENT "Extracting the disc"
-        USES_TERMINAL
-        VERBATIM)
-    set(EXTRACTED ${CMAKE_SOURCE_DIR}/${EXTRACT_STAMP})
-else()
-    set(EXTRACTED ${CMAKE_SOURCE_DIR}/${EXTRACTED_ELF})
-endif()
-
-set(SPLIT_COMMANDS
-    COMMAND ${CMAKE_COMMAND} -E chdir rom sha256sum -c ${RELEASE_DIR}/extracted.sha256
-    COMMAND ${PYTHON} -u ${SCRIPTS_DIR}/build/symbols.py --check
-    COMMAND ${PYTHON} -u ${SCRIPTS_DIR}/build/disassemble.py
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${STAMP_DIR}
-    COMMAND ${CMAKE_COMMAND} -E touch ${SPLIT_STAMP})
-
-file(GLOB SPLAT_EXTENSIONS ${CMAKE_SOURCE_DIR}/${TOOLS_DIR}/splat_ext/*.py)
-
-# The files the objects are assembled from are named as the split's
-# byproducts, so a build of any target knows the split makes them.
-add_custom_command(
-    OUTPUT ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP}
-    BYPRODUCTS ${SPLIT_FILES}
-    ${SPLIT_COMMANDS}
-    DEPENDS ${EXTRACTED}
-            ${CMAKE_SOURCE_DIR}/${ROM_DIR}/extracted.sha256
-            ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/main.yaml
-            ${CMAKE_SOURCE_DIR}/${CONFIG_DIR}/main.symbols.txt
-            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/symbols.py
-            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/disassemble.py
-            ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/layout.py
-            ${SPLAT_EXTENSIONS}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMENT "Splitting the executable"
-    USES_TERMINAL
-    VERBATIM)
-
-add_custom_target(setup DEPENDS ${CMAKE_SOURCE_DIR}/${SPLIT_STAMP})
-
-add_custom_target(disassemble
-    ${SPLIT_COMMANDS}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    USES_TERMINAL
-    VERBATIM)
-
-#
 # The disc image
 #
 
@@ -287,7 +283,7 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/${RETAIL_ISO}")
         COMMAND ${PYTHON} -u ${SCRIPTS_DIR}/build/make_iso.py
                 --source "${RETAIL_ISO}" --out "${BUILT_ISO}" ${OUTPUT}
         DEPENDS ${CMAKE_SOURCE_DIR}/${OUTPUT}
-                ${CMAKE_SOURCE_DIR}/${ROM_STAMP}
+                ${KZ_EXTRACT_ID}
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/make_iso.py
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "Mastering ${BUILT_ISO}"
@@ -300,13 +296,6 @@ else()
         COMMAND ${CMAKE_COMMAND} -E false
         VERBATIM)
 endif()
-
-add_custom_target(run
-    COMMAND ${SCRIPTS_DIR}/host/pcsx2.sh "${BUILT_ISO}"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    USES_TERMINAL
-    VERBATIM)
-add_dependencies(run iso)
 
 #
 # objdiff and m2c
