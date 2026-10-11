@@ -10,7 +10,11 @@ set(OBJDIFF_CONFIG objdiff.json)
 set(CTX ${BUILD_DIR}/ctx.c)
 set(CTX_CPP ${BUILD_DIR}/ctx.cpp)
 
-file(GLOB_RECURSE PROJECT_HEADERS
+# The graph tests clear this: a dry run cannot re-check globs.
+if(NOT DEFINED HEADER_GLOB_FLAGS)
+    set(HEADER_GLOB_FLAGS CONFIGURE_DEPENDS)
+endif()
+file(GLOB_RECURSE PROJECT_HEADERS ${HEADER_GLOB_FLAGS}
      ${CMAKE_SOURCE_DIR}/${INCLUDE_DIR}/*.hpp
      ${CMAKE_SOURCE_DIR}/${INCLUDE_DIR}/*.h)
 

@@ -71,6 +71,7 @@ function(add_cpp_object obj src unit)
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/postprocess_object.py
                 ${CMAKE_SOURCE_DIR}/${SCRIPTS_DIR}/build/fixup_sections.sh
                 ${KZ_PYTHONPATH}/kazarov_elf/__init__.py
+                ${KZ_SPLIT_STAMP}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "POST ${src}"
         VERBATIM)
