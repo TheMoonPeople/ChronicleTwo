@@ -2,7 +2,7 @@
 
 ChronicleTwo game source uses MWCC 3.0-011126 with `-O3,p`, readonly strings,
 exceptions and RTTI disabled, and division checks enabled. The
-[Satan's Fiddle integration](../scripts/build/SATANSFIDDLE.md) makes verified
+[Satan's Fiddle integration](SATANSFIDDLE.md) makes verified
 compiler state explicit without changing game source. The executable hash and
 hook opcode signatures must match; a version string alone cannot authorize a
 memory hook.
@@ -63,9 +63,8 @@ intact and sets the frontend's own statement-conversion request;
 `before_constructor_inline` reclassifies the root constructor read as class 3,
 so MWCC statement-inlines the body and sets the request itself. Rows apply
 only on the hash-verified compiler, must match exactly `expected_matches`
-constructions, and an empty table installs no hooks. The mechanism, census
-and timing evidence are in
-[the design note](../ps2/re/docs/satansfiddle/placement-new.md).
+constructions, and an empty table installs no hooks. The policy choice and its
+evidence are in [SATANSFIDDLE.md](SATANSFIDDLE.md#placement-construction-policy).
 
 **Pooled literal aliasing.** The separate bug that treats a literal's value buffer
 as variable alias metadata is verified for MWCC 2.3.3. No affected alias path is
@@ -92,17 +91,15 @@ therefore omits literal-reload policy settings.
 These rows were accepted through the canonical object comparison. They establish
 the listed functions' bytes and resolved relocations, not whole-unit matching
 when other source or data-layout failures remain.
-Unit-specific evidence is in the tracked mapjump and event_func RE notes and
-[pbuggy calibration notes](../ps2/re/docs/pbuggy/notes.md).
 
 `mg_dataset`, `mg_shadow`, `mg_tanime` and `mg_texture` are compiled with `-O2,p`, `password` with `-O0` and
-`scriptinterpreter` with `-inline off` (`UNIT_CC_FLAGS_<unit>` in `ps2/cmake/Toolchain.cmake`). Each
+`scriptinterpreter` with `-inline off` (`UNIT_CC_FLAGS_<unit>` in `ps2/CMakeLists.txt`). Each
 setting reproduces the whole unit's object; building the other `mg_*` units at level 2 differs.
 
 ## Source matching and verification
 
-Read unit documentation first and analyze retail with `./decompile.sh SYMBOL`
-using m2c. Establish dependency types and layouts before changing expressions.
+Analyze the retail disassembly of each function before changing its source.
+Establish dependency types and layouts before changing expressions.
 An early `mtc1`, changed saved register or changed stack frame can be a compiler
 state difference; test the deterministic profile before changing source to
 imitate incidental allocation. Use correctly typed literals and real field
@@ -123,8 +120,8 @@ The objdiff target preparation localizes explicit switch `jlabel .LXXXXXXXX`
 symbols so they do not split native functions into artificial report rows.
 This changes only the comparison object's symbol metadata; the linked game
 objects retain the exported labels required by separately assembled tables.
-A fuzzy percentage is diagnostic, not proof of an exact match. `INCLUDE_ASM`
-and inline assembly do not qualify as matched native decompilation. Internal
+A fuzzy percentage is diagnostic, not proof of an exact match. Assembly-backed
+functions and inline assembly do not qualify as matched native decompilation. Internal
 class initializers must be generated naturally by the compiler.
 
 ## Register allocation
@@ -202,9 +199,7 @@ class initializers must be generated naturally by the compiler.
 - Binding a computed scalar to a used `const T &` can stop one-use forward
   substitution into call arguments without adding storage or instructions.
   EditLoop's remaining fishing capacity uses this form; ordinary value snapshots
-  move the capacity calculation into the pointer-first argument walk. The exact
-  source and six-word value-local residual are in
-  [the unit note](../ps2/re/docs/editloop/notes.md).
+  move the capacity calculation into the pointer-first argument walk.
 - `T *const p = array;` keeps the base in a register; `x = load; x &= mask;`
   gives the AND result the load's register (`mgEndFrame`, mglib).
 - `*write++ = q;` reuses the dead argument register; a separate cursor local
@@ -284,7 +279,7 @@ function sizes so the same linker padding is excluded from function scores.
 MWCC gives native data objects their own extents and alignment; retail symbols
 exclude the gaps between objects. Keep natural definitions exactly sized and
 retain their original compiler alignment as evidence. The split, padding,
-naming and comparison rules are in [Data layout](../scripts/build/DATA_LAYOUT.md).
+naming and comparison rules are in [Data layout](DATA_LAYOUT.md).
 
 ## Natural C++ definitions
 

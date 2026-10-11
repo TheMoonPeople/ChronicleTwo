@@ -8,15 +8,14 @@ builds outside the container, build Satan's Fiddle with its documented Linux,
 Rust, LLDB and unstripped `wibo` prerequisites.
 
 Objdiff's source-only base objects use the same adapter, profile, options and
-logical translation-unit name as the linked objects. They run the adapter
-directly, without the postprocessing in `mwccgap.sh`, so the native-code metric
-measures compiler output alone. The generated
-objdiff configuration reads actual base-object symbols and maps sanitized retail
+logical translation-unit name as the linked objects. They skip the linked-object
+postprocessing, so the native-code metric measures compiler output alone. The
+generated objdiff configuration reads actual base-object symbols and maps sanitized retail
 template identities to MWCC's original template spelling.
 
 Scalar placement construction can request MWCC's ordinary statement conversion
-through an explicit frontend policy. Its mechanism, calibrated rows and limits
-are documented in [the design note](../../ps2/re/docs/satansfiddle/placement-new.md).
+through an explicit frontend policy. Its rows and their evidence are summarized in
+[Placement construction policy](#placement-construction-policy).
 
 ```sh
 export SATANSFIDDLE=/absolute/path/to/satansfiddle
@@ -39,14 +38,16 @@ allocated object and resolved relocation identities, so a pre-existing mismatch
 cannot conceal a new change. These rows describe compiler state, not additional
 game functions.
 
-`scripts/build/mwccgap.sh` runs `satansfiddle-wibo.py` once on the game source,
-then postprocesses the object. The adapter preserves every compiler option and
-its argument boundary, separates the generated `-o OBJECT` and source arguments,
-and creates a private JSON configuration for that compilation. The compiler path
-and options come from that invocation. The adapter passes the source basename
-with `--translation-unit`, which selects the unit's helper masks and
-floating-point identities. The compiler receives the actual source path, so
-quoted includes and dependency generation resolve from it.
+The Kazarov MWCC runner (`KZ_MWCC_RUNNER` in `ps2/CMakeLists.txt`) runs
+`satansfiddle-wibo.py` once on the game source, and the linked object is then
+postprocessed by `postprocess_object.py` and `fixup_sections.sh`. The adapter
+preserves every compiler option and its argument boundary, separates the
+generated `-o OBJECT` and source arguments, and creates a private JSON
+configuration for that compilation. The compiler path and options come from that
+invocation. The build sets `SATANSFIDDLE_TRANSLATION_UNIT` to the source
+basename, which selects the unit's helper masks and floating-point identities.
+The compiler receives the actual source path, so quoted includes and dependency
+generation resolve from it.
 
 Expression overrides identify a translation unit, mangled function, binary32 or
 binary64 type and IEEE value bits. An optional `callee` narrows the identity to
@@ -66,8 +67,8 @@ first. Its row is:
 }
 ```
 
-The pinned compiler receives the checked-in
-`patches/satansfiddle-nested-arguments.patch` during the Docker build. Its
+The pinned compiler receives Kazarov's
+`tools/kazarov/image/patches/satansfiddle-nested-arguments.patch` when the image is built. Its
 optional `nested_call` selector identifies a sibling call by mangled callee
 and an inner argument's formal index, floating type, and IEEE bits. The
 optional `nested_variable` selector identifies a nonliteral variable load at
@@ -77,7 +78,7 @@ the `SetRotation` zero associated with `unitRotation`'s third argument 16.0f,
 while `RoboAirMoveIF` selects the zero associated with a local angle passed
 as `unitRotation`'s second argument.
 
-The subsequent `patches/satansfiddle-control-context.patch` adds two optional
+The subsequent `tools/kazarov/image/patches/satansfiddle-control-context.patch` adds two optional
 source identities for verified MWCC 3.0 statement lowering. `control` identifies
 the integer value set of an enclosing equality condition or grouped switch case;
 `argument` identifies a sibling floating constant by its formal position, type,
@@ -172,25 +173,20 @@ dependencies. Set the two CMake cache variables explicitly when changing them
 after configuration. A missing executable or profile fails with a setup message;
 the build does not silently compile through plain `wibo`.
 
-For a focused check after activation, compile one game unit and compare its
-object against retail. `mg_texture` takes `-O2,p` after the common flags, as
-`UNIT_CC_FLAGS_mg_texture` in `ps2/cmake/Toolchain.cmake` gives it:
+For a focused check after activation, build and compare one game unit against
+retail. `mg_texture` takes `-O2,p` after the common flags, as
+`UNIT_CC_FLAGS_mg_texture` in `ps2/CMakeLists.txt` gives it:
 
 ```sh
-mkdir -p /tmp/chronicletwo-check
-scripts/build/mwccgap.sh /tmp/chronicletwo-check/mg_texture.cpp.o \
-  /tmp/chronicletwo-check/mg_texture.d ps2/src/mg_texture.cpp \
-  -O3,p -strings readonly -c -Cpp_exceptions off -RTTI off \
-  -pragma 'divbyzerocheck on' -i ps2/include -O2,p
-sh scripts/build/fixup_sections.sh /tmp/chronicletwo-check/mg_texture.cpp.o
-python3 scripts/build/check_objects.py mg_texture --obj-dir /tmp/chronicletwo-check -v
+./build.sh
+python3 scripts/build/check_objects.py mg_texture -v
 ```
 
-Validate calibration with this full wrapper, section fixup and canonical object
+Validate calibration with this full build, section fixup and canonical object
 checker. Objdiff percentages help locate differences but do not prove exact
 bytes and resolved relocations. A corrected function can coexist with known
 failures elsewhere in its unit; compare the complete failure list against the
-baseline before accepting a row. See [MWCC matching notes](../../docs/MWCC.md).
+baseline before accepting a row. See [MWCC matching notes](MWCC.md).
 Use
 `python3 -m unittest discover -s scripts/build -p test_satansfiddle.py` for the
 adapter's argument, selector, and failure-path checks.
@@ -223,7 +219,7 @@ all test targets; no wrapper-byte equivalence between recipes is asserted.
 
 ## Scalar placement construction conversion
 
-The third patch, `patches/satansfiddle-placement-new.patch`, adds an optional
+The third patch, `tools/kazarov/image/patches/satansfiddle-placement-new.patch`, adds an optional
 `placement_new.statement_conversions` table. An empty table installs no new
 hooks. The capability supports only the hash-verified MWCC 3.0-011126 image.
 The adapter filters rows by the logical source name for the game compilation
@@ -305,9 +301,43 @@ Zero masked instruction words alone do not establish a matching decompilation.
 Rows and guard removal belong in the same buildable change because an
 assembly-backed caller has zero eligible constructions and fails its assertion.
 
+## Placement construction policy
+
+The placement rows are a frontend policy, not inherited compiler state. The
+constructor's inline class decides whether `new (buffer) T` is lowered as an
+expression (class 6) or a statement (class 3), and the two lowerings test the
+allocation result differently. Retail's guards for these callers need the
+statement form. No ordinary source form or option tested here reproduces it.
+
+- The profile has 37 rows covering 47 construction sites in 24 units. Every row
+  uses allocator `__nw__FUiP1` and an exact direct constructor. Eight
+  floating-expression rows accompany five of the callers.
+- Setting every row to after-inline matches every caller except
+  `mgCTextureAnime::NewTexAnimeData`, which needs before-inline. Setting every row
+  to before-inline fails `CMapParts::Copy`, `CMenuInvent::LoadCharaCheck` and
+  `CRepairManager::GeneratePoly`. `mg_tanime.cpp` uses `#pragma schedule off`;
+  that may explain its exception, which no experiment has isolated.
+- No tested option reproduces the unchanged `CFuncPointMngr::Add` guard. The
+  controls covered inliner settings (`-inline`, `inline_depth`, `auto_inline`),
+  precompiled headers, header order, `-g`, `-sym`, `-iso_templates`, RTTI and
+  exceptions. Exceptions also break existing matches, and retail's game units
+  are built with exceptions off.
+- Global policies applied to 149 units give the following. A global direct
+  after-inline request changes 25 native objects, loses no measured zero and
+  adds 25. A broad before-inline policy regresses `InitDungeonMain`. Forcing
+  class 6 on every constructor read regresses 13 matched functions. A hybrid
+  without placement rows, with after-inline in 148 units and before-inline for
+  `mg_tanime`, reproduces the accepted game objects and executable. That driver
+  does not check row eligibility or witnesses, so a production global policy
+  would need those checks, the supported allocator forms, and handling for
+  implicit constructors.
+- Retail has 216 direct scalar placement sites, and 108 inline-constructor sites
+  test the allocator result directly. That shows the pattern is common in retail.
+  It does not identify an original compiler setting or source form.
+
 ## Continuous verification
 
-The [compiler workflow](../../.github/workflows/compiler.yml) rebuilds the
+The [compiler workflow](../.github/workflows/compiler.yml) rebuilds the
 pinned toolchain and runs the genuine-compiler fixtures on pull requests,
 master pushes and manual dispatches. It runs thirteen fixtures with the
 production and fault-enabled executables; the legacy two-compiler fixture

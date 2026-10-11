@@ -6,10 +6,6 @@
 !/rom/pal/checksum.sha256
 !/rom/pal/extracted.sha256
 
-# Keep reverse-engineering documentation; ignore generated analysis artifacts.
-/ps2/re/*
-!/ps2/re/docs/
-
 # Non-essential tools
 tools/ghidra
 

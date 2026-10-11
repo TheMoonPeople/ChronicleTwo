@@ -84,7 +84,7 @@ CODE = (".text", ".init")
 
 # Unresolved retail storage: exact placements only, never inferred alignments.
 # Values fix (kind, start, size, next name/start/size, measured next alignments).
-# See BSS_RESERVATIONS.md for the measured classification and remaining gaps.
+# See docs/BSS_RESERVATIONS.md for the measured classification and remaining gaps.
 BSS_RETAIL_RESERVATIONS = {
     ('convviewlp', 'ConvertResultDispTime'):
         ('.sbss', 0x0037ea8c, 0x4, 'SaveFileInfoTablePtr', 0x0037eac0, 0x4, (4,)),
