@@ -1226,3 +1226,13 @@ After any edit to `ps2/`, run `./build.sh ps2-pal`, then `BUILD_DIR=build/pal py
 `scripts/port/matrix.py` compares logical-frame PSNR across resolutions, plain and `--display-per-tick 4` identity, and letterbox geometry. Below-35 dB PSNR is advisory unless `--psnr-gate` is supplied; run failures, display-per-tick pixel differences and letterbox failures are hard failures. There are no HUD probe claims.
 
 Each fresh run explicitly disables debug in its config and removes `DC2_JUMP`, `DC2_GIVE` and `DC2_FAST_LOAD` from the launch environment. It records the exact process exit status, duration, binary/input hashes, launch config hash, saved config hash, frame count, window, aspect, data path and display-per-tick mode in `result.json`. `--no-run` requires matching identities and retains a failed or timed-out status even when a PNG exists. Changing extracted data in place is outside this provenance check; use the same verified extraction for comparisons. `Matrix.Title` and `Matrix.Costume` carry `matrix;gpu` labels. `Matrix.Runner` checks the runner synthetically without game data or a device.
+
+The `PalTiming.Ps2Identity` CTest restores each `PAL_TIMING(pal, ntsc)` expression to its
+PAL argument, removes the timing include, and compares the PS2 source bytes against
+the merge-base of `HEAD` with `origin/master`. Configure a different upstream ref with
+`-DCT_PAL_TIMING_UPSTREAM=<ref>`, or an explicit baseline with
+`-DCT_PAL_TIMING_BASE=<ref>`. The selector header itself is excluded. When the ref or
+history is unavailable, including shallow CI checkouts without a merge-base, CTest
+skips the check with a message. `PalTiming.IdentitySelfTest` runs without git history.
+This is a PR-time source check; `ps2-pal` and `verify.py` remain the authority for
+PS2 byte matching.
