@@ -1,7 +1,8 @@
 set(one_frame_script ${CMAKE_CURRENT_BINARY_DIR}/screenshot_one_frame.cmake)
 file(WRITE ${one_frame_script} [=[
-file(MAKE_DIRECTORY "${ROOT}/data" "${ROOT}/save")
-file(WRITE "${ROOT}/data/manifest.json" "{\"schema_version\":1,\"files\":{}}")
+include("${EMPTY_DATA_FIXTURE}")
+ct_empty_data_fixture("${ROOT}" "${DATA_VERSION_SOURCE}")
+file(MAKE_DIRECTORY "${ROOT}/save")
 file(WRITE "${ROOT}/save/config.json" "{\"video\":{\"interpolation\":false}}")
 file(REMOVE "${ROOT}/frame.png" "${ROOT}/frame-display-0.png" "${ROOT}/frame-display-1.png")
 execute_process(COMMAND "${EXE}" --headless --offscreen --data "${ROOT}/data" --save "${ROOT}/save"
@@ -25,5 +26,7 @@ message("ONE_FRAME_CAPTURE_OK")
 ]=])
 add_test(NAME Screenshot.OneFrameCommandLine
     COMMAND ${CMAKE_COMMAND} -DEXE=$<TARGET_FILE:darkchronicle>
-        -DROOT=${CMAKE_BINARY_DIR}/one-frame-capture -P ${one_frame_script})
+        -DROOT=${CMAKE_BINARY_DIR}/one-frame-capture
+        -DEMPTY_DATA_FIXTURE=${CMAKE_CURRENT_LIST_DIR}/empty_data.cmake
+        -DDATA_VERSION_SOURCE=${KZ_ROOT}/data_version.json -P ${one_frame_script})
 set_tests_properties(Screenshot.OneFrameCommandLine PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE LABELS gpu)

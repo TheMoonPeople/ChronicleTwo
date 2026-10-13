@@ -10,8 +10,8 @@ endif()
 
 set(DATA "${WORK}/data")
 file(REMOVE_RECURSE "${WORK}")
-file(MAKE_DIRECTORY "${DATA}")
-file(WRITE "${DATA}/manifest.json" "{\"schema_version\":1,\"files\":{}}")
+include("${CMAKE_CURRENT_LIST_DIR}/empty_data.cmake")
+ct_empty_data_fixture("${WORK}" "${DATA_VERSION_SOURCE}")
 
 function(run_headless name)
     set(save "${WORK}/${name}-save")

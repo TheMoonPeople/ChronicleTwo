@@ -125,12 +125,12 @@ add_dependencies(darkchronicle_tests darkchronicle)
 # ctest reports a process that dies by abort() as failed even when PASS_REGULAR_EXPRESSION matches its
 # output, so the executable runs under a script that checks the run and the file it writes, and the regex
 # judges the script's verdict. Its shader compile loads the CPU, so it runs alone with the clock cases.
-# The smoke data directory holds only an empty manifest.txt (an extraction with no files), so the run passes the
-# first-run data check and stays in the logo fade without game data.
+# The smoke fixture is coherent empty publisher output at the pinned data version, so the run
+# passes the first-run data check and stays in the logo fade without game data.
 set(SMOKE_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/smoke_headless.cmake)
 file(WRITE ${SMOKE_SCRIPT} [=[
-file(MAKE_DIRECTORY "$ENV{DC2_DATA}")
-file(TOUCH "$ENV{DC2_DATA}/manifest.txt")
+include("${EMPTY_DATA_FIXTURE}")
+ct_empty_data_fixture("${ROOT}" "${DATA_VERSION_SOURCE}")
 file(MAKE_DIRECTORY "$ENV{DC2_SAVE}")
 file(REMOVE "$ENV{DC2_SAVE}/smoke.png")
 execute_process(COMMAND "${EXE}" --headless --offscreen --frames 3 --screenshot "$ENV{DC2_SAVE}/smoke.png"
@@ -149,10 +149,13 @@ if(rc EQUAL 0 AND index_at GREATER -1 AND frame_at GREATER -1 AND sig STREQUAL "
 endif()
 ]=])
 add_test(NAME Smoke.HeadlessFramesScreenshot
-    COMMAND ${CMAKE_COMMAND} -DEXE=$<TARGET_FILE:darkchronicle> -P ${SMOKE_SCRIPT})
+    COMMAND ${CMAKE_COMMAND} -DEXE=$<TARGET_FILE:darkchronicle>
+        -DROOT=${CMAKE_BINARY_DIR}/smoke-fixture
+        -DEMPTY_DATA_FIXTURE=${CMAKE_CURRENT_SOURCE_DIR}/cmake/empty_data.cmake
+        -DDATA_VERSION_SOURCE=${KZ_ROOT}/data_version.json -P ${SMOKE_SCRIPT})
 set_tests_properties(Smoke.HeadlessFramesScreenshot PROPERTIES
     PASS_REGULAR_EXPRESSION "SMOKE_OK"
-    ENVIRONMENT "DC2_SAVE=${CMAKE_BINARY_DIR}/smoke-save;DC2_DATA=${CMAKE_BINARY_DIR}/smoke-data"
+    ENVIRONMENT "DC2_SAVE=${CMAKE_BINARY_DIR}/smoke-fixture/save;DC2_DATA=${CMAKE_BINARY_DIR}/smoke-fixture/data"
     TIMEOUT 120 RUN_SERIAL TRUE LABELS gpu)
 
 file(GLOB ct_stream_cmake CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
