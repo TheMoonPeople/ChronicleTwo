@@ -60,6 +60,11 @@ using namespace dc::test;
 
 namespace {
 
+struct TextureSourceScope {
+    const void *buffer;
+    ~TextureSourceScope() { TextureSourceForget(buffer); }
+};
+
 class PresentRenderer {
 public:
     PresentRenderer(int width, int height) {
@@ -1720,9 +1725,11 @@ TEST(DamagePresentation, RealAtlasProjectedEndpoints) {
     file.seekg(0);
     ASSERT_TRUE(file.read(reinterpret_cast<char *>(archive.data()), bytes));
     TextureSourceRegister(archive.data(), "dungeon/articles/tex01_1.chr", bytes);
+    const TextureSourceScope archive_source{archive.data()};
     int   member_size = 0;
     char  member_name[] = "frame_basic.img";
     auto *image = GetPackFile(reinterpret_cast<u_int *>(archive.data()), member_name, &member_size);
+    const TextureSourceScope image_source{image};
     ASSERT_NE(image, nullptr);
     PresentRenderer renderer(640, 480);
     PresentSetSettings(PresentSettings{.interpolation = true});
@@ -1894,9 +1901,11 @@ void CaptureRidepodWarning(bool wide) {
     file.seekg(0);
     ASSERT_TRUE(file.read(reinterpret_cast<char *>(archive.data()), bytes));
     TextureSourceRegister(archive.data(), "dungeon/articles/tex01_1.chr", bytes);
+    const TextureSourceScope archive_source{archive.data()};
     int   member_size = 0;
     char  member_name[] = "frame_basic.img";
     auto *image = GetPackFile(reinterpret_cast<u_int *>(archive.data()), member_name, &member_size);
+    const TextureSourceScope image_source{image};
     ASSERT_NE(image, nullptr);
     PresentRenderer renderer(wide ? 1280 : 640, wide ? 720 : 480);
     gfx::SetFrameLayout({gfx::AspectMode::Fill, 1.0f});

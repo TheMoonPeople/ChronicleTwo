@@ -23,6 +23,8 @@ def main() -> int:
         marker = json.loads((data.parent / "data.json").read_text())
     except (OSError, ValueError):
         marker = {}
+    if not isinstance(marker, dict):
+        marker = {}
     if (not (data / "manifest.json").is_file() or
             not (data.parent / "port_data/manifest.json").is_file() or
             marker.get("schema_version") != 1 or
