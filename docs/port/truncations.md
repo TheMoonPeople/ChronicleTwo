@@ -95,7 +95,7 @@ the same literals in their **masked** column when the masked expression holds a 
 
 | line | function | state | class | expression | origin | use | phase |
 |---|---|---|---|---|---|---|---|
-| 6860 | CMenuItemInfo::ExitEnd | open | escapes | `(int)*(void * *)& MenuCommonInfo->cursor` | field | store: MenuSystemDataPtr->item_cursor | - |
+| 6861 | CMenuItemInfo::ExitEnd | open | escapes | `(int)*(void * *)& MenuCommonInfo->cursor` | field | store: MenuSystemDataPtr->item_cursor | - |
 
 ## ps2/src/mg_drawprim.cpp (2 rows)
 
@@ -206,7 +206,7 @@ A pointer cast to a narrow integer, or a `uptr`/`sptr` value that a conversion n
 | ps2/src/mg_visual.cpp | 1 |
 | ps2/src/movie.cpp | 12 |
 
-- `ps2/src/menusys.cpp:6860 CMenuItemInfo::ExitEnd field CMenuSystemData::item_cursor (ps2/include/menusystemdata.hpp:55)`: records: stored into the save record CMenuSystemData::item_cursor
+- `ps2/src/menusys.cpp:6861 CMenuItemInfo::ExitEnd field CMenuSystemData::item_cursor (ps2/include/menusystemdata.hpp:55)`: records: stored into the save record CMenuSystemData::item_cursor
 - `ps2/src/mg_visual.cpp:610 mgCVisualFixMDT::DataAssignMDT other (memory)`: prog0: DMA tag words / packet build (CreatePacket, Draw, DataAssignMDT)
 - `ps2/src/movie.cpp:984 viBufRestartDMA local qwc`: movies: DMA/IPU/IOP addresses (unit replaced whole)
 - `ps2/src/movie.cpp:998 viBufRestartDMA local qwc`: movies: DMA/IPU/IOP addresses (unit replaced whole)
