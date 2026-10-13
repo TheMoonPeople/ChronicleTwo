@@ -760,6 +760,18 @@ Switches happen only in `StartThread`, `RotateThreadReadyQueue`, a blocking `Wai
 
 The reason for this design: the retail thread loops (`GamePadStep`, `NowLoadingLoop`, fishing's `StepDataLoading`, the movie threads) run unchanged, and host state stays on the main thread.
 
+### Disc scripts under the NTSC timing
+
+The PAL scripts (`.stb`) hold the NTSC frame counts and convert them while they run. With the NTSC timing, `port/src/script_timing.cpp` removes those conversions when a script is read from the data index (`ResolveFile` in `port/src/dataread.cpp`), so every loader and the file cache get the converted bytes. With the PAL timing the bytes are not touched.
+
+- Event and map scripts count fields: the shared event helpers scale their counts by `* 50 / 60`, and some loop bounds and cues are written as `(N * 50) / 60`. Monster scripts count game frames through a `conv(n) = ftoi(itof(n) / 30.0f * 25.0f)` helper, and a few scripts divide by 30 and multiply by 25 in integers. Each conversion becomes opcode-22 no-ops, which `CRunScript::exe()` steps over, so the value reaches its consumer unchanged; the converter keeps its `FTOI`.
+- The lip-sync helper's cue assignment, which PAL derives from the already scaled timeout, is removed whole.
+- A few literals PAL retuned by hand (a jump in d03, a turn in s03, an object delay and wait in m06b, the backpack scene in i01h01b, one turn in e221a) are anchored: the instruction sequence must occur once and hold the PAL value before the NTSC value is written. The same anchors cover the language copies `_1` to `_5`.
+- Max's and Monica's motion-ratio windows (`mainchr/c01.stb`, `c02.stb`, 8 bounds) take their NTSC values; `script_timing::kDefaultAttackWindows` switches that policy.
+- Matching only looks at decoded instructions inside the script's functions (the program table, CALL targets and unreferenced function blocks), never at raw bytes. Every recipe is validated before any is written, sizes never change, and a converted script converts to the same bytes again.
+- `port/src/script_timing_inventory.inc` lists every script that holds a conversion, with the count of each recipe it must show. A listed script that does not match, or an unlisted one that holds a conversion, stops the game with exit status 5 and the asset's name. A datapack's script is not converted.
+- Effect scripts keep PAL's waits for the end of their motion.
+
 ## Rendering
 
 `port/src/mglib.cpp` and `port/src/mglib_time.cpp` replace retail's `mglib`. Their `PORT_OVERRIDE` definitions replace the retail bodies of the same names. The rest of retail's `ps2/src/mglib.cpp` is compiled from the stripped copy, `mgSetLight`, `mgSetFogParam` and `mgGetCameraPos` among them. `port/src/mglib_port.hpp` is the seam between the `mglib` replacement and the units that call it. Its groups:

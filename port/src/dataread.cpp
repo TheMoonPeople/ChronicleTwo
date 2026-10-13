@@ -18,9 +18,11 @@
 
 #include "dataread.hpp"
 #include "dataread_port.hpp"
+#include "exitcodes.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/paths.hpp"
 #include "platform/texture_catalog.hpp"
+#include "script_timing.hpp"
 #include "texture_source.hpp"
 
 namespace fs = std::filesystem;
@@ -39,6 +41,7 @@ constexpr std::array<std::string_view, 5> kExcludedRootNames = {"manifest.txt", 
 
 struct IndexedFile {
     fs::path path;
+    bool     replaced = false; // a datapack file stands in for the extracted one
 };
 
 std::unordered_map<std::string, IndexedFile> file_index;
@@ -178,6 +181,23 @@ int ReadWhole(const IndexedFile &file, void *buffer) {
     return static_cast<int>(size);
 }
 
+// The NTSC timing converts a script read from the data index before any loader or cache sees it. A
+// datapack's script is its author's, not the PAL release's, so it is left as it is.
+void ConvertScriptTiming(const std::string &key, const IndexedFile &file, void *buffer, int size) {
+    if (size < 0 || !key.ends_with(".stb") || !script_timing::Active()) {
+        return;
+    }
+    if (file.replaced) {
+        std::fprintf(stderr, "script timing: %s comes from a datapack and is not converted\n", key.c_str());
+        return;
+    }
+    if (!ScriptTimingPatch(key.c_str(), static_cast<unsigned char *>(buffer), static_cast<std::size_t>(size))) {
+        std::fprintf(stderr, "script timing: refusing to run %s with the NTSC timing; set game.timing to \"pal\" to play this data\n",
+                     key.c_str());
+        std::exit(kExitScriptTiming);
+    }
+}
+
 // sceOpen maps host0: onto the save tree, so this reads back whatever WriteFile put there. -1 when the
 // save tree does not have the file, which sends the caller on to the data index.
 int ReadSaveFile(const char *name, void *buffer, bool size_only) {
@@ -234,6 +254,7 @@ int ResolveFile(const char *name, const std::string &key, void *buffer, bool siz
     if (!size_only) {
         const int size = ReadWhole(*file, buffer);
         if (size >= 0) {
+            ConvertScriptTiming(key, *file, buffer, size);
             TextureSourceRegister(buffer, key, static_cast<std::size_t>(size));
         }
         return size;
@@ -322,7 +343,7 @@ void BuildIndex(const fs::path &root) {
             key.push_back(FoldChar(c));
         }
         const auto replacement = datapacks::Resolve(fs::path(relative));
-        file_index.insert_or_assign(std::move(key), IndexedFile{replacement.value_or(entry.path())});
+        file_index.insert_or_assign(std::move(key), IndexedFile{replacement.value_or(entry.path()), replacement.has_value()});
     }
 
     if (error) {
