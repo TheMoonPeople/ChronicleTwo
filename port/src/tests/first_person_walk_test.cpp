@@ -118,6 +118,7 @@ TEST(FirstPersonWalk, AirborneContinuationKeepsFreshMouseLookAndLocomotion) {
     CCameraControl   camera;
     CActionChara     chara;
     CUserDataManager user;
+    chara.Initialize(nullptr);
     scene.AssignMap(0, &map, const_cast<char *>("map"));
     scene.active_map = 0;
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
@@ -294,6 +295,7 @@ TEST(FirstPersonWalk, DungeonGatesPhotoRidepodPauseEventsAndActions) {
     CCameraControl          camera;
     CActionChara            chara;
     CUserDataManager        user;
+    chara.next = nullptr;
     DngMainScene = &scene;
     BattleAreaScene = &scene.battle_area;
     MainChara__2 = &chara;
@@ -499,6 +501,7 @@ TEST(FirstPersonWalk, DungeonEyeEntryExitPublishCutsBeforeDrawing) {
     CScene                  scene;
     CCameraControl          camera;
     CActionChara            chara;
+    chara.next = nullptr;
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.active_camera = scene.event_run = 0;
     DngMainScene = &scene;

@@ -2170,6 +2170,7 @@ TEST(MglibPresent, DungeonEyeExitCutsTheRestoreTickWithoutCuttingTheNextTick) {
     CScene          scene;
     CCameraControl  camera;
     CActionChara    chara;
+    chara.next = nullptr;
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.active_camera = 0;
     DngMainScene = &scene;
