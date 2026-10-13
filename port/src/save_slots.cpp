@@ -1,7 +1,20 @@
-#include "save_slots.hpp"
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#define RECT WindowsRect
+#include <windows.h>
+#undef RECT
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#ifdef __linux__
+#include <sys/syscall.h>
+#endif
+#endif
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -12,6 +25,7 @@
 
 #include "platform/files.hpp"
 #include "platform/paths.hpp"
+#include "save_slots.hpp"
 
 namespace fs = std::filesystem;
 
@@ -19,8 +33,13 @@ SaveSlotList SaveSlots;
 bool         SaveSlotNew = false;
 
 namespace {
-constexpr char kPrefix[] = "BESCES-51190dkcl";
-constexpr char kSecondCard[] = ".card2";
+constexpr char     kPrefix[] = "BESCES-51190dkcl";
+constexpr char     kSecondCard[] = ".card2";
+SaveSlotImportHook import_hook;
+
+bool ImportStep(SaveSlotImportStage stage, const fs::path &from, const fs::path &to) {
+    return !import_hook || import_hook(stage, from, to);
+}
 
 int CheckDigit(const char *bytes, std::size_t size) {
     int result = 0;
@@ -67,35 +86,48 @@ bool Import(const fs::path &from, const fs::path &to) {
     if (FilesCreateDirectory(SaveSlotsRoot()) == FilesResult::kFailed) {
         return false;
     }
-    return FilesWrite(to, bytes.data(), bytes.size(), false) == FilesResult::kWritten;
+    return FilesWrite(to, bytes.data(), bytes.size(), false) == FilesResult::kWritten &&
+           ImportStep(SaveSlotImportStage::Published, from, to);
 }
 
-bool SameBytes(const fs::path &left, const fs::path &right) {
+enum class ByteComparison {
+    Identical,
+    Different,
+    Unavailable
+};
+
+ByteComparison SameBytes(const fs::path &left, const fs::path &right) {
     std::error_code error;
     if (!fs::is_regular_file(left, error) || !fs::is_regular_file(right, error)) {
-        return false;
+        return ByteComparison::Unavailable;
     }
     const auto size = fs::file_size(left, error);
     if (error) {
-        return false;
+        return ByteComparison::Unavailable;
     }
-    if (size != fs::file_size(right, error) || error) {
-        return false;
+    const auto other_size = fs::file_size(right, error);
+    if (error) {
+        return ByteComparison::Unavailable;
+    }
+    if (size != other_size) {
+        return ByteComparison::Different;
     }
     std::ifstream a(left, std::ios::binary), b(right, std::ios::binary);
-    if (!a || !b) {
-        return false;
+    if (!a || !b || !ImportStep(SaveSlotImportStage::Comparing, left, right)) {
+        return ByteComparison::Unavailable;
     }
     std::array<char, 65536> x, y;
     for (std::uintmax_t remaining = size; remaining;) {
         const auto count = static_cast<std::streamsize>(std::min<std::uintmax_t>(remaining, x.size()));
-        if (!a.read(x.data(), count) || !b.read(y.data(), count) ||
-            std::memcmp(x.data(), y.data(), static_cast<std::size_t>(count)) != 0) {
-            return false;
+        if (!a.read(x.data(), count) || !b.read(y.data(), count)) {
+            return ByteComparison::Unavailable;
+        }
+        if (std::memcmp(x.data(), y.data(), static_cast<std::size_t>(count)) != 0) {
+            return ByteComparison::Different;
         }
         remaining -= count;
     }
-    return true;
+    return ByteComparison::Identical;
 }
 
 struct CachedHeader {
@@ -171,21 +203,73 @@ SaveSlotState CachedInfo(const fs::path &path, SAVEDATA_INFO &info) {
     return state;
 }
 
-fs::path ImportMarker(const fs::path &target) {
-    return PathsSaveRoot() / ".save-imports" / target.filename();
-}
-
-void RecordImport(const fs::path &target) {
-    auto marker = ImportMarker(target);
-    if (FilesCreateDirectory(marker.parent_path()) != FilesResult::kFailed) {
-        constexpr char imported[] = "imported\n";
-        const auto     result = FilesWrite(marker, imported, sizeof(imported) - 1, false);
-        if (result == FilesResult::kWritten || result == FilesResult::kExists) {
-            return;
-        }
+#ifndef _WIN32
+bool SyncDirectory(const fs::path &path) {
+    const int directory = open(path.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+    if (directory < 0) {
+        return false;
     }
-    std::fprintf(stderr, "save import: could not record %s; will retry on the next scan\n",
-                 PathsDisplay(marker).c_str());
+    int result;
+    do {
+        result = fsync(directory);
+    } while (result != 0 && errno == EINTR);
+    const bool synced = result == 0;
+    return close(directory) == 0 && synced;
+}
+#endif
+
+bool Archive(const fs::path &dir, bool second_card) {
+    // Only the two archive parent directories are created. Entry contents move
+    // as a whole, on the same filesystem, without a replace or delete fallback.
+    const auto base = PathsSaveRoot() / "imported";
+    const auto card = base / (second_card ? "mc1" : "mc0");
+    if (FilesCreateDirectory(base) == FilesResult::kFailed ||
+        FilesCreateDirectory(card) == FilesResult::kFailed) {
+        return false;
+    }
+    for (unsigned suffix = 0;; ++suffix) {
+        auto target = card / dir.filename();
+        if (suffix) {
+            target += "." + std::to_string(suffix);
+        }
+        if (!ImportStep(SaveSlotImportStage::BeforeArchive, dir, target)) {
+            return false;
+        }
+#ifdef _WIN32
+        const bool moved = MoveFileExW(dir.c_str(), target.c_str(), MOVEFILE_WRITE_THROUGH) != 0;
+        const auto error = moved ? ERROR_SUCCESS : GetLastError();
+        const bool exists = error == ERROR_FILE_EXISTS || error == ERROR_ALREADY_EXISTS;
+#else
+#if defined(__linux__) && defined(SYS_renameat2)
+        const bool moved = syscall(SYS_renameat2, AT_FDCWD, dir.c_str(), AT_FDCWD, target.c_str(), 1) == 0;
+#elif defined(__APPLE__)
+        const bool moved = renamex_np(dir.c_str(), target.c_str(), RENAME_EXCL) == 0;
+#else
+        errno = ENOSYS;
+        const bool moved = false;
+#endif
+        const bool exists = !moved && errno == EEXIST;
+#endif
+        if (exists) {
+            continue;
+        }
+        if (!moved) {
+            return false;
+        }
+        bool synced = ImportStep(SaveSlotImportStage::Archived, dir, target);
+#ifndef _WIN32
+        const bool source_synced = SyncDirectory(dir.parent_path());
+        const bool target_synced = SyncDirectory(card);
+        synced = synced && source_synced && target_synced;
+#endif
+        if (!synced) {
+            std::fprintf(stderr, "save import: archive moved but directory sync failed: %s\n",
+                         PathsDisplay(target).c_str());
+        }
+        // A reported sync failure after publication cannot roll back the move.
+        // Both a persisted move and its pre-move state are recoverable on scan.
+        return true;
+    }
 }
 
 int FirstFree(const std::set<int> &occupied) {
@@ -320,49 +404,76 @@ SaveSlotList SaveSlotScan() {
             if (number < 0 || second) {
                 continue;
             }
-            auto            target = SaveSlotPath(number, card != 0);
-            std::error_code error;
-            if (fs::exists(ImportMarker(target), error)) {
-                continue;
-            }
             list.occupied.insert(number);
             legacy.emplace_back(dir, card != 0);
         }
     }
-    // Reserve all legacy names before relocating any collision, including names
-    // whose payload is temporarily unavailable.
+    // Reserve every legacy name, including unavailable payloads, before
+    // allocating collision numbers. The archive is never enumerated here.
+    std::ranges::sort(legacy);
     for (const auto &[dir, second_card] : legacy) {
-        bool            second;
-        int             number = SaveSlotNumber(dir.filename().string(), second);
-        auto            key = std::make_pair(number, second_card);
-        auto            target = SaveSlotPath(number, second_card);
-        const auto      marker_target = target;
-        const auto      source = dir / dir.filename();
-        std::error_code error;
-        if (entries.contains(key)) {
-            // A matching number alone does not prove an import. Search flat
-            // files too, so a failed marker write can retry a relocated copy.
-            const bool imported = std::ranges::any_of(entries, [&](const auto &entry) {
-                return entry.second.parent_path() == SaveSlotsRoot() && SameBytes(source, entry.second);
-            });
-            if (imported) {
-                RecordImport(marker_target);
+        bool       second;
+        int        number = SaveSlotNumber(dir.filename().string(), second);
+        auto       key = std::make_pair(number, second_card);
+        const auto source = dir / dir.filename();
+        // Search all flat saves, even if the original number is now free. A
+        // previous copy whose archive move failed needs no second publication.
+        bool copied = false, comparison_unavailable = false;
+        for (const auto &[flat_key, path] : entries) {
+            if (path.parent_path() != SaveSlotsRoot()) {
                 continue;
             }
-            number = list.read_failed ? -1 : FirstFree(list.occupied);
+            std::error_code error;
+            const auto      status = fs::status(path, error);
+            if (error) {
+                comparison_unavailable = true;
+                continue;
+            }
+            if (!fs::is_regular_file(status)) {
+                continue;
+            }
+            const auto comparison = SameBytes(source, path);
+            if (comparison == ByteComparison::Identical) {
+                copied = true;
+                break;
+            }
+            comparison_unavailable |= comparison == ByteComparison::Unavailable;
+        }
+        // An unreadable possible match is not proof that another copy is
+        // needed. Defer publication, keeping every existing file and source.
+        if (!copied && !comparison_unavailable && !list.read_failed) {
+            if (entries.contains(key)) {
+                number = FirstFree(list.occupied);
+                if (number < 0) {
+                    continue;
+                }
+                key = {number, second_card};
+                list.occupied.insert(number);
+            }
+            const auto target = SaveSlotPath(number, second_card);
+            copied = Import(source, target);
+            std::error_code error;
+            // Publication may have succeeded before a reported sync failure,
+            // or a competitor may have taken the name. Keep either file.
+            if (fs::exists(target, error)) {
+                entries[key] = target;
+                header_cache.erase(target);
+            }
+        }
+        if (copied && Archive(dir, second_card)) {
+            continue;
+        }
+        // An unsuccessful move leaves a separate source-backed row. An
+        // identical duplicate is safe, and the next scan retries only the move.
+        if (entries.contains(key)) {
+            number = FirstFree(list.occupied);
             if (number < 0) {
                 continue;
             }
             key = {number, second_card};
-            target = SaveSlotPath(number, second_card);
             list.occupied.insert(number);
         }
-        if (Import(source, target)) {
-            header_cache.erase(target);
-            RecordImport(marker_target);
-        }
-        // Unreadable payloads are omitted from rows but retain their names.
-        entries[key] = fs::exists(target, error) ? target : source;
+        entries[key] = source;
     }
     std::set<fs::path> seen;
     for (const auto &[key, path] : entries) {
@@ -389,4 +500,25 @@ FilesResult SaveSlotWrite(const fs::path &path, const SAVEDATA_FORMAT &image, bo
         header_cache.erase(path);
     }
     return result;
+}
+
+FilesResult SaveSlotWrite(const SaveSlot &slot, const SAVEDATA_FORMAT &image) {
+    const auto target = SaveSlotPath(slot.number, slot.second_card);
+    if (slot.path == target) {
+        return SaveSlotWrite(target, image, true);
+    }
+    // A still-listed card row is replaced only through a new flat file. The
+    // original whole entry remains recoverable even when its move fails.
+    if (FilesCreateDirectory(SaveSlotsRoot()) == FilesResult::kFailed) {
+        return FilesResult::kFailed;
+    }
+    const auto result = SaveSlotWrite(target, image, false);
+    if (result == FilesResult::kWritten) {
+        Archive(slot.path.parent_path(), slot.second_card);
+    }
+    return result;
+}
+
+void SaveSlotSetImportHook(SaveSlotImportHook hook) {
+    import_hook = std::move(hook);
 }

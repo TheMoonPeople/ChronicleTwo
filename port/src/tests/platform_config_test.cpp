@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include "platform/config.hpp"
+#include "platform/config_io.hpp"
 #include "platform/paths.hpp"
 #include "platform/settings.hpp"
 #include "platform_fixture.hpp"
@@ -29,6 +30,7 @@ protected:
     }
 
     void TearDown() override {
+        ConfigSetReadHook(nullptr);
         std::error_code error;
         fs::remove_all(root_, error);
     }
@@ -363,4 +365,51 @@ TEST_F(PlatformConfig, BindingEditsAndResetMergeCaseInsensitiveNames) {
     json = nlohmann::json::parse(Read());
     EXPECT_FALSE(json["input"]["bindings"].contains("CrOsS"));
     EXPECT_EQ(json["input"]["bindings"].size(), 2);
+}
+
+namespace {
+class FailingConfigBuffer : public std::streambuf {
+public:
+    std::string prefix;
+
+    explicit FailingConfigBuffer(std::size_t bytes) : prefix(bytes, 'x') {
+        setg(prefix.data(), prefix.data(), prefix.data() + prefix.size());
+    }
+
+    int_type underflow() override { throw std::ios_base::failure("injected read error"); }
+};
+
+std::streambuf *failing_config_buffer;
+
+void InjectConfigReadFailure(std::istream &file) { file.rdbuf(failing_config_buffer); }
+} // namespace
+
+TEST_F(PlatformConfig, ReadErrorsNeverReplaceOriginalOrPublishPartialBackup) {
+    const std::string original = "{broken but all original bytes must survive}";
+    for (bool loading : {false, true}) {
+        for (std::size_t bytes : {0u, 9000u}) {
+            SCOPED_TRACE(loading);
+            SCOPED_TRACE(bytes);
+            ConfigSetReadHook(nullptr);
+            Write(original);
+            ASSERT_TRUE(ConfigLoad());
+            FailingConfigBuffer buffer(bytes);
+            failing_config_buffer = &buffer;
+            ConfigSetReadHook(InjectConfigReadFailure);
+            if (loading) {
+                EXPECT_FALSE(ConfigLoad());
+                EXPECT_FALSE(ConfigSave());
+            } else {
+                EXPECT_FALSE(ConfigSave());
+            }
+            EXPECT_FALSE(ConfigSaved());
+            EXPECT_EQ(Read(), original);
+            EXPECT_FALSE(fs::exists(Path().string() + ".bad"));
+            ConfigSetReadHook(nullptr);
+            // A failed load protects this session even after the I/O recovers.
+            if (loading) {
+                EXPECT_FALSE(ConfigSave());
+            }
+        }
+    }
 }

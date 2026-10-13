@@ -17,6 +17,7 @@
 #include <utility>
 #include <vector>
 
+#include "platform/config_io.hpp"
 #include "platform/display.hpp"
 #include "platform/files.hpp"
 #include "platform/paths.hpp"
@@ -33,6 +34,30 @@ bool g_saved = false;
 // An existing config.json that could not be read: replacing it would discard the user's settings.
 bool g_keep_file = false;
 ConfigChangeHook g_change_hook = nullptr;
+ConfigReadHook   g_read_hook = nullptr;
+
+bool ReadConfig(const std::filesystem::path &path, std::string &text) {
+    std::ifstream file(path, std::ios::binary);
+    if (!file) {
+        return false;
+    }
+    if (g_read_hook) {
+        g_read_hook(file);
+    }
+    // Extract through the istream so a streambuf exception marks its badbit.
+    // A short final read, including an empty file, succeeds only at clean EOF.
+    char block[4096];
+    text.clear();
+    while (file.read(block, sizeof block)) {
+        text.append(block, sizeof block);
+    }
+    if (file.bad() || !file.eof()) {
+        text.clear();
+        return false;
+    }
+    text.append(block, static_cast<std::size_t>(file.gcount()));
+    return true;
+}
 
 constexpr auto kPositive = [](auto value) { return value > 0; };
 constexpr auto kNonNegative = [](auto value) { return value >= 0; };
@@ -439,16 +464,10 @@ bool ConfigSave() {
         if (!std::filesystem::is_regular_file(path, error)) {
             return g_saved = false;
         }
-        std::ifstream file(path, std::ios::binary);
-        if (!file) {
+        std::string text;
+        if (!ReadConfig(path, text)) {
             return g_saved = false;
         }
-        std::ostringstream contents;
-        contents << file.rdbuf();
-        if (file.bad()) {
-            return g_saved = false;
-        }
-        const auto text = contents.str();
         root = Json::parse(text, nullptr, false, true);
         if (!root.is_object()) {
             // Keep every original byte, including empty files, before recovery.
@@ -501,8 +520,8 @@ bool ConfigLoad() {
         ConfigSave();
         return false;
     }
-    std::ifstream file(path, std::ios::binary);
-    if (error || !std::filesystem::is_regular_file(status) || !file) {
+    std::string text;
+    if (error || !std::filesystem::is_regular_file(status) || !ReadConfig(path, text)) {
         std::fprintf(stderr, "config: could not read %s; using defaults and leaving it untouched\n",
                      PathsDisplay(path).c_str());
         g_config = Config{};
@@ -510,9 +529,7 @@ bool ConfigLoad() {
         g_keep_file = true;
         return false;
     }
-    std::ostringstream text;
-    text << file.rdbuf();
-    g_config = ConfigParse(text.str());
+    g_config = ConfigParse(text);
     g_saved = true;
     g_persisted = g_config;
     g_have_persisted = true;
@@ -554,3 +571,5 @@ bool ConfigChange(const Config &candidate) {
 void ConfigSetChangeHook(ConfigChangeHook hook) {
     g_change_hook = hook;
 }
+
+void ConfigSetReadHook(ConfigReadHook hook) { g_read_hook = hook; }

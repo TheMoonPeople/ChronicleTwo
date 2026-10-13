@@ -206,18 +206,36 @@ complete image and checks the retail digits before changing game state. Files
 are never removed automatically; unrelated names and temporary files are not rows.
 
 On discovery, old `mc0/BESCES-51190dkcl<N>/BESCES-51190dkcl<N>` payloads are
-copied byte for byte into `saves/`. The equivalent files from `mc1` get a `.card2`
-suffix and an `(import 2)` label, keeping equal slot numbers distinct. Existing
-flat files are never overwritten. A collision is considered already imported
-only when the complete files have identical bytes; a different legacy save is
-imported under the first unused number. Original card folders,
-icons and payloads are retained. If an import cannot be written, the original
-entry remains visible and can still be loaded if readable. Back up both the old
-card directories, `saves/` and `.save-imports/` when moving a save root. Durable
-markers in `.save-imports/` record completed imports and byte-identical card
-copies, so deleting a flat save does not bring its card copy back. A failed marker
-write is logged and retried on the next scan; it does not block saving. Until a
-marker can be stored, deleting an imported flat file may cause it to be imported again.
+copied byte for byte into new flat files in `saves/`, using exclusive creation.
+The equivalent files from `mc1` get a `.card2` suffix and an `(import 2)` label,
+keeping different saves at equal slot numbers distinct. Existing flat files
+are never overwritten during import. If any flat save has identical complete
+bytes, no new copy is needed; a different legacy save at an occupied number is
+imported under the first unused number. If a possible matching flat file cannot
+be compared because its metadata or contents are unavailable, copying that
+legacy entry is deferred until a later scan; existing copies are kept.
+
+After copying or finding identical bytes, the whole original card entry,
+including icons and payload, is moved atomically into `imported/mc0/<name>` or
+`imported/mc1/<name>`. An occupied archive name gets a numbered suffix; nothing
+is overwritten or deleted. Archived entries are never scanned for import.
+If copying fails, the original entry stays loadable if readable. If the archive
+move fails, its original row stays listed alongside the flat copy; this identical
+duplicate is temporary. While that copy still has identical bytes, a later
+readable scan finds it and retries the move without creating another copy.
+No import markers are read or written; any existing `.save-imports/` directory is left untouched.
+
+Replacing a still-listed legacy row writes a new flat save with exclusive
+creation and then attempts the same archive move. If the move fails, the new
+save is kept and the original row stays listed. Ordinary flat saves retain
+atomic replacement. While archiving keeps failing, replacing or deleting the
+last matching flat copy can cause the unarchived legacy save to be published
+again, including when the legacy payload becomes readable again after failed
+reads. Newer saved progress is preserved; the old save can reappear as another
+row. Once an identical copy is readable, later scans do not publish more copies.
+Card payloads and archived originals are never modified.
+When moving or backing up a save root, include `saves/`, both card directories
+and `imported/`.
 
 The payload is the existing port save image and its retail header and checksums;
 no PC metadata is added. As before, it uses the host layout of `CSaveData`,
@@ -763,7 +781,7 @@ The reason for this design: the retail thread loops (`GamePadStep`, `NowLoadingL
 - Frame grabs: `mgPortRenderTarget(..., frame_target = true)` makes a gfx frame target, which a display render grabs again from its own image.
 - The FPS counter: `video.show_fps` turns it on (F3 and the `fps_toggle` host action flip it; headless only with `--show-fps`). It is drawn through `OverlayRecord`, as a display render's overlay, in the overlay's own font (the Dark Cloud Compendium Community Font baked into `overlay_font.inc`), so no canonical image holds it. The game's message font is not used: its texture lives only in the current mode's texture block (`ReLoadFontTexture` per mode) and `FontTex[0]` dangles across mode changes, so a badge in it would come and go with the modes. Its text is set by `video.fps_detail`; with all fields it reads `FPS 143.9  TICK 50.0/50  DRAWS 412`. TICK counts clock ticks per second, so it reads the tick rate whatever `mgFrameRate` is. DRAWS is the newest list's mesh plus 2D draws. `--log-fps` prints the same text on stderr once a second.
 - Interpolation diagnostic: set `KZ_INTERPOLATION_TINT=1` to tint draws on the main presentation image (default off). Green is a matched transformed mesh; cyan is an unmatched or pose-excluded mesh carried by the display camera; red is newest-only geometry; blue is flat 2D or a screen effect; yellow is a depth-tested sprite with reprojected corners. Unchanged matched meshes remain green. This classifies geometry, not all its inputs: texture contents, lighting, fog parameters and sprite motion can still be tick-exact. Alpha tests, coverage, depth and blending are retained, so translucent passes can mix tints. Reusable intermediate render targets keep their original colours; their final composites are tinted on the main image. Canonical renders and ordinary screenshots never receive the tint. Use `--screenshot-display 8` to inspect the diagnostic at eight interpolation phases. Optional `KZ_INTERPOLATION_TRACE=<file>` appends per-draw CSV sections at alpha zero, including matching/cut reasons, texture IDs, camera IDs, target IDs, whether a draw is tinted on the main image, and changed fog/material/projection/local inputs. It writes only while tint is enabled; remove both environment variables after diagnosis.
-- Outlined models render into a shared transparent image. Canonical clears and copies retain the retail draw box; presentation clears and composites cover the visible extent because the interpolated model can move outside the newest tick's box. Transparent texels in a depth-writing presentation composite do not write depth. `tools/input/area-dungeon-chest-turn.input` with `--jump dungeon:0:1 --fast-load --frames 2518 --screenshot chest.png --screenshot-display 8` exercises the unopened chest during a camera turn. For multi-part NPCs, use `--input tools/input/repro-town-npc-outline.input --jump town:10 --fast-load --frames 278 --window 1280x720 --screenshot woman.png --screenshot-display 8`; the woman's face must remain visible throughout the turn. `--input tools/input/repro-clown-outline.input --frames 27230 --window 1280x720 --screenshot clown.png --screenshot-display 8` checks the clown's face during the prologue camera move.
+- Outlined models render into a shared transparent image. Canonical clears and copies retain the retail draw rectangle; presentation scratch clears and replacement vertices cover the full visible extent so the interpolated model/bone pose remains complete under the display camera, including fixed-camera mouse look. Each copy preserves its texture-to-screen offset. Fixed-look current and previous lists preserve presentation vertices and clear rectangles while leaving resource retirement ownership with their source lists. Transparent texels in a depth-writing presentation composite do not write depth. GPU regressions compare a rotating thin part at alpha 0.5 against an independently recorded horizontal pose and complete fixed-look outline pixels at alpha 1 and 0.5 against a direct full-extent reference render; translation, scratch-target reuse and transparent-depth regressions remain covered. `tools/input/area-dungeon-chest-turn.input` with `--jump dungeon:0:1 --fast-load --frames 2518 --screenshot chest.png --screenshot-display 8` exercises the unopened chest during a camera turn. For multi-part NPCs, use `--input tools/input/repro-town-npc-outline.input --jump town:10 --fast-load --frames 278 --window 1280x720 --screenshot woman.png --screenshot-display 8`; the woman's face must remain visible throughout the turn. `--input tools/input/repro-clown-outline.input --frames 27230 --window 1280x720 --screenshot clown.png --screenshot-display 8` checks the clown's face during the prologue camera move.
 - `--screenshot-display N` writes N display frames of the screenshot's frame, at alpha k/N from the previous list to the last, as `<stem>-display-<k>.png`. `--screenshot-fps` writes the screenshot with the FPS counter drawn into it, at window size, from a presented frame. With `--offscreen`, nothing is presented, and the image is read back from the display image instead. The counter reaches no other written image.
 - `video.max_fps=0` leaves presentation uncapped; a positive cap paces display starts without catching up in bursts. A due logic tick takes priority. FIFO follows the display's synchronization, while mailbox and immediate depend on device support. Interpolation off presents canonical frames at their game cadence; a high display cap does not increase the logic tick rate.
 
@@ -978,9 +996,13 @@ PORT_OVERRIDE void mgInit(int screen_mode, int video_mode) {
 `port/CMakeLists.txt` builds the two halves on every platform, with `PORT` and `PAL` defined:
 
 1. `tools/kazarov/scripts/build/port_override.py list` reads the tags in `port/src` and writes the name each tagged definition links under to `port/build/pc/port_overrides.txt`.
-2. `scripts/port/unit_copy.py`, run once per unit, writes a copy of each `ps2/src` unit under `<build dir>/ps2_src` (for example `port/build/windows-x64/ps2_src`) without the overridden definitions (`port_override`'s `strip_unit`), then with the unit fixups and long64 applied. Each copy opens with a `#line 1` marker naming its `ps2/src` source, so lines keep their numbers and diagnostics point into `ps2/src`.
+2. `scripts/port/unit_copy.py`, run once per unit, writes a copy of each `ps2/src` unit under `<build dir>/ps2_src` (for example `port/build/windows-x64/ps2_src`) without the overridden definitions (`port_override`'s `strip_unit`), plus the preserved retail bridges described below, then with the unit fixups and long64 applied. Each copy opens with a `#line 1` marker naming its `ps2/src` source, so lines keep their numbers and diagnostics point into `ps2/src`.
 3. `port_override.py check` stops the build if a tagged name is defined by no unit of `ps2/src`, since its replacement would be unused wherever the signatures differ.
 4. The copies are compiled with `PORT` defined, and the units in `port/src` are linked with them.
+
+`unit_copy.py` also preserves the routines listed in `RETAIL_BRIDGES` under new definition names in the generated unit. It reads each body from the unstripped retail source, changes only the definition name, and appends it before the unit fixups and long64 rewrites. Calls in the original unit keep the public name, so they reach the native `PORT_OVERRIDE`; that override can add native behavior and delegate to the preserved routine. Each appended body has its own `#line` marker naming the original retail source and definition line, keeping diagnostics and debugger locations valid.
+
+Use this mechanism when a native seam needs to wrap retail behavior rather than replace it, as with the camera-cut seams around `ResetViewMode` and `ResetEyeView`. Add the unit, exact signature, original name and bridge name to `RETAIL_BRIDGES`, declare the bridge's asm link name in both `port/include/stubs/<unit>.hpp` and the native caller, and call it from the public override. The bridge body is generated from retail rather than transcribed into native source; `ps2/` stays unchanged. `NativeRetailBridges` runs `scripts/port/test_unit_copy.py` through CTest, alongside the other native unit-copy Python tests.
 
 Each name then has one definition. A replacement without the tag leaves `ps2/src`'s definition in, and the link fails on the duplicate symbol. A replacement takes the signature `ps2/src` gives the function: parameter types as spelled; names and default arguments may differ. By convention a replacement goes in the file that mirrors its unit.
 

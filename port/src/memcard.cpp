@@ -170,7 +170,7 @@ PORT_OVERRIDE int CMemoryCardManager::SaveToMc(int row) {
         path = SaveSlotPath(slot.number, slot.second_card);
         // Failed imports can still be loaded and explicitly replaced, but the
         // original card payload is never modified.
-        result = SaveSlotWrite(path, image, slot.path == path);
+        result = SaveSlotWrite(slot, image);
     }
     SaveSlotNew = false;
     if (result != FilesResult::kWritten) {

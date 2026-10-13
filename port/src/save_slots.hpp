@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <functional>
 #include <set>
 #include <string>
 #include <vector>
@@ -27,7 +28,7 @@ struct SaveSlot {
 
 struct SaveSlotList {
     std::vector<SaveSlot> saves;
-    // Includes unreadable flat names and unmarked legacy entries from both cards.
+    // Includes unreadable flat names and unarchived legacy entries from both cards.
     std::set<int> occupied;
     int           first_free = 0;
     bool          read_failed = false;
@@ -52,3 +53,17 @@ SaveSlotList          SaveSlotScan();
 CMemoryCardManager *SaveSlotManager();
 
 FilesResult SaveSlotWrite(const std::filesystem::path &path, const SAVEDATA_FORMAT &image, bool replace);
+
+// A legacy row publishes a new flat file, then attempts to archive its entry.
+FilesResult SaveSlotWrite(const SaveSlot &slot, const SAVEDATA_FORMAT &image);
+
+// Deterministic filesystem interleavings for import regressions. An empty hook
+// uses the OS operations; false models a reported failure at that boundary.
+enum class SaveSlotImportStage {
+    Comparing,
+    Published,
+    BeforeArchive,
+    Archived
+};
+using SaveSlotImportHook = std::function<bool(SaveSlotImportStage, const std::filesystem::path &, const std::filesystem::path &)>;
+void SaveSlotSetImportHook(SaveSlotImportHook hook);
