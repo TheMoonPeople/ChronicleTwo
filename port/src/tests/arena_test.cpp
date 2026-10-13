@@ -135,7 +135,12 @@ TEST(CtArena, OverflowOfAnUnnamedArenaGivesItsAddress) {
     child.stSetBuffer(Block(&key, 10), 10);
 
     // The child of a Windows death test is a fresh process, so the address is not this one's.
+    // macOS extended regex has no \w, and gtest's own Windows matcher has no bracket expressions.
+#ifdef GTEST_USES_POSIX_RE
+    EXPECT_DEATH(child.stAlloc(10), "arena [[:alnum:]]+: allocation overflow, 10 of 10 quadwords");
+#else
     EXPECT_DEATH(child.stAlloc(10), "arena \\w+: allocation overflow, 10 of 10 quadwords");
+#endif
 }
 
 TEST(CtArena, PlacementGrowsTheLastRun) {
