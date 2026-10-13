@@ -97,6 +97,20 @@ protected:
     }
 };
 
+struct SaveSlotImportConfiguration {
+    int  card;
+    bool collision;
+};
+
+class SaveSlotImportTest : public SaveSlotTest, public testing::WithParamInterface<SaveSlotImportConfiguration> {};
+
+INSTANTIATE_TEST_SUITE_P(CardsAndCollisions, SaveSlotImportTest,
+                         testing::Values(SaveSlotImportConfiguration{0, false}, SaveSlotImportConfiguration{0, true},
+                                         SaveSlotImportConfiguration{1, false}, SaveSlotImportConfiguration{1, true}),
+                         [](const testing::TestParamInfo<SaveSlotImportConfiguration> &info) {
+                             return "Card" + std::to_string(info.param.card) + (info.param.collision ? "Collision" : "NoCollision");
+                         });
+
 std::string MessageText(const CDC2Mes &message) {
     std::string text;
     const auto *font = GetYoyakuTblTop();
@@ -792,46 +806,41 @@ TEST_F(SaveSlotTest, UnwritableFlatDirectoryKeepsOnlyTheOriginalReadableRow) {
     EXPECT_EQ(Bytes(Archived(0, 3)), original);
 }
 
-TEST_F(SaveSlotTest, ArchiveMoveFailureRescansConvergeWithoutExtraCopies) {
-    for (int card : {0, 1}) {
-        for (bool collision : {false, true}) {
-            SCOPED_TRACE(card);
-            SCOPED_TRACE(collision);
-            fs::remove_all(root);
-            fs::create_directories(root / "saves");
-            image->unique_counter = 1;
-            if (collision) {
-                Write(SaveSlotPath(0, card != 0));
-            }
-            image->unique_counter = 42;
-            Write(Legacy(card, 0));
-            const auto original = Bytes(Legacy(card, 0));
-            int        publications = 0;
-            SaveSlotSetImportHook([&](auto stage, const auto &, const auto &) {
-                publications += stage == SaveSlotImportStage::Published;
-                return stage != SaveSlotImportStage::BeforeArchive;
-            });
-            const auto flat = SaveSlotPath(collision ? 1 : 0, card != 0);
-            for (int scan = 0; scan < 3; ++scan) {
-                SaveSlots = {}; // No retained import association or menu state.
-                manager.InitForMC();
-                auto list = SaveSlotScan();
-                ASSERT_EQ(list.saves.size(), collision ? 3 : 2);
-                EXPECT_EQ(Bytes(flat), original);
-                EXPECT_EQ(Bytes(Legacy(card, 0)), original);
-                EXPECT_EQ(list.saves.back().path, Legacy(card, 0));
-                EXPECT_EQ(SaveSlotRead(list.saves.back().path, *buffer), SaveSlotState::Ready);
-            }
-            EXPECT_EQ(publications, 1);
-            SaveSlotSetImportHook({});
-            SaveSlots = {};
-            ASSERT_EQ(SaveSlotScan().saves.size(), collision ? 2 : 1);
-            EXPECT_EQ(Bytes(Archived(card, 0)), original);
-            EXPECT_FALSE(fs::exists(Legacy(card, 0).parent_path()));
-            fs::remove(flat); // User deletion cannot re-import an archived entry.
-            EXPECT_EQ(SaveSlotScan().saves.size(), collision ? 1 : 0);
-        }
+TEST_P(SaveSlotImportTest, ArchiveMoveFailureRescansConvergeWithoutExtraCopies) {
+    const auto [card, collision] = GetParam();
+    fs::remove_all(root);
+    fs::create_directories(root / "saves");
+    image->unique_counter = 1;
+    if (collision) {
+        Write(SaveSlotPath(0, card != 0));
     }
+    image->unique_counter = 42;
+    Write(Legacy(card, 0));
+    const auto original = Bytes(Legacy(card, 0));
+    int        publications = 0;
+    SaveSlotSetImportHook([&](auto stage, const auto &, const auto &) {
+        publications += stage == SaveSlotImportStage::Published;
+        return stage != SaveSlotImportStage::BeforeArchive;
+    });
+    const auto flat = SaveSlotPath(collision ? 1 : 0, card != 0);
+    for (int scan = 0; scan < 3; ++scan) {
+        SaveSlots = {}; // No retained import association or menu state.
+        manager.InitForMC();
+        auto list = SaveSlotScan();
+        ASSERT_EQ(list.saves.size(), collision ? 3 : 2);
+        EXPECT_EQ(Bytes(flat), original);
+        EXPECT_EQ(Bytes(Legacy(card, 0)), original);
+        EXPECT_EQ(list.saves.back().path, Legacy(card, 0));
+        EXPECT_EQ(SaveSlotRead(list.saves.back().path, *buffer), SaveSlotState::Ready);
+    }
+    EXPECT_EQ(publications, 1);
+    SaveSlotSetImportHook({});
+    SaveSlots = {};
+    ASSERT_EQ(SaveSlotScan().saves.size(), collision ? 2 : 1);
+    EXPECT_EQ(Bytes(Archived(card, 0)), original);
+    EXPECT_FALSE(fs::exists(Legacy(card, 0).parent_path()));
+    fs::remove(flat); // User deletion cannot re-import an archived entry.
+    EXPECT_EQ(SaveSlotScan().saves.size(), collision ? 1 : 0);
 }
 
 TEST_F(SaveSlotTest, PublishedCopySurvivesReportedSyncFailureAndRecovery) {
@@ -1037,63 +1046,58 @@ TEST_F(SaveSlotTest, RecoveryUsesOnlyPublishedFilesInFreshProcess) {
     EXPECT_EQ(Bytes(Archived(1, 0)), Bytes(SaveSlotPath(0, true)));
 }
 
-TEST_F(SaveSlotTest, ComparisonReadFailuresDeferCopyOnBothCardsAndRelocations) {
-    for (int card : {0, 1}) {
-        for (bool collision : {false, true}) {
-            SCOPED_TRACE(card);
-            SCOPED_TRACE(collision);
-            fs::remove_all(root);
-            fs::create_directories(SaveSlotsRoot());
-            image->unique_counter = 1;
-            if (collision) {
-                Write(SaveSlotPath(0, card != 0));
-            }
-            const auto different = collision ? Bytes(SaveSlotPath(0, card != 0)) : std::vector<char>();
-            image->unique_counter = 42;
-            Write(Legacy(card, 0));
-            const auto original = Bytes(Legacy(card, 0));
-            std::ofstream(root / "imported") << "blocked";
-            ASSERT_EQ(SaveSlotScan().saves.size(), collision ? 3 : 2);
-            const auto flat = SaveSlotPath(collision ? 1 : 0, card != 0);
-            const auto flat_count = FlatCount();
-            int        comparisons = 0, publications = 0;
-            SaveSlotSetImportHook([&](auto stage, const auto &, const auto &to) {
-                publications += stage == SaveSlotImportStage::Published;
-                if (stage == SaveSlotImportStage::Comparing && (!collision || to != SaveSlotPath(0, card != 0))) {
-                    ++comparisons;
-                    return false; // Only comparison reads fail; source copying remains possible.
-                }
-                return true;
-            });
-            for (int scan = 0; scan < 4; ++scan) {
-                SaveSlots = {};
-                manager.InitForMC();
-                const auto list = SaveSlotScan();
-                EXPECT_EQ(FlatCount(), flat_count);
-                EXPECT_EQ(list.saves.size(), collision ? 3 : 2);
-                EXPECT_FALSE(list.read_failed);
-                EXPECT_TRUE(list.occupied.contains(0));
-                EXPECT_EQ(list.saves.back().path, Legacy(card, 0));
-                EXPECT_EQ(Bytes(flat), original);
-                EXPECT_EQ(Bytes(Legacy(card, 0)), original);
-                EXPECT_EQ(SaveSlotRead(Legacy(card, 0), *buffer), SaveSlotState::Ready);
-                if (collision) {
-                    EXPECT_EQ(Bytes(SaveSlotPath(0, card != 0)), different);
-                }
-            }
-            EXPECT_EQ(comparisons, 4);
-            EXPECT_EQ(publications, 0);
-            SaveSlotSetImportHook({});
-            fs::remove(root / "imported");
-            SaveSlots = {};
-            const auto recovered = SaveSlotScan();
-            EXPECT_EQ(FlatCount(), flat_count);
-            EXPECT_EQ(recovered.saves.size(), collision ? 2 : 1);
-            EXPECT_EQ(Bytes(flat), original);
-            EXPECT_EQ(Bytes(Archived(card, 0)), original);
-            EXPECT_FALSE(fs::exists(Legacy(card, 0).parent_path()));
+TEST_P(SaveSlotImportTest, ComparisonReadFailuresDeferCopyOnBothCardsAndRelocations) {
+    const auto [card, collision] = GetParam();
+    fs::remove_all(root);
+    fs::create_directories(SaveSlotsRoot());
+    image->unique_counter = 1;
+    if (collision) {
+        Write(SaveSlotPath(0, card != 0));
+    }
+    const auto different = collision ? Bytes(SaveSlotPath(0, card != 0)) : std::vector<char>();
+    image->unique_counter = 42;
+    Write(Legacy(card, 0));
+    const auto original = Bytes(Legacy(card, 0));
+    std::ofstream(root / "imported") << "blocked";
+    ASSERT_EQ(SaveSlotScan().saves.size(), collision ? 3 : 2);
+    const auto flat = SaveSlotPath(collision ? 1 : 0, card != 0);
+    const auto flat_count = FlatCount();
+    int        comparisons = 0, publications = 0;
+    SaveSlotSetImportHook([&](auto stage, const auto &, const auto &to) {
+        publications += stage == SaveSlotImportStage::Published;
+        if (stage == SaveSlotImportStage::Comparing && (!collision || to != SaveSlotPath(0, card != 0))) {
+            ++comparisons;
+            return false; // Only comparison reads fail; source copying remains possible.
+        }
+        return true;
+    });
+    for (int scan = 0; scan < 4; ++scan) {
+        SaveSlots = {};
+        manager.InitForMC();
+        const auto list = SaveSlotScan();
+        EXPECT_EQ(FlatCount(), flat_count);
+        EXPECT_EQ(list.saves.size(), collision ? 3 : 2);
+        EXPECT_FALSE(list.read_failed);
+        EXPECT_TRUE(list.occupied.contains(0));
+        EXPECT_EQ(list.saves.back().path, Legacy(card, 0));
+        EXPECT_EQ(Bytes(flat), original);
+        EXPECT_EQ(Bytes(Legacy(card, 0)), original);
+        EXPECT_EQ(SaveSlotRead(Legacy(card, 0), *buffer), SaveSlotState::Ready);
+        if (collision) {
+            EXPECT_EQ(Bytes(SaveSlotPath(0, card != 0)), different);
         }
     }
+    EXPECT_EQ(comparisons, 4);
+    EXPECT_EQ(publications, 0);
+    SaveSlotSetImportHook({});
+    fs::remove(root / "imported");
+    SaveSlots = {};
+    const auto recovered = SaveSlotScan();
+    EXPECT_EQ(FlatCount(), flat_count);
+    EXPECT_EQ(recovered.saves.size(), collision ? 2 : 1);
+    EXPECT_EQ(Bytes(flat), original);
+    EXPECT_EQ(Bytes(Archived(card, 0)), original);
+    EXPECT_FALSE(fs::exists(Legacy(card, 0).parent_path()));
 }
 
 TEST_F(SaveSlotTest, OneUnavailableComparisonAmongDifferentTargetsDefersPublication) {
@@ -1138,69 +1142,64 @@ TEST_F(SaveSlotTest, OneUnavailableComparisonAmongDifferentTargetsDefersPublicat
     EXPECT_EQ(Bytes(Archived(1, 4)), original);
 }
 
-TEST_F(SaveSlotTest, OverwriteBetweenUnavailableSourceRescansPreservesNewProgressAndBoundsPublication) {
-    for (int card : {0, 1}) {
-        for (bool collision : {false, true}) {
-            SCOPED_TRACE(card);
-            SCOPED_TRACE(collision);
-            fs::remove_all(root);
-            fs::create_directories(SaveSlotsRoot());
-            image->unique_counter = 1;
-            if (collision) {
-                Write(SaveSlotPath(0, card != 0));
-            }
-            image->unique_counter = 42;
-            Write(Legacy(card, 0));
-            const auto original = Bytes(Legacy(card, 0));
-            std::ofstream(root / "imported") << "blocked";
-            ASSERT_EQ(SaveSlotScan().saves.size(), collision ? 3 : 2);
-            const auto flat = SaveSlotPath(collision ? 1 : 0, card != 0);
-            const auto hidden = root / "unavailable";
-            fs::rename(Legacy(card, 0), hidden);
-            SaveSlots = {};
-            const auto unavailable = SaveSlotScan();
-            const auto selected = std::ranges::find_if(unavailable.saves, [&](const auto &slot) { return slot.path == flat; });
-            ASSERT_NE(selected, unavailable.saves.end());
-            image->unique_counter = 99;
-            ASSERT_EQ(SaveSlotWrite(*selected, *image), FilesResult::kWritten);
-            const auto newer = Bytes(flat);
-            EXPECT_NE(newer, original);
-            const auto initial_count = FlatCount();
-            for (int scan = 0; scan < 3; ++scan) {
-                SaveSlots = {};
-                EXPECT_EQ(SaveSlotScan().saves.size(), initial_count);
-                EXPECT_EQ(FlatCount(), initial_count);
-                EXPECT_EQ(Bytes(flat), newer);
-            }
-            fs::rename(hidden, Legacy(card, 0));
-            int      publications = 0;
-            fs::path republished;
-            SaveSlotSetImportHook([&](auto stage, const auto &, const auto &to) {
-                if (stage == SaveSlotImportStage::Published) {
-                    ++publications;
-                    republished = to;
-                }
-                return true;
-            });
-            for (int scan = 0; scan < 4; ++scan) {
-                SaveSlots = {};
-                EXPECT_EQ(SaveSlotScan().saves.size(), initial_count + 2);
-                EXPECT_EQ(FlatCount(), initial_count + 1);
-                EXPECT_EQ(Bytes(flat), newer);
-                EXPECT_EQ(Bytes(Legacy(card, 0)), original);
-            }
-            EXPECT_EQ(publications, 1);
-            EXPECT_EQ(Bytes(republished), original);
-            fs::remove(root / "imported");
-            SaveSlots = {};
-            EXPECT_EQ(SaveSlotScan().saves.size(), initial_count + 1);
-            EXPECT_EQ(FlatCount(), initial_count + 1);
-            EXPECT_EQ(publications, 1);
-            EXPECT_EQ(Bytes(flat), newer);
-            EXPECT_EQ(Bytes(Archived(card, 0)), original);
-            SaveSlotSetImportHook({});
-        }
+TEST_P(SaveSlotImportTest, OverwriteBetweenUnavailableSourceRescansPreservesNewProgressAndBoundsPublication) {
+    const auto [card, collision] = GetParam();
+    fs::remove_all(root);
+    fs::create_directories(SaveSlotsRoot());
+    image->unique_counter = 1;
+    if (collision) {
+        Write(SaveSlotPath(0, card != 0));
     }
+    image->unique_counter = 42;
+    Write(Legacy(card, 0));
+    const auto original = Bytes(Legacy(card, 0));
+    std::ofstream(root / "imported") << "blocked";
+    ASSERT_EQ(SaveSlotScan().saves.size(), collision ? 3 : 2);
+    const auto flat = SaveSlotPath(collision ? 1 : 0, card != 0);
+    const auto hidden = root / "unavailable";
+    fs::rename(Legacy(card, 0), hidden);
+    SaveSlots = {};
+    const auto unavailable = SaveSlotScan();
+    const auto selected = std::ranges::find_if(unavailable.saves, [&](const auto &slot) { return slot.path == flat; });
+    ASSERT_NE(selected, unavailable.saves.end());
+    image->unique_counter = 99;
+    ASSERT_EQ(SaveSlotWrite(*selected, *image), FilesResult::kWritten);
+    const auto newer = Bytes(flat);
+    EXPECT_NE(newer, original);
+    const auto initial_count = FlatCount();
+    for (int scan = 0; scan < 3; ++scan) {
+        SaveSlots = {};
+        EXPECT_EQ(SaveSlotScan().saves.size(), initial_count);
+        EXPECT_EQ(FlatCount(), initial_count);
+        EXPECT_EQ(Bytes(flat), newer);
+    }
+    fs::rename(hidden, Legacy(card, 0));
+    int      publications = 0;
+    fs::path republished;
+    SaveSlotSetImportHook([&](auto stage, const auto &, const auto &to) {
+        if (stage == SaveSlotImportStage::Published) {
+            ++publications;
+            republished = to;
+        }
+        return true;
+    });
+    for (int scan = 0; scan < 4; ++scan) {
+        SaveSlots = {};
+        EXPECT_EQ(SaveSlotScan().saves.size(), initial_count + 2);
+        EXPECT_EQ(FlatCount(), initial_count + 1);
+        EXPECT_EQ(Bytes(flat), newer);
+        EXPECT_EQ(Bytes(Legacy(card, 0)), original);
+    }
+    EXPECT_EQ(publications, 1);
+    EXPECT_EQ(Bytes(republished), original);
+    fs::remove(root / "imported");
+    SaveSlots = {};
+    EXPECT_EQ(SaveSlotScan().saves.size(), initial_count + 1);
+    EXPECT_EQ(FlatCount(), initial_count + 1);
+    EXPECT_EQ(publications, 1);
+    EXPECT_EQ(Bytes(flat), newer);
+    EXPECT_EQ(Bytes(Archived(card, 0)), original);
+    SaveSlotSetImportHook({});
 }
 
 TEST_F(SaveSlotTest, UnavailableComparisonDefersPublicationInFreshProcess) {

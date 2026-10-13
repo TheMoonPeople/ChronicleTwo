@@ -81,7 +81,7 @@ BUILD_DIR=build/pal python3 scripts/build/verify.py -c
 - macOS (`macos-26`, Homebrew libraries): builds `macos-arm64`, runs `ctest --preset macos-arm64`, and uploads the packaged binary and a `vulkaninfo` summary. The pinned shared code carries the executable bit for `tools/kazarov/scripts/build/kz-ffmpeg`.
 - Windows (`windows-2025`): fetches the toolchain and the Vulkan runtime with `acquire.ps1 -VulkanLoader`, configures the test build with `configure.ps1 -Tests -VulkanLibrary`, builds it, runs `ctest -LE gpu`, and uploads the zipped build.
 
-Cases that need a Vulkan device carry the CTest label `gpu`. The hosted Windows runner has no device, so its job excludes them with `-LE gpu`. `ctest -L gpu -N` lists them. Local runs run every case.
+Cases default to a 5-second timeout. Slow GPU cases use the larger of 30 seconds and `CT_TEST_TIMEOUT`, so the Linux job gives them 60 seconds. Cases that need a Vulkan device carry the CTest label `gpu`. The hosted Windows runner has no device, so its job excludes them with `-LE gpu`. `ctest -L gpu -N` lists them. Local runs run every case.
 
 ### Game data and first run
 

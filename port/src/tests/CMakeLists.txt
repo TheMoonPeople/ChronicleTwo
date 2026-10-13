@@ -37,9 +37,13 @@ target_link_libraries(darkchronicle_tests PRIVATE GTest::gtest nlohmann_json::nl
 
 # A case is a unit test: it finishes in milliseconds, and one that does not is cut off. The clock
 # cases measure short sleeps, which the parallel gfx cases skew, so they run on their own. The cases that compile
-# pipelines or create a device per case take longer than 5 s under a parallel run, on lavapipe and on Windows, so they get 30 s.
+# pipelines or create a device per case take longer than 5 s under a parallel run, on lavapipe and on Windows, so they get at least 30 s, or CT_TEST_TIMEOUT when it is larger.
 # Cases that need a Vulkan device carry the gpu label: hosted runners have none and exclude them with -LE gpu.
 set(CT_TEST_TIMEOUT 5 CACHE STRING "Seconds a test case may run before it is cut off")
+set(CT_GPU_SLOW_TIMEOUT 30)
+if(CT_TEST_TIMEOUT GREATER CT_GPU_SLOW_TIMEOUT)
+    set(CT_GPU_SLOW_TIMEOUT ${CT_TEST_TIMEOUT})
+endif()
 # These cases share renderer suites but only inspect CPU data and must run on hosted CI.
 set(CT_CPU_TESTS
     MgVisual.FaceMeshListAndStrip
@@ -115,7 +119,7 @@ gtest_discover_tests(darkchronicle_tests
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
     TEST_FILTER ${CT_GPU_SLOW_FILTER}-${CT_CPU_FILTER}
-    PROPERTIES TIMEOUT 30 LABELS gpu)
+    PROPERTIES TIMEOUT ${CT_GPU_SLOW_TIMEOUT} LABELS gpu)
 
 add_dependencies(darkchronicle_tests darkchronicle)
 # ctest reports a process that dies by abort() as failed even when PASS_REGULAR_EXPRESSION matches its
