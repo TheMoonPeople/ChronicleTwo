@@ -33,6 +33,8 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "video.show_fps",
         "audio.master_volume",
         "audio.soundtrack",
+        "audio.robot_voice",
+        "audio.controller_volume",
         "input.mouse_sensitivity",
         "input.mouse_invert_y",
         "input.mouse_capture",

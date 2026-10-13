@@ -411,6 +411,8 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `audio.master_volume` | number | 1 | 0 to 1 | final mixer gain, independent of the game's fades and core volumes; applies live |
 | `audio.sound` | string | stereo | stereo, surround | output layout; read and saved, not yet applied (the output is stereo) |
 | `audio.soundtrack` | string | ps2 | ps2, custom | `custom` plays recordings from `soundtrack/` beside the save root, as named by its `soundtrack.json` |
+| `audio.robot_voice` | string | tv | tv, controller | `controller` plays the Ridepod's voice lines on a DualSense speaker; see "Controller speaker" |
+| `audio.controller_volume` | number | 1 | 0 to 2 | controller speaker gain, applied after `audio.master_volume` |
 | `input.mouse_sensitivity` | number | 0.1 | above 0 | mouse look speed |
 | `input.stick_sensitivity` | number | 1.33 | above 0 | stick look speed |
 | `input.stick_invert_x` | bool | false | | invert the stick's X axis |
@@ -826,6 +828,10 @@ Menu tile patterns derive phase-preserving coverage from `mgPortVisibleExtent()`
 ### Shadows
 
 `mgBeginDrawShadow` clears the main target's stencil (when a frame is open) and enters shadow mode. While in shadow, `mgPortShadowTarget()` returns the main target. `mgEndDrawShadow` composites a quad over the visible extent onto the main target: vertex alpha 48, blend `(0 - Cd) * As / 128 + Cd` with FIX `0x80` (128), alpha test off, and stencil test NotEqual 0, which zeroes the count. It then sets TEXA to TA0 0, TA1 128, AEM 1.
+
+### Controller speaker
+
+`audio.robot_voice` `"controller"` sends the Ridepod's voice lines (the `8520xx.wav` streams the dungeon robot opens) to a second playback device: the first one whose name contains "DualSense" or "Wireless Controller". Windows exposes that endpoint for a DualSense on USB, and for a Bluetooth pad through a DualSense emulation driver that creates one. The lines are summed to mono and leave the main mix while they play. Without such a device they stay on the main output and stderr reports it once. The choice applies from the next line; `audio.controller_volume` applies live.
 
 ### Font and headless
 

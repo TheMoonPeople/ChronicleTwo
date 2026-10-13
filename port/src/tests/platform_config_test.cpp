@@ -109,6 +109,8 @@ TEST_F(PlatformConfig, FullFileRoundTrips) {
     full.glyph_device = ConfigGlyphDevice::Ps5Color;
     full.mouse_release_keys = {"F12", "Pause"};
     full.font_sharp = true;
+    full.robot_voice_controller = true;
+    full.controller_volume = 1.5f;
 
     ASSERT_TRUE(ConfigParse(ConfigSerialize(full)) == full);
 
@@ -126,6 +128,20 @@ TEST_F(PlatformConfig, TextFontIsOptInAndRoundTrips) {
     EXPECT_FALSE(ConfigParse(R"({"video":{"text_font":"original"}})").font_sharp);
     for (const char *value : {"null", "true", "1", "\"blurry\""}) {
         EXPECT_FALSE(ConfigParse(std::string("{\"video\":{\"text_font\":") + value + "}}").font_sharp);
+    }
+}
+
+TEST_F(PlatformConfig, RobotVoiceIsOptInAndRoundTrips) {
+    EXPECT_FALSE(ConfigParse("").robot_voice_controller);
+    const Config controller = ConfigParse(R"({"audio":{"robot_voice":"controller","controller_volume":0.5}})");
+    EXPECT_TRUE(controller.robot_voice_controller);
+    EXPECT_EQ(controller.controller_volume, 0.5f);
+    EXPECT_TRUE(ConfigParse(ConfigSerialize(controller)) == controller);
+    for (const char *value : {"null", "true", "1", "\"pad\""}) {
+        EXPECT_FALSE(ConfigParse(std::string("{\"audio\":{\"robot_voice\":") + value + "}}").robot_voice_controller);
+    }
+    for (const char *value : {"-0.1", "2.1", "\"loud\""}) {
+        EXPECT_EQ(ConfigParse(std::string("{\"audio\":{\"controller_volume\":") + value + "}}").controller_volume, 1.0f);
     }
 }
 
