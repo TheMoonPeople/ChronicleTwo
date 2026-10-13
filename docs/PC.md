@@ -306,6 +306,7 @@ Exit statuses (`port/src/exitcodes.hpp`, and `port/src/mglib.cpp` for the screen
 - 2: a usage error: an unknown or malformed option, or a bad `--input` script.
 - 3: no extracted data at the data root (see "Game data and first run").
 - 4: a game assertion (retail's `__assert`).
+- 5: NTSC script validation rejected the data in a headless run, or the desktop startup dialog was closed, failed, or answered Quit.
 
 A `PS2_UNIMPLEMENTED` stub aborts instead of exiting, so a debugger or a core dump stops at it: SIGABRT on Linux (status 134 from a shell) and `0xC0000409` on Windows. Other internal aborts stop the same way.
 
@@ -360,12 +361,13 @@ Fixtures and extracted game data stay outside the repository.
 1. `GameSetIdentity` (`port/src/identity.cpp`) sets the `DC2` environment prefix, the game's directory names and the window title. `PathsConsumeArgs` takes `--data` and `--save` out of the arguments.
 2. `ParseOptions` reads the other options. A usage error exits with status 2. `--input` loads its script here, and a bad script exits with status 2.
 3. `ConfigLoad` reads `config.json` from the save root (see "config.json").
-4. `FirstRunRequireData` checks the data root and opens setup when extraction is needed, or exits with status 3 in headless mode (see "Game data and first run").
+4. `TimingLatch` fixes the session profile and tick rate. `FirstRunRequireData` checks the data root and opens setup when extraction is needed, or exits with status 3 in headless mode (see "Game data and first run").
+4a. `InitCDFile` indexes the data root, printing `dataread: indexed N files under <dir>`. NTSC script validation runs before the window, renderer, audio and clock. Incompatible scripts are named in the log; desktop runs offer PAL/50 for this session or Quit. Quit, a failed dialog, or a headless NTSC mismatch exits with status 5.
 5. The window opens, or the offscreen surface with `--headless`. Input initialises, and the input script is installed.
 6. The renderer starts (`gfx::RendererInit`) with a logical size of 512x480 at a 4:3 display aspect. It builds every pipeline, uses `<save root>/pipeline_cache.bin` as its pipeline cache, and prints `compiling shaders n/total` as it goes.
 7. `AudioInit(options.headless)` selects device-driven or tick-driven mixer ownership (see "Audio"). `AudioShutdown` is registered with `atexit`.
 8. The clock starts at `game.tick_rate`; headless runs use an unbounded clock. In that mode, frame-field measurements use logic ticks instead of wall elapsed time, including the sound sequencer's frame budget. Interactive runs retain the measured wall cadence. A pump hook runs once per clock pump, after the tick callback has run for each elapsed tick, and polls the window, the input and the input script. The config change hook is installed.
-9. The main thread takes priority 10, and `InitCDFile` (`port/src/dataread.cpp`) indexes the data root, printing `dataread: indexed N files under <dir>`. The PAL disc's `DATA.DAT` holds 8751 files.
+9. The main thread takes priority 10.
 10. The `--frames` limit and screenshot, if any, are set, and `MainLoop()` (`port/src/mainloop.cpp`) runs the retail sequence (see "MainLoop").
 
 Before `main`, the game's static constructors run. The three VU0 helpers they need, `mgUnitMatrix`, `mgZeroMatrix` and `mgZeroVectorW` (`port/src/mg_math.cpp`), are real C++. On the PS2 the constructors run after the IOP set-up inside `mwInit`; on the host `mwInit` is empty (`port/src/runtime.cpp`). An SIF RPC client that no game code has bound yet gets an answer from `sceSifCheckStatRpc` and `sceSifCallRpc` instead of an abort, because the constructors reach the RPC layer before the game binds its clients (`tools/kazarov/src/cpp/sce/sifrpc.cpp`).
@@ -378,7 +380,7 @@ Each arena's high-water mark is tracked, and `MainLoop` logs `mg_memory: <name> 
 
 ### MainLoop
 
-`port/src/mainloop.cpp` retains the retail boot and mode-dispatch order. Native changes include pointer-width alignment; mapped arenas and native-sized sub-game storage; retained static helpers through link-name bridges; writable file paths; and arena high-water reporting. `InitCDFile` runs from `main` after main-thread priority is set.
+`port/src/mainloop.cpp` retains the retail boot and mode-dispatch order. Native changes include pointer-width alignment; mapped arenas and native-sized sub-game storage; retained static helpers through link-name bridges; writable file paths; and arena high-water reporting. `InitCDFile` runs from `main` before NTSC script validation and renderer startup.
 
 Launch hooks prepare an explicit scene jump and give requested items on arrival. Jumps skip the ordinary boot logo and select English. Configured debug mode or a jump unlocks debug controls; the one-controller modifier, developer-menu chord and capture/resume handling are native additions. Mode changes cut interpolation, and the final frame border follows the live visible extent rather than fixed retail screen edges. Ordinary launches preserve the retail scene route and default debug gate.
 
@@ -396,8 +398,8 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 
 | Key | Type | Default | Values | Meaning |
 |---|---|---|---|---|
-| `game.timing` | string | `"pal"` | `"pal"`, `"ntsc"` | gameplay timing profile; applies after restart |
-| `game.tick_rate` | number | 50 | 25 to 240 | logic ticks per second; changes live |
+| `game.timing` | string | `"pal"` | `"pal"`, `"ntsc"` | PAL/50 or NTSC/60 gameplay timing; applies after restart |
+| `game.tick_rate` | number | 50 | 25 to 240 | logic ticks per second; PAL/50 and NTSC/60 are supported; other rates are speed experiments; applies after restart |
 | `game.debug_mode` | bool | false | | the boot debug unlock, and the pad-1 chord; see [DEBUG.md](DEBUG.md) |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
 | `video.interpolation` | bool | true | | interpolate display frames between ticks |
@@ -438,12 +440,30 @@ settings and merges only those edits into the current file, preserving unknown
 keys and unrelated values edited externally. Binding action names are merged
 case-insensitively, so editing or restoring `cross` also replaces or removes a
 hand-written `Cross` override without leaving a duplicate. It calls `DisplayChanged` and a
-change hook. `SettingsChange` changes the shared host fields while retaining interpolation, aspect and UI scale. Through the hook, `main` applies the tick rate, present mode, input bindings and controls, master volume, and presentation settings. Aspect and UI scale are applied between frame recordings.
+change hook. `SettingsChange` changes the shared host fields while retaining interpolation, aspect and UI scale. Through the hook, `main` applies the present mode, input bindings and controls, master volume, and presentation settings. Aspect and UI scale are applied between frame recordings.
 
-`game.timing` is latched just after config loading and before clock or game
-initialization. Changes are saved for the next process start. `game.tick_rate`
-continues to change live and does not select the timing profile. The nominal
-pairs are PAL/50 and NTSC/60; other pairs run the chosen profile at a custom speed.
+### Gameplay timing
+
+**Gameplay timing** on PC SETTINGS > Display offers **PAL (50 Hz)** and
+**NTSC (60 Hz)**. Selecting a preset saves `game.timing` and `game.tick_rate`
+together. Both are latched just after config loading, before clock or game
+initialization; restart the game to apply a change. A pending change shows
+**Timing: restart required**, separately from a save failure. A
+hand-edited mismatched pair shows **Custom** and stays intact until this row is
+changed. The default remains PAL/50.
+
+PAL/50 and NTSC/60 are the supported pairs. NTSC selects the executable's NTSC
+timing values and removes PAL timing conversions from loaded disc scripts.
+With two logic ticks per game frame, PAL runs at 25 game frames per second and
+NTSC at 30. This changes timing while retaining PAL disc content, languages and
+balance data. Saved play time retains PAL units, as described below. Tick rate
+alone does not select a profile. Other rates run the selected profile at a
+custom speed and are speed experiments; they can desynchronize cues.
+
+Movies retain their real-time cadence: a 25 fps movie stays at 25 fps while
+NTSC gameplay produces 30 game frames per second, so some game frames repeat a
+movie picture. Display interpolation and the display frame cap are independent
+of gameplay timing.
 
 Saved play time remains in 1/50 second units at every logic tick rate. At 60 Hz,
 six enabled ticks add five saved units. Pausing retains fractional credit; a new
@@ -460,18 +480,18 @@ The PC page uses the game's font and Options artwork. L1/R1 changes tabs, Up/Dow
 
 | Page | Settings |
 |---|---|
-| Display | Windowed/fullscreen, resolution, FIFO/mailbox/immediate, frame cap, interpolation, auto/4:3 aspect, UI scale, FPS counter |
+| Display | Windowed/fullscreen, resolution, FIFO/mailbox/immediate, frame cap, interpolation, gameplay timing, auto/4:3 aspect, UI scale, FPS counter |
 | Audio | Master volume and PS2/custom soundtrack |
 | Controls | Mouse sensitivity, Y inversion and capture; stick sensitivity and X/Y inversion; button symbols and glyph style |
 | Bindings | Keyboard and mouse bindings for pad buttons, movement, look, FPS and debug menu |
 
-Edits apply immediately and save to `config.json`. These settings do not require restarting the game. Soundtrack selection takes effect the next time a song starts, including one whose data is already loaded. Custom recordings use the original `.sq` filename in `soundtrack/soundtrack.json`; an absent or invalid recording falls back to the PS2 sequence. Current music is not restarted by moving the setting.
+Edits save to `config.json`. Gameplay timing applies after restart; the other settings apply immediately. Soundtrack selection takes effect the next time a song starts, including one whose data is already loaded. Custom recordings use the original `.sq` filename in `soundtrack/soundtrack.json`; an absent or invalid recording falls back to the PS2 sequence. Current music is not restarted by moving the setting.
 
 Resolution changes the windowed size; fullscreen uses the desktop. A command-line `--window` takes precedence. A refused window change is read back and reported on screen. Hand-edited resolutions and numeric values are shown as stored and stay unchanged until that row is edited. The PC UI offers a bounded set of scale presets; the configuration file still accepts the full documented range.
 
 Confirm on a binding shows **Press a key...**. Press a key or mouse button; Escape cancels and cannot be bound. The opening press is ignored, and the new input must be released before navigation resumes. Square or **Restore binding** removes that action's override and restores its defaults. Controller buttons retain their retail assignments. Glyph style changes the PC page's device-specific button prompts; keyboard prompts use current bindings. Other retail screens keep their original button artwork.
 
-A failed write leaves the change working in the current session and shows a warning. Check the save folder and change a setting to retry. A configuration file that could not be read remains protected against replacement.
+A failed write shows a warning. Immediate settings still work in the current session; gameplay timing needs a successful save and restart. Check the save folder and change a setting to retry. A configuration file that could not be read remains protected against replacement.
 
 `tools/input/pc-settings.input` replays all four tabs, a key rebind, Escape cancellation, and return to retail Options from `--jump town:10 --fast-load`. Its comments give capture frames. `tools/input/pc-settings-mouse.input` exercises clicking and mouse-button capture at `--window 1280x960`. Use fresh save roots and `--screenshot-display 2` for both.
 
@@ -769,7 +789,7 @@ The PAL scripts (`.stb`) hold the NTSC frame counts and convert them while they 
 - A few literals PAL retuned by hand (a jump in d03, a turn in s03, an object delay and wait in m06b, the backpack scene in i01h01b, one turn in e221a) are anchored: the instruction sequence must occur once and hold the PAL value before the NTSC value is written. The same anchors cover the language copies `_1` to `_5`.
 - Max's and Monica's motion-ratio windows (`mainchr/c01.stb`, `c02.stb`, 8 bounds) take their NTSC values; `script_timing::kDefaultAttackWindows` switches that policy.
 - Matching only looks at decoded instructions inside the script's functions (the program table, CALL targets and unreferenced function blocks), never at raw bytes. Every recipe is validated before any is written, sizes never change, and a converted script converts to the same bytes again.
-- `port/src/script_timing_inventory.inc` lists every script that holds a conversion, with the count of each recipe it must show. A listed script that does not match, or an unlisted one that holds a conversion, stops the game with exit status 5 and the asset's name. A datapack's script is not converted.
+- `port/src/script_timing_inventory.inc` lists every script that holds a conversion, with the count of each recipe it must show. Before gameplay starts, NTSC timing validates every indexed `.stb` with the same decoder and recipes, including datapack replacements. Matching replacements are converted through the same loader. A listed script that does not match, or an unlisted one that holds a conversion, appears in a startup report naming the asset. Desktop runs offer to continue with PAL timing at 50 Hz for this session or quit; headless runs report the complete asset list to stderr and exit with status 5, so an NTSC replay cannot silently run PAL. Saved settings are unchanged. After a fallback, PC SETTINGS shows the saved timing choice with a fallback marker and a heading noting that this session runs PAL. The timing row explains that NTSC timing is unavailable for this data; other rows retain their own help. Editing the saved choice does not change the session timing. Unlisted, undecodable `.stb` files stay unchanged with a warning once per asset per session, matching the loader. Validation reads the files once and writes no disk cache. Each converted asset logs once per session.
 - Effect scripts keep PAL's waits for the end of their motion.
 
 ## Rendering
@@ -794,7 +814,7 @@ The PAL scripts (`.stb`) hold the NTSC frame counts and convert them while they 
 
 ### Ticks and display frames
 
-- One game frame is one pass of the game's loop, and one recorded list. It spans `mgFrameRate` clock ticks: 2 on the 50 Hz tick, so 25 game frames a second. `mgFrameRate` keeps its meaning.
+- One game frame is one pass of the game's loop, and one recorded list. It spans `mgFrameRate` clock ticks: 2 at the supported rates, so 25 game frames a second at PAL/50 or 30 at NTSC/60. `mgFrameRate` keeps its meaning.
 - After the canonical render, `mgEndFrame` calls `PresentWaitFrame`. It waits the same tick count `WaitVSync` waited for; the rotating-thread and pump behaviour is unchanged. Meanwhile `present.cpp` renders display frames from the newest list and the one before it. Each display frame's alpha is the elapsed fraction of the game frame: the ticks since the frame began plus the fraction of the current tick, over `mgFrameRate`. An alpha from the clock tick alone would run 0 to 1 twice per game frame at `mgFrameRate` 2. Display frames are presented as fast as `video.present_mode` and `video.max_fps` allow (`max_fps` 0 is unlimited). A game frame whose wait presented nothing presents its canonical image afterwards (`PresentTickEnd`).
 - Interpolated: the models of tagged mesh draws, and the camera (`tools/kazarov/src/cpp/gfx/README.md`, "Display lists"). A draw is tagged with `mgPortInterpScope(object, teleport_distance, blend_vertices, no_interpolation)`, keyed by the `mgCFrame` or, outside a frame, the visual's record. `kMgPortFrameTeleportDistance` is 200 units. Skinned prog0 draws blend their 32-bone model-space palette (`gfx::Prog0Constants::bones`) per bone: translation lerped, rotation slerped from the Gram-Schmidt rotation, scale and shear lerped in its frame. A bone that moved further than the draw's teleport distance keeps the newest pose. The rest of the per-draw block follows the interpolated model and camera: `model_world` is the interpolated model, `clip_or_view` and the object-space eye are re-based through the tick's and the interpolated object-to-eye transforms, and point lights shift with the object's origin. Dark Cloud 1's port, which shares the renderer, records no prog0 block, so it takes no such path.
 - Depth-tested screen effects set `gfx::DrawState::screen_space` so the depth-of-field layers stay screen-aligned while sampling the display camera's refreshed grabs. World sprites retain camera reprojection.
@@ -975,7 +995,7 @@ The title is reached headless. `DC2_AUDIO_WAV=title.wav darkchronicle --headless
 
 The pipeline is in `port/src/video/`. `pss.*` demuxes packs into video (stream 0xE0) and PCM (private stream 1, substream 0xA0) chunks with their PTS. `mpeg2_decoder.*` wraps libavcodec's `mpegvideo` parser and `mpeg2video` decoder, single-threaded, YUV 4:2:0, pictures in display order with 90 kHz PTS (extrapolated by the frame duration where a picture has none), and rejects a stream whose sequence header has no MPEG-2 sequence extension. `yuv.*` converts BT.601 limited range to RGBA with nearest chroma per 2x2 block, as the IPU's colour space conversion did, alpha 0xFF (the renderer's opaque, GS 0x80). `pcm.*` reads the soundtrack. `player.*` ties them together.
 
-There are no threads. The game calls `SwitchThread` once per game frame and `EndCheck` beside it; both advance the player to the movie time elapsed since `Play`, `(ClockTickCount() - tick at Play) * 90000 / ClockTickRate()`. The newest picture whose PTS is due is shown; pictures overtaken after a stall are decoded but not converted. On the default 50 Hz tick with `mgFrameRate` 2 a 25 fps movie shows one picture per game frame; headless runs on the unbounded clock are deterministic.
+There are no threads. The game calls `SwitchThread` once per game frame and `EndCheck` beside it; both advance the player to the movie time elapsed since `Play`, `(ClockTickCount() - tick at Play) * 90000 / ClockTickRate()`. The newest picture whose PTS is due is shown; pictures overtaken after a stall are decoded but not converted. On the default 50 Hz tick with `mgFrameRate` 2 a 25 fps movie shows one picture per game frame. At NTSC/60 it keeps its 25 fps cadence across 30 game frames per second; headless runs on the unbounded clock are deterministic.
 
 The picture is uploaded into the texture the game names in `Play` (`"moviework"`), found with `mgTexManager.GetTexture(name, -1)` and `mgPortFindTexture`, with `gfx::UpdateTexture` (recorded into the tick's display list when one is open). That is what the PS2 did: `setImageTag` uploaded into the same texture and the game draws it itself as a 2D quad (the copyright screen's `L5LOGO.PSS`, `RUSH.PSS`, the movie viewer, the event script's `_LOAD_MOVIE`, the manual), so its fades, stretch and letterbox stay the game's, tick-exact.
 
@@ -1241,15 +1261,30 @@ Existing base-build accommodations also remain: declaration order in `mg_tanime.
 
 Retail's own mistakes stay in `ps2/src`, because the match reproduces them. The port gives them defined behaviour instead, through flags `ct_ps2` sets in `port/CMakeLists.txt`: `-ftrivial-auto-var-init=zero`, `-fno-strict-return`, and `-fno-strict-aliasing` with `-fwrapv`.
 
-The `PalTiming.Ps2Identity` CTest restores each `PAL_TIMING(pal, ntsc)` expression to its
-PAL argument, removes the timing include, and compares the PS2 source bytes against
-the merge-base of `HEAD` with `origin/master`. Configure a different upstream ref with
-`-DCT_PAL_TIMING_UPSTREAM=<ref>`, or an explicit baseline with
-`-DCT_PAL_TIMING_BASE=<ref>`. The selector header itself is excluded. When the ref or
-history is unavailable, including shallow CI checkouts without a merge-base, CTest
-skips the check with a message. `PalTiming.IdentitySelfTest` runs without git history.
-This is a PR-time source check; `ps2-pal` and `verify.py` remain the authority for
-PS2 byte matching.
+Configure `-DCT_PAL_TIMING_BASE=<ref>` to register `PalTiming.Ps2Identity`.
+An unavailable supplied baseline fails the test; with no supplied baseline the
+test is not registered. Linux CI requires a baseline: pull requests use their
+base SHA, pushes with a nonzero `before` use that SHA, and new-ref pushes or
+manual dispatches use the merge-base of HEAD with the explicitly fetched default
+branch. CI fails clearly if it cannot establish that baseline.
+
+The check lexes complete base and head PS2 source files once, retaining comment
+and string context and mapping executable calls to line ranges. A diff hunk is checked
+only if the multiset of executable `PAL_TIMING(pal, ntsc)` call texts differs
+between its old and new sides, including removed or modified wrappers. Such a
+wrapper's statement must restore to the baseline tokens at that position after
+selecting the PAL arms and removing the timing include; spacing between tokens
+and comments are ignored. Unrelated statements may change in the same hunk.
+Unchanged calls allow later variable renames and other edits. A wrapper must
+wrap existing PAL tokens; newly added wrapper lines in existing files are
+rejected. New PS2 code is verified by the PS2 build. New files have no baseline and
+are skipped with a note. The selector header itself is excluded.
+`PalTiming.IdentitySelfTest` exercises those rules without external history.
+`PalTiming.Sites` checks paths, enclosing functions and ordered pairs against
+the committed `scripts/port/pal_timing_sites.txt`; only an explicit
+`pal_timing_sites.py --regenerate` updates it, and CTest never regenerates it.
+These source checks complement `ps2-pal` and `verify.py`, which remain the
+authority for PS2 byte matching.
 
 ### Checking the PS2 build
 
