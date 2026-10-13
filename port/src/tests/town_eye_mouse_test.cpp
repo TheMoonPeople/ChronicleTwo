@@ -36,6 +36,8 @@ TEST_P(TownEyeMouse, NativeStateAndBothLookTargetsTurnOnceAndDropOtherOwnersMoti
     camera.SetRef(0, 28, 10);
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.active_camera = 0;
+    // CScene leaves event_run to the zeroed storage of the retail global; a local holds garbage.
+    scene.event_run = 0;
     PortLoopNo = LOOP_EDIT;
     PortEditViewMode = photo ? EDIT_VIEW_MODE_PHOTO : EDIT_VIEW_MODE_EYE;
     PortEditLadderMode = EDIT_LADDER_MODE_NONE;
@@ -263,7 +265,7 @@ TEST(TownEyeCamera, PhotoEntryAndExitCutAroundRecurringUpdates) {
     scene.AssignChara(0, &chara, const_cast<char *>("player"));
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.AssignMap(0, &map, const_cast<char *>("s07"));
-    scene.player_chara = scene.active_camera = scene.active_map = 0;
+    scene.player_chara = scene.active_camera = scene.active_map = scene.event_run = 0;
     pad.btn[PAD_BTN_ACTION_SQUARE].value = 1;
     auto generation = mgPortCameraGeneration();
     PortEditCameraControl(&scene, &pad);

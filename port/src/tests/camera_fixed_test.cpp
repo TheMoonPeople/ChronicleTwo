@@ -68,6 +68,8 @@ TEST(CameraFixedMouse, OwnershipExcludesEventsMenusControllableCamerasAndDisable
     camera.ControlOff();
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.active_camera = 0;
+    // CScene leaves event_run to the zeroed storage of the retail global; a local holds garbage.
+    scene.event_run = 0;
     EXPECT_TRUE(TownMouseFixedOwns(&camera, &scene, &pad, true, true, false, true));
     EXPECT_FALSE(TownMouseFixedOwns(&camera, &scene, &pad, false, true, false, true));
     EXPECT_FALSE(TownMouseFixedOwns(&camera, &scene, &pad, true, false, false, true));
