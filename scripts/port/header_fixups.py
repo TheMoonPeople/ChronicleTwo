@@ -44,6 +44,8 @@ FIXUPS = [
 # COFF has no inline-vs-strong resolution: map.cpp's out-of-line CMapParts::CMapParts is the single definition,
 # so the identical inline copies in editeff.cpp/editmap.cpp are blanked rather than kept.
 UNIT_FIXUPS = [
+    # The native texture-copy prelude includes host stdlib.h, which declares random().
+    ("password.cpp", "static unsigned int random() {", "static unsigned int PortPasswordRandom() {"),
     # Replace party-ring palette copies with independently registered RGBA pixels.
     ("menuchr.cpp", """    MenuCharaChangeCLUT = palette.clut;
     tex_manager->ReloadTexture(block, (sceVif1Packet *) NULL);
@@ -149,6 +151,8 @@ def fixup_unit_text(name: str, text: str) -> str:
         # Keep diagnostics and debug locations aligned with the retail source.
         replacement = new + "\n" * max(0, old.count("\n") - new.count("\n"))
         text = text.replace(old, replacement)
+    if name == "password.cpp":
+        text = text.replace("random()", "PortPasswordRandom()")
     return text
 
 
