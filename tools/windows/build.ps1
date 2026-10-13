@@ -11,7 +11,7 @@ $llvm = "$root/deps/llvm/llvm-mingw-20260922-ucrt-x86_64/bin"
 $env:CARGO_HOME = "$root/deps/rust/cargo-home"
 $env:PATH = "$rust;$llvm;$env:PATH"
 $targets = @('darkchronicle', 'dc2data')
-if ($Tests) { $targets += 'darkchronicle_tests' }
+if ($Tests) { $targets += @('darkchronicle_tests', 'dc2data_bridge_test') }
 $log = Join-Path $build 'build.log'
 Write-Host "kazarov: building $build ($Jobs jobs; log: $log)"
 $timer = [Diagnostics.Stopwatch]::StartNew()
