@@ -871,7 +871,7 @@ TEST(MglibSeam, ReusedTextureKeyDoesNotSampleRetiredRenderTarget) {
     PresentRenderer renderer(1280, 720);
     gfx::SetFrameLayout({gfx::AspectMode::Letterbox, 1.0f});
     Textures    textures;
-    Quads       old_pixels = Pack(Fill(64 * 64, 0, 180, 0, 128));
+    Quads       old_pixels = Pack(Fill(64 * 64, 0, 180, 0, 255));
     mgCTexture *old = textures.Enter("effect_work", 64, 64, 32, old_pixels.data(), nullptr);
     ASSERT_NE(old, nullptr);
     const uint32_t key = static_cast<uint32_t>(old->tex0.TBP0);
@@ -882,7 +882,7 @@ TEST(MglibSeam, ReusedTextureKeyDoesNotSampleRetiredRenderTarget) {
     const gfx::TextureHandle stale = mgPortFindTexture(Tex0Bits(old)).texture;
     ASSERT_TRUE(gfx::GetTextureInfo(stale)->render_target);
     textures.Delete(old);
-    Quads       glow_pixels = Pack(Fill(64 * 64, 96, 64, 16, 128));
+    Quads       glow_pixels = Pack(Fill(64 * 64, 96, 64, 16, 255));
     mgCTexture *glow = textures.Enter("glow", 64, 64, 32, glow_pixels.data(), nullptr);
     ASSERT_NE(glow, nullptr);
     ASSERT_EQ(static_cast<uint32_t>(glow->tex0.TBP0), key);

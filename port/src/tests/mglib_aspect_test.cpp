@@ -272,7 +272,7 @@ static void ExpectMenuLensAtRetailPosition(int window_width, int window_height) 
     auto *rgba = reinterpret_cast<uint8_t *>(pixels.data());
     for (int y = 0; y < 416; ++y) {
         for (int x = 0; x < 704; ++x) {
-            rgba[(y * 1024 + x) * 4 + 3] = 128;
+            rgba[(y * 1024 + x) * 4 + 3] = 255;
             if (x >= 600) {
                 rgba[(y * 1024 + x) * 4 + 1] = 255;
             }
@@ -281,7 +281,7 @@ static void ExpectMenuLensAtRetailPosition(int window_width, int window_height) 
     for (int y = 204; y < 212; ++y) {
         for (int x = 346; x < 354; ++x) {
             rgba[(y * 1024 + x) * 4] = 255;
-            rgba[(y * 1024 + x) * 4 + 3] = 128;
+            rgba[(y * 1024 + x) * 4 + 3] = 255;
         }
     }
     u_long128 *levels[MG_TEXTURE_LEVEL_MAX] = {pixels.data()};
@@ -456,7 +456,7 @@ static void ExpectMenuBackdropContinuation(int window_width, int window_height, 
         for (int x = 0; x < artwork_width; ++x) {
             bytes[(y * 1024 + x) * 4] = 80;
             bytes[(y * 1024 + x) * 4 + 1] = 20 + x / 3;
-            bytes[(y * 1024 + x) * 4 + 3] = 128;
+            bytes[(y * 1024 + x) * 4 + 3] = 255;
         }
     }
     u_long128 *levels[MG_TEXTURE_LEVEL_MAX] = {pixels.data()};

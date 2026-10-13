@@ -644,8 +644,8 @@ void CheckMaterialWrap(bool queued) {
     mgTexManager.SetTableBuffer(16, 8, &table.memory());
     mgTexManager.Initialize(0x1000, -1);
     // Repeating (1.25, 1.25) samples green; clamping it samples red.
-    alignas(16) uint8_t pixels[16] = {0, 255, 0, 128, 0, 0, 255, 128,
-                                      0, 0, 255, 128, 255, 0, 0, 128};
+    alignas(16) uint8_t pixels[16] = {0, 255, 0, 255, 0, 0, 255, 255,
+                                      0, 0, 255, 255, 255, 0, 0, 255};
     u_long128          *levels[MG_TEXTURE_LEVEL_MAX] = {reinterpret_cast<u_long128 *>(pixels)};
     char                name[] = "material_wrap";
     auto               *texture = mgTexManager.EnterTexture(0, name, levels, 2, 2, 32, nullptr, 0, 0);
