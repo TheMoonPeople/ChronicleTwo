@@ -449,12 +449,17 @@ void MenuMouseUpdate(CMenuKeyFunc &keys) {
     if (menu.mode == MENU_ASK_MODE_ROD_POINTS && menu.step == 0) {
         const Target hit = Hit(menu, pointer.pos, 0);
         if (hit.panel == ITEM_MENU_PANEL_FISHING_ROD_STATS && take.moved) {
+            if (keys.select_pos[0] != hit.cursor) {
+                MenuSePlay(SYSTEM_SE_CURSOR);
+            }
             keys.cursor = hit.cursor;
             keys.select_pos[0] = hit.cursor;
             keys.key_input = true;
         }
         if (take.pressed & 2) {
             synthetic = PAD_CIRCLE;
+        } else if (take.wheel != 0 && hit.panel == ITEM_MENU_PANEL_FISHING_ROD_STATS) {
+            synthetic = take.wheel > 0 ? PAD_RIGHT : PAD_LEFT;
         } else if ((take.pressed & 1) && hit.panel == ITEM_MENU_PANEL_FISHING_ROD_STATS) {
             synthetic = PAD_CROSS;
         }

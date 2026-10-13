@@ -637,3 +637,60 @@ TEST_F(ItemMouse, RodPointsRejectBackgroundAndAcceptStatHit) {
     EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CROSS);
     menu.view_form[5] = nullptr;
 }
+
+TEST_F(ItemMouse, RodWheelSpendsRefundsAndKeepsRetailPointLimits) {
+    auto         &menu = class_menu_item_info;
+    const auto    saved_spectol = SpectolInfoStay;
+    CGameDataUsed rod{};
+    rod.data.weapon.attribute[0] = 98;
+    rod.data.weapon.fusion_point = 250;
+    SpectolInfoStay = rod;
+    menu.view_weapon = &rod;
+    menu.mode = MENU_ASK_MODE_ROD_POINTS;
+    menu.view_mode = MENU_ITEM_VIEW_FISHING_ROD;
+    keys.key_enable = true;
+    keys.select_pos[0] = 0;
+    CMenuPosDataForm   form{};
+    MENUFORMPARTS_TYPE stat{};
+    form.draw_flag = stat.draw_flag = true;
+    form.parts = &stat;
+    form.parts_num = 1;
+    stat.name = const_cast<char *>("index0");
+    stat.x = stat.y = 100;
+    stat.w = 100;
+    stat.h = 24;
+    menu.view_form[5] = &form;
+    Tick(-140, 35);
+    auto wheel = [&](float amount) {
+        Tick(0, 0, 0, amount);
+        keys.CheckSelectKey();
+        const int key = keys.CheckLRKey();
+        EXPECT_EQ(key, amount > 0 ? MENU_SELECT_KEY_RIGHT : MENU_SELECT_KEY_LEFT);
+        menu.PushKey(key, 0);
+        Tick();
+    };
+    wheel(1);
+    EXPECT_EQ(rod.data.weapon.attribute[0], 99);
+    EXPECT_EQ(rod.data.weapon.fusion_point, 150);
+    wheel(100); // A large wheel sample is still one bounded retail action.
+    EXPECT_EQ(rod.data.weapon.attribute[0], 100);
+    EXPECT_EQ(rod.data.weapon.fusion_point, 50);
+    wheel(1);
+    EXPECT_EQ(rod.data.weapon.attribute[0], 100);
+    EXPECT_EQ(rod.data.weapon.fusion_point, 50);
+    wheel(-1);
+    EXPECT_EQ(rod.data.weapon.attribute[0], 99);
+    EXPECT_EQ(rod.data.weapon.fusion_point, 150);
+    wheel(-1);
+    wheel(-1); // Cannot refund points already present on entry.
+    EXPECT_EQ(rod.data.weapon.attribute[0], 98);
+    EXPECT_EQ(rod.data.weapon.fusion_point, 250);
+    rod.data.weapon.fusion_point = 99;
+    wheel(1);
+    EXPECT_EQ(rod.data.weapon.attribute[0], 98);
+    EXPECT_EQ(rod.data.weapon.fusion_point, 99);
+    Tick(300, 0, 0, 1);
+    EXPECT_EQ(GamePad__2.GetPadDown(), 0);
+    SpectolInfoStay = saved_spectol;
+    menu.view_form[5] = nullptr;
+}

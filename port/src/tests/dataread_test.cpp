@@ -18,6 +18,7 @@
 #include "gamedata.hpp"
 #include "mainloop.hpp"
 #include "platform/paths.hpp"
+#include "scriptinterpreter.hpp"
 #include "texture_source.hpp"
 
 int LoadGameDataAnalyze(char *);
@@ -556,4 +557,34 @@ TEST_F(DataRead, ItemMessageReloadClearsTheLiveArenaWithoutClearingReboundRoots)
     for (int i = 2; i < 29; ++i) {
         EXPECT_EQ(live[i], 0) << i;
     }
+}
+
+extern SPI_TAG_PARAM PortGameDataTags[25] asm("GameData_Tags");
+
+TEST_F(DataRead, ItemMessagesUseTheSameDispatchTableAsItemData) {
+    fs::create_directories(root_ / "menu/cfg7");
+    std::ofstream(root_ / "menu/cfg7/common.cfg") << "COMINIT 1; COM 11,0,0,0,0,0,0,0,0,\"x\",0;";
+    std::ofstream(root_ / "menu/cfg7/comdatmes7.cfg") << "MES_SHARED 11,\"Shared retail dispatch\";";
+    DataReadIndex(root_);
+    GameItemDataManage.Initialize();
+    char common[] = "common.cfg";
+    ASSERT_TRUE(LoadGameDataAnalyze(common));
+
+    struct RestoreTag {
+        char *name = PortGameDataTags[22].name;
+        int   language = LanguageCode;
+
+        ~RestoreTag() {
+            PortGameDataTags[22].name = name;
+            LanguageCode = language;
+        }
+    } restore;
+
+    ASSERT_STREQ(PortGameDataTags[22].name, "MES_SYS");
+    PortGameDataTags[22].name = const_cast<char *>("MES_SHARED");
+    LanguageCode = 0;
+    ASSERT_TRUE(GameItemDataManage.LoadItemSystemMes(7));
+    auto *record = GameItemDataManage.GetCommonData(11);
+    ASSERT_NE(record, nullptr);
+    EXPECT_STREQ(record->name, "Shared retail dispatch");
 }
