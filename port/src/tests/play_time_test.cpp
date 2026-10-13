@@ -16,11 +16,11 @@ namespace {
 class PlayClock : public testing::Test {
 protected:
     std::unique_ptr<CSaveData> save = std::make_unique<CSaveData>();
-    CSaveData *previous = PortActiveSaveData;
-    int previous_enabled = PortPlayTimeCountFlag;
-    double previous_rate = ClockTickRate();
-    bool previous_unbounded = ClockUnbounded();
-    ClockTickCallback previous_callback = ClockGetTickCallback();
+    CSaveData                 *previous = PortActiveSaveData;
+    int                        previous_enabled = PortPlayTimeCountFlag;
+    double                     previous_rate = ClockTickRate();
+    bool                       previous_unbounded = ClockUnbounded();
+    ClockTickCallback          previous_callback = ClockGetTickCallback();
 
     void SetUp() override {
         PortActiveSaveData = save.get();
@@ -32,6 +32,7 @@ protected:
         PlayTimeReset();
         save->play_time = 0;
     }
+
     void TearDown() override {
         mgInitVSyncCallBack(nullptr);
         ClockSetTickCallback(previous_callback);
@@ -41,13 +42,14 @@ protected:
         PortActiveSaveData = previous;
         PlayTimeReset();
     }
+
     void Ticks(int count) {
         while (count-- > 0) {
             ClockPump();
         }
     }
 };
-}
+} // namespace
 
 TEST_F(PlayClock, FiftyAndSixtyCountOneMinuteInSavedUnits) {
     ClockSetTickRate(50);
@@ -118,7 +120,7 @@ TEST_F(PlayClock, NewGameDiscardsFractionalCredit) {
 }
 
 TEST_F(PlayClock, SubgameDataDoesNotOwnTheSavedPlayClock) {
-    auto subgame = std::make_unique<CSubGameData>();
+    auto  subgame = std::make_unique<CSubGameData>();
     auto *previous_subgame = PortSubGameSaveData;
     PortSubGameSaveData = subgame.get();
     subgame->play_enable = 123;

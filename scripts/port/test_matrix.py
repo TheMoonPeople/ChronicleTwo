@@ -41,6 +41,24 @@ class MatrixRunner(unittest.TestCase):
         matrix.locate_run(other, self.root, self.exe, self.data, self.script, 100)
         return other
 
+    def test_launch_pins_pal_timing_and_rate(self):
+        self.execute()
+        config = json.loads((self.run.dir / "save" / "config.json").read_bytes())
+        self.assertEqual(config["game"]["timing"], "pal")
+        self.assertEqual(config["game"]["tick_rate"], 50)
+
+    def test_timing_change_rejects_cached_run(self):
+        self.execute()
+        launch = json.loads(matrix.launch_config(self.run))
+        for game in ({"debug_mode": False},
+                     {"debug_mode": False, "timing": "ntsc", "tick_rate": 60},
+                     {"debug_mode": False, "timing": "pal", "tick_rate": 60}):
+            changed = dict(launch, game=game)
+            encoded = json.dumps(changed, sort_keys=True).encode("utf-8")
+            with patch.object(matrix, "launch_config", return_value=encoded):
+                with self.assertRaises(matrix.RunFailed):
+                    self.reload()
+
     def test_sanitises_launch_changing_environment(self):
         self.execute()
         self.assertEqual(self.reload().rc, 0)

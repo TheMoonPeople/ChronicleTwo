@@ -20,11 +20,11 @@
 #include "menucommon.hpp"
 #include "menumain.hpp"
 #include "menuop.hpp"
-#include "platform/files.hpp"
 #include "platform/clock.hpp"
-#include "play_time.hpp"
+#include "platform/files.hpp"
 #include "platform/paths.hpp"
 #include "platform_fixture.hpp"
+#include "play_time.hpp"
 #include "save_slots.hpp"
 
 namespace fs = std::filesystem;

@@ -1,3 +1,5 @@
+#include "common.h"
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -14,7 +16,6 @@
 #include "audio/mixer.hpp"
 #include "audio/stream.hpp"
 #include "audio/synth.hpp"
-#include "common.h"
 #include "ezbgm.hpp"
 #include "platform/audio.hpp"
 #include "platform/clock.hpp"
@@ -357,9 +358,9 @@ TEST(EzBgm, StepAdvancesStreamsWithoutOutput) {
 
 TEST(EzBgm, PendingTimingRateDoesNotChangeStreamAdvance) {
     ASSERT_FALSE(AudioOutputRunning());
-    const auto before = SettingsGet();
+    const auto   before = SettingsGet();
     const double previous_rate = ClockTickRate();
-    auto changed = before;
+    auto         changed = before;
     changed.tick_rate = 240;
     SettingsChange(changed);
     ScratchDataRoot root;
