@@ -189,14 +189,18 @@ TEST_F(DataRead, DatapacksOverrideIndexedFilesWithReplacementSizesAndSparseFallb
     EXPECT_EQ(size, 177);
     const auto replacement = MakeBytes(177, 19);
     EXPECT_EQ(std::memcmp(Buffer(), replacement.data(), replacement.size()), 0);
-    EXPECT_EQ(DataReadFind(name), last / "DIR" / "Sub" / "File.BIN");
+    const auto found = DataReadFind(name);
+    ASSERT_TRUE(found.has_value());
+    EXPECT_TRUE(fs::equivalent(*found, last / "DIR" / "Sub" / "File.BIN"));
 
     ASSERT_EQ(Load("small.txt", Buffer(), &size), 1);
     EXPECT_EQ(size, 27);
     const auto sparse = MakeBytes(27, 31);
     EXPECT_EQ(std::memcmp(Buffer(), sparse.data(), sparse.size()), 0);
     ASSERT_EQ(Load("chara/pack.pac", Buffer(), &size), 1);
-    EXPECT_EQ(DataReadFind("chara/pack.pac"), root_ / "chara" / "Pack.PAC");
+    const auto fallback = DataReadFind("chara/pack.pac");
+    ASSERT_TRUE(fallback.has_value());
+    EXPECT_TRUE(fs::equivalent(*fallback, root_ / "chara" / "Pack.PAC"));
 
     std::ofstream(base_ / "datapacks" / "datapacks.json")
         << R"({"schema_version":1,"load_order":["Last pack","First pack"]})";
