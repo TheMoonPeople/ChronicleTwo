@@ -13,3 +13,4 @@ TimingProfile TimingGetProfile();
 double        TimingGetTickRate();
 // Startup validation may select PAL/50 for this session before the clock and game start.
 void TimingUsePalFallback();
+bool TimingFellBack();

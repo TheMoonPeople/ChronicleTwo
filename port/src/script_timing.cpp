@@ -630,8 +630,9 @@ const Expected kInventory[] = {
 #include "script_timing_inventory.inc"
 };
 
-std::optional<bool> active_override;
-AttackWindows       attack_windows = kDefaultAttackWindows;
+std::optional<bool>   active_override;
+AttackWindows         attack_windows = kDefaultAttackWindows;
+std::set<std::string> logged_assets;
 
 Counts CountsOf(const Expected &expected) {
     Counts counts;
@@ -743,10 +744,12 @@ bool Patch(const char *asset_path, unsigned char *bytes, std::size_t size) {
     options.windows = attack_windows;
     Result result = Apply(key, bytes, size, options);
     if (!result.ok) {
-        std::fprintf(stderr, "script timing: %s does not match the PAL script the NTSC timing converts (%s)\n", key.c_str(), result.error.c_str());
+        if (logged_assets.insert(key).second) {
+            std::fprintf(stderr, "script timing: %s does not match the PAL script the NTSC timing converts (%s)\n", key.c_str(), result.error.c_str());
+        }
         return false;
     }
-    if (result.known) {
+    if (result.known && logged_assets.insert(key).second) {
         std::fprintf(stderr, "script timing: %s: %d instructions (%s)\n", key.c_str(), result.writes, Describe(result.counts).c_str());
     }
     return true;

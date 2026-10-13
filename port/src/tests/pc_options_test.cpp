@@ -7,6 +7,7 @@
 #include "options/rows.hpp"
 #include "options/screen.hpp"
 #include "platform/input.hpp"
+#include "timing_support.hpp"
 
 namespace {
 const options::Row &Find(std::string_view key) {
@@ -95,6 +96,62 @@ TEST(PcOptions, GameplayTimingPresetsWriteBothKeysAndKeepCustomPairsUntilEdited)
         EXPECT_EQ(row.value(left), "PAL (50 Hz)");
         EXPECT_TRUE(options::StepRow(row, config, 1));
         EXPECT_EQ(row.value(config), "NTSC (60 Hz)");
+    }
+}
+
+TEST(PcOptions, StartupFallbackShowsTheSessionTimingAndUnavailableNotice) {
+    ScopedTimingProfile timing;
+    Config              config;
+    config.timing = TimingProfile::Ntsc;
+    config.tick_rate = 60;
+    TimingLatch(config.timing, config.tick_rate);
+    EXPECT_FALSE(TimingFellBack());
+    EXPECT_EQ(options::GameplayTimingNotice(config), "");
+    TimingUsePalFallback();
+    EXPECT_TRUE(TimingFellBack());
+    EXPECT_EQ(Find("game.timing").value(config), "NTSC (fallback)");
+    EXPECT_FALSE(options::GameplayTimingPending(config));
+    EXPECT_EQ(options::GameplayTimingNotice(config), "NTSC timing unavailable for this data; running PAL");
+    EXPECT_EQ(Find("video.width").value(config), "Desktop");
+    EXPECT_EQ(config.timing, TimingProfile::Ntsc);
+    EXPECT_DOUBLE_EQ(config.tick_rate, 60);
+    const auto &row = Find("game.timing");
+    for (int direction : {-1, 1}) {
+        EXPECT_TRUE(options::StepRow(row, config, direction));
+        EXPECT_EQ(row.value(config), "PAL (fallback)");
+        EXPECT_EQ(config.timing, TimingProfile::Pal);
+        EXPECT_DOUBLE_EQ(config.tick_rate, 50);
+        EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config);
+        EXPECT_TRUE(options::StepRow(row, config, direction));
+        EXPECT_EQ(row.value(config), "NTSC (fallback)");
+        EXPECT_EQ(config.timing, TimingProfile::Ntsc);
+        EXPECT_DOUBLE_EQ(config.tick_rate, 60);
+        EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config);
+        EXPECT_EQ(TimingGetProfile(), TimingProfile::Pal);
+        EXPECT_DOUBLE_EQ(TimingGetTickRate(), 50);
+        EXPECT_FALSE(options::GameplayTimingPending(config));
+    }
+    config.tick_rate = 55;
+    EXPECT_EQ(row.value(config), "Custom (fallback)");
+}
+
+TEST(PcOptions, FallbackNoticeReplacesOnlyTheTimingRowsHelp) {
+    ScopedTimingProfile timing(TimingProfile::Ntsc);
+    Config              config;
+    for (const auto &page : options::Pages()) {
+        for (const auto &row : page.rows) {
+            EXPECT_EQ(options::RowHelp(row, config), row.help) << row.key;
+        }
+    }
+    TimingUsePalFallback();
+    for (const auto &page : options::Pages()) {
+        for (const auto &row : page.rows) {
+            if (row.key == "game.timing") {
+                EXPECT_NE(options::RowHelp(row, config).find("running PAL"), std::string::npos);
+            } else {
+                EXPECT_EQ(options::RowHelp(row, config), row.help) << row.key;
+            }
+        }
     }
 }
 

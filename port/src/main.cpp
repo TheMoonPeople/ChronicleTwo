@@ -10,6 +10,7 @@
 
 #include "audio/soundtrack.hpp"
 #include "dataread.hpp"
+#include "dataread_port.hpp"
 #include "exitcodes.hpp"
 #include "gfx/gfx.hpp"
 #include "identity.hpp"
@@ -268,6 +269,10 @@ int Run(int argc, const char **argv) {
     ConfigLoad();
     TimingLatch(ConfigGet().timing, ConfigGet().tick_rate);
     FirstRunRequireData(PathsDataRoot(), options.headless);
+    InitCDFile();
+    if (!DataReadPrepareScriptTiming(options.headless)) {
+        return kExitScriptTiming;
+    }
     const HostSettings &settings = SettingsGet();
     const bool          offscreen = options.offscreen || (options.headless && !gfx::HeadlessSurfaceAvailable());
 
@@ -307,7 +312,6 @@ int Run(int argc, const char **argv) {
 
     MainThreadPriority = 10;
     KzThreadsSetMainPriority(MainThreadPriority);
-    InitCDFile();
     if (options.frames > 0) {
         mgPortSetScreenshotOptions({.display_frames = options.screenshot_display, .fps = options.screenshot_fps});
         mgPortExitAfterFrames(options.frames, options.screenshot);

@@ -1,10 +1,13 @@
 #include "common.h"
 
+#include <SDL3/SDL.h>
 #include <eekernel.h>
 #include <sifdev.h>
 
 #include <algorithm>
 #include <array>
+#include <cassert>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -15,15 +18,17 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include "dataread.hpp"
 #include "dataread_port.hpp"
-#include "exitcodes.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/paths.hpp"
 #include "platform/texture_catalog.hpp"
 #include "script_timing.hpp"
 #include "texture_source.hpp"
+#include "timing.hpp"
 
 namespace fs = std::filesystem;
 
@@ -45,6 +50,7 @@ struct IndexedFile {
 };
 
 std::unordered_map<std::string, IndexedFile> file_index;
+std::unordered_set<std::string>              undecoded_script_warnings;
 bool                                         index_built;
 
 std::string current_dir;
@@ -181,21 +187,14 @@ int ReadWhole(const IndexedFile &file, void *buffer) {
     return static_cast<int>(size);
 }
 
-// The NTSC timing converts a script read from the data index before any loader or cache sees it. A
-// datapack's script is its author's, not the PAL release's, so it is left as it is.
-void ConvertScriptTiming(const std::string &key, const IndexedFile &file, void *buffer, int size) {
+// The NTSC timing converts scripts before any loader or cache sees them, including datapack scripts.
+bool ConvertScriptTiming(const std::string &key, void *buffer, int size) {
     if (size < 0 || !key.ends_with(".stb") || !script_timing::Active()) {
-        return;
+        return true;
     }
-    if (file.replaced) {
-        std::fprintf(stderr, "script timing: %s comes from a datapack and is not converted\n", key.c_str());
-        return;
-    }
-    if (!ScriptTimingPatch(key.c_str(), static_cast<unsigned char *>(buffer), static_cast<std::size_t>(size))) {
-        std::fprintf(stderr, "script timing: refusing to run %s with the NTSC timing; set game.timing to \"pal\" to play this data\n",
-                     key.c_str());
-        std::exit(kExitScriptTiming);
-    }
+    const bool ok = ScriptTimingPatch(key.c_str(), static_cast<unsigned char *>(buffer), static_cast<std::size_t>(size));
+    assert(ok && "script changed after startup timing validation");
+    return ok;
 }
 
 // sceOpen maps host0: onto the save tree, so this reads back whatever WriteFile put there. -1 when the
@@ -254,7 +253,9 @@ int ResolveFile(const char *name, const std::string &key, void *buffer, bool siz
     if (!size_only) {
         const int size = ReadWhole(*file, buffer);
         if (size >= 0) {
-            ConvertScriptTiming(key, *file, buffer, size);
+            if (!ConvertScriptTiming(key, buffer, size)) {
+                return -1;
+            }
             TextureSourceRegister(buffer, key, static_cast<std::size_t>(size));
         }
         return size;
@@ -375,6 +376,100 @@ std::optional<fs::path> DataReadFind(const char *game_name) {
         return std::nullopt;
     }
     return file->path;
+}
+
+std::vector<std::string> DataReadScriptKeys() {
+    std::vector<std::string> keys;
+    for (const auto &[key, file] : file_index) {
+        if (key.ends_with(".stb")) {
+            keys.push_back(key);
+        }
+    }
+    std::sort(keys.begin(), keys.end());
+    return keys;
+}
+
+ScriptTimingValidation DataReadValidateScriptTiming() {
+    ScriptTimingValidation report;
+    if (!script_timing::Active()) {
+        return report;
+    }
+    const auto                 start = std::chrono::steady_clock::now();
+    const auto                 keys = DataReadScriptKeys();
+    std::vector<unsigned char> bytes;
+    script_timing::Options     options;
+    options.write = false;
+    options.windows = script_timing::CurrentAttackWindows();
+    for (const std::string &key : keys) {
+        report.files++;
+        const IndexedFile &file = file_index.at(key);
+        const auto         size = FileSize(file);
+        std::string        error;
+        if (!size || *size > static_cast<std::uintmax_t>(INT32_MAX)) {
+            error = "cannot read script size";
+        } else {
+            bytes.resize(std::max(kSector, PaddedSize(static_cast<std::size_t>(*size))));
+            const int read = ReadWhole(file, bytes.data());
+            if (read < 0) {
+                error = "cannot read script";
+            } else {
+                const auto result = script_timing::Apply(key, bytes.data(), static_cast<std::size_t>(read), options);
+                if (!result.ok) {
+                    error = result.error;
+                } else if (!result.decoded && undecoded_script_warnings.insert(key).second) {
+                    std::fprintf(stderr, "script timing startup: warning: %s is an unlisted, undecodable script; leaving it unchanged (%s)\n",
+                                 key.c_str(), result.error.c_str());
+                }
+            }
+        }
+        if (!error.empty()) {
+            report.errors.push_back(key + (file.replaced ? " [datapack]: " : ": ") + error);
+        }
+    }
+    report.seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+    return report;
+}
+
+bool DataReadPrepareScriptTiming(bool headless) {
+    if (!script_timing::Active()) {
+        return true;
+    }
+    const auto report = DataReadValidateScriptTiming();
+    std::fprintf(stderr, "script timing startup: %zu scripts, %zu mismatches, %.3f seconds\n",
+                 report.files, report.errors.size(), report.seconds);
+    if (report.errors.empty()) {
+        return true;
+    }
+    std::string message = "These scripts cannot use NTSC gameplay timing:\n\n";
+    for (std::size_t i = 0; i < report.errors.size(); ++i) {
+        std::fprintf(stderr, "script timing startup: %s\n", report.errors[i].c_str());
+        if (i < 8) {
+            message += report.errors[i] + "\n";
+        }
+    }
+    if (report.errors.size() > 8) {
+        message += "\nAdditional mismatches are listed in the log.\n";
+    }
+    if (headless) {
+        std::fprintf(stderr, "script timing startup: NTSC timing unavailable; refusing a headless PAL fallback\n");
+        return false;
+    }
+    message += "\nRun with PAL gameplay timing at 50 Hz for this session?\nYour saved settings will stay unchanged.";
+    if (!headless) {
+        const SDL_MessageBoxButtonData buttons[] = {
+            {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Run with PAL timing"},
+            {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "Quit"               },
+        };
+        const SDL_MessageBoxData dialog = {SDL_MESSAGEBOX_WARNING, nullptr, "Dark Chronicle — Script timing",
+                                           message.c_str(), 2, buttons, nullptr};
+        int                      choice = 0;
+        if (!SDL_ShowMessageBox(&dialog, &choice) || choice != 1) {
+            return false;
+        }
+    }
+    TimingUsePalFallback();
+    std::fprintf(stderr, "script timing startup: running with PAL timing at 50 Hz for this session; saved settings unchanged\n");
+    return true;
 }
 
 PORT_OVERRIDE void InitCDFile() {

@@ -5,6 +5,7 @@
 namespace {
 TimingProfile g_profile = TimingProfile::Pal;
 double        g_tick_rate = 50;
+bool          g_fell_back = false;
 } // namespace
 
 bool PortTimingIsPal = true;
@@ -29,6 +30,11 @@ void TimingUsePalFallback() {
     g_profile = TimingProfile::Pal;
     PortTimingIsPal = true;
     g_tick_rate = 50;
+    g_fell_back = true;
+}
+
+bool TimingFellBack() {
+    return g_fell_back;
 }
 
 double TimingGetTickRate() {

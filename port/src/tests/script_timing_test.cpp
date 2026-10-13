@@ -2,11 +2,13 @@
 
 #include <algorithm>
 #include <bit>
+#include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <map>
 #include <optional>
 #include <string>
@@ -16,6 +18,7 @@
 #include "dataread_port.hpp"
 #include "runscript.hpp"
 #include "script_timing.hpp"
+#include "timing_support.hpp"
 
 namespace fs = std::filesystem;
 using script_timing::Expected;
@@ -279,10 +282,12 @@ TEST(ScriptTiming, Op22MarkerIsANoOp) {
         0, 0, Join({Record({Push(7), {kOp22, 0x4E544D54, 0x02030004}, Op(kOp22, 5)}), Record({Push(9)}), ReturnZero()}
           )
     };
-    Built built = Assemble({
-                               prog
+
+    auto built = Assemble({
+                              prog
     },
-                           {{100, 0}}, 0);
+                          {{100, 0}}, 0);
+
     VmRun run = Execute(built.bytes, 100);
     ASSERT_EQ(run.values.size(), 2u);
     EXPECT_EQ(IntAt(run, 0), 7);
@@ -295,15 +300,17 @@ TEST(ScriptTiming, EventWaitHelperRunsNtscFields) {
         0, 0, Join({{Push(30), Call(1), Op(kPop)}, ReturnZero()}
           )
     };
-    Built built = Assemble({
-                               prog, EventWait()
+
+    auto built = Assemble({
+                              prog, EventWait()
     },
-                           {{100, 0}}, 0);
+                          {{100, 0}}, 0);
+
     EXPECT_EQ(Execute(built.bytes, 100).waits, 26); // PAL: (30 * 50) / 60 + 1
 
-    std::vector<unsigned char> bytes = built.bytes;
-    Result                     result = Convert("map/x/x01_1.stb", bytes, Want({
-                                                                              {script_timing::kEventAssign, 1}
+    auto bytes = built.bytes;
+    auto result = Convert("map/x/x01_1.stb", bytes, Want({
+                                                        {script_timing::kEventAssign, 1}
     }));
     ASSERT_TRUE(result.ok) << result.error;
     EXPECT_EQ(result.writes, 4);
@@ -311,9 +318,9 @@ TEST(ScriptTiming, EventWaitHelperRunsNtscFields) {
     EXPECT_EQ(Execute(bytes, 100).waits, 31); // NTSC: 30 + 1
 
     // A second pass recognises its own markers and writes nothing.
-    std::vector<unsigned char> again = bytes;
-    Result                     second = Convert("map/x/x01_1.stb", again, Want({
-                                                                              {script_timing::kEventAssign, 1}
+    auto again = bytes;
+    auto second = Convert("map/x/x01_1.stb", again, Want({
+                                                        {script_timing::kEventAssign, 1}
     }));
     ASSERT_TRUE(second.ok) << second.error;
     EXPECT_EQ(second.writes, 0);
@@ -326,10 +333,12 @@ TEST(ScriptTiming, MonsterConvertBecomesIdentityAndKeepsIntegers) {
         1, 0, Join({Record({Push(7), Call(1)}), Record({Push(8), Call(1)}), Record({Push(10), Call(1)}), Record({Push(12), Call(1)}), {Lda(0), Push(9), Op(kStore), Op(kPop)}, Record({Load(0), Call(1)}), Record({PushF(8.75f), Call(1)}), ReturnZero()}
           )
     };
-    Built built = Assemble({
-                               prog, MonsterConvert()
+
+    auto built = Assemble({
+                              prog, MonsterConvert()
     },
-                           {{100, 0}}, 0);
+                          {{100, 0}}, 0);
+
     VmRun pal = Execute(built.bytes, 100);
     ASSERT_EQ(pal.values.size(), 6u);
     EXPECT_EQ(IntAt(pal, 0), 5);
@@ -339,9 +348,9 @@ TEST(ScriptTiming, MonsterConvertBecomesIdentityAndKeepsIntegers) {
     EXPECT_EQ(IntAt(pal, 4), 7);
     EXPECT_EQ(IntAt(pal, 5), 7);
 
-    std::vector<unsigned char> bytes = built.bytes;
-    Result                     result = Convert("dungeon/monster/x.stb", bytes, Want({
-                                                                                    {script_timing::kMonsterConvert, 1}
+    auto bytes = built.bytes;
+    auto result = Convert("dungeon/monster/x.stb", bytes, Want({
+                                                              {script_timing::kMonsterConvert, 1}
     }));
     ASSERT_TRUE(result.ok) << result.error;
     EXPECT_EQ(result.writes, 5);
@@ -361,12 +370,14 @@ TEST(ScriptTiming, ConvertIsOnlyRecognisedAsAWholeHelper) {
         1, 1, Join({{Load(0), Op(kItof), PushF(30.0f), Op(kDiv), PushF(25.0f), Op(kMul), Op(kFtoi), Op(kPop)}, ReturnZero()}
           )
     };
-    Built                      built = Assemble({
-                                                    prog
+
+    auto built = Assemble({
+                              prog
     },
-                                                {{100, 0}}, 0);
-    std::vector<unsigned char> bytes = built.bytes;
-    Result                     result = Convert("dungeon/monster/x.stb", bytes, Want({}));
+                          {{100, 0}}, 0);
+
+    auto bytes = built.bytes;
+    auto result = Convert("dungeon/monster/x.stb", bytes, Want({}));
     ASSERT_TRUE(result.ok) << result.error;
     EXPECT_EQ(result.writes, 0);
     EXPECT_EQ(bytes, built.bytes);
@@ -377,17 +388,19 @@ TEST(ScriptTiming, IntegerHelpersKeepShortWaits) {
         0, 0, Join({{Push(8), Call(1), Op(kPop)}, Record({Push(40), Push(30), Op(kDiv), Push(25), Op(kMul)}), ReturnZero()}
           )
     };
-    Built built = Assemble({
-                               prog, IntegerWait()
+
+    auto built = Assemble({
+                              prog, IntegerWait()
     },
-                           {{100, 0}}, 0);
+                          {{100, 0}}, 0);
+
     VmRun pal = Execute(built.bytes, 100);
     EXPECT_EQ(pal.waits, 0); // (8 / 30) * 25 = 0
     EXPECT_EQ(IntAt(pal, 0), 25);
 
-    std::vector<unsigned char> bytes = built.bytes;
-    Result                     result = Convert("dungeon/eff_script/x.stb", bytes, Want({
-                                                                                       {script_timing::kInteger3025, 2}
+    auto bytes = built.bytes;
+    auto result = Convert("dungeon/eff_script/x.stb", bytes, Want({
+                                                                 {script_timing::kInteger3025, 2}
     }));
     ASSERT_TRUE(result.ok) << result.error;
     VmRun ntsc = Execute(bytes, 100);
@@ -406,10 +419,12 @@ TEST(ScriptTiming, EventInlineSitesAndTheLipSyncCue) {
         2, 0, Join({{Lda(0), Push(0), Op(kStore), Op(kPop), Op(kOp22, 0), Load(0), Push(45), Push(50), Op(kMul), Push(60), Op(kDiv), Op(kCmp, RS_CMP_LT), Jf(21), Op(kWait), Lda(0), Load(0), Push(1), Op(kAdd), Op(kStore), Op(kPop), Jmp(4), Op(kOp22, 1), Lda(1), Push(36), Op(kStore), Op(kPop)}, Record({Load(1), Push(50), Op(kMul), Push(60), Op(kDiv)}), {Push(0), Push(90), Push(30), Call(1), Op(kPop)}, ReturnZero()}
           )
     };
-    Built built = Assemble({
-                               prog, cue
+
+    auto built = Assemble({
+                              prog, cue
     },
-                           {{100, 0}}, 0);
+                          {{100, 0}}, 0);
+
     VmRun pal = Execute(built.bytes, 100);
     EXPECT_EQ(pal.waits, 37);
     ASSERT_EQ(pal.values.size(), 3u);
@@ -417,11 +432,11 @@ TEST(ScriptTiming, EventInlineSitesAndTheLipSyncCue) {
     EXPECT_EQ(IntAt(pal, 1), 75);
     EXPECT_EQ(IntAt(pal, 2), 62);
 
-    std::vector<unsigned char> bytes = built.bytes;
-    Result                     result = Convert("map/x/x01_1.stb", bytes, Want({
-                                                                              {script_timing::kEventAssign, 1},
-                                                                              {script_timing::kEventCue,    1},
-                                                                              {script_timing::kEventInline, 2}
+    auto bytes = built.bytes;
+    auto result = Convert("map/x/x01_1.stb", bytes, Want({
+                                                        {script_timing::kEventAssign, 1},
+                                                        {script_timing::kEventCue,    1},
+                                                        {script_timing::kEventInline, 2}
     }));
     ASSERT_TRUE(result.ok) << result.error;
     EXPECT_EQ(result.writes, 4 + 8 + 4 + 4);
@@ -434,21 +449,23 @@ TEST(ScriptTiming, EventInlineSitesAndTheLipSyncCue) {
 }
 
 TEST(ScriptTiming, FloatAndInverseForms) {
-    Fn    prog{0, 0, Join({Record({PushF(30.0f), PushF(50.0f), Op(kMul), PushF(60.0f), Op(kDiv)}), Record({Push(121), Push(60), Op(kDiv), Push(50), Op(kMul)}), Record({PushF(0.8f), PushF(120.0f), Op(kDiv), PushF(60.0f), Op(kDiv), PushF(50.0f), Op(kMul)}), ReturnZero()})};
-    Built built = Assemble({
-                               prog
+    Fn prog{0, 0, Join({Record({PushF(30.0f), PushF(50.0f), Op(kMul), PushF(60.0f), Op(kDiv)}), Record({Push(121), Push(60), Op(kDiv), Push(50), Op(kMul)}), Record({PushF(0.8f), PushF(120.0f), Op(kDiv), PushF(60.0f), Op(kDiv), PushF(50.0f), Op(kMul)}), ReturnZero()})};
+
+    auto built = Assemble({
+                              prog
     },
-                           {{100, 0}}, 0);
+                          {{100, 0}}, 0);
+
     VmRun pal = Execute(built.bytes, 100);
     EXPECT_FLOAT_EQ(FloatAt(pal, 0), 25.0f);
     EXPECT_EQ(IntAt(pal, 1), 100);
 
-    std::vector<unsigned char> bytes = built.bytes;
-    Result                     result = Convert("map/x/x01_1.stb", bytes,
-                                                Want({
-                                                    {script_timing::kEventInlineFloat,  1},
-                                                    {script_timing::kEventInverse,      1},
-                                                    {script_timing::kEventInverseFloat, 1}
+    auto bytes = built.bytes;
+    auto result = Convert("map/x/x01_1.stb", bytes,
+                          Want({
+                              {script_timing::kEventInlineFloat,  1},
+                              {script_timing::kEventInverse,      1},
+                              {script_timing::kEventInverseFloat, 1}
     }));
     ASSERT_TRUE(result.ok) << result.error;
     VmRun ntsc = Execute(bytes, 100);
@@ -469,19 +486,21 @@ TEST(ScriptTiming, NearMissesAndStringBytesAreLeftAlone) {
           ),
         pattern
     };
-    Built                      built = Assemble({
-                                                    prog
+
+    auto built = Assemble({
+                              prog
     },
-                                                {{100, 0}}, 0);
-    std::vector<unsigned char> bytes = built.bytes;
-    Result                     result = Convert("map/x/x01_1.stb", bytes, Want({}));
+                          {{100, 0}}, 0);
+
+    auto bytes = built.bytes;
+    auto result = Convert("map/x/x01_1.stb", bytes, Want({}));
     ASSERT_TRUE(result.ok) << result.error;
     EXPECT_EQ(result.writes, 0);
     EXPECT_EQ(bytes, built.bytes);
 
     // Expecting a site that is not there refuses the file and writes nothing.
-    Result refused = Convert("map/x/x01_1.stb", bytes, Want({
-                                                           {script_timing::kEventInline, 1}
+    auto refused = Convert("map/x/x01_1.stb", bytes, Want({
+                                                         {script_timing::kEventInline, 1}
     }));
     EXPECT_FALSE(refused.ok);
     EXPECT_EQ(bytes, built.bytes);
@@ -492,25 +511,27 @@ TEST(ScriptTiming, InvalidScriptsAreRefused) {
         0, 0, Join({{Push(30), Call(1), Op(kPop)}, ReturnZero()}
           )
     };
-    Built          built = Assemble({
-                                        prog, EventWait()
+
+    auto built = Assemble({
+                              prog, EventWait()
     },
-                                    {{100, 0}}, 0);
+                          {{100, 0}}, 0);
+
     const Expected want = Want({
         {script_timing::kEventAssign, 1}
     });
 
     auto refused = [&](std::vector<unsigned char> bytes, const char *what) {
-        const std::vector<unsigned char> before = bytes;
-        Result                           result = Convert("map/x/x01_1.stb", bytes, want);
+        const auto before = bytes;
+        auto       result = Convert("map/x/x01_1.stb", bytes, want);
         EXPECT_FALSE(result.ok) << what;
         EXPECT_FALSE(result.decoded) << what;
         EXPECT_EQ(bytes, before) << what;
     };
     refused(std::vector<unsigned char>(built.bytes.begin(), built.bytes.end() - 20), "truncated in an instruction");
     refused(std::vector<unsigned char>(built.bytes.begin(), built.bytes.begin() + 0x10), "truncated header");
-    std::vector<unsigned char> bad = built.bytes;
-    std::int32_t               far = 0x7FFFFF00;
+    auto         bad = built.bytes;
+    std::int32_t far = 0x7FFFFF00;
     std::memcpy(bad.data() + 8, &far, 4);
     refused(bad, "code offset past the end");
     bad = built.bytes;
@@ -525,7 +546,7 @@ TEST(ScriptTiming, InvalidScriptsAreRefused) {
 
     // An unknown file that is not a valid script is passed through unchanged.
     std::vector<unsigned char> junk(64, 0xAB);
-    Result                     result = script_timing::Apply("map/x/unknown.stb", junk.data(), junk.size());
+    auto                       result = script_timing::Apply("map/x/unknown.stb", junk.data(), junk.size());
     EXPECT_TRUE(result.ok);
     EXPECT_FALSE(result.decoded);
 }
@@ -536,30 +557,32 @@ TEST(ScriptTiming, LanguageAnchorsWriteNtscLiteralsOnce) {
         4, 0, Join({{LdaF(2), PushF(0.0f), Op(kStore), Op(kPop), Lda(3), Push(0), Op(kStore), Op(kPop), Op(kOp22, 0), Load(3), Push(33), Op(kCmp, RS_CMP_LT), Jf(31), LdaF(2), LoadF(2), {kPush, RS_CONST_FLOAT, 0x40490fdb}, PushF(20.0f), Op(kDiv), PushF(1.2f), Op(kMul), Op(kAdd), Op(kStore), Op(kPop), Op(kWait), Lda(3), Load(3), Push(1), Op(kAdd), Op(kStore), Op(kPop), Jmp(8), Op(kOp22, 1)}, Record({LoadF(2)}), ReturnZero()}
           )
     };
-    Built built = Assemble({
-                               prog
+
+    auto built = Assemble({
+                              prog
     },
-                           {{100, 0}}, 0);
+                          {{100, 0}}, 0);
+
     VmRun pal = Execute(built.bytes, 100);
     EXPECT_EQ(pal.waits, 33);
 
     for (const char *key : {"map/s/s03/s03_1.stb", "map/s/s03/s03_4.stb"}) {
-        std::vector<unsigned char> bytes = built.bytes;
-        Result                     result = Convert(key, bytes, Want({}, 2));
+        auto bytes = built.bytes;
+        auto result = Convert(key, bytes, Want({}, 2));
         ASSERT_TRUE(result.ok) << key << ": " << result.error;
         EXPECT_EQ(result.counts.anchors, 2);
         EXPECT_EQ(result.writes, 3);
         VmRun ntsc = Execute(bytes, 100);
         EXPECT_EQ(ntsc.waits, 40);
         EXPECT_NEAR(FloatAt(ntsc, 0), 2.0f * 3.1415927f, 1e-4f);
-        std::vector<unsigned char> again = bytes;
-        Result                     second = Convert(key, again, Want({}, 2));
+        auto again = bytes;
+        auto second = Convert(key, again, Want({}, 2));
         ASSERT_TRUE(second.ok) << second.error;
         EXPECT_EQ(second.writes, 0);
         EXPECT_EQ(again, bytes);
     }
     // The stem without a language digit, or another map, is not anchored.
-    std::vector<unsigned char> bytes = built.bytes;
+    auto bytes = built.bytes;
     EXPECT_TRUE(Convert("map/s/s03/s03.stb", bytes, Want({})).ok);
     EXPECT_FALSE(Convert("map/s/s03/s03_1.stb", bytes, Want({}, 1)).ok);
 }
@@ -587,15 +610,17 @@ TEST(ScriptTiming, AttackWindowsFollowTheirPolicy) {
     for (I i : {PushF(0.4f), PushF(0.45f), Op(kCmp, RS_CMP_LE), Op(kPop), Push(0), Op(kRet)}) {
         code.push_back(i);
     }
-    Built built = Assemble({
-                               {0, 0, code}
+
+    auto built = Assemble({
+                              {0, 0, code}
     },
-                           programs, 0);
+                          programs, 0);
+
     ASSERT_EQ(built.code_at[0], code_at);
     Execute(built.bytes, 100);
 
-    std::vector<unsigned char> ntsc = built.bytes;
-    Result                     result = Convert("mainchr/c02.stb", ntsc, Want({}, 0, 2));
+    auto ntsc = built.bytes;
+    auto result = Convert("mainchr/c02.stb", ntsc, Want({}, 0, 2));
     ASSERT_TRUE(result.ok) << result.error;
     EXPECT_EQ(result.writes, 2);
     float value;
@@ -604,8 +629,8 @@ TEST(ScriptTiming, AttackWindowsFollowTheirPolicy) {
     std::memcpy(&value, ntsc.data() + 0xb3bc + 8, 4);
     EXPECT_EQ(value, 0.42f);
 
-    std::vector<unsigned char> pal = built.bytes;
-    Result                     kept = Convert("mainchr/c02.stb", pal, Want({}, 0, 2), script_timing::AttackWindows::Pal);
+    auto pal = built.bytes;
+    auto kept = Convert("mainchr/c02.stb", pal, Want({}, 0, 2), script_timing::AttackWindows::Pal);
     ASSERT_TRUE(kept.ok) << kept.error;
     EXPECT_EQ(kept.writes, 0);
     EXPECT_EQ(pal, built.bytes);
@@ -618,24 +643,192 @@ TEST(ScriptTiming, InventoryRowsAreSortedAndKnownScriptsAreRefused) {
     EXPECT_EQ(script_timing::Find("map/s/s01/s01.stb"), nullptr);
     EXPECT_EQ(script_timing::Key("MAP\\S\\S01\\S01_1.STB"), "map/s/s01/s01_1.stb");
     // A known script whose bytes are not the PAL release's is refused, without writing.
-    Fn                         prog{0, 0, ReturnZero()};
-    Built                      built = Assemble({
-                                                    prog
+    Fn prog{0, 0, ReturnZero()};
+
+    auto built = Assemble({
+                              prog
     },
-                                                {{100, 0}}, 0);
-    std::vector<unsigned char> bytes = built.bytes;
+                          {{100, 0}}, 0);
+
+    auto bytes = built.bytes;
     EXPECT_FALSE(script_timing::Patch("map/s/s01/s01_1.stb", bytes.data(), bytes.size()));
     EXPECT_EQ(bytes, built.bytes);
     // An unknown script without conversions passes; one with a conversion is refused.
     EXPECT_TRUE(script_timing::Patch("map/x/x99_1.stb", bytes.data(), bytes.size()));
-    Built                      wait = Assemble({
-                                                   {0, 0, Join({{Push(3), Call(1), Op(kPop)}, ReturnZero()})},
-                                                   EventWait()
+    auto wait = Assemble({
+                             {0, 0, Join({{Push(3), Call(1), Op(kPop)}, ReturnZero()})},
+                             EventWait()
     },
-                                               {{100, 0}}, 0);
-    std::vector<unsigned char> unknown = wait.bytes;
+                         {{100, 0}}, 0);
+    auto unknown = wait.bytes;
     EXPECT_FALSE(script_timing::Patch("map/x/x99_1.stb", unknown.data(), unknown.size()));
     EXPECT_EQ(unknown, wait.bytes);
+}
+
+namespace {
+
+constexpr const char *kStartupScript = "dungeon/eff_script/b02a_hibasira.stb";
+
+Built StartupScript() {
+    return Assemble({
+                        {0, 0, Join({Record({Push(40), Push(30), Op(kDiv), Push(25), Op(kMul)}), ReturnZero()})}
+    },
+                    {{100, 0}}, 0);
+}
+
+class ScriptTimingStartup : public testing::Test {
+protected:
+    ScopedTimingProfile timing;
+    fs::path            base = fs::temp_directory_path() / ("script_timing_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    fs::path            root = base / "data";
+
+    void SetUp() override {
+        TimingLatch(TimingProfile::Ntsc, 60);
+        script_timing::SetActiveOverride(std::nullopt);
+        InitFileCache(nullptr, FILE_CACHE_NONE);
+        SetCurrentDir(nullptr);
+    }
+
+    void TearDown() override {
+        script_timing::SetActiveOverride(std::nullopt);
+        std::error_code error;
+        fs::remove_all(base, error);
+    }
+
+    void Write(const fs::path &path, const std::vector<unsigned char> &bytes) {
+        fs::create_directories(path.parent_path());
+        std::ofstream out(path, std::ios::binary);
+        out.write(reinterpret_cast<const char *>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
+    }
+
+    void Replace(const std::vector<unsigned char> &bytes) {
+        Write(root / kStartupScript, StartupScript().bytes);
+        Write(base / "datapacks/test" / kStartupScript, bytes);
+        std::ofstream(base / "datapacks/datapacks.json") << R"({"schema_version":1,"load_order":["test"]})";
+    }
+
+    std::vector<unsigned char> Load() {
+        std::string name = std::string("/") + kStartupScript;
+        int         size = 0;
+        EXPECT_EQ(LoadFile2(name.data(), nullptr, &size, LOAD_FILE_SIZE), 1);
+        std::vector<unsigned char> bytes((static_cast<std::size_t>(size) + DATAREAD_SECTOR_SIZE - 1) &
+                                         ~std::size_t(DATAREAD_SECTOR_SIZE - 1));
+        EXPECT_EQ(LoadFile2(name.data(), bytes.data(), &size, LOAD_FILE_READ), 1);
+        bytes.resize(static_cast<std::size_t>(size));
+        return bytes;
+    }
+};
+
+} // namespace
+
+TEST_F(ScriptTimingStartup, HeadlessExtractedMismatchRefusesPalFallback) {
+    const auto bad = Assemble({
+                                  {0, 0, ReturnZero()}
+    },
+                              {{100, 0}}, 0)
+                         .bytes;
+    Write(root / kStartupScript, bad);
+    DataReadIndex(root);
+    const auto report = DataReadValidateScriptTiming();
+    EXPECT_EQ(report.files, 1u);
+    ASSERT_EQ(report.errors.size(), 1u);
+    EXPECT_NE(report.errors[0].find(kStartupScript), std::string::npos);
+    testing::internal::CaptureStderr();
+    EXPECT_FALSE(DataReadPrepareScriptTiming(true));
+    const auto log = testing::internal::GetCapturedStderr();
+    EXPECT_NE(log.find(kStartupScript), std::string::npos);
+    EXPECT_NE(log.find("refusing a headless PAL fallback"), std::string::npos);
+    EXPECT_FALSE(PortPalTiming());
+    EXPECT_DOUBLE_EQ(TimingGetTickRate(), 60);
+    TimingLatch(TimingProfile::Ntsc, 60);
+    EXPECT_FALSE(PortPalTiming());
+}
+
+TEST_F(ScriptTimingStartup, MatchingDatapackIsValidatedAndConverted) {
+    const auto original = StartupScript().bytes;
+    Replace(original);
+    DataReadIndex(root);
+    const auto report = DataReadValidateScriptTiming();
+    EXPECT_EQ(report.files, 1u);
+    EXPECT_TRUE(report.errors.empty());
+    EXPECT_TRUE(DataReadPrepareScriptTiming(true));
+    EXPECT_FALSE(PortPalTiming());
+    auto expected = original;
+    ASSERT_TRUE(script_timing::Apply(kStartupScript, expected.data(), expected.size()).ok);
+    EXPECT_NE(expected, original);
+    EXPECT_EQ(Load(), expected);
+    std::ifstream                    disk(base / "datapacks/test" / kStartupScript, std::ios::binary);
+    const std::vector<unsigned char> unchanged((std::istreambuf_iterator<char>(disk)), {});
+    EXPECT_EQ(unchanged, original);
+}
+
+TEST_F(ScriptTimingStartup, HeadlessMismatchingDatapackRefusesPalFallback) {
+    // The replacement changed PAL's divisor, so the known recipe no longer matches.
+    auto      bad = StartupScript();
+    const int divisor = 31;
+    std::memcpy(bad.bytes.data() + bad.code_at[0] + 2 * 12 + 8, &divisor, sizeof divisor);
+    Replace(bad.bytes);
+    DataReadIndex(root);
+    const auto report = DataReadValidateScriptTiming();
+    ASSERT_EQ(report.errors.size(), 1u);
+    EXPECT_NE(report.errors[0].find(std::string(kStartupScript) + " [datapack]"), std::string::npos);
+    testing::internal::CaptureStderr();
+    EXPECT_FALSE(DataReadPrepareScriptTiming(true));
+    const auto log = testing::internal::GetCapturedStderr();
+    EXPECT_NE(log.find(std::string(kStartupScript) + " [datapack]"), std::string::npos);
+    EXPECT_FALSE(PortPalTiming());
+}
+
+TEST_F(ScriptTimingStartup, UnlistedUndecodableScriptStaysUnchangedAndWarnsOnce) {
+    const std::vector<unsigned char> bytes{'n', 'o', 't', ' ', 'S', 'B', '2'};
+    Write(root / "unknown-undecodable.stb", bytes);
+    DataReadIndex(root);
+    testing::internal::CaptureStderr();
+    EXPECT_TRUE(DataReadValidateScriptTiming().errors.empty());
+    EXPECT_TRUE(DataReadValidateScriptTiming().errors.empty());
+    EXPECT_TRUE(DataReadPrepareScriptTiming(true));
+    const auto log = testing::internal::GetCapturedStderr();
+    const auto first = log.find("warning: unknown-undecodable.stb");
+    ASSERT_NE(first, std::string::npos);
+    EXPECT_EQ(log.find("warning: unknown-undecodable.stb", first + 1), std::string::npos);
+    EXPECT_FALSE(PortPalTiming());
+    std::string               name = "/unknown-undecodable.stb";
+    alignas(64) unsigned char loaded[DATAREAD_SECTOR_SIZE]{};
+    int                       size = 0;
+    ASSERT_EQ(LoadFile2(name.data(), loaded, &size, LOAD_FILE_READ), 1);
+    EXPECT_EQ(size, static_cast<int>(bytes.size()));
+    EXPECT_EQ(std::vector<unsigned char>(loaded, loaded + size), bytes);
+}
+
+TEST_F(ScriptTimingStartup, UnlistedConversionsAreReportedAndPalSkipsValidation) {
+    const auto unknown = Assemble({
+                                      {0, 0, Join({{Push(3), Call(1), Op(kPop)}, ReturnZero()})},
+                                      EventWait()
+    },
+                                  {{100, 0}}, 0);
+    Write(root / "map/x/x99_1.stb", unknown.bytes);
+    Write(root / "not-a-script.bin", unknown.bytes);
+    DataReadIndex(root);
+    auto report = DataReadValidateScriptTiming();
+    EXPECT_EQ(report.files, 1u);
+    ASSERT_EQ(report.errors.size(), 1u);
+    EXPECT_NE(report.errors[0].find("map/x/x99_1.stb"), std::string::npos);
+    TimingUsePalFallback();
+    report = DataReadValidateScriptTiming();
+    EXPECT_EQ(report.files, 0u);
+    EXPECT_TRUE(report.errors.empty());
+}
+
+TEST_F(ScriptTimingStartup, EachAssetLogsOnlyOnceAcrossReloads) {
+    auto first = StartupScript().bytes;
+    auto second = first;
+    testing::internal::CaptureStderr();
+    EXPECT_TRUE(script_timing::Patch("dungeon/eff_script/m_curse_h.stb", first.data(), first.size()));
+    EXPECT_TRUE(script_timing::Patch("DUNGEON/eff_script/m_curse_h.stb", second.data(), second.size()));
+    EXPECT_TRUE(script_timing::Patch("dungeon/eff_script/m_curse_h.stb", second.data(), second.size()));
+    const auto log = testing::internal::GetCapturedStderr();
+    EXPECT_EQ(std::count(log.begin(), log.end(), '\n'), 1);
+    EXPECT_EQ(first, second);
 }
 
 // ---------------------------------------------------------------- real data
@@ -647,19 +840,20 @@ struct DataScripts {
     std::vector<std::string> keys;
 };
 
-std::optional<DataScripts> Scripts() {
+std::optional<DataScripts> ReadScripts() {
     const char *data = std::getenv("DC2_DATA");
     if (!data || !fs::is_directory(data)) {
         return std::nullopt;
     }
-    DataScripts     scripts{fs::path(data), {}};
-    std::error_code error;
-    for (auto it = fs::recursive_directory_iterator(scripts.root, error); !error && it != fs::recursive_directory_iterator(); it.increment(error)) {
-        if (it->is_regular_file() && script_timing::Key(it->path().extension().generic_string()) == ".stb") {
-            scripts.keys.push_back(script_timing::Key(it->path().lexically_relative(scripts.root).generic_string()));
-        }
-    }
-    std::sort(scripts.keys.begin(), scripts.keys.end());
+    DataReadIndex(fs::path(data));
+    InitFileCache(nullptr, FILE_CACHE_NONE);
+    SetCurrentDir(nullptr);
+    return DataScripts{fs::path(data), DataReadScriptKeys()};
+}
+
+const std::optional<DataScripts> &Scripts() {
+    // The index and key list are shared by all real-data cases in this binary.
+    static const auto scripts = ReadScripts();
     return scripts;
 }
 
@@ -698,11 +892,10 @@ std::string ShardOf(const std::string &key) {
 // and to the same bytes again. Through the loader, the PAL timing hands out the file's own bytes and the
 // NTSC timing the converted ones.
 void CheckShard(const std::string &shard) {
-    auto scripts = Scripts();
+    const auto &scripts = Scripts();
     if (!scripts) {
         GTEST_SKIP() << "DC2_DATA supplies the extracted scripts";
     }
-    DataReadIndex(scripts->root);
 
     struct Restore {
         ~Restore() { script_timing::SetActiveOverride(std::nullopt); }
@@ -717,11 +910,11 @@ void CheckShard(const std::string &shard) {
             continue;
         }
         files++;
-        const std::vector<unsigned char> original = ReadAll(scripts->root / key);
-        std::vector<unsigned char>       bytes = original;
-        Options                          options;
+        const auto original = ReadAll(scripts->root / key);
+        auto       bytes = original;
+        Options    options;
         options.windows = script_timing::AttackWindows::Ntsc;
-        Result result = script_timing::Apply(key, bytes.data(), bytes.size(), options);
+        auto result = script_timing::Apply(key, bytes.data(), bytes.size(), options);
         EXPECT_TRUE(result.decoded) << key << ": " << result.error;
         EXPECT_TRUE(result.ok) << key << ": " << result.error;
         ASSERT_EQ(bytes.size(), original.size());
@@ -738,8 +931,8 @@ void CheckShard(const std::string &shard) {
         EXPECT_LE(changed_words, static_cast<std::size_t>(result.writes) * 3) << key;
         EXPECT_EQ(changed_words == 0, result.writes == 0) << key;
         if (result.known) {
-            std::vector<unsigned char> again = bytes;
-            Result                     second = script_timing::Apply(key, again.data(), again.size(), options);
+            auto again = bytes;
+            auto second = script_timing::Apply(key, again.data(), again.size(), options);
             EXPECT_TRUE(second.ok) << key << ": " << second.error;
             EXPECT_EQ(second.writes, 0) << key;
             EXPECT_EQ(second.counts, result.counts) << key;
@@ -846,7 +1039,7 @@ TEST(ScriptTimingRealData, Other) {
 }
 
 TEST(ScriptTimingRealData, EveryInventoryRowIsOnDisk) {
-    auto scripts = Scripts();
+    const auto &scripts = Scripts();
     if (!scripts) {
         GTEST_SKIP() << "DC2_DATA supplies the extracted scripts";
     }

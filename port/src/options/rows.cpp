@@ -91,12 +91,12 @@ Row GameplayTiming() {
     Row row{"game.timing", "Gameplay timing", "PAL (50 Hz) or NTSC (60 Hz).\nApplies after restarting the game."};
     row.value = [](const Config &c) {
         if (c.timing == TimingProfile::Pal && c.tick_rate == 50) {
-            return std::string("PAL (50 Hz)");
+            return std::string(TimingFellBack() ? "PAL (fallback)" : "PAL (50 Hz)");
         }
         if (c.timing == TimingProfile::Ntsc && c.tick_rate == 60) {
-            return std::string("NTSC (60 Hz)");
+            return std::string(TimingFellBack() ? "NTSC (fallback)" : "NTSC (60 Hz)");
         }
-        return std::string("Custom");
+        return std::string(TimingFellBack() ? "Custom (fallback)" : "Custom");
     };
     row.step = [](Config &c, int direction) {
         const bool pal = c.timing == TimingProfile::Pal && c.tick_rate == 50;
@@ -325,8 +325,21 @@ std::string ButtonName(std::string_view action, const Config &config) {
 }
 
 bool GameplayTimingPending(const Config &config) {
-    return config.timing != TimingGetProfile() || config.tick_rate != TimingGetTickRate();
+    return !TimingFellBack() && (config.timing != TimingGetProfile() || config.tick_rate != TimingGetTickRate());
 }
 
+std::string GameplayTimingNotice(const Config &config) {
+    if (TimingFellBack()) {
+        return "NTSC timing unavailable for this data; running PAL";
+    }
+    return GameplayTimingPending(config) ? "Timing: restart required" : "";
+}
+
+std::string RowHelp(const Row &row, const Config &config) {
+    if (row.key == "game.timing" && TimingFellBack()) {
+        return GameplayTimingNotice(config) + ".\nTiming changes apply after restarting the game.";
+    }
+    return row.help;
+}
 
 } // namespace options

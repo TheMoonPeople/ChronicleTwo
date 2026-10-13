@@ -17,4 +17,5 @@ private:
     bool          latched_;
     TimingProfile profile_;
     double        tick_rate_;
+    bool          fell_back_;
 };

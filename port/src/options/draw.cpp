@@ -77,7 +77,9 @@ void Draw() {
         const int   thumb_y = 100 + (count > shown ? (221 - thumb_h) * first / (count - shown) : 0);
         Fill(447, thumb_y, 3, thumb_h, 95, 67, 35);
         Text("PC SETTINGS", 83, 55, 190, true, 18);
-        if (GameplayTimingPending(config)) {
+        if (TimingFellBack()) {
+            Text("Timing: PAL fallback", 220, 58, 155, true, 12);
+        } else if (GameplayTimingPending(config)) {
             Text("Timing: restart required", 220, 58, 155, true, 12);
         }
         Text(std::format("{} / {}", g_screen.page + 1, Pages().size()), 385, 56, 60, false, 14);
@@ -119,9 +121,8 @@ void Draw() {
             Help("The display could not apply that mode.\nThe setting shows the mode the window kept.");
         } else if (g_screen.binding >= 0) {
             Help("Press a key or mouse button. Escape cancels.\nEscape is reserved and cannot be bound.");
-
         } else {
-            Help(page.rows[g_screen.row[g_screen.page]].help);
+            Help(RowHelp(page.rows[g_screen.row[g_screen.page]], config));
         }
         const auto        confirm = LanguageCode > 0 ? "cross" : "circle";
         const auto        cancel = LanguageCode > 0 ? "circle" : "cross";
