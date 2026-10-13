@@ -415,7 +415,7 @@ TEST(MgVisual, FacingFlagCullsBackFaces) {
 }
 
 TEST(MgVisual, RecordedDrawIsKeyedByFrame) {
-    VisualRenderer renderer(640, 480);
+    VisualRenderer renderer(64, 48);
     SetCamera();
 
     MdtFile file(CentreTriangle(false));

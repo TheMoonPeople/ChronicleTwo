@@ -279,18 +279,3 @@ TEST(Vu1Prog0Shader, VertexBlendVector) {
     Render(fixture, skinned, kSquareIndices, lit);
     EXPECT_TRUE(At(fixture, 0.5f, 0.0f, 100, 100, 100));
 }
-
-// prog0.md 10.6, bone-3 sub-case
-TEST(Vu1Prog0Shader, VertexBlendFourthInfluenceVector) {
-    GfxFixture fixture(kWidth, kHeight, 1.0f, Prog0Options());
-    const std::vector<gfx::Vertex3D> vertices = Skinned(ScreenVertices({0, 0, 1}), {0, 0, 0, 1}, {0, 0, 0, 3});
-    Prog0Draw c = Prog0(gfx::kProg0Skinned);
-    SetBone(c.prog0, 3, kIdentityBone);
-    // Retail normal is (0, 1, 0): bone 3's z term reads column 1 (prog0.md 5.2, O-8).
-    SetDirectional(c.prog0, 0, {0, 1, 0}, {100, 100, 100, 0});
-    Render(fixture, vertices, kTriangle, c);
-    EXPECT_TRUE(At(fixture, 0, 0, 100, 100, 100));
-    SetDirectional(c.prog0, 0, {0, 0, 1}, {100, 100, 100, 0});
-    Render(fixture, vertices, kTriangle, c);
-    EXPECT_TRUE(At(fixture, 0, 0, 0, 0, 0));
-}

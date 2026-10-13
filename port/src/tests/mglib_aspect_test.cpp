@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdint>
 #include <filesystem>
+#include <initializer_list>
 #include <string>
 #include <vector>
 
@@ -433,7 +434,7 @@ TEST(MglibAspect, MenuFormsHideParkedStatsWithoutClippingEnteringPanel) {
     MenuPosData = saved_layout;
 }
 
-static void ExpectMenuBackdropContinuation(int window_width, int window_height, int page = 0, int y_offset = 0) {
+static void ExpectMenuBackdropContinuation(int window_width, int window_height, int page = 0, std::initializer_list<int> y_offsets = {0}) {
     const bool             character = page == 1, invent = page == 2, options = page == 3;
     AspectRenderer         renderer(window_width, window_height);
     std::vector<u_long128> arena(4096), pixels(1024 * 1024 * 4 / 16);
@@ -471,68 +472,71 @@ static void ExpectMenuBackdropContinuation(int window_width, int window_height, 
     const std::vector<int> positions = character ? std::vector<int>{-400, -256, -80, -2, 0, 128, 400} : invent ? std::vector<int>{1}
                                                                                                     : options  ? std::vector<int>{-240, 0, 240}
                                                                                                                : std::vector<int>{0, -48, -96, -144, -192, 128, 400};
-    for (int left : positions) {
-        SCOPED_TRACE(left);
-        mgSetBackGround(0, 0, 0, 128);
-        mgBeginFrame(nullptr);
-        mgCDrawPrim prim;
-        SetSpriteEnv(&prim, MENU_SPRITE_ENV_TEXTURE);
-        prim.Bilinear(1);
-        prim.Begin(MG_PRIM_SPRITE);
-        prim.Texture(texture);
-        prim.Color(128, 128, 128, 128);
-        if (character) {
-            PrimQuad(&prim, mgRect<float>(left, -315, 513, 883), mgRect<int>(0, 0, uv_width, uv_height));
-        } else if (options) {
-            PrimQuad(&prim, mgRect<float>(left, -8 + y_offset, 512, 502), mgRect<int>(0, uv_top, uv_width, uv_height));
-        } else if (invent) {
-            PrimQuad(&prim, mgRect<float>(left, 0, 522, 481), mgRect<int>(0, uv_top, uv_width, uv_height));
-        } else {
-            PrimQuad(&prim, mgRect<int>(left, 0, 704, 480), mgRect<int>(0, 0, uv_width, uv_height));
-        }
-        prim.End();
-        mgEndFrame(nullptr);
-        std::vector<uint8_t> rgba;
-        uint32_t             width = 0, height = 0;
-        ASSERT_TRUE(mgPortCanonicalReadColor(gfx::kMainTarget, rgba, width, height));
-        for (float x : {-80.0f, -40.0f, 40.0f, 470.0f, 511.0f, 513.0f, 550.0f, 590.0f}) {
-            const int   sx = static_cast<int>(mapping.offset_x + x * mapping.scale_x);
-            const float logical_x = (sx + 0.5f - mapping.offset_x) / mapping.scale_x;
-            float       u = (logical_x - left) * uv_width / dest_width;
-            const auto  offset = (static_cast<size_t>(height / 2) * width + sx) * 4;
-            if (options && (240 < -8 + y_offset || 240 >= 494 + y_offset)) {
-                EXPECT_EQ(rgba[offset], 0) << "vertical slide lost its current position at x=" << x;
-                continue;
+    for (int y_offset : y_offsets) {
+        SCOPED_TRACE(y_offset);
+        for (int left : positions) {
+            SCOPED_TRACE(left);
+            mgSetBackGround(0, 0, 0, 128);
+            mgBeginFrame(nullptr);
+            mgCDrawPrim prim;
+            SetSpriteEnv(&prim, MENU_SPRITE_ENV_TEXTURE);
+            prim.Bilinear(1);
+            prim.Begin(MG_PRIM_SPRITE);
+            prim.Texture(texture);
+            prim.Color(128, 128, 128, 128);
+            if (character) {
+                PrimQuad(&prim, mgRect<float>(left, -315, 513, 883), mgRect<int>(0, 0, uv_width, uv_height));
+            } else if (options) {
+                PrimQuad(&prim, mgRect<float>(left, -8 + y_offset, 512, 502), mgRect<int>(0, uv_top, uv_width, uv_height));
+            } else if (invent) {
+                PrimQuad(&prim, mgRect<float>(left, 0, 522, 481), mgRect<int>(0, uv_top, uv_width, uv_height));
+            } else {
+                PrimQuad(&prim, mgRect<int>(left, 0, 704, 480), mgRect<int>(0, 0, uv_width, uv_height));
             }
-            // Reflection belongs only in the flanks: the field exposed inside
-            // the retail frame during a horizontal slide must remain visible.
-            if (logical_x >= 0 && logical_x < 512 && ((u < 0 && left > 2) || (u > uv_width && left + dest_width < 510))) {
-                EXPECT_EQ(rgba[offset], 0) << "reflection changed the retail slide at x=" << x;
-                continue;
+            prim.End();
+            mgEndFrame(nullptr);
+            std::vector<uint8_t> rgba;
+            uint32_t             width = 0, height = 0;
+            ASSERT_TRUE(mgPortCanonicalReadColor(gfx::kMainTarget, rgba, width, height));
+            for (float x : {-80.0f, -40.0f, 40.0f, 470.0f, 511.0f, 513.0f, 550.0f, 590.0f}) {
+                const int   sx = static_cast<int>(mapping.offset_x + x * mapping.scale_x);
+                const float logical_x = (sx + 0.5f - mapping.offset_x) / mapping.scale_x;
+                float       u = (logical_x - left) * uv_width / dest_width;
+                const auto  offset = (static_cast<size_t>(height / 2) * width + sx) * 4;
+                if (options && (240 < -8 + y_offset || 240 >= 494 + y_offset)) {
+                    EXPECT_EQ(rgba[offset], 0) << "vertical slide lost its current position at x=" << x;
+                    continue;
+                }
+                // Reflection belongs only in the flanks: the field exposed inside
+                // the retail frame during a horizontal slide must remain visible.
+                if (logical_x >= 0 && logical_x < 512 && ((u < 0 && left > 2) || (u > uv_width && left + dest_width < 510))) {
+                    EXPECT_EQ(rgba[offset], 0) << "reflection changed the retail slide at x=" << x;
+                    continue;
+                }
+                if (u < 0) {
+                    u = -u;
+                }
+                if (u > artwork_width) {
+                    u = 2 * artwork_width - u;
+                }
+                EXPECT_NEAR(rgba[offset + 1], 20 + static_cast<int>(u) / 3, 2) << "x=" << x;
+                EXPECT_GT(rgba[offset], 70) << "bare flank at x=" << x;
             }
-            if (u < 0) {
-                u = -u;
-            }
-            if (u > artwork_width) {
-                u = 2 * artwork_width - u;
-            }
-            EXPECT_NEAR(rgba[offset + 1], 20 + static_cast<int>(u) / 3, 2) << "x=" << x;
-            EXPECT_GT(rgba[offset], 70) << "bare flank at x=" << x;
-        }
-        // Bilinear filtering at either join must not sample transparent padding.
-        if (!options || (240 >= -8 + y_offset && 240 < 494 + y_offset)) {
-            for (float edge : {static_cast<float>(left), left + static_cast<float>(artwork_width) * dest_width / uv_width}) {
-                const int sx = static_cast<int>(mapping.offset_x + edge * mapping.scale_x);
-                for (int dx = -2; dx <= 2; ++dx) {
-                    if (sx + dx < 0 || sx + dx >= static_cast<int>(width)) {
-                        continue;
+            // Bilinear filtering at either join must not sample transparent padding.
+            if (!options || (240 >= -8 + y_offset && 240 < 494 + y_offset)) {
+                for (float edge : {static_cast<float>(left), left + static_cast<float>(artwork_width) * dest_width / uv_width}) {
+                    const int sx = static_cast<int>(mapping.offset_x + edge * mapping.scale_x);
+                    for (int dx = -2; dx <= 2; ++dx) {
+                        if (sx + dx < 0 || sx + dx >= static_cast<int>(width)) {
+                            continue;
+                        }
+                        const float join_x = (sx + dx + 0.5f - mapping.offset_x) / mapping.scale_x;
+                        if (join_x >= 0 && join_x < 512 &&
+                            (join_x < left || join_x > left + static_cast<float>(artwork_width) * dest_width / uv_width)) {
+                            continue;
+                        }
+                        EXPECT_GT(rgba[(static_cast<size_t>(height / 2) * width + sx + dx) * 4], 70);
                     }
-                    const float join_x = (sx + dx + 0.5f - mapping.offset_x) / mapping.scale_x;
-                    if (join_x >= 0 && join_x < 512 &&
-                        (join_x < left || join_x > left + static_cast<float>(artwork_width) * dest_width / uv_width)) {
-                        continue;
-                    }
-                    EXPECT_GT(rgba[(static_cast<size_t>(height / 2) * width + sx + dx) * 4], 70);
                 }
             }
         }
@@ -623,8 +627,5 @@ TEST(MglibAspect, OptionsAndHelpBackdropContinueArtworkAt3840x2160) {
 }
 
 TEST(MglibAspect, OptionsAndHelpFlanksFollowVerticalSlide) {
-    for (int offset : {-480, -240, 80, 240, 480}) {
-        SCOPED_TRACE(offset);
-        ExpectMenuBackdropContinuation(1920, 1080, 3, offset);
-    }
+    ExpectMenuBackdropContinuation(1920, 1080, 3, {-480, -240, 80, 240, 480});
 }
