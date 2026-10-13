@@ -4,6 +4,7 @@
 #include <string_view>
 
 #include "platform/settings.hpp"
+#include "timing.hpp"
 
 // The disc is the PAL release, so its logic runs at the PAL field rate, not the NTSC 60 the host defaults to.
 inline constexpr double kConfigTickRateDefault = 50.0;
@@ -20,6 +21,7 @@ struct Config : HostSettings {
 
     bool         interpolation = true;
     bool         debug_mode = false;
+    TimingProfile timing = TimingProfile::Pal;
     ConfigAspect aspect = ConfigAspect::Auto;
     float        ui_scale = 1.0f;
     bool         font_sharp = false;

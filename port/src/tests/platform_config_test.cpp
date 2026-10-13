@@ -13,6 +13,7 @@
 #include "platform/paths.hpp"
 #include "platform/settings.hpp"
 #include "platform_fixture.hpp"
+#include "timing_support.hpp"
 
 namespace fs = std::filesystem;
 
@@ -77,6 +78,7 @@ TEST_F(PlatformConfig, TinyFrameCapsClampButZeroRemainsUncapped) {
 
 TEST_F(PlatformConfig, FullFileRoundTrips) {
     Config full;
+    full.timing = TimingProfile::Ntsc;
     full.tick_rate = 120.0;
     full.present_mode = ConfigPresentMode::Mailbox;
     full.max_fps = 144.0;
@@ -413,3 +415,59 @@ TEST_F(PlatformConfig, ReadErrorsNeverReplaceOriginalOrPublishPartialBackup) {
         }
     }
 }
+
+TEST_F(PlatformConfig, GameplayTimingParsesAndSerializesBothProfiles) {
+    EXPECT_EQ(ConfigParse("").timing, TimingProfile::Pal);
+    EXPECT_EQ(ConfigParse(R"({"game":{"tick_rate":60}})").timing, TimingProfile::Pal);
+    for (const char *value : {"ntsc", "NTSC", "NtSc"}) {
+        const Config parsed = ConfigParse(std::string("{\"game\":{\"timing\":\"") + value + "\"}}");
+        EXPECT_EQ(parsed.timing, TimingProfile::Ntsc);
+        EXPECT_EQ(nlohmann::json::parse(ConfigSerialize(parsed))["game"]["timing"], "ntsc");
+        EXPECT_EQ(ConfigParse(ConfigSerialize(parsed)), parsed);
+    }
+    EXPECT_EQ(ConfigParse(R"({"game":{"timing":"PAL"}})").timing, TimingProfile::Pal);
+    EXPECT_EQ(nlohmann::json::parse(ConfigSerialize(Config{}))["game"]["timing"], "pal");
+}
+
+TEST_F(PlatformConfig, InvalidGameplayTimingReportsAndKeepsDefault) {
+    for (const char *value : {"null", "true", "60", "\"auto\"", "[]"}) {
+        testing::internal::CaptureStderr();
+        const Config parsed = ConfigParse(std::string("{\"game\":{\"timing\":") + value + "}}");
+        const std::string error = testing::internal::GetCapturedStderr();
+        EXPECT_EQ(parsed.timing, TimingProfile::Pal);
+        EXPECT_NE(error.find("config.json: ignoring game.timing = "), std::string::npos);
+    }
+}
+
+TEST_F(PlatformConfig, GameplayTimingLatchSurvivesSavedConfigChanges) {
+    ScopedTimingProfile startup;
+    Write(R"({"game":{"timing":"ntsc","tick_rate":60}})");
+    ASSERT_TRUE(ConfigLoad());
+    TimingLatch(ConfigGet().timing);
+    EXPECT_EQ(TimingGetProfile(), TimingProfile::Ntsc);
+    EXPECT_FALSE(PortPalTiming());
+    Config changed = ConfigGet();
+    changed.timing = TimingProfile::Pal;
+    changed.tick_rate = 50;
+    ASSERT_TRUE(ConfigChange(changed));
+    EXPECT_EQ(ConfigParse(Read()).timing, TimingProfile::Pal);
+    EXPECT_DOUBLE_EQ(ConfigParse(Read()).tick_rate, 50);
+    TimingLatch(ConfigGet().timing);
+    EXPECT_EQ(TimingGetProfile(), TimingProfile::Ntsc);
+    EXPECT_FALSE(PortPalTiming());
+}
+
+TEST(GameplayTiming, PalLatchKeepsLegacySixtyTickProfile) {
+    ScopedTimingProfile startup;
+    const Config parsed = ConfigParse(R"({"game":{"tick_rate":60}})");
+    TimingLatch(parsed.timing);
+    EXPECT_TRUE(PortPalTiming());
+    EXPECT_EQ(TimingGetProfile(), TimingProfile::Pal);
+}
+
+#ifndef NDEBUG
+TEST(GameplayTimingDeathTest, ReadingBeforeLatchAsserts) {
+    ScopedTimingProfile startup;
+    EXPECT_DEATH(TimingGetProfile(), "gameplay timing must be latched before use");
+}
+#endif

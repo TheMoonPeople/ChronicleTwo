@@ -269,6 +269,7 @@ int Run(int argc, const char **argv) {
         }
     }
     ConfigLoad();
+    TimingLatch(ConfigGet().timing);
     FirstRunRequireData(PathsDataRoot(), options.headless);
     const HostSettings &settings = SettingsGet();
     const bool          offscreen = options.offscreen || (options.headless && !gfx::HeadlessSurfaceAvailable());

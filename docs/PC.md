@@ -396,7 +396,8 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 
 | Key | Type | Default | Values | Meaning |
 |---|---|---|---|---|
-| `game.tick_rate` | number | 50 | 25 to 240 | logic ticks per second |
+| `game.timing` | string | `"pal"` | `"pal"`, `"ntsc"` | gameplay timing profile; applies after restart |
+| `game.tick_rate` | number | 50 | 25 to 240 | logic ticks per second; changes live |
 | `game.debug_mode` | bool | false | | the boot debug unlock, and the pad-1 chord; see [DEBUG.md](DEBUG.md) |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
 | `video.interpolation` | bool | true | | interpolate display frames between ticks |

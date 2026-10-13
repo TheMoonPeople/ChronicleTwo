@@ -18,6 +18,7 @@ add_test(NAME PalettePaths.Check
 
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 add_executable(darkchronicle_tests ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${TEST_SOURCES})
+target_sources(darkchronicle_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/timing_support.cpp)
 # Decoder fixtures remain available in tests without linking proprietary texture decoding into the game.
 target_sources(darkchronicle_tests PRIVATE ${KZ_ROOT}/src/cpp/gfx/tim2.cpp)
 set_target_properties(darkchronicle_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -46,6 +47,8 @@ if(CT_TEST_TIMEOUT GREATER CT_GPU_SLOW_TIMEOUT)
 endif()
 # These cases share renderer suites but only inspect CPU data and must run on hosted CI.
 set(CT_CPU_TESTS
+    GameplayTimingSites.*
+    GameplayTimingChapter.*
     MgVisual.FaceMeshListAndStrip
     MglibProjection.DepthRoundTrip
     ScreenEffect.DepthOfFieldLevelSizesFollowRetailCascade
@@ -110,7 +113,7 @@ gtest_discover_tests(darkchronicle_tests
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
     TEST_FILTER ${CT_CPU_FILTER}
-    PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT})
+    PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT} LABELS cpu)
 
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
