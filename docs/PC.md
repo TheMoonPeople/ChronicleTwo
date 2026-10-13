@@ -364,7 +364,7 @@ Fixtures and extracted game data stay outside the repository.
 5. The window opens, or the offscreen surface with `--headless`. Input initialises, and the input script is installed.
 6. The renderer starts (`gfx::RendererInit`) with a logical size of 512x480 at a 4:3 display aspect. It builds every pipeline, uses `<save root>/pipeline_cache.bin` as its pipeline cache, and prints `compiling shaders n/total` as it goes.
 7. `AudioInit(options.headless)` selects device-driven or tick-driven mixer ownership (see "Audio"). `AudioShutdown` is registered with `atexit`.
-8. The clock starts at `game.tick_rate`; headless runs use an unbounded clock. A pump hook runs once per clock pump, after the tick callback has run for each elapsed tick, and polls the window, the input and the input script. The config change hook is installed.
+8. The clock starts at `game.tick_rate`; headless runs use an unbounded clock. In that mode, frame-field measurements use logic ticks instead of wall elapsed time, including the sound sequencer's frame budget. Interactive runs retain the measured wall cadence. A pump hook runs once per clock pump, after the tick callback has run for each elapsed tick, and polls the window, the input and the input script. The config change hook is installed.
 9. The main thread takes priority 10, and `InitCDFile` (`port/src/dataread.cpp`) indexes the data root, printing `dataread: indexed N files under <dir>`. The PAL disc's `DATA.DAT` holds 8751 files.
 10. The `--frames` limit and screenshot, if any, are set, and `MainLoop()` (`port/src/mainloop.cpp`) runs the retail sequence (see "MainLoop").
 
@@ -439,6 +439,18 @@ keys and unrelated values edited externally. Binding action names are merged
 case-insensitively, so editing or restoring `cross` also replaces or removes a
 hand-written `Cross` override without leaving a duplicate. It calls `DisplayChanged` and a
 change hook. `SettingsChange` changes the shared host fields while retaining interpolation, aspect and UI scale. Through the hook, `main` applies the tick rate, present mode, input bindings and controls, master volume, and presentation settings. Aspect and UI scale are applied between frame recordings.
+
+`game.timing` is latched just after config loading and before clock or game
+initialization. Changes are saved for the next process start. `game.tick_rate`
+continues to change live and does not select the timing profile. The nominal
+pairs are PAL/50 and NTSC/60; other pairs run the chosen profile at a custom speed.
+
+Saved play time remains in 1/50 second units at every logic tick rate. At 60 Hz,
+six enabled ticks add five saved units. Pausing retains fractional credit; a new
+game or successful save load discards its unsaved remainder (less than 20 ms).
+The existing PAL save display and fast-destroy record conversion retain their
+units. Existing save counters from earlier custom-rate sessions are preserved
+without a guessed migration factor.
 
 ### PC SETTINGS
 
@@ -744,7 +756,7 @@ PS2 kernel threads run as cooperative fibers on the one OS thread: ucontext on L
 
 Switches happen only in `StartThread`, `RotateThreadReadyQueue`, a blocking `WaitSema`, `SignalSema` preemption, and thread exit. A switch attempted inside `ClockPump` (its callback or hooks) aborts; death tests on both OSes cover this. An uncontended semaphore pair never yields. A `WaitSema` with nothing else ready aborts as a deadlock.
 
-`WaitVSync` loops until `frames` ticks have passed since `start`. Each pass rotates the ready queue when a rotate priority is set (`mgSetRotateThread`), waits for the next tick, then pumps the clock. `sceGsSyncV` goes through `ClockSyncV`. `mgNowFrameRate` comes from the wall clock via `mgTimeFrameFields()`, as seconds times `ClockTickRate`, the same unit as retail's `T0/262`.
+`WaitVSync` loops until `frames` ticks have passed since `start`. Each pass rotates the ready queue when a rotate priority is set (`mgSetRotateThread`), waits for the next tick, then pumps the clock. `sceGsSyncV` goes through `ClockSyncV`. In bounded mode, `mgNowFrameRate` comes from wall elapsed seconds times `ClockTickRate`, the same unit as retail's `T0/262`. In unbounded mode, `mgTimeFrameFields()` instead counts the logic ticks since `mgTimeFrameBegin()`, so rendering time and host delays cannot change the sequencer's field budget. A clock reset reanchors an open frame.
 
 The reason for this design: the retail thread loops (`GamePadStep`, `NowLoadingLoop`, fishing's `StepDataLoading`, the movie threads) run unchanged, and host state stays on the main thread.
 
@@ -1217,16 +1229,6 @@ Existing base-build accommodations also remain: declaration order in `mg_tanime.
 
 Retail's own mistakes stay in `ps2/src`, because the match reproduces them. The port gives them defined behaviour instead, through flags `ct_ps2` sets in `port/CMakeLists.txt`: `-ftrivial-auto-var-init=zero`, `-fno-strict-return`, and `-fno-strict-aliasing` with `-fwrapv`.
 
-### Checking the PS2 build
-
-After any edit to `ps2/`, run `./build.sh ps2-pal`, then `BUILD_DIR=build/pal python3 scripts/build/verify.py -c`. The check must pass. The 22 `#ifndef PORT` guards are part of the same tree and are checked the same way.
-
-## Presentation matrix
-
-`scripts/port/matrix.py` compares logical-frame PSNR across resolutions, plain and `--display-per-tick 4` identity, and letterbox geometry. Below-35 dB PSNR is advisory unless `--psnr-gate` is supplied; run failures, display-per-tick pixel differences and letterbox failures are hard failures. There are no HUD probe claims.
-
-Each fresh run explicitly disables debug in its config and removes `DC2_JUMP`, `DC2_GIVE` and `DC2_FAST_LOAD` from the launch environment. It records the exact process exit status, duration, binary/input hashes, launch config hash, saved config hash, frame count, window, aspect, data path and display-per-tick mode in `result.json`. `--no-run` requires matching identities and retains a failed or timed-out status even when a PNG exists. Changing extracted data in place is outside this provenance check; use the same verified extraction for comparisons. `Matrix.Title` and `Matrix.Costume` carry `matrix;gpu` labels. `Matrix.Runner` checks the runner synthetically without game data or a device.
-
 The `PalTiming.Ps2Identity` CTest restores each `PAL_TIMING(pal, ntsc)` expression to its
 PAL argument, removes the timing include, and compares the PS2 source bytes against
 the merge-base of `HEAD` with `origin/master`. Configure a different upstream ref with
@@ -1237,10 +1239,12 @@ skips the check with a message. `PalTiming.IdentitySelfTest` runs without git hi
 This is a PR-time source check; `ps2-pal` and `verify.py` remain the authority for
 PS2 byte matching.
 
-Saved play time remains in 1/50 second units at every logic tick rate. At 60 Hz,
-six enabled ticks add five saved units. Pausing retains fractional credit; a new
-game or successful save load discards its unsaved remainder (less than 20 ms).
-The existing PAL save display and fast-destroy record conversion retain their
-units. Existing save counters from earlier custom-rate sessions are preserved
-without a guessed migration factor.
+### Checking the PS2 build
 
+After any edit to `ps2/`, run `./build.sh ps2-pal`, then `BUILD_DIR=build/pal python3 scripts/build/verify.py -c`. The check must pass. The 22 `#ifndef PORT` guards are part of the same tree and are checked the same way.
+
+## Presentation matrix
+
+`scripts/port/matrix.py` compares logical-frame PSNR across resolutions, plain and `--display-per-tick 4` identity, and letterbox geometry. Below-35 dB PSNR is advisory unless `--psnr-gate` is supplied; run failures, display-per-tick pixel differences and letterbox failures are hard failures. There are no HUD probe claims.
+
+Each fresh run explicitly disables debug in its config and removes `DC2_JUMP`, `DC2_GIVE` and `DC2_FAST_LOAD` from the launch environment. It records the exact process exit status, duration, binary/input hashes, launch config hash, saved config hash, frame count, window, aspect, data path and display-per-tick mode in `result.json`. `--no-run` requires matching identities and retains a failed or timed-out status even when a PNG exists. Changing extracted data in place is outside this provenance check; use the same verified extraction for comparisons. `Matrix.Title` and `Matrix.Costume` carry `matrix;gpu` labels. `Matrix.Runner` checks the runner synthetically without game data or a device.
