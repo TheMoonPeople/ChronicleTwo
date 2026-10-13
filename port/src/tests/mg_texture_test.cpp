@@ -13,9 +13,11 @@
 #include <string>
 #include <vector>
 
+#include "gfx/displaylist.hpp"
 #include "gfx/gfx.hpp"
 #include "gfx/tim2.hpp"
 #include "gfx_fixture.hpp"
+#include "menu_mouse.hpp"
 #include "mg_memory.hpp"
 #include "mg_tanime.hpp"
 #include "mg_texture.hpp"
@@ -27,6 +29,7 @@
 #include "mglib.hpp"
 #include "mg_drawprim.hpp"
 #include "platform/clock.hpp"
+#include "platform/input.hpp"
 #include "texture_source.hpp"
 
 namespace {
@@ -1335,4 +1338,48 @@ TEST_F(MgTextureGpu, HighResolutionAnimationCopiesOffsetsRestoresAndReleasesTarg
     ASSERT_NE(reused, nullptr);
     EXPECT_EQ(mgPortFindTexture(reused).texture, MgTextureLookup(reused).texture);
     EXPECT_EQ(Read(MgTextureLookup(reused).texture).width, 8u);
+}
+
+TEST_F(MgTextureGpu, MenuPointerUsesPhysicalTexelsFromDoubleResolutionPack) {
+    CatalogFixture fixture;
+    fixture.Rgba("gaiji.png", 2, 2, DetailPixels(2, 2));
+    fixture.Load(JsonTexture("gaiji", 32, 2, 2, "[\"gaiji.png\"]"));
+    HighResolutionOverlay(fixture, "gaiji.png", 4, 4, DetailPixels(4, 4));
+    fixture.Enter(h_.manager);
+    char name[] = "gaiji";
+    const auto *texture = h_.manager.GetTexture(name, 0);
+    ASSERT_NE(texture, nullptr);
+    const auto binding = MgTextureLookup(texture);
+    ASSERT_EQ(MgTexturePhysicalExtent(texture).width, 4u);
+    ASSERT_FLOAT_EQ(mgPortTextureScale(binding.texture), 2.0f);
+
+    const auto settings = InputGetMouseSettings();
+    InputResetBindings();
+    InputSetMouseSettings({.capture = false});
+    MenuMouseEnable(true);
+    SDL_Event event{};
+    event.type = SDL_EVENT_MOUSE_MOTION;
+    event.motion.xrel = 8;
+    InputHandleEvent(event);
+    const auto point = MenuMouseDisplaySample();
+    ASSERT_TRUE(point.pointing);
+    MenuMouseNoteHand({.texture = binding.texture}, {1, 0, 1, 2});
+    // Host overlays record outside mgBeginFrame/mgEndFrame and still need scaled texels.
+    gfx::BeginRecording();
+    MenuMouseDraw();
+    const auto list = gfx::EndRecording();
+    ASSERT_EQ(list->entries.size(), 1u);
+    const auto *draw = std::get_if<gfx::detail::Draw2DEntry>(&list->entries.front());
+    ASSERT_NE(draw, nullptr);
+    ASSERT_EQ(draw->vertices.size(), 4u);
+    for (int i = 0; i < 4; ++i) {
+        EXPECT_FLOAT_EQ(draw->vertices[i].u, (i & 1) ? 4.0f : 2.0f);
+        EXPECT_FLOAT_EQ(draw->vertices[i].v, (i & 2) ? 4.0f : 0.0f);
+    }
+    EXPECT_FLOAT_EQ((draw->vertices[1].x + draw->vertices[3].x) / 2, point.x);
+    EXPECT_FLOAT_EQ((draw->vertices[1].y + draw->vertices[3].y) / 2, point.y);
+    MenuMouseEnable(false);
+    InputSetMenuMouse(false);
+    InputSetMouseSettings(settings);
+    InputResetBindings();
 }

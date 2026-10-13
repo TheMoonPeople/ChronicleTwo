@@ -369,6 +369,7 @@ void MenuMouseDraw() {
     // The pointing fingertip is at the far edge, halfway down the hand's atlas cell.
     const float   tip_x = sign * hand.uv.w * hand.scale;
     const float   tip_y = hand.uv.h * hand.scale * 0.5f;
+    const float texture_scale = mgPortTextureScale(hand.texture.texture);
     gfx::Vertex2D vertices[4]{};
     for (int i = 0; i < 4; ++i) {
         const float x = (i & 1 ? tip_x : 0) - tip_x;
@@ -376,8 +377,8 @@ void MenuMouseDraw() {
         auto       &v = vertices[i];
         v.x = point.x + x * c - y * s;
         v.y = point.y + x * s + y * c;
-        v.u = hand.uv.x + (i & 1 ? hand.uv.w : 0);
-        v.v = hand.uv.y + (i & 2 ? hand.uv.h : 0);
+        v.u = (hand.uv.x + (i & 1 ? hand.uv.w : 0)) * texture_scale;
+        v.v = (hand.uv.y + (i & 2 ? hand.uv.h : 0)) * texture_scale;
         v.color[0] = v.color[1] = v.color[2] = 128;
         v.color[3] = static_cast<uint8_t>(hand.alpha);
     }
