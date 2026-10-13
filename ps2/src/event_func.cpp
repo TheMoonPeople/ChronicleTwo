@@ -63,6 +63,7 @@
 #include "nowload.hpp"
 #include "npccfg.hpp"
 #include "padcontrol.hpp"
+#include "pal_timing.hpp"
 #include "pot.hpp"
 #include "quest.hpp"
 #include "runscript_opcodes.hpp"
@@ -2909,9 +2910,9 @@ void EventTimeDraw() {
             elapsed = EdEventInfo.stopwatch_limit - 2;
             EdEventInfo.stopwatch_limit = elapsed;
         } else if (EdEventInfo.stopwatch_limit != 0) {
-            elapsed = EdEventInfo.stopwatch_limit - (save_data->play_time - EdEventInfo.stopwatch_start);
+            elapsed = EdEventInfo.stopwatch_limit - (PAL_TIMING(save_data->play_time - EdEventInfo.stopwatch_start, (save_data->play_time - EdEventInfo.stopwatch_start) * 6 / 5));
         } else {
-            elapsed = save_data->play_time - EdEventInfo.stopwatch_start;
+            elapsed = PAL_TIMING(save_data->play_time - EdEventInfo.stopwatch_start, (save_data->play_time - EdEventInfo.stopwatch_start) * 6 / 5);
         }
 
         if (0x57E40 <= elapsed) {
@@ -4903,7 +4904,7 @@ static int _SET_CROSSFADE(RS_STACKDATA *stack, int argc) {
     if (argc == 3) {
         int direction = GetStackInt(stack++);
         int color = GetStackInt(stack++);
-        frames = GetStackInt(stack) * 50 / 60;
+        frames = GetStackInt(stack) * PAL_TIMING(50, 60) / 60;
 
         if (frames <= 0) {
             frames = 1;
@@ -4915,7 +4916,7 @@ static int _SET_CROSSFADE(RS_STACKDATA *stack, int argc) {
             EventScene->fade.CrossFadeOut(color, frames, 1.0f);
         }
     } else {
-        frames = GetStackInt(stack) * 50 / 60;
+        frames = GetStackInt(stack) * PAL_TIMING(50, 60) / 60;
 
         if (frames <= 0) {
             frames = 1;
@@ -5831,7 +5832,7 @@ static int _GET_PROJECTION(RS_STACKDATA *stack, int argc) {
 static int _SET_FADE_IN(RS_STACKDATA *stack, int argc) {
     float color[4];
     mgZeroVector(color);
-    int frames = GetStackInt(stack++) * 50 / 60;
+    int frames = GetStackInt(stack++) * PAL_TIMING(50, 60) / 60;
 
     if (frames <= 0) {
         frames = 1;
@@ -5855,7 +5856,7 @@ static int _SET_FADE_IN(RS_STACKDATA *stack, int argc) {
 static int _SET_FADE_OUT(RS_STACKDATA *stack, int argc) {
     float color[4];
     mgZeroVector(color);
-    int frames = GetStackInt(stack++) * 50 / 60;
+    int frames = GetStackInt(stack++) * PAL_TIMING(50, 60) / 60;
 
     if (frames <= 0) {
         frames = 1;
@@ -8071,7 +8072,7 @@ static int _GET_SAVEDATA_ETC(RS_STACKDATA *stack, int argc) {
         }
         case EVENT_GET_SAVEDATA_PLAY_TIME:
             PlayTimeCount(1);
-            SetStack(stack, (int) save->play_time);
+            SetStack(stack, (int) PAL_TIMING(save->play_time, (save->play_time) * 6 / 5));
             break;
         case EVENT_GET_SAVEDATA_CAPTION_OFF:
             SetStack(stack, GetConfigCaptionOff());
@@ -8634,7 +8635,7 @@ static int _STOPWATCH(RS_STACKDATA *stack, int argc) {
             SetStack(stack, -1);
             return true;
         } else {
-            u64 elapsed = save_data->play_time - EdEventInfo.stopwatch_start;
+            u64 elapsed = PAL_TIMING(save_data->play_time - EdEventInfo.stopwatch_start, (save_data->play_time - EdEventInfo.stopwatch_start) * 6 / 5);
             EdEventInfo.stopwatch_start = 0;
             SetStack(stack++, (int) (elapsed / 3600));
             SetStack(stack++, (int) (elapsed % 3600 / 60));
@@ -14262,7 +14263,7 @@ static int _FADE_IN_BGM(RS_STACKDATA *stack, int argc) {
     int frames;
 
     frames60 = GetStackInt(stack);
-    frames = frames60 * 50 / 60;
+    frames = frames60 * PAL_TIMING(50, 60) / 60;
 
     if (frames <= 0) {
         frames = 1;
@@ -14282,7 +14283,7 @@ static int _FADE_OUT_BGM(RS_STACKDATA *stack, int argc) {
     int frames;
 
     frames60 = GetStackInt(stack);
-    frames = frames60 * 50 / 60;
+    frames = frames60 * PAL_TIMING(50, 60) / 60;
 
     if (frames <= 0) {
         frames = 1;
@@ -14787,8 +14788,8 @@ static int _SET_MOVIE_CC(RS_STACKDATA *stack, int argc) {
                 return false;
             }
 
-            start = start * 50 / 60;
-            frames = frames * 50 / 60;
+            start = start * PAL_TIMING(50, 60) / 60;
+            frames = frames * PAL_TIMING(50, 60) / 60;
             EdEventInfo.caption_start[no] = start;
             strcpy(EdEventInfo.caption_text[no], text);
             EdEventInfo.caption_frames[no] = frames;
@@ -18136,7 +18137,7 @@ static int _SET_STATUSBAR_SHOW(RS_STACKDATA *stack, int argc) {
     }
 
     if (speed < 1.0f) {
-        speed *= 1.2f;
+        speed *= PAL_TIMING(1.2f, 1.0f);
     }
 
     area->SetStatusBar(show, speed);

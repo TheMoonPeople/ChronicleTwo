@@ -8,6 +8,9 @@
  * `PAL_TIMING(pal, ntsc)` is the PAL value in the PS2 build, which is the PAL
  * release, so the build's tokens are the PAL source's. The port takes the value
  * of the gameplay timing it runs (`game.timing`), latched once at start-up.
+ * Play time stays in the PAL release's 1/50 s units in both timings, so the
+ * NTSC value of a play-time difference compared with NTSC's 1/60 s limits is
+ * the difference times 6 / 5.
  */
 
 #ifdef PORT

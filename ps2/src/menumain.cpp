@@ -36,6 +36,7 @@
 #include "mglib.hpp"
 #include "nameregi.hpp"
 #include "nowload.hpp"
+#include "pal_timing.hpp"
 #include "prespr.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
@@ -1498,7 +1499,7 @@ int MenuMainKey() {
 
     refresh_cnt++;
 
-    if (refresh_cnt >= 25) {
+    if (refresh_cnt >= PAL_TIMING(25, 30)) {
         refresh_cnt = 0;
         UserDataRefresh();
     }

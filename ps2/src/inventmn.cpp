@@ -27,6 +27,7 @@
 #include "mglib.hpp"
 #include "nd_meswin.hpp"
 #include "npccfg.hpp"
+#include "pal_timing.hpp"
 #include "savedata.hpp"
 #include "scriptinterpreter.hpp"
 #include "snd_mngr.hpp"
@@ -3267,13 +3268,13 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                 u32 color;
                 this->blink_time++;
 
-                if (this->blink_time >= 0x32) {
+                if (this->blink_time >= PAL_TIMING(0x32, 0x3c)) {
                     this->blink_time = 0;
                 }
 
                 color = 0x80303030;
 
-                if (this->blink_time >= 0x19) {
+                if (this->blink_time >= PAL_TIMING(0x19, 0x1e)) {
                     color = 0x8022227F;
                 }
 
@@ -3445,13 +3446,13 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
 
                 this->create_load_state = INVENT_CREATE_LOAD_SOUND_BANK;
                 load_stack->Align64();
-                this->create_timer = 100;
+                this->create_timer = PAL_TIMING(100, 120);
 
                 if (this->create_success != 0) {
                     u8   *item_file;
                     char *item_path;
                     s32   item_size;
-                    this->create_timer = 200;
+                    this->create_timer = PAL_TIMING(200, 240);
                     this->create_chara = new (load_stack->Alloc(StackBlocks(sizeof(CActionChara)))) CActionChara;
                     this->create_chara->Initialize(0);
                     this->item_model_memory.stSetBuffer(load_stack->stGetTop(), 0x35C0);
@@ -3865,13 +3866,13 @@ void CMenuInvent::CalcTex() {
     }
 
     blink_count++;
-    blink_count %= 50;
+    blink_count %= PAL_TIMING(50, 60);
 
-    if (blink_count >= 180000) {
+    if (blink_count >= PAL_TIMING(180000, 216000)) {
         blink_count = 0;
     }
 
-    float wave = sinf(mgAngleLimit(PI * blink_count / 50.0f));
+    float wave = sinf(mgAngleLimit(PI * blink_count / PAL_TIMING(50.0f, 60.0f)));
     float shade = 128.0f + 64.0f * wave;
     neta_color[0] = shade;
     neta_color[1] = shade;
@@ -4015,13 +4016,13 @@ void CMenuInvent::CalcTex() {
             arrow_count++;
         }
 
-        if (arrow_count >= 50) {
+        if (arrow_count >= PAL_TIMING(50, 60)) {
             arrow_count = 0;
         }
 
         if (neta_memo_arrow != NULL && neta_board_arrow != NULL) {
             neta_board_arrow->x = neta_memo_arrow->x;
-            neta_board_arrow->y = neta_memo_arrow->y + 6.0f * sinf(PI / 25.0f * arrow_count);
+            neta_board_arrow->y = neta_memo_arrow->y + 6.0f * sinf(PAL_TIMING(PI / 25.0f, PI / 30.0f) * arrow_count);
         }
 
         neta_board_form->SetNumber("nownum", InventUserDataPtr->GetNowHavePictureNum());
@@ -4687,7 +4688,7 @@ void CMenuInvent::PhotoNetaEnter(int index, int button) {
                 neta_effect_time++;
             }
 
-            if (neta_effect_time > 50) {
+            if (neta_effect_time > PAL_TIMING(50, 60)) {
                 CheckPhotoFlag();
                 InventUserDataPtr->PhotoCheckEnd();
 
