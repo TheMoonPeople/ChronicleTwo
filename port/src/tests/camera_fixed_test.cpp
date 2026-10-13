@@ -123,7 +123,7 @@ TEST(CameraFixedMouse, DisplayRotationKeepsEyePositionGameplayListUiAndOtherView
     std::copy_n(identity.local, 16, record.local.data());
     record.entry = 0;
     source.records.push_back(record);
-    gfx::detail::MeshEntry mesh;
+    gfx::detail::MeshEntry mesh{};
     mesh.record = 0;
     mesh.prog0 = 0;
     source.entries.push_back(mesh);
