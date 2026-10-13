@@ -16,6 +16,7 @@
 
 #include "actionchara.hpp"
 #include "dataread.hpp"
+#include "dataread_port.hpp"
 #include "dng_hud.hpp"
 #include "dng_main.hpp"
 #include "dng_object.hpp"
@@ -40,12 +41,14 @@
 #include "monster.hpp"
 #include "nd_meswin.hpp"
 #include "platform/clock.hpp"
+#include "platform/firstrun.hpp"
 #include "platform/input.hpp"
 #include "platform/mouse.hpp"
 #include "platform/paths.hpp"
 #include "platform/window.hpp"
 #include "present.hpp"
 #include "scenesnd.hpp"
+#include "texture_source.hpp"
 #include "userdata.hpp"
 
 // Register macros must follow the host and test headers.
@@ -1703,6 +1706,10 @@ TEST(DamagePresentation, RealAtlasProjectedEndpoints) {
     if (!data) {
         GTEST_SKIP() << "DC2_DATA supplies the extracted glyph atlas";
     }
+    if (FirstRunDataMissing(data)) {
+        GTEST_SKIP() << "DC2_DATA needs the current published PNG extraction";
+    }
+    DataReadIndex(data);
     const auto    path = std::filesystem::path(data) / "dungeon/articles/tex01_1.chr";
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file) {
@@ -1712,6 +1719,7 @@ TEST(DamagePresentation, RealAtlasProjectedEndpoints) {
     std::vector<u_long128> archive((bytes + 15) / 16);
     file.seekg(0);
     ASSERT_TRUE(file.read(reinterpret_cast<char *>(archive.data()), bytes));
+    TextureSourceRegister(archive.data(), "dungeon/articles/tex01_1.chr", bytes);
     int   member_size = 0;
     char  member_name[] = "frame_basic.img";
     auto *image = GetPackFile(reinterpret_cast<u_int *>(archive.data()), member_name, &member_size);
@@ -1872,6 +1880,10 @@ void CaptureRidepodWarning(bool wide) {
     if (!data) {
         GTEST_SKIP() << "DC2_DATA supplies the extracted glyph atlas";
     }
+    if (FirstRunDataMissing(data)) {
+        GTEST_SKIP() << "DC2_DATA needs the current published PNG extraction";
+    }
+    DataReadIndex(data);
     const auto    path = std::filesystem::path(data) / "dungeon/articles/tex01_1.chr";
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file) {
@@ -1881,6 +1893,7 @@ void CaptureRidepodWarning(bool wide) {
     std::vector<u_long128> archive((bytes + 15) / 16);
     file.seekg(0);
     ASSERT_TRUE(file.read(reinterpret_cast<char *>(archive.data()), bytes));
+    TextureSourceRegister(archive.data(), "dungeon/articles/tex01_1.chr", bytes);
     int   member_size = 0;
     char  member_name[] = "frame_basic.img";
     auto *image = GetPackFile(reinterpret_cast<u_int *>(archive.data()), member_name, &member_size);

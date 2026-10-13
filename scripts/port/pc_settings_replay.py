@@ -17,10 +17,18 @@ def main() -> int:
     parser.add_argument("--case", choices=("pad", "mouse", "zoom"), required=True)
     args = parser.parse_args()
     data = Path(os.environ.get("DC2_DATA", "data")).resolve()
-    if not (data / "manifest.txt").is_file():
-        print("SKIP: no extracted game data; set DC2_DATA")
-        return 77
     source = Path(__file__).resolve().parents[2]
+    expected = json.loads((source / "tools/kazarov/data_version.json").read_text())
+    try:
+        marker = json.loads((data.parent / "data.json").read_text())
+    except (OSError, ValueError):
+        marker = {}
+    if (not (data / "manifest.json").is_file() or
+            not (data.parent / "port_data/manifest.json").is_file() or
+            marker.get("schema_version") != 1 or
+            marker.get("data_version") != expected["data_version"]):
+        print("SKIP: no current published game data; set DC2_DATA")
+        return 77
     args.work.mkdir(parents=True, exist_ok=True)
     run = Path(tempfile.mkdtemp(prefix=args.case + "-", dir=args.work.resolve()))
     script = {"pad": "pc-settings.input", "mouse": "pc-settings-mouse.input", "zoom": "pc-settings-zoom.input"}[args.case]
