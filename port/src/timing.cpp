@@ -3,22 +3,35 @@
 #include <cassert>
 
 namespace {
-bool g_latched = false;
 TimingProfile g_profile = TimingProfile::Pal;
-}
+double        g_tick_rate = 50;
+} // namespace
 
-void TimingLatch(TimingProfile profile) {
-    if (!g_latched) {
+bool PortTimingIsPal = true;
+bool PortTimingLatched = false;
+
+void TimingLatch(TimingProfile profile, double tick_rate) {
+    if (!PortTimingLatched) {
         g_profile = profile;
-        g_latched = true;
+        PortTimingIsPal = profile == TimingProfile::Pal;
+        g_tick_rate = tick_rate;
+        PortTimingLatched = true;
     }
 }
 
 TimingProfile TimingGetProfile() {
-    assert(g_latched && "gameplay timing must be latched before use");
+    assert(PortTimingLatched && "gameplay timing must be latched before use");
     return g_profile;
 }
 
-bool PortPalTiming() {
-    return TimingGetProfile() == TimingProfile::Pal;
+void TimingUsePalFallback() {
+    assert(PortTimingLatched && "gameplay timing must be latched before use");
+    g_profile = TimingProfile::Pal;
+    PortTimingIsPal = true;
+    g_tick_rate = 50;
+}
+
+double TimingGetTickRate() {
+    assert(PortTimingLatched && "gameplay timing must be latched before use");
+    return g_tick_rate;
 }

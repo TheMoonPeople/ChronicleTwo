@@ -77,6 +77,9 @@ void Draw() {
         const int   thumb_y = 100 + (count > shown ? (221 - thumb_h) * first / (count - shown) : 0);
         Fill(447, thumb_y, 3, thumb_h, 95, 67, 35);
         Text("PC SETTINGS", 83, 55, 190, true, 18);
+        if (GameplayTimingPending(config)) {
+            Text("Timing: restart required", 220, 58, 155, true, 12);
+        }
         Text(std::format("{} / {}", g_screen.page + 1, Pages().size()), 385, 56, 60, false, 14);
         for (int p = 0; p < 4; ++p) {
             const int  x = kLeft + p * 88;
@@ -111,11 +114,12 @@ void Draw() {
         }
         Fill(48, 386, 420, 60, 18, 17, 16);
         if (g_screen.save_failed) {
-            Help("Could not save config.json. Settings work this session.\nCheck the save folder; change a setting to retry.");
+            Help("Could not save config.json. Other settings work this session.\nGameplay timing needs a successful save and restart.");
         } else if (DisplayGetWarning() != DisplayWarning::None) {
             Help("The display could not apply that mode.\nThe setting shows the mode the window kept.");
         } else if (g_screen.binding >= 0) {
             Help("Press a key or mouse button. Escape cancels.\nEscape is reserved and cannot be bound.");
+
         } else {
             Help(page.rows[g_screen.row[g_screen.page]].help);
         }

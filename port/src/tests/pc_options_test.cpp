@@ -31,6 +31,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "video.aspect",
         "video.ui_scale",
         "video.show_fps",
+        "game.timing",
         "audio.master_volume",
         "audio.soundtrack",
         "input.mouse_sensitivity",
@@ -57,11 +58,43 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
             EXPECT_NE(config, Config{}) << row.key;
             EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config) << row.key;
             EXPECT_FALSE(config.debug_mode);
-            EXPECT_DOUBLE_EQ(config.tick_rate, 50);
+            EXPECT_DOUBLE_EQ(config.tick_rate, row.key == "game.timing" ? 60 : 50);
         }
     }
     for (const auto &key : required) {
         EXPECT_TRUE(actual.contains(key)) << key;
+    }
+}
+
+TEST(PcOptions, GameplayTimingPresetsWriteBothKeysAndKeepCustomPairsUntilEdited) {
+    const auto &row = Find("game.timing");
+    EXPECT_EQ(row.label, "Gameplay timing");
+    EXPECT_NE(row.help.find("restart"), std::string::npos);
+    Config config;
+    EXPECT_EQ(row.value(config), "PAL (50 Hz)");
+    EXPECT_TRUE(options::StepRow(row, config, 1));
+    EXPECT_EQ(row.value(config), "NTSC (60 Hz)");
+    EXPECT_EQ(config.timing, TimingProfile::Ntsc);
+    EXPECT_DOUBLE_EQ(config.tick_rate, 60);
+    EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config);
+    for (int direction : {-1, 1}) {
+        EXPECT_TRUE(options::StepRow(row, config, direction));
+        EXPECT_EQ(row.value(config), "PAL (50 Hz)");
+        EXPECT_TRUE(options::StepRow(row, config, direction));
+        EXPECT_EQ(row.value(config), "NTSC (60 Hz)");
+    }
+    for (auto profile : {TimingProfile::Pal, TimingProfile::Ntsc}) {
+        config.timing = profile;
+        config.tick_rate = profile == TimingProfile::Pal ? 60 : 50;
+        EXPECT_EQ(row.value(config), "Custom");
+        EXPECT_TRUE(options::StepRow(Find("audio.master_volume"), config, -1));
+        EXPECT_EQ(row.value(config), "Custom");
+        EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config);
+        Config left = config;
+        EXPECT_TRUE(options::StepRow(row, left, -1));
+        EXPECT_EQ(row.value(left), "PAL (50 Hz)");
+        EXPECT_TRUE(options::StepRow(row, config, 1));
+        EXPECT_EQ(row.value(config), "NTSC (60 Hz)");
     }
 }
 

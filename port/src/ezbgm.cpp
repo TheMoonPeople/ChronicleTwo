@@ -20,8 +20,8 @@
 #include "dataread_port.hpp"
 #include "ezbgm.hpp"
 #include "platform/audio.hpp"
+#include "platform/clock.hpp"
 #include "platform/paths.hpp"
-#include "platform/settings.hpp"
 #include "sound.hpp"
 #include "sound_port.hpp"
 
@@ -250,7 +250,9 @@ void EzBgmStep() {
         return;
     }
 
-    const double tick_rate = SettingsGet().tick_rate;
+    // The clock keeps the active session rate even when config changes await restart.
+    // It is also available when retail global constructors step sound before startup.
+    const double tick_rate = ClockTickRate();
     if (!(tick_rate > 0.0)) {
         return;
     }

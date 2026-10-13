@@ -36,10 +36,10 @@ RS_STACKDATA Reference(RS_STACKDATA &value) {
 class GameplayTimingSites : public testing::Test {
 protected:
     std::unique_ptr<CSaveData> save = std::make_unique<CSaveData>();
-    CSaveData *previous_save = PortActiveSaveData;
-    CScene *previous_event_scene = EventScene;
-    RS_PROG_HEADER program{};
-    alignas(64) u_long128 storage[512]{};
+    CSaveData                 *previous_save = PortActiveSaveData;
+    CScene                    *previous_event_scene = EventScene;
+    RS_PROG_HEADER             program{};
+    alignas(64) u_long128 storage[512] {};
     mgCMemory memory;
 
     void SetUp() override {
@@ -49,19 +49,20 @@ protected:
         memory.stSetBuffer(storage, 512);
         SetEventScript(reinterpret_cast<char *>(&program), nullptr, &memory);
     }
+
     void TearDown() override {
         SetEventScript(nullptr, nullptr, nullptr);
         EventScene = previous_event_scene;
         PortActiveSaveData = previous_save;
     }
 };
-}
+} // namespace
 
 TEST_F(GameplayTimingSites, CharacterNormalDriveUsesProfileMotionSpeed) {
     for (auto profile : {TimingProfile::Pal, TimingProfile::Ntsc}) {
         ScopedTimingProfile timing(profile);
-        CCharacter2 character;
-        CHRINFO_KEY_SET key{};
+        CCharacter2         character;
+        CHRINFO_KEY_SET     key{};
         key.start_frame = 0;
         key.end_frame = 100;
         character.now_key = character.next_key = character.posed_key = &key;
@@ -78,8 +79,8 @@ TEST_F(GameplayTimingSites, CharacterNormalDriveUsesProfileMotionSpeed) {
 TEST_F(GameplayTimingSites, CameraDelayAndFadeCommandsConvertFrames) {
     for (auto profile : {TimingProfile::Pal, TimingProfile::Ntsc}) {
         ScopedTimingProfile timing(profile);
-        _SEN_CMR_SEQ nodes[4]{};
-        CSceneCmrSeq sequence;
+        _SEN_CMR_SEQ        nodes[4]{};
+        CSceneCmrSeq        sequence;
         sequence.Initialize(nodes, 4);
         sequence.PRDelay(60);
         sequence.FadeIn(60, 0, 0, 0);
@@ -96,7 +97,7 @@ TEST_F(GameplayTimingSites, CameraDelayAndFadeCommandsConvertFrames) {
 TEST_F(GameplayTimingSites, EventFadeInConvertsFramesAndClampsZero) {
     for (auto profile : {TimingProfile::Pal, TimingProfile::Ntsc}) {
         ScopedTimingProfile timing(profile);
-        auto frames = Integer(60);
+        auto                frames = Integer(60);
         ASSERT_EQ(EventScript.ext_func_table[EVENT_EXT_SET_FADE_IN](&frames, 1), 1);
         EXPECT_FLOAT_EQ(EventScene->fade.speed, 128.0f / (profile == TimingProfile::Pal ? 50 : 60));
         frames = Integer(0);
@@ -110,7 +111,7 @@ TEST_F(GameplayTimingSites, ItemPowerStatusUsesProfileDuration) {
     CDataCommon *common = GetCommonItemData(1);
     ASSERT_NE(common, nullptr);
     const CDataCommon previous_common = *common;
-    CDataItem effect;
+    CDataItem         effect;
     effect.use_flags = ITEM_USE_FLAG_ADD_POWER;
     effect.target_flags = 6;
     effect.action_flags = 0;
@@ -124,7 +125,7 @@ TEST_F(GameplayTimingSites, ItemPowerStatusUsesProfileDuration) {
     PortLoopNo = LOOP_DUNGEON;
     for (auto profile : {TimingProfile::Pal, TimingProfile::Ntsc}) {
         ScopedTimingProfile timing(profile);
-        auto &chara = save->user_data.chara_data[USER_CHARA_MAX];
+        auto               &chara = save->user_data.chara_data[USER_CHARA_MAX];
         chara.hp.max = chara.hp.now = 100;
         chara.status_attr = 0;
         CGameDataUsed item;
@@ -145,9 +146,9 @@ TEST_F(GameplayTimingSites, ItemPowerStatusUsesProfileDuration) {
 TEST_F(GameplayTimingSites, AquariumMessageUsesProfileDuration) {
     for (auto profile : {TimingProfile::Pal, TimingProfile::Ntsc}) {
         ScopedTimingProfile timing(profile);
-        CAquaMes messages;
-        ClsMes window;
-        CGameDataUsed data;
+        CAquaMes            messages;
+        ClsMes              window;
+        CGameDataUsed       data;
         data.used_type = USED_ITEM_TYPE_NONE;
         data.data.fish.sex = 2; // No gender-change text is needed to check the message lifetime.
         CAquaFish fish;

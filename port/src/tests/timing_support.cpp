@@ -5,14 +5,16 @@
 #include "../timing.cpp"
 
 ScopedTimingProfile::ScopedTimingProfile(std::optional<TimingProfile> profile)
-    : latched_(g_latched), profile_(g_profile) {
-    g_latched = false;
+    : latched_(PortTimingLatched), profile_(g_profile), tick_rate_(g_tick_rate) {
+    PortTimingLatched = false;
     if (profile) {
         TimingLatch(*profile);
     }
 }
 
 ScopedTimingProfile::~ScopedTimingProfile() {
-    g_latched = latched_;
+    PortTimingLatched = latched_;
     g_profile = profile_;
+    PortTimingIsPal = profile_ == TimingProfile::Pal;
+    g_tick_rate = tick_rate_;
 }

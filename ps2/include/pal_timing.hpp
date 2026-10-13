@@ -14,7 +14,16 @@
  */
 
 #ifdef PORT
-bool PortPalTiming();
+#include <cassert>
+
+extern bool PortTimingIsPal;
+extern bool PortTimingLatched;
+
+inline bool PortPalTiming() {
+    assert(PortTimingLatched && "gameplay timing must be latched before use");
+    return PortTimingIsPal;
+}
+
 #define PAL_TIMING(pal, ntsc) (PortPalTiming() ? (pal) : (ntsc))
 #else
 #define PAL_TIMING(pal, ntsc) pal

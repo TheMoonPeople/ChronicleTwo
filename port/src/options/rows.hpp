@@ -26,6 +26,7 @@ struct Page {
 
 std::span<const Page>        Pages();
 bool                         StepRow(const Row &row, Config &config, int direction);
+bool                         GameplayTimingPending(const Config &config);
 bool                         SetBinding(Config &config, std::string_view action, std::string_view key);
 void                         ResetBinding(Config &config, std::string_view action);
 std::vector<DisplayModeSize> ResolutionList(std::span<const DisplayModeSize> modes, int width, int height);

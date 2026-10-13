@@ -58,7 +58,7 @@ TEST(GameplayTimingChapter, NarrationFallbackAndHoldUseProfileFrames) {
     auto *saved_scene = MenuMainScene;
     MenuMainScene = scene.get();
     std::vector<u_long128> storage(0x4000);
-    mgCMemory stack;
+    mgCMemory              stack;
     stack.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
     int blocks[] = {1, 2};
     for (auto profile : {TimingProfile::Pal, TimingProfile::Ntsc}) {

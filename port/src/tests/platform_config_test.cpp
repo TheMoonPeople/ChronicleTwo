@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -8,6 +9,7 @@
 #include <string>
 #include <string_view>
 
+#include "options/rows.hpp"
 #include "platform/config.hpp"
 #include "platform/config_io.hpp"
 #include "platform/paths.hpp"
@@ -432,7 +434,7 @@ TEST_F(PlatformConfig, GameplayTimingParsesAndSerializesBothProfiles) {
 TEST_F(PlatformConfig, InvalidGameplayTimingReportsAndKeepsDefault) {
     for (const char *value : {"null", "true", "60", "\"auto\"", "[]"}) {
         testing::internal::CaptureStderr();
-        const Config parsed = ConfigParse(std::string("{\"game\":{\"timing\":") + value + "}}");
+        const Config      parsed = ConfigParse(std::string("{\"game\":{\"timing\":") + value + "}}");
         const std::string error = testing::internal::GetCapturedStderr();
         EXPECT_EQ(parsed.timing, TimingProfile::Pal);
         EXPECT_NE(error.find("config.json: ignoring game.timing = "), std::string::npos);
@@ -443,23 +445,94 @@ TEST_F(PlatformConfig, GameplayTimingLatchSurvivesSavedConfigChanges) {
     ScopedTimingProfile startup;
     Write(R"({"game":{"timing":"ntsc","tick_rate":60}})");
     ASSERT_TRUE(ConfigLoad());
-    TimingLatch(ConfigGet().timing);
+    TimingLatch(ConfigGet().timing, ConfigGet().tick_rate);
     EXPECT_EQ(TimingGetProfile(), TimingProfile::Ntsc);
     EXPECT_FALSE(PortPalTiming());
+    EXPECT_DOUBLE_EQ(TimingGetTickRate(), 60);
     Config changed = ConfigGet();
     changed.timing = TimingProfile::Pal;
     changed.tick_rate = 50;
     ASSERT_TRUE(ConfigChange(changed));
     EXPECT_EQ(ConfigParse(Read()).timing, TimingProfile::Pal);
     EXPECT_DOUBLE_EQ(ConfigParse(Read()).tick_rate, 50);
-    TimingLatch(ConfigGet().timing);
+    TimingLatch(ConfigGet().timing, ConfigGet().tick_rate);
     EXPECT_EQ(TimingGetProfile(), TimingProfile::Ntsc);
     EXPECT_FALSE(PortPalTiming());
+    EXPECT_DOUBLE_EQ(TimingGetTickRate(), 60);
+}
+
+TEST_F(PlatformConfig, GameplayTimingRowPersistsAndPendingClearsOnlyForActivePair) {
+    ScopedTimingProfile startup;
+    ConfigLoad();
+    TimingLatch(ConfigGet().timing, ConfigGet().tick_rate);
+    const auto &rows = options::Pages()[0].rows;
+    const auto  it = std::ranges::find(rows, "game.timing", &options::Row::key);
+    ASSERT_NE(it, rows.end());
+    EXPECT_FALSE(options::GameplayTimingPending(ConfigGet()));
+    Config changed = ConfigGet();
+    ASSERT_TRUE(options::StepRow(*it, changed, 1));
+    ASSERT_TRUE(ConfigChange(changed));
+    ASSERT_TRUE(ConfigSaved());
+    EXPECT_TRUE(options::GameplayTimingPending(ConfigGet()));
+    ASSERT_TRUE(ConfigLoad());
+    EXPECT_EQ(ConfigGet().timing, TimingProfile::Ntsc);
+    EXPECT_DOUBLE_EQ(ConfigGet().tick_rate, 60);
+    EXPECT_TRUE(options::GameplayTimingPending(ConfigGet()));
+    {
+        ScopedTimingProfile restarted;
+        TimingLatch(ConfigGet().timing, ConfigGet().tick_rate);
+        EXPECT_FALSE(options::GameplayTimingPending(ConfigGet()));
+    }
+    EXPECT_TRUE(options::GameplayTimingPending(ConfigGet()));
+    changed = ConfigGet();
+    ASSERT_TRUE(options::StepRow(*it, changed, -1));
+    ASSERT_TRUE(ConfigChange(changed));
+    EXPECT_FALSE(options::GameplayTimingPending(ConfigGet()));
+    changed.tick_rate = 60;
+    ASSERT_TRUE(ConfigChange(changed));
+    EXPECT_TRUE(options::GameplayTimingPending(ConfigGet()));
+    changed.tick_rate = 50;
+    changed.timing = TimingProfile::Ntsc;
+    ASSERT_TRUE(ConfigChange(changed));
+    EXPECT_TRUE(options::GameplayTimingPending(ConfigGet()));
+}
+
+TEST_F(PlatformConfig, GameplayTimingCustomPairSurvivesUnrelatedSavedRow) {
+    Write(R"({"game":{"timing":"pal","tick_rate":60}})");
+    ASSERT_TRUE(ConfigLoad());
+    Config      changed = ConfigGet();
+    const auto &row = options::Pages()[1].rows[0];
+    ASSERT_TRUE(options::StepRow(row, changed, -1));
+    ASSERT_TRUE(ConfigChange(changed));
+    ASSERT_TRUE(ConfigLoad());
+    EXPECT_EQ(ConfigGet().timing, TimingProfile::Pal);
+    EXPECT_DOUBLE_EQ(ConfigGet().tick_rate, 60);
+}
+
+TEST_F(PlatformConfig, GameplayTimingPendingIsIndependentOfSaveFailure) {
+    ScopedTimingProfile startup;
+    ConfigLoad();
+    TimingLatch(ConfigGet().timing, ConfigGet().tick_rate);
+    fs::remove(Path());
+    fs::create_directory(Path());
+    Config changed = ConfigGet();
+    changed.timing = TimingProfile::Ntsc;
+    changed.tick_rate = 60;
+    EXPECT_FALSE(ConfigChange(changed));
+    EXPECT_FALSE(ConfigSaved());
+    EXPECT_TRUE(options::GameplayTimingPending(ConfigGet()));
+    EXPECT_TRUE(PortPalTiming());
+    EXPECT_DOUBLE_EQ(TimingGetTickRate(), 50);
+    fs::remove(Path());
+    changed.master_volume = .5;
+    EXPECT_TRUE(ConfigChange(changed));
+    EXPECT_TRUE(ConfigSaved());
+    EXPECT_TRUE(options::GameplayTimingPending(ConfigGet()));
 }
 
 TEST(GameplayTiming, PalLatchKeepsLegacySixtyTickProfile) {
     ScopedTimingProfile startup;
-    const Config parsed = ConfigParse(R"({"game":{"tick_rate":60}})");
+    const Config        parsed = ConfigParse(R"({"game":{"tick_rate":60}})");
     TimingLatch(parsed.timing);
     EXPECT_TRUE(PortPalTiming());
     EXPECT_EQ(TimingGetProfile(), TimingProfile::Pal);
@@ -469,5 +542,21 @@ TEST(GameplayTiming, PalLatchKeepsLegacySixtyTickProfile) {
 TEST(GameplayTimingDeathTest, ReadingBeforeLatchAsserts) {
     ScopedTimingProfile startup;
     EXPECT_DEATH(TimingGetProfile(), "gameplay timing must be latched before use");
+    EXPECT_DEATH(PortPalTiming(), "gameplay timing must be latched before use");
 }
 #endif
+
+TEST_F(PlatformConfig, StartupPalFallbackKeepsTheSavedNtscPair) {
+    ScopedTimingProfile startup;
+    Write(R"({"game":{"timing":"ntsc","tick_rate":60}})");
+    ASSERT_TRUE(ConfigLoad());
+    const auto saved = Read();
+    TimingLatch(ConfigGet().timing, ConfigGet().tick_rate);
+    TimingUsePalFallback();
+    EXPECT_TRUE(PortPalTiming());
+    EXPECT_EQ(TimingGetProfile(), TimingProfile::Pal);
+    EXPECT_DOUBLE_EQ(TimingGetTickRate(), 50);
+    EXPECT_EQ(ConfigGet().timing, TimingProfile::Ntsc);
+    EXPECT_DOUBLE_EQ(ConfigGet().tick_rate, 60);
+    EXPECT_EQ(Read(), saved);
+}

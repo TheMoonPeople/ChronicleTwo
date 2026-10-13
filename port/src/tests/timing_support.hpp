@@ -14,6 +14,7 @@ public:
     ScopedTimingProfile &operator=(const ScopedTimingProfile &) = delete;
 
 private:
-    bool latched_;
+    bool          latched_;
     TimingProfile profile_;
+    double        tick_rate_;
 };
