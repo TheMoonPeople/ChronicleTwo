@@ -33,7 +33,7 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "tools" / "kazarov" / "python"))
+sys.path.insert(0, str(ROOT / "tools" / "kazarov" / "scripts"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from kazarov_elf import Elf, Symbol, Section, SHT_NOBITS, BssSection  # noqa: E402

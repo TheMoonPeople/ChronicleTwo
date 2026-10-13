@@ -36,7 +36,7 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "tools" / "kazarov" / "python"))
+sys.path.insert(0, str(ROOT / "tools" / "kazarov" / "scripts"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from kazarov_elf import Elf, SHT_NOBITS  # noqa: E402
