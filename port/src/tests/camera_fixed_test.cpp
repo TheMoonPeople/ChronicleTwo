@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <numbers>
 
 #include "camera_fixed.hpp"
@@ -10,6 +11,7 @@
 #include "editctrl.hpp"
 #include "editloop.hpp"
 #include "gfx/displaylist.hpp"
+#include "gfx_fixture.hpp"
 #include "mainloop.hpp"
 #include "options/rows.hpp"
 #include "platform/config.hpp"
@@ -267,4 +269,88 @@ TEST(CameraFixedMouse, CullingConeIncludesRotatedScreenCorners) {
             }
         }
     }
+}
+
+TEST(CameraFixedMouseGpu, FixedLookOutlinePixelsMatchFullExtentReference) {
+    dc::test::GfxOptions options;
+    options.offscreen = true;
+    options.prog0_meshes = true;
+    options.logical_width = 64;
+    options.logical_height = 48;
+    dc::test::GfxFixture fixture(64, 48, 1, options);
+    const auto           target = gfx::CreateRenderTarget(64, 48, true, true);
+    ASSERT_NE(target, gfx::kNullTexture);
+    const gfx::LogicalRect           full{0, 0, 64, 48};
+    const uint8_t                    clear[4] = {};
+    const std::vector<gfx::Vertex3D> triangle = {
+        {{-.2f, -.2f, .9f}}, {{.2f, -.2f, .9f}}, {{0, .2f, .9f}}};
+    const std::vector<uint32_t> indices{0, 1, 2};
+    auto                        record = [&](float camera, bool outlined) {
+        auto transform = gfx::IdentityMeshTransform();
+        transform.view[12] = camera;
+        gfx::MeshConstants constants{};
+        std::memcpy(constants.mvp, transform.view, sizeof constants.mvp);
+        gfx::Prog0Constants block{};
+        block.flags = gfx::kProg0Unlit;
+        for (int i = 0; i < 4; ++i) {
+            block.object_color[i] = i == 3 ? 128 : 200;
+            block.diffuse[i] = 1;
+        }
+        gfx::BeginRecording();
+        if (outlined) {
+            // Identify the main-target camera, then erase this setup draw.
+            gfx::DrawMeshImmediateProg0(triangle, indices, constants, block, {}, {}, &transform);
+        }
+        gfx::Clear(true, clear, true, 0);
+        gfx::SetInterpKey(17);
+        if (outlined) {
+            gfx::SetRenderTarget(target);
+            const gfx::LogicalRect crop{32 + camera * 32 - 7, 18, 14, 12};
+            gfx::Clear(true, clear, false, 0, &crop, &full);
+            gfx::DrawMeshImmediateProg0(triangle, indices, constants, block, {}, {}, &transform);
+            gfx::SetRenderTarget(gfx::kMainTarget);
+            std::vector<gfx::Vertex2D> quad(4), display_quad(4);
+            for (int i = 0; i < 4; ++i) {
+                const bool right = i == 1 || i == 2;
+                quad[i].x = quad[i].u = crop.x + (right ? crop.w : 0);
+                quad[i].y = quad[i].v = crop.y + (i >= 2 ? crop.h : 0);
+                display_quad[i].x = display_quad[i].u = right ? full.w : 0;
+                display_quad[i].y = display_quad[i].v = i >= 2 ? full.h : 0;
+                std::memset(quad[i].color, 128, 4);
+                std::memset(display_quad[i].color, 128, 4);
+            }
+            gfx::TextureBinding binding;
+            binding.texture = target;
+            const gfx::Presentation2D presentation{display_quad, {}};
+            gfx::Draw2D(gfx::Primitive::Quads, quad, binding, {}, &presentation);
+        } else {
+            // Independent complete-pixel reference: draw the mesh directly, without
+            // a scratch image, crop or presentation replacement.
+            gfx::DrawMeshImmediateProg0(triangle, indices, constants, block, {}, {}, &transform);
+        }
+        return gfx::EndRecording();
+    };
+    auto render = [&](const gfx::DisplayList &list, float alpha, gfx::RenderOptions options) {
+        options.present = !options.canonical;
+        EXPECT_TRUE(gfx::RenderList(list, alpha, options));
+        EXPECT_TRUE(gfx::ReadbackFrame(fixture.pixels, fixture.width, fixture.height));
+        return fixture.pixels;
+    };
+    auto             before = record(-.1f, true), after = record(.1f, true);
+    gfx::DisplayList turned, previous;
+    MouseFixedDisplayList(*before, previous, .26f, .17f);
+    MouseFixedDisplayList(*after, turned, .26f, .17f);
+    EXPECT_NE(turned.cameras[0], after->cameras[0]);
+    EXPECT_TRUE(turned.doomed_textures.empty());
+    EXPECT_TRUE(previous.doomed_meshes.empty());
+    for (float alpha : {1.0f, .5f}) {
+        render(turned, 1, {.canonical = true});
+        const auto       pixels = render(turned, alpha, {.previous = &previous});
+        auto             direct = record(-.1f + .2f * alpha, false);
+        gfx::DisplayList reference;
+        MouseFixedDisplayList(*direct, reference, .26f, .17f);
+        EXPECT_EQ(pixels, render(reference, 1, {.canonical = true})) << alpha;
+        EXPECT_GT(std::count_if(pixels.begin(), pixels.end(), [](uint8_t c) { return c > 0; }), 20);
+    }
+    gfx::DestroyTexture(target);
 }

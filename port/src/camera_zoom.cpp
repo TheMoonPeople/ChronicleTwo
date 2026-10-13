@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
 #include "camera_mouse.hpp"
 #include "camera_zoom.hpp"
@@ -21,7 +22,7 @@ float CameraZoom::HeightScale(CCameraControl &camera) const {
 void CameraZoom::Read(CCameraControl &camera, float wheel, bool reset, bool enabled) {
     if (!enabled || reset) {
         requested = camera.GetActiveParam()->min_dist;
-        active = returning = false;
+        active = false;
         return;
     }
     if (!std::isfinite(wheel) || wheel == 0) {
@@ -38,7 +39,6 @@ void CameraZoom::Read(CCameraControl &camera, float wheel, bool reset, bool enab
     requested = std::clamp(requested - std::clamp(wheel, -1000.0f, 1000.0f) * wheel_step,
                            min_distance, max_distance);
     active = true;
-    returning = false;
 }
 
 void CameraZoom::Move(CCameraControl &camera, CScene &scene,
@@ -98,12 +98,22 @@ void CameraZoom::Move(CCameraControl &camera, CScene &scene,
         }
         bounds.min[3] = bounds.max[3] = 1;
         int count = MouseCameraCollectPolys(scene, bounds, polys, 512);
-        if (count < 0 || retail_count < 0 || retail_count >= 512 - count ||
+        if (count < 0 || count >= 512 || retail_count < 0 || retail_count >= 512 ||
             (retail_count && !retail_polys)) {
             return -1;
         }
         for (int i = 0; i < retail_count; ++i) {
-            polys[count++] = retail_polys[i];
+            // The broader query commonly contains the caller's whole query.
+            // Compare complete records: different collision attributes matter.
+            const bool duplicate = std::any_of(polys, polys + count, [&](const CCPoly &poly) {
+                return std::memcmp(&poly, &retail_polys[i], sizeof(CCPoly)) == 0;
+            });
+            if (!duplicate) {
+                if (count >= 511) {
+                    return -1;
+                }
+                polys[count++] = retail_polys[i];
+            }
         }
         return count;
     };
@@ -138,9 +148,4 @@ void CameraZoom::Move(CCameraControl &camera, CScene &scene,
     camera.GetActiveParam()->height = height;
     camera.rot_back = candidate.rot_back;
     camera.rot_back_angle = candidate.rot_back_angle;
-
-    if (returning && std::fabs(Distance(camera.pos, camera.ref) - requested) < 0.1f &&
-        std::fabs(Distance(camera.next_pos, camera.next_ref) - requested) < 0.1f) {
-        active = returning = false;
-    }
 }

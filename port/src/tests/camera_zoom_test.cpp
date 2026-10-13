@@ -114,7 +114,7 @@ TEST(CameraZoom, ResetAndDisableImmediatelyReleaseRetailControl) {
         zoom.Read(camera, -100, false, true);
         zoom.Read(camera, 0, enabled, enabled);
         EXPECT_FALSE(zoom.active);
-        EXPECT_FALSE(zoom.returning);
+        EXPECT_FLOAT_EQ(zoom.requested, camera.GetActiveParam()->min_dist);
     }
 }
 
@@ -474,4 +474,49 @@ TEST(CameraZoom, FinalAvoidanceCorridorRecollectsSceneGeometry) {
     EXPECT_GE(map.queries, 2);
     EXPECT_TRUE(map.final_wall_collected);
     EXPECT_LT(std::fabs(camera.next_pos[0]), 6);
+}
+
+TEST(CameraZoom, OverlappingSceneAndCallerPolygonsCountOnceAboveHalfCapacity) {
+    class OverlapMap : public CMap {
+    public:
+        std::vector<CCPoly> polygons;
+
+        OverlapMap() {
+            place_parts = nullptr;
+            place_parts_num = 0;
+            for (int i = 0; i < 300; ++i) {
+                polygons.push_back(Plane(0, 1000.0f + i));
+            }
+        }
+
+        int GetCameraPoly(CCPoly *out, mgVu0FBOX &, int capacity) override {
+            const int count = std::min(capacity, static_cast<int>(polygons.size()));
+            std::copy_n(polygons.begin(), count, out);
+            return count;
+        }
+    } map;
+
+    CScene scene;
+    scene.AssignMap(0, &map, const_cast<char *>("map"));
+    scene.active_map = 0;
+    scene.map[0].status |= SCENE_DATA_ACTIVE;
+    for (bool overlap : {true, false}) {
+        auto caller = map.polygons;
+        if (!overlap) {
+            for (auto &poly : caller) {
+                poly.attr = 1;
+            }
+        }
+        auto       camera = Camera();
+        CameraZoom zoom;
+        zoom.Read(camera, -100, false, true);
+        CCameraControl::Control control{};
+        float                   rotation[4]{};
+        zoom.Move(camera, scene, control, rotation, caller.data(), static_cast<int>(caller.size()));
+        if (overlap) {
+            EXPECT_NEAR(camera.next_pos[2], 600, 0.05f);
+        } else {
+            EXPECT_LT(camera.next_pos[2], 200); // Distinct attributes retain the capacity fallback.
+        }
+    }
 }

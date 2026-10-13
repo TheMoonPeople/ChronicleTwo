@@ -25,6 +25,8 @@
 #include "scenesnd.hpp"
 #include "subgame.hpp"
 
+extern mgCCamera *PortContinuousEyeCamera;
+
 namespace {
 void MeasureControlPose(CCameraControl &camera) {
     sceVu0FVECTOR offset;
@@ -162,7 +164,7 @@ PORT_OVERRIDE void CCameraControl::MoveCamera(CPadControl *pad, float *player_ro
 }
 
 PORT_OVERRIDE void CCameraControl::Step(int frames) {
-    if (frames < 0) {
+    if (frames < 0 && PortContinuousEyeCamera != this) {
         mgPortCutCameraInterpolation();
     }
     // Preserve the controller/follow step before adding the native eye look.

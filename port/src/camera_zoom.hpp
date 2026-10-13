@@ -13,7 +13,6 @@ struct CameraZoom {
 
     float requested = 0;
     bool  active = false;
-    bool  returning = false;
 
     float HeightScale(CCameraControl &camera) const;
     void  Read(CCameraControl &camera, float wheel, bool reset, bool enabled);

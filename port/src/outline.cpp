@@ -208,8 +208,6 @@ PORT_OVERRIDE int COutLineDraw::Draw(float scale, float alpha) {
     // Depth is not cleared: the image shares the scene's depth buffer.
     const gfx::LogicalRect display_clear = {extent.left, extent.top, extent.right - extent.left,
                                             extent.bottom - extent.top};
-    gfx::BeginComposite(reinterpret_cast<gfx::InterpKey>(frame), LogicalRectOf(box, 0), display_clear,
-                        8.0f + std::abs(static_cast<float>(edge_offset) / kUnitsPerPixel));
     gfx::Clear(true, clear_colour, false, 0.0f, &clear_rect, &display_clear);
     result += mgDrawDirect(frame);
     gfx::SetRenderTarget(previous);
@@ -269,7 +267,6 @@ PORT_OVERRIDE int COutLineDraw::Draw(float scale, float alpha) {
     body_state.blend = true;
     mgPortApplyDrawEnv(body_state, env);
     DrawCopy(box, 0, 0, body_colour, mgPortDepth(static_cast<uint32_t>(depth)), binding, body_state);
-    gfx::EndComposite();
 
     // The composite's packets are the last writes to these registers.
     gs.test = env.test.value;

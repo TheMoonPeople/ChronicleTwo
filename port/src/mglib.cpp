@@ -1203,16 +1203,24 @@ PORT_OVERRIDE void mgBeginFrame(mgCDrawManager *manager) {
     static const CScene    *last_scene = nullptr;
     static const mgCCamera *last_camera = nullptr;
     static int              last_event = 0;
+    static const CMap      *last_map = nullptr;
+    static bool             last_dungeon_eye = false;
     CScene                 *scene = GetNowLoopNo() == LOOP_DUNGEON ? DngMainScene : GetNowLoopNo() == LOOP_EDIT ? GetMainScene()
                                                                                                                 : nullptr;
     auto                   *camera = scene ? scene->GetCamera(scene->active_camera) : nullptr;
     const int               event = scene ? scene->event_run : 0;
-    if (scene != last_scene || camera != last_camera || event != last_event) {
+    const auto             *map = scene ? scene->GetMap(scene->active_map) : nullptr;
+    const bool              dungeon_eye = GetNowLoopNo() == LOOP_DUNGEON && DngStatus.eye_view;
+    if (scene != last_scene || camera != last_camera || event != last_event || map != last_map || (dungeon_eye && !last_dungeon_eye)) {
         mgPortCutCameraInterpolation();
         last_scene = scene;
         last_camera = camera;
         last_event = event;
+        last_map = map;
     }
+    // Entry takes its eye pose on the following logic tick. Exit cuts at the
+    // native ResetEyeView seam in the tick that restores the follow pose.
+    last_dungeon_eye = dungeon_eye;
 
     if (!frame_open) {
         if (ready && !gfx::InFrame()) {

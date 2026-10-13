@@ -48,14 +48,14 @@ set(CT_CPU_TESTS
     Vu1Prog0Shader.MirrorWordVectors
     GfxMeshDc2.MeshConstantsKeepChroniclesSize)
 set(CT_GPU_SLOW_TESTS
+    CameraFixedMouseGpu.*
     FontPortGpu.*
     Vu1Prog0Shader.*
-    GfxMeshDc2.*
+    GfxGpu*.*
+    */GfxGpu*.*
     MgTextureGpu.*
     MenuIconGpu.*
     MgTanimeGpu.*
-    GfxDisplayList.Recording*
-    */GfxPresentationOwnership.*
     GfxMisc.PipelineCache)
 set(CT_GPU_TESTS
     TargetPresentation.*

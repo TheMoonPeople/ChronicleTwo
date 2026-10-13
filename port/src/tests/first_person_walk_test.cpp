@@ -13,6 +13,8 @@
 #include "mainloop.hpp"
 #include "mainloop_port.hpp"
 #include "map.hpp"
+#include "mglib.hpp"
+#include "mglib_port.hpp"
 #include "photo.hpp"
 #include "platform/input_script.hpp"
 #include "stubs/photo.hpp"
@@ -75,6 +77,7 @@ TEST(FirstPersonWalk, AcceptedDisplacementRestoresThirdPersonEyeAtNewPlayerPosit
         CScene         scene;
         CCameraControl camera;
         CActionChara   chara;
+        chara.next = nullptr;
         scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
         scene.AssignChara(0, &chara, const_cast<char *>("player"));
         scene.active_camera = scene.player_chara = 0;
@@ -345,7 +348,17 @@ TEST(FirstPersonWalk, DungeonGatesPhotoRidepodPauseEventsAndActions) {
             GeoStone.flag = 1;
             GeoStone.SetPosition(chara.position[0], chara.position[1] + 20, chara.position[2]);
         }
+        mgBeginFrame(nullptr);
+        mgEndFrame(nullptr);
+        const auto generation = mgPortCameraGeneration();
+        mgBeginFrame(nullptr);
         EXPECT_TRUE(DungeonFirstPersonCheckEvents(camera)) << event;
+        EXPECT_GT(mgPortCameraGeneration(), generation) << event;
+        mgEndFrame(nullptr);
+        const auto restored_generation = mgPortCameraGeneration();
+        mgBeginFrame(nullptr);
+        mgEndFrame(nullptr);
+        EXPECT_EQ(mgPortCameraGeneration(), restored_generation) << event;
         EXPECT_EQ(DngStatus.eye_view, 0);
         EXPECT_TRUE(camera.follow_on);
         RandomCircle.Clear();
@@ -391,4 +404,219 @@ TEST(FirstPersonWalk, DungeonGatesPhotoRidepodPauseEventsAndActions) {
     BattleAreaScene = nullptr;
     MainChara__2 = nullptr;
     DngUserData = nullptr;
+}
+
+extern int                 PortTownFallFlag asm("EditCtrl_FallFlag");
+extern EditCharaMotionMode PortTownMotionMode asm("EditCtrl_MotionMode");
+extern int                 PortTownMotionCount asm("EditCtrl_MotionCount");
+
+TEST(FirstPersonWalk, TownLocomotionAirborneAndLandingKeepFreshMouseLook) {
+    RestoreFirstPersonState restore;
+    const int               old_rate = mgFrameRate;
+    mgFrameRate = 2;
+    auto        save = std::make_unique<CSaveData>();
+    auto       *old_save = PortActiveSaveData;
+    const int   old_fall = PortTownFallFlag, old_count = PortTownMotionCount;
+    const auto  old_motion = PortTownMotionMode;
+    const float old_heading = PortEditEyeHeading, old_tilt = PortEditEyeTilt;
+    PortActiveSaveData = save.get();
+    auto          &scene = *GetMainScene();
+    CCharacter2    chara;
+    CCameraControl camera;
+    camera.FollowOff();
+    camera.ControlOff();
+    chara.SetPosition(0, 100, 0);
+    camera.SetPos(0, 128, 0);
+    camera.SetRef(0, 128, 10);
+    scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
+    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.player_chara = scene.active_camera = scene.event_run = 0;
+    PortLoopNo = LOOP_EDIT;
+    PortTownLoopMode = EDIT_LOOP_WALK;
+    PortTownControlMode = EDIT_CONTROL_PLAYER;
+    PortTownLockChara = PortTownPause = PortEditLadderMode = 0;
+    PortEditViewMode = EDIT_VIEW_MODE_EYE;
+    PortTownFallFlag = 0;
+    PortTownMotionMode = EDIT_CHARA_MOTION_FREE;
+    PortEditEyeHeading = PortEditEyeTilt = 0;
+    GamePad__2.key_lock = DebugInfo.debug_camera = 0;
+    TakePhotoMode = TAKE_PHOTO_OFF;
+    InputResetBindings();
+    InputScript script;
+    std::string error;
+    ASSERT_TRUE(InputScriptParse("0 key:w mouse:10,10\n", script, error));
+    InputScriptInstall(script);
+    CPadControl pad{};
+    for (int tick = 0; tick < 3; ++tick) {
+        InputLatchPad(0);
+        const float y = chara.position[1], heading = PortEditEyeHeading;
+        EditControl(&scene, &pad);
+        EXPECT_LT(chara.position[1], y);
+        EXPECT_GT(PortTownFallFlag, 0);
+        EXPECT_LT(PortEditEyeHeading, heading);
+        const float turned = PortEditEyeHeading;
+        TownMouseEyeAfterControl(&scene, &pad);
+        EXPECT_FLOAT_EQ(PortEditEyeHeading, turned);
+    }
+    // The retail hard-landing state must retain look until its animation ends.
+    PortTownFallFlag = 0;
+    PortTownMotionMode = EDIT_CHARA_MOTION_LANDING;
+    PortTownMotionCount = 20;
+    EXPECT_FALSE(EditOnGround());
+    for (int tick = 0; tick < 2; ++tick) {
+        InputLatchPad(0);
+        const float heading = PortEditEyeHeading;
+        TownMouseEyeAfterControl(&scene, &pad);
+        EXPECT_LT(PortEditEyeHeading, heading);
+        const float turned = PortEditEyeHeading;
+        TownMouseEyeAfterControl(&scene, &pad);
+        EXPECT_FLOAT_EQ(PortEditEyeHeading, turned);
+    }
+    for (int gate = 0; gate < 7; ++gate) {
+        PortTownPause = gate == 0;
+        PortTownLockChara = gate == 1;
+        scene.event_run = gate == 2;
+        GamePad__2.key_lock = gate == 3;
+        PortEditLadderMode = gate == 4 ? EDIT_LADDER_MODE_BOTTOM : EDIT_LADDER_MODE_NONE;
+        PortEditViewMode = gate == 5 ? EDIT_VIEW_MODE_PHOTO : EDIT_VIEW_MODE_EYE;
+        camera.control_on = gate == 6;
+        InputLatchPad(0);
+        const float heading = PortEditEyeHeading;
+        TownMouseEyeAfterControl(&scene, &pad);
+        EXPECT_FLOAT_EQ(PortEditEyeHeading, heading) << gate;
+    }
+    PortTownFallFlag = old_fall;
+    PortTownMotionCount = old_count;
+    PortTownMotionMode = old_motion;
+    PortEditEyeHeading = old_heading;
+    PortEditEyeTilt = old_tilt;
+    PortActiveSaveData = old_save;
+    mgFrameRate = old_rate;
+}
+
+TEST(FirstPersonWalk, DungeonEyeEntryExitPublishCutsBeforeDrawing) {
+    RestoreFirstPersonState restore;
+    CScene                  scene;
+    CCameraControl          camera;
+    CActionChara            chara;
+    scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
+    scene.active_camera = scene.event_run = 0;
+    DngMainScene = &scene;
+    BattleAreaScene = &scene.battle_area;
+    MainChara__2 = &chara;
+    PortLoopNo = LOOP_DUNGEON;
+    DngStatus.eye_view = 0;
+    TakePhotoMode = TAKE_PHOTO_OFF;
+    auto draw = [] { mgBeginFrame(nullptr); mgEndFrame(nullptr); };
+    draw();
+    auto generation = mgPortCameraGeneration();
+    InitEyeCamera(&chara); // The same entry used by the R2 field toggle.
+    draw();
+    EXPECT_GT(mgPortCameraGeneration(), generation);
+    generation = mgPortCameraGeneration();
+    draw();
+    EXPECT_EQ(mgPortCameraGeneration(), generation);
+    mgBeginFrame(nullptr);
+    ResetEyeView(&chara); // R2 and event-forced exits run during logic.
+    EXPECT_GT(mgPortCameraGeneration(), generation);
+    mgEndFrame(nullptr);
+    generation = mgPortCameraGeneration();
+    draw();
+    EXPECT_EQ(mgPortCameraGeneration(), generation);
+    mgBeginFrame(nullptr);
+    ResetEyeView(&chara);
+    mgEndFrame(nullptr);
+    EXPECT_EQ(mgPortCameraGeneration(), generation);
+}
+
+TEST(FirstPersonWalk, TownReleasedWalkFallsLandsAndRestoresFollowOffset) {
+    RestoreFirstPersonState restore;
+    const int               old_rate = mgFrameRate;
+    const int               old_fall = PortTownFallFlag;
+    const auto              old_motion = PortTownMotionMode;
+    const auto              old_saved_eye = std::to_array(PortTownSavedEye);
+    auto                    save = std::make_unique<CSaveData>();
+    auto                   *old_save = PortActiveSaveData;
+    PortActiveSaveData = save.get();
+    mgFrameRate = 2;
+
+    class FloorMap : public CMap {
+    public:
+        int GetColPoly(CCPoly *out, mgVu0FBOX &, int capacity) override {
+            if (capacity < 1) {
+                return 0;
+            }
+            CCPoly      floor{};
+            const float points[3][2] = {
+                {-2000, -2000},
+                {0,     2000 },
+                {2000,  -2000}
+            };
+            for (int i = 0; i < 3; ++i) {
+                floor.vertex[i][0] = points[i][0];
+                floor.vertex[i][2] = points[i][1];
+                floor.vertex[i][3] = 1;
+            }
+            floor.normal[1] = 1;
+            out[0] = floor;
+            return 1;
+        }
+    } map;
+
+    CScene         scene;
+    CCharacter2    chara;
+    CCameraControl camera;
+    CPadControl    pad{};
+    scene.AssignMap(0, &map, const_cast<char *>("map"));
+    scene.map[0].status |= SCENE_DATA_ACTIVE;
+    scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
+    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.player_chara = scene.active_camera = scene.active_map = scene.event_run = 0;
+    chara.SetPosition(0, 100, 0); // Just over the ledge, before gravity starts.
+    camera.FollowOff();
+    camera.ControlOff();
+    camera.SetPos(0, 128, 0);
+    camera.SetRef(0, 128, 10);
+    const float entry[] = {0, 140, -100, 1};
+    std::copy_n(entry, 4, PortTownSavedEye);
+    PortTownEyeInitialized = 1;
+    PortLoopNo = LOOP_EDIT;
+    PortTownLoopMode = EDIT_LOOP_WALK;
+    PortTownControlMode = EDIT_CONTROL_PLAYER;
+    PortTownLockChara = PortTownPause = PortEditLadderMode = PortTownFallFlag = 0;
+    PortTownMotionMode = EDIT_CHARA_MOTION_FREE;
+    PortEditViewMode = EDIT_VIEW_MODE_EYE;
+    GamePad__2.key_lock = DebugInfo.debug_camera = 0;
+    TakePhotoMode = TAKE_PHOTO_OFF;
+    InputResetBindings();
+    InputScript script;
+    std::string error;
+    EXPECT_TRUE(InputScriptParse("0 key:w\n3\n", script, error));
+    InputScriptInstall(script);
+    for (int tick = 0; tick < 60; ++tick) {
+        if (tick == 3) {
+            InputScriptInstall({});
+        }
+        InputLatchPad(0);
+        EditControl(&scene, &pad);
+        if (tick == 3) {
+            EXPECT_GT(PortTownFallFlag, 0);
+            EXPECT_EQ(InputGetKeyboardMovement().y, 0);
+        }
+        for (int i = 0; i < 3; ++i) {
+            EXPECT_NEAR(PortTownSavedEye[i], entry[i] + chara.position[i] - (i == 1 ? 100 : 0), 0.001f) << tick;
+        }
+    }
+    EXPECT_EQ(PortTownFallFlag, 0);
+    EXPECT_NEAR(chara.position[1], 0, 0.01f);
+    const auto landed = std::to_array(chara.position);
+    ResetViewMode(&scene);
+    for (int i = 0; i < 3; ++i) {
+        EXPECT_NEAR(camera.pos[i], entry[i] + landed[i] - (i == 1 ? 100 : 0), 0.001f);
+    }
+    std::copy_n(old_saved_eye.data(), 4, PortTownSavedEye);
+    PortActiveSaveData = old_save;
+    PortTownFallFlag = old_fall;
+    PortTownMotionMode = old_motion;
+    mgFrameRate = old_rate;
 }

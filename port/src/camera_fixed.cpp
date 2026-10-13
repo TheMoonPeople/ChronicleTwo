@@ -142,6 +142,11 @@ void MouseFixedDisplayList(const gfx::DisplayList &source, gfx::DisplayList &out
     out.camera_cut = source.camera_cut;
     out.needs_base = source.needs_base;
     out.tagged_2d = source.tagged_2d;
+    out.scene = source.scene;
+    out.target_scenes = source.target_scenes;
+    out.main_cleared = source.main_cleared;
+    out.occurrences = source.occurrences;
+    out.occurrences_2d = source.occurrences_2d;
     out.cache = {};
     const int camera = MainCamera(source);
     if (camera < 0 || (yaw == 0 && pitch == 0)) {

@@ -20,12 +20,15 @@
 #include "dng_main.hpp"
 #include "dng_object.hpp"
 #include "dng_pickup_port.hpp"
+#include "editctrl_port.hpp"
 #include "effectlist.hpp"
 #include "gfx/displaylist.hpp"
 #include "gfx/gfx.hpp"
 #include "gfx_fixture.hpp"
 #include "mainloop.hpp"
+#include "mainloop_port.hpp"
 #include "maintex.hpp"
+#include "map.hpp"
 #include "menu_mouse.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_drawprim_port.hpp"
@@ -1941,3 +1944,237 @@ void CaptureRidepodWarning(bool wide) {
 TEST(MglibPresent, RidepodWarningsAnchorAtSixteenNine) { CaptureRidepodWarning(true); }
 
 TEST(MglibPresent, RidepodWarningsStayIdenticalAtFourThree) { CaptureRidepodWarning(false); }
+
+TEST(MglibPresent, RetailTownEyeMovementPairsAndRendersIntermediateCamera) {
+    PresentRenderer renderer(640, 480);
+    PresentSetSettings(PresentSettings{.interpolation = true});
+    auto        save = std::make_unique<CSaveData>();
+    auto       *old_save = PortActiveSaveData;
+    const auto  old_loop = PortLoopNo;
+    const auto  old_mode = PortEditViewMode;
+    const auto  old_pad = GamePad__2;
+    const float old_heading = PortEditEyeHeading, old_tilt = PortEditEyeTilt;
+    PortActiveSaveData = save.get();
+    PortLoopNo = LOOP_EDIT;
+    PortEditViewMode = EDIT_VIEW_MODE_EYE;
+    PortEditEyeHeading = PortEditEyeTilt = 0;
+    GamePad__2.pad[0].left_x = GamePad__2.pad[0].left_y = 128;
+    CScene         scene;
+    CCharacter2    chara;
+    CCameraControl camera;
+    CPadControl    pad{};
+    camera.FollowOff();
+    camera.ControlOff();
+    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
+    scene.player_chara = scene.active_camera = scene.event_run = 0;
+    const std::vector<gfx::Vertex3D> vertices = {
+        RedVertex(-5, -5), RedVertex(5, -5), RedVertex(5, 5), RedVertex(-5, 5)};
+    const std::vector<uint32_t> indices = {0, 1, 2, 0, 2, 3};
+    auto                        record = [&](float x, float heading) {
+        chara.SetPosition(x, 0, 0);
+        PortEditEyeHeading = heading;
+        mgBeginFrame(nullptr);
+        PortEditCameraControl(&scene, &pad);
+        sceVu0FMATRIX matrix;
+        camera.GetCameraMatrix(matrix);
+        auto transform = gfx::IdentityMeshTransform();
+        std::memcpy(transform.view, matrix, sizeof matrix);
+        Store(Projection(), transform.projection);
+        transform.model[13] = 28;
+        transform.model[14] = 50;
+        gfx::MeshConstants constants{};
+        constants.flags = gfx::kMeshVertexColor;
+        Store(Multiply(Multiply(Projection(), std::to_array(transform.view)),
+                       std::to_array(transform.model)),
+              constants.mvp);
+        std::fill_n(constants.diffuse, 4, 1.0f);
+        gfx::DrawState state;
+        state.depth_test = gfx::DepthTest::Always;
+        mgPortInterpScope scope(&camera, 1000);
+        mgPortDrawMeshImmediate(vertices, indices, constants, {}, state, &transform);
+        mgEndFrame(nullptr);
+    };
+    record(0, 0); // Drain any pending entry cut.
+    record(0, 0);
+    record(10, 0.1f);
+    EXPECT_FALSE(mgPortLastList()->camera_cut);
+    std::vector<uint8_t> pixels;
+    uint32_t             width = 0, height = 0;
+    double               centers[3]{};
+    for (int i = 0; i < 3; ++i) {
+        EXPECT_TRUE(PresentScreenshotDisplay(i * 0.5f, pixels, width, height));
+        RedCentroidX(pixels, width, height, centers[i]);
+    }
+    EXPECT_GT(std::fabs(centers[0] - centers[2]), 5);
+    EXPECT_GT(centers[1], std::min(centers[0], centers[2]));
+    EXPECT_LT(centers[1], std::max(centers[0], centers[2]));
+    EXPECT_EQ(mgPortLastList()->cache.cameras, std::vector<int32_t>{0});
+    PortActiveSaveData = old_save;
+    PortLoopNo = old_loop;
+    PortEditViewMode = old_mode;
+    GamePad__2 = old_pad;
+    PortEditEyeHeading = old_heading;
+    PortEditEyeTilt = old_tilt;
+}
+
+TEST(MglibPresent, RetailForcedFollowMovementPairsAndRendersIntermediateCamera) {
+    PresentRenderer renderer(640, 480);
+    PresentSetSettings(PresentSettings{.interpolation = true});
+    auto        save = std::make_unique<CSaveData>();
+    auto       *old_save = PortActiveSaveData;
+    const auto  old_loop = PortLoopNo;
+    const auto  old_mode = PortEditViewMode;
+    const auto  old_pad = GamePad__2;
+    const float old_heading = PortEditEyeHeading, old_tilt = PortEditEyeTilt;
+    PortActiveSaveData = save.get();
+    PortLoopNo = LOOP_EDIT;
+    PortEditViewMode = EDIT_VIEW_MODE_WALK;
+    PortEditEyeHeading = PortEditEyeTilt = 0;
+    GamePad__2.pad[0].left_x = GamePad__2.pad[0].left_y = 128;
+    CScene         scene;
+    CCharacter2    chara;
+    CCameraControl camera;
+    CPadControl    pad{};
+    CMap           map;
+    scene.AssignMap(0, &map, const_cast<char *>("s07"));
+    scene.active_map = 0;
+    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
+    scene.player_chara = scene.active_camera = scene.event_run = 0;
+    const std::vector<gfx::Vertex3D> vertices = {
+        RedVertex(-5, -5), RedVertex(5, -5), RedVertex(5, 5), RedVertex(-5, 5)};
+    const std::vector<uint32_t> indices = {0, 1, 2, 0, 2, 3};
+    auto                        record = [&](float x, float heading) {
+        chara.SetPosition(x, 0, 0);
+        PortEditEyeHeading = heading;
+        mgBeginFrame(nullptr);
+        PortEditCameraControl(&scene, &pad);
+        sceVu0FMATRIX matrix;
+        camera.GetCameraMatrix(matrix);
+        auto transform = gfx::IdentityMeshTransform();
+        std::memcpy(transform.view, matrix, sizeof matrix);
+        Store(Projection(), transform.projection);
+        transform.model[13] = 150;
+        transform.model[14] = -50;
+        gfx::MeshConstants constants{};
+        constants.flags = gfx::kMeshVertexColor;
+        Store(Multiply(Multiply(Projection(), std::to_array(transform.view)),
+                       std::to_array(transform.model)),
+              constants.mvp);
+        std::fill_n(constants.diffuse, 4, 1.0f);
+        gfx::DrawState state;
+        state.depth_test = gfx::DepthTest::Always;
+        mgPortInterpScope scope(&camera, 1000);
+        mgPortDrawMeshImmediate(vertices, indices, constants, {}, state, &transform);
+        mgEndFrame(nullptr);
+    };
+    record(0, 0); // Drain any pending entry cut.
+    record(0, 0);
+    record(20, 0.1f);
+    EXPECT_FALSE(mgPortLastList()->camera_cut);
+    std::vector<uint8_t> pixels;
+    uint32_t             width = 0, height = 0;
+    double               centers[3]{};
+    for (int i = 0; i < 3; ++i) {
+        EXPECT_TRUE(PresentScreenshotDisplay(i * 0.5f, pixels, width, height));
+        RedCentroidX(pixels, width, height, centers[i]);
+    }
+    EXPECT_GT(std::fabs(centers[0] - centers[2]), 5);
+    EXPECT_GT(centers[1], std::min(centers[0], centers[2]));
+    EXPECT_LT(centers[1], std::max(centers[0], centers[2]));
+    EXPECT_EQ(mgPortLastList()->cache.cameras, std::vector<int32_t>{0});
+    PortActiveSaveData = old_save;
+    PortLoopNo = old_loop;
+    PortEditViewMode = old_mode;
+    GamePad__2 = old_pad;
+    PortEditEyeHeading = old_heading;
+    PortEditEyeTilt = old_tilt;
+}
+
+TEST(MglibPresent, SameOwnerAuthoredCameraStepCutsTheDrawnTick) {
+    PresentRenderer renderer(640, 480);
+    PresentSetSettings(PresentSettings{.interpolation = true});
+    CCameraControl camera;
+    camera.FollowOff();
+    camera.ControlOff();
+    const std::vector<gfx::Vertex3D> vertices = {
+        RedVertex(-5, -5), RedVertex(5, -5), RedVertex(5, 5), RedVertex(-5, 5)};
+    const std::vector<uint32_t> indices = {0, 1, 2, 0, 2, 3};
+    auto                        record = [&](float x) {
+        mgBeginFrame(nullptr);
+        camera.SetNextPos(x, 0, -100);
+        camera.SetNextRef(x, 0, 0);
+        camera.Step(-1); // SET_CAMERA_NEXT_POS/REF + CAMERA_STEP on an unchanged owner.
+        sceVu0FMATRIX matrix;
+        camera.GetCameraMatrix(matrix);
+        auto transform = gfx::IdentityMeshTransform();
+        std::memcpy(transform.view, matrix, sizeof matrix);
+        Store(Projection(), transform.projection);
+        gfx::MeshConstants constants{};
+        constants.flags = gfx::kMeshVertexColor;
+        Store(Multiply(Projection(), std::to_array(transform.view)), constants.mvp);
+        std::fill_n(constants.diffuse, 4, 1.0f);
+        gfx::DrawState state;
+        state.depth_test = gfx::DepthTest::Always;
+        mgPortInterpScope scope(&camera, 1000);
+        mgPortDrawMeshImmediate(vertices, indices, constants, {}, state, &transform);
+        mgEndFrame(nullptr);
+    };
+    record(0);
+    const auto generation = mgPortCameraGeneration();
+    record(20);
+    EXPECT_GT(mgPortCameraGeneration(), generation);
+    ASSERT_NE(mgPortLastList(), nullptr);
+    EXPECT_TRUE(mgPortLastList()->camera_cut);
+    std::vector<uint8_t> pixels;
+    uint32_t             width = 0, height = 0;
+    double               centers[3]{};
+    for (int i = 0; i < 3; ++i) {
+        EXPECT_TRUE(PresentScreenshotDisplay(i * 0.5f, pixels, width, height));
+        RedCentroidX(pixels, width, height, centers[i]);
+    }
+    EXPECT_NEAR(centers[0], centers[2], 0.001);
+    EXPECT_NEAR(centers[1], centers[2], 0.001);
+}
+
+TEST(MglibPresent, DungeonEyeExitCutsTheRestoreTickWithoutCuttingTheNextTick) {
+    PresentRenderer renderer(640, 480);
+    auto           *old_scene = DngMainScene;
+    auto           *old_main = MainChara__2;
+    auto           *old_area = BattleAreaScene;
+    const auto      old_status = DngStatus;
+    const int       old_loop = PortLoopNo;
+    CScene          scene;
+    CCameraControl  camera;
+    CActionChara    chara;
+    scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
+    scene.active_camera = 0;
+    DngMainScene = &scene;
+    MainChara__2 = &chara;
+    BattleAreaScene = &scene.battle_area;
+    PortLoopNo = LOOP_DUNGEON;
+    DngStatus.eye_view = 0;
+    auto draw = [] { mgBeginFrame(nullptr); mgEndFrame(nullptr); };
+    draw();
+    InitEyeCamera(&chara);
+    draw();
+    EXPECT_TRUE(mgPortLastList()->camera_cut);
+    draw();
+    EXPECT_FALSE(mgPortLastList()->camera_cut);
+    const auto generation = mgPortCameraGeneration();
+    mgBeginFrame(nullptr);
+    ResetEyeView(&chara); // Logic runs after BeginFrame in the actual main loop.
+    mgEndFrame(nullptr);
+    EXPECT_GT(mgPortCameraGeneration(), generation);
+    EXPECT_TRUE(mgPortLastList()->camera_cut);
+    const auto restored_generation = mgPortCameraGeneration();
+    draw();
+    EXPECT_EQ(mgPortCameraGeneration(), restored_generation);
+    EXPECT_FALSE(mgPortLastList()->camera_cut);
+    DngMainScene = old_scene;
+    MainChara__2 = old_main;
+    BattleAreaScene = old_area;
+    DngStatus = old_status;
+    PortLoopNo = old_loop;
+}

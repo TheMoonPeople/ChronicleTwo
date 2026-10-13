@@ -9,10 +9,14 @@
 #include "editloop.hpp"
 #include "first_person_walk.hpp"
 #include "mainloop.hpp"
+#include "mglib_port.hpp"
 #include "photo.hpp"
 #include "platform/config.hpp"
 #include "platform/input.hpp"
+#include "scenevillager.hpp"
 #include "subgame.hpp"
+
+extern sceVu0FVECTOR PortTownSavedEye asm("EditCtrl_SavedEye");
 
 void TownMouseEyeAfterControl(CScene *scene, CPadControl *pad) {
     const InputMouseLook &look = InputGetMouseLook();
@@ -25,7 +29,7 @@ void TownMouseEyeAfterControl(CScene *scene, CPadControl *pad) {
         (PortEditViewMode != EDIT_VIEW_MODE_EYE &&
          !(PortEditViewMode == EDIT_VIEW_MODE_PHOTO && NowTakePhoto())) ||
         PortEditLadderMode != EDIT_LADDER_MODE_NONE ||
-        !EditOnGround() || scene->event_run || scene->active_camera != 0 ||
+        (!EditOnGround() && !TownFirstPersonOwns(scene, pad)) || scene->event_run || scene->active_camera != 0 ||
         GamePad__2.key_lock || SubGameRunning() || DebugInfo.debug_camera || mgCCamera::StopCamera) {
         return;
     }
@@ -59,8 +63,18 @@ PORT_OVERRIDE int EditControl(CScene *scene, CPadControl *pad) {
     if (PortEditLadderMode != EDIT_LADDER_MODE_NONE) {
         PortEditLadderControl(scene, pad);
     } else {
+        const bool eye_owned = TownFirstPersonOwns(scene, pad);
         if (!TownFirstPersonWalk(scene, pad)) {
+            auto         *chara = eye_owned ? scene->GetCharacter(scene->player_chara) : nullptr;
+            sceVu0FVECTOR before, after;
+            if (chara) {
+                chara->GetPosition(before);
+            }
             PortEditCharaControl(scene, pad);
+            if (chara) {
+                chara->GetPosition(after);
+                FirstPersonShiftSavedEye(PortTownSavedEye, before, after);
+            }
         }
         PortEditCameraControl(scene, scene->event_run ? nullptr : pad);
     }
@@ -85,4 +99,11 @@ CCameraControl *TownMouseFixedOwner() {
                               GamePad__2.key_lock, ConfigGet().mouse_fixed_look)
                ? camera
                : nullptr;
+}
+
+void PortRetailResetViewMode(CScene *) asm("EditCtrl_ResetViewMode");
+
+PORT_OVERRIDE void ResetViewMode(CScene *scene) {
+    mgPortCutCameraInterpolation();
+    PortRetailResetViewMode(scene);
 }
