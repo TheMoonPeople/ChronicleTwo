@@ -1236,3 +1236,11 @@ history is unavailable, including shallow CI checkouts without a merge-base, CTe
 skips the check with a message. `PalTiming.IdentitySelfTest` runs without git history.
 This is a PR-time source check; `ps2-pal` and `verify.py` remain the authority for
 PS2 byte matching.
+
+Saved play time remains in 1/50 second units at every logic tick rate. At 60 Hz,
+six enabled ticks add five saved units. Pausing retains fractional credit; a new
+game or successful save load discards its unsaved remainder (less than 20 ms).
+The existing PAL save display and fast-destroy record conversion retain their
+units. Existing save counters from earlier custom-rate sessions are preserved
+without a guessed migration factor.
+

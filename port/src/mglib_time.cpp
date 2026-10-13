@@ -1,13 +1,12 @@
 #include "common.h"
 
-#include "mglib.hpp"
-#include "stubs/mglib.hpp"
-
 #include <eekernel.h>
 
 #include <chrono>
 
+#include "mglib.hpp"
 #include "platform/clock.hpp"
+#include "stubs/mglib.hpp"
 
 // The VSync count is ClockTickCount(). Only the secondary callback and the rotate priority are kept here.
 // VSyncField is the one global the game reads; it is written in place.

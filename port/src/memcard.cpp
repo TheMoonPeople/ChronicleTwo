@@ -8,6 +8,7 @@
 #include "inventmn.hpp"
 #include "mainloop.hpp"
 #include "platform/files.hpp"
+#include "play_time.hpp"
 #include "save_slots.hpp"
 #include "title.hpp"
 #include "userdata.hpp"
@@ -215,6 +216,7 @@ PORT_OVERRIDE int CMemoryCardManager::LoadFromMc(int row) {
     if (save->tour.base_day <= 0 && save->GetBitFlag(SAVE_FLAG_FISHING_CONTEST_UNLOCKED)) {
         save->tour.base_day = 7;
     }
+    PlayTimeReset();
     total_transferred = transferred = sizeof(*image);
     return MC_STEP_DONE;
 }
