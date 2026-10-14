@@ -1,0 +1,172 @@
+# The PC port (docs/PC.md) as a Flatpak. docs/FLATPAK.md has the commands to build, install and run
+# it and to put the game's data where it looks.
+id: org.themoonpeople.ChronicleTwo
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.llvm22
+command: darkchronicle
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  # X11 shared memory, which fallback-x11 needs to be usable.
+  - --share=ipc
+  # The GPU, for Vulkan and the data setup window's OpenGL.
+  - --device=dri
+  # Playback through PipeWire's or PulseAudio's PulseAudio socket.
+  - --socket=pulseaudio
+  # hidraw, for the 2026 Steam Controller.
+  - --device=all
+
+modules:
+  # Header only, for the build alone: the network is off while chronicletwo configures.
+  - name: nlohmann-json
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DJSON_BuildTests=OFF
+    cleanup:
+      - '*'
+    sources:
+      - type: archive
+        url: https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+        sha256: 42f6e95cad6ec532fd372391373363b62a14af6d771056dbfc86160e6dfff7aa
+
+  # The movies' decoder, configured as tools/kazarov/tools/ffmpeg/kz-ffmpeg builds it; static, for the build alone.
+  - name: ffmpeg
+    buildsystem: autotools
+    config-opts:
+      - --disable-everything
+      - --disable-programs
+      - --disable-doc
+      - --disable-network
+      - --disable-autodetect
+      - --disable-avformat
+      - --disable-avfilter
+      - --disable-swscale
+      - --disable-swresample
+      - --disable-avdevice
+      - --enable-decoder=mpeg2video
+      - --enable-parser=mpegvideo
+      - --enable-pic
+      - --disable-shared
+      - --enable-static
+    cleanup:
+      - '*'
+    sources:
+      - type: archive
+        url: https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz
+        sha256: 733984395e0dbbe5c046abda2dc49a5544e7e0e1e2366bba849222ae9e3a03b1
+
+  # The Rust image/Dockerfile installs, newer than the SDK's rust-stable extension; for the build alone.
+  - name: rust
+    buildsystem: simple
+    # Stripping rustc's own libLLVM leaves it unloadable, here and in the next module.
+    build-options:
+      strip: false
+      no-debuginfo: true
+    build-commands:
+      - ./install.sh --prefix=/app/rust --disable-ldconfig --components=rustc,cargo,rust-std-x86_64-unknown-linux-gnu
+    cleanup:
+      - '*'
+    sources:
+      - type: archive
+        url: https://static.rust-lang.org/dist/2026-10-01/rust-1.99.0-x86_64-unknown-linux-gnu.tar.xz
+        sha256: 891c6366d7100feda0bca4c03ce63f3c9ac827cbebbc283e7433061d42c6a376
+
+  # Corrosion runs the cxxbridge it finds on PATH when its version is cxx's; for the build alone.
+  - name: cxxbridge
+    buildsystem: simple
+    build-options:
+      strip: false
+      no-debuginfo: true
+      append-path: /app/rust/bin
+      env:
+        CARGO_HOME: /run/build/cxxbridge/cargo
+        CARGO_NET_OFFLINE: 'true'
+    build-commands:
+      - cargo install --offline --path cargo/vendor/cxxbridge-cmd-1.0.205 --root /app/tools
+    cleanup:
+      - '*'
+    sources:
+      - cargo-sources.json
+
+  - name: chronicletwo
+    buildsystem: cmake-ninja
+    builddir: true
+    build-options:
+      append-path: /usr/lib/sdk/llvm22/bin:/app/rust/bin:/app/tools/bin
+      prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
+      env:
+        CC: clang
+        CXX: clang++
+        LD: ld.lld
+        CARGO_HOME: /run/build/chronicletwo/cargo
+        CARGO_NET_OFFLINE: 'true'
+        KZ_CORROSION_SOURCE_DIR: /run/build/chronicletwo/corrosion
+      # The SDK's default flags turn on _GLIBCXX_ASSERTIONS, -Werror=format-security and -g, none of
+      # which the game's code is built with anywhere else; Release supplies the optimisation.
+      cflags: ''
+      cflags-override: true
+      cxxflags: ''
+      cxxflags-override: true
+    config-opts:
+      - -DPLATFORM=PC
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX=/app
+      - -DCMAKE_PREFIX_PATH=/app
+      - -DCMAKE_CXX_COMPILER=/usr/lib/sdk/llvm22/bin/clang++
+      - -DCT_BUILD_TESTS=OFF
+      - -DKZ_FFMPEG_DIR=/app
+      - -DKZ_PORT_VENDOR_DIRS=/run/build/chronicletwo/vendor
+    # post-install runs in the build directory, not the source.
+    post-install:
+      - install -Dm644 -t ${FLATPAK_DEST}/share/applications ${FLATPAK_BUILDER_BUILDDIR}/port/flatpak/${FLATPAK_ID}.desktop
+      - install -Dm644 -t ${FLATPAK_DEST}/share/metainfo ${FLATPAK_BUILDER_BUILDDIR}/port/flatpak/${FLATPAK_ID}.metainfo.xml
+      - install -Dm644 ${FLATPAK_BUILDER_BUILDDIR}/port/icon/chronicletwo-512.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/${FLATPAK_ID}.png
+    sources:
+      # chronicletwo-source: the CI job swaps this for a git source at the commit under test.
+      - type: dir
+        path: ../..
+        skip:
+          - .git
+          - .flatpak-builder
+          - .kazarov
+          - build
+          - port/build
+          - port/run
+          - build-dir
+          - repo
+          - rom
+          - data
+          - save
+          - ps2/asm
+          - .private
+          - chronicletwo.flatpak
+      # chronicletwo-source-end
+      # flatpak-builder downloads these before entering its network-restricted build sandbox.
+      - cargo-sources.json
+      - type: archive
+        url: https://github.com/corrosion-rs/corrosion/archive/refs/tags/v0.6.1.zip
+        sha256: 5c1c5c6ab7196fe4466321c14e9698ec2d0a977c89fd9f1639a37fcffdf604f2
+        dest: corrosion
+      - type: file
+        url: https://raw.githubusercontent.com/mackron/dr_libs/dfe8377631000664666519fdb83da193fd8037f4/dr_wav.h
+        sha256: 03e70c1a2d9787cd7ed3e966c075bea7bac6373f759db9cd7ca9ccdfc4ec4493
+        dest: vendor
+      - type: file
+        url: https://raw.githubusercontent.com/mackron/dr_libs/dfe8377631000664666519fdb83da193fd8037f4/dr_flac.h
+        sha256: 111144e778f55738db6851cb226015c419e00d04b916a09506d4856d9cff945c
+        dest: vendor
+      - type: file
+        url: https://raw.githubusercontent.com/nothings/stb/2c980bb59875b0d32144a71867fbdebb2f77cd20/stb_vorbis.c
+        sha256: 4c7cb2ff1f7011e9d67950446b7eb9ca044f2e464d76bfbb0b84dd2e23e65636
+        dest: vendor
+      - type: file
+        url: https://raw.githubusercontent.com/nothings/stb/2c980bb59875b0d32144a71867fbdebb2f77cd20/stb_truetype.h
+        sha256: ecd30b05e0dd4fea3a13c26810dd9e1992dc379049482c393d5a19e6b5090aab
+        dest: vendor
+      - type: file
+        url: https://raw.githubusercontent.com/nothings/stb/2c980bb59875b0d32144a71867fbdebb2f77cd20/stb_image.h
+        sha256: 594c2fe35d49488b4382dbfaec8f98366defca819d916ac95becf3e75f4200b3
+        dest: vendor

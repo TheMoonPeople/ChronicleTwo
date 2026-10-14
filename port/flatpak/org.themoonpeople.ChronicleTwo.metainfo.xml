@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.themoonpeople.ChronicleTwo</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name>Chronicle Two</name>
+  <summary>Native port of a PlayStation 2 action RPG, built from its decompilation</summary>
+  <developer id="org.themoonpeople">
+    <name>TheMoonPeople</name>
+  </developer>
+  <description>
+    <p>
+      Chronicle Two is a decompilation of the PlayStation 2 game Dark Chronicle (Dark Cloud 2),
+      rebuilt from that source code as a native program that runs on Vulkan and SDL. It is not an
+      emulator, and it is not affiliated with or endorsed by the game's developer or publisher.
+    </p>
+    <p>
+      No game data is included. You need your own copy of the PAL disc: the first start asks for a
+      disc image and extracts its files into the application's data directory, and the game reads
+      them from there. Saves are kept in the same place.
+    </p>
+  </description>
+  <launchable type="desktop-id">org.themoonpeople.ChronicleTwo.desktop</launchable>
+  <url type="homepage">https://github.com/TheMoonPeople/ChronicleTwo</url>
+  <url type="bugtracker">https://github.com/TheMoonPeople/ChronicleTwo/issues</url>
+  <url type="vcs-browser">https://github.com/TheMoonPeople/ChronicleTwo</url>
+  <categories>
+    <category>Game</category>
+    <category>RolePlaying</category>
+  </categories>
+  <requires>
+    <display_length compare="ge">640</display_length>
+  </requires>
+  <supports>
+    <control>keyboard</control>
+    <control>gamepad</control>
+  </supports>
+  <content_rating type="oars-1.1">
+    <content_attribute id="violence-fantasy">moderate</content_attribute>
+  </content_rating>
+</component>

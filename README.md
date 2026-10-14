@@ -25,6 +25,8 @@ so Docker or Podman must be installed.
 - `build.bat` and `run.bat` do the same on Windows.
 - `tools/kazarov/scripts/kazarov shell` opens a shell in the build container, with the
   project at `/work/chronicletwo`.
+- `port/flatpak.sh` packages the PC port as a Flatpak, `chronicletwo.flatpak`, which CI
+  also builds; `docs/FLATPAK.md` covers building, installing and its first start.
 
 ## Diffing
 

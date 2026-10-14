@@ -163,3 +163,57 @@ jobs:
           name: chronicletwo-windows-x64
           path: chronicletwo-windows-x64.zip
           if-no-files-found: error
+
+  # docs/FLATPAK.md: the Linux build packaged in Flathub's freedesktop 26.08 image. The manifest uses the
+  # commit under test as a git source, and the smoke run checks that the packaged binary reaches its data check.
+  flatpak:
+    name: Build the Flatpak (Linux x86_64)
+    runs-on: ubuntu-26.04
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-26.08
+      options: --privileged
+    env:
+      MANIFEST: port/flatpak/ci.yml
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Check that the vendored crates match Kazarov's Cargo.lock
+        run: |
+          python3 port/flatpak/cargo_sources.py
+          git diff --exit-code port/flatpak/cargo-sources.json
+
+      - name: Point the manifest at this commit
+        run: |
+          # flatpak-builder clones the workspace, which belongs to another user in the container.
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          awk -v commit="$GITHUB_SHA" '
+            /# chronicletwo-source:/ {
+              print
+              print "      - type: git"
+              print "        path: ../.."
+              print "        commit: " commit
+              skip = 1
+              next
+            }
+            /# chronicletwo-source-end/ { skip = 0 }
+            !skip { print }
+          ' port/flatpak/org.themoonpeople.ChronicleTwo.yml > "$MANIFEST"
+          sed -n '/name: chronicletwo$/,$p' "$MANIFEST" | head -80
+
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: ${{ env.MANIFEST }}
+          bundle: chronicletwo.flatpak
+          artifact-name: chronicletwo-x86_64.flatpak
+          cache-key: flatpak-builder-${{ hashFiles('port/flatpak/org.themoonpeople.ChronicleTwo.yml', 'port/flatpak/cargo-sources.json') }}
+
+      - name: Start darkchronicle without data
+        run: |
+          set +e
+          flatpak build --env=XDG_DATA_HOME=/tmp/xdg flatpak_app darkchronicle --headless --frames 1 > run.txt 2>&1
+          status=$?
+          cat run.txt
+          echo "darkchronicle exited $status"
+          [ "$status" -eq 3 ] && grep -q 'No current Dark Chronicle data at /tmp/xdg/chronicletwo/data' run.txt
