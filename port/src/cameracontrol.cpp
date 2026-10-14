@@ -24,6 +24,7 @@
 #include "platform/input.hpp"
 #include "scenesnd.hpp"
 #include "subgame.hpp"
+#include "vu0_lanes.hpp"
 
 extern mgCCamera *PortContinuousEyeCamera;
 
@@ -161,6 +162,123 @@ PORT_OVERRIDE void CCameraControl::MoveCamera(CPadControl *pad, float *player_ro
         CancelRotBack();
     }
     MouseCameraPitch(*this, look.pitch, orbit_polys, count, zoom_owns ? zoom.HeightScale(*this) : 1.0f);
+}
+
+// Retail body, with the height ratio divided as the EE FPU divides it.
+PORT_OVERRIDE void CCameraControl::MoveCamera(Control *control, float *player_rot, CCPoly *polys, int poly_count) {
+    CameraCtrlParam *active;
+    float            follow[4];
+    float            follow_offset[4];
+    float            to_target[4];
+    float            direction[4];
+    float            correction[4];
+    float            distance;
+    float            turn;
+    float            rise;
+
+    if (!control_on) {
+        return;
+    }
+
+    active = GetActiveParam();
+    GetFollow(follow);
+    GetFollowOffset(follow_offset);
+    sceVu0AddVector(next_ref, follow, follow_offset);
+    sceVu0SubVector(to_target, next_ref, next_pos);
+    to_target[1] = 0.0f;
+    sceVu0Normalize(direction, to_target);
+    mgZeroVector(correction);
+    distance = mgDistVector(to_target);
+
+    if (distance <= 0.0f) {
+        distance = 1.0f;
+        to_target[2] = 1.0f;
+        direction[2] = 1.0f;
+    }
+
+    if (distance < active->min_dist) {
+        sceVu0ScaleVector(correction, direction, distance - active->min_dist);
+    }
+
+    if (distance > active->max_dist) {
+        sceVu0ScaleVector(correction, direction, distance - active->max_dist);
+    }
+
+    {
+        float effective;
+        float min_dist = active->min_dist;
+        effective = min_dist;
+
+        if (distance < min_dist) {
+            effective = distance;
+        }
+
+        turn = (control->rot * min_dist) / effective;
+    }
+
+    if (turn != 0.0f) {
+        Rotate(turn);
+    }
+
+    rise = control->height;
+    active->height += rise;
+
+    if (active->height < active->min_height) {
+        active->height = active->min_height;
+    }
+
+    if (active->height > active->max_height) {
+        active->height = active->max_height;
+    }
+
+    if (rise == 0.0f) {
+        if (active->rest_min_height > active->height) {
+            active->height += (active->rest_min_height - active->height) / 20.0f;
+        }
+
+        if (active->rest_max_height < active->height) {
+            active->height += (active->rest_max_height - active->height) / 20.0f;
+        }
+    }
+
+    {
+        float near_distance = active->min_dist;
+        float far_distance = active->max_dist;
+        float near_height = active->near_height;
+        float far_height = active->far_height;
+        // Fishing's cast-point camera pins min_dist == max_dist. The EE FPU returns a signed FLT_MAX
+        // there, which the equal heights then zero; a host division gives inf * 0 = NaN, the camera
+        // is lost for good and the cast-point screen shows only the clear colour.
+        float ratio = vu0::Div(distance - near_distance, far_distance - near_distance);
+        correction[1] = vu0::Sat(near_height + vu0::Sat(ratio * (far_height - near_height)));
+    }
+    next_pos[1] = next_ref[1] + active->height;
+    mgAddVector(next_pos, correction);
+
+    if (control->rot_back && !(rot_cancel & CAMERA_ROT_CANCEL_ROT_BACK)) {
+        RotBack(player_rot[1] - PI);
+    }
+
+    if (rot_back) {
+        float angle = mgAngleInterpolate(GetAngle(), rot_back_angle, 1.0f, 0);
+        SetRotate(angle);
+
+        if (mgAngleCmp(angle, rot_back_angle, 0.1f) == 0) {
+            rot_back = false;
+        }
+    }
+
+    if (!active->no_check) {
+        CheckGround(polys, poly_count);
+
+        if (turn != 0.0f || (rot_cancel & CAMERA_ROT_CANCEL_AUTO_MOVE)) {
+            CheckCollision(polys, poly_count);
+            return;
+        }
+
+        CheckCollision(polys, poly_count);
+        AutoMove(polys, poly_count);
+    }
 }
 
 PORT_OVERRIDE void CCameraControl::Step(int frames) {
