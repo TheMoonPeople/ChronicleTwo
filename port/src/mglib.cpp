@@ -27,6 +27,7 @@
 #include "mglib_port.hpp"
 #include "platform/clock.hpp"
 #include "platform/paths.hpp"
+#include "photo_hd.hpp"
 #include "present.hpp"
 #include "scenesnd.hpp"
 #include "stubs/mglib.hpp"
@@ -1759,6 +1760,35 @@ PORT_OVERRIDE int mgStoreImage(mgCTexture *texture, u_long128 *buffer) {
                 const uint8_t *pixel = &rgba[(static_cast<size_t>(sy) * src_width + sx) * 4];
                 WriteTexel(out + (static_cast<size_t>(y) * width + x) * bytes_per_texel, psm, pixel);
             }
+        }
+
+        // The camera's capture: keep a sharper copy of the shot beside the retail 64x64 picture.
+        if (PhotoHdIsWorkTexture(texture->name) && width == 64 && height == 64 && bytes_per_texel == 2) {
+            std::vector<uint8_t> hd(static_cast<size_t>(kPhotoHdSize) * kPhotoHdSize * 4);
+            for (uint32_t y = 0; y < kPhotoHdSize; ++y) {
+                const uint32_t y0 = y * content_height / kPhotoHdSize;
+                const uint32_t y1 = std::max(y0 + 1, (y + 1) * content_height / kPhotoHdSize);
+                for (uint32_t x = 0; x < kPhotoHdSize; ++x) {
+                    const uint32_t x0 = x * content_width / kPhotoHdSize;
+                    const uint32_t x1 = std::max(x0 + 1, (x + 1) * content_width / kPhotoHdSize);
+                    uint32_t sum[3] = {};
+                    for (uint32_t sy = y0; sy < y1; ++sy) {
+                        for (uint32_t sx = x0; sx < x1; ++sx) {
+                            const uint8_t *pixel = &rgba[(static_cast<size_t>(sy) * src_width + sx) * 4];
+                            sum[0] += pixel[0];
+                            sum[1] += pixel[1];
+                            sum[2] += pixel[2];
+                        }
+                    }
+                    const uint32_t count = (y1 - y0) * (x1 - x0);
+                    uint8_t *texel = &hd[(static_cast<size_t>(y) * kPhotoHdSize + x) * 4];
+                    texel[0] = static_cast<uint8_t>(sum[0] / count);
+                    texel[1] = static_cast<uint8_t>(sum[1] / count);
+                    texel[2] = static_cast<uint8_t>(sum[2] / count);
+                    texel[3] = 0xFF;
+                }
+            }
+            PhotoHdRemember(out, static_cast<size_t>(bytes), std::move(hd));
         }
     }
 

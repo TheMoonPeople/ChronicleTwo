@@ -34,6 +34,10 @@ struct MgTextureExtent {
  */
 MgTextureExtent MgTexturePhysicalExtent(const mgCTexture *texture);
 /**
+ * Gives a non-catalog texture scale x scale host texels per retail texel (the camera's capture target).
+ */
+void MgTextureSetPhysicalScale(const mgCTexture *texture, uint32_t scale);
+/**
  * Returns the retail padded canvas encoded by TEX0.
  */
 MgTextureExtent MgTextureLogicalExtent(uint64_t tex0);

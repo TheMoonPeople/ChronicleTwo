@@ -20,6 +20,7 @@
 #include "mglib.hpp"
 #include "platform/texture_catalog.hpp"
 #include "platform/datapacks.hpp"
+#include "photo_hd.hpp"
 #include "texture_source.hpp"
 
 // The rendering seam is installed only once the mglib stream has landed its header.
@@ -61,6 +62,7 @@ struct Entry {
     bool                     catalog = false;
     mgCTexture              *draw_variant = nullptr;
     std::vector<uint8_t>     memory16; /**< 16-bit RAM image last uploaded, to notice in-place rewrites. */
+    uint32_t                 physical_scale = 1; /**< Host texels per retail texel outside the catalog. */
 };
 
 struct TextureRegistry {
@@ -187,7 +189,7 @@ size_t Memory16Bytes(const mgCTexture *texture) {
 
 /**
  * Expands a linear PSMCT16 RAM image (photos stored by mgStoreImage) into RGBA8. The game draws these with
- * TEXA TA0 = TA1 = 0x80, so every texel is opaque whatever its alpha bit.
+ * TEXA TA0 = TA1 = 0x80, so every texel is opaque (0xFF in the renderer's units) whatever its alpha bit.
  */
 std::vector<uint8_t> DecodeMemory16(const mgCTexture *texture) {
     const size_t texels = Memory16Bytes(texture) / 2;
@@ -201,21 +203,29 @@ std::vector<uint8_t> DecodeMemory16(const mgCTexture *texture) {
         rgba[i * 4 + 0] = static_cast<uint8_t>((r << 3) | (r >> 2));
         rgba[i * 4 + 1] = static_cast<uint8_t>((g << 3) | (g >> 2));
         rgba[i * 4 + 2] = static_cast<uint8_t>((b << 3) | (b >> 2));
-        rgba[i * 4 + 3] = 0x80;
+        rgba[i * 4 + 3] = 0xFF; // The renderer's opaque (GS 0x80).
     }
     return rgba;
 }
 
 gfx::TextureHandle UploadMemory16(const mgCTexture *texture, Entry &entry) {
+    const uint8_t *raw = AsBytes(texture->image[0]);
+    const size_t   bytes = Memory16Bytes(texture);
+    entry.memory16.assign(raw, raw + bytes);
+    // A camera photo taken on PC also has a sharper copy, found again by its retail bytes.
+    const std::vector<uint8_t> *hd = texture->width == 64 && texture->height == 64 ? PhotoHdFind(raw, bytes) : nullptr;
+    entry.physical_scale = hd != nullptr ? kPhotoHdSize / 64 : 1;
     const auto extent = MgTexturePhysicalExtent(texture);
     auto handle = gfx::CreateTexture({extent.width, extent.height, gfx::TextureFormat::Rgba8, 1, true});
     if (handle == gfx::kNullTexture) {
         return handle;
     }
-    const auto rgba = DecodeMemory16(texture);
-    gfx::UpdateTexture(handle, 0, 0, 0, texture->width, texture->height, rgba.data());
-    const uint8_t *raw = AsBytes(texture->image[0]);
-    entry.memory16.assign(raw, raw + Memory16Bytes(texture));
+    if (hd != nullptr) {
+        gfx::UpdateTexture(handle, 0, 0, 0, kPhotoHdSize, kPhotoHdSize, hd->data());
+    } else {
+        const auto rgba = DecodeMemory16(texture);
+        gfx::UpdateTexture(handle, 0, 0, 0, texture->width, texture->height, rgba.data());
+    }
     return handle;
 }
 
@@ -314,13 +324,10 @@ void Resolve(const mgCTexture *texture, Entry &entry, bool) {
     }
 
     // Retail uploads RAM images on every reload; a photo slot is rewritten in place (new shot, sorting).
-    if (entry.image != gfx::kNullTexture && IsMemory16(texture, entry) &&
+    if (IsMemory16(texture, entry) &&
         (entry.memory16.size() != Memory16Bytes(texture) ||
          std::memcmp(entry.memory16.data(), AsBytes(texture->image[0]), entry.memory16.size()) != 0)) {
-        const auto rgba = DecodeMemory16(texture);
-        gfx::UpdateTexture(entry.image, 0, 0, 0, texture->width, texture->height, rgba.data());
-        const uint8_t *raw = AsBytes(texture->image[0]);
-        entry.memory16.assign(raw, raw + Memory16Bytes(texture));
+        Rebuild(texture, entry);
     }
 }
 
@@ -805,8 +812,15 @@ int MgTextureSourceBpp(const mgCTexture *texture) {
 MgTextureExtent MgTexturePhysicalExtent(const mgCTexture *texture) {
     if (!texture) return {};
     const auto found = catalog_pixels.find(texture);
-    return found != catalog_pixels.end() ? MgTextureExtent{found->second.width, found->second.height}
-                                         : MgTextureExtent{1u << texture->tex0.TW, 1u << texture->tex0.TH};
+    if (found != catalog_pixels.end()) return {found->second.width, found->second.height};
+    const auto entry = Registry().entries.find(texture);
+    const uint32_t scale = entry != Registry().entries.end() ? entry->second.physical_scale : 1;
+    return {(1u << texture->tex0.TW) * scale, (1u << texture->tex0.TH) * scale};
+}
+
+void MgTextureSetPhysicalScale(const mgCTexture *texture, uint32_t scale) {
+    const auto found = Registry().entries.find(texture);
+    if (found != Registry().entries.end() && !found->second.catalog) found->second.physical_scale = std::max(1u, scale);
 }
 
 MgTextureExtent MgTextureLogicalExtent(uint64_t tex0) {

@@ -5,14 +5,20 @@
 
 #include "inventmn.hpp"
 #include "mglib.hpp"
+#include "mg_texture_port.hpp"
 #include "mglib_port.hpp"
 #include "padcontrol.hpp"
 #include "photo.hpp"
+#include "photo_hd.hpp"
 #include "stubs/photo.hpp"
 
 PORT_OVERRIDE void LoopTakePhoto(CPadControl *pad, CInventUserData *user) {
     if (user == nullptr) {
         return;
+    }
+    // Capture at a higher resolution than retail's 64x64; mgStoreImage keeps that detail for the idea board.
+    if (WorkTex != nullptr) {
+        MgTextureSetPhysicalScale(WorkTex, kPhotoWorkScale);
     }
     if (TakePhotoMode == TAKE_PHOTO_AIM) {
         AddProj -= 10.0f * pad->Analog(PAD_ANALOG_RIGHT_Y);
