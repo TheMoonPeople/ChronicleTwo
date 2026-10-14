@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "mglib.hpp"
 #include "mg_texture.hpp"
 #include "nd_meswin.hpp"
 
