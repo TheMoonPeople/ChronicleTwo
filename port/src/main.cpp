@@ -267,7 +267,6 @@ int Run(int argc, const char **argv) {
         }
     }
     ConfigLoad();
-    TimingLatch(ConfigGet().timing, ConfigGet().tick_rate);
     FirstRunRequireData(PathsDataRoot(), options.headless);
     InitCDFile();
     if (!DataReadPrepareScriptTiming(options.headless)) {
@@ -304,7 +303,7 @@ int Run(int argc, const char **argv) {
     std::atexit(AudioShutdown);
 #endif
 
-    ClockSetTickRate(TimingGetTickRate());
+    ClockSetTickRate(kConfigTickRateDefault);
     ClockSetUnbounded(options.headless);
     ClockAddPumpHook(PumpHost);
     ClockSetTickCallback(VSyncCallBack);

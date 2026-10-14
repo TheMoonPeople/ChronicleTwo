@@ -356,7 +356,7 @@ TEST(EzBgm, StepAdvancesStreamsWithoutOutput) {
     EXPECT_EQ(StateOf(kChannel), kEnded);
 }
 
-TEST(EzBgm, PendingTimingRateDoesNotChangeStreamAdvance) {
+TEST(EzBgm, LegacyHostRateDoesNotChangeNtscStreamAdvance) {
     ASSERT_FALSE(AudioOutputRunning());
     const auto   before = SettingsGet();
     const double previous_rate = ClockTickRate();
@@ -365,12 +365,13 @@ TEST(EzBgm, PendingTimingRateDoesNotChangeStreamAdvance) {
     SettingsChange(changed);
     ScratchDataRoot root;
     root.AddWav("0000001.wav", 1, ConstantMono());
-    for (double rate : {50.0, 60.0}) {
-        ClockSetTickRate(rate);
+    EXPECT_DOUBLE_EQ(SettingsGet().tick_rate, 60);
+    {
+        ClockSetTickRate(60);
         OpenStream(kChannel, "0000001.wav");
         CSnd.StreamPlay(kChannel);
         EzBgmStep();
-        EXPECT_EQ(EzBgmChannel(kChannel).Position(), static_cast<std::int64_t>(audio::kSpuRate / rate));
+        EXPECT_EQ(EzBgmChannel(kChannel).Position(), static_cast<std::int64_t>(audio::kSpuRate / 60));
     }
     ClockSetTickRate(previous_rate);
     SettingsChange(before);

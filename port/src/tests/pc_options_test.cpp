@@ -7,7 +7,6 @@
 #include "options/rows.hpp"
 #include "options/screen.hpp"
 #include "platform/input.hpp"
-#include "timing_support.hpp"
 
 namespace {
 const options::Row &Find(std::string_view key) {
@@ -32,7 +31,6 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "video.aspect",
         "video.ui_scale",
         "video.show_fps",
-        "game.timing",
         "audio.master_volume",
         "audio.soundtrack",
         "input.mouse_sensitivity",
@@ -59,99 +57,11 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
             EXPECT_NE(config, Config{}) << row.key;
             EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config) << row.key;
             EXPECT_FALSE(config.debug_mode);
-            EXPECT_DOUBLE_EQ(config.tick_rate, row.key == "game.timing" ? 60 : 50);
+            EXPECT_DOUBLE_EQ(config.tick_rate, 60);
         }
     }
     for (const auto &key : required) {
         EXPECT_TRUE(actual.contains(key)) << key;
-    }
-}
-
-TEST(PcOptions, GameplayTimingPresetsWriteBothKeysAndKeepCustomPairsUntilEdited) {
-    const auto &row = Find("game.timing");
-    EXPECT_EQ(row.label, "Gameplay timing");
-    EXPECT_NE(row.help.find("restart"), std::string::npos);
-    Config config;
-    EXPECT_EQ(row.value(config), "PAL (50 Hz)");
-    EXPECT_TRUE(options::StepRow(row, config, 1));
-    EXPECT_EQ(row.value(config), "NTSC (60 Hz)");
-    EXPECT_EQ(config.timing, TimingProfile::Ntsc);
-    EXPECT_DOUBLE_EQ(config.tick_rate, 60);
-    EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config);
-    for (int direction : {-1, 1}) {
-        EXPECT_TRUE(options::StepRow(row, config, direction));
-        EXPECT_EQ(row.value(config), "PAL (50 Hz)");
-        EXPECT_TRUE(options::StepRow(row, config, direction));
-        EXPECT_EQ(row.value(config), "NTSC (60 Hz)");
-    }
-    for (auto profile : {TimingProfile::Pal, TimingProfile::Ntsc}) {
-        config.timing = profile;
-        config.tick_rate = profile == TimingProfile::Pal ? 60 : 50;
-        EXPECT_EQ(row.value(config), "Custom");
-        EXPECT_TRUE(options::StepRow(Find("audio.master_volume"), config, -1));
-        EXPECT_EQ(row.value(config), "Custom");
-        EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config);
-        Config left = config;
-        EXPECT_TRUE(options::StepRow(row, left, -1));
-        EXPECT_EQ(row.value(left), "PAL (50 Hz)");
-        EXPECT_TRUE(options::StepRow(row, config, 1));
-        EXPECT_EQ(row.value(config), "NTSC (60 Hz)");
-    }
-}
-
-TEST(PcOptions, StartupFallbackShowsTheSessionTimingAndUnavailableNotice) {
-    ScopedTimingProfile timing;
-    Config              config;
-    config.timing = TimingProfile::Ntsc;
-    config.tick_rate = 60;
-    TimingLatch(config.timing, config.tick_rate);
-    EXPECT_FALSE(TimingFellBack());
-    EXPECT_EQ(options::GameplayTimingNotice(config), "");
-    TimingUsePalFallback();
-    EXPECT_TRUE(TimingFellBack());
-    EXPECT_EQ(Find("game.timing").value(config), "NTSC (fallback)");
-    EXPECT_FALSE(options::GameplayTimingPending(config));
-    EXPECT_EQ(options::GameplayTimingNotice(config), "NTSC timing unavailable for this data; running PAL");
-    EXPECT_EQ(Find("video.width").value(config), "Desktop");
-    EXPECT_EQ(config.timing, TimingProfile::Ntsc);
-    EXPECT_DOUBLE_EQ(config.tick_rate, 60);
-    const auto &row = Find("game.timing");
-    for (int direction : {-1, 1}) {
-        EXPECT_TRUE(options::StepRow(row, config, direction));
-        EXPECT_EQ(row.value(config), "PAL (fallback)");
-        EXPECT_EQ(config.timing, TimingProfile::Pal);
-        EXPECT_DOUBLE_EQ(config.tick_rate, 50);
-        EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config);
-        EXPECT_TRUE(options::StepRow(row, config, direction));
-        EXPECT_EQ(row.value(config), "NTSC (fallback)");
-        EXPECT_EQ(config.timing, TimingProfile::Ntsc);
-        EXPECT_DOUBLE_EQ(config.tick_rate, 60);
-        EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config);
-        EXPECT_EQ(TimingGetProfile(), TimingProfile::Pal);
-        EXPECT_DOUBLE_EQ(TimingGetTickRate(), 50);
-        EXPECT_FALSE(options::GameplayTimingPending(config));
-    }
-    config.tick_rate = 55;
-    EXPECT_EQ(row.value(config), "Custom (fallback)");
-}
-
-TEST(PcOptions, FallbackNoticeReplacesOnlyTheTimingRowsHelp) {
-    ScopedTimingProfile timing(TimingProfile::Ntsc);
-    Config              config;
-    for (const auto &page : options::Pages()) {
-        for (const auto &row : page.rows) {
-            EXPECT_EQ(options::RowHelp(row, config), row.help) << row.key;
-        }
-    }
-    TimingUsePalFallback();
-    for (const auto &page : options::Pages()) {
-        for (const auto &row : page.rows) {
-            if (row.key == "game.timing") {
-                EXPECT_NE(options::RowHelp(row, config).find("running PAL"), std::string::npos);
-            } else {
-                EXPECT_EQ(options::RowHelp(row, config), row.help) << row.key;
-            }
-        }
     }
 }
 
@@ -365,4 +275,20 @@ TEST(PcOptions, ZoomResetHasAVisibleRebindableRow) {
     EXPECT_EQ(row.action, "zoom_reset");
     Config config;
     EXPECT_TRUE(options::SetBinding(config, row.action, "K"));
+}
+
+TEST(PcOptions, TimingRowIsAbsentAndOtherSettingsRemain) {
+    EXPECT_EQ(options::Pages().size(), 4u);
+    for (const auto &page : options::Pages()) {
+        for (const auto &row : page.rows) {
+            EXPECT_NE(row.key, "game.timing");
+            EXPECT_NE(row.key, "game.tick_rate");
+        }
+    }
+    Config config;
+    EXPECT_TRUE(options::StepRow(Find("audio.master_volume"), config, -1));
+    EXPECT_FLOAT_EQ(config.master_volume, 0.95f);
+    EXPECT_TRUE(options::StepRow(Find("video.fullscreen"), config, 1));
+    EXPECT_TRUE(config.fullscreen);
+    EXPECT_DOUBLE_EQ(config.tick_rate, 60);
 }

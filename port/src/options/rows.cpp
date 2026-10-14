@@ -87,27 +87,6 @@ Row Resolution() {
     return row;
 }
 
-Row GameplayTiming() {
-    Row row{"game.timing", "Gameplay timing", "PAL (50 Hz) or NTSC (60 Hz).\nApplies after restarting the game."};
-    row.value = [](const Config &c) {
-        if (c.timing == TimingProfile::Pal && c.tick_rate == 50) {
-            return std::string(TimingFellBack() ? "PAL (fallback)" : "PAL (50 Hz)");
-        }
-        if (c.timing == TimingProfile::Ntsc && c.tick_rate == 60) {
-            return std::string(TimingFellBack() ? "NTSC (fallback)" : "NTSC (60 Hz)");
-        }
-        return std::string(TimingFellBack() ? "Custom (fallback)" : "Custom");
-    };
-    row.step = [](Config &c, int direction) {
-        const bool pal = c.timing == TimingProfile::Pal && c.tick_rate == 50;
-        const bool ntsc = c.timing == TimingProfile::Ntsc && c.tick_rate == 60;
-        const bool select_ntsc = pal || (!ntsc && direction > 0);
-        c.timing = select_ntsc ? TimingProfile::Ntsc : TimingProfile::Pal;
-        c.tick_rate = select_ntsc ? 60 : 50;
-    };
-    return row;
-}
-
 std::vector<Row> Bindings() {
     static constexpr const char *labels[] = {
         "D-pad Up",
@@ -178,7 +157,6 @@ std::span<const Page> Pages() {
                         Choice<&Config::aspect>("video.aspect", "Aspect ratio", "Auto fills the window. 4:3 adds black side bars.", {"Auto", "4:3"}),
                         Number<&Config::ui_scale>("video.ui_scale", "UI scale", "Scales menus and HUD. Large values can crop the UI.\nUse Left to reduce the scale if it no longer fits.", {0.5, 0.65, 0.75, 0.85, 1, 1.1, 1.25, 1.5}, 100, "%"),
                         Choice<&Config::show_fps>("video.show_fps", "Show FPS", "Shows the display and tick rates in a window.", {"Off", "On"}),
-                        GameplayTiming(),
                     }  },
         {"Audio",    {
                       Number<&Config::master_volume>("audio.master_volume", "Master volume", "Adjusts all sound, including music and movies.", {0, .05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1}, 100, "%"),
@@ -322,24 +300,6 @@ std::string ButtonName(std::string_view action, const Config &config) {
                                 : "R1";
     }
     return std::string(action);
-}
-
-bool GameplayTimingPending(const Config &config) {
-    return !TimingFellBack() && (config.timing != TimingGetProfile() || config.tick_rate != TimingGetTickRate());
-}
-
-std::string GameplayTimingNotice(const Config &config) {
-    if (TimingFellBack()) {
-        return "NTSC timing unavailable for this data; running PAL";
-    }
-    return GameplayTimingPending(config) ? "Timing: restart required" : "";
-}
-
-std::string RowHelp(const Row &row, const Config &config) {
-    if (row.key == "game.timing" && TimingFellBack()) {
-        return GameplayTimingNotice(config) + ".\nTiming changes apply after restarting the game.";
-    }
-    return row.help;
 }
 
 } // namespace options

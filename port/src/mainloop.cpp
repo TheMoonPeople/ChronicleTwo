@@ -33,7 +33,6 @@
 #include "npccfg.hpp"
 #include "padcontrol.hpp"
 #include "platform/arena.hpp"
-#include "platform/clock.hpp"
 #include "platform/config.hpp"
 #include "platform/input.hpp"
 #include "play_time.hpp"
@@ -54,7 +53,7 @@ static constexpr int kSubGameQuads = std::max(5000, static_cast<int>((sizeof(CSu
 
 int PortPlayTimeVSyncCallback(int) {
     if (PortPlayTimeCountFlag != 0) {
-        GetSaveData()->play_time += PlayTimeTick(true, ClockTickRate());
+        GetSaveData()->play_time += PlayTimeTick(true);
     }
     return 0;
 }

@@ -18,7 +18,6 @@
 #include "dataread_port.hpp"
 #include "runscript.hpp"
 #include "script_timing.hpp"
-#include "timing_support.hpp"
 
 namespace fs = std::filesystem;
 using script_timing::Expected;
@@ -229,11 +228,9 @@ Expected Want(std::initializer_list<std::pair<script_timing::Recipe, int> > reci
     return e;
 }
 
-Result Convert(const std::string &key, std::vector<unsigned char> &bytes, const Expected &want,
-               script_timing::AttackWindows windows = script_timing::AttackWindows::Ntsc) {
+Result Convert(const std::string &key, std::vector<unsigned char> &bytes, const Expected &want) {
     Options options;
     options.expected = &want;
-    options.windows = windows;
     return script_timing::Apply(key, bytes.data(), bytes.size(), options);
 }
 
@@ -587,7 +584,7 @@ TEST(ScriptTiming, LanguageAnchorsWriteNtscLiteralsOnce) {
     EXPECT_FALSE(Convert("map/s/s03/s03_1.stb", bytes, Want({}, 1)).ok);
 }
 
-TEST(ScriptTiming, AttackWindowsFollowTheirPolicy) {
+TEST(ScriptTiming, AttackWindowsUseNtscBounds) {
     // c02's two special-shot window ends sit at 0xb308 and 0xb3bc in the PAL script. Two program entries
     // put the function's instructions on that 12-byte grid.
     const std::vector<std::pair<int, int> > programs = {
@@ -629,11 +626,11 @@ TEST(ScriptTiming, AttackWindowsFollowTheirPolicy) {
     std::memcpy(&value, ntsc.data() + 0xb3bc + 8, 4);
     EXPECT_EQ(value, 0.42f);
 
-    auto pal = built.bytes;
-    auto kept = Convert("mainchr/c02.stb", pal, Want({}, 0, 2), script_timing::AttackWindows::Pal);
-    ASSERT_TRUE(kept.ok) << kept.error;
-    EXPECT_EQ(kept.writes, 0);
-    EXPECT_EQ(pal, built.bytes);
+    auto again = ntsc;
+    auto second = Convert("mainchr/c02.stb", again, Want({}, 0, 2));
+    ASSERT_TRUE(second.ok) << second.error;
+    EXPECT_EQ(second.writes, 0);
+    EXPECT_EQ(again, ntsc);
 }
 
 TEST(ScriptTiming, InventoryRowsAreSortedAndKnownScriptsAreRefused) {
@@ -678,19 +675,15 @@ Built StartupScript() {
 
 class ScriptTimingStartup : public testing::Test {
 protected:
-    ScopedTimingProfile timing;
     fs::path            base = fs::temp_directory_path() / ("script_timing_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     fs::path            root = base / "data";
 
     void SetUp() override {
-        TimingLatch(TimingProfile::Ntsc, 60);
-        script_timing::SetActiveOverride(std::nullopt);
         InitFileCache(nullptr, FILE_CACHE_NONE);
         SetCurrentDir(nullptr);
     }
 
     void TearDown() override {
-        script_timing::SetActiveOverride(std::nullopt);
         std::error_code error;
         fs::remove_all(base, error);
     }
@@ -721,7 +714,7 @@ protected:
 
 } // namespace
 
-TEST_F(ScriptTimingStartup, HeadlessExtractedMismatchRefusesPalFallback) {
+TEST_F(ScriptTimingStartup, HeadlessExtractedMismatchRefusesStartup) {
     const auto bad = Assemble({
                                   {0, 0, ReturnZero()}
     },
@@ -737,11 +730,7 @@ TEST_F(ScriptTimingStartup, HeadlessExtractedMismatchRefusesPalFallback) {
     EXPECT_FALSE(DataReadPrepareScriptTiming(true));
     const auto log = testing::internal::GetCapturedStderr();
     EXPECT_NE(log.find(kStartupScript), std::string::npos);
-    EXPECT_NE(log.find("refusing a headless PAL fallback"), std::string::npos);
-    EXPECT_FALSE(PortPalTiming());
-    EXPECT_DOUBLE_EQ(TimingGetTickRate(), 60);
-    TimingLatch(TimingProfile::Ntsc, 60);
-    EXPECT_FALSE(PortPalTiming());
+    EXPECT_NE(log.find("refusing startup"), std::string::npos);
 }
 
 TEST_F(ScriptTimingStartup, MatchingDatapackIsValidatedAndConverted) {
@@ -752,7 +741,6 @@ TEST_F(ScriptTimingStartup, MatchingDatapackIsValidatedAndConverted) {
     EXPECT_EQ(report.files, 1u);
     EXPECT_TRUE(report.errors.empty());
     EXPECT_TRUE(DataReadPrepareScriptTiming(true));
-    EXPECT_FALSE(PortPalTiming());
     auto expected = original;
     ASSERT_TRUE(script_timing::Apply(kStartupScript, expected.data(), expected.size()).ok);
     EXPECT_NE(expected, original);
@@ -762,7 +750,7 @@ TEST_F(ScriptTimingStartup, MatchingDatapackIsValidatedAndConverted) {
     EXPECT_EQ(unchanged, original);
 }
 
-TEST_F(ScriptTimingStartup, HeadlessMismatchingDatapackRefusesPalFallback) {
+TEST_F(ScriptTimingStartup, HeadlessMismatchingDatapackRefusesStartup) {
     // The replacement changed PAL's divisor, so the known recipe no longer matches.
     auto      bad = StartupScript();
     const int divisor = 31;
@@ -776,7 +764,6 @@ TEST_F(ScriptTimingStartup, HeadlessMismatchingDatapackRefusesPalFallback) {
     EXPECT_FALSE(DataReadPrepareScriptTiming(true));
     const auto log = testing::internal::GetCapturedStderr();
     EXPECT_NE(log.find(std::string(kStartupScript) + " [datapack]"), std::string::npos);
-    EXPECT_FALSE(PortPalTiming());
 }
 
 TEST_F(ScriptTimingStartup, UnlistedUndecodableScriptStaysUnchangedAndWarnsOnce) {
@@ -791,7 +778,6 @@ TEST_F(ScriptTimingStartup, UnlistedUndecodableScriptStaysUnchangedAndWarnsOnce)
     const auto first = log.find("warning: unknown-undecodable.stb");
     ASSERT_NE(first, std::string::npos);
     EXPECT_EQ(log.find("warning: unknown-undecodable.stb", first + 1), std::string::npos);
-    EXPECT_FALSE(PortPalTiming());
     std::string               name = "/unknown-undecodable.stb";
     alignas(64) unsigned char loaded[DATAREAD_SECTOR_SIZE]{};
     int                       size = 0;
@@ -800,7 +786,7 @@ TEST_F(ScriptTimingStartup, UnlistedUndecodableScriptStaysUnchangedAndWarnsOnce)
     EXPECT_EQ(std::vector<unsigned char>(loaded, loaded + size), bytes);
 }
 
-TEST_F(ScriptTimingStartup, UnlistedConversionsAreReportedAndPalSkipsValidation) {
+TEST_F(ScriptTimingStartup, UnlistedConversionsAreReportedOnEveryValidation) {
     const auto unknown = Assemble({
                                       {0, 0, Join({{Push(3), Call(1), Op(kPop)}, ReturnZero()})},
                                       EventWait()
@@ -813,10 +799,11 @@ TEST_F(ScriptTimingStartup, UnlistedConversionsAreReportedAndPalSkipsValidation)
     EXPECT_EQ(report.files, 1u);
     ASSERT_EQ(report.errors.size(), 1u);
     EXPECT_NE(report.errors[0].find("map/x/x99_1.stb"), std::string::npos);
-    TimingUsePalFallback();
     report = DataReadValidateScriptTiming();
-    EXPECT_EQ(report.files, 0u);
-    EXPECT_TRUE(report.errors.empty());
+    EXPECT_EQ(report.files, 1u);
+    ASSERT_EQ(report.errors.size(), 1u);
+    EXPECT_NE(report.errors[0].find("map/x/x99_1.stb"), std::string::npos);
+    EXPECT_FALSE(DataReadPrepareScriptTiming(true));
 }
 
 TEST_F(ScriptTimingStartup, EachAssetLogsOnlyOnceAcrossReloads) {
@@ -889,17 +876,12 @@ std::string ShardOf(const std::string &key) {
 }
 
 // Every script of a shard decodes, shows exactly the inventory's counts, converts with an unchanged size
-// and to the same bytes again. Through the loader, the PAL timing hands out the file's own bytes and the
-// NTSC timing the converted ones.
+// and to the same bytes again. The loader always hands out the converted NTSC bytes.
 void CheckShard(const std::string &shard) {
     const auto &scripts = Scripts();
     if (!scripts) {
         GTEST_SKIP() << "DC2_DATA supplies the extracted scripts";
     }
-
-    struct Restore {
-        ~Restore() { script_timing::SetActiveOverride(std::nullopt); }
-    } restore;
 
     std::map<std::string, long> totals;
     int                         files = 0;
@@ -913,7 +895,6 @@ void CheckShard(const std::string &shard) {
         const auto original = ReadAll(scripts->root / key);
         auto       bytes = original;
         Options    options;
-        options.windows = script_timing::AttackWindows::Ntsc;
         auto result = script_timing::Apply(key, bytes.data(), bytes.size(), options);
         EXPECT_TRUE(result.decoded) << key << ": " << result.error;
         EXPECT_TRUE(result.ok) << key << ": " << result.error;
@@ -948,12 +929,8 @@ void CheckShard(const std::string &shard) {
         buffer.assign((original.size() + 2 * DATAREAD_SECTOR_SIZE) & ~std::size_t(DATAREAD_SECTOR_SIZE - 1), 0);
         std::string name = "/" + key;
         int         size = 0;
-        script_timing::SetActiveOverride(false);
         ASSERT_EQ(LoadFile2(name.data(), buffer.data(), &size, LOAD_FILE_READ), 1) << key;
-        ASSERT_EQ(static_cast<std::size_t>(size), original.size()) << key;
-        EXPECT_EQ(std::memcmp(buffer.data(), original.data(), original.size()), 0) << key << ": PAL timing changed the bytes";
-        script_timing::SetActiveOverride(true);
-        ASSERT_EQ(LoadFile2(name.data(), buffer.data(), &size, LOAD_FILE_READ), 1) << key;
+        ASSERT_EQ(static_cast<std::size_t>(size), bytes.size()) << key;
         EXPECT_EQ(std::memcmp(buffer.data(), bytes.data(), bytes.size()), 0) << key << ": NTSC loader bytes differ";
     }
     EXPECT_GT(files, 0);

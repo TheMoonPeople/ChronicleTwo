@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <cmath>
 #include <memory>
 
 #include "mainloop.hpp"
@@ -51,12 +50,7 @@ protected:
 };
 } // namespace
 
-TEST_F(PlayClock, FiftyAndSixtyCountOneMinuteInSavedUnits) {
-    ClockSetTickRate(50);
-    Ticks(3000);
-    EXPECT_EQ(save->play_time, 3000);
-    save->play_time = 0;
-    PlayTimeReset();
+TEST_F(PlayClock, SixtyTicksCountOneMinuteInSavedPalUnits) {
     ClockSetTickRate(60);
     Ticks(3600);
     EXPECT_EQ(save->play_time, 3000);
@@ -84,28 +78,23 @@ TEST_F(PlayClock, PauseKeepsFractionAndVsyncContinues) {
     EXPECT_EQ(save->play_time, 5);
 }
 
-TEST_F(PlayClock, LiveRateChangesKeepFraction) {
+TEST_F(PlayClock, LongRunsStayWithinOneSavedUnit) {
     ClockSetTickRate(60);
-    Ticks(1);
-    ClockSetTickRate(50);
-    Ticks(10);
-    EXPECT_EQ(save->play_time, 10);
-    ClockSetTickRate(60);
-    Ticks(5);
-    EXPECT_EQ(save->play_time, 15);
+    for (int tick = 1; tick <= 36000; ++tick) {
+        Ticks(1);
+        EXPECT_EQ(save->play_time, tick * 5 / 6);
+    }
 }
 
-TEST_F(PlayClock, CustomRatesStayWithinOneSavedUnit) {
-    for (double rate : {25.0, 75.0, 144.0, 59.94, 240.0}) {
-        SCOPED_TRACE(rate);
-        save->play_time = 0;
-        PlayTimeReset();
-        ClockSetTickRate(rate);
-        Ticks(6000);
-        const long double budget = 6000.0L * 50.0L / rate;
-        EXPECT_LE(static_cast<long double>(save->play_time), budget);
-        EXPECT_LT(budget - save->play_time, 1.0L);
+TEST_F(PlayClock, DisabledTicksDoNotAccumulateSavedCredit) {
+    PlayTimeReset();
+    for (int tick = 1; tick <= 6; ++tick) {
+        EXPECT_EQ(PlayTimeTick(true), tick == 1 ? 0 : 1);
+        for (int paused = 0; paused < tick * 100; ++paused) {
+            EXPECT_EQ(PlayTimeTick(false), 0);
+        }
     }
+    EXPECT_EQ(PlayTimeTick(true), 0);
 }
 
 TEST_F(PlayClock, NewGameDiscardsFractionalCredit) {

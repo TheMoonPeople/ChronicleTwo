@@ -65,7 +65,6 @@ constexpr auto kUnit = [](auto value) { return value >= 0 && value <= 1; };
 
 constexpr const char *kPresentModeNames[] = {"fifo", "mailbox", "immediate"};
 constexpr const char *kAspectNames[] = {"auto", "4:3"};
-constexpr const char *kTimingNames[] = {"pal", "ntsc"};
 constexpr const char *kFpsDetailNames[] = {"fps", "ticks", "all"};
 constexpr const char *kGyroNames[] = {"off", "always", "first_person", "held"};
 constexpr const char *kGlyphDeviceNames[] = {
@@ -194,14 +193,6 @@ bool ApplyBindings(Config &config, const Json &bindings) {
 
 bool Apply(Config &config, std::string_view name, const Json &value) {
     HostSettings &s = config;
-    if (name == "game.timing") {
-        return ReadEnum(value, kTimingNames, config.timing);
-    }
-    if (name == "game.tick_rate") {
-        return ReadNumber(value, s.tick_rate, [](double rate) {
-            return rate >= kConfigTickRateMin && rate <= kConfigTickRateMax;
-        });
-    }
     if (name == "game.debug_mode") {
         return ReadBool(value, config.debug_mode);
     }
@@ -415,8 +406,6 @@ std::string ConfigSerialize(const Config &config) {
         bindings[binding.action] = binding.keys;
     }
     Json root;
-    root["game"]["timing"] = kTimingNames[static_cast<std::size_t>(config.timing)];
-    root["game"]["tick_rate"] = s.tick_rate;
     root["game"]["debug_mode"] = config.debug_mode;
     root["video"]["present_mode"] = kPresentModeNames[static_cast<std::size_t>(s.present_mode)];
     root["video"]["interpolation"] = config.interpolation;

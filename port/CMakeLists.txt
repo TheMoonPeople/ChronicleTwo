@@ -190,10 +190,6 @@ target_compile_options(ct_ps2 PRIVATE -Wall -Wno-writable-strings -Wno-unknown-p
 
 set(PORT_LIB_SOURCES ${PORT_SOURCES})
 list(FILTER PORT_LIB_SOURCES EXCLUDE REGEX "/tests/|/main\\.cpp$")
-list(REMOVE_ITEM PORT_LIB_SOURCES ${PORT_DIR}/timing.cpp)
-add_library(ct_timing STATIC ${PORT_DIR}/timing.cpp)
-target_link_libraries(ct_timing PRIVATE ct_options)
-add_dependencies(ct_timing ps2_include)
 
 kz_port_sce_sources(CT_SCE_SOURCES LIBS libvu0 libpad libmc sifdev sifrpc eekernel libcdvd libgraph libdma libpkt
     eekernel_threads libdev libmpeg libsdr modmsin sifdma)
@@ -213,7 +209,7 @@ target_compile_options(ct_port PRIVATE -Wall -Wno-mismatched-tags -Wno-unused-la
 # PRIVATE options leave the test sources and GoogleTest at their normal Debug settings.
 option(CT_DEBUG_OPT "Optimise game and host code with -Og in Debug builds" OFF)
 if(CT_DEBUG_OPT)
-    foreach(target IN ITEMS ct_ps2 ct_port ct_host ct_timing)
+    foreach(target IN ITEMS ct_ps2 ct_port ct_host)
         target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:-Og>)
     endforeach()
 endif()
@@ -234,7 +230,7 @@ endif()
 function(ct_link_game target)
     target_sources(${target} PRIVATE $<TARGET_OBJECTS:ct_port> $<TARGET_OBJECTS:ct_host> $<TARGET_OBJECTS:ct_ps2>)
     add_dependencies(${target} ps2_include)
-    target_link_libraries(${target} PRIVATE ct_options ct_timing kz_port_headers SDL3::SDL3 Vulkan::Vulkan kazarov_bridge kazarov_core)
+    target_link_libraries(${target} PRIVATE ct_options kz_port_headers SDL3::SDL3 Vulkan::Vulkan kazarov_bridge kazarov_core)
     target_include_directories(${target} PRIVATE ${PORT_DIR})
     target_compile_options(${target} PRIVATE -Wall -Wno-mismatched-tags -Wno-unused-label
         -Wno-overloaded-virtual -Wno-unused-function)

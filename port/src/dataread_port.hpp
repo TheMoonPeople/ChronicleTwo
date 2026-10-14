@@ -28,6 +28,6 @@ struct ScriptTimingValidation {
 // Dry-run the same recipes as the loader over every indexed .stb, including datapack replacements.
 ScriptTimingValidation DataReadValidateScriptTiming();
 
-// Before gameplay starts, offer PAL/50 for incompatible scripts. Headless runs report and fail.
-// False means startup must quit, either by desktop choice or a headless mismatch.
+// Validate before gameplay starts; incompatible scripts are logged and refuse startup.
+// Desktop runs also show an error dialog. False means the caller must exit with status 5.
 bool DataReadPrepareScriptTiming(bool headless);

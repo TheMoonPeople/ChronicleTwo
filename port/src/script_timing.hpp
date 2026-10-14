@@ -3,7 +3,6 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <optional>
 #include <string>
 #include <string_view>
 
@@ -46,17 +45,8 @@ struct Expected {
     std::uint8_t                            windows;
 };
 
-enum class AttackWindows {
-    Ntsc,
-    Pal
-};
-
-// The attack-window policy for the NTSC timing: NTSC bounds unless changed.
-inline constexpr AttackWindows kDefaultAttackWindows = AttackWindows::Ntsc;
-
 struct Options {
     bool            write = true;
-    AttackWindows   windows = kDefaultAttackWindows;
     const Expected *expected = nullptr; // replaces the inventory lookup (tests)
     bool            use_inventory = true;
 };
@@ -86,14 +76,8 @@ Result Apply(std::string_view key, unsigned char *bytes, std::size_t size, const
 // Converts a loaded script for the NTSC timing; false when a known script does not match.
 bool Patch(const char *asset_path, unsigned char *bytes, std::size_t size);
 
-// Whether loaded scripts are converted: the NTSC timing (!PortPalTiming()) unless overridden.
-bool          Active();
-void          SetActiveOverride(std::optional<bool> active);
-void          SetAttackWindows(AttackWindows windows);
-AttackWindows CurrentAttackWindows();
-
 } // namespace script_timing
 
-// The loader seam: converts the bytes of a script read from the data index when the NTSC timing is active.
+// The loader seam: always converts script bytes read from the data index to NTSC timing.
 // Returns false (after printing the asset) when a known script does not match; other assets pass unchanged.
 bool ScriptTimingPatch(const char *asset_path, unsigned char *bytes, std::size_t size);

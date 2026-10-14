@@ -41,23 +41,27 @@ class MatrixRunner(unittest.TestCase):
         matrix.locate_run(other, self.root, self.exe, self.data, self.script, 100)
         return other
 
-    def test_launch_pins_pal_timing_and_rate(self):
+    def test_launch_uses_fixed_ntsc_runtime_without_selector_config(self):
         self.execute()
         config = json.loads((self.run.dir / "save" / "config.json").read_bytes())
-        self.assertEqual(config["game"]["timing"], "pal")
-        self.assertEqual(config["game"]["tick_rate"], 50)
+        self.assertEqual(config["game"], {"debug_mode": False})
+        receipt = json.loads((self.run.dir / "result.json").read_text())
+        self.assertEqual(receipt["provenance"]["runtime_timing"], {"region": "ntsc", "tick_hz": 60})
+        self.assertEqual(self.reload().rc, 0)
 
-    def test_timing_change_rejects_cached_run(self):
+    def test_obsolete_runtime_policy_rejects_cached_run(self):
         self.execute()
-        launch = json.loads(matrix.launch_config(self.run))
-        for game in ({"debug_mode": False},
-                     {"debug_mode": False, "timing": "ntsc", "tick_rate": 60},
-                     {"debug_mode": False, "timing": "pal", "tick_rate": 60}):
-            changed = dict(launch, game=game)
-            encoded = json.dumps(changed, sort_keys=True).encode("utf-8")
-            with patch.object(matrix, "launch_config", return_value=encoded):
-                with self.assertRaises(matrix.RunFailed):
-                    self.reload()
+        path = self.run.dir / "result.json"
+        receipt = json.loads(path.read_text())
+        for policy in (None, {"region": "pal", "tick_hz": 50}, {"region": "ntsc", "tick_hz": 50}):
+            changed = json.loads(json.dumps(receipt))
+            if policy is None:
+                del changed["provenance"]["runtime_timing"]
+            else:
+                changed["provenance"]["runtime_timing"] = policy
+            path.write_text(json.dumps(changed))
+            with self.assertRaises(matrix.RunFailed):
+                self.reload()
 
     def test_sanitises_launch_changing_environment(self):
         self.execute()

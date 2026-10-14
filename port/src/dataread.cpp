@@ -28,7 +28,6 @@
 #include "platform/texture_catalog.hpp"
 #include "script_timing.hpp"
 #include "texture_source.hpp"
-#include "timing.hpp"
 
 namespace fs = std::filesystem;
 
@@ -189,7 +188,7 @@ int ReadWhole(const IndexedFile &file, void *buffer) {
 
 // The NTSC timing converts scripts before any loader or cache sees them, including datapack scripts.
 bool ConvertScriptTiming(const std::string &key, void *buffer, int size) {
-    if (size < 0 || !key.ends_with(".stb") || !script_timing::Active()) {
+    if (size < 0 || !key.ends_with(".stb")) {
         return true;
     }
     const bool ok = ScriptTimingPatch(key.c_str(), static_cast<unsigned char *>(buffer), static_cast<std::size_t>(size));
@@ -391,15 +390,11 @@ std::vector<std::string> DataReadScriptKeys() {
 
 ScriptTimingValidation DataReadValidateScriptTiming() {
     ScriptTimingValidation report;
-    if (!script_timing::Active()) {
-        return report;
-    }
     const auto                 start = std::chrono::steady_clock::now();
     const auto                 keys = DataReadScriptKeys();
     std::vector<unsigned char> bytes;
     script_timing::Options     options;
     options.write = false;
-    options.windows = script_timing::CurrentAttackWindows();
     for (const std::string &key : keys) {
         report.files++;
         const IndexedFile &file = file_index.at(key);
@@ -431,9 +426,6 @@ ScriptTimingValidation DataReadValidateScriptTiming() {
 }
 
 bool DataReadPrepareScriptTiming(bool headless) {
-    if (!script_timing::Active()) {
-        return true;
-    }
     const auto report = DataReadValidateScriptTiming();
     std::fprintf(stderr, "script timing startup: %zu scripts, %zu mismatches, %.3f seconds\n",
                  report.files, report.errors.size(), report.seconds);
@@ -450,26 +442,12 @@ bool DataReadPrepareScriptTiming(bool headless) {
     if (report.errors.size() > 8) {
         message += "\nAdditional mismatches are listed in the log.\n";
     }
-    if (headless) {
-        std::fprintf(stderr, "script timing startup: NTSC timing unavailable; refusing a headless PAL fallback\n");
-        return false;
-    }
-    message += "\nRun with PAL gameplay timing at 50 Hz for this session?\nYour saved settings will stay unchanged.";
+    std::fprintf(stderr, "script timing startup: NTSC timing unavailable; refusing startup\n");
     if (!headless) {
-        const SDL_MessageBoxButtonData buttons[] = {
-            {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Run with PAL timing"},
-            {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "Quit"               },
-        };
-        const SDL_MessageBoxData dialog = {SDL_MESSAGEBOX_WARNING, nullptr, "Dark Chronicle — Script timing",
-                                           message.c_str(), 2, buttons, nullptr};
-        int                      choice = 0;
-        if (!SDL_ShowMessageBox(&dialog, &choice) || choice != 1) {
-            return false;
-        }
+        message += "\nThe game cannot start with this script data. See the log for details.";
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Dark Chronicle - Script timing", message.c_str(), nullptr);
     }
-    TimingUsePalFallback();
-    std::fprintf(stderr, "script timing startup: running with PAL timing at 50 Hz for this session; saved settings unchanged\n");
-    return true;
+    return false;
 }
 
 PORT_OVERRIDE void InitCDFile() {

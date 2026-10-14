@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "identity.hpp"
-#include "timing.hpp"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -13,7 +12,6 @@
 
 int main(int argc, char **argv) {
     GameSetIdentity();
-    TimingLatch(TimingProfile::Pal);
 #ifdef _WIN32
     SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);

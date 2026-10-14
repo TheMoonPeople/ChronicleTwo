@@ -5,10 +5,9 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <optional>
 #include <set>
 #include <vector>
-
-#include "pal_timing.hpp"
 
 // The compiled script format is ps2/include/runscript.hpp's: an RS_PROG_HEADER, funcdata blocks of 0x38
 // bytes each followed by the function's code, and 12-byte vmcode_t {op, arg1, arg2} instructions with
@@ -524,7 +523,7 @@ bool AddWrite(Plan &plan, std::size_t offset, const Insn &insn) {
     return true;
 }
 
-bool BuildPlan(std::string_view key, const Program &program, const std::vector<std::vector<Insn> > &canonical, AttackWindows windows, Plan &plan) {
+bool BuildPlan(std::string_view key, const Program &program, const std::vector<std::vector<Insn> > &canonical, Plan &plan) {
     const Family          family = FamilyOf(key);
     std::set<std::size_t> sites;
     for (std::size_t f = 0; f < program.functions.size(); ++f) {
@@ -608,9 +607,6 @@ bool BuildPlan(std::string_view key, const Program &program, const std::vector<s
             return false;
         }
         (anchor.window ? plan.counts.windows : plan.counts.anchors)++;
-        if (anchor.window && windows == AttackWindows::Pal) {
-            continue;
-        }
         const std::vector<Insn> &code = canonical[hits[0].first];
         for (const AnchorWrite &write : anchor.writes) {
             const Insn &original = code[hits[0].second + static_cast<std::size_t>(write.pos)];
@@ -630,8 +626,6 @@ const Expected kInventory[] = {
 #include "script_timing_inventory.inc"
 };
 
-std::optional<bool>   active_override;
-AttackWindows         attack_windows = kDefaultAttackWindows;
 std::set<std::string> logged_assets;
 
 Counts CountsOf(const Expected &expected) {
@@ -710,7 +704,7 @@ Result Apply(std::string_view key, unsigned char *bytes, std::size_t size, const
     }
 
     Plan plan;
-    if (!BuildPlan(key, program, canonical, options.windows, plan)) {
+    if (!BuildPlan(key, program, canonical, plan)) {
         result.error = plan.error;
         result.counts = plan.counts;
         return result;
@@ -740,9 +734,7 @@ Result Apply(std::string_view key, unsigned char *bytes, std::size_t size, const
 
 bool Patch(const char *asset_path, unsigned char *bytes, std::size_t size) {
     const std::string key = Key(asset_path ? asset_path : "");
-    Options           options;
-    options.windows = attack_windows;
-    Result result = Apply(key, bytes, size, options);
+    Result result = Apply(key, bytes, size);
     if (!result.ok) {
         if (logged_assets.insert(key).second) {
             std::fprintf(stderr, "script timing: %s does not match the PAL script the NTSC timing converts (%s)\n", key.c_str(), result.error.c_str());
@@ -755,27 +747,8 @@ bool Patch(const char *asset_path, unsigned char *bytes, std::size_t size) {
     return true;
 }
 
-bool Active() {
-    return active_override ? *active_override : !PortPalTiming();
-}
-
-void SetActiveOverride(std::optional<bool> active) {
-    active_override = active;
-}
-
-void SetAttackWindows(AttackWindows windows) {
-    attack_windows = windows;
-}
-
-AttackWindows CurrentAttackWindows() {
-    return attack_windows;
-}
-
 } // namespace script_timing
 
 bool ScriptTimingPatch(const char *asset_path, unsigned char *bytes, std::size_t size) {
-    if (!script_timing::Active()) {
-        return true;
-    }
     return script_timing::Patch(asset_path, bytes, size);
 }
