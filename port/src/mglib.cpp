@@ -876,6 +876,13 @@ gfx::TextureHandle mgPortRenderTarget(const mgCTexture *texture, bool frame_targ
         return gfx::kNullTexture;
     }
 
+    // Brings the registry up to date first. A RAM image attached after EnterTexture (the menu grab, the
+    // dungeon's cross-fade capture) would otherwise be noticed by the next reload, whose rebuild releases
+    // this target and leaves the draw sampling that buffer's stale bytes.
+    if (lookup_texture != nullptr) {
+        lookup_texture(texture);
+    }
+
     const uint32_t tbp0 = static_cast<uint32_t>(texture->tex0.TBP0);
     texture_targets[texture] = tbp0;
     const auto physical = MgTexturePhysicalExtent(texture);

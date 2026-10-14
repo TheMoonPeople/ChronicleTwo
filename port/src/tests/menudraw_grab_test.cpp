@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -138,4 +139,44 @@ TEST(MenuDrawGrab, GrabRoundTrip) {
     EXPECT_NEAR(outside[0], 64, 2);
     EXPECT_NEAR(outside[1], 128, 2);
     EXPECT_NEAR(outside[2], 192, 2);
+}
+
+// The menus capture with draw set: the reload that draws the grab must keep the target, not the stale stack bytes.
+TEST(MenuDrawGrab, DrawnGrabKeepsTarget) {
+    OffscreenRenderer renderer;
+    TextureTable      table;
+
+    std::vector<u_long128> storage(kStackQuads);
+    std::memset(storage.data(), 0xAB, storage.size() * sizeof(u_long128));
+    mgCMemory stack;
+    stack.stSetBuffer(storage.data(), static_cast<int>(kStackQuads));
+
+    mgSetBackGround(64.0f, 128.0f, 192.0f, 128.0f);
+    mgBeginFrame(nullptr);
+
+    mgCDrawPrim prim;
+    prim.Initialize(nullptr, nullptr);
+    prim.TextureMapEnable(0);
+    prim.Begin(MG_PRIM_SPRITE);
+    prim.Color(200, 100, 50, 255);
+    prim.Vertex(0.0f, 0.0f, 0.0f);
+    prim.Vertex(128.0f, 120.0f, 0.0f);
+    prim.End();
+
+    EXPECT_TRUE(MenuCapture(kBlock, &stack, 1));
+    ASSERT_NE(MenuFrameTex, nullptr);
+    mgEndFrame(nullptr);
+
+    const gfx::TextureHandle found = mgPortFindTexture(MenuFrameTex).texture;
+    ASSERT_EQ(found, mgPortRenderTarget(MenuFrameTex, true));
+
+    std::vector<uint8_t> rgba;
+    uint32_t             width = 0;
+    uint32_t             height = 0;
+    ASSERT_TRUE(mgPortReadColor(found, rgba, width, height));
+
+    const uint8_t *inside = &rgba[(static_cast<size_t>(30) * width + 32) * 4];
+    EXPECT_NEAR(inside[0], 200, 2);
+    EXPECT_NEAR(inside[1], 100, 2);
+    EXPECT_NEAR(inside[2], 50, 2);
 }
