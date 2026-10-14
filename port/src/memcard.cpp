@@ -8,6 +8,7 @@
 #include "inventmn.hpp"
 #include "mainloop.hpp"
 #include "platform/files.hpp"
+#include "platform/paths.hpp"
 #include "play_time.hpp"
 #include "save_slots.hpp"
 #include "title.hpp"
@@ -34,6 +35,9 @@ PORT_OVERRIDE void SetDngTreeFlag(int flag) { dungeon_tree_flag = flag; }
 PORT_OVERRIDE int CMemoryCardManager::InitForMC() {
     active_manager = this;
     SaveSlotNew = false;
+    // libmc reports the second card only once its folder exists. Creating it gives the photo album
+    // and the Extras data two working slots, as with two inserted cards.
+    FilesCreateDirectory(PathsSaveRoot() / "mc1");
     return sceMcInit() == sceMcIniSucceed ? 0 : 1;
 }
 

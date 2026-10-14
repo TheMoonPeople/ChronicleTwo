@@ -257,6 +257,14 @@ corresponding retail flat-file diagnostics and remain in English. Retail's
 no-data notice names a memory card and slot, so it is not used for an empty PC
 save folder.
 
+The photo album and Extras data keep libmc's two cards, `<save root>/mc0` and
+`mc1`; `mc1` is created when a memory card manager starts, so both album slots work.
+The boot notice "Reading memory card (PS2)." is not drawn. The PAL menu and system
+messages that mention memory cards, slots or the console are replaced in all five
+languages by `port/src/message_text.cpp` (album slots read "Album 1" and "Album 2").
+It recognises the disc's `allmenu.mes` and `sysmes_<n>.mes` by their header words;
+other message files are shown unchanged.
+
 Saving uses Kazarov's `FilesWrite`: an exclusive temporary file beside the target,
 a complete write, flush and close, then a write-through rename on Windows or a
 rename and directory sync on POSIX. Failed writes report an error and leave the
