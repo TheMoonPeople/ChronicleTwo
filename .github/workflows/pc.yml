@@ -181,13 +181,13 @@ jobs:
 
       - name: Check that the vendored crates match Kazarov's Cargo.lock
         run: |
+          # The workspace belongs to another user in the container, which git refuses until it is marked safe.
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           python3 port/flatpak/cargo_sources.py
           git diff --exit-code port/flatpak/cargo-sources.json
 
       - name: Point the manifest at this commit
         run: |
-          # flatpak-builder clones the workspace, which belongs to another user in the container.
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           awk -v commit="$GITHUB_SHA" '
             /# chronicletwo-source:/ {
               print
