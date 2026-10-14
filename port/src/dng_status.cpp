@@ -3,6 +3,7 @@
 #include "dng_hud.hpp"
 #include "dng_main.hpp"
 #include "dng_status.hpp"
+#include "mglib_port.hpp"
 #include "scenesnd.hpp"
 #include "userdata.hpp"
 
@@ -21,6 +22,9 @@ PORT_OVERRIDE void DrawStatusBord() {
     WarningGage2.warning[2] = false;
     LockOnModel.pos[3] = 0.0f;
 
+    // Retail keeps TEX0 in the GS across Initialize; the second weapon's synth gauge relies on it.
+    mgPortGs().inherit_prim_texture = true;
+
     switch (chara) {
         case USER_CHARA_MAX:
         case USER_CHARA_MONICA: {
@@ -37,4 +41,6 @@ PORT_OVERRIDE void DrawStatusBord() {
             DrawMonsterUnitStatusBord(rate);
             break;
     }
+
+    mgPortGs().inherit_prim_texture = false;
 }

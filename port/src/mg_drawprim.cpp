@@ -56,6 +56,7 @@ namespace {
 struct PrimRun {
     int                        prim_type = MG_PRIM_POINT;
     bool                       packed = false;
+    bool                       inherited_texture = false; // Begin2 filled in the retained TEX0/TEX1
     uint8_t                    color[4] = {0xFF, 0xFF, 0xFF, 0xFF};
     uint8_t                    fog = 0xFF;
     float                      q = 1.0f;
@@ -298,6 +299,15 @@ PORT_OVERRIDE void mgCDrawPrim::Begin2() {
     runs.insert_or_assign(this, PrimRun{});
     // End/Begin does not write a new colour. HUD bars inherit the preceding batch's tint.
     std::copy_n(mgPortGs().prim_color, 4, runs.at(this).color);
+    // Likewise TEX0: the second weapon's synth gauge re-Initializes its builder and never binds a texture.
+    // Limited to the status board, and to the builder that wrote it: elsewhere a builder whose Texture() got
+    // null (the dungeon loading picture, the boot logo's fade-out) must not pick up an unrelated texture.
+    if (mgPortGs().inherit_prim_texture && texture.tex0_bits == 0 && mgPortGs().prim_tex0 != 0 &&
+        mgPortGs().prim_tex_owner == this) {
+        texture.tex0_bits = mgPortGs().prim_tex0;
+        texture.tex1_bits = mgPortGs().prim_tex1;
+        runs.at(this).inherited_texture = true;
+    }
 
     disabled = 1;
 
@@ -483,11 +493,21 @@ PORT_OVERRIDE void mgCDrawPrim::Texture(mgCTexture *source) {
     source = MgTextureDrawVariant(source);
 
     if (source == NULL) {
+        // A local builder at a reused stack address can look like the owner. One that asks for a texture
+        // which is not loaded (the boot logo's fade-out, the dungeon loading picture) keeps drawing without one.
+        if (PrimRun *run = Find(this); run != nullptr && run->inherited_texture) {
+            texture.tex0_bits = 0;
+            texture.tex1_bits = 0;
+            run->inherited_texture = false;
+        }
         return;
     }
 
     texture = *source;
     texture.Bilinear(bilinear);
+    mgPortGs().prim_tex0 = texture.tex0_bits;
+    mgPortGs().prim_tex1 = texture.tex1_bits;
+    mgPortGs().prim_tex_owner = this;
 }
 
 PORT_OVERRIDE int mgCDrawManager::ReloadTexture(int group, sceVif1Packet *vif_packet) {

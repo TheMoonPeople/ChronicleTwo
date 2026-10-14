@@ -479,6 +479,42 @@ TEST(MgDrawPrim, ColourPersistsAcrossBuildersAndReinitialization) {
     }
 }
 
+// Retail keeps TEX0 in the GS: the second weapon's synth gauge re-Initializes its builder and binds nothing.
+TEST(MgDrawPrim, TextureSurvivesReinitialization) {
+    GsReset reset;
+    mgPortGs().inherit_prim_texture = true;
+    PrimRig    rig;
+    mgCTexture source;
+    source.Initialize();
+    source.tex0.value = SCE_GS_SET_TEX0(0x3F00, 4, SCE_GS_PSMCT32, 8, 8, 1, 0, 0, 0, 0, 0, 0);
+    rig.prim.Texture(&source);
+    rig.prim.Initialize(&rig.memory, &rig.vif_packet);
+    EXPECT_EQ(rig.prim.texture.tex0_bits, 0u);
+    rig.prim.TextureMapEnable(1);
+    rig.prim.Begin(MG_PRIM_TRIANGLE_STRIP);
+    EXPECT_EQ(rig.prim.texture.tex0_bits, source.tex0_bits);
+    rig.prim.End();
+}
+
+// Another builder whose Texture() got null keeps drawing without one rather than with the last builder's texture.
+TEST(MgDrawPrim, RetainedTextureStaysWithItsBuilder) {
+    GsReset reset;
+    mgPortGs().inherit_prim_texture = true;
+    PrimRig    rig;
+    mgCTexture source;
+    source.Initialize();
+    source.tex0.value = SCE_GS_SET_TEX0(0x3F00, 4, SCE_GS_PSMCT32, 8, 8, 1, 0, 0, 0, 0, 0, 0);
+    rig.prim.Texture(&source);
+    mgCDrawPrim other;
+    other.draw_manager = &rig.manager;
+    other.Initialize(&rig.memory, &rig.vif_packet);
+    other.TextureMapEnable(1);
+    other.Begin(MG_PRIM_SPRITE);
+    other.Texture(nullptr);
+    EXPECT_EQ(other.texture.tex0_bits, 0u);
+    other.End();
+}
+
 TEST(MgDrawPrim, PrimSubmitFlushesPendingBatchFirst) {
     PrimRig rig;
     rig.prim.Coord(1);
@@ -643,4 +679,37 @@ TEST(MgDrawPrim, LinearSpriteOffsetFollowsScaledAndFlippedUvSlopes) {
     const auto q = DrawTexturedSprite(rig, 1, {10, 20, 42, 28}, {24, 40, 8, 72});
     // Half a destination pixel corresponds to -0.25 U and +2 V here.
     ExpectQuadUv(q, 24.25f, 8.25f, 38, 70);
+}
+
+// The same builder asking for a texture that is not loaded drops the one Begin filled in.
+TEST(MgDrawPrim, NullTextureDropsInheritedTexture) {
+    GsReset reset;
+    mgPortGs().inherit_prim_texture = true;
+    PrimRig    rig;
+    mgCTexture source;
+    source.Initialize();
+    source.tex0.value = SCE_GS_SET_TEX0(0x3F00, 4, SCE_GS_PSMCT32, 8, 8, 1, 0, 0, 0, 0, 0, 0);
+    rig.prim.Texture(&source);
+    rig.prim.Initialize(&rig.memory, &rig.vif_packet);
+    rig.prim.TextureMapEnable(1);
+    rig.prim.Begin(MG_PRIM_SPRITE);
+    EXPECT_EQ(rig.prim.texture.tex0_bits, source.tex0_bits);
+    rig.prim.Texture(nullptr);
+    EXPECT_EQ(rig.prim.texture.tex0_bits, 0u);
+    rig.prim.End();
+}
+
+// Outside the status board an Initialized builder draws without the retained texture, as before.
+TEST(MgDrawPrim, TextureNotInheritedOutsideStatusBoard) {
+    GsReset    reset;
+    PrimRig    rig;
+    mgCTexture source;
+    source.Initialize();
+    source.tex0.value = SCE_GS_SET_TEX0(0x3F00, 4, SCE_GS_PSMCT32, 8, 8, 1, 0, 0, 0, 0, 0, 0);
+    rig.prim.Texture(&source);
+    rig.prim.Initialize(&rig.memory, &rig.vif_packet);
+    rig.prim.TextureMapEnable(1);
+    rig.prim.Begin(MG_PRIM_TRIANGLE_STRIP);
+    EXPECT_EQ(rig.prim.texture.tex0_bits, 0u);
+    rig.prim.End();
 }
