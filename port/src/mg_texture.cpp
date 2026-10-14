@@ -60,6 +60,7 @@ struct Entry {
     bool                     uploaded = false;
     bool                     catalog = false;
     mgCTexture              *draw_variant = nullptr;
+    std::vector<uint8_t>     memory16; /**< 16-bit RAM image last uploaded, to notice in-place rewrites. */
 };
 
 struct TextureRegistry {
@@ -175,6 +176,49 @@ int PsmForBpp(int bpp) {
     }
 }
 
+bool IsMemory16(const mgCTexture *texture, const Entry &entry) {
+    return texture->image[0] != nullptr && !entry.catalog && texture->bpp == 16;
+}
+
+size_t Memory16Bytes(const mgCTexture *texture) {
+    return static_cast<size_t>(std::max(0, static_cast<int>(texture->width))) *
+           std::max(0, static_cast<int>(texture->height)) * 2;
+}
+
+/**
+ * Expands a linear PSMCT16 RAM image (photos stored by mgStoreImage) into RGBA8. The game draws these with
+ * TEXA TA0 = TA1 = 0x80, so every texel is opaque whatever its alpha bit.
+ */
+std::vector<uint8_t> DecodeMemory16(const mgCTexture *texture) {
+    const size_t texels = Memory16Bytes(texture) / 2;
+    std::vector<uint8_t> rgba(texels * 4);
+    const uint8_t *in = AsBytes(texture->image[0]);
+    for (size_t i = 0; i < texels; ++i) {
+        const uint32_t texel = in[i * 2] | (static_cast<uint32_t>(in[i * 2 + 1]) << 8);
+        const uint32_t r = texel & 0x1F;
+        const uint32_t g = (texel >> 5) & 0x1F;
+        const uint32_t b = (texel >> 10) & 0x1F;
+        rgba[i * 4 + 0] = static_cast<uint8_t>((r << 3) | (r >> 2));
+        rgba[i * 4 + 1] = static_cast<uint8_t>((g << 3) | (g >> 2));
+        rgba[i * 4 + 2] = static_cast<uint8_t>((b << 3) | (b >> 2));
+        rgba[i * 4 + 3] = 0x80;
+    }
+    return rgba;
+}
+
+gfx::TextureHandle UploadMemory16(const mgCTexture *texture, Entry &entry) {
+    const auto extent = MgTexturePhysicalExtent(texture);
+    auto handle = gfx::CreateTexture({extent.width, extent.height, gfx::TextureFormat::Rgba8, 1, true});
+    if (handle == gfx::kNullTexture) {
+        return handle;
+    }
+    const auto rgba = DecodeMemory16(texture);
+    gfx::UpdateTexture(handle, 0, 0, 0, texture->width, texture->height, rgba.data());
+    const uint8_t *raw = AsBytes(texture->image[0]);
+    entry.memory16.assign(raw, raw + Memory16Bytes(texture));
+    return handle;
+}
+
 gfx::TextureHandle UploadPixels(const mgCTexture *texture) {
     const auto extent = MgTexturePhysicalExtent(texture);
     const auto pixels = catalog_pixels.find(texture);
@@ -243,6 +287,13 @@ void Rebuild(const mgCTexture *texture, Entry &entry) {
     // A picture the decoder rejects is not retried until its pointers change; retrying would decode the
     // same bytes every frame.
     entry.uploaded = true;
+    entry.memory16.clear();
+
+    if (IsMemory16(texture, entry)) {
+        entry.image = UploadMemory16(texture, entry);
+        if (entry.image != gfx::kNullTexture) Registry().textures_by_image[entry.image] = texture;
+        return;
+    }
 
     if (texture->image[0] != nullptr && !entry.catalog && texture->bpp != 32) {
         std::fprintf(stderr, "texture: %s has unsupported non-RGBA memory pixels\n", texture->name);
@@ -262,6 +313,15 @@ void Resolve(const mgCTexture *texture, Entry &entry, bool) {
         return;
     }
 
+    // Retail uploads RAM images on every reload; a photo slot is rewritten in place (new shot, sorting).
+    if (entry.image != gfx::kNullTexture && IsMemory16(texture, entry) &&
+        (entry.memory16.size() != Memory16Bytes(texture) ||
+         std::memcmp(entry.memory16.data(), AsBytes(texture->image[0]), entry.memory16.size()) != 0)) {
+        const auto rgba = DecodeMemory16(texture);
+        gfx::UpdateTexture(entry.image, 0, 0, 0, texture->width, texture->height, rgba.data());
+        const uint8_t *raw = AsBytes(texture->image[0]);
+        entry.memory16.assign(raw, raw + Memory16Bytes(texture));
+    }
 }
 
 Entry &Register(const mgCTextureManager *owner, mgCTexture *texture) {
