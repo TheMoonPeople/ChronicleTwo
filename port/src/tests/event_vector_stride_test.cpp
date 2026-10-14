@@ -88,7 +88,8 @@ TEST_F(EventVectorStride, FrameCountFollowsOffsetVector) {
     RS_STACKDATA args[] = {Integer(0), Integer(2), name, Number(3), Number(4), Number(12), Integer(60)};
     ASSERT_EQ(script.ext_func_table[EVENT_EXT_OBJS_SET_EOH_FRAME_POS](args, 7), 1);
     ASSERT_NE(ObjectSeq[0].pos_last, nullptr);
-    EXPECT_EQ(ObjectSeq[0].pos_last->sub_frame, 50);
+    // Native NTSC timing keeps the supplied frame count instead of scaling it to PAL.
+    EXPECT_EQ(ObjectSeq[0].pos_last->sub_frame, 60);
     EXPECT_FLOAT_EQ(ObjectSeq[0].pos_last->vec[0], 3);
     EXPECT_FLOAT_EQ(ObjectSeq[0].pos_last->vec[3], 1);
     ObjectSeq[0].ZeroInitialize();
