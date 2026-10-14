@@ -17,9 +17,11 @@
 #include "audio/mixer.hpp"
 #include "audio/stream.hpp"
 #include "audio_init.hpp"
+#include "controller_speaker.hpp"
 #include "dataread_port.hpp"
 #include "ezbgm.hpp"
 #include "platform/audio.hpp"
+#include "platform/config.hpp"
 #include "platform/paths.hpp"
 #include "platform/settings.hpp"
 #include "sound.hpp"
@@ -124,6 +126,19 @@ std::optional<fs::path> ResolveSoundName(const char *name) {
         return std::nullopt;
     }
     return path;
+}
+
+// The Ridepod's lines are 852000.wav onward (CDngObject's ROBO_VOICE_OPEN); their channel is shared
+// with other voices, so the name decides.
+bool IsRobotVoice(const char *name) {
+    return std::strncmp(name, "8520", 4) == 0;
+}
+
+void RouteSlot(StreamSlot &slot, const char *name) {
+    ControllerSpeakerRelease(&slot.stream);
+    if (ConfigGet().robot_voice_controller && IsRobotVoice(name)) {
+        ControllerSpeakerRoute(&slot.stream);
+    }
 }
 
 std::optional<fs::path> ResolveName(const char *name) {
@@ -236,6 +251,7 @@ int EzBgmOpen(int channel, const char *name) {
     slot.stream.Open(track);
     slot.stream.SetLoop(false);
     slot.stereo = stereo ? 1 : 0;
+    RouteSlot(slot, name);
     return 1;
 }
 
