@@ -102,7 +102,7 @@ and what it needs for the build alone; SDL3 and the Vulkan headers come from the
 SDK:
 
 - **nlohmann/json**, the header from its release archive.
-- **FFmpeg 7.1.1**, static libavcodec and libavutil with the MPEG-2 video
+- **FFmpeg 9.0.2**, static libavcodec and libavutil with the MPEG-2 video
   decoder alone, configured as `tools/kazarov/tools/ffmpeg/kz-ffmpeg` builds it
   (LGPL only), for the movies.
 - **Rust 1.99.0**, the official archive Kazarov's image installs, newer than
