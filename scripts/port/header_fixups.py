@@ -85,6 +85,25 @@ UNIT_FIXUPS = [
     ("editeff.cpp", "\ninline CMapParts::CMapParts() { Initialize(); }", "\n"),
     ("editmap.cpp", "\ninline CMapParts::CMapParts() { Initialize(); }", "\n"),
     ("dng_debug.cpp", "\nvoid CTreasureBox::Initialize() {", "\ninline void CTreasureBox::Initialize() {"),
+    # The dungeon menu carves its memory from these 200000 quadwords and gives the invention menu's
+    # model reads (LOAD STACK) whatever is left. Host objects are larger than retail's, so with Max's
+    # largest outfit (the Explorer's set) the reads overran it. Give the menu 60000 more quadwords.
+    ("dng_main.cpp", "BuffReadData = MainBuffer->stAlloc64(200000);",
+     "BuffReadData = MainBuffer->stAlloc64(260000);"),
+    ("dng_main.cpp", "\n                stack.stSetBuffer(BuffReadData, 200000);",
+     "\n                stack.stSetBuffer(BuffReadData, 260000);"),
+    # The town menu's buffer, carved from the end of the main stack after the total data buffer, needs
+    # the same 60000 quadwords for the invention menu's model reads.
+    ("editloop.cpp", """    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - 210128);
+    printf("data memory size = %d kbyte", (data_size - 210128) * 16 / 1024);""",
+     """    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - 270128);
+    printf("data memory size = %d kbyte", (data_size - 270128) * 16 / 1024);"""),
+    ("editloop.cpp", """    main_stack->Alloc(data_size - 210128);
+    MenuBuffer__2.stSetBuffer(read_buffer = main_stack->stAlloc64(200000), 200000);
+    read_buffer_end = read_buffer + 200000;""",
+     """    main_stack->Alloc(data_size - 270128);
+    MenuBuffer__2.stSetBuffer(read_buffer = main_stack->stAlloc64(260000), 260000);
+    read_buffer_end = read_buffer + 260000;"""),
 ]
 
 # MWCC-only pragmas. ct_port builds with -Wall and no -Wno-unknown-pragmas, so they are blanked, not silenced.

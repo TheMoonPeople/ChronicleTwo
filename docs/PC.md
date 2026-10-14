@@ -1043,7 +1043,7 @@ PORT_OVERRIDE void mgInit(int screen_mode, int video_mode) {
 
 `unit_copy.py` also preserves the routines listed in `RETAIL_BRIDGES` under new definition names in the generated unit. It reads each body from the unstripped retail source, changes only the definition name, and appends it before the unit fixups and long64 rewrites. Calls in the original unit keep the public name, so they reach the native `PORT_OVERRIDE`; that override can add native behavior and delegate to the preserved routine. Each appended body has its own `#line` marker naming the original retail source and definition line, keeping diagnostics and debugger locations valid.
 
-Use this mechanism when a native seam needs to wrap retail behavior rather than replace it, as with the camera-cut seams around `ResetViewMode` and `ResetEyeView`. Add the unit, exact signature, original name and bridge name to `RETAIL_BRIDGES`, declare the bridge's asm link name in both `port/include/stubs/<unit>.hpp` and the native caller, and call it from the public override. The bridge body is generated from retail rather than transcribed into native source; `ps2/` stays unchanged. `NativeRetailBridges` runs `scripts/port/test_unit_copy.py` through CTest, alongside the other native unit-copy Python tests.
+Use this mechanism when a native seam needs to wrap retail behavior rather than replace it, as with the camera-cut seams around `ResetViewMode` and `ResetEyeView`, and the outfit-index guard around `GetRoboPartsInfo`. Add the unit, exact signature, original name and bridge name to `RETAIL_BRIDGES`, declare the bridge's asm link name in both `port/include/stubs/<unit>.hpp` and the native caller, and call it from the public override. The bridge body is generated from retail rather than transcribed into native source; `ps2/` stays unchanged. `NativeRetailBridges` runs `scripts/port/test_unit_copy.py` through CTest, alongside the other native unit-copy Python tests.
 
 Each name then has one definition. A replacement without the tag leaves `ps2/src`'s definition in, and the link fails on the duplicate symbol. A replacement takes the signature `ps2/src` gives the function: parameter types as spelled; names and default arguments may differ. By convention a replacement goes in the file that mirrors its unit.
 
@@ -1055,7 +1055,7 @@ The 22 `#ifndef PORT` guards are 21 in the eight `.cpp` files that hold assembly
 
 `port/include/stubs/<unit>.hpp`, when it exists, is included ahead of `ps2/src/<unit>.cpp`, after `port.h` and nothing else. It declares what the port defines in place of code `PORT` leaves out, and it renames or supplies what the unit takes from MWCC or from the PS2 link alone. Only the port's build sees `port/include`.
 
-The 22 native unit headers are `collision`, `dataread`, `dng_main`, `dngmenu`, `editctrl`, `editmap2`, `event`, `event_func`, `gamepad`, `gameutil`, `inventmn`, `mainloop`, `menudraw`, `menumain`, `menuop`, `menusys`, `mg_frame`, `mg_math`, `mglib`, `nowload`, `photo`, `title`. Their link-name bridges and native caller declarations remain outside retail source.
+The 23 native unit headers are `charasetup`, `collision`, `dataread`, `dng_main`, `dngmenu`, `editctrl`, `editmap2`, `event`, `event_func`, `gamepad`, `gameutil`, `inventmn`, `mainloop`, `menudraw`, `menumain`, `menuop`, `menusys`, `mg_frame`, `mg_math`, `mglib`, `nowload`, `photo`, `title`. Their link-name bridges and native caller declarations remain outside retail source.
 
 ## Header fixups
 
