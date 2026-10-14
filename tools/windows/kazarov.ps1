@@ -66,7 +66,7 @@ $markers = @(
     'deps/ninja/ninja.exe',
     'deps/glslang/bin/glslang.exe',
     'deps/sdl/SDL3-3.4.18/x86_64-w64-mingw32/lib/cmake/SDL3',
-    'deps/ffmpeg/ffmpeg-n7.1.1-5-g276bd388f3-win64-lgpl-shared-7.1/bin/avcodec-61.dll',
+    'deps/ffmpeg/ffmpeg-n9.0.2-27-g7e93014c5b-win64-lgpl-shared-9.0/bin/avcodec-63.dll',
     'deps/vulkan/Vulkan-Headers-vulkan-sdk-1.4.363.0/include',
     'deps/vulkan-runtime/VulkanRT-X64-1.4.363.0-Components/x64/vulkan-1.dll',
     'deps/rust/1.99.0-gnullvm/bin/cxxbridge.exe'
@@ -88,7 +88,7 @@ function Read-CacheValue([string]$File, [string]$Key) {
 }
 $source = $checkout.Replace('\', '/')
 $buildPath = $build.Replace('\', '/')
-$ffmpegDir = "$($root.Replace('\', '/'))/deps/ffmpeg/ffmpeg-n7.1.1-5-g276bd388f3-win64-lgpl-shared-7.1"
+$ffmpegDir = "$($root.Replace('\', '/'))/deps/ffmpeg/ffmpeg-n9.0.2-27-g7e93014c5b-win64-lgpl-shared-9.0"
 $cache = Join-Path $build 'CMakeCache.txt'
 $cachedSource = Read-CacheValue $cache 'CMAKE_HOME_DIRECTORY'
 $cachedBuild = Read-CacheValue $cache 'CMAKE_CACHEFILE_DIR'

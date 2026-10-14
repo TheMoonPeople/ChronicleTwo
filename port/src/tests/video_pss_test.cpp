@@ -426,7 +426,7 @@ TEST(VideoPss, L5LogoSequenceFlags) {
 }
 
 TEST(VideoFfmpeg, LinksTheLgplMpeg2Decoder) {
-    EXPECT_EQ(LIBAVCODEC_VERSION_MAJOR, 61);
+    EXPECT_EQ(LIBAVCODEC_VERSION_MAJOR, 63);
     EXPECT_EQ(avcodec_version() >> 16, static_cast<unsigned>(LIBAVCODEC_VERSION_MAJOR));
     EXPECT_NE(avcodec_find_decoder(AV_CODEC_ID_MPEG2VIDEO), nullptr);
     EXPECT_EQ(std::string_view(avcodec_license()).substr(0, 4), "LGPL");
