@@ -11,6 +11,7 @@
 #include "mg_drawprim.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
+#include "pal_timing.hpp"
 #include "scene.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
@@ -94,7 +95,7 @@ PORT_OVERRIDE int MenuChapterKey() {
         ++chapter_info->show_cnt;
         ++narration_frames;
         const int state = CSnd.StreamGetState(1);
-        if (state == SND_STREAM_STATE_END || narration_frames > 1500) {
+        if (state == SND_STREAM_STATE_END || narration_frames > PAL_TIMING(1500, 1800)) {
             narration_finished = true;
         }
         if (narration_finished && state == 0) {
@@ -107,7 +108,7 @@ PORT_OVERRIDE int MenuChapterKey() {
         if (sound_frames == 36) {
             sndSePlay(sound_id, 0, 0);
         }
-        if (chapter_info->show_cnt > 300 && sound_frames >= 346) {
+        if (chapter_info->show_cnt > 300 && sound_frames >= PAL_TIMING(346, 406)) {
             MenuMainScene->fade.FadeOut(60, 0, 0, 0);
             mode = MENU_CHAPTER_MODE_FADE_OUT;
         }

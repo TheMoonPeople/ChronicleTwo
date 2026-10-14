@@ -13,16 +13,17 @@
 #include "mg_drawenv.hpp"
 #include "mg_frame.hpp"
 #include "mg_math.hpp"
+#include "pal_timing.hpp"
 #include "sceneseq.hpp"
 #include "scenesnd.hpp"
 #include "sound.hpp"
 
-#define CONVERT_TO_PAL_FRAMES(frames)    \
-    if ((frames) > 0) {                  \
-        (frames) = ((frames) * 50) / 60; \
-        if ((frames) <= 0) {             \
-            (frames) = 1;                \
-        }                                \
+#define CONVERT_TO_PAL_FRAMES(frames)                    \
+    if ((frames) > 0) {                                  \
+        (frames) = ((frames) * PAL_TIMING(50, 60)) / 60; \
+        if ((frames) <= 0) {                             \
+            (frames) = 1;                                \
+        }                                                \
     }
 
 /**
@@ -2145,7 +2146,7 @@ void CSceneCmrSeq::PRDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -2248,7 +2249,7 @@ void CSceneCmrSeq::SetPasFrm(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -2314,7 +2315,7 @@ void CSceneCmrSeq::AHDDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -2466,7 +2467,7 @@ void CSceneCmrSeq::FadeDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -2521,7 +2522,7 @@ void CSceneCmrSeq::QuakeDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -2571,7 +2572,7 @@ void CSceneCmrSeq::CharaDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -3922,7 +3923,7 @@ void CSceneObjSeq::PosDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -3987,7 +3988,7 @@ void CSceneObjSeq::SetPasFrm(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -4026,13 +4027,13 @@ void CSceneObjSeq::Jump(float *dest, float height, int frames) {
 
     if (node != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
             }
 
-            height = 1.2f * height;
+            height = PAL_TIMING(1.2f, 1.0f) * height;
         }
 
         node->cmd = SCENE_OBJ_CMD_JUMP;
@@ -4088,7 +4089,7 @@ void CSceneObjSeq::RotDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -4157,7 +4158,7 @@ void CSceneObjSeq::MotionDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -4284,7 +4285,7 @@ void CSceneObjSeq::TexAnimeDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -4319,7 +4320,7 @@ void CSceneObjSeq::ColorDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -4349,7 +4350,7 @@ void CSceneObjSeq::ScaleDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;
@@ -4379,7 +4380,7 @@ void CSceneObjSeq::SeDelay(int frames) {
 
     if (command != NULL) {
         if (frames > 0) {
-            frames = (frames * 50) / 60;
+            frames = (frames * PAL_TIMING(50, 60)) / 60;
 
             if (frames <= 0) {
                 frames = 1;

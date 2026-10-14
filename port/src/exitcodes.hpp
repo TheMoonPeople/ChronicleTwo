@@ -6,5 +6,6 @@ enum ExitStatus : int {
     kExitGameAssert = 4,
     kExitNoData = 3,
     kExitOk = 0,
+    kExitScriptTiming = 5, // a known script does not match the conversion the NTSC timing needs
     kExitUsage = 2,
 };

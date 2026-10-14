@@ -23,6 +23,7 @@
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
+#include "pal_timing.hpp"
 #include "savedata.hpp"
 #include "savedatadungeon.hpp"
 #include "scenesnd.hpp"
@@ -1476,7 +1477,7 @@ void CDngFreeMap::DrawTreeMap(int opacity) {
         if (glid->type == GLID_TYPE_ROOM) {
             float brightness = 1.0f;
 
-            if (glid->blink && blink_cnt % 25 < 14) {
+            if (glid->blink && blink_cnt % PAL_TIMING(25, 30) < 14) {
                 brightness = 0.5f;
             }
 
@@ -1519,16 +1520,16 @@ void CDngFreeMap::DrawPlayer(int opacity) {
     }
 
     if (mode == DNGMAP_MODE_MENU) {
-        board_y -= 6.0f * sinf(0.06283186f * (float) dng_player_blink_cnt);
+        board_y -= 6.0f * sinf(PAL_TIMING(0.06283186f, 0.05235988f) * (float) dng_player_blink_cnt);
     }
 
     dng_player_blink_cnt++;
 
-    if (dng_player_blink_cnt >= 50) {
+    if (dng_player_blink_cnt >= PAL_TIMING(50, 60)) {
         dng_player_blink_cnt = 0;
     }
 
-    float brightness = 16.0f + alpha + 16.0f * sinf(0.06283186f * (float) dng_player_blink_cnt);
+    float brightness = 16.0f + alpha + 16.0f * sinf(PAL_TIMING(0.06283186f, 0.05235988f) * (float) dng_player_blink_cnt);
 
     if (brightness < 0.0f) {
         brightness = 0.0f;
@@ -1578,7 +1579,7 @@ void CDngFreeMap::Step() {
 
     blink_cnt++;
 
-    if (blink_cnt >= DNGMAP_BLINK_CYCLE) {
+    if (blink_cnt >= PAL_TIMING(DNGMAP_BLINK_CYCLE, 120)) {
         blink_cnt = 0;
     }
 

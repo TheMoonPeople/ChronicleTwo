@@ -35,6 +35,7 @@
 #include "platform/arena.hpp"
 #include "platform/config.hpp"
 #include "platform/input.hpp"
+#include "play_time.hpp"
 #include "savedata.hpp"
 #include "scene.hpp"
 #include "scenesnd.hpp"
@@ -44,12 +45,23 @@
 #include "userdata.hpp"
 #include "vlgr_info.hpp"
 
-int  PortVSyncCallBack(int unused) asm("MainLoop_VSyncCallBack");
 extern u_long128     main_buffer[0x1A0000];
 extern CScene        MainScene;
 extern CFont         Font;
 
 static constexpr int kSubGameQuads = std::max(5000, static_cast<int>((sizeof(CSubGameData) + 15) / 16));
+
+int PortPlayTimeVSyncCallback(int) {
+    if (PortPlayTimeCountFlag != 0) {
+        GetSaveData()->play_time += PlayTimeTick(true);
+    }
+    return 0;
+}
+
+PORT_OVERRIDE void InitSaveData() {
+    GetSaveData()->Initialize();
+    PlayTimeReset();
+}
 
 void PortDrawFrameBorder() {
     const auto  edge = mgPortVisibleExtent();
@@ -88,6 +100,7 @@ PORT_OVERRIDE void MainLoop() {
     memory->stack_used = 0;
     memory->lock = 0;
     SaveData.Initialize();
+    PlayTimeReset();
     PortActiveSaveData = &SaveData;
     PortSubGameSaveData = NULL;
     DebugFlag = false;
@@ -95,7 +108,7 @@ PORT_OVERRIDE void MainLoop() {
     InitFileCache(NULL, 0);
     mgInit(MG_SCREEN_MODE_512X480, 3);
     PortPlayTimeCountFlag = false;
-    mgInitVSyncCallBack(PortVSyncCallBack);
+    mgInitVSyncCallBack(PortPlayTimeVSyncCallback);
     LanguageCode = GameHasJump() ? LANG_ENGLISH : LANG_FRENCH;
     if (!GameHasJump()) {
         SCElogoFade(0, memory);

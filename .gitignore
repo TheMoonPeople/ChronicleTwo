@@ -39,3 +39,9 @@ AGENTS.md
 /port/run/
 /data/
 /save/
+
+# flatpak-builder's state and output (docs/FLATPAK.md).
+/.flatpak-builder/
+/build-dir/
+/repo/
+/chronicletwo.flatpak

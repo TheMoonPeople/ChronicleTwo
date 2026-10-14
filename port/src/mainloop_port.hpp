@@ -2,6 +2,7 @@
 
 // The retail final-frame outline, drawn at the current target edges.
 void PortDrawFrameBorder();
+int  PortPlayTimeVSyncCallback(int unused);
 
 #include "common.h"
 class CSaveData;

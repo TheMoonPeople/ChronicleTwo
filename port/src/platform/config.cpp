@@ -193,11 +193,6 @@ bool ApplyBindings(Config &config, const Json &bindings) {
 
 bool Apply(Config &config, std::string_view name, const Json &value) {
     HostSettings &s = config;
-    if (name == "game.tick_rate") {
-        return ReadNumber(value, s.tick_rate, [](double rate) {
-            return rate >= kConfigTickRateMin && rate <= kConfigTickRateMax;
-        });
-    }
     if (name == "game.debug_mode") {
         return ReadBool(value, config.debug_mode);
     }
@@ -417,7 +412,6 @@ std::string ConfigSerialize(const Config &config) {
         bindings[binding.action] = binding.keys;
     }
     Json root;
-    root["game"]["tick_rate"] = s.tick_rate;
     root["game"]["debug_mode"] = config.debug_mode;
     root["video"]["present_mode"] = kPresentModeNames[static_cast<std::size_t>(s.present_mode)];
     root["video"]["interpolation"] = config.interpolation;

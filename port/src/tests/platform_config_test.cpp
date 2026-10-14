@@ -77,7 +77,6 @@ TEST_F(PlatformConfig, TinyFrameCapsClampButZeroRemainsUncapped) {
 
 TEST_F(PlatformConfig, FullFileRoundTrips) {
     Config full;
-    full.tick_rate = 120.0;
     full.present_mode = ConfigPresentMode::Mailbox;
     full.max_fps = 144.0;
     full.window_width = 1920;
@@ -145,9 +144,9 @@ TEST_F(PlatformConfig, RobotVoiceIsOptInAndRoundTrips) {
     }
 }
 
-TEST_F(PlatformConfig, TickRateOutsideItsRangeKeepsTheDefault) {
-    ASSERT_TRUE(ConfigParse(R"({"game": {"tick_rate": 25}})").tick_rate == 25.0);
-    ASSERT_TRUE(ConfigParse(R"({"game": {"tick_rate": 240}})").tick_rate == 240.0);
+TEST_F(PlatformConfig, LegacyTickRatesNeverOverrideSixty) {
+    ASSERT_TRUE(ConfigParse(R"({"game": {"tick_rate": 25}})").tick_rate == 60.0);
+    ASSERT_TRUE(ConfigParse(R"({"game": {"tick_rate": 240}})").tick_rate == 60.0);
     for (const char *value : {"0", "-3", "24.9", "240.1", "1e9", "\"fast\"", "null", "true"}) {
         std::string json = std::string(R"({"game": {"tick_rate": )") + value + "}}";
         ASSERT_TRUE(ConfigParse(json).tick_rate == kConfigTickRateDefault) << value;
@@ -219,9 +218,9 @@ TEST_F(PlatformConfig, SettingsChangeStoresAndNormalises) {
     changed.tick_rate = 120.0;
     changed.rumble_strength = 2.0f;
     ASSERT_TRUE(SettingsChange(changed));
-    ASSERT_TRUE(SettingsGet().tick_rate == 120.0);
+    ASSERT_TRUE(SettingsGet().tick_rate == 60.0);
     ASSERT_TRUE(SettingsGet().rumble_strength == 1.0f);
-    ASSERT_TRUE(ConfigParse(Read()).tick_rate == 120.0);
+    ASSERT_TRUE(ConfigParse(Read()).tick_rate == 60.0);
 }
 
 TEST_F(PlatformConfig, InvalidFilesAreBackedUpAndReplacedOnChange) {
@@ -266,9 +265,9 @@ TEST_F(PlatformConfig, ExistingUnreadableFileIsNeverOverwritten) {
     ASSERT_FALSE(ConfigLoad());
     ASSERT_TRUE(SettingsGet() == static_cast<const HostSettings &>(Config{}));
     HostSettings changed = SettingsGet();
-    changed.tick_rate = 120.0;
+    changed.master_volume = 0.5f;
     ASSERT_FALSE(SettingsChange(changed));
-    ASSERT_TRUE(SettingsGet().tick_rate == 120.0);
+    ASSERT_TRUE(SettingsGet().master_volume == 0.5f);
     ASSERT_FALSE(ConfigSave());
     ASSERT_TRUE(fs::is_directory(Path()));
     ASSERT_FALSE(fs::is_regular_file(Path()));
@@ -279,11 +278,11 @@ TEST_F(PlatformConfig, ChangeHookSeesBeforeAndAfter) {
     g_hook_calls = 0;
     ConfigSetChangeHook(CaptureChange);
     HostSettings changed = SettingsGet();
-    changed.tick_rate = 120.0;
+    changed.master_volume = 0.5f;
     ASSERT_TRUE(SettingsChange(changed));
     ASSERT_TRUE(g_hook_calls == 1);
-    ASSERT_TRUE(g_hook_before.tick_rate == kConfigTickRateDefault);
-    ASSERT_TRUE(g_hook_after.tick_rate == 120.0);
+    ASSERT_TRUE(g_hook_before.master_volume == 1.0f);
+    ASSERT_TRUE(g_hook_after.master_volume == 0.5f);
     ASSERT_TRUE(SettingsChange(SettingsGet()));
     ASSERT_TRUE(g_hook_calls == 1);
     ConfigSetChangeHook(nullptr);
@@ -428,4 +427,36 @@ TEST_F(PlatformConfig, ReadErrorsNeverReplaceOriginalOrPublishPartialBackup) {
             }
         }
     }
+}
+
+TEST_F(PlatformConfig, NativeTimingDefaultsToSixtyAndIgnoresLegacyKeys) {
+    EXPECT_DOUBLE_EQ(ConfigParse("").tick_rate, 60);
+    for (const char *json : {R"({"game":{"timing":"pal","tick_rate":50}})",
+                             R"({"game":{"timing":"ntsc","tick_rate":60}})",
+                             R"({"game":{"timing":false,"tick_rate":"slow"}})"}) {
+        EXPECT_DOUBLE_EQ(ConfigParse(json).tick_rate, 60) << json;
+    }
+    EXPECT_FALSE(ConfigLoad());
+    EXPECT_DOUBLE_EQ(SettingsGet().tick_rate, 60);
+    const auto defaults = nlohmann::json::parse(Read());
+    EXPECT_FALSE(defaults["game"].contains("timing"));
+    EXPECT_FALSE(defaults["game"].contains("tick_rate"));
+}
+
+TEST_F(PlatformConfig, LegacyTimingSurvivesUnrelatedSettingsWithoutControllingRuntime) {
+    const std::string legacy = R"({"game":{"timing":"pal","tick_rate":50},"audio":{"master_volume":0.75}})";
+    Write(legacy);
+    ASSERT_TRUE(ConfigLoad());
+    EXPECT_EQ(Read(), legacy);
+    EXPECT_DOUBLE_EQ(ConfigGet().tick_rate, 60);
+    Config changed = ConfigGet();
+    changed.master_volume = 0.25f;
+    ASSERT_TRUE(ConfigChange(changed));
+    ASSERT_TRUE(ConfigLoad());
+    EXPECT_DOUBLE_EQ(ConfigGet().tick_rate, 60);
+    EXPECT_FLOAT_EQ(ConfigGet().master_volume, 0.25f);
+    const auto saved = nlohmann::json::parse(Read());
+    EXPECT_EQ(saved["game"]["timing"], "pal");
+    EXPECT_EQ(saved["game"]["tick_rate"], 50);
+    EXPECT_EQ(saved["audio"]["master_volume"], 0.25f);
 }

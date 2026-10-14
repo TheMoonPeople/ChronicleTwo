@@ -27,6 +27,7 @@
 #include "mglib.hpp"
 #include "object.hpp"
 #include "outline.hpp"
+#include "pal_timing.hpp"
 #include "savedata.hpp"
 #include "scene.hpp"
 #include "sceneload.hpp"
@@ -742,7 +743,7 @@ int CCharacter2::CheckMotionEnd() {
         return true;
     }
 
-    float margin = 1.2f * step;
+    float margin = PAL_TIMING(1.2f, 1.0f) * step;
 
     if (frame <= now_key->end_frame && !(frame + 2.0f * margin < now_key->end_frame)) {
         return true;
@@ -874,7 +875,7 @@ void CCharacter2::SePlay() {
     }
 
     float now = frame;
-    passed = 1.6f * (1.2f * step);
+    passed = PAL_TIMING(1.6f * (1.2f * step), 1.5f * step);
     key = se_list[now_set];
     low = now - passed;
     high = now + passed;
@@ -1190,7 +1191,7 @@ void CCharacter2::ResetFloor() {
 
 void CCharacter2::NormalDrive() {
     float frame_step;
-    float motion_speed = 1.2f;
+    float motion_speed = PAL_TIMING(1.2f, 1.0f);
 
     if (next_key != now_key && next_key != NULL) {
         posed_key = now_key;

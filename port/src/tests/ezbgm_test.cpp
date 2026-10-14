@@ -1,3 +1,5 @@
+#include "common.h"
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -14,9 +16,9 @@
 #include "audio/mixer.hpp"
 #include "audio/stream.hpp"
 #include "audio/synth.hpp"
-#include "common.h"
 #include "ezbgm.hpp"
 #include "platform/audio.hpp"
+#include "platform/clock.hpp"
 #include "platform/paths.hpp"
 #include "platform/settings.hpp"
 #include "platform_fixture.hpp"
@@ -343,7 +345,7 @@ TEST(EzBgm, StepAdvancesStreamsWithoutOutput) {
     CSnd.StreamPlay(kChannel);
 
     // END is set on the first step whose start is past the last sample, so floor(length / step) + 1 steps reach it.
-    const auto per_step = static_cast<std::int64_t>(audio::kSpuRate / SettingsGet().tick_rate);
+    const auto per_step = static_cast<std::int64_t>(audio::kSpuRate / ClockTickRate());
     const int  steps = static_cast<int>(kFrames / per_step) + 1;
     for (int step = 0; step < steps - 1; step++) {
         EzBgmStep();
@@ -352,6 +354,27 @@ TEST(EzBgm, StepAdvancesStreamsWithoutOutput) {
 
     EzBgmStep();
     EXPECT_EQ(StateOf(kChannel), kEnded);
+}
+
+TEST(EzBgm, LegacyHostRateDoesNotChangeNtscStreamAdvance) {
+    ASSERT_FALSE(AudioOutputRunning());
+    const auto   before = SettingsGet();
+    const double previous_rate = ClockTickRate();
+    auto         changed = before;
+    changed.tick_rate = 240;
+    SettingsChange(changed);
+    ScratchDataRoot root;
+    root.AddWav("0000001.wav", 1, ConstantMono());
+    EXPECT_DOUBLE_EQ(SettingsGet().tick_rate, 60);
+    {
+        ClockSetTickRate(60);
+        OpenStream(kChannel, "0000001.wav");
+        CSnd.StreamPlay(kChannel);
+        EzBgmStep();
+        EXPECT_EQ(EzBgmChannel(kChannel).Position(), static_cast<std::int64_t>(audio::kSpuRate / 60));
+    }
+    ClockSetTickRate(previous_rate);
+    SettingsChange(before);
 }
 
 TEST(EzBgm, OpenCommandsWithAnIntAddressAreRefused) {

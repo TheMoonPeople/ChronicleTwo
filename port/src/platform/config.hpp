@@ -5,10 +5,8 @@
 
 #include "platform/settings.hpp"
 
-// The disc is the PAL release, so its logic runs at the PAL field rate, not the NTSC 60 the host defaults to.
-inline constexpr double kConfigTickRateDefault = 50.0;
-inline constexpr double kConfigTickRateMin = 25.0;
-inline constexpr double kConfigTickRateMax = 240.0;
+// Native gameplay always runs at the NTSC field rate, independently of configuration.
+inline constexpr double kConfigTickRateDefault = 60.0;
 
 enum class ConfigAspect {
     Auto,
@@ -16,8 +14,6 @@ enum class ConfigAspect {
 };
 
 struct Config : HostSettings {
-    Config() { tick_rate = kConfigTickRateDefault; }
-
     bool         interpolation = true;
     bool         debug_mode = false;
     ConfigAspect aspect = ConfigAspect::Auto;

@@ -59,7 +59,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
             EXPECT_NE(config, Config{}) << row.key;
             EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config) << row.key;
             EXPECT_FALSE(config.debug_mode);
-            EXPECT_DOUBLE_EQ(config.tick_rate, 50);
+            EXPECT_DOUBLE_EQ(config.tick_rate, 60);
         }
     }
     for (const auto &key : required) {
@@ -277,4 +277,20 @@ TEST(PcOptions, ZoomResetHasAVisibleRebindableRow) {
     EXPECT_EQ(row.action, "zoom_reset");
     Config config;
     EXPECT_TRUE(options::SetBinding(config, row.action, "K"));
+}
+
+TEST(PcOptions, TimingRowIsAbsentAndOtherSettingsRemain) {
+    EXPECT_EQ(options::Pages().size(), 4u);
+    for (const auto &page : options::Pages()) {
+        for (const auto &row : page.rows) {
+            EXPECT_NE(row.key, "game.timing");
+            EXPECT_NE(row.key, "game.tick_rate");
+        }
+    }
+    Config config;
+    EXPECT_TRUE(options::StepRow(Find("audio.master_volume"), config, -1));
+    EXPECT_FLOAT_EQ(config.master_volume, 0.95f);
+    EXPECT_TRUE(options::StepRow(Find("video.fullscreen"), config, 1));
+    EXPECT_TRUE(config.fullscreen);
+    EXPECT_DOUBLE_EQ(config.tick_rate, 60);
 }

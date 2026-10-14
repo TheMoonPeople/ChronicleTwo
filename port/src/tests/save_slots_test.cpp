@@ -20,9 +20,11 @@
 #include "menucommon.hpp"
 #include "menumain.hpp"
 #include "menuop.hpp"
+#include "platform/clock.hpp"
 #include "platform/files.hpp"
 #include "platform/paths.hpp"
 #include "platform_fixture.hpp"
+#include "play_time.hpp"
 #include "save_slots.hpp"
 
 namespace fs = std::filesystem;
@@ -1257,4 +1259,45 @@ TEST_F(SaveSlotTest, UnavailableComparisonDefersPublicationInFreshProcess) {
 #else
     EXPECT_EQ(unsetenv(variable), 0);
 #endif
+}
+
+TEST_F(SaveSlotTest, SaveAdoptionDiscardsPlayTimeFraction) {
+    const auto old_rate = ClockTickRate();
+    const auto old_flag = PortPlayTimeCountFlag;
+    ClockSetTickRate(60);
+    PortPlayTimeCountFlag = true;
+    PlayTimeReset();
+    PortPlayTimeVSyncCallback(0);
+    Write(SaveSlotPath(0));
+    manager.GetAllSaveFileInfo();
+    EXPECT_EQ(manager.LoadFromMc(0), MC_STEP_DONE);
+    EXPECT_EQ(manager.error.code, MC_ERROR_NONE);
+    PortPlayTimeVSyncCallback(0);
+    EXPECT_EQ(live->play_time, image->save_data.play_time);
+    for (int tick = 0; tick < 5; ++tick) {
+        PortPlayTimeVSyncCallback(0);
+    }
+    EXPECT_EQ(live->play_time, image->save_data.play_time + 5);
+    PlayTimeReset();
+    PortPlayTimeCountFlag = old_flag;
+    ClockSetTickRate(old_rate);
+}
+
+TEST_F(SaveSlotTest, FailedSaveAdoptionKeepsPlayTimeFraction) {
+    const auto old_rate = ClockTickRate();
+    const auto old_flag = PortPlayTimeCountFlag;
+    ClockSetTickRate(60);
+    PortPlayTimeCountFlag = true;
+    PlayTimeReset();
+    live->play_time = 0;
+    PortPlayTimeVSyncCallback(0);
+    EXPECT_EQ(manager.LoadFromMc(-1), MC_STEP_DONE);
+    EXPECT_EQ(manager.error.code, MC_ERROR_LOAD);
+    for (int tick = 0; tick < 5; ++tick) {
+        PortPlayTimeVSyncCallback(0);
+    }
+    EXPECT_EQ(live->play_time, 5);
+    PlayTimeReset();
+    PortPlayTimeCountFlag = old_flag;
+    ClockSetTickRate(old_rate);
 }

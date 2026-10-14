@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -92,6 +93,18 @@ TEST_F(PlatformFirstRun, MessageNamesRootAndExtractionCommand) {
     EXPECT_NE(message.find("dc2data extract"), std::string::npos) << message;
     EXPECT_NE(message.find("DATA.HD4"), std::string::npos) << message;
 }
+
+#ifndef _WIN32
+TEST_F(PlatformFirstRun, MessageInsideTheFlatpakNamesItsCommand) {
+    EXPECT_EQ(FirstRunDataMessage(Root()).find("flatpak run"), std::string::npos);
+    ASSERT_EQ(setenv("FLATPAK_ID", "org.themoonpeople.ChronicleTwo", 1), 0);
+    const std::string message = FirstRunDataMessage(Root());
+    EXPECT_EQ(unsetenv("FLATPAK_ID"), 0);
+    EXPECT_NE(message.find("--command=dc2data org.themoonpeople.ChronicleTwo extract <disc image> " + PathsDisplay(Root())),
+              std::string::npos)
+        << message;
+}
+#endif
 
 TEST_F(PlatformFirstRun, MissingDataExitsWithNoDataAndNamesTheCommand) {
     EXPECT_EXIT(FirstRunRequireData(base_ / "absent", /*headless=*/true), testing::ExitedWithCode(kExitNoData),

@@ -41,6 +41,28 @@ class MatrixRunner(unittest.TestCase):
         matrix.locate_run(other, self.root, self.exe, self.data, self.script, 100)
         return other
 
+    def test_launch_uses_fixed_ntsc_runtime_without_selector_config(self):
+        self.execute()
+        config = json.loads((self.run.dir / "save" / "config.json").read_bytes())
+        self.assertEqual(config["game"], {"debug_mode": False})
+        receipt = json.loads((self.run.dir / "result.json").read_text())
+        self.assertEqual(receipt["provenance"]["runtime_timing"], {"region": "ntsc", "tick_hz": 60})
+        self.assertEqual(self.reload().rc, 0)
+
+    def test_obsolete_runtime_policy_rejects_cached_run(self):
+        self.execute()
+        path = self.run.dir / "result.json"
+        receipt = json.loads(path.read_text())
+        for policy in (None, {"region": "pal", "tick_hz": 50}, {"region": "ntsc", "tick_hz": 50}):
+            changed = json.loads(json.dumps(receipt))
+            if policy is None:
+                del changed["provenance"]["runtime_timing"]
+            else:
+                changed["provenance"]["runtime_timing"] = policy
+            path.write_text(json.dumps(changed))
+            with self.assertRaises(matrix.RunFailed):
+                self.reload()
+
     def test_sanitises_launch_changing_environment(self):
         self.execute()
         self.assertEqual(self.reload().rc, 0)

@@ -10,6 +10,7 @@
 
 #include "audio/soundtrack.hpp"
 #include "dataread.hpp"
+#include "dataread_port.hpp"
 #include "exitcodes.hpp"
 #include "gfx/gfx.hpp"
 #include "identity.hpp"
@@ -231,9 +232,6 @@ void PumpHost() {
 }
 
 void ApplyConfigChange(const HostSettings &before, const HostSettings &after) {
-    if (before.tick_rate != after.tick_rate) {
-        ClockSetTickRate(after.tick_rate);
-    }
     if (before.present_mode != after.present_mode) {
         gfx::SetPresentMode(PresentMode(after.present_mode));
     }
@@ -270,6 +268,10 @@ int Run(int argc, const char **argv) {
     }
     ConfigLoad();
     FirstRunRequireData(PathsDataRoot(), options.headless);
+    InitCDFile();
+    if (!DataReadPrepareScriptTiming(options.headless)) {
+        return kExitScriptTiming;
+    }
     const HostSettings &settings = SettingsGet();
     const bool          offscreen = options.offscreen || (options.headless && !gfx::HeadlessSurfaceAvailable());
 
@@ -301,7 +303,7 @@ int Run(int argc, const char **argv) {
     std::atexit(AudioShutdown);
 #endif
 
-    ClockSetTickRate(settings.tick_rate);
+    ClockSetTickRate(kConfigTickRateDefault);
     ClockSetUnbounded(options.headless);
     ClockAddPumpHook(PumpHost);
     ClockSetTickCallback(VSyncCallBack);
@@ -309,7 +311,6 @@ int Run(int argc, const char **argv) {
 
     MainThreadPriority = 10;
     KzThreadsSetMainPriority(MainThreadPriority);
-    InitCDFile();
     if (options.frames > 0) {
         mgPortSetScreenshotOptions({.display_frames = options.screenshot_display, .fps = options.screenshot_fps});
         mgPortExitAfterFrames(options.frames, options.screenshot);

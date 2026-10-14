@@ -19,6 +19,19 @@
 
 namespace fs = std::filesystem;
 
+namespace {
+
+std::string FlatpakHint(const std::string &where) {
+    const char *id = std::getenv("FLATPAK_ID");
+    if (id == nullptr || *id == '\0') {
+        return "";
+    }
+    return "\nInside the Flatpak, from a shell: flatpak run --filesystem=<folder of the image>:ro --command=dc2data " +
+           std::string(id) + " extract <disc image> " + where + "\n";
+}
+
+} // namespace
+
 bool FirstRunDataMissing(const fs::path &root) {
     std::error_code error;
     if (!fs::is_directory(root, error)) {
@@ -43,7 +56,8 @@ std::string FirstRunDataMessage(const fs::path &root) {
                                                             "  dc2data extract <disc image or folder> " +
            where + "\n\n"
                    "The source is an image of the Dark Chronicle disc, or a folder holding DATA.HD4, DATA.DAT, SOUND.HD3 and SOUND.DAT.\n\n"
-                   "Or point the game at an existing extraction with --data <dir> or the DC2_DATA environment variable.\n";
+                   "Or point the game at an existing extraction with --data <dir> or the DC2_DATA environment variable.\n" +
+           FlatpakHint(where);
 }
 
 void FirstRunRequireData(const fs::path &root, bool headless) {

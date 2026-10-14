@@ -1,10 +1,13 @@
 #include "common.h"
 
+#include <SDL3/SDL.h>
 #include <eekernel.h>
 #include <sifdev.h>
 
 #include <algorithm>
 #include <array>
+#include <cassert>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -15,12 +18,15 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include "dataread.hpp"
 #include "dataread_port.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/paths.hpp"
 #include "platform/texture_catalog.hpp"
+#include "script_timing.hpp"
 #include "texture_source.hpp"
 
 namespace fs = std::filesystem;
@@ -39,9 +45,11 @@ constexpr std::array<std::string_view, 5> kExcludedRootNames = {"manifest.txt", 
 
 struct IndexedFile {
     fs::path path;
+    bool     replaced = false; // a datapack file stands in for the extracted one
 };
 
 std::unordered_map<std::string, IndexedFile> file_index;
+std::unordered_set<std::string>              undecoded_script_warnings;
 bool                                         index_built;
 
 std::string current_dir;
@@ -178,6 +186,16 @@ int ReadWhole(const IndexedFile &file, void *buffer) {
     return static_cast<int>(size);
 }
 
+// The NTSC timing converts scripts before any loader or cache sees them, including datapack scripts.
+bool ConvertScriptTiming(const std::string &key, void *buffer, int size) {
+    if (size < 0 || !key.ends_with(".stb")) {
+        return true;
+    }
+    const bool ok = ScriptTimingPatch(key.c_str(), static_cast<unsigned char *>(buffer), static_cast<std::size_t>(size));
+    assert(ok && "script changed after startup timing validation");
+    return ok;
+}
+
 // sceOpen maps host0: onto the save tree, so this reads back whatever WriteFile put there. -1 when the
 // save tree does not have the file, which sends the caller on to the data index.
 int ReadSaveFile(const char *name, void *buffer, bool size_only) {
@@ -234,6 +252,9 @@ int ResolveFile(const char *name, const std::string &key, void *buffer, bool siz
     if (!size_only) {
         const int size = ReadWhole(*file, buffer);
         if (size >= 0) {
+            if (!ConvertScriptTiming(key, buffer, size)) {
+                return -1;
+            }
             TextureSourceRegister(buffer, key, static_cast<std::size_t>(size));
         }
         return size;
@@ -322,7 +343,7 @@ void BuildIndex(const fs::path &root) {
             key.push_back(FoldChar(c));
         }
         const auto replacement = datapacks::Resolve(fs::path(relative));
-        file_index.insert_or_assign(std::move(key), IndexedFile{replacement.value_or(entry.path())});
+        file_index.insert_or_assign(std::move(key), IndexedFile{replacement.value_or(entry.path()), replacement.has_value()});
     }
 
     if (error) {
@@ -354,6 +375,79 @@ std::optional<fs::path> DataReadFind(const char *game_name) {
         return std::nullopt;
     }
     return file->path;
+}
+
+std::vector<std::string> DataReadScriptKeys() {
+    std::vector<std::string> keys;
+    for (const auto &[key, file] : file_index) {
+        if (key.ends_with(".stb")) {
+            keys.push_back(key);
+        }
+    }
+    std::sort(keys.begin(), keys.end());
+    return keys;
+}
+
+ScriptTimingValidation DataReadValidateScriptTiming() {
+    ScriptTimingValidation report;
+    const auto                 start = std::chrono::steady_clock::now();
+    const auto                 keys = DataReadScriptKeys();
+    std::vector<unsigned char> bytes;
+    script_timing::Options     options;
+    options.write = false;
+    for (const std::string &key : keys) {
+        report.files++;
+        const IndexedFile &file = file_index.at(key);
+        const auto         size = FileSize(file);
+        std::string        error;
+        if (!size || *size > static_cast<std::uintmax_t>(INT32_MAX)) {
+            error = "cannot read script size";
+        } else {
+            bytes.resize(std::max(kSector, PaddedSize(static_cast<std::size_t>(*size))));
+            const int read = ReadWhole(file, bytes.data());
+            if (read < 0) {
+                error = "cannot read script";
+            } else {
+                const auto result = script_timing::Apply(key, bytes.data(), static_cast<std::size_t>(read), options);
+                if (!result.ok) {
+                    error = result.error;
+                } else if (!result.decoded && undecoded_script_warnings.insert(key).second) {
+                    std::fprintf(stderr, "script timing startup: warning: %s is an unlisted, undecodable script; leaving it unchanged (%s)\n",
+                                 key.c_str(), result.error.c_str());
+                }
+            }
+        }
+        if (!error.empty()) {
+            report.errors.push_back(key + (file.replaced ? " [datapack]: " : ": ") + error);
+        }
+    }
+    report.seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+    return report;
+}
+
+bool DataReadPrepareScriptTiming(bool headless) {
+    const auto report = DataReadValidateScriptTiming();
+    std::fprintf(stderr, "script timing startup: %zu scripts, %zu mismatches, %.3f seconds\n",
+                 report.files, report.errors.size(), report.seconds);
+    if (report.errors.empty()) {
+        return true;
+    }
+    std::string message = "These scripts cannot use NTSC gameplay timing:\n\n";
+    for (std::size_t i = 0; i < report.errors.size(); ++i) {
+        std::fprintf(stderr, "script timing startup: %s\n", report.errors[i].c_str());
+        if (i < 8) {
+            message += report.errors[i] + "\n";
+        }
+    }
+    if (report.errors.size() > 8) {
+        message += "\nAdditional mismatches are listed in the log.\n";
+    }
+    std::fprintf(stderr, "script timing startup: NTSC timing unavailable; refusing startup\n");
+    if (!headless) {
+        message += "\nThe game cannot start with this script data. See the log for details.";
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Dark Chronicle - Script timing", message.c_str(), nullptr);
+    }
+    return false;
 }
 
 PORT_OVERRIDE void InitCDFile() {

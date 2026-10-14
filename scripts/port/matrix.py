@@ -220,7 +220,8 @@ def provenance(exe: Path, data: Path, script: Path, frames: int, run: Run) -> di
             "input": {"path": str(script.resolve()), "sha256": digest(script)},
             "config_sha256": hashlib.sha256(launch_config(run)).hexdigest(),
             "data": str(data.resolve()), "frames": frames,
-            "window": [run.w, run.h], "aspect": run.aspect, "dpt": run.dpt}
+            "window": [run.w, run.h], "aspect": run.aspect, "dpt": run.dpt,
+            "runtime_timing": {"region": "ntsc", "tick_hz": 60}}
 
 
 def run_game(exe: Path, data: Path, script: Path, frames: int, run: Run) -> None:
