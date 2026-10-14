@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "drawwin.hpp"
 #include "font.hpp"
 #include "gamepad.hpp"
 #include "mainloop.hpp"
@@ -13,6 +14,31 @@
 #include "mg_drawprim.hpp"
 #include "mglib_port.hpp"
 #include "nd_meswin.hpp"
+
+namespace {
+int yesno_highlight = -1;
+}
+
+PORT_OVERRIDE void ClsMes::SetSelectCursorPos(RECT rect) {
+    CalcSelectCursorPos(rect, &choice_pos[0][0]);
+    yesno_highlight = window_mode == MES_WIN_YESNO && select >= 0 && select < 2 &&
+                              fade >= 1 && alpha > 0 && buff && font_h > 0 && MenuMousePointerVisible()
+                          ? select
+                          : -1;
+}
+
+PORT_OVERRIDE void DrawYesNo(mgCDrawPrim *primitive, int yes_x, int yes_y, int no_x, int no_y, RGBAQ_TYPE *color) {
+    const int selected = std::exchange(yesno_highlight, -1);
+    for (int choice = 0; choice < 2; ++choice) {
+        RGBAQ_TYPE tint = *color;
+        // Brighten the mouse choice once, as retail costume selection does.
+        if (choice == selected) {
+            tint.r = tint.g = tint.b = 0xA4;
+        }
+        set2DSprite(primitive, {choice == 0 ? yes_x : no_x, choice == 0 ? yes_y : no_y, 60, 26},
+                    {choice == 0 ? 136 : 196, 230, 60, 26}, &tint);
+    }
+}
 
 std::vector<MenuMouseRect> MenuMouseMessageRows(ClsMes &message, int count) {
     std::vector<MenuMouseRect> choices;
