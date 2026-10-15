@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -14,11 +15,16 @@
 #include "audio/soundtrack.hpp"
 #include "audio/sq.hpp"
 #include "audio/trace.hpp"
+#include "controller_speaker.hpp"
 #include "ezbgm.hpp"
 #include "ezmidi.hpp"
+#include "platform/config.hpp"
 #include "platform/settings.hpp"
+#include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "sound_port.hpp"
+
+extern sndPortInfo PortInfo[SND_PORT_NUM];
 
 namespace {
 
@@ -75,6 +81,11 @@ constexpr PortLayout kLayout[] = {
 std::array<PortState, MIDI_PORT_COUNT> ports;
 std::vector<QueuedMessage>             queued;
 bool                                   initialised = false;
+
+// Sound effect ids, per driver port, whose key-ons play on the controller speaker.
+using SpeakerIds = std::array<std::bitset<128>, MIDI_PORT_COUNT>;
+
+SpeakerIds speaker_ids;
 
 std::span<const std::uint8_t> AsBytes(const void *data, int size) {
     if (data == nullptr || size <= 0) {
@@ -168,6 +179,113 @@ void ReleaseSequences(audio::Mixer &mixer, int port) {
 
 void RejectIntAddress(const char *function) {
     std::fprintf(stderr, "%s takes its bank or sequence address as int; the host loads through SoundLoad*\n", function);
+}
+
+// The treasure chests' opening (wood, iron and stone) is a sound-effect sequence of every base bank.
+constexpr int kChestSeFirst = 110;
+constexpr int kChestSeLast = 112;
+
+// The ids the chest sequences playing now key their effects on: a sequence player keys its eight
+// tracks on ids from eight times its number up (PlaySeSeq's SetSeID).
+SpeakerIds ChestSpeakerIds() {
+    SpeakerIds         ids{};
+    const sndPortInfo &info = PortInfo[SND_PORT_BASE];
+
+    if (!ConfigGet().dualsense_speaker || info.port < 0 || info.port >= MIDI_PORT_COUNT) {
+        return ids;
+    }
+
+    for (const sndPortSeSeq &entry : info.seseq) {
+        if (entry.seseq_no < 0 || entry.se_no < kChestSeFirst || entry.se_no > kChestSeLast) {
+            continue;
+        }
+
+        for (int track = 0; track < 8; track++) {
+            const int id = (entry.seseq_no * 8) % 256 + track;
+
+            if (id < 128) {
+                ids[info.port].set(id);
+            }
+        }
+    }
+
+    return ids;
+}
+
+// Gives the speaker's mixer a port's banks the first time an effect of it plays there, and its
+// volumes every step, so the effect sounds as it would on the TV.
+void MirrorSpeakerPort(int port, bool bind) {
+    audio::Mixer &speaker = ControllerSpeakerMixer();
+    audio::Mixer &mixer = audio::DefaultMixer();
+
+    if (bind) {
+        for (int bank_no = 0; bank_no < MIDI_PORT_BANK_MAX; bank_no++) {
+            speaker.BindBank(port, bank_no, ports[port].bank[bank_no]);
+        }
+    }
+
+    speaker.SetVolume(port, mixer.Volume(port));
+    speaker.SetAttribute(port, mixer.Attribute(port));
+
+    for (int core = 0; core < audio::kCores; core++) {
+        speaker.SetCoreVolume(core, mixer.CoreVolume(core));
+    }
+}
+
+// Sends the step's messages. Bank, program, volume and pan go to both mixers of a port with effects
+// on the speaker; a key-on, key-off or change of one effect goes where its id plays. An id stays on
+// the speaker for one more step after its sequence ends, for the key-offs of its last step.
+void DispatchQueued() {
+    SpeakerIds current = ChestSpeakerIds();
+    bool       any = false;
+
+    for (const std::bitset<128> &ids : current) {
+        any = any || ids.any();
+    }
+
+    if (any && !ControllerSpeakerOpen()) {
+        current = {};
+    }
+
+    audio::Mixer &mixer = audio::DefaultMixer();
+    audio::Mixer &speaker = ControllerSpeakerMixer();
+    SpeakerIds    routed;
+
+    for (int port = 0; port < MIDI_PORT_COUNT; port++) {
+        routed[port] = current[port] | speaker_ids[port];
+
+        if (current[port].any()) {
+            MirrorSpeakerPort(port, speaker_ids[port].none());
+        }
+    }
+
+    for (const QueuedMessage &message : queued) {
+        const bool split = routed[message.port].any();
+
+        if (!message.hs) {
+            mixer.ShortMessage(message.port, message.word);
+
+            if (split) {
+                speaker.ShortMessage(message.port, message.word);
+            }
+
+            continue;
+        }
+
+        if (split && message.bytes[0] == 0xFD) {
+            (routed[message.port].test(message.bytes[4] & 0x7F) ? speaker : mixer).HsMessage(message.port, message.bytes);
+            continue;
+        }
+
+        mixer.HsMessage(message.port, message.bytes);
+
+        if (split) {
+            speaker.HsMessage(message.port, message.bytes);
+        }
+    }
+
+    queued.clear();
+    speaker_ids = current;
 }
 
 } // namespace
@@ -352,17 +470,7 @@ PORT_OVERRIDE void CSound::Step() {
         SetVol(0, static_cast<int>(fade.volume));
     }
 
-    audio::Mixer &mixer = audio::DefaultMixer();
-
-    for (const QueuedMessage &message : queued) {
-        if (message.hs) {
-            mixer.HsMessage(message.port, message.bytes);
-        } else {
-            mixer.ShortMessage(message.port, message.word);
-        }
-    }
-
-    queued.clear();
+    DispatchQueued();
     EzBgmStep();
 }
 

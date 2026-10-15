@@ -241,8 +241,14 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
     if (name == "audio.sound") {
         return ReadChoice(value, "stereo", "surround", s.surround);
     }
+    if (name == "audio.dualsense_speaker") {
+        return ReadBool(value, config.dualsense_speaker);
+    }
+    // Replaced by audio.dualsense_speaker. Its only opt-in, "controller", is the new default, and "tv"
+    // was written by every install as the old default, so the value is checked and dropped.
     if (name == "audio.robot_voice") {
-        return ReadChoice(value, "tv", "controller", config.robot_voice_controller);
+        bool controller = false;
+        return ReadChoice(value, "tv", "controller", controller);
     }
     if (name == "audio.controller_volume") {
         return ReadNumber(value, config.controller_volume, [](float volume) { return volume >= 0.0f && volume <= 2.0f; });
@@ -427,7 +433,7 @@ std::string ConfigSerialize(const Config &config) {
     root["audio"]["master_volume"] = Shortest(s.master_volume);
     root["audio"]["sound"] = s.surround ? "surround" : "stereo";
     root["audio"]["soundtrack"] = s.soundtrack ? "custom" : "ps2";
-    root["audio"]["robot_voice"] = config.robot_voice_controller ? "controller" : "tv";
+    root["audio"]["dualsense_speaker"] = config.dualsense_speaker;
     root["audio"]["controller_volume"] = Shortest(config.controller_volume);
     root["input"]["mouse_sensitivity"] = Shortest(s.mouse_sensitivity);
     root["input"]["stick_sensitivity"] = Shortest(s.stick_sensitivity);

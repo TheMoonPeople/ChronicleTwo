@@ -28,6 +28,7 @@ SDL_AudioStream                    *g_stream = nullptr;
 bool                                g_tried = false;
 std::vector<float>                  g_chunk;
 std::vector<float>                  g_mix;
+std::vector<float>                  g_effects;
 
 std::string Lower(const char *text) {
     std::string out;
@@ -46,6 +47,10 @@ void SDLCALL Feed(void *, SDL_AudioStream *stream, int additional_amount, int) {
         std::fill_n(g_mix.begin(), count * 2, 0.0f);
         for (audio::StreamChannel *channel : g_channels) {
             channel->Render(g_mix.data(), count, audio::kSpuRate, gain);
+        }
+        ControllerSpeakerMixer().Render(g_effects.data(), count);
+        for (int i = 0; i < count * 2; i++) {
+            g_mix[i] += g_effects[i] * gain;
         }
         // The pad has one small speaker; both sides carry the mono sum.
         for (int i = 0; i < count; i++) {
@@ -79,8 +84,8 @@ SDL_AudioDeviceID FindDevice() {
     return found;
 }
 
-// Opens the device the first time a voice asks for it; a pad plugged in later is found on the next
-// attempt after a failed one.
+// Opens the device the first time a voice or effect asks for it; a pad plugged in later is found on
+// the next attempt after a failed one.
 bool EnsureOpen() {
     if (g_stream != nullptr) {
         return true;
@@ -99,6 +104,7 @@ bool EnsureOpen() {
     }
     g_chunk.assign(kChunkFrames * 2, 0.0f);
     g_mix.assign(kChunkFrames * 2, 0.0f);
+    g_effects.assign(kChunkFrames * 2, 0.0f);
     const SDL_AudioSpec spec{SDL_AUDIO_F32, 2, audio::kSpuRate};
     g_stream = SDL_OpenAudioDeviceStream(device, &spec, Feed, nullptr);
     if (g_stream == nullptr) {
@@ -111,6 +117,18 @@ bool EnsureOpen() {
 }
 
 } // namespace
+
+bool ControllerSpeakerOpen() {
+    return EnsureOpen();
+}
+
+audio::Mixer &ControllerSpeakerMixer() {
+    // The pad's speaker is small and dry: the effects play without the default mixer's reverb.
+    static audio::Mixer mixer(audio::kSpuRate);
+    static const bool dry = (mixer.SetReverbEnabled(false), true);
+    (void) dry;
+    return mixer;
+}
 
 bool ControllerSpeakerRoute(audio::StreamChannel *channel) {
     if (!EnsureOpen()) {
