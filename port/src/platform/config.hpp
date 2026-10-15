@@ -20,8 +20,8 @@ struct Config : HostSettings {
     float        ui_scale = 1.0f;
     bool         font_sharp = false;
     bool         mouse_fixed_look = true;
-    // audio.dualsense_speaker: the Ridepod's lines and the treasure chests' opening play on a
-    // DualSense speaker when one is found instead of the TV.
+    // audio.dualsense_speaker: the Ridepod's lines, the treasure chests' opening and the menus' effects
+    // play on a DualSense speaker when one is found instead of the TV.
     bool dualsense_speaker = true;
     // audio.controller_volume: gain on the controller speaker, on top of the master volume.
     float controller_volume = 1.0f;

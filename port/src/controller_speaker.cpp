@@ -16,7 +16,8 @@
 
 namespace {
 
-constexpr int kChunkFrames = 1024;
+constexpr int    kChunkFrames = 1024;
+constexpr Uint64 kRetryMs = 3000;
 
 // Windows names the DualSense's audio endpoint after the pad ("Speakers (DualSense Wireless
 // Controller)"), including the one DSX's DualSense emulation creates for a Bluetooth pad.
@@ -26,6 +27,7 @@ std::mutex                          g_mutex;
 std::vector<audio::StreamChannel *> g_channels;
 SDL_AudioStream                    *g_stream = nullptr;
 bool                                g_tried = false;
+Uint64                              g_last_try = 0;
 std::vector<float>                  g_chunk;
 std::vector<float>                  g_mix;
 std::vector<float>                  g_effects;
@@ -84,19 +86,24 @@ SDL_AudioDeviceID FindDevice() {
     return found;
 }
 
-// Opens the device the first time a voice or effect asks for it; a pad plugged in later is found on
-// the next attempt after a failed one.
+// Opens the device the first time a voice or effect asks for it. The menus ask every step, so after
+// a failed attempt the next one waits a while; a pad plugged in later is found then.
 bool EnsureOpen() {
     if (g_stream != nullptr) {
         return true;
     }
+    const Uint64 now = SDL_GetTicks();
+    if (g_tried && now - g_last_try < kRetryMs) {
+        return false;
+    }
+    g_last_try = now;
     if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
         return false;
     }
     const SDL_AudioDeviceID device = FindDevice();
     if (device == 0) {
         if (!g_tried) {
-            std::fprintf(stderr, "controller speaker: no DualSense audio device; voices stay on the main output\n");
+            std::fprintf(stderr, "controller speaker: no DualSense audio device; sounds stay on the main output\n");
         }
         g_tried = true;
         SDL_QuitSubSystem(SDL_INIT_AUDIO);

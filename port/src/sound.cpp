@@ -82,10 +82,8 @@ std::array<PortState, MIDI_PORT_COUNT> ports;
 std::vector<QueuedMessage>             queued;
 bool                                   initialised = false;
 
-// Sound effect ids, per driver port, whose key-ons play on the controller speaker.
+// Sound effect ids, per driver port.
 using SpeakerIds = std::array<std::bitset<128>, MIDI_PORT_COUNT>;
-
-SpeakerIds speaker_ids;
 
 std::span<const std::uint8_t> AsBytes(const void *data, int size) {
     if (data == nullptr || size <= 0) {
@@ -185,42 +183,84 @@ void RejectIntAddress(const char *function) {
 constexpr int kChestSeFirst = 110;
 constexpr int kChestSeLast = 112;
 
-// The ids the chest sequences playing now key their effects on: a sequence player keys its eight
-// tracks on ids from eight times its number up (PlaySeSeq's SetSeID).
-SpeakerIds ChestSpeakerIds() {
-    SpeakerIds         ids{};
-    const sndPortInfo &info = PortInfo[SND_PORT_BASE];
+// The system bank (SY_000) holds the menus' effects: cursor, decide, windows, items, equipment,
+// inventions, Georama, message advance. These of its effects belong to the field and stay on the TV.
+constexpr int kSystemSeTrap = 24;
+constexpr int kSystemSeLevelUp = 30;
+// Key-on effects, found by the program the bank selects for them (their number in this bank).
+constexpr int kSystemProgramLockOn = SYSTEM_SE_LOCK_ON;
+constexpr int kSystemProgramLockOff = SYSTEM_SE_LOCK_OFF;
 
-    if (!ConfigGet().dualsense_speaker || info.port < 0 || info.port >= MIDI_PORT_COUNT) {
-        return ids;
+// Where a driver port's effects play while the DualSense Speaker option is on.
+struct SpeakerRoutes {
+    // Ids keyed on by sequences that play on the speaker, and by sequences that stay on the TV.
+    SpeakerIds speaker;
+    SpeakerIds tv;
+    // Ports whose other effects (key-ons, and ids of no sequence) also play on the speaker.
+    std::bitset<MIDI_PORT_COUNT> whole;
+
+    bool Any(int port) const { return whole.test(port) || speaker[port].any(); }
+};
+
+SpeakerRoutes                                                                         previous_routes;
+std::array<std::array<std::shared_ptr<const audio::Bank>, MIDI_PORT_BANK_MAX>, MIDI_PORT_COUNT> speaker_banks;
+
+int DriverPort(int game_port) {
+    const int port = PortInfo[game_port].port;
+    return port >= 0 && port < MIDI_PORT_COUNT ? port : -1;
+}
+
+// A sequence player keys its eight tracks on ids from eight times its number up (PlaySeSeq's SetSeID).
+void AddSequenceIds(std::bitset<128> &ids, int seseq_no) {
+    for (int track = 0; track < 8; track++) {
+        const int id = (seseq_no * 8) % 256 + track;
+
+        if (id < 128) {
+            ids.set(id);
+        }
+    }
+}
+
+SpeakerRoutes CurrentRoutes() {
+    SpeakerRoutes routes;
+
+    if (!ConfigGet().dualsense_speaker) {
+        return routes;
     }
 
-    for (const sndPortSeSeq &entry : info.seseq) {
-        if (entry.seseq_no < 0 || entry.se_no < kChestSeFirst || entry.se_no > kChestSeLast) {
-            continue;
-        }
-
-        for (int track = 0; track < 8; track++) {
-            const int id = (entry.seseq_no * 8) % 256 + track;
-
-            if (id < 128) {
-                ids[info.port].set(id);
+    if (const int port = DriverPort(SND_PORT_BASE); port >= 0) {
+        for (const sndPortSeSeq &entry : PortInfo[SND_PORT_BASE].seseq) {
+            if (entry.seseq_no >= 0 && entry.se_no >= kChestSeFirst && entry.se_no <= kChestSeLast) {
+                AddSequenceIds(routes.speaker[port], entry.seseq_no);
             }
         }
     }
 
-    return ids;
+    if (const int port = DriverPort(SND_PORT_SYSTEM); port >= 0) {
+        routes.whole.set(port);
+
+        for (const sndPortSeSeq &entry : PortInfo[SND_PORT_SYSTEM].seseq) {
+            if (entry.seseq_no < 0) {
+                continue;
+            }
+
+            const bool field = entry.se_no == kSystemSeTrap || entry.se_no == kSystemSeLevelUp;
+            AddSequenceIds(field ? routes.tv[port] : routes.speaker[port], entry.seseq_no);
+        }
+    }
+
+    return routes;
 }
 
-// Gives the speaker's mixer a port's banks the first time an effect of it plays there, and its
-// volumes every step, so the effect sounds as it would on the TV.
-void MirrorSpeakerPort(int port, bool bind) {
+// Gives the speaker's mixer a routed port's banks and volumes, so its effects sound as on the TV.
+void MirrorSpeakerPort(int port) {
     audio::Mixer &speaker = ControllerSpeakerMixer();
     audio::Mixer &mixer = audio::DefaultMixer();
 
-    if (bind) {
-        for (int bank_no = 0; bank_no < MIDI_PORT_BANK_MAX; bank_no++) {
-            speaker.BindBank(port, bank_no, ports[port].bank[bank_no]);
+    for (int bank_no = 0; bank_no < MIDI_PORT_BANK_MAX; bank_no++) {
+        if (speaker_banks[port][bank_no] != ports[port].bank[bank_no]) {
+            speaker_banks[port][bank_no] = ports[port].bank[bank_no];
+            speaker.BindBank(port, bank_no, speaker_banks[port][bank_no]);
         }
     }
 
@@ -232,37 +272,58 @@ void MirrorSpeakerPort(int port, bool bind) {
     }
 }
 
-// Sends the step's messages. Bank, program, volume and pan go to both mixers of a port with effects
-// on the speaker; a key-on, key-off or change of one effect goes where its id plays. An id stays on
-// the speaker for one more step after its sequence ends, for the key-offs of its last step.
-void DispatchQueued() {
-    SpeakerIds current = ChestSpeakerIds();
-    bool       any = false;
+bool KeysOnSpeaker(const SpeakerRoutes &routes, int port, int id, int program) {
+    if (routes.speaker[port].test(id)) {
+        return true;
+    }
 
-    for (const std::bitset<128> &ids : current) {
-        any = any || ids.any();
+    if (routes.tv[port].test(id) || !routes.whole.test(port)) {
+        return false;
+    }
+
+    return program != kSystemProgramLockOn && program != kSystemProgramLockOff;
+}
+
+// Sends the step's messages. Bank, program, volume and pan go to both mixers of a routed port; a
+// key-on, key-off or change of one effect goes where it plays. Routes stay one more step after a
+// sequence ends, for the key-offs of its last step.
+void DispatchQueued() {
+    SpeakerRoutes current = CurrentRoutes();
+    bool          any = false;
+
+    for (int port = 0; port < MIDI_PORT_COUNT; port++) {
+        any = any || current.Any(port);
     }
 
     if (any && !ControllerSpeakerOpen()) {
         current = {};
     }
 
-    audio::Mixer &mixer = audio::DefaultMixer();
-    audio::Mixer &speaker = ControllerSpeakerMixer();
-    SpeakerIds    routed;
+    SpeakerRoutes routes;
 
     for (int port = 0; port < MIDI_PORT_COUNT; port++) {
-        routed[port] = current[port] | speaker_ids[port];
+        routes.speaker[port] = current.speaker[port] | previous_routes.speaker[port];
+        routes.tv[port] = current.tv[port] | previous_routes.tv[port];
 
-        if (current[port].any()) {
-            MirrorSpeakerPort(port, speaker_ids[port].none());
+        if (current.Any(port)) {
+            MirrorSpeakerPort(port);
         }
     }
 
+    routes.whole = current.whole;
+
+    audio::Mixer                   &mixer = audio::DefaultMixer();
+    audio::Mixer                   &speaker = ControllerSpeakerMixer();
+    std::array<int, MIDI_PORT_COUNT> program{};
+
     for (const QueuedMessage &message : queued) {
-        const bool split = routed[message.port].any();
+        const bool split = routes.Any(message.port);
 
         if (!message.hs) {
+            if ((message.word & 0xF0) == 0xC0) {
+                program[message.port] = static_cast<int>((message.word >> 8) & 0x7F);
+            }
+
             mixer.ShortMessage(message.port, message.word);
 
             if (split) {
@@ -273,7 +334,8 @@ void DispatchQueued() {
         }
 
         if (split && message.bytes[0] == 0xFD) {
-            (routed[message.port].test(message.bytes[4] & 0x7F) ? speaker : mixer).HsMessage(message.port, message.bytes);
+            const bool on_speaker = KeysOnSpeaker(routes, message.port, message.bytes[4] & 0x7F, program[message.port]);
+            (on_speaker ? speaker : mixer).HsMessage(message.port, message.bytes);
             continue;
         }
 
@@ -285,7 +347,7 @@ void DispatchQueued() {
     }
 
     queued.clear();
-    speaker_ids = current;
+    previous_routes = current;
 }
 
 } // namespace

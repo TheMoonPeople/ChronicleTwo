@@ -421,7 +421,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `audio.master_volume` | number | 1 | 0 to 1 | final mixer gain, independent of the game's fades and core volumes; applies live |
 | `audio.sound` | string | stereo | stereo, surround | output layout; read and saved, not yet applied (the output is stereo) |
 | `audio.soundtrack` | string | ps2 | ps2, custom | `custom` plays recordings from `soundtrack/` beside the save root, as named by its `soundtrack.json` |
-| `audio.dualsense_speaker` | bool | true | | plays the Ridepod's voice lines and the treasure chests' opening on a DualSense speaker; see "Controller speaker" |
+| `audio.dualsense_speaker` | bool | true | | plays the Ridepod's voice lines, the treasure chests' opening and the menus' sound effects on a DualSense speaker; see "Controller speaker" |
 | `audio.controller_volume` | number | 1 | 0 to 2 | controller speaker gain, applied after `audio.master_volume` |
 | `input.mouse_sensitivity` | number | 0.1 | above 0 | mouse look speed |
 | `input.stick_sensitivity` | number | 1.33 | above 0 | stick look speed |
@@ -874,7 +874,7 @@ Menu tile patterns derive phase-preserving coverage from `mgPortVisibleExtent()`
 
 ### Controller speaker
 
-`audio.dualsense_speaker` sends the Ridepod's voice lines (the `8520xx.wav` streams the dungeon robot opens) and the treasure chests' opening (sound effects 110 to 112 of the base bank, the wood, iron and stone chests' sequences) to a second playback device: the first one whose name contains "DualSense" or "Wireless Controller". Windows exposes that endpoint for a DualSense on USB, and for a Bluetooth pad through a DualSense emulation driver that creates one. The sounds are summed to mono and leave the main mix while they play; the chest effects play there without reverb. Without such a device they stay on the main output and stderr reports it once. Turning it off keeps every sound on the main output, as on the PS2. The choice applies from the next line or chest; `audio.controller_volume` applies live. The older `audio.robot_voice` key still loads and is no longer written.
+`audio.dualsense_speaker` sends the Ridepod's voice lines (the `8520xx.wav` streams the dungeon robot opens) the treasure chests' opening (sound effects 110 to 112 of the base bank, the wood, iron and stone chests' sequences) and the menus' sound effects (the system bank `SY_000`: cursor, decide, windows, items, equipment, inventions, Georama, message advance; its trap, level-up and lock-on effects stay on the TV) to a second playback device: the first one whose name contains "DualSense" or "Wireless Controller". Windows exposes that endpoint for a DualSense on USB, and for a Bluetooth pad through a DualSense emulation driver that creates one. The sounds are summed to mono and leave the main mix while they play; the effects play there without reverb. Without such a device they stay on the main output and stderr reports it once. Turning it off keeps every sound on the main output, as on the PS2. The choice applies from the next line or effect; `audio.controller_volume` applies live. The older `audio.robot_voice` key still loads and is no longer written.
 
 ### Font and headless
 
