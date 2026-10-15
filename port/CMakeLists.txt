@@ -238,6 +238,8 @@ function(ct_link_game target)
     if(WIN32)
         # The Rust host UI uses Windows input, theme, OpenGL and desktop-composition APIs.
         target_link_libraries(${target} PRIVATE imm32 uxtheme opengl32 dwmapi)
+        # The first-run shortcut that carries the icon drawn from the game data (app_icon.cpp).
+        target_link_libraries(${target} PRIVATE ole32 uuid)
     endif()
 endfunction()
 

@@ -8,6 +8,7 @@
 #include <system_error>
 #include <vector>
 
+#include "app_icon.hpp"
 #include "audio/soundtrack.hpp"
 #include "dataread.hpp"
 #include "dataread_port.hpp"
@@ -269,6 +270,9 @@ int Run(int argc, const char **argv) {
     ConfigLoad();
     FirstRunRequireData(PathsDataRoot(), options.headless);
     InitCDFile();
+    if (!options.headless) {
+        AppIconInstall(PathsDataRoot());
+    }
     if (!DataReadPrepareScriptTiming(options.headless)) {
         return kExitScriptTiming;
     }
