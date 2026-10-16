@@ -78,7 +78,8 @@ constexpr int kBoxJoinX = 6; // where the top left corner's first row turns into
 // The bolts on the top right and bottom left corners.
 constexpr int kBoxBolt = 6, kBoxBoltX = 2, kBoxBoltTopU = 375, kBoxBoltTopV = 155, kBoxBoltBottomU = 289,
               kBoxBoltBottomV = 182;
-constexpr int kBlackU = 298, kBlackV = 165;
+// A black texel in the middle of a black patch, so that stretching it never reaches a neighbour.
+constexpr int kBlackU = 134, kBlackV = 204;
 // ...and the active item circles, 40 across: the left half of the first, the right half of the last (their other
 // halves hold the joints between them).
 constexpr int kCircleLeftU = 236, kCircleLeftV = 55, kCircleRightU = 364, kCircleRightV = 96, kCircleHalf = 20;
