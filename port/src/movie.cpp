@@ -10,6 +10,7 @@
 #include <string>
 
 #include "audio/mixer.hpp"
+#include "audio_assets.hpp"
 #include "gfx/gfx.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
@@ -17,6 +18,7 @@
 #include "movie.hpp"
 #include "movie_port.hpp"
 #include "platform/clock.hpp"
+#include "platform/datapacks.hpp"
 #include "platform/paths.hpp"
 #include "video/player.hpp"
 
@@ -24,19 +26,19 @@ namespace {
 
 // The retail player is one set of file-scope statics, so one movie plays at a time.
 struct MovieState {
-    video::MoviePlayer        player;
-    std::filesystem::path     path;
-    std::string               texture;
-    bool                      loaded = false;
-    bool                      opened = false;
-    bool                      playing = false;
-    bool                      started = false;
-    bool                      loop = false;
-    bool                      with_audio = false;
-    bool                      audio_on = false;
-    int64_t                   start_tick = 0;
-    gfx::TextureHandle        uploaded_to = gfx::kNullTexture;
-    bool                      dirty = false;
+    video::MoviePlayer    player;
+    std::filesystem::path path;
+    std::string           texture;
+    bool                  loaded = false;
+    bool                  opened = false;
+    bool                  playing = false;
+    bool                  started = false;
+    bool                  loop = false;
+    bool                  with_audio = false;
+    bool                  audio_on = false;
+    int64_t               start_tick = 0;
+    gfx::TextureHandle    uploaded_to = gfx::kNullTexture;
+    bool                  dirty = false;
 };
 
 MovieState g_movie;
@@ -131,7 +133,11 @@ std::filesystem::path MoviePortPath(const char *name) {
             c = static_cast<char>(c - 'A' + 'a');
         }
     }
-    return PathsDataRoot() / "movie" / rel;
+    const std::filesystem::path native = rel;
+    if (native.extension() != ".mp4") {
+        return {};
+    }
+    return rel.starts_with("movie/") ? native : std::filesystem::path("movie") / native;
 }
 
 // The retail pools are replaced by the host's allocator. init_sound would reset the PS2 sound driver, which the
@@ -144,7 +150,7 @@ PORT_OVERRIDE void CMovie::Load(char *name, mgCMemory **, int, int, bool with_au
     g_movie.loop = loop;
     g_movie.opened = g_movie.player.Open(g_movie.path, with_audio);
     if (!g_movie.opened) {
-        std::fprintf(stderr, "movie: %s not found or not an MPEG-2 PSS (%s)\n", name,
+        std::fprintf(stderr, "movie: %s not found or not a playable MP4 (%s)\n", name,
                      PathsDisplay(g_movie.path).c_str());
     }
 }

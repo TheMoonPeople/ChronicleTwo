@@ -16,6 +16,7 @@ enum class ConfigAspect {
 struct Config : HostSettings {
     bool         interpolation = true;
     bool         debug_mode = false;
+    bool         autosave = true;
     ConfigAspect aspect = ConfigAspect::Auto;
     float        ui_scale = 1.0f;
     bool         font_sharp = false;

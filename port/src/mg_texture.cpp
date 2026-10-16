@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <optional>
 #include <span>
 #include <string>
@@ -15,12 +16,13 @@
 #include <utility>
 #include <vector>
 
+#include "button_glyphs.hpp"
 #include "mg_texture.hpp"
 #include "mg_texture_port.hpp"
 #include "mglib.hpp"
-#include "platform/texture_catalog.hpp"
-#include "platform/datapacks.hpp"
 #include "photo_hd.hpp"
+#include "platform/datapacks.hpp"
+#include "platform/texture_catalog.hpp"
 #include "texture_source.hpp"
 
 // The rendering seam is installed only once the mglib stream has landed its header.
@@ -32,20 +34,59 @@
 namespace {
 
 /**
+ * Keeps immutable native picture semantics and mip variants for exact registration reuse.
+ */
+struct NativePicture {
+    texture_catalog::Entry                 definition; /**< Logical dimensions, sampler and variant identities. */
+    std::vector<datapacks::DecodedTexture> variants;   /**< Original physical mip pixels before animation edits. */
+    std::vector<std::string>               identities; /**< Decoder-supplied names of each variant's pixels, empty when unknown. */
+};
+
+/**
+ * Records one native animation group created from a texture document.
+ */
+struct NativeAnimationGroup {
+    int                     block;     /**< Texture block containing the animation. */
+    int                     group;     /**< Group index allocated by the native interpreter. */
+    mgCTextureAnime        *animation; /**< Animation owner at registration time. */
+    CList<mgCTexAnimeData> *head;      /**< Original list head identifying a live group. */
+};
+
+/**
+ * Retains a document animation's semantics and the groups it registered.
+ */
+struct NativeAnimation {
+    int                               block;      /**< Base block selected for the native texture document. */
+    std::string                       suffix;     /**< Texture suffix used to resolve animation operands. */
+    texture_catalog::Entry            definition; /**< Ordered typed animation commands. */
+    std::vector<NativeAnimationGroup> groups;     /**< Live groups owned by this registration. */
+};
+
+/**
+ * Keeps native script reuse state available during texture-manager static initialization.
+ */
+std::unordered_map<const mgCTextureManager *, std::vector<NativeAnimation> > &NativeAnimations() {
+    static std::unordered_map<const mgCTextureManager *, std::vector<NativeAnimation> > animations;
+    return animations;
+}
+
+/**
  * Keeps physical RGBA detail alongside game-accessible retail-sized mip images.
  */
 struct CatalogPixels {
-    std::vector<std::vector<uint8_t>> levels; /**< Padded physical RGBA mip canvases. */
-    const texture_catalog::Entry *record = nullptr; /**< Catalog entry supplying baked variants. */
-    std::string palette_source; /**< Selected variant's palette source name. */
-    uint32_t width = 0; /**< Physical base canvas width. */
-    uint32_t height = 0; /**< Physical base canvas height. */
-    std::vector<std::vector<uint8_t>> logical_levels; /**< Tightly packed retail-sized CPU mip images. */
-    std::vector<std::vector<uint8_t>> baseline; /**< CPU mip values before direct game edits. */
+    std::vector<std::vector<uint8_t> >   levels;           /**< Padded physical RGBA mip canvases. */
+    const texture_catalog::Entry        *record = nullptr; /**< Catalog entry supplying baked variants. */
+    std::string                          selector;         /**< Logical identity of the selected RGBA image. */
+    MgTextureImageDecoder                decoder;          /**< Provider retained for later variant selections. */
+    uint32_t                             width = 0;        /**< Physical base canvas width. */
+    uint32_t                             height = 0;       /**< Physical base canvas height. */
+    std::vector<std::vector<uint8_t> >   logical_levels;   /**< Tightly packed retail-sized CPU mip images. */
+    std::vector<std::vector<uint8_t> >   baseline;         /**< CPU mip values before direct game edits. */
+    std::shared_ptr<const NativePicture> original;         /**< Immutable native registration identity. */
 };
 
 std::unordered_map<const mgCTexture *, CatalogPixels> catalog_pixels;
-bool entering_catalog = false;
+bool                                                  entering_catalog = false;
 
 struct Entry {
     const mgCTextureManager *owner = nullptr;
@@ -61,16 +102,16 @@ struct Entry {
     bool                     uploaded = false;
     bool                     catalog = false;
     mgCTexture              *draw_variant = nullptr;
-    std::vector<uint8_t>     memory16; /**< 16-bit RAM image last uploaded, to notice in-place rewrites. */
+    std::vector<uint8_t>     memory16;           /**< 16-bit RAM image last uploaded, to notice in-place rewrites. */
     uint32_t                 physical_scale = 1; /**< Host texels per retail texel outside the catalog. */
 };
 
 struct TextureRegistry {
-    std::unordered_map<const mgCTexture *, Entry> entries;
-    std::unordered_map<uint32_t, const mgCTexture *> textures_by_key;
+    std::unordered_map<const mgCTexture *, Entry>              entries;
+    std::unordered_map<uint32_t, const mgCTexture *>           textures_by_key;
     std::unordered_map<gfx::TextureHandle, const mgCTexture *> textures_by_image;
-    std::vector<uint32_t> free_keys;
-    uint32_t              next_key = kMgTextureKeyFirst;
+    std::vector<uint32_t>                                      free_keys;
+    uint32_t                                                   next_key = kMgTextureKeyFirst;
 };
 
 // Function-local so that a manager initialised during static construction reaches a live registry.
@@ -117,13 +158,15 @@ void MakeLogicalPixels(const mgCTexture *texture, CatalogPixels &pixels) {
         const uint32_t height = std::max(1, texture->height >> mip);
         const uint32_t physical_width = std::max(1u, pixels.width >> mip);
         const uint32_t physical_height = std::max(1u, pixels.height >> mip);
-        auto &logical = pixels.logical_levels[mip];
+        auto          &logical = pixels.logical_levels[mip];
         logical.resize(static_cast<size_t>(width) * height * 4);
-        for (uint32_t y = 0; y < height; ++y) for (uint32_t x = 0; x < width; ++x) {
-            const uint32_t px = std::min(physical_width - 1, x * scale + scale / 2);
-            const uint32_t py = std::min(physical_height - 1, y * scale + scale / 2);
-            std::memcpy(logical.data() + (static_cast<size_t>(y) * width + x) * 4,
-                        pixels.levels[mip].data() + (static_cast<size_t>(py) * physical_width + px) * 4, 4);
+        for (uint32_t y = 0; y < height; ++y) {
+            for (uint32_t x = 0; x < width; ++x) {
+                const uint32_t px = std::min(physical_width - 1, x * scale + scale / 2);
+                const uint32_t py = std::min(physical_height - 1, y * scale + scale / 2);
+                std::memcpy(logical.data() + (static_cast<size_t>(y) * width + x) * 4,
+                            pixels.levels[mip].data() + (static_cast<size_t>(py) * physical_width + px) * 4, 4);
+            }
         }
     }
     pixels.baseline = pixels.logical_levels;
@@ -135,7 +178,8 @@ void MakeLogicalPixels(const mgCTexture *texture, CatalogPixels &pixels) {
 void BindLogicalPixels(mgCTexture *texture, CatalogPixels &pixels) {
     for (int mip = 0; mip < MG_TEXTURE_LEVEL_MAX; ++mip) {
         texture->image[mip] = mip < static_cast<int>(pixels.logical_levels.size())
-                               ? reinterpret_cast<u_long128 *>(pixels.logical_levels[mip].data()) : nullptr;
+                                  ? reinterpret_cast<u_long128 *>(pixels.logical_levels[mip].data())
+                                  : nullptr;
     }
 }
 
@@ -192,9 +236,9 @@ size_t Memory16Bytes(const mgCTexture *texture) {
  * TEXA TA0 = TA1 = 0x80, so every texel is opaque (0xFF in the renderer's units) whatever its alpha bit.
  */
 std::vector<uint8_t> DecodeMemory16(const mgCTexture *texture) {
-    const size_t texels = Memory16Bytes(texture) / 2;
+    const size_t         texels = Memory16Bytes(texture) / 2;
     std::vector<uint8_t> rgba(texels * 4);
-    const uint8_t *in = AsBytes(texture->image[0]);
+    const uint8_t       *in = AsBytes(texture->image[0]);
     for (size_t i = 0; i < texels; ++i) {
         const uint32_t texel = in[i * 2] | (static_cast<uint32_t>(in[i * 2 + 1]) << 8);
         const uint32_t r = texel & 0x1F;
@@ -216,7 +260,7 @@ gfx::TextureHandle UploadMemory16(const mgCTexture *texture, Entry &entry) {
     const std::vector<uint8_t> *hd = texture->width == 64 && texture->height == 64 ? PhotoHdFind(raw, bytes) : nullptr;
     entry.physical_scale = hd != nullptr ? kPhotoHdSize / 64 : 1;
     const auto extent = MgTexturePhysicalExtent(texture);
-    auto handle = gfx::CreateTexture({extent.width, extent.height, gfx::TextureFormat::Rgba8, 1, true});
+    auto       handle = gfx::CreateTexture({extent.width, extent.height, gfx::TextureFormat::Rgba8, 1, true});
     if (handle == gfx::kNullTexture) {
         return handle;
     }
@@ -230,11 +274,11 @@ gfx::TextureHandle UploadMemory16(const mgCTexture *texture, Entry &entry) {
 }
 
 gfx::TextureHandle UploadPixels(const mgCTexture *texture) {
-    const auto extent = MgTexturePhysicalExtent(texture);
-    const auto pixels = catalog_pixels.find(texture);
+    const auto     extent = MgTexturePhysicalExtent(texture);
+    const auto     pixels = catalog_pixels.find(texture);
     const uint32_t canvas_width = extent.width;
     const uint32_t canvas_height = extent.height;
-    uint32_t levels = 0;
+    uint32_t       levels = 0;
     while (levels < MG_TEXTURE_LEVEL_MAX && texture->image[levels]) {
         ++levels;
     }
@@ -252,9 +296,9 @@ gfx::TextureHandle UploadPixels(const mgCTexture *texture) {
             continue;
         }
         const uint32_t width = pixels != catalog_pixels.end() ? std::max(1u, canvas_width >> mip)
-                                                             : std::max(1, texture->width >> mip);
+                                                              : std::max(1, texture->width >> mip);
         const uint32_t height = pixels != catalog_pixels.end() ? std::max(1u, canvas_height >> mip)
-                                                              : std::max(1, texture->height >> mip);
+                                                               : std::max(1, texture->height >> mip);
         gfx::UpdateTexture(handle, mip, 0, 0, width, height,
                            pixels != catalog_pixels.end() ? pixels->second.levels[mip].data()
                                                           : static_cast<const void *>(texture->image[mip]));
@@ -289,7 +333,9 @@ bool SnapshotChanged(const mgCTexture *texture, const Entry &entry) {
 
 void Rebuild(const mgCTexture *texture, Entry &entry) {
 #if MG_TEXTURE_HAS_SEAM
-    if (entry.image != gfx::kNullTexture) mgPortReleaseTextureTarget(entry.key);
+    if (entry.image != gfx::kNullTexture) {
+        mgPortReleaseTextureTarget(entry.key);
+    }
 #endif
     Registry().textures_by_image.erase(entry.image);
     DestroyHandle(entry.image);
@@ -301,7 +347,9 @@ void Rebuild(const mgCTexture *texture, Entry &entry) {
 
     if (IsMemory16(texture, entry)) {
         entry.image = UploadMemory16(texture, entry);
-        if (entry.image != gfx::kNullTexture) Registry().textures_by_image[entry.image] = texture;
+        if (entry.image != gfx::kNullTexture) {
+            Registry().textures_by_image[entry.image] = texture;
+        }
         return;
     }
 
@@ -310,7 +358,9 @@ void Rebuild(const mgCTexture *texture, Entry &entry) {
         return;
     }
     entry.image = UploadPixels(texture);
-    if (entry.image != gfx::kNullTexture) Registry().textures_by_image[entry.image] = texture;
+    if (entry.image != gfx::kNullTexture) {
+        Registry().textures_by_image[entry.image] = texture;
+    }
 }
 
 void Resolve(const mgCTexture *texture, Entry &entry, bool) {
@@ -322,7 +372,6 @@ void Resolve(const mgCTexture *texture, Entry &entry, bool) {
         Rebuild(texture, entry);
         return;
     }
-
     // Retail uploads RAM images on every reload; a photo slot is rewritten in place (new shot, sorting).
     if (IsMemory16(texture, entry) &&
         (entry.memory16.size() != Memory16Bytes(texture) ||
@@ -358,7 +407,9 @@ void ReleaseTexture(const mgCTexture *texture) {
 
     Entry &entry = found->second;
     for (auto &[other, registered] : registry.entries) {
-        if (registered.draw_variant == texture) registered.draw_variant = nullptr;
+        if (registered.draw_variant == texture) {
+            registered.draw_variant = nullptr;
+        }
     }
 #if MG_TEXTURE_HAS_SEAM
     // A registry key can immediately name a different texture; its old rendered pixels cannot.
@@ -382,6 +433,7 @@ void ReleaseTexture(const mgCTexture *texture) {
 }
 
 void ReleaseOwned(const mgCTextureManager *owner) {
+    NativeAnimations().erase(owner);
     std::vector<const mgCTexture *> owned;
 
     for (const auto &[texture, entry] : Registry().entries) {
@@ -427,7 +479,9 @@ void RestoreAnimatedTextures(const mgCTextureBlock &block, int index) {
                 continue;
             }
 
-            if (texture->image[0] == nullptr) continue;
+            if (texture->image[0] == nullptr) {
+                continue;
+            }
 
             MgTexturePixelsChanged(texture);
 #ifdef MG_TEXTURE_HAS_SEAM
@@ -436,8 +490,8 @@ void RestoreAnimatedTextures(const mgCTextureBlock &block, int index) {
             const auto source = MgTextureLookup(texture).texture;
             const auto target = mgPortFindTexture(texture).texture;
             if (source != target) {
-                const auto extent = MgTexturePhysicalExtent(texture);
-                const int scale = extent.width / (1u << texture->tex0.TW);
+                const auto      extent = MgTexturePhysicalExtent(texture);
+                const int       scale = extent.width / (1u << texture->tex0.TW);
                 const gfx::Rect whole{0, 0, texture->width * scale, texture->height * scale};
                 gfx::BlitTexture(source, whole, target, whole, gfx::Filter::Nearest);
             }
@@ -472,34 +526,143 @@ void InstallSeam() {}
 
 std::string DecodeName(const std::string &encoded);
 
-mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_catalog::Entry &record) {
-    std::string error;
+/**
+ * Compares native picture semantics independently of document-local image references.
+ */
+bool SameDefinition(const texture_catalog::Entry &a, const texture_catalog::Entry &b) {
+    if (a.width != b.width || a.height != b.height || a.bpp != b.bpp || a.swizzled != b.swizzled ||
+        a.clamp != b.clamp || a.no_image != b.no_image || a.picture != b.picture ||
+        a.animation_mode != b.animation_mode || a.nearest != b.nearest || a.variants.size() != b.variants.size()) {
+        return false;
+    }
+    for (std::size_t index = 0; index < a.variants.size(); ++index) {
+        if (a.variants[index].selector != b.variants[index].selector) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Compares native picture semantics and decoded pixels.
+ */
+bool SamePicture(const NativePicture &left, const NativePicture &right) {
+    if (!SameDefinition(left.definition, right.definition) || left.variants.size() != right.variants.size()) {
+        return false;
+    }
+    for (std::size_t index = 0; index < left.variants.size(); ++index) {
+        const auto &x = left.variants[index];
+        const auto &y = right.variants[index];
+        if (x.width != y.width || x.height != y.height || x.levels != y.levels) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Names every decoded variant of a picture, or returns nothing when any variant is unnamed.
+ */
+std::vector<std::string> PictureIdentities(const texture_catalog::Entry &record, const MgTextureImageIdentity &identity) {
+    std::vector<std::string> identities;
+    if (!identity) {
+        return identities;
+    }
+    const std::size_t count = record.no_image ? 1 : std::max<std::size_t>(record.variants.size(), 1);
+    for (std::size_t variant = 0; variant < count; ++variant) {
+        auto name = identity(record, variant);
+        if (name.empty()) {
+            return {};
+        }
+        identities.push_back(std::move(name));
+    }
+    return identities;
+}
+
+mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_catalog::Entry &record,
+                         MgTextureImageDecoder decoder = {}, const MgTextureImageIdentity &identity = {}) {
+    if (!manager) {
+        return nullptr;
+    }
+    std::string name = DecodeName(record.name);
+    if (record.picture > 0) {
+        name += "#picture" + std::to_string(record.picture);
+    }
+    char full_name[32];
+    std::snprintf(full_name, sizeof(full_name), "%s%s", name.c_str(), manager->name_suffix);
+    auto identities = PictureIdentities(record, identity);
+    if (!identities.empty()) {
+        if (auto *existing = manager->SearchHash(full_name, block)) {
+            const auto found = catalog_pixels.find(existing);
+            if (found != catalog_pixels.end() && found->second.original && found->second.original->identities == identities &&
+                SameDefinition(found->second.original->definition, record)) {
+                datapacks::Trace("mg_texture.identity_reuses");
+                found->second.record = &record;
+                found->second.decoder = std::move(decoder);
+                return existing;
+            }
+        }
+    }
+    std::string               error;
     datapacks::DecodedTexture decoded;
-    if (!datapacks::Decode(record, 0, decoded, error)) {
+    if (!(decoder ? decoder(record, 0, decoded, error) : datapacks::Decode(record, 0, decoded, error))) {
         std::fprintf(stderr, "texture: %s: %s\n", record.name.c_str(), error.c_str());
         return nullptr;
     }
-    CatalogPixels pixels{std::move(decoded.levels), &record, record.name, decoded.width, decoded.height};
+    auto original = std::make_shared<NativePicture>();
+    original->definition = record;
+    original->identities = std::move(identities);
+    original->variants.push_back(std::move(decoded));
+    if (!record.no_image) {
+        for (std::size_t variant = 1; variant < record.variants.size(); ++variant) {
+            datapacks::DecodedTexture alternate;
+            if (!(decoder ? decoder(record, variant, alternate, error) : datapacks::Decode(record, variant, alternate, error))) {
+                std::fprintf(stderr, "texture: %s: %s\n", record.name.c_str(), error.c_str());
+                return nullptr;
+            }
+            original->variants.push_back(std::move(alternate));
+        }
+    }
+    for (auto &variant : original->definition.variants) {
+        variant.levels.clear();
+    }
+    if (auto *existing = manager->SearchHash(full_name, block)) {
+        const auto found = catalog_pixels.find(existing);
+        if (found != catalog_pixels.end() && found->second.original) {
+            if (SamePicture(*found->second.original, *original)) {
+                found->second.record = &record;
+                found->second.decoder = std::move(decoder);
+                return existing;
+            }
+            // The next pool allocation returns this header, retaining every material's pointer.
+            manager->DeleteTexture(existing);
+        }
+    }
+    // The original keeps pristine pixels; the registration owns a copy that glyphs and animation edit.
+    decoded = original->variants.front();
+    ButtonGlyphsApply(record.name, record.width, record.height, decoded);
+    CatalogPixels pixels{std::move(decoded.levels), &record, record.name, std::move(decoder),
+                         decoded.width, decoded.height};
+    pixels.original = std::move(original);
     u_long128 *levels[MG_TEXTURE_LEVEL_MAX] = {};
     if (!record.no_image) {
         for (size_t mip = 0; mip < pixels.levels.size(); ++mip) {
             levels[mip] = reinterpret_cast<u_long128 *>(pixels.levels[mip].data());
         }
     }
-    std::string name = DecodeName(record.name);
-    if (record.picture > 0) {
-        name += "#picture" + std::to_string(record.picture);
-    }
     entering_catalog = true;
     mgCTexture *texture = manager->EnterTexture(block, const_cast<char *>(name.c_str()), levels,
-                                                 record.width, record.height, record.bpp, nullptr,
-                                                 record.tex1, record.swizzled);
+                                                record.width, record.height, 32, nullptr,
+                                                0, 0);
     entering_catalog = false;
     if (texture != nullptr) {
         MakeLogicalPixels(texture, pixels);
         catalog_pixels.insert_or_assign(texture, std::move(pixels));
         BindLogicalPixels(texture, catalog_pixels.at(texture));
         texture->clamp_bits = record.clamp;
+        if (record.nearest) {
+            texture->tex1_bits &= ~(uint64_t{1} << 5);
+        }
         ResolveTexture(texture, false);
     }
     return texture;
@@ -510,9 +673,15 @@ std::string DecodeName(const std::string &encoded) {
     for (size_t i = 0; i < encoded.size(); ++i) {
         if (encoded[i] == '%' && i + 2 < encoded.size()) {
             auto hex = [](char c) -> int {
-                if (c >= '0' && c <= '9') return c - '0';
-                if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-                if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+                if (c >= '0' && c <= '9') {
+                    return c - '0';
+                }
+                if (c >= 'A' && c <= 'F') {
+                    return c - 'A' + 10;
+                }
+                if (c >= 'a' && c <= 'f') {
+                    return c - 'a' + 10;
+                }
                 return -1;
             };
             const int hi = hex(encoded[i + 1]), lo = hex(encoded[i + 2]);
@@ -527,17 +696,71 @@ std::string DecodeName(const std::string &encoded) {
     return name;
 }
 
-void ApplyAnimation(mgCTextureManager *manager, const texture_catalog::Entry &entry, mgCMemory *stack) {
+void ApplyAnimation(mgCTextureManager *manager, const texture_catalog::Entry &entry, mgCMemory *stack, int base_block) {
     if (!stack) {
         return;
     }
-    mgCTexAnimeData data;
-    std::string group_name;
-    int enabled = 0, bug_patch = 0;
+    auto &registered = NativeAnimations()[manager];
+    auto  operands = [](const texture_catalog::Entry &definition) {
+        std::vector<std::string> result;
+        for (const auto &command : definition.script) {
+            if ((command.name == "SRC_TEX" || command.name == "DEST_TEX" || command.name == "TEX_ANIME") &&
+                !command.args.empty() && command.args[0].text) {
+                result.push_back(command.name + ":" + DecodeName(*command.args[0].text));
+            }
+        }
+        return result;
+    };
+    const auto targets = operands(entry);
+    auto       live = [manager](const NativeAnimationGroup &group) {
+        const auto *block = manager->GetTextureBlock(group.block);
+        return block && block->anime == group.animation && group.group < group.animation->group_num &&
+               group.animation->list[group.group] == group.head;
+    };
+    std::erase_if(registered, [&live](const auto &animation) {
+        return std::none_of(animation.groups.begin(), animation.groups.end(), live);
+    });
+    auto previous = std::find_if(registered.begin(), registered.end(), [&](const auto &animation) {
+        return animation.block == base_block && animation.definition.name == entry.name && animation.suffix == manager->name_suffix &&
+               operands(animation.definition) == targets;
+    });
+    auto same = [](const texture_catalog::Entry &left, const texture_catalog::Entry &right) {
+        if (left.script.size() != right.script.size()) {
+            return false;
+        }
+        for (std::size_t command = 0; command < left.script.size(); ++command) {
+            const auto &a = left.script[command];
+            const auto &b = right.script[command];
+            if (a.name != b.name || a.args.size() != b.args.size()) {
+                return false;
+            }
+            for (std::size_t arg = 0; arg < a.args.size(); ++arg) {
+                if (a.args[arg].text != b.args[arg].text || a.args[arg].number != b.args[arg].number) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+    if (previous != registered.end()) {
+        if (same(previous->definition, entry) && std::all_of(previous->groups.begin(), previous->groups.end(), live)) {
+            return;
+        }
+        for (const auto &group : previous->groups) {
+            if (live(group)) {
+                group.animation->DeleteGroup(group.group);
+            }
+        }
+        registered.erase(previous);
+    }
+    NativeAnimation                            registration{base_block, manager->name_suffix, entry, {}};
+    mgCTexAnimeData                            data;
+    std::string                                group_name;
+    int                                        enabled = 0, bug_patch = 0;
     std::unordered_map<mgCTextureAnime *, int> active_groups;
     for (const auto &command : entry.script) {
         const auto &args = command.args;
-        auto number = [&args](size_t index, double fallback = 0) -> double {
+        auto        number = [&args](size_t index, double fallback = 0) -> double {
             return index < args.size() && !args[index].text ? args[index].number : fallback;
         };
         auto named = [&args](size_t index) -> std::string {
@@ -565,7 +788,9 @@ void ApplyAnimation(mgCTextureManager *manager, const texture_catalog::Entry &en
             data.dest_y = static_cast<short>(number(2) * 16);
             data.dest_w = args.size() > 3 ? static_cast<short>(number(3) * 16) : data.src_w;
             data.dest_h = args.size() > 4 ? static_cast<short>(number(4) * 16) : data.src_h;
-            if (args.size() > 5) data.bilinear = static_cast<signed char>(number(5));
+            if (args.size() > 5) {
+                data.bilinear = static_cast<signed char>(number(5));
+            }
         } else if (op == "SCROLL") {
             if (data.type == MG_TEX_ANIME_TYPE_SCROLL) {
                 const double sx = number(0) * 16;
@@ -575,7 +800,7 @@ void ApplyAnimation(mgCTextureManager *manager, const texture_catalog::Entry &en
             } else if (data.type == MG_TEX_ANIME_TYPE_WAVE) {
                 for (int axis = 0; axis < 2; ++axis) {
                     const double value = number(axis);
-                    const int whole = static_cast<int>(value);
+                    const int    whole = static_cast<int>(value);
                     const double fraction = value - whole;
                     (axis == 0 ? data.period_x : data.period_y) = static_cast<short>(whole);
                     (axis == 0 ? data.amplitude_x : data.amplitude_y) =
@@ -585,15 +810,29 @@ void ApplyAnimation(mgCTextureManager *manager, const texture_catalog::Entry &en
         } else if (op == "CLUT_COPY") {
             data.clut_copy = static_cast<signed char>(number(0));
         } else if (op == "COLOR") {
-            if (args.size() > 0) data.r = static_cast<u_char>(number(0));
-            if (args.size() > 1) data.g = static_cast<u_char>(number(1));
-            if (args.size() > 2) data.b = static_cast<u_char>(number(2));
-            if (args.size() > 3) data.a = static_cast<u_char>(number(3));
+            if (args.size() > 0) {
+                data.r = static_cast<u_char>(number(0));
+            }
+            if (args.size() > 1) {
+                data.g = static_cast<u_char>(number(1));
+            }
+            if (args.size() > 2) {
+                data.b = static_cast<u_char>(number(2));
+            }
+            if (args.size() > 3) {
+                data.a = static_cast<u_char>(number(3));
+            }
         } else if (op == "ALPHA_BLEND") {
-            if (!args.empty()) data.alpha_blend = static_cast<signed char>(number(0));
+            if (!args.empty()) {
+                data.alpha_blend = static_cast<signed char>(number(0));
+            }
         } else if (op == "ALPHA_TEST") {
-            if (!args.empty()) data.alpha_test = static_cast<signed char>(number(0));
-            if (args.size() > 1) data.alpha_ref = static_cast<u_char>(number(1));
+            if (!args.empty()) {
+                data.alpha_test = static_cast<signed char>(number(0));
+            }
+            if (args.size() > 1) {
+                data.alpha_ref = static_cast<u_char>(number(1));
+            }
         } else if (op == "WAIT") {
             data.wait = number(1) != 0 ? MG_TEX_ANIME_WAIT_FOREVER : static_cast<short>(number(0));
         } else if (op == "BUG_PATCH") {
@@ -602,29 +841,55 @@ void ApplyAnimation(mgCTextureManager *manager, const texture_catalog::Entry &en
             active_groups.clear();
         } else if (op == "TEX_ANIME_DATA_END") {
             mgCTexture *texture = data.src_tex ? data.src_tex : data.dest_tex;
-            if (!texture || !data.src_tex || !data.dest_tex) continue;
+            if (!texture || !data.src_tex || !data.dest_tex) {
+                continue;
+            }
             mgCTextureBlock *block = manager->GetTextureBlock(texture->block);
-            if (!block) continue;
-            if (!block->anime) block->anime = new (stack->Alloc(0x21)) mgCTextureAnime;
-            auto *anime = block->anime;
-            auto found = active_groups.find(anime);
+            if (!block) {
+                continue;
+            }
+            if (!block->anime) {
+                block->anime = new (stack->Alloc(0x21)) mgCTextureAnime;
+            }
+            auto      *anime = block->anime;
+            auto       found = active_groups.find(anime);
             const bool new_group = found == active_groups.end();
-            int group = new_group ? anime->GetEmptyGroup() : found->second;
-            if (group < 0) continue;
+            int        group = new_group ? anime->GetEmptyGroup() : found->second;
+            if (group < 0) {
+                continue;
+            }
             active_groups[anime] = group;
             data.group = static_cast<signed char>(group);
             if (new_group) {
                 char *name = reinterpret_cast<char *>(stack->Alloc((group_name.size() + 1) / MG_TEX_ANIME_NAME_ALLOC_UNIT + 1));
                 std::memcpy(name, group_name.c_str(), group_name.size() + 1);
                 anime->SetGroupName(group, name);
-                if (enabled) anime->Enable(group); else anime->Disable(group);
+                if (enabled) {
+                    anime->Enable(group);
+                } else {
+                    anime->Disable(group);
+                }
             }
             anime->EnterTexAnime(&data, stack);
+            if (new_group) {
+                registration.groups.push_back({texture->block, group, anime, anime->list[group]});
+            }
         }
+    }
+    // A script with unresolved texture operands must be allowed to run after its pictures arrive.
+    if (!registration.groups.empty()) {
+        registered.push_back(std::move(registration));
     }
 }
 
 } // namespace
+
+mgCTexture *MgTextureEnterCatalog(mgCTextureManager *manager, int block, const texture_catalog::Entry &entry) {
+    if (manager == nullptr || entry.type != "texture") {
+        return nullptr;
+    }
+    return EnterCatalog(manager, block, entry);
+}
 
 void MgTexturePixelsChanged(const mgCTexture *texture) {
     const auto found = Registry().entries.find(texture);
@@ -644,8 +909,8 @@ void MgTexturePixelsChanged(const mgCTexture *texture) {
                 const uint32_t width = std::max(1, texture->width >> mip);
                 const uint32_t height = std::max(1, texture->height >> mip);
                 const uint32_t canvas_width = std::max(1u, pixels.width >> mip);
-                auto &level = pixels.levels.emplace_back(static_cast<size_t>(canvas_width) *
-                                                         std::max(1u, pixels.height >> mip) * 4);
+                auto          &level = pixels.levels.emplace_back(static_cast<size_t>(canvas_width) *
+                                                                  std::max(1u, pixels.height >> mip) * 4);
                 for (uint32_t y = 0; y < height; ++y) {
                     std::memcpy(level.data() + static_cast<size_t>(y) * canvas_width * 4,
                                 AsBytes(texture->image[mip]) + static_cast<size_t>(y) * width * 4, width * 4);
@@ -657,19 +922,23 @@ void MgTexturePixelsChanged(const mgCTexture *texture) {
         } else {
             const uint32_t scale = pixels.width / (1u << texture->tex0.TW);
             for (size_t mip = 0; mip < pixels.logical_levels.size(); ++mip) {
-                auto &logical = pixels.logical_levels[mip];
-                auto &baseline = pixels.baseline[mip];
+                auto          &logical = pixels.logical_levels[mip];
+                auto          &baseline = pixels.baseline[mip];
                 const uint32_t width = std::max(1, texture->width >> mip);
                 const uint32_t physical_width = std::max(1u, pixels.width >> mip);
                 const uint32_t physical_height = std::max(1u, pixels.height >> mip);
                 for (size_t offset = 0; offset < logical.size(); offset += 4) {
-                    if (std::memcmp(logical.data() + offset, baseline.data() + offset, 4) == 0) continue;
+                    if (std::memcmp(logical.data() + offset, baseline.data() + offset, 4) == 0) {
+                        continue;
+                    }
                     const uint32_t x = (offset / 4 % width) * scale;
                     const uint32_t y = (offset / 4 / width) * scale;
-                    for (uint32_t py = y; py < std::min(y + scale, physical_height); ++py)
-                        for (uint32_t px = x; px < std::min(x + scale, physical_width); ++px)
+                    for (uint32_t py = y; py < std::min(y + scale, physical_height); ++py) {
+                        for (uint32_t px = x; px < std::min(x + scale, physical_width); ++px) {
                             std::memcpy(pixels.levels[mip].data() + (static_cast<size_t>(py) * physical_width + px) * 4,
                                         logical.data() + offset, 4);
+                        }
+                    }
                 }
                 baseline = logical;
             }
@@ -703,10 +972,12 @@ mgCTexture *MgTextureCreateColorVariant(const mgCTexture *source, char *name, Mg
         return nullptr;
     }
     const auto found = Registry().entries.find(source);
-    if (found == Registry().entries.end()) return nullptr;
-    auto *manager = const_cast<mgCTextureManager *>(found->second.owner);
+    if (found == Registry().entries.end()) {
+        return nullptr;
+    }
+    auto         *manager = const_cast<mgCTextureManager *>(found->second.owner);
     CatalogPixels pixels;
-    const auto stored = catalog_pixels.find(source);
+    const auto    stored = catalog_pixels.find(source);
     if (stored != catalog_pixels.end()) {
         pixels.levels = stored->second.levels;
         pixels.width = stored->second.width;
@@ -723,37 +994,41 @@ mgCTexture *MgTextureCreateColorVariant(const mgCTexture *source, char *name, Mg
     }
     for (auto &mip_pixels : pixels.levels) {
         for (std::size_t i = 0; i < mip_pixels.size(); i += 4) {
-            auto *color = mip_pixels.data() + i;
+            auto     *color = mip_pixels.data() + i;
             const int grey = (color[0] + color[1] + color[2]) / 3;
             switch (mode) {
-            case MgTextureColorMode::IconHighlight:
-                if (grey > 8 && color[2] != 0) color[2] = 255;
-                break;
-            case MgTextureColorMode::Grey:
-                color[0] = color[1] = color[2] = grey / 16 * 16;
-                break;
-            case MgTextureColorMode::Sepia: {
-                const int level = grey / 16 + 1;
-                color[0] = static_cast<u8>(30.0f + 12.2f * level);
-                color[1] = static_cast<u8>(20.0f + 8.75f * level);
-                color[2] = static_cast<u8>(20.0f + 6.75f * level);
-                break;
-            }
-            case MgTextureColorMode::PartyLocked: {
-                const int level = grey / 8 + 1;
-                color[0] = static_cast<u8>(7.75f * level);
-                color[1] = static_cast<u8>(5.625f * level);
-                color[2] = static_cast<u8>(4.6875f * level);
-                break;
-            }
+                case MgTextureColorMode::IconHighlight:
+                    if (grey > 8 && color[2] != 0) {
+                        color[2] = 255;
+                    }
+                    break;
+                case MgTextureColorMode::Grey:
+                    color[0] = color[1] = color[2] = grey / 16 * 16;
+                    break;
+                case MgTextureColorMode::Sepia: {
+                    const int level = grey / 16 + 1;
+                    color[0] = static_cast<u8>(30.0f + 12.2f * level);
+                    color[1] = static_cast<u8>(20.0f + 8.75f * level);
+                    color[2] = static_cast<u8>(20.0f + 6.75f * level);
+                    break;
+                }
+                case MgTextureColorMode::PartyLocked: {
+                    const int level = grey / 8 + 1;
+                    color[0] = static_cast<u8>(7.75f * level);
+                    color[1] = static_cast<u8>(5.625f * level);
+                    color[2] = static_cast<u8>(4.6875f * level);
+                    break;
+                }
             }
         }
     }
     u_long128 *images[MG_TEXTURE_LEVEL_MAX] = {};
-    for (size_t mip = 0; mip < pixels.levels.size(); ++mip) images[mip] = AsQuadwords(pixels.levels[mip].data());
+    for (size_t mip = 0; mip < pixels.levels.size(); ++mip) {
+        images[mip] = AsQuadwords(pixels.levels[mip].data());
+    }
     entering_catalog = true;
     auto *texture = manager->EnterTexture(source->block, name, images, source->width, source->height,
-                                         32, nullptr, source->tex1_bits, 0);
+                                          32, nullptr, source->tex1_bits, 0);
     entering_catalog = false;
     if (texture) {
         MakeLogicalPixels(texture, pixels);
@@ -766,7 +1041,9 @@ mgCTexture *MgTextureCreateColorVariant(const mgCTexture *source, char *name, Mg
 
 void MgTextureSetDrawVariant(const mgCTexture *source, mgCTexture *variant) {
     const auto found = Registry().entries.find(source);
-    if (found != Registry().entries.end()) found->second.draw_variant = variant;
+    if (found != Registry().entries.end()) {
+        found->second.draw_variant = variant;
+    }
 }
 
 mgCTexture *MgTextureDrawVariant(mgCTexture *source) {
@@ -774,53 +1051,120 @@ mgCTexture *MgTextureDrawVariant(mgCTexture *source) {
     return found != Registry().entries.end() && found->second.draw_variant ? found->second.draw_variant : source;
 }
 
-bool MgTextureSelectVariant(mgCTexture *texture, std::string_view palette_source) {
+bool MgTextureSelectVariant(mgCTexture *texture, std::string_view selector) {
     auto found = catalog_pixels.find(texture);
-    if (found == catalog_pixels.end() || !found->second.record) return false;
+    if (found == catalog_pixels.end() || !found->second.record) {
+        return false;
+    }
     CatalogPixels &pixels = found->second;
-    if (pixels.palette_source == palette_source) return true;
+    if (pixels.selector == selector) {
+        return true;
+    }
     std::string error;
     const auto &variants = pixels.record->variants;
-    const auto variant = std::find_if(variants.begin(), variants.end(), [palette_source](const auto &value) {
-        return value.palette_source == palette_source;
+    const auto  variant = std::find_if(variants.begin(), variants.end(), [selector](const auto &value) {
+        return value.selector == selector;
     });
-    if (variant == variants.end()) return false;
+    if (variant == variants.end()) {
+        return false;
+    }
     datapacks::DecodedTexture decoded;
-    if (!datapacks::Decode(*pixels.record, static_cast<size_t>(variant - variants.begin()), decoded, error)) return false;
+    const auto                variant_index = static_cast<size_t>(variant - variants.begin());
+    if (pixels.original && variant_index < pixels.original->variants.size()) {
+        decoded = pixels.original->variants[variant_index];
+    } else if (!(pixels.decoder ? pixels.decoder(*pixels.record, variant_index, decoded, error)
+                                : datapacks::Decode(*pixels.record, variant_index, decoded, error))) {
+        return false;
+    }
+    ButtonGlyphsApply(pixels.record->name, pixels.record->width, pixels.record->height, decoded);
     pixels.levels = std::move(decoded.levels);
     pixels.width = decoded.width;
     pixels.height = decoded.height;
     Registry().entries.at(texture).uploaded = false;
-    pixels.palette_source = palette_source;
+    pixels.selector = selector;
     MakeLogicalPixels(texture, pixels);
     BindLogicalPixels(texture, pixels);
     MgTexturePixelsChanged(texture);
     return true;
 }
 
-std::string_view MgTexturePaletteSource(const mgCTexture *texture) {
-    const auto found = catalog_pixels.find(texture);
-    return found == catalog_pixels.end() ? std::string_view{} : std::string_view(found->second.palette_source);
+/**
+ * Rebuilds active button glyph pixels when the selected device style changes.
+ */
+void MgTextureRefreshButtonGlyphs() {
+    static std::string applied = ButtonGlyphsStyle();
+    const std::string  style = ButtonGlyphsStyle();
+    if (style == applied) {
+        return;
+    }
+    applied = style;
+    for (auto &[texture, pixels] : catalog_pixels) {
+        if (!pixels.record || !ButtonGlyphsTarget(pixels.record->name) || pixels.logical_levels.empty() ||
+            texture->image[0] != reinterpret_cast<u_long128 *>(pixels.logical_levels[0].data())) {
+            continue;
+        }
+        const auto               &variants = pixels.record->variants;
+        const auto                variant = std::find_if(variants.begin(), variants.end(), [&](const auto &value) {
+            return value.selector == pixels.selector;
+        });
+        const auto                index = variant == variants.end() ? std::size_t{0} : static_cast<std::size_t>(variant - variants.begin());
+        datapacks::DecodedTexture decoded;
+        std::string               error;
+        if (pixels.original && index < pixels.original->variants.size()) {
+            decoded = pixels.original->variants[index];
+        } else if (!(pixels.decoder ? pixels.decoder(*pixels.record, index, decoded, error)
+                                    : datapacks::Decode(*pixels.record, index, decoded, error))) {
+            continue;
+        }
+        ButtonGlyphsApply(pixels.record->name, pixels.record->width, pixels.record->height, decoded);
+        pixels.levels = std::move(decoded.levels);
+        pixels.width = decoded.width;
+        pixels.height = decoded.height;
+        if (auto entry = Registry().entries.find(texture); entry != Registry().entries.end()) {
+            entry->second.uploaded = false;
+        }
+        MakeLogicalPixels(texture, pixels);
+        BindLogicalPixels(const_cast<mgCTexture *>(texture), pixels);
+        MgTexturePixelsChanged(texture);
+    }
 }
 
-int MgTextureSourceBpp(const mgCTexture *texture) {
+std::string_view MgTextureVariantSelector(const mgCTexture *texture) {
     const auto found = catalog_pixels.find(texture);
-    return found == catalog_pixels.end() || !found->second.record ? (texture ? texture->bpp : 0)
-                                                               : found->second.record->source_bpp;
+    return found == catalog_pixels.end() ? std::string_view{} : std::string_view(found->second.selector);
+}
+
+texture_catalog::AnimationMode MgTextureAnimationMode(const mgCTexture *texture) {
+    const auto found = catalog_pixels.find(texture);
+    if (found != catalog_pixels.end() && found->second.record) {
+        return found->second.record->animation_mode;
+    }
+    if (texture && texture->bpp == 8) {
+        return texture_catalog::AnimationMode::CopyVariant;
+    }
+    return texture && texture->bpp > 0 && texture->bpp < 24
+               ? texture_catalog::AnimationMode::Copy
+               : texture_catalog::AnimationMode::Draw;
 }
 
 MgTextureExtent MgTexturePhysicalExtent(const mgCTexture *texture) {
-    if (!texture) return {};
+    if (!texture) {
+        return {};
+    }
     const auto found = catalog_pixels.find(texture);
-    if (found != catalog_pixels.end()) return {found->second.width, found->second.height};
-    const auto entry = Registry().entries.find(texture);
+    if (found != catalog_pixels.end()) {
+        return {found->second.width, found->second.height};
+    }
+    const auto     entry = Registry().entries.find(texture);
     const uint32_t scale = entry != Registry().entries.end() ? entry->second.physical_scale : 1;
     return {(1u << texture->tex0.TW) * scale, (1u << texture->tex0.TH) * scale};
 }
 
 void MgTextureSetPhysicalScale(const mgCTexture *texture, uint32_t scale) {
     const auto found = Registry().entries.find(texture);
-    if (found != Registry().entries.end() && !found->second.catalog) found->second.physical_scale = std::max(1u, scale);
+    if (found != Registry().entries.end() && !found->second.catalog) {
+        found->second.physical_scale = std::max(1u, scale);
+    }
 }
 
 MgTextureExtent MgTextureLogicalExtent(uint64_t tex0) {
@@ -838,7 +1182,9 @@ MgTextureExtent MgTexturePhysicalExtent(uint64_t tex0) {
 
 float MgTextureImageScale(gfx::TextureHandle image) {
     const auto found = Registry().textures_by_image.find(image);
-    if (found == Registry().textures_by_image.end()) return 1.0f;
+    if (found == Registry().textures_by_image.end()) {
+        return 1.0f;
+    }
     const auto *texture = found->second;
     return static_cast<float>(MgTexturePhysicalExtent(texture).width) / (1u << texture->tex0.TW);
 }
@@ -849,29 +1195,34 @@ bool MgTextureCopyRegion(const mgCTexture *source, int sx, int sy, mgCTexture *d
         !Registry().entries.contains(destination) || width <= 0 || height <= 0 || dx < 0 || dy < 0 ||
         dx + width > destination->width || dy + height > destination->height ||
         (source && (source->bpp != 32 || !source->image[0] || sx < 0 || sy < 0 ||
-                    sx + width > source->width || sy + height > source->height))) return false;
-    const uint32_t source_scale = source ? MgTexturePhysicalExtent(source).width / (1u << source->tex0.TW) : 1;
-    const auto previous = catalog_pixels.find(destination);
-    const uint32_t old_scale = previous != catalog_pixels.end()
-                                 ? previous->second.width / (1u << destination->tex0.TW) : 1;
-    const uint32_t scale = std::max(source_scale, old_scale);
-    const uint32_t physical_width = (1u << destination->tex0.TW) * scale;
-    const uint32_t physical_height = (1u << destination->tex0.TH) * scale;
-    constexpr uint64_t kCopyBudget = 256u * 1024u * 1024u;
-    if (physical_width > 16384 || physical_height > 16384 ||
-        (uint64_t{physical_width} * physical_height + uint64_t{width} * height * scale * scale) * 4 > kCopyBudget)
+                    sx + width > source->width || sy + height > source->height))) {
         return false;
-    auto &pixels = catalog_pixels[destination];
+    }
+    const uint32_t     source_scale = source ? MgTexturePhysicalExtent(source).width / (1u << source->tex0.TW) : 1;
+    const auto         previous = catalog_pixels.find(destination);
+    const uint32_t     old_scale = previous != catalog_pixels.end()
+                                       ? previous->second.width / (1u << destination->tex0.TW)
+                                       : 1;
+    const uint32_t     scale = std::max(source_scale, old_scale);
+    const uint32_t     physical_width = (1u << destination->tex0.TW) * scale;
+    const uint32_t     physical_height = (1u << destination->tex0.TH) * scale;
+    constexpr uint64_t k_copy_budget = 256u * 1024u * 1024u;
+    if (physical_width > 16384 || physical_height > 16384 ||
+        (uint64_t{physical_width} * physical_height + uint64_t{width} * height * scale * scale) * 4 > k_copy_budget) {
+        return false;
+    }
+    auto      &pixels = catalog_pixels[destination];
     const auto source_pixels = catalog_pixels.find(source);
     if (pixels.levels.empty() || scale != old_scale) {
         std::vector<uint8_t> expanded(static_cast<size_t>(physical_width) * physical_height * 4);
-        for (int y = 0; y < destination->height * static_cast<int>(scale); ++y)
+        for (int y = 0; y < destination->height * static_cast<int>(scale); ++y) {
             for (int x = 0; x < destination->width * static_cast<int>(scale); ++x) {
                 const uint8_t *old = pixels.levels.empty()
-                    ? AsBytes(destination->image[0]) + (static_cast<size_t>(y / scale) * destination->width + x / scale) * 4
-                    : pixels.levels[0].data() + (static_cast<size_t>(y * old_scale / scale) * pixels.width + x * old_scale / scale) * 4;
+                                         ? AsBytes(destination->image[0]) + (static_cast<size_t>(y / scale) * destination->width + x / scale) * 4
+                                         : pixels.levels[0].data() + (static_cast<size_t>(y * old_scale / scale) * pixels.width + x * old_scale / scale) * 4;
                 std::memcpy(expanded.data() + (static_cast<size_t>(y) * physical_width + x) * 4, old, 4);
             }
+        }
         pixels.levels = {std::move(expanded)};
         pixels.width = physical_width;
         pixels.height = physical_height;
@@ -880,15 +1231,17 @@ bool MgTextureCopyRegion(const mgCTexture *source, int sx, int sy, mgCTexture *d
     // Copy through a temporary so overlapping atlas regions have memmove semantics.
     std::vector<uint8_t> copied(static_cast<size_t>(width) * height * scale * scale * 4);
     if (source) {
-        for (int y = 0; y < height * static_cast<int>(scale); ++y)
+        for (int y = 0; y < height * static_cast<int>(scale); ++y) {
             for (int x = 0; x < width * static_cast<int>(scale); ++x) {
                 const uint8_t *from = source_pixels == catalog_pixels.end()
-                    ? AsBytes(source->image[0]) + (static_cast<size_t>(sy + y / scale) * source->width + sx + x / scale) * 4
-                    : source_pixels->second.levels[0].data() +
-                      (static_cast<size_t>(sy * source_scale + y * source_scale / scale) * source_pixels->second.width +
-                       sx * source_scale + x * source_scale / scale) * 4;
+                                          ? AsBytes(source->image[0]) + (static_cast<size_t>(sy + y / scale) * source->width + sx + x / scale) * 4
+                                          : source_pixels->second.levels[0].data() +
+                                                (static_cast<size_t>(sy * source_scale + y * source_scale / scale) * source_pixels->second.width +
+                                                 sx * source_scale + x * source_scale / scale) *
+                                                    4;
                 std::memcpy(copied.data() + (static_cast<size_t>(y) * width * scale + x) * 4, from, 4);
             }
+        }
     }
     for (int y = 0; y < height * static_cast<int>(scale); ++y) {
         std::memcpy(pixels.levels[0].data() + (static_cast<size_t>(dy * scale + y) * physical_width + dx * scale) * 4,
@@ -901,13 +1254,19 @@ bool MgTextureCopyRegion(const mgCTexture *source, int sx, int sy, mgCTexture *d
 }
 
 void MgTexturePrepareAnimationDestination(const mgCTexture *source, mgCTexture *destination) {
-    if (!source || !destination || destination->image[0] || !Registry().entries.contains(destination)) return;
+    if (!source || !destination || destination->image[0] || !Registry().entries.contains(destination)) {
+        return;
+    }
     const uint32_t scale = MgTexturePhysicalExtent(source).width / (1u << source->tex0.TW);
-    const auto previous = MgTexturePhysicalExtent(destination);
-    if (scale <= previous.width / (1u << destination->tex0.TW)) return;
+    const auto     previous = MgTexturePhysicalExtent(destination);
+    if (scale <= previous.width / (1u << destination->tex0.TW)) {
+        return;
+    }
     const uint64_t width = uint64_t{1u << destination->tex0.TW} * scale;
     const uint64_t height = uint64_t{1u << destination->tex0.TH} * scale;
-    if (width > 16384 || height > 16384 || width * height * 4 > 256u * 1024u * 1024u) return;
+    if (width > 16384 || height > 16384 || width * height * 4 > 256u * 1024u * 1024u) {
+        return;
+    }
     auto &pixels = catalog_pixels[destination];
     pixels.width = static_cast<uint32_t>(width);
     pixels.height = static_cast<uint32_t>(height);
@@ -1128,7 +1487,9 @@ PORT_OVERRIDE mgCTexture *mgCTextureManager::EnterTexture(int block, char *name,
     AddHash(texture);
 
     Entry &registered = Register(this, texture);
-    if (!entering_catalog) Resolve(texture, registered, false);
+    if (!entering_catalog) {
+        Resolve(texture, registered, false);
+    }
 
     if (mgGetPerformanceMeterFlag()) {
         std::printf("b = %d,%s vram = %d\n", block, texture->name, texture->vram_size);
@@ -1142,7 +1503,7 @@ PORT_OVERRIDE mgCTexture *mgCTextureManager::EnterTexture(int id, char *name, TM
     if (head == nullptr || name == nullptr) {
         return nullptr;
     }
-    const auto source_name = TextureSourceLookup(head);
+    const auto  source_name = TextureSourceLookup(head);
     const auto *source = source_name ? texture_catalog::Find(*source_name) : nullptr;
     if (!source) {
         std::fprintf(stderr, "texture: no catalog source for %s\n", name);
@@ -1157,15 +1518,11 @@ PORT_OVERRIDE mgCTexture *mgCTextureManager::EnterTexture(int id, char *name, TM
     return nullptr;
 }
 
-PORT_OVERRIDE int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMemory *stack,
-                                                   mgCEnterIMGInfo *info) {
-    if (img == nullptr) {
-        return 0;
-    }
-    const auto source_name = TextureSourceLookup(img);
-    const auto *source = source_name ? texture_catalog::Find(*source_name) : nullptr;
-    if (!source) {
-        std::fprintf(stderr, "texture: IMG pointer has no catalog source\n");
+namespace {
+int EnterSource(mgCTextureManager *manager, int block, const texture_catalog::Source &source,
+                mgCMemory *stack, mgCEnterIMGInfo *info, const MgTextureImageDecoder &decoder,
+                const MgTextureImageIdentity &identity = {}) {
+    if (!manager) {
         return 0;
     }
     if (info) {
@@ -1175,18 +1532,18 @@ PORT_OVERRIDE int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMem
         }
     }
     std::vector<const texture_catalog::Entry *> entries;
-    for (const auto &entry : source->entries) {
+    for (const auto &entry : source.entries) {
         entries.push_back(&entry);
     }
     int last_block = block;
     for (const auto *entry : entries) {
         if (entry->type == "cfg") {
-            ApplyAnimation(this, *entry, stack);
+            ApplyAnimation(manager, *entry, stack, block);
             continue;
         }
-        const int group = source->kind == "img3" ? std::max(0, entry->block) : 0;
+        const int group = entry->block;
         const int target = block + group;
-        if (mgCTexture *texture = EnterCatalog(this, target, *entry)) {
+        if (mgCTexture *texture = EnterCatalog(manager, target, *entry, decoder, identity)) {
             last_block = std::max(last_block, static_cast<int>(texture->block));
             if (info && group < MG_TEXTURE_IMG_GROUP_MAX && info->block[group] < 0) {
                 info->block[group] = target;
@@ -1194,17 +1551,52 @@ PORT_OVERRIDE int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMem
             }
         }
     }
-    if (info && source->kind != "img3") {
-        info->block[0] = block;
-        info->block_num[0] = 1;
+    if (info) {
+        for (const int group : source.groups) {
+            if (group < MG_TEXTURE_IMG_GROUP_MAX && info->block[group] < 0) {
+                info->block[group] = block + group;
+                info->block_num[group] = 1;
+            }
+        }
     }
     return last_block - block;
 }
+} // namespace
+
+int MgTextureEnterDocument(mgCTextureManager *manager, std::string_view relative_json_path, int block,
+                           mgCMemory *stack, mgCEnterIMGInfo *info) {
+    const auto *source = texture_catalog::Find(relative_json_path);
+    if (!source) {
+        std::fprintf(stderr, "texture: no native texture document for %.*s\n",
+                     static_cast<int>(relative_json_path.size()), relative_json_path.data());
+        return 0;
+    }
+    return EnterSource(manager, block, *source, stack, info, {});
+}
+
+int MgTextureEnterNativeSet(mgCTextureManager *manager, int block, const texture_catalog::Source &source,
+                            mgCMemory *stack, MgTextureImageDecoder decoder, MgTextureImageIdentity identity) {
+    if (!decoder) {
+        return 0;
+    }
+    return EnterSource(manager, block, source, stack, nullptr, decoder, identity);
+}
+
+PORT_OVERRIDE int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMemory *stack,
+                                                  mgCEnterIMGInfo *info) {
+    if (!img) {
+        return 0;
+    }
+    const auto source_name = TextureSourceLookup(img);
+    return source_name ? MgTextureEnterDocument(this, *source_name, block, stack, info) : 0;
+}
 
 PORT_OVERRIDE int mgGetIMGHeaderNum(char *img) {
-    const auto source_name = TextureSourceLookup(img);
+    const auto  source_name = TextureSourceLookup(img);
     const auto *source = source_name ? texture_catalog::Find(*source_name) : nullptr;
-    if (!source) return 0;
+    if (!source) {
+        return 0;
+    }
     return static_cast<int>(std::count_if(source->entries.begin(), source->entries.end(), [](const auto &entry) {
         return entry.type == "cfg" || entry.picture == 0;
     }));
@@ -1212,21 +1604,25 @@ PORT_OVERRIDE int mgGetIMGHeaderNum(char *img) {
 
 PORT_OVERRIDE mgIMG_HEADER mgGetIMGHeader(char *img, int index) {
     mgIMG_HEADER header{};
-    const auto source_name = TextureSourceLookup(img);
-    const auto *source = source_name ? texture_catalog::Find(*source_name) : nullptr;
+    const auto   source_name = TextureSourceLookup(img);
+    const auto  *source = source_name ? texture_catalog::Find(*source_name) : nullptr;
     if (!source || index < 0) {
         return header;
     }
     const texture_catalog::Entry *selected = nullptr;
     for (const auto &entry : source->entries) {
-        if (entry.type != "cfg" && entry.picture != 0) continue;
+        if (entry.type != "cfg" && entry.picture != 0) {
+            continue;
+        }
         if (index-- == 0) {
             selected = &entry;
             break;
         }
     }
-    if (!selected) return header;
-    const auto &entry = *selected;
+    if (!selected) {
+        return header;
+    }
+    const auto       &entry = *selected;
     const std::string name = DecodeName(entry.name);
     std::snprintf(header.name, sizeof header.name, "%s", name.c_str());
     header.block = entry.block;

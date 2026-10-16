@@ -97,36 +97,43 @@ dc2data current <iso-or-directory> <data-directory>
 ```
 
 `extract` uses up to 32 workers by default; `--jobs N` accepts 1 through 64.
-`current` compares the source's path and file metadata with the versioned marker and verifies both manifests exist; it returns 0 only when extraction can be skipped. `check` performs the full hash and payload audit.
+`current` compares the source's path and file metadata with the versioned marker and verifies both output directories exist; it returns 0 only when extraction can be skipped. `check` performs the full hash and payload audit.
 
-The source of `extract` is a Dark Chronicle disc image or a folder holding `DATA.HD4`, `DATA.DAT`, `SOUND.HD3`, `SOUND.DAT` and `MOVIE`. Give it `<game-root>/data` as the output. The C++ command-line program calls the Rust extractor through a `cxx` bridge for `extract`, `list`, `sound`, and `check`; the conversion runs in process without Python. It writes non-texture files under `data/`, converted PNGs and their catalog under sibling `port_data/`, and a version marker at `<game-root>/data.json`. Each retail texture group has an `.img` bundle folder preserving the hierarchy above it; all PNGs are direct children of that folder, and its versioned JSON maps their filenames to logical items, pictures, mips and colour variants. Proprietary texture payloads are excluded, including those embedded in mixed PACK files and other retail wrappers; catalog keys retain their original filenames and embedded offsets. Comment-free JSON manifests in `data/` and `port_data/` record SHA-256 hashes; `dc2data check <game-root>/data` verifies both trees and the version marker. Extraction stages both trees before publication and restores the previous output on failure. Exit status: 0 on success, 1 on an error or failed check, 2 on usage error.
+The source of `extract` is a Dark Chronicle disc image or a folder holding `DATA.HD4`, `DATA.DAT`, `SOUND.HD3`, `SOUND.DAT` and `MOVIE`. Give it `<game-root>/data` as the output. The C++ command-line program calls the Rust extractor through a `cxx` bridge; conversion runs in process. Data version 9 writes every game file, retained and converted, into one Zstandard ZIP archive, `<game-root>/data.zip` ([format](PORT_ARCHIVE_FORMAT.md)), with a version marker at `<game-root>/data.json`. Textures use JSON and PNG; sound uses semantic JSON and PCM WAV; models and complete characters use glTF with embedded images and minimal gameplay JSON sidecars; configurations and textual maps use typed JSON; movies use self-contained MP4 with copied MPEG-2 video and embedded lossless ALAC audio. Ordinary PACK archives become folders with a minimal versioned `pack.json` containing no contents listing. Substituted originals are removed. Native game code references actual asset paths directly, without catalogs or manifests. See the [migration](PORT_ASSET_MIGRATION.md), [texture](PORT_TEXTURE_FORMAT.md), [audio](PORT_AUDIO_FORMAT.md), [model](PORT_MODEL_FORMAT.md), and [configuration](PORT_CONFIG_FORMAT.md) documents. `dc2data check <game-root>/data` validates native payloads and the whole-output SHA-256 digest. Extraction stages both trees before publication and restores the previous output on failure. Exit status: 0 on success, 1 on an error or failed check, 2 on usage error.
 
-Each texture variant is a full-colour RGBA PNG. When retail animation scripts copy colours between textures, extraction bakes the finite source-colour variants into separate destination PNGs and records their selection in the catalog. Source palettes are used only during extraction; runtime textures and generated render targets use RGBA pixels without palette files or palette uploads. `data.json` carries the current `data_version`, and the game rejects an older extraction so the launcher can rebuild it.
+Each texture variant is a full-colour RGBA PNG. When retail animation scripts copy colours between textures, extraction bakes the finite source-colour variants into separate destination PNGs and records their selectors in the texture document. Source palettes are used only during extraction; runtime textures and generated render targets use RGBA pixels without palette files or palette uploads. `data.json` carries the current `data_version`, and the game rejects an older extraction so the launcher can rebuild it.
 
-`run.sh` and `run.bat` pass `--run-dir <checkout>/port/run`, giving them `port/run/data`, `port/run/port_data` and `port/run/saves`. A direct executable launch defaults to the per-user `chronicletwo` application data root with the same three subdirectories. Explicit `--run-dir DIR` selects a different root.
+`run.sh` and `run.bat` pass `--run-dir <checkout>/port/run`, giving them the data root `port/run/data`, whose parent holds `data.zip`, and `port/run/saves`. A direct executable launch defaults to the per-user `chronicletwo` application data root with the same layout.
+
+The game reads its data through a read-only file system of mounts (`platform/vfs.hpp`). The base mount is `<game-root>/data.zip` when it exists; otherwise the `data/` and `port_data/` directories of an older layout are mounted together as one tree, so directory fixtures and hand-edited data keep working. Both namespaces match names ignoring ASCII case. The archive's central directory is read once at startup and its entries are read in place: Zstandard entries are decompressed on demand, and stored PNG and MP4 entries are copied from, or for movies streamed from, their offsets in the archive through FFmpeg custom I/O. Reads are thread-safe. Explicit `--run-dir DIR` selects a different root.
 
 ### Datapacks and replacement textures
 
-Put texture packs in a `datapacks/` directory beside the selected `port_data/`
-directory. The launch scripts therefore use `port/run/datapacks/`; `--data DIR`
-uses `DIR/../datapacks/`. Each pack is a folder with any single folder name,
-including spaces or Unicode characters. Copy the paths inside `port_data/`
-directly into that folder, replacing the PNGs you want to change:
+Put datapacks in a `datapacks/` directory beside `data.zip`. The launch scripts
+therefore use `port/run/datapacks/`; `--data DIR` uses `DIR/../datapacks/`. A
+pack is a ZIP archive, `datapacks/<name>.zip`, holding files at their entry
+names in `data.zip`, such as `menu/example_0.png` for a texture or
+`event/view_pal.txt` for a retained retail file. Build one from a folder with
+`dc2data pack <folder> <name>.zip`; PNG and MP4 entries are stored and other
+entries use Zstandard. A plain folder `datapacks/<name>/` with the same layout
+is accepted as well, which is convenient while authoring a pack. When both
+exist, the archive is used. Names may contain spaces or Unicode characters:
 
 ```text
 <game-root>/
-  data/
-  port_data/
-    menu/example.img/texture.png
+  data.zip
+    menu/example.json
+    menu/example_0.png
   datapacks/
     datapacks.json
-    My texture pack/
-      menu/example.img/texture.png
+    My texture pack.zip
+      menu/example_0.png
     Menu tweaks/
-      menu/example.img/texture.png
+      menu/example_0.png
 ```
 
-Activate packs and set their priority in `datapacks/datapacks.json`:
+Activate packs and set their priority in `datapacks/datapacks.json`. Each
+`load_order` entry names a pack, with or without its `.zip` suffix:
 
 ```json
 {
@@ -135,13 +142,44 @@ Activate packs and set their priority in `datapacks/datapacks.json`:
 }
 ```
 
-Later entries win when multiple packs replace the same PNG. Packs may contain
-just one file: missing files fall through to earlier packs, then to `port_data/`.
-Unlisted folders are inactive. Packs use the existing catalog and do not need
-their own catalog, bundle JSON or manifest. Folder names must stay within the
-`datapacks/` directory; paths and `..` are rejected. Missing configuration leaves
-the retail textures active; invalid configuration disables the packs and prints
-a diagnostic. Restart the game after changing configuration or pack files.
+Later entries win when multiple packs replace the same file. Packs may contain
+just one file: missing files fall through to earlier packs, then to `data.zip`.
+Unlisted packs are inactive. Packs use the physical asset paths and do not need
+a catalog, bundle JSON or manifest. `load_order` entries are single names; paths
+and `..` are rejected. At startup the packs' file lists, from each archive's
+central directory or a walk of each folder, are merged into one override index
+keyed by lower-cased path, with each path's replacements resolved in
+`load_order` priority once. A lookup is then a single hash lookup: a hit names
+the winning pack file and any lower-priority replacements behind it, and a miss
+goes to `data.zip`. Pack files are trusted as found: symlinks in folder packs
+are followed and pack files are neither hashed nor checked against the pack. A
+pack holding paths that differ only by ASCII case disables the packs. Missing
+configuration leaves the retail assets active; invalid configuration disables
+the packs and prints a diagnostic. Restart the game after changing
+configuration or pack files.
+
+Texture packs made for the earlier `.img` bundle layout can be migrated with
+`tools/kazarov/scripts/migrate_texture_datapacks.py`. Pass the old v1
+`port_data/catalog.json`, the new `port_data/` root containing direct v3
+documents, and the `datapacks/` directory.
+The command previews all moves and reports conflicts without changing packs;
+add `--migrate` to apply the checked plan. Use `--save-map FILE` during the
+preview to preserve the path mapping before replacing the old extraction, then
+`--mapping-file FILE --datapacks DIR --migrate` after publication. The utility
+preserves PNG bytes, keeps unrelated files, and removes empty legacy `.img`
+directories. It rejects unmapped legacy PNGs, changed semantic identities,
+different bytes at a destination, and paths that escape a pack.
+
+```sh
+python tools/kazarov/scripts/migrate_texture_datapacks.py \
+  --old-catalog port/run/port_data/catalog.json \
+  --new-root PATH/TO/NEW/port_data \
+  --datapacks port/run/datapacks \
+  --save-map port/run/.datapack-v1-v3-map.json
+python tools/kazarov/scripts/migrate_texture_datapacks.py \
+  --mapping-file port/run/.datapack-v1-v3-map.json \
+  --datapacks port/run/datapacks --migrate
+```
 
 Replacement PNGs may use the original dimensions or enlarge both dimensions by
 the same power of two, such as 2×, 4× or 8×. The texture keeps its original size
@@ -155,12 +193,26 @@ PNG inputs are limited to 256 MiB each, padded canvases to 16,384 pixels per
 dimension, and decoded mip chains to 256 MiB. GPU texture dimensions must also
 fit the active device's limits.
 
-Packs can also replace ordinary files read by the game's file loader. Put these
-at the path relative to `data/`, directly inside the same pack folder; for
-example, `data/edit.cfg` is replaced by `datapacks/My texture pack/edit.cfg`.
-These file paths follow the loader's case-insensitive matching, and replacement
-file sizes are used when loading. Only existing indexed game files are replaced;
-the separate movie and sound readers and extraction metadata are not overlaid.
+The texture PNG paths are stable across the compact image-document update, so
+packs using the current numbered PNG names keep working. The same pack folders
+can replace PCM WAV files, bank or sequence JSON, converted
+configuration JSON, self-contained movie MP4 files, glTF models, and model
+metadata at their entry names in `data.zip`.
+External glTF buffer and image URIs, such as `../textures/x_0.png`, resolve
+against the glTF's directory within the data namespace and through the same
+pack priority, so a pack replacing a PNG replaces it for every model that
+references it; each external PNG is decoded once and shared. Invalid
+model or metadata overlays can fall back to lower-priority candidates. See the
+[audio](PORT_AUDIO_FORMAT.md), [model](PORT_MODEL_FORMAT.md), and
+[configuration](PORT_CONFIG_FORMAT.md) formats for the physical paths and
+replacement constraints.
+
+Packs can also replace ordinary, unconverted files read by the game's file
+loader. Put each file at its entry name in `data.zip`, directly inside the
+same pack. These file paths follow the loader's case-insensitive
+matching, and replacement file sizes are used when loading. Direct native files can also be supplied by active datapacks. Game configuration
+commands, audio controls and movies use their actual JSON and MP4 paths. The
+user's `config.json` in the save root remains the port's settings file.
 
 The data root is the first of these that applies:
 
@@ -176,9 +228,9 @@ The save root is the first of these that applies. It is created when first resol
 3. `DC2_SAVE`
 4. the per-user save directory: `%LOCALAPPDATA%\chronicletwo\saves` on Windows, `$XDG_DATA_HOME/chronicletwo/saves` or `~/.local/share/chronicletwo/saves` elsewhere
 
-A data root is missing when it is not a directory, lacks either the data or converted-assets manifest, or has no current parent `data.json` marker. A windowed run opens Kazarov's Rust setup window before creating the game window. The editable path accepts a disc image or a disc folder; **Choose folder** opens the operating system's folder picker. **Okay** starts extraction on a worker thread. The progress bar tracks completed raw files and texture conversions, reserving 100% for successful publication. The setup window then closes automatically and normal game startup continues. Existing current data skips setup on subsequent launches. Extraction errors remain visible for correction and retry; closing setup before extraction exits with status 3. During extraction the window stays open until the worker finishes. Headless runs still print the `dc2data extract` command and exit with status 3.
+A data root is missing when its parent has no current `data.json` marker, or has neither `data.zip` nor the `data/` and `port_data/` directories. A windowed run opens Kazarov's Rust setup window before creating the game window. The editable path accepts a disc image or a disc folder; **Choose folder** opens the operating system's folder picker. **Okay** starts extraction on a worker thread. The progress bar tracks completed raw files and texture conversions, reserving 100% for successful publication. The setup window then closes automatically and normal game startup continues. Existing current data skips setup on subsequent launches. Extraction errors remain visible for correction and retry; closing setup before extraction exits with status 3. During extraction the window stays open until the worker finishes. Headless runs still print the `dc2data extract` command and exit with status 3.
 
-The setup uses an eframe desktop window and an rfd native folder dialog on Windows, Linux and macOS. Linux folder selection requires an XDG desktop portal and its desktop backend. Extraction uses the same staged publication and manifests as `dc2data`; the output must be outside the selected source folder. A typed ISO path is supported without mounting the image.
+The setup uses an eframe desktop window and an rfd native folder dialog on Windows, Linux and macOS. Linux folder selection requires an XDG desktop portal and its desktop backend. Extraction uses the same staged publication and integrity checks as `dc2data`; the output must be outside the selected source folder. A typed ISO path is supported without mounting the image.
 
 `run.sh` with no configuration boots the PS2 build in PCSX2 on Linux, and runs `macos-arm64-release` on macOS. `run.bat` with no configuration runs `windows-x64-release`. A PC configuration name extracts the data first, as described above, and then runs the port.
 
@@ -205,6 +257,40 @@ computed on each catalog scan, including the scan before publication; drawing
 the row does not query the disk. Loading always rereads the
 complete image and checks the retail digits before changing game state. Files
 are never removed automatically; unrelated names and temporary files are not rows.
+
+The autosave is `<save root>/saves/autosave`, the same image as a numbered
+save, and never written by the save screen. It is written as a town save
+once on each town map, the first frame the player walks it outside an interior
+(however the town was entered, including leaving a dungeon by paying half the
+money or with an escape item), and as a dungeon save
+(`LOOP_DUNGEON`, `dng_tree_flag` 0) once on each floor, the first frame the
+player has control there. Menus, events, locked input and paused field or player
+updates defer the save. Turning autosave off leaves the arrival eligible when
+it is enabled again. Loading the dungeon one takes retail's path for a
+save made on a floor: the title enters the saved dungeon and floor with
+`mc_load` set. A town autosave first publishes versioned, pretty-printed
+`autosave.spawn.<counter>.json` beside it: the player's position,
+rotation and camera, with the autosave's counter. Retail saves hold only the
+map, and a loaded town save starts at that map's save point (or its entrance on
+a map without one); after loading the autosave, the first frame the player has
+control on its map moves them back to the recorded spot. A spot file whose
+schema, counter, map or finite coordinates do not match the autosave is ignored.
+Spawn data is consumed once, after the player regains control. New games and
+manual or failed loads clear pending spawn data. Matching metadata is written
+durably before the autosave image; older sidecars are pruned only after the new
+image is published. Failed publication retains the matching metadata for either
+image that may remain on disk. The autosave's counter is the newest, so the load
+screen, which lists it
+first as "Autosave", starts on it until a later save; choosing it loads at once,
+as it has no file number for the confirmation to name. `game.autosave` (PC
+Settings, Game page) turns it off; headless, `--jump`, input-script and replay
+runs never write it.
+
+The window icon uses the native `title/dc2_ic.gltf` model. Datapack
+models take priority, with malformed replacements falling back to the next
+valid candidate. The bundled two-moons icon remains available before extraction
+or when no model is valid; headless runs skip icon rendering. On Windows the
+native model also supplies `chronicletwo.ico` and the game shortcut.
 
 On discovery, old `mc0/BESCES-51190dkcl<N>/BESCES-51190dkcl<N>` payloads are
 copied byte for byte into new flat files in `saves/`, using exclusive creation.
@@ -319,7 +405,7 @@ Exit statuses (`port/src/exitcodes.hpp`, and `port/src/mglib.cpp` for the screen
 
 A `PS2_UNIMPLEMENTED` stub aborts instead of exiting, so a debugger or a core dump stops at it: SIGABRT on Linux (status 134 from a shell) and `0xC0000409` on Windows. Other internal aborts stop the same way.
 
-The test `Smoke.HeadlessFramesScreenshot` (`port/src/tests/CMakeLists.txt`) runs `darkchronicle --headless --offscreen --frames 3 --screenshot` on a data directory with a versioned empty `manifest.json` and parent `data.json`. It passes when the run exits 0, prints `dataread: indexed` and `mglib: frame 3 written to`, and writes a PNG. It is labelled `gpu`. It runs under a generated CMake script, because ctest counts a process killed by `abort()` as failed even when `PASS_REGULAR_EXPRESSION` matches its output; the script checks the exit status and the file.
+The test `Smoke.HeadlessFramesScreenshot` (`port/src/tests/CMakeLists.txt`) runs `darkchronicle --headless --offscreen --frames 3 --screenshot` on `data` and `port_data` directories with a current parent `data.json`. It passes when the run exits 0, prints `dataread: indexed` and `mglib: frame 3 written to`, and writes a PNG. It is labelled `gpu`. It runs under a generated CMake script, because ctest counts a process killed by `abort()` as failed even when `PASS_REGULAR_EXPRESSION` matches its output; the script checks the exit status and the file.
 
 ### Test hooks
 
@@ -408,6 +494,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | Key | Type | Default | Values | Meaning |
 |---|---|---|---|---|
 | `game.debug_mode` | bool | false | | the boot debug unlock, and the pad-1 chord; see [DEBUG.md](DEBUG.md) |
+| `game.autosave` | bool | true | | write the autosave on arriving in a town or on a dungeon floor |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
 | `video.interpolation` | bool | true | | interpolate display frames between ticks |
 | `video.max_fps` | number | 0 | 0 or more | display frame cap; 0 is unlimited |
@@ -483,13 +570,14 @@ The PC page uses the game's font and Options artwork. L1/R1 changes tabs, Up/Dow
 | Display | Windowed/fullscreen, resolution, FIFO/mailbox/immediate, frame cap, interpolation, auto/4:3 aspect, UI scale, FPS counter |
 | Audio | Master volume and PS2/custom soundtrack |
 | Controls | Mouse sensitivity, Y inversion and capture; stick sensitivity and X/Y inversion; button symbols and glyph style |
+| Game | Autosave |
 | Bindings | Keyboard and mouse bindings for pad buttons, movement, look, FPS and debug menu |
 
-Edits save to `config.json` and apply immediately. Soundtrack selection takes effect the next time a song starts, including one whose data is already loaded. Custom recordings use the original `.sq` filename in `soundtrack/soundtrack.json`; an absent or invalid recording falls back to the PS2 sequence. Current music is not restarted by moving the setting.
+Edits save to `config.json` and apply immediately. Soundtrack selection takes effect the next time a song starts, including one whose data is already loaded. Custom recordings use the actual sequence JSON path in `soundtrack/soundtrack.json`; `AUDIO_TRACE` prints that path. An absent or invalid recording falls back to the converted sequence. Current music is not restarted by moving the setting.
 
 Resolution changes the windowed size; fullscreen uses the desktop. A command-line `--window` takes precedence. A refused window change is read back and reported on screen. Hand-edited resolutions and numeric values are shown as stored and stay unchanged until that row is edited. The PC UI offers a bounded set of scale presets; the configuration file still accepts the full documented range.
 
-Confirm on a binding shows **Press a key...**. Press a key or mouse button; Escape cancels and cannot be bound. The opening press is ignored, and the new input must be released before navigation resumes. Square or **Restore binding** removes that action's override and restores its defaults. Controller buttons retain their retail assignments. Glyph style changes the PC page's device-specific button prompts; keyboard prompts use current bindings. Other retail screens keep their original button artwork.
+Confirm on a binding shows **Press a key...**. Press a key or mouse button; Escape cancels and cannot be bound. The opening press is ignored, and the new input must be released before navigation resumes. Square or **Restore binding** removes that action's override and restores its defaults. Controller buttons retain their retail assignments. Glyph style changes the PC page's device-specific button prompts; keyboard prompts use current bindings. With **Button symbols** on New, the retail menus and messages draw the symbols of `glyphs/` for that style too (see [GLYPHS.md](GLYPHS.md)); Original keeps the PlayStation art everywhere.
 
 A failed write shows a warning. Settings still work in the current session. Check the save folder and change a setting to retry. A configuration file that could not be read remains protected against replacement.
 
@@ -789,7 +877,7 @@ The PAL scripts (`.stb`) hold the NTSC frame counts and convert them while they 
 - A few literals PAL retuned by hand (a jump in d03, a turn in s03, an object delay and wait in m06b, the backpack scene in i01h01b, one turn in e221a) are anchored: the instruction sequence must occur once and hold the PAL value before the NTSC value is written. The same anchors cover the language copies `_1` to `_5`.
 - Max's and Monica's motion-ratio windows (`mainchr/c01.stb`, `c02.stb`, 8 bounds) take their NTSC values.
 - Matching only looks at decoded instructions inside the script's functions (the program table, CALL targets and unreferenced function blocks), never at raw bytes. Every recipe is validated before any is written, sizes never change, and a converted script converts to the same bytes again.
-- `port/src/script_timing_inventory.inc` lists every script that holds a conversion, with the count of each recipe it must show. Before gameplay starts, NTSC timing validates every indexed `.stb` with the same decoder and recipes, including datapack replacements. Matching replacements are converted through the same loader. A listed script that does not match, or an unlisted one that holds a conversion, appears in a startup report naming the asset. Startup logs the complete asset list and exits with status 5; desktop runs also show an error dialog. Saved settings are unchanged. Unlisted, undecodable `.stb` files stay unchanged with a warning once per asset per session, matching the loader. Validation reads the files once and writes no disk cache. Each converted asset logs once per session.
+- `port/src/script_timing_inventory.inc` lists every script that holds a conversion, with the count of each recipe it must show. Before gameplay starts, NTSC timing validates every indexed `.stb` with the same decoder and recipes, including datapack replacements. Matching replacements are converted through the same loader. A listed script that does not match, or an unlisted one that holds a conversion, appears in a startup report naming the asset. Startup logs the complete asset list and exits with status 5; desktop runs also show an error dialog. Saved settings are unchanged. Unlisted, undecodable `.stb` files stay unchanged with a warning once per asset per session, matching the loader. Validation reads and decodes the scripts on up to 16 threads, then reports them in key order; it reads the files once and writes no disk cache. Each converted asset logs once per session.
 - Effect scripts keep PAL's waits for the end of their motion.
 
 ## Rendering
@@ -935,11 +1023,24 @@ With `DC2_AUDIO_WAV`, the existing platform WAV capture owns tick-driven mixer r
 
 ### Banks and sequences
 
-`sndLoadSound` (`port/src/snd_mngr.cpp`) passes each pack's `hd` and `bd` to `SoundLoadHdBd` and `SoundLoadHdBdAdd`, and each `sq` to `SoundLoadSeq`. They take pointers (`port/src/sound_port.hpp`).
+`sndLoadSound` (`port/src/snd_mngr.cpp`) loads the actual `.sound.json`
+bundle through `SoundLoadBundlePath` or its bounded-byte equivalent. Its bank,
+sequence and control documents reference their actual native files.
+`audio::Bank::CreateFromJsonCandidates` loads bank JSON and PCM WAV samples
+through datapack priority; `audio::SqFile::CreateFromJson` loads normalized
+musical events. Other game configurations execute typed JSON commands directly.
+See [published audio resources](PORT_AUDIO_FORMAT.md) and
+[native configuration assets](PORT_CONFIG_FORMAT.md).
 
 The retail `CSound::LoadHdBd`, `LoadHdBd2`, `LoadHdBdAdd`, `LoadSeq` and `TransHdBd` take addresses in `int`. The port overrides them to refuse and print a line to stderr. The port does not round-trip 32-bit pointers.
 
-Banks are parsed and decoded once, by `audio::Bank::Create`. A port holds up to 16 banks (`MIDI_PORT_BANK_MAX`). Bank 0 is bound with `Mixer::BindBank(port, bank)`. Added banks are bound with `BindBank(port, n, bank)`, and a channel selects one with the bank-select controller that the SE calls send. The port layout (linked ports, dependent ports and `ezmidi_param` attributes) is the table that retail `CSound::Init` loads, kept in `sound.cpp` as `kLayout`. `TransBdState` always reports the transfer complete.
+The extractor decodes retail HD/BD samples and SQ events once. A port holds up
+to 16 converted banks (`MIDI_PORT_BANK_MAX`). Bank 0 is bound with
+`Mixer::BindBank(port, bank)`. Added banks use `BindBank(port, n, bank)`, and a
+channel selects one with the bank-select controller that the SE calls send.
+The port layout (linked ports, dependent ports and `ezmidi_param` attributes)
+is the table that retail `CSound::Init` loads, kept in `sound.cpp` as `kLayout`.
+`TransBdState` always reports the transfer complete.
 
 ### Sound effects
 
@@ -955,7 +1056,11 @@ Retail `SE_Play` builds a pitch message and overwrites it before sending. The po
 
 ### Streams
 
-`ezBgm` drives 16 `audio::StreamChannel`s, attached to the mixer on first use. An open reads the SOUND.DAT entry extracted to `data/sound/<name>` (see [SOUND_DAT.md](SOUND_DAT.md)). Names with a device prefix, such as `cdrom0:\VOICE\...WV;1`, go through the data index and fail. Voice packs (`StreamOpenFromFPLFast`) fail too, because those files are not on the PAL disc. Opens are synchronous, so `StreamOpenState` is always 0.
+`ezBgm` drives 16 `audio::StreamChannel`s, attached to the mixer on first use.
+An open reads the explicitly named PCM WAV under `sound/` through datapack
+priority. Voice packs (`StreamOpenFromFPLFast`) still fail because those files
+are not on the PAL disc. Opens are synchronous, so `StreamOpenState` is always
+0. [Published audio resources](PORT_AUDIO_FORMAT.md) describes the WAV paths.
 
 | Command | Effect |
 |---|---|
@@ -975,7 +1080,8 @@ Retail `SE_Play` builds a pitch message and overwrites it before sending. The po
 
 The state word holds the mode in its low byte, `0x1000` while playing, and `0x8000` when the data runs out. The driver clears `0x8000` once its buffers drain. The port holds `0x8000` for one second of output and then reads 0. A failed open leaves the channel unopened, with state 0, as on retail.
 
-A non-zero low nibble in the mode turns looping on. A looping stream restarts at the start of the data, as described in [SOUND_DAT.md](SOUND_DAT.md).
+A non-zero low nibble in the mode turns looping on. A looping stream restarts
+at the start of its decoded PCM track.
 
 The level is the raw 16-bit sample pair at the play position, left in the low half and right in the high half. `_STREAM_SILENT_CHECK` (`ps2/src/event_func.cpp`) reads it and treats both halves within 10 of zero as silent.
 
@@ -987,7 +1093,13 @@ The retail `CSound::Stop`, `SetVol`, `SetStereoMode` and the stream methods othe
 
 ### Open
 
-The title is reached headless. Earlier PAL-rate validation with `DC2_AUDIO_WAV` captured 48 kHz stereo: silent through the language select, then the logo and title music (RMS about 750 at the title, peaks near 24,000). The capture is closed cleanly on a `--frames` exit: `main` registers `AudioShutdown` with `atexit`, so the output stops before the mixer's statics are destroyed. The real-data tests `SoundRealData.*` (`port/src/tests/sound_test.cpp`) load `snd2/SY_000.snd`, every `snd2/bgm` pack and a SOUND.DAT entry through the driver.
+The title is reached headless. Earlier PAL-rate validation with `DC2_AUDIO_WAV`
+captured 48 kHz stereo: silent through the language select, then the logo and
+title music (RMS about 750 at the title, peaks near 24,000). The capture is
+closed cleanly on a `--frames` exit: `main` registers `AudioShutdown` with
+`atexit`, so the output stops before the mixer's statics are destroyed. The
+real-data `SoundRealData.*` tests (`port/src/tests/sound_test.cpp`) exercise
+converted banks, sequences, and stream WAVs through the driver.
 
 `sndCSeSeqData::LoadSMF` (`ps2/src/snd_seseq.cpp`) adds the SMF header size to a `uptr`.
 
@@ -995,27 +1107,55 @@ The title is reached headless. Earlier PAL-rate validation with `DC2_AUDIO_WAV` 
 
 `port/src/movie.cpp` overrides `CMovie::Load` (the seven-argument overload; the other two forward to it), `Play`, `SwitchThread`, `Term`, `EndCheck` and `IsStarted`. Nothing else reaches the retail player, so its three threads, the VBlank and DMAC channel 2 handlers, the IPU and DMAC channel 3/4 register writes, `setImageTag`'s GIF chains and the IOP transfers have no caller and are dropped by `--gc-sections`, and so are the `libmpeg` stubs. One movie plays at a time, as the retail file-scope statics did.
 
-`MoviePortPath` maps the game's name to `data/movie/<name>` lower-cased, with a device prefix, a leading separator and a `;1` version removed (`L5LOGO.PSS` -> `data/movie/l5logo.pss`). `movie/` is outside the DATA index, so it does not go through `DataReadFind`. A missing or non-MPEG-2 file logs `movie: <name> not found or not an MPEG-2 PSS (<path>)`, `IsStarted` still returns 1 so the callers' busy-waits end, and `EndCheck` returns 1 at once (the PAL disc has no `TUTO`/`TUTO2` manual movies).
+`MoviePortPath` normalizes the actual MP4 path by removing device prefixes,
+leading separators and ISO version suffixes, and folding case. For example,
+the native logo reference is `movie/l5logo.mp4`. Datapacks may replace that file.
+A missing or unplayable MP4 logs a diagnostic; `IsStarted` still returns 1 so
+callers' busy-waits end, and `EndCheck` returns 1 at once (the PAL disc has no
+`TUTO`/`TUTO2` manual movies).
 
-The pipeline is in `port/src/video/`. `pss.*` demuxes packs into video (stream 0xE0) and PCM (private stream 1, substream 0xA0) chunks with their PTS. `mpeg2_decoder.*` wraps libavcodec's `mpegvideo` parser and `mpeg2video` decoder, single-threaded, YUV 4:2:0, pictures in display order with 90 kHz PTS (extrapolated by the frame duration where a picture has none), and rejects a stream whose sequence header has no MPEG-2 sequence extension. `yuv.*` converts BT.601 limited range to RGBA with nearest chroma per 2x2 block, as the IPU's colour space conversion did, alpha 0xFF (the renderer's opaque, GS 0x80). `pcm.*` reads the soundtrack. `player.*` ties them together.
+The pipeline is in `port/src/video/`. Extraction copies the retail MPEG-2
+video into a standard MP4 container and converts the synchronized private
+movie audio to embedded ALAC. Runtime `MoviePlayer` uses FFmpeg to demux and
+decode both tracks. Video frames carry 90 kHz presentation times, with frame
+duration used when a picture has no timestamp. `yuv.*` converts YUV 4:2:0 to
+RGBA where applicable; other decoded pixel formats use libswscale. Embedded
+audio becomes a stereo PCM track for the shared mixer. The original PSS
+container and a separate movie WAV are not needed at runtime.
+
+The five `menu/1..5/help.cfg` files use a movie subtitle dialect. Extraction
+publishes each as a directly named `help.json` document of kind `movie_subtitles`:
+chapters have an `id` and ordered entries with `start_seconds`,
+`clear_seconds` and readable `text`. `MovieCCAnalyze` decodes the actual JSON bytes, selects the chapter from its numeric argument,
+converts the times to the game's 30 Hz subtitle timeline, and fills the
+existing caption slots. A datapack can replace the actual JSON file;
+an invalid replacement falls back to a valid lower-priority document. See
+[native configuration assets](PORT_CONFIG_FORMAT.md).
 
 There are no threads. The game calls `SwitchThread` once per game frame and `EndCheck` beside it; both advance the player to the movie time elapsed since `Play`, `(ClockTickCount() - tick at Play) * 90000 / ClockTickRate()`. The newest picture whose PTS is due is shown; pictures overtaken after a stall are decoded but not converted. At the fixed 60 Hz tick with `mgFrameRate` 2, a 25 fps movie keeps its cadence across 30 game frames per second; headless runs on the unbounded clock are deterministic.
 
 The picture is uploaded into the texture the game names in `Play` (`"moviework"`), found with `mgTexManager.GetTexture(name, -1)` and `mgPortFindTexture`, with `gfx::UpdateTexture` (recorded into the tick's display list when one is open). That is what the PS2 did: `setImageTag` uploaded into the same texture and the game draws it itself as a 2D quad (the copyright screen's `L5LOGO.PSS`, `RUSH.PSS`, the movie viewer, the event script's `_LOAD_MOVIE`, the manual), so its fades, stretch and letterbox stay the game's, tick-exact.
 
-There is no deinterlacing; fields are woven, as the IPU output them. `L5LOGO.PSS` codes all 150 pictures with `progressive_frame = 0`, every other disc movie with 1. Measured on the luma of the first 1,500 pictures of each of the nine movies, the mean difference between adjacent lines (opposite fields) is at most 0.83 of that between lines two apart (the same field) on `L5LOGO.PSS` and at most 1.008 anywhere: there is no comb, so a blend would only blur.
+There is no deinterlacing; fields are woven, as the IPU output them.
+`L5LOGO.PSS` codes all 150 pictures with `progressive_frame = 0`, every other
+disc movie with 1. Measured on the luma of the first 1,500 pictures of each
+of the nine movies, the mean difference between adjacent lines (opposite
+fields) is at most 0.83 of that between lines two apart (the same field) on
+`L5LOGO.PSS` and at most 1.008 anywhere: there is no comb, so a blend would
+only blur.
 
-The soundtrack is 16-bit PCM in private stream 1, substream 0xA0, behind a 4-byte sub-header: `SShd` (type 1, 48,000 Hz, 2 channels, 0x200 bytes per channel block, interleaved left block then right block) then `SSbd` and the body. `Load` reads the whole track before the first picture (`L5LOGO.PSS`: 1,154,048 bytes, 6.01 s), aligns it by the first PCM PTS against the first video PTS, and `Play` hands it to the shared mixer as an `audio::PcmTrack` with `Mixer::SetStream` on port 5 at full port volume (`kMoviePortAudioPort`: `GetCSndPortNo` never maps a game port there). `Term` stops and clears it. The track is read whole because the mixer's existing API plays complete tracks; a streaming channel would replace that. `init_sound` (which reset the PS2 sound driver), the memory pools and the width and height arguments are ignored: the host allocates and the picture size comes from the stream.
+See [published audio resources](PORT_AUDIO_FORMAT.md). `Load` opens the actual
+MP4 path through datapack priority. If requested, `Play` hands its decoded audio to the shared
+mixer as an `audio::PcmTrack` with `Mixer::SetStream` on port 5 at full port
+volume (`kMoviePortAudioPort`: `GetCSndPortNo` never maps a game port there).
+`Term` stops and clears it. `init_sound` (which reset the PS2 sound driver),
+the memory pools and the width and height arguments are ignored: the host
+allocates and the picture size comes from the video stream.
 
-The game links only libavcodec and libavutil (`port/cmake/movies.cmake`); no libavformat, libswscale or libswresample symbol is referenced. On Windows `darkchronicle.exe` imports `avcodec-63.dll` and `avutil-61.dll` only; `swresample-7.dll` ships beside them because the FFmpeg build's `avcodec-63.dll` depends on it.
-
-Tests:
-
-- `video_mpeg2_test`: MPEG-1 and header-less streams are rejected; `L5LOGO.PSS`'s first picture is a 512x416 I-picture at PTS 4758, the black frame the logo fades in from; all 150 pictures decode in increasing PTS order.
-- `video_yuv_test`: hand-computed pixels, limited range, chroma siting, strides.
-- `movie_test`: PCM layout, the player against the clock, `CMovie` through the glue, and a 30-frame play of `L5LOGO.PSS` through the `"moviework"` texture to a PNG compared with the decoded picture.
-
-The `L5LOGO.PSS` cases in `video_mpeg2_test` and in `MoviePcm`, `MoviePlayer` (`movie_test`) search upward from the test executable, six directory levels at most, for `data/movie/l5logo.pss`, and skip when it is not found. The `MovieGlue` cases first look for `movie/l5logo.pss` under the game data root (`PathsDataRoot()`: `--data`, then `DC2_DATA`, then the default `data` directory), then fall back to the same upward search and skip when neither finds it.
+The game links FFmpeg's libavformat, libavcodec, libavutil, libswscale and
+libswresample (`port/cmake/movies.cmake`). `movie_test` covers MP4 path
+mapping, the embedded-audio fixture, clocked playback and the `CMovie` glue;
+retail `L5LOGO` cases use the converted MP4 when available.
 
 ## Layout
 

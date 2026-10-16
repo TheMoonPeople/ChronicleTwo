@@ -3,19 +3,30 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
 #include <limits>
+#include <optional>
+#include <string>
 
+#include "actionchara.hpp"
+#include "asset_directory.hpp"
+#include "dataread_port.hpp"
 #include "menu_mouse_item.hpp"
 #include "menuchr.hpp"
 #include "menudraw.hpp"
 #include "menudraw_port.hpp"
 #include "menumain.hpp"
 #include "mg_drawprim.hpp"
+#include "mg_frame.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mg_texture_port.hpp"
 #include "mglib.hpp"
 #include "mglib_port.hpp"
+#include "platform/model_assets.hpp"
+#include "platform/texture_bundle.hpp"
 
 PORT_OVERRIDE void MenuReloadCLUT(int index) {
     MgTextureSetDrawVariant(MenuCharaChangeBase_Tex, index == 0 ? MenuCharaChangeCLUT_Tex : nullptr);
@@ -349,4 +360,122 @@ PORT_OVERRIDE void MenuCursorDraw(mgCTexture *texture, float *position, float ro
         prim->Vertex(px, py, 0.0f);
     }
     prim->End();
+}
+
+namespace {
+/**
+ * Selects the repair model by its actual bundle or ordinary asset-directory filename.
+ */
+std::optional<std::filesystem::path> RepairModelPath(const void *data) {
+    const auto path = DataReadBufferPath(data);
+    if (path && std::filesystem::path(*path).extension() == ".gltf") {
+        return std::filesystem::path(*path).replace_extension(".assets") / "repair_powder.gltf";
+    }
+    if (const auto directory = AssetDirectoryPath(data)) {
+        return std::filesystem::path(*directory) / "repair_powder.gltf";
+    }
+    return std::nullopt;
+}
+
+/**
+ * Enters the repair sprites from an embedded native set or an ordinary texture document.
+ */
+bool EnterRepairTexture(const void *data, int block) {
+    const auto path = DataReadBufferPath(data);
+    if (!path) {
+        return false;
+    }
+    std::strcpy(mgTexManager.name_suffix, "_2");
+    bool loaded = false;
+    if (std::filesystem::path(*path).extension() == ".gltf") {
+        std::string error;
+        loaded = texture_bundle::Enter(*path, "menueff0", mgTexManager, block, nullptr, error);
+        if (!loaded) {
+            std::fprintf(stderr, "repair texture: %s\n", error.c_str());
+        }
+    } else if (const auto directory = AssetDirectoryPath(data)) {
+        MgTextureEnterDocument(&mgTexManager, *directory + "/repair_powder2d.json", block, nullptr, nullptr);
+        char texture_name[] = "menueff0";
+        loaded = mgTexManager.GetTexture(texture_name, block) != nullptr;
+    }
+    mgTexManager.name_suffix[0] = 0;
+    return loaded;
+}
+} // namespace
+
+PORT_OVERRIDE void CRepairManager::CheckDataBG(int block) {
+    if (data_ready) {
+        return;
+    }
+    mgTexManager.DeleteBlock(block);
+    tex_block = static_cast<s16>(block);
+    tex = nullptr;
+    if (!EnterRepairTexture(data, block)) {
+        bg_load = false;
+        return;
+    }
+    char texture_name[] = "menueff0_2";
+    tex = mgTexManager.GetTexture(texture_name, -1);
+    data_ready = tex != nullptr;
+    bg_load = false;
+}
+
+PORT_OVERRIDE void CRepairManager::SetRepairData(mgCMemory *memory, int block, unsigned int *pack) {
+    if (!memory) {
+        return;
+    }
+    tex_block = static_cast<s16>(block);
+    data = pack;
+    tex = nullptr;
+    data_ready = false;
+    bg_load = false;
+    keep = false;
+    if (!EnterRepairTexture(data, block)) {
+        return;
+    }
+    char texture_name[] = "menueff0_2";
+    tex = mgTexManager.GetTexture(texture_name, -1);
+    data_ready = tex != nullptr;
+    if (data_ready) {
+        SetStack(memory, 1);
+        keep = true;
+    }
+}
+
+PORT_OVERRIDE void CRepairManager::GeneratePoly(float *position, int block) {
+    const auto path = RepairModelPath(data);
+    if (!path || !position || !model_stack.stack) {
+        return;
+    }
+    if (model) {
+        model_assets::DeleteCharacterTextures(*model, 0, CHARA_IMAGE_MAX - 1);
+    }
+    model = nullptr;
+    model_stack.stack_used = 0;
+    model_stack.lock = 0;
+    auto *character = new (model_stack.Alloc(static_cast<int>((sizeof(CActionChara) + 15) / 16 + 2))) CActionChara;
+    model_assets::DeleteCharacterTextures(*character, 0, CHARA_IMAGE_MAX - 1);
+    character->Initialize(nullptr);
+    model_assets::CharacterLoadOptions options{&model_stack, &model_stack, &model_stack, &mgTexManager, nullptr, block};
+    std::string                        error;
+    if (!model_assets::LoadCharacter(*character, *path, "info", options, error)) {
+        model_assets::DeleteCharacterTextures(*character, 0, CHARA_IMAGE_MAX - 1);
+        model_stack.stack_used = 0;
+        model_stack.lock = 0;
+        std::fprintf(stderr, "repair model: %s\n", error.c_str());
+        return;
+    }
+    model = character;
+    model->SetScale(0.4f, 0.4f, 0.4f);
+    model->SetPosition(position);
+    model->SetMotion(const_cast<char *>("\x94\xad\x93\xae"), 0, 1);
+    model->SetFadeFlag(1);
+    model->Show(0, 1);
+    auto *frame = model->CObjectFrame::frame;
+    if (frame && frame->attr) {
+        frame->attr->z_test = MG_DEPTH_TEST_ALWAYS;
+        frame->SetAttrParam(*frame->attr, 1, MG_FRAME_ATTR_Z_TEST);
+    }
+    model->Show(1, 1);
+    model_counter = 0;
 }

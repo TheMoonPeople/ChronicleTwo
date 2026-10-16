@@ -161,7 +161,7 @@ jobs:
 
       - name: Configure
         run: |
-          ./tools/windows/configure.ps1 -Root $env:RUNNER_TEMP -BuildDirectory $env:GITHUB_WORKSPACE/port/build/windows-x64-tests -Tests
+          ./tools/windows/configure.ps1 -Root $env:RUNNER_TEMP -BuildDirectory $env:GITHUB_WORKSPACE/port/build/windows-x64-tests -Tests -TestTimeout 60
 
       - name: Build
         run: |

@@ -12,3 +12,4 @@ extern int           init_camera asm("DngMain_EyeInitialized");
 
 class CActionChara;
 void PortRetailResetEyeView(CActionChara *) asm("DngMain_ResetEyeView");
+int  PortRetailChangeSetUnit(int) asm("DngMain_ChangeSetUnit");

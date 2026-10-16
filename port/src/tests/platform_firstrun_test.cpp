@@ -54,18 +54,15 @@ TEST_F(PlatformFirstRun, RegularFileRootIsMissing) {
     EXPECT_TRUE(FirstRunDataMissing(Root()));
 }
 
-TEST_F(PlatformFirstRun, PublishedManifestsAndMarkerAreNotMissing) {
+TEST_F(PlatformFirstRun, NativeAssetDirectoryAndMarkerNeedNoManifest) {
     fs::create_directories(Root());
     fs::create_directories(base_ / "port_data");
-    std::ofstream(Root() / "manifest.json", std::ios::binary) << "{\"schema_version\":1,\"files\":{}}";
-    std::ofstream(base_ / "port_data" / "manifest.json", std::ios::binary)
-        << "{\"schema_version\":1,\"files\":{}}";
     std::ofstream(base_ / "data.json", std::ios::binary)
         << "{\"schema_version\":1,\"data_version\":" << KAZAROV_DATA_VERSION << "}";
     EXPECT_FALSE(FirstRunDataMissing(Root()));
 }
 
-TEST_F(PlatformFirstRun, MissingConvertedAssetManifestRequiresExtraction) {
+TEST_F(PlatformFirstRun, MissingConvertedAssetDirectoryRequiresExtraction) {
     fs::create_directories(Root());
     std::ofstream(Root() / "manifest.json", std::ios::binary) << "{\"schema_version\":1,\"files\":{}}";
     std::ofstream(base_ / "data.json", std::ios::binary)

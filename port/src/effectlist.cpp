@@ -1,11 +1,16 @@
 #include "common.h"
 
 #include <algorithm>
+#include <cstring>
 #include <vector>
 
+#include "dataread.hpp"
+#include "dataread_port.hpp"
+#include "effect.hpp"
 #include "effectlist.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_drawprim_port.hpp"
+#include "mg_texture_port.hpp"
 #include "mglib.hpp"
 #include "mglib_port.hpp"
 
@@ -61,8 +66,8 @@ PORT_OVERRIDE void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int j
     uint8_t rgba[4];
     mgPortPrimColor(prim, rgba);
 
-    const int row_height = mgScreenHeight / 16;
-    const int edge_offset[2] = {-10, 10};
+    const int                  row_height = mgScreenHeight / 16;
+    const int                  edge_offset[2] = {-10, 10};
     std::vector<gfx::Vertex2D> strip;
 
     for (int row = 0; row < 17; row++) {
@@ -76,4 +81,59 @@ PORT_OVERRIDE void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int j
     std::vector<gfx::Vertex2D> triangles;
     mgPortStripTriangles(strip, triangles);
     mgPortPrimSubmit(prim, gfx::Primitive::Triangles, triangles);
+}
+
+PORT_OVERRIDE void CEffectList::LoadEFPFile(char *name, u_int *pack, int block, mgCMemory *stack) {
+    int          sizes[64];
+    u_int       *files[64];
+    char        *names[64];
+    char         directory[32];
+    char         basename[32];
+    char         extension[16];
+    int          particle_num;
+    int          ctrl_num;
+    int          i;
+    u_int        bytes;
+    u_int        quadwords;
+    CEffect     *particles;
+    CEffectCtrl *ctrls;
+
+    this->block = block;
+    this->pack = pack;
+    bytes = strlen(name) + 1;
+    quadwords = bytes % 16 ? bytes / 16 + 1 : bytes / 16;
+    this->name = (char *) stack->Alloc(quadwords);
+    strcpy(this->name, name);
+
+    if (const auto directory = AssetDirectoryPath(pack)) {
+        for (const auto &document : DataReadNativeKeys(*directory)) {
+            if (texture_catalog::Find(document)) {
+                MgTextureEnterDocument(&mgTexManager, document, block, nullptr, nullptr);
+            }
+        }
+    }
+
+    effect_num = AssetDirectoryReadExtension(pack, "em", files, 64, sizes, names);
+    bytes = effect_num * sizeof(CEffectManager);
+    quadwords = bytes % 16 ? bytes / 16 + 1 : bytes / 16;
+    managers = new (stack->Alloc(quadwords + 2)) CEffectManager[effect_num];
+    bytes = effect_num * sizeof(mgC3DSprite);
+    quadwords = bytes % 16 ? bytes / 16 + 1 : bytes / 16;
+    sprites = new (stack->Alloc(quadwords + 2)) mgC3DSprite[effect_num];
+
+    for (i = 0; i < effect_num; i++) {
+        DivPathNameExt(names[i], directory, basename, extension);
+        managers[i].GetBufferNums((char *) files[i], sizes[i], &particle_num, &ctrl_num);
+        bytes = particle_num * sizeof(CEffect);
+        quadwords = bytes % 16 ? bytes / 16 + 1 : bytes / 16;
+        particles = new (stack->Alloc(quadwords + 2)) CEffect[particle_num];
+        bytes = ctrl_num * sizeof(CEffectCtrl);
+        quadwords = bytes % 16 ? bytes / 16 + 1 : bytes / 16;
+        ctrls = new (stack->Alloc(quadwords + 2)) CEffectCtrl[ctrl_num];
+        managers[i].EntryEffCtrls(particles, particle_num, ctrls, ctrl_num);
+        managers[i].Initialize();
+        managers[i].Load((char *) files[i], sizes[i]);
+        strcpy(managers[i].name, basename);
+        managers[i].Run();
+    }
 }

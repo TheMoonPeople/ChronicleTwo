@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 #include "arena_root.hpp"
 #include "dataread.hpp"
@@ -9,6 +10,7 @@
 #include "mainloop.hpp"
 #include "menucommon.hpp"
 #include "mg_memory.hpp"
+#include "native_config.hpp"
 #include "platform/arena.hpp"
 #include "scriptinterpreter.hpp"
 
@@ -19,6 +21,14 @@ namespace {
 char message_root;
 } // namespace
 
+PORT_OVERRIDE int LoadGameDataAnalyze(char *name) {
+    if (!name) {
+        return 0;
+    }
+    SetCurrentDir(nullptr);
+    return RunNativeConfig("menu/cfg7/" + std::string(name), PortGameDataTags) ? 1 : 0;
+}
+
 PORT_OVERRIDE int CGameData::LoadItemSystemMes(int language) {
     // This root is reinitialized on every language load. Cursor rebinding elsewhere
     // must preserve live sound records, so clearing belongs to this owner.
@@ -28,16 +38,8 @@ PORT_OVERRIDE int CGameData::LoadItemSystemMes(int language) {
     memory.stSetBuffer(root, 0x280 * kArenaHeadroom);
     auto *previous_stack = PortGameDataBuildStack;
     PortGameDataBuildStack = &memory;
-    alignas(64) u_long128 script_buffer[0x780];
-    char                  path[0x40];
-    std::snprintf(path, sizeof(path), "menu/cfg7/comdatmes%d.cfg", language);
-    int size = 0;
-    if (LoadFile2(path, script_buffer, &size, 0)) {
-        CScriptInterpreter interpreter;
-        interpreter.SetTag(PortGameDataTags);
-        interpreter.SetScript(reinterpret_cast<char *>(script_buffer), size);
-        interpreter.Run();
-    }
+    const auto path = "menu/cfg7/comdatmes" + std::to_string(language) + ".cfg.json";
+    RunNativeConfig(path, PortGameDataTags);
     PortGameDataBuildStack = previous_stack;
     return 1;
 }

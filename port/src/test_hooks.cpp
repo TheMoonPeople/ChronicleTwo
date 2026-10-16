@@ -3,8 +3,8 @@
 #include <charconv>
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -13,7 +13,7 @@
 #include "mapselect.hpp"
 #include "platform/config.hpp"
 #include "platform/input.hpp"
-#include "platform/paths.hpp"
+#include "platform/vfs.hpp"
 #include "savedata.hpp"
 #include "title.hpp"
 #include "userdata.hpp"
@@ -39,7 +39,9 @@ bool Number(std::string_view text, int &value, int maximum) {
 }
 
 bool ResolveEvent(int event, int &mode, INIT_LOOP_ARG &arg) {
-    std::ifstream file(PathsDataRoot() / "event/view_pal.txt");
+    std::vector<std::uint8_t> bytes;
+    vfs::Read(vfs::Find(vfs::Base(), "event/view_pal.txt"), bytes);
+    std::istringstream file(std::string(bytes.begin(), bytes.end()));
     std::string   line;
     while (std::getline(file, line)) {
         std::vector<std::string_view> columns;
@@ -174,6 +176,8 @@ void GamePrepareJump(int &mode, INIT_LOOP_ARG &arg) {
     arg = INIT_LOOP_ARG{};
     DebugFlag = 1;
     PortGameBootInit = 1;
+    char town_config[] = "dbg/pb.cfg.json";
+    char dungeon_config[] = "dbg/cap1.cfg.json";
     switch (jump.mode) {
         case JumpMode::Menu:
             mode = LOOP_MENU;
@@ -185,13 +189,13 @@ void GamePrepareJump(int &mode, INIT_LOOP_ARG &arg) {
             if (GetMapName(jump.map, nullptr) == nullptr || GetMapType(jump.map) < 0) {
                 BadTarget();
             }
-            LoadGameConfig("dbg/pb.cfg");
+            LoadGameConfig(town_config);
             mode = LOOP_EDIT;
             arg.map_no = jump.map;
             arg.event_no = 100;
             break;
         case JumpMode::Dungeon:
-            LoadGameConfig("dbg/cap1.cfg");
+            LoadGameConfig(dungeon_config);
             mode = LOOP_DUNGEON;
             arg.map_no = jump.map;
             arg.floor_no = jump.floor;

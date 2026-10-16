@@ -267,15 +267,15 @@ Hit HitTest(const State &state, float x, float y) {
     if (!state.open) {
         return Inside(x, y, 284, 51, 444, 76) ? Hit{HitKind::Entry} : Hit{};
     }
-    for (int page = 0; page < 4; ++page) {
-        if (Inside(x, y, kLeft + page * 88, 91, kLeft + (page + 1) * 88, 114)) {
+    for (int page = 0; page < kPages; ++page) {
+        if (Inside(x, y, kLeft + page * kTabStep, 91, kLeft + (page + 1) * kTabStep, 114)) {
             return {HitKind::Tab, page};
         }
     }
     if (Inside(x, y, kLeft, 343, kLeft + 105, 370)) {
         return {HitKind::Back};
     }
-    if (state.page == 3 && Inside(x, y, 272, 343, kRight, 370)) {
+    if (state.page == kBindingsPage && Inside(x, y, 272, 343, kRight, 370)) {
         return {HitKind::ResetBinding};
     }
     if (Inside(x, y, kLeft, kRowY, kRight, kRowY + kVisibleRows * kRowStep)) {
@@ -288,7 +288,7 @@ Hit HitTest(const State &state, float x, float y) {
 }
 
 void SelectPage(State &state, int page) {
-    state.page = (page + 4) % 4;
+    state.page = (page + kPages) % kPages;
     state.binding = -1;
 }
 

@@ -30,18 +30,18 @@ bool               narration_finished;
 } // namespace
 
 PORT_OVERRIDE void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_type, int chapter) {
-    static const char *voices[] = {"0060600.wav", "2070310.wav", "3060260.wav", "4020120.wav",
-                                   "5000010.wav", "6000360.wav", "7000010.wav", "8000140.wav"};
+    static const char *voices[] = {"sound/0060600.wav", "sound/2070310.wav", "sound/3060260.wav", "sound/4020120.wav",
+                                   "sound/5000010.wav", "sound/6000360.wav", "sound/7000010.wav", "sound/8000140.wav"};
     chapter_memory.stSetBuffer(stack->stGetTop(), stack->stGetRest());
     chapter_info = new (chapter_memory.Alloc((sizeof(MENU_CHAPTER_INFO) + 15) / 16)) MENU_CHAPTER_INFO{};
     std::copy_n(tex_block, 2, chapter_info->tex_block);
     chapter_memory.Align64();
     char name[32];
-    std::snprintf(name, sizeof(name), "chap%d.img", chapter);
+    std::snprintf(name, sizeof(name), "chap%d.json", chapter);
     auto *image = chapter_memory.stGetTop();
     int   size = LoadFileMenu(name, image, MENU_FILE_LOAD_DIRECT);
     if (size <= 0) {
-        char fallback[] = "chap0.img";
+        char fallback[] = "chap0.json";
         size = LoadFileMenu(fallback, image, MENU_FILE_LOAD_DIRECT);
     }
     background = logo = nullptr;
@@ -57,7 +57,7 @@ PORT_OVERRIDE void MenuChapterInit(mgCMemory *stack, int *tex_block, int open_ty
     chapter_memory.Align64();
     auto *bank = chapter_memory.stGetTop();
     size = 0;
-    char bank_name[] = "snd2/sp/SP_007.snd";
+    char bank_name[] = "snd2/sp/sp_007.sound.json";
     LoadFile2(bank_name, bank, &size, LOAD_FILE_READ);
     sndInitPort(SND_PORT_MENU);
     sound_id = 0;

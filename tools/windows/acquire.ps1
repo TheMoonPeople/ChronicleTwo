@@ -23,14 +23,23 @@ $downloads | ForEach-Object -Parallel {
     $archive = Join-Path $using:archives "$name.zip"
     $target = Join-Path $using:deps $name
     $timer = [Diagnostics.Stopwatch]::StartNew()
-    if (!(Test-Path $archive)) {
-        Write-Host "kazarov: downloading $name (log: $(Join-Path $using:archives "$name-download.log"))"
-        & curl.exe -fL --retry 3 -o $archive $url 2> (Join-Path $using:archives "$name-download.log")
-        if ($LASTEXITCODE) { throw "Download failed: $url" }
-    }
     Write-Host "kazarov: verifying $name"
-    $hash = Get-FileHash $archive -Algorithm SHA256
-    if ($hash.Hash -ne $expected) { throw "SHA-256 mismatch: $archive (expected $expected, got $($hash.Hash))" }
+    $hash = if (Test-Path -LiteralPath $archive) { Get-FileHash -LiteralPath $archive -Algorithm SHA256 }
+    if ($null -eq $hash -or $hash.Hash -ne $expected) {
+        if ($null -ne $hash) { Write-Host "kazarov: replacing stale or corrupt cached archive: $archive" }
+        Write-Host "kazarov: downloading $name (log: $(Join-Path $using:archives "$name-download.log"))"
+        $partial = "$archive.partial"
+        try {
+            & curl.exe -fL --retry 3 -o $partial $url 2> (Join-Path $using:archives "$name-download.log")
+            if ($LASTEXITCODE) { throw "Download failed: $url" }
+            $hash = Get-FileHash -LiteralPath $partial -Algorithm SHA256
+            if ($hash.Hash -ne $expected) { throw "SHA-256 mismatch: $archive (expected $expected, got $($hash.Hash))" }
+            Move-Item -LiteralPath $partial -Destination $archive -Force
+            $hash.Path = $archive
+        } finally {
+            if (Test-Path -LiteralPath $partial) { Remove-Item -LiteralPath $partial -Force }
+        }
+    }
     Write-Host "kazarov: extracting $name (log: $(Join-Path $using:archives "$name-extract.log"))"
     & $using:sevenZip x -y "-o$target" $archive > (Join-Path $using:archives "$name-extract.log")
     if ($LASTEXITCODE) { throw "Extract failed: $archive" }

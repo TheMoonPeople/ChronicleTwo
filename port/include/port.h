@@ -43,3 +43,4 @@ inline char *index(const char *s, int c) {
 #ifdef CT_PS2_TEXTURE_COPY
 #include "texture_copy.hpp"
 #endif
+#include "../src/asset_directory.hpp"

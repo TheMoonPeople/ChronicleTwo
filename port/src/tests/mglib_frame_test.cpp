@@ -1,3 +1,5 @@
+#include "common.h"
+
 #include <gtest/gtest.h>
 
 #include <array>
@@ -8,8 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "common.h"
 #include "exitcodes.hpp"
+#include "gfx/context.hpp"
 #include "gfx/gfx.hpp"
 #include "gfx_fixture.hpp"
 #include "mglib.hpp"
@@ -66,16 +68,16 @@ std::array<float, 4> Apply(const float (&m)[16], const std::array<float, 4> &p) 
 
 // mgTransViewPrim truncates to 1/16 logical pixel, so the position tolerance has to allow for it.
 void ExpectMatchesRetail(const std::array<float, 3> &point, const float (&eye_to_clip)[16],
-                         const gfx::LogicalMapping &mapping) {
+                         const gfx::LogicalMapping  &mapping) {
     const std::array<float, 4> p = {point[0], point[1], point[2], 1.0f};
     const std::array<float, 4> clip = Apply(eye_to_clip, p);
-    const float ndc_x = clip[0] / clip[3];
-    const float ndc_y = clip[1] / clip[3];
-    const float ndc_z = clip[2] / clip[3];
-    const float logical_x = ((ndc_x + 1.0f) * 0.5f * static_cast<float>(mapping.pixel_width) - mapping.offset_x) /
-                            mapping.scale_x;
-    const float logical_y = ((ndc_y + 1.0f) * 0.5f * static_cast<float>(mapping.pixel_height) - mapping.offset_y) /
-                            mapping.scale_y;
+    const float                ndc_x = clip[0] / clip[3];
+    const float                ndc_y = clip[1] / clip[3];
+    const float                ndc_z = clip[2] / clip[3];
+    const float                logical_x = ((ndc_x + 1.0f) * 0.5f * static_cast<float>(mapping.pixel_width) - mapping.offset_x) /
+                                           mapping.scale_x;
+    const float                logical_y = ((ndc_y + 1.0f) * 0.5f * static_cast<float>(mapping.pixel_height) - mapping.offset_y) /
+                                           mapping.scale_y;
 
     float pos[4] = {p[0], p[1], p[2], p[3]};
     int   out[4] = {};
@@ -115,13 +117,18 @@ TEST(MglibFrame, PickZAfterClearIsFar) {
 
     mgPickZBuff[0] = {1, 256, 240, 0};
     mgPickZBuff[1] = {1, 2, 2, 0};
-    mgBeginFrame(nullptr);
-    mgEndFrame(nullptr);
-
-    // Cleared depth is 0, the far plane in reverse-Z.
+    // A depth answer becomes available when its submitted frame retires from the ring.
+    for (uint32_t attempt = 0; attempt <= gfx::detail::kFramesInFlight; ++attempt) {
+        mgBeginFrame(nullptr);
+        mgEndFrame(nullptr);
+        // Samples within four pixels of the edge are rejected without a GPU query.
+        EXPECT_EQ(mgPickZBuff[1].z, -1);
+        if (mgPickZBuff[0].z != -1) {
+            break;
+        }
+    }
+    // Cleared depth is zero, the far plane in reverse-Z.
     EXPECT_EQ(mgPickZBuff[0].z, 0);
-    // Samples within 4 pixels of the edge are rejected outright, not read.
-    EXPECT_EQ(mgPickZBuff[1].z, -1);
 }
 
 TEST(MglibState, InitialDrawState) {
@@ -148,7 +155,12 @@ TEST(MglibProjection, MatchesRetailScreen) {
     OffscreenRenderer renderer;
 
     mgSetRenderInfo(400.0f, 10.0f, 10000.0f);
-    float identity[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+    float identity[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    };
     float eye[4] = {0, 0, 0, 0};
     mgSetViewMatrix(identity, eye);
 

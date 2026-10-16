@@ -45,6 +45,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "input.stick_invert_y",
         "input.glyphs",
         "input.glyph_device",
+        "game.autosave",
     };
     std::set<std::string> actual;
     for (const auto &page : options::Pages()) {
@@ -114,28 +115,28 @@ TEST(PcOptions, ResolutionsKeepDesktopAndCustomSizeAndDeduplicateDisplayModes) {
 TEST(PcOptions, LongBindingPageScrollsAndEachTabKeepsItsCursor) {
     options::State state;
     state.open = true;
-    options::SelectPage(state, 3);
+    options::SelectPage(state, options::kBindingsPage);
     for (int n = 0; n < 12; ++n) {
         options::MoveRow(state, 1);
     }
-    EXPECT_EQ(state.row[3], 12);
-    EXPECT_EQ(state.first[3], 5);
+    EXPECT_EQ(state.row[options::kBindingsPage], 12);
+    EXPECT_EQ(state.first[options::kBindingsPage], 5);
     options::SelectPage(state, 0);
     EXPECT_EQ(state.row[0], 0);
     options::MoveRow(state, -1);
     EXPECT_EQ(state.row[0], 0);
     options::SelectPage(state, -1);
-    EXPECT_EQ(state.page, 3);
-    EXPECT_EQ(state.row[3], 12);
-    EXPECT_EQ(state.first[3], 5);
+    EXPECT_EQ(state.page, options::kBindingsPage);
+    EXPECT_EQ(state.row[options::kBindingsPage], 12);
+    EXPECT_EQ(state.first[options::kBindingsPage], 5);
     for (int n = 0; n < 100; ++n) {
         options::MoveRow(state, 1);
     }
-    EXPECT_EQ(state.row[3], options::Pages()[3].rows.size() - 1);
+    EXPECT_EQ(state.row[options::kBindingsPage], options::Pages()[options::kBindingsPage].rows.size() - 1);
     for (int n = 0; n < 100; ++n) {
         options::MoveRow(state, -1);
     }
-    EXPECT_EQ(state.first[3], 0);
+    EXPECT_EQ(state.first[options::kBindingsPage], 0);
 }
 
 TEST(PcOptions, HitTestingUsesVisibleRowsAndHasNoDeadRowsOrOutOfBoundsHits) {
@@ -144,15 +145,19 @@ TEST(PcOptions, HitTestingUsesVisibleRowsAndHasNoDeadRowsOrOutOfBoundsHits) {
     EXPECT_EQ(options::HitTest(state, 300, 180).kind, options::HitKind::None);
     state.open = true;
     EXPECT_EQ(options::HitTest(state, 82, 91).index, 0);
-    EXPECT_EQ(options::HitTest(state, 370, 100).index, 3);
+    EXPECT_EQ(options::HitTest(state, 370, 100).index, options::kBindingsPage);
     EXPECT_EQ(options::HitTest(state, 288, 120).direction, -1);
     EXPECT_EQ(options::HitTest(state, 420, 120).direction, 1);
     EXPECT_EQ(options::HitTest(state, 440, 120).kind, options::HitKind::None);
     EXPECT_EQ(options::HitTest(state, 84, 352).kind, options::HitKind::Back);
     options::SelectPage(state, 1);
+    const auto audio_rows = static_cast<int>(options::Pages()[1].rows.size());
+    EXPECT_EQ(options::HitTest(state, 300, options::kRowY + (audio_rows - 1) * options::kRowStep).index, audio_rows - 1);
+    EXPECT_EQ(options::HitTest(state, 300, options::kRowY + audio_rows * options::kRowStep).kind, options::HitKind::None);
+    options::SelectPage(state, options::kBindingsPage - 1);
     EXPECT_EQ(options::HitTest(state, 300, 180).kind, options::HitKind::None);
-    options::SelectPage(state, 3);
-    state.first[3] = 7;
+    options::SelectPage(state, options::kBindingsPage);
+    state.first[options::kBindingsPage] = 7;
     EXPECT_EQ(options::HitTest(state, 300, 120).index, 7);
     EXPECT_EQ(options::HitTest(state, 300, 300).index, 14);
     EXPECT_EQ(options::HitTest(state, 300, 352).kind, options::HitKind::ResetBinding);
@@ -176,19 +181,19 @@ TEST(PcOptions, PointerUsesUiScaleLetterboxingAndHighDpiMapping) {
 TEST(PcOptions, StationaryPointerDoesNotUndoWheelOrPadNavigation) {
     options::State state;
     state.open = true;
-    options::SelectPage(state, 3);
+    options::SelectPage(state, options::kBindingsPage);
     const options::Point point{200, options::kRowY + 3 * options::kRowStep + 4};
     options::NavigatePointer(state, point, true, 0);
-    EXPECT_EQ(state.row[3], 3);
+    EXPECT_EQ(state.row[options::kBindingsPage], 3);
     for (int n = 0; n < 15; ++n) {
         options::NavigatePointer(state, point, false, -1);
         options::NavigatePointer(state, point, false, 0);
     }
-    EXPECT_EQ(state.row[3], 18);
-    EXPECT_EQ(state.first[3], 11);
+    EXPECT_EQ(state.row[options::kBindingsPage], 18);
+    EXPECT_EQ(state.first[options::kBindingsPage], 11);
     options::MoveRow(state, -1);
     options::NavigatePointer(state, point, false, 0);
-    EXPECT_EQ(state.row[3], 17);
+    EXPECT_EQ(state.row[options::kBindingsPage], 17);
 }
 
 TEST(PcOptions, HeldConfirmNeverRepeatsButNavigationDoes) {
@@ -280,7 +285,7 @@ TEST(PcOptions, ZoomResetHasAVisibleRebindableRow) {
 }
 
 TEST(PcOptions, TimingRowIsAbsentAndOtherSettingsRemain) {
-    EXPECT_EQ(options::Pages().size(), 4u);
+    EXPECT_EQ(options::Pages().size(), static_cast<std::size_t>(options::kPages));
     for (const auto &page : options::Pages()) {
         for (const auto &row : page.rows) {
             EXPECT_NE(row.key, "game.timing");

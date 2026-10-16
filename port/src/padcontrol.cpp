@@ -2,6 +2,7 @@
 
 #include "mainloop.hpp"
 #include "menu_mouse_item.hpp"
+#include "menuchr_port.hpp"
 #include "padcontrol.hpp"
 #include "platform/input.hpp"
 
@@ -33,6 +34,10 @@ PORT_OVERRIDE void CPadControl::Update(CGamePad *pad) {
                 entry.value = pad->Up(button);
                 break;
         }
+    }
+    // Town quick changes wait for the last one's effect, as dungeon ones do in ChangeSetUnit.
+    if (PortQuickChangeCoolingDown()) {
+        btn[PAD_BTN_QUICK_CHANGE].value = 0;
     }
     for (auto &entry : analog) {
         switch (entry.axis) {

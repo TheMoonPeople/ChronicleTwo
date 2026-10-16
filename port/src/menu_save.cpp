@@ -69,6 +69,14 @@ void Close(CSaveMenuClass &menu) {
     SaveSlotNew = false;
 }
 
+void Load(CSaveMenuClass &menu, CMemoryCardManager &manager) {
+    manager.file_no = menu.select;
+    manager.SetFuncNo(MC_FUNC_LOAD);
+    menu.phase = SAVE_LIST_PHASE_LOADING;
+    MenuMesForm[2]->draw_flag = false;
+    menu.cursor_form->draw_flag = false;
+}
+
 void Position(CSaveMenuClass &menu) {
     const int rows = SaveSlotRows(SaveSlots, menu.mode == SAVE_MENU_MODE_SAVE);
     menu.select = std::clamp(menu.select, 0, std::max(0, rows - 1));
@@ -138,7 +146,7 @@ PORT_OVERRIDE int CSaveMenuClass::KeyStep() {
         first_step = false;
         slot = 0;
         step = SAVE_MENU_STEP_READY;
-        manager->GetAllSaveFileInfo();
+        SaveSlotRefresh(*manager, !saving);
         select = std::max(0, manager->GetUpdateFile());
         top = std::max(0, select - 2);
         list_jump = true;
@@ -232,6 +240,12 @@ PORT_OVERRIDE int CSaveMenuClass::KeyStep() {
                     message->SetMsgVolumeNoOne(entry->number + 1);
                     break;
                 }
+                // The autosave has no file number for the confirmation to name.
+                if (!saving && entry->autosave) {
+                    Load(*this, *manager);
+                    MenuSePlay(SYSTEM_SE_DECIDE);
+                    break;
+                }
                 ExeScript(const_cast<char *>("FILE_OKBTN"));
                 message->MsgPreset(MENU_SCRIPT_MES_YESNO, LanguageCode);
                 message->SetAbsPos(5);
@@ -280,11 +294,7 @@ PORT_OVERRIDE int CSaveMenuClass::KeyStep() {
                     if (phase == SAVE_LIST_PHASE_CONFIRM_SAVE) {
                         EnvSetSave(save_kind);
                     } else {
-                        manager->file_no = select;
-                        manager->SetFuncNo(MC_FUNC_LOAD);
-                        phase = SAVE_LIST_PHASE_LOADING;
-                        MenuMesForm[2]->draw_flag = false;
-                        cursor_form->draw_flag = false;
+                        Load(*this, *manager);
                     }
                     MenuSePlay(SYSTEM_SE_DECIDE);
                 }
@@ -398,7 +408,7 @@ PORT_OVERRIDE void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
         row_message.SetMsgVolumeNoOne(is_new ? SaveSlotFirstFree(SaveSlots) + 1 : slot->number + 1);
         row_message.MakeMsg(0xC27);
         row_message.line_pos[0][0] = x;
-        row_message.line_pos[0][1] = y + 12;
+        row_message.line_pos[0][1] = slot && slot->autosave ? -100 : y + 12;
         row_message.line_pos_on[0] = true;
         row_message.line_pos[1][0] = x;
         row_message.line_pos[1][1] = is_new ? y + 40 : -100;
@@ -409,6 +419,9 @@ PORT_OVERRIDE void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
             row_message.DrawMsg();
             if (slot) {
                 font.DrawDirect(const_cast<char *>(SaveSlotStatus(slot->state)), x, y + 38);
+                if (slot->autosave) {
+                    font.DrawDirect(const_cast<char *>("Autosave"), x, y + 12);
+                }
             }
             continue;
         }
@@ -436,10 +449,10 @@ PORT_OVERRIDE void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
         row_message.SetMsgItemNo(chapters, 1);
         row_message.MakeMsg(0xC26);
         const int positions[4][2] = {
-            {x,       y + 12},
-            {x,       -100  },
-            {x + 135, y + 12},
-            {x + 135, y + 40}
+            {x,       slot->autosave ? -100 : y + 12},
+            {x,       -100                          },
+            {x + 135, y + 12                        },
+            {x + 135, y + 40                        }
         };
         for (int line = 0; line < 4; ++line) {
             row_message.line_pos[line][0] = positions[line][0];
@@ -451,6 +464,9 @@ PORT_OVERRIDE void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
         row_message.DrawMsg();
         if (slot->second_card) {
             font.DrawDirect(const_cast<char *>("(import 2)"), x + 290, y + 40);
+        }
+        if (slot->autosave) {
+            font.DrawDirect(const_cast<char *>("Autosave"), x, y + 12);
         }
     }
     ResetMenuScissor();

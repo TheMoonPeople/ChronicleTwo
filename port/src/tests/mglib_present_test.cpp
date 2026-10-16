@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
 
 #include <array>
 #include <cmath>
@@ -43,12 +44,12 @@
 #include "platform/clock.hpp"
 #include "platform/firstrun.hpp"
 #include "platform/input.hpp"
+#include "platform/model_assets.hpp"
 #include "platform/mouse.hpp"
 #include "platform/paths.hpp"
 #include "platform/window.hpp"
 #include "present.hpp"
 #include "scenesnd.hpp"
-#include "texture_source.hpp"
 #include "userdata.hpp"
 
 // Register macros must follow the host and test headers.
@@ -60,10 +61,25 @@ using namespace dc::test;
 
 namespace {
 
-struct TextureSourceScope {
-    const void *buffer;
-    ~TextureSourceScope() { TextureSourceForget(buffer); }
-};
+/**
+ * Finds the native system-frame texture set in the direct glTF gameplay document.
+ */
+std::optional<std::size_t> SystemFrameTextureSet(std::string &error) {
+    const auto game = model_assets::ReadGameplay("dungeon/articles/tex01_1.gltf", error);
+    if (!game) {
+        return std::nullopt;
+    }
+    const auto &sets = game->at("resources").at("texture_sets");
+    for (std::size_t index = 0; index < sets.size(); ++index) {
+        for (const auto &entry : sets.at(index).at("document").at("entries")) {
+            if (entry.value("name", std::string{}) == "frame") {
+                return index;
+            }
+        }
+    }
+    error = "system-frame texture is absent from native glTF";
+    return std::nullopt;
+}
 
 class PresentRenderer {
 public:
@@ -226,8 +242,8 @@ void RecordTicks(int count, const void *object, float first_x) {
 
 using Quads = std::vector<u_long128>;
 
-constexpr int kTextureCount = 64;
-constexpr int kBlockCount = 8;
+constexpr int    kTextureCount = 64;
+constexpr int    kBlockCount = 8;
 constexpr size_t kStorageQuads = 4096;
 
 Quads Pack(const std::vector<uint8_t> &bytes) {
@@ -289,7 +305,7 @@ public:
 
     mgCTexture *Enter(const std::string &name, int width, int height, int bpp, u_long128 *image, u_long128 *clut) {
         std::string owned = name;
-        u_long128 *levels[MG_TEXTURE_LEVEL_MAX] = {image};
+        u_long128  *levels[MG_TEXTURE_LEVEL_MAX] = {image};
         return manager_.EnterTexture(0, owned.data(), levels, width, height, bpp, clut, 0, 0);
     }
 
@@ -371,12 +387,12 @@ TEST(MglibPresent, TickIsRecordedAndRenderedCanonically) {
 TEST(MglibPresent, FrameTargetFlag) {
     PresentRenderer renderer(1280, 720);
 
-    const gfx::TextureHandle framed = mgPortRenderTarget(0x3000u, 512, 480, SCE_GS_PSMCT32, true);
+    const gfx::TextureHandle              framed = mgPortRenderTarget(0x3000u, 512, 480, SCE_GS_PSMCT32, true);
     const std::optional<gfx::TextureInfo> framed_info = gfx::GetTextureInfo(framed);
     ASSERT_TRUE(framed_info.has_value());
     EXPECT_TRUE(framed_info->frame_target);
 
-    const gfx::TextureHandle plain = mgPortRenderTarget(0x3000u, 512, 480, SCE_GS_PSMCT32, false);
+    const gfx::TextureHandle              plain = mgPortRenderTarget(0x3000u, 512, 480, SCE_GS_PSMCT32, false);
     const std::optional<gfx::TextureInfo> plain_info = gfx::GetTextureInfo(plain);
     ASSERT_TRUE(plain_info.has_value());
     EXPECT_FALSE(plain_info->frame_target);
@@ -514,7 +530,7 @@ TEST(MglibPresent, DisplayPerTickLeavesCanonicalImage) {
     PresentRenderer renderer(640, 480);
     PresentResetStats();
 
-    static int object;
+    static int           object;
     std::vector<uint8_t> with_display;
     std::vector<uint8_t> without_display;
     uint32_t             width = 0;
@@ -1715,22 +1731,9 @@ TEST(DamagePresentation, RealAtlasProjectedEndpoints) {
         GTEST_SKIP() << "DC2_DATA needs the current published PNG extraction";
     }
     DataReadIndex(data);
-    const auto    path = std::filesystem::path(data) / "dungeon/articles/tex01_1.chr";
-    std::ifstream file(path, std::ios::binary | std::ios::ate);
-    if (!file) {
-        GTEST_SKIP() << "Extracted system texture archive unavailable";
-    }
-    const size_t           bytes = static_cast<size_t>(file.tellg());
-    std::vector<u_long128> archive((bytes + 15) / 16);
-    file.seekg(0);
-    ASSERT_TRUE(file.read(reinterpret_cast<char *>(archive.data()), bytes));
-    TextureSourceRegister(archive.data(), "dungeon/articles/tex01_1.chr", bytes);
-    const TextureSourceScope archive_source{archive.data()};
-    int   member_size = 0;
-    char  member_name[] = "frame_basic.img";
-    auto *image = GetPackFile(reinterpret_cast<u_int *>(archive.data()), member_name, &member_size);
-    const TextureSourceScope image_source{image};
-    ASSERT_NE(image, nullptr);
+    std::string native_error;
+    const auto  texture_set = SystemFrameTextureSet(native_error);
+    ASSERT_TRUE(texture_set.has_value()) << native_error;
     PresentRenderer renderer(640, 480);
     PresentSetSettings(PresentSettings{.interpolation = true});
     std::vector<u_long128> backing(131072);
@@ -1739,7 +1742,7 @@ TEST(DamagePresentation, RealAtlasProjectedEndpoints) {
     mgCTextureManager manager;
     manager.SetTableBuffer(64, 8, &memory);
     manager.Initialize(0x1000, -1);
-    manager.EnterIMGFile(reinterpret_cast<u_char *>(image), 0, &memory, nullptr);
+    ASSERT_TRUE(model_assets::LoadTextureSet("dungeon/articles/tex01_1.gltf", *texture_set, manager, 0, memory, native_error)) << native_error;
     auto *saved = TEX_SystenFrame;
     char  texture_name[] = "frame";
     TEX_SystenFrame = manager.GetTexture(texture_name, -1);
@@ -1891,22 +1894,9 @@ void CaptureRidepodWarning(bool wide) {
         GTEST_SKIP() << "DC2_DATA needs the current published PNG extraction";
     }
     DataReadIndex(data);
-    const auto    path = std::filesystem::path(data) / "dungeon/articles/tex01_1.chr";
-    std::ifstream file(path, std::ios::binary | std::ios::ate);
-    if (!file) {
-        GTEST_SKIP() << "Extracted system texture archive unavailable";
-    }
-    const size_t           bytes = static_cast<size_t>(file.tellg());
-    std::vector<u_long128> archive((bytes + 15) / 16);
-    file.seekg(0);
-    ASSERT_TRUE(file.read(reinterpret_cast<char *>(archive.data()), bytes));
-    TextureSourceRegister(archive.data(), "dungeon/articles/tex01_1.chr", bytes);
-    const TextureSourceScope archive_source{archive.data()};
-    int   member_size = 0;
-    char  member_name[] = "frame_basic.img";
-    auto *image = GetPackFile(reinterpret_cast<u_int *>(archive.data()), member_name, &member_size);
-    const TextureSourceScope image_source{image};
-    ASSERT_NE(image, nullptr);
+    std::string native_error;
+    const auto  texture_set = SystemFrameTextureSet(native_error);
+    ASSERT_TRUE(texture_set.has_value()) << native_error;
     PresentRenderer renderer(wide ? 1280 : 640, wide ? 720 : 480);
     gfx::SetFrameLayout({gfx::AspectMode::Fill, 1.0f});
     PresentSetSettings(PresentSettings{.interpolation = true});
@@ -1916,7 +1906,7 @@ void CaptureRidepodWarning(bool wide) {
     mgCTextureManager manager;
     manager.SetTableBuffer(64, 8, &memory);
     manager.Initialize(0x1000, -1);
-    manager.EnterIMGFile(reinterpret_cast<u_char *>(image), 0, &memory, nullptr);
+    ASSERT_TRUE(model_assets::LoadTextureSet("dungeon/articles/tex01_1.gltf", *texture_set, manager, 0, memory, native_error)) << native_error;
     auto *saved = TEX_SystenFrame;
     char  texture_name[] = "frame";
     TEX_SystenFrame = manager.GetTexture(texture_name, -1);

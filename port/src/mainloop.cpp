@@ -6,23 +6,30 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <optional>
+#include <utility>
 
 #include "arena_root.hpp"
 #include "dataread.hpp"
 #include "debug_mode.hpp"
 #include "dng_main.hpp"
+#include "editctrl_port.hpp"
 #include "editdata.hpp"
+#include "editloop.hpp"
 #include "font.hpp"
 #include "gaiji.hpp"
 #include "gamedata.hpp"
 #include "gamepad.hpp"
 #include "helpmes.hpp"
 #include "inventmn.hpp"
+#include "item_icon3d.hpp"
 #include "main.hpp"
 #include "mainloop.hpp"
 #include "mainloop3.hpp"
 #include "mainloop_port.hpp"
+#include "mapjump.hpp"
 #include "mapselect.hpp"
+#include "menuchr_port.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_memory.hpp"
 #include "mg_memory_port.hpp"
@@ -35,19 +42,109 @@
 #include "platform/arena.hpp"
 #include "platform/config.hpp"
 #include "platform/input.hpp"
+#include "platform/paths.hpp"
 #include "play_time.hpp"
+#include "save_slots.hpp"
 #include "savedata.hpp"
 #include "scene.hpp"
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
+#include "subgame.hpp"
 #include "sysmes.hpp"
 #include "test_hooks.hpp"
 #include "userdata.hpp"
 #include "vlgr_info.hpp"
 
-extern u_long128     main_buffer[0x1A0000];
-extern CScene        MainScene;
-extern CFont         Font;
+int PortVSyncCallBack(int unused) asm("MainLoop_VSyncCallBack");
+
+bool PortAutosave = false;
+
+namespace {
+
+std::optional<std::pair<int, int> > autosaved_floor;
+std::optional<int>                  autosaved_map;
+
+bool AutosaveEnabled() {
+    return PortAutosave && ConfigGet().autosave && PortCaptureMode == CAPTURE_OFF;
+}
+
+void WriteAutosave(int program_loop_no, AutosaveSpawn *spawn = nullptr) {
+    if (!SaveSlotWriteAutosave(program_loop_no, spawn)) {
+        std::fprintf(stderr, "autosave: could not write %s\n", PathsDisplay(SaveSlotAutosavePath()).c_str());
+    }
+}
+
+// Once per floor, the first frame the player has control on it.
+void AutosaveFloor() {
+    const auto *save = GetSaveData();
+    const auto *scene = GetMainScene();
+    if (!save || !AutosaveEnabled() || DngStatus.mode != DNG_STATUS_FIELD || !scene || scene->event_run || GamePad__2.key_lock ||
+        !BattleAreaScene || (BattleAreaScene->pause_flag & (DNG_PAUSE_PLAYER_STEP | DNG_PAUSE_FIELD_STEP)) ||
+        save->save_dungeon.stage_id < 0 || save->save_dungeon.stage_id >= SAVE_DUNGEON_NUM) {
+        return;
+    }
+    const auto &dungeon = save->save_dungeon;
+    const auto  floor = std::pair{dungeon.stage_id, static_cast<int>(dungeon.floor_id[dungeon.stage_id])};
+    if (floor != autosaved_floor) {
+        autosaved_floor = floor;
+        WriteAutosave(LOOP_DUNGEON);
+    }
+}
+
+// Save on the first controllable exterior frame of each town map.
+void AutosaveTown() {
+    CScene *scene = GetMainScene();
+    if (!GetSaveData() || !scene || IsEditMode() || PortTownLoopMode != EDIT_LOOP_WALK || PortTownControlMode != EDIT_CONTROL_PLAYER ||
+        PortTownLockChara || PortTownPause || scene->event_run || GamePad__2.key_lock || SubGameRunning() || InInterior()) {
+        return;
+    }
+    CCharacter2 *chara = scene->GetCharacter(scene->player_chara);
+    mgCCamera   *camera = scene->GetCamera(scene->active_camera);
+    const int    map = scene->GetNowMapNo();
+    if (!chara || !camera || map < 0) {
+        return;
+    }
+    if (auto spawn = SaveSlotTakePendingSpawn(GetSaveData()->map_no)) {
+        chara->SetPosition(spawn->position);
+        chara->SetRotation(spawn->rotation);
+        chara->ResetDAPosition();
+        chara->Step();
+        chara->StepDA(10);
+        camera->SetPos(spawn->camera_pos);
+        camera->SetRef(spawn->camera_ref);
+        autosaved_map = map;
+        return;
+    }
+    if (AutosaveEnabled() && map != autosaved_map) {
+        autosaved_map = map;
+        AutosaveSpawn spawn;
+        spawn.map_no = GetSaveData()->map_no;
+        chara->GetPosition(spawn.position);
+        chara->GetRotation(spawn.rotation);
+        camera->GetPos(spawn.camera_pos);
+        camera->GetRef(spawn.camera_ref);
+        WriteAutosave(LOOP_EDIT, &spawn);
+    }
+}
+
+} // namespace
+
+void PortAutosaveResetArrival() {
+    autosaved_floor.reset();
+    autosaved_map.reset();
+}
+
+void PortAutosaveStep(int program_loop_no) {
+    if (program_loop_no == LOOP_DUNGEON) {
+        AutosaveFloor();
+    } else if (program_loop_no == LOOP_EDIT) {
+        AutosaveTown();
+    }
+}
+
+extern u_long128 main_buffer[0x1A0000];
+extern CScene    MainScene;
+extern CFont     Font;
 
 static constexpr int kSubGameQuads = std::max(5000, static_cast<int>((sizeof(CSubGameData) + 15) / 16));
 
@@ -60,6 +157,7 @@ int PortPlayTimeVSyncCallback(int) {
 
 PORT_OVERRIDE void InitSaveData() {
     GetSaveData()->Initialize();
+    SaveSlotSetPendingSpawn(std::nullopt);
     PlayTimeReset();
 }
 
@@ -182,9 +280,9 @@ PORT_OVERRIDE void MainLoop() {
     file_buffer = reinterpret_cast<u_long128 *>(buffer_address);
     SystemSND_ID = -1;
 
-    char sy_path[] = "snd2/SY_000.snd";
-    char rev_path[] = "snd2/rev.bin";
-    char map_index_path[] = "snd2/MAP_index.txt";
+    char sy_path[] = "snd2/sy_000.sound.json";
+    char rev_path[] = "snd2/rev.json";
+    char map_index_path[] = "snd2/map_index.json";
 
     if (LoadFile2(sy_path, file_buffer, NULL, 0)) {
         SystemSND_ID = sndLoadSound(SND_PORT_SYSTEM, (u_int *) file_buffer, &SystemSeStack);
@@ -217,7 +315,7 @@ PORT_OVERRIDE void MainLoop() {
     while (1) {
         if (PortLoopNo == LOOP_TITLE || OmakeFlag != 0) {
             PortSubGameSaveData = (CSubGameData *) main_arena;
-            memory->stSetBuffer(&main_arena[kSubGameQuads],0x1A0000 * kArenaHeadroom - kSubGameQuads);
+            memory->stSetBuffer(&main_arena[kSubGameQuads], 0x1A0000 * kArenaHeadroom - kSubGameQuads);
             memory->stack_used = 0;
             memory->lock = 0;
         }
@@ -269,8 +367,11 @@ PORT_OVERRIDE void MainLoop() {
         printf("##### %d\n", mgGetVSyncCount());
         // Single entry for every mode change: covers the LOOP_MENU->LOOP_TITLE redirect above and the PortNextLoopNo hand-off below.
         mgPortCutInterpolation();
+        PortCancelQuickChangeBanner();
+        ItemIcons3DReset();
         LoopInit[PortLoopNo](InitArg);
         GameGiveOnArrival(PortLoopNo);
+        PortAutosaveResetArrival();
         INIT_LOOP_ARG next_arg;
 
         NextLoop(LOOP_MENU, next_arg);
@@ -348,6 +449,8 @@ PORT_OVERRIDE void MainLoop() {
             MainScene.StepSnd();
             GamePad__2.UpDate();
             PadCtrl.Update(&GamePad__2);
+            PortStepQuickChangeEffect();
+            PortDrawQuickChangeBanner();
             PortDrawFrameBorder();
             mgEndFrame(NULL);
 
@@ -355,6 +458,7 @@ PORT_OVERRIDE void MainLoop() {
                 PauseCancel();
                 break;
             }
+            PortAutosaveStep(PortLoopNo);
 
             if (GamePad__2.On(PAD_CIRCLE)) {
                 cat_end();

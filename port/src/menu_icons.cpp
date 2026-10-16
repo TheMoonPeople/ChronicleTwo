@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "gamedata.hpp"
+#include "item_icon3d.hpp"
 #include "menudraw.hpp"
 #include "menudraw_port.hpp"
 #include "menumain.hpp"
@@ -39,6 +40,14 @@ PORT_OVERRIDE mgCTexture *GetMenuItemIconTexInfo(int item_no, int mode) {
         return nullptr;
     }
     PortIconSheet = item->icon_texture_no;
+    // The item's own model, drawn small, where it has one and the icon is drawn plain (the dimmed and
+    // spectrum variants are made from the sheet's pixels and stay with the sheet).
+    if (mode == 0) {
+        if (mgCTexture *model = ItemIcon3DTexture(item_no)) {
+            PortIconUV[PortIconSheet] = {0, 0, 32, 32};
+            return model;
+        }
+    }
     mgCTexture *texture = MenuPosData->item_icon_tex[mode][PortIconSheet];
     if (texture == nullptr) {
         return nullptr;

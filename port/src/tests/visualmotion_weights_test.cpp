@@ -10,52 +10,17 @@
 
 namespace {
 
-struct alignas(16) MotionModel {
-    MDT_HEADER    header{};
-    sceVu0FVECTOR positions[3] = {
-        {0, 0, 0, 1},
-        {1, 0, 0, 1},
-        {0, 1, 0, 1}
-    };
-    MDT_FACES faces{};
-    u_int     primitive[6] = {static_cast<u_int>(MG_PRIM_TRIANGLE) | MG_FACE_NO_NORMAL | MG_FACE_NO_TEXTURE, 3, 0, 0, 1, 2};
-
-    MotionModel() {
-        header.header_size = sizeof(header);
-        header.vertex_num = 3;
-        header.vertex_ofs = offsetof(MotionModel, positions);
-        header.faces_ofs = offsetof(MotionModel, faces);
-        faces.prim_num = 1;
-    }
-};
-
-struct alignas(16) WeightBlock {
-    u_int frame;
-    int   bone;
-    u_int reserved[2]{};
-    u_int count = 3;
-    u_int next;
-    u_int padding[2]{};
-
-    struct Entry {
-        u_int vertex;
-        u_int reserved[3]{};
-        float percent;
-        u_int padding[3]{};
-    } entries[3];
-};
-
 struct AssignmentFixture {
-    MotionModel                 model;
     std::array<u_long128, 1024> storage{};
     std::array<u_long128, 1024> scratch{};
     mgCMemory                   memory;
     mgCMemory                   work;
-    WeightBlock                 weights[3] = {
-        {1, 4, {}, 3, sizeof(WeightBlock), {}, {{0, {}, 25}, {1, {}, 25}, {2, {}, 25}}   },
-        {1, 7, {}, 3, sizeof(WeightBlock), {}, {{0, {}, 75}, {1, {}, 75}, {2, {}, 75}}   },
-        {2, 9, {}, 3, 0,                   {}, {{0, {}, 100}, {1, {}, 100}, {2, {}, 100}}},
+    sceVu0FVECTOR               positions[3] = {
+        {0, 0, 0, 1},
+        {1, 0, 0, 1},
+        {0, 1, 0, 1}
     };
+    int indices[3] = {0, 1, 2};
 
     AssignmentFixture() {
         memory.stSetBuffer(storage.data(), storage.size());
@@ -63,10 +28,27 @@ struct AssignmentFixture {
     }
 
     int Assign(mgCVisualMotionMDT &visual, int frame) {
-        mgCVMotionData motion{};
-        motion.weight_data = reinterpret_cast<u_int *>(weights);
-        motion.frame_id = frame;
-        return visual.DataAssignMotionMDT(&model.header, &motion, &memory, &work, nullptr);
+        visual.vertex = positions;
+        visual.vertex_num = visual.weight_num = 3;
+        visual.weight = new (memory.Alloc((3 * sizeof(mgVertexWeight) + 15) / 16 + 2)) mgVertexWeight[3];
+        visual.bone[0] = frame == 1 ? 4 : 9;
+        visual.bone[1] = frame == 1 ? 7 : -1;
+        for (int vertex = 0; vertex < 3; ++vertex) {
+            visual.weight[vertex].matrix[0] = 0;
+            visual.weight[vertex].matrix[1] = 4;
+            visual.weight[vertex].weight[0] = frame == 1 ? .25f : 1.0f;
+            visual.weight[vertex].weight[1] = frame == 1 ? .75f : 0;
+        }
+        auto *face = new (memory.Alloc((sizeof(mgCFace) + 15) / 16 + 2)) mgCFace{};
+        face->type = static_cast<u_int>(MG_PRIM_TRIANGLE) | MG_FACE_NO_NORMAL | MG_FACE_NO_TEXTURE;
+        face->index_stride = 1;
+        face->index_num = face->vertex_num = 3;
+        face->index = indices;
+        auto *group = new (memory.Alloc((sizeof(mgFACE_GROUP) + 15) / 16 + 2)) mgFACE_GROUP{};
+        group->face = face;
+        visual.face_group = group;
+        mgVisualPortRefreshFace(&visual, face);
+        return 1;
     }
 };
 
@@ -99,7 +81,7 @@ TEST(VisualMotion, SharedWorkStackPreservesAssignedWeights) {
 
     int     indices[3] = {0, 1, 2};
     mgCFace face{};
-    face.type = fixture.model.primitive[0];
+    face.type = static_cast<u_int>(MG_PRIM_TRIANGLE) | MG_FACE_NO_NORMAL | MG_FACE_NO_TEXTURE;
     face.index_stride = 1;
     face.index_num = face.vertex_num = 3;
     face.index = indices;

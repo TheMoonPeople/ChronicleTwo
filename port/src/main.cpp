@@ -29,6 +29,7 @@
 #include "present.hpp"
 #include "sce/threads.hpp"
 #include "sound_port.hpp"
+#include "mainloop_port.hpp"
 #include "test_hooks.hpp"
 
 // The audio branch adds audio_init.hpp; until it lands the port builds without audio.
@@ -256,6 +257,7 @@ int Run(int argc, const char **argv) {
         (give && (options.give || *give) && !GameSetGive(give))) {
         Usage(argv[0]);
     }
+    PortAutosave = !options.headless && !GameHasJump() && options.input.empty();
     const char *fast = SettingsEnv("FAST_LOAD");
     GameSetFastLoad(options.fast_load || (fast && *fast && *fast != '0'));
     InputScript   input_script;
@@ -269,6 +271,9 @@ int Run(int argc, const char **argv) {
     ConfigLoad();
     FirstRunRequireData(PathsDataRoot(), options.headless);
     InitCDFile();
+    if (!options.headless) {
+        GameSetDataIcon();
+    }
     if (!DataReadPrepareScriptTiming(options.headless)) {
         return kExitScriptTiming;
     }

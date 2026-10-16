@@ -26,6 +26,8 @@ LONG64_SUFFIXES = (".h", ".hpp", ".hh", ".inc", ".inl")
 # ClsMes::Init is out-of-line only in dngmenu.cpp; making it inline everywhere leaves one definition.
 # mgVu0FBOX is not trivially copyable, so memset on it trips -Wnontrivial-memcall.
 FIXUPS = [
+    # Paint colours close the menu into paint mode on the first visit as well as returned visits.
+    ("editmenu.hpp", "        paint_top = 0;", "        paint_top = 0; paint_return = 1;"),
     ("dng_event.hpp", "    virtual void Draw();", "    virtual int Draw();"),
     ("dng_hud.hpp", "    virtual void Draw();", "    virtual int Draw();"),
     ("nd_meswin.hpp", "#ifndef MES_WINDOW_OUT_OF_LINE_INIT", "#if 1"),
@@ -84,6 +86,9 @@ UNIT_FIXUPS = [
     ("inventmn.cpp", "\ninline CMenuInvent::CMenuInvent() {", "\nCMenuInvent::CMenuInvent() {"),
     ("editeff.cpp", "\ninline CMapParts::CMapParts() { Initialize(); }", "\n"),
     ("editmap.cpp", "\ninline CMapParts::CMapParts() { Initialize(); }", "\n"),
+    # Fusion colours can target a float-aligned ambient field rather than a quadword boundary.
+    ("menusys.cpp", "*(u_long128 *) color = *(u_long128 *) fusion_ambient;",
+     "memcpy(color, fusion_ambient, sizeof(fusion_ambient));"),
     ("dng_debug.cpp", "\nvoid CTreasureBox::Initialize() {", "\ninline void CTreasureBox::Initialize() {"),
     # The dungeon menu carves its memory from these 200000 quadwords and gives the invention menu's
     # model reads (LOAD STACK) whatever is left. Host objects are larger than retail's, so with Max's
@@ -98,6 +103,8 @@ UNIT_FIXUPS = [
     printf("data memory size = %d kbyte", (data_size - 210128) * 16 / 1024);""",
      """    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - 270128);
     printf("data memory size = %d kbyte", (data_size - 270128) * 16 / 1024);"""),
+    # Geostone announcement updates and draws reserve eight nullable message slots.
+    ("editmenu.cpp", "static CDC2Mes *DownLoadMes[6];", "static CDC2Mes *DownLoadMes[8];"),
     ("editloop.cpp", """    main_stack->Alloc(data_size - 210128);
     MenuBuffer__2.stSetBuffer(read_buffer = main_stack->stAlloc64(200000), 200000);
     read_buffer_end = read_buffer + 200000;""",

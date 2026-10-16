@@ -3,7 +3,7 @@
 #include "event_func.hpp"
 #include "runscript.hpp"
 
-TEST(ScriptOrder, VoicePackAndClipComeFromDifferentArguments) {
+TEST(ScriptOrder, VoiceClipUsesItsOwnArgumentAndDirectWavePath) {
     CRunScript script;
     SetEventFunc(&script);
     RS_STACKDATA args[3] = {};
@@ -16,8 +16,9 @@ TEST(ScriptOrder, VoicePackAndClipComeFromDifferentArguments) {
     testing::internal::CaptureStderr();
     script.ext_func_table[EVENT_EXT_STREAM_OPEN](args, 3);
     const std::string output = testing::internal::GetCapturedStderr();
-    EXPECT_NE(output.find("Vabc123.VPK;1"), std::string::npos);
-    EXPECT_NE(output.find("pack clip456.wav"), std::string::npos);
+    EXPECT_NE(output.find("sound/clip456.wav"), std::string::npos);
+    EXPECT_EQ(output.find("abc123"), std::string::npos);
+    EXPECT_EQ(output.find(".VPK"), std::string::npos);
     EXPECT_EQ(args[1].val.s, std::string("abc123"));
     EXPECT_EQ(args[2].val.s, std::string("clip456"));
 }

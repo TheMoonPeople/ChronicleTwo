@@ -78,11 +78,11 @@ void Draw() {
         Fill(447, thumb_y, 3, thumb_h, 95, 67, 35);
         Text("PC SETTINGS", 83, 55, 190, true, 18);
         Text(std::format("{} / {}", g_screen.page + 1, Pages().size()), 385, 56, 60, false, 14);
-        for (int p = 0; p < 4; ++p) {
-            const int  x = kLeft + p * 88;
+        for (int p = 0; p < kPages; ++p) {
+            const int  x = kLeft + p * kTabStep;
             const bool selected = p == g_screen.page;
-            Plate(x, 91, 85, 23, selected || (hit.kind == HitKind::Tab && hit.index == p));
-            Text(Pages()[p].name, x + 7, 93, 74, selected, 14);
+            Plate(x, 91, kTabStep - 3, 23, selected || (hit.kind == HitKind::Tab && hit.index == p));
+            Text(Pages()[p].name, x + 4, 93, kTabStep - 9, selected, 14);
         }
         for (int row = first; row < std::min(count, first + kVisibleRows); ++row) {
             int         y = kRowY + (row - first) * kRowStep;
@@ -105,7 +105,7 @@ void Draw() {
              332, 314, 103, false, 12);
         Plate(kLeft, 343, 105, 27, hit.kind == HitKind::Back);
         Text(g_screen.binding >= 0 ? "Cancel capture" : "Back to Options", kLeft + 5, 348, 96, false, 12);
-        if (g_screen.page == 3 && g_screen.binding < 0) {
+        if (g_screen.page == kBindingsPage && g_screen.binding < 0) {
             Plate(272, 343, kRight - 272, 27, hit.kind == HitKind::ResetBinding);
             Text(ButtonName("square", config) + ": Restore binding", 278, 348, kRight - 284, false, 12);
         }

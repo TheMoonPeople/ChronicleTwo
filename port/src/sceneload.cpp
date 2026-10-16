@@ -1,20 +1,64 @@
 #include "common.h"
 
+#include <nlohmann/json.hpp>
+
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 
+#include "character.hpp"
+#include "dataread_port.hpp"
 #include "editmap.hpp"
 #include "map.hpp"
 #include "mapsky.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
+#include "platform/clock.hpp"
+#include "platform/model_assets.hpp"
 #include "scene.hpp"
 #include "sceneload.hpp"
 #include "scenesnd.hpp"
 
-#include "platform/clock.hpp"
+PORT_OVERRIDE int CScene::LoadChara(int index, u_int *model, char *profile, mgCMemory *model_memory,
+                                    mgCMemory *motion_memory, mgCMemory *image_memory, int texture_block, int no_outline) {
+    const auto path = DataReadBufferPath(model);
+    if (!path || !model_memory) {
+        return -1;
+    }
+    std::string error;
+    std::string selected;
+    if (!profile) {
+        const auto game = model_assets::ReadGameplay(*path, error);
+        if (!game) {
+            return -1;
+        }
+        selected = game->value("default_profile", std::string{});
+        profile = selected.data();
+    }
+    auto *character = new (model_memory->Alloc((sizeof(CCharacter2) + 15) / 16 + 2)) CCharacter2;
+    DeleteChara(index);
+    const int slot = AssignChara(index, character, "chara");
+    if (slot < 0) {
+        return -1;
+    }
+    auto *scene_character = GetSceneCharacter(slot);
+    if (!scene_character) {
+        return -1;
+    }
+    character->Initialize();
+    model_assets::CharacterLoadOptions options{model_memory, motion_memory, image_memory, &mgTexManager, nullptr, texture_block, no_outline == 0};
+    if (!model_assets::LoadCharacter(*character, *path, profile, options, error)) {
+        std::fprintf(stderr, "character: %s: %s\n", path->c_str(), error.c_str());
+        DeleteChara(slot);
+        return -1;
+    }
+    scene_character->status |= SCENE_DATA_LOADED;
+    SetCharaTexb(slot, texture_block);
+    character->sound_info.foot_se_bank = se_base_id;
+    character->sound_info.foot_sound_id = 0;
+    return slot;
+}
 
 namespace {
 
@@ -24,7 +68,7 @@ constexpr double kHblanksPerField = 262.0;
 // 32 bits like the hardware register, so a difference wraps the same way.
 u_int HostTimer0Count() {
     static const std::chrono::steady_clock::time_point anchor = std::chrono::steady_clock::now();
-    const std::chrono::duration<double> elapsed = std::chrono::steady_clock::now() - anchor;
+    const std::chrono::duration<double>                elapsed = std::chrono::steady_clock::now() - anchor;
     return static_cast<u_int>(static_cast<std::uint64_t>(elapsed.count() * ClockTickRate() * kHblanksPerField));
 }
 

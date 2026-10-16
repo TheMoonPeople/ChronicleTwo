@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import header_fixups  # noqa: E402
 import long64  # noqa: E402
+import native_asset_paths  # noqa: E402
 
 
 def load_port_override(path: Path):
@@ -40,8 +41,15 @@ def load_port_override(path: Path):
 # change; all calls in the original unit still reach the native public seam.
 RETAIL_BRIDGES = {
     "editctrl.cpp": [("ResetViewMode(CScene*)", "ResetViewMode", "PortRetailResetViewMode")],
-    "dng_main.cpp": [("ResetEyeView(CActionChara*)", "ResetEyeView", "PortRetailResetEyeView")],
+    "dng_main.cpp": [
+        ("ResetEyeView(CActionChara*)", "ResetEyeView", "PortRetailResetEyeView"),
+        ("ChangeSetUnit(int)", "ChangeSetUnit", "PortRetailChangeSetUnit"),
+    ],
     "charasetup.cpp": [("GetRoboPartsInfo(CUserDataManager*)", "GetRoboPartsInfo", "PortRetailGetRoboPartsInfo")],
+    "menuchr.cpp": [
+        ("InitMainCharaBG(int,mgCMemory*,int)", "InitMainCharaBG", "PortRetailInitMainCharaBG"),
+        ("KeyMainCharaBG()", "KeyMainCharaBG", "PortRetailKeyMainCharaBG"),
+    ],
 }
 
 
@@ -63,6 +71,16 @@ def retail_bridges(port_override, source: Path, long_is_64: bool) -> str:
     return "\n".join(bodies)
 
 
+def prepare_menu_character_arena(text: str) -> str:
+    """Size reset costume slots before the preserved character construction block."""
+    start = text.index("static void MenuItemCharaDataLoadPack(")
+    check = "    if ((chara != NULL && part != 1) || part == 1) {\n"
+    position = text.index(check, start) + len(check)
+    text = text[:position] + "        PortPrepareMenuCharacterArena(*stack, pack, menu_infocfgname, part);\n" + text[position:]
+    bridge_header = Path(__file__).resolve().parents[2] / "port/src/menu_character_assets.hpp"
+    return f'#include "{bridge_header.as_posix()}"\n' + text
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--port-override", required=True, type=Path)
@@ -78,14 +96,37 @@ def main() -> None:
     overrides = port_override.override_entries(port_override.read(args.overrides))
     try:
         text = port_override.strip_unit(args.source, overrides, port_override.renames(args.stubs), args.define,
-                                        args.long_is_64)
+                                        args.long_is_64, private_functions=args.source.name in {"event_func.cpp", "editdebug.cpp"})
     except port_override.Error as error:
         sys.exit(str(error))
 
     text += "\n" + retail_bridges(port_override, args.source, args.long_is_64)
+    if args.source.name == "menuchr.cpp":
+        text = prepare_menu_character_arena(text)
+    if args.source.name == "dng_main.cpp":
+        start = text.index("    char pack_path[64];", text.index("void InitDungeonMain("))
+        end = text.index("    ActionScriptEnv.item_chara = ItemBaseData;", start)
+        text = text[:start] + """    if (!PortLoadDungeonArticleModels()) {
+        std::exit(1);
+        return;
+    }
+
+""" + text[end:]
+        bridge_header = Path(__file__).resolve().parents[2] / "port/src/dungeon_articles.hpp"
+        text = f'#include "{bridge_header.as_posix()}"\n' + text
+    native_bridges = {
+        "character.cpp": "character_metadata_bridge.inc",
+        "npccfg.cpp": "npccfg_config_bridge.inc",
+        "vlgr_info.cpp": "vlgr_info_config_bridge.inc",
+        "movieviewlp.cpp": "movieviewlp_config_bridge.inc",
+        "editdebug.cpp": "editdebug_config_bridge.inc",
+    }
+    if args.source.name in native_bridges:
+        bridge = Path(__file__).resolve().parents[2] / "port/src" / native_bridges[args.source.name]
+        text += f'\n#include "{bridge.as_posix()}"\n'
     fixed = header_fixups.fixup_unit_text(args.output.name, text.encode("utf-8", errors="surrogateescape")
                                           .decode("latin-1"))
-    final = long64.rewrite(fixed).encode("latin-1")
+    final = native_asset_paths.rewrite(long64.rewrite(fixed), args.source.name).encode("latin-1")
     if args.output.is_file() and args.output.read_bytes() == final:
         return
     args.output.parent.mkdir(parents=True, exist_ok=True)

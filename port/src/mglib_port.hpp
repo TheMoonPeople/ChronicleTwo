@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <memory>
 #include <optional>
 #include <span>
 #include <vector>
@@ -24,7 +25,7 @@ class mgCDrawEnv;
 // fiber checks it before drawing.
 bool mgPortRendererReady();
 bool mgPortFrameOpen();
-int mgPortFrameCount();
+int  mgPortFrameCount();
 // mgEndFrame of frame `frames` writes `screenshot` (if not empty) and exits the process with kExitOk.
 void mgPortExitAfterFrames(int frames, const std::filesystem::path &screenshot);
 
@@ -32,17 +33,18 @@ struct mgPortScreenshotOptions {
     int  display_frames = 0;
     bool fps = false;
 };
+
 // Applies to the screenshot of mgPortExitAfterFrames; set it before that call.
 void mgPortSetScreenshotOptions(const mgPortScreenshotOptions &options);
 
 // Projection
 
 struct mgPortProjection {
-    float eye = 0.0f;       // mgRENDER_INFO::projection: screen-plane distance in target pixels
+    float eye = 0.0f; // mgRENDER_INFO::projection: screen-plane distance in target pixels
     float near_z = 0.0f;
     float far_z = 0.0f;
-    float aspect_y = 1.0f;  // retail vertical pixel scale, mgRENDER_INFO::aspect[1][1]
-    float width = 0.0f;     // target size the 2048-centred screen matrix is centred on
+    float aspect_y = 1.0f; // retail vertical pixel scale, mgRENDER_INFO::aspect[1][1]
+    float width = 0.0f;    // target size the 2048-centred screen matrix is centred on
     float height = 0.0f;
 };
 
@@ -51,10 +53,10 @@ mgPortProjection mgPortCurrentProjection();
 // 2048-centred screen matrix inside the logical frame.
 void mgPortEyeToClip(const mgPortProjection &projection, gfx::TextureHandle target, float out[16]);
 // World to clip on the current target with mgRenderInfo.view.
-void mgPortWorldToClip(float out[16]);
+void               mgPortWorldToClip(float out[16]);
 gfx::MeshTransform mgPortMeshTransform(const float model[16]);
-float mgPortDepth(uint32_t gs_z);
-uint32_t mgPortGsDepth(float depth);
+float              mgPortDepth(uint32_t gs_z);
+uint32_t           mgPortGsDepth(float depth);
 // GS primitive coordinates (12.4, XYOFFSET applied) to logical coordinates on the current target.
 float mgPortLogicalX(int gs_x);
 float mgPortLogicalY(int gs_y);
@@ -90,8 +92,8 @@ struct mgPortGsState {
     uint64_t texa = 0;
     uint64_t clamp = 0;
     uint64_t tex1 = 0;
-    int scissor[4] = {};    // SCAX0, SCAY0, SCAX1, SCAY1, inclusive target pixels
-    uint8_t fog_color[3] = {};
+    int      scissor[4] = {}; // SCAX0, SCAY0, SCAX1, SCAY1, inclusive target pixels
+    uint8_t  fog_color[3] = {};
     // Colour survives primitive and packet boundaries until another Color call.
     uint8_t prim_color[4] = {0xFF, 0xFF, 0xFF, 0xFF};
     // TEX0/TEX1 as the last mgCDrawPrim::Texture wrote them; Initialize clears a builder, not the GS.
@@ -104,17 +106,21 @@ struct mgPortGsState {
 
 mgPortGsState &mgPortGs();
 // Back to the state My_dma_start0 leaves the GS in.
-void mgPortResetGs();
+void           mgPortResetGs();
 gfx::DrawState mgPortDrawState();
 gfx::DrawState mgPortDrawState(const mgPortGsState &state);
-void mgPortApplyTest(gfx::DrawState &state, uint64_t test);
-void mgPortApplyZbuf(gfx::DrawState &state, uint64_t zbuf);
-void mgPortApplyAlpha(gfx::DrawState &state, uint64_t alpha);
-void mgPortApplyTexa(gfx::DrawState &state, uint64_t texa);
-void mgPortApplyScissor(gfx::DrawState &state, const int scissor[4]);
-void mgPortApplyDrawEnv(gfx::DrawState &state, const mgCDrawEnv &env);
-gfx::Wrap mgPortWrapU(uint64_t clamp);
-gfx::Wrap mgPortWrapV(uint64_t clamp);
+void           mgPortApplyTest(gfx::DrawState &state, uint64_t test);
+void           mgPortApplyZbuf(gfx::DrawState &state, uint64_t zbuf);
+void           mgPortApplyAlpha(gfx::DrawState &state, uint64_t alpha);
+void           mgPortApplyTexa(gfx::DrawState &state, uint64_t texa);
+void           mgPortApplyScissor(gfx::DrawState &state, const int scissor[4]);
+void           mgPortApplyDrawEnv(gfx::DrawState &state, const mgCDrawEnv &env);
+// Draws between these write a cleared destination alpha bit where they cover, over a frame cleared
+// to set; for the rest of the frame (until shadows) DATE draws test that bit.
+void        mgPortBeginDestAlphaMask();
+void        mgPortEndDestAlphaMask();
+gfx::Wrap   mgPortWrapU(uint64_t clamp);
+gfx::Wrap   mgPortWrapV(uint64_t clamp);
 gfx::Filter mgPortFilter(uint64_t tex1);
 
 // Textures. The texture registry (mg_texture.cpp) installs the lookups; render targets and the frame
@@ -128,7 +134,7 @@ struct mgPortTexture {
 using mgPortTextureLookup = mgPortTexture (*)(const mgCTexture *texture);
 using mgPortTex0Lookup = mgPortTexture (*)(uint64_t tex0);
 
-void mgPortSetTextureLookup(mgPortTextureLookup by_texture, mgPortTex0Lookup by_tex0);
+void          mgPortSetTextureLookup(mgPortTextureLookup by_texture, mgPortTex0Lookup by_tex0);
 mgPortTexture mgPortFindTexture(const mgCTexture *texture);
 mgPortTexture mgPortFindTexture(uint64_t tex0);
 // Current CLAMP and the texture's TEX1/TCC applied.
@@ -140,6 +146,28 @@ void mgPortAdoptColorVariant(const mgCTexture *src, mgCTexture *dst);
 // Render targets
 
 gfx::TextureHandle mgPortCurrentTarget();
+
+/**
+ * Restores the current target, camera, lighting and native drawing state after an auxiliary render.
+ */
+class mgPortRenderStateScope final {
+public:
+    /**
+     * Captures the complete current native render state.
+     */
+    mgPortRenderStateScope();
+    /**
+     * Restores the captured state and target on every scope exit.
+     */
+    ~mgPortRenderStateScope();
+    mgPortRenderStateScope(const mgPortRenderStateScope &) = delete;
+    mgPortRenderStateScope &operator=(const mgPortRenderStateScope &) = delete;
+
+private:
+    struct State;
+    std::unique_ptr<State> state; /**< Complete native drawing state saved at entry. */
+};
+
 /**
  * Returns the host texel scale of a registered image or animation target.
  */
@@ -155,7 +183,7 @@ gfx::TextureHandle mgPortRenderTarget(uint32_t tbp0, int width, int height, int 
 void mgPortReleaseTextureTarget(uint32_t tbp0);
 // The share_main_depth target between mgBeginDrawShadow and mgEndDrawShadow.
 gfx::TextureHandle mgPortShadowTarget();
-bool mgPortInShadow();
+bool               mgPortInShadow();
 
 // Submission. Dropped outside a frame and before mgPortRendererReady().
 
@@ -203,7 +231,7 @@ private:
 // The tick being recorded (or the next one, outside a tick) is not interpolated from its predecessor.
 void mgPortCutInterpolation();
 // Its camera is not; objects still are.
-void mgPortCutCameraInterpolation();
+void               mgPortCutCameraInterpolation();
 unsigned long long mgPortCameraGeneration();
 // True between mgBeginFrame and mgEndFrame while the tick is recorded as a display list.
 bool mgPortRecording();
@@ -220,5 +248,5 @@ bool mgPortCanonicalReadColor(gfx::TextureHandle target, std::vector<uint8_t> &r
                               uint32_t &height);
 // Farthest depth over a logical rect of the main target, answered at the end of the frame.
 // Returns -1 when no query slot is free; slots 0-3 are mgPickZBuff's.
-int mgPortQueueDepthRead(float x, float y, float width, float height);
+int                  mgPortQueueDepthRead(float x, float y, float width, float height);
 std::optional<float> mgPortDepthResult(int query);
