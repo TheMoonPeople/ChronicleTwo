@@ -57,7 +57,7 @@ struct Rect {
 constexpr int  kPanelX = 42;
 constexpr int  kPanelOffsetY = 66;
 constexpr Rect kBox = {0, 8, 176, 134};
-constexpr Rect kTitleBar = {32, -1, 112, 25};
+constexpr Rect kTitleBar = {20, -1, 136, 25};
 // Square, Triangle, Cross, Circle.
 constexpr Rect kSlotRect[kSlots] = {{11, 26, 76, 52}, {89, 26, 76, 52}, {11, 82, 76, 52}, {89, 82, 76, 52}};
 constexpr int  kDiscSize = 24;
@@ -404,11 +404,12 @@ void DrawTitle(float x, float y, uint8_t alpha) {
     static char title[] = "QUICK LOADOUT";
     CFont font;
     font.Init();
-    // A little under the game's own size for its menu text (16 by 20), to sit inside the bar.
-    constexpr int kLetterWidth = 14;
-    constexpr int kLetterAdvance = 14;
-    font.SetDrawSize(kLetterWidth, 18);
-    font.SetClearance(kLetterAdvance, 18);
+    // The game's own size for its menu text, 16 by 20, which draws the font texel for texel (any other size stretches
+    // its letters unevenly), spaced a little wider than the menus' 15.
+    constexpr int kLetterWidth = 16;
+    constexpr int kLetterAdvance = 17;
+    font.SetDrawSize(kLetterWidth, 20);
+    font.SetClearance(kLetterAdvance, 20);
     font.SetFuchi(FUCHI_OUTLINE);
     font.SetColor(0x80, 0x80, 0x80, alpha);
     int w = 0, h = 0;
