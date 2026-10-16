@@ -15,6 +15,7 @@
 #include "mg_drawprim.hpp"
 #include "mg_drawprim_port.hpp"
 #include "mg_frame.hpp"
+#include "mg_shadow.hpp"
 #include "mg_texture.hpp"
 #include "mg_visual.hpp"
 #include "mg_visual_port.hpp"
@@ -599,6 +600,60 @@ TEST(MgVisual, QueuedFixFaceSurvivesFaceAddressReuse) {
 
     DrawTickImmediate(next, attr);
     ExpectCentre(0, 128, 0);
+}
+
+// Native models refresh shadow faces at load; outside the shadow pass they draw nothing, even straight after a
+// lit visual.
+TEST(MgVisual, ShadowModelAfterLitVisualDrawsNoMesh) {
+    VisualRenderer renderer(640, 480);
+    mgSetBackGround(0.0f, 0.0f, 0.0f, 128.0f);
+    SetCamera();
+
+    MdtFile      lit_file(CentreTriangle(false));
+    MemoryPool   pool;
+    mgCVisualMDT lit;
+    ASSERT_EQ(lit.DataAssignMDT(lit_file.header(), &pool.memory(), nullptr), 1);
+
+    float positions[3][4] = {
+        {-50, -50, 100, 1},
+        {150, -50, 100, 1},
+        {-50, 150, 100, 1}
+    };
+    int     indices[] = {0, 1, 2};
+    mgCFace face{};
+    face.type = kPrimTriangle | kUntextured | MG_FACE_NO_NORMAL;
+    face.vertex_num = 3;
+    face.index_stride = 1;
+    face.index_num = 3;
+    face.index = indices;
+    mgFACE_GROUP group{};
+    group.face = &face;
+    mgMaterial material{};
+    mgCShadowMDT shadow;
+    shadow.vertex = positions;
+    shadow.vertex_num = 3;
+    shadow.face_group = &group;
+    shadow.material = &material;
+    shadow.material_num = 1;
+    mgVisualPortRefreshFace(&shadow, &face);
+    ASSERT_NE(mgVisualPortFaceMesh(&face), nullptr);
+
+    mgCFrameAttr attr;
+    attr.no_light = 1;
+    SetColour(attr, {128.0f, 128.0f, 128.0f, 128.0f});
+    float matrix[4][4];
+    Identity(matrix);
+    PrepareObject(attr);
+    u_int tag[4] = {};
+
+    mgBeginFrame(nullptr);
+    lit.Draw(tag, matrix, nullptr);
+    shadow.Draw(tag, matrix, nullptr);
+    mgEndFrame(nullptr);
+
+    const auto *list = mgPortLastList();
+    ASSERT_NE(list, nullptr);
+    EXPECT_EQ(list->records.size(), 1u);
 }
 
 // Packet quadwords are transient even when their faces were uploaded persistently.

@@ -589,6 +589,9 @@ PORT_OVERRIDE int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawMana
     mgRENDER_INFO *info = draw_manager->render_info;
     texture_manager = draw_manager->texture_manager;
     prev_tex = 0;
+    // A shadow model's CreateRenderInfoPacket leaves the record alone, so the previous visual's record must not
+    // send the shadow faces down as lit meshes in that visual's place.
+    CurrentRecord().drawn = false;
     CreateRenderInfoPacket(NULL, matrix, info);
     CreatePacket(draw_manager);
 
