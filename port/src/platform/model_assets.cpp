@@ -1331,6 +1331,17 @@ Mot_List *Channel(const Json &channel, mgCMemory &memory) {
     return list;
 }
 
+// Retail CCharacter2::_IMG_END: animation groups owned by the base image are
+// the leading named ones; later groups come from extra motion images and are
+// deleted when those images are released.
+int FirstUnnamedTexAnimeGroup(char **names, int count) {
+    int group = 0;
+    while (group < count && names[group] != nullptr) {
+        ++group;
+    }
+    return group;
+}
+
 } // namespace
 
 void Clear() {
@@ -2491,9 +2502,9 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
         character_images[character].push_back({slot, options.texture_block, textures, cached, memory, textures->name_suffix});
     }
     character->texture_block = options.texture_block;
-    textures->GetGroupNameList(options.texture_block, &character->tex_anime_group_num);
-    if (slot == 0) {
-        character->tex_anime_group_start = character->tex_anime_group_num;
+    char **group_names = textures->GetGroupNameList(options.texture_block, &character->tex_anime_group_num);
+    if (slot == 0 && group_names != nullptr) {
+        character->tex_anime_group_start = FirstUnnamedTexAnimeGroup(group_names, character->tex_anime_group_num);
     }
 }
 
@@ -2966,9 +2977,9 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
     if (slot == 0) {
         character.texture_block = block;
     }
-    manager->GetGroupNameList(character.texture_block, &character.tex_anime_group_num);
-    if (slot == 0) {
-        character.tex_anime_group_start = character.tex_anime_group_num;
+    char **group_names = manager->GetGroupNameList(character.texture_block, &character.tex_anime_group_num);
+    if (slot == 0 && group_names != nullptr) {
+        character.tex_anime_group_start = FirstUnnamedTexAnimeGroup(group_names, character.tex_anime_group_num);
     }
 }
 } // namespace
