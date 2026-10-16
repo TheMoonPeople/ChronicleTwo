@@ -28,6 +28,10 @@ LONG64_SUFFIXES = (".h", ".hpp", ".hh", ".inc", ".inl")
 FIXUPS = [
     ("dng_event.hpp", "    virtual void Draw();", "    virtual int Draw();"),
     ("dng_hud.hpp", "    virtual void Draw();", "    virtual int Draw();"),
+    # The quick loadout's "Equip Slot" command wraps the item command list; retail's routine stays under this name.
+    ("menusys.hpp", "    int MenuItemCommandSelect(int select_key, int push_button);",
+     "    int MenuItemCommandSelect(int select_key, int push_button);\n"
+     "    int PortRetailMenuItemCommandSelect(int select_key, int push_button);"),
     ("nd_meswin.hpp", "#ifndef MES_WINDOW_OUT_OF_LINE_INIT", "#if 1"),
     ("collision.hpp", "memset(&bbox, 0, sizeof(bbox));", "memset(static_cast<void *>(&bbox), 0, sizeof(bbox));"),
     # kernel32 exports these three names on Windows; the PS2 kernel's versions take their own link names so they never bind to kernel32.

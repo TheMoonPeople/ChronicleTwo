@@ -46,6 +46,9 @@ RETAIL_BRIDGES = {
         ("DngMainKey()", "DngMainKey", "PortRetailDngMainKey"),
     ],
     "charasetup.cpp": [("GetRoboPartsInfo(CUserDataManager*)", "GetRoboPartsInfo", "PortRetailGetRoboPartsInfo")],
+    "menusys.cpp": [
+        ("CBaseMenuClass::MenuItemCommandSelect(int,int)", "MenuItemCommandSelect", "PortRetailMenuItemCommandSelect"),
+    ],
     "menuchr.cpp": [
         ("InitMainCharaBG(int,mgCMemory*,int)", "InitMainCharaBG", "PortRetailInitMainCharaBG"),
         ("KeyMainCharaBG()", "KeyMainCharaBG", "PortRetailKeyMainCharaBG"),

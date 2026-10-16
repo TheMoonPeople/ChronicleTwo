@@ -45,8 +45,6 @@ constexpr int kNameSize = 0x20;
 constexpr int kSlotButton[kSlots] = {PAD_TRIANGLE, PAD_SQUARE, PAD_CROSS, PAD_CIRCLE};
 constexpr int kFaceButtons = PAD_TRIANGLE | PAD_SQUARE | PAD_CROSS | PAD_CIRCLE;
 
-// Holding a slot's button this long (1/60 s ticks) keeps the item now equipped in its row there.
-constexpr int kAssignTicks = 40;
 constexpr int kFadeTicks = 6;
 constexpr int kFlashTicks = 14;
 
@@ -80,9 +78,6 @@ bool panel_open = false;
 int  fade = 0;          // ticks of the panel's fade, 0 (hidden) to kFadeTicks
 int  raw_previous = 0;  // the face buttons before this session took any away
 int  swallowed = 0;     // buttons taken from the game, until they are let go
-int  hold_slot = -1;
-int  hold_ticks = 0;
-bool hold_assigned = false;
 int  request_slot = -1;
 int  flash_slot = -1;
 int  flash_ticks = 0;
@@ -222,7 +217,6 @@ void PlaySe(int se) { sndSePlay(SystemSND_ID, se, 0); }
 
 void Close() {
     panel_open = false;
-    hold_slot = -1;
     request_slot = -1;
 }
 
@@ -248,27 +242,7 @@ void Open() {
     }
     FillEmptyRows(ActiveChara());
     panel_open = true;
-    hold_slot = -1;
     PlaySe(SYSTEM_SE_PAGE);
-}
-
-void Assign(int slot) {
-    const int      chara = ActiveChara();
-    CGameDataUsed *equipped = RowEquip(chara, slot / 2);
-    if (equipped == nullptr || equipped->item_no <= 0) {
-        PlaySe(SYSTEM_SE_CANCEL);
-        return;
-    }
-    // One slot per item: the row's other slot lets go of it.
-    Entry &other = slots[chara][slot ^ 1];
-    if (Matches(other, equipped)) {
-        other = {};
-    }
-    SetEntry(slots[chara][slot], equipped);
-    SaveSlots();
-    flash_slot = slot;
-    flash_ticks = kFlashTicks;
-    PlaySe(SYSTEM_SE_DECIDE);
 }
 
 // Whether the Ridepod has the capacity for a part in place of the one fitted in its slot, as the menu asks.
@@ -293,8 +267,7 @@ bool Equip(int slot) {
         return false;
     }
     if (Matches(entry, equipped)) {
-        PlaySe(SYSTEM_SE_CURSOR);
-        Close();
+        PlaySe(SYSTEM_SE_CURSOR); // already in hand: the panel stays open
         return false;
     }
     CGameDataUsed *item = FindOwned(entry);
@@ -447,23 +420,9 @@ void PortQuickLoadoutPad() {
     if (panel_open) {
         for (int slot = 0; slot < kSlots; slot++) {
             if (pressed & kSlotButton[slot]) {
-                hold_slot = slot;
-                hold_ticks = 0;
-                hold_assigned = false;
-            }
-        }
-        if (hold_slot >= 0) {
-            if (raw & kSlotButton[hold_slot]) {
-                hold_ticks += ticks;
-                if (!hold_assigned && hold_ticks >= kAssignTicks) {
-                    Assign(hold_slot);
-                    hold_assigned = true;
-                }
-            } else {
-                if (!hold_assigned) {
-                    request_slot = hold_slot;
-                }
-                hold_slot = -1;
+                request_slot = slot;
+                flash_slot = slot;
+                flash_ticks = kFlashTicks;
             }
         }
         swallowed |= raw & kFaceButtons;
@@ -544,11 +503,7 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
                 DrawHalo(cx, cy, h * 1.2f, (float) fade / kFadeTicks);
             }
         }
-        // Holding the button brightens the slot as it fills; keeping the item flashes it.
-        if (hold_slot == slot && !hold_assigned && hold_ticks > 8) {
-            const float t = (float) (hold_ticks - 8) / (float) (kAssignTicks - 8);
-            DrawFlash(x0, y0, w, h, static_cast<uint8_t>(0x20 * (t > 1.0f ? 1.0f : t) * fade / kFadeTicks));
-        }
+        // A press flashes the slot.
         if (flash_slot == slot && flash_ticks > 0) {
             DrawFlash(x0, y0, w, h, static_cast<uint8_t>(0x50 * flash_ticks / kFlashTicks * fade / kFadeTicks));
         }
@@ -566,3 +521,51 @@ void PortQuickLoadoutReset() {
 bool PortQuickLoadoutReloading() { return reloading; }
 
 void PortQuickLoadoutReloadDone() { reloading = false; }
+
+bool PortQuickLoadoutTarget(const CGameDataUsed *item, int *chara, int *row) {
+    if (item == nullptr || item->item_no <= 0) {
+        return false;
+    }
+    switch (GetItemDataType(item->item_no)) {
+    case ITEM_DATA_MAX_MELEE:
+        *chara = USER_CHARA_MAX, *row = 0;
+        break;
+    case ITEM_DATA_MAX_GUN:
+        *chara = USER_CHARA_MAX, *row = 1;
+        break;
+    case ITEM_DATA_MONICA_MELEE:
+        *chara = USER_CHARA_MONICA, *row = 0;
+        break;
+    case ITEM_DATA_MONICA_MAGIC:
+        *chara = USER_CHARA_MONICA, *row = 1;
+        break;
+    case ITEM_DATA_ROBO_ARM:
+        *chara = USER_CHARA_ROBO, *row = 0;
+        break;
+    case ITEM_DATA_ROBO_LEG:
+        *chara = USER_CHARA_ROBO, *row = 1;
+        break;
+    default:
+        return false;
+    }
+    // The rods have their own way into Max's hand: fishing.
+    return !const_cast<CGameDataUsed *>(item)->IsFishingRod();
+}
+
+bool PortQuickLoadoutAssign(const CGameDataUsed *item, int slot) {
+    int chara, row;
+    if (slot < 0 || slot >= kSlots || !PortQuickLoadoutTarget(item, &chara, &row) || slot / 2 != row) {
+        return false;
+    }
+    if (!slots_loaded) {
+        LoadSlots();
+    }
+    // One slot per item: the row's other slot lets go of it.
+    Entry &other = slots[chara][slot ^ 1];
+    if (Matches(other, item)) {
+        other = {};
+    }
+    SetEntry(slots[chara][slot], item);
+    SaveSlots();
+    return true;
+}

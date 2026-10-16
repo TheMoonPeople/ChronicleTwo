@@ -10,11 +10,13 @@ The panel has four slots, one for each face button:
 | Max, Monica | melee weapons    | second weapons |
 | Ridepod     | arms             | legs           |
 
-While it is open the face buttons belong to the panel:
+Items go in the slots from the item menu: on a weapon of Max or Monica, or a Ridepod arm or leg part, the command
+list has **Equip Slot** after Equip. It lists the four slots by their buttons, the item's two (its character's row)
+to choose from and the other two greyed out; the one chosen takes the item, and a row's other slot lets go of it.
 
-- a tap equips the slot's item at once: the character is loaded again with it, as a quick change (L3, R3) loads the next
-  character, and the quick change's white fade and stars play on it;
-- holding the button keeps the item equipped in that slot's row in the slot.
+While the panel is open the face buttons belong to it: a press equips the slot's item at once, the character is
+loaded again with it, as a quick change (L3, R3) loads the next character, and the quick change's white fade and
+stars play on it. Pressing the slot already in hand does nothing.
 
 The slot whose item is equipped now wears the game's own rotating active item cursor (the one round the camera on the
 status board) round its picture.
