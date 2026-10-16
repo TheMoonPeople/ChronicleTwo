@@ -19,7 +19,8 @@ loaded again with it, as a quick change (L3, R3) loads the next character, and t
 stars play on it. Pressing the slot already in hand does nothing.
 
 The slot whose item is equipped now wears the game's own rotating active item cursor (the one round the camera on the
-status board) round its picture.
+status board), stretched round the whole slot. The Ridepod's status board has no active items, so its panel sits
+higher, under the Ridepod's numbers.
 
 The first time a character's panel opens, each empty row takes the item equipped in it. An item the party no longer
 has is drawn dimmed, and its slot does nothing. The Ridepod only takes a part it has the capacity for, as in the menu.
