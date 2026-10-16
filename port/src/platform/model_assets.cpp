@@ -2970,6 +2970,13 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
     auto &owned = character_images[&character];
     std::erase_if(owned, [slot](const auto &image) { return image.slot == slot; });
     std::strcpy(manager->name_suffix, suffix.c_str());
+    if (!pixels) {
+        std::vector<const texture_catalog::Entry *> entries;
+        for (const auto &entry : source->entries) {
+            entries.push_back(&entry);
+        }
+        datapacks::PrefetchEntries(entries);
+    }
     MgTextureEnterNativeSet(manager, block, *source, memory,
                             [source, pixels](const texture_catalog::Entry &entry, std::size_t variant,
                                              datapacks::DecodedTexture &decoded, std::string &error) {

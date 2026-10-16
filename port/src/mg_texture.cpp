@@ -1530,6 +1530,9 @@ PORT_OVERRIDE mgCTexture *mgCTextureManager::EnterTexture(int id, char *name, TM
 }
 
 namespace {
+/** Catalog entries decoded together ahead of registration. */
+constexpr std::size_t kPrefetchBatch = 32;
+
 int EnterSource(mgCTextureManager *manager, int block, const texture_catalog::Source &source,
                 mgCMemory *stack, mgCEnterIMGInfo *info, const MgTextureImageDecoder &decoder,
                 const MgTextureImageIdentity &identity = {}) {
@@ -1547,7 +1550,13 @@ int EnterSource(mgCTextureManager *manager, int block, const texture_catalog::So
         entries.push_back(&entry);
     }
     int last_block = block;
-    for (const auto *entry : entries) {
+    for (std::size_t index = 0; index < entries.size(); ++index) {
+        const auto *entry = entries[index];
+        // Upscaled pack PNGs take tens of milliseconds each to decode, so the catalog decodes are spread over
+        // worker threads a batch ahead; batches keep them inside the decode cache until they are entered.
+        if (!decoder && index % kPrefetchBatch == 0) {
+            datapacks::PrefetchEntries(std::span(entries).subspan(index, std::min(kPrefetchBatch, entries.size() - index)));
+        }
         if (entry->type == "cfg") {
             ApplyAnimation(manager, *entry, stack, block);
             continue;

@@ -681,6 +681,27 @@ bool Decode(const texture_catalog::Entry &entry, std::size_t variant_index, Deco
     return DecodeCached(DecodeKey(entry, variant_index), [&](DecodedTexture &out, std::string &failure) { return DecodeUncached(entry, variant_index, out, failure); }, decoded, error);
 }
 
+void PrefetchEntries(std::span<const texture_catalog::Entry *const> entries) {
+    std::vector<DecodeJob> jobs;
+    for (const auto *entry : entries) {
+        if (entry->type != "texture" || entry->bpp != 32 || entry->no_image || entry->width <= 0 || entry->height <= 0 ||
+            entry->width > static_cast<int>(kMaxDimension) || entry->height > static_cast<int>(kMaxDimension)) {
+            continue;
+        }
+        for (std::size_t variant = 0; variant < entry->variants.size(); ++variant) {
+            if (entry->variants[variant].levels.empty()) {
+                continue;
+            }
+            jobs.push_back({DecodeKey(*entry, variant), [entry, variant](DecodedTexture &out, std::string &failure) {
+                                return DecodeUncached(*entry, variant, out, failure);
+                            }});
+        }
+    }
+    if (!jobs.empty()) {
+        Prefetch(jobs);
+    }
+}
+
 std::string ImageDecodeKey(std::string_view identity, std::span<const vfs::Ref> sources) {
     std::string key = std::to_string(identity.size()) + ':' + std::string(identity);
     for (const auto &file : sources) {

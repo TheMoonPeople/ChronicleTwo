@@ -122,6 +122,12 @@ struct DecodeJob {
 void Prefetch(std::span<DecodeJob> jobs);
 
 /**
+ * Decodes, on worker threads, the catalog textures Decode would otherwise decode one by one; the results wait in
+ * the decode cache.
+ */
+void PrefetchEntries(std::span<const texture_catalog::Entry *const> entries);
+
+/**
  * Memoises the source-file stamps ImageDecodeKey reads while alive; the memo clears when the outermost scope ends.
  */
 struct StampScope {
