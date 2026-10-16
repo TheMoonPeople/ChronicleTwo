@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <vector>
+#include <memory>
 
 #include "dataread.hpp"
 #include "dngfloor.hpp"
@@ -54,8 +54,8 @@ PORT_OVERRIDE void CDngFloorManager::LoadDataTable(int dungeon, mgCMemory *memor
 
     // Room for the reader's sector padding and MenuCalcBufAlignment's rounding.
     const std::size_t bytes = static_cast<std::size_t>(largest) + DATAREAD_SECTOR_SIZE + 64;
-    std::vector<u_long128> scratch(bytes / sizeof(u_long128) + 1);
-    u8                    *data = (u8 *) MenuCalcBufAlignment(scratch.data());
+    const auto scratch = std::make_unique<u_long128[]>(bytes / sizeof(u_long128) + 1);
+    u8        *data = (u8 *) MenuCalcBufAlignment(scratch.get());
 
     for (char *table : table_paths) {
         size = 0;
