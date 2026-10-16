@@ -12,6 +12,7 @@
 #include "mg_visual.hpp"
 #include "mg_visual_port.hpp"
 #include "mglib.hpp"
+#include "platform/model_assets.hpp"
 #include "visualmotion.hpp"
 
 namespace {
@@ -313,4 +314,179 @@ TEST(VisualMotion, MatchesRetailAlgebra) {
     ResetPalette();
     visual.CreateExtRenderInfoPacket(nullptr, object, &mgRenderInfo);
     ExpectSlotMatches(0, expected);
+}
+
+TEST(VisualMotion, MatchesRetailAlgebraAttachedFrame) {
+    float rotation[4][4];
+    float translation[4][4];
+
+    float root_world[4][4];
+    SetIdentity(root_world);
+    SetTranslation(translation, 1.0f, 0.0f, 0.0f);
+    Product(root_world, root_world, translation);
+
+    float attach_world[4][4];
+    SetRotationZ(rotation, 0.25f);
+    SetTranslation(translation, 4.0f, 0.0f, 1.0f);
+    Product(attach_world, rotation, translation);
+    Product(attach_world, attach_world, root_world);
+
+    float base[3][4][4];
+    SetIdentity(base[0]);
+    SetRotationX(rotation, 0.5f);
+    SetTranslation(translation, 0.0f, 0.5f, 0.0f);
+    Product(base[1], rotation, translation);
+    SetRotationY(rotation, -0.35f);
+    SetTranslation(translation, 0.0f, 0.0f, 0.75f);
+    Product(base[2], rotation, translation);
+
+    float foot_world[4][4];
+    SetRotationX(rotation, -0.2f);
+    SetTranslation(translation, 0.0f, -1.5f, 0.25f);
+    Product(foot_world, rotation, translation);
+    Product(foot_world, foot_world, attach_world);
+
+    mgCFrame root;
+    PlaceFrame(root, root_world);
+    mgCFrame attach;
+    PlaceFrame(attach, attach_world);
+    mgCFrame foot;
+    PlaceFrame(foot, foot_world);
+    mgCFrame *frames[3] = {&root, &attach, &foot};
+
+    mgCVisualMotionMDT visual;
+    visual.frame = frames;
+    visual.frame_id = 1;
+    visual.base_matrix = base;
+    visual.bone[0] = 2;
+
+    float bone_base_inverse[4][4];
+    mgInversMatrix(bone_base_inverse, base[2]);
+    float object_inverse[4][4];
+    mgInversMatrix(object_inverse, attach_world);
+
+    float step[4][4];
+    Product(step, bone_base_inverse, foot_world);
+    Product(step, step, object_inverse);
+    float expected[4][4];
+    Product(expected, base[1], step);
+
+    ResetPalette();
+    visual.CreateExtRenderInfoPacket(nullptr, attach_world, &mgRenderInfo);
+    ExpectSlotMatches(0, expected);
+}
+
+TEST(VisualMotion, FootJointMotionUpdatesPalette) {
+    float base[3][4][4];
+    SetIdentity(base[0]);
+    SetIdentity(base[1]);
+    SetIdentity(base[2]);
+
+    float root_world[4][4];
+    SetIdentity(root_world);
+    float attach_world[4][4];
+    SetTranslation(attach_world, 3.0f, 0.0f, 0.0f);
+
+    float foot_a[4][4];
+    SetTranslation(foot_a, 3.0f, 0.0f, 0.0f);
+    float foot_b[4][4];
+    SetTranslation(foot_b, 3.0f, 1.25f, -0.5f);
+
+    mgCFrame root;
+    PlaceFrame(root, root_world);
+    mgCFrame attach;
+    PlaceFrame(attach, attach_world);
+    mgCFrame foot;
+    PlaceFrame(foot, foot_a);
+    mgCFrame *frames[3] = {&root, &attach, &foot};
+
+    mgCVisualMotionMDT visual;
+    visual.frame = frames;
+    visual.frame_id = 1;
+    visual.base_matrix = base;
+    visual.bone[0] = 2;
+
+    ResetPalette();
+    visual.CreateExtRenderInfoPacket(nullptr, attach_world, &mgRenderInfo);
+    float saved[3][4];
+    std::memcpy(saved, mgVisualPortCurrentProg0().bones[0], sizeof saved);
+
+    PlaceFrame(foot, foot_b);
+    ResetPalette();
+    visual.CreateExtRenderInfoPacket(nullptr, attach_world, &mgRenderInfo);
+    const float (*palette)[4] = mgVisualPortCurrentProg0().bones[0];
+    float max_delta = 0.0f;
+    for (int row = 0; row < 3; ++row) {
+        for (int col = 0; col < 4; ++col) {
+            max_delta = std::max(max_delta, std::fabs(palette[row][col] - saved[row][col]));
+        }
+    }
+    EXPECT_GT(max_delta, 0.1f);
+}
+
+TEST(VisualMotion, BaseMatrixUsesRetailPathDespiteInverseBinds) {
+    mgVertexWeight weights[1]{};
+
+    float rotation[4][4];
+    float translation[4][4];
+
+    float root_world[4][4];
+    SetRotationZ(rotation, 0.4f);
+    SetTranslation(translation, 1.0f, 2.0f, 3.0f);
+    Product(root_world, rotation, translation);
+
+    float base[2][4][4];
+    SetRotationX(rotation, 0.7f);
+    SetTranslation(translation, 0.0f, 1.0f, 0.0f);
+    Product(base[0], rotation, translation);
+    SetRotationY(rotation, -0.5f);
+    SetTranslation(translation, 0.5f, 0.0f, -1.0f);
+    Product(base[1], rotation, translation);
+
+    float bone_world[4][4];
+    SetRotationX(rotation, -0.3f);
+    SetTranslation(translation, 2.0f, -1.0f, 0.5f);
+    Product(bone_world, rotation, translation);
+
+    float object[4][4];
+    SetRotationZ(rotation, 1.1f);
+    SetTranslation(translation, 10.0f, 0.0f, 0.0f);
+    Product(object, rotation, translation);
+
+    mgCFrame root;
+    PlaceFrame(root, root_world);
+    mgCFrame bone;
+    PlaceFrame(bone, bone_world);
+    mgCFrame *frames[2] = {&root, &bone};
+
+    mgCVisualMotionMDT visual;
+    visual.frame = frames;
+    visual.frame_id = 0;
+    visual.base_matrix = base;
+    visual.bone[0] = 1;
+    visual.weight = weights;
+
+    float identity_bind[1][4][4];
+    SetIdentity(identity_bind[0]);
+    model_assets::RegisterInverseBindsForTest(weights, identity_bind, 1);
+
+    float bone_base_inverse[4][4];
+    mgInversMatrix(bone_base_inverse, base[1]);
+    float object_inverse[4][4];
+    mgInversMatrix(object_inverse, object);
+    float step[4][4];
+    Product(step, bone_base_inverse, bone_world);
+    Product(step, step, object_inverse);
+    float expected[4][4];
+    Product(expected, base[0], step);
+
+    float apply_skin_only[4][4];
+    Product(apply_skin_only, object_inverse, bone_world);
+
+    ResetPalette();
+    visual.CreateExtRenderInfoPacket(nullptr, object, &mgRenderInfo);
+    ExpectSlotMatches(0, expected);
+    EXPECT_GT(std::fabs(expected[3][0] - apply_skin_only[3][0]), 0.01f);
+
+    model_assets::ClearInverseBindsForTest();
 }
