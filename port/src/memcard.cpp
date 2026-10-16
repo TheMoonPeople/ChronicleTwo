@@ -26,7 +26,79 @@ int Digit(const CSaveData &save, std::size_t size) {
     }
     return digit;
 }
+
+unsigned long long MaxUniqueCounter(const SaveSlotList &list) {
+    unsigned long long newest = 0;
+    for (const auto &slot : list.saves) {
+        if (slot.state == SaveSlotState::Ready && slot.info.state) {
+            newest = std::max(newest, slot.info.unique_counter);
+        }
+    }
+    return newest;
+}
+
+// The port's existing save image, unchanged: no PC metadata is embedded in the payload.
+void BuildImage(SAVEDATA_FORMAT &image, int program_loop_no, unsigned long long newest) {
+    auto &save = *GetSaveData();
+    std::memset(&image, 0, sizeof(image));
+    std::strcpy(image.version, "dc2Ver4");
+    std::memcpy(&image.save_data, &save, sizeof(save));
+    if (save.GetBitFlag(SAVE_FLAG_COSTUME_UNLOCK)) {
+        image.costume_bit = save.user_data.GetCostumeBit();
+        image.omake_flag |= OMAKE_ENABLE_COSTUME | OMAKE_ENABLE_DUNGEON;
+    }
+    if (save.GetBitFlag(SAVE_FLAG_FINNY_FRENZY_UNLOCKED)) {
+        image.omake_flag |= OMAKE_ENABLE_GYORACE;
+    }
+    image.dng_tree_flag = dungeon_tree_flag;
+    image.unique_counter = newest == std::numeric_limits<unsigned long long>::max() ? newest : newest + 1;
+    image.progress = save.game_progress;
+    image.fish_num = save.user_data.CountFish();
+    image.program_loop_no = program_loop_no;
+    image.map_no = save.map_no;
+    image.dungeon_no = save.save_dungeon.stage_id;
+    if (image.dungeon_no >= 0 && image.dungeon_no < SAVE_DUNGEON_NUM) {
+        image.floor_id = save.save_dungeon.floor_id[image.dungeon_no];
+    }
+    image.check_digit_half = Digit(image.save_data, sizeof(CSaveData) / 2);
+    image.check_digit = Digit(image.save_data, sizeof(CSaveData));
+}
+
+// Every save's, the autosave's included, so that the newest save is the one written last.
+u64 NewestCounter() {
+    return MaxUniqueCounter(SaveSlotScan(true));
+}
 } // namespace
+
+bool SaveSlotWriteAutosave(int program_loop_no, AutosaveSpawn *spawn) {
+    if ((program_loop_no != LOOP_EDIT && program_loop_no != LOOP_DUNGEON) ||
+        FilesCreateDirectory(SaveSlotsRoot()) == FilesResult::kFailed) {
+        return false;
+    }
+    const auto list = SaveSlotScan(true);
+    const auto newest = MaxUniqueCounter(list);
+    if (list.read_failed || newest == std::numeric_limits<u64>::max()) {
+        return false;
+    }
+    auto image = std::make_unique<SAVEDATA_FORMAT>();
+    BuildImage(*image, program_loop_no, newest);
+    const bool has_spawn = program_loop_no == LOOP_EDIT && spawn;
+    if (has_spawn) {
+        spawn->counter = image->unique_counter;
+        if (spawn->map_no != image->map_no || !SaveSlotWriteSpawn(*spawn)) {
+            return false;
+        }
+    }
+    if (program_loop_no == LOOP_DUNGEON) {
+        image->dng_tree_flag = 0;
+    }
+    if (SaveSlotWrite(SaveSlotAutosavePath(), *image, true) != FilesResult::kWritten) {
+        // A failed directory sync can still leave the new image published; retain both possible matching sidecars.
+        return false;
+    }
+    SaveSlotPruneSpawns(has_spawn ? std::optional<u64>(image->unique_counter) : std::nullopt);
+    return true;
+}
 
 CMemoryCardManager *SaveSlotManager() { return active_manager; }
 
@@ -42,29 +114,27 @@ PORT_OVERRIDE int CMemoryCardManager::InitForMC() {
 }
 
 PORT_OVERRIDE int CMemoryCardManager::GetAllSaveFileInfo() {
-    SaveSlots = SaveSlotScan();
-    InitError();
-    std::memset(file_info, 0, sizeof(file_info));
+    return SaveSlotRefresh(*this, true);
+}
+
+int SaveSlotRefresh(CMemoryCardManager &manager, bool include_autosave) {
+    SaveSlots = SaveSlotScan(include_autosave);
+    manager.InitError();
+    std::memset(manager.file_info, 0, sizeof(manager.file_info));
     // Retain the small compatibility view for non-menu retail callers. All save
     // selection, title unlocks and newest-save queries use the complete catalog.
     for (std::size_t i = 0; i < SaveSlots.saves.size() && i < MC_SAVE_FILE_NUM; ++i) {
-        file_info[i] = SaveSlots.saves[i].info;
+        manager.file_info[i] = SaveSlots.saves[i].info;
     }
     if (SaveSlots.read_failed) {
-        error.code = MC_ERROR_FILE;
+        manager.error.code = MC_ERROR_FILE;
     }
-    total_transferred = 0;
+    manager.total_transferred = 0;
     return MC_STEP_DONE;
 }
 
 PORT_OVERRIDE unsigned long long CMemoryCardManager::CheckMaxUniqueCounter() {
-    unsigned long long newest = 0;
-    for (const auto &slot : SaveSlots.saves) {
-        if (slot.state == SaveSlotState::Ready && slot.info.state) {
-            newest = std::max(newest, slot.info.unique_counter);
-        }
-    }
-    return newest;
+    return MaxUniqueCounter(SaveSlots);
 }
 
 PORT_OVERRIDE int CMemoryCardManager::GetUpdateFile() {
@@ -117,38 +187,21 @@ PORT_OVERRIDE int CMemoryCardManager::SaveToMc(int row) {
         error.code = MC_ERROR_FILE;
         return MC_STEP_DONE;
     }
-    if (FilesCreateDirectory(SaveSlotsRoot()) == FilesResult::kFailed) {
+    if ((!SaveSlotNew && SaveSlots.saves[row].autosave) ||
+        FilesCreateDirectory(SaveSlotsRoot()) == FilesResult::kFailed) {
         error.code = MC_ERROR_FILE;
         return MC_STEP_DONE;
     }
 
     auto &image = *save_buffer;
-    auto &save = *GetSaveData();
-    // The port's existing save image, unchanged: no PC metadata is embedded in
-    // the payload. Publish it only after the complete header and digits exist.
-    std::memset(&image, 0, sizeof(image));
-    std::strcpy(image.version, "dc2Ver4");
-    std::memcpy(&image.save_data, &save, sizeof(save));
-    if (save.GetBitFlag(SAVE_FLAG_COSTUME_UNLOCK)) {
-        image.costume_bit = save.user_data.GetCostumeBit();
-        image.omake_flag |= OMAKE_ENABLE_COSTUME | OMAKE_ENABLE_DUNGEON;
+    // Publish it only after the complete header and digits exist.
+    // A confirmed overwrite remains valid when an unrelated legacy-card root becomes unreadable.
+    const auto newest = std::max(CheckMaxUniqueCounter(), NewestCounter());
+    if (newest == std::numeric_limits<u64>::max()) {
+        error.code = MC_ERROR_FILE;
+        return MC_STEP_DONE;
     }
-    if (save.GetBitFlag(SAVE_FLAG_FINNY_FRENZY_UNLOCKED)) {
-        image.omake_flag |= OMAKE_ENABLE_GYORACE;
-    }
-    image.dng_tree_flag = dungeon_tree_flag;
-    auto newest = CheckMaxUniqueCounter();
-    image.unique_counter = newest == std::numeric_limits<unsigned long long>::max() ? newest : newest + 1;
-    image.progress = save.game_progress;
-    image.fish_num = save.user_data.CountFish();
-    image.program_loop_no = NowProgramLoopNo;
-    image.map_no = save.map_no;
-    image.dungeon_no = save.save_dungeon.stage_id;
-    if (image.dungeon_no >= 0 && image.dungeon_no < SAVE_DUNGEON_NUM) {
-        image.floor_id = save.save_dungeon.floor_id[image.dungeon_no];
-    }
-    image.check_digit_half = Digit(image.save_data, sizeof(CSaveData) / 2);
-    image.check_digit = Digit(image.save_data, sizeof(CSaveData));
+    BuildImage(image, NowProgramLoopNo, newest);
 
     std::filesystem::path path;
     FilesResult           result = FilesResult::kFailed;
@@ -182,7 +235,7 @@ PORT_OVERRIDE int CMemoryCardManager::SaveToMc(int row) {
         error.code = MC_ERROR_FILE;
         return MC_STEP_DONE;
     }
-    GetAllSaveFileInfo();
+    SaveSlotRefresh(*this, false);
     // Publication has succeeded durably. A catalog refresh error describes the
     // listing, not the write that just completed.
     InitError();
@@ -198,6 +251,7 @@ PORT_OVERRIDE int CMemoryCardManager::SaveToMc(int row) {
 PORT_OVERRIDE int CMemoryCardManager::LoadFromMc(int row) {
     InitError();
     total_transferred = transferred = 0;
+    SaveSlotSetPendingSpawn(std::nullopt);
     auto image = std::make_unique<SAVEDATA_FORMAT>();
     if (row < 0 || row >= static_cast<int>(SaveSlots.saves.size()) ||
         SaveSlotRead(SaveSlots.saves[row].path, *image) != SaveSlotState::Ready) {
@@ -217,6 +271,9 @@ PORT_OVERRIDE int CMemoryCardManager::LoadFromMc(int row) {
     load_dungeon_no = image->dungeon_no;
     load_floor_id = image->floor_id;
     load_dng_tree_flag = image->dng_tree_flag;
+    if (SaveSlots.saves[row].autosave && image->program_loop_no == LOOP_EDIT) {
+        SaveSlotSetPendingSpawn(SaveSlotReadSpawn(image->unique_counter, image->map_no));
+    }
     if (save->tour.base_day <= 0 && save->GetBitFlag(SAVE_FLAG_FISHING_CONTEST_UNLOCKED)) {
         save->tour.base_day = 7;
     }

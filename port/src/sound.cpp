@@ -14,8 +14,10 @@
 #include "audio/soundtrack.hpp"
 #include "audio/sq.hpp"
 #include "audio/trace.hpp"
+#include "audio_assets.hpp"
 #include "ezbgm.hpp"
 #include "ezmidi.hpp"
+#include "platform/datapacks.hpp"
 #include "platform/settings.hpp"
 #include "sound.hpp"
 #include "sound_port.hpp"
@@ -34,14 +36,14 @@ struct QueuedMessage {
 
 struct PortState {
     std::array<std::shared_ptr<const audio::Bank>, MIDI_PORT_BANK_MAX> bank{};
-    int                                                               bank_count = 0;
-    std::vector<std::shared_ptr<const audio::SqFile>>                 sequence;
+    int                                                                bank_count = 0;
+    std::vector<std::shared_ptr<const audio::SqFile> >                 sequence;
     std::vector<std::string>                                           sequence_name;
-    std::shared_ptr<const audio::SqFile>                              resident_sequence;
-    int                                                               linked_port = -1;
-    std::vector<int>                                                  dependent_port;
-    int                                                               ezmidi_param = 0;
-    MIDI_FADE                                                         fade[2] = {};
+    std::shared_ptr<const audio::SqFile>                               resident_sequence;
+    int                                                                linked_port = -1;
+    std::vector<int>                                                   dependent_port;
+    int                                                                ezmidi_param = 0;
+    MIDI_FADE                                                          fade[2] = {};
 };
 
 struct PortLayout {
@@ -57,32 +59,24 @@ constexpr int kDependentsOf10[] = {8, 1, 15, 2, 14};
 constexpr int kDependentsOf15[] = {2, 14};
 
 constexpr PortLayout kLayout[] = {
-    {0, -1, 0x3040, {}},
-    {1, -1, 0x3032, kDependentsOf1},
-    {2, 14, 0x3039, {}},
-    {3, -1, 0x3040, {}},
-    {7, -1, 0x3010, {}},
-    {8, -1, 0x3035, kDependentsOf8},
-    {9, -1, 0x3038, {}},
+    {0,  -1, 0x3040, {}             },
+    {1,  -1, 0x3032, kDependentsOf1 },
+    {2,  14, 0x3039, {}             },
+    {3,  -1, 0x3040, {}             },
+    {7,  -1, 0x3010, {}             },
+    {8,  -1, 0x3035, kDependentsOf8 },
+    {9,  -1, 0x3038, {}             },
     {10, -1, 0x3037, kDependentsOf10},
-    {11, -1, 0x3033, {}},
-    {12, -1, 0x3034, {}},
-    {13, -1, 0x3036, {}},
-    {14, 2, 0x3039, {}},
+    {11, -1, 0x3033, {}             },
+    {12, -1, 0x3034, {}             },
+    {13, -1, 0x3036, {}             },
+    {14, 2,  0x3039, {}             },
     {15, -1, 0x3031, kDependentsOf15},
 };
 
 std::array<PortState, MIDI_PORT_COUNT> ports;
 std::vector<QueuedMessage>             queued;
 bool                                   initialised = false;
-
-std::span<const std::uint8_t> AsBytes(const void *data, int size) {
-    if (data == nullptr || size <= 0) {
-        return {};
-    }
-
-    return {static_cast<const std::uint8_t *>(data), static_cast<std::size_t>(size)};
-}
 
 std::array<std::uint8_t, 7> HsBytes(std::uint8_t status, std::uint8_t sub, int a, int b, int c, int d) {
     return {status, sub, 0, static_cast<std::uint8_t>(a), static_cast<std::uint8_t>(b), static_cast<std::uint8_t>(c), static_cast<std::uint8_t>(d)};
@@ -393,100 +387,85 @@ PORT_OVERRIDE int TransHdBd(int, int, int, int) {
     return -1;
 }
 
-void SoundLoadHdBd(int port, const void *hd, int hd_size, const void *bd, int bd_size) {
-    std::shared_ptr<audio::Bank> bank = audio::Bank::Create(AsBytes(hd, hd_size), AsBytes(bd, bd_size));
+int SoundLoadBankJson(int port, std::string_view document, bool add) {
+    auto bank = audio::Bank::CreateFromJsonCandidates(document, datapacks::Candidates);
+    return SoundBindBank(port, std::move(bank), add);
+}
 
-    if (!bank) {
-        std::fprintf(stderr, "SoundLoadHdBd PORT=%d: bank header rejected\n", port);
-        return;
+int SoundBindBank(int port, std::shared_ptr<audio::Bank> bank, bool add) {
+    if (!bank || port < 0 || port >= static_cast<int>(ports.size())) {
+        return -1;
     }
-
-    audio::Mixer &mixer = audio::DefaultMixer();
-    const int     linked = ports[port].linked_port;
-
+    auto &state = ports[port];
+    auto &mixer = audio::DefaultMixer();
+    if (add) {
+        if (state.bank_count >= MIDI_PORT_BANK_MAX) {
+            audio::Trace("Bank MAX OVER PORT=%d", port);
+            return 0;
+        }
+        const int bank_no = state.bank_count;
+        state.bank[bank_no] = bank;
+        mixer.BindBank(port, bank_no, bank);
+        if (state.linked_port >= 0) {
+            auto &linked = ports[state.linked_port];
+            mixer.BindBank(state.linked_port, bank_no, bank);
+            linked.bank[bank_no] = bank;
+            linked.bank_count++;
+        }
+        state.bank_count++;
+        return 0;
+    }
+    const int linked = state.linked_port;
     LoadFirstBank(mixer, port, bank);
-
     if (linked >= 0) {
         LoadFirstBank(mixer, linked, bank);
     }
-
     ReleaseSequences(mixer, port);
-
     if (linked >= 0) {
         ReleaseSequences(mixer, linked);
     }
-
-    for (int dependent : ports[port].dependent_port) {
+    for (int dependent : state.dependent_port) {
         mixer.Stop(dependent);
     }
-
-    mixer.SetAttribute(port, ports[port].ezmidi_param);
-
+    mixer.SetAttribute(port, state.ezmidi_param);
     if (linked >= 0) {
         mixer.SetAttribute(linked, ports[linked].ezmidi_param);
     }
-}
-
-int SoundLoadHdBdAdd(int port, const void *hd, int hd_size, const void *bd, int bd_size) {
-    PortState &state = ports[port];
-
-    if (state.bank_count >= MIDI_PORT_BANK_MAX) {
-        audio::Trace("Bank MAX OVER PORT=%d", port);
-        return 0;
-    }
-
-    std::shared_ptr<audio::Bank> bank = audio::Bank::Create(AsBytes(hd, hd_size), AsBytes(bd, bd_size));
-
-    if (!bank) {
-        std::fprintf(stderr, "SoundLoadHdBdAdd PORT=%d: bank header rejected\n", port);
-        return -1;
-    }
-
-    audio::Mixer &mixer = audio::DefaultMixer();
-    const int     bank_no = state.bank_count;
-
-    state.bank[bank_no] = bank;
-    mixer.BindBank(port, bank_no, bank);
-
-    if (state.linked_port >= 0) {
-        PortState &linked = ports[state.linked_port];
-
-        mixer.BindBank(state.linked_port, bank_no, bank);
-        linked.bank[bank_no] = bank;
-        linked.bank_count++;
-    }
-
-    state.bank_count++;
     return 0;
 }
 
-int SoundLoadSeq(int port, const void *sq, int size, const char *name) {
-    audio::Mixer &mixer = audio::DefaultMixer();
+void SoundLoadHdBd(int port, const void *document, int size, const void *, int) {
+    if (document && size > 0) {
+        SoundLoadBankJson(port, std::string_view(static_cast<const char *>(document), size));
+    }
+}
 
-    mixer.Stop(port);
+int SoundLoadHdBdAdd(int port, const void *document, int size, const void *, int) {
+    return document && size > 0 ? SoundLoadBankJson(port, std::string_view(static_cast<const char *>(document), size), true) : -1;
+}
 
-    std::shared_ptr<audio::SqFile> file = audio::SqFile::Create(AsBytes(sq, size));
-
-    if (!file) {
-        std::fprintf(stderr, "SoundLoadSeq PORT=%d: sequence rejected\n", port);
+int SoundLoadSequenceJson(int port, std::string_view document, const char *name) {
+    if (port < 0 || port >= static_cast<int>(ports.size())) {
         return -1;
     }
-
-    PortState &state = ports[port];
-
+    auto &mixer = audio::DefaultMixer();
+    mixer.Stop(port);
+    const auto file = audio::SqFile::CreateFromJson(document);
+    if (!file) {
+        return -1;
+    }
+    auto &state = ports[port];
     if (state.sequence.empty()) {
         state.resident_sequence = file;
         mixer.SetSequence(port, file);
     }
-
     state.sequence.push_back(file);
-    state.sequence_name.emplace_back(name != nullptr ? name : "");
-
-    if (state.sequence.size() > 15) {
-        std::fprintf(stderr, "SEQ_MAX OVER PORT=%d\n", port);
-    }
-
+    state.sequence_name.emplace_back(name ? name : "");
     return 0;
+}
+
+int SoundLoadSeq(int port, const void *document, int size, const char *name) {
+    return document && size > 0 ? SoundLoadSequenceJson(port, std::string_view(static_cast<const char *>(document), size), name) : -1;
 }
 
 PORT_OVERRIDE void CSound::StreamOpenFast(int channel, char *name) {

@@ -1,13 +1,31 @@
 #pragma once
+#include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <string>
 #include <string_view>
+
 #include "gfx/gfx.hpp"
+#include "platform/texture_catalog.hpp"
 #include "texture_color.hpp"
 class mgCTexture;
+class mgCTextureManager;
+class mgCEnterIMGInfo;
+class mgCMemory;
+
+namespace datapacks {
+struct DecodedTexture;
+}
+
+/** Decodes a native set's selected image into a host RGBA canvas. */
+using MgTextureImageDecoder = std::function<bool(const texture_catalog::Entry &, std::size_t,
+                                                 datapacks::DecodedTexture &, std::string &)>;
+
 struct MgTextureHandles {
     gfx::TextureHandle texture = gfx::kNullTexture;
     gfx::TextureHandle palette = gfx::kNullTexture;
 };
+
 // TBP0 and CBP of a registered texture hold its registry key, not a VRAM address. Keys are handed out
 // downward from the top of the 14-bit field so they stay clear of the frame buffers' addresses.
 inline constexpr uint32_t kMgTextureKeyFirst = 0x3FFF;
@@ -18,17 +36,49 @@ MgTextureHandles MgTextureLookup(const mgCTexture *texture);
 MgTextureHandles MgTextureLookupTex0(uint64_t tex0);
 // Refreshes CPU RGBA images changed in place without changing the registry key.
 void MgTexturePixelsChanged(const mgCTexture *texture);
-// Selects a pre-baked RGBA variant by the palette source name from catalog metadata.
-bool MgTextureSelectVariant(mgCTexture *texture, std::string_view palette_source);
-std::string_view MgTexturePaletteSource(const mgCTexture *texture);
-int MgTextureSourceBpp(const mgCTexture *texture);
+/**
+ * Selects the image associated with a logical animation identity.
+ */
+bool MgTextureSelectVariant(mgCTexture *texture, std::string_view selector);
+/**
+ * Returns the identity of the currently selected image.
+ */
+std::string_view MgTextureVariantSelector(const mgCTexture *texture);
+/**
+ * Refreshes loaded button glyphs when the selected style or active device changes.
+ */
+void MgTextureRefreshButtonGlyphs();
+/**
+ * Returns the update operation used by this animation destination.
+ */
+texture_catalog::AnimationMode MgTextureAnimationMode(const mgCTexture *texture);
+/**
+ * Enters a catalog picture into a texture manager using its retail block.
+ */
+mgCTexture *MgTextureEnterCatalog(mgCTextureManager *manager, int block, const texture_catalog::Entry &entry);
+/**
+ * Enters every picture and animation in a direct native JSON texture document.
+ * Returns the last texture block's offset from the requested block; zero is valid.
+ */
+int MgTextureEnterDocument(mgCTextureManager *manager, std::string_view relative_json_path, int block,
+                           mgCMemory *stack, mgCEnterIMGInfo *info);
+/**
+ * Enters an embedded texture set after decoding every variant for exact registration identity.
+ * The caller keeps the source entries alive until the textures are deleted.
+ * Identical native pictures reuse their header; changed content replaces it in place.
+ * Variant switches reuse the validated decoded pixels.
+ */
+int MgTextureEnterNativeSet(mgCTextureManager *manager, int block, const texture_catalog::Source &source,
+                            mgCMemory *stack, MgTextureImageDecoder decoder);
+
 /**
  * Describes a padded texture canvas in texels.
  */
 struct MgTextureExtent {
-    uint32_t width = 0; /**< Padded canvas width. */
+    uint32_t width = 0;  /**< Padded canvas width. */
     uint32_t height = 0; /**< Padded canvas height. */
 };
+
 /**
  * Returns the host canvas while game dimensions and TEX0 retain retail units.
  */

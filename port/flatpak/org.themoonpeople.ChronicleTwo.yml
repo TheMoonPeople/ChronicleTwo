@@ -32,27 +32,36 @@ modules:
         url: https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
         sha256: 42f6e95cad6ec532fd372391373363b62a14af6d771056dbfc86160e6dfff7aa
 
-  # The movies' decoder, configured as tools/kazarov/tools/ffmpeg/kz-ffmpeg builds it; static, for the build alone.
+  # MP4 playback libraries and the lossless movie extraction command.
   - name: ffmpeg
     buildsystem: autotools
     config-opts:
       - --disable-everything
       - --disable-programs
+      - --enable-ffmpeg
       - --disable-doc
       - --disable-network
       - --disable-autodetect
-      - --disable-avformat
-      - --disable-avfilter
-      - --disable-swscale
-      - --disable-swresample
+      - --enable-avformat
+      - --enable-avfilter
+      - --enable-swscale
+      - --enable-swresample
       - --disable-avdevice
-      - --enable-decoder=mpeg2video
-      - --enable-parser=mpegvideo
+      - --enable-decoder=mpeg2video,h264,alac,aac,pcm_s16le
+      - --enable-parser=mpegvideo,h264,aac
+      - --enable-encoder=alac
+      - --enable-demuxer=mpegps,mov,wav
+      - --enable-muxer=mp4
+      - --enable-protocol=file
+      - --enable-filter=aresample,aformat,anull,abuffer,abuffersink
       - --enable-pic
       - --disable-shared
       - --enable-static
     cleanup:
-      - '*'
+      - /include
+      - /lib/*.a
+      - /lib/pkgconfig
+      - /share
     sources:
       - type: archive
         url: https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz
@@ -119,6 +128,8 @@ modules:
       - -DCT_BUILD_TESTS=OFF
       - -DKZ_FFMPEG_DIR=/app
       - -DKZ_PORT_VENDOR_DIRS=/run/build/chronicletwo/vendor
+      - -DFETCHCONTENT_SOURCE_DIR_FASTGLTF=/run/build/chronicletwo/fastgltf
+      - -DFETCHCONTENT_SOURCE_DIR_SIMDJSON=/run/build/chronicletwo/simdjson
     # post-install runs in the build directory, not the source.
     post-install:
       - install -Dm644 -t ${FLATPAK_DEST}/share/applications ${FLATPAK_BUILDER_BUILDDIR}/port/flatpak/${FLATPAK_ID}.desktop
@@ -146,6 +157,14 @@ modules:
       # chronicletwo-source-end
       # flatpak-builder downloads these before entering its network-restricted build sandbox.
       - cargo-sources.json
+      - type: archive
+        url: https://codeload.github.com/spnda/fastgltf/tar.gz/refs/tags/v0.9.1
+        sha256: d8705a496deb2831775baeef5009be36d24bf3d10f8d29ab016e977d0119c872
+        dest: fastgltf
+      - type: archive
+        url: https://codeload.github.com/simdjson/simdjson/tar.gz/refs/tags/v4.6.11
+        sha256: 61d948fc24f0d793829ad658058e7597d064988a89b4607ea02e401a82df98ff
+        dest: simdjson
       - type: archive
         url: https://github.com/corrosion-rs/corrosion/archive/refs/tags/v0.6.1.zip
         sha256: 5c1c5c6ab7196fe4466321c14e9698ec2d0a977c89fd9f1639a37fcffdf604f2

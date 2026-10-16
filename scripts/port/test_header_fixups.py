@@ -4,6 +4,19 @@ import header_fixups
 
 
 class UnitFixups(unittest.TestCase):
+    def test_paint_constructor_initializes_return_on_every_first_open(self):
+        source = Path(__file__).resolve().parents[2] / "ps2/include"
+        mirrored = header_fixups.build_mirror(source)["editmenu.hpp"].decode("latin-1")
+        self.assertEqual(mirrored.count("paint_top = 0; paint_return = 1;"), 1)
+        self.assertEqual(mirrored.count("\n"), (source / "editmenu.hpp").read_bytes().count(b"\n"))
+
+    def test_geostone_announcement_reserves_all_eight_nullable_message_slots(self):
+        source = (Path(__file__).resolve().parents[2] / "ps2/src/editmenu.cpp").read_text()
+        mirrored = header_fixups.fixup_unit_text("editmenu.cpp", source)
+        self.assertIn("static CDC2Mes *DownLoadMes[8];", mirrored)
+        self.assertNotIn("static CDC2Mes *DownLoadMes[6];", mirrored)
+        self.assertGreaterEqual(mirrored.count("i < 8;"), 2)
+
     def test_password_generator_avoids_host_random_without_changing_its_body(self):
         source = (Path(__file__).resolve().parents[2] / "ps2/src/password.cpp").read_text()
         result = header_fixups.fixup_unit_text("password.cpp", source)

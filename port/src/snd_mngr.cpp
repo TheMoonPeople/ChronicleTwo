@@ -1,8 +1,17 @@
 #include "common.h"
 
-#include <new>
+#include <nlohmann/json.hpp>
 
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+#include <new>
+#include <vector>
+
+#include "audio/sq.hpp"
+#include "audio_assets.hpp"
 #include "dataread.hpp"
+#include "dataread_port.hpp"
 #include "mg_memory.hpp"
 #include "snd_mngr.hpp"
 #include "snd_seseq.hpp"
@@ -16,9 +25,8 @@ namespace {
 bool  init_snd = false;
 float PortVolf[SND_PORT_NUM] = {};
 
-// Retail's bound lets port == SND_PORT_NUM through and indexes one past the array; kept as retail's.
 sndPortInfo *GetPortInfo(int port) {
-    if (port < 0 || port > SND_PORT_NUM) {
+    if (port < 0 || port >= SND_PORT_NUM) {
         return nullptr;
     }
 
@@ -156,151 +164,241 @@ PORT_OVERRIDE float sndGetPortVol(int port) {
     return PortVolf[port];
 }
 
-PORT_OVERRIDE unsigned int sndLoadSound(int port_no, unsigned int *pack, mgCMemory *memory) {
-    sndPortInfo  *info;
-    sndBankInfo  *bank;
-    unsigned int *sq[32];
-    int           sq_size[32];
-    char         *sq_name[32];
-    unsigned int *mid[48];
-    int           mid_size[48];
-    char         *mid_name[48];
-    int           initial_vol;
-    unsigned int *config;
-    int           config_size;
-    unsigned int *volume;
-    int           volume_size;
-    unsigned int *bd;
-    unsigned int *hd;
-    int           bd_size;
-    int           hd_size;
-    int           bank_no;
-    unsigned int  size;
-    unsigned int  quadwords;
-    int           i;
-    unsigned int  sound_id;
-    char          cfg_ext[] = "cfg";
-    char          vol_ext[] = "vol";
-    char          bd_ext[] = "bd";
-    char          hd_ext[] = "hd";
-    char          sq_ext[] = "sq";
-    char          mid_ext[] = "mid";
-
-    // Retail's EnableSndMngr gate is dropped: no unit writes it, so it has always been 1.
-
-    info = GetPortInfo(port_no);
-
-    if (info == NULL) {
+unsigned SoundLoadBundleData(int port_no, std::span<const std::byte> bytes, mgCMemory *memory) {
+    auto *info = GetPortInfo(port_no);
+    if (!info || !memory || bytes.empty()) {
         return -1;
     }
-
-    initial_vol = -1;
-
-    if (GetCSndPortNo(port_no, &info->port, &info->sq_port, &initial_vol) == 0) {
-        return -1;
-    }
-
-    sound_id = (port_no & 0xFF) << 24;
-
-    if (GetPackFileExt(pack, cfg_ext, &config, 1, &config_size, NULL) <= 0) {
-        return -1;
-    }
-
-    if (GetPackFileExt(pack, vol_ext, &volume, 1, &volume_size, NULL) <= 0) {
-        return -1;
-    }
-
-    bank_no = info->bank_num;
-
-    if (GetPackFileExt(pack, bd_ext, &bd, 1, &bd_size, NULL) <= 0) {
-        bd_size = 0;
-    }
-
-    if (GetPackFileExt(pack, hd_ext, &hd, 1, &hd_size, NULL) <= 0) {
-        hd_size = 0;
-    }
-
-    sndWaitSema();
-    // Retail's delay loop gave the IOP time before the transfer; the host has no IOP, so only the step remains.
-    CSnd.Step();
-
-    if (info->bank_num == 0) {
-        if (bd_size != 0 && hd_size != 0) {
-            SoundLoadHdBd(info->port, hd, hd_size, bd, bd_size);
-        }
-
-        sndWaitTransBd();
-        info->bank_num++;
-    } else {
-        if (info->bank_num > 15) {
-            sndSignalSema();
+    try {
+        const auto root = nlohmann::json::parse(reinterpret_cast<const char *>(bytes.data()), reinterpret_cast<const char *>(bytes.data() + bytes.size()));
+        if (root.at("schema_version") != 1 || root.at("kind") != "sound_bundle") {
             return -1;
         }
-
-        if (bd_size != 0 && hd_size != 0) {
-            SoundLoadHdBdAdd(info->port, hd, hd_size, bd, bd_size);
+        auto read = [&](const nlohmann::json &uri, std::string_view kind) {
+            for (const auto &text : AudioDocuments(uri.get<std::string>())) {
+                try {
+                    const auto doc = nlohmann::json::parse(text);
+                    if (doc.at("schema_version") != 1 || doc.at("kind") != kind) {
+                        continue;
+                    }
+                    if (kind == "sequence") {
+                        if (!audio::SqFile::CreateFromJson(text)) {
+                            continue;
+                        }
+                    } else if (kind == "effect_sequence") {
+                        if (doc.at("tick_rate").get<int>() <= 0 || !doc.at("events").is_array() || doc.at("events").size() > 1048576) {
+                            continue;
+                        }
+                        for (const auto &e : doc.at("events")) {
+                            (void) e.at("delta").get<s16>();
+                            (void) e.at("status").get<u8>();
+                            (void) e.at("data").at(0).get<int>();
+                            (void) e.at("data").at(1).get<int>();
+                        }
+                    } else {
+                        if (!doc.at("entries").is_array() || !doc.at("reverb").is_array()) {
+                            continue;
+                        }
+                        if (kind == "sound_config") {
+                            const auto count = doc.at("entry_count").get<std::size_t>();
+                            if (count > 1048576 || doc.at("entries").size() > count) {
+                                continue;
+                            }
+                            for (const auto &e : doc.at("entries")) {
+                                (void) e.at("filename").get<std::string>();
+                                (void) e.at("program").get<int>();
+                                (void) e.at("key").get<int>();
+                                (void) e.at("flag").get<bool>();
+                            }
+                        } else {
+                            for (const auto &e : doc.at("entries")) {
+                                (void) e.at("index").get<int>();
+                                (void) e.at("volume").get<int>();
+                            }
+                        }
+                        for (const auto &r : doc.at("reverb")) {
+                            (void) r.at("type").get<int>();
+                            (void) r.at("depth").get<int>();
+                        }
+                    }
+                    return text;
+                } catch (const nlohmann::json::exception &) {
+                }
+            }
+            throw std::runtime_error("sound dependency missing or invalid");
+        };
+        const auto                                        config = read(root.at("config"), "sound_config");
+        const auto                                        volume = read(root.at("volume"), "sound_volume");
+        std::vector<std::pair<std::string, std::string> > sequences, effects;
+        for (const auto &uri : root.at("sequences")) {
+            sequences.emplace_back(uri.get<std::string>(), read(uri, "sequence"));
         }
-
-        sndWaitTransBd();
-        info->bank_num++;
-    }
-
-    sound_id |= (bank_no & 0xFF) << 16;
-    bank = info->GetBank(bank_no);
-
-    if (bank == NULL) {
-        sndSignalSema();
-        return -1;
-    }
-
-    if (port_no == SND_PORT_BGM || port_no == SND_PORT_BGM2 || port_no == 2 || port_no == SND_PORT_EVENT) {
-        bank->sq_num = GetPackFileExt(pack, sq_ext, sq, 32, sq_size, sq_name);
-        size = bank->sq_num * sizeof(char *);
-
-        if (size & 0xF) {
-            quadwords = (size >> 4) + 1;
-        } else {
-            quadwords = size >> 4;
+        for (const auto &uri : root.at("effect_sequences")) {
+            effects.emplace_back(uri.get<std::string>(), read(uri, "effect_sequence"));
         }
-
-        bank->sq_name = new (memory->Alloc(quadwords + 2)) char *[bank->sq_num];
-
-        for (i = 0; i < bank->sq_num; i++) {
-            bank->sq_name[i] = NULL;
-            SoundLoadSeq(info->sq_port, sq[i], sq_size[i], sq_name[i]);
-            bank->sq_name[i] = mgCopyString(sq_name[i], memory);
+        if (sequences.size() > 32 || effects.size() > 48 || info->bank_num > 15) {
+            return -1;
         }
-    }
-
-    bank->seseq_num = GetPackFileExt(pack, mid_ext, mid, 48, mid_size, mid_name);
-
-    if (bank->seseq_num > 0) {
-        size = bank->seseq_num * sizeof(sndCSeSeqData);
-
-        if (size & 0xF) {
-            quadwords = (size >> 4) + 1;
-        } else {
-            quadwords = size >> 4;
+        int initial_vol = -1;
+        if (!GetCSndPortNo(port_no, &info->port, &info->sq_port, &initial_vol)) {
+            return -1;
         }
-
-        bank->seseq = new (memory->Alloc(quadwords + 2)) sndCSeSeqData[bank->seseq_num];
-    }
-
-    for (i = 0; i < bank->seseq_num; i++) {
-        bank->seseq[i].name = mgCopyString(mid_name[i], memory);
-        bank->seseq[i].LoadSMF((char *) mid[i], mid_size[i], memory);
-    }
-
-    if (initial_vol >= 0) {
-        CSnd.SetVol(info->port, initial_vol);
-
-        if (port_no >= 0 && port_no <= 16) {
+        const int bank_no = info->bank_num;
+        if (!root.at("bank").is_null()) {
+            bool loaded = false;
+            for (const auto &text : AudioDocuments(root.at("bank").get<std::string>())) {
+                if (SoundLoadBankJson(info->port, text, bank_no != 0) == 0) {
+                    loaded = true;
+                    break;
+                }
+            }
+            if (!loaded) {
+                return -1;
+            }
+        }
+        ++info->bank_num;
+        auto *bank = info->GetBank(bank_no);
+        if (!bank) {
+            return -1;
+        }
+        if (info->sq_port >= 0) {
+            bank->sq_num = static_cast<int>(sequences.size());
+            bank->sq_name = new (memory->Alloc((sequences.size() * sizeof(char *) + 15) / 16 + 2)) char *[sequences.size()];
+            for (std::size_t i = 0; i < sequences.size(); ++i) {
+                if (SoundLoadSequenceJson(info->sq_port, sequences[i].second, sequences[i].first.c_str()) != 0) {
+                    return -1;
+                }
+                bank->sq_name[i] = mgCopyString(sequences[i].first.data(), memory);
+            }
+        }
+        bank->seseq_num = static_cast<int>(effects.size());
+        if (!effects.empty()) {
+            bank->seseq = new (memory->Alloc((effects.size() * sizeof(sndCSeSeqData) + 15) / 16 + 2)) sndCSeSeqData[effects.size()];
+        }
+        for (std::size_t i = 0; i < effects.size(); ++i) {
+            bank->seseq[i].name = mgCopyString(effects[i].first.data(), memory);
+            bank->seseq[i].LoadSMF(effects[i].second.data(), static_cast<int>(effects[i].second.size()), memory);
+        }
+        if (initial_vol >= 0) {
+            CSnd.SetVol(info->port, initial_vol);
             PortVolf[port_no] = 1.0f;
         }
+        info->LoadSeInfoTxt(bank_no, const_cast<char *>(config.data()), static_cast<int>(config.size()), memory);
+        info->LoadVolInfoTxt(bank_no, const_cast<char *>(volume.data()), static_cast<int>(volume.size()));
+        return ((port_no & 255) << 24) | ((bank_no & 255) << 16);
+    } catch (const std::exception &error) {
+        std::fprintf(stderr, "sound bundle: %s\n", error.what());
+        return -1;
     }
+}
 
-    info->LoadSeInfoTxt(bank_no, (char *) config, config_size, memory);
-    info->LoadVolInfoTxt(bank_no, (char *) volume, volume_size);
-    sndSignalSema();
-    return sound_id;
+unsigned SoundLoadBundlePath(int port_no, std::string_view path, mgCMemory *memory) {
+    for (const auto &document : AudioDocuments(path)) {
+        const auto result = SoundLoadBundleData(port_no, std::as_bytes(std::span(document.data(), document.size())), memory);
+        if (result != static_cast<unsigned>(-1)) {
+            return result;
+        }
+    }
+    return -1;
+}
+
+PORT_OVERRIDE unsigned int sndLoadSound(int port_no, unsigned int *document, mgCMemory *memory) {
+    if (const auto path = DataReadBufferPath(document)) {
+        return SoundLoadBundlePath(port_no, *path, memory);
+    }
+    return SoundLoadBundleData(port_no, {reinterpret_cast<const std::byte *>(document), DataReadBufferSize(document)}, memory);
+}
+
+PORT_OVERRIDE void sndPortInfo::LoadSeInfoTxt(int bank_no, char *source, int size, mgCMemory *memory) {
+    auto *bank_info = GetBank(bank_no);
+    if (!bank_info) {
+        return;
+    }
+    const auto length = size > 0 ? static_cast<std::size_t>(size) : DataReadBufferSize(source);
+    if (source && length) {
+        const std::string_view document(source, length);
+        try {
+            const auto root = nlohmann::json::parse(document);
+            if (root.at("schema_version") != 1 || root.at("kind") != "sound_config") {
+                return;
+            }
+            const std::size_t count = root.at("entry_count");
+            if (count > 1048576 || root.at("entries").size() > count) {
+                return;
+            }
+            std::vector<sndSeInfo>            effects;
+            std::vector<std::pair<int, int> > reverbs;
+            for (const auto &r : root.at("reverb")) {
+                reverbs.emplace_back(r.at("type").get<int>(), r.at("depth").get<int>());
+            }
+            for (const auto &e : root.at("entries")) {
+                auto      filename = e.at("filename").get<std::string>();
+                sndSeInfo effect;
+                std::memset(&effect, 0, sizeof(effect));
+                int sequence_index = 0;
+                effect.type = static_cast<s8>(bank_info->SearchSeq(filename.data(), &sequence_index));
+                effect.prog = static_cast<s8>(e.at("program").get<int>());
+                if (effect.type == SND_SE_TYPE_SQ || effect.type == SND_SE_TYPE_SESEQ) {
+                    effect.prog = static_cast<s8>(sequence_index);
+                }
+                effect.key = static_cast<s8>(e.at("key").get<int>());
+                effect.unk_7 = e.at("flag").get<bool>();
+                effect.def_vol = 64;
+                effects.push_back(effect);
+            }
+            bank_info->se_num = static_cast<int>(count);
+            bank_info->se = new (memory->Alloc((count * sizeof(sndSeInfo) + 15) / 16 + 2)) sndSeInfo[count];
+            std::memset(bank_info->se, 0, count * sizeof(sndSeInfo));
+            std::copy(effects.begin(), effects.end(), bank_info->se);
+            const int core = port == 0 ? 0 : port == 7 ? 1
+                                                       : -1;
+            if (core >= 0) {
+                for (const auto &[type, depth] : reverbs) {
+                    CSnd.SetReverb(core, type, depth);
+                }
+            }
+            return;
+        } catch (const nlohmann::json::exception &) {
+        }
+    }
+    std::fprintf(stderr, "sound: missing or invalid sound config JSON\n");
+}
+
+PORT_OVERRIDE void sndPortInfo::LoadVolInfoTxt(int bank_no, char *source, int size) {
+    auto *bank_info = GetBank(bank_no);
+    if (!bank_info) {
+        return;
+    }
+    const auto length = size > 0 ? static_cast<std::size_t>(size) : DataReadBufferSize(source);
+    if (source && length) {
+        const std::string_view document(source, length);
+        try {
+            const auto root = nlohmann::json::parse(document);
+            if (root.at("schema_version") != 1 || root.at("kind") != "sound_volume") {
+                return;
+            }
+            std::vector<std::pair<int, int> > levels, reverbs;
+            for (const auto &e : root.at("entries")) {
+                levels.emplace_back(e.at("index").get<int>(), e.at("volume").get<int>());
+            }
+            for (const auto &r : root.at("reverb")) {
+                reverbs.emplace_back(r.at("type").get<int>(), r.at("depth").get<int>());
+            }
+            for (const auto &[index, volume] : levels) {
+                if (auto *effect = bank_info->GetSe(index)) {
+                    effect->def_vol = static_cast<s8>(volume);
+                }
+            }
+            const int core = port == 0 ? 0 : port == 7 ? 1
+                                                       : -1;
+            if (core >= 0) {
+                for (const auto &[type, depth] : reverbs) {
+                    sndSetReverb(core, type, depth);
+                }
+            }
+            return;
+        } catch (const nlohmann::json::exception &) {
+        }
+    }
+    std::fprintf(stderr, "sound: missing or invalid volume JSON\n");
 }

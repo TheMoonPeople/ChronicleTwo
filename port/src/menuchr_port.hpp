@@ -1,9 +1,12 @@
 #pragma once
 
-// Draws the banner naming the character a quick change (L3, R3) switched to, over the game frame.
+/**
+ * Draws the timed banner naming the character selected by quick change.
+ */
 void PortDrawQuickChangeBanner();
-
-// Drops a banner still showing, as a mode change and its loading screen begin.
+/**
+ * Discards the quick-change banner before entering another gameplay mode.
+ */
 void PortCancelQuickChangeBanner();
 
 // Plays the effect on the character a quick change switched to: a fade from white and a splash of stars.

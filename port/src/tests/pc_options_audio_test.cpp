@@ -101,7 +101,7 @@ TEST_F(PcOptionsAudio, SoundtrackUsesTheLoadedSequenceNameOnTheNextPlay) {
     WriteRecording();
     CSnd.Init(4, 0, 40, 0);
     const auto sq = fx::MakeSq(60, 100, 960);
-    ASSERT_EQ(SoundLoadSeq(0, sq.data(), static_cast<int>(sq.size()), "test.sq"), 0);
+    ASSERT_EQ(SoundLoadSequenceJson(0, std::string_view(reinterpret_cast<const char *>(sq.data()), sq.size()), "test.sq"), 0);
     // No bank: the PS2 song is silent, while the custom recording needs no bank.
     CSnd.SQ_Play(0, 0, 256);
     EXPECT_EQ(fx::Rms(fx::RenderFrames(audio::DefaultMixer(), 128)), 0);
@@ -130,11 +130,9 @@ TEST_F(PcOptionsAudio, MissingCustomTrackFallsBackToThePs2Sequence) {
     config.soundtrack = true;
     ConfigChange(config);
     CSnd.Init(4, 0, 40, 0);
-    const auto hd = fx::MakeHd({});
-    const auto bd = fx::SquareVag(2);
-    SoundLoadHdBd(0, hd.data(), static_cast<int>(hd.size()), bd.data(), static_cast<int>(bd.size()));
+    SoundBindBank(0, fx::CreateBankFixture({}));
     const auto sq = fx::MakeSq(60, 100, 960);
-    ASSERT_EQ(SoundLoadSeq(0, sq.data(), static_cast<int>(sq.size()), "missing.sq"), 0);
+    ASSERT_EQ(SoundLoadSequenceJson(0, std::string_view(reinterpret_cast<const char *>(sq.data()), sq.size()), "missing.sq"), 0);
     CSnd.SQ_Play(0, 0, 256);
     EXPECT_GT(fx::Rms(fx::RenderFrames(audio::DefaultMixer(), 4800)), .01);
 }

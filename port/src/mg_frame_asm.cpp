@@ -7,6 +7,7 @@
 #include "mg_math.hpp"
 #include "mglib.hpp"
 #include "mglib_port.hpp"
+#include "platform/model_assets.hpp"
 #include "stubs/mg_frame.hpp"
 #include "vu0_lanes.hpp"
 
@@ -94,9 +95,9 @@ void test2(float *out_max, float *out_min) {
 
 int mgInsideScreen(float (*corners)[4], float (*matrix)[4], float *out_max, float *out_min) {
     mgRENDER_INFO *render_info = &mgRenderInfo;
-    float product[4][4];
-    float transformed[8][4];
-    float divided[8][4];
+    float          product[4][4];
+    float          transformed[8][4];
+    float          divided[8][4];
 
     MulMatrices(product, matrix, render_info->world_screen_rel);
     TransformCorners(transformed, corners, product);
@@ -108,14 +109,23 @@ int mgInsideScreen(float (*corners)[4], float (*matrix)[4], float *out_max, floa
 
 void mgCFrame::GetLocalMatrix(float (*matrix)[4]) {
     if (use_srt) {
-        float(*destination)[4] = matrix;
+        float (*destination)[4] = matrix;
         float *scale_vec;
-        float(*source)[4];
+        float (*source)[4];
 
         source = trans_matrix;
         scale_vec = scale;
 
-        ScaleColumns(destination, source, scale_vec);
+        if (model_assets::UsesStandardScaleOrder(this)) {
+            for (int column = 0; column < 3; ++column) {
+                for (int row = 0; row < 4; ++row) {
+                    destination[column][row] = source[column][row] * scale_vec[column];
+                }
+            }
+            sceVu0CopyVector(destination[3], source[3]);
+        } else {
+            ScaleColumns(destination, source, scale_vec);
+        }
         sceVu0FVECTOR translation;
         if (rot_type & MG_FRAME_ROT_LOCAL_ORIGIN) {
             sceVu0CopyVector(translation, matrix[3]);
@@ -146,6 +156,23 @@ void mgCFrame::GetLocalMatrix(float (*matrix)[4]) {
     } else {
         sceVu0CopyMatrix(matrix, trans_matrix);
     }
+}
+
+PORT_OVERRIDE void mgCFrame::Initialize() {
+    model_assets::ForgetFrame(this);
+    elder = brother = child = parent = nullptr;
+    sceVu0UnitMatrix(lw_matrix);
+    sceVu0UnitMatrix(trans_matrix);
+    name = nullptr;
+    rot_type = 0;
+    reference = 0;
+    visual = nullptr;
+    attr = nullptr;
+    frame_num = 0;
+    frame_list = nullptr;
+    init_matrix = nullptr;
+    bound = nullptr;
+    mgCObject::Initialize();
 }
 
 void mgCFrame::GetBBoardMatrix(int mode, float (*matrix)[4], mgRENDER_INFO *info) {
@@ -244,9 +271,9 @@ void mgCFrame::GetLWMatrix(float (*matrix)[4]) {
         changed = 0;
     } else {
         parent->GetLWMatrix(parent_matrix);
-        float(*b)[4];
-        float(*a)[4];
-        float(*dst)[4];
+        float (*b)[4];
+        float (*a)[4];
+        float (*dst)[4];
         a = parent_matrix;
         b = local_matrix;
         dst = lw_matrix;
@@ -289,9 +316,9 @@ void mgCFrame::GetLWMatrixTopBottom(float (*matrix)[4]) {
         sceVu0CopyMatrix(matrix, lw_matrix);
     } else {
         sceVu0CopyMatrix(parent_matrix, parent->lw_matrix);
-        float(*b)[4];
-        float(*a)[4];
-        float(*dst)[4];
+        float (*b)[4];
+        float (*a)[4];
+        float (*dst)[4];
         a = parent_matrix;
         b = local_matrix;
         dst = lw_matrix;
@@ -303,19 +330,19 @@ void mgCFrame::GetLWMatrixTopBottom(float (*matrix)[4]) {
 }
 
 int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
-    sceVu0FMATRIX lw;
-    sceVu0FVECTOR rect_max = {0.0f, 0.0f, 0.0f, 0.0f};
-    sceVu0FVECTOR rect_min = {0.0f, 0.0f, 0.0f, 0.0f};
-    sceVu0FMATRIX screen_matrix;
-    mgVu0FBOX child_rect;
-    mgCFrameAttr *draw_attr;
-    int visible;
+    sceVu0FMATRIX  lw;
+    sceVu0FVECTOR  rect_max = {0.0f, 0.0f, 0.0f, 0.0f};
+    sceVu0FVECTOR  rect_min = {0.0f, 0.0f, 0.0f, 0.0f};
+    sceVu0FMATRIX  screen_matrix;
+    mgVu0FBOX      child_rect;
+    mgCFrameAttr  *draw_attr;
+    int            visible;
     mgRENDER_INFO *info;
-    mgCFrame *frame;
-    float left;
-    float top;
-    int billboard;
-    int draw_child;
+    mgCFrame      *frame;
+    float          left;
+    float          top;
+    int            billboard;
+    int            draw_child;
 
     if (manager == NULL) {
         manager = &mgDrawManager;

@@ -1,20 +1,19 @@
+#include "kazarov_bridge/rust/lib.h"
 #include "platform/firstrun.hpp"
 
 #include <SDL3/SDL.h>
+#include <nlohmann/json.hpp>
 
 #include <cstdio>
 #include <cstdlib>
+#include <exception>
 #include <filesystem>
 #include <fstream>
-#include <exception>
 #include <string>
 #include <system_error>
 
-#include <nlohmann/json.hpp>
-
 #include "exitcodes.hpp"
 #include "kazarov/data_version.hpp"
-#include "kazarov_bridge/rust/lib.h"
 #include "platform/paths.hpp"
 
 namespace fs = std::filesystem;
@@ -37,13 +36,12 @@ bool FirstRunDataMissing(const fs::path &root) {
     if (!fs::is_directory(root, error)) {
         return true;
     }
-    if (!fs::is_regular_file(root / "manifest.json", error) ||
-        !fs::is_regular_file(root.parent_path() / "port_data" / "manifest.json", error) ||
+    if (!fs::is_directory(root.parent_path() / "port_data", error) ||
         !fs::is_regular_file(root.parent_path() / "data.json", error)) {
         return true;
     }
     std::ifstream marker(root.parent_path() / "data.json");
-    const auto parsed = nlohmann::json::parse(marker, nullptr, false);
+    const auto    parsed = nlohmann::json::parse(marker, nullptr, false);
     return !parsed.is_object() || !parsed.contains("schema_version") || !parsed["schema_version"].is_number_integer() ||
            parsed["schema_version"] != 1 || !parsed.contains("data_version") ||
            !parsed["data_version"].is_number_integer() || parsed["data_version"] != KAZAROV_DATA_VERSION;
@@ -52,8 +50,8 @@ bool FirstRunDataMissing(const fs::path &root) {
 std::string FirstRunDataMessage(const fs::path &root) {
     const std::string where = PathsDisplay(root);
     return "No current Dark Chronicle data at " + where + ".\n\n"
-                                                            "Extract it once from the disc with:\n"
-                                                            "  dc2data extract <disc image or folder> " +
+                                                          "Extract it once from the disc with:\n"
+                                                          "  dc2data extract <disc image or folder> " +
            where + "\n\n"
                    "The source is an image of the Dark Chronicle disc, or a folder holding DATA.HD4, DATA.DAT, SOUND.HD3 and SOUND.DAT.\n\n"
                    "Or point the game at an existing extraction with --data <dir> or the DC2_DATA environment variable.\n" +
@@ -70,7 +68,8 @@ void FirstRunRequireData(const fs::path &root, bool headless) {
         try {
             const auto path = root.u8string();
             if (kazarov::setup_data("Dark Chronicle — Game data", std::string(
-                    reinterpret_cast<const char *>(path.data()), path.size())) && !FirstRunDataMissing(root)) {
+                                                                      reinterpret_cast<const char *>(path.data()), path.size())) &&
+                !FirstRunDataMissing(root)) {
                 return;
             }
         } catch (const std::exception &error) {

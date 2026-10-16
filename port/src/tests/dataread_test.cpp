@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
 
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -13,10 +15,12 @@
 #include <utility>
 #include <vector>
 
+#include "asset_directory.hpp"
 #include "dataread.hpp"
 #include "dataread_port.hpp"
 #include "gamedata.hpp"
 #include "mainloop.hpp"
+#include "platform/config_catalog.hpp"
 #include "platform/paths.hpp"
 #include "scriptinterpreter.hpp"
 #include "texture_source.hpp"
@@ -44,25 +48,56 @@ void WriteBytes(const fs::path &path, const std::vector<unsigned char> &bytes) {
     out.write(reinterpret_cast<const char *>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
 }
 
-std::vector<unsigned char> BuildPack(const std::vector<std::pair<std::string, std::vector<unsigned char>>> &files) {
-    std::size_t total = (files.size() + 1) * sizeof(PACK_ENTRY);
-    std::vector<std::size_t> starts;
-    for (const auto &file : files) {
-        starts.push_back(total);
-        total += (file.second.size() + 3) & ~std::size_t(3);
+/**
+ * Publishes typed menu configurations at the direct paths used by the native game.
+ */
+void WriteMenuConfigs(const fs::path &base, const std::vector<std::pair<std::string, nlohmann::json> > &documents) {
+    using Json = nlohmann::json;
+    const auto root = base / "port_data";
+    fs::create_directories(root / "menu/cfg7");
+    for (const auto &[name, commands] : documents) {
+        const auto relative = fs::path("menu/cfg7") / fs::path(name).replace_extension(".cfg.json");
+        std::ofstream(root / relative) << Json{
+            {"schema_version", 1       },
+            {"commands",       commands}
+        }.dump();
     }
+}
 
-    std::vector<unsigned char> pack(total, 0);
-    for (std::size_t i = 0; i < files.size(); i++) {
-        PACK_ENTRY entry{};
-        std::snprintf(entry.name, sizeof entry.name, "%s", files[i].first.c_str());
-        entry.offset = static_cast<int>(starts[i] - i * sizeof(PACK_ENTRY));
-        entry.size = static_cast<int>(files[i].second.size());
-        entry.next = static_cast<int>(sizeof(PACK_ENTRY));
-        std::memcpy(pack.data() + i * sizeof(PACK_ENTRY), &entry, sizeof entry);
-        std::memcpy(pack.data() + starts[i], files[i].second.data(), files[i].second.size());
+/**
+ * Declares the minimal item table used by native item-message tests.
+ */
+nlohmann::json ItemConfigCommands() {
+    using Json = nlohmann::json;
+    Json arguments = Json::array();
+    for (int value : {11, 0, 0, 0, 0, 0, 0, 0, 0}) {
+        arguments.push_back({
+            {"type",  "int"},
+            {"value", value}
+        });
     }
-    return pack;
+    arguments.push_back({
+        {"type",  "string"},
+        {"value", "x"     }
+    });
+    arguments.push_back({
+        {"type",  "int"},
+        {"value", 0    }
+    });
+    return Json::array({
+        {{"command", "COMINIT"}, {"args", Json::array({{{"type", "int"}, {"value", 1}}})}},
+        {{"command", "COM"},     {"args", arguments}                                     }
+    });
+}
+
+/**
+ * Supplies an item-name callback using directly typed JSON arguments.
+ */
+nlohmann::json ItemMessageCommands(const char *command, const char *name) {
+    using Json = nlohmann::json;
+    return Json::array({
+        {{"command", command}, {"args", Json::array({{{"type", "int"}, {"value", 11}}, {{"type", "string"}, {"value", name}}})}}
+    });
 }
 
 int Load(const char *name, void *buffer, int *size) {
@@ -70,13 +105,21 @@ int Load(const char *name, void *buffer, int *size) {
     return LoadFile2(path.data(), buffer, size, LOAD_FILE_READ);
 }
 
-// The extracted data/ the test executable was built beside. Empty when that tree is absent, which is
-// the case in the Linux container, where data/ is a dangling junction.
+// The published data/ beside the test executable, when direct native configurations exist.
 std::optional<fs::path> ExtractedDataRoot() {
+    if (const char *selected = std::getenv("DC2_DATA")) {
+        const fs::path  data(selected);
+        std::error_code error;
+        if (fs::is_directory(data, error) &&
+            fs::is_regular_file(data.parent_path() / "port_data/edit.cfg.json", error)) {
+            return data;
+        }
+    }
     fs::path dir = PathsExecutable().parent_path();
     for (int up = 0; up < 6 && !dir.empty(); up++, dir = dir.parent_path()) {
         std::error_code error;
-        if (fs::is_regular_file(dir / "data" / "edit.cfg", error)) {
+        if (fs::is_regular_file(dir / "port_data" / "edit.cfg.json", error) &&
+            fs::is_directory(dir / "data", error)) {
             return dir / "data";
         }
     }
@@ -86,29 +129,31 @@ std::optional<fs::path> ExtractedDataRoot() {
 class DataRead : public testing::Test {
 protected:
     void SetUp() override {
-        base_ = fs::temp_directory_path() /
-                ("dataread_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-        root_ = base_ / "data";
-        WriteBytes(root_ / "DIR" / "Sub" / "File.BIN", MakeBytes(kFileSize, 7));
-        WriteBytes(root_ / "chara" / "Pack.PAC",
-                   BuildPack({{"a.bin", MakeBytes(10, 1)}, {"b.bin", MakeBytes(300, 2)}}));
-        WriteBytes(root_ / "small.txt", MakeBytes(10, 3));
-        buffer_.assign(kPadded / sizeof(u_long128), 0);
+        base = fs::temp_directory_path() /
+               ("dataread_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+        root = base / "data";
+        WriteBytes(root / "DIR" / "Sub" / "File.BIN", MakeBytes(kFileSize, 7));
+        const auto native = base / "port_data/chara/pack.pac";
+        WriteBytes(native / "a.bin", MakeBytes(10, 1));
+        WriteBytes(native / "b.bin", MakeBytes(300, 2));
+        std::ofstream(native / "pack.json") << R"({"schema_version":1,"kind":"asset_directory"})";
+        WriteBytes(root / "small.txt", MakeBytes(10, 3));
+        buffer.assign(kPadded / sizeof(u_long128), 0);
     }
 
     void TearDown() override {
         PathsReset();
         std::error_code error;
-        fs::remove_all(base_, error);
+        fs::remove_all(base, error);
     }
 
-    u_long128 *Buffer() { return buffer_.data(); }
+    u_long128 *Buffer() { return buffer.data(); }
 
-    fs::path base_;
-    fs::path root_;
+    fs::path base;
+    fs::path root;
 
 private:
-    std::vector<u_long128> buffer_;
+    std::vector<u_long128> buffer;
 };
 
 using DataReadDeathTest = DataRead;
@@ -117,13 +162,13 @@ using DataReadDeathTest = DataRead;
 
 TEST_F(DataRead, IndexLogsItsCountAndRoot) {
     testing::internal::CaptureStderr();
-    DataReadIndex(root_);
+    DataReadIndex(root);
     std::string log = testing::internal::GetCapturedStderr();
-    EXPECT_NE(log.find("dataread: indexed 3 files under " + PathsDisplay(root_)), std::string::npos) << log;
+    EXPECT_NE(log.find("dataread: indexed 2 files under " + PathsDisplay(root)), std::string::npos) << log;
 }
 
 TEST_F(DataRead, RootExclusionsKeepDiscOnlyFilesOutOfTheIndex) {
-    const fs::path root = base_ / "excluded";
+    const fs::path root = base / "excluded";
     WriteBytes(root / "manifest.txt", MakeBytes(10, 1));
     WriteBytes(root / "manifest.json", MakeBytes(10, 1));
     WriteBytes(root / ".kazarov-data", MakeBytes(10, 2));
@@ -146,8 +191,8 @@ TEST_F(DataRead, RootExclusionsKeepDiscOnlyFilesOutOfTheIndex) {
 }
 
 TEST_F(DataRead, FindIsCaseInsensitiveAndAcceptsDevicePrefixes) {
-    DataReadIndex(root_);
-    const fs::path expected = root_ / "DIR" / "Sub" / "File.BIN";
+    DataReadIndex(root);
+    const fs::path expected = root / "DIR" / "Sub" / "File.BIN";
     for (const char *name : {"cdrom0:\\DIR\\SUB\\FILE.BIN;1", "host0:dir/sub/file.bin", "/DIR/Sub/File.BIN",
                              "dir\\sub\\file.bin;1", "cdrom:DIR/SUB/FILE.BIN"}) {
         std::optional<fs::path> found = DataReadFind(name);
@@ -157,14 +202,14 @@ TEST_F(DataRead, FindIsCaseInsensitiveAndAcceptsDevicePrefixes) {
 }
 
 TEST_F(DataRead, LoadFileReadsExactBytesThenZeroFillsTheSector) {
-    DataReadIndex(root_);
+    DataReadIndex(root);
     std::memset(Buffer(), 0xAA, kPadded);
     int size = -1;
 
     ASSERT_EQ(Load("cdrom0:\\DIR\\SUB\\FILE.BIN;1", Buffer(), &size), 1);
     EXPECT_EQ(size, static_cast<int>(kFileSize));
 
-    const auto *bytes = reinterpret_cast<const unsigned char *>(Buffer());
+    const auto                      *bytes = reinterpret_cast<const unsigned char *>(Buffer());
     const std::vector<unsigned char> expected = MakeBytes(kFileSize, 7);
     EXPECT_EQ(std::memcmp(bytes, expected.data(), kFileSize), 0);
     const std::vector<unsigned char> tail(kPadded - kFileSize, 0);
@@ -172,16 +217,16 @@ TEST_F(DataRead, LoadFileReadsExactBytesThenZeroFillsTheSector) {
 }
 
 TEST_F(DataRead, DatapacksOverrideIndexedFilesWithReplacementSizesAndSparseFallback) {
-    const auto first = base_ / "datapacks" / "First pack";
-    const auto last = base_ / "datapacks" / "Last pack";
+    const auto first = base / "datapacks" / "First pack";
+    const auto last = base / "datapacks" / "Last pack";
     WriteBytes(first / "dir" / "sub" / "file.bin", MakeBytes(83, 11));
     WriteBytes(last / "DIR" / "Sub" / "File.BIN", MakeBytes(177, 19));
     WriteBytes(first / "small.txt", MakeBytes(27, 31));
-    std::ofstream(base_ / "datapacks" / "datapacks.json")
+    std::ofstream(base / "datapacks" / "datapacks.json")
         << R"({"schema_version":1,"load_order":["First pack","Last pack"]})";
-    DataReadIndex(root_);
+    DataReadIndex(root);
 
-    int size = 0;
+    int  size = 0;
     char name[] = "cdrom0:\\DIR\\SUB\\FILE.BIN;1";
     ASSERT_EQ(LoadFile2(name, nullptr, &size, LOAD_FILE_SIZE), 1);
     EXPECT_EQ(size, 177);
@@ -200,11 +245,11 @@ TEST_F(DataRead, DatapacksOverrideIndexedFilesWithReplacementSizesAndSparseFallb
     ASSERT_EQ(Load("chara/pack.pac", Buffer(), &size), 1);
     const auto fallback = DataReadFind("chara/pack.pac");
     ASSERT_TRUE(fallback.has_value());
-    EXPECT_TRUE(fs::equivalent(*fallback, root_ / "chara" / "Pack.PAC"));
+    EXPECT_TRUE(fs::equivalent(*fallback, base / "port_data/chara/pack.pac/pack.json"));
 
-    std::ofstream(base_ / "datapacks" / "datapacks.json")
+    std::ofstream(base / "datapacks" / "datapacks.json")
         << R"({"schema_version":1,"load_order":["Last pack","First pack"]})";
-    DataReadIndex(root_);
+    DataReadIndex(root);
     ASSERT_EQ(Load(name, Buffer(), &size), 1);
     EXPECT_EQ(size, 83);
     const auto reordered = MakeBytes(83, 11);
@@ -212,53 +257,54 @@ TEST_F(DataRead, DatapacksOverrideIndexedFilesWithReplacementSizesAndSparseFallb
 }
 
 TEST_F(DataRead, DatapacksUseSelectedExtractionWithTrailingSeparator) {
-    WriteBytes(base_ / "datapacks" / "Selected" / "small.txt", MakeBytes(41, 15));
-    std::ofstream(base_ / "datapacks" / "datapacks.json")
+    WriteBytes(base / "datapacks" / "Selected" / "small.txt", MakeBytes(41, 15));
+    std::ofstream(base / "datapacks" / "datapacks.json")
         << R"({"schema_version":1,"load_order":["Selected"]})";
-    DataReadIndex(root_ / "");
+    DataReadIndex(root / "");
     int size = 0;
     ASSERT_EQ(Load("small.txt", Buffer(), &size), 1);
     EXPECT_EQ(size, 41);
 }
 
-TEST_F(DataRead, ConvertedTextureIsAnOpaqueCatalogHandle) {
-    const fs::path catalog = base_ / "port_data" / "catalog.json";
-    fs::create_directories(catalog.parent_path());
-    std::ofstream(catalog)
-        << R"({"schema_version":1,"sources":[{"source":"img/foo.img","kind":"img","size":1234,"entries":[]}]})";
-    DataReadIndex(root_);
+TEST_F(DataRead, ConvertedTextureLoadsItsActualJsonWithoutACatalog) {
+    const fs::path native = base / "port_data";
+    fs::create_directories(native / "img");
+    const std::string json = R"({"schema_version":3,"groups":[0],"entries":[]})";
+    std::ofstream(native / "img/foo.json")
+        << R"({"schema_version":3,"groups":[0],"entries":[]})";
+    DataReadIndex(root);
     EXPECT_FALSE(DataReadFind("img/foo.img").has_value());
 
-    int size = -1;
-    char name[] = "cdrom0:\\IMG\\FOO.IMG;1";
+    int  size = -1;
+    char name[] = "cdrom0:\\IMG\\FOO.JSON;1";
     ASSERT_EQ(LoadFile2(name, nullptr, &size, LOAD_FILE_SIZE), 1);
-    EXPECT_EQ(size, 16);
+    EXPECT_EQ(size, json.size());
     std::memset(Buffer(), 0xAA, kPadded);
     ASSERT_EQ(Load(name, Buffer(), &size), 1);
-    EXPECT_EQ(size, 16);
+    EXPECT_EQ(size, json.size());
     const auto *bytes = reinterpret_cast<const unsigned char *>(Buffer());
-    EXPECT_EQ(std::memcmp(bytes, "KZTX:asset", 10), 0);
-    EXPECT_TRUE(std::all_of(bytes + 16, bytes + 2048, [](unsigned char value) { return value == 0; }));
-    EXPECT_EQ(TextureSourceLookup(Buffer()), "img/foo.img");
+    EXPECT_EQ(std::memcmp(bytes, json.data(), json.size()), 0);
+    EXPECT_TRUE(std::all_of(bytes + json.size(), bytes + 2048, [](unsigned char value) { return value == 0; }));
+    EXPECT_EQ(DataReadBufferPath(Buffer()), "img/foo.json");
 
     ASSERT_EQ(Load("small.txt", Buffer(), &size), 1);
     EXPECT_EQ(TextureSourceLookup(Buffer()), "small.txt");
 }
 
-TEST_F(DataRead, PackLoadRegistersParentSourceForCatalogMembers) {
-    DataReadIndex(root_);
+TEST_F(DataRead, DirectoryReadLoadsActualVersionMetadataAndMemberBytes) {
+    DataReadIndex(root);
     int size = 0;
     ASSERT_EQ(Load("chara/pack.pac", Buffer(), &size), 1);
-    EXPECT_EQ(TextureSourceLookup(Buffer()), "chara/pack.pac");
-    char member[] = "a.bin";
-    u_int *data = GetPackFile(reinterpret_cast<u_int *>(Buffer()), member, nullptr);
+    EXPECT_EQ(DataReadBufferPath(Buffer()), "chara/pack.pac/pack.json");
+    char   member[] = "a.bin";
+    u_int *data = AssetDirectoryRead(Buffer(), member, nullptr);
     ASSERT_NE(data, nullptr);
     EXPECT_EQ(TextureSourceLookup(data), "chara/pack.pac/a.bin");
 }
 
 TEST_F(DataRead, LoadFileAcceptsPlainAndUpperCaseNames) {
-    DataReadIndex(root_);
-    int size = 0;
+    DataReadIndex(root);
+    int  size = 0;
     char plain[] = "dir/sub/file.bin";
     char upper[] = "DIR\\SUB\\FILE.BIN;1";
     EXPECT_EQ(LoadFile(plain, Buffer(), &size), 1);
@@ -268,21 +314,21 @@ TEST_F(DataRead, LoadFileAcceptsPlainAndUpperCaseNames) {
 }
 
 TEST_F(DataReadDeathTest, LoadFileExitsWhenTheFileIsMissing) {
-    DataReadIndex(root_);
+    DataReadIndex(root);
     int  size = 0;
     char name[] = "dir/nope/missing.bin";
     EXPECT_EXIT(LoadFile(name, Buffer(), &size), testing::ExitedWithCode(0), "File open error \"dir/nope/missing.bin\"");
 }
 
 TEST_F(DataRead, MissingFileReturnsZeroWithoutAborting) {
-    DataReadIndex(root_);
+    DataReadIndex(root);
     int size = 99;
     EXPECT_EQ(Load("cdrom0:\\NOPE\\MISSING.BIN;1", Buffer(), &size), 0);
     EXPECT_EQ(size, 0);
 }
 
 TEST_F(DataRead, SizeModeReportsWithoutReading) {
-    DataReadIndex(root_);
+    DataReadIndex(root);
     char name[] = "DIR/Sub/File.BIN";
     int  size = 0;
     EXPECT_EQ(LoadFile2(name, nullptr, &size, LOAD_FILE_SIZE), 1);
@@ -290,7 +336,7 @@ TEST_F(DataRead, SizeModeReportsWithoutReading) {
 }
 
 TEST_F(DataRead, CurrentDirectoryPrefixesRelativeNames) {
-    DataReadIndex(root_);
+    DataReadIndex(root);
     char dir[] = "DIR/Sub/";
     ChangeDir(dir);
 
@@ -298,9 +344,9 @@ TEST_F(DataRead, CurrentDirectoryPrefixesRelativeNames) {
     GetCurrentDir(current);
     EXPECT_STREQ(current, "DIR/Sub/");
 
-    int   size = 0;
-    char  relative[] = "file.bin";
-    char  anchored[] = "/small.txt";
+    int  size = 0;
+    char relative[] = "file.bin";
+    char anchored[] = "/small.txt";
     EXPECT_EQ(LoadFile2(relative, Buffer(), &size, LOAD_FILE_READ), 1);
     EXPECT_EQ(size, static_cast<int>(kFileSize));
     EXPECT_EQ(LoadFile2(anchored, Buffer(), &size, LOAD_FILE_READ), 1);
@@ -315,17 +361,17 @@ TEST_F(DataRead, CurrentDirectoryPrefixesRelativeNames) {
     EXPECT_STREQ(current, "");
 }
 
-TEST_F(DataRead, PackFileIsFoundByNameInsideTheLoadedPack) {
-    DataReadIndex(root_);
+TEST_F(DataRead, FolderMemberIsFoundByItsActualRelativeName) {
+    DataReadIndex(root);
     int size = 0;
     ASSERT_EQ(Load("chara/pack.pac", Buffer(), &size), 1);
 
     auto *pack = reinterpret_cast<u_int *>(Buffer());
-    EXPECT_EQ(GetPackFileNum(pack), 2);
+    EXPECT_EQ(AssetDirectoryCount(pack), 2);
 
-    int   file_size = 0;
-    char  name[] = "chara/b.bin";
-    u_int *data = GetPackFile(pack, name, &file_size);
+    int    file_size = 0;
+    char   name[] = "b.bin";
+    u_int *data = AssetDirectoryRead(pack, name, &file_size);
     ASSERT_NE(data, nullptr);
     EXPECT_EQ(file_size, 300);
     const std::vector<unsigned char> expected = MakeBytes(300, 2);
@@ -333,7 +379,7 @@ TEST_F(DataRead, PackFileIsFoundByNameInsideTheLoadedPack) {
 }
 
 TEST_F(DataRead, BackgroundReadCompletesOnTheSecondSync) {
-    DataReadIndex(root_);
+    DataReadIndex(root);
     StartReadBG();
 
     char name[] = "DIR/Sub/File.BIN";
@@ -363,7 +409,7 @@ TEST_F(DataRead, BackgroundReadCompletesOnTheSecondSync) {
 }
 
 TEST_F(DataRead, CostumeLoaderWaitSeesPendingRead) {
-    DataReadIndex(root_);
+    DataReadIndex(root);
     StartReadBG();
 
     char name[] = "DIR/Sub/File.BIN";
@@ -390,11 +436,13 @@ TEST_F(DataRead, CostumeLoaderWaitSeesPendingRead) {
 }
 
 TEST_F(DataRead, FileCacheHoldsAFileLoadedInTheBackground) {
-    DataReadIndex(root_);
+    DataReadIndex(root);
     std::vector<u_long128> cache(16384);
+
     struct CacheReset {
         ~CacheReset() { DeleteFileCache(); }
     } reset;
+
     InitFileCache(cache.data(), FILE_CACHE_UP);
 
     char name[] = "DIR/Sub/File.BIN";
@@ -416,28 +464,28 @@ TEST_F(DataRead, FileCacheHoldsAFileLoadedInTheBackground) {
 }
 
 TEST_F(DataRead, WriteToHost0LandsUnderTheSaveRoot) {
-    const fs::path save = base_ / "save";
+    const fs::path save = base / "save";
     PathsSetSaveRoot(save);
     std::vector<unsigned char> data = MakeBytes(5000, 9);
-    char name[] = "host0:out/x.bin";
+    char                       name[] = "host0:out/x.bin";
 
     ASSERT_EQ(WriteFile(name, data.data(), static_cast<int>(data.size())), 1);
 
     const fs::path written = save / "host0" / "out" / "x.bin";
     ASSERT_TRUE(fs::exists(written));
     EXPECT_EQ(fs::file_size(written), data.size());
-    std::ifstream in(written, std::ios::binary);
+    std::ifstream              in(written, std::ios::binary);
     std::vector<unsigned char> back((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
     EXPECT_EQ(back, data);
 }
 
 TEST_F(DataRead, Host0ReadsBackWhatWasWrittenAndShadowsTheDataIndex) {
-    PathsSetSaveRoot(base_ / "save");
-    WriteBytes(root_ / "geo_data" / "t.edt", MakeBytes(16, 99));
-    DataReadIndex(root_);
+    PathsSetSaveRoot(base / "save");
+    WriteBytes(root / "geo_data" / "t.edt", MakeBytes(16, 99));
+    DataReadIndex(root);
 
     std::vector<unsigned char> data = MakeBytes(5000, 11);
-    char name[] = "host0:geo_data/t.edt";
+    char                       name[] = "host0:geo_data/t.edt";
     ASSERT_EQ(WriteFile(name, data.data(), static_cast<int>(data.size())), 1);
 
     std::vector<u_long128> out(8192 / sizeof(u_long128));
@@ -458,9 +506,9 @@ TEST_F(DataRead, Host0ReadsBackWhatWasWrittenAndShadowsTheDataIndex) {
 }
 
 TEST_F(DataRead, HostNameAbsentFromTheSaveTreeLoadsFromData) {
-    PathsSetSaveRoot(base_ / "save");
-    WriteBytes(root_ / "gyorace.cfg", MakeBytes(258, 4));
-    DataReadIndex(root_);
+    PathsSetSaveRoot(base / "save");
+    WriteBytes(root / "gyorace.cfg", MakeBytes(258, 4));
+    DataReadIndex(root);
 
     char name[] = "host:gyorace.cfg";
     int  size = 0;
@@ -475,7 +523,7 @@ TEST_F(DataRead, HostNameAbsentFromTheSaveTreeLoadsFromData) {
 
 TEST_F(DataRead, MissingRootIndexesNothingAndDoesNotAbort) {
     testing::internal::CaptureStderr();
-    DataReadIndex(base_ / "absent");
+    DataReadIndex(base / "absent");
     std::string log = testing::internal::GetCapturedStderr();
     EXPECT_NE(log.find("dataread: indexed 0 files under"), std::string::npos) << log;
 
@@ -494,59 +542,52 @@ TEST_F(DataRead, RealDataIndexesTheDiscFiles) {
     DataReadIndex(*data);
     std::string log = testing::internal::GetCapturedStderr();
     EXPECT_NE(log.find(" files under " + PathsDisplay(*data)), std::string::npos) << log;
-    EXPECT_TRUE(DataReadFind("edit.cfg").has_value());
+    EXPECT_TRUE(DataReadFind("edit.cfg.json").has_value());
 }
 
 TEST_F(DataRead, ExtractedEditConfigLoadsWhenPresent) {
     std::optional<fs::path> data = ExtractedDataRoot();
     if (!data) {
-        GTEST_SKIP() << "no extracted data/ above the test executable";
+        GTEST_SKIP() << "no published native configuration above the test executable";
     }
 
     DataReadIndex(*data);
-    std::optional<fs::path> edit = DataReadFind("cdrom0:\\EDIT.CFG;1");
-    if (!edit) {
-        GTEST_SKIP() << "data/ has no edit.cfg";
-    }
-
-    constexpr int kEditConfigSize = 1133;
-    std::ifstream in(*edit, std::ios::binary);
-    const std::vector<unsigned char> on_disk((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-    ASSERT_EQ(on_disk.size(), static_cast<std::size_t>(kEditConfigSize));
+    ASSERT_TRUE(config_catalog::Contains("edit.cfg.json"));
+    std::string error;
+    const auto  document = config_catalog::Find("edit.cfg.json", error);
+    ASSERT_NE(document, nullptr) << error;
+    EXPECT_FALSE(document->commands.empty());
 
     int         size = 0;
-    std::string relative = "edit.cfg";
+    std::string relative = "edit.cfg.json";
     ASSERT_EQ(LoadFile2(relative.data(), nullptr, &size, LOAD_FILE_SIZE), 1);
-    EXPECT_EQ(size, kEditConfigSize);
-
-    std::vector<u_long128> buffer(2048 / sizeof(u_long128));
-    ASSERT_EQ(Load("edit.cfg", buffer.data(), &size), 1);
-    EXPECT_EQ(size, kEditConfigSize);
-    EXPECT_EQ(std::memcmp(buffer.data(), on_disk.data(), on_disk.size()), 0);
+    EXPECT_GT(size, 0);
+    std::vector<u_long128> storage((size + 2047) / 2048 * 2048 / sizeof(u_long128));
+    ASSERT_EQ(Load("edit.cfg.json", storage.data(), &size), 1);
+    EXPECT_EQ(DataReadBufferSize(storage.data()), static_cast<std::size_t>(size));
+    EXPECT_EQ(DataReadBufferPath(storage.data()), "edit.cfg.json");
 }
 
 TEST_F(DataRead, ShiftJisNameFindsItsPercentEncodedFile) {
     const std::string game = std::string("DIR\\") + '\x83' + 'A' + "%A.BIN";
-    const fs::path    disk = root_ / "dir/%83a%25a.bin";
+    const fs::path    disk = root / "dir/%83a%25a.bin";
     WriteBytes(disk, MakeBytes(20, 5));
 
-    DataReadIndex(root_);
+    DataReadIndex(root);
     std::optional<fs::path> found = DataReadFind(game.c_str());
     ASSERT_TRUE(found.has_value());
     EXPECT_TRUE(fs::equivalent(*found, disk));
 }
 
 TEST_F(DataRead, ItemMessageReloadClearsTheLiveArenaWithoutClearingReboundRoots) {
-    auto write = [&](const char *name, const char *text) {
-        fs::create_directories(root_ / "menu/cfg7");
-        std::ofstream(root_ / "menu/cfg7" / name) << text;
-    };
-    write("common.cfg", "COMINIT 1; COM 11,0,0,0,0,0,0,0,0,\"x\",0;");
-    write("comdatmes0.cfg", "MES_SYS 11,\"A long previous language name\";");
-    write("comdatmes1.cfg", "MES_SYS 11,\"B\";");
-    DataReadIndex(root_);
+    WriteMenuConfigs(base, {
+                               {"common.cfg", ItemConfigCommands()},
+                               {"comdatmes0.cfg", ItemMessageCommands("MES_SYS", "A long previous language name")},
+                               {"comdatmes1.cfg", ItemMessageCommands("MES_SYS", "B")}
+    });
+    DataReadIndex(root);
     GameItemDataManage.Initialize();
-    char common[] = "common.cfg";
+    char common[] = "common.cfg.json";
     ASSERT_TRUE(LoadGameDataAnalyze(common));
     LanguageCode = 0;
     ASSERT_TRUE(GameItemDataManage.LoadItemSystemMes(0));
@@ -563,15 +604,103 @@ TEST_F(DataRead, ItemMessageReloadClearsTheLiveArenaWithoutClearingReboundRoots)
     }
 }
 
+TEST_F(DataRead, ItemDataJsonLargerThanRetailScratchExecutesTypedCallbacks) {
+    using Json = nlohmann::json;
+    auto arguments = [](std::initializer_list<int> values) {
+        Json result = Json::array();
+        for (const int value : values) {
+            result.push_back({
+                {"type",  "int"},
+                {"value", value}
+            });
+        }
+        return result;
+    };
+    Json commands = Json::array({
+        {{"command", "AT_INIT"},  {"args", arguments({1})}                     },
+        {{"command", "AT_ST"},    {"args", arguments({17, 23})}                },
+        {{"command", "AT_ST2"},   {"args", arguments({1, 2, 3, 4, 5, 6, 7, 8})}},
+        {{"command", "AT_ST_SP"}, {"args", arguments({0x1234})}                }
+    });
+    for (int index = 0; index < 80; ++index) {
+        commands.push_back({
+            {"command", "UNRECOGNIZED_EXTENSION"                                             },
+            {"args",    Json::array({{{"type", "string"}, {"value", std::string(128, 'x')}}})}
+        });
+    }
+    std::string text = Json{
+        {"schema_version", 1       },
+        {"commands",       commands}
+    }
+                           .dump(2);
+    ASSERT_LT(text.size(), 33589u);
+    text.resize(33589, ' ');
+    const auto path = base / "port_data/menu/cfg7/large.json";
+    fs::create_directories(path.parent_path());
+    std::ofstream(path, std::ios::binary) << text;
+    ASSERT_EQ(fs::file_size(path), 33589u);
+    DataReadIndex(root);
+    GameItemDataManage.Initialize();
+    char name[] = "large.json";
+    ASSERT_EQ(LoadGameDataAnalyze(name), 1);
+    ASSERT_EQ(GameItemDataManage.attach_num, 1);
+    const auto &attachment = GameItemDataManage.attach_data[0];
+    EXPECT_EQ(attachment.status[0], 17);
+    EXPECT_EQ(attachment.status[1], 23);
+    for (int index = 0; index < 8; ++index) {
+        EXPECT_EQ(attachment.attribute[index], index + 1);
+    }
+    EXPECT_EQ(attachment.special, 0x1234u);
+}
+
+TEST_F(DataRead, RetailAttachmentJsonExceedsScratchAndPreservesEveryCallbackValue) {
+    const auto retail = ExtractedDataRoot();
+    if (!retail) {
+        GTEST_SKIP() << "requires converted retail data";
+    }
+    const auto path = retail->parent_path() / "port_data/menu/cfg7/atdat.cfg.json";
+    if (!fs::is_regular_file(path)) {
+        GTEST_SKIP() << "requires converted attachment data";
+    }
+    ASSERT_GT(fs::file_size(path), 0x780u * sizeof(u_long128));
+    std::ifstream input(path);
+    const auto    document = nlohmann::json::parse(input);
+    DataReadIndex(*retail);
+    GameItemDataManage.Initialize();
+    char name[] = "atdat.cfg.json";
+    ASSERT_EQ(LoadGameDataAnalyze(name), 1);
+    int index = 0;
+    for (const auto &command : document.at("commands")) {
+        const auto  tag = command.at("command").get<std::string>();
+        const auto &arguments = command.at("args");
+        if (tag == "AT_INIT") {
+            EXPECT_EQ(GameItemDataManage.attach_num, arguments.at(0).at("value").get<int>());
+            continue;
+        }
+        ASSERT_LT(index, GameItemDataManage.attach_num);
+        const auto &attachment = GameItemDataManage.attach_data[index];
+        if (tag == "AT_ST" || tag == "AT_ST2") {
+            for (std::size_t value = 0; value < arguments.size(); ++value) {
+                EXPECT_EQ(tag == "AT_ST" ? attachment.status[value] : attachment.attribute[value], arguments.at(value).at("value").get<int>());
+            }
+        } else if (tag == "AT_ST_SP") {
+            EXPECT_EQ(attachment.special, arguments.at(0).at("value").get<unsigned>());
+            ++index;
+        }
+    }
+    EXPECT_EQ(index, GameItemDataManage.attach_num);
+}
+
 extern SPI_TAG_PARAM PortGameDataTags[25] asm("GameData_Tags");
 
 TEST_F(DataRead, ItemMessagesUseTheSameDispatchTableAsItemData) {
-    fs::create_directories(root_ / "menu/cfg7");
-    std::ofstream(root_ / "menu/cfg7/common.cfg") << "COMINIT 1; COM 11,0,0,0,0,0,0,0,0,\"x\",0;";
-    std::ofstream(root_ / "menu/cfg7/comdatmes7.cfg") << "MES_SHARED 11,\"Shared retail dispatch\";";
-    DataReadIndex(root_);
+    WriteMenuConfigs(base, {
+                               {"common.cfg", ItemConfigCommands()},
+                               {"comdatmes7.cfg", ItemMessageCommands("MES_SHARED", "Shared retail dispatch")}
+    });
+    DataReadIndex(root);
     GameItemDataManage.Initialize();
-    char common[] = "common.cfg";
+    char common[] = "common.cfg.json";
     ASSERT_TRUE(LoadGameDataAnalyze(common));
 
     struct RestoreTag {

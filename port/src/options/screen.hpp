@@ -13,12 +13,15 @@ constexpr int kRowStep = 24;
 constexpr int kLeft = 82;
 constexpr int kRight = 434;
 constexpr int kValueX = 288;
+constexpr int kPages = 5;
+constexpr int kBindingsPage = kPages - 1;
+constexpr int kTabStep = (kRight - kLeft) / kPages;
 
 struct State {
     bool               open = false;
     int                page = 0;
-    std::array<int, 4> row{};
-    std::array<int, 4> first{};
+    std::array<int, kPages> row{};
+    std::array<int, kPages> first{};
     int                binding = -1;
     bool               save_failed = false;
 };

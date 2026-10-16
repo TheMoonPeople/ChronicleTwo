@@ -6,6 +6,14 @@ import unit_copy
 
 
 class RetailBridgeTests(unittest.TestCase):
+    def test_costume_arena_hook_precedes_only_selected_character_construction(self):
+        source = "void Other() { LoadPack(); }\nstatic void MenuItemCharaDataLoadPack(int part) {\n    if ((chara != NULL && part != 1) || part == 1) {\n        switch (part) { case 0: chara->Initialize(stack); break; }\n    }\n}\n"
+        actual = unit_copy.prepare_menu_character_arena(source)
+        self.assertEqual(actual.count("PortPrepareMenuCharacterArena("), 1)
+        self.assertLess(actual.index("PortPrepareMenuCharacterArena("), actual.index("chara->Initialize(stack)"))
+        self.assertIn("void Other() { LoadPack(); }", actual)
+        self.assertIn("if ((chara != NULL && part != 1) || part == 1) {\n        PortPrepareMenuCharacterArena", actual)
+
     def setUp(self):
         root = Path(__file__).resolve().parents[2]
         self.override = unit_copy.load_port_override(root / "tools/kazarov/scripts/build/port_override.py")

@@ -139,16 +139,16 @@ PORT_OVERRIDE void CMenuInvent::LoadCharaCheck() {
     if (chara_read_info) {
         int   size;
         auto *pack = reinterpret_cast<u_int *>(chara_read_info->buffer);
-        auto *model = GetPackFile(pack, "c01_camera.chr", &size);
+        auto *model = AssetDirectoryRead(pack, "c01_camera.gltf", &size);
         chara_stack.stack_used = chara_stack.lock = 0;
         std::strcpy(mgTexManager.name_suffix, "_mn");
         if (model) {
-            character->LoadPack(model, "info.cfg", &chara_stack, &chara_stack, &chara_stack, tex_block[1], nullptr);
+            character->LoadPack(model, "info", &chara_stack, &chara_stack, &chara_stack, tex_block[1], nullptr);
         }
-        auto *camera = GetPackFile(pack, "camera.chr", &size);
+        auto *camera = AssetDirectoryRead(pack, "camera.gltf", &size);
         sub_chara = new (chara_stack.Alloc(Quadwords(sizeof(CActionChara)) + 2)) CActionChara;
         sub_chara->Initialize(0);
-        sub_chara->LoadPack(camera, "info.cfg", &chara_stack, &chara_stack, &chara_stack, tex_block[1], character);
+        sub_chara->LoadPack(camera, "info", &chara_stack, &chara_stack, &chara_stack, tex_block[1], character);
         mgTexManager.name_suffix[0] = '\0';
         character->SetRef(sub_chara, "ef00");
         character->CopyOutLine(sub_chara);

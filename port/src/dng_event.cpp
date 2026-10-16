@@ -3,7 +3,9 @@
 #include <cmath>
 #include <cstdio>
 
+#include "collision_assets.hpp"
 #include "dataread.hpp"
+#include "dataread_port.hpp"
 #include "dng_event.hpp"
 #include "dng_main.hpp"
 #include "mg_memory.hpp"
@@ -12,6 +14,11 @@
 #include "runscript.hpp"
 #include "scene.hpp"
 #include "snd_mngr.hpp"
+
+PORT_OVERRIDE void CTreasureBoxManager::SetCollisionModel(u32 *model, mgCMemory *memory) {
+    const auto path = DataReadBufferPath(model);
+    col_frame = path ? LoadCollisionModel(*path, memory, "tbox_a") : nullptr;
+}
 
 void PrepareMonsterMemory(CMonsterMan &manager, mgCMemory &memory) {
     // Preserve the retail model budget and account for the two script arrays' wider entries.
@@ -44,7 +51,7 @@ PORT_OVERRIDE void LoadMonsterFile() {
         locate.monster_id[i] = -1;
     }
     char path[76];
-    std::snprintf(path, sizeof path, "dungeon/cfg_file/mos_place%d.cfg", DngSaveDataDungeon->stage_id);
+    std::snprintf(path, sizeof path, "dungeon/cfg_file/mos_place%d.cfg.json", DngSaveDataDungeon->stage_id);
     int size = 0;
     LoadFile(path, BuffReadData, &size);
     CreatMonsterFloorInfo(reinterpret_cast<char *>(BuffReadData), size);

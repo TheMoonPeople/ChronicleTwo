@@ -78,10 +78,7 @@ constexpr int kCircleLeftU = 236, kCircleLeftV = 55, kCircleRightU = 364, kCircl
 constexpr int kGlyphUV[kSlots][2] = {{44, 22}, {22, 22}, {66, 22}, {0, 22}};
 constexpr int kGlyphTexels = 22;
 
-// Model pictures: the dungeon's texture table ends at 0xAE; the effect scripts take 0x8C to 0xAB and the geostone 0xAD.
-// 0xAC takes the model's own pictures while it is drawn, 0xAE the scratch picture it is drawn into.
-constexpr int kModelBlock = 0xAC;
-constexpr int kIconBlock = 0xAE;
+// The side of each item's picture.
 constexpr int kIconSize = 128;
 
 struct Entry {
@@ -558,7 +555,7 @@ void PortQuickLoadoutPrepare() {
         std::snprintf(name, sizeof name, "quick loadout item %d", entry.item_no);
         // An ordinary target: a frame target maps its width onto the widened frame, which moved the model aside.
         const gfx::TextureHandle target = gfx::NamedRenderTarget(name, kIconSize, kIconSize, true);
-        if (ItemIcon3DRenderTo(entry.item_no, target, kIconSize, kModelBlock, kIconBlock)) {
+        if (ItemIcon3DRenderTo(entry.item_no, target, kIconSize)) {
             picture.texture = target;
         } else {
             picture.failed = true;

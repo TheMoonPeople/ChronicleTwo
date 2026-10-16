@@ -1,5 +1,5 @@
 param([string]$Root, [string]$BuildDirectory, [switch]$Tests, [string]$BuildType = 'Debug',
-      [string]$VulkanLibrary)
+      [string]$VulkanLibrary, [int]$TestTimeout = 5)
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/common.ps1"
 $root = (Resolve-WindowsRoot $Root).Replace('\', '/')
@@ -20,7 +20,7 @@ $cmake = Find-WindowsTool cmake 'C:/Program Files/CMake/bin/cmake.exe'
 $python = Find-WindowsPython
 $testOption = if ($Tests) { 'ON' } else { 'OFF' }
 & $cmake -S $source -B $build -G Ninja `
-    -DPLATFORM=PC "-DCMAKE_BUILD_TYPE=$BuildType" "-DCT_BUILD_TESTS=$testOption" `
+    -DPLATFORM=PC "-DCMAKE_BUILD_TYPE=$BuildType" "-DCT_BUILD_TESTS=$testOption" "-DCT_TEST_TIMEOUT=$TestTimeout" `
     "-DCMAKE_CXX_COMPILER=$llvm/clang++.exe" "-DCMAKE_RC_COMPILER=$llvm/windres.exe" `
     "-DCMAKE_MAKE_PROGRAM=$root/deps/ninja/ninja.exe" "-DPython3_EXECUTABLE=$python" `
     "-DSDL3_DIR=$root/deps/sdl/SDL3-3.4.18/x86_64-w64-mingw32/lib/cmake/SDL3" `

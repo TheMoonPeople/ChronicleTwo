@@ -8,8 +8,10 @@
 #include <vector>
 
 #include "arena_root.hpp"
+#include "dataread_port.hpp"
 #include "mg_memory_port.hpp"
 #include "platform/arena.hpp"
+#include "texture_source.hpp"
 
 namespace {
 
@@ -67,7 +69,7 @@ struct PeakEntry {
     int              capacity;
     int              peak;
     // Arenas may be destroyed without MemoryForget, so the log prints this copy and never dereferences memory.
-    NameCopy         name;
+    NameCopy name;
 };
 
 // Function-local so arenas constructed during static initialisation can reach it.
@@ -224,6 +226,8 @@ PORT_OVERRIDE void mgCMemory::SetHeapMem(u_long128 *buffer, int size) {
         const NameCopy label = CopyName(name);
         u_long128     *block = ArenaRoot(buffer, size, label.data());
         std::memcpy(block, buffer, static_cast<std::size_t>(size) * sizeof(u_long128));
+        TextureSourceCopy(buffer, block, static_cast<std::size_t>(size) * sizeof(u_long128));
+        DataReadCopyBuffer(buffer, block, static_cast<std::size_t>(size) * sizeof(u_long128));
         buffer = block;
         size *= kArenaHeadroom;
     }
@@ -288,7 +292,7 @@ PORT_OVERRIDE u_long128 *mgCMemory::StartStackMode(int mode, int size) {
     std::ptrdiff_t  best_count = 0;
 
     for (mgMEMORY_BLOCK *next; (next = block->next) != nullptr; block = next) {
-        mgMEMORY_BLOCK *gap = BlockAt(block, block->size);
+        mgMEMORY_BLOCK      *gap = BlockAt(block, block->size);
         const std::ptrdiff_t count = QuadwordsBetween(gap, next);
 
         if (mode == 1 && count > kHeaderQuadwords) {

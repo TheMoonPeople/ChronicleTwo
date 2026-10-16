@@ -1,3 +1,5 @@
+#include "common.h"
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -5,9 +7,10 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
-#include <functional>
 #include <fstream>
+#include <functional>
 #include <iterator>
 #include <memory>
 #include <optional>
@@ -15,7 +18,6 @@
 #include <vector>
 
 #include "audio/mixer.hpp"
-#include "common.h"
 #include "gfx/gfx.hpp"
 #include "gfx_fixture.hpp"
 #include "mg_memory.hpp"
@@ -25,62 +27,30 @@
 #include "movie.hpp"
 #include "movie_port.hpp"
 #include "platform/clock.hpp"
+#include "platform/datapacks.hpp"
 #include "platform/paths.hpp"
-#include "video/pcm.hpp"
 #include "video/player.hpp"
-#include "video/pss.hpp"
 
 namespace fs = std::filesystem;
-using video::PssChunk;
-using video::PssDemuxer;
-using video::PssError;
-using video::PssPcmDecoder;
-using video::PssStream;
 
 namespace {
 
 using Bytes = std::vector<uint8_t>;
 
-void PutU32(Bytes &out, uint32_t value) {
-    for (int i = 0; i < 4; i++) {
-        out.push_back(static_cast<uint8_t>(value >> (8 * i)));
-    }
-}
-
-void PutTag(Bytes &out, const char *tag) { out.insert(out.end(), tag, tag + 4); }
-
-Bytes Stream(uint32_t type, uint32_t channels, uint32_t interleave, const Bytes &body) {
-    Bytes out;
-    PutTag(out, "SShd");
-    PutU32(out, 24);
-    PutU32(out, type);
-    PutU32(out, 48000);
-    PutU32(out, channels);
-    PutU32(out, interleave);
-    PutU32(out, 0xFFFFFFFF);
-    PutU32(out, 0xFFFFFFFF);
-    PutTag(out, "SSbd");
-    PutU32(out, static_cast<uint32_t>(body.size()));
-    out.insert(out.end(), body.begin(), body.end());
-    return out;
-}
-
-// Splits the stream into pushes of `step` bytes, then finishes the decoder.
-PssPcmDecoder Decode(const Bytes &stream, size_t step) {
-    PssPcmDecoder decoder;
-    for (size_t at = 0; at < stream.size(); at += step) {
-        decoder.Push(std::span<const uint8_t>(stream).subspan(at, std::min(step, stream.size() - at)));
-    }
-    decoder.Finish();
-    return decoder;
-}
-
-// ctest runs from the build directory, so search upward from the test executable for data/movie/.
+// ctest runs from the build directory, so search upward from the test executable for port_data/movie/.
 std::optional<fs::path> MovieFile(const char *name) {
+    fs::path relative = name;
+    relative.replace_extension(".mp4");
+    if (const char *root = std::getenv("KZ_MOVIE_OUTPUT")) {
+        const auto path = fs::path(root) / "port_data/movie" / relative;
+        if (fs::is_regular_file(path)) {
+            return path;
+        }
+    }
     fs::path dir = PathsExecutable().parent_path();
     for (int up = 0; up < 6 && !dir.empty(); up++, dir = dir.parent_path()) {
         std::error_code error;
-        fs::path path = dir / "data" / "movie" / name;
+        fs::path        path = dir / "port_data" / "movie" / relative;
         if (fs::is_regular_file(path, error)) {
             return path;
         }
@@ -88,98 +58,7 @@ std::optional<fs::path> MovieFile(const char *name) {
     return std::nullopt;
 }
 
-// Two groups of interleave 4 bytes (two frames each): L{1,2} R{3,4} then L{5,6} R{7,8}.
-const Bytes kStereoBody = {0x01, 0x00, 0x02, 0x00, 0x03, 0x00, 0x04, 0x00,
-                           0x05, 0x00, 0x06, 0x00, 0x07, 0x00, 0x08, 0x00};
-const std::vector<int16_t> kStereoSamples = {1, 3, 2, 4, 5, 7, 6, 8};
-
-}  // namespace
-
-TEST(MoviePcm, DeinterleavesStereoBlocks) {
-    const Bytes stream = Stream(1, 2, 4, kStereoBody);
-
-    const PssPcmDecoder whole = Decode(stream, stream.size());
-    EXPECT_FALSE(whole.Failed());
-    EXPECT_TRUE(whole.HeaderSeen());
-    EXPECT_EQ(whole.Format().rate, 48000);
-    EXPECT_EQ(whole.Format().channels, 2);
-    EXPECT_EQ(whole.Format().interleave, 4u);
-    EXPECT_EQ(whole.Format().body_bytes, 16u);
-    EXPECT_EQ(whole.Samples(), kStereoSamples);
-
-    const PssPcmDecoder bytewise = Decode(stream, 1);
-    EXPECT_FALSE(bytewise.Failed());
-    EXPECT_EQ(bytewise.Samples(), kStereoSamples);
-}
-
-TEST(MoviePcm, RejectsAdpcm) {
-    const Bytes stream = Stream(0x10, 2, 4, kStereoBody);
-    EXPECT_TRUE(Decode(stream, stream.size()).Failed());
-    EXPECT_TRUE(Decode(stream, 1).Failed());
-}
-
-TEST(MoviePcm, StopsAtBodySize) {
-    Bytes stream = Stream(1, 2, 4, kStereoBody);
-    const Bytes junk = {0x99, 0x99, 0x99, 0x99};
-    stream.insert(stream.end(), junk.begin(), junk.end());
-
-    const PssPcmDecoder decoder = Decode(stream, stream.size());
-    EXPECT_FALSE(decoder.Failed());
-    EXPECT_EQ(decoder.Samples(), kStereoSamples);
-}
-
-TEST(MoviePcm, FinishSplitsPartialGroup) {
-    const Bytes body = {0x01, 0x00, 0x02, 0x00};
-    const Bytes stream = Stream(1, 2, 8, body);
-
-    PssPcmDecoder decoder;
-    decoder.Push(stream);
-    EXPECT_TRUE(decoder.Samples().empty());
-
-    decoder.Finish();
-    EXPECT_FALSE(decoder.Failed());
-    EXPECT_EQ(decoder.Samples(), (std::vector<int16_t>{1, 2}));
-}
-
-TEST(MoviePcm, L5LogoTrack) {
-    const std::optional<fs::path> path = MovieFile("l5logo.pss");
-    if (!path) {
-        GTEST_SKIP() << "no extracted data/movie/l5logo.pss within 6 levels above the test executable";
-    }
-
-    std::ifstream in(*path, std::ios::binary);
-    ASSERT_TRUE(in.is_open());
-    const Bytes file((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-
-    constexpr size_t kPush = 64 * 1024;
-    PssDemuxer demux;
-    PssPcmDecoder pcm;
-    const auto drain = [&] {
-        while (std::optional<PssChunk> chunk = demux.Next()) {
-            if (chunk->stream == PssStream::Pcm) {
-                pcm.Push(chunk->payload);
-            }
-        }
-    };
-
-    for (size_t at = 0; at < file.size(); at += kPush) {
-        demux.Push(std::span<const uint8_t>(file).subspan(at, std::min(kPush, file.size() - at)));
-        drain();
-    }
-    demux.Finish();
-    drain();
-    pcm.Finish();
-
-    EXPECT_EQ(demux.Error(), PssError::None);
-    ASSERT_FALSE(pcm.Failed());
-    ASSERT_TRUE(pcm.HeaderSeen());
-    EXPECT_EQ(pcm.Format().rate, 48000);
-    EXPECT_EQ(pcm.Format().channels, 2);
-    EXPECT_EQ(pcm.Format().interleave, 512u);
-    EXPECT_EQ(pcm.Format().type, 1u);
-    EXPECT_EQ(pcm.Format().body_bytes, 1154048u);
-    EXPECT_EQ(pcm.Samples().size(), 1154048u / 2);
-}
+} // namespace
 
 namespace {
 
@@ -195,20 +74,20 @@ double MeanRgb(const std::vector<uint8_t> &rgba) {
     return count == 0 ? 0.0 : sum / static_cast<double>(count);
 }
 
-}  // namespace
+} // namespace
 
 TEST(MoviePlayer, MissingFileDoesNotOpen) {
     video::MoviePlayer player;
-    EXPECT_FALSE(player.Open("no/such/file.pss", true));
+    EXPECT_FALSE(player.Open("no/such/file.mp4", true));
     EXPECT_FALSE(player.IsOpen());
     EXPECT_FALSE(player.HasPicture());
 }
 
 TEST(MoviePlayer, GarbageFileDoesNotOpen) {
-    const fs::path path = fs::temp_directory_path() / "dc2_movie_player_GarbageFileDoesNotOpen.pss";
+    const fs::path path = fs::temp_directory_path() / "dc2_movie_player_GarbageFileDoesNotOpen.mp4";
     {
         std::ofstream out(path, std::ios::binary);
-        const Bytes garbage(64 * 1024, 0xAB);
+        const Bytes   garbage(64 * 1024, 0xAB);
         out.write(reinterpret_cast<const char *>(garbage.data()), static_cast<std::streamsize>(garbage.size()));
     }
 
@@ -221,9 +100,9 @@ TEST(MoviePlayer, GarbageFileDoesNotOpen) {
 }
 
 TEST(MoviePlayer, L5LogoPlaysEveryPictureAtTwentyFiveFramesASecond) {
-    const std::optional<fs::path> path = MovieFile("l5logo.pss");
+    const std::optional<fs::path> path = MovieFile("l5logo.mp4");
     if (!path) {
-        GTEST_SKIP() << "no extracted data/movie/l5logo.pss within 6 levels above the test executable";
+        GTEST_SKIP() << "no extracted port_data/movie/l5logo.mp4 within 6 levels above the test executable";
     }
 
     video::MoviePlayer player;
@@ -237,27 +116,27 @@ TEST(MoviePlayer, L5LogoPlaysEveryPictureAtTwentyFiveFramesASecond) {
     EXPECT_EQ(player.Audio()->Frames(), 288512);
     EXPECT_FALSE(player.Audio()->loop);
 
-    constexpr int64_t kTick = 1800;
-    constexpr int64_t kClock = 90000;
-    constexpr int64_t kThreeSeconds = 3 * kClock;
-    constexpr int64_t kLimit = 20 * kClock;
+    constexpr int64_t k_tick = 1800;
+    constexpr int64_t k_clock = 90000;
+    constexpr int64_t k_three_seconds = 3 * k_clock;
+    constexpr int64_t k_limit = 20 * k_clock;
 
     int64_t elapsed = 0;
     int64_t changes = 0;
-    bool previous_changed = false;
-    bool consecutive_changes = false;
-    bool sampled = false;
-    double mean_at_three_seconds = 0.0;
+    bool    previous_changed = false;
+    bool    consecutive_changes = false;
+    bool    sampled = false;
+    double  mean_at_three_seconds = 0.0;
 
-    while (!player.Ended() && elapsed < kLimit) {
-        elapsed += kTick;
+    while (!player.Ended() && elapsed < k_limit) {
+        elapsed += k_tick;
         const bool changed = player.Advance(elapsed);
         if (changed) {
             changes++;
         }
         consecutive_changes = consecutive_changes || (changed && previous_changed);
         previous_changed = changed;
-        if (!sampled && elapsed >= kThreeSeconds) {
+        if (!sampled && elapsed >= k_three_seconds) {
             mean_at_three_seconds = MeanRgb(player.Rgba());
             sampled = true;
         }
@@ -272,14 +151,14 @@ TEST(MoviePlayer, L5LogoPlaysEveryPictureAtTwentyFiveFramesASecond) {
     EXPECT_GT(mean_at_three_seconds, 0.0);
 
     std::printf("L5 logo: %lld pictures shown, ended at %.2f s, mean RGB at 3 s %.2f\n",
-                static_cast<long long>(player.PicturesShown()), static_cast<double>(elapsed) / kClock,
+                static_cast<long long>(player.PicturesShown()), static_cast<double>(elapsed) / k_clock,
                 mean_at_three_seconds);
 }
 
-TEST(MoviePlayer, CatchUpSkipsWithoutConverting) {
-    const std::optional<fs::path> path = MovieFile("l5logo.pss");
+TEST(MoviePlayer, CatchUpSkipsIntermediatePictures) {
+    const std::optional<fs::path> path = MovieFile("l5logo.mp4");
     if (!path) {
-        GTEST_SKIP() << "no extracted data/movie/l5logo.pss within 6 levels above the test executable";
+        GTEST_SKIP() << "no extracted port_data/movie/l5logo.mp4 within 6 levels above the test executable";
     }
 
     video::MoviePlayer player;
@@ -292,31 +171,65 @@ namespace {
 
 struct RestoreDataRoot {
     fs::path root;
-    ~RestoreDataRoot() { PathsSetDataRoot(root); }
+    fs::path packs = datapacks::Root();
+
+    ~RestoreDataRoot() {
+        PathsSetDataRoot(root);
+        if (packs.empty()) {
+            datapacks::Clear();
+        } else {
+            datapacks::Load(packs);
+        }
+    }
 };
 
 struct RestoreClock {
     double rate;
     bool   unbounded;
+
     ~RestoreClock() {
         ClockSetTickRate(rate);
         ClockSetUnbounded(unbounded);
     }
 };
 
-}  // namespace
+} // namespace
 
-TEST(MovieGlue, PathMapsGameNamesToDataMovie) {
-    const fs::path movie = PathsDataRoot() / "movie";
-    EXPECT_EQ(MoviePortPath("L5LOGO.PSS"), movie / "l5logo.pss");
-    EXPECT_EQ(MoviePortPath("TUTO2\\VTUTO1.PSS"), movie / "tuto2" / "vtuto1.pss");
-    EXPECT_EQ(MoviePortPath("cdrom0:\\RUSH.PSS;1"), movie / "rush.pss");
-    EXPECT_EQ(MoviePortPath("/TUTO/X.PSS"), movie / "tuto" / "x.pss");
+TEST(MovieGlue, PathMapsGameNamesToPublishedMp4) {
+    const fs::path movie = "movie";
+    EXPECT_EQ(MoviePortPath("L5LOGO.MP4"), movie / "l5logo.mp4");
+    EXPECT_EQ(MoviePortPath("TUTO2\\VTUTO1.MP4"), movie / "tuto2" / "vtuto1.mp4");
+    EXPECT_EQ(MoviePortPath("cdrom0:\\RUSH.MP4;1"), movie / "rush.mp4");
+    EXPECT_EQ(MoviePortPath("/TUTO/X.MP4"), movie / "tuto" / "x.mp4");
+}
+
+TEST(MoviePlayer, StandardMp4ContainsVideoAndEmbeddedLosslessAudio) {
+    video::MoviePlayer player;
+    const fs::path     fixture = fs::path(__FILE__).parent_path() / "fixtures/movie.mp4";
+    ASSERT_TRUE(player.Open(fixture, true));
+    EXPECT_EQ(player.Width(), 16);
+    EXPECT_EQ(player.Height(), 16);
+    ASSERT_NE(player.Audio(), nullptr);
+    EXPECT_EQ(player.Audio()->rate, 48000);
+    EXPECT_EQ(player.Audio()->Frames(), 5760);
+    EXPECT_FALSE(player.Audio()->loop);
+    const auto first = player.Rgba();
+    EXPECT_TRUE(player.Advance(3600));
+    EXPECT_EQ(player.PicturesShown(), 2);
+    EXPECT_TRUE(player.Advance(7200));
+    EXPECT_EQ(player.PicturesShown(), 3);
+    EXPECT_FALSE(player.Ended());
+    player.Advance(10800);
+    EXPECT_TRUE(player.Ended());
+    player.Close();
+    EXPECT_FALSE(player.IsOpen());
+    ASSERT_TRUE(player.Open(fixture, false));
+    EXPECT_EQ(player.Audio(), nullptr);
 }
 
 TEST(MovieGlue, MissingMovieStartsAndEndsAtOnce) {
     auto movie = std::make_unique<CMovie>();
-    char name[] = "NOSUCH.PSS";
+    char name[] = "NOSUCH.MP4";
     char texture[] = "moviework";
     movie->Load(name, static_cast<mgCMemory **>(nullptr), 0x200, 0x1A0, true, false, false);
     movie->Play(texture);
@@ -329,12 +242,13 @@ TEST(MovieGlue, MissingMovieStartsAndEndsAtOnce) {
 
 TEST(MovieGlue, L5LogoPlaysOnTheClockWithItsSoundtrack) {
     RestoreDataRoot restore_data{PathsDataRoot()};
-    if (!fs::is_regular_file(MoviePortPath("L5LOGO.PSS"))) {
-        const std::optional<fs::path> found = MovieFile("l5logo.pss");
+    if (!fs::is_regular_file(datapacks::Root() / MoviePortPath("L5LOGO.MP4"))) {
+        const std::optional<fs::path> found = MovieFile("l5logo.mp4");
         if (!found) {
-            GTEST_SKIP() << "no extracted data/movie/l5logo.pss within 6 levels above the test executable";
+            GTEST_SKIP() << "no extracted port_data/movie/l5logo.mp4 within 6 levels above the test executable";
         }
-        PathsSetDataRoot(found->parent_path().parent_path());
+        PathsSetDataRoot(found->parent_path().parent_path().parent_path() / "data");
+        datapacks::Load(found->parent_path().parent_path());
     }
 
     // Two ticks a game frame at 50 Hz is 25 game frames a second, the movie's rate.
@@ -344,7 +258,7 @@ TEST(MovieGlue, L5LogoPlaysOnTheClockWithItsSoundtrack) {
     ClockReset();
 
     auto movie = std::make_unique<CMovie>();
-    char name[] = "L5LOGO.PSS";
+    char name[] = "L5LOGO.MP4";
     char texture[] = "moviework";
     movie->Load(name, static_cast<mgCMemory **>(nullptr), 512, 416, true, false, true);
     movie->Play(texture);
@@ -422,24 +336,26 @@ public:
 
 struct MovieTermOnExit {
     CMovie *movie;
+
     ~MovieTermOnExit() { movie->Term(); }
 };
 
-}  // namespace
+} // namespace
 
 TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
     RestoreDataRoot restore_data{PathsDataRoot()};
-    if (!fs::is_regular_file(MoviePortPath("L5LOGO.PSS"))) {
-        const std::optional<fs::path> found = MovieFile("l5logo.pss");
+    if (!fs::is_regular_file(datapacks::Root() / MoviePortPath("L5LOGO.MP4"))) {
+        const std::optional<fs::path> found = MovieFile("l5logo.mp4");
         if (!found) {
-            GTEST_SKIP() << "no extracted data/movie/l5logo.pss within 6 levels above the test executable";
+            GTEST_SKIP() << "no extracted port_data/movie/l5logo.mp4 within 6 levels above the test executable";
         }
-        PathsSetDataRoot(found->parent_path().parent_path());
+        PathsSetDataRoot(found->parent_path().parent_path().parent_path() / "data");
+        datapacks::Load(found->parent_path().parent_path());
     }
-    const fs::path movie_file = MoviePortPath("L5LOGO.PSS");
+    const fs::path movie_file = datapacks::Root() / MoviePortPath("L5LOGO.MP4");
 
-    RestoreClock restore_clock{ClockTickRate(), ClockUnbounded()};
-    OffscreenRenderer renderer;
+    RestoreClock       restore_clock{ClockTickRate(), ClockUnbounded()};
+    OffscreenRenderer  renderer;
     GlobalTextureTable texture_table;
 
     ClockSetUnbounded(true);
@@ -452,18 +368,18 @@ TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
                                         nullptr, 0, 0),
               nullptr);
 
-    auto movie = std::make_unique<CMovie>();
+    auto            movie = std::make_unique<CMovie>();
     MovieTermOnExit term_on_exit{movie.get()};
-    char name[] = "L5LOGO.PSS";
+    char            name[] = "L5LOGO.MP4";
     movie->Load(name, static_cast<mgCMemory **>(nullptr), 512, 416, true, false, true);
     movie->Play(texture_name);
     const int64_t start_tick = ClockTickCount();
     EXPECT_EQ(movie->IsStarted(), 1);
 
-    constexpr int kFrames = 30;
+    constexpr int        k_frames = 30;
     const gfx::DrawState state = mgPortDrawState();
-    int64_t picture_elapsed = 0;
-    for (int frame = 0; frame < kFrames; frame++) {
+    int64_t              picture_elapsed = 0;
+    for (int frame = 0; frame < k_frames; frame++) {
         mgBeginFrame(nullptr);
         // SwitchThread samples the clock itself, so the picture it uploads is the one at this tick.
         const int64_t switch_tick = ClockTickCount();
@@ -482,7 +398,7 @@ TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
         ClockPump();
         ClockPump();
     }
-    EXPECT_EQ(mgPortFrameCount(), kFrames);
+    EXPECT_EQ(mgPortFrameCount(), k_frames);
     EXPECT_TRUE(movie->is_playing);
 
     std::vector<uint8_t> rgba;
@@ -493,7 +409,7 @@ TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
 
     const fs::path png = fs::temp_directory_path() / "movie_l5logo_30.png";
     ASSERT_TRUE(gfx::WritePng(png, rgba.data(), width, height));
-    std::printf("frame %d written to %s\n", kFrames, png.string().c_str());
+    std::printf("frame %d written to %s\n", k_frames, png.string().c_str());
 
     // The logical frame sits letterboxed inside the window, so the picture's rect comes from the mapping, not from
     // scaling 512x480 to the readback size.
@@ -504,8 +420,8 @@ TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
     const uint32_t y0 = static_cast<uint32_t>(std::floor(mapping.offset_y));
     const uint32_t x1 = std::min(width, static_cast<uint32_t>(std::ceil(mapping.offset_x + 512.0f * mapping.scale_x)));
     const uint32_t y1 = std::min(height, static_cast<uint32_t>(std::ceil(mapping.offset_y + 416.0f * mapping.scale_y)));
-    double readback_sum = 0.0;
-    size_t readback_count = 0;
+    double         readback_sum = 0.0;
+    size_t         readback_count = 0;
     for (uint32_t y = y0; y < y1; y++) {
         for (uint32_t x = x0; x < x1; x++) {
             const uint8_t *px = &rgba[(static_cast<size_t>(y) * width + x) * 4];
@@ -526,7 +442,7 @@ TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
     ASSERT_EQ(picture.Rgba().size(), static_cast<size_t>(512 * 416 * 4));
     const double picture_mean = MeanRgb(picture.Rgba());
 
-    std::printf("L5 logo frame %d: readback mean RGB %.2f, picture mean RGB %.2f at %lld ticks\n", kFrames,
+    std::printf("L5 logo frame %d: readback mean RGB %.2f, picture mean RGB %.2f at %lld ticks\n", k_frames,
                 readback_mean, picture_mean, static_cast<long long>(picture_elapsed));
     EXPECT_NEAR(readback_mean, picture_mean, 3.0);
 }

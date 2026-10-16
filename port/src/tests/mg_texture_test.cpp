@@ -1,14 +1,16 @@
 #include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
 
 #include <algorithm>
 #include <array>
-#include <climits>
 #include <chrono>
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <random>
 #include <string>
 #include <vector>
@@ -18,18 +20,18 @@
 #include "gfx/tim2.hpp"
 #include "gfx_fixture.hpp"
 #include "menu_mouse.hpp"
+#include "mg_drawprim.hpp"
 #include "mg_memory.hpp"
 #include "mg_tanime.hpp"
 #include "mg_texture.hpp"
 #include "mg_texture_port.hpp"
-#include "platform/texture_catalog.hpp"
-#include "platform/datapacks.hpp"
-#include "texture_color.hpp"
-#include "mglib_port.hpp"
 #include "mglib.hpp"
-#include "mg_drawprim.hpp"
+#include "mglib_port.hpp"
 #include "platform/clock.hpp"
+#include "platform/datapacks.hpp"
 #include "platform/input.hpp"
+#include "platform/texture_catalog.hpp"
+#include "texture_color.hpp"
 #include "texture_source.hpp"
 
 namespace {
@@ -38,8 +40,8 @@ using Quads = std::vector<u_long128>;
 using Texel4 = std::array<uint8_t, 4>;
 using Levels = std::array<u_long128 *, MG_TEXTURE_LEVEL_MAX>;
 
-constexpr int kTextureCount = 64;
-constexpr int kBlockCount = 8;
+constexpr int    kTextureCount = 64;
+constexpr int    kBlockCount = 8;
 constexpr size_t kStorageQuads = 4096;
 
 // The retail converter the game runs on 8-bit pixels stored in 32-bit page order, copied from
@@ -466,12 +468,12 @@ std::vector<uint8_t> Ct32Pixels(uint32_t width, uint32_t height) {
 }
 
 struct TimPicture {
-    uint8_t                           image_type = TIM2_RGB32;
-    uint16_t                          width = 0;
-    uint16_t                          height = 0;
-    std::vector<std::vector<uint8_t>> levels;
-    std::vector<uint8_t>              clut;
-    uint64_t                          tex1 = 0;
+    uint8_t                            image_type = TIM2_RGB32;
+    uint16_t                           width = 0;
+    uint16_t                           height = 0;
+    std::vector<std::vector<uint8_t> > levels;
+    std::vector<uint8_t>               clut;
+    uint64_t                           tex1 = 0;
 };
 
 std::vector<uint8_t> BuildPicture(const TimPicture &picture) {
@@ -553,8 +555,8 @@ public:
     Harness(const Harness &) = delete;
     Harness &operator=(const Harness &) = delete;
 
-    Quads         storage = Quads(kStorageQuads, 0);
-    mgCMemory     memory;
+    Quads             storage = Quads(kStorageQuads, 0);
+    mgCMemory         memory;
     mgCTextureManager manager;
 };
 
@@ -574,7 +576,9 @@ void WriteRgbaPng(const std::filesystem::path &path, uint32_t width, uint32_t he
         uint32_t crc = ~uint32_t{0};
         for (size_t i = first; i < out.size(); ++i) {
             crc ^= out[i];
-            for (int bit = 0; bit < 8; ++bit) crc = (crc >> 1) ^ (crc & 1 ? 0xEDB88320u : 0);
+            for (int bit = 0; bit < 8; ++bit) {
+                crc = (crc >> 1) ^ (crc & 1 ? 0xEDB88320u : 0);
+            }
         }
         big(out, ~crc);
     };
@@ -596,7 +600,10 @@ void WriteRgbaPng(const std::filesystem::path &path, uint32_t width, uint32_t he
         pos += count;
     }
     uint32_t a = 1, b = 0;
-    for (uint8_t value : raw) { a = (a + value) % 65521; b = (b + a) % 65521; }
+    for (uint8_t value : raw) {
+        a = (a + value) % 65521;
+        b = (b + a) % 65521;
+    }
     big(compressed, (b << 16) | a);
     std::vector<uint8_t> png{137, 80, 78, 71, 13, 10, 26, 10};
     std::vector<uint8_t> header;
@@ -618,6 +625,7 @@ public:
         directory = std::filesystem::temp_directory_path() / ("ct_texture_catalog_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + "_" + std::to_string(++next)) / "port_data";
         std::filesystem::create_directories(directory);
     }
+
     ~CatalogFixture() {
         datapacks::Clear();
         texture_catalog::Clear();
@@ -631,31 +639,32 @@ public:
         WriteRgbaPng(directory / name, width, height, pixels);
     }
 
-    void Load(std::string entries, std::string source = "fixture.img", std::string kind = "img3") {
-        std::ofstream(directory / "catalog.json")
-            << "{\"schema_version\":1,\"sources\":[{\"source\":\"" << source
-            << "\",\"kind\":\"" << kind << "\",\"entries\":[" << entries << "]}]}";
+    void Load(std::string entries) {
+        const std::string groups = entries.find("\"block\":1") != std::string::npos ? "[0,1]" : "[0]";
+        std::ofstream(directory / "fixture.json")
+            << "{\"schema_version\":3,\"groups\":" << groups << ",\"entries\":[" << entries << "]}";
         std::string error;
-        ASSERT_TRUE(texture_catalog::Load(directory / "catalog.json", error)) << error;
+        ASSERT_TRUE(texture_catalog::Load(directory, error)) << error;
+        texture_catalog::SetCandidateResolver(datapacks::Candidates);
     }
 
     int Enter(mgCTextureManager &manager, int block = 0, mgCMemory *stack = nullptr) {
-        alignas(16) char handle[16]{};
-        TextureSourceRegister(handle, "fixture.img");
-        return manager.EnterIMGFile(reinterpret_cast<u_char *>(handle), block, stack, nullptr);
+        return MgTextureEnterDocument(&manager, "fixture.json", block, stack, nullptr);
     }
 
     std::filesystem::path directory;
 };
 
-std::string JsonTexture(const std::string &name, int source_bpp, int width, int height, std::string levels,
-                        int block = 0, bool no_image = false, int picture = 0, std::string extra_variants = "") {
-    return "{\"type\":\"texture\",\"name\":\"" + name + "\",\"block\":" + std::to_string(block) +
-           ",\"swizzled\":false,\"clamp\":0,\"no_image\":" + (no_image ? "true" : "false") +
-           ",\"picture\":" + std::to_string(picture) + ",\"width\":" + std::to_string(width) +
-           ",\"height\":" + std::to_string(height) + ",\"format\":\"rgba8\",\"bpp\":32,\"source_bpp\":" +
-           std::to_string(source_bpp) + ",\"tex1\":0,\"variants\":[{\"palette_source\":\"" + name +
-           "\",\"levels\":" + levels + "}" + extra_variants + "]}";
+std::string JsonTexture(const std::string &name, int animation_depth, int width, int height, std::string levels,
+                        int block = 0, bool no_image = false, int /*picture*/ = 0, std::string extra_variants = "") {
+    const std::string image = no_image ? "\"canvas\":{\"width\":" + std::to_string(width) +
+                                             ",\"height\":" + std::to_string(height) + "}"
+                                       : "\"levels\":" + levels;
+    const std::string animation = animation_depth == 8 ? ",\"animation\":\"copy_variant\"" : animation_depth < 24 ? ",\"animation\":\"copy\""
+                                                                                                                  : "";
+    return "{\"name\":\"" + name + "\",\"block\":" + std::to_string(block) +
+           ",\"pictures\":[{" + image + animation +
+           (extra_variants.empty() ? "" : ",\"variants\":[" + extra_variants.substr(1) + "]") + "}]}";
 }
 
 mgCTexture *Enter(Harness &h, int block, const std::string &name, int width, int height, int bpp,
@@ -720,10 +729,171 @@ int RetailBucket(const std::string &name) {
 
 } // namespace
 
+TEST(MgTexture, NativeSetsReuseExactPixelsAcrossDocumentReferencesAndKeepAnimationState) {
+    Harness                h;
+    texture_catalog::Entry picture;
+    picture.type = "texture";
+    picture.name = "shared";
+    picture.width = picture.height = 2;
+    picture.bpp = 32;
+    picture.variants = {
+        {"shared",    {"#/images/0"}},
+        {"alternate", {"#/images/1"}}
+    };
+    auto decode = [](const texture_catalog::Entry &, std::size_t variant, datapacks::DecodedTexture &decoded, std::string &) {
+        decoded = {};
+        decoded.width = decoded.height = 2;
+        decoded.levels.emplace_back(16, variant == 0 ? 11 : 22);
+        return true;
+    };
+    std::vector<texture_catalog::Source> documents;
+    documents.reserve(200);
+    mgCTexture *original = nullptr;
+    for (int index = 0; index < 200; ++index) {
+        documents.push_back({"models/document" + std::to_string(index) + ".gltf", {0}, {picture}});
+        auto &document = documents.back();
+        document.entries[0].variants[0].levels[0] = "#/images/" + std::to_string(index * 2);
+        MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
+        char  name[] = "shared";
+        auto *texture = h.manager.GetTexture(name, 0);
+        ASSERT_NE(texture, nullptr);
+        if (!original) {
+            original = texture;
+            ASSERT_TRUE(MgTextureSelectVariant(texture, "alternate"));
+        }
+        EXPECT_EQ(texture, original);
+        EXPECT_EQ(h.manager.texture_num, 1);
+        EXPECT_EQ(MgTextureVariantSelector(texture), "alternate");
+        EXPECT_EQ(reinterpret_cast<const unsigned char *>(texture->image[0])[0], 22);
+    }
+}
+
+TEST(MgTexture, NativeSetsReplaceChangedPixelsVariantsAndSamplersWithoutAllocatingNewHeaders) {
+    Harness                h;
+    texture_catalog::Entry picture;
+    picture.type = "texture";
+    picture.name = "tile";
+    picture.width = picture.height = 2;
+    picture.bpp = 32;
+    picture.variants = {
+        {"tile",      {"#/images/0"}},
+        {"alternate", {"#/images/1"}}
+    };
+    texture_catalog::Source      document{"models/fixture.gltf", {0}, {picture}};
+    std::array<unsigned char, 2> colors{10, 20};
+    auto                         decode = [&colors](const texture_catalog::Entry &, std::size_t variant, datapacks::DecodedTexture &decoded, std::string &) {
+        decoded = {};
+        decoded.width = decoded.height = 2;
+        decoded.levels.emplace_back(16, colors.at(variant));
+        return true;
+    };
+    auto enter = [&] {
+        MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
+        char name[] = "tile";
+        return h.manager.GetTexture(name, 0);
+    };
+    auto *original = enter();
+    ASSERT_NE(original, nullptr);
+    for (int change = 0; change < 80; ++change) {
+        colors[0] = static_cast<unsigned char>(30 + change);
+        EXPECT_EQ(enter(), original);
+        EXPECT_EQ(h.manager.texture_num, 1);
+        EXPECT_EQ(reinterpret_cast<const unsigned char *>(original->image[0])[0], colors[0]);
+    }
+    colors[1] = 123;
+    EXPECT_EQ(enter(), original);
+    ASSERT_TRUE(MgTextureSelectVariant(original, "alternate"));
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(original->image[0])[0], 123);
+    document.entries[0].nearest = true;
+    document.entries[0].clamp = 7;
+    EXPECT_EQ(enter(), original);
+    EXPECT_EQ(MgTextureVariantSelector(original), "tile");
+    EXPECT_EQ(original->clamp_bits, 7u);
+    EXPECT_EQ(original->tex1_bits & (uint64_t{1} << 5), 0u);
+    h.manager.DeleteBlock(0);
+    EXPECT_EQ(h.manager.texture_num, 0);
+    colors[0] = 201;
+    ASSERT_NE(enter(), nullptr);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(original->image[0])[0], 201);
+    h.manager.Initialize(0x1000, -1);
+    colors[0] = 202;
+    ASSERT_NE(enter(), nullptr);
+    EXPECT_EQ(h.manager.texture_num, 1);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(original->image[0])[0], 202);
+}
+
+TEST(MgTexture, NativeSetsReuseLiveAnimationGroupsAndRecreateDeletedOrChangedScripts) {
+    Harness                h;
+    texture_catalog::Entry source;
+    source.type = "texture";
+    source.name = "source";
+    source.width = source.height = 2;
+    source.bpp = 32;
+    source.variants = {
+        {"source", {"#/images/0"}}
+    };
+    auto destination = source;
+    destination.name = "destination";
+    destination.variants[0].selector = "destination";
+    auto                   text = [](std::string value) { return texture_catalog::Entry::Argument{std::move(value), 0}; };
+    auto                   number = [](double value) { return texture_catalog::Entry::Argument{std::nullopt, value}; };
+    texture_catalog::Entry script;
+    script.type = "cfg";
+    script.name = "#animation";
+    script.script = {
+        {"TEX_ANIME",          {text("cycle"), number(1)}                                       },
+        {"TEX_ANIME_DATA",     {number(0)}                                                      },
+        {"SRC_TEX",            {text("source"), number(0), number(0), number(1), number(1)}     },
+        {"DEST_TEX",           {text("destination"), number(0), number(0), number(1), number(1)}},
+        {"TEX_ANIME_DATA_END", {}                                                               },
+        {"TEX_ANIME_END",      {}                                                               }
+    };
+    texture_catalog::Source document{
+        "model.gltf", {0},
+         {source, destination, script}
+    };
+    auto decode = [](const texture_catalog::Entry &, std::size_t, datapacks::DecodedTexture &decoded, std::string &) {
+        decoded = {};
+        decoded.width = decoded.height = 2;
+        decoded.levels.emplace_back(16, 33);
+        return true;
+    };
+    MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
+    auto *animation = h.manager.GetTexAnime(0);
+    ASSERT_NE(animation, nullptr);
+    ASSERT_NE(animation->list[0], nullptr);
+    auto      *first = animation->list[0];
+    const auto used = h.memory.stack_used;
+    for (int index = 0; index < 100; ++index) {
+        MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
+        EXPECT_EQ(animation->list[0], first);
+        EXPECT_EQ(animation->list[1], nullptr);
+        EXPECT_EQ(h.memory.stack_used, used);
+        EXPECT_EQ(h.manager.texture_num, 2);
+    }
+    h.manager.DeleteTexAnimeGroup(0, 0);
+    EXPECT_EQ(animation->list[0], nullptr);
+    MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
+    ASSERT_NE(animation->list[0], nullptr);
+    EXPECT_NE(animation->list[0], first);
+    document.entries[2].script.insert(document.entries[2].script.begin() + 4, {
+                                                                                  "WAIT", {number(7), number(0)}
+    });
+    MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
+    ASSERT_NE(animation->list[0], nullptr);
+    EXPECT_EQ(animation->list[0]->data.wait, 7);
+    EXPECT_EQ(animation->list[1], nullptr);
+    h.manager.DeleteBlock(0);
+    MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
+    ASSERT_NE(h.manager.GetTexAnime(0), nullptr);
+    EXPECT_EQ(h.manager.GetTexAnime(0)->list[0]->data.wait, 7);
+    EXPECT_EQ(h.manager.texture_num, 2);
+}
+
 TEST(MgTexture, KeysLiveInTex0) {
-    Harness h;
-    Quads   first_px = Pack(Ct32Pixels(24, 10));
-    Quads   second_px = Pack(Ct32Pixels(24, 10));
+    Harness     h;
+    Quads       first_px = Pack(Ct32Pixels(24, 10));
+    Quads       second_px = Pack(Ct32Pixels(24, 10));
     mgCTexture *first = Enter(h, 0, "first", 24, 10, 32, {first_px.data()});
     mgCTexture *second = Enter(h, 0, "second", 24, 10, 32, {second_px.data()});
     ASSERT_NE(first, nullptr);
@@ -760,11 +930,11 @@ TEST(MgTexture, KeysLiveInTex0) {
 }
 
 TEST(MgTexture, FourMipLevelsKept) {
-    Harness h;
-    Quads   l0 = Pack(Ct32Pixels(32, 32));
-    Quads   l1 = Pack(Ct32Pixels(16, 16));
-    Quads   l2 = Pack(Ct32Pixels(8, 8));
-    Quads   l3 = Pack(Ct32Pixels(4, 4));
+    Harness      h;
+    Quads        l0 = Pack(Ct32Pixels(32, 32));
+    Quads        l1 = Pack(Ct32Pixels(16, 16));
+    Quads        l2 = Pack(Ct32Pixels(8, 8));
+    Quads        l3 = Pack(Ct32Pixels(4, 4));
     const Levels levels = {l0.data(), l1.data(), l2.data(), l3.data()};
 
     mgCTexture *plain = Enter(h, 0, "plain", 32, 32, 32, levels);
@@ -785,8 +955,8 @@ TEST(MgTexture, FourMipLevelsKept) {
 }
 
 TEST(MgTexture, LookupBeforeRendererIsNull) {
-    Harness h;
-    Quads   px = Pack(Ct32Pixels(8, 8));
+    Harness     h;
+    Quads       px = Pack(Ct32Pixels(8, 8));
     mgCTexture *texture = Enter(h, 0, "no_renderer", 8, 8, 32, {px.data()});
     ASSERT_NE(texture, nullptr);
 
@@ -801,17 +971,19 @@ TEST(MgTexture, LookupBeforeRendererIsNull) {
     EXPECT_EQ(MgTextureLookup(nullptr).texture, gfx::kNullTexture);
 }
 
-TEST(MgTexture, StandaloneTm2UsesCatalogWithoutReadingLegacyHeader) {
-    CatalogFixture fixture;
+TEST(MgTexture, StandaloneTextureDocumentUsesActualJsonBytes) {
+    CatalogFixture             fixture;
     const std::vector<uint8_t> pixels(2 * 2 * 4, 255);
     fixture.Rgba("picture.png", 2, 2, pixels);
-    fixture.Load(JsonTexture("picture", 32, 2, 2, "[\"picture.png\"]"), "fixture.tm2", "tm2");
+    fixture.Load(JsonTexture("picture", 32, 2, 2, "[\"picture.png\"]"));
 
-    Harness h;
-    alignas(16) char handle[16] = {'K', 'Z', 'T', 'X'};
-    TextureSourceRegister(handle, "fixture.tm2");
-    char name[] = "picture";
-    mgCTexture *texture = h.manager.EnterTexture(0, name, reinterpret_cast<TM2_head *>(handle), 0, 0);
+    Harness       h;
+    std::ifstream input(fixture.directory / "fixture.json", std::ios::binary);
+    ASSERT_TRUE(input.good());
+    std::string document(std::istreambuf_iterator<char>{input}, {});
+    TextureSourceRegister(document.data(), "fixture.json", document.size());
+    char        name[] = "picture";
+    mgCTexture *texture = h.manager.EnterTexture(0, name, reinterpret_cast<TM2_head *>(document.data()), 0, 0);
     ASSERT_NE(texture, nullptr);
     EXPECT_EQ(texture->width, 2);
     EXPECT_EQ(texture->height, 2);
@@ -819,25 +991,241 @@ TEST(MgTexture, StandaloneTm2UsesCatalogWithoutReadingLegacyHeader) {
 }
 
 TEST(MgTexture, CatalogRejectsRgbPngAndLegacyPaletteMetadata) {
-    CatalogFixture fixture;
+    CatalogFixture             fixture;
     const std::vector<uint8_t> pixels(2 * 2 * 4, 255);
     ASSERT_TRUE(gfx::WritePng(fixture.directory / "rgb.png", pixels.data(), 2, 2));
     fixture.Load(JsonTexture("rgb", 32, 2, 2, "[\"rgb.png\"]"));
-    const auto *source = texture_catalog::Find("fixture.img");
+    const auto *source = texture_catalog::Find("fixture.json");
     ASSERT_NE(source, nullptr);
     std::string error;
     EXPECT_FALSE(texture_catalog::Decode(source->entries[0], "rgb", error).has_value());
 
     std::string legacy = JsonTexture("rgb", 8, 2, 2, "[\"rgb.png\"]");
-    legacy.insert(legacy.find("\"variants\""), "\"palette\":\"old.png\",");
-    std::ofstream(fixture.directory / "catalog.json")
-        << "{\"schema_version\":1,\"sources\":[{\"source\":\"fixture.img\",\"kind\":\"img\",\"entries\":["
-        << legacy << "]}]}";
-    EXPECT_FALSE(texture_catalog::Load(fixture.directory / "catalog.json", error));
+    const auto  levels = legacy.find("\"levels\"");
+    ASSERT_NE(levels, std::string::npos);
+    legacy.insert(levels, "\"source_bpp\":8,");
+    std::ofstream(fixture.directory / "fixture.json")
+        << "{\"schema_version\":3,\"groups\":[0],\"entries\":[" << legacy << "]}";
+    texture_catalog::Clear();
+    ASSERT_TRUE(texture_catalog::Load(fixture.directory, error)) << error;
+    EXPECT_EQ(texture_catalog::Find("fixture.json"), nullptr);
+}
+
+TEST(MgTexture, MinimalCatalogDerivesPictureSizeAndSampler) {
+    CatalogFixture fixture;
+    fixture.Rgba("base.png", 3, 2, std::vector<uint8_t>(3 * 2 * 4, 255));
+    fixture.Load(R"({"name":"atlas","pictures":[{"levels":["base.png"],"sampler":{"wrap_u":"clamp","wrap_v":"clamp","filter":"nearest"},"animation":"copy_variant"},{"canvas":{"width":4,"height":8},"animation":"copy"}]})");
+    const auto *source = texture_catalog::Find("fixture.json");
+    ASSERT_NE(source, nullptr);
+    ASSERT_EQ(source->entries.size(), 2u);
+    EXPECT_EQ(source->entries[0].width, 3);
+    EXPECT_EQ(source->entries[0].height, 2);
+    EXPECT_EQ(source->entries[0].clamp, 5u);
+    EXPECT_EQ(source->entries[0].animation_mode, texture_catalog::AnimationMode::CopyVariant);
+    EXPECT_EQ(source->entries[1].picture, 1);
+    EXPECT_TRUE(source->entries[1].no_image);
+    EXPECT_EQ(source->entries[1].width, 4);
+    EXPECT_EQ(source->entries[1].height, 8);
+    EXPECT_EQ(source->entries[1].animation_mode, texture_catalog::AnimationMode::Copy);
+
+    Harness h;
+    fixture.Enter(h.manager);
+    char        name[] = "atlas";
+    const auto *texture = h.manager.GetTexture(name, 0);
+    ASSERT_NE(texture, nullptr);
+    EXPECT_EQ(texture->clamp_bits, 5);
+    EXPECT_EQ(texture->tex1_bits & (uint64_t{1} << 5), 0u);
+}
+
+TEST(MgTexture, DirectDocumentRejectsLegacyNamesAndUnsafePaths) {
+    CatalogFixture fixture;
+    fixture.Load(R"({"name":"blank","pictures":[{"canvas":{"width":2,"height":3}}]})");
+    const auto *source = texture_catalog::Find("fixture.json");
+    ASSERT_NE(source, nullptr);
+    EXPECT_EQ(source, texture_catalog::Find("fixture.json"));
+    EXPECT_EQ(source->source, "fixture.json");
+    EXPECT_TRUE(texture_catalog::Contains("fixture.json"));
+    EXPECT_FALSE(texture_catalog::Contains("fixture.img"));
+    EXPECT_FALSE(texture_catalog::Contains("fixture.tm2"));
+    EXPECT_FALSE(texture_catalog::Contains("../fixture.json"));
+    EXPECT_FALSE(texture_catalog::Contains("/fixture.json"));
+    EXPECT_FALSE(texture_catalog::Contains("missing.json"));
+}
+
+TEST(MgTexture, DirectDocumentFallsBackFromMalformedDatapackJson) {
+    CatalogFixture fixture;
+    fixture.Load(R"({"name":"blank","pictures":[{"canvas":{"width":2,"height":3}}]})");
+    const auto pack = fixture.directory.parent_path() / "datapacks";
+    std::filesystem::create_directories(pack / "detail");
+    std::ofstream(pack / "detail" / "fixture.json") << R"({"schema_version":2,"groups":[0],"entries":[]})";
+    std::ofstream(pack / "datapacks.json") << R"({"schema_version":1,"load_order":["detail"]})";
+    datapacks::Load(fixture.directory);
+    const auto *source = texture_catalog::Find("fixture.json");
+    ASSERT_NE(source, nullptr);
+    ASSERT_EQ(source->entries.size(), 1u);
+    EXPECT_EQ(source->entries[0].width, 2);
+
+    std::ofstream(pack / "detail" / "fixture.json")
+        << R"({"schema_version":3,"groups":[0],"entries":[{"name":"blank","pictures":[{"canvas":{"width":4,"height":5}}]}]})";
+    std::string error;
+    ASSERT_TRUE(texture_catalog::Load(fixture.directory, error)) << error;
+    texture_catalog::SetCandidateResolver(datapacks::Candidates);
+    source = texture_catalog::Find("fixture.json");
+    ASSERT_NE(source, nullptr);
+    ASSERT_EQ(source->entries.size(), 1u);
+    EXPECT_EQ(source->entries[0].width, 4);
+    EXPECT_EQ(source->entries[0].height, 5);
+}
+
+TEST(MgTexture, EmbeddedSetUsesImageReferencesAndRetainsVariantDecoder) {
+    const auto document = nlohmann::json::parse(
+        R"({"schema_version":3,"groups":[0],"entries":[{"name":"embedded","pictures":[{"levels":["#/images/0"],"variants":[{"selector":"alternate","levels":["#/images/1"]}]}]}]})");
+    texture_catalog::Source source;
+    std::string             error;
+    const auto              extent = [](std::string_view reference, int &width, int &height, std::string &reason) {
+        if (reference != "#/images/0") {
+            reason = "unexpected image";
+            return false;
+        }
+        width = height = 2;
+        return true;
+    };
+    ASSERT_TRUE(texture_catalog::DecodeEmbeddedSet(document, "models/character.gltf", extent, source, error))
+        << error;
+    ASSERT_EQ(source.entries.size(), 1u);
+    ASSERT_EQ(source.entries[0].variants.size(), 2u);
+    EXPECT_EQ(source.entries[0].variants[0].levels[0].generic_string(), "#/images/0");
+    EXPECT_EQ(source.entries[0].variants[1].levels[0].generic_string(), "#/images/1");
+
+    Harness                     harness;
+    int                         decode_count = 0;
+    const MgTextureImageDecoder decoder = [&](const texture_catalog::Entry &, std::size_t variant,
+                                              datapacks::DecodedTexture &decoded, std::string &) {
+        ++decode_count;
+        decoded.width = decoded.height = 8;
+        decoded.levels = {std::vector<uint8_t>(8 * 8 * 4, variant == 0 ? 0x44 : 0x88)};
+        return true;
+    };
+    MgTextureEnterNativeSet(&harness.manager, 0, source, nullptr, decoder);
+    char  name[] = "embedded";
+    auto *texture = harness.manager.GetTexture(name, 0);
+    ASSERT_NE(texture, nullptr);
+    // Every variant participates in exact native registration identity and is decoded once.
+    EXPECT_EQ(decode_count, 2);
+    EXPECT_EQ(texture->width, 2);
+    EXPECT_EQ(texture->height, 2);
+    EXPECT_EQ(MgTexturePhysicalExtent(texture).width, 8u);
+    EXPECT_EQ(MgTexturePhysicalExtent(texture).height, 8u);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(texture->image[0])[0], 0x44);
+    ASSERT_TRUE(MgTextureSelectVariant(texture, "alternate"));
+    EXPECT_EQ(decode_count, 2);
+    EXPECT_EQ(MgTextureVariantSelector(texture), "alternate");
+    EXPECT_EQ(texture->width, 2);
+    EXPECT_EQ(texture->height, 2);
+    EXPECT_EQ(MgTexturePhysicalExtent(texture).width, 8u);
+    EXPECT_EQ(MgTexturePhysicalExtent(texture).height, 8u);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(texture->image[0])[0], 0x88);
+    ASSERT_TRUE(MgTextureSelectVariant(texture, "embedded"));
+    EXPECT_EQ(decode_count, 2);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(texture->image[0])[0], 0x44);
+
+    auto invalid = document;
+    invalid["entries"][0]["pictures"][0]["levels"] = {"embedded.png"};
+    EXPECT_FALSE(texture_catalog::DecodeEmbeddedSet(invalid, "models/character.gltf", extent, source, error));
+}
+
+TEST(MgTexture, EmbeddedSetTreatsNullOptionalFieldsAsAbsent) {
+    const auto document = nlohmann::json::parse(
+        R"({"schema_version":3,"groups":[0],"entries":[{"name":"image","pictures":[{"levels":["#/images/0"],"variants":null}]},{"name":"canvas","pictures":[{"canvas":{"width":4,"height":8},"levels":null,"variants":null}]}]})");
+    texture_catalog::Source source;
+    std::string             error;
+    int                     extent_calls = 0;
+    const auto              extent = [&](std::string_view reference, int &width, int &height, std::string &reason) {
+        ++extent_calls;
+        if (reference != "#/images/0") {
+            reason = "unexpected image";
+            return false;
+        }
+        width = 2;
+        height = 3;
+        return true;
+    };
+    ASSERT_TRUE(texture_catalog::DecodeEmbeddedSet(document, "models/character.gltf", extent, source, error))
+        << error;
+    ASSERT_EQ(source.entries.size(), 2u);
+    EXPECT_EQ(extent_calls, 1);
+    EXPECT_EQ(source.entries[0].width, 2);
+    EXPECT_EQ(source.entries[0].height, 3);
+    ASSERT_EQ(source.entries[0].variants.size(), 1u);
+    EXPECT_EQ(source.entries[0].variants[0].selector, "image");
+    ASSERT_EQ(source.entries[0].variants[0].levels.size(), 1u);
+    EXPECT_EQ(source.entries[0].variants[0].levels[0].generic_string(), "#/images/0");
+    EXPECT_TRUE(source.entries[1].no_image);
+    EXPECT_EQ(source.entries[1].width, 4);
+    EXPECT_EQ(source.entries[1].height, 8);
+    ASSERT_EQ(source.entries[1].variants.size(), 1u);
+    EXPECT_TRUE(source.entries[1].variants[0].levels.empty());
+
+    const auto unresolved = [](std::string_view, int &, int &, std::string &reason) {
+        reason = "image missing";
+        return false;
+    };
+    EXPECT_FALSE(texture_catalog::DecodeEmbeddedSet(document, "models/character.gltf", unresolved, source, error));
+    EXPECT_NE(error.find("image missing"), std::string::npos);
+    const auto invalid_extent = [](std::string_view, int &width, int &height, std::string &) {
+        width = 0;
+        height = 3;
+        return true;
+    };
+    EXPECT_FALSE(texture_catalog::DecodeEmbeddedSet(document, "models/character.gltf", invalid_extent, source, error));
+    EXPECT_NE(error.find("invalid texture extent"), std::string::npos);
+}
+
+TEST(MgTexture, EmbeddedNullCompatibilityStillValidatesVariantsAndLevels) {
+    const auto base = nlohmann::json::parse(
+        R"({"schema_version":3,"groups":[0],"entries":[{"name":"image","pictures":[{"levels":["#/images/0"],"variants":null}]}]})");
+    texture_catalog::Source source;
+    std::string             error;
+    const auto              extent = [](std::string_view reference, int &width, int &height, std::string &reason) {
+        if (reference != "#/images/0") {
+            reason = "unexpected image";
+            return false;
+        }
+        width = height = 2;
+        return true;
+    };
+    const auto reject = [&](const nlohmann::json &picture) {
+        auto document = base;
+        document["entries"][0]["pictures"][0] = picture;
+        EXPECT_FALSE(texture_catalog::DecodeEmbeddedSet(document, "models/character.gltf", extent, source, error))
+            << picture.dump();
+        EXPECT_FALSE(error.empty());
+    };
+    reject(nlohmann::json::parse(R"({"levels":["#/images/0"],"variants":{}})"));
+    reject(nlohmann::json::parse(R"({"levels":["#/images/0"],"variants":[{"selector":"image","levels":["#/images/1"]}]})"));
+    reject(nlohmann::json::parse(R"({"levels":["#/images/0"],"variants":[{"selector":"","levels":["#/images/1"]}]})"));
+    reject(nlohmann::json::parse(R"({"levels":["#/images/0"],"variants":[{"selector":"alternate","levels":["image.png"]}]})"));
+    reject(nlohmann::json::parse(R"({"levels":null,"variants":null})"));
+    reject(nlohmann::json::parse(R"({"canvas":{"width":4,"height":8},"levels":[],"variants":null})"));
+    reject(nlohmann::json::parse(R"({"canvas":null,"levels":["#/images/0"]})"));
+}
+
+TEST(MgTexture, DirectDocumentRejectsNullOptionalFields) {
+    CatalogFixture fixture;
+    fixture.Load(R"({"name":"image","pictures":[{"canvas":{"width":2,"height":3},"levels":null}]})");
+    EXPECT_EQ(texture_catalog::Find("fixture.json"), nullptr);
+
+    std::ofstream(fixture.directory / "fixture.json")
+        << R"({"schema_version":3,"groups":[0],"entries":[{"name":"image","pictures":[{"canvas":{"width":2,"height":3},"variants":null}]}]})";
+    std::string error;
+    ASSERT_TRUE(texture_catalog::Load(fixture.directory, error)) << error;
+    EXPECT_EQ(texture_catalog::Find("fixture.json"), nullptr);
 }
 
 TEST(MgTexture, Unswizzle8MatchesRetailConv32To8) {
-    const std::array<std::array<uint32_t, 2>, 6> sizes = {{{128, 64}, {128, 128}, {256, 128}, {256, 256}, {64, 64}, {32, 32}}};
+    const std::array<std::array<uint32_t, 2>, 6> sizes = {
+        {{128, 64}, {128, 128}, {256, 128}, {256, 256}, {64, 64}, {32, 32}}
+    };
     for (const std::array<uint32_t, 2> &size : sizes) {
         ExpectUnswizzleMatchesConverter(size[0], size[1]);
     }
@@ -846,9 +1234,12 @@ TEST(MgTexture, Unswizzle8MatchesRetailConv32To8) {
 TEST(MgTexture, LargeTexturesMatchIndependentRetailPageConversion) {
     // Conv32To8's scratch buffer is limited to 64 KiB. Convert each 128x64 page
     // separately so the reference also covers the 512x512 and larger atlases.
-    for (const auto &size : {std::array{512u, 512u}, std::array{1024u, 256u}}) {
+    for (const auto &size : {
+             std::array{512u,  512u},
+             std::array{1024u, 256u}
+    }) {
         const auto [width, height] = size;
-        std::mt19937 rng(0x5EED);
+        std::mt19937         rng(0x5EED);
         std::vector<uint8_t> source(static_cast<size_t>(width) * height);
         for (auto &value : source) {
             value = static_cast<uint8_t>(rng());
@@ -881,21 +1272,37 @@ protected:
 };
 
 TEST_F(MgTextureGpu, CatalogPngUploadsAndSelectsBakedRgbaVariant) {
-    CatalogFixture fixture;
+    CatalogFixture             fixture;
     const std::vector<uint8_t> color = {
-        12, 34, 56, 255, 78, 90, 123, 255,
-        45, 67, 89, 255, 210, 180, 160, 255,
+        12,
+        34,
+        56,
+        255,
+        78,
+        90,
+        123,
+        255,
+        45,
+        67,
+        89,
+        255,
+        210,
+        180,
+        160,
+        255,
     };
     fixture.Rgba("color.png", 2, 2, color);
     std::vector<uint8_t> alternate(2 * 2 * 4, 0xAB);
-    for (size_t i = 3; i < alternate.size(); i += 4) alternate[i] = 255;
+    for (size_t i = 3; i < alternate.size(); i += 4) {
+        alternate[i] = 255;
+    }
     fixture.Rgba("alternate.png", 2, 2, alternate);
     fixture.Load(JsonTexture("color", 32, 2, 2, "[\"color.png\"]") + "," +
                  JsonTexture("indexed", 8, 2, 2, "[\"color.png\"]", 0, false, 0,
-                             ",{\"palette_source\":\"alternate\",\"levels\":[\"alternate.png\"]}"));
+                             ",{\"selector\":\"alternate\",\"levels\":[\"alternate.png\"]}"));
     fixture.Enter(h_.manager);
 
-    char color_name[] = "color", index_name[] = "indexed";
+    char        color_name[] = "color", index_name[] = "indexed";
     mgCTexture *true_color = h_.manager.GetTexture(color_name, 0);
     mgCTexture *indexed = h_.manager.GetTexture(index_name, 0);
     ASSERT_NE(true_color, nullptr);
@@ -911,11 +1318,11 @@ TEST_F(MgTextureGpu, CatalogPngUploadsAndSelectsBakedRgbaVariant) {
     const auto index_handles = MgTextureLookup(indexed);
     ASSERT_NE(index_handles.texture, gfx::kNullTexture);
     EXPECT_EQ(index_handles.palette, gfx::kNullTexture);
-    EXPECT_EQ(MgTextureSourceBpp(indexed), 8);
-    EXPECT_EQ(MgTexturePaletteSource(indexed), "indexed");
+    EXPECT_EQ(MgTextureAnimationMode(indexed), texture_catalog::AnimationMode::CopyVariant);
+    EXPECT_EQ(MgTextureVariantSelector(indexed), "indexed");
     EXPECT_EQ(Read(index_handles.texture).pixels, color);
     ASSERT_TRUE(MgTextureSelectVariant(indexed, "alternate"));
-    EXPECT_EQ(MgTexturePaletteSource(indexed), "alternate");
+    EXPECT_EQ(MgTextureVariantSelector(indexed), "alternate");
     EXPECT_EQ(Read(MgTextureLookup(indexed).texture).pixels, alternate);
     reinterpret_cast<uint8_t *>(indexed->image[0])[0] = 8;
     MgTexturePixelsChanged(indexed);
@@ -923,18 +1330,20 @@ TEST_F(MgTextureGpu, CatalogPngUploadsAndSelectsBakedRgbaVariant) {
 }
 
 TEST_F(MgTextureGpu, CatalogCfgClutCopyUsesBakedRgbaCrossVariant) {
-    CatalogFixture fixture;
+    CatalogFixture       fixture;
     std::vector<uint8_t> source(2 * 2 * 4, 0x11);
     std::vector<uint8_t> destination(2 * 2 * 4, 0x22);
     std::vector<uint8_t> baked(2 * 2 * 4, 0x77);
     for (auto *pixels : {&source, &destination, &baked}) {
-        for (size_t i = 3; i < pixels->size(); i += 4) (*pixels)[i] = 255;
+        for (size_t i = 3; i < pixels->size(); i += 4) {
+            (*pixels)[i] = 255;
+        }
     }
     fixture.Rgba("source.png", 2, 2, source);
     fixture.Rgba("destination.png", 2, 2, destination);
     fixture.Rgba("baked.png", 2, 2, baked);
     const std::string cfg =
-        R"({"type":"cfg","name":"#texanime","script":[)"
+        R"({"name":"#texanime","script":[)"
         R"({"command":"TEX_ANIME","args":[{"text":"cycle"},{"number":1}]},)"
         R"({"command":"TEX_ANIME_DATA","args":[{"number":0}]},)"
         R"({"command":"SRC_TEX","args":[{"text":"source"},{"number":0},{"number":0},{"number":1},{"number":1}]},)"
@@ -944,16 +1353,17 @@ TEST_F(MgTextureGpu, CatalogCfgClutCopyUsesBakedRgbaCrossVariant) {
         R"({"command":"TEX_ANIME_END","args":[]} ]})";
     fixture.Load(JsonTexture("source", 8, 2, 2, "[\"source.png\"]") + "," +
                  JsonTexture("destination", 8, 2, 2, "[\"destination.png\"]", 0, false, 0,
-                             ",{\"palette_source\":\"source\",\"levels\":[\"baked.png\"]}") + "," + cfg);
+                             ",{\"selector\":\"source\",\"levels\":[\"baked.png\"]}") +
+                 "," + cfg);
     fixture.Enter(h_.manager, 0, &h_.memory);
     auto *anime = h_.manager.blocks[0].anime;
     ASSERT_NE(anime, nullptr);
-    char destination_name[] = "destination";
+    char        destination_name[] = "destination";
     mgCTexture *target = h_.manager.GetTexture(destination_name, 0);
     ASSERT_NE(target, nullptr);
-    EXPECT_EQ(MgTexturePaletteSource(target), "destination");
+    EXPECT_EQ(MgTextureVariantSelector(target), "destination");
     gfx_.Frame({0x10, 0x20, 0x30, 0x80}, [anime] { anime->TexAnime(0, nullptr); });
-    EXPECT_EQ(MgTexturePaletteSource(target), "source");
+    EXPECT_EQ(MgTextureVariantSelector(target), "source");
     const auto handles = MgTextureLookup(target);
     EXPECT_EQ(handles.palette, gfx::kNullTexture);
     EXPECT_EQ(TexelOf(Read(handles.texture), 1, 1), (Texel4{0x77, 0x77, 0x77, 255}));
@@ -964,7 +1374,7 @@ TEST_F(MgTextureGpu, CatalogNoImageDestinationAndResourceLifetime) {
     fixture.Load(JsonTexture("destination", 8, 2, 2, "[]", 0, true) + "," +
                  JsonTexture("kept", 32, 2, 2, "[]", 1, true));
     fixture.Enter(h_.manager);
-    char destination_name[] = "destination", kept_name[] = "kept";
+    char        destination_name[] = "destination", kept_name[] = "kept";
     mgCTexture *destination = h_.manager.GetTexture(destination_name, 0);
     mgCTexture *kept = h_.manager.GetTexture(kept_name, 1);
     ASSERT_NE(destination, nullptr);
@@ -984,16 +1394,17 @@ TEST_F(MgTextureGpu, CatalogNoImageDestinationAndResourceLifetime) {
 }
 
 TEST_F(MgTextureGpu, CatalogMipsAndExtraPicturesGetDistinctNames) {
-    CatalogFixture fixture;
+    CatalogFixture       fixture;
     std::vector<uint8_t> base(2 * 2 * 4, 11), mip(4, 22);
-    for (size_t i = 3; i < base.size(); i += 4) base[i] = 255;
+    for (size_t i = 3; i < base.size(); i += 4) {
+        base[i] = 255;
+    }
     mip[3] = 255;
     fixture.Rgba("base.png", 2, 2, base);
     fixture.Rgba("mip.png", 1, 1, mip);
-    fixture.Load(JsonTexture("atlas", 8, 2, 2, "[\"base.png\",\"mip.png\"]") + "," +
-                 JsonTexture("atlas", 8, 2, 2, "[\"base.png\"]", 0, false, 1));
+    fixture.Load(R"({"name":"atlas","pictures":[{"levels":["base.png","mip.png"],"animation":"copy_variant"},{"levels":["base.png"],"animation":"copy_variant"}]})");
     fixture.Enter(h_.manager);
-    char primary_name[] = "atlas", extra_name[] = "atlas#picture1";
+    char        primary_name[] = "atlas", extra_name[] = "atlas#picture1";
     mgCTexture *primary = h_.manager.GetTexture(primary_name, 0);
     mgCTexture *extra = h_.manager.GetTexture(extra_name, 0);
     ASSERT_NE(primary, nullptr);
@@ -1021,7 +1432,7 @@ TEST_F(MgTextureGpu, NoImageTextureIsZeroedCanvas) {
 }
 
 TEST(MgTexture, TablesAboveFourGiB) {
-    Harness h;
+    Harness         h;
     const uintptr_t arena_lo = reinterpret_cast<uintptr_t>(h.memory.stack);
     if (arena_lo <= 0xFFFFFFFFu) {
         GTEST_SKIP() << "arena at 0x" << std::hex << arena_lo << " is below 4 GiB";
@@ -1030,22 +1441,24 @@ TEST(MgTexture, TablesAboveFourGiB) {
     ASSERT_GT(reinterpret_cast<uintptr_t>(h.manager.blocks), 0xFFFFFFFFu);
 
     const uintptr_t arena_used = arena_lo + static_cast<uintptr_t>(h.memory.stack_used) * sizeof(u_long128);
+
     const struct {
         const char *what;
         uintptr_t   begin;
         uintptr_t   end;
     } regions[] = {
-        {"blocks", reinterpret_cast<uintptr_t>(h.manager.blocks),
-         reinterpret_cast<uintptr_t>(&h.manager.blocks[kBlockCount - 1] + 1)},
-        {"texture_buf", reinterpret_cast<uintptr_t>(h.manager.texture_buf),
-         reinterpret_cast<uintptr_t>(h.manager.texture_buf + kTextureCount)},
+        {"blocks",        reinterpret_cast<uintptr_t>(h.manager.blocks),
+         reinterpret_cast<uintptr_t>(&h.manager.blocks[kBlockCount - 1] + 1) },
+        {"texture_buf",   reinterpret_cast<uintptr_t>(h.manager.texture_buf),
+         reinterpret_cast<uintptr_t>(h.manager.texture_buf + kTextureCount)  },
         {"texture_stack", reinterpret_cast<uintptr_t>(h.manager.texture_stack),
          reinterpret_cast<uintptr_t>(h.manager.texture_stack + kTextureCount)},
-        {"hash_buf", reinterpret_cast<uintptr_t>(h.manager.hash_buf),
-         reinterpret_cast<uintptr_t>(h.manager.hash_buf + kTextureCount)},
-        {"hash_stack", reinterpret_cast<uintptr_t>(h.manager.hash_stack),
-         reinterpret_cast<uintptr_t>(h.manager.hash_stack + kTextureCount)},
+        {"hash_buf",      reinterpret_cast<uintptr_t>(h.manager.hash_buf),
+         reinterpret_cast<uintptr_t>(h.manager.hash_buf + kTextureCount)     },
+        {"hash_stack",    reinterpret_cast<uintptr_t>(h.manager.hash_stack),
+         reinterpret_cast<uintptr_t>(h.manager.hash_stack + kTextureCount)   },
     };
+
     for (const auto &region : regions) {
         EXPECT_GE(region.begin, arena_lo) << region.what;
         EXPECT_LE(region.end, arena_used) << region.what;
@@ -1054,7 +1467,7 @@ TEST(MgTexture, TablesAboveFourGiB) {
     std::vector<std::string> odd;
     std::vector<std::string> even;
     for (int i = 0; (odd.size() < 16 || even.size() < 16) && i < 1000; i++) {
-        std::string name = "tex_" + std::to_string(i);
+        std::string               name = "tex_" + std::to_string(i);
         std::vector<std::string> &list = (RetailBucket(name) & 1) != 0 ? odd : even;
         if (list.size() < 16) {
             list.push_back(name);
@@ -1085,7 +1498,7 @@ TEST(MgTexture, TablesAboveFourGiB) {
     }
 
     for (size_t k = 0; k < names.size(); k++) {
-        const int block = block_of(k);
+        const int   block = block_of(k);
         std::string name = names[k];
         mgCTexture *found = h.manager.GetTexture(name.data(), block);
         ASSERT_NE(found, nullptr) << name << " in block " << block;
@@ -1098,7 +1511,7 @@ TEST(MgTexture, TablesAboveFourGiB) {
     h.manager.DeleteBlock(2);
     for (size_t k = 0; k < names.size(); k++) {
         std::string name = names[k];
-        const int block = block_of(k);
+        const int   block = block_of(k);
         if (block == 2) {
             EXPECT_EQ(h.manager.GetTexture(name.data(), block), nullptr) << name;
         } else {
@@ -1128,15 +1541,35 @@ void HighResolutionOverlay(CatalogFixture &fixture, const std::string &name, uin
 
 std::vector<uint8_t> DetailPixels(int width, int height) {
     std::vector<uint8_t> pixels(static_cast<size_t>(width) * height * 4);
-    for (int y = 0; y < height; ++y) for (int x = 0; x < width; ++x) {
-        auto *color = pixels.data() + (static_cast<size_t>(y) * width + x) * 4;
-        color[0] = static_cast<uint8_t>(20 + x * 20);
-        color[1] = static_cast<uint8_t>(30 + y * 20);
-        color[2] = 60;
-        color[3] = 255;
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            auto *color = pixels.data() + (static_cast<size_t>(y) * width + x) * 4;
+            color[0] = static_cast<uint8_t>(20 + x * 20);
+            color[1] = static_cast<uint8_t>(30 + y * 20);
+            color[2] = 60;
+            color[3] = 255;
+        }
     }
     return pixels;
 }
+} // namespace
+
+TEST(MgTexture, DirectCatalogEntryKeepsLogicalSizeWithFourfoldOverlay) {
+    CatalogFixture fixture;
+    fixture.Rgba("tile.png", 2, 2, std::vector<uint8_t>(2 * 2 * 4, 255));
+    fixture.Load(JsonTexture("tile", 32, 2, 2, "[\"tile.png\"]"));
+    HighResolutionOverlay(fixture, "tile.png", 8, 8, std::vector<uint8_t>(8 * 8 * 4, 255));
+    const auto *catalog = texture_catalog::Find("fixture.json");
+    ASSERT_NE(catalog, nullptr);
+    ASSERT_EQ(catalog->entries.size(), 1u);
+    Harness harness;
+    EXPECT_EQ(MgTextureEnterCatalog(nullptr, 0, catalog->entries[0]), nullptr);
+    const auto *texture = MgTextureEnterCatalog(&harness.manager, 0, catalog->entries[0]);
+    ASSERT_NE(texture, nullptr);
+    EXPECT_EQ(texture->width, 2);
+    EXPECT_EQ(texture->height, 2);
+    EXPECT_EQ(MgTexturePhysicalExtent(texture).width, 8u);
+    EXPECT_EQ(MgTexturePhysicalExtent(texture).height, 8u);
 }
 
 TEST_F(MgTextureGpu, HighResolutionKeepsLogicalCpuStrideAndSpriteBounds) {
@@ -1145,9 +1578,10 @@ TEST_F(MgTextureGpu, HighResolutionKeepsLogicalCpuStrideAndSpriteBounds) {
     fixture.Load(JsonTexture("detail", 32, 3, 2, "[\"detail.png\"]"));
     const auto detail = DetailPixels(6, 4);
     HighResolutionOverlay(fixture, "detail.png", 6, 4, detail);
-    fixture.Enter(h_.manager);
-    char name[] = "detail";
-    auto *texture = h_.manager.GetTexture(name, 0);
+    const auto *catalog = texture_catalog::Find("fixture.json");
+    ASSERT_NE(catalog, nullptr);
+    ASSERT_EQ(catalog->entries.size(), 1u);
+    auto *texture = MgTextureEnterCatalog(&h_.manager, 0, catalog->entries[0]);
     ASSERT_NE(texture, nullptr);
     EXPECT_EQ(texture->width, 3);
     EXPECT_EQ(texture->height, 2);
@@ -1166,10 +1600,17 @@ TEST_F(MgTextureGpu, HighResolutionKeepsLogicalCpuStrideAndSpriteBounds) {
     mgInit(MG_SCREEN_MODE_512X480, 3);
     mgBeginFrame(nullptr);
     gfx::Vertex2D quad[4]{};
-    const float positions[4][4] = {{20,20,0,0}, {80,20,3,0}, {80,60,3,2}, {20,60,0,2}};
+    const float   positions[4][4] = {
+        {20, 20, 0, 0},
+        {80, 20, 3, 0},
+        {80, 60, 3, 2},
+        {20, 60, 0, 2}
+    };
     for (int i = 0; i < 4; ++i) {
-        quad[i].x = positions[i][0]; quad[i].y = positions[i][1];
-        quad[i].u = positions[i][2]; quad[i].v = positions[i][3];
+        quad[i].x = positions[i][0];
+        quad[i].y = positions[i][1];
+        quad[i].u = positions[i][2];
+        quad[i].v = positions[i][3];
         std::fill_n(quad[i].color, 4, 0x80);
     }
     auto binding = mgPortBinding(texture);
@@ -1193,11 +1634,11 @@ TEST_F(MgTextureGpu, HighResolutionColorVariantsAndCopiesRetainDetail) {
     CatalogFixture fixture;
     fixture.Rgba("detail.png", 2, 2, DetailPixels(2, 2));
     fixture.Load(JsonTexture("detail", 8, 2, 2, "[\"detail.png\"]", 0, false, 0,
-                             ",{\"palette_source\":\"alternate\",\"levels\":[\"alternate.png\"]}"));
+                             ",{\"selector\":\"alternate\",\"levels\":[\"alternate.png\"]}"));
     fixture.Rgba("alternate.png", 2, 2, DetailPixels(2, 2));
     HighResolutionOverlay(fixture, "detail.png", 4, 4, DetailPixels(4, 4));
     fixture.Enter(h_.manager);
-    char name[] = "detail", grey_name[] = "grey", highlight_name[] = "highlight";
+    char  name[] = "detail", grey_name[] = "grey", highlight_name[] = "highlight";
     auto *source = h_.manager.GetTexture(name, 0);
     ASSERT_NE(source, nullptr);
     auto *grey = MgTextureCreateColorVariant(source, grey_name, MgTextureColorMode::Grey);
@@ -1207,26 +1648,26 @@ TEST_F(MgTextureGpu, HighResolutionColorVariantsAndCopiesRetainDetail) {
     const auto greys = Read(MgTextureLookup(grey).texture);
     const auto highlights = Read(MgTextureLookup(highlight).texture);
     ASSERT_EQ(greys.width, 4u);
-    EXPECT_EQ(TexelOf(greys, 0, 0), (Texel4{32,32,32,255}));
-    EXPECT_EQ(TexelOf(greys, 3, 0), (Texel4{48,48,48,255}));
-    EXPECT_EQ(TexelOf(highlights, 0, 0), (Texel4{20,30,255,255}));
-    EXPECT_EQ(TexelOf(highlights, 3, 0), (Texel4{80,30,255,255}));
+    EXPECT_EQ(TexelOf(greys, 0, 0), (Texel4{32, 32, 32, 255}));
+    EXPECT_EQ(TexelOf(greys, 3, 0), (Texel4{48, 48, 48, 255}));
+    EXPECT_EQ(TexelOf(highlights, 0, 0), (Texel4{20, 30, 255, 255}));
+    EXPECT_EQ(TexelOf(highlights, 3, 0), (Texel4{80, 30, 255, 255}));
 
     Quads initial = Pack(std::vector<uint8_t>(4 * 2 * 4, 0x55));
     auto *destination = Enter(h_, 1, "active", 4, 2, 32, {initial.data()});
     ASSERT_TRUE(MgTextureCopyRegion(source, 0, 0, destination, 0, 0, 2, 2));
     const auto handle = MgTextureLookup(destination).texture;
-    auto copied = Read(handle);
+    auto       copied = Read(handle);
     ASSERT_EQ(copied.width, 8u);
-    EXPECT_EQ(TexelOf(copied, 0, 0), (Texel4{20,30,60,255}));
-    EXPECT_EQ(TexelOf(copied, 1, 0), (Texel4{40,30,60,255}));
-    EXPECT_EQ(TexelOf(copied, 6, 0), (Texel4{0x55,0x55,0x55,0x55}));
+    EXPECT_EQ(TexelOf(copied, 0, 0), (Texel4{20, 30, 60, 255}));
+    EXPECT_EQ(TexelOf(copied, 1, 0), (Texel4{40, 30, 60, 255}));
+    EXPECT_EQ(TexelOf(copied, 6, 0), (Texel4{0x55, 0x55, 0x55, 0x55}));
     ASSERT_TRUE(MgTextureCopyRegion(nullptr, 0, 0, destination, 0, 0, 1, 1));
     EXPECT_EQ(MgTextureLookup(destination).texture, handle);
     copied = Read(handle);
     EXPECT_EQ(TexelOf(copied, 1, 1), (Texel4{}));
-    EXPECT_EQ(TexelOf(copied, 3, 1), (Texel4{80,50,60,255}));
-    EXPECT_EQ(TexelOf(copied, 6, 0), (Texel4{0x55,0x55,0x55,0x55}));
+    EXPECT_EQ(TexelOf(copied, 3, 1), (Texel4{80, 50, 60, 255}));
+    EXPECT_EQ(TexelOf(copied, 6, 0), (Texel4{0x55, 0x55, 0x55, 0x55}));
     ASSERT_TRUE(MgTextureSelectVariant(source, "alternate"));
     EXPECT_EQ(Read(MgTextureLookup(source).texture).width, 2u);
     EXPECT_EQ(source->width, 2);
@@ -1246,7 +1687,7 @@ TEST_F(MgTextureGpu, HighResolutionAnimationCopiesOffsetsRestoresAndReleasesTarg
     HighResolutionOverlay(fixture, "source.png", 8, 8, DetailPixels(8, 8));
     HighResolutionOverlay(fixture, "destination.png", 32, 32, DetailPixels(32, 32));
     fixture.Enter(h_.manager);
-    char source_name[] = "source", destination_name[] = "destination";
+    char  source_name[] = "source", destination_name[] = "destination";
     auto *source = h_.manager.GetTexture(source_name, 0);
     auto *destination = h_.manager.GetTexture(destination_name, 0);
     ASSERT_NE(source, nullptr);
@@ -1258,7 +1699,8 @@ TEST_F(MgTextureGpu, HighResolutionAnimationCopiesOffsetsRestoresAndReleasesTarg
     node.data.dest_tex = destination;
     node.data.src_x = node.data.src_y = 16;
     node.data.src_w = node.data.src_h = 32;
-    node.data.dest_x = 48; node.data.dest_y = 32;
+    node.data.dest_x = 48;
+    node.data.dest_y = 32;
     node.data.dest_w = node.data.dest_h = 32;
     node.data.r = node.data.g = node.data.b = node.data.a = 0x80;
     node.data.wait = -1;
@@ -1294,7 +1736,7 @@ TEST_F(MgTextureGpu, HighResolutionAnimationCopiesOffsetsRestoresAndReleasesTarg
 
     // The indexed transfer seam must apply both independent physical scales too.
     mgBeginFrame(nullptr);
-    mgSetPkMoveImage(&source->tex0, mgRect<int>(16,16,32,32), &destination->tex0, 16, 80, 0);
+    mgSetPkMoveImage(&source->tex0, mgRect<int>(16, 16, 32, 32), &destination->tex0, 16, 80, 0);
     mgEndFrame(nullptr);
     const auto transferred = Read(target);
     EXPECT_EQ(TexelOf(transferred, 4, 20)[0], 60);
@@ -1310,7 +1752,7 @@ TEST_F(MgTextureGpu, HighResolutionAnimationCopiesOffsetsRestoresAndReleasesTarg
     const auto restored = Read(target);
     EXPECT_EQ(TexelOf(restored, 12, 8)[0], 4); // DetailPixels wraps byte 20 + 12*20.
     EXPECT_EQ(TexelOf(restored, 4, 20)[0], 100);
-    char blank_name[] = "blank";
+    char  blank_name[] = "blank";
     auto *blank = h_.manager.GetTexture(blank_name, 0);
     ASSERT_NE(blank, nullptr);
     EXPECT_EQ(blank->image[0], nullptr);
@@ -1346,7 +1788,7 @@ TEST_F(MgTextureGpu, MenuPointerUsesPhysicalTexelsFromDoubleResolutionPack) {
     fixture.Load(JsonTexture("gaiji", 32, 2, 2, "[\"gaiji.png\"]"));
     HighResolutionOverlay(fixture, "gaiji.png", 4, 4, DetailPixels(4, 4));
     fixture.Enter(h_.manager);
-    char name[] = "gaiji";
+    char        name[] = "gaiji";
     const auto *texture = h_.manager.GetTexture(name, 0);
     ASSERT_NE(texture, nullptr);
     const auto binding = MgTextureLookup(texture);

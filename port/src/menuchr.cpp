@@ -1,22 +1,28 @@
 #include "menuchr.hpp"
 
 #include "actionchara.hpp"
+#include "dataread_port.hpp"
 #include "dng_effect.hpp"
 #include "dng_main.hpp"
 #include "mainloop.hpp"
 #include "mainloop_port.hpp"
 #include "menudraw.hpp"
+#include "menu_character_assets.hpp"
 #include "menuchr_port.hpp"
 #include "mglib.hpp"
 #include "mg_texture.hpp"
+#include "platform/arena.hpp"
+#include "platform/model_assets.hpp"
 #include "prespr.hpp"
 #include "quick_loadout.hpp"
+#include "swordeffect.hpp"
 #include "userdata.hpp"
 
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 
 namespace {
 
@@ -80,6 +86,41 @@ int         change_spark_frames = 0;
 constexpr int kQuickChangeMaxSteps = 256;
 
 } // namespace
+
+bool menu_character::PrepareArena(mgCMemory &memory, const std::filesystem::path &model, std::string_view profile,
+                                  std::string &error, std::size_t extra_quadwords) {
+    if (memory.stack_used != 0) {
+        error = "menu character arena must be reset before construction";
+        return false;
+    }
+    const auto estimate = model_assets::EstimateCharacterMemory(model, profile, error);
+    if (!estimate) {
+        return false;
+    }
+    const auto quadwords = (*estimate + sizeof(u_long128) - 1) / sizeof(u_long128) + extra_quadwords + 1;
+    if (quadwords > static_cast<std::size_t>(std::numeric_limits<int>::max() - 63)) {
+        error = "menu character exceeds native arena capacity";
+        return false;
+    }
+    const int capacity = static_cast<int>((quadwords + 63) / 64 * 64);
+    if (memory.stack_size < capacity || !memory.stack) {
+        auto *storage = reinterpret_cast<u_long128 *>(ArenaBlock(&memory, static_cast<std::size_t>(capacity) * sizeof(u_long128)));
+        memory.stSetBuffer(storage, capacity);
+    }
+    error.clear();
+    return true;
+}
+
+void PortPrepareMenuCharacterArena(mgCMemory &memory, const void *model, const char *profile, int part) {
+    const auto  path = DataReadBufferPath(model);
+    std::string error;
+    // Equipped melee weapons reserve the native twelve-point, eight-subdivision sword trail.
+    const std::size_t trail = part == 2 ? (sizeof(CSWordAfterEffect) + 15) / 16 + 2 + 2 * (12 + 1) + 2 * (12 * (8 + 2) + 1) : 0;
+    if (!path || !menu_character::PrepareArena(memory, *path, profile ? profile : "", error, trail)) {
+        std::fprintf(stderr, "menu character %s: %s\n", path ? path->c_str() : "unknown asset", path ? error.c_str() : "actual glTF filename required");
+        std::exit(1);
+    }
+}
 
 void PortRetailInitMainCharaBG(int, mgCMemory *, int) asm("MenuChr_InitMainCharaBG");
 int PortRetailKeyMainCharaBG() asm("MenuChr_KeyMainCharaBG");
@@ -426,7 +467,8 @@ void PortDrawQuickChangeBanner() {
         return;
     }
 
-    mgCTexture *logo = mgTexManager.GetTexture("change_logo", -1);
+    static char logo_name[] = "change_logo";
+    mgCTexture *logo = mgTexManager.GetTexture(logo_name, -1);
 
     if (logo == NULL) {
         return;
