@@ -1,7 +1,50 @@
 #pragma once
 
 // Expose the retail town ownership state without changing its logic or layout.
+class CScene;
+class CMapTreasureBox;
+class CCharacter2;
+class mgCFrame;
+class CCameraControl;
+class CUserDataManager;
+struct MENU_INIT_ARG;
+
 extern int LoopMode asm("EditLoop_Mode");
 extern int ControlMode asm("EditLoop_Control");
 extern int LockChara asm("EditLoop_PlayerLock");
 extern int PauseFlag asm("EditLoop_Pause");
+extern int EditDrawCancelFlag asm("EditLoop_DrawCancel");
+extern int LoopCounter asm("EditLoop_Counter");
+extern CScene *MainScene asm("EditLoop_MainScene");
+extern int SubMapLoadBG asm("EditLoop_SubMapLoadBG");
+extern int now_load_map_no asm("EditLoop_LoadMapNo");
+extern int MapNo asm("EditLoop_MapNo");
+extern int DelMainNPCflag asm("EditLoop_DelMainNPC");
+extern CMapTreasureBox *TreasureBox asm("EditLoop_TreasureBox");
+extern int beforeAnalyze[16] asm("EditLoop_BeforeAnalyze");
+extern CCharacter2 *WalkChara asm("EditLoop_WalkChara");
+extern int EditModeChgCnt asm("EditLoop_ModeChangeCount");
+extern int EditModeChgEvent asm("EditLoop_ModeChangeEvent");
+extern int EditModeChgFlag asm("EditLoop_ModeChangeFlag");
+extern mgCFrame *WaterFrame asm("EditLoop_WaterFrame");
+extern mgCFrame *RedBicMark asm("EditLoop_RedBicMark");
+extern mgCFrame *BlueBicMark asm("EditLoop_BlueBicMark");
+extern CCameraControl *Camera asm("EditLoop_Camera");
+extern CCameraControl *FixCamera asm("EditLoop_FixCamera");
+extern CCameraControl *EditCamera asm("EditLoop_EditCamera");
+extern int ActiveCharaNo asm("EditLoop_ActiveCharaNo");
+extern int ControlCharaID asm("EditLoop_ControlCharaID");
+extern int EventSquareJump asm("EditLoop_EventSquareJump");
+extern int EditDrawFlag asm("EditLoop_DrawFlag");
+extern int PreEditMenuCnt asm("EditLoop_PreMenuCount");
+extern u_long128 *main_pkt1 asm("EditLoop_MainPacket1");
+extern u_long128 *main_pkt2 asm("EditLoop_MainPacket2");
+extern u_long128 *MenuDataBuf asm("EditLoop_MenuDataBuffer");
+extern int MenuDataSize asm("EditLoop_MenuDataSize");
+extern int FixCharaBuffSize asm("EditLoop_FixCharaBufferSize");
+extern u_long128 *CrossFadeBuff asm("EditLoop_CrossFadeBuffer");
+extern MENU_INIT_ARG *MenuInfo asm("EditLoop_MenuInfo");
+extern int DataPktMode asm("EditLoop_DataPacketMode");
+extern CCameraControl *EventCamera asm("EditLoop_EventCamera");
+CUserDataManager *GetUserData() asm("EditLoop_GetUserData");
+void UnLockCharaCtrl() asm("EditLoop_UnLockCharaCtrl");

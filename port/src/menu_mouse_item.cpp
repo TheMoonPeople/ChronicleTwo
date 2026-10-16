@@ -22,6 +22,13 @@
 #include "platform/window.hpp"
 #include "snd_mngr.hpp"
 
+// Left edge of the inventory's anchoring area in logical pixels (port/src/menudraw.cpp), and where its
+// panels split between the left and right anchors (ps2/src/menusys.cpp).
+float        MenuPortVisibleLeft();
+extern float MenuItemAnchorSplit;
+extern int   MenuItemPopupSide;
+bool MenuItemUsesWorldBackdrop();
+
 namespace menumouse {
 bool Rect::Contains(Point p) const {
     return p.x >= x && p.x < x + w && p.y >= y && p.y < y + h;
@@ -255,9 +262,35 @@ Point Start(CMenuItemInfo &menu, CMenuKeyFunc &keys) {
     return p;
 }
 
+// Over the paused world the item page's panels are drawn anchored to the edges of a centred 16:9 area
+// (MenuItemDraw's UiAnchor): those left of the split move left by the visible left edge, the rest right by
+// the same amount. Hit tests use the retail layout, so the pointer is moved back the way its panel moved;
+// a point in the gap the move opens hits nothing.
+Point UnshiftAnchored(Point p) {
+    if (!MenuItemUsesWorldBackdrop()) {
+        return p;
+    }
+    const float shift = MenuPortVisibleLeft();
+    const float left = p.x - shift;
+    const float right = p.x + shift;
+    if (class_menu_item_info.mode != MENU_ASK_MODE_NONE) {
+        // The command popup moves whole with its item's panel (MenuItemDraw).
+        p.x = MenuItemPopupSide > 0 ? right : left;
+    } else if (left < MenuItemAnchorSplit) {
+        p.x = left;
+    } else if (right >= MenuItemAnchorSplit) {
+        p.x = right;
+    } else {
+        // The gap the move opens beside the bag: its first column, so a held item stays by the pointer.
+        const bool holding_item = MenuCommonInfo != nullptr && MenuCommonInfo->have_item.item_no > 0;
+        p.x = holding_item ? MenuItemAnchorSplit + 30.0f : -1000000.0f;
+    }
+    return p;
+}
+
 Take TakePointer() {
     const auto &sample = MenuMouseTake();
-    pointer.pos = {sample.x, sample.y};
+    pointer.pos = UnshiftAnchored({sample.x, sample.y});
     pointer.pointing = sample.pointing;
     return {sample.pointing, sample.moved || sample.clicked != 0 || sample.wheel != 0,
             sample.clicked, sample.released, sample.held, sample.wheel};
@@ -390,6 +423,21 @@ void MenuMousePadTick() {
 }
 
 bool MenuMouseItemActive() { return ItemPage(); }
+
+// Where the pointer is on screen (logical, not moved back to the retail layout) while the mouse holds an item
+// on the item page; the held item is drawn there (MenuItemDraw).
+bool MenuMouseHeldItemAt(float &x, float &y) {
+    if (!ItemPage() || MenuCommonInfo == nullptr || MenuCommonInfo->have_item.item_no <= 0) {
+        return false;
+    }
+    const MenuMouseSample sample = MenuMouseDisplaySample();
+    if (!sample.pointing) {
+        return false;
+    }
+    x = sample.x;
+    y = sample.y;
+    return true;
+}
 
 void MenuMouseItemOrigin(float &x, float &y) {
     if (!ItemPage()) {

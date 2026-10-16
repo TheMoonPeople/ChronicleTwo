@@ -109,9 +109,14 @@ TEST(MenuDrawGrab, GrabRoundTrip) {
     EXPECT_EQ(MenuFrameTex->height, 256);
     EXPECT_EQ(MenuFrameTex->tex0.bits.tcc, 0);
 
-    // The stack image is only reserved; the fill happens on the GPU, so the bytes stay zero.
+    // The stack image holds a CPU copy too: the texture falls back to it once the menus reuse the grab's
+    // slot, so it must never be left as uninitialised memory. Every texel is opaque (GS 0x80).
     const u8 *image = reinterpret_cast<const u8 *>(MenuFrameTex->image[0]);
-    EXPECT_TRUE(std::all_of(image, image + 256 * 240 * 4, [](u8 byte) { return byte == 0; }));
+    bool      opaque = true;
+    for (int i = 0; i < 256 * 240; ++i) {
+        opaque = opaque && image[i * 4 + 3] == 0x80;
+    }
+    EXPECT_TRUE(opaque);
 
     // Finishes the frame MenuCapture began, which holds the copy.
     mgEndFrame(nullptr);

@@ -115,9 +115,13 @@ float DepthOfFieldDepth(float distance) {
     return std::clamp(eye_to_clip[10] + eye_to_clip[14] / distance, 0.0f, 1.0f);
 }
 
+// Set while the menu's close-up snapshot of the world is taken: the focus band is tuned for the walking
+// camera, so at that range it would blur the whole picture.
+bool MenuSnapshotNoDepthOfField = false;
+
 PORT_OVERRIDE void DepthOfField(int levels, float *depths, mgCTexture *work_texture, float strength) {
     // Retail draws nothing without its work texture.
-    if (work_texture == NULL) {
+    if (work_texture == NULL || MenuSnapshotNoDepthOfField) {
         return;
     }
 

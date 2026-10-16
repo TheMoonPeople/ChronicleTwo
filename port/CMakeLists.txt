@@ -169,7 +169,7 @@ if(WIN32 AND (NOT MINGW OR NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
 endif()
 
 add_library(ct_ps2 OBJECT ${PS2_UNITS} ${PORT_OVERRIDES_CHECKED})
-target_link_libraries(ct_ps2 PRIVATE ct_options)
+target_link_libraries(ct_ps2 PRIVATE ct_options kz_port_headers)
 target_compile_definitions(ct_ps2 PRIVATE CT_PS2_TEXTURE_COPY)
 add_dependencies(ct_ps2 ps2_include)
 # The game reads locals it never sets and falls off the end of functions that return a value, and
