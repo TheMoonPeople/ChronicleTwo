@@ -110,11 +110,17 @@ public:
         if (!entry.stored) {
             return Mount::ReadPrefix(index, out);
         }
-        // A stored entry's leading bytes are read without copying and checking the whole entry.
-        std::ifstream file(file_, std::ios::binary);
-        file.seekg(static_cast<std::streamoff>(entry.offset));
-        file.read(reinterpret_cast<char *>(out.data()), static_cast<std::streamsize>(out.size()));
-        return file && static_cast<std::size_t>(file.gcount()) == out.size();
+        // A stored entry's leading bytes are read without copying and checking the whole entry. Texture
+        // registration reads thousands of PNG headers per area, so the archive stays open for them:
+        // reopening a multi-gigabyte pack each time is slow, above all under on-access virus scanning.
+        std::lock_guard lock(prefix_mutex_);
+        if (!prefix_file_.is_open()) {
+            prefix_file_.open(file_, std::ios::binary);
+        }
+        prefix_file_.clear();
+        prefix_file_.seekg(static_cast<std::streamoff>(entry.offset));
+        prefix_file_.read(reinterpret_cast<char *>(out.data()), static_cast<std::streamsize>(out.size()));
+        return prefix_file_ && static_cast<std::size_t>(prefix_file_.gcount()) == out.size();
     }
 
     std::string Stamp(std::size_t index) const override { return entries_.at(index).stamp; }
@@ -178,6 +184,8 @@ private:
     std::optional<rust::Box<kazarov::Archive> >                        archive_;      /**< Open archive. */
     std::vector<Entry>                                                 entries_;      /**< Entries in central-directory order. */
     std::unordered_map<std::string, std::size_t>                       index_;        /**< Folded names mapped to entries. */
+    mutable std::mutex                                                 prefix_mutex_; /**< Guards prefix_file_. */
+    mutable std::ifstream                                              prefix_file_;  /**< Archive handle for ReadPrefix. */
     mutable std::once_flag                                             listing_once_; /**< Builds the directory listing on first use. */
     mutable std::unordered_map<std::string, std::vector<vfs::Member> > listing_;      /**< Direct members per folded directory. */
 };
