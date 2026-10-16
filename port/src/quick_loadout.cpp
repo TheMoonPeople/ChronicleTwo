@@ -342,12 +342,16 @@ void DrawTitle(float x, float y, uint8_t alpha) {
     static char title[] = "QUICK LOADOUT";
     CFont font;
     font.Init();
-    font.SetDrawSize(9, 12);
-    font.SetClearance(9, 12);
+    constexpr int kLetterWidth = 9;
+    constexpr int kLetterAdvance = 13; // the letters spaced out, as on the design
+    font.SetDrawSize(kLetterWidth, 12);
+    font.SetClearance(kLetterAdvance, 12);
     font.SetFuchi(FUCHI_OUTLINE);
     font.SetColor(0x80, 0x80, 0x80, alpha);
     int w = 0, h = 0;
     font.CalcDrawWH(title, &w, &h);
+    // The width counts the spacing after the last letter too.
+    w -= kLetterAdvance - kLetterWidth;
     font.DrawDirect(title, (int) (x - w * 0.5f + 0.5f), (int) (y - h * 0.5f + 0.5f));
 }
 
