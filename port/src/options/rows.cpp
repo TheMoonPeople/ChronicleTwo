@@ -171,6 +171,8 @@ std::span<const Page> Pages() {
                          Number<&Config::stick_sensitivity>("input.stick_sensitivity", "Stick sensitivity", "Scales controller stick response.", {.5, .75, 1, 1.1, 1.2, 1.33, 1.5, 1.75, 2, 2.5, 3}),
                          Choice<&Config::stick_invert_x>("input.stick_invert_x", "Invert stick X", "Reverses the controller look stick's horizontal axis.", {"Off", "On"}),
                          Choice<&Config::stick_invert_y>("input.stick_invert_y", "Invert stick Y", "Reverses the controller look stick's vertical axis.", {"Off", "On"}),
+                         Choice<&Config::dualsense_haptics>("input.dualsense_haptics", "DualSense haptics", "Plays vibration on a DualSense's HD actuators.\nFull adds quakes and hit, weapon and monster effects.", {"Off", "Vibration", "Full"}),
+                         Number<&Config::haptics_strength>("input.haptics_strength", "Haptics strength", "DualSense actuator strength.", {0, .25, .5, .75, 1, 1.25, 1.5, 1.75, 2}, 100, "%"),
                          Choice<&Config::glyphs_new>("input.glyphs", "Button symbols", "New redraws the game's button symbols from glyphs/.\nOriginal keeps the PlayStation art.", {"Original", "New"}),
                          Choice<&Config::glyph_device>("input.glyph_device", "Glyph style", "Auto follows the last device used.\nKeyboard prompts follow your current bindings.", {"Auto", "PS3", "PS4", "PS5", "PS5 Color", "Xbox", "Switch", "Steam Deck", "Steam Controller", "Keyboard"}),
                          Choice<&Config::mouse_zoom>("input.mouse_zoom", "Mouse wheel zoom", "Wheel changes camera distance while walking.\nMenus use the wheel for selection instead.", {"Off", "On"}),

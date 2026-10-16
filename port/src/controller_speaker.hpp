@@ -19,6 +19,9 @@ void ControllerSpeakerRelease(audio::StreamChannel *channel);
 // Opens the controller speaker if it is not open yet. False when there is none.
 bool ControllerSpeakerOpen();
 
+// Whether the open controller device also carries the DualSense's actuators (dualsense_haptics.hpp).
+bool ControllerHapticsChannels();
+
 // The mixer the controller speaker plays besides its routed channels, for the sound effects the
 // sound driver sends there instead of the default mixer.
 audio::Mixer &ControllerSpeakerMixer();

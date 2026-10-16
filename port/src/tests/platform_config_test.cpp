@@ -110,6 +110,8 @@ TEST_F(PlatformConfig, FullFileRoundTrips) {
     full.font_sharp = true;
     full.dualsense_speaker = false;
     full.controller_volume = 1.5f;
+    full.dualsense_haptics = ConfigHaptics::Vibration;
+    full.haptics_strength = 0.75f;
 
     ASSERT_TRUE(ConfigParse(ConfigSerialize(full)) == full);
 

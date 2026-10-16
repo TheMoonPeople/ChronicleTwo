@@ -13,6 +13,13 @@ enum class ConfigAspect {
     FourThree,
 };
 
+// input.dualsense_haptics: what a DualSense's actuators play (see dualsense_haptics.hpp).
+enum class ConfigHaptics {
+    Off,       // Classic rumble only.
+    Vibration, // The game's own vibration, played on the actuators.
+    Full,      // Also camera quakes and the effects of the player, battles and monsters.
+};
+
 struct Config : HostSettings {
     bool         interpolation = true;
     bool         debug_mode = false;
@@ -28,6 +35,9 @@ struct Config : HostSettings {
     bool dualsense_speaker = true;
     // audio.controller_volume: gain on the controller speaker, on top of the master volume.
     float controller_volume = 1.0f;
+    ConfigHaptics dualsense_haptics = ConfigHaptics::Full;
+    // input.haptics_strength: gain on the DualSense actuators.
+    float haptics_strength = 1.0f;
 
     bool operator==(const Config &) const = default;
 };

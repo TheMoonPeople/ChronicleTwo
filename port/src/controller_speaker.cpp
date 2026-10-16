@@ -11,6 +11,7 @@
 
 #include "audio/mixer.hpp"
 #include "audio/stream.hpp"
+#include "dualsense_haptics.hpp"
 #include "platform/config.hpp"
 #include "platform/settings.hpp"
 
@@ -31,6 +32,9 @@ Uint64                              g_last_try = 0;
 std::vector<float>                  g_chunk;
 std::vector<float>                  g_mix;
 std::vector<float>                  g_effects;
+std::vector<float>                  g_haptics;
+// 4 when the device has the DualSense's actuator channels behind its speaker pair, else 2.
+int g_channels_out = 2;
 
 std::string Lower(const char *text) {
     std::string out;
@@ -41,7 +45,8 @@ std::string Lower(const char *text) {
 }
 
 void SDLCALL Feed(void *, SDL_AudioStream *stream, int additional_amount, int) {
-    int             frames = additional_amount / static_cast<int>(sizeof(float) * 2);
+    const int       stride = g_channels_out;
+    int             frames = additional_amount / static_cast<int>(sizeof(float) * stride);
     std::lock_guard lock(g_mutex);
     const float     gain = SettingsGet().master_volume * ConfigGet().controller_volume;
     while (frames > 0) {
@@ -54,17 +59,24 @@ void SDLCALL Feed(void *, SDL_AudioStream *stream, int additional_amount, int) {
         for (int i = 0; i < count * 2; i++) {
             g_mix[i] += g_effects[i] * gain;
         }
+        if (stride == 4) {
+            HapticsRender(g_haptics.data(), count);
+        }
         // The pad has one small speaker; both sides carry the mono sum.
         for (int i = 0; i < count; i++) {
             const float mono = std::clamp((g_mix[i * 2] + g_mix[i * 2 + 1]) * 0.5f, -1.0f, 1.0f);
-            g_chunk[i * 2] = g_chunk[i * 2 + 1] = mono;
+            g_chunk[i * stride] = g_chunk[i * stride + 1] = mono;
+            if (stride == 4) {
+                g_chunk[i * 4 + 2] = g_haptics[i * 2];
+                g_chunk[i * 4 + 3] = g_haptics[i * 2 + 1];
+            }
         }
-        SDL_PutAudioStreamData(stream, g_chunk.data(), count * static_cast<int>(sizeof(float) * 2));
+        SDL_PutAudioStreamData(stream, g_chunk.data(), count * static_cast<int>(sizeof(float) * stride));
         frames -= count;
     }
 }
 
-SDL_AudioDeviceID FindDevice() {
+SDL_AudioDeviceID FindDevice(int &channels) {
     int                count = 0;
     SDL_AudioDeviceID *devices = SDL_GetAudioPlaybackDevices(&count);
     SDL_AudioDeviceID  found = 0;
@@ -76,7 +88,12 @@ SDL_AudioDeviceID FindDevice() {
         const std::string lower = Lower(name);
         for (const char *match : kDeviceNames) {
             if (lower.find(match) != std::string::npos) {
-                std::fprintf(stderr, "controller speaker: using \"%s\"\n", name);
+                SDL_AudioSpec native{};
+                int           frames = 0;
+                SDL_GetAudioDeviceFormat(devices[i], &native, &frames);
+                std::fprintf(stderr, "controller speaker: using \"%s\" (%d channels, %d Hz)%s\n", name, native.channels,
+                             native.freq, native.channels >= 4 ? ", haptics on channels 3-4" : "");
+                channels = native.channels;
                 found = devices[i];
                 break;
             }
@@ -100,7 +117,8 @@ bool EnsureOpen() {
     if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
         return false;
     }
-    const SDL_AudioDeviceID device = FindDevice();
+    int                     channels = 0;
+    const SDL_AudioDeviceID device = FindDevice(channels);
     if (device == 0) {
         if (!g_tried) {
             std::fprintf(stderr, "controller speaker: no DualSense audio device; sounds stay on the main output\n");
@@ -109,10 +127,13 @@ bool EnsureOpen() {
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
         return false;
     }
-    g_chunk.assign(kChunkFrames * 2, 0.0f);
+    // A quad device carries the speaker on its front pair and the actuators on its rear pair.
+    g_channels_out = channels >= 4 ? 4 : 2;
+    g_chunk.assign(kChunkFrames * g_channels_out, 0.0f);
+    g_haptics.assign(kChunkFrames * 2, 0.0f);
     g_mix.assign(kChunkFrames * 2, 0.0f);
     g_effects.assign(kChunkFrames * 2, 0.0f);
-    const SDL_AudioSpec spec{SDL_AUDIO_F32, 2, audio::kSpuRate};
+    const SDL_AudioSpec spec{SDL_AUDIO_F32, g_channels_out, audio::kSpuRate};
     g_stream = SDL_OpenAudioDeviceStream(device, &spec, Feed, nullptr);
     if (g_stream == nullptr) {
         std::fprintf(stderr, "controller speaker: cannot open the device: %s\n", SDL_GetError());
@@ -127,6 +148,10 @@ bool EnsureOpen() {
 
 bool ControllerSpeakerOpen() {
     return EnsureOpen();
+}
+
+bool ControllerHapticsChannels() {
+    return g_stream != nullptr && g_channels_out == 4;
 }
 
 audio::Mixer &ControllerSpeakerMixer() {

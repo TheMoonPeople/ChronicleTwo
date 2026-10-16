@@ -17,6 +17,7 @@
 #include "audio/trace.hpp"
 #include "audio_assets.hpp"
 #include "controller_speaker.hpp"
+#include "dualsense_haptics.hpp"
 #include "ezbgm.hpp"
 #include "ezmidi.hpp"
 #include "platform/config.hpp"
@@ -278,6 +279,77 @@ bool KeysOnSpeaker(const SpeakerRoutes &routes, int port, int id, int program) {
     return program != kSystemProgramLockOn && program != kSystemProgramLockOff;
 }
 
+// The game ports whose effects a DualSense's actuators also play in the Full haptics mode: the
+// player's swings, shots and steps (the Ridepod's too), hits, and monsters a little softer. Volumes
+// are percentages of the port's own.
+struct HapticPort {
+    int game_port;
+    int volume;
+};
+
+constexpr HapticPort kHapticPorts[] = {
+    {SND_PORT_CHARA,  100},
+    {SND_PORT_BATTLE, 100},
+    {SND_PORT_ENEMY,  50 },
+};
+
+std::array<int, MIDI_PORT_COUNT>                                                                haptic_volume{};
+std::array<std::array<std::shared_ptr<const audio::Bank>, MIDI_PORT_BANK_MAX>, MIDI_PORT_COUNT> haptic_banks;
+
+// Driver ports to mirror this step, as a percentage of their volume (0 for none).
+std::array<int, MIDI_PORT_COUNT> CurrentHapticPorts() {
+    std::array<int, MIDI_PORT_COUNT> volume{};
+
+    if (!HapticsEffectsActive()) {
+        return volume;
+    }
+
+    for (const HapticPort &entry : kHapticPorts) {
+        if (const int port = DriverPort(entry.game_port); port >= 0) {
+            volume[port] = std::max(volume[port], entry.volume);
+        }
+    }
+
+    return volume;
+}
+
+// Gives the haptics mixer a mirrored port's banks and volume; a port no longer mirrored is stopped
+// there, so nothing it keyed on keeps playing.
+void MirrorHapticPorts(const std::array<int, MIDI_PORT_COUNT> &volume) {
+    audio::Mixer &haptics = HapticsMixer();
+    audio::Mixer &mixer = audio::DefaultMixer();
+
+    for (int port = 0; port < MIDI_PORT_COUNT; port++) {
+        if (volume[port] == 0) {
+            if (haptic_volume[port] != 0) {
+                haptics.Stop(port);
+            }
+            haptic_volume[port] = 0;
+            continue;
+        }
+
+        for (int bank_no = 0; bank_no < MIDI_PORT_BANK_MAX; bank_no++) {
+            if (haptic_banks[port][bank_no] != ports[port].bank[bank_no]) {
+                if (bank_no == 0) {
+                    haptics.Stop(port);
+                }
+                haptic_banks[port][bank_no] = ports[port].bank[bank_no];
+                haptics.BindBank(port, bank_no, haptic_banks[port][bank_no]);
+            }
+        }
+
+        haptics.SetVolume(port, mixer.Volume(port) * volume[port] / 100);
+        haptics.SetAttribute(port, mixer.Attribute(port));
+        haptic_volume[port] = volume[port];
+    }
+}
+
+void ResetHaptics() {
+    HapticsMixer().Reset();
+    haptic_volume = {};
+    haptic_banks = {};
+}
+
 // Sends the step's messages. Bank, program, volume and pan go to both mixers of a routed port; a
 // key-on, key-off or change of one effect goes where it plays. Routes stay one more step after a
 // sequence ends, for the key-offs of its last step.
@@ -306,12 +378,25 @@ void DispatchQueued() {
 
     routes.whole = current.whole;
 
-    audio::Mixer                   &mixer = audio::DefaultMixer();
-    audio::Mixer                   &speaker = ControllerSpeakerMixer();
+    const std::array<int, MIDI_PORT_COUNT> haptic = CurrentHapticPorts();
+    MirrorHapticPorts(haptic);
+
+    audio::Mixer                    &mixer = audio::DefaultMixer();
+    audio::Mixer                    &speaker = ControllerSpeakerMixer();
+    audio::Mixer                    &haptics = HapticsMixer();
     std::array<int, MIDI_PORT_COUNT> program{};
 
     for (const QueuedMessage &message : queued) {
         const bool split = routes.Any(message.port);
+
+        // The actuators play a mirrored port's effects besides wherever they sound.
+        if (haptic[message.port] != 0) {
+            if (message.hs) {
+                haptics.HsMessage(message.port, message.bytes);
+            } else {
+                haptics.ShortMessage(message.port, message.word);
+            }
+        }
 
         if (!message.hs) {
             if ((message.word & 0xF0) == 0xC0) {
@@ -357,6 +442,7 @@ PORT_OVERRIDE void set_spu(int mode0, int mode1, int depth0, int depth1) {
 
 PORT_OVERRIDE void CSound::StopVoice(int core) {
     audio::DefaultMixer().KeyOffCore(core);
+    HapticsMixer().KeyOffCore(core);
 }
 
 PORT_OVERRIDE void CSound::SndInReverb(bool) {
@@ -375,6 +461,7 @@ PORT_OVERRIDE int CSound::Init(int mode0, int mode1, int depth0, int depth1) {
     ezBgmInit();
     ezMidiInit();
     audio::DefaultMixer().Reset();
+    ResetHaptics();
     SoundApplySettings();
     set_spu(mode0, mode1, depth0, depth1);
     ResetHostState();
@@ -390,6 +477,7 @@ PORT_OVERRIDE int CSound::Exit() {
     }
 
     mixer.Reset();
+    ResetHaptics();
     ResetHostState();
     initialised = false;
     return 0;
@@ -402,17 +490,20 @@ PORT_OVERRIDE void CSound::DEL_PORT(int port) {
     // Retail clears queued messages only for MSIn-range ports; ports below that have no MSIn buffer to clear.
     DropQueued(port);
     mixer.Stop(port);
+    HapticsMixer().Stop(port);
     ReleaseSequences(mixer, port);
 
     if (linked >= 0) {
         DropQueued(linked);
         mixer.Stop(linked);
+        HapticsMixer().Stop(linked);
         ReleaseSequences(mixer, linked);
     }
 
     for (int dependent : ports[port].dependent_port) {
         DropQueued(dependent);
         mixer.Stop(dependent);
+        HapticsMixer().Stop(dependent);
         ReleaseSequences(mixer, dependent);
     }
 }

@@ -43,6 +43,8 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "input.stick_sensitivity",
         "input.stick_invert_x",
         "input.stick_invert_y",
+        "input.dualsense_haptics",
+        "input.haptics_strength",
         "input.glyphs",
         "input.glyph_device",
         "game.autosave",
