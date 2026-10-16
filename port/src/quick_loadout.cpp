@@ -56,10 +56,11 @@ struct Rect {
 };
 constexpr int  kPanelX = 42;
 constexpr int  kPanelOffsetY = 66;
+constexpr int  kRidepodOffsetY = 54;
 constexpr Rect kBox = {0, 8, 176, 134};
 constexpr Rect kTitleBar = {20, -1, 136, 25};
 // Square, Triangle, Cross, Circle.
-constexpr Rect kSlotRect[kSlots] = {{11, 26, 76, 52}, {89, 26, 76, 52}, {11, 82, 76, 52}, {89, 82, 76, 52}};
+constexpr Rect kSlotRect[kSlots] = {{11, 26, 76, 50}, {89, 26, 76, 50}, {11, 80, 76, 50}, {89, 80, 76, 50}};
 constexpr int  kDiscSize = 24;
 constexpr int  kDiscOffset = -3; // the disc over the slot's top left corner
 constexpr int  kGlyphSize = 22;
@@ -401,20 +402,34 @@ void DrawPanel(int left, int top, uint8_t alpha) {
 
 // "QUICK LOADOUT" in the game's own font, white with its black outline, in the middle of the title bar.
 void DrawTitle(float x, float y, uint8_t alpha) {
-    static char title[] = "QUICK LOADOUT";
+    static const char kTitle[] = "QUICK LOADOUT";
     CFont font;
     font.Init();
     // The game's own size for its menu text, 16 by 20, which draws the font texel for texel (any other size stretches
-    // its letters unevenly), spaced a little wider than the menus' 15.
-    constexpr int kLetterWidth = 16;
-    constexpr int kLetterAdvance = 17;
-    font.SetDrawSize(kLetterWidth, 20);
-    font.SetClearance(kLetterAdvance, 20);
+    // its letters unevenly). The font is fixed width, so the letters are set one by one: a narrow I would otherwise
+    // stand apart from its word.
+    font.SetDrawSize(16, 20);
+    font.SetClearance(16, 20);
     font.SetFuchi(FUCHI_OUTLINE);
     font.SetColor(0x80, 0x80, 0x80, alpha);
+    constexpr float kCell = 8.0f; // a half-width letter's cell
+    auto advance = [](char c) { return c == 'I' ? 5.0f : c == ' ' ? 7.0f : 9.0f; };
+    float width = 0.0f;
+    for (const char *c = kTitle; *c != 0; c++) {
+        width += c[1] != 0 ? advance(*c) : kCell;
+    }
     int w = 0, h = 0;
-    font.CalcDrawWH(title, &w, &h);
-    font.DrawDirect(title, (int) (x - w * 0.5f + 0.5f), (int) (y - h * 0.5f + 0.5f));
+    font.CalcDrawWH(const_cast<char *>("Q"), &w, &h);
+    float pen = x - width * 0.5f;
+    for (const char *c = kTitle; *c != 0; c++) {
+        char letter[2] = {*c, 0};
+        // A narrow letter keeps to the middle of the room it is given.
+        const float shift = (advance(*c) - kCell) * 0.5f;
+        if (*c != ' ') {
+            font.DrawDirect(letter, (int) (pen + (*c == 'I' ? shift : 0.0f) + 0.5f), (int) (y - h * 0.5f + 0.5f));
+        }
+        pen += advance(*c);
+    }
 }
 
 gfx::TextureHandle ItemPicture(int item_no) {
@@ -447,10 +462,11 @@ void DrawQuad(gfx::TextureHandle texture, float x, float y, float w, float h, fl
 }
 
 // The game's own rotating cursor round the active item (DrawActiveItemCursor), drawn round the slot in use: the same
-// picture from the system frame texture, added, turning a degree a frame on an angle of its own (PortQuickLoadoutDraw turns it). size is its width.
+// picture from the system frame texture, added, turning a degree a frame on an angle of its own (PortQuickLoadoutDraw
+// turns it), stretched so its ring of dashes runs round the whole slot. rx and ry are the ring's half width and height.
 float halo_angle = -PI;
 
-void DrawHalo(float x, float y, float size, float alpha) {
+void DrawHalo(float x, float y, float rx, float ry, float alpha) {
     if (TEX_SystenFrame == nullptr) {
         return;
     }
@@ -462,13 +478,14 @@ void DrawHalo(float x, float y, float size, float alpha) {
     sprite.Texture(TEX_SystenFrame);
     sprite.SetAlphaBlend(MG_ALPHA_BLEND_ADD);
     sprite.Color(0x80, 0x80, 0x80, (int) (128.0f * alpha));
-    const float k = size / 55.0f, sn = sinf(halo_angle), cs = cosf(halo_angle);
+    constexpr float kRing = 21.0f; // the ring's radius in the picture
+    const float     kx = rx / kRing, ky = ry / kRing, sn = sinf(halo_angle), cs = cosf(halo_angle);
     // Two triangles over the 55x55 picture at (0x84, 0xCA), as retail lays them out.
     static const float kCorner[6][4] = {{-28, -28, 0x84, 0xCA}, {-28, 27, 0xB9, 0xCA}, {27, -28, 0x84, 0xFF},
                                         {-28, 27, 0xB9, 0xCA},  {27, -28, 0x84, 0xFF}, {27, 27, 0xB9, 0xFF}};
     for (const auto &c : kCorner) {
-        const float u = c[0] * k, v = c[1] * k;
-        float       corner[4] = {x + (u * sn - v * cs), y + (v * sn + u * cs), 0.0f, 0.0f};
+        const float u = c[0], v = c[1];
+        float       corner[4] = {x + (u * sn - v * cs) * kx, y + (v * sn + u * cs) * ky, 0.0f, 0.0f};
         sprite.TextureCrd((int) c[2], (int) c[3]);
         sprite.Vertex(corner);
     }
@@ -556,7 +573,8 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
     }
     const int     chara = ActiveChara();
     const uint8_t alpha = static_cast<uint8_t>(0x80 * fade / kFadeTicks);
-    const int     top = (int) (80.0f * statusbar_rate) - 72 + kPanelOffsetY;
+    // The Ridepod's board has no active items, so its panel sits higher, under its numbers and clear of the danger sign.
+    const int top = (int) (80.0f * statusbar_rate) - 72 + (chara == USER_CHARA_ROBO ? kRidepodOffsetY : kPanelOffsetY);
     DrawPanel(kPanelX, top, alpha);
     DrawTitle(kPanelX + kTitleBar.x + kTitleBar.w * 0.5f, top + kTitleBar.y + kTitleBar.h * 0.5f, alpha);
     if (chara < USER_CHARA_MAX || chara > USER_CHARA_ROBO) {
@@ -586,8 +604,7 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
             // The slot whose item is equipped now wears the active item's cursor round its picture.
             CGameDataUsed *equipped = RowEquip(chara, slot / 2);
             if (equipped != nullptr && Matches(entry, equipped)) {
-                const float cx = x0 + w * 0.5f + h * 0.14f, cy = y0 + h * 0.5f + h * 0.02f;
-                DrawHalo(cx, cy, h * 1.2f, (float) fade / kFadeTicks);
+                DrawHalo(x0 + w * 0.5f, y0 + h * 0.5f, w * 0.5f, h * 0.5f, (float) fade / kFadeTicks);
             }
         }
     }
