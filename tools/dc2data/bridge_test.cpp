@@ -66,10 +66,56 @@ int main() {
     const fs::path data = root / "run/data";
     const auto     report = kazarov::extract(Utf8(disc), Utf8(data), 2);
     Require(report.files == 1 && report.bytes == 4 && report.pngs == 0, "extract report mismatch");
-    Require(fs::is_regular_file(data / "foo.bin"), "extracted file missing");
-    Require(fs::is_directory(root / "run/port_data"), "native asset directory missing");
-    Require(!fs::exists(root / "run/port_data/catalog.json") && !fs::exists(data / "manifest.json"), "obsolete asset index published");
+    Require(fs::is_regular_file(root / "run/data.zip") && fs::is_regular_file(root / "run/data.json"),
+            "published archive missing");
+    Require(!fs::exists(data) && !fs::exists(root / "run/port_data"), "directory layout published");
+    {
+        const auto archive = kazarov::open_archive(Utf8(root / "run/data.zip"));
+        bool       found = false;
+        for (std::size_t index = 0; index < kazarov::archive_entry_count(*archive); ++index) {
+            const std::string name(kazarov::archive_entry_name(*archive, index));
+            Require(name != "catalog.json" && name != "manifest.json", "obsolete asset index published");
+            Require(kazarov::archive_entry_data_offset(*archive, index) % 64 == 0, "entry data is not aligned");
+            if (name == "foo.bin") {
+                Require(kazarov::archive_entry_size(*archive, index) == 4 && !kazarov::archive_entry_stored(*archive, index),
+                        "extracted entry metadata mismatch");
+                std::vector<std::uint8_t> bytes(4);
+                kazarov::archive_read_entry(*archive, index, rust::Slice<std::uint8_t>(bytes.data(), bytes.size()));
+                Require(bytes == std::vector<std::uint8_t>{'D', 'A', 'T', 'A'}, "extracted entry contents mismatch");
+                found = true;
+            }
+        }
+        Require(found, "extracted file missing");
+        Require(std::string(kazarov::archive_path(*archive)) == Utf8(root / "run/data.zip"), "archive path mismatch");
+    }
     Require(kazarov::current(Utf8(disc), Utf8(data)), "fresh extraction is not current");
     Require(kazarov::check(Utf8(data)).textures == 0, "full publication check failed");
+
+    // Datapack writer: PNG entries are stored at aligned offsets for direct reads.
+    const fs::path pack = root / "pack";
+    fs::create_directories(pack / "textures");
+    Write(pack / "textures/a.png", {0x89, 'P', 'N', 'G'});
+    Write(pack / "pack.json", {'{', '}'});
+    kazarov::pack_directory(Utf8(pack), Utf8(root / "pack.zip"));
+    {
+        const auto archive = kazarov::open_archive(Utf8(root / "pack.zip"));
+        Require(kazarov::archive_entry_count(*archive) == 2, "pack entry count mismatch");
+        Require(std::string(kazarov::archive_entry_name(*archive, 1)) == "textures/a.png" &&
+                    kazarov::archive_entry_stored(*archive, 1),
+                "pack PNG entry mismatch");
+        std::ifstream file(root / "pack.zip", std::ios::binary);
+        file.seekg(static_cast<std::streamoff>(kazarov::archive_entry_data_offset(*archive, 1)));
+        char magic[4] = {};
+        file.read(magic, 4);
+        Require(static_cast<std::uint8_t>(magic[0]) == 0x89 && magic[1] == 'P', "stored entry offset mismatch");
+        caught = false;
+        try {
+            std::vector<std::uint8_t> wrong(3);
+            kazarov::archive_read_entry(*archive, 1, rust::Slice<std::uint8_t>(wrong.data(), wrong.size()));
+        } catch (const rust::Error &) {
+            caught = true;
+        }
+        Require(caught, "wrong-size read accepted");
+    }
     fs::remove_all(root);
 }

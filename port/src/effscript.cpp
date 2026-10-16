@@ -6,7 +6,6 @@
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
-#include <fstream>
 #include <limits>
 #include <optional>
 #include <span>
@@ -183,12 +182,8 @@ struct EffectResource {
  */
 std::vector<unsigned char> EffectScript(const std::string &path) {
     for (const auto &candidate : datapacks::Candidates(path)) {
-        std::ifstream input(candidate, std::ios::binary);
-        if (!input) {
-            continue;
-        }
-        std::vector<unsigned char> bytes{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
-        if (bytes.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+        std::vector<unsigned char> bytes;
+        if (!datapacks::ReadFileBytes(candidate, bytes) || bytes.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
             continue;
         }
         const auto result = script_timing::Apply(path, bytes.data(), bytes.size());

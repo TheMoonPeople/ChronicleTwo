@@ -1,8 +1,8 @@
 #include "common.h"
 
 #include "mainloop.hpp"
-#include "menuchr_port.hpp"
 #include "menu_mouse_item.hpp"
+#include "menuchr_port.hpp"
 #include "padcontrol.hpp"
 #include "platform/input.hpp"
 
@@ -35,7 +35,7 @@ PORT_OVERRIDE void CPadControl::Update(CGamePad *pad) {
                 break;
         }
     }
-    // The town's quick change waits for the last one's effect, as the dungeon's does in ChangeSetUnit.
+    // Town quick changes wait for the last one's effect, as dungeon ones do in ChangeSetUnit.
     if (PortQuickChangeCoolingDown()) {
         btn[PAD_BTN_QUICK_CHANGE].value = 0;
     }

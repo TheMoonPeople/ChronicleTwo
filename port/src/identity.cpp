@@ -27,5 +27,5 @@ GameIconSource GameDataIconSource() {
 }
 
 void GameSetDataIcon() {
-    GameIconInstall(datapacks::Root(), GameDataIconSource());
+    GameIconInstall(PathsDataRoot(), GameDataIconSource());
 }

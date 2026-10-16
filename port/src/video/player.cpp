@@ -11,6 +11,9 @@ extern "C" {
 
 #include <algorithm>
 #include <cstdio>
+#include <fstream>
+#include <limits>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -20,13 +23,144 @@ extern "C" {
 namespace video {
 namespace {
 constexpr AVRational kMovieClock = {1, 90000};
+/** Bytes FFmpeg reads through a custom input at a time. */
+constexpr int kInputBufferBytes = 64 * 1024;
+
+/**
+ * Feeds FFmpeg one data entry that is not a host file: a stored archive entry read from its own file handle, or a
+ * compressed entry held in memory.
+ */
+class EntryInput {
+public:
+    EntryInput(const EntryInput &) = delete;
+    EntryInput &operator=(const EntryInput &) = delete;
+
+    ~EntryInput() {
+        if (io_) {
+            av_freep(&io_->buffer);
+            avio_context_free(&io_);
+        }
+    }
+
+    /**
+     * Prepares a custom input for an entry, or returns null when it cannot be read.
+     */
+    static std::unique_ptr<EntryInput> Open(const vfs::Ref &file) {
+        std::unique_ptr<EntryInput> input(new EntryInput);
+        if (const auto range = vfs::Stored(file)) {
+            input->file_.open(range->file, std::ios::binary);
+            if (!input->file_) {
+                return nullptr;
+            }
+            input->offset_ = range->offset;
+            input->length_ = range->length;
+        } else if (vfs::Read(file, input->bytes_, std::numeric_limits<std::uint64_t>::max())) {
+            input->length_ = input->bytes_.size();
+        } else {
+            return nullptr;
+        }
+        auto *buffer = static_cast<unsigned char *>(av_malloc(kInputBufferBytes));
+        if (!buffer) {
+            return nullptr;
+        }
+        input->io_ = avio_alloc_context(buffer, kInputBufferBytes, 0, input.get(), &EntryInput::ReadPacket, nullptr, &EntryInput::Seek);
+        if (!input->io_) {
+            av_free(buffer);
+            return nullptr;
+        }
+        return input;
+    }
+
+    AVIOContext *Context() const { return io_; }
+
+private:
+    EntryInput() = default;
+
+    static int ReadPacket(void *opaque, uint8_t *buffer, int size) {
+        auto      *input = static_cast<EntryInput *>(opaque);
+        const auto count = static_cast<int>(std::min<std::uint64_t>(static_cast<std::uint64_t>(size), input->length_ - input->position_));
+        if (count <= 0) {
+            return AVERROR_EOF;
+        }
+        if (input->bytes_.empty()) {
+            input->file_.clear();
+            input->file_.seekg(static_cast<std::streamoff>(input->offset_ + input->position_));
+            input->file_.read(reinterpret_cast<char *>(buffer), count);
+            if (input->file_.gcount() != count) {
+                return AVERROR(EIO);
+            }
+        } else {
+            std::copy_n(input->bytes_.data() + input->position_, count, buffer);
+        }
+        input->position_ += static_cast<std::uint64_t>(count);
+        return count;
+    }
+
+    static int64_t Seek(void *opaque, int64_t offset, int whence) {
+        auto *input = static_cast<EntryInput *>(opaque);
+        if (whence & AVSEEK_SIZE) {
+            return static_cast<int64_t>(input->length_);
+        }
+        int64_t base = 0;
+        switch (whence & ~AVSEEK_FORCE) {
+            case SEEK_SET:
+                break;
+            case SEEK_CUR:
+                base = static_cast<int64_t>(input->position_);
+                break;
+            case SEEK_END:
+                base = static_cast<int64_t>(input->length_);
+                break;
+            default:
+                return AVERROR(EINVAL);
+        }
+        const int64_t target = base + offset;
+        if (target < 0 || static_cast<std::uint64_t>(target) > input->length_) {
+            return AVERROR(EINVAL);
+        }
+        input->position_ = static_cast<std::uint64_t>(target);
+        return target;
+    }
+
+    std::ifstream             file_;         /**< Archive file holding a stored entry. */
+    std::vector<std::uint8_t> bytes_;        /**< Contents of a compressed entry. */
+    std::uint64_t             offset_ = 0;   /**< Entry data offset within the archive file. */
+    std::uint64_t             length_ = 0;   /**< Entry size in bytes. */
+    std::uint64_t             position_ = 0; /**< Read position within the entry. */
+    AVIOContext              *io_ = nullptr; /**< FFmpeg's view of the entry. */
+};
+
+/**
+ * Opens an MP4 entry: host files by path, archive entries through a custom input that must outlive the format.
+ */
+bool OpenMovie(const vfs::Ref &file, AVFormatContext *&format, std::unique_ptr<EntryInput> &input) {
+    if (const auto host = vfs::HostPath(file)) {
+        const auto        utf8 = host->u8string();
+        const std::string name(utf8.begin(), utf8.end());
+        return avformat_open_input(&format, name.c_str(), av_find_input_format("mov"), nullptr) >= 0;
+    }
+    input = EntryInput::Open(file);
+    if (!input) {
+        return false;
+    }
+    format = avformat_alloc_context();
+    if (!format) {
+        return false;
+    }
+    format->pb = input->Context();
+    format->flags |= AVFMT_FLAG_CUSTOM_IO;
+    const auto name = file.Display();
+    // A failed open frees the context; the custom input stays owned by the caller.
+    return avformat_open_input(&format, name.c_str(), av_find_input_format("mov"), nullptr) >= 0;
+}
 
 struct AudioReader {
-    AVFormatContext *format = nullptr;
-    AVCodecContext  *codec = nullptr;
-    AVPacket        *packet = av_packet_alloc();
-    AVFrame         *frame = av_frame_alloc();
-    SwrContext      *resampler = nullptr;
+    std::unique_ptr<EntryInput> input;
+    AVFormatContext            *format = nullptr;
+    AVCodecContext             *codec = nullptr;
+    AVPacket                   *packet = av_packet_alloc();
+    AVFrame                    *frame = av_frame_alloc();
+    SwrContext                 *resampler = nullptr;
 
     ~AudioReader() {
         swr_free(&resampler);
@@ -37,12 +171,10 @@ struct AudioReader {
     }
 };
 
-std::shared_ptr<audio::PcmTrack> EmbeddedAudio(const std::filesystem::path &path, bool &failed) {
+std::shared_ptr<audio::PcmTrack> EmbeddedAudio(const vfs::Ref &file, bool &failed) {
     failed = false;
-    AudioReader       reader;
-    const auto        utf8 = path.u8string();
-    const std::string name(utf8.begin(), utf8.end());
-    if (avformat_open_input(&reader.format, name.c_str(), av_find_input_format("mov"), nullptr) < 0 || avformat_find_stream_info(reader.format, nullptr) < 0) {
+    AudioReader reader;
+    if (!OpenMovie(file, reader.format, reader.input) || avformat_find_stream_info(reader.format, nullptr) < 0) {
         failed = true;
         return nullptr;
     }
@@ -150,16 +282,17 @@ std::shared_ptr<audio::PcmTrack> EmbeddedAudio(const std::filesystem::path &path
 } // namespace
 
 struct MoviePlayer::Impl {
-    AVFormatContext *format = nullptr;
-    AVCodecContext  *codec = nullptr;
-    AVPacket        *packet = av_packet_alloc();
-    AVFrame         *frame = av_frame_alloc();
-    SwsContext      *scaler = nullptr;
-    int              video = -1;
-    int64_t          duration = 3600;
-    int64_t          next_pts = 0;
-    bool             draining = false;
-    bool             failed = false;
+    std::unique_ptr<EntryInput> input;
+    AVFormatContext            *format = nullptr;
+    AVCodecContext             *codec = nullptr;
+    AVPacket                   *packet = av_packet_alloc();
+    AVFrame                    *frame = av_frame_alloc();
+    SwsContext                 *scaler = nullptr;
+    int                         video = -1;
+    int64_t                     duration = 3600;
+    int64_t                     next_pts = 0;
+    bool                        draining = false;
+    bool                        failed = false;
 
     ~Impl() {
         sws_freeContext(scaler);
@@ -169,10 +302,8 @@ struct MoviePlayer::Impl {
         avformat_close_input(&format);
     }
 
-    bool Open(const std::filesystem::path &path) {
-        const auto        utf8 = path.u8string();
-        const std::string name(utf8.begin(), utf8.end());
-        if (!packet || !frame || avformat_open_input(&format, name.c_str(), av_find_input_format("mov"), nullptr) < 0 || avformat_find_stream_info(format, nullptr) < 0) {
+    bool Open(const vfs::Ref &file) {
+        if (!packet || !frame || !OpenMovie(file, format, input) || avformat_find_stream_info(format, nullptr) < 0) {
             return false;
         }
         video = av_find_best_stream(format, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
@@ -269,7 +400,7 @@ bool MoviePlayer::Open(const std::filesystem::path &path, bool with_audio) {
     if (path.extension() != ".mp4") {
         return false;
     }
-    auto candidates = path.is_absolute() ? std::vector<std::filesystem::path>{path} : AudioAssetCandidates(path.generic_string());
+    auto candidates = path.is_absolute() ? std::vector<vfs::Ref>{vfs::HostFile(path)} : AudioAssetCandidates(path.generic_string());
     for (const auto &candidate : candidates) {
         impl_ = std::make_unique<Impl>();
         if (!impl_->Open(candidate)) {

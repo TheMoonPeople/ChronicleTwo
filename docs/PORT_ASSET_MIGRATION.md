@@ -2,9 +2,10 @@
 
 ## Published representation
 
-Kazarov's Rust extractor owns proprietary asset decoding. Data version 8
-publishes native assets under `port_data` and removes their substituted originals
-from `data`. The PS2 source and include trees remain unchanged.
+Kazarov's Rust extractor owns proprietary asset decoding. Data version 9
+publishes native assets and the retained retail files together in one archive,
+`data.zip` ([format](PORT_ARCHIVE_FORMAT.md)), and leaves out their substituted
+originals. The PS2 source and include trees remain unchanged.
 
 | Retail asset | Published representation |
 | --- | --- |
@@ -41,7 +42,7 @@ glTF through fastgltf. Typed JSON commands invoke native gameplay callbacks
 directly. Directory APIs enumerate actual members. They do not reconstruct
 proprietary files or decode binary PACK structures.
 
-Datapacks replace assets by their physical paths relative to `port_data`.
+Datapacks replace assets by their entry names in `data.zip`.
 WAV-only and glTF-only replacements are supported. External references in
 replacement glTF files follow the same datapack priority. Loaders validate
 candidates and fall back to lower-priority assets when supported replacements

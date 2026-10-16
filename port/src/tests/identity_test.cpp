@@ -62,7 +62,7 @@ TEST(NativeIcon, ActualTitleModelUsesValidDatapackThenRetailFallback) {
     const auto source = GameDataIconSource();
     ASSERT_EQ(source.packs, std::vector<fs::path>{"title"});
     EXPECT_STREQ(source.member, "dc2_ic.gltf");
-    auto pixels = GameIconFromData(datapacks::Root(), source, 32);
+    auto pixels = GameIconFromData(source, 32);
     ASSERT_EQ(pixels.size(), 32u * 32u * 4u);
     auto channel = [](const auto &rgba, int component) {
         unsigned total = 0;
@@ -73,9 +73,9 @@ TEST(NativeIcon, ActualTitleModelUsesValidDatapackThenRetailFallback) {
     };
     EXPECT_GT(channel(pixels, 1), channel(pixels, 0));
     std::ofstream(root / "datapacks/icon/title/dc2_ic.gltf") << "invalid model";
-    pixels = GameIconFromData(datapacks::Root(), source, 32);
+    pixels = GameIconFromData(source, 32);
     ASSERT_EQ(pixels.size(), 32u * 32u * 4u);
     EXPECT_GT(channel(pixels, 0), channel(pixels, 1));
     fs::remove(root / "port_data/title/dc2_ic.gltf");
-    EXPECT_TRUE(GameIconFromData(datapacks::Root(), source, 32).empty());
+    EXPECT_TRUE(GameIconFromData(source, 32).empty());
 }

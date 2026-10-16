@@ -81,7 +81,7 @@ TEST_F(TextureDocumentFixture, ReadsDistinctNativeJsonDocumentsBeneathArchiveDir
     }) {
         const auto physical = DataReadFind(relative);
         ASSERT_TRUE(physical);
-        EXPECT_TRUE(std::filesystem::equivalent(*physical, native / relative));
+        EXPECT_TRUE(std::filesystem::equivalent(*vfs::HostPath(*physical), native / relative));
         std::array<u_long128, 128> buffer{};
         std::string                path(relative);
         int                        size = -1;
@@ -133,11 +133,12 @@ TEST_F(TextureDocumentFixture, ResolvesNestedTextureByExplicitJsonPath) {
 
     const auto physical = DataReadFind(relative.data());
     ASSERT_TRUE(physical);
-    EXPECT_TRUE(std::filesystem::equivalent(*physical, native / relative));
+    EXPECT_TRUE(std::filesystem::equivalent(*vfs::HostPath(*physical), native / relative));
     const auto *source = texture_catalog::Find(relative);
     ASSERT_NE(source, nullptr);
     ASSERT_EQ(source->entries.size(), 1u);
     EXPECT_EQ(source->entries[0].name, "knife");
-    EXPECT_EQ(source->entries[0].variants[0].levels[0], native / "dungeon/eff_script/e211aex_knife_0.png");
+    EXPECT_EQ(source->entries[0].variants[0].levels[0].path, "dungeon/eff_script/e211aex_knife_0.png");
+    EXPECT_TRUE(std::filesystem::equivalent(*vfs::HostPath(source->entries[0].variants[0].levels[0].file), native / "dungeon/eff_script/e211aex_knife_0.png"));
     EXPECT_EQ(texture_catalog::Find("dungeon/eff_script/e211aex_knife.chr#offset:80"), nullptr);
 }

@@ -20,6 +20,8 @@ struct DecodedTexture;
 /** Decodes a native set's selected image into a host RGBA canvas. */
 using MgTextureImageDecoder = std::function<bool(const texture_catalog::Entry &, std::size_t,
                                                  datapacks::DecodedTexture &, std::string &)>;
+/** Names the exact pixels the decoder produces for an entry's variant, or returns an empty string when unknown. */
+using MgTextureImageIdentity = std::function<std::string(const texture_catalog::Entry &, std::size_t)>;
 
 struct MgTextureHandles {
     gfx::TextureHandle texture = gfx::kNullTexture;
@@ -67,9 +69,11 @@ int MgTextureEnterDocument(mgCTextureManager *manager, std::string_view relative
  * The caller keeps the source entries alive until the textures are deleted.
  * Identical native pictures reuse their header; changed content replaces it in place.
  * Variant switches reuse the validated decoded pixels.
+ * When identity names every variant, a registered picture with the same semantics and identities is reused
+ * without decoding.
  */
 int MgTextureEnterNativeSet(mgCTextureManager *manager, int block, const texture_catalog::Source &source,
-                            mgCMemory *stack, MgTextureImageDecoder decoder);
+                            mgCMemory *stack, MgTextureImageDecoder decoder, MgTextureImageIdentity identity = {});
 
 /**
  * Describes a padded texture canvas in texels.

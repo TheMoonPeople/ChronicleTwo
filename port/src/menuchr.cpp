@@ -1,28 +1,29 @@
 #include "menuchr.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <limits>
+
 #include "actionchara.hpp"
 #include "dataread_port.hpp"
 #include "dng_effect.hpp"
 #include "dng_main.hpp"
 #include "mainloop.hpp"
 #include "mainloop_port.hpp"
-#include "menudraw.hpp"
 #include "menu_character_assets.hpp"
 #include "menuchr_port.hpp"
-#include "mglib.hpp"
+#include "menudraw.hpp"
 #include "mg_texture.hpp"
+#include "mglib.hpp"
 #include "platform/arena.hpp"
 #include "platform/model_assets.hpp"
 #include "prespr.hpp"
 #include "quick_loadout.hpp"
 #include "swordeffect.hpp"
 #include "userdata.hpp"
-
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <limits>
 
 namespace {
 
@@ -38,41 +39,50 @@ bool quick_change_pending = false;
 // The character the pending quick change loads, for the banner that names it afterwards.
 int quick_change_chara = -1;
 
-// The banner naming the new character: retail's "change" logo row slides in from the left over a translucent
-// strip along the bottom of the screen, rests, and slides out to the right, while the game keeps running.
-// Retail slid it across the middle of the frozen screen while the disc reads ran. Ticks of 1/60 s.
-constexpr int kBannerWidth = 0x100;
-constexpr int kBannerHeight = 0x40;
-constexpr int kBannerBottomMargin = 40;
+// Character-change banner layout and slide timing in native gameplay ticks.
+constexpr int   kBannerWidth = 0x100;
+constexpr int   kBannerHeight = 0x40;
+constexpr int   kBannerBottomMargin = 40;
 constexpr float kBannerSlideInSpeed = 18.0f;
 constexpr float kBannerSlideOutSpeed = 24.0f;
-constexpr int kBannerHoldTicks = 50;
-constexpr int kBannerStripAlpha = 0x48;
-constexpr int kBannerStripPad = 6;
-enum BannerPhase { BANNER_IN, BANNER_HOLD, BANNER_OUT };
-int banner_chara = -1;
-int banner_loop = -1;
-int banner_phase = BANNER_IN;
-int banner_hold = 0;
+constexpr int   kBannerHoldTicks = 50;
+constexpr int   kBannerStripAlpha = 0x48;
+constexpr int   kBannerStripPad = 6;
+
+/**
+ * Character-change banner slide phase.
+ */
+enum BannerPhase {
+    BANNER_IN,   /**< Sliding in from the left edge. */
+    BANNER_HOLD, /**< Resting at the bottom centre. */
+    BANNER_OUT   /**< Sliding out past the right edge. */
+};
+
+int   banner_chara = -1;
+int   banner_loop = -1;
+int   banner_phase = BANNER_IN;
+int   banner_hold = 0;
 float banner_x = 0.0f;
 
-// Dark Cloud's change effect, adapted: the new character starts lit white and fades back to its own colours
-// while a splash of stars bursts out and up around it. Game frames.
-constexpr int kChangeFadeFrames = 24;
-constexpr int kChangeSparkFrames = 2;
-constexpr int kChangeSparksPerFrame = 18;
-constexpr int kChangeSparkMax = 64;
+// Character-change effect timing in game frames, adapted from Dark Cloud's GAME_TASK_CHARA_CHANGED.
+constexpr int   kChangeFadeFrames = 24;
+constexpr int   kChangeSparkFrames = 2;
+constexpr int   kChangeSparksPerFrame = 18;
+constexpr int   kChangeSparkMax = 64;
 constexpr float kChangeSparkGravity = 0.07f;
 constexpr float kChangeSparkDrag = 0.95f;
-constexpr int kChangeSparkAlpha = 0x50;
+constexpr int   kChangeSparkAlpha = 0x50;
 
+/**
+ * One star of the character-change splash.
+ */
 struct alignas(16) ChangeSpark {
-    float pos[4]; // Offset from the character's position, so the sparkles move with it.
-    float vel[4];
-    float size;
-    float phase;
-    int   age;
-    int   life;
+    float pos[4]; /**< Offset from the character's position. */
+    float vel[4]; /**< Per-frame movement. */
+    float size;   /**< Screen sprite size before twinkling. */
+    float phase;  /**< Twinkle phase in radians. */
+    int   age;    /**< Frames since the star spawned. */
+    int   life;   /**< Frames the star lives. */
 };
 
 ChangeSpark change_sparks[kChangeSparkMax];
@@ -82,7 +92,7 @@ int         change_fx_loop = -1;
 int         change_fade_frames = 0;
 int         change_spark_frames = 0;
 
-// More steps than retail's slowest change needs: its loader phases plus the "change" logo crossing the screen.
+// Maximum synchronous loading steps before normal menu pacing resumes.
 constexpr int kQuickChangeMaxSteps = 256;
 
 } // namespace
@@ -123,8 +133,8 @@ void PortPrepareMenuCharacterArena(mgCMemory &memory, const void *model, const c
 }
 
 void PortRetailInitMainCharaBG(int, mgCMemory *, int) asm("MenuChr_InitMainCharaBG");
-int PortRetailKeyMainCharaBG() asm("MenuChr_KeyMainCharaBG");
-int PortRetailChangeSetUnit(int) asm("DngMain_ChangeSetUnit");
+int  PortRetailKeyMainCharaBG() asm("MenuChr_KeyMainCharaBG");
+int  PortRetailChangeSetUnit(int) asm("DngMain_ChangeSetUnit");
 
 PORT_OVERRIDE void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffers, int chara) {
     int capacities[MENU_CHARA_LOAD_MAX]{};
@@ -172,15 +182,13 @@ PORT_OVERRIDE void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory 
     rest->lock = 0;
 }
 
-// Retail paces a quick change (Max and Monica on L3, the Ridepod and the monster form on R3) one menu
-// frame at a time: on the PS2 the frames hide the disc reads, and the "change" logo slides across the
-// frozen screen until the reads are done. Natively the reads finish when they are issued, so the
-// frozen screen is only the logo's slide. Note whether this change will load anything, as retail's
-// NowMainCharaChngStatusBit does, so KeyMainCharaBG can tell a load from the "cannot change" message.
+/**
+ * Starts a character change and records whether it can use synchronous loading.
+ */
 PORT_OVERRIDE void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     quick_change_pending = false;
 
-    if (stack != NULL) {
+    if (stack != nullptr) {
         int reason;
         quick_change_pending = (GetUserDataMan()->CheckQuickChange(chara_no, &reason) & QUICK_CHANGE_STATE_ENABLED) != 0;
         quick_change_chara = chara_no;
@@ -189,9 +197,9 @@ PORT_OVERRIDE void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
     PortRetailInitMainCharaBG(chara_no, stack, mode);
 }
 
-// Runs the whole quick change in one menu frame: retail's own steps, back to back, so the game resumes
-// on the next frame with the new character. The "cannot change" message keeps retail's pacing, and so
-// does a change that has not finished after kQuickChangeMaxSteps.
+/**
+ * Completes an eligible quick change within a bounded number of loading steps.
+ */
 PORT_OVERRIDE int KeyMainCharaBG() {
     if (!quick_change_pending) {
         const int done = PortRetailKeyMainCharaBG();
@@ -210,7 +218,7 @@ PORT_OVERRIDE int KeyMainCharaBG() {
                 banner_loop = PortLoopNo;
                 banner_phase = BANNER_IN;
                 banner_hold = 0;
-                banner_x = (float) -kBannerWidth;
+                banner_x = static_cast<float>(-kBannerWidth);
             }
             PortQuickLoadoutReloadDone();
             change_fx_pending = true;
@@ -224,14 +232,18 @@ PORT_OVERRIDE int KeyMainCharaBG() {
     return 0;
 }
 
-extern CMenuPosDataManage *MenuPosData;
-
 namespace {
 
+/**
+ * Reports whether the last quick change's effect is still playing.
+ */
 bool ChangeEffectRunning() {
     return change_fx_pending || change_fade_frames > 0 || change_spark_frames > 0 || change_spark_count > 0;
 }
 
+/**
+ * Ends the character-change effect and discards its stars.
+ */
 void StopChangeEffect() {
     change_fx_pending = false;
     change_fade_frames = 0;
@@ -239,7 +251,9 @@ void StopChangeEffect() {
     change_spark_count = 0;
 }
 
-// A splash: each star bursts from around the character's waist, out and up, and falls back as it fades.
+/**
+ * Spawns one star bursting out and up from around the character's waist.
+ */
 void SpawnChangeSpark(CActionChara *chara) {
     if (change_spark_count >= kChangeSparkMax) {
         return;
@@ -260,10 +274,12 @@ void SpawnChangeSpark(CActionChara *chara) {
     spark.size = 3.0f + fRand(2.5f);
     spark.phase = fRand(2.0f * PI);
     spark.age = 0;
-    spark.life = 26 + (int) fRand(10.0f);
+    spark.life = 26 + static_cast<int>(fRand(10.0f));
 }
 
-// Moves and ages the stars; +y is up.
+/**
+ * Moves and ages the stars, dropping those that have expired.
+ */
 void StepChangeSparks() {
     int kept = 0;
 
@@ -280,6 +296,7 @@ void StepChangeSparks() {
         spark.pos[2] += spark.vel[2];
         spark.vel[0] *= kChangeSparkDrag;
         spark.vel[2] *= kChangeSparkDrag;
+        // +y is up.
         spark.vel[1] -= kChangeSparkGravity;
         change_sparks[kept++] = spark;
     }
@@ -287,15 +304,17 @@ void StepChangeSparks() {
     change_spark_count = kept;
 }
 
-// Each sparkle is a soft four-pointed star, untextured so it needs no loop's effect texture: a faint warm
-// centre fading to clear tips, added over the scene and hidden behind nearer geometry.
+/**
+ * Draws the stars as soft additive four-pointed fans, depth-tested against the scene.
+ */
 void DrawChangeSparks(const sceVu0FVECTOR base) {
     if (change_spark_count <= 0) {
         return;
     }
 
+    // Untextured, so the stars need no effect texture from the current loop.
     CPreSprite prim;
-    prim.Initialize(NULL, NULL);
+    prim.Initialize(nullptr, nullptr);
     prim.Preset2D();
     prim.Coord(1);
     prim.DepthTestEnable(1);
@@ -305,14 +324,14 @@ void DrawChangeSparks(const sceVu0FVECTOR base) {
     prim.AlphaBlend(MG_ALPHA_BLEND_ADD);
 
     for (int i = 0; i < change_spark_count; i++) {
-        ChangeSpark &spark = change_sparks[i];
-        const float  t = (float) spark.age / (float) spark.life;
-        const float  envelope = t < 0.08f ? t / 0.08f : t < 0.5f ? 1.0f : 1.0f - (t - 0.5f) / 0.5f;
-        const float  twinkle = 0.75f + 0.25f * sinf(spark.phase + 0.9f * (float) spark.age);
-        const int    alpha = (int) ((float) kChangeSparkAlpha * envelope * twinkle);
-        const float  size = spark.size * twinkle;
-        int          top_left[4];
-        int          bottom_right[4];
+        ChangeSpark  &spark = change_sparks[i];
+        const float   t = static_cast<float>(spark.age) / static_cast<float>(spark.life);
+        const float   envelope = t < 0.08f ? t / 0.08f : std::min(1.0f, 2.0f - 2.0f * t);
+        const float   twinkle = 0.75f + 0.25f * sinf(spark.phase + 0.9f * static_cast<float>(spark.age));
+        const int     alpha = static_cast<int>(static_cast<float>(kChangeSparkAlpha) * envelope * twinkle);
+        const float   size = spark.size * twinkle;
+        int           top_left[4];
+        int           bottom_right[4];
         sceVu0FVECTOR world;
         world[0] = base[0] + spark.pos[0];
         world[1] = base[1] + spark.pos[1];
@@ -329,15 +348,16 @@ void DrawChangeSparks(const sceVu0FVECTOR base) {
         const int ry = std::abs(bottom_right[1] - top_left[1]) / 2;
         int       vertex[4] = {cx, cy, top_left[2], top_left[3]};
 
+        // A warm centre fading to clear tips, with dimmer notches between the four points.
         prim.Begin(MG_PRIM_TRIANGLE_FAN);
         prim.Color(0xFF, 0xF4, 0xD0, alpha);
         prim.Vertex4(vertex);
 
         for (int k = 0; k <= 8; k++) {
-            const float angle = (float) (k % 8) * (PI / 4.0f);
+            const float angle = static_cast<float>(k % 8) * (PI / 4.0f);
             const float reach = (k % 2) == 0 ? 1.0f : 0.22f;
-            vertex[0] = cx + (int) ((float) rx * reach * sinf(angle));
-            vertex[1] = cy - (int) ((float) ry * reach * cosf(angle));
+            vertex[0] = cx + static_cast<int>(static_cast<float>(rx) * reach * sinf(angle));
+            vertex[1] = cy - static_cast<int>(static_cast<float>(ry) * reach * cosf(angle));
             prim.Color(0xFF, 0xF4, 0xD0, (k % 2) == 0 ? 0 : alpha / 2);
             prim.Vertex4(vertex);
         }
@@ -348,16 +368,24 @@ void DrawChangeSparks(const sceVu0FVECTOR base) {
 
 } // namespace
 
+/**
+ * Clears the character-change banner and effect before a gameplay mode transition.
+ */
 void PortCancelQuickChangeBanner() {
     banner_chara = -1;
     StopChangeEffect();
 }
 
+/**
+ * Reports whether a new quick change must wait for the last one's effect.
+ */
 bool PortQuickChangeCoolingDown() {
     return ChangeEffectRunning();
 }
 
-// No new quick change until the effect of the last one has played out, so the button cannot be mashed.
+/**
+ * Refuses a dungeon quick change while the last one's effect is still playing.
+ */
 PORT_OVERRIDE int ChangeSetUnit(int change) {
     if (ChangeEffectRunning()) {
         return -1;
@@ -366,33 +394,32 @@ PORT_OVERRIDE int ChangeSetUnit(int change) {
     return PortRetailChangeSetUnit(change);
 }
 
-// Starts the change effect on the first game frame after the change, once the menu has closed. Dark Cloud's
-// version (gameloop.cpp, GAME_TASK_CHARA_CHANGED) pulses the ambient light toward white and plays its ceffe_s
-// sparkle model; here the character's own palette animation fades from white, with a splash of stars around it.
-// The fade is reapplied every frame from its own count, so a character set up again meanwhile still gets it.
+/**
+ * Plays the character-change effect: a fade from white and a splash of stars around the new character.
+ */
 void PortStepQuickChangeEffect() {
     if (PortLoopNo != change_fx_loop) {
         StopChangeEffect();
         return;
     }
 
-    if (MenuPosData != NULL) {
+    if (MenuPosData != nullptr) {
         return;
     }
 
     CScene       *scene = GetMainScene();
-    const int     index = scene != NULL && scene->player_chara >= 0 ? scene->player_chara : 0;
-    CActionChara *chara = scene != NULL ? (CActionChara *) scene->GetCharacter(index) : NULL;
+    const int     index = scene != nullptr && scene->player_chara >= 0 ? scene->player_chara : 0;
+    CActionChara *chara = scene != nullptr ? static_cast<CActionChara *>(scene->GetCharacter(index)) : nullptr;
 
-    if (chara == NULL) {
+    if (chara == nullptr) {
         StopChangeEffect();
         return;
     }
 
     if (change_fx_pending) {
         change_fx_pending = false;
-        // The town cross-fades from a capture of the old character after a change; the effect takes its place.
-        // The end code that asks for it must stay: MenuMainExit reads MENU_END_CHARA_CHANGE as a menu choice.
+        // The effect replaces the town's cross-fade from the old character. The menu end code that requests the
+        // cross-fade must stay, since MenuMainExit reads MENU_END_CHARA_CHANGE as a menu choice.
         if (scene->fade.cross) {
             scene->fade.ResetFade();
         }
@@ -402,7 +429,7 @@ void PortStepQuickChangeEffect() {
     }
 
     if (change_fade_frames > 0) {
-        // The falling half of one white pulse: the character comes in white and fades to its colours.
+        // The falling half of one white pulse, reapplied every frame so a character set up again still gets it.
         CPalletAnime &fade = chara->pallet[ACTION_PALLET_MAX - 1];
         fade.SetAnim(0xFF, 0xFF, 0xFF, 1, kChangeFadeFrames * 2, 0);
         fade.elapsed = kChangeFadeFrames * 2 - change_fade_frames;
@@ -424,8 +451,9 @@ void PortStepQuickChangeEffect() {
     DrawChangeSparks(base);
 }
 
-// Draws the banner at the bottom of the screen while the game runs. A menu opened meanwhile hides it and keeps
-// its slide going, so it never comes back after a menu such as the dungeon's floor gate; a mode change drops it.
+/**
+ * Slides the active character-change banner across the bottom of the screen while its gameplay mode remains active.
+ */
 void PortDrawQuickChangeBanner() {
     if (banner_chara < 0) {
         return;
@@ -437,11 +465,12 @@ void PortDrawQuickChangeBanner() {
     }
 
     const int   ticks = mgFrameRate > 0 ? mgFrameRate : 1;
-    const float rest_x = (float) ((mgScreenWidth - kBannerWidth) / 2);
+    const float rest_x = static_cast<float>((mgScreenWidth - kBannerWidth) / 2);
 
+    // An open menu hides the banner without pausing its slide.
     switch (banner_phase) {
         case BANNER_IN:
-            banner_x += kBannerSlideInSpeed * (float) ticks;
+            banner_x += kBannerSlideInSpeed * static_cast<float>(ticks);
             if (banner_x >= rest_x) {
                 banner_x = rest_x;
                 banner_phase = BANNER_HOLD;
@@ -454,23 +483,23 @@ void PortDrawQuickChangeBanner() {
             }
             break;
         default:
-            banner_x += kBannerSlideOutSpeed * (float) ticks;
+            banner_x += kBannerSlideOutSpeed * static_cast<float>(ticks);
             break;
     }
 
-    if (banner_x >= (float) mgScreenWidth) {
+    if (banner_x >= static_cast<float>(mgScreenWidth)) {
         banner_chara = -1;
         return;
     }
 
-    if (MenuPosData != NULL) {
+    if (MenuPosData != nullptr) {
         return;
     }
 
     static char logo_name[] = "change_logo";
     mgCTexture *logo = mgTexManager.GetTexture(logo_name, -1);
 
-    if (logo == NULL) {
+    if (logo == nullptr) {
         return;
     }
 
@@ -479,16 +508,16 @@ void PortDrawQuickChangeBanner() {
     if (banner_phase == BANNER_IN) {
         strip = (banner_x + kBannerWidth) / (rest_x + kBannerWidth);
     } else if (banner_phase == BANNER_OUT) {
-        strip = 1.0f - (banner_x - rest_x) / ((float) mgScreenWidth - rest_x);
+        strip = 1.0f - (banner_x - rest_x) / (static_cast<float>(mgScreenWidth) - rest_x);
     }
-    strip = strip < 0.0f ? 0.0f : strip > 1.0f ? 1.0f : strip;
+    strip = std::clamp(strip, 0.0f, 1.0f);
 
-    const float top = (float) (mgScreenHeight - kBannerHeight - kBannerBottomMargin);
-    DrawMenuFillBox(0.0f, top + kBannerStripPad, (float) mgScreenWidth, (float) (kBannerHeight - 2 * kBannerStripPad),
-                    (int) (kBannerStripAlpha * strip), 0, 0, 0);
+    const float top = static_cast<float>(mgScreenHeight - kBannerHeight - kBannerBottomMargin);
+    DrawMenuFillBox(0.0f, top + kBannerStripPad, static_cast<float>(mgScreenWidth),
+                    static_cast<float>(kBannerHeight - 2 * kBannerStripPad), static_cast<int>(kBannerStripAlpha * strip), 0, 0, 0);
 
     mgRect<int> row;
     row.Set(0, banner_chara * kBannerHeight, kBannerWidth, kBannerHeight);
-    mgTexManager.ReloadTexture(logo->block, (sceVif1Packet *) NULL);
+    mgTexManager.ReloadTexture(logo->block, static_cast<sceVif1Packet *>(nullptr));
     PrimQuad(logo, banner_x, top, row, 0x80, 0x80, 0x80, 0x80);
 }

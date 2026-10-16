@@ -8,9 +8,11 @@ void PortDrawQuickChangeBanner();
  * Discards the quick-change banner before entering another gameplay mode.
  */
 void PortCancelQuickChangeBanner();
-
-// Plays the effect on the character a quick change switched to: a fade from white and a splash of stars.
+/**
+ * Plays the quick-change effect on the new character: a fade from white and a splash of stars.
+ */
 void PortStepQuickChangeEffect();
-
-// Whether the last quick change is still playing its effect; no new quick change starts until it ends.
+/**
+ * Reports whether a new quick change must wait for the last one's effect to end.
+ */
 bool PortQuickChangeCoolingDown();

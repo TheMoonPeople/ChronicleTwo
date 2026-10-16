@@ -7,12 +7,16 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cmath>
+#include <cstdint>
+#include <cstdio>
 #include <cstring>
-#include <fstream>
 #include <limits>
 #include <memory>
+#include <span>
 #include <stdexcept>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -50,6 +54,40 @@ std::array<float, 4> NativeRotation(const std::array<float, 4> &quaternion) {
 }
 
 /**
+ * Names byte contents by two independent 64-bit hashes and their length.
+ */
+std::string ContentHash(std::span<const std::byte> bytes) {
+    constexpr std::uint64_t prime1 = 0x9E3779B185EBCA87ull, prime2 = 0xC2B2AE3D27D4EB4Full, fnv = 0x100000001B3ull;
+    std::uint64_t           mixed = prime1 ^ bytes.size(), folded = 0xCBF29CE484222325ull;
+    const auto              absorb = [&](std::uint64_t word) {
+        mixed = std::rotl(mixed + word * prime2, 31) * prime1;
+        folded = (folded ^ word) * fnv;
+    };
+    std::size_t offset = 0;
+    for (; offset + 8 <= bytes.size(); offset += 8) {
+        std::uint64_t word;
+        std::memcpy(&word, bytes.data() + offset, sizeof(word));
+        absorb(word);
+    }
+    if (offset < bytes.size()) {
+        std::uint64_t word = 0;
+        std::memcpy(&word, bytes.data() + offset, bytes.size() - offset);
+        absorb(word ^ (std::uint64_t{0xFF} << 56));
+    }
+    const auto avalanche = [](std::uint64_t value) {
+        value ^= value >> 33;
+        value *= 0xFF51AFD7ED558CCDull;
+        value ^= value >> 33;
+        value *= 0xC4CEB9FE1A85EC53ull;
+        return value ^ (value >> 33);
+    };
+    char text[48];
+    std::snprintf(text, sizeof(text), "%016llx%016llx:%llu", static_cast<unsigned long long>(avalanche(mixed)),
+                  static_cast<unsigned long long>(avalanche(folded)), static_cast<unsigned long long>(bytes.size()));
+    return text;
+}
+
+/**
  * A standard glTF document and its adjacent native gameplay semantics.
  */
 struct Document : std::enable_shared_from_this<Document> {
@@ -61,11 +99,13 @@ struct Document : std::enable_shared_from_this<Document> {
     Json                                                                       metadata;              /**< Engine-specific decoded model information. */
     std::filesystem::path                                                      relative;              /**< Model path used to resolve external resources. */
     bool                                                                       overlaid = false;      /**< Whether a datapack supplies this model document. */
-    std::size_t                                                                node_offset = 0;       /**< First standard node belonging to the selected native model. */
+    std::string                                                                source;                /**< Datapack glTF path, size and write time naming its embedded images. */
+    std::size_t                                                                node_offset = 0;      /**< First standard node belonging to the selected native model. */
     std::unordered_map<std::size_t, std::size_t>                               rotation_nodes;        /**< Standard rotation helpers mapped to their original gameplay frame. */
     std::vector<std::size_t>                                                   frame_nodes;           /**< Standard scene nodes mapped to native frames when gameplay identities are absent. */
     std::optional<fastgltf::Node>                                              scene_root;            /**< Identity parent joining multiple roots of a standard scene. */
     bool                                                                       standard_only = false; /**< Whether the standard scene supplies all model identities. */
+    mutable std::unordered_map<std::size_t, std::string>                       embedded_keys;         /**< Content identities of embedded images by standard image index. */
 
     explicit Document(std::shared_ptr<fastgltf::Asset> input) : storage(std::move(input)), asset(*storage) {}
 };
@@ -248,9 +288,27 @@ std::filesystem::path Relative(const std::string &name) {
 }
 
 /**
+ * Resolves a glTF URI reference against its document's directory, allowing ".." components that stay inside the
+ * data namespace.
+ */
+std::string Reference(const std::filesystem::path &relative, std::string_view uri) {
+    const std::filesystem::path path(std::u8string(uri.begin(), uri.end()));
+    if (uri.empty() || path.is_absolute() || path.has_root_name() || path.has_root_directory() ||
+        uri.find_first_of(":\\") != std::string_view::npos) {
+        throw std::runtime_error("unsafe asset reference: " + std::string(uri));
+    }
+    const auto  normal = (relative.parent_path() / path).lexically_normal().generic_u8string();
+    std::string name(normal.begin(), normal.end());
+    if (!vfs::SafeRelative(name)) {
+        throw std::runtime_error("asset reference leaves the data: " + std::string(uri));
+    }
+    return name;
+}
+
+/**
  * Resolves a converted asset through the configured datapack priority.
  */
-std::filesystem::path Asset(const std::filesystem::path &path) {
+vfs::Ref Asset(const std::filesystem::path &path) {
     auto asset = datapacks::Asset(path);
     if (!asset) {
         throw std::runtime_error("missing asset: " + path.generic_string());
@@ -267,6 +325,7 @@ std::shared_ptr<Document> SelectModel(const std::shared_ptr<Document> &source, s
     selected->images = source->images;
     selected->relative = source->relative;
     selected->overlaid = source->overlaid;
+    selected->source = source->source;
     if (!index && source->custom->contains("models") && source->custom->at("models").empty()) {
         selected->metadata = {
             {"frames", Json::array()},
@@ -340,6 +399,84 @@ const fastgltf::Node &ContentNode(const Document &document, std::size_t frame) {
 }
 
 /**
+ * Parses the highest-priority valid gameplay sidecar and names the exact file contents it came from.
+ */
+std::shared_ptr<const Json> ParseGameplay(const std::filesystem::path &gltf, std::string &error, std::string &identity) {
+    auto sidecar = gltf;
+    sidecar.replace_extension(".game.json");
+    error = "native gameplay JSON missing: " + sidecar.generic_string();
+    identity.clear();
+    for (const auto &path : datapacks::Candidates(sidecar)) {
+        std::vector<uint8_t> bytes;
+        if (!datapacks::ReadFileBytes(path, bytes)) {
+            continue;
+        }
+        try {
+            auto game = std::make_shared<Json>(Json::parse(bytes.begin(), bytes.end()));
+            if (game->at("schema_version") != 1) {
+                throw std::runtime_error("unsupported native gameplay schema");
+            }
+            auto validate_model = [](const Json &model) {
+                if (!model.at("frames").is_array() || !model.at("meshes").is_array()) {
+                    throw std::runtime_error("invalid native gameplay model");
+                }
+                std::size_t index = 0;
+                for (const auto &frame : model.at("frames")) {
+                    if (frame.contains("id") && (!frame.at("id").is_number_integer() || frame.at("id").get<std::size_t>() != index)) {
+                        throw std::runtime_error("invalid native frame ID");
+                    }
+                    if (!frame.at("mdt").is_null() && (!frame.at("mdt").is_number_integer() || frame.at("mdt").get<std::size_t>() >= model.at("meshes").size())) {
+                        throw std::runtime_error("invalid native mesh ID");
+                    }
+                    ++index;
+                }
+                for (const auto &mesh : model.at("meshes")) {
+                    if (!mesh.at("primitives").is_array() || !mesh.at("materials").is_array()) {
+                        throw std::runtime_error("invalid native mesh records");
+                    }
+                    for (const auto *count : {"vertex_count", "normal_count", "uv_count", "colour_count"}) {
+                        if (!mesh.at(count).is_number_integer() || mesh.at(count).get<std::int64_t>() < 0) {
+                            throw std::runtime_error("invalid native stream count");
+                        }
+                    }
+                    for (const auto &primitive : mesh.at("primitives")) {
+                        const char *counts[] = {"vertex_count", "normal_count", "uv_count", "colour_count"};
+                        std::size_t stream = 0;
+                        for (const auto *mapping : {"source_vertices", "source_normals", "source_uvs", "source_colours"}) {
+                            if (!primitive.at(mapping).is_array()) {
+                                throw std::runtime_error("invalid native stream identities");
+                            }
+                            for (const auto &identity : primitive.at(mapping)) {
+                                if (!identity.is_number_integer() || identity.get<std::size_t>() >= mesh.at(counts[stream]).get<std::size_t>()) {
+                                    throw std::runtime_error("invalid native stream identity");
+                                }
+                            }
+                            ++stream;
+                        }
+                    }
+                }
+            };
+            if (game->contains("models")) {
+                if (!game->at("models").is_array() || !game->at("profiles").is_object() || !game->at("resources").is_object()) {
+                    throw std::runtime_error("invalid native character gameplay JSON");
+                }
+                for (const auto &model : game->at("models")) {
+                    validate_model(model);
+                }
+            } else {
+                validate_model(*game);
+            }
+            error.clear();
+            identity = datapacks::ImageDecodeKey("gameplay", std::span(&path, 1));
+            return game;
+        } catch (const std::exception &exception) {
+            error = exception.what();
+        }
+    }
+    return nullptr;
+}
+
+/**
  * Parses actual glTF bytes alongside explicit native gameplay semantics.
  */
 std::shared_ptr<Document> ReadBytes(std::span<const std::byte> bytes, const Json &custom, const std::filesystem::path &relative = {}, bool overlaid = false) {
@@ -354,7 +491,8 @@ std::shared_ptr<Document> ReadBytes(std::span<const std::byte> bytes, const Json
         throw std::runtime_error("cannot read native glTF bytes");
     }
     fastgltf::Parser parser;
-    auto             parsed = parser.loadGltf(input.get(), datapacks::Root() / relative.parent_path(), fastgltf::Options::None);
+    // External buffers and images are resolved through datapack priority below, not by the parser.
+    auto parsed = parser.loadGltf(input.get(), {}, fastgltf::Options::None);
     if (parsed.error() != fastgltf::Error::None) {
         throw std::runtime_error("invalid glTF: " + std::string(fastgltf::getErrorMessage(parsed.error())));
     }
@@ -365,11 +503,13 @@ std::shared_ptr<Document> ReadBytes(std::span<const std::byte> bytes, const Json
     document->overlaid = overlaid;
     for (auto &buffer : document->asset.buffers) {
         if (auto *uri = std::get_if<fastgltf::sources::URI>(&buffer.data)) {
-            std::ifstream     binary(Asset(relative.parent_path() / Relative(std::string(uri->uri.path()))), std::ios::binary);
-            std::vector<char> data((std::istreambuf_iterator<char>(binary)), {});
+            std::vector<uint8_t> data;
+            datapacks::ReadFileBytes(Asset(Reference(relative, uri->uri.path())), data);
             if (data.size() < buffer.byteLength) {
                 throw std::runtime_error("truncated glTF buffer");
             }
+            datapacks::Trace("model.buffer_reads");
+            datapacks::Trace("model.buffer_bytes", data.size());
             fastgltf::sources::Vector storage;
             storage.bytes.resize(data.size());
             std::memcpy(storage.bytes.data(), data.data(), data.size());
@@ -388,18 +528,18 @@ std::shared_ptr<Document> ReadBytes(std::span<const std::byte> bytes, const Json
 std::shared_ptr<Document> Read(const std::filesystem::path &relative, bool allow_standard = false) {
     std::string error = "native glTF asset missing: " + relative.generic_string();
     for (const auto &path : datapacks::Candidates(relative)) {
-        if (!std::filesystem::is_regular_file(path)) {
+        if (!vfs::Size(path)) {
             continue;
         }
         try {
-            std::string sidecar_error;
-            auto        game = ReadGameplay(relative, sidecar_error);
+            std::string sidecar_error, sidecar_identity;
+            auto        game = ParseGameplay(relative, sidecar_error, sidecar_identity);
             const bool  standard_only = !game;
             if (!game) {
                 auto sidecar = relative;
                 sidecar.replace_extension(".game.json");
                 const auto candidates = datapacks::Candidates(sidecar);
-                if (!allow_standard || std::ranges::any_of(candidates, [](const auto &candidate) { return std::filesystem::is_regular_file(candidate); })) {
+                if (!allow_standard || !candidates.empty()) {
                     throw std::runtime_error(sidecar_error);
                 }
                 game = std::make_shared<Json>(Json{
@@ -408,15 +548,22 @@ std::shared_ptr<Document> Read(const std::filesystem::path &relative, bool allow
                     {"meshes",         Json::array()}
                 });
             }
-            const auto key = path.generic_string() + std::to_string(static_cast<long long>(std::filesystem::last_write_time(path).time_since_epoch().count())) + std::to_string(std::hash<std::string>{}(game->dump()));
+            const auto stamp = path.Display() + '|' + vfs::Stamp(path);
+            const auto key = stamp + '|' + (standard_only ? std::string("standard") : sidecar_identity);
             if (const auto found = documents.find(key); found != documents.end()) {
                 return found->second;
             }
-            std::ifstream     input(path, std::ios::binary);
-            std::vector<char> data((std::istreambuf_iterator<char>(input)), {});
-            auto              document = ReadBytes({reinterpret_cast<const std::byte *>(data.data()), data.size()}, *game, relative,
-                                                   std::filesystem::weakly_canonical(path) != std::filesystem::weakly_canonical(datapacks::Root() / relative));
+            std::vector<uint8_t> data;
+            if (!datapacks::ReadFileBytes(path, data)) {
+                throw std::runtime_error("cannot read native glTF asset: " + relative.generic_string());
+            }
+            datapacks::Trace("model.gltf_reads");
+            datapacks::Trace("model.gltf_bytes", data.size());
+            auto document = ReadBytes(std::as_bytes(std::span(data)), *game, relative, datapacks::IsReplacement(path));
             document->standard_only = standard_only;
+            if (document->overlaid) {
+                document->source = stamp;
+            }
             documents.emplace(key, document);
             return document;
         } catch (const std::exception &exception) {
@@ -607,10 +754,233 @@ Json MeshIdentity(const Document &document, const fastgltf::Node &node, Json det
 }
 
 /**
+ * Encoded glTF image bytes viewed in place, or owned when the image names an external file.
+ */
+struct EmbeddedImage {
+    std::span<const std::byte> bytes;     /**< Encoded PNG bytes, empty for an external image. */
+    std::string                reference; /**< Data path of an external PNG, empty when embedded. */
+};
+
+/**
+ * Views a standard image's encoded bytes without copying embedded data, or names its external PNG unread.
+ */
+EmbeddedImage EmbeddedBytes(const Document &document, std::size_t index) {
+    EmbeddedImage result;
+    std::visit([&](const auto &source) {
+        using T = std::decay_t<decltype(source)>;
+        if constexpr (std::is_same_v<T, fastgltf::sources::Array> || std::is_same_v<T, fastgltf::sources::Vector> || std::is_same_v<T, fastgltf::sources::ByteView>) {
+            result.bytes = std::span<const std::byte>(source.bytes.data(), source.bytes.size());
+        } else if constexpr (std::is_same_v<T, fastgltf::sources::BufferView>) {
+            const auto data = fastgltf::DefaultBufferDataAdapter{}(document.asset, source.bufferViewIndex);
+            result.bytes = std::span<const std::byte>(data.data(), data.size());
+        } else if constexpr (std::is_same_v<T, fastgltf::sources::URI>) {
+            result.reference = Reference(document.relative, source.uri.path());
+        } else {
+            throw std::runtime_error("unsupported embedded image source");
+        }
+    },
+               document.asset.images.at(index).data);
+    return result;
+}
+
+/**
+ * Reads a standard image's dimensions from its encoded header.
+ */
+void ImageExtent(const Document &document, std::size_t index, int &width, int &height) {
+    const auto embedded = EmbeddedBytes(document, index);
+    if (!embedded.reference.empty()) {
+        // The logical extent is the original PNG's; a datapack may enlarge the image it supplies.
+        auto file = vfs::Find(datapacks::Base(), embedded.reference);
+        if (!file) {
+            file = Asset(embedded.reference);
+        }
+        std::array<std::uint8_t, 24> header{};
+        constexpr std::array<std::uint8_t, 8> signature{137, 80, 78, 71, 13, 10, 26, 10};
+        if (!vfs::ReadPrefix(file, header) || !std::equal(signature.begin(), signature.end(), header.begin()) ||
+            !std::equal(header.begin() + 12, header.begin() + 16, "IHDR")) {
+            throw std::runtime_error("invalid glTF PNG: " + embedded.reference);
+        }
+        const auto word = [&](std::size_t offset) {
+            return (uint32_t{header[offset]} << 24) | (uint32_t{header[offset + 1]} << 16) | (uint32_t{header[offset + 2]} << 8) | header[offset + 3];
+        };
+        if (word(16) == 0 || word(20) == 0 || word(16) > 16384 || word(20) > 16384) {
+            throw std::runtime_error("invalid glTF PNG dimensions: " + embedded.reference);
+        }
+        width = static_cast<int>(word(16));
+        height = static_cast<int>(word(20));
+        datapacks::Trace("model.extent_reads");
+        return;
+    }
+    int components = 0;
+    if (!stbi_info_from_memory(reinterpret_cast<const stbi_uc *>(embedded.bytes.data()), static_cast<int>(embedded.bytes.size()), &width, &height, &components)) {
+        throw std::runtime_error("invalid embedded glTF PNG");
+    }
+    datapacks::Trace("model.extent_reads");
+}
+
+/**
+ * The pixel sources competing for one standard image: datapack PNG replacements, then the embedded PNG.
+ */
+struct ImageSource {
+    std::shared_ptr<const Document>    document;     /**< Document keeping the embedded bytes alive. */
+    EmbeddedImage                      embedded;     /**< Encoded embedded PNG. */
+    std::vector<vfs::Ref>              overlays;     /**< Replacement PNG files in priority order. */
+    std::string                        overlay_key;  /**< Decode identity of the replacement files, empty without any. */
+    std::string                        embedded_key; /**< Decode identity of the embedded PNG contents. */
+};
+
+/**
+ * Resolves the replacement PNGs and content identities of a standard image.
+ */
+ImageSource ResolveImage(const Document &document, std::size_t index) {
+    ImageSource source{document.shared_from_this(), EmbeddedBytes(document, index), {}, {}, {}};
+    std::vector<std::string> paths;
+    if (!source.embedded.reference.empty()) {
+        // An external PNG is decoded like a replacement: through datapack priority, keyed by its files' stamps, so
+        // every document referencing it shares one decode.
+        paths.push_back(source.embedded.reference);
+    } else if (const auto found = document.embedded_keys.find(index); found != document.embedded_keys.end()) {
+        source.embedded_key = found->second;
+    } else {
+        // Datapack files are named by their stamps rather than hashed.
+        source.embedded_key = document.overlaid ? "embedded-pack:" + document.source + ':' + std::to_string(index)
+                                                : "embedded:" + ContentHash(source.embedded.bytes);
+        document.embedded_keys.emplace(index, source.embedded_key);
+    }
+    // A datapack glTF owns its embedded images; replacement PNGs apply only to the converted document.
+    if (!document.overlaid) {
+        for (const auto &metadata : *document.images) {
+            if (metadata.at("image").get<std::size_t>() != index || !metadata.contains("png")) {
+                continue;
+            }
+            const auto path = Relative(metadata.at("png").get<std::string>()).generic_string();
+            if (std::ranges::none_of(paths, [&](const std::string &known) { return vfs::FoldKey(known) == vfs::FoldKey(path); })) {
+                paths.push_back(path);
+            }
+        }
+    }
+    std::string names;
+    for (const auto &path : paths) {
+        names += path + '\n';
+        const auto candidates = datapacks::Candidates(std::filesystem::path(std::u8string(path.begin(), path.end())));
+        source.overlays.insert(source.overlays.end(), candidates.begin(), candidates.end());
+    }
+    if (!source.overlays.empty()) {
+        source.overlay_key = datapacks::ImageDecodeKey("png:" + names, source.overlays);
+    }
+    return source;
+}
+
+/**
+ * Names the exact pixels a resolved image produces, including the embedded fallback of an invalid replacement.
+ */
+std::string SourceIdentity(const ImageSource &source) {
+    return source.overlay_key.empty() ? source.embedded_key : source.overlay_key + '\n' + source.embedded_key;
+}
+
+/**
+ * Decodes PNG bytes into a single RGBA level; safe on worker threads.
+ */
+bool DecodePng(std::span<const std::byte> png, datapacks::DecodedTexture &image) {
+    int   width = 0, height = 0, components = 0;
+    auto *decoded = stbi_load_from_memory(reinterpret_cast<const stbi_uc *>(png.data()), static_cast<int>(png.size()), &width, &height, &components, 4);
+    if (!decoded) {
+        return false;
+    }
+    image.width = static_cast<uint32_t>(width);
+    image.height = static_cast<uint32_t>(height);
+    image.levels.assign(1, std::vector<uint8_t>(decoded, decoded + static_cast<std::size_t>(width) * height * 4));
+    stbi_image_free(decoded);
+    return true;
+}
+
+/**
+ * Decodes the first valid replacement PNG; safe on worker threads.
+ */
+bool DecodeOverlay(std::span<const vfs::Ref> candidates, datapacks::DecodedTexture &image, std::string &failure) {
+    for (const auto &candidate : candidates) {
+        std::vector<uint8_t> png;
+        if (datapacks::ReadFileBytes(candidate, png) && DecodePng(std::as_bytes(std::span(png)), image)) {
+            datapacks::Trace("model.overlay_decodes");
+            return true;
+        }
+    }
+    failure = "no valid replacement PNG";
+    return false;
+}
+
+/**
+ * Decodes an embedded PNG; safe on worker threads.
+ */
+bool DecodeEmbedded(std::span<const std::byte> png, datapacks::DecodedTexture &image, std::string &failure) {
+    if (!DecodePng(png, image)) {
+        failure = "invalid embedded glTF PNG";
+        return false;
+    }
+    datapacks::Trace("model.embedded_decodes");
+    return true;
+}
+
+/**
+ * Returns a resolved image's shared pixels, preferring a valid replacement PNG over the embedded image.
+ */
+std::shared_ptr<const datapacks::DecodedTexture> SourcePixels(const ImageSource &source) {
+    std::string error;
+    if (!source.overlay_key.empty()) {
+        if (auto decoded = datapacks::DecodeShared(source.overlay_key, [&source](datapacks::DecodedTexture &image, std::string &failure) { return DecodeOverlay(source.overlays, image, failure); }, error)) {
+            return decoded;
+        }
+    }
+    if (auto decoded = datapacks::DecodeShared(source.embedded_key, [&source](datapacks::DecodedTexture &image, std::string &failure) { return DecodeEmbedded(source.embedded.bytes, image, failure); }, error)) {
+        return decoded;
+    }
+    throw std::runtime_error(error);
+}
+
+/**
+ * Prefetches every image decode a texture registration will request, on worker threads.
+ */
+void PrefetchImages(std::span<const std::shared_ptr<const ImageSource> > sources) {
+    std::vector<datapacks::DecodeJob> jobs;
+    std::unordered_set<std::string>   queued;
+    for (const auto &source : sources) {
+        const bool overlay = !source->overlay_key.empty();
+        if (!queued.insert(overlay ? source->overlay_key : source->embedded_key).second) {
+            continue;
+        }
+        jobs.push_back({overlay ? source->overlay_key : source->embedded_key, [source, overlay](datapacks::DecodedTexture &image, std::string &failure) {
+                            return overlay ? DecodeOverlay(source->overlays, image, failure) : DecodeEmbedded(source->embedded.bytes, image, failure);
+                        }});
+    }
+    if (!jobs.empty()) {
+        datapacks::Prefetch(jobs);
+    }
+}
+
+/**
+ * Appends a decoded image as the next mip level, placed at the top-left of its power-of-two canvas.
+ */
+void AppendCanvas(const datapacks::DecodedTexture &image, datapacks::DecodedTexture &decoded) {
+    const auto  physical_width = std::bit_ceil(image.width), physical_height = std::bit_ceil(image.height);
+    const auto &rgba = image.levels.at(0);
+    if (physical_width == image.width && physical_height == image.height) {
+        decoded.levels.push_back(rgba);
+    } else {
+        std::vector<uint8_t> pixels(static_cast<std::size_t>(physical_width) * physical_height * 4);
+        for (uint32_t row = 0; row < image.height; ++row) {
+            std::memcpy(pixels.data() + static_cast<std::size_t>(row) * physical_width * 4, rgba.data() + static_cast<std::size_t>(row) * image.width * 4, static_cast<std::size_t>(image.width) * 4);
+        }
+        decoded.levels.push_back(std::move(pixels));
+    }
+    if (decoded.levels.size() == 1) {
+        decoded.width = physical_width;
+        decoded.height = physical_height;
+    }
+}
+
+/**
  * Decodes a glTF base-colour image into a texture managed by the native game renderer.
  */
-std::vector<unsigned char> ImagePixels(const Document &, std::size_t, bool, int &, int &);
-
 mgCTexture *Image(Document &document, std::size_t texture_index, mgCMemory &memory,
                   mgCTextureManager &textures, const std::string &name, const Json *material) {
     const auto &texture = document.asset.textures.at(texture_index);
@@ -619,7 +989,7 @@ mgCTexture *Image(Document &document, std::size_t texture_index, mgCMemory &memo
     }
     auto retained = document.shared_from_this();
     int  width = 0, height = 0;
-    ImagePixels(document, *texture.imageIndex, false, width, height);
+    ImageExtent(document, *texture.imageIndex, width, height);
     auto                   source = std::make_shared<texture_catalog::Source>();
     texture_catalog::Entry entry;
     entry.type = "texture";
@@ -630,25 +1000,26 @@ mgCTexture *Image(Document &document, std::size_t texture_index, mgCMemory &memo
     entry.variants.push_back({"", {}});
     source->entries.push_back(std::move(entry));
     document.texture_sets[(std::size_t{1} << 30) + texture_index] = source;
-    MgTextureEnterNativeSet(&textures, 0, *source, &memory, [retained, image = *texture.imageIndex](const texture_catalog::Entry &, std::size_t, datapacks::DecodedTexture &decoded, std::string &error) {
-        try {
-            int  physical_width = 0, physical_height = 0;
-            auto rgba = ImagePixels(*retained, image, true, physical_width, physical_height);
-            auto canvas = [](int value) {unsigned result=1;while (result<static_cast<unsigned>(value)){ result*=2;
-}return result; };
-            decoded = {};
-            decoded.width = canvas(physical_width);
-            decoded.height = canvas(physical_height);
-            decoded.levels.emplace_back(static_cast<std::size_t>(decoded.width) * decoded.height * 4);
-            for (int row = 0; row < physical_height; ++row) {
-                std::memcpy(decoded.levels[0].data() + row * decoded.width * 4, rgba.data() + row * physical_width * 4, physical_width * 4);
+    const auto image = *texture.imageIndex;
+    MgTextureEnterNativeSet(
+        &textures, 0, *source, &memory,
+        [retained, image](const texture_catalog::Entry &, std::size_t, datapacks::DecodedTexture &decoded, std::string &error) {
+            try {
+                decoded = {};
+                AppendCanvas(*SourcePixels(ResolveImage(*retained, image)), decoded);
+                return true;
+            } catch (const std::exception &exception) {
+                error = exception.what();
+                return false;
             }
-            return true;
-        } catch (const std::exception &exception) {
-            error = exception.what();
-            return false;
-        }
-    });
+        },
+        [retained, image](const texture_catalog::Entry &, std::size_t) {
+            try {
+                return SourceIdentity(ResolveImage(*retained, image));
+            } catch (const std::exception &) {
+                return std::string{};
+            }
+        });
     auto *native = textures.GetTexture(const_cast<char *>(name.c_str()), 0);
     if (!native) {
         throw std::runtime_error("native texture table exhausted");
@@ -982,76 +1353,8 @@ void ForgetFrame(const mgCFrame *frame) {
 }
 
 std::shared_ptr<const Json> ReadGameplay(const std::filesystem::path &gltf, std::string &error) {
-    auto sidecar = gltf;
-    sidecar.replace_extension(".game.json");
-    error = "native gameplay JSON missing: " + sidecar.generic_string();
-    for (const auto &path : datapacks::Candidates(sidecar)) {
-        std::ifstream input(path, std::ios::binary);
-        if (!input) {
-            continue;
-        }
-        try {
-            auto game = std::make_shared<Json>(Json::parse(input));
-            if (game->at("schema_version") != 1) {
-                throw std::runtime_error("unsupported native gameplay schema");
-            }
-            auto validate_model = [](const Json &model) {
-                if (!model.at("frames").is_array() || !model.at("meshes").is_array()) {
-                    throw std::runtime_error("invalid native gameplay model");
-                }
-                std::size_t index = 0;
-                for (const auto &frame : model.at("frames")) {
-                    if (frame.contains("id") && (!frame.at("id").is_number_integer() || frame.at("id").get<std::size_t>() != index)) {
-                        throw std::runtime_error("invalid native frame ID");
-                    }
-                    if (!frame.at("mdt").is_null() && (!frame.at("mdt").is_number_integer() || frame.at("mdt").get<std::size_t>() >= model.at("meshes").size())) {
-                        throw std::runtime_error("invalid native mesh ID");
-                    }
-                    ++index;
-                }
-                for (const auto &mesh : model.at("meshes")) {
-                    if (!mesh.at("primitives").is_array() || !mesh.at("materials").is_array()) {
-                        throw std::runtime_error("invalid native mesh records");
-                    }
-                    for (const auto *count : {"vertex_count", "normal_count", "uv_count", "colour_count"}) {
-                        if (!mesh.at(count).is_number_integer() || mesh.at(count).get<std::int64_t>() < 0) {
-                            throw std::runtime_error("invalid native stream count");
-                        }
-                    }
-                    for (const auto &primitive : mesh.at("primitives")) {
-                        const char *counts[] = {"vertex_count", "normal_count", "uv_count", "colour_count"};
-                        std::size_t stream = 0;
-                        for (const auto *mapping : {"source_vertices", "source_normals", "source_uvs", "source_colours"}) {
-                            if (!primitive.at(mapping).is_array()) {
-                                throw std::runtime_error("invalid native stream identities");
-                            }
-                            for (const auto &identity : primitive.at(mapping)) {
-                                if (!identity.is_number_integer() || identity.get<std::size_t>() >= mesh.at(counts[stream]).get<std::size_t>()) {
-                                    throw std::runtime_error("invalid native stream identity");
-                                }
-                            }
-                            ++stream;
-                        }
-                    }
-                }
-            };
-            if (game->contains("models")) {
-                if (!game->at("models").is_array() || !game->at("profiles").is_object() || !game->at("resources").is_object()) {
-                    throw std::runtime_error("invalid native character gameplay JSON");
-                }
-                for (const auto &model : game->at("models")) {
-                    validate_model(model);
-                }
-            } else {
-                validate_model(*game);
-            }
-            error.clear();
-            return game;
-        } catch (const std::exception &exception) {
-            error = exception.what();
-        }
-    }
-    return nullptr;
+    std::string identity;
+    return ParseGameplay(gltf, error, identity);
 }
 
 std::vector<std::string> Profiles(const std::filesystem::path &gltf, std::string &error) {
@@ -1551,6 +1854,7 @@ std::shared_ptr<Document> StandardScene(const std::shared_ptr<Document> &source,
     selected->images = source->images;
     selected->relative = source->relative;
     selected->overlaid = source->overlaid;
+    selected->source = source->source;
     selected->standard_only = true;
     selected->metadata = {
         {"frames", Json::array()},
@@ -2035,11 +2339,11 @@ std::string ScriptBytes(const Json &resource) {
     }
     const auto relative = Relative(resource.at("path").get<std::string>());
     for (const auto &path : datapacks::Candidates(relative)) {
-        std::ifstream input(path, std::ios::binary);
-        if (!input) {
+        std::vector<uint8_t> bytes;
+        if (!datapacks::ReadFileBytes(path, bytes)) {
             continue;
         }
-        std::string data((std::istreambuf_iterator<char>(input)), {});
+        std::string data(bytes.begin(), bytes.end());
         if (relative.extension() == ".stb") {
             return data;
         }
@@ -2049,114 +2353,6 @@ std::string ScriptBytes(const Json &resource) {
         }
     }
     throw std::runtime_error("native character script missing or invalid");
-}
-
-/**
- * Decodes an embedded glTF image, optionally using its explicit datapack PNG replacement.
- */
-std::vector<unsigned char> DecodeImagePixels(const Document &document, std::size_t index, bool overlay, int &width, int &height) {
-    const auto                &image = document.asset.images.at(index);
-    std::vector<unsigned char> bytes;
-    std::visit([&](const auto &source) {
-        using T = std::decay_t<decltype(source)>;
-        if constexpr (std::is_same_v<T, fastgltf::sources::Array> || std::is_same_v<T, fastgltf::sources::Vector> || std::is_same_v<T, fastgltf::sources::ByteView>) {
-            bytes.resize(source.bytes.size());
-            std::memcpy(bytes.data(), source.bytes.data(), bytes.size());
-        } else if constexpr (std::is_same_v<T, fastgltf::sources::BufferView>) {
-            const auto data = fastgltf::DefaultBufferDataAdapter{}(document.asset, source.bufferViewIndex);
-            bytes.resize(data.size());
-            std::memcpy(bytes.data(), data.data(), bytes.size());
-        } else if constexpr (std::is_same_v<T, fastgltf::sources::URI>) {
-            std::ifstream input(Asset(document.relative.parent_path() / Relative(std::string(source.uri.path()))), std::ios::binary);
-            bytes.assign(std::istreambuf_iterator<char>(input), {});
-        } else {
-            throw std::runtime_error("unsupported embedded image source");
-        }
-    },
-               image.data);
-    unsigned char *decoded = nullptr;
-    int            components = 0;
-    if (overlay && !document.overlaid) {
-        for (const auto &metadata : *document.images) {
-            if (metadata.at("image").get<std::size_t>() != index || !metadata.contains("png")) {
-                continue;
-            }
-            const auto path = Relative(metadata.at("png").get<std::string>());
-            for (const auto &candidate : datapacks::Candidates(path)) {
-                std::ifstream input(candidate, std::ios::binary);
-                if (!input) {
-                    continue;
-                }
-                const std::vector<unsigned char> png((std::istreambuf_iterator<char>(input)), {});
-                decoded = stbi_load_from_memory(png.data(), static_cast<int>(png.size()), &width, &height, &components, 4);
-                if (decoded) {
-                    break;
-                }
-            }
-            if (decoded) {
-                break;
-            }
-        }
-    }
-    if (!decoded) {
-        decoded = stbi_load_from_memory(bytes.data(), static_cast<int>(bytes.size()), &width, &height, &components, 4);
-    }
-    if (!decoded) {
-        throw std::runtime_error("invalid embedded glTF PNG");
-    }
-    std::vector<unsigned char> result(decoded, decoded + static_cast<std::size_t>(width) * height * 4);
-    stbi_image_free(decoded);
-    return result;
-}
-
-/**
- * Shares decoded glTF images with the native PNG cache using actual source-file metadata.
- */
-std::vector<unsigned char> ImagePixels(const Document &document, std::size_t index, bool overlay, int &width, int &height) {
-    std::string key;
-    if (!document.relative.empty()) {
-        auto sources = datapacks::Candidates(document.relative);
-        auto sidecar = document.relative;
-        sidecar.replace_extension(".game.json");
-        const auto append = [&sources](const std::filesystem::path &path) {
-            const auto candidates = datapacks::Candidates(path);
-            sources.insert(sources.end(), candidates.begin(), candidates.end());
-        };
-        append(sidecar);
-        if (const auto *uri = std::get_if<fastgltf::sources::URI>(&document.asset.images.at(index).data)) {
-            append(document.relative.parent_path() / Relative(std::string(uri->uri.path())));
-        }
-        if (overlay && !document.overlaid) {
-            for (const auto &image : *document.images) {
-                if (image.at("image").get<std::size_t>() == index && image.contains("png")) {
-                    append(Relative(image.at("png").get<std::string>()));
-                }
-            }
-        }
-        key = datapacks::ImageDecodeKey("gltf:" + document.relative.generic_string() + ":" + std::to_string(index) +
-                                            ":" + std::to_string(overlay) + ":" + std::to_string(document.overlaid),
-                                        sources);
-    }
-    datapacks::DecodedTexture decoded;
-    std::string               error;
-    if (!datapacks::DecodeCached(key, [&](datapacks::DecodedTexture &image, std::string &failure) {
-            try {
-                int image_width = 0, image_height = 0;
-                auto pixels = DecodeImagePixels(document, index, overlay, image_width, image_height);
-                image.width = image_width;
-                image.height = image_height;
-                image.levels.clear();
-                image.levels.push_back(std::move(pixels));
-                return true;
-            } catch (const std::exception &exception) {
-                failure = exception.what();
-                return false;
-            } }, decoded, error)) {
-        throw std::runtime_error(error);
-    }
-    width = static_cast<int>(decoded.width);
-    height = static_cast<int>(decoded.height);
-    return std::move(decoded.levels.at(0));
 }
 
 /**
@@ -2176,16 +2372,47 @@ std::size_t ImageIndex(std::string_view reference) {
 }
 
 /**
+ * Shares resolved image sources between prefetching, identities and decoding for one texture registration.
+ */
+struct ResolvedImages {
+    std::shared_ptr<Document>                                            document;      /**< Document owning the images. */
+    std::unordered_map<std::size_t, std::shared_ptr<const ImageSource> > images;        /**< Resolved sources by standard image index. */
+    bool                                                                 active = true; /**< Whether resolutions are reused; later decodes resolve afresh. */
+
+    /**
+     * Resolves one image, reusing an earlier resolution while the registration is active.
+     */
+    std::shared_ptr<const ImageSource> Resolve(std::size_t image) {
+        if (!active) {
+            return std::make_shared<const ImageSource>(ResolveImage(*document, image));
+        }
+        auto found = images.find(image);
+        if (found == images.end()) {
+            found = images.emplace(image, std::make_shared<const ImageSource>(ResolveImage(*document, image))).first;
+        }
+        return found->second;
+    }
+};
+
+/**
  * Enters embedded pictures, mip chains, variants and texture animation into the native manager.
  */
 void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t index, const CharacterLoadOptions &options, CCharacter2 *character, int slot) {
-    auto       &cached = document->texture_sets[index];
-    std::string error;
+    datapacks::TraceTimer timer("model.enter_texture_set_us");
+    datapacks::Trace("model.enter_texture_sets");
+    datapacks::StampScope stamps;
+    auto                 &cached = document->texture_sets[index];
+    std::string           error;
     if (!cached) {
         auto source = std::make_shared<texture_catalog::Source>();
         if (!texture_catalog::DecodeEmbeddedSet((document->custom->contains("resources") ? document->custom->at("resources") : *document->custom).at("texture_sets").at(index).at("document"), document->relative, [document](std::string_view reference, int &width, int &height, std::string &failure) {
-                try {ImagePixels(*document,ImageIndex(reference),false,width,height);return true;}
-                catch (const std::exception &exception) {failure=exception.what();return false;} }, *source, error)) {
+                try {
+                    ImageExtent(*document, ImageIndex(reference), width, height);
+                    return true;
+                } catch (const std::exception &exception) {
+                    failure = exception.what();
+                    return false;
+                } }, *source, error)) {
             throw std::runtime_error(error);
         }
         cached = std::move(source);
@@ -2202,37 +2429,61 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
             }
         }
     }
-    MgTextureEnterNativeSet(textures, options.texture_block, *cached, memory,
-                            [document](const texture_catalog::Entry &entry, std::size_t variant, datapacks::DecodedTexture &decoded, std::string &failure) {
-                                try {
-                                    decoded = {};
-                                    if (entry.no_image) {
-                                        decoded.width = entry.width;
-                                        decoded.height = entry.height;
-                                        return true;
-                                    }
-                                    for (const auto &level : entry.variants.at(variant).levels) {
-                                        int                        width = 0, height = 0;
-                                        auto                       rgba = ImagePixels(*document, ImageIndex(level.generic_string()), true, width, height);
-                                        auto                       canvas = [](int value) {unsigned result=1;while (result<static_cast<unsigned>(value)){ result*=2;
-}return result; };
-                                        const auto                 physical_width = canvas(width), physical_height = canvas(height);
-                                        std::vector<unsigned char> pixels(static_cast<std::size_t>(physical_width) * physical_height * 4);
-                                        for (int row = 0; row < height; ++row) {
-                                            std::memcpy(pixels.data() + row * physical_width * 4, rgba.data() + row * width * 4, width * 4);
-                                        }
-                                        if (decoded.levels.empty()) {
-                                            decoded.width = physical_width;
-                                            decoded.height = physical_height;
-                                        }
-                                        decoded.levels.push_back(std::move(pixels));
-                                    }
-                                    return true;
-                                } catch (const std::exception &exception) {
-                                    failure = exception.what();
-                                    return false;
-                                }
-                            });
+    auto resolved = std::make_shared<ResolvedImages>();
+    resolved->document = document;
+    {
+        std::vector<std::shared_ptr<const ImageSource> > sources;
+        for (const auto &entry : cached->entries) {
+            if (entry.type == "cfg" || entry.no_image) {
+                continue;
+            }
+            for (const auto &variant : entry.variants) {
+                for (const auto &level : variant.levels) {
+                    // Invalid references are reported when the registration decodes them.
+                    try {
+                        sources.push_back(resolved->Resolve(ImageIndex(level.path)));
+                    } catch (const std::exception &) {
+                    }
+                }
+            }
+        }
+        PrefetchImages(sources);
+    }
+    MgTextureEnterNativeSet(
+        textures, options.texture_block, *cached, memory,
+        [resolved](const texture_catalog::Entry &entry, std::size_t variant, datapacks::DecodedTexture &decoded, std::string &failure) {
+            try {
+                decoded = {};
+                if (entry.no_image) {
+                    decoded.width = entry.width;
+                    decoded.height = entry.height;
+                    return true;
+                }
+                for (const auto &level : entry.variants.at(variant).levels) {
+                    AppendCanvas(*SourcePixels(*resolved->Resolve(ImageIndex(level.path))), decoded);
+                }
+                return true;
+            } catch (const std::exception &exception) {
+                failure = exception.what();
+                return false;
+            }
+        },
+        [resolved](const texture_catalog::Entry &entry, std::size_t variant) {
+            try {
+                if (entry.no_image) {
+                    return std::string("no image");
+                }
+                std::string identity = "levels";
+                for (const auto &level : entry.variants.at(variant).levels) {
+                    identity += '\n' + SourceIdentity(*resolved->Resolve(ImageIndex(level.path)));
+                }
+                return identity;
+            } catch (const std::exception &) {
+                return std::string{};
+            }
+        });
+    resolved->active = false;
+    resolved->images.clear();
     if (!character) {
         return;
     }

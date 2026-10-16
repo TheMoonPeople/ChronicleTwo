@@ -1236,6 +1236,147 @@ TEST_F(NativeModel, PngOverlayWinsBeforeImageRegistrationAndGltfOverlayOwnsItsEm
     mgTexManager.Initialize(0x1000, -1);
 }
 
+TEST_F(NativeModel, ContentKeyedImagesNeverShareDifferentEmbeddedFallbacksAndFollowReplacementEdits) {
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    mgTexManager.SetTableBuffer(16, 8, &texture_memory);
+    mgTexManager.Initialize(0x1000, -1);
+    gltf["textures"] = Json::array({{{"source", 0}}});
+    gltf["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"] = {
+        {"index", 0}
+    };
+    game["images"] = Json::array({
+        {{"image", 0}, {"png", "textures/shared.png"}}
+    });
+    std::filesystem::create_directories(directory / "datapacks/test/textures");
+    std::ofstream(directory / "datapacks/test/textures/shared.png", std::ios::binary) << "not a png";
+    Write(directory / "datapacks/datapacks.json", {
+                                                      {"schema_version", 1       },
+                                                      {"load_order",     {"test"}}
+    });
+    datapacks::Load(directory / "port_data");
+    const auto load = [&](const std::string &stem, const std::string &texture, unsigned char red) {
+        const std::vector<unsigned char> pixels{red, 0, 0, 255, red, 0, 0, 255, red, 0, 0, 255, red, 0, 0, 255};
+        EXPECT_TRUE(gfx::WritePng(directory / "embedded.png", pixels.data(), 2, 2));
+        std::ifstream                    input(directory / "embedded.png", std::ios::binary);
+        const std::vector<unsigned char> png((std::istreambuf_iterator<char>(input)), {});
+        input.close();
+        std::filesystem::remove(directory / "embedded.png");
+        auto model = gltf;
+        model["images"] = Json::array({{{"uri", "data:image/png;base64," + Base64(png)}}});
+        game["meshes"][0]["materials"][0]["texture"] = texture;
+        Write(directory / "port_data" / (stem + ".gltf"), model);
+        Write(directory / "port_data" / (stem + ".game.json"), game);
+        memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+        mgLoadData data{};
+        data.memory = &memory;
+        std::string error;
+        auto       *frame = model_assets::LoadModel(stem + ".gltf", data, error);
+        EXPECT_NE(frame, nullptr) << error;
+        return frame ? static_cast<mgCVisualMDT *>(frame->visual)->material[0].texture : nullptr;
+    };
+    // An invalid replacement falls back to each document's own embedded image.
+    auto *first = load("models/first", "first", 100);
+    auto *second = load("models/second", "second", 200);
+    ASSERT_NE(first, nullptr);
+    ASSERT_NE(second, nullptr);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(first->image[0])[0], 100);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(second->image[0])[0], 200);
+    EXPECT_EQ(MgTexturePhysicalExtent(first).width, 2u);
+
+    // A valid replacement wins for every document while the logical extent stays the embedded image's.
+    std::vector<unsigned char> green(8 * 8 * 4);
+    for (std::size_t index = 0; index < green.size(); index += 4) {
+        green[index + 1] = 255;
+        green[index + 3] = 255;
+    }
+    std::filesystem::remove(directory / "datapacks/test/textures/shared.png");
+    ASSERT_TRUE(gfx::WritePng(directory / "datapacks/test/textures/shared.png", green.data(), 8, 8));
+    datapacks::Load(directory / "port_data");
+    auto *third = load("models/third", "third", 50);
+    auto *fourth = load("models/fourth", "fourth", 60);
+    ASSERT_NE(third, nullptr);
+    ASSERT_NE(fourth, nullptr);
+    for (auto *texture : {third, fourth}) {
+        EXPECT_EQ(reinterpret_cast<const unsigned char *>(texture->image[0])[0], 0);
+        EXPECT_EQ(reinterpret_cast<const unsigned char *>(texture->image[0])[1], 255);
+        EXPECT_EQ(texture->width, 2);
+        EXPECT_EQ(MgTexturePhysicalExtent(texture).width, 8u);
+    }
+    mgTexManager.Initialize(0x1000, -1);
+}
+
+TEST_F(NativeModel, ExternalImageUrisShareOneDecodeAndFollowPackOverrides) {
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    mgTexManager.SetTableBuffer(16, 8, &texture_memory);
+    mgTexManager.Initialize(0x1000, -1);
+    gltf["textures"] = Json::array({{{"source", 0}}});
+    gltf["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"] = {
+        {"index", 0}
+    };
+    const std::vector<unsigned char> red{200, 0, 0, 255, 200, 0, 0, 255, 200, 0, 0, 255, 200, 0, 0, 255};
+    std::filesystem::create_directories(directory / "port_data/textures");
+    ASSERT_TRUE(gfx::WritePng(directory / "port_data/textures/shared.png", red.data(), 2, 2));
+    datapacks::Load(directory / "port_data");
+    const auto load = [&](const std::string &stem, const std::string &uri, const std::string &texture) {
+        auto model = gltf;
+        model["images"] = Json::array({{{"uri", uri}}});
+        game["meshes"][0]["materials"][0]["texture"] = texture;
+        std::filesystem::create_directories((directory / "port_data" / (stem + ".gltf")).parent_path());
+        Write(directory / "port_data" / (stem + ".gltf"), model);
+        Write(directory / "port_data" / (stem + ".game.json"), game);
+        memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+        mgLoadData data{};
+        data.memory = &memory;
+        std::string error;
+        auto       *frame = model_assets::LoadModel(stem + ".gltf", data, error);
+        EXPECT_NE(frame, nullptr) << error;
+        return frame ? static_cast<mgCVisualMDT *>(frame->visual)->material[0].texture : nullptr;
+    };
+    auto *first = load("models/first", "../textures/shared.png", "first");
+    ASSERT_NE(first, nullptr);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(first->image[0])[0], 200);
+    EXPECT_EQ(first->width, 2);
+
+    // The decode is named by the PNG's data path and stamp alone, so every referencing document shares it.
+    const auto key = datapacks::ImageDecodeKey("png:textures/shared.png\n", datapacks::Candidates("textures/shared.png"));
+    const auto unexpected = [](datapacks::DecodedTexture &, std::string &error) {
+        error = "decoded again";
+        return false;
+    };
+    std::string error;
+    const auto  cached = datapacks::DecodeShared(key, unexpected, error);
+    ASSERT_NE(cached, nullptr);
+    auto *second = load("models/sub/second", "../../textures/%73hared.png", "second");
+    ASSERT_NE(second, nullptr);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(second->image[0])[0], 200);
+    EXPECT_EQ(datapacks::DecodeShared(key, unexpected, error), cached) << error;
+
+    // A pack replacing the PNG's path wins for external references while the logical extent stays the original's.
+    std::vector<unsigned char> green(8 * 8 * 4);
+    for (std::size_t index = 0; index < green.size(); index += 4) {
+        green[index + 1] = 255;
+        green[index + 3] = 255;
+    }
+    std::filesystem::create_directories(directory / "datapacks/test/textures");
+    ASSERT_TRUE(gfx::WritePng(directory / "datapacks/test/textures/shared.png", green.data(), 8, 8));
+    Write(directory / "datapacks/datapacks.json", {
+                                                      {"schema_version", 1       },
+                                                      {"load_order",     {"test"}}
+    });
+    datapacks::Load(directory / "port_data");
+    auto *third = load("models/third", "../textures/shared.png", "third");
+    ASSERT_NE(third, nullptr);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(third->image[0])[0], 0);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(third->image[0])[1], 255);
+    EXPECT_EQ(third->width, 2);
+    EXPECT_EQ(MgTexturePhysicalExtent(third).width, 8u);
+    mgTexManager.Initialize(0x1000, -1);
+}
+
 TEST_F(NativeModel, BuildsCollisionHierarchyAndGroundAttributesFromNativeGeometry) {
     Json metadata = game;
     metadata["meshes"][0]["materials"][0]["diffuse"] = {10, 20, 30, 0};

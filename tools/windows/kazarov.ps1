@@ -129,13 +129,15 @@ if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
     if (-not (Test-Path -LiteralPath $source -PathType Container)) { $source = $null }
 }
 
+# dc2data takes <game-root>\data and publishes <game-root>\data.zip beside data.json.
 $data = Join-Path $checkout 'port/run/data'
+$dataArchive = Join-Path $checkout 'port/run/data.zip'
 Write-Stage 'checking game data'
-# Every port configuration extracts into the same port\run\data, so they take one lock for it. The game holds it shared while it runs.
+# Every port configuration extracts into the same port\run\data.zip, so they take one lock for it. The game holds it shared while it runs.
 $dataLockFile = Join-Path $locks 'port-data.lock'
 if (-not $source) {
-    # Without a disc an existing data\ is used; otherwise the game starts without its data.
-    if (-not (Test-Path -LiteralPath $data -PathType Container)) {
+    # Without a disc an existing data.zip is used; otherwise the game starts without its data.
+    if (-not (Test-Path -LiteralPath $dataArchive -PathType Leaf)) {
         [Console]::Error.WriteLine('kazarov: no PAL disc found; the game starts without data and its file loads fail')
     }
 } else {
@@ -161,7 +163,7 @@ if (-not $source) {
 
 $lock.Dispose()
 
-# The game reads data\ while it runs, so it holds the data lock shared; another configuration's extraction waits for it.
+# The game reads data.zip while it runs, so it holds the data lock shared; another configuration's extraction waits for it.
 $dataShared = $null
 $dataSharedAnnounced = $false
 while ($null -eq $dataShared) {
@@ -173,7 +175,7 @@ while ($null -eq $dataShared) {
     }
 }
 
-if (-not $source -and (Test-Path -LiteralPath $data -PathType Container)) {
+if (-not $source -and (Test-Path -LiteralPath $dataArchive -PathType Leaf)) {
     & (Join-Path $build 'dc2data.exe') check $data
     if ($LASTEXITCODE) { $dataShared.Dispose(); exit $LASTEXITCODE }
 }

@@ -99,35 +99,41 @@ dc2data current <iso-or-directory> <data-directory>
 `extract` uses up to 32 workers by default; `--jobs N` accepts 1 through 64.
 `current` compares the source's path and file metadata with the versioned marker and verifies both output directories exist; it returns 0 only when extraction can be skipped. `check` performs the full hash and payload audit.
 
-The source of `extract` is a Dark Chronicle disc image or a folder holding `DATA.HD4`, `DATA.DAT`, `SOUND.HD3`, `SOUND.DAT` and `MOVIE`. Give it `<game-root>/data` as the output. The C++ command-line program calls the Rust extractor through a `cxx` bridge; conversion runs in process. Data version 8 writes remaining game files under `data/`, converted assets under sibling `port_data/`, and a version marker at `<game-root>/data.json`. Textures use JSON and PNG; sound uses semantic JSON and PCM WAV; models and complete characters use glTF with embedded images and minimal gameplay JSON sidecars; configurations and textual maps use typed JSON; movies use self-contained MP4 with copied MPEG-2 video and embedded lossless ALAC audio. Ordinary PACK archives become folders with a minimal versioned `pack.json` containing no contents listing. Substituted originals are removed. Native game code references actual asset paths directly, without catalogs or manifests. See the [migration](PORT_ASSET_MIGRATION.md), [texture](PORT_TEXTURE_FORMAT.md), [audio](PORT_AUDIO_FORMAT.md), [model](PORT_MODEL_FORMAT.md), and [configuration](PORT_CONFIG_FORMAT.md) documents. `dc2data check <game-root>/data` validates native payloads and the whole-output SHA-256 digest. Extraction stages both trees before publication and restores the previous output on failure. Exit status: 0 on success, 1 on an error or failed check, 2 on usage error.
+The source of `extract` is a Dark Chronicle disc image or a folder holding `DATA.HD4`, `DATA.DAT`, `SOUND.HD3`, `SOUND.DAT` and `MOVIE`. Give it `<game-root>/data` as the output. The C++ command-line program calls the Rust extractor through a `cxx` bridge; conversion runs in process. Data version 9 writes every game file, retained and converted, into one Zstandard ZIP archive, `<game-root>/data.zip` ([format](PORT_ARCHIVE_FORMAT.md)), with a version marker at `<game-root>/data.json`. Textures use JSON and PNG; sound uses semantic JSON and PCM WAV; models and complete characters use glTF with embedded images and minimal gameplay JSON sidecars; configurations and textual maps use typed JSON; movies use self-contained MP4 with copied MPEG-2 video and embedded lossless ALAC audio. Ordinary PACK archives become folders with a minimal versioned `pack.json` containing no contents listing. Substituted originals are removed. Native game code references actual asset paths directly, without catalogs or manifests. See the [migration](PORT_ASSET_MIGRATION.md), [texture](PORT_TEXTURE_FORMAT.md), [audio](PORT_AUDIO_FORMAT.md), [model](PORT_MODEL_FORMAT.md), and [configuration](PORT_CONFIG_FORMAT.md) documents. `dc2data check <game-root>/data` validates native payloads and the whole-output SHA-256 digest. Extraction stages both trees before publication and restores the previous output on failure. Exit status: 0 on success, 1 on an error or failed check, 2 on usage error.
 
 Each texture variant is a full-colour RGBA PNG. When retail animation scripts copy colours between textures, extraction bakes the finite source-colour variants into separate destination PNGs and records their selectors in the texture document. Source palettes are used only during extraction; runtime textures and generated render targets use RGBA pixels without palette files or palette uploads. `data.json` carries the current `data_version`, and the game rejects an older extraction so the launcher can rebuild it.
 
-`run.sh` and `run.bat` pass `--run-dir <checkout>/port/run`, giving them `port/run/data`, `port/run/port_data` and `port/run/saves`. A direct executable launch defaults to the per-user `chronicletwo` application data root with the same three subdirectories. Explicit `--run-dir DIR` selects a different root.
+`run.sh` and `run.bat` pass `--run-dir <checkout>/port/run`, giving them the data root `port/run/data`, whose parent holds `data.zip`, and `port/run/saves`. A direct executable launch defaults to the per-user `chronicletwo` application data root with the same layout.
+
+The game reads its data through a read-only file system of mounts (`platform/vfs.hpp`). The base mount is `<game-root>/data.zip` when it exists; otherwise the `data/` and `port_data/` directories of an older layout are mounted together as one tree, so directory fixtures and hand-edited data keep working. Both namespaces match names ignoring ASCII case. The archive's central directory is read once at startup and its entries are read in place: Zstandard entries are decompressed on demand, and stored PNG and MP4 entries are copied from, or for movies streamed from, their offsets in the archive through FFmpeg custom I/O. Reads are thread-safe. Explicit `--run-dir DIR` selects a different root.
 
 ### Datapacks and replacement textures
 
-Put texture packs in a `datapacks/` directory beside the selected `port_data/`
-directory. The launch scripts therefore use `port/run/datapacks/`; `--data DIR`
-uses `DIR/../datapacks/`. Each pack is a folder with any single folder name,
-including spaces or Unicode characters. Copy the paths inside `port_data/`
-directly into that folder, replacing the PNGs you want to change:
+Put datapacks in a `datapacks/` directory beside `data.zip`. The launch scripts
+therefore use `port/run/datapacks/`; `--data DIR` uses `DIR/../datapacks/`. A
+pack is a ZIP archive, `datapacks/<name>.zip`, holding files at their entry
+names in `data.zip`, such as `menu/example_0.png` for a texture or
+`event/view_pal.txt` for a retained retail file. Build one from a folder with
+`dc2data pack <folder> <name>.zip`; PNG and MP4 entries are stored and other
+entries use Zstandard. A plain folder `datapacks/<name>/` with the same layout
+is accepted as well, which is convenient while authoring a pack. When both
+exist, the archive is used. Names may contain spaces or Unicode characters:
 
 ```text
 <game-root>/
-  data/
-  port_data/
+  data.zip
     menu/example.json
     menu/example_0.png
   datapacks/
     datapacks.json
-    My texture pack/
+    My texture pack.zip
       menu/example_0.png
     Menu tweaks/
       menu/example_0.png
 ```
 
-Activate packs and set their priority in `datapacks/datapacks.json`:
+Activate packs and set their priority in `datapacks/datapacks.json`. Each
+`load_order` entry names a pack, with or without its `.zip` suffix:
 
 ```json
 {
@@ -136,13 +142,21 @@ Activate packs and set their priority in `datapacks/datapacks.json`:
 }
 ```
 
-Later entries win when multiple packs replace the same PNG. Packs may contain
-just one file: missing files fall through to earlier packs, then to `port_data/`.
-Unlisted folders are inactive. Packs use the physical asset paths and do not
-need a catalog, bundle JSON or manifest. Folder names must stay within the
-`datapacks/` directory; paths and `..` are rejected. Missing configuration leaves
-the retail textures active; invalid configuration disables the packs and prints
-a diagnostic. Restart the game after changing configuration or pack files.
+Later entries win when multiple packs replace the same file. Packs may contain
+just one file: missing files fall through to earlier packs, then to `data.zip`.
+Unlisted packs are inactive. Packs use the physical asset paths and do not need
+a catalog, bundle JSON or manifest. `load_order` entries are single names; paths
+and `..` are rejected. At startup the packs' file lists, from each archive's
+central directory or a walk of each folder, are merged into one override index
+keyed by lower-cased path, with each path's replacements resolved in
+`load_order` priority once. A lookup is then a single hash lookup: a hit names
+the winning pack file and any lower-priority replacements behind it, and a miss
+goes to `data.zip`. Pack files are trusted as found: symlinks in folder packs
+are followed and pack files are neither hashed nor checked against the pack. A
+pack holding paths that differ only by ASCII case disables the packs. Missing
+configuration leaves the retail assets active; invalid configuration disables
+the packs and prints a diagnostic. Restart the game after changing
+configuration or pack files.
 
 Texture packs made for the earlier `.img` bundle layout can be migrated with
 `tools/kazarov/scripts/migrate_texture_datapacks.py`. Pass the old v1
@@ -183,17 +197,19 @@ The texture PNG paths are stable across the compact image-document update, so
 packs using the current numbered PNG names keep working. The same pack folders
 can replace PCM WAV files, bank or sequence JSON, converted
 configuration JSON, self-contained movie MP4 files, glTF models, and model
-metadata by copying their relative paths under `port_data/`.
-Model glTF files embed their buffers and images by default; external glTF
-references in a replacement resolve through the same pack priority. Invalid
+metadata at their entry names in `data.zip`.
+External glTF buffer and image URIs, such as `../textures/x_0.png`, resolve
+against the glTF's directory within the data namespace and through the same
+pack priority, so a pack replacing a PNG replaces it for every model that
+references it; each external PNG is decoded once and shared. Invalid
 model or metadata overlays can fall back to lower-priority candidates. See the
 [audio](PORT_AUDIO_FORMAT.md), [model](PORT_MODEL_FORMAT.md), and
 [configuration](PORT_CONFIG_FORMAT.md) formats for the physical paths and
 replacement constraints.
 
 Packs can also replace ordinary, unconverted files read by the game's file
-loader. Put each file at its path relative to `data/`, directly inside the
-same pack folder. These file paths follow the loader's case-insensitive
+loader. Put each file at its entry name in `data.zip`, directly inside the
+same pack. These file paths follow the loader's case-insensitive
 matching, and replacement file sizes are used when loading. Direct native files can also be supplied by active datapacks. Game configuration
 commands, audio controls and movies use their actual JSON and MP4 paths. The
 user's `config.json` in the save root remains the port's settings file.
@@ -212,7 +228,7 @@ The save root is the first of these that applies. It is created when first resol
 3. `DC2_SAVE`
 4. the per-user save directory: `%LOCALAPPDATA%\chronicletwo\saves` on Windows, `$XDG_DATA_HOME/chronicletwo/saves` or `~/.local/share/chronicletwo/saves` elsewhere
 
-A data root is missing when it is not a directory, lacks the sibling `port_data` directory, or has no current parent `data.json` marker. A windowed run opens Kazarov's Rust setup window before creating the game window. The editable path accepts a disc image or a disc folder; **Choose folder** opens the operating system's folder picker. **Okay** starts extraction on a worker thread. The progress bar tracks completed raw files and texture conversions, reserving 100% for successful publication. The setup window then closes automatically and normal game startup continues. Existing current data skips setup on subsequent launches. Extraction errors remain visible for correction and retry; closing setup before extraction exits with status 3. During extraction the window stays open until the worker finishes. Headless runs still print the `dc2data extract` command and exit with status 3.
+A data root is missing when its parent has no current `data.json` marker, or has neither `data.zip` nor the `data/` and `port_data/` directories. A windowed run opens Kazarov's Rust setup window before creating the game window. The editable path accepts a disc image or a disc folder; **Choose folder** opens the operating system's folder picker. **Okay** starts extraction on a worker thread. The progress bar tracks completed raw files and texture conversions, reserving 100% for successful publication. The setup window then closes automatically and normal game startup continues. Existing current data skips setup on subsequent launches. Extraction errors remain visible for correction and retry; closing setup before extraction exits with status 3. During extraction the window stays open until the worker finishes. Headless runs still print the `dc2data extract` command and exit with status 3.
 
 The setup uses an eframe desktop window and an rfd native folder dialog on Windows, Linux and macOS. Linux folder selection requires an XDG desktop portal and its desktop backend. Extraction uses the same staged publication and integrity checks as `dc2data`; the output must be outside the selected source folder. A typed ISO path is supported without mounting the image.
 
@@ -270,7 +286,7 @@ as it has no file number for the confirmation to name. `game.autosave` (PC
 Settings, Game page) turns it off; headless, `--jump`, input-script and replay
 runs never write it.
 
-The window icon uses the native `port_data/title/dc2_ic.gltf` model. Datapack
+The window icon uses the native `title/dc2_ic.gltf` model. Datapack
 models take priority, with malformed replacements falling back to the next
 valid candidate. The bundled two-moons icon remains available before extraction
 or when no model is valid; headless runs skip icon rendering. On Windows the
@@ -389,7 +405,7 @@ Exit statuses (`port/src/exitcodes.hpp`, and `port/src/mglib.cpp` for the screen
 
 A `PS2_UNIMPLEMENTED` stub aborts instead of exiting, so a debugger or a core dump stops at it: SIGABRT on Linux (status 134 from a shell) and `0xC0000409` on Windows. Other internal aborts stop the same way.
 
-The test `Smoke.HeadlessFramesScreenshot` (`port/src/tests/CMakeLists.txt`) runs `darkchronicle --headless --offscreen --frames 3 --screenshot` on data and `port_data` directories with a current parent `data.json`. It passes when the run exits 0, prints `dataread: indexed` and `mglib: frame 3 written to`, and writes a PNG. It is labelled `gpu`. It runs under a generated CMake script, because ctest counts a process killed by `abort()` as failed even when `PASS_REGULAR_EXPRESSION` matches its output; the script checks the exit status and the file.
+The test `Smoke.HeadlessFramesScreenshot` (`port/src/tests/CMakeLists.txt`) runs `darkchronicle --headless --offscreen --frames 3 --screenshot` on `data` and `port_data` directories with a current parent `data.json`. It passes when the run exits 0, prints `dataread: indexed` and `mglib: frame 3 written to`, and writes a PNG. It is labelled `gpu`. It runs under a generated CMake script, because ctest counts a process killed by `abort()` as failed even when `PASS_REGULAR_EXPRESSION` matches its output; the script checks the exit status and the file.
 
 ### Test hooks
 
@@ -861,7 +877,7 @@ The PAL scripts (`.stb`) hold the NTSC frame counts and convert them while they 
 - A few literals PAL retuned by hand (a jump in d03, a turn in s03, an object delay and wait in m06b, the backpack scene in i01h01b, one turn in e221a) are anchored: the instruction sequence must occur once and hold the PAL value before the NTSC value is written. The same anchors cover the language copies `_1` to `_5`.
 - Max's and Monica's motion-ratio windows (`mainchr/c01.stb`, `c02.stb`, 8 bounds) take their NTSC values.
 - Matching only looks at decoded instructions inside the script's functions (the program table, CALL targets and unreferenced function blocks), never at raw bytes. Every recipe is validated before any is written, sizes never change, and a converted script converts to the same bytes again.
-- `port/src/script_timing_inventory.inc` lists every script that holds a conversion, with the count of each recipe it must show. Before gameplay starts, NTSC timing validates every indexed `.stb` with the same decoder and recipes, including datapack replacements. Matching replacements are converted through the same loader. A listed script that does not match, or an unlisted one that holds a conversion, appears in a startup report naming the asset. Startup logs the complete asset list and exits with status 5; desktop runs also show an error dialog. Saved settings are unchanged. Unlisted, undecodable `.stb` files stay unchanged with a warning once per asset per session, matching the loader. Validation reads the files once and writes no disk cache. Each converted asset logs once per session.
+- `port/src/script_timing_inventory.inc` lists every script that holds a conversion, with the count of each recipe it must show. Before gameplay starts, NTSC timing validates every indexed `.stb` with the same decoder and recipes, including datapack replacements. Matching replacements are converted through the same loader. A listed script that does not match, or an unlisted one that holds a conversion, appears in a startup report naming the asset. Startup logs the complete asset list and exits with status 5; desktop runs also show an error dialog. Saved settings are unchanged. Unlisted, undecodable `.stb` files stay unchanged with a warning once per asset per session, matching the loader. Validation reads and decodes the scripts on up to 16 threads, then reports them in key order; it reads the files once and writes no disk cache. Each converted asset logs once per session.
 - Effect scripts keep PAL's waits for the end of their motion.
 
 ## Rendering

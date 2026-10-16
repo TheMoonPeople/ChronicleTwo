@@ -40,9 +40,9 @@ TEST_F(NativeAssetsTest, DirectAssetCandidatesPreservePriorityAndBaseFallback) {
     for (const char *name : {"sound/sample.wav", "chara/character.gltf", "menu/options.json", "movie/opening.mp4"}) {
         const auto paths = datapacks::Candidates(name);
         ASSERT_EQ(paths.size(), 3);
-        EXPECT_EQ(paths[0], root / "datapacks/high" / name);
-        EXPECT_EQ(paths[1], root / "datapacks/low" / name);
-        EXPECT_EQ(paths[2], root / "port_data" / name);
+        EXPECT_EQ(vfs::HostPath(paths[0]), root / "datapacks/high" / name);
+        EXPECT_EQ(vfs::HostPath(paths[1]), root / "datapacks/low" / name);
+        EXPECT_EQ(vfs::HostPath(paths[2]), root / "port_data" / name);
     }
     EXPECT_TRUE(datapacks::Candidates("../outside.wav").empty());
 }

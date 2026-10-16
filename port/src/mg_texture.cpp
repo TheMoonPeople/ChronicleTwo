@@ -16,10 +16,10 @@
 #include <utility>
 #include <vector>
 
+#include "button_glyphs.hpp"
 #include "mg_texture.hpp"
 #include "mg_texture_port.hpp"
 #include "mglib.hpp"
-#include "button_glyphs.hpp"
 #include "photo_hd.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/texture_catalog.hpp"
@@ -39,6 +39,7 @@ namespace {
 struct NativePicture {
     texture_catalog::Entry                 definition; /**< Logical dimensions, sampler and variant identities. */
     std::vector<datapacks::DecodedTexture> variants;   /**< Original physical mip pixels before animation edits. */
+    std::vector<std::string>               identities; /**< Decoder-supplied names of each variant's pixels, empty when unknown. */
 };
 
 /**
@@ -528,19 +529,26 @@ std::string DecodeName(const std::string &encoded);
 /**
  * Compares native picture semantics independently of document-local image references.
  */
-bool SamePicture(const NativePicture &left, const NativePicture &right) {
-    const auto &a = left.definition;
-    const auto &b = right.definition;
+bool SameDefinition(const texture_catalog::Entry &a, const texture_catalog::Entry &b) {
     if (a.width != b.width || a.height != b.height || a.bpp != b.bpp || a.swizzled != b.swizzled ||
         a.clamp != b.clamp || a.no_image != b.no_image || a.picture != b.picture ||
-        a.animation_mode != b.animation_mode || a.nearest != b.nearest || a.variants.size() != b.variants.size() ||
-        left.variants.size() != right.variants.size()) {
+        a.animation_mode != b.animation_mode || a.nearest != b.nearest || a.variants.size() != b.variants.size()) {
         return false;
     }
     for (std::size_t index = 0; index < a.variants.size(); ++index) {
         if (a.variants[index].selector != b.variants[index].selector) {
             return false;
         }
+    }
+    return true;
+}
+
+/**
+ * Compares native picture semantics and decoded pixels.
+ */
+bool SamePicture(const NativePicture &left, const NativePicture &right) {
+    if (!SameDefinition(left.definition, right.definition) || left.variants.size() != right.variants.size()) {
+        return false;
     }
     for (std::size_t index = 0; index < left.variants.size(); ++index) {
         const auto &x = left.variants[index];
@@ -552,10 +560,48 @@ bool SamePicture(const NativePicture &left, const NativePicture &right) {
     return true;
 }
 
+/**
+ * Names every decoded variant of a picture, or returns nothing when any variant is unnamed.
+ */
+std::vector<std::string> PictureIdentities(const texture_catalog::Entry &record, const MgTextureImageIdentity &identity) {
+    std::vector<std::string> identities;
+    if (!identity) {
+        return identities;
+    }
+    const std::size_t count = record.no_image ? 1 : std::max<std::size_t>(record.variants.size(), 1);
+    for (std::size_t variant = 0; variant < count; ++variant) {
+        auto name = identity(record, variant);
+        if (name.empty()) {
+            return {};
+        }
+        identities.push_back(std::move(name));
+    }
+    return identities;
+}
+
 mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_catalog::Entry &record,
-                         MgTextureImageDecoder decoder = {}) {
+                         MgTextureImageDecoder decoder = {}, const MgTextureImageIdentity &identity = {}) {
     if (!manager) {
         return nullptr;
+    }
+    std::string name = DecodeName(record.name);
+    if (record.picture > 0) {
+        name += "#picture" + std::to_string(record.picture);
+    }
+    char full_name[32];
+    std::snprintf(full_name, sizeof(full_name), "%s%s", name.c_str(), manager->name_suffix);
+    auto identities = PictureIdentities(record, identity);
+    if (!identities.empty()) {
+        if (auto *existing = manager->SearchHash(full_name, block)) {
+            const auto found = catalog_pixels.find(existing);
+            if (found != catalog_pixels.end() && found->second.original && found->second.original->identities == identities &&
+                SameDefinition(found->second.original->definition, record)) {
+                datapacks::Trace("mg_texture.identity_reuses");
+                found->second.record = &record;
+                found->second.decoder = std::move(decoder);
+                return existing;
+            }
+        }
     }
     std::string               error;
     datapacks::DecodedTexture decoded;
@@ -565,7 +611,8 @@ mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_ca
     }
     auto original = std::make_shared<NativePicture>();
     original->definition = record;
-    original->variants.push_back(decoded);
+    original->identities = std::move(identities);
+    original->variants.push_back(std::move(decoded));
     if (!record.no_image) {
         for (std::size_t variant = 1; variant < record.variants.size(); ++variant) {
             datapacks::DecodedTexture alternate;
@@ -579,12 +626,6 @@ mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_ca
     for (auto &variant : original->definition.variants) {
         variant.levels.clear();
     }
-    std::string name = DecodeName(record.name);
-    if (record.picture > 0) {
-        name += "#picture" + std::to_string(record.picture);
-    }
-    char full_name[32];
-    std::snprintf(full_name, sizeof(full_name), "%s%s", name.c_str(), manager->name_suffix);
     if (auto *existing = manager->SearchHash(full_name, block)) {
         const auto found = catalog_pixels.find(existing);
         if (found != catalog_pixels.end() && found->second.original) {
@@ -597,6 +638,8 @@ mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_ca
             manager->DeleteTexture(existing);
         }
     }
+    // The original keeps pristine pixels; the registration owns a copy that glyphs and animation edit.
+    decoded = original->variants.front();
     ButtonGlyphsApply(record.name, record.width, record.height, decoded);
     CatalogPixels pixels{std::move(decoded.levels), &record, record.name, std::move(decoder),
                          decoded.width, decoded.height};
@@ -1477,7 +1520,8 @@ PORT_OVERRIDE mgCTexture *mgCTextureManager::EnterTexture(int id, char *name, TM
 
 namespace {
 int EnterSource(mgCTextureManager *manager, int block, const texture_catalog::Source &source,
-                mgCMemory *stack, mgCEnterIMGInfo *info, const MgTextureImageDecoder &decoder) {
+                mgCMemory *stack, mgCEnterIMGInfo *info, const MgTextureImageDecoder &decoder,
+                const MgTextureImageIdentity &identity = {}) {
     if (!manager) {
         return 0;
     }
@@ -1499,7 +1543,7 @@ int EnterSource(mgCTextureManager *manager, int block, const texture_catalog::So
         }
         const int group = entry->block;
         const int target = block + group;
-        if (mgCTexture *texture = EnterCatalog(manager, target, *entry, decoder)) {
+        if (mgCTexture *texture = EnterCatalog(manager, target, *entry, decoder, identity)) {
             last_block = std::max(last_block, static_cast<int>(texture->block));
             if (info && group < MG_TEXTURE_IMG_GROUP_MAX && info->block[group] < 0) {
                 info->block[group] = target;
@@ -1531,11 +1575,11 @@ int MgTextureEnterDocument(mgCTextureManager *manager, std::string_view relative
 }
 
 int MgTextureEnterNativeSet(mgCTextureManager *manager, int block, const texture_catalog::Source &source,
-                            mgCMemory *stack, MgTextureImageDecoder decoder) {
+                            mgCMemory *stack, MgTextureImageDecoder decoder, MgTextureImageIdentity identity) {
     if (!decoder) {
         return 0;
     }
-    return EnterSource(manager, block, source, stack, nullptr, decoder);
+    return EnterSource(manager, block, source, stack, nullptr, decoder, identity);
 }
 
 PORT_OVERRIDE int mgCTextureManager::EnterIMGFile(u_char *img, int block, mgCMemory *stack,

@@ -1,10 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <mutex>
+#include <set>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "button_glyphs.hpp"
@@ -89,7 +93,7 @@ protected:
         entry.width = 3;
         entry.height = 2;
         entry.variants.push_back({
-            "color", {retail / "textures/base.png", retail / "textures/mip.png"}
+            "color", {{"textures/base.png", vfs::HostFile(retail / "textures/base.png")}, {"textures/mip.png", vfs::HostFile(retail / "textures/mip.png")}}
         });
         Png(retail / "textures/base.png", 3, 2, 20);
         Png(retail / "textures/mip.png", 1, 1, 30);
@@ -231,7 +235,7 @@ TEST_F(DatapacksTest, GenericOverridesIgnoreCaseAndRejectTraversal) {
     Config(R"({"schema_version":1,"load_order":["files"]})");
     const auto resolved = datapacks::Resolve("chara/hero.DAT");
     ASSERT_TRUE(resolved);
-    EXPECT_EQ(*resolved, std::filesystem::weakly_canonical(path));
+    EXPECT_EQ(std::filesystem::weakly_canonical(*vfs::HostPath(*resolved)), std::filesystem::weakly_canonical(path));
     EXPECT_FALSE(datapacks::Resolve("../Chara/Hero.dat"));
     EXPECT_FALSE(datapacks::Resolve("/Chara/Hero.dat"));
     EXPECT_FALSE(datapacks::Resolve("C:Chara/Hero.dat"));
@@ -308,7 +312,7 @@ TEST_F(DatapacksTest, SharedImageCacheRetainsIndependentPixelsAndClearsWithRoots
 
 TEST_F(DatapacksTest, ImageCacheKeysTrackMissingAndEditedHigherPriorityInputs) {
     const auto                         replacement = retail / "replacement.png";
-    std::vector<std::filesystem::path> paths{replacement, retail / "textures/base.png"};
+    std::vector<vfs::Ref>              paths{vfs::HostFile(replacement), vfs::HostFile(retail / "textures/base.png")};
     const auto                         original = datapacks::ImageDecodeKey("model:image:0:overlay", paths);
     std::ofstream(replacement) << "candidate";
     const auto created = datapacks::ImageDecodeKey("model:image:0:overlay", paths);
@@ -317,6 +321,135 @@ TEST_F(DatapacksTest, ImageCacheKeysTrackMissingAndEditedHigherPriorityInputs) {
     EXPECT_NE(created, datapacks::ImageDecodeKey("model:image:0:overlay", paths));
     EXPECT_NE(original, datapacks::ImageDecodeKey("model:image:1:overlay", paths));
     EXPECT_NE(original, datapacks::ImageDecodeKey("model:image:0:logical", paths));
+}
+
+TEST_F(DatapacksTest, ReadFileBytesReadsWholeFilesWithinTheLimit) {
+    const auto path = directory / "bytes.bin";
+    std::ofstream(path, std::ios::binary) << std::string("abc\0def", 7);
+    std::vector<uint8_t> bytes{1, 2, 3};
+    ASSERT_TRUE(datapacks::ReadFileBytes(path, bytes));
+    EXPECT_EQ(bytes, (std::vector<uint8_t>{'a', 'b', 'c', 0, 'd', 'e', 'f'}));
+    EXPECT_TRUE(datapacks::ReadFileBytes(path, bytes, 7));
+    EXPECT_FALSE(datapacks::ReadFileBytes(path, bytes, 6));
+    EXPECT_TRUE(bytes.empty());
+    EXPECT_FALSE(datapacks::ReadFileBytes(directory / "missing.bin", bytes));
+    std::ofstream(directory / "empty.bin", std::ios::binary);
+    EXPECT_TRUE(datapacks::ReadFileBytes(directory / "empty.bin", bytes));
+    EXPECT_TRUE(bytes.empty());
+}
+
+TEST_F(DatapacksTest, PrefetchCachesResultsAndSkipsCachedIdentities) {
+    std::atomic<int> calls = 0;
+    auto             job = [&](std::string identity, uint8_t value) {
+        return datapacks::DecodeJob{std::move(identity), [&calls, value](datapacks::DecodedTexture &out, std::string &) {
+                                        ++calls;
+                                        out = {{{value, value, value, 255}}, 1, 1};
+                                        return true;
+                                    }};
+    };
+    std::vector<datapacks::DecodeJob> jobs{job("prefetch:a", 10), job("prefetch:b", 20), job("", 30)};
+    datapacks::Prefetch(jobs);
+    EXPECT_EQ(calls, 2);
+    auto unexpected = [](datapacks::DecodedTexture &, std::string &error) {
+        error = "decoded again";
+        return false;
+    };
+    datapacks::DecodedTexture decoded;
+    std::string               error;
+    ASSERT_TRUE(datapacks::DecodeCached("prefetch:a", unexpected, decoded, error)) << error;
+    EXPECT_EQ(decoded.levels[0][0], 10);
+    ASSERT_TRUE(datapacks::DecodeCached("prefetch:b", unexpected, decoded, error)) << error;
+    EXPECT_EQ(decoded.levels[0][0], 20);
+    datapacks::Prefetch(jobs);
+    EXPECT_EQ(calls, 2);
+    const auto shared = datapacks::DecodeShared("prefetch:a", unexpected, error);
+    ASSERT_TRUE(shared);
+    EXPECT_EQ(shared, datapacks::DecodeShared("prefetch:a", unexpected, error));
+    EXPECT_EQ(shared->levels[0][0], 10);
+}
+
+TEST_F(DatapacksTest, PrefetchDoesNotCacheFailuresAndDecodesDuplicatesOnce) {
+    std::atomic<int>                  failures = 0, successes = 0;
+    std::vector<datapacks::DecodeJob> jobs;
+    for (int copy = 0; copy < 4; ++copy) {
+        jobs.push_back({"prefetch:failing", [&](datapacks::DecodedTexture &out, std::string &error) {
+                            ++failures;
+                            out.levels = {
+                                {1, 2, 3, 4}
+                            };
+                            error = "broken";
+                            return false;
+                        }});
+        jobs.push_back({"prefetch:duplicate", [&](datapacks::DecodedTexture &out, std::string &) {
+                            ++successes;
+                            out = {{{40, 40, 40, 255}}, 1, 1};
+                            return true;
+                        }});
+    }
+    datapacks::Prefetch(jobs);
+    EXPECT_EQ(failures, 1);
+    EXPECT_EQ(successes, 1);
+    datapacks::DecodedTexture decoded;
+    std::string               error;
+    EXPECT_FALSE(datapacks::DecodeCached("prefetch:failing", jobs[0].decoder, decoded, error));
+    EXPECT_EQ(error, "broken");
+    EXPECT_EQ(failures, 2);
+    EXPECT_FALSE(datapacks::DecodeShared("prefetch:failing", jobs[0].decoder, error));
+    EXPECT_EQ(failures, 3);
+    ASSERT_TRUE(datapacks::DecodeCached("prefetch:duplicate", jobs[1].decoder, decoded, error));
+    EXPECT_EQ(successes, 1);
+    EXPECT_EQ(decoded.levels[0][0], 40);
+}
+
+TEST_F(DatapacksTest, PrefetchDecodesCatalogTexturesConcurrently) {
+    Png(Pack("concurrent"), 6, 4, 80);
+    Config(R"({"schema_version":1,"load_order":["concurrent"]})");
+    std::mutex                        mutex;
+    std::set<std::thread::id>         threads;
+    std::vector<datapacks::DecodeJob> jobs;
+    for (int index = 0; index < 64; ++index) {
+        jobs.push_back({"prefetch:catalog:" + std::to_string(index), [&, index](datapacks::DecodedTexture &out, std::string &error) {
+                            {
+                                const std::lock_guard lock(mutex);
+                                threads.insert(std::this_thread::get_id());
+                            }
+                            const auto key = datapacks::ImageDecodeKey("prefetch", datapacks::Candidates("textures/base.png"));
+                            if (key.empty() || !datapacks::Decode(entry, 0, out, error)) {
+                                return false;
+                            }
+                            out.levels[0][1] = static_cast<uint8_t>(index);
+                            return true;
+                        }});
+    }
+    datapacks::Prefetch(jobs);
+    EXPECT_GE(threads.size(), 1u);
+    for (int index = 0; index < 64; ++index) {
+        datapacks::DecodedTexture decoded;
+        std::string               error;
+        ASSERT_TRUE(datapacks::DecodeCached(
+            jobs[index].identity, [](datapacks::DecodedTexture &, std::string &) { return false; }, decoded, error));
+        EXPECT_EQ(decoded.width, 8u);
+        EXPECT_EQ(decoded.levels[0][0], 80);
+        EXPECT_EQ(decoded.levels[0][1], index);
+        EXPECT_EQ(decoded.levels[1][0], 80);
+    }
+}
+
+TEST_F(DatapacksTest, StampScopeHoldsSourceStampsUntilItEnds) {
+    const auto                         source = retail / "stamped.png";
+    std::vector<vfs::Ref>              paths{vfs::HostFile(source)};
+    std::ofstream(source) << "first";
+    std::string scoped;
+    {
+        const datapacks::StampScope outer;
+        scoped = datapacks::ImageDecodeKey("stamped", paths);
+        {
+            const datapacks::StampScope inner;
+        }
+        std::ofstream(source, std::ios::trunc) << "second edit";
+        EXPECT_EQ(scoped, datapacks::ImageDecodeKey("stamped", paths));
+    }
+    EXPECT_NE(scoped, datapacks::ImageDecodeKey("stamped", paths));
 }
 
 TEST_F(DatapacksTest, MissingGlyphAtlasPreservesEveryOriginalMipPixel) {

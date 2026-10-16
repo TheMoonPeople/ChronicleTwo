@@ -32,12 +32,12 @@ std::string FlatpakHint(const std::string &where) {
 } // namespace
 
 bool FirstRunDataMissing(const fs::path &root) {
+    // The data is <game-root>/data.zip, or the data/ and port_data/ directories that stand in for it.
     std::error_code error;
-    if (!fs::is_directory(root, error)) {
-        return true;
-    }
-    if (!fs::is_directory(root.parent_path() / "port_data", error) ||
-        !fs::is_regular_file(root.parent_path() / "data.json", error)) {
+    const auto      game_root = root.parent_path();
+    const bool      archive = fs::is_regular_file(game_root / "data.zip", error);
+    const bool      directories = fs::is_directory(root, error) && fs::is_directory(game_root / "port_data", error);
+    if ((!archive && !directories) || !fs::is_regular_file(game_root / "data.json", error)) {
         return true;
     }
     std::ifstream marker(root.parent_path() / "data.json");

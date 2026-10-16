@@ -28,11 +28,13 @@ std::string Utf8Path(const fs::path &path) {
 }
 
 int Usage() {
-    std::fputs("usage: dc2data extract <iso-or-directory> <data-directory> [--jobs N]\n"
+    std::fputs("usage: dc2data extract <iso-or-directory> <game-root>/data [--jobs N]\n"
                "       dc2data list <iso-or-directory>\n"
                "       dc2data sound <iso-or-directory>\n"
-               "       dc2data check <data-directory>\n"
-               "       dc2data current <iso-or-directory> <data-directory>\n", stderr);
+               "       dc2data check <game-root>/data\n"
+               "       dc2data current <iso-or-directory> <game-root>/data\n"
+               "       dc2data pack <directory> <archive.zip>\n"
+               "extract publishes <game-root>/data.zip and <game-root>/data.json.\n", stderr);
     return 2;
 }
 } // namespace
@@ -72,6 +74,12 @@ int Run(int argc, ArgChar **argv) {
         if (argc == 3 && ArgEquals(argv[1], ARG_LITERAL("check"))) {
             const auto report = kazarov::check(Utf8Path(argv[2]));
             std::printf("verified %llu PNG textures\n", static_cast<unsigned long long>(report.textures));
+            return 0;
+        }
+        if (argc == 4 && ArgEquals(argv[1], ARG_LITERAL("pack"))) {
+            kazarov::pack_directory(Utf8Path(argv[2]), Utf8Path(argv[3]));
+            const auto archive = kazarov::open_archive(Utf8Path(argv[3]));
+            std::printf("packed %llu files\n", static_cast<unsigned long long>(kazarov::archive_entry_count(*archive)));
             return 0;
         }
         if (argc == 4 && ArgEquals(argv[1], ARG_LITERAL("current"))) {

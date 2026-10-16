@@ -22,6 +22,7 @@
 #include "mainloop.hpp"
 #include "platform/config_catalog.hpp"
 #include "platform/paths.hpp"
+#include "platform/vfs.hpp"
 #include "scriptinterpreter.hpp"
 #include "texture_source.hpp"
 
@@ -164,7 +165,7 @@ TEST_F(DataRead, IndexLogsItsCountAndRoot) {
     testing::internal::CaptureStderr();
     DataReadIndex(root);
     std::string log = testing::internal::GetCapturedStderr();
-    EXPECT_NE(log.find("dataread: indexed 2 files under " + PathsDisplay(root)), std::string::npos) << log;
+    EXPECT_NE(log.find("dataread: indexed 5 files under " + PathsDisplay(root)), std::string::npos) << log;
 }
 
 TEST_F(DataRead, RootExclusionsKeepDiscOnlyFilesOutOfTheIndex) {
@@ -182,7 +183,7 @@ TEST_F(DataRead, RootExclusionsKeepDiscOnlyFilesOutOfTheIndex) {
     testing::internal::CaptureStderr();
     DataReadIndex(root);
     std::string log = testing::internal::GetCapturedStderr();
-    EXPECT_NE(log.find("dataread: indexed 3 files under " + PathsDisplay(root)), std::string::npos) << log;
+    EXPECT_NE(log.find("dataread: indexed 6 files under " + PathsDisplay(root)), std::string::npos) << log;
 
     for (const char *name : {"manifest.txt", "manifest.json", ".kazarov-data", "movie/a.pss", "sound/sound.dat", "x.dc2tmp"}) {
         EXPECT_FALSE(DataReadFind(name).has_value()) << name;
@@ -195,9 +196,9 @@ TEST_F(DataRead, FindIsCaseInsensitiveAndAcceptsDevicePrefixes) {
     const fs::path expected = root / "DIR" / "Sub" / "File.BIN";
     for (const char *name : {"cdrom0:\\DIR\\SUB\\FILE.BIN;1", "host0:dir/sub/file.bin", "/DIR/Sub/File.BIN",
                              "dir\\sub\\file.bin;1", "cdrom:DIR/SUB/FILE.BIN"}) {
-        std::optional<fs::path> found = DataReadFind(name);
+        std::optional<vfs::Ref> found = DataReadFind(name);
         ASSERT_TRUE(found.has_value()) << name;
-        EXPECT_TRUE(fs::equivalent(*found, expected)) << name;
+        EXPECT_TRUE(fs::equivalent(*vfs::HostPath(*found), expected)) << name;
     }
 }
 
@@ -236,7 +237,7 @@ TEST_F(DataRead, DatapacksOverrideIndexedFilesWithReplacementSizesAndSparseFallb
     EXPECT_EQ(std::memcmp(Buffer(), replacement.data(), replacement.size()), 0);
     const auto found = DataReadFind(name);
     ASSERT_TRUE(found.has_value());
-    EXPECT_TRUE(fs::equivalent(*found, last / "DIR" / "Sub" / "File.BIN"));
+    EXPECT_TRUE(fs::equivalent(*vfs::HostPath(*found), last / "DIR" / "Sub" / "File.BIN"));
 
     ASSERT_EQ(Load("small.txt", Buffer(), &size), 1);
     EXPECT_EQ(size, 27);
@@ -245,7 +246,7 @@ TEST_F(DataRead, DatapacksOverrideIndexedFilesWithReplacementSizesAndSparseFallb
     ASSERT_EQ(Load("chara/pack.pac", Buffer(), &size), 1);
     const auto fallback = DataReadFind("chara/pack.pac");
     ASSERT_TRUE(fallback.has_value());
-    EXPECT_TRUE(fs::equivalent(*fallback, base / "port_data/chara/pack.pac/pack.json"));
+    EXPECT_TRUE(fs::equivalent(*vfs::HostPath(*fallback), base / "port_data/chara/pack.pac/pack.json"));
 
     std::ofstream(base / "datapacks" / "datapacks.json")
         << R"({"schema_version":1,"load_order":["Last pack","First pack"]})";
@@ -525,7 +526,7 @@ TEST_F(DataRead, MissingRootIndexesNothingAndDoesNotAbort) {
     testing::internal::CaptureStderr();
     DataReadIndex(base / "absent");
     std::string log = testing::internal::GetCapturedStderr();
-    EXPECT_NE(log.find("dataread: indexed 0 files under"), std::string::npos) << log;
+    EXPECT_NE(log.find("dataread: indexed 3 files under"), std::string::npos) << log;
 
     EXPECT_FALSE(DataReadFind("small.txt").has_value());
     int size = 0;
@@ -574,9 +575,9 @@ TEST_F(DataRead, ShiftJisNameFindsItsPercentEncodedFile) {
     WriteBytes(disk, MakeBytes(20, 5));
 
     DataReadIndex(root);
-    std::optional<fs::path> found = DataReadFind(game.c_str());
+    std::optional<vfs::Ref> found = DataReadFind(game.c_str());
     ASSERT_TRUE(found.has_value());
-    EXPECT_TRUE(fs::equivalent(*found, disk));
+    EXPECT_TRUE(fs::equivalent(*vfs::HostPath(*found), disk));
 }
 
 TEST_F(DataRead, ItemMessageReloadClearsTheLiveArenaWithoutClearingReboundRoots) {

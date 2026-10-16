@@ -10,6 +10,8 @@
 #include <variant>
 #include <vector>
 
+#include "platform/vfs.hpp"
+
 namespace config_catalog {
 /**
  * Holds one typed argument with strings already encoded for native game callbacks.
@@ -49,7 +51,7 @@ bool Contains(std::string_view alias);
 /**
  * Lists native configuration documents through datapack priority for specialized configuration consumers.
  */
-std::vector<std::filesystem::path> Paths(std::string_view alias);
+std::vector<vfs::Ref> Paths(std::string_view alias);
 /**
  * Reads typed configuration commands through datapack priority with invalid-overlay fallback.
  */

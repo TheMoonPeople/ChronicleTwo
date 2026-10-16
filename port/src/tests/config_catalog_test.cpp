@@ -110,11 +110,11 @@ protected:
     void Run() {
         std::string error;
         for (const auto &path : config_catalog::Paths("configs/fixture.cfg.json")) {
-            std::ifstream input(path);
-            if (!input) {
+            std::vector<uint8_t> data;
+            if (!vfs::Read(path, data)) {
                 continue;
             }
-            const std::string bytes{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
+            const std::string bytes(data.begin(), data.end());
             try {
                 if (!config_catalog::Decode(Json::parse(bytes), error)) {
                     continue;

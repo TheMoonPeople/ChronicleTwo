@@ -1,11 +1,8 @@
 #include "audio_assets.hpp"
 
-#include <fstream>
-#include <iterator>
-
 #include "platform/datapacks.hpp"
 
-std::vector<std::filesystem::path> AudioAssetCandidates(std::string_view name) {
+std::vector<vfs::Ref> AudioAssetCandidates(std::string_view name) {
     const std::filesystem::path path(name);
     if (path.empty() || path.is_absolute() || name.find('\\') != std::string_view::npos || name.find(':') != std::string_view::npos) {
         return {};
@@ -21,9 +18,9 @@ std::vector<std::filesystem::path> AudioAssetCandidates(std::string_view name) {
 std::vector<std::string> AudioDocuments(std::string_view path) {
     std::vector<std::string> result;
     for (const auto &candidate : AudioAssetCandidates(path)) {
-        std::ifstream input(candidate, std::ios::binary);
-        if (input) {
-            result.emplace_back(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+        std::vector<uint8_t> bytes;
+        if (datapacks::ReadFileBytes(candidate, bytes)) {
+            result.emplace_back(bytes.begin(), bytes.end());
         }
     }
     return result;
@@ -31,7 +28,12 @@ std::vector<std::string> AudioDocuments(std::string_view path) {
 
 std::shared_ptr<audio::PcmTrack> LoadAudioTrack(std::string_view path, std::string &error) {
     for (const auto &candidate : AudioAssetCandidates(path)) {
-        if (auto track = audio::LoadPcmTrack(candidate, error)) {
+        std::vector<uint8_t> bytes;
+        if (!datapacks::ReadFileBytes(candidate, bytes)) {
+            error = "cannot open the file";
+            continue;
+        }
+        if (auto track = audio::LoadPcmTrack(bytes, std::filesystem::path(candidate.Name()).extension().string(), error)) {
             track->loop = false;
             return track;
         }

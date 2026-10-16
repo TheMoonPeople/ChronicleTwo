@@ -6,8 +6,10 @@
 #include <string_view>
 #include <vector>
 
-// Rebuilds the index of the extracted data under root, the files that replace DATA.HD4. Each entry is a
-// regular file keyed by its lower-cased path below root, as it sits on disk; lookups percent-encode
+#include "platform/vfs.hpp"
+
+// Rebuilds the index of the converted data beside root, the files that replace DATA.HD4: <root>/../data.zip, or
+// else the root and sibling port_data directories. Each entry is a file keyed by its lower-cased relative path; lookups percent-encode
 // bytes >= 0x80 and '%' the way dc2data's DiskName does before they reach the index. Root-level
 // manifest.txt, dot entries, *.dc2tmp files and the movie/ and sound/ trees are left out. Logs its
 // count to stderr.
@@ -33,7 +35,7 @@ void DataReadRegisterAsset(const void *buffer, std::string_view path, std::size_
 
 // The file a game path names, through the same device, current-directory and version rules the
 // loaders use; empty when the index holds no such file.
-std::optional<std::filesystem::path> DataReadFind(const char *game_name);
+std::optional<vfs::Ref> DataReadFind(const char *game_name);
 /**
  * Returns the actual native URI selected by the game's device and current-directory rules.
  */

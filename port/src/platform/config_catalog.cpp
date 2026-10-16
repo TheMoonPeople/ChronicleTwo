@@ -3,7 +3,6 @@
 #include <nlohmann/json.hpp>
 
 #include <cmath>
-#include <fstream>
 #include <limits>
 #include <stdexcept>
 
@@ -134,18 +133,13 @@ bool Load(const std::filesystem::path &, std::string &error) {
 }
 
 bool Contains(std::string_view path) {
-    for (const auto &candidate : Paths(path)) {
-        if (std::filesystem::is_regular_file(candidate)) {
-            return true;
-        }
-    }
-    return false;
+    return !Paths(path).empty();
 }
 
-std::vector<std::filesystem::path> Paths(std::string_view path) {
+std::vector<vfs::Ref> Paths(std::string_view path) {
     try {
         const auto relative = Relative(std::string(path));
-        return relative.extension() == ".json" ? datapacks::Candidates(relative) : std::vector<std::filesystem::path>{};
+        return relative.extension() == ".json" ? datapacks::Candidates(relative) : std::vector<vfs::Ref>{};
     } catch (const std::exception &) {
         return {};
     }
@@ -153,12 +147,12 @@ std::vector<std::filesystem::path> Paths(std::string_view path) {
 
 std::shared_ptr<const Document> Find(std::string_view path, std::string &error) {
     for (const auto &candidate : Paths(path)) {
-        if (!std::filesystem::is_regular_file(candidate)) {
+        std::vector<uint8_t> bytes;
+        if (!datapacks::ReadFileBytes(candidate, bytes)) {
             continue;
         }
         try {
-            std::ifstream input(candidate);
-            auto          document = Read(nlohmann::json::parse(input));
+            auto document = Read(nlohmann::json::parse(bytes));
             error.clear();
             return document;
         } catch (const std::exception &exception) {

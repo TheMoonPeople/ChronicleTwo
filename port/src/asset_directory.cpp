@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <fstream>
 #include <limits>
 #include <map>
 #include <memory>
@@ -82,16 +81,11 @@ File *Read(fs::path relative, std::string_view kind = {}) {
         candidates = datapacks::Candidates(relative);
     }
     for (const auto &path : candidates) {
-        std::error_code error;
-        const auto      size = fs::file_size(path, error);
-        if (error || size > static_cast<std::uintmax_t>(std::numeric_limits<int>::max())) {
+        const auto size = vfs::Size(path);
+        if (!size || *size > static_cast<std::uint64_t>(std::numeric_limits<int>::max())) {
             continue;
         }
-        std::ifstream input(path, std::ios::binary);
-        if (!input) {
-            continue;
-        }
-        const auto key = path.generic_string();
+        const auto key = path.Display();
         auto      &file = files[key];
         if (!file) {
             file = std::make_unique<File>();
@@ -100,15 +94,15 @@ File *Read(fs::path relative, std::string_view kind = {}) {
             TextureSourceForget(file->bytes.data());
             DataReadRegisterBuffer(file->bytes.data(), 0);
         }
-        const auto padded = std::max<std::size_t>(2048, (static_cast<std::size_t>(size) + 2047) / 2048 * 2048);
+        const auto padded = std::max<std::size_t>(2048, (static_cast<std::size_t>(*size) + 2047) / 2048 * 2048);
         file->bytes.resize(padded / sizeof(u_long128));
         std::memset(file->bytes.data(), 0, padded);
-        if (!input.read(reinterpret_cast<char *>(file->bytes.data()), static_cast<std::streamsize>(size))) {
+        if (!vfs::ReadInto(path, file->bytes.data(), static_cast<std::size_t>(*size))) {
             continue;
         }
         if (relative.filename() == "pack.json" || kind == "texture" || kind == "commands") {
             const auto *begin = reinterpret_cast<const char *>(file->bytes.data());
-            const auto  data = Json::parse(begin, begin + size, nullptr, false);
+            const auto  data = Json::parse(begin, begin + *size, nullptr, false);
             if (data.is_discarded() || !data.is_object()) {
                 continue;
             }
@@ -124,9 +118,9 @@ File *Read(fs::path relative, std::string_view kind = {}) {
                 continue;
             }
         }
-        file->size = static_cast<int>(size);
+        file->size = static_cast<int>(*size);
         file->name = (relative.filename() == "pack.json" ? relative.parent_path() : relative).filename().generic_string();
-        DataReadRegisterAsset(file->bytes.data(), relative.generic_string(), static_cast<std::size_t>(size));
+        DataReadRegisterAsset(file->bytes.data(), relative.generic_string(), static_cast<std::size_t>(*size));
         return file.get();
     }
     return nullptr;
@@ -170,11 +164,11 @@ std::optional<std::string> AssetDirectoryPath(const void *directory) {
     bool        accepted = size > 0 && valid(Json::parse(begin, begin + size, nullptr, false));
     if (!accepted) {
         for (const auto &candidate : datapacks::Candidates(*path)) {
-            std::ifstream input(candidate, std::ios::binary);
-            if (!input) {
+            std::vector<uint8_t> bytes;
+            if (!datapacks::ReadFileBytes(candidate, bytes)) {
                 continue;
             }
-            if (valid(Json::parse(input, nullptr, false))) {
+            if (valid(Json::parse(bytes, nullptr, false))) {
                 accepted = true;
                 break;
             }

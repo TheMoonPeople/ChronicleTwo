@@ -3,12 +3,12 @@
 #include <nlohmann/json.hpp>
 
 #include <cmath>
-#include <fstream>
 #include <limits>
 #include <stdexcept>
 
 #include "nd_meswin.hpp"
 #include "platform/config_catalog.hpp"
+#include "platform/datapacks.hpp"
 #include "platform/legacy_encoding.hpp"
 
 namespace subtitle_config {
@@ -93,11 +93,11 @@ bool Decode(std::string_view json, int chapter, std::vector<Cue> &cues, std::str
 
 bool Load(std::string_view source, int chapter, std::vector<Cue> &cues, std::string &error) {
     for (const auto &path : config_catalog::Paths(source)) {
-        std::ifstream input(path, std::ios::binary);
-        if (!input) {
+        std::vector<uint8_t> data;
+        if (!datapacks::ReadFileBytes(path, data)) {
             continue;
         }
-        const std::string bytes{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
+        const std::string bytes(data.begin(), data.end());
         if (Decode(bytes, chapter, cues, error)) {
             return true;
         }

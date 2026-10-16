@@ -5,10 +5,11 @@
 #include <vector>
 
 #include "audio/pcm.hpp"
+#include "platform/vfs.hpp"
 /**
  * Lists replacements and the base file for a direct native audio resource path.
  */
-std::vector<std::filesystem::path> AudioAssetCandidates(std::string_view path);
+std::vector<vfs::Ref> AudioAssetCandidates(std::string_view path);
 /**
  * Reads standard JSON resource candidates in datapack precedence order.
  */
