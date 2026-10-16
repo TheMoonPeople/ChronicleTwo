@@ -41,12 +41,11 @@ constexpr int kSlots = 4;
 constexpr int kCharas = 3; // Max, Monica and the Ridepod; the monster form has no equipment.
 constexpr int kNameSize = 0x20;
 
-// Slot order is the panel's: Triangle and Square on the top row, Cross and Circle on the bottom one.
-constexpr int kSlotButton[kSlots] = {PAD_TRIANGLE, PAD_SQUARE, PAD_CROSS, PAD_CIRCLE};
+// Slot order is the panel's: Square and Triangle on the top row, Cross and Circle on the bottom one.
+constexpr int kSlotButton[kSlots] = {PAD_SQUARE, PAD_TRIANGLE, PAD_CROSS, PAD_CIRCLE};
 constexpr int kFaceButtons = PAD_TRIANGLE | PAD_SQUARE | PAD_CROSS | PAD_CIRCLE;
 
 constexpr int kFadeTicks = 6;
-constexpr int kFlashTicks = 14;
 
 // The panel picture, drawn in code (quick_loadout_art.cpp) at this many pixels per board unit.
 constexpr float kArtWidth = kQuickLoadoutArtWidth;
@@ -80,8 +79,6 @@ int  fade = 0;          // ticks of the panel's fade, 0 (hidden) to kFadeTicks
 int  raw_previous = 0;  // the face buttons before this session took any away
 int  swallowed = 0;     // buttons taken from the game, until they are let go
 int  request_slot = -1;
-int  flash_slot = -1;
-int  flash_ticks = 0;
 bool reloading = false;
 
 // Each item's picture is a render target of its own, never a texture entered in the game's texture table: two of those
@@ -349,15 +346,6 @@ void DrawQuad(gfx::TextureHandle texture, float x, float y, float w, float h, fl
     mgPortDraw2D(gfx::Primitive::Quads, quad, binding, state);
 }
 
-void DrawFlash(float x, float y, float w, float h, uint8_t alpha) {
-    gfx::DrawState state{};
-    state.blend = true;
-    state.alpha = {0, 2, 0, 1, 0x80}; // added: Cs * As + Cd
-    const gfx::Vertex2D quad[4] = {Corner(x, y, 0, 0, alpha, 0xFF), Corner(x + w, y, 0, 0, alpha, 0xFF),
-                                   Corner(x + w, y + h, 0, 0, alpha, 0xFF), Corner(x, y + h, 0, 0, alpha, 0xFF)};
-    mgPortDraw2D(gfx::Primitive::Quads, quad, gfx::TextureBinding{}, state);
-}
-
 // The game's own rotating cursor round the active item (DrawActiveItemCursor), drawn round the slot in use: the same
 // picture from the system frame texture, added, turning a degree a frame on an angle of its own (PortQuickLoadoutDraw turns it). size is its width.
 float halo_angle = -PI;
@@ -424,8 +412,6 @@ void PortQuickLoadoutPad() {
         for (int slot = 0; slot < kSlots; slot++) {
             if (pressed & kSlotButton[slot]) {
                 request_slot = slot;
-                flash_slot = slot;
-                flash_ticks = kFlashTicks;
             }
         }
         swallowed |= raw & kFaceButtons;
@@ -437,9 +423,6 @@ void PortQuickLoadoutPad() {
 
     fade += panel_open ? ticks : -ticks;
     fade = fade < 0 ? 0 : fade > kFadeTicks ? kFadeTicks : fade;
-    if (flash_ticks > 0) {
-        flash_ticks -= ticks;
-    }
 }
 
 // The item's own model, drawn once into a texture of its own the first time a slot shows it (Jeffiest's 3D item icons).
@@ -456,7 +439,8 @@ void PortQuickLoadoutPrepare() {
         Picture &picture = pictures[entry.item_no];
         char name[48];
         std::snprintf(name, sizeof name, "quick loadout item %d", entry.item_no);
-        const gfx::TextureHandle target = gfx::NamedRenderTarget(name, kIconSize, kIconSize, true, false, true);
+        // An ordinary target: a frame target maps its width onto the widened frame, which moved the model aside.
+        const gfx::TextureHandle target = gfx::NamedRenderTarget(name, kIconSize, kIconSize, true);
         if (ItemIcon3DRenderTo(entry.item_no, target, kIconSize, kModelBlock, kIconBlock)) {
             picture.texture = target;
         } else {
@@ -511,17 +495,12 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
                 DrawHalo(cx, cy, h * 1.2f, (float) fade / kFadeTicks);
             }
         }
-        // A press flashes the slot.
-        if (flash_slot == slot && flash_ticks > 0) {
-            DrawFlash(x0, y0, w, h, static_cast<uint8_t>(0x50 * flash_ticks / kFlashTicks * fade / kFadeTicks));
-        }
     }
 }
 
 void PortQuickLoadoutReset() {
     Close();
     fade = 0;
-    flash_ticks = 0;
     pictures.clear();
     reloading = false;
 }

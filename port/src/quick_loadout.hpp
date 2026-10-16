@@ -1,7 +1,7 @@
 #pragma once
 
 // The dungeon's quick loadout: Down on the directional pad opens a panel of four slots under the active items, one for
-// each face button. Max and Monica keep two melee weapons (Triangle, Square) and two second weapons (Cross, Circle); the
+// each face button. Max and Monica keep two melee weapons (Square, Triangle) and two second weapons (Cross, Circle); the
 // Ridepod two arms and two leg parts. A press equips the slot's item at once, with the quick change's effect. Items are
 // put in the slots from the item menu's "Equip Slot" command (quick_loadout_menu.cpp).
 
@@ -24,8 +24,8 @@ void PortQuickLoadoutReset();
 bool PortQuickLoadoutReloading();
 void PortQuickLoadoutReloadDone();
 
-// Whose slots an item can go in and which row: 0 for Triangle and Square, 1 for Cross and Circle.
+// Whose slots an item can go in and which row: 0 for Square and Triangle, 1 for Cross and Circle.
 bool PortQuickLoadoutTarget(const CGameDataUsed *item, int *chara, int *row);
 
-// Puts the item in a slot (0 Triangle, 1 Square, 2 Cross, 3 Circle) of its character's row and saves the slots.
+// Puts the item in a slot (0 Square, 1 Triangle, 2 Cross, 3 Circle) of its character's row and saves the slots.
 bool PortQuickLoadoutAssign(const CGameDataUsed *item, int slot);

@@ -5,7 +5,7 @@ Down again closes it.
 
 The panel has four slots, one for each face button:
 
-| Character   | Triangle, Square | Cross, Circle  |
+| Character   | Square, Triangle | Cross, Circle  |
 |-------------|------------------|----------------|
 | Max, Monica | melee weapons    | second weapons |
 | Ridepod     | arms             | legs           |

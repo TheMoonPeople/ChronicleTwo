@@ -22,8 +22,8 @@ namespace {
 
 constexpr int kEquipSlotCommand = 90;
 constexpr int kEquipSlotMessage = ITEM_MENU_COMMAND_MSG_BASE + kEquipSlotCommand;
-// Triangle, Square, Cross, Circle: the panel's order.
-constexpr int kSlotMessage[4] = {kEquipSlotMessage + 1, kEquipSlotMessage + 2, kEquipSlotMessage + 3,
+// Square, Triangle, Cross, Circle: the panel's order (the messages are Triangle, Square, Cross, Circle).
+constexpr int kSlotMessage[4] = {kEquipSlotMessage + 2, kEquipSlotMessage + 1, kEquipSlotMessage + 3,
                                  kEquipSlotMessage + 4};
 constexpr int kCommandMax = 8;
 constexpr u32 kColorEnabled = 0x80808080;

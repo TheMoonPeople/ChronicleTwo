@@ -15,7 +15,7 @@ struct QuickLoadoutArt {
 inline constexpr float kQuickLoadoutArtWidth = 381.0f;
 inline constexpr float kQuickLoadoutArtHeight = 305.0f;
 
-// The inside of each slot, in board units: Triangle, Square, Cross, Circle.
+// The inside of each slot, in board units: Square, Triangle, Cross, Circle.
 struct QuickLoadoutArtRect {
     float x0, y0, x1, y1;
 };

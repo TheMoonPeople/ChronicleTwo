@@ -154,7 +154,7 @@ void Disc(Canvas &canvas, float cx, float cy) {
         });
 }
 
-// A face button's symbol in its colour, drawn as strokes about (cx, cy).
+// A face button's symbol in its colour, drawn as strokes about (cx, cy): 0 Triangle, 1 Square, 2 Cross, 3 Circle.
 void Symbol(Canvas &canvas, int slot, float cx, float cy) {
     static const Color kColor[4] = {Rgb(64, 226, 160), Rgb(232, 120, 216), Rgb(112, 160, 244), Rgb(244, 98, 98)};
     std::vector<Stroke> strokes;
@@ -354,7 +354,8 @@ QuickLoadoutArt QuickLoadoutDrawPanel(int scale) {
         const QuickLoadoutArtRect &r = kQuickLoadoutSlotArt[slot];
         const float                cx = r.x0 + 22.0f, cy = r.y0 + 17.0f;
         Disc(canvas, cx, cy);
-        Symbol(canvas, slot, cx, cy);
+        static const int kSymbol[4] = {1, 0, 2, 3}; // the panel's Square, Triangle, Cross, Circle
+        Symbol(canvas, kSymbol[slot], cx, cy);
     }
     return canvas.Finish();
 }
