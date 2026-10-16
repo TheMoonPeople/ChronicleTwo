@@ -57,16 +57,18 @@ struct Rect {
 constexpr int  kPanelX = 38;
 constexpr int  kPanelOffsetY = 72;
 constexpr Rect kBox = {0, 8, 176, 134};
-constexpr Rect kTitleBar = {46, 0, 84, 22};
+constexpr Rect kTitleBar = {32, -1, 112, 25};
 // Square, Triangle, Cross, Circle.
 constexpr Rect kSlotRect[kSlots] = {{11, 26, 76, 52}, {89, 26, 76, 52}, {11, 82, 76, 52}, {89, 82, 76, 52}};
 constexpr int  kDiscSize = 24;
 constexpr int  kDiscOffset = -3; // the disc over the slot's top left corner
-constexpr int  kGlyphSize = 16;
+constexpr int  kGlyphSize = 22;
 
 // In the system frame texture: the EXP gauge's box, its gold border 10 across and 9 down to the black inside...
 constexpr int kBoxU0 = 288, kBoxU1 = 373, kBoxUMiddle = 340, kBoxV0 = 154, kBoxV1 = 182, kBoxVMiddle = 172;
 constexpr int kBoxSide = 10, kBoxEdge = 9;
+// The top corners come down a little further: the box's top left corner bends until three texels under its top edge.
+constexpr int kBoxCorner = 12;
 constexpr int kBlackU = 298, kBlackV = 165;
 // ...and the active item circles, 40 across: the left half of the first, the right half of the last (their other
 // halves hold the joints between them).
@@ -351,14 +353,15 @@ void DrawPanel(int left, int top, uint8_t alpha) {
     sprite.Color(0x80, 0x80, 0x80, alpha * 0x4C / 0x80);
     Piece(sprite, box.x + side, box.y + edge, box.w - 2 * side, box.h - 2 * edge, kBlackU, kBlackV, 1, 1);
     sprite.Color(0x80, 0x80, 0x80, alpha);
-    Piece(sprite, box.x, box.y, side, edge, kBoxU0, kBoxV0, side, edge);
-    Piece(sprite, box.x + box.w - side, box.y, side, edge, kBoxU1, kBoxV0, side, edge);
+    Piece(sprite, box.x, box.y, side, kBoxCorner, kBoxU0, kBoxV0, side, kBoxCorner);
+    Piece(sprite, box.x + box.w - side, box.y, side, kBoxCorner, kBoxU1, kBoxV0, side, kBoxCorner);
     Piece(sprite, box.x, box.y + box.h - edge, side, edge, kBoxU0, kBoxV1, side, edge);
     Piece(sprite, box.x + box.w - side, box.y + box.h - edge, side, edge, kBoxU1, kBoxV1, side, edge);
     Piece(sprite, box.x + side, box.y, box.w - 2 * side, edge, kBoxUMiddle, kBoxV0, 1, edge);
     Piece(sprite, box.x + side, box.y + box.h - edge, box.w - 2 * side, edge, kBoxUMiddle, kBoxV1, 1, edge);
-    Piece(sprite, box.x, box.y + edge, side, box.h - 2 * edge, kBoxU0, kBoxVMiddle, side, 1);
-    Piece(sprite, box.x + box.w - side, box.y + edge, side, box.h - 2 * edge, kBoxU1, kBoxVMiddle, side, 1);
+    Piece(sprite, box.x, box.y + kBoxCorner, side, box.h - kBoxCorner - edge, kBoxU0, kBoxVMiddle, side, 1);
+    Piece(sprite, box.x + box.w - side, box.y + kBoxCorner, side, box.h - kBoxCorner - edge, kBoxU1, kBoxVMiddle, side,
+          1);
 
     for (const Rect &slot : kSlotRect) {
         Rounded(sprite, {left + slot.x, top + slot.y, slot.w, slot.h}, kCircleHalf);
@@ -401,11 +404,11 @@ void DrawTitle(float x, float y, uint8_t alpha) {
     static char title[] = "QUICK LOADOUT";
     CFont font;
     font.Init();
-    // The game's own size for its menu text, letters a pixel further apart than its usual 15.
-    constexpr int kLetterWidth = 16;
-    constexpr int kLetterAdvance = 16;
-    font.SetDrawSize(kLetterWidth, 20);
-    font.SetClearance(kLetterAdvance, 20);
+    // A little under the game's own size for its menu text (16 by 20), to sit inside the bar.
+    constexpr int kLetterWidth = 14;
+    constexpr int kLetterAdvance = 14;
+    font.SetDrawSize(kLetterWidth, 18);
+    font.SetClearance(kLetterAdvance, 18);
     font.SetFuchi(FUCHI_OUTLINE);
     font.SetColor(0x80, 0x80, 0x80, alpha);
     int w = 0, h = 0;
@@ -572,7 +575,7 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
             const gfx::TextureHandle handle = ItemPicture(entry.item_no);
             if (handle != gfx::kNullTexture) {
                 // Clear of the button's disc in the slot's top left corner.
-                const float size = h * 0.92f;
+                const float size = h * 0.83f;
                 const float cx = x0 + w * 0.5f + h * 0.14f, cy = y0 + h * 0.5f + h * 0.02f;
                 CGameDataUsed *equipped = RowEquip(chara, slot / 2);
                 const bool     have = (equipped != nullptr && Matches(entry, equipped)) || FindOwned(entry) != nullptr;
