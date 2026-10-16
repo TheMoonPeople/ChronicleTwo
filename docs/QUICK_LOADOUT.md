@@ -32,6 +32,10 @@ The slots are kept in `quick_loadout.txt` in the save folder, one line per slot.
 Each slot shows the item's own 3D model, drawn once into a 128x128 texture by Jeffiest's 3D item icon renderer
 (`port/src/item_icon3d.cpp`, from TheMoonPeople/ChronicleTwo#53), in the dungeon's free texture blocks 0xAC and 0xAE.
 
-The panel itself (copper frame, bolts, title, slots and the face button discs) is drawn in code by
-`port/src/quick_loadout_art.cpp` when the panel first opens, after Javier's mockup. The repository holds none of the
-game's pictures: the item pictures come from each player's own extracted data.
+The panel picture is Javier's own design, `port/quick_loadout/panel.png`, embedded in the executable as
+`port/src/quick_loadout_panel.inc`:
+
+    python3 scripts/port/embed_png.py port/src/quick_loadout_panel.inc kQuickLoadoutPanelPng=port/quick_loadout/panel.png
+
+Its title, QUICK LOADOUT, is written on it at run time in the game's own font. The item pictures come from each
+player's own extracted data; the repository holds none of the game's pictures.

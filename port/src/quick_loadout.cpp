@@ -1,7 +1,6 @@
 #include "common.h"
 
 #include "quick_loadout.hpp"
-#include "quick_loadout_art.hpp"
 
 #include "actionchara.hpp"
 #include "dng_hud.hpp"
@@ -24,6 +23,7 @@
 #include "prespr.hpp"
 #include "subgame.hpp"
 #include "userdata.hpp"
+#include "font.hpp"
 
 #include "gfx/gfx.hpp"
 
@@ -35,7 +35,15 @@
 
 int PortRetailDngMainKey() asm("DngMain_DngMainKey");
 
+#define STBI_ONLY_PNG
+#define STBI_NO_STDIO
+#include "stb_image.h"
+
 namespace {
+
+// Javier's own panel design (port/quick_loadout/panel.png): the copper frame, the title tab, the four slots and their
+// buttons' discs. The title is written on it in the game's font.
+#include "quick_loadout_panel.inc"
 
 constexpr int kSlots = 4;
 constexpr int kCharas = 3; // Max, Monica and the Ridepod; the monster form has no equipment.
@@ -47,12 +55,17 @@ constexpr int kFaceButtons = PAD_TRIANGLE | PAD_SQUARE | PAD_CROSS | PAD_CIRCLE;
 
 constexpr int kFadeTicks = 6;
 
-// The panel picture, drawn in code (quick_loadout_art.cpp) at this many pixels per board unit.
-constexpr float kArtWidth = kQuickLoadoutArtWidth;
-constexpr float kArtHeight = kQuickLoadoutArtHeight;
-constexpr int   kArtScale = 2;
-constexpr auto &kSlotArt = kQuickLoadoutSlotArt;
-using ArtRect = QuickLoadoutArtRect;
+// The panel picture's size and the inside of each slot in its pixels: Square, Triangle, Cross, Circle.
+constexpr float kArtWidth = 381.0f;
+constexpr float kArtHeight = 305.0f;
+struct ArtRect {
+    float x0, y0, x1, y1;
+};
+constexpr ArtRect kSlotArt[kSlots] = {
+    {31, 56, 189, 161}, {208, 55, 354, 162}, {31, 181, 189, 286}, {207, 181, 354, 286}};
+// The title tab's middle, in the picture's pixels.
+constexpr float kTitleX = 191.0f;
+constexpr float kTitleY = 23.0f;
 
 // Where the panel sits on the status board's 640-wide frame: under the active items, sliding with the board.
 constexpr float kPanelX = 40.0f;
@@ -304,17 +317,38 @@ gfx::TextureHandle PanelTexture() {
     if (panel_texture != gfx::kNullTexture || panel_failed) {
         return panel_texture;
     }
-    const QuickLoadoutArt art = QuickLoadoutDrawPanel(kArtScale);
-    gfx::TextureDesc      desc;
-    desc.width = static_cast<uint32_t>(art.width);
-    desc.height = static_cast<uint32_t>(art.height);
+    int            width = 0, height = 0, channels = 0;
+    unsigned char *pixels = stbi_load_from_memory(kQuickLoadoutPanelPng, sizeof kQuickLoadoutPanelPng, &width, &height,
+                                                  &channels, 4);
+    if (pixels == nullptr) {
+        panel_failed = true;
+        std::fprintf(stderr, "quick loadout: cannot decode the panel picture\n");
+        return gfx::kNullTexture;
+    }
+    gfx::TextureDesc desc;
+    desc.width = static_cast<uint32_t>(width);
+    desc.height = static_cast<uint32_t>(height);
     panel_texture = gfx::CreateTexture(desc);
     if (panel_texture == gfx::kNullTexture ||
-        !gfx::UpdateTextureNow(panel_texture, 0, 0, 0, desc.width, desc.height, art.rgba.data())) {
+        !gfx::UpdateTextureNow(panel_texture, 0, 0, 0, desc.width, desc.height, pixels)) {
         panel_failed = true;
-        std::fprintf(stderr, "quick loadout: cannot make the panel picture\n");
     }
+    stbi_image_free(pixels);
     return panel_texture;
+}
+
+// "QUICK LOADOUT" in the game's own font, white with its black outline, in the middle of the title tab.
+void DrawTitle(float x, float y, uint8_t alpha) {
+    static char title[] = "QUICK LOADOUT";
+    CFont font;
+    font.Init();
+    font.SetDrawSize(9, 12);
+    font.SetClearance(9, 12);
+    font.SetFuchi(FUCHI_OUTLINE);
+    font.SetColor(0x80, 0x80, 0x80, alpha);
+    int w = 0, h = 0;
+    font.CalcDrawWH(title, &w, &h);
+    font.DrawDirect(title, (int) (x - w * 0.5f + 0.5f), (int) (y - h * 0.5f + 0.5f));
 }
 
 gfx::TextureHandle ItemPicture(int item_no) {
@@ -463,7 +497,8 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
     const float   top = (float) ((int) (80.0f * statusbar_rate) - 72) + kPanelOffsetY;
     const float   sx = kPanelWidth / kArtWidth;
     const float   sy = kPanelHeight / kArtHeight;
-    DrawQuad(panel, kPanelX, top, kPanelWidth, kPanelHeight, kArtWidth * kArtScale, kArtHeight * kArtScale, alpha);
+    DrawQuad(panel, kPanelX, top, kPanelWidth, kPanelHeight, kArtWidth, kArtHeight, alpha);
+    DrawTitle(kPanelX + kTitleX * sx, top + kTitleY * sy, alpha);
     if (chara < USER_CHARA_MAX || chara > USER_CHARA_ROBO) {
         return;
     }
