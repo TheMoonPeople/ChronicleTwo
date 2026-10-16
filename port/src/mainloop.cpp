@@ -445,6 +445,7 @@ PORT_OVERRIDE void MainLoop() {
 
             mgBeginFrame(NULL);
             mode_finished = LoopMain[PortLoopNo]();
+            PortFinishQuickChange();
             sndStep(mgGetNowFrameRate());
             MainScene.StepSnd();
             GamePad__2.UpDate();
