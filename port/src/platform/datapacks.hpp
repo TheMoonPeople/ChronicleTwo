@@ -81,6 +81,11 @@ bool IsReplacement(const vfs::Ref &file);
 bool Decode(const texture_catalog::Entry &entry, std::size_t variant, DecodedTexture &decoded, std::string &error);
 
 /**
+ * Decodes a PNG of the given dimensions to 8-bit RGBA; safe on worker threads.
+ */
+bool DecodePngRgba(std::span<const std::uint8_t> png, std::uint32_t width, std::uint32_t height, std::vector<std::uint8_t> &rgba);
+
+/**
  * Names the pixels Decode produces for a variant, or returns an empty string when they cannot be named.
  */
 std::string DecodeIdentity(const texture_catalog::Entry &entry, std::size_t variant);

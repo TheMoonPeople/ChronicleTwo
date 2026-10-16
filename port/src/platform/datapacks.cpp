@@ -23,6 +23,7 @@
 #define STBI_NO_STDIO
 #include "stb_image.h"
 
+#include "kazarov_bridge/rust/lib.h"
 #include "platform/archive_mount.hpp"
 
 namespace datapacks {
@@ -314,18 +315,10 @@ bool ReadPng(const vfs::Ref &path, uint32_t &width, uint32_t &height,
         error = "PNG dimensions exceed the texture or memory limit";
         return false;
     }
-    int            decoded_width = 0, decoded_height = 0, channels = 0;
-    unsigned char *pixels = stbi_load_from_memory(bytes.data(), static_cast<int>(bytes.size()),
-                                                  &decoded_width, &decoded_height, &channels, 4);
-    if (!pixels || decoded_width != static_cast<int>(width) || decoded_height != static_cast<int>(height)) {
-        stbi_image_free(pixels);
+    if (!DecodePngRgba(bytes, width, height, rgba)) {
         error = "cannot decode PNG";
         return false;
     }
-    rgba.assign(pixels, pixels + static_cast<std::size_t>(width) * height * 4);
-    stbi_image_free(pixels);
-    Trace("stbi decodes");
-    Trace("stbi decoded bytes", rgba.size());
     return true;
 }
 
@@ -679,6 +672,33 @@ bool Decode(const texture_catalog::Entry &entry, std::size_t variant_index, Deco
         return DecodeUncached(entry, variant_index, decoded, error);
     }
     return DecodeCached(DecodeKey(entry, variant_index), [&](DecodedTexture &out, std::string &failure) { return DecodeUncached(entry, variant_index, out, failure); }, decoded, error);
+}
+
+bool DecodePngRgba(std::span<const std::uint8_t> png, std::uint32_t width, std::uint32_t height, std::vector<std::uint8_t> &rgba) {
+    // The Rust decoder inflates several times faster than stb_image, which matters for upscaled packs; stb_image
+    // still reads whatever it rejects.
+    rgba.resize(static_cast<std::size_t>(width) * height * 4);
+    try {
+        kazarov::png_decode_rgba(rust::Slice<const std::uint8_t>(png.data(), png.size()), width, height,
+                                 rust::Slice<std::uint8_t>(rgba.data(), rgba.size()));
+        Trace("png fast decodes");
+        Trace("stbi decoded bytes", rgba.size());
+        return true;
+    } catch (const std::exception &) {
+    }
+    int            decoded_width = 0, decoded_height = 0, channels = 0;
+    unsigned char *pixels = stbi_load_from_memory(png.data(), static_cast<int>(png.size()), &decoded_width,
+                                                  &decoded_height, &channels, 4);
+    if (!pixels || decoded_width != static_cast<int>(width) || decoded_height != static_cast<int>(height)) {
+        stbi_image_free(pixels);
+        rgba.clear();
+        return false;
+    }
+    std::copy_n(pixels, rgba.size(), rgba.begin());
+    stbi_image_free(pixels);
+    Trace("stbi decodes");
+    Trace("stbi decoded bytes", rgba.size());
+    return true;
 }
 
 std::string DecodeIdentity(const texture_catalog::Entry &entry, std::size_t variant) {
