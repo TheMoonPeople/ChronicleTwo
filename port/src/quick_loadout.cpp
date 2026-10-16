@@ -41,8 +41,9 @@ int PortRetailDngMainKey() asm("DngMain_DngMainKey");
 
 namespace {
 
-// Javier's own panel design (port/quick_loadout/panel.png): the copper frame, the title tab, the four slots and their
-// buttons' discs. The title is written on it in the game's font.
+// The panel picture (port/quick_loadout/panel.png, drawn by scripts/port/quick_loadout_panel.py in the style of the
+// active item board): the title bar, the four slots and their buttons' discs. The title is written on it in the game's
+// font.
 #include "quick_loadout_panel.inc"
 
 constexpr int kSlots = 4;
@@ -62,9 +63,9 @@ struct ArtRect {
     float x0, y0, x1, y1;
 };
 constexpr ArtRect kSlotArt[kSlots] = {
-    {31, 56, 189, 161}, {208, 55, 354, 162}, {31, 181, 189, 286}, {207, 181, 354, 286}};
+    {26, 54, 182, 164}, {199, 54, 355, 164}, {26, 182, 182, 292}, {199, 182, 355, 292}};
 // The title tab's middle, in the picture's pixels.
-constexpr float kTitleX = 191.0f;
+constexpr float kTitleX = 190.5f;
 constexpr float kTitleY = 23.0f;
 
 // Where the panel sits on the status board's 640-wide frame: under the active items, sliding with the board.
@@ -342,16 +343,15 @@ void DrawTitle(float x, float y, uint8_t alpha) {
     static char title[] = "QUICK LOADOUT";
     CFont font;
     font.Init();
-    constexpr int kLetterWidth = 9;
-    constexpr int kLetterAdvance = 13; // the letters spaced out, as on the design
-    font.SetDrawSize(kLetterWidth, 12);
-    font.SetClearance(kLetterAdvance, 12);
+    // The game's own size for its menu text, letters a pixel further apart than its usual 15.
+    constexpr int kLetterWidth = 16;
+    constexpr int kLetterAdvance = 16;
+    font.SetDrawSize(kLetterWidth, 20);
+    font.SetClearance(kLetterAdvance, 20);
     font.SetFuchi(FUCHI_OUTLINE);
     font.SetColor(0x80, 0x80, 0x80, alpha);
     int w = 0, h = 0;
     font.CalcDrawWH(title, &w, &h);
-    // The width counts the spacing after the last letter too.
-    w -= kLetterAdvance - kLetterWidth;
     font.DrawDirect(title, (int) (x - w * 0.5f + 0.5f), (int) (y - h * 0.5f + 0.5f));
 }
 
