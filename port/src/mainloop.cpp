@@ -28,6 +28,7 @@
 #include "mainloop3.hpp"
 #include "mainloop_port.hpp"
 #include "mapjump.hpp"
+#include "options/retail_system_mes.hpp"
 #include "mapselect.hpp"
 #include "menuchr_port.hpp"
 #include "mg_drawprim.hpp"
@@ -51,6 +52,7 @@
 #include "snd_mngr.hpp"
 #include "subgame.hpp"
 #include "sysmes.hpp"
+#include "bench_spawn.hpp"
 #include "test_hooks.hpp"
 #include "userdata.hpp"
 #include "vlgr_info.hpp"
@@ -246,6 +248,7 @@ PORT_OVERRIDE void MainLoop() {
     LoadFontTexture();
     LoadGaijiImg();
     LoadFontTblBin();
+    PortRetailInstallHostOptionSystemLines();
     LoadFontTex2Img();
     LoadNPCCfg();
     InfoStack.stSetBuffer(ArenaRoot(PortInfoBuff, 5000, "InfoStack"), 5000 * kArenaHeadroom);
@@ -443,6 +446,7 @@ PORT_OVERRIDE void MainLoop() {
                 DebugFlag = !DebugFlag;
             }
 
+            GameBenchTrySpawnEnemies(PortLoopNo);
             mgBeginFrame(NULL);
             mode_finished = LoopMain[PortLoopNo]();
             sndStep(mgGetNowFrameRate());

@@ -15,9 +15,21 @@ enum class ConfigAspect {
 
 struct Config : HostSettings {
     bool         interpolation = true;
+    // Skip tweened display frames when a tick records more mesh+2D draws than this (0 = never skip).
+    int interpolation_draw_budget = 2400;
+    int interpolation_fps_floor = 54;
+    bool interpolation_multi_present = false;
     bool         debug_mode = false;
     bool         autosave = true;
+    // Skips the SCE "moji" boot logo and the title-screen Sony / Level-5 sequences.
+    bool         skip_intro = false;
+    // Scales Georama polygon build budgets (1 = retail caps, up to 6).
+    int          georama_poly_multiplier = 1;
+    // When on, up to 60 monsters can be active on a dungeon floor (retail is 24).
+    bool         expanded_dungeon_monsters = false;
     ConfigAspect aspect = ConfigAspect::Auto;
+    // video.fps_detail "budget": frame-budget ms lines in the FPS overlay (stored separately from Kazarov's enum).
+    bool         fps_detail_budget = false;
     float        ui_scale = 1.0f;
     bool         font_sharp = false;
     bool         mouse_fixed_look = true;

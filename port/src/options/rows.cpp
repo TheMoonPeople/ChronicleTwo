@@ -1,11 +1,14 @@
 #include "options/rows.hpp"
 
+#include <cassert>
+
 #include <algorithm>
 #include <cmath>
 #include <format>
 #include <type_traits>
 #include <utility>
 
+#include "options/registry.hpp"
 #include "platform/input.hpp"
 
 namespace options {
@@ -153,7 +156,11 @@ std::span<const Page> Pages() {
                         Resolution(),
                         Choice<&Config::present_mode>("video.present_mode", "Present mode", "FIFO prevents tearing. Mailbox keeps the newest frame.\nUnsupported modes fall back to FIFO.", {"FIFO", "Mailbox", "Immediate"}),
                         Number<&Config::max_fps>("video.max_fps", "Frame cap", "Limits display frames, not game speed.", {0, 30, 50, 60, 75, 90, 100, 120, 144, 165, 180, 240, 360}, 1, " FPS"),
-                        Choice<&Config::interpolation>("video.interpolation", "Interpolation", "Smooths display frames between game ticks.", {"Off", "On"}),
+                         Choice<&Config::interpolation>("video.interpolation", "Interpolation", "Smooths display frames between game ticks.", {"Off", "On"}),
+                         Number<&Config::interpolation_draw_budget>("video.interpolation_draw_budget",
+                                                                    "Interpolation draw budget",
+                                                                    "Skips tweened frames when a tick exceeds this many draws (0 = off).",
+                                                                    {0, 2000, 2400, 2600, 3000, 3500, 4000, 5000, 8000}),
                         Choice<&Config::aspect>("video.aspect", "Aspect ratio", "Auto fills the window. 4:3 adds black side bars.", {"Auto", "4:3"}),
                         Number<&Config::ui_scale>("video.ui_scale", "UI scale", "Scales menus and HUD. Large values can crop the UI.\nUse Left to reduce the scale if it no longer fits.", {0.5, 0.65, 0.75, 0.85, 1, 1.1, 1.25, 1.5}, 100, "%"),
                         Choice<&Config::show_fps>("video.show_fps", "Show FPS", "Shows the display and tick rates in a window.", {"Off", "On"}),
@@ -176,11 +183,47 @@ std::span<const Page> Pages() {
                          Choice<&Config::mouse_zoom>("input.mouse_zoom", "Mouse wheel zoom", "Wheel changes camera distance while walking.\nMenus use the wheel for selection instead.", {"Off", "On"}),
                          Choice<&Config::mouse_fixed_look>("input.mouse_fixed_look", "Fixed camera mouse look", "Gently look around fixed-camera rooms.\nThe view returns when the mouse rests.", {"Off", "On"}),
                      }},
-        {"Game",     {
-                     Choice<&Config::autosave>("game.autosave", "Autosave", "Saves on arriving in a town or on a dungeon floor.\nThe load screen lists it first.", {"Off", "On"}),
-                 }       },
         {"Bindings", Bindings()           },
+        {"Game",     {
+                         Choice<&Config::autosave>("game.autosave", "Autosave",
+                                                     "Saves on arriving in a town or on a dungeon floor.\n"
+                                                     "The load screen lists it first.",
+                                                     {"Off", "On"}),
+                         Choice<&Config::debug_mode>("game.debug_mode", "Debug mode",
+                                                     "Enables master debug behavior for this session and save.",
+                                                     {"Off", "On"}),
+                         Choice<&Config::skip_intro>("game.skip_intro", "Skip intro",
+                                                     "Skips the Sony and Level-5 logos at boot and on the title screen.",
+                                                     {"Off", "On"}),
+                         Choice<&Config::expanded_dungeon_monsters>("game.expanded_dungeon_monsters",
+                                                                    "Expanded dungeon monsters",
+                                                                    "Raises the active monster cap from 24 to 60 and shows\n"
+                                                                    "all of them in view (retail only keeps the 5 nearest visible).\n"
+                                                                    "Re-enter the floor after changing this.",
+                                                                    {"Off", "On"}),
+                     }                      },
+        {"Georama",  {[] {
+                          Row row{"game.georama_poly_multiplier", "Polygon budget",
+                                  "Multiplies how many polygons you can place in Georama towns.\nDraw-memory limits stay at retail."};
+                          row.value = [](const Config &c) { return std::format("{}×", c.georama_poly_multiplier); };
+                          row.step = [](Config &c, int direction) {
+                              int next = c.georama_poly_multiplier + direction;
+                              if (next < 1) {
+                                  next = 6;
+                              }
+                              if (next > 6) {
+                                  next = 1;
+                              }
+                              c.georama_poly_multiplier = next;
+                          };
+                          return row;
+                      }()}},
     };
+    const auto names = port_settings::PcOverlayPageNames();
+    assert(pages.size() == static_cast<std::size_t>(port_settings::PcOverlayPageCount()));
+    for (std::size_t i = 0; i < pages.size(); ++i) {
+        assert(pages[i].name == names[i]);
+    }
     return pages;
 }
 

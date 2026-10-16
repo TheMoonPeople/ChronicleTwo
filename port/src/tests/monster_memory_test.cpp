@@ -21,8 +21,8 @@ TEST(MonsterMemory, SingleMonsterLoadInitializesEveryHostArena) {
     ASSERT_NE(scene, nullptr);
     scene->chara_num = 2 * MONSTER_ACTIVE_MAX;
     for (int i = 0; i < MONSTER_ACTIVE_MAX; ++i) {
-        scene->chara[i + MONSTER_ACTIVE_MAX].status = 1;
-        scene->chara[i + MONSTER_ACTIVE_MAX].chara = &monsters[i];
+        scene->chara[MONSTER_CHARA_INDEX(i)].status = 1;
+        scene->chara[MONSTER_CHARA_INDEX(i)].chara = &monsters[i];
     }
 
     constexpr int          kExtraBytes = 128 * (sizeof(RS_STACKDATA) - 8) + 512 * (sizeof(RS_CALLDATA) - 12);

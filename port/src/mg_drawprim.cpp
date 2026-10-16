@@ -153,6 +153,10 @@ void AssembleSprite(const mgCDrawPrim &self, PrimRun &run, const gfx::Vertex2D &
         return out;
     };
 
+    float ax = a.x;
+    float ay = a.y;
+    float bx = b.x;
+    float by = b.y;
     float au = a.u;
     float bu = b.u;
     float av = a.v;
@@ -161,6 +165,28 @@ void AssembleSprite(const mgCDrawPrim &self, PrimRun &run, const gfx::Vertex2D &
     const auto physical = MgTexturePhysicalExtent(self.texture.tex0_bits);
     const auto logical = MgTextureLogicalExtent(self.texture.tex0_bits);
     const float source_scale = static_cast<float>(physical.width) / logical.width;
+    const bool nearest = self.prim.TME != 0 && self.prim.FST != 0 &&
+                         mgPortFilter(self.texture.tex1_bits) == gfx::Filter::Nearest;
+
+    if (nearest && target_scale > 0.0f) {
+        const float inv = 1.0f / target_scale;
+        const auto snap_lo = [&](float p) { return std::floor(p * target_scale + 1e-4f) * inv; };
+        const auto snap_hi = [&](float p) { return std::ceil(p * target_scale - 1e-4f) * inv; };
+        if (bx >= ax) {
+            ax = snap_lo(ax);
+            bx = snap_hi(bx);
+        } else {
+            ax = snap_hi(ax);
+            bx = snap_lo(bx);
+        }
+        if (by >= ay) {
+            ay = snap_lo(ay);
+            by = snap_hi(by);
+        } else {
+            ay = snap_hi(ay);
+            by = snap_lo(by);
+        }
+    }
 
     if (self.prim.TME != 0 && self.prim.FST != 0 && mgPortFilter(self.texture.tex1_bits) == gfx::Filter::Linear) {
         // The GS evaluates UV at integer pixel positions. Vulkan's pixel centres
@@ -173,11 +199,11 @@ void AssembleSprite(const mgCDrawPrim &self, PrimRun &run, const gfx::Vertex2D &
         bu -= du;
         av -= dv;
         bv -= dv;
-    } else if (self.prim.TME != 0 && self.prim.FST != 0 && mgPortFilter(self.texture.tex1_bits) == gfx::Filter::Nearest) {
-        std::tie(au, bu) = mgPortSpriteTexelSpan(a.x * target_scale, b.x * target_scale,
-                                               a.u * source_scale, b.u * source_scale);
-        std::tie(av, bv) = mgPortSpriteTexelSpan(a.y * target_scale, b.y * target_scale,
-                                               a.v * source_scale, b.v * source_scale);
+    } else if (nearest) {
+        std::tie(au, bu) = mgPortSpriteTexelSpan(ax * target_scale, bx * target_scale, a.u * source_scale,
+                                                 b.u * source_scale);
+        std::tie(av, bv) = mgPortSpriteTexelSpan(ay * target_scale, by * target_scale, a.v * source_scale,
+                                                 b.v * source_scale);
         // The GPU can interpolate a hair under an exact texel boundary, where the GS takes the texel after it.
         au += kMgPortNearestTexelBias;
         bu += kMgPortNearestTexelBias;
@@ -188,10 +214,10 @@ void AssembleSprite(const mgCDrawPrim &self, PrimRun &run, const gfx::Vertex2D &
     }
 
     const gfx::Vertex2D quad[4] = {
-        corner(a.x, a.y, au, av),
-        corner(b.x, a.y, bu, av),
-        corner(b.x, b.y, bu, bv),
-        corner(a.x, b.y, au, bv),
+        corner(ax, ay, au, av),
+        corner(bx, ay, bu, av),
+        corner(bx, by, bu, bv),
+        corner(ax, by, au, bv),
     };
     Submit(self, run, gfx::Primitive::Quads, quad, 4);
 }

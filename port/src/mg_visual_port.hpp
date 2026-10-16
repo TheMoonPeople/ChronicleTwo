@@ -23,6 +23,12 @@ void mgVisualPortRefreshFace(mgCVisualMDT *visual, mgCFace *face);
 const mgVisualFaceMesh *mgVisualPortFaceMesh(const mgCFace *face);
 void mgVisualPortSweep();
 
+// Test hooks for mesh upload and face-table sweep (not used in retail paths).
+int mgVisualPortMeshUploadCountForTest();
+void mgVisualPortResetMeshUploadCountForTest();
+int mgVisualPortSweepPassCountForTest();
+void mgVisualPortResetSweepPassCountForTest();
+
 mgCDrawEnv mgVisualPortDrawEnv(const mgCVisualAttr &attr, const mgCDrawEnv &base);
 
 // The motion visual writes its bones here: CreateRenderInfoPacket's record is a file static in mg_visual.cpp.

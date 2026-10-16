@@ -22,6 +22,8 @@
 #include "platform/files.hpp"
 #include "platform/paths.hpp"
 
+#include "georama_poly_budget.hpp"
+
 namespace {
 
 using Json = nlohmann::ordered_json;
@@ -66,6 +68,7 @@ constexpr auto kUnit = [](auto value) { return value >= 0 && value <= 1; };
 constexpr const char *kPresentModeNames[] = {"fifo", "mailbox", "immediate"};
 constexpr const char *kAspectNames[] = {"auto", "4:3"};
 constexpr const char *kFpsDetailNames[] = {"fps", "ticks", "all"};
+constexpr const char *kFpsDetailBudget = "budget";
 constexpr const char *kGyroNames[] = {"off", "always", "first_person", "held"};
 constexpr const char *kGlyphDeviceNames[] = {
     "auto", "ps3", "ps4", "ps5", "ps5color", "xbox", "switch", "steamdeck", "steamcontroller", "keyboard",
@@ -199,11 +202,45 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
     if (name == "game.autosave") {
         return ReadBool(value, config.autosave);
     }
+    if (name == "game.skip_intro") {
+        return ReadBool(value, config.skip_intro);
+    }
+    if (name == "game.georama_poly_multiplier") {
+        if (!ReadInt(value, config.georama_poly_multiplier)) {
+            return false;
+        }
+        config.georama_poly_multiplier = ClampGeoramaPolyMultiplier(config.georama_poly_multiplier);
+        return true;
+    }
+    if (name == "game.expanded_dungeon_monsters") {
+        return ReadBool(value, config.expanded_dungeon_monsters);
+    }
     if (name == "video.present_mode") {
         return ReadEnum(value, kPresentModeNames, s.present_mode);
     }
     if (name == "video.interpolation") {
         return ReadBool(value, config.interpolation);
+    }
+    if (name == "video.interpolation_draw_budget") {
+        if (!ReadInt(value, config.interpolation_draw_budget)) {
+            return false;
+        }
+        if (config.interpolation_draw_budget < 0) {
+            config.interpolation_draw_budget = 0;
+        }
+        return true;
+    }
+    if (name == "video.interpolation_fps_floor") {
+        if (!ReadInt(value, config.interpolation_fps_floor)) {
+            return false;
+        }
+        if (config.interpolation_fps_floor < 0) {
+            config.interpolation_fps_floor = 0;
+        }
+        return true;
+    }
+    if (name == "video.interpolation_multi_present") {
+        return ReadBool(value, config.interpolation_multi_present);
     }
     if (name == "video.max_fps") {
         if (!ReadNumber(value, s.max_fps, kNonNegative)) {
@@ -236,6 +273,16 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
         return ReadBool(value, s.show_fps);
     }
     if (name == "video.fps_detail") {
+        if (!value.is_string()) {
+            return false;
+        }
+        const std::string detail = Lower(value.get<std::string>());
+        if (detail == kFpsDetailBudget) {
+            s.fps_detail = ConfigFpsDetail::All;
+            config.fps_detail_budget = true;
+            return true;
+        }
+        config.fps_detail_budget = false;
         return ReadEnum(value, kFpsDetailNames, s.fps_detail);
     }
     if (name == "audio.master_volume") {
@@ -417,8 +464,14 @@ std::string ConfigSerialize(const Config &config) {
     Json root;
     root["game"]["debug_mode"] = config.debug_mode;
     root["game"]["autosave"] = config.autosave;
+    root["game"]["skip_intro"] = config.skip_intro;
+    root["game"]["georama_poly_multiplier"] = config.georama_poly_multiplier;
+    root["game"]["expanded_dungeon_monsters"] = config.expanded_dungeon_monsters;
     root["video"]["present_mode"] = kPresentModeNames[static_cast<std::size_t>(s.present_mode)];
     root["video"]["interpolation"] = config.interpolation;
+    root["video"]["interpolation_draw_budget"] = config.interpolation_draw_budget;
+    root["video"]["interpolation_fps_floor"] = config.interpolation_fps_floor;
+    root["video"]["interpolation_multi_present"] = config.interpolation_multi_present;
     root["video"]["max_fps"] = s.max_fps;
     root["video"]["width"] = s.window_width;
     root["video"]["height"] = s.window_height;
@@ -427,7 +480,9 @@ std::string ConfigSerialize(const Config &config) {
     root["video"]["ui_scale"] = Shortest(config.ui_scale);
     root["video"]["text_font"] = config.font_sharp ? "sharp" : "original";
     root["video"]["show_fps"] = s.show_fps;
-    root["video"]["fps_detail"] = kFpsDetailNames[static_cast<std::size_t>(s.fps_detail)];
+    root["video"]["fps_detail"] =
+        config.fps_detail_budget ? kFpsDetailBudget
+                                 : kFpsDetailNames[static_cast<std::size_t>(s.fps_detail)];
     root["audio"]["master_volume"] = Shortest(s.master_volume);
     root["audio"]["sound"] = s.surround ? "surround" : "stereo";
     root["audio"]["soundtrack"] = s.soundtrack ? "custom" : "ps2";

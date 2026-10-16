@@ -4,5 +4,5 @@
 #   ./run.sh                   run ps2-pal
 #   ./run.sh ps2-pal           the same, named
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-[ -f "$root/tools/kazarov/scripts/kazarov" ] || git -C "$root" submodule update --init tools/kazarov
+"$root/scripts/ensure_kazarov_submodule.sh"
 exec "$root/tools/kazarov/scripts/kazarov" run "$@"

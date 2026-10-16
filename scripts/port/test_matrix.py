@@ -44,7 +44,7 @@ class MatrixRunner(unittest.TestCase):
     def test_launch_uses_fixed_ntsc_runtime_without_selector_config(self):
         self.execute()
         config = json.loads((self.run.dir / "save" / "config.json").read_bytes())
-        self.assertEqual(config["game"], {"debug_mode": False})
+        self.assertEqual(config["game"], {"debug_mode": False, "skip_intro": False})
         receipt = json.loads((self.run.dir / "result.json").read_text())
         self.assertEqual(receipt["provenance"]["runtime_timing"], {"region": "ntsc", "tick_hz": 60})
         self.assertEqual(self.reload().rc, 0)

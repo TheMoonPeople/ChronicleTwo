@@ -463,6 +463,21 @@ TEST(MglibPresent, InterpolationOffPresentsOncePerTick) {
     EXPECT_EQ(stats.presented, 3u);
 }
 
+TEST(MglibPresent, FrameBudgetRecordsCanonicalAndDisplay) {
+    PresentRenderer renderer(640, 480);
+    PresentFrameBudgetResetForTest();
+    PresentSetSettings(PresentSettings{.interpolation = true});
+
+    static int object;
+    mgPortCutInterpolation();
+    RecordTicks(2, &object, 0.0f);
+
+    const FrameBudgetAverages budget = PresentFrameBudgetAverages();
+    EXPECT_GT(budget.canonical_ms, 0.0);
+    EXPECT_GT(budget.display_ms, 0.0);
+    EXPECT_GE(budget.other_ms, 0.0);
+}
+
 TEST(MglibPresent, ScreenshotDisplayWithInterpolationOffIgnoresAlpha) {
     PresentRenderer renderer(640, 480);
     PresentResetStats();
