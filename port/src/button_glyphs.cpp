@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdio>
 #include <map>
 #include <vector>
@@ -196,6 +197,39 @@ void Paste(const glyphs::CpuImage &image, const Rect &cell, uint32_t scale,
     }
 }
 
+// The skip prompt's triangle moves with the width of each language's word (English and French at
+// x 8, Spanish 4, Italian 5, German 1). Its green triangle is found in the decoded pixels and the cell
+// follows it; the built-in cell is the English one, whose triangle box is centred at (18, 34.5).
+Rect LocateSkipTriangle(const Rect &cell, uint32_t scale, const datapacks::DecodedTexture &decoded) {
+    constexpr double kCenterX = 18.0;
+    constexpr double kCenterY = 34.5;
+    const auto      &level = decoded.levels.front();
+    const int        width = static_cast<int>(decoded.width);
+    const int        top = std::max(0, static_cast<int>((cell.y - 4) * scale));
+    const int        bottom = std::min(static_cast<int>(decoded.height), static_cast<int>((cell.y + cell.h + 4) * scale));
+    int              min_x = width, max_x = -1, min_y = bottom, max_y = -1;
+    for (int y = top; y < bottom; ++y) {
+        for (int x = 0; x < width; ++x) {
+            const uint8_t *texel = &level[(static_cast<std::size_t>(y) * width + x) * 4];
+            if (texel[3] > 128 && texel[1] > 100 && texel[1] > texel[0] + 40 && texel[1] > texel[2] + 40) {
+                min_x = std::min(min_x, x);
+                max_x = std::max(max_x, x);
+                min_y = std::min(min_y, y);
+                max_y = std::max(max_y, y);
+            }
+        }
+    }
+    if (max_x < 0) {
+        return cell;
+    }
+    const double center_x = (min_x + max_x + 1) / 2.0 / scale;
+    const double center_y = (min_y + max_y + 1) / 2.0 / scale;
+    Rect         moved = cell;
+    moved.x = std::max(0, cell.x + static_cast<int>(std::lround(center_x - kCenterX)));
+    moved.y = std::max(0, cell.y + static_cast<int>(std::lround(center_y - kCenterY)));
+    return moved;
+}
+
 void Clear(const Rect &cell, uint32_t scale, datapacks::DecodedTexture &decoded, std::size_t mip) {
     const uint32_t canvas_width = std::max(1u, decoded.width >> mip);
     const uint32_t canvas_height = std::max(1u, decoded.height >> mip);
@@ -247,7 +281,10 @@ void ButtonGlyphsApply(std::string_view texture_name, int logical_width, int log
         retail_width <<= 1;
     }
     const uint32_t scale = std::max(1u, decoded.width / retail_width);
-    for (const auto &[glyph, cell] : target->second) {
+    for (const auto &[glyph, target_cell] : target->second) {
+        const Rect cell = texture_name == "skip" && glyph == "triangle"
+                              ? LocateSkipTriangle(target_cell, scale, decoded)
+                              : target_cell;
         if (cell.x + cell.w > logical_width || cell.y + cell.h > logical_height) {
             continue;
         }
