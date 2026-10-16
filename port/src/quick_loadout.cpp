@@ -54,8 +54,8 @@ constexpr int kFadeTicks = 6;
 struct Rect {
     int x, y, w, h;
 };
-constexpr int  kPanelX = 38;
-constexpr int  kPanelOffsetY = 72;
+constexpr int  kPanelX = 42;
+constexpr int  kPanelOffsetY = 66;
 constexpr Rect kBox = {0, 8, 176, 134};
 constexpr Rect kTitleBar = {32, -1, 112, 25};
 // Square, Triangle, Cross, Circle.
