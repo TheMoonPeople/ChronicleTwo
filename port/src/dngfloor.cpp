@@ -37,6 +37,13 @@ PORT_OVERRIDE void CDngFloorManager::LoadDataTable(int dungeon, mgCMemory *memor
     std::snprintf(table_paths[0], sizeof table_paths[0], "menu/dngmap/dmap%d.cfg", dungeon);
     std::snprintf(table_paths[1], sizeof table_paths[1], "menu/dngmap/dflr%d.cfg", dungeon);
 
+    // The tables live at the data root. An event that changed the directory without restoring it (the
+    // Sindain station scenes) left these relative names resolving under that directory, so the floor map
+    // opened from the world map found neither table and showed no rooms.
+    char previous_dir[0x100];
+    GetCurrentDir(previous_dir);
+    SetCurrentDir(NULL);
+
     int largest = kRetailScratch;
     for (char *table : table_paths) {
         int table_size = 0;
@@ -58,6 +65,8 @@ PORT_OVERRIDE void CDngFloorManager::LoadDataTable(int dungeon, mgCMemory *memor
             AnalyzeFile((char *) data, size, memory);
         }
     }
+
+    SetCurrentDir(previous_dir);
 
     std::sprintf(menu_path, "flrtitle%d.txt", dungeon);
     size = LoadFileMenu(menu_path, (u_long128 *) data, MENU_FILE_LOAD_DIRECT);
