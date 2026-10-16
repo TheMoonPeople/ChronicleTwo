@@ -27,6 +27,7 @@
 
 #include "gfx/gfx.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -366,12 +367,28 @@ void DrawPanel(int left, int top, uint8_t alpha) {
     }
     sprite.End();
 
-    // The smaller pieces, shrunk from the circles: the title bar and each button's disc, the circle's two halves.
+    // The title bar, shrunk from the circles.
     sprite.Begin(MG_PRIM_SPRITE);
     sprite.Bilinear(1);
     sprite.Texture(TEX_SystenFrame);
     sprite.Color(0x80, 0x80, 0x80, alpha);
     Rounded(sprite, {left + kTitleBar.x, top + kTitleBar.y, kTitleBar.w, kTitleBar.h}, kTitleBar.h / 2);
+    sprite.End();
+}
+
+// Each slot's button: a disc, the circle's two halves shrunk, with the button on it as the game's text shows it. Drawn
+// last, over the pictures and the cursor.
+void DrawButtons(int left, int top, uint8_t alpha) {
+    if (TEX_SystenFrame == nullptr) {
+        return;
+    }
+    CPreSprite sprite;
+    sprite.Initialize(NULL, NULL);
+    sprite.Preset2D();
+    sprite.Begin(MG_PRIM_SPRITE);
+    sprite.Bilinear(1);
+    sprite.Texture(TEX_SystenFrame);
+    sprite.Color(0x80, 0x80, 0x80, alpha);
     for (const Rect &slot : kSlotRect) {
         const int x = left + slot.x + kDiscOffset, y = top + slot.y + kDiscOffset, half = kDiscSize / 2;
         Piece(sprite, x, y, half, kDiscSize, kCircleLeftU, kCircleLeftV, kCircleHalf, 2 * kCircleHalf);
@@ -379,7 +396,6 @@ void DrawPanel(int left, int top, uint8_t alpha) {
     }
     sprite.End();
 
-    // The buttons on the discs, as the game's text shows them.
     mgCTexture *gaiji = mgTexManager.GetTexture("gaiji", -1);
     if (gaiji == nullptr) {
         return;
@@ -458,15 +474,60 @@ void DrawQuad(gfx::TextureHandle texture, float x, float y, float w, float h, fl
     mgPortDraw2D(gfx::Primitive::Quads, quad, binding, state);
 }
 
-// The game's own rotating cursor round the active item (DrawActiveItemCursor), drawn round the slot in use: the same
-// picture from the system frame texture, added, turning a degree a frame on an angle of its own (PortQuickLoadoutDraw
-// turns it), stretched so its ring of dashes runs round the whole slot. rx and ry are the ring's half width and height.
-float halo_angle = -PI;
+// The game's own rotating cursor round the active item (DrawActiveItemCursor), laid along the slot in use: its ring of
+// eight dashes, from the system frame texture, is unrolled and its dashes follow the slot's rounded edge, bending
+// round its corners, added, and travelling round it as the retail one turns, a degree of its ring a frame.
+constexpr float kRingU = 0x84 + 27.5f, kRingV = 0xCA + 27.5f; // the ring's centre in the texture
+constexpr float kRingRadius = 22.0f;                           // the middle of its dashes
+constexpr float kRingInner = 18.0f, kRingOuter = 26.0f;        // what is taken across them
+constexpr float kDashFrom = -135.0f * DEG_TO_RAD;               // one dash, the top left one, and the gap after it
+constexpr float kDashArc = 45.0f * DEG_TO_RAD;
+constexpr float kDashLength = kRingRadius * kDashArc;          // the length of a dash and its gap along the ring
+constexpr int   kDashSlices = 8;
+constexpr float kEdgeInset = 1.0f; // the dashes' middle line, just inside the slot's edge
 
-void DrawHalo(float x, float y, float rx, float ry, float alpha) {
+float halo_travel = 0.0f; // how far the dashes have gone round, in dashes
+
+// The point s along the slot's rounded edge, clockwise from the end of the top left corner, and the edge's direction
+// there.
+void EdgePoint(float x0, float y0, float x1, float y1, float r, float s, float *x, float *y, float *dir) {
+    const float across = x1 - x0 - 2.0f * r, down = y1 - y0 - 2.0f * r, arc = 0.5f * PI * r;
+    const float sides[4] = {across, down, across, down};
+    // Where each side starts, where its corner turns about, and which way the side runs.
+    const float start[4][2] = {{x0 + r, y0}, {x1, y0 + r}, {x1 - r, y1}, {x0, y1 - r}};
+    const float centre[4][2] = {{x1 - r, y0 + r}, {x1 - r, y1 - r}, {x0 + r, y1 - r}, {x0 + r, y0 + r}};
+    const float run[4][2] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+    for (int side = 0; side < 4; side++) {
+        if (s < sides[side]) {
+            *x = start[side][0] + run[side][0] * s;
+            *y = start[side][1] + run[side][1] * s;
+            *dir = side * 0.5f * PI;
+            return;
+        }
+        s -= sides[side];
+        if (s < arc || side == 3) {
+            const float a = (side - 1) * 0.5f * PI + s / r;
+            *x = centre[side][0] + r * cosf(a);
+            *y = centre[side][1] + r * sinf(a);
+            *dir = a + 0.5f * PI;
+            return;
+        }
+        s -= arc;
+    }
+}
+
+void DrawHalo(float x0, float y0, float w, float h, float alpha) {
     if (TEX_SystenFrame == nullptr) {
         return;
     }
+    const float left = x0 + kEdgeInset, top = y0 + kEdgeInset, right = x0 + w - kEdgeInset, bottom = y0 + h - kEdgeInset;
+    const float radius = kCircleHalf - kEdgeInset;
+    const float perimeter = 2.0f * (right - left - 2.0f * radius) + 2.0f * (bottom - top - 2.0f * radius) +
+                            2.0f * PI * radius;
+    const int   dashes = std::max(1, (int) lroundf(perimeter / kDashLength));
+    const float length = perimeter / dashes;
+    const float stretch = length / kDashLength;
+
     CPreSprite sprite;
     sprite.Initialize(NULL, NULL);
     sprite.Preset2D();
@@ -475,16 +536,38 @@ void DrawHalo(float x, float y, float rx, float ry, float alpha) {
     sprite.Texture(TEX_SystenFrame);
     sprite.SetAlphaBlend(MG_ALPHA_BLEND_ADD);
     sprite.Color(0x80, 0x80, 0x80, (int) (128.0f * alpha));
-    constexpr float kRing = 21.0f; // the ring's radius in the picture
-    const float     kx = rx / kRing, ky = ry / kRing, sn = sinf(halo_angle), cs = cosf(halo_angle);
-    // Two triangles over the 55x55 picture at (0x84, 0xCA), as retail lays them out.
-    static const float kCorner[6][4] = {{-28, -28, 0x84, 0xCA}, {-28, 27, 0xB9, 0xCA}, {27, -28, 0x84, 0xFF},
-                                        {-28, 27, 0xB9, 0xCA},  {27, -28, 0x84, 0xFF}, {27, 27, 0xB9, 0xFF}};
-    for (const auto &c : kCorner) {
-        const float u = c[0], v = c[1];
-        float       corner[4] = {x + (u * sn - v * cs) * kx, y + (v * sn + u * cs) * ky, 0.0f, 0.0f};
-        sprite.TextureCrd((int) c[2], (int) c[3]);
-        sprite.Vertex(corner);
+    // Each slice of a dash: its inner and outer corner on the screen and in the texture, in sixteenths of a texel.
+    float screen[kDashSlices + 1][2][4] = {};
+    int   texel[kDashSlices + 1][2][2] = {};
+    for (int j = 0; j <= kDashSlices; j++) {
+        const float a = kDashFrom + kDashArc * j / kDashSlices;
+        const float radii[2] = {kRingInner, kRingOuter};
+        for (int k = 0; k < 2; k++) {
+            texel[j][k][0] = (int) lroundf((kRingU + radii[k] * cosf(a)) * 16.0f);
+            texel[j][k][1] = (int) lroundf((kRingV + radii[k] * sinf(a)) * 16.0f);
+        }
+    }
+    for (int dash = 0; dash < dashes; dash++) {
+        for (int j = 0; j <= kDashSlices; j++) {
+            float s = (dash + halo_travel) * length + length * j / kDashSlices;
+            s = fmodf(s, perimeter);
+            float x, y, dir;
+            EdgePoint(left, top, right, bottom, radius, s, &x, &y, &dir);
+            // Outward from the edge, as the ring's radius grows outward.
+            const float nx = sinf(dir), ny = -cosf(dir);
+            const float offsets[2] = {kRingInner - kRingRadius, kRingOuter - kRingRadius};
+            for (int k = 0; k < 2; k++) {
+                screen[j][k][0] = x + nx * offsets[k] * stretch;
+                screen[j][k][1] = y + ny * offsets[k] * stretch;
+            }
+        }
+        for (int j = 0; j < kDashSlices; j++) {
+            const int corner[6][2] = {{j, 0}, {j, 1}, {j + 1, 0}, {j, 1}, {j + 1, 0}, {j + 1, 1}};
+            for (const auto &c : corner) {
+                sprite.TextureCrd4(texel[c[0]][c[1]][0], texel[c[0]][c[1]][1]);
+                sprite.Vertex(screen[c[0]][c[1]]);
+            }
+        }
     }
     sprite.End();
 }
@@ -575,12 +658,14 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
     DrawPanel(kPanelX, top, alpha);
     DrawTitle(kPanelX + kTitleBar.x + kTitleBar.w * 0.5f, top + kTitleBar.y + kTitleBar.h * 0.5f, alpha);
     if (chara < USER_CHARA_MAX || chara > USER_CHARA_ROBO) {
+        DrawButtons(kPanelX, top, alpha);
         return;
     }
 
-    halo_angle += DEG_TO_RAD;
-    if (halo_angle > PI) {
-        halo_angle -= 2.0f * PI;
+    // The retail cursor turns a degree a frame; a dash and its gap span 45 of them.
+    halo_travel += DEG_TO_RAD / kDashArc;
+    if (halo_travel >= 1.0f) {
+        halo_travel -= 1.0f;
     }
     for (int slot = 0; slot < kSlots; slot++) {
         const Rect  &r = kSlotRect[slot];
@@ -601,10 +686,11 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
             // The slot whose item is equipped now wears the active item's cursor round its picture.
             CGameDataUsed *equipped = RowEquip(chara, slot / 2);
             if (equipped != nullptr && Matches(entry, equipped)) {
-                DrawHalo(x0 + w * 0.5f, y0 + h * 0.5f, w * 0.5f, h * 0.5f, (float) fade / kFadeTicks);
+                DrawHalo(x0, y0, w, h, (float) fade / kFadeTicks);
             }
         }
     }
+    DrawButtons(kPanelX, top, alpha);
 }
 
 void PortQuickLoadoutReset() {
