@@ -3,6 +3,7 @@
 #include "quick_loadout.hpp"
 
 #include "actionchara.hpp"
+#include "actscript.hpp"
 #include "dng_hud.hpp"
 #include "dng_main.hpp"
 #include "dng_object.hpp"
@@ -115,6 +116,13 @@ int  raw_previous = 0;  // the face buttons before this session took any away
 int  swallowed = 0;     // buttons taken from the game, until they are let go
 int  request_slot = -1;
 bool reloading = false;
+// The enemy the player was locked on to when a slot reloaded the character, given back once the floor runs again: the
+// reload starts the character afresh, which would let go of it in the middle of a combo.
+struct {
+    bool pending = false;
+    s16  target_no = -1;
+    s16  lock_on = 0;
+} kept_target;
 
 // Each item's picture is a render target of its own, never a texture entered in the game's texture table: two of those
 // in one block share GS memory, and the targets behind them with it.
@@ -316,6 +324,7 @@ bool Equip(int slot) {
     Close();
     fade = 0;
     reloading = true;
+    kept_target = {true, MainChara__2->target_no, MainChara__2->lock_on};
 
     // As DngMainKey opens a quick change (L3, R3), for the character already in play.
     VoiceUnit.StopVoice(10);
@@ -662,6 +671,14 @@ PORT_OVERRIDE int DngMainKey() {
 }
 
 void PortQuickLoadoutPad() {
+    if (kept_target.pending && !reloading && DngStatus.mode == DNG_STATUS_FIELD) {
+        kept_target.pending = false;
+        if (MainChara__2 != nullptr && kept_target.target_no >= 0 && nowScene__2 != nullptr &&
+            nowScene__2->GetCharacter(kept_target.target_no) != nullptr) {
+            MainChara__2->target_no = kept_target.target_no;
+            MainChara__2->lock_on = kept_target.lock_on;
+        }
+    }
     const int raw = GamePad__2.pad[0].button;
     const int pressed = raw & ~raw_previous;
     raw_previous = raw;
@@ -782,6 +799,7 @@ void PortQuickLoadoutReset() {
     fade = 0;
     pictures.clear();
     reloading = false;
+    kept_target.pending = false;
 }
 
 bool PortQuickLoadoutReloading() { return reloading; }
