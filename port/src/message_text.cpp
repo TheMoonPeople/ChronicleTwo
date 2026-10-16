@@ -6,6 +6,7 @@
 #include <tuple>
 #include <vector>
 
+#include "mainloop.hpp"
 #include "nd_meswin.hpp"
 
 // The PAL disc's menu and system messages describe PS2 memory cards, their slots and the console.
@@ -347,59 +348,43 @@ constexpr Replacement kReplacements[] = {
      "No hay espacio suficiente para guardar.\nSe necesitan al menos 502 KB de espacio libre.\n¿Continuar de todas "
      "formas?{TAIL}"},
     {MesFile::kSysMes, 5, 102, "Cargando..."},
-    // The quick loadout's "Equip Slot" item command and its four slots (quick_loadout_menu.cpp), new message numbers
-    // in both message files. {FD07} is Triangle, {FD09} Square; PAL draws
-    // {FD06} as Cross and {FD08} as Circle.
-    {MesFile::kAllMenu, 1, 5090, "Equip Slot"},
-    {MesFile::kAllMenu, 1, 5091, "{FD07} Triangle"},
-    {MesFile::kAllMenu, 1, 5092, "{FD09} Square"},
-    {MesFile::kAllMenu, 1, 5093, "{FD06} Cross"},
-    {MesFile::kAllMenu, 1, 5094, "{FD08} Circle"},
-    {MesFile::kAllMenu, 2, 5090, "Équiper emplacement"},
-    {MesFile::kAllMenu, 2, 5091, "{FD07} Triangle"},
-    {MesFile::kAllMenu, 2, 5092, "{FD09} Carré"},
-    {MesFile::kAllMenu, 2, 5093, "{FD06} Croix"},
-    {MesFile::kAllMenu, 2, 5094, "{FD08} Rond"},
-    {MesFile::kAllMenu, 3, 5090, "Platz belegen"},
-    {MesFile::kAllMenu, 3, 5091, "{FD07} Dreieck"},
-    {MesFile::kAllMenu, 3, 5092, "{FD09} Quadrat"},
-    {MesFile::kAllMenu, 3, 5093, "{FD06} Kreuz"},
-    {MesFile::kAllMenu, 3, 5094, "{FD08} Kreis"},
-    {MesFile::kAllMenu, 4, 5090, "Equipaggia slot"},
-    {MesFile::kAllMenu, 4, 5091, "{FD07} Triangolo"},
-    {MesFile::kAllMenu, 4, 5092, "{FD09} Quadrato"},
-    {MesFile::kAllMenu, 4, 5093, "{FD06} Croce"},
-    {MesFile::kAllMenu, 4, 5094, "{FD08} Cerchio"},
-    {MesFile::kAllMenu, 5, 5090, "Equipar hueco"},
-    {MesFile::kAllMenu, 5, 5091, "{FD07} Triángulo"},
-    {MesFile::kAllMenu, 5, 5092, "{FD09} Cuadrado"},
-    {MesFile::kAllMenu, 5, 5093, "{FD06} Equis"},
-    {MesFile::kAllMenu, 5, 5094, "{FD08} Círculo"},
-    {MesFile::kSysMes, 1, 5090, "Equip Slot"},
-    {MesFile::kSysMes, 1, 5091, "{FD07} Triangle"},
-    {MesFile::kSysMes, 1, 5092, "{FD09} Square"},
-    {MesFile::kSysMes, 1, 5093, "{FD06} Cross"},
-    {MesFile::kSysMes, 1, 5094, "{FD08} Circle"},
-    {MesFile::kSysMes, 2, 5090, "Équiper emplacement"},
-    {MesFile::kSysMes, 2, 5091, "{FD07} Triangle"},
-    {MesFile::kSysMes, 2, 5092, "{FD09} Carré"},
-    {MesFile::kSysMes, 2, 5093, "{FD06} Croix"},
-    {MesFile::kSysMes, 2, 5094, "{FD08} Rond"},
-    {MesFile::kSysMes, 3, 5090, "Platz belegen"},
-    {MesFile::kSysMes, 3, 5091, "{FD07} Dreieck"},
-    {MesFile::kSysMes, 3, 5092, "{FD09} Quadrat"},
-    {MesFile::kSysMes, 3, 5093, "{FD06} Kreuz"},
-    {MesFile::kSysMes, 3, 5094, "{FD08} Kreis"},
-    {MesFile::kSysMes, 4, 5090, "Equipaggia slot"},
-    {MesFile::kSysMes, 4, 5091, "{FD07} Triangolo"},
-    {MesFile::kSysMes, 4, 5092, "{FD09} Quadrato"},
-    {MesFile::kSysMes, 4, 5093, "{FD06} Croce"},
-    {MesFile::kSysMes, 4, 5094, "{FD08} Cerchio"},
-    {MesFile::kSysMes, 5, 5090, "Equipar hueco"},
-    {MesFile::kSysMes, 5, 5091, "{FD07} Triángulo"},
-    {MesFile::kSysMes, 5, 5092, "{FD09} Cuadrado"},
-    {MesFile::kSysMes, 5, 5093, "{FD06} Equis"},
-    {MesFile::kSysMes, 5, 5094, "{FD08} Círculo"},
+};
+
+// Messages the disc does not have, by LanguageCode, found in whichever message file is asked for the number: the quick
+// loadout's "Equip Slot" item command and its four slots (quick_loadout_menu.cpp), which the command list reads from
+// meswin/system_<language>.mes. {FD07} is Triangle and {FD09} Square; PAL draws {FD06} as Cross and {FD08} as Circle.
+struct Addition {
+    int              language;
+    int              id;
+    std::string_view text;
+};
+
+constexpr Addition kAdditions[] = {
+    {1, 5090, "Equip Slot"},
+    {1, 5091, "{FD07} Triangle"},
+    {1, 5092, "{FD09} Square"},
+    {1, 5093, "{FD06} Cross"},
+    {1, 5094, "{FD08} Circle"},
+    {2, 5090, "Équiper emplacement"},
+    {2, 5091, "{FD07} Triangle"},
+    {2, 5092, "{FD09} Carré"},
+    {2, 5093, "{FD06} Croix"},
+    {2, 5094, "{FD08} Rond"},
+    {3, 5090, "Platz belegen"},
+    {3, 5091, "{FD07} Dreieck"},
+    {3, 5092, "{FD09} Quadrat"},
+    {3, 5093, "{FD06} Kreuz"},
+    {3, 5094, "{FD08} Kreis"},
+    {4, 5090, "Equipaggia slot"},
+    {4, 5091, "{FD07} Triangolo"},
+    {4, 5092, "{FD09} Quadrato"},
+    {4, 5093, "{FD06} Croce"},
+    {4, 5094, "{FD08} Cerchio"},
+    {5, 5090, "Equipar hueco"},
+    {5, 5091, "{FD07} Triángulo"},
+    {5, 5092, "{FD09} Cuadrado"},
+    {5, 5093, "{FD06} Equis"},
+    {5, 5094, "{FD08} Círculo"},
 };
 
 constexpr std::uint16_t kCodeNewline = 0xFF00;
@@ -485,10 +470,28 @@ std::vector<std::uint16_t> Encode(std::string_view text, const u16 *original) {
     return out;
 }
 
+u16 *Added(int line_id) {
+    static std::map<std::pair<int, int>, std::vector<std::uint16_t> > encoded;
+    const auto key = std::make_pair(LanguageCode, line_id);
+    if (auto found = encoded.find(key); found != encoded.end()) {
+        return reinterpret_cast<u16 *>(found->second.data());
+    }
+    for (const auto &addition : kAdditions) {
+        if (addition.language == LanguageCode && addition.id == line_id) {
+            auto &codes = encoded[key] = Encode(addition.text, nullptr);
+            return reinterpret_cast<u16 *>(codes.data());
+        }
+    }
+    return NULL;
+}
+
 u16 *Lookup(short *table, int line_id) {
     u16 *original = FindLine(table, line_id);
     if (table == NULL) {
         return original;
+    }
+    if (original == NULL) {
+        return Added(line_id);
     }
     const KnownFile *known = Identify(table);
     if (!known) {

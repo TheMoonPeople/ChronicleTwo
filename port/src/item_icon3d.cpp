@@ -188,7 +188,9 @@ void DrawnBox(mgCFrame *node, float lo[3], float hi[3], bool &any) {
 // model_block takes the model's pictures while it is drawn; scratch_block holds the scratch picture. The menu's blocks
 // are past the dungeon's texture table, so the dungeon's quick loadout passes blocks of its own. icon_size is the side
 // of the icon texture: the menu's 32, halved down from the crop, or the crop itself scaled straight into a larger one.
-bool Render(int item_no, mgCTexture *icon, int model_block = kModelBlock, int scratch_block = kIconBlock, int icon_size = kIcon) {
+// into, when given, is the target drawn to in place of icon's.
+bool Render(int item_no, mgCTexture *icon, int model_block = kModelBlock, int scratch_block = kIconBlock, int icon_size = kIcon,
+            gfx::TextureHandle into = gfx::kNullTexture) {
     char path[0x80];
     if (!ModelPath(item_no, path, sizeof path)) {
         if (Debug()) {
@@ -586,7 +588,7 @@ bool Render(int item_no, mgCTexture *icon, int model_block = kModelBlock, int sc
     if (scratch_texture == nullptr) {
         scratch_texture = mgTexManager.EnterTexture(scratch_block, scratch_name, nullptr, kScratch, kScratch, 32, nullptr, 0, 0);
     }
-    gfx::TextureHandle target = mgPortRenderTarget(icon, true);
+    gfx::TextureHandle target = into != gfx::kNullTexture ? into : mgPortRenderTarget(icon, true);
     if (scratch_texture == nullptr || target == gfx::kNullTexture) {
         mgTexManager.DeleteBlock(model_block);
         return false;
@@ -832,22 +834,15 @@ mgCTexture *ItemIcon3DTexture(int item_no) {
     return texture;
 }
 
-mgCTexture *ItemIcon3DRenderInto(int item_no, int size, int model_block, int icon_block) {
-    if (item_no <= 0 || size <= 0 || !gfx::InFrame() || !mgPortRendererReady()) {
-        return nullptr;
+bool ItemIcon3DRenderTo(int item_no, gfx::TextureHandle target, int size, int model_block, int scratch_block) {
+    if (item_no <= 0 || size <= 0 || target == gfx::kNullTexture || !gfx::InFrame() || !mgPortRendererReady()) {
+        return false;
     }
-    char name[32];
-    std::snprintf(name, sizeof name, "item3dL%d_%d", item_no, g_serial++);
-    mgCTexture *texture = mgTexManager.EnterTexture(icon_block, name, nullptr, size, size, 32, nullptr, 0, 0);
-    if (texture == nullptr) {
-        return nullptr;
-    }
-    texture->tex0.bits.tcc = 1;
     // The caller's camera, projection and lights are as they were before; MenuWorldTrans is only the menu's.
     mgRENDER_INFO saved = mgRenderInfo;
-    const bool          drawn = Render(item_no, texture, model_block, icon_block, size);
+    const bool    drawn = Render(item_no, nullptr, model_block, scratch_block, size, target);
     mgRenderInfo = saved;
-    return drawn ? texture : nullptr;
+    return drawn;
 }
 
 void ItemIcons3DDumpSheet() {

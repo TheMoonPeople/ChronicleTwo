@@ -62,6 +62,7 @@ constexpr float kPanelWidth = 172.0f;
 constexpr float kPanelHeight = kPanelWidth * kArtHeight / kArtWidth;
 
 // Model pictures: the dungeon's texture table ends at 0xAE; the effect scripts take 0x8C to 0xAB and the geostone 0xAD.
+// 0xAC takes the model's own pictures while it is drawn, 0xAE the scratch picture it is drawn into.
 constexpr int kModelBlock = 0xAC;
 constexpr int kIconBlock = 0xAE;
 constexpr int kIconSize = 128;
@@ -83,11 +84,13 @@ int  flash_slot = -1;
 int  flash_ticks = 0;
 bool reloading = false;
 
+// Each item's picture is a render target of its own, never a texture entered in the game's texture table: two of those
+// in one block share GS memory, and the targets behind them with it.
 struct Picture {
-    mgCTexture *texture = nullptr;
-    bool        failed = false;
+    gfx::TextureHandle texture = gfx::kNullTexture;
+    bool               failed = false;
 };
-std::map<int, Picture> pictures; // by item number, while the texture table holds them
+std::map<int, Picture> pictures; // by item number
 
 gfx::TextureHandle panel_texture = gfx::kNullTexture;
 bool               panel_failed = false;
@@ -317,9 +320,9 @@ gfx::TextureHandle PanelTexture() {
     return panel_texture;
 }
 
-mgCTexture *ItemPicture(int item_no) {
+gfx::TextureHandle ItemPicture(int item_no) {
     const auto found = pictures.find(item_no);
-    return found != pictures.end() ? found->second.texture : nullptr;
+    return found != pictures.end() ? found->second.texture : gfx::kNullTexture;
 }
 
 gfx::Vertex2D Corner(float x, float y, float u, float v, uint8_t alpha, uint8_t bright = 0x80) {
@@ -451,8 +454,14 @@ void PortQuickLoadoutPrepare() {
             continue;
         }
         Picture &picture = pictures[entry.item_no];
-        picture.texture = ItemIcon3DRenderInto(entry.item_no, kIconSize, kModelBlock, kIconBlock);
-        picture.failed = picture.texture == nullptr;
+        char name[48];
+        std::snprintf(name, sizeof name, "quick loadout item %d", entry.item_no);
+        const gfx::TextureHandle target = gfx::NamedRenderTarget(name, kIconSize, kIconSize, true, false, true);
+        if (ItemIcon3DRenderTo(entry.item_no, target, kIconSize, kModelBlock, kIconBlock)) {
+            picture.texture = target;
+        } else {
+            picture.failed = true;
+        }
         return;
     }
 }
@@ -485,9 +494,8 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
         const float    w = (art.x1 - art.x0) * sx, h = (art.y1 - art.y0) * sy;
         const Entry   &entry = slots[chara][slot];
         if (entry.item_no > 0) {
-            mgCTexture *picture = ItemPicture(entry.item_no);
-            if (picture != nullptr) {
-                const gfx::TextureHandle handle = mgPortRenderTarget(picture, true);
+            const gfx::TextureHandle handle = ItemPicture(entry.item_no);
+            if (handle != gfx::kNullTexture) {
                 // Clear of the button's disc in the slot's top left corner.
                 const float size = h * 0.92f;
                 const float cx = x0 + w * 0.5f + h * 0.14f, cy = y0 + h * 0.5f + h * 0.02f;
