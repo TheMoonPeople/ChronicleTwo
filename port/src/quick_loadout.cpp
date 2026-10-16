@@ -35,16 +35,7 @@
 
 int PortRetailDngMainKey() asm("DngMain_DngMainKey");
 
-#define STBI_ONLY_PNG
-#define STBI_NO_STDIO
-#include "stb_image.h"
-
 namespace {
-
-// The panel picture (port/quick_loadout/panel.png, drawn by scripts/port/quick_loadout_panel.py in the style of the
-// active item board): the title bar, the four slots and their buttons' discs. The title is written on it in the game's
-// font.
-#include "quick_loadout_panel.inc"
 
 constexpr int kSlots = 4;
 constexpr int kCharas = 3; // Max, Monica and the Ridepod; the monster form has no equipment.
@@ -56,23 +47,33 @@ constexpr int kFaceButtons = PAD_TRIANGLE | PAD_SQUARE | PAD_CROSS | PAD_CIRCLE;
 
 constexpr int kFadeTicks = 6;
 
-// The panel picture's size and the inside of each slot in its pixels: Square, Triangle, Cross, Circle.
-constexpr float kArtWidth = 381.0f;
-constexpr float kArtHeight = 305.0f;
-struct ArtRect {
-    float x0, y0, x1, y1;
+// The panel is put together from the dungeon's own system frame texture (TEX_SystenFrame), as the active item board
+// is, so it wears the same gold and plum: the EXP gauge's box round it, and the item circles' halves stretched into the
+// slots, the title bar and the buttons' discs. Positions are on the status board's 640-wide frame, from the panel's
+// top left corner, sliding with the board.
+struct Rect {
+    int x, y, w, h;
 };
-constexpr ArtRect kSlotArt[kSlots] = {
-    {26, 54, 182, 164}, {199, 54, 355, 164}, {26, 182, 182, 292}, {199, 182, 355, 292}};
-// The title tab's middle, in the picture's pixels.
-constexpr float kTitleX = 190.5f;
-constexpr float kTitleY = 23.0f;
+constexpr int  kPanelX = 38;
+constexpr int  kPanelOffsetY = 72;
+constexpr Rect kBox = {0, 8, 176, 134};
+constexpr Rect kTitleBar = {46, 0, 84, 22};
+// Square, Triangle, Cross, Circle.
+constexpr Rect kSlotRect[kSlots] = {{11, 26, 76, 52}, {89, 26, 76, 52}, {11, 82, 76, 52}, {89, 82, 76, 52}};
+constexpr int  kDiscSize = 24;
+constexpr int  kDiscOffset = -3; // the disc over the slot's top left corner
+constexpr int  kGlyphSize = 16;
 
-// Where the panel sits on the status board's 640-wide frame: under the active items, sliding with the board.
-constexpr float kPanelX = 40.0f;
-constexpr float kPanelOffsetY = 72.0f;
-constexpr float kPanelWidth = 172.0f;
-constexpr float kPanelHeight = kPanelWidth * kArtHeight / kArtWidth;
+// In the system frame texture: the EXP gauge's box, its gold border 10 across and 9 down to the black inside...
+constexpr int kBoxU0 = 288, kBoxU1 = 373, kBoxUMiddle = 340, kBoxV0 = 154, kBoxV1 = 182, kBoxVMiddle = 172;
+constexpr int kBoxSide = 10, kBoxEdge = 9;
+constexpr int kBlackU = 298, kBlackV = 165;
+// ...and the active item circles, 40 across: the left half of the first, the right half of the last (their other
+// halves hold the joints between them).
+constexpr int kCircleLeftU = 236, kCircleLeftV = 55, kCircleRightU = 364, kCircleRightV = 96, kCircleHalf = 20;
+// The buttons in the font's own picture of them ("gaiji"): Square, Triangle, Cross, Circle.
+constexpr int kGlyphUV[kSlots][2] = {{44, 22}, {22, 22}, {66, 22}, {0, 22}};
+constexpr int kGlyphTexels = 22;
 
 // Model pictures: the dungeon's texture table ends at 0xAE; the effect scripts take 0x8C to 0xAB and the geostone 0xAD.
 // 0xAC takes the model's own pictures while it is drawn, 0xAE the scratch picture it is drawn into.
@@ -102,9 +103,6 @@ struct Picture {
     bool               failed = false;
 };
 std::map<int, Picture> pictures; // by item number
-
-gfx::TextureHandle panel_texture = gfx::kNullTexture;
-bool               panel_failed = false;
 
 std::filesystem::path SlotsPath() { return PathsSaveRoot() / "quick_loadout.txt"; }
 
@@ -314,31 +312,91 @@ bool Equip(int slot) {
     return true;
 }
 
-gfx::TextureHandle PanelTexture() {
-    if (panel_texture != gfx::kNullTexture || panel_failed) {
-        return panel_texture;
+// Stretches the texture's rectangle (u, v, tw, th) over (x, y, w, h).
+void Piece(CPreSprite &sprite, int x, int y, int w, int h, int u, int v, int tw, int th) {
+    if (w > 0 && h > 0) {
+        sprite.SetIStretch(x, y, w, h, u, v, tw, th);
     }
-    int            width = 0, height = 0, channels = 0;
-    unsigned char *pixels = stbi_load_from_memory(kQuickLoadoutPanelPng, sizeof kQuickLoadoutPanelPng, &width, &height,
-                                                  &channels, 4);
-    if (pixels == nullptr) {
-        panel_failed = true;
-        std::fprintf(stderr, "quick loadout: cannot decode the panel picture\n");
-        return gfx::kNullTexture;
-    }
-    gfx::TextureDesc desc;
-    desc.width = static_cast<uint32_t>(width);
-    desc.height = static_cast<uint32_t>(height);
-    panel_texture = gfx::CreateTexture(desc);
-    if (panel_texture == gfx::kNullTexture ||
-        !gfx::UpdateTextureNow(panel_texture, 0, 0, 0, desc.width, desc.height, pixels)) {
-        panel_failed = true;
-    }
-    stbi_image_free(pixels);
-    return panel_texture;
 }
 
-// "QUICK LOADOUT" in the game's own font, white with its black outline, in the middle of the title tab.
+// A rounded box in the item circles' plum and gold: their quarters in the corners, size across, and their middle
+// rows and columns stretched between.
+void Rounded(CPreSprite &sprite, const Rect &r, int size) {
+    const int c = size, h = kCircleHalf;
+    Piece(sprite, r.x, r.y, c, c, kCircleLeftU, kCircleLeftV, h, h);
+    Piece(sprite, r.x, r.y + r.h - c, c, c, kCircleLeftU, kCircleLeftV + h, h, h);
+    Piece(sprite, r.x + r.w - c, r.y, c, c, kCircleRightU, kCircleRightV, h, h);
+    Piece(sprite, r.x + r.w - c, r.y + r.h - c, c, c, kCircleRightU, kCircleRightV + h, h, h);
+    Piece(sprite, r.x + c, r.y, r.w - 2 * c, c, kCircleLeftU + h - 1, kCircleLeftV, 1, h);
+    Piece(sprite, r.x + c, r.y + r.h - c, r.w - 2 * c, c, kCircleLeftU + h - 1, kCircleLeftV + h, 1, h);
+    Piece(sprite, r.x, r.y + c, c, r.h - 2 * c, kCircleLeftU, kCircleLeftV + h - 1, h, 1);
+    Piece(sprite, r.x + r.w - c, r.y + c, c, r.h - 2 * c, kCircleRightU, kCircleRightV + h - 1, h, 1);
+    Piece(sprite, r.x + c, r.y + c, r.w - 2 * c, r.h - 2 * c, kCircleLeftU + h - 1, kCircleLeftV + h - 1, 1, 1);
+}
+
+void DrawPanel(int left, int top, uint8_t alpha) {
+    if (TEX_SystenFrame == nullptr) {
+        return;
+    }
+    CPreSprite sprite;
+    sprite.Initialize(NULL, NULL);
+    sprite.Preset2D();
+    sprite.Begin(MG_PRIM_SPRITE);
+    sprite.Bilinear(0); // texel for texel, as the board is drawn
+    sprite.Texture(TEX_SystenFrame);
+
+    // The box: its inside a see-through black, then its border.
+    const Rect box = {left + kBox.x, top + kBox.y, kBox.w, kBox.h};
+    const int  side = kBoxSide, edge = kBoxEdge;
+    sprite.Color(0x80, 0x80, 0x80, alpha * 0x4C / 0x80);
+    Piece(sprite, box.x + side, box.y + edge, box.w - 2 * side, box.h - 2 * edge, kBlackU, kBlackV, 1, 1);
+    sprite.Color(0x80, 0x80, 0x80, alpha);
+    Piece(sprite, box.x, box.y, side, edge, kBoxU0, kBoxV0, side, edge);
+    Piece(sprite, box.x + box.w - side, box.y, side, edge, kBoxU1, kBoxV0, side, edge);
+    Piece(sprite, box.x, box.y + box.h - edge, side, edge, kBoxU0, kBoxV1, side, edge);
+    Piece(sprite, box.x + box.w - side, box.y + box.h - edge, side, edge, kBoxU1, kBoxV1, side, edge);
+    Piece(sprite, box.x + side, box.y, box.w - 2 * side, edge, kBoxUMiddle, kBoxV0, 1, edge);
+    Piece(sprite, box.x + side, box.y + box.h - edge, box.w - 2 * side, edge, kBoxUMiddle, kBoxV1, 1, edge);
+    Piece(sprite, box.x, box.y + edge, side, box.h - 2 * edge, kBoxU0, kBoxVMiddle, side, 1);
+    Piece(sprite, box.x + box.w - side, box.y + edge, side, box.h - 2 * edge, kBoxU1, kBoxVMiddle, side, 1);
+
+    for (const Rect &slot : kSlotRect) {
+        Rounded(sprite, {left + slot.x, top + slot.y, slot.w, slot.h}, kCircleHalf);
+    }
+    sprite.End();
+
+    // The smaller pieces, shrunk from the circles: the title bar and each button's disc, the circle's two halves.
+    sprite.Begin(MG_PRIM_SPRITE);
+    sprite.Bilinear(1);
+    sprite.Texture(TEX_SystenFrame);
+    sprite.Color(0x80, 0x80, 0x80, alpha);
+    Rounded(sprite, {left + kTitleBar.x, top + kTitleBar.y, kTitleBar.w, kTitleBar.h}, kTitleBar.h / 2);
+    for (const Rect &slot : kSlotRect) {
+        const int x = left + slot.x + kDiscOffset, y = top + slot.y + kDiscOffset, half = kDiscSize / 2;
+        Piece(sprite, x, y, half, kDiscSize, kCircleLeftU, kCircleLeftV, kCircleHalf, 2 * kCircleHalf);
+        Piece(sprite, x + half, y, half, kDiscSize, kCircleRightU, kCircleRightV, kCircleHalf, 2 * kCircleHalf);
+    }
+    sprite.End();
+
+    // The buttons on the discs, as the game's text shows them.
+    mgCTexture *gaiji = mgTexManager.GetTexture("gaiji", -1);
+    if (gaiji == nullptr) {
+        return;
+    }
+    sprite.Begin(MG_PRIM_SPRITE);
+    sprite.Bilinear(1);
+    sprite.Texture(gaiji);
+    sprite.Color(0x80, 0x80, 0x80, alpha);
+    for (int slot = 0; slot < kSlots; slot++) {
+        const Rect &r = kSlotRect[slot];
+        const int   inset = (kDiscSize - kGlyphSize) / 2;
+        Piece(sprite, left + r.x + kDiscOffset + inset, top + r.y + kDiscOffset + inset, kGlyphSize, kGlyphSize,
+              kGlyphUV[slot][0], kGlyphUV[slot][1], kGlyphTexels, kGlyphTexels);
+    }
+    sprite.End();
+}
+
+// "QUICK LOADOUT" in the game's own font, white with its black outline, in the middle of the title bar.
 void DrawTitle(float x, float y, uint8_t alpha) {
     static char title[] = "QUICK LOADOUT";
     CFont font;
@@ -492,17 +550,11 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
     if (fade <= 0 || PortLoopNo != LOOP_DUNGEON || DngUserData == nullptr) {
         return;
     }
-    const gfx::TextureHandle panel = PanelTexture();
-    if (panel == gfx::kNullTexture) {
-        return;
-    }
     const int     chara = ActiveChara();
     const uint8_t alpha = static_cast<uint8_t>(0x80 * fade / kFadeTicks);
-    const float   top = (float) ((int) (80.0f * statusbar_rate) - 72) + kPanelOffsetY;
-    const float   sx = kPanelWidth / kArtWidth;
-    const float   sy = kPanelHeight / kArtHeight;
-    DrawQuad(panel, kPanelX, top, kPanelWidth, kPanelHeight, kArtWidth, kArtHeight, alpha);
-    DrawTitle(kPanelX + kTitleX * sx, top + kTitleY * sy, alpha);
+    const int     top = (int) (80.0f * statusbar_rate) - 72 + kPanelOffsetY;
+    DrawPanel(kPanelX, top, alpha);
+    DrawTitle(kPanelX + kTitleBar.x + kTitleBar.w * 0.5f, top + kTitleBar.y + kTitleBar.h * 0.5f, alpha);
     if (chara < USER_CHARA_MAX || chara > USER_CHARA_ROBO) {
         return;
     }
@@ -512,10 +564,10 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
         halo_angle -= 2.0f * PI;
     }
     for (int slot = 0; slot < kSlots; slot++) {
-        const ArtRect &art = kSlotArt[slot];
-        const float    x0 = kPanelX + art.x0 * sx, y0 = top + art.y0 * sy;
-        const float    w = (art.x1 - art.x0) * sx, h = (art.y1 - art.y0) * sy;
-        const Entry   &entry = slots[chara][slot];
+        const Rect  &r = kSlotRect[slot];
+        const float  x0 = (float) (kPanelX + r.x), y0 = (float) (top + r.y);
+        const float  w = (float) r.w, h = (float) r.h;
+        const Entry &entry = slots[chara][slot];
         if (entry.item_no > 0) {
             const gfx::TextureHandle handle = ItemPicture(entry.item_no);
             if (handle != gfx::kNullTexture) {
