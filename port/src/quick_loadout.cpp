@@ -71,6 +71,9 @@ constexpr int kBoxU0 = 288, kBoxUMiddle = 340, kBoxV0 = 154, kBoxVMiddle = 172;
 constexpr int kBoxSide = 10, kBoxEdge = 9;
 // The top corners come down a little further: the box's top left corner bends until three texels under its top edge.
 constexpr int kBoxCorner = 12;
+// How far the gold goes: across the sides, down the top, and across each row of the top left corner.
+constexpr int kBoxGold = 6, kBoxGoldTop = 5;
+constexpr int kBoxCornerGold[kBoxCorner] = {10, 10, 10, 10, 10, 10, 9, 8, 7, 7, 6, 6};
 constexpr int kBoxJoinX = 6; // where the top left corner's first row turns into the bar above the box
 // The bolts on the top right and bottom left corners.
 constexpr int kBoxBolt = 6, kBoxBoltX = 2, kBoxBoltTopU = 375, kBoxBoltTopV = 155, kBoxBoltBottomU = 289,
@@ -350,25 +353,30 @@ void DrawPanel(int left, int top, uint8_t alpha) {
     sprite.Bilinear(0); // texel for texel, as the board is drawn
     sprite.Texture(TEX_SystenFrame);
 
-    // The box: its inside a see-through black, then its border.
+    // The box: its inside a see-through black, then its border. The EXP box is lit from the top left and has a grey
+    // bevel inside its gold, lighter on the right and bottom, which on a see-through inside reads as a frame that does
+    // not close: only the gold is taken, its top left corner and top and left sides, mirrored into the other three,
+    // and the see-through black runs right up to it.
     const Rect box = {left + kBox.x, top + kBox.y, kBox.w, kBox.h};
-    const int  side = kBoxSide, edge = kBoxEdge;
+    const int  side = kBoxSide, gold = kBoxGold, gold_top = kBoxGoldTop;
+    const int  right = box.x + box.w - side;
     sprite.Color(0x80, 0x80, 0x80, alpha * 0x4C / 0x80);
-    Piece(sprite, box.x + side, box.y + edge, box.w - 2 * side, box.h - 2 * edge, kBlackU, kBlackV, 1, 1);
+    Piece(sprite, box.x + gold, box.y + gold_top, box.w - 2 * gold, box.h - 2 * gold_top, kBlackU, kBlackV, 1, 1);
     sprite.Color(0x80, 0x80, 0x80, alpha);
-    // The EXP box is lit from the top left: its right and bottom insides are lighter, which on a see-through inside
-    // reads as a frame that does not close. So the box is its top left corner and top and left sides, mirrored into
-    // the other three, with the two bolts of the original corners on top. A mirrored piece starts on its last texel.
-    const int u_last = kBoxU0 + side - 1, v_last = kBoxV0 + kBoxCorner - 1, edge_last = kBoxV0 + edge - 1;
-    const int right = box.x + box.w - side, bottom = box.y + box.h - kBoxCorner;
-    Piece(sprite, box.x, box.y, side, kBoxCorner, kBoxU0, kBoxV0, side, kBoxCorner);
-    Piece(sprite, right, box.y, side, kBoxCorner, u_last, kBoxV0, -side, kBoxCorner);
-    Piece(sprite, box.x, bottom, side, kBoxCorner, kBoxU0, v_last, side, -kBoxCorner);
-    Piece(sprite, right, bottom, side, kBoxCorner, u_last, v_last, -side, -kBoxCorner);
-    Piece(sprite, box.x + side, box.y, box.w - 2 * side, edge, kBoxUMiddle, kBoxV0, 1, edge);
-    Piece(sprite, box.x + side, box.y + box.h - edge, box.w - 2 * side, edge, kBoxUMiddle, edge_last, 1, -edge);
-    Piece(sprite, box.x, box.y + kBoxCorner, side, box.h - 2 * kBoxCorner, kBoxU0, kBoxVMiddle, side, 1);
-    Piece(sprite, right, box.y + kBoxCorner, side, box.h - 2 * kBoxCorner, u_last, kBoxVMiddle, -side, 1);
+    // The corners row by row, as far as their gold goes; a mirrored piece starts on its last texel.
+    for (int row = 0; row < kBoxCorner; row++) {
+        const int width = kBoxCornerGold[row];
+        for (const int y : {box.y + row, box.y + box.h - 1 - row}) {
+            Piece(sprite, box.x, y, width, 1, kBoxU0, kBoxV0 + row, width, 1);
+            Piece(sprite, right + side - width, y, width, 1, kBoxU0 + width - 1, kBoxV0 + row, -width, 1);
+        }
+    }
+    Piece(sprite, box.x + side, box.y, box.w - 2 * side, gold_top, kBoxUMiddle, kBoxV0, 1, gold_top);
+    Piece(sprite, box.x + side, box.y + box.h - gold_top, box.w - 2 * side, gold_top, kBoxUMiddle,
+          kBoxV0 + gold_top - 1, 1, -gold_top);
+    Piece(sprite, box.x, box.y + kBoxCorner, gold, box.h - 2 * kBoxCorner, kBoxU0, kBoxVMiddle, gold, 1);
+    Piece(sprite, right + side - gold, box.y + kBoxCorner, gold, box.h - 2 * kBoxCorner, kBoxU0 + gold - 1,
+          kBoxVMiddle, -gold, 1);
     // The top left corner's first row carries the join to the bar above the EXP box: the top side's shadow instead.
     for (const int y : {box.y, box.y + box.h - 1}) {
         Piece(sprite, box.x + kBoxJoinX, y, side - kBoxJoinX, 1, kBoxUMiddle, kBoxV0, 1, 1);
@@ -376,7 +384,7 @@ void DrawPanel(int left, int top, uint8_t alpha) {
     }
     Piece(sprite, right + kBoxBoltX, box.y + 1, kBoxBolt, kBoxBolt + 1, kBoxBoltTopU, kBoxBoltTopV, kBoxBolt,
           kBoxBolt + 1);
-    Piece(sprite, box.x + 1, box.y + box.h - edge, kBoxBolt, kBoxBolt + 1, kBoxBoltBottomU, kBoxBoltBottomV, kBoxBolt,
+    Piece(sprite, box.x + 1, box.y + box.h - kBoxEdge, kBoxBolt, kBoxBolt + 1, kBoxBoltBottomU, kBoxBoltBottomV, kBoxBolt,
           kBoxBolt + 1);
     for (const Rect &slot : kSlotRect) {
         Rounded(sprite, {left + slot.x, top + slot.y, slot.w, slot.h}, kCircleHalf);
