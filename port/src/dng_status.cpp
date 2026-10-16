@@ -4,12 +4,15 @@
 #include "dng_main.hpp"
 #include "dng_status.hpp"
 #include "mglib_port.hpp"
+#include "quick_loadout.hpp"
 #include "scenesnd.hpp"
 #include "userdata.hpp"
 
 #include "gfx/gfx.hpp"
 
 PORT_OVERRIDE void DrawStatusBord() {
+    // Draws a slot's new picture, if one is due, before the board's anchor applies to anything.
+    PortQuickLoadoutPrepare();
     gfx::UiAnchorScope anchor(gfx::UiAnchor::Side(-1, -1, true));
 
     float rate;
@@ -43,4 +46,5 @@ PORT_OVERRIDE void DrawStatusBord() {
     }
 
     mgPortGs().inherit_prim_texture = false;
+    PortQuickLoadoutDraw(rate);
 }

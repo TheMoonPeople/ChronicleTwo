@@ -10,6 +10,7 @@
 #include "mglib.hpp"
 #include "mg_texture.hpp"
 #include "prespr.hpp"
+#include "quick_loadout.hpp"
 #include "userdata.hpp"
 
 #include <cmath>
@@ -152,17 +153,25 @@ PORT_OVERRIDE void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
 // does a change that has not finished after kQuickChangeMaxSteps.
 PORT_OVERRIDE int KeyMainCharaBG() {
     if (!quick_change_pending) {
-        return PortRetailKeyMainCharaBG();
+        const int done = PortRetailKeyMainCharaBG();
+        if (done != 0) {
+            PortQuickLoadoutReloadDone();
+        }
+        return done;
     }
 
     for (int step = 0; step < kQuickChangeMaxSteps; ++step) {
         if (PortRetailKeyMainCharaBG() != 0) {
             quick_change_pending = false;
-            banner_chara = quick_change_chara;
-            banner_loop = PortLoopNo;
-            banner_phase = BANNER_IN;
-            banner_hold = 0;
-            banner_x = (float) -kBannerWidth;
+            // A quick loadout loads the same character again with other equipment: the effect, but no name.
+            if (!PortQuickLoadoutReloading()) {
+                banner_chara = quick_change_chara;
+                banner_loop = PortLoopNo;
+                banner_phase = BANNER_IN;
+                banner_hold = 0;
+                banner_x = (float) -kBannerWidth;
+            }
+            PortQuickLoadoutReloadDone();
             change_fx_pending = true;
             change_fx_loop = PortLoopNo;
             return 1;

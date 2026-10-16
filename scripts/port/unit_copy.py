@@ -43,6 +43,7 @@ RETAIL_BRIDGES = {
     "dng_main.cpp": [
         ("ResetEyeView(CActionChara*)", "ResetEyeView", "PortRetailResetEyeView"),
         ("ChangeSetUnit(int)", "ChangeSetUnit", "PortRetailChangeSetUnit"),
+        ("DngMainKey()", "DngMainKey", "PortRetailDngMainKey"),
     ],
     "charasetup.cpp": [("GetRoboPartsInfo(CUserDataManager*)", "GetRoboPartsInfo", "PortRetailGetRoboPartsInfo")],
     "menuchr.cpp": [
