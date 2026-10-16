@@ -189,6 +189,10 @@ void DrawnBox(mgCFrame *node, float lo[3], float hi[3], bool &any) {
 // are past the dungeon's texture table, so the dungeon's quick loadout passes blocks of its own. icon_size is the side
 // of the icon texture: the menu's 32, halved down from the crop, or the crop itself scaled straight into a larger one.
 // into, when given, is the target drawn to in place of icon's.
+// Whether a drawing puts the menu's camera back after it. Outside the menus MenuDrawEnv is left pointing at the last
+// menu's memory, long since reused, so only the menu's own icons ask for it.
+bool restore_menu_camera = true;
+
 bool Render(int item_no, mgCTexture *icon, int model_block = kModelBlock, int scratch_block = kIconBlock, int icon_size = kIcon,
             gfx::TextureHandle into = gfx::kNullTexture) {
     char path[0x80];
@@ -761,7 +765,7 @@ bool Render(int item_no, mgCTexture *icon, int model_block = kModelBlock, int sc
     mgSetProjection(saved_projection);
     mgSetAmbient(saved_ambient);
     mgSetLight(saved_dir, saved_colour);
-    if (MenuDrawEnv != nullptr) {
+    if (restore_menu_camera && MenuDrawEnv != nullptr) {
         MenuWorldTrans(); // puts the menu camera's view back
     }
     elev.child = nullptr;
@@ -841,7 +845,9 @@ bool ItemIcon3DRenderTo(int item_no, gfx::TextureHandle target, int size, int mo
     }
     // The caller's camera, projection and lights are as they were before; MenuWorldTrans is only the menu's.
     mgRENDER_INFO saved = mgRenderInfo;
-    const bool    drawn = Render(item_no, nullptr, model_block, scratch_block, size, target);
+    restore_menu_camera = false;
+    const bool drawn = Render(item_no, nullptr, model_block, scratch_block, size, target);
+    restore_menu_camera = true;
     mgRenderInfo = saved;
     return drawn;
 }
