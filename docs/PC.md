@@ -527,6 +527,8 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `input.touchpad_sensitivity` | number | 1.0 | above 0 | touchpad speed |
 | `input.lightbar` | bool | true | | lets the game colour the lightbar; read and saved, nothing sets a colour yet |
 | `input.rumble_strength` | number | 1.0 | 0 to 1 | scales the rumble motors |
+| `input.dualsense_haptics` | string | full | off, vibration, full | what a DualSense's HD actuators play; see "Rumble and DualSense haptics" |
+| `input.haptics_strength` | number | 1.0 | 0 to 2 | gain on the DualSense actuators |
 | `input.glyphs` | string | new | original, new | button symbols: `new` from `glyphs/`, `original` from the game |
 | `input.glyph_device` | string | auto | auto, ps3, ps4, ps5, ps5color, xbox, switch, steamdeck, steamcontroller, keyboard | whose button symbols are drawn |
 | `input.mouse_release` | string or array of strings | empty | key names | keys that release the captured mouse |
@@ -964,6 +966,12 @@ Menu tile patterns derive phase-preserving coverage from `mgPortVisibleExtent()`
 ### Controller speaker
 
 `audio.dualsense_speaker` sends the Ridepod's voice lines (the `8520xx.wav` streams the dungeon robot opens) the treasure chests' opening (sound effects 110 to 112 of the base bank, the wood, iron and stone chests' sequences) and the menus' sound effects (the system bank `SY_000`: cursor, decide, windows, items, equipment, inventions, Georama, message advance; its trap, level-up and lock-on effects stay on the TV) to a second playback device: the first one whose name contains "DualSense" or "Wireless Controller". Windows exposes that endpoint for a DualSense on USB, and for a Bluetooth pad through a DualSense emulation driver that creates one. The sounds are summed to mono and leave the main mix while they play; the effects play there without reverb. Without such a device they stay on the main output and stderr reports it once. Turning it off keeps every sound on the main output, as on the PS2. The choice applies from the next line or effect; `audio.controller_volume` applies live. The older `audio.robot_voice` key still loads and is no longer written.
+
+### Rumble and DualSense haptics
+
+The game vibrates only when the player takes a hit (the small motor for a stagger, the large one for a knockdown) and while fishing. `CGamePad::Step` sends those motors to every gamepad SDL has open, not only pad 0: DSX and Steam Input show one DualSense as two devices, and only one of them shakes. stderr logs each pad once, with its type, connection and rumble support.
+
+When the controller speaker's device (see "Controller speaker") has four channels, as a DualSense's does, it is opened as quad: the front pair is the speaker and the rear pair drives the two actuators. With `input.dualsense_haptics` on, the motors play there instead of through SDL's emulated rumble, which turns the pad's audio haptics off while it runs: the large motor as a 60 Hz tone, heavier on the left, the small one as a 170 Hz tone, heavier on the right. `full` adds camera quakes (the dungeon's `CAMERA_QUAKE` and the scene sequences' quake commands, while their counters move) as a low rumble, and the effects of the character, battle and monster sound ports (monsters at half volume), mirrored to a third mixer and low-passed at 220 Hz. Without four channels, or with `off`, the motors use SDL rumble.
 
 ### Font and headless
 
