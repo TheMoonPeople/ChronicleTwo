@@ -670,7 +670,8 @@ bool Render(int item_no, mgCTexture *icon, int model_block = kModelBlock, int sc
         float dark[4] = {0.0f, 0.0f, 0.0f, 128.0f};
         mgSetLight(dark_dir, dark_colour);
         mgSetAmbient(dark);
-        const float step = 4.0f / pixels_per_unit;
+        // A larger icon shows the scratch near its own size, so its outline is thinner in scratch pixels.
+        const float step = (icon_size == kIcon ? 4.0f : 1.5f) / pixels_per_unit;
         const float shifts[9][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-0.75f, -0.75f}, {0.75f, -0.75f},
                                     {-0.75f, 0.75f}, {0.75f, 0.75f}, {1.4f, -1.6f}};
         for (const auto &shift : shifts) {
