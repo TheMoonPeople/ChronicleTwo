@@ -25,12 +25,12 @@
 namespace {
 
 // Lattice spacing in board units, and how much a patch magnifies the slot interior.
-// The patch reach (0.8 of the spacing, see Weight) stays inside the slot's frame lines.
-constexpr float kCellX = 28.0f;
-constexpr float kCellY = 36.0f;
-constexpr float kMagnify = 1.7f;
-// The blend favours each patch's darker centre; this restores the slot's average tone.
-constexpr float kTone = 1.12f;
+// The patch reach (0.8 of the spacing, see Ramp) stays inside the slot's frame lines.
+constexpr float kCellX = 24.0f;
+constexpr float kCellY = 30.0f;
+constexpr float kMagnify = 1.3f;
+// Overall tone, so the flattened surface keeps the slot's average brightness.
+constexpr float kTone = 1.05f;
 constexpr int   kBoardColumns = 6;
 constexpr int   kBoardRows = 26;
 constexpr int   kSlotW = 40;
@@ -61,12 +61,22 @@ float ValueNoise(float x, float y) {
     return top + (bottom - top) * ty;
 }
 
-// Brightness factor at a board position (board units): about +-6%, a few slots across.
+// Brightness factor at a board position (board units): about +-4%, a few slots across.
 float Macro(float x, float y) {
     const float col = x / kSlotW, row = y / kSlotH;
     const float n = 0.7f * ValueNoise(col * 0.38f + 11.3f, row * 0.42f + 3.7f) +
                     0.3f * ValueNoise(col * 0.9f + 47.1f, row * 0.9f + 29.5f);
-    return 1.0f + 0.06f * n;
+    return 1.0f + 0.04f * n;
+}
+
+// The slot art is darkest a little above and left of its centre and lightens towards
+// its frame. Every patch would carry that shading and the board would look blotchy, so
+// each vertex divides it back out. (u, v) are texels from the slot's top-left corner;
+// the curve is a least-squares cubic of the slot's brightness, normalised to its mean.
+float SlotShading(float u, float v) {
+    const float x = (u - 20.0f) / 20.0f, y = (v - 25.0f) / 25.0f;
+    return 0.9156f + y * (0.2082f + y * (0.2006f - 0.2238f * y)) + x * (0.1266f + 0.0763f * y - 0.0289f * y * y) +
+           x * x * (0.1747f - 0.0056f * y) - 0.1412f * x * x * x;
 }
 
 // Share of the far corner's patch at fraction t across a lattice cell. The ramp is
@@ -98,7 +108,8 @@ void AppendPass(const mgCDrawPrim &prim, const Board &board, int dx, int dy, std
     const int   first_row = static_cast<int>(std::floor((board.clip_top - board.top) / kCellY));
     const int   last_row = static_cast<int>(std::ceil((board.clip_bottom - board.top) / kCellY));
     const int   columns = static_cast<int>(std::ceil((board.right - board.left) / kCellX));
-    const float knots[4] = {0.0f, kRamp, 1.0f - kRamp, 1.0f};
+    // The ramp's corners, plus enough steps for the shading correction to follow its curve.
+    const float knots[6] = {0.0f, kRamp, 0.4f, 0.6f, 1.0f - kRamp, 1.0f};
 
     for (int cy = std::max(first_row, 0); cy < last_row; cy++) {
         for (int cx = 0; cx < columns; cx++) {
@@ -115,33 +126,27 @@ void AppendPass(const mgCDrawPrim &prim, const Board &board, int dx, int dy, std
                 const float tx = (x - origin_x) / kCellX, ty = (y - origin_y) / kCellY;
                 const float wx = dx ? Ramp(tx) : 1.0f - Ramp(tx);
                 const float wy = dy ? Ramp(ty) : 1.0f - Ramp(ty);
-                const float f = wx * wy * kTone * Macro(x - board.left, y - board.top);
+                const float du = su * (x - corner_x) / kMagnify, dv = sv * (y - corner_y) / kMagnify;
+                const float f = wx * wy * kTone * Macro(x - board.left, y - board.top) / SlotShading(20.0f + du, 25.0f + dv);
                 const uint8_t rgba[4] = {Channel(board.r, f), Channel(board.g, f), Channel(board.b, f),
                                          static_cast<uint8_t>(board.a)};
-                return mgPortPrimVertex(prim, x, y, 0.0f, centre_u + su * (x - corner_x) / kMagnify,
-                                        centre_v + sv * (y - corner_y) / kMagnify, rgba);
+                return mgPortPrimVertex(prim, x, y, 0.0f, centre_u + du, centre_v + dv, rgba);
             };
 
-            for (int j = 0; j < 3; j++) {
+            for (int j = 0; j < 5; j++) {
                 const float y0 = std::max(origin_y + knots[j] * kCellY, std::max(board.top, board.clip_top));
                 const float y1 = std::min(origin_y + knots[j + 1] * kCellY, std::min(board.bottom, board.clip_bottom));
                 if (y1 <= y0) {
                     continue;
                 }
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < 5; i++) {
                     const float x0 = std::max(origin_x + knots[i] * kCellX, board.left);
                     const float x1 = std::min(origin_x + knots[i + 1] * kCellX, board.right);
                     if (x1 <= x0) {
                         continue;
                     }
-                    // A fan around the centre follows the bilinear weight without a diagonal crease.
-                    const gfx::Vertex2D centre = vertex((x0 + x1) * 0.5f, (y0 + y1) * 0.5f);
-                    const gfx::Vertex2D ring[4] = {vertex(x0, y0), vertex(x1, y0), vertex(x1, y1), vertex(x0, y1)};
-                    for (int k = 0; k < 4; k++) {
-                        out.push_back(centre);
-                        out.push_back(ring[k]);
-                        out.push_back(ring[(k + 1) % 4]);
-                    }
+                    const gfx::Vertex2D a = vertex(x0, y0), b = vertex(x1, y0), c = vertex(x1, y1), d = vertex(x0, y1);
+                    out.insert(out.end(), {a, b, c, a, c, d});
                 }
             }
         }
