@@ -14,6 +14,7 @@
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <span>
 #include <stdexcept>
 #include <string_view>
@@ -787,8 +788,23 @@ EmbeddedImage EmbeddedBytes(const Document &document, std::size_t index) {
  * Reads a standard image's dimensions from its encoded header.
  */
 void ImageExtent(const Document &document, std::size_t index, int &width, int &height) {
+    datapacks::TraceTimer timer("model.extent_us");
     const auto embedded = EmbeddedBytes(document, index);
     if (!embedded.reference.empty()) {
+        // The base game data never changes while running, so each external PNG's header is read once:
+        // an area registers the same few thousand images many times over.
+        static std::mutex                                               extents_mutex;
+        static std::unordered_map<std::string, std::pair<int, int> >    extents;
+        const auto                                                       key = vfs::FoldKey(embedded.reference);
+        {
+            std::lock_guard lock(extents_mutex);
+            if (const auto found = extents.find(key); found != extents.end()) {
+                width = found->second.first;
+                height = found->second.second;
+                datapacks::Trace("model.extent_memo_hits");
+                return;
+            }
+        }
         // The logical extent is the original PNG's; a datapack may enlarge the image it supplies.
         auto file = vfs::Find(datapacks::Base(), embedded.reference);
         if (!file) {
@@ -809,6 +825,8 @@ void ImageExtent(const Document &document, std::size_t index, int &width, int &h
         width = static_cast<int>(word(16));
         height = static_cast<int>(word(20));
         datapacks::Trace("model.extent_reads");
+        std::lock_guard lock(extents_mutex);
+        extents.emplace(key, std::pair(width, height));
         return;
     }
     int components = 0;
@@ -833,6 +851,7 @@ struct ImageSource {
  * Resolves the replacement PNGs and content identities of a standard image.
  */
 ImageSource ResolveImage(const Document &document, std::size_t index) {
+    datapacks::TraceTimer timer("model.resolve_image_us");
     ImageSource source{document.shared_from_this(), EmbeddedBytes(document, index), {}, {}, {}};
     std::vector<std::string> paths;
     if (!source.embedded.reference.empty()) {
@@ -882,15 +901,26 @@ std::string SourceIdentity(const ImageSource &source) {
  * Decodes PNG bytes into a single RGBA level; safe on worker threads.
  */
 bool DecodePng(std::span<const std::byte> png, datapacks::DecodedTexture &image) {
-    int   width = 0, height = 0, components = 0;
-    auto *decoded = stbi_load_from_memory(reinterpret_cast<const stbi_uc *>(png.data()), static_cast<int>(png.size()), &width, &height, &components, 4);
-    if (!decoded) {
+    const auto bytes = std::span(reinterpret_cast<const std::uint8_t *>(png.data()), png.size());
+    if (bytes.size() < 24 || !std::equal(bytes.begin() + 12, bytes.begin() + 16, "IHDR")) {
         return false;
     }
-    image.width = static_cast<uint32_t>(width);
-    image.height = static_cast<uint32_t>(height);
-    image.levels.assign(1, std::vector<uint8_t>(decoded, decoded + static_cast<std::size_t>(width) * height * 4));
-    stbi_image_free(decoded);
+    const auto word = [&](std::size_t offset) {
+        return (std::uint32_t{bytes[offset]} << 24) | (std::uint32_t{bytes[offset + 1]} << 16) |
+               (std::uint32_t{bytes[offset + 2]} << 8) | bytes[offset + 3];
+    };
+    const std::uint32_t width = word(16), height = word(20);
+    if (width == 0 || height == 0 || width > 16384 || height > 16384) {
+        return false;
+    }
+    std::vector<std::uint8_t> rgba;
+    if (!datapacks::DecodePngRgba(bytes, width, height, rgba)) {
+        return false;
+    }
+    image.width = width;
+    image.height = height;
+    image.levels.clear();
+    image.levels.push_back(std::move(rgba));
     return true;
 }
 
@@ -2404,6 +2434,7 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
     auto                 &cached = document->texture_sets[index];
     std::string           error;
     if (!cached) {
+        datapacks::TraceTimer set_timer("model.decode_set_us");
         auto source = std::make_shared<texture_catalog::Source>();
         if (!texture_catalog::DecodeEmbeddedSet((document->custom->contains("resources") ? document->custom->at("resources") : *document->custom).at("texture_sets").at(index).at("document"), document->relative, [document](std::string_view reference, int &width, int &height, std::string &failure) {
                 try {
@@ -2447,8 +2478,10 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
                 }
             }
         }
+        datapacks::TraceTimer prefetch_timer("model.prefetch_images_us");
         PrefetchImages(sources);
     }
+    datapacks::TraceTimer native_timer("model.enter_native_set_us");
     MgTextureEnterNativeSet(
         textures, options.texture_block, *cached, memory,
         [resolved](const texture_catalog::Entry &entry, std::size_t variant, datapacks::DecodedTexture &decoded, std::string &failure) {
@@ -2948,6 +2981,13 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
     auto &owned = character_images[&character];
     std::erase_if(owned, [slot](const auto &image) { return image.slot == slot; });
     std::strcpy(manager->name_suffix, suffix.c_str());
+    if (!pixels) {
+        std::vector<const texture_catalog::Entry *> entries;
+        for (const auto &entry : source->entries) {
+            entries.push_back(&entry);
+        }
+        datapacks::PrefetchEntries(entries);
+    }
     MgTextureEnterNativeSet(manager, block, *source, memory,
                             [source, pixels](const texture_catalog::Entry &entry, std::size_t variant,
                                              datapacks::DecodedTexture &decoded, std::string &error) {

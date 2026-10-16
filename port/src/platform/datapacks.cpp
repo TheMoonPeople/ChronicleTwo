@@ -23,6 +23,7 @@
 #define STBI_NO_STDIO
 #include "stb_image.h"
 
+#include "kazarov_bridge/rust/lib.h"
 #include "platform/archive_mount.hpp"
 
 namespace datapacks {
@@ -314,18 +315,10 @@ bool ReadPng(const vfs::Ref &path, uint32_t &width, uint32_t &height,
         error = "PNG dimensions exceed the texture or memory limit";
         return false;
     }
-    int            decoded_width = 0, decoded_height = 0, channels = 0;
-    unsigned char *pixels = stbi_load_from_memory(bytes.data(), static_cast<int>(bytes.size()),
-                                                  &decoded_width, &decoded_height, &channels, 4);
-    if (!pixels || decoded_width != static_cast<int>(width) || decoded_height != static_cast<int>(height)) {
-        stbi_image_free(pixels);
+    if (!DecodePngRgba(bytes, width, height, rgba)) {
         error = "cannot decode PNG";
         return false;
     }
-    rgba.assign(pixels, pixels + static_cast<std::size_t>(width) * height * 4);
-    stbi_image_free(pixels);
-    Trace("stbi decodes");
-    Trace("stbi decoded bytes", rgba.size());
     return true;
 }
 
@@ -349,6 +342,7 @@ std::vector<uint8_t> Pad(std::vector<uint8_t> pixels, uint32_t width, uint32_t h
  * Builds the next physical mip canvas with a two-by-two box filter.
  */
 std::vector<uint8_t> Downsample(const std::vector<uint8_t> &pixels, uint32_t width, uint32_t height) {
+    TraceTimer timer("datapacks.downsample_us");
     const uint32_t       next_width = std::max(1u, width / 2), next_height = std::max(1u, height / 2);
     std::vector<uint8_t> next(static_cast<std::size_t>(next_width) * next_height * 4);
     for (uint32_t y = 0; y < next_height; ++y) {
@@ -680,6 +674,66 @@ bool Decode(const texture_catalog::Entry &entry, std::size_t variant_index, Deco
     return DecodeCached(DecodeKey(entry, variant_index), [&](DecodedTexture &out, std::string &failure) { return DecodeUncached(entry, variant_index, out, failure); }, decoded, error);
 }
 
+bool DecodePngRgba(std::span<const std::uint8_t> png, std::uint32_t width, std::uint32_t height, std::vector<std::uint8_t> &rgba) {
+    // The Rust decoder inflates several times faster than stb_image, which matters for upscaled packs; stb_image
+    // still reads whatever it rejects.
+    rgba.resize(static_cast<std::size_t>(width) * height * 4);
+    try {
+        kazarov::png_decode_rgba(rust::Slice<const std::uint8_t>(png.data(), png.size()), width, height,
+                                 rust::Slice<std::uint8_t>(rgba.data(), rgba.size()));
+        Trace("png fast decodes");
+        Trace("stbi decoded bytes", rgba.size());
+        return true;
+    } catch (const std::exception &) {
+    }
+    int            decoded_width = 0, decoded_height = 0, channels = 0;
+    unsigned char *pixels = stbi_load_from_memory(png.data(), static_cast<int>(png.size()), &decoded_width,
+                                                  &decoded_height, &channels, 4);
+    if (!pixels || decoded_width != static_cast<int>(width) || decoded_height != static_cast<int>(height)) {
+        stbi_image_free(pixels);
+        rgba.clear();
+        return false;
+    }
+    std::copy_n(pixels, rgba.size(), rgba.begin());
+    stbi_image_free(pixels);
+    Trace("stbi decodes");
+    Trace("stbi decoded bytes", rgba.size());
+    return true;
+}
+
+std::string DecodeIdentity(const texture_catalog::Entry &entry, std::size_t variant) {
+    if (entry.no_image) {
+        return "no image";
+    }
+    if (entry.type != "texture" || entry.bpp != 32 || entry.width <= 0 || entry.height <= 0 ||
+        entry.width > static_cast<int>(kMaxDimension) || entry.height > static_cast<int>(kMaxDimension) ||
+        variant >= entry.variants.size() || entry.variants[variant].levels.empty()) {
+        return {};
+    }
+    return DecodeKey(entry, variant);
+}
+
+void PrefetchEntries(std::span<const texture_catalog::Entry *const> entries) {
+    std::vector<DecodeJob> jobs;
+    for (const auto *entry : entries) {
+        if (entry->type != "texture" || entry->bpp != 32 || entry->no_image || entry->width <= 0 || entry->height <= 0 ||
+            entry->width > static_cast<int>(kMaxDimension) || entry->height > static_cast<int>(kMaxDimension)) {
+            continue;
+        }
+        for (std::size_t variant = 0; variant < entry->variants.size(); ++variant) {
+            if (entry->variants[variant].levels.empty()) {
+                continue;
+            }
+            jobs.push_back({DecodeKey(*entry, variant), [entry, variant](DecodedTexture &out, std::string &failure) {
+                                return DecodeUncached(*entry, variant, out, failure);
+                            }});
+        }
+    }
+    if (!jobs.empty()) {
+        Prefetch(jobs);
+    }
+}
+
 std::string ImageDecodeKey(std::string_view identity, std::span<const vfs::Ref> sources) {
     std::string key = std::to_string(identity.size()) + ':' + std::string(identity);
     for (const auto &file : sources) {
@@ -855,11 +909,16 @@ void Trace(std::string_view counter, std::uint64_t value) {
 TraceTimer::TraceTimer(std::string_view counter) : counter(counter), start(std::chrono::steady_clock::now()) {}
 
 TraceTimer::~TraceTimer() {
-    if (Tracing()) {
+    Stop();
+}
+
+void TraceTimer::Stop() {
+    if (!stopped && Tracing()) {
         Trace(counter, static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(
                                                       std::chrono::steady_clock::now() - start)
                                                       .count()));
     }
+    stopped = true;
 }
 
 } // namespace datapacks
