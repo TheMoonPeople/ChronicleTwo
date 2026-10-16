@@ -201,23 +201,24 @@ std::span<const Page> Pages() {
                                                                     "all of them in view (retail only keeps the 5 nearest visible).\n"
                                                                     "Re-enter the floor after changing this.",
                                                                     {"Off", "On"}),
+                         []() {
+                             Row row{"game.georama_poly_multiplier", "Polygon budget",
+                                     "Multiplies how many polygons you can place in Georama towns.\n"
+                                     "Draw-memory limits stay at retail."};
+                             row.value = [](const Config &c) { return std::format("{}×", c.georama_poly_multiplier); };
+                             row.step = [](Config &c, int direction) {
+                                 int next = c.georama_poly_multiplier + direction;
+                                 if (next < 1) {
+                                     next = 6;
+                                 }
+                                 if (next > 6) {
+                                     next = 1;
+                                 }
+                                 c.georama_poly_multiplier = next;
+                             };
+                             return row;
+                         }(),
                      }                      },
-        {"Georama",  {[] {
-                          Row row{"game.georama_poly_multiplier", "Polygon budget",
-                                  "Multiplies how many polygons you can place in Georama towns.\nDraw-memory limits stay at retail."};
-                          row.value = [](const Config &c) { return std::format("{}×", c.georama_poly_multiplier); };
-                          row.step = [](Config &c, int direction) {
-                              int next = c.georama_poly_multiplier + direction;
-                              if (next < 1) {
-                                  next = 6;
-                              }
-                              if (next > 6) {
-                                  next = 1;
-                              }
-                              c.georama_poly_multiplier = next;
-                          };
-                          return row;
-                      }()}},
     };
     const auto names = port_settings::PcOverlayPageNames();
     assert(pages.size() == static_cast<std::size_t>(port_settings::PcOverlayPageCount()));

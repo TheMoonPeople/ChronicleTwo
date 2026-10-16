@@ -9,6 +9,7 @@
 #include "effscript.hpp"
 #include "mg_memory.hpp"
 #include "monster.hpp"
+#include "port_monster_limit.hpp"
 #include "runscript.hpp"
 #include "scene.hpp"
 
@@ -59,7 +60,12 @@ TEST(MonsterMemory, SingleMonsterLoadInitializesEveryHostArena) {
         EXPECT_LE(slot.stack + kSlotQuads, memory.stack + memory.stack_size) << i;
         EXPECT_EQ(slot.Alloc(38), slot.stack) << i;
         EXPECT_EQ(slot.stack_used, 38) << i;
-        EXPECT_EQ(manager->active[i], &monsters[i]) << i;
+        const int active_limit = PortMonsterActiveLimit();
+        if (i < active_limit) {
+            EXPECT_EQ(manager->active[i], &monsters[i]) << i;
+        } else {
+            EXPECT_EQ(manager->active[i], nullptr) << i;
+        }
         previous_end = slot.stack + kSlotQuads;
     }
 }

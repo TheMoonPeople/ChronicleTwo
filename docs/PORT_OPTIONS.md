@@ -8,16 +8,13 @@ Host-only game settings live in **PC SETTINGS** (Backspace overlay, or Select/Vi
 
 | Key | Label | Default |
 |-----|-------|---------|
+| `game.autosave` | Autosave | **Off** |
 | `game.debug_mode` | Debug mode | **Off** |
 | `game.skip_intro` | Skip intro | **Off** |
-
-## PC SETTINGS → Georama
-
-| Key | Label | Default |
-|-----|-------|---------|
+| `game.expanded_dungeon_monsters` | Expanded dungeon monsters | **Off** |
 | `game.georama_poly_multiplier` | Polygon budget | **1×** (retail caps) |
 
-Values **1×** through **6×** multiply the per-town polygon limit shown in the Georama build menu and enforced when placing parts. Draw-memory limits (`GetMaxDrawMem`) are **not** scaled.
+Polygon budget **1×** through **6×** multiplies the per-town limit shown in the Georama build menu and enforced when placing parts. Draw-memory limits (`GetMaxDrawMem`) are **not** scaled.
 
 Registry: `port/src/options/registry.cpp` (`port_settings::Descriptors`, `Surface::PcOverlay` only). Rows: `port/src/options/rows.cpp`.
 

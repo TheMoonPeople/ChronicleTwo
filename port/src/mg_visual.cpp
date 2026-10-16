@@ -144,10 +144,15 @@ void UploadIfReady(FaceEntry &entry) {
     }
 
     mesh.mesh = gfx::CreateMesh(mesh.vertices, mesh.indices);
+    if (mesh.mesh == gfx::kNullMesh) {
+        return;
+    }
     ++g_mesh_upload_count;
     entry.gpu_uploaded = true;
-    std::vector<gfx::Vertex3D>().swap(mesh.vertices);
-    std::vector<uint32_t>().swap(mesh.indices);
+    if (!entry.persistent) {
+        std::vector<gfx::Vertex3D>().swap(mesh.vertices);
+        std::vector<uint32_t>().swap(mesh.indices);
+    }
 }
 
 } // namespace

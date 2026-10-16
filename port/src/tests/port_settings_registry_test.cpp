@@ -28,9 +28,9 @@ TEST(PortSettingsRegistry, HostBoolsMapToConfigKeysAndRetailRows) {
 }
 
 TEST(PortSettingsRegistry, PcOverlayPageCountMatchesPagesBuilder) {
-    EXPECT_EQ(port_settings::PcOverlayPageCount(), 6);
-    EXPECT_EQ(port_settings::PcOverlayPageNames().size(), 6u);
-    EXPECT_STREQ(port_settings::PcOverlayPageNames().back(), "Georama");
+    EXPECT_EQ(port_settings::PcOverlayPageCount(), 5);
+    EXPECT_EQ(port_settings::PcOverlayPageNames().size(), 5u);
+    EXPECT_STREQ(port_settings::PcOverlayPageNames().back(), "Game");
 }
 
 TEST(PortSettingsRegistry, GeoramaPolyMultiplierRegisteredOnPcOverlay) {

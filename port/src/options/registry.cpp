@@ -68,7 +68,6 @@ constexpr const char *kPcOverlayPageNames[] = {
     "Controls",
     "Bindings",
     "Game",
-    "Georama",
 };
 
 std::span<const char *const> PcOverlayPageNames() { return kPcOverlayPageNames; }

@@ -97,6 +97,7 @@ dc2data current <iso-or-directory> <data-directory>
 ```
 
 `extract` uses up to 32 workers by default; `--jobs N` accepts 1 through 64.
+After the raw-file counter, the CLI prints coalesced phase progress on stderr (`dc2data: [ 45%] Converting textures…`) so long conversion and packing steps are not silent; the setup window uses the same weighted phases in its progress bar.
 `current` compares the source's path and file metadata with the versioned marker and verifies both output directories exist; it returns 0 only when extraction can be skipped. `check` performs the full hash and payload audit.
 
 The source of `extract` is a Dark Chronicle disc image or a folder holding `DATA.HD4`, `DATA.DAT`, `SOUND.HD3`, `SOUND.DAT` and `MOVIE`. Give it `<game-root>/data` as the output. The C++ command-line program calls the Rust extractor through a `cxx` bridge; conversion runs in process. Data version 9 writes every game file, retained and converted, into one Zstandard ZIP archive, `<game-root>/data.zip` ([format](PORT_ARCHIVE_FORMAT.md)), with a version marker at `<game-root>/data.json`. Textures use JSON and PNG; sound uses semantic JSON and PCM WAV; models and complete characters use glTF with embedded images and minimal gameplay JSON sidecars; configurations and textual maps use typed JSON; movies use self-contained MP4 with copied MPEG-2 video and embedded lossless ALAC audio. Ordinary PACK archives become folders with a minimal versioned `pack.json` containing no contents listing. Substituted originals are removed. Native game code references actual asset paths directly, without catalogs or manifests. See the [migration](PORT_ASSET_MIGRATION.md), [texture](PORT_TEXTURE_FORMAT.md), [audio](PORT_AUDIO_FORMAT.md), [model](PORT_MODEL_FORMAT.md), and [configuration](PORT_CONFIG_FORMAT.md) documents. `dc2data check <game-root>/data` validates native payloads and the whole-output SHA-256 digest. Extraction stages both trees before publication and restores the previous output on failure. Exit status: 0 on success, 1 on an error or failed check, 2 on usage error.
@@ -573,10 +574,8 @@ The PC page uses the game's font and Options artwork. L1/R1 changes tabs, Up/Dow
 | Display | Windowed/fullscreen, resolution, FIFO/mailbox/immediate, frame cap, interpolation, auto/4:3 aspect, UI scale, FPS counter |
 | Audio | Master volume and PS2/custom soundtrack |
 | Controls | Mouse sensitivity, Y inversion and capture; stick sensitivity and X/Y inversion; button symbols and glyph style |
-| Game | Autosave |
 | Bindings | Keyboard and mouse bindings for pad buttons, movement, look, FPS and debug menu |
-| Game | Debug mode, skip intro logos |
-| Georama | Polygon build budget multiplier (1×–6× retail caps; see [PORT_OPTIONS.md](PORT_OPTIONS.md)) |
+| Game | Autosave, debug mode, skip intro, expanded dungeon monsters, Georama polygon budget (1×–6×; see [PORT_OPTIONS.md](PORT_OPTIONS.md)) |
 
 Edits save to `config.json` and apply immediately. Soundtrack selection takes effect the next time a song starts, including one whose data is already loaded. Custom recordings use the actual sequence JSON path in `soundtrack/soundtrack.json`; `AUDIO_TRACE` prints that path. An absent or invalid recording falls back to the converted sequence. Current music is not restarted by moving the setting.
 
