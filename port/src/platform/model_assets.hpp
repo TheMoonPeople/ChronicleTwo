@@ -16,6 +16,7 @@ struct mgLoadData;
 struct tagMOTION_TYPE;
 class mgCMemory;
 class mgCVisualMotionMDT;
+struct mgVertexWeight;
 struct Mot_List;
 class CCharacter2;
 class mgCTextureManager;
@@ -138,6 +139,11 @@ bool LoadTextureSet(const std::filesystem::path &gltf, std::size_t index, mgCTex
  * Writes standard glTF skin matrices into the current native draw constants.
  */
 bool ApplySkin(mgCVisualMotionMDT &visual, float (*matrix)[4]);
+/**
+ * Registers glTF inverse binds for unit tests; cleared with ClearInverseBindsForTest.
+ */
+void RegisterInverseBindsForTest(const mgVertexWeight *weight, const float (*binds)[4][4], std::size_t count);
+void ClearInverseBindsForTest();
 /**
  * Applies a glTF channel at its exact time, including STEP and CUBICSPLINE interpolation.
  */

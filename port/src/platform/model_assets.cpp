@@ -3082,6 +3082,25 @@ bool LoadSkin(CCharacter2 &character, std::span<const std::byte> gltf, const Jso
     }
 }
 
+void RegisterInverseBindsForTest(const mgVertexWeight *weight, const float (*binds)[4][4], std::size_t count) {
+    if (weight == nullptr || binds == nullptr || count == 0) {
+        return;
+    }
+    std::vector<Matrix> matrices(count);
+    for (std::size_t index = 0; index < count; ++index) {
+        for (int column = 0; column < 4; ++column) {
+            for (int row = 0; row < 4; ++row) {
+                matrices[index][column * 4 + row] = binds[index][column][row];
+            }
+        }
+    }
+    inverse_binds.insert_or_assign(weight, std::move(matrices));
+}
+
+void ClearInverseBindsForTest() {
+    inverse_binds.clear();
+}
+
 bool ApplySkin(mgCVisualMotionMDT &visual, float (*matrix)[4]) {
     const auto found = inverse_binds.find(visual.weight);
     if (found == inverse_binds.end()) {

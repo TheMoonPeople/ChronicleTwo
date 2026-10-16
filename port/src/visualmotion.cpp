@@ -136,7 +136,9 @@ PORT_OVERRIDE int mgCVisualMotionMDT::CreateFaceMotionPacket(u_int *packet, mgCF
 
 PORT_OVERRIDE int mgCVisualMotionMDT::CreateExtRenderInfoPacket(u_int         *packet, float (*matrix)[4],
                                                                 mgRENDER_INFO *info) {
-    if (model_assets::ApplySkin(*this, matrix)) {
+    // Native glTF meshes always carry bind-pose base_matrix; retail normalization must run instead of
+    // the glTF inverse-bind fast path, which ignores frame_id and mis-skins feet on attached MDTs.
+    if (base_matrix == NULL && model_assets::ApplySkin(*this, matrix)) {
         return 0;
     }
     if (frame == NULL || base_matrix == NULL) {
