@@ -150,6 +150,12 @@ struct TraceTimer {
     TraceTimer(const TraceTimer &) = delete;
     TraceTimer &operator=(const TraceTimer &) = delete;
 
+    /**
+     * Records the elapsed time now instead of at destruction.
+     */
+    void Stop();
+
+    bool                                  stopped = false; /**< Whether the time was already recorded. */
     std::string_view                      counter; /**< Static counter name receiving the elapsed time. */
     std::chrono::steady_clock::time_point start;   /**< Construction time. */
 };

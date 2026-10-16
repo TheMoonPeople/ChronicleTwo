@@ -285,9 +285,11 @@ gfx::TextureHandle UploadPixels(const mgCTexture *texture) {
     if (levels == 0) {
         levels = 1; // Animation destinations and render targets start empty.
     }
+    datapacks::TraceTimer create_timer("mg_texture.create_texture_us");
     auto handle = gfx::CreateTexture({canvas_width, canvas_height,
                                       gfx::TextureFormat::Rgba8,
                                       levels, texture->bpp != 24});
+    create_timer.Stop();
     if (handle == gfx::kNullTexture) {
         return handle;
     }
@@ -590,7 +592,11 @@ mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_ca
     }
     char full_name[32];
     std::snprintf(full_name, sizeof(full_name), "%s%s", name.c_str(), manager->name_suffix);
-    auto identities = PictureIdentities(record, identity);
+    std::vector<std::string> identities;
+    {
+        datapacks::TraceTimer timer("mg_texture.identity_us");
+        identities = PictureIdentities(record, identity);
+    }
     if (!identities.empty()) {
         if (auto *existing = manager->SearchHash(full_name, block)) {
             const auto found = catalog_pixels.find(existing);
@@ -605,6 +611,7 @@ mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_ca
     }
     std::string               error;
     datapacks::DecodedTexture decoded;
+    datapacks::TraceTimer     decode_timer("mg_texture.decode_us");
     if (!(decoder ? decoder(record, 0, decoded, error) : datapacks::Decode(record, 0, decoded, error))) {
         std::fprintf(stderr, "texture: %s: %s\n", record.name.c_str(), error.c_str());
         return nullptr;
@@ -623,6 +630,7 @@ mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_ca
             original->variants.push_back(std::move(alternate));
         }
     }
+    decode_timer.Stop();
     for (auto &variant : original->definition.variants) {
         variant.levels.clear();
     }
@@ -639,6 +647,7 @@ mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_ca
         }
     }
     // The original keeps pristine pixels; the registration owns a copy that glyphs and animation edit.
+    datapacks::TraceTimer enter_timer("mg_texture.enter_us");
     decoded = original->variants.front();
     ButtonGlyphsApply(record.name, record.width, record.height, decoded);
     CatalogPixels pixels{std::move(decoded.levels), &record, record.name, std::move(decoder),
@@ -663,6 +672,8 @@ mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_ca
         if (record.nearest) {
             texture->tex1_bits &= ~(uint64_t{1} << 5);
         }
+        enter_timer.Stop();
+        datapacks::TraceTimer upload_timer("mg_texture.upload_us");
         ResolveTexture(texture, false);
     }
     return texture;
