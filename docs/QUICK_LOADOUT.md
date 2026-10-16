@@ -16,6 +16,9 @@ While it is open the face buttons belong to the panel:
   character, and the quick change's white fade and stars play on it;
 - holding the button keeps the item equipped in that slot's row in the slot.
 
+The slot whose item is equipped now wears the game's own rotating active item cursor (the one round the camera on the
+status board) round its picture.
+
 The first time a character's panel opens, each empty row takes the item equipped in it. An item the party no longer
 has is drawn dimmed, and its slot does nothing. The Ridepod only takes a part it has the capacity for, as in the menu.
 The monster form has no panel.

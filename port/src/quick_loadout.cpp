@@ -12,6 +12,7 @@
 #include "item_icon3d.hpp"
 #include "mainloop.hpp"
 #include "mainloop_port.hpp"
+#include "maintex.hpp"
 #include "menumain.hpp"
 #include "mglib.hpp"
 #include "mglib_port.hpp"
@@ -20,11 +21,13 @@
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 #include "photo.hpp"
+#include "prespr.hpp"
 #include "subgame.hpp"
 #include "userdata.hpp"
 
 #include "gfx/gfx.hpp"
 
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <map>
@@ -379,6 +382,35 @@ void DrawFlash(float x, float y, float w, float h, uint8_t alpha) {
     mgPortDraw2D(gfx::Primitive::Quads, quad, gfx::TextureBinding{}, state);
 }
 
+// The game's own rotating cursor round the active item (DrawActiveItemCursor), drawn round the slot in use: the same
+// picture from the system frame texture, added, turning a degree a frame on an angle of its own (PortQuickLoadoutDraw turns it). size is its width.
+float halo_angle = -PI;
+
+void DrawHalo(float x, float y, float size, float alpha) {
+    if (TEX_SystenFrame == nullptr) {
+        return;
+    }
+    CPreSprite sprite;
+    sprite.Initialize(NULL, NULL);
+    sprite.Preset2D();
+    sprite.Bilinear(1);
+    sprite.Begin(MG_PRIM_TRIANGLE);
+    sprite.Texture(TEX_SystenFrame);
+    sprite.SetAlphaBlend(MG_ALPHA_BLEND_ADD);
+    sprite.Color(0x80, 0x80, 0x80, (int) (128.0f * alpha));
+    const float k = size / 55.0f, sn = sinf(halo_angle), cs = cosf(halo_angle);
+    // Two triangles over the 55x55 picture at (0x84, 0xCA), as retail lays them out.
+    static const float kCorner[6][4] = {{-28, -28, 0x84, 0xCA}, {-28, 27, 0xB9, 0xCA}, {27, -28, 0x84, 0xFF},
+                                        {-28, 27, 0xB9, 0xCA},  {27, -28, 0x84, 0xFF}, {27, 27, 0xB9, 0xFF}};
+    for (const auto &c : kCorner) {
+        const float u = c[0] * k, v = c[1] * k;
+        float       corner[4] = {x + (u * sn - v * cs), y + (v * sn + u * cs), 0.0f, 0.0f};
+        sprite.TextureCrd((int) c[2], (int) c[3]);
+        sprite.Vertex(corner);
+    }
+    sprite.End();
+}
+
 } // namespace
 
 // The request a tap leaves is acted on here, where the dungeon opens its menus, before anything else reads the pad.
@@ -484,6 +516,10 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
         return;
     }
 
+    halo_angle += DEG_TO_RAD;
+    if (halo_angle > PI) {
+        halo_angle -= 2.0f * PI;
+    }
     for (int slot = 0; slot < kSlots; slot++) {
         const ArtRect &art = kSlotArt[slot];
         const float    x0 = kPanelX + art.x0 * sx, y0 = top + art.y0 * sy;
@@ -500,6 +536,12 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
                 const bool     have = (equipped != nullptr && Matches(entry, equipped)) || FindOwned(entry) != nullptr;
                 DrawQuad(handle, cx - size * 0.5f, cy - size * 0.5f, size, size, kIconSize, kIconSize,
                          have ? alpha : alpha / 3, have ? 0x80 : 0x50);
+            }
+            // The slot whose item is equipped now wears the active item's cursor round its picture.
+            CGameDataUsed *equipped = RowEquip(chara, slot / 2);
+            if (equipped != nullptr && Matches(entry, equipped)) {
+                const float cx = x0 + w * 0.5f + h * 0.14f, cy = y0 + h * 0.5f + h * 0.02f;
+                DrawHalo(cx, cy, h * 1.2f, (float) fade / kFadeTicks);
             }
         }
         // Holding the button brightens the slot as it fills; keeping the item flashes it.
