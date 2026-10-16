@@ -46,6 +46,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "input.glyphs",
         "input.glyph_device",
         "game.autosave",
+        "game.quick_loadout_title",
     };
     std::set<std::string> actual;
     for (const auto &page : options::Pages()) {

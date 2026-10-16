@@ -16,6 +16,7 @@
 #include "mglib.hpp"
 #include "mglib_port.hpp"
 #include "mg_texture.hpp"
+#include "platform/config.hpp"
 #include "platform/paths.hpp"
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
@@ -32,6 +33,7 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <span>
 #include <vector>
 
 int PortRetailDngMainKey() asm("DngMain_DngMainKey");
@@ -55,11 +57,16 @@ constexpr int kFadeTicks = 6;
 struct Rect {
     int x, y, w, h;
 };
-constexpr int  kPanelX = 42;
+constexpr int  kPanelX = 52;   // under the active items' circles
+constexpr int  kRidepodX = 42; // the Ridepod's board has none
 constexpr int  kPanelOffsetY = 66;
 constexpr int  kRidepodOffsetY = 54;
+// The two title styles of PC settings: a bar shrunk from the item circles, over the box's top edge, or a plate like
+// the EXP gauge's, standing on it, with the box a little lower to make room.
 constexpr Rect kBox = {0, 8, 176, 134};
 constexpr Rect kTitleBar = {20, -1, 136, 25};
+constexpr Rect kPlateBox = {0, 16, 176, 126};
+constexpr Rect kTitlePlate = {7, -1, 128, 18};
 // Square, Triangle, Cross, Circle.
 constexpr Rect kSlotRect[kSlots] = {{11, 26, 76, 50}, {89, 26, 76, 50}, {11, 80, 76, 50}, {89, 80, 76, 50}};
 constexpr int  kDiscSize = 24;
@@ -80,6 +87,10 @@ constexpr int kBoxBolt = 6, kBoxBoltX = 2, kBoxBoltTopU = 375, kBoxBoltTopV = 15
               kBoxBoltBottomV = 182;
 // A black texel in the middle of a black patch, so that stretching it never reaches a neighbour.
 constexpr int kBlackU = 134, kBlackV = 204;
+// The "EXP" plate above that box: its left and right sides, three texels each, a plain column between them past the
+// engraved letters, three rows of top edge, the rows of plate between and the row that runs into the box.
+constexpr int kPlateLeftU = 295, kPlateMiddleU = 298, kPlateRightU = 319, kPlateSide = 3;
+constexpr int kPlateV0 = 146, kPlateTop = 3, kPlateMiddleV = 149, kPlateMiddle = 5, kPlateBottomV = 154;
 // ...and the active item circles, 40 across: the left half of the first, the right half of the last (their other
 // halves hold the joints between them).
 constexpr int kCircleLeftU = 236, kCircleLeftV = 55, kCircleRightU = 364, kCircleRightV = 96, kCircleHalf = 20;
@@ -343,6 +354,8 @@ void Rounded(CPreSprite &sprite, const Rect &r, int size) {
     Piece(sprite, r.x + c, r.y + c, r.w - 2 * c, r.h - 2 * c, kCircleLeftU + h - 1, kCircleLeftV + h - 1, 1, 1);
 }
 
+bool TitlePlate() { return ConfigGet().quick_loadout_plate; }
+
 void DrawPanel(int left, int top, uint8_t alpha) {
     if (TEX_SystenFrame == nullptr) {
         return;
@@ -358,7 +371,9 @@ void DrawPanel(int left, int top, uint8_t alpha) {
     // bevel inside its gold, lighter on the right and bottom, which on a see-through inside reads as a frame that does
     // not close: only the gold is taken, its top left corner and top and left sides, mirrored into the other three,
     // and the see-through black runs right up to it.
-    const Rect box = {left + kBox.x, top + kBox.y, kBox.w, kBox.h};
+    const bool plate_style = TitlePlate();
+    const Rect frame = plate_style ? kPlateBox : kBox;
+    const Rect box = {left + frame.x, top + frame.y, frame.w, frame.h};
     const int  side = kBoxSide, gold = kBoxGold, gold_top = kBoxGoldTop;
     const int  right = box.x + box.w - side;
     sprite.Color(0x80, 0x80, 0x80, alpha * 0x4C / 0x80);
@@ -379,8 +394,11 @@ void DrawPanel(int left, int top, uint8_t alpha) {
     Piece(sprite, right + side - gold, box.y + kBoxCorner, gold, box.h - 2 * kBoxCorner, kBoxU0 + gold - 1,
           kBoxVMiddle, -gold, 1);
     // The top left corner's first row carries the join to the bar above the EXP box: the top side's shadow instead.
+    // The title's plate stands there, as the EXP plate does.
     for (const int y : {box.y, box.y + box.h - 1}) {
-        Piece(sprite, box.x + kBoxJoinX, y, side - kBoxJoinX, 1, kBoxUMiddle, kBoxV0, 1, 1);
+        if (y != box.y || !plate_style) {
+            Piece(sprite, box.x + kBoxJoinX, y, side - kBoxJoinX, 1, kBoxUMiddle, kBoxV0, 1, 1);
+        }
         Piece(sprite, right, y, side - kBoxJoinX, 1, kBoxUMiddle, kBoxV0, 1, 1);
     }
     Piece(sprite, right + kBoxBoltX, box.y + 1, kBoxBolt, kBoxBolt + 1, kBoxBoltTopU, kBoxBoltTopV, kBoxBolt,
@@ -389,6 +407,23 @@ void DrawPanel(int left, int top, uint8_t alpha) {
           kBoxBolt + 1);
     for (const Rect &slot : kSlotRect) {
         Rounded(sprite, {left + slot.x, top + slot.y, slot.w, slot.h}, kCircleHalf);
+    }
+
+    if (plate_style) {
+        // The title's plate, the EXP plate widened and heightened, texel for texel at its sides and top.
+        const Rect plate = {left + kTitlePlate.x, top + kTitlePlate.y, kTitlePlate.w, kTitlePlate.h};
+        const int  middle_h = plate.h - kPlateTop - 1, middle_w = plate.w - 2 * kPlateSide;
+        const int  columns[3][3] = {{plate.x, kPlateSide, kPlateLeftU},
+                                    {plate.x + kPlateSide, middle_w, kPlateMiddleU},
+                                    {plate.x + plate.w - kPlateSide, kPlateSide, kPlateRightU}};
+        for (const auto &c : columns) {
+            const int tw = c[2] == kPlateMiddleU ? 1 : kPlateSide;
+            Piece(sprite, c[0], plate.y, c[1], kPlateTop, c[2], kPlateV0, tw, kPlateTop);
+            Piece(sprite, c[0], plate.y + kPlateTop, c[1], middle_h, c[2], kPlateMiddleV, tw, kPlateMiddle);
+            Piece(sprite, c[0], plate.y + plate.h - 1, c[1], 1, c[2], kPlateBottomV, tw, 1);
+        }
+        sprite.End();
+        return;
     }
     sprite.End();
 
@@ -438,7 +473,7 @@ void DrawButtons(int left, int top, uint8_t alpha) {
     sprite.End();
 }
 
-// "QUICK LOADOUT" in the game's own font, white with its black outline, in the middle of the title bar.
+// "QUICK LOADOUT" in the game's own font, in the middle of the title bar or plate.
 void DrawTitle(float x, float y, uint8_t alpha) {
     static const char kTitle[] = "QUICK LOADOUT";
     CFont font;
@@ -448,8 +483,6 @@ void DrawTitle(float x, float y, uint8_t alpha) {
     // stand apart from its word.
     font.SetDrawSize(16, 20);
     font.SetClearance(16, 20);
-    font.SetFuchi(FUCHI_OUTLINE);
-    font.SetColor(0x80, 0x80, 0x80, alpha);
     constexpr float kCell = 8.0f; // a half-width letter's cell
     auto advance = [](char c) { return c == 'I' ? 5.0f : c == ' ' ? 7.0f : 9.0f; };
     float width = 0.0f;
@@ -458,15 +491,32 @@ void DrawTitle(float x, float y, uint8_t alpha) {
     }
     int w = 0, h = 0;
     font.CalcDrawWH(const_cast<char *>("Q"), &w, &h);
-    float pen = x - width * 0.5f;
-    for (const char *c = kTitle; *c != 0; c++) {
-        char letter[2] = {*c, 0};
-        // A narrow letter keeps to the middle of the room it is given.
-        const float shift = (advance(*c) - kCell) * 0.5f;
-        if (*c != ' ') {
-            font.DrawDirect(letter, (int) (pen + (*c == 'I' ? shift : 0.0f) + 0.5f), (int) (y - h * 0.5f + 0.5f));
+    struct Pass {
+        int     dx, dy;
+        uint8_t r, g, b;
+    };
+    // On the bar, white with the font's black outline. On the plate, engraved as the EXP plate's letters: dark brown
+    // and heavy, each stroke with a light gold edge under it and to its right; the light edge first, then the letters,
+    // twice across.
+    static const Pass kBarPasses[] = {{0, 0, 0x80, 0x80, 0x80}};
+    static const Pass kPlatePasses[] = {
+        {1, 1, 0x75, 0x6A, 0x58}, {2, 1, 0x75, 0x6A, 0x58}, {0, 0, 0x1F, 0x11, 0x08}, {1, 0, 0x1F, 0x11, 0x08}};
+    const bool plate = TitlePlate();
+    font.SetFuchi(plate ? FUCHI_NONE : FUCHI_OUTLINE);
+    const std::span<const Pass> passes = plate ? std::span<const Pass>(kPlatePasses) : std::span<const Pass>(kBarPasses);
+    for (const Pass &pass : passes) {
+        font.SetColor(pass.r, pass.g, pass.b, alpha);
+        float pen = x - (width + (plate ? 1.0f : 0.0f)) * 0.5f;
+        for (const char *c = kTitle; *c != 0; c++) {
+            char letter[2] = {*c, 0};
+            // A narrow letter keeps to the middle of the room it is given.
+            const float shift = (advance(*c) - kCell) * 0.5f;
+            if (*c != ' ') {
+                font.DrawDirect(letter, (int) (pen + (*c == 'I' ? shift : 0.0f) + 0.5f) + pass.dx,
+                                (int) (y - h * 0.5f + 0.5f) + pass.dy);
+            }
+            pen += advance(*c);
         }
-        pen += advance(*c);
     }
 }
 
@@ -676,14 +726,23 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
     if (fade <= 0 || PortLoopNo != LOOP_DUNGEON || DngUserData == nullptr) {
         return;
     }
-    const int     chara = ActiveChara();
+    // The panel follows the status board while it is open. Once it closes it fades where it is, with what it showed:
+    // a character change closes it while the board slides away and back with the other character.
+    static int chara = -1, left = 0, top = 0;
+    if (panel_open || chara < 0) {
+        chara = ActiveChara();
+        // The Ridepod's board has no active items, so its panel sits higher, under its numbers and clear of the
+        // danger sign.
+        const bool ridepod = chara == USER_CHARA_ROBO;
+        left = ridepod ? kRidepodX : kPanelX;
+        top = (int) (80.0f * statusbar_rate) - 72 + (ridepod ? kRidepodOffsetY : kPanelOffsetY);
+    }
     const uint8_t alpha = static_cast<uint8_t>(0x80 * fade / kFadeTicks);
-    // The Ridepod's board has no active items, so its panel sits higher, under its numbers and clear of the danger sign.
-    const int top = (int) (80.0f * statusbar_rate) - 72 + (chara == USER_CHARA_ROBO ? kRidepodOffsetY : kPanelOffsetY);
-    DrawPanel(kPanelX, top, alpha);
-    DrawTitle(kPanelX + kTitleBar.x + kTitleBar.w * 0.5f, top + kTitleBar.y + kTitleBar.h * 0.5f, alpha);
+    DrawPanel(left, top, alpha);
+    const Rect title = TitlePlate() ? kTitlePlate : kTitleBar;
+    DrawTitle(left + title.x + title.w * 0.5f, top + title.y + title.h * 0.5f, alpha);
     if (chara < USER_CHARA_MAX || chara > USER_CHARA_ROBO) {
-        DrawButtons(kPanelX, top, alpha);
+        DrawButtons(left, top, alpha);
         return;
     }
 
@@ -694,7 +753,7 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
     }
     for (int slot = 0; slot < kSlots; slot++) {
         const Rect  &r = kSlotRect[slot];
-        const float  x0 = (float) (kPanelX + r.x), y0 = (float) (top + r.y);
+        const float  x0 = (float) (left + r.x), y0 = (float) (top + r.y);
         const float  w = (float) r.w, h = (float) r.h;
         const Entry &entry = slots[chara][slot];
         if (entry.item_no > 0) {
@@ -715,7 +774,7 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
             }
         }
     }
-    DrawButtons(kPanelX, top, alpha);
+    DrawButtons(left, top, alpha);
 }
 
 void PortQuickLoadoutReset() {

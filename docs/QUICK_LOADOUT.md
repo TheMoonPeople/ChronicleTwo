@@ -20,8 +20,9 @@ stars play on it. Pressing the slot already in hand does nothing.
 
 The slot whose item is equipped now wears the game's own rotating active item cursor (the one round the camera on the
 status board): its dashes are laid along the slot's rounded edge and travel round it, and the button's disc stays
-in front of them. The Ridepod's status board has no active items, so its panel sits
-higher, under the Ridepod's numbers.
+in front of them. With Max or Monica the panel sits under the active item circles; the Ridepod's status board has none,
+so its panel sits further left and higher, under the Ridepod's numbers. A character change closes the panel, which
+fades where it was rather than following the board as it slides away.
 
 The first time a character's panel opens, each empty row takes the item equipped in it. An item the party no longer
 has is drawn dimmed, and its slot does nothing. The Ridepod only takes a part it has the capacity for, as in the menu.
@@ -37,5 +38,7 @@ Each slot shows the item's own 3D model, drawn once into a 128x128 texture by Je
 The panel itself is put together at run time from the dungeon's own system frame texture, the one the active item
 board is drawn from: the EXP gauge's box round the panel with a see-through black inside, and the halves of the item
 circles stretched into the four slots, the title bar and the buttons' discs. The buttons are the font's own button
-pictures, and the title, QUICK LOADOUT, is written in the game's font. Everything shown comes from each player's own
+pictures, and the title, QUICK LOADOUT, is written in the game's font. PC settings, Game, Quick loadout title
+(`game.quick_loadout_title`) chooses its style: white on the bar, or engraved on a plate taken from the EXP gauge's,
+standing on the box's top edge. Everything shown comes from each player's own
 extracted data; the repository holds none of the game's pictures.

@@ -199,6 +199,9 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
     if (name == "game.autosave") {
         return ReadBool(value, config.autosave);
     }
+    if (name == "game.quick_loadout_title") {
+        return ReadChoice(value, "bar", "plate", config.quick_loadout_plate);
+    }
     if (name == "video.present_mode") {
         return ReadEnum(value, kPresentModeNames, s.present_mode);
     }
@@ -417,6 +420,7 @@ std::string ConfigSerialize(const Config &config) {
     Json root;
     root["game"]["debug_mode"] = config.debug_mode;
     root["game"]["autosave"] = config.autosave;
+    root["game"]["quick_loadout_title"] = config.quick_loadout_plate ? "plate" : "bar";
     root["video"]["present_mode"] = kPresentModeNames[static_cast<std::size_t>(s.present_mode)];
     root["video"]["interpolation"] = config.interpolation;
     root["video"]["max_fps"] = s.max_fps;
