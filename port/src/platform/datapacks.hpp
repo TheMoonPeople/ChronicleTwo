@@ -81,6 +81,11 @@ bool IsReplacement(const vfs::Ref &file);
 bool Decode(const texture_catalog::Entry &entry, std::size_t variant, DecodedTexture &decoded, std::string &error);
 
 /**
+ * Names the pixels Decode produces for a variant, or returns an empty string when they cannot be named.
+ */
+std::string DecodeIdentity(const texture_catalog::Entry &entry, std::size_t variant);
+
+/**
  * Names decoded pixels by a semantic image identity and every possible source file's current stamp.
  */
 std::string ImageDecodeKey(std::string_view identity, std::span<const vfs::Ref> sources);
