@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <span>
@@ -1174,6 +1175,17 @@ texture_catalog::AnimationMode MgTextureAnimationMode(const mgCTexture *texture)
     return texture && texture->bpp > 0 && texture->bpp < 24
                ? texture_catalog::AnimationMode::Copy
                : texture_catalog::AnimationMode::Draw;
+}
+
+bool MgTextureEnteredFrom(const mgCTexture *texture, const texture_catalog::Source &source) {
+    const auto found = catalog_pixels.find(texture);
+    if (found == catalog_pixels.end() || !found->second.record) {
+        return false;
+    }
+    // Entries are contiguous, so ownership is an address range check.
+    const auto *first = source.entries.data();
+    const auto *record = found->second.record;
+    return std::less_equal<>{}(first, record) && std::less<>{}(record, first + source.entries.size());
 }
 
 MgTextureExtent MgTexturePhysicalExtent(const mgCTexture *texture) {

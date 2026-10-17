@@ -2826,7 +2826,14 @@ void DeleteCharacterTextures(CCharacter2 &character, int first_slot, int last_sl
                 name += entry->suffix;
                 const std::string previous = entry->manager->name_suffix;
                 entry->manager->name_suffix[0] = 0;
-                entry->manager->DeleteTexture(name.data(), entry->block + texture.block);
+                // Retail's Initialize forgets the image archive, so DeleteImage never reaches a block's later
+                // owners. This record can outlive a DeleteBlock and Initialize, so it deletes only the pictures
+                // this set still owns, not another model's picture entered under the same name since. Ownership is
+                // per set, not per slot: the same document loaded into another slot shares these entries and passes.
+                auto *registered = entry->manager->GetTexture(name.data(), entry->block + texture.block);
+                if (registered != nullptr && MgTextureEnteredFrom(registered, *entry->source)) {
+                    entry->manager->DeleteTexture(registered);
+                }
                 std::strcpy(entry->manager->name_suffix, previous.c_str());
             }
         }
