@@ -567,6 +567,26 @@ bool SamePicture(const NativePicture &left, const NativePicture &right) {
 }
 
 /**
+ * Compares a named registration with a picture named by other files, by the pixels it was entered with.
+ * Two IMG documents can each carry their own copy of the same PNG, so different names do not mean
+ * different pixels; the variants past the first are not decoded up front and must share their names.
+ */
+bool SameNamedPixels(const CatalogPixels &existing, const NativePicture &picture) {
+    const NativePicture &original = *existing.original;
+    if (original.identities.empty() || picture.identities.size() != original.identities.size() ||
+        picture.variants.empty() || !SameDefinition(original.definition, picture.definition)) {
+        return false;
+    }
+    for (std::size_t index = 1; index < picture.identities.size(); ++index) {
+        if (picture.identities[index] != original.identities[index]) {
+            return false;
+        }
+    }
+    const auto &decoded = picture.variants.front();
+    return decoded.width == existing.width && decoded.height == existing.height && decoded.levels == existing.levels;
+}
+
+/**
  * Names every decoded variant of a picture, or returns nothing when any variant is unnamed.
  */
 std::vector<std::string> PictureIdentities(const texture_catalog::Entry &record, const MgTextureImageIdentity &identity) {
@@ -645,7 +665,7 @@ mgCTexture *EnterCatalog(mgCTextureManager *manager, int block, const texture_ca
     if (auto *existing = manager->SearchHash(full_name, block)) {
         const auto found = catalog_pixels.find(existing);
         if (found != catalog_pixels.end() && found->second.original) {
-            if (SamePicture(*found->second.original, *original)) {
+            if (SamePicture(*found->second.original, *original) || (named && SameNamedPixels(found->second, *original))) {
                 found->second.record = &record;
                 found->second.decoder = std::move(decoder);
                 return existing;
