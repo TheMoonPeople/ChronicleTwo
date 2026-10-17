@@ -13,7 +13,8 @@
 namespace {
 class NativeAssetsTest : public testing::Test {
 protected:
-    std::filesystem::path root = std::filesystem::temp_directory_path() /
+    // Packs resolve to canonical paths, so the root must not keep a short (8.3) name from TEMP.
+    std::filesystem::path root = std::filesystem::weakly_canonical(std::filesystem::temp_directory_path()) /
                                  ("ct_native_assets_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
 
     void Write(const std::filesystem::path &path, const char *text) {
