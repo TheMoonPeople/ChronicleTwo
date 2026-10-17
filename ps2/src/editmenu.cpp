@@ -4166,6 +4166,14 @@ void CMenuGeorama::CalcTex() {
             }
 
             float rate = space / (num - GEORAMA_LIST_LINE_NUM);
+#ifdef PORT
+            // A list that fits on one page has no scroll range. The EE FPU turns
+            // 0/0 into a finite value, but IEEE floats give NaN and the bar is
+            // drawn at a garbage offset.
+            if (num <= GEORAMA_LIST_LINE_NUM) {
+                rate = 0.0f;
+            }
+#endif
             float bar_y = rate * list_info[i].top;
 
             if (bar_y <= 0.0f) {
