@@ -10,18 +10,25 @@ namespace options {
 constexpr int kVisibleRows = 8;
 constexpr int kRowY = 120;
 constexpr int kRowStep = 24;
-constexpr int kLeft = 82;
-constexpr int kRight = 434;
+// Match option.cfg mnwinback (90..422). Interactive layout stops before mnwin5 at 408.
+constexpr int kLeft = 90;
+constexpr int kRight = 408;
+constexpr int kInnerRight = 422;
+constexpr int kOverlayBottom = 460;
 constexpr int kValueX = 288;
-constexpr int kPages = 5;
-constexpr int kBindingsPage = kPages - 1;
-constexpr int kTabStep = (kRight - kLeft) / kPages;
+constexpr int kMaxPages = 8;
+// Matches port_settings::PcOverlayPageNames() ("Bindings" tab).
+constexpr int kBindingsPage = 3;
+
+inline int TabStep(int page_count) {
+    return page_count > 0 ? (kRight - kLeft) / page_count : 0;
+}
 
 struct State {
-    bool               open = false;
-    int                page = 0;
-    std::array<int, kPages> row{};
-    std::array<int, kPages> first{};
+    bool                       open = false;
+    int                        page = 0;
+    std::array<int, kMaxPages> row{};
+    std::array<int, kMaxPages> first{};
     int                binding = -1;
     bool               save_failed = false;
 };

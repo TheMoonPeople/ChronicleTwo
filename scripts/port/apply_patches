@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""Apply port-owned files from port/assets/patches onto an extracted data tree.
+
+  scripts/port/apply_patches [--data DIR] [--patches DIR] [--dry-run] [--force]
+
+Reads manifest.json beside the patch root and copies listed paths into the data root.
+Uses .kazarov/patch-stamp.json to skip redundant work when manifest and sources are unchanged.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import shutil
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
+DEFAULT_PATCHES = REPO / "port/assets/patches"
+DEFAULT_DATA = REPO / "port/run/data"
+STAMP_PATH = REPO / ".kazarov/patch-stamp.json"
+
+
+def file_digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def data_tree_version(data_root: Path) -> str:
+    data_json = data_root / "data.json"
+    if not data_json.is_file():
+        return ""
+    try:
+        meta = json.loads(data_json.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return ""
+    version = meta.get("data_version")
+    return str(version) if version is not None else ""
+
+
+def load_manifest(patches_root: Path) -> dict:
+    manifest_path = patches_root / "manifest.json"
+    if not manifest_path.is_file():
+        raise SystemExit(f"apply_patches: missing {manifest_path}")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(manifest.get("files"), list):
+        raise SystemExit("apply_patches: manifest.json must contain a files array")
+    return manifest
+
+
+def stamp_payload(patches_root: Path, data_root: Path, manifest: dict) -> dict:
+    files: dict[str, str] = {}
+    for rel in manifest["files"]:
+        if not isinstance(rel, str):
+            raise SystemExit("apply_patches: manifest files entries must be strings")
+        src = patches_root / rel
+        if not src.is_file():
+            raise SystemExit(f"apply_patches: patch file missing: {src}")
+        files[rel] = file_digest(src)
+    return {
+        "manifest_version": manifest.get("version", 0),
+        "patch_digests": files,
+        "data_version": data_tree_version(data_root),
+    }
+
+
+def stamp_matches(stored: dict, current: dict) -> bool:
+    return stored == current
+
+
+def read_stamp() -> dict | None:
+    if not STAMP_PATH.is_file():
+        return None
+    try:
+        return json.loads(STAMP_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+
+
+def write_stamp(payload: dict) -> None:
+    STAMP_PATH.parent.mkdir(parents=True, exist_ok=True)
+    STAMP_PATH.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def apply_files(
+    patches_root: Path,
+    data_root: Path,
+    manifest: dict,
+    *,
+    dry_run: bool,
+    force: bool,
+) -> int:
+    applied = 0
+    for rel in manifest["files"]:
+        src = patches_root / rel
+        dst = data_root / rel
+        src_hash = file_digest(src)
+        dst_hash = file_digest(dst) if dst.is_file() else None
+        if not force and dst_hash == src_hash:
+            continue
+        print(f"apply_patches: {rel}")
+        if dry_run:
+            applied += 1
+            continue
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+        applied += 1
+    return applied
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    parser.add_argument("--data", type=Path, default=DEFAULT_DATA, help="extracted game data root")
+    parser.add_argument("--patches", type=Path, default=DEFAULT_PATCHES, help="patch pack root")
+    parser.add_argument("--dry-run", action="store_true", help="print copies without writing")
+    parser.add_argument("--force", action="store_true", help="copy even when stamp and files match")
+    args = parser.parse_args(argv)
+
+    data_root = args.data.resolve()
+    patches_root = args.patches.resolve()
+
+    if not data_root.is_dir():
+        print(f"apply_patches: data root not found ({data_root}); nothing to do")
+        return 0
+
+    manifest = load_manifest(patches_root)
+    current_stamp = stamp_payload(patches_root, data_root, manifest)
+
+    if not args.force and not args.dry_run:
+        stored = read_stamp()
+        if stored is not None and stamp_matches(stored, current_stamp):
+            print("apply_patches: up to date")
+            return 0
+
+    applied = apply_files(patches_root, data_root, manifest, dry_run=args.dry_run, force=args.force)
+    if applied == 0 and not args.force:
+        print("apply_patches: up to date")
+    if args.dry_run:
+        return 0
+
+    write_stamp(current_stamp)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

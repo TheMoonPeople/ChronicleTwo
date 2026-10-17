@@ -37,6 +37,10 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
+#ifdef PORT
+#include "port_options.hpp"
+#endif
+
 /**
  *
  * Stores the horizontal and vertical components of a menu position, size or velocity.
@@ -1350,6 +1354,13 @@ int CMenuOption::KeyStep() {
                         config.eye_reverse = choice;
                     } else if (select == OPTION_ITEM_CAMERA_ROTATION) {
                         config.rot_normal = choice;
+                    } else if (
+#ifdef PORT
+                        PortOptionsOnDecide(select, choice) ||
+#endif
+                        false) {
+                    } else if (select == OPTION_ITEM_UNK_9) {
+                        *value[select] = choice;
                     } else if (select != OPTION_ITEM_ANGER_COUNTER || config.enemy_hp != 1) {
                         *value[select] = choice;
 
@@ -1644,9 +1655,9 @@ void CMenuOption::UpdateOptionForm() {
 
             row = button[OPTION_ITEM_UNK_9];
 
-            if (row != NULL) {
+            if (row != NULL && value[OPTION_ITEM_UNK_9] != NULL) {
                 DefaultButton(row);
-                EnableButton(row[config->unk_24]);
+                EnableButton(row[*value[OPTION_ITEM_UNK_9]]);
             }
 
             row = button[OPTION_ITEM_MONSTER_NAME];
@@ -1692,6 +1703,7 @@ void CMenuOption::UpdateOptionForm() {
                     EnableButton(row[config->rot_normal]);
                 }
             }
+
         }
     }
 }
@@ -1783,6 +1795,9 @@ void MenuOptionInit(mgCMemory *memory, int *tex_block, int open_type) {
     CMenuOptionPtr->value[OPTION_ITEM_UNK_9] = &CMenuOptionPtr->config.unk_24;
     CMenuOptionPtr->value[OPTION_ITEM_MONSTER_NAME] = &CMenuOptionPtr->config.monster_name;
     CMenuOptionPtr->value[OPTION_ITEM_DEPTH_OF_FIELD] = &CMenuOptionPtr->config.dof_off;
+#ifdef PORT
+    PortOptionsBindRetailValues(CMenuOptionPtr);
+#endif
 
     for (int item = 0; (float) item < config_option_num_i; item++) {
         CMenuOptionPtr->choice_num[item] = 2;
@@ -1796,6 +1811,9 @@ void MenuOptionInit(mgCMemory *memory, int *tex_block, int open_type) {
     MenuCommandAnalyzeInfo.system_mes_buff[0] = GetSystemMesBuffer();
     MenuCommandAnalyzeInfo.system_mes_buff[1] = main_messages;
     CMenuOptionPtr->ExeScript("MSG\x8F\x89\x8A\xFA\x89\xBB");
+#ifdef PORT
+    PortOptionsAfterScript();
+#endif
     MenuMainFrameModeSet(MENU_MAIN_FRAME_LEAVE_UP, true);
     MenuCommonInfo->SetMoveMethod(-1);
 }

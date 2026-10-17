@@ -28,6 +28,12 @@ so Docker or Podman must be installed.
 - `port/flatpak.sh` packages the PC port as a Flatpak, `chronicletwo.flatpak`, which CI
   also builds; `docs/FLATPAK.md` covers building, installing and its first start.
 
+## Roadmap
+
+QoL and design improvements (phased plan, community backlog, **Alternative A**
+for missable scoop ideas) live in [`docs/ROADMAP.md`](docs/ROADMAP.md). Port
+execution order remains in [`docs/PC_PORT_PLAN.md`](docs/PC_PORT_PLAN.md).
+
 ## Diffing
 
 Build with `./build.sh ps2-pal elf objdiff`, then open the project in the objdiff

@@ -201,6 +201,80 @@ TEST_F(PlatformConfig, DebugModeRoundTripsThroughSerialize) {
     ASSERT_TRUE(parsed == config);
 }
 
+TEST_F(PlatformConfig, SkipIntroParsesBoolsAndDefaultsToOff) {
+    ASSERT_FALSE(Config{}.skip_intro);
+    ASSERT_FALSE(ConfigParse("").skip_intro);
+    ASSERT_FALSE(ConfigParse(R"({"game": {"skip_intro": false}})").skip_intro);
+    ASSERT_TRUE(ConfigParse(R"({"game": {"skip_intro": true}})").skip_intro);
+}
+
+TEST_F(PlatformConfig, SkipIntroRoundTripsThroughSerialize) {
+    Config config;
+    config.skip_intro = false;
+    Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_FALSE(parsed.skip_intro);
+    ASSERT_TRUE(parsed == config);
+}
+
+TEST_F(PlatformConfig, GeoramaPolyMultiplierDefaultsAndClamps) {
+    ASSERT_EQ(Config{}.georama_poly_multiplier, 1);
+    ASSERT_EQ(ConfigParse(R"({"game": {"georama_poly_multiplier": 6}})").georama_poly_multiplier, 6);
+    ASSERT_EQ(ConfigParse(R"({"game": {"georama_poly_multiplier": 0}})").georama_poly_multiplier, 1);
+    ASSERT_EQ(ConfigParse(R"({"game": {"georama_poly_multiplier": 99}})").georama_poly_multiplier, 6);
+}
+
+TEST_F(PlatformConfig, GeoramaPolyMultiplierRoundTripsThroughSerialize) {
+    Config config;
+    config.georama_poly_multiplier = 6;
+    Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_EQ(parsed.georama_poly_multiplier, 6);
+    ASSERT_TRUE(parsed == config);
+}
+
+TEST_F(PlatformConfig, InterpolationDrawBudgetDefaultsAndRoundTrips) {
+    ASSERT_EQ(Config{}.interpolation_draw_budget, 2400);
+    ASSERT_EQ(Config{}.interpolation_fps_floor, 54);
+    ASSERT_FALSE(Config{}.interpolation_multi_present);
+    Config config;
+    config.interpolation_draw_budget = 3000;
+    Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_EQ(parsed.interpolation_draw_budget, 3000);
+}
+
+TEST_F(PlatformConfig, ExpandedDungeonMonstersRoundTripsThroughSerialize) {
+    ASSERT_FALSE(Config{}.expanded_dungeon_monsters);
+    Config config;
+    config.expanded_dungeon_monsters = true;
+    Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_TRUE(parsed.expanded_dungeon_monsters);
+    ASSERT_TRUE(parsed == config);
+}
+
+TEST_F(PlatformConfig, FpsDetailBudgetRoundTripsThroughSerialize) {
+    Config config;
+    config.fps_detail = ConfigFpsDetail::All;
+    config.fps_detail_budget = true;
+    Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_EQ(parsed.fps_detail, ConfigFpsDetail::All);
+    ASSERT_TRUE(parsed.fps_detail_budget);
+    ASSERT_TRUE(parsed == config);
+}
+
+TEST_F(PlatformConfig, AutoUseEventItemParsesBoolsAndDefaultsToOff) {
+    ASSERT_FALSE(Config{}.auto_use_event_item);
+    ASSERT_FALSE(ConfigParse("").auto_use_event_item);
+    ASSERT_FALSE(ConfigParse(R"({"game": {"auto_use_event_item": false}})").auto_use_event_item);
+    ASSERT_TRUE(ConfigParse(R"({"game": {"auto_use_event_item": true}})").auto_use_event_item);
+}
+
+TEST_F(PlatformConfig, AutoUseEventItemRoundTripsThroughSerialize) {
+    Config config;
+    config.auto_use_event_item = true;
+    Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_TRUE(parsed.auto_use_event_item);
+    ASSERT_TRUE(parsed == config);
+}
+
 TEST_F(PlatformConfig, WrongTypesKeepTheDefaults) {
     ASSERT_TRUE(ConfigParse(R"({
         "game": {"tick_rate": "50"},

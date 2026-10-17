@@ -9,11 +9,14 @@
 #include "gamepad.hpp"
 #include "mainloop.hpp"
 #include "menu_mouse.hpp"
+#include "menuaqua.hpp"
 #include "menucommon.hpp"
 #include "menudraw.hpp"
 #include "menumain.hpp"
 #include "menuop.hpp"
 #include "menusys.hpp"
+#include "port_options.hpp"
+#include "options/config_bool.hpp"
 #include "options/rows.hpp"
 #include "options/screen.hpp"
 #include "platform/display.hpp"
@@ -50,8 +53,12 @@ void Save(const Config &config) {
 }
 
 void Change(int direction) {
-    Config config = ConfigGet();
-    if (StepRow(CurrentRow(), config, direction)) {
+    Config       config = ConfigGet();
+    const Row   &row = CurrentRow();
+    if (StepRow(row, config, direction)) {
+        if (row.key == "game.debug_mode") {
+            port_settings::WriteConfigBool(config, row.key, config.debug_mode);
+        }
         Save(config);
         MenuSePlay(SYSTEM_SE_CURSOR);
     }
@@ -267,8 +274,11 @@ Hit HitTest(const State &state, float x, float y) {
     if (!state.open) {
         return Inside(x, y, 284, 51, 444, 76) ? Hit{HitKind::Entry} : Hit{};
     }
-    for (int page = 0; page < kPages; ++page) {
-        if (Inside(x, y, kLeft + page * kTabStep, 91, kLeft + (page + 1) * kTabStep, 114)) {
+    const int tab_count = static_cast<int>(Pages().size());
+    const int tab_step = TabStep(tab_count);
+    for (int page = 0; page < tab_count; ++page) {
+        const int left = kLeft + page * tab_step;
+        if (Inside(x, y, left, 91, left + tab_step, 114)) {
             return {HitKind::Tab, page};
         }
     }
@@ -288,8 +298,15 @@ Hit HitTest(const State &state, float x, float y) {
 }
 
 void SelectPage(State &state, int page) {
-    state.page = (page + kPages) % kPages;
+    const int count = static_cast<int>(Pages().size());
+    state.page = count > 0 ? (page % count + count) % count : 0;
     state.binding = -1;
+    const int rows = static_cast<int>(Pages()[state.page].rows.size());
+    if (rows > 0) {
+        state.row[state.page] = std::clamp(state.row[state.page], 0, rows - 1);
+    } else {
+        state.row[state.page] = 0;
+    }
 }
 
 void MoveRow(State &state, int direction) {
@@ -337,11 +354,33 @@ void Repeat::Reset(std::uint16_t held) {
 
 } // namespace options
 
+namespace {
+int g_retail_label_rebuild_frames = 0;
+
+void RequestRetailOptionMesRebuild() {
+    constexpr int kWindows[] = {2, 4, 5};
+    for (const int index : kWindows) {
+        if (MenuDCMsg[index] != nullptr) {
+            MenuDCMsg[index]->msg_change = 1;
+        }
+    }
+}
+} // namespace
+
 PORT_OVERRIDE int MenuOptionKey() {
     // The original menu still owns opening, saving retail options, closing and all pad behavior.
     // SELECT is unused by its KeyStep; L1/R1 keep their retail page-scroll meaning there.
     const bool ready = PortMenuOption->mode == MENU_ASK_MODE_NONE && GetMenuMainFrameEndFlag() != 0;
     options::Track(ready);
+    if (ready) {
+        PortOptionsRefreshRetailLabels();
+        if (g_retail_label_rebuild_frames < 2) {
+            RequestRetailOptionMesRebuild();
+            g_retail_label_rebuild_frames++;
+        }
+    } else {
+        g_retail_label_rebuild_frames = 0;
+    }
     if (ready && options::Run()) {
         return 0;
     }

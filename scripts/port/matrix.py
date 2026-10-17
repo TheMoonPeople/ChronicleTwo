@@ -207,8 +207,10 @@ def plan_runs(work: Path, ref, sizes, lb, skip_dpt: bool) -> dict[tuple, Run]:
 
 
 def launch_config(run: Run) -> bytes:
-    return json.dumps({"video": {"aspect": run.aspect}, "game": {"debug_mode": False}},
-                      sort_keys=True).encode("utf-8")
+    return json.dumps(
+        {"video": {"aspect": run.aspect}, "game": {"debug_mode": False, "skip_intro": False}},
+        sort_keys=True,
+    ).encode("utf-8")
 
 
 def digest(path: Path) -> str:

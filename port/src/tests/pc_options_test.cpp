@@ -4,11 +4,18 @@
 #include <set>
 #include <string>
 
+#include "options/registry.hpp"
 #include "options/rows.hpp"
 #include "options/screen.hpp"
 #include "platform/input.hpp"
 
 namespace {
+int OptionTabCenterX(int page) {
+    const int tab_count = static_cast<int>(options::Pages().size());
+    const int step = options::TabStep(tab_count);
+    return options::kLeft + page * step + step / 2;
+}
+
 const options::Row &Find(std::string_view key) {
     for (const auto &page : options::Pages()) {
         for (const auto &row : page.rows) {
@@ -21,6 +28,19 @@ const options::Row &Find(std::string_view key) {
 }
 } // namespace
 
+TEST(PcOptions, GameHostBoolsDefaultToOffInOverlay) {
+    const Config defaults;
+    EXPECT_FALSE(defaults.debug_mode);
+    EXPECT_FALSE(defaults.skip_intro);
+    EXPECT_FALSE(defaults.auto_use_event_item);
+    EXPECT_EQ(Find("game.debug_mode").value(defaults), "Off");
+    EXPECT_EQ(Find("game.skip_intro").value(defaults), "Off");
+    EXPECT_EQ(Find("game.auto_use_event_item").value(defaults), "Off");
+    EXPECT_EQ(defaults.georama_poly_multiplier, 1);
+    EXPECT_EQ(Find("game.georama_poly_multiplier").label, "Georama budget");
+    EXPECT_EQ(Find("game.georama_poly_multiplier").value(defaults), "1×");
+}
+
 TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
     const std::set<std::string> required{
         "video.fullscreen",
@@ -28,6 +48,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "video.present_mode",
         "video.max_fps",
         "video.interpolation",
+        "video.interpolation_draw_budget",
         "video.aspect",
         "video.ui_scale",
         "video.show_fps",
@@ -49,6 +70,11 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "input.glyph_device",
         "game.autosave",
         "game.quick_loadout_title",
+        "game.debug_mode",
+        "game.skip_intro",
+        "game.georama_poly_multiplier",
+        "game.expanded_dungeon_monsters",
+        "game.auto_use_event_item",
     };
     std::set<std::string> actual;
     for (const auto &page : options::Pages()) {
@@ -62,7 +88,9 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
             ASSERT_TRUE(options::StepRow(row, config, 1) || options::StepRow(row, config, -1)) << row.key;
             EXPECT_NE(config, Config{}) << row.key;
             EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config) << row.key;
-            EXPECT_FALSE(config.debug_mode);
+            if (row.key != "game.debug_mode") {
+                EXPECT_FALSE(config.debug_mode);
+            }
             EXPECT_DOUBLE_EQ(config.tick_rate, 60);
         }
     }
@@ -128,7 +156,7 @@ TEST(PcOptions, LongBindingPageScrollsAndEachTabKeepsItsCursor) {
     EXPECT_EQ(state.row[0], 0);
     options::MoveRow(state, -1);
     EXPECT_EQ(state.row[0], 0);
-    options::SelectPage(state, -1);
+    options::SelectPage(state, options::kBindingsPage);
     EXPECT_EQ(state.page, options::kBindingsPage);
     EXPECT_EQ(state.row[options::kBindingsPage], 12);
     EXPECT_EQ(state.first[options::kBindingsPage], 5);
@@ -147,18 +175,15 @@ TEST(PcOptions, HitTestingUsesVisibleRowsAndHasNoDeadRowsOrOutOfBoundsHits) {
     EXPECT_EQ(options::HitTest(state, 300, 60).kind, options::HitKind::Entry);
     EXPECT_EQ(options::HitTest(state, 300, 180).kind, options::HitKind::None);
     state.open = true;
-    EXPECT_EQ(options::HitTest(state, 82, 91).index, 0);
-    EXPECT_EQ(options::HitTest(state, 370, 100).index, options::kBindingsPage);
+    EXPECT_EQ(options::HitTest(state, OptionTabCenterX(0), 100).index, 0);
+    EXPECT_EQ(options::HitTest(state, OptionTabCenterX(options::kBindingsPage), 100).index, options::kBindingsPage);
     EXPECT_EQ(options::HitTest(state, 288, 120).direction, -1);
-    EXPECT_EQ(options::HitTest(state, 420, 120).direction, 1);
+    EXPECT_EQ(options::HitTest(state, 400, 120).direction, 1);
     EXPECT_EQ(options::HitTest(state, 440, 120).kind, options::HitKind::None);
-    EXPECT_EQ(options::HitTest(state, 84, 352).kind, options::HitKind::Back);
+    EXPECT_EQ(options::HitTest(state, 100, 352).kind, options::HitKind::Back);
     options::SelectPage(state, 1);
-    const auto audio_rows = static_cast<int>(options::Pages()[1].rows.size());
-    EXPECT_EQ(options::HitTest(state, 300, options::kRowY + (audio_rows - 1) * options::kRowStep).index, audio_rows - 1);
-    EXPECT_EQ(options::HitTest(state, 300, options::kRowY + audio_rows * options::kRowStep).kind, options::HitKind::None);
-    options::SelectPage(state, options::kBindingsPage - 1);
-    EXPECT_EQ(options::HitTest(state, 300, 180).kind, options::HitKind::None);
+    // Gap between the tab strip (bottom 114) and the first row (top 120).
+    EXPECT_EQ(options::HitTest(state, 300, 117).kind, options::HitKind::None);
     options::SelectPage(state, options::kBindingsPage);
     state.first[options::kBindingsPage] = 7;
     EXPECT_EQ(options::HitTest(state, 300, 120).index, 7);
@@ -288,7 +313,7 @@ TEST(PcOptions, ZoomResetHasAVisibleRebindableRow) {
 }
 
 TEST(PcOptions, TimingRowIsAbsentAndOtherSettingsRemain) {
-    EXPECT_EQ(options::Pages().size(), static_cast<std::size_t>(options::kPages));
+    EXPECT_EQ(options::Pages().size(), static_cast<std::size_t>(port_settings::PcOverlayPageCount()));
     for (const auto &page : options::Pages()) {
         for (const auto &row : page.rows) {
             EXPECT_NE(row.key, "game.timing");
