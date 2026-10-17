@@ -68,9 +68,17 @@ void Draw() {
     } else {
         // Retail FormDraw paints the gold waku and help text first. Semi-transparent list mask plus
         // an opaque help/footer band hide retail copy without fighting mnwin5 on the right.
-        constexpr int kPanelTop = 90;
         constexpr int kPanelBottom = 326;
-        Fill(72, kPanelTop, 366, kPanelBottom - kPanelTop, 18, 17, 16, 128);
+        // Inner panel mask matches mnwinback (x=72, w=366). Header + tabs are fully opaque so retail
+        // parchment and old tab labels do not show through above the list.
+        constexpr int kPanelLeft = 72;
+        constexpr int kPanelWidth = 366;
+        constexpr int kHeaderTop = 48;
+        constexpr int kTabTop = 91;
+        constexpr int kTabHeight = 23;
+        constexpr int kTabBottom = kTabTop + kTabHeight;
+        Fill(kPanelLeft, kHeaderTop, kPanelWidth, kTabBottom - kHeaderTop, 18, 17, 16);
+        Fill(kPanelLeft, kTabBottom, kPanelWidth, kPanelBottom - kTabBottom, 18, 17, 16, 128);
         Fill(446, 98, 5, 225, 16, 13, 9);
         const auto &page = Pages()[g_screen.page];
         const int   count = static_cast<int>(page.rows.size());
@@ -87,8 +95,9 @@ void Draw() {
         for (int p = 0; p < tab_count; ++p) {
             const int  x = kLeft + p * tab_step;
             const bool selected = p == g_screen.page;
-            Plate(x, 91, tab_width, 23, selected || (hit.kind == HitKind::Tab && hit.index == p));
-            Text(Pages()[p].name, x + 4, 93, tab_width - 8, selected, 14);
+            const int  width = (p == tab_count - 1) ? (kRight - x) : tab_width;
+            Plate(x, kTabTop, width, kTabHeight, selected || (hit.kind == HitKind::Tab && hit.index == p));
+            Text(Pages()[p].name, x + 4, kTabTop + 2, width - 8, selected, 14);
         }
         for (int row = first; row < std::min(count, first + kVisibleRows); ++row) {
             int         y = kRowY + (row - first) * kRowStep;

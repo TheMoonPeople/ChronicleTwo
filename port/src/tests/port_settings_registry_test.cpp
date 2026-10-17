@@ -31,11 +31,15 @@ TEST(PortSettingsRegistry, PcOverlayPageCountMatchesPagesBuilder) {
     EXPECT_EQ(port_settings::PcOverlayPageCount(), 5);
     EXPECT_EQ(port_settings::PcOverlayPageNames().size(), 5u);
     EXPECT_STREQ(port_settings::PcOverlayPageNames().back(), "Game");
+    for (const char *name : port_settings::PcOverlayPageNames()) {
+        EXPECT_STRNE(name, "Georama");
+    }
 }
 
 TEST(PortSettingsRegistry, GeoramaPolyMultiplierRegisteredOnPcOverlay) {
     const auto *entry = port_settings::FindByConfigKey("game.georama_poly_multiplier");
     ASSERT_NE(entry, nullptr);
+    EXPECT_STREQ(entry->label, "Georama budget");
     EXPECT_EQ(entry->kind, port_settings::Kind::Int);
     EXPECT_TRUE(port_settings::HasSurface(entry->surfaces, port_settings::Surface::PcOverlay));
 }

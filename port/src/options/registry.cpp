@@ -25,7 +25,7 @@ constexpr Descriptor kDescriptors[] = {
     {
         "georama_poly_multiplier",
         "game.georama_poly_multiplier",
-        "Polygon budget",
+        "Georama budget",
         Surface::PcOverlay,
         Kind::Int,
         -1,

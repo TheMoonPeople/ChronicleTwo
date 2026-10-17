@@ -35,6 +35,7 @@ TEST(PcOptions, GameHostBoolsDefaultToOffInOverlay) {
     EXPECT_EQ(Find("game.debug_mode").value(defaults), "Off");
     EXPECT_EQ(Find("game.skip_intro").value(defaults), "Off");
     EXPECT_EQ(defaults.georama_poly_multiplier, 1);
+    EXPECT_EQ(Find("game.georama_poly_multiplier").label, "Georama budget");
     EXPECT_EQ(Find("game.georama_poly_multiplier").value(defaults), "1×");
 }
 

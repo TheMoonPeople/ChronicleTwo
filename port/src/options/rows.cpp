@@ -202,7 +202,7 @@ std::span<const Page> Pages() {
                                                                     "Re-enter the floor after changing this.",
                                                                     {"Off", "On"}),
                          []() {
-                             Row row{"game.georama_poly_multiplier", "Polygon budget",
+                             Row row{"game.georama_poly_multiplier", "Georama budget",
                                      "Multiplies how many polygons you can place in Georama towns.\n"
                                      "Draw-memory limits stay at retail."};
                              row.value = [](const Config &c) { return std::format("{}×", c.georama_poly_multiplier); };
