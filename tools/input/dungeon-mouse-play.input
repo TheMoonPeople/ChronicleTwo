@@ -1,9 +1,11 @@
 # --jump dungeon:0:1 --fast-load --window 1280x720
-# Mouse enters floor 1; Character hover in the dungeon root menu at 2750.
+# Mouse opens floor 1 and clicks its Move to this floor label; Character hover in the dungeon root menu at 2750.
 300 mouse:35,-60
 301
 350 mouse1
 356
+540 mouse:-309,360
+541
 550 mouse1
 556
 900 start

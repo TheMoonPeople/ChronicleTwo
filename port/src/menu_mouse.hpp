@@ -23,6 +23,12 @@ int   MenuMouseHit(std::span<const MenuMouseRect> rows, float x, float y);
 int   MenuMouseChoose(const MenuMouseSample &mouse, std::span<const MenuMouseRect> rows, int selected, int wheel_step = 1);
 class ClsMes;
 std::vector<MenuMouseRect> MenuMouseMessageRows(ClsMes &message, int count);
+// The pad button a drawn message line's leading symbol shows, or 0, and the bounds of that placed line.
+int           MenuMouseLabelButton(const ClsMes &message, int line);
+MenuMouseRect MenuMouseLabelRect(const ClsMes &message, int line);
+// Mouse1 confirms and Mouse2 cancels in the retail layout for the language: Japanese swaps Cross and Circle.
+int  MenuMouseLanguageButtons(int buttons, int language);
+void MenuMouseLanguageClicks();
 
 void                   MenuMouseEnable(bool enabled);
 const MenuMouseSample &MenuMouseTake();

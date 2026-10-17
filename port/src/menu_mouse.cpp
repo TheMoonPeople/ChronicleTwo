@@ -17,7 +17,7 @@
 
 namespace {
 bool            enabled = false, closing = false;
-int             frame = -1, buttons = 0, rows_frame = -1;
+int             frame = -1, buttons = 0, rows_frame = -1, language_frame = -1;
 std::uint32_t   held = 0;
 MenuMouseSample sample;
 bool            navigation = false;
@@ -137,7 +137,7 @@ void SetCapture(bool on) {
     sample = {};
     sample.x = mgScreenWidth * 0.5f;
     sample.y = mgScreenHeight * 0.5f;
-    frame = rows_frame = -1;
+    frame = rows_frame = language_frame = -1;
     buttons = 0;
 }
 
@@ -281,6 +281,22 @@ int MenuMouseRows(std::span<const MenuMouseRect> rows, int selected, int wheel_s
     return MenuMouseChoose(mouse, rows, selected, wheel_step);
 }
 
+int MenuMouseLanguageButtons(int mask, int language) {
+    if (language > 0 || ((mask & PAD_CROSS) != 0) == ((mask & PAD_CIRCLE) != 0)) {
+        return mask;
+    }
+    return mask ^ (PAD_CROSS | PAD_CIRCLE);
+}
+
+void MenuMouseLanguageClicks() {
+    MenuMouseTake();
+    // Adapters can run more than once a tick; swap this tick's clicks once.
+    if (language_frame != frame) {
+        language_frame = frame;
+        buttons = MenuMouseLanguageButtons(buttons, LanguageCode);
+    }
+}
+
 void MenuMouseDelayConfirm(const void *owner, int selected, int target, int ticks) {
     if (list_click.owner != owner || list_click.seen < frame - 1) {
         list_click = {owner, frame, frame, selected, false};
@@ -369,7 +385,7 @@ void MenuMouseDraw() {
     // The pointing fingertip is at the far edge, halfway down the hand's atlas cell.
     const float   tip_x = sign * hand.uv.w * hand.scale;
     const float   tip_y = hand.uv.h * hand.scale * 0.5f;
-    const float texture_scale = mgPortTextureScale(hand.texture.texture);
+    const float   texture_scale = mgPortTextureScale(hand.texture.texture);
     gfx::Vertex2D vertices[4]{};
     for (int i = 0; i < 4; ++i) {
         const float x = (i & 1 ? tip_x : 0) - tip_x;
