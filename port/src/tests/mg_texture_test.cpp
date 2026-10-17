@@ -925,7 +925,7 @@ TEST(MgTexture, NativeSetsReuseIdenticallyNamedPicturesWithoutDecoding) {
     EXPECT_EQ(h.manager.GetTexture(const_cast<char *>("shared"), 0), original);
     EXPECT_EQ(h.manager.texture_num, 1);
 
-    // A different identity decodes, and identical pixels still keep the registration.
+    // A different identity decodes and replaces the picture in place, keeping its header.
     identity = "second";
     MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode, name);
     EXPECT_EQ(decodes, 2);

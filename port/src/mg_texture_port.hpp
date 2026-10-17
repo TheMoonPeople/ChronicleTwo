@@ -65,10 +65,10 @@ mgCTexture *MgTextureEnterCatalog(mgCTextureManager *manager, int block, const t
 int MgTextureEnterDocument(mgCTextureManager *manager, std::string_view relative_json_path, int block,
                            mgCMemory *stack, mgCEnterIMGInfo *info);
 /**
- * Enters an embedded texture set after decoding every variant for exact registration identity.
+ * Enters an embedded texture set. A picture without names for every variant decodes them all up front;
+ * a fully named picture decodes its first variant and each other variant when it is selected.
  * The caller keeps the source entries alive until the textures are deleted.
  * Identical native pictures reuse their header; changed content replaces it in place.
- * Variant switches reuse the validated decoded pixels.
  * When identity names every variant, a registered picture with the same semantics and identities is reused
  * without decoding.
  */
