@@ -90,7 +90,7 @@ bool IsRobotVoice(const char *name) {
 
 void RouteSlot(StreamSlot &slot, const char *name) {
     ControllerSpeakerRelease(&slot.stream);
-    if (ConfigGet().robot_voice_controller && IsRobotVoice(name)) {
+    if (ConfigGet().dualsense_speaker && IsRobotVoice(name)) {
         ControllerSpeakerRoute(&slot.stream);
     }
 }

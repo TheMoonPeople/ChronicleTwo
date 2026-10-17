@@ -13,6 +13,13 @@ enum class ConfigAspect {
     FourThree,
 };
 
+// input.dualsense_haptics: what a DualSense's actuators play (see dualsense_haptics.hpp).
+enum class ConfigHaptics {
+    Off,       // Classic rumble only.
+    Vibration, // The game's own vibration, played on the actuators.
+    Full,      // Also camera quakes and the effects of the player, battles and monsters.
+};
+
 struct Config : HostSettings {
     bool         interpolation = true;
     // Skip tweened display frames when a tick records more mesh+2D draws than this (0 = never skip).
@@ -21,22 +28,30 @@ struct Config : HostSettings {
     bool interpolation_multi_present = false;
     bool         debug_mode = false;
     bool         autosave = true;
+    // game.quick_loadout_title "plate": the quick loadout's title on a plate like the EXP gauge's, not on a bar.
+    bool         quick_loadout_plate = false;
     // Skips the SCE "moji" boot logo and the title-screen Sony / Level-5 sequences.
     bool         skip_intro = false;
     // Scales Georama polygon build budgets (1 = retail caps, up to 6).
     int          georama_poly_multiplier = 1;
     // When on, up to 60 monsters can be active on a dungeon floor (retail is 24).
     bool         expanded_dungeon_monsters = false;
+    // When on, event Use Item prompts with a single required id auto-confirm if owned.
+    bool         auto_use_event_item = false;
     ConfigAspect aspect = ConfigAspect::Auto;
     // video.fps_detail "budget": frame-budget ms lines in the FPS overlay (stored separately from Kazarov's enum).
     bool         fps_detail_budget = false;
     float        ui_scale = 1.0f;
     bool         font_sharp = false;
     bool         mouse_fixed_look = true;
-    // audio.robot_voice "controller": the Ridepod's lines play on a DualSense speaker when one is found.
-    bool robot_voice_controller = false;
+    // audio.dualsense_speaker: the Ridepod's lines, the treasure chests' opening and the menus' effects
+    // play on a DualSense speaker when one is found instead of the TV.
+    bool dualsense_speaker = true;
     // audio.controller_volume: gain on the controller speaker, on top of the master volume.
     float controller_volume = 1.0f;
+    ConfigHaptics dualsense_haptics = ConfigHaptics::Full;
+    // input.haptics_strength: gain on the DualSense actuators.
+    float haptics_strength = 1.0f;
 
     bool operator==(const Config &) const = default;
 };

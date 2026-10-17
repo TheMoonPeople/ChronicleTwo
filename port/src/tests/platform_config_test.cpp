@@ -108,8 +108,10 @@ TEST_F(PlatformConfig, FullFileRoundTrips) {
     full.glyph_device = ConfigGlyphDevice::Ps5Color;
     full.mouse_release_keys = {"F12", "Pause"};
     full.font_sharp = true;
-    full.robot_voice_controller = true;
+    full.dualsense_speaker = false;
     full.controller_volume = 1.5f;
+    full.dualsense_haptics = ConfigHaptics::Vibration;
+    full.haptics_strength = 0.75f;
 
     ASSERT_TRUE(ConfigParse(ConfigSerialize(full)) == full);
 
@@ -130,15 +132,20 @@ TEST_F(PlatformConfig, TextFontIsOptInAndRoundTrips) {
     }
 }
 
-TEST_F(PlatformConfig, RobotVoiceIsOptInAndRoundTrips) {
-    EXPECT_FALSE(ConfigParse("").robot_voice_controller);
-    const Config controller = ConfigParse(R"({"audio":{"robot_voice":"controller","controller_volume":0.5}})");
-    EXPECT_TRUE(controller.robot_voice_controller);
-    EXPECT_EQ(controller.controller_volume, 0.5f);
-    EXPECT_TRUE(ConfigParse(ConfigSerialize(controller)) == controller);
-    for (const char *value : {"null", "true", "1", "\"pad\""}) {
-        EXPECT_FALSE(ConfigParse(std::string("{\"audio\":{\"robot_voice\":") + value + "}}").robot_voice_controller);
+TEST_F(PlatformConfig, DualSenseSpeakerIsOnByDefaultAndRoundTrips) {
+    EXPECT_TRUE(ConfigParse("").dualsense_speaker);
+    const Config off = ConfigParse(R"({"audio":{"dualsense_speaker":false,"controller_volume":0.5}})");
+    EXPECT_FALSE(off.dualsense_speaker);
+    EXPECT_EQ(off.controller_volume, 0.5f);
+    EXPECT_TRUE(ConfigParse(ConfigSerialize(off)) == off);
+    for (const char *value : {"null", "1", "\"off\""}) {
+        EXPECT_TRUE(ConfigParse(std::string("{\"audio\":{\"dualsense_speaker\":") + value + "}}").dualsense_speaker);
     }
+    // The old audio.robot_voice still loads; it was opt-in, and "controller" is now the default.
+    for (const char *value : {"\"tv\"", "\"controller\""}) {
+        EXPECT_TRUE(ConfigParse(std::string("{\"audio\":{\"robot_voice\":") + value + "}}").dualsense_speaker);
+    }
+    EXPECT_FALSE(ConfigParse(R"({"audio":{"robot_voice":"controller","dualsense_speaker":false}})").dualsense_speaker);
     for (const char *value : {"-0.1", "2.1", "\"loud\""}) {
         EXPECT_EQ(ConfigParse(std::string("{\"audio\":{\"controller_volume\":") + value + "}}").controller_volume, 1.0f);
     }
@@ -250,6 +257,21 @@ TEST_F(PlatformConfig, FpsDetailBudgetRoundTripsThroughSerialize) {
     Config parsed = ConfigParse(ConfigSerialize(config));
     ASSERT_EQ(parsed.fps_detail, ConfigFpsDetail::All);
     ASSERT_TRUE(parsed.fps_detail_budget);
+    ASSERT_TRUE(parsed == config);
+}
+
+TEST_F(PlatformConfig, AutoUseEventItemParsesBoolsAndDefaultsToOff) {
+    ASSERT_FALSE(Config{}.auto_use_event_item);
+    ASSERT_FALSE(ConfigParse("").auto_use_event_item);
+    ASSERT_FALSE(ConfigParse(R"({"game": {"auto_use_event_item": false}})").auto_use_event_item);
+    ASSERT_TRUE(ConfigParse(R"({"game": {"auto_use_event_item": true}})").auto_use_event_item);
+}
+
+TEST_F(PlatformConfig, AutoUseEventItemRoundTripsThroughSerialize) {
+    Config config;
+    config.auto_use_event_item = true;
+    Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_TRUE(parsed.auto_use_event_item);
     ASSERT_TRUE(parsed == config);
 }
 

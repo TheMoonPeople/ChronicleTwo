@@ -14,6 +14,7 @@
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <span>
 #include <stdexcept>
 #include <string_view>
@@ -787,8 +788,23 @@ EmbeddedImage EmbeddedBytes(const Document &document, std::size_t index) {
  * Reads a standard image's dimensions from its encoded header.
  */
 void ImageExtent(const Document &document, std::size_t index, int &width, int &height) {
+    datapacks::TraceTimer timer("model.extent_us");
     const auto embedded = EmbeddedBytes(document, index);
     if (!embedded.reference.empty()) {
+        // The base game data never changes while running, so each external PNG's header is read once:
+        // an area registers the same few thousand images many times over.
+        static std::mutex                                               extents_mutex;
+        static std::unordered_map<std::string, std::pair<int, int> >    extents;
+        const auto                                                       key = vfs::FoldKey(embedded.reference);
+        {
+            std::lock_guard lock(extents_mutex);
+            if (const auto found = extents.find(key); found != extents.end()) {
+                width = found->second.first;
+                height = found->second.second;
+                datapacks::Trace("model.extent_memo_hits");
+                return;
+            }
+        }
         // The logical extent is the original PNG's; a datapack may enlarge the image it supplies.
         auto file = vfs::Find(datapacks::Base(), embedded.reference);
         if (!file) {
@@ -809,6 +825,8 @@ void ImageExtent(const Document &document, std::size_t index, int &width, int &h
         width = static_cast<int>(word(16));
         height = static_cast<int>(word(20));
         datapacks::Trace("model.extent_reads");
+        std::lock_guard lock(extents_mutex);
+        extents.emplace(key, std::pair(width, height));
         return;
     }
     int components = 0;
@@ -833,6 +851,7 @@ struct ImageSource {
  * Resolves the replacement PNGs and content identities of a standard image.
  */
 ImageSource ResolveImage(const Document &document, std::size_t index) {
+    datapacks::TraceTimer timer("model.resolve_image_us");
     ImageSource source{document.shared_from_this(), EmbeddedBytes(document, index), {}, {}, {}};
     std::vector<std::string> paths;
     if (!source.embedded.reference.empty()) {
@@ -1329,6 +1348,17 @@ Mot_List *Channel(const Json &channel, mgCMemory &memory) {
         }
     }
     return list;
+}
+
+// Retail CCharacter2::_IMG_END: animation groups owned by the base image are
+// the leading named ones; later groups come from extra motion images and are
+// deleted when those images are released.
+int FirstUnnamedTexAnimeGroup(char **names, int count) {
+    int group = 0;
+    while (group < count && names[group] != nullptr) {
+        ++group;
+    }
+    return group;
 }
 
 } // namespace
@@ -2404,6 +2434,7 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
     auto                 &cached = document->texture_sets[index];
     std::string           error;
     if (!cached) {
+        datapacks::TraceTimer set_timer("model.decode_set_us");
         auto source = std::make_shared<texture_catalog::Source>();
         if (!texture_catalog::DecodeEmbeddedSet((document->custom->contains("resources") ? document->custom->at("resources") : *document->custom).at("texture_sets").at(index).at("document"), document->relative, [document](std::string_view reference, int &width, int &height, std::string &failure) {
                 try {
@@ -2447,8 +2478,10 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
                 }
             }
         }
+        datapacks::TraceTimer prefetch_timer("model.prefetch_images_us");
         PrefetchImages(sources);
     }
+    datapacks::TraceTimer native_timer("model.enter_native_set_us");
     MgTextureEnterNativeSet(
         textures, options.texture_block, *cached, memory,
         [resolved](const texture_catalog::Entry &entry, std::size_t variant, datapacks::DecodedTexture &decoded, std::string &failure) {
@@ -2491,9 +2524,9 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
         character_images[character].push_back({slot, options.texture_block, textures, cached, memory, textures->name_suffix});
     }
     character->texture_block = options.texture_block;
-    textures->GetGroupNameList(options.texture_block, &character->tex_anime_group_num);
-    if (slot == 0) {
-        character->tex_anime_group_start = character->tex_anime_group_num;
+    char **group_names = textures->GetGroupNameList(options.texture_block, &character->tex_anime_group_num);
+    if (slot == 0 && group_names != nullptr) {
+        character->tex_anime_group_start = FirstUnnamedTexAnimeGroup(group_names, character->tex_anime_group_num);
     }
 }
 
@@ -2948,6 +2981,13 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
     auto &owned = character_images[&character];
     std::erase_if(owned, [slot](const auto &image) { return image.slot == slot; });
     std::strcpy(manager->name_suffix, suffix.c_str());
+    if (!pixels) {
+        std::vector<const texture_catalog::Entry *> entries;
+        for (const auto &entry : source->entries) {
+            entries.push_back(&entry);
+        }
+        datapacks::PrefetchEntries(entries);
+    }
     MgTextureEnterNativeSet(manager, block, *source, memory,
                             [source, pixels](const texture_catalog::Entry &entry, std::size_t variant,
                                              datapacks::DecodedTexture &decoded, std::string &error) {
@@ -2966,9 +3006,9 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
     if (slot == 0) {
         character.texture_block = block;
     }
-    manager->GetGroupNameList(character.texture_block, &character.tex_anime_group_num);
-    if (slot == 0) {
-        character.tex_anime_group_start = character.tex_anime_group_num;
+    char **group_names = manager->GetGroupNameList(character.texture_block, &character.tex_anime_group_num);
+    if (slot == 0 && group_names != nullptr) {
+        character.tex_anime_group_start = FirstUnnamedTexAnimeGroup(group_names, character.tex_anime_group_num);
     }
 }
 } // namespace

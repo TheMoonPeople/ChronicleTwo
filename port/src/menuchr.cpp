@@ -1,6 +1,7 @@
 #include "menuchr.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -10,17 +11,22 @@
 #include "actionchara.hpp"
 #include "dataread_port.hpp"
 #include "dng_effect.hpp"
+#include "dng_event.hpp"
 #include "dng_main.hpp"
+#include "editctrl_port.hpp"
+#include "editloop.hpp"
 #include "mainloop.hpp"
 #include "mainloop_port.hpp"
 #include "menu_character_assets.hpp"
 #include "menuchr_port.hpp"
 #include "menudraw.hpp"
+#include "menumain.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "platform/arena.hpp"
 #include "platform/model_assets.hpp"
 #include "prespr.hpp"
+#include "quick_loadout.hpp"
 #include "swordeffect.hpp"
 #include "userdata.hpp"
 
@@ -134,6 +140,7 @@ void PortPrepareMenuCharacterArena(mgCMemory &memory, const void *model, const c
 void PortRetailInitMainCharaBG(int, mgCMemory *, int) asm("MenuChr_InitMainCharaBG");
 int  PortRetailKeyMainCharaBG() asm("MenuChr_KeyMainCharaBG");
 int  PortRetailChangeSetUnit(int) asm("DngMain_ChangeSetUnit");
+extern int PortTownActiveCharaNo asm("EditLoop_ActiveCharaNo");
 
 PORT_OVERRIDE void MenuMemoryAdjust(mgCMemory *pool, mgCMemory *rest, mgCMemory *buffers, int chara) {
     int capacities[MENU_CHARA_LOAD_MAX]{};
@@ -201,17 +208,25 @@ PORT_OVERRIDE void InitMainCharaBG(int chara_no, mgCMemory *stack, int mode) {
  */
 PORT_OVERRIDE int KeyMainCharaBG() {
     if (!quick_change_pending) {
-        return PortRetailKeyMainCharaBG();
+        const int done = PortRetailKeyMainCharaBG();
+        if (done != 0) {
+            PortQuickLoadoutReloadDone();
+        }
+        return done;
     }
 
     for (int step = 0; step < kQuickChangeMaxSteps; ++step) {
         if (PortRetailKeyMainCharaBG() != 0) {
             quick_change_pending = false;
-            banner_chara = quick_change_chara;
-            banner_loop = PortLoopNo;
-            banner_phase = BANNER_IN;
-            banner_hold = 0;
-            banner_x = static_cast<float>(-kBannerWidth);
+            // A quick loadout loads the same character again with other equipment: the effect, but no name.
+            if (!PortQuickLoadoutReloading()) {
+                banner_chara = quick_change_chara;
+                banner_loop = PortLoopNo;
+                banner_phase = BANNER_IN;
+                banner_hold = 0;
+                banner_x = static_cast<float>(-kBannerWidth);
+            }
+            PortQuickLoadoutReloadDone();
             change_fx_pending = true;
             change_fx_loop = PortLoopNo;
             return 1;
@@ -385,6 +400,71 @@ PORT_OVERRIDE int ChangeSetUnit(int change) {
     return PortRetailChangeSetUnit(change);
 }
 
+/**
+ * Finishes a quick change on the frame that asked for it. Retail gives the menu at least one frame of its own:
+ * the frame that opens it, and the next one, where the town and the dungeon run only the menu, so the world
+ * neither moves nor draws. The menu opens at the end of a game frame; here, still in that frame, it runs to the
+ * end and closes as each loop closes it, so the next frame is already a normal one with the new character.
+ */
+void PortFinishQuickChange() {
+    if (!quick_change_pending || MenuPosData == NULL) {
+        return;
+    }
+
+    const bool dungeon = PortLoopNo == LOOP_DUNGEON && DngStatus.mode == DNG_STATUS_MENU;
+    const bool town = PortLoopNo == LOOP_EDIT && PortTownLoopMode == EDIT_LOOP_WALK_MENU;
+
+    if (!dungeon && !town) {
+        return;
+    }
+
+    const auto started = std::chrono::steady_clock::now();
+
+    if (MenuMainKey() == 0) {
+        // Not finished: the loop's own menu frames take it from here.
+        return;
+    }
+
+    MenuMainExit();
+
+    if (dungeon) {
+        // LoopDungeonMain's DNG_STATUS_MENU exit, for a character change.
+        LoopSoundManager(1);
+        CheckWeaponEnable();
+        DngStatus.mode = DNG_STATUS_FIELD;
+
+        if (BattleAreaScene->statusbar_show_old) {
+            BattleAreaScene->SetStatusBarNow(1);
+        }
+
+        MenuArg.active_chara_no = MenuArg.result[0];
+        ResetEyeView(MainChara__2);
+        // The frame that opened the menu skipped the dungeon's step; make it up so the world never stops.
+        DngStep();
+    } else {
+        // EditLoop's EDIT_LOOP_WALK_MENU exit, for a character change, without the cross-fade from the old
+        // character: the change effect takes its place.
+        PortTownLoopMode = EDIT_LOOP_WALK;
+        PortTownActiveCharaNo = GetUserDataMan()->active_chr_no;
+        CScene      *scene = GetMainScene();
+        CCharacter2 *chara = scene->GetCharacter(scene->player_chara);
+
+        if (chara != NULL) {
+            chara->UpdatePosition();
+            chara->ResetDAPosition();
+        }
+
+        EditControlStatusInit(scene);
+    }
+
+    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started);
+    std::fprintf(stderr, "quick change: %s, %.1f ms\n", dungeon ? "dungeon" : "town", (double) elapsed.count() / 1000.0);
+}
+
+// Starts the change effect on the first game frame after the change, once the menu has closed. Dark Cloud's
+// version (gameloop.cpp, GAME_TASK_CHARA_CHANGED) pulses the ambient light toward white and plays its ceffe_s
+// sparkle model; here the character's own palette animation fades from white, with a splash of stars around it.
+// The fade is reapplied every frame from its own count, so a character set up again meanwhile still gets it.
 /**
  * Plays the character-change effect: a fade from white and a splash of stars around the new character.
  */

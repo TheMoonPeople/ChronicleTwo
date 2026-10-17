@@ -32,8 +32,10 @@ TEST(PcOptions, GameHostBoolsDefaultToOffInOverlay) {
     const Config defaults;
     EXPECT_FALSE(defaults.debug_mode);
     EXPECT_FALSE(defaults.skip_intro);
+    EXPECT_FALSE(defaults.auto_use_event_item);
     EXPECT_EQ(Find("game.debug_mode").value(defaults), "Off");
     EXPECT_EQ(Find("game.skip_intro").value(defaults), "Off");
+    EXPECT_EQ(Find("game.auto_use_event_item").value(defaults), "Off");
     EXPECT_EQ(defaults.georama_poly_multiplier, 1);
     EXPECT_EQ(Find("game.georama_poly_multiplier").label, "Georama budget");
     EXPECT_EQ(Find("game.georama_poly_multiplier").value(defaults), "1×");
@@ -52,7 +54,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "video.show_fps",
         "audio.master_volume",
         "audio.soundtrack",
-        "audio.robot_voice",
+        "audio.dualsense_speaker",
         "audio.controller_volume",
         "input.mouse_sensitivity",
         "input.mouse_invert_y",
@@ -62,13 +64,17 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "input.stick_sensitivity",
         "input.stick_invert_x",
         "input.stick_invert_y",
+        "input.dualsense_haptics",
+        "input.haptics_strength",
         "input.glyphs",
         "input.glyph_device",
         "game.autosave",
+        "game.quick_loadout_title",
         "game.debug_mode",
         "game.skip_intro",
         "game.georama_poly_multiplier",
         "game.expanded_dungeon_monsters",
+        "game.auto_use_event_item",
     };
     std::set<std::string> actual;
     for (const auto &page : options::Pages()) {

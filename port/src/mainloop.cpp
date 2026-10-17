@@ -22,6 +22,8 @@
 #include "gamepad.hpp"
 #include "helpmes.hpp"
 #include "inventmn.hpp"
+#include "menuchr_port.hpp"
+#include "quick_loadout.hpp"
 #include "item_icon3d.hpp"
 #include "main.hpp"
 #include "mainloop.hpp"
@@ -371,6 +373,7 @@ PORT_OVERRIDE void MainLoop() {
         // Single entry for every mode change: covers the LOOP_MENU->LOOP_TITLE redirect above and the PortNextLoopNo hand-off below.
         mgPortCutInterpolation();
         PortCancelQuickChangeBanner();
+        PortQuickLoadoutReset();
         ItemIcons3DReset();
         LoopInit[PortLoopNo](InitArg);
         GameGiveOnArrival(PortLoopNo);
@@ -449,9 +452,11 @@ PORT_OVERRIDE void MainLoop() {
             GameBenchTrySpawnEnemies(PortLoopNo);
             mgBeginFrame(NULL);
             mode_finished = LoopMain[PortLoopNo]();
+            PortFinishQuickChange();
             sndStep(mgGetNowFrameRate());
             MainScene.StepSnd();
             GamePad__2.UpDate();
+            PortQuickLoadoutPad();
             PadCtrl.Update(&GamePad__2);
             PortStepQuickChangeEffect();
             PortDrawQuickChangeBanner();

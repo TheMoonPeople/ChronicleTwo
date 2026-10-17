@@ -168,7 +168,7 @@ std::span<const Page> Pages() {
         {"Audio",    {
                       Number<&Config::master_volume>("audio.master_volume", "Master volume", "Adjusts all sound, including music and movies.", {0, .05, .1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95, 1}, 100, "%"),
                       Choice<&Config::soundtrack>("audio.soundtrack", "Soundtrack", "Applies when the next song starts; no restart needed.\nCustom needs soundtrack/soundtrack.json recordings.", {"PS2", "Custom"}),
-                      Choice<&Config::robot_voice_controller>("audio.robot_voice", "Ridepod voice", "Plays the Ridepod on a DualSense speaker.\nFrom the next line; the TV is used without one.", {"TV", "Controller"}),
+                      Choice<&Config::dualsense_speaker>("audio.dualsense_speaker", "DualSense Speaker", "Plays sound effects on a DualSense controller speaker.\nTurn off if you want to keep vanilla experience", {"Off", "On"}),
                       Number<&Config::controller_volume>("audio.controller_volume", "Controller volume", "DualSense speaker volume, after master volume.", {0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1, 1.25, 1.5, 1.75, 2}, 100, "%"),
                   }      },
         {"Controls", {
@@ -178,6 +178,8 @@ std::span<const Page> Pages() {
                          Number<&Config::stick_sensitivity>("input.stick_sensitivity", "Stick sensitivity", "Scales controller stick response.", {.5, .75, 1, 1.1, 1.2, 1.33, 1.5, 1.75, 2, 2.5, 3}),
                          Choice<&Config::stick_invert_x>("input.stick_invert_x", "Invert stick X", "Reverses the controller look stick's horizontal axis.", {"Off", "On"}),
                          Choice<&Config::stick_invert_y>("input.stick_invert_y", "Invert stick Y", "Reverses the controller look stick's vertical axis.", {"Off", "On"}),
+                         Choice<&Config::dualsense_haptics>("input.dualsense_haptics", "DualSense haptics", "Plays vibration on a DualSense's HD actuators.\nFull adds quakes and hit, weapon and monster effects.", {"Off", "Vibration", "Full"}),
+                         Number<&Config::haptics_strength>("input.haptics_strength", "Haptics strength", "DualSense actuator strength.", {0, .25, .5, .75, 1, 1.25, 1.5, 1.75, 2}, 100, "%"),
                          Choice<&Config::glyphs_new>("input.glyphs", "Button symbols", "New redraws the game's button symbols from glyphs/.\nOriginal keeps the PlayStation art.", {"Original", "New"}),
                          Choice<&Config::glyph_device>("input.glyph_device", "Glyph style", "Auto follows the last device used.\nKeyboard prompts follow your current bindings.", {"Auto", "PS3", "PS4", "PS5", "PS5 Color", "Xbox", "Switch", "Steam Deck", "Steam Controller", "Keyboard"}),
                          Choice<&Config::mouse_zoom>("input.mouse_zoom", "Mouse wheel zoom", "Wheel changes camera distance while walking.\nMenus use the wheel for selection instead.", {"Off", "On"}),
@@ -189,6 +191,10 @@ std::span<const Page> Pages() {
                                                      "Saves on arriving in a town or on a dungeon floor.\n"
                                                      "The load screen lists it first.",
                                                      {"Off", "On"}),
+                         Choice<&Config::quick_loadout_plate>("game.quick_loadout_title", "Quick loadout title",
+                                                              "How the D-pad down panel shows its title:\n"
+                                                              "on a bar, or on a plate like the EXP gauge's.",
+                                                              {"Bar", "Plate"}),
                          Choice<&Config::debug_mode>("game.debug_mode", "Debug mode",
                                                      "Enables master debug behavior for this session and save.",
                                                      {"Off", "On"}),
@@ -218,6 +224,10 @@ std::span<const Page> Pages() {
                              };
                              return row;
                          }(),
+                         Choice<&Config::auto_use_event_item>("game.auto_use_event_item", "Auto-use event items",
+                                                              "Default Off. When On, events that ask for one specific item\n"
+                                                              "you already have skip the item picker grid.",
+                                                              {"Off", "On"}),
                      }                      },
     };
     const auto names = port_settings::PcOverlayPageNames();

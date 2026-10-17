@@ -202,9 +202,11 @@ void DrawnBox(mgCFrame *node, float lo[3], float hi[3], bool &any) {
 }
 
 /**
- * Renders one native item model into the supplied icon texture.
+ * Renders one native item model into the supplied icon texture, or into `into` when given. icon_size is the side of the
+ * picture: the menu's 32, halved down from the crop, or the crop scaled straight into a larger one (the dungeon's quick
+ * loadout), whose outline is drawn thinner to match.
  */
-bool Render(int item_no, mgCTexture *icon) {
+bool Render(int item_no, mgCTexture *icon, int icon_size = kIcon, gfx::TextureHandle into = gfx::kNullTexture) {
     char path[0x80];
     if (!ModelPath(item_no, path, sizeof path)) {
 
@@ -522,7 +524,7 @@ bool Render(int item_no, mgCTexture *icon) {
         static char scratch_name[] = "dc2 item icon 3d scratch";
         scratch_texture = Textures().manager.EnterTexture(kIconBlock, scratch_name, nullptr, kScratch, kScratch, 32, nullptr, 0, 0);
     }
-    gfx::TextureHandle target = mgPortRenderTarget(icon, true);
+    gfx::TextureHandle target = into != gfx::kNullTexture ? into : mgPortRenderTarget(icon, true);
     if (scratch_texture == nullptr || target == gfx::kNullTexture) {
         return false;
     }
@@ -594,7 +596,7 @@ bool Render(int item_no, mgCTexture *icon) {
     float dark[4] = {0.0f, 0.0f, 0.0f, 128.0f};
     mgSetLight(dark_dir, dark_colour);
     mgSetAmbient(dark);
-    const float step = 4.0f / pixels_per_unit;
+    const float step = (icon_size == kIcon ? 4.0f : 1.5f) / pixels_per_unit;
     const float shifts[9][2] = {
         {-1,     0     },
         {1,      0     },
@@ -663,8 +665,10 @@ bool Render(int item_no, mgCTexture *icon) {
     }
 
     // The picture down to the icon in exact halves: kCrop -> kCrop/2 -> the icon.
-    gfx::TextureHandle half = gfx::NamedRenderTarget("dc2 item icon 3d half", kCrop / 2, kCrop / 2, true);
-    if (half != gfx::kNullTexture) {
+    gfx::TextureHandle half = icon_size == kIcon ? gfx::NamedRenderTarget("dc2 item icon 3d half", kCrop / 2, kCrop / 2, true) : gfx::kNullTexture;
+    if (icon_size != kIcon) {
+        gfx::BlitTexture(scratch, {kScratch / 2 - kCrop / 2, kScratch / 2 - kCrop / 2, kCrop, kCrop}, target, {0, 0, icon_size, icon_size}, gfx::Filter::Linear);
+    } else if (half != gfx::kNullTexture) {
         gfx::BlitTexture(scratch, {kScratch / 2 - kCrop / 2, kScratch / 2 - kCrop / 2, kCrop, kCrop}, half, {0, 0, kCrop / 2, kCrop / 2}, gfx::Filter::Linear);
         gfx::BlitTexture(half, {0, 0, kCrop / 2, kCrop / 2}, target, {0, 0, kIcon, kIcon}, gfx::Filter::Linear);
     } else {
@@ -735,4 +739,14 @@ void ItemIcons3DReset() {
         Textures().manager.Initialize(0, -1);
         Textures().scratch = nullptr;
     }
+}
+
+bool ItemIcon3DRenderTo(int item_no, gfx::TextureHandle target, int size) {
+    if (item_no <= 0 || size <= 0 || target == gfx::kNullTexture || !gfx::InFrame() || !mgPortRendererReady()) {
+        return false;
+    }
+    mgRENDER_INFO saved = mgRenderInfo;
+    const bool    drawn = Render(item_no, nullptr, size, target);
+    mgRenderInfo = saved;
+    return drawn;
 }

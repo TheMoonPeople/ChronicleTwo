@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -15,12 +16,18 @@
 #include "audio/sq.hpp"
 #include "audio/trace.hpp"
 #include "audio_assets.hpp"
+#include "controller_speaker.hpp"
+#include "dualsense_haptics.hpp"
 #include "ezbgm.hpp"
 #include "ezmidi.hpp"
+#include "platform/config.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/settings.hpp"
+#include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "sound_port.hpp"
+
+extern sndPortInfo PortInfo[SND_PORT_NUM];
 
 namespace {
 
@@ -77,6 +84,9 @@ constexpr PortLayout kLayout[] = {
 std::array<PortState, MIDI_PORT_COUNT> ports;
 std::vector<QueuedMessage>             queued;
 bool                                   initialised = false;
+
+// Sound effect ids, per driver port.
+using SpeakerIds = std::array<std::bitset<128>, MIDI_PORT_COUNT>;
 
 std::array<std::uint8_t, 7> HsBytes(std::uint8_t status, std::uint8_t sub, int a, int b, int c, int d) {
     return {status, sub, 0, static_cast<std::uint8_t>(a), static_cast<std::uint8_t>(b), static_cast<std::uint8_t>(c), static_cast<std::uint8_t>(d)};
@@ -164,6 +174,261 @@ void RejectIntAddress(const char *function) {
     std::fprintf(stderr, "%s takes its bank or sequence address as int; the host loads through SoundLoad*\n", function);
 }
 
+// The treasure chests' opening (wood, iron and stone) is a sound-effect sequence of every base bank.
+constexpr int kChestSeFirst = 110;
+constexpr int kChestSeLast = 112;
+
+// The system bank (SY_000) holds the menus' effects: cursor, decide, windows, items, equipment,
+// inventions, Georama, message advance. These of its effects belong to the field and stay on the TV.
+constexpr int kSystemSeTrap = 24;
+constexpr int kSystemSeLevelUp = 30;
+// Key-on effects, found by the program the bank selects for them (their number in this bank).
+constexpr int kSystemProgramLockOn = SYSTEM_SE_LOCK_ON;
+constexpr int kSystemProgramLockOff = SYSTEM_SE_LOCK_OFF;
+
+// Where a driver port's effects play while the DualSense Speaker option is on.
+struct SpeakerRoutes {
+    // Ids keyed on by sequences that play on the speaker, and by sequences that stay on the TV.
+    SpeakerIds speaker;
+    SpeakerIds tv;
+    // Ports whose other effects (key-ons, and ids of no sequence) also play on the speaker.
+    std::bitset<MIDI_PORT_COUNT> whole;
+
+    bool Any(int port) const { return whole.test(port) || speaker[port].any(); }
+};
+
+SpeakerRoutes                                                                         previous_routes;
+std::array<std::array<std::shared_ptr<const audio::Bank>, MIDI_PORT_BANK_MAX>, MIDI_PORT_COUNT> speaker_banks;
+
+int DriverPort(int game_port) {
+    const int port = PortInfo[game_port].port;
+    return port >= 0 && port < MIDI_PORT_COUNT ? port : -1;
+}
+
+// A sequence player keys its eight tracks on ids from eight times its number up (PlaySeSeq's SetSeID).
+void AddSequenceIds(std::bitset<128> &ids, int seseq_no) {
+    for (int track = 0; track < 8; track++) {
+        const int id = (seseq_no * 8) % 256 + track;
+
+        if (id < 128) {
+            ids.set(id);
+        }
+    }
+}
+
+SpeakerRoutes CurrentRoutes() {
+    SpeakerRoutes routes;
+
+    if (!ConfigGet().dualsense_speaker) {
+        return routes;
+    }
+
+    if (const int port = DriverPort(SND_PORT_BASE); port >= 0) {
+        for (const sndPortSeSeq &entry : PortInfo[SND_PORT_BASE].seseq) {
+            if (entry.seseq_no >= 0 && entry.se_no >= kChestSeFirst && entry.se_no <= kChestSeLast) {
+                AddSequenceIds(routes.speaker[port], entry.seseq_no);
+            }
+        }
+    }
+
+    if (const int port = DriverPort(SND_PORT_SYSTEM); port >= 0) {
+        routes.whole.set(port);
+
+        for (const sndPortSeSeq &entry : PortInfo[SND_PORT_SYSTEM].seseq) {
+            if (entry.seseq_no < 0) {
+                continue;
+            }
+
+            const bool field = entry.se_no == kSystemSeTrap || entry.se_no == kSystemSeLevelUp;
+            AddSequenceIds(field ? routes.tv[port] : routes.speaker[port], entry.seseq_no);
+        }
+    }
+
+    return routes;
+}
+
+// Gives the speaker's mixer a routed port's banks and volumes, so its effects sound as on the TV.
+void MirrorSpeakerPort(int port) {
+    audio::Mixer &speaker = ControllerSpeakerMixer();
+    audio::Mixer &mixer = audio::DefaultMixer();
+
+    for (int bank_no = 0; bank_no < MIDI_PORT_BANK_MAX; bank_no++) {
+        if (speaker_banks[port][bank_no] != ports[port].bank[bank_no]) {
+            speaker_banks[port][bank_no] = ports[port].bank[bank_no];
+            speaker.BindBank(port, bank_no, speaker_banks[port][bank_no]);
+        }
+    }
+
+    speaker.SetVolume(port, mixer.Volume(port));
+    speaker.SetAttribute(port, mixer.Attribute(port));
+
+    for (int core = 0; core < audio::kCores; core++) {
+        speaker.SetCoreVolume(core, mixer.CoreVolume(core));
+    }
+}
+
+bool KeysOnSpeaker(const SpeakerRoutes &routes, int port, int id, int program) {
+    if (routes.speaker[port].test(id)) {
+        return true;
+    }
+
+    if (routes.tv[port].test(id) || !routes.whole.test(port)) {
+        return false;
+    }
+
+    return program != kSystemProgramLockOn && program != kSystemProgramLockOff;
+}
+
+// The game ports whose effects a DualSense's actuators also play in the Full haptics mode: the
+// player's swings, shots and steps (the Ridepod's too), hits, and monsters a little softer. Volumes
+// are percentages of the port's own.
+struct HapticPort {
+    int game_port;
+    int volume;
+};
+
+constexpr HapticPort kHapticPorts[] = {
+    {SND_PORT_CHARA,  100},
+    {SND_PORT_BATTLE, 100},
+    {SND_PORT_ENEMY,  50 },
+};
+
+std::array<int, MIDI_PORT_COUNT>                                                                haptic_volume{};
+std::array<std::array<std::shared_ptr<const audio::Bank>, MIDI_PORT_BANK_MAX>, MIDI_PORT_COUNT> haptic_banks;
+
+// Driver ports to mirror this step, as a percentage of their volume (0 for none).
+std::array<int, MIDI_PORT_COUNT> CurrentHapticPorts() {
+    std::array<int, MIDI_PORT_COUNT> volume{};
+
+    if (!HapticsEffectsActive()) {
+        return volume;
+    }
+
+    for (const HapticPort &entry : kHapticPorts) {
+        if (const int port = DriverPort(entry.game_port); port >= 0) {
+            volume[port] = std::max(volume[port], entry.volume);
+        }
+    }
+
+    return volume;
+}
+
+// Gives the haptics mixer a mirrored port's banks and volume; a port no longer mirrored is stopped
+// there, so nothing it keyed on keeps playing.
+void MirrorHapticPorts(const std::array<int, MIDI_PORT_COUNT> &volume) {
+    audio::Mixer &haptics = HapticsMixer();
+    audio::Mixer &mixer = audio::DefaultMixer();
+
+    for (int port = 0; port < MIDI_PORT_COUNT; port++) {
+        if (volume[port] == 0) {
+            if (haptic_volume[port] != 0) {
+                haptics.Stop(port);
+            }
+            haptic_volume[port] = 0;
+            continue;
+        }
+
+        for (int bank_no = 0; bank_no < MIDI_PORT_BANK_MAX; bank_no++) {
+            if (haptic_banks[port][bank_no] != ports[port].bank[bank_no]) {
+                if (bank_no == 0) {
+                    haptics.Stop(port);
+                }
+                haptic_banks[port][bank_no] = ports[port].bank[bank_no];
+                haptics.BindBank(port, bank_no, haptic_banks[port][bank_no]);
+            }
+        }
+
+        haptics.SetVolume(port, mixer.Volume(port) * volume[port] / 100);
+        haptics.SetAttribute(port, mixer.Attribute(port));
+        haptic_volume[port] = volume[port];
+    }
+}
+
+void ResetHaptics() {
+    HapticsMixer().Reset();
+    haptic_volume = {};
+    haptic_banks = {};
+}
+
+// Sends the step's messages. Bank, program, volume and pan go to both mixers of a routed port; a
+// key-on, key-off or change of one effect goes where it plays. Routes stay one more step after a
+// sequence ends, for the key-offs of its last step.
+void DispatchQueued() {
+    SpeakerRoutes current = CurrentRoutes();
+    bool          any = false;
+
+    for (int port = 0; port < MIDI_PORT_COUNT; port++) {
+        any = any || current.Any(port);
+    }
+
+    if (any && !ControllerSpeakerOpen()) {
+        current = {};
+    }
+
+    SpeakerRoutes routes;
+
+    for (int port = 0; port < MIDI_PORT_COUNT; port++) {
+        routes.speaker[port] = current.speaker[port] | previous_routes.speaker[port];
+        routes.tv[port] = current.tv[port] | previous_routes.tv[port];
+
+        if (current.Any(port)) {
+            MirrorSpeakerPort(port);
+        }
+    }
+
+    routes.whole = current.whole;
+
+    const std::array<int, MIDI_PORT_COUNT> haptic = CurrentHapticPorts();
+    MirrorHapticPorts(haptic);
+
+    audio::Mixer                    &mixer = audio::DefaultMixer();
+    audio::Mixer                    &speaker = ControllerSpeakerMixer();
+    audio::Mixer                    &haptics = HapticsMixer();
+    std::array<int, MIDI_PORT_COUNT> program{};
+
+    for (const QueuedMessage &message : queued) {
+        const bool split = routes.Any(message.port);
+
+        // The actuators play a mirrored port's effects besides wherever they sound.
+        if (haptic[message.port] != 0) {
+            if (message.hs) {
+                haptics.HsMessage(message.port, message.bytes);
+            } else {
+                haptics.ShortMessage(message.port, message.word);
+            }
+        }
+
+        if (!message.hs) {
+            if ((message.word & 0xF0) == 0xC0) {
+                program[message.port] = static_cast<int>((message.word >> 8) & 0x7F);
+            }
+
+            mixer.ShortMessage(message.port, message.word);
+
+            if (split) {
+                speaker.ShortMessage(message.port, message.word);
+            }
+
+            continue;
+        }
+
+        if (split && message.bytes[0] == 0xFD) {
+            const bool on_speaker = KeysOnSpeaker(routes, message.port, message.bytes[4] & 0x7F, program[message.port]);
+            (on_speaker ? speaker : mixer).HsMessage(message.port, message.bytes);
+            continue;
+        }
+
+        mixer.HsMessage(message.port, message.bytes);
+
+        if (split) {
+            speaker.HsMessage(message.port, message.bytes);
+        }
+    }
+
+    queued.clear();
+    previous_routes = current;
+}
+
 } // namespace
 
 void SoundApplySettings() {
@@ -177,6 +442,7 @@ PORT_OVERRIDE void set_spu(int mode0, int mode1, int depth0, int depth1) {
 
 PORT_OVERRIDE void CSound::StopVoice(int core) {
     audio::DefaultMixer().KeyOffCore(core);
+    HapticsMixer().KeyOffCore(core);
 }
 
 PORT_OVERRIDE void CSound::SndInReverb(bool) {
@@ -195,6 +461,7 @@ PORT_OVERRIDE int CSound::Init(int mode0, int mode1, int depth0, int depth1) {
     ezBgmInit();
     ezMidiInit();
     audio::DefaultMixer().Reset();
+    ResetHaptics();
     SoundApplySettings();
     set_spu(mode0, mode1, depth0, depth1);
     ResetHostState();
@@ -210,6 +477,7 @@ PORT_OVERRIDE int CSound::Exit() {
     }
 
     mixer.Reset();
+    ResetHaptics();
     ResetHostState();
     initialised = false;
     return 0;
@@ -222,17 +490,20 @@ PORT_OVERRIDE void CSound::DEL_PORT(int port) {
     // Retail clears queued messages only for MSIn-range ports; ports below that have no MSIn buffer to clear.
     DropQueued(port);
     mixer.Stop(port);
+    HapticsMixer().Stop(port);
     ReleaseSequences(mixer, port);
 
     if (linked >= 0) {
         DropQueued(linked);
         mixer.Stop(linked);
+        HapticsMixer().Stop(linked);
         ReleaseSequences(mixer, linked);
     }
 
     for (int dependent : ports[port].dependent_port) {
         DropQueued(dependent);
         mixer.Stop(dependent);
+        HapticsMixer().Stop(dependent);
         ReleaseSequences(mixer, dependent);
     }
 }
@@ -346,17 +617,7 @@ PORT_OVERRIDE void CSound::Step() {
         SetVol(0, static_cast<int>(fade.volume));
     }
 
-    audio::Mixer &mixer = audio::DefaultMixer();
-
-    for (const QueuedMessage &message : queued) {
-        if (message.hs) {
-            mixer.HsMessage(message.port, message.bytes);
-        } else {
-            mixer.ShortMessage(message.port, message.word);
-        }
-    }
-
-    queued.clear();
+    DispatchQueued();
     EzBgmStep();
 }
 

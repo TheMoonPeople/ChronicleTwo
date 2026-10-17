@@ -81,6 +81,11 @@ bool IsReplacement(const vfs::Ref &file);
 bool Decode(const texture_catalog::Entry &entry, std::size_t variant, DecodedTexture &decoded, std::string &error);
 
 /**
+ * Names the pixels Decode produces for a variant, or returns an empty string when they cannot be named.
+ */
+std::string DecodeIdentity(const texture_catalog::Entry &entry, std::size_t variant);
+
+/**
  * Names decoded pixels by a semantic image identity and every possible source file's current stamp.
  */
 std::string ImageDecodeKey(std::string_view identity, std::span<const vfs::Ref> sources);
@@ -122,6 +127,12 @@ struct DecodeJob {
 void Prefetch(std::span<DecodeJob> jobs);
 
 /**
+ * Decodes, on worker threads, the catalog textures Decode would otherwise decode one by one; the results wait in
+ * the decode cache.
+ */
+void PrefetchEntries(std::span<const texture_catalog::Entry *const> entries);
+
+/**
  * Memoises the source-file stamps ImageDecodeKey reads while alive; the memo clears when the outermost scope ends.
  */
 struct StampScope {
@@ -150,6 +161,12 @@ struct TraceTimer {
     TraceTimer(const TraceTimer &) = delete;
     TraceTimer &operator=(const TraceTimer &) = delete;
 
+    /**
+     * Records the elapsed time now instead of at destruction.
+     */
+    void Stop();
+
+    bool                                  stopped = false; /**< Whether the time was already recorded. */
     std::string_view                      counter; /**< Static counter name receiving the elapsed time. */
     std::chrono::steady_clock::time_point start;   /**< Construction time. */
 };
