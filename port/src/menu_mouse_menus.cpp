@@ -67,7 +67,7 @@ void ItemPopupMouse() {
     if (selected != items.cursor) {
         items.cursor = selected;
         MenuCheckLine(&items.top_line, selected / ITEM_SELECT_COLUMNS, 2);
-        MenuSePlay(SYSTEM_SE_CURSOR);
+        MenuMouseCursorSound();
     }
 }
 
@@ -85,7 +85,7 @@ void TitleMouse() {
         if (selected != MouseTitle->select) {
             MouseTitle->select = selected;
             MouseTitle->idle_count = 0;
-            MenuSePlay(SYSTEM_SE_CURSOR);
+            MenuMouseCursorSound();
         }
     } else if (MouseTitlePhase <= TITLE_PHASE_PUSH_START) {
         if (MenuMouseTake().clicked & 1) {
@@ -298,7 +298,7 @@ void MenuMouseOptionHover(CMenuOption &menu, CMenuPosDataForm *form, const CMenu
     // KeyStep compares the choice after this hook, so a move along one row sounds here.
     if (choice >= 0 && choice != menu.choice && (mouse.moved || mouse.wheel != 0)) {
         if (same_row) {
-            MenuSePlay(SYSTEM_SE_CURSOR);
+            MenuMouseCursorSound();
         }
         menu.choice = choice;
     }
@@ -350,7 +350,7 @@ void MenuMouseRepairBoard(CMenuPosDataForm *board, int &select, int &top, int co
     target = std::clamp(view.selected * kColumns + column, 0, std::max(0, count - 1));
     if (target != select) {
         select = target;
-        MenuSePlay(SYSTEM_SE_CURSOR);
+        MenuMouseCursorSound();
     }
     // The board owns this tick's buttons, as the shop's does: Cedric's command list stays drawn behind
     // it, and its choices must neither move nor swallow a click. Repairs spend his points, so only a
@@ -385,7 +385,7 @@ void MenuMouseChara(CMenuChrCngMenu &menu) {
     // KeyChangeMain reads its cursor change after this hook; repeat that change's effects here.
     const int last = menu.select;
     menu.select = selected;
-    MenuSePlay(SYSTEM_SE_CURSOR);
+    MenuMouseCursorSound();
     if (selected == CHR_CNG_SELECT_NPC) {
         MenuDCMsg[0]->SetBuff(menu.mes_data);
     }

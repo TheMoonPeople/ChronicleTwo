@@ -673,6 +673,22 @@ pointer immediately. Ordinary dialogue choices share the message adapter;
 the rendered confirmation replays and drawn-message unit tests cover that input
 path, but campaign dialogue choices still need a dedicated replay.
 
+Hover and the wheel play the menu's retail cursor-move sound once for each
+change of its cursor, never while the target stays the same. Where the mouse
+moves a cursor through the retail key step (`MenuMouseMove`, a synthesized
+D-pad press, or a cursor the step compares after the hook: the root menu, file
+lists, Options rows, Help, the floor map, message choices and the ITEM page's
+bag and panels), that step plays it. Adapters that set a cursor themselves call
+`MenuMouseCursorSound`, which plays at most once a tick: shops, item popups,
+the title menu, Make, Monster Transform, Character portraits and Cedric's
+board, Options choices, the ITEM page's command and build-up lists, and a move
+to the same index on another ITEM panel. A shop wheel notch or arrow click
+that changes the pane or leaves Quit also presses Up or Down. The retail step
+sounds that press only if it moves, so at a list end or quantity limit the
+shop adapter sounds the change instead. Fishing rod stats are the ITEM
+cursor, so only the retail check sounds them. PC SETTINGS rows stay silent, as
+they are with keys.
+
 ### Character, Options and Help mouse
 
 On the Character page, hovering a shown portrait (Max, Monica, the Ridepod,

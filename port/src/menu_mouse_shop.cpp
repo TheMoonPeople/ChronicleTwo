@@ -7,6 +7,7 @@
 #include "mainloop.hpp"
 #include "menu_mouse.hpp"
 #include "menu_mouse_item.hpp"
+#include "menucommon.hpp"
 #include "menumain.hpp"
 #include "menushop.hpp"
 #include "menusys.hpp"
@@ -45,6 +46,44 @@ ShopList ListHit(const CShopMenu &menu, const MenuMouseSample &mouse, int goods)
     }
     return hit;
 }
+
+// The cursor of the shop page in front: a goods row, a bag cell or the quantity board's choice.
+int ShopCursor(const CShopMenu &menu) {
+    switch (menu.key_arg_no) {
+        case SHOP_MENU_MODE_BUY_LIST:
+            return menu.list_pos;
+        case SHOP_MENU_MODE_BAG:
+            return menu.bag_pos;
+        case SHOP_MENU_MODE_BUY_NUM:
+        case SHOP_MENU_MODE_SELL_NUM:
+            return menu.num_cursor;
+        default:
+            return -1;
+    }
+}
+
+// Whether the retail key step moves the cursor of the page in front for a synthesized Up or Down, which
+// it then sounds. A direction stops at the ends of the goods list, the bag and the quantity's limits.
+bool RetailMoves(const CShopMenu &menu, int direction, int goods) {
+    const bool up = direction & PAD_UP;
+    switch (menu.key_arg_no) {
+        case SHOP_MENU_MODE_BUY_LIST: {
+            int       pos = menu.list_pos, top = menu.list_top;
+            const int moved = MenuListKeyCheck(up ? MENU_SELECT_KEY_UP : MENU_SELECT_KEY_DOWN, &pos, &top, goods, SHOP_LIST_LINE, 0, 0);
+            return moved || top != menu.list_top;
+        }
+        case SHOP_MENU_MODE_BAG: {
+            int pos = menu.bag_pos;
+            CalcMenuAdd2(&pos, up ? -MENU_ITEM_BOARD_COLUMNS : MENU_ITEM_BOARD_COLUMNS, up ? 0 : GetNowBagMax(ITEM_BOARD_MAIN) - 1);
+            return pos != menu.bag_pos;
+        }
+        case SHOP_MENU_MODE_BUY_NUM:
+        case SHOP_MENU_MODE_SELL_NUM:
+            return std::min(std::max(menu.num + (up ? 1 : -1), 1), int(menu.num_max)) != menu.num;
+        default:
+            return false;
+    }
+}
 } // namespace
 
 void MenuMouseShopUpdate(CShopMenu &menu, CMenuKeyFunc &keys, int goods) {
@@ -60,6 +99,7 @@ void MenuMouseShopUpdate(CShopMenu &menu, CMenuKeyFunc &keys, int goods) {
         return;
     }
     const bool choose = mouse.wheel == 0 && (mouse.moved || (mouse.clicked & 1));
+    const int  pane = menu.key_arg_no, cursor = ShopCursor(menu);
     int        buttons = 0;
     if (menu.key_arg_no == SHOP_MENU_MODE_BUY_LIST || menu.key_arg_no == SHOP_MENU_MODE_BAG) {
         using namespace menumouse;
@@ -158,6 +198,12 @@ void MenuMouseShopUpdate(CShopMenu &menu, CMenuKeyFunc &keys, int goods) {
     } else {
         // Yes/No windows retain the shared drawn-choice navigation.
         buttons = shared_buttons;
+    }
+    // The retail key step reads its cursor after this hook, so it cannot sound a move made here. It
+    // sounds a synthesized Up or Down only if that moves on, not one stopped at a limit.
+    const int direction = buttons & (PAD_UP | PAD_DOWN);
+    if ((menu.key_arg_no != pane || ShopCursor(menu) != cursor) && !(direction && RetailMoves(menu, direction, goods))) {
+        MenuMouseCursorSound();
     }
     MenuMouseSetButtons(buttons);
 }

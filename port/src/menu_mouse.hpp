@@ -45,6 +45,13 @@ const MenuMouseSample &MenuMouseTake();
 int                    MenuMouseButtons();
 void                   MenuMousePress(int buttons);
 void                   MenuMouseMove(int *cursor, int selected);
+// The retail cursor-move sound for an adapter that sets a retail cursor itself, at most once a tick.
+// Cursors moved through MenuMouseMove or a synthesized D-pad press sound in the retail key step.
+void MenuMouseCursorSound();
+// How many cursor sounds the mouse has played, for tests.
+int MenuMouseCursorSounds();
+// How many cursor sounds any menu has played through MenuSePlay, retail or mouse, for tests.
+int MenuCursorSounds();
 // Drawn choice geometry is copied, never a retained pointer to game storage.
 void MenuMouseNoteChoices(const void *owner, int message, std::span<const MenuMouseRect> rows,
                           int selected, bool horizontal);

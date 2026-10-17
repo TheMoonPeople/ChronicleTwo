@@ -146,7 +146,7 @@ void MakeBoardMouse(CMenuInvent &menu, const MenuMouseSample &mouse) {
     const MakeInput input = MakeBoardInput(board, {mouse.x, mouse.y}, mouse.moved, mouse.clicked, mouse.wheel);
     if (input.row >= 0 && input.row != menu.make_cursor) {
         menu.make_cursor = input.row;
-        MenuSePlay(SYSTEM_SE_CURSOR);
+        MenuMouseCursorSound();
     }
     MenuMouseSetButtons(input.buttons);
 }
@@ -190,7 +190,7 @@ void ListsMouse(CMenuInvent &menu, CMenuKeyFunc &keys, const MenuMouseSample &mo
     menu.item_cursor = next.item_cursor;
     menu.item_top = next.item_top;
     if (result.sound) {
-        MenuSePlay(SYSTEM_SE_CURSOR);
+        MenuMouseCursorSound();
     }
     MenuMouseSetButtons(result.buttons);
 }

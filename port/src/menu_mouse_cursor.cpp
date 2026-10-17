@@ -1,13 +1,40 @@
 #include "common.h"
 
+#include "mainloop.hpp"
 #include "menu_mouse.hpp"
+#include "menucommon.hpp"
 #include "menusys.hpp"
 #include "mglib_port.hpp"
+#include "snd_mngr.hpp"
 
 namespace {
 int *pending_cursor = nullptr;
 int  pending_selection = 0, pending_frame = -1;
+int  sound_frame = -1, sounds = 0, all_sounds = 0;
 } // namespace
+
+void MenuMouseCursorSound() {
+    if (sound_frame == mgPortFrameCount()) {
+        return;
+    }
+    sound_frame = mgPortFrameCount();
+    ++sounds;
+    MenuSePlay(SYSTEM_SE_CURSOR);
+}
+
+int MenuMouseCursorSounds() { return sounds; }
+
+// Retail's body; it counts every menu cursor sound, retail or mouse, for tests.
+PORT_OVERRIDE void MenuSePlay(int sound_no) {
+    if (sound_no == SYSTEM_SE_CURSOR) {
+        ++all_sounds;
+    }
+    if (sound_no >= 0) {
+        MenuSePlay(SystemSND_ID, sound_no);
+    }
+}
+
+int MenuCursorSounds() { return all_sounds; }
 
 void MenuMouseMove(int *cursor, int selected) {
     pending_cursor = cursor;

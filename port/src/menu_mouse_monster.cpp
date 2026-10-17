@@ -37,7 +37,7 @@ void BadgeMouse(CMenuMosSelect &box) {
     if (selected < MOS_SELECT_BADGE_KIND_NUM && box.badge[selected].enable) {
         box.view_monster = box.badge[selected].monster_id;
     }
-    MenuSePlay(SYSTEM_SE_CURSOR);
+    MenuMouseCursorSound();
 }
 
 void ClassMouse() {
@@ -49,7 +49,7 @@ void ClassMouse() {
     const int selected = MenuMouseRows({rows, static_cast<std::size_t>(count)}, BuildUpWeaponInfo.select_no);
     if (selected != BuildUpWeaponInfo.select_no) {
         BuildUpWeaponInfo.select_no = selected;
-        MenuSePlay(SYSTEM_SE_CURSOR);
+        MenuMouseCursorSound();
     }
 }
 } // namespace

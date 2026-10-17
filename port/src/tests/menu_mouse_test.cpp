@@ -48,6 +48,20 @@ TEST(MenuMouse, StationaryPointerDoesNotUndoControllerSelection) {
     EXPECT_EQ(MenuMouseChoose(mouse, rows, 2), 2);
 }
 
+TEST(MenuMouse, CursorSoundPlaysAtMostOnceATick) {
+    const u32 saved_sound = SystemSND_ID;
+    SystemSND_ID = static_cast<u32>(-1);
+    mgEndFrame(nullptr);
+    const int sounds = MenuMouseCursorSounds();
+    MenuMouseCursorSound();
+    MenuMouseCursorSound(); // A second adapter in the same tick.
+    EXPECT_EQ(MenuMouseCursorSounds(), sounds + 1);
+    mgEndFrame(nullptr);
+    MenuMouseCursorSound();
+    EXPECT_EQ(MenuMouseCursorSounds(), sounds + 2);
+    SystemSND_ID = saved_sound;
+}
+
 TEST(MenuMouse, ClickSelectsTheHoveredRowAndWheelClamps) {
     MenuMouseSample mouse{.x = 40, .y = 90, .pointing = true, .clicked = 1};
     EXPECT_EQ(MenuMouseChoose(mouse, rows, 0), 1);

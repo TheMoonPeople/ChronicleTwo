@@ -240,6 +240,10 @@ void Select(CMenuItemInfo &menu, CMenuKeyFunc &keys, Target target, MENU_INPUTKE
     if (menu.key_arg_no == ITEM_MENU_PANEL_BAG) {
         bag_top = keys.top_line;
     }
+    // KeyStepLocal sounds a cursor that differs from the tick's saved one; the same index on another panel needs its own.
+    if (menu.key_arg_no != target.panel && target.cursor == keys.save_cursor) {
+        MenuMouseCursorSound();
+    }
     menu.key_arg_no = target.panel;
     keys.key_arg = &layouts[target.panel];
     keys.cursor = target.cursor;
@@ -296,7 +300,7 @@ void Commands(CMenuItemInfo &menu, const Take &take) {
     const int  row = MenuMouseHit(rows, pointer.pos.x, pointer.pos.y);
     if (row >= 0 && take.moved && row != message->GetMsgCursor()) {
         message->SetMsgCursor(row);
-        MenuSePlay(SYSTEM_SE_CURSOR);
+        MenuMouseCursorSound();
     }
     if (row >= 0 && (take.pressed & 1)) {
         synthetic = PAD_CROSS;
@@ -339,7 +343,12 @@ void Question(CMenuItemInfo &menu, CMenuKeyFunc &keys, const Take &take) {
         for (int i = 0; i < std::clamp(int(BuildUpWeaponInfo.select_num), 0, 3); ++i) {
             rows[i] = {float(BuildUpNameXY[i][0]), float(BuildUpNameXY[i][1]), 200, 24};
         }
-        BuildUpWeaponInfo.select_no = MenuMouseRows({rows, static_cast<std::size_t>(std::clamp(int(BuildUpWeaponInfo.select_num), 0, 3))}, BuildUpWeaponInfo.select_no);
+        const int selected = MenuMouseRows({rows, static_cast<std::size_t>(std::clamp(int(BuildUpWeaponInfo.select_num), 0, 3))}, BuildUpWeaponInfo.select_no);
+        // The retail build-up step reads its cursor after this hook, so it cannot sound this move.
+        if (selected != BuildUpWeaponInfo.select_no) {
+            BuildUpWeaponInfo.select_no = selected;
+            MenuMouseCursorSound();
+        }
         synthetic = MenuMouseButtons();
         return;
     }
@@ -357,7 +366,7 @@ void Question(CMenuItemInfo &menu, CMenuKeyFunc &keys, const Take &take) {
         const int row = MenuMouseHit(rows, pointer.pos.x, pointer.pos.y);
         if (row >= 0 && take.moved && row != message->GetMsgCursor()) {
             message->SetMsgCursor(row);
-            MenuSePlay(SYSTEM_SE_CURSOR);
+            MenuMouseCursorSound();
         }
         if (row >= 0 && (take.pressed & 1)) {
             synthetic = PAD_CROSS;
@@ -460,9 +469,7 @@ void MenuMouseUpdate(CMenuKeyFunc &keys) {
     if (menu.mode == MENU_ASK_MODE_ROD_POINTS && menu.step == 0) {
         const Target hit = Hit(menu, pointer.pos, 0);
         if (hit.panel == ITEM_MENU_PANEL_FISHING_ROD_STATS && take.moved) {
-            if (keys.select_pos[0] != hit.cursor) {
-                MenuSePlay(SYSTEM_SE_CURSOR);
-            }
+            // select_pos[0] shares keys.cursor, whose change KeyStepLocal sounds; sounding it here played it twice.
             keys.cursor = hit.cursor;
             keys.select_pos[0] = hit.cursor;
             keys.key_input = true;

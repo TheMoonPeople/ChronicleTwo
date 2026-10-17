@@ -256,6 +256,20 @@ TEST_F(ItemMouse, AllActiveAndEquippedSlotsUseTheirDrawnIconPositions) {
     EXPECT_EQ(keys.key_arg, &layouts[ITEM_MENU_PANEL_EQUIPMENT]);
 }
 
+TEST_F(ItemMouse, HoverSoundsOnlyTheMovesTheRetailCursorCheckCannotSee) {
+    const int sounds = MenuMouseCursorSounds();
+    Tick(-196, -1); // Bag cell 0 to active item 0: the same index on another panel.
+    EXPECT_EQ(class_menu_item_info.key_arg_no, ITEM_MENU_PANEL_ACTIVE_ITEMS);
+    EXPECT_EQ(keys.cursor, keys.save_cursor);
+    EXPECT_EQ(MenuMouseCursorSounds(), sounds + 1);
+    Tick(41, 0); // KeyStepLocal sounds a cursor that differs from the saved one.
+    EXPECT_EQ(keys.cursor, 1);
+    EXPECT_NE(keys.cursor, keys.save_cursor);
+    EXPECT_EQ(MenuMouseCursorSounds(), sounds + 1);
+    Tick(1, 0);
+    EXPECT_EQ(MenuMouseCursorSounds(), sounds + 1);
+}
+
 TEST_F(ItemMouse, HoverCharacterSetsTheRetailCharacterTarget) {
     Tick(-116, 150);
     EXPECT_EQ(class_menu_item_info.key_arg_no, ITEM_MENU_PANEL_CHARA);
@@ -644,11 +658,14 @@ TEST_F(ItemMouse, BuildUpListHoverSelectsBeforeClickConfirms) {
         BuildUpNameXY[i][0] = 220;
         BuildUpNameXY[i][1] = 100 + 40 * i;
     }
+    const int sounds = MenuMouseCursorSounds();
     Tick(1, 115);
     EXPECT_EQ(BuildUpWeaponInfo.select_no, 2);
     EXPECT_EQ(GamePad__2.GetPadDown(), 0);
+    EXPECT_EQ(MenuMouseCursorSounds(), sounds + 1); // The retail step reads the cursor after the mouse.
     Tick(0, 0, 1);
     EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CROSS);
+    EXPECT_EQ(MenuMouseCursorSounds(), sounds + 1);
     BuildUpWeaponInfo = saved;
     std::copy(&saved_pos[0][0], &saved_pos[0][0] + 6, &BuildUpNameXY[0][0]);
 }
@@ -705,6 +722,30 @@ TEST_F(ItemMouse, RodPointsRejectBackgroundAndAcceptStatHit) {
     Tick(-140, 35, 1);
     EXPECT_EQ(keys.cursor, 0);
     EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CROSS);
+    menu.view_form[5] = nullptr;
+}
+
+TEST_F(ItemMouse, RodPointHoverLeavesTheSoundToTheRetailCursorCheck) {
+    auto &menu = class_menu_item_info;
+    menu.mode = MENU_ASK_MODE_ROD_POINTS;
+    menu.view_mode = MENU_ITEM_VIEW_FISHING_ROD;
+    CMenuPosDataForm   form{};
+    MENUFORMPARTS_TYPE stat{};
+    form.draw_flag = stat.draw_flag = true;
+    form.parts = &stat;
+    form.parts_num = 1;
+    stat.name = const_cast<char *>("index0");
+    stat.x = stat.y = 100;
+    stat.w = 100;
+    stat.h = 24;
+    menu.view_form[5] = &form;
+    Tick(-140, 35);
+    keys.cursor = 2; // The keys moved the stat cursor, which is select_pos[0].
+    const int sounds = MenuMouseCursorSounds();
+    Tick(1, 0);
+    EXPECT_EQ(keys.select_pos[0], 0);
+    EXPECT_NE(keys.cursor, keys.save_cursor);   // KeyStepLocal sounds this move...
+    EXPECT_EQ(MenuMouseCursorSounds(), sounds); // ...so the mouse does not.
     menu.view_form[5] = nullptr;
 }
 
