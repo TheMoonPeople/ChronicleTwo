@@ -26,6 +26,9 @@ struct Config : HostSettings {
     bool         autosave = true;
     // game.quick_loadout_title "plate": the quick loadout's title on a plate like the EXP gauge's, not on a bar.
     bool quick_loadout_plate = false;
+    // game.floor_info_monsters: the floor information pages on to the floor's monsters and their drops. Off by
+    // default: it changes retail's floor information screen and shows what retail hides.
+    bool         floor_info_monsters = false;
     ConfigAspect aspect = ConfigAspect::Auto;
     float        ui_scale = 1.0f;
     bool         font_sharp = false;

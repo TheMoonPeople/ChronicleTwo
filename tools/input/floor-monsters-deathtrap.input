@@ -1,0 +1,36 @@
+# --jump dungeon:4 --fast-load: R3 turns the menu debug mode on, Triangle opens and clears every floor, R3 turns it
+# off; Up x8 reaches Deathtrap (floor 13) and Cross opens its information. Triangle opens the Georama materials,
+# Triangle the monster list, Triangle goes back. Capture frames: 580 information, 680 materials, 780 monsters, 880.
+# Needs "game": {"floor_info_monsters": true} in the save root's config.json.
+250 r3
+256
+280 triangle
+286
+310 r3
+316
+340 up
+346
+356 up
+362
+372 up
+378
+388 up
+394
+404 up
+410
+420 up
+426
+436 up
+442
+452 up
+458
+500 cross
+506
+600 triangle
+606
+700 triangle
+706
+800 triangle
+806
+900 triangle
+906
