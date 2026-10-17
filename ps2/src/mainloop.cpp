@@ -81,10 +81,17 @@ static float BlackFade;
  * Opacity of the pause-menu message fade.
  */
 static float     BlackFade2;
+#ifdef PORT
+#include "port_memory_budget.hpp"
+#define MAIN_BUFFER_QUADWORDS PORT_MAIN_BUFFER_QUADWORDS
+#else
+#define MAIN_BUFFER_QUADWORDS 0x1A0000
+#endif
+
 /**
  * Main memory arena for game resources.
  */
-u_long128 main_buffer[0x1A0000];
+u_long128 main_buffer[MAIN_BUFFER_QUADWORDS];
 /**
  * Memory backing the system sound-effect loader.
  */
@@ -477,7 +484,7 @@ void MainLoop() {
     int               alignment;
 
     memory = GetMainStack();
-    memory->stSetBuffer(main_buffer, 0x1A0000);
+    memory->stSetBuffer(main_buffer, MAIN_BUFFER_QUADWORDS);
     memory->stack_used = 0;
     memory->lock = 0;
     SaveData.Initialize();
@@ -591,7 +598,7 @@ void MainLoop() {
     while (1) {
         if (LoopNo == LOOP_TITLE || OmakeFlag != 0) {
             SubGameSaveData = (CSubGameData *) main_buffer;
-            memory->stSetBuffer(&main_buffer[5000], 0x1A0000 - 5000);
+            memory->stSetBuffer(&main_buffer[5000], MAIN_BUFFER_QUADWORDS - 5000);
             memory->stack_used = 0;
             memory->lock = 0;
         }

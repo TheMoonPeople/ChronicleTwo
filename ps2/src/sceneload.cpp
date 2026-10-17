@@ -12,6 +12,10 @@
 #include "mglib.hpp"
 #include "scene.hpp"
 #include "sceneload.hpp"
+
+#ifdef PORT
+#include "dungeon_read_buffer.hpp"
+#endif
 #include "scenesnd.hpp"
 
 static uptr        LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred);
@@ -65,6 +69,9 @@ static uptr LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred) {
         }
 
         load_buf += size / 16 * 16;
+#ifdef PORT
+        PortAssertDungeonReadCursor(load_buf);
+#endif
         files->cfg_data = (char *) load_buf;
         strcpy(path, files->dir);
         strcat(path, files->cfg_name);
@@ -85,6 +92,9 @@ static uptr LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred) {
         }
 
         load_buf += size / 16 * 16;
+#ifdef PORT
+        PortAssertDungeonReadCursor(load_buf);
+#endif
         files->mpk_data = (u_int *) load_buf;
         strcpy(path, files->dir);
         strcat(path, files->mpk_name);
@@ -103,6 +113,9 @@ static uptr LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred) {
         }
 
         load_buf += size / 16 * 16;
+#ifdef PORT
+        PortAssertDungeonReadCursor(load_buf);
+#endif
         sky_size = 0;
         files->sky_data = (u_int *) load_buf;
 

@@ -112,6 +112,10 @@ int SetupMainUnit(u_long128 *read_buffer, mgCMemory *memory, mgCMemory *stacks, 
  */
 int GetCharaMemAllocSize();
 
+#ifdef PORT
+int PortGetCharaMemTableEntry(int layout_row, int stack_index);
+#endif
+
 /**
  *
  * Empties a memory and carves from it the stacks that a main character's

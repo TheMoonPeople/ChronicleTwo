@@ -36,6 +36,7 @@ target_include_directories(darkchronicle_tests PRIVATE ${CMAKE_CURRENT_BINARY_DI
 ct_link_game(darkchronicle_tests)
 kz_port_tests(darkchronicle_tests)
 target_link_libraries(darkchronicle_tests PRIVATE GTest::gtest nlohmann_json::nlohmann_json)
+target_compile_definitions(darkchronicle_tests PRIVATE CT_PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 # A case is a unit test: it finishes in milliseconds, and one that does not is cut off. The clock
 # cases measure short sleeps, which the parallel gfx cases skew, so they run on their own. The cases that compile

@@ -34,6 +34,14 @@ FIXUPS = [
     ("menusys.hpp", "    int MenuItemCommandSelect(int select_key, int push_button);",
      "    int MenuItemCommandSelect(int select_key, int push_button);\n"
      "    int PortRetailMenuItemCommandSelect(int select_key, int push_button);"),
+    ("menusys.hpp", "    int PushKey(int pad, int trigger);",
+     "    int PushKey(int pad, int trigger);\n"
+     "    int PortRetailMenuItemInfoPushKey(int pad, int trigger);"),
+    ("menusys.hpp", "    void KeyStepLocal(int select_key, int push_button, int flag);",
+     "    void KeyStepLocal(int select_key, int push_button, int flag);\n"
+     "    void PortRetailMenuItemInfoKeyStepLocal(int select_key, int push_button, int flag);"),
+    ("menusys.hpp", "int MenuItemKey();",
+     "int MenuItemKey();\nvoid PortRetailMenuItemDraw();"),
     ("nd_meswin.hpp", "#ifndef MES_WINDOW_OUT_OF_LINE_INIT", "#if 1"),
     ("collision.hpp", "memset(&bbox, 0, sizeof(bbox));", "memset(static_cast<void *>(&bbox), 0, sizeof(bbox));"),
     # kernel32 exports these three names on Windows; the PS2 kernel's versions take their own link names so they never bind to kernel32.

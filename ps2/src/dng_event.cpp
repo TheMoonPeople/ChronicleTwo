@@ -26,6 +26,9 @@
 #include "font.hpp"
 #include "gameutil.hpp"
 #include "mainloop.hpp"
+#ifdef PORT
+#include "port_memory_budget.hpp"
+#endif
 #include "maintex.hpp"
 #include "mapinfo.hpp"
 #include "mapjump.hpp"
@@ -2196,6 +2199,11 @@ void LoadDungeonMapFile(char *map_name, char *cfg_name, int gen_flag) {
         load_info.place_parts_max = 400;
         DngMainScene->DeleteMap(0, 1);
         DngMainScene->LoadMap(0, &load_info, 0);
+#ifdef PORT
+        if (mgCMemory *map_stack = DngMainScene->GetStack(1)) {
+            PortCheckDungeonStageRestAfterMap(map_stack);
+        }
+#endif
         DngMainScene->SetNowMapNo(map_no);
         DngMainScene->SetActive(SCENE_DATA_MAP, 0);
         DngMainMap = DngMainScene->GetMap(DngMainScene->active_map);

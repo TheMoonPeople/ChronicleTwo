@@ -857,6 +857,28 @@ A buffer inside a block is a child view, and it stays exactly where retail carve
 
 `stAlloc` and `Alloc` past an arena's end abort, naming `mgCMemory::name` or, when it has none, the arena's address, where retail printed and returned NULL. `stAllocTest` keeps retail's probe.
 
+### Logical memory budgets (PORT)
+
+Physical `kArenaHeadroom` multiplies backing storage; it does **not** raise `mgCMemory.stack_size`. Retail logical caps still apply unless the port bumps them in `ps2/src/charasetup.cpp` and related planners.
+
+| Arena / stack | Retail qw | PORT qw | Delta | Notes |
+|---------------|-----------|---------|-------|-------|
+| Human `mem_table` stack 0 (Max body / JSON metadata) | 68500 | 80500 | `CHARA_MODEL_LOAD_DELTA` (+12000) | ABRT at 68500/68500 on dungeon entry (Oct 2026); bootstrap until peak tests refine |
+| Human stack 1 (skin) | 40000 | 52000 | same | |
+| Robo stacks 0–2 | 30000 / 30000 / 60000 | +12000 each | same | |
+| Edit stack 0 | 75000 | 87000 | same | |
+| Monster layout stack 0 | 120000 | 132000 | same | |
+| `main_buffer` logical size | 0x1A0000 | 0x1A0000 + 24000 | `PORT_MAIN_BUFFER_EXTRA_QW` | Restores `BuffStageMain` tail when `GetCharaMemAllocSize()` grows |
+| Dungeon stack 1 tail after map load | (varies) | assert ≥ reserves | `DUNGEON_STAGE_STACK2_MIN` (65536), `DUNGEON_STAGE_STACK3_MIN` (`MONSTER_ACTIVE_MAX×4000` + margin) | `PortCheckDungeonStageRestAfterMap` in `dng_event.cpp` |
+
+Script stacks already use `CHARA_SCRIPT_RUNTIME_DELTA` (pointer-width growth). Model stacks use `CHARA_MODEL_LOAD_DELTA` from `port/include/port_memory_budget.hpp`.
+
+When datapack JSON or floor map payloads grow, re-run `CharaMemBudget` / dungeon budget tests and bump the relevant delta or reserve, then update this table.
+
+On PORT, dungeon singletons that must survive floor map loads (`CActiveMonster[MONSTER_ACTIVE_MAX]`, `CEffectScriptMan`, `CMonsterMan`) are allocated from dedicated arenas in `port/src/dungeon_monster_pool.cpp`, not from the `MainBuffer` slab carved for `BuffStageMain`.
+
+`BuffReadData` is **1 000 000** logical quadwords on PORT (retail **200 000**). `LoadMapData` chains `.map`/`.cfg`/`.mpk`/`.sky` into that staging buffer with no retail bounds check; PC datapack floors exceeded 3 MiB and overwrote later `MainBuffer` objects (`TreasureBoxMan`, etc.). `PortAssertDungeonReadCursor` in `sceneload.cpp` aborts if staging walks past the buffer.
+
 Retail places objects in runs with hand-written quadword counts. The placement operators in `port/src/mg_memory.cpp` grow the run to the host object's size while it is still its arena's last, as Dark Cloud 1 does. `arena_placement_test.cpp` lists the 51 literal-count sites whose host object outgrows its run, such as `CCharacter2` (2496 bytes in 0x68 quadwords), and the 8 cast-not-placed runs that nothing can grow: the script stacks `RS_STACKDATA` and `RS_CALLDATA` (`actscript.cpp`, `effscript.cpp`, `event.cpp`, `runscript_opcodes.cpp`) and `mgSORT_PACKET` (`mg_drawprim.cpp`). Each of those overruns its run on the host until `ps2/src` sizes it with `sizeof`.
 
 On Windows the executable is linked with `--dynamicbase` and `--high-entropy-va`, lld's MinGW defaults pinned in `port/cmake/arena.cmake`. The image base is 0x140000000, relocated by high-entropy ASLR, and the image is `LARGE_ADDRESS_AWARE`, so the image and the `VirtualAlloc` mappings lie above 4 GiB, and a truncated pointer faults at once. Linux stays `-pie -z separate-code`. Dark Cloud 1 links Windows with the same defaults.

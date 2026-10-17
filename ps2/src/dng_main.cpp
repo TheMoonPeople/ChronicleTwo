@@ -33,6 +33,11 @@
 #include "gamepad.hpp"
 #include "helpmes.hpp"
 #include "mainloop.hpp"
+#ifdef PORT
+#include "dungeon_monster_pool.hpp"
+#include "dungeon_read_buffer.hpp"
+#include "port_memory_budget.hpp"
+#endif
 #include "maintex.hpp"
 #include "map.hpp"
 #include "mapload.hpp"
@@ -306,7 +311,12 @@ void memoryInit() {
         strcpy(BuffEffectScriptData.name, "EScriptW Buffer");
     }
 
+#ifdef PORT
+    BuffReadData = MainBuffer->stAlloc64(PORT_DNG_BUFF_READ_QUADWORDS);
+    PortSetDungeonReadBuffer(BuffReadData, PORT_DNG_BUFF_READ_QUADWORDS);
+#else
     BuffReadData = MainBuffer->stAlloc64(200000);
+#endif
 }
 
 /**
@@ -411,7 +421,11 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     }
 
     memset(&MainBuffer->stack[MainBuffer->stack_used], 0xFF, 0x1EF00);
+#ifdef PORT
+    CActiveMonster *mons = PortDungeonMonsterPool();
+#else
     CActiveMonster *mons = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CActiveMonster) * MONSTER_ACTIVE_MAX) + 2)) CActiveMonster[MONSTER_ACTIVE_MAX];
+#endif
 
     for (int i = 0; i < MONSTER_ACTIVE_MAX; i++) {
         mons[i].Initialize();
@@ -647,7 +661,11 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     LoadFile("dungeon/articles/eff01.chr", BuffReadData, &size);
     u32 *eff_pack = (u32 *) BuffReadData;
 
+#ifdef PORT
+    FxScriptMan = PortDungeonFxScriptMan();
+#else
     FxScriptMan = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CEffectScriptMan)) + 2)) CEffectScriptMan;
+#endif
     FxScriptMan->Initialize(MainBuffer, 0x8C, 32);
     FxScriptMan->load_buffer = BuffReadData + size / 16 + 1;
     FxScriptMan->SetWorkBuffer(&BuffEffectScriptData);
@@ -721,7 +739,11 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
     LaserGunModel.LoadPackNoLine((u32 *) BuffReadData, "info.cfg", MainBuffer, MainBuffer, MainBuffer, 0x4A, NULL);
     LaserGun.Initialize(LaserGunModel.GetFrame(), 0x4A, mgTexManager.GetTexture("potbeam", -1));
     BattleAreaScene->free_texb = FxScriptMan->GetNotUsedTexb();
+#ifdef PORT
+    ActiveMonster = PortDungeonMonsterMan();
+#else
     ActiveMonster = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CMonsterMan)) + 2)) CMonsterMan;
+#endif
     ActiveMonster->Initialize(DngMainScene);
     CommonClassInit();
     AutoMapGen.grid = NULL;

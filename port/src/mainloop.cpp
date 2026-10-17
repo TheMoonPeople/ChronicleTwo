@@ -30,6 +30,7 @@
 #include "mainloop3.hpp"
 #include "mainloop_port.hpp"
 #include "mapjump.hpp"
+#include "port_memory_budget.hpp"
 #include "mapselect.hpp"
 #include "menuchr_port.hpp"
 #include "mg_drawprim.hpp"
@@ -144,7 +145,7 @@ void PortAutosaveStep(int program_loop_no) {
     }
 }
 
-extern u_long128 main_buffer[0x1A0000];
+extern u_long128 main_buffer[PORT_MAIN_BUFFER_QUADWORDS];
 extern CScene    MainScene;
 extern CFont     Font;
 
@@ -193,10 +194,10 @@ PORT_OVERRIDE void MainLoop() {
     int               mode_finished;
     std::uintptr_t    buffer_address;
     std::uintptr_t    alignment;
-    u_long128        *main_arena = ArenaRoot(&main_buffer, 0x1A0000, "MainBuffer");
+    u_long128        *main_arena = ArenaRoot(&main_buffer, PORT_MAIN_BUFFER_QUADWORDS, "MainBuffer");
 
     memory = GetMainStack();
-    memory->stSetBuffer(main_arena, 0x1A0000 * kArenaHeadroom);
+    memory->stSetBuffer(main_arena, PORT_MAIN_BUFFER_QUADWORDS * kArenaHeadroom);
     memory->stack_used = 0;
     memory->lock = 0;
     SaveData.Initialize();
@@ -317,7 +318,7 @@ PORT_OVERRIDE void MainLoop() {
     while (1) {
         if (PortLoopNo == LOOP_TITLE || OmakeFlag != 0) {
             PortSubGameSaveData = (CSubGameData *) main_arena;
-            memory->stSetBuffer(&main_arena[kSubGameQuads], 0x1A0000 * kArenaHeadroom - kSubGameQuads);
+            memory->stSetBuffer(&main_arena[kSubGameQuads], PORT_MAIN_BUFFER_QUADWORDS * kArenaHeadroom - kSubGameQuads);
             memory->stack_used = 0;
             memory->lock = 0;
         }

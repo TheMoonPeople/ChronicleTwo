@@ -49,6 +49,9 @@ RETAIL_BRIDGES = {
     "charasetup.cpp": [("GetRoboPartsInfo(CUserDataManager*)", "GetRoboPartsInfo", "PortRetailGetRoboPartsInfo")],
     "menusys.cpp": [
         ("CBaseMenuClass::MenuItemCommandSelect(int,int)", "MenuItemCommandSelect", "PortRetailMenuItemCommandSelect"),
+        ("CMenuItemInfo::PushKey(int,int)", "PushKey", "PortRetailMenuItemInfoPushKey"),
+        ("CMenuItemInfo::KeyStepLocal(int,int,int)", "KeyStepLocal", "PortRetailMenuItemInfoKeyStepLocal"),
+        ("MenuItemDraw()", "MenuItemDraw", "PortRetailMenuItemDraw"),
     ],
     "menuchr.cpp": [
         ("InitMainCharaBG(int,mgCMemory*,int)", "InitMainCharaBG", "PortRetailInitMainCharaBG"),
