@@ -41,6 +41,10 @@
 #include "sysmes.hpp"
 #include "userdata.hpp"
 
+#ifdef PORT
+#include "event_item_auto_use.hpp"
+#endif
+
 /**
  *
  * Rounds a byte count up to the number of 16-byte allocation blocks.
@@ -12247,7 +12251,7 @@ CGameDataUsed *CItemSelect::GetExistThisPosData(int pos) {
     return item_list[pos];
 }
 
-void CItemSelect::CheckUse(CGameDataUsed *item) {
+static void MenuEventItemSelectConsume(CGameDataUsed *item) {
     int  i;
     int *use_nos;
     int  offset;
@@ -12271,6 +12275,10 @@ void CItemSelect::CheckUse(CGameDataUsed *item) {
             }
         }
     }
+}
+
+void CItemSelect::CheckUse(CGameDataUsed *item) {
+    MenuEventItemSelectConsume(item);
 }
 
 int CItemSelect::KeyStep() {
@@ -12635,6 +12643,28 @@ void MenuItemSelectInit(mgCMemory *stack, int *tex_block, int mode) {
     int        rest = stack->stGetRest();
     u_long128 *top = stack->stGetTop();
     MenuItemMainMemory.stSetBuffer(top, rest);
+
+#ifdef PORT
+    if (mode == MENU_OPEN_USE_ITEM) {
+        int item_no = 0;
+        int bag_index = -1;
+
+        if (PortTryAutoResolveEventItem(mode, MenuArg.param, MenuUserParam.used_data, MENU_BAG_PLACE_MAX, &item_no,
+                                        &bag_index)) {
+            CGameDataUsed *item = &MenuUserParam.used_data[bag_index];
+            MenuArg.end_code = 7;
+            MenuArg.result[0] = item_no;
+            MenuArg.result[1] = GetSameAdrressUserData(item, 0);
+            if (MenuArg.param[0] == 1) {
+                MenuEventItemSelectConsume(item);
+            }
+            ItemSelectPtr = NULL;
+            MenuItemSelectMode = 0;
+            return;
+        }
+    }
+#endif
+
     ItemSelectPtr = new (MenuItemMainMemory.Alloc(QuadwordsFor(sizeof(CItemSelect)) + 2)) CItemSelect;
     ItemSelectPtr->SetTexBlock(tex_block);
     MenuItemSelectMode = 0;
@@ -12692,7 +12722,8 @@ void MenuItemSelectDraw() {
     mgRect<int> source2;
     source2.Set(0, 0, mgScreenWidth / 2, mgScreenHeight / 2);
     dest2.Set(-1, -1, mgScreenWidth + 1, mgScreenHeight + 1);
-    DrawMenuMainFrmImg(loaded_tex_no, dest2, source2, 128, 128, 128, ItemSelectPtr->bg_alpha, 0);
+    const int bg_alpha = ItemSelectPtr != NULL ? ItemSelectPtr->bg_alpha : 0x80;
+    DrawMenuMainFrmImg(loaded_tex_no, dest2, source2, 128, 128, 128, bg_alpha, 0);
     prim->offset_x = 0;
     prim->offset_y = 0;
 

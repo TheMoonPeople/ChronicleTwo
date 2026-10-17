@@ -21,6 +21,12 @@ const options::Row &Find(std::string_view key) {
 }
 } // namespace
 
+TEST(PcOptions, AutoUseEventItemDefaultsToOffInOverlay) {
+    const Config defaults;
+    EXPECT_FALSE(defaults.auto_use_event_item);
+    EXPECT_EQ(Find("game.auto_use_event_item").value(defaults), "Off");
+}
+
 TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
     const std::set<std::string> required{
         "video.fullscreen",
@@ -49,6 +55,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "input.glyph_device",
         "game.autosave",
         "game.quick_loadout_title",
+        "game.auto_use_event_item",
     };
     std::set<std::string> actual;
     for (const auto &page : options::Pages()) {

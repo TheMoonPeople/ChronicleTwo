@@ -201,6 +201,21 @@ TEST_F(PlatformConfig, DebugModeRoundTripsThroughSerialize) {
     ASSERT_TRUE(parsed == config);
 }
 
+TEST_F(PlatformConfig, AutoUseEventItemParsesBoolsAndDefaultsToOff) {
+    ASSERT_FALSE(Config{}.auto_use_event_item);
+    ASSERT_FALSE(ConfigParse("").auto_use_event_item);
+    ASSERT_FALSE(ConfigParse(R"({"game": {"auto_use_event_item": false}})").auto_use_event_item);
+    ASSERT_TRUE(ConfigParse(R"({"game": {"auto_use_event_item": true}})").auto_use_event_item);
+}
+
+TEST_F(PlatformConfig, AutoUseEventItemRoundTripsThroughSerialize) {
+    Config config;
+    config.auto_use_event_item = true;
+    Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_TRUE(parsed.auto_use_event_item);
+    ASSERT_TRUE(parsed == config);
+}
+
 TEST_F(PlatformConfig, WrongTypesKeepTheDefaults) {
     ASSERT_TRUE(ConfigParse(R"({
         "game": {"tick_rate": "50"},

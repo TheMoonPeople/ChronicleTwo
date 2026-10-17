@@ -26,6 +26,8 @@ struct Config : HostSettings {
     bool         autosave = true;
     // game.quick_loadout_title "plate": the quick loadout's title on a plate like the EXP gauge's, not on a bar.
     bool quick_loadout_plate = false;
+    // When on, event Use Item prompts with a single required id auto-confirm if owned.
+    bool         auto_use_event_item = false;
     ConfigAspect aspect = ConfigAspect::Auto;
     float        ui_scale = 1.0f;
     bool         font_sharp = false;

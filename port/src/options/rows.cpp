@@ -181,6 +181,10 @@ std::span<const Page> Pages() {
         {"Game",     {
                      Choice<&Config::autosave>("game.autosave", "Autosave", "Saves on arriving in a town or on a dungeon floor.\nThe load screen lists it first.", {"Off", "On"}),
                      Choice<&Config::quick_loadout_plate>("game.quick_loadout_title", "Quick loadout title", "How the D-pad down panel shows its title:\non a bar, or on a plate like the EXP gauge's.", {"Bar", "Plate"}),
+                     Choice<&Config::auto_use_event_item>("game.auto_use_event_item", "Auto-use event items",
+                                                              "Default Off. When On, events that ask for one specific item\n"
+                                                              "you already have skip the item picker grid.",
+                                                              {"Off", "On"}),
                  }       },
         {"Bindings", Bindings()           },
     };
