@@ -212,6 +212,13 @@ bool ClearFollow(Vec eye, Vec target, Vec next_eye, Vec next_target, CCPoly *pol
     }
     return false;
 }
+
+// The active, unlocked main camera outside scene events; each view adds its mode.
+bool MainCameraActive(CCameraControl *camera, CScene *scene, CPadControl *pad, bool subgame, bool locked) {
+    return camera && scene && pad && !subgame && !locked && !scene->event_run && scene->active_camera == 0 &&
+           scene->GetCamera(0) == camera && !camera->suspended && !mgCCamera::StopCamera &&
+           !(camera->rot_cancel & CAMERA_ROT_CANCEL_ANALOG);
+}
 } // namespace
 
 float MouseCameraClampFollow(CCameraControl &camera, const CCameraControl &candidate, CCPoly *polys, int count) {
@@ -278,20 +285,17 @@ int MouseCameraCollectPolys(CScene &scene, mgVu0FBOX &box, CCPoly *out, int capa
 
 bool TownMouseCameraOwns(CCameraControl *camera, CScene *scene, CPadControl *pad,
                          bool walking, bool subgame, bool locked) {
-    return camera && scene && pad && walking && !subgame && !locked &&
-           !scene->event_run && scene->active_camera == 0 && scene->GetCamera(scene->active_camera) == camera &&
-           camera->control_on && camera->follow_on && !camera->suspended &&
-           !mgCCamera::StopCamera && !(camera->rot_cancel & CAMERA_ROT_CANCEL_ANALOG);
+    return walking && MainCameraActive(camera, scene, pad, subgame, locked) && camera->control_on && camera->follow_on;
 }
 
 bool DungeonMouseCameraOwns(CCameraControl *camera, CScene *scene, CPadControl *pad,
                             const DNG_STATUS &status, const DNG_BATTLE_AREA *area,
                             CActionChara *chara, bool subgame, bool locked, bool debug, bool eye) {
-    const bool active = eye ? camera && scene && pad && !subgame && !locked &&
-                                  !scene->event_run && scene->active_camera == 0 && scene->GetCamera(0) == camera &&
-                                  !camera->follow_on && !camera->suspended && !mgCCamera::StopCamera &&
-                                  !(camera->rot_cancel & CAMERA_ROT_CANCEL_ANALOG)
-                            : TownMouseCameraOwns(camera, scene, pad, true, subgame, locked);
+    // A system event's _INITIALIZE turns this camera's follow off before the event
+    // camera takes over, and the death event never turns it back on. Retail ignores
+    // follow while control is on, so eye_view alone tells follow from eye view.
+    const bool active = MainCameraActive(camera, scene, pad, subgame, locked) &&
+                        (eye ? !camera->follow_on : bool(camera->control_on));
     return active && status.mode == DNG_STATUS_FIELD && bool(status.eye_view) == eye && area && chara && !debug &&
            (area->camera_mode == DNG_CAMERA_FOLLOW || area->camera_mode == DNG_CAMERA_FOLLOW_LOW) &&
            !(area->pause_flag & (DNG_PAUSE_PLAYER_STEP | DNG_PAUSE_PLAYER_CONTROL |

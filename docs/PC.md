@@ -682,9 +682,12 @@ town walking mode or dungeon follow/follow-low mode with the active main camera,
 unlocked input and no scene event or subgame. Dungeon carrying, guarding, aiming,
 falling and lock-on keep follow-camera mouse control, just as they keep right-stick
 control; lock-on target framing still runs first. The character's menu-eligibility
-flag does not gate the follow camera. Paused player or field control and
-pending/running event scripts retain camera ownership. Town water movement uses
-the walking camera; ladders keep their authored camera for both inputs.
+flag does not gate the follow camera. Nor, in dungeons, does the camera's follow
+flag: system events such as the death event turn it off and retail control runs
+without it, so the mouse keeps turning the camera after a forced character change.
+Paused player or field control and pending/running event scripts retain camera
+ownership. Town water movement uses the walking camera; ladders keep their
+authored camera for both inputs.
 Boss and arena views, menus and Georama retain their existing controls. Fixed
 town rooms use the separate fixed-camera look option below; photo view uses
 the direct aiming controls described below. A camera-reset request owns

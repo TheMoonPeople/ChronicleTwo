@@ -43,6 +43,31 @@ CCPoly Wall(float x) {
     poly.normal[0] = 1;
     return poly;
 }
+
+// A dungeon field with the active main follow camera and an idle player.
+struct DungeonGate {
+    CCameraControl  camera = Camera();
+    CScene          scene;
+    CPadControl     pad{};
+    DNG_BATTLE_AREA area{};
+    DNG_STATUS      status{};
+    CActionChara    chara;
+
+    DungeonGate() {
+        scene.event_run = 0;
+        chara.menu_flag = 1;
+        chara.hold_type = ACTION_HOLD_NONE;
+        chara.lock_on = 0;
+        chara.damage_req = ACTION_DAMAGE_REQ_NONE;
+        area.script.event_no = -1;
+        scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
+        scene.active_camera = 0;
+    }
+
+    bool Owns(bool eye = false, bool subgame = false, bool locked = false, bool debug = false) {
+        return DungeonMouseCameraOwns(&camera, &scene, &pad, status, &area, &chara, subgame, locked, debug, eye);
+    }
+};
 } // namespace
 
 TEST(CameraMouse, DirectYawTurnsCurrentAndPendingPosesWithoutStickEasing) {
@@ -336,22 +361,9 @@ TEST(CameraMouse, DungeonActionsKeepRightStickAndDirectMouseFollowControl) {
 }
 
 TEST(CameraMouse, DungeonOwnershipKeepsAuthoredModesButAllowsPlayerActions) {
-    auto   camera = Camera();
-    CScene scene;
-    scene.event_run = 0;
-    CPadControl     pad{};
-    DNG_BATTLE_AREA area{};
-    DNG_STATUS      status{};
-    CActionChara    chara;
-    chara.menu_flag = 1;
-    chara.hold_type = ACTION_HOLD_NONE;
-    chara.lock_on = 0;
-    chara.damage_req = ACTION_DAMAGE_REQ_NONE;
-    area.script.event_no = -1;
-    scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
-    scene.active_camera = 0;
-    auto owns = [&] { return DungeonMouseCameraOwns(&camera, &scene, &pad, status, &area,
-                                                    &chara, false, false, false); };
+    DungeonGate gate;
+    auto &[camera, scene, pad, area, status, chara] = gate;
+    auto owns = [&] { return gate.Owns(); };
     EXPECT_TRUE(owns());
     for (int mode : {int(DNG_CAMERA_BOSS), int(DNG_CAMERA_ARENA), 3}) {
         area.camera_mode = mode;
@@ -395,14 +407,13 @@ TEST(CameraMouse, DungeonOwnershipKeepsAuthoredModesButAllowsPlayerActions) {
     scene.event_run = 1;
     EXPECT_FALSE(owns());
     scene.event_run = 0;
-    EXPECT_FALSE(DungeonMouseCameraOwns(&camera, &scene, &pad, status, &area, &chara, true, false, false));
-    EXPECT_FALSE(DungeonMouseCameraOwns(&camera, &scene, &pad, status, &area, &chara, false, true, false));
-    EXPECT_FALSE(DungeonMouseCameraOwns(&camera, &scene, &pad, status, &area, &chara, false, false, true));
+    EXPECT_FALSE(gate.Owns(false, true));
+    EXPECT_FALSE(gate.Owns(false, false, true));
+    EXPECT_FALSE(gate.Owns(false, false, false, true));
     EXPECT_TRUE(owns());
     camera.FollowOff();
     status.eye_view = 1;
-    auto eye_owns = [&] { return DungeonMouseCameraOwns(&camera, &scene, &pad, status, &area,
-                                                        &chara, false, false, false, true); };
+    auto eye_owns = [&] { return gate.Owns(true); };
     EXPECT_TRUE(eye_owns());
     chara.hold_type = ACTION_HOLD_STONE;
     EXPECT_FALSE(eye_owns());
@@ -412,6 +423,25 @@ TEST(CameraMouse, DungeonOwnershipKeepsAuthoredModesButAllowsPlayerActions) {
     chara.menu_flag = 1;
     chara.lock_on = 1;
     EXPECT_FALSE(eye_owns());
+}
+
+TEST(CameraMouse, DungeonFollowOwnershipSurvivesTheDeathEventsFollowOff) {
+    DungeonGate gate;
+    auto &[camera, scene, pad, area, status, chara] = gate;
+    auto owns = [&](bool eye) { return gate.Owns(eye); };
+    // The death event's _INITIALIZE runs on the main camera, and nothing turns
+    // follow back on; the field loop only turns control back on.
+    camera.FollowOff();
+    EXPECT_TRUE(owns(false));
+    EXPECT_FALSE(owns(true));
+    camera.ControlOff();
+    EXPECT_FALSE(owns(false));
+    camera.ControlOn();
+    status.eye_view = 1;
+    EXPECT_FALSE(owns(false));
+    EXPECT_TRUE(owns(true));
+    // Town walking still keeps follow as part of its camera mode.
+    EXPECT_FALSE(TownMouseCameraOwns(&camera, &scene, &pad, true, false, false));
 }
 
 class DungeonEyeMouse : public testing::TestWithParam<bool> {};
