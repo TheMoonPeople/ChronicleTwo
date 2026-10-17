@@ -154,6 +154,8 @@ TEST(PcOptions, HitTestingUsesVisibleRowsAndHasNoDeadRowsOrOutOfBoundsHits) {
     EXPECT_EQ(options::HitTest(state, 440, 120).kind, options::HitKind::None);
     EXPECT_EQ(options::HitTest(state, 84, 352).kind, options::HitKind::Back);
     options::SelectPage(state, 1);
+    // Gap between the tab strip (bottom 114) and the first row (top 120).
+    EXPECT_EQ(options::HitTest(state, 300, 117).kind, options::HitKind::None);
     const auto audio_rows = static_cast<int>(options::Pages()[1].rows.size());
     EXPECT_EQ(options::HitTest(state, 300, options::kRowY + (audio_rows - 1) * options::kRowStep).index, audio_rows - 1);
     EXPECT_EQ(options::HitTest(state, 300, options::kRowY + audio_rows * options::kRowStep).kind, options::HitKind::None);
