@@ -11,6 +11,7 @@
 #include "menuop.hpp"
 #include "menusys.hpp"
 #include "mg_memory.hpp"
+#include "stubs/menuop.hpp"
 
 TEST(MenuOptionStride, MinimapChoicesUseTheirFullPointerWidth) {
     CMenuPosDataManage layout = {};
@@ -58,4 +59,14 @@ TEST(MenuOptionStride, MinimapChoicesUseTheirFullPointerWidth) {
     MenuCommonInfo = nullptr;
     MenuConfigPtr = nullptr;
     MenuDCMsg[2] = nullptr;
+}
+
+TEST(MenuOptionCursor, BottomLimitReachesTheNinthShownRow) {
+    // PAL's op_cursorlimmit bottom is 274; the ninth shown row settles at 288.
+    EXPECT_EQ(PortOptionCursorBottom(274, 288, 100, 100), 288);
+    // While the list scrolls up to it, the row is still 18 below its place.
+    EXPECT_EQ(PortOptionCursorBottom(274, 306, 118, 100), 288);
+    // Rows that settle above the limit, and the top row scrolling down, keep retail's limit.
+    EXPECT_EQ(PortOptionCursorBottom(274, 264, 100, 100), 274);
+    EXPECT_EQ(PortOptionCursorBottom(274, 72, 76, 100), 274);
 }
