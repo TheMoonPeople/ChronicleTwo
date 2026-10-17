@@ -913,27 +913,28 @@ TEST(MgTexture, NativeSetsReuseIdenticallyNamedPicturesWithoutDecoding) {
     };
     std::string identity = "first";
     auto        name = [&](const texture_catalog::Entry &, std::size_t variant) { return identity + std::to_string(variant); };
+    // A named picture decodes only its first variant; the others decode when selected.
     MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode, name);
-    EXPECT_EQ(decodes, 2);
+    EXPECT_EQ(decodes, 1);
     auto *original = h.manager.GetTexture(const_cast<char *>("shared"), 0);
     ASSERT_NE(original, nullptr);
 
     // Identical identities reuse the registered picture without decoding.
     MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode, name);
-    EXPECT_EQ(decodes, 2);
+    EXPECT_EQ(decodes, 1);
     EXPECT_EQ(h.manager.GetTexture(const_cast<char *>("shared"), 0), original);
     EXPECT_EQ(h.manager.texture_num, 1);
 
     // A different identity decodes, and identical pixels still keep the registration.
     identity = "second";
     MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode, name);
-    EXPECT_EQ(decodes, 4);
+    EXPECT_EQ(decodes, 2);
     EXPECT_EQ(h.manager.GetTexture(const_cast<char *>("shared"), 0), original);
 
     // Without identities the decoded pixels decide, and changed pixels replace the picture.
     value = 90;
     MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
-    EXPECT_EQ(decodes, 6);
+    EXPECT_EQ(decodes, 4);
     auto *replaced = h.manager.GetTexture(const_cast<char *>("shared"), 0);
     ASSERT_NE(replaced, nullptr);
     EXPECT_EQ(reinterpret_cast<const unsigned char *>(replaced->image[0])[0], 90);
@@ -942,14 +943,21 @@ TEST(MgTexture, NativeSetsReuseIdenticallyNamedPicturesWithoutDecoding) {
     auto partial = [&](const texture_catalog::Entry &, std::size_t variant) { return variant == 0 ? std::string("third0") : std::string{}; };
     MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode, partial);
     MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode, partial);
-    EXPECT_EQ(decodes, 10);
+    EXPECT_EQ(decodes, 8);
 
     // Changed semantics with the same identities are entered again.
     MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode, name);
-    EXPECT_EQ(decodes, 12);
+    EXPECT_EQ(decodes, 9);
     document.entries[0].clamp = 1;
     MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode, name);
-    EXPECT_EQ(decodes, 14);
+    EXPECT_EQ(decodes, 10);
+
+    // Selecting the other variant of a named picture decodes it then.
+    auto *named = h.manager.GetTexture(const_cast<char *>("shared"), 0);
+    ASSERT_NE(named, nullptr);
+    ASSERT_TRUE(MgTextureSelectVariant(named, "alt"));
+    EXPECT_EQ(decodes, 11);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(named->image[0])[0], 91);
 }
 
 TEST(MgTexture, KeysLiveInTex0) {
