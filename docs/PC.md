@@ -667,6 +667,48 @@ pointer immediately. Ordinary dialogue choices share the message adapter;
 the rendered confirmation replays and drawn-message unit tests cover that input
 path, but campaign dialogue choices still need a dedicated replay.
 
+### Character, Options and Help mouse
+
+On the Character page, hovering a shown portrait (Max, Monica, the Ridepod,
+Monster Transform or the travelling townsperson) moves the retail cursor there,
+and clicking it confirms; a click beside the portraits does nothing. While a
+character change loads, left clicks do nothing. The change question, the
+townsperson's View Status/Send back question, their commands and their
+questions take clicks on their drawn choices; when a question opens over a
+list that still draws its cursor, the newest window takes the mouse. On
+Cedric's repair board, hover and the wheel select an item and only a click on
+an item confirms, so a stray click cannot spend his points. Waits that take
+any button (the opening, the townsperson's speech) still take any click.
+
+Retail mirrors the hand to point left at Max. The mouse pointer is never
+mirrored: the shared pointer already kept the hotspot on the fingertip in either
+facing, but a hand whose body jumps across the hotspot between neighbouring
+portraits reads as pointing somewhere else, so it keeps its usual facing on
+every target.
+
+On the retail Options page, hovering a row's label moves the row cursor and keeps
+its choice; hovering a choice button also moves the choice. Clicking a button
+selects that setting. The PC SETTINGS label opens that page on click.
+
+In Help, hovering an entry moves the cursor and a click opens it. On an entry's
+picture pages the wheel turns pages (down for the next) through the retail
+Left/Right keys; a click turns to the next page and right click returns, as Cross
+and Circle do. Movies keep their retail controls. Keyboard and controller input
+is unchanged on all three pages.
+
+The wheel follows one rule on these pages: in a list longer than its window,
+each notch scrolls the list one row and the cursor takes the row that comes under
+the pointer, or stays in view (`MenuMouseScroll`; the ITEM page's bag scrolls the
+same way). Elsewhere it moves the cursor, as in shops and the root menu; the
+Character page's portrait map is not a list, so the wheel does nothing there. Options and
+Help rows are hit where they are drawn while the list eases to a new scroll, and
+only inside the list's scissor (`clip0`): a row sliding under the footer cannot
+be clicked, and a visible row above the new scroll still can.
+
+`tools/input/character-mouse.input`, `character-mouse-cedric.input`, `options-mouse.input` (`--jump town:10`)
+and `help-mouse.input` (`--jump dungeon:0:1`) replay these at `--window 1920x1080`
+with `--fast-load`; their comments give capture frames.
+
 ### Mouse follow camera
 
 Mouse motion directly turns the active walking camera around the character. It

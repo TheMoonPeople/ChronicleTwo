@@ -1,0 +1,29 @@
+# --jump town:10 --fast-load --window 1920x1080; use --screenshot-fps to see the pointer.
+# Message Speed label (610), its FAST button (630), wheel down three rows (680),
+# click Map Display 3 (740), hover Blur Background (770), open PC SETTINGS from its label (840).
+300 triangle
+306
+370 down
+371
+382 down
+383
+394 down
+395
+406 down
+407
+420 cross
+426
+600 mouse:-360,-180
+601
+620 mouse:775,0
+621
+650 wheel:-3
+651
+700 mouse1
+702
+750 mouse:-775,330
+751
+790 mouse:660,-550
+791
+800 mouse1
+802

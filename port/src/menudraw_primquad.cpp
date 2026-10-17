@@ -102,7 +102,7 @@ PORT_OVERRIDE void PrimQuad(mgCTexture *texture, float x, float y, mgRect<int> u
     if (cursor) {
         MenuMouseNoteHand(mgPortBinding(texture),
                           {float(uv.left), float(uv.top), float(uv.right), float(uv.bottom)},
-                          0, 0, alpha);
+                          0, alpha);
     }
     mgCDrawPrim prim;
     SetSpriteEnv(&prim, MENU_SPRITE_ENV_TEXTURE);
