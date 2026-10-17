@@ -6,6 +6,9 @@
 #include "gamepad.hpp"
 #include "mainloop.hpp"
 #include "menu_mouse.hpp"
+#include "menu_mouse_floor.hpp"
+#include "menu_mouse_map.hpp"
+#include "menu_mouse_retail.hpp"
 #include "menu_mouse_shop.hpp"
 #include "menucls1.hpp"
 #include "menucommon.hpp"
@@ -23,8 +26,6 @@ extern CSaveMenuClass *MouseSave asm("MenuMouse_Save");
 extern TITLE_INFO     *MouseTitle asm("MenuMouse_Title");
 extern short           MouseTitlePhase asm("MenuMouse_TitlePhase");
 extern unsigned char   MouseTitleHDD asm("MenuMouse_TitleHDD");
-
-bool MenuMouseFloor();
 
 namespace {
 void RootMouse() {
@@ -97,6 +98,9 @@ PORT_OVERRIDE int CMenuKeyFunc::CheckSelectKey() {
         if (now_mode == MENU_MODE_DNG_TREE_MAP) {
             MenuMouseFloor();
         }
+        if (now_mode == MENU_MODE_WORLD_MOVE) {
+            MenuMouseWorldMap();
+        }
         if (now_mode == MENU_MODE_ITEM_SELECT) {
             ItemPopupMouse();
         }
@@ -139,7 +143,8 @@ PORT_OVERRIDE int MenuCheckPushButton() {
     return 0;
 }
 
-void MenuMouseSave(CSaveMenuClass &save) {
+namespace {
+void SaveListMouse(CSaveMenuClass &save) {
     if (save.CBaseMenuClass::mode != MENU_ASK_MODE_NONE || save.page != SAVE_MENU_PAGE_FILE_LIST ||
         save.phase != SAVE_LIST_PHASE_SELECT || !save.list_form) {
         return;
@@ -157,6 +162,16 @@ void MenuMouseSave(CSaveMenuClass &save) {
     MenuMouseDelayConfirm(&save, save.select, selected, 4);
     if (selected != save.select) {
         MenuMouseMove(&save.select, selected);
+    }
+}
+} // namespace
+
+void MenuMouseSave(CSaveMenuClass &save) {
+    SaveListMouse(save);
+    // The floor map's Save Progress hands its clicks to this screen; keep them in the language's layout
+    // through the file list and the save question. Other save screens keep the shared clicks.
+    if (MouseTreeMode == DNG_TREE_MODE_SAVE && MenuCommonInfo && MenuCommonInfo->now_mode == MENU_MODE_DNG_TREE_MAP) {
+        MenuMouseLanguageClicks();
     }
 }
 

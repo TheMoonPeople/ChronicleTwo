@@ -1,10 +1,13 @@
 #include "common.h"
 
 #include <algorithm>
+#include <climits>
 #include <cstring>
 #include <vector>
 
 #include "font.hpp"
+#include "gamepad.hpp"
+#include "mainloop.hpp"
 #include "menu_mouse.hpp"
 #include "mg_drawprim.hpp"
 #include "mglib_port.hpp"
@@ -26,12 +29,60 @@ std::vector<MenuMouseRect> MenuMouseMessageRows(ClsMes &message, int count) {
         int dx = 0, dy = 0;
         message.CalcCenteringXY(&dx, &dy);
         for (int i = 0; i < std::clamp(count, 0, int(MES_LINE_MAX)); ++i) {
-            const float x = message.line_pos_on[i] ? float(message.line_pos[i][0]) : message.text_x + dx + message.draw_off_x;
-            const float y = message.line_pos_on[i] ? float(message.line_pos[i][1]) : message.text_y + dy + message.draw_off_y + message.font_h * i;
+            // DrawFont offsets every line, placed or flowing, by draw_off.
+            const float x = (message.line_pos_on[i] ? message.line_pos[i][0] : message.text_x + dx) + message.draw_off_x;
+            const float y = (message.line_pos_on[i] ? message.line_pos[i][1] : message.text_y + dy + message.font_h * i) + message.draw_off_y;
             choices.push_back(i >= message.select_top ? MenuMouseRect{x, y, float(std::max({message.text_w, message.line_w[i], 60})), float(message.font_h)} : MenuMouseRect{});
         }
     }
     return choices;
+}
+
+namespace {
+// The laid-out characters of one drawn line, first to last.
+template <class Each>
+void LineGlyphs(const ClsMes &message, int line, Each each) {
+    if (message.font_h <= 0 || line < 0 || line >= MES_LINE_MAX || message.line_shade[line] == MES_SHADE_HIDDEN) {
+        return;
+    }
+    for (int i = std::max(0, message.page_top); i < std::min(message.reveal_num, int(MES_WIN_TBL_MAX)); ++i) {
+        if (message.tbl[i].y / message.font_h == line) {
+            each(message.tbl[i]);
+        }
+    }
+}
+} // namespace
+
+int MenuMouseLabelButton(const ClsMes &message, int line) {
+    int symbol = -1;
+    LineGlyphs(message, line, [&](const MES_WIN_TBL &glyph) {
+        if (symbol < 0 && glyph.code >= MES_CODE_GAIJI && glyph.code < MES_CODE_GAIJI + 0x32) {
+            symbol = glyph.code - MES_CODE_GAIJI;
+        }
+    });
+    // DrawGaiji_sub shows the confirm and cancel symbols swapped outside Japanese.
+    if (LanguageCode != 0 && (symbol == 6 || symbol == 8)) {
+        symbol = 14 - symbol;
+    }
+    constexpr int buttons[] = {PAD_CIRCLE, PAD_TRIANGLE, PAD_CROSS, PAD_SQUARE};
+    return symbol >= 6 && symbol <= 9 ? buttons[symbol - 6] : 0;
+}
+
+MenuMouseRect MenuMouseLabelRect(const ClsMes &message, int line) {
+    int left = INT_MAX, right = INT_MIN;
+    if (line >= 0 && line < MES_LINE_MAX && message.line_pos_on[line]) {
+        LineGlyphs(message, line, [&](const MES_WIN_TBL &glyph) {
+            left = std::min(left, int(glyph.x));
+            right = std::max(right, int(glyph.x));
+        });
+    }
+    if (left > right) {
+        return {};
+    }
+    // DrawFont puts a placed line's characters at line_pos plus their own offsets and draw_off.
+    const float x = message.line_pos[line][0] + message.draw_off_x + left;
+    const float y = message.line_pos[line][1] + message.draw_off_y;
+    return {x - 2, y - 6, float(right - left + message.font_w + 4), float(message.font_h + 12)};
 }
 
 PORT_OVERRIDE void ClsMes::StepSelectCursor(int steps) {
@@ -65,8 +116,8 @@ PORT_OVERRIDE void _set2DSprite(char *name, mgCDrawPrim *primitive, mgRect<int> 
     if (MesAbsDrawOff != 0) {
         return;
     }
-    const bool         cursor = std::strcmp(name, "gaiji") == 0 && uv.left == 96 && uv.top == 232 &&
-                                uv.right == 40 && uv.bottom == 24;
+    const bool cursor = std::strcmp(name, "gaiji") == 0 && uv.left == 96 && uv.top == 232 &&
+                        uv.right == 40 && uv.bottom == 24;
     gfx::Interp2DScope tag(cursor ? gfx::Interp2D{MenuMouseNextHandKey(), static_cast<uint64_t>(mgPortFrameCount())} : gfx::CurrentInterp2D());
     primitive->Begin(MG_PRIM_SPRITE);
     MySetTex(name, primitive);

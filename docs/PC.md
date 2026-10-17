@@ -623,8 +623,8 @@ and game captures. The menu hand shares cursor ownership with the operating-syst
 `input.mouse_capture` configures capture, and `input.mouse_release` selects the
 keys that release it.
 
-Mouse selection covers the town and dungeon root menus, title menu, dungeon
-floor map and Save Adventure action, the flat save/load file lists,
+Mouse selection covers the town and dungeon root menus, title menu, world map,
+dungeon floor maps and their help actions, the flat save/load file lists,
 and the field Use Item popup. Yes/No boxes and dialogue choices use the message
 system's drawn choice positions and feed its normal directional input before
 confirming. The pointer follows the renderer's UI mapping, including widescreen
@@ -632,7 +632,25 @@ anchoring and display scaling.
 
 The root and file lists pass their selection through the retail cursor helper,
 so scrolling, help text and background loading follow the same path as a D-pad
-move. The floor map similarly uses its normal next-room transition. The shared
+move. The floor map similarly uses its normal next-room transition.
+
+On the world map, hovering an unlocked area's mark selects it, and clicking the
+mark or the area's name frame opens its place list. Clicks on the open map do
+nothing, and the wheel is unused. A dungeon floor map selects the hovered room,
+whether the world map or a dungeon opened it. Each wheel notch moves to the room
+the arrow keys reach next along the path: down onward, preferring Right, then
+Down, Up and Left, and up back the other way. At a fork the wheel therefore keeps
+to the branch the Right key continues along. The board scrolls as it does for
+the keys. Clicking a room opens its information or question. Clicking a help
+label presses the button its symbol shows: Back to Map or Exit Dungeon, Save
+Progress, and the floor information's Move and Cancel. On the floor information
+only those labels act on a left click. Room hit boxes follow the drawn pictures
+and the drawing's cull edge. On these maps, including the world map's place list
+and travel question, every floor-map question and the save screen that Save
+Progress opens, Mouse1 confirms and Mouse2 cancels in the language's own layout;
+Japanese confirms with Circle.
+
+The shared
 pointer implementation is `port/src/menu_mouse.cpp`; menu adapters, cursor
 transitions, floor selection and message choices live in separate
 `menu_mouse_*.cpp` files.
@@ -645,7 +663,13 @@ Deterministic mouse replays are `tools/input/town-mouse-menu.input` and
 controller handoff, scrolling and confirmation timing.
 
 `town-mouse-menu-wide.input` checks opening and cancelling at 16:9.
-`dungeon-mouse-play.input` enters a floor with the mouse and opens its root menu.
+`world-map-mouse.input`, with `--jump town:10 --fast-load --window 1920x1080`,
+hovers and clicks world map areas, walks Rainbow Butterfly Wood's floor map with
+the wheel, clicks Back to Map, Cancel and Move to this floor, and enters floor 1;
+its comments give capture frames. `MenuMouseMap.*` and `MenuMouseMapInput.*`
+cover the area marks, room pictures and culling, wheel steps through a fork, help
+labels and these clicks in English and Japanese.
+`dungeon-mouse-play.input` enters a floor through its Move label and opens its root menu.
 `dungeon-mouse-item-popup.input` follows the normal dungeon replay to the locked
 gate and selects the Gate Key with the mouse. `title-mouse-load.input` exercises
 Continue, a file-row click and its confirmation using a copied flat-save fixture.
@@ -1212,7 +1236,7 @@ The 22 `#ifndef PORT` guards are 21 in the eight `.cpp` files that hold assembly
 
 `port/include/stubs/<unit>.hpp`, when it exists, is included ahead of `ps2/src/<unit>.cpp`, after `port.h` and nothing else. It declares what the port defines in place of code `PORT` leaves out, and it renames or supplies what the unit takes from MWCC or from the PS2 link alone. Only the port's build sees `port/include`.
 
-The 23 native unit headers are `charasetup`, `collision`, `dataread`, `dng_main`, `dngmenu`, `editctrl`, `editmap2`, `event`, `event_func`, `gamepad`, `gameutil`, `inventmn`, `mainloop`, `menudraw`, `menumain`, `menuop`, `menusys`, `mg_frame`, `mg_math`, `mglib`, `nowload`, `photo`, `title`. Their link-name bridges and native caller declarations remain outside retail source.
+The 24 native unit headers are `charasetup`, `collision`, `dataread`, `dng_main`, `dngmenu`, `editctrl`, `editmap2`, `event`, `event_func`, `gamepad`, `gameutil`, `inventmn`, `mainloop`, `menudraw`, `menumain`, `menumap`, `menuop`, `menusys`, `mg_frame`, `mg_math`, `mglib`, `nowload`, `photo`, `title`. Their link-name bridges and native caller declarations remain outside retail source.
 
 ## Header fixups
 
