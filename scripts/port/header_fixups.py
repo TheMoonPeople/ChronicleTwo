@@ -94,6 +94,13 @@ UNIT_FIXUPS = [
     ("menusys.cpp", "*(u_long128 *) color = *(u_long128 *) fusion_ambient;",
      "memcpy(color, fusion_ambient, sizeof(fusion_ambient));"),
     ("dng_debug.cpp", "\nvoid CTreasureBox::Initialize() {", "\ninline void CTreasureBox::Initialize() {"),
+    # The floor map culls rooms and passages at the visible extent rather than retail's 512x480 screen.
+    ("dngmenu.cpp", "if (root == NULL || (float) mgScreenWidth < rect.left || rect.top > (float) (mgScreenHeight + 20)) {",
+     "if (root == NULL || PortDngMapVisibleRight() < rect.left || rect.top > PortDngMapVisibleBottom() + 20.0f) {"),
+    ("dngmenu.cpp", "if (room == NULL || rect.left > (float) (mgScreenWidth + 20) || rect.top > (float) (mgScreenHeight + 30)) {",
+     "if (room == NULL || rect.left > PortDngMapVisibleRight() + 20.0f || rect.top > PortDngMapVisibleBottom() + 30.0f) {"),
+    # A passage is three GS lines a pixel apart; filled as one band, they stay one stroke at any size.
+    ("dngmenu.cpp", "prim->Begin(MG_PRIM_LINE);", "prim->Begin(MG_PRIM_LINE); mgPortPrimLineBands(*prim, 3);"),
     # The dungeon menu carves its memory from these 200000 quadwords and gives the invention menu's
     # model reads (LOAD STACK) whatever is left. Host objects are larger than retail's, so with Max's
     # largest outfit (the Explorer's set) the reads overran it. Give the menu 60000 more quadwords.

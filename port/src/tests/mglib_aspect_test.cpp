@@ -5,8 +5,11 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <initializer_list>
+#include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -23,6 +26,13 @@
 #include "mglib_port.hpp"
 #include "platform/clock.hpp"
 #include "platform/window.hpp"
+
+// dngmenu.hpp brings libgraph.h, whose register macros must follow the host and test headers.
+// clang-format off
+#include "dngfloor.hpp"
+#include "dngmenu.hpp"
+#include "stubs/dngmenu.hpp"
+// clang-format on
 
 using namespace dc::test;
 
@@ -628,4 +638,230 @@ TEST(MglibAspect, OptionsAndHelpBackdropContinueArtworkAt3840x2160) {
 
 TEST(MglibAspect, OptionsAndHelpFlanksFollowVerticalSlide) {
     ExpectMenuBackdropContinuation(1920, 1080, 3, {-480, -240, 80, 240, 480});
+}
+
+namespace {
+struct FreeDeleter {
+    void operator()(void *p) const {
+        std::free(p);
+    }
+};
+
+using FloorMap = std::unique_ptr<CDngFreeMap, FreeDeleter>;
+
+// A zeroed map is in menu mode with no textures, user or marks.
+FloorMap ZeroFloorMap() {
+    return FloorMap(static_cast<CDngFreeMap *>(std::calloc(1, sizeof(CDngFreeMap))));
+}
+
+// Binds the menu's shared builder to a draw manager, as the dungeon menu does, for the scope.
+class MenuPrimScope {
+public:
+    MenuPrimScope() {
+        manager.render_info = &info;
+        prim->draw_manager = &manager;
+        prim->Initialize(&memory, &packet);
+        prim->write = nullptr;
+    }
+
+    ~MenuPrimScope() {
+        prim->Initialize(nullptr, nullptr);
+        prim->draw_manager = nullptr;
+    }
+
+    MenuPrimScope(const MenuPrimScope &) = delete;
+    MenuPrimScope &operator=(const MenuPrimScope &) = delete;
+
+private:
+    mgCMemory      memory;
+    sceVif1Packet  packet{};
+    mgRENDER_INFO  info{};
+    mgCDrawManager manager;
+    mgCDrawPrim   *prim = GetMenuPrim();
+};
+
+struct CellVertices {
+    std::size_t room = 0;
+    std::size_t root = 0;
+};
+
+// Vertices the floor map's room and passage draws emit for a cell at logical (x, y).
+CellVertices FloorMapCellVertices(float x, float y) {
+    MenuPrimScope    scope;
+    FloorMap         map = ZeroFloorMap();
+    DNGMAP_ROOM_INFO room{};
+    DNGMAP_ROOT_INFO root{};
+    std::size_t      count = 0;
+    mgPortSetPrimSink([&](gfx::Primitive, std::span<const gfx::Vertex2D> vertices, const gfx::TextureBinding &,
+                          const gfx::DrawState &) { count += vertices.size(); });
+    const mgRect<float> cell(x, y, 52.0f, 20.0f);
+    CellVertices        out;
+    map->DrawRoomOne(cell, &room, 0, 128, 1.0f);
+    out.room = count;
+    count = 0;
+    map->DrawRoot(cell, &root, 0, 0, 128);
+    out.root = count;
+    mgPortSetPrimSink({});
+    return out;
+}
+
+// Retail draws a room up to 20 units and a passage up to 0 units past the screen's right edge, and
+// 30 and 20 units past its bottom. Each must hold at the given edges.
+void ExpectFloorMapCullsAt(float right, float bottom) {
+    EXPECT_NEAR(PortDngMapVisibleRight(), right, 0.5f);
+    EXPECT_NEAR(PortDngMapVisibleBottom(), bottom, 0.5f);
+    EXPECT_GT(FloorMapCellVertices(right + 19.0f, 200.0f).room, 0u);
+    EXPECT_EQ(FloorMapCellVertices(right + 21.0f, 200.0f).room, 0u);
+    EXPECT_GT(FloorMapCellVertices(right - 1.0f, 200.0f).root, 0u);
+    EXPECT_EQ(FloorMapCellVertices(right + 1.0f, 200.0f).root, 0u);
+    EXPECT_GT(FloorMapCellVertices(200.0f, bottom + 29.0f).room, 0u);
+    EXPECT_EQ(FloorMapCellVertices(200.0f, bottom + 31.0f).room, 0u);
+    EXPECT_GT(FloorMapCellVertices(200.0f, bottom + 19.0f).root, 0u);
+    EXPECT_EQ(FloorMapCellVertices(200.0f, bottom + 21.0f).root, 0u);
+}
+} // namespace
+
+TEST(MglibAspect, FloorMapCullsAtTheFourThreeScreen) {
+    AspectRenderer renderer(1024, 768);
+    ExpectFloorMapCullsAt(512.0f, 480.0f);
+}
+
+TEST(MglibAspect, FloorMapDrawsCellsInWideFlanks) {
+    AspectRenderer renderer(1280, 720);
+    ExpectFloorMapCullsAt(256.0f + 256.0f * (16.0f / 9.0f) / (4.0f / 3.0f), 480.0f);
+}
+
+TEST(MglibAspect, FloorMapDrawsCellsBelowANarrowScreen) {
+    AspectRenderer renderer(800, 1200);
+    ExpectFloorMapCullsAt(512.0f, 240.0f + 240.0f * (4.0f / 3.0f) / (800.0f / 1200.0f));
+}
+
+// UI scale 0.5 halves the floor map's 2D about the centre, so twice its extent is on screen.
+TEST(MglibAspect, FloorMapDrawsCellsUncoveredByUiScale) {
+    AspectRenderer renderer(1024, 768);
+    gfx::SetFrameLayout({gfx::AspectMode::Fill, 0.5f});
+    ExpectFloorMapCullsAt(256.0f + 512.0f, 240.0f + 480.0f);
+    gfx::SetFrameLayout({gfx::AspectMode::Fill, 1.0f});
+}
+
+namespace {
+// Draws with the menu builder into a cleared frame and reads the main target back.
+template <typename Draw>
+std::vector<uint8_t> DrawFrame(Draw draw, uint32_t &width, uint32_t &height) {
+    mgSetBackGround(0.0f, 0.0f, 0.0f, 128.0f);
+    mgBeginFrame(nullptr);
+    {
+        MenuPrimScope scope;
+        draw();
+    }
+    mgEndFrame(nullptr);
+    std::vector<uint8_t> rgba;
+    EXPECT_TRUE(mgPortCanonicalReadColor(gfx::kMainTarget, rgba, width, height));
+    return rgba;
+}
+
+// Counts the split strokes: two lit runs, each thinner than a logical pixel, with a gap of at most a
+// logical pixel between them, across every column and row. A solid band has none; retail's notches
+// between passage segments are bounded by full-width bands and do not count.
+int SplitStrokes(const std::vector<uint8_t> &rgba, uint32_t width, uint32_t height) {
+    const gfx::LogicalMapping mapping = gfx::GetLogicalMapping(gfx::kMainTarget);
+    const auto                lit = [&](uint32_t x, uint32_t y) { return rgba[(static_cast<size_t>(y) * width + x) * 4] > 64; };
+    int                       found = 0;
+    const auto                scan = [&](uint32_t lines, uint32_t length, float unit, auto at) {
+        for (uint32_t line = 0; line < lines; ++line) {
+            int previous_start = -1, previous_end = -1, start = -1;
+            for (uint32_t i = 0; i <= length; ++i) {
+                const bool on = i < length && at(line, i);
+                if (on && start < 0) {
+                    start = static_cast<int>(i);
+                } else if (!on && start >= 0) {
+                    const int end = static_cast<int>(i) - 1;
+                    if (previous_end >= 0 && start - previous_end - 1 <= unit &&
+                        previous_end - previous_start + 1 < unit && end - start + 1 < unit) {
+                        ++found;
+                    }
+                    previous_start = start;
+                    previous_end = end;
+                    start = -1;
+                }
+            }
+        }
+    };
+    scan(width, height, mapping.scale_y, [&](uint32_t x, uint32_t y) { return lit(x, y); });
+    scan(height, width, mapping.scale_x, [&](uint32_t y, uint32_t x) { return lit(x, y); });
+    return found;
+}
+
+void ExpectSolidPassages(const char *dump) {
+    uint32_t width = 0;
+    uint32_t height = 0;
+    // The detector sees retail's three 1-pixel lines, drawn without bands, as split.
+    const std::vector<uint8_t> plain = DrawFrame(
+        [] {
+            mgCDrawPrim *prim = GetMenuPrim();
+            SetSpriteEnv(prim, MENU_SPRITE_ENV_COLOR_AA);
+            prim->Begin(MG_PRIM_LINE);
+            prim->Color(212, 192, 144, 128);
+            for (int i = 0; i < 3; ++i) {
+                prim->Vertex(100.0f + i, 100.0f, 0.0f);
+                prim->Vertex(84.0f + i, 120.0f, 0.0f);
+                prim->Vertex(100.0f - i, 150.0f + i, 0.0f);
+                prim->Vertex(152.0f - i, 150.0f + i, 0.0f);
+            }
+            prim->End();
+        },
+        width, height);
+    EXPECT_GT(SplitStrokes(plain, width, height), 0);
+
+    for (int shape = 0; shape < 10; ++shape) {
+        const std::vector<uint8_t> rgba = DrawFrame(
+            [shape] {
+                FloorMap         map = ZeroFloorMap();
+                DNGMAP_ROOT_INFO root{};
+                root.shape = static_cast<u8>(shape);
+                map->DrawRoot(mgRect<float>(230.0f, 200.0f, 52.0f, 20.0f), &root, 0, 0, 128);
+            },
+            width, height);
+        if (dump) {
+            const std::filesystem::path png = std::filesystem::path(dump) / ("passage-" + std::to_string(shape) + ".png");
+            EXPECT_TRUE(gfx::WritePng(png, rgba.data(), width, height));
+        }
+        std::size_t count = 0;
+        for (std::size_t i = 0; i < rgba.size(); i += 4) {
+            count += rgba[i] > 64;
+        }
+        EXPECT_GT(count, 0u) << "shape " << shape;
+        EXPECT_EQ(SplitStrokes(rgba, width, height), 0) << "shape " << shape;
+    }
+
+    // At half opacity a one-group passage blends each pixel once: every lit pixel has one colour.
+    for (int shape : {0, 1, 6, 7, 8, 9}) {
+        const std::vector<uint8_t> rgba = DrawFrame(
+            [shape] {
+                FloorMap         map = ZeroFloorMap();
+                DNGMAP_ROOT_INFO root{};
+                root.shape = static_cast<u8>(shape);
+                map->DrawRoot(mgRect<float>(230.0f, 200.0f, 52.0f, 20.0f), &root, 0, 0, 64);
+            },
+            width, height);
+        std::set<uint8_t> reds;
+        for (std::size_t i = 0; i < rgba.size(); i += 4) {
+            if (rgba[i] > 16) {
+                reds.insert(rgba[i]);
+            }
+        }
+        EXPECT_EQ(reds.size(), 1u) << "shape " << shape;
+    }
+}
+} // namespace
+
+// Every passage shape is one solid stroke above 512x480. DC2_FLOOR_MAP_PASSAGE_PNG_DIR saves each.
+TEST(MglibAspect, FloorMapPassagesAreSolidAt1920x1080) {
+    AspectRenderer renderer(1920, 1080);
+    ExpectSolidPassages(std::getenv("DC2_FLOOR_MAP_PASSAGE_PNG_DIR"));
+}
+
+TEST(MglibAspect, FloorMapPassagesAreSolidAt3840x2160) {
+    AspectRenderer renderer(3840, 2160);
+    ExpectSolidPassages(nullptr);
 }

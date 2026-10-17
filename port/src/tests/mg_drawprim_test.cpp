@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
+#include <limits>
 #include <span>
 #include <vector>
 
@@ -258,6 +260,120 @@ TEST(MgDrawPrim, LineStripExpandsToLines) {
     EXPECT_EQ(Rgba(l[1]), (std::array<uint8_t, 4>{0, 255, 0, 255}));
     EXPECT_EQ(Rgba(l[2]), (std::array<uint8_t, 4>{0, 0, 255, 255}));
     EXPECT_EQ(Rgba(l[3]), (std::array<uint8_t, 4>{0, 0, 255, 255}));
+}
+
+namespace {
+
+bool Covers(const std::vector<gfx::Vertex2D> &triangles, float x, float y) {
+    for (std::size_t i = 0; i + 2 < triangles.size(); i += 3) {
+        const gfx::Vertex2D &a = triangles[i];
+        const gfx::Vertex2D &b = triangles[i + 1];
+        const gfx::Vertex2D &c = triangles[i + 2];
+        const float          d0 = (b.x - a.x) * (y - a.y) - (b.y - a.y) * (x - a.x);
+        const float          d1 = (c.x - b.x) * (y - b.y) - (c.y - b.y) * (x - b.x);
+        const float          d2 = (a.x - c.x) * (y - c.y) - (a.y - c.y) * (x - c.x);
+        if ((d0 >= -1e-3f && d1 >= -1e-3f && d2 >= -1e-3f) || (d0 <= 1e-3f && d1 <= 1e-3f && d2 <= 1e-3f)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+} // namespace
+
+// The floor map's passage shape 7: three shallow lines that fan apart by half a pixel at one end.
+// Widened one at a time they leave slivers between them; as one band they cover the whole stroke.
+TEST(MgDrawPrim, LineBandsFillBetweenNonparallelLines) {
+    PrimRig rig;
+    rig.prim.Coord(1);
+    rig.prim.Begin(MG_PRIM_LINE);
+    mgPortPrimLineBands(rig.prim, 3);
+    for (int i = 0; i < 3; ++i) {
+        rig.prim.Color(255, 0, 0, 255);
+        rig.prim.Vertex(44.0f - i / 2.0f, 60.0f + i, 0.0f);
+        rig.prim.Color(0, 255, 0, 255);
+        rig.prim.Vertex(62.0f - i, 70.0f, 0.0f);
+    }
+    rig.prim.End2();
+
+    ASSERT_EQ(rig.batches.size(), 1u);
+    EXPECT_EQ(rig.batches[0].primitive, gfx::Primitive::Triangles);
+    const std::vector<gfx::Vertex2D> &out = rig.batches[0].vertices;
+    for (const gfx::Vertex2D &v : out) {
+        EXPECT_EQ(Rgba(v), (std::array<uint8_t, 4>{0, 255, 0, 255}));
+    }
+    // Every point from the first line's pixel row to the third line's is covered.
+    for (int step = 0; step <= 20; ++step) {
+        const float t = step / 20.0f;
+        const float x0 = LogicalX(44.0f + 18.0f * t);
+        const float y0 = LogicalY(60.0f + 10.0f * t);
+        const float x2 = LogicalX(43.0f + 17.0f * t);
+        const float y2 = LogicalY(62.0f + 8.0f * t) + 0.9f;
+        for (int across = 0; across <= 10; ++across) {
+            const float s = across / 10.0f;
+            EXPECT_TRUE(Covers(out, x0 + (x2 - x0) * s, y0 + (y2 - y0) * s)) << t << " " << s;
+        }
+    }
+    // The band ends one logical pixel past the lines' own minor-axis extent and no further.
+    float bottom = std::numeric_limits<float>::lowest();
+    for (const gfx::Vertex2D &v : out) {
+        bottom = std::max(bottom, v.y);
+    }
+    EXPECT_FLOAT_EQ(bottom, LogicalY(70.0f) + 1.0f);
+}
+
+TEST(MgDrawPrim, LineBandsJoinEachGroupSeparately) {
+    PrimRig rig;
+    rig.prim.Coord(1);
+    rig.prim.Begin(MG_PRIM_LINE);
+    mgPortPrimLineBands(rig.prim, 1);
+    // A steep line widens right one pixel, a shallow one down one pixel.
+    rig.prim.Vertex(10.0f, 0.0f, 0.0f);
+    rig.prim.Vertex(6.0f, 10.0f, 0.0f);
+    rig.prim.Vertex(0.0f, 20.0f, 0.0f);
+    rig.prim.Vertex(10.0f, 24.0f, 0.0f);
+    rig.prim.End2();
+
+    ASSERT_EQ(rig.batches.size(), 1u);
+    const std::vector<gfx::Vertex2D> &out = rig.batches[0].vertices;
+    ASSERT_EQ(out.size(), 12u);
+    EXPECT_TRUE(Covers({out.begin(), out.begin() + 6}, LogicalX(10.5f), LogicalY(0.5f)));
+    EXPECT_TRUE(Covers({out.begin(), out.begin() + 6}, LogicalX(6.5f), LogicalY(9.5f)));
+    EXPECT_FALSE(Covers({out.begin(), out.begin() + 6}, LogicalX(5.0f), LogicalY(15.0f)));
+    EXPECT_TRUE(Covers({out.begin() + 6, out.end()}, LogicalX(0.5f), LogicalY(20.5f)));
+    EXPECT_TRUE(Covers({out.begin() + 6, out.end()}, LogicalX(9.5f), LogicalY(24.5f)));
+    EXPECT_FALSE(Covers({out.begin() + 6, out.end()}, LogicalX(10.5f), LogicalY(20.5f)));
+}
+
+TEST(MgDrawPrim, LineBandsDrawAPartialGroupAtEnd) {
+    PrimRig rig;
+    rig.prim.Coord(1);
+    rig.prim.Begin(MG_PRIM_LINE);
+    mgPortPrimLineBands(rig.prim, 3);
+    rig.prim.Vertex(0.0f, 0.0f, 0.0f);
+    rig.prim.Vertex(10.0f, 0.0f, 0.0f);
+    rig.prim.Vertex(0.0f, 1.0f, 0.0f);
+    rig.prim.Vertex(10.0f, 1.0f, 0.0f);
+    rig.prim.End2();
+
+    ASSERT_EQ(rig.batches.size(), 1u);
+    EXPECT_EQ(rig.batches[0].primitive, gfx::Primitive::Triangles);
+    EXPECT_TRUE(Covers(rig.batches[0].vertices, LogicalX(5.0f), LogicalY(1.5f)));
+}
+
+TEST(MgDrawPrim, LineBandsLastUntilTheNextBegin) {
+    PrimRig rig;
+    rig.prim.Coord(1);
+    rig.prim.Begin(MG_PRIM_LINE);
+    mgPortPrimLineBands(rig.prim, 3);
+    rig.prim.End();
+    rig.prim.Begin(MG_PRIM_LINE);
+    rig.prim.Vertex(0.0f, 0.0f, 0.0f);
+    rig.prim.Vertex(10.0f, 0.0f, 0.0f);
+    rig.prim.End2();
+
+    ASSERT_EQ(rig.batches.size(), 1u);
+    EXPECT_EQ(rig.batches[0].primitive, gfx::Primitive::Lines);
 }
 
 TEST(MgDrawPrim, PackedDataIsIgnored) {

@@ -23,6 +23,12 @@ void mgPortClearPacketDraws();
 // Runs the host draw registered for `packet`; false when there is none, including a null packet.
 bool mgPortPacketDraw(const void *packet);
 
+// Retail draws a thick line as several 1-pixel lines side by side; above 512x480 they split apart. Until
+// End, the builder fills every `lines` consecutive lines as one band: their convex hull, each line one
+// logical pixel wide across its minor axis as the GS draws it. 0 restores plain lines. Does nothing
+// while the builder is disabled.
+void mgPortPrimLineBands(mgCDrawPrim &prim, int lines);
+
 // Draws `vertices` as a list of Triangles, Lines or Quads with the builder's state. Mirrors Kick's flush and
 // flat-shading rules, so an override draws what its retail caller would.
 void mgPortPrimSubmit(mgCDrawPrim &prim, gfx::Primitive primitive, std::span<const gfx::Vertex2D> vertices);

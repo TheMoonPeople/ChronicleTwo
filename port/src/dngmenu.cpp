@@ -1,14 +1,49 @@
 #include "common.h"
 
 #include "dngmenu.hpp"
+#include "gfx/gfx.hpp"
 #include "mainloop.hpp"
 #include "memcard.hpp"
 #include "menumain.hpp"
 #include "menuop.hpp"
+#include "mglib_port.hpp"
 
 extern CDngFreeMap  *TreeDngMap asm("MenuMouse_DngMap");
 extern CMenuTreeMap *TreeMap asm("MenuMouse_Tree");
 extern short         TreeMode asm("MenuMouse_TreeMode");
+
+namespace {
+
+struct Corner {
+    float x;
+    float y;
+};
+
+// The visible extent's bottom-right corner in the UI units the floor map's 2D is drawn in, which
+// video.ui_scale below 1 widens.
+Corner DngMapVisibleCorner() {
+    const mgPortExtent extent = mgPortVisibleExtent();
+
+    if (!mgPortRendererReady()) {
+        return {extent.right, extent.bottom};
+    }
+
+    const gfx::LogicalMapping scene = gfx::GetLogicalMapping(mgPortCurrentTarget());
+    const gfx::LogicalMapping ui = gfx::GetUiMapping(mgPortCurrentTarget());
+    return {(extent.right * scene.scale_x + scene.offset_x - ui.offset_x) / ui.scale_x,
+            (extent.bottom * scene.scale_y + scene.offset_y - ui.offset_y) / ui.scale_y};
+}
+
+} // namespace
+
+// Retail culls floor-map rooms and passages past its 512x480 screen; the unit fixups cull them here.
+float PortDngMapVisibleRight() {
+    return DngMapVisibleCorner().x;
+}
+
+float PortDngMapVisibleBottom() {
+    return DngMapVisibleCorner().y;
+}
 
 // Retail opens the floor map with no room under the cursor when the saved floor has no room cell and
 // no floor is marked. Its step then reads the floor of that NULL cell (the debug flag editor at once,
