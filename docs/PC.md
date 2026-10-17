@@ -360,6 +360,22 @@ can be removed while the game is closed. A load reads and validates the complete
 image before changing the live game state. The retail checksum format is retained;
 it is not a cryptographic integrity check.
 
+### Retail data fixes
+
+Retail gives two of Starlight Temple's (`f02`) chests the same opened flag 7: the
+Fruit of Eden by the weapon platform (`item19`, floor 309) and the one by Starlight
+Items (`item11`), which appears once "Looking for the Wind Gem" (floor 312) has been
+entered. Opening either chest hides the other from the next visit on, so opening
+`item19` before that floor loses `item11` for good. The port's `UpdateTrBoxFlag`
+override (`port/src/editloop.cpp`, wrapping the retail routine) records `item11`
+under flag 9, which no other chest of the town uses; the save layout is unchanged.
+
+A save whose flag 7 is already set offers `item11` again. This repairs saves that
+lost it, and also gives one Fruit of Eden beyond retail to a player who opened both
+chests in one visit after entering floor 312. A save made with the fix, in which
+`item11` has been opened and `item19` has not, offers `item11` a second time when
+loaded by a build without the fix.
+
 ### darkchronicle
 
 ```
@@ -1200,7 +1216,7 @@ PORT_OVERRIDE void mgInit(int screen_mode, int video_mode) {
 
 `unit_copy.py` also preserves the routines listed in `RETAIL_BRIDGES` under new definition names in the generated unit. It reads each body from the unstripped retail source, changes only the definition name, and appends it before the unit fixups and long64 rewrites. Calls in the original unit keep the public name, so they reach the native `PORT_OVERRIDE`; that override can add native behavior and delegate to the preserved routine. Each appended body has its own `#line` marker naming the original retail source and definition line, keeping diagnostics and debugger locations valid.
 
-Use this mechanism when a native seam needs to wrap retail behavior rather than replace it, as with the camera-cut seams around `ResetViewMode` and `ResetEyeView`, and the outfit-index guard around `GetRoboPartsInfo`. Add the unit, exact signature, original name and bridge name to `RETAIL_BRIDGES`, declare the bridge's asm link name in both `port/include/stubs/<unit>.hpp` and the native caller, and call it from the public override. The bridge body is generated from retail rather than transcribed into native source; `ps2/` stays unchanged. `NativeRetailBridges` runs `scripts/port/test_unit_copy.py` through CTest, alongside the other native unit-copy Python tests.
+Use this mechanism when a native seam needs to wrap retail behavior rather than replace it, as with the camera-cut seams around `ResetViewMode` and `ResetEyeView`, the outfit-index guard around `GetRoboPartsInfo`, and the chest-flag split before `UpdateTrBoxFlag`. Add the unit, exact signature, original name and bridge name to `RETAIL_BRIDGES`, declare the bridge's asm link name in both `port/include/stubs/<unit>.hpp` and the native caller, and call it from the public override. The bridge body is generated from retail rather than transcribed into native source; `ps2/` stays unchanged. `NativeRetailBridges` runs `scripts/port/test_unit_copy.py` through CTest, alongside the other native unit-copy Python tests.
 
 Each name then has one definition. A replacement without the tag leaves `ps2/src`'s definition in, and the link fails on the duplicate symbol. A replacement takes the signature `ps2/src` gives the function: parameter types as spelled; names and default arguments may differ. By convention a replacement goes in the file that mirrors its unit.
 
