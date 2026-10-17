@@ -625,7 +625,10 @@ keys that release it.
 
 Mouse selection covers the town and dungeon root menus, title menu, dungeon
 floor map and Save Adventure action, the flat save/load file lists,
-and the field Use Item popup. Yes/No boxes and dialogue choices use the message
+and the field Use Item popup. With **PC SETTINGS → Game → Auto-use event items**
+enabled, events that require exactly one specific item you already carry skip
+that picker and hand the item over immediately (default **Off**; fish-tournament
+item select and multi-item prompts are unchanged). Yes/No boxes and dialogue choices use the message
 system's drawn choice positions and feed its normal directional input before
 confirming. The pointer follows the renderer's UI mapping, including widescreen
 anchoring and display scaling.
