@@ -1,0 +1,23 @@
+300 128 0 128 128
+365 cross 128 0 128 128
+366
+600 255 128 128 128
+618
+650 cross
+656
+800 cross
+806
+# --jump town:10 --fast-load --window 1920x1080; use --screenshot-fps to see the pointer.
+# The pointer rests on the inventory's top row (980) while two wheel notches scroll the
+# board a row each; the cell that settles under it is selected (1040, 1100; 1004 mid-ease).
+# On the goods list a notch scrolls the list a row the same way (1240).
+960 mouse:125,-370
+961
+1000 wheel:-1
+1001
+1060 wheel:-1
+1061
+1150 mouse:-560,200
+1151
+1200 wheel:-1
+1201

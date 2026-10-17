@@ -136,31 +136,121 @@ TEST_F(ShopMouse, HoverSelectsBothPanesBeforeClickConfirms) {
     EXPECT_EQ(menu.key_arg_no, SHOP_MENU_MODE_BUY_LIST);
 }
 
-TEST_F(ShopMouse, WheelRoutesToPaneUnderPointerAndUsesRetailScroll) {
-    At(320, 170);
-    At(60, 136, 0, -1);
+TEST_F(ShopMouse, WheelScrollsTheLongGoodsListARowAndTakesTheRowUnderThePointer) {
+    At(60, 100);
+    EXPECT_EQ(menu.list_pos, 0);
+    At(60, 100, 0, -1);
     EXPECT_EQ(menu.key_arg_no, SHOP_MENU_MODE_BUY_LIST);
-    EXPECT_EQ(keys.CheckLRKey(), MENU_SELECT_KEY_DOWN);
-    MenuListKeyCheck(keys.select_key, &menu.list_pos, &menu.list_top, stock.item_num, 6, 0, 0);
+    EXPECT_EQ(menu.list_top, 1);
+    EXPECT_EQ(menu.list_pos, 1); // The row that comes under the pointer.
+    EXPECT_EQ(keys.CheckLRKey(), 0);
+    // The retail key step keeps the new scroll.
+    MenuListKeyCheck(keys.CheckLRKey(), &menu.list_pos, &menu.list_top, stock.item_num, SHOP_LIST_LINE, 0, 0);
+    EXPECT_EQ(menu.list_top, 1);
     EXPECT_EQ(menu.list_pos, 1);
-    menu.bag_pos = 24;
-    At(320, 170, 0, -1);
+    // Row 0 is still drawn under the pointer while the list eases; it is sliding out.
+    At(61, 100);
+    EXPECT_EQ(menu.list_pos, 1);
+    boards[2].y = 40 - 44; // The list at rest.
+    At(60, 150);
+    EXPECT_EQ(menu.list_pos, 2);
+    At(60, 150, 0, 3);
+    EXPECT_EQ(menu.list_top, 0); // Stops at the top.
+    EXPECT_EQ(menu.list_pos, 1);
+    menu.list_top = stock.item_num - SHOP_LIST_LINE;
+    menu.list_pos = stock.item_num - 1;
+    At(60, 300, 0, -1);
+    EXPECT_EQ(menu.list_top, stock.item_num - SHOP_LIST_LINE); // And at the bottom, where it moves nothing.
+    EXPECT_EQ(menu.list_pos, stock.item_num - 1);
+    EXPECT_EQ(keys.CheckLRKey(), 0);
+}
+
+TEST_F(ShopMouse, WheelScrollsTheBagARowAndTakesTheCellThatSettlesUnderThePointer) {
+    const auto saved_manner = MenuItemBrdCalcManner;
+    MenuItemBrdCalcManner = MENU_ITEM_BRD_CALC_EASE;
+    const int count = GetNowBagMax(ITEM_BOARD_MAIN);
+    ASSERT_GT(count, 30);
+    MenuItemBrdUnderBrdPosXY[1] = 66; // The board's resting origin at top line 0.
+    At(300, 80);
     EXPECT_EQ(menu.key_arg_no, SHOP_MENU_MODE_BAG);
-    MenuItemBrdKey(keys.CheckLRKey(), &menu.bag_pos, &menu.bag_top, ITEM_BOARD_MAIN);
-    EXPECT_EQ(menu.bag_pos, 30);
+    EXPECT_EQ(menu.bag_pos, 1);
+    // The playtest case: the pointer stays on the top row while the wheel turns.
+    At(300, 80, 0, -1);
     EXPECT_EQ(menu.bag_top, 1);
+    EXPECT_EQ(menu.bag_pos, 7);
+    EXPECT_EQ(keys.CheckLRKey(), 0);
+    EXPECT_FLOAT_EQ(MenuItemBrdUnderBrdPosXY[1], 66); // Not snapped by the mouse.
+    MenuItemBrdKey(keys.CheckLRKey(), &menu.bag_pos, &menu.bag_top, ITEM_BOARD_MAIN);
+    EXPECT_EQ(menu.bag_top, 1);
+    EXPECT_EQ(menu.bag_pos, 7);
+    Func_MenuItemBrdPosStep(menu.bag_top);
+    EXPECT_LT(MenuItemBrdUnderBrdPosXY[1], 66); // The retail board eases like a D-pad scroll.
+    EXPECT_GT(MenuItemBrdUnderBrdPosXY[1], 16);
+    MenuItemBrdUnderBrdPosXY[1] = 50;
+    At(301, 62); // Cell 1 is still drawn here, sliding out.
+    EXPECT_EQ(menu.bag_pos, 7);
+    At(341, 110);
+    EXPECT_EQ(menu.bag_pos, 8);
+    At(341, 110, 0, -2);
+    EXPECT_EQ(menu.bag_top, 3);
+    EXPECT_EQ(menu.bag_pos, 20);
+    At(341, 110, 0, 9);
+    EXPECT_EQ(menu.bag_top, 0);
+    EXPECT_EQ(menu.bag_pos, 2);
+    MenuItemBrdCalcManner = saved_manner;
+}
+
+TEST_F(ShopMouse, WheelRoutesToThePaneUnderThePointer) {
+    menu.key_arg_no = SHOP_MENU_MODE_BAG;
+    At(60, 100, 0, -1);
+    EXPECT_EQ(menu.key_arg_no, SHOP_MENU_MODE_BUY_LIST);
+    EXPECT_EQ(menu.list_top, 1);
+    At(300, 80, 0, -1);
+    EXPECT_EQ(menu.key_arg_no, SHOP_MENU_MODE_BAG);
+    EXPECT_EQ(menu.bag_top, 1);
+    EXPECT_EQ(menu.list_top, 1);
     At(510, 470, 0, -1);
+    EXPECT_EQ(menu.bag_top, 1);
     EXPECT_EQ(MenuMouseButtons(), 0);
 }
 
-TEST_F(ShopMouse, HoverTracksAnimatedListAndGridOrigins) {
-    menu.list_top = 2;
-    boards[2].y = -26;
+TEST_F(ShopMouse, WheelOverAListThatFitsMovesItsCursorThroughRetailKeys) {
+    stock.item_num = 4;
     At(60, 100);
-    EXPECT_EQ(menu.list_pos, 1); // Actual drawn row during the scroll, not the target top.
-    MenuItemBrdUnderBrdPosXY[1] = 10;
-    At(320, 170);
-    EXPECT_EQ(menu.bag_pos, 19);
+    At(60, 100, 0, -1);
+    EXPECT_EQ(menu.list_top, 0);
+    EXPECT_EQ(keys.CheckLRKey(), MENU_SELECT_KEY_DOWN);
+    MenuListKeyCheck(keys.select_key, &menu.list_pos, &menu.list_top, stock.item_num, SHOP_LIST_LINE, 0, 0);
+    EXPECT_EQ(menu.list_pos, 1);
+}
+
+TEST_F(ShopMouse, WheelOverAnEmptyGoodsListKeepsTheBagInFront) {
+    // Retail moves to the bag when the stock runs out (an exhausted Donny reward list) and will not return.
+    stock.item_num = 0;
+    menu.key_arg_no = SHOP_MENU_MODE_BAG;
+    menu.bag_pos = 7;
+    menu.list_pos = menu.list_top = 0;
+    At(60, 100);
+    for (float wheel : {-1.0f, 1.0f, -1.0f}) {
+        At(60, 100, 0, wheel);
+        EXPECT_EQ(menu.key_arg_no, SHOP_MENU_MODE_BAG);
+        EXPECT_EQ(menu.bag_pos, 7);
+        EXPECT_EQ(menu.list_pos, 0);
+        EXPECT_EQ(menu.list_top, 0);
+        EXPECT_EQ(MenuMouseButtons(), 0);
+        EXPECT_EQ(keys.CheckLRKey(), 0);
+    }
+    At(60, 150, 1);
+    EXPECT_EQ(menu.key_arg_no, SHOP_MENU_MODE_BAG);
+    EXPECT_EQ(MenuMouseButtons(), 0);
+}
+
+TEST_F(ShopMouse, ClickWithAWheelNotchConfirmsTheRowItWasPressedOn) {
+    At(60, 150);
+    At(60, 150, 1, -1);
+    EXPECT_EQ(menu.list_top, 0);
+    EXPECT_EQ(menu.list_pos, 1);
+    EXPECT_EQ(MenuMouseButtons(), PAD_CROSS);
 }
 
 TEST_F(ShopMouse, QuantityWheelUsesRetailDirectionsAtBothLimitsInBuyAndSell) {

@@ -6,29 +6,44 @@
 #include "gamepad.hpp"
 #include "mainloop.hpp"
 #include "menu_mouse.hpp"
+#include "menu_mouse_item.hpp"
 #include "menumain.hpp"
 #include "menushop.hpp"
+#include "menusys.hpp"
 
 namespace {
 CShopMenu          *shop_menu = nullptr;
 CShop              *shop_stock = nullptr;
 CMenuPosDataManage *shop_forms = nullptr;
 
-int BagHit(const MenuMouseSample &mouse, CMenuPosDataForm *board, int count) {
-    if (!board || !board->draw_flag) {
-        return -1;
+struct ShopList {
+    bool over = false; // The pointer is inside the list's window.
+    int  row = -1;     // The drawn goods row under the pointer, if it stays in the window the list eases to.
+    int  shown = -1;   // The window row under the pointer once the list rests at its scroll.
+};
+
+ShopList ListHit(const CShopMenu &menu, const MenuMouseSample &mouse, int goods) {
+    ShopList hit;
+    if (!menu.item_brd || !menu.item_brd->draw_flag || !menu.item_list || !menu.item_list->draw_flag) {
+        return hit;
     }
-    float x, y;
-    board->GetPutPosXY(nullptr, x, y);
-    if (!MenuMouseRect{x + 16, y + 20, 240, 250}.Contains(mouse.x, mouse.y)) {
-        return -1;
+    float x, y, clip_x, clip_y;
+    menu.item_list->GetPutPosXY(nullptr, x, y);
+    menu.item_brd->GetPutPosXY(nullptr, clip_x, clip_y);
+    const MenuMouseRect clip{clip_x + 14, clip_y + 44, 184, SHOP_LIST_LINE * 44};
+    if (!clip.Contains(mouse.x, mouse.y)) {
+        return hit;
     }
-    const float bx = MenuItemBrdUnderBrdPosXY[0], by = MenuItemBrdUnderBrdPosXY[1];
-    if (mouse.x < bx || mouse.x >= bx + 240 || mouse.y < by) {
-        return -1;
+    hit.over = true;
+    hit.shown = int((mouse.y - clip.y) / 44);
+    if (mouse.y >= y + 44) {
+        const int row = int((mouse.y - y - 44) / 44);
+        // A row still sliding out of the eased list is no longer selectable.
+        if (row < goods && row >= menu.list_top && row < menu.list_top + SHOP_LIST_LINE) {
+            hit.row = row;
+        }
     }
-    const int slot = int((mouse.y - by) / 50) * 6 + int((mouse.x - bx) / 40);
-    return slot < count ? slot : -1;
+    return hit;
 }
 } // namespace
 
@@ -47,40 +62,66 @@ void MenuMouseShopUpdate(CShopMenu &menu, CMenuKeyFunc &keys, int goods) {
     const bool choose = mouse.wheel == 0 && (mouse.moved || (mouse.clicked & 1));
     int        buttons = 0;
     if (menu.key_arg_no == SHOP_MENU_MODE_BUY_LIST || menu.key_arg_no == SHOP_MENU_MODE_BAG) {
-        auto     *board = MenuPosData->GetFormInfo("itembrd");
-        const int bag_count = GetNowBagMax(ITEM_BOARD_MAIN);
-        const int bag = BagHit(mouse, board, bag_count);
-        int       row = -1;
-        if (menu.item_brd && menu.item_brd->draw_flag && menu.item_list && menu.item_list->draw_flag) {
-            float x, y, clip_x, clip_y;
-            menu.item_list->GetPutPosXY(nullptr, x, y);
-            menu.item_brd->GetPutPosXY(nullptr, clip_x, clip_y);
-            if (MenuMouseRect{clip_x + 14, clip_y + 44, 184, SHOP_LIST_LINE * 44}.Contains(mouse.x, mouse.y) &&
-                mouse.y >= y + 44) {
-                const int hit = int((mouse.y - y - 44) / 44);
-                if (hit < goods) {
-                    row = hit;
+        using namespace menumouse;
+        auto       *board = MenuPosData->GetFormInfo("itembrd");
+        const int   bag_count = GetNowBagMax(ITEM_BOARD_MAIN);
+        const bool  can_buy = keys.have_item.item_no <= 0;
+        const Point p{mouse.x, mouse.y};
+        const bool  on_board = board && board->draw_flag && ItemBoardClip(board).Contains(p);
+        int         bag = -1;
+        if (on_board) {
+            const Target hit = GridHit(p, {MenuItemBrdUnderBrdPosXY[0], MenuItemBrdUnderBrdPosXY[1]}, ItemBoardClip(board), bag_count);
+            // A row still sliding out of the eased board is no longer selectable.
+            if (hit && VisibleRow(hit.cursor, menu.bag_top, MENU_ITEM_BOARD_ROWS)) {
+                bag = hit.cursor;
+            }
+        }
+        const ShopList list = ListHit(menu, mouse, goods);
+        // A click confirms where it was pressed; a wheel notch in the same sample is dropped.
+        const float wheel = mouse.clicked & 1 ? 0 : mouse.wheel;
+        bool        scrolled = false;
+        if (std::isfinite(wheel) && wheel != 0) {
+            // A pane longer than its window scrolls a row a notch, as the ITEM page's bag does, and the
+            // cursor takes the entry that comes under the pointer. One that fits moves its cursor.
+            const int direction = wheel > 0 ? PAD_UP : PAD_DOWN;
+            // An empty goods list keeps the bag in front, as the retail step does when stock runs out.
+            if (list.over && can_buy && goods > 0) {
+                menu.key_arg_no = SHOP_MENU_MODE_BUY_LIST;
+                if (goods > SHOP_LIST_LINE) {
+                    const auto view = MenuMouseScroll(wheel, {menu.list_top, menu.list_pos}, goods, SHOP_LIST_LINE, list.shown);
+                    if (view.top != menu.list_top) {
+                        menu.list_top = view.top;
+                        menu.list_pos = view.selected;
+                    }
+                    scrolled = true;
+                } else {
+                    buttons |= direction;
+                }
+            } else if (on_board) {
+                menu.key_arg_no = SHOP_MENU_MODE_BAG;
+                if ((bag_count + MENU_ITEM_BOARD_COLUMNS - 1) / MENU_ITEM_BOARD_COLUMNS > MENU_ITEM_BOARD_ROWS) {
+                    // The retail board eases to the new top line, as it does for a D-pad scroll.
+                    const int top = ScrollTop(menu.bag_top, bag_count, MENU_ITEM_BOARD_ROWS, wheel);
+                    if (top != menu.bag_top) {
+                        menu.bag_pos = WheelTarget(p, ItemBoardRest(board), ItemBoardClip(board), top, bag_count, menu.bag_pos).cursor;
+                        menu.bag_top = top;
+                    }
+                    scrolled = true;
+                } else {
+                    buttons |= direction;
                 }
             }
         }
-        if (choose && row >= 0 && keys.have_item.item_no <= 0) {
-            menu.key_arg_no = SHOP_MENU_MODE_BUY_LIST;
-            menu.list_pos = row;
-        } else if (choose && bag >= 0) {
-            menu.key_arg_no = SHOP_MENU_MODE_BAG;
-            menu.bag_pos = bag;
-        }
-        if (std::isfinite(mouse.wheel) && mouse.wheel != 0) {
-            const int direction = mouse.wheel > 0 ? PAD_UP : PAD_DOWN;
-            if (row >= 0 && keys.have_item.item_no <= 0) {
+        if (!scrolled && (mouse.moved || (mouse.clicked & 1))) {
+            if (list.row >= 0 && can_buy) {
                 menu.key_arg_no = SHOP_MENU_MODE_BUY_LIST;
-                buttons |= direction;
+                menu.list_pos = list.row;
             } else if (bag >= 0) {
                 menu.key_arg_no = SHOP_MENU_MODE_BAG;
-                buttons |= direction;
+                menu.bag_pos = bag;
             }
         }
-        if ((mouse.clicked & 1) && (bag >= 0 || (row >= 0 && keys.have_item.item_no <= 0))) {
+        if ((mouse.clicked & 1) && (bag >= 0 || (list.row >= 0 && can_buy))) {
             buttons |= PAD_CROSS;
         }
     } else if (menu.key_arg_no == SHOP_MENU_MODE_BUY_NUM || menu.key_arg_no == SHOP_MENU_MODE_SELL_NUM) {

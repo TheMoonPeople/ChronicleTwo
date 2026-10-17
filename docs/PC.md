@@ -652,9 +652,15 @@ Continue, a file-row click and its confirmation using a copied flat-save fixture
 `title-mouse-newgame.input` clicks New Game and reaches costume selection.
 File-list clicks wait through the retail cursor-settling delay before confirming.
 
-Shops support hovering and clicking the goods list and bag grid. The wheel moves
-through goods or bag rows; in a buy/sell quantity prompt it changes the quantity
-within the game's limits. The quantity arrows, number panel, and localized Quit
+Shops support hovering and clicking the goods list and bag grid. The wheel acts
+on the pane under the pointer: a goods list or bag longer than its window scrolls
+one row a notch with the retail eased scroll, stopping at its ends, and the cursor
+takes the entry that settles under the pointer, or stays in view; a list that
+fits moves its cursor a row. An empty goods list ignores the wheel and the bag
+keeps the cursor, as it does for the D-pad. Rows still sliding out of the window
+cannot be hovered; `tools/input/shop-mouse-wheel.input` replays both panes at 1920x1080.
+In a buy/sell quantity prompt the wheel changes the quantity within the game's
+limits. The quantity arrows, number panel, and localized Quit
 button accept clicks, and right click cancels. Item popups, stat grids, the ITEM
 page and PC SETTINGS use the shared pointer adapters described below. Some
 secondary destination screens still retain only their existing controls.
@@ -699,7 +705,8 @@ is unchanged on all three pages.
 The wheel follows one rule on these pages: in a list longer than its window,
 each notch scrolls the list one row and the cursor takes the row that comes under
 the pointer, or stays in view (`MenuMouseScroll`; the ITEM page's bag scrolls the
-same way). Elsewhere it moves the cursor, as in shops and the root menu; the
+same way, as do the shop's goods list and bag). Elsewhere it moves the cursor,
+as in the root menu; the
 Character page's portrait map is not a list, so the wheel does nothing there. Options and
 Help rows are hit where they are drawn while the list eases to a new scroll, and
 only inside the list's scissor (`clip0`): a row sliding under the footer cannot
