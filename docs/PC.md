@@ -731,7 +731,7 @@ Photo aiming, fishing, Ridepod, menus and scripted control keep their own contro
 ### Item menu mouse
 
 The town and dungeon main menu's Item page accepts the mouse. Move over a grid
-cell, an active-item slot, an equipped weapon or the character model to move the
+cell, an active-item slot, an equipped weapon or the model on the left to move the
 retail selection there. Mouse1 opens the selected item's command list; move over
 a command and click to confirm it. Mouse2 backs out like Circle. The command
 window stays attached to the item, using the game's own placement and disabled
@@ -750,6 +750,24 @@ original slot through the retail return animation. Dropping outside a target or
 pressing Mouse2 returns the held item; it does not discard it. Equipment, use,
 stack limits and refusal checks remain the game's own. Wheel notches over the
 grid scroll rows, stopping at the bag's ends.
+
+The panel left of the bag follows its page: the character model on Max's and
+Monica's pages, the turning weapon or fishing rod on a Status page, the Ridepod,
+Monica's monster form, and Max's bait slot while a rod is equipped are targets
+too. Hovering one moves the retail hand there and Mouse1 sends Cross, so clicking
+a Status page's weapon opens its commands. Dropping a held item on a target sends
+the Cross that carrying it there with the pad would: the character, Ridepod or
+monster uses or equips it; on an equipped weapon, a Status page's weapon or a
+bag weapon, a synth sphere opens the retail synthesis question and other items
+are used on that weapon. The game's refusals, questions and sounds apply. An
+item still carried after a refusal or a declined question returns to its slot,
+unless controller or keyboard input took over in the meantime.
+The 3D models have no form part of their own, so each area spans from the retail
+hand's part to the page's name or parameter board. `item-menu-mouse-targets.input`
+(`--jump town:10 --fast-load --give 388`, 1920x1080 or 4:3 1440x1080) drags a
+Potato Pie onto Max (capture 800), spectrumises a Bread and drags the sphere
+onto the Drill Wrench on its Status page: the question at 1680, the raised Flame
+at 2150.
 
 The pointer starts at the retail selection when the mouse takes over. Controller
 or keyboard button input returns control to the retail cursor. Mouse counts are

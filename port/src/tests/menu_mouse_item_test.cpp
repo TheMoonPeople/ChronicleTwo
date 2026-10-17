@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "../menu_mouse_item.hpp"
 #include "gamepad.hpp"
 #include "mainloop.hpp"
@@ -12,6 +14,9 @@
 #include "mglib.hpp"
 #include "platform/clock.hpp"
 #include "platform/input.hpp"
+#include "savedata.hpp"
+
+extern CSaveData *PortActiveSaveData asm("MainLoop_ActiveSaveData");
 
 using namespace menumouse;
 
@@ -221,6 +226,25 @@ protected:
         InputSetScriptedDevices({.mouse_buttons = buttons, .mouse_dx = dx, .mouse_dy = dy, .mouse_wheel = wheel});
         mgEndFrame(nullptr);
         keys.SelDataInit();
+    }
+
+    // Moves the pointer to a logical position, starting it at the retail hand if needed.
+    void MoveTo(float x, float y) {
+        if (!MenuMouseTake().pointing) {
+            Tick(0.5f, 0);
+        }
+        Tick(x - MenuMouseTake().x, y - MenuMouseTake().y);
+    }
+
+    // What hovering a position selects; miss if it is no target.
+    const Target miss{ITEM_MENU_PANEL_BAG, 137};
+
+    Target PanelAt(float x, float y) {
+        class_menu_item_info.key_arg_no = miss.panel;
+        keys.key_arg = &layouts[miss.panel];
+        keys.cursor = miss.cursor;
+        MoveTo(x, y);
+        return {class_menu_item_info.key_arg_no, keys.cursor};
     }
 };
 } // namespace
@@ -693,4 +717,419 @@ TEST_F(ItemMouse, RodWheelSpendsRefundsAndKeepsRetailPointLimits) {
     EXPECT_EQ(GamePad__2.GetPadDown(), 0);
     SpectolInfoStay = saved_spectol;
     menu.view_form[5] = nullptr;
+}
+
+namespace {
+// A page form whose parts sit relative to its origin, as the item menu's layout places them.
+struct PagePart {
+    const char *name;
+    float       x, y, w = 0, h = 0;
+};
+
+struct PageForm {
+    CMenuPosDataForm   form{};
+    MENUFORMPARTS_TYPE parts[3]{};
+
+    PageForm(const PageForm &) = delete; // form.parts points into this object.
+
+    PageForm(float x, float y, std::initializer_list<PagePart> named) {
+        form.x = x;
+        form.y = y;
+        form.draw_flag = true;
+        form.parts = parts;
+        for (const auto &named_part : named) {
+            auto &part = parts[form.parts_num++];
+            part.name = const_cast<char *>(named_part.name);
+            part.x = named_part.x;
+            part.y = named_part.y;
+            part.w = named_part.w;
+            part.h = named_part.h;
+            part.draw_flag = true;
+        }
+    }
+};
+
+// The English item layout, menu/1/itemmn0.pac/item.cfg.json: each page's settled
+// position (its FORM_ACTDEF into the menu) and the parts the hit areas use.
+// The other PAL languages match; Japanese places the pages higher.
+PageForm WeaponPage() { return {-10, 258, {{"chrpos", 46, -96}}}; } // form_view1
+
+PageForm RodPage() { return {-10, 258, {{"chrpos", 46, -66}}}; } // form_view4
+
+PageForm MonsterPage() { return {24, 352, {{"chr_cur", 4, -178}}}; } // form_view3
+
+PageForm RidepodPage() { // form_view2
+    return {
+        24, 352, {{"chr_cur", 18, -178}, {"c_w0", -16, 0}, {"c_w1", 134, 45}}
+    };
+}
+
+PageForm MaxPage() { // form_view00
+    return {
+        24, 352, {{"c_i0", 5, -302}, {"c_w0", -21, 27}, {"esa0", 31, 84, 24, 30}}
+    };
+}
+} // namespace
+
+TEST_F(ItemMouse, WeaponPageModelIsTheRetailWeaponTarget) {
+    auto    &menu = class_menu_item_info;
+    PageForm weapon = WeaponPage();
+    menu.view_mode = MENU_ITEM_VIEW_WEAPON;
+    menu.view_form[2] = &weapon.form;
+    items[0].item_no = 1;
+    Tick(0, 0, 1);
+    Tick(-152, 85, 1); // Bag cell 0 (262,75) -> the turning weapon (110,160).
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_SQUARE);
+    keys.have_item.item_no = 1; // The retail key step has picked up the attachment.
+    Tick(0, 0, 1);
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_WEAPON);
+    EXPECT_EQ(keys.key_arg, &layouts[ITEM_MENU_PANEL_WEAPON]);
+    EXPECT_EQ(keys.cursor, 0);
+    Tick();
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CROSS); // Retail's use-on-weapon, with its fusion question.
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_WEAPON);
+}
+
+TEST_F(ItemMouse, WeaponModelStopsAboveTheBoardAndRodUsesItsOwnPage) {
+    auto    &menu = class_menu_item_info;
+    PageForm weapon = WeaponPage();
+    menu.view_mode = MENU_ITEM_VIEW_WEAPON;
+    menu.view_form[2] = &weapon.form;
+    Tick(-152, 165); // (110,240): the durability bar, under the model's area.
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_BAG);
+    Tick(0, -4);
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_WEAPON);
+    weapon.form.draw_flag = false;
+    Tick(0, 0, 1);
+    EXPECT_EQ(GamePad__2.GetPadDown(), 0); // A hidden page has no target to confirm.
+    PageForm rod = RodPage();
+    menu.view_mode = MENU_ITEM_VIEW_FISHING_ROD;
+    menu.view_form[5] = &rod.form;
+    Tick(0, 1);
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_FISHING_ROD);
+    EXPECT_EQ(keys.key_arg, &layouts[ITEM_MENU_PANEL_FISHING_ROD]);
+}
+
+TEST_F(ItemMouse, DropOnCharacterSendsTheRetailUseOnCharacterKeys) {
+    items[0].item_no = 1;
+    Tick(0, 0, 1);
+    Tick(-122, 155, 1); // Bag cell 0 -> Max's model (140,230).
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_SQUARE);
+    keys.have_item.item_no = 1;
+    Tick(0, 0, 1);
+    EXPECT_EQ(class_menu_item_info.key_arg_no, ITEM_MENU_PANEL_CHARA);
+    Tick();
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CROSS);
+    EXPECT_EQ(class_menu_item_info.key_arg_no, ITEM_MENU_PANEL_CHARA);
+}
+
+TEST_F(ItemMouse, RidepodAndMonsterModelsAreTheirPagesUseTargets) {
+    auto    &menu = class_menu_item_info;
+    PageForm robo = RidepodPage();
+    menu.view_mode = MENU_ITEM_VIEW_ROBO;
+    menu.view_form[3] = &robo.form;
+    Tick(-162, 155); // (100,230), the ridepod.
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_RIDEPOD);
+    EXPECT_EQ(keys.cursor, 0);
+    Tick(-60, 135); // (40,365), its first part slot, stays a part target.
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_RIDEPOD_PARTS);
+    Tick(0, -25); // (40,340), the name row, is not part of the model.
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_RIDEPOD_PARTS);
+    Tick(0, -7); // (40,333), just above the name, is the ridepod again.
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_RIDEPOD);
+    EXPECT_EQ(keys.key_arg, &layouts[ITEM_MENU_PANEL_RIDEPOD]);
+    PageForm monster = MonsterPage();
+    menu.view_mode = MENU_ITEM_VIEW_MONSTER;
+    menu.view_form[4] = &monster.form;
+    Tick(60, -100); // (100,233).
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_MONSTER);
+    EXPECT_EQ(keys.key_arg, &layouts[ITEM_MENU_PANEL_MONSTER]);
+}
+
+TEST_F(ItemMouse, BaitSlotNeedsMaxsRodAndItsDrawnPart) {
+    auto    &menu = class_menu_item_info;
+    PageForm max = MaxPage();
+    menu.view_form[0] = &max.form;
+    menu.item_parts[0][0] = menu.item_parts[0][1] = menu.item_parts[0][2] = nullptr;
+    menu.wep_parts[0][8] = menu.wep_parts[0][14] = nullptr;
+    auto  save = std::make_unique<CSaveData>();
+    auto *saved = PortActiveSaveData;
+    PortActiveSaveData = save.get();
+    Tick(-195, 375); // (67,450), the bait icon, but no rod is equipped.
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_BAG);
+    save->user_data.chara_data[USER_CHARA_MAX].equip[CHARA_EQUIP_MELEE].item_no = ITEM_ID_FISHING_ROD;
+    max.parts[2].draw_flag = false;
+    Tick(0, 1);
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_BAG);
+    max.parts[2].draw_flag = true;
+    Tick(0, 1);
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_FISHING_BAIT);
+    EXPECT_EQ(keys.key_arg, &layouts[ITEM_MENU_PANEL_FISHING_BAIT]);
+    menu.view_mode = MENU_ITEM_VIEW_MONICA; // Monica's page has no bait.
+    menu.sub_view = 1;
+    menu.view_form[1] = &max.form;
+    menu.item_parts[1][0] = menu.item_parts[1][1] = menu.item_parts[1][2] = nullptr;
+    menu.wep_parts[1][8] = menu.wep_parts[1][14] = nullptr;
+    menu.key_arg_no = ITEM_MENU_PANEL_BAG;
+    Tick(0, 1);
+    EXPECT_EQ(menu.key_arg_no, ITEM_MENU_PANEL_BAG);
+    PortActiveSaveData = saved;
+}
+
+TEST_F(ItemMouse, ModelAreasEndAtTheExtractedLayoutsNeighbours) {
+    auto        &menu = class_menu_item_info;
+    const Target weapon{ITEM_MENU_PANEL_WEAPON, 0}, rod{ITEM_MENU_PANEL_FISHING_ROD, 0};
+    PageForm     weapon_page = WeaponPage(), rod_page = RodPage();
+    menu.view_mode = MENU_ITEM_VIEW_WEAPON;
+    menu.view_form[2] = &weapon_page.form;
+    // chrpos is at (36,162): the area is x 28-208, from the bag's first row (y 50)
+    // to the durability bar 20 above the board (y 238).
+    EXPECT_EQ(PanelAt(28, 50), weapon);
+    EXPECT_EQ(PanelAt(207.5f, 237.5f), weapon);
+    EXPECT_EQ(PanelAt(27.5f, 100), miss);
+    EXPECT_EQ(PanelAt(208, 100), miss);
+    EXPECT_EQ(PanelAt(110, 49.5f), miss);
+    EXPECT_EQ(PanelAt(110, 238), miss);
+    EXPECT_EQ(PanelAt(242, 100), (Target{ITEM_MENU_PANEL_BAG, 6})); // The bag's left edge.
+    menu.view_mode = MENU_ITEM_VIEW_FISHING_ROD;
+    menu.view_form[5] = &rod_page.form;
+    EXPECT_EQ(PanelAt(110, 80), rod); // The rod's chrpos is 30 lower.
+    EXPECT_EQ(PanelAt(110, 79.5f), miss);
+    EXPECT_EQ(PanelAt(207.5f, 237.5f), rod);
+    EXPECT_EQ(PanelAt(208, 200), miss);
+
+    // chr_cur is at y 174: the area is x 8-188 (c_w0's left edge) and y 110-336,
+    // stopping at the name row above the part slots at y 352.
+    PageForm robo_page = RidepodPage(), monster_page = MonsterPage();
+    menu.view_mode = MENU_ITEM_VIEW_ROBO;
+    menu.view_form[3] = &robo_page.form;
+    const Target ridepod{ITEM_MENU_PANEL_RIDEPOD, 0}, monster{ITEM_MENU_PANEL_MONSTER, 0};
+    EXPECT_EQ(PanelAt(8, 110), ridepod);
+    EXPECT_EQ(PanelAt(187.5f, 335.5f), ridepod);
+    EXPECT_EQ(PanelAt(7.5f, 200), miss);
+    EXPECT_EQ(PanelAt(188, 200), miss);
+    EXPECT_EQ(PanelAt(100, 109.5f), miss);
+    EXPECT_EQ(PanelAt(40, 336), miss);
+    EXPECT_EQ(PanelAt(40, 352), (Target{ITEM_MENU_PANEL_RIDEPOD_PARTS, 0}));
+    menu.view_mode = MENU_ITEM_VIEW_MONSTER;
+    menu.view_form[4] = &monster_page.form;
+    EXPECT_EQ(PanelAt(8, 110), monster);
+    EXPECT_EQ(PanelAt(187.5f, 335.5f), monster);
+    EXPECT_EQ(PanelAt(188, 200), miss);
+    EXPECT_EQ(PanelAt(100, 336), miss);
+
+    // esa0 is a 24x30 icon at (55,436), with a 4-unit margin.
+    PageForm max_page = MaxPage();
+    menu.view_mode = MENU_ITEM_VIEW_MAX;
+    menu.view_form[0] = &max_page.form;
+    menu.item_parts[0][0] = menu.item_parts[0][1] = menu.item_parts[0][2] = nullptr;
+    menu.wep_parts[0][8] = menu.wep_parts[0][14] = nullptr;
+    auto  save = std::make_unique<CSaveData>();
+    auto *saved = PortActiveSaveData;
+    PortActiveSaveData = save.get();
+    save->user_data.chara_data[USER_CHARA_MAX].equip[CHARA_EQUIP_MELEE].item_no = ITEM_ID_FISHING_ROD;
+    const Target bait{ITEM_MENU_PANEL_FISHING_BAIT, 0};
+    EXPECT_EQ(PanelAt(51, 432), bait);
+    EXPECT_EQ(PanelAt(82.5f, 469.5f), bait);
+    EXPECT_EQ(PanelAt(83, 450), miss);
+    EXPECT_EQ(PanelAt(67, 470), miss);
+    PortActiveSaveData = saved;
+}
+
+namespace {
+// Retail's own pickup, refusal and return run around the mouse. Its synthesis
+// question needs the game's message data, so the tests open it, and answer it,
+// with the state CheckSpectolFusion and its Yes, No and Circle leave.
+class ItemMouseReturn : public ItemMouse {
+protected:
+    static constexpr int       kSphere = 1, kWeapon = 8; // Bag cells.
+    std::unique_ptr<CSaveData> save = std::make_unique<CSaveData>();
+    CSaveData                 *saved_save = PortActiveSaveData;
+    CUserDataManager          *saved_user = MenuUserDataManPtr;
+    int                        saved_language = LanguageCode;
+    CMenuMoveItem              move;
+    CMenuPosDataForm           move_forms[2]{};
+    MENUFORMPARTS_TYPE         move_parts[2][2]{}, held_parts[3]{};
+
+    void SetUp() override {
+        ItemMouse::SetUp();
+        PortActiveSaveData = save.get();
+        MenuUserDataManPtr = &save->user_data;
+        LanguageCode = 1; // PAL English, where Cross confirms.
+        for (int i = 0; i < 2; ++i) {
+            move_parts[i][0].name = const_cast<char *>("item");
+            move_parts[i][1].name = const_cast<char *>("num");
+            move_forms[i].parts = move_parts[i];
+            move_forms[i].parts_num = 2;
+            move.form[i] = &move_forms[i];
+        }
+        MenuMoveItemPtr = &move;
+        keys.key_enable = true;
+        keys.have_icon = &held_parts[0];
+        keys.have_shadow = &held_parts[1];
+        keys.have_num = &held_parts[2];
+        keys.InitHaveData();
+        auto &sphere = items[kSphere];
+        sphere.item_no = ITEM_ID_SPECTOL;
+        sphere.used_type = USED_ITEM_TYPE_ATTACH;
+        sphere.item_type = ITEM_DATA_SPECTOL;
+        items[kWeapon].item_no = 2;
+        items[kWeapon].used_type = USED_ITEM_TYPE_WEAPON;
+    }
+
+    void TearDown() override {
+        PortActiveSaveData = saved_save;
+        MenuUserDataManPtr = saved_user;
+        LanguageCode = saved_language;
+        ItemMouse::TearDown();
+    }
+
+    // Retail's item key step for this frame's buttons. A return's move lands at once.
+    void Retail() {
+        if (move.move_on) {
+            for (auto &form : move_forms) {
+                form.x = form.next_x;
+                form.y = form.next_y;
+            }
+            move.CheckMove();
+            return;
+        }
+        keys.CheckSelectKey();
+        if (const int push = keys.CheckPushButton()) {
+            class_menu_item_info.PushKey(keys.select_key, push);
+        }
+    }
+
+    void Frame(float dx = 0, float dy = 0, unsigned buttons = 0) {
+        Tick(dx, dy, buttons);
+        Retail();
+    }
+
+    // Drags the sphere from its cell, retail picking it up, and releases it at (x,y).
+    void DragSphereTo(float x, float y) {
+        Frame(40, 0);   // Bag cell 0 (262,75) -> the sphere (302,75).
+        Frame(0, 0, 1); // Press.
+        Frame(0, 10, 1);
+        ASSERT_EQ(keys.have_item.item_no, ITEM_ID_SPECTOL);
+        ASSERT_EQ(items[kSphere].item_no, 0);
+        Frame(x - 302, y - 85, 1);
+        Tick(); // Release: the drop's Cross, not yet handled.
+        ASSERT_EQ(GamePad__2.GetPadDown(), PAD_CROSS);
+    }
+
+    // The drop on the bag weapon (342,125) opens retail's synthesis question.
+    void AskToSynthesise() {
+        DragSphereTo(342, 125);
+        class_menu_item_info.mode = MENU_ASK_MODE_FUSION;
+        class_menu_item_info.ask_para.mes_no = -1; // Its rows aren't modelled: a click answers.
+        for (int i = 0; i < 4; ++i) {
+            Frame(1, 0);
+        }
+        EXPECT_EQ(keys.have_item.item_no, ITEM_ID_SPECTOL); // No return while the question is open.
+        EXPECT_EQ(items[kSphere].item_no, 0);
+        EXPECT_FALSE(move.move_on);
+    }
+
+    // Spheres wherever they are: in the bag, on the cursor or moving.
+    int Spheres() {
+        int count = keys.have_item.item_no == ITEM_ID_SPECTOL;
+        for (const auto &item : items) {
+            count += item.item_no == ITEM_ID_SPECTOL;
+        }
+        for (const auto &info : move.info) {
+            count += info.active && info.item.item_no == ITEM_ID_SPECTOL;
+        }
+        return count;
+    }
+
+    void ExpectSphereBackInItsCell() {
+        for (int i = 0; i < 3; ++i) {
+            Frame(1, 0); // The return, then its move landing.
+        }
+        EXPECT_EQ(items[kSphere].item_no, ITEM_ID_SPECTOL);
+        EXPECT_EQ(keys.have_item.item_no, 0);
+        EXPECT_EQ(items[kWeapon].item_no, 2);
+        EXPECT_FALSE(move.move_on);
+        EXPECT_EQ(Spheres(), 1);
+    }
+
+    void ExpectSphereStillCarried() {
+        for (int i = 0; i < 3; ++i) {
+            Frame(1, 0);
+        }
+        EXPECT_EQ(keys.have_item.item_no, ITEM_ID_SPECTOL);
+        EXPECT_EQ(items[kSphere].item_no, 0);
+        EXPECT_EQ(items[kWeapon].item_no, 2);
+        EXPECT_FALSE(move.move_on);
+        EXPECT_EQ(Spheres(), 1);
+    }
+};
+} // namespace
+
+TEST_F(ItemMouseReturn, ConsumedHeldItemIsNotReturned) {
+    AskToSynthesise();
+    Tick(0, 0, 1);
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CROSS);
+    keys.InitHaveData(); // Retail's Yes attaches the sphere to the weapon.
+    class_menu_item_info.mode = MENU_ASK_MODE_NONE;
+    for (int i = 0; i < 3; ++i) {
+        Frame(1, 0);
+    }
+    EXPECT_EQ(items[kSphere].item_no, 0);
+    EXPECT_EQ(keys.have_item.item_no, 0);
+    EXPECT_EQ(items[kWeapon].item_no, 2);
+    EXPECT_FALSE(move.move_on);
+    EXPECT_EQ(Spheres(), 0);
+}
+
+TEST_F(ItemMouseReturn, NoReturnsTheSphereToItsCell) {
+    AskToSynthesise();
+    Tick(0, 0, 1);
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CROSS);
+    class_menu_item_info.mode = MENU_ASK_MODE_NONE; // Retail's No keeps the sphere carried.
+    ExpectSphereBackInItsCell();
+}
+
+TEST_F(ItemMouseReturn, CircleReturnsTheSphereToItsCell) {
+    AskToSynthesise();
+    Tick(0, 0, 2);
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CIRCLE);
+    class_menu_item_info.mode = MENU_ASK_MODE_NONE;
+    ExpectSphereBackInItsCell();
+}
+
+TEST_F(ItemMouseReturn, RetailRefusalReturnsTheItemToItsCell) {
+    DragSphereTo(140, 230); // Max, who cannot use a sphere.
+    Retail();
+    EXPECT_EQ(class_menu_item_info.key_arg_no, ITEM_MENU_PANEL_CHARA);
+    EXPECT_EQ(class_menu_item_info.mode, MENU_ASK_MODE_NONE);
+    EXPECT_EQ(keys.have_item.item_no, ITEM_ID_SPECTOL); // Refused, still carried.
+    ExpectSphereBackInItsCell();
+}
+
+TEST_F(ItemMouseReturn, PadDuringTheQuestionLeavesTheSphereCarried) {
+    AskToSynthesise();
+    GamePad__2.pad[0].button = PAD_CIRCLE;
+    Tick(); // The pad answers instead.
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CIRCLE);
+    class_menu_item_info.mode = MENU_ASK_MODE_NONE;
+    GamePad__2.previous_pad[0].button = PAD_CIRCLE;
+    Tick();
+    GamePad__2.pad[0].button = GamePad__2.previous_pad[0].button = 0;
+    ExpectSphereStillCarried();
+}
+
+TEST_F(ItemMouseReturn, PadDuringTheDragLeavesTheSphereCarried) {
+    Frame(40, 0);
+    Frame(0, 0, 1);
+    Frame(0, 10, 1);
+    ASSERT_EQ(keys.have_item.item_no, ITEM_ID_SPECTOL);
+    GamePad__2.pad[0].button = PAD_RIGHT;
+    Tick(40, 40, 1);
+    GamePad__2.pad[0].button = 0;
+    Frame(0, 0, 1);
+    Tick(); // The mouse release no longer drops anything.
+    EXPECT_EQ(GamePad__2.GetPadDown(), 0);
+    Retail();
+    ExpectSphereStillCarried();
 }
