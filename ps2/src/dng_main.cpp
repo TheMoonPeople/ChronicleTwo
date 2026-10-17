@@ -68,6 +68,9 @@
 #include "water.hpp"
 #include "wavetable.hpp"
 
+// Each draw packet the frame sorts takes one mgSORT_PACKET from BuffWorkData, and those grow with pointer width on PC. One on PS2.
+#define WORK_DATA_SIZE (10000 * (int) (sizeof(mgSORT_PACKET) / 16))
+
 /**
  *
  * Stack that the dungeon's long-lived objects are allocated from.
@@ -276,7 +279,7 @@ void memoryInit() {
     BuffPaketData[0].stSetBuffer(buffer0, 60000);
     BuffPaketData[1].stSetBuffer(buffer1, 60000);
     mgSetDataBuffer(&BuffPaketData[0], &BuffPaketData[1], 1);
-    BuffWorkData.stSetBuffer(MainBuffer->stAlloc64(10000), 10000);
+    BuffWorkData.stSetBuffer(MainBuffer->stAlloc64(WORK_DATA_SIZE), WORK_DATA_SIZE);
 
     if (strlen("Work Buffer") < sizeof(BuffWorkData.name)) {
         strcpy(BuffWorkData.name, "Work Buffer");
