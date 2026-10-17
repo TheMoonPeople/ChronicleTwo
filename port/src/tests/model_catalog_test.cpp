@@ -6,6 +6,7 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -25,6 +26,7 @@
 #include "menu_character_assets.hpp"
 #include "mg_dataset.hpp"
 #include "mg_texture_port.hpp"
+#include "mg_visual_port.hpp"
 #include "mglib.hpp"
 #include "platform/arena.hpp"
 #include "platform/datapacks.hpp"
@@ -1543,6 +1545,171 @@ TEST_F(NativeModel, ShadowCpuSkinRetainsMoreThanThirtyTwoBones) {
     ASSERT_NE(info, nullptr);
     DeformMesh(frame, &motion, info, false);
     EXPECT_NEAR(static_cast<mgCVisualMDT *>(frame->visual)->vertex[0][0], 2.0f, .0001f);
+}
+
+namespace {
+
+// Loads the fixture's model with every frame a shadow model.
+mgCVisualMDT *LoadShadowVisual(mgCMemory &memory) {
+    std::string        error;
+    char               empty[] = "";
+    mgCreateVisualType types[] = {
+        {MG_VISUAL_CREATE_SHADOW_MDT, empty  },
+        {MG_VISUAL_CREATE_END,        nullptr}
+    };
+    mgLoadData load{};
+    load.memory = &memory;
+    load.visual_type = types;
+    auto *frame = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+    EXPECT_NE(frame, nullptr) << error;
+    return frame != nullptr ? static_cast<mgCVisualMDT *>(frame->visual) : nullptr;
+}
+
+// Appends six triangle-list corners, 0 1 2 2 1 0, as the primitive's indices, after the buffer's first `used` bytes.
+void AddShadowCorners(Json &gltf, std::vector<unsigned char> &bytes, std::size_t used) {
+    const std::uint16_t corners[6] = {0, 1, 2, 2, 1, 0};
+    bytes.resize(used + sizeof corners);
+    std::memcpy(bytes.data() + used, corners, sizeof corners);
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    gltf["bufferViews"].push_back({
+        {"buffer",     0                               },
+        {"byteOffset", static_cast<int>(used)          },
+        {"byteLength", static_cast<int>(sizeof corners)}
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    gltf["bufferViews"].size() - 1},
+        {"componentType", 5123                          },
+        {"count",         6                             },
+        {"type",          "SCALAR"                      }
+    });
+    gltf["meshes"][0]["primitives"][0]["indices"] = gltf["accessors"].size() - 1;
+}
+
+// Gives the primitive one normal and two uvs, so its corners carry position, normal and uv indices.
+void AddNormalsAndUvs(Json &gltf, Json &game) {
+    gltf["bufferViews"].push_back({
+        {"buffer",     0 },
+        {"byteOffset", 0 },
+        {"byteLength", 24}
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    gltf["bufferViews"].size() - 1},
+        {"componentType", 5126                          },
+        {"count",         3                             },
+        {"type",          "VEC2"                        }
+    });
+    auto &primitive = gltf["meshes"][0]["primitives"][0];
+    primitive["attributes"]["NORMAL"] = 0;
+    primitive["attributes"]["TEXCOORD_0"] = gltf["accessors"].size() - 1;
+    auto &mesh = game["meshes"][0];
+    mesh["normal_count"] = 1;
+    mesh["uv_count"] = 2;
+    mesh["primitives"][0]["type"] = MG_PRIM_TRIANGLE;
+    mesh["primitives"][0]["source_normals"] = {0, 0, 0};
+    mesh["primitives"][0]["source_uvs"] = {1, 0, 1};
+}
+
+void ExpectShadowTriangles(const mgCVisualMDT *visual, const std::vector<int> &positions) {
+    ASSERT_NE(visual, nullptr);
+    ASSERT_NE(visual->face_group, nullptr);
+    EXPECT_EQ(visual->face_group->vu_program, MG_VU_PROG_SHADOW);
+    const mgCFace *face = visual->face_group->face;
+    ASSERT_NE(face, nullptr);
+    EXPECT_EQ(face->vertex_num, static_cast<int>(positions.size() / 3));
+    EXPECT_EQ(face->index_stride, 3);
+    EXPECT_EQ(face->index_num, static_cast<int>(positions.size()));
+    EXPECT_EQ(std::vector<int>(face->index, face->index + positions.size()), positions);
+}
+
+std::vector<unsigned char> FixtureBytes() {
+    const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
+    std::vector<unsigned char> bytes(values.size() * sizeof(float));
+    std::memcpy(bytes.data(), values.data(), bytes.size());
+    return bytes;
+}
+
+} // namespace
+
+// A shadow model's faces are read as retail's mgCShadowMDT::CreateFace leaves them: triangles of three position
+// indices, without the normal and uv indices the visual layout carries per corner.
+TEST_F(NativeModel, ShadowModelFacesKeepOnlyTrianglePositionIndices) {
+    auto bytes = FixtureBytes();
+    AddShadowCorners(gltf, bytes, 68);
+    AddNormalsAndUvs(gltf, game);
+    Write(directory / "port_data/models/model.gltf", gltf);
+    ExpectShadowTriangles(LoadShadowVisual(memory), {0, 1, 2, 2, 1, 0});
+}
+
+// Corners with a position index only (stride 1) compact the same way.
+TEST_F(NativeModel, ShadowModelFacesWithoutNormalsOrUvsKeepTheirTriangles) {
+    auto bytes = FixtureBytes();
+    AddShadowCorners(gltf, bytes, 68);
+    Write(directory / "port_data/models/model.gltf", gltf);
+    ExpectShadowTriangles(LoadShadowVisual(memory), {0, 1, 2, 2, 1, 0});
+}
+
+// Retail's shadow draw takes triangle lists only, so a strip keeps no triangles.
+TEST_F(NativeModel, ShadowModelStripFacesKeepNoTriangles) {
+    auto bytes = FixtureBytes();
+    AddShadowCorners(gltf, bytes, 68);
+    gltf["meshes"][0]["primitives"][0]["mode"] = 5;
+    Write(directory / "port_data/models/model.gltf", gltf);
+    ExpectShadowTriangles(LoadShadowVisual(memory), {});
+}
+
+// A morph moves a shadow model's vertices without handing its rewritten faces to the visual face builder.
+TEST_F(NativeModel, ShadowModelMorphKeepsShadowFaces) {
+    const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 2, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
+    std::vector<unsigned char> bytes(values.size() * sizeof(float));
+    std::memcpy(bytes.data(), values.data(), bytes.size());
+    gltf["bufferViews"][2]["byteLength"] = 8;
+    gltf["accessors"][2]["type"] = "SCALAR";
+    gltf["bufferViews"].push_back({
+        {"buffer",     0 },
+        {"byteOffset", 68},
+        {"byteLength", 36}
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    3     },
+        {"componentType", 5126  },
+        {"count",         3     },
+        {"type",          "VEC3"}
+    });
+    gltf["meshes"][0]["primitives"][0]["targets"] = Json::array({{{"POSITION", 3}}});
+    gltf["nodes"] = Json::array({
+        {{"name", "root"}, {"children", {1}}},
+        {{"mesh", 0}}
+    });
+    game["frames"][0]["rotation_node"] = 1;
+    gltf["animations"][0]["channels"][0]["target"]["node"] = 1;
+    gltf["animations"][0]["channels"][0]["target"]["path"] = "weights";
+    AddShadowCorners(gltf, bytes, values.size() * sizeof(float));
+    AddNormalsAndUvs(gltf, game);
+    Write(directory / "port_data/models/model.gltf", gltf);
+
+    std::string        error;
+    char               empty[] = "";
+    mgCreateVisualType types[] = {
+        {MG_VISUAL_CREATE_SHADOW_MDT, empty  },
+        {MG_VISUAL_CREATE_END,        nullptr}
+    };
+    mgLoadData load{};
+    load.memory = &memory;
+    load.visual_type = types;
+    auto *frame = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+    ASSERT_NE(frame, nullptr) << error;
+    auto *visual = static_cast<mgCVisualMDT *>(frame->visual);
+    ASSERT_NE(visual, nullptr);
+    ASSERT_NE(visual->face_group, nullptr);
+    const mgVisualFaceMesh *before = mgVisualPortFaceMesh(visual->face_group->face);
+    auto                    motion = Motion();
+    ASSERT_NE(motion.motion_list, nullptr);
+    SetMotionTime(frame, &motion, 15, nullptr);
+    EXPECT_EQ(mgVisualPortFaceMesh(visual->face_group->face), before);
+    ExpectShadowTriangles(visual, {0, 1, 2, 2, 1, 0});
+    EXPECT_FLOAT_EQ(visual->vertex[0][0], 1);
+    EXPECT_FLOAT_EQ(visual->vertex[1][0], 3);
 }
 
 TEST_F(NativeModel, ReadsAllStandardJointGroupsAndPreservesNativeGpuInfluenceLimit) {
