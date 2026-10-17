@@ -90,6 +90,12 @@ UNIT_FIXUPS = [
     ("inventmn.cpp", "\ninline CMenuInvent::CMenuInvent() {", "\nCMenuInvent::CMenuInvent() {"),
     ("editeff.cpp", "\ninline CMapParts::CMapParts() { Initialize(); }", "\n"),
     ("editmap.cpp", "\ninline CMapParts::CMapParts() { Initialize(); }", "\n"),
+    # PAL's op_cursorlimmit stops the Options cursor at y 274, above the ninth shown row's 288, so the cursor and
+    # its frame sat between the last two rows. The bottom limit reaches the selected row's place in the settled list.
+    ("menuop.cpp", '                MenuPosData->GetEtcTblValue("op_cursorlimmit", limit[0], limit[1]);',
+     '                MenuPosData->GetEtcTblValue("op_cursorlimmit", limit[0], limit[1]); '
+     'if (LocalMenuBGForm != NULL) { int base[2]; LocalMenuBGForm->GetPutPosXY("base_msg", base[0], base[1]); '
+     'limit[1] = PortOptionCursorBottom(limit[1], pos.y, fptosi(list_y - 3.0f), base[1] - top * 24 - 3); }'),
     # Fusion colours can target a float-aligned ambient field rather than a quadword boundary.
     ("menusys.cpp", "*(u_long128 *) color = *(u_long128 *) fusion_ambient;",
      "memcpy(color, fusion_ambient, sizeof(fusion_ambient));"),

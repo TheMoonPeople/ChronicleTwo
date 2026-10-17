@@ -17,6 +17,14 @@ class UnitFixups(unittest.TestCase):
         self.assertNotIn("static CDC2Mes *DownLoadMes[6];", mirrored)
         self.assertGreaterEqual(mirrored.count("i < 8;"), 2)
 
+    def test_option_cursor_bottom_limit_reaches_the_selected_row_on_its_line(self):
+        source = (Path(__file__).resolve().parents[2] / "ps2/src/menuop.cpp").read_text(encoding="latin-1")
+        result = header_fixups.fixup_unit_text("menuop.cpp", source)
+        self.assertEqual(result.count("limit[1] = PortOptionCursorBottom(limit[1], pos.y,"), 1)
+        self.assertEqual(result.count("\n"), source.count("\n"))
+        self.assertEqual(result.count("if (limit[1] < pos.y) {"), 1)
+        self.assertEqual(header_fixups.fixup_unit_text("other.cpp", source), source)
+
     def test_password_generator_avoids_host_random_without_changing_its_body(self):
         source = (Path(__file__).resolve().parents[2] / "ps2/src/password.cpp").read_text()
         result = header_fixups.fixup_unit_text("password.cpp", source)
