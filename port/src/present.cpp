@@ -48,6 +48,21 @@ void PollFpsToggle() {
     }
 }
 
+// Records the host overlay of a presented frame: the FPS counter when asked, then the menu pointer.
+gfx::DisplayListRef RecordHostOverlay(bool fps) {
+    gfx::BeginRecording(gfx::RecordingKind::Overlay);
+    if (!gfx::Recording()) {
+        return nullptr;
+    }
+    if (fps) {
+        const int pixel = OverlayPixelSize(gfx::GetLogicalMapping(gfx::kMainTarget));
+        OverlayDrawText(PresentFpsText(), gfx::GetUiMapping(gfx::kMainTarget), pixel,
+                        pixel * kOverlayPadding, pixel * kOverlayPadding);
+    }
+    MenuMouseDraw();
+    return gfx::EndRecording();
+}
+
 const gfx::DisplayList *DisplayOverlayList() {
     if (PresentMouseActive() && !ClockUnbounded()) {
         if (!WindowPollEvents()) {
@@ -59,17 +74,7 @@ const gfx::DisplayList *DisplayOverlayList() {
     if (!overlay.on && !MenuMousePointerVisible()) {
         return nullptr;
     }
-    gfx::BeginRecording(gfx::RecordingKind::Overlay);
-    if (!gfx::Recording()) {
-        return nullptr;
-    }
-    if (overlay.on) {
-        const int pixel = OverlayPixelSize(gfx::GetLogicalMapping(gfx::kMainTarget));
-        OverlayDrawText(PresentFpsText(), gfx::GetUiMapping(gfx::kMainTarget), pixel,
-                        pixel * kOverlayPadding, pixel * kOverlayPadding);
-    }
-    MenuMouseDraw();
-    overlay.list = gfx::EndRecording();
+    overlay.list = RecordHostOverlay(overlay.on);
     return overlay.list.get();
 }
 
@@ -316,10 +321,15 @@ bool PresentScreenshotFps(std::vector<uint8_t> &rgba, uint32_t &width, uint32_t 
 
     // The overlay exists only in a presented image, and the canonical target never takes it, so the
     // composite is presented at alpha 1 and read back from the window-sized display image.
-    const gfx::DisplayListRef fps = OverlayRecord(PresentFpsText());
+    // Like a presented frame, it carries the menu pointer in place of the retail hand it stands for.
+    const gfx::DisplayListRef fps = RecordHostOverlay(true);
+    if (!fps) {
+        return false;
+    }
     gfx::RenderOptions options;
     options.present = true;
     options.overlay = fps.get();
+    options.suppressed_2d_key = MenuMouseReplacedHandKey();
 
     return gfx::RenderList(*list, 1.0f, options) && gfx::ReadbackFrame(rgba, width, height);
 }
