@@ -285,7 +285,11 @@ int MouseCameraCollectPolys(CScene &scene, mgVu0FBOX &box, CCPoly *out, int capa
 
 bool TownMouseCameraOwns(CCameraControl *camera, CScene *scene, CPadControl *pad,
                          bool walking, bool subgame, bool locked) {
-    return walking && MainCameraActive(camera, scene, pad, subgame, locked) && camera->control_on && camera->follow_on;
+    // Door events, map events such as the prologue's bench couple and the entry
+    // event after a world map move turn this camera's follow off, and only a later
+    // event's camera reset turns it back on. Retail ignores follow while control is
+    // on and the right stick keeps turning the camera, so control alone decides.
+    return walking && MainCameraActive(camera, scene, pad, subgame, locked) && camera->control_on;
 }
 
 bool DungeonMouseCameraOwns(CCameraControl *camera, CScene *scene, CPadControl *pad,

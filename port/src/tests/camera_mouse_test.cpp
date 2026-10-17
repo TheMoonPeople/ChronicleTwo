@@ -136,9 +136,36 @@ TEST(CameraMouse, CameraOwnershipRejectsScriptsLocksOtherViewsAndOtherCameras) {
     camera.rot_cancel = 0;
     camera.ControlOff();
     EXPECT_FALSE(TownMouseCameraOwns(&camera, &scene, &pad, true, false, false));
-    camera.ControlOn();
+}
+
+TEST(CameraMouse, TownMouseKeepsTurningAfterAnEventTurnsFollowOff) {
+    auto    camera = Camera();
+    CScene &scene = *GetMainScene();
+    scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
+    scene.active_camera = 0;
+    scene.event_run = 0;
+    PortLoopNo = LOOP_EDIT;
+    GamePad__2.key_lock = 0;
+    CPadControl pad{};
+    // A door event, a map event (the prologue's bench couple) or the entry event
+    // after a world map move turns the walking camera's follow off with
+    // _INITIALIZE or EventDoorLoop; town control only turns control back on.
     camera.FollowOff();
+    EXPECT_TRUE(TownMouseCameraOwns(&camera, &scene, &pad, true, false, false));
+    camera.ControlOff();
     EXPECT_FALSE(TownMouseCameraOwns(&camera, &scene, &pad, true, false, false));
+    camera.ControlOn();
+    InputResetBindings();
+    InputPadState input{.connected = true};
+    InputSetOverride(0, &input);
+    InputSetScriptedDevices({.mouse_dx = 400});
+    InputLatchPad(0);
+    pad.Initialize();
+    float rotation[4]{};
+    camera.MoveCamera(&pad, rotation, nullptr, 0);
+    EXPECT_LT(camera.pos[0], -60);
+    InputSetScriptedDevices({});
+    InputSetOverride(0, nullptr);
 }
 
 TEST(CameraMouse, TownControlConsumesOneSampleAndDoesNotReplayLockedMotion) {
@@ -440,8 +467,8 @@ TEST(CameraMouse, DungeonFollowOwnershipSurvivesTheDeathEventsFollowOff) {
     status.eye_view = 1;
     EXPECT_FALSE(owns(false));
     EXPECT_TRUE(owns(true));
-    // Town walking still keeps follow as part of its camera mode.
-    EXPECT_FALSE(TownMouseCameraOwns(&camera, &scene, &pad, true, false, false));
+    // Town walking control runs without follow as well.
+    EXPECT_TRUE(TownMouseCameraOwns(&camera, &scene, &pad, true, false, false));
 }
 
 class DungeonEyeMouse : public testing::TestWithParam<bool> {};
