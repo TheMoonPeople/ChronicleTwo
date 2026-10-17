@@ -115,6 +115,11 @@ UNIT_FIXUPS = [
      """    main_stack->Alloc(data_size - 270128);
     MenuBuffer__2.stSetBuffer(read_buffer = main_stack->stAlloc64(260000), 260000);
     read_buffer_end = read_buffer + 260000;"""),
+    # The converted .map files outgrow the callers' fixed load buffers (the dungeon's BuffReadData, the town's
+    # read buffer), so LoadMapData reads into a buffer sized to the map's files and stops loudly if it overran it.
+    ("sceneload.cpp", "    u8        *load_buf = info.load_buf;", "    u8        *load_buf = PortMapLoadBuffer(info);"),
+    ("sceneload.cpp", "    if (result == 0) {\n        return 0;\n    }\n\n    return (uptr) load_buf;",
+     "    PortMapLoadCheck(info, load_buf);\n    if (result == 0) {\n        return 0;\n    }\n    return (uptr) load_buf;"),
 ]
 
 # MWCC-only pragmas. ct_port builds with -Wall and no -Wno-unknown-pragmas, so they are blanked, not silenced.
