@@ -7,6 +7,7 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -32,6 +33,8 @@
 #include "maintex.hpp"
 #include "map.hpp"
 #include "menu_mouse.hpp"
+#include "menuchr_port.hpp"
+#include "menudraw.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_drawprim_port.hpp"
 #include "mg_memory.hpp"
@@ -2190,4 +2193,168 @@ TEST(MglibPresent, DungeonEyeExitCutsTheRestoreTickWithoutCuttingTheNextTick) {
     BattleAreaScene = old_area;
     DngStatus = old_status;
     PortLoopNo = old_loop;
+}
+
+namespace {
+// Change-logo atlas rows: one colour per character, so a draw of the wrong row is visible.
+constexpr std::array<std::array<uint8_t, 3>, 4> kBannerRowColours = {
+    {{255, 255, 255}, {255, 0, 0}, {0, 255, 0}, {0, 0, 255}}
+};
+
+size_t BannerDrawCount(const gfx::DisplayList &list, uint64_t &key) {
+    size_t count = 0;
+    for (const auto &entry : list.entries) {
+        if (const auto *draw = std::get_if<gfx::detail::Draw2DEntry>(&entry)) {
+            key = draw->interpolation.key;
+            ++count;
+        }
+    }
+    return count;
+}
+
+// Leftmost pixel of a character's logo row colour on the logo's middle line, or -1.
+int BannerLogoLeft(const std::vector<uint8_t> &rgba, uint32_t width, uint32_t height, int chara) {
+    const auto     mapping = gfx::GetLogicalMapping(gfx::kMainTarget);
+    const uint32_t y = static_cast<uint32_t>(static_cast<float>(mgScreenHeight - 72) * mapping.scale_y + mapping.offset_y);
+    const auto    &colour = kBannerRowColours[chara];
+    for (uint32_t x = 0; y < height && x < width; ++x) {
+        const uint8_t *p = &rgba[(static_cast<size_t>(y) * width + x) * 4];
+        bool           match = true;
+        for (int c = 0; c < 3; ++c) {
+            match = match && (colour[c] != 0 ? p[c] > 200 : p[c] < 60);
+        }
+        if (match) {
+            return static_cast<int>(x);
+        }
+    }
+    return -1;
+}
+} // namespace
+
+TEST(QuickChangeBannerPresentation, SlideAndFadeInterpolateAndNewBannersRestartAndHiddenOnesResume) {
+    PresentRenderer        renderer(640, 480);
+    std::vector<u_long128> arena(4096), pixels(256 * 256 * 4 / 16);
+    mgCMemory              memory;
+    memory.stSetBuffer(arena.data(), static_cast<int>(arena.size()));
+    mgTexManager.SetTableBuffer(16, 4, &memory);
+    mgTexManager.Initialize(0x1000, -1);
+    auto *rgba = reinterpret_cast<uint8_t *>(pixels.data());
+    for (int y = 0; y < 256; ++y) {
+        for (int x = 0; x < 256; ++x) {
+            const auto &colour = kBannerRowColours[y / 64];
+            uint8_t    *texel = &rgba[(y * 256 + x) * 4];
+            texel[0] = colour[0];
+            texel[1] = colour[1];
+            texel[2] = colour[2];
+            texel[3] = 0xFF;
+        }
+    }
+    u_long128 *levels[MG_TEXTURE_LEVEL_MAX] = {pixels.data()};
+    char       logo_name[] = "change_logo";
+    ASSERT_NE(mgTexManager.EnterTexture(0, logo_name, levels, 256, 256, 32, nullptr, 0, 0), nullptr);
+    PresentSetSettings(PresentSettings{.interpolation = true});
+    const int old_loop = PortLoopNo;
+    const int old_rate = mgFrameRate;
+    auto     *old_menu = MenuPosData;
+    // The banner only tests MenuPosData for null; a zeroed manager stands in for an open menu.
+    auto menu = std::unique_ptr<CMenuPosDataManage, decltype(&std::free)>(
+        static_cast<CMenuPosDataManage *>(std::calloc(1, sizeof(CMenuPosDataManage))), &std::free);
+    PortLoopNo = LOOP_DUNGEON;
+    MenuPosData = nullptr;
+    uint32_t width = 0, height = 0;
+    auto     record = [] {
+        mgBeginFrame(nullptr);
+        PortDrawQuickChangeBanner();
+        mgEndFrame(nullptr);
+    };
+    auto canonical = [&] {
+        std::vector<uint8_t> image;
+        EXPECT_TRUE(mgPortCanonicalReadColor(gfx::kMainTarget, image, width, height));
+        return image;
+    };
+    auto display = [&](float alpha) {
+        std::vector<uint8_t> image;
+        EXPECT_TRUE(PresentScreenshotDisplay(alpha, image, width, height));
+        return image;
+    };
+    uint64_t key = 0;
+
+    // A whole banner at both game-frame lengths. Each display frame between two game frames starts on the earlier
+    // game frame's own image and ends on the later one's, with the logo halfway between them at alpha 0.5.
+    for (int rate : {1, 2}) {
+        SCOPED_TRACE(rate);
+        mgFrameRate = rate;
+        record(); // A game frame before the banner.
+        PortShowQuickChangeBanner(0);
+        record();
+        ExpectNewestAtEveryAlpha(); // The first visible frame has nothing to slide from.
+        auto previous = canonical();
+        int  previous_left = BannerLogoLeft(previous, width, height, 0);
+        bool slid_in = false, held = false, slid_out = false, gone = false;
+        for (int frame = 0; frame < 200 && !gone; ++frame) {
+            record();
+            const auto newest = canonical();
+            const auto draws = BannerDrawCount(*mgPortLastList(), key);
+            if (draws == 0) {
+                ExpectNewestAtEveryAlpha(); // The frame after the last visible one has nothing to slide to.
+                gone = true;
+                break;
+            }
+            ASSERT_EQ(draws, 2u); // The strip, then the logo.
+            EXPECT_NE(key, 0u);
+            EXPECT_EQ(display(0.0f), previous) << frame;
+            EXPECT_EQ(display(1.0f), newest) << frame;
+            const auto half = display(0.5f);
+            const int  left = BannerLogoLeft(newest, width, height, 0);
+            if (previous_left > 0 && left == previous_left) {
+                EXPECT_EQ(half, newest) << frame; // Resting: no jitter.
+                held = true;
+            } else if (previous_left > 0 && left > 0) {
+                EXPECT_NEAR(BannerLogoLeft(half, width, height, 0), (previous_left + left) / 2.0, 1.5) << frame;
+                (held ? slid_out : slid_in) = true;
+            } else {
+                EXPECT_NE(half, newest) << frame; // Partly off the left edge, still moving.
+            }
+            previous = newest;
+            previous_left = left;
+        }
+        EXPECT_TRUE(slid_in);
+        EXPECT_TRUE(held);
+        EXPECT_TRUE(slid_out);
+        EXPECT_TRUE(gone);
+    }
+
+    // Each character's row. A new banner, even over a sliding one or for the same character, restarts at the left
+    // edge instead of sliding from the last one.
+    mgFrameRate = 2;
+    for (int chara : {1, 2, 3, 3}) {
+        SCOPED_TRACE(chara);
+        record();
+        PortShowQuickChangeBanner(chara);
+        record();
+        ExpectNewestAtEveryAlpha();
+        record();
+        const auto newest = canonical();
+        for (int other = 0; other < 4; ++other) {
+            EXPECT_EQ(BannerLogoLeft(newest, width, height, other) >= 0, other == chara) << other;
+        }
+        EXPECT_NE(display(0.5f), newest);
+    }
+
+    // A menu hides the banner while it keeps sliding; it reappears where it is, then slides on.
+    MenuPosData = menu.get();
+    record();
+    EXPECT_EQ(BannerDrawCount(*mgPortLastList(), key), 0u);
+    MenuPosData = nullptr;
+    record();
+    ExpectNewestAtEveryAlpha();
+    record();
+    EXPECT_NE(display(0.5f), canonical());
+    EXPECT_EQ(gfx::CurrentInterp2D().key, 0u);
+
+    PortCancelQuickChangeBanner();
+    mgFrameRate = old_rate;
+    PortLoopNo = old_loop;
+    MenuPosData = old_menu;
+    mgTexManager.Initialize(0x1000, -1);
 }

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -15,6 +16,7 @@
 #include "dng_main.hpp"
 #include "editctrl_port.hpp"
 #include "editloop.hpp"
+#include "gfx/gfx.hpp"
 #include "mainloop.hpp"
 #include "mainloop_port.hpp"
 #include "menu_character_assets.hpp"
@@ -68,6 +70,8 @@ int   banner_loop = -1;
 int   banner_phase = BANNER_IN;
 int   banner_hold = 0;
 float banner_x = 0.0f;
+// Changes with every banner shown, so a new banner never slides from the last one's place.
+uint64_t banner_generation = 0;
 
 // Character-change effect timing in game frames, adapted from Dark Cloud's GAME_TASK_CHARA_CHANGED.
 constexpr int   kChangeFadeFrames = 24;
@@ -220,11 +224,7 @@ PORT_OVERRIDE int KeyMainCharaBG() {
             quick_change_pending = false;
             // A quick loadout loads the same character again with other equipment: the effect, but no name.
             if (!PortQuickLoadoutReloading()) {
-                banner_chara = quick_change_chara;
-                banner_loop = PortLoopNo;
-                banner_phase = BANNER_IN;
-                banner_hold = 0;
-                banner_x = static_cast<float>(-kBannerWidth);
+                PortShowQuickChangeBanner(quick_change_chara);
             }
             PortQuickLoadoutReloadDone();
             change_fx_pending = true;
@@ -373,6 +373,18 @@ void DrawChangeSparks(const sceVu0FVECTOR base) {
 }
 
 } // namespace
+
+/**
+ * Starts the banner naming a character, as a new emission sliding in from the left edge.
+ */
+void PortShowQuickChangeBanner(int chara) {
+    banner_chara = chara;
+    banner_loop = PortLoopNo;
+    banner_phase = BANNER_IN;
+    banner_hold = 0;
+    banner_x = static_cast<float>(-kBannerWidth);
+    banner_generation++;
+}
 
 /**
  * Clears the character-change banner and effect before a gameplay mode transition.
@@ -583,7 +595,9 @@ void PortDrawQuickChangeBanner() {
     }
     strip = std::clamp(strip, 0.0f, 1.0f);
 
-    const float top = static_cast<float>(mgScreenHeight - kBannerHeight - kBannerBottomMargin);
+    // Display frames slide the strip and logo between game frames, and blend the strip's fade.
+    gfx::Interp2DScope interpolation({static_cast<gfx::InterpKey>(reinterpret_cast<uintptr_t>(&banner_x)), banner_generation});
+    const float        top = static_cast<float>(mgScreenHeight - kBannerHeight - kBannerBottomMargin);
     DrawMenuFillBox(0.0f, top + kBannerStripPad, static_cast<float>(mgScreenWidth),
                     static_cast<float>(kBannerHeight - 2 * kBannerStripPad), static_cast<int>(kBannerStripAlpha * strip), 0, 0, 0);
 
