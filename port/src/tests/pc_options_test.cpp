@@ -310,12 +310,23 @@ TEST_F(PcOptionsSound, OnlyATabChangePlaysTheCursorSound) {
 
 TEST_F(PcOptionsSound, TabClicksAndShouldersPlayOneCursorSoundThroughRun) {
     const auto cursor = std::vector<int>{SYSTEM_SE_CURSOR};
-    const auto tab_y = 100.0f;
-    // The tab strip's width over its page count, so the test holds whether or not the layout has a constant step.
-    const int  tab_step = (options::kRight - options::kLeft) / static_cast<int>(options::Pages().size());
-    const auto tab_x = [tab_step](int page) { return options::kLeft + (page + 0.5f) * tab_step; };
     options::g_screen = {};
     options::g_screen.open = true;
+    // Find each tab through the screen's own hit test, so the test follows any tab layout.
+    const auto tab_point = [](int page) {
+        for (int y = 0; y < 480; y += 2) {
+            for (int x = 0; x < 512; x += 2) {
+                const auto hit = options::HitTest(options::g_screen, x + 1.0f, y + 1.0f);
+                if (hit.kind == options::HitKind::Tab && hit.index == page) {
+                    return std::pair{x + 1.0f, y + 1.0f};
+                }
+            }
+        }
+        ADD_FAILURE() << "no tab " << page;
+        return std::pair{0.0f, 0.0f};
+    };
+    const auto tab_x = [&](int page) { return tab_point(page).first; };
+    const auto tab_y = tab_point(0).second;
     At(tab_x(0), tab_y);
     ASSERT_TRUE(g_sounds.empty());
     Click(tab_x(2), tab_y);
