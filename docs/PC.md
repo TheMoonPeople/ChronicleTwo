@@ -859,6 +859,8 @@ A buffer inside a block is a child view, and it stays exactly where retail carve
 
 Retail places objects in runs with hand-written quadword counts. The placement operators in `port/src/mg_memory.cpp` grow the run to the host object's size while it is still its arena's last, as Dark Cloud 1 does. `arena_placement_test.cpp` lists the 51 literal-count sites whose host object outgrows its run, such as `CCharacter2` (2496 bytes in 0x68 quadwords), and the 8 cast-not-placed runs that nothing can grow: the script stacks `RS_STACKDATA` and `RS_CALLDATA` (`actscript.cpp`, `effscript.cpp`, `event.cpp`, `runscript_opcodes.cpp`) and `mgSORT_PACKET` (`mg_drawprim.cpp`). Each of those overruns its run on the host until `ps2/src` sizes it with `sizeof`.
 
+Retail reads a map's `.map`, `.cfg`, `.mpk` and `.sky` one after another into the caller's load buffer: the dungeon's `BuffReadData` or the town's read buffer, 260000 quadwords each on PC. The converted `.map.json` files outgrow it: Ocean's Roar Cave's floor map `d04f01` (5,156,317 bytes) ran about 1 MB past `BuffReadData`, and the Sea Dragon's arena `s15` (4,352,327 bytes) about 190 KB past it, into the party and monster objects carved after it. Any map over about 3.04 MB also wrote into the now-loading screen's memory at `BuffReadData + 0x2E630` (`dng_main.cpp`, `InitDungeonMain`). Two unit fixups make `LoadMapData` read into a buffer sized to the map's files instead (`PortMapLoadBuffer`, `port/src/sceneload.cpp`); the caller's buffer is left untouched. The buffer is host memory outside the arenas, so `mg_memory`'s peak reports do not count it; `map load: <map> needs N bytes; read buffer grown to M` is logged each time it grows. A sector-sized guard follows the measured bytes, and a read that ends past them or writes into the guard aborts with `map load: <map> read N bytes, past the M measured for its files`. `port/src/tests/sceneload_map_buffer_test.cpp` covers the measurement, a map larger than the caller's buffer, deferred reads, a second file set, the buffer's growth and reuse, and the guard.
+
 On Windows the executable is linked with `--dynamicbase` and `--high-entropy-va`, lld's MinGW defaults pinned in `port/cmake/arena.cmake`. The image base is 0x140000000, relocated by high-entropy ASLR, and the image is `LARGE_ADDRESS_AWARE`, so the image and the `VirtualAlloc` mappings lie above 4 GiB, and a truncated pointer faults at once. Linux stays `-pie -z separate-code`. Dark Cloud 1 links Windows with the same defaults.
 
 ## Threads and timing
@@ -1237,6 +1239,7 @@ Each fixup's text must occur exactly once in its file, or the script stops befor
 
 `unit_copy.py` applies the unit fixups (`header_fixups.fixup_unit_text`) to each `ps2_src` copy after the override strip and before long64:
 
+- `sceneload.cpp`: `LoadMapData` reads into `PortMapLoadBuffer(info)` instead of `info.load_buf`, and calls `PortMapLoadCheck` after its reads (see "Arenas").
 - `editeff.cpp` and `editmap.cpp`: the identical inline `CMapParts::CMapParts()` copies are blanked, so `map.cpp`'s out-of-line definition is the only one. COFF has no inline-versus-strong resolution.
 - `dng_debug.cpp`: `CTreasureBox::Initialize()` becomes `inline`. `CTreasureBox`'s vtable becomes COMDAT with it.
 

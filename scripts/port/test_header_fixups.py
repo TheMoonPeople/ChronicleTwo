@@ -47,6 +47,18 @@ class UnitFixups(unittest.TestCase):
             header_fixups.fixup_unit_text("inventmn.cpp", source + source)
         self.assertEqual(header_fixups.fixup_unit_text("other.cpp", source), source)
 
+    def test_map_files_read_into_a_measured_buffer_and_are_checked(self):
+        source = (Path(__file__).resolve().parents[2] / "ps2/src/sceneload.cpp").read_text()
+        result = header_fixups.fixup_unit_text("sceneload.cpp", source)
+        self.assertNotIn("load_buf = info.load_buf;", result)
+        self.assertEqual(result.count("PortMapLoadBuffer(info)"), 1)
+        self.assertEqual(result.count("PortMapLoadCheck(info, load_buf);"), 1)
+        # The check runs before the missing-file return, so every read is checked.
+        self.assertLess(result.index("PortMapLoadCheck"), result.index("if (result == 0)"))
+        self.assertEqual(result.count("\n"), source.count("\n"))
+        with self.assertRaises(SystemExit):
+            header_fixups.fixup_unit_text("sceneload.cpp", result)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -2,12 +2,16 @@
 
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <memory>
 
 #include "character.hpp"
+#include "dataread.hpp"
 #include "dataread_port.hpp"
 #include "editmap.hpp"
 #include "map.hpp"
@@ -18,6 +22,7 @@
 #include "platform/model_assets.hpp"
 #include "scene.hpp"
 #include "sceneload.hpp"
+#include "sceneload_port.hpp"
 #include "scenesnd.hpp"
 
 PORT_OVERRIDE int CScene::LoadChara(int index, u_int *model, char *profile, mgCMemory *model_memory,
@@ -212,4 +217,100 @@ PORT_OVERRIDE int CScene::LoadMapFromMemory(int map_no, int step, SCN_LOADMAP_IN
     }
 
     return -1;
+}
+
+namespace {
+
+// One 64-byte line, so the read buffer keeps the 64-byte alignment of retail's stAlloc64 buffers.
+struct alignas(64) MapLoadLine {
+    u8 bytes[64];
+};
+
+// Map file reads, which retail put in the caller's fixed load buffer.
+struct MapLoadScratch {
+    std::unique_ptr<MapLoadLine[]> lines;
+    std::unique_ptr<MapLoadLine[]> retired; // deferred LoadMapFromMemory steps (bg_load_info) may still read it
+    std::size_t                    capacity = 0;
+    std::size_t                    measured = 0;
+};
+
+MapLoadScratch map_load;
+
+constexpr u8 kMapLoadGuard = 0xA5;
+
+std::size_t Pad64(int size) {
+    return size > 0 ? (static_cast<std::size_t>(size) + 63) / 64 * 64 : 0;
+}
+
+int MapFileSize(const char *dir, const char *name, const char *extension) {
+    char path[0x80];
+    int  size = 0;
+    std::snprintf(path, sizeof path, "%s%s%s", dir, name, extension);
+    return LoadFile2(path, NULL, &size, LOAD_FILE_SIZE) ? size : 0;
+}
+
+} // namespace
+
+// The bytes LoadMapData's reads can write: each read advances the buffer by its size rounded up to 64.
+std::size_t PortMapLoadBytes(const SCN_LOADMAP_INFO2 &info) {
+    std::size_t bytes = 0;
+
+    for (const SCN_LOADMAP_INFO2::MapFiles &files : info.files) {
+        if (files.enable == 0) {
+            break;
+        }
+
+        bytes += Pad64(MapFileSize(files.dir, files.map_name, ".map.json"));
+        bytes += Pad64(MapFileSize(files.dir, files.cfg_name, ".cfg.json"));
+        bytes += Pad64(MapFileSize(files.dir, files.mpk_name, ".mpk"));
+
+        if (info.load_sky != 0) {
+            bytes += Pad64(std::max(MapFileSize(files.dir, files.sky_name, ".sky"), MapFileSize("map/", files.def_sky_name, ".sky")));
+        }
+    }
+
+    // The reader zeroes the last file's sector tail past its 64-byte rounding.
+    return bytes + DATAREAD_SECTOR_SIZE;
+}
+
+// Retail reads a map's .map, .cfg, .mpk and .sky one after another into the caller's load buffer, the dungeon's
+// BuffReadData or the town's read buffer (200000 quadwords, 260000 on PC). The converted maps are larger: the Sea
+// Dragon's arena, s15.map.json, is 4.35 MB and Ocean's Roar Cave's floors, d04f01.map.json, 5.16 MB. A map past the
+// buffer's end overwrote the party and monster objects carved after it, and the first monster's Initialize crashed on
+// map text. LoadMapData reads into this buffer instead, sized to the map's files.
+u8 *PortMapLoadBuffer(const SCN_LOADMAP_INFO2 &info) {
+    const std::size_t measured = PortMapLoadBytes(info);
+    const std::size_t needed = measured + DATAREAD_SECTOR_SIZE;
+
+    if (needed > map_load.capacity) {
+        const std::size_t lines = (needed + needed / 4 + sizeof(MapLoadLine) - 1) / sizeof(MapLoadLine);
+        map_load.retired = std::move(map_load.lines);
+        map_load.lines = std::make_unique<MapLoadLine[]>(lines);
+        map_load.capacity = lines * sizeof(MapLoadLine);
+        std::fprintf(stderr, "map load: %s%s needs %zu bytes; read buffer grown to %zu\n", info.files[0].dir,
+                     info.files[0].map_name, measured - DATAREAD_SECTOR_SIZE, map_load.capacity);
+    }
+
+    map_load.measured = measured;
+    u8 *base = map_load.lines[0].bytes;
+    std::memset(base + measured, kMapLoadGuard, DATAREAD_SECTOR_SIZE);
+    return base;
+}
+
+// Stops the game when LoadMapData's reads went past what PortMapLoadBuffer measured, or wrote into the guard after it.
+void PortMapLoadCheck(const SCN_LOADMAP_INFO2 &info, const u8 *end) {
+    const u8         *base = map_load.lines[0].bytes;
+    const std::size_t used = static_cast<std::size_t>(end - base);
+    const u8         *guard = base + map_load.measured;
+    bool              intact = true;
+
+    for (int i = 0; i < DATAREAD_SECTOR_SIZE; i++) {
+        intact = intact && guard[i] == kMapLoadGuard;
+    }
+
+    if (used + DATAREAD_SECTOR_SIZE > map_load.measured || !intact) {
+        std::fprintf(stderr, "map load: %s%s read %zu bytes, past the %zu measured for its files\n", info.files[0].dir,
+                     info.files[0].map_name, used, map_load.measured - DATAREAD_SECTOR_SIZE);
+        std::abort();
+    }
 }
