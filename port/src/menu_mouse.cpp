@@ -9,6 +9,7 @@
 #include "gamepad.hpp"
 #include "mainloop.hpp"
 #include "menu_mouse_item.hpp"
+#include "menudraw.hpp"
 #include "mglib.hpp"
 #include "mglib_port.hpp"
 #include "platform/input.hpp"
@@ -72,13 +73,33 @@ int MenuMouseChoose(const MenuMouseSample &mouse, std::span<const MenuMouseRect>
         return selected;
     }
     const int hit = MenuMouseHit(rows, mouse.x, mouse.y);
-    if (hit >= 0 && (mouse.moved || (mouse.clicked & 1))) {
+    if (hit >= 0 && (mouse.clicked & 1)) {
+        return hit; // A click confirms the row it was pressed on; a wheel notch in the same sample is dropped.
+    }
+    if (hit >= 0 && mouse.moved) {
         selected = hit;
     }
-    if (mouse.wheel != 0 && std::isfinite(mouse.wheel)) {
-        selected = std::clamp(selected + (-static_cast<int>(std::clamp(mouse.wheel, -32.0f, 32.0f)) * wheel_step), 0, static_cast<int>(rows.size()) - 1);
+    return MenuMouseWheelStep(selected, mouse.wheel, static_cast<int>(rows.size()), wheel_step);
+}
+
+int MenuMouseWheelStep(int selected, float wheel, int count, int wheel_step) {
+    if (wheel == 0 || !std::isfinite(wheel) || count <= 0) {
+        return selected;
     }
-    return selected;
+    return std::clamp(selected + (-static_cast<int>(std::clamp(wheel, -32.0f, 32.0f)) * wheel_step), 0, count - 1);
+}
+
+MenuMouseRect MenuMousePart(CMenuPosDataForm *form, const char *name) {
+    if (!form || !form->draw_flag) {
+        return {};
+    }
+    auto *part = form->GetPartInfo(const_cast<char *>(name));
+    if (!part || !part->draw_flag) {
+        return {};
+    }
+    float x, y;
+    form->GetPutPosXY(part->name, x, y);
+    return {x, y, float(part->w), float(part->h)};
 }
 
 namespace {
@@ -369,7 +390,7 @@ void MenuMouseDraw() {
     // The pointing fingertip is at the far edge, halfway down the hand's atlas cell.
     const float   tip_x = sign * hand.uv.w * hand.scale;
     const float   tip_y = hand.uv.h * hand.scale * 0.5f;
-    const float texture_scale = mgPortTextureScale(hand.texture.texture);
+    const float   texture_scale = mgPortTextureScale(hand.texture.texture);
     gfx::Vertex2D vertices[4]{};
     for (int i = 0; i < 4; ++i) {
         const float x = (i & 1 ? tip_x : 0) - tip_x;

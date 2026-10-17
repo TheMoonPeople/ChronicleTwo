@@ -1,0 +1,36 @@
+# --jump town:10 --fast-load, 1280x720: Character > Monster Transform with the mouse.
+# Capture 940: hovering the plant badge selects it. 1040: its commands after a click.
+# 1140: View Status clicked. 1380: a click beside the commands confirms nothing.
+# 1500: Mouse2 back on the badges. 1560: a wheel notch moves down a row. 1750: Mouse2 closed the box.
+300 triangle
+301
+400 down
+401
+500 cross
+501
+650 left
+651
+700 left
+701
+760 cross
+761
+900 mouse:-345,-90
+901
+960 mouse1
+961
+1010 mouse:45,100
+1011
+1060 mouse1
+1061
+1250 mouse2
+1251
+1300 mouse:0,-100
+1301
+1320 mouse1
+1321
+1400 mouse2
+1401
+1520 wheel:-1
+1521
+1600 mouse2
+1601

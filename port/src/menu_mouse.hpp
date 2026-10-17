@@ -21,6 +21,11 @@ struct MenuMouseSample {
 float MenuMouseUnits(float scale, float pixels, float window);
 int   MenuMouseHit(std::span<const MenuMouseRect> rows, float x, float y);
 int   MenuMouseChoose(const MenuMouseSample &mouse, std::span<const MenuMouseRect> rows, int selected, int wheel_step = 1);
+// Whole wheel notches move selected by wheel_step per notch, clamped to [0, count).
+int MenuMouseWheelStep(int selected, float wheel, int count, int wheel_step = 1);
+class CMenuPosDataForm;
+// A drawn form part's rectangle; empty when the form or the part is hidden or missing.
+MenuMouseRect MenuMousePart(CMenuPosDataForm *form, const char *name);
 class ClsMes;
 std::vector<MenuMouseRect> MenuMouseMessageRows(ClsMes &message, int count);
 

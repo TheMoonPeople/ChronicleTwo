@@ -61,6 +61,13 @@ TEST(MenuMouse, ClickSelectsTheHoveredRowAndWheelClamps) {
     EXPECT_EQ(MenuMouseChoose(mouse, rows, 1), 1);
 }
 
+TEST(MenuMouse, ClickWinsOverAWheelNotchInTheSameSample) {
+    MenuMouseSample mouse{.x = 40, .y = 90, .wheel = -1, .pointing = true, .clicked = 1};
+    EXPECT_EQ(MenuMouseChoose(mouse, rows, 0), 1);
+    mouse.x = -100; // A click on the background still lets the notch move the selection.
+    EXPECT_EQ(MenuMouseChoose(mouse, rows, 0), 1);
+}
+
 TEST(MenuMouse, WindowPixelsFollowUiScalingAndHighDpiMapping) {
     EXPECT_FLOAT_EQ(MenuMouseUnits(3, 1536, 1536), 1.0f / 3);
     EXPECT_FLOAT_EQ(MenuMouseUnits(6, 3072, 1536), 1.0f / 3);
