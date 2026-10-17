@@ -46,16 +46,24 @@ struct SetupPartStack {
 // Retail budgets were counted at PS2 pointer widths; SetActionScript's stack and call allocations grow on PC. Zero on PS2.
 #define CHARA_SCRIPT_RUNTIME_DELTA (((sizeof(RS_STACKDATA) - 8) * 0x80 + (sizeof(RS_CALLDATA) - 12) * 0x200) / 16)
 
+// Retail sized the model stacks at PS2 pointer widths too; LoadPack's model structures grow on PC, and Max's
+// dungeon model already fills 68492 of 68500, so a reload after an event overflows. Zero on PS2.
+#ifdef PORT
+#define CHARA_MODEL_RUNTIME_DELTA 32768
+#else
+#define CHARA_MODEL_RUNTIME_DELTA 0
+#endif
+
 /**
  *
  * Sizes of the memory stacks of each main character layout, indexed by CHARA_MEM_SIZE row and stack.
  *
  */
 static int mem_table[CHARA_MEM_LAYOUT_NUM][CHARA_MEM_STACK_NUM] = {
-    {68500,  40000, 7000,  4650,  3000,  9900 + CHARA_SCRIPT_RUNTIME_DELTA, 4500 + CHARA_SCRIPT_RUNTIME_DELTA},
+    {68500 + CHARA_MODEL_RUNTIME_DELTA,  40000, 7000,  4650,  3000,  9900 + CHARA_SCRIPT_RUNTIME_DELTA, 4500 + CHARA_SCRIPT_RUNTIME_DELTA},
     {30000,  30000, 60000, 10000, 10000 + CHARA_SCRIPT_RUNTIME_DELTA, 0,    0   },
-    {75000,  40000, 7000,  4650,  3000,  9900, 0   },
-    {120000, 0,     0,     0,     0,     5500, 0   }
+    {75000 + CHARA_MODEL_RUNTIME_DELTA,  40000, 7000,  4650,  3000,  9900, 0   },
+    {120000 + CHARA_MODEL_RUNTIME_DELTA, 0,     0,     0,     0,     5500, 0   }
 };
 
 /**
