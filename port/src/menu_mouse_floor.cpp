@@ -4,6 +4,7 @@
 
 #include "dngfloor.hpp"
 #include "dngmenu.hpp"
+#include "floor_monsters.hpp"
 #include "gamepad.hpp"
 #include "menu_mouse.hpp"
 #include "menuaqua.hpp"
@@ -25,6 +26,10 @@ int               pending_frame = -1;
 bool MenuMouseFloor() {
     if (MouseTreeMode == DNG_TREE_MODE_SAVE) {
         return false;
+    }
+    // The floor monster list's Triangle hint is a label: a click on it opens the list instead of confirming.
+    if (floor_monsters::ClickHint()) {
+        return true;
     }
     if (!MouseTree || !MouseDngMap || !MouseDngMap->floor_manager ||
         MouseTree->mode != MENU_ASK_MODE_NONE || MouseTree->key_arg_no != DNG_TREE_MAP_SCREEN_MAP) {

@@ -50,6 +50,10 @@ RETAIL_BRIDGES = {
     "menusys.cpp": [
         ("CBaseMenuClass::MenuItemCommandSelect(int,int)", "MenuItemCommandSelect", "PortRetailMenuItemCommandSelect"),
     ],
+    "dngmenu.cpp": [
+        ("CMenuTreeMap::Step()", "Step", "PortRetailStep"),
+        ("CMenuTreeMap::Draw()", "Draw", "PortRetailDraw"),
+    ],
     "menuchr.cpp": [
         ("InitMainCharaBG(int,mgCMemory*,int)", "InitMainCharaBG", "PortRetailInitMainCharaBG"),
         ("KeyMainCharaBG()", "KeyMainCharaBG", "PortRetailKeyMainCharaBG"),

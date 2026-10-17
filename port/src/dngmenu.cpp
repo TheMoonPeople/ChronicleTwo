@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "dngmenu.hpp"
+#include "floor_monsters.hpp"
 #include "mainloop.hpp"
 #include "memcard.hpp"
 #include "menumain.hpp"
@@ -50,4 +51,19 @@ PORT_OVERRIDE int DngTreeMapKey() {
     }
 
     return result;
+}
+
+// The floor information's monster page (floor_monsters.cpp) reads the keys before retail's step, which has no keys
+// for the page's screen, and changes the information's state once that step has run.
+PORT_OVERRIDE int CMenuTreeMap::Step() {
+    const auto action = floor_monsters::BeforeStep(*this);
+    const int  result = PortRetailStep();
+    floor_monsters::AfterStep(*this, action);
+    return result;
+}
+
+// The monster page and the prompt leading to it draw over retail's map and information.
+PORT_OVERRIDE void CMenuTreeMap::Draw() {
+    PortRetailDraw();
+    floor_monsters::Draw(*this);
 }
