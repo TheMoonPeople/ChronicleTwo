@@ -376,7 +376,7 @@ darkchronicle [options]
 | `--frames N` | exit with status 0 after frame N of the main loop. N is a positive integer |
 | `--screenshot PATH` | with `--frames`: write the last frame to PATH as a PNG on exit. A failed write exits with status 1 |
 | `--screenshot-display N` | with `--screenshot`: also write N interpolated display frames of that frame, as `<stem>-display-<k>.png` for k = 0 to N-1 |
-| `--screenshot-fps` | with `--screenshot`: draw the FPS counter into the image, from a presented frame at window size. With `--offscreen`, nothing is presented: the image is read back from the display image instead |
+| `--screenshot-fps` | with `--screenshot`: draw the FPS counter and any menu pointer into the image, from a presented frame at window size. With `--offscreen`, nothing is presented: the image is read back from the display image instead |
 | `--input SCRIPT` | drive the pads from an input script at start-up. A bad script exits with status 2 |
 | `--display-per-tick N` | also render N interpolated display frames per clock tick, discarded. N is a positive integer |
 | `--show-fps` | draw the FPS counter on presented frames, headless too |
@@ -667,6 +667,49 @@ pointer immediately. Ordinary dialogue choices share the message adapter;
 the rendered confirmation replays and drawn-message unit tests cover that input
 path, but campaign dialogue choices still need a dedicated replay.
 
+### Character, Options and Help mouse
+
+On the Character page, hovering a shown portrait (Max, Monica, the Ridepod,
+Monster Transform or the travelling townsperson) moves the retail cursor there,
+and clicking it confirms; a click beside the portraits does nothing. While a
+character change loads, left clicks do nothing. The change question, the
+townsperson's View Status/Send back question, their commands and their
+questions take clicks on their drawn choices; when a question opens over a
+list that still draws its cursor, the newest window takes the mouse. On
+Cedric's repair board, hover and the wheel select an item and only a click on
+an item confirms, so a stray click cannot spend his points. Waits that take
+any button (the opening, the townsperson's speech) still take any click.
+
+Retail mirrors the hand to point left at Max. The mouse pointer is never
+mirrored: the shared pointer already kept the hotspot on the fingertip in either
+facing, but a hand whose body jumps across the hotspot between neighbouring
+portraits reads as pointing somewhere else, so it keeps its usual facing on
+every target.
+
+On the retail Options page, hovering a row's label moves the row cursor and keeps
+its choice; hovering a choice button also moves the choice. Clicking a button
+selects that setting. The PC SETTINGS label opens that page on click.
+
+In Help, hovering an entry moves the cursor and a click opens it. On an entry's
+picture pages the wheel turns pages (down for the next) through the retail
+Left/Right keys; a click turns to the next page and right click returns, as Cross
+and Circle do. Movies keep their retail controls. Keyboard and controller input
+is unchanged on all three pages.
+
+The wheel follows one rule on these pages: in a list longer than its window,
+each notch scrolls the list one row and the cursor takes the row that comes under
+the pointer, or stays in view (`MenuMouseScroll`; the ITEM page's bag scrolls the
+same way). Elsewhere it moves the cursor, as in shops and the root menu; the
+Character page's portrait map is not a list, so the wheel does nothing there. Options and
+Help rows are hit where they are drawn while the list eases to a new scroll, and
+only inside the list's scissor (`clip0`): a row sliding under the footer cannot
+be clicked, and a visible row above the new scroll still can.
+
+`tools/input/character-mouse.input`, `character-mouse-cedric.input`, `options-mouse.input` (`--jump town:10`)
+and `help-mouse.input` (`--jump dungeon:0:1`) replay these at `--window 1920x1080`
+with `--fast-load`; their comments give capture frames. `--screenshot-fps`
+captures include the menu pointer.
+
 ### Mouse follow camera
 
 Mouse motion directly turns the active walking camera around the character. It
@@ -945,7 +988,7 @@ The PAL scripts (`.stb`) hold the NTSC frame counts and convert them while they 
 - The FPS counter: `video.show_fps` turns it on (F3 and the `fps_toggle` host action flip it; headless only with `--show-fps`). It is drawn through `OverlayRecord`, as a display render's overlay, in the overlay's own font (the Dark Cloud Compendium Community Font baked into `overlay_font.inc`), so no canonical image holds it. The game's message font is not used: its texture lives only in the current mode's texture block (`ReLoadFontTexture` per mode) and `FontTex[0]` dangles across mode changes, so a badge in it would come and go with the modes. Its text is set by `video.fps_detail`; with all fields it reads `FPS 143.9  TICK 60.0/60  DRAWS 412`. TICK counts clock ticks per second, so it reads the tick rate whatever `mgFrameRate` is. DRAWS is the newest list's mesh plus 2D draws. `--log-fps` prints the same text on stderr once a second.
 - Interpolation diagnostic: set `KZ_INTERPOLATION_TINT=1` to tint draws on the main presentation image (default off). Green is a matched transformed mesh; cyan is an unmatched or pose-excluded mesh carried by the display camera; red is newest-only geometry; blue is flat 2D or a screen effect; yellow is a depth-tested sprite with reprojected corners. Unchanged matched meshes remain green. This classifies geometry, not all its inputs: texture contents, lighting, fog parameters and sprite motion can still be tick-exact. Alpha tests, coverage, depth and blending are retained, so translucent passes can mix tints. Reusable intermediate render targets keep their original colours; their final composites are tinted on the main image. Canonical renders and ordinary screenshots never receive the tint. Use `--screenshot-display 8` to inspect the diagnostic at eight interpolation phases. Optional `KZ_INTERPOLATION_TRACE=<file>` appends per-draw CSV sections at alpha zero, including matching/cut reasons, texture IDs, camera IDs, target IDs, whether a draw is tinted on the main image, and changed fog/material/projection/local inputs. It writes only while tint is enabled; remove both environment variables after diagnosis.
 - Outlined models render into a shared transparent image. Canonical clears and copies retain the retail draw rectangle; presentation scratch clears and replacement vertices cover the full visible extent so the interpolated model/bone pose remains complete under the display camera, including fixed-camera mouse look. Each copy preserves its texture-to-screen offset. Fixed-look current and previous lists preserve presentation vertices and clear rectangles while leaving resource retirement ownership with their source lists. Transparent texels in a depth-writing presentation composite do not write depth. GPU regressions compare a rotating thin part at alpha 0.5 against an independently recorded horizontal pose and complete fixed-look outline pixels at alpha 1 and 0.5 against a direct full-extent reference render; translation, scratch-target reuse and transparent-depth regressions remain covered. `tools/input/area-dungeon-chest-turn.input` with `--jump dungeon:0:1 --fast-load --frames 2518 --screenshot chest.png --screenshot-display 8` exercises the unopened chest during a camera turn. For multi-part NPCs, use `--input tools/input/repro-town-npc-outline.input --jump town:10 --fast-load --frames 278 --window 1280x720 --screenshot woman.png --screenshot-display 8`; the woman's face must remain visible throughout the turn. `--input tools/input/repro-clown-outline.input --frames 27230 --window 1280x720 --screenshot clown.png --screenshot-display 8` checks the clown's face during the prologue camera move.
-- `--screenshot-display N` writes N display frames of the screenshot's frame, at alpha k/N from the previous list to the last, as `<stem>-display-<k>.png`. `--screenshot-fps` writes the screenshot with the FPS counter drawn into it, at window size, from a presented frame. With `--offscreen`, nothing is presented, and the image is read back from the display image instead. The counter reaches no other written image.
+- `--screenshot-display N` writes N display frames of the screenshot's frame, at alpha k/N from the previous list to the last, as `<stem>-display-<k>.png`. `--screenshot-fps` writes the screenshot with the FPS counter and any visible menu pointer drawn into it, at window size, from a presented frame (`RecordHostOverlay`, shared with presentation). With `--offscreen`, nothing is presented, and the image is read back from the display image instead. Neither reaches any other written image.
 - `video.max_fps=0` leaves presentation uncapped; a positive cap paces display starts without catching up in bursts. A due logic tick takes priority. FIFO follows the display's synchronization, while mailbox and immediate depend on device support. Interpolation off presents canonical frames at their game cadence; a high display cap does not increase the logic tick rate.
 
 ### Packets

@@ -83,7 +83,7 @@ Options g_options;
                  "  --screenshot PATH  with --frames: write the last frame to PATH as a PNG on exit\n"
                  "  --screenshot-display N  with --screenshot: also write N interpolated display frames of that frame\n"
                  "                     beside PATH, as PATH-display-K.png for K = 0..N-1\n"
-                 "  --screenshot-fps   with --screenshot: draw the FPS counter into the written image\n"
+                 "  --screenshot-fps   with --screenshot: draw the FPS counter and menu pointer into the written image\n"
                  "  --input SCRIPT     drive the pads named in SCRIPT from an input script\n"
                  "  --window WxH       window size in pixels (default: config.json, then the monitor's)\n"
                  "  --display-per-tick N  headless: also render N interpolated display frames per tick (discarded)\n"

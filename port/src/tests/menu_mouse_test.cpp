@@ -6,6 +6,7 @@
 #include "gamepad.hpp"
 #include "mainloop.hpp"
 #include "menu_mouse.hpp"
+#include "menuchr.hpp"
 #include "menudraw.hpp"
 #include "menumain.hpp"
 #include "menuop.hpp"
@@ -586,4 +587,507 @@ TEST_F(MenuMouseInput, MultipleHandsKeepDistinctReplacementKeys) {
     const auto          second = MenuMouseNoteHand(texture, {0, 0, 40, 24});
     EXPECT_NE(first, second);
     EXPECT_EQ(MenuMouseReplacedHandKey(), second);
+}
+
+TEST(MenuMouse, WheelScrollsWholeRowsAndKeepsTheCursorUnderThePointerOrInView) {
+    // Sixteen rows, nine shown: down three notches from the top.
+    EXPECT_EQ(MenuMouseScroll(-3, {0, 2}, 16, 9, 4).top, 3);
+    EXPECT_EQ(MenuMouseScroll(-3, {0, 2}, 16, 9, 4).selected, 7);
+    EXPECT_EQ(MenuMouseScroll(-3, {0, 2}, 16, 9, -1).selected, 3);
+    // The list stops at its last page and at its first row.
+    EXPECT_EQ(MenuMouseScroll(-20, {5, 9}, 16, 9, -1).top, 7);
+    EXPECT_EQ(MenuMouseScroll(-20, {5, 9}, 16, 9, -1).selected, 9);
+    EXPECT_EQ(MenuMouseScroll(2, {1, 9}, 16, 9, -1).top, 0);
+    EXPECT_EQ(MenuMouseScroll(2, {1, 9}, 16, 9, -1).selected, 8);
+    // A list that fits, no wheel, or a bad wheel value does not move.
+    EXPECT_EQ(MenuMouseScroll(-1, {0, 1}, 4, 9, -1).top, 0);
+    EXPECT_EQ(MenuMouseScroll(0, {3, 5}, 16, 9, 0).selected, 5);
+    EXPECT_EQ(MenuMouseScroll(std::numeric_limits<float>::quiet_NaN(), {3, 5}, 16, 9, 0).top, 3);
+}
+
+namespace {
+void Place(MENUFORMPARTS_TYPE &part, const char *name, float x, float y, float w, float h) {
+    part.name = const_cast<char *>(name);
+    part.x = x;
+    part.y = y;
+    part.w = w;
+    part.h = h;
+    part.draw_flag = true;
+}
+} // namespace
+
+TEST_F(MenuMouseInput, RetailOptionsHoverMovesRowAndButtonAndTheWheelScrolls) {
+    MenuMouseEnable(true);
+    CMenuOption        menu;
+    CMenuPosDataForm   form{};
+    MENUFORMPARTS_TYPE buttons[OPTION_ITEM_MAX][2]{};
+    form.draw_flag = true;
+    form.x = 40;
+    form.y = 158; // Row 3's buttons are centred on the initial pointer, 256,240.
+    for (int row = 0; row < OPTION_ITEM_MAX; ++row) {
+        menu.choice_num[row] = 2;
+        for (int choice = 0; choice < 2; ++choice) {
+            Place(buttons[row][choice], "button", 200.0f + 80 * choice, 24.0f * row, 60, 20);
+            menu.button[row][choice] = &buttons[row][choice];
+        }
+    }
+    menu.mode = MENU_ASK_MODE_NONE;
+    menu.top = menu.select = menu.choice = 0;
+    // A stationary pointer leaves the keyboard's row alone.
+    InputSetScriptedDevices({.mouse_buttons = 2});
+    MenuMouseOptionHover(menu, &form, nullptr);
+    EXPECT_EQ(MenuKeySelectCheck(0, &menu.select, &menu.top, 0, 16, 9, MENU_CURSOR_LIMIT_CLAMP), MENU_CURSOR_UNCHANGED);
+    InputSetScriptedDevices({});
+    Tick();
+    InputSetScriptedDevices({.mouse_dx = 1});
+    MenuMouseOptionHover(menu, &form, nullptr);
+    EXPECT_EQ(MenuKeySelectCheck(0, &menu.select, &menu.top, 0, 16, 9, MENU_CURSOR_LIMIT_CLAMP), MENU_CURSOR_MOVED);
+    EXPECT_EQ(menu.select, 3);
+    EXPECT_EQ(menu.choice, 0);
+    Tick();
+    // Along one row the adapter changes the choice itself (and sounds it); no row move is queued.
+    InputSetScriptedDevices({.mouse_dx = 80});
+    MenuMouseOptionHover(menu, &form, nullptr);
+    EXPECT_EQ(menu.choice, 1);
+    EXPECT_EQ(MenuKeySelectCheck(0, &menu.select, &menu.top, 0, 16, 9, MENU_CURSOR_LIMIT_CLAMP), MENU_CURSOR_UNCHANGED);
+    Tick();
+    // The row's label keeps the row and its choice.
+    InputSetScriptedDevices({.mouse_dx = -280});
+    MenuMouseOptionHover(menu, &form, nullptr);
+    EXPECT_EQ(MenuKeySelectCheck(0, &menu.select, &menu.top, 0, 16, 9, MENU_CURSOR_LIMIT_CLAMP), MENU_CURSOR_UNCHANGED);
+    EXPECT_EQ(menu.choice, 1);
+    Tick();
+    // Two notches down: the list moves under the pointer, which stays on its fourth shown row.
+    InputSetScriptedDevices({.mouse_wheel = -2});
+    MenuMouseOptionHover(menu, &form, nullptr);
+    EXPECT_EQ(menu.top, 2);
+    EXPECT_EQ(MenuKeySelectCheck(0, &menu.select, &menu.top, 0, 16, 9, MENU_CURSOR_LIMIT_CLAMP), MENU_CURSOR_MOVED);
+    EXPECT_EQ(menu.select, 5);
+    EXPECT_EQ(menu.top, 2);
+    Tick();
+    // Sixteen retail options stop at the last page.
+    InputSetScriptedDevices({.mouse_wheel = -20});
+    MenuMouseOptionHover(menu, &form, nullptr);
+    EXPECT_EQ(menu.top, 7);
+}
+
+TEST_F(MenuMouseInput, RetailOptionsHitOnlyDrawnRowsInsideTheListWhileItEases) {
+    MenuMouseEnable(true);
+    CMenuOption        menu;
+    CMenuPosDataForm   form{}, clip{};
+    MENUFORMPARTS_TYPE buttons[OPTION_ITEM_MAX][2]{};
+    form.draw_flag = true;
+    form.x = 40;
+    for (int row = 0; row < OPTION_ITEM_MAX; ++row) {
+        menu.choice_num[row] = 2;
+        for (int choice = 0; choice < 2; ++choice) {
+            Place(buttons[row][choice], "button", 200.0f + 80 * choice, 24.0f * row, 60, 20);
+            menu.button[row][choice] = &buttons[row][choice];
+        }
+    }
+    // Nine rows show between y 100 and 316. The wheel has just moved top to 7, but the drawn list
+    // still starts near row 0: row 6's drawn buttons cover the initial pointer (256,240) though it
+    // is above the new top, and row 10 has slid below the scissor, to y 330-350.
+    clip.x = 30;
+    clip.y = 100;
+    clip.clip_w = 400;
+    clip.clip_h = 216;
+    form.y = 90;
+    menu.mode = MENU_ASK_MODE_NONE;
+    menu.top = 7;
+    menu.select = 7;
+    menu.choice = 0;
+    // A visible outgoing row is still the row under the pointer, and clicking it confirms that row.
+    InputSetScriptedDevices({.mouse_buttons = 1});
+    EXPECT_TRUE(MenuMouseOption(menu, &form, &clip));
+    EXPECT_EQ(menu.select, 6);
+    InputSetScriptedDevices({});
+    Tick();
+    // The footer below the scissor is not row 10.
+    InputSetScriptedDevices({.mouse_buttons = 1, .mouse_dy = 90});
+    EXPECT_FALSE(MenuMouseOption(menu, &form, &clip));
+    EXPECT_EQ(menu.select, 6);
+    InputSetScriptedDevices({});
+    Tick();
+    InputSetScriptedDevices({.mouse_dx = 1});
+    MenuMouseOptionHover(menu, &form, &clip);
+    EXPECT_EQ(MenuKeySelectCheck(0, &menu.select, &menu.top, 0, 16, 9, MENU_CURSOR_LIMIT_CLAMP), MENU_CURSOR_UNCHANGED);
+    // Without the scissor the same point would be row 10's button.
+    EXPECT_TRUE(MenuMouseOption(menu, &form, nullptr));
+    EXPECT_EQ(menu.select, 10);
+}
+
+TEST_F(MenuMouseInput, CharacterPortraitsSelectOnHoverAndOnlyAPortraitClickConfirms) {
+    MenuMouseEnable(true);
+    CMenuPosDataForm   form{};
+    MENUFORMPARTS_TYPE rings[5]{};
+    const char        *names[] = {"fc0", "fc1", "fc2", "fc3", "fc4"};
+    for (int i = 0; i < 5; ++i) {
+        Place(rings[i], names[i], 40.0f + 90 * i, 200, 80, 80);
+    }
+    form.parts = rings;
+    form.parts_num = 5;
+    // The pointer starts at 256,240, over fc2; the ridepod is not in this party.
+    InputSetScriptedDevices({.mouse_buttons = 1, .mouse_dx = 1});
+    EXPECT_EQ(MenuMouseCharaSelect(form, 0b0011, 0, 0), 0);
+    EXPECT_FALSE(GamePad__2.Down(PAD_CROSS));
+    InputSetScriptedDevices({});
+    Tick();
+    InputSetScriptedDevices({.mouse_dx = -90});
+    EXPECT_EQ(MenuMouseCharaSelect(form, 0b0011, 0, 0), 1);
+    Tick();
+    InputSetScriptedDevices({.mouse_buttons = 1});
+    EXPECT_EQ(MenuMouseCharaSelect(form, 0b0011, 0, 1), 1);
+    EXPECT_TRUE(GamePad__2.Down(PAD_CROSS));
+    InputSetScriptedDevices({});
+    Tick();
+    // The townsperson's portrait counts once one travels with the party.
+    InputSetScriptedDevices({.mouse_dx = 270});
+    EXPECT_EQ(MenuMouseCharaSelect(form, 0b0011, 0, 1), 1);
+    Tick();
+    InputSetScriptedDevices({.mouse_dx = 1});
+    EXPECT_EQ(MenuMouseCharaSelect(form, 0b0011, 3, 1), 4);
+    Tick();
+    // The wheel does not walk the portrait map.
+    InputSetScriptedDevices({.mouse_wheel = 1});
+    EXPECT_EQ(MenuMouseCharaSelect(form, 0b0011, 3, 4), 4);
+}
+
+TEST(MenuMouse, CharacterPageStatesChooseWhatTheMouseDrives) {
+    using enum MenuMouseCharaInput;
+    constexpr int none = MENU_ASK_MODE_NONE, box = CHR_CNG_SUB_MENU_MONSTER_BOX, own = CHR_CNG_SUB_MENU_NONE;
+    EXPECT_EQ(MenuMouseCharaInputFor(none, own, CHR_CNG_PAGE_SELECT, CHR_CNG_STEP_SELECT, 0, 0), Portraits);
+    EXPECT_EQ(MenuMouseCharaInputFor(none, own, CHR_CNG_PAGE_SELECT, CHR_CNG_STEP_SELECT, CHR_CNG_PHASE_LOAD, 0), Locked);
+    // The opening wait and the townsperson's questions keep the retail any-button and message choices.
+    EXPECT_EQ(MenuMouseCharaInputFor(none, own, CHR_CNG_PAGE_SELECT, CHR_CNG_STEP_SELECT, 0, 20), Retail);
+    EXPECT_EQ(MenuMouseCharaInputFor(none, own, CHR_CNG_PAGE_SELECT, CHR_CNG_STEP_NPC_MENU, 0, 0), Retail);
+    EXPECT_EQ(MenuMouseCharaInputFor(none, own, CHR_CNG_PAGE_CONFIRM, 0, 0, 0), Retail);
+    EXPECT_EQ(MenuMouseCharaInputFor(none, own, CHR_CNG_PAGE_NPC, CHR_CNG_NPC_STEP_COMMAND, 0, 0), Retail);
+    EXPECT_EQ(MenuMouseCharaInputFor(none, own, CHR_CNG_PAGE_NPC, CHR_CNG_NPC_STEP_REPAIR_SELECT, 0, 0), RepairBoard);
+    // Opening, closing and the monster box are not this page's.
+    EXPECT_EQ(MenuMouseCharaInputFor(MENU_ASK_MODE_OPEN, own, CHR_CNG_PAGE_SELECT, CHR_CNG_STEP_SELECT, 0, 0), Retail);
+    EXPECT_EQ(MenuMouseCharaInputFor(none, box, CHR_CNG_PAGE_SELECT, CHR_CNG_STEP_SELECT, 0, 0), Retail);
+}
+
+TEST_F(MenuMouseInput, RepairBoardSelectsItemsScrollsAndRejectsBackgroundClicks) {
+    MenuMouseEnable(true);
+    CMenuPosDataForm board{};
+    board.draw_flag = true;
+    board.x = 200;
+    board.y = 30;
+    const float old_x = MenuItemBrdUnderBrdPosXY[0], old_y = MenuItemBrdUnderBrdPosXY[1];
+    // Slots are 40 by 50 from 216,56, six to a row, so the initial pointer (256,240) is slot 19.
+    MenuItemBrdUnderBrdPosXY[0] = 216;
+    MenuItemBrdUnderBrdPosXY[1] = 56;
+    int select = 0, top = 0;
+    InputSetScriptedDevices({.mouse_dx = 1});
+    MenuMouseRepairBoard(&board, select, top, 60);
+    EXPECT_EQ(select, 19);
+    Tick();
+    InputSetScriptedDevices({.mouse_buttons = 1});
+    MenuMouseRepairBoard(&board, select, top, 60);
+    EXPECT_TRUE(GamePad__2.Down(PAD_CROSS));
+    InputSetScriptedDevices({});
+    Tick();
+    // Two rows down keeps the pointer's place on the board.
+    InputSetScriptedDevices({.mouse_wheel = -2});
+    MenuMouseRepairBoard(&board, select, top, 60);
+    EXPECT_EQ(top, 2);
+    EXPECT_EQ(select, 31);
+    Tick();
+    // Beside the board a click does not repair the selected item.
+    InputSetScriptedDevices({.mouse_dx = 250});
+    MenuMouseRepairBoard(&board, select, top, 60);
+    Tick();
+    InputSetScriptedDevices({.mouse_buttons = 1});
+    MenuMouseRepairBoard(&board, select, top, 60);
+    EXPECT_FALSE(GamePad__2.Down(PAD_CROSS));
+    EXPECT_EQ(select, 31);
+    MenuItemBrdUnderBrdPosXY[0] = old_x;
+    MenuItemBrdUnderBrdPosXY[1] = old_y;
+}
+
+TEST_F(MenuMouseInput, HelpEntriesFollowHoverScrollAndTurnPicturePages) {
+    MenuMouseEnable(true);
+    CManualMenu        menu;
+    CMenuPosDataForm   background{}, clip{};
+    MENUFORMPARTS_TYPE places[2]{};
+    Place(places[0], "base_msg", 60, 100, 0, 0);
+    Place(places[1], "scrlbase", 400, 100, 0, 0);
+    places[0].dtype = places[1].dtype = MENUFORMPARTS_DTYPE_FUNCINFO;
+    background.parts = places;
+    background.parts_num = 2;
+    clip.x = 40;
+    clip.y = 96;
+    clip.clip_w = 400;
+    clip.clip_h = 240; // Ten entries.
+    menu.mode = MENU_ASK_MODE_NONE;
+    menu.list_y = 100; // Entry 6 spans y 240-264.
+    InputSetScriptedDevices({.mouse_dx = 1});
+    MenuMouseManual(menu, &background, &clip);
+    EXPECT_EQ(MenuKeySelectCheck(0, &menu.select, &menu.top, 0, 46, 10, MENU_CURSOR_LIMIT_CLAMP), MENU_CURSOR_MOVED);
+    EXPECT_EQ(menu.select, 6);
+    Tick();
+    InputSetScriptedDevices({.mouse_wheel = -3});
+    MenuMouseManual(menu, &background, &clip);
+    EXPECT_EQ(menu.top, 3);
+    MenuKeySelectCheck(0, &menu.select, &menu.top, 0, 46, 10, MENU_CURSOR_LIMIT_CLAMP);
+    EXPECT_EQ(menu.select, 9);
+    Tick();
+    // The drawn list has not eased yet: the pointer is still over entry 6, which is pictured there.
+    InputSetScriptedDevices({.mouse_buttons = 1});
+    MenuMouseManual(menu, &background, &clip);
+    EXPECT_TRUE(GamePad__2.Down(PAD_CROSS));
+    EXPECT_EQ(MenuKeySelectCheck(0, &menu.select, &menu.top, 0, 46, 10, MENU_CURSOR_LIMIT_CLAMP), MENU_CURSOR_MOVED);
+    EXPECT_EQ(menu.select, 6);
+    InputSetScriptedDevices({});
+    Tick();
+    // Entry 11 is drawn below the scissor (y 360-384); a click there opens nothing.
+    InputSetScriptedDevices({.mouse_dy = 125});
+    MenuMouseManual(menu, &background, &clip);
+    Tick();
+    InputSetScriptedDevices({.mouse_buttons = 1});
+    MenuMouseManual(menu, &background, &clip);
+    EXPECT_FALSE(GamePad__2.Down(PAD_CROSS));
+    InputSetScriptedDevices({});
+    Tick();
+    // Beside the list a click does not open an entry either.
+    InputSetScriptedDevices({.mouse_dx = 200, .mouse_dy = -125});
+    MenuMouseManual(menu, &background, &clip);
+    Tick();
+    InputSetScriptedDevices({.mouse_buttons = 1});
+    MenuMouseManual(menu, &background, &clip);
+    EXPECT_FALSE(GamePad__2.Down(PAD_CROSS));
+    InputSetScriptedDevices({});
+    Tick();
+    menu.key_arg_no = MANUAL_STEP_PLAY;
+    menu.pict_mode = true;
+    InputSetScriptedDevices({.mouse_wheel = -1});
+    MenuMouseManual(menu, &background, &clip);
+    EXPECT_TRUE(GamePad__2.Down(PAD_RIGHT));
+    Tick();
+    InputSetScriptedDevices({.mouse_wheel = 1});
+    MenuMouseManual(menu, &background, &clip);
+    EXPECT_TRUE(GamePad__2.Down(PAD_LEFT));
+}
+
+TEST_F(MenuMouseInput, NewestChoiceWindowTakesTheClickOverAListStillDrawingItsCursor) {
+    const MenuMouseRect commands[] = {
+        {20, 300, 100, 20},
+        {20, 320, 100, 20}
+    };
+    const MenuMouseRect question[] = {
+        {200, 220, 100, 30},
+        {200, 250, 100, 30}
+    };
+    MenuMouseEnable(true);
+    MenuMouseNoteChoices(this, 31, commands, 0, false);
+    Tick();
+    // The question opens over the commands; both note their choices every tick, the commands first.
+    InputSetScriptedDevices({.mouse_buttons = 1});
+    bool confirmed = false;
+    for (int i = 0; i < 9 && !confirmed; ++i) {
+        MenuMouseNoteChoices(this, 31, commands, 0, false);
+        MenuMouseNoteChoices(this, 145, question, 0, false);
+        confirmed = MenuMouseButtons() == PAD_CROSS;
+        InputSetScriptedDevices({});
+        Tick();
+    }
+    EXPECT_TRUE(confirmed);
+}
+
+namespace {
+// Draws a list's choices and a question's each tick, in either order, and returns the retail buttons.
+int DrawCommandsAndQuestion(const void *commands, const void *question, std::span<const MenuMouseRect> command_rows,
+                            std::span<const MenuMouseRect> question_rows, int selected, bool question_first) {
+    if (question_first) {
+        MenuMouseNoteChoices(question, 145, question_rows, selected, true);
+        MenuMouseNoteChoices(commands, 31, command_rows, 0, false);
+    } else {
+        MenuMouseNoteChoices(commands, 31, command_rows, 0, false);
+        MenuMouseNoteChoices(question, 145, question_rows, selected, true);
+    }
+    return MenuMouseButtons();
+}
+
+constexpr MenuMouseRect kCommandRows[] = {
+    {20, 300, 100, 30},
+    {20, 330, 100, 30}
+};
+// The initial pointer, 256,240, is on the question's second choice.
+constexpr MenuMouseRect kQuestionRows[] = {
+    {100, 220, 100, 30},
+    {220, 220, 100, 30}
+};
+} // namespace
+
+TEST_F(MenuMouseInput, NewerQuestionMovesThenConfirmsWhateverTheRedrawOrderAndCommandsReturn) {
+    int question = 0;
+    MenuMouseEnable(true);
+    MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+    Tick();
+    int  selected = 0;
+    bool confirmed = false;
+    for (int i = 0; i < 12; ++i) {
+        InputSetScriptedDevices({.mouse_buttons = i == 0 ? 1u : 0u});
+        const int buttons = DrawCommandsAndQuestion(this, &question, kCommandRows, kQuestionRows, selected, i % 2);
+        selected = buttons & PAD_RIGHT ? 1 : selected;
+        confirmed = confirmed || (buttons & PAD_CROSS);
+        Tick();
+    }
+    EXPECT_EQ(selected, 1);
+    EXPECT_TRUE(confirmed);
+    // Once the question closes, the commands take the mouse again.
+    for (int i = 0; i < 10; ++i) {
+        InputSetScriptedDevices({});
+        MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+        EXPECT_EQ(MenuMouseButtons(), 0);
+        Tick();
+    }
+    InputSetScriptedDevices({.mouse_buttons = 1, .mouse_dx = -200, .mouse_dy = 70});
+    MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+    EXPECT_EQ(MenuMouseButtons(), PAD_CROSS);
+}
+
+TEST_F(MenuMouseInput, WindowsAppearingInOneTickKeepTheLaterDrawnOneOnTop) {
+    for (const bool reversed_later : {false, true}) {
+        int question = 0;
+        MenuMouseEnable(false);
+        MenuMouseEnable(true);
+        int  selected = 0;
+        bool confirmed = false;
+        // Both first draw in one tick, commands first; later redraws may swap the order.
+        for (int i = -10; i < 12; ++i) {
+            InputSetScriptedDevices({.mouse_buttons = i == 0 ? 1u : 0u});
+            const bool question_first = i > -10 && reversed_later;
+            const int  buttons = DrawCommandsAndQuestion(this, &question, kCommandRows, kQuestionRows, selected, question_first);
+            selected = buttons & PAD_RIGHT ? 1 : selected;
+            confirmed = confirmed || (buttons & PAD_CROSS);
+            Tick();
+        }
+        EXPECT_EQ(selected, 1) << reversed_later;
+        EXPECT_TRUE(confirmed) << reversed_later;
+        InputSetScriptedDevices({});
+        Tick();
+    }
+}
+
+TEST_F(MenuMouseInput, ReopenedQuestionTakesTheMouseBackFromTheCommands) {
+    int question = 0;
+    MenuMouseEnable(true);
+    for (int i = 0; i < 3; ++i) {
+        DrawCommandsAndQuestion(this, &question, kCommandRows, kQuestionRows, 0, false);
+        Tick();
+    }
+    // The question closes for two ticks, then opens again over the commands.
+    for (int i = 0; i < 2; ++i) {
+        MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+        MenuMouseButtons();
+        Tick();
+    }
+    int  selected = 0;
+    bool confirmed = false;
+    for (int i = 0; i < 12; ++i) {
+        InputSetScriptedDevices({.mouse_buttons = i == 0 ? 1u : 0u});
+        const int buttons = DrawCommandsAndQuestion(this, &question, kCommandRows, kQuestionRows, selected, false);
+        selected = buttons & PAD_RIGHT ? 1 : selected;
+        confirmed = confirmed || (buttons & PAD_CROSS);
+        Tick();
+    }
+    EXPECT_EQ(selected, 1);
+    EXPECT_TRUE(confirmed);
+}
+
+TEST_F(MenuMouseInput, RepairBoardOwnsClicksWhileCedricsCommandsStillDraw) {
+    MenuMouseEnable(true);
+    CMenuPosDataForm board{};
+    board.draw_flag = true;
+    board.x = 200;
+    board.y = 30;
+    const float old_x = MenuItemBrdUnderBrdPosXY[0], old_y = MenuItemBrdUnderBrdPosXY[1];
+    MenuItemBrdUnderBrdPosXY[0] = 216;
+    MenuItemBrdUnderBrdPosXY[1] = 56;
+    int select = 0, top = 0;
+    for (int i = 0; i < 10; ++i) {
+        MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+        InputSetScriptedDevices({});
+        MenuMouseRepairBoard(&board, select, top, 60);
+        Tick();
+    }
+    // A click on slot 19 confirms it; the commands' choices add no direction.
+    MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+    InputSetScriptedDevices({.mouse_buttons = 1});
+    MenuMouseRepairBoard(&board, select, top, 60);
+    EXPECT_EQ(select, 19);
+    EXPECT_EQ(MenuMouseButtons(), PAD_CROSS);
+    InputSetScriptedDevices({});
+    Tick();
+    // A click on a command behind the board neither confirms nor moves; right click backs out.
+    MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+    InputSetScriptedDevices({.mouse_buttons = 1, .mouse_dx = -200, .mouse_dy = 70});
+    MenuMouseRepairBoard(&board, select, top, 60);
+    EXPECT_EQ(MenuMouseButtons(), 0);
+    EXPECT_EQ(select, 19);
+    InputSetScriptedDevices({});
+    Tick();
+    MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+    InputSetScriptedDevices({.mouse_buttons = 2});
+    MenuMouseRepairBoard(&board, select, top, 60);
+    EXPECT_EQ(MenuMouseButtons(), PAD_CIRCLE);
+    MenuItemBrdUnderBrdPosXY[0] = old_x;
+    MenuItemBrdUnderBrdPosXY[1] = old_y;
+}
+
+TEST_F(MenuMouseInput, RepairBoardInputLeavesNoTargetForCedricsCommandsAfterItCloses) {
+    // Board clicks on a command behind it, or wheel notches, then right click closes the board.
+    for (const InputKeyboardMouse board_input : {
+             InputKeyboardMouse{.mouse_buttons = 1, .mouse_dx = -200, .mouse_dy = 100},
+             InputKeyboardMouse{.mouse_wheel = -1}
+    }) {
+        InputSetScriptedDevices({});
+        MenuMouseEnable(false);
+        Tick();
+        MenuMouseEnable(true);
+        CMenuPosDataForm board{};
+        board.draw_flag = true;
+        board.x = 200;
+        board.y = 30;
+        const float old_x = MenuItemBrdUnderBrdPosXY[0], old_y = MenuItemBrdUnderBrdPosXY[1];
+        MenuItemBrdUnderBrdPosXY[0] = 216;
+        MenuItemBrdUnderBrdPosXY[1] = 56;
+        int select = 0, top = 0;
+        for (int i = 0; i < 10; ++i) {
+            MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+            InputSetScriptedDevices({});
+            MenuMouseRepairBoard(&board, select, top, 60);
+            Tick();
+        }
+        MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+        InputSetScriptedDevices(board_input);
+        MenuMouseRepairBoard(&board, select, top, 60);
+        EXPECT_EQ(MenuMouseButtons(), 0);
+        Tick();
+        MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+        InputSetScriptedDevices({.mouse_buttons = 2});
+        MenuMouseRepairBoard(&board, select, top, 60);
+        EXPECT_EQ(MenuMouseButtons(), PAD_CIRCLE);
+        Tick();
+        // Back on the commands: idle ticks move and confirm nothing.
+        for (int i = 0; i < 10; ++i) {
+            InputSetScriptedDevices({});
+            MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+            EXPECT_EQ(MenuMouseButtons(), 0) << i;
+            Tick();
+        }
+        // A fresh click on the first command confirms it.
+        const auto pos = MenuMouseTake();
+        Tick();
+        InputSetScriptedDevices({.mouse_buttons = 1, .mouse_dx = 50 - pos.x, .mouse_dy = 310 - pos.y});
+        MenuMouseNoteChoices(this, 31, kCommandRows, 0, false);
+        EXPECT_EQ(MenuMouseButtons(), PAD_CROSS);
+        InputSetScriptedDevices({});
+        Tick();
+        MenuItemBrdUnderBrdPosXY[0] = old_x;
+        MenuItemBrdUnderBrdPosXY[1] = old_y;
+    }
 }
