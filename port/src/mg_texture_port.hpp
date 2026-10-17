@@ -55,6 +55,10 @@ void MgTextureRefreshButtonGlyphs();
  */
 texture_catalog::AnimationMode MgTextureAnimationMode(const mgCTexture *texture);
 /**
+ * Reports whether a registered texture's current picture was last entered from an entry of this source.
+ */
+bool MgTextureEnteredFrom(const mgCTexture *texture, const texture_catalog::Source &source);
+/**
  * Enters a catalog picture into a texture manager using its retail block.
  */
 mgCTexture *MgTextureEnterCatalog(mgCTextureManager *manager, int block, const texture_catalog::Entry &entry);

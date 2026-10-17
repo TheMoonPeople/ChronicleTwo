@@ -53,7 +53,7 @@ Buffers remain embedded `data:application/octet-stream;base64,` URIs.
 
 The extractor's model audit rejects embedded images, malformed or escaping URIs, URIs that do not name an existing PNG file with exactly matching case, and image rows whose `png` differs from the resolved URI.
 
-Character image slots own native texture sets rather than IMG byte buffers. Replacing a slot retains texture names, registration suffixes and material bindings while preserving other slots. Monster reserved images retain parsed texture documents and their decoded mip variants; initialization invalidates their slots and dataset reset releases their native ownership.
+Character image slots own native texture sets rather than IMG byte buffers. Replacing a slot retains texture names, registration suffixes and material bindings while preserving other slots. Deleting a slot removes only the pictures last entered from its sets. Monster reserved images retain parsed texture documents and their decoded mip variants; initialization invalidates their slots and dataset reset releases their native ownership.
 
 Different model documents can embed the same shared texture set. Native registration reuses a picture only when its manager, block, suffixed name, logical dimensions, sampler and every decoded mip variant match. Every variant is decoded once during registration and retained for later variant switches. It compares immutable originals so playing texture animations do not cause new registrations. Changed pictures replace the existing header in place; texture deletion and manager initialization discard the previous registration. Identical live texture animation groups are reused as well.
 
