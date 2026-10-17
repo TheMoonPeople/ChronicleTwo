@@ -38,6 +38,15 @@ float         g_pointer_y = 0;
 std::uint32_t g_buttons = 0;
 std::string   g_wait_source;
 bool          g_drain = false;
+SoundHook     g_sound = nullptr;
+
+void PlaySe(int sound) {
+    if (g_sound) {
+        g_sound(sound);
+    } else {
+        MenuSePlay(sound);
+    }
+}
 
 bool Inside(float x, float y, float left, float top, float right, float bottom) {
     return x >= left && x < right && y >= top && y < bottom;
@@ -53,14 +62,14 @@ void Change(int direction) {
     Config config = ConfigGet();
     if (StepRow(CurrentRow(), config, direction)) {
         Save(config);
-        MenuSePlay(SYSTEM_SE_CURSOR);
+        PlaySe(SYSTEM_SE_CURSOR);
     }
 }
 
 void BeginBinding() {
     g_screen.binding = g_screen.row[g_screen.page];
     InputBeginBindCapture();
-    MenuSePlay(SYSTEM_SE_DECIDE);
+    PlaySe(SYSTEM_SE_DECIDE);
 }
 
 void Close() {
@@ -70,7 +79,7 @@ void Close() {
     g_drain = true;
     // Stay in menu-pointer mode until the retail Options screen finishes, so a closing click or
     // held key cannot change one of its options. Its pad state and settings are otherwise untouched.
-    MenuSePlay(SYSTEM_SE_CANCEL);
+    PlaySe(SYSTEM_SE_CANCEL);
 }
 
 void Open() {
@@ -80,7 +89,7 @@ void Open() {
     ListResolutions();
     g_wait_source.clear();
     g_drain = true;
-    MenuSePlay(SYSTEM_SE_DECIDE);
+    PlaySe(SYSTEM_SE_DECIDE);
 }
 
 void Activate(const Hit &hit) {
@@ -89,13 +98,13 @@ void Activate(const Hit &hit) {
             Open();
             break;
         case HitKind::Tab:
-            SelectPage(g_screen, hit.index);
+            TurnPage(g_screen, hit.index);
             break;
         case HitKind::Previous:
-            SelectPage(g_screen, g_screen.page - 1);
+            TurnPage(g_screen, g_screen.page - 1);
             break;
         case HitKind::Next:
-            SelectPage(g_screen, g_screen.page + 1);
+            TurnPage(g_screen, g_screen.page + 1);
             break;
         case HitKind::Row:
             g_screen.row[g_screen.page] = hit.index;
@@ -212,9 +221,9 @@ bool Run() {
             return true;
         }
         if (pressed & PAD_L1) {
-            SelectPage(g_screen, g_screen.page - 1);
+            TurnPage(g_screen, g_screen.page - 1);
         } else if (pressed & PAD_R1) {
-            SelectPage(g_screen, g_screen.page + 1);
+            TurnPage(g_screen, g_screen.page + 1);
         } else if (pressed & PAD_UP) {
             MoveRow(g_screen, -1);
         } else if (pressed & PAD_DOWN) {
@@ -247,6 +256,18 @@ bool Run() {
     }
     return g_screen.open || g_drain;
 }
+
+bool TurnPage(State &state, int page) {
+    const int previous = state.page;
+    SelectPage(state, page);
+    if (state.page == previous) {
+        return false;
+    }
+    PlaySe(SYSTEM_SE_CURSOR);
+    return true;
+}
+
+void SetSoundHook(SoundHook hook) { g_sound = hook; }
 
 Point PointerPosition() { return {g_pointer_x, g_pointer_y}; }
 

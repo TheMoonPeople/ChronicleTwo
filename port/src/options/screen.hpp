@@ -55,8 +55,13 @@ bool  Pointing();
 bool Run();
 Hit  HitTest(const State &state, float x, float y);
 void SelectPage(State &state, int page);
+// SelectPage that plays the retail cursor sound when the tab changes; gives whether it changed.
+bool TurnPage(State &state, int page);
 void MoveRow(State &state, int direction);
 void NavigatePointer(State &state, Point point, bool moved, float wheel);
+// Receives the screen's menu sounds in place of MenuSePlay while set; tests use it to observe them.
+using SoundHook = void (*)(int sound);
+void SetSoundHook(SoundHook hook);
 
 // Raw held-button repeat is independent of the retail menu's repeat bookkeeping.
 class Repeat {

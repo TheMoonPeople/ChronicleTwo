@@ -3,10 +3,18 @@
 #include <algorithm>
 #include <set>
 #include <string>
+#include <utility>
+#include <vector>
 
+#include "gamepad.hpp"
+#include "mainloop.hpp"
+#include "menu_mouse.hpp"
+#include "mglib.hpp"
 #include "options/rows.hpp"
 #include "options/screen.hpp"
+#include "platform/clock.hpp"
 #include "platform/input.hpp"
+#include "snd_mngr.hpp"
 
 namespace {
 const options::Row &Find(std::string_view key) {
@@ -215,6 +223,124 @@ TEST(PcOptions, HeldConfirmNeverRepeatsButNavigationDoes) {
     EXPECT_EQ(repeat.Step(kInputSelect), 0);
     repeat.Step(0);
     EXPECT_EQ(repeat.Step(kInputSelect), kInputSelect);
+}
+
+namespace {
+std::vector<int> g_sounds;
+
+void Record(int sound) { g_sounds.push_back(sound); }
+
+class PcOptionsSound : public testing::Test {
+protected:
+    CGamePad       pad = GamePad__2;
+    int            width = mgScreenWidth, height = mgScreenHeight;
+    options::State screen = options::g_screen;
+
+    void SetUp() override {
+        g_sounds.clear();
+        options::SetSoundHook(Record);
+        mgScreenWidth = 512;
+        mgScreenHeight = 480;
+        ClockSetUnbounded(true);
+        InputResetBindings();
+        InputSetScriptedDevices({});
+        MenuMouseEnable(true);
+        GamePad__2.key_lock = 0;
+        GamePad__2.pad[0].button = GamePad__2.previous_pad[0].button = 0;
+    }
+
+    void TearDown() override {
+        options::SetSoundHook(nullptr);
+        InputSetScriptedDevices({});
+        MenuMouseEnable(false);
+        mgEndFrame(nullptr);
+        MenuMouseTake();
+        InputResetBindings();
+        GamePad__2 = pad;
+        mgScreenWidth = width;
+        mgScreenHeight = height;
+        options::g_screen = screen;
+    }
+
+    // One screen tick with the pointer at (x, y) and these mouse buttons held.
+    void At(float x, float y, unsigned buttons = 0) {
+        const auto pos = MenuMouseTake();
+        InputSetScriptedDevices({.mouse_buttons = buttons, .mouse_dx = x - pos.x, .mouse_dy = y - pos.y});
+        mgEndFrame(nullptr);
+        options::Run();
+    }
+
+    void Click(float x, float y) {
+        At(x, y, 1);
+        At(x, y);
+    }
+
+    void Press(int button) {
+        GamePad__2.pad[0].button = button;
+        options::Run();
+        GamePad__2.pad[0].button = 0;
+        options::Run();
+    }
+};
+} // namespace
+
+TEST_F(PcOptionsSound, OnlyATabChangePlaysTheCursorSound) {
+    const int      pages = static_cast<int>(options::Pages().size());
+    const auto     cursor = std::vector<int>{SYSTEM_SE_CURSOR};
+    options::State state;
+    state.open = true;
+    // Each direction and each wrap turns the page with one cursor sound.
+    EXPECT_TRUE(options::TurnPage(state, state.page + 1));
+    EXPECT_EQ(state.page, 1);
+    EXPECT_EQ(std::exchange(g_sounds, {}), cursor);
+    EXPECT_TRUE(options::TurnPage(state, state.page - 1));
+    EXPECT_EQ(state.page, 0);
+    EXPECT_EQ(std::exchange(g_sounds, {}), cursor);
+    EXPECT_TRUE(options::TurnPage(state, state.page - 1));
+    EXPECT_EQ(state.page, pages - 1);
+    EXPECT_EQ(std::exchange(g_sounds, {}), cursor);
+    EXPECT_TRUE(options::TurnPage(state, state.page + 1));
+    EXPECT_EQ(state.page, 0);
+    EXPECT_EQ(std::exchange(g_sounds, {}), cursor);
+    // Selecting the tab already shown stays silent.
+    EXPECT_FALSE(options::TurnPage(state, state.page));
+    EXPECT_EQ(state.page, 0);
+    EXPECT_TRUE(g_sounds.empty());
+}
+
+TEST_F(PcOptionsSound, TabClicksAndShouldersPlayOneCursorSoundThroughRun) {
+    const auto cursor = std::vector<int>{SYSTEM_SE_CURSOR};
+    options::g_screen = {};
+    options::g_screen.open = true;
+    // Find each tab through the screen's own hit test, so the test follows any tab layout.
+    const auto tab_point = [](int page) {
+        for (int y = 0; y < 480; y += 2) {
+            for (int x = 0; x < 512; x += 2) {
+                const auto hit = options::HitTest(options::g_screen, x + 1.0f, y + 1.0f);
+                if (hit.kind == options::HitKind::Tab && hit.index == page) {
+                    return std::pair{x + 1.0f, y + 1.0f};
+                }
+            }
+        }
+        ADD_FAILURE() << "no tab " << page;
+        return std::pair{0.0f, 0.0f};
+    };
+    const auto tab_x = [&](int page) { return tab_point(page).first; };
+    const auto tab_y = tab_point(0).second;
+    At(tab_x(0), tab_y);
+    ASSERT_TRUE(g_sounds.empty());
+    Click(tab_x(2), tab_y);
+    EXPECT_EQ(options::g_screen.page, 2);
+    EXPECT_EQ(std::exchange(g_sounds, {}), cursor);
+    Click(tab_x(2), tab_y);
+    EXPECT_EQ(options::g_screen.page, 2);
+    EXPECT_TRUE(g_sounds.empty());
+    Press(PAD_R1);
+    EXPECT_EQ(options::g_screen.page, 3);
+    EXPECT_EQ(std::exchange(g_sounds, {}), cursor);
+    Press(PAD_L1);
+    EXPECT_EQ(options::g_screen.page, 2);
+    EXPECT_EQ(std::exchange(g_sounds, {}), cursor);
 }
 
 TEST(PcOptions, EscapeAndWholeAxesCannotBeBoundAndResetOnlyTouchesOneAction) {
