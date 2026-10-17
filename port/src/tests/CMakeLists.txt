@@ -67,7 +67,8 @@ set(CT_GPU_SLOW_TESTS
     NativeRenderState.*
     PersistentMesh.*
     GfxMisc.PipelineCache
-    MovieGlue.ThirtyFramesOfL5LogoThroughTheMovieTexture)
+    MovieGlue.ThirtyFramesOfL5LogoThroughTheMovieTexture
+    MovieTextureGpu.*)
 set(CT_GPU_TESTS
     TargetPresentation.*
     PickupPresentation.RetailEmissionsTagCoinsAbsAndFloatingItems
