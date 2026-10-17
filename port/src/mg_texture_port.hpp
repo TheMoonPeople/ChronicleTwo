@@ -88,7 +88,8 @@ struct MgTextureExtent {
  */
 MgTextureExtent MgTexturePhysicalExtent(const mgCTexture *texture);
 /**
- * Gives a non-catalog texture scale x scale host texels per retail texel (the camera's capture target).
+ * Gives a non-catalog texture scale x scale host texels per retail texel (the camera's capture target, the movie
+ * texture). A change rebuilds its image, blank, at the new size on the next lookup.
  */
 void MgTextureSetPhysicalScale(const mgCTexture *texture, uint32_t scale);
 /**
