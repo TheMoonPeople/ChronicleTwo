@@ -1855,7 +1855,7 @@ TEST(MglibPresent, HandTipUsesTheHoverMappingAtFourThreeAndWidescreenFill) {
         const auto    texture = gfx::CreateTexture({1, 1});
         const uint8_t white[] = {255, 255, 255, 255};
         ASSERT_TRUE(gfx::UpdateTexture(texture, 0, 0, 0, 1, 1, white));
-        MenuMouseNoteHand({.texture = texture}, {0, 0, 40, 24}, 0.2f, 0, 128);
+        MenuMouseNoteHand({.texture = texture}, {0, 0, 40, 24}, 0.2f, 128);
         gfx::BeginRecording();
         MenuMouseDraw();
         const auto list = gfx::EndRecording();
@@ -1882,6 +1882,37 @@ TEST(MglibPresent, HandTipUsesTheHoverMappingAtFourThreeAndWidescreenFill) {
         gfx::DestroyTexture(texture);
     }
     InputSetMouseSettings(settings);
+}
+
+TEST(MglibPresent, MenuPointerKeepsOneFacingWithItsFingertipOnTheHotspot) {
+    PresentRenderer renderer(1280, 960);
+    InputResetBindings();
+    InputSetScriptedDevices({.mouse_dx = 1});
+    MenuMouseEnable(true);
+    MenuMouseTake();
+    const auto point = MenuMouseDisplaySample();
+    ASSERT_TRUE(point.pointing);
+    const auto    texture = gfx::CreateTexture({1, 1});
+    const uint8_t white[] = {255, 255, 255, 255};
+    ASSERT_TRUE(gfx::UpdateTexture(texture, 0, 0, 0, 1, 1, white));
+    // Retail mirrors Max's Character page hand; the pointer is given no facing and keeps its usual one.
+    MenuMouseNoteHand({.texture = texture}, {0, 0, 40, 24});
+    gfx::BeginRecording();
+    MenuMouseDraw();
+    const auto list = gfx::EndRecording();
+    ASSERT_EQ(gfx::ListStats(*list).draws_2d, 1u);
+    const auto *draw = std::get_if<gfx::detail::Draw2DEntry>(&list->entries.front());
+    ASSERT_NE(draw, nullptr);
+    ASSERT_EQ(draw->vertices.size(), 4u);
+    // The wrist (u = 0) stays left of the fingertip (u = 40), which sits on the pointer.
+    EXPECT_LT(draw->vertices[0].x, draw->vertices[1].x);
+    EXPECT_LT(draw->vertices[0].u, draw->vertices[1].u);
+    EXPECT_NEAR((draw->vertices[1].x + draw->vertices[3].x) / 2, point.x, 0.0001f);
+    EXPECT_NEAR((draw->vertices[1].y + draw->vertices[3].y) / 2, point.y, 0.0001f);
+    MenuMouseEnable(false);
+    InputSetScriptedDevices({});
+    InputSetMenuMouse(false);
+    gfx::DestroyTexture(texture);
 }
 
 namespace {

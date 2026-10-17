@@ -1,0 +1,38 @@
+# --jump town:10 --fast-load --window 1920x1080; use --screenshot-fps to see the pointer.
+# Click Cedric, then View Status (950), click beside the commands (1040: nothing happens),
+# Repair Weapons (1150), Choose weapon (1320: the repair board), click beside the board
+# (1400: nothing is repaired), hover the Broad Sword (1430).
+300 triangle
+306
+370 down
+371
+420 cross
+426
+600 mouse:-425,345
+601
+610 mouse1
+612
+700 mouse:30,-340
+701
+720 mouse1
+722
+960 mouse:735,-95
+961
+970 mouse1
+972
+1060 mouse:-780,218
+1061
+1070 mouse1
+1072
+1160 mouse:240,-133
+1161
+1230 mouse1
+1232
+1340 mouse:-230,-355
+1341
+1350 mouse1
+1352
+1420 mouse:645,100
+1421
+1440 mouse1
+1442
