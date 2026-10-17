@@ -103,16 +103,16 @@ UNIT_FIXUPS = [
      "\n                stack.stSetBuffer(BuffReadData, 260000);"),
     # The town menu's buffer, carved from the end of the main stack after the total data buffer, needs
     # the same 60000 quadwords for the invention menu's model reads.
-    ("editloop.cpp", """    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - 210128);
-    printf("data memory size = %d kbyte", (data_size - 210128) * 16 / 1024);""",
-     """    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - 270128);
-    printf("data memory size = %d kbyte", (data_size - 270128) * 16 / 1024);"""),
+    ("editloop.cpp", """    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - (200128 + WORK_BUFFER_SIZE));
+    printf("data memory size = %d kbyte", (data_size - (200128 + WORK_BUFFER_SIZE)) * 16 / 1024);""",
+     """    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - (260128 + WORK_BUFFER_SIZE));
+    printf("data memory size = %d kbyte", (data_size - (260128 + WORK_BUFFER_SIZE)) * 16 / 1024);"""),
     # Geostone announcement updates and draws reserve eight nullable message slots.
     ("editmenu.cpp", "static CDC2Mes *DownLoadMes[6];", "static CDC2Mes *DownLoadMes[8];"),
-    ("editloop.cpp", """    main_stack->Alloc(data_size - 210128);
+    ("editloop.cpp", """    main_stack->Alloc(data_size - (200128 + WORK_BUFFER_SIZE));
     MenuBuffer__2.stSetBuffer(read_buffer = main_stack->stAlloc64(200000), 200000);
     read_buffer_end = read_buffer + 200000;""",
-     """    main_stack->Alloc(data_size - 270128);
+     """    main_stack->Alloc(data_size - (260128 + WORK_BUFFER_SIZE));
     MenuBuffer__2.stSetBuffer(read_buffer = main_stack->stAlloc64(260000), 260000);
     read_buffer_end = read_buffer + 260000;"""),
 ]

@@ -186,6 +186,9 @@ static int EditModeChgFlag;
 #include "screeneffect.hpp"
 #include "snd_mngr.hpp"
 
+// Each draw packet the frame sorts takes one mgSORT_PACKET from WorkBuffer, and those grow with pointer width on PC. One on PS2.
+#define WORK_BUFFER_SIZE (10000 * (int) (sizeof(mgSORT_PACKET) / 16))
+
 /**
  *
  * Frame used to render the town water surface.
@@ -603,8 +606,8 @@ void EditInit(INIT_LOOP_ARG arg) {
     ScriptBuffer__2.stSetBuffer(script_data, 20000);
     main_stack->Align64();
     data_size = main_stack->stack_size - main_stack->stack_used;
-    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - 210128);
-    printf("data memory size = %d kbyte", (data_size - 210128) * 16 / 1024);
+    TotalDataBuff.stSetBuffer(&main_stack->stack[main_stack->stack_used], data_size - (200128 + WORK_BUFFER_SIZE));
+    printf("data memory size = %d kbyte", (data_size - (200128 + WORK_BUFFER_SIZE)) * 16 / 1024);
 
     if (strlen("Total Data Buffer") < 16) {
         strcpy(TotalDataBuff.name, "Total Data Buffer");
@@ -612,10 +615,10 @@ void EditInit(INIT_LOOP_ARG arg) {
 
     TotalDataBuff.stack_used = 0;
     TotalDataBuff.lock = 0;
-    main_stack->Alloc(data_size - 210128);
+    main_stack->Alloc(data_size - (200128 + WORK_BUFFER_SIZE));
     MenuBuffer__2.stSetBuffer(read_buffer = main_stack->stAlloc64(200000), 200000);
     read_buffer_end = read_buffer + 200000;
-    WorkBuffer.stSetBuffer(main_stack->stAlloc64(10000), 10000);
+    WorkBuffer.stSetBuffer(main_stack->stAlloc64(WORK_BUFFER_SIZE), WORK_BUFFER_SIZE);
     textures = &mgTexManager;
     textures->SetTableBuffer(350, 221, &TotalDataBuff);
     textures->Initialize(GetVramTopAddress(), -1);
