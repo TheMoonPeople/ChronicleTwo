@@ -5,6 +5,10 @@
  */
 void PortDrawQuickChangeBanner();
 /**
+ * Starts the banner naming chara, sliding in from the left edge as a new emission.
+ */
+void PortShowQuickChangeBanner(int chara);
+/**
  * Discards the quick-change banner before entering another gameplay mode.
  */
 void PortCancelQuickChangeBanner();
