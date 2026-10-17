@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "../menu_mouse_item.hpp"
 #include "gamepad.hpp"
 #include "mainloop.hpp"
@@ -12,6 +14,9 @@
 #include "mglib.hpp"
 #include "platform/clock.hpp"
 #include "platform/input.hpp"
+#include "savedata.hpp"
+
+extern CSaveData *PortActiveSaveData asm("MainLoop_ActiveSaveData");
 
 using namespace menumouse;
 
@@ -262,10 +267,75 @@ TEST_F(ItemMouse, WheelChangesVisibleRowAndCursorTogether) {
     EXPECT_EQ(keys.cursor, 30);
     EXPECT_EQ(keys.top_line, 5);
     EXPECT_TRUE(keys.CheckKeyInput());
-    EXPECT_FLOAT_EQ(MenuItemBrdUnderBrdPosXY[1], -200);
     Tick(0, 0, 0, 100);
     EXPECT_EQ(keys.cursor, 0);
     EXPECT_EQ(keys.top_line, 0);
+}
+
+TEST_F(ItemMouse, WheelScrollEasesLikeTheRetailDpadScroll) {
+    const auto saved_manner = MenuItemBrdCalcManner;
+    MenuItemBrdCalcManner = MENU_ITEM_BRD_CALC_EASE;
+    MenuItemBrdUnderBrdPosXY[1] = 50; // The retail board origin for top line 0.
+    Tick(1, 0, 0, -1);
+    EXPECT_EQ(keys.top_line, 1);
+    EXPECT_EQ(keys.cursor, 6); // The cell that settles under the pointer.
+    EXPECT_EQ(MenuItemBrdCalcManner, MENU_ITEM_BRD_CALC_EASE);
+    EXPECT_FLOAT_EQ(MenuItemBrdUnderBrdPosXY[1], 50); // Not snapped by the mouse.
+    Func_MenuItemBrdPosStep(keys.top_line);
+    EXPECT_LT(MenuItemBrdUnderBrdPosXY[1], 50);
+    EXPECT_GT(MenuItemBrdUnderBrdPosXY[1], 0); // Part way to the next row.
+    // Row 0 is sliding out: hovering it no longer moves the cursor back.
+    Tick(0, 1); // Still over the drawn first row.
+    EXPECT_EQ(keys.cursor, 6);
+    EXPECT_EQ(keys.top_line, 1);
+    for (int i = 0; i < 60; ++i) {
+        Func_MenuItemBrdPosStep(keys.top_line);
+    }
+    EXPECT_NEAR(MenuItemBrdUnderBrdPosXY[1], 0, 1);
+    MenuItemBrdCalcManner = saved_manner;
+}
+
+TEST_F(ItemMouse, ClickDuringAnEasedWheelScrollConfirmsTheClickedCell) {
+    const auto saved_manner = MenuItemBrdCalcManner;
+    MenuItemBrdCalcManner = MENU_ITEM_BRD_CALC_EASE;
+    MenuItemBrdUnderBrdPosXY[1] = 50;
+    items[6].item_no = 1;
+    items[12].item_no = 1;
+    // Mouse1 and a wheel notch arrive together over cell 6 at (263, 130).
+    Tick(1, 55, 1, -1);
+    EXPECT_EQ(keys.top_line, 1);
+    EXPECT_EQ(keys.cursor, 12); // The cell that will settle under the pointer.
+    EXPECT_EQ(GamePad__2.GetPadDown(), 0);
+    MenuItemBrdUnderBrdPosXY[1] = 37.5f; // Part way through the retail ease; cell 6 is still drawn there.
+    Tick();
+    EXPECT_EQ(keys.cursor, 6);
+    EXPECT_EQ(keys.top_line, 1);
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CROSS);
+    MenuItemBrdCalcManner = saved_manner;
+}
+
+TEST_F(ItemMouse, WheelOverTheBoardTopStripKeepsTheCursorInTheNewRows) {
+    MenuItemBrdUnderBrdPosXY[1] = 50;
+    // (263, 45) is inside the aperture but above the first resting row.
+    Tick(1, -30, 0, -1);
+    EXPECT_EQ(keys.top_line, 1);
+    EXPECT_EQ(keys.cursor, 6);
+    // The retail key pass that follows keeps the new top line.
+    auto  save = std::make_unique<CSaveData>();
+    auto *saved = PortActiveSaveData;
+    PortActiveSaveData = save.get();
+    MenuItemBrdKey(0, &keys.cursor, &keys.top_line, ITEM_BOARD_MAIN);
+    PortActiveSaveData = saved;
+    EXPECT_EQ(keys.top_line, 1);
+    EXPECT_EQ(keys.cursor, 6);
+}
+
+TEST(MenuMouse, VisibleRowUsesTheTargetTopLine) {
+    EXPECT_TRUE(VisibleRow(6, 1, 5));
+    EXPECT_FALSE(VisibleRow(5, 1, 5));
+    EXPECT_TRUE(VisibleRow(35, 1, 5));
+    EXPECT_FALSE(VisibleRow(36, 1, 5));
+    EXPECT_FALSE(VisibleRow(-1, 0, 5));
 }
 
 TEST_F(ItemMouse, DragEmitsRetailPickupThenCrossAtDestination) {

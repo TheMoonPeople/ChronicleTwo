@@ -6,6 +6,8 @@
 #include "gamepad.hpp"
 #include "mainloop.hpp"
 #include "menu_mouse.hpp"
+#include "menu_mouse_make.hpp"
+#include "menu_mouse_monster.hpp"
 #include "menu_mouse_shop.hpp"
 #include "menucls1.hpp"
 #include "menucommon.hpp"
@@ -100,6 +102,10 @@ PORT_OVERRIDE int CMenuKeyFunc::CheckSelectKey() {
         if (now_mode == MENU_MODE_ITEM_SELECT) {
             ItemPopupMouse();
         }
+        if (now_mode == MENU_MODE_INVENT || now_mode == MENU_MODE_INVENT_DIRECT) {
+            MenuMouseMakeTick(*this);
+        }
+        MenuMouseMonsterTick(*this);
     }
     if (GamePad__2.Down(PAD_UP)) {
         select_key |= MENU_SELECT_KEY_UP;

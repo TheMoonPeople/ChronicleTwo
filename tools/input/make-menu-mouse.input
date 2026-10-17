@@ -1,0 +1,53 @@
+# --jump town:10 --fast-load, 1280x720: the Make menu with the mouse.
+# Frames 720-990 use the retail debug keys (R3, Circle) to fill the invention cards.
+# Capture 1240: hovering card 3. 1320: hovering the item board brings it forward.
+# 1345/1400: a wheel notch eases the board one row. 1480: back on the cards.
+# 1580: wheel notches move the card cursor and scroll the list. 1700: a click opens the quantity board.
+# 1740: hovering Yes. 1820: hovering No. 1920: Yes reports missing materials. 2010: a click dismisses it.
+# 2150: Mouse2 leaves the Make menu.
+300 triangle
+301
+400 down
+401
+420 down
+421
+500 cross
+501
+720 cross
+721
+900 r3
+901
+930 circle
+931
+960 r3
+961
+990 circle
+991
+1200 mouse:-210,-80
+1201
+1260 mouse:390,-100
+1261
+1340 wheel:-1
+1341
+1420 mouse:-600,0
+1421
+1500 wheel:-3
+1501
+1530 wheel:-2
+1531
+1600 mouse:0,1
+1601
+1620 mouse1
+1621
+1720 mouse:320,268
+1721
+1800 mouse:0,42
+1801
+1840 mouse:0,-42
+1841
+1860 mouse1
+1861
+1950 mouse1
+1951
+2030 mouse2
+2031

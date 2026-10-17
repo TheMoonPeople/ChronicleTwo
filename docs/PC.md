@@ -749,7 +749,8 @@ the mouse. A short click opens commands on release. Swapped items return to the
 original slot through the retail return animation. Dropping outside a target or
 pressing Mouse2 returns the held item; it does not discard it. Equipment, use,
 stack limits and refusal checks remain the game's own. Wheel notches over the
-grid scroll rows, stopping at the bag's ends.
+grid scroll one row each, stopping at the bag's ends, with the board's retail
+eased scroll; the cell that settles under the pointer is selected.
 
 The pointer starts at the retail selection when the mouse takes over. Controller
 or keyboard button input returns control to the retail cursor. Mouse counts are
@@ -768,6 +769,32 @@ active-slot placement (1100), active-slot moves (1300), and return after a drop
 outside the menu (1550). `item-menu-mouse-dungeon.input` reaches the dungeon's
 Item page and opens Bread's commands by frame 2850. These two scripts also use
 1280x720; scale `mouse:dx,dy` counts with the window dimensions for other sizes.
+
+### Make and Monster Transform mouse
+
+On the Make menu, hovering an invention card or a cell of the item board moves
+the retail cursor there; hovering the other pane brings it forward as Left and
+Right do. Where the panes overlap, the pane in front keeps the pointer. Mouse1
+on a card or cell confirms it; a click that brings the other pane forward only
+selects. Mouse2 backs out like Circle, and clicks on the background confirm
+nothing. The wheel moves the card cursor one row per notch, or scrolls the item
+board one row with its retail eased scroll. On the quantity board, hovering Yes
+or No selects it, the arrows and the wheel change the count, and Mouse1 on Yes,
+No or the count confirms. Result and error messages accept a click. The idea
+board, notebook and album pages have no pointer targets: Mouse1 there does
+nothing and Mouse2 backs out.
+
+On the Monster Transform screen, hovering a badge selects it and updates the
+preview, Mouse1 opens its commands, and the wheel moves one row of badges.
+Command, form and Yes/No lists use the shared message choices; the class-change
+list accepts hover and click. On a badge's status page the wheel steps through
+its forms like L1 and R1, and Mouse1 does nothing. Mouse2 backs out of each
+step and closes the box.
+
+The adapters are `port/src/menu_mouse_make.cpp` and `menu_mouse_monster.cpp`;
+`MenuMouseMake.*` and `MakeMouse.*` test them. `tools/input/make-menu-mouse.input`
+and `monster-transform-mouse.input` replay both screens at 1280x720 with
+`--jump town:10 --fast-load`; their comments give capture frames.
 
 ### Fixed camera mouse look
 
