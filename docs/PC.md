@@ -1645,7 +1645,7 @@ The root `CMakeLists.txt` selects the platform: `PS2` builds `ps2/`, and `PC` en
 - `port/src` holds code only the port compiles. `main.cpp` starts the game. `identity.cpp` sets the game's name and directories. `<unit>.cpp` replaces functions of `ps2/src/<unit>.cpp`. `*_asm.cpp` defines the functions `ps2/src` writes in MWCC assembly. `linknames.cpp` supplies link-time names (below). `tests/` holds the GoogleTest cases, one process per case.
 - `port/include` holds `port.h`, included ahead of every unit the port compiles, and `stubs/`, the per-unit headers (below).
 - `port/assets` holds the data the port ships beside the game's: `glyphs/`, the button symbols the build copies to `glyphs/` beside the executable (see [GLYPHS.md](GLYPHS.md)), and `icon/`, the window and package icons.
-- `tools/kazarov` is the shared-code submodule. `tools/kazarov/port` holds the code both games share: `gfx`, `audio`, `platform`, `sce` (the SDK replacements) and `tests`. `cmake/KazarovPort.cmake` gives the port its targets:
+- `tools/kazarov` is the shared-code submodule. `tools/kazarov/src/cpp` holds the code both games share: `gfx`, `audio`, `platform`, `sce` (the SDK replacements) and `tests`. `cmake/KazarovPort.cmake` gives the port its targets:
   - `kz_port_host_library(ct_host)` builds `gfx`, `audio` and `platform`.
   - `kz_port_sce_sources(... LIBS libvu0 libpad libmc sifdev sifrpc eekernel libcdvd libgraph libdma libpkt eekernel_threads libdev libmpeg libsdr modmsin sifdma)` selects the SDK families.
   - `kz_port_tests(darkchronicle_tests)` adds the shared test cases.

@@ -7,8 +7,8 @@
 
 [<img src="https://decomp.dev/TheMoonPeople/ChronicleTwo/pal.svg?w=512&h=256" width="512" height="256" alt="PAL decompilation progress">][progress_link]
 
-Chronicle Two is a decompilation project (and eventual port) of Dark
-Chronicle/Dark Cloud 2 for the PlayStation 2.
+Chronicle Two is a decompilation of Dark Chronicle/Dark Cloud 2 for the
+PlayStation 2, and a native port built from it.
 
 ## Building and running
 

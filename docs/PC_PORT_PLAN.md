@@ -818,7 +818,7 @@ behaviour is implemented; nothing from Chronicle is copied.
   `.\build.bat windows-x64` links; `./build.sh ps2-pal` byte-identical;
   Chronicle green on any Kazarov commit this WP produced; `git diff --stat
   ps2/` listed with justifications in the report.
-- Depends: 1.1-1.9. Not parallel. Size: â‰¤ 1,000, mostly one-liners.
+- Depends: 1.1-1.9. Not parallel. Size: ≤ 1,000, mostly one-liners.
 
 **WP1.11 Phase gate and docs [mechanical]**
 - Create `docs/PC.md` (build instructions for three OSes, the override
@@ -1420,7 +1420,7 @@ Depends: 2.5. Size: ~600.
 shop, invention, photo), DUNGEON (floors, spheda, ridepod), fishing,
 Gyorace, buggy, menus, saves with scripted input; replace each
 `Ps2Unimplemented` hit from its unit with the pattern of its phase. Each
-round â‰¤ 1,000 lines, named by the units it covers. Depends: 4.11, 5.4, 6.4.
+round ≤ 1,000 lines, named by the units it covers. Depends: 4.11, 5.4, 6.4.
 
 **WP7.5 64-bit audit and crutches [mechanical]** `truncations.md` has no
 unresolved round trip in linked code; PIE; arenas above 4 GiB in tests.
